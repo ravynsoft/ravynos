@@ -38,7 +38,7 @@ inthand_t
 	IDTVEC(rendezvous_pti);
 
 void	invlop_handler(void);
-int native_start_all_aps(void);
+int	start_all_aps(void);
 
 #endif /* !LOCORE */
 #endif /* SMP */

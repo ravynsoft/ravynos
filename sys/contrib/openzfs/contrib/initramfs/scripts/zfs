@@ -79,7 +79,9 @@ find_rootfs()
 
 	# If it's already specified, just keep it mounted and exit
 	# User (kernel command line) must be correct.
-	[ -n "${ZFS_BOOTFS}" ] && return 0
+	if [ -n "${ZFS_BOOTFS}" ] && [ "${ZFS_BOOTFS}" != "zfs:AUTO" ]; then
+		return 0
+	fi
 
 	# Not set, try to find it in the 'bootfs' property of the pool.
 	# NOTE: zpool does not support 'get -H -ovalue bootfs'...
@@ -594,7 +596,7 @@ setup_snapshot_booting()
 	retval=0
 
 	# Make sure that the snapshot specified actually exists.
-	if [ ! "$(get_fs_value "${snap}" type)" ]
+	if [ -z "$(get_fs_value "${snap}" type)" ]
 	then
 		# Snapshot does not exist (...@<null> ?)
 		# ask the user for a snapshot to use.
@@ -611,7 +613,8 @@ setup_snapshot_booting()
 	then
 		# If the destination dataset for the clone
 		# already exists, destroy it. Recursively
-		if [ "$(get_fs_value "${rootfs}_${snapname}" type)" ]; then
+		if [ -n "$(get_fs_value "${rootfs}_${snapname}" type)" ]
+		then
 			filesystems=$("${ZFS}" list -oname -tfilesystem -H \
 			    -r -Sname "${ZFS_BOOTFS}")
 			for fs in $filesystems; do
@@ -629,6 +632,7 @@ setup_snapshot_booting()
 		then
 			# Rollback snapshot
 			rollback_snap "$s" || retval=$((retval + 1))
+			ZFS_BOOTFS="${rootfs}"
 		else
 			# Setup a destination filesystem name.
 			# Ex: Called with 'rpool/ROOT/debian@snap2'
@@ -755,7 +759,7 @@ mountroot()
 	#	rpool=rpool			(default if none of the above is used)
 	#	root=<pool>/<dataset>		(uses this for rpool - first part)
 	#	root=ZFS=<pool>/<dataset>	(uses this for rpool - first part, without 'ZFS=')
-	#	root=zfs:AUTO			(tries to detect both pool and rootfs
+	#	root=zfs:AUTO			(tries to detect both pool and rootfs)
 	#	root=zfs:<pool>/<dataset>	(uses this for rpool - first part, without 'zfs:')
 	#
 	# Option <dataset> could also be <snapshot>
@@ -845,7 +849,7 @@ mountroot()
 		done
 		IFS="$OLD_IFS"
 
-		[ "$quiet" != "y" ] && zfs_log_end_msg $ZFS_ERROR
+		[ "$quiet" != "y" ] && zfs_log_end_msg "$ZFS_ERROR"
 	else
 		# No auto - use value from the command line option.
 

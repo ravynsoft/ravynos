@@ -1312,7 +1312,7 @@ smsc_phy_init(struct smsc_softc *sc)
 	smsc_miibus_writereg(sc->sc_ue.ue_dev, sc->sc_phyno, SMSC_PHY_INTR_MASK,
 	                     (SMSC_PHY_INTR_ANEG_COMP | SMSC_PHY_INTR_LINK_DOWN));
 
-	/* Restart auto-negotation */
+	/* Restart auto-negotiation */
 	bmcr = smsc_miibus_readreg(sc->sc_ue.ue_dev, sc->sc_phyno, MII_BMCR);
 	bmcr |= BMCR_STARTNEG;
 	smsc_miibus_writereg(sc->sc_ue.ue_dev, sc->sc_phyno, MII_BMCR, bmcr);
@@ -1641,11 +1641,11 @@ smsc_attach_post_sub(struct usb_ether *ue)
 
 	ifp->if_capenable = ifp->if_capabilities;
 
-	mtx_lock(&Giant);
+	bus_topo_lock();
 	error = mii_attach(ue->ue_dev, &ue->ue_miibus, ifp,
 	    uether_ifmedia_upd, ue->ue_methods->ue_mii_sts,
 	    BMSR_DEFCAPMASK, sc->sc_phyno, MII_OFFSET_ANY, 0);
-	mtx_unlock(&Giant);
+	bus_topo_unlock();
 
 	return (error);
 }

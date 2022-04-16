@@ -35,6 +35,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/types.h>
 #include <sys/kdb.h>
 #include <sys/pcpu.h>
+#include <sys/reg.h>
 #include <sys/smp.h>
 #include <sys/systm.h>
 
@@ -44,7 +45,6 @@ __FBSDID("$FreeBSD$");
 #include <machine/debug_monitor.h>
 #include <machine/kdb.h>
 #include <machine/pcb.h>
-#include <machine/reg.h>
 
 #include <ddb/ddb.h>
 #include <ddb/db_access.h>
@@ -345,7 +345,7 @@ kdb_cpu_set_watchpoint(vm_offset_t addr, size_t size, int access)
 		return (EINVAL);
 	}
 
-	return (dbg_setup_watchpoint(addr, size, (enum dbg_access_t)access));
+	return (dbg_setup_watchpoint(addr, size, dbg_access));
 }
 
 int
@@ -960,6 +960,10 @@ vectr_clr:
 void
 dbg_monitor_init(void)
 {
+#ifdef	ARM_FORCE_DBG_MONITOR_DISABLE
+	db_printf("ARM Debug Architecture disabled in kernel compilation.\n");
+	return;
+#else
 	int err;
 
 	/* Fetch ARM Debug Architecture model */
@@ -1001,6 +1005,7 @@ dbg_monitor_init(void)
 
 	db_printf("HW Breakpoints/Watchpoints not enabled on CPU%d\n",
 	    PCPU_GET(cpuid));
+#endif	/* ARM_FORCE_DBG_MONITOR_DISABLE */
 }
 
 CTASSERT(sizeof(struct dbreg) == sizeof(((struct pcpu *)NULL)->pc_dbreg));
@@ -1008,7 +1013,6 @@ CTASSERT(sizeof(struct dbreg) == sizeof(((struct pcpu *)NULL)->pc_dbreg));
 void
 dbg_monitor_init_secondary(void)
 {
-	u_int cpuid;
 	int err;
 	/*
 	 * This flag is set on the primary CPU
@@ -1017,8 +1021,6 @@ dbg_monitor_init_secondary(void)
 	if (!dbg_capable())
 		return;
 
-	cpuid = PCPU_GET(cpuid);
-
 	err = dbg_reset_state();
 	if (err != 0) {
 		/*
@@ -1026,7 +1028,7 @@ dbg_monitor_init_secondary(void)
 		 * WPs/BPs will not work correctly on this CPU.
 		 */
 		KASSERT(0, ("%s: Failed to reset Debug Architecture "
-		    "state on CPU%d", __func__, cpuid));
+		    "state on CPU%d", __func__, PCPU_GET(cpuid)));
 		/* Disable HW debug capabilities for all CPUs */
 		atomic_set_int(&dbg_capable_var, 0);
 		return;
@@ -1034,7 +1036,7 @@ dbg_monitor_init_secondary(void)
 	err = dbg_enable_monitor();
 	if (err != 0) {
 		KASSERT(0, ("%s: Failed to enable Debug Monitor"
-		    " on CPU%d", __func__, cpuid));
+		    " on CPU%d", __func__, PCPU_GET(cpuid)));
 		atomic_set_int(&dbg_capable_var, 0);
 	}
 }

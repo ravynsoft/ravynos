@@ -13,6 +13,9 @@ maintainers:
 description:
   The STMicroelectronics STM32 DSI controller uses the Synopsys DesignWare MIPI-DSI host controller.
 
+allOf:
+  - $ref: dsi-controller.yaml#
+
 properties:
   compatible:
     const: st,stm32-dsi
@@ -48,40 +51,18 @@ properties:
       Phandle of the regulator that provides the supply voltage.
 
   ports:
-    type: object
-    description:
-      A node containing DSI input & output port nodes with endpoint
-      definitions as documented in
-      Documentation/devicetree/bindings/media/video-interfaces.txt
-      Documentation/devicetree/bindings/graph.txt
+    $ref: /schemas/graph.yaml#/properties/ports
+
     properties:
       port@0:
-        type: object
+        $ref: /schemas/graph.yaml#/properties/port
         description:
           DSI input port node, connected to the ltdc rgb output port.
 
       port@1:
-        type: object
+        $ref: /schemas/graph.yaml#/properties/port
         description:
           DSI output port node, connected to a panel or a bridge input port"
-
-patternProperties:
-  "^(panel|panel-dsi)@[0-9]$":
-    type: object
-    description:
-      A node containing the panel or bridge description as documented in
-      Documentation/devicetree/bindings/display/mipi-dsi-bus.txt
-    properties:
-      port:
-        type: object
-        description:
-          Panel or bridge port node, connected to the DSI output port (port@1)
-
-  "#address-cells":
-    const: 1
-
-  "#size-cells":
-    const: 0
 
 required:
   - "#address-cells"
@@ -92,7 +73,7 @@ required:
   - clock-names
   - ports
 
-additionalProperties: false
+unevaluatedProperties: false
 
 examples:
   - |

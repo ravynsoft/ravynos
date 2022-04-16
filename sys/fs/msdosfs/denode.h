@@ -142,6 +142,7 @@ struct fatcache {
  */
 struct denode {
 	struct vnode *de_vnode;	/* addr of vnode we are part of */
+	struct vn_clusterw de_clusterw;	/* buffer clustering information */
 	u_long de_flag;		/* flag bits */
 	u_long de_dirclust;	/* cluster of the directory file containing this entry */
 	u_long de_diroffset;	/* offset of this entry in the directory cluster */
@@ -272,6 +273,7 @@ int msdosfs_lookup_ino(struct vnode *vdp, struct vnode **vpp,
 /*
  * Internal service routine prototypes.
  */
+struct componentname;
 int deget(struct msdosfsmount *, u_long, u_long, int, struct denode **);
 int uniqdosname(struct denode *, struct componentname *, u_char *);
 

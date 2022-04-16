@@ -460,7 +460,7 @@ do {								\
  * or by having |c| a few percent smaller than |a|.  Pre-normalization of
  * (a, b) may help.
  *
- * This is is a variant of an algorithm of Kahan (see Knuth (1981) 4.2.2
+ * This is a variant of an algorithm of Kahan (see Knuth (1981) 4.2.2
  * exercise 19).  We gain considerable efficiency by requiring the terms to
  * be sufficiently normalized and sufficiently increasing.
  */
@@ -644,7 +644,7 @@ rnintl(long double x)
  * return type provided their arg is a floating point integer.  They can
  * sometimes be more efficient because no rounding is required.
  */
-#if (defined(amd64) || defined(__i386__)) && defined(__GNUCLIKE_ASM)
+#if defined(amd64) || defined(__i386__)
 #define	irint(x)						\
     (sizeof(x) == sizeof(float) &&				\
     sizeof(__float_t) == sizeof(long double) ? irintf(x) :	\
@@ -657,7 +657,7 @@ rnintl(long double x)
 
 #define	i64rint(x)	((int64_t)(x))	/* only needed for ld128 so not opt. */
 
-#if defined(__i386__) && defined(__GNUCLIKE_ASM)
+#if defined(__i386__)
 static __inline int
 irintf(float x)
 {
@@ -677,7 +677,7 @@ irintd(double x)
 }
 #endif
 
-#if (defined(__amd64__) || defined(__i386__)) && defined(__GNUCLIKE_ASM)
+#if defined(__amd64__) || defined(__i386__)
 static __inline int
 irintl(long double x)
 {

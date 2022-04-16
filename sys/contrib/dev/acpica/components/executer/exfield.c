@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -295,7 +295,8 @@ AcpiExReadDataFromField (
     else if ((ObjDesc->Common.Type == ACPI_TYPE_LOCAL_REGION_FIELD) &&
         (ObjDesc->Field.RegionObj->Region.SpaceId == ACPI_ADR_SPACE_SMBUS ||
          ObjDesc->Field.RegionObj->Region.SpaceId == ACPI_ADR_SPACE_GSBUS ||
-         ObjDesc->Field.RegionObj->Region.SpaceId == ACPI_ADR_SPACE_IPMI))
+         ObjDesc->Field.RegionObj->Region.SpaceId == ACPI_ADR_SPACE_IPMI  ||
+         ObjDesc->Field.RegionObj->Region.SpaceId == ACPI_ADR_SPACE_PLATFORM_RT))
     {
         /* SMBus, GSBus, IPMI serial */
 
@@ -467,7 +468,8 @@ AcpiExWriteDataToField (
     else if ((ObjDesc->Common.Type == ACPI_TYPE_LOCAL_REGION_FIELD) &&
         (ObjDesc->Field.RegionObj->Region.SpaceId == ACPI_ADR_SPACE_SMBUS ||
          ObjDesc->Field.RegionObj->Region.SpaceId == ACPI_ADR_SPACE_GSBUS ||
-         ObjDesc->Field.RegionObj->Region.SpaceId == ACPI_ADR_SPACE_IPMI))
+         ObjDesc->Field.RegionObj->Region.SpaceId == ACPI_ADR_SPACE_IPMI  ||
+         ObjDesc->Field.RegionObj->Region.SpaceId == ACPI_ADR_SPACE_PLATFORM_RT))
     {
         /* SMBus, GSBus, IPMI serial */
 
@@ -490,9 +492,7 @@ AcpiExWriteDataToField (
             ObjDesc->Field.BaseByteOffset,
             SourceDesc->Buffer.Pointer, DataLength);
 
-        if ((ObjDesc->Field.RegionObj->Region.Address == PCC_MASTER_SUBSPACE &&
-           MASTER_SUBSPACE_COMMAND (ObjDesc->Field.BaseByteOffset)) ||
-           GENERIC_SUBSPACE_COMMAND (ObjDesc->Field.BaseByteOffset))
+        if (MASTER_SUBSPACE_COMMAND (ObjDesc->Field.BaseByteOffset))
         {
             /* Perform the write */
 

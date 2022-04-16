@@ -18,7 +18,6 @@
 %token	HINTS
 %token	IDENT
 %token	MAXUSERS
-%token	PROFILE
 %token	OPTIONS
 %token	NOOPTION
 %token	MAKEOPTIONS
@@ -192,7 +191,6 @@ Config_spec:
 	System_spec
 		|
 	MAXUSERS NUMBER { maxusers = $2; } |
-	PROFILE NUMBER { profiling = $2; } |
 	ENV ID { newenvvar($2, true); } |
 	ENVVAR ENVLINE { newenvvar($2, false); } |
 	HINTS ID {
@@ -204,15 +202,6 @@ Config_spec:
 		hint->hint_name = $2;
 		STAILQ_INSERT_HEAD(&hints, hint, hint_next);
 	        }
-
-System_spec:
-	CONFIG System_id System_parameter_list {
-		errx(1, "%s:%d: root/dump/swap specifications obsolete",
-		      yyfile, yyline);
-		}
-	  |
-	CONFIG System_id
-	  ;
 
 System_id:
 	Save_id { newopt(&mkopt, ns("KERNEL"), $1, 0, 0); };

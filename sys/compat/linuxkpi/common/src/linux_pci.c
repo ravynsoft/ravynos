@@ -56,6 +56,7 @@ __FBSDID("$FreeBSD$");
 #include <dev/pci/pci_iov.h>
 #include <dev/backlight/backlight.h>
 
+#include <linux/kernel.h>
 #include <linux/kobject.h>
 #include <linux/device.h>
 #include <linux/slab.h>
@@ -76,6 +77,14 @@ __FBSDID("$FreeBSD$");
 
 /* Undef the linux function macro defined in linux/pci.h */
 #undef pci_get_class
+
+extern int linuxkpi_debug;
+
+SYSCTL_DECL(_compat_linuxkpi);
+
+static counter_u64_t lkpi_pci_nseg1_fail;
+SYSCTL_COUNTER_U64(_compat_linuxkpi, OID_AUTO, lkpi_pci_nseg1_fail, CTLFLAG_RD,
+    &lkpi_pci_nseg1_fail, "Count of busdma mapping failures of single-segment");
 
 static device_probe_t linux_pci_probe;
 static device_attach_t linux_pci_attach;
@@ -500,6 +509,22 @@ lkpi_pci_disable_dev(struct device *dev)
 	return (0);
 }
 
+struct pci_devres *
+lkpi_pci_devres_get_alloc(struct pci_dev *pdev)
+{
+	struct pci_devres *dr;
+
+	dr = lkpi_devres_find(&pdev->dev, lkpi_pci_devres_release, NULL, NULL);
+	if (dr == NULL) {
+		dr = lkpi_devres_alloc(lkpi_pci_devres_release, sizeof(*dr),
+		    GFP_KERNEL | __GFP_ZERO);
+		if (dr != NULL)
+			lkpi_devres_add(&pdev->dev, dr);
+	}
+
+	return (dr);
+}
+
 void
 lkpi_pci_devres_release(struct device *dev, void *p)
 {
@@ -526,6 +551,26 @@ lkpi_pci_devres_release(struct device *dev, void *p)
 			continue;
 		pci_release_region(pdev, bar);
 	}
+}
+
+struct pcim_iomap_devres *
+lkpi_pcim_iomap_devres_find(struct pci_dev *pdev)
+{
+	struct pcim_iomap_devres *dr;
+
+	dr = lkpi_devres_find(&pdev->dev, lkpi_pcim_iomap_table_release,
+	    NULL, NULL);
+	if (dr == NULL) {
+		dr = lkpi_devres_alloc(lkpi_pcim_iomap_table_release,
+		    sizeof(*dr), GFP_KERNEL | __GFP_ZERO);
+		if (dr != NULL)
+			lkpi_devres_add(&pdev->dev, dr);
+	}
+
+	if (dr == NULL)
+		device_printf(pdev->dev.bsddev, "%s: NULL\n", __func__);
+
+	return (dr);
 }
 
 void
@@ -659,10 +704,10 @@ _linux_pci_register_driver(struct pci_driver *pdrv, devclass_t dc)
 	pdrv->bsddriver.methods = pci_methods;
 	pdrv->bsddriver.size = sizeof(struct pci_dev);
 
-	mtx_lock(&Giant);
+	bus_topo_lock();
 	error = devclass_add_driver(dc, &pdrv->bsddriver,
 	    BUS_PASS_DEFAULT, &pdrv->bsdclass);
-	mtx_unlock(&Giant);
+	bus_topo_unlock();
 	return (-error);
 }
 
@@ -703,14 +748,17 @@ pci_resource_start(struct pci_dev *pdev, int bar)
 	struct resource_list_entry *rle;
 	rman_res_t newstart;
 	device_t dev;
+	int error;
 
 	if ((rle = linux_pci_get_bar(pdev, bar, true)) == NULL)
 		return (0);
 	dev = pdev->pdrv != NULL && pdev->pdrv->isdrm ?
 	    device_get_parent(pdev->dev.bsddev) : pdev->dev.bsddev;
-	if (BUS_TRANSLATE_RESOURCE(dev, rle->type, rle->start, &newstart)) {
-		device_printf(pdev->dev.bsddev, "translate of %#jx failed\n",
-		    (uintmax_t)rle->start);
+	error = bus_translate_resource(dev, rle->type, rle->start, &newstart);
+	if (error != 0) {
+		device_printf(pdev->dev.bsddev,
+		    "translate of %#jx failed: %d\n",
+		    (uintmax_t)rle->start, error);
 		return (0);
 	}
 	return (newstart);
@@ -724,6 +772,90 @@ pci_resource_len(struct pci_dev *pdev, int bar)
 	if ((rle = linux_pci_get_bar(pdev, bar, true)) == NULL)
 		return (0);
 	return (rle->count);
+}
+
+int
+pci_request_region(struct pci_dev *pdev, int bar, const char *res_name)
+{
+	struct resource *res;
+	struct pci_devres *dr;
+	struct pci_mmio_region *mmio;
+	int rid;
+	int type;
+
+	type = pci_resource_type(pdev, bar);
+	if (type < 0)
+		return (-ENODEV);
+	rid = PCIR_BAR(bar);
+	res = bus_alloc_resource_any(pdev->dev.bsddev, type, &rid,
+	    RF_ACTIVE|RF_SHAREABLE);
+	if (res == NULL) {
+		device_printf(pdev->dev.bsddev, "%s: failed to alloc "
+		    "bar %d type %d rid %d\n",
+		    __func__, bar, type, PCIR_BAR(bar));
+		return (-ENODEV);
+	}
+
+	/*
+	 * It seems there is an implicit devres tracking on these if the device
+	 * is managed; otherwise the resources are not automatiaclly freed on
+	 * FreeBSD/LinuxKPI tough they should be/are expected to be by Linux
+	 * drivers.
+	 */
+	dr = lkpi_pci_devres_find(pdev);
+	if (dr != NULL) {
+		dr->region_mask |= (1 << bar);
+		dr->region_table[bar] = res;
+	}
+
+	/* Even if the device is not managed we need to track it for iomap. */
+	mmio = malloc(sizeof(*mmio), M_DEVBUF, M_WAITOK | M_ZERO);
+	mmio->rid = PCIR_BAR(bar);
+	mmio->type = type;
+	mmio->res = res;
+	TAILQ_INSERT_TAIL(&pdev->mmio, mmio, next);
+
+	return (0);
+}
+
+struct resource *
+_lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size __unused)
+{
+	struct pci_mmio_region *mmio, *p;
+	int type;
+
+	type = pci_resource_type(pdev, bar);
+	if (type < 0) {
+		device_printf(pdev->dev.bsddev, "%s: bar %d type %d\n",
+		     __func__, bar, type);
+		return (NULL);
+	}
+
+	/*
+	 * Check for duplicate mappings.
+	 * This can happen if a driver calls pci_request_region() first.
+	 */
+	TAILQ_FOREACH_SAFE(mmio, &pdev->mmio, next, p) {
+		if (mmio->type == type && mmio->rid == PCIR_BAR(bar)) {
+			return (mmio->res);
+		}
+	}
+
+	mmio = malloc(sizeof(*mmio), M_DEVBUF, M_WAITOK | M_ZERO);
+	mmio->rid = PCIR_BAR(bar);
+	mmio->type = type;
+	mmio->res = bus_alloc_resource_any(pdev->dev.bsddev, mmio->type,
+	    &mmio->rid, RF_ACTIVE|RF_SHAREABLE);
+	if (mmio->res == NULL) {
+		device_printf(pdev->dev.bsddev, "%s: failed to alloc "
+		    "bar %d type %d rid %d\n",
+		    __func__, bar, type, PCIR_BAR(bar));
+		free(mmio, M_DEVBUF);
+		return (NULL);
+	}
+	TAILQ_INSERT_TAIL(&pdev->mmio, mmio, next);
+
+	return (mmio->res);
 }
 
 int
@@ -749,10 +881,10 @@ linux_pci_unregister_driver(struct pci_driver *pdrv)
 	spin_lock(&pci_lock);
 	list_del(&pdrv->node);
 	spin_unlock(&pci_lock);
-	mtx_lock(&Giant);
+	bus_topo_lock();
 	if (bus != NULL)
 		devclass_delete_driver(bus, &pdrv->bsddriver);
-	mtx_unlock(&Giant);
+	bus_topo_unlock();
 }
 
 void
@@ -765,10 +897,46 @@ linux_pci_unregister_drm_driver(struct pci_driver *pdrv)
 	spin_lock(&pci_lock);
 	list_del(&pdrv->node);
 	spin_unlock(&pci_lock);
-	mtx_lock(&Giant);
+	bus_topo_lock();
 	if (bus != NULL)
 		devclass_delete_driver(bus, &pdrv->bsddriver);
-	mtx_unlock(&Giant);
+	bus_topo_unlock();
+}
+
+int
+pci_alloc_irq_vectors(struct pci_dev *pdev, int minv, int maxv,
+    unsigned int flags)
+{
+	int error;
+
+	if (flags & PCI_IRQ_MSIX) {
+		struct msix_entry *entries;
+		int i;
+
+		entries = kcalloc(maxv, sizeof(*entries), GFP_KERNEL);
+		if (entries == NULL) {
+			error = -ENOMEM;
+			goto out;
+		}
+		for (i = 0; i < maxv; ++i)
+			entries[i].entry = i;
+		error = pci_enable_msix(pdev, entries, maxv);
+out:
+		kfree(entries);
+		if (error == 0 && pdev->msix_enabled)
+			return (pdev->dev.irq_end - pdev->dev.irq_start);
+	}
+	if (flags & PCI_IRQ_MSI) {
+		error = pci_enable_msi(pdev);
+		if (error == 0 && pdev->msi_enabled)
+			return (pdev->dev.irq_end - pdev->dev.irq_start);
+	}
+	if (flags & PCI_IRQ_LEGACY) {
+		if (pdev->irq)
+			return (1);
+	}
+
+	return (-EINVAL);
 }
 
 CTASSERT(sizeof(dma_addr_t) <= sizeof(uint64_t));
@@ -793,7 +961,7 @@ linux_dma_init(void *arg)
 	linux_dma_obj_zone = uma_zcreate("linux_dma_object",
 	    sizeof(struct linux_dma_obj), NULL, NULL, NULL, NULL,
 	    UMA_ALIGN_PTR, 0);
-
+	lkpi_pci_nseg1_fail = counter_u64_alloc(M_WAITOK);
 }
 SYSINIT(linux_dma, SI_SUB_DRIVERS, SI_ORDER_THIRD, linux_dma_init, NULL);
 
@@ -801,6 +969,7 @@ static void
 linux_dma_uninit(void *arg)
 {
 
+	counter_u64_free(lkpi_pci_nseg1_fail);
 	uma_zdestroy(linux_dma_obj_zone);
 	uma_zdestroy(linux_dma_trie_zone);
 }
@@ -863,6 +1032,9 @@ linux_dma_map_phys_common(struct device *dev, vm_paddr_t phys, size_t len,
 		bus_dmamap_destroy(obj->dmat, obj->dmamap);
 		DMA_PRIV_UNLOCK(priv);
 		uma_zfree(linux_dma_obj_zone, obj);
+		counter_u64_add(lkpi_pci_nseg1_fail, 1);
+		if (linuxkpi_debug)
+			dump_stack();
 		return (0);
 	}
 

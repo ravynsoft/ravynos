@@ -148,7 +148,7 @@ typedef struct {
 	int		faults;
 	u_int		caps;
 	struct cam_periph *periph;
-} probe_softc;
+} aprobe_softc;
 
 static struct ata_quirk_entry ata_quirk_table[] =
 {
@@ -278,7 +278,7 @@ static cam_status
 aproberegister(struct cam_periph *periph, void *arg)
 {
 	union ccb *request_ccb;	/* CCB representing the probe request */
-	probe_softc *softc;
+	aprobe_softc *softc;
 
 	request_ccb = (union ccb *)arg;
 	if (request_ccb == NULL) {
@@ -287,7 +287,7 @@ aproberegister(struct cam_periph *periph, void *arg)
 		return(CAM_REQ_CMP_ERR);
 	}
 
-	softc = (probe_softc *)malloc(sizeof(*softc), M_CAMXPT, M_ZERO | M_NOWAIT);
+	softc = (aprobe_softc *)malloc(sizeof(*softc), M_CAMXPT, M_ZERO | M_NOWAIT);
 
 	if (softc == NULL) {
 		printf("proberegister: Unable to probe new device. "
@@ -314,9 +314,9 @@ static void
 aprobeschedule(struct cam_periph *periph)
 {
 	union ccb *ccb;
-	probe_softc *softc;
+	aprobe_softc *softc;
 
-	softc = (probe_softc *)periph->softc;
+	softc = (aprobe_softc *)periph->softc;
 	ccb = (union ccb *)TAILQ_FIRST(&softc->request_ccbs);
 
 	if ((periph->path->device->flags & CAM_DEV_UNCONFIGURED) ||
@@ -340,14 +340,14 @@ aprobestart(struct cam_periph *periph, union ccb *start_ccb)
 	struct ccb_trans_settings cts;
 	struct ccb_ataio *ataio;
 	struct ccb_scsiio *csio;
-	probe_softc *softc;
+	aprobe_softc *softc;
 	struct cam_path *path;
 	struct ata_params *ident_buf;
 	u_int oif;
 
 	CAM_DEBUG(start_ccb->ccb_h.path, CAM_DEBUG_TRACE, ("aprobestart\n"));
 
-	softc = (probe_softc *)periph->softc;
+	softc = (aprobe_softc *)periph->softc;
 	path = start_ccb->ccb_h.path;
 	ataio = &start_ccb->ataio;
 	csio = &start_ccb->csio;
@@ -726,6 +726,7 @@ aproberequestdefaultnegotiation(struct cam_periph *periph)
 {
 	struct ccb_trans_settings cts;
 
+	bzero(&cts, sizeof(cts));
 	xpt_setup_ccb(&cts.ccb_h, periph->path, CAM_PRIORITY_NONE);
 	cts.ccb_h.func_code = XPT_GET_TRAN_SETTINGS;
 	cts.type = CTS_TYPE_USER_SETTINGS;
@@ -744,7 +745,7 @@ aprobedone(struct cam_periph *periph, union ccb *done_ccb)
 	struct ccb_trans_settings cts;
 	struct ata_params *ident_buf;
 	struct scsi_inquiry_data *inq_buf;
-	probe_softc *softc;
+	aprobe_softc *softc;
 	struct cam_path *path;
 	cam_status status;
 	u_int32_t  priority;
@@ -756,7 +757,7 @@ aprobedone(struct cam_periph *periph, union ccb *done_ccb)
 
 	CAM_DEBUG(done_ccb->ccb_h.path, CAM_DEBUG_TRACE, ("aprobedone\n"));
 
-	softc = (probe_softc *)periph->softc;
+	softc = (aprobe_softc *)periph->softc;
 	path = done_ccb->ccb_h.path;
 	priority = done_ccb->ccb_h.pinfo.priority;
 	ident_buf = &path->device->ident_data;
@@ -1604,9 +1605,9 @@ ata_scan_lun(struct cam_periph *periph, struct cam_path *path,
 		xpt_path_lock(path);
 	if ((old_periph = cam_periph_find(path, "aprobe")) != NULL) {
 		if ((old_periph->flags & CAM_PERIPH_INVALID) == 0) {
-			probe_softc *softc;
+			aprobe_softc *softc;
 
-			softc = (probe_softc *)old_periph->softc;
+			softc = (aprobe_softc *)old_periph->softc;
 			TAILQ_INSERT_TAIL(&softc->request_ccbs,
 				&request_ccb->ccb_h, periph_links.tqe);
 			softc->restart = 1;
@@ -1693,6 +1694,7 @@ ata_device_transport(struct cam_path *path)
 	    ata_version(ident_buf->version_major) : cpi.transport_version;
 
 	/* Tell the controller what we think */
+	bzero(&cts, sizeof(cts));
 	xpt_setup_ccb(&cts.ccb_h, path, CAM_PRIORITY_NONE);
 	cts.ccb_h.func_code = XPT_SET_TRAN_SETTINGS;
 	cts.type = CTS_TYPE_CURRENT_SETTINGS;
@@ -1795,6 +1797,13 @@ ata_dev_advinfo(union ccb *start_ccb)
 static void
 ata_action(union ccb *start_ccb)
 {
+
+	if (start_ccb->ccb_h.func_code != XPT_ATA_IO) {
+		KASSERT((start_ccb->ccb_h.alloc_flags & CAM_CCB_FROM_UMA) == 0,
+		    ("%s: ccb %p, func_code %#x should not be allocated "
+		    "from UMA zone\n",
+		    __func__, start_ccb, start_ccb->ccb_h.func_code));
+	}
 
 	switch (start_ccb->ccb_h.func_code) {
 	case XPT_SET_TRAN_SETTINGS:
@@ -2128,6 +2137,7 @@ ata_announce_periph(struct cam_periph *periph)
 	struct ccb_trans_settings cts;
 	u_int speed, mb;
 
+	bzero(&cts, sizeof(cts));
 	_ata_announce_periph(periph, &cts, &speed);
 	if ((cts.ccb_h.status & CAM_STATUS_MASK) != CAM_REQ_CMP)
 		return;
@@ -2180,6 +2190,7 @@ ata_announce_periph_sbuf(struct cam_periph *periph, struct sbuf *sb)
 	struct ccb_trans_settings cts;
 	u_int speed, mb;
 
+	bzero(&cts, sizeof(cts));
 	_ata_announce_periph(periph, &cts, &speed);
 	if ((cts.ccb_h.status & CAM_STATUS_MASK) != CAM_REQ_CMP)
 		return;

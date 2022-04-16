@@ -801,8 +801,8 @@ sys_auditctl(struct thread *td, struct auditctl_args *uap)
 	if (uap->path == NULL)
 		return (EINVAL);
 
-	NDINIT(&nd, LOOKUP, FOLLOW | LOCKLEAF | AUDITVNODE1,
-	    UIO_USERSPACE, uap->path, td);
+	NDINIT(&nd, LOOKUP, FOLLOW | LOCKLEAF | AUDITVNODE1, UIO_USERSPACE,
+	    uap->path);
 	flags = AUDIT_OPEN_FLAGS;
 	error = vn_open(&nd, &flags, 0, NULL);
 	if (error)
@@ -818,7 +818,7 @@ sys_auditctl(struct thread *td, struct auditctl_args *uap)
 #else
 	VOP_UNLOCK(vp);
 #endif
-	NDFREE(&nd, NDF_ONLY_PNBUF);
+	NDFREE_PNBUF(&nd);
 	if (vp->v_type != VREG) {
 		vn_close(vp, AUDIT_CLOSE_FLAGS, td->td_ucred, td);
 		return (EINVAL);

@@ -43,8 +43,7 @@ properties:
 
   gpio-ranges: true
 
-  gpio-ranges-group-names:
-    $ref: /schemas/types.yaml#/definitions/string-array
+  gpio-ranges-group-names: true
 
   socionext,interrupt-ranges:
     description: |
@@ -63,6 +62,8 @@ required:
   - ngpios
   - gpio-ranges
   - socionext,interrupt-ranges
+
+additionalProperties: false
 
 examples:
   - |

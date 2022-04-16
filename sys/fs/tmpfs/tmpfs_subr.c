@@ -823,21 +823,6 @@ tmpfs_destroy_vobject(struct vnode *vp, vm_object_t obj)
 }
 
 /*
- * Need to clear v_object for insmntque failure.
- */
-static void
-tmpfs_insmntque_dtr(struct vnode *vp, void *dtr_arg)
-{
-
-	tmpfs_destroy_vobject(vp, vp->v_object);
-	vp->v_object = NULL;
-	vp->v_data = NULL;
-	vp->v_op = &dead_vnodeops;
-	vgone(vp);
-	vput(vp);
-}
-
-/*
  * Allocates a new vnode for the node node or returns a new reference to
  * an existing one if the node had already a vnode referencing it.  The
  * resulting locked vnode is returned in *vpp.
@@ -967,7 +952,7 @@ loop:
 		vp->v_object = object;
 		object->un_pager.swp.swp_tmpfs = vp;
 		vm_object_set_flag(object, OBJ_TMPFS);
-		vn_irflag_set_locked(vp, VIRF_PGREAD);
+		vn_irflag_set_locked(vp, VIRF_PGREAD | VIRF_TEXT_REF);
 		VI_UNLOCK(vp);
 		VM_OBJECT_WUNLOCK(object);
 		break;
@@ -983,9 +968,17 @@ loop:
 	if (vp->v_type != VFIFO)
 		VN_LOCK_ASHARE(vp);
 
-	error = insmntque1(vp, mp, tmpfs_insmntque_dtr, NULL);
-	if (error != 0)
+	error = insmntque1(vp, mp);
+	if (error != 0) {
+		/* Need to clear v_object for insmntque failure. */
+		tmpfs_destroy_vobject(vp, vp->v_object);
+		vp->v_object = NULL;
+		vp->v_data = NULL;
+		vp->v_op = &dead_vnodeops;
+		vgone(vp);
+		vput(vp);
 		vp = NULL;
+	}
 
 unlock:
 	TMPFS_NODE_LOCK(node);
@@ -1527,7 +1520,7 @@ tmpfs_dir_getdotdotdent(struct tmpfs_mount *tm, struct tmpfs_node *node,
  */
 int
 tmpfs_dir_getdents(struct tmpfs_mount *tm, struct tmpfs_node *node,
-    struct uio *uio, int maxcookies, u_long *cookies, int *ncookies)
+    struct uio *uio, int maxcookies, uint64_t *cookies, int *ncookies)
 {
 	struct tmpfs_dir_cursor dc;
 	struct tmpfs_dirent *de, *nde;
@@ -1772,6 +1765,89 @@ tmpfs_reg_resize(struct vnode *vp, off_t newsize, boolean_t ignerr)
 
 	node->tn_size = newsize;
 	return (0);
+}
+
+/*
+ * Punch hole in the aobj associated with the regular file pointed to by 'vp'.
+ * Requests completely beyond the end-of-file are converted to no-op.
+ *
+ * Returns 0 on success or error code from tmpfs_partial_page_invalidate() on
+ * failure.
+ */
+int
+tmpfs_reg_punch_hole(struct vnode *vp, off_t *offset, off_t *length)
+{
+	struct tmpfs_node *node;
+	vm_object_t object;
+	vm_pindex_t pistart, pi, piend;
+	int startofs, endofs, end;
+	off_t off, len;
+	int error;
+
+	KASSERT(*length <= OFF_MAX - *offset, ("%s: offset + length overflows",
+	    __func__));
+	node = VP_TO_TMPFS_NODE(vp);
+	KASSERT(node->tn_type == VREG, ("%s: node is not regular file",
+	    __func__));
+	object = node->tn_reg.tn_aobj;
+	off = *offset;
+	len = omin(node->tn_size - off, *length);
+	startofs = off & PAGE_MASK;
+	endofs = (off + len) & PAGE_MASK;
+	pistart = OFF_TO_IDX(off);
+	piend = OFF_TO_IDX(off + len);
+	pi = OFF_TO_IDX((vm_ooffset_t)off + PAGE_MASK);
+	error = 0;
+
+	/* Handle the case when offset is on or beyond file size. */
+	if (len <= 0) {
+		*length = 0;
+		return (0);
+	}
+
+	VM_OBJECT_WLOCK(object);
+
+	/*
+	 * If there is a partial page at the beginning of the hole-punching
+	 * request, fill the partial page with zeroes.
+	 */
+	if (startofs != 0) {
+		end = pistart != piend ? PAGE_SIZE : endofs;
+		error = tmpfs_partial_page_invalidate(object, pistart, startofs,
+		    end, FALSE);
+		if (error != 0)
+			goto out;
+		off += end - startofs;
+		len -= end - startofs;
+	}
+
+	/*
+	 * Toss away the full pages in the affected area.
+	 */
+	if (pi < piend) {
+		vm_object_page_remove(object, pi, piend, 0);
+		off += IDX_TO_OFF(piend - pi);
+		len -= IDX_TO_OFF(piend - pi);
+	}
+
+	/*
+	 * If there is a partial page at the end of the hole-punching request,
+	 * fill the partial page with zeroes.
+	 */
+	if (endofs != 0 && pistart != piend) {
+		error = tmpfs_partial_page_invalidate(object, piend, 0, endofs,
+		    FALSE);
+		if (error != 0)
+			goto out;
+		off += endofs;
+		len -= endofs;
+	}
+
+out:
+	VM_OBJECT_WUNLOCK(object);
+	*offset = off;
+	*length = len;
+	return (error);
 }
 
 void

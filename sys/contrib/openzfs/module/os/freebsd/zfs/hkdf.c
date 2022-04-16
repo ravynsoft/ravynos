@@ -29,7 +29,6 @@ hkdf_sha512_extract(uint8_t *salt, uint_t salt_len, uint8_t *key_material,
 	crypto_key_t key;
 
 	/* initialize the salt as a crypto key */
-	key.ck_format = CRYPTO_KEY_RAW;
 	key.ck_length = CRYPTO_BYTES2BITS(salt_len);
 	key.ck_data = salt;
 
@@ -53,7 +52,6 @@ hkdf_sha512_expand(uint8_t *extract_key, uint8_t *info, uint_t info_len,
 		return (SET_ERROR(EINVAL));
 
 	/* initialize the salt as a crypto key */
-	key.ck_format = CRYPTO_KEY_RAW;
 	key.ck_length = CRYPTO_BYTES2BITS(SHA512_DIGEST_LENGTH);
 	key.ck_data = extract_key;
 
@@ -65,7 +63,7 @@ hkdf_sha512_expand(uint8_t *extract_key, uint8_t *info, uint_t info_len,
 		crypto_mac_update(&ctx, info, info_len);
 		crypto_mac_update(&ctx, &c, 1);
 		crypto_mac_final(&ctx, T, SHA512_DIGEST_LENGTH);
-		bcopy(T, out_buf + pos,
+		memcpy(out_buf + pos, T,
 		    (i != N) ? SHA512_DIGEST_LENGTH : (out_len - pos));
 		pos += SHA512_DIGEST_LENGTH;
 	}

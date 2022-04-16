@@ -62,7 +62,9 @@
 	SDT_PROBE5(sdt, , , probe, arg0, arg1, arg2, arg3, arg4)
 
 SDT_PROBE_DECLARE(sdt, , , m__init);
+SDT_PROBE_DECLARE(sdt, , , m__gethdr_raw);
 SDT_PROBE_DECLARE(sdt, , , m__gethdr);
+SDT_PROBE_DECLARE(sdt, , , m__get_raw);
 SDT_PROBE_DECLARE(sdt, , , m__get);
 SDT_PROBE_DECLARE(sdt, , , m__getcl);
 SDT_PROBE_DECLARE(sdt, , , m__getjcl);
@@ -138,10 +140,12 @@ struct m_tag {
  * Static network interface owned tag.
  * Allocated through ifp->if_snd_tag_alloc().
  */
+struct if_snd_tag_sw;
+
 struct m_snd_tag {
 	struct ifnet *ifp;		/* network interface tag belongs to */
+	const struct if_snd_tag_sw *sw;
 	volatile u_int refcount;
-	u_int	type;			/* One of IF_SND_TAG_TYPE_*. */
 };
 
 /*
@@ -155,6 +159,10 @@ struct pkthdr {
 	union {
 		struct m_snd_tag *snd_tag;	/* send tag, if any */
 		struct ifnet	*rcvif;		/* rcv interface */
+		struct {
+			uint16_t rcvidx;	/* rcv interface index ... */
+			uint16_t rcvgen;	/* ... and generation count */
+		};
 	};
 	SLIST_HEAD(packet_tags, m_tag) tags; /* list of packet tags */
 	int32_t		 len;		/* total packet length */
@@ -477,8 +485,6 @@ m_epg_pagelen(const struct mbuf *m, int pidx, int pgoff)
 #define	M_PROTO9	0x00200000 /* protocol-specific */
 #define	M_PROTO10	0x00400000 /* protocol-specific */
 #define	M_PROTO11	0x00800000 /* protocol-specific */
-
-#define MB_DTOR_SKIP	0x1	/* don't pollute the cache by touching a freed mbuf */
 
 /*
  * Flags to purge when crossing layers.
@@ -837,6 +843,7 @@ struct mbuf	*m_fragment(struct mbuf *, int, int);
 void		 m_freem(struct mbuf *);
 void		 m_free_raw(struct mbuf *);
 struct mbuf	*m_get2(int, int, short, int);
+struct mbuf	*m_get3(int, int, short, int);
 struct mbuf	*m_getjcl(int, short, int, int);
 struct mbuf	*m_getm2(struct mbuf *, int, int, short, int);
 struct mbuf	*m_getptr(struct mbuf *, int, int *);
@@ -856,8 +863,11 @@ int		 m_unmapped_uiomove(const struct mbuf *, int, struct uio *,
 struct mbuf	*m_unshare(struct mbuf *, int);
 int		 m_snd_tag_alloc(struct ifnet *,
 		    union if_snd_tag_alloc_params *, struct m_snd_tag **);
-void		 m_snd_tag_init(struct m_snd_tag *, struct ifnet *, u_int);
+void		 m_snd_tag_init(struct m_snd_tag *, struct ifnet *,
+		    const struct if_snd_tag_sw *);
 void		 m_snd_tag_destroy(struct m_snd_tag *);
+void		 m_rcvif_serialize(struct mbuf *);
+struct ifnet	*m_rcvif_restore(struct mbuf *);
 
 static __inline int
 m_gettype(int size)
@@ -967,6 +977,19 @@ m_init(struct mbuf *m, int how, short type, int flags)
 }
 
 static __inline struct mbuf *
+m_get_raw(int how, short type)
+{
+	struct mbuf *m;
+	struct mb_args args;
+
+	args.flags = 0;
+	args.type = type | MT_NOINIT;
+	m = uma_zalloc_arg(zone_mbuf, &args, how);
+	MBUF_PROBE3(m__get_raw, how, type, m);
+	return (m);
+}
+
+static __inline struct mbuf *
 m_get(int how, short type)
 {
 	struct mbuf *m;
@@ -976,6 +999,19 @@ m_get(int how, short type)
 	args.type = type;
 	m = uma_zalloc_arg(zone_mbuf, &args, how);
 	MBUF_PROBE3(m__get, how, type, m);
+	return (m);
+}
+
+static __inline struct mbuf *
+m_gethdr_raw(int how, short type)
+{
+	struct mbuf *m;
+	struct mb_args args;
+
+	args.flags = M_PKTHDR;
+	args.type = type | MT_NOINIT;
+	m = uma_zalloc_arg(zone_mbuf, &args, how);
+	MBUF_PROBE3(m__gethdr_raw, how, type, m);
 	return (m);
 }
 
@@ -1345,11 +1381,12 @@ extern bool		mb_use_ext_pgs;	/* Use ext_pgs for sendfile */
 /* Specific cookies and tags. */
 
 /* Packet tag routines. */
-struct m_tag	*m_tag_alloc(u_int32_t, int, int, int);
+struct m_tag	*m_tag_alloc(uint32_t, uint16_t, int, int);
 void		 m_tag_delete(struct mbuf *, struct m_tag *);
 void		 m_tag_delete_chain(struct mbuf *, struct m_tag *);
 void		 m_tag_free_default(struct m_tag *);
-struct m_tag	*m_tag_locate(struct mbuf *, u_int32_t, int, struct m_tag *);
+struct m_tag	*m_tag_locate(struct mbuf *, uint32_t, uint16_t,
+    struct m_tag *);
 struct m_tag	*m_tag_copy(struct m_tag *, int);
 int		 m_tag_copy_chain(struct mbuf *, const struct mbuf *, int);
 void		 m_tag_delete_nonpersistent(struct mbuf *);
@@ -1371,7 +1408,7 @@ m_tag_init(struct mbuf *m)
  * XXX probably should be called m_tag_init, but that was already taken.
  */
 static __inline void
-m_tag_setup(struct m_tag *t, u_int32_t cookie, int type, int len)
+m_tag_setup(struct m_tag *t, uint32_t cookie, uint16_t type, int len)
 {
 
 	t->m_tag_id = type;
@@ -1433,13 +1470,13 @@ m_tag_unlink(struct mbuf *m, struct m_tag *t)
 #define	MTAG_ABI_COMPAT		0		/* compatibility ABI */
 
 static __inline struct m_tag *
-m_tag_get(int type, int length, int wait)
+m_tag_get(uint16_t type, int length, int wait)
 {
 	return (m_tag_alloc(MTAG_ABI_COMPAT, type, length, wait));
 }
 
 static __inline struct m_tag *
-m_tag_find(struct mbuf *m, int type, struct m_tag *start)
+m_tag_find(struct mbuf *m, uint16_t type, struct m_tag *start)
 {
 	return (SLIST_EMPTY(&m->m_pkthdr.tags) ? (struct m_tag *)NULL :
 	    m_tag_locate(m, MTAG_ABI_COMPAT, type, start));

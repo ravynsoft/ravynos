@@ -64,12 +64,13 @@ __FBSDID("$FreeBSD$");
 #include <cam/scsi/scsi_pass.h>
 
 static	u_int		camperiphnextunit(struct periph_driver *p_drv,
-					  u_int newunit, int wired,
+					  u_int newunit, bool wired,
 					  path_id_t pathid, target_id_t target,
 					  lun_id_t lun);
 static	u_int		camperiphunit(struct periph_driver *p_drv,
 				      path_id_t pathid, target_id_t target,
-				      lun_id_t lun); 
+				      lun_id_t lun,
+				      const char *sn);
 static	void		camperiphdone(struct cam_periph *periph, 
 					union ccb *done_ccb);
 static  void		camperiphfree(struct cam_periph *periph);
@@ -273,7 +274,8 @@ cam_periph_alloc(periph_ctor_t *periph_ctor,
 		free(periph, M_CAMPERIPH);
 		return (CAM_REQ_INVALID);
 	}
-	periph->unit_number = camperiphunit(*p_drv, path_id, target_id, lun_id);
+	periph->unit_number = camperiphunit(*p_drv, path_id, target_id, lun_id,
+	    path->device->serial_num);
 	cur_periph = TAILQ_FIRST(&(*p_drv)->units);
 	while (cur_periph != NULL
 	    && cur_periph->unit_number < periph->unit_number)
@@ -537,7 +539,7 @@ cam_periph_unhold(struct cam_periph *periph)
  * numbers that did not match a wiring entry.
  */
 static u_int
-camperiphnextunit(struct periph_driver *p_drv, u_int newunit, int wired,
+camperiphnextunit(struct periph_driver *p_drv, u_int newunit, bool wired,
 		  path_id_t pathid, target_id_t target, lun_id_t lun)
 {
 	struct	cam_periph *periph;
@@ -553,14 +555,14 @@ camperiphnextunit(struct periph_driver *p_drv, u_int newunit, int wired,
 			;
 
 		if (periph != NULL && periph->unit_number == newunit) {
-			if (wired != 0) {
+			if (wired) {
 				xpt_print(periph->path, "Duplicate Wired "
 				    "Device entry!\n");
 				xpt_print(periph->path, "Second device (%s "
 				    "device at scbus%d target %d lun %d) will "
 				    "not be wired\n", periph_name, pathid,
 				    target, lun);
-				wired = 0;
+				wired = false;
 			}
 			continue;
 		}
@@ -568,9 +570,10 @@ camperiphnextunit(struct periph_driver *p_drv, u_int newunit, int wired,
 			break;
 
 		/*
-		 * Don't match entries like "da 4" as a wired down
-		 * device, but do match entries like "da 4 target 5"
-		 * or even "da 4 scbus 1". 
+		 * Don't allow the mere presence of any attributes of a device
+		 * means that it is for a wired down entry. Instead, insist that
+		 * one of the matching criteria from camperiphunit be present
+		 * for the device.
 		 */
 		i = 0;
 		dname = periph_name;
@@ -578,12 +581,13 @@ camperiphnextunit(struct periph_driver *p_drv, u_int newunit, int wired,
 			r = resource_find_dev(&i, dname, &dunit, NULL, NULL);
 			if (r != 0)
 				break;
-			/* if no "target" and no specific scbus, skip */
-			if (resource_int_value(dname, dunit, "target", &val) &&
-			    (resource_string_value(dname, dunit, "at",&strval)||
-			     strcmp(strval, "scbus") == 0))
+
+			if (newunit != dunit)
 				continue;
-			if (newunit == dunit)
+			if (resource_string_value(dname, dunit, "sn", &strval) == 0 ||
+			    resource_int_value(dname, dunit, "lun", &val) == 0 ||
+			    resource_int_value(dname, dunit, "target", &val) == 0 ||
+			    resource_string_value(dname, dunit, "at", &strval) == 0)
 				break;
 		}
 		if (r != 0)
@@ -594,10 +598,11 @@ camperiphnextunit(struct periph_driver *p_drv, u_int newunit, int wired,
 
 static u_int
 camperiphunit(struct periph_driver *p_drv, path_id_t pathid,
-	      target_id_t target, lun_id_t lun)
+    target_id_t target, lun_id_t lun, const char *sn)
 {
+	bool	wired = false;
 	u_int	unit;
-	int	wired, i, val, dunit;
+	int	i, val, dunit;
 	const char *dname, *strval;
 	char	pathbuf[32], *periph_name;
 
@@ -606,24 +611,30 @@ camperiphunit(struct periph_driver *p_drv, path_id_t pathid,
 	unit = 0;
 	i = 0;
 	dname = periph_name;
-	for (wired = 0; resource_find_dev(&i, dname, &dunit, NULL, NULL) == 0;
-	     wired = 0) {
+
+	for (wired = false; resource_find_dev(&i, dname, &dunit, NULL, NULL) == 0;
+	     wired = false) {
 		if (resource_string_value(dname, dunit, "at", &strval) == 0) {
 			if (strcmp(strval, pathbuf) != 0)
 				continue;
-			wired++;
+			wired = true;
 		}
 		if (resource_int_value(dname, dunit, "target", &val) == 0) {
 			if (val != target)
 				continue;
-			wired++;
+			wired = true;
 		}
 		if (resource_int_value(dname, dunit, "lun", &val) == 0) {
 			if (val != lun)
 				continue;
-			wired++;
+			wired = true;
 		}
-		if (wired != 0) {
+		if (resource_string_value(dname, dunit, "sn", &strval) == 0) {
+			if (sn == NULL || strcmp(strval, sn) != 0)
+				continue;
+			wired = true;
+		}
+		if (wired) {
 			unit = dunit;
 			break;
 		}
@@ -747,6 +758,7 @@ camperiphfree(struct cam_periph *periph)
 		union ccb ccb;
 		void *arg;
 
+		memset(&ccb, 0, sizeof(ccb));
 		switch (periph->deferred_ac) {
 		case AC_FOUND_DEVICE:
 			ccb.ccb_h.func_code = XPT_GDEV_TYPE;
@@ -1319,6 +1331,7 @@ cam_freeze_devq(struct cam_path *path)
 	struct ccb_hdr ccb_h;
 
 	CAM_DEBUG(path, CAM_DEBUG_TRACE, ("cam_freeze_devq\n"));
+	memset(&ccb_h, 0, sizeof(ccb_h));
 	xpt_setup_ccb(&ccb_h, path, /*priority*/1);
 	ccb_h.func_code = XPT_NOOP;
 	ccb_h.flags = CAM_DEV_QFREEZE;
@@ -1334,6 +1347,7 @@ cam_release_devq(struct cam_path *path, u_int32_t relsim_flags,
 
 	CAM_DEBUG(path, CAM_DEBUG_TRACE, ("cam_release_devq(%u, %u, %u, %d)\n",
 	    relsim_flags, openings, arg, getcount_only));
+	memset(&crs, 0, sizeof(crs));
 	xpt_setup_ccb(&crs.ccb_h, path, CAM_PRIORITY_NORMAL);
 	crs.ccb_h.func_code = XPT_REL_SIMQ;
 	crs.ccb_h.flags = getcount_only ? CAM_DEV_QFREEZE : 0;
@@ -1352,6 +1366,7 @@ camperiphdone(struct cam_periph *periph, union ccb *done_ccb)
 	cam_status	status;
 	struct scsi_start_stop_unit *scsi_cmd;
 	int		error = 0, error_code, sense_key, asc, ascq;
+	u_int16_t	done_flags;
 
 	scsi_cmd = (struct scsi_start_stop_unit *)
 	    &done_ccb->csio.cdb_io.cdb_bytes;
@@ -1420,8 +1435,21 @@ camperiphdone(struct cam_periph *periph, union ccb *done_ccb)
 	 * blocking by that also any new recovery attempts for this CCB,
 	 * and the result will be the final one returned to the CCB owher.
 	 */
+
+	/*
+	 * Copy the CCB back, preserving the alloc_flags field.  Things
+	 * will crash horribly if the CCBs are not of the same size.
+	 */
 	saved_ccb = (union ccb *)done_ccb->ccb_h.saved_ccb_ptr;
-	bcopy(saved_ccb, done_ccb, sizeof(*done_ccb));
+	KASSERT(saved_ccb->ccb_h.func_code == XPT_SCSI_IO,
+	    ("%s: saved_ccb func_code %#x != XPT_SCSI_IO",
+	     __func__, saved_ccb->ccb_h.func_code));
+	KASSERT(done_ccb->ccb_h.func_code == XPT_SCSI_IO,
+	    ("%s: done_ccb func_code %#x != XPT_SCSI_IO",
+	     __func__, done_ccb->ccb_h.func_code));
+	done_flags = done_ccb->ccb_h.alloc_flags;
+	bcopy(saved_ccb, done_ccb, sizeof(struct ccb_scsiio));
+	done_ccb->ccb_h.alloc_flags = done_flags;
 	xpt_free_ccb(saved_ccb);
 	if (done_ccb->ccb_h.cbfcnp != camperiphdone)
 		periph->flags &= ~CAM_PERIPH_RECOVERY_INPROG;
@@ -1457,6 +1485,7 @@ cam_periph_bus_settle(struct cam_periph *periph, u_int bus_settle)
 {
 	struct ccb_getdevstats cgds;
 
+	memset(&cgds, 0, sizeof(cgds));
 	xpt_setup_ccb(&cgds.ccb_h, periph->path, CAM_PRIORITY_NORMAL);
 	cgds.ccb_h.func_code = XPT_GDEV_STATS;
 	xpt_action((union ccb *)&cgds);
@@ -1528,6 +1557,7 @@ camperiphscsistatuserror(union ccb *ccb, union ccb **orig_ccb,
 		 * First off, find out what the current
 		 * transaction counts are.
 		 */
+		memset(&cgds, 0, sizeof(cgds));
 		xpt_setup_ccb(&cgds.ccb_h,
 			      ccb->ccb_h.path,
 			      CAM_PRIORITY_NORMAL);
@@ -1615,6 +1645,7 @@ camperiphscsisenseerror(union ccb *ccb, union ccb **orig,
 	struct cam_periph *periph;
 	union ccb *orig_ccb = ccb;
 	int error, recoveryccb;
+	u_int16_t flags;
 
 #if defined(BUF_TRACKING) || defined(FULL_BUF_TRACKING)
 	if (ccb->ccb_h.func_code == XPT_SCSI_IO && ccb->csio.bio != NULL)
@@ -1646,6 +1677,7 @@ camperiphscsisenseerror(union ccb *ccb, union ccb **orig,
 		/*
 		 * Grab the inquiry data for this device.
 		 */
+		memset(&cgd, 0, sizeof(cgd));
 		xpt_setup_ccb(&cgd.ccb_h, ccb->ccb_h.path, CAM_PRIORITY_NORMAL);
 		cgd.ccb_h.func_code = XPT_GDEV_TYPE;
 		xpt_action((union ccb *)&cgd);
@@ -1708,7 +1740,13 @@ camperiphscsisenseerror(union ccb *ccb, union ccb **orig,
 			 * this freeze will be dropped as part of ERESTART.
 			 */
 			ccb->ccb_h.status &= ~CAM_DEV_QFRZN;
-			bcopy(ccb, orig_ccb, sizeof(*orig_ccb));
+
+			KASSERT(ccb->ccb_h.func_code == XPT_SCSI_IO,
+			    ("%s: ccb func_code %#x != XPT_SCSI_IO",
+			     __func__, ccb->ccb_h.func_code));
+			flags = orig_ccb->ccb_h.alloc_flags;
+			bcopy(ccb, orig_ccb, sizeof(struct ccb_scsiio));
+			orig_ccb->ccb_h.alloc_flags = flags;
 		}
 
 		switch (err_action & SS_MASK) {

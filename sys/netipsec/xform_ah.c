@@ -42,6 +42,7 @@
 
 #include <sys/param.h>
 #include <sys/systm.h>
+#include <sys/malloc.h>
 #include <sys/mbuf.h>
 #include <sys/socket.h>
 #include <sys/syslog.h>
@@ -107,6 +108,8 @@ SYSCTL_INT(_net_inet_ah, OID_AUTO, ah_cleartos,
 SYSCTL_VNET_PCPUSTAT(_net_inet_ah, IPSECCTL_STATS, stats, struct ahstat,
     ahstat, "AH statistics (struct ahstat, netipsec/ah_var.h)");
 #endif
+
+static MALLOC_DEFINE(M_AH, "ah", "IPsec AH");
 
 static unsigned char ipseczeroes[256];	/* larger than an ip6 extension hdr */
 
@@ -426,7 +429,7 @@ ah_massage_headers(struct mbuf **m0, int proto, int skip, int alg, int out)
 			if (m->m_len <= skip) {
 				ptr = (unsigned char *) malloc(
 				    skip - sizeof(struct ip6_hdr),
-				    M_XDATA, M_NOWAIT);
+				    M_AH, M_NOWAIT);
 				if (ptr == NULL) {
 					DPRINTF(("%s: failed to allocate memory"
 						"for IPv6 headers\n",__func__));
@@ -505,7 +508,7 @@ ah_massage_headers(struct mbuf **m0, int proto, int skip, int alg, int out)
 					__func__, off));
 error6:
 				if (alloc)
-					free(ptr, M_XDATA);
+					free(ptr, M_AH);
 				m_freem(m);
 				return EINVAL;
 			}
@@ -514,7 +517,7 @@ error6:
 		if (alloc) {
 			m_copyback(m, sizeof(struct ip6_hdr),
 			    skip - sizeof(struct ip6_hdr), ptr);
-			free(ptr, M_XDATA);
+			free(ptr, M_AH);
 		}
 
 		break;
@@ -615,7 +618,7 @@ ah_input(struct mbuf *m, struct secasvar *sav, int skip, int protoff)
 	crp->crp_digest_start = skip + rplen;
 
 	/* Allocate IPsec-specific opaque crypto info. */
-	xd = malloc(sizeof(*xd) + skip + rplen + authsize, M_XDATA,
+	xd = malloc(sizeof(*xd) + skip + rplen + authsize, M_AH,
 	    M_NOWAIT | M_ZERO);
 	if (xd == NULL) {
 		DPRINTF(("%s: failed to allocate xform_data\n", __func__));
@@ -643,7 +646,7 @@ ah_input(struct mbuf *m, struct secasvar *sav, int skip, int protoff)
 	if (error != 0) {
 		/* NB: mbuf is free'd by ah_massage_headers */
 		AHSTAT_INC(ahs_hdrops);
-		free(xd, M_XDATA);
+		free(xd, M_AH);
 		crypto_freereq(crp);
 		key_freesav(&sav);
 		return (error);
@@ -652,8 +655,6 @@ ah_input(struct mbuf *m, struct secasvar *sav, int skip, int protoff)
 	/* Crypto operation descriptor. */
 	crp->crp_op = CRYPTO_OP_COMPUTE_DIGEST;
 	crp->crp_flags = CRYPTO_F_CBIFSYNC;
-	if (V_async_crypto)
-		crp->crp_flags |= CRYPTO_F_ASYNC | CRYPTO_F_ASYNC_KEEPORDER;
 	crypto_use_mbuf(crp, m);
 	crp->crp_callback = ah_input_cb;
 	crp->crp_opaque = xd;
@@ -671,7 +672,10 @@ ah_input(struct mbuf *m, struct secasvar *sav, int skip, int protoff)
 	xd->skip = skip;
 	xd->cryptoid = cryptoid;
 	xd->vnet = curvnet;
-	return (crypto_dispatch(crp));
+	if (V_async_crypto)
+		return (crypto_dispatch_async(crp, CRYPTO_ASYNC_ORDERED));
+	else
+		return (crypto_dispatch(crp));
 bad:
 	m_freem(m);
 	key_freesav(&sav);
@@ -760,7 +764,7 @@ ah_input_cb(struct cryptop *crp)
 
 	/* Copyback the saved (uncooked) network headers. */
 	m_copyback(m, 0, skip, ptr);
-	free(xd, M_XDATA), xd = NULL;			/* No longer needed */
+	free(xd, M_AH), xd = NULL;			/* No longer needed */
 
 	/*
 	 * Header is now authenticated.
@@ -821,7 +825,7 @@ bad:
 	if (m != NULL)
 		m_freem(m);
 	if (xd != NULL)
-		free(xd, M_XDATA);
+		free(xd, M_AH);
 	if (crp != NULL)
 		crypto_freereq(crp);
 	return error;
@@ -974,7 +978,7 @@ ah_output(struct mbuf *m, struct secpolicy *sp, struct secasvar *sav,
 	crp->crp_digest_start = skip + rplen;
 
 	/* Allocate IPsec-specific opaque crypto info. */
-	xd =  malloc(sizeof(struct xform_data) + skip, M_XDATA,
+	xd =  malloc(sizeof(struct xform_data) + skip, M_AH,
 	    M_NOWAIT | M_ZERO);
 	if (xd == NULL) {
 		crypto_freereq(crp);
@@ -1028,7 +1032,7 @@ ah_output(struct mbuf *m, struct secpolicy *sp, struct secasvar *sav,
 			skip, ahx->type, 1);
 	if (error != 0) {
 		m = NULL;	/* mbuf was free'd by ah_massage_headers. */
-		free(xd, M_XDATA);
+		free(xd, M_AH);
 		crypto_freereq(crp);
 		goto bad;
 	}
@@ -1036,8 +1040,6 @@ ah_output(struct mbuf *m, struct secpolicy *sp, struct secasvar *sav,
 	/* Crypto operation descriptor. */
 	crp->crp_op = CRYPTO_OP_COMPUTE_DIGEST;
 	crp->crp_flags = CRYPTO_F_CBIFSYNC;
-	if (V_async_crypto)
-		crp->crp_flags |= CRYPTO_F_ASYNC | CRYPTO_F_ASYNC_KEEPORDER;
 	crypto_use_mbuf(crp, m);
 	crp->crp_callback = ah_output_cb;
 	crp->crp_opaque = xd;
@@ -1055,7 +1057,10 @@ ah_output(struct mbuf *m, struct secpolicy *sp, struct secasvar *sav,
 	xd->cryptoid = cryptoid;
 	xd->vnet = curvnet;
 
-	return crypto_dispatch(crp);
+	if (V_async_crypto)
+		return (crypto_dispatch_async(crp, CRYPTO_ASYNC_ORDERED));
+	else
+		return (crypto_dispatch(crp));
 bad:
 	if (m)
 		m_freem(m);
@@ -1119,7 +1124,7 @@ ah_output_cb(struct cryptop *crp)
 	 */
 	m_copyback(m, 0, skip, ptr);
 
-	free(xd, M_XDATA);
+	free(xd, M_AH);
 	crypto_freereq(crp);
 	AHSTAT_INC(ahs_hist[sav->alg_auth]);
 #ifdef REGRESSION
@@ -1142,7 +1147,7 @@ ah_output_cb(struct cryptop *crp)
 	return (error);
 bad:
 	CURVNET_RESTORE();
-	free(xd, M_XDATA);
+	free(xd, M_AH);
 	crypto_freereq(crp);
 	key_freesav(&sav);
 	key_freesp(&sp);

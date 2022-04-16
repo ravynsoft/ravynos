@@ -196,8 +196,7 @@ verifiedexecioctl(struct cdev *dev __unused, u_long cmd, caddr_t data,
 			/*
 			 * FreeBSD seems to copy the args to kernel space
 			 */
-                        NDINIT(&nid, LOOKUP, FOLLOW, UIO_SYSSPACE,
-                               params->file, td);
+			NDINIT(&nid, LOOKUP, FOLLOW, UIO_SYSSPACE, params->file);
 			if ((error = vn_open(&nid, &flags, 0, NULL)) != 0)
 				return (error);
 
@@ -266,4 +265,5 @@ veriexec_drvinit(void *unused __unused)
 }
 
 SYSINIT(veriexec, SI_SUB_PSEUDO, SI_ORDER_ANY, veriexec_drvinit, NULL);
-MODULE_DEPEND(veriexec, mac_veriexec, 1, 1, 1);
+MODULE_DEPEND(veriexec, mac_veriexec, MAC_VERIEXEC_VERSION,
+    MAC_VERIEXEC_VERSION, MAC_VERIEXEC_VERSION);

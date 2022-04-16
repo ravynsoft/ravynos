@@ -88,7 +88,7 @@ static void	vtmmio_notify_virtqueue(device_t, uint16_t, bus_size_t);
 static uint8_t	vtmmio_get_status(device_t);
 static void	vtmmio_set_status(device_t, uint8_t);
 static void	vtmmio_read_dev_config(device_t, bus_size_t, void *, int);
-static void	vtmmio_write_dev_config(device_t, bus_size_t, void *, int);
+static void	vtmmio_write_dev_config(device_t, bus_size_t, const void *, int);
 static void	vtmmio_describe_features(struct vtmmio_softc *, const char *,
 		    uint64_t);
 static void	vtmmio_probe_and_attach_child(struct vtmmio_softc *);
@@ -146,7 +146,7 @@ static device_method_t vtmmio_methods[] = {
 	/* Bus interface. */
 	DEVMETHOD(bus_driver_added,		  vtmmio_driver_added),
 	DEVMETHOD(bus_child_detached,		  vtmmio_child_detached),
-	DEVMETHOD(bus_child_pnpinfo_str,	  virtio_child_pnpinfo_str),
+	DEVMETHOD(bus_child_pnpinfo,		  virtio_child_pnpinfo),
 	DEVMETHOD(bus_read_ivar,		  vtmmio_read_ivar),
 	DEVMETHOD(bus_write_ivar,		  vtmmio_write_ivar),
 
@@ -382,7 +382,7 @@ vtmmio_read_ivar(device_t dev, device_t child, int index, uintptr_t *result)
 	case VIRTIO_IVAR_DEVICE:
 		/*
 		 * Dummy value for fields not present in this bus.  Used by
-		 * bus-agnostic virtio_child_pnpinfo_str.
+		 * bus-agnostic virtio_child_pnpinfo.
 		 */
 		*result = 0;
 		break;
@@ -737,11 +737,11 @@ vtmmio_read_dev_config(device_t dev, bus_size_t offset,
 
 static void
 vtmmio_write_dev_config(device_t dev, bus_size_t offset,
-    void *src, int length)
+    const void *src, int length)
 {
 	struct vtmmio_softc *sc;
 	bus_size_t off;
-	uint8_t *s;
+	const uint8_t *s;
 	int size;
 
 	sc = device_get_softc(dev);
@@ -755,21 +755,21 @@ vtmmio_write_dev_config(device_t dev, bus_size_t offset,
 	if (sc->vtmmio_version > 1) {
 		switch (length) {
 		case 1:
-			vtmmio_write_config_1(sc, off, *(uint8_t *)src);
+			vtmmio_write_config_1(sc, off, *(const uint8_t *)src);
 			break;
 		case 2:
 			vtmmio_write_config_2(sc, off,
-			    htole16(*(uint16_t *)src));
+			    htole16(*(const uint16_t *)src));
 			break;
 		case 4:
 			vtmmio_write_config_4(sc, off,
-			    htole32(*(uint32_t *)src));
+			    htole32(*(const uint32_t *)src));
 			break;
 		case 8:
 			vtmmio_write_config_4(sc, off,
-			    htole32(*(uint64_t *)src));
+			    htole32(*(const uint64_t *)src));
 			vtmmio_write_config_4(sc, off + 4,
-			    htole32((*(uint64_t *)src) >> 32));
+			    htole32((*(const uint64_t *)src) >> 32));
 			break;
 		default:
 			panic("%s: invalid length %d\n", __func__, length);

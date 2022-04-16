@@ -26,15 +26,15 @@
 #include <sys/zfs_context.h>
 #include <sys/zfs_refcount.h>
 
+#ifdef	ZFS_DEBUG
 /*
  * Reference count tracking is disabled by default.  It's memory requirements
  * are reasonable, however as implemented it consumes a significant amount of
  * cpu time.  Until its performance is improved it should be manually enabled.
  */
-int reference_tracking_enable = FALSE;
-int reference_history = 3; /* tunable */
+int reference_tracking_enable = B_FALSE;
+static int reference_history = 3; /* tunable */
 
-#ifdef	ZFS_DEBUG
 static kmem_cache_t *reference_cache;
 static kmem_cache_t *reference_history_cache;
 
@@ -318,11 +318,19 @@ zfs_refcount_not_held(zfs_refcount_t *rc, const void *holder)
 	return (B_TRUE);
 }
 
+EXPORT_SYMBOL(zfs_refcount_create);
+EXPORT_SYMBOL(zfs_refcount_destroy);
+EXPORT_SYMBOL(zfs_refcount_is_zero);
+EXPORT_SYMBOL(zfs_refcount_count);
+EXPORT_SYMBOL(zfs_refcount_add);
+EXPORT_SYMBOL(zfs_refcount_remove);
+EXPORT_SYMBOL(zfs_refcount_held);
+
 /* BEGIN CSTYLED */
-ZFS_MODULE_PARAM(zfs, ,reference_tracking_enable, INT, ZMOD_RW,
+ZFS_MODULE_PARAM(zfs, , reference_tracking_enable, INT, ZMOD_RW,
 	"Track reference holders to refcount_t objects");
 
-ZFS_MODULE_PARAM(zfs, ,reference_history, INT, ZMOD_RW,
+ZFS_MODULE_PARAM(zfs, , reference_history, INT, ZMOD_RW,
 	"Maximum reference holders being tracked");
 /* END CSTYLED */
 #endif	/* ZFS_DEBUG */

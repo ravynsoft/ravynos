@@ -32,102 +32,65 @@
 #include <sys/crypto/spi.h>
 #include <sys/crypto/icp.h>
 #include <modes/modes.h>
-#include <sys/modctl.h>
 #define	_AES_IMPL
 #include <aes/aes_impl.h>
 #include <modes/gcm_impl.h>
 
-#define	CRYPTO_PROVIDER_NAME "aes"
-
-extern struct mod_ops mod_cryptoops;
-
-/*
- * Module linkage information for the kernel.
- */
-static struct modlcrypto modlcrypto = {
-	&mod_cryptoops,
-	"AES Kernel SW Provider"
-};
-
-static struct modlinkage modlinkage = {
-	MODREV_1, { (void *)&modlcrypto, NULL }
-};
-
 /*
  * Mechanism info structure passed to KCF during registration.
  */
-static crypto_mech_info_t aes_mech_info_tab[] = {
+static const crypto_mech_info_t aes_mech_info_tab[] = {
 	/* AES_ECB */
 	{SUN_CKM_AES_ECB, AES_ECB_MECH_INFO_TYPE,
 	    CRYPTO_FG_ENCRYPT | CRYPTO_FG_ENCRYPT_ATOMIC |
-	    CRYPTO_FG_DECRYPT | CRYPTO_FG_DECRYPT_ATOMIC,
-	    AES_MIN_KEY_BYTES, AES_MAX_KEY_BYTES, CRYPTO_KEYSIZE_UNIT_IN_BYTES},
+	    CRYPTO_FG_DECRYPT | CRYPTO_FG_DECRYPT_ATOMIC},
 	/* AES_CBC */
 	{SUN_CKM_AES_CBC, AES_CBC_MECH_INFO_TYPE,
 	    CRYPTO_FG_ENCRYPT | CRYPTO_FG_ENCRYPT_ATOMIC |
-	    CRYPTO_FG_DECRYPT | CRYPTO_FG_DECRYPT_ATOMIC,
-	    AES_MIN_KEY_BYTES, AES_MAX_KEY_BYTES, CRYPTO_KEYSIZE_UNIT_IN_BYTES},
+	    CRYPTO_FG_DECRYPT | CRYPTO_FG_DECRYPT_ATOMIC},
 	/* AES_CTR */
 	{SUN_CKM_AES_CTR, AES_CTR_MECH_INFO_TYPE,
 	    CRYPTO_FG_ENCRYPT | CRYPTO_FG_ENCRYPT_ATOMIC |
-	    CRYPTO_FG_DECRYPT | CRYPTO_FG_DECRYPT_ATOMIC,
-	    AES_MIN_KEY_BYTES, AES_MAX_KEY_BYTES, CRYPTO_KEYSIZE_UNIT_IN_BYTES},
+	    CRYPTO_FG_DECRYPT | CRYPTO_FG_DECRYPT_ATOMIC},
 	/* AES_CCM */
 	{SUN_CKM_AES_CCM, AES_CCM_MECH_INFO_TYPE,
 	    CRYPTO_FG_ENCRYPT | CRYPTO_FG_ENCRYPT_ATOMIC |
-	    CRYPTO_FG_DECRYPT | CRYPTO_FG_DECRYPT_ATOMIC,
-	    AES_MIN_KEY_BYTES, AES_MAX_KEY_BYTES, CRYPTO_KEYSIZE_UNIT_IN_BYTES},
+	    CRYPTO_FG_DECRYPT | CRYPTO_FG_DECRYPT_ATOMIC},
 	/* AES_GCM */
 	{SUN_CKM_AES_GCM, AES_GCM_MECH_INFO_TYPE,
 	    CRYPTO_FG_ENCRYPT | CRYPTO_FG_ENCRYPT_ATOMIC |
-	    CRYPTO_FG_DECRYPT | CRYPTO_FG_DECRYPT_ATOMIC,
-	    AES_MIN_KEY_BYTES, AES_MAX_KEY_BYTES, CRYPTO_KEYSIZE_UNIT_IN_BYTES},
+	    CRYPTO_FG_DECRYPT | CRYPTO_FG_DECRYPT_ATOMIC},
 	/* AES_GMAC */
 	{SUN_CKM_AES_GMAC, AES_GMAC_MECH_INFO_TYPE,
 	    CRYPTO_FG_ENCRYPT | CRYPTO_FG_ENCRYPT_ATOMIC |
 	    CRYPTO_FG_DECRYPT | CRYPTO_FG_DECRYPT_ATOMIC |
-	    CRYPTO_FG_MAC | CRYPTO_FG_MAC_ATOMIC |
-	    CRYPTO_FG_SIGN | CRYPTO_FG_SIGN_ATOMIC |
-	    CRYPTO_FG_VERIFY | CRYPTO_FG_VERIFY_ATOMIC,
-	    AES_MIN_KEY_BYTES, AES_MAX_KEY_BYTES, CRYPTO_KEYSIZE_UNIT_IN_BYTES}
-};
-
-static void aes_provider_status(crypto_provider_handle_t, uint_t *);
-
-static crypto_control_ops_t aes_control_ops = {
-	aes_provider_status
+	    CRYPTO_FG_MAC | CRYPTO_FG_MAC_ATOMIC},
 };
 
 static int aes_encrypt_init(crypto_ctx_t *, crypto_mechanism_t *,
-    crypto_key_t *, crypto_spi_ctx_template_t, crypto_req_handle_t);
+    crypto_key_t *, crypto_spi_ctx_template_t);
 static int aes_decrypt_init(crypto_ctx_t *, crypto_mechanism_t *,
-    crypto_key_t *, crypto_spi_ctx_template_t, crypto_req_handle_t);
+    crypto_key_t *, crypto_spi_ctx_template_t);
 static int aes_common_init(crypto_ctx_t *, crypto_mechanism_t *,
-    crypto_key_t *, crypto_spi_ctx_template_t, crypto_req_handle_t, boolean_t);
+    crypto_key_t *, crypto_spi_ctx_template_t, boolean_t);
 static int aes_common_init_ctx(aes_ctx_t *, crypto_spi_ctx_template_t *,
     crypto_mechanism_t *, crypto_key_t *, int, boolean_t);
-static int aes_encrypt_final(crypto_ctx_t *, crypto_data_t *,
-    crypto_req_handle_t);
-static int aes_decrypt_final(crypto_ctx_t *, crypto_data_t *,
-    crypto_req_handle_t);
+static int aes_encrypt_final(crypto_ctx_t *, crypto_data_t *);
+static int aes_decrypt_final(crypto_ctx_t *, crypto_data_t *);
 
-static int aes_encrypt(crypto_ctx_t *, crypto_data_t *, crypto_data_t *,
-    crypto_req_handle_t);
+static int aes_encrypt(crypto_ctx_t *, crypto_data_t *, crypto_data_t *);
 static int aes_encrypt_update(crypto_ctx_t *, crypto_data_t *,
-    crypto_data_t *, crypto_req_handle_t);
-static int aes_encrypt_atomic(crypto_provider_handle_t, crypto_session_id_t,
-    crypto_mechanism_t *, crypto_key_t *, crypto_data_t *,
-    crypto_data_t *, crypto_spi_ctx_template_t, crypto_req_handle_t);
+    crypto_data_t *);
+static int aes_encrypt_atomic(crypto_mechanism_t *, crypto_key_t *,
+    crypto_data_t *, crypto_data_t *, crypto_spi_ctx_template_t);
 
-static int aes_decrypt(crypto_ctx_t *, crypto_data_t *, crypto_data_t *,
-    crypto_req_handle_t);
+static int aes_decrypt(crypto_ctx_t *, crypto_data_t *, crypto_data_t *);
 static int aes_decrypt_update(crypto_ctx_t *, crypto_data_t *,
-    crypto_data_t *, crypto_req_handle_t);
-static int aes_decrypt_atomic(crypto_provider_handle_t, crypto_session_id_t,
-    crypto_mechanism_t *, crypto_key_t *, crypto_data_t *,
-    crypto_data_t *, crypto_spi_ctx_template_t, crypto_req_handle_t);
+    crypto_data_t *);
+static int aes_decrypt_atomic(crypto_mechanism_t *, crypto_key_t *,
+    crypto_data_t *, crypto_data_t *, crypto_spi_ctx_template_t);
 
-static crypto_cipher_ops_t aes_cipher_ops = {
+static const crypto_cipher_ops_t aes_cipher_ops = {
 	.encrypt_init = aes_encrypt_init,
 	.encrypt = aes_encrypt,
 	.encrypt_update = aes_encrypt_update,
@@ -140,14 +103,12 @@ static crypto_cipher_ops_t aes_cipher_ops = {
 	.decrypt_atomic = aes_decrypt_atomic
 };
 
-static int aes_mac_atomic(crypto_provider_handle_t, crypto_session_id_t,
-    crypto_mechanism_t *, crypto_key_t *, crypto_data_t *, crypto_data_t *,
-    crypto_spi_ctx_template_t, crypto_req_handle_t);
-static int aes_mac_verify_atomic(crypto_provider_handle_t, crypto_session_id_t,
-    crypto_mechanism_t *, crypto_key_t *, crypto_data_t *, crypto_data_t *,
-    crypto_spi_ctx_template_t, crypto_req_handle_t);
+static int aes_mac_atomic(crypto_mechanism_t *, crypto_key_t *, crypto_data_t *,
+    crypto_data_t *, crypto_spi_ctx_template_t);
+static int aes_mac_verify_atomic(crypto_mechanism_t *, crypto_key_t *,
+    crypto_data_t *, crypto_data_t *, crypto_spi_ctx_template_t);
 
-static crypto_mac_ops_t aes_mac_ops = {
+static const crypto_mac_ops_t aes_mac_ops = {
 	.mac_init = NULL,
 	.mac = NULL,
 	.mac_update = NULL,
@@ -156,42 +117,28 @@ static crypto_mac_ops_t aes_mac_ops = {
 	.mac_verify_atomic = aes_mac_verify_atomic
 };
 
-static int aes_create_ctx_template(crypto_provider_handle_t,
-    crypto_mechanism_t *, crypto_key_t *, crypto_spi_ctx_template_t *,
-    size_t *, crypto_req_handle_t);
+static int aes_create_ctx_template(crypto_mechanism_t *, crypto_key_t *,
+    crypto_spi_ctx_template_t *, size_t *);
 static int aes_free_context(crypto_ctx_t *);
 
-static crypto_ctx_ops_t aes_ctx_ops = {
+static const crypto_ctx_ops_t aes_ctx_ops = {
 	.create_ctx_template = aes_create_ctx_template,
 	.free_context = aes_free_context
 };
 
-static crypto_ops_t aes_crypto_ops = {{{{{
-	&aes_control_ops,
+static const crypto_ops_t aes_crypto_ops = {
 	NULL,
 	&aes_cipher_ops,
 	&aes_mac_ops,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	&aes_ctx_ops
-}}}}};
+	&aes_ctx_ops,
+};
 
-static crypto_provider_info_t aes_prov_info = {{{{
-	CRYPTO_SPI_VERSION_1,
+static const crypto_provider_info_t aes_prov_info = {
 	"AES Software Provider",
-	CRYPTO_SW_PROVIDER,
-	NULL,
 	&aes_crypto_ops,
-	sizeof (aes_mech_info_tab)/sizeof (crypto_mech_info_t),
+	sizeof (aes_mech_info_tab) / sizeof (crypto_mech_info_t),
 	aes_mech_info_tab
-}}}};
+};
 
 static crypto_kcf_provider_handle_t aes_prov_handle = 0;
 static crypto_data_t null_crypto_data = { CRYPTO_DATA_RAW };
@@ -199,20 +146,13 @@ static crypto_data_t null_crypto_data = { CRYPTO_DATA_RAW };
 int
 aes_mod_init(void)
 {
-	int ret;
-
 	/* Determine the fastest available implementation. */
 	aes_impl_init();
 	gcm_impl_init();
 
-	if ((ret = mod_install(&modlinkage)) != 0)
-		return (ret);
-
 	/* Register with KCF.  If the registration fails, remove the module. */
-	if (crypto_register_provider(&aes_prov_info, &aes_prov_handle)) {
-		(void) mod_remove(&modlinkage);
+	if (crypto_register_provider(&aes_prov_info, &aes_prov_handle))
 		return (EACCES);
-	}
 
 	return (0);
 }
@@ -228,11 +168,11 @@ aes_mod_fini(void)
 		aes_prov_handle = 0;
 	}
 
-	return (mod_remove(&modlinkage));
+	return (0);
 }
 
 static int
-aes_check_mech_param(crypto_mechanism_t *mechanism, aes_ctx_t **ctx, int kmflag)
+aes_check_mech_param(crypto_mechanism_t *mechanism, aes_ctx_t **ctx)
 {
 	void *p = NULL;
 	boolean_t param_required = B_TRUE;
@@ -274,7 +214,7 @@ aes_check_mech_param(crypto_mechanism_t *mechanism, aes_ctx_t **ctx, int kmflag)
 		rv = CRYPTO_MECHANISM_PARAM_INVALID;
 	}
 	if (ctx != NULL) {
-		p = (alloc_fun)(kmflag);
+		p = (alloc_fun)(KM_SLEEP);
 		*ctx = p;
 	}
 	return (rv);
@@ -286,52 +226,31 @@ aes_check_mech_param(crypto_mechanism_t *mechanism, aes_ctx_t **ctx, int kmflag)
 static int
 init_keysched(crypto_key_t *key, void *newbie)
 {
-	/*
-	 * Only keys by value are supported by this module.
-	 */
-	switch (key->ck_format) {
-	case CRYPTO_KEY_RAW:
-		if (key->ck_length < AES_MINBITS ||
-		    key->ck_length > AES_MAXBITS) {
-			return (CRYPTO_KEY_SIZE_RANGE);
-		}
-
-		/* key length must be either 128, 192, or 256 */
-		if ((key->ck_length & 63) != 0)
-			return (CRYPTO_KEY_SIZE_RANGE);
-		break;
-	default:
-		return (CRYPTO_KEY_TYPE_INCONSISTENT);
+	if (key->ck_length < AES_MINBITS ||
+	    key->ck_length > AES_MAXBITS) {
+		return (CRYPTO_KEY_SIZE_RANGE);
 	}
+
+	/* key length must be either 128, 192, or 256 */
+	if ((key->ck_length & 63) != 0)
+		return (CRYPTO_KEY_SIZE_RANGE);
 
 	aes_init_keysched(key->ck_data, key->ck_length, newbie);
 	return (CRYPTO_SUCCESS);
 }
 
-/*
- * KCF software provider control entry points.
- */
-/* ARGSUSED */
-static void
-aes_provider_status(crypto_provider_handle_t provider, uint_t *status)
-{
-	*status = CRYPTO_PROVIDER_READY;
-}
-
 static int
 aes_encrypt_init(crypto_ctx_t *ctx, crypto_mechanism_t *mechanism,
-    crypto_key_t *key, crypto_spi_ctx_template_t template,
-    crypto_req_handle_t req)
+    crypto_key_t *key, crypto_spi_ctx_template_t template)
 {
-	return (aes_common_init(ctx, mechanism, key, template, req, B_TRUE));
+	return (aes_common_init(ctx, mechanism, key, template, B_TRUE));
 }
 
 static int
 aes_decrypt_init(crypto_ctx_t *ctx, crypto_mechanism_t *mechanism,
-    crypto_key_t *key, crypto_spi_ctx_template_t template,
-    crypto_req_handle_t req)
+    crypto_key_t *key, crypto_spi_ctx_template_t template)
 {
-	return (aes_common_init(ctx, mechanism, key, template, req, B_FALSE));
+	return (aes_common_init(ctx, mechanism, key, template, B_FALSE));
 }
 
 
@@ -342,25 +261,16 @@ aes_decrypt_init(crypto_ctx_t *ctx, crypto_mechanism_t *mechanism,
 static int
 aes_common_init(crypto_ctx_t *ctx, crypto_mechanism_t *mechanism,
     crypto_key_t *key, crypto_spi_ctx_template_t template,
-    crypto_req_handle_t req, boolean_t is_encrypt_init)
+    boolean_t is_encrypt_init)
 {
 	aes_ctx_t *aes_ctx;
 	int rv;
-	int kmflag;
 
-	/*
-	 * Only keys by value are supported by this module.
-	 */
-	if (key->ck_format != CRYPTO_KEY_RAW) {
-		return (CRYPTO_KEY_TYPE_INCONSISTENT);
-	}
-
-	kmflag = crypto_kmflag(req);
-	if ((rv = aes_check_mech_param(mechanism, &aes_ctx, kmflag))
+	if ((rv = aes_check_mech_param(mechanism, &aes_ctx))
 	    != CRYPTO_SUCCESS)
 		return (rv);
 
-	rv = aes_common_init_ctx(aes_ctx, template, mechanism, key, kmflag,
+	rv = aes_common_init_ctx(aes_ctx, template, mechanism, key, KM_SLEEP,
 	    is_encrypt_init);
 	if (rv != CRYPTO_SUCCESS) {
 		crypto_free_mode_ctx(aes_ctx);
@@ -390,7 +300,7 @@ aes_copy_block64(uint8_t *in, uint64_t *out)
 
 static int
 aes_encrypt(crypto_ctx_t *ctx, crypto_data_t *plaintext,
-    crypto_data_t *ciphertext, crypto_req_handle_t req)
+    crypto_data_t *ciphertext)
 {
 	int ret = CRYPTO_FAILED;
 
@@ -442,7 +352,7 @@ aes_encrypt(crypto_ctx_t *ctx, crypto_data_t *plaintext,
 	/*
 	 * Do an update on the specified input data.
 	 */
-	ret = aes_encrypt_update(ctx, plaintext, ciphertext, req);
+	ret = aes_encrypt_update(ctx, plaintext, ciphertext);
 	if (ret != CRYPTO_SUCCESS) {
 		return (ret);
 	}
@@ -505,7 +415,7 @@ aes_encrypt(crypto_ctx_t *ctx, crypto_data_t *plaintext,
 
 static int
 aes_decrypt(crypto_ctx_t *ctx, crypto_data_t *ciphertext,
-    crypto_data_t *plaintext, crypto_req_handle_t req)
+    crypto_data_t *plaintext)
 {
 	int ret = CRYPTO_FAILED;
 
@@ -563,7 +473,7 @@ aes_decrypt(crypto_ctx_t *ctx, crypto_data_t *ciphertext,
 	/*
 	 * Do an update on the specified input data.
 	 */
-	ret = aes_decrypt_update(ctx, ciphertext, plaintext, req);
+	ret = aes_decrypt_update(ctx, ciphertext, plaintext);
 	if (ret != CRYPTO_SUCCESS) {
 		goto cleanup;
 	}
@@ -617,10 +527,9 @@ cleanup:
 }
 
 
-/* ARGSUSED */
 static int
 aes_encrypt_update(crypto_ctx_t *ctx, crypto_data_t *plaintext,
-    crypto_data_t *ciphertext, crypto_req_handle_t req)
+    crypto_data_t *ciphertext)
 {
 	off_t saved_offset;
 	size_t saved_length, out_len;
@@ -652,13 +561,11 @@ aes_encrypt_update(crypto_ctx_t *ctx, crypto_data_t *plaintext,
 	switch (plaintext->cd_format) {
 	case CRYPTO_DATA_RAW:
 		ret = crypto_update_iov(ctx->cc_provider_private,
-		    plaintext, ciphertext, aes_encrypt_contiguous_blocks,
-		    aes_copy_block64);
+		    plaintext, ciphertext, aes_encrypt_contiguous_blocks);
 		break;
 	case CRYPTO_DATA_UIO:
 		ret = crypto_update_uio(ctx->cc_provider_private,
-		    plaintext, ciphertext, aes_encrypt_contiguous_blocks,
-		    aes_copy_block64);
+		    plaintext, ciphertext, aes_encrypt_contiguous_blocks);
 		break;
 	default:
 		ret = CRYPTO_ARGUMENTS_BAD;
@@ -690,7 +597,7 @@ aes_encrypt_update(crypto_ctx_t *ctx, crypto_data_t *plaintext,
 
 static int
 aes_decrypt_update(crypto_ctx_t *ctx, crypto_data_t *ciphertext,
-    crypto_data_t *plaintext, crypto_req_handle_t req)
+    crypto_data_t *plaintext)
 {
 	off_t saved_offset;
 	size_t saved_length, out_len;
@@ -722,22 +629,17 @@ aes_decrypt_update(crypto_ctx_t *ctx, crypto_data_t *ciphertext,
 	saved_offset = plaintext->cd_offset;
 	saved_length = plaintext->cd_length;
 
-	if (aes_ctx->ac_flags & (GCM_MODE|GMAC_MODE))
-		gcm_set_kmflag((gcm_ctx_t *)aes_ctx, crypto_kmflag(req));
-
 	/*
 	 * Do the AES update on the specified input data.
 	 */
 	switch (ciphertext->cd_format) {
 	case CRYPTO_DATA_RAW:
 		ret = crypto_update_iov(ctx->cc_provider_private,
-		    ciphertext, plaintext, aes_decrypt_contiguous_blocks,
-		    aes_copy_block64);
+		    ciphertext, plaintext, aes_decrypt_contiguous_blocks);
 		break;
 	case CRYPTO_DATA_UIO:
 		ret = crypto_update_uio(ctx->cc_provider_private,
-		    ciphertext, plaintext, aes_decrypt_contiguous_blocks,
-		    aes_copy_block64);
+		    ciphertext, plaintext, aes_decrypt_contiguous_blocks);
 		break;
 	default:
 		ret = CRYPTO_ARGUMENTS_BAD;
@@ -769,10 +671,8 @@ aes_decrypt_update(crypto_ctx_t *ctx, crypto_data_t *ciphertext,
 	return (ret);
 }
 
-/* ARGSUSED */
 static int
-aes_encrypt_final(crypto_ctx_t *ctx, crypto_data_t *data,
-    crypto_req_handle_t req)
+aes_encrypt_final(crypto_ctx_t *ctx, crypto_data_t *data)
 {
 	aes_ctx_t *aes_ctx;
 	int ret;
@@ -826,10 +726,8 @@ aes_encrypt_final(crypto_ctx_t *ctx, crypto_data_t *data,
 	return (CRYPTO_SUCCESS);
 }
 
-/* ARGSUSED */
 static int
-aes_decrypt_final(crypto_ctx_t *ctx, crypto_data_t *data,
-    crypto_req_handle_t req)
+aes_decrypt_final(crypto_ctx_t *ctx, crypto_data_t *data)
 {
 	aes_ctx_t *aes_ctx;
 	int ret;
@@ -929,14 +827,12 @@ aes_decrypt_final(crypto_ctx_t *ctx, crypto_data_t *data,
 	return (CRYPTO_SUCCESS);
 }
 
-/* ARGSUSED */
 static int
-aes_encrypt_atomic(crypto_provider_handle_t provider,
-    crypto_session_id_t session_id, crypto_mechanism_t *mechanism,
+aes_encrypt_atomic(crypto_mechanism_t *mechanism,
     crypto_key_t *key, crypto_data_t *plaintext, crypto_data_t *ciphertext,
-    crypto_spi_ctx_template_t template, crypto_req_handle_t req)
+    crypto_spi_ctx_template_t template)
 {
-	aes_ctx_t aes_ctx;	/* on the stack */
+	aes_ctx_t aes_ctx = {{{{0}}}};
 	off_t saved_offset;
 	size_t saved_length;
 	size_t length_needed;
@@ -959,13 +855,11 @@ aes_encrypt_atomic(crypto_provider_handle_t provider,
 			return (CRYPTO_DATA_LEN_RANGE);
 	}
 
-	if ((ret = aes_check_mech_param(mechanism, NULL, 0)) != CRYPTO_SUCCESS)
+	if ((ret = aes_check_mech_param(mechanism, NULL)) != CRYPTO_SUCCESS)
 		return (ret);
 
-	bzero(&aes_ctx, sizeof (aes_ctx_t));
-
 	ret = aes_common_init_ctx(&aes_ctx, template, mechanism, key,
-	    crypto_kmflag(req), B_TRUE);
+	    KM_SLEEP, B_TRUE);
 	if (ret != CRYPTO_SUCCESS)
 		return (ret);
 
@@ -976,7 +870,7 @@ aes_encrypt_atomic(crypto_provider_handle_t provider,
 	case AES_GMAC_MECH_INFO_TYPE:
 		if (plaintext->cd_length != 0)
 			return (CRYPTO_ARGUMENTS_BAD);
-		fallthrough;
+		zfs_fallthrough;
 	case AES_GCM_MECH_INFO_TYPE:
 		length_needed = plaintext->cd_length + aes_ctx.ac_tag_len;
 		break;
@@ -1000,11 +894,11 @@ aes_encrypt_atomic(crypto_provider_handle_t provider,
 	switch (plaintext->cd_format) {
 	case CRYPTO_DATA_RAW:
 		ret = crypto_update_iov(&aes_ctx, plaintext, ciphertext,
-		    aes_encrypt_contiguous_blocks, aes_copy_block64);
+		    aes_encrypt_contiguous_blocks);
 		break;
 	case CRYPTO_DATA_UIO:
 		ret = crypto_update_uio(&aes_ctx, plaintext, ciphertext,
-		    aes_encrypt_contiguous_blocks, aes_copy_block64);
+		    aes_encrypt_contiguous_blocks);
 		break;
 	default:
 		ret = CRYPTO_ARGUMENTS_BAD;
@@ -1048,7 +942,7 @@ aes_encrypt_atomic(crypto_provider_handle_t provider,
 
 out:
 	if (aes_ctx.ac_flags & PROVIDER_OWNS_KEY_SCHEDULE) {
-		bzero(aes_ctx.ac_keysched, aes_ctx.ac_keysched_len);
+		memset(aes_ctx.ac_keysched, 0, aes_ctx.ac_keysched_len);
 		kmem_free(aes_ctx.ac_keysched, aes_ctx.ac_keysched_len);
 	}
 #ifdef CAN_USE_GCM_ASM
@@ -1057,7 +951,7 @@ out:
 
 		gcm_ctx_t *ctx = (gcm_ctx_t *)&aes_ctx;
 
-		bzero(ctx->gcm_Htable, ctx->gcm_htab_len);
+		memset(ctx->gcm_Htable, 0, ctx->gcm_htab_len);
 		kmem_free(ctx->gcm_Htable, ctx->gcm_htab_len);
 	}
 #endif
@@ -1065,14 +959,12 @@ out:
 	return (ret);
 }
 
-/* ARGSUSED */
 static int
-aes_decrypt_atomic(crypto_provider_handle_t provider,
-    crypto_session_id_t session_id, crypto_mechanism_t *mechanism,
+aes_decrypt_atomic(crypto_mechanism_t *mechanism,
     crypto_key_t *key, crypto_data_t *ciphertext, crypto_data_t *plaintext,
-    crypto_spi_ctx_template_t template, crypto_req_handle_t req)
+    crypto_spi_ctx_template_t template)
 {
-	aes_ctx_t aes_ctx;	/* on the stack */
+	aes_ctx_t aes_ctx = {{{{0}}}};
 	off_t saved_offset;
 	size_t saved_length;
 	size_t length_needed;
@@ -1095,13 +987,11 @@ aes_decrypt_atomic(crypto_provider_handle_t provider,
 			return (CRYPTO_ENCRYPTED_DATA_LEN_RANGE);
 	}
 
-	if ((ret = aes_check_mech_param(mechanism, NULL, 0)) != CRYPTO_SUCCESS)
+	if ((ret = aes_check_mech_param(mechanism, NULL)) != CRYPTO_SUCCESS)
 		return (ret);
 
-	bzero(&aes_ctx, sizeof (aes_ctx_t));
-
 	ret = aes_common_init_ctx(&aes_ctx, template, mechanism, key,
-	    crypto_kmflag(req), B_FALSE);
+	    KM_SLEEP, B_FALSE);
 	if (ret != CRYPTO_SUCCESS)
 		return (ret);
 
@@ -1131,21 +1021,17 @@ aes_decrypt_atomic(crypto_provider_handle_t provider,
 	saved_offset = plaintext->cd_offset;
 	saved_length = plaintext->cd_length;
 
-	if (mechanism->cm_type == AES_GCM_MECH_INFO_TYPE ||
-	    mechanism->cm_type == AES_GMAC_MECH_INFO_TYPE)
-		gcm_set_kmflag((gcm_ctx_t *)&aes_ctx, crypto_kmflag(req));
-
 	/*
 	 * Do an update on the specified input data.
 	 */
 	switch (ciphertext->cd_format) {
 	case CRYPTO_DATA_RAW:
 		ret = crypto_update_iov(&aes_ctx, ciphertext, plaintext,
-		    aes_decrypt_contiguous_blocks, aes_copy_block64);
+		    aes_decrypt_contiguous_blocks);
 		break;
 	case CRYPTO_DATA_UIO:
 		ret = crypto_update_uio(&aes_ctx, ciphertext, plaintext,
-		    aes_decrypt_contiguous_blocks, aes_copy_block64);
+		    aes_decrypt_contiguous_blocks);
 		break;
 	default:
 		ret = CRYPTO_ARGUMENTS_BAD;
@@ -1206,7 +1092,7 @@ aes_decrypt_atomic(crypto_provider_handle_t provider,
 
 out:
 	if (aes_ctx.ac_flags & PROVIDER_OWNS_KEY_SCHEDULE) {
-		bzero(aes_ctx.ac_keysched, aes_ctx.ac_keysched_len);
+		memset(aes_ctx.ac_keysched, 0, aes_ctx.ac_keysched_len);
 		kmem_free(aes_ctx.ac_keysched, aes_ctx.ac_keysched_len);
 	}
 
@@ -1223,7 +1109,7 @@ out:
 		if (((gcm_ctx_t *)&aes_ctx)->gcm_Htable != NULL) {
 			gcm_ctx_t *ctx = (gcm_ctx_t *)&aes_ctx;
 
-			bzero(ctx->gcm_Htable, ctx->gcm_htab_len);
+			memset(ctx->gcm_Htable, 0, ctx->gcm_htab_len);
 			kmem_free(ctx->gcm_Htable, ctx->gcm_htab_len);
 		}
 #endif
@@ -1235,11 +1121,9 @@ out:
 /*
  * KCF software provider context template entry points.
  */
-/* ARGSUSED */
 static int
-aes_create_ctx_template(crypto_provider_handle_t provider,
-    crypto_mechanism_t *mechanism, crypto_key_t *key,
-    crypto_spi_ctx_template_t *tmpl, size_t *tmpl_size, crypto_req_handle_t req)
+aes_create_ctx_template(crypto_mechanism_t *mechanism, crypto_key_t *key,
+    crypto_spi_ctx_template_t *tmpl, size_t *tmpl_size)
 {
 	void *keysched;
 	size_t size;
@@ -1253,8 +1137,7 @@ aes_create_ctx_template(crypto_provider_handle_t provider,
 	    mechanism->cm_type != AES_GMAC_MECH_INFO_TYPE)
 		return (CRYPTO_MECHANISM_INVALID);
 
-	if ((keysched = aes_alloc_keysched(&size,
-	    crypto_kmflag(req))) == NULL) {
+	if ((keysched = aes_alloc_keysched(&size, KM_SLEEP)) == NULL) {
 		return (CRYPTO_HOST_MEMORY);
 	}
 
@@ -1263,7 +1146,7 @@ aes_create_ctx_template(crypto_provider_handle_t provider,
 	 * in the key.
 	 */
 	if ((rv = init_keysched(key, keysched)) != CRYPTO_SUCCESS) {
-		bzero(keysched, size);
+		memset(keysched, 0, size);
 		kmem_free(keysched, size);
 		return (rv);
 	}
@@ -1283,7 +1166,8 @@ aes_free_context(crypto_ctx_t *ctx)
 	if (aes_ctx != NULL) {
 		if (aes_ctx->ac_flags & PROVIDER_OWNS_KEY_SCHEDULE) {
 			ASSERT(aes_ctx->ac_keysched_len != 0);
-			bzero(aes_ctx->ac_keysched, aes_ctx->ac_keysched_len);
+			memset(aes_ctx->ac_keysched, 0,
+			    aes_ctx->ac_keysched_len);
 			kmem_free(aes_ctx->ac_keysched,
 			    aes_ctx->ac_keysched_len);
 		}
@@ -1373,7 +1257,7 @@ aes_common_init_ctx(aes_ctx_t *aes_ctx, crypto_spi_ctx_template_t *template,
 
 	if (rv != CRYPTO_SUCCESS) {
 		if (aes_ctx->ac_flags & PROVIDER_OWNS_KEY_SCHEDULE) {
-			bzero(keysched, size);
+			memset(keysched, 0, size);
 			kmem_free(keysched, size);
 		}
 	}
@@ -1413,10 +1297,9 @@ process_gmac_mech(crypto_mechanism_t *mech, crypto_data_t *data,
 }
 
 static int
-aes_mac_atomic(crypto_provider_handle_t provider,
-    crypto_session_id_t session_id, crypto_mechanism_t *mechanism,
+aes_mac_atomic(crypto_mechanism_t *mechanism,
     crypto_key_t *key, crypto_data_t *data, crypto_data_t *mac,
-    crypto_spi_ctx_template_t template, crypto_req_handle_t req)
+    crypto_spi_ctx_template_t template)
 {
 	CK_AES_GCM_PARAMS gcm_params;
 	crypto_mechanism_t gcm_mech;
@@ -1430,15 +1313,13 @@ aes_mac_atomic(crypto_provider_handle_t provider,
 	gcm_mech.cm_param_len = sizeof (CK_AES_GCM_PARAMS);
 	gcm_mech.cm_param = (char *)&gcm_params;
 
-	return (aes_encrypt_atomic(provider, session_id, &gcm_mech,
-	    key, &null_crypto_data, mac, template, req));
+	return (aes_encrypt_atomic(&gcm_mech,
+	    key, &null_crypto_data, mac, template));
 }
 
 static int
-aes_mac_verify_atomic(crypto_provider_handle_t provider,
-    crypto_session_id_t session_id, crypto_mechanism_t *mechanism,
-    crypto_key_t *key, crypto_data_t *data, crypto_data_t *mac,
-    crypto_spi_ctx_template_t template, crypto_req_handle_t req)
+aes_mac_verify_atomic(crypto_mechanism_t *mechanism, crypto_key_t *key,
+    crypto_data_t *data, crypto_data_t *mac, crypto_spi_ctx_template_t template)
 {
 	CK_AES_GCM_PARAMS gcm_params;
 	crypto_mechanism_t gcm_mech;
@@ -1452,6 +1333,6 @@ aes_mac_verify_atomic(crypto_provider_handle_t provider,
 	gcm_mech.cm_param_len = sizeof (CK_AES_GCM_PARAMS);
 	gcm_mech.cm_param = (char *)&gcm_params;
 
-	return (aes_decrypt_atomic(provider, session_id, &gcm_mech,
-	    key, mac, &null_crypto_data, template, req));
+	return (aes_decrypt_atomic(&gcm_mech,
+	    key, mac, &null_crypto_data, template));
 }

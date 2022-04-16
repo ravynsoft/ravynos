@@ -49,7 +49,6 @@ struct componentname {
 	 */
 	u_int64_t cn_origflags;	/* flags to namei */
 	u_int64_t cn_flags;	/* flags to namei */
-	struct	thread *cn_thread;/* thread requesting lookup */
 	struct	ucred *cn_cred;	/* credentials */
 	enum nameiop cn_nameiop;	/* namei operation */
 	int	cn_lkflags;	/* Lock flags LK_EXCLUSIVE or LK_SHARED */
@@ -183,9 +182,9 @@ int	cache_fplookup(struct nameidata *ndp, enum cache_fpl_status *status,
 #define	AUDITVNODE1	0x00040000 /* audit the looked up vnode information */
 #define	AUDITVNODE2	0x00080000 /* audit the looked up vnode information */
 #define	NOCAPCHECK	0x00100000 /* do not perform capability checks */
-/* UNUSED		0x00200000 */
-/* UNUSED		0x00400000 */
-/* UNUSED		0x00800000 */
+#define	OPENREAD	0x00200000 /* open for reading */
+#define	OPENWRITE	0x00400000 /* open for writing */
+#define	WANTIOCTLCAPS	0x00800000 /* leave ioctl caps for the caller */
 #define	HASBUF		0x01000000 /* has allocated pathname buffer */
 #define	NOEXECCHECK	0x02000000 /* do not perform exec check on dir */
 #define	MAKEENTRY	0x04000000 /* entry is to be added to name cache */
@@ -218,19 +217,22 @@ int	cache_fplookup(struct nameidata *ndp, enum cache_fpl_status *status,
 /*
  * Initialization of a nameidata structure.
  */
-#define	NDINIT(ndp, op, flags, segflg, namep, td)			\
-	NDINIT_ALL(ndp, op, flags, segflg, namep, AT_FDCWD, NULL, &cap_no_rights, td)
-#define	NDINIT_AT(ndp, op, flags, segflg, namep, dirfd, td)		\
-	NDINIT_ALL(ndp, op, flags, segflg, namep, dirfd, NULL, &cap_no_rights, td)
-#define	NDINIT_ATRIGHTS(ndp, op, flags, segflg, namep, dirfd, rightsp, td) \
-	NDINIT_ALL(ndp, op, flags, segflg, namep, dirfd, NULL, rightsp, td)
-#define	NDINIT_ATVP(ndp, op, flags, segflg, namep, vp, td)		\
-	NDINIT_ALL(ndp, op, flags, segflg, namep, AT_FDCWD, vp, &cap_no_rights, td)
+#define	NDINIT(ndp, op, flags, segflg, namep)				\
+	NDINIT_ALL(ndp, op, flags, segflg, namep, AT_FDCWD, NULL, &cap_no_rights)
+#define	NDINIT_AT(ndp, op, flags, segflg, namep, dirfd)			\
+	NDINIT_ALL(ndp, op, flags, segflg, namep, dirfd, NULL, &cap_no_rights)
+#define	NDINIT_ATRIGHTS(ndp, op, flags, segflg, namep, dirfd, rightsp) 	\
+	NDINIT_ALL(ndp, op, flags, segflg, namep, dirfd, NULL, rightsp)
+#define	NDINIT_ATVP(ndp, op, flags, segflg, namep, vp)			\
+	NDINIT_ALL(ndp, op, flags, segflg, namep, AT_FDCWD, vp, &cap_no_rights)
 
 /*
  * Note the constant pattern may *hide* bugs.
+ * Note also that we enable debug checks for non-TIED KLDs
+ * so that they can run on an INVARIANTS kernel without tripping over
+ * assertions on ni_debugflags state.
  */
-#ifdef INVARIANTS
+#if defined(INVARIANTS) || (defined(KLD_MODULE) && !defined(KLD_TIED))
 #define NDINIT_PREFILL(arg)	memset(arg, 0xff, offsetof(struct nameidata,	\
     ni_dvp_seqc))
 #define NDINIT_DBG(arg)		{ (arg)->ni_debugflags = NAMEI_DBG_INITED; }
@@ -247,7 +249,7 @@ int	cache_fplookup(struct nameidata *ndp, enum cache_fpl_status *status,
 #define NDREINIT_DBG(arg)	do { } while (0)
 #endif
 
-#define NDINIT_ALL(ndp, op, flags, segflg, namep, dirfd, startdir, rightsp, td)	\
+#define NDINIT_ALL(ndp, op, flags, segflg, namep, dirfd, startdir, rightsp)	\
 do {										\
 	struct nameidata *_ndp = (ndp);						\
 	cap_rights_t *_rightsp = (rightsp);					\
@@ -262,13 +264,13 @@ do {										\
 	_ndp->ni_startdir = startdir;						\
 	_ndp->ni_resflags = 0;							\
 	filecaps_init(&_ndp->ni_filecaps);					\
-	_ndp->ni_cnd.cn_thread = td;						\
 	_ndp->ni_rightsneeded = _rightsp;					\
 } while (0)
 
 #define NDREINIT(ndp)	do {							\
 	struct nameidata *_ndp = (ndp);						\
 	NDREINIT_DBG(_ndp);							\
+	filecaps_free(&_ndp->ni_filecaps);					\
 	_ndp->ni_resflags = 0;							\
 	_ndp->ni_startdir = NULL;						\
 } while (0)
@@ -286,17 +288,13 @@ do {										\
 #define NDF_NO_VP_PUT		0x0000000c
 #define NDF_NO_STARTDIR_RELE	0x00000010
 #define NDF_NO_FREE_PNBUF	0x00000020
-#define NDF_ONLY_PNBUF		(~NDF_NO_FREE_PNBUF)
 
+#define NDFREE_IOCTLCAPS(ndp) do {						\
+	struct nameidata *_ndp = (ndp);						\
+	filecaps_free(&_ndp->ni_filecaps);					\
+} while (0)
 void NDFREE_PNBUF(struct nameidata *);
 void NDFREE(struct nameidata *, const u_int);
-#define NDFREE(ndp, flags) do {						\
-	struct nameidata *_ndp = (ndp);					\
-	if (__builtin_constant_p(flags) && flags == NDF_ONLY_PNBUF)	\
-		NDFREE_PNBUF(_ndp);					\
-	else								\
-		NDFREE(_ndp, flags);					\
-} while (0)
 
 #ifdef INVARIANTS
 void NDFREE_NOTHING(struct nameidata *);
@@ -307,8 +305,8 @@ void NDVALIDATE(struct nameidata *);
 #endif
 
 int	namei(struct nameidata *ndp);
-int	lookup(struct nameidata *ndp);
-int	relookup(struct vnode *dvp, struct vnode **vpp,
+int	vfs_lookup(struct nameidata *ndp);
+int	vfs_relookup(struct vnode *dvp, struct vnode **vpp,
 	    struct componentname *cnp);
 #endif
 

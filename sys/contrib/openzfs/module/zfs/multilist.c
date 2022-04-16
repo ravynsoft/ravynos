@@ -36,6 +36,8 @@ multilist_d2l(multilist_t *ml, void *obj)
 {
 	return ((multilist_node_t *)((char *)obj + ml->ml_offset));
 }
+#else
+#define	multilist_d2l(ml, obj) ((void) sizeof (ml), (void) sizeof (obj), NULL)
 #endif
 
 /*
@@ -423,7 +425,5 @@ multilist_link_active(multilist_node_t *link)
 	return (list_link_active(link));
 }
 
-/* BEGIN CSTYLED */
 ZFS_MODULE_PARAM(zfs, zfs_, multilist_num_sublists, INT, ZMOD_RW,
 	"Number of sublists used in each multilist");
-/* END CSTYLED */

@@ -50,6 +50,20 @@ properties:
   '#clock-cells':
     const: 1
 
+  clock-names:
+    minItems: 1
+    maxItems: 2
+    items:
+      enum: [ xin, clkin ]
+  clocks:
+    minItems: 1
+    maxItems: 2
+
+  idt,xtal-load-femtofarads:
+    minimum: 9000
+    maximum: 22760
+    description: Optional load capacitor for XTAL1 and XTAL2
+
 patternProperties:
   "^OUT[1-4]$":
     type: object
@@ -69,7 +83,6 @@ patternProperties:
         enum: [ 1800000, 2500000, 3300000 ]
       idt,slew-percent:
         description: The Slew rate control for CMOS single-ended.
-        $ref: /schemas/types.yaml#/definitions/uint32
         enum: [ 80, 85, 90, 100 ]
 
 required:
@@ -93,18 +106,11 @@ allOf:
           maxItems: 1
     else:
       # Devices without builtin crystal
-      properties:
-        clock-names:
-          minItems: 1
-          maxItems: 2
-          items:
-            enum: [ xin, clkin ]
-        clocks:
-          minItems: 1
-          maxItems: 2
       required:
         - clock-names
         - clocks
+
+additionalProperties: false
 
 examples:
   - |

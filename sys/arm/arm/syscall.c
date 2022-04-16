@@ -100,7 +100,7 @@ int
 cpu_fetch_syscall_args(struct thread *td)
 {
 	struct proc *p;
-	register_t *ap;
+	syscallarg_t *ap;
 	struct syscall_args *sa;
 	u_int nap;
 	int error;
@@ -108,6 +108,7 @@ cpu_fetch_syscall_args(struct thread *td)
 	nap = 4;
 	sa = &td->td_sa;
 	sa->code = td->td_frame->tf_r7;
+	sa->original_code = sa->code;
 	ap = &td->td_frame->tf_r0;
 	if (sa->code == SYS_syscall) {
 		sa->code = *ap++;
@@ -123,10 +124,10 @@ cpu_fetch_syscall_args(struct thread *td)
 	else
 		sa->callp = &p->p_sysent->sv_table[sa->code];
 	error = 0;
-	memcpy(sa->args, ap, nap * sizeof(register_t));
+	memcpy(sa->args, ap, nap * sizeof(*sa->args));
 	if (sa->callp->sy_narg > nap) {
 		error = copyin((void *)td->td_frame->tf_usr_sp, sa->args +
-		    nap, (sa->callp->sy_narg - nap) * sizeof(register_t));
+		    nap, (sa->callp->sy_narg - nap) * sizeof(*sa->args));
 	}
 	if (error == 0) {
 		td->td_retval[0] = 0;

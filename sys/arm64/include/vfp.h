@@ -35,6 +35,7 @@
 #define	VFPCR_AHP		(0x04000000)	/* alt. half-precision: */
 #define	VFPCR_DN		(0x02000000)	/* default NaN enable */
 #define	VFPCR_FZ		(0x01000000)	/* flush to zero enabled */
+#define	VFPCR_INIT		0		/* Default fpcr after exec */
 
 #define	VFPCR_RMODE_OFF		22		/* rounding mode offset */
 #define	VFPCR_RMODE_MASK	(0x00c00000)	/* rounding mode mask */
@@ -92,6 +93,11 @@ int is_fpu_kern_thread(u_int);
 #define VFP_FPSCR_FROM_SRCR(vpsr, vpcr) ((vpsr) | ((vpcr) & 0x7c00000))
 #define VFP_FPSR_FROM_FPSCR(vpscr) ((vpscr) &~ 0x7c00000)
 #define VFP_FPCR_FROM_FPSCR(vpsrc) ((vpsrc) & 0x7c00000)
+
+#ifdef COMPAT_FREEBSD32
+void get_fpcontext32(struct thread *td, mcontext32_vfp_t *mcp);
+void set_fpcontext32(struct thread *td, mcontext32_vfp_t *mcp);
+#endif
 
 #endif
 

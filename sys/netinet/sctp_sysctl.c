@@ -143,7 +143,7 @@ sctp_sysctl_number_of_addresses(struct sctp_inpcb *inp)
 	struct sctp_laddr *laddr;
 
 	cnt = 0;
-	/* neither Mac OS X nor FreeBSD support mulitple routing functions */
+	/* neither Mac OS X nor FreeBSD support multiple routing functions */
 	if ((vrf = sctp_find_vrf(inp->def_vrf_id)) == NULL) {
 		return (0);
 	}
@@ -188,60 +188,85 @@ sctp_sysctl_copy_out_local_addresses(struct sctp_inpcb *inp, struct sctp_tcb *st
 {
 	struct sctp_ifn *sctp_ifn;
 	struct sctp_ifa *sctp_ifa;
-	int loopback_scope, ipv4_local_scope, local_scope, site_scope;
-	int ipv4_addr_legal, ipv6_addr_legal;
+	int loopback_scope;
+#ifdef INET
+	int ipv4_local_scope;
+	int ipv4_addr_legal;
+#endif
+#ifdef INET6
+	int local_scope, site_scope;
+	int ipv6_addr_legal;
+#endif
 	struct sctp_vrf *vrf;
 	struct xsctp_laddr xladdr;
 	struct sctp_laddr *laddr;
 	int error;
 
 	/* Turn on all the appropriate scope */
-	if (stcb) {
+	if (stcb != NULL) {
 		/* use association specific values */
 		loopback_scope = stcb->asoc.scope.loopback_scope;
+#ifdef INET
 		ipv4_local_scope = stcb->asoc.scope.ipv4_local_scope;
+		ipv4_addr_legal = stcb->asoc.scope.ipv4_addr_legal;
+#endif
+#ifdef INET6
 		local_scope = stcb->asoc.scope.local_scope;
 		site_scope = stcb->asoc.scope.site_scope;
-		ipv4_addr_legal = stcb->asoc.scope.ipv4_addr_legal;
 		ipv6_addr_legal = stcb->asoc.scope.ipv6_addr_legal;
+#endif
 	} else {
 		/* Use generic values for endpoints. */
 		loopback_scope = 1;
+#ifdef INET
 		ipv4_local_scope = 1;
+#endif
+#ifdef INET6
 		local_scope = 1;
 		site_scope = 1;
+#endif
 		if (inp->sctp_flags & SCTP_PCB_FLAGS_BOUND_V6) {
+#ifdef INET6
 			ipv6_addr_legal = 1;
+#endif
+#ifdef INET
 			if (SCTP_IPV6_V6ONLY(inp)) {
 				ipv4_addr_legal = 0;
 			} else {
 				ipv4_addr_legal = 1;
 			}
+#endif
 		} else {
+#ifdef INET6
 			ipv6_addr_legal = 0;
+#endif
+#ifdef INET
 			ipv4_addr_legal = 1;
+#endif
 		}
 	}
 
-	/* neither Mac OS X nor FreeBSD support mulitple routing functions */
+	/* Neither Mac OS X nor FreeBSD support multiple routing functions. */
 	if ((vrf = sctp_find_vrf(inp->def_vrf_id)) == NULL) {
 		SCTP_INP_RUNLOCK(inp);
 		SCTP_INP_INFO_RUNLOCK();
-		return (-1);
+		return (ENOENT);
 	}
 	if (inp->sctp_flags & SCTP_PCB_FLAGS_BOUNDALL) {
 		LIST_FOREACH(sctp_ifn, &vrf->ifnlist, next_ifn) {
-			if ((loopback_scope == 0) && SCTP_IFN_IS_IFT_LOOP(sctp_ifn))
-				/* Skip loopback if loopback_scope not set */
+			if ((loopback_scope == 0) && SCTP_IFN_IS_IFT_LOOP(sctp_ifn)) {
+				/* Skip loopback if loopback_scope not set. */
 				continue;
+			}
 			LIST_FOREACH(sctp_ifa, &sctp_ifn->ifalist, next_ifa) {
-				if (stcb) {
+				if (stcb != NULL) {
 					/*
-					 * ignore if blacklisted at
-					 * association level
+					 * Ignore if blacklisted at
+					 * association level.
 					 */
-					if (sctp_is_addr_restricted(stcb, sctp_ifa))
+					if (sctp_is_addr_restricted(stcb, sctp_ifa)) {
 						continue;
+					}
 				}
 				switch (sctp_ifa->address.sa.sa_family) {
 #ifdef INET
@@ -250,14 +275,16 @@ sctp_sysctl_copy_out_local_addresses(struct sctp_inpcb *inp, struct sctp_tcb *st
 						struct sockaddr_in *sin;
 
 						sin = &sctp_ifa->address.sin;
-						if (sin->sin_addr.s_addr == 0)
+						if (sin->sin_addr.s_addr == 0) {
 							continue;
+						}
 						if (prison_check_ip4(inp->ip_inp.inp.inp_cred,
 						    &sin->sin_addr) != 0) {
 							continue;
 						}
-						if ((ipv4_local_scope == 0) && (IN4_ISPRIVATE_ADDRESS(&sin->sin_addr)))
+						if ((ipv4_local_scope == 0) && (IN4_ISPRIVATE_ADDRESS(&sin->sin_addr))) {
 							continue;
+						}
 					} else {
 						continue;
 					}
@@ -269,18 +296,21 @@ sctp_sysctl_copy_out_local_addresses(struct sctp_inpcb *inp, struct sctp_tcb *st
 						struct sockaddr_in6 *sin6;
 
 						sin6 = &sctp_ifa->address.sin6;
-						if (IN6_IS_ADDR_UNSPECIFIED(&sin6->sin6_addr))
+						if (IN6_IS_ADDR_UNSPECIFIED(&sin6->sin6_addr)) {
 							continue;
+						}
 						if (prison_check_ip6(inp->ip_inp.inp.inp_cred,
 						    &sin6->sin6_addr) != 0) {
 							continue;
 						}
 						if (IN6_IS_ADDR_LINKLOCAL(&sin6->sin6_addr)) {
-							if (local_scope == 0)
+							if (local_scope == 0) {
 								continue;
+							}
 						}
-						if ((site_scope == 0) && (IN6_IS_ADDR_SITELOCAL(&sin6->sin6_addr)))
+						if ((site_scope == 0) && (IN6_IS_ADDR_SITELOCAL(&sin6->sin6_addr))) {
 							continue;
+						}
 					} else {
 						continue;
 					}
@@ -294,7 +324,7 @@ sctp_sysctl_copy_out_local_addresses(struct sctp_inpcb *inp, struct sctp_tcb *st
 				SCTP_INP_RUNLOCK(inp);
 				SCTP_INP_INFO_RUNLOCK();
 				error = SYSCTL_OUT(req, &xladdr, sizeof(struct xsctp_laddr));
-				if (error) {
+				if (error != 0) {
 					return (error);
 				} else {
 					SCTP_INP_INFO_RLOCK();
@@ -305,7 +335,7 @@ sctp_sysctl_copy_out_local_addresses(struct sctp_inpcb *inp, struct sctp_tcb *st
 	} else {
 		LIST_FOREACH(laddr, &inp->sctp_addr_list, sctp_nxt_addr) {
 			/* ignore if blacklisted at association level */
-			if (stcb && sctp_is_addr_restricted(stcb, laddr->ifa))
+			if (stcb != NULL && sctp_is_addr_restricted(stcb, laddr->ifa))
 				continue;
 			memset((void *)&xladdr, 0, sizeof(struct xsctp_laddr));
 			memcpy((void *)&xladdr.address, (const void *)&laddr->ifa->address, sizeof(union sctp_sockstore));
@@ -314,7 +344,7 @@ sctp_sysctl_copy_out_local_addresses(struct sctp_inpcb *inp, struct sctp_tcb *st
 			SCTP_INP_RUNLOCK(inp);
 			SCTP_INP_INFO_RUNLOCK();
 			error = SYSCTL_OUT(req, &xladdr, sizeof(struct xsctp_laddr));
-			if (error) {
+			if (error != 0) {
 				return (error);
 			} else {
 				SCTP_INP_INFO_RLOCK();
@@ -328,7 +358,7 @@ sctp_sysctl_copy_out_local_addresses(struct sctp_inpcb *inp, struct sctp_tcb *st
 	SCTP_INP_INFO_RUNLOCK();
 	error = SYSCTL_OUT(req, &xladdr, sizeof(struct xsctp_laddr));
 
-	if (error) {
+	if (error != 0) {
 		return (error);
 	} else {
 		SCTP_INP_INFO_RLOCK();
@@ -855,8 +885,8 @@ sctp_sysctl_handle_trace_log_clear(SYSCTL_HANDLER_ARGS)
 		return (error);						\
 	}								\
 	SYSCTL_PROC(_net_inet_sctp, OID_AUTO, mib_name,			\
-	    CTLFLAG_VNET | CTLTYPE_UINT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, \
-	    NULL, 0, sctp_sysctl_handle_##mib_name, "UI", prefix##_DESC);
+	                 CTLFLAG_VNET|CTLTYPE_UINT|CTLFLAG_RW, NULL, 0,	\
+	                 sctp_sysctl_handle_##mib_name, "UI", prefix##_DESC);
 
 /*
  * sysctl definitions
@@ -867,14 +897,10 @@ SCTP_UINT_SYSCTL(recvspace, sctp_recvspace, SCTPCTL_RECVSPACE)
 SCTP_UINT_SYSCTL(auto_asconf, sctp_auto_asconf, SCTPCTL_AUTOASCONF)
 SCTP_UINT_SYSCTL(ecn_enable, sctp_ecn_enable, SCTPCTL_ECN_ENABLE)
 SCTP_UINT_SYSCTL(pr_enable, sctp_pr_enable, SCTPCTL_PR_ENABLE)
-SYSCTL_PROC(_net_inet_sctp, OID_AUTO, auth_enable,
-    CTLFLAG_VNET | CTLTYPE_UINT | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
-    NULL, 0, sctp_sysctl_handle_auth, "IU",
-    SCTPCTL_AUTH_ENABLE_DESC);
-SYSCTL_PROC(_net_inet_sctp, OID_AUTO, asconf_enable,
-    CTLFLAG_VNET | CTLTYPE_UINT | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
-    NULL, 0, sctp_sysctl_handle_asconf, "IU",
-    SCTPCTL_ASCONF_ENABLE_DESC);
+SYSCTL_PROC(_net_inet_sctp, OID_AUTO, auth_enable, CTLFLAG_VNET | CTLTYPE_UINT | CTLFLAG_RW,
+    NULL, 0, sctp_sysctl_handle_auth, "IU", SCTPCTL_AUTH_ENABLE_DESC);
+SYSCTL_PROC(_net_inet_sctp, OID_AUTO, asconf_enable, CTLFLAG_VNET | CTLTYPE_UINT | CTLFLAG_RW,
+    NULL, 0, sctp_sysctl_handle_asconf, "IU", SCTPCTL_ASCONF_ENABLE_DESC);
 SCTP_UINT_SYSCTL(reconfig_enable, sctp_reconfig_enable, SCTPCTL_RECONFIG_ENABLE)
 SCTP_UINT_SYSCTL(nrsack_enable, sctp_nrsack_enable, SCTPCTL_NRSACK_ENABLE)
 SCTP_UINT_SYSCTL(pktdrop_enable, sctp_pktdrop_enable, SCTPCTL_PKTDROP_ENABLE)
@@ -924,19 +950,13 @@ SCTP_UINT_SYSCTL(default_frag_interleave, sctp_default_frag_interleave, SCTPCTL_
 SCTP_UINT_SYSCTL(mobility_base, sctp_mobility_base, SCTPCTL_MOBILITY_BASE)
 SCTP_UINT_SYSCTL(mobility_fasthandoff, sctp_mobility_fasthandoff, SCTPCTL_MOBILITY_FASTHANDOFF)
 #if defined(SCTP_LOCAL_TRACE_BUF)
-SYSCTL_PROC(_net_inet_sctp, OID_AUTO, log,
-    CTLFLAG_VNET | CTLTYPE_STRUCT | CTLFLAG_RD | CTLFLAG_NEEDGIANT,
-    NULL, 0, sctp_sysctl_handle_trace_log, "S,sctplog"a
-    , "SCTP logging (struct sctp_log)");
-SYSCTL_PROC(_net_inet_sctp, OID_AUTO, clear_trace,
-    CTLFLAG_VNET | CTLTYPE_UINT | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
-    NULL, 0, sctp_sysctl_handle_trace_log_clear, "IU",
-    "Clear SCTP Logging buffer");
+SYSCTL_PROC(_net_inet_sctp, OID_AUTO, log, CTLFLAG_VNET | CTLTYPE_STRUCT | CTLFLAG_RD,
+    NULL, 0, sctp_sysctl_handle_trace_log, "S,sctplog", "SCTP logging (struct sctp_log)");
+SYSCTL_PROC(_net_inet_sctp, OID_AUTO, clear_trace, CTLFLAG_VNET | CTLTYPE_UINT | CTLFLAG_RW,
+    NULL, 0, sctp_sysctl_handle_trace_log_clear, "IU", "Clear SCTP Logging buffer");
 #endif
-SYSCTL_PROC(_net_inet_sctp, OID_AUTO, udp_tunneling_port,
-    CTLFLAG_VNET | CTLTYPE_UINT | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
-    NULL, 0, sctp_sysctl_handle_udp_tunneling, "IU",
-    SCTPCTL_UDP_TUNNELING_PORT_DESC);
+SYSCTL_PROC(_net_inet_sctp, OID_AUTO, udp_tunneling_port, CTLFLAG_VNET | CTLTYPE_UINT | CTLFLAG_RW,
+    NULL, 0, sctp_sysctl_handle_udp_tunneling, "IU", SCTPCTL_UDP_TUNNELING_PORT_DESC);
 SCTP_UINT_SYSCTL(enable_sack_immediately, sctp_enable_sack_immediately, SCTPCTL_SACK_IMMEDIATELY_ENABLE)
 SCTP_UINT_SYSCTL(nat_friendly_init, sctp_inits_include_nat_friendly, SCTPCTL_NAT_FRIENDLY_INITS)
 SCTP_UINT_SYSCTL(vtag_time_wait, sctp_vtag_time_wait, SCTPCTL_TIME_WAIT)
@@ -953,11 +973,7 @@ SCTP_UINT_SYSCTL(diag_info_code, sctp_diag_info_code, SCTPCTL_DIAG_INFO_CODE)
 #ifdef SCTP_DEBUG
 SCTP_UINT_SYSCTL(debug, sctp_debug_on, SCTPCTL_DEBUG)
 #endif
-SYSCTL_PROC(_net_inet_sctp, OID_AUTO, stats,
-    CTLFLAG_VNET | CTLTYPE_STRUCT | CTLFLAG_RW | CTLFLAG_NEEDGIANT,
-    NULL, 0, sctp_sysctl_handle_stats, "S,sctpstat",
-    "SCTP statistics (struct sctp_stat)");
-SYSCTL_PROC(_net_inet_sctp, OID_AUTO, assoclist,
-    CTLFLAG_VNET | CTLTYPE_OPAQUE | CTLFLAG_RD | CTLFLAG_NEEDGIANT,
-    NULL, 0, sctp_sysctl_handle_assoclist, "S,xassoc",
-    "List of active SCTP associations");
+SYSCTL_PROC(_net_inet_sctp, OID_AUTO, stats, CTLFLAG_VNET | CTLTYPE_STRUCT | CTLFLAG_RW,
+    NULL, 0, sctp_sysctl_handle_stats, "S,sctpstat", "SCTP statistics (struct sctp_stat)");
+SYSCTL_PROC(_net_inet_sctp, OID_AUTO, assoclist, CTLFLAG_VNET | CTLTYPE_OPAQUE | CTLFLAG_RD,
+    NULL, 0, sctp_sysctl_handle_assoclist, "S,xassoc", "List of active SCTP associations");

@@ -40,26 +40,6 @@
 
 	.text
 
-/*
- * bcopy family
- * void bzero(void *buf, u_int len)
- */
-ENTRY(bzero)
-	pushl	%edi
-	movl	8(%esp),%edi
-	movl	12(%esp),%ecx
-	xorl	%eax,%eax
-	shrl	$2,%ecx
-	rep
-	stosl
-	movl	12(%esp),%ecx
-	andl	$3,%ecx
-	rep
-	stosb
-	popl	%edi
-	ret
-END(bzero)
-
 ENTRY(sse2_pagezero)
 	pushl	%ebx
 	movl	8(%esp),%ecx
@@ -147,18 +127,8 @@ END(fillw)
 
 /*
  * memmove(dst, src, cnt) (return dst)
- * bcopy(src, dst, cnt)
  *  ws@tools.de     (Wolfgang Solfrank, TooLs GmbH) +49-228-985800
  */
-ENTRY(bcopy)
-	movl	4(%esp),%eax
-	movl	8(%esp),%edx
-	movl	%eax,8(%esp)
-	movl	%edx,4(%esp)
-	MEXITCOUNT
-	jmp	memmove
-END(bcopy)
-
 ENTRY(memmove)
 	pushl	%ebp
 	movl	%esp,%ebp
@@ -233,31 +203,6 @@ ENTRY(memcpy)
 	ret
 END(memcpy)
 
-ENTRY(bcmp)
-	pushl	%edi
-	pushl	%esi
-	movl	12(%esp),%edi
-	movl	16(%esp),%esi
-	movl	20(%esp),%edx
-
-	movl	%edx,%ecx
-	shrl	$2,%ecx
-	repe
-	cmpsl
-	jne	1f
-
-	movl	%edx,%ecx
-	andl	$3,%ecx
-	repe
-	cmpsb
-1:
-	setne	%al
-	movsbl	%al,%eax
-	popl	%esi
-	popl	%edi
-	ret
-END(bcmp)
-
 /*
  * Handling of special 386 registers and descriptor tables etc
  */
@@ -284,7 +229,6 @@ ENTRY(lgdt)
 	movl	(%esp),%eax
 	pushl	%eax
 	movl	$KCSEL,4(%esp)
-	MEXITCOUNT
 	lret
 END(lgdt)
 

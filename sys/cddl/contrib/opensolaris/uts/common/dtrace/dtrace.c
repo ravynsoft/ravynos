@@ -5664,7 +5664,10 @@ dtrace_dif_subr(uint_t subr, uint_t rd, uint64_t *regs,
 		}
 		fdp = curproc->p_fd;
 		FILEDESC_SLOCK(fdp);
-		fp = fget_locked(fdp, fd);
+		/*
+		 * XXXMJG this looks broken as no ref is taken.
+		 */
+		fp = fget_noref(fdp, fd);
 		mstate->dtms_getf = fp;
 		regs[rd] = (uintptr_t)fp;
 		FILEDESC_SUNLOCK(fdp);
@@ -17112,7 +17115,7 @@ dtrace_attach(dev_info_t *devi, ddi_attach_cmd_t cmd)
 	    offsetof(dtrace_probe_t, dtpr_prevname));
 
 	if (dtrace_retain_max < 1) {
-		cmn_err(CE_WARN, "illegal value (%lu) for dtrace_retain_max; "
+		cmn_err(CE_WARN, "illegal value (%zu) for dtrace_retain_max; "
 		    "setting to 1", dtrace_retain_max);
 		dtrace_retain_max = 1;
 	}

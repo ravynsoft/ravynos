@@ -199,14 +199,19 @@
 };
 
 &pca9539 {
-	P10 {
+	gpio-line-names = "AMB_P_INT1#", "AMB_P_INT2#", "BT_EN", "WLAN_EN",
+			  "REMOTE_ON_PML#", "SM_D_ACT", "DP1_RST#", "DP2_RST#",
+			  "", "", "", "",
+			  "", "", "", "";
+
+	P10-hog {
 		gpio-hog;
 		gpios = <8 0>;
 		output-low;
 		line-name = "PCA9539-P10";
 	};
 
-	P11 {
+	P11-hog {
 		gpio-hog;
 		gpios = <9 0>;
 		output-low;

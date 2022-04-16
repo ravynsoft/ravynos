@@ -68,14 +68,18 @@ __FBSDID("$FreeBSD$");
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/hash.h>
+#include <sys/jail.h>
 #include <sys/kernel.h>
 #include <sys/limits.h>
 #include <sys/lock.h>
 #include <sys/mount.h>
 #include <sys/mutex.h>
 #include <sys/proc.h>
+#include <sys/sbuf.h>
+#include <sys/stat.h>
 #include <sys/sx.h>
 #include <sys/unistd.h>
+#include <sys/user.h>
 #include <sys/vnode.h>
 #include <sys/malloc.h>
 #include <sys/fcntl.h>
@@ -84,11 +88,6 @@ __FBSDID("$FreeBSD$");
 
 #ifdef LOCKF_DEBUG
 #include <sys/sysctl.h>
-
-#include <ufs/ufs/extattr.h>
-#include <ufs/ufs/quota.h>
-#include <ufs/ufs/ufsmount.h>
-#include <ufs/ufs/inode.h>
 
 static int	lockf_debug = 0; /* control debug output */
 SYSCTL_INT(_debug, OID_AUTO, lockf_debug, CTLFLAG_RW, &lockf_debug, 0, "");
@@ -571,13 +570,6 @@ retry_setlock:
 		vref(vp);
 	}
 
-	/*
-	 * XXX The problem is that VTOI is ufs specific, so it will
-	 * break LOCKF_DEBUG for all other FS's other than UFS because
-	 * it casts the vnode->data ptr to struct inode *.
-	 */
-/*	lock->lf_inode = VTOI(ap->a_vp); */
-	lock->lf_inode = (struct inode *)0;
 	lock->lf_type = fl->l_type;
 	LIST_INIT(&lock->lf_outedges);
 	LIST_INIT(&lock->lf_inedges);
@@ -2471,6 +2463,139 @@ graph_init(struct owner_graph *g)
 	return (g);
 }
 
+struct kinfo_lockf_linked {
+	struct kinfo_lockf kl;
+	struct vnode *vp;
+	STAILQ_ENTRY(kinfo_lockf_linked) link;
+};
+
+int
+vfs_report_lockf(struct mount *mp, struct sbuf *sb)
+{
+	struct lockf *ls;
+	struct lockf_entry *lf;
+	struct kinfo_lockf_linked *klf;
+	struct vnode *vp;
+	struct ucred *ucred;
+	char *fullpath, *freepath;
+	struct stat stt;
+	fsid_t fsidx;
+	STAILQ_HEAD(, kinfo_lockf_linked) locks;
+	int error, gerror;
+
+	STAILQ_INIT(&locks);
+	sx_slock(&lf_lock_states_lock);
+	LIST_FOREACH(ls, &lf_lock_states, ls_link) {
+		sx_slock(&ls->ls_lock);
+		LIST_FOREACH(lf, &ls->ls_active, lf_link) {
+			vp = lf->lf_vnode;
+			if (VN_IS_DOOMED(vp) || vp->v_mount != mp)
+				continue;
+			vhold(vp);
+			klf = malloc(sizeof(struct kinfo_lockf_linked),
+			    M_LOCKF, M_WAITOK | M_ZERO);
+			klf->vp = vp;
+			klf->kl.kl_structsize = sizeof(struct kinfo_lockf);
+			klf->kl.kl_start = lf->lf_start;
+			klf->kl.kl_len = lf->lf_end == OFF_MAX ? 0 :
+			    lf->lf_end - lf->lf_start + 1;
+			klf->kl.kl_rw = lf->lf_type == F_RDLCK ?
+			    KLOCKF_RW_READ : KLOCKF_RW_WRITE;
+			if (lf->lf_owner->lo_sysid != 0) {
+				klf->kl.kl_pid = lf->lf_owner->lo_pid;
+				klf->kl.kl_sysid = lf->lf_owner->lo_sysid;
+				klf->kl.kl_type = KLOCKF_TYPE_REMOTE;
+			} else if (lf->lf_owner->lo_pid == -1) {
+				klf->kl.kl_pid = -1;
+				klf->kl.kl_sysid = 0;
+				klf->kl.kl_type = KLOCKF_TYPE_FLOCK;
+			} else {
+				klf->kl.kl_pid = lf->lf_owner->lo_pid;
+				klf->kl.kl_sysid = 0;
+				klf->kl.kl_type = KLOCKF_TYPE_PID;
+			}
+			STAILQ_INSERT_TAIL(&locks, klf, link);
+		}
+		sx_sunlock(&ls->ls_lock);
+	}
+	sx_sunlock(&lf_lock_states_lock);
+
+	gerror = 0;
+	ucred = curthread->td_ucred;
+	fsidx = mp->mnt_stat.f_fsid;
+	while ((klf = STAILQ_FIRST(&locks)) != NULL) {
+		STAILQ_REMOVE_HEAD(&locks, link);
+		vp = klf->vp;
+		if (gerror == 0 && vn_lock(vp, LK_SHARED) == 0) {
+			error = prison_canseemount(ucred, vp->v_mount);
+			if (error == 0)
+				error = VOP_STAT(vp, &stt, ucred, NOCRED);
+			VOP_UNLOCK(vp);
+			if (error == 0) {
+				memcpy(&klf->kl.kl_file_fsid, &fsidx,
+				    sizeof(fsidx));
+				klf->kl.kl_file_rdev = stt.st_rdev;
+				klf->kl.kl_file_fileid = stt.st_ino;
+				freepath = NULL;
+				fullpath = "-";
+				error = vn_fullpath(vp, &fullpath, &freepath);
+				if (error == 0)
+					strlcpy(klf->kl.kl_path, fullpath,
+					    sizeof(klf->kl.kl_path));
+				free(freepath, M_TEMP);
+				if (sbuf_bcat(sb, &klf->kl,
+				    klf->kl.kl_structsize) != 0) {
+					gerror = sbuf_error(sb);
+				}
+			}
+		}
+		vdrop(vp);
+		free(klf, M_LOCKF);
+	}
+
+	return (gerror);
+}
+
+static int
+sysctl_kern_lockf_run(struct sbuf *sb)
+{
+	struct mount *mp;
+	int error;
+
+	error = 0;
+	mtx_lock(&mountlist_mtx);
+	TAILQ_FOREACH(mp, &mountlist, mnt_list) {
+		error = vfs_busy(mp, MBF_MNTLSTLOCK);
+		if (error != 0)
+			continue;
+		error = mp->mnt_op->vfs_report_lockf(mp, sb);
+		mtx_lock(&mountlist_mtx);
+		vfs_unbusy(mp);
+		if (error != 0)
+			break;
+	}
+	mtx_unlock(&mountlist_mtx);
+	return (error);
+}
+
+static int
+sysctl_kern_lockf(SYSCTL_HANDLER_ARGS)
+{
+	struct sbuf sb;
+	int error, error2;
+
+	sbuf_new_for_sysctl(&sb, NULL, sizeof(struct kinfo_lockf) * 5, req);
+	sbuf_clear_flags(&sb, SBUF_INCLUDENUL);
+	error = sysctl_kern_lockf_run(&sb);
+	error2 = sbuf_finish(&sb);
+	sbuf_delete(&sb);
+	return (error != 0 ? error : error2);
+}
+SYSCTL_PROC(_kern, KERN_LOCKF, lockf,
+    CTLTYPE_OPAQUE | CTLFLAG_RD | CTLFLAG_MPSAFE,
+    0, 0, sysctl_kern_lockf, "S,lockf",
+    "Advisory locks table");
+
 #ifdef LOCKF_DEBUG
 /*
  * Print description of a lock owner
@@ -2498,10 +2623,8 @@ lf_print(char *tag, struct lockf_entry *lock)
 
 	printf("%s: lock %p for ", tag, (void *)lock);
 	lf_print_owner(lock->lf_owner);
-	if (lock->lf_inode != (struct inode *)0)
-		printf(" in ino %ju on dev <%s>,",
-		    (uintmax_t)lock->lf_inode->i_number,
-		    devtoname(ITODEV(lock->lf_inode)));
+	printf("\nvnode %p", lock->lf_vnode);
+	VOP_PRINT(lock->lf_vnode);
 	printf(" %s, start %jd, end ",
 	    lock->lf_type == F_RDLCK ? "shared" :
 	    lock->lf_type == F_WRLCK ? "exclusive" :
@@ -2524,12 +2647,7 @@ lf_printlist(char *tag, struct lockf_entry *lock)
 	struct lockf_entry *lf, *blk;
 	struct lockf_edge *e;
 
-	if (lock->lf_inode == (struct inode *)0)
-		return;
-
-	printf("%s: Lock list for ino %ju on dev <%s>:\n",
-	    tag, (uintmax_t)lock->lf_inode->i_number,
-	    devtoname(ITODEV(lock->lf_inode)));
+	printf("%s: Lock list for vnode %p:\n", tag, lock->lf_vnode);
 	LIST_FOREACH(lf, &lock->lf_vnode->v_lockf->ls_active, lf_link) {
 		printf("\tlock %p for ",(void *)lf);
 		lf_print_owner(lock->lf_owner);

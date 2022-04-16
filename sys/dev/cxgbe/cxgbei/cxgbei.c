@@ -43,6 +43,7 @@ __FBSDID("$FreeBSD$");
 
 #ifdef TCP_OFFLOAD
 #include <sys/errno.h>
+#include <sys/gsb_crc32.h>
 #include <sys/kthread.h>
 #include <sys/smp.h>
 #include <sys/socket.h>
@@ -51,6 +52,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/lock.h>
 #include <sys/mutex.h>
 #include <sys/condvar.h>
+#include <sys/uio.h>
 
 #include <netinet/in.h>
 #include <netinet/in_pcb.h>
@@ -91,10 +93,6 @@ __FBSDID("$FreeBSD$");
 #include "common/t4_regs.h"	/* for PCIE_MEM_ACCESS */
 #include "tom/t4_tom.h"
 #include "cxgbei.h"
-
-static int worker_thread_count;
-static struct cxgbei_worker_thread_softc *cwt_softc;
-static struct proc *cxgbei_proc;
 
 static void
 read_pdu_limits(struct adapter *sc, uint32_t *max_tx_data_len,
@@ -199,10 +197,10 @@ cxgbei_init(struct adapter *sc, struct cxgbei_data *ci)
 	    CTLFLAG_RW, &ci->ddp_threshold, 0, "Rx zero copy threshold");
 
 	SYSCTL_ADD_UINT(&ci->ctx, children, OID_AUTO, "max_rx_data_len",
-	    CTLFLAG_RD, &ci->max_rx_data_len, 0,
+	    CTLFLAG_RW, &ci->max_rx_data_len, 0,
 	    "Maximum receive data segment length");
 	SYSCTL_ADD_UINT(&ci->ctx, children, OID_AUTO, "max_tx_data_len",
-	    CTLFLAG_RD, &ci->max_tx_data_len, 0,
+	    CTLFLAG_RW, &ci->max_tx_data_len, 0,
 	    "Maximum transmit data segment length");
 
 	return (0);
@@ -297,6 +295,166 @@ do_rx_iscsi_data(struct sge_iq *iq, const struct rss_header *rss, struct mbuf *m
 #endif
 
 	return (0);
+}
+
+static int
+mbuf_crc32c_helper(void *arg, void *data, u_int len)
+{
+	uint32_t *digestp = arg;
+
+	*digestp = calculate_crc32c(*digestp, data, len);
+	return (0);
+}
+
+static struct icl_pdu *
+parse_pdu(struct socket *so, struct toepcb *toep, struct icl_cxgbei_conn *icc,
+    struct sockbuf *sb, u_int total_len)
+{
+	struct uio uio;
+	struct iovec iov[2];
+	struct iscsi_bhs bhs;
+	struct mbuf *m;
+	struct icl_pdu *ip;
+	u_int ahs_len, data_len, header_len, pdu_len;
+	uint32_t calc_digest, wire_digest;
+	int error;
+
+	uio.uio_segflg = UIO_SYSSPACE;
+	uio.uio_rw = UIO_READ;
+	uio.uio_td = curthread;
+
+	header_len = sizeof(struct iscsi_bhs);
+	if (icc->ic.ic_header_crc32c)
+		header_len += ISCSI_HEADER_DIGEST_SIZE;
+
+	if (total_len < header_len) {
+		ICL_WARN("truncated pre-offload PDU with len %u", total_len);
+		return (NULL);
+	}
+
+	iov[0].iov_base = &bhs;
+	iov[0].iov_len = sizeof(bhs);
+	iov[1].iov_base = &wire_digest;
+	iov[1].iov_len = sizeof(wire_digest);
+	uio.uio_iov = iov;
+	uio.uio_iovcnt = 1;
+	uio.uio_offset = 0;
+	uio.uio_resid = header_len;
+	error = soreceive(so, NULL, &uio, NULL, NULL, NULL);
+	if (error != 0) {
+		ICL_WARN("failed to read BHS from pre-offload PDU: %d", error);
+		return (NULL);
+	}
+
+	ahs_len = bhs.bhs_total_ahs_len * 4;
+	data_len = bhs.bhs_data_segment_len[0] << 16 |
+	    bhs.bhs_data_segment_len[1] << 8 |
+	    bhs.bhs_data_segment_len[2];
+	pdu_len = header_len + ahs_len + roundup2(data_len, 4);
+	if (icc->ic.ic_data_crc32c && data_len != 0)
+		pdu_len += ISCSI_DATA_DIGEST_SIZE;
+
+	if (total_len < pdu_len) {
+		ICL_WARN("truncated pre-offload PDU len %u vs %u", total_len,
+		    pdu_len);
+		return (NULL);
+	}
+
+	if (ahs_len != 0) {
+		ICL_WARN("received pre-offload PDU with AHS");
+		return (NULL);
+	}
+
+	if (icc->ic.ic_header_crc32c) {
+		calc_digest = calculate_crc32c(0xffffffff, (caddr_t)&bhs,
+		    sizeof(bhs));
+		calc_digest ^= 0xffffffff;
+		if (calc_digest != wire_digest) {
+			ICL_WARN("received pre-offload PDU 0x%02x with "
+			    "invalid header digest (0x%x vs 0x%x)",
+			    bhs.bhs_opcode, wire_digest, calc_digest);
+			toep->ofld_rxq->rx_iscsi_header_digest_errors++;
+			return (NULL);
+		}
+	}
+
+	m = NULL;
+	if (data_len != 0) {
+		uio.uio_iov = NULL;
+		uio.uio_resid = roundup2(data_len, 4);
+		if (icc->ic.ic_data_crc32c)
+			uio.uio_resid += ISCSI_DATA_DIGEST_SIZE;
+
+		error = soreceive(so, NULL, &uio, &m, NULL, NULL);
+		if (error != 0) {
+			ICL_WARN("failed to read data payload from "
+			    "pre-offload PDU: %d", error);
+			return (NULL);
+		}
+
+		if (icc->ic.ic_data_crc32c) {
+			m_copydata(m, roundup2(data_len, 4),
+			    sizeof(wire_digest), (caddr_t)&wire_digest);
+
+			calc_digest = 0xffffffff;
+			m_apply(m, 0, roundup2(data_len, 4), mbuf_crc32c_helper,
+			    &calc_digest);
+			calc_digest ^= 0xffffffff;
+			if (calc_digest != wire_digest) {
+				ICL_WARN("received pre-offload PDU 0x%02x "
+				    "with invalid data digest (0x%x vs 0x%x)",
+				    bhs.bhs_opcode, wire_digest, calc_digest);
+				toep->ofld_rxq->rx_iscsi_data_digest_errors++;
+				m_freem(m);
+				return (NULL);
+			}
+		}
+	}
+
+	ip = icl_cxgbei_new_pdu(M_WAITOK);
+	icl_cxgbei_new_pdu_set_conn(ip, &icc->ic);
+	*ip->ip_bhs = bhs;
+	ip->ip_data_len = data_len;
+	ip->ip_data_mbuf = m;
+	return (ip);
+}
+
+void
+parse_pdus(struct icl_cxgbei_conn *icc, struct sockbuf *sb)
+{
+	struct icl_conn *ic = &icc->ic;
+	struct socket *so = ic->ic_socket;
+	struct toepcb *toep = icc->toep;
+	struct icl_pdu *ip, *lastip;
+	u_int total_len;
+
+	SOCKBUF_LOCK_ASSERT(sb);
+
+	CTR3(KTR_CXGBE, "%s: tid %u, %u bytes in so_rcv", __func__, toep->tid,
+	    sbused(sb));
+
+	lastip = NULL;
+	while (sbused(sb) != 0 && (sb->sb_state & SBS_CANTRCVMORE) == 0) {
+		total_len = sbused(sb);
+		SOCKBUF_UNLOCK(sb);
+
+		ip = parse_pdu(so, toep, icc, sb, total_len);
+
+		if (ip == NULL) {
+			ic->ic_error(ic);
+			SOCKBUF_LOCK(sb);
+			return;
+		}
+
+		if (lastip == NULL)
+			STAILQ_INSERT_HEAD(&icc->rcvd_pdus, ip, ip_next);
+		else
+			STAILQ_INSERT_AFTER(&icc->rcvd_pdus, lastip, ip,
+			    ip_next);
+		lastip = ip;
+
+		SOCKBUF_LOCK(sb);
+	}
 }
 
 static int
@@ -419,52 +577,13 @@ do_rx_iscsi_ddp(struct sge_iq *iq, const struct rss_header *rss, struct mbuf *m)
 		ic->ic_error(ic);
 		return (0);
 	}
+
 	icl_cxgbei_new_pdu_set_conn(ip, ic);
 
-	MPASS(m == NULL); /* was unused, we'll use it now. */
-	m = sbcut_locked(sb, sbused(sb)); /* XXXNP: toep->sb_cc accounting? */
-	if (__predict_false(m != NULL)) {
-		int len = m_length(m, NULL);
-
-		/*
-		 * PDUs were received before the tid transitioned to ULP mode.
-		 * Convert them to icl_cxgbei_pdus and send them to ICL before
-		 * the PDU in icp/ip.
-		 */
-		CTR3(KTR_CXGBE, "%s: tid %u, %u bytes in so_rcv", __func__, tid,
-		    len);
-
-		/* XXXNP: needs to be rewritten. */
-		if (len == sizeof(struct iscsi_bhs) || len == 4 + sizeof(struct
-		    iscsi_bhs)) {
-			struct icl_cxgbei_pdu *icp0;
-			struct icl_pdu *ip0;
-
-			ip0 = icl_cxgbei_new_pdu(M_NOWAIT);
-			if (ip0 == NULL)
-				CXGBE_UNIMPLEMENTED("PDU allocation failure");
-			icl_cxgbei_new_pdu_set_conn(ip0, ic);
-			icp0 = ip_to_icp(ip0);
-			icp0->icp_seq = 0; /* XXX */
-			icp0->icp_flags = ICPF_RX_HDR | ICPF_RX_STATUS;
-			m_copydata(m, 0, sizeof(struct iscsi_bhs), (void *)ip0->ip_bhs);
-			STAILQ_INSERT_TAIL(&icc->rcvd_pdus, ip0, ip_next);
-		}
-		m_freem(m);
-	}
-
 	STAILQ_INSERT_TAIL(&icc->rcvd_pdus, ip, ip_next);
-	if ((icc->rx_flags & RXF_ACTIVE) == 0) {
-		struct cxgbei_worker_thread_softc *cwt = &cwt_softc[icc->cwt];
-
-		mtx_lock(&cwt->cwt_lock);
-		icc->rx_flags |= RXF_ACTIVE;
-		TAILQ_INSERT_TAIL(&cwt->rx_head, icc, rx_link);
-		if (cwt->cwt_state == CWT_SLEEPING) {
-			cwt->cwt_state = CWT_RUNNING;
-			cv_signal(&cwt->cwt_cv);
-		}
-		mtx_unlock(&cwt->cwt_lock);
+	if (!icc->rx_active) {
+		icc->rx_active = true;
+		wakeup(&icc->rx_active);
 	}
 	SOCKBUF_UNLOCK(sb);
 	INP_WUNLOCK(inp);
@@ -700,21 +819,14 @@ do_rx_iscsi_cmp(struct sge_iq *iq, const struct rss_header *rss, struct mbuf *m)
 		m_freem(m);
 		return (0);
 	}
+
 	icl_cxgbei_new_pdu_set_conn(ip, ic);
 
 	/* Enqueue the PDU to the received pdus queue. */
 	STAILQ_INSERT_TAIL(&icc->rcvd_pdus, ip, ip_next);
-	if ((icc->rx_flags & RXF_ACTIVE) == 0) {
-		struct cxgbei_worker_thread_softc *cwt = &cwt_softc[icc->cwt];
-
-		mtx_lock(&cwt->cwt_lock);
-		icc->rx_flags |= RXF_ACTIVE;
-		TAILQ_INSERT_TAIL(&cwt->rx_head, icc, rx_link);
-		if (cwt->cwt_state == CWT_SLEEPING) {
-			cwt->cwt_state = CWT_RUNNING;
-			cv_signal(&cwt->cwt_cv);
-		}
-		mtx_unlock(&cwt->cwt_lock);
+	if (!icc->rx_active) {
+		icc->rx_active = true;
+		wakeup(&icc->rx_active);
 	}
 	SOCKBUF_UNLOCK(sb);
 	INP_WUNLOCK(inp);
@@ -811,175 +923,6 @@ static struct uld_info cxgbei_uld_info = {
 	.deactivate = cxgbei_deactivate,
 };
 
-static void
-cwt_main(void *arg)
-{
-	struct cxgbei_worker_thread_softc *cwt = arg;
-	struct icl_cxgbei_conn *icc = NULL;
-	struct icl_conn *ic;
-	struct icl_pdu *ip;
-	struct sockbuf *sb;
-	STAILQ_HEAD(, icl_pdu) rx_pdus = STAILQ_HEAD_INITIALIZER(rx_pdus);
-
-	MPASS(cwt != NULL);
-
-	mtx_lock(&cwt->cwt_lock);
-	MPASS(cwt->cwt_state == 0);
-	cwt->cwt_state = CWT_RUNNING;
-	cv_signal(&cwt->cwt_cv);
-
-	while (__predict_true(cwt->cwt_state != CWT_STOP)) {
-		cwt->cwt_state = CWT_RUNNING;
-		while ((icc = TAILQ_FIRST(&cwt->rx_head)) != NULL) {
-			TAILQ_REMOVE(&cwt->rx_head, icc, rx_link);
-			mtx_unlock(&cwt->cwt_lock);
-
-			ic = &icc->ic;
-			sb = &ic->ic_socket->so_rcv;
-
-			SOCKBUF_LOCK(sb);
-			MPASS(icc->rx_flags & RXF_ACTIVE);
-			if (__predict_true(!(sb->sb_state & SBS_CANTRCVMORE))) {
-				MPASS(STAILQ_EMPTY(&rx_pdus));
-				STAILQ_SWAP(&icc->rcvd_pdus, &rx_pdus, icl_pdu);
-				SOCKBUF_UNLOCK(sb);
-
-				/* Hand over PDUs to ICL. */
-				while ((ip = STAILQ_FIRST(&rx_pdus)) != NULL) {
-					STAILQ_REMOVE_HEAD(&rx_pdus, ip_next);
-					ic->ic_receive(ip);
-				}
-
-				SOCKBUF_LOCK(sb);
-				MPASS(STAILQ_EMPTY(&rx_pdus));
-			}
-			MPASS(icc->rx_flags & RXF_ACTIVE);
-			if (STAILQ_EMPTY(&icc->rcvd_pdus) ||
-			    __predict_false(sb->sb_state & SBS_CANTRCVMORE)) {
-				icc->rx_flags &= ~RXF_ACTIVE;
-			} else {
-				/*
-				 * More PDUs were received while we were busy
-				 * handing over the previous batch to ICL.
-				 * Re-add this connection to the end of the
-				 * queue.
-				 */
-				mtx_lock(&cwt->cwt_lock);
-				TAILQ_INSERT_TAIL(&cwt->rx_head, icc,
-				    rx_link);
-				mtx_unlock(&cwt->cwt_lock);
-			}
-			SOCKBUF_UNLOCK(sb);
-
-			mtx_lock(&cwt->cwt_lock);
-		}
-
-		/* Inner loop doesn't check for CWT_STOP, do that first. */
-		if (__predict_false(cwt->cwt_state == CWT_STOP))
-			break;
-		cwt->cwt_state = CWT_SLEEPING;
-		cv_wait(&cwt->cwt_cv, &cwt->cwt_lock);
-	}
-
-	MPASS(TAILQ_FIRST(&cwt->rx_head) == NULL);
-	mtx_assert(&cwt->cwt_lock, MA_OWNED);
-	cwt->cwt_state = CWT_STOPPED;
-	cv_signal(&cwt->cwt_cv);
-	mtx_unlock(&cwt->cwt_lock);
-	kthread_exit();
-}
-
-static int
-start_worker_threads(void)
-{
-	int i, rc;
-	struct cxgbei_worker_thread_softc *cwt;
-
-	worker_thread_count = min(mp_ncpus, 32);
-	cwt_softc = malloc(worker_thread_count * sizeof(*cwt), M_CXGBE,
-	    M_WAITOK | M_ZERO);
-
-	MPASS(cxgbei_proc == NULL);
-	for (i = 0, cwt = &cwt_softc[0]; i < worker_thread_count; i++, cwt++) {
-		mtx_init(&cwt->cwt_lock, "cwt lock", NULL, MTX_DEF);
-		cv_init(&cwt->cwt_cv, "cwt cv");
-		TAILQ_INIT(&cwt->rx_head);
-		rc = kproc_kthread_add(cwt_main, cwt, &cxgbei_proc, NULL, 0, 0,
-		    "cxgbei", "%d", i);
-		if (rc != 0) {
-			printf("cxgbei: failed to start thread #%d/%d (%d)\n",
-			    i + 1, worker_thread_count, rc);
-			mtx_destroy(&cwt->cwt_lock);
-			cv_destroy(&cwt->cwt_cv);
-			bzero(cwt, sizeof(*cwt));
-			if (i == 0) {
-				free(cwt_softc, M_CXGBE);
-				worker_thread_count = 0;
-
-				return (rc);
-			}
-
-			/* Not fatal, carry on with fewer threads. */
-			worker_thread_count = i;
-			rc = 0;
-			break;
-		}
-
-		/* Wait for thread to start before moving on to the next one. */
-		mtx_lock(&cwt->cwt_lock);
-		while (cwt->cwt_state == 0)
-			cv_wait(&cwt->cwt_cv, &cwt->cwt_lock);
-		mtx_unlock(&cwt->cwt_lock);
-	}
-
-	MPASS(cwt_softc != NULL);
-	MPASS(worker_thread_count > 0);
-	return (0);
-}
-
-static void
-stop_worker_threads(void)
-{
-	int i;
-	struct cxgbei_worker_thread_softc *cwt = &cwt_softc[0];
-
-	MPASS(worker_thread_count >= 0);
-
-	for (i = 0, cwt = &cwt_softc[0]; i < worker_thread_count; i++, cwt++) {
-		mtx_lock(&cwt->cwt_lock);
-		MPASS(cwt->cwt_state == CWT_RUNNING ||
-		    cwt->cwt_state == CWT_SLEEPING);
-		cwt->cwt_state = CWT_STOP;
-		cv_signal(&cwt->cwt_cv);
-		do {
-			cv_wait(&cwt->cwt_cv, &cwt->cwt_lock);
-		} while (cwt->cwt_state != CWT_STOPPED);
-		mtx_unlock(&cwt->cwt_lock);
-		mtx_destroy(&cwt->cwt_lock);
-		cv_destroy(&cwt->cwt_cv);
-	}
-	free(cwt_softc, M_CXGBE);
-}
-
-/* Select a worker thread for a connection. */
-u_int
-cxgbei_select_worker_thread(struct icl_cxgbei_conn *icc)
-{
-	struct adapter *sc = icc->sc;
-	struct toepcb *toep = icc->toep;
-	u_int i, n;
-
-	n = worker_thread_count / sc->sge.nofldrxq;
-	if (n > 0)
-		i = toep->vi->pi->port_id * n + arc4random() % n;
-	else
-		i = arc4random() % worker_thread_count;
-
-	CTR3(KTR_CXGBE, "%s: tid %u, cwt %u", __func__, toep->tid, i);
-
-	return (i);
-}
-
 static int
 cxgbei_mod_load(void)
 {
@@ -990,15 +933,9 @@ cxgbei_mod_load(void)
 	t4_register_cpl_handler(CPL_RX_ISCSI_DDP, do_rx_iscsi_ddp);
 	t4_register_cpl_handler(CPL_RX_ISCSI_CMP, do_rx_iscsi_cmp);
 
-	rc = start_worker_threads();
+	rc = t4_register_uld(&cxgbei_uld_info);
 	if (rc != 0)
 		return (rc);
-
-	rc = t4_register_uld(&cxgbei_uld_info);
-	if (rc != 0) {
-		stop_worker_threads();
-		return (rc);
-	}
 
 	t4_iterate(cxgbei_activate_all, NULL);
 
@@ -1013,8 +950,6 @@ cxgbei_mod_unload(void)
 
 	if (t4_unregister_uld(&cxgbei_uld_info) == EBUSY)
 		return (EBUSY);
-
-	stop_worker_threads();
 
 	t4_register_cpl_handler(CPL_ISCSI_HDR, NULL);
 	t4_register_cpl_handler(CPL_ISCSI_DATA, NULL);

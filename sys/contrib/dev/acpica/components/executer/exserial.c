@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -353,6 +353,12 @@ AcpiExReadSerialBus (
         Function = ACPI_READ | (AccessorType << 16);
         break;
 
+    case ACPI_ADR_SPACE_PLATFORM_RT:
+
+        BufferLength = ACPI_PRM_INPUT_BUFFER_SIZE;
+        Function = ACPI_READ;
+        break;
+
     default:
         return_ACPI_STATUS (AE_AML_INVALID_SPACE_ID);
     }
@@ -470,6 +476,12 @@ AcpiExWriteSerialBus (
 
         BufferLength += ACPI_SERIAL_HEADER_SIZE;
         Function = ACPI_WRITE | (AccessorType << 16);
+        break;
+
+    case ACPI_ADR_SPACE_PLATFORM_RT:
+
+        BufferLength = ACPI_PRM_INPUT_BUFFER_SIZE;
+        Function = ACPI_WRITE;
         break;
 
     default:

@@ -8,6 +8,7 @@ SUBDIR = \
 	hidraw
 
 SUBDIR += \
+	bcm5974 \
 	hconf \
 	hcons \
 	hgame \
@@ -16,6 +17,7 @@ SUBDIR += \
 	hmt \
 	hpen \
 	hsctrl \
+	ietp \
 	ps4dshock \
 	xb360gp
 

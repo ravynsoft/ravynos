@@ -45,12 +45,13 @@ __FBSDID("$FreeBSD$");
 #include "opt_inet.h"
 #include "opt_inet6.h"
 #include "opt_ratelimit.h"
-#include "opt_pcbgroup.h"
 #include "opt_route.h"
 #include "opt_rss.h"
 
 #include <sys/param.h>
+#include <sys/hash.h>
 #include <sys/systm.h>
+#include <sys/libkern.h>
 #include <sys/lock.h>
 #include <sys/malloc.h>
 #include <sys/mbuf.h>
@@ -58,7 +59,6 @@ __FBSDID("$FreeBSD$");
 #include <sys/eventhandler.h>
 #include <sys/domain.h>
 #include <sys/protosw.h>
-#include <sys/rmlock.h>
 #include <sys/smp.h>
 #include <sys/socket.h>
 #include <sys/socketvar.h>
@@ -88,6 +88,7 @@ __FBSDID("$FreeBSD$");
 #if defined(INET) || defined(INET6)
 #include <netinet/in.h>
 #include <netinet/in_pcb.h>
+#include <netinet/in_pcb_var.h>
 #ifdef INET
 #include <netinet/in_var.h>
 #include <netinet/in_fib.h>
@@ -114,6 +115,7 @@ __FBSDID("$FreeBSD$");
 
 #define	INPCBLBGROUP_SIZMIN	8
 #define	INPCBLBGROUP_SIZMAX	256
+#define	INP_FREED	0x00000200	/* See in_pcb.h. */
 
 static struct callout	ipport_tick_callout;
 
@@ -146,7 +148,6 @@ VNET_DEFINE_STATIC(int, ipport_tcplastcount);
 
 #define	V_ipport_tcplastcount		VNET(ipport_tcplastcount)
 
-static void	in_pcbremlists(struct inpcb *inp);
 #ifdef INET
 static struct inpcb	*in_pcblookup_hash_locked(struct inpcbinfo *pcbinfo,
 			    struct in_addr faddr, u_int fport_arg,
@@ -246,6 +247,16 @@ SYSCTL_COUNTER_U64(_net_inet_ip_rl, OID_AUTO, chgrl, CTLFLAG_RD,
 #endif /* RATELIMIT */
 
 #endif /* INET */
+
+VNET_DEFINE(uint32_t, in_pcbhashseed);
+static void
+in_pcbhashseed_init(void)
+{
+
+	V_in_pcbhashseed = arc4random();
+}
+VNET_SYSINIT(in_pcbhashseed_init, SI_SUB_PROTO_DOMAIN, SI_ORDER_FIRST,
+    in_pcbhashseed_init, 0);
 
 /*
  * in_pcb.c: manage the Protocol Control Blocks.
@@ -503,53 +514,35 @@ abort_with_hash_wlock:
 	return (err);
 }
 
-/*
- * Different protocols initialize their inpcbs differently - giving
- * different name to the lock.  But they all are disposed the same.
- */
-static void
-inpcb_fini(void *mem, int size)
-{
-	struct inpcb *inp = mem;
-
-	INP_LOCK_DESTROY(inp);
-}
+/* Make sure it is safe to use hashinit(9) on CK_LIST. */
+CTASSERT(sizeof(struct inpcbhead) == sizeof(LIST_HEAD(, inpcb)));
 
 /*
- * Initialize an inpcbinfo -- we should be able to reduce the number of
- * arguments in time.
+ * Initialize an inpcbinfo - a per-VNET instance of connections db.
  */
 void
-in_pcbinfo_init(struct inpcbinfo *pcbinfo, const char *name,
-    struct inpcbhead *listhead, int hash_nelements, int porthash_nelements,
-    char *inpcbzone_name, uma_init inpcbzone_init, u_int hashfields)
+in_pcbinfo_init(struct inpcbinfo *pcbinfo, struct inpcbstorage *pcbstor,
+    u_int hash_nelements, u_int porthash_nelements)
 {
 
-	porthash_nelements = imin(porthash_nelements, IPPORT_MAX + 1);
-
-	INP_INFO_LOCK_INIT(pcbinfo, name);
-	INP_HASH_LOCK_INIT(pcbinfo, "pcbinfohash");	/* XXXRW: argument? */
-	INP_LIST_LOCK_INIT(pcbinfo, "pcbinfolist");
+	mtx_init(&pcbinfo->ipi_lock, pcbstor->ips_infolock_name, NULL, MTX_DEF);
+	mtx_init(&pcbinfo->ipi_hash_lock, pcbstor->ips_hashlock_name,
+	    NULL, MTX_DEF);
 #ifdef VIMAGE
 	pcbinfo->ipi_vnet = curvnet;
 #endif
-	pcbinfo->ipi_listhead = listhead;
-	CK_LIST_INIT(pcbinfo->ipi_listhead);
+	CK_LIST_INIT(&pcbinfo->ipi_listhead);
 	pcbinfo->ipi_count = 0;
 	pcbinfo->ipi_hashbase = hashinit(hash_nelements, M_PCB,
 	    &pcbinfo->ipi_hashmask);
+	porthash_nelements = imin(porthash_nelements, IPPORT_MAX + 1);
 	pcbinfo->ipi_porthashbase = hashinit(porthash_nelements, M_PCB,
 	    &pcbinfo->ipi_porthashmask);
 	pcbinfo->ipi_lbgrouphashbase = hashinit(porthash_nelements, M_PCB,
 	    &pcbinfo->ipi_lbgrouphashmask);
-#ifdef PCBGROUP
-	in_pcbgroup_init(pcbinfo, hashfields, hash_nelements);
-#endif
-	pcbinfo->ipi_zone = uma_zcreate(inpcbzone_name, sizeof(struct inpcb),
-	    NULL, NULL, inpcbzone_init, inpcb_fini, UMA_ALIGN_PTR, 0);
-	uma_zone_set_max(pcbinfo->ipi_zone, maxsockets);
-	uma_zone_set_warning(pcbinfo->ipi_zone,
-	    "kern.ipc.maxsockets limit reached");
+	pcbinfo->ipi_zone = pcbstor->ips_zone;
+	pcbinfo->ipi_portzone = pcbstor->ips_portzone;
+	pcbinfo->ipi_smr = uma_zone_get_smr(pcbinfo->ipi_zone);
 }
 
 /*
@@ -567,13 +560,39 @@ in_pcbinfo_destroy(struct inpcbinfo *pcbinfo)
 	    pcbinfo->ipi_porthashmask);
 	hashdestroy(pcbinfo->ipi_lbgrouphashbase, M_PCB,
 	    pcbinfo->ipi_lbgrouphashmask);
-#ifdef PCBGROUP
-	in_pcbgroup_destroy(pcbinfo);
-#endif
-	uma_zdestroy(pcbinfo->ipi_zone);
-	INP_LIST_LOCK_DESTROY(pcbinfo);
-	INP_HASH_LOCK_DESTROY(pcbinfo);
-	INP_INFO_LOCK_DESTROY(pcbinfo);
+	mtx_destroy(&pcbinfo->ipi_hash_lock);
+	mtx_destroy(&pcbinfo->ipi_lock);
+}
+
+/*
+ * Initialize a pcbstorage - per protocol zones to allocate inpcbs.
+ */
+static void inpcb_dtor(void *, int, void *);
+static void inpcb_fini(void *, int);
+void
+in_pcbstorage_init(void *arg)
+{
+	struct inpcbstorage *pcbstor = arg;
+
+	pcbstor->ips_zone = uma_zcreate(pcbstor->ips_zone_name,
+	    sizeof(struct inpcb), NULL, inpcb_dtor, pcbstor->ips_pcbinit,
+	    inpcb_fini, UMA_ALIGN_PTR, UMA_ZONE_SMR);
+	pcbstor->ips_portzone = uma_zcreate(pcbstor->ips_portzone_name,
+	    sizeof(struct inpcbport), NULL, NULL, NULL, NULL, UMA_ALIGN_PTR, 0);
+	uma_zone_set_smr(pcbstor->ips_portzone,
+	    uma_zone_get_smr(pcbstor->ips_zone));
+}
+
+/*
+ * Destroy a pcbstorage - used by unloadable protocols.
+ */
+void
+in_pcbstorage_destroy(void *arg)
+{
+	struct inpcbstorage *pcbstor = arg;
+
+	uma_zdestroy(pcbstor->ips_zone);
+	uma_zdestroy(pcbstor->ips_portzone);
 }
 
 /*
@@ -584,10 +603,11 @@ int
 in_pcballoc(struct socket *so, struct inpcbinfo *pcbinfo)
 {
 	struct inpcb *inp;
+#if defined(IPSEC) || defined(IPSEC_SUPPORT) || defined(MAC)
 	int error;
+#endif
 
-	error = 0;
-	inp = uma_zalloc(pcbinfo->ipi_zone, M_NOWAIT);
+	inp = uma_zalloc_smr(pcbinfo->ipi_zone, M_NOWAIT);
 	if (inp == NULL)
 		return (ENOBUFS);
 	bzero(&inp->inp_start_zero, inp_zero_size);
@@ -619,33 +639,37 @@ in_pcballoc(struct socket *so, struct inpcbinfo *pcbinfo)
 		if (V_ip6_v6only)
 			inp->inp_flags |= IN6P_IPV6_V6ONLY;
 	}
-#endif
-	INP_WLOCK(inp);
-	INP_LIST_WLOCK(pcbinfo);
-	CK_LIST_INSERT_HEAD(pcbinfo->ipi_listhead, inp, inp_list);
-	pcbinfo->ipi_count++;
-	so->so_pcb = (caddr_t)inp;
-#ifdef INET6
 	if (V_ip6_auto_flowlabel)
 		inp->inp_flags |= IN6P_AUTOFLOWLABEL;
 #endif
-	inp->inp_gencnt = ++pcbinfo->ipi_gencnt;
-	refcount_init(&inp->inp_refcount, 1);	/* Reference from inpcbinfo */
-
 	/*
 	 * Routes in inpcb's can cache L2 as well; they are guaranteed
 	 * to be cleaned up.
 	 */
 	inp->inp_route.ro_flags = RT_LLE_CACHE;
-	INP_LIST_WUNLOCK(pcbinfo);
+#ifdef TCPHPTS
+	/*
+	 * If using hpts lets drop a random number in so
+	 * not all new connections fall on the same CPU.
+	 */
+	inp->inp_hpts_cpu = hpts_random_cpu(inp);
+#endif
+	refcount_init(&inp->inp_refcount, 1);   /* Reference from socket. */
+	INP_WLOCK(inp);
+	INP_INFO_WLOCK(pcbinfo);
+	pcbinfo->ipi_count++;
+	inp->inp_gencnt = ++pcbinfo->ipi_gencnt;
+	CK_LIST_INSERT_HEAD(&pcbinfo->ipi_listhead, inp, inp_list);
+	INP_INFO_WUNLOCK(pcbinfo);
+	so->so_pcb = inp;
+
+	return (0);
+
 #if defined(IPSEC) || defined(IPSEC_SUPPORT) || defined(MAC)
 out:
-	if (error != 0) {
-		crfree(inp->inp_cred);
-		uma_zfree(pcbinfo->ipi_zone, inp);
-	}
-#endif
+	uma_zfree_smr(pcbinfo->ipi_zone, inp);
 	return (error);
+#endif
 }
 
 #ifdef INET
@@ -746,7 +770,7 @@ in_pcb_lport_dest(struct inpcb *inp, struct sockaddr *lsa, u_short *lportp,
 	if (first == last)
 		dorandom = 0;
 	/* Make sure to not include UDP(-Lite) packets in the count. */
-	if (pcbinfo != &V_udbinfo || pcbinfo != &V_ulitecbinfo)
+	if (pcbinfo != &V_udbinfo && pcbinfo != &V_ulitecbinfo)
 		V_ipport_tcpallocs++;
 	/*
 	 * Instead of having two loops further down counting up or down
@@ -872,7 +896,7 @@ inp_so_options(const struct inpcb *inp)
  * Check if a new BINDMULTI socket is allowed to be created.
  *
  * ni points to the new inp.
- * oi points to the exisitng inp.
+ * oi points to the existing inp.
  *
  * This checks whether the existing inp also has BINDMULTI and
  * whether the credentials match.
@@ -1079,8 +1103,8 @@ in_pcbbind_setup(struct inpcb *inp, struct sockaddr *nam, in_addr_t *laddrp,
  * then pick one.
  */
 int
-in_pcbconnect_mbuf(struct inpcb *inp, struct sockaddr *nam,
-    struct ucred *cred, struct mbuf *m, bool rehash)
+in_pcbconnect(struct inpcb *inp, struct sockaddr *nam, struct ucred *cred,
+    bool rehash)
 {
 	u_short lport, fport;
 	in_addr_t laddr, faddr;
@@ -1116,21 +1140,14 @@ in_pcbconnect_mbuf(struct inpcb *inp, struct sockaddr *nam,
 	inp->inp_faddr.s_addr = faddr;
 	inp->inp_fport = fport;
 	if (rehash) {
-		in_pcbrehash_mbuf(inp, m);
+		in_pcbrehash(inp);
 	} else {
-		in_pcbinshash_mbuf(inp, m);
+		in_pcbinshash(inp);
 	}
 
 	if (anonport)
 		inp->inp_flags |= INP_ANONPORT;
 	return (0);
-}
-
-int
-in_pcbconnect(struct inpcb *inp, struct sockaddr *nam, struct ucred *cred)
-{
-
-	return (in_pcbconnect_mbuf(inp, nam, cred, NULL, true));
 }
 
 /*
@@ -1361,7 +1378,6 @@ in_pcbconnect_setup(struct inpcb *inp, struct sockaddr *nam,
     in_addr_t *laddrp, u_short *lportp, in_addr_t *faddrp, u_short *fportp,
     struct inpcb **oinpp, struct ucred *cred)
 {
-	struct rm_priotracker in_ifa_tracker;
 	struct sockaddr_in *sin = (struct sockaddr_in *)nam;
 	struct in_ifaddr *ia;
 	struct inpcb *oinp;
@@ -1410,20 +1426,16 @@ in_pcbconnect_setup(struct inpcb *inp, struct sockaddr *nam,
 		 * choose the broadcast address for that interface.
 		 */
 		if (faddr.s_addr == INADDR_ANY) {
-			IN_IFADDR_RLOCK(&in_ifa_tracker);
 			faddr =
 			    IA_SIN(CK_STAILQ_FIRST(&V_in_ifaddrhead))->sin_addr;
-			IN_IFADDR_RUNLOCK(&in_ifa_tracker);
 			if (cred != NULL &&
 			    (error = prison_get_ip4(cred, &faddr)) != 0)
 				return (error);
 		} else if (faddr.s_addr == (u_long)INADDR_BROADCAST) {
-			IN_IFADDR_RLOCK(&in_ifa_tracker);
 			if (CK_STAILQ_FIRST(&V_in_ifaddrhead)->ia_ifp->if_flags &
 			    IFF_BROADCAST)
 				faddr = satosin(&CK_STAILQ_FIRST(
 				    &V_in_ifaddrhead)->ia_broadaddr)->sin_addr;
-			IN_IFADDR_RUNLOCK(&in_ifa_tracker);
 		}
 	}
 	if (laddr.s_addr == INADDR_ANY) {
@@ -1441,7 +1453,6 @@ in_pcbconnect_setup(struct inpcb *inp, struct sockaddr *nam,
 			imo = inp->inp_moptions;
 			if (imo->imo_multicast_ifp != NULL) {
 				ifp = imo->imo_multicast_ifp;
-				IN_IFADDR_RLOCK(&in_ifa_tracker);
 				CK_STAILQ_FOREACH(ia, &V_in_ifaddrhead, ia_link) {
 					if ((ia->ia_ifp == ifp) &&
 					    (cred == NULL ||
@@ -1455,7 +1466,6 @@ in_pcbconnect_setup(struct inpcb *inp, struct sockaddr *nam,
 					laddr = ia->ia_addr.sin_addr;
 					error = 0;
 				}
-				IN_IFADDR_RUNLOCK(&in_ifa_tracker);
 			}
 		}
 		if (error)
@@ -1526,225 +1536,274 @@ in_pcbdetach(struct inpcb *inp)
 }
 
 /*
+ * inpcb hash lookups are protected by SMR section.
+ *
+ * Once desired pcb has been found, switching from SMR section to a pcb
+ * lock is performed with inp_smr_lock(). We can not use INP_(W|R)LOCK
+ * here because SMR is a critical section.
+ * In 99%+ cases inp_smr_lock() would obtain the lock immediately.
+ */
+static inline void
+inp_lock(struct inpcb *inp, const inp_lookup_t lock)
+{
+
+	lock == INPLOOKUP_RLOCKPCB ?
+	    rw_rlock(&inp->inp_lock) : rw_wlock(&inp->inp_lock);
+}
+
+static inline void
+inp_unlock(struct inpcb *inp, const inp_lookup_t lock)
+{
+
+	lock == INPLOOKUP_RLOCKPCB ?
+	    rw_runlock(&inp->inp_lock) : rw_wunlock(&inp->inp_lock);
+}
+
+static inline int
+inp_trylock(struct inpcb *inp, const inp_lookup_t lock)
+{
+
+	return (lock == INPLOOKUP_RLOCKPCB ?
+	    rw_try_rlock(&inp->inp_lock) : rw_try_wlock(&inp->inp_lock));
+}
+
+static inline bool
+in_pcbrele(struct inpcb *inp, const inp_lookup_t lock)
+{
+
+	return (lock == INPLOOKUP_RLOCKPCB ?
+	    in_pcbrele_rlocked(inp) : in_pcbrele_wlocked(inp));
+}
+
+bool
+inp_smr_lock(struct inpcb *inp, const inp_lookup_t lock)
+{
+
+	MPASS(lock == INPLOOKUP_RLOCKPCB || lock == INPLOOKUP_WLOCKPCB);
+	SMR_ASSERT_ENTERED(inp->inp_pcbinfo->ipi_smr);
+
+	if (__predict_true(inp_trylock(inp, lock))) {
+		if (__predict_false(inp->inp_flags & INP_FREED)) {
+			smr_exit(inp->inp_pcbinfo->ipi_smr);
+			inp_unlock(inp, lock);
+			return (false);
+		}
+		smr_exit(inp->inp_pcbinfo->ipi_smr);
+		return (true);
+	}
+
+	if (__predict_true(refcount_acquire_if_not_zero(&inp->inp_refcount))) {
+		smr_exit(inp->inp_pcbinfo->ipi_smr);
+		inp_lock(inp, lock);
+		if (__predict_false(in_pcbrele(inp, lock)))
+			return (false);
+		/*
+		 * inp acquired through refcount & lock for sure didn't went
+		 * through uma_zfree().  However, it may have already went
+		 * through in_pcbfree() and has another reference, that
+		 * prevented its release by our in_pcbrele().
+		 */
+		if (__predict_false(inp->inp_flags & INP_FREED)) {
+			inp_unlock(inp, lock);
+			return (false);
+		}
+		return (true);
+	} else {
+		smr_exit(inp->inp_pcbinfo->ipi_smr);
+		return (false);
+	}
+}
+
+/*
+ * inp_next() - inpcb hash/list traversal iterator
+ *
+ * Requires initialized struct inpcb_iterator for context.
+ * The structure can be initialized with INP_ITERATOR() or INP_ALL_ITERATOR().
+ *
+ * - Iterator can have either write-lock or read-lock semantics, that can not
+ *   be changed later.
+ * - Iterator can iterate either over all pcbs list (INP_ALL_LIST), or through
+ *   a single hash slot.  Note: only rip_input() does the latter.
+ * - Iterator may have optional bool matching function.  The matching function
+ *   will be executed for each inpcb in the SMR context, so it can not acquire
+ *   locks and can safely access only immutable fields of inpcb.
+ *
+ * A fresh initialized iterator has NULL inpcb in its context and that
+ * means that inp_next() call would return the very first inpcb on the list
+ * locked with desired semantic.  In all following calls the context pointer
+ * shall hold the current inpcb pointer.  The KPI user is not supposed to
+ * unlock the current inpcb!  Upon end of traversal inp_next() will return NULL
+ * and write NULL to its context.  After end of traversal an iterator can be
+ * reused.
+ *
+ * List traversals have the following features/constraints:
+ * - New entries won't be seen, as they are always added to the head of a list.
+ * - Removed entries won't stop traversal as long as they are not added to
+ *   a different list. This is violated by in_pcbrehash().
+ */
+#define	II_LIST_FIRST(ipi, hash)					\
+		(((hash) == INP_ALL_LIST) ?				\
+		    CK_LIST_FIRST(&(ipi)->ipi_listhead) :		\
+		    CK_LIST_FIRST(&(ipi)->ipi_hashbase[(hash)]))
+#define	II_LIST_NEXT(inp, hash)						\
+		(((hash) == INP_ALL_LIST) ?				\
+		    CK_LIST_NEXT((inp), inp_list) :			\
+		    CK_LIST_NEXT((inp), inp_hash))
+#define	II_LOCK_ASSERT(inp, lock)					\
+		rw_assert(&(inp)->inp_lock,				\
+		    (lock) == INPLOOKUP_RLOCKPCB ?  RA_RLOCKED : RA_WLOCKED )
+struct inpcb *
+inp_next(struct inpcb_iterator *ii)
+{
+	const struct inpcbinfo *ipi = ii->ipi;
+	inp_match_t *match = ii->match;
+	void *ctx = ii->ctx;
+	inp_lookup_t lock = ii->lock;
+	int hash = ii->hash;
+	struct inpcb *inp;
+
+	if (ii->inp == NULL) {		/* First call. */
+		smr_enter(ipi->ipi_smr);
+		/* This is unrolled CK_LIST_FOREACH(). */
+		for (inp = II_LIST_FIRST(ipi, hash);
+		    inp != NULL;
+		    inp = II_LIST_NEXT(inp, hash)) {
+			if (match != NULL && (match)(inp, ctx) == false)
+				continue;
+			if (__predict_true(inp_smr_lock(inp, lock)))
+				break;
+			else {
+				smr_enter(ipi->ipi_smr);
+				MPASS(inp != II_LIST_FIRST(ipi, hash));
+				inp = II_LIST_FIRST(ipi, hash);
+				if (inp == NULL)
+					break;
+			}
+		}
+
+		if (inp == NULL)
+			smr_exit(ipi->ipi_smr);
+		else
+			ii->inp = inp;
+
+		return (inp);
+	}
+
+	/* Not a first call. */
+	smr_enter(ipi->ipi_smr);
+restart:
+	inp = ii->inp;
+	II_LOCK_ASSERT(inp, lock);
+next:
+	inp = II_LIST_NEXT(inp, hash);
+	if (inp == NULL) {
+		smr_exit(ipi->ipi_smr);
+		goto found;
+	}
+
+	if (match != NULL && (match)(inp, ctx) == false)
+		goto next;
+
+	if (__predict_true(inp_trylock(inp, lock))) {
+		if (__predict_false(inp->inp_flags & INP_FREED)) {
+			/*
+			 * Entries are never inserted in middle of a list, thus
+			 * as long as we are in SMR, we can continue traversal.
+			 * Jump to 'restart' should yield in the same result,
+			 * but could produce unnecessary looping.  Could this
+			 * looping be unbound?
+			 */
+			inp_unlock(inp, lock);
+			goto next;
+		} else {
+			smr_exit(ipi->ipi_smr);
+			goto found;
+		}
+	}
+
+	/*
+	 * Can't obtain lock immediately, thus going hard.  Once we exit the
+	 * SMR section we can no longer jump to 'next', and our only stable
+	 * anchoring point is ii->inp, which we keep locked for this case, so
+	 * we jump to 'restart'.
+	 */
+	if (__predict_true(refcount_acquire_if_not_zero(&inp->inp_refcount))) {
+		smr_exit(ipi->ipi_smr);
+		inp_lock(inp, lock);
+		if (__predict_false(in_pcbrele(inp, lock))) {
+			smr_enter(ipi->ipi_smr);
+			goto restart;
+		}
+		/*
+		 * See comment in inp_smr_lock().
+		 */
+		if (__predict_false(inp->inp_flags & INP_FREED)) {
+			inp_unlock(inp, lock);
+			smr_enter(ipi->ipi_smr);
+			goto restart;
+		}
+	} else
+		goto next;
+
+found:
+	inp_unlock(ii->inp, lock);
+	ii->inp = inp;
+
+	return (ii->inp);
+}
+
+/*
  * in_pcbref() bumps the reference count on an inpcb in order to maintain
- * stability of an inpcb pointer despite the inpcb lock being released.  This
- * is used in TCP when the inpcbinfo lock needs to be acquired or upgraded,
- * but where the inpcb lock may already held, or when acquiring a reference
- * via a pcbgroup.
+ * stability of an inpcb pointer despite the inpcb lock being released or
+ * SMR section exited.
  *
- * in_pcbref() should be used only to provide brief memory stability, and
- * must always be followed by a call to INP_WLOCK() and in_pcbrele() to
- * garbage collect the inpcb if it has been in_pcbfree()'d from another
- * context.  Until in_pcbrele() has returned that the inpcb is still valid,
- * lock and rele are the *only* safe operations that may be performed on the
- * inpcb.
- *
- * While the inpcb will not be freed, releasing the inpcb lock means that the
- * connection's state may change, so the caller should be careful to
- * revalidate any cached state on reacquiring the lock.  Drop the reference
- * using in_pcbrele().
+ * To free a reference later in_pcbrele_(r|w)locked() must be performed.
  */
 void
 in_pcbref(struct inpcb *inp)
 {
+	u_int old __diagused;
 
-	KASSERT(inp->inp_refcount > 0, ("%s: refcount 0", __func__));
-
-	refcount_acquire(&inp->inp_refcount);
+	old = refcount_acquire(&inp->inp_refcount);
+	KASSERT(old > 0, ("%s: refcount 0", __func__));
 }
 
 /*
- * Drop a refcount on an inpcb elevated using in_pcbref(); because a call to
- * in_pcbfree() may have been made between in_pcbref() and in_pcbrele(), we
- * return a flag indicating whether or not the inpcb remains valid.  If it is
- * valid, we return with the inpcb lock held.
- *
- * Notice that, unlike in_pcbref(), the inpcb lock must be held to drop a
- * reference on an inpcb.  Historically more work was done here (actually, in
- * in_pcbfree_internal()) but has been moved to in_pcbfree() to avoid the
- * need for the pcbinfo lock in in_pcbrele().  Deferring the free is entirely
- * about memory stability (and continued use of the write lock).
+ * Drop a refcount on an inpcb elevated using in_pcbref(), potentially
+ * freeing the pcb, if the reference was very last.
  */
-int
+bool
 in_pcbrele_rlocked(struct inpcb *inp)
 {
-	struct inpcbinfo *pcbinfo;
-
-	KASSERT(inp->inp_refcount > 0, ("%s: refcount 0", __func__));
 
 	INP_RLOCK_ASSERT(inp);
 
-	if (refcount_release(&inp->inp_refcount) == 0) {
-		/*
-		 * If the inpcb has been freed, let the caller know, even if
-		 * this isn't the last reference.
-		 */
-		if (inp->inp_flags2 & INP_FREED) {
-			INP_RUNLOCK(inp);
-			return (1);
-		}
-		return (0);
-	}
+	if (refcount_release(&inp->inp_refcount) == 0)
+		return (false);
 
-	KASSERT(inp->inp_socket == NULL, ("%s: inp_socket != NULL", __func__));
-#ifdef TCPHPTS
-	if (inp->inp_in_hpts || inp->inp_in_input) {
-		struct tcp_hpts_entry *hpts;
-		/*
-		 * We should not be on the hpts at
-		 * this point in any form. we must
-		 * get the lock to be sure.
-		 */
-		hpts = tcp_hpts_lock(inp);
-		if (inp->inp_in_hpts)
-			panic("Hpts:%p inp:%p at free still on hpts",
-			      hpts, inp);
-		mtx_unlock(&hpts->p_mtx);
-		hpts = tcp_input_lock(inp);
-		if (inp->inp_in_input)
-			panic("Hpts:%p inp:%p at free still on input hpts",
-			      hpts, inp);
-		mtx_unlock(&hpts->p_mtx);
-	}
-#endif
+	MPASS(inp->inp_flags & INP_FREED);
+	MPASS(inp->inp_socket == NULL);
+	MPASS(inp->inp_in_hpts == 0);
 	INP_RUNLOCK(inp);
-	pcbinfo = inp->inp_pcbinfo;
-	uma_zfree(pcbinfo->ipi_zone, inp);
-	return (1);
+	uma_zfree_smr(inp->inp_pcbinfo->ipi_zone, inp);
+	return (true);
 }
 
-int
+bool
 in_pcbrele_wlocked(struct inpcb *inp)
 {
-	struct inpcbinfo *pcbinfo;
-
-	KASSERT(inp->inp_refcount > 0, ("%s: refcount 0", __func__));
 
 	INP_WLOCK_ASSERT(inp);
 
-	if (refcount_release(&inp->inp_refcount) == 0) {
-		/*
-		 * If the inpcb has been freed, let the caller know, even if
-		 * this isn't the last reference.
-		 */
-		if (inp->inp_flags2 & INP_FREED) {
-			INP_WUNLOCK(inp);
-			return (1);
-		}
-		return (0);
-	}
+	if (refcount_release(&inp->inp_refcount) == 0)
+		return (false);
 
-	KASSERT(inp->inp_socket == NULL, ("%s: inp_socket != NULL", __func__));
-#ifdef TCPHPTS
-	if (inp->inp_in_hpts || inp->inp_in_input) {
-		struct tcp_hpts_entry *hpts;
-		/*
-		 * We should not be on the hpts at
-		 * this point in any form. we must
-		 * get the lock to be sure.
-		 */
-		hpts = tcp_hpts_lock(inp);
-		if (inp->inp_in_hpts)
-			panic("Hpts:%p inp:%p at free still on hpts",
-			      hpts, inp);
-		mtx_unlock(&hpts->p_mtx);
-		hpts = tcp_input_lock(inp);
-		if (inp->inp_in_input)
-			panic("Hpts:%p inp:%p at free still on input hpts",
-			      hpts, inp);
-		mtx_unlock(&hpts->p_mtx);
-	}
-#endif
+	MPASS(inp->inp_flags & INP_FREED);
+	MPASS(inp->inp_socket == NULL);
+	MPASS(inp->inp_in_hpts == 0);
 	INP_WUNLOCK(inp);
-	pcbinfo = inp->inp_pcbinfo;
-	uma_zfree(pcbinfo->ipi_zone, inp);
-	return (1);
-}
-
-/*
- * Temporary wrapper.
- */
-int
-in_pcbrele(struct inpcb *inp)
-{
-
-	return (in_pcbrele_wlocked(inp));
-}
-
-void
-in_pcblist_rele_rlocked(epoch_context_t ctx)
-{
-	struct in_pcblist *il;
-	struct inpcb *inp;
-	struct inpcbinfo *pcbinfo;
-	int i, n;
-
-	il = __containerof(ctx, struct in_pcblist, il_epoch_ctx);
-	pcbinfo = il->il_pcbinfo;
-	n = il->il_count;
-	INP_INFO_WLOCK(pcbinfo);
-	for (i = 0; i < n; i++) {
-		inp = il->il_inp_list[i];
-		INP_RLOCK(inp);
-		if (!in_pcbrele_rlocked(inp))
-			INP_RUNLOCK(inp);
-	}
-	INP_INFO_WUNLOCK(pcbinfo);
-	free(il, M_TEMP);
-}
-
-static void
-inpcbport_free(epoch_context_t ctx)
-{
-	struct inpcbport *phd;
-
-	phd = __containerof(ctx, struct inpcbport, phd_epoch_ctx);
-	free(phd, M_PCB);
-}
-
-static void
-in_pcbfree_deferred(epoch_context_t ctx)
-{
-	struct inpcb *inp;
-	int released __unused;
-
-	inp = __containerof(ctx, struct inpcb, inp_epoch_ctx);
-
-	INP_WLOCK(inp);
-	CURVNET_SET(inp->inp_vnet);
-#ifdef INET
-	struct ip_moptions *imo = inp->inp_moptions;
-	inp->inp_moptions = NULL;
-#endif
-	/* XXXRW: Do as much as possible here. */
-#if defined(IPSEC) || defined(IPSEC_SUPPORT)
-	if (inp->inp_sp != NULL)
-		ipsec_delete_pcbpolicy(inp);
-#endif
-#ifdef INET6
-	struct ip6_moptions *im6o = NULL;
-	if (inp->inp_vflag & INP_IPV6PROTO) {
-		ip6_freepcbopts(inp->in6p_outputopts);
-		im6o = inp->in6p_moptions;
-		inp->in6p_moptions = NULL;
-	}
-#endif
-	if (inp->inp_options)
-		(void)m_free(inp->inp_options);
-	inp->inp_vflag = 0;
-	crfree(inp->inp_cred);
-#ifdef MAC
-	mac_inpcb_destroy(inp);
-#endif
-	released = in_pcbrele_wlocked(inp);
-	MPASS(released);
-#ifdef INET6
-	ip6_freemoptions(im6o);
-#endif
-#ifdef INET
-	inp_freemoptions(imo);
-#endif
-	CURVNET_RESTORE();
+	uma_zfree_smr(inp->inp_pcbinfo->ipi_zone, inp);
+	return (true);
 }
 
 /*
@@ -1752,32 +1811,104 @@ in_pcbfree_deferred(epoch_context_t ctx)
  * reference count, which should occur only after the inpcb has been detached
  * from its socket.  If another thread holds a temporary reference (acquired
  * using in_pcbref()) then the free is deferred until that reference is
- * released using in_pcbrele(), but the inpcb is still unlocked.  Almost all
- * work, including removal from global lists, is done in this context, where
- * the pcbinfo lock is held.
+ * released using in_pcbrele_(r|w)locked(), but the inpcb is still unlocked.
+ *  Almost all work, including removal from global lists, is done in this
+ * context, where the pcbinfo lock is held.
  */
 void
 in_pcbfree(struct inpcb *inp)
 {
 	struct inpcbinfo *pcbinfo = inp->inp_pcbinfo;
-
-	KASSERT(inp->inp_socket == NULL, ("%s: inp_socket != NULL", __func__));
-	KASSERT((inp->inp_flags2 & INP_FREED) == 0,
-	    ("%s: called twice for pcb %p", __func__, inp));
-	if (inp->inp_flags2 & INP_FREED) {
-		INP_WUNLOCK(inp);
-		return;
-	}
+#ifdef INET
+	struct ip_moptions *imo;
+#endif
+#ifdef INET6
+	struct ip6_moptions *im6o;
+#endif
 
 	INP_WLOCK_ASSERT(inp);
-	INP_LIST_WLOCK(pcbinfo);
-	in_pcbremlists(inp);
-	INP_LIST_WUNLOCK(pcbinfo);
+	KASSERT(inp->inp_socket == NULL, ("%s: inp_socket != NULL", __func__));
+	KASSERT((inp->inp_flags & INP_FREED) == 0,
+	    ("%s: called twice for pcb %p", __func__, inp));
+
+	inp->inp_flags |= INP_FREED;
+	INP_INFO_WLOCK(pcbinfo);
+	inp->inp_gencnt = ++pcbinfo->ipi_gencnt;
+	pcbinfo->ipi_count--;
+	CK_LIST_REMOVE(inp, inp_list);
+	INP_INFO_WUNLOCK(pcbinfo);
+
+	if (inp->inp_flags & INP_INHASHLIST) {
+		struct inpcbport *phd = inp->inp_phd;
+
+		INP_HASH_WLOCK(pcbinfo);
+		/* XXX: Only do if SO_REUSEPORT_LB set? */
+		in_pcbremlbgrouphash(inp);
+
+		CK_LIST_REMOVE(inp, inp_hash);
+		CK_LIST_REMOVE(inp, inp_portlist);
+		if (CK_LIST_FIRST(&phd->phd_pcblist) == NULL) {
+			CK_LIST_REMOVE(phd, phd_hash);
+			uma_zfree_smr(pcbinfo->ipi_portzone, phd);
+		}
+		INP_HASH_WUNLOCK(pcbinfo);
+		inp->inp_flags &= ~INP_INHASHLIST;
+	}
+
 	RO_INVALIDATE_CACHE(&inp->inp_route);
-	/* mark as destruction in progress */
-	inp->inp_flags2 |= INP_FREED;
-	INP_WUNLOCK(inp);
-	NET_EPOCH_CALL(in_pcbfree_deferred, &inp->inp_epoch_ctx);
+#ifdef MAC
+	mac_inpcb_destroy(inp);
+#endif
+#if defined(IPSEC) || defined(IPSEC_SUPPORT)
+	if (inp->inp_sp != NULL)
+		ipsec_delete_pcbpolicy(inp);
+#endif
+#ifdef INET
+	if (inp->inp_options)
+		(void)m_free(inp->inp_options);
+	imo = inp->inp_moptions;
+#endif
+#ifdef INET6
+	if (inp->inp_vflag & INP_IPV6PROTO) {
+		ip6_freepcbopts(inp->in6p_outputopts);
+		im6o = inp->in6p_moptions;
+	} else
+		im6o = NULL;
+#endif
+
+	if (__predict_false(in_pcbrele_wlocked(inp) == false)) {
+		INP_WUNLOCK(inp);
+	}
+#ifdef INET6
+	ip6_freemoptions(im6o);
+#endif
+#ifdef INET
+	inp_freemoptions(imo);
+#endif
+	/* Destruction is finalized in inpcb_dtor(). */
+}
+
+static void
+inpcb_dtor(void *mem, int size, void *arg)
+{
+	struct inpcb *inp = mem;
+
+	crfree(inp->inp_cred);
+#ifdef INVARIANTS
+	inp->inp_cred = NULL;
+#endif
+}
+
+/*
+ * Different protocols initialize their inpcbs differently - giving
+ * different name to the lock.  But they all are disposed the same.
+ */
+static void
+inpcb_fini(void *mem, int size)
+{
+	struct inpcb *inp = mem;
+
+	INP_LOCK_DESTROY(inp);
 }
 
 /*
@@ -1818,13 +1949,10 @@ in_pcbdrop(struct inpcb *inp)
 		CK_LIST_REMOVE(inp, inp_portlist);
 		if (CK_LIST_FIRST(&phd->phd_pcblist) == NULL) {
 			CK_LIST_REMOVE(phd, phd_hash);
-			NET_EPOCH_CALL(inpcbport_free, &phd->phd_epoch_ctx);
+			uma_zfree_smr(inp->inp_pcbinfo->ipi_portzone, phd);
 		}
 		INP_HASH_WUNLOCK(inp->inp_pcbinfo);
 		inp->inp_flags &= ~INP_INHASHLIST;
-#ifdef PCBGROUP
-		in_pcbgroup_remove(inp);
-#endif
 	}
 }
 
@@ -1892,7 +2020,7 @@ in_pcbnotifyall(struct inpcbinfo *pcbinfo, struct in_addr faddr, int errno,
 	struct inpcb *inp, *inp_temp;
 
 	INP_INFO_WLOCK(pcbinfo);
-	CK_LIST_FOREACH_SAFE(inp, pcbinfo->ipi_listhead, inp_list, inp_temp) {
+	CK_LIST_FOREACH_SAFE(inp, &pcbinfo->ipi_listhead, inp_list, inp_temp) {
 		INP_WLOCK(inp);
 #ifdef INET6
 		if ((inp->inp_vflag & INP_IPV4) == 0) {
@@ -1911,49 +2039,57 @@ in_pcbnotifyall(struct inpcbinfo *pcbinfo, struct in_addr faddr, int errno,
 	INP_INFO_WUNLOCK(pcbinfo);
 }
 
+static bool
+inp_v4_multi_match(const struct inpcb *inp, void *v __unused)
+{
+
+	if ((inp->inp_vflag & INP_IPV4) && inp->inp_moptions != NULL)
+		return (true);
+	else
+		return (false);
+}
+
 void
 in_pcbpurgeif0(struct inpcbinfo *pcbinfo, struct ifnet *ifp)
 {
+	struct inpcb_iterator inpi = INP_ITERATOR(pcbinfo, INPLOOKUP_WLOCKPCB,
+	    inp_v4_multi_match, NULL);
 	struct inpcb *inp;
 	struct in_multi *inm;
 	struct in_mfilter *imf;
 	struct ip_moptions *imo;
 
-	INP_INFO_WLOCK(pcbinfo);
-	CK_LIST_FOREACH(inp, pcbinfo->ipi_listhead, inp_list) {
-		INP_WLOCK(inp);
-		imo = inp->inp_moptions;
-		if ((inp->inp_vflag & INP_IPV4) &&
-		    imo != NULL) {
-			/*
-			 * Unselect the outgoing interface if it is being
-			 * detached.
-			 */
-			if (imo->imo_multicast_ifp == ifp)
-				imo->imo_multicast_ifp = NULL;
+	IN_MULTI_LOCK_ASSERT();
 
-			/*
-			 * Drop multicast group membership if we joined
-			 * through the interface being detached.
-			 *
-			 * XXX This can all be deferred to an epoch_call
-			 */
+	while ((inp = inp_next(&inpi)) != NULL) {
+		INP_WLOCK_ASSERT(inp);
+
+		imo = inp->inp_moptions;
+		/*
+		 * Unselect the outgoing interface if it is being
+		 * detached.
+		 */
+		if (imo->imo_multicast_ifp == ifp)
+			imo->imo_multicast_ifp = NULL;
+
+		/*
+		 * Drop multicast group membership if we joined
+		 * through the interface being detached.
+		 *
+		 * XXX This can all be deferred to an epoch_call
+		 */
 restart:
-			IP_MFILTER_FOREACH(imf, &imo->imo_head) {
-				if ((inm = imf->imf_inm) == NULL)
-					continue;
-				if (inm->inm_ifp != ifp)
-					continue;
-				ip_mfilter_remove(&imo->imo_head, imf);
-				IN_MULTI_LOCK_ASSERT();
-				in_leavegroup_locked(inm, NULL);
-				ip_mfilter_free(imf);
-				goto restart;
-			}
+		IP_MFILTER_FOREACH(imf, &imo->imo_head) {
+			if ((inm = imf->imf_inm) == NULL)
+				continue;
+			if (inm->inm_ifp != ifp)
+				continue;
+			ip_mfilter_remove(&imo->imo_head, imf);
+			in_leavegroup_locked(inm, NULL);
+			ip_mfilter_free(imf);
+			goto restart;
 		}
-		INP_WUNLOCK(inp);
 	}
-	INP_INFO_WUNLOCK(pcbinfo);
 }
 
 /*
@@ -1975,7 +2111,6 @@ in_pcblookup_local(struct inpcbinfo *pcbinfo, struct in_addr laddr,
 
 	KASSERT((lookupflags & ~(INPLOOKUP_WILDCARD)) == 0,
 	    ("%s: invalid lookup flags %d", __func__, lookupflags));
-
 	INP_HASH_LOCK_ASSERT(pcbinfo);
 
 	if ((lookupflags & INPLOOKUP_WILDCARD) == 0) {
@@ -1984,8 +2119,8 @@ in_pcblookup_local(struct inpcbinfo *pcbinfo, struct in_addr laddr,
 		 * Look for an unconnected (wildcard foreign addr) PCB that
 		 * matches the local address and port we're looking for.
 		 */
-		head = &pcbinfo->ipi_hashbase[INP_PCBHASH(INADDR_ANY, lport,
-		    0, pcbinfo->ipi_hashmask)];
+		head = &pcbinfo->ipi_hashbase[INP_PCBHASH_WILD(lport,
+		    pcbinfo->ipi_hashmask)];
 		CK_LIST_FOREACH(inp, head, inp_hash) {
 #ifdef INET6
 			/* XXX inp locking */
@@ -2113,7 +2248,7 @@ in_pcblookup_lbgroup(const struct inpcbinfo *pcbinfo,
 		if (grp->il_lport != lport)
 			continue;
 
-		idx = INP_PCBLBGROUP_PKTHASH(faddr->s_addr, lport, fport) %
+		idx = INP_PCBLBGROUP_PKTHASH(faddr, lport, fport) %
 		    grp->il_inpcnt;
 		if (grp->il_laddr.s_addr == laddr->s_addr) {
 			if (numa_domain == M_NODOM ||
@@ -2136,245 +2271,11 @@ in_pcblookup_lbgroup(const struct inpcbinfo *pcbinfo,
 	return (local_wild);
 }
 
-#ifdef PCBGROUP
-/*
- * Lookup PCB in hash list, using pcbgroup tables.
- */
-static struct inpcb *
-in_pcblookup_group(struct inpcbinfo *pcbinfo, struct inpcbgroup *pcbgroup,
-    struct in_addr faddr, u_int fport_arg, struct in_addr laddr,
-    u_int lport_arg, int lookupflags, struct ifnet *ifp)
-{
-	struct inpcbhead *head;
-	struct inpcb *inp, *tmpinp;
-	u_short fport = fport_arg, lport = lport_arg;
-	bool locked;
-
-	/*
-	 * First look for an exact match.
-	 */
-	tmpinp = NULL;
-	INP_GROUP_LOCK(pcbgroup);
-	head = &pcbgroup->ipg_hashbase[INP_PCBHASH(faddr.s_addr, lport, fport,
-	    pcbgroup->ipg_hashmask)];
-	CK_LIST_FOREACH(inp, head, inp_pcbgrouphash) {
-#ifdef INET6
-		/* XXX inp locking */
-		if ((inp->inp_vflag & INP_IPV4) == 0)
-			continue;
-#endif
-		if (inp->inp_faddr.s_addr == faddr.s_addr &&
-		    inp->inp_laddr.s_addr == laddr.s_addr &&
-		    inp->inp_fport == fport &&
-		    inp->inp_lport == lport) {
-			/*
-			 * XXX We should be able to directly return
-			 * the inp here, without any checks.
-			 * Well unless both bound with SO_REUSEPORT?
-			 */
-			if (prison_flag(inp->inp_cred, PR_IP4))
-				goto found;
-			if (tmpinp == NULL)
-				tmpinp = inp;
-		}
-	}
-	if (tmpinp != NULL) {
-		inp = tmpinp;
-		goto found;
-	}
-
-#ifdef	RSS
-	/*
-	 * For incoming connections, we may wish to do a wildcard
-	 * match for an RSS-local socket.
-	 */
-	if ((lookupflags & INPLOOKUP_WILDCARD) != 0) {
-		struct inpcb *local_wild = NULL, *local_exact = NULL;
-#ifdef INET6
-		struct inpcb *local_wild_mapped = NULL;
-#endif
-		struct inpcb *jail_wild = NULL;
-		struct inpcbhead *head;
-		int injail;
-
-		/*
-		 * Order of socket selection - we always prefer jails.
-		 *      1. jailed, non-wild.
-		 *      2. jailed, wild.
-		 *      3. non-jailed, non-wild.
-		 *      4. non-jailed, wild.
-		 */
-
-		head = &pcbgroup->ipg_hashbase[INP_PCBHASH(INADDR_ANY,
-		    lport, 0, pcbgroup->ipg_hashmask)];
-		CK_LIST_FOREACH(inp, head, inp_pcbgrouphash) {
-#ifdef INET6
-			/* XXX inp locking */
-			if ((inp->inp_vflag & INP_IPV4) == 0)
-				continue;
-#endif
-			if (inp->inp_faddr.s_addr != INADDR_ANY ||
-			    inp->inp_lport != lport)
-				continue;
-
-			injail = prison_flag(inp->inp_cred, PR_IP4);
-			if (injail) {
-				if (prison_check_ip4(inp->inp_cred,
-				    &laddr) != 0)
-					continue;
-			} else {
-				if (local_exact != NULL)
-					continue;
-			}
-
-			if (inp->inp_laddr.s_addr == laddr.s_addr) {
-				if (injail)
-					goto found;
-				else
-					local_exact = inp;
-			} else if (inp->inp_laddr.s_addr == INADDR_ANY) {
-#ifdef INET6
-				/* XXX inp locking, NULL check */
-				if (inp->inp_vflag & INP_IPV6PROTO)
-					local_wild_mapped = inp;
-				else
-#endif
-					if (injail)
-						jail_wild = inp;
-					else
-						local_wild = inp;
-			}
-		} /* LIST_FOREACH */
-
-		inp = jail_wild;
-		if (inp == NULL)
-			inp = local_exact;
-		if (inp == NULL)
-			inp = local_wild;
-#ifdef INET6
-		if (inp == NULL)
-			inp = local_wild_mapped;
-#endif
-		if (inp != NULL)
-			goto found;
-	}
-#endif
-
-	/*
-	 * Then look for a wildcard match, if requested.
-	 */
-	if ((lookupflags & INPLOOKUP_WILDCARD) != 0) {
-		struct inpcb *local_wild = NULL, *local_exact = NULL;
-#ifdef INET6
-		struct inpcb *local_wild_mapped = NULL;
-#endif
-		struct inpcb *jail_wild = NULL;
-		struct inpcbhead *head;
-		int injail;
-
-		/*
-		 * Order of socket selection - we always prefer jails.
-		 *      1. jailed, non-wild.
-		 *      2. jailed, wild.
-		 *      3. non-jailed, non-wild.
-		 *      4. non-jailed, wild.
-		 */
-		head = &pcbinfo->ipi_wildbase[INP_PCBHASH(INADDR_ANY, lport,
-		    0, pcbinfo->ipi_wildmask)];
-		CK_LIST_FOREACH(inp, head, inp_pcbgroup_wild) {
-#ifdef INET6
-			/* XXX inp locking */
-			if ((inp->inp_vflag & INP_IPV4) == 0)
-				continue;
-#endif
-			if (inp->inp_faddr.s_addr != INADDR_ANY ||
-			    inp->inp_lport != lport)
-				continue;
-
-			injail = prison_flag(inp->inp_cred, PR_IP4);
-			if (injail) {
-				if (prison_check_ip4(inp->inp_cred,
-				    &laddr) != 0)
-					continue;
-			} else {
-				if (local_exact != NULL)
-					continue;
-			}
-
-			if (inp->inp_laddr.s_addr == laddr.s_addr) {
-				if (injail)
-					goto found;
-				else
-					local_exact = inp;
-			} else if (inp->inp_laddr.s_addr == INADDR_ANY) {
-#ifdef INET6
-				/* XXX inp locking, NULL check */
-				if (inp->inp_vflag & INP_IPV6PROTO)
-					local_wild_mapped = inp;
-				else
-#endif
-					if (injail)
-						jail_wild = inp;
-					else
-						local_wild = inp;
-			}
-		} /* LIST_FOREACH */
-		inp = jail_wild;
-		if (inp == NULL)
-			inp = local_exact;
-		if (inp == NULL)
-			inp = local_wild;
-#ifdef INET6
-		if (inp == NULL)
-			inp = local_wild_mapped;
-#endif
-		if (inp != NULL)
-			goto found;
-	} /* if (lookupflags & INPLOOKUP_WILDCARD) */
-	INP_GROUP_UNLOCK(pcbgroup);
-	return (NULL);
-
-found:
-	if (lookupflags & INPLOOKUP_WLOCKPCB)
-		locked = INP_TRY_WLOCK(inp);
-	else if (lookupflags & INPLOOKUP_RLOCKPCB)
-		locked = INP_TRY_RLOCK(inp);
-	else
-		panic("%s: locking bug", __func__);
-	if (__predict_false(locked && (inp->inp_flags2 & INP_FREED))) {
-		if (lookupflags & INPLOOKUP_WLOCKPCB)
-			INP_WUNLOCK(inp);
-		else
-			INP_RUNLOCK(inp);
-		return (NULL);
-	} else if (!locked)
-		in_pcbref(inp);
-	INP_GROUP_UNLOCK(pcbgroup);
-	if (!locked) {
-		if (lookupflags & INPLOOKUP_WLOCKPCB) {
-			INP_WLOCK(inp);
-			if (in_pcbrele_wlocked(inp))
-				return (NULL);
-		} else {
-			INP_RLOCK(inp);
-			if (in_pcbrele_rlocked(inp))
-				return (NULL);
-		}
-	}
-#ifdef INVARIANTS
-	if (lookupflags & INPLOOKUP_WLOCKPCB)
-		INP_WLOCK_ASSERT(inp);
-	else
-		INP_RLOCK_ASSERT(inp);
-#endif
-	return (inp);
-}
-#endif /* PCBGROUP */
-
 /*
  * Lookup PCB in hash list, using pcbinfo tables.  This variation assumes
- * that the caller has locked the hash list, and will not perform any further
- * locking or reference operations on either the hash list or the connection.
+ * that the caller has either locked the hash list, which usually happens
+ * for bind(2) operations, or is in SMR section, which happens when sorting
+ * out incoming packets.
  */
 static struct inpcb *
 in_pcblookup_hash_locked(struct inpcbinfo *pcbinfo, struct in_addr faddr,
@@ -2393,7 +2294,7 @@ in_pcblookup_hash_locked(struct inpcbinfo *pcbinfo, struct in_addr faddr,
 	 * First look for an exact match.
 	 */
 	tmpinp = NULL;
-	head = &pcbinfo->ipi_hashbase[INP_PCBHASH(faddr.s_addr, lport, fport,
+	head = &pcbinfo->ipi_hashbase[INP_PCBHASH(&faddr, lport, fport,
 	    pcbinfo->ipi_hashmask)];
 	CK_LIST_FOREACH(inp, head, inp_hash) {
 #ifdef INET6
@@ -2448,8 +2349,8 @@ in_pcblookup_hash_locked(struct inpcbinfo *pcbinfo, struct in_addr faddr,
 		 *      4. non-jailed, wild.
 		 */
 
-		head = &pcbinfo->ipi_hashbase[INP_PCBHASH(INADDR_ANY, lport,
-		    0, pcbinfo->ipi_hashmask)];
+		head = &pcbinfo->ipi_hashbase[INP_PCBHASH_WILD(lport,
+		    pcbinfo->ipi_hashmask)];
 		CK_LIST_FOREACH(inp, head, inp_hash) {
 #ifdef INET6
 			/* XXX inp locking */
@@ -2462,8 +2363,8 @@ in_pcblookup_hash_locked(struct inpcbinfo *pcbinfo, struct in_addr faddr,
 
 			injail = prison_flag(inp->inp_cred, PR_IP4);
 			if (injail) {
-				if (prison_check_ip4(inp->inp_cred,
-				    &laddr) != 0)
+				if (prison_check_ip4_locked(
+				    inp->inp_cred->cr_prison, &laddr) != 0)
 					continue;
 			} else {
 				if (local_exact != NULL)
@@ -2515,33 +2416,15 @@ in_pcblookup_hash(struct inpcbinfo *pcbinfo, struct in_addr faddr,
 {
 	struct inpcb *inp;
 
+	smr_enter(pcbinfo->ipi_smr);
 	inp = in_pcblookup_hash_locked(pcbinfo, faddr, fport, laddr, lport,
-	    (lookupflags & ~(INPLOOKUP_RLOCKPCB | INPLOOKUP_WLOCKPCB)), ifp,
-	    numa_domain);
+	    lookupflags & INPLOOKUP_WILDCARD, ifp, numa_domain);
 	if (inp != NULL) {
-		if (lookupflags & INPLOOKUP_WLOCKPCB) {
-			INP_WLOCK(inp);
-			if (__predict_false(inp->inp_flags2 & INP_FREED)) {
-				INP_WUNLOCK(inp);
-				inp = NULL;
-			}
-		} else if (lookupflags & INPLOOKUP_RLOCKPCB) {
-			INP_RLOCK(inp);
-			if (__predict_false(inp->inp_flags2 & INP_FREED)) {
-				INP_RUNLOCK(inp);
-				inp = NULL;
-			}
-		} else
-			panic("%s: locking bug", __func__);
-#ifdef INVARIANTS
-		if (inp != NULL) {
-			if (lookupflags & INPLOOKUP_WLOCKPCB)
-				INP_WLOCK_ASSERT(inp);
-			else
-				INP_RLOCK_ASSERT(inp);
-		}
-#endif
-	}
+		if (__predict_false(inp_smr_lock(inp,
+		    (lookupflags & INPLOOKUP_LOCKMASK)) == false))
+			inp = NULL;
+	} else
+		smr_exit(pcbinfo->ipi_smr);
 
 	return (inp);
 }
@@ -2549,40 +2432,17 @@ in_pcblookup_hash(struct inpcbinfo *pcbinfo, struct in_addr faddr,
 /*
  * Public inpcb lookup routines, accepting a 4-tuple, and optionally, an mbuf
  * from which a pre-calculated hash value may be extracted.
- *
- * Possibly more of this logic should be in in_pcbgroup.c.
  */
 struct inpcb *
 in_pcblookup(struct inpcbinfo *pcbinfo, struct in_addr faddr, u_int fport,
     struct in_addr laddr, u_int lport, int lookupflags, struct ifnet *ifp)
 {
-#if defined(PCBGROUP) && !defined(RSS)
-	struct inpcbgroup *pcbgroup;
-#endif
 
 	KASSERT((lookupflags & ~INPLOOKUP_MASK) == 0,
 	    ("%s: invalid lookup flags %d", __func__, lookupflags));
 	KASSERT((lookupflags & (INPLOOKUP_RLOCKPCB | INPLOOKUP_WLOCKPCB)) != 0,
 	    ("%s: LOCKPCB not set", __func__));
 
-	/*
-	 * When not using RSS, use connection groups in preference to the
-	 * reservation table when looking up 4-tuples.  When using RSS, just
-	 * use the reservation table, due to the cost of the Toeplitz hash
-	 * in software.
-	 *
-	 * XXXRW: This policy belongs in the pcbgroup code, as in principle
-	 * we could be doing RSS with a non-Toeplitz hash that is affordable
-	 * in software.
-	 */
-#if defined(PCBGROUP) && !defined(RSS)
-	if (in_pcbgroup_enabled(pcbinfo)) {
-		pcbgroup = in_pcbgroup_bytuple(pcbinfo, laddr, lport, faddr,
-		    fport);
-		return (in_pcblookup_group(pcbinfo, pcbgroup, faddr, fport,
-		    laddr, lport, lookupflags, ifp));
-	}
-#endif
 	return (in_pcblookup_hash(pcbinfo, faddr, fport, laddr, lport,
 	    lookupflags, ifp, M_NODOM));
 }
@@ -2592,39 +2452,12 @@ in_pcblookup_mbuf(struct inpcbinfo *pcbinfo, struct in_addr faddr,
     u_int fport, struct in_addr laddr, u_int lport, int lookupflags,
     struct ifnet *ifp, struct mbuf *m)
 {
-#ifdef PCBGROUP
-	struct inpcbgroup *pcbgroup;
-#endif
 
 	KASSERT((lookupflags & ~INPLOOKUP_MASK) == 0,
 	    ("%s: invalid lookup flags %d", __func__, lookupflags));
 	KASSERT((lookupflags & (INPLOOKUP_RLOCKPCB | INPLOOKUP_WLOCKPCB)) != 0,
 	    ("%s: LOCKPCB not set", __func__));
 
-#ifdef PCBGROUP
-	/*
-	 * If we can use a hardware-generated hash to look up the connection
-	 * group, use that connection group to find the inpcb.  Otherwise
-	 * fall back on a software hash -- or the reservation table if we're
-	 * using RSS.
-	 *
-	 * XXXRW: As above, that policy belongs in the pcbgroup code.
-	 */
-	if (in_pcbgroup_enabled(pcbinfo) &&
-	    !(M_HASHTYPE_TEST(m, M_HASHTYPE_NONE))) {
-		pcbgroup = in_pcbgroup_byhash(pcbinfo, M_HASHTYPE_GET(m),
-		    m->m_pkthdr.flowid);
-		if (pcbgroup != NULL)
-			return (in_pcblookup_group(pcbinfo, pcbgroup, faddr,
-			    fport, laddr, lport, lookupflags, ifp));
-#ifndef RSS
-		pcbgroup = in_pcbgroup_bytuple(pcbinfo, laddr, lport, faddr,
-		    fport);
-		return (in_pcblookup_group(pcbinfo, pcbgroup, faddr, fport,
-		    laddr, lport, lookupflags, ifp));
-#endif
-	}
-#endif
 	return (in_pcblookup_hash(pcbinfo, faddr, fport, laddr, lport,
 	    lookupflags, ifp, m->m_pkthdr.numa_domain));
 }
@@ -2633,14 +2466,13 @@ in_pcblookup_mbuf(struct inpcbinfo *pcbinfo, struct in_addr faddr,
 /*
  * Insert PCB onto various hash lists.
  */
-static int
-in_pcbinshash_internal(struct inpcb *inp, struct mbuf *m)
+int
+in_pcbinshash(struct inpcb *inp)
 {
 	struct inpcbhead *pcbhash;
 	struct inpcbporthead *pcbporthash;
 	struct inpcbinfo *pcbinfo = inp->inp_pcbinfo;
 	struct inpcbport *phd;
-	u_int32_t hashkey_faddr;
 	int so_options;
 
 	INP_WLOCK_ASSERT(inp);
@@ -2651,13 +2483,12 @@ in_pcbinshash_internal(struct inpcb *inp, struct mbuf *m)
 
 #ifdef INET6
 	if (inp->inp_vflag & INP_IPV6)
-		hashkey_faddr = INP6_PCBHASHKEY(&inp->in6p_faddr);
+		pcbhash = &pcbinfo->ipi_hashbase[INP6_PCBHASH(&inp->in6p_faddr,
+		    inp->inp_lport, inp->inp_fport, pcbinfo->ipi_hashmask)];
 	else
 #endif
-	hashkey_faddr = inp->inp_faddr.s_addr;
-
-	pcbhash = &pcbinfo->ipi_hashbase[INP_PCBHASH(hashkey_faddr,
-		 inp->inp_lport, inp->inp_fport, pcbinfo->ipi_hashmask)];
+		pcbhash = &pcbinfo->ipi_hashbase[INP_PCBHASH(&inp->inp_faddr,
+		    inp->inp_lport, inp->inp_fport, pcbinfo->ipi_hashmask)];
 
 	pcbporthash = &pcbinfo->ipi_porthashbase[
 	    INP_PCBPORTHASH(inp->inp_lport, pcbinfo->ipi_porthashmask)];
@@ -2686,11 +2517,10 @@ in_pcbinshash_internal(struct inpcb *inp, struct mbuf *m)
 	 * If none exists, malloc one and tack it on.
 	 */
 	if (phd == NULL) {
-		phd = malloc(sizeof(struct inpcbport), M_PCB, M_NOWAIT);
+		phd = uma_zalloc_smr(pcbinfo->ipi_portzone, M_NOWAIT);
 		if (phd == NULL) {
 			return (ENOBUFS); /* XXX */
 		}
-		bzero(&phd->phd_epoch_ctx, sizeof(struct epoch_context));
 		phd->phd_port = inp->inp_lport;
 		CK_LIST_INIT(&phd->phd_pcblist);
 		CK_LIST_INSERT_HEAD(pcbporthash, phd, phd_hash);
@@ -2699,28 +2529,8 @@ in_pcbinshash_internal(struct inpcb *inp, struct mbuf *m)
 	CK_LIST_INSERT_HEAD(&phd->phd_pcblist, inp, inp_portlist);
 	CK_LIST_INSERT_HEAD(pcbhash, inp, inp_hash);
 	inp->inp_flags |= INP_INHASHLIST;
-#ifdef PCBGROUP
-	if (m != NULL) {
-		in_pcbgroup_update_mbuf(inp, m);
-	} else {
-		in_pcbgroup_update(inp);
-	}
-#endif
+
 	return (0);
-}
-
-int
-in_pcbinshash(struct inpcb *inp)
-{
-
-	return (in_pcbinshash_internal(inp, NULL));
-}
-
-int
-in_pcbinshash_mbuf(struct inpcb *inp, struct mbuf *m)
-{
-
-	return (in_pcbinshash_internal(inp, m));
 }
 
 /*
@@ -2728,13 +2538,16 @@ in_pcbinshash_mbuf(struct inpcb *inp, struct mbuf *m)
  * changed. NOTE: This does not handle the case of the lport changing (the
  * hashed port list would have to be updated as well), so the lport must
  * not change after in_pcbinshash() has been called.
+ *
+ * XXXGL: a race between this function and SMR-protected hash iterator
+ * will lead to iterator traversing a possibly wrong hash list. However,
+ * this race should have been here since change from rwlock to epoch.
  */
 void
-in_pcbrehash_mbuf(struct inpcb *inp, struct mbuf *m)
+in_pcbrehash(struct inpcb *inp)
 {
 	struct inpcbinfo *pcbinfo = inp->inp_pcbinfo;
 	struct inpcbhead *head;
-	u_int32_t hashkey_faddr;
 
 	INP_WLOCK_ASSERT(inp);
 	INP_HASH_WLOCK_ASSERT(pcbinfo);
@@ -2744,66 +2557,15 @@ in_pcbrehash_mbuf(struct inpcb *inp, struct mbuf *m)
 
 #ifdef INET6
 	if (inp->inp_vflag & INP_IPV6)
-		hashkey_faddr = INP6_PCBHASHKEY(&inp->in6p_faddr);
+		head = &pcbinfo->ipi_hashbase[INP6_PCBHASH(&inp->in6p_faddr,
+		    inp->inp_lport, inp->inp_fport, pcbinfo->ipi_hashmask)];
 	else
 #endif
-	hashkey_faddr = inp->inp_faddr.s_addr;
-
-	head = &pcbinfo->ipi_hashbase[INP_PCBHASH(hashkey_faddr,
-		inp->inp_lport, inp->inp_fport, pcbinfo->ipi_hashmask)];
+		head = &pcbinfo->ipi_hashbase[INP_PCBHASH(&inp->inp_faddr,
+		    inp->inp_lport, inp->inp_fport, pcbinfo->ipi_hashmask)];
 
 	CK_LIST_REMOVE(inp, inp_hash);
 	CK_LIST_INSERT_HEAD(head, inp, inp_hash);
-
-#ifdef PCBGROUP
-	if (m != NULL)
-		in_pcbgroup_update_mbuf(inp, m);
-	else
-		in_pcbgroup_update(inp);
-#endif
-}
-
-void
-in_pcbrehash(struct inpcb *inp)
-{
-
-	in_pcbrehash_mbuf(inp, NULL);
-}
-
-/*
- * Remove PCB from various lists.
- */
-static void
-in_pcbremlists(struct inpcb *inp)
-{
-	struct inpcbinfo *pcbinfo = inp->inp_pcbinfo;
-
-	INP_WLOCK_ASSERT(inp);
-	INP_LIST_WLOCK_ASSERT(pcbinfo);
-
-	inp->inp_gencnt = ++pcbinfo->ipi_gencnt;
-	if (inp->inp_flags & INP_INHASHLIST) {
-		struct inpcbport *phd = inp->inp_phd;
-
-		INP_HASH_WLOCK(pcbinfo);
-
-		/* XXX: Only do if SO_REUSEPORT_LB set? */
-		in_pcbremlbgrouphash(inp);
-
-		CK_LIST_REMOVE(inp, inp_hash);
-		CK_LIST_REMOVE(inp, inp_portlist);
-		if (CK_LIST_FIRST(&phd->phd_pcblist) == NULL) {
-			CK_LIST_REMOVE(phd, phd_hash);
-			NET_EPOCH_CALL(inpcbport_free, &phd->phd_epoch_ctx);
-		}
-		INP_HASH_WUNLOCK(pcbinfo);
-		inp->inp_flags &= ~INP_INHASHLIST;
-	}
-	CK_LIST_REMOVE(inp, inp_list);
-	pcbinfo->ipi_count--;
-#ifdef PCBGROUP
-	in_pcbgroup_remove(inp);
-#endif
 }
 
 /*
@@ -2856,8 +2618,8 @@ ipport_tick(void *xtp)
 	VNET_LIST_RLOCK_NOSLEEP();
 	VNET_FOREACH(vnet_iter) {
 		CURVNET_SET(vnet_iter);	/* XXX appease INVARIANTS here */
-		if (V_ipport_tcpallocs <=
-		    V_ipport_tcplastcount + V_ipport_randomcps) {
+		if (V_ipport_tcpallocs - V_ipport_tcplastcount <=
+		    V_ipport_randomcps) {
 			if (V_ipport_stoprandom > 0)
 				V_ipport_stoprandom--;
 		} else
@@ -2940,15 +2702,12 @@ inp_unlock_assert(struct inpcb *inp)
 void
 inp_apply_all(void (*func)(struct inpcb *, void *), void *arg)
 {
+	struct inpcb_iterator inpi = INP_ALL_ITERATOR(&V_tcbinfo,
+	    INPLOOKUP_WLOCKPCB);
 	struct inpcb *inp;
 
-	INP_INFO_WLOCK(&V_tcbinfo);
-	CK_LIST_FOREACH(inp, V_tcbinfo.ipi_listhead, inp_list) {
-		INP_WLOCK(inp);
+	while ((inp = inp_next(&inpi)) != NULL)
 		func(inp, arg);
-		INP_WUNLOCK(inp);
-	}
-	INP_INFO_WUNLOCK(&V_tcbinfo);
 }
 
 struct socket *
@@ -3039,6 +2798,85 @@ in_pcbtoxinpcb(const struct inpcb *inp, struct xinpcb *xi)
 	xi->inp_ip_ttl = inp->inp_ip_ttl;
 	xi->inp_ip_p = inp->inp_ip_p;
 	xi->inp_ip_minttl = inp->inp_ip_minttl;
+}
+
+int
+sysctl_setsockopt(SYSCTL_HANDLER_ARGS, struct inpcbinfo *pcbinfo,
+    int (*ctloutput_set)(struct inpcb *, struct sockopt *))
+{
+	struct sockopt sopt;
+	struct inpcb_iterator inpi = INP_ALL_ITERATOR(pcbinfo,
+	    INPLOOKUP_WLOCKPCB);
+	struct inpcb *inp;
+	struct sockopt_parameters *params;
+	struct socket *so;
+	int error;
+	char buf[1024];
+
+	if (req->oldptr != NULL || req->oldlen != 0)
+		return (EINVAL);
+	if (req->newptr == NULL)
+		return (EPERM);
+	if (req->newlen > sizeof(buf))
+		return (ENOMEM);
+	error = SYSCTL_IN(req, buf, req->newlen);
+	if (error != 0)
+		return (error);
+	if (req->newlen < sizeof(struct sockopt_parameters))
+		return (EINVAL);
+	params = (struct sockopt_parameters *)buf;
+	sopt.sopt_level = params->sop_level;
+	sopt.sopt_name = params->sop_optname;
+	sopt.sopt_dir = SOPT_SET;
+	sopt.sopt_val = params->sop_optval;
+	sopt.sopt_valsize = req->newlen - sizeof(struct sockopt_parameters);
+	sopt.sopt_td = NULL;
+#ifdef INET6
+	if (params->sop_inc.inc_flags & INC_ISIPV6) {
+		if (IN6_IS_SCOPE_LINKLOCAL(&params->sop_inc.inc6_laddr))
+			params->sop_inc.inc6_laddr.s6_addr16[1] =
+			    htons(params->sop_inc.inc6_zoneid & 0xffff);
+		if (IN6_IS_SCOPE_LINKLOCAL(&params->sop_inc.inc6_faddr))
+			params->sop_inc.inc6_faddr.s6_addr16[1] =
+			    htons(params->sop_inc.inc6_zoneid & 0xffff);
+	}
+#endif
+	if (params->sop_inc.inc_lport != htons(0)) {
+		if (params->sop_inc.inc_fport == htons(0))
+			inpi.hash = INP_PCBHASH_WILD(params->sop_inc.inc_lport,
+			    pcbinfo->ipi_hashmask);
+		else
+#ifdef INET6
+			if (params->sop_inc.inc_flags & INC_ISIPV6)
+				inpi.hash = INP6_PCBHASH(
+				    &params->sop_inc.inc6_faddr,
+				    params->sop_inc.inc_lport,
+				    params->sop_inc.inc_fport,
+				    pcbinfo->ipi_hashmask);
+			else
+#endif
+				inpi.hash = INP_PCBHASH(
+				    &params->sop_inc.inc_faddr,
+				    params->sop_inc.inc_lport,
+				    params->sop_inc.inc_fport,
+				    pcbinfo->ipi_hashmask);
+	}
+	while ((inp = inp_next(&inpi)) != NULL)
+		if (inp->inp_gencnt == params->sop_id) {
+			if (inp->inp_flags & (INP_TIMEWAIT | INP_DROPPED)) {
+				INP_WUNLOCK(inp);
+				return (ECONNRESET);
+			}
+			so = inp->inp_socket;
+			KASSERT(so != NULL, ("inp_socket == NULL"));
+			soref(so);
+			error = (*ctloutput_set)(inp, &sopt);
+			sorele(so);
+			break;
+		}
+	if (inp == NULL)
+		error = ESRCH;
+	return (error);
 }
 
 #ifdef DDB
@@ -3304,21 +3142,16 @@ in_pcbmodify_txrtlmt(struct inpcb *inp, uint32_t max_pacing_rate)
 		.rate_limit.flags = M_NOWAIT,
 	};
 	struct m_snd_tag *mst;
-	struct ifnet *ifp;
 	int error;
 
 	mst = inp->inp_snd_tag;
 	if (mst == NULL)
 		return (EINVAL);
 
-	ifp = mst->ifp;
-	if (ifp == NULL)
-		return (EINVAL);
-
-	if (ifp->if_snd_tag_modify == NULL) {
+	if (mst->sw->snd_tag_modify == NULL) {
 		error = EOPNOTSUPP;
 	} else {
-		error = ifp->if_snd_tag_modify(mst, &params);
+		error = mst->sw->snd_tag_modify(mst, &params);
 	}
 	return (error);
 }
@@ -3332,22 +3165,17 @@ in_pcbquery_txrtlmt(struct inpcb *inp, uint32_t *p_max_pacing_rate)
 {
 	union if_snd_tag_query_params params = { };
 	struct m_snd_tag *mst;
-	struct ifnet *ifp;
 	int error;
 
 	mst = inp->inp_snd_tag;
 	if (mst == NULL)
 		return (EINVAL);
 
-	ifp = mst->ifp;
-	if (ifp == NULL)
-		return (EINVAL);
-
-	if (ifp->if_snd_tag_query == NULL) {
+	if (mst->sw->snd_tag_query == NULL) {
 		error = EOPNOTSUPP;
 	} else {
-		error = ifp->if_snd_tag_query(mst, &params);
-		if (error == 0 &&  p_max_pacing_rate != NULL)
+		error = mst->sw->snd_tag_query(mst, &params);
+		if (error == 0 && p_max_pacing_rate != NULL)
 			*p_max_pacing_rate = params.rate_limit.max_rate;
 	}
 	return (error);
@@ -3362,22 +3190,17 @@ in_pcbquery_txrlevel(struct inpcb *inp, uint32_t *p_txqueue_level)
 {
 	union if_snd_tag_query_params params = { };
 	struct m_snd_tag *mst;
-	struct ifnet *ifp;
 	int error;
 
 	mst = inp->inp_snd_tag;
 	if (mst == NULL)
 		return (EINVAL);
 
-	ifp = mst->ifp;
-	if (ifp == NULL)
-		return (EINVAL);
-
-	if (ifp->if_snd_tag_query == NULL)
+	if (mst->sw->snd_tag_query == NULL)
 		return (EOPNOTSUPP);
 
-	error = ifp->if_snd_tag_query(mst, &params);
-	if (error == 0 &&  p_txqueue_level != NULL)
+	error = mst->sw->snd_tag_query(mst, &params);
+	if (error == 0 && p_txqueue_level != NULL)
 		*p_txqueue_level = params.rate_limit.queue_level;
 	return (error);
 }
@@ -3517,7 +3340,6 @@ in_pcboutput_txrtlmt(struct inpcb *inp, struct ifnet *ifp, struct mbuf *mb)
 	struct socket *socket;
 	uint32_t max_pacing_rate;
 	bool did_upgrade;
-	int error;
 
 	if (inp == NULL)
 		return;
@@ -3548,7 +3370,7 @@ in_pcboutput_txrtlmt(struct inpcb *inp, struct ifnet *ifp, struct mbuf *mb)
 	 */
 	max_pacing_rate = socket->so_max_pacing_rate;
 
-	error = in_pcboutput_txrtlmt_locked(inp, ifp, mb, max_pacing_rate);
+	in_pcboutput_txrtlmt_locked(inp, ifp, mb, max_pacing_rate);
 
 	if (did_upgrade)
 		INP_DOWNGRADE(inp);

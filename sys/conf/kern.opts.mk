@@ -1,6 +1,9 @@
 # $FreeBSD$
 
-# Options set in the build system that affect the kernel somehow.
+# Options set in the build system which affect the building of kernel
+# modules. These select which parts to compile in or out (eg INET) or which
+# parts to omit (eg CDDL or SOURCELESS_HOST). Some of these will cause
+# config.mk to define symbols in various opt_*.h files.
 
 #
 # Define MK_* variables (which are either "yes" or "no") for users
@@ -57,7 +60,8 @@ __DEFAULT_NO_OPTIONS = \
     INIT_ALL_ZERO \
     KERNEL_RETPOLINE \
     RATELIMIT \
-    REPRODUCIBLE_BUILD
+    REPRODUCIBLE_BUILD \
+    SET_BUT_NOTUSED_KERNEL_WARNINGS
 
 # Some options are totally broken on some architectures. We disable
 # them. If you need to enable them on an experimental basis, you
@@ -79,10 +83,6 @@ BROKEN_OPTIONS+= CDDL ZFS
 . endif
 .endif
 
-.if ${MACHINE_CPUARCH} == "mips"
-BROKEN_OPTIONS+= CDDL ZFS SSP
-.endif
-
 .if ${MACHINE_CPUARCH} == "powerpc" && ${MACHINE_ARCH} == "powerpc"
 BROKEN_OPTIONS+= ZFS
 .endif
@@ -98,9 +98,15 @@ BROKEN_OPTIONS+= OFED
 BROKEN_OPTIONS+= KERNEL_RETPOLINE
 .endif
 
-# EFI doesn't exist on mips, powerpc, or riscv.
-.if ${MACHINE:Mmips} || ${MACHINE:Mpowerpc} || ${MACHINE:Mriscv}
+# EFI doesn't exist on powerpc, or riscv
+.if ${MACHINE:Mpowerpc} || ${MACHINE:Mriscv}
 BROKEN_OPTIONS+=EFI
+.endif
+
+.if ${MACHINE_CPUARCH} == "i386" || ${MACHINE_CPUARCH} == "amd64"
+__DEFAULT_NO_OPTIONS += FDT
+.else
+__DEFAULT_YES_OPTIONS += FDT
 .endif
 
 # expanded inline from bsd.mkopt.mk to avoid share/mk dependency
@@ -179,4 +185,9 @@ MK_${var}_SUPPORT:= yes
 .if !defined(OPT_FDT) && defined(KERNBUILDDIR)
 OPT_FDT!= sed -n '/FDT/p' ${KERNBUILDDIR}/opt_platform.h
 .export OPT_FDT
+.if empty(OPT_FDT)
+MK_FDT:=no
+.else
+MK_FDT:=yes
+.endif
 .endif

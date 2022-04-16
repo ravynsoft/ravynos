@@ -41,12 +41,12 @@
 #include <linux/blkdev_compat.h>
 #include <linux/task_io_accounting_ops.h>
 
-unsigned int zvol_major = ZVOL_MAJOR;
-unsigned int zvol_request_sync = 0;
-unsigned int zvol_prefetch_bytes = (128 * 1024);
-unsigned long zvol_max_discard_blocks = 16384;
-unsigned int zvol_threads = 32;
-unsigned int zvol_open_timeout_ms = 1000;
+static unsigned int zvol_major = ZVOL_MAJOR;
+static unsigned int zvol_request_sync = 0;
+static unsigned int zvol_prefetch_bytes = (128 * 1024);
+static unsigned long zvol_max_discard_blocks = 16384;
+static unsigned int zvol_threads = 32;
+static const unsigned int zvol_open_timeout_ms = 1000;
 
 struct zvol_state_os {
 	struct gendisk		*zvo_disk;	/* generic disk */
@@ -86,8 +86,8 @@ zv_request_task_free(zv_request_task_t *task)
 /*
  * Given a path, return TRUE if path is a ZVOL.
  */
-static boolean_t
-zvol_is_zvol_impl(const char *path)
+boolean_t
+zvol_os_is_zvol(const char *path)
 {
 	dev_t dev = 0;
 
@@ -507,7 +507,7 @@ retry:
 	/*
 	 * Obtain a copy of private_data under the zvol_state_lock to make
 	 * sure that either the result of zvol free code path setting
-	 * bdev->bd_disk->private_data to NULL is observed, or zvol_free()
+	 * bdev->bd_disk->private_data to NULL is observed, or zvol_os_free()
 	 * is not called on this zv because of the positive zv_open_count.
 	 */
 	zv = bdev->bd_disk->private_data;
@@ -747,8 +747,8 @@ zvol_revalidate_disk(struct gendisk *disk)
 	return (0);
 }
 
-static int
-zvol_update_volsize(zvol_state_t *zv, uint64_t volsize)
+int
+zvol_os_update_volsize(zvol_state_t *zv, uint64_t volsize)
 {
 	struct gendisk *disk = zv->zv_zso->zvo_disk;
 
@@ -762,8 +762,8 @@ zvol_update_volsize(zvol_state_t *zv, uint64_t volsize)
 	return (0);
 }
 
-static void
-zvol_clear_private(zvol_state_t *zv)
+void
+zvol_os_clear_private(zvol_state_t *zv)
 {
 	/*
 	 * Cleared while holding zvol_state_lock as a writer
@@ -802,7 +802,7 @@ zvol_getgeo(struct block_device *bdev, struct hd_geometry *geo)
 	return (0);
 }
 
-static struct block_device_operations zvol_ops = {
+static const struct block_device_operations zvol_ops = {
 	.open			= zvol_open,
 	.release		= zvol_release,
 	.ioctl			= zvol_ioctl,
@@ -906,7 +906,7 @@ zvol_alloc(dev_t dev, const char *name)
 	if (volmode == ZFS_VOLMODE_DEV) {
 		/*
 		 * ZFS_VOLMODE_DEV disable partitioning on ZVOL devices: set
-		 * gendisk->minors = 1 as noted in include/linux/genhd.h.
+		 * gendisk->minors = 1 as noted in include/linux/blkdev.h.
 		 * Also disable extended partition numbers (GENHD_FL_EXT_DEVT)
 		 * and suppresses partition scanning (GENHD_FL_NO_PART_SCAN)
 		 * setting gendisk->flags accordingly.
@@ -944,8 +944,8 @@ out_kmem:
  * "del_gendisk". Thus, consumers need to be careful to account for this
  * latency when calling this function.
  */
-static void
-zvol_free(zvol_state_t *zv)
+void
+zvol_os_free(zvol_state_t *zv)
 {
 
 	ASSERT(!RW_LOCK_HELD(&zv->zv_suspend_lock));
@@ -985,7 +985,7 @@ zvol_wait_close(zvol_state_t *zv)
  * and the specified volume.  Once this function returns the block
  * device is live and ready for use.
  */
-static int
+int
 zvol_os_create_minor(const char *name)
 {
 	zvol_state_t *zv;
@@ -1122,8 +1122,8 @@ out_doi:
 	return (error);
 }
 
-static void
-zvol_rename_minor(zvol_state_t *zv, const char *newname)
+void
+zvol_os_rename_minor(zvol_state_t *zv, const char *newname)
 {
 	int readonly = get_disk_ro(zv->zv_zso->zvo_disk);
 
@@ -1149,30 +1149,19 @@ zvol_rename_minor(zvol_state_t *zv, const char *newname)
 	set_disk_ro(zv->zv_zso->zvo_disk, readonly);
 }
 
-static void
-zvol_set_disk_ro_impl(zvol_state_t *zv, int flags)
+void
+zvol_os_set_disk_ro(zvol_state_t *zv, int flags)
 {
 
 	set_disk_ro(zv->zv_zso->zvo_disk, flags);
 }
 
-static void
-zvol_set_capacity_impl(zvol_state_t *zv, uint64_t capacity)
+void
+zvol_os_set_capacity(zvol_state_t *zv, uint64_t capacity)
 {
 
 	set_capacity(zv->zv_zso->zvo_disk, capacity);
 }
-
-const static zvol_platform_ops_t zvol_linux_ops = {
-	.zv_free = zvol_free,
-	.zv_rename_minor = zvol_rename_minor,
-	.zv_create_minor = zvol_os_create_minor,
-	.zv_update_volsize = zvol_update_volsize,
-	.zv_clear_private = zvol_clear_private,
-	.zv_is_zvol = zvol_is_zvol_impl,
-	.zv_set_disk_ro = zvol_set_disk_ro_impl,
-	.zv_set_capacity = zvol_set_capacity_impl,
-};
 
 int
 zvol_init(void)
@@ -1193,7 +1182,6 @@ zvol_init(void)
 	}
 	zvol_init_impl();
 	ida_init(&zvol_ida);
-	zvol_register_ops(&zvol_linux_ops);
 	return (0);
 }
 

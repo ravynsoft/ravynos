@@ -46,8 +46,6 @@ extern u_long elf32_hwcap2;
 struct dumperinfo;
 struct minidumpstate;
 
-extern int busdma_swi_pending;
-void busdma_swi(void);
 int cpu_minidumpsys(struct dumperinfo *, const struct minidumpstate *);
 void generic_bs_fault(void) __asm(__STRING(generic_bs_fault));
 void generic_bs_peek_1(void) __asm(__STRING(generic_bs_peek_1));
@@ -58,7 +56,5 @@ void generic_bs_poke_1(void) __asm(__STRING(generic_bs_poke_1));
 void generic_bs_poke_2(void) __asm(__STRING(generic_bs_poke_2));
 void generic_bs_poke_4(void) __asm(__STRING(generic_bs_poke_4));
 void generic_bs_poke_8(void) __asm(__STRING(generic_bs_poke_8));
-
-extern uint32_t initial_fpcr;
 
 #endif /* !_MACHINE_MD_VAR_H_ */

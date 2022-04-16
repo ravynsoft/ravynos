@@ -37,13 +37,14 @@ __FBSDID("$FreeBSD$");
 #include <sys/mutex.h>
 #include <sys/resource.h>
 #include <sys/rman.h>
-#include <sys/sysctl.h>
 
 #include <machine/bus.h>
 
 #include <dev/ofw/openfirm.h>
 #include <dev/ofw/ofw_bus.h>
 #include <dev/ofw/ofw_bus_subr.h>
+
+#include <dev/pwm/pwmc.h>
 
 #include "pwmbus_if.h"
 
@@ -53,17 +54,6 @@ __FBSDID("$FreeBSD$");
  * Enhanced resolution PWM driver.  Many of the advanced featues of the hardware
  * are not supported by this driver.  What is implemented here is simple
  * variable-duty-cycle PWM output.
- *
- * Note that this driver was historically configured using a set of sysctl
- * variables/procs, and later gained support for the PWM(9) API.  The sysctl
- * code is still present to support existing apps, but that interface is
- * considered deprecated.
- *
- * An important caveat is that the original sysctl interface and the new PWM API
- * cannot both be used at once.  If both interfaces are used to change
- * configuration, it's quite likely you won't get the expected results.  Also,
- * reading the sysctl values after configuring via PWM will not return the right
- * results.
  ******************************************************************************/
 
 /* In ticks */
@@ -84,18 +74,23 @@ __FBSDID("$FreeBSD$");
     bus_write_2((_sc)->sc_mem_res, reg, value)
 
 #define	EPWM_TBCTL		0x00
-#define		TBCTL_FREERUN		(2 << 14)
+/* see 15.2.2.11 for the first two, used in debug situations */
+#define		TBCTL_FREERUN_STOP_NEXT_TBC_INCREMENT	(0 << 14)
+#define		TBCTL_FREERUN_STOP_COMPLETE_CYCLE	(1 << 14)
+/* ignore suspend control signal */
+#define		TBCTL_FREERUN				(2 << 14)
+
 #define		TBCTL_PHDIR_UP		(1 << 13)
 #define		TBCTL_PHDIR_DOWN	(0 << 13)
 #define		TBCTL_CLKDIV(x)		((x) << 10)
-#define		TBCTL_CLKDIV_MASK	(3 << 10)
+#define		TBCTL_CLKDIV_MASK	(7 << 10)
 #define		TBCTL_HSPCLKDIV(x)	((x) << 7)
-#define		TBCTL_HSPCLKDIV_MASK	(3 << 7)
+#define		TBCTL_HSPCLKDIV_MASK	(7 << 7)
 #define		TBCTL_SYNCOSEL_DISABLED	(3 << 4)
 #define		TBCTL_PRDLD_SHADOW	(0 << 3)
-#define		TBCTL_PRDLD_IMMEDIATE	(0 << 3)
-#define		TBCTL_PHSEN_ENABLED	(1 << 2)
+#define		TBCTL_PRDLD_IMMEDIATE	(1 << 3)
 #define		TBCTL_PHSEN_DISABLED	(0 << 2)
+#define		TBCTL_PHSEN_ENABLED	(1 << 2)
 #define		TBCTL_CTRMODE_MASK	(3)
 #define		TBCTL_CTRMODE_UP	(0 << 0)
 #define		TBCTL_CTRMODE_DOWN	(1 << 0)
@@ -148,8 +143,24 @@ __FBSDID("$FreeBSD$");
 #define		AQCSFRC(chan, hilo)	((hilo) << (2 * chan))
 
 /* Trip-Zone module */
+#define	EPWM_TZSEL		0x24
 #define	EPWM_TZCTL		0x28
 #define	EPWM_TZFLG		0x2C
+
+/* Dead band */
+#define EPWM_DBCTL		0x1E
+#define		DBCTL_MASK		(3 << 0)
+#define		DBCTL_BYPASS		0
+#define		DBCTL_RISING_EDGE	1
+#define		DBCTL_FALLING_EDGE	2
+#define		DBCTL_BOTH_EDGE		3
+
+/* PWM-chopper */
+#define EPWM_PCCTL		0x3C
+#define		PCCTL_CHPEN_MASK	(1 << 0)
+#define		PCCTL_CHPEN_DISABLE	0
+#define		PCCTL_CHPEN_ENABLE	1
+
 /* High-Resolution PWM */
 #define	EPWM_HRCTL		0x40
 #define		HRCTL_DELMODE_BOTH	3
@@ -159,8 +170,6 @@ __FBSDID("$FreeBSD$");
 static device_probe_t am335x_ehrpwm_probe;
 static device_attach_t am335x_ehrpwm_attach;
 static device_detach_t am335x_ehrpwm_detach;
-
-static int am335x_ehrpwm_clkdiv[8] = { 1, 2, 4, 8, 16, 32, 64, 128 };
 
 struct ehrpwm_channel {
 	u_int	duty;		/* on duration, in ns */
@@ -175,18 +184,6 @@ struct am335x_ehrpwm_softc {
 	struct mtx		sc_mtx;
 	struct resource		*sc_mem_res;
 	int			sc_mem_rid;
-
-	/* Things used for configuration via sysctl [deprecated]. */
-	int			sc_pwm_clkdiv;
-	int			sc_pwm_freq;
-	struct sysctl_oid	*sc_clkdiv_oid;
-	struct sysctl_oid	*sc_freq_oid;
-	struct sysctl_oid	*sc_period_oid;
-	struct sysctl_oid	*sc_chanA_oid;
-	struct sysctl_oid	*sc_chanB_oid;
-	uint32_t		sc_pwm_period;
-	uint32_t		sc_pwm_dutyA;
-	uint32_t		sc_pwm_dutyB;
 
 	/* Things used for configuration via pwm(9) api. */
 	u_int			sc_clkfreq; /* frequency in Hz */
@@ -311,167 +308,6 @@ am335x_ehrpwm_cfg_period(struct am335x_ehrpwm_softc *sc, u_int period)
 	return (true);
 }
 
-static void
-am335x_ehrpwm_freq(struct am335x_ehrpwm_softc *sc)
-{
-	int clkdiv;
-
-	clkdiv = am335x_ehrpwm_clkdiv[sc->sc_pwm_clkdiv];
-	sc->sc_pwm_freq = PWM_CLOCK / (1 * clkdiv) / sc->sc_pwm_period;
-}
-
-static int
-am335x_ehrpwm_sysctl_freq(SYSCTL_HANDLER_ARGS)
-{
-	int clkdiv, error, freq, i, period;
-	struct am335x_ehrpwm_softc *sc;
-	uint32_t reg;
-
-	sc = (struct am335x_ehrpwm_softc *)arg1;
-
-	PWM_LOCK(sc);
-	freq = sc->sc_pwm_freq;
-	PWM_UNLOCK(sc);
-
-	error = sysctl_handle_int(oidp, &freq, sizeof(freq), req);
-	if (error != 0 || req->newptr == NULL)
-		return (error);
-
-	if (freq > PWM_CLOCK)
-		freq = PWM_CLOCK;
-
-	PWM_LOCK(sc);
-	if (freq != sc->sc_pwm_freq) {
-		for (i = nitems(am335x_ehrpwm_clkdiv) - 1; i >= 0; i--) {
-			clkdiv = am335x_ehrpwm_clkdiv[i];
-			period = PWM_CLOCK / clkdiv / freq;
-			if (period > USHRT_MAX)
-				break;
-			sc->sc_pwm_clkdiv = i;
-			sc->sc_pwm_period = period;
-		}
-		/* Reset the duty cycle settings. */
-		sc->sc_pwm_dutyA = 0;
-		sc->sc_pwm_dutyB = 0;
-		EPWM_WRITE2(sc, EPWM_CMPA, sc->sc_pwm_dutyA);
-		EPWM_WRITE2(sc, EPWM_CMPB, sc->sc_pwm_dutyB);
-		/* Update the clkdiv settings. */
-		reg = EPWM_READ2(sc, EPWM_TBCTL);
-		reg &= ~TBCTL_CLKDIV_MASK;
-		reg |= TBCTL_CLKDIV(sc->sc_pwm_clkdiv);
-		EPWM_WRITE2(sc, EPWM_TBCTL, reg);
-		/* Update the period settings. */
-		EPWM_WRITE2(sc, EPWM_TBPRD, sc->sc_pwm_period - 1);
-		am335x_ehrpwm_freq(sc);
-	}
-	PWM_UNLOCK(sc);
-
-	return (0);
-}
-
-static int
-am335x_ehrpwm_sysctl_clkdiv(SYSCTL_HANDLER_ARGS)
-{
-	int error, i, clkdiv;
-	struct am335x_ehrpwm_softc *sc;
-	uint32_t reg;
-
-	sc = (struct am335x_ehrpwm_softc *)arg1;
-
-	PWM_LOCK(sc);
-	clkdiv = am335x_ehrpwm_clkdiv[sc->sc_pwm_clkdiv];
-	PWM_UNLOCK(sc);
-
-	error = sysctl_handle_int(oidp, &clkdiv, sizeof(clkdiv), req);
-	if (error != 0 || req->newptr == NULL)
-		return (error);
-
-	PWM_LOCK(sc);
-	if (clkdiv != am335x_ehrpwm_clkdiv[sc->sc_pwm_clkdiv]) {
-		for (i = 0; i < nitems(am335x_ehrpwm_clkdiv); i++)
-			if (clkdiv >= am335x_ehrpwm_clkdiv[i])
-				sc->sc_pwm_clkdiv = i;
-
-		reg = EPWM_READ2(sc, EPWM_TBCTL);
-		reg &= ~TBCTL_CLKDIV_MASK;
-		reg |= TBCTL_CLKDIV(sc->sc_pwm_clkdiv);
-		EPWM_WRITE2(sc, EPWM_TBCTL, reg);
-		am335x_ehrpwm_freq(sc);
-	}
-	PWM_UNLOCK(sc);
-
-	return (0);
-}
-
-static int
-am335x_ehrpwm_sysctl_duty(SYSCTL_HANDLER_ARGS)
-{
-	struct am335x_ehrpwm_softc *sc = (struct am335x_ehrpwm_softc*)arg1;
-	int error;
-	uint32_t duty;
-
-	if (oidp == sc->sc_chanA_oid)
-		duty = sc->sc_pwm_dutyA;
-	else
-		duty = sc->sc_pwm_dutyB;
-	error = sysctl_handle_int(oidp, &duty, 0, req);
-
-	if (error != 0 || req->newptr == NULL)
-		return (error);
-
-	if (duty > sc->sc_pwm_period) {
-		device_printf(sc->sc_dev, "Duty cycle can't be greater then period\n");
-		return (EINVAL);
-	}
-
-	PWM_LOCK(sc);
-	if (oidp == sc->sc_chanA_oid) {
-		sc->sc_pwm_dutyA = duty;
-		EPWM_WRITE2(sc, EPWM_CMPA, sc->sc_pwm_dutyA);
-	}
-	else {
-		sc->sc_pwm_dutyB = duty;
-		EPWM_WRITE2(sc, EPWM_CMPB, sc->sc_pwm_dutyB);
-	}
-	PWM_UNLOCK(sc);
-
-	return (error);
-}
-
-static int
-am335x_ehrpwm_sysctl_period(SYSCTL_HANDLER_ARGS)
-{
-	struct am335x_ehrpwm_softc *sc = (struct am335x_ehrpwm_softc*)arg1;
-	int error;
-	uint32_t period;
-
-	period = sc->sc_pwm_period;
-	error = sysctl_handle_int(oidp, &period, 0, req);
-
-	if (error != 0 || req->newptr == NULL)
-		return (error);
-
-	if (period < 1)
-		return (EINVAL);
-
-	if (period > USHRT_MAX)
-		period = USHRT_MAX;
-
-	PWM_LOCK(sc);
-	/* Reset the duty cycle settings. */
-	sc->sc_pwm_dutyA = 0;
-	sc->sc_pwm_dutyB = 0;
-	EPWM_WRITE2(sc, EPWM_CMPA, sc->sc_pwm_dutyA);
-	EPWM_WRITE2(sc, EPWM_CMPB, sc->sc_pwm_dutyB);
-	/* Update the period settings. */
-	sc->sc_pwm_period = period;
-	EPWM_WRITE2(sc, EPWM_TBPRD, period - 1);
-	am335x_ehrpwm_freq(sc);
-	PWM_UNLOCK(sc);
-
-	return (error);
-}
-
 static int
 am335x_ehrpwm_channel_count(device_t dev, u_int *nchannel)
 {
@@ -515,6 +351,60 @@ am335x_ehrpwm_channel_get_config(device_t dev, u_int channel,
 	*duty = sc->sc_channels[channel].duty;
 	return (0);
 }
+
+static int
+am335x_ehrpwm_channel_set_flags(device_t dev, u_int channel,
+       uint32_t flags)
+{
+	struct am335x_ehrpwm_softc *sc;
+
+	if (channel >= NUM_CHANNELS)
+		return (EINVAL);
+
+	sc = device_get_softc(dev);
+
+	PWM_LOCK(sc);
+	if (flags & PWM_POLARITY_INVERTED) {
+		sc->sc_channels[channel].inverted = true;
+		/* Action-Qualifier 15.2.2.5 */
+		if (channel == 0)
+			EPWM_WRITE2(sc, EPWM_AQCTLA,
+			    (AQCTL_ZRO_CLEAR | AQCTL_CAU_SET));
+		else
+			EPWM_WRITE2(sc, EPWM_AQCTLB,
+			    (AQCTL_ZRO_CLEAR | AQCTL_CBU_SET));
+	} else {
+		sc->sc_channels[channel].inverted = false;
+		if (channel == 0)
+			EPWM_WRITE2(sc, EPWM_AQCTLA,
+			    (AQCTL_ZRO_SET | AQCTL_CAU_CLEAR));
+		else
+			EPWM_WRITE2(sc, EPWM_AQCTLB,
+			    (AQCTL_ZRO_SET | AQCTL_CBU_CLEAR));
+	}
+	PWM_UNLOCK(sc);
+
+	return (0);
+}
+
+static int
+am335x_ehrpwm_channel_get_flags(device_t dev, u_int channel,
+    uint32_t *flags)
+{
+	struct am335x_ehrpwm_softc *sc;
+	if (channel >= NUM_CHANNELS)
+		return (EINVAL);
+
+	sc = device_get_softc(dev);
+
+	if (sc->sc_channels[channel].inverted == true)
+		*flags = PWM_POLARITY_INVERTED;
+	else
+		*flags = 0;
+
+	return (0);
+}
+
 
 static int
 am335x_ehrpwm_channel_enable(device_t dev, u_int channel, bool enable)
@@ -567,9 +457,7 @@ static int
 am335x_ehrpwm_attach(device_t dev)
 {
 	struct am335x_ehrpwm_softc *sc;
-	uint32_t reg;
-	struct sysctl_ctx_list *ctx;
-	struct sysctl_oid *tree;
+	uint16_t reg;
 
 	sc = device_get_softc(dev);
 	sc->sc_dev = dev;
@@ -583,54 +471,48 @@ am335x_ehrpwm_attach(device_t dev)
 		goto fail;
 	}
 
-	/* Init sysctl interface */
-	ctx = device_get_sysctl_ctx(sc->sc_dev);
-	tree = device_get_sysctl_tree(sc->sc_dev);
-
-	sc->sc_clkdiv_oid = SYSCTL_ADD_PROC(ctx, SYSCTL_CHILDREN(tree), OID_AUTO,
-	    "clkdiv", CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, sc, 0,
-	    am335x_ehrpwm_sysctl_clkdiv, "I", "PWM clock prescaler");
-
-	sc->sc_freq_oid = SYSCTL_ADD_PROC(ctx, SYSCTL_CHILDREN(tree), OID_AUTO,
-	    "freq", CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, sc, 0,
-	    am335x_ehrpwm_sysctl_freq, "I", "PWM frequency");
-
-	sc->sc_period_oid = SYSCTL_ADD_PROC(ctx, SYSCTL_CHILDREN(tree), OID_AUTO,
-	    "period", CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, sc, 0,
-	    am335x_ehrpwm_sysctl_period, "I", "PWM period");
-
-	sc->sc_chanA_oid = SYSCTL_ADD_PROC(ctx, SYSCTL_CHILDREN(tree), OID_AUTO,
-	    "dutyA", CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, sc, 0,
-	    am335x_ehrpwm_sysctl_duty, "I", "Channel A duty cycles");
-
-	sc->sc_chanB_oid = SYSCTL_ADD_PROC(ctx, SYSCTL_CHILDREN(tree), OID_AUTO,
-	    "dutyB", CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, sc, 0,
-	    am335x_ehrpwm_sysctl_duty, "I", "Channel B duty cycles");
-
-	/* CONFIGURE EPWM1 */
+	/* CONFIGURE EPWM */
 	reg = EPWM_READ2(sc, EPWM_TBCTL);
 	reg &= ~(TBCTL_CLKDIV_MASK | TBCTL_HSPCLKDIV_MASK);
 	EPWM_WRITE2(sc, EPWM_TBCTL, reg);
 
-	sc->sc_pwm_period = DEFAULT_PWM_PERIOD;
-	sc->sc_pwm_dutyA = 0;
-	sc->sc_pwm_dutyB = 0;
-	am335x_ehrpwm_freq(sc);
+	EPWM_WRITE2(sc, EPWM_TBPRD, DEFAULT_PWM_PERIOD - 1);
+	EPWM_WRITE2(sc, EPWM_CMPA, 0);
+	EPWM_WRITE2(sc, EPWM_CMPB, 0);
 
-	EPWM_WRITE2(sc, EPWM_TBPRD, sc->sc_pwm_period - 1);
-	EPWM_WRITE2(sc, EPWM_CMPA, sc->sc_pwm_dutyA);
-	EPWM_WRITE2(sc, EPWM_CMPB, sc->sc_pwm_dutyB);
-
+	/* Action-Qualifier 15.2.2.5 */
 	EPWM_WRITE2(sc, EPWM_AQCTLA, (AQCTL_ZRO_SET | AQCTL_CAU_CLEAR));
 	EPWM_WRITE2(sc, EPWM_AQCTLB, (AQCTL_ZRO_SET | AQCTL_CBU_CLEAR));
+
+	/* Dead band 15.2.2.6 */
+	reg = EPWM_READ2(sc, EPWM_DBCTL);
+	reg &= ~DBCTL_MASK;
+	reg |= DBCTL_BYPASS;
+	EPWM_WRITE2(sc, EPWM_DBCTL, reg);
+
+	/* PWM-chopper described in 15.2.2.7 */
+	/* Acc. TRM used in pulse transformerbased gate drivers
+	 * to control the power switching-elements
+	 */
+	reg = EPWM_READ2(sc, EPWM_PCCTL);
+	reg &= ~PCCTL_CHPEN_MASK;
+	reg |= PCCTL_CHPEN_DISABLE;
+	EPWM_WRITE2(sc, EPWM_PCCTL, PCCTL_CHPEN_DISABLE);
+
+	/* Trip zone are described in 15.2.2.8.
+	 * Essential its used to detect faults and can be configured
+	 * to react on such faults..
+	 */
+	/* disable TZn as one-shot / CVC trip source 15.2.4.18 */
+	EPWM_WRITE2(sc, EPWM_TZSEL, 0x0);
+	/* reg described in 15.2.4.19 */
+	EPWM_WRITE2(sc, EPWM_TZCTL, 0xf);
+	reg = EPWM_READ2(sc, EPWM_TZFLG);
 
 	/* START EPWM */
 	reg &= ~TBCTL_CTRMODE_MASK;
 	reg |= TBCTL_CTRMODE_UP | TBCTL_FREERUN;
 	EPWM_WRITE2(sc, EPWM_TBCTL, reg);
-
-	EPWM_WRITE2(sc, EPWM_TZCTL, 0xf);
-	reg = EPWM_READ2(sc, EPWM_TZFLG);
 
 	if ((sc->sc_busdev = device_add_child(dev, "pwmbus", -1)) == NULL) {
 		device_printf(dev, "Cannot add child pwmbus\n");
@@ -698,6 +580,8 @@ static device_method_t am335x_ehrpwm_methods[] = {
 	DEVMETHOD(pwmbus_channel_count,		am335x_ehrpwm_channel_count),
 	DEVMETHOD(pwmbus_channel_config,	am335x_ehrpwm_channel_config),
 	DEVMETHOD(pwmbus_channel_get_config,	am335x_ehrpwm_channel_get_config),
+	DEVMETHOD(pwmbus_channel_set_flags,	am335x_ehrpwm_channel_set_flags),
+	DEVMETHOD(pwmbus_channel_get_flags,	am335x_ehrpwm_channel_get_flags),
 	DEVMETHOD(pwmbus_channel_enable,	am335x_ehrpwm_channel_enable),
 	DEVMETHOD(pwmbus_channel_is_enabled,	am335x_ehrpwm_channel_is_enabled),
 

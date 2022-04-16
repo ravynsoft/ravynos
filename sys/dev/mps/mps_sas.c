@@ -86,9 +86,6 @@ __FBSDID("$FreeBSD$");
 #include <dev/mps/mps_table.h>
 #include <dev/mps/mps_sas.h>
 
-#define MPSSAS_DISCOVERY_TIMEOUT	20
-#define MPSSAS_MAX_DISCOVERY_TIMEOUTS	10 /* 200 seconds */
-
 /*
  * static array to check SCSI OpCode for EEDP protection bits
  */
@@ -773,7 +770,7 @@ mps_attach_sas(struct mps_softc *sc)
 	sc->sassc->startup_refcount = 0;
 	mpssas_startup_increment(sassc);
 
-	callout_init(&sassc->discovery_callout, 1 /*mpsafe*/);
+	mps_unlock(sc);
 
 	mps_unlock(sc);
 
@@ -888,9 +885,6 @@ mpssas_discovery_end(struct mpssas_softc *sassc)
 	struct mps_softc *sc = sassc->sc;
 
 	MPS_FUNCTRACE(sc);
-
-	if (sassc->flags & MPSSAS_DISCOVERY_TIMEOUT_PENDING)
-		callout_stop(&sassc->discovery_callout);
 
 	/*
 	 * After discovery has completed, check the mapping table for any
@@ -1645,6 +1639,15 @@ mpssas_action_scsiio(struct mpssas_softc *sassc, union ccb *ccb)
 	targ = &sassc->targets[csio->ccb_h.target_id];
 	mps_dprint(sc, MPS_TRACE, "ccb %p target flag %x\n", ccb, targ->flags);
 	if (targ->handle == 0x0) {
+		if (targ->flags & MPSSAS_TARGET_INDIAGRESET) {
+			mps_dprint(sc, MPS_ERROR,
+			    "%s NULL handle for target %u in diag reset freezing queue\n",
+			    __func__, csio->ccb_h.target_id);
+			ccb->ccb_h.status = CAM_REQUEUE_REQ | CAM_DEV_QFRZN;
+			xpt_freeze_devq(ccb->ccb_h.path, 1);
+			xpt_done(ccb);
+			return;
+		}
 		mps_dprint(sc, MPS_ERROR, "%s NULL handle for target %u\n", 
 		    __func__, csio->ccb_h.target_id);
 		mpssas_set_ccbstatus(ccb, CAM_DEV_NOT_THERE);
@@ -3199,6 +3202,7 @@ mpssas_async(void *callback_arg, uint32_t code, struct cam_path *path,
 		}
 
 		bzero(&rcap_buf, sizeof(rcap_buf));
+		bzero(&cdai, sizeof(cdai));
 		xpt_setup_ccb(&cdai.ccb_h, path, CAM_PRIORITY_NORMAL);
 		cdai.ccb_h.func_code = XPT_DEV_ADVINFO;
 		cdai.ccb_h.flags = CAM_DIR_IN;

@@ -136,7 +136,7 @@ tmpfs_lookup1(struct vnode *dvp, struct vnode **vpp, struct componentname *cnp)
 			    cnp->cn_flags & DOWHITEOUT &&
 			    cnp->cn_flags & ISWHITEOUT))) {
 				error = VOP_ACCESS(dvp, VWRITE, cnp->cn_cred,
-				    cnp->cn_thread);
+				    curthread);
 				if (error != 0)
 					goto out;
 
@@ -180,7 +180,7 @@ tmpfs_lookup1(struct vnode *dvp, struct vnode **vpp, struct componentname *cnp)
 			    (cnp->cn_nameiop == DELETE ||
 			    cnp->cn_nameiop == RENAME)) {
 				error = VOP_ACCESS(dvp, VWRITE, cnp->cn_cred,
-				    cnp->cn_thread);
+				    curthread);
 				if (error != 0)
 					goto out;
 
@@ -192,8 +192,8 @@ tmpfs_lookup1(struct vnode *dvp, struct vnode **vpp, struct componentname *cnp)
 
 				if ((dnode->tn_mode & S_ISTXT) &&
 				  VOP_ACCESS(dvp, VADMIN, cnp->cn_cred,
-				  cnp->cn_thread) && VOP_ACCESS(*vpp, VADMIN,
-				  cnp->cn_cred, cnp->cn_thread)) {
+				  curthread) && VOP_ACCESS(*vpp, VADMIN,
+				  cnp->cn_cred, curthread)) {
 					error = EPERM;
 					vput(*vpp);
 					*vpp = NULL;
@@ -693,6 +693,12 @@ out:
 	MPASS(IMPLIES(error != 0, oldsize == node->tn_size));
 
 	return (error);
+}
+
+static int
+tmpfs_deallocate(struct vop_deallocate_args *v)
+{
+	return (tmpfs_reg_punch_hole(v->a_vp, v->a_offset, v->a_len));
 }
 
 static int
@@ -1383,7 +1389,7 @@ tmpfs_readdir(struct vop_readdir_args *va)
 	struct uio *uio;
 	struct tmpfs_mount *tm;
 	struct tmpfs_node *node;
-	u_long **cookies;
+	uint64_t **cookies;
 	int *eofflag, *ncookies;
 	ssize_t startresid;
 	int error, maxcookies;
@@ -1840,6 +1846,7 @@ struct vop_vector tmpfs_vnodeop_entries = {
 	.vop_read =			tmpfs_read,
 	.vop_read_pgcache =		tmpfs_read_pgcache,
 	.vop_write =			tmpfs_write,
+	.vop_deallocate =		tmpfs_deallocate,
 	.vop_fsync =			tmpfs_fsync,
 	.vop_remove =			tmpfs_remove,
 	.vop_link =			tmpfs_link,
@@ -1861,6 +1868,7 @@ struct vop_vector tmpfs_vnodeop_entries = {
 	.vop_lock1 =			vop_lock,
 	.vop_unlock = 			vop_unlock,
 	.vop_islocked = 		vop_islocked,
+	.vop_add_writecount =		vop_stdadd_writecount_nomsync,
 };
 VFS_VOP_VECTOR_REGISTER(tmpfs_vnodeop_entries);
 

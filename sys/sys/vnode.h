@@ -109,6 +109,7 @@ struct vnode {
 	short	v_irflag;			/* i frequently read flags */
 	seqc_t	v_seqc;				/* i modification count */
 	uint32_t v_nchash;			/* u namecache hash */
+	u_int	v_hash;
 	struct	vop_vector *v_op;		/* u vnode operations vector */
 	void	*v_data;			/* u private data for fs */
 
@@ -163,14 +164,6 @@ struct vnode {
 	struct lockf *v_lockf;		/* Byte-level advisory lock list */
 	struct rangelock v_rl;			/* Byte-range lock */
 
-	/*
-	 * clustering stuff
-	 */
-	daddr_t	v_cstart;			/* v start block of cluster */
-	daddr_t	v_lasta;			/* v last allocation  */
-	daddr_t	v_lastw;			/* v last write  */
-	int	v_clen;				/* v length of cur. cluster */
-
 	u_int	v_holdcnt;			/* I prevents recycling. */
 	u_int	v_usecount;			/* I ref count of users */
 	u_short	v_iflag;			/* i vnode flags (see below) */
@@ -180,8 +173,18 @@ struct vnode {
 	int	v_writecount;			/* I ref count of writers or
 						   (negative) text users */
 	int	v_seqc_users;			/* i modifications pending */
-	u_int	v_hash;
 };
+
+#ifndef DEBUG_LOCKS
+#ifdef _LP64
+/*
+ * Not crossing 448 bytes fits 9 vnodes per page. If you have to add fields
+ * to the structure and there is nothing which can be done to prevent growth
+ * then so be it. But don't grow it without a good reason.
+ */
+_Static_assert(sizeof(struct vnode) <= 448, "vnode size crosses 448 bytes");
+#endif
+#endif
 
 #endif /* defined(_KERNEL) || defined(_KVM_VNODE) */
 
@@ -248,8 +251,9 @@ struct xvnode {
 #define	VIRF_PGREAD	0x0002	/* Direct reads from the page cache are permitted,
 				   never cleared once set */
 #define	VIRF_MOUNTPOINT	0x0004	/* This vnode is mounted on */
+#define	VIRF_TEXT_REF	0x0008	/* Executable mappings ref the vnode */
 
-#define	VI_TEXT_REF	0x0001	/* Text ref grabbed use ref */
+#define	VI_UNUSED0	0x0001	/* unused */
 #define	VI_MOUNT	0x0002	/* Mount in progress */
 #define	VI_DOINGINACT	0x0004	/* VOP_INACTIVE is in progress */
 #define	VI_OWEINACT	0x0008	/* Need to call inactive */
@@ -266,7 +270,7 @@ struct xvnode {
 #define	VV_COPYONWRITE	0x0040	/* vnode is doing copy-on-write */
 #define	VV_SYSTEM	0x0080	/* vnode being used by kernel */
 #define	VV_PROCDEP	0x0100	/* vnode is process dependent */
-#define	VV_NOKNOTE	0x0200	/* don't activate knotes on this vnode */
+#define	VV_UNLINKED	0x0200	/* unlinked but stil open directory */
 #define	VV_DELETED	0x0400	/* should be removed */
 #define	VV_MD		0x0800	/* vnode backs the md device */
 #define	VV_FORCEINSMQ	0x1000	/* force the insmntque to succeed */
@@ -612,6 +616,7 @@ typedef void vop_getpages_iodone_t(void *, vm_page_t *, int, int);
 #define	VN_OPEN_NOCAPCHECK	0x00000002
 #define	VN_OPEN_NAMECACHE	0x00000004
 #define	VN_OPEN_INVFS		0x00000008
+#define	VN_OPEN_WANTIOCTLCAPS	0x00000010
 
 /* copy_file_range kernel flags */
 #define	COPY_FILE_RANGE_KFLAGS		0xff000000
@@ -679,15 +684,14 @@ cache_validate(struct vnode *dvp, struct vnode *vp, struct componentname *cnp)
 void	cache_fast_lookup_enabled_recalc(void);
 int	change_dir(struct vnode *vp, struct thread *td);
 void	cvtstat(struct stat *st, struct ostat *ost);
-void	freebsd11_cvtnstat(struct stat *sb, struct nstat *nsb);
+int	freebsd11_cvtnstat(struct stat *sb, struct nstat *nsb);
 int	freebsd11_cvtstat(struct stat *st, struct freebsd11_stat *ost);
 int	getnewvnode(const char *tag, struct mount *mp, struct vop_vector *vops,
 	    struct vnode **vpp);
 void	getnewvnode_reserve(void);
 void	getnewvnode_drop_reserve(void);
-int	insmntque1(struct vnode *vp, struct mount *mp,
-	    void (*dtr)(struct vnode *, void *), void *dtr_arg);
 int	insmntque(struct vnode *vp, struct mount *mp);
+int	insmntque1(struct vnode *vp, struct mount *mp);
 u_quad_t init_va_filerev(void);
 int	speedup_syncer(void);
 int	vn_vptocnp(struct vnode **vp, char *buf, size_t *buflen);
@@ -735,6 +739,8 @@ void	vunref(struct vnode *);
 void	vn_printf(struct vnode *vp, const char *fmt, ...) __printflike(2,3);
 int	vrecycle(struct vnode *vp);
 int	vrecyclel(struct vnode *vp);
+int	vn_bmap_seekhole_locked(struct vnode *vp, u_long cmd, off_t *off,
+	    struct ucred *cred);
 int	vn_bmap_seekhole(struct vnode *vp, u_long cmd, off_t *off,
 	    struct ucred *cred);
 int	vn_close(struct vnode *vp,
@@ -743,6 +749,8 @@ int	vn_copy_file_range(struct vnode *invp, off_t *inoffp,
 	    struct vnode *outvp, off_t *outoffp, size_t *lenp,
 	    unsigned int flags, struct ucred *incred, struct ucred *outcred,
 	    struct thread *fsize_td);
+int	vn_deallocate(struct vnode *vp, off_t *offset, off_t *length, int flags,
+	    int ioflg, struct ucred *active_cred, struct ucred *file_cred);
 void	vn_finished_write(struct mount *mp);
 void	vn_finished_secondary_write(struct mount *mp);
 int	vn_fsync_buf(struct vnode *vp, int waitfor);
@@ -838,7 +846,6 @@ int	vfs_write_suspend(struct mount *mp, int flags);
 int	vfs_write_suspend_umnt(struct mount *mp);
 struct vnode *vnlru_alloc_marker(void);
 void	vnlru_free_marker(struct vnode *);
-void	vnlru_free(int, struct vfsops *);
 void	vnlru_free_vfsops(int, struct vfsops *, struct vnode *);
 int	vop_stdbmap(struct vop_bmap_args *);
 int	vop_stdfdatasync_buf(struct vop_fdatasync_args *);
@@ -864,6 +871,7 @@ int	vop_stdadvlock(struct vop_advlock_args *ap);
 int	vop_stdadvlockasync(struct vop_advlockasync_args *ap);
 int	vop_stdadvlockpurge(struct vop_advlockpurge_args *ap);
 int	vop_stdallocate(struct vop_allocate_args *ap);
+int	vop_stddeallocate(struct vop_deallocate_args *ap);
 int	vop_stdset_text(struct vop_set_text_args *ap);
 int	vop_stdpathconf(struct vop_pathconf_args *);
 int	vop_stdpoll(struct vop_poll_args *);
@@ -872,6 +880,7 @@ int	vop_stdvptofh(struct vop_vptofh_args *ap);
 int	vop_stdunp_bind(struct vop_unp_bind_args *ap);
 int	vop_stdunp_connect(struct vop_unp_connect_args *ap);
 int	vop_stdunp_detach(struct vop_unp_detach_args *ap);
+int	vop_stdadd_writecount_nomsync(struct vop_add_writecount_args *ap);
 int	vop_eopnotsupp(struct vop_generic_args *ap);
 int	vop_ebadf(struct vop_generic_args *ap);
 int	vop_einval(struct vop_generic_args *ap);
@@ -958,18 +967,23 @@ void	vop_mkdir_debugpost(void *a, int rc);
 void	vop_rename_fail(struct vop_rename_args *ap);
 
 #define	vop_stat_helper_pre(ap)	({						\
+	struct vop_stat_args *_ap = (ap);					\
 	int _error;								\
 	AUDIT_ARG_VNODE1(ap->a_vp);						\
-	_error = mac_vnode_check_stat(ap->a_active_cred, ap->a_file_cred, ap->a_vp);\
-	if (__predict_true(_error == 0))					\
-		bzero(ap->a_sb, sizeof(*ap->a_sb));				\
+	_error = mac_vnode_check_stat(_ap->a_active_cred, _ap->a_file_cred, _ap->a_vp);\
+	if (__predict_true(_error == 0)) {					\
+		ap->a_sb->st_padding0 = 0;					\
+		ap->a_sb->st_padding1 = 0;					\
+		bzero(_ap->a_sb->st_spare, sizeof(_ap->a_sb->st_spare));	\
+	}									\
 	_error;									\
 })
 
 #define	vop_stat_helper_post(ap, error)	({					\
+	struct vop_stat_args *_ap = (ap);					\
 	int _error = (error);							\
-	if (priv_check_cred_vfs_generation(ap->a_td->td_ucred))			\
-		ap->a_sb->st_gen = 0;						\
+	if (priv_check_cred_vfs_generation(_ap->a_active_cred))			\
+		_ap->a_sb->st_gen = 0;						\
 	_error;									\
 })
 

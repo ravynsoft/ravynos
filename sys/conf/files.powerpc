@@ -24,6 +24,7 @@ dev/adb/adb_if.m		optional	adb
 dev/adb/adb_buttons.c		optional	adb
 dev/agp/agp_apple.c		optional	agp powermac
 dev/fb/fb.c			optional	sc
+dev/gpio/qoriq_gpio.c		optional	mpc85xx gpio
 dev/hwpmc/hwpmc_e500.c		optional	hwpmc
 dev/hwpmc/hwpmc_mpc7xxx.c	optional	hwpmc
 dev/hwpmc/hwpmc_power8.c	optional	hwpmc
@@ -36,6 +37,7 @@ dev/iicbus/ds1631.c		optional	ds1631 powermac
 dev/iicbus/ds1775.c		optional	ds1775 powermac
 dev/iicbus/max6690.c		optional	max6690 powermac
 dev/iicbus/ofw_iicbus.c		optional	iicbus aim
+dev/iicbus/ofw_iicbus_if.m	optional	iicbus aim
 dev/ipmi/ipmi.c			optional	ipmi
 dev/ipmi/ipmi_opal.c		optional	powernv ipmi
 dev/ice/if_ice_iflib.c		optional	ice pci powerpc64 \
@@ -139,7 +141,7 @@ dev/ofw/ofw_bus_subr.c		standard
 dev/ofw/ofw_console.c		optional	aim
 dev/ofw/ofw_disk.c		optional	ofwd aim
 dev/ofw/ofwbus.c		standard
-dev/ofw/ofwpci.c		optional 	pci
+dev/ofw/ofw_pcib.c		optional 	pci
 dev/ofw/ofw_standard.c		optional	aim powerpc
 dev/ofw/ofw_subr.c		standard
 dev/powermac_nvram/powermac_nvram.c optional	powermac_nvram powermac
@@ -166,7 +168,6 @@ kern/syscalls.c			optional	ktr
 kern/subr_sfbuf.c		standard
 libkern/ashldi3.c		optional	powerpc | powerpcspe
 libkern/ashrdi3.c		optional	powerpc | powerpcspe
-libkern/bcmp.c			standard
 libkern/bcopy.c			standard
 libkern/cmpdi2.c		optional	powerpc | powerpcspe
 libkern/divdi3.c		optional	powerpc | powerpcspe
@@ -236,7 +237,6 @@ powerpc/mpc85xx/mpc85xx_gpio.c	optional	mpc85xx gpio
 powerpc/mpc85xx/platform_mpc85xx.c	optional	mpc85xx
 powerpc/mpc85xx/pci_mpc85xx.c	optional	pci mpc85xx
 powerpc/mpc85xx/pci_mpc85xx_pcib.c	optional	pci mpc85xx
-powerpc/mpc85xx/qoriq_gpio.c	optional	mpc85xx gpio
 powerpc/ofw/ofw_machdep.c	standard
 powerpc/ofw/ofw_pcibus.c	optional	pci
 powerpc/ofw/ofw_pcib_pci.c	optional	pci
@@ -267,6 +267,7 @@ powerpc/powermac/pswitch.c	optional	powermac pswitch
 powerpc/powermac/pmu.c		optional	powermac pmu 
 powerpc/powermac/smu.c		optional	powermac smu 
 powerpc/powermac/smusat.c	optional	powermac smu
+powerpc/powermac/tbgpio.c	optional	powermac pci smp
 powerpc/powermac/uninorth.c	optional	powermac
 powerpc/powermac/uninorthpci.c	optional	powermac pci
 powerpc/powermac/vcoregpio.c	optional	powermac 

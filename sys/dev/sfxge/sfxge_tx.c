@@ -331,10 +331,10 @@ sfxge_tx_qreap(struct sfxge_txq *txq)
 static void
 sfxge_tx_qlist_post(struct sfxge_txq *txq)
 {
-	unsigned int old_added;
+	unsigned int old_added __diagused;
 	unsigned int block_level;
 	unsigned int level;
-	int rc;
+	int rc __diagused;
 
 	SFXGE_TXQ_LOCK_ASSERT_OWNED(txq);
 
@@ -1433,7 +1433,7 @@ static void
 sfxge_tx_qunblock(struct sfxge_txq *txq)
 {
 	struct sfxge_softc *sc;
-	struct sfxge_evq *evq;
+	struct sfxge_evq *evq __diagused;
 
 	sc = txq->sc;
 	evq = sc->evq[txq->evq_index];
@@ -1811,7 +1811,6 @@ sfxge_tx_qinit(struct sfxge_softc *sc, unsigned int txq_index,
 	struct sysctl_ctx_list *ctx = device_get_sysctl_ctx(sc->dev);
 	struct sysctl_oid *txq_node;
 	struct sfxge_txq *txq;
-	struct sfxge_evq *evq;
 	struct sfxge_tx_dpl *stdp;
 	struct sysctl_oid *dpl_node;
 	efsys_mem_t *esmp;
@@ -1825,8 +1824,6 @@ sfxge_tx_qinit(struct sfxge_softc *sc, unsigned int txq_index,
 
 	sc->txq[txq_index] = txq;
 	esmp = &txq->mem;
-
-	evq = sc->evq[evq_index];
 
 	/* Allocate and zero DMA space for the descriptor ring. */
 	if ((rc = sfxge_dma_alloc(sc, EFX_TXQ_SIZE(sc->txq_entries), esmp)) != 0)
@@ -2004,7 +2001,7 @@ int
 sfxge_tx_init(struct sfxge_softc *sc)
 {
 	const efx_nic_cfg_t *encp = efx_nic_cfg_get(sc->enp);
-	struct sfxge_intr *intr;
+	struct sfxge_intr *intr __diagused;
 	int index;
 	int rc;
 

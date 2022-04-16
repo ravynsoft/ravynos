@@ -256,13 +256,8 @@ static size_t ppc970_event_codes_size = nitems(ppc970_event_codes);
 static void
 ppc970_set_pmc(int cpu, int ri, int config)
 {
-	struct pmc *pm;
-	struct pmc_hw *phw;
 	register_t pmc_mmcr;
 	int config_mask;
-
-	phw = &powerpc_pcpu[cpu]->pc_ppcpmcs[ri];
-	pm = phw->phw_pmc;
 
 	if (config == PMCN_NONE)
 		config = PMC970N_NONE;
@@ -380,6 +375,7 @@ pmc_ppc970_initialize(struct pmc_mdep *pmc_mdep)
 	ppc_event_first = PMC_EV_PPC970_FIRST;
 	ppc_event_last = PMC_EV_PPC970_LAST;
 	ppc_max_pmcs = PPC970_MAX_PMCS;
+	ppc_class = pcd->pcd_class;
 
 	powerpc_set_pmc = ppc970_set_pmc;
 	powerpc_pmcn_read = powerpc_pmcn_read_default;

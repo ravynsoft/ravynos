@@ -105,7 +105,7 @@
 }
 
 #define	BUILD_BUG()			do { CTASSERT(0); } while (0)
-#define	BUILD_BUG_ON(x)			_O_CTASSERT(!(x))
+#define	BUILD_BUG_ON(x)			do { _O_CTASSERT(!(x)) } while (0)
 #define	BUILD_BUG_ON_MSG(x, msg)	BUILD_BUG_ON(x)
 #define	BUILD_BUG_ON_NOT_POWER_OF_2(x)	BUILD_BUG_ON(!powerof2(x))
 #define	BUILD_BUG_ON_INVALID(expr)	while (0) { (void)(expr); }
@@ -150,6 +150,7 @@ extern int linuxkpi_warn_dump_stack;
 
 #undef	ALIGN
 #define	ALIGN(x, y)		roundup2((x), (y))
+#define	ALIGN_DOWN(x, y)	rounddown2(x, y)
 #undef PTR_ALIGN
 #define	PTR_ALIGN(p, a)		((__typeof(p))ALIGN((uintptr_t)(p), (a)))
 #define	IS_ALIGNED(x, a)	(((x) & ((__typeof(x))(a) - 1)) == 0)
@@ -522,6 +523,21 @@ kstrtoint_from_user(const char __user *s, size_t count, unsigned int base,
 		return (-EFAULT);
 
 	return (kstrtoint(buf, base, p));
+}
+
+static inline int
+kstrtouint_from_user(const char __user *s, size_t count, unsigned int base,
+    int *p)
+{
+	char buf[36] = {};
+
+	if (count > (sizeof(buf) - 1))
+		count = (sizeof(buf) - 1);
+
+	if (copy_from_user(buf, s, count))
+		return (-EFAULT);
+
+	return (kstrtouint(buf, base, p));
 }
 
 static inline int

@@ -122,7 +122,7 @@ __env_warnx(const char *msg, const char *name, size_t nameLen)
 
 /*
  * Inline strlen() for performance.  Also, perform check for an equals sign.
- * Cheaper here than peforming a strchr() later.
+ * Cheaper here than performing a strchr() later.
  */
 static inline size_t
 __strleneq(const char *str)
@@ -575,7 +575,7 @@ __merge_environ(void)
 
 
 /*
- * The exposed setenv() that peforms a few tests before calling the function
+ * The exposed setenv() that performs a few tests before calling the function
  * (__setenv()) that does the actual work of inserting a variable into the
  * environment.
  */
@@ -688,6 +688,31 @@ unsetenv(const char *name)
 	}
 	if (newEnvActive != envActive)
 		__rebuild_environ(newEnvActive);
+
+	return (0);
+}
+
+/*
+ * Unset all variable by flagging them as inactive.  No variable is
+ * ever freed.
+ */
+int
+clearenv(void)
+{
+	int ndx;
+
+	/* Initialize environment. */
+	if (__merge_environ() == -1 || (envVars == NULL && __build_env() == -1))
+		return (-1);
+
+	/* Remove from the end to not shuffle memory too much. */
+	for (ndx = envVarsTotal - 1; ndx >= 0; ndx--) {
+		envVars[ndx].active = false;
+		if (envVars[ndx].putenv)
+			__remove_putenv(ndx);
+	}
+
+	__rebuild_environ(0);
 
 	return (0);
 }

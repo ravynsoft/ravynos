@@ -164,7 +164,9 @@ netmap_sync_kloop_tx_ring(const struct sync_kloop_ring_args *a)
 	struct nm_csb_atok *csb_atok = a->csb_atok;
 	struct nm_csb_ktoa *csb_ktoa = a->csb_ktoa;
 	struct netmap_ring shadow_ring; /* shadow copy of the netmap_ring */
+#ifdef SYNC_KLOOP_POLL
 	bool more_txspace = false;
+#endif /* SYNC_KLOOP_POLL */
 	uint32_t num_slots;
 	int batch;
 
@@ -222,7 +224,7 @@ netmap_sync_kloop_tx_ring(const struct sync_kloop_ring_args *a)
 
 		if (unlikely(kring->nm_sync(kring, shadow_ring.flags))) {
 			if (!a->busy_wait) {
-				/* Reenable notifications. */
+				/* Re-enable notifications. */
 				csb_ktoa_kick_enable(csb_ktoa, 1);
 			}
 			nm_prerr("txsync() failed");
@@ -239,7 +241,9 @@ netmap_sync_kloop_tx_ring(const struct sync_kloop_ring_args *a)
 		if (kring->rtail != kring->nr_hwtail) {
 			/* Some more room available in the parent adapter. */
 			kring->rtail = kring->nr_hwtail;
+#ifdef SYNC_KLOOP_POLL
 			more_txspace = true;
+#endif /* SYNC_KLOOP_POLL */
 		}
 
 		if (unlikely(netmap_debug & NM_DEBUG_TXSYNC)) {
@@ -267,7 +271,7 @@ netmap_sync_kloop_tx_ring(const struct sync_kloop_ring_args *a)
 			 * go to sleep, waiting for a kick from the application when new
 			 * new slots are ready for transmission.
 			 */
-			/* Reenable notifications. */
+			/* Re-enable notifications. */
 			csb_ktoa_kick_enable(csb_ktoa, 1);
 			/* Double check, with store-load memory barrier. */
 			nm_stld_barrier();
@@ -317,7 +321,9 @@ netmap_sync_kloop_rx_ring(const struct sync_kloop_ring_args *a)
 	struct nm_csb_ktoa *csb_ktoa = a->csb_ktoa;
 	struct netmap_ring shadow_ring; /* shadow copy of the netmap_ring */
 	int dry_cycles = 0;
+#ifdef SYNC_KLOOP_POLL
 	bool some_recvd = false;
+#endif /* SYNC_KLOOP_POLL */
 	uint32_t num_slots;
 
 	if (unlikely(nm_kr_tryget(kring, 1, NULL))) {
@@ -356,7 +362,7 @@ netmap_sync_kloop_rx_ring(const struct sync_kloop_ring_args *a)
 
 		if (unlikely(kring->nm_sync(kring, shadow_ring.flags))) {
 			if (!a->busy_wait) {
-				/* Reenable notifications. */
+				/* Re-enable notifications. */
 				csb_ktoa_kick_enable(csb_ktoa, 1);
 			}
 			nm_prerr("rxsync() failed");
@@ -371,7 +377,9 @@ netmap_sync_kloop_rx_ring(const struct sync_kloop_ring_args *a)
 		sync_kloop_kernel_write(csb_ktoa, kring->nr_hwcur, hwtail);
 		if (kring->rtail != hwtail) {
 			kring->rtail = hwtail;
+#ifdef SYNC_KLOOP_POLL
 			some_recvd = true;
+#endif /* SYNC_KLOOP_POLL */
 			dry_cycles = 0;
 		} else {
 			dry_cycles++;
@@ -402,7 +410,7 @@ netmap_sync_kloop_rx_ring(const struct sync_kloop_ring_args *a)
 			 * go to sleep, waiting for a kick from the application when new receive
 			 * slots are available.
 			 */
-			/* Reenable notifications. */
+			/* Re-enable notifications. */
 			csb_ktoa_kick_enable(csb_ktoa, 1);
 			/* Double check, with store-load memory barrier. */
 			nm_stld_barrier();
@@ -1000,7 +1008,7 @@ netmap_pt_guest_txsync(struct nm_csb_atok *atok, struct nm_csb_ktoa *ktoa,
 	 * space is available.
          */
 	if (nm_kr_wouldblock(kring) && !(kring->nr_kflags & NKR_NOINTR)) {
-		/* Reenable notifications. */
+		/* Re-enable notifications. */
 		atok->appl_need_kick = 1;
                 /* Double check, with store-load memory barrier. */
 		nm_stld_barrier();
@@ -1061,7 +1069,7 @@ netmap_pt_guest_rxsync(struct nm_csb_atok *atok, struct nm_csb_ktoa *ktoa,
 	 * completed.
          */
 	if (nm_kr_wouldblock(kring) && !(kring->nr_kflags & NKR_NOINTR)) {
-		/* Reenable notifications. */
+		/* Re-enable notifications. */
                 atok->appl_need_kick = 1;
                 /* Double check, with store-load memory barrier. */
 		nm_stld_barrier();

@@ -105,11 +105,17 @@ int tc_min_ticktock_freq = 1;
 volatile time_t time_second = 1;
 volatile time_t time_uptime = 1;
 
+/*
+ * The system time is always computed by summing the estimated boot time and the
+ * system uptime. The timehands track boot time, but it changes when the system
+ * time is set by the user, stepped by ntpd or adjusted when resuming. It
+ * is set to new_time - uptime.
+ */
 static int sysctl_kern_boottime(SYSCTL_HANDLER_ARGS);
 SYSCTL_PROC(_kern, KERN_BOOTTIME, boottime,
     CTLTYPE_STRUCT | CTLFLAG_RD | CTLFLAG_MPSAFE, NULL, 0,
     sysctl_kern_boottime, "S,timeval",
-    "System boottime");
+    "Estimated system boottime");
 
 SYSCTL_NODE(_kern, OID_AUTO, timecounter, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
     "");
@@ -1355,6 +1361,7 @@ static void
 tc_windup(struct bintime *new_boottimebin)
 {
 	struct bintime bt;
+	struct timecounter *tc;
 	struct timehands *th, *tho;
 	u_int delta, ncount, ogen;
 	int i;
@@ -1383,9 +1390,10 @@ tc_windup(struct bintime *new_boottimebin)
 	 * changing timecounters, a counter value from the new timecounter.
 	 * Update the offset fields accordingly.
 	 */
+	tc = atomic_load_ptr(&timecounter);
 	delta = tc_delta(th);
-	if (th->th_counter != timecounter)
-		ncount = timecounter->tc_get_timecount(timecounter);
+	if (th->th_counter != tc)
+		ncount = tc->tc_get_timecount(tc);
 	else
 		ncount = 0;
 #ifdef FFCLOCK
@@ -1440,17 +1448,17 @@ tc_windup(struct bintime *new_boottimebin)
 	bintime2timespec(&bt, &th->th_nanotime);
 
 	/* Now is a good time to change timecounters. */
-	if (th->th_counter != timecounter) {
+	if (th->th_counter != tc) {
 #ifndef __arm__
-		if ((timecounter->tc_flags & TC_FLAGS_C2STOP) != 0)
+		if ((tc->tc_flags & TC_FLAGS_C2STOP) != 0)
 			cpu_disable_c2_sleep++;
 		if ((th->th_counter->tc_flags & TC_FLAGS_C2STOP) != 0)
 			cpu_disable_c2_sleep--;
 #endif
-		th->th_counter = timecounter;
+		th->th_counter = tc;
 		th->th_offset_count = ncount;
-		tc_min_ticktock_freq = max(1, timecounter->tc_frequency /
-		    (((uint64_t)timecounter->tc_counter_mask + 1) / 3));
+		tc_min_ticktock_freq = max(1, tc->tc_frequency /
+		    (((uint64_t)tc->tc_counter_mask + 1) / 3));
 		recalculate_scaling_factor_and_large_delta(th);
 #ifdef FFCLOCK
 		ffclock_change_tc(th);
@@ -2147,20 +2155,14 @@ cpu_tickrate(void)
  * years) and in 64 bits at 4 GHz (146 years), but if we do a multiply
  * before divide conversion (to retain precision) we find that the
  * margin shrinks to 1.5 hours (one millionth of 146y).
- * With a three prong approach we never lose significant bits, no
- * matter what the cputick rate and length of timeinterval is.
  */
 
 uint64_t
 cputick2usec(uint64_t tick)
 {
-
-	if (tick > 18446744073709551LL)		/* floor(2^64 / 1000) */
-		return (tick / (cpu_tickrate() / 1000000LL));
-	else if (tick > 18446744073709LL)	/* floor(2^64 / 1000000) */
-		return ((tick * 1000LL) / (cpu_tickrate() / 1000LL));
-	else
-		return ((tick * 1000000LL) / cpu_tickrate());
+	uint64_t tr;
+	tr = cpu_tickrate();
+	return ((tick / tr) * 1000000ULL) + ((tick % tr) * 1000000ULL) / tr;
 }
 
 cpu_tick_f	*cpu_ticks = tc_cpu_ticks;

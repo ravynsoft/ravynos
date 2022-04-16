@@ -78,10 +78,6 @@ static int recvit(struct thread *td, int s, struct msghdr *mp, void *namelenp);
 
 static int accept1(struct thread *td, int s, struct sockaddr *uname,
 		   socklen_t *anamelen, int flags);
-static int getsockname1(struct thread *td, struct getsockname_args *uap,
-			int compat);
-static int getpeername1(struct thread *td, struct getpeername_args *uap,
-			int compat);
 static int sockargs(struct mbuf **, char *, socklen_t, int);
 
 /*
@@ -789,8 +785,10 @@ kern_sendit(struct thread *td, int s, struct msghdr *mp, int flags,
 	len = auio.uio_resid;
 	error = sosend(so, mp->msg_name, &auio, 0, control, flags, td);
 	if (error != 0) {
-		if (auio.uio_resid != len && (error == ERESTART ||
-		    error == EINTR || error == EWOULDBLOCK))
+		if (auio.uio_resid != len &&
+		    (so->so_proto->pr_flags & PR_ATOMIC) == 0 &&
+		    (error == ERESTART || error == EINTR ||
+		    error == EWOULDBLOCK))
 			error = 0;
 		/* Generation of SIGPIPE can be controlled per socket */
 		if (error == EPIPE && !(so->so_options & SO_NOSIGPIPE) &&
@@ -1069,40 +1067,48 @@ recvit(struct thread *td, int s, struct msghdr *mp, void *namelenp)
 	return (error);
 }
 
-int
-sys_recvfrom(struct thread *td, struct recvfrom_args *uap)
+static int
+kern_recvfrom(struct thread *td, int s, void *buf, size_t len, int flags,
+    struct sockaddr *from, socklen_t *fromlenaddr)
 {
 	struct msghdr msg;
 	struct iovec aiov;
 	int error;
 
-	if (uap->fromlenaddr) {
-		error = copyin(uap->fromlenaddr,
-		    &msg.msg_namelen, sizeof (msg.msg_namelen));
+	if (fromlenaddr != NULL) {
+		error = copyin(fromlenaddr, &msg.msg_namelen,
+		    sizeof (msg.msg_namelen));
 		if (error != 0)
 			goto done2;
 	} else {
 		msg.msg_namelen = 0;
 	}
-	msg.msg_name = uap->from;
+	msg.msg_name = from;
 	msg.msg_iov = &aiov;
 	msg.msg_iovlen = 1;
-	aiov.iov_base = uap->buf;
-	aiov.iov_len = uap->len;
+	aiov.iov_base = buf;
+	aiov.iov_len = len;
 	msg.msg_control = 0;
-	msg.msg_flags = uap->flags;
-	error = recvit(td, uap->s, &msg, uap->fromlenaddr);
+	msg.msg_flags = flags;
+	error = recvit(td, s, &msg, fromlenaddr);
 done2:
 	return (error);
 }
 
+int
+sys_recvfrom(struct thread *td, struct recvfrom_args *uap)
+{
+	return (kern_recvfrom(td, uap->s, uap->buf, uap->len,
+	    uap->flags, uap->from, uap->fromlenaddr));
+}
+
+
 #ifdef COMPAT_OLDSOCK
 int
-orecvfrom(struct thread *td, struct recvfrom_args *uap)
+orecvfrom(struct thread *td, struct orecvfrom_args *uap)
 {
-
-	uap->flags |= MSG_COMPAT;
-	return (sys_recvfrom(td, uap));
+	return (kern_recvfrom(td, uap->s, uap->buf, uap->len,
+	    uap->flags | MSG_COMPAT, uap->from, uap->fromlenaddr));
 }
 #endif
 
@@ -1331,21 +1337,19 @@ kern_getsockopt(struct thread *td, int s, int level, int name, void *val,
 	return (error);
 }
 
-/*
- * getsockname1() - Get socket name.
- */
 static int
-getsockname1(struct thread *td, struct getsockname_args *uap, int compat)
+user_getsockname(struct thread *td, int fdes, struct sockaddr *asa,
+    socklen_t *alen, bool compat)
 {
 	struct sockaddr *sa;
 	socklen_t len;
 	int error;
 
-	error = copyin(uap->alen, &len, sizeof(len));
+	error = copyin(alen, &len, sizeof(len));
 	if (error != 0)
 		return (error);
 
-	error = kern_getsockname(td, uap->fdes, &sa, &len);
+	error = kern_getsockname(td, fdes, &sa, &len);
 	if (error != 0)
 		return (error);
 
@@ -1354,11 +1358,11 @@ getsockname1(struct thread *td, struct getsockname_args *uap, int compat)
 		if (compat && SV_PROC_FLAG(td->td_proc, SV_AOUT))
 			((struct osockaddr *)sa)->sa_family = sa->sa_family;
 #endif
-		error = copyout(sa, uap->asa, (u_int)len);
+		error = copyout(sa, asa, len);
 	}
 	free(sa, M_SONAME);
 	if (error == 0)
-		error = copyout(&len, uap->alen, sizeof(len));
+		error = copyout(&len, alen, sizeof(len));
 	return (error);
 }
 
@@ -1404,34 +1408,30 @@ bad:
 int
 sys_getsockname(struct thread *td, struct getsockname_args *uap)
 {
-
-	return (getsockname1(td, uap, 0));
+	return (user_getsockname(td, uap->fdes, uap->asa, uap->alen, false));
 }
 
 #ifdef COMPAT_OLDSOCK
 int
-ogetsockname(struct thread *td, struct getsockname_args *uap)
+ogetsockname(struct thread *td, struct ogetsockname_args *uap)
 {
-
-	return (getsockname1(td, uap, 1));
+	return (user_getsockname(td, uap->fdes, uap->asa, uap->alen, true));
 }
 #endif /* COMPAT_OLDSOCK */
 
-/*
- * getpeername1() - Get name of peer for connected socket.
- */
 static int
-getpeername1(struct thread *td, struct getpeername_args *uap, int compat)
+user_getpeername(struct thread *td, int fdes, struct sockaddr *asa,
+    socklen_t *alen, bool compat)
 {
 	struct sockaddr *sa;
 	socklen_t len;
 	int error;
 
-	error = copyin(uap->alen, &len, sizeof (len));
+	error = copyin(alen, &len, sizeof (len));
 	if (error != 0)
 		return (error);
 
-	error = kern_getpeername(td, uap->fdes, &sa, &len);
+	error = kern_getpeername(td, fdes, &sa, &len);
 	if (error != 0)
 		return (error);
 
@@ -1440,11 +1440,11 @@ getpeername1(struct thread *td, struct getpeername_args *uap, int compat)
 		if (compat && SV_PROC_FLAG(td->td_proc, SV_AOUT))
 			((struct osockaddr *)sa)->sa_family = sa->sa_family;
 #endif
-		error = copyout(sa, uap->asa, (u_int)len);
+		error = copyout(sa, asa, len);
 	}
 	free(sa, M_SONAME);
 	if (error == 0)
-		error = copyout(&len, uap->alen, sizeof(len));
+		error = copyout(&len, alen, sizeof(len));
 	return (error);
 }
 
@@ -1495,17 +1495,14 @@ done:
 int
 sys_getpeername(struct thread *td, struct getpeername_args *uap)
 {
-
-	return (getpeername1(td, uap, 0));
+	return (user_getpeername(td, uap->fdes, uap->asa, uap->alen, false));
 }
 
 #ifdef COMPAT_OLDSOCK
 int
 ogetpeername(struct thread *td, struct ogetpeername_args *uap)
 {
-
-	/* XXX uap should have type `getpeername_args *' to begin with. */
-	return (getpeername1(td, (struct getpeername_args *)uap, 1));
+	return (user_getpeername(td, uap->fdes, uap->asa, uap->alen, true));
 }
 #endif /* COMPAT_OLDSOCK */
 

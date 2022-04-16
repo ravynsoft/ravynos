@@ -117,6 +117,7 @@ static int hash6_insert(priv_p, struct flow_hash_entry *, struct flow6_rec *,
 
 static void expire_flow(priv_p, fib_export_p, struct flow_entry *, int);
 
+#ifdef INET
 /*
  * Generate hash for a given flow record.
  *
@@ -140,6 +141,7 @@ ip_hash(struct flow_rec *r)
 		return ADDR_HASH(r->r_src.s_addr, r->r_dst.s_addr);
 	}
 }
+#endif
 
 #ifdef INET6
 /* Generate hash for a given flow6 record. Use lower 4 octets from v6 addresses */
@@ -658,7 +660,6 @@ ng_netflow_flow_add(priv_p priv, fib_export_p fe, struct ip *ip,
 	struct flow_rec		r;
 	int			hlen, plen;
 	int			error = 0;
-	uint16_t		eproto;
 	uint8_t			tcp_flags = 0;
 
 	bzero(&r, sizeof(r));
@@ -670,7 +671,6 @@ ng_netflow_flow_add(priv_p priv, fib_export_p fe, struct ip *ip,
 	if (hlen < sizeof(struct ip))
 		return (EINVAL);
 
-	eproto = ETHERTYPE_IP;
 	/* Assume L4 template by default */
 	r.flow_type = NETFLOW_V9_FLOW_V4_L4;
 

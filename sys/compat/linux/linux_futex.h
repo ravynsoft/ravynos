@@ -51,9 +51,13 @@
 #define LINUX_FUTEX_WAKE_BITSET		10
 #define LINUX_FUTEX_WAIT_REQUEUE_PI	11
 #define LINUX_FUTEX_CMP_REQUEUE_PI	12
+#define LINUX_FUTEX_LOCK_PI2		13
 
 #define LINUX_FUTEX_PRIVATE_FLAG	128
 #define LINUX_FUTEX_CLOCK_REALTIME	256
+
+#define LINUX_FUTEX_CMD_MASK		~(LINUX_FUTEX_PRIVATE_FLAG | \
+					    LINUX_FUTEX_CLOCK_REALTIME)
 
 #define FUTEX_OP_SET            0	/* *(int *)UADDR2 = OPARG; */
 #define FUTEX_OP_ADD            1	/* *(int *)UADDR2 += OPARG; */
@@ -80,6 +84,7 @@ int futex_addl(int oparg, uint32_t *uaddr, int *oldval);
 int futex_orl(int oparg, uint32_t *uaddr, int *oldval);
 int futex_andl(int oparg, uint32_t *uaddr, int *oldval);
 int futex_xorl(int oparg, uint32_t *uaddr, int *oldval);
+int futex_wake(struct thread *td, uint32_t *uaddr, int val, bool shared);
 void	release_futexes(struct thread *,
 			struct linux_emuldata *);
 

@@ -155,7 +155,7 @@ static void shm_prison_cleanup(struct prison *);
  * Tuneable values.
  */
 #ifndef SHMMAXPGS
-#define	SHMMAXPGS	131072	/* Note: sysv shared memory is swap backed. */
+#define	SHMMAXPGS	131072ul /* Note: sysv shared memory is swap backed. */
 #endif
 #ifndef SHMMAX
 #define	SHMMAX	(SHMMAXPGS*PAGE_SIZE)
@@ -1431,7 +1431,7 @@ freebsd7_freebsd32_shmctl(struct thread *td,
 		struct shminfo shminfo;
 	} u;
 	union {
-		struct shmid_ds32_old shmid_ds32;
+		struct shmid_ds_old32 shmid_ds32;
 		struct shm_info32 shm_info32;
 		struct shminfo32 shminfo32;
 	} u32;

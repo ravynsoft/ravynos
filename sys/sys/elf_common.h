@@ -823,8 +823,11 @@ typedef struct {
 #define	NT_PTLWPINFO		17	/* Thread ptrace miscellaneous info. */
 #define	NT_PPC_VMX	0x100	/* PowerPC Altivec/VMX registers */
 #define	NT_PPC_VSX	0x102	/* PowerPC VSX registers */
+#define	NT_X86_SEGBASES	0x200	/* x86 FS/GS base addresses. */
 #define	NT_X86_XSTATE	0x202	/* x86 XSAVE extended state. */
 #define	NT_ARM_VFP	0x400	/* ARM VFP registers */
+#define	NT_ARM_TLS	0x401	/* ARM TLS register */
+#define	NT_ARM_ADDR_MASK	0x406	/* arm64 address mask (e.g. for TBI) */
 
 /* GNU note types. */
 #define	NT_GNU_ABI_TAG		1
@@ -1363,10 +1366,6 @@ typedef struct {
 #define	R_RISCV_RVC_BRANCH	44
 #define	R_RISCV_RVC_JUMP	45
 #define	R_RISCV_RVC_LUI		46
-#define	R_RISCV_GPREL_I		47
-#define	R_RISCV_GPREL_S		48
-#define	R_RISCV_TPREL_I		49
-#define	R_RISCV_TPREL_S		50
 #define	R_RISCV_RELAX		51
 #define	R_RISCV_SUB6		52
 #define	R_RISCV_SET6		53

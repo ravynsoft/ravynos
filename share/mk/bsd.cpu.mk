@@ -14,8 +14,6 @@ MACHINE_CPU = amd64 sse2 sse mmx
 MACHINE_CPU = arm
 . elif ${MACHINE_CPUARCH} == "i386"
 MACHINE_CPU = i486
-. elif ${MACHINE_CPUARCH} == "mips"
-MACHINE_CPU = mips
 . elif ${MACHINE_CPUARCH} == "powerpc"
 MACHINE_CPU = aim
 . elif ${MACHINE_CPUARCH} == "riscv"
@@ -81,7 +79,6 @@ CPUTYPE = pentium
 # defined therein.  Consult:
 #	http://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html
 #	http://gcc.gnu.org/onlinedocs/gcc/RS-6000-and-PowerPC-Options.html
-#	http://gcc.gnu.org/onlinedocs/gcc/MIPS-Options.html
 #	http://gcc.gnu.org/onlinedocs/gcc/SPARC-Options.html
 #	http://gcc.gnu.org/onlinedocs/gcc/i386-and-x86_002d64-Options.html
 
@@ -116,10 +113,12 @@ _CPUCFLAGS = -march=${CPUTYPE}
 # arm: (any arm v4 or v5 processor you are targeting)
 #	arm920t, arm926ej-s, marvell-pj4, fa526, fa626,
 #	fa606te, fa626te, fa726te
-# armv6: (any arm v7 or v8 processor you are targeting and the arm1176jzf-s)
-# 	arm1176jzf-s, generic-armv7-a, cortex-a5, cortex-a7, cortex-a8,
-#	cortex-a9, cortex-a12, cortex-a15, cortex-a17, cortex-a53, cortex-a57,
-#	cortex-a72, exynos-m1
+# armv6:
+# 	arm1176jzf-s
+# armv7: generic-armv7-a, cortex-a5, cortex-a7, cortex-a8, cortex-a9,
+#       cortex-a12, cortex-a15, cortex-a17
+#       cortex-a53, cortex-a57, cortex-a72,
+#       exynos-m1
 _CPUCFLAGS = -mcpu=${CPUTYPE}
 . endif
 . elif ${MACHINE_ARCH} == "powerpc"
@@ -130,20 +129,6 @@ _CPUCFLAGS = -mcpu=${CPUTYPE} -mno-powerpc64
 .  endif
 . elif ${MACHINE_ARCH:Mpowerpc64*} != ""
 _CPUCFLAGS = -mcpu=${CPUTYPE}
-. elif ${MACHINE_CPUARCH} == "mips"
-# mips[1234], mips32, mips64, and all later releases need to have mips
-# preserved (releases later than r2 require external toolchain)
-.  if ${CPUTYPE:Mmips32*} != "" || ${CPUTYPE:Mmips64*} != "" || \
-	${CPUTYPE:Mmips[1234]} != ""
-_CPUCFLAGS = -march=${CPUTYPE}
-. else
-# Default -march to the CPUTYPE passed in, with mips stripped off so we
-# accept either mips4kc or 4kc, mostly for historical reasons
-# Typical values for cores:
-#	4kc, 24kc, 34kc, 74kc, 1004kc, octeon, octeon+, octeon2, octeon3,
-#	sb1, xlp, xlr
-_CPUCFLAGS = -march=${CPUTYPE:S/^mips//}
-. endif
 . elif ${MACHINE_CPUARCH} == "aarch64"
 .  if ${CPUTYPE:Marmv*} != ""
 # Use -march when the CPU type is an architecture value, e.g. armv8.1-a
@@ -160,7 +145,8 @@ _CPUCFLAGS = -mcpu=${CPUTYPE}
 
 ########## i386
 . if ${MACHINE_CPUARCH} == "i386"
-.  if ${CPUTYPE} == "znver2" || ${CPUTYPE} == "znver1"
+.  if ${CPUTYPE} == "znver3" || ${CPUTYPE} == "znver2" || \
+    ${CPUTYPE} == "znver1"
 MACHINE_CPU = avx2 avx sse42 sse41 ssse3 sse4a sse3 sse2 sse mmx k6 k5 i586
 .  elif ${CPUTYPE} == "bdver4"
 MACHINE_CPU = xop avx2 avx sse42 sse41 ssse3 sse4a sse3 sse2 sse mmx k6 k5 i586
@@ -189,19 +175,23 @@ MACHINE_CPU = 3dnow mmx k6 k5 i586
 MACHINE_CPU = mmx k6 k5 i586
 .  elif ${CPUTYPE} == "k5"
 MACHINE_CPU = k5 i586
-.  elif ${CPUTYPE} == "tigerlake" || ${CPUTYPE} == "cooperlake" || \
-    ${CPUTYPE} == "cascadelake" || ${CPUTYPE} == "icelake-server" || \
-    ${CPUTYPE} == "icelake-client" || ${CPUTYPE} == "cannonlake" || \
-    ${CPUTYPE} == "knm" || ${CPUTYPE} == "skylake-avx512" || ${CPUTYPE} == "knl"
+.  elif ${CPUTYPE} == "sapphirerapids" || ${CPUTYPE} == "tigerlake" || \
+    ${CPUTYPE} == "cooperlake" || ${CPUTYPE} == "cascadelake" || \
+    ${CPUTYPE} == "icelake-server" || ${CPUTYPE} == "icelake-client" || \
+    ${CPUTYPE} == "cannonlake" || ${CPUTYPE} == "knm" || \
+    ${CPUTYPE} == "skylake-avx512" || ${CPUTYPE} == "knl" || \
+    ${CPUTYPE} == "x86-64-v4"
 MACHINE_CPU = avx512 avx2 avx sse42 sse41 ssse3 sse3 sse2 sse i686 mmx i586
-.  elif ${CPUTYPE} == "skylake" || ${CPUTYPE} == "broadwell" || \
-    ${CPUTYPE} == "haswell"
+.  elif ${CPUTYPE} == "alderlake" || ${CPUTYPE} == "skylake" || \
+    ${CPUTYPE} == "broadwell" || ${CPUTYPE} == "haswell" || \
+    ${CPUTYPE} == "x86-64-v3"
 MACHINE_CPU = avx2 avx sse42 sse41 ssse3 sse3 sse2 sse i686 mmx i586
 .  elif ${CPUTYPE} == "ivybridge" || ${CPUTYPE} == "sandybridge"
 MACHINE_CPU = avx sse42 sse41 ssse3 sse3 sse2 sse i686 mmx i586
 .  elif ${CPUTYPE} == "tremont" || ${CPUTYPE} == "goldmont-plus" || \
     ${CPUTYPE} == "goldmont" || ${CPUTYPE} == "westmere" || \
-    ${CPUTYPE} == "nehalem" || ${CPUTYPE} == "silvermont"
+    ${CPUTYPE} == "nehalem" || ${CPUTYPE} == "silvermont" || \
+    ${CPUTYPE} == "x86-64-v2"
 MACHINE_CPU = sse42 sse41 ssse3 sse3 sse2 sse i686 mmx i586
 .  elif ${CPUTYPE} == "penryn"
 MACHINE_CPU = sse41 ssse3 sse3 sse2 sse i686 mmx i586
@@ -210,7 +200,7 @@ MACHINE_CPU = ssse3 sse3 sse2 sse i686 mmx i586
 .  elif ${CPUTYPE} == "yonah" || ${CPUTYPE} == "prescott"
 MACHINE_CPU = sse3 sse2 sse i686 mmx i586
 .  elif ${CPUTYPE} == "pentium4" || ${CPUTYPE} == "pentium4m" || \
-    ${CPUTYPE} == "pentium-m"
+    ${CPUTYPE} == "pentium-m" || ${CPUTYPE} == "x86-64"
 MACHINE_CPU = sse2 sse i686 mmx i586
 .  elif ${CPUTYPE} == "pentium3" || ${CPUTYPE} == "pentium3m"
 MACHINE_CPU = sse i686 mmx i586
@@ -236,7 +226,8 @@ MACHINE_CPU = mmx
 MACHINE_CPU += i486
 ########## amd64
 . elif ${MACHINE_CPUARCH} == "amd64"
-.  if ${CPUTYPE} == "znver2" || ${CPUTYPE} == "znver1"
+.  if ${CPUTYPE} == "znver3" || ${CPUTYPE} == "znver2" || \
+    ${CPUTYPE} == "znver1"
 MACHINE_CPU = avx2 avx sse42 sse41 ssse3 sse4a sse3
 .  elif ${CPUTYPE} == "bdver4"
 MACHINE_CPU = xop avx2 avx sse42 sse41 ssse3 sse4a sse3
@@ -255,19 +246,23 @@ MACHINE_CPU = k8 3dnow sse3
 .  elif ${CPUTYPE} == "opteron" || ${CPUTYPE} == "athlon64" || \
     ${CPUTYPE} == "athlon-fx" || ${CPUTYPE} == "k8"
 MACHINE_CPU = k8 3dnow
-.  elif ${CPUTYPE} == "tigerlake" || ${CPUTYPE} == "cooperlake" || \
-    ${CPUTYPE} == "cascadelake" || ${CPUTYPE} == "icelake-server" || \
-    ${CPUTYPE} == "icelake-client" || ${CPUTYPE} == "cannonlake" || \
-    ${CPUTYPE} == "knm" || ${CPUTYPE} == "skylake-avx512" || ${CPUTYPE} == "knl"
+.  elif ${CPUTYPE} == "sapphirerapids" || ${CPUTYPE} == "tigerlake" || \
+    ${CPUTYPE} == "cooperlake" || ${CPUTYPE} == "cascadelake" || \
+    ${CPUTYPE} == "icelake-server" || ${CPUTYPE} == "icelake-client" || \
+    ${CPUTYPE} == "cannonlake" || ${CPUTYPE} == "knm" || \
+    ${CPUTYPE} == "skylake-avx512" || ${CPUTYPE} == "knl" || \
+    ${CPUTYPE} == "x86-64-v4"
 MACHINE_CPU = avx512 avx2 avx sse42 sse41 ssse3 sse3
-.  elif ${CPUTYPE} == "skylake" || ${CPUTYPE} == "broadwell" || \
-    ${CPUTYPE} == "haswell"
+.  elif ${CPUTYPE} == "alderlake" || ${CPUTYPE} == "skylake" || \
+    ${CPUTYPE} == "broadwell" || ${CPUTYPE} == "haswell" || \
+    ${CPUTYPE} == "x86-64-v3"
 MACHINE_CPU = avx2 avx sse42 sse41 ssse3 sse3
 .  elif ${CPUTYPE} == "ivybridge" || ${CPUTYPE} == "sandybridge"
 MACHINE_CPU = avx sse42 sse41 ssse3 sse3
 .  elif ${CPUTYPE} == "tremont" || ${CPUTYPE} == "goldmont-plus" || \
     ${CPUTYPE} == "goldmont" || ${CPUTYPE} == "westmere" || \
-    ${CPUTYPE} == "nehalem" || ${CPUTYPE} == "silvermont"
+    ${CPUTYPE} == "nehalem" || ${CPUTYPE} == "silvermont" || \
+    ${CPUTYPE} == "x86-64-v2"
 MACHINE_CPU = sse42 sse41 ssse3 sse3
 .  elif ${CPUTYPE} == "penryn"
 MACHINE_CPU = sse41 ssse3 sse3
@@ -277,9 +272,6 @@ MACHINE_CPU = ssse3 sse3
 MACHINE_CPU = sse3
 .  endif
 MACHINE_CPU += amd64 sse2 sse mmx
-########## Mips
-. elif ${MACHINE_CPUARCH} == "mips"
-MACHINE_CPU = mips
 ########## powerpc
 . elif ${MACHINE_ARCH} == "powerpc"
 .  if ${CPUTYPE} == "e500"
@@ -288,30 +280,6 @@ MACHINE_CPU = booke softfp
 ########## riscv
 . elif ${MACHINE_CPUARCH} == "riscv"
 MACHINE_CPU = riscv
-. endif
-.endif
-
-.if ${MACHINE_CPUARCH} == "mips"
-CFLAGS += -G0
-AFLAGS+= -${MIPS_ENDIAN} -mabi=${MIPS_ABI}
-CFLAGS+= -${MIPS_ENDIAN} -mabi=${MIPS_ABI}
-LDFLAGS+= -${MIPS_ENDIAN} -mabi=${MIPS_ABI}
-. if ${MACHINE_ARCH:Mmips*el*} != ""
-MIPS_ENDIAN=	EL
-. else
-MIPS_ENDIAN=	EB
-. endif
-. if ${MACHINE_ARCH:Mmips64*} != ""
-MIPS_ABI?=	64
-. elif ${MACHINE_ARCH:Mmipsn32*} != ""
-MIPS_ABI?=	n32
-. else
-MIPS_ABI?=	32
-. endif
-. if ${MACHINE_ARCH:Mmips*hf}
-CFLAGS += -mhard-float
-. else
-CFLAGS += -msoft-float
 . endif
 .endif
 

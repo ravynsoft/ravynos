@@ -11,9 +11,7 @@ CONFS=	DAEMON \
 	LOGIN \
 	NETWORKING \
 	SERVERS \
-	addswap \
 	adjkerntz \
-	archdep \
 	bgfsck \
 	${_blacklistd} \
 	bridge \
@@ -35,6 +33,7 @@ CONFS=	DAEMON \
 	gbde \
 	geli \
 	geli2 \
+	ggated \
 	gptboot \
 	growfs \
 	hostid \
@@ -100,7 +99,6 @@ CONFS=	DAEMON \
 	savecore \
 	securelevel \
 	serial \
-	sppp \
 	statd \
 	static_arp \
 	static_ndp \

@@ -44,6 +44,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/imgact.h>
 #include <sys/linker.h>
 #include <sys/proc.h>
+#include <sys/reg.h>
 #include <sys/sysctl.h>
 #include <sys/sysent.h>
 #include <sys/imgact_elf.h>
@@ -72,6 +73,9 @@ static struct sysentvec elf64_freebsd_sysvec = {
 	.sv_szsigcode	= &szsigcode,
 	.sv_name	= "FreeBSD ELF64",
 	.sv_coredump	= __elfN(coredump),
+	.sv_elf_core_osabi = ELFOSABI_FREEBSD,
+	.sv_elf_core_abi_vendor = FREEBSD_ABI_VENDOR,
+	.sv_elf_core_prepare_notes = __elfN(prepare_notes),
 	.sv_imgact_try	= NULL,
 	.sv_minsigstksz	= MINSIGSTKSZ,
 	.sv_minuser	= VM_MIN_ADDRESS,
@@ -99,6 +103,8 @@ static struct sysentvec elf64_freebsd_sysvec = {
 	.sv_machine_arch = riscv_machine_arch,
 	.sv_onexec_old	= exec_onexec_old,
 	.sv_onexit	= exit_onexit,
+	.sv_regset_begin = SET_BEGIN(__elfN(regset)),
+	.sv_regset_end  = SET_LIMIT(__elfN(regset)),
 };
 INIT_SYSENTVEC(elf64_sysvec, &elf64_freebsd_sysvec);
 
@@ -166,7 +172,7 @@ elf64_dump_thread(struct thread *td, void *dst, size_t *off)
 }
 
 /*
- * Following 4 functions are used to manupilate bits on 32bit interger value.
+ * Following 4 functions are used to manipulate bits on 32bit integer value.
  * FIXME: I implemetend for ease-to-understand rather than for well-optimized.
  */
 static uint32_t

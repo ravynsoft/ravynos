@@ -22,8 +22,10 @@ AppKit/Headers
 *.a
 *.core
 *.o
+*.orig
+*.rej
 *.so
-*.swp
+*.sw[nop]
 *~
 _.tinderbox.*
 _.universe-toolchain
@@ -54,3 +56,7 @@ ISO/overlays/uzip/furybsd-wallpapers/files/*
 __pycache__
 ISO/overlays/ramdisk/version
 tags
+compile_commands.json
+tags
+.clangd
+.ccls-cache

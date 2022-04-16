@@ -22,8 +22,7 @@
 /*
  * Copyright (c) 2013 Martin Matuska <mm@FreeBSD.org>. All rights reserved.
  */
-#include <os/freebsd/zfs/sys/zfs_ioctl_compat.h>
-#include <libzfs_impl.h>
+#include "../../libzfs_impl.h"
 #include <libzfs.h>
 #include <libzutil.h>
 #include <sys/sysctl.h>
@@ -39,11 +38,6 @@
 #define	ZFS_KMOD	"openzfs"
 #endif
 
-void
-libzfs_set_pipe_max(int infd)
-{
-	/* FreeBSD automatically resizes */
-}
 
 static int
 execvPe(const char *name, const char *path, char * const *argv,
@@ -52,8 +46,8 @@ execvPe(const char *name, const char *path, char * const *argv,
 	const char **memp;
 	size_t cnt, lp, ln;
 	int eacces, save_errno;
-	char *cur, buf[MAXPATHLEN];
-	const char *p, *bp;
+	char buf[MAXPATHLEN];
+	const char *bp, *np, *op, *p;
 	struct stat sb;
 
 	eacces = 0;
@@ -61,7 +55,7 @@ execvPe(const char *name, const char *path, char * const *argv,
 	/* If it's an absolute or relative path name, it's easy. */
 	if (strchr(name, '/')) {
 		bp = name;
-		cur = NULL;
+		op = NULL;
 		goto retry;
 	}
 	bp = buf;
@@ -72,23 +66,30 @@ execvPe(const char *name, const char *path, char * const *argv,
 		return (-1);
 	}
 
-	cur = alloca(strlen(path) + 1);
-	if (cur == NULL) {
-		errno = ENOMEM;
-		return (-1);
-	}
-	strcpy(cur, path);
-	while ((p = strsep(&cur, ":")) != NULL) {
+	op = path;
+	ln = strlen(name);
+	while (op != NULL) {
+		np = strchrnul(op, ':');
+
 		/*
 		 * It's a SHELL path -- double, leading and trailing colons
 		 * mean the current directory.
 		 */
-		if (*p == '\0') {
+		if (np == op) {
+			/* Empty component. */
 			p = ".";
 			lp = 1;
-		} else
-			lp = strlen(p);
-		ln = strlen(name);
+		} else {
+			/* Non-empty component. */
+			p = op;
+			lp = np - op;
+		}
+
+		/* Advance to the next component or terminate after this. */
+		if (*np == '\0')
+			op = NULL;
+		else
+			op = np + 1;
 
 		/*
 		 * If the path is too long complain.  This is a possible
@@ -102,9 +103,9 @@ execvPe(const char *name, const char *path, char * const *argv,
 			    16);
 			continue;
 		}
-		bcopy(p, buf, lp);
+		memcpy(buf, p, lp);
 		buf[lp] = '/';
-		bcopy(name, buf + lp + 1, ln);
+		memcpy(buf + lp + 1, name, ln);
 		buf[lp + ln + 1] = '\0';
 
 retry:		(void) execve(bp, argv, envp);
@@ -118,15 +119,31 @@ retry:		(void) execve(bp, argv, envp);
 		case ENOEXEC:
 			for (cnt = 0; argv[cnt]; ++cnt)
 				;
-			memp = alloca((cnt + 2) * sizeof (char *));
+
+			/*
+			 * cnt may be 0 above; always allocate at least
+			 * 3 entries so that we can at least fit "sh", bp, and
+			 * the NULL terminator.  We can rely on cnt to take into
+			 * account the NULL terminator in all other scenarios,
+			 * as we drop argv[0].
+			 */
+			memp = alloca(MAX(3, cnt + 2) * sizeof (char *));
 			if (memp == NULL) {
 				/* errno = ENOMEM; XXX override ENOEXEC? */
 				goto done;
 			}
-			memp[0] = "sh";
-			memp[1] = bp;
-			bcopy(argv + 1, memp + 2, cnt * sizeof (char *));
-			execve(_PATH_BSHELL, __DECONST(char **, memp), envp);
+			if (cnt > 0) {
+				memp[0] = argv[0];
+				memp[1] = bp;
+				memcpy(memp + 2, argv + 1,
+				    cnt * sizeof (char *));
+			} else {
+				memp[0] = "sh";
+				memp[1] = bp;
+				memp[2] = NULL;
+			}
+			(void) execve(_PATH_BSHELL,
+			    __DECONST(char **, memp), envp);
 			goto done;
 		case ENOMEM:
 			goto done;
@@ -176,7 +193,7 @@ execvpe(const char *name, char * const argv[], char * const envp[])
 	return (execvPe(name, path, argv, envp));
 }
 
-#define	ERRBUFLEN 256
+#define	ERRBUFLEN 1024
 
 static __thread char errbuf[ERRBUFLEN];
 
@@ -184,10 +201,10 @@ const char *
 libzfs_error_init(int error)
 {
 	char *msg = errbuf;
-	size_t len, msglen = ERRBUFLEN;
+	size_t msglen = sizeof (errbuf);
 
 	if (modfind("zfs") < 0) {
-		len = snprintf(msg, msglen, dgettext(TEXT_DOMAIN,
+		size_t len = snprintf(msg, msglen, dgettext(TEXT_DOMAIN,
 		    "Failed to load %s module: "), ZFS_KMOD);
 		msg += len;
 		msglen -= len;
@@ -201,7 +218,7 @@ libzfs_error_init(int error)
 int
 zfs_ioctl(libzfs_handle_t *hdl, int request, zfs_cmd_t *zc)
 {
-	return (zfs_ioctl_fd(hdl->libzfs_fd, request, zc));
+	return (lzc_ioctl_fd(hdl->libzfs_fd, request, zc));
 }
 
 /*
@@ -229,18 +246,28 @@ libzfs_load_module(void)
 int
 zpool_relabel_disk(libzfs_handle_t *hdl, const char *path, const char *msg)
 {
+	(void) hdl, (void) path, (void) msg;
 	return (0);
 }
 
 int
 zpool_label_disk(libzfs_handle_t *hdl, zpool_handle_t *zhp, const char *name)
 {
+	(void) hdl, (void) zhp, (void) name;
 	return (0);
 }
 
 int
 find_shares_object(differ_info_t *di)
 {
+	(void) di;
+	return (0);
+}
+
+int
+zfs_destroy_snaps_nvl_os(libzfs_handle_t *hdl, nvlist_t *snaps)
+{
+	(void) hdl, (void) snaps;
 	return (0);
 }
 
@@ -252,7 +279,6 @@ zfs_jail(zfs_handle_t *zhp, int jailid, int attach)
 {
 	libzfs_handle_t *hdl = zhp->zfs_hdl;
 	zfs_cmd_t zc = {"\0"};
-	char errbuf[1024];
 	unsigned long cmd;
 	int ret;
 
@@ -276,6 +302,14 @@ zfs_jail(zfs_handle_t *zhp, int jailid, int attach)
 	case ZFS_TYPE_BOOKMARK:
 		zfs_error_aux(hdl, dgettext(TEXT_DOMAIN,
 		    "bookmarks can not be jailed"));
+		return (zfs_error(hdl, EZFS_BADTYPE, errbuf));
+	case ZFS_TYPE_VDEV:
+		zfs_error_aux(hdl, dgettext(TEXT_DOMAIN,
+		    "vdevs can not be jailed"));
+		return (zfs_error(hdl, EZFS_BADTYPE, errbuf));
+	case ZFS_TYPE_INVALID:
+		zfs_error_aux(hdl, dgettext(TEXT_DOMAIN,
+		    "invalid zfs_type_t: ZFS_TYPE_INVALID"));
 		return (zfs_error(hdl, EZFS_BADTYPE, errbuf));
 	case ZFS_TYPE_POOL:
 	case ZFS_TYPE_FILESYSTEM:

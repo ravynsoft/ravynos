@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -205,6 +205,10 @@ MtMethodAnalysisWalkBegin (
     UINT8                   ActualArgs = 0;
     BOOLEAN                 HidExists;
     BOOLEAN                 AdrExists;
+    BOOLEAN                 PrsExists;
+    BOOLEAN                 CrsExists;
+    BOOLEAN                 SrsExists;
+    BOOLEAN                 DisExists;
 
 
     /* Build cross-reference output file if requested */
@@ -288,6 +292,7 @@ MtMethodAnalysisWalkBegin (
         NextType = Next->Asl.Child;
 
         MethodInfo->ValidReturnTypes = MtProcessTypeOp (NextType);
+        Op->Asl.AcpiBtype |= MethodInfo->ValidReturnTypes;
 
         /* Get the ParameterType node */
 
@@ -535,8 +540,8 @@ MtMethodAnalysisWalkBegin (
 
         if (!HidExists && !AdrExists)
         {
-            AslError (ASL_WARNING, ASL_MSG_MISSING_DEPENDENCY, Op,
-                "Device object requires a _HID or _ADR in same scope");
+            AslError (ASL_ERROR, ASL_MSG_MISSING_DEPENDENCY, Op,
+                "Device object requires a _HID or _ADR");
         }
         else if (HidExists && AdrExists)
         {
@@ -547,6 +552,63 @@ MtMethodAnalysisWalkBegin (
              */
             AslError (ASL_WARNING, ASL_MSG_MULTIPLE_TYPES, Op,
                 "Device object requires either a _HID or _ADR, but not both");
+        }
+
+        /*
+         * Check usage of _CRS, _DIS, _PRS, and _SRS objects (July 2021).
+         *
+         * Under the Device Object:
+         *
+         * 1) If _PRS present, must have _CRS and _SRS
+         * 2) If _SRS present, must have _PRS (_PRS requires _CRS and _SRS)
+         * 3) If _DIS present, must have _SRS (_SRS requires _PRS, _PRS requires _CRS and _SRS)
+         * 4) If _SRS present, probably should have a _DIS (Remark only)
+         */
+        CrsExists = ApFindNameInDeviceTree (METHOD_NAME__CRS, Op);
+        DisExists = ApFindNameInDeviceTree (METHOD_NAME__DIS, Op);
+        PrsExists = ApFindNameInDeviceTree (METHOD_NAME__PRS, Op);
+        SrsExists = ApFindNameInDeviceTree (METHOD_NAME__SRS, Op);
+
+        /* 1) If _PRS is present, must have a _CRS and _SRS */
+
+        if (PrsExists)
+        {
+            if (!CrsExists)
+            {
+                AslError (ASL_WARNING, ASL_MSG_MISSING_DEPENDENCY, Op,
+                    "Device has a _PRS, missing a _CRS, required");
+            }
+            if (!SrsExists)
+            {
+                AslError (ASL_WARNING, ASL_MSG_MISSING_DEPENDENCY, Op,
+                    "Device has a _PRS, missing a _SRS, required");
+            }
+        }
+
+        /* 2) If _SRS is present, must have _PRS (_PRS requires _CRS and _SRS) */
+
+        if ((SrsExists) && (!PrsExists))
+        {
+            AslError (ASL_WARNING, ASL_MSG_MISSING_DEPENDENCY, Op,
+                "Device has a _SRS, missing a _PRS, required");
+        }
+
+        /* 3) If _DIS is present, must have a _SRS */
+
+        if ((DisExists) && (!SrsExists))
+        {
+            AslError (ASL_WARNING, ASL_MSG_MISSING_DEPENDENCY, Op,
+                "Device has a _DIS, missing a _SRS, required");
+        }
+
+        /*
+         * 4) If _SRS is present, should have a _DIS (_PRS requires _CRS
+         * and _SRS)  Remark only.
+         */
+        if ((SrsExists) && (!DisExists))
+        {
+            AslError (ASL_REMARK, ASL_MSG_MISSING_DEPENDENCY, Op,
+                "Device has a _SRS, no corresponding _DIS");
         }
         break;
 

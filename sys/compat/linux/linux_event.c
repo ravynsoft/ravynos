@@ -2,8 +2,7 @@
  * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
  *
  * Copyright (c) 2007 Roman Divacky
- * Copyright (c) 2014 Dmitry Chagin
- * All rights reserved.
+ * Copyright (c) 2014 Dmitry Chagin <dchagin@FreeBSD.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -616,7 +615,6 @@ linux_eventfd2(struct thread *td, struct linux_eventfd2_args *args)
 int
 linux_timerfd_create(struct thread *td, struct linux_timerfd_create_args *args)
 {
-	struct filedesc *fdp;
 	struct timerfd *tfd;
 	struct file *fp;
 	clockid_t clockid;
@@ -635,7 +633,6 @@ linux_timerfd_create(struct thread *td, struct linux_timerfd_create_args *args)
 	if ((args->flags & LINUX_TFD_CLOEXEC) != 0)
 		fflags |= O_CLOEXEC;
 
-	fdp = td->td_proc->p_fd;
 	error = falloc(td, &fp, &fd, fflags);
 	if (error != 0)
 		return (error);
@@ -802,8 +799,7 @@ timerfd_ioctl(struct file *fp, u_long cmd, void *data,
 }
 
 static int
-timerfd_stat(struct file *fp, struct stat *st, struct ucred *active_cred,
-    struct thread *td)
+timerfd_stat(struct file *fp, struct stat *st, struct ucred *active_cred)
 {
 
 	return (ENXIO);

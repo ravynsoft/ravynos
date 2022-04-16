@@ -350,7 +350,7 @@ struct rt_addrinfo {
 	struct	ifaddr *rti_ifa;		/* value of rt_ifa addr */
 	struct	ifnet *rti_ifp;			/* route interface */
 	rib_filter_f_t	*rti_filter;		/* filter function */
-	void	*rti_filterdata;		/* filter paramenters */
+	void	*rti_filterdata;		/* filter parameters */
 	u_long	rti_mflags;			/* metrics RTV_ flags */
 	u_long	rti_spare;			/* Will be used for fib */
 	struct	rt_metrics *rti_rmx;		/* Pointer to route metrics */
@@ -439,7 +439,7 @@ void	rt_flushifroutes(struct ifnet *ifp);
  * For now the protocol indepedent versions are the same as the AF_INET ones
  * but this will change.. 
  */
-int	 rtioctl_fib(u_long, caddr_t, u_int);
+int	rtioctl_fib(u_long, caddr_t, u_int);
 int	rib_lookup_info(uint32_t, const struct sockaddr *, uint32_t, uint32_t,
 	    struct rt_addrinfo *);
 void	rib_free_info(struct rt_addrinfo *info);

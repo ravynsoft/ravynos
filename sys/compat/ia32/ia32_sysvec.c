@@ -33,6 +33,7 @@ __FBSDID("$FreeBSD$");
 #define __ELF_WORD_SIZE 32
 
 #include <sys/param.h>
+#include <sys/elf.h>
 #include <sys/exec.h>
 #include <sys/fcntl.h>
 #include <sys/imgact.h>
@@ -44,6 +45,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/namei.h>
 #include <sys/proc.h>
 #include <sys/procfs.h>
+#include <sys/reg.h>
 #include <sys/resourcevar.h>
 #include <sys/systm.h>
 #include <sys/signalvar.h>
@@ -78,9 +80,9 @@ CTASSERT(sizeof(struct ia32_ucontext) == 704);
 CTASSERT(sizeof(struct ia32_sigframe) == 800);
 CTASSERT(sizeof(struct siginfo32) == 64);
 #ifdef COMPAT_FREEBSD4
-CTASSERT(sizeof(struct ia32_mcontext4) == 260);
-CTASSERT(sizeof(struct ia32_ucontext4) == 324);
-CTASSERT(sizeof(struct ia32_sigframe4) == 408);
+CTASSERT(sizeof(struct ia32_freebsd4_mcontext) == 260);
+CTASSERT(sizeof(struct ia32_freebsd4_ucontext) == 324);
+CTASSERT(sizeof(struct ia32_freebsd4_sigframe) == 408);
 #endif
 
 #include "vdso_ia32_offsets.h"
@@ -112,6 +114,9 @@ struct sysentvec ia32_freebsd_sysvec = {
 	.sv_sigcodeoff	= VDSO_IA32_SIGCODE_OFFSET,
 	.sv_name	= "FreeBSD ELF32",
 	.sv_coredump	= elf32_coredump,
+	.sv_elf_core_osabi = ELFOSABI_FREEBSD,
+	.sv_elf_core_abi_vendor = FREEBSD_ABI_VENDOR,
+	.sv_elf_core_prepare_notes = elf32_prepare_notes,
 	.sv_imgact_try	= NULL,
 	.sv_minsigstksz	= MINSIGSTKSZ,
 	.sv_minuser	= FREEBSD32_MINUSER,
@@ -137,6 +142,9 @@ struct sysentvec ia32_freebsd_sysvec = {
 	.sv_trap	= NULL,
 	.sv_onexec_old	= exec_onexec_old,
 	.sv_onexit	= exit_onexit,
+	.sv_set_fork_retval = x86_set_fork_retval,
+	.sv_regset_begin = SET_BEGIN(__elfN(regset)),
+	.sv_regset_end  = SET_LIMIT(__elfN(regset)),
 };
 INIT_SYSENTVEC(elf_ia32_sysvec, &ia32_freebsd_sysvec);
 

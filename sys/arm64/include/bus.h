@@ -85,21 +85,14 @@
 #define	BUS_SPACE_MAP_CACHEABLE		0x01
 #define	BUS_SPACE_MAP_LINEAR		0x02
 #define	BUS_SPACE_MAP_PREFETCHABLE	0x04
+#define	BUS_SPACE_MAP_NONPOSTED		0x08
 
 #define	BUS_SPACE_UNRESTRICTED	(~0)
 
 #define	BUS_SPACE_BARRIER_READ	0x01
 #define	BUS_SPACE_BARRIER_WRITE	0x02
 
-#ifndef SAN_RUNTIME
-#if defined(KASAN)
-#define	BUS_SAN_PREFIX	kasan
-#elif defined(KCSAN)
-#define	BUS_SAN_PREFIX	kcsan
-#endif
-#endif
-
-#ifdef BUS_SAN_PREFIX
+#if defined(SAN_NEEDS_INTERCEPTORS) && !defined(SAN_RUNTIME)
 #include <sys/bus_san.h>
 #else
 
@@ -505,7 +498,7 @@ struct bus_space {
 #define	bus_space_peek_4(t, h, o, vp)	__bs_peek(4, (t), (h), (o), (vp))
 #define	bus_space_peek_8(t, h, o, vp)	__bs_peek(8, (t), (h), (o), (vp))
 
-#endif
+#endif /* !SAN_NEEDS_INTERCEPTORS */
 
 #include <machine/bus_dma.h>
 

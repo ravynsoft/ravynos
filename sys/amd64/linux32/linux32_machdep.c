@@ -49,6 +49,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/mutex.h>
 #include <sys/priv.h>
 #include <sys/proc.h>
+#include <sys/reg.h>
 #include <sys/resource.h>
 #include <sys/resourcevar.h>
 #include <sys/syscallsubr.h>
@@ -61,7 +62,6 @@ __FBSDID("$FreeBSD$");
 #include <machine/md_var.h>
 #include <machine/pcb.h>
 #include <machine/psl.h>
-#include <machine/reg.h>
 #include <machine/segments.h>
 #include <machine/specialreg.h>
 #include <x86/ifunc.h>
@@ -76,6 +76,7 @@ __FBSDID("$FreeBSD$");
 #include <amd64/linux32/linux.h>
 #include <amd64/linux32/linux32_proto.h>
 #include <compat/linux/linux_emul.h>
+#include <compat/linux/linux_fork.h>
 #include <compat/linux/linux_ipc.h>
 #include <compat/linux/linux_misc.h>
 #include <compat/linux/linux_mmap.h>
@@ -133,7 +134,7 @@ linux_execve(struct thread *td, struct linux_execve_args *args)
 	char *path;
 	int error;
 
-	LCONVPATHEXIST(td, args->path, &path);
+	LCONVPATHEXIST(args->path, &path);
 
 	error = freebsd32_exec_copyin_args(&eargs, path, UIO_SYSSPACE,
 	    args->argp, args->envp);
@@ -550,34 +551,6 @@ linux_pause(struct thread *td, struct linux_pause_args *args)
 }
 
 int
-linux_sigaltstack(struct thread *td, struct linux_sigaltstack_args *uap)
-{
-	stack_t ss, oss;
-	l_stack_t lss;
-	int error;
-
-	if (uap->uss != NULL) {
-		error = copyin(uap->uss, &lss, sizeof(l_stack_t));
-		if (error)
-			return (error);
-
-		ss.ss_sp = PTRIN(lss.ss_sp);
-		ss.ss_size = lss.ss_size;
-		ss.ss_flags = linux_to_bsd_sigaltstack(lss.ss_flags);
-	}
-	error = kern_sigaltstack(td, (uap->uss != NULL) ? &ss : NULL,
-	    (uap->uoss != NULL) ? &oss : NULL);
-	if (!error && uap->uoss != NULL) {
-		lss.ss_sp = PTROUT(oss.ss_sp);
-		lss.ss_size = oss.ss_size;
-		lss.ss_flags = bsd_to_linux_sigaltstack(oss.ss_flags);
-		error = copyout(&lss, uap->uoss, sizeof(l_stack_t));
-	}
-
-	return (error);
-}
-
-int
 linux_gettimeofday(struct thread *td, struct linux_gettimeofday_args *uap)
 {
 	struct timeval atv;
@@ -705,7 +678,8 @@ linux_set_thread_area(struct thread *td,
 }
 
 void
-bsd_to_linux_regset32(struct reg32 *b_reg, struct linux_pt_regset32 *l_regset)
+bsd_to_linux_regset32(const struct reg32 *b_reg,
+    struct linux_pt_regset32 *l_regset)
 {
 
 	l_regset->ebx = b_reg->r_ebx;

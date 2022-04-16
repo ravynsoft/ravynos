@@ -86,6 +86,7 @@
  *			tests
  *
  * Hashes:
+ *	ripemd160	160-bit RIPEMD
  *	sha1		SHA-1
  *	sha224		224-bit SHA-2
  *	sha256		256-bit SHA-2
@@ -95,35 +96,46 @@
  *	blake2s		Blake2-S
  *
  * MACs:
+ *	ripemd160hmac	160-bit RIPEMD HMAC
  *	sha1hmac	SHA-1 HMAC
  *	sha224hmac	224-bit SHA-2 HMAC
  *	sha256hmac	256-bit SHA-2 HMAC
  *	sha384hmac	384-bit SHA-2 HMAC
  *	sha512hmac	512-bit	SHA-2 HMAC
- *	gmac		128-bit GMAC
+ *	gmac		128/192/256-bit GMAC
+ *	gmac128		128-bit GMAC
  *	gmac192		192-bit GMAC
  *	gmac256		256-bit GMAC
  *	poly1305
  *
  * Ciphers:
- *	aes-cbc		128-bit AES-CBC
+ *	aes-cbc		128/192/256-bit AES-CBC
+ *	aes-cbc128	128-bit AES-CBC
  *	aes-cbc192	192-bit	AES-CBC
  *	aes-cbc256	256-bit AES-CBC
- *	aes-ctr		128-bit AES-CTR
+ *	aes-ctr		128/192/256-bit AES-CTR
+ *	aes-ctr128	128-bit AES-CTR
  *	aes-ctr192	192-bit AES-CTR
  *	aes-ctr256	256-bit AES-CTR
- *	aes-xts		128-bit AES-XTS
+ *	aes-xts		128/256-bit AES-XTS
+ *	aes-xts128	128-bit AES-XTS
  *	aes-xts256	256-bit AES-XTS
+ *	camellia-cbc	128/192/256-bit Camellia-CBC
+ *	camellia-cbc128	128-bit Camellia-CBC
+ *	camellia-cbc192	192-bit	Camellia-CBC
+ *	camellia-cbc256	256-bit Camellia-CBC
  *	chacha20
  *
  * Encrypt then Authenticate:
  *	<cipher>+<mac>
  *
  * Authenticated Encryption with Associated Data:
- *	aes-gcm		128-bit AES-GCM
+ *	aes-gcm		128/192/256-bit AES-GCM
+ *	aes-gcm128	128-bit AES-GCM
  *	aes-gcm192	192-bit AES-GCM
  *	aes-gcm256	256-bit AES-GCM
- *	aes-ccm		128-bit AES-CCM
+ *	aes-ccm		128/192/256-bit AES-CCM
+ *	aes-ccm128	128-bit AES-CCM
  *	aes-ccm192	192-bit AES-CCM
  *	aes-ccm256	256-bit AES-CCM
  *	chacha20-poly1305 Chacha20 with Poly1305 per RFC 8439
@@ -163,6 +175,8 @@ static const struct alg {
 	const EVP_MD *(*evp_md)(void);
 	int pkey;
 } algs[] = {
+	{ .name = "ripemd160", .mac = CRYPTO_RIPEMD160, .type = T_HASH,
+	  .evp_md = EVP_ripemd160 },
 	{ .name = "sha1", .mac = CRYPTO_SHA1, .type = T_HASH,
 	  .evp_md = EVP_sha1 },
 	{ .name = "sha224", .mac = CRYPTO_SHA2_224, .type = T_HASH,
@@ -173,6 +187,8 @@ static const struct alg {
 	  .evp_md = EVP_sha384 },
 	{ .name = "sha512", .mac = CRYPTO_SHA2_512, .type = T_HASH,
 	  .evp_md = EVP_sha512 },
+	{ .name = "ripemd160hmac", .mac = CRYPTO_RIPEMD160_HMAC, .type = T_HMAC,
+	  .evp_md = EVP_ripemd160 },
 	{ .name = "sha1hmac", .mac = CRYPTO_SHA1_HMAC, .type = T_HMAC,
 	  .evp_md = EVP_sha1 },
 	{ .name = "sha224hmac", .mac = CRYPTO_SHA2_224_HMAC, .type = T_HMAC,
@@ -187,7 +203,7 @@ static const struct alg {
 	  .evp_md = EVP_blake2b512 },
 	{ .name = "blake2s", .mac = CRYPTO_BLAKE2S, .type = T_HASH,
 	  .evp_md = EVP_blake2s256 },
-	{ .name = "gmac", .mac = CRYPTO_AES_NIST_GMAC, .type = T_GMAC,
+	{ .name = "gmac128", .mac = CRYPTO_AES_NIST_GMAC, .type = T_GMAC,
 	  .tag_len = AES_GMAC_HASH_LEN, .evp_cipher = EVP_aes_128_gcm },
 	{ .name = "gmac192", .mac = CRYPTO_AES_NIST_GMAC, .type = T_GMAC,
 	  .tag_len = AES_GMAC_HASH_LEN, .evp_cipher = EVP_aes_192_gcm },
@@ -195,34 +211,40 @@ static const struct alg {
 	  .tag_len = AES_GMAC_HASH_LEN, .evp_cipher = EVP_aes_256_gcm },
 	{ .name = "poly1305", .mac = CRYPTO_POLY1305, .type = T_DIGEST,
 	  .key_len = POLY1305_KEY_LEN, .pkey = EVP_PKEY_POLY1305 },
-	{ .name = "aes-cbc", .cipher = CRYPTO_AES_CBC, .type = T_CIPHER,
+	{ .name = "aes-cbc128", .cipher = CRYPTO_AES_CBC, .type = T_CIPHER,
 	  .evp_cipher = EVP_aes_128_cbc },
 	{ .name = "aes-cbc192", .cipher = CRYPTO_AES_CBC, .type = T_CIPHER,
 	  .evp_cipher = EVP_aes_192_cbc },
 	{ .name = "aes-cbc256", .cipher = CRYPTO_AES_CBC, .type = T_CIPHER,
 	  .evp_cipher = EVP_aes_256_cbc },
-	{ .name = "aes-ctr", .cipher = CRYPTO_AES_ICM, .type = T_CIPHER,
+	{ .name = "aes-ctr128", .cipher = CRYPTO_AES_ICM, .type = T_CIPHER,
 	  .evp_cipher = EVP_aes_128_ctr },
 	{ .name = "aes-ctr192", .cipher = CRYPTO_AES_ICM, .type = T_CIPHER,
 	  .evp_cipher = EVP_aes_192_ctr },
 	{ .name = "aes-ctr256", .cipher = CRYPTO_AES_ICM, .type = T_CIPHER,
 	  .evp_cipher = EVP_aes_256_ctr },
-	{ .name = "aes-xts", .cipher = CRYPTO_AES_XTS, .type = T_CIPHER,
+	{ .name = "aes-xts128", .cipher = CRYPTO_AES_XTS, .type = T_CIPHER,
 	  .evp_cipher = EVP_aes_128_xts },
 	{ .name = "aes-xts256", .cipher = CRYPTO_AES_XTS, .type = T_CIPHER,
 	  .evp_cipher = EVP_aes_256_xts },
+	{ .name = "camellia-cbc128", .cipher = CRYPTO_CAMELLIA_CBC,
+	  .type = T_CIPHER, .evp_cipher = EVP_camellia_128_cbc },
+	{ .name = "camellia-cbc192", .cipher = CRYPTO_CAMELLIA_CBC,
+	  .type = T_CIPHER, .evp_cipher = EVP_camellia_192_cbc },
+	{ .name = "camellia-cbc256", .cipher = CRYPTO_CAMELLIA_CBC,
+	  .type = T_CIPHER, .evp_cipher = EVP_camellia_256_cbc },
 	{ .name = "chacha20", .cipher = CRYPTO_CHACHA20, .type = T_CIPHER,
 	  .evp_cipher = EVP_chacha20 },
-	{ .name = "aes-gcm", .cipher = CRYPTO_AES_NIST_GCM_16, .type = T_AEAD,
-	  .tag_len = AES_GMAC_HASH_LEN, .iv_sizes = { AES_GCM_IV_LEN },
-	  .evp_cipher = EVP_aes_128_gcm },
+	{ .name = "aes-gcm128", .cipher = CRYPTO_AES_NIST_GCM_16,
+	  .type = T_AEAD, .tag_len = AES_GMAC_HASH_LEN,
+	  .iv_sizes = { AES_GCM_IV_LEN }, .evp_cipher = EVP_aes_128_gcm },
 	{ .name = "aes-gcm192", .cipher = CRYPTO_AES_NIST_GCM_16,
 	  .type = T_AEAD, .tag_len = AES_GMAC_HASH_LEN,
 	  .iv_sizes = { AES_GCM_IV_LEN }, .evp_cipher = EVP_aes_192_gcm },
 	{ .name = "aes-gcm256", .cipher = CRYPTO_AES_NIST_GCM_16,
 	  .type = T_AEAD, .tag_len = AES_GMAC_HASH_LEN,
 	  .iv_sizes = { AES_GCM_IV_LEN }, .evp_cipher = EVP_aes_256_gcm },
-	{ .name = "aes-ccm", .cipher = CRYPTO_AES_CCM_16, .type = T_AEAD,
+	{ .name = "aes-ccm128", .cipher = CRYPTO_AES_CCM_16, .type = T_AEAD,
 	  .tag_len = AES_CBC_MAC_HASH_LEN, .iv_sizes = { 12, 7, 8, 9, 10, 11, 13 },
 	  .evp_cipher = EVP_aes_128_ccm },
 	{ .name = "aes-ccm192", .cipher = CRYPTO_AES_CCM_16, .type = T_AEAD,
@@ -1716,6 +1738,19 @@ run_aead_tests(void)
 			run_test_sizes(&algs[i]);
 }
 
+static void
+run_prefix_tests(const char *prefix)
+{
+	size_t prefix_len;
+	u_int i;
+
+	prefix_len = strlen(prefix);
+	for (i = 0; i < nitems(algs); i++)
+		if (strlen(algs[i].name) >= prefix_len &&
+		    memcmp(algs[i].name, prefix, prefix_len) == 0)
+			run_test_sizes(&algs[i]);
+}
+
 int
 main(int ac, char **av)
 {
@@ -1845,6 +1880,14 @@ main(int ac, char **av)
 		run_eta_tests();
 	else if (strcasecmp(algname, "aead") == 0)
 		run_aead_tests();
+	else if (strcasecmp(algname, "gmac") == 0 ||
+	    strcasecmp(algname, "aes-cbc") == 0 ||
+	    strcasecmp(algname, "aes-ctr") == 0 ||
+	    strcasecmp(algname, "aes-xts") == 0 ||
+	    strcasecmp(algname, "camellia-cbc") == 0 ||
+	    strcasecmp(algname, "aes-gcm") == 0 ||
+	    strcasecmp(algname, "aes-ccm") == 0)
+		run_prefix_tests(algname);
 	else if (strcasecmp(algname, "all") == 0) {
 		run_hash_tests();
 		run_mac_tests();

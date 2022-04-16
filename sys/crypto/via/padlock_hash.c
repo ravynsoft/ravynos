@@ -78,7 +78,7 @@ static int padlock_sha_update(void *vctx, const void *buf, u_int bufsize);
 static void padlock_sha1_final(uint8_t *hash, void *vctx);
 static void padlock_sha256_final(uint8_t *hash, void *vctx);
 
-static struct auth_hash padlock_hmac_sha1 = {
+static const struct auth_hash padlock_hmac_sha1 = {
 	.type = CRYPTO_SHA1_HMAC,
 	.name = "HMAC-SHA1",
 	.keysize = SHA1_BLOCK_LEN,
@@ -90,7 +90,7 @@ static struct auth_hash padlock_hmac_sha1 = {
 	.Final = padlock_sha1_final,
 };
 
-static struct auth_hash padlock_hmac_sha256 = {
+static const struct auth_hash padlock_hmac_sha256 = {
 	.type = CRYPTO_SHA2_256_HMAC,
 	.name = "HMAC-SHA2-256",
 	.keysize = SHA2_256_BLOCK_LEN,
@@ -124,13 +124,11 @@ padlock_do_sha1(const u_char *in, u_char *out, int count)
 	((uint32_t *)result)[3] = 0x10325476;
 	((uint32_t *)result)[4] = 0xC3D2E1F0;
 
-#ifdef __GNUCLIKE_ASM
 	__asm __volatile(
 		".byte  0xf3, 0x0f, 0xa6, 0xc8" /* rep xsha1 */
 			: "+S"(in), "+D"(result)
 			: "c"(count), "a"(0)
 		);
-#endif
 
 	padlock_output_block((uint32_t *)result, (uint32_t *)out,
 	    SHA1_HASH_LEN / sizeof(uint32_t));
@@ -151,13 +149,11 @@ padlock_do_sha256(const char *in, char *out, int count)
 	((uint32_t *)result)[6] = 0x1F83D9AB;
 	((uint32_t *)result)[7] = 0x5BE0CD19;
 
-#ifdef __GNUCLIKE_ASM
 	__asm __volatile(
 		".byte  0xf3, 0x0f, 0xa6, 0xd0" /* rep xsha256 */
 			: "+S"(in), "+D"(result)
 			: "c"(count), "a"(0)
 		);
-#endif
 
 	padlock_output_block((uint32_t *)result, (uint32_t *)out,
 	    SHA2_256_HASH_LEN / sizeof(uint32_t));
@@ -227,7 +223,7 @@ padlock_sha256_final(uint8_t *hash, void *vctx)
 }
 
 static void
-padlock_copy_ctx(struct auth_hash *axf, void *sctx, void *dctx)
+padlock_copy_ctx(const struct auth_hash *axf, void *sctx, void *dctx)
 {
 
 	if ((via_feature_xcrypt & VIA_HAS_SHA) != 0 &&
@@ -245,7 +241,7 @@ padlock_copy_ctx(struct auth_hash *axf, void *sctx, void *dctx)
 }
 
 static void
-padlock_free_ctx(struct auth_hash *axf, void *ctx)
+padlock_free_ctx(const struct auth_hash *axf, void *ctx)
 {
 
 	if ((via_feature_xcrypt & VIA_HAS_SHA) != 0 &&
@@ -259,7 +255,7 @@ static void
 padlock_hash_key_setup(struct padlock_session *ses, const uint8_t *key,
     int klen)
 {
-	struct auth_hash *axf;
+	const struct auth_hash *axf;
 
 	axf = ses->ses_axf;
 
@@ -282,7 +278,7 @@ static int
 padlock_authcompute(struct padlock_session *ses, struct cryptop *crp)
 {
 	u_char hash[HASH_MAX_LEN], hash2[HASH_MAX_LEN];
-	struct auth_hash *axf;
+	const struct auth_hash *axf;
 	union authctx ctx;
 	int error;
 
@@ -319,10 +315,10 @@ padlock_authcompute(struct padlock_session *ses, struct cryptop *crp)
 }
 
 /* Find software structure which describes HMAC algorithm. */
-static struct auth_hash *
+static const struct auth_hash *
 padlock_hash_lookup(int alg)
 {
-	struct auth_hash *axf;
+	const struct auth_hash *axf;
 
 	switch (alg) {
 	case CRYPTO_NULL_HMAC:

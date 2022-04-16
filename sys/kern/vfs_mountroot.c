@@ -350,14 +350,13 @@ vfs_mountroot_shuffle(struct thread *td, struct mount *mpdevfs)
 	if (mporoot != mpdevfs) {
 		/* Remount old root under /.mount or /mnt */
 		fspath = "/.mount";
-		NDINIT(&nd, LOOKUP, FOLLOW | LOCKLEAF, UIO_SYSSPACE,
-		    fspath, td);
+		NDINIT(&nd, LOOKUP, FOLLOW | LOCKLEAF, UIO_SYSSPACE, fspath);
 		error = namei(&nd);
 		if (error) {
-			NDFREE(&nd, NDF_ONLY_PNBUF);
+			NDFREE_PNBUF(&nd);
 			fspath = "/mnt";
 			NDINIT(&nd, LOOKUP, FOLLOW | LOCKLEAF, UIO_SYSSPACE,
-			    fspath, td);
+			    fspath);
 			error = namei(&nd);
 		}
 		if (!error) {
@@ -378,7 +377,7 @@ vfs_mountroot_shuffle(struct thread *td, struct mount *mpdevfs)
 			} else
 				vput(vp);
 		}
-		NDFREE(&nd, NDF_ONLY_PNBUF);
+		NDFREE_PNBUF(&nd);
 
 		if (error)
 			printf("mountroot: unable to remount previous root "
@@ -386,7 +385,7 @@ vfs_mountroot_shuffle(struct thread *td, struct mount *mpdevfs)
 	}
 
 	/* Remount devfs under /dev */
-	NDINIT(&nd, LOOKUP, FOLLOW | LOCKLEAF, UIO_SYSSPACE, "/dev", td);
+	NDINIT(&nd, LOOKUP, FOLLOW | LOCKLEAF, UIO_SYSSPACE, "/dev");
 	error = namei(&nd);
 	if (!error) {
 		vp = nd.ni_vp;
@@ -415,7 +414,7 @@ vfs_mountroot_shuffle(struct thread *td, struct mount *mpdevfs)
 	if (error)
 		printf("mountroot: unable to remount devfs under /dev "
 		    "(error %d)\n", error);
-	NDFREE(&nd, NDF_ONLY_PNBUF);
+	NDFREE_PNBUF(&nd);
 
 	if (mporoot == mpdevfs) {
 		vfs_unbusy(mpdevfs);
@@ -726,11 +725,11 @@ parse_mount_dev_present(const char *dev)
 	struct nameidata nd;
 	int error;
 
-	NDINIT(&nd, LOOKUP, FOLLOW | LOCKLEAF, UIO_SYSSPACE, dev, curthread);
+	NDINIT(&nd, LOOKUP, FOLLOW | LOCKLEAF, UIO_SYSSPACE, dev);
 	error = namei(&nd);
 	if (!error)
 		vput(nd.ni_vp);
-	NDFREE(&nd, NDF_ONLY_PNBUF);
+	NDFREE_PNBUF(&nd);
 	return (error != 0) ? 0 : 1;
 }
 
@@ -949,13 +948,13 @@ vfs_mountroot_readconf(struct thread *td, struct sbuf *sb)
 	ssize_t resid;
 	int error, flags, len;
 
-	NDINIT(&nd, LOOKUP, FOLLOW, UIO_SYSSPACE, "/.mount.conf", td);
+	NDINIT(&nd, LOOKUP, FOLLOW, UIO_SYSSPACE, "/.mount.conf");
 	flags = FREAD;
 	error = vn_open(&nd, &flags, 0, NULL);
 	if (error)
 		return (error);
 
-	NDFREE(&nd, NDF_ONLY_PNBUF);
+	NDFREE_PNBUF(&nd);
 	ofs = 0;
 	len = sizeof(buf) - 1;
 	while (1) {
@@ -1147,8 +1146,7 @@ parse_mountroot_options(struct mntarg *ma, const char *options)
 			*val = '\0';
 			++val;
 		}
-		if( strcmp(name, "rw") == 0 ||
-		    strcmp(name, "noro") == 0) {
+		if (strcmp(name, "rw") == 0 || strcmp(name, "noro") == 0) {
 			/*
 			 * The first time we mount the root file system,
 			 * we need to mount 'ro', so We need to ignore

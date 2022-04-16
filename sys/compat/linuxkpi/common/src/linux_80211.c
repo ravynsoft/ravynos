@@ -3647,6 +3647,7 @@ linuxkpi_ieee80211_rx(struct ieee80211_hw *hw, struct sk_buff *skb,
 	struct ieee80211_hdr *hdr;
 	struct lkpi_sta *lsta;
 	int i, offset, ok;
+	int8_t rssi;
 	bool is_beacon;
 
 	if (skb->len < 2) {
@@ -3696,7 +3697,7 @@ linuxkpi_ieee80211_rx(struct ieee80211_hw *hw, struct sk_buff *skb,
 	/* Implement a dump_rxcb() !!! */
 	if (linuxkpi_debug_80211 & D80211_TRACE_RX)
 		printf("TRACE %s: RXCB: %ju %ju %u, %#0x, %u, %#0x, %#0x, "
-		    "%u band %u, %u %u %u %u, %u, %#x %#x %#x %#x %u %u %u\n",
+		    "%u band %u, %u { %d %d %d %d }, %d, %#x %#x %#x %#x %u %u %u\n",
 			__func__,
 			(uintmax_t)rx_status->boottime_ns,
 			(uintmax_t)rx_status->mactime,
@@ -3711,6 +3712,7 @@ linuxkpi_ieee80211_rx(struct ieee80211_hw *hw, struct sk_buff *skb,
 			rx_status->chain_signal[0],
 			rx_status->chain_signal[1],
 			rx_status->chain_signal[2],
+			rx_status->chain_signal[3],
 			rx_status->signal,
 			rx_status->enc_flags,
 			rx_status->he_dcm,
@@ -3724,12 +3726,19 @@ no_trace_beacons:
 
 	memset(&rx_stats, 0, sizeof(rx_stats));
 	rx_stats.r_flags = IEEE80211_R_NF | IEEE80211_R_RSSI;
+	/* XXX-BZ correct hardcoded rssi and noise floor, how? survey? */
+	rx_stats.c_nf = -96;
 	if (ieee80211_hw_check(hw, SIGNAL_DBM) &&
 	    !(rx_status->flag & RX_FLAG_NO_SIGNAL_VAL))
-		rx_stats.c_rssi = rx_status->signal;
+		rssi = rx_status->signal;
 	else
-		rx_stats.c_rssi = 0;			/* XXX */
-	rx_stats.c_nf = -96;				/* XXX */
+		rssi = rx_stats.c_nf;
+	/*
+	 * net80211 signal strength data are in .5 dBm units relative to
+	 * the current noise floor (see comment in ieee80211_node.h).
+	 */
+	rssi -= rx_stats.c_nf;
+	rx_stats.c_rssi = rssi * 2;
 	rx_stats.r_flags |= IEEE80211_R_BAND;
 	rx_stats.c_band =
 	    lkpi_nl80211_band_to_net80211_band(rx_status->band);
@@ -3737,7 +3746,6 @@ no_trace_beacons:
 	rx_stats.c_freq = rx_status->freq;
 	rx_stats.c_ieee = ieee80211_mhz2ieee(rx_stats.c_freq, rx_stats.c_band);
 
-	/* XXX-BZ correct hardcoded rssi and noise floor. */
 	/* XXX (*sta_statistics)() to get to some of that? */
 	/* XXX-BZ dump the FreeBSD version of rx_stats as well! */
 
@@ -3825,7 +3833,7 @@ skip_device_ts:
 		rtap->wr_chan_freq = htole16(rx_stats.c_freq);
 		if (ic->ic_curchan->ic_ieee == rx_stats.c_ieee)
 			rtap->wr_chan_flags = htole16(ic->ic_curchan->ic_flags);
-		rtap->wr_dbm_antsignal = rx_stats.c_rssi;
+		rtap->wr_dbm_antsignal = rssi;
 		rtap->wr_dbm_antnoise = rx_stats.c_nf;
 	}
 
@@ -4007,11 +4015,11 @@ linuxkpi_ieee80211_tx_dequeue(struct ieee80211_hw *hw,
 
 void
 linuxkpi_ieee80211_txq_get_depth(struct ieee80211_txq *txq,
-    uint64_t *frame_cnt, uint64_t *byte_cnt)
+    unsigned long *frame_cnt, unsigned long *byte_cnt)
 {
 	struct lkpi_txq *ltxq;
 	struct sk_buff *skb;
-	uint64_t fc, bc;
+	unsigned long fc, bc;
 
 	ltxq = TXQ_TO_LTXQ(txq);
 

@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -353,8 +353,6 @@ AcpiEnterSleepStateS4bios (
         return_ACPI_STATUS (Status);
     }
 
-    ACPI_FLUSH_CPU_CACHE ();
-
     Status = AcpiHwWritePort (AcpiGbl_FADT.SmiCommand,
         (UINT32) AcpiGbl_FADT.S4BiosRequest, 8);
     if (ACPI_FAILURE (Status))
@@ -469,6 +467,12 @@ AcpiEnterSleepStatePrep (
     if (ACPI_FAILURE (Status))
     {
         return_ACPI_STATUS (Status);
+    }
+
+    Status = AcpiGetSleepTypeData (ACPI_STATE_S0,
+        &AcpiGbl_SleepTypeAS0, &AcpiGbl_SleepTypeBS0);
+    if (ACPI_FAILURE (Status)) {
+        AcpiGbl_SleepTypeAS0 = ACPI_SLEEP_TYPE_INVALID;
     }
 
     /* Execute the _PTS method (Prepare To Sleep) */

@@ -9,7 +9,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -262,7 +262,10 @@ AcpiHwLegacySleep (
 
     /* Flush caches, as per ACPI specification */
 
-    ACPI_FLUSH_CPU_CACHE ();
+    if (SleepState < ACPI_STATE_S4)
+    {
+        ACPI_FLUSH_CPU_CACHE ();
+    }
 
     Status = AcpiOsEnterSleep (SleepState, Pm1aControl, Pm1bControl);
     if (Status == AE_CTRL_TERMINATE)
@@ -339,7 +342,7 @@ ACPI_STATUS
 AcpiHwLegacyWakePrep (
     UINT8                   SleepState)
 {
-    ACPI_STATUS             Status;
+    ACPI_STATUS             Status = AE_OK;
     ACPI_BIT_REGISTER_INFO  *SleepTypeRegInfo;
     ACPI_BIT_REGISTER_INFO  *SleepEnableRegInfo;
     UINT32                  Pm1aControl;
@@ -353,9 +356,7 @@ AcpiHwLegacyWakePrep (
      * This is unclear from the ACPI Spec, but it is required
      * by some machines.
      */
-    Status = AcpiGetSleepTypeData (ACPI_STATE_S0,
-        &AcpiGbl_SleepTypeA, &AcpiGbl_SleepTypeB);
-    if (ACPI_SUCCESS (Status))
+    if (AcpiGbl_SleepTypeAS0 != ACPI_SLEEP_TYPE_INVALID)
     {
         SleepTypeRegInfo =
             AcpiHwGetBitRegisterInfo (ACPI_BITREG_SLEEP_TYPE);
@@ -376,9 +377,9 @@ AcpiHwLegacyWakePrep (
 
             /* Insert the SLP_TYP bits */
 
-            Pm1aControl |= (AcpiGbl_SleepTypeA <<
+            Pm1aControl |= (AcpiGbl_SleepTypeAS0 <<
                 SleepTypeRegInfo->BitPosition);
-            Pm1bControl |= (AcpiGbl_SleepTypeB <<
+            Pm1bControl |= (AcpiGbl_SleepTypeBS0 <<
                 SleepTypeRegInfo->BitPosition);
 
             /* Write the control registers and ignore any errors */

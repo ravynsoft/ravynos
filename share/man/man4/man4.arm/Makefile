@@ -18,6 +18,13 @@ MAN=	\
 MLINKS= imx_wdog.4 imxwdt.4
 MLINKS+= mge.4 if_mge.4
 
-MANSUBDIR=/arm
+# Link files to the architecture directory
+_ARCH_SUBDIR=arm
+.for _manpage _link in ${MLINKS}
+MLINKS+=${_link} ${_ARCH_SUBDIR}/${_link}
+.endfor
+.for _manpage in ${MAN}
+MLINKS+=${_manpage} ${_ARCH_SUBDIR}/${_manpage}
+.endfor
 
 .include <bsd.prog.mk>

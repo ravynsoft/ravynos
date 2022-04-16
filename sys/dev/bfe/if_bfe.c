@@ -652,7 +652,10 @@ bfe_miibus_statchg(device_t dev)
 {
 	struct bfe_softc *sc;
 	struct mii_data *mii;
-	u_int32_t val, flow;
+	u_int32_t val;
+#ifdef notyet
+	u_int32_t flow;
+#endif
 
 	sc = device_get_softc(dev);
 	mii = device_get_softc(sc->bfe_miibus);
@@ -675,7 +678,6 @@ bfe_miibus_statchg(device_t dev)
 	val &= ~BFE_TX_DUPLEX;
 	if ((IFM_OPTIONS(mii->mii_media_active) & IFM_FDX) != 0) {
 		val |= BFE_TX_DUPLEX;
-		flow = 0;
 #ifdef notyet
 		flow = CSR_READ_4(sc, BFE_RXCONF);
 		flow &= ~BFE_RXCONF_FLOW;
@@ -862,11 +864,10 @@ bfe_get_config(struct bfe_softc *sc)
 static void
 bfe_pci_setup(struct bfe_softc *sc, u_int32_t cores)
 {
-	u_int32_t bar_orig, pci_rev, val;
+	u_int32_t bar_orig, val;
 
 	bar_orig = pci_read_config(sc->bfe_dev, BFE_BAR0_WIN, 4);
 	pci_write_config(sc->bfe_dev, BFE_BAR0_WIN, BFE_REG_PCI, 4);
-	pci_rev = CSR_READ_4(sc, BFE_SBIDHIGH) & BFE_RC_MASK;
 
 	val = CSR_READ_4(sc, BFE_SBINTVEC);
 	val |= cores;
@@ -1404,7 +1405,7 @@ bfe_rxeof(struct bfe_softc *sc)
 		/*
 		 * Rx status should be read from mbuf such that we can't
 		 * delay bus_dmamap_sync(9). This hardware limiation
-		 * results in inefficent mbuf usage as bfe(4) couldn't
+		 * results in inefficient mbuf usage as bfe(4) couldn't
 		 * reuse mapped buffer from errored frame. 
 		 */
 		if (bfe_list_newbuf(sc, cons) != 0) {

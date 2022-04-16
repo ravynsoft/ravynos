@@ -24,7 +24,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd March 4, 2021
+.Dd February 8, 2022
 .Dt RELEASE 7
 .Os
 .Sh NAME
@@ -143,24 +143,22 @@ Additional
 .Xr make 1
 arguments to pass through, which directly affect the
 tuning of the build chroot.
-.It Va SVNROOT
+.It Va NOGIT
+Do not explicitly require the
+.Xr git 1
+port to be installed.
+.It Va GITROOT
 The
-.Xr svn 1
+.Xr git 1
 host used to check out the various trees.
 Defaults to
-.Pa svn://svn.FreeeBSD.org .
+.Pa https://git.FreeeBSD.org .
 .It Va SRCBRANCH
 The
 .Li src/
 branch to use.
 Defaults to
-.Va head/@rHEAD .
-.It Va DOCBRANCH
-The
-.Li doc/
-branch to use.
-Defaults to
-.Va head/@rHEAD .
+.Fl b Va main .
 .It Va PORTBRANCH
 The
 .Li ports/
@@ -226,15 +224,6 @@ Defaults to setting the number of
 jobs
 .Pq Ar -j
 to half the number of CPUs available on a SMP-capable system.
-.It Va NODOC
-Set to a non-empty value to skip the
-.Li doc/
-tree checkout.
-When set,
-.Va NODOC
-will prevent the
-.Fa doc.txz
-distribution package from being created.
 .It Va NOPORTS
 Set to a non-empty value to skip the
 .Li ports/
@@ -244,8 +233,6 @@ When set,
 will prevent the
 .Fa ports.txz
 distribution package from being created.
-Setting this also sets
-.Va NODOC .
 .It Va WITH_DVD
 Set to a non-empty value to include the
 .Cm dvdrom
@@ -268,7 +255,7 @@ which uses all available cores on the system.
 .It Va VCSCMD
 The command run to obtain the source trees.
 Defaults to
-.Qq Cm svn checkout .
+.Qq Cm git clone Fl q .
 .It Va CHROOTBUILD_SKIP
 If defined, the
 .Li buildworld ,
@@ -288,14 +275,6 @@ within the
 .Xr chroot 8 .
 This is intended for use only when
 .Fa /usr/src
-is expected to exist by alternative means.
-.It Va DOC_UPDATE_SKIP
-Set to a non-empty value to prevent checkout or update of
-.Fa /usr/doc
-within the
-.Xr chroot 8 .
-This is intended for use only when
-.Fa /usr/doc
 is expected to exist by alternative means.
 .It Va PORTS_UPDATE_SKIP
 Set to a non-empty value to prevent checkout or update of
@@ -317,9 +296,7 @@ release builds.
 .Pp
 When set,
 .Va WITH_DVD
-is unset, and
-.Va NODOC
-is defined.
+is unset.
 Additionally,
 .Va EMBEDDED_TARGET
 and
@@ -363,10 +340,6 @@ of the release build.
 .Va WITH_VMIMAGES
 may also be specified as an environment variable passed to
 .Xr make 1 .
-.Pp
-The option requires
-.Xr mkimg 1
-version 20140927 or later.
 .It Va WITH_COMPRESSED_VMIMAGES
 Set to a non-null value to compress the virtual machine disk images with
 .Xr xz 1
@@ -404,8 +377,7 @@ and
 formats are created.
 See
 .Xr mkimg 1
-for valid format values
-.Pq requires version 20140927 or later .
+for valid format values.
 .El
 .Pp
 For a list of supported
@@ -587,27 +559,10 @@ Location of a directory containing the ports tree.
 By default,
 .Pa /usr/ports .
 If it is unset or cannot be found, ports will not be included in the release.
-.It Ev DOCDIR
-Location of a directory containing the doc tree.
-By default,
-.Pa /usr/doc .
-If it is unset or cannot be found, most documentation will not be included in
-the release; see
-.Ev NODOC
-below.
 .It Ev NOPORTS
 If defined, the Ports Collection will be omitted from the release.
 .It Ev NOSRC
 If set, do not include system source code in the release.
-.It Ev NODOC
-If defined, the XML-based documentation from the
-.Fx
-Documentation Project will not be built.
-However, the
-.Dq doc
-distribution will still be created with the minimal documentation set
-provided in
-.Pa src/share/doc .
 .It Ev TARGET
 The target hardware platform.
 This is analogous to the
@@ -657,7 +612,7 @@ The following sequence of commands can be used to build a
 .Dq "-CURRENT snapshot":
 .Bd -literal -offset indent
 cd /usr
-svn co svn://svn.freebsd.org/base/head src
+git clone -b main https://git.freebsd.org/src.git src
 cd src
 make buildworld buildkernel
 cd release
@@ -714,11 +669,20 @@ The target directory can be changed by specifying the
 .Va CHROOTDIR
 variable in
 .Li release.conf .
+.Sh COMPATIBILITY
+The reldoc target was removed in commit f61e92ca5a23, and
+.Ev DOCDIR ,
+.Ev DOCBRANCH ,
+.Ev DOC_UPDATE_SKIP ,
+and
+.Ev NODOC
+are therefore no longer supported.
 .Sh SEE ALSO
 .Xr cc 1 ,
+.Xr git 1 Pq Pa ports/devel/git ,
 .Xr install 1 ,
 .Xr make 1 ,
-.Xr svn 1 Pq Pa ports/devel/subversion ,
+.Xr mkimg 1 ,
 .Xr uname 1 ,
 .Xr md 4 ,
 .Xr make.conf 5 ,
@@ -729,11 +693,11 @@ variable in
 .Xr sysctl 8
 .Rs
 .%T "FreeBSD Release Engineering"
-.%U https://www.FreeBSD.org/doc/en_US.ISO8859-1/articles/freebsd-releng/
+.%U https://docs.freebsd.org/en/articles/freebsd-releng/
 .Re
 .Rs
 .%T "FreeBSD Developers' Handbook"
-.%U https://www.FreeBSD.org/doc/en_US.ISO8859-1/books/developers-handbook/
+.%U https://docs.freebsd.org/en/books/developers-handbook/
 .Re
 .Sh HISTORY
 .Fx
@@ -771,7 +735,7 @@ is heavily based on the
 script.
 .Pp
 At near 1000 revisions spread over multiple branches, the
-.Xr svn 1
+.Xr git 1
 log of
 .Pa src/release/Makefile
 contains a vivid historical record of some

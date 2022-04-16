@@ -234,10 +234,16 @@ ppc64_cas(void)
 		}
 	}
 
-	if (radix_mmu && (var = getenv("radix_mmu")) != NULL && var[0] != '0')
-		ov5[OV5_MMU_INDEX] = OV5_MMU_RADIX;
-	else
+	if (!radix_mmu)
+		/*
+		 * If radix is not supported, set radix_mmu to 0 to avoid
+		 * the kernel trying to use it and panic.
+		 */
+		setenv("radix_mmu", "0", 1);
+	else if ((var = getenv("radix_mmu")) != NULL && var[0] == '0')
 		radix_mmu = 0;
+	else
+		ov5[OV5_MMU_INDEX] = OV5_MMU_RADIX;
 
 	inst = OF_open("/");
 	if (inst == -1) {

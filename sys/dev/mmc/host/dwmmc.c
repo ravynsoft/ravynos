@@ -63,9 +63,7 @@ __FBSDID("$FreeBSD$");
 #include <machine/cpu.h>
 #include <machine/intr.h>
 
-#ifdef EXT_RESOURCES
 #include <dev/extres/clk/clk.h>
-#endif
 
 #include <dev/mmc/host/dwmmc_reg.h>
 #include <dev/mmc/host/dwmmc_var.h>
@@ -484,7 +482,8 @@ dwmmc_card_task(void *arg, int pending __unused)
 #else
 	DWMMC_LOCK(sc);
 
-	if (READ4(sc, SDMMC_CDETECT) == 0) {
+	if (READ4(sc, SDMMC_CDETECT) == 0 ||
+	    (sc->mmc_helper.props & MMC_PROP_BROKEN_CD)) {
 		if (sc->child == NULL) {
 			if (bootverbose)
 				device_printf(sc->dev, "Card inserted\n");
@@ -519,9 +518,7 @@ parse_fdt(struct dwmmc_softc *sc)
 	phandle_t node;
 	uint32_t bus_hz = 0;
 	int len;
-#ifdef EXT_RESOURCES
 	int error;
-#endif
 
 	if ((node = ofw_bus_get_node(sc->dev)) == -1)
 		return (ENXIO);
@@ -552,8 +549,6 @@ parse_fdt(struct dwmmc_softc *sc)
 		OF_getencprop(node, "clock-frequency", dts_value, len);
 		bus_hz = dts_value[0];
 	}
-
-#ifdef EXT_RESOURCES
 
 	/* IP block reset is optional */
 	error = hwreset_get_by_ofw_name(sc->dev, 0, "reset", &sc->hwreset);
@@ -661,7 +656,6 @@ parse_fdt(struct dwmmc_softc *sc)
 			goto fail;
 		}
 	}
-#endif /* EXT_RESOURCES */
 
 	if (sc->bus_hz == 0) {
 		device_printf(sc->dev, "No bus speed provided\n");
@@ -679,7 +673,6 @@ dwmmc_attach(device_t dev)
 {
 	struct dwmmc_softc *sc;
 	int error;
-	int slot;
 
 	sc = device_get_softc(dev);
 
@@ -711,14 +704,6 @@ dwmmc_attach(device_t dev)
 
 	device_printf(dev, "Hardware version ID is %04x\n",
 		READ4(sc, SDMMC_VERID) & 0xffff);
-
-	/* XXX: we support operation for slot index 0 only */
-	slot = 0;
-	if (sc->pwren_inverted) {
-		WRITE4(sc, SDMMC_PWREN, (0 << slot));
-	} else {
-		WRITE4(sc, SDMMC_PWREN, (1 << slot));
-	}
 
 	/* Reset all */
 	if (dwmmc_ctrl_reset(sc, (SDMMC_CTRL_RESET |
@@ -812,7 +797,6 @@ dwmmc_detach(device_t dev)
 
 	DWMMC_LOCK_DESTROY(sc);
 
-#ifdef EXT_RESOURCES
 	if (sc->hwreset != NULL && hwreset_deassert(sc->hwreset) != 0)
 		device_printf(sc->dev, "cannot deassert reset\n");
 	if (sc->biu != NULL && clk_disable(sc->biu) != 0)
@@ -824,7 +808,6 @@ dwmmc_detach(device_t dev)
 		device_printf(sc->dev, "Cannot disable vmmc regulator\n");
 	if (sc->vqmmc && regulator_disable(sc->vqmmc) != 0)
 		device_printf(sc->dev, "Cannot disable vqmmc regulator\n");
-#endif
 
 #ifdef MMCCAM
 	mmc_cam_sim_free(&sc->mmc_sim);
@@ -900,6 +883,17 @@ dwmmc_update_ios(device_t brdev, device_t reqdev)
 
 	dprintf("Setting up clk %u bus_width %d, timming: %d\n",
 		ios->clock, ios->bus_width, ios->timing);
+
+	switch (ios->power_mode) {
+	case power_on:
+		break;
+	case power_off:
+		WRITE4(sc, SDMMC_PWREN, 0);
+		break;
+	case power_up:
+		WRITE4(sc, SDMMC_PWREN, 1);
+		break;
+	}
 
 	mmc_fdt_set_power(&sc->mmc_helper, ios->power_mode);
 
@@ -1109,9 +1103,6 @@ dwmmc_start_cmd(struct dwmmc_softc *sc, struct mmc_command *cmd)
 	sc->curcmd = cmd;
 	data = cmd->data;
 
-	if ((sc->hwtype & HWTYPE_MASK) == HWTYPE_ROCKCHIP)
-		dwmmc_setup_bus(sc, sc->host.ios.clock);
-
 #ifndef MMCCAM
 	/* XXX Upper layers don't always set this */
 	cmd->mrq = sc->req;
@@ -1162,10 +1153,18 @@ dwmmc_start_cmd(struct dwmmc_softc *sc, struct mmc_command *cmd)
 			cmdr |= SDMMC_CMD_DATA_WRITE;
 
 		WRITE4(sc, SDMMC_TMOUT, 0xffffffff);
-		WRITE4(sc, SDMMC_BYTCNT, data->len);
-		blksz = (data->len < MMC_SECTOR_SIZE) ? \
-			 data->len : MMC_SECTOR_SIZE;
-		WRITE4(sc, SDMMC_BLKSIZ, blksz);
+#ifdef MMCCAM
+		if (cmd->data->flags & MMC_DATA_BLOCK_SIZE) {
+			WRITE4(sc, SDMMC_BLKSIZ, cmd->data->block_size);
+			WRITE4(sc, SDMMC_BYTCNT, cmd->data->len);
+		} else
+#endif
+		{
+			WRITE4(sc, SDMMC_BYTCNT, data->len);
+			blksz = (data->len < MMC_SECTOR_SIZE) ? \
+				data->len : MMC_SECTOR_SIZE;
+			WRITE4(sc, SDMMC_BLKSIZ, blksz);
+		}
 
 		if (sc->use_pio) {
 			pio_prepare(sc, cmd);

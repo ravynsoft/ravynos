@@ -48,8 +48,8 @@
  * "vdev_remap" operation that executes a callback on each contiguous
  * segment of the new location.  This function is used in multiple ways:
  *
- *  - i/os to this vdev use the callback to determine where the
- *    data is now located, and issue child i/os for each segment's new
+ *  - I/Os to this vdev use the callback to determine where the
+ *    data is now located, and issue child I/Os for each segment's new
  *    location.
  *
  *  - frees and claims to this vdev use the callback to free or claim
@@ -172,7 +172,7 @@
  * object.
  */
 
-int zfs_condense_indirect_vdevs_enable = B_TRUE;
+static int zfs_condense_indirect_vdevs_enable = B_TRUE;
 
 /*
  * Condense if at least this percent of the bytes in the mapping is
@@ -181,7 +181,7 @@ int zfs_condense_indirect_vdevs_enable = B_TRUE;
  * condenses.  Higher values will condense less often (causing less
  * i/o); lower values will reduce the mapping size more quickly.
  */
-int zfs_condense_indirect_obsolete_pct = 25;
+static int zfs_condense_indirect_obsolete_pct = 25;
 
 /*
  * Condense if the obsolete space map takes up more than this amount of
@@ -189,14 +189,14 @@ int zfs_condense_indirect_obsolete_pct = 25;
  * consumed by the obsolete space map; the default of 1GB is small enough
  * that we typically don't mind "wasting" it.
  */
-unsigned long zfs_condense_max_obsolete_bytes = 1024 * 1024 * 1024;
+static unsigned long zfs_condense_max_obsolete_bytes = 1024 * 1024 * 1024;
 
 /*
  * Don't bother condensing if the mapping uses less than this amount of
  * memory.  The default of 128KB is considered a "trivial" amount of
  * memory and not worth reducing.
  */
-unsigned long zfs_condense_min_mapping_bytes = 128 * 1024;
+static unsigned long zfs_condense_min_mapping_bytes = 128 * 1024;
 
 /*
  * This is used by the test suite so that it can ensure that certain
@@ -204,7 +204,7 @@ unsigned long zfs_condense_min_mapping_bytes = 128 * 1024;
  * complete too quickly).  If used to reduce the performance impact of
  * condensing in production, a maximum value of 1 should be sufficient.
  */
-int zfs_condense_indirect_commit_entry_delay_ms = 0;
+static int zfs_condense_indirect_commit_entry_delay_ms = 0;
 
 /*
  * If an indirect split block contains more than this many possible unique
@@ -1021,7 +1021,7 @@ vdev_indirect_mapping_duplicate_adjacent_entries(vdev_t *vd, uint64_t offset,
 
 	size_t copy_length = entries * sizeof (*first_mapping);
 	duplicate_mappings = kmem_alloc(copy_length, KM_SLEEP);
-	bcopy(first_mapping, duplicate_mappings, copy_length);
+	memcpy(duplicate_mappings, first_mapping, copy_length);
 	*copied_entries = entries;
 
 	return (duplicate_mappings);
@@ -1422,11 +1422,6 @@ static void
 vdev_indirect_repair(zio_t *zio)
 {
 	indirect_vsd_t *iv = zio->io_vsd;
-
-	enum zio_flag flags = ZIO_FLAG_IO_REPAIR;
-
-	if (!(zio->io_flags & (ZIO_FLAG_SCRUB | ZIO_FLAG_RESILVER)))
-		flags |= ZIO_FLAG_SELF_HEAL;
 
 	if (!spa_writeable(zio->io_spa))
 		return;
@@ -1888,23 +1883,28 @@ EXPORT_SYMBOL(vdev_obsolete_counts_are_precise);
 EXPORT_SYMBOL(vdev_obsolete_sm_object);
 
 /* BEGIN CSTYLED */
-ZFS_MODULE_PARAM(zfs_condense, zfs_condense_, indirect_vdevs_enable, INT, ZMOD_RW,
-	"Whether to attempt condensing indirect vdev mappings");
+ZFS_MODULE_PARAM(zfs_condense, zfs_condense_, indirect_vdevs_enable, INT,
+	ZMOD_RW, "Whether to attempt condensing indirect vdev mappings");
 
-ZFS_MODULE_PARAM(zfs_condense, zfs_condense_, indirect_obsolete_pct, INT, ZMOD_RW,
-	"Minimum obsolete percent of bytes in the mapping to attempt condensing");
+ZFS_MODULE_PARAM(zfs_condense, zfs_condense_, indirect_obsolete_pct, INT,
+	ZMOD_RW,
+	"Minimum obsolete percent of bytes in the mapping "
+	"to attempt condensing");
 
 ZFS_MODULE_PARAM(zfs_condense, zfs_condense_, min_mapping_bytes, ULONG, ZMOD_RW,
 	"Don't bother condensing if the mapping uses less than this amount of "
 	"memory");
 
-ZFS_MODULE_PARAM(zfs_condense, zfs_condense_, max_obsolete_bytes, ULONG, ZMOD_RW,
+ZFS_MODULE_PARAM(zfs_condense, zfs_condense_, max_obsolete_bytes, ULONG,
+	ZMOD_RW,
 	"Minimum size obsolete spacemap to attempt condensing");
 
-ZFS_MODULE_PARAM(zfs_condense, zfs_condense_, indirect_commit_entry_delay_ms, INT, ZMOD_RW,
+ZFS_MODULE_PARAM(zfs_condense, zfs_condense_, indirect_commit_entry_delay_ms,
+	INT, ZMOD_RW,
 	"Used by tests to ensure certain actions happen in the middle of a "
 	"condense. A maximum value of 1 should be sufficient.");
 
-ZFS_MODULE_PARAM(zfs_reconstruct, zfs_reconstruct_, indirect_combinations_max, INT, ZMOD_RW,
+ZFS_MODULE_PARAM(zfs_reconstruct, zfs_reconstruct_, indirect_combinations_max,
+	INT, ZMOD_RW,
 	"Maximum number of combinations when reconstructing split segments");
 /* END CSTYLED */

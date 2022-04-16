@@ -36,7 +36,7 @@
  * This is the Hyper-V vmbus channel direct callback interrupt.
  * Only used when it is running on Hyper-V.
  *
- * Note that this file is not compiled directly, it is included into
+ * Note that this file is not assembled directly, it is included into
  * i386/exception.s.
  */
 	.text
@@ -47,10 +47,8 @@ IDTVEC(vmbus_isr)
 	SET_KERNEL_SREGS
 	cld
 	KENTER
-	FAKE_MCOUNT(TF_EIP(%esp))
 	pushl	%esp
 	mov	$vmbus_handle_intr, %eax
 	call	*%eax
 	add	$4, %esp
-	MEXITCOUNT
 	jmp	doreti

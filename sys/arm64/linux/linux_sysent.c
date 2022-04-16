@@ -12,7 +12,7 @@
 #include <arm64/linux/linux.h>
 #include <arm64/linux/linux_proto.h>
 
-#define AS(name) (sizeof(struct name) / sizeof(register_t))
+#define AS(name) (sizeof(struct name) / sizeof(syscallarg_t))
 
 /* The casts are bogus but will do for now. */
 struct sysent linux_sysent[] = {
@@ -452,11 +452,11 @@ struct sysent linux_sysent[] = {
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_fsmount, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 432 = linux_fsmount */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_fspick, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 433 = linux_fspick */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_pidfd_open, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 434 = linux_pidfd_open */
-	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_clone3, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 435 = linux_clone3 */
+	{ .sy_narg = AS(linux_clone3_args), .sy_call = (sy_call_t *)linux_clone3, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 435 = linux_clone3 */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_close_range, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 436 = linux_close_range */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_openat2, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 437 = linux_openat2 */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_pidfd_getfd, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 438 = linux_pidfd_getfd */
-	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_faccessat2, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 439 = linux_faccessat2 */
+	{ .sy_narg = AS(linux_faccessat2_args), .sy_call = (sy_call_t *)linux_faccessat2, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 439 = linux_faccessat2 */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_process_madvise, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 440 = linux_process_madvise */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_epoll_pwait2, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 441 = linux_epoll_pwait2 */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_mount_setattr, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 442 = linux_mount_setattr */

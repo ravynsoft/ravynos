@@ -54,6 +54,10 @@ static device_t		simplebus_add_child(device_t dev, u_int order,
     const char *name, int unit);
 static struct resource_list *simplebus_get_resource_list(device_t bus,
     device_t child);
+
+static ssize_t		simplebus_get_property(device_t bus, device_t child,
+    const char *propname, void *propvalue, size_t size,
+    device_property_type_t type);
 /*
  * ofw_bus interface
  */
@@ -87,8 +91,9 @@ static device_method_t	simplebus_methods[] = {
 	DEVMETHOD(bus_adjust_resource,	bus_generic_adjust_resource),
 	DEVMETHOD(bus_set_resource,	bus_generic_rl_set_resource),
 	DEVMETHOD(bus_get_resource,	bus_generic_rl_get_resource),
-	DEVMETHOD(bus_child_pnpinfo_str, ofw_bus_gen_child_pnpinfo_str),
+	DEVMETHOD(bus_child_pnpinfo,	ofw_bus_gen_child_pnpinfo),
 	DEVMETHOD(bus_get_resource_list, simplebus_get_resource_list),
+	DEVMETHOD(bus_get_property,	simplebus_get_property),
 
 	/* ofw_bus interface */
 	DEVMETHOD(ofw_bus_get_devinfo,	simplebus_get_devinfo),
@@ -348,6 +353,60 @@ simplebus_get_resource_list(device_t bus __unused, device_t child)
 	if (ndi == NULL)
 		return (NULL);
 	return (&ndi->rl);
+}
+
+static ssize_t
+simplebus_get_property(device_t bus, device_t child, const char *propname,
+    void *propvalue, size_t size, device_property_type_t type)
+{
+	phandle_t node = ofw_bus_get_node(child);
+	ssize_t ret, i;
+	uint32_t *buffer;
+	uint64_t val;
+
+	switch (type) {
+	case DEVICE_PROP_ANY:
+	case DEVICE_PROP_BUFFER:
+	case DEVICE_PROP_UINT32:
+	case DEVICE_PROP_UINT64:
+		break;
+	default:
+		return (-1);
+	}
+
+	if (propvalue == NULL || size == 0)
+		return (OF_getproplen(node, propname));
+
+	/*
+	 * Integer values are stored in BE format.
+	 * If caller declared that the underlying property type is uint32_t
+	 * we need to do the conversion to match host endianness.
+	 */
+	if (type == DEVICE_PROP_UINT32)
+		return (OF_getencprop(node, propname, propvalue, size));
+
+	/*
+	 * uint64_t also requires endianness handling.
+	 * In FDT every 8 byte value is stored using two uint32_t variables
+	 * in BE format. Now, since the upper bits are stored as the first
+	 * of the pair, both halves require swapping.
+	 */
+	 if (type == DEVICE_PROP_UINT64) {
+		ret = OF_getencprop(node, propname, propvalue, size);
+		if (ret <= 0) {
+			return (ret);
+		}
+
+		buffer = (uint32_t *)propvalue;
+
+		for (i = 0; i < size / 4; i += 2) {
+			val = (uint64_t)buffer[i] << 32 | buffer[i + 1];
+			((uint64_t *)buffer)[i / 2] = val;
+		}
+		return (ret);
+	 }
+
+	return (OF_getprop(node, propname, propvalue, size));
 }
 
 static struct resource *

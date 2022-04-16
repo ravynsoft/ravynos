@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -400,7 +400,7 @@ AcpiDmBlockType (
             return (BLOCK_NONE);
         }
 
-        /*lint -fallthrough */
+        ACPI_FALLTHROUGH;
 
     case AML_PACKAGE_OP:
     case AML_VARIABLE_PACKAGE_OP:
@@ -422,7 +422,7 @@ AcpiDmBlockType (
             return (BLOCK_NONE);
         }
 
-        /*lint -fallthrough */
+        ACPI_FALLTHROUGH;
 
     default:
 
@@ -688,7 +688,7 @@ AcpiDmDescendingOp (
                 return (AE_OK);
             }
 
-            /* Fallthrough */
+            ACPI_FALLTHROUGH;
 
         default:
 
@@ -772,7 +772,7 @@ AcpiDmDescendingOp (
                 AcpiDmNamestring (NextOp->Common.Value.Name);
                 AcpiOsPrintf (", ");
 
-                /*lint -fallthrough */
+                ACPI_FALLTHROUGH;
 
             default:
 
@@ -959,7 +959,15 @@ AcpiDmDescendingOp (
                 NextOp->Common.DisasmFlags |= ACPI_PARSEOP_IGNORE;
                 ASL_CV_CLOSE_PAREN (Op, Level);
 
-                /* Emit description comment for Name() with a predefined ACPI name */
+                if (Op->Asl.Parent->Common.AmlOpcode == AML_NAME_OP)
+                {
+                    /*
+                     * Emit description comment showing the full ACPI name
+                     * of the ResourceTemplate only if it was defined using a
+                     * Name statement.
+                     */
+                     AcpiDmPredefinedDescription (Op->Asl.Parent);
+                }
 
                 AcpiDmPredefinedDescription (Op->Asl.Parent);
 

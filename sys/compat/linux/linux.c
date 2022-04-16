@@ -1,6 +1,5 @@
 /*-
- * Copyright (c) 2015 Dmitry Chagin
- * All rights reserved.
+ * Copyright (c) 2015 Dmitry Chagin <dchagin@FreeBSD.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,9 +32,13 @@ __FBSDID("$FreeBSD$");
 #include <sys/systm.h>
 #include <sys/conf.h>
 #include <sys/ctype.h>
+#include <sys/file.h>
+#include <sys/filedesc.h>
 #include <sys/jail.h>
 #include <sys/lock.h>
 #include <sys/malloc.h>
+#include <sys/poll.h>
+#include <sys/proc.h>
 #include <sys/signalvar.h>
 #include <sys/socket.h>
 #include <sys/socketvar.h>
@@ -50,10 +53,8 @@ __FBSDID("$FreeBSD$");
 
 #include <compat/linux/linux.h>
 #include <compat/linux/linux_common.h>
+#include <compat/linux/linux_mib.h>
 #include <compat/linux/linux_util.h>
-
-struct futex_list futex_list;
-struct mtx futex_mtx;			/* protects the futex list */
 
 CTASSERT(LINUX_IFNAMSIZ == IFNAMSIZ);
 
@@ -626,4 +627,92 @@ linux_to_bsd_bits_(int value, struct bsd_to_linux_bitmap *bitmap,
 	if (!applied)
 		return (no_value);
 	return (bsd_ret);
+}
+
+void
+linux_to_bsd_poll_events(struct thread *td, int fd, short lev,
+    short *bev)
+{
+	struct file *fp;
+	int error;
+	short bits = 0;
+
+	if (lev & LINUX_POLLIN)
+		bits |= POLLIN;
+	if (lev & LINUX_POLLPRI)
+		bits |=	POLLPRI;
+	if (lev & LINUX_POLLOUT)
+		bits |= POLLOUT;
+	if (lev & LINUX_POLLERR)
+		bits |= POLLERR;
+	if (lev & LINUX_POLLHUP)
+		bits |= POLLHUP;
+	if (lev & LINUX_POLLNVAL)
+		bits |= POLLNVAL;
+	if (lev & LINUX_POLLRDNORM)
+		bits |= POLLRDNORM;
+	if (lev & LINUX_POLLRDBAND)
+		bits |= POLLRDBAND;
+	if (lev & LINUX_POLLWRBAND)
+		bits |= POLLWRBAND;
+	if (lev & LINUX_POLLWRNORM)
+		bits |= POLLWRNORM;
+
+	if (lev & LINUX_POLLRDHUP) {
+		/*
+		 * It seems that the Linux silencly ignores POLLRDHUP
+		 * on non-socket file descriptors unlike FreeBSD, where
+		 * events bits is more strictly checked (POLLSTANDARD).
+		 */
+		error = fget_unlocked(td, fd, &cap_no_rights, &fp);
+		if (error == 0) {
+			/*
+			 * XXX. On FreeBSD POLLRDHUP applies only to
+			 * stream sockets.
+			 */
+			if (fp->f_type == DTYPE_SOCKET)
+				bits |= POLLRDHUP;
+			fdrop(fp, td);
+		}
+	}
+
+	if (lev & LINUX_POLLMSG)
+		LINUX_RATELIMIT_MSG_OPT1("unsupported POLLMSG, events(%d)", lev);
+	if (lev & LINUX_POLLREMOVE)
+		LINUX_RATELIMIT_MSG_OPT1("unsupported POLLREMOVE, events(%d)", lev);
+
+	*bev = bits;
+}
+
+void
+bsd_to_linux_poll_events(short bev, short *lev)
+{
+	short bits = 0;
+
+	if (bev & POLLIN)
+		bits |= LINUX_POLLIN;
+	if (bev & POLLPRI)
+		bits |=	LINUX_POLLPRI;
+	if (bev & (POLLOUT | POLLWRNORM))
+		/*
+		 * POLLWRNORM is equal to POLLOUT on FreeBSD,
+		 * but not on Linux
+		 */
+		bits |= LINUX_POLLOUT;
+	if (bev & POLLERR)
+		bits |= LINUX_POLLERR;
+	if (bev & POLLHUP)
+		bits |= LINUX_POLLHUP;
+	if (bev & POLLNVAL)
+		bits |= LINUX_POLLNVAL;
+	if (bev & POLLRDNORM)
+		bits |= LINUX_POLLRDNORM;
+	if (bev & POLLRDBAND)
+		bits |= LINUX_POLLRDBAND;
+	if (bev & POLLWRBAND)
+		bits |= LINUX_POLLWRBAND;
+	if (bev & POLLRDHUP)
+		bits |= LINUX_POLLRDHUP;
+
+	*lev = bits;
 }

@@ -163,6 +163,12 @@ SYSCTL_PROC(_net_inet6_ip6, IPV6CTL_INTRQMAXLEN, intr_queue_maxlen,
     0, 0, sysctl_netinet6_intr_queue_maxlen, "I",
     "Maximum size of the IPv6 input queue");
 
+VNET_DEFINE_STATIC(bool, ip6_sav) = true;
+#define	V_ip6_sav	VNET(ip6_sav)
+SYSCTL_BOOL(_net_inet6_ip6, OID_AUTO, source_address_validation,
+    CTLFLAG_VNET | CTLFLAG_RW, &VNET_NAME(ip6_sav), true,
+    "Drop incoming packets with source address that is a local address");
+
 #ifdef RSS
 static struct netisr_handler ip6_direct_nh = {
 	.nh_name = "ip6_direct",
@@ -210,12 +216,10 @@ static int ip6_hopopts_input(u_int32_t *, u_int32_t *, struct mbuf **, int *);
  * IP6 initialization: fill in IP6 protocol switch table.
  * All protocols not implemented in kernel go to raw IP6 protocol handler.
  */
-void
-ip6_init(void)
+static void
+ip6_vnet_init(void *arg __unused)
 {
 	struct pfil_head_args args;
-	struct protosw *pr;
-	int i;
 
 	TUNABLE_INT_FETCH("net.inet6.ip6.auto_linklocal",
 	    &V_ip6_auto_linklocal);
@@ -253,21 +257,25 @@ ip6_init(void)
 
 	/* Skip global initialization stuff for non-default instances. */
 #ifdef VIMAGE
-	if (!IS_DEFAULT_VNET(curvnet)) {
-		netisr_register_vnet(&ip6_nh);
+	netisr_register_vnet(&ip6_nh);
 #ifdef RSS
-		netisr_register_vnet(&ip6_direct_nh);
+	netisr_register_vnet(&ip6_direct_nh);
 #endif
-		return;
-	}
 #endif
+}
+VNET_SYSINIT(ip6_vnet_init, SI_SUB_PROTO_DOMAIN, SI_ORDER_FOURTH,
+    ip6_vnet_init, NULL);
+
+static void
+ip6_init(void *arg __unused)
+{
+	struct protosw *pr;
 
 	pr = pffindproto(PF_INET6, IPPROTO_RAW, SOCK_RAW);
-	if (pr == NULL)
-		panic("ip6_init");
+	KASSERT(pr, ("%s: PF_INET6 not found", __func__));
 
 	/* Initialize the entire ip6_protox[] array to IPPROTO_RAW. */
-	for (i = 0; i < IPPROTO_MAX; i++)
+	for (int i = 0; i < IPPROTO_MAX; i++)
 		ip6_protox[i] = pr - inet6sw;
 	/*
 	 * Cycle through IP protocols and put them into the appropriate place
@@ -287,6 +295,7 @@ ip6_init(void)
 	netisr_register(&ip6_direct_nh);
 #endif
 }
+SYSINIT(ip6_init, SI_SUB_PROTO_DOMAIN, SI_ORDER_THIRD, ip6_init, NULL);
 
 /*
  * The protocol to be inserted into ip6_protox[] must be already registered
@@ -814,6 +823,12 @@ passin:
 			    "ip6_input: packet to an unready address %s->%s\n",
 			    ip6_sprintf(ip6bufs, &ip6->ip6_src),
 			    ip6_sprintf(ip6bufd, &ip6->ip6_dst)));
+			goto bad;
+		}
+		if (V_ip6_sav && !(rcvif->if_flags & IFF_LOOPBACK) &&
+		    __predict_false(in6_localip_fib(&ip6->ip6_src,
+			    rcvif->if_fib))) {
+			IP6STAT_INC(ip6s_badscope); /* XXX */
 			goto bad;
 		}
 		/* Count the packet in the ip address stats */

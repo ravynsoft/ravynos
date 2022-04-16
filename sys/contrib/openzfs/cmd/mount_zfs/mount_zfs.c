@@ -389,8 +389,8 @@ main(int argc, char **argv)
 				    "mount the filesystem again.\n"), dataset);
 				return (MOUNT_SYSERR);
 			}
-			fallthrough;
 #endif
+			zfs_fallthrough;
 		default:
 			(void) fprintf(stderr, gettext("filesystem "
 			    "'%s' can not be mounted: %s\n"), dataset,

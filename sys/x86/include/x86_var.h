@@ -38,7 +38,6 @@
 
 extern	long	Maxmem;
 extern	u_int	basemem;
-extern	int	busdma_swi_pending;
 extern	u_int	cpu_exthigh;
 extern	u_int	cpu_feature;
 extern	u_int	cpu_feature2;
@@ -95,6 +94,7 @@ extern	int	x86_taa_enable;
 extern	int	cpu_flush_rsb_ctxsw;
 extern	int	x86_rngds_mitg_enable;
 extern	int	cpu_amdc1e_bug;
+extern	char	bootmethod[16];
 
 struct	pcb;
 struct	thread;
@@ -114,7 +114,6 @@ typedef void alias_for_inthand_t(void);
 
 bool	acpi_get_fadt_bootflags(uint16_t *flagsp);
 void	*alloc_fpusave(int flags);
-void	busdma_swi(void);
 u_int	cpu_auxmsr(void);
 vm_paddr_t cpu_getmaxphyaddr(void);
 bool	cpu_mwait_usable(void);
@@ -153,6 +152,7 @@ int	pti_get_default(void);
 int	user_dbreg_trap(register_t dr6);
 int	cpu_minidumpsys(struct dumperinfo *, const struct minidumpstate *);
 struct pcb *get_pcb_td(struct thread *td);
+void	x86_set_fork_retval(struct thread *td);
 uint64_t rdtsc_ordered(void);
 
 /*

@@ -42,7 +42,6 @@
 #include <sys/queue.h>
 #endif
 
-struct thread;
 /*
  * Definitions for sysctl call.  The sysctl call uses a hierarchical name
  * for objects that can be examined or modified.  The name is expressed as
@@ -50,21 +49,15 @@ struct thread;
  * component depends on its place in the hierarchy.  The top-level and kern
  * identifiers are defined here, and other identifiers are defined in the
  * respective subsystem header files.
+ *
+ * Each subsystem defined by sysctl defines a list of variables for that
+ * subsystem. Each name is either a node with further levels defined below it,
+ * or it is a leaf of some particular type given below. Each sysctl level
+ * defines a set of name/type pairs to be used by sysctl(8) in manipulating the
+ * subsystem.
  */
 
 #define	CTL_MAXNAME	24	/* largest number of components supported */
-
-/*
- * Each subsystem defined by sysctl defines a list of variables
- * for that subsystem. Each name is either a node with further
- * levels defined below it, or it is a leaf of some particular
- * type given below. Each sysctl level defines a set of name/type
- * pairs to be used by sysctl(8) in manipulating the subsystem.
- */
-struct ctlname {
-	char	*ctl_name;	/* subsystem name */
-	int	 ctl_type;	/* type of name */
-};
 
 #define	CTLTYPE		0xf	/* mask for the type */
 #define	CTLTYPE_NODE	1	/* name is a node */
@@ -164,6 +157,7 @@ struct ctlname {
  * This describes the access space for a sysctl request.  This is needed
  * so that we can use the interface from the kernel or from user-space.
  */
+struct thread;
 struct sysctl_req {
 	struct thread	*td;		/* used for access checking */
 	int		 lock;		/* wiring state */
@@ -982,6 +976,7 @@ TAILQ_HEAD(sysctl_ctx_list, sysctl_ctx_entry);
 #define	KERN_HOSTUUID		36	/* string: host UUID identifier */
 #define	KERN_ARND		37	/* int: from arc4rand() */
 #define	KERN_MAXPHYS		38	/* int: MAXPHYS value */
+#define	KERN_LOCKF		39	/* struct: lockf reports */
 /*
  * KERN_PROC subtypes
  */
@@ -1019,6 +1014,7 @@ TAILQ_HEAD(sysctl_ctx_list, sysctl_ctx_entry);
 #define	KERN_PROC_CWD		42	/* process current working directory */
 #define	KERN_PROC_NFDS		43	/* number of open file descriptors */
 #define	KERN_PROC_SIGFASTBLK	44	/* address of fastsigblk magic word */
+#define	KERN_PROC_VM_LAYOUT	45	/* virtual address space layout info */
 
 /*
  * KERN_IPC identifiers
@@ -1180,9 +1176,14 @@ struct sbuf *sbuf_new_for_sysctl(struct sbuf *, char *, int,
 	    struct sysctl_req *);
 #else	/* !_KERNEL */
 #include <sys/cdefs.h>
+#include <sys/_types.h>
+#ifndef _SIZE_T_DECLARED
+typedef	__size_t	size_t;
+#define	_SIZE_T_DECLARED
+#endif
 
 __BEGIN_DECLS
-int	sysctl(const int *, u_int, void *, size_t *, const void *, size_t);
+int	sysctl(const int *, unsigned int, void *, size_t *, const void *, size_t);
 int	sysctlbyname(const char *, void *, size_t *, const void *, size_t);
 int	sysctlnametomib(const char *, int *, size_t *);
 __END_DECLS

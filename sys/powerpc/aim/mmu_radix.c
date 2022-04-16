@@ -25,6 +25,8 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "opt_platform.h"
+
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
@@ -84,6 +86,9 @@ __FBSDID("$FreeBSD$");
 #include <machine/trap.h>
 #include <machine/mmuvar.h>
 
+/* For pseries bit. */
+#include <powerpc/pseries/phyp-hvcall.h>
+
 #ifdef INVARIANTS
 #include <vm/uma_dbg.h>
 #endif
@@ -93,6 +98,7 @@ __FBSDID("$FreeBSD$");
 #define PPC_BITLSHIFT_VAL(val, bit) ((val) << PPC_BITLSHIFT(bit))
 
 #include "opt_ddb.h"
+
 #ifdef DDB
 static void pmap_pte_walk(pml1_entry_t *l1, vm_offset_t va);
 #endif
@@ -512,6 +518,7 @@ static struct pmap_funcs mmu_radix_methods = {
 	.dumpsys_map_chunk = mmu_radix_dumpsys_map,
 	.page_is_mapped = mmu_radix_page_is_mapped,
 	.ps_enabled = mmu_radix_ps_enabled,
+	.align_superpage = mmu_radix_align_superpage,
 	.object_init_pt = mmu_radix_object_init_pt,
 	.protect = mmu_radix_protect,
 	/* pmap dispatcher interface */
@@ -650,10 +657,10 @@ extern void bs_remap_earlyboot(void);
 #define PARTTAB_HR		(1UL << 63) /* host uses radix */
 #define PARTTAB_GR		(1UL << 63) /* guest uses radix must match host */
 
-/* TLB flush actions. Used as argument to tlbiel_all() */
+/* TLB flush actions. Used as argument to tlbiel_flush() */
 enum {
-	TLB_INVAL_SCOPE_LPID = 0,	/* invalidate TLBs for current LPID */
-	TLB_INVAL_SCOPE_GLOBAL = 1,	/* invalidate all TLBs */
+	TLB_INVAL_SCOPE_LPID = 2,	/* invalidate TLBs for current LPID */
+	TLB_INVAL_SCOPE_GLOBAL = 3,	/* invalidate all TLBs */
 };
 
 #define	NPV_LIST_LOCKS	MAXCPU
@@ -751,9 +758,11 @@ tlbiel_flush_isa3(uint32_t num_sets, uint32_t is)
 	 * and partition table entries. Then flush the remaining sets of the
 	 * TLB.
 	 */
-	tlbiel_radix_set_isa300(0, is, 0, RIC_FLUSH_ALL, 0);
-	for (set = 1; set < num_sets; set++)
-		tlbiel_radix_set_isa300(set, is, 0, RIC_FLUSH_TLB, 0);
+	if (is == TLB_INVAL_SCOPE_GLOBAL) {
+		tlbiel_radix_set_isa300(0, is, 0, RIC_FLUSH_ALL, 0);
+		for (set = 1; set < num_sets; set++)
+			tlbiel_radix_set_isa300(set, is, 0, RIC_FLUSH_TLB, 0);
+	}
 
 	/* Do the same for process scoped entries. */
 	tlbiel_radix_set_isa300(0, is, 0, RIC_FLUSH_ALL, 1);
@@ -766,21 +775,20 @@ tlbiel_flush_isa3(uint32_t num_sets, uint32_t is)
 static void
 mmu_radix_tlbiel_flush(int scope)
 {
-	int is;
-
 	MPASS(scope == TLB_INVAL_SCOPE_LPID ||
 		  scope == TLB_INVAL_SCOPE_GLOBAL);
-	is = scope + 2;
 
-	tlbiel_flush_isa3(POWER9_TLB_SETS_RADIX, is);
+	tlbiel_flush_isa3(POWER9_TLB_SETS_RADIX, scope);
 	__asm __volatile(PPC_INVALIDATE_ERAT "; isync" : : :"memory");
 }
 
 static void
 mmu_radix_tlbie_all()
 {
-	/* TODO: LPID invalidate */
-	mmu_radix_tlbiel_flush(TLB_INVAL_SCOPE_GLOBAL);
+	if (powernv_enabled)
+		mmu_radix_tlbiel_flush(TLB_INVAL_SCOPE_GLOBAL);
+	else
+		mmu_radix_tlbiel_flush(TLB_INVAL_SCOPE_LPID);
 }
 
 static void
@@ -2021,11 +2029,14 @@ mmu_radix_early_bootstrap(vm_offset_t start, vm_offset_t end)
 	 */
 	if (isa3_pid_bits == 0)
 		isa3_pid_bits = 20;
-	parttab_phys = moea64_bootstrap_alloc(PARTTAB_SIZE, PARTTAB_SIZE);
-	validate_addr(parttab_phys, PARTTAB_SIZE);
-	for (int i = 0; i < PARTTAB_SIZE/PAGE_SIZE; i++)
-		pagezero(PHYS_TO_DMAP(parttab_phys + i * PAGE_SIZE));
+	if (powernv_enabled) {
+		parttab_phys =
+		    moea64_bootstrap_alloc(PARTTAB_SIZE, PARTTAB_SIZE);
+		validate_addr(parttab_phys, PARTTAB_SIZE);
+		for (int i = 0; i < PARTTAB_SIZE/PAGE_SIZE; i++)
+			pagezero(PHYS_TO_DMAP(parttab_phys + i * PAGE_SIZE));
 
+	}
 	proctab_size = 1UL << PROCTAB_SIZE_SHIFT;
 	proctab0pa = moea64_bootstrap_alloc(proctab_size, proctab_size);
 	validate_addr(proctab0pa, proctab_size);
@@ -2172,12 +2183,26 @@ mmu_radix_proctab_init(void)
 	    htobe64(RTS_SIZE | DMAP_TO_PHYS((vm_offset_t)kernel_pmap->pm_pml1) |
 		RADIX_PGD_INDEX_SHIFT);
 
-	mmu_radix_proctab_register(proctab0pa, PROCTAB_SIZE_SHIFT - 12);
+	if (powernv_enabled) {
+		mmu_radix_proctab_register(proctab0pa, PROCTAB_SIZE_SHIFT - 12);
+		__asm __volatile("ptesync" : : : "memory");
+		__asm __volatile(PPC_TLBIE_5(%0,%1,2,1,1) : :
+			     "r" (TLBIEL_INVAL_SET_LPID), "r" (0));
+		__asm __volatile("eieio; tlbsync; ptesync" : : : "memory");
+#ifdef PSERIES
+	} else {
+		int64_t rc;
 
-	__asm __volatile("ptesync" : : : "memory");
-	__asm __volatile(PPC_TLBIE_5(%0,%1,2,1,1) : :
-		     "r" (TLBIEL_INVAL_SET_LPID), "r" (0));
-	__asm __volatile("eieio; tlbsync; ptesync" : : : "memory");
+		rc = phyp_hcall(H_REGISTER_PROC_TBL,
+		    PROC_TABLE_NEW | PROC_TABLE_RADIX | PROC_TABLE_GTSE,
+		    proctab0pa, 0, PROCTAB_SIZE_SHIFT - 12);
+		if (rc != H_SUCCESS)
+			panic("mmu_radix_proctab_init: "
+				"failed to register process table: rc=%jd",
+				(intmax_t)rc);
+#endif
+	}
+
 	if (bootverbose)
 		printf("process table %p and kernel radix PDE: %p\n",
 			   isa3_proctab, kernel_pmap->pm_pml1);
@@ -2198,11 +2223,11 @@ mmu_radix_advise(pmap_t pmap, vm_offset_t sva, vm_offset_t eva,
 	pt_entry_t *pte;
 	vm_offset_t va, va_next;
 	vm_page_t m;
-	boolean_t anychanged;
+	bool anychanged;
 
 	if (advice != MADV_DONTNEED && advice != MADV_FREE)
 		return;
-	anychanged = FALSE;
+	anychanged = false;
 	PMAP_LOCK(pmap);
 	for (; sva < eva; sva = va_next) {
 		l1e = pmap_pml1e(pmap, sva);
@@ -2243,17 +2268,25 @@ mmu_radix_advise(pmap_t pmap, vm_offset_t sva, vm_offset_t eva,
 			/*
 			 * Unless the page mappings are wired, remove the
 			 * mapping to a single page so that a subsequent
-			 * access may repromote.  Since the underlying page
-			 * table page is fully populated, this removal never
-			 * frees a page table page.
+			 * access may repromote.  Choosing the last page
+			 * within the address range [sva, min(va_next, eva))
+			 * generally results in more repromotions.  Since the
+			 * underlying page table page is fully populated, this
+			 * removal never frees a page table page.
 			 */
 			if ((oldl3e & PG_W) == 0) {
-				pte = pmap_l3e_to_pte(l3e, sva);
+				va = eva;
+				if (va > va_next)
+					va = va_next;
+				va -= PAGE_SIZE;
+				KASSERT(va >= sva,
+				    ("mmu_radix_advise: no address gap"));
+				pte = pmap_l3e_to_pte(l3e, va);
 				KASSERT((be64toh(*pte) & PG_V) != 0,
 				    ("pmap_advise: invalid PTE"));
-				pmap_remove_pte(pmap, pte, sva, be64toh(*l3e), NULL,
+				pmap_remove_pte(pmap, pte, va, be64toh(*l3e), NULL,
 				    &lock);
-				anychanged = TRUE;
+				anychanged = true;
 			}
 			if (lock != NULL)
 				rw_wunlock(lock);
@@ -2282,7 +2315,7 @@ mmu_radix_advise(pmap_t pmap, vm_offset_t sva, vm_offset_t eva,
 				atomic_clear_long(pte, htobe64(PG_A));
 			else
 				goto maybe_invlrng;
-			anychanged = TRUE;
+			anychanged = true;
 			continue;
 maybe_invlrng:
 			if (va != va_next) {
@@ -2309,6 +2342,7 @@ mmu_radix_bootstrap(vm_offset_t start, vm_offset_t end)
 	if (bootverbose)
 		printf("%s\n", __func__);
 	hw_direct_map = 1;
+	powernv_enabled = (mfmsr() & PSL_HV) ? 1 : 0;
 	mmu_radix_early_bootstrap(start, end);
 	if (bootverbose)
 		printf("early bootstrap complete\n");
@@ -2323,8 +2357,10 @@ mmu_radix_bootstrap(vm_offset_t start, vm_offset_t end)
 	mmu_radix_init_iamr();
 	mmu_radix_proctab_init();
 	mmu_radix_pid_set(kernel_pmap);
-	/* XXX assume CPU_FTR_HVMODE */
-	mmu_radix_tlbiel_flush(TLB_INVAL_SCOPE_GLOBAL);
+	if (powernv_enabled)
+		mmu_radix_tlbiel_flush(TLB_INVAL_SCOPE_GLOBAL);
+	else
+		mmu_radix_tlbiel_flush(TLB_INVAL_SCOPE_LPID);
 
 	mmu_radix_late_bootstrap(start, end);
 	numa_mem_regions(&numa_pregions, &numa_pregions_sz);
@@ -2351,34 +2387,37 @@ mmu_radix_cpu_bootstrap(int ap)
 	}
 	mmu_radix_init_iamr();
 	mmu_radix_pid_set(kernel_pmap);
-	mmu_radix_tlbiel_flush(TLB_INVAL_SCOPE_GLOBAL);
+	if (powernv_enabled)
+		mmu_radix_tlbiel_flush(TLB_INVAL_SCOPE_GLOBAL);
+	else
+		mmu_radix_tlbiel_flush(TLB_INVAL_SCOPE_LPID);
 }
 
 static SYSCTL_NODE(_vm_pmap, OID_AUTO, l3e, CTLFLAG_RD, 0,
     "2MB page mapping counters");
 
-static u_long pmap_l3e_demotions;
-SYSCTL_ULONG(_vm_pmap_l3e, OID_AUTO, demotions, CTLFLAG_RD,
-    &pmap_l3e_demotions, 0, "2MB page demotions");
+static COUNTER_U64_DEFINE_EARLY(pmap_l3e_demotions);
+SYSCTL_COUNTER_U64(_vm_pmap_l3e, OID_AUTO, demotions, CTLFLAG_RD,
+    &pmap_l3e_demotions, "2MB page demotions");
 
-static u_long pmap_l3e_mappings;
-SYSCTL_ULONG(_vm_pmap_l3e, OID_AUTO, mappings, CTLFLAG_RD,
-    &pmap_l3e_mappings, 0, "2MB page mappings");
+static COUNTER_U64_DEFINE_EARLY(pmap_l3e_mappings);
+SYSCTL_COUNTER_U64(_vm_pmap_l3e, OID_AUTO, mappings, CTLFLAG_RD,
+    &pmap_l3e_mappings, "2MB page mappings");
 
-static u_long pmap_l3e_p_failures;
-SYSCTL_ULONG(_vm_pmap_l3e, OID_AUTO, p_failures, CTLFLAG_RD,
-    &pmap_l3e_p_failures, 0, "2MB page promotion failures");
+static COUNTER_U64_DEFINE_EARLY(pmap_l3e_p_failures);
+SYSCTL_COUNTER_U64(_vm_pmap_l3e, OID_AUTO, p_failures, CTLFLAG_RD,
+    &pmap_l3e_p_failures, "2MB page promotion failures");
 
-static u_long pmap_l3e_promotions;
-SYSCTL_ULONG(_vm_pmap_l3e, OID_AUTO, promotions, CTLFLAG_RD,
-    &pmap_l3e_promotions, 0, "2MB page promotions");
+static COUNTER_U64_DEFINE_EARLY(pmap_l3e_promotions);
+SYSCTL_COUNTER_U64(_vm_pmap_l3e, OID_AUTO, promotions, CTLFLAG_RD,
+    &pmap_l3e_promotions, "2MB page promotions");
 
 static SYSCTL_NODE(_vm_pmap, OID_AUTO, l2e, CTLFLAG_RD, 0,
     "1GB page mapping counters");
 
-static u_long pmap_l2e_demotions;
-SYSCTL_ULONG(_vm_pmap_l2e, OID_AUTO, demotions, CTLFLAG_RD,
-    &pmap_l2e_demotions, 0, "1GB page demotions");
+static COUNTER_U64_DEFINE_EARLY(pmap_l2e_demotions);
+SYSCTL_COUNTER_U64(_vm_pmap_l2e, OID_AUTO, demotions, CTLFLAG_RD,
+    &pmap_l2e_demotions, "1GB page demotions");
 
 void
 mmu_radix_clear_modify(vm_page_t m)
@@ -2424,28 +2463,24 @@ restart:
 		va = pv->pv_va;
 		l3e = pmap_pml3e(pmap, va);
 		oldl3e = be64toh(*l3e);
-		if ((oldl3e & PG_RW) != 0) {
-			if (pmap_demote_l3e_locked(pmap, l3e, va, &lock)) {
-				if ((oldl3e & PG_W) == 0) {
-					/*
-					 * Write protect the mapping to a
-					 * single page so that a subsequent
-					 * write access may repromote.
-					 */
-					va += VM_PAGE_TO_PHYS(m) - (oldl3e &
-					    PG_PS_FRAME);
-					pte = pmap_l3e_to_pte(l3e, va);
-					oldpte = be64toh(*pte);
-					if ((oldpte & PG_V) != 0) {
-						while (!atomic_cmpset_long(pte,
-						    htobe64(oldpte),
-							htobe64((oldpte | RPTE_EAA_R) & ~(PG_M | PG_RW))))
-							   oldpte = be64toh(*pte);
-						vm_page_dirty(m);
-						pmap_invalidate_page(pmap, va);
-					}
-				}
-			}
+		if ((oldl3e & PG_RW) != 0 &&
+		    pmap_demote_l3e_locked(pmap, l3e, va, &lock) &&
+		    (oldl3e & PG_W) == 0) {
+			/*
+			 * Write protect the mapping to a
+			 * single page so that a subsequent
+			 * write access may repromote.
+			 */
+			va += VM_PAGE_TO_PHYS(m) - (oldl3e &
+			    PG_PS_FRAME);
+			pte = pmap_l3e_to_pte(l3e, va);
+			oldpte = be64toh(*pte);
+			while (!atomic_cmpset_long(pte,
+			    htobe64(oldpte),
+				htobe64((oldpte | RPTE_EAA_R) & ~(PG_M | PG_RW))))
+				   oldpte = be64toh(*pte);
+			vm_page_dirty(m);
+			pmap_invalidate_page(pmap, va);
 		}
 		PMAP_UNLOCK(pmap);
 	}
@@ -2550,7 +2585,7 @@ mmu_radix_copy(pmap_t dst_pmap, pmap_t src_pmap, vm_offset_t dst_addr,
 				*l3e = htobe64(srcptepaddr & ~PG_W);
 				pmap_resident_count_inc(dst_pmap,
 				    L3_PAGE_SIZE / PAGE_SIZE);
-				atomic_add_long(&pmap_l3e_mappings, 1);
+				counter_u64_add(pmap_l3e_mappings, 1);
 			} else
 				dst_pdpg->ref_count--;
 			continue;
@@ -2699,7 +2734,7 @@ pmap_promote_l3e(pmap_t pmap, pml3_entry_t *pde, vm_offset_t va,
 	 */
 	firstpte = (pt_entry_t *)PHYS_TO_DMAP(be64toh(*pde) & PG_FRAME);
 setpde:
-	newpde = *firstpte;
+	newpde = be64toh(*firstpte);
 	if ((newpde & ((PG_FRAME & L3_PAGE_MASK) | PG_A | PG_V)) != (PG_A | PG_V)) {
 		CTR2(KTR_PMAP, "pmap_promote_l3e: failure for va %#lx"
 		    " in pmap %p", va, pmap);
@@ -2775,12 +2810,12 @@ setpte:
 
 	pte_store(pde, PG_PROMOTED | newpde);
 	ptesync();
-	atomic_add_long(&pmap_l3e_promotions, 1);
+	counter_u64_add(pmap_l3e_promotions, 1);
 	CTR2(KTR_PMAP, "pmap_promote_l3e: success for va %#lx"
 	    " in pmap %p", va, pmap);
 	return (0);
  fail:
-	atomic_add_long(&pmap_l3e_p_failures, 1);
+	counter_u64_add(pmap_l3e_p_failures, 1);
 	return (KERN_FAILURE);
 }
 #endif /* VM_NRESERVLEVEL > 0 */
@@ -2805,8 +2840,7 @@ mmu_radix_enter(pmap_t pmap, vm_offset_t va, vm_page_t m,
 	CTR6(KTR_PMAP, "pmap_enter(%p, %#lx, %p, %#x, %#x, %d)", pmap, va,
 	    m, prot, flags, psind);
 	KASSERT(va <= VM_MAX_KERNEL_ADDRESS, ("pmap_enter: toobig"));
-	KASSERT((m->oflags & VPO_UNMANAGED) != 0 || va < kmi.clean_sva ||
-	    va >= kmi.clean_eva,
+	KASSERT((m->oflags & VPO_UNMANAGED) != 0 || !VA_IS_CLEANMAP(va),
 	    ("pmap_enter: managed mapping within the clean submap"));
 	if ((m->oflags & VPO_UNMANAGED) == 0)
 		VM_PAGE_OBJECT_BUSY_ASSERT(m);
@@ -2900,7 +2934,9 @@ retry:
 			    " asid=%lu curpid=%d name=%s origpte0x%lx\n",
 			    pmap, va, m, prot, flags, psind, pmap->pm_pid,
 			    curproc->p_pid, curproc->p_comm, origpte);
+#ifdef DDB
 			pmap_pte_walk(pmap->pm_pml1, va);
+#endif
 		}
 #endif
 		/*
@@ -2984,7 +3020,9 @@ retry:
 #ifdef INVARIANTS
 			else if (origpte & PG_MANAGED) {
 				if (pv == NULL) {
+#ifdef DDB
 					pmap_page_print_mappings(om);
+#endif
 					MPASS(pv != NULL);
 				}
 			}
@@ -3238,7 +3276,7 @@ pmap_enter_l3e(pmap_t pmap, vm_offset_t va, pml3_entry_t newpde, u_int flags,
 	pte_store(l3e, newpde);
 	ptesync();
 
-	atomic_add_long(&pmap_l3e_mappings, 1);
+	counter_u64_add(pmap_l3e_mappings, 1);
 	CTR2(KTR_PMAP, "pmap_enter_pde: success for va %#lx"
 	    " in pmap %p", va, pmap);
 	return (KERN_SUCCESS);
@@ -3292,7 +3330,7 @@ mmu_radix_enter_quick_locked(pmap_t pmap, vm_offset_t va, vm_page_t m,
 	pt_entry_t *pte;
 	vm_paddr_t pa;
 
-	KASSERT(va < kmi.clean_sva || va >= kmi.clean_eva ||
+	KASSERT(!VA_IS_CLEANMAP(va) ||
 	    (m->oflags & VPO_UNMANAGED) != 0,
 	    ("mmu_radix_enter_quick_locked: managed mapping within the clean submap"));
 	PMAP_LOCK_ASSERT(pmap, MA_OWNED);
@@ -3448,10 +3486,8 @@ mmu_radix_extract_and_hold(pmap_t pmap, vm_offset_t va, vm_prot_t prot)
 {
 	pml3_entry_t l3e, *l3ep;
 	pt_entry_t pte;
-	vm_paddr_t pa;
 	vm_page_t m;
 
-	pa = 0;
 	m = NULL;
 	CTR4(KTR_PMAP, "%s(%p, %#x, %#x)", __func__, pmap, va, prot);
 	PMAP_LOCK(pmap);
@@ -4025,7 +4061,7 @@ mmu_radix_object_init_pt(pmap_t pmap, vm_offset_t addr,
 				pa |= PG_M | PG_A | PG_RW;
 				pte_store(l3e, pa);
 				pmap_resident_count_inc(pmap, L3_PAGE_SIZE / PAGE_SIZE);
-				atomic_add_long(&pmap_l3e_mappings, 1);
+				counter_u64_add(pmap_l3e_mappings, 1);
 			} else {
 				/* Continue on if the PDE is already valid. */
 				pdpg->ref_count--;
@@ -4714,7 +4750,7 @@ _pmap_unwire_ptp(pmap_t pmap, vm_offset_t va, vm_page_t m, struct spglist *free)
 	/*
 	 * unmap the page table page
 	 */
-	if (m->pindex >= (NUPDE + NUPDPE)) {
+	if (m->pindex >= NUPDE + NUPDPE) {
 		/* PDP page */
 		pml1_entry_t *pml1;
 		pml1 = pmap_pml1e(pmap, va);
@@ -4738,7 +4774,7 @@ _pmap_unwire_ptp(pmap_t pmap, vm_offset_t va, vm_page_t m, struct spglist *free)
 		pdpg = PHYS_TO_VM_PAGE(be64toh(*pmap_pml2e(pmap, va)) & PG_FRAME);
 		pmap_unwire_ptp(pmap, va, pdpg, free);
 	}
-	if (m->pindex >= NUPDE && m->pindex < (NUPDE + NUPDPE)) {
+	else if (m->pindex >= NUPDE && m->pindex < (NUPDE + NUPDPE)) {
 		/* We just released a PD, unhold the matching PDP */
 		vm_page_t pdppg;
 
@@ -4943,7 +4979,7 @@ pmap_demote_l3e_locked(pmap_t pmap, pml3_entry_t *l3e, vm_offset_t va,
 	if ((oldpde & PG_MANAGED) != 0)
 		pmap_pv_demote_l3e(pmap, va, oldpde & PG_PS_FRAME, lockp);
 
-	atomic_add_long(&pmap_l3e_demotions, 1);
+	counter_u64_add(pmap_l3e_demotions, 1);
 	CTR2(KTR_PMAP, "pmap_demote_l3e: success for va %#lx"
 	    " in pmap %p", va, pmap);
 	return (TRUE);
@@ -5940,7 +5976,7 @@ pmap_demote_l2e(pmap_t pmap, pml2_entry_t *l2e, vm_offset_t va)
 	 */
 	pmap_invalidate_all(pmap);
 
-	pmap_l2e_demotions++;
+	counter_u64_add(pmap_l2e_demotions, 1);
 	CTR2(KTR_PMAP, "pmap_demote_pdpe: success for va %#lx"
 	    " in pmap %p", va, pmap);
 	return (TRUE);

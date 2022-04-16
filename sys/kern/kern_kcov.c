@@ -35,7 +35,8 @@
  * $FreeBSD$
  */
 
-#ifdef KCSAN
+/* Interceptors are required for KMSAN. */
+#if defined(KASAN) || defined(KCSAN)
 #define	SAN_RUNTIME
 #endif
 
@@ -164,7 +165,7 @@ SYSCTL_UINT(_kern_kcov, OID_AUTO, max_entries, CTLFLAG_RW,
 static struct mtx kcov_lock;
 static int active_count;
 
-static struct kcov_info *
+static struct kcov_info * __nosanitizeaddress __nosanitizememory
 get_kinfo(struct thread *td)
 {
 	struct kcov_info *info;
@@ -191,7 +192,7 @@ get_kinfo(struct thread *td)
 	return (info);
 }
 
-static void
+static void __nosanitizeaddress __nosanitizememory
 trace_pc(uintptr_t ret)
 {
 	struct thread *td;
@@ -209,8 +210,7 @@ trace_pc(uintptr_t ret)
 	if (info->mode != KCOV_MODE_TRACE_PC)
 		return;
 
-	KASSERT(info->kvaddr != 0,
-	    ("__sanitizer_cov_trace_pc: NULL buf while running"));
+	KASSERT(info->kvaddr != 0, ("%s: NULL buf while running", __func__));
 
 	buf = (uint64_t *)info->kvaddr;
 
@@ -223,7 +223,7 @@ trace_pc(uintptr_t ret)
 	buf[0] = index + 1;
 }
 
-static bool
+static bool __nosanitizeaddress __nosanitizememory
 trace_cmp(uint64_t type, uint64_t arg1, uint64_t arg2, uint64_t ret)
 {
 	struct thread *td;
@@ -241,8 +241,7 @@ trace_cmp(uint64_t type, uint64_t arg1, uint64_t arg2, uint64_t ret)
 	if (info->mode != KCOV_MODE_TRACE_CMP)
 		return (false);
 
-	KASSERT(info->kvaddr != 0,
-	    ("__sanitizer_cov_trace_pc: NULL buf while running"));
+	KASSERT(info->kvaddr != 0, ("%s: NULL buf while running", __func__));
 
 	buf = (uint64_t *)info->kvaddr;
 

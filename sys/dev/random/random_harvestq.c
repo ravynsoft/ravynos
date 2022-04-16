@@ -285,13 +285,6 @@ random_sources_feed(void)
 	explicit_bzero(entropy, sizeof(entropy));
 }
 
-void
-read_rate_increment(u_int chunk)
-{
-
-	/* Stubbed to maintain KBI; removed in FreeBSD 14.0. */
-}
-
 /* ARGSUSED */
 static int
 random_check_uint_harvestmask(SYSCTL_HANDLER_ARGS)
@@ -356,7 +349,8 @@ static const char *random_source_descr[ENTROPYSOURCE] = {
 	[RANDOM_INTERRUPT] = "INTERRUPT",
 	[RANDOM_SWI] = "SWI",
 	[RANDOM_FS_ATIME] = "FS_ATIME",
-	[RANDOM_UMA] = "UMA", /* ENVIRONMENTAL_END */
+	[RANDOM_UMA] = "UMA",
+	[RANDOM_CALLOUT] = "CALLOUT", /* ENVIRONMENTAL_END */
 	[RANDOM_PURE_OCTEON] = "PURE_OCTEON", /* PURE_START */
 	[RANDOM_PURE_SAFE] = "PURE_SAFE",
 	[RANDOM_PURE_GLXSB] = "PURE_GLXSB",

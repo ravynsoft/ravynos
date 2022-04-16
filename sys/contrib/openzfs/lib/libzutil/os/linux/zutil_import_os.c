@@ -75,21 +75,21 @@
 #endif
 #include <blkid/blkid.h>
 
-#define	DEFAULT_IMPORT_PATH_SIZE	9
 #define	DEV_BYID_PATH	"/dev/disk/by-id/"
 
+/*
+ * Skip devices with well known prefixes:
+ * there can be side effects when opening devices which need to be avoided.
+ *
+ * hpet        - High Precision Event Timer
+ * watchdog[N] - Watchdog must be closed in a special way.
+ */
 static boolean_t
-is_watchdog_dev(char *dev)
+should_skip_dev(const char *dev)
 {
-	/* For 'watchdog' dev */
-	if (strcmp(dev, "watchdog") == 0)
-		return (B_TRUE);
-
-	/* For 'watchdog<digit><whatever> */
-	if (strstr(dev, "watchdog") == dev && isdigit(dev[8]))
-		return (B_TRUE);
-
-	return (B_FALSE);
+	return ((strcmp(dev, "watchdog") == 0) ||
+	    (strncmp(dev, "watchdog", 8) == 0 && isdigit(dev[8])) ||
+	    (strcmp(dev, "hpet") == 0));
 }
 
 int
@@ -105,31 +105,21 @@ zpool_open_func(void *arg)
 	libpc_handle_t *hdl = rn->rn_hdl;
 	struct stat64 statbuf;
 	nvlist_t *config;
-	char *bname, *dupname;
 	uint64_t vdev_guid = 0;
 	int error;
 	int num_labels = 0;
 	int fd;
 
-	/*
-	 * Skip devices with well known prefixes there can be side effects
-	 * when opening devices which need to be avoided.
-	 *
-	 * hpet     - High Precision Event Timer
-	 * watchdog - Watchdog must be closed in a special way.
-	 */
-	dupname = zutil_strdup(hdl, rn->rn_name);
-	bname = basename(dupname);
-	error = ((strcmp(bname, "hpet") == 0) || is_watchdog_dev(bname));
-	free(dupname);
-	if (error)
+	if (should_skip_dev(zfs_basename(rn->rn_name)))
 		return;
 
 	/*
 	 * Ignore failed stats.  We only want regular files and block devices.
+	 * Ignore files that are too small to hold a zpool.
 	 */
 	if (stat64(rn->rn_name, &statbuf) != 0 ||
-	    (!S_ISREG(statbuf.st_mode) && !S_ISBLK(statbuf.st_mode)))
+	    (!S_ISREG(statbuf.st_mode) && !S_ISBLK(statbuf.st_mode)) ||
+	    (S_ISREG(statbuf.st_mode) && statbuf.st_size < SPA_MINDEVSIZE))
 		return;
 
 	/*
@@ -144,14 +134,6 @@ zpool_open_func(void *arg)
 		hdl->lpc_open_access_error = B_TRUE;
 	if (fd < 0)
 		return;
-
-	/*
-	 * This file is too small to hold a zpool
-	 */
-	if (S_ISREG(statbuf.st_mode) && statbuf.st_size < SPA_MINDEVSIZE) {
-		(void) close(fd);
-		return;
-	}
 
 	error = zpool_read_label(fd, &config, &num_labels);
 	if (error != 0) {
@@ -256,8 +238,8 @@ zpool_open_func(void *arg)
 	}
 }
 
-static char *
-zpool_default_import_path[DEFAULT_IMPORT_PATH_SIZE] = {
+static const char * const
+zpool_default_import_path[] = {
 	"/dev/disk/by-vdev",	/* Custom rules, use first if they exist */
 	"/dev/mapper",		/* Use multipath devices before components */
 	"/dev/disk/by-partlabel", /* Single unique entry set by user */
@@ -272,8 +254,8 @@ zpool_default_import_path[DEFAULT_IMPORT_PATH_SIZE] = {
 const char * const *
 zpool_default_search_paths(size_t *count)
 {
-	*count = DEFAULT_IMPORT_PATH_SIZE;
-	return ((const char * const *)zpool_default_import_path);
+	*count = ARRAY_SIZE(zpool_default_import_path);
+	return (zpool_default_import_path);
 }
 
 /*
@@ -282,37 +264,36 @@ zpool_default_search_paths(size_t *count)
  * index in the passed 'order' variable, otherwise return an error.
  */
 static int
-zfs_path_order(char *name, int *order)
+zfs_path_order(const char *name, int *order)
 {
-	int i = 0, error = ENOENT;
-	char *dir, *env, *envdup;
+	const char *env = getenv("ZPOOL_IMPORT_PATH");
 
-	env = getenv("ZPOOL_IMPORT_PATH");
 	if (env) {
-		envdup = strdup(env);
-		dir = strtok(envdup, ":");
-		while (dir) {
-			if (strncmp(name, dir, strlen(dir)) == 0) {
-				*order = i;
-				error = 0;
+		for (int i = 0; ; ++i) {
+			env += strspn(env, ":");
+			size_t dirlen = strcspn(env, ":");
+			if (dirlen) {
+				if (strncmp(name, env, dirlen) == 0) {
+					*order = i;
+					return (0);
+				}
+
+				env += dirlen;
+			} else
 				break;
-			}
-			dir = strtok(NULL, ":");
-			i++;
 		}
-		free(envdup);
 	} else {
-		for (i = 0; i < DEFAULT_IMPORT_PATH_SIZE; i++) {
+		for (int i = 0; i < ARRAY_SIZE(zpool_default_import_path);
+		    ++i) {
 			if (strncmp(name, zpool_default_import_path[i],
 			    strlen(zpool_default_import_path[i])) == 0) {
 				*order = i;
-				error = 0;
-				break;
+				return (0);
 			}
 		}
 	}
 
-	return (error);
+	return (ENOENT);
 }
 
 /*
@@ -579,17 +560,17 @@ udev_device_is_ready(struct udev_device *dev)
 
 #else
 
-/* ARGSUSED */
 int
 zfs_device_get_devid(struct udev_device *dev, char *bufptr, size_t buflen)
 {
+	(void) dev, (void) bufptr, (void) buflen;
 	return (ENODATA);
 }
 
-/* ARGSUSED */
 int
 zfs_device_get_physical(struct udev_device *dev, char *bufptr, size_t buflen)
 {
+	(void) dev, (void) bufptr, (void) buflen;
 	return (ENODATA);
 }
 
@@ -773,6 +754,9 @@ no_dev:
 
 	return (ret);
 #else
+	(void) path;
+	(void) ds;
+	(void) wholedisk;
 	return (ENOENT);
 #endif
 }
@@ -807,6 +791,8 @@ update_vdev_config_dev_sysfs_path(nvlist_t *nv, char *path)
 static int
 sysfs_path_pool_vdev_iter_f(void *hdl_data, nvlist_t *nv, void *data)
 {
+	(void) hdl_data, (void) data;
+
 	char *path = NULL;
 	if (nvlist_lookup_string(nv, ZPOOL_CONFIG_PATH, &path) != 0)
 		return (1);

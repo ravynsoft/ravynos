@@ -292,9 +292,7 @@ ksiginfo_alloc(int wait)
 {
 	int flags;
 
-	flags = M_ZERO;
-	if (! wait)
-		flags |= M_NOWAIT;
+	flags = M_ZERO | (wait ? M_WAITOK : M_NOWAIT);
 	if (ksiginfo_zone != NULL)
 		return ((ksiginfo_t *)uma_zalloc(ksiginfo_zone, flags));
 	return (NULL);
@@ -998,9 +996,7 @@ sigdflt(struct sigacts *ps, int sig)
 void
 execsigs(struct proc *p)
 {
-	sigset_t osigignore;
 	struct sigacts *ps;
-	int sig;
 	struct thread *td;
 
 	/*
@@ -1012,21 +1008,6 @@ execsigs(struct proc *p)
 	ps = p->p_sigacts;
 	mtx_lock(&ps->ps_mtx);
 	sig_drop_caught(p);
-
-	/*
-	 * As CloudABI processes cannot modify signal handlers, fully
-	 * reset all signals to their default behavior. Do ignore
-	 * SIGPIPE, as it would otherwise be impossible to recover from
-	 * writes to broken pipes and sockets.
-	 */
-	if (SV_PROC_ABI(p) == SV_ABI_CLOUDABI) {
-		osigignore = ps->ps_sigignore;
-		SIG_FOREACH(sig, &osigignore) {
-			if (sig != SIGPIPE)
-				sigdflt(ps, sig);
-		}
-		SIGADDSET(ps->ps_sigignore, SIGPIPE);
-	}
 
 	/*
 	 * Reset stack state to the user stack.
@@ -2150,7 +2131,7 @@ pksignal(struct proc *p, int sig, ksiginfo_t *ksi)
 
 /* Utility function for finding a thread to send signal event to. */
 int
-sigev_findtd(struct proc *p ,struct sigevent *sigev, struct thread **ttd)
+sigev_findtd(struct proc *p, struct sigevent *sigev, struct thread **ttd)
 {
 	struct thread *td;
 
@@ -3677,14 +3658,14 @@ corefile_open_last(struct thread *td, char *name, int indexpos,
 		    i);
 		name[indexpos + indexlen] = ch;
 
-		NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, name, td);
+		NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, name);
 		error = vn_open_cred(&nd, &flags, cmode, oflags, td->td_ucred,
 		    NULL);
 		if (error != 0)
 			break;
 
 		vp = nd.ni_vp;
-		NDFREE(&nd, NDF_ONLY_PNBUF);
+		NDFREE_PNBUF(&nd);
 		if ((flags & O_CREAT) == O_CREAT) {
 			nextvp = vp;
 			break;
@@ -3852,12 +3833,12 @@ corefile_open(const char *comm, uid_t uid, pid_t pid, struct thread *td,
 		if ((td->td_proc->p_flag & P_SUGID) != 0)
 			flags |= O_EXCL;
 
-		NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, name, td);
+		NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, name);
 		error = vn_open_cred(&nd, &flags, cmode, oflags, td->td_ucred,
 		    NULL);
 		if (error == 0) {
 			*vpp = nd.ni_vp;
-			NDFREE(&nd, NDF_ONLY_PNBUF);
+			NDFREE_PNBUF(&nd);
 		}
 	}
 

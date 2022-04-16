@@ -126,9 +126,14 @@ config_setup(const atf_tc_t *tc, struct rtsock_config_options *co)
 	inet_ntop(AF_INET6, &c->net6.sin6_addr, c->net6_str, INET6_ADDRSTRLEN);
 	inet_ntop(AF_INET6, &c->addr6.sin6_addr, c->addr6_str, INET6_ADDRSTRLEN);
 
+	ATF_CHECK_ERRNO(0, true);
+
 	if (co->num_interfaces > 0) {
+		/* Try loading if_epair and if that fails skip the test. */
 		kldload("if_epair");
 		ATF_REQUIRE_KERNEL_MODULE("if_epair");
+		/* Clear errno for the following tests. */
+		errno = 0;
 
 		c->ifnames = calloc(co->num_interfaces, sizeof(char *));
 		for (int i = 0; i < co->num_interfaces; i++)
@@ -154,8 +159,6 @@ config_generic_cleanup(const atf_tc_t *tc)
 	char cmd[512];
 	int ret;
 
-	/* XXX: sleep 100ms to avoid epair qflush panic */
-	usleep(1000 * 100);
 	snprintf(cmd, sizeof(cmd), "%s/generic_cleanup.sh", srcdir);
 	ret = system(cmd);
 	if (ret != 0)

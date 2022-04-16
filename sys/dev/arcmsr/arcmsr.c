@@ -624,12 +624,8 @@ static int arcmsr_resume(device_t dev)
 */
 static void arcmsr_async(void *cb_arg, u_int32_t code, struct cam_path *path, void *arg)
 {
-	struct AdapterControlBlock *acb;
 	u_int8_t target_id, target_lun;
-	struct cam_sim *sim;
 
-	sim = (struct cam_sim *) cb_arg;
-	acb =(struct AdapterControlBlock *) cam_sim_softc(sim);
 	switch (code) {
 	case AC_LOST_DEVICE:
 		target_id = xpt_path_target_id(path);
@@ -637,7 +633,6 @@ static void arcmsr_async(void *cb_arg, u_int32_t code, struct cam_path *path, vo
 		if((target_id > ARCMSR_MAX_TARGETID) || (target_lun > ARCMSR_MAX_TARGETLUN)) {
 			break;
 		}
-	//	printf("%s:scsi id=%d lun=%d device lost \n", device_get_name(acb->pci_dev), target_id, target_lun);
 		break;
 	default:
 		break;
@@ -4992,6 +4987,7 @@ irqx:
 	/*
 	****************************************************
 	*/
+	memset(&csa, 0, sizeof(csa));
 	xpt_setup_ccb(&csa.ccb_h, acb->ppath, /*priority*/5);
 	csa.ccb_h.func_code = XPT_SASYNC_CB;
 	csa.event_enable = AC_FOUND_DEVICE|AC_LOST_DEVICE;
@@ -5107,14 +5103,13 @@ static int arcmsr_probe(device_t dev)
 static int arcmsr_shutdown(device_t dev)
 {
 	u_int32_t  i;
-	u_int32_t intmask_org;
 	struct CommandControlBlock *srb;
 	struct AdapterControlBlock *acb=(struct AdapterControlBlock *)device_get_softc(dev);
 
 	/* stop adapter background rebuild */
 	ARCMSR_LOCK_ACQUIRE(&acb->isr_lock);
 	/* disable all outbound interrupt */
-	intmask_org = arcmsr_disable_allintr(acb);
+	arcmsr_disable_allintr(acb);
 	arcmsr_stop_adapter_bgrb(acb);
 	arcmsr_flush_adapter_cache(acb);
 	/* abort all outstanding command */

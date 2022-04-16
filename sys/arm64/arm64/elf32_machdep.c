@@ -44,6 +44,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/imgact.h>
 #include <sys/linker.h>
 #include <sys/proc.h>
+#include <sys/reg.h>
 #include <sys/sysent.h>
 #include <sys/imgact_elf.h>
 #include <sys/syscall.h>
@@ -90,6 +91,9 @@ static struct sysentvec elf32_freebsd_sysvec = {
 	.sv_szsigcode	= &sz_aarch32_sigcode,
 	.sv_name	= "FreeBSD ELF32",
 	.sv_coredump	= elf32_coredump,
+	.sv_elf_core_osabi = ELFOSABI_FREEBSD,
+	.sv_elf_core_abi_vendor = FREEBSD_ABI_VENDOR,
+	.sv_elf_core_prepare_notes = elf32_prepare_notes,
 	.sv_imgact_try	= NULL,
 	.sv_minsigstksz	= MINSIGSTKSZ,
 	.sv_minuser	= FREEBSD32_MINUSER,
@@ -117,6 +121,8 @@ static struct sysentvec elf32_freebsd_sysvec = {
 	.sv_hwcap2	= &elf32_hwcap2,
 	.sv_onexec_old	= exec_onexec_old,
 	.sv_onexit	= exit_onexit,
+	.sv_regset_begin = SET_BEGIN(__elfN(regset)),
+	.sv_regset_end	= SET_LIMIT(__elfN(regset)),
 };
 INIT_SYSENTVEC(elf32_sysvec, &elf32_freebsd_sysvec);
 
@@ -178,6 +184,7 @@ freebsd32_fetch_syscall_args(struct thread *td)
 
 	/* r7 is the syscall id */
 	sa->code = td->td_frame->tf_x[7];
+	sa->original_code = sa->code;
 
 	if (sa->code == SYS_syscall) {
 		sa->code = *ap++;
@@ -201,6 +208,8 @@ freebsd32_fetch_syscall_args(struct thread *td)
 			panic("Too many system call arguiments");
 		error = copyin((void *)td->td_frame->tf_x[13], args,
 		    (narg - nap) * sizeof(int));
+		if (error != 0)
+			return (error);
 		for (i = 0; i < (narg - nap); i++)
 			sa->args[i + nap] = args[i];
 	}
@@ -279,5 +288,4 @@ freebsd32_setregs(struct thread *td, struct image_params *imgp,
 void
 elf32_dump_thread(struct thread *td, void *dst, size_t *off)
 {
-	/* XXX: VFP */
 }

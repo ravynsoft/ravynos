@@ -453,6 +453,17 @@ FBSD_1.7 {
 	 __cpuset_free;
 };
 
+FBSD_1.7 {
+	 posix_spawn_file_actions_addchdir_np;
+	 posix_spawn_file_actions_addclosefrom_np;
+	 posix_spawn_file_actions_addfchdir_np;
+	 sched_getaffinity;
+	 sched_setaffinity;
+	 sched_getcpu;
+	 __cpuset_alloc;
+	 __cpuset_free;
+};
+
 FBSDprivate_1.0 {
 	/* needed by thread libraries */
 	__thr_jtable;

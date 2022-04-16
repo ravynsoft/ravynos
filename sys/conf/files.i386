@@ -11,72 +11,11 @@ include 	"conf/files.x86"
 # limitations in config: backslash-newline doesn't work in strings, and
 # dependency lines other than the first are silently ignored.
 #
-cloudabi32_vdso.o		optional	compat_cloudabi32	\
-	dependency	"$S/contrib/cloudabi/cloudabi_vdso_i686.S" \
-	compile-with	"${CC} -x assembler-with-cpp -shared -nostdinc -nostdlib -Wl,-T$S/compat/cloudabi/cloudabi_vdso.lds $S/contrib/cloudabi/cloudabi_vdso_i686.S -o ${.TARGET}" \
-	no-obj no-implicit-rule						\
-	clean		"cloudabi32_vdso.o"
-#
-cloudabi32_vdso_blob.o		optional	compat_cloudabi32	\
-	dependency 	"cloudabi32_vdso.o"				\
-	compile-with	"${OBJCOPY} --input-target binary --output-target elf32-i386-freebsd --binary-architecture i386 cloudabi32_vdso.o ${.TARGET}" \
-	no-implicit-rule						\
-	clean		"cloudabi32_vdso_blob.o"
-#
-linux_genassym.o		optional	compat_linux		\
-	dependency 	"$S/i386/linux/linux_genassym.c offset.inc"		\
-	compile-with	"${CC} ${CFLAGS:N-flto:N-fno-common} -fcommon -c ${.IMPSRC}" \
-	no-obj no-implicit-rule						\
-	clean		"linux_genassym.o"
-#
-linux_assym.h			optional	compat_linux		\
-	dependency 	"$S/kern/genassym.sh linux_genassym.o"		\
-	compile-with	"sh $S/kern/genassym.sh linux_genassym.o > ${.TARGET}" \
-	no-obj no-implicit-rule before-depend				\
-	clean		"linux_assym.h"
-#
-linux_locore.o			optional	compat_linux		\
-	dependency 	"linux_assym.h $S/i386/linux/linux_locore.asm"	\
-	compile-with	"${CC} -x assembler-with-cpp -DLOCORE -shared -s -pipe -I. -I$S ${WERROR} -Wall -fPIC -fno-common -nostdinc -nostdlib -Wl,-T$S/i386/linux/linux_vdso.lds.s -Wl,-soname=linux_vdso.so,--eh-frame-hdr,-warn-common ${.IMPSRC} -o ${.TARGET}" \
-	no-obj no-implicit-rule						\
-	clean		"linux_locore.o"
-#
-linux_vdso.so			optional	compat_linux		\
-	dependency 	"linux_locore.o"				\
-	compile-with	"${OBJCOPY} --input-target binary --output-target elf32-i386-freebsd --binary-architecture i386 linux_locore.o ${.TARGET}" \
-	no-implicit-rule						\
-	clean		"linux_vdso.so"
-#
 cddl/dev/dtrace/i386/dtrace_asm.S			optional dtrace compile-with "${DTRACE_S}"
 cddl/dev/dtrace/i386/dtrace_subr.c			optional dtrace compile-with "${DTRACE_C}"
-compat/linprocfs/linprocfs.c	optional linprocfs
-compat/linsysfs/linsysfs.c	optional linsysfs
-compat/linux/linux_dummy.c	optional compat_linux
-compat/linux/linux_event.c	optional compat_linux
-compat/linux/linux_emul.c	optional compat_linux
-compat/linux/linux_errno.c	optional compat_linux
-compat/linux/linux_file.c	optional compat_linux
-compat/linux/linux_fork.c	optional compat_linux
-compat/linux/linux_futex.c	optional compat_linux
-compat/linux/linux_getcwd.c	optional compat_linux
-compat/linux/linux_ioctl.c	optional compat_linux
-compat/linux/linux_ipc.c	optional compat_linux
-compat/linux/linux_mib.c	optional compat_linux
-compat/linux/linux_misc.c	optional compat_linux
-compat/linux/linux_mmap.c	optional compat_linux
-compat/linux/linux_signal.c	optional compat_linux
-compat/linux/linux_socket.c	optional compat_linux
-compat/linux/linux_stats.c	optional compat_linux
-compat/linux/linux_sysctl.c	optional compat_linux
-compat/linux/linux_time.c	optional compat_linux
-compat/linux/linux_timer.c	optional compat_linux
-compat/linux/linux_uid16.c	optional compat_linux
-compat/linux/linux_util.c	optional compat_linux
-compat/linux/linux_vdso.c	optional compat_linux
-compat/linux/linux.c		optional compat_linux
-compat/ndis/winx32_wrap.S	optional ndisapi pci
 crypto/aesni/aeskeys_i386.S	optional aesni
 crypto/des/arch/i386/des_enc.S	optional netsmb
+crypto/openssl/i386/aesni-x86.S	optional ossl
 crypto/openssl/i386/chacha-x86.S	optional ossl
 crypto/openssl/i386/poly1305-x86.S	optional ossl
 crypto/openssl/i386/sha1-586.S	optional ossl
@@ -94,10 +33,7 @@ dev/agp/agp_via.c		optional agp
 dev/ce/ceddk.c			optional ce
 dev/ce/if_ce.c			optional ce
 dev/ce/tau32-ddk.c		optional ce \
-	compile-with "${NORMAL_C} ${NO_WCONSTANT_CONVERSION} ${NO_WMISLEADING_INDENTATION}"
-dev/cp/cpddk.c			optional cp \
-	compile-with "${NORMAL_C} ${NO_WMISLEADING_INDENTATION}"
-dev/cp/if_cp.c			optional cp
+	compile-with "${NORMAL_C} ${NO_WCONSTANT_CONVERSION} ${NO_WMISLEADING_INDENTATION} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/glxiic/glxiic.c		optional glxiic
 dev/glxsb/glxsb.c		optional glxsb
 dev/glxsb/glxsb_hash.c		optional glxsb
@@ -114,7 +50,7 @@ dev/ntb/ntb_hw/ntb_hw_intel.c	optional ntb_hw_intel | ntb_hw
 dev/ntb/ntb_hw/ntb_hw_plx.c	optional ntb_hw_plx | ntb_hw
 dev/ntb/test/ntb_tool.c		optional ntb_tool
 dev/nvram/nvram.c		optional	nvram isa
-dev/ofw/ofwpci.c		optional fdt pci
+dev/ofw/ofw_pcib.c		optional fdt pci
 dev/pcf/pcf_isa.c		optional pcf
 dev/random/ivy.c		optional rdrand_rng !random_loadable
 dev/random/nehemiah.c		optional padlock_rng !random_loadable
@@ -158,7 +94,6 @@ acpi_wakedata.h			optional acpi				\
 #
 i386/bios/smapi.c		optional smapi
 i386/bios/smapi_bios.S		optional smapi
-i386/cloudabi32/cloudabi32_sysvec.c	optional compat_cloudabi32
 #i386/i386/apic_vector.s		optional apic
 i386/i386/bios.c		standard
 i386/i386/bioscall.s		standard
@@ -192,7 +127,6 @@ i386/i386/perfmon.c		optional perfmon
 i386/i386/pmap_base.c		standard
 i386/i386/pmap_nopae.c		standard
 i386/i386/pmap_pae.c		standard
-i386/i386/prof_machdep.c	optional profiling-routine
 i386/i386/ptrace_machdep.c	standard
 i386/i386/sigtramp.s		standard
 i386/i386/support.s		standard
@@ -202,13 +136,6 @@ i386/i386/trap.c		standard
 i386/i386/uio_machdep.c		standard
 i386/i386/vm86.c		standard
 i386/i386/vm_machdep.c		standard
-i386/linux/imgact_linux.c	optional compat_linux
-i386/linux/linux_copyout.c	optional compat_linux
-i386/linux/linux_dummy_machdep.c	optional compat_linux
-i386/linux/linux_machdep.c	optional compat_linux
-i386/linux/linux_ptrace.c	optional compat_linux
-i386/linux/linux_sysent.c	optional compat_linux
-i386/linux/linux_sysvec.c	optional compat_linux
 i386/pci/pci_cfgreg.c		optional pci
 i386/pci/pci_pir.c		optional pci
 isa/syscons_isa.c		optional sc
@@ -239,16 +166,11 @@ x86/isa/atpic.c			optional atpic
 x86/isa/elcr.c			optional atpic | apic
 x86/isa/isa.c			optional isa
 x86/isa/isa_dma.c		optional isa
-x86/linux/linux_dummy_x86.c	optional compat_linux
 x86/x86/io_apic.c		optional apic
 x86/x86/local_apic.c		optional apic
 x86/x86/mptable.c		optional apic
 x86/x86/mptable_pci.c		optional apic pci
 x86/x86/msi.c			optional apic pci
-
-compat/linuxkpi/common/src/linux_fpu.c		optional compat_linuxkpi \
-	compile-with "${LINUXKPI_C}"
-
 # Clock calibration subroutine; uses floating-point arithmetic
 subr_clockcalib.o		standard				\
 	dependency	"$S/kern/subr_clockcalib.c"			\

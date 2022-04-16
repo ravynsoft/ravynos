@@ -9,7 +9,7 @@ NoEcho('
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -175,7 +175,9 @@ NoEcho('
 %type <n> ParameterTypePackageList
 %type <n> ParameterTypesPackage
 %type <n> ParameterTypesPackageList
+/*
 %type <n> RequiredTarget
+*/
 %type <n> SimpleName
 %type <n> StringData
 %type <n> StringLiteral
@@ -410,6 +412,7 @@ NoEcho('
 /* Resource Descriptors */
 
 %type <n> ConnectionTerm
+%type <n> Csi2SerialBusTerm
 %type <n> DMATerm
 %type <n> DWordIOTerm
 %type <n> DWordMemoryTerm
@@ -501,6 +504,7 @@ NoEcho('
 %type <n> OptionalShareType
 %type <n> OptionalShareType_First
 %type <n> OptionalSlaveMode
+%type <n> OptionalSlaveMode_First
 %type <n> OptionalStopBits
 %type <n> OptionalStringData
 %type <n> OptionalSyncLevel

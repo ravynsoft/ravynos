@@ -1,7 +1,7 @@
 /*
- * SPDX-License-Identifier: BSD-4-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
  *
- * Copyright (c) 1995 Wolfram Schneider <wosch@FreeBSD.org>. Berlin.
+ * Copyright (c) 1995-2022 Wolfram Schneider <wosch@FreeBSD.org>
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -16,11 +16,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors
+ * 3. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
@@ -106,24 +102,15 @@ static char sccsid[] = "@(#)locate.code.c	8.1 (Berkeley) 6/6/93";
 
 #define	BGBUFSIZE	(NBG * 2)	/* size of bigram buffer */
 
-u_char buf1[MAXPATHLEN] = " ";	
-u_char buf2[MAXPATHLEN];
+u_char buf1[LOCATE_PATH_MAX] = " ";
+u_char buf2[LOCATE_PATH_MAX];
 u_char bigrams[BGBUFSIZE + 1] = { 0 };
 
-#define LOOKUP 1 /* use a lookup array instead a function, 3x faster */
-
-#ifdef LOOKUP
+/* use a lookup array instead a function, 3x faster than linear search */
+int big [UCHAR_MAX + 1][UCHAR_MAX + 1];
 #define BGINDEX(x) (big[(u_char)*x][(u_char)*(x + 1)])
-typedef short bg_t;
-bg_t big[UCHAR_MAX + 1][UCHAR_MAX + 1];
-#else
-#define BGINDEX(x) bgindex(x)
-typedef int bg_t;
-int	bgindex(char *);
-#endif /* LOOKUP */
 
-
-void	usage(void);
+void   usage(void);
 
 int
 main(int argc, char *argv[])
@@ -148,22 +135,22 @@ main(int argc, char *argv[])
 		err(1, "%s", argv[0]);
 
 	/* First copy bigram array to stdout. */
-	(void)fgets(bigrams, BGBUFSIZE + 1, fp);
+	if (fgets(bigrams, BGBUFSIZE + 1, fp) == NULL) {
+		if (!feof(fp) || ferror(fp))
+			err(1, "get bigram array");
+	}
 
 	if (fwrite(bigrams, 1, BGBUFSIZE, stdout) != BGBUFSIZE)
 		err(1, "stdout");
 	(void)fclose(fp);
 
-#ifdef LOOKUP
 	/* init lookup table */
 	for (i = 0; i < UCHAR_MAX + 1; i++)
 	    	for (j = 0; j < UCHAR_MAX + 1; j++) 
-			big[i][j] = (bg_t)-1;
+			big[i][j] = -1;
 
 	for (cp = bigrams, i = 0; *cp != '\0'; i += 2, cp += 2)
-	        big[(u_char)*cp][(u_char)*(cp + 1)] = (bg_t)i;
-
-#endif /* LOOKUP */
+	        big[(u_char)*cp][(u_char)*(cp + 1)] = i;
 
 	oldpath = buf1;
 	path = buf2;
@@ -177,13 +164,6 @@ main(int argc, char *argv[])
 
 		/* remove newline */
 		for (cp = path; *cp != '\0'; cp++) {
-#ifndef LOCATE_CHAR30
-			/* old locate implementations core'd for char 30 */
-			if (*cp == SWITCH)
-				*cp = '?';
-			else
-#endif /* !LOCATE_CHAR30 */
-
 			/* chop newline */
 			if (*cp == '\n')
 				*cp = '\0';
@@ -208,7 +188,7 @@ main(int argc, char *argv[])
 		while (*cp != '\0') {
 			/* print *two* characters */
 
-			if ((code = BGINDEX(cp)) != (bg_t)-1) {
+			if ((code = BGINDEX(cp)) != -1) {
 				/*
 				 * print *one* as bigram
 				 * Found, so mark byte with 
@@ -250,26 +230,13 @@ main(int argc, char *argv[])
 			oldpath = buf2;
 		}
 	}
+
 	/* Non-zero status if there were errors */
 	if (fflush(stdout) != 0 || ferror(stdout))
-		exit(1);
+		errx(1, "stdout");
+
 	exit(0);
 }
-
-#ifndef LOOKUP
-int
-bgindex(char *bg)		/* Return location of bg in bigrams or -1. */
-{
-	char bg0, bg1, *p;
-
-	bg0 = bg[0];
-	bg1 = bg[1];
-	for (p = bigrams; *p != NULL; p++)
-		if (*p++ == bg0 && *p == bg1)
-			break;
-	return (*p == NULL ? -1 : (--p - bigrams));
-}
-#endif /* !LOOKUP */
 
 void
 usage(void)

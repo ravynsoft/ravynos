@@ -49,6 +49,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/cons.h>
 #include <sys/endian.h>
 #include <sys/proc.h>
+#include <sys/reboot.h>
 #include <sys/sbuf.h>
 #include <geom/geom.h>
 #include <geom/geom_disk.h>
@@ -374,7 +375,6 @@ struct da_softc {
 	int			p_type;
 	struct	 disk_params params;
 	struct	 disk *disk;
-	union	 ccb saved_ccb;
 	struct task		sysctl_task;
 	struct sysctl_ctx_list	sysctl_ctx;
 	struct sysctl_oid	*sysctl_tree;
@@ -403,6 +403,8 @@ struct da_softc {
 	} else {							\
 		softc->delete_available &= ~(1 << delete_method);	\
 	}
+
+static uma_zone_t da_ccb_zone;
 
 struct da_quirk_entry {
 	struct scsi_inquiry_pattern inq_pat;
@@ -1558,6 +1560,7 @@ static sbintime_t da_default_softtimeout = DA_DEFAULT_SOFTTIMEOUT;
 static int da_send_ordered = DA_DEFAULT_SEND_ORDERED;
 static int da_disable_wp_detection = 0;
 static int da_enable_biospeedup = 1;
+static int da_enable_uma_ccbs = 1;
 
 static SYSCTL_NODE(_kern_cam, OID_AUTO, da, CTLFLAG_RD | CTLFLAG_MPSAFE, 0,
     "CAM Direct Access Disk driver");
@@ -1574,6 +1577,8 @@ SYSCTL_INT(_kern_cam_da, OID_AUTO, disable_wp_detection, CTLFLAG_RWTUN,
 	   "Disable detection of write-protected disks");
 SYSCTL_INT(_kern_cam_da, OID_AUTO, enable_biospeedup, CTLFLAG_RDTUN,
 	    &da_enable_biospeedup, 0, "Enable BIO_SPEEDUP processing");
+SYSCTL_INT(_kern_cam_da, OID_AUTO, enable_uma_ccbs, CTLFLAG_RWTUN,
+	    &da_enable_uma_ccbs, 0, "Use UMA for CCBs");
 
 SYSCTL_PROC(_kern_cam_da, OID_AUTO, default_softtimeout,
     CTLTYPE_UINT | CTLFLAG_RW | CTLFLAG_MPSAFE, NULL, 0,
@@ -1996,6 +2001,10 @@ static void
 dainit(void)
 {
 	cam_status status;
+
+	da_ccb_zone = uma_zcreate("da_ccb",
+	    sizeof(struct ccb_scsiio), NULL, NULL, NULL, NULL,
+	    UMA_ALIGN_PTR, 0);
 
 	/*
 	 * Install a global async callback.  This callback will
@@ -2843,6 +2852,15 @@ daregister(struct cam_periph *periph, void *arg)
 	}
 
 	TASK_INIT(&softc->sysctl_task, 0, dasysctlinit, periph);
+
+	/*
+	 * Let XPT know we can use UMA-allocated CCBs.
+	 */
+	if (da_enable_uma_ccbs) {
+		KASSERT(da_ccb_zone != NULL,
+		    ("%s: NULL da_ccb_zone", __func__));
+		periph->ccb_zone = da_ccb_zone;
+	}
 
 	/*
 	 * Take an exclusive section lock on the periph while dastart is called
@@ -4890,6 +4908,7 @@ dadone_proberc(struct cam_periph *periph, union ccb *done_ccb)
 						 /*timeout*/0,
 						 /*getcount_only*/0);
 
+			memset(&cgd, 0, sizeof(cgd));
 			xpt_setup_ccb(&cgd.ccb_h, done_ccb->ccb_h.path,
 				      CAM_PRIORITY_NORMAL);
 			cgd.ccb_h.func_code = XPT_GDEV_TYPE;
@@ -5916,7 +5935,7 @@ static void
 dareprobe(struct cam_periph *periph)
 {
 	struct da_softc	  *softc;
-	int status;
+	int status __diagused;
 
 	softc = (struct da_softc *)periph->softc;
 
@@ -6000,6 +6019,8 @@ daerror(union ccb *ccb, u_int32_t cam_flags, u_int32_t sense_flags)
 	case CAM_REQ_TERMIO:
 	case CAM_UNREC_HBA_ERROR:
 	case CAM_DATA_RUN_ERR:
+	case CAM_SCSI_STATUS_ERROR:
+	case CAM_ATA_STATUS_ERROR:
 		softc->errors++;
 		break;
 	default:
@@ -6135,6 +6156,7 @@ dasetgeom(struct cam_periph *periph, uint32_t block_len, uint64_t maxsector,
 	 * up with something that will make this a bootable
 	 * device.
 	 */
+	memset(&ccg, 0, sizeof(ccg));
 	xpt_setup_ccb(&ccg.ccb_h, periph->path, CAM_PRIORITY_NORMAL);
 	ccg.ccb_h.func_code = XPT_CALC_GEOMETRY;
 	ccg.block_size = dp->secsize;
@@ -6172,6 +6194,7 @@ dasetgeom(struct cam_periph *periph, uint32_t block_len, uint64_t maxsector,
 		  min(sizeof(softc->rcaplong), rcap_len)) != 0)) {
 		struct ccb_dev_advinfo cdai;
 
+		memset(&cdai, 0, sizeof(cdai));
 		xpt_setup_ccb(&cdai.ccb_h, periph->path, CAM_PRIORITY_NORMAL);
 		cdai.ccb_h.func_code = XPT_DEV_ADVINFO;
 		cdai.buftype = CDAI_TYPE_RCAPLONG;
@@ -6240,6 +6263,9 @@ dashutdown(void * arg, int howto)
 	struct da_softc *softc;
 	union ccb *ccb;
 	int error;
+
+	if ((howto & RB_NOSYNC) != 0)
+		return;
 
 	CAM_PERIPH_FOREACH(periph, &dadriver) {
 		softc = (struct da_softc *)periph->softc;

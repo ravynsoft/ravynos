@@ -61,6 +61,8 @@
 #ifdef INET6
 #include <netinet6/ip6_ecn.h>
 #endif
+#include <netinet/ip_icmp.h>
+#include <netinet/tcp_var.h>
 
 #include <netinet/ip6.h>
 #ifdef INET6
@@ -104,6 +106,7 @@
 } while (0)
 
 static int ipsec_encap(struct mbuf **mp, struct secasindex *saidx);
+static size_t ipsec_get_pmtu(struct secasvar *sav);
 
 #ifdef INET
 static struct secasvar *
@@ -292,6 +295,78 @@ ipsec4_process_packet(struct mbuf *m, struct secpolicy *sp,
 	return (ipsec4_perform_request(m, sp, inp, 0));
 }
 
+int
+ipsec4_check_pmtu(struct mbuf *m, struct secpolicy *sp, int forwarding)
+{
+	struct secasvar *sav;
+	struct ip *ip;
+	size_t hlen, pmtu;
+	uint32_t idx;
+	int error;
+
+	/* Don't check PMTU if the frame won't have DF bit set. */
+	if (!V_ip4_ipsec_dfbit)
+		return (0);
+	if (V_ip4_ipsec_dfbit == 1)
+		goto setdf;
+
+	/* V_ip4_ipsec_dfbit > 1 - we will copy it from inner header. */
+	ip = mtod(m, struct ip *);
+	if (!(ip->ip_off & htons(IP_DF)))
+		return (0);
+
+setdf:
+	idx = sp->tcount - 1;
+	sav = ipsec4_allocsa(m, sp, &idx, &error);
+	if (sav == NULL) {
+		key_freesp(&sp);
+		/*
+		 * No matching SA was found and SADB_ACQUIRE message was generated.
+		 * Since we have matched a SP to this packet drop it silently.
+		 */
+		if (error == 0)
+			error = EINPROGRESS;
+		if (error != EJUSTRETURN)
+			m_freem(m);
+
+		return (error);
+	}
+
+	pmtu = ipsec_get_pmtu(sav);
+	if (pmtu == 0) {
+		key_freesav(&sav);
+		return (0);
+	}
+
+	hlen = ipsec_hdrsiz_internal(sp);
+	key_freesav(&sav);
+
+	if (m_length(m, NULL) + hlen > pmtu) {
+		/*
+		 * If we're forwarding generate ICMP message here,
+		 * so that it contains pmtu subtracted by header size.
+		 * Set error to EINPROGRESS, in order for the frame
+		 * to be dropped silently.
+		 */
+		if (forwarding) {
+			if (pmtu > hlen)
+				icmp_error(m, ICMP_UNREACH, ICMP_UNREACH_NEEDFRAG,
+				    0, pmtu - hlen);
+			else
+				m_freem(m);
+
+			key_freesp(&sp);
+			return (EINPROGRESS); /* Pretend that we consumed it. */
+		} else {
+			m_freem(m);
+			key_freesp(&sp);
+			return (EMSGSIZE);
+		}
+	}
+
+	return (0);
+}
+
 static int
 ipsec4_common_output(struct mbuf *m, struct inpcb *inp, int forwarding)
 {
@@ -337,6 +412,14 @@ ipsec4_common_output(struct mbuf *m, struct inpcb *inp, int forwarding)
 #endif
 	}
 	/* NB: callee frees mbuf and releases reference to SP */
+	error = ipsec4_check_pmtu(m, sp, forwarding);
+	if (error != 0) {
+		if (error == EJUSTRETURN)
+			return (0);
+
+		return (error);
+	}
+
 	error = ipsec4_process_packet(m, sp, inp);
 	if (error == EJUSTRETURN) {
 		/*
@@ -595,6 +678,72 @@ ipsec6_process_packet(struct mbuf *m, struct secpolicy *sp,
 	return (ipsec6_perform_request(m, sp, inp, 0));
 }
 
+/*
+ * IPv6 implementation is based on IPv4 implementation.
+ */
+int
+ipsec6_check_pmtu(struct mbuf *m, struct secpolicy *sp, int forwarding)
+{
+	struct secasvar *sav;
+	size_t hlen, pmtu;
+	uint32_t idx;
+	int error;
+
+	/*
+	 * According to RFC8200 L3 fragmentation is supposed to be done only on
+	 * locally generated packets. During L3 forwarding packets that are too
+	 * big are always supposed to be dropped, with an ICMPv6 packet being
+	 * sent back.
+	 */
+	if (!forwarding)
+		return (0);
+
+	idx = sp->tcount - 1;
+	sav = ipsec6_allocsa(m, sp, &idx, &error);
+	if (sav == NULL) {
+		key_freesp(&sp);
+		/*
+		 * No matching SA was found and SADB_ACQUIRE message was generated.
+		 * Since we have matched a SP to this packet drop it silently.
+		 */
+		if (error == 0)
+			error = EINPROGRESS;
+		if (error != EJUSTRETURN)
+			m_freem(m);
+
+		return (error);
+	}
+
+	pmtu = ipsec_get_pmtu(sav);
+	if (pmtu == 0) {
+		key_freesav(&sav);
+		return (0);
+	}
+
+	hlen = ipsec_hdrsiz_internal(sp);
+	key_freesav(&sav);
+
+	if (m_length(m, NULL) + hlen > pmtu) {
+		/*
+		 * If we're forwarding generate ICMPv6 message here,
+		 * so that it contains pmtu subtracted by header size.
+		 * Set error to EINPROGRESS, in order for the frame
+		 * to be dropped silently.
+		 */
+		if (forwarding) {
+			if (pmtu > hlen)
+				icmp6_error(m, ICMP6_PACKET_TOO_BIG, 0, pmtu - hlen);
+			else
+				m_freem(m);
+
+			key_freesp(&sp);
+			return (EINPROGRESS); /* Pretend that we consumed it. */
+		}
+	}
+
+	return (0);
+}
+
 static int
 ipsec6_common_output(struct mbuf *m, struct inpcb *inp, int forwarding)
 {
@@ -629,6 +778,15 @@ ipsec6_common_output(struct mbuf *m, struct inpcb *inp, int forwarding)
 		}
 #endif
 	}
+
+	error = ipsec6_check_pmtu(m, sp, forwarding);
+	if (error != 0) {
+		if (error == EJUSTRETURN)
+			return (0);
+
+		return (error);
+	}
+
 	/* NB: callee frees mbuf and releases reference to SP */
 	error = ipsec6_process_packet(m, sp, inp);
 	if (error == EJUSTRETURN) {
@@ -864,6 +1022,59 @@ ipsec_prepend(struct mbuf *m, int len, int how)
 	return (n);
 }
 
+static size_t
+ipsec_get_pmtu(struct secasvar *sav)
+{
+	union sockaddr_union *dst;
+	struct in_conninfo inc;
+	size_t pmtu;
+
+	dst = &sav->sah->saidx.dst;
+	memset(&inc, 0, sizeof(inc));
+
+	switch (dst->sa.sa_family) {
+#ifdef INET
+	case AF_INET:
+		inc.inc_faddr = satosin(&dst->sa)->sin_addr;
+		break;
+#endif
+#ifdef INET6
+	case AF_INET6:
+		inc.inc6_faddr = satosin6(&dst->sa)->sin6_addr;
+		inc.inc_flags |= INC_ISIPV6;
+		break;
+#endif
+	default:
+		return (0);
+	}
+
+	pmtu = tcp_hc_getmtu(&inc);
+	if (pmtu != 0)
+		return (pmtu);
+
+	/* No entry in hostcache. Assume that PMTU is equal to link's MTU */
+	switch (dst->sa.sa_family) {
+#ifdef INET
+	case AF_INET:
+		pmtu = tcp_maxmtu(&inc, NULL);
+		break;
+#endif
+#ifdef INET6
+	case AF_INET6:
+		pmtu = tcp_maxmtu6(&inc, NULL);
+		break;
+#endif
+	default:
+		return (0);
+	}
+	if (pmtu == 0)
+		return (0);
+
+	tcp_hc_updatemtu(&inc, pmtu);
+
+	return (pmtu);
+}
+
 static int
 ipsec_encap(struct mbuf **mp, struct secasindex *saidx)
 {
@@ -871,7 +1082,9 @@ ipsec_encap(struct mbuf **mp, struct secasindex *saidx)
 	struct ip6_hdr *ip6;
 #endif
 	struct ip *ip;
+#ifdef INET
 	int setdf;
+#endif
 	uint8_t itos, proto;
 
 	ip = mtod(*mp, struct ip *);
@@ -899,7 +1112,6 @@ ipsec_encap(struct mbuf **mp, struct secasindex *saidx)
 		proto = IPPROTO_IPV6;
 		ip6 = mtod(*mp, struct ip6_hdr *);
 		itos = (ntohl(ip6->ip6_flow) >> 20) & 0xff;
-		setdf = V_ip4_ipsec_dfbit ? 1: 0;
 		/* scoped address handling */
 		in6_clearscope(&ip6->ip6_src);
 		in6_clearscope(&ip6->ip6_dst);

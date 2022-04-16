@@ -44,7 +44,6 @@ __FBSDID("$FreeBSD$");
 #include <sys/time.h>
 #include <sys/kernel.h>
 #include <sys/lock.h>
-#include <sys/rmlock.h>
 #include <sys/sysctl.h>
 #include <sys/syslog.h>
 
@@ -88,6 +87,14 @@ VNET_DEFINE_STATIC(int, icmplim) = 200;
 SYSCTL_INT(_net_inet_icmp, ICMPCTL_ICMPLIM, icmplim, CTLFLAG_VNET | CTLFLAG_RW,
 	&VNET_NAME(icmplim), 0,
 	"Maximum number of ICMP responses per second");
+
+VNET_DEFINE_STATIC(int, icmplim_curr_jitter) = 0;
+#define V_icmplim_curr_jitter		VNET(icmplim_curr_jitter)
+VNET_DEFINE_STATIC(int, icmplim_jitter) = 16;
+#define	V_icmplim_jitter		VNET(icmplim_jitter)
+SYSCTL_INT(_net_inet_icmp, OID_AUTO, icmplim_jitter, CTLFLAG_VNET | CTLFLAG_RW,
+	&VNET_NAME(icmplim_jitter), 0,
+	"Random icmplim jitter adjustment limit");
 
 VNET_DEFINE_STATIC(int, icmplim_output) = 1;
 #define	V_icmplim_output		VNET(icmplim_output)
@@ -756,7 +763,6 @@ freeit:
 static void
 icmp_reflect(struct mbuf *m)
 {
-	struct rm_priotracker in_ifa_tracker;
 	struct ip *ip = mtod(m, struct ip *);
 	struct ifaddr *ifa;
 	struct ifnet *ifp;
@@ -785,15 +791,12 @@ icmp_reflect(struct mbuf *m)
 	 * If the incoming packet was addressed directly to one of our
 	 * own addresses, use dst as the src for the reply.
 	 */
-	IN_IFADDR_RLOCK(&in_ifa_tracker);
-	LIST_FOREACH(ia, INADDR_HASH(t.s_addr), ia_hash) {
+	CK_LIST_FOREACH(ia, INADDR_HASH(t.s_addr), ia_hash) {
 		if (t.s_addr == IA_SIN(ia)->sin_addr.s_addr) {
 			t = IA_SIN(ia)->sin_addr;
-			IN_IFADDR_RUNLOCK(&in_ifa_tracker);
 			goto match;
 		}
 	}
-	IN_IFADDR_RUNLOCK(&in_ifa_tracker);
 
 	/*
 	 * If the incoming packet was addressed to one of our broadcast
@@ -1127,11 +1130,29 @@ badport_bandlim(int which)
 	KASSERT(which >= 0 && which < BANDLIM_MAX,
 	    ("%s: which %d", __func__, which));
 
-	pps = counter_ratecheck(&V_icmp_rates[which].cr, V_icmplim);
+	if ((V_icmplim + V_icmplim_curr_jitter) <= 0)
+		V_icmplim_curr_jitter = -V_icmplim + 1;
+
+	pps = counter_ratecheck(&V_icmp_rates[which].cr, V_icmplim +
+	    V_icmplim_curr_jitter);
+	if (pps > 0) {
+		/*
+		 * Adjust limit +/- to jitter the measurement to deny a
+		 * side-channel port scan as in CVE-2020-25705
+		 */
+		if (V_icmplim_jitter > 0) {
+			int32_t inc =
+			    arc4random_uniform(V_icmplim_jitter * 2 +1)
+			    - V_icmplim_jitter;
+
+			V_icmplim_curr_jitter = inc;
+		}
+	}
 	if (pps == -1)
 		return (-1);
 	if (pps > 0 && V_icmplim_output)
 		log(LOG_NOTICE, "Limiting %s from %jd to %d packets/sec\n",
-			V_icmp_rates[which].descr, (intmax_t )pps, V_icmplim);
+		    V_icmp_rates[which].descr, (intmax_t )pps, V_icmplim +
+		    V_icmplim_curr_jitter);
 	return (0);
 }

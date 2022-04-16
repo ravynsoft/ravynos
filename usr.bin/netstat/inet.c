@@ -695,6 +695,12 @@ tcp_stats(u_long off, const char *name, int af1 __unused, int proto __unused)
 	    "{N:/window probe%s}\n");
 	p(tcps_rcvwinupd, "\t\t{:receive-window-update-packets/%ju} "
 	    "{N:/window update packet%s}\n");
+	p(tcps_dsack_count, "\t\t{:received-with-dsack-packets/%ju} "
+	    "{N:/packet%s received with dsack}\n");
+	p(tcps_dsack_bytes, "\t\t{:received-with-dsack-bytes/%ju} "
+	    "{N:/dsack byte%s received (no TLP involved)}\n");
+	p(tcps_dsack_tlp_bytes, "\t\t{:received-with-dsack-bytes-tlp/%ju} "
+	    "{N:/dsack byte%s received (TLP responsible)}\n");
 	p(tcps_rcvafterclose, "\t\t{:received-after-close-packets/%ju} "
 	    "{N:/packet%s received after close}\n");
 	p(tcps_rcvbadsum, "\t\t{:discard-bad-checksum/%ju} "
@@ -809,6 +815,8 @@ tcp_stats(u_long off, const char *name, int af1 __unused, int proto __unused)
 	    "{N:/SACK option%s (SACK blocks) received}\n");
 	p(tcps_sack_send_blocks, "\t{:sent-option-blocks/%ju} "
 	    "{N:/SACK option%s (SACK blocks) sent}\n");
+	p(tcps_sack_lostrexmt, "\t{:lost-retransmissions/%ju} "
+	    "{N:/SACK retransmission%s lost}\n");
 	p1a(tcps_sack_sboverflow, "\t{:scoreboard-overflows/%ju} "
 	    "{N:/SACK scoreboard overflow}\n");
 
@@ -825,6 +833,15 @@ tcp_stats(u_long off, const char *name, int af1 __unused, int proto __unused)
 	    "{N:/successful ECN handshake%s}\n");
 	p(tcps_ecn_rcwnd, "\t{:congestion-reductions/%ju} "
 	    "{N:/time%s ECN reduced the congestion window}\n");
+
+	p(tcps_ace_nect, "\t{:ace-nonect-syn/%ju} "
+	    "{N:/ACE SYN packet%s with Non-ECT}\n");
+	p(tcps_ace_ect0, "\t{:ace-ect0-syn/%ju} "
+	    "{N:/ACE SYN packet%s with ECT0}\n");
+	p(tcps_ace_ect1, "\t{:ace-ect1-syn/%ju} "
+	    "{N:/ACE SYN packet%s with ECT1}\n");
+	p(tcps_ace_ce, "\t{:ace-ce-syn/%ju} "
+	    "{N:/ACE SYN packet%s with CE}\n");
 
 	xo_close_container("ecn");
 	xo_open_container("tcp-signature");

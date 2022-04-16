@@ -1080,7 +1080,7 @@ static void
 opti931_intr(void *arg)
 {
     	struct mss_info *mss = (struct mss_info *)arg;
-    	u_char masked = 0, i11, mc11, c = 0;
+    	u_char masked = 0, mc11, c = 0;
     	u_char reason; /* b0 = playback, b1 = capture, b2 = timer */
     	int loops = 10;
 
@@ -1092,7 +1092,7 @@ opti931_intr(void *arg)
     	}
 #endif
 	mss_lock(mss);
-    	i11 = ad_read(mss, 11); /* XXX what's for ? */
+    	(void)ad_read(mss, 11); /* XXX what's for ? */
 	again:
 
     	c = mc11 = FULL_DUPLEX(mss)? opti_rd(mss, 11) : 0xc;
@@ -1272,7 +1272,10 @@ static int
 mss_probe(device_t dev)
 {
     	u_char tmp, tmpx;
-    	int flags, irq, drq, result = ENXIO, setres = 0;
+    	int flags, irq, drq, result = ENXIO;
+#if 0
+	int setres = 0;
+#endif
     	struct mss_info *mss;
 
     	if (isa_get_logicalid(dev)) return ENXIO; /* not yet */
@@ -1291,7 +1294,9 @@ mss_probe(device_t dev)
         	BVDDB(printf("mss_probe: no address given, try 0x%x\n", 0x530));
 		mss->io_rid = 0;
 		/* XXX verify this */
+#if 0
 		setres = 1;
+#endif
 		bus_set_resource(dev, SYS_RES_IOPORT, mss->io_rid,
     		         	0x530, 8);
 		mss->io_base = bus_alloc_resource_anywhere(dev, SYS_RES_IOPORT,
@@ -1732,7 +1737,7 @@ mss_doattach(device_t dev, struct mss_info *mss)
 			/*filter*/NULL, /*filterarg*/NULL,
 			/*maxsize*/mss->bufsize, /*nsegments*/1,
 			/*maxsegz*/0x3ffff, /*flags*/0,
-			/*lockfunc*/busdma_lock_mutex, /*lockarg*/&Giant,
+			/*lockfunc*/NULL, /*lockarg*/NULL,
 			&mss->parent_dmat) != 0) {
 		device_printf(dev, "unable to create dma tag\n");
 		goto no;
@@ -1779,6 +1784,7 @@ mss_attach(device_t dev)
     	struct mss_info *mss;
     	int flags = device_get_flags(dev);
 
+	gone_in_dev(dev, 14, "ISA sound driver");
     	mss = (struct mss_info *)malloc(sizeof *mss, M_DEVBUF, M_NOWAIT | M_ZERO);
     	if (!mss) return ENXIO;
 

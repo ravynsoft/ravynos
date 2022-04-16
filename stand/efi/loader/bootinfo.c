@@ -60,11 +60,8 @@ __FBSDID("$FreeBSD$");
 #include "geliboot.h"
 #endif
 
-int bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp);
-
-extern EFI_SYSTEM_TABLE	*ST;
-
-int boot_services_gone;
+int bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp,
+    bool exit_bs);
 
 static int
 bi_getboothowto(char *kargs)
@@ -286,7 +283,7 @@ efi_do_vmap(EFI_MEMORY_DESCRIPTOR *mm, UINTN sz, UINTN mmsz, UINT32 mmver)
 }
 
 static int
-bi_load_efi_data(struct preloaded_file *kfp)
+bi_load_efi_data(struct preloaded_file *kfp, bool exit_bs)
 {
 	EFI_MEMORY_DESCRIPTOR *mm;
 	EFI_PHYSICAL_ADDRESS addr = 0;
@@ -394,11 +391,11 @@ bi_load_efi_data(struct preloaded_file *kfp)
 			sz = (EFI_PAGE_SIZE * pages) - efisz;
 		}
 
-		status = BS->ExitBootServices(IH, efi_mapkey);
-		if (!EFI_ERROR(status)) {
-			boot_services_gone = 1;
+		if (!exit_bs)
 			break;
-		}
+		status = efi_exit_boot_services(efi_mapkey);
+		if (!EFI_ERROR(status))
+			break;
 	}
 
 	if (retry == 0) {
@@ -434,13 +431,13 @@ bi_load_efi_data(struct preloaded_file *kfp)
  * - Module metadata are formatted and placed in kernel space.
  */
 int
-bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp)
+bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 {
 	struct preloaded_file *xp, *kfp;
 	struct devdesc *rootdev;
 	struct file_metadata *md;
 	vm_offset_t addr;
-	uint64_t kernend;
+	uint64_t kernend, module;
 	uint64_t envp;
 	vm_offset_t size;
 	char *rootdevname;
@@ -519,6 +516,10 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp)
 	if (kfp == NULL)
 		panic("can't find kernel file");
 	kernend = 0;	/* fill it in later */
+
+	/* Figure out the size and location of the metadata. */
+	module = *modulep = addr;
+
 	file_addmetadata(kfp, MODINFOMD_HOWTO, sizeof(howto), &howto);
 	file_addmetadata(kfp, MODINFOMD_ENVP, sizeof(envp), &envp);
 #if defined(LOADER_FDT_SUPPORT)
@@ -529,14 +530,15 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp)
 		    "device tree blob found!\n");
 #endif
 	file_addmetadata(kfp, MODINFOMD_KERNEND, sizeof(kernend), &kernend);
+#ifdef MODINFOMD_MODULEP
+	file_addmetadata(kfp, MODINFOMD_MODULEP, sizeof(module), &module);
+#endif
 	file_addmetadata(kfp, MODINFOMD_FW_HANDLE, sizeof(ST), &ST);
 #ifdef LOADER_GELI_SUPPORT
 	geli_export_key_metadata(kfp);
 #endif
-	bi_load_efi_data(kfp);
+	bi_load_efi_data(kfp, exit_bs);
 
-	/* Figure out the size and location of the metadata. */
-	*modulep = addr;
 	size = bi_copymodules(0);
 	kernend = roundup(addr + size, PAGE_SIZE);
 	*kernendp = kernend;

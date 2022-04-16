@@ -11,7 +11,7 @@ ident		MPC85XXSPE
 machine		powerpc	powerpcspe
 
 include 	"dpaa/config.dpaa"
-makeoptions	DEBUG=-g		#Build kernel with gdb(1) debug symbols
+makeoptions	DEBUG=-g		# Build kernel with gdb(1) debug symbols
 makeoptions	WITH_CTF=1
 
 options 	FPU_EMU
@@ -59,9 +59,17 @@ options 	SYSVSEM
 options 	SYSVSHM
 options 	WITNESS
 options 	WITNESS_SKIPSPIN
-options 	COMPAT_FREEBSD10
-options 	COMPAT_FREEBSD11
-options 	COMPAT_FREEBSD12
+
+# The powerpcspe target arch can run non Altivec/VMX powerpc binaries
+# Keep COMPAT options in sync with powerpc target arch.
+options		COMPAT_FREEBSD6		# Compatible with FreeBSD6
+options		COMPAT_FREEBSD7		# Compatible with FreeBSD7
+options		COMPAT_FREEBSD9		# Compatible with FreeBSD9
+options		COMPAT_FREEBSD10	# Compatible with FreeBSD10
+options		COMPAT_FREEBSD11	# Compatible with FreeBSD11
+options 	COMPAT_FREEBSD12	# Compatible with FreeBSD12
+options 	COMPAT_FREEBSD13	# Compatible with FreeBSD13
+
 options 	HWPMC_HOOKS
 options 	KDTRACE_HOOKS		# Kernel DTrace hooks
 options 	DDB_CTF			# Kernel ELF linker loads CTF data
@@ -112,6 +120,14 @@ device  	ums
 device		umass
 device		usb
 device		vlan
+
+# VirtIO support
+device          virtio                  # Generic VirtIO bus (required)
+device          virtio_pci              # VirtIO PCI device
+device          vtnet                   # VirtIO Ethernet device
+device          virtio_blk              # VirtIO Block device
+device          virtio_scsi             # VirtIO SCSI device
+device          virtio_balloon          # VirtIO Memory Balloon device
 
 # P1022 DIU
 device  	diu

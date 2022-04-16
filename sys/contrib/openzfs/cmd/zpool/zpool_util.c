@@ -28,7 +28,7 @@
 #include <libintl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <ctype.h>
 
 #include "zpool_util.h"
@@ -42,6 +42,22 @@ safe_malloc(size_t size)
 	void *data;
 
 	if ((data = calloc(1, size)) == NULL) {
+		(void) fprintf(stderr, "internal error: out of memory\n");
+		exit(1);
+	}
+
+	return (data);
+}
+
+/*
+ * Utility function to guarantee realloc() success.
+ */
+void *
+safe_realloc(void *from, size_t size)
+{
+	void *data;
+
+	if ((data = realloc(from, size)) == NULL) {
 		(void) fprintf(stderr, "internal error: out of memory\n");
 		exit(1);
 	}

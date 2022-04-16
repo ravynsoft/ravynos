@@ -7,6 +7,11 @@ VPATH = \
 # Includes kernel code, generate warnings for large stack frames
 # and required CFLAGS for libtirpc
 AM_CFLAGS += $(FRAME_LARGER_THAN) $(LIBTIRPC_CFLAGS)
+AM_CFLAGS += -fvisibility=hidden
+
+# wchar_t is undefined-signedness, but we compare to >=0; this warns with unsigned wchar_t
+libnvpair_json.$(OBJEXT): CFLAGS += -Wno-type-limits
+libnvpair_json.l$(OBJEXT): CFLAGS += -Wno-type-limits
 
 lib_LTLIBRARIES = libnvpair.la
 

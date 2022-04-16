@@ -44,69 +44,6 @@ __FBSDID("$FreeBSD$");
 #include "iscsi_proto.h"
 
 static struct pdu *
-text_receive(struct connection *conn)
-{
-	struct pdu *request;
-	struct iscsi_bhs_text_request *bhstr;
-
-	request = pdu_new(conn);
-	pdu_receive(request);
-	if ((request->pdu_bhs->bhs_opcode & ~ISCSI_BHS_OPCODE_IMMEDIATE) !=
-	    ISCSI_BHS_OPCODE_TEXT_REQUEST)
-		log_errx(1, "protocol error: received invalid opcode 0x%x",
-		    request->pdu_bhs->bhs_opcode);
-	bhstr = (struct iscsi_bhs_text_request *)request->pdu_bhs;
-#if 0
-	if ((bhstr->bhstr_flags & ISCSI_BHSTR_FLAGS_FINAL) == 0)
-		log_errx(1, "received Text PDU without the \"F\" flag");
-#endif
-	/*
-	 * XXX: Implement the C flag some day.
-	 */
-	if ((bhstr->bhstr_flags & BHSTR_FLAGS_CONTINUE) != 0)
-		log_errx(1, "received Text PDU with unsupported \"C\" flag");
-	if (ISCSI_SNLT(ntohl(bhstr->bhstr_cmdsn), conn->conn_cmdsn)) {
-		log_errx(1, "received Text PDU with decreasing CmdSN: "
-		    "was %u, is %u", conn->conn_cmdsn, ntohl(bhstr->bhstr_cmdsn));
-	}
-	if (ntohl(bhstr->bhstr_expstatsn) != conn->conn_statsn) {
-		log_errx(1, "received Text PDU with wrong ExpStatSN: "
-		    "is %u, should be %u", ntohl(bhstr->bhstr_expstatsn),
-		    conn->conn_statsn);
-	}
-	conn->conn_cmdsn = ntohl(bhstr->bhstr_cmdsn);
-	if ((bhstr->bhstr_opcode & ISCSI_BHS_OPCODE_IMMEDIATE) == 0)
-		conn->conn_cmdsn++;
-
-	return (request);
-}
-
-static struct pdu *
-text_new_response(struct pdu *request)
-{
-	struct pdu *response;
-	struct connection *conn;
-	struct iscsi_bhs_text_request *bhstr;
-	struct iscsi_bhs_text_response *bhstr2;
-
-	bhstr = (struct iscsi_bhs_text_request *)request->pdu_bhs;
-	conn = request->pdu_connection;
-
-	response = pdu_new_response(request);
-	bhstr2 = (struct iscsi_bhs_text_response *)response->pdu_bhs;
-	bhstr2->bhstr_opcode = ISCSI_BHS_OPCODE_TEXT_RESPONSE;
-	bhstr2->bhstr_flags = BHSTR_FLAGS_FINAL;
-	bhstr2->bhstr_lun = bhstr->bhstr_lun;
-	bhstr2->bhstr_initiator_task_tag = bhstr->bhstr_initiator_task_tag;
-	bhstr2->bhstr_target_transfer_tag = bhstr->bhstr_target_transfer_tag;
-	bhstr2->bhstr_statsn = htonl(conn->conn_statsn++);
-	bhstr2->bhstr_expcmdsn = htonl(conn->conn_cmdsn);
-	bhstr2->bhstr_maxcmdsn = htonl(conn->conn_cmdsn);
-
-	return (response);
-}
-
-static struct pdu *
 logout_receive(struct connection *conn)
 {
 	struct pdu *request;
@@ -211,7 +148,7 @@ discovery_add_target(struct keys *response_keys, const struct target *targ)
 }
 
 static bool
-discovery_target_filtered_out(const struct connection *conn,
+discovery_target_filtered_out(const struct ctld_connection *conn,
     const struct port *port)
 {
 	const struct auth_group *ag;
@@ -274,7 +211,7 @@ discovery_target_filtered_out(const struct connection *conn,
 }
 
 void
-discovery(struct connection *conn)
+discovery(struct ctld_connection *conn)
 {
 	struct pdu *request, *response;
 	struct keys *request_keys, *response_keys;
@@ -284,16 +221,13 @@ discovery(struct connection *conn)
 
 	pg = conn->conn_portal->p_portal_group;
 
-	log_debugx("beginning discovery session; waiting for Text PDU");
-	request = text_receive(conn);
-	request_keys = keys_new();
-	keys_load(request_keys, request);
+	log_debugx("beginning discovery session; waiting for TextRequest PDU");
+	request_keys = text_read_request(&conn->conn, &request);
 
 	send_targets = keys_find(request_keys, "SendTargets");
 	if (send_targets == NULL)
-		log_errx(1, "received Text PDU without SendTargets");
+		log_errx(1, "received TextRequest PDU without SendTargets");
 
-	response = text_new_response(request);
 	response_keys = keys_new();
 
 	if (strcmp(send_targets, "All") == 0) {
@@ -317,16 +251,14 @@ discovery(struct connection *conn)
 			}
 		}
 	}
-	keys_save(response_keys, response);
 
-	pdu_send(response);
-	pdu_delete(response);
+	text_send_response(request, response_keys);
 	keys_delete(response_keys);
 	pdu_delete(request);
 	keys_delete(request_keys);
 
 	log_debugx("done sending targets; waiting for Logout PDU");
-	request = logout_receive(conn);
+	request = logout_receive(&conn->conn);
 	response = logout_new_response(request);
 
 	pdu_send(response);

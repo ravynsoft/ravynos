@@ -41,6 +41,7 @@ __FBSDID("$FreeBSD$");
 
 #ifdef TCP_OFFLOAD
 #include <sys/param.h>
+#include <sys/bio.h>
 #include <sys/capsicum.h>
 #include <sys/condvar.h>
 #include <sys/conf.h>
@@ -61,6 +62,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/uio.h>
 #include <machine/bus.h>
 #include <vm/vm.h>
+#include <vm/vm_page.h>
 #include <vm/pmap.h>
 #include <netinet/in.h>
 #include <netinet/in_pcb.h>
@@ -132,7 +134,9 @@ static volatile u_int icl_cxgbei_ncons;
 static icl_conn_new_pdu_t	icl_cxgbei_conn_new_pdu;
 static icl_conn_pdu_data_segment_length_t
 				    icl_cxgbei_conn_pdu_data_segment_length;
+static icl_conn_pdu_append_bio_t	icl_cxgbei_conn_pdu_append_bio;
 static icl_conn_pdu_append_data_t	icl_cxgbei_conn_pdu_append_data;
+static icl_conn_pdu_get_bio_t	icl_cxgbei_conn_pdu_get_bio;
 static icl_conn_pdu_get_data_t	icl_cxgbei_conn_pdu_get_data;
 static icl_conn_pdu_queue_t	icl_cxgbei_conn_pdu_queue;
 static icl_conn_pdu_queue_cb_t	icl_cxgbei_conn_pdu_queue_cb;
@@ -149,7 +153,9 @@ static kobj_method_t icl_cxgbei_methods[] = {
 	KOBJMETHOD(icl_conn_pdu_free, icl_cxgbei_conn_pdu_free),
 	KOBJMETHOD(icl_conn_pdu_data_segment_length,
 	    icl_cxgbei_conn_pdu_data_segment_length),
+	KOBJMETHOD(icl_conn_pdu_append_bio, icl_cxgbei_conn_pdu_append_bio),
 	KOBJMETHOD(icl_conn_pdu_append_data, icl_cxgbei_conn_pdu_append_data),
+	KOBJMETHOD(icl_conn_pdu_get_bio, icl_cxgbei_conn_pdu_get_bio),
 	KOBJMETHOD(icl_conn_pdu_get_data, icl_cxgbei_conn_pdu_get_data),
 	KOBJMETHOD(icl_conn_pdu_queue, icl_cxgbei_conn_pdu_queue),
 	KOBJMETHOD(icl_conn_pdu_queue_cb, icl_cxgbei_conn_pdu_queue_cb),
@@ -421,6 +427,320 @@ finalize_pdu(struct icl_cxgbei_conn *icc, struct icl_cxgbei_pdu *icp)
 	return (m);
 }
 
+static void
+icl_cxgbei_tx_main(void *arg)
+{
+	struct epoch_tracker et;
+	struct icl_cxgbei_conn *icc = arg;
+	struct icl_conn *ic = &icc->ic;
+	struct toepcb *toep = icc->toep;
+	struct socket *so = ic->ic_socket;
+	struct inpcb *inp = sotoinpcb(so);
+	struct icl_pdu *ip;
+	struct mbuf *m;
+	struct mbufq mq;
+	STAILQ_HEAD(, icl_pdu) tx_pdus = STAILQ_HEAD_INITIALIZER(tx_pdus);
+
+	mbufq_init(&mq, INT_MAX);
+
+	ICL_CONN_LOCK(ic);
+	while (__predict_true(!ic->ic_disconnecting)) {
+		while (STAILQ_EMPTY(&icc->sent_pdus)) {
+			icc->tx_active = false;
+			mtx_sleep(&icc->tx_active, ic->ic_lock, 0, "-", 0);
+			if (__predict_false(ic->ic_disconnecting))
+				goto out;
+			MPASS(icc->tx_active);
+		}
+
+		STAILQ_SWAP(&icc->sent_pdus, &tx_pdus, icl_pdu);
+		ICL_CONN_UNLOCK(ic);
+
+		while ((ip = STAILQ_FIRST(&tx_pdus)) != NULL) {
+			STAILQ_REMOVE_HEAD(&tx_pdus, ip_next);
+
+			m = finalize_pdu(icc, ip_to_icp(ip));
+			M_ASSERTPKTHDR(m);
+			MPASS((m->m_pkthdr.len & 3) == 0);
+
+			mbufq_enqueue(&mq, m);
+		}
+
+		ICL_CONN_LOCK(ic);
+		if (__predict_false(ic->ic_disconnecting) ||
+		    __predict_false(ic->ic_socket == NULL)) {
+			mbufq_drain(&mq);
+			break;
+		}
+
+		CURVNET_SET(toep->vnet);
+		NET_EPOCH_ENTER(et);
+		INP_WLOCK(inp);
+
+		ICL_CONN_UNLOCK(ic);
+		if (__predict_false(inp->inp_flags & (INP_DROPPED |
+		    INP_TIMEWAIT)) ||
+		    __predict_false((toep->flags & TPF_ATTACHED) == 0)) {
+			mbufq_drain(&mq);
+		} else {
+			mbufq_concat(&toep->ulp_pduq, &mq);
+			t4_push_pdus(icc->sc, toep, 0);
+		}
+		INP_WUNLOCK(inp);
+		NET_EPOCH_EXIT(et);
+		CURVNET_RESTORE();
+
+		ICL_CONN_LOCK(ic);
+	}
+out:
+	ICL_CONN_UNLOCK(ic);
+
+	kthread_exit();
+}
+
+static void
+icl_cxgbei_rx_main(void *arg)
+{
+	struct icl_cxgbei_conn *icc = arg;
+	struct icl_conn *ic = &icc->ic;
+	struct icl_pdu *ip;
+	struct sockbuf *sb;
+	STAILQ_HEAD(, icl_pdu) rx_pdus = STAILQ_HEAD_INITIALIZER(rx_pdus);
+	bool cantrcvmore;
+
+	sb = &ic->ic_socket->so_rcv;
+	SOCKBUF_LOCK(sb);
+	while (__predict_true(!ic->ic_disconnecting)) {
+		while (STAILQ_EMPTY(&icc->rcvd_pdus)) {
+			icc->rx_active = false;
+			mtx_sleep(&icc->rx_active, SOCKBUF_MTX(sb), 0, "-", 0);
+			if (__predict_false(ic->ic_disconnecting))
+				goto out;
+			MPASS(icc->rx_active);
+		}
+
+		if (__predict_false(sbused(sb)) != 0) {
+			/*
+			 * PDUs were received before the tid
+			 * transitioned to ULP mode.  Convert
+			 * them to icl_cxgbei_pdus and insert
+			 * them into the head of rcvd_pdus.
+			 */
+			parse_pdus(icc, sb);
+		}
+		cantrcvmore = (sb->sb_state & SBS_CANTRCVMORE) != 0;
+		MPASS(STAILQ_EMPTY(&rx_pdus));
+		STAILQ_SWAP(&icc->rcvd_pdus, &rx_pdus, icl_pdu);
+		SOCKBUF_UNLOCK(sb);
+
+		/* Hand over PDUs to ICL. */
+		while ((ip = STAILQ_FIRST(&rx_pdus)) != NULL) {
+			STAILQ_REMOVE_HEAD(&rx_pdus, ip_next);
+			if (cantrcvmore)
+				icl_cxgbei_pdu_done(ip, ENOTCONN);
+			else
+				ic->ic_receive(ip);
+		}
+
+		SOCKBUF_LOCK(sb);
+	}
+out:
+	/*
+	 * Since ic_disconnecting is set before the SOCKBUF_MTX is
+	 * locked in icl_cxgbei_conn_close, the loop above can exit
+	 * before icl_cxgbei_conn_close can lock SOCKBUF_MTX and block
+	 * waiting for the thread exit.
+	 */
+	while (!icc->rx_exiting)
+		mtx_sleep(&icc->rx_active, SOCKBUF_MTX(sb), 0, "-", 0);
+	SOCKBUF_UNLOCK(sb);
+
+	kthread_exit();
+}
+
+static void
+cxgbei_free_mext_pg(struct mbuf *m)
+{
+	struct icl_cxgbei_pdu *icp;
+
+	M_ASSERTEXTPG(m);
+
+	/*
+	 * Nothing to do for the pages; they are owned by the PDU /
+	 * I/O request.
+	 */
+
+	/* Drop reference on the PDU. */
+	icp = m->m_ext.ext_arg1;
+	if (atomic_fetchadd_int(&icp->ref_cnt, -1) == 1)
+		icl_cxgbei_pdu_call_cb(&icp->ip);
+}
+
+static struct mbuf *
+cxgbei_getm(size_t len, int flags)
+{
+	struct mbuf *m, *m0, *m_tail;
+
+	m_tail = m0 = NULL;
+
+	/* Allocate as jumbo mbufs of size MJUM16BYTES. */
+	while (len >= MJUM16BYTES) {
+		m = m_getjcl(M_NOWAIT, MT_DATA, 0, MJUM16BYTES);
+		if (__predict_false(m == NULL)) {
+			if ((flags & M_WAITOK) != 0) {
+				/* Fall back to non-jumbo mbufs. */
+				break;
+			}
+			return (NULL);
+		}
+		if (m0 == NULL) {
+			m0 = m_tail = m;
+		} else {
+			m_tail->m_next = m;
+			m_tail = m;
+		}
+		len -= MJUM16BYTES;
+	}
+
+	/* Allocate mbuf chain for the remaining data. */
+	if (len != 0) {
+		m = m_getm2(NULL, len, flags, MT_DATA, 0);
+		if (__predict_false(m == NULL)) {
+			m_freem(m0);
+			return (NULL);
+		}
+		if (m0 == NULL)
+			m0 = m;
+		else
+			m_tail->m_next = m;
+	}
+
+	return (m0);
+}
+
+int
+icl_cxgbei_conn_pdu_append_bio(struct icl_conn *ic, struct icl_pdu *ip,
+    struct bio *bp, size_t offset, size_t len, int flags)
+{
+	struct icl_cxgbei_pdu *icp = ip_to_icp(ip);
+	struct mbuf *m, *m_tail;
+	vm_offset_t vaddr;
+	size_t page_offset, todo, mtodo;
+	boolean_t mapped;
+	int i;
+
+	MPASS(icp->icp_signature == CXGBEI_PDU_SIGNATURE);
+	MPASS(ic == ip->ip_conn);
+	KASSERT(len > 0, ("%s: len is %jd", __func__, (intmax_t)len));
+
+	m_tail = ip->ip_data_mbuf;
+	if (m_tail != NULL)
+		for (; m_tail->m_next != NULL; m_tail = m_tail->m_next)
+			;
+
+	MPASS(bp->bio_flags & BIO_UNMAPPED);
+	if (offset < PAGE_SIZE - bp->bio_ma_offset) {
+		page_offset = bp->bio_ma_offset + offset;
+		i = 0;
+	} else {
+		offset -= PAGE_SIZE - bp->bio_ma_offset;
+		for (i = 1; offset >= PAGE_SIZE; i++)
+			offset -= PAGE_SIZE;
+		page_offset = offset;
+	}
+
+	if (flags & ICL_NOCOPY) {
+		m = NULL;
+		while (len > 0) {
+			if (m == NULL) {
+				m = mb_alloc_ext_pgs(flags & ~ICL_NOCOPY,
+				    cxgbei_free_mext_pg);
+				if (__predict_false(m == NULL))
+					return (ENOMEM);
+				atomic_add_int(&icp->ref_cnt, 1);
+				m->m_ext.ext_arg1 = icp;
+				m->m_epg_1st_off = page_offset;
+			}
+
+			todo = MIN(len, PAGE_SIZE - page_offset);
+
+			m->m_epg_pa[m->m_epg_npgs] =
+			    VM_PAGE_TO_PHYS(bp->bio_ma[i]);
+			m->m_epg_npgs++;
+			m->m_epg_last_len = todo;
+			m->m_len += todo;
+			m->m_ext.ext_size += PAGE_SIZE;
+			MBUF_EXT_PGS_ASSERT_SANITY(m);
+
+			if (m->m_epg_npgs == MBUF_PEXT_MAX_PGS) {
+				if (m_tail != NULL)
+					m_tail->m_next = m;
+				else
+					ip->ip_data_mbuf = m;
+				m_tail = m;
+				ip->ip_data_len += m->m_len;
+				m = NULL;
+			}
+
+			page_offset = 0;
+			len -= todo;
+			i++;
+		}
+
+		if (m != NULL) {
+			if (m_tail != NULL)
+				m_tail->m_next = m;
+			else
+				ip->ip_data_mbuf = m;
+			ip->ip_data_len += m->m_len;
+		}
+		return (0);
+	}
+
+	m = cxgbei_getm(len, flags);
+	if (__predict_false(m == NULL))
+		return (ENOMEM);
+
+	if (ip->ip_data_mbuf == NULL) {
+		ip->ip_data_mbuf = m;
+		ip->ip_data_len = len;
+	} else {
+		m_tail->m_next = m;
+		ip->ip_data_len += len;
+	}
+
+	while (len > 0) {
+		todo = MIN(len, PAGE_SIZE - page_offset);
+
+		mapped = pmap_map_io_transient(bp->bio_ma + i, &vaddr, 1,
+		    FALSE);
+
+		do {
+			mtodo = min(todo, M_SIZE(m) - m->m_len);
+			memcpy(mtod(m, char *) + m->m_len, (char *)vaddr +
+			    page_offset, mtodo);
+			m->m_len += mtodo;
+			if (m->m_len == M_SIZE(m))
+				m = m->m_next;
+			page_offset += mtodo;
+			todo -= mtodo;
+		} while (todo > 0);
+
+		if (__predict_false(mapped))
+			pmap_unmap_io_transient(bp->bio_ma + 1, &vaddr, 1,
+			    FALSE);
+
+		page_offset = 0;
+		len -= todo;
+		i++;
+	}
+
+	MPASS(ip->ip_data_len <= max(ic->ic_max_send_data_segment_length,
+	    ic->ic_hw_isomax));
+
+	return (0);
+}
+
 int
 icl_cxgbei_conn_pdu_append_data(struct icl_conn *ic, struct icl_pdu *ip,
     const void *addr, size_t len, int flags)
@@ -461,56 +781,72 @@ icl_cxgbei_conn_pdu_append_data(struct icl_conn *ic, struct icl_pdu *ip,
 		return (0);
 	}
 
+	m = cxgbei_getm(len, flags);
+	if (__predict_false(m == NULL))
+		return (ENOMEM);
+
+	if (ip->ip_data_mbuf == NULL) {
+		ip->ip_data_mbuf = m;
+		ip->ip_data_len = len;
+	} else {
+		m_tail->m_next = m;
+		ip->ip_data_len += len;
+	}
 	src = (const char *)addr;
-
-	/* Allocate as jumbo mbufs of size MJUM16BYTES. */
-	while (len >= MJUM16BYTES) {
-		m = m_getjcl(M_NOWAIT, MT_DATA, 0, MJUM16BYTES);
-		if (__predict_false(m == NULL)) {
-			if ((flags & M_WAITOK) != 0) {
-				/* Fall back to non-jumbo mbufs. */
-				break;
-			}
-			return (ENOMEM);
-		}
-		memcpy(mtod(m, void *), src, MJUM16BYTES);
-		m->m_len = MJUM16BYTES;
-		if (ip->ip_data_mbuf == NULL) {
-			ip->ip_data_mbuf = m_tail = m;
-			ip->ip_data_len = MJUM16BYTES;
-		} else {
-			m_tail->m_next = m;
-			m_tail = m_tail->m_next;
-			ip->ip_data_len += MJUM16BYTES;
-		}
-		src += MJUM16BYTES;
-		len -= MJUM16BYTES;
+	for (; m != NULL; m = m->m_next) {
+		m->m_len = min(len, M_SIZE(m));
+		memcpy(mtod(m, void *), src, m->m_len);
+		src += m->m_len;
+		len -= m->m_len;
 	}
+	MPASS(len == 0);
 
-	/* Allocate mbuf chain for the remaining data. */
-	if (len != 0) {
-		m = m_getm2(NULL, len, flags, MT_DATA, 0);
-		if (__predict_false(m == NULL))
-			return (ENOMEM);
-		if (ip->ip_data_mbuf == NULL) {
-			ip->ip_data_mbuf = m;
-			ip->ip_data_len = len;
-		} else {
-			m_tail->m_next = m;
-			ip->ip_data_len += len;
-		}
-		for (; m != NULL; m = m->m_next) {
-			m->m_len = min(len, M_SIZE(m));
-			memcpy(mtod(m, void *), src, m->m_len);
-			src += m->m_len;
-			len -= m->m_len;
-		}
-		MPASS(len == 0);
-	}
 	MPASS(ip->ip_data_len <= max(ic->ic_max_send_data_segment_length,
 	    ic->ic_hw_isomax));
 
 	return (0);
+}
+
+void
+icl_cxgbei_conn_pdu_get_bio(struct icl_conn *ic, struct icl_pdu *ip,
+    size_t pdu_off, struct bio *bp, size_t bio_off, size_t len)
+{
+	struct icl_cxgbei_pdu *icp = ip_to_icp(ip);
+	vm_offset_t vaddr;
+	size_t page_offset, todo;
+	boolean_t mapped;
+	int i;
+
+	if (icp->icp_flags & ICPF_RX_DDP)
+		return; /* data is DDP'ed, no need to copy */
+
+	MPASS(bp->bio_flags & BIO_UNMAPPED);
+	if (bio_off < PAGE_SIZE - bp->bio_ma_offset) {
+		page_offset = bp->bio_ma_offset + bio_off;
+		i = 0;
+	} else {
+		bio_off -= PAGE_SIZE - bp->bio_ma_offset;
+		for (i = 1; bio_off >= PAGE_SIZE; i++)
+			bio_off -= PAGE_SIZE;
+		page_offset = bio_off;
+	}
+
+	while (len > 0) {
+		todo = MIN(len, PAGE_SIZE - page_offset);
+
+		mapped = pmap_map_io_transient(bp->bio_ma + i, &vaddr, 1,
+		    FALSE);
+		m_copydata(ip->ip_data_mbuf, pdu_off, todo, (char *)vaddr +
+		    page_offset);
+		if (__predict_false(mapped))
+			pmap_unmap_io_transient(bp->bio_ma + 1, &vaddr, 1,
+			    FALSE);
+
+		page_offset = 0;
+		pdu_off += todo;
+		len -= todo;
+		i++;
+	}
 }
 
 void
@@ -534,13 +870,9 @@ void
 icl_cxgbei_conn_pdu_queue_cb(struct icl_conn *ic, struct icl_pdu *ip,
 			     icl_pdu_cb cb)
 {
-	struct epoch_tracker et;
 	struct icl_cxgbei_conn *icc = ic_to_icc(ic);
 	struct icl_cxgbei_pdu *icp = ip_to_icp(ip);
 	struct socket *so = ic->ic_socket;
-	struct toepcb *toep = icc->toep;
-	struct inpcb *inp;
-	struct mbuf *m;
 
 	MPASS(ic == ip->ip_conn);
 	MPASS(ip->ip_bhs_mbuf != NULL);
@@ -557,28 +889,11 @@ icl_cxgbei_conn_pdu_queue_cb(struct icl_conn *ic, struct icl_pdu *ip,
 		return;
 	}
 
-	m = finalize_pdu(icc, icp);
-	M_ASSERTPKTHDR(m);
-	MPASS((m->m_pkthdr.len & 3) == 0);
-
-	/*
-	 * Do not get inp from toep->inp as the toepcb might have detached
-	 * already.
-	 */
-	inp = sotoinpcb(so);
-	CURVNET_SET(toep->vnet);
-	NET_EPOCH_ENTER(et);
-	INP_WLOCK(inp);
-	if (__predict_false(inp->inp_flags & (INP_DROPPED | INP_TIMEWAIT)) ||
-	    __predict_false((toep->flags & TPF_ATTACHED) == 0))
-		m_freem(m);
-	else {
-		mbufq_enqueue(&toep->ulp_pduq, m);
-		t4_push_pdus(icc->sc, toep, 0);
+	STAILQ_INSERT_TAIL(&icc->sent_pdus, ip, ip_next);
+	if (!icc->tx_active) {
+		icc->tx_active = true;
+		wakeup(&icc->tx_active);
 	}
-	INP_WUNLOCK(inp);
-	NET_EPOCH_EXIT(et);
-	CURVNET_RESTORE();
 }
 
 static struct icl_conn *
@@ -593,6 +908,7 @@ icl_cxgbei_new_conn(const char *name, struct mtx *lock)
 	    M_WAITOK | M_ZERO);
 	icc->icc_signature = CXGBEI_CONN_SIGNATURE;
 	STAILQ_INIT(&icc->rcvd_pdus);
+	STAILQ_INIT(&icc->sent_pdus);
 
 	icc->cmp_table = hashinit(64, M_CXGBEI, &icc->cmp_hash_mask);
 	mtx_init(&icc->cmp_lock, "cxgbei_cmp", NULL, MTX_DEF);
@@ -605,7 +921,7 @@ icl_cxgbei_new_conn(const char *name, struct mtx *lock)
 #endif
 	ic->ic_name = name;
 	ic->ic_offload = "cxgbei";
-	ic->ic_unmapped = false;
+	ic->ic_unmapped = true;
 
 	CTR2(KTR_CXGBE, "%s: icc %p", __func__, icc);
 
@@ -638,10 +954,8 @@ icl_cxgbei_setsockopt(struct icl_conn *ic, struct socket *so, int sspace,
 	rs = max(recvspace, rspace);
 
 	error = soreserve(so, ss, rs);
-	if (error != 0) {
-		icl_cxgbei_conn_close(ic);
+	if (error != 0)
 		return (error);
-	}
 	SOCKBUF_LOCK(&so->so_snd);
 	so->so_snd.sb_flags |= SB_AUTOSIZE;
 	SOCKBUF_UNLOCK(&so->so_snd);
@@ -659,10 +973,8 @@ icl_cxgbei_setsockopt(struct icl_conn *ic, struct socket *so, int sspace,
 	opt.sopt_val = &one;
 	opt.sopt_valsize = sizeof(one);
 	error = sosetopt(so, &opt);
-	if (error != 0) {
-		icl_cxgbei_conn_close(ic);
+	if (error != 0)
 		return (error);
-	}
 
 	return (0);
 }
@@ -832,8 +1144,10 @@ icl_cxgbei_conn_handoff(struct icl_conn *ic, int fd)
 	fa.sc = NULL;
 	fa.so = so;
 	t4_iterate(find_offload_adapter, &fa);
-	if (fa.sc == NULL)
-		return (EINVAL);
+	if (fa.sc == NULL) {
+		error = EINVAL;
+		goto out;
+	}
 	icc->sc = fa.sc;
 
 	max_rx_pdu_len = ISCSI_BHS_SIZE + ic->ic_max_recv_data_segment_length;
@@ -852,7 +1166,8 @@ icl_cxgbei_conn_handoff(struct icl_conn *ic, int fd)
 	tp = intotcpcb(inp);
 	if (inp->inp_flags & (INP_DROPPED | INP_TIMEWAIT)) {
 		INP_WUNLOCK(inp);
-		return (EBUSY);
+		error = ENOTCONN;
+		goto out;
 	}
 
 	/*
@@ -866,11 +1181,11 @@ icl_cxgbei_conn_handoff(struct icl_conn *ic, int fd)
 
 	if (ulp_mode(toep) != ULP_MODE_NONE) {
 		INP_WUNLOCK(inp);
-		return (EINVAL);
+		error = EINVAL;
+		goto out;
 	}
 
 	icc->toep = toep;
-	icc->cwt = cxgbei_select_worker_thread(icc);
 
 	icc->ulp_submode = 0;
 	if (ic->ic_header_crc32c)
@@ -894,7 +1209,21 @@ icl_cxgbei_conn_handoff(struct icl_conn *ic, int fd)
 	set_ulp_mode_iscsi(icc->sc, toep, icc->ulp_submode);
 	INP_WUNLOCK(inp);
 
-	return (icl_cxgbei_setsockopt(ic, so, max_tx_pdu_len, max_rx_pdu_len));
+	error = kthread_add(icl_cxgbei_tx_main, icc, NULL, &icc->tx_thread, 0,
+	    0, "%stx (cxgbei)", ic->ic_name);
+	if (error != 0)
+		goto out;
+
+	error = kthread_add(icl_cxgbei_rx_main, icc, NULL, &icc->rx_thread, 0,
+	    0, "%srx (cxgbei)", ic->ic_name);
+	if (error != 0)
+		goto out;
+
+	error = icl_cxgbei_setsockopt(ic, so, max_tx_pdu_len, max_rx_pdu_len);
+out:
+	if (error != 0)
+		icl_cxgbei_conn_close(ic);
+	return (error);
 }
 
 void
@@ -925,47 +1254,57 @@ icl_cxgbei_conn_close(struct icl_conn *ic)
 	    ("destroying session with %d outstanding PDUs",
 	     ic->ic_outstanding_pdus));
 #endif
-	ICL_CONN_UNLOCK(ic);
 
 	CTR3(KTR_CXGBE, "%s: tid %d, icc %p", __func__, toep ? toep->tid : -1,
 	    icc);
+
+	/*
+	 * Wait for the transmit thread to stop processing
+	 * this connection.
+	 */
+	if (icc->tx_thread != NULL) {
+		wakeup(&icc->tx_active);
+		mtx_sleep(icc->tx_thread, ic->ic_lock, 0, "conclo", 0);
+	}
+
+	/* Discard PDUs queued for TX. */
+	while (!STAILQ_EMPTY(&icc->sent_pdus)) {
+		ip = STAILQ_FIRST(&icc->sent_pdus);
+		STAILQ_REMOVE_HEAD(&icc->sent_pdus, ip_next);
+		icl_cxgbei_pdu_done(ip, ENOTCONN);
+	}
+	ICL_CONN_UNLOCK(ic);
+
 	inp = sotoinpcb(so);
 	sb = &so->so_rcv;
+
+	/*
+	 * Wait for the receive thread to stop processing this
+	 * connection.
+	 */
+	SOCKBUF_LOCK(sb);
+	if (icc->rx_thread != NULL) {
+		icc->rx_exiting = true;
+		wakeup(&icc->rx_active);
+		mtx_sleep(icc->rx_thread, SOCKBUF_MTX(sb), 0, "conclo", 0);
+	}
+
+	/*
+	 * Discard received PDUs not passed to the iSCSI layer.
+	 */
+	while (!STAILQ_EMPTY(&icc->rcvd_pdus)) {
+		ip = STAILQ_FIRST(&icc->rcvd_pdus);
+		STAILQ_REMOVE_HEAD(&icc->rcvd_pdus, ip_next);
+		icl_cxgbei_pdu_done(ip, ENOTCONN);
+	}
+	SOCKBUF_UNLOCK(sb);
+
 	INP_WLOCK(inp);
 	if (toep != NULL) {	/* NULL if connection was never offloaded. */
 		toep->ulpcb = NULL;
 
-		/* Discard PDUs queued for TX. */
+		/* Discard mbufs queued for TX. */
 		mbufq_drain(&toep->ulp_pduq);
-
-		/*
-		 * Wait for the cwt threads to stop processing this
-		 * connection.
-		 */
-		SOCKBUF_LOCK(sb);
-		if (icc->rx_flags & RXF_ACTIVE) {
-			volatile u_int *p = &icc->rx_flags;
-
-			SOCKBUF_UNLOCK(sb);
-			INP_WUNLOCK(inp);
-
-			while (*p & RXF_ACTIVE)
-				pause("conclo", 1);
-
-			INP_WLOCK(inp);
-			SOCKBUF_LOCK(sb);
-		}
-
-		/*
-		 * Discard received PDUs not passed to the iSCSI
-		 * layer.
-		 */
-		while (!STAILQ_EMPTY(&icc->rcvd_pdus)) {
-			ip = STAILQ_FIRST(&icc->rcvd_pdus);
-			STAILQ_REMOVE_HEAD(&icc->rcvd_pdus, ip_next);
-			icl_cxgbei_pdu_done(ip, ENOTCONN);
-		}
-		SOCKBUF_UNLOCK(sb);
 
 		/*
 		 * Grab a reference to use when waiting for the final
@@ -1087,11 +1426,9 @@ icl_cxgbei_conn_task_setup(struct icl_conn *ic, struct icl_pdu *ip,
 	MPASS(arg != NULL);
 	MPASS(*arg == NULL);
 
-	if (ic->ic_disconnecting || ic->ic_socket == NULL)
-		return (ECONNRESET);
-
 	if ((csio->ccb_h.flags & CAM_DIR_MASK) != CAM_DIR_IN ||
-	    csio->dxfer_len < ci->ddp_threshold) {
+	    csio->dxfer_len < ci->ddp_threshold || ic->ic_disconnecting ||
+	    ic->ic_socket == NULL) {
 no_ddp:
 		/*
 		 * No DDP for this I/O.	 Allocate an ITT (based on the one
@@ -1119,22 +1456,45 @@ no_ddp:
 	}
 	prsv = &ddp->prsv;
 
-	/* XXX add support for all CAM_DATA_ types */
-	MPASS((csio->ccb_h.flags & CAM_DATA_MASK) == CAM_DATA_VADDR);
-	rc = t4_alloc_page_pods_for_buf(pr, (vm_offset_t)csio->data_ptr,
-	    csio->dxfer_len, prsv);
-	if (rc != 0) {
-		free(ddp, M_CXGBEI);
-		goto no_ddp;
-	}
-
 	mbufq_init(&mq, INT_MAX);
-	rc = t4_write_page_pods_for_buf(sc, toep, prsv,
-	    (vm_offset_t)csio->data_ptr, csio->dxfer_len, &mq);
-	if (__predict_false(rc != 0)) {
-		mbufq_drain(&mq);
-		t4_free_page_pods(prsv);
+	switch (csio->ccb_h.flags & CAM_DATA_MASK) {
+	case CAM_DATA_BIO:
+		rc = t4_alloc_page_pods_for_bio(pr,
+		    (struct bio *)csio->data_ptr, prsv);
+		if (rc != 0) {
+			free(ddp, M_CXGBEI);
+			goto no_ddp;
+		}
+
+		rc = t4_write_page_pods_for_bio(sc, toep, prsv,
+		    (struct bio *)csio->data_ptr, &mq);
+		if (__predict_false(rc != 0)) {
+			mbufq_drain(&mq);
+			t4_free_page_pods(prsv);
+			free(ddp, M_CXGBEI);
+			goto no_ddp;
+		}
+		break;
+	case CAM_DATA_VADDR:
+		rc = t4_alloc_page_pods_for_buf(pr, (vm_offset_t)csio->data_ptr,
+		    csio->dxfer_len, prsv);
+		if (rc != 0) {
+			free(ddp, M_CXGBEI);
+			goto no_ddp;
+		}
+
+		rc = t4_write_page_pods_for_buf(sc, toep, prsv,
+		    (vm_offset_t)csio->data_ptr, csio->dxfer_len, &mq);
+		if (__predict_false(rc != 0)) {
+			mbufq_drain(&mq);
+			t4_free_page_pods(prsv);
+			free(ddp, M_CXGBEI);
+			goto no_ddp;
+		}
+		break;
+	default:
 		free(ddp, M_CXGBEI);
+		rc = EINVAL;
 		goto no_ddp;
 	}
 
@@ -1149,7 +1509,7 @@ no_ddp:
 		mbufq_drain(&mq);
 		t4_free_page_pods(prsv);
 		free(ddp, M_CXGBEI);
-		return (ECONNRESET);
+		goto no_ddp;
 	}
 	mbufq_concat(&toep->ulp_pduq, &mq);
 	INP_WUNLOCK(inp);
@@ -1203,13 +1563,11 @@ ddp_sgl_check(struct ctl_sg_entry *sg, int entries, int xferlen)
 	return (true);
 }
 
-/* XXXNP: PDU should be passed in as parameter, like on the initiator. */
-#define io_to_request_pdu(io) ((io)->io_hdr.ctl_private[CTL_PRIV_FRONTEND].ptr)
 #define io_to_ddp_state(io) ((io)->io_hdr.ctl_private[CTL_PRIV_FRONTEND2].ptr)
 
 int
-icl_cxgbei_conn_transfer_setup(struct icl_conn *ic, union ctl_io *io,
-    uint32_t *tttp, void **arg)
+icl_cxgbei_conn_transfer_setup(struct icl_conn *ic, struct icl_pdu *ip,
+    union ctl_io *io, uint32_t *tttp, void **arg)
 {
 	struct icl_cxgbei_conn *icc = ic_to_icc(ic);
 	struct toepcb *toep = icc->toep;
@@ -1232,7 +1590,6 @@ icl_cxgbei_conn_transfer_setup(struct icl_conn *ic, union ctl_io *io,
 
 	if (ctsio->ext_data_filled == 0) {
 		int first_burst;
-		struct icl_pdu *ip = io_to_request_pdu(io);
 #ifdef INVARIANTS
 		struct icl_cxgbei_pdu *icp = ip_to_icp(ip);
 

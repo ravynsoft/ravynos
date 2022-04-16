@@ -38,6 +38,8 @@ vdev_indirect_births_verify(vdev_indirect_births_t *vib)
 
 	return (B_TRUE);
 }
+#else
+#define	vdev_indirect_births_verify(vib) ((void) sizeof (vib), B_TRUE)
 #endif
 
 uint64_t
@@ -150,7 +152,7 @@ vdev_indirect_births_add_entry(vdev_indirect_births_t *vib,
 
 	new_entries = vmem_alloc(new_size, KM_SLEEP);
 	if (old_size > 0) {
-		bcopy(vib->vib_entries, new_entries, old_size);
+		memcpy(new_entries, vib->vib_entries, old_size);
 		vmem_free(vib->vib_entries, old_size);
 	}
 	new_entries[vib->vib_phys->vib_count - 1] = vibe;

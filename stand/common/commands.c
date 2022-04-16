@@ -546,7 +546,6 @@ command_lsdev(int argc, char *argv[])
 	return (CMD_OK);
 }
 
-#ifndef __mips__
 static int
 command_readtest(int argc, char *argv[])
 {
@@ -577,4 +576,3 @@ command_readtest(int argc, char *argv[])
 }
 
 COMMAND_SET(readtest, "readtest", "Time a file read", command_readtest);
-#endif

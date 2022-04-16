@@ -76,16 +76,13 @@ static int
 sbni_pci_probe(device_t dev)
 {
 	struct sbni_softc  *sc;
-	u_int32_t  ports;
 
-	ports = SBNI_PORTS;
 	if (pci_get_vendor(dev) != SBNI_PCI_VENDOR ||
 	    pci_get_device(dev) != SBNI_PCI_DEVICE)
 		return (ENXIO);
 
 	sc = device_get_softc(dev);
 	if (pci_get_subdevice(dev) == 2) {
-		ports <<= 1;
 		sc->slave_sc = malloc(sizeof(struct sbni_softc),
 				      M_DEVBUF, M_NOWAIT | M_ZERO);
 		if (!sc->slave_sc)
@@ -137,7 +134,7 @@ sbni_pci_attach(device_t dev)
 		goto attach_failed;
 	}
 
-	*(u_int32_t*)&flags = 0;
+	memset(&flags, 0, sizeof(flags));
 
 	error = sbni_attach(sc, device_get_unit(dev) * 2, flags);
 	if (error) {

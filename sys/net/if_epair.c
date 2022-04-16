@@ -317,8 +317,11 @@ epair_transmit(struct ifnet *ifp, struct mbuf *m)
 {
 	struct epair_softc *sc;
 	struct ifnet *oifp;
-	int error, len;
+	int error;
+#ifdef ALTQ
+	int len;
 	short mflags;
+#endif
 
 	if (m == NULL)
 		return (0);
@@ -355,10 +358,11 @@ epair_transmit(struct ifnet *ifp, struct mbuf *m)
 		m_freem(m);
 		return (0);
 	}
+
+#ifdef ALTQ
 	len = m->m_pkthdr.len;
 	mflags = m->m_flags;
 
-#ifdef ALTQ
 	/* Support ALTQ via the classic if_start() path. */
 	IF_LOCK(&ifp->if_snd);
 	if (ALTQ_IS_ENABLED(&ifp->if_snd)) {
@@ -795,7 +799,7 @@ VNET_SYSUNINIT(vnet_epair_uninit, SI_SUB_INIT_IF, SI_ORDER_ANY,
     vnet_epair_uninit, NULL);
 
 static int
-epair_mod_init()
+epair_mod_init(void)
 {
 	char name[32];
 	epair_tasks.tasks = 0;
@@ -839,7 +843,7 @@ epair_mod_init()
 }
 
 static void
-epair_mod_cleanup()
+epair_mod_cleanup(void)
 {
 
 	for (int i = 0; i < epair_tasks.tasks; i++) {

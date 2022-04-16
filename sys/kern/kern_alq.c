@@ -431,7 +431,6 @@ int
 alq_open_flags(struct alq **alqp, const char *file, struct ucred *cred, int cmode,
     int size, int flags)
 {
-	struct thread *td;
 	struct nameidata nd;
 	struct alq *alq;
 	int oflags;
@@ -440,16 +439,15 @@ alq_open_flags(struct alq **alqp, const char *file, struct ucred *cred, int cmod
 	KASSERT((size > 0), ("%s: size <= 0", __func__));
 
 	*alqp = NULL;
-	td = curthread;
 
-	NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, file, td);
+	NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, file);
 	oflags = FWRITE | O_NOFOLLOW | O_CREAT;
 
 	error = vn_open_cred(&nd, &oflags, cmode, 0, cred, NULL);
 	if (error)
 		return (error);
 
-	NDFREE(&nd, NDF_ONLY_PNBUF);
+	NDFREE_PNBUF(&nd);
 	/* We just unlock so we hold a reference */
 	VOP_UNLOCK(nd.ni_vp);
 

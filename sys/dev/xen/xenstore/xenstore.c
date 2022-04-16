@@ -56,7 +56,7 @@ __FBSDID("$FreeBSD$");
 #include <xen/hypervisor.h>
 #include <xen/xen_intr.h>
 
-#include <xen/interface/hvm/params.h>
+#include <contrib/xen/hvm/params.h>
 #include <xen/hvm.h>
 
 #include <xen/xenstore/xenstorevar.h>
@@ -787,10 +787,7 @@ xs_read_reply(enum xsd_sockmsg_type *type, u_int *len, void **result)
 int
 xs_dev_request_and_reply(struct xsd_sockmsg *msg, void **result)
 {
-	uint32_t request_type;
 	int error;
-
-	request_type = msg->type;
 
 	sx_xlock(&xs.request_mutex);
 	if ((error = xs_write_store(msg, sizeof(*msg) + msg->len)) == 0)
@@ -1130,7 +1127,7 @@ xs_attach(device_t dev)
 	} else {
 		xs.gpfn = xen_get_xenstore_mfn();
 		xen_store = pmap_mapdev_attr(ptoa(xs.gpfn), PAGE_SIZE,
-		    PAT_WRITE_BACK);
+		    VM_MEMATTR_XEN);
 		xs.initialized = true;
 	}
 

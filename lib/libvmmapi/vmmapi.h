@@ -73,6 +73,7 @@ enum {
 	VM_SYSMEM,
 	VM_BOOTROM,
 	VM_FRAMEBUFFER,
+	VM_PCIROM,
 };
 
 /*
@@ -132,7 +133,7 @@ uint32_t vm_get_lowmem_limit(struct vmctx *ctx);
 void	vm_set_lowmem_limit(struct vmctx *ctx, uint32_t limit);
 void	vm_set_memflags(struct vmctx *ctx, int flags);
 int	vm_get_memflags(struct vmctx *ctx);
-int	vm_get_name(struct vmctx *ctx, char *buffer, size_t max_len);
+const char *vm_get_name(struct vmctx *ctx);
 size_t	vm_get_lowmem_size(struct vmctx *ctx);
 size_t	vm_get_highmem_size(struct vmctx *ctx);
 int	vm_set_desc(struct vmctx *ctx, int vcpu, int reg,
@@ -259,19 +260,6 @@ void	vm_setup_freebsd_gdt(uint64_t *gdtr);
 /*
  * Save and restore
  */
-
-#define MAX_SNAPSHOT_VMNAME 100
-
-enum checkpoint_opcodes {
-	START_CHECKPOINT = 0,
-	START_SUSPEND = 1,
-};
-
-struct checkpoint_op {
-	unsigned int op;
-	char snapshot_filename[MAX_SNAPSHOT_VMNAME];
-};
-
 int	vm_snapshot_req(struct vm_snapshot_meta *meta);
 int	vm_restore_time(struct vmctx *ctx);
 

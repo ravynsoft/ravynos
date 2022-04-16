@@ -8,10 +8,6 @@
 #
 
 #
-# We want LINT to cover profiling as well.
-profile         2
-
-#
 # Enable the kernel DTrace hooks which are required to load the DTrace
 # kernel modules.
 #
@@ -294,7 +290,7 @@ device		isa
 #
 # AUTO_EOI_2 enables the `automatic EOI' feature for the slave 8259A
 # interrupt controller.  This saves about 0.7-1.25 usec for each interrupt.
-# Automatic EOI is documented not to work for for the slave with the
+# Automatic EOI is documented not to work for the slave with the
 # original i8259A, but it works for some clones and some integrated
 # versions.
 #
@@ -433,11 +429,9 @@ device		s3pci
 # linked to /dev/3dfx and /dev/voodoo.  Note that this is not the same as
 # the tdfx DRI module from XFree86 and is completely unrelated.
 #
-# To enable Linuxulator support, one must also include COMPAT_LINUX in the
-# config as well.  The other option is to load both as modules.
+# To enable Linuxulator support, one must also load linux.ko and tdfx_linux.ko.
 
 device		tdfx			# Enable 3Dfx Voodoo support
-device		tdfx_linux		# Enable Linuxulator support
 
 options 	IOMMU			# Enable IOMMU support
 
@@ -496,12 +490,7 @@ device		cpufreq
 # bxe:  Broadcom NetXtreme II (BCM5771X/BCM578XX) PCIe 10Gb Ethernet
 #       adapters.
 # ce:   Cronyx Tau-PCI/32 sync single/dual port G.703/E1 serial adaptor
-#       with 32 HDLC subchannels (requires sppp (default), or NETGRAPH if
-#       NETGRAPH_CRONYX is configured)
-# cp:   Cronyx Tau-PCI sync single/dual/four port
-#       V.35/RS-232/RS-530/RS-449/X.21/G.703/E1/E3/T3/STS-1
-#       serial adaptor (requires sppp (default), or NETGRAPH if
-#       NETGRAPH_CRONYX is configured)
+#       with 32 HDLC subchannels, requires NETGRAPH
 # igc:	Intel I225 2.5G Ethernet adapter
 # ipw:	Intel PRO/Wireless 2100 IEEE 802.11 adapter
 # iwi:	Intel PRO/Wireless 2200BG/2225BG/2915ABG IEEE 802.11 adapters
@@ -522,10 +511,8 @@ device		cpufreq
 
 device          bxe             # Broadcom NetXtreme II BCM5771X/BCM578XX 10GbE
 device		ce
-device		cp
 envvar		hint.cs.0.at="isa"
 envvar		hint.cs.0.port="0x300"
-#options 	NETGRAPH_CRONYX		# Enable NETGRAPH support for Cronyx adapter(s)
 envvar		hint.ed.0.at="isa"
 envvar		hint.ed.0.port="0x280"
 envvar		hint.ed.0.irq="5"
@@ -623,13 +610,6 @@ device		pst
 # CAM is required.
 #
 device		arcmsr		# Areca SATA II RAID
-
-#
-# 3ware 9000 series PATA/SATA RAID controller driver and options.
-# The driver is implemented as a SIM, and so, needs the CAM infrastructure.
-#
-options 	TWA_DEBUG		# 0-10; 10 prints the most messages.
-device		twa			# 3ware 9000 series PATA/SATA RAID
 
 #
 # Adaptec FSA RAID controllers, including integrated DELL controllers,
@@ -880,25 +860,6 @@ options 	IICHID_SAMPLING	# Workaround missing GPIO INTR support
 # Enable (32-bit) a.out binary support
 options 	COMPAT_AOUT
 
-# Enable 32-bit runtime support for CloudABI binaries.
-options 	COMPAT_CLOUDABI32
-
-# Enable Linux ABI emulation
-options 	COMPAT_LINUX
-
-# Enable the linux-like proc filesystem support (requires COMPAT_LINUX
-# and PSEUDOFS)
-options 	LINPROCFS
-
-#Enable the linux-like sys filesystem support (requires COMPAT_LINUX
-# and PSEUDOFS)
-options 	LINSYSFS
-
-# Enable NDIS binary driver support
-options 	NDISAPI
-device		ndis
-
-
 #####################################################################
 # VM OPTIONS
 
@@ -918,7 +879,6 @@ options 	PV_STATS
 
 options 	FB_INSTALL_CDEV		# install a CDEV entry in /dev
 
-options 	I586_PMC_GUPROF=0x70000
 options 	KBDIO_DEBUG=2
 options 	KBD_MAXRETRY=4
 options 	KBD_MAXWAIT=6

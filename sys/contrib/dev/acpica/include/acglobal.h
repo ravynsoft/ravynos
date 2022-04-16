@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -365,6 +365,8 @@ ACPI_INIT_GLOBAL (ACPI_COMMENT_NODE,   *AcpiGbl_LastListHead, NULL);
 extern ACPI_BIT_REGISTER_INFO           AcpiGbl_BitRegisterInfo[ACPI_NUM_BITREG];
 ACPI_GLOBAL (UINT8,                     AcpiGbl_SleepTypeA);
 ACPI_GLOBAL (UINT8,                     AcpiGbl_SleepTypeB);
+ACPI_GLOBAL (UINT8,                     AcpiGbl_SleepTypeAS0);
+ACPI_GLOBAL (UINT8,                     AcpiGbl_SleepTypeBS0);
 
 
 /*****************************************************************************

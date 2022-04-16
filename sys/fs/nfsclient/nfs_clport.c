@@ -433,7 +433,7 @@ ncl_copy_vattr(struct vattr *dst, struct vattr *src)
  */
 int
 nfscl_loadattrcache(struct vnode **vpp, struct nfsvattr *nap, void *nvaper,
-    void *stuff, int writeattr, int dontshrink)
+    int writeattr, int dontshrink)
 {
 	struct vnode *vp = *vpp;
 	struct vattr *vap, *nvap = &nap->na_vattr, *vaper = nvaper;
@@ -781,7 +781,7 @@ nfscl_start_renewthread(struct nfsclclient *clp)
  */
 int
 nfscl_wcc_data(struct nfsrv_descript *nd, struct vnode *vp,
-    struct nfsvattr *nap, int *flagp, int *wccflagp, void *stuff)
+    struct nfsvattr *nap, int *flagp, int *wccflagp, uint64_t *repsizep)
 {
 	u_int32_t *tl;
 	struct nfsnode *np = VTONFS(vp);
@@ -804,7 +804,7 @@ nfscl_wcc_data(struct nfsrv_descript *nd, struct vnode *vp,
 				NFSUNLOCKNODE(np);
 			}
 		}
-		error = nfscl_postop_attr(nd, nap, flagp, stuff);
+		error = nfscl_postop_attr(nd, nap, flagp);
 		if (wccflagp != NULL && *flagp == 0)
 			*wccflagp = 0;
 	} else if ((nd->nd_flag & (ND_NOMOREDATA | ND_NFSV4 | ND_V4WCCATTR))
@@ -820,6 +820,8 @@ nfscl_wcc_data(struct nfsrv_descript *nd, struct vnode *vp,
 		NFSM_DISSECT(tl, u_int32_t *, 2 * NFSX_UNSIGNED);
 		if (*++tl)
 			nd->nd_flag |= ND_NOMOREDATA;
+		if (repsizep != NULL)
+			*repsizep = nfsva.na_size;
 		if (wccflagp != NULL &&
 		    nfsva.na_vattr.va_mtime.tv_sec != 0) {
 			NFSLOCKNODE(np);
@@ -838,8 +840,7 @@ nfsmout:
  * Get postop attributes.
  */
 int
-nfscl_postop_attr(struct nfsrv_descript *nd, struct nfsvattr *nap, int *retp,
-    void *stuff)
+nfscl_postop_attr(struct nfsrv_descript *nd, struct nfsvattr *nap, int *retp)
 {
 	u_int32_t *tl;
 	int error = 0;
@@ -881,7 +882,7 @@ nfsmout:
  */
 int
 nfscl_request(struct nfsrv_descript *nd, struct vnode *vp, NFSPROC_T *p,
-    struct ucred *cred, void *stuff)
+    struct ucred *cred)
 {
 	int ret, vers;
 	struct nfsmount *nmp;
@@ -1442,6 +1443,14 @@ static moduledata_t nfscl_mod = {
 	nfscl_modevent,
 	NULL,
 };
+/*
+ * This is the main module declaration for the NFS client.  The
+ * nfscl_modevent() function is needed to ensure that the module
+ * cannot be unloaded, among other things.
+ * There is also a module declaration in sys/fs/nfsclient/nfs_clvfsops.c
+ * for the name "nfs" within the VFS_SET() macro that defines the "nfs"
+ * file system type.
+ */
 DECLARE_MODULE(nfscl, nfscl_mod, SI_SUB_VFS, SI_ORDER_FIRST);
 
 /* So that loader and kldload(2) can find us, wherever we are.. */
@@ -1449,3 +1458,4 @@ MODULE_VERSION(nfscl, 1);
 MODULE_DEPEND(nfscl, nfscommon, 1, 1, 1);
 MODULE_DEPEND(nfscl, krpc, 1, 1, 1);
 MODULE_DEPEND(nfscl, nfssvc, 1, 1, 1);
+MODULE_DEPEND(nfscl, xdr, 1, 1, 1);

@@ -511,7 +511,7 @@ pmap_early_page_idx(vm_offset_t l1pt, vm_offset_t va, u_int *l1_slot,
     u_int *l2_slot)
 {
 	pt_entry_t *l2;
-	pd_entry_t *l1;
+	pd_entry_t *l1 __diagused;
 
 	l1 = (pd_entry_t *)l1pt;
 	*l1_slot = (va >> L1_SHIFT) & Ln_ADDR_MASK;
@@ -620,12 +620,14 @@ pmap_bootstrap_l3(vm_offset_t l1pt, vm_offset_t va, vm_offset_t l3_start)
 void
 pmap_bootstrap(vm_offset_t l1pt, vm_paddr_t kernstart, vm_size_t kernlen)
 {
+	vm_paddr_t physmap[PHYS_AVAIL_ENTRIES];
 	uint64_t satp;
 	vm_offset_t dpcpu, freemempos, l0pv, msgbufpv;
 	vm_paddr_t l0pa, l1pa, max_pa, min_pa, pa;
 	pd_entry_t *l0p;
 	pt_entry_t *l2p;
 	u_int l1_slot, l2_slot;
+	u_int physmap_idx;
 	int i, mode;
 
 	printf("pmap_bootstrap %lx %lx %lx\n", l1pt, kernstart, kernlen);
@@ -2156,7 +2158,7 @@ pmap_pv_insert_l2(pmap_t pmap, vm_offset_t va, pd_entry_t l2e, u_int flags,
 static void
 pmap_remove_kernel_l2(pmap_t pmap, pt_entry_t *l2, vm_offset_t va)
 {
-	pt_entry_t newl2, oldl2;
+	pt_entry_t newl2, oldl2 __diagused;
 	vm_page_t ml3;
 	vm_paddr_t ml3pa;
 
@@ -2420,7 +2422,7 @@ pmap_remove_all(vm_page_t m)
 	struct md_page *pvh;
 	pmap_t pmap;
 	pt_entry_t *l3, l3e;
-	pd_entry_t *l2, l2e;
+	pd_entry_t *l2, l2e __diagused;
 	pv_entry_t pv;
 	vm_offset_t va;
 
@@ -3337,7 +3339,7 @@ pmap_enter_quick_locked(pmap_t pmap, vm_offset_t va, vm_page_t m,
 	pd_entry_t *l2;
 	pt_entry_t *l3, newl3;
 
-	KASSERT(va < kmi.clean_sva || va >= kmi.clean_eva ||
+	KASSERT(!VA_IS_CLEANMAP(va) ||
 	    (m->oflags & VPO_UNMANAGED) != 0,
 	    ("pmap_enter_quick_locked: managed mapping within the clean submap"));
 	rw_assert(&pvh_global_lock, RA_LOCKED);
@@ -4065,10 +4067,14 @@ pmap_is_prefaultable(pmap_t pmap, vm_offset_t addr)
 	pt_entry_t *l3;
 	boolean_t rv;
 
+	/*
+	 * Return TRUE if and only if the L3 entry for the specified virtual
+	 * address is allocated but invalid.
+	 */
 	rv = FALSE;
 	PMAP_LOCK(pmap);
 	l3 = pmap_l3(pmap, addr);
-	if (l3 != NULL && pmap_load(l3) != 0) {
+	if (l3 != NULL && pmap_load(l3) == 0) {
 		rv = TRUE;
 	}
 	PMAP_UNLOCK(pmap);
@@ -4724,7 +4730,7 @@ pmap_map_io_transient(vm_page_t page[], vm_offset_t vaddr[], int count,
 {
 	vm_paddr_t paddr;
 	boolean_t needs_mapping;
-	int error, i;
+	int error __diagused, i;
 
 	/*
 	 * Allocate any KVA space that we need, this is done in a separate

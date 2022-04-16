@@ -38,8 +38,6 @@ SUBDIR=	\
 	${_amdsbwd} \
 	${_amdsmn} \
 	${_amdtemp} \
-	amr \
-	${_an} \
 	${_aout} \
 	${_arcmsr} \
 	${_allwinner} \
@@ -88,9 +86,6 @@ SUBDIR=	\
 	${_cfi} \
 	${_chromebook_platform} \
 	${_ciss} \
-	cloudabi \
-	${_cloudabi32} \
-	${_cloudabi64} \
 	${_coretemp} \
 	${_cp} \
 	${_cpsw} \
@@ -109,21 +104,24 @@ SUBDIR=	\
 	${_dpms} \
 	dummynet \
 	${_dwwdt} \
+	${_e6000sw} \
 	${_efirt} \
 	${_em} \
 	${_ena} \
-	esp \
+	${_enetc} \
 	${_et} \
 	evdev \
 	${_exca} \
 	ext2fs \
 	fdc \
 	fdescfs \
+	${_felix} \
 	${_ffec} \
 	${_fib_dxr} \
 	filemon \
 	firewire \
 	firmware \
+	flash \
 	${_ftwd} \
 	fusefs \
 	${_fxp} \
@@ -140,8 +138,6 @@ SUBDIR=	\
 	${_hptnr} \
 	${_hptrr} \
 	hwpmc \
-	${_hwpmc_mips24k} \
-	${_hwpmc_mips74k} \
 	${_hyperv} \
 	i2c \
 	${_iavf} \
@@ -151,6 +147,7 @@ SUBDIR=	\
 	${_ice_ddp} \
 	${_ida} \
 	if_bridge \
+	${_if_cgem} \
 	if_disc \
 	if_edsc \
 	${_if_enc} \
@@ -160,14 +157,12 @@ SUBDIR=	\
 	${_if_me} \
 	if_infiniband \
 	if_lagg \
-	${_if_ndis} \
 	${_if_stf} \
 	if_tuntap \
 	if_vlan \
 	if_vxlan \
 	iflib \
 	${_igc} \
-	${_iir} \
 	imgact_binmisc \
 	${_intelspi} \
 	${_io} \
@@ -210,7 +205,6 @@ SUBDIR=	\
 	khelp \
 	krpc \
 	ksyms \
-	${_ktls_ocf} \
 	le \
 	lge \
 	libalias \
@@ -237,6 +231,7 @@ SUBDIR=	\
 	mach \
 	macho \
 	${_malo} \
+	${_mana} \
 	md \
 	mdio \
 	${_mgb} \
@@ -251,7 +246,6 @@ SUBDIR=	\
 	${_mlx5} \
 	${_mlx5en} \
 	${_mlx5ib} \
-	${_mly} \
 	mmc \
 	mmcsd \
 	${_mpr} \
@@ -269,7 +263,7 @@ SUBDIR=	\
 	mxge \
 	my \
 	${_nctgpio} \
-	${_ndis} \
+	${_neta} \
 	${_netgraph} \
 	${_nfe} \
 	nfscl \
@@ -293,7 +287,6 @@ SUBDIR=	\
 	ow \
 	${_padlock} \
 	${_padlock_rng} \
-	${_pccard} \
 	${_pchtherm} \
 	${_pcfclock} \
 	${_pf} \
@@ -329,6 +322,8 @@ SUBDIR=	\
 	rl \
 	${_rockchip} \
 	rtsx \
+	${_rtw88} \
+	${_rtw88fw} \
 	rtwn \
 	rtwn_pci \
 	rtwn_usb \
@@ -361,12 +356,12 @@ SUBDIR=	\
 	${_speaker} \
 	spi \
 	${_splash} \
-	${_sppp} \
 	ste \
 	stge \
 	${_sume} \
 	${_superio} \
-	${_sym} \
+	${_p2sb} \
+	sym \
 	${_syscons} \
 	sysvipc \
 	tcp \
@@ -374,7 +369,6 @@ SUBDIR=	\
 	tmpfs \
 	${_toecore} \
 	${_tpm} \
-	${_twa} \
 	twe \
 	tws \
 	uart \
@@ -417,8 +411,7 @@ _autofs=	autofs
 .endif
 
 .if ${MK_CDDL} != "no" || defined(ALL_MODULES)
-.if (${MACHINE_CPUARCH} != "arm" || ${MACHINE_ARCH:Marmv[67]*} != "") && \
-	${MACHINE_CPUARCH} != "mips"
+.if ${MACHINE_CPUARCH} != "arm" || ${MACHINE_ARCH:Marmv[67]*} != ""
 .if ${KERN_OPTS:MKDTRACE_HOOKS}
 SUBDIR+=	dtrace
 .endif
@@ -432,7 +425,6 @@ _crypto=	crypto
 _cryptodev=	cryptodev
 _random_fortuna=random_fortuna
 _random_other=	random_other
-_ktls_ocf=	ktls_ocf
 .endif
 .endif
 
@@ -496,7 +488,6 @@ _dpdk_lpm6=	dpdk_lpm6
 .if ${MK_ISCSI} != "no" || defined(ALL_MODULES)
 SUBDIR+=	cfiscsi
 SUBDIR+=	iscsi
-SUBDIR+=	iscsi_initiator
 .endif
 
 .if !empty(OPT_FDT)
@@ -543,6 +534,10 @@ _mlx4ib=	mlx4ib
 _mlx5ib=	mlx5ib
 .endif
 _ossl=		ossl
+_rtw88=		rtw88
+.if ${MK_SOURCELESS_UCODE} != "no"
+_rtw88fw=	rtw88fw
+.endif
 _vmware=	vmware
 .endif
 
@@ -564,17 +559,13 @@ _bce=		bce
 _fxp=		fxp
 _ispfw=		ispfw
 _ti=		ti
-
-.if ${MACHINE_CPUARCH} != "mips"
 _mwlfw=		mwlfw
 _otusfw=	otusfw
 _ralfw=		ralfw
 _rtwnfw=	rtwnfw
 .endif
-.endif
 
 .if ${MK_SOURCELESS_UCODE} != "no" && ${MACHINE_CPUARCH} != "arm" && \
-	${MACHINE_CPUARCH} != "mips" && \
 	${MACHINE_ARCH} != "powerpc" && ${MACHINE_ARCH} != "powerpcspe" && \
 	${MACHINE_CPUARCH} != "riscv"
 _cxgbe=		cxgbe
@@ -587,9 +578,13 @@ _ice_ddp=	ice_ddp
 .endif
 .endif
 
+.if ${MACHINE_CPUARCH} == "aarch64" || ${MACHINE_CPUARCH} == "arm" || \
+	${MACHINE_CPUARCH} == "riscv"
+_if_cgem=	if_cgem
+.endif
+
 # These rely on 64bit atomics
-.if ${MACHINE_ARCH} != "powerpc" && ${MACHINE_ARCH} != "powerpcspe" && \
-	${MACHINE_CPUARCH} != "mips"
+.if ${MACHINE_ARCH} != "powerpc" && ${MACHINE_ARCH} != "powerpcspe"
 _mps=		mps
 _mpr=		mpr
 .endif
@@ -602,25 +597,13 @@ SUBDIR+=	tests
 SUBDIR+=	zfs
 .endif
 
-.if (${MACHINE_CPUARCH} == "mips" && ${MACHINE_ARCH:Mmips64} == "")
-_hwpmc_mips24k=	hwpmc_mips24k
-_hwpmc_mips74k=	hwpmc_mips74k
-.endif
-
 .if ${MACHINE_CPUARCH} != "aarch64" && ${MACHINE_CPUARCH} != "arm" && \
-	${MACHINE_CPUARCH} != "mips" && ${MACHINE_CPUARCH} != "powerpc" && \
-	${MACHINE_CPUARCH} != "riscv"
+	${MACHINE_CPUARCH} != "powerpc" && ${MACHINE_CPUARCH} != "riscv"
 _syscons=	syscons
 .endif
 
-.if ${MACHINE_CPUARCH} != "mips"
-# no BUS_SPACE_UNSPECIFIED
-# No barrier instruction support (specific to this driver)
-_sym=		sym
-# intr_disable() is a macro, causes problems
 .if ${MK_SOURCELESS_UCODE} != "no"
 _cxgb=		cxgb
-.endif
 .endif
 
 .if ${MACHINE_CPUARCH} == "aarch64"
@@ -628,16 +611,19 @@ _allwinner=	allwinner
 _armv8crypto=	armv8crypto
 _dwwdt=		dwwdt
 _em=		em
+_enetc=		enetc
+_felix=		felix
 _rockchip=	rockchip
 .endif
 
 .if ${MACHINE_CPUARCH} == "aarch64" || ${MACHINE_CPUARCH} == "arm"
 _sdhci_fdt=	sdhci_fdt
+_e6000sw=	e6000sw
+_neta=		neta
 .endif
 
 .if ${MACHINE_CPUARCH} == "i386" || ${MACHINE_CPUARCH} == "amd64"
 _agp=		agp
-_an=		an
 .if ${MACHINE_CPUARCH} == "i386" || !empty(COMPAT_FREEBSD32_ENABLED)
 _aout=		aout
 .endif
@@ -654,7 +640,6 @@ _em=		em
 _et=		et
 _ftwd=		ftwd
 _exca=		exca
-_if_ndis=	if_ndis
 _igc=		igc
 _io=		io
 _itwd=		itwd
@@ -663,12 +648,11 @@ _ixv=		ixv
 .if ${MK_SOURCELESS_UCODE} != "no"
 _lio=		lio
 .endif
+_mana=		mana
 _mgb=		mgb
 _nctgpio=	nctgpio
-_ndis=		ndis
 _ntb=		ntb
 _ocs_fc=	ocs_fc
-_pccard=	pccard
 _qat=		qat
 _qatfw=		qatfw
 .if ${MK_OFED} != "no" || defined(ALL_MODULES)
@@ -677,7 +661,7 @@ _rdma=		rdma
 _safe=		safe
 _speaker=	speaker
 _splash=	splash
-_sppp=		sppp
+_p2sb=		p2sb
 _wbwd=		wbwd
 
 _aac=		aac
@@ -712,7 +696,6 @@ _hptrr=		hptrr
 _hyperv=	hyperv
 _ichwd=		ichwd
 _ida=		ida
-_iir=		iir
 _intelspi=	intelspi
 _ips=		ips
 _isci=		isci
@@ -726,7 +709,6 @@ _iwifw=		iwifw
 _iwmfw=		iwmfw
 _iwnfw=		iwnfw
 .endif
-_mly=		mly
 _nfe=		nfe
 _nvd=		nvd
 _nvme=		nvme
@@ -741,7 +723,6 @@ _s3=		s3
 _sdhci_acpi=	sdhci_acpi
 _superio=	superio
 _tpm=		tpm
-_twa=		twa
 _vesa=		vesa
 _viawd=		viawd
 _vmd=		vmd
@@ -771,6 +752,7 @@ _sfxge=		sfxge
 _sgx=		sgx
 _sgx_linux=	sgx_linux
 _smartpqi=	smartpqi
+_p2sb=		p2sb
 
 .if ${MK_BHYVE} != "no" || defined(ALL_MODULES)
 .if ${KERN_OPTS:MSMP}
@@ -814,7 +796,6 @@ _exca=		exca
 _ffec=		ffec
 _nvd=		nvd
 _nvme=		nvme
-_pccard=	pccard
 .endif
 
 .if ${MACHINE_ARCH:Mpowerpc64*} != ""
@@ -825,14 +806,6 @@ _nvram=		opal_nvram
 .if ${MACHINE_CPUARCH} == "powerpc" && ${MACHINE_ARCH} != "powerpcspe"
 # Don't build powermac_nvram for powerpcspe, it's never supported.
 _nvram+=	powermac_nvram
-.endif
-
-.if (${MACHINE_CPUARCH} == "aarch64" || ${MACHINE_CPUARCH} == "amd64" || \
-     ${MACHINE_ARCH:Marmv[67]*} != "" || ${MACHINE_CPUARCH} == "i386")
-_cloudabi32=	cloudabi32
-.endif
-.if ${MACHINE_CPUARCH} == "aarch64" || ${MACHINE_CPUARCH} == "amd64"
-_cloudabi64=	cloudabi64
 .endif
 
 .endif

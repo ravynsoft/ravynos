@@ -2486,7 +2486,7 @@ jme_txeof(struct jme_softc *sc)
 		ifp->if_drv_flags &= ~IFF_DRV_OACTIVE;
 	}
 	sc->jme_cdata.jme_tx_cons = cons;
-	/* Unarm watchog timer when there is no pending descriptors in queue. */
+	/* Unarm watchdog timer when there is no pending descriptors in queue. */
 	if (sc->jme_cdata.jme_tx_cnt == 0)
 		sc->jme_watchdog_timer = 0;
 
@@ -2848,7 +2848,7 @@ jme_init_locked(struct jme_softc *sc)
 	 * frames larger than 4000 bytes.
 	 * For best performance of standard MTU sized frames use
 	 * maximum allowable FIFO threshold, 128QW. Note these do
-	 * not hold on chip full mask verion >=2. For these
+	 * not hold on chip full mask version >=2. For these
 	 * controllers 64QW and 128QW are not valid value.
 	 */
 	if (CHIPMODE_REVFM(sc->jme_chip_rev) >= 2)

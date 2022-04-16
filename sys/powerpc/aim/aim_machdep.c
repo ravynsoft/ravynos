@@ -118,7 +118,6 @@ __FBSDID("$FreeBSD$");
 #include <machine/metadata.h>
 #include <machine/mmuvar.h>
 #include <machine/pcb.h>
-#include <machine/reg.h>
 #include <machine/sigframe.h>
 #include <machine/spr.h>
 #include <machine/trap.h>
@@ -587,8 +586,10 @@ pmap_early_io_map_init(void)
 {
 	if ((cpu_features2 & PPC_FEATURE2_ARCH_3_00) == 0)
 		radix_mmu = 0;
-	else
+	else {
+		radix_mmu = 1;
 		TUNABLE_INT_FETCH("radix_mmu", &radix_mmu);
+	}
 
 	/*
 	 * When using Radix, set the start and end of kva early, to be able to
@@ -648,7 +649,6 @@ flush_disable_caches(void)
 	register_t msscr0;
 	register_t cache_reg;
 	volatile uint32_t *memp;
-	uint32_t temp;
 	int i;
 	int x;
 
@@ -681,7 +681,7 @@ flush_disable_caches(void)
 	 */
 	memp = (volatile uint32_t *)0x00000000;
 	for (i = 0; i < 128 * 1024; i++) {
-		temp = *memp;
+		(void)*memp;
 		__asm__ __volatile__("dcbf 0,%0" :: "r"(memp));
 		memp += 32/sizeof(*memp);
 	}
@@ -692,7 +692,7 @@ flush_disable_caches(void)
 	for (; x != 0xff;) {
 		mtspr(SPR_LDSTCR, x);
 		for (i = 0; i < 128; i++) {
-			temp = *memp;
+			(void)*memp;
 			__asm__ __volatile__("dcbf 0,%0" :: "r"(memp));
 			memp += 32/sizeof(*memp);
 		}

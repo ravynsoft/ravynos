@@ -164,8 +164,7 @@ static int
 arm64_allocate_pmc(int cpu, int ri, struct pmc *pm,
   const struct pmc_op_pmcallocate *a)
 {
-	uint32_t caps, config;
-	struct arm64_cpu *pac;
+	uint32_t config;
 	enum pmc_event pe;
 
 	KASSERT(cpu >= 0 && cpu < pmc_cpu_max(),
@@ -173,9 +172,6 @@ arm64_allocate_pmc(int cpu, int ri, struct pmc *pm,
 	KASSERT(ri >= 0 && ri < arm64_npmcs,
 	    ("[arm64,%d] illegal row index %d", __LINE__, ri));
 
-	pac = arm64_pcpu[cpu];
-
-	caps = a->pm_caps;
 	if (a->pm_class != PMC_CLASS_ARMV8) {
 		return (EINVAL);
 	}
@@ -188,6 +184,23 @@ arm64_allocate_pmc(int cpu, int ri, struct pmc *pm,
 		if (config > (PMC_EV_ARMV8_LAST - PMC_EV_ARMV8_FIRST))
 			return (EINVAL);
 	}
+
+	switch (a->pm_caps & (PMC_CAP_SYSTEM | PMC_CAP_USER)) {
+	case PMC_CAP_SYSTEM:
+		config |= PMEVTYPER_U;
+		break;
+	case PMC_CAP_USER:
+		config |= PMEVTYPER_P;
+		break;
+	default:
+		/*
+		 * Trace both USER and SYSTEM if none are specified
+		 * (default setting) or if both flags are specified
+		 * (user explicitly requested both qualifiers).
+		 */
+		break;
+	}
+
 	pm->pm_md.pm_arm64.pm_arm64_evsel = config;
 	PMCDBG2(MDP, ALL, 2, "arm64-allocate ri=%d -> config=0x%x", ri, config);
 
@@ -321,12 +334,6 @@ arm64_start_pmc(int cpu, int ri)
 static int
 arm64_stop_pmc(int cpu, int ri)
 {
-	struct pmc_hw *phw;
-	struct pmc *pm;
-
-	phw    = &arm64_pcpu[cpu]->pc_arm64pmcs[ri];
-	pm     = phw->phw_pmc;
-
 	/*
 	 * Disable the PMCs.
 	 */
@@ -339,7 +346,7 @@ arm64_stop_pmc(int cpu, int ri)
 static int
 arm64_release_pmc(int cpu, int ri, struct pmc *pmc)
 {
-	struct pmc_hw *phw;
+	struct pmc_hw *phw __diagused;
 
 	KASSERT(cpu >= 0 && cpu < pmc_cpu_max(),
 	    ("[arm64,%d] illegal CPU value %d", __LINE__, cpu));
@@ -356,7 +363,6 @@ arm64_release_pmc(int cpu, int ri, struct pmc *pmc)
 static int
 arm64_intr(struct trapframe *tf)
 {
-	struct arm64_cpu *pc;
 	int retval, ri;
 	struct pmc *pm;
 	int error;
@@ -370,7 +376,6 @@ arm64_intr(struct trapframe *tf)
 	    TRAPF_USERMODE(tf));
 
 	retval = 0;
-	pc = arm64_pcpu[cpu];
 
 	for (ri = 0; ri < arm64_npmcs; ri++) {
 		pm = arm64_pcpu[cpu]->pc_arm64pmcs[ri].phw_pmc;

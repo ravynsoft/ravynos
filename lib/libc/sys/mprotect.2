@@ -28,7 +28,7 @@
 .\"	@(#)mprotect.2	8.1 (Berkeley) 6/9/93
 .\" $FreeBSD$
 .\"
-.Dd February 26, 2020
+.Dd September 7, 2021
 .Dt MPROTECT 2
 .Os
 .Sh NAME
@@ -46,18 +46,17 @@ The
 system call
 changes the specified pages to have protection
 .Fa prot .
-Not all implementations will guarantee protection on a page basis;
-the granularity of protection changes may be as large as an entire region.
-A region is the virtual address space defined by the start
-and end addresses of a
-.Vt "struct vm_map_entry" .
 .Pp
-Currently these protection bits are known,
-which can be combined, OR'd together:
+The
+.Fa prot
+argument shall be
+.Dv PROT_NONE
+(no permissions at all)
+or the bitwise
+.Em or
+of one or more of the following values:
 .Pp
 .Bl -tag -width ".Dv PROT_WRITE" -compact
-.It Dv PROT_NONE
-No permissions at all.
 .It Dv PROT_READ
 The pages can be read.
 .It Dv PROT_WRITE
@@ -66,13 +65,16 @@ The pages can be written.
 The pages can be executed.
 .El
 .Pp
-In addition to these protection flags,
+In addition to these standard protection flags,
+the
 .Fx
+implementation of
+.Fn mprotect
 provides the ability to set the maximum protection of a region
 (which prevents
 .Nm
-from upgrading the permissions).
-This is accomplished by
+from adding to the permissions later).
+This is accomplished by bitwise
 .Em or Ns 'ing
 one or more
 .Dv PROT_

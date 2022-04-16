@@ -170,8 +170,11 @@ ${_D}.o: ${_DSRC} ${OBJS:S/^${_D}.o$//}
 	@rm -f ${.TARGET}
 	${DTRACE} ${DTRACEFLAGS} -G -o ${.TARGET} -s ${.ALLSRC:N*.h}
 .if defined(LIB)
-CLEANFILES+= ${_D}.pico ${_D}.po ${_D}.nossppico
+CLEANFILES+= ${_D}.pico ${_D}.pieo ${_D}.po ${_D}.nossppico
 ${_D}.pico: ${_DSRC} ${SOBJS:S/^${_D}.pico$//}
+	@rm -f ${.TARGET}
+	${DTRACE} ${DTRACEFLAGS} -G -o ${.TARGET} -s ${.ALLSRC:N*.h}
+${_D}.pieo: ${_DSRC} ${OBJS:S/^${_D}.pieo$//}
 	@rm -f ${.TARGET}
 	${DTRACE} ${DTRACEFLAGS} -G -o ${.TARGET} -s ${.ALLSRC:N*.h}
 ${_D}.po: ${_DSRC} ${POBJS:S/^${_D}.po$//}
@@ -192,6 +195,17 @@ DEPEND_MP?=	-MP
 # avoid collisions.
 DEPEND_FILTER=	C,/,_,g
 .if !empty(OBJS)
+.if !defined(_ALLOW_ABSOLUTE_OBJ_PATH) && ${OBJS:M/*}
+# Absolute paths to OBJS should be an error inside ${SRCTOP}, but some users
+# might be relying on this feature, so add an opt-out mechanism.
+.if defined(SRCTOP) && ${OBJS:M${SRCTOP}*}
+.error $$OBJS inside $$SRCTOP not allowed: ${OBJS:M${SRCTOP}*}
+.elif ${OBJS:N${_ABSOLUTE_PATH_OBJS}:M/*}
+.error $$OBJS absolute path not allowed: ${OBJS:N${_ABSOLUTE_PATH_OBJS}:M/*}.\
+    If this is intended, add them to _ABSOLUTE_PATH_OBJS to silence this error\
+    or define _ALLOW_ABSOLUTE_OBJ_PATH to disable this diagnostic.
+.endif
+.endif
 DEPENDOBJS+=	${OBJS}
 .else
 DEPENDSRCS+=	${SRCS:M*.[cSC]} ${SRCS:M*.cxx} ${SRCS:M*.cpp} ${SRCS:M*.cc}

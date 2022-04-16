@@ -97,7 +97,7 @@ __FBSDID("$FreeBSD$");
 static int t4_probe(device_t);
 static int t4_attach(device_t);
 static int t4_detach(device_t);
-static int t4_child_location_str(device_t, device_t, char *, size_t);
+static int t4_child_location(device_t, device_t, struct sbuf *);
 static int t4_ready(device_t);
 static int t4_read_port_device(device_t, int, device_t *);
 static int t4_suspend(device_t);
@@ -111,7 +111,7 @@ static device_method_t t4_methods[] = {
 	DEVMETHOD(device_suspend,	t4_suspend),
 	DEVMETHOD(device_resume,	t4_resume),
 
-	DEVMETHOD(bus_child_location_str, t4_child_location_str),
+	DEVMETHOD(bus_child_location,	t4_child_location),
 	DEVMETHOD(bus_reset_prepare, 	t4_reset_prepare),
 	DEVMETHOD(bus_reset_post, 	t4_reset_post),
 
@@ -176,7 +176,7 @@ static device_method_t t5_methods[] = {
 	DEVMETHOD(device_suspend,	t4_suspend),
 	DEVMETHOD(device_resume,	t4_resume),
 
-	DEVMETHOD(bus_child_location_str, t4_child_location_str),
+	DEVMETHOD(bus_child_location,	t4_child_location),
 	DEVMETHOD(bus_reset_prepare, 	t4_reset_prepare),
 	DEVMETHOD(bus_reset_post, 	t4_reset_post),
 
@@ -215,7 +215,7 @@ static device_method_t t6_methods[] = {
 	DEVMETHOD(device_suspend,	t4_suspend),
 	DEVMETHOD(device_resume,	t4_resume),
 
-	DEVMETHOD(bus_child_location_str, t4_child_location_str),
+	DEVMETHOD(bus_child_location,	t4_child_location),
 	DEVMETHOD(bus_reset_prepare, 	t4_reset_prepare),
 	DEVMETHOD(bus_reset_post, 	t4_reset_post),
 
@@ -253,11 +253,6 @@ static void cxgbe_qflush(struct ifnet *);
 #if defined(KERN_TLS) || defined(RATELIMIT)
 static int cxgbe_snd_tag_alloc(struct ifnet *, union if_snd_tag_alloc_params *,
     struct m_snd_tag **);
-static int cxgbe_snd_tag_modify(struct m_snd_tag *,
-    union if_snd_tag_modify_params *);
-static int cxgbe_snd_tag_query(struct m_snd_tag *,
-    union if_snd_tag_query_params *);
-static void cxgbe_snd_tag_free(struct m_snd_tag *);
 #endif
 
 MALLOC_DEFINE(M_CXGBE, "cxgbe", "Chelsio T4/T5 Ethernet driver and services");
@@ -1596,18 +1591,17 @@ done:
 }
 
 static int
-t4_child_location_str(device_t bus, device_t dev, char *buf, size_t buflen)
+t4_child_location(device_t bus, device_t dev, struct sbuf *sb)
 {
 	struct adapter *sc;
 	struct port_info *pi;
 	int i;
 
 	sc = device_get_softc(bus);
-	buf[0] = '\0';
 	for_each_port(sc, i) {
 		pi = sc->port[i];
 		if (pi != NULL && pi->dev == dev) {
-			snprintf(buf, buflen, "port=%d", pi->port_id);
+			sbuf_printf(sb, "port=%d", pi->port_id);
 			break;
 		}
 	}
@@ -2509,9 +2503,6 @@ cxgbe_vi_attach(device_t dev, struct vi_info *vi)
 		ifp->if_get_counter = cxgbe_get_counter;
 #if defined(KERN_TLS) || defined(RATELIMIT)
 	ifp->if_snd_tag_alloc = cxgbe_snd_tag_alloc;
-	ifp->if_snd_tag_modify = cxgbe_snd_tag_modify;
-	ifp->if_snd_tag_query = cxgbe_snd_tag_query;
-	ifp->if_snd_tag_free = cxgbe_snd_tag_free;
 #endif
 #ifdef RATELIMIT
 	ifp->if_ratelimit_query = cxgbe_ratelimit_query;
@@ -2986,7 +2977,7 @@ cxgbe_transmit(struct ifnet *ifp, struct mbuf *m)
 	}
 #ifdef RATELIMIT
 	if (m->m_pkthdr.csum_flags & CSUM_SND_TAG) {
-		if (m->m_pkthdr.snd_tag->type == IF_SND_TAG_TYPE_RATE_LIMIT)
+		if (m->m_pkthdr.snd_tag->sw->type == IF_SND_TAG_TYPE_RATE_LIMIT)
 			return (ethofld_transmit(ifp, m));
 	}
 #endif
@@ -3168,56 +3159,6 @@ cxgbe_snd_tag_alloc(struct ifnet *ifp, union if_snd_tag_alloc_params *params,
 		error = EOPNOTSUPP;
 	}
 	return (error);
-}
-
-static int
-cxgbe_snd_tag_modify(struct m_snd_tag *mst,
-    union if_snd_tag_modify_params *params)
-{
-
-	switch (mst->type) {
-#ifdef RATELIMIT
-	case IF_SND_TAG_TYPE_RATE_LIMIT:
-		return (cxgbe_rate_tag_modify(mst, params));
-#endif
-	default:
-		return (EOPNOTSUPP);
-	}
-}
-
-static int
-cxgbe_snd_tag_query(struct m_snd_tag *mst,
-    union if_snd_tag_query_params *params)
-{
-
-	switch (mst->type) {
-#ifdef RATELIMIT
-	case IF_SND_TAG_TYPE_RATE_LIMIT:
-		return (cxgbe_rate_tag_query(mst, params));
-#endif
-	default:
-		return (EOPNOTSUPP);
-	}
-}
-
-static void
-cxgbe_snd_tag_free(struct m_snd_tag *mst)
-{
-
-	switch (mst->type) {
-#ifdef RATELIMIT
-	case IF_SND_TAG_TYPE_RATE_LIMIT:
-		cxgbe_rate_tag_free(mst);
-		return;
-#endif
-#ifdef KERN_TLS
-	case IF_SND_TAG_TYPE_TLS:
-		cxgbe_tls_tag_free(mst);
-		return;
-#endif
-	default:
-		panic("shouldn't get here");
-	}
 }
 #endif
 
@@ -5848,7 +5789,6 @@ init_link_config(struct port_info *pi)
 	struct link_config *lc = &pi->link_cfg;
 
 	PORT_LOCK_ASSERT_OWNED(pi);
-	MPASS(lc->pcaps != 0);
 
 	lc->requested_caps = 0;
 	lc->requested_speed = 0;
@@ -5874,13 +5814,12 @@ init_link_config(struct port_info *pi)
 		if (lc->requested_fec == 0)
 			lc->requested_fec = FEC_AUTO;
 	}
-	lc->force_fec = 0;
-	if (lc->pcaps & FW_PORT_CAP32_FORCE_FEC) {
-		if (t4_force_fec < 0)
-			lc->force_fec = -1;
-		else if (t4_force_fec > 0)
-			lc->force_fec = 1;
-	}
+	if (t4_force_fec < 0)
+		lc->force_fec = -1;
+	else if (t4_force_fec > 0)
+		lc->force_fec = 1;
+	else
+		lc->force_fec = 0;
 }
 
 /*
@@ -7654,6 +7593,12 @@ t4_sysctls(struct adapter *sc)
 		    CTLFLAG_RW, &sc->tt.autorcvbuf_inc, 0,
 		    "autorcvbuf increment");
 
+		sc->tt.update_hc_on_pmtu_change = 1;
+		SYSCTL_ADD_INT(ctx, children, OID_AUTO,
+		    "update_hc_on_pmtu_change", CTLFLAG_RW,
+		    &sc->tt.update_hc_on_pmtu_change, 0,
+		    "Update hostcache entry if the PMTU changes");
+
 		sc->tt.iso = 1;
 		SYSCTL_ADD_INT(ctx, children, OID_AUTO, "iso", CTLFLAG_RW,
 		    &sc->tt.iso, 0, "Enable iSCSI segmentation offload");
@@ -9064,7 +9009,7 @@ dump_cimla(struct adapter *sc)
 		    device_get_nameunit(sc->dev));
 		return;
 	}
-	rc = sbuf_cim_la(sc, &sb, M_NOWAIT);
+	rc = sbuf_cim_la(sc, &sb, M_WAITOK);
 	if (rc == 0) {
 		rc = sbuf_finish(&sb);
 		if (rc == 0) {
@@ -9505,7 +9450,7 @@ dump_devlog(struct adapter *sc)
 		    device_get_nameunit(sc->dev));
 		return;
 	}
-	rc = sbuf_devlog(sc, &sb, M_NOWAIT);
+	rc = sbuf_devlog(sc, &sb, M_WAITOK);
 	if (rc == 0) {
 		rc = sbuf_finish(&sb);
 		if (rc == 0) {
@@ -9711,16 +9656,23 @@ sysctl_linkdnrc(SYSCTL_HANDLER_ARGS)
 }
 
 struct mem_desc {
-	unsigned int base;
-	unsigned int limit;
-	unsigned int idx;
+	u_int base;
+	u_int limit;
+	u_int idx;
 };
 
 static int
 mem_desc_cmp(const void *a, const void *b)
 {
-	return ((const struct mem_desc *)a)->base -
-	       ((const struct mem_desc *)b)->base;
+	const u_int v1 = ((const struct mem_desc *)a)->base;
+	const u_int v2 = ((const struct mem_desc *)b)->base;
+
+	if (v1 < v2)
+		return (-1);
+	else if (v1 > v2)
+		return (1);
+
+	return (0);
 }
 
 static void
@@ -9746,7 +9698,7 @@ sysctl_meminfo(SYSCTL_HANDLER_ARGS)
 	struct adapter *sc = arg1;
 	struct sbuf *sb;
 	int rc, i, n;
-	uint32_t lo, hi, used, alloc;
+	uint32_t lo, hi, used, free, alloc;
 	static const char *memory[] = {
 		"EDC0:", "EDC1:", "MC:", "MC0:", "MC1:", "HMA:"
 	};
@@ -9756,8 +9708,8 @@ sysctl_meminfo(SYSCTL_HANDLER_ARGS)
 		"Tx payload:", "Rx payload:", "LE hash:", "iSCSI region:",
 		"TDDP region:", "TPT region:", "STAG region:", "RQ region:",
 		"RQUDP region:", "PBL region:", "TXPBL region:",
-		"DBVFIFO region:", "ULPRX state:", "ULPTX state:",
-		"On-chip queues:", "TLS keys:",
+		"TLSKey region:", "DBVFIFO region:", "ULPRX state:",
+		"ULPTX state:", "On-chip queues:",
 	};
 	struct mem_desc avail[4];
 	struct mem_desc mem[nitems(region) + 3];	/* up to 3 holes */
@@ -9872,6 +9824,9 @@ sysctl_meminfo(SYSCTL_HANDLER_ARGS)
 	ulp_region(RX_RQUDP);
 	ulp_region(RX_PBL);
 	ulp_region(TX_PBL);
+	if (sc->cryptocaps & FW_CAPS_CONFIG_TLSKEYS) {
+		ulp_region(RX_TLS_KEY);
+	}
 #undef ulp_region
 
 	md->base = 0;
@@ -9910,13 +9865,6 @@ sysctl_meminfo(SYSCTL_HANDLER_ARGS)
 		md->idx = nitems(region);  /* hide it */
 	md++;
 
-	md->base = sc->vres.key.start;
-	if (sc->vres.key.size)
-		md->limit = md->base + sc->vres.key.size - 1;
-	else
-		md->idx = nitems(region);  /* hide it */
-	md++;
-
 	/* add any address-space holes, there can be up to 3 */
 	for (n = 0; n < i - 1; n++)
 		if (avail[n].limit < avail[n + 1].base)
@@ -9925,6 +9873,7 @@ sysctl_meminfo(SYSCTL_HANDLER_ARGS)
 		(md++)->base = avail[n].limit;
 
 	n = md - mem;
+	MPASS(n <= nitems(mem));
 	qsort(mem, n, sizeof(struct mem_desc), mem_desc_cmp);
 
 	for (lo = 0; lo < i; lo++)
@@ -9951,19 +9900,24 @@ sysctl_meminfo(SYSCTL_HANDLER_ARGS)
 	mem_region_show(sb, "uP Extmem2:", lo, hi);
 
 	lo = t4_read_reg(sc, A_TP_PMM_RX_MAX_PAGE);
-	sbuf_printf(sb, "\n%u Rx pages of size %uKiB for %u channels\n",
-		   G_PMRXMAXPAGE(lo),
+	for (i = 0, free = 0; i < 2; i++)
+		free += G_FREERXPAGECOUNT(t4_read_reg(sc, A_TP_FLM_FREE_RX_CNT));
+	sbuf_printf(sb, "\n%u Rx pages (%u free) of size %uKiB for %u channels\n",
+		   G_PMRXMAXPAGE(lo), free,
 		   t4_read_reg(sc, A_TP_PMM_RX_PAGE_SIZE) >> 10,
 		   (lo & F_PMRXNUMCHN) ? 2 : 1);
 
 	lo = t4_read_reg(sc, A_TP_PMM_TX_MAX_PAGE);
 	hi = t4_read_reg(sc, A_TP_PMM_TX_PAGE_SIZE);
-	sbuf_printf(sb, "%u Tx pages of size %u%ciB for %u channels\n",
-		   G_PMTXMAXPAGE(lo),
+	for (i = 0, free = 0; i < 4; i++)
+		free += G_FREETXPAGECOUNT(t4_read_reg(sc, A_TP_FLM_FREE_TX_CNT));
+	sbuf_printf(sb, "%u Tx pages (%u free) of size %u%ciB for %u channels\n",
+		   G_PMTXMAXPAGE(lo), free,
 		   hi >= (1 << 20) ? (hi >> 20) : (hi >> 10),
 		   hi >= (1 << 20) ? 'M' : 'K', 1 << G_PMTXNUMCHN(lo));
-	sbuf_printf(sb, "%u p-structs\n",
-		   t4_read_reg(sc, A_TP_CMM_MM_MAX_PSTRUCT));
+	sbuf_printf(sb, "%u p-structs (%u free)\n",
+		   t4_read_reg(sc, A_TP_CMM_MM_MAX_PSTRUCT),
+		   G_FREEPSTRUCTCOUNT(t4_read_reg(sc, A_TP_FLM_FREE_PS_CNT)));
 
 	for (i = 0; i < 4; i++) {
 		if (chip_id(sc) > CHELSIO_T5)

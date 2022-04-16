@@ -34,11 +34,10 @@
 
 #include <sys/skein.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/stdtypes.h>
-#define NOTE(x)
 
 /*
  * Skein test suite using values from the Skein V1.3 specification found at:
@@ -279,13 +278,12 @@ main(int argc, char *argv[])
 		(void) Skein ## mode ## _Final(&ctx, digest);		\
 		(void) printf("Skein" #mode "/" #diglen			\
 		    "\tMessage: " #_m "\tResult: ");			\
-		if (bcmp(digest, testdigest, diglen / 8) == 0) {	\
+		if (memcmp(digest, testdigest, diglen / 8) == 0) {	\
 			(void) printf("OK\n");				\
 		} else {						\
 			(void) printf("FAILED!\n");			\
 			failed = B_TRUE;				\
 		}							\
-		NOTE(CONSTCOND)						\
 	} while (0)
 
 #define	SKEIN_PERF_TEST(mode, diglen)					\
@@ -297,7 +295,7 @@ main(int argc, char *argv[])
 		double		cpb = 0;				\
 		int		i;					\
 		struct timeval	start, end;				\
-		bzero(block, sizeof (block));				\
+		memset(block, 0, sizeof (block));			\
 		(void) gettimeofday(&start, NULL);			\
 		(void) Skein ## mode ## _Init(&ctx, diglen);		\
 		for (i = 0; i < 8192; i++) {				\
@@ -314,7 +312,6 @@ main(int argc, char *argv[])
 		}							\
 		(void) printf("Skein" #mode "/" #diglen "\t%llu us "	\
 		    "(%.02f CPB)\n", (u_longlong_t)delta, cpb);		\
-		NOTE(CONSTCOND)						\
 	} while (0)
 
 	(void) printf("Running algorithm correctness tests:\n");

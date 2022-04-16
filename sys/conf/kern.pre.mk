@@ -74,9 +74,6 @@ CFLAGS=	${COPTFLAGS} ${DEBUG}
 CFLAGS+= ${INCLUDES} -D_KERNEL -DHAVE_KERNEL_OPTION_HEADERS -include opt_global.h
 CFLAGS_PARAM_INLINE_UNIT_GROWTH?=100
 CFLAGS_PARAM_LARGE_FUNCTION_GROWTH?=1000
-.if ${MACHINE_CPUARCH} == "mips"
-CFLAGS_ARCH_PARAMS?=--param max-inline-insns-single=1000 -DMACHINE_ARCH='"${MACHINE_ARCH}"'
-.endif
 CFLAGS.gcc+= -fms-extensions -finline-limit=${INLINE_LIMIT}
 CFLAGS.gcc+= --param inline-unit-growth=${CFLAGS_PARAM_INLINE_UNIT_GROWTH}
 CFLAGS.gcc+= --param large-function-growth=${CFLAGS_PARAM_LARGE_FUNCTION_GROWTH}
@@ -93,20 +90,19 @@ CFLAGS+=	-fno-common
 # XXX LOCORE means "don't declare C stuff" not "for locore.s".
 ASM_CFLAGS= -x assembler-with-cpp -DLOCORE ${CFLAGS} ${ASM_CFLAGS.${.IMPSRC:T}}
 
-.if defined(PROFLEVEL) && ${PROFLEVEL} >= 1
-CFLAGS+=	-DGPROF
-CFLAGS.gcc+=	-falign-functions=16
-.if ${PROFLEVEL} >= 2
-CFLAGS+=	-DGPROF4 -DGUPROF
-PROF=		-pg
-.if ${COMPILER_TYPE} == "gcc"
-PROF+=		-mprofiler-epilogue
+COMPAT_FREEBSD32_ENABLED!= grep COMPAT_FREEBSD32 opt_global.h || true ; echo
+
+KASAN_ENABLED!=	grep KASAN opt_global.h || true ; echo
+.if !empty(KASAN_ENABLED)
+SAN_CFLAGS+=	-DSAN_NEEDS_INTERCEPTORS -DSAN_INTERCEPTOR_PREFIX=kasan \
+		-fsanitize=kernel-address \
+		-mllvm -asan-stack=true \
+		-mllvm -asan-instrument-dynamic-allocas=true \
+		-mllvm -asan-globals=true \
+		-mllvm -asan-use-after-scope=true \
+		-mllvm -asan-instrumentation-with-call-threshold=0 \
+		-mllvm -asan-instrument-byval=false
 .endif
-.else
-PROF=		-pg
-.endif
-.endif
-DEFINED_PROF=	${PROF}
 
 COMPAT_FREEBSD32_ENABLED!= grep COMPAT_FREEBSD32 opt_global.h || true ; echo
 
@@ -123,7 +119,14 @@ SAN_CFLAGS+=	-fsanitize=kernel-address \
 
 KCSAN_ENABLED!=	grep KCSAN opt_global.h || true ; echo
 .if !empty(KCSAN_ENABLED)
-SAN_CFLAGS+=	-fsanitize=thread
+SAN_CFLAGS+=	-DSAN_NEEDS_INTERCEPTORS -DSAN_INTERCEPTOR_PREFIX=kcsan \
+		-fsanitize=thread
+.endif
+
+KMSAN_ENABLED!= grep KMSAN opt_global.h || true ; echo
+.if !empty(KMSAN_ENABLED)
+SAN_CFLAGS+=	-DSAN_NEEDS_INTERCEPTORS -DSAN_INTERCEPTOR_PREFIX=kmsan \
+		-fsanitize=kernel-memory
 .endif
 
 KMSAN_ENABLED!= grep KMSAN opt_global.h || true ; echo
@@ -158,8 +161,8 @@ GCOV_CFLAGS+=	 -fprofile-arcs -ftest-coverage
 
 CFLAGS+=	${GCOV_CFLAGS}
 
-# Put configuration-specific C flags last (except for ${PROF}) so that they
-# can override the others.
+# Put configuration-specific C flags last so that they can override
+# the others.
 CFLAGS+=	${CONF_CFLAGS}
 
 .if defined(LINKER_FEATURES) && ${LINKER_FEATURES:Mbuild-id}
@@ -196,13 +199,12 @@ CFLAGS+=	-fPIE
 .endif
 .endif
 
-NORMAL_C= ${CC} -c ${CFLAGS} ${WERROR} ${PROF} ${.IMPSRC}
+NORMAL_C= ${CC} -c ${CFLAGS} ${WERROR} ${.IMPSRC}
 NORMAL_S= ${CC:N${CCACHE_BIN}} -c ${ASM_CFLAGS} ${WERROR} ${.IMPSRC}
-PROFILE_C= ${CC} -c ${CFLAGS} ${WERROR} ${.IMPSRC}
-NORMAL_C_NOWERROR= ${CC} -c ${CFLAGS} ${PROF} ${.IMPSRC}
+NORMAL_C_NOWERROR= ${CC} -c ${CFLAGS} ${.IMPSRC}
 
 NORMAL_M= ${AWK} -f $S/tools/makeobjops.awk ${.IMPSRC} -c ; \
-	  ${CC} -c ${CFLAGS} ${WERROR} ${PROF} ${.PREFIX}.c
+	  ${CC} -c ${CFLAGS} ${WERROR} ${.PREFIX}.c
 
 NORMAL_FW= uudecode -o ${.TARGET} ${.ALLSRC}
 NORMAL_FWO= ${CC:N${CCACHE_BIN}} -c ${ASM_CFLAGS} ${WERROR} -o ${.TARGET} \
@@ -212,9 +214,7 @@ NORMAL_FWO= ${CC:N${CCACHE_BIN}} -c ${ASM_CFLAGS} ${WERROR} -o ${.TARGET} \
 # for ZSTD in the kernel (include zstd/lib/freebsd before other CFLAGS)
 ZSTD_C= ${CC} -c -DZSTD_HEAPMODE=1 -I$S/contrib/zstd/lib/freebsd ${CFLAGS} \
 	-I$S/contrib/zstd/lib -I$S/contrib/zstd/lib/common ${WERROR} \
-	-Wno-missing-prototypes ${PROF} -U__BMI__ \
-	-DZSTD_NO_INTRINSICS \
-	${.IMPSRC}
+	-Wno-missing-prototypes -U__BMI__ -DZSTD_NO_INTRINSICS ${.IMPSRC}
 # https://github.com/facebook/zstd/commit/812e8f2a [zstd 1.4.1]
 # "Note that [GCC] autovectorization still does not do a good job on the
 # optimized version, so it's turned off via attribute and flag.  I found
@@ -247,7 +247,6 @@ CDDL_CFLAGS=	\
 	-Wno-nested-externs \
 	-Wno-parentheses \
 	-Wno-pointer-arith \
-	-Wno-redundant-decls \
 	-Wno-strict-prototypes \
 	-Wno-switch \
 	-Wno-undef \
@@ -257,7 +256,7 @@ CDDL_CFLAGS=	\
 	-include ${ZINCDIR}/os/freebsd/spl/sys/ccompile.h \
 	-I$S/cddl/contrib/opensolaris/uts/common \
 	-I$S -I$S/cddl/compat/opensolaris
-CDDL_C=		${CC} -c ${CDDL_CFLAGS} ${WERROR} ${PROF} ${.IMPSRC}
+CDDL_C=		${CC} -c ${CDDL_CFLAGS} ${WERROR} ${.IMPSRC}
 
 # Special flags for managing the compat compiles for ZFS
 ZFS_CFLAGS+=	${CDDL_CFLAGS} -DBUILDING_ZFS -DHAVE_UIO_ZEROCOPY \
@@ -278,11 +277,13 @@ ZFS_CFLAGS+= -DBITS_PER_LONG=64
 
 
 ZFS_ASM_CFLAGS= -x assembler-with-cpp -DLOCORE ${ZFS_CFLAGS}
-ZFS_C=		${CC} -c ${ZFS_CFLAGS} ${WERROR} ${PROF} ${.IMPSRC}
-ZFS_RPC_C=	${CC} -c ${ZFS_CFLAGS} -DHAVE_RPC_TYPES ${WERROR} ${PROF} ${.IMPSRC}
+ZFS_C=		${CC} -c ${ZFS_CFLAGS} ${WERROR} ${.IMPSRC}
+ZFS_RPC_C=	${CC} -c ${ZFS_CFLAGS} -DHAVE_RPC_TYPES ${WERROR} ${.IMPSRC}
 ZFS_S=		${CC} -c ${ZFS_ASM_CFLAGS} ${WERROR} ${.IMPSRC}
 
-
+# ATH driver
+ATH_CFLAGS=	-I${SRCTOP}/sys/dev/ath ${NO_WUNUSED_BUT_SET_VARIABLE}
+ATH_C=		${CC} -c ${CFLAGS} ${WERROR} ${ATH_CFLAGS} ${.IMPSRC}
 
 # Special flags for managing the compat compiles for DTrace
 DTRACE_CFLAGS=	-DBUILDING_DTRACE ${CDDL_CFLAGS} -I$S/cddl/dev/dtrace -I$S/cddl/dev/dtrace/${MACHINE_CPUARCH}
@@ -292,7 +293,7 @@ DTRACE_CFLAGS+=	-I$S/cddl/contrib/opensolaris/uts/intel -I$S/cddl/dev/dtrace/x86
 DTRACE_CFLAGS+=	-I$S/cddl/contrib/opensolaris/common/util -I$S -DDIS_MEM -DSMP -I$S/cddl/compat/opensolaris
 DTRACE_CFLAGS+=	-I$S/cddl/contrib/opensolaris/uts/common
 DTRACE_ASM_CFLAGS=	-x assembler-with-cpp -DLOCORE ${DTRACE_CFLAGS}
-DTRACE_C=	${CC} -c ${DTRACE_CFLAGS}	${WERROR} ${PROF} ${.IMPSRC}
+DTRACE_C=	${CC} -c ${DTRACE_CFLAGS}	${WERROR} ${.IMPSRC}
 DTRACE_S=	${CC} -c ${DTRACE_ASM_CFLAGS}	${WERROR} ${.IMPSRC}
 
 # Special flags for managing the compat compiles for DTrace/FBT
@@ -300,7 +301,7 @@ FBT_CFLAGS=	-DBUILDING_DTRACE -nostdinc -I$S/cddl/dev/fbt/${MACHINE_CPUARCH} -I$
 .if ${MACHINE_CPUARCH} == "amd64" || ${MACHINE_CPUARCH} == "i386"
 FBT_CFLAGS+=	-I$S/cddl/dev/fbt/x86
 .endif
-FBT_C=		${CC} -c ${FBT_CFLAGS}		${WERROR} ${PROF} ${.IMPSRC}
+FBT_C=		${CC} -c ${FBT_CFLAGS}		${WERROR} ${.IMPSRC}
 
 .if ${MK_CTF} != "no"
 NORMAL_CTFCONVERT=	${CTFCONVERT} ${CTFFLAGS} ${.TARGET}
@@ -320,7 +321,7 @@ OFEDINCLUDES=	-I$S/ofed/include -I$S/ofed/include/uapi ${LINUXKPI_INCLUDES}
 OFEDNOERR=	-Wno-cast-qual -Wno-pointer-arith
 OFEDCFLAGS=	${CFLAGS:N-I*} -DCONFIG_INFINIBAND_USER_MEM \
 		${OFEDINCLUDES} ${CFLAGS:M-I*} ${OFEDNOERR}
-OFED_C_NOIMP=	${CC} -c -o ${.TARGET} ${OFEDCFLAGS} ${WERROR} ${PROF}
+OFED_C_NOIMP=	${CC} -c -o ${.TARGET} ${OFEDCFLAGS} ${WERROR}
 OFED_C=		${OFED_C_NOIMP} ${.IMPSRC}
 
 # mlxfw C flags.
@@ -334,7 +335,7 @@ SYSTEM_CFILES= config.c env.c hints.c vnode_if.c
 SYSTEM_DEP= Makefile ${SYSTEM_OBJS}
 SYSTEM_OBJS= locore.o ${MDOBJS} ${OBJS}
 SYSTEM_OBJS+= ${SYSTEM_CFILES:.c=.o}
-SYSTEM_OBJS+= hack.pico
+SYSTEM_OBJS+= force-dynamic-hack.pico
 
 KEYMAP=kbdcontrol -P ${SRCTOP}/share/vt/keymaps -P ${SRCTOP}/share/syscons/keymaps
 KEYMAP_FIX=sed -e 's/^static keymap_t.* = /static keymap_t key_map = /' -e 's/^static accentmap_t.* = /static accentmap_t accent_map = /'

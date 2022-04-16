@@ -2,8 +2,8 @@
  * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
  *
  * Copyright (c) 2006 Roman Divacky
- * Copyright (c) 2013 Dmitry Chagin
  * All rights reserved.
+ * Copyright (c) 2013 Dmitry Chagin <dchagin@FreeBSD.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -33,6 +33,10 @@
 #define	_LINUX_EMUL_H_
 
 struct image_params;
+struct note_info_list;
+
+/* Linux core notes are labeled "CORE" */
+#define	LINUX_ABI_VENDOR	"CORE"
 
 /*
  * modeled after similar structure in NetBSD
@@ -51,13 +55,14 @@ struct linux_emuldata {
 struct linux_emuldata	*em_find(struct thread *);
 
 int	linux_exec_imgact_try(struct image_params *);
-void	linux_proc_init(struct thread *, struct thread *, int);
+void	linux_proc_init(struct thread *, struct thread *, bool);
 void	linux_on_exit(struct proc *);
 void	linux_schedtail(struct thread *);
 void	linux_on_exec(struct proc *, struct image_params *);
 void	linux_thread_dtor(struct thread *);
-void	linux_thread_detach(struct thread *);
 int	linux_common_execve(struct thread *, struct image_args *);
+void 	linux32_prepare_notes(struct thread *, struct note_info_list *, size_t *);
+void 	linux64_prepare_notes(struct thread *, struct note_info_list *, size_t *);
 
 /* process emuldata flags */
 #define	LINUX_XDEPR_REQUEUEOP	0x00000001	/* uses deprecated
@@ -70,6 +75,7 @@ struct linux_pemuldata {
 	struct sx	pem_sx;		/* lock for this struct */
 	uint32_t	persona;	/* process execution domain */
 	uint32_t	ptrace_flags;	/* used by ptrace(2) */
+	uint32_t	oom_score_adj;	/* /proc/self/oom_score_adj */
 };
 
 #define	LINUX_PEM_XLOCK(p)	sx_xlock(&(p)->pem_sx)

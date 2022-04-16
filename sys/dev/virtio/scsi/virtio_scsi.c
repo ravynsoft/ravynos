@@ -700,6 +700,7 @@ vtscsi_register_async(struct vtscsi_softc *sc)
 {
 	struct ccb_setasync csa;
 
+	memset(&csa, 0, sizeof(csa));
 	xpt_setup_ccb(&csa.ccb_h, sc->vtscsi_path, 5);
 	csa.ccb_h.func_code = XPT_SASYNC_CB;
 	csa.event_enable = AC_LOST_DEVICE | AC_FOUND_DEVICE;
@@ -716,6 +717,7 @@ vtscsi_deregister_async(struct vtscsi_softc *sc)
 {
 	struct ccb_setasync csa;
 
+	memset(&csa, 0, sizeof(csa));
 	xpt_setup_ccb(&csa.ccb_h, sc->vtscsi_path, 5);
 	csa.ccb_h.func_code = XPT_SASYNC_CB;
 	csa.event_enable = 0;
@@ -1793,7 +1795,7 @@ vtscsi_transport_reset_event(struct vtscsi_softc *sc,
 static void
 vtscsi_handle_event(struct vtscsi_softc *sc, struct virtio_scsi_event *event)
 {
-	int error;
+	int error __diagused;
 
 	if ((event->event & VIRTIO_SCSI_T_EVENTS_MISSED) == 0) {
 		switch (event->event) {

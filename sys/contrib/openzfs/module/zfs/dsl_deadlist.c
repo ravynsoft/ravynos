@@ -855,7 +855,7 @@ dsl_deadlist_merge(dsl_deadlist_t *dl, uint64_t obj, dmu_tx_t *tx)
 	VERIFY0(dmu_bonus_hold(dl->dl_os, obj, FTAG, &bonus));
 	dlp = bonus->db_data;
 	dmu_buf_will_dirty(bonus, tx);
-	bzero(dlp, sizeof (*dlp));
+	memset(dlp, 0, sizeof (*dlp));
 	dmu_buf_rele(bonus, FTAG);
 	mutex_exit(&dl->dl_lock);
 }
@@ -1034,10 +1034,8 @@ dsl_process_sub_livelist(bpobj_t *bpobj, bplist_t *to_free, zthr_t *t,
 	return (err);
 }
 
-/* BEGIN CSTYLED */
 ZFS_MODULE_PARAM(zfs_livelist, zfs_livelist_, max_entries, ULONG, ZMOD_RW,
 	"Size to start the next sub-livelist in a livelist");
 
 ZFS_MODULE_PARAM(zfs_livelist, zfs_livelist_, min_percent_shared, INT, ZMOD_RW,
 	"Threshold at which livelist is disabled");
-/* END CSTYLED */

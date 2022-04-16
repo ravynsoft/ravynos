@@ -108,8 +108,8 @@ gcm_mode_encrypt_contiguous_blocks(gcm_ctx_t *ctx, char *data, size_t length,
 
 	if (length + ctx->gcm_remainder_len < block_size) {
 		/* accumulate bytes here and return */
-		bcopy(datap,
-		    (uint8_t *)ctx->gcm_remainder + ctx->gcm_remainder_len,
+		memcpy((uint8_t *)ctx->gcm_remainder + ctx->gcm_remainder_len,
+		    datap,
 		    length);
 		ctx->gcm_remainder_len += length;
 		if (ctx->gcm_copy_to == NULL) {
@@ -130,8 +130,8 @@ gcm_mode_encrypt_contiguous_blocks(gcm_ctx_t *ctx, char *data, size_t length,
 			if (need > remainder)
 				return (CRYPTO_DATA_LEN_RANGE);
 
-			bcopy(datap, &((uint8_t *)ctx->gcm_remainder)
-			    [ctx->gcm_remainder_len], need);
+			memcpy(&((uint8_t *)ctx->gcm_remainder)
+			    [ctx->gcm_remainder_len], datap, need);
 
 			blockp = (uint8_t *)ctx->gcm_remainder;
 		} else {
@@ -162,10 +162,10 @@ gcm_mode_encrypt_contiguous_blocks(gcm_ctx_t *ctx, char *data, size_t length,
 		if (out_data_1_len == block_size) {
 			copy_block(lastp, out_data_1);
 		} else {
-			bcopy(lastp, out_data_1, out_data_1_len);
+			memcpy(out_data_1, lastp, out_data_1_len);
 			if (out_data_2 != NULL) {
-				bcopy(lastp + out_data_1_len,
-				    out_data_2,
+				memcpy(out_data_2,
+				    lastp + out_data_1_len,
 				    block_size - out_data_1_len);
 			}
 		}
@@ -187,7 +187,7 @@ gcm_mode_encrypt_contiguous_blocks(gcm_ctx_t *ctx, char *data, size_t length,
 
 		/* Incomplete last block. */
 		if (remainder > 0 && remainder < block_size) {
-			bcopy(datap, ctx->gcm_remainder, remainder);
+			memcpy(ctx->gcm_remainder, datap, remainder);
 			ctx->gcm_remainder_len = remainder;
 			ctx->gcm_copy_to = datap;
 			goto out;
@@ -199,13 +199,13 @@ out:
 	return (CRYPTO_SUCCESS);
 }
 
-/* ARGSUSED */
 int
 gcm_encrypt_final(gcm_ctx_t *ctx, crypto_data_t *out, size_t block_size,
     int (*encrypt_block)(const void *, const uint8_t *, uint8_t *),
     void (*copy_block)(uint8_t *, uint8_t *),
     void (*xor_block)(uint8_t *, uint8_t *))
 {
+	(void) copy_block;
 #ifdef CAN_USE_GCM_ASM
 	if (ctx->gcm_use_avx == B_TRUE)
 		return (gcm_encrypt_final_avx(ctx, out, block_size));
@@ -245,7 +245,7 @@ gcm_encrypt_final(gcm_ctx_t *ctx, crypto_data_t *out, size_t block_size,
 		    (uint8_t *)ctx->gcm_tmp);
 
 		macp = (uint8_t *)ctx->gcm_remainder;
-		bzero(macp + ctx->gcm_remainder_len,
+		memset(macp + ctx->gcm_remainder_len, 0,
 		    block_size - ctx->gcm_remainder_len);
 
 		/* XOR with counter block */
@@ -309,8 +309,8 @@ gcm_decrypt_incomplete_block(gcm_ctx_t *ctx, size_t block_size, size_t index,
 	counterp = (uint8_t *)ctx->gcm_tmp;
 
 	/* authentication tag */
-	bzero((uint8_t *)ctx->gcm_tmp, block_size);
-	bcopy(datap, (uint8_t *)ctx->gcm_tmp, ctx->gcm_remainder_len);
+	memset((uint8_t *)ctx->gcm_tmp, 0, block_size);
+	memcpy((uint8_t *)ctx->gcm_tmp, datap, ctx->gcm_remainder_len);
 
 	/* add ciphertext to the hash */
 	GHASH(ctx, ctx->gcm_tmp, ctx->gcm_ghash, gcm_impl_get_ops());
@@ -324,7 +324,6 @@ gcm_decrypt_incomplete_block(gcm_ctx_t *ctx, size_t block_size, size_t index,
 	}
 }
 
-/* ARGSUSED */
 int
 gcm_mode_decrypt_contiguous_blocks(gcm_ctx_t *ctx, char *data, size_t length,
     crypto_data_t *out, size_t block_size,
@@ -332,6 +331,8 @@ gcm_mode_decrypt_contiguous_blocks(gcm_ctx_t *ctx, char *data, size_t length,
     void (*copy_block)(uint8_t *, uint8_t *),
     void (*xor_block)(uint8_t *, uint8_t *))
 {
+	(void) out, (void) block_size, (void) encrypt_block, (void) copy_block,
+	    (void) xor_block;
 	size_t new_len;
 	uint8_t *new;
 
@@ -341,17 +342,23 @@ gcm_mode_decrypt_contiguous_blocks(gcm_ctx_t *ctx, char *data, size_t length,
 	 */
 	if (length > 0) {
 		new_len = ctx->gcm_pt_buf_len + length;
-		new = vmem_alloc(new_len, ctx->gcm_kmflag);
+		new = vmem_alloc(new_len, KM_SLEEP);
 		if (new == NULL) {
 			vmem_free(ctx->gcm_pt_buf, ctx->gcm_pt_buf_len);
 			ctx->gcm_pt_buf = NULL;
 			return (CRYPTO_HOST_MEMORY);
 		}
-		bcopy(ctx->gcm_pt_buf, new, ctx->gcm_pt_buf_len);
-		vmem_free(ctx->gcm_pt_buf, ctx->gcm_pt_buf_len);
+
+		if (ctx->gcm_pt_buf != NULL) {
+			memcpy(new, ctx->gcm_pt_buf, ctx->gcm_pt_buf_len);
+			vmem_free(ctx->gcm_pt_buf, ctx->gcm_pt_buf_len);
+		} else {
+			ASSERT0(ctx->gcm_pt_buf_len);
+		}
+
 		ctx->gcm_pt_buf = new;
 		ctx->gcm_pt_buf_len = new_len;
-		bcopy(data, &ctx->gcm_pt_buf[ctx->gcm_processed_data_len],
+		memcpy(&ctx->gcm_pt_buf[ctx->gcm_processed_data_len], data,
 		    length);
 		ctx->gcm_processed_data_len += length;
 	}
@@ -390,7 +397,7 @@ gcm_decrypt_final(gcm_ctx_t *ctx, crypto_data_t *out, size_t block_size,
 	while (remainder > 0) {
 		/* Incomplete last block */
 		if (remainder < block_size) {
-			bcopy(blockp, ctx->gcm_remainder, remainder);
+			memcpy(ctx->gcm_remainder, blockp, remainder);
 			ctx->gcm_remainder_len = remainder;
 			/*
 			 * not expecting anymore ciphertext, just
@@ -431,7 +438,7 @@ out:
 	xor_block((uint8_t *)ctx->gcm_J0, ghash);
 
 	/* compare the input authentication tag with what we calculated */
-	if (bcmp(&ctx->gcm_pt_buf[pt_len], ghash, ctx->gcm_tag_len)) {
+	if (memcmp(&ctx->gcm_pt_buf[pt_len], ghash, ctx->gcm_tag_len)) {
 		/* They don't match */
 		return (CRYPTO_INVALID_MAC);
 	} else {
@@ -488,7 +495,7 @@ gcm_format_initial_blocks(uchar_t *iv, ulong_t iv_len,
 	ghash = (uint8_t *)ctx->gcm_ghash;
 	cb = (uint8_t *)ctx->gcm_cb;
 	if (iv_len == 12) {
-		bcopy(iv, cb, 12);
+		memcpy(cb, iv, 12);
 		cb[12] = 0;
 		cb[13] = 0;
 		cb[14] = 0;
@@ -499,8 +506,8 @@ gcm_format_initial_blocks(uchar_t *iv, ulong_t iv_len,
 		/* GHASH the IV */
 		do {
 			if (remainder < block_size) {
-				bzero(cb, block_size);
-				bcopy(&(iv[processed]), cb, remainder);
+				memset(cb, 0, block_size);
+				memcpy(cb, &(iv[processed]), remainder);
 				datap = (uint8_t *)cb;
 				remainder = 0;
 			} else {
@@ -532,7 +539,7 @@ gcm_init(gcm_ctx_t *ctx, unsigned char *iv, size_t iv_len,
 	size_t remainder, processed;
 
 	/* encrypt zero block to get subkey H */
-	bzero(ctx->gcm_H, sizeof (ctx->gcm_H));
+	memset(ctx->gcm_H, 0, sizeof (ctx->gcm_H));
 	encrypt_block(ctx->gcm_keysched, (uint8_t *)ctx->gcm_H,
 	    (uint8_t *)ctx->gcm_H);
 
@@ -542,8 +549,8 @@ gcm_init(gcm_ctx_t *ctx, unsigned char *iv, size_t iv_len,
 	gops = gcm_impl_get_ops();
 	authp = (uint8_t *)ctx->gcm_tmp;
 	ghash = (uint8_t *)ctx->gcm_ghash;
-	bzero(authp, block_size);
-	bzero(ghash, block_size);
+	memset(authp, 0, block_size);
+	memset(ghash, 0, block_size);
 
 	processed = 0;
 	remainder = auth_data_len;
@@ -553,8 +560,15 @@ gcm_init(gcm_ctx_t *ctx, unsigned char *iv, size_t iv_len,
 			 * There's not a block full of data, pad rest of
 			 * buffer with zero
 			 */
-			bzero(authp, block_size);
-			bcopy(&(auth_data[processed]), authp, remainder);
+
+			if (auth_data != NULL) {
+				memset(authp, 0, block_size);
+				memcpy(authp, &(auth_data[processed]),
+				    remainder);
+			} else {
+				ASSERT0(remainder);
+			}
+
 			datap = (uint8_t *)authp;
 			remainder = 0;
 		} else {
@@ -640,7 +654,7 @@ gcm_init_ctx(gcm_ctx_t *gcm_ctx, char *param, size_t block_size,
 		}
 		gcm_ctx->gcm_htab_len = htab_len;
 		gcm_ctx->gcm_Htable =
-		    (uint64_t *)kmem_alloc(htab_len, gcm_ctx->gcm_kmflag);
+		    (uint64_t *)kmem_alloc(htab_len, KM_SLEEP);
 
 		if (gcm_ctx->gcm_Htable == NULL) {
 			return (CRYPTO_HOST_MEMORY);
@@ -715,7 +729,7 @@ gmac_init_ctx(gcm_ctx_t *gcm_ctx, char *param, size_t block_size,
 		}
 		gcm_ctx->gcm_htab_len = htab_len;
 		gcm_ctx->gcm_Htable =
-		    (uint64_t *)kmem_alloc(htab_len, gcm_ctx->gcm_kmflag);
+		    (uint64_t *)kmem_alloc(htab_len, KM_SLEEP);
 
 		if (gcm_ctx->gcm_Htable == NULL) {
 			return (CRYPTO_HOST_MEMORY);
@@ -766,19 +780,13 @@ gmac_alloc_ctx(int kmflag)
 	return (gcm_ctx);
 }
 
-void
-gcm_set_kmflag(gcm_ctx_t *ctx, int kmflag)
-{
-	ctx->gcm_kmflag = kmflag;
-}
-
 /* GCM implementation that contains the fastest methods */
 static gcm_impl_ops_t gcm_fastest_impl = {
 	.name = "fastest"
 };
 
 /* All compiled in implementations */
-const gcm_impl_ops_t *gcm_all_impl[] = {
+static const gcm_impl_ops_t *gcm_all_impl[] = {
 	&gcm_generic_impl,
 #if defined(__x86_64) && defined(HAVE_PCLMULQDQ)
 	&gcm_pclmulqdq_impl,
@@ -1045,9 +1053,6 @@ MODULE_PARM_DESC(icp_gcm_impl, "Select gcm implementation.");
 #define	GCM_AVX_MAX_CHUNK_SIZE \
 	(((128*1024)/GCM_AVX_MIN_DECRYPT_BYTES) * GCM_AVX_MIN_DECRYPT_BYTES)
 
-/* Get the chunk size module parameter. */
-#define	GCM_CHUNK_SIZE_READ *(volatile uint32_t *) &gcm_avx_chunk_size
-
 /* Clear the FPU registers since they hold sensitive internal state. */
 #define	clear_fpu_regs() clear_fpu_regs_avx()
 #define	GHASH_AVX(ctx, in, len) \
@@ -1055,6 +1060,9 @@ MODULE_PARM_DESC(icp_gcm_impl, "Select gcm implementation.");
     in, len)
 
 #define	gcm_incr_counter_block(ctx) gcm_incr_counter_block_by(ctx, 1)
+
+/* Get the chunk size module parameter. */
+#define	GCM_CHUNK_SIZE_READ *(volatile uint32_t *) &gcm_avx_chunk_size
 
 /*
  * Module parameter: number of bytes to process at once while owning the FPU.
@@ -1131,10 +1139,10 @@ gcm_simd_get_htab_size(boolean_t simd_mode)
 static inline void
 gcm_clear_ctx(gcm_ctx_t *ctx)
 {
-	bzero(ctx->gcm_remainder, sizeof (ctx->gcm_remainder));
-	bzero(ctx->gcm_H, sizeof (ctx->gcm_H));
-	bzero(ctx->gcm_J0, sizeof (ctx->gcm_J0));
-	bzero(ctx->gcm_tmp, sizeof (ctx->gcm_tmp));
+	memset(ctx->gcm_remainder, 0, sizeof (ctx->gcm_remainder));
+	memset(ctx->gcm_H, 0, sizeof (ctx->gcm_H));
+	memset(ctx->gcm_J0, 0, sizeof (ctx->gcm_J0));
+	memset(ctx->gcm_tmp, 0, sizeof (ctx->gcm_tmp));
 }
 
 /* Increment the GCM counter block by n. */
@@ -1179,8 +1187,8 @@ gcm_mode_encrypt_contiguous_blocks_avx(gcm_ctx_t *ctx, char *data,
 		need = block_size - ctx->gcm_remainder_len;
 		if (length < need) {
 			/* Accumulate bytes here and return. */
-			bcopy(datap, (uint8_t *)ctx->gcm_remainder +
-			    ctx->gcm_remainder_len, length);
+			memcpy((uint8_t *)ctx->gcm_remainder +
+			    ctx->gcm_remainder_len, datap, length);
 
 			ctx->gcm_remainder_len += length;
 			if (ctx->gcm_copy_to == NULL) {
@@ -1189,8 +1197,8 @@ gcm_mode_encrypt_contiguous_blocks_avx(gcm_ctx_t *ctx, char *data,
 			return (CRYPTO_SUCCESS);
 		} else {
 			/* Complete incomplete block. */
-			bcopy(datap, (uint8_t *)ctx->gcm_remainder +
-			    ctx->gcm_remainder_len, need);
+			memcpy((uint8_t *)ctx->gcm_remainder +
+			    ctx->gcm_remainder_len, datap, need);
 
 			ctx->gcm_copy_to = NULL;
 		}
@@ -1198,7 +1206,7 @@ gcm_mode_encrypt_contiguous_blocks_avx(gcm_ctx_t *ctx, char *data,
 
 	/* Allocate a buffer to encrypt to if there is enough input. */
 	if (bleft >= GCM_AVX_MIN_ENCRYPT_BYTES) {
-		ct_buf = vmem_alloc(chunk_size, ctx->gcm_kmflag);
+		ct_buf = vmem_alloc(chunk_size, KM_SLEEP);
 		if (ct_buf == NULL) {
 			return (CRYPTO_HOST_MEMORY);
 		}
@@ -1268,7 +1276,7 @@ gcm_mode_encrypt_contiguous_blocks_avx(gcm_ctx_t *ctx, char *data,
 	/* Less than GCM_AVX_MIN_ENCRYPT_BYTES remain, operate on blocks. */
 	while (bleft > 0) {
 		if (bleft < block_size) {
-			bcopy(datap, ctx->gcm_remainder, bleft);
+			memcpy(ctx->gcm_remainder, datap, bleft);
 			ctx->gcm_remainder_len = bleft;
 			ctx->gcm_copy_to = datap;
 			goto out;
@@ -1327,7 +1335,7 @@ gcm_encrypt_final_avx(gcm_ctx_t *ctx, crypto_data_t *out, size_t block_size)
 		const uint32_t *cb = (uint32_t *)ctx->gcm_cb;
 
 		aes_encrypt_intel(keysched, aes_rounds, cb, (uint32_t *)tmp);
-		bzero(remainder + rem_len, block_size - rem_len);
+		memset(remainder + rem_len, 0, block_size - rem_len);
 		for (int i = 0; i < rem_len; i++) {
 			remainder[i] ^= tmp[i];
 		}
@@ -1423,8 +1431,8 @@ gcm_decrypt_final_avx(gcm_ctx_t *ctx, crypto_data_t *out, size_t block_size)
 		if (bleft < block_size) {
 			uint8_t *lastb = (uint8_t *)ctx->gcm_remainder;
 
-			bzero(lastb, block_size);
-			bcopy(datap, lastb, bleft);
+			memset(lastb, 0, block_size);
+			memcpy(lastb, datap, bleft);
 			/* The GCM processing. */
 			GHASH_AVX(ctx, lastb, block_size);
 			aes_encrypt_intel(key->encr_ks.ks32, key->nr, cb, tmp);
@@ -1460,7 +1468,7 @@ gcm_decrypt_final_avx(gcm_ctx_t *ctx, crypto_data_t *out, size_t block_size)
 	kfpu_end();
 
 	/* Compare the input authentication tag with what we calculated. */
-	if (bcmp(&ctx->gcm_pt_buf[pt_len], ghash, ctx->gcm_tag_len)) {
+	if (memcmp(&ctx->gcm_pt_buf[pt_len], ghash, ctx->gcm_tag_len)) {
 		/* They don't match. */
 		return (CRYPTO_INVALID_MAC);
 	}
@@ -1492,8 +1500,8 @@ gcm_init_avx(gcm_ctx_t *ctx, unsigned char *iv, size_t iv_len,
 	ASSERT(block_size == GCM_BLOCK_LEN);
 
 	/* Init H (encrypt zero block) and create the initial counter block. */
-	bzero(ctx->gcm_ghash, sizeof (ctx->gcm_ghash));
-	bzero(H, sizeof (ctx->gcm_H));
+	memset(ctx->gcm_ghash, 0, sizeof (ctx->gcm_ghash));
+	memset(H, 0, sizeof (ctx->gcm_H));
 	kfpu_begin();
 	aes_encrypt_intel(keysched, aes_rounds,
 	    (const uint32_t *)H, (uint32_t *)H);
@@ -1501,13 +1509,13 @@ gcm_init_avx(gcm_ctx_t *ctx, unsigned char *iv, size_t iv_len,
 	gcm_init_htab_avx(ctx->gcm_Htable, H);
 
 	if (iv_len == 12) {
-		bcopy(iv, cb, 12);
+		memcpy(cb, iv, 12);
 		cb[12] = 0;
 		cb[13] = 0;
 		cb[14] = 0;
 		cb[15] = 1;
 		/* We need the ICB later. */
-		bcopy(cb, ctx->gcm_J0, sizeof (ctx->gcm_J0));
+		memcpy(ctx->gcm_J0, cb, sizeof (ctx->gcm_J0));
 	} else {
 		/*
 		 * Most consumers use 12 byte IVs, so it's OK to use the
@@ -1545,8 +1553,8 @@ gcm_init_avx(gcm_ctx_t *ctx, unsigned char *iv, size_t iv_len,
 			/* Zero pad and hash incomplete last block. */
 			uint8_t *authp = (uint8_t *)ctx->gcm_tmp;
 
-			bzero(authp, block_size);
-			bcopy(datap, authp, incomp);
+			memset(authp, 0, block_size);
+			memcpy(authp, datap, incomp);
 			GHASH_AVX(ctx, authp, block_size);
 		}
 	}

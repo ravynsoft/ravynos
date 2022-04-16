@@ -82,6 +82,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/pcpu.h>
 #include <sys/ptrace.h>
 #include <sys/reboot.h>
+#include <sys/reg.h>
 #include <sys/rwlock.h>
 #include <sys/sched.h>
 #include <sys/signalvar.h>
@@ -129,7 +130,6 @@ __FBSDID("$FreeBSD$");
 #include <machine/pcb.h>
 #include <machine/pcb_ext.h>
 #include <machine/proc.h>
-#include <machine/reg.h>
 #include <machine/sigframe.h>
 #include <machine/specialreg.h>
 #include <machine/sysarch.h>
@@ -188,6 +188,8 @@ struct kva_md_info kmi;
 static struct trapframe proc0_tf;
 struct pcpu __pcpu[MAXCPU];
 
+static void i386_clock_source_init(void);
+
 struct mtx icu_lock;
 
 struct mem_range_softc mem_range_softc;
@@ -198,12 +200,15 @@ extern struct sysentvec elf32_freebsd_sysvec;
 
 /* Default init_ops implementation. */
 struct init_ops init_ops = {
-	.early_clock_source_init =	i8254_init,
+	.early_clock_source_init =	i386_clock_source_init,
 	.early_delay =			i8254_delay,
-#ifdef DEV_APIC
-	.msi_init =			msi_init,
-#endif
 };
+
+static void
+i386_clock_source_init(void)
+{
+	i8254_init();
+}
 
 static void
 cpu_startup(dummy)
@@ -326,10 +331,6 @@ cpu_setregs(void)
 u_long bootdev;		/* not a struct cdev *- encoding is different */
 SYSCTL_ULONG(_machdep, OID_AUTO, guessed_bootdev,
 	CTLFLAG_RD, &bootdev, 0, "Maybe the Boot device (not in struct cdev *format)");
-
-static char bootmethod[16] = "BIOS";
-SYSCTL_STRING(_machdep, OID_AUTO, bootmethod, CTLFLAG_RD, bootmethod, 0,
-    "System firmware boot method");
 
 /*
  * Initialize 386 and configure to run kernel
@@ -902,7 +903,7 @@ getmemsize(int first)
 	u_long memtest;
 	vm_paddr_t physmap[PHYS_AVAIL_ENTRIES];
 	quad_t dcons_addr, dcons_size, physmem_tunable;
-	int hasbrokenint12, i, res;
+	int hasbrokenint12, i, res __diagused;
 	u_int extmem;
 	struct vm86frame vmf;
 	struct vm86context vmc;
@@ -1438,6 +1439,9 @@ init386(int first)
 	/* Init basic tunables, hz etc */
 	init_param1();
 
+	/* Set bootmethod to BIOS: it's the only supported on i386. */
+	strlcpy(bootmethod, "BIOS", sizeof(bootmethod));
+
 	/*
 	 * Make gdt memory segments.  All segments cover the full 4GB
 	 * of address space and permissions are enforced at page level.
@@ -1805,8 +1809,6 @@ f00f_hack(void *unused)
 
 	if (!has_f00f_bug)
 		return;
-
-	GIANT_REQUIRED;
 
 	printf("Intel Pentium detected, installing workaround for F00F bug\n");
 

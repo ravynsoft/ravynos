@@ -1202,9 +1202,9 @@ envy24_gethwptr(struct sc_info *sc, int dir)
 static void
 envy24_updintr(struct sc_info *sc, int dir)
 {
-	int regptr, regintr;
+	int regintr;
 	u_int32_t mask, intr;
-	u_int32_t ptr, size, cnt;
+	u_int32_t cnt;
 	u_int16_t blk;
 
 #if(0)
@@ -1212,28 +1212,18 @@ envy24_updintr(struct sc_info *sc, int dir)
 #endif
 	if (dir == PCMDIR_PLAY) {
 		blk = sc->blk[0];
-		size = sc->psize / 4;
-		regptr = ENVY24_MT_PCNT;
 		regintr = ENVY24_MT_PTERM;
 		mask = ~ENVY24_MT_INT_PMASK;
 	}
 	else {
 		blk = sc->blk[1];
-		size = sc->rsize / 4;
-		regptr = ENVY24_MT_RCNT;
 		regintr = ENVY24_MT_RTERM;
 		mask = ~ENVY24_MT_INT_RMASK;
 	}
 
-	ptr = size - envy24_rdmt(sc, regptr, 2) - 1;
-	/*
-	cnt = blk - ptr % blk - 1;
-	if (cnt == 0)
-		cnt = blk - 1;
-	*/
 	cnt = blk - 1;
 #if(0)
-	device_printf(sc->dev, "envy24_updintr():ptr = %d, blk = %d, cnt = %d\n", ptr, blk, cnt);
+	device_printf(sc->dev, "envy24_updintr():blk = %d, cnt = %d\n", blk, cnt);
 #endif
 	envy24_wrmt(sc, regintr, cnt, 2);
 	intr = envy24_rdmt(sc, ENVY24_MT_INT, 1);
@@ -2264,12 +2254,14 @@ envy24_dmainit(struct sc_info *sc)
 #if(0)
 	device_printf(sc->dev, "envy24_dmainit(): bus_dmamem_load(): sc->pmap\n");
 #endif
-	if (bus_dmamap_load(sc->dmat, sc->pmap, sc->pbuf, sc->psize, envy24_dmapsetmap, sc, 0))
+	if (bus_dmamap_load(sc->dmat, sc->pmap, sc->pbuf, sc->psize,
+	    envy24_dmapsetmap, sc, BUS_DMA_NOWAIT))
 		goto bad;
 #if(0)
 	device_printf(sc->dev, "envy24_dmainit(): bus_dmamem_load(): sc->rmap\n");
 #endif
-	if (bus_dmamap_load(sc->dmat, sc->rmap, sc->rbuf, sc->rsize, envy24_dmarsetmap, sc, 0))
+	if (bus_dmamap_load(sc->dmat, sc->rmap, sc->rbuf, sc->rsize,
+	    envy24_dmarsetmap, sc, BUS_DMA_NOWAIT))
 		goto bad;
 	bzero(sc->pbuf, sc->psize);
 	bzero(sc->rbuf, sc->rsize);
@@ -2534,8 +2526,8 @@ envy24_alloc_resource(struct sc_info *sc)
 	    /*filter*/NULL, /*filterarg*/NULL,
 	    /*maxsize*/BUS_SPACE_MAXSIZE_ENVY24,
 	    /*nsegments*/1, /*maxsegsz*/0x3ffff,
-	    /*flags*/0, /*lockfunc*/busdma_lock_mutex,
-	    /*lockarg*/&Giant, &sc->dmat) != 0) {
+	    /*flags*/0, /*lockfunc*/NULL, /*lockarg*/NULL,
+	    &sc->dmat) != 0) {
 		device_printf(sc->dev, "unable to create dma tag\n");
 		return ENXIO;
 	}

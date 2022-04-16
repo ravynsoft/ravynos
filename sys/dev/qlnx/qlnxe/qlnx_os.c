@@ -762,9 +762,9 @@ static int
 qlnx_pci_attach(device_t dev)
 {
 	qlnx_host_t	*ha = NULL;
-	uint32_t	rsrc_len_reg = 0;
+	uint32_t	rsrc_len_reg __unused = 0;
 	uint32_t	rsrc_len_dbells = 0;
-	uint32_t	rsrc_len_msix = 0;
+	uint32_t	rsrc_len_msix __unused = 0;
 	int		i;
 	uint32_t	mfw_ver;
 	uint32_t	num_sp_msix = 0;
@@ -1190,10 +1190,7 @@ qlnx_get_personality(uint8_t pci_func)
 static void
 qlnx_set_personality(qlnx_host_t *ha)
 {
-	struct ecore_hwfn *p_hwfn;
 	uint8_t personality;
-
-	p_hwfn = &ha->cdev.hwfns[0];
 
 	personality = qlnx_get_personality(ha->pci_func);
 
@@ -2912,7 +2909,7 @@ qlnx_free_tx_pkt(qlnx_host_t *ha, struct qlnx_fastpath *fp,
 	struct mbuf		*mp;
 	bus_dmamap_t		map;
 	int			i;
-	struct eth_tx_bd	*tx_data_bd;
+//	struct eth_tx_bd	*tx_data_bd;
 	struct eth_tx_1st_bd	*first_bd;
 	int			nbds = 0;
 
@@ -2962,7 +2959,7 @@ qlnx_free_tx_pkt(qlnx_host_t *ha, struct qlnx_fastpath *fp,
 //	BD_SET_UNMAP_ADDR_LEN(first_bd, 0, 0);
 
 	for (i = 1; i < nbds; i++) {
-		tx_data_bd = ecore_chain_consume(&txq->tx_pbl);
+		/* tx_data_bd = */ ecore_chain_consume(&txq->tx_pbl);
 //		BD_SET_UNMAP_ADDR_LEN(tx_data_bd, 0, 0);
 	}
 	txq->sw_tx_ring[idx].flags = 0;
@@ -3168,11 +3165,8 @@ qlnx_qflush(struct ifnet *ifp)
 static void
 qlnx_txq_doorbell_wr32(qlnx_host_t *ha, void *reg_addr, uint32_t value)
 {
-	struct ecore_dev	*cdev;
 	uint32_t		offset;
 
-	cdev = &ha->cdev;
-		
 	offset = (uint32_t)((uint8_t *)reg_addr - (uint8_t *)ha->pci_dbells);
 
 	bus_write_4(ha->pci_dbells, offset, value);
@@ -3191,10 +3185,7 @@ qlnx_tcp_offset(qlnx_host_t *ha, struct mbuf *mp)
         struct tcphdr			*th = NULL;
         uint32_t			ehdrlen = 0, ip_hlen = 0, offset = 0;
         uint16_t			etype = 0;
-        device_t			dev;
         uint8_t				buf[sizeof(struct ip6_hdr)];
-
-        dev = ha->pci_dev;
 
         eh = mtod(mp, struct ether_vlan_header *);
 
@@ -3251,7 +3242,7 @@ qlnx_tso_check(struct qlnx_fastpath *fp, bus_dma_segment_t *segs, int nsegs,
         uint32_t		window;
         bus_dma_segment_t	*s_seg;
 
-        /* If the header spans mulitple segments, skip those segments */
+        /* If the header spans multiple segments, skip those segments */
 
         if (nsegs < ETH_TX_LSO_WINDOW_BDS_NUM)
                 return (0);
@@ -3789,10 +3780,7 @@ static void
 qlnx_stop(qlnx_host_t *ha)
 {
 	struct ifnet	*ifp = ha->ifp;
-	device_t	dev;
 	int		i;
-
-	dev = ha->pci_dev;
 
 	ifp->if_drv_flags &= ~(IFF_DRV_OACTIVE | IFF_DRV_RUNNING);
 
@@ -3986,12 +3974,10 @@ qlnx_tpa_start(qlnx_host_t *ha,
 	bus_dmamap_t		map;
 	struct eth_rx_bd	*rx_bd;
 	int			i;
-	device_t		dev;
 #if __FreeBSD_version >= 1100000
 	uint8_t			hash_type;
 #endif /* #if __FreeBSD_version >= 1100000 */
 
-	dev = ha->pci_dev;
 	agg_index = cqe->tpa_agg_index;
 
         QL_DPRINT7(ha, "[rss_id = %d]: enter\n \
@@ -4303,9 +4289,6 @@ qlnx_tpa_cont(qlnx_host_t *ha, struct qlnx_fastpath *fp,
 	struct mbuf		*mpf = NULL, *mpl = NULL, *mpc = NULL;
 	struct mbuf		*mp;
 	uint32_t		agg_index;
-	device_t		dev;
-
-	dev = ha->pci_dev;
 
         QL_DPRINT7(ha, "[%d]: enter\n \
                 \t type = 0x%x\n \
@@ -4424,9 +4407,6 @@ qlnx_tpa_end(qlnx_host_t *ha, struct qlnx_fastpath *fp,
 	uint32_t		agg_index;
 	uint32_t		len = 0;
         struct ifnet		*ifp = ha->ifp;
-	device_t		dev;
-
-	dev = ha->pci_dev;
 
         QL_DPRINT7(ha, "[%d]: enter\n \
                 \t type = 0x%x\n \
@@ -4892,7 +4872,10 @@ qlnx_fp_isr(void *arg)
         if (fp == NULL) {
                 ha->err_fp_null++;
         } else {
-		int			rx_int = 0, total_rx_count = 0;
+		int			rx_int = 0;
+#ifdef QLNX_SOFT_LRO
+		int			total_rx_count = 0;
+#endif
 		int 			lro_enable, tc;
 		struct qlnx_tx_queue	*txq;
 		uint16_t		elem_left;
@@ -4938,7 +4921,9 @@ qlnx_fp_isr(void *arg)
 
                         if (rx_int) {
                                 fp->rx_pkts += rx_int;
+#ifdef QLNX_SOFT_LRO
                                 total_rx_count += rx_int;
+#endif
                         }
 
                 } while (rx_int);
@@ -5037,10 +5022,7 @@ static int
 qlnx_alloc_dmabuf(qlnx_host_t *ha, qlnx_dma_t *dma_buf)
 {
         int             ret = 0;
-        device_t        dev;
         bus_addr_t      b_addr;
-
-        dev = ha->pci_dev;
 
         ret = bus_dma_tag_create(
                         ha->parent_tag,/* parent */
@@ -5106,11 +5088,9 @@ qlnx_dma_alloc_coherent(void *ecore_dev, bus_addr_t *phys, uint32_t size)
 {
 	qlnx_dma_t	dma_buf;
 	qlnx_dma_t	*dma_p;
-	qlnx_host_t	*ha;
-	device_t        dev;
+	qlnx_host_t	*ha __unused;
 
 	ha = (qlnx_host_t *)ecore_dev;
-	dev = ha->pci_dev;
 
 	size = (size + (PAGE_SIZE - 1)) & ~(PAGE_SIZE - 1);
 
@@ -5142,10 +5122,8 @@ qlnx_dma_free_coherent(void *ecore_dev, void *v_addr, bus_addr_t phys,
 {
 	qlnx_dma_t dma_buf, *dma_p;
 	qlnx_host_t	*ha;
-	device_t        dev;
 
 	ha = (qlnx_host_t *)ecore_dev;
-	dev = ha->pci_dev;
 
 	if (v_addr == NULL)
 		return;
@@ -5921,10 +5899,6 @@ qlnx_get_flash_size(qlnx_host_t *ha, uint32_t *flash_size)
 static int
 qlnx_alloc_mem_arrays(qlnx_host_t *ha)
 {
-	struct ecore_dev	*cdev;
-
-	cdev = &ha->cdev;
-
 	bzero(&ha->txq_array[0], (sizeof(struct qlnx_tx_queue) * QLNX_MAX_RSS));
 	bzero(&ha->rxq_array[0], (sizeof(struct qlnx_rx_queue) * QLNX_MAX_RSS));
 	bzero(&ha->sb_array[0], (sizeof(struct ecore_sb_info) * QLNX_MAX_RSS));
@@ -6137,9 +6111,6 @@ qlnx_alloc_rx_buffer(qlnx_host_t *ha, struct qlnx_rx_queue *rxq)
 	bus_dma_segment_t       segs[1];
 	int			nsegs;
 	int			ret;
-	struct ecore_dev	*cdev;
-
-	cdev = &ha->cdev;
 
         rx_buf_size = rxq->rx_buf_size;
 
@@ -6252,11 +6223,9 @@ static int
 qlnx_alloc_mem_rxq(qlnx_host_t *ha, struct qlnx_rx_queue *rxq)
 {
         int			i, rc, num_allocated;
-	struct ifnet		*ifp;
 	struct ecore_dev	 *cdev;
 
 	cdev = &ha->cdev;
-	ifp = ha->ifp;
 
         rxq->num_rx_buffers = RX_RING_SIZE;
 
@@ -6504,9 +6473,6 @@ static void
 qlnx_free_mem_load(qlnx_host_t *ha)
 {
         int			i;
-	struct ecore_dev	*cdev;
-
-	cdev = &ha->cdev;
 
         for (i = 0; i < ha->num_rss; i++) {
                 struct qlnx_fastpath *fp = &ha->fp_array[i];
@@ -6542,7 +6508,7 @@ qlnx_start_vport(struct ecore_dev *cdev,
 {
         int					rc, i;
 	struct ecore_sp_vport_start_params	vport_start_params = { 0 };
-	qlnx_host_t				*ha;
+	qlnx_host_t				*ha __unused;
 
 	ha = (qlnx_host_t *)cdev;
 
@@ -7018,7 +6984,7 @@ qlnx_stop_queues(qlnx_host_t *ha)
 
                 /* Stop the Tx Queue(s)*/
                 for (tc = 0; tc < ha->num_tc; tc++) {
-			int tx_queue_id;
+			int tx_queue_id __unused;
 
 			tx_queue_id = tc * ha->num_rss + i;
 			rc = ecore_eth_tx_queue_stop(p_hwfn,
@@ -7329,10 +7295,8 @@ qlnx_load(qlnx_host_t *ha)
 {
 	int			i;
 	int			rc = 0;
-	struct ecore_dev	*cdev;
         device_t		dev;
 
-	cdev = &ha->cdev;
         dev = ha->pci_dev;
 
 	QL_DPRINT2(ha, "enter\n");
@@ -7873,9 +7837,6 @@ static int
 __qlnx_iov_update_vport(struct ecore_hwfn *hwfn, uint8_t vfid,
         struct ecore_sp_vport_update_params *params, uint16_t * tlvs)
 {
-        uint8_t mask;
-        struct ecore_filter_accept_flags *flags;
-
 	if (!ecore_iov_vf_has_vport_instance(hwfn, vfid)) {
 		QL_DPRINT1(((qlnx_host_t *)hwfn->p_dev),
 			"VF[%d] vport not initialized\n", vfid);
@@ -7886,8 +7847,6 @@ __qlnx_iov_update_vport(struct ecore_hwfn *hwfn, uint8_t vfid,
          * Simply indicate everything is configured fine, and trace
          * configuration 'behind their back'.
          */
-        mask = ECORE_ACCEPT_UCAST_UNMATCHED | ECORE_ACCEPT_MCAST_UNMATCHED;
-        flags = &params->accept_flags;
         if (!(*tlvs & BIT(ECORE_IOV_VP_UPDATE_ACCEPT_PARAM)))
                 return 0;
 

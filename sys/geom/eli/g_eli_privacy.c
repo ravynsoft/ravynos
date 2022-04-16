@@ -38,7 +38,6 @@ __FBSDID("$FreeBSD$");
 #include <sys/mutex.h>
 #include <sys/bio.h>
 #include <sys/sysctl.h>
-#include <sys/malloc.h>
 #include <sys/kthread.h>
 #include <sys/proc.h>
 #include <sys/sched.h>
@@ -59,8 +58,6 @@ __FBSDID("$FreeBSD$");
  * BIO_WRITE:
  *	g_eli_start -> g_eli_crypto_run -> g_eli_crypto_write_done -> g_io_request -> g_eli_write_done -> g_io_deliver
  */
-
-MALLOC_DECLARE(M_ELI);
 
 /*
  * Copy data from a (potentially unmapped) bio to a kernelspace buffer.
@@ -180,8 +177,7 @@ g_eli_crypto_write_done(struct cryptop *crp)
 	if (bp->bio_error != 0) {
 		G_ELI_LOGREQ(0, bp, "Crypto WRITE request failed (error=%d).",
 		    bp->bio_error);
-		free(bp->bio_driver2, M_ELI);
-		bp->bio_driver2 = NULL;
+		g_eli_free_data(bp);
 		g_destroy_bio(cbp);
 		g_io_deliver(bp, bp->bio_error);
 		atomic_subtract_int(&sc->sc_inflight, 1);
@@ -235,7 +231,7 @@ g_eli_crypto_read(struct g_eli_softc *sc, struct bio *bp, boolean_t fromworker)
 		atomic_add_int(&sc->sc_inflight, 1);
 		mtx_unlock(&sc->sc_queue_mtx);
 	}
-	bp->bio_pflags = 0;
+	G_ELI_SETWORKER(bp->bio_pflags, 0);
 	bp->bio_driver2 = NULL;
 	cbp = bp->bio_driver1;
 	cbp->bio_done = g_eli_read_done;
@@ -261,17 +257,18 @@ void
 g_eli_crypto_run(struct g_eli_worker *wr, struct bio *bp)
 {
 	struct g_eli_softc *sc;
+	struct cryptopq crpq;
 	struct cryptop *crp;
 	vm_page_t *pages;
 	u_int i, nsec, secsize;
 	off_t dstoff;
 	u_char *data = NULL;
-	int error;
-	int pages_offset;
+	int error __diagused, pages_offset;
+	bool batch;
 
 	G_ELI_LOGREQ(3, bp, "%s", __func__);
 
-	bp->bio_pflags = wr->w_number;
+	G_ELI_SETWORKER(bp->bio_pflags, wr->w_number);
 	sc = wr->w_softc;
 	secsize = LIST_FIRST(&sc->sc_geom->provider)->sectorsize;
 	nsec = bp->bio_length / secsize;
@@ -284,8 +281,19 @@ g_eli_crypto_run(struct g_eli_worker *wr, struct bio *bp)
 	 * so we need to allocate more memory for encrypted data.
 	 */
 	if (bp->bio_cmd == BIO_WRITE) {
-		data = malloc(bp->bio_length, M_ELI, M_WAITOK);
-		bp->bio_driver2 = data;
+		if (!g_eli_alloc_data(bp, bp->bio_length)) {
+			G_ELI_LOGREQ(0, bp, "Crypto request failed (ENOMEM).");
+			if (bp->bio_driver1 != NULL) {
+				g_destroy_bio(bp->bio_driver1);
+				bp->bio_driver1 = NULL;
+			}
+			bp->bio_error = ENOMEM;
+			g_io_deliver(bp, bp->bio_error);
+			if (sc != NULL)
+				atomic_subtract_int(&sc->sc_inflight, 1);
+			return;
+		}
+		data = bp->bio_driver2;
 		/* 
 		 * This copy could be eliminated by using crypto's output
 		 * buffer, instead of using a single overwriting buffer.
@@ -302,6 +310,9 @@ g_eli_crypto_run(struct g_eli_worker *wr, struct bio *bp)
 			data = bp->bio_data;
 		}
 	}
+
+	TAILQ_INIT(&crpq);
+	batch = atomic_load_int(&g_eli_batch) != 0;
 
 	for (i = 0, dstoff = bp->bio_offset; i < nsec; i++, dstoff += secsize) {
 		crp = crypto_getreq(wr->w_sid, M_WAITOK);
@@ -325,9 +336,6 @@ g_eli_crypto_run(struct g_eli_worker *wr, struct bio *bp)
 			crp->crp_callback = g_eli_crypto_read_done;
 		}
 		crp->crp_flags = CRYPTO_F_CBIFSYNC;
-		if (g_eli_batch)
-			crp->crp_flags |= CRYPTO_F_BATCH;
-
 		crp->crp_payload_start = 0;
 		crp->crp_payload_length = secsize;
 		if ((sc->sc_flags & G_ELI_FLAG_SINGLE_KEY) == 0) {
@@ -340,8 +348,15 @@ g_eli_crypto_run(struct g_eli_worker *wr, struct bio *bp)
 			    sizeof(crp->crp_iv));
 		}
 
-		error = crypto_dispatch(crp);
-		KASSERT(error == 0, ("crypto_dispatch() failed (error=%d)",
-		    error));
+		if (batch) {
+			TAILQ_INSERT_TAIL(&crpq, crp, crp_next);
+		} else {
+			error = crypto_dispatch(crp);
+			KASSERT(error == 0,
+			    ("crypto_dispatch() failed (error=%d)", error));
+		}
 	}
+
+	if (batch)
+		crypto_dispatch_batch(&crpq, 0);
 }

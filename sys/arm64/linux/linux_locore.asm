@@ -44,24 +44,9 @@ linux_platform:
 
 	.text
 
+	nop	/* This is what Linux calls a "Mysterious NOP". */
 ENTRY(__kernel_rt_sigreturn)
-	brk #0 /* LINUXTODO: implement __kernel_rt_sigreturn */
+	mov	x8, #LINUX_SYS_linux_rt_sigreturn
+	svc	#0
 	ret
 END(__kernel_rt_sigreturn)
-
-ENTRY(__kernel_gettimeofday)
-	ldr	x8, =LINUX_SYS_gettimeofday
-	svc	#0
-	ret
-END(__kernel_gettimeofday)
-
-ENTRY(__kernel_clock_gettime)
-	ldr	x8, =LINUX_SYS_linux_clock_gettime
-	svc	#0
-	ret
-END(__kernel_clock_gettime)
-
-ENTRY(__kernel_clock_getres)
-	brk #0 /* LINUXTODO: implement __kernel_clock_getres */
-	ret
-END(__kernel_clock_getres)

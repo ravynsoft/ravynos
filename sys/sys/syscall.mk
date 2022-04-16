@@ -431,6 +431,7 @@ MIASM =  \
 	__specialfd.o \
 	aio_writev.o \
 	aio_readv.o \
+<<<<<<< HEAD
 	sched_getcpu.o \
 	swapoff.o \
 	_kernelrpc_mach_vm_allocate_trap.o \
@@ -480,3 +481,8 @@ MIASM =  \
 	mk_timer_destroy.o \
 	mk_timer_arm.o \
 	mk_timer_cancel.o
+=======
+	fspacectl.o \
+	sched_getcpu.o \
+	swapoff.o
+>>>>>>> freebsd/main

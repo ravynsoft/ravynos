@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -206,6 +206,46 @@ UtIsBigEndianMachine (
 }
 
 
+/*******************************************************************************
+ *
+ * FUNCTION:    UtIsIdInteger
+ *
+ * PARAMETERS:  Pointer to an ACPI ID (HID, CID) string
+ *
+ * RETURN:      TRUE if string is an integer
+ *              FALSE if string is not an integer
+ *
+ * DESCRIPTION: Determine whether the input ACPI ID string can be converted to
+ *              an integer value.
+ *
+ ******************************************************************************/
+
+BOOLEAN
+UtIsIdInteger (
+    UINT8                   *Target)
+{
+    UINT32                  i;
+
+
+    /* The first three characters of the string must be alphabetic */
+
+    for (i = 0; i < 3; i++)
+    {
+        if (!isalpha ((int) Target[i]))
+        {
+            break;
+        }
+    }
+
+    if (i < 3)
+    {
+        return (TRUE);
+    }
+
+    return (FALSE);
+}
+
+
 /******************************************************************************
  *
  * FUNCTION:    UtQueryForOverwrite
@@ -394,18 +434,20 @@ UtDisplaySupportedTables (
 
 
     printf ("\nACPI tables supported by iASL version %8.8X:\n"
-        "  (Compiler, Disassembler, Template Generator)\n\n",
+        "  (Compiler, Disassembler, Template Generator)\n",
         ACPI_CA_VERSION);
 
     /* All ACPI tables with the common table header */
 
-    printf ("\n  Supported ACPI tables:\n");
+    printf ("\nKnown/Supported ACPI tables:\n");
     for (TableData = AcpiGbl_SupportedTables, i = 1;
          TableData->Signature; TableData++, i++)
     {
         printf ("%8u) %s    %s\n", i,
             TableData->Signature, TableData->Description);
     }
+
+    printf ("\nTotal %u ACPI tables\n\n", i-1);
 }
 
 

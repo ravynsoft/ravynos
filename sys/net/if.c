@@ -1,6 +1,7 @@
 /*-
  * SPDX-License-Identifier: BSD-3-Clause
  *
+ * Copyright (c) 2010 Bjoern A. Zeeb <bz@FreeBSD.org>
  * Copyright (c) 1980, 1986, 1993
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -35,8 +36,10 @@
 #include "opt_bpf.h"
 #include "opt_inet6.h"
 #include "opt_inet.h"
+#include "opt_ddb.h"
 
 #include <sys/param.h>
+#include <sys/capsicum.h>
 #include <sys/conf.h>
 #include <sys/eventhandler.h>
 #include <sys/malloc.h>
@@ -65,6 +68,10 @@
 #include <sys/jail.h>
 #include <sys/priv.h>
 
+#ifdef DDB
+#include <ddb/ddb.h>
+#endif
+
 #include <machine/stdarg.h>
 #include <vm/uma.h>
 
@@ -77,6 +84,7 @@
 #include <net/if_types.h>
 #include <net/if_var.h>
 #include <net/if_media.h>
+#include <net/if_mib.h>
 #include <net/if_vlan_var.h>
 #include <net/radix.h>
 #include <net/route.h>
@@ -148,6 +156,24 @@ CTASSERT(sizeof(struct ifreq) == sizeof(struct ifreq32));
 CTASSERT(__offsetof(struct ifreq, ifr_ifru) ==
     __offsetof(struct ifreq32, ifr_ifru));
 
+struct ifconf32 {
+	int32_t	ifc_len;
+	union {
+		uint32_t	ifcu_buf;
+		uint32_t	ifcu_req;
+	} ifc_ifcu;
+};
+#define	SIOCGIFCONF32	_IOWR('i', 36, struct ifconf32)
+
+struct ifdrv32 {
+	char		ifd_name[IFNAMSIZ];
+	uint32_t	ifd_cmd;
+	uint32_t	ifd_len;
+	uint32_t	ifd_data;
+};
+#define SIOCSDRVSPEC32	_IOC_NEWTYPE(SIOCSDRVSPEC, struct ifdrv32)
+#define SIOCGDRVSPEC32	_IOC_NEWTYPE(SIOCGDRVSPEC, struct ifdrv32)
+
 struct ifgroupreq32 {
 	char	ifgr_name[IFNAMSIZ];
 	u_int	ifgr_len;
@@ -156,6 +182,10 @@ struct ifgroupreq32 {
 		uint32_t	ifgru_groups;
 	} ifgr_ifgru;
 };
+#define	SIOCAIFGROUP32	_IOC_NEWTYPE(SIOCAIFGROUP, struct ifgroupreq32)
+#define	SIOCGIFGROUP32	_IOC_NEWTYPE(SIOCGIFGROUP, struct ifgroupreq32)
+#define	SIOCDIFGROUP32	_IOC_NEWTYPE(SIOCDIFGROUP, struct ifgroupreq32)
+#define	SIOCGIFGMEMB32	_IOC_NEWTYPE(SIOCGIFGMEMB, struct ifgroupreq32)
 
 struct ifmediareq32 {
 	char		ifm_name[IFNAMSIZ];
@@ -168,28 +198,12 @@ struct ifmediareq32 {
 };
 #define	SIOCGIFMEDIA32	_IOC_NEWTYPE(SIOCGIFMEDIA, struct ifmediareq32)
 #define	SIOCGIFXMEDIA32	_IOC_NEWTYPE(SIOCGIFXMEDIA, struct ifmediareq32)
-
-#define	_CASE_IOC_IFGROUPREQ_32(cmd)				\
-    _IOC_NEWTYPE((cmd), struct ifgroupreq32): case
-#else /* !COMPAT_FREEBSD32 */
-#define _CASE_IOC_IFGROUPREQ_32(cmd)
-#endif /* !COMPAT_FREEBSD32 */
-
-#define CASE_IOC_IFGROUPREQ(cmd)	\
-    _CASE_IOC_IFGROUPREQ_32(cmd)	\
-    (cmd)
+#endif /* COMPAT_FREEBSD32 */
 
 union ifreq_union {
 	struct ifreq	ifr;
 #ifdef COMPAT_FREEBSD32
 	struct ifreq32	ifr32;
-#endif
-};
-
-union ifgroupreq_union {
-	struct ifgroupreq ifgr;
-#ifdef COMPAT_FREEBSD32
-	struct ifgroupreq32 ifgr32;
 #endif
 };
 
@@ -260,7 +274,6 @@ struct mbuf *(*tbr_dequeue_ptr)(struct ifaltq *, int) = NULL;
 static void	if_attachdomain(void *);
 static void	if_attachdomain1(struct ifnet *);
 static int	ifconf(u_long, caddr_t);
-static void	*if_grow(void);
 static void	if_input_default(struct ifnet *, struct mbuf *);
 static int	if_requestencap_default(struct ifnet *, struct if_encap_req *);
 static void	if_route(struct ifnet *, int flag, int fam);
@@ -272,8 +285,8 @@ static void	do_link_state_change(void *, int);
 static int	if_getgroup(struct ifgroupreq *, struct ifnet *);
 static int	if_getgroupmembers(struct ifgroupreq *);
 static void	if_delgroups(struct ifnet *);
-static void	if_attach_internal(struct ifnet *, int, struct if_clone *);
-static int	if_detach_internal(struct ifnet *, int, struct if_clone **);
+static void	if_attach_internal(struct ifnet *, bool);
+static int	if_detach_internal(struct ifnet *, bool);
 static void	if_siocaddmulti(void *, int);
 static void	if_link_ifnet(struct ifnet *);
 static bool	if_unlink_ifnet(struct ifnet *, bool);
@@ -293,18 +306,38 @@ extern void	nd6_setmtu(struct ifnet *);
 VNET_DEFINE(struct hhook_head *, ipsec_hhh_in[HHOOK_IPSEC_COUNT]);
 VNET_DEFINE(struct hhook_head *, ipsec_hhh_out[HHOOK_IPSEC_COUNT]);
 
-VNET_DEFINE(int, if_index);
 int	ifqmaxlen = IFQ_MAXLEN;
 VNET_DEFINE(struct ifnethead, ifnet);	/* depend on static init XXX */
 VNET_DEFINE(struct ifgrouphead, ifg_head);
 
-VNET_DEFINE_STATIC(int, if_indexlim) = 8;
-
 /* Table of ifnet by index. */
-VNET_DEFINE(struct ifnet **, ifindex_table);
+static int if_index;
+static int if_indexlim = 8;
+static struct ifindex_entry {
+	struct ifnet	*ife_ifnet;
+	uint16_t	ife_gencnt;
+} *ifindex_table;
 
-#define	V_if_indexlim		VNET(if_indexlim)
-#define	V_ifindex_table		VNET(ifindex_table)
+SYSCTL_NODE(_net_link_generic, IFMIB_SYSTEM, system,
+    CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
+    "Variables global to all interfaces");
+static int
+sysctl_ifcount(SYSCTL_HANDLER_ARGS)
+{
+	int rv = 0;
+
+	IFNET_RLOCK();
+	for (int i = 1; i <= if_index; i++)
+		if (ifindex_table[i].ife_ifnet != NULL &&
+		    ifindex_table[i].ife_ifnet->if_vnet == curvnet)
+			rv = i;
+	IFNET_RUNLOCK();
+
+	return (sysctl_handle_int(oidp, &rv, 0, req));
+}
+SYSCTL_PROC(_net_link_generic_system, IFMIB_IFCOUNT, ifcount,
+    CTLTYPE_INT | CTLFLAG_VNET | CTLFLAG_RD, NULL, 0, sysctl_ifcount, "I",
+    "Maximum known interface index");
 
 /*
  * The global network interface list (V_ifnet) and related state (such as
@@ -317,13 +350,6 @@ SX_SYSINIT_FLAGS(ifnet_sx, &ifnet_sxlock, "ifnet_sx", SX_RECURSE);
 struct sx ifnet_detach_sxlock;
 SX_SYSINIT_FLAGS(ifnet_detach, &ifnet_detach_sxlock, "ifnet_detach_sx",
     SX_RECURSE);
-
-/*
- * The allocation of network interfaces is a rather non-atomic affair; we
- * need to select an index before we are ready to expose the interface for
- * use, so will use this pointer value to indicate reservation.
- */
-#define	IFNET_HOLD	(void *)(uintptr_t)(-1)
 
 #ifdef VIMAGE
 #define	VNET_IS_SHUTTING_DOWN(_vnet)					\
@@ -338,23 +364,27 @@ MALLOC_DEFINE(M_IFADDR, "ifaddr", "interface address");
 MALLOC_DEFINE(M_IFMADDR, "ether_multi", "link-level multicast address");
 
 struct ifnet *
-ifnet_byindex(u_short idx)
-{
-	struct ifnet *ifp;
-
-	if (__predict_false(idx > V_if_index))
-		return (NULL);
-
-	ifp = *(struct ifnet * const volatile *)(V_ifindex_table + idx);
-	return (__predict_false(ifp == IFNET_HOLD) ? NULL : ifp);
-}
-
-struct ifnet *
-ifnet_byindex_ref(u_short idx)
+ifnet_byindex(u_int idx)
 {
 	struct ifnet *ifp;
 
 	NET_EPOCH_ASSERT();
+
+	if (__predict_false(idx > if_index))
+		return (NULL);
+
+	ifp = ck_pr_load_ptr(&ifindex_table[idx].ife_ifnet);
+
+	if (curvnet != NULL && ifp != NULL && ifp->if_vnet != curvnet)
+		ifp = NULL;
+
+	return (ifp);
+}
+
+struct ifnet *
+ifnet_byindex_ref(u_int idx)
+{
+	struct ifnet *ifp;
 
 	ifp = ifnet_byindex(idx);
 	if (ifp == NULL || (ifp->if_flags & IFF_DYING))
@@ -364,75 +394,22 @@ ifnet_byindex_ref(u_short idx)
 	return (ifp);
 }
 
-/*
- * Allocate an ifindex array entry; return 0 on success or an error on
- * failure.
- */
-static u_short
-ifindex_alloc(void **old)
-{
-	u_short idx;
-
-	IFNET_WLOCK_ASSERT();
-	/*
-	 * Try to find an empty slot below V_if_index.  If we fail, take the
-	 * next slot.
-	 */
-	for (idx = 1; idx <= V_if_index; idx++) {
-		if (V_ifindex_table[idx] == NULL)
-			break;
-	}
-
-	/* Catch if_index overflow. */
-	if (idx >= V_if_indexlim) {
-		*old = if_grow();
-		return (USHRT_MAX);
-	}
-	if (idx > V_if_index)
-		V_if_index = idx;
-	return (idx);
-}
-
-static void
-ifindex_free_locked(u_short idx)
-{
-
-	IFNET_WLOCK_ASSERT();
-
-	V_ifindex_table[idx] = NULL;
-	while (V_if_index > 0 &&
-	    V_ifindex_table[V_if_index] == NULL)
-		V_if_index--;
-}
-
-static void
-ifindex_free(u_short idx)
-{
-
-	IFNET_WLOCK();
-	ifindex_free_locked(idx);
-	IFNET_WUNLOCK();
-}
-
-static void
-ifnet_setbyindex(u_short idx, struct ifnet *ifp)
-{
-
-	V_ifindex_table[idx] = ifp;
-}
-
-struct ifaddr *
-ifaddr_byindex(u_short idx)
+struct ifnet *
+ifnet_byindexgen(uint16_t idx, uint16_t gen)
 {
 	struct ifnet *ifp;
-	struct ifaddr *ifa = NULL;
 
 	NET_EPOCH_ASSERT();
 
-	ifp = ifnet_byindex(idx);
-	if (ifp != NULL && (ifa = ifp->if_addr) != NULL)
-		ifa_ref(ifa);
-	return (ifa);
+	if (__predict_false(idx > if_index))
+		return (NULL);
+
+	ifp = ck_pr_load_ptr(&ifindex_table[idx].ife_ifnet);
+
+	if (ifindex_table[idx].ife_gencnt == gen)
+		return (ifp);
+	else
+		return (NULL);
 }
 
 /*
@@ -443,37 +420,24 @@ ifaddr_byindex(u_short idx)
  */
 
 static void
+if_init(void *arg __unused)
+{
+
+	ifindex_table = malloc(if_indexlim * sizeof(*ifindex_table),
+	    M_IFNET, M_WAITOK | M_ZERO);
+}
+SYSINIT(if_init, SI_SUB_INIT_IF, SI_ORDER_SECOND, if_init, NULL);
+
+static void
 vnet_if_init(const void *unused __unused)
 {
-	void *old;
 
 	CK_STAILQ_INIT(&V_ifnet);
 	CK_STAILQ_INIT(&V_ifg_head);
-	IFNET_WLOCK();
-	old = if_grow();				/* create initial table */
-	IFNET_WUNLOCK();
-	epoch_wait_preempt(net_epoch_preempt);
-	free(old, M_IFNET);
 	vnet_if_clone_init();
 }
 VNET_SYSINIT(vnet_if_init, SI_SUB_INIT_IF, SI_ORDER_SECOND, vnet_if_init,
     NULL);
-
-#ifdef VIMAGE
-static void
-vnet_if_uninit(const void *unused __unused)
-{
-
-	VNET_ASSERT(CK_STAILQ_EMPTY(&V_ifnet), ("%s:%d tailq &V_ifnet=%p "
-	    "not empty", __func__, __LINE__, &V_ifnet));
-	VNET_ASSERT(CK_STAILQ_EMPTY(&V_ifg_head), ("%s:%d tailq &V_ifg_head=%p "
-	    "not empty", __func__, __LINE__, &V_ifg_head));
-
-	free((caddr_t)V_ifindex_table, M_IFNET);
-}
-VNET_SYSUNINIT(vnet_if_uninit, SI_SUB_INIT_IF, SI_ORDER_FIRST,
-    vnet_if_uninit, NULL);
-#endif
 
 static void
 if_link_ifnet(struct ifnet *ifp)
@@ -516,7 +480,8 @@ vnet_if_return(const void *unused __unused)
 {
 	struct ifnet *ifp, *nifp;
 	struct ifnet **pending;
-	int found, i;
+	int found __diagused;
+	int i;
 
 	i = 0;
 
@@ -557,45 +522,16 @@ VNET_SYSUNINIT(vnet_if_return, SI_SUB_VNET_DONE, SI_ORDER_ANY,
     vnet_if_return, NULL);
 #endif
 
-static void *
-if_grow(void)
-{
-	int oldlim;
-	u_int n;
-	struct ifnet **e;
-	void *old;
-
-	old = NULL;
-	IFNET_WLOCK_ASSERT();
-	oldlim = V_if_indexlim;
-	IFNET_WUNLOCK();
-	n = (oldlim << 1) * sizeof(*e);
-	e = malloc(n, M_IFNET, M_WAITOK | M_ZERO);
-	IFNET_WLOCK();
-	if (V_if_indexlim != oldlim) {
-		free(e, M_IFNET);
-		return (NULL);
-	}
-	if (V_ifindex_table != NULL) {
-		memcpy((caddr_t)e, (caddr_t)V_ifindex_table, n/2);
-		old = V_ifindex_table;
-	}
-	V_if_indexlim <<= 1;
-	V_ifindex_table = e;
-	return (old);
-}
-
 /*
  * Allocate a struct ifnet and an index for an interface.  A layer 2
  * common structure will also be allocated if an allocation routine is
  * registered for the passed type.
  */
-struct ifnet *
+static struct ifnet *
 if_alloc_domain(u_char type, int numa_domain)
 {
 	struct ifnet *ifp;
 	u_short idx;
-	void *old;
 
 	KASSERT(numa_domain <= IF_NODOM, ("numa_domain too large"));
 	if (numa_domain == IF_NODOM)
@@ -604,18 +540,6 @@ if_alloc_domain(u_char type, int numa_domain)
 	else
 		ifp = malloc_domainset(sizeof(struct ifnet), M_IFNET,
 		    DOMAINSET_PREF(numa_domain), M_WAITOK | M_ZERO);
- restart:
-	IFNET_WLOCK();
-	idx = ifindex_alloc(&old);
-	if (__predict_false(idx == USHRT_MAX)) {
-		IFNET_WUNLOCK();
-		epoch_wait_preempt(net_epoch_preempt);
-		free(old, M_IFNET);
-		goto restart;
-	}
-	ifnet_setbyindex(idx, IFNET_HOLD);
-	IFNET_WUNLOCK();
-	ifp->if_index = idx;
 	ifp->if_type = type;
 	ifp->if_alloctype = type;
 	ifp->if_numa_domain = numa_domain;
@@ -624,11 +548,8 @@ if_alloc_domain(u_char type, int numa_domain)
 #endif
 	if (if_com_alloc[type] != NULL) {
 		ifp->if_l2com = if_com_alloc[type](type, ifp);
-		if (ifp->if_l2com == NULL) {
-			free(ifp, M_IFNET);
-			ifindex_free(idx);
-			return (NULL);
-		}
+		KASSERT(ifp->if_l2com, ("%s: if_com_alloc[%u] failed", __func__,
+		    type));
 	}
 
 	IF_ADDR_LOCK_INIT(ifp);
@@ -649,7 +570,40 @@ if_alloc_domain(u_char type, int numa_domain)
 		ifp->if_counters[i] = counter_u64_alloc(M_WAITOK);
 	ifp->if_get_counter = if_get_counter_default;
 	ifp->if_pcp = IFNET_PCP_NONE;
-	ifnet_setbyindex(ifp->if_index, ifp);
+
+	/* Allocate an ifindex array entry. */
+	IFNET_WLOCK();
+	/*
+	 * Try to find an empty slot below if_index.  If we fail, take the
+	 * next slot.
+	 */
+	for (idx = 1; idx <= if_index; idx++) {
+		if (ifindex_table[idx].ife_ifnet == NULL)
+			break;
+	}
+
+	/* Catch if_index overflow. */
+	if (idx >= if_indexlim) {
+		struct ifindex_entry *new, *old;
+		int newlim;
+
+		newlim = if_indexlim * 2;
+		new = malloc(newlim * sizeof(*new), M_IFNET, M_WAITOK | M_ZERO);
+		memcpy(new, ifindex_table, if_indexlim * sizeof(*new));
+		old = ifindex_table;
+		ck_pr_store_ptr(&ifindex_table, new);
+		if_indexlim = newlim;
+		epoch_wait_preempt(net_epoch_preempt);
+		free(old, M_IFNET);
+	}
+	if (idx > if_index)
+		if_index = idx;
+
+	ifp->if_index = idx;
+	ifp->if_idxgen = ifindex_table[idx].ife_gencnt;
+	ck_pr_store_ptr(&ifindex_table[idx].ife_ifnet, ifp);
+	IFNET_WUNLOCK();
+
 	return (ifp);
 }
 
@@ -671,15 +625,16 @@ if_alloc(u_char type)
 }
 /*
  * Do the actual work of freeing a struct ifnet, and layer 2 common
- * structure.  This call is made when the last reference to an
- * interface is released.
+ * structure.  This call is made when the network epoch guarantees
+ * us that nobody holds a pointer to the interface.
  */
 static void
-if_free_internal(struct ifnet *ifp)
+if_free_deferred(epoch_context_t ctx)
 {
+	struct ifnet *ifp = __containerof(ctx, struct ifnet, if_epoch_ctx);
 
 	KASSERT((ifp->if_flags & IFF_DYING),
-	    ("if_free_internal: interface not dying"));
+	    ("%s: interface not dying", __func__));
 
 	if (if_com_free[ifp->if_alloctype] != NULL)
 		if_com_free[ifp->if_alloctype](ifp->if_l2com,
@@ -700,15 +655,6 @@ if_free_internal(struct ifnet *ifp)
 	free(ifp, M_IFNET);
 }
 
-static void
-if_destroy(epoch_context_t ctx)
-{
-	struct ifnet *ifp;
-
-	ifp = __containerof(ctx, struct ifnet, if_epoch_ctx);
-	if_free_internal(ifp);
-}
-
 /*
  * Deregister an interface and free the associated storage.
  */
@@ -718,17 +664,27 @@ if_free(struct ifnet *ifp)
 
 	ifp->if_flags |= IFF_DYING;			/* XXX: Locking */
 
-	CURVNET_SET_QUIET(ifp->if_vnet);
+	/*
+	 * XXXGL: An interface index is really an alias to ifp pointer.
+	 * Why would we clear the alias now, and not in the deferred
+	 * context?  Indeed there is nothing wrong with some network
+	 * thread obtaining ifp via ifnet_byindex() inside the network
+	 * epoch and then dereferencing ifp while we perform if_free(),
+	 * and after if_free() finished, too.
+	 *
+	 * This early index freeing was important back when ifindex was
+	 * virtualized and interface would outlive the vnet.
+	 */
 	IFNET_WLOCK();
-	KASSERT(ifp == ifnet_byindex(ifp->if_index),
-	    ("%s: freeing unallocated ifnet", ifp->if_xname));
-
-	ifindex_free_locked(ifp->if_index);
+	MPASS(ifindex_table[ifp->if_index].ife_ifnet == ifp);
+	ck_pr_store_ptr(&ifindex_table[ifp->if_index].ife_ifnet, NULL);
+	ifindex_table[ifp->if_index].ife_gencnt++;
+	while (if_index > 0 && ifindex_table[if_index].ife_ifnet == NULL)
+		if_index--;
 	IFNET_WUNLOCK();
 
 	if (refcount_release(&ifp->if_refcount))
-		NET_EPOCH_CALL(if_destroy, &ifp->if_epoch_ctx);
-	CURVNET_RESTORE();
+		NET_EPOCH_CALL(if_free_deferred, &ifp->if_epoch_ctx);
 }
 
 /*
@@ -739,7 +695,7 @@ if_free(struct ifnet *ifp)
 void
 if_ref(struct ifnet *ifp)
 {
-	u_int old;
+	u_int old __diagused;
 
 	/* We don't assert the ifnet list lock here, but arguably should. */
 	old = refcount_acquire(&ifp->if_refcount);
@@ -759,7 +715,7 @@ if_rele(struct ifnet *ifp)
 
 	if (!refcount_release(&ifp->if_refcount))
 		return;
-	NET_EPOCH_CALL(if_destroy, &ifp->if_epoch_ctx);
+	NET_EPOCH_CALL(if_free_deferred, &ifp->if_epoch_ctx);
 }
 
 void
@@ -810,7 +766,7 @@ void
 if_attach(struct ifnet *ifp)
 {
 
-	if_attach_internal(ifp, 0, NULL);
+	if_attach_internal(ifp, false);
 }
 
 /*
@@ -865,16 +821,14 @@ if_hw_tsomax_update(if_t ifp, struct ifnet_hw_tsomax *pmax)
 }
 
 static void
-if_attach_internal(struct ifnet *ifp, int vmove, struct if_clone *ifc)
+if_attach_internal(struct ifnet *ifp, bool vmove)
 {
 	unsigned socksize, ifasize;
 	int namelen, masklen;
 	struct sockaddr_dl *sdl;
 	struct ifaddr *ifa;
 
-	if (ifp->if_index == 0 || ifp != ifnet_byindex(ifp->if_index))
-		panic ("%s: BUG: if_attach called without if_alloc'd input()\n",
-		    ifp->if_xname);
+	MPASS(ifindex_table[ifp->if_index].ife_ifnet == ifp);
 
 #ifdef VIMAGE
 	ifp->if_vnet = curvnet;
@@ -884,9 +838,11 @@ if_attach_internal(struct ifnet *ifp, int vmove, struct if_clone *ifc)
 
 	if_addgroup(ifp, IFG_ALL);
 
-	/* Restore group membership for cloned interfaces. */
-	if (vmove && ifc != NULL)
-		if_clone_addgroup(ifp, ifc);
+#ifdef VIMAGE
+	/* Restore group membership for cloned interface. */
+	if (vmove)
+		if_clone_restoregroup(ifp);
+#endif
 
 	getmicrotime(&ifp->if_lastchange);
 	ifp->if_epoch = time_uptime;
@@ -1134,7 +1090,7 @@ if_detach(struct ifnet *ifp)
 	found = if_unlink_ifnet(ifp, false);
 	if (found) {
 		sx_xlock(&ifnet_detach_sxlock);
-		if_detach_internal(ifp, 0, NULL);
+		if_detach_internal(ifp, false);
 		sx_xunlock(&ifnet_detach_sxlock);
 	}
 	CURVNET_RESTORE();
@@ -1151,7 +1107,7 @@ if_detach(struct ifnet *ifp)
  * the cloned interfaces are destoyed as first thing of teardown.
  */
 static int
-if_detach_internal(struct ifnet *ifp, int vmove, struct if_clone **ifcp)
+if_detach_internal(struct ifnet *ifp, bool vmove)
 {
 	struct ifaddr *ifa;
 	int i;
@@ -1185,15 +1141,6 @@ if_detach_internal(struct ifnet *ifp, int vmove, struct if_clone **ifcp)
 
 	taskqueue_drain(taskqueue_swi, &ifp->if_linktask);
 	taskqueue_drain(taskqueue_swi, &ifp->if_addmultitask);
-
-	/*
-	 * Check if this is a cloned interface or not. Must do even if
-	 * shutting down as a if_vmove_reclaim() would move the ifp and
-	 * the if_clone_addgroup() will have a corrupted string overwise
-	 * from a gibberish pointer.
-	 */
-	if (vmove && ifcp != NULL)
-		*ifcp = if_clone_findifc(ifp);
 
 	if_down(ifp);
 
@@ -1304,18 +1251,13 @@ finish_vnet_shutdown:
 /*
  * if_vmove() performs a limited version of if_detach() in current
  * vnet and if_attach()es the ifnet to the vnet specified as 2nd arg.
- * An attempt is made to shrink if_index in current vnet, find an
- * unused if_index in target vnet and calls if_grow() if necessary,
- * and finally find an unused if_xname for the target vnet.
  */
 static int
 if_vmove(struct ifnet *ifp, struct vnet *new_vnet)
 {
-	struct if_clone *ifc;
 #ifdef DEV_BPF
 	u_int bif_dlt, bif_hdrlen;
 #endif
-	void *old;
 	int rc;
 
 #ifdef DEV_BPF
@@ -1332,20 +1274,9 @@ if_vmove(struct ifnet *ifp, struct vnet *new_vnet)
 	 * mark as dead etc. so that the ifnet can be reattached later.
 	 * If we cannot find it, we lost the race to someone else.
 	 */
-	rc = if_detach_internal(ifp, 1, &ifc);
+	rc = if_detach_internal(ifp, true);
 	if (rc != 0)
 		return (rc);
-
-	/*
-	 * Unlink the ifnet from ifindex_table[] in current vnet, and shrink
-	 * the if_index for that vnet if possible.
-	 *
-	 * NOTE: IFNET_WLOCK/IFNET_WUNLOCK() are assumed to be unvirtualized,
-	 * or we'd lock on one vnet and unlock on another.
-	 */
-	IFNET_WLOCK();
-	ifindex_free_locked(ifp->if_index);
-	IFNET_WUNLOCK();
 
 	/*
 	 * Perform interface-specific reassignment tasks, if provided by
@@ -1358,19 +1289,7 @@ if_vmove(struct ifnet *ifp, struct vnet *new_vnet)
 	 * Switch to the context of the target vnet.
 	 */
 	CURVNET_SET_QUIET(new_vnet);
- restart:
-	IFNET_WLOCK();
-	ifp->if_index = ifindex_alloc(&old);
-	if (__predict_false(ifp->if_index == USHRT_MAX)) {
-		IFNET_WUNLOCK();
-		epoch_wait_preempt(net_epoch_preempt);
-		free(old, M_IFNET);
-		goto restart;
-	}
-	ifnet_setbyindex(ifp->if_index, ifp);
-	IFNET_WUNLOCK();
-
-	if_attach_internal(ifp, 1, ifc);
+	if_attach_internal(ifp, true);
 
 #ifdef DEV_BPF
 	if (ifp->if_bpf == NULL)
@@ -1390,7 +1309,7 @@ if_vmove_loan(struct thread *td, struct ifnet *ifp, char *ifname, int jid)
 	struct prison *pr;
 	struct ifnet *difp;
 	int error;
-	bool found;
+	bool found __diagused;
 	bool shutdown;
 
 	/* Try to find the prison within our visibility. */
@@ -1447,7 +1366,7 @@ if_vmove_reclaim(struct thread *td, char *ifname, int jid)
 	struct prison *pr;
 	struct vnet *vnet_dst;
 	struct ifnet *ifp;
-	int error, found;
+	int error, found __diagused;
  	bool shutdown;
 
 	/* Try to find the prison within our visibility. */
@@ -1653,33 +1572,6 @@ if_delgroups(struct ifnet *ifp)
 	IFNET_WUNLOCK();
 }
 
-static char *
-ifgr_group_get(void *ifgrp)
-{
-	union ifgroupreq_union *ifgrup;
-
-	ifgrup = ifgrp;
-#ifdef COMPAT_FREEBSD32
-	if (SV_CURPROC_FLAG(SV_ILP32))
-		return (&ifgrup->ifgr32.ifgr_ifgru.ifgru_group[0]);
-#endif
-	return (&ifgrup->ifgr.ifgr_ifgru.ifgru_group[0]);
-}
-
-static struct ifg_req *
-ifgr_groups_get(void *ifgrp)
-{
-	union ifgroupreq_union *ifgrup;
-
-	ifgrup = ifgrp;
-#ifdef COMPAT_FREEBSD32
-	if (SV_CURPROC_FLAG(SV_ILP32))
-		return ((struct ifg_req *)(uintptr_t)
-		    ifgrup->ifgr32.ifgr_ifgru.ifgru_groups);
-#endif
-	return (ifgrup->ifgr.ifgr_ifgru.ifgru_groups);
-}
-
 /*
  * Stores all groups from an interface in memory pointed to by ifgr.
  */
@@ -1699,7 +1591,7 @@ if_getgroup(struct ifgroupreq *ifgr, struct ifnet *ifp)
 	}
 
 	len = ifgr->ifgr_len;
-	ifgp = ifgr_groups_get(ifgr);
+	ifgp = ifgr->ifgr_groups;
 	/* XXX: wire */
 	CK_STAILQ_FOREACH(ifgl, &ifp->if_groups, ifgl_next) {
 		if (len < sizeof(ifgrq))
@@ -1744,7 +1636,7 @@ if_getgroupmembers(struct ifgroupreq *ifgr)
 	}
 
 	len = ifgr->ifgr_len;
-	ifgp = ifgr_groups_get(ifgr);
+	ifgp = ifgr->ifgr_groups;
 	CK_STAILQ_FOREACH(ifgm, &ifg->ifg_members, ifgm_next) {
 		if (len < sizeof(ifgrq)) {
 			IFNET_RUNLOCK();
@@ -1867,7 +1759,7 @@ fail:
 void
 ifa_ref(struct ifaddr *ifa)
 {
-	u_int old;
+	u_int old __diagused;
 
 	old = refcount_acquire(&ifa->ifa_refcnt);
 	KASSERT(old > 0, ("%s: ifa %p has 0 refs", __func__, ifa));
@@ -2032,7 +1924,6 @@ ifa_ifwithnet(const struct sockaddr *addr, int ignore_ptp, int fibnum)
 	struct ifaddr *ifa_maybe = NULL;
 	u_int af = addr->sa_family;
 	const char *addr_data = addr->sa_data, *cplim;
-	const struct sockaddr_dl *sdl;
 
 	NET_EPOCH_ASSERT();
 	/*
@@ -2040,14 +1931,9 @@ ifa_ifwithnet(const struct sockaddr *addr, int ignore_ptp, int fibnum)
 	 * so do that if we can.
 	 */
 	if (af == AF_LINK) {
-		sdl = (const struct sockaddr_dl *)addr;
-		if (sdl->sdl_index && sdl->sdl_index <= V_if_index) {
-			ifp = ifnet_byindex(sdl->sdl_index);
-			if (ifp == NULL)
-				return (NULL);
-
-			return (ifp->if_addr);
-		}
+		ifp = ifnet_byindex(
+		    ((const struct sockaddr_dl *)addr)->sdl_index);
+		return (ifp ? ifp->if_addr : NULL);
 	}
 
 	/*
@@ -2500,6 +2386,7 @@ ifhwioctl(u_long cmd, struct ifnet *ifp, caddr_t data, struct thread *td)
 	size_t descrlen;
 	char *descrbuf, *odescrbuf;
 	char new_name[IFNAMSIZ];
+	char old_name[IFNAMSIZ], strbuf[IFNAMSIZ + 8];
 	struct ifaddr *ifa;
 	struct sockaddr_dl *sdl;
 
@@ -2705,6 +2592,7 @@ ifhwioctl(u_long cmd, struct ifnet *ifp, caddr_t data, struct thread *td)
 		if_printf(ifp, "changing name to '%s'\n", new_name);
 
 		IF_ADDR_WLOCK(ifp);
+		strlcpy(old_name, ifp->if_xname, sizeof(old_name));
 		strlcpy(ifp->if_xname, new_name, sizeof(ifp->if_xname));
 		ifa = ifp->if_addr;
 		sdl = (struct sockaddr_dl *)ifa->ifa_addr;
@@ -2732,6 +2620,9 @@ ifhwioctl(u_long cmd, struct ifnet *ifp, caddr_t data, struct thread *td)
 		rt_ifannouncemsg(ifp, IFAN_ARRIVAL);
 
 		ifp->if_flags &= ~IFF_RENAMING;
+
+		snprintf(strbuf, sizeof(strbuf), "name=%s", new_name);
+		devctl_notify("IFNET", old_name, "RENAME", strbuf);
 		break;
 
 #ifdef VIMAGE
@@ -2772,6 +2663,9 @@ ifhwioctl(u_long cmd, struct ifnet *ifp, caddr_t data, struct thread *td)
 		if (ifr->ifr_mtu < IF_MINMTU || ifr->ifr_mtu > IF_MAXMTU)
 			return (EINVAL);
 		if (ifp->if_ioctl == NULL)
+			return (EOPNOTSUPP);
+		/* Disallow MTU changes on bridge member interfaces. */
+		if (ifp->if_bridge)
 			return (EOPNOTSUPP);
 		error = (*ifp->if_ioctl)(ifp, cmd, data);
 		if (error == 0) {
@@ -2878,16 +2772,17 @@ ifhwioctl(u_long cmd, struct ifnet *ifp, caddr_t data, struct thread *td)
 		error = if_gethwaddr(ifp, ifr);
 		break;
 
-	case CASE_IOC_IFGROUPREQ(SIOCAIFGROUP):
+	case SIOCAIFGROUP:
 		error = priv_check(td, PRIV_NET_ADDIFGROUP);
 		if (error)
 			return (error);
-		if ((error = if_addgroup(ifp,
-		    ifgr_group_get((struct ifgroupreq *)data))))
+		error = if_addgroup(ifp,
+		    ((struct ifgroupreq *)data)->ifgr_group);
+		if (error != 0)
 			return (error);
 		break;
 
-	case CASE_IOC_IFGROUPREQ(SIOCGIFGROUP):
+	case SIOCGIFGROUP:
 	{
 		struct epoch_tracker et;
 
@@ -2897,12 +2792,13 @@ ifhwioctl(u_long cmd, struct ifnet *ifp, caddr_t data, struct thread *td)
 		break;
 	}
 
-	case CASE_IOC_IFGROUPREQ(SIOCDIFGROUP):
+	case SIOCDIFGROUP:
 		error = priv_check(td, PRIV_NET_DELIFGROUP);
 		if (error)
 			return (error);
-		if ((error = if_delgroup(ifp,
-		    ifgr_group_get((struct ifgroupreq *)data))))
+		error = if_delgroup(ifp,
+		    ((struct ifgroupreq *)data)->ifgr_group);
+		if (error != 0)
 			return (error);
 		break;
 
@@ -2913,48 +2809,6 @@ ifhwioctl(u_long cmd, struct ifnet *ifp, caddr_t data, struct thread *td)
 	return (error);
 }
 
-#ifdef COMPAT_FREEBSD32
-struct ifconf32 {
-	int32_t	ifc_len;
-	union {
-		uint32_t	ifcu_buf;
-		uint32_t	ifcu_req;
-	} ifc_ifcu;
-};
-#define	SIOCGIFCONF32	_IOWR('i', 36, struct ifconf32)
-#endif
-
-#ifdef COMPAT_FREEBSD32
-static void
-ifmr_init(struct ifmediareq *ifmr, caddr_t data)
-{
-	struct ifmediareq32 *ifmr32;
-
-	ifmr32 = (struct ifmediareq32 *)data;
-	memcpy(ifmr->ifm_name, ifmr32->ifm_name,
-	    sizeof(ifmr->ifm_name));
-	ifmr->ifm_current = ifmr32->ifm_current;
-	ifmr->ifm_mask = ifmr32->ifm_mask;
-	ifmr->ifm_status = ifmr32->ifm_status;
-	ifmr->ifm_active = ifmr32->ifm_active;
-	ifmr->ifm_count = ifmr32->ifm_count;
-	ifmr->ifm_ulist = (int *)(uintptr_t)ifmr32->ifm_ulist;
-}
-
-static void
-ifmr_update(const struct ifmediareq *ifmr, caddr_t data)
-{
-	struct ifmediareq32 *ifmr32;
-
-	ifmr32 = (struct ifmediareq32 *)data;
-	ifmr32->ifm_current = ifmr->ifm_current;
-	ifmr32->ifm_mask = ifmr->ifm_mask;
-	ifmr32->ifm_status = ifmr->ifm_status;
-	ifmr32->ifm_active = ifmr->ifm_active;
-	ifmr32->ifm_count = ifmr->ifm_count;
-}
-#endif
-
 /*
  * Interface ioctls.
  */
@@ -2962,9 +2816,17 @@ int
 ifioctl(struct socket *so, u_long cmd, caddr_t data, struct thread *td)
 {
 #ifdef COMPAT_FREEBSD32
-	caddr_t saved_data = NULL;
-	struct ifmediareq ifmr;
-	struct ifmediareq *ifmrp = NULL;
+	union {
+		struct ifconf ifc;
+		struct ifdrv ifd;
+		struct ifgroupreq ifgr;
+		struct ifmediareq ifmr;
+	} thunk;
+	u_long saved_cmd;
+	struct ifconf32 *ifc32;
+	struct ifdrv32 *ifd32;
+	struct ifgroupreq32 *ifgr32;
+	struct ifmediareq32 *ifmr32;
 #endif
 	struct ifnet *ifp;
 	struct ifreq *ifr;
@@ -2984,40 +2846,71 @@ ifioctl(struct socket *so, u_long cmd, caddr_t data, struct thread *td)
 	}
 #endif
 
+#ifdef COMPAT_FREEBSD32
+	saved_cmd = cmd;
+	switch (cmd) {
+	case SIOCGIFCONF32:
+		ifc32 = (struct ifconf32 *)data;
+		thunk.ifc.ifc_len = ifc32->ifc_len;
+		thunk.ifc.ifc_buf = PTRIN(ifc32->ifc_buf);
+		data = (caddr_t)&thunk.ifc;
+		cmd = SIOCGIFCONF;
+		break;
+	case SIOCGDRVSPEC32:
+	case SIOCSDRVSPEC32:
+		ifd32 = (struct ifdrv32 *)data;
+		memcpy(thunk.ifd.ifd_name, ifd32->ifd_name,
+		    sizeof(thunk.ifd.ifd_name));
+		thunk.ifd.ifd_cmd = ifd32->ifd_cmd;
+		thunk.ifd.ifd_len = ifd32->ifd_len;
+		thunk.ifd.ifd_data = PTRIN(ifd32->ifd_data);
+		data = (caddr_t)&thunk.ifd;
+		cmd = _IOC_NEWTYPE(cmd, struct ifdrv);
+		break;
+	case SIOCAIFGROUP32:
+	case SIOCGIFGROUP32:
+	case SIOCDIFGROUP32:
+	case SIOCGIFGMEMB32:
+		ifgr32 = (struct ifgroupreq32 *)data;
+		memcpy(thunk.ifgr.ifgr_name, ifgr32->ifgr_name,
+		    sizeof(thunk.ifgr.ifgr_name));
+		thunk.ifgr.ifgr_len = ifgr32->ifgr_len;
+		switch (cmd) {
+		case SIOCAIFGROUP32:
+		case SIOCDIFGROUP32:
+			memcpy(thunk.ifgr.ifgr_group, ifgr32->ifgr_group,
+			    sizeof(thunk.ifgr.ifgr_group));
+			break;
+		case SIOCGIFGROUP32:
+		case SIOCGIFGMEMB32:
+			thunk.ifgr.ifgr_groups = PTRIN(ifgr32->ifgr_groups);
+			break;
+		}
+		data = (caddr_t)&thunk.ifgr;
+		cmd = _IOC_NEWTYPE(cmd, struct ifgroupreq);
+		break;
+	case SIOCGIFMEDIA32:
+	case SIOCGIFXMEDIA32:
+		ifmr32 = (struct ifmediareq32 *)data;
+		memcpy(thunk.ifmr.ifm_name, ifmr32->ifm_name,
+		    sizeof(thunk.ifmr.ifm_name));
+		thunk.ifmr.ifm_current = ifmr32->ifm_current;
+		thunk.ifmr.ifm_mask = ifmr32->ifm_mask;
+		thunk.ifmr.ifm_status = ifmr32->ifm_status;
+		thunk.ifmr.ifm_active = ifmr32->ifm_active;
+		thunk.ifmr.ifm_count = ifmr32->ifm_count;
+		thunk.ifmr.ifm_ulist = PTRIN(ifmr32->ifm_ulist);
+		data = (caddr_t)&thunk.ifmr;
+		cmd = _IOC_NEWTYPE(cmd, struct ifmediareq);
+		break;
+	}
+#endif
+
 	switch (cmd) {
 	case SIOCGIFCONF:
 		error = ifconf(cmd, data);
 		goto out_noref;
-
-#ifdef COMPAT_FREEBSD32
-	case SIOCGIFCONF32:
-		{
-			struct ifconf32 *ifc32;
-			struct ifconf ifc;
-
-			ifc32 = (struct ifconf32 *)data;
-			ifc.ifc_len = ifc32->ifc_len;
-			ifc.ifc_buf = PTRIN(ifc32->ifc_buf);
-
-			error = ifconf(SIOCGIFCONF, (void *)&ifc);
-			if (error == 0)
-				ifc32->ifc_len = ifc.ifc_len;
-			goto out_noref;
-		}
-#endif
 	}
-
-#ifdef COMPAT_FREEBSD32
-	switch (cmd) {
-	case SIOCGIFMEDIA32:
-	case SIOCGIFXMEDIA32:
-		ifmrp = &ifmr;
-		ifmr_init(ifmrp, data);
-		cmd = _IOC_NEWTYPE(cmd, struct ifmediareq);
-		saved_data = data;
-		data = (caddr_t)ifmrp;
-	}
-#endif
 
 	ifr = (struct ifreq *)data;
 	switch (cmd) {
@@ -3051,7 +2944,7 @@ ifioctl(struct socket *so, u_long cmd, caddr_t data, struct thread *td)
 		error = if_clone_list((struct if_clonereq *)data);
 		goto out_noref;
 
-	case CASE_IOC_IFGROUPREQ(SIOCGIFGMEMB):
+	case SIOCGIFGMEMB:
 		error = if_getgroupmembers((struct ifgroupreq *)data);
 		goto out_noref;
 
@@ -3108,16 +3001,39 @@ ifioctl(struct socket *so, u_long cmd, caddr_t data, struct thread *td)
 out_ref:
 	if_rele(ifp);
 out_noref:
+	CURVNET_RESTORE();
 #ifdef COMPAT_FREEBSD32
-	if (ifmrp != NULL) {
-		KASSERT((cmd == SIOCGIFMEDIA || cmd == SIOCGIFXMEDIA),
-		    ("ifmrp non-NULL, but cmd is not an ifmedia req 0x%lx",
-		     cmd));
-		data = saved_data;
-		ifmr_update(ifmrp, data);
+	if (error != 0)
+		return (error);
+	switch (saved_cmd) {
+	case SIOCGIFCONF32:
+		ifc32->ifc_len = thunk.ifc.ifc_len;
+		break;
+	case SIOCGDRVSPEC32:
+		/*
+		 * SIOCGDRVSPEC is IOWR, but nothing actually touches
+		 * the struct so just assert that ifd_len (the only
+		 * field it might make sense to update) hasn't
+		 * changed.
+		 */
+		KASSERT(thunk.ifd.ifd_len == ifd32->ifd_len,
+		    ("ifd_len was updated %u -> %zu", ifd32->ifd_len,
+			thunk.ifd.ifd_len));
+		break;
+	case SIOCGIFGROUP32:
+	case SIOCGIFGMEMB32:
+		ifgr32->ifgr_len = thunk.ifgr.ifgr_len;
+		break;
+	case SIOCGIFMEDIA32:
+	case SIOCGIFXMEDIA32:
+		ifmr32->ifm_current = thunk.ifmr.ifm_current;
+		ifmr32->ifm_mask = thunk.ifmr.ifm_mask;
+		ifmr32->ifm_status = thunk.ifmr.ifm_status;
+		ifmr32->ifm_active = thunk.ifmr.ifm_active;
+		ifmr32->ifm_count = thunk.ifmr.ifm_count;
+		break;
 	}
 #endif
-	CURVNET_RESTORE();
 	return (error);
 }
 
@@ -3975,15 +3891,35 @@ if_initname(struct ifnet *ifp, const char *name, int unit)
 		strlcpy(ifp->if_xname, name, IFNAMSIZ);
 }
 
+static int
+if_vlog(struct ifnet *ifp, int pri, const char *fmt, va_list ap)
+{
+	char if_fmt[256];
+
+	snprintf(if_fmt, sizeof(if_fmt), "%s: %s", ifp->if_xname, fmt);
+	vlog(pri, if_fmt, ap);
+	return (0);
+}
+
+
 int
 if_printf(struct ifnet *ifp, const char *fmt, ...)
 {
-	char if_fmt[256];
 	va_list ap;
 
-	snprintf(if_fmt, sizeof(if_fmt), "%s: %s", ifp->if_xname, fmt);
 	va_start(ap, fmt);
-	vlog(LOG_INFO, if_fmt, ap);
+	if_vlog(ifp, LOG_INFO, fmt, ap);
+	va_end(ap);
+	return (0);
+}
+
+int
+if_log(struct ifnet *ifp, int pri, const char *fmt, ...)
+{
+	va_list ap;
+
+	va_start(ap, fmt);
+	if_vlog(ifp, pri, fmt, ap);
 	va_end(ap);
 	return (0);
 }
@@ -4568,28 +4504,81 @@ if_setgetcounterfn(if_t ifp, if_get_counter_t fn)
 	ifp->if_get_counter = fn;
 }
 
-/* Revisit these - These are inline functions originally. */
-int
-drbr_inuse_drv(if_t ifh, struct buf_ring *br)
+#ifdef DDB
+static void
+if_show_ifnet(struct ifnet *ifp)
 {
-	return drbr_inuse(ifh, br);
+
+	if (ifp == NULL)
+		return;
+	db_printf("%s:\n", ifp->if_xname);
+#define	IF_DB_PRINTF(f, e)	db_printf("   %s = " f "\n", #e, ifp->e);
+	IF_DB_PRINTF("%s", if_dname);
+	IF_DB_PRINTF("%d", if_dunit);
+	IF_DB_PRINTF("%s", if_description);
+	IF_DB_PRINTF("%u", if_index);
+	IF_DB_PRINTF("%d", if_idxgen);
+	IF_DB_PRINTF("%u", if_refcount);
+	IF_DB_PRINTF("%p", if_softc);
+	IF_DB_PRINTF("%p", if_l2com);
+	IF_DB_PRINTF("%p", if_llsoftc);
+	IF_DB_PRINTF("%d", if_amcount);
+	IF_DB_PRINTF("%p", if_addr);
+	IF_DB_PRINTF("%p", if_broadcastaddr);
+	IF_DB_PRINTF("%p", if_afdata);
+	IF_DB_PRINTF("%d", if_afdata_initialized);
+	IF_DB_PRINTF("%u", if_fib);
+	IF_DB_PRINTF("%p", if_vnet);
+	IF_DB_PRINTF("%p", if_home_vnet);
+	IF_DB_PRINTF("%p", if_vlantrunk);
+	IF_DB_PRINTF("%p", if_bpf);
+	IF_DB_PRINTF("%u", if_pcount);
+	IF_DB_PRINTF("%p", if_bridge);
+	IF_DB_PRINTF("%p", if_lagg);
+	IF_DB_PRINTF("%p", if_pf_kif);
+	IF_DB_PRINTF("%p", if_carp);
+	IF_DB_PRINTF("%p", if_label);
+	IF_DB_PRINTF("%p", if_netmap);
+	IF_DB_PRINTF("0x%08x", if_flags);
+	IF_DB_PRINTF("0x%08x", if_drv_flags);
+	IF_DB_PRINTF("0x%08x", if_capabilities);
+	IF_DB_PRINTF("0x%08x", if_capenable);
+	IF_DB_PRINTF("%p", if_snd.ifq_head);
+	IF_DB_PRINTF("%p", if_snd.ifq_tail);
+	IF_DB_PRINTF("%d", if_snd.ifq_len);
+	IF_DB_PRINTF("%d", if_snd.ifq_maxlen);
+	IF_DB_PRINTF("%p", if_snd.ifq_drv_head);
+	IF_DB_PRINTF("%p", if_snd.ifq_drv_tail);
+	IF_DB_PRINTF("%d", if_snd.ifq_drv_len);
+	IF_DB_PRINTF("%d", if_snd.ifq_drv_maxlen);
+	IF_DB_PRINTF("%d", if_snd.altq_type);
+	IF_DB_PRINTF("%x", if_snd.altq_flags);
+#undef IF_DB_PRINTF
 }
 
-struct mbuf*
-drbr_dequeue_drv(if_t ifh, struct buf_ring *br)
+DB_SHOW_COMMAND(ifnet, db_show_ifnet)
 {
-	return drbr_dequeue(ifh, br);
+
+	if (!have_addr) {
+		db_printf("usage: show ifnet <struct ifnet *>\n");
+		return;
+	}
+
+	if_show_ifnet((struct ifnet *)addr);
 }
 
-int
-drbr_needs_enqueue_drv(if_t ifh, struct buf_ring *br)
+DB_SHOW_ALL_COMMAND(ifnets, db_show_all_ifnets)
 {
-	return drbr_needs_enqueue(ifh, br);
-}
+	struct ifnet *ifp;
+	u_short idx;
 
-int
-drbr_enqueue_drv(if_t ifh, struct buf_ring *br, struct mbuf *m)
-{
-	return drbr_enqueue(ifh, br, m);
-
+	for (idx = 1; idx <= if_index; idx++) {
+		ifp = ifindex_table[idx].ife_ifnet;
+		if (ifp == NULL)
+			continue;
+		db_printf( "%20s ifp=%p\n", ifp->if_xname, ifp);
+		if (db_pager_quit)
+			break;
+	}
 }
+#endif	/* DDB */

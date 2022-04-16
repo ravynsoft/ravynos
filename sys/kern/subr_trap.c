@@ -56,6 +56,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/event.h>
 #include <sys/kernel.h>
 #include <sys/lock.h>
+#include <sys/msan.h>
 #include <sys/mutex.h>
 #include <sys/pmckern.h>
 #include <sys/proc.h>
@@ -217,6 +218,8 @@ ast(struct trapframe *framep)
 	int flags, sig;
 	bool resched_sigs;
 
+	kmsan_mark(framep, sizeof(*framep), KMSAN_STATE_INITED);
+
 	td = curthread;
 	p = td->td_proc;
 
@@ -244,7 +247,7 @@ ast(struct trapframe *framep)
 	thread_unlock(td);
 	VM_CNT_INC(v_trap);
 
-	if (td->td_cowgen != p->p_cowgen)
+	if (td->td_cowgen != atomic_load_int(&p->p_cowgen))
 		thread_cow_update(td);
 	if (td->td_pflags & TDP_OWEUPC && p->p_flag & P_PROFIL) {
 		addupc_task(td, td->td_profil_addr, td->td_profil_ticks);
@@ -256,6 +259,8 @@ ast(struct trapframe *framep)
 	if (PMC_IS_PENDING_CALLCHAIN(td))
 		PMC_CALL_HOOK_UNLOCKED(td, PMC_FN_USER_CALLCHAIN_SOFT, (void *) framep);
 #endif
+	if ((td->td_pflags & TDP_RFPPWAIT) != 0)
+		fork_rfppwait(td);
 	if (flags & TDF_ALRMPEND) {
 		PROC_LOCK(p);
 		kern_psignal(p, SIGVTALRM);

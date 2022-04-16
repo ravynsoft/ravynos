@@ -122,6 +122,7 @@ void vmspace_free(struct vmspace *);
 void vmspace_exitfree(struct proc *);
 void vmspace_switch_aio(struct vmspace *);
 void vnode_pager_setsize(struct vnode *, vm_ooffset_t);
+void vnode_pager_purge_range(struct vnode *, vm_ooffset_t, vm_ooffset_t);
 int vslock(void *, size_t);
 void vsunlock(void *, size_t);
 struct sf_buf *vm_imgact_map_page(vm_object_t object, vm_ooffset_t offset);
@@ -134,5 +135,36 @@ u_int vm_active_count(void);
 u_int vm_inactive_count(void);
 u_int vm_laundry_count(void);
 u_int vm_wait_count(void);
+
+/*
+ * Is pa a multiple of alignment, which is a power-of-two?
+ */
+static inline bool
+vm_addr_align_ok(vm_paddr_t pa, u_long alignment)
+{
+	KASSERT(powerof2(alignment), ("%s: alignment is not a power of 2: %#lx",
+	    __func__, alignment));
+	return ((pa & (alignment - 1)) == 0);
+}
+
+/*
+ * Do the first and last addresses of a range match in all bits except the ones
+ * in -boundary (a power-of-two)?  For boundary == 0, all addresses match.
+ */
+static inline bool
+vm_addr_bound_ok(vm_paddr_t pa, vm_paddr_t size, vm_paddr_t boundary)
+{
+	KASSERT(powerof2(boundary), ("%s: boundary is not a power of 2: %#jx",
+	    __func__, (uintmax_t)boundary));
+	return (((pa ^ (pa + size - 1)) & -boundary) == 0);
+}
+
+static inline bool
+vm_addr_ok(vm_paddr_t pa, vm_paddr_t size, u_long alignment,
+    vm_paddr_t boundary)
+{
+	return (vm_addr_align_ok(pa, alignment) &&
+	    vm_addr_bound_ok(pa, size, boundary));
+}
 #endif				/* _KERNEL */
 #endif				/* !_VM_EXTERN_H_ */

@@ -46,8 +46,9 @@
 #include <sys/kernel.h>
 #include <sys/lock.h>
 #include <sys/malloc.h>
-#include <sys/module.h>
 #include <sys/mbuf.h>
+#include <sys/module.h>
+#include <sys/msan.h>
 #include <sys/proc.h>
 #include <sys/priv.h>
 #include <sys/random.h>
@@ -201,16 +202,15 @@ ether_resolve_addr(struct ifnet *ifp, struct mbuf *m,
 	const struct sockaddr *dst, struct route *ro, u_char *phdr,
 	uint32_t *pflags, struct llentry **plle)
 {
-	struct ether_header *eh;
 	uint32_t lleflags = 0;
 	int error = 0;
 #if defined(INET) || defined(INET6)
+	struct ether_header *eh = (struct ether_header *)phdr;
 	uint16_t etype;
 #endif
 
 	if (plle)
 		*plle = NULL;
-	eh = (struct ether_header *)phdr;
 
 	switch (dst->sa_family) {
 #ifdef INET
@@ -503,9 +503,13 @@ ether_output_frame(struct ifnet *ifp, struct mbuf *m)
 #endif
 
 	/*
-	 * Queue message on interface, update output statistics if
-	 * successful, and start output if interface not yet active.
+	 * Queue message on interface, update output statistics if successful,
+	 * and start output if interface not yet active.
+	 *
+	 * If KMSAN is enabled, use it to verify that the data does not contain
+	 * any uninitialized bytes.
 	 */
+	kmsan_check_mbuf(m, "ether_output");
 	return ((ifp->if_transmit)(ifp, m));
 }
 
@@ -1352,9 +1356,10 @@ SYSCTL_INT(_net_link_vlan, OID_AUTO, soft_pad, CTLFLAG_RW | CTLFLAG_VNET,
  * per-packet memory allocations and frees.  In the future, it would be
  * preferable to reuse ether_vtag for this, or similar.
  */
-int vlan_mtag_pcp = 0;
-SYSCTL_INT(_net_link_vlan, OID_AUTO, mtag_pcp, CTLFLAG_RW,
-    &vlan_mtag_pcp, 0,
+VNET_DEFINE(int, vlan_mtag_pcp) = 0;
+#define	V_vlan_mtag_pcp	VNET(vlan_mtag_pcp)
+SYSCTL_INT(_net_link_vlan, OID_AUTO, mtag_pcp, CTLFLAG_RW | CTLFLAG_VNET,
+    &VNET_NAME(vlan_mtag_pcp), 0,
     "Retain VLAN PCP information as packets are passed up the stack");
 
 bool
@@ -1406,7 +1411,7 @@ ether_8021q_frame(struct mbuf **mp, struct ifnet *ife, struct ifnet *p,
 	 * knows how to find the VLAN tag to use, so we attach a
 	 * packet tag that holds it.
 	 */
-	if (vlan_mtag_pcp && (mtag = m_tag_locate(*mp, MTAG_8021Q,
+	if (V_vlan_mtag_pcp && (mtag = m_tag_locate(*mp, MTAG_8021Q,
 	    MTAG_8021Q_PCP_OUT, NULL)) != NULL)
 		tag = EVL_MAKETAG(qtag->vid, *(uint8_t *)(mtag + 1), 0);
 	else

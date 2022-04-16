@@ -257,9 +257,7 @@ static int
 cs4281_rdcd(kobj_t obj, void *devinfo, int regno)
 {
     struct sc_info *sc = (struct sc_info *)devinfo;
-    int codecno;
 
-    codecno = regno >> 8;
     regno &= 0xff;
 
     /* Remove old state */
@@ -291,9 +289,7 @@ static int
 cs4281_wrcd(kobj_t obj, void *devinfo, int regno, u_int32_t data)
 {
     struct sc_info *sc = (struct sc_info *)devinfo;
-    int codecno;
 
-    codecno = regno >> 8;
     regno &= 0xff;
 
     cs4281_wr(sc, CS4281PCI_ACCAD, regno);
@@ -823,8 +819,8 @@ cs4281_pci_attach(device_t dev)
 			   /*filter*/NULL, /*filterarg*/NULL,
 			   /*maxsize*/sc->bufsz, /*nsegments*/1,
 			   /*maxsegz*/0x3ffff,
-			   /*flags*/0, /*lockfunc*/busdma_lock_mutex,
-			   /*lockarg*/&Giant, &sc->parent_dmat) != 0) {
+			   /*flags*/0, /*lockfunc*/NULL, /*lockarg*/NULL,
+			   &sc->parent_dmat) != 0) {
 	device_printf(dev, "unable to create dma tag\n");
 	goto bad;
     }

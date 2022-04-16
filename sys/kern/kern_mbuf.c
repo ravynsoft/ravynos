@@ -197,7 +197,7 @@ tunable_mbinit(void *dummy)
 	 * map.
 	 */
 	if (PMAP_HAS_DMAP) {
-		extpg = mb_use_ext_pgs;
+		extpg = 1;
 		TUNABLE_INT_FETCH("kern.ipc.mb_use_ext_pgs", &extpg);
 		mb_use_ext_pgs = extpg != 0;
 	}
@@ -680,13 +680,14 @@ static void
 mb_dtor_mbuf(void *mem, int size, void *arg)
 {
 	struct mbuf *m;
-	unsigned long flags;
+	unsigned long flags __diagused;
 
 	m = (struct mbuf *)mem;
 	flags = (unsigned long)arg;
 
 	KASSERT((m->m_flags & M_NOFREE) == 0, ("%s: M_NOFREE set", __func__));
-	if (!(flags & MB_DTOR_SKIP) && (m->m_flags & M_PKTHDR) && !SLIST_EMPTY(&m->m_pkthdr.tags))
+	KASSERT((flags & 0x1) == 0, ("%s: obsolete MB_DTOR_SKIP passed", __func__));
+	if ((m->m_flags & M_PKTHDR) && !SLIST_EMPTY(&m->m_pkthdr.tags))
 		m_tag_delete_chain(m, NULL);
 }
 
@@ -710,7 +711,7 @@ mb_dtor_pack(void *mem, int size, void *arg)
 	KASSERT(m->m_ext.ext_arg2 == NULL, ("%s: ext_arg2 != NULL", __func__));
 	KASSERT(m->m_ext.ext_size == MCLBYTES, ("%s: ext_size != MCLBYTES", __func__));
 	KASSERT(m->m_ext.ext_type == EXT_PACKET, ("%s: ext_type != EXT_PACKET", __func__));
-#ifdef INVARIANTS
+#if defined(INVARIANTS) && !defined(KMSAN)
 	trash_dtor(m->m_ext.ext_buf, MCLBYTES, arg);
 #endif
 	/*
@@ -769,7 +770,7 @@ mb_zinit_pack(void *mem, int size, int how)
 	    m->m_ext.ext_buf == NULL)
 		return (ENOMEM);
 	m->m_ext.ext_type = EXT_PACKET;	/* Override. */
-#ifdef INVARIANTS
+#if defined(INVARIANTS) && !defined(KMSAN)
 	trash_init(m->m_ext.ext_buf, MCLBYTES, how);
 #endif
 	return (0);
@@ -785,11 +786,11 @@ mb_zfini_pack(void *mem, int size)
 	struct mbuf *m;
 
 	m = (struct mbuf *)mem;
-#ifdef INVARIANTS
+#if defined(INVARIANTS) && !defined(KMSAN)
 	trash_fini(m->m_ext.ext_buf, MCLBYTES);
 #endif
 	uma_zfree_arg(zone_clust, m->m_ext.ext_buf, NULL);
-#ifdef INVARIANTS
+#if defined(INVARIANTS) && !defined(KMSAN)
 	trash_dtor(mem, size, NULL);
 #endif
 }
@@ -811,7 +812,7 @@ mb_ctor_pack(void *mem, int size, void *arg, int how)
 	type = args->type;
 	MPASS((flags & M_NOFREE) == 0);
 
-#ifdef INVARIANTS
+#if defined(INVARIANTS) && !defined(KMSAN)
 	trash_ctor(m->m_ext.ext_buf, MCLBYTES, arg, how);
 #endif
 
@@ -1218,19 +1219,19 @@ mb_free_ext(struct mbuf *m)
 			break;
 		case EXT_CLUSTER:
 			uma_zfree(zone_clust, m->m_ext.ext_buf);
-			uma_zfree(zone_mbuf, mref);
+			m_free_raw(mref);
 			break;
 		case EXT_JUMBOP:
 			uma_zfree(zone_jumbop, m->m_ext.ext_buf);
-			uma_zfree(zone_mbuf, mref);
+			m_free_raw(mref);
 			break;
 		case EXT_JUMBO9:
 			uma_zfree(zone_jumbo9, m->m_ext.ext_buf);
-			uma_zfree(zone_mbuf, mref);
+			m_free_raw(mref);
 			break;
 		case EXT_JUMBO16:
 			uma_zfree(zone_jumbo16, m->m_ext.ext_buf);
-			uma_zfree(zone_mbuf, mref);
+			m_free_raw(mref);
 			break;
 		case EXT_SFBUF:
 		case EXT_NET_DRV:
@@ -1239,7 +1240,7 @@ mb_free_ext(struct mbuf *m)
 			KASSERT(mref->m_ext.ext_free != NULL,
 			    ("%s: ext_free not set", __func__));
 			mref->m_ext.ext_free(mref);
-			uma_zfree(zone_mbuf, mref);
+			m_free_raw(mref);
 			break;
 		case EXT_EXTREF:
 			KASSERT(m->m_ext.ext_free != NULL,
@@ -1257,7 +1258,7 @@ mb_free_ext(struct mbuf *m)
 	}
 
 	if (freembuf && m != mref)
-		uma_zfree(zone_mbuf, m);
+		m_free_raw(m);
 }
 
 /*
@@ -1295,11 +1296,11 @@ mb_free_extpg(struct mbuf *m)
 			ktls_enqueue_to_free(mref);
 		else
 #endif
-			uma_zfree(zone_mbuf, mref);
+			m_free_raw(mref);
 	}
 
 	if (m != mref)
-		uma_zfree(zone_mbuf, m);
+		m_free_raw(m);
 }
 
 /*
@@ -1391,7 +1392,45 @@ m_get2(int size, int how, short type, int flags)
 
 	n = uma_zalloc_arg(zone_jumbop, m, how);
 	if (n == NULL) {
-		uma_zfree(zone_mbuf, m);
+		m_free_raw(m);
+		return (NULL);
+	}
+
+	return (m);
+}
+
+/*
+ * m_get3() allocates minimum mbuf that would fit "size" argument.
+ * Unlike m_get2() it can allocate clusters up to MJUM16BYTES.
+ */
+struct mbuf *
+m_get3(int size, int how, short type, int flags)
+{
+	struct mb_args args;
+	struct mbuf *m, *n;
+	uma_zone_t zone;
+
+	if (size <= MJUMPAGESIZE)
+		return (m_get2(size, how, type, flags));
+
+	if (size > MJUM16BYTES)
+		return (NULL);
+
+	args.flags = flags;
+	args.type = type;
+
+	m = uma_zalloc_arg(zone_mbuf, &args, how);
+	if (m == NULL)
+		return (NULL);
+
+	if (size <= MJUM9BYTES)
+		zone = zone_jumbo9;
+	else
+		zone = zone_jumbo16;
+
+	n = uma_zalloc_arg(zone, m, how);
+	if (n == NULL) {
+		m_free_raw(m);
 		return (NULL);
 	}
 
@@ -1422,7 +1461,7 @@ m_getjcl(int how, short type, int flags, int size)
 	zone = m_getzone(size);
 	n = uma_zalloc_arg(zone, m, how);
 	if (n == NULL) {
-		uma_zfree(zone_mbuf, m);
+		m_free_raw(m);
 		return (NULL);
 	}
 	MBUF_PROBE5(m__getjcl, how, type, flags, size, m);
@@ -1574,13 +1613,14 @@ m_snd_tag_alloc(struct ifnet *ifp, union if_snd_tag_alloc_params *params,
 }
 
 void
-m_snd_tag_init(struct m_snd_tag *mst, struct ifnet *ifp, u_int type)
+m_snd_tag_init(struct m_snd_tag *mst, struct ifnet *ifp,
+    const struct if_snd_tag_sw *sw)
 {
 
 	if_ref(ifp);
 	mst->ifp = ifp;
 	refcount_init(&mst->refcount, 1);
-	mst->type = type;
+	mst->sw = sw;
 	counter_u64_add(snd_tag_count, 1);
 }
 
@@ -1590,9 +1630,36 @@ m_snd_tag_destroy(struct m_snd_tag *mst)
 	struct ifnet *ifp;
 
 	ifp = mst->ifp;
-	ifp->if_snd_tag_free(mst);
+	mst->sw->snd_tag_free(mst);
 	if_rele(ifp);
 	counter_u64_add(snd_tag_count, -1);
+}
+
+void
+m_rcvif_serialize(struct mbuf *m)
+{
+	u_short idx, gen;
+
+	M_ASSERTPKTHDR(m);
+	idx = m->m_pkthdr.rcvif->if_index;
+	gen = m->m_pkthdr.rcvif->if_idxgen;
+	m->m_pkthdr.rcvidx = idx;
+	m->m_pkthdr.rcvgen = gen;
+}
+
+struct ifnet *
+m_rcvif_restore(struct mbuf *m)
+{
+	struct ifnet *ifp;
+
+	M_ASSERTPKTHDR(m);
+	NET_EPOCH_ASSERT();
+
+	ifp = ifnet_byindexgen(m->m_pkthdr.rcvidx, m->m_pkthdr.rcvgen);
+	if (ifp == NULL || (ifp->if_flags & IFF_DYING))
+		return (NULL);
+
+	return (m->m_pkthdr.rcvif = ifp);
 }
 
 /*

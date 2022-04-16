@@ -28,6 +28,53 @@
 . $(atf_get_srcdir)/utils.subr
 . $(atf_get_srcdir)/runner.subr
 
+interface_removal_head()
+{
+	atf_set descr 'Test removing interfaces with dummynet delayed traffic'
+	atf_set require.user root
+}
+
+interface_removal_body()
+{
+	fw=$1
+	firewall_init $fw
+	dummynet_init $fw
+
+	epair=$(vnet_mkepair)
+	vnet_mkjail alcatraz ${epair}b
+
+	ifconfig ${epair}a 192.0.2.1/24 up
+	jexec alcatraz ifconfig ${epair}b 192.0.2.2/24 up
+
+	# Sanity check
+	atf_check -s exit:0 -o ignore ping -i .1 -c 3 -s 1200 192.0.2.2
+
+	jexec alcatraz dnctl pipe 1 config delay 1500
+
+	firewall_config alcatraz ${fw} \
+		"ipfw"	\
+			"ipfw add 1000 pipe 1 ip from any to any" \
+		"pf"	\
+			"pass dnpipe 1"
+
+	# single ping succeeds just fine
+	atf_check -s exit:0 -o ignore ping -c 1 192.0.2.2
+
+	# Send traffic that'll still be pending when we remove the interface
+	ping -c 5 -s 1200 192.0.2.2 &
+	sleep 1 # Give ping the chance to start.
+
+	# Remove the interface, but keep the jail around for a bit
+	ifconfig ${epair}a destroy
+
+	sleep 3
+}
+
+interface_removal_cleanup()
+{
+	firewall_cleanup $1
+}
+
 pipe_head()
 {
 	atf_set descr 'Basic pipe test'
@@ -53,7 +100,9 @@ pipe_body()
 
 	firewall_config alcatraz ${fw} \
 		"ipfw"	\
-			"ipfw add 1000 pipe 1 ip from any to any"
+			"ipfw add 1000 pipe 1 ip from any to any" \
+		"pf"	\
+			"pass dnpipe 1"
 
 	# single ping succeeds just fine
 	atf_check -s exit:0 -o ignore ping -c 1 192.0.2.2
@@ -95,7 +144,9 @@ pipe_v6_body()
 
 	firewall_config alcatraz ${fw} \
 		"ipfw"	\
-			"ipfw add 1000 pipe 1 ip6 from any to any"
+			"ipfw add 1000 pipe 1 ip6 from any to any" \
+		"pf"	\
+			"pass dnpipe 1"
 
 	# Single ping succeeds
 	atf_check -s exit:0 -o ignore ping6 -c 1 2001:db8:42::2
@@ -149,7 +200,10 @@ queue_body()
 		"ipfw"	\
 			"ipfw add 1000 queue 100 tcp from 192.0.2.2 to any out" \
 			"ipfw add 1001 queue 200 icmp from 192.0.2.2 to any out" \
-			"ipfw add 1002 allow ip from any to any"
+			"ipfw add 1002 allow ip from any to any" \
+		"pf"	\
+			"pass in proto tcp dnqueue (0, 100)" \
+			"pass in proto icmp dnqueue (0, 200)"
 
 	# Single ping succeeds
 	atf_check -s exit:0 -o ignore ping -c 1 192.0.2.2
@@ -188,7 +242,10 @@ queue_body()
 		"ipfw"	\
 			"ipfw add 1000 queue 200 tcp from 192.0.2.2 to any out" \
 			"ipfw add 1001 queue 100 icmp from 192.0.2.2 to any out" \
-			"ipfw add 1002 allow ip from any to any"
+			"ipfw add 1002 allow ip from any to any" \
+		"pf"	\
+			"pass in proto tcp dnqueue (0, 200)" \
+			"pass in proto icmp dnqueue (0, 100)"
 
 	jexec alcatraz ping -f -s 1300 192.0.2.1 &
 	sleep 1
@@ -253,8 +310,8 @@ queue_v6_body()
 			"ipfw add 1000 queue 200 ipv6-icmp from 2001:db8:42::2 to any out" \
 			"ipfw add 1002 allow ip6 from any to any" \
 		"pf" \
-			"pass out proto tcp dnqueue 100"	\
-			"pass out proto icmp6 dnqueue 200"
+			"pass in proto tcp dnqueue (0, 100)"	\
+			"pass in proto icmp6 dnqueue (0, 200)"
 
 	# Single ping succeeds
 	atf_check -s exit:0 -o ignore ping6 -c 1 2001:db8:42::2
@@ -295,8 +352,8 @@ queue_v6_body()
 			"ipfw add 1000 queue 100 ipv6-icmp from 2001:db8:42::2 to any out" \
 			"ipfw add 1002 allow ip6 from any to any" \
 		"pf" \
-			"pass out proto tcp dnqueue 200"	\
-			"pass out proto icmp6 dnqueue 100"
+			"pass in proto tcp dnqueue (0, 200)"	\
+			"pass in proto icmp6 dnqueue (0, 100)"
 
 	fails=0
 	for i in `seq 1 3`
@@ -319,12 +376,65 @@ queue_v6_cleanup()
 	firewall_cleanup $1
 }
 
+nat_head()
+{
+	atf_set descr 'Basic dummynet + NAT test'
+	atf_set require.user root
+}
+
+nat_body()
+{
+	fw=$1
+	firewall_init $fw
+	dummynet_init $fw
+	nat_init $fw
+
+	epair=$(vnet_mkepair)
+	epair_two=$(vnet_mkepair)
+
+	ifconfig ${epair}a 192.0.2.2/24 up
+	route add -net 198.51.100.0/24 192.0.2.1
+
+	vnet_mkjail gw ${epair}b ${epair_two}a
+	jexec gw ifconfig ${epair}b 192.0.2.1/24 up
+	jexec gw ifconfig ${epair_two}a 198.51.100.1/24 up
+	jexec gw sysctl net.inet.ip.forwarding=1
+
+	vnet_mkjail srv ${epair_two}b
+	jexec srv ifconfig ${epair_two}b 198.51.100.2/24 up
+
+	jexec gw dnctl pipe 1 config bw 300Byte/s
+
+	firewall_config gw $fw \
+		"pf"	\
+			"nat on ${epair_two}a inet from 192.0.2.0/24 to any -> (${epair_two}a)" \
+			"pass dnpipe 1"
+
+	# We've deliberately not set a route to 192.0.2.0/24 on srv, so the
+	# only way it can respond to this is if NAT is applied correctly.
+	atf_check -s exit:0 -o ignore ping -c 1 198.51.100.2
+}
+
+nat_cleanup()
+{
+	firewall_cleanup $1
+}
+
 setup_tests		\
+	interface_removal	\
+		ipfw	\
+		pf	\
 	pipe		\
 		ipfw	\
+		pf	\
 	pipe_v6		\
 		ipfw	\
+		pf	\
 	queue		\
 		ipfw	\
+		pf	\
 	queue_v6	\
-		ipfw
+		ipfw	\
+		pf	\
+	nat		\
+		pf

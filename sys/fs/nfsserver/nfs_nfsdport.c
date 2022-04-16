@@ -133,6 +133,8 @@ static int nfsrv_writedsrpc(fhandle_t *, off_t, int, struct ucred *,
     char *, int *);
 static int nfsrv_allocatedsrpc(fhandle_t *, off_t, off_t, struct ucred *,
     NFSPROC_T *, struct vnode *, struct nfsmount **, int, int *);
+static int nfsrv_deallocatedsrpc(fhandle_t *, off_t, off_t, struct ucred *,
+    NFSPROC_T *, struct vnode *, struct nfsmount **, int, int *);
 static int nfsrv_setacldsrpc(fhandle_t *, struct ucred *, NFSPROC_T *,
     struct vnode *, struct nfsmount **, int, struct acl *, int *);
 static int nfsrv_setattrdsrpc(fhandle_t *, struct ucred *, NFSPROC_T *,
@@ -593,7 +595,7 @@ nfsvno_setattr(struct vnode *vp, struct nfsvattr *nvap, struct ucred *cred,
  */
 int
 nfsvno_namei(struct nfsrv_descript *nd, struct nameidata *ndp,
-    struct vnode *dp, int islocked, struct nfsexstuff *exp, struct thread *p,
+    struct vnode *dp, int islocked, struct nfsexstuff *exp,
     struct vnode **retdirp)
 {
 	struct componentname *cnp = &ndp->ni_cnd;
@@ -660,7 +662,6 @@ nfsvno_namei(struct nfsrv_descript *nd, struct nameidata *ndp,
 	 * because lookup() will dereference ni_startdir.
 	 */
 
-	cnp->cn_thread = p;
 	ndp->ni_startdir = dp;
 	ndp->ni_rootdir = rootvnode;
 	ndp->ni_topdir = NULL;
@@ -676,7 +677,7 @@ nfsvno_namei(struct nfsrv_descript *nd, struct nameidata *ndp,
 		 * In either case ni_startdir will be dereferenced and NULLed
 		 * out.
 		 */
-		error = lookup(ndp);
+		error = vfs_lookup(ndp);
 		if (error)
 			break;
 
@@ -2047,7 +2048,7 @@ nfsrvd_readdir(struct nfsrv_descript *nd, int isdgram,
 	int nlen, error = 0, getret = 1;
 	int siz, cnt, fullsiz, eofflag, ncookies;
 	u_int64_t off, toff, verf __unused;
-	u_long *cookies = NULL, *cookiep;
+	uint64_t *cookies = NULL, *cookiep;
 	struct uio io;
 	struct iovec iv;
 	int is_ufs;
@@ -2308,8 +2309,8 @@ nfsrvd_readdirplus(struct nfsrv_descript *nd, int isdgram,
 	int nlen, r, error = 0, getret = 1, usevget = 1;
 	int siz, cnt, fullsiz, eofflag, ncookies, entrycnt;
 	caddr_t bpos0, bpos1;
-	u_int64_t off, toff, verf;
-	u_long *cookies = NULL, *cookiep;
+	u_int64_t off, toff, verf __unused;
+	uint64_t *cookies = NULL, *cookiep;
 	nfsattrbit_t attrbits, rderrbits, savbits;
 	struct uio io;
 	struct iovec iv;
@@ -2526,7 +2527,6 @@ again:
 			cn.cn_nameiop = LOOKUP;
 			cn.cn_lkflags = LK_SHARED | LK_RETRY;
 			cn.cn_cred = nd->nd_cred;
-			cn.cn_thread = p;
 		} else if (r == 0)
 			vput(nvp);
 	}
@@ -2626,7 +2626,6 @@ again:
 							    LK_RETRY;
 							cn.cn_cred =
 							    nd->nd_cred;
-							cn.cn_thread = p;
 						}
 						cn.cn_nameptr = dp->d_name;
 						cn.cn_namelen = nlen;
@@ -3469,8 +3468,7 @@ nfsrv_v4rootexport(void *argp, struct ucred *cred, struct thread *p)
 		/*
 		 * If fspec != NULL, this is the v4root path.
 		 */
-		NDINIT(&nd, LOOKUP, FOLLOW, UIO_USERSPACE,
-		    nfsexargp->fspec, p);
+		NDINIT(&nd, LOOKUP, FOLLOW, UIO_USERSPACE, nfsexargp->fspec);
 		if ((error = namei(&nd)) != 0)
 			goto out;
 		error = nfsvno_getfh(nd.ni_vp, &fh, p);
@@ -4053,16 +4051,11 @@ nfsvno_testexp(struct nfsrv_descript *nd, struct nfsexstuff *exp)
 {
 	int i;
 
-	/*
-	 * Allow NFSv3 Fsinfo per RFC2623.
-	 */
-	if (((nd->nd_flag & ND_NFSV4) != 0 ||
-	     nd->nd_procnum != NFSPROC_FSINFO) &&
-	    ((NFSVNO_EXTLS(exp) && (nd->nd_flag & ND_TLS) == 0) ||
-	     (NFSVNO_EXTLSCERT(exp) &&
-	      (nd->nd_flag & ND_TLSCERT) == 0) ||
-	     (NFSVNO_EXTLSCERTUSER(exp) &&
-	      (nd->nd_flag & ND_TLSCERTUSER) == 0))) {
+	if ((NFSVNO_EXTLS(exp) && (nd->nd_flag & ND_TLS) == 0) ||
+	    (NFSVNO_EXTLSCERT(exp) &&
+	     (nd->nd_flag & ND_TLSCERT) == 0) ||
+	    (NFSVNO_EXTLSCERTUSER(exp) &&
+	     (nd->nd_flag & ND_TLSCERTUSER) == 0)) {
 		if ((nd->nd_flag & ND_NFSV4) != 0)
 			return (NFSERR_WRONGSEC);
 #ifdef notnow
@@ -4075,6 +4068,13 @@ nfsvno_testexp(struct nfsrv_descript *nd, struct nfsexstuff *exp)
 		else
 			return (NFSERR_AUTHERR | AUTH_TOOWEAK);
 	}
+
+	/*
+	 * RFC2623 suggests that the NFSv3 Fsinfo RPC be allowed to use
+	 * AUTH_NONE or AUTH_SYS for file systems requiring RPCSEC_GSS.
+	 */
+	if ((nd->nd_flag & ND_NFSV3) != 0 && nd->nd_procnum == NFSPROC_FSINFO)
+		return (0);
 
 	/*
 	 * This seems odd, but allow the case where the security flavor
@@ -4195,7 +4195,6 @@ nfsrv_dscreate(struct vnode *dvp, struct vattr *vap, struct vattr *nvap,
 	    LOCKPARENT | LOCKLEAF | SAVESTART | NOCACHE);
 	nfsvno_setpathbuf(&named, &bufp, &hashp);
 	named.ni_cnd.cn_lkflags = LK_EXCLUSIVE;
-	named.ni_cnd.cn_thread = p;
 	named.ni_cnd.cn_nameptr = bufp;
 	if (fnamep != NULL) {
 		strlcpy(bufp, fnamep, PNFS_FILENAME_LEN + 1);
@@ -4579,7 +4578,6 @@ nfsrv_dsremove(struct vnode *dvp, char *fname, struct ucred *tcred,
 	named.ni_cnd.cn_nameiop = DELETE;
 	named.ni_cnd.cn_lkflags = LK_EXCLUSIVE | LK_RETRY;
 	named.ni_cnd.cn_cred = tcred;
-	named.ni_cnd.cn_thread = p;
 	named.ni_cnd.cn_flags = ISLASTCN | LOCKPARENT | LOCKLEAF | SAVENAME;
 	nfsvno_setpathbuf(&named, &bufp, &hashp);
 	named.ni_cnd.cn_nameptr = bufp;
@@ -4912,6 +4910,9 @@ tryagain:
 		} else if (ioproc == NFSPROC_ALLOCATE)
 			error = nfsrv_allocatedsrpc(fh, off, *offp, cred, p, vp,
 			    &nmp[0], mirrorcnt, &failpos);
+		else if (ioproc == NFSPROC_DEALLOCATE)
+			error = nfsrv_deallocatedsrpc(fh, off, *offp, cred, p,
+			    vp, &nmp[0], mirrorcnt, &failpos);
 		else {
 			error = nfsrv_getattrdsrpc(&fh[mirrorcnt - 1], cred, p,
 			    vp, nmp[mirrorcnt - 1], nap);
@@ -5693,6 +5694,187 @@ nfsrv_allocatedsrpc(fhandle_t *fhp, off_t off, off_t len, struct ucred *cred,
 	return (error);
 }
 
+/*
+ * Do a deallocate RPC on a DS data file, using this structure for the
+ * arguments, so that this function can be executed by a separate kernel
+ * process.
+ */
+struct nfsrvdeallocatedsdorpc {
+	int			done;
+	int			inprog;
+	struct task		tsk;
+	fhandle_t		fh;
+	off_t			off;
+	off_t			len;
+	struct nfsmount		*nmp;
+	struct ucred		*cred;
+	NFSPROC_T		*p;
+	int			err;
+};
+
+static int
+nfsrv_deallocatedsdorpc(struct nfsmount *nmp, fhandle_t *fhp, off_t off,
+    off_t len, struct nfsvattr *nap, struct ucred *cred, NFSPROC_T *p)
+{
+	uint32_t *tl;
+	struct nfsrv_descript *nd;
+	nfsattrbit_t attrbits;
+	nfsv4stateid_t st;
+	int error;
+
+	nd = malloc(sizeof(*nd), M_TEMP, M_WAITOK | M_ZERO);
+	nfscl_reqstart(nd, NFSPROC_DEALLOCATE, nmp, (u_int8_t *)fhp,
+	    sizeof(fhandle_t), NULL, NULL, 0, 0);
+
+	/*
+	 * Use a stateid where other is an alternating 01010 pattern and
+	 * seqid is 0xffffffff.  This value is not defined as special by
+	 * the RFC and is used by the FreeBSD NFS server to indicate an
+	 * MDS->DS proxy operation.
+	 */
+	st.other[0] = 0x55555555;
+	st.other[1] = 0x55555555;
+	st.other[2] = 0x55555555;
+	st.seqid = 0xffffffff;
+	nfsm_stateidtom(nd, &st, NFSSTATEID_PUTSTATEID);
+	NFSM_BUILD(tl, uint32_t *, 2 * NFSX_HYPER + NFSX_UNSIGNED);
+	txdr_hyper(off, tl); tl += 2;
+	txdr_hyper(len, tl); tl += 2;
+	NFSD_DEBUG(4, "nfsrv_deallocatedsdorpc: len=%jd\n", (intmax_t)len);
+
+	/* Do a Getattr for the attributes that change upon writing. */
+	NFSZERO_ATTRBIT(&attrbits);
+	NFSSETBIT_ATTRBIT(&attrbits, NFSATTRBIT_SIZE);
+	NFSSETBIT_ATTRBIT(&attrbits, NFSATTRBIT_CHANGE);
+	NFSSETBIT_ATTRBIT(&attrbits, NFSATTRBIT_TIMEACCESS);
+	NFSSETBIT_ATTRBIT(&attrbits, NFSATTRBIT_TIMEMODIFY);
+	NFSSETBIT_ATTRBIT(&attrbits, NFSATTRBIT_SPACEUSED);
+	*tl = txdr_unsigned(NFSV4OP_GETATTR);
+	nfsrv_putattrbit(nd, &attrbits);
+	error = newnfs_request(nd, nmp, NULL, &nmp->nm_sockreq, NULL, p,
+	    cred, NFS_PROG, NFS_VER4, NULL, 1, NULL, NULL);
+	if (error != 0) {
+		free(nd, M_TEMP);
+		return (error);
+	}
+	NFSD_DEBUG(4, "nfsrv_deallocatedsdorpc: aft deallocaterpc=%d\n",
+	    nd->nd_repstat);
+	/* Get rid of weak cache consistency data for now. */
+	if ((nd->nd_flag & (ND_NOMOREDATA | ND_NFSV4 | ND_V4WCCATTR)) ==
+	    (ND_NFSV4 | ND_V4WCCATTR)) {
+		error = nfsv4_loadattr(nd, NULL, nap, NULL, NULL, 0, NULL, NULL,
+		    NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL);
+		NFSD_DEBUG(4, "nfsrv_deallocatedsdorpc: wcc attr=%d\n", error);
+		if (error != 0)
+			goto nfsmout;
+		/*
+		 * Get rid of Op# and status for next op.
+		 */
+		NFSM_DISSECT(tl, uint32_t *, 2 * NFSX_UNSIGNED);
+		if (*++tl != 0)
+			nd->nd_flag |= ND_NOMOREDATA;
+	}
+	if (nd->nd_repstat == 0) {
+		NFSM_DISSECT(tl, uint32_t *, 2 * NFSX_UNSIGNED);
+		error = nfsv4_loadattr(nd, NULL, nap, NULL, NULL, 0, NULL, NULL,
+		    NULL, NULL, NULL, 0, NULL, NULL, NULL, NULL, NULL);
+	} else
+		error = nd->nd_repstat;
+	NFSD_DEBUG(4, "nfsrv_deallocatedsdorpc: aft loadattr=%d\n", error);
+nfsmout:
+	m_freem(nd->nd_mrep);
+	free(nd, M_TEMP);
+	NFSD_DEBUG(4, "nfsrv_deallocatedsdorpc error=%d\n", error);
+	return (error);
+}
+
+/*
+ * Start up the thread that will execute nfsrv_deallocatedsdorpc().
+ */
+static void
+start_deallocatedsdorpc(void *arg, int pending)
+{
+	struct nfsrvdeallocatedsdorpc *drpc;
+
+	drpc = (struct nfsrvdeallocatedsdorpc *)arg;
+	drpc->err = nfsrv_deallocatedsdorpc(drpc->nmp, &drpc->fh, drpc->off,
+	    drpc->len, NULL, drpc->cred, drpc->p);
+	drpc->done = 1;
+	NFSD_DEBUG(4, "start_deallocatedsdorpc: err=%d\n", drpc->err);
+}
+
+static int
+nfsrv_deallocatedsrpc(fhandle_t *fhp, off_t off, off_t len, struct ucred *cred,
+    NFSPROC_T *p, struct vnode *vp, struct nfsmount **nmpp, int mirrorcnt,
+    int *failposp)
+{
+	struct nfsrvdeallocatedsdorpc *drpc, *tdrpc = NULL;
+	struct nfsvattr na;
+	int error, i, ret, timo;
+
+	NFSD_DEBUG(4, "in nfsrv_deallocatedsrpc\n");
+	drpc = NULL;
+	if (mirrorcnt > 1)
+		tdrpc = drpc = malloc(sizeof(*drpc) * (mirrorcnt - 1), M_TEMP,
+		    M_WAITOK);
+
+	/*
+	 * Do the deallocate RPC for every DS, using a separate kernel process
+	 * for every DS except the last one.
+	 */
+	error = 0;
+	for (i = 0; i < mirrorcnt - 1; i++, tdrpc++) {
+		tdrpc->done = 0;
+		NFSBCOPY(fhp, &tdrpc->fh, sizeof(*fhp));
+		tdrpc->off = off;
+		tdrpc->len = len;
+		tdrpc->nmp = *nmpp;
+		tdrpc->cred = cred;
+		tdrpc->p = p;
+		tdrpc->inprog = 0;
+		tdrpc->err = 0;
+		ret = EIO;
+		if (nfs_pnfsiothreads != 0) {
+			ret = nfs_pnfsio(start_deallocatedsdorpc, tdrpc);
+			NFSD_DEBUG(4, "nfsrv_deallocatedsrpc: nfs_pnfsio=%d\n",
+			    ret);
+		}
+		if (ret != 0) {
+			ret = nfsrv_deallocatedsdorpc(*nmpp, fhp, off, len,
+			    NULL, cred, p);
+			if (nfsds_failerr(ret) && *failposp == -1)
+				*failposp = i;
+			else if (error == 0 && ret != 0)
+				error = ret;
+		}
+		nmpp++;
+		fhp++;
+	}
+	ret = nfsrv_deallocatedsdorpc(*nmpp, fhp, off, len, &na, cred, p);
+	if (nfsds_failerr(ret) && *failposp == -1 && mirrorcnt > 1)
+		*failposp = mirrorcnt - 1;
+	else if (error == 0 && ret != 0)
+		error = ret;
+	if (error == 0)
+		error = nfsrv_setextattr(vp, &na, p);
+	NFSD_DEBUG(4, "nfsrv_deallocatedsrpc: aft setextat=%d\n", error);
+	tdrpc = drpc;
+	timo = hz / 50;		/* Wait for 20msec. */
+	if (timo < 1)
+		timo = 1;
+	for (i = 0; i < mirrorcnt - 1; i++, tdrpc++) {
+		/* Wait for RPCs on separate threads to complete. */
+		while (tdrpc->inprog != 0 && tdrpc->done == 0)
+			tsleep(&tdrpc->tsk, PVFS, "srvalds", timo);
+		if (nfsds_failerr(tdrpc->err) && *failposp == -1)
+			*failposp = i;
+		else if (error == 0 && tdrpc->err != 0)
+			error = tdrpc->err;
+	}
+	free(drpc, M_TEMP);
+	return (error);
+}
+
 static int
 nfsrv_setattrdsdorpc(fhandle_t *fhp, struct ucred *cred, NFSPROC_T *p,
     struct vnode *vp, struct nfsmount *nmp, struct nfsvattr *nap,
@@ -6169,7 +6351,6 @@ nfsrv_pnfslookupds(struct vnode *vp, struct vnode *dvp, struct pnfsdsfile *pf,
 	named.ni_cnd.cn_nameiop = LOOKUP;
 	named.ni_cnd.cn_lkflags = LK_SHARED | LK_RETRY;
 	named.ni_cnd.cn_cred = tcred;
-	named.ni_cnd.cn_thread = p;
 	named.ni_cnd.cn_flags = ISLASTCN | LOCKPARENT | LOCKLEAF | SAVENAME;
 	nfsvno_setpathbuf(&named, &bufp, &hashp);
 	named.ni_cnd.cn_nameptr = bufp;
@@ -6433,6 +6614,42 @@ nfsvno_allocate(struct vnode *vp, off_t off, off_t len, struct ucred *cred,
 	do {
 		olen = len;
 		error = VOP_ALLOCATE(vp, &off, &len, IO_SYNC, cred);
+		if (error == 0 && len > 0 && olen > len)
+			maybe_yield();
+	} while (error == 0 && len > 0 && olen > len);
+	if (error == 0 && len > 0)
+		error = NFSERR_IO;
+	NFSEXITCODE(error);
+	return (error);
+}
+
+/*
+ * Deallocate vnode op call.
+ */
+int
+nfsvno_deallocate(struct vnode *vp, off_t off, off_t len, struct ucred *cred,
+    NFSPROC_T *p)
+{
+	int error;
+	off_t olen;
+
+	ASSERT_VOP_ELOCKED(vp, "nfsvno_deallocate vp");
+	/*
+	 * Attempt to deallocate on a DS file. A return of ENOENT implies
+	 * there is no DS file to deallocate on.
+	 */
+	error = nfsrv_proxyds(vp, off, 0, cred, p, NFSPROC_DEALLOCATE, NULL,
+	    NULL, NULL, NULL, NULL, &len, 0, NULL);
+	if (error != ENOENT)
+		return (error);
+
+	/*
+	 * Do the actual VOP_DEALLOCATE(), looping so long as
+	 * progress is being made, to achieve completion.
+	 */
+	do {
+		olen = len;
+		error = VOP_DEALLOCATE(vp, &off, &len, 0, IO_SYNC, cred);
 		if (error == 0 && len > 0 && olen > len)
 			maybe_yield();
 	} while (error == 0 && len > 0 && olen > len);
@@ -6721,18 +6938,15 @@ nfsm_trimtrailing(struct nfsrv_descript *nd, struct mbuf *mb, char *bpos,
  * Check to see if a put file handle operation should test for
  * NFSERR_WRONGSEC, although NFSv3 actually returns NFSERR_AUTHERR.
  * When Open is the next operation, NFSERR_WRONGSEC cannot be
- * replied for the Open cases that use a component.  Thia can
+ * replied for the Open cases that use a component.  This can
  * be identified by the fact that the file handle's type is VDIR.
  */
 bool
 nfsrv_checkwrongsec(struct nfsrv_descript *nd, int nextop, enum vtype vtyp)
 {
 
-	if ((nd->nd_flag & ND_NFSV4) == 0) {
-		if (nd->nd_procnum == NFSPROC_FSINFO)
-			return (false);
+	if ((nd->nd_flag & ND_NFSV4) == 0)
 		return (true);
-	}
 
 	if ((nd->nd_flag & ND_LASTOP) != 0)
 		return (false);

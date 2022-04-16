@@ -299,12 +299,11 @@
 		clock-names = "timer", "pclk";
 	};
 
-	watchdog: wdt@10360000 {
-		compatible = "snps,dw-wdt";
+	watchdog: watchdog@10360000 {
+		compatible = "rockchip,rv1108-wdt", "snps,dw-wdt";
 		reg = <0x10360000 0x100>;
 		interrupts = <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
 		clocks = <&cru PCLK_WDT>;
-		clock-names = "pclk_wdt";
 		status = "disabled";
 	};
 
@@ -450,6 +449,17 @@
 		rockchip,grf = <&grf>;
 		#clock-cells = <1>;
 		#reset-cells = <1>;
+	};
+
+	nfc: nand-controller@30100000 {
+		compatible = "rockchip,rv1108-nfc";
+		reg = <0x30100000  0x1000>;
+		interrupts = <GIC_SPI 14 IRQ_TYPE_LEVEL_HIGH>;
+		clocks = <&cru HCLK_NANDC>, <&cru SCLK_NANDC>;
+		clock-names = "ahb", "nfc";
+		assigned-clocks = <&cru SCLK_NANDC>;
+		assigned-clock-rates = <150000000>;
+		status = "disabled";
 	};
 
 	emmc: mmc@30110000 {

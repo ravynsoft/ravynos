@@ -42,6 +42,7 @@ properties:
               - renesas,hscif-r8a774a1     # RZ/G2M
               - renesas,hscif-r8a774b1     # RZ/G2N
               - renesas,hscif-r8a774c0     # RZ/G2E
+              - renesas,hscif-r8a774e1     # RZ/G2H
               - renesas,hscif-r8a7795      # R-Car H3
               - renesas,hscif-r8a7796      # R-Car M3-W
               - renesas,hscif-r8a77961     # R-Car M3-W+
@@ -50,6 +51,7 @@ properties:
               - renesas,hscif-r8a77980     # R-Car V3H
               - renesas,hscif-r8a77990     # R-Car E3
               - renesas,hscif-r8a77995     # R-Car D3
+              - renesas,hscif-r8a779a0     # R-Car V3U
           - const: renesas,rcar-gen3-hscif # R-Car Gen3 and RZ/G2
           - const: renesas,hscif           # generic HSCIF compatible UART
 
@@ -80,6 +82,8 @@ properties:
     maxItems: 1
 
   dmas:
+    minItems: 2
+    maxItems: 4
     description:
       Must contain a list of pairs of references to DMA specifiers, one for
       transmission, and one for reception.
@@ -99,6 +103,8 @@ required:
   - clocks
   - clock-names
   - power-domains
+
+unevaluatedProperties: false
 
 if:
   properties:

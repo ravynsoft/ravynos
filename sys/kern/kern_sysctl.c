@@ -680,7 +680,7 @@ sysctl_ctx_entry_find(struct sysctl_ctx_list *clist, struct sysctl_oid *oidp)
 	if (clist == NULL || oidp == NULL)
 		return(NULL);
 	TAILQ_FOREACH(e, clist, link) {
-		if(e->entry == oidp)
+		if (e->entry == oidp)
 			return(e);
 	}
 	return (e);
@@ -2310,7 +2310,7 @@ out:
 }
 
 #ifndef _SYS_SYSPROTO_H_
-struct sysctl_args {
+struct __sysctl_args {
 	int	*name;
 	u_int	namelen;
 	void	*old;
@@ -2320,7 +2320,7 @@ struct sysctl_args {
 };
 #endif
 int
-sys___sysctl(struct thread *td, struct sysctl_args *uap)
+sys___sysctl(struct thread *td, struct __sysctl_args *uap)
 {
 	int error, i, name[CTL_MAXNAME];
 	size_t j;

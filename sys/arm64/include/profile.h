@@ -34,47 +34,58 @@
 #ifndef _MACHINE_PROFILE_H_
 #define	_MACHINE_PROFILE_H_
 
-#if !defined(_KERNEL) && !defined(_SYS_CDEFS_H_)
-#error this file needs sys/cdefs.h as a prerequisite
-#endif
-
 #define	FUNCTION_ALIGNMENT	32
 
 typedef u_long	fptrdiff_t;
 
-#ifdef _KERNEL
+#ifndef _KERNEL
 
-#include <machine/cpufunc.h>
-
-#define	_MCOUNT_DECL	void mcount
-#define	MCOUNT
-
-#define	MCOUNT_DECL(s)	register_t s;
-#define	MCOUNT_ENTER(s)	{s = intr_disable(); }
-#define	MCOUNT_EXIT(s)	{intr_restore(s); }
-
-void bintr(void);
-void btrap(void);
-void eintr(void);
-void user(void);
-
-#define	MCOUNT_FROMPC_USER(pc)					\
-	((pc < (uintfptr_t)VM_MAXUSER_ADDRESS) ? (uintfptr_t)user : pc)
-
-#define	MCOUNT_FROMPC_INTR(pc)					\
-	((pc >= (uintfptr_t)btrap && pc < (uintfptr_t)eintr) ?	\
-	    ((pc >= (uintfptr_t)bintr) ? (uintfptr_t)bintr :	\
-		(uintfptr_t)btrap) : ~0UL)
-
-void	mcount(uintfptr_t frompc, uintfptr_t selfpc);
-
-#else /* !_KERNEL */
+#include <sys/cdefs.h>
 
 typedef __uintfptr_t    uintfptr_t;
 
-#define	_MCOUNT_DECL	void mcount
-#define	MCOUNT
+#define	_MCOUNT_DECL \
+static void _mcount(uintfptr_t frompc, uintfptr_t selfpc) __used; \
+static void _mcount
 
-#endif /* _KERNEL */
+/*
+ * Call into _mcount. On arm64 the .mcount is a function so callers will
+ * handle caller saved registers. As we don't directly touch any callee
+ * saved registers we can just load the two arguments and use a tail call
+ * into the MI _mcount function.
+ *
+ * When building with gcc frompc will be in x0, however this is not the
+ * case on clang. As such we need to load it from the stack. As long as
+ * the caller follows the ABI this will load the correct value.
+ */
+#define	MCOUNT __asm(					\
+"	.text					\n"	\
+"	.align	6				\n"	\
+"	.type	.mcount,#function		\n"	\
+"	.globl	.mcount				\n"	\
+"	.mcount:				\n"	\
+"	.cfi_startproc				\n"	\
+	/* Load the caller return address as frompc */	\
+"	ldr	x0, [x29, #8]			\n"	\
+	/* Use our return address as selfpc */		\
+"	mov	x1, lr				\n"	\
+"	b	_mcount				\n"	\
+"	.cfi_endproc				\n"	\
+"	.size	.mcount, . - .mcount		\n"	\
+	);
+#if 0
+/*
+ * If clang passed frompc correctly we could implement it like this, however
+ * all clang versions we care about would need to be fixed before we could
+ * make this change.
+ */
+void
+mcount(uintfptr_t frompc)
+{
+	_mcount(frompc, __builtin_return_address(0));
+}
+#endif
+
+#endif /* !_KERNEL */
 
 #endif /* !_MACHINE_PROFILE_H_ */

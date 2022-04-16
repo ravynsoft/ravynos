@@ -188,7 +188,7 @@ sctp_find_alternate_net(struct sctp_tcb *stcb,
 	 * JRS 5/14/07 - If mode is set to 2, use the CMT PF find alternate
 	 * net algorithm. This algorithm chooses the active destination (not
 	 * in PF state) with the largest cwnd value. If all destinations are
-	 * in PF state, unreachable, or unconfirmed, choose the desination
+	 * in PF state, unreachable, or unconfirmed, choose the destination
 	 * that is in PF state with the lowest error count. In case of a
 	 * tie, choose the destination that was most recently active.
 	 */
@@ -938,7 +938,7 @@ sctp_t3rxt_timer(struct sctp_inpcb *inp,
 
 		/*
 		 * Get the address that failed, to force a new src address
-		 * selecton and a route allocation.
+		 * selection and a route allocation.
 		 */
 		if (net->ro._s_addr) {
 			sctp_free_ifa(net->ro._s_addr);
@@ -1352,8 +1352,7 @@ sctp_audit_stream_queues_for_size(struct sctp_inpcb *inp, struct sctp_tcb *stcb)
 
 	KASSERT(inp != NULL, ("inp is NULL"));
 	KASSERT(stcb != NULL, ("stcb is NULL"));
-
-	SCTP_TCB_SEND_LOCK(stcb);
+	SCTP_TCB_LOCK_ASSERT(stcb);
 	KASSERT(TAILQ_EMPTY(&stcb->asoc.send_queue), ("send_queue not empty"));
 	KASSERT(TAILQ_EMPTY(&stcb->asoc.sent_queue), ("sent_queue not empty"));
 
@@ -1387,7 +1386,6 @@ sctp_audit_stream_queues_for_size(struct sctp_inpcb *inp, struct sctp_tcb *stcb)
 		SCTP_PRINTF("Hmm, stream queue cnt at %d I counted %d in stream out wheel\n",
 		    stcb->asoc.stream_queue_cnt, chks_in_queue);
 	}
-	SCTP_TCB_SEND_UNLOCK(stcb);
 	if (chks_in_queue) {
 		/* call the output queue function */
 		sctp_chunk_output(inp, stcb, SCTP_OUTPUT_FROM_T3, SCTP_SO_NOT_LOCKED);
@@ -1448,8 +1446,8 @@ sctp_heartbeat_timer(struct sctp_inpcb *inp, struct sctp_tcb *stcb,
 	if (!(net->dest_state & SCTP_ADDR_NOHB) &&
 	    !((net_was_pf == 0) && (net->dest_state & SCTP_ADDR_PF))) {
 		/*
-		 * when move to PF during threshold mangement, a HB has been
-		 * queued in that routine
+		 * when move to PF during threshold management, a HB has
+		 * been queued in that routine
 		 */
 		uint32_t ms_gone_by;
 

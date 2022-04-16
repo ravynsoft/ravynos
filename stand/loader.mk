@@ -17,32 +17,17 @@ CFLAGS.pnglite.c+= -DHAVE_MEMCPY -I${SRCTOP}/sys/contrib/zlib
 .if ${MACHINE} == "i386" || ${MACHINE_CPUARCH} == "amd64"
 SRCS+=	load_elf32.c load_elf32_obj.c reloc_elf32.c
 SRCS+=	load_elf64.c load_elf64_obj.c reloc_elf64.c
-CFLAGS.load_elf32.c += -I$(SRCTOP)/sys/teken -I${SRCTOP}/contrib/pnglite
-CFLAGS.load_elf64.c += -I$(SRCTOP)/sys/teken -I${SRCTOP}/contrib/pnglite
 .elif ${MACHINE_CPUARCH} == "aarch64"
 SRCS+=	load_elf64.c reloc_elf64.c
-CFLAGS.load_elf64.c += -I$(SRCTOP)/sys/teken -I${SRCTOP}/contrib/pnglite
 .elif ${MACHINE_CPUARCH} == "arm"
 SRCS+=	load_elf32.c reloc_elf32.c
-CFLAGS.load_elf32.c += -I$(SRCTOP)/sys/teken -I${SRCTOP}/contrib/pnglite
 .elif ${MACHINE_CPUARCH} == "powerpc"
 SRCS+=	load_elf32.c reloc_elf32.c
 SRCS+=	load_elf64.c reloc_elf64.c
 SRCS+=	metadata.c
-CFLAGS.load_elf32.c += -I$(SRCTOP)/sys/teken -I${SRCTOP}/contrib/pnglite
-CFLAGS.load_elf64.c += -I$(SRCTOP)/sys/teken -I${SRCTOP}/contrib/pnglite
-.elif ${MACHINE_ARCH:Mmips64*} != ""
-SRCS+= load_elf64.c reloc_elf64.c
-SRCS+=	metadata.c
-CFLAGS.load_elf64.c += -I$(SRCTOP)/sys/teken -I${SRCTOP}/contrib/pnglite
-.elif ${MACHINE} == "mips"
-SRCS+=	load_elf32.c reloc_elf32.c
-SRCS+=	metadata.c
-CFLAGS.load_elf32.c += -I$(SRCTOP)/sys/teken -I${SRCTOP}/contrib/pnglite
 .elif ${MACHINE_CPUARCH} == "riscv"
 SRCS+=	load_elf64.c reloc_elf64.c
 SRCS+=	metadata.c
-CFLAGS.load_elf64.c += -I$(SRCTOP)/sys/teken -I${SRCTOP}/contrib/pnglite
 .endif
 
 .if ${LOADER_DISK_SUPPORT:Uyes} == "yes"
@@ -90,16 +75,7 @@ SRCS+=	interp_simple.c
 .error Unknown interpreter ${LOADER_INTERP}
 .endif
 
-.if ${MK_LOADER_VERIEXEC} != "no"
-CFLAGS+= -DLOADER_VERIEXEC -I${SRCTOP}/lib/libsecureboot/h
-.if ${MK_LOADER_VERIEXEC_VECTX} != "no"
-CFLAGS+= -DLOADER_VERIEXEC_VECTX
-.endif
-.endif
-
-.if ${MK_LOADER_VERIEXEC_PASS_MANIFEST} != "no"
-CFLAGS+= -DLOADER_VERIEXEC_PASS_MANIFEST -I${SRCTOP}/lib/libsecureboot/h
-.endif
+.include "${BOOTSRC}/veriexec.mk"
 
 .if defined(BOOT_PROMPT_123)
 CFLAGS+=	-DBOOT_PROMPT_123

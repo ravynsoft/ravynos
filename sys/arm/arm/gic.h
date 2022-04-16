@@ -49,11 +49,9 @@ struct arm_gic_softc {
 	device_t		gic_dev;
 	void *			gic_intrhand;
 	struct gic_irqsrc *	gic_irqs;
+#define	GIC_RES_DIST		0
+#define	GIC_RES_CPU		1
 	struct resource *	gic_res[3];
-	bus_space_tag_t		gic_c_bst;
-	bus_space_tag_t		gic_d_bst;
-	bus_space_handle_t	gic_c_bsh;
-	bus_space_handle_t	gic_d_bsh;
 	uint8_t			ver;
 	struct mtx		mutex;
 	uint32_t		nirqs;
@@ -71,10 +69,8 @@ DECLARE_CLASS(arm_gic_driver);
 
 struct arm_gicv2m_softc {
 	struct resource	*sc_mem;
-	struct mtx	sc_mutex;
 	uintptr_t	sc_xref;
 	u_int		sc_spi_start;
-	u_int		sc_spi_end;
 	u_int		sc_spi_count;
 };
 

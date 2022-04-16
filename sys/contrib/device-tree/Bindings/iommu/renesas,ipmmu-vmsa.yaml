@@ -20,6 +20,7 @@ properties:
       - items:
           - enum:
               - renesas,ipmmu-r8a73a4  # R-Mobile APE6
+              - renesas,ipmmu-r8a7742  # RZ/G1H
               - renesas,ipmmu-r8a7743  # RZ/G1M
               - renesas,ipmmu-r8a7744  # RZ/G1N
               - renesas,ipmmu-r8a7745  # RZ/G1E
@@ -32,8 +33,8 @@ properties:
           - enum:
               - renesas,ipmmu-r8a774a1 # RZ/G2M
               - renesas,ipmmu-r8a774b1 # RZ/G2N
-              - renesas,ipmmu-r8a774e1 # RZ/G2H
               - renesas,ipmmu-r8a774c0 # RZ/G2E
+              - renesas,ipmmu-r8a774e1 # RZ/G2H
               - renesas,ipmmu-r8a7795  # R-Car H3
               - renesas,ipmmu-r8a7796  # R-Car M3-W
               - renesas,ipmmu-r8a77961 # R-Car M3-W+
@@ -75,7 +76,6 @@ required:
   - compatible
   - reg
   - '#iommu-cells'
-  - power-domains
 
 oneOf:
   - required:
@@ -85,6 +85,17 @@ oneOf:
 
 additionalProperties: false
 
+allOf:
+  - if:
+      properties:
+        compatible:
+          not:
+            contains:
+              const: renesas,ipmmu-vmsa
+    then:
+      required:
+        - power-domains
+
 examples:
   - |
     #include <dt-bindings/clock/r8a7791-cpg-mssr.h>
@@ -92,7 +103,7 @@ examples:
     #include <dt-bindings/power/r8a7791-sysc.h>
 
     ipmmu_mx: iommu@fe951000 {
-        compatible = "renasas,ipmmu-r8a7791", "renasas,ipmmu-vmsa";
+        compatible = "renesas,ipmmu-r8a7791", "renesas,ipmmu-vmsa";
         reg = <0xfe951000 0x1000>;
         interrupts = <GIC_SPI 222 IRQ_TYPE_LEVEL_HIGH>,
                      <GIC_SPI 221 IRQ_TYPE_LEVEL_HIGH>;

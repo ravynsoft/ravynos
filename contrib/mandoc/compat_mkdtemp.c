@@ -1,14 +1,6 @@
-#include "config.h"
-
-#if HAVE_MKDTEMP
-
-int dummy;
-
-#else
-
-/*	$Id: compat_mkdtemp.c,v 1.2 2015/10/06 18:32:19 schwarze Exp $	*/
+/* $Id: compat_mkdtemp.c,v 1.4 2021/09/19 15:02:55 schwarze Exp $ */
 /*
- * Copyright (c) 2015 Ingo Schwarze <schwarze@openbsd.org>
+ * Copyright (c) 2015, 2021 Ingo Schwarze <schwarze@openbsd.org>
  *
  * Permission to use, copy, modify, and distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -25,6 +17,7 @@ int dummy;
  * The algorithm of this function is inspired by OpenBSD mkdtemp(3)
  * by Theo de Raadt and Todd Miller, but the code differs.
  */
+#include "config.h"
 
 #include <sys/stat.h>
 #include <errno.h>
@@ -43,19 +36,15 @@ mkdtemp(char *path)
 		start--;
 
 	for (tries = INT_MAX; tries; tries--) {
-		if (mktemp(path) == NULL) {
-			errno = EEXIST;
+		if (mktemp(path) == NULL)
 			return NULL;
-		}
 		if (mkdir(path, S_IRUSR | S_IWUSR | S_IXUSR) == 0)
 			return path;
-		if (errno != EEXIST)
-			return NULL;
 		for (cp = start; *cp != '\0'; cp++)
 			*cp = 'X';
+		if (errno != EEXIST)
+			return NULL;
 	}
 	errno = EEXIST;
 	return NULL;
 }
-
-#endif

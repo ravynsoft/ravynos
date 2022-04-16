@@ -56,12 +56,12 @@ extern "C" {
 #define	HDR_SET_LSIZE(hdr, x) do { \
 	ASSERT(IS_P2ALIGNED(x, 1U << SPA_MINBLOCKSHIFT)); \
 	(hdr)->b_lsize = ((x) >> SPA_MINBLOCKSHIFT); \
-_NOTE(CONSTCOND) } while (0)
+} while (0)
 
 #define	HDR_SET_PSIZE(hdr, x) do { \
 	ASSERT(IS_P2ALIGNED((x), 1U << SPA_MINBLOCKSHIFT)); \
 	(hdr)->b_psize = ((x) >> SPA_MINBLOCKSHIFT); \
-_NOTE(CONSTCOND) } while (0)
+} while (0)
 
 #define	HDR_GET_LSIZE(hdr)	((hdr)->b_lsize << SPA_MINBLOCKSHIFT)
 #define	HDR_GET_PSIZE(hdr)	((hdr)->b_psize << SPA_MINBLOCKSHIFT)
@@ -85,6 +85,7 @@ typedef void arc_prune_func_t(int64_t bytes, void *priv);
 
 /* Shared module parameters */
 extern int zfs_arc_average_blocksize;
+extern int l2arc_exclude_special;
 
 /* generic arc_done_func_t's which you can use */
 arc_read_done_func_t arc_bcopy_func;
@@ -294,6 +295,8 @@ void arc_buf_freeze(arc_buf_t *buf);
 void arc_buf_thaw(arc_buf_t *buf);
 #ifdef ZFS_DEBUG
 int arc_referenced(arc_buf_t *buf);
+#else
+#define	arc_referenced(buf) ((void) sizeof (buf), 0)
 #endif
 
 int arc_read(zio_t *pio, spa_t *spa, const blkptr_t *bp,

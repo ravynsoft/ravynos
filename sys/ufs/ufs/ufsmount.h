@@ -43,17 +43,14 @@ struct ufs_args {
 	struct	oexport_args export;	/* network export information */
 };
 
-#ifdef _KERNEL
-
-#include <sys/_lock.h>
-#include <sys/_mutex.h>
-#include <sys/_sx.h>
 #include <sys/_task.h>
 
+#ifdef _KERNEL
 #ifdef MALLOC_DECLARE
 MALLOC_DECLARE(M_UFSMNT);
 MALLOC_DECLARE(M_TRIM);
 #endif
+#endif	/* _KERNEL */
 
 struct buf;
 struct inode;
@@ -70,10 +67,10 @@ struct inodedep;
 TAILQ_HEAD(inodedeplst, inodedep);
 LIST_HEAD(bmsafemaphd, bmsafemap);
 LIST_HEAD(trimlist_hashhead, ffs_blkfree_trim_params);
-struct fsfail_task {
-	struct task task;
-	fsid_t fsid;
-};
+
+#include <sys/_lock.h>
+#include <sys/_mutex.h>
+#include <sys/_sx.h>
 
 /*
  * This structure describes the UFS specific mount structure data.
@@ -123,7 +120,6 @@ struct ufsmount {
 	struct	taskqueue *um_trim_tq;		/* (c) trim request queue */
 	struct	trimlist_hashhead *um_trimhash;	/* (i) trimlist hash table */
 	u_long	um_trimlisthashsize;		/* (i) trim hash table size-1 */
-	struct	fsfail_task *um_fsfail_task;	/* (i) task for fsfail cleanup*/
 						/* (c) - below function ptrs */
 	int	(*um_balloc)(struct vnode *, off_t, int, struct ucred *,
 		    int, struct buf **);
@@ -195,7 +191,6 @@ struct ufsmount {
 #define	MNINDIR(ump)			((ump)->um_nindir)
 #define	blkptrtodb(ump, b)		((b) << (ump)->um_bptrtodb)
 #define	is_sequential(ump, a, b)	((b) == (a) + ump->um_seqinc)
-#endif /* _KERNEL */
 
 /* true if old FS format...*/
 #define OFSFMT(vp)	(VFSTOUFS((vp)->v_mount)->um_maxsymlinklen <= 0)

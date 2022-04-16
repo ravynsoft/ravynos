@@ -41,9 +41,7 @@ __FBSDID("$FreeBSD$");
 
 #include <dev/ofw/ofw_bus_subr.h>
 
-#ifdef EXT_RESOURCES
 #include <dev/extres/clk/clk.h>
-#endif
 
 #include <dev/mmc/host/dwmmc_var.h>
 
@@ -94,16 +92,11 @@ rockchip_dwmmc_attach(device_t dev)
 		break;
 	}
 
-	sc->pwren_inverted = 1;
-
-#ifdef EXT_RESOURCES
 	sc->update_ios = &dwmmc_rockchip_update_ios;
-#endif
 
 	return (dwmmc_attach(dev));
 }
 
-#ifdef EXT_RESOURCES
 static int
 dwmmc_rockchip_update_ios(struct dwmmc_softc *sc, struct mmc_ios *ios)
 {
@@ -130,7 +123,6 @@ dwmmc_rockchip_update_ios(struct dwmmc_softc *sc, struct mmc_ios *ios)
 	}
 	return (0);
 }
-#endif
 
 static device_method_t rockchip_dwmmc_methods[] = {
 	/* bus interface */

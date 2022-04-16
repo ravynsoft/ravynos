@@ -20,37 +20,30 @@ atkbdmap.h			optional	atkbd_dflt_keymap	\
 cddl/dev/fbt/x86/fbt_isa.c				optional dtrace_fbt | dtraceall compile-with "${FBT_C}"
 cddl/dev/dtrace/x86/dis_tables.c			optional dtrace_fbt | dtraceall compile-with "${DTRACE_C}"
 cddl/dev/dtrace/x86/instr_size.c			optional dtrace_fbt | dtraceall compile-with "${DTRACE_C}"
-compat/ndis/kern_ndis.c		optional ndisapi pci
-compat/ndis/kern_windrv.c	optional ndisapi pci
-compat/ndis/subr_hal.c		optional ndisapi pci
-compat/ndis/subr_ndis.c		optional ndisapi pci
-compat/ndis/subr_ntoskrnl.c	optional ndisapi pci
-compat/ndis/subr_pe.c		optional ndisapi pci
-compat/ndis/subr_usbd.c		optional ndisapi pci
 crypto/aesni/aesni.c		optional aesni
 aesni_ghash.o			optional aesni				\
 	dependency	"$S/crypto/aesni/aesni_ghash.c"			\
-	compile-with	"${CC} -c ${CFLAGS:C/^-O2$/-O3/:N-nostdinc} ${WERROR} ${NO_WCAST_QUAL} ${PROF} -mmmx -msse -msse4 -maes -mpclmul ${.IMPSRC}" \
+	compile-with	"${CC} -c ${CFLAGS:C/^-O2$/-O3/:N-nostdinc} ${WERROR} ${NO_WCAST_QUAL} -mmmx -msse -msse4 -maes -mpclmul ${.IMPSRC}" \
 	no-implicit-rule						\
 	clean		"aesni_ghash.o"
 aesni_ccm.o			optional aesni				\
 	dependency	"$S/crypto/aesni/aesni_ccm.c"			\
-	compile-with	"${CC} -c ${CFLAGS:C/^-O2$/-O3/:N-nostdinc} ${WERROR} ${NO_WCAST_QUAL} ${PROF} -mmmx -msse -msse4 -maes -mpclmul ${.IMPSRC}" \
+	compile-with	"${CC} -c ${CFLAGS:C/^-O2$/-O3/:N-nostdinc} ${WERROR} ${NO_WCAST_QUAL} -mmmx -msse -msse4 -maes -mpclmul ${.IMPSRC}" \
 	no-implicit-rule						\
 	clean		"aesni_ccm.o"
 aesni_wrap.o			optional aesni				\
 	dependency	"$S/crypto/aesni/aesni_wrap.c"			\
-	compile-with	"${CC} -c ${CFLAGS:C/^-O2$/-O3/:N-nostdinc} ${WERROR} ${NO_WCAST_QUAL} ${PROF} -mmmx -msse -msse4 -maes ${.IMPSRC}" \
+	compile-with	"${CC} -c ${CFLAGS:C/^-O2$/-O3/:N-nostdinc} ${WERROR} ${NO_WCAST_QUAL} -mmmx -msse -msse4 -maes ${.IMPSRC}" \
 	no-implicit-rule						\
 	clean		"aesni_wrap.o"
 intel_sha1.o			optional	aesni			\
 	dependency	"$S/crypto/aesni/intel_sha1.c"			\
-	compile-with	"${CC} -c ${CFLAGS:C/^-O2$/-O3/:N-nostdinc} ${WERROR} ${PROF} -mmmx -msse -msse4 -msha ${.IMPSRC}" \
+	compile-with	"${CC} -c ${CFLAGS:C/^-O2$/-O3/:N-nostdinc} ${WERROR} -mmmx -msse -msse4 -msha ${.IMPSRC}" \
 	no-implicit-rule						\
 	clean		"intel_sha1.o"
 intel_sha256.o			optional	aesni			\
 	dependency	"$S/crypto/aesni/intel_sha256.c"		\
-	compile-with	"${CC} -c ${CFLAGS:C/^-O2$/-O3/:N-nostdinc} ${WERROR} ${PROF} -mmmx -msse -msse4 -msha ${.IMPSRC}" \
+	compile-with	"${CC} -c ${CFLAGS:C/^-O2$/-O3/:N-nostdinc} ${WERROR} -mmmx -msse -msse4 -msha ${.IMPSRC}" \
 	no-implicit-rule						\
 	clean		"intel_sha256.o"
 crypto/openssl/ossl_x86.c	optional ossl
@@ -86,6 +79,9 @@ dev/bxe/57710_init_values.c     optional	bxe pci
 dev/bxe/57711_init_values.c     optional	bxe pci
 dev/bxe/57712_init_values.c     optional	bxe pci
 dev/coretemp/coretemp.c		optional	coretemp
+dev/cp/cpddk.c			optional	cp \
+	compile-with "${NORMAL_C} ${NO_WMISLEADING_INDENTATION}"
+dev/cp/if_cp.c			optional	cp
 dev/cpuctl/cpuctl.c		optional	cpuctl
 dev/dpms/dpms.c			optional	dpms
 dev/fb/fb.c			optional	fb | vga
@@ -100,33 +96,21 @@ dev/gpio/chvgpio.c		optional	chvgpio
 dev/hpt27xx/hpt27xx_os_bsd.c	optional	hpt27xx
 dev/hpt27xx/hpt27xx_osm_bsd.c	optional	hpt27xx
 dev/hpt27xx/hpt27xx_config.c	optional	hpt27xx
-hpt27xx_lib.o			optional	hpt27xx			\
-	dependency	"$S/dev/hpt27xx/$M-elf.hpt27xx_lib.o.uu"	\
-	compile-with	"uudecode < $S/dev/hpt27xx/$M-elf.hpt27xx_lib.o.uu" \
-	no-implicit-rule
+dev/hpt27xx/$M-elf.hpt27xx_lib.o optional	hpt27xx
 dev/hptmv/entry.c		optional	hptmv
 dev/hptmv/mv.c			optional	hptmv
 dev/hptmv/gui_lib.c		optional	hptmv
 dev/hptmv/hptproc.c		optional	hptmv
 dev/hptmv/ioctl.c		optional	hptmv
-hptmvraid.o			optional	hptmv			\
-	dependency	"$S/dev/hptmv/$M-elf.raid.o.uu"			\
-	compile-with	"uudecode < $S/dev/hptmv/$M-elf.raid.o.uu"	\
-	no-implicit-rule
+dev/hptmv/$M-elf.hptmvraid.o	optional	hptmv
 dev/hptnr/hptnr_os_bsd.c	optional	hptnr
 dev/hptnr/hptnr_osm_bsd.c	optional	hptnr
 dev/hptnr/hptnr_config.c	optional	hptnr
-hptnr_lib.o			optional	hptnr			\
-	dependency	"$S/dev/hptnr/$M-elf.hptnr_lib.o.uu"		\
-	compile-with	"uudecode < $S/dev/hptnr/$M-elf.hptnr_lib.o.uu" \
-	no-implicit-rule
+dev/hptnr/$M-elf.hptnr_lib.o	optional	hptnr
 dev/hptrr/hptrr_os_bsd.c	optional	hptrr
 dev/hptrr/hptrr_osm_bsd.c	optional	hptrr
 dev/hptrr/hptrr_config.c	optional	hptrr
-hptrr_lib.o			optional	hptrr			\
-	dependency	"$S/dev/hptrr/$M-elf.hptrr_lib.o.uu"		\
-	compile-with	"uudecode < $S/dev/hptrr/$M-elf.hptrr_lib.o.uu" \
-	no-implicit-rule
+dev/hptrr/$M-elf.hptrr_lib.o	optional	hptrr
 dev/hwpmc/hwpmc_amd.c		optional	hwpmc
 dev/hwpmc/hwpmc_intel.c		optional	hwpmc
 dev/hwpmc/hwpmc_core.c		optional	hwpmc
@@ -157,9 +141,6 @@ dev/hyperv/vmbus/vmbus_if.m				optional	hyperv
 dev/hyperv/vmbus/vmbus_res.c				optional	hyperv
 dev/hyperv/vmbus/vmbus_xact.c				optional	hyperv
 dev/ichwd/ichwd.c		optional	ichwd
-dev/if_ndis/if_ndis.c		optional	ndis
-dev/if_ndis/if_ndis_pci.c	optional	ndis cardbus | ndis pci
-dev/if_ndis/if_ndis_usb.c	optional	ndis usb
 dev/imcsmb/imcsmb.c		optional	imcsmb
 dev/imcsmb/imcsmb_pci.c		optional	imcsmb pci
 dev/intel/pchtherm.c		optional	pchtherm
@@ -176,8 +157,8 @@ dev/ipmi/ipmi_smbus.c		optional	ipmi smbus
 dev/ipmi/ipmi_smbios.c		optional	ipmi
 dev/ipmi/ipmi_ssif.c		optional	ipmi smbus
 dev/ipmi/ipmi_pci.c		optional	ipmi pci
-dev/ipmi/ipmi_linux.c		optional	ipmi compat_linux32
-dev/isci/isci.c							optional isci
+dev/isci/isci.c							optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/isci_controller.c					optional isci
 dev/isci/isci_domain.c						optional isci
 dev/isci/isci_interrupt.c					optional isci
@@ -196,22 +177,26 @@ dev/isci/scil/sati_inquiry.c					optional isci
 dev/isci/scil/sati_log_sense.c					optional isci
 dev/isci/scil/sati_lun_reset.c					optional isci
 dev/isci/scil/sati_mode_pages.c					optional isci
-dev/isci/scil/sati_mode_select.c				optional isci
+dev/isci/scil/sati_mode_select.c				optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/sati_mode_sense.c					optional isci
 dev/isci/scil/sati_mode_sense_10.c				optional isci
 dev/isci/scil/sati_mode_sense_6.c				optional isci
 dev/isci/scil/sati_move.c					optional isci
-dev/isci/scil/sati_passthrough.c				optional isci
+dev/isci/scil/sati_passthrough.c				optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/sati_read.c					optional isci
 dev/isci/scil/sati_read_buffer.c				optional isci
 dev/isci/scil/sati_read_capacity.c				optional isci
-dev/isci/scil/sati_reassign_blocks.c				optional isci
+dev/isci/scil/sati_reassign_blocks.c				optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/sati_report_luns.c				optional isci
 dev/isci/scil/sati_request_sense.c				optional isci
 dev/isci/scil/sati_start_stop_unit.c				optional isci
 dev/isci/scil/sati_synchronize_cache.c				optional isci
 dev/isci/scil/sati_test_unit_ready.c				optional isci
-dev/isci/scil/sati_unmap.c					optional isci
+dev/isci/scil/sati_unmap.c					optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/sati_util.c					optional isci
 dev/isci/scil/sati_verify.c					optional isci
 dev/isci/scil/sati_write.c					optional isci
@@ -237,29 +222,36 @@ dev/isci/scil/sci_base_state_machine_logger.c			optional isci
 dev/isci/scil/sci_base_state_machine_observer.c			optional isci
 dev/isci/scil/sci_base_subject.c				optional isci
 dev/isci/scil/sci_util.c					optional isci
-dev/isci/scil/scic_sds_controller.c				optional isci
+dev/isci/scil/scic_sds_controller.c				optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/scic_sds_library.c				optional isci
 dev/isci/scil/scic_sds_pci.c					optional isci
-dev/isci/scil/scic_sds_phy.c					optional isci
+dev/isci/scil/scic_sds_phy.c					optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/scic_sds_port.c					optional isci
 dev/isci/scil/scic_sds_port_configuration_agent.c		optional isci
 dev/isci/scil/scic_sds_remote_device.c				optional isci
 dev/isci/scil/scic_sds_remote_node_context.c			optional isci
 dev/isci/scil/scic_sds_remote_node_table.c			optional isci
-dev/isci/scil/scic_sds_request.c				optional isci
+dev/isci/scil/scic_sds_request.c				optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/scic_sds_sgpio.c					optional isci
 dev/isci/scil/scic_sds_smp_remote_device.c			optional isci
-dev/isci/scil/scic_sds_smp_request.c				optional isci
+dev/isci/scil/scic_sds_smp_request.c				optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/scic_sds_ssp_request.c				optional isci
 dev/isci/scil/scic_sds_stp_packet_request.c			optional isci
 dev/isci/scil/scic_sds_stp_remote_device.c			optional isci
-dev/isci/scil/scic_sds_stp_request.c				optional isci
+dev/isci/scil/scic_sds_stp_request.c				optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/scic_sds_unsolicited_frame_control.c		optional isci
-dev/isci/scil/scif_sas_controller.c				optional isci
+dev/isci/scil/scif_sas_controller.c				optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/scif_sas_controller_state_handlers.c		optional isci
 dev/isci/scil/scif_sas_controller_states.c			optional isci
 dev/isci/scil/scif_sas_domain.c					optional isci
-dev/isci/scil/scif_sas_domain_state_handlers.c			optional isci
+dev/isci/scil/scif_sas_domain_state_handlers.c			optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/scif_sas_domain_states.c				optional isci
 dev/isci/scil/scif_sas_high_priority_request_queue.c		optional isci
 dev/isci/scil/scif_sas_internal_io_request.c			optional isci
@@ -269,7 +261,8 @@ dev/isci/scil/scif_sas_io_request_states.c			optional isci
 dev/isci/scil/scif_sas_library.c				optional isci
 dev/isci/scil/scif_sas_remote_device.c				optional isci
 dev/isci/scil/scif_sas_remote_device_ready_substate_handlers.c	optional isci
-dev/isci/scil/scif_sas_remote_device_ready_substates.c		optional isci
+dev/isci/scil/scif_sas_remote_device_ready_substates.c		optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/scif_sas_remote_device_starting_substate_handlers.c		optional isci
 dev/isci/scil/scif_sas_remote_device_starting_substates.c	optional isci
 dev/isci/scil/scif_sas_remote_device_state_handlers.c		optional isci
@@ -278,7 +271,8 @@ dev/isci/scil/scif_sas_request.c				optional isci
 dev/isci/scil/scif_sas_smp_activity_clear_affiliation.c		optional isci
 dev/isci/scil/scif_sas_smp_io_request.c				optional isci
 dev/isci/scil/scif_sas_smp_phy.c				optional isci
-dev/isci/scil/scif_sas_smp_remote_device.c			optional isci
+dev/isci/scil/scif_sas_smp_remote_device.c			optional isci \
+	compile-with "${NORMAL_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 dev/isci/scil/scif_sas_stp_io_request.c				optional isci
 dev/isci/scil/scif_sas_stp_remote_device.c			optional isci
 dev/isci/scil/scif_sas_stp_task_request.c			optional isci
@@ -288,6 +282,12 @@ dev/isci/scil/scif_sas_task_request_states.c			optional isci
 dev/isci/scil/scif_sas_timer.c					optional isci
 dev/itwd/itwd.c							optional itwd
 dev/kvm_clock/kvm_clock.c	optional	kvm_clock
+dev/mana/gdma_main.c		optional	mana
+dev/mana/mana_en.c		optional	mana
+dev/mana/mana_sysctl.c		optional	mana
+dev/mana/shm_channel.c		optional	mana
+dev/mana/hw_channel.c		optional	mana
+dev/mana/gdma_util.c		optional	mana
 dev/qat/qat.c			optional qat
 dev/qat/qat_ae.c		optional qat
 dev/qat/qat_c2xxx.c		optional qat
@@ -349,7 +349,4 @@ x86/x86/ucode.c			standard
 x86/x86/delay.c			standard
 x86/xen/hvm.c			optional	xenhvm
 x86/xen/xen_intr.c		optional	xenhvm
-x86/xen/xen_apic.c		optional	xenhvm
-x86/xen/xenpv.c			optional	xenhvm
-x86/xen/xen_msi.c		optional	xenhvm
-x86/xen/xen_nexus.c		optional	xenhvm
+x86/xen/xen_apic.c		optional	xenhvm smp

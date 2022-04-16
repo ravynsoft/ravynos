@@ -36,7 +36,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <sys/note.h>
 #include <sys/time.h>
 #include <sys/stdtypes.h>
 
@@ -161,13 +160,12 @@ main(int argc, char *argv[])
 		EdonRFinal(&ctx, digest);				\
 		(void) printf("Edon-R-%-6sMessage: " #_m		\
 		    "\tResult: ", #mode);				\
-		if (bcmp(digest, testdigest, mode / 8) == 0) {		\
+		if (memcmp(digest, testdigest, mode / 8) == 0) {	\
 			(void) printf("OK\n");				\
 		} else {						\
 			(void) printf("FAILED!\n");			\
 			failed = B_TRUE;				\
 		}							\
-		NOTE(CONSTCOND)						\
 	} while (0)
 
 #define	EDONR_PERF_TEST(mode)						\
@@ -179,7 +177,7 @@ main(int argc, char *argv[])
 		double		cpb = 0;				\
 		int		i;					\
 		struct timeval	start, end;				\
-		bzero(block, sizeof (block));				\
+		memset(block, 0, sizeof (block));			\
 		(void) gettimeofday(&start, NULL);			\
 		EdonRInit(&ctx, mode);					\
 		for (i = 0; i < 8192; i++)				\
@@ -194,7 +192,6 @@ main(int argc, char *argv[])
 		}							\
 		(void) printf("Edon-R-%-6s%llu us (%.02f CPB)\n", #mode,\
 		    (u_longlong_t)delta, cpb);				\
-		NOTE(CONSTCOND)						\
 	} while (0)
 
 	(void) printf("Running algorithm correctness tests:\n");

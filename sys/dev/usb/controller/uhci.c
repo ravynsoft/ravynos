@@ -1295,7 +1295,6 @@ static uint8_t
 uhci_check_transfer(struct usb_xfer *xfer)
 {
 	uint32_t status;
-	uint32_t token;
 	uhci_td_t *td;
 
 	DPRINTFN(16, "xfer=%p checking transfer\n", xfer);
@@ -1332,7 +1331,6 @@ uhci_check_transfer(struct usb_xfer *xfer)
 		while (1) {
 			usb_pc_cpu_invalidate(td->page_cache);
 			status = le32toh(td->td_status);
-			token = le32toh(td->td_token);
 
 			/*
 			 * if there is an active TD the transfer isn't done
@@ -2772,7 +2770,6 @@ uhci_xfer_setup(struct usb_setup_params *parm)
 {
 	struct usb_page_search page_info;
 	struct usb_page_cache *pc;
-	uhci_softc_t *sc;
 	struct usb_xfer *xfer;
 	void *last_obj;
 	uint32_t ntd;
@@ -2781,7 +2778,6 @@ uhci_xfer_setup(struct usb_setup_params *parm)
 	uint32_t n;
 	uint16_t align;
 
-	sc = UHCI_BUS2SC(parm->udev->bus);
 	xfer = parm->curr_xfer;
 
 	parm->hc_max_packet_size = 0x500;

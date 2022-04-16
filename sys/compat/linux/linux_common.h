@@ -1,7 +1,7 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * Copyright (c) 2019 Dmitry Chagin
+ * Copyright (c) 2019 Dmitry Chagin <dchagin@FreeBSD.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -41,5 +41,8 @@ int		bsd_to_linux_sockaddr(const struct sockaddr *sa,
 		    struct l_sockaddr **lsa, socklen_t len);
 int		linux_to_bsd_sockaddr(const struct l_sockaddr *lsa,
 		    struct sockaddr **sap, socklen_t *len);
+void		linux_to_bsd_poll_events(struct thread *td, int fd,
+		    short lev, short *bev);
+void		bsd_to_linux_poll_events(short bev, short *lev);
 
 #endif /* _LINUX_COMMON_H_ */

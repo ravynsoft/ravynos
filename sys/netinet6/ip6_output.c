@@ -772,6 +772,8 @@ again:
 		ia = ifatoia6(nh->nh_ifa);
 		if (nh->nh_flags & NHF_GATEWAY)
 			dst->sin6_addr = nh->gw6_sa.sin6_addr;
+		else if (fwd_tag != NULL)
+			dst->sin6_addr = dst_sa.sin6_addr;
 nonh6lookup:
 		;
 	}
@@ -2548,7 +2550,9 @@ static int
 ip6_pcbopt(int optname, u_char *buf, int len, struct ip6_pktopts **pktopt,
     struct ucred *cred, int uproto)
 {
+	struct epoch_tracker et;
 	struct ip6_pktopts *opt;
+	int ret;
 
 	if (*pktopt == NULL) {
 		*pktopt = malloc(sizeof(struct ip6_pktopts), M_IP6OPT,
@@ -2559,7 +2563,11 @@ ip6_pcbopt(int optname, u_char *buf, int len, struct ip6_pktopts **pktopt,
 	}
 	opt = *pktopt;
 
-	return (ip6_setpktopt(optname, buf, len, opt, cred, 1, 0, uproto));
+	NET_EPOCH_ENTER(et);
+	ret = ip6_setpktopt(optname, buf, len, opt, cred, 1, 0, uproto);
+	NET_EPOCH_EXIT(et);
+
+	return (ret);
 }
 
 #define GET_PKTOPT_VAR(field, lenexpr) do {					\
@@ -2821,8 +2829,8 @@ ip6_setpktopts(struct mbuf *control, struct ip6_pktopts *opt,
 		return (EINVAL);
 
 	/*
-	 * ip6_setpktopt can call ifnet_by_index(), so it's imperative that we are
-	 * in the net epoch here.
+	 * ip6_setpktopt can call ifnet_byindex(), so it's imperative that we
+	 * are in the network epoch here.
 	 */
 	NET_EPOCH_ASSERT();
 
@@ -2887,6 +2895,8 @@ ip6_setpktopt(int optname, u_char *buf, int len, struct ip6_pktopts *opt,
 {
 	int minmtupolicy, preftemp;
 	int error;
+
+	NET_EPOCH_ASSERT();
 
 	if (!sticky && !cmsg) {
 #ifdef DIAGNOSTIC
@@ -2961,8 +2971,6 @@ ip6_setpktopt(int optname, u_char *buf, int len, struct ip6_pktopts *opt,
 		if (IN6_IS_ADDR_MULTICAST(&pktinfo->ipi6_addr))
 			return (EINVAL);
 		/* validate the interface index if specified. */
-		if (pktinfo->ipi6_ifindex > V_if_index)
-			 return (ENXIO);
 		if (pktinfo->ipi6_ifindex) {
 			ifp = ifnet_byindex(pktinfo->ipi6_ifindex);
 			if (ifp == NULL)

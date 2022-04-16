@@ -56,16 +56,14 @@ typedef struct config_node {
 	uu_avl_node_t	cn_avl;
 } config_node_t;
 
-/* ARGSUSED */
 static int
 config_node_compare(const void *a, const void *b, void *unused)
 {
-	int ret;
-
+	(void) unused;
 	const config_node_t *ca = (config_node_t *)a;
 	const config_node_t *cb = (config_node_t *)b;
 
-	ret = strcmp(ca->cn_name, cb->cn_name);
+	int ret = strcmp(ca->cn_name, cb->cn_name);
 
 	if (ret < 0)
 		return (-1);
@@ -195,7 +193,7 @@ namespace_reload(libzfs_handle_t *hdl)
 			return (-1);
 		}
 
-		verify(nvpair_value_nvlist(elem, &child) == 0);
+		child = fnvpair_value_nvlist(elem);
 		if (nvlist_dup(child, &cn->cn_config, 0) != 0) {
 			free(cn->cn_name);
 			free(cn);

@@ -62,7 +62,7 @@
 	    .udata = (f),			\
 	    .ext = {0},				\
 	};					\
-} while(0)
+} while (0)
 
 #define	EV_SET64(kevp_, a, b, c, d, e, f, g, h) do {	\
 	*(kevp_) = (struct kevent64_s){		\
@@ -74,9 +74,10 @@
 	    .udata = (f),			\
 	    .ext = {g, h, 0, 0},	\
 	};					\
-} while(0)
+} while (0)
 #else /* Pre-C99 or not STDC (e.g., C++) */
-/* The definition of the local variable kevp could possibly conflict
+/*
+ * The definition of the local variable kevp could possibly conflict
  * with a user-defined value passed in parameters a-f.
  */
 #define EV_SET(kevp_, a, b, c, d, e, f) do {	\
@@ -91,7 +92,7 @@
 	(kevp)->ext[1] = 0;			\
 	(kevp)->ext[2] = 0;			\
 	(kevp)->ext[3] = 0;			\
-} while(0)
+} while (0)
 
 #define EV_SET64(kevp_, a, b, c, d, e, f, g, h) do {	\
 	struct kevent64_s *kevp = (kevp_);		\
@@ -105,7 +106,7 @@
 	(kevp)->ext[1] = h;			\
 	(kevp)->ext[2] = 0;			\
 	(kevp)->ext[3] = 0;			\
-} while(0)
+} while (0)
 #endif
 
 struct kevent {
@@ -131,7 +132,7 @@ struct kevent64_s {
 
 #if defined(_WANT_FREEBSD11_KEVENT)
 /* Older structure used in FreeBSD 11.x and older. */
-struct kevent_freebsd11 {
+struct freebsd11_kevent {
 	__uintptr_t	ident;		/* identifier for this event */
 	short		filter;		/* filter for event */
 	unsigned short	flags;
@@ -159,7 +160,7 @@ struct kevent32 {
 };
 
 #ifdef _WANT_FREEBSD11_KEVENT
-struct kevent32_freebsd11 {
+struct freebsd11_kevent32 {
 	__uint32_t	ident;		/* identifier for this event */
 	short		filter;		/* filter for event */
 	unsigned short	flags;
@@ -176,6 +177,7 @@ struct kevent32_freebsd11 {
 #define EV_ENABLE	0x0004		/* enable event */
 #define EV_DISABLE	0x0008		/* disable event (not reported) */
 #define EV_FORCEONESHOT	0x0100		/* enable _ONESHOT and force trigger */
+#define EV_KEEPUDATA	0x0200		/* do not update the udata field */
 
 /* flags */
 #define EV_ONESHOT	0x0010		/* only report one occurrence */

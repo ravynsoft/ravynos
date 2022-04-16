@@ -1,4 +1,4 @@
- Updating Information for FreeBSD stable/13 users.
+Updating Information for FreeBSD current users.
 
 This file is maintained and copyrighted by M. Warner Losh <imp@freebsd.org>.
 See end of file for further details.  For commonly done items, please see the
@@ -6,80 +6,151 @@ COMMON ITEMS: section later in the file.  These instructions assume that you
 basically know what you are doing.  If not, then please consult the FreeBSD
 handbook:
 
-    https://www.freebsd.org/doc/en_US.ISO8859-1/books/handbook/makeworld.html
+    https://docs.freebsd.org/en/books/handbook/cutting-edge/#makeworld
 
 Items affecting the ports and packages system can be found in
 /usr/ports/UPDATING.  Please read that file before updating system packages
 and/or ports.
 
-20220327:
-	Bump __FreeBSD_verion to 1301501 after merging LinuxKPI and
-	net80211 changes in order to help out-of-tree consumers to deal
-	accordingly.
+NOTE TO PEOPLE WHO THINK THAT FreeBSD 14.x IS SLOW:
+	FreeBSD 14.x has many debugging features turned on, in both the kernel
+	and userland.  These features attempt to detect incorrect use of
+	system primitives, and encourage loud failure through extra sanity
+	checking and fail stop semantics.  They also substantially impact
+	system performance.  If you want to do performance measurement,
+	benchmarking, and optimization, you'll want to turn them off.  This
+	includes various WITNESS- related kernel options, INVARIANTS, malloc
+	debugging flags in userland, and various verbose features in the
+	kernel.  Many developers choose to disable these features on build
+	machines to maximize performance.  (To completely disable malloc
+	debugging, define WITH_MALLOC_PRODUCTION in /etc/src.conf and rebuild
+	world, or to merely disable the most expensive debugging functionality
+	at runtime, run "ln -s 'abort:false,junk:false' /etc/malloc.conf".)
 
-20220123:
-	For 64-bit architectures the base system is now built with Position
-	Independent Executable (PIE) support enabled by default.  It may be
-	disabled using the WITHOUT_PIE knob.  A clean build is required.
-
-20220114:
+20211230:
 	The macros provided for the manipulation of CPU sets (e.g. CPU_AND)
 	have been modified to take 2 source arguments instead of only 1.
 	Externally maintained sources that use these macros will have to
-	be adapted. The FreeBSD version has been bumped to 1300524 to
+	be adapted. The FreeBSD version has been bumped to 1400046 to
 	reflect this change.
 
-20211218:
-	Commit 18f5b477ee66 adds two arguments to VOP_ALLOCATE().
-	Normally changes to VOP calls are not MFC'd, but a
-	discussion on freebsd-current@ seemed to agree that
-	it was acceptable in this case, to fix the NFSv4.2 server.
-	Any out of source tree file system with a custom
-	VOP_ALLOCATE() call will need to be modified.
-	Bump __FreeBSD_version to 1300523 since the NFS modules need
-	to be rebuilt from sources.
+20211214:
+	A number of the kernel include files are able to be included by
+	themselves.  A test has been added to buildworld to enforce this.
 
-20211124:
-	Commit 6e8e261f0d4e changed the internal KAPI between the NFS
-	modules.  As such, all the modules must be rebuilt from sources.
-	__FreeBSD_version has been bumped to 1300522.
+20211209:
+	Remove mips as a recognized target. This starts the decommissioning of
+	mips support in FreeBSD. mips related items will be removed wholesale in
+	the coming days and weeks.
 
-20211119:
-	Bump __FreeBSD_version to 1300521 after merging LinuxKPI and
-	net80211 changes in order to support building various wireless
-	drivers.  This is to help other external consumers of LinuxKPI
-	and net80211 to deal accordingly.
+	This broke the NO_CLEAN build for some people. Either do a clean build
+	or touch
+		lib/clang/include/llvm/Config/Targets.def
+		lib/clang/include/llvm/Config/AsmParsers.def
+		lib/clang/include/llvm/Config/Disassemblers.def
+		lib/clang/include/llvm/Config/AsmPrinters.def
+	before the build to force everything to rebuild that needs to.
 
-20211003:
-	Commit a599f9f7620b deleted the variable called nfs_maxcopyrange
-	from nfscommon.ko, since it no longer needs to be global.  As such,
-	the other nfs modules must be rebuilt from up to date sources.
-	Bump __FreeBSD_version to 1300516 for this.
+20211202:
+	Unbound support for RFC8375: The special-use domain 'home.arpa' is
+	by default blocked. To unblock it use a local-zone nodefault
+	statement in unbound.conf:
+		local-zone: "home.arpa." nodefault
 
-20210823:
-	As of commit 622809b0868f OpenSSL no longer enables kernel TLS
+	Or use another type of local-zone to override with your choice.
+
+	The reason for this is discussed in Section 6.1 of RFC8375:
+	Because 'home.arpa.' is not globally scoped and cannot be secured
+	using DNSSEC based on the root domain's trust anchor, there is no way
+	to tell, using a standard DNS query, in which homenet scope an answer
+	belongs.  Consequently, users may experience surprising results with
+	such names when roaming to different homenets.
+
+20211110:
+	Commit b8d60729deef changed the TCP congestion control framework so
+	that any of the included congestion control modules could be
+	the single module built into the kernel. Previously newreno
+	was automatically built in through direct reference. As of
+	this commit you are required to declare at least one congestion
+	control module (e.g. 'options CC_NEWRENO') and to also declare a
+	default using the CC_DEFAULT option (e.g. options CC_DEFAULT="newreno\").
+	The GENERIC configuration includes CC_NEWRENO and defines newreno
+	as the default. If no congestion control option is built into the
+	kernel and you are including networking, the kernel compile will
+	fail. Also if no default is declared the kernel compile will fail.
+
+20211118:
+	Mips has been removed from universe builds. It will be removed from the
+	tree shortly.
+
+20211106:
+	Commit f0c9847a6c47 changed the arguments for VOP_ALLOCATE.
+	The NFS modules must be rebuilt from sources and any out
+	of tree file systems that implement their own VOP_ALLOCATE
+	may need to be modified.
+
+20211022:
+	The synchronous PPP kernel driver sppp(4) has been removed.
+	The cp(4) and ce(4) drivers are now always compiled with netgraph(4)
+	support, formerly enabled by NETGRAPH_CRONYX option.
+
+20211020:
+	sh(1) is now the default shell for the root user.  To force root to use
+	the csh shell, please run the following command as root:
+
+	# chsh -s csh
+
+20211004:
+	Ncurses distribution has been split between libtinfow and libncurses
+	with libncurses.so becoming a linker (ld) script to seamlessly link
+	to libtinfow as needed. Bump _FreeBSD_version to 1400035 to reflect
+	this change.
+
+20210923:
+	As of commit 8160a0f62be6, the dummynet module no longer depends on the
+	ipfw module. Dummynet can now be used by pf as well as ipfw. As such
+	users who relied on this dependency may need to include ipfw in the
+	list of modules to load on their systems.
+
+20210922:
+	As of commit 903873ce1560, the mixer(8) utility has got a slightly
+	new syntax. Please refer to the mixer(8) manual page for more
+	information. The old mixer utility can be installed from ports:
+	audio/freebsd-13-mixer
+
+20210911:
+	As of commit 55089ef4f8bb, the global variable nfs_maxcopyrange has
+	been deleted from the nfscommon.ko.  As such, nfsd.ko must be built
+	from up to date sources to avoid an undefined reference when
+	being loaded.
+
+20210817:
+	As of commit 62ca9fc1ad56 OpenSSL no longer enables kernel TLS
 	by default.  Users can enable kernel TLS via the "KTLS" SSL
 	option.  This can be enabled globally by using a custom
 	OpenSSL config file via OPENSSL_CONF or via an
 	application-specific configuration option for applications
 	which permit setting SSL options via SSL_CONF_cmd(3).
 
-20210803:
-	Commits 9fb6e613373c and 9ec7dbf46b0a both changed the internal
-	KAPI between the NFS modules.  Bump __FreeBSD_version to 1300514.
-	All NFS modules must be rebuilt from sources.
+20210811:
+	Commit 3ad1e1c1ce20 changed the internal KAPI between the NFS
+	modules. Therefore, all need to be rebuilt from sources.
 
 20210730:
 	Commit b69019c14cd8 removes pf's DIOCGETSTATESNV ioctl.
 	As of be70c7a50d32 it is no longer used by userspace, but it does mean
 	users may not be able to enumerate pf states if they update the kernel
-	past c021ff986e2b without first updating userspace past be70c7a50d32.
+	past b69019c14cd8 without first updating userspace past be70c7a50d32.
 
-20210718:
-	Bump __FreeBSD_version to 1300512 after merging LinuxKPI, OFED,
-	net80211, and driver changes in order to support building
-	Intel wireless iwlwifi drivers.  This is especially needed for
-	drm-kmod which needs updates after this.
+20210729:
+	As of commit 01ad0c007964 if_bridge member interfaces can no longer
+	change their MTU. Changing the MTU of the bridge itself will change the
+	MTU on all member interfaces instead.
+
+20210716:
+	Commit ee29e6f31111 changed the internal KAPI between the nfscommon
+	and nfsd modules. Therefore, both need to be rebuilt from sources.
+	Bump __FreeBSD_version to 1400026 for this KAPI change.
 
 20210715:
 	The 20210707 awk update brought in a change in behavior. This has
@@ -93,54 +164,98 @@ and/or ports.
 		% sudo -E make install
 	to enable building kernels again.
 
-20210711:
-	Commit 8a04edfdcbd2 changes the default minor version
-	used for NFSv4 mounts to the highest minor version supported
-	by the NFSv4 server.  This default can be overridden by using
-	the "minorversion" mount option.
-	The consensus of a discussion on freebsd-current@ indicated
-	that this would be acceptable to do and would not be considered
-	a POLA violation.
+20210708:
+	Commit 1e0a518d6548 changed the internal KAPI between the NFS
+	modules. They all need to be rebuilt from sources.  I did not
+	bump __FreeBSD_version, since it was bumped recently.
 
-20210710:
+20210707:
 	awk has been updated to the latest one-true-awk version 20210215.
 	This contains a number of minor bug fixes.
 
-20210630:
-        Commit ca179c4d74f2/632e3f2f3a66 changed the package in which
-	the OpenSSL libraries and utilities are packaged.
-        It is recommended for pkgbase user to do:
-        pkg install -f FreeBSD-openssl
-        before pkg upgrade otherwise some dependencies might not be met
-        and pkg will stop working as libssl will not be present anymore
-        on the system.
+20210624:
+	The NFSv4 client now uses the highest minor version of NFSv4
+	supported by the NFSv4 server by default instead of minor version 0,
+	for NFSv4 mounts.
+	The "minorversion" mount option may be used to override this default.
 
-20210626:
-	Commit 841006678745 changed the internal KAPI between the krpc
-	and nfsd modules.  As such, they must both be rebuilt from
-	sources.
-	__FreeBSD_version is bumped to 1300510.
+20210618:
+	Bump __FreeBSD_version to 1400024 for LinuxKPI changes.
+	Most notably netdev.h can change now as the (last) dependencies
+	(mlx4/ofed) are now using struct ifnet directly, but also for PCI
+	additions and others.
 
-20210510:
-	Commit 272f39942254 changed the internal KAPI between the
-	nscl.ko and nfscommon.ko modules, so they both need to be
-	rebuilt from sources.
+20210618:
+	The directory "blacklisted" under /usr/share/certs/ has been
+	renamed to "untrusted".
 
-20210429:
-	Commit 5a45802b3c8c changed the internal KAPI between
+20210611:
+	svnlite has been removed from base. Should you need svn for any reason
+	please install the svn package or port.
+
+20210611:
+	Commit e1a907a25cfa changed the internal KAPI between the krpc
+	and nfsserver.  As such, both modules must be rebuilt from
+	sources.  Bump __FreeBSD_version to 1400022.
+
+20210610:
+	The an(4) driver has been removed from FreeBSD.
+
+20210608:
+	The vendor/openzfs branch was renamed to vendor/openzfs/legacy to
+	start tracking OpenZFS upstream more closely. Please see
+https://lists.freebsd.org/archives/freebsd-current/2021-June/000153.html
+	for details on how to correct any errors that might result. The
+	short version is that you need to remove the old branch locally:
+	    git update-ref -d refs/remotes/freebsd/vendor/openzfs
+	(assuming your upstream origin is named 'freebsd').
+
+20210525:
+	Commits 17accc08ae15 and de102f870501 add new files to LinuxKPI
+	which break drm-kmod.  In addition various other additions where
+	committed. Bump __FreeBSD_version to 1400015 to be able to
+	detect this.
+
+20210513:
+	Commit ca179c4d74f2 changed the package in which the OpenSSL
+	libraries and utilities are packaged.
+	It is recommended for pkgbase user to do:
+	pkg install -f FreeBSD-openssl
+	before pkg upgrade otherwise some dependencies might not be met
+	and pkg will stop working as libssl will not be present anymore
+	on the system.
+
+20210426:
+	Commit 875977314881 changed the internal KAPI between
+	the nfsd and nfscommon modules.  As such these modules
+	need to be rebuilt from sources.
+	Without this patch in your NFSv4.1/4.2 server, enabling
+	delegations by setting vfs.nfsd.issue_delegations non-zero
+	is not recommended.
+
+20210411:
+	Commit 7763814fc9c2 changed the internal KAPI between
 	the krpc and NFS.  As such, the krpc, nfscommon and
 	nfscl modules must all be rebuilt from sources.
 	Without this patch, NFSv4.1/4.2 mounts should not
 	be done with the nfscbd(8) daemon running, to avoid
 	needing a working back channel for server->client RPCs.
 
-20210202:
-	Various LinuxKPI functionality was added which conflicts with DRM.
-	Please update your drm-kmod port to after the __FreeBSD_verison 1300139
-	update.
+20210330:
+	Commit 01ae8969a9ee fixed the NFSv4.1/4.2 server so that it
+	handles binding of the back channel as required by RFC5661.
+	Until this patch is in your server, avoid use of the "nconnects"
+	mount option for Linux NFSv4.1/4.2 mounts.
 
-20210122:
-	The stable/13 branch has been created from main.
+20210225:
+	For 64-bit architectures the base system is now built with Position
+	Independent Executable (PIE) support enabled by default.  It may be
+	disabled using the WITHOUT_PIE knob.  A clean build is required.
+
+20210128:
+	Various LinuxKPI functionality was added which conflicts with DRM.
+	Please update your drm-kmod port to after the __FreeBSD_version 1400003
+	update.
 
 20210108:
 	PC Card attachments for all devices have been removed. In the case of
@@ -183,6 +298,7 @@ and/or ports.
 	Default value of net.add_addr_allfibs has been changed to 0.
 	If you have multi-fib configuration and rely on existence of all
 	interface routes in every fib, you need to set the above sysctl to 1.
+
 20201030:
 	The internal pre-processor in the calendar(1) program has been
 	extended to support more C pre-processor commands (e.g. #ifdef, #else,
@@ -558,7 +674,7 @@ and/or ports.
 	initial condition, if desired.
 
 	kern.random.initial_seeding.arc4random_bypassed_before_seeding:
-	Similar to the above, but for for arc4random(9) initial seeding.
+	Similar to the above, but for arc4random(9) initial seeding.
 
 	kern.random.initial_seeding.disable_bypass_warnings: tunable; set
 	non-zero to disable warnings in dmesg when the same conditions are
@@ -624,8 +740,8 @@ and/or ports.
 	r342286 modifies the NFSv4 server so that it obeys vfs.nfsd.nfs_privport
 	in the same as it is applied to NFSv2 and 3.  This implies that NFSv4
 	servers that have vfs.nfsd.nfs_privport set will only allow mounts
-	from clients using a reserved port#. Since both the FreeBSD and Linux
-	NFSv4 clients use reserved port#s by default, this should not affect
+	from clients using a reserved port. Since both the FreeBSD and Linux
+	NFSv4 clients use reserved ports by default, this should not affect
 	most NFSv4 mounts.
 
 20181219:
@@ -1067,7 +1183,7 @@ and/or ports.
 	Newer versions of loader can boot old kernels without issue.
 
 20171110:
-	The LOADER_FIREWIRE_SUPPORT build variable as been renamed to
+	The LOADER_FIREWIRE_SUPPORT build variable has been renamed to
 	WITH/OUT_LOADER_FIREWIRE. LOADER_{NO_,}GELI_SUPPORT has been renamed
 	to WITH/OUT_LOADER_GELI.
 
@@ -1251,7 +1367,7 @@ and/or ports.
 	If you have if_ath_pci in /boot/loader.conf, ensure it is after
 	if_ath or it will not load any HAL chipset support.
 
-	If you want to selectively load things (eg on ye cheape ARM/MIPS
+	If you want to selectively load things (eg on cheaper ARM/MIPS
 	platforms where RAM is at a premium) you should:
 
 	* load ath_hal
@@ -1475,7 +1591,7 @@ and/or ports.
 	kernel.
 
 20160527:
-	CAM will now strip leading spaces from SCSI disks' serial numbers.
+	CAM now strips the leading spaces from each SCSI disk's serial number.
 	This will affect users who create UFS filesystems on SCSI disks using
 	those disk's diskid device nodes.  For example, if /etc/fstab
 	previously contained a line like
@@ -2404,9 +2520,9 @@ COMMON ITEMS:
 	make installkernel KERNCONF=YOUR_KERNEL_HERE
 							[1]
 	<reboot in single user>				[3]
-	mergemaster -Fp					[5]
+	etcupdate -p					[5]
 	make installworld
-	mergemaster -Fi					[4]
+	etcupdate -B					[4]
 	make delete-old					[6]
 	<reboot>
 
@@ -2442,9 +2558,9 @@ COMMON ITEMS:
 	make installkernel KERNCONF=YOUR_KERNEL_HERE
 							[1]
 	<reboot in single user>				[3]
-	mergemaster -Fp					[5]
+	etcupdate -p					[5]
 	make installworld
-	mergemaster -Fi					[4]
+	etcupdate -B					[4]
 	make delete-old					[6]
 	<reboot>
 
@@ -2486,15 +2602,11 @@ COMMON ITEMS:
 	system.  Attempting to do it by hand is not recommended and those
 	that pursue this avenue should read this file carefully, as well
 	as the archives of freebsd-current and freebsd-hackers mailing lists
-	for potential gotchas.  The -U option is also useful to consider.
-	See mergemaster(8) for more information.
+	for potential gotchas.  See etcupdate(8) for more information.
 
 	[5] Usually this step is a no-op.  However, from time to time
 	you may need to do this if you get unknown user in the following
-	step.  It never hurts to do it all the time.  You may need to
-	install a new mergemaster (cd src/usr.sbin/mergemaster && make
-	install) after the buildworld before this step if you last updated
-	from current before 20130425 or from -stable before 20130430.
+	step.
 
 	[6] This only deletes old files and directories. Old libraries
 	can be deleted by "make delete-old-libs", but you have to make

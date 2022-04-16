@@ -442,16 +442,7 @@ dbuf_find_dirty_eq(dmu_buf_impl_t *db, uint64_t txg)
 	(dbuf_is_metadata(_db) &&					\
 	((_db)->db_objset->os_primary_cache == ZFS_CACHE_METADATA)))
 
-#define	DBUF_IS_L2CACHEABLE(_db)					\
-	((_db)->db_objset->os_secondary_cache == ZFS_CACHE_ALL ||	\
-	(dbuf_is_metadata(_db) &&					\
-	((_db)->db_objset->os_secondary_cache == ZFS_CACHE_METADATA)))
-
-#define	DNODE_LEVEL_IS_L2CACHEABLE(_dn, _level)				\
-	((_dn)->dn_objset->os_secondary_cache == ZFS_CACHE_ALL ||	\
-	(((_level) > 0 ||						\
-	DMU_OT_IS_METADATA((_dn)->dn_handle->dnh_dnode->dn_type)) &&	\
-	((_dn)->dn_objset->os_secondary_cache == ZFS_CACHE_METADATA)))
+boolean_t dbuf_is_l2cacheable(dmu_buf_impl_t *db);
 
 #ifdef ZFS_DEBUG
 
@@ -474,7 +465,7 @@ dbuf_find_dirty_eq(dmu_buf_impl_t *db, uint64_t txg)
 	    __db_buf, (dbuf)->db_level, \
 	    (u_longlong_t)(dbuf)->db_blkid, __VA_ARGS__); \
 	} \
-_NOTE(CONSTCOND) } while (0)
+} while (0)
 
 #define	dprintf_dbuf_bp(db, bp, fmt, ...) do {			\
 	if (zfs_flags & ZFS_DEBUG_DPRINTF) {			\
@@ -483,7 +474,7 @@ _NOTE(CONSTCOND) } while (0)
 	dprintf_dbuf(db, fmt " %s\n", __VA_ARGS__, __blkbuf);	\
 	kmem_free(__blkbuf, BP_SPRINTF_LEN);			\
 	}							\
-_NOTE(CONSTCOND) } while (0)
+} while (0)
 
 #define	DBUF_VERIFY(db)	dbuf_verify(db)
 

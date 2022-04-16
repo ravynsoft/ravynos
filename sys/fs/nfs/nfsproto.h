@@ -405,10 +405,16 @@
 /* Do an NFSv4.2 LayoutError. */
 #define	NFSPROC_LAYOUTERROR	68
 
+/* Do an NFSv4 Verify+Write. */
+#define	NFSPROC_APPENDWRITE	69
+
 /*
  * Must be defined as one higher than the last NFSv4.2 Proc# above.
  */
-#define	NFSV42_NPROCS		69
+#define	NFSV42_NPROCS		70
+
+/* Value of NFSV42_NPROCS for old nfsstats structure. (Always 69) */
+#define	NFSV42_OLDNPROCS	69
 
 #endif	/* NFS_V3NPROCS */
 

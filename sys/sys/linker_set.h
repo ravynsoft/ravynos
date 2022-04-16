@@ -32,10 +32,6 @@
 #ifndef _SYS_LINKER_SET_H_
 #define _SYS_LINKER_SET_H_
 
-#ifndef _SYS_CDEFS_H_
-#error this file needs sys/cdefs.h as a prerequisite
-#endif
-
 /*
  * The following macros are used to declare global sets of objects, which
  * are collected by the linker into a `linker_set' as defined below.
@@ -58,7 +54,6 @@
 /*
  * Private macros, not to be used outside this header file.
  */
-#ifdef __GNUCLIKE___SECTION
 
 /*
  * The userspace address sanitizer inserts redzones around global variables,
@@ -78,9 +73,6 @@
 	__set_##set##_sym_##sym __section("set_" #set)	\
 	__used = &(sym)
 #define __MAKE_SET(set, sym)	__MAKE_SET_QV(set, sym, __MAKE_SET_CONST)
-#else /* !__GNUCLIKE___SECTION */
-#error this file needs to be ported to your compiler
-#endif /* __GNUCLIKE___SECTION */
 
 /*
  * Public macros.

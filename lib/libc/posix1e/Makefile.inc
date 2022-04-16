@@ -11,13 +11,17 @@ subr_acl_nfs4.c: ${SRCTOP}/sys/kern/subr_acl_nfs4.c
 CONFS+=	posix1e/mac.conf
 SRCS+=	acl_branding.c			\
 	acl_calc_mask.c			\
+	acl_cmp_np.c			\
 	acl_compat.c			\
 	acl_copy.c			\
 	acl_delete.c			\
 	acl_delete_entry.c		\
 	acl_entry.c			\
+	acl_equiv_mode_np.c		\
+	acl_extended_file_np.c		\
 	acl_flag.c			\
 	acl_free.c			\
+	acl_from_mode_np.c		\
 	acl_from_text.c			\
 	acl_from_text_nfs4.c		\
 	acl_get.c			\
@@ -46,6 +50,7 @@ MAN+=	acl.3				\
 	acl_calc_mask.3			\
 	acl_clear_flags_np.3		\
 	acl_clear_perms.3		\
+	acl_cmp_np.3			\
 	acl_copy_entry.3		\
 	acl_create_entry.3		\
 	acl_delete.3			\
@@ -53,7 +58,10 @@ MAN+=	acl.3				\
 	acl_delete_flag_np.3		\
 	acl_delete_perm.3		\
 	acl_dup.3			\
+	acl_equiv_mode_np.3		\
+	acl_extended_file_np.3		\
 	acl_free.3			\
+	acl_from_mode_np.3		\
 	acl_from_text.3			\
 	acl_get.3			\
 	acl_get_brand_np.3		\
@@ -92,6 +100,8 @@ MLINKS+=acl_create_entry.3 acl_create_entry_np.3\
 	acl_delete.3 acl_delete_file_np.3	\
 	acl_delete.3 acl_delete_fd_np.3		\
 	acl_delete_entry.3 acl_delete_entry_np.3\
+	acl_extended_file_np.3 acl_extended_file_nofollow_np.3 \
+	acl_extended_file_np.3 acl_extended_link_np.3 \
 	acl_get.3 acl_get_file.3		\
 	acl_get.3 acl_get_fd.3			\
 	acl_get.3 acl_get_fd_np.3		\

@@ -34,6 +34,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/linker.h>
 #include <sys/lock.h>
 #include <sys/malloc.h>
+#include <sys/msan.h>
 #include <sys/mutex.h>
 #include <sys/random.h>
 #include <sys/smp.h>
@@ -65,7 +66,7 @@ struct chacha20_s {
 	struct mtx mtx;
 	int numbytes;
 	time_t t_reseed;
-	u_int8_t m_buffer[CHACHA20_BUFFER_SIZE];
+	uint8_t m_buffer[CHACHA20_BUFFER_SIZE];
 	struct chacha_ctx ctx;
 #ifdef RANDOM_FENESTRASX
 	uint64_t seed_version;
@@ -86,7 +87,7 @@ static void
 chacha20_randomstir(struct chacha20_s *chacha20)
 {
 	struct timeval tv_now;
-	u_int8_t key[CHACHA20_KEYBYTES];
+	uint8_t key[CHACHA20_KEYBYTES];
 #ifdef RANDOM_FENESTRASX
 	uint64_t seed_version;
 
@@ -105,6 +106,14 @@ chacha20_randomstir(struct chacha20_s *chacha20)
 				    "knob 'bypass_before_seeding' was "
 				    "enabled.\n");
 		}
+
+		/*
+		 * "key" is intentionally left uninitialized here, so with KMSAN
+		 * enabled the arc4random() return value may be marked
+		 * uninitialized, leading to spurious reports.  Lie to KMSAN to
+		 * avoid this situation.
+		 */
+		kmsan_mark(key, sizeof(key), KMSAN_STATE_INITED);
 
 		/* Last ditch effort to inject something in a bad condition. */
 		cc = get_cyclecount();
@@ -190,7 +199,7 @@ arc4rand(void *ptr, u_int len, int reseed)
 	struct chacha20_s *chacha20;
 	struct timeval tv;
 	u_int length;
-	u_int8_t *p;
+	uint8_t *p;
 
 #ifdef RANDOM_FENESTRASX
 	if (__predict_false(reseed))

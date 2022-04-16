@@ -202,9 +202,9 @@ mmc_cam_sim_alloc(device_t dev, const char *name, struct mmc_sim *mmc_sim)
 	kobj_desc = &mmc_sim_cam_poll_desc;
 	kobj_method = kobj_lookup_method(((kobj_t)dev)->ops->cls, NULL,
 	    kobj_desc);
-	mmc_sim->sim = cam_sim_alloc_dev(mmc_cam_sim_default_action,
+	mmc_sim->sim = cam_sim_alloc(mmc_cam_sim_default_action,
 	    kobj_method == &kobj_desc->deflt ? NULL : mmc_cam_default_poll,
-	    mmc_sim->name, mmc_sim, dev,
+	    mmc_sim->name, mmc_sim, device_get_unit(dev),
 	    &mmc_sim->mtx, 1, 1, mmc_sim->devq);
 
 	if (mmc_sim->sim == NULL) {

@@ -64,12 +64,12 @@
 #endif
 #include <sys/zfs_file.h>
 
-int zfs_recv_queue_length = SPA_MAXBLOCKSIZE;
-int zfs_recv_queue_ff = 20;
-int zfs_recv_write_batch_size = 1024 * 1024;
+static int zfs_recv_queue_length = SPA_MAXBLOCKSIZE;
+static int zfs_recv_queue_ff = 20;
+static int zfs_recv_write_batch_size = 1024 * 1024;
 
-static char *dmu_recv_tag = "dmu_recv_tag";
-const char *recv_clone_name = "%recv";
+static void *const dmu_recv_tag = "dmu_recv_tag";
+const char *const recv_clone_name = "%recv";
 
 static int receive_read_payload_and_next_header(dmu_recv_cookie_t *ra, int len,
     void *buf);
@@ -1148,7 +1148,7 @@ dmu_recv_begin(char *tofs, char *tosnap, dmu_replay_record_t *drr_begin,
 	dmu_recv_begin_arg_t drba = { 0 };
 	int err;
 
-	bzero(drc, sizeof (dmu_recv_cookie_t));
+	memset(drc, 0, sizeof (dmu_recv_cookie_t));
 	drc->drc_drr_begin = drr_begin;
 	drc->drc_drrb = &drr_begin->drr_u.drr_begin;
 	drc->drc_tosnap = tosnap;
@@ -1211,7 +1211,6 @@ dmu_recv_begin(char *tofs, char *tosnap, dmu_replay_record_t *drr_begin,
 		    dmu_recv_resume_begin_check, dmu_recv_resume_begin_sync,
 		    &drba, 5, ZFS_SPACE_CHECK_NORMAL);
 	} else {
-
 		/*
 		 * For non-raw, non-incremental, non-resuming receives the
 		 * user can specify encryption parameters on the command line
@@ -1808,7 +1807,7 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 		dmu_buf_will_dirty(db, tx);
 
 		ASSERT3U(db->db_size, >=, drro->drr_bonuslen);
-		bcopy(data, db->db_data, DRR_OBJECT_PAYLOAD_SIZE(drro));
+		memcpy(db->db_data, data, DRR_OBJECT_PAYLOAD_SIZE(drro));
 
 		/*
 		 * Raw bonus buffers have their byteorder determined by the
@@ -1828,7 +1827,6 @@ receive_object(struct receive_writer_arg *rwa, struct drr_object *drro,
 	return (0);
 }
 
-/* ARGSUSED */
 noinline static int
 receive_freeobjects(struct receive_writer_arg *rwa,
     struct drr_freeobjects *drrfo)
@@ -1950,11 +1948,11 @@ flush_write_batch_impl(struct receive_writer_arg *rwa)
 				zp.zp_byteorder = ZFS_HOST_BYTEORDER ^
 				    !!DRR_IS_RAW_BYTESWAPPED(drrw->drr_flags) ^
 				    rwa->byteswap;
-				bcopy(drrw->drr_salt, zp.zp_salt,
+				memcpy(zp.zp_salt, drrw->drr_salt,
 				    ZIO_DATA_SALT_LEN);
-				bcopy(drrw->drr_iv, zp.zp_iv,
+				memcpy(zp.zp_iv, drrw->drr_iv,
 				    ZIO_DATA_IV_LEN);
-				bcopy(drrw->drr_mac, zp.zp_mac,
+				memcpy(zp.zp_mac, drrw->drr_mac,
 				    ZIO_DATA_MAC_LEN);
 				if (DMU_OT_IS_ENCRYPTED(zp.zp_type)) {
 					zp.zp_nopwrite = B_FALSE;
@@ -2219,7 +2217,7 @@ receive_spill(struct receive_writer_arg *rwa, struct drr_spill *drrs,
 		}
 	}
 
-	bcopy(abd_to_buf(abd), abuf->b_data, DRR_SPILL_PAYLOAD_SIZE(drrs));
+	memcpy(abuf->b_data, abd_to_buf(abd), DRR_SPILL_PAYLOAD_SIZE(drrs));
 	abd_free(abd);
 	dbuf_assign_arcbuf((dmu_buf_impl_t *)db_spill, abuf, tx);
 
@@ -2230,7 +2228,6 @@ receive_spill(struct receive_writer_arg *rwa, struct drr_spill *drrs,
 	return (0);
 }
 
-/* ARGSUSED */
 noinline static int
 receive_free(struct receive_writer_arg *rwa, struct drr_free *drrf)
 {
@@ -2293,9 +2290,9 @@ receive_object_range(struct receive_writer_arg *rwa,
 	rwa->or_crypt_params_present = B_TRUE;
 	rwa->or_firstobj = drror->drr_firstobj;
 	rwa->or_numslots = drror->drr_numslots;
-	bcopy(drror->drr_salt, rwa->or_salt, ZIO_DATA_SALT_LEN);
-	bcopy(drror->drr_iv, rwa->or_iv, ZIO_DATA_IV_LEN);
-	bcopy(drror->drr_mac, rwa->or_mac, ZIO_DATA_MAC_LEN);
+	memcpy(rwa->or_salt, drror->drr_salt, ZIO_DATA_SALT_LEN);
+	memcpy(rwa->or_iv, drror->drr_iv, ZIO_DATA_IV_LEN);
+	memcpy(rwa->or_mac, drror->drr_mac, ZIO_DATA_MAC_LEN);
 	rwa->or_byteorder = byteorder;
 
 	return (0);
@@ -2305,7 +2302,6 @@ receive_object_range(struct receive_writer_arg *rwa,
  * Until we have the ability to redact large ranges of data efficiently, we
  * process these records as frees.
  */
-/* ARGSUSED */
 noinline static int
 receive_redact(struct receive_writer_arg *rwa, struct drr_redact *drrr)
 {
@@ -2454,7 +2450,6 @@ receive_read_payload_and_next_header(dmu_recv_cookie_t *drc, int len, void *buf)
  * numbers in the ignore list. In practice, we receive up to 32 object records
  * before receiving write records, so the list can have up to 32 nodes in it.
  */
-/* ARGSUSED */
 static void
 receive_read_prefetch(dmu_recv_cookie_t *drc, uint64_t object, uint64_t offset,
     uint64_t length)
@@ -2806,7 +2801,7 @@ receive_process_record(struct receive_writer_arg *rwa,
  * dmu_recv_stream's worker thread; pull records off the queue, and then call
  * receive_process_record  When we're done, signal the main thread and exit.
  */
-static void
+static __attribute__((noreturn)) void
 receive_writer_thread(void *arg)
 {
 	struct receive_writer_arg *rwa = arg;
@@ -3397,7 +3392,6 @@ dmu_objset_is_receiving(objset_t *os)
 	    os->os_dsl_dataset->ds_owner == dmu_recv_tag);
 }
 
-/* BEGIN CSTYLED */
 ZFS_MODULE_PARAM(zfs_recv, zfs_recv_, queue_length, INT, ZMOD_RW,
 	"Maximum receive queue length");
 
@@ -3406,4 +3400,3 @@ ZFS_MODULE_PARAM(zfs_recv, zfs_recv_, queue_ff, INT, ZMOD_RW,
 
 ZFS_MODULE_PARAM(zfs_recv, zfs_recv_, write_batch_size, INT, ZMOD_RW,
 	"Maximum amount of writes to batch into one transaction");
-/* END CSTYLED */

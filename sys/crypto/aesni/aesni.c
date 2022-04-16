@@ -305,8 +305,7 @@ aesni_probesession(device_t dev, const struct crypto_session_params *csp)
 			if (csp->csp_auth_mlen != 0 &&
 			    csp->csp_auth_mlen != GMAC_DIGEST_LEN)
 				return (EINVAL);
-			if (csp->csp_ivlen != AES_GCM_IV_LEN ||
-			    !sc->has_aes)
+			if (!sc->has_aes)
 				return (EINVAL);
 			break;
 		case CRYPTO_AES_CCM_16:
@@ -342,11 +341,8 @@ static int
 aesni_newsession(device_t dev, crypto_session_t cses,
     const struct crypto_session_params *csp)
 {
-	struct aesni_softc *sc;
 	struct aesni_session *ses;
 	int error;
-
-	sc = device_get_softc(dev);
 
 	ses = crypto_get_driver_session(cses);
 

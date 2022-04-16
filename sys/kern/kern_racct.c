@@ -57,7 +57,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/sysctl.h>
 #include <sys/sysent.h>
 #include <sys/sysproto.h>
-#include <sys/umtx.h>
+#include <sys/umtxvar.h>
 #include <machine/smp.h>
 
 #ifdef RCTL
@@ -1147,7 +1147,7 @@ racct_proc_throttle(struct proc *p, int timeout)
 		thread_lock(td);
 		td->td_flags |= TDF_ASTPENDING;
 
-		switch (td->td_state) {
+		switch (TD_GET_STATE(td)) {
 		case TDS_RUNQ:
 			/*
 			 * If the thread is on the scheduler run-queue, we can

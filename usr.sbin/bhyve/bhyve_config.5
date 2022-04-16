@@ -23,7 +23,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.Dd September 17, 2021
+.Dd March 2, 2022
 .Dt BHYVE_CONFIG 5
 .Os
 .Sh NAME
@@ -124,6 +124,8 @@ Wire guest memory.
 Generate ACPI tables.
 .It Va destroy_on_poweroff Ta bool Ta false Ta
 Destroy the VM on guest-initiated power-off.
+.It Va gdb.address Ta string Ta localhost Ta
+Hostname, IP address, or IPv6 address for the debug server.
 .It Va gdb.port Ta integer Ta 0 Ta
 TCP port number for the debug server.
 If this is set to a non-zero value, a debug server
@@ -131,6 +133,12 @@ will listen for connections on this port.
 .It Va gdb.wait Ta bool Ta false Ta
 If the debug server is enabled, wait for a debugger to connect
 before starting the guest.
+.It Va keyboard.layout Ta string Ta Ta
+Specify the keyboard layout name with the file name in
+.Ar /usr/share/bhyve/kbdlayout .
+This value only works when loaded with UEFI mode for VNC, and
+used a VNC client that don't support QEMU Extended Key Event
+Message (e.g. TightVNC).
 .It Va rtc.use_localtime Ta bool Ta true Ta
 The real time clock uses the local time of the host.
 If this is set to false, the real time clock uses UTC.
@@ -180,7 +188,7 @@ Device settings are stored under a device node.
 The device node's name is set by the parent bus of the device.
 .Ss PCI Device Settings
 PCI devices are described by a device node named
-.Dq pci Ns Ar bus . Ns Ar slot . Ns Ar function
+.Dq pci . Ns Ar bus . Ns Ar slot . Ns Ar function
 where each of
 .Ar bus ,
 .Ar slot ,
@@ -221,6 +229,8 @@ VirtIO 9p (VirtFS) interface.
 VirtIO block storage interface.
 .It Li virtio-console
 VirtIO console interface.
+.It Li virtio-input
+VirtIO input interface.
 .It Li virtio-net
 VirtIO network interface.
 .It Li virtio-rnd
@@ -438,6 +448,11 @@ The contents of this file are copied into the guest's
 memory ending just before the 4GB physical address.
 If a boot ROM is present, a firmware interface device is
 also enabled for use by the boot ROM.
+.It Va bootvars Ta path Ta Ta
+Path to boot VARS.
+The contents of this file are copied beneath the boot ROM.
+Firmware can write to it to save variables.
+All variables will be persistent even on reboots of the guest.
 .It Va com1 Ta node Ta Ta
 Settings for the COM1 serial port device.
 .It Va com2 Ta node Ta Ta
@@ -453,7 +468,7 @@ Enable the PC debug/test device.
 Each NVMe controller supports a single storage device.
 The device can be backed either by a memory disk described by the
 .Va ram
-variable, or a block device using the the block device settings described above.
+variable, or a block device using the block device settings described above.
 In addition, each controller supports the following settings:
 .Bl -column "ioslots" "Format" "Default"
 .It Sy Name Ta Sy Format Ta Sy Default Ta Sy Description
@@ -500,6 +515,8 @@ Host PCI bus address of device to pass through.
 Host PCI slot address of device to pass through.
 .It Va func Ta integer Ta Ta
 Host PCI function address of device to pass through.
+.It Va rom Ta path Ta Ta
+ROM file of the device which will be executed by OVMF to init the device.
 .El
 .Ss VirtIO 9p Settings
 Each VirtIO 9p device exposes a single filesystem from a host path.
@@ -537,6 +554,15 @@ Each port supports the following settings:
 The name of the port exposed to the guest.
 .It Va path Ta path Ta Ta
 The path of a UNIX domain socket providing the host connection for the port.
+.El
+.Ss VirtIO Input Interface Settings
+Each VirtIO Input device contains one input event device.
+All input events of the input event device are send to the guest by VirtIO Input interface.
+VirtIO Input Interfaces support the following variables:
+.Bl -column "Name" "Format" "Default"
+.It Sy Name Ta Sy Format Ta Sy Default Ta Sy Description
+.It Va path Ta path Ta Ta
+The path of the input event device exposed to the guest
 .El
 .Ss VirtIO Network Interface Settings
 In addition to the network backend settings,

@@ -43,8 +43,6 @@ AHD_DEBUG_OPTS		opt_aic79xx.h
 AHD_TMODE_ENABLE	opt_aic79xx.h	
 AHD_REG_PRETTY_PRINT	opt_aic79xx.h
 
-TWA_DEBUG		opt_twa.h
-
 # Debugging options.
 ALT_BREAK_TO_DEBUGGER	opt_kdb.h
 BREAK_TO_DEBUGGER	opt_kdb.h
@@ -81,6 +79,15 @@ BOOTVERBOSE	opt_global.h
 CALLOUT_PROFILING
 CAPABILITIES	opt_capsicum.h
 CAPABILITY_MODE	opt_capsicum.h
+CC_CDG		opt_global.h
+CC_CHD		opt_global.h
+CC_CUBIC	opt_global.h
+CC_DEFAULT	opt_cc.h
+CC_DCTCP	opt_global.h
+CC_HD		opt_global.h
+CC_HTCP		opt_global.h
+CC_NEWRENO	opt_global.h
+CC_VEGAS	opt_global.h
 COMPAT_43	opt_global.h
 COMPAT_43TTY	opt_global.h
 COMPAT_FREEBSD4	opt_global.h
@@ -91,15 +98,13 @@ COMPAT_FREEBSD9	opt_global.h
 COMPAT_FREEBSD10	opt_global.h
 COMPAT_FREEBSD11	opt_global.h
 COMPAT_FREEBSD12	opt_global.h
-COMPAT_CLOUDABI32	opt_dontuse.h
-COMPAT_CLOUDABI64	opt_dontuse.h
+COMPAT_FREEBSD13	opt_global.h
 COMPAT_LINUXKPI	opt_dontuse.h
 _COMPAT_LINUX32	opt_compat.h	# XXX: make sure opt_compat.h exists
 COMPILING_LINT	opt_global.h
 CY_PCI_FASTINTR
 DEADLKRES	opt_watchdog.h
 EXPERIMENTAL	opt_global.h
-EXT_RESOURCES	opt_global.h
 DIRECTIO
 FILEMON		opt_dontuse.h
 FFCLOCK
@@ -456,7 +461,6 @@ MBUF_PROFILING
 MBUF_STRESS_TEST
 MROUTING		opt_mrouting.h
 NFSLOCKD
-PCBGROUP		opt_pcbgroup.h
 PF_DEFAULT_TO_DROP	opt_pf.h
 ROUTE_MPATH		opt_route.h
 ROUTETABLES		opt_route.h

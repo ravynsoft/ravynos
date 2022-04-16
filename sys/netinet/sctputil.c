@@ -1200,7 +1200,7 @@ sctp_init_asoc(struct sctp_inpcb *inp, struct sctp_tcb *stcb,
 	asoc->str_reset_seq_out = asoc->init_seq_number;
 	asoc->sending_seq = asoc->init_seq_number;
 	asoc->asconf_seq_out_acked = asoc->init_seq_number - 1;
-	/* we are optimisitic here */
+	/* we are optimistic here */
 	asoc->peer_supports_nat = 0;
 	asoc->sent_queue_retran_cnt = 0;
 
@@ -1288,7 +1288,7 @@ sctp_init_asoc(struct sctp_inpcb *inp, struct sctp_tcb *stcb,
 		SCTP_LTRACE_ERR_RET(NULL, stcb, NULL, SCTP_FROM_SCTPUTIL, ENOMEM);
 		return (ENOMEM);
 	}
-	SCTP_TCB_SEND_LOCK(stcb);
+	SCTP_TCB_LOCK(stcb);
 	for (i = 0; i < asoc->streamoutcnt; i++) {
 		/*
 		 * inbound side must be set to 0xffff, also NOTE when we get
@@ -1317,7 +1317,7 @@ sctp_init_asoc(struct sctp_inpcb *inp, struct sctp_tcb *stcb,
 		asoc->strmout[i].state = SCTP_STREAM_OPENING;
 	}
 	asoc->ss_functions.sctp_ss_init(stcb, asoc);
-	SCTP_TCB_SEND_UNLOCK(stcb);
+	SCTP_TCB_UNLOCK(stcb);
 
 	/* Now the mapping array */
 	asoc->mapping_array_size = SCTP_INITIAL_MAPPING_ARRAY;
@@ -2233,7 +2233,7 @@ sctp_timer_start(int t_type, struct sctp_inpcb *inp, struct sctp_tcb *stcb,
 	case SCTP_TIMER_TYPE_RECV:
 		/*
 		 * Here we use the Delayed-Ack timer value from the inp,
-		 * ususually about 200ms.
+		 * usually about 200ms.
 		 */
 		if ((inp == NULL) || (stcb == NULL) || (net != NULL)) {
 #ifdef INVARIANTS
@@ -2337,7 +2337,7 @@ sctp_timer_start(int t_type, struct sctp_inpcb *inp, struct sctp_tcb *stcb,
 		break;
 	case SCTP_TIMER_TYPE_NEWCOOKIE:
 		/*
-		 * Nothing needed but the endpoint here ususually about 60
+		 * Nothing needed but the endpoint here usually about 60
 		 * minutes.
 		 */
 		if ((inp == NULL) || (stcb != NULL) || (net != NULL)) {
@@ -2353,8 +2353,8 @@ sctp_timer_start(int t_type, struct sctp_inpcb *inp, struct sctp_tcb *stcb,
 		break;
 	case SCTP_TIMER_TYPE_PATHMTURAISE:
 		/*
-		 * Here we use the value found in the EP for PMTUD,
-		 * ususually about 10 minutes.
+		 * Here we use the value found in the EP for PMTUD, usually
+		 * about 10 minutes.
 		 */
 		if ((inp == NULL) || (stcb == NULL) || (net == NULL)) {
 #ifdef INVARIANTS
@@ -2468,7 +2468,7 @@ sctp_timer_start(int t_type, struct sctp_inpcb *inp, struct sctp_tcb *stcb,
 		break;
 	case SCTP_TIMER_TYPE_INPKILL:
 		/*
-		 * The inp is setup to die. We re-use the signature_chage
+		 * The inp is setup to die. We re-use the signature_change
 		 * timer since that has stopped and we are in the GONE
 		 * state.
 		 */
@@ -2774,7 +2774,7 @@ sctp_timer_stop(int t_type, struct sctp_inpcb *inp, struct sctp_tcb *stcb,
 		break;
 	case SCTP_TIMER_TYPE_INPKILL:
 		/*
-		 * The inp is setup to die. We re-use the signature_chage
+		 * The inp is setup to die. We re-use the signature_change
 		 * timer since that has stopped and we are in the GONE
 		 * state.
 		 */
@@ -2992,7 +2992,7 @@ sctp_calculate_rto(struct sctp_tcb *stcb,
 			rto_logging(net, SCTP_LOG_RTTVAR);
 		}
 	} else {
-		/* First RTO measurment */
+		/* First RTO measurement */
 		net->RTO_measured = 1;
 		first_measure = 1;
 		net->lastsa = rtt << SCTP_RTT_SHIFT;
@@ -4331,6 +4331,8 @@ sctp_abort_notification(struct sctp_tcb *stcb, bool from_peer, bool timeout,
 	if (stcb == NULL) {
 		return;
 	}
+	SCTP_TCB_LOCK_ASSERT(stcb);
+
 	if ((stcb->sctp_ep->sctp_flags & SCTP_PCB_FLAGS_IN_TCPPOOL) ||
 	    ((stcb->sctp_ep->sctp_flags & SCTP_PCB_FLAGS_TCPTYPE) &&
 	    (stcb->sctp_ep->sctp_flags & SCTP_PCB_FLAGS_CONNECTED))) {
@@ -4341,11 +4343,9 @@ sctp_abort_notification(struct sctp_tcb *stcb, bool from_peer, bool timeout,
 	    (stcb->asoc.state & SCTP_STATE_CLOSED_SOCKET)) {
 		return;
 	}
-	SCTP_TCB_SEND_LOCK(stcb);
 	SCTP_ADD_SUBSTATE(stcb, SCTP_STATE_WAS_ABORTED);
 	/* Tell them we lost the asoc */
 	sctp_report_all_outbound(stcb, error, so_locked);
-	SCTP_TCB_SEND_UNLOCK(stcb);
 	if (from_peer) {
 		sctp_ulp_notify(SCTP_NOTIFY_ASSOC_REM_ABORTED, stcb, error, abort, so_locked);
 	} else {
@@ -5041,6 +5041,8 @@ sctp_release_pr_sctp_chunk(struct sctp_tcb *stcb, struct sctp_tmit_chunk *tp1,
 	int notdone;
 	int do_wakeup_routine = 0;
 
+	SCTP_TCB_LOCK_ASSERT(stcb);
+
 	sid = tp1->rec.data.sid;
 	mid = tp1->rec.data.mid;
 	if (sent || !(tp1->rec.data.rcv_flags & SCTP_DATA_FIRST_FRAG)) {
@@ -5151,7 +5153,6 @@ sctp_release_pr_sctp_chunk(struct sctp_tcb *stcb, struct sctp_tmit_chunk *tp1,
 		 * Still no eom found. That means there is stuff left on the
 		 * stream out queue.. yuck.
 		 */
-		SCTP_TCB_SEND_LOCK(stcb);
 		strq = &stcb->asoc.strmout[sid];
 		sp = TAILQ_FIRST(&strq->outqueue);
 		if (sp != NULL) {
@@ -5233,7 +5234,6 @@ sctp_release_pr_sctp_chunk(struct sctp_tcb *stcb, struct sctp_tmit_chunk *tp1,
 				sp->length = 0;
 			}
 		}
-		SCTP_TCB_SEND_UNLOCK(stcb);
 	}
 	if (do_wakeup_routine) {
 		sctp_sowwakeup(stcb->sctp_ep, stcb->sctp_socket);
@@ -5701,7 +5701,7 @@ restart_nosblocks:
 		} else {
 			/* remove it */
 			TAILQ_REMOVE(&inp->read_queue, control, next);
-			/* Add back any hiddend data */
+			/* Add back any hidden data */
 			sctp_free_remote_addr(control->whoFrom);
 			sctp_free_a_readq(stcb, control);
 		}
@@ -5781,7 +5781,7 @@ restart_nosblocks:
 					 * have the strm interleave feature present. Then if we have
 					 * taken some (pdapi) or we can refer to tht tcb AND we have
 					 * not started a delivery for this stream, we can take it.
-					 * Note we do NOT allow a notificaiton on the same assoc to
+					 * Note we do NOT allow a notification on the same assoc to
 					 * be delivered.
 					 */
 					control = ctl;
@@ -6138,7 +6138,7 @@ get_more_data:
 #ifdef INVARIANTS
 					panic("control->data not null at read eor?");
 #else
-					SCTP_PRINTF("Strange, data left in the control buffer .. invarients would panic?\n");
+					SCTP_PRINTF("Strange, data left in the control buffer .. invariants would panic?\n");
 					sctp_m_freem(control->data);
 					control->data = NULL;
 #endif
@@ -6149,7 +6149,7 @@ get_more_data:
 					hold_rlock = 1;
 				}
 				TAILQ_REMOVE(&inp->read_queue, control, next);
-				/* Add back any hiddend data */
+				/* Add back any hidden data */
 				if (control->held_length) {
 					held_length = 0;
 					control->held_length = 0;
@@ -7094,7 +7094,7 @@ sctp_log_trace(uint32_t subsys, const char *str SCTP_UNUSED, uint32_t a, uint32_
 }
 
 #endif
-static void
+static bool
 sctp_recv_udp_tunneled_packet(struct mbuf *m, int off, struct inpcb *inp,
     const struct sockaddr *sa SCTP_UNUSED, void *ctx SCTP_UNUSED)
 {
@@ -7172,9 +7172,11 @@ sctp_recv_udp_tunneled_packet(struct mbuf *m, int off, struct inpcb *inp,
 		goto out;
 		break;
 	}
-	return;
+	return (true);
 out:
 	m_freem(m);
+
+	return (true);
 }
 
 #ifdef INET

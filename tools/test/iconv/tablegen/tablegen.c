@@ -200,7 +200,7 @@ main (int argc, char *argv[])
 	struct iconv_fallbacks fbs;
 	iconv_t cd;
 	char *tocode;
-	char c;
+	int c;
 
 	while (((c = getopt_long(argc, argv, optstr, long_options, NULL)) != -1)) {
 		switch (c) {
@@ -287,7 +287,7 @@ do_conv(iconv_t cd, bool uniinput) {
 	size_t inbytesleft, outbytesleft, ret;
 	uint32_t outbuf;
 	uint32_t inbuf;
-	const char *inbuf_;
+	char *inbuf_;
 	char *outbuf_;
 
 	for (inbuf = 0; inbuf < (lflag ? 0x100000 : 0x10000); inbuf += 1) {
@@ -297,7 +297,7 @@ do_conv(iconv_t cd, bool uniinput) {
 		outbytesleft = 4;
 		outbuf = 0x00000000;
 		outbuf_ = (char *)&outbuf;
-		inbuf_ = (const char *)&inbuf;
+		inbuf_ = (char *)&inbuf;
 		iconv(cd, NULL, NULL, NULL, NULL);
 		fb_flags = 0;
 		errno = 0;

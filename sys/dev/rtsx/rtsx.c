@@ -97,11 +97,10 @@ struct rtsx_softc {
 			rtsx_card_insert_task;	/* card insert delayed task */
 	struct task	rtsx_card_remove_task;	/* card remove task */
 
-	int		rtsx_res_id;		/* bus memory resource id */
-	struct resource *rtsx_res;		/* bus memory resource */
-	int		rtsx_res_type;		/* bus memory resource type */
-	bus_space_tag_t	rtsx_btag;		/* host register set tag */
-	bus_space_handle_t rtsx_bhandle;	/* host register set handle */
+	int		rtsx_mem_res_id;	/* bus memory resource id */
+	struct resource *rtsx_mem_res;		/* bus memory resource */
+	bus_space_tag_t	   rtsx_mem_btag;	/* host register set tag */
+	bus_space_handle_t rtsx_mem_bhandle;	/* host register set handle */
 
 	bus_dma_tag_t	rtsx_cmd_dma_tag;	/* DMA tag for command transfer */
 	bus_dmamap_t	rtsx_cmd_dmamap;	/* DMA map for command transfer */
@@ -173,7 +172,7 @@ struct rtsx_softc {
 #define	RTSX_RTL8411		0x5289
 #define	RTSX_RTL8411B		0x5287
 
-#define	RTSX_VERSION		"2.1e"
+#define	RTSX_VERSION		"2.1f-1"
 
 static const struct rtsx_device {
 	uint16_t	vendor_id;
@@ -321,9 +320,9 @@ static int	rtsx_resume(device_t dev);
 #define	ISSET(t, f) ((t) & (f))
 
 #define	READ4(sc, reg)						\
-	(bus_space_read_4((sc)->rtsx_btag, (sc)->rtsx_bhandle, (reg)))
+	(bus_space_read_4((sc)->rtsx_mem_btag, (sc)->rtsx_mem_bhandle, (reg)))
 #define	WRITE4(sc, reg, val)					\
-	(bus_space_write_4((sc)->rtsx_btag, (sc)->rtsx_bhandle, (reg), (val)))
+	(bus_space_write_4((sc)->rtsx_mem_btag, (sc)->rtsx_mem_bhandle, (reg), (val)))
 
 #define	RTSX_READ(sc, reg, val) 				\
 	do { 							\
@@ -1320,10 +1319,11 @@ static int
 rtsx_read(struct rtsx_softc *sc, uint16_t addr, uint8_t *val)
 {
 	int	 tries = 1024;
+	uint32_t arg;
 	uint32_t reg;
 
-	WRITE4(sc, RTSX_HAIMR, RTSX_HAIMR_BUSY |
-	    (uint32_t)((addr & 0x3FFF) << 16));
+	arg = RTSX_HAIMR_BUSY | (uint32_t)((addr & 0x3FFF) << 16);
+	WRITE4(sc, RTSX_HAIMR, arg);
 
 	while (tries--) {
 		reg = READ4(sc, RTSX_HAIMR);
@@ -1332,7 +1332,12 @@ rtsx_read(struct rtsx_softc *sc, uint16_t addr, uint8_t *val)
 	}
 	*val = (reg & 0xff);
 
-	return ((tries == 0) ? ETIMEDOUT : 0);
+	if (tries > 0) {
+		return (0);
+	} else {
+		device_printf(sc->rtsx_dev, "rtsx_read(0x%x) timeout\n", arg);
+		return (ETIMEDOUT);
+	}
 }
 
 static int
@@ -1368,21 +1373,25 @@ static int
 rtsx_write(struct rtsx_softc *sc, uint16_t addr, uint8_t mask, uint8_t val)
 {
 	int 	 tries = 1024;
+	uint32_t arg;
 	uint32_t reg;
 
-	WRITE4(sc, RTSX_HAIMR,
-	    RTSX_HAIMR_BUSY | RTSX_HAIMR_WRITE |
-	    (uint32_t)(((addr & 0x3FFF) << 16) |
-	    (mask << 8) | val));
+	arg = RTSX_HAIMR_BUSY | RTSX_HAIMR_WRITE |
+		(uint32_t)(((addr & 0x3FFF) << 16) |
+			   (mask << 8) | val);
+	WRITE4(sc, RTSX_HAIMR, arg);
 
 	while (tries--) {
 		reg = READ4(sc, RTSX_HAIMR);
 		if (!(reg & RTSX_HAIMR_BUSY)) {
-			if (val != (reg & 0xff))
+			if (val != (reg & 0xff)) {
+				device_printf(sc->rtsx_dev, "rtsx_write(0x%x) error reg=0x%x\n", arg, reg);
 				return (EIO);
+			}
 			return (0);
 		}
 	}
+	device_printf(sc->rtsx_dev, "rtsx_write(0x%x) timeout\n", arg);
 
 	return (ETIMEDOUT);
 }
@@ -3528,7 +3537,6 @@ rtsx_mmcbr_release_host(device_t bus, device_t child __unused)
 static int
 rtsx_probe(device_t dev)
 {
-	struct rtsx_softc *sc;
 	uint16_t vendor_id;
 	uint16_t device_id;
 	int	 i;
@@ -3542,8 +3550,6 @@ rtsx_probe(device_t dev)
 		if (rtsx_devices[i].vendor_id == vendor_id &&
 		    rtsx_devices[i].device_id == device_id) {
 			device_set_desc(dev, rtsx_devices[i].desc);
-			sc = device_get_softc(dev);
-			sc->rtsx_device_id = device_id;
 			result = BUS_PROBE_DEFAULT;
 			break;
 		}
@@ -3559,6 +3565,8 @@ static int
 rtsx_attach(device_t dev)
 {
 	struct rtsx_softc 	*sc = device_get_softc(dev);
+	uint16_t 		vendor_id;
+	uint16_t 		device_id;
 	struct sysctl_ctx_list	*ctx;
 	struct sysctl_oid_list	*tree;
 	int			msi_count = 1;
@@ -3569,11 +3577,14 @@ rtsx_attach(device_t dev)
 	char			*product;
 	int			i;
 
+	vendor_id = pci_get_vendor(dev);
+	device_id = pci_get_device(dev);
 	if (bootverbose)
 		device_printf(dev, "Attach - Vendor ID: 0x%x - Device ID: 0x%x\n",
-			      pci_get_vendor(dev), pci_get_device(dev));
+			      vendor_id, device_id);
 
 	sc->rtsx_dev = dev;
+	sc->rtsx_device_id = device_id;
 	sc->rtsx_req = NULL;
 	sc->rtsx_timeout_cmd = 1;
 	sc->rtsx_timeout_io = 10;
@@ -3638,21 +3649,21 @@ rtsx_attach(device_t dev)
 
 	/* Allocate memory resource. */
 	if (sc->rtsx_device_id == RTSX_RTS525A)
-		sc->rtsx_res_id = PCIR_BAR(1);
+		sc->rtsx_mem_res_id = PCIR_BAR(1);
 	else
-		sc->rtsx_res_id = PCIR_BAR(0);
-	sc->rtsx_res = bus_alloc_resource_any(dev, SYS_RES_MEMORY, &sc->rtsx_res_id, RF_ACTIVE);
-	if (sc->rtsx_res == NULL) {
-		device_printf(dev, "Can't allocate memory resource for %d\n", sc->rtsx_res_id);
+		sc->rtsx_mem_res_id = PCIR_BAR(0);
+	sc->rtsx_mem_res = bus_alloc_resource_any(dev, SYS_RES_MEMORY, &sc->rtsx_mem_res_id, RF_ACTIVE);
+	if (sc->rtsx_mem_res == NULL) {
+		device_printf(dev, "Can't allocate memory resource for %d\n", sc->rtsx_mem_res_id);
 		goto destroy_rtsx_irq_res;
 	}
 
 	if (bootverbose)
-		device_printf(dev, "rtsx_irq_res_id: %d, rtsx_res_id: %d\n",
-			      sc->rtsx_irq_res_id, sc->rtsx_res_id);
+		device_printf(dev, "rtsx_irq_res_id: %d, rtsx_mem_res_id: %d\n",
+			      sc->rtsx_irq_res_id, sc->rtsx_mem_res_id);
 
-	sc->rtsx_btag = rman_get_bustag(sc->rtsx_res);
-	sc->rtsx_bhandle = rman_get_bushandle(sc->rtsx_res);
+	sc->rtsx_mem_btag = rman_get_bustag(sc->rtsx_mem_res);
+	sc->rtsx_mem_bhandle = rman_get_bushandle(sc->rtsx_mem_res);
 
 	TIMEOUT_TASK_INIT(taskqueue_swi_giant, &sc->rtsx_card_insert_task, 0,
 			  rtsx_card_task, sc);
@@ -3668,7 +3679,7 @@ rtsx_attach(device_t dev)
 			       NULL, rtsx_intr, sc, &sc->rtsx_irq_cookie);
 	if (error) {
 		device_printf(dev, "Can't set up irq [0x%x]!\n", error);
-		goto destroy_rtsx_res;
+		goto destroy_rtsx_mem_res;
 	}
 	pci_enable_busmaster(dev);
 
@@ -3692,8 +3703,9 @@ rtsx_attach(device_t dev)
 #endif /* MMCCAM */
 
 	/* Initialize device. */
-	if (rtsx_init(sc)) {
-		device_printf(dev, "Error during rtsx_init()\n");
+	error = rtsx_init(sc);
+	if (error) {
+		device_printf(dev, "Error %d during rtsx_init()\n", error);
 		goto destroy_rtsx_irq;
 	}
 
@@ -3718,9 +3730,9 @@ rtsx_attach(device_t dev)
 
  destroy_rtsx_irq:
 	bus_teardown_intr(dev, sc->rtsx_irq_res, sc->rtsx_irq_cookie);
- destroy_rtsx_res:
-	bus_release_resource(dev, SYS_RES_MEMORY, sc->rtsx_res_id,
-			     sc->rtsx_res);
+ destroy_rtsx_mem_res:
+	bus_release_resource(dev, SYS_RES_MEMORY, sc->rtsx_mem_res_id,
+			     sc->rtsx_mem_res);
 	rtsx_dma_free(sc);
  destroy_rtsx_irq_res:
 	callout_drain(&sc->rtsx_timeout_callout);
@@ -3740,7 +3752,7 @@ rtsx_detach(device_t dev)
 
 	if (bootverbose)
 		device_printf(dev, "Detach - Vendor ID: 0x%x - Device ID: 0x%x\n",
-			      pci_get_vendor(dev), pci_get_device(dev));
+			      pci_get_vendor(dev), sc->rtsx_device_id);
 
 	/* Disable interrupts. */
 	sc->rtsx_intr_enabled = 0;
@@ -3757,9 +3769,9 @@ rtsx_detach(device_t dev)
 
 	/* Teardown the state in our softc created in our attach routine. */
 	rtsx_dma_free(sc);
-	if (sc->rtsx_res != NULL)
-		bus_release_resource(dev, SYS_RES_MEMORY, sc->rtsx_res_id,
-				     sc->rtsx_res);
+	if (sc->rtsx_mem_res != NULL)
+		bus_release_resource(dev, SYS_RES_MEMORY, sc->rtsx_mem_res_id,
+				     sc->rtsx_mem_res);
 	if (sc->rtsx_irq_cookie != NULL)
 		bus_teardown_intr(dev, sc->rtsx_irq_res, sc->rtsx_irq_cookie);
 	if (sc->rtsx_irq_res != NULL) {
@@ -3781,8 +3793,6 @@ rtsx_shutdown(device_t dev)
 {
 	if (bootverbose)
 		device_printf(dev, "Shutdown\n");
-
-	rtsx_detach(dev);
 
 	return (0);
 }

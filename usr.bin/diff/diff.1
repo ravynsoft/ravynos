@@ -30,7 +30,7 @@
 .\"     @(#)diff.1	8.1 (Berkeley) 6/30/93
 .\" $FreeBSD$
 .\"
-.Dd June 19, 2020
+.Dd March 10, 2022
 .Dt DIFF 1
 .Os
 .Sh NAME
@@ -44,6 +44,7 @@
 .Fl n | q | u | y
 .Oc
 .Op Fl -brief
+.Op Fl -color Ns = Ns Ar when
 .Op Fl -changed-group-format Ar GFMT
 .Op Fl -ed
 .Op Fl -expand-tabs
@@ -64,13 +65,16 @@
 .Op Fl -text
 .Op Fl -unified
 .Op Fl I Ar pattern | Fl -ignore-matching-lines Ar pattern
+.Op Fl F Ar pattern | Fl -show-function-line Ar pattern
 .Op Fl L Ar label | Fl -label Ar label
 .Ar file1 file2
 .Nm diff
 .Op Fl aBbdilpTtw
 .Op Fl I Ar pattern | Fl -ignore-matching-lines Ar pattern
+.Op Fl F Ar pattern | Fl -show-function-line Ar pattern
 .Op Fl L Ar label | Fl -label Ar label
 .Op Fl -brief
+.Op Fl -color Ns = Ns Ar when
 .Op Fl -changed-group-format Ar GFMT
 .Op Fl -ed
 .Op Fl -expand-tabs
@@ -96,6 +100,7 @@
 .Op Fl aBbdiltw
 .Op Fl I Ar pattern | Fl -ignore-matching-lines Ar pattern
 .Op Fl -brief
+.Op Fl -color Ns = Ns Ar when
 .Op Fl -changed-group-format Ar GFMT
 .Op Fl -ed
 .Op Fl -expand-tabs
@@ -120,8 +125,10 @@
 .Nm diff
 .Op Fl aBbdilpTtw
 .Op Fl I Ar pattern | Fl -ignore-matching-lines Ar pattern
+.Op Fl F Ar pattern | Fl -show-function-line Ar pattern
 .Op Fl L Ar label | Fl -label Ar label
 .Op Fl -brief
+.Op Fl -color Ns = Ns Ar when
 .Op Fl -changed-group-format Ar GFMT
 .Op Fl -ed
 .Op Fl -expand-tabs
@@ -150,6 +157,7 @@
 .Fl n | q | u
 .Oc
 .Op Fl -brief
+.Op Fl -color Ns = Ns Ar when
 .Op Fl -changed-group-format Ar GFMT
 .Op Fl -context
 .Op Fl -ed
@@ -175,6 +183,7 @@
 .Op Fl -unidirectional-new-file
 .Op Fl -unified
 .Op Fl I Ar pattern | Fl -ignore-matching-lines Ar pattern
+.Op Fl F Ar pattern | Fl -show-function-line Ar pattern
 .Bk -words
 .Op Fl L Ar label | Fl -label Ar label
 .Op Fl S Ar name | Fl -starting-file Ar name
@@ -184,6 +193,7 @@
 .Ar dir1 dir2
 .Nm diff
 .Op Fl aBbditwW
+.Op Fl -color Ns = Ns Ar when
 .Op Fl -expand-tabs
 .Op Fl -ignore-all-blanks
 .Op Fl -ignore-blank-lines
@@ -197,6 +207,9 @@
 .Op Fl -width
 .Fl y | Fl -side-by-side
 .Ar file1 file2
+.Nm diff
+.Op Fl -help
+.Op Fl -version
 .Sh DESCRIPTION
 The
 .Nm
@@ -272,6 +285,8 @@ Identical output to that of the
 flag, but in reverse order.
 It cannot be digested by
 .Xr ed 1 .
+.It Fl -help
+This option prints a summary to stdout and exits with status 0.
 .It Fl n
 Produces a script similar to that of
 .Fl e ,
@@ -298,6 +313,8 @@ However, unlike with
 .Fl c ,
 all lines to be changed (added and/or removed) are present in
 a single section.
+.It Fl -version
+This option prints a version string to stdout and exits with status 0.
 .It Fl y Fl -side-by-side
 Output in two columns with a marker between them.
 The marker can be one
@@ -332,10 +349,29 @@ Causes chunks that include only blank lines to be ignored.
 .It Fl b -ignore-space-change
 Causes trailing blanks (spaces and tabs) to be ignored, and other
 strings of blanks to compare equal.
+.It Fl -color= Ns Oo Ar when Oc
+Color the additions green, and removals red, or the value in the
+.Ev DIFFCOLORS
+environment variable.
+The possible values of
+.Ar when
+are
+.Dq Cm never ,
+.Dq Cm always
+and
+.Dq Cm auto .
+.Cm auto
+will use color if the output is a tty and the
+.Ev COLORTERM
+environment variable is set to a non-empty string.
 .It Fl d -minimal
 Try very hard to produce a diff as small as possible.
 This may consume a lot of processing power and memory when processing
 large files with many changes.
+.It Fl F Ar pattern, Fl -show-function-line Ar pattern
+Like
+.Fl p,
+but display the last line that matches provided pattern.
 .It Fl I Ar pattern Fl -ignore-matching-lines Ar pattern
 Ignores changes, insertions, and deletions whose lines match the
 extended regular expression
@@ -367,8 +403,8 @@ file name and time in the context or unified diff header.
 With unified and context diffs, show with each change
 the first 40 characters of the last line before the context beginning
 with a letter, an underscore or a dollar sign.
-For C source code following standard layout conventions, this will
-show the prototype of the function the change applies to.
+For C and Objective-C source code following standard layout conventions, this
+will show the prototype of the function the change applies to.
 .It Fl T -initial-tab
 Print a tab rather than a space before the rest of the line for the
 normal, context or unified output formats.
@@ -592,6 +628,20 @@ As in
 identical
 pairs (where num1 = num2) are abbreviated as a single
 number.
+.Sh ENVIRONMENT
+.Bl -tag -width DIFFCOLORS
+.It Ev DIFFCOLORS
+The value of this variable is the form
+.Ar add Ns : Ns Ar rm ,
+where
+.Ar add
+is the ASCII escape sequence for additions and
+.Ar rm
+is the ASCII escape sequence for deletions.
+If this is unset,
+.Nm
+uses green for additions and red for removals.
+.El
 .Sh FILES
 .Bl -tag -width /tmp/diff.XXXXXXXX -compact
 .It Pa /tmp/diff.XXXXXXXX
@@ -612,6 +662,12 @@ Differences were found.
 .It >1
 An error occurred.
 .El
+.Pp
+The
+.Fl -help
+and
+.Fl -version
+options exit with a status of 0.
 .Sh EXAMPLES
 Compare
 .Pa old_dir

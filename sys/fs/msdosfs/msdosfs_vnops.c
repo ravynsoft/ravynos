@@ -796,8 +796,8 @@ msdosfs_write(struct vop_write_args *ap)
 			bawrite(bp);
 		else if (n + croffset == pmp->pm_bpcluster) {
 			if ((vp->v_mount->mnt_flag & MNT_NOCLUSTERW) == 0)
-				cluster_write(vp, bp, dep->de_FileSize,
-				    seqcount, 0);
+				cluster_write(vp, &dep->de_clusterw, bp,
+				    dep->de_FileSize, seqcount, 0);
 			else
 				bawrite(bp);
 		} else
@@ -1104,7 +1104,7 @@ relock:
 	 * to namei, as the parent directory is unlocked by the
 	 * call to doscheckpath().
 	 */
-	error = VOP_ACCESS(fvp, VWRITE, tcnp->cn_cred, tcnp->cn_thread);
+	error = VOP_ACCESS(fvp, VWRITE, tcnp->cn_cred, curthread);
 	if (fdip->de_StartCluster != tdip->de_StartCluster)
 		newparent = true;
 	if (doingdirectory && newparent) {
@@ -1517,7 +1517,7 @@ msdosfs_readdir(struct vop_readdir_args *ap)
 	struct direntry *dentp;
 	struct dirent dirbuf;
 	struct uio *uio = ap->a_uio;
-	u_long *cookies = NULL;
+	uint64_t *cookies = NULL;
 	int ncookies = 0;
 	off_t offset, off;
 	int chksum = -1;
@@ -1553,7 +1553,7 @@ msdosfs_readdir(struct vop_readdir_args *ap)
 
 	if (ap->a_ncookies) {
 		ncookies = uio->uio_resid / 16;
-		cookies = malloc(ncookies * sizeof(u_long), M_TEMP,
+		cookies = malloc(ncookies * sizeof(*cookies), M_TEMP,
 		       M_WAITOK);
 		*ap->a_cookies = cookies;
 		*ap->a_ncookies = ncookies;

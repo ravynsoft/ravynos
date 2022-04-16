@@ -2975,7 +2975,6 @@ softdep_journal_lookup(mp, vpp)
 	bzero(&cnp, sizeof(cnp));
 	cnp.cn_nameiop = LOOKUP;
 	cnp.cn_flags = ISLASTCN;
-	cnp.cn_thread = curthread;
 	cnp.cn_cred = curthread->td_ucred;
 	cnp.cn_pnbuf = SUJ_FILE;
 	cnp.cn_nameptr = SUJ_FILE;
@@ -3219,8 +3218,7 @@ journal_unsuspend(struct ufsmount *ump)
 }
 
 static void
-journal_check_space(ump)
-	struct ufsmount *ump;
+journal_check_space(struct ufsmount *ump)
 {
 	struct mount *mp;
 
@@ -14047,7 +14045,7 @@ schedule_cleanup(struct mount *mp)
 		/*
 		 * No ast is delivered to kernel threads, so nobody
 		 * would deref the mp.  Some kernel threads
-		 * explicitely check for AST, e.g. NFS daemon does
+		 * explicitly check for AST, e.g. NFS daemon does
 		 * this in the serving loop.
 		 */
 		return;

@@ -231,7 +231,7 @@ struct zthr {
 	const char	*zthr_name;
 };
 
-static void
+static __attribute__((noreturn)) void
 zthr_procedure(void *arg)
 {
 	zthr_t *t = arg;

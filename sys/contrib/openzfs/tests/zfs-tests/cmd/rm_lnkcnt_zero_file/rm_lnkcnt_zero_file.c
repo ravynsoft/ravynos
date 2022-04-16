@@ -45,7 +45,6 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <strings.h>
 
 static char *filebase;
 
@@ -55,10 +54,10 @@ pickidx(void)
 	return (random() % 1000);
 }
 
-/* ARGSUSED */
 static void *
 mover(void *a)
 {
+	(void) a;
 	char buf[256];
 	int idx, len, ret;
 
@@ -75,10 +74,10 @@ mover(void *a)
 	return (NULL);
 }
 
-/* ARGSUSED */
 static void *
 cleaner(void *a)
 {
+	(void) a;
 	char buf[256];
 	int idx, len, ret;
 

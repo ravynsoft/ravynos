@@ -42,6 +42,8 @@
 #include <assert.h>
 
 #define	PCI_BARMAX	PCIR_MAX_BAR_0	/* BAR registers in a Type 0 header */
+#define PCI_BARMAX_WITH_ROM (PCI_BARMAX + 1)
+#define PCI_ROM_IDX (PCI_BARMAX + 1)
 
 struct vmctx;
 struct pci_devinst;
@@ -92,7 +94,8 @@ enum pcibar_type {
 	PCIBAR_IO,
 	PCIBAR_MEM32,
 	PCIBAR_MEM64,
-	PCIBAR_MEMHI64
+	PCIBAR_MEMHI64,
+	PCIBAR_ROM,
 };
 
 struct pcibar {
@@ -110,7 +113,7 @@ struct msix_table_entry {
 	uint32_t	vector_control;
 } __packed;
 
-/* 
+/*
  * In case the structure is modified to hold extra information, use a define
  * for the size that should be emulated.
  */
@@ -156,7 +159,7 @@ struct pci_devinst {
 		int	table_count;
 		uint32_t pba_offset;
 		int	pba_size;
-		int	function_mask; 	
+		int	function_mask;
 		struct msix_table_entry *table;	/* allocated at runtime */
 		uint8_t *mapped_addr;
 		size_t	mapped_size;
@@ -165,7 +168,9 @@ struct pci_devinst {
 	void      *pi_arg;		/* devemu-private data */
 
 	u_char	  pi_cfgdata[PCI_REGMAX + 1];
-	struct pcibar pi_bar[PCI_BARMAX + 1];
+	/* ROM is handled like a BAR */
+	struct pcibar pi_bar[PCI_BARMAX_WITH_ROM + 1];
+	uint64_t pi_romoffset;
 };
 
 struct msicap {
@@ -229,6 +234,8 @@ int	init_pci(struct vmctx *ctx);
 void	pci_callback(void);
 int	pci_emul_alloc_bar(struct pci_devinst *pdi, int idx,
 	    enum pcibar_type type, uint64_t size);
+int 	pci_emul_alloc_rom(struct pci_devinst *const pdi, const uint64_t size,
+    	    void **const addr);
 int	pci_emul_add_msicap(struct pci_devinst *pi, int msgnum);
 int	pci_emul_add_pciecap(struct pci_devinst *pi, int pcie_device_type);
 void	pci_emul_capwrite(struct pci_devinst *pi, int offset, int bytes,
@@ -263,21 +270,21 @@ int	pci_pause(struct vmctx *ctx, const char *dev_name);
 int	pci_resume(struct vmctx *ctx, const char *dev_name);
 #endif
 
-static __inline void 
+static __inline void
 pci_set_cfgdata8(struct pci_devinst *pi, int offset, uint8_t val)
 {
 	assert(offset <= PCI_REGMAX);
 	*(uint8_t *)(pi->pi_cfgdata + offset) = val;
 }
 
-static __inline void 
+static __inline void
 pci_set_cfgdata16(struct pci_devinst *pi, int offset, uint16_t val)
 {
 	assert(offset <= (PCI_REGMAX - 1) && (offset & 1) == 0);
 	*(uint16_t *)(pi->pi_cfgdata + offset) = val;
 }
 
-static __inline void 
+static __inline void
 pci_set_cfgdata32(struct pci_devinst *pi, int offset, uint32_t val)
 {
 	assert(offset <= (PCI_REGMAX - 3) && (offset & 3) == 0);

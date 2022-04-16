@@ -76,7 +76,6 @@
 #define	MNTK_NOMSYNC	8
 #endif
 
-/* BEGIN CSTYLED */
 struct mtx zfs_debug_mtx;
 MTX_SYSINIT(zfs_debug_mtx, &zfs_debug_mtx, "zfs_debug", MTX_DEF);
 
@@ -84,7 +83,7 @@ SYSCTL_NODE(_vfs, OID_AUTO, zfs, CTLFLAG_RW, 0, "ZFS file system");
 
 int zfs_super_owner;
 SYSCTL_INT(_vfs_zfs, OID_AUTO, super_owner, CTLFLAG_RW, &zfs_super_owner, 0,
-    "File system owner can perform privileged operation on his file systems");
+	"File system owners can perform privileged operation on file systems");
 
 int zfs_debug_level;
 SYSCTL_INT(_vfs_zfs, OID_AUTO, debug, CTLFLAG_RWTUN, &zfs_debug_level, 0,
@@ -93,14 +92,13 @@ SYSCTL_INT(_vfs_zfs, OID_AUTO, debug, CTLFLAG_RWTUN, &zfs_debug_level, 0,
 SYSCTL_NODE(_vfs_zfs, OID_AUTO, version, CTLFLAG_RD, 0, "ZFS versions");
 static int zfs_version_acl = ZFS_ACL_VERSION;
 SYSCTL_INT(_vfs_zfs_version, OID_AUTO, acl, CTLFLAG_RD, &zfs_version_acl, 0,
-    "ZFS_ACL_VERSION");
+	"ZFS_ACL_VERSION");
 static int zfs_version_spa = SPA_VERSION;
 SYSCTL_INT(_vfs_zfs_version, OID_AUTO, spa, CTLFLAG_RD, &zfs_version_spa, 0,
-    "SPA_VERSION");
+	"SPA_VERSION");
 static int zfs_version_zpl = ZPL_VERSION;
 SYSCTL_INT(_vfs_zfs_version, OID_AUTO, zpl, CTLFLAG_RD, &zfs_version_zpl, 0,
-    "ZPL_VERSION");
-/* END CSTYLED */
+	"ZPL_VERSION");
 
 #if __FreeBSD_version >= 1400018
 static int zfs_quotactl(vfs_t *vfsp, int cmds, uid_t id, void *arg,
@@ -399,7 +397,6 @@ zfs_is_readonly(zfsvfs_t *zfsvfs)
 	return (!!(zfsvfs->z_vfs->vfs_flag & VFS_RDONLY));
 }
 
-/*ARGSUSED*/
 static int
 zfs_sync(vfs_t *vfsp, int waitfor)
 {
@@ -585,14 +582,6 @@ snapdir_changed_cb(void *arg, uint64_t newval)
 }
 
 static void
-vscan_changed_cb(void *arg, uint64_t newval)
-{
-	zfsvfs_t *zfsvfs = arg;
-
-	zfsvfs->z_vscan = newval;
-}
-
-static void
 acl_mode_changed_cb(void *arg, uint64_t newval)
 {
 	zfsvfs_t *zfsvfs = arg;
@@ -753,8 +742,6 @@ zfs_register_callbacks(vfs_t *vfsp)
 	error = error ? error : dsl_prop_register(ds,
 	    zfs_prop_to_name(ZFS_PROP_ACLINHERIT), acl_inherit_changed_cb,
 	    zfsvfs);
-	error = error ? error : dsl_prop_register(ds,
-	    zfs_prop_to_name(ZFS_PROP_VSCAN), vscan_changed_cb, zfsvfs);
 	dsl_pool_config_exit(dmu_objset_pool(os), FTAG);
 	if (error)
 		goto unregister;
@@ -1322,7 +1309,6 @@ fetch_osname_options(char *name, bool *checkpointrewind)
 	}
 }
 
-/*ARGSUSED*/
 static int
 zfs_mount(vfs_t *vfsp)
 {
@@ -1653,7 +1639,6 @@ zfsvfs_teardown(zfsvfs_t *zfsvfs, boolean_t unmounting)
 	return (0);
 }
 
-/*ARGSUSED*/
 static int
 zfs_umount(vfs_t *vfsp, int fflag)
 {
@@ -1789,8 +1774,10 @@ zfs_checkexp(vfs_t *vfsp, struct sockaddr *nam, int *extflagsp,
 	    credanonp, numsecflavors, secflavors));
 }
 
-CTASSERT(SHORT_FID_LEN <= sizeof (struct fid));
-CTASSERT(LONG_FID_LEN <= sizeof (struct fid));
+_Static_assert(sizeof (struct fid) >= SHORT_FID_LEN,
+	"struct fid bigger than SHORT_FID_LEN");
+_Static_assert(sizeof (struct fid) >= LONG_FID_LEN,
+	"struct fid bigger than LONG_FID_LEN");
 
 static int
 zfs_fhtovp(vfs_t *vfsp, fid_t *fidp, int flags, vnode_t **vpp)

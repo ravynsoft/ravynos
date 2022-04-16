@@ -55,6 +55,9 @@ __FBSDID("$FreeBSD$");
 
 static struct ofw_compat_data compat_data[] = {
 	{ "opencores,i2c-ocores",	1 },
+	{ "sifive,fu740-c000-i2c",	1 },
+	{ "sifive,fu540-c000-i2c",	1 },
+	{ "sifive,i2c0",		1 },
 	{ NULL,				0 }
 };
 
@@ -182,6 +185,7 @@ static driver_t iicoc_driver = {
 	sizeof(struct iicoc_softc),
 };
 
+SIMPLEBUS_PNP_INFO(compat_data);
 DRIVER_MODULE(iicoc, simplebus, iicoc_driver, iicoc_devclass, 0, 0);
 DRIVER_MODULE(ofw_iicbus, iicoc, ofw_iicbus_driver, ofw_iicbus_devclass, 0, 0);
 MODULE_DEPEND(iicoc, iicbus, 1, 1, 1);

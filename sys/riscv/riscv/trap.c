@@ -94,7 +94,7 @@ int
 cpu_fetch_syscall_args(struct thread *td)
 {
 	struct proc *p;
-	register_t *ap, *dst_ap;
+	syscallarg_t *ap, *dst_ap;
 	struct syscall_args *sa;
 
 	p = td->td_proc;
@@ -103,6 +103,7 @@ cpu_fetch_syscall_args(struct thread *td)
 	dst_ap = &sa->args[0];
 
 	sa->code = td->td_frame->tf_t[0];
+	sa->original_code = sa->code;
 
 	if (__predict_false(sa->code == SYS_syscall || sa->code == SYS___syscall)) {
 		sa->code = *ap++;
@@ -118,7 +119,7 @@ cpu_fetch_syscall_args(struct thread *td)
 	KASSERT(sa->callp->sy_narg <= nitems(sa->args),
 	    ("Syscall %d takes too many arguments", sa->code));
 
-	memcpy(dst_ap, ap, (NARGREG - 1) * sizeof(register_t));
+	memcpy(dst_ap, ap, (NARGREG - 1) * sizeof(*dst_ap));
 
 	td->td_retval[0] = 0;
 	td->td_retval[1] = 0;
@@ -204,7 +205,7 @@ page_fault_handler(struct trapframe *frame, int usermode)
 			    frame->tf_scause & SCAUSE_CODE);
 			goto done;
 		}
-		map = &td->td_proc->p_vmspace->vm_map;
+		map = &p->p_vmspace->vm_map;
 	} else {
 		/*
 		 * Enable interrupts for the duration of the page fault. For
@@ -220,7 +221,7 @@ page_fault_handler(struct trapframe *frame, int usermode)
 		} else {
 			if (pcb->pcb_onfault == 0)
 				goto fatal;
-			map = &td->td_proc->p_vmspace->vm_map;
+			map = &p->p_vmspace->vm_map;
 		}
 	}
 

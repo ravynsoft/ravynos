@@ -36,26 +36,33 @@
 .Cm -a Ar address
 .Op Fl f Ar device
 .Op Fl d Ar r|w
-.Op Fl w Ar 0|8|16
+.Op Fl w Ar 0|8|16|16LE|16BE
 .Op Fl o Ar offset
 .Op Fl c Ar count
 .Op Fl m Ar tr|ss|rs|no
 .Op Fl b
 .Op Fl v
 .Nm
-.Cm -s
-.Op Fl f Ar device
-.Op Fl n Ar skip_addr
+.Cm -h
+.Nm
+.Cm -i
 .Op Fl v
+.Op Ar cmd ...
+.Op Ar -
 .Nm
 .Cm -r
 .Op Fl f Ar device
 .Op Fl v
+.Nm
+.Cm -s
+.Op Fl f Ar device
+.Op Fl n Ar skip_addr
+.Op Fl v
 .Sh DESCRIPTION
 The
 .Nm
-utility can be used to perform raw data transfers (read or write) with devices
-on the I2C bus.
+utility can be used to perform raw data transfers (read or write) to devices
+on an I2C bus.
 It can also scan the bus for available devices and reset the I2C controller.
 .Pp
 The options are as follows:
@@ -64,14 +71,18 @@ The options are as follows:
 7-bit address on the I2C device to operate on (hex).
 .It Fl b
 binary mode - when performing a read operation, the data read from the device
-is output in binary format on stdout; when doing a write, the binary data to
-be written to the device is read from stdin.
+is output in binary format on stdout.
 .It Fl c Ar count
-number of bytes to transfer (dec).
+number of bytes to transfer (decimal).
 .It Fl d Ar r|w
 transfer direction: r - read, w - write.
+Data to be written is read from stdin as binary bytes.
 .It Fl f Ar device
 I2C bus to use (default is /dev/iic0).
+.It Fl i
+Interpreted mode
+.It Fl h
+Help
 .It Fl m Ar tr|ss|rs|no
 addressing mode, i.e., I2C bus operations performed after the offset for the
 transfer has been written to the device and before the actual read/write
@@ -96,10 +107,9 @@ mode creates control structures describing the transfer and submits them
 to the driver as a single complete transaction.
 This mode works on all types of I2C hardware.
 .It Fl n Ar skip_addr
-skip address - address(es) to be skipped during bus scan.
-There are two ways to specify addresses to ignore: by range 'a..b' or
-using selected addresses 'a:b:c'. This option is available only when "-s" is
-used.
+address(es) to be skipped during bus scan.
+One or more addresses ([0x]xx) or ranges of addresses
+([0x]xx-[0x]xx or [0x]xx..[0x]xx) separated by commas or colons.
 .It Fl o Ar offset
 offset within the device for data transfer (hex).
 The default is zero.
@@ -112,37 +122,47 @@ reset the controller.
 scan the bus for devices.
 .It Fl v
 be verbose.
-.It Fl w Ar 0|8|16
-device addressing width (in bits).
+.It Fl w Ar 0|8|16|16LE|16BE
+device offset width (in bits).
 This is used to determine how to pass
 .Ar offset
 specified with
 .Fl o
 to the slave.
 Zero means that the offset is ignored and not passed to the slave at all.
+The endianess defaults to little-endian.
 .El
-.Sh WARNINGS
-Great care must be taken when manipulating slave I2C devices with the
-.Nm
-utility.
-Often times important configuration data for the system is kept in non-volatile
-but write enabled memories located on the I2C bus, for example Ethernet hardware
-addresses, RAM module parameters (SPD), processor reset configuration word etc.
+.Sh INTERPRETED MODE
+When started with
+.Fl i
+any remaining arguments are interpreted as commands, and
+if the last argument is '-', or there are no arguments,
+commands will (also) be read from stdin.
 .Pp
-It is very easy to render the whole system unusable when such configuration
-data is deleted or altered, so use the
-.Dq -d w
-(write) command only if you know exactly what you are doing.
+Available commands:
+.Bl -tag -compact
+.It 'r' bus address [0|8|16|16LE|16BE] offset count
+Read command, count bytes are read and hexdumped to stdout.
+.It 'w' bus address [0|8|16|16LE|16BE] offset hexstring
+Write command, hexstring (white-space is allowed) is written to device.
+.It 'p' anything
+Print command, the entire line is printed to stdout.  (This can be used
+for synchronization.)
+.El
 .Pp
-Also avoid ungraceful interrupting of an ongoing transaction on the I2C bus,
-as it can lead to potentially dangerous effects.
-Consider the following scenario: when the host CPU is reset (for whatever reason)
-in the middle of a started I2C transaction, the I2C slave device could be left
-in write mode waiting for data or offset to arrive.
-When the CPU reinitializes itself and talks to this I2C slave device again,
-the commands and other control info it sends are treated by the slave device
-as data or offset it was waiting for, and there's great potential for
-corruption if such a write is performed.
+All numeric fields accept canonical decimal/octal/hex notation.
+.Pp
+Without the
+.Fl v
+option, all errors are fatal with non-zero exit status.
+.Pp
+With the
+.Fl v
+option, no errors are fatal, and all commands will return
+either "OK\en" or "ERROR\en" on stdout.
+In case of error, detailed diagnostics will precede that on stderr.
+.Pp
+Blank lines and lines starting with '#' are ignored.
 .Sh EXAMPLES
 .Bl -bullet
 .It
@@ -150,15 +170,10 @@ Scan the default bus (/dev/iic0) for devices:
 .Pp
 i2c -s
 .It
-Scan the default bus (/dev/iic0) for devices and skip addresses 0x56 and
-0x45.
+Scan the default bus (/dev/iic0) for devices and skip addresses 
+0x45 to 0x47 (inclusive) and 0x56.
 .Pp
-i2c -s -n 0x56:0x45
-.It
-Scan the default bus (/dev/iic0) for devices and skip address range
-0x34 to 0x56.
-.Pp
-i2c -s -n 0x34..0x56
+i2c -s -n 0x56,45-47
 .It
 Read 8 bytes of data from device at address 0x56 (e.g., an EEPROM):
 .Pp
@@ -175,10 +190,24 @@ i2c -a 0x56 -f /dev/iic1 -d r -c 0x4 -b | i2c -a 0x57 -f /dev/iic0 -d w -c 4 -b
 Reset the controller:
 .Pp
 i2c -f /dev/iic1 -r
+.It
+Read 8 bytes at address 24 in an EEPROM:
+.Pp
+i2c -i 'r 0 0x50 16BE 24 8'
+.It
+Read 2x8 bytes at address 24 and 48 in an EEPROM:
+.Pp
+echo 'r 0 0x50 16BE 48 8' | i2c -i 'r 0 0x50 16BE 24 8' -
 .El
+.Sh WARNING
+Many systems store critical low-level information in I2C memories, and
+may contain other I2C devices, such as temperature or voltage sensors.
+Reading these can disturb the firmware's operation and writing to them
+can "brick" the hardware.
 .Sh SEE ALSO
 .Xr iic 4 ,
 .Xr iicbus 4
+.Xr smbus 4
 .Sh HISTORY
 The
 .Nm
@@ -192,3 +221,6 @@ utility and this manual page were written by
 .An Bartlomiej Sieka Aq Mt tur@semihalf.com
 and
 .An Michal Hajduk Aq Mt mih@semihalf.com .
+.Pp
+.An Poul-Henning Kamp Aq Mt phk@FreeBSD.org
+added interpreted mode.

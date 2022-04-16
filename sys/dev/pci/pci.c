@@ -46,6 +46,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/malloc.h>
 #include <sys/module.h>
 #include <sys/queue.h>
+#include <sys/sbuf.h>
 #include <sys/sysctl.h>
 #include <sys/systm.h>
 #include <sys/taskqueue.h>
@@ -137,7 +138,6 @@ static int		pci_reset_child(device_t dev, device_t child,
 
 static int		pci_get_id_method(device_t dev, device_t child,
 			    enum pci_id_type type, uintptr_t *rid);
-
 static struct pci_devinfo * pci_fill_devinfo(device_t pcib, device_t bus, int d,
     int b, int s, int f, uint16_t vid, uint16_t did);
 
@@ -174,8 +174,9 @@ static device_method_t pci_methods[] = {
 	DEVMETHOD(bus_deactivate_resource, pci_deactivate_resource),
 	DEVMETHOD(bus_child_deleted,	pci_child_deleted),
 	DEVMETHOD(bus_child_detached,	pci_child_detached),
-	DEVMETHOD(bus_child_pnpinfo_str, pci_child_pnpinfo_str_method),
-	DEVMETHOD(bus_child_location_str, pci_child_location_str_method),
+	DEVMETHOD(bus_child_pnpinfo,	pci_child_pnpinfo_method),
+	DEVMETHOD(bus_child_location,	pci_child_location_method),
+	DEVMETHOD(bus_get_device_path,	pci_get_device_path_method),
 	DEVMETHOD(bus_hint_device_unit,	pci_hint_device_unit),
 	DEVMETHOD(bus_remap_intr,	pci_remap_intr_method),
 	DEVMETHOD(bus_suspend_child,	pci_suspend_child),
@@ -4540,6 +4541,7 @@ pci_hint_device_unit(device_t dev, device_t child, const char *name, int *unitp)
 	char me1[24], me2[32];
 	uint8_t b, s, f;
 	uint32_t d;
+	device_location_cache_t *cache;
 
 	d = pci_get_domain(child);
 	b = pci_get_bus(child);
@@ -4548,13 +4550,19 @@ pci_hint_device_unit(device_t dev, device_t child, const char *name, int *unitp)
 	snprintf(me1, sizeof(me1), "pci%u:%u:%u", b, s, f);
 	snprintf(me2, sizeof(me2), "pci%u:%u:%u:%u", d, b, s, f);
 	line = 0;
+	cache = dev_wired_cache_init();
 	while (resource_find_dev(&line, name, &unit, "at", NULL) == 0) {
 		resource_string_value(name, unit, "at", &at);
-		if (strcmp(at, me1) != 0 && strcmp(at, me2) != 0)
-			continue; /* No match, try next candidate */
-		*unitp = unit;
-		return;
+		if (strcmp(at, me1) == 0 || strcmp(at, me2) == 0) {
+			*unitp = unit;
+			break;
+		}
+		if (dev_wired_cache_match(cache, child, at)) {
+			*unitp = unit;
+			break;
+		}
 	}
+	dev_wired_cache_fini(cache);
 }
 
 static void
@@ -5637,7 +5645,7 @@ pci_release_resource(device_t dev, device_t child, int type, int rid,
 {
 	struct pci_devinfo *dinfo;
 	struct resource_list *rl;
-	pcicfgregs *cfg;
+	pcicfgregs *cfg __unused;
 
 	if (device_get_parent(child) != dev)
 		return (BUS_RELEASE_RESOURCE(device_get_parent(dev), child,
@@ -5647,7 +5655,7 @@ pci_release_resource(device_t dev, device_t child, int type, int rid,
 	cfg = &dinfo->cfg;
 
 #ifdef PCI_IOV
-	if (dinfo->cfg.flags & PCICFG_VF) {
+	if (cfg->flags & PCICFG_VF) {
 		switch (type) {
 		/* VFs can't have I/O BARs. */
 		case SYS_RES_IOPORT:
@@ -5892,30 +5900,46 @@ pci_write_config_method(device_t dev, device_t child, int reg,
 }
 
 int
-pci_child_location_str_method(device_t dev, device_t child, char *buf,
-    size_t buflen)
+pci_child_location_method(device_t dev, device_t child, struct sbuf *sb)
 {
 
-	snprintf(buf, buflen, "slot=%d function=%d dbsf=pci%d:%d:%d:%d",
+	sbuf_printf(sb, "slot=%d function=%d dbsf=pci%d:%d:%d:%d",
 	    pci_get_slot(child), pci_get_function(child), pci_get_domain(child),
 	    pci_get_bus(child), pci_get_slot(child), pci_get_function(child));
 	return (0);
 }
 
 int
-pci_child_pnpinfo_str_method(device_t dev, device_t child, char *buf,
-    size_t buflen)
+pci_child_pnpinfo_method(device_t dev, device_t child, struct sbuf *sb)
 {
 	struct pci_devinfo *dinfo;
 	pcicfgregs *cfg;
 
 	dinfo = device_get_ivars(child);
 	cfg = &dinfo->cfg;
-	snprintf(buf, buflen, "vendor=0x%04x device=0x%04x subvendor=0x%04x "
+	sbuf_printf(sb, "vendor=0x%04x device=0x%04x subvendor=0x%04x "
 	    "subdevice=0x%04x class=0x%02x%02x%02x", cfg->vendor, cfg->device,
 	    cfg->subvendor, cfg->subdevice, cfg->baseclass, cfg->subclass,
 	    cfg->progif);
 	return (0);
+}
+
+int
+pci_get_device_path_method(device_t bus, device_t child, const char *locator,
+    struct sbuf *sb)
+{
+	device_t parent = device_get_parent(bus);
+	int rv;
+
+	if (strcmp(locator, BUS_LOCATOR_UEFI) == 0) {
+		rv = bus_generic_get_device_path(parent, bus, locator, sb);
+		if (rv == 0) {
+			sbuf_printf(sb, "/Pci(0x%x,0x%x)", pci_get_slot(child),
+			    pci_get_function(child));
+		}
+		return (0);
+	}
+	return (bus_generic_get_device_path(bus, child, locator, sb));
 }
 
 int

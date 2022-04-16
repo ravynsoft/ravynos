@@ -14,6 +14,7 @@ SUBDIR=	alias \
 	beep \
 	brandelf \
 	bsdcat \
+	bsddialog \
 	bsdiff \
 	bzip2 \
 	bzip2recover \
@@ -100,6 +101,7 @@ SUBDIR=	alias \
 	mkuzip \
 	mt \
 	ncal \
+	ncurses \
 	netstat \
 	newgrp \
 	nfsstat \
@@ -150,7 +152,6 @@ SUBDIR=	alias \
 	strings \
 	su \
 	systat \
-	tabs \
 	tail \
 	tar \
 	tcopy \
@@ -160,11 +161,9 @@ SUBDIR=	alias \
 	tip \
 	top \
 	touch \
-	tput \
 	tr \
 	true \
 	truncate \
-	tset \
 	tsort \
 	tty \
 	uname \
@@ -294,8 +293,6 @@ SUBDIR.${MK_UTMPX}+=	last
 SUBDIR.${MK_UTMPX}+=	users
 .endif
 SUBDIR.${MK_UTMPX}+=	who
-SUBDIR.${MK_SVN}+=	svn
-SUBDIR.${MK_SVNLITE}+=	svn
 SUBDIR.${MK_OFED}+=	ofed
 
 .include <bsd.arch.inc.mk>

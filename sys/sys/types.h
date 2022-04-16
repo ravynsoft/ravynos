@@ -193,7 +193,7 @@ typedef	__rlim_t	rlim_t;		/* resource limit */
 #define	_RLIM_T_DECLARED
 #endif
 
-typedef	__int64_t	sbintime_t;
+typedef	__sbintime_t	sbintime_t;
 
 typedef	__segsz_t	segsz_t;	/* segment size (in pages) */
 
@@ -269,6 +269,8 @@ typedef	__uint64_t	vm_pindex_t;
 typedef	__vm_size_t	vm_size_t;
 
 typedef __rman_res_t    rman_res_t;
+
+typedef __register_t	syscallarg_t;
 
 #ifdef _KERNEL
 typedef	int		boolean_t;

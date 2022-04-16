@@ -42,8 +42,10 @@ __FBSDID("$FreeBSD$");
 #include <sys/bus.h>
 #include <sys/callout.h>
 #include <sys/ktr.h>
+#include <sys/lock.h>
 #include <sys/mbuf.h>
 #include <sys/memdesc.h>
+#include <sys/mutex.h>
 #include <sys/proc.h>
 #include <sys/uio.h>
 
@@ -58,6 +60,43 @@ __FBSDID("$FreeBSD$");
 #include <opencrypto/cryptodev.h>
 
 #include <machine/bus.h>
+
+/*
+ * Convenience function for manipulating driver locks from busdma (during
+ * busdma_swi, for example).
+ */
+void
+busdma_lock_mutex(void *arg, bus_dma_lock_op_t op)
+{
+	struct mtx *dmtx;
+
+	dmtx = (struct mtx *)arg;
+	switch (op) {
+	case BUS_DMA_LOCK:
+		mtx_lock(dmtx);
+		break;
+	case BUS_DMA_UNLOCK:
+		mtx_unlock(dmtx);
+		break;
+	default:
+		panic("Unknown operation 0x%x for busdma_lock_mutex!", op);
+	}
+}
+
+/*
+ * dflt_lock should never get called.  It gets put into the dma tag when
+ * lockfunc == NULL, which is only valid if the maps that are associated
+ * with the tag are meant to never be deferred.
+ *
+ * XXX Should have a way to identify which driver is responsible here.
+ */
+void
+_busdma_dflt_lock(void *arg, bus_dma_lock_op_t op)
+{
+
+	panic("driver error: _bus_dma_dflt_lock called");
+}
+
 
 /*
  * Load up data starting at offset within a region specified by a
@@ -408,6 +447,11 @@ bus_dmamap_load(bus_dma_tag_t dmat, bus_dmamap_t map, void *buf,
 	int error;
 	int nsegs;
 
+#ifdef KMSAN
+	mem = memdesc_vaddr(buf, buflen);
+	_bus_dmamap_load_kmsan(dmat, map, &mem);
+#endif
+
 	if ((flags & BUS_DMA_NOWAIT) == 0) {
 		mem = memdesc_vaddr(buf, buflen);
 		_bus_dmamap_waitok(dmat, map, &mem, callback, callback_arg);
@@ -449,6 +493,11 @@ bus_dmamap_load_mbuf(bus_dma_tag_t dmat, bus_dmamap_t map, struct mbuf *m0,
 
 	M_ASSERTPKTHDR(m0);
 
+#ifdef KMSAN
+	struct memdesc mem = memdesc_mbuf(m0);
+	_bus_dmamap_load_kmsan(dmat, map, &mem);
+#endif
+
 	flags |= BUS_DMA_NOWAIT;
 	nsegs = -1;
 	error = _bus_dmamap_load_mbuf_sg(dmat, map, m0, NULL, &nsegs, flags);
@@ -471,6 +520,11 @@ bus_dmamap_load_mbuf_sg(bus_dma_tag_t dmat, bus_dmamap_t map, struct mbuf *m0,
 {
 	int error;
 
+#ifdef KMSAN
+	struct memdesc mem = memdesc_mbuf(m0);
+	_bus_dmamap_load_kmsan(dmat, map, &mem);
+#endif
+
 	flags |= BUS_DMA_NOWAIT;
 	*nsegs = -1;
 	error = _bus_dmamap_load_mbuf_sg(dmat, map, m0, segs, nsegs, flags);
@@ -485,6 +539,11 @@ bus_dmamap_load_uio(bus_dma_tag_t dmat, bus_dmamap_t map, struct uio *uio,
 {
 	bus_dma_segment_t *segs;
 	int nsegs, error;
+
+#ifdef KMSAN
+	struct memdesc mem = memdesc_uio(uio);
+	_bus_dmamap_load_kmsan(dmat, map, &mem);
+#endif
 
 	flags |= BUS_DMA_NOWAIT;
 	nsegs = -1;
@@ -512,6 +571,11 @@ bus_dmamap_load_ccb(bus_dma_tag_t dmat, bus_dmamap_t map, union ccb *ccb,
 	struct memdesc mem;
 	int error;
 	int nsegs;
+
+#ifdef KMSAN
+	mem = memdesc_ccb(ccb);
+	_bus_dmamap_load_kmsan(dmat, map, &mem);
+#endif
 
 	ccb_h = &ccb->ccb_h;
 	if ((ccb_h->flags & CAM_DIR_MASK) == CAM_DIR_NONE) {
@@ -557,6 +621,11 @@ bus_dmamap_load_bio(bus_dma_tag_t dmat, bus_dmamap_t map, struct bio *bio,
 	int error;
 	int nsegs;
 
+#ifdef KMSAN
+	mem = memdesc_bio(bio);
+	_bus_dmamap_load_kmsan(dmat, map, &mem);
+#endif
+
 	if ((flags & BUS_DMA_NOWAIT) == 0) {
 		mem = memdesc_bio(bio);
 		_bus_dmamap_waitok(dmat, map, &mem, callback, callback_arg);
@@ -594,6 +663,10 @@ bus_dmamap_load_mem(bus_dma_tag_t dmat, bus_dmamap_t map,
 	bus_dma_segment_t *segs;
 	int error;
 	int nsegs;
+
+#ifdef KMSAN
+	_bus_dmamap_load_kmsan(dmat, map, mem);
+#endif
 
 	if ((flags & BUS_DMA_NOWAIT) == 0)
 		_bus_dmamap_waitok(dmat, map, mem, callback, callback_arg);

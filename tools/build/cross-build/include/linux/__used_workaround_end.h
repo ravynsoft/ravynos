@@ -1,4 +1,5 @@
 /*-
+<<<<<<<< HEAD:tools/build/cross-build/include/linux/__used_workaround_end.h
  * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright 2018-2020 Alex Richardson <arichardson@FreeBSD.org>
@@ -12,6 +13,12 @@
  * This software was developed by SRI International and the University of
  * Cambridge Computer Laboratory under DARPA/AFRL contract (FA8750-10-C-0237)
  * ("CTSRD"), as part of the DARPA CRASH research programme.
+========
+ * Copyright (c) 2020 Alstom Group.
+ * Copyright (c) 2020 Semihalf.
+ * Copyright (c) 2015 Justin Hibbits
+ * All rights reserved.
+>>>>>>>> freebsd/main:sys/dev/gpio/qoriq_gpio.h
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -36,8 +43,47 @@
  *
  * $FreeBSD$
  */
+<<<<<<<< HEAD:tools/build/cross-build/include/linux/__used_workaround_end.h
 /* Used to workaround system headers with struct members called __used */
 #ifdef __used_undefd
 #undef __used_undefd
 #define __used __attribute__((used))
 #endif
+========
+
+#define MAXPIN	(31)
+
+#define BIT(x)	(1 << (x))
+
+#define VALID_PIN(u)	((u) >= 0 && (u) <= MAXPIN)
+#define DEFAULT_CAPS	(GPIO_PIN_INPUT | GPIO_PIN_OUTPUT | \
+			 GPIO_PIN_OPENDRAIN | GPIO_PIN_PUSHPULL)
+
+#define GPIO_LOCK(sc)		mtx_lock_spin(&(sc)->sc_mtx)
+#define	GPIO_UNLOCK(sc)		mtx_unlock_spin(&(sc)->sc_mtx)
+#define GPIO_LOCK_INIT(sc) \
+	mtx_init(&(sc)->sc_mtx, device_get_nameunit((sc)->dev),	\
+	    "gpio", MTX_SPIN)
+#define GPIO_LOCK_DESTROY(_sc)	mtx_destroy(&_sc->sc_mtx);
+
+#define	GPIO_GPDIR	0x0
+#define	GPIO_GPODR	0x4
+#define	GPIO_GPDAT	0x8
+#define	GPIO_GPIER	0xc
+#define	GPIO_GPIMR	0x10
+#define	GPIO_GPICR	0x14
+#define	GPIO_GPIBE	0x18
+
+struct qoriq_gpio_softc {
+	device_t	dev;
+	device_t	busdev;
+	struct mtx	sc_mtx;
+	struct resource *sc_mem;
+	struct gpio_pin	 sc_pins[MAXPIN + 1];
+};
+
+device_attach_t qoriq_gpio_attach;
+device_detach_t qoriq_gpio_detach;
+
+DECLARE_CLASS(qoriq_gpio_driver);
+>>>>>>>> freebsd/main:sys/dev/gpio/qoriq_gpio.h

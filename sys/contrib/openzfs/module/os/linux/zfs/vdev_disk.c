@@ -563,6 +563,10 @@ vdev_submit_bio(struct bio *bio)
 	current->bio_list = bio_list;
 }
 
+#ifdef HAVE_BIO_ALLOC_4ARG
+#define	bio_alloc(gfp_mask, nr_iovecs) bio_alloc(NULL, nr_iovecs, 0, gfp_mask)
+#endif
+
 static int
 __vdev_disk_physio(struct block_device *bdev, zio_t *zio,
     size_t io_size, uint64_t io_offset, int rw, int flags)
@@ -581,7 +585,9 @@ __vdev_disk_physio(struct block_device *bdev, zio_t *zio,
 	if (io_offset + io_size > bdev->bd_inode->i_size) {
 		vdev_dbgmsg(zio->io_vd,
 		    "Illegal access %llu size %llu, device size %llu",
-		    io_offset, io_size, i_size_read(bdev->bd_inode));
+		    (u_longlong_t)io_offset,
+		    (u_longlong_t)io_size,
+		    (u_longlong_t)i_size_read(bdev->bd_inode));
 		return (SET_ERROR(EIO));
 	}
 
@@ -917,7 +923,7 @@ param_set_vdev_scheduler(const char *val, zfs_kernel_param_t *kp)
 	return (error);
 }
 
-char *zfs_vdev_scheduler = "unused";
+static const char *zfs_vdev_scheduler = "unused";
 module_param_call(zfs_vdev_scheduler, param_set_vdev_scheduler,
     param_get_charp, &zfs_vdev_scheduler, 0644);
 MODULE_PARM_DESC(zfs_vdev_scheduler, "I/O scheduler");

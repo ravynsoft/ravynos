@@ -76,7 +76,7 @@ for x in $(seq 0 7); do
 	mkdir $TESTDIR/dir$x
 done
 
-log_must zpool sync
+sync_all_pools
 
 # Get list of all objects, but filter out user/group objects which don't
 # appear when using object or object range arguments
@@ -142,8 +142,8 @@ log_must test "\n$actual\n" == "\n$expected\n"
 # Specifying individual object IDs works
 objects="$start1 $end1 $start2 $end2"
 expected="$objects"
-actual=$(get_object_list $TESTPOOL/$TESTFS $objects | awk '{print $1}' | xargs)
-log_must test "$actual" == "$expected"
+actual=$(get_object_list $TESTPOOL/$TESTFS $objects | awk '{print $1}' | tr '\n' ' ')
+log_must test "${actual% }" == "$expected"
 
 # Get all objects in the meta-objset to test m (spacemap) and z (zap) flags
 all_mos_objects=$(get_object_list $TESTPOOL 0:-1)

@@ -37,26 +37,34 @@ __FBSDID("$FreeBSD$");
 #include <sys/imgact.h>
 #include <sys/imgact_elf.h>
 #include <sys/kernel.h>
+#include <sys/ktr.h>
 #include <sys/lock.h>
 #include <sys/module.h>
 #include <sys/mutex.h>
 #include <sys/proc.h>
+#include <sys/stddef.h>
 #include <sys/signalvar.h>
+#include <sys/syscallsubr.h>
 #include <sys/sysctl.h>
 #include <sys/sysent.h>
 
 #include <vm/vm.h>
 #include <vm/pmap.h>
-#include <vm/vm_param.h>
 #include <vm/vm_map.h>
+#include <vm/vm_extern.h>
+#include <vm/vm_object.h>
+#include <vm/vm_page.h>
+#include <vm/vm_param.h>
 
 #include <arm64/linux/linux.h>
 #include <arm64/linux/linux_proto.h>
 #include <compat/linux/linux_dtrace.h>
 #include <compat/linux/linux_emul.h>
+#include <compat/linux/linux_fork.h>
 #include <compat/linux/linux_ioctl.h>
 #include <compat/linux/linux_mib.h>
 #include <compat/linux/linux_misc.h>
+#include <compat/linux/linux_signal.h>
 #include <compat/linux/linux_util.h>
 #include <compat/linux/linux_vdso.h>
 
@@ -68,12 +76,24 @@ __FBSDID("$FreeBSD$");
 
 MODULE_VERSION(linux64elf, 1);
 
-const char *linux_kplatform;
+#define	LINUX_VDSOPAGE_SIZE	PAGE_SIZE * 2
+#define	LINUX_VDSOPAGE		(VM_MAXUSER_ADDRESS - \
+				    LINUX_VDSOPAGE_SIZE)
+#define	LINUX_SHAREDPAGE	(LINUX_VDSOPAGE - PAGE_SIZE)
+				/*
+				 * PAGE_SIZE - the size
+				 * of the native SHAREDPAGE
+				 */
+#define	LINUX_USRSTACK		LINUX_SHAREDPAGE
+#define	LINUX_PS_STRINGS	(LINUX_USRSTACK - \
+				    sizeof(struct ps_strings))
+
 static int linux_szsigcode;
-static vm_object_t linux_shared_page_obj;
-static char *linux_shared_page_mapping;
-extern char _binary_linux_locore_o_start;
-extern char _binary_linux_locore_o_end;
+static vm_object_t linux_vdso_obj;
+static char *linux_vdso_mapping;
+extern char _binary_linux_vdso_so_o_start;
+extern char _binary_linux_vdso_so_o_end;
+static vm_offset_t linux_vdso_base;
 
 extern struct sysent linux_sysent[LINUX_SYS_MAXSYSCALL];
 
@@ -86,10 +106,14 @@ static int	linux_elf_fixup(uintptr_t *stack_base,
 static bool	linux_trans_osrel(const Elf_Note *note, int32_t *osrel);
 static void	linux_vdso_install(const void *param);
 static void	linux_vdso_deinstall(const void *param);
+static void	linux_vdso_reloc(char *mapping, Elf_Addr offset);
 static void	linux_set_syscall_retval(struct thread *td, int error);
 static int	linux_fetch_syscall_args(struct thread *td);
 static void	linux_exec_setregs(struct thread *td, struct image_params *imgp,
 		    uintptr_t stack);
+static void	linux_exec_sysvec_init(void *param);
+static int	linux_on_exec_vmspace(struct proc *p,
+		    struct image_params *imgp);
 
 /* DTrace init */
 LIN_SDT_PROVIDER_DECLARE(LINUX_DTRACE);
@@ -99,10 +123,10 @@ LIN_SDT_PROBE_DEFINE2(sysvec, linux_translate_traps, todo, "int", "int");
 LIN_SDT_PROBE_DEFINE0(sysvec, linux_exec_setregs, todo);
 LIN_SDT_PROBE_DEFINE0(sysvec, linux_copyout_auxargs, todo);
 LIN_SDT_PROBE_DEFINE0(sysvec, linux_elf_fixup, todo);
-LIN_SDT_PROBE_DEFINE0(sysvec, linux_rt_sigreturn, todo);
-LIN_SDT_PROBE_DEFINE0(sysvec, linux_rt_sendsig, todo);
-LIN_SDT_PROBE_DEFINE0(sysvec, linux_vdso_install, todo);
-LIN_SDT_PROBE_DEFINE0(sysvec, linux_vdso_deinstall, todo);
+
+LINUX_VDSO_SYM_CHAR(linux_platform);
+LINUX_VDSO_SYM_INTPTR(kern_timekeep_base);
+LINUX_VDSO_SYM_INTPTR(__kernel_rt_sigreturn);
 
 /* LINUXTODO: do we have traps to translate? */
 static int
@@ -112,8 +136,6 @@ linux_translate_traps(int signal, int trap_code)
 	LIN_SDT_PROBE2(sysvec, linux_translate_traps, todo, signal, trap_code);
 	return (signal);
 }
-
-LINUX_VDSO_SYM_CHAR(linux_platform);
 
 static int
 linux_fetch_syscall_args(struct thread *td)
@@ -127,15 +149,17 @@ linux_fetch_syscall_args(struct thread *td)
 	sa = &td->td_sa;
 
 	sa->code = td->td_frame->tf_x[8];
+	sa->original_code = sa->code;
 	/* LINUXTODO: generic syscall? */
 	if (sa->code >= p->p_sysent->sv_size)
 		sa->callp = &p->p_sysent->sv_table[0];
 	else
 		sa->callp = &p->p_sysent->sv_table[sa->code];
 
-	if (sa->callp->sy_narg > MAXARGS)
-		panic("ARM64TODO: Could we have more than %d args?", MAXARGS);
-	memcpy(sa->args, ap, MAXARGS * sizeof(register_t));
+	if (sa->callp->sy_narg > nitems(sa->args))
+		panic("ARM64TODO: Could we have more than %zu args?",
+		    nitems(sa->args));
+	memcpy(sa->args, ap, nitems(sa->args) * sizeof(register_t));
 
 	td->td_retval[0] = 0;
 	return (0);
@@ -170,8 +194,7 @@ linux_copyout_auxargs(struct image_params *imgp, uintptr_t base)
 	    M_WAITOK | M_ZERO);
 
 	issetugid = p->p_flag & P_SUGID ? 1 : 0;
-	AUXARGS_ENTRY(pos, LINUX_AT_SYSINFO_EHDR,
-	    imgp->proc->p_sysent->sv_shared_page_base);
+	AUXARGS_ENTRY(pos, LINUX_AT_SYSINFO_EHDR, linux_vdso_base);
 	AUXARGS_ENTRY(pos, LINUX_AT_HWCAP, *imgp->sysent->sv_hwcap);
 	AUXARGS_ENTRY(pos, AT_PAGESZ, args->pagesz);
 	AUXARGS_ENTRY(pos, LINUX_AT_CLKTCK, stclohz);
@@ -380,18 +403,101 @@ linux_exec_setregs(struct thread *td, struct image_params *imgp,
 int
 linux_rt_sigreturn(struct thread *td, struct linux_rt_sigreturn_args *args)
 {
+	struct l_sigframe frame;
+	struct trapframe *tf;
+	int error;
 
-	/* LINUXTODO: implement */
-	LIN_SDT_PROBE0(sysvec, linux_rt_sigreturn, todo);
-	return (EDOOFUS);
+	tf = td->td_frame;
+
+	if (copyin((void *)tf->tf_sp, &frame, sizeof(frame)))
+		return (EFAULT);
+
+	error = set_mcontext(td, &frame.sf_uc.uc_mcontext);
+	if (error != 0)
+		return (error);
+
+	/* Restore signal mask. */
+	kern_sigprocmask(td, SIG_SETMASK, &frame.sf_uc.uc_sigmask, NULL, 0);
+
+	return (EJUSTRETURN);
 }
 
 static void
 linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 {
+	struct thread *td;
+	struct proc *p;
+	struct trapframe *tf;
+	struct l_sigframe *fp, frame;
+	struct sigacts *psp;
+	int onstack, sig;
 
-	/* LINUXTODO: implement */
-	LIN_SDT_PROBE0(sysvec, linux_rt_sendsig, todo);
+	td = curthread;
+	p = td->td_proc;
+	PROC_LOCK_ASSERT(p, MA_OWNED);
+
+	sig = ksi->ksi_signo;
+	psp = p->p_sigacts;
+	mtx_assert(&psp->ps_mtx, MA_OWNED);
+
+	tf = td->td_frame;
+	onstack = sigonstack(tf->tf_sp);
+
+	CTR4(KTR_SIG, "sendsig: td=%p (%s) catcher=%p sig=%d", td, p->p_comm,
+	    catcher, sig);
+
+	/* Allocate and validate space for the signal handler context. */
+	if ((td->td_pflags & TDP_ALTSTACK) != 0 && !onstack &&
+	    SIGISMEMBER(psp->ps_sigonstack, sig)) {
+		fp = (struct l_sigframe *)((uintptr_t)td->td_sigstk.ss_sp +
+		    td->td_sigstk.ss_size);
+#if defined(COMPAT_43)
+		td->td_sigstk.ss_flags |= SS_ONSTACK;
+#endif
+	} else {
+		fp = (struct l_sigframe *)td->td_frame->tf_sp;
+	}
+
+	/* Make room, keeping the stack aligned */
+	fp--;
+	fp = (struct l_sigframe *)STACKALIGN(fp);
+
+	/* Fill in the frame to copy out */
+	bzero(&frame, sizeof(frame));
+	get_mcontext(td, &frame.sf_uc.uc_mcontext, 0);
+
+	/* Translate the signal. */
+	sig = bsd_to_linux_signal(sig);
+
+	siginfo_to_lsiginfo(&ksi->ksi_info, &frame.sf_si, sig);
+	frame.sf_uc.uc_sigmask = *mask;
+	frame.sf_uc.uc_stack = td->td_sigstk;
+	frame.sf_uc.uc_stack.ss_flags = (td->td_pflags & TDP_ALTSTACK) != 0 ?
+	    (onstack ? SS_ONSTACK : 0) : SS_DISABLE;
+	mtx_unlock(&psp->ps_mtx);
+	PROC_UNLOCK(td->td_proc);
+
+	/* Copy the sigframe out to the user's stack. */
+	if (copyout(&frame, fp, sizeof(*fp)) != 0) {
+		/* Process has trashed its stack. Kill it. */
+		CTR2(KTR_SIG, "sendsig: sigexit td=%p fp=%p", td, fp);
+		PROC_LOCK(p);
+		sigexit(td, SIGILL);
+	}
+
+	tf->tf_x[0]= sig;
+	tf->tf_x[1] = (register_t)&fp->sf_si;
+	tf->tf_x[2] = (register_t)&fp->sf_uc;
+
+	tf->tf_elr = (register_t)catcher;
+	tf->tf_sp = (register_t)fp;
+	tf->tf_lr = (register_t)__kernel_rt_sigreturn;
+
+	CTR3(KTR_SIG, "sendsig: return td=%p pc=%#x sp=%#x", td, tf->tf_elr,
+	    tf->tf_sp);
+
+	PROC_LOCK(p);
+	mtx_lock(&psp->ps_mtx);
 }
 
 struct sysentvec elf_linux_sysvec = {
@@ -400,16 +506,19 @@ struct sysentvec elf_linux_sysvec = {
 	.sv_transtrap	= linux_translate_traps,
 	.sv_fixup	= linux_elf_fixup,
 	.sv_sendsig	= linux_rt_sendsig,
-	.sv_sigcode	= &_binary_linux_locore_o_start,
+	.sv_sigcode	= &_binary_linux_vdso_so_o_start,
 	.sv_szsigcode	= &linux_szsigcode,
 	.sv_name	= "Linux ELF64",
 	.sv_coredump	= elf64_coredump,
+	.sv_elf_core_osabi = ELFOSABI_NONE,
+	.sv_elf_core_abi_vendor = LINUX_ABI_VENDOR,
+	.sv_elf_core_prepare_notes = linux64_prepare_notes,
 	.sv_imgact_try	= linux_exec_imgact_try,
 	.sv_minsigstksz	= LINUX_MINSIGSTKSZ,
 	.sv_minuser	= VM_MIN_ADDRESS,
 	.sv_maxuser	= VM_MAXUSER_ADDRESS,
-	.sv_usrstack	= USRSTACK,
-	.sv_psstrings	= PS_STRINGS, /* XXX */
+	.sv_usrstack	= LINUX_USRSTACK,
+	.sv_psstrings	= LINUX_PS_STRINGS,
 	.sv_psstringssz	= sizeof(struct ps_strings),
 	.sv_stackprot	= VM_PROT_READ | VM_PROT_WRITE,
 	.sv_copyout_auxargs = linux_copyout_auxargs,
@@ -418,60 +527,138 @@ struct sysentvec elf_linux_sysvec = {
 	.sv_fixlimit	= NULL,
 	.sv_maxssiz	= NULL,
 	.sv_flags	= SV_ABI_LINUX | SV_LP64 | SV_SHP | SV_SIG_DISCIGN |
-	    SV_SIG_WAITNDQ,
+	    SV_SIG_WAITNDQ | SV_TIMEKEEP,
 	.sv_set_syscall_retval = linux_set_syscall_retval,
 	.sv_fetch_syscall_args = linux_fetch_syscall_args,
 	.sv_syscallnames = NULL,
-	.sv_shared_page_base = SHAREDPAGE,
+	.sv_shared_page_base = LINUX_SHAREDPAGE,
 	.sv_shared_page_len = PAGE_SIZE,
 	.sv_schedtail	= linux_schedtail,
 	.sv_thread_detach = linux_thread_detach,
 	.sv_trap	= NULL,
 	.sv_hwcap	= &elf_hwcap,
 	.sv_hwcap2	= &elf_hwcap2,
-	.sv_onexec	= linux_on_exec,
+	.sv_onexec	= linux_on_exec_vmspace,
 	.sv_onexit	= linux_on_exit,
 	.sv_ontdexit	= linux_thread_dtor,
 	.sv_setid_allowed = &linux_setid_allowed_query,
 };
 
+static int
+linux_on_exec_vmspace(struct proc *p, struct image_params *imgp)
+{
+	int error;
+
+	error = linux_map_vdso(p, linux_vdso_obj, linux_vdso_base,
+	    LINUX_VDSOPAGE_SIZE, imgp);
+	if (error == 0)
+		linux_on_exec(p, imgp);
+	return (error);
+}
+
+/*
+ * linux_vdso_install() and linux_exec_sysvec_init() must be called
+ * after exec_sysvec_init() which is SI_SUB_EXEC (SI_ORDER_ANY).
+ */
+static void
+linux_exec_sysvec_init(void *param)
+{
+	l_uintptr_t *ktimekeep_base;
+	struct sysentvec *sv;
+	ptrdiff_t tkoff;
+
+	sv = param;
+	/* Fill timekeep_base */
+	exec_sysvec_init(sv);
+
+	tkoff = kern_timekeep_base - linux_vdso_base;
+	ktimekeep_base = (l_uintptr_t *)(linux_vdso_mapping + tkoff);
+	*ktimekeep_base = sv->sv_timekeep_base;
+}
+SYSINIT(elf_linux_exec_sysvec_init, SI_SUB_EXEC + 1, SI_ORDER_ANY,
+    linux_exec_sysvec_init, &elf_linux_sysvec);
+
 static void
 linux_vdso_install(const void *param)
 {
+	char *vdso_start = &_binary_linux_vdso_so_o_start;
+	char *vdso_end = &_binary_linux_vdso_so_o_end;
 
-	linux_szsigcode = (&_binary_linux_locore_o_end -
-	    &_binary_linux_locore_o_start);
+	linux_szsigcode = vdso_end - vdso_start;
+	MPASS(linux_szsigcode <= LINUX_VDSOPAGE_SIZE);
 
-	if (linux_szsigcode > elf_linux_sysvec.sv_shared_page_len)
-		panic("invalid Linux VDSO size\n");
+	linux_vdso_base = LINUX_VDSOPAGE;
 
-	__elfN(linux_vdso_fixup)(&elf_linux_sysvec);
+	__elfN(linux_vdso_fixup)(vdso_start, linux_vdso_base);
 
-	linux_shared_page_obj = __elfN(linux_shared_page_init)
-	    (&linux_shared_page_mapping);
+	linux_vdso_obj = __elfN(linux_shared_page_init)
+	    (&linux_vdso_mapping, LINUX_VDSOPAGE_SIZE);
+	bcopy(vdso_start, linux_vdso_mapping, linux_szsigcode);
 
-	__elfN(linux_vdso_reloc)(&elf_linux_sysvec);
-
-	memcpy(linux_shared_page_mapping, elf_linux_sysvec.sv_sigcode,
-	    linux_szsigcode);
-	elf_linux_sysvec.sv_shared_page_obj = linux_shared_page_obj;
-
-	linux_kplatform = linux_shared_page_mapping +
-	    (linux_platform - (caddr_t)elf_linux_sysvec.sv_shared_page_base);
+	linux_vdso_reloc(linux_vdso_mapping, linux_vdso_base);
 }
-SYSINIT(elf_linux_vdso_init, SI_SUB_EXEC, SI_ORDER_ANY,
+SYSINIT(elf_linux_vdso_init, SI_SUB_EXEC + 1, SI_ORDER_FIRST,
     linux_vdso_install, NULL);
 
 static void
 linux_vdso_deinstall(const void *param)
 {
 
-	LIN_SDT_PROBE0(sysvec, linux_vdso_deinstall, todo);
-	__elfN(linux_shared_page_fini)(linux_shared_page_obj,
-	    linux_shared_page_mapping);
+	__elfN(linux_shared_page_fini)(linux_vdso_obj,
+	    linux_vdso_mapping, LINUX_VDSOPAGE_SIZE);
 }
 SYSUNINIT(elf_linux_vdso_uninit, SI_SUB_EXEC, SI_ORDER_FIRST,
     linux_vdso_deinstall, NULL);
+
+static void
+linux_vdso_reloc(char *mapping, Elf_Addr offset)
+{
+	Elf_Size rtype, symidx;
+	const Elf_Rela *rela;
+	const Elf_Shdr *shdr;
+	const Elf_Ehdr *ehdr;
+	Elf_Addr *where;
+	Elf_Addr addr, addend;
+	int i, relacnt;
+
+	MPASS(offset != 0);
+
+	relacnt = 0;
+	ehdr = (const Elf_Ehdr *)mapping;
+	shdr = (const Elf_Shdr *)(mapping + ehdr->e_shoff);
+	for (i = 0; i < ehdr->e_shnum; i++)
+	{
+		switch (shdr[i].sh_type) {
+		case SHT_REL:
+			printf("Linux Aarch64 vDSO: unexpected Rel section\n");
+			break;
+		case SHT_RELA:
+			rela = (const Elf_Rela *)(mapping + shdr[i].sh_offset);
+			relacnt = shdr[i].sh_size / sizeof(*rela);
+		}
+	}
+
+	for (i = 0; i < relacnt; i++, rela++) {
+		where = (Elf_Addr *)(mapping + rela->r_offset);
+		addend = rela->r_addend;
+		rtype = ELF_R_TYPE(rela->r_info);
+		symidx = ELF_R_SYM(rela->r_info);
+
+		switch (rtype) {
+		case R_AARCH64_NONE:	/* none */
+			break;
+
+		case R_AARCH64_RELATIVE:	/* B + A */
+			addr = (Elf_Addr)(mapping + addend);
+			if (*where != addr)
+				*where = addr;
+			break;
+		default:
+			printf("Linux Aarch64 vDSO: unexpected relocation type %ld, "
+			    "symbol index %ld\n", rtype, symidx);
+		}
+	}
+}
 
 static char GNU_ABI_VENDOR[] = "GNU";
 static int GNU_ABI_LINUX = 0;
@@ -557,9 +744,9 @@ linux64_elf_modevent(module_t mod, int type, void *data)
 			SET_FOREACH(lihp, linux_ioctl_handler_set)
 				linux_ioctl_unregister_handler(*lihp);
 			if (bootverbose)
-				printf("Linux ELF exec handler removed\n");
+				printf("Linux arm64 ELF exec handler removed\n");
 		} else
-			printf("Could not deinstall ELF interpreter entry\n");
+			printf("Could not deinstall Linux arm64 ELF interpreter entry\n");
 		break;
 	default:
 		return (EOPNOTSUPP);

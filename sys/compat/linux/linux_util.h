@@ -47,45 +47,39 @@
 
 MALLOC_DECLARE(M_LINUX);
 MALLOC_DECLARE(M_EPOLL);
-MALLOC_DECLARE(M_FUTEX);
-MALLOC_DECLARE(M_FUTEX_WP);
 
 extern char linux_emul_path[];
 extern int linux_use_emul_path;
 
-int linux_emul_convpath(struct thread *, const char *, enum uio_seg, char **, int, int);
+int linux_emul_convpath(const char *, enum uio_seg, char **, int, int);
 
 #define LUSECONVPATH(td) atomic_load_int(&linux_use_emul_path)
 
-#define LCONVPATH_AT(td, upath, pathp, i, dfd)				\
+#define LCONVPATH_AT(upath, pathp, i, dfd)				\
 	do {								\
 		int _error;						\
 									\
-		_error = linux_emul_convpath(td, upath, UIO_USERSPACE,	\
+		_error = linux_emul_convpath(upath, UIO_USERSPACE,	\
 		    pathp, i, dfd);					\
 		if (*(pathp) == NULL)					\
 			return (_error);				\
 	} while (0)
 
-#define LCONVPATH(td, upath, pathp, i)	\
-   LCONVPATH_AT(td, upath, pathp, i, AT_FDCWD)
+#define LCONVPATH(upath, pathp, i)	\
+   LCONVPATH_AT(upath, pathp, i, AT_FDCWD)
 
-#define LCONVPATHEXIST(td, upath, pathp) LCONVPATH(td, upath, pathp, 0)
-#define LCONVPATHEXIST_AT(td, upath, pathp, dfd) LCONVPATH_AT(td, upath, pathp, 0, dfd)
-#define LCONVPATHCREAT(td, upath, pathp) LCONVPATH(td, upath, pathp, 1)
-#define LCONVPATHCREAT_AT(td, upath, pathp, dfd) LCONVPATH_AT(td, upath, pathp, 1, dfd)
+#define LCONVPATHEXIST(upath, pathp) LCONVPATH(upath, pathp, 0)
+#define LCONVPATHEXIST_AT(upath, pathp, dfd) LCONVPATH_AT(upath, pathp, 0, dfd)
+#define LCONVPATHCREAT(upath, pathp) LCONVPATH(upath, pathp, 1)
+#define LCONVPATHCREAT_AT(upath, pathp, dfd) LCONVPATH_AT(upath, pathp, 1, dfd)
 #define LFREEPATH(path)	free(path, M_TEMP)
 
 #define DUMMY(s)							\
-LIN_SDT_PROBE_DEFINE0(dummy, s, entry);					\
 LIN_SDT_PROBE_DEFINE0(dummy, s, not_implemented);			\
-LIN_SDT_PROBE_DEFINE1(dummy, s, return, "int");				\
 int									\
 linux_ ## s(struct thread *td, struct linux_ ## s ## _args *args)	\
 {									\
 	static pid_t pid;						\
-									\
-	LIN_SDT_PROBE0(dummy, s, entry);				\
 									\
 	if (pid != td->td_proc->p_pid) {				\
 		linux_msg(td, "syscall %s not implemented", #s);	\
@@ -93,7 +87,6 @@ linux_ ## s(struct thread *td, struct linux_ ## s ## _args *args)	\
 		pid = td->td_proc->p_pid;				\
 	};								\
 									\
-	LIN_SDT_PROBE1(dummy, s, return, ENOSYS);			\
 	return (ENOSYS);						\
 }									\
 struct __hack
@@ -179,6 +172,18 @@ bool	linux_use_real_ifname(const struct ifnet *ifp);
 			if (linux_debug < 3)		\
 				seen = 1;		\
 		}					\
+	} while (0)
+
+#define LINUX_RATELIMIT_MSG(_message)				\
+	do {							\
+		static int seen = 0;				\
+								\
+		if (seen == 0) {				\
+			linux_msg(curthread, _message);		\
+								\
+			if (linux_debug < 3)			\
+				seen = 1;			\
+		}						\
 	} while (0)
 
 #define LINUX_RATELIMIT_MSG_OPT1(_message, _opt1)	 	\

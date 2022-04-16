@@ -493,6 +493,9 @@ pf_nvrule_to_rule(const nvlist_t *nvl, struct pfctl_rule *rule)
 	    nvlist_get_number(nvl, "max_src_conn_rate.seconds");
 	rule->qid = nvlist_get_number(nvl, "qid");
 	rule->pqid = nvlist_get_number(nvl, "pqid");
+	rule->dnpipe = nvlist_get_number(nvl, "dnpipe");
+	rule->dnrpipe = nvlist_get_number(nvl, "dnrpipe");
+	rule->free_flags = nvlist_get_number(nvl, "dnflags");
 	rule->prob = nvlist_get_number(nvl, "prob");
 	rule->cuid = nvlist_get_number(nvl, "cuid");
 	rule->cpid = nvlist_get_number(nvl, "cpid");
@@ -541,6 +544,307 @@ pf_nvrule_to_rule(const nvlist_t *nvl, struct pfctl_rule *rule)
 	rule->states_cur = nvlist_get_number(nvl, "states_cur");
 	rule->states_tot = nvlist_get_number(nvl, "states_tot");
 	rule->src_nodes = nvlist_get_number(nvl, "src_nodes");
+}
+
+static void
+pfctl_nveth_addr_to_eth_addr(const nvlist_t *nvl, struct pfctl_eth_addr *addr)
+{
+	static const u_int8_t EMPTY_MAC[ETHER_ADDR_LEN] = { 0 };
+	size_t len;
+	const void *data;
+
+	data = nvlist_get_binary(nvl, "addr", &len);
+	assert(len == sizeof(addr->addr));
+	memcpy(addr->addr, data, sizeof(addr->addr));
+
+	data = nvlist_get_binary(nvl, "mask", &len);
+	assert(len == sizeof(addr->mask));
+	memcpy(addr->mask, data, sizeof(addr->mask));
+
+	addr->neg = nvlist_get_bool(nvl, "neg");
+
+	/* To make checks for 'is this address set?' easier. */
+	addr->isset = memcmp(addr->addr, EMPTY_MAC, ETHER_ADDR_LEN) != 0;
+}
+
+static nvlist_t *
+pfctl_eth_addr_to_nveth_addr(const struct pfctl_eth_addr *addr)
+{
+	nvlist_t *nvl;
+
+	nvl = nvlist_create(0);
+	if (nvl == NULL)
+		return (NULL);
+
+	nvlist_add_bool(nvl, "neg", addr->neg);
+	nvlist_add_binary(nvl, "addr", &addr->addr, ETHER_ADDR_LEN);
+	nvlist_add_binary(nvl, "mask", &addr->mask, ETHER_ADDR_LEN);
+
+	return (nvl);
+}
+
+static void
+pfctl_nveth_rule_to_eth_rule(const nvlist_t *nvl, struct pfctl_eth_rule *rule)
+{
+	rule->nr = nvlist_get_number(nvl, "nr");
+	rule->quick = nvlist_get_bool(nvl, "quick");
+	strlcpy(rule->ifname, nvlist_get_string(nvl, "ifname"), IFNAMSIZ);
+	rule->ifnot = nvlist_get_bool(nvl, "ifnot");
+	rule->direction = nvlist_get_number(nvl, "direction");
+	rule->proto = nvlist_get_number(nvl, "proto");
+
+	pfctl_nveth_addr_to_eth_addr(nvlist_get_nvlist(nvl, "src"),
+	    &rule->src);
+	pfctl_nveth_addr_to_eth_addr(nvlist_get_nvlist(nvl, "dst"),
+	    &rule->dst);
+
+	pf_nvrule_addr_to_rule_addr(nvlist_get_nvlist(nvl, "ipsrc"),
+	    &rule->ipsrc);
+	pf_nvrule_addr_to_rule_addr(nvlist_get_nvlist(nvl, "ipdst"),
+	    &rule->ipdst);
+
+	rule->evaluations = nvlist_get_number(nvl, "evaluations");
+	rule->packets[0] = nvlist_get_number(nvl, "packets-in");
+	rule->packets[1] = nvlist_get_number(nvl, "packets-out");
+	rule->bytes[0] = nvlist_get_number(nvl, "bytes-in");
+	rule->bytes[1] = nvlist_get_number(nvl, "bytes-out");
+
+	strlcpy(rule->qname, nvlist_get_string(nvl, "qname"), PF_QNAME_SIZE);
+	strlcpy(rule->tagname, nvlist_get_string(nvl, "tagname"),
+	    PF_TAG_NAME_SIZE);
+
+	rule->dnpipe = nvlist_get_number(nvl, "dnpipe");
+	rule->dnflags = nvlist_get_number(nvl, "dnflags");
+
+	rule->anchor_relative = nvlist_get_number(nvl, "anchor_relative");
+	rule->anchor_wildcard = nvlist_get_number(nvl, "anchor_wildcard");
+
+	rule->action = nvlist_get_number(nvl, "action");
+}
+
+int
+pfctl_get_eth_rulesets_info(int dev, struct pfctl_eth_rulesets_info *ri,
+    const char *path)
+{
+	uint8_t buf[1024];
+	struct pfioc_nv nv;
+	nvlist_t *nvl;
+	void *packed;
+	size_t len;
+
+	bzero(ri, sizeof(*ri));
+
+	nvl = nvlist_create(0);
+	nvlist_add_string(nvl, "path", path);
+	packed = nvlist_pack(nvl, &len);
+	memcpy(buf, packed, len);
+	free(packed);
+	nvlist_destroy(nvl);
+
+	nv.data = buf;
+	nv.len = len;
+	nv.size = sizeof(buf);
+
+	if (ioctl(dev, DIOCGETETHRULESETS, &nv) != 0)
+		return (errno);
+
+	nvl = nvlist_unpack(buf, nv.len, 0);
+	if (nvl == NULL)
+		return (EIO);
+
+	ri->nr = nvlist_get_number(nvl, "nr");
+
+	nvlist_destroy(nvl);
+	return (0);
+}
+
+int
+pfctl_get_eth_ruleset(int dev, const char *path, int nr,
+    struct pfctl_eth_ruleset_info *ri)
+{
+	uint8_t buf[1024];
+	struct pfioc_nv nv;
+	nvlist_t *nvl;
+	void *packed;
+	size_t len;
+
+	bzero(ri, sizeof(*ri));
+
+	nvl = nvlist_create(0);
+	nvlist_add_string(nvl, "path", path);
+	nvlist_add_number(nvl, "nr", nr);
+	packed = nvlist_pack(nvl, &len);
+	memcpy(buf, packed, len);
+	free(packed);
+	nvlist_destroy(nvl);
+
+	nv.data = buf;
+	nv.len = len;
+	nv.size = sizeof(buf);
+
+	if (ioctl(dev, DIOCGETETHRULESET, &nv) != 0)
+		return (errno);
+
+	nvl = nvlist_unpack(buf, nv.len, 0);
+	if (nvl == NULL)
+		return (EIO);
+
+	ri->nr = nvlist_get_number(nvl, "nr");
+	strlcpy(ri->path, nvlist_get_string(nvl, "path"), MAXPATHLEN);
+	strlcpy(ri->name, nvlist_get_string(nvl, "name"),
+	    PF_ANCHOR_NAME_SIZE);
+
+	return (0);
+}
+
+int
+pfctl_get_eth_rules_info(int dev, struct pfctl_eth_rules_info *rules,
+    const char *path)
+{
+	uint8_t buf[1024];
+	struct pfioc_nv nv;
+	nvlist_t *nvl;
+	void *packed;
+	size_t len;
+
+	bzero(rules, sizeof(*rules));
+
+	nvl = nvlist_create(0);
+	nvlist_add_string(nvl, "anchor", path);
+	packed = nvlist_pack(nvl, &len);
+	memcpy(buf, packed, len);
+	free(packed);
+	nvlist_destroy(nvl);
+
+	nv.data = buf;
+	nv.len = len;
+	nv.size = sizeof(buf);
+
+	if (ioctl(dev, DIOCGETETHRULES, &nv) != 0)
+		return (errno);
+
+	nvl = nvlist_unpack(buf, nv.len, 0);
+	if (nvl == NULL)
+		return (EIO);
+
+	rules->nr = nvlist_get_number(nvl, "nr");
+	rules->ticket = nvlist_get_number(nvl, "ticket");
+
+	nvlist_destroy(nvl);
+	return (0);
+}
+
+int
+pfctl_get_eth_rule(int dev, uint32_t nr, uint32_t ticket,
+    const char *path, struct pfctl_eth_rule *rule, bool clear,
+    char *anchor_call)
+{
+	uint8_t buf[2048];
+	struct pfioc_nv nv;
+	nvlist_t *nvl;
+	void *data;
+	size_t len;
+
+	nvl = nvlist_create(0);
+
+	nvlist_add_string(nvl, "anchor", path);
+	nvlist_add_number(nvl, "ticket", ticket);
+	nvlist_add_number(nvl, "nr", nr);
+	nvlist_add_bool(nvl, "clear", clear);
+
+	data = nvlist_pack(nvl, &len);
+	nv.data = buf;
+	memcpy(buf, data, len);
+	free(data);
+	nv.len = len;
+	nv.size = sizeof(buf);
+	if (ioctl(dev, DIOCGETETHRULE, &nv)) {
+		nvlist_destroy(nvl);
+		return (errno);
+	}
+	nvlist_destroy(nvl);
+
+	nvl = nvlist_unpack(buf, nv.len, 0);
+	if (nvl == NULL) {
+		return (EIO);
+	}
+
+	pfctl_nveth_rule_to_eth_rule(nvl, rule);
+
+	if (anchor_call)
+		strlcpy(anchor_call, nvlist_get_string(nvl, "anchor_call"),
+		    MAXPATHLEN);
+
+	nvlist_destroy(nvl);
+	return (0);
+}
+
+int
+pfctl_add_eth_rule(int dev, const struct pfctl_eth_rule *r, const char *anchor,
+    const char *anchor_call, uint32_t ticket)
+{
+	struct pfioc_nv nv;
+	nvlist_t *nvl, *addr;
+	void *packed;
+	int error = 0;
+	size_t size;
+
+	nvl = nvlist_create(0);
+
+	nvlist_add_number(nvl, "ticket", ticket);
+	nvlist_add_string(nvl, "anchor", anchor);
+	nvlist_add_string(nvl, "anchor_call", anchor_call);
+
+	nvlist_add_number(nvl, "nr", r->nr);
+	nvlist_add_bool(nvl, "quick", r->quick);
+	nvlist_add_string(nvl, "ifname", r->ifname);
+	nvlist_add_bool(nvl, "ifnot", r->ifnot);
+	nvlist_add_number(nvl, "direction", r->direction);
+	nvlist_add_number(nvl, "proto", r->proto);
+
+	addr = pfctl_eth_addr_to_nveth_addr(&r->src);
+	if (addr == NULL) {
+		nvlist_destroy(nvl);
+		return (ENOMEM);
+	}
+	nvlist_add_nvlist(nvl, "src", addr);
+	nvlist_destroy(addr);
+
+	addr = pfctl_eth_addr_to_nveth_addr(&r->dst);
+	if (addr == NULL) {
+		nvlist_destroy(nvl);
+		return (ENOMEM);
+	}
+	nvlist_add_nvlist(nvl, "dst", addr);
+	nvlist_destroy(addr);
+
+	pfctl_nv_add_rule_addr(nvl, "ipsrc", &r->ipsrc);
+	pfctl_nv_add_rule_addr(nvl, "ipdst", &r->ipdst);
+
+	nvlist_add_string(nvl, "qname", r->qname);
+	nvlist_add_string(nvl, "tagname", r->tagname);
+	nvlist_add_number(nvl, "dnpipe", r->dnpipe);
+	nvlist_add_number(nvl, "dnflags", r->dnflags);
+
+	nvlist_add_number(nvl, "action", r->action);
+
+	packed = nvlist_pack(nvl, &size);
+	if (packed == NULL) {
+		nvlist_destroy(nvl);
+		return (ENOMEM);
+	}
+
+	nv.len = size;
+	nv.size = size;
+	nv.data = packed;
+
+	if (ioctl(dev, DIOCADDETHRULE, &nv) != 0)
+		error = errno;
+
+	free(packed);
+	nvlist_destroy(nvl);
+
+	return (error);
 }
 
 int
@@ -598,6 +902,9 @@ pfctl_add_rule(int dev, const struct pfctl_rule *r, const char *anchor,
 	    r->max_src_conn_rate.limit);
 	nvlist_add_number(nvlr, "max_src_conn_rate.seconds",
 	    r->max_src_conn_rate.seconds);
+	nvlist_add_number(nvlr, "dnpipe", r->dnpipe);
+	nvlist_add_number(nvlr, "dnrpipe", r->dnrpipe);
+	nvlist_add_number(nvlr, "dnflags", r->free_flags);
 	nvlist_add_number(nvlr, "prob", r->prob);
 	nvlist_add_number(nvlr, "cuid", r->cuid);
 	nvlist_add_number(nvlr, "cpid", r->cpid);
@@ -654,6 +961,8 @@ pfctl_add_rule(int dev, const struct pfctl_rule *r, const char *anchor,
 	nv.size = nv.len;
 
 	ret = ioctl(dev, DIOCADDRULENV, &nv);
+	if (ret == -1)
+		ret = errno;
 
 	free(nv.data);
 	nvlist_destroy(nvl);
@@ -1032,6 +1341,30 @@ pfctl_clear_nat(int dev, const char *anchorname)
 		return (ret);
 	return ioctl(dev, DIOCXCOMMIT, &trans);
 }
+int
+pfctl_clear_eth_rules(int dev, const char *anchorname)
+{
+	struct pfioc_trans trans;
+	struct pfioc_trans_e transe;
+	int ret;
+
+	bzero(&trans, sizeof(trans));
+	bzero(&transe, sizeof(transe));
+
+	transe.rs_num = PF_RULESET_ETH;
+	if (strlcpy(transe.anchor, anchorname, sizeof(transe.anchor))
+	    >= sizeof(transe.anchor))
+		return (E2BIG);
+
+	trans.size = 1;
+	trans.esize = sizeof(transe);
+	trans.array = &transe;
+
+	ret = ioctl(dev, DIOCXBEGIN, &trans);
+	if (ret != 0)
+		return (ret);
+	return ioctl(dev, DIOCXCOMMIT, &trans);
+}
 
 static int
 pfctl_get_limit(int dev, const int index, uint *limit)
@@ -1125,5 +1458,101 @@ pfctl_get_syncookies(int dev, struct pfctl_syncookies *s)
 
 	nvlist_destroy(nvl);
 
+	return (0);
+}
+
+int
+pfctl_table_add_addrs(int dev, struct pfr_table *tbl, struct pfr_addr
+    *addr, int size, int *nadd, int flags)
+{
+	struct pfioc_table io;
+
+	if (tbl == NULL || size < 0 || (size && addr == NULL)) {
+		return (EINVAL);
+	}
+	bzero(&io, sizeof io);
+	io.pfrio_flags = flags;
+	io.pfrio_table = *tbl;
+	io.pfrio_buffer = addr;
+	io.pfrio_esize = sizeof(*addr);
+	io.pfrio_size = size;
+
+	if (ioctl(dev, DIOCRADDADDRS, &io))
+		return (errno);
+	if (nadd != NULL)
+		*nadd = io.pfrio_nadd;
+	return (0);
+}
+
+int
+pfctl_table_del_addrs(int dev, struct pfr_table *tbl, struct pfr_addr
+    *addr, int size, int *ndel, int flags)
+{
+	struct pfioc_table io;
+
+	if (tbl == NULL || size < 0 || (size && addr == NULL)) {
+		return (EINVAL);
+	}
+	bzero(&io, sizeof io);
+	io.pfrio_flags = flags;
+	io.pfrio_table = *tbl;
+	io.pfrio_buffer = addr;
+	io.pfrio_esize = sizeof(*addr);
+	io.pfrio_size = size;
+
+	if (ioctl(dev, DIOCRDELADDRS, &io))
+		return (errno);
+	if (ndel != NULL)
+		*ndel = io.pfrio_ndel;
+	return (0);
+}
+
+int
+pfctl_table_set_addrs(int dev, struct pfr_table *tbl, struct pfr_addr
+    *addr, int size, int *size2, int *nadd, int *ndel, int *nchange, int flags)
+{
+	struct pfioc_table io;
+
+	if (tbl == NULL || size < 0 || (size && addr == NULL)) {
+		return (EINVAL);
+	}
+	bzero(&io, sizeof io);
+	io.pfrio_flags = flags;
+	io.pfrio_table = *tbl;
+	io.pfrio_buffer = addr;
+	io.pfrio_esize = sizeof(*addr);
+	io.pfrio_size = size;
+	io.pfrio_size2 = (size2 != NULL) ? *size2 : 0;
+	if (ioctl(dev, DIOCRSETADDRS, &io))
+		return (-1);
+	if (nadd != NULL)
+		*nadd = io.pfrio_nadd;
+	if (ndel != NULL)
+		*ndel = io.pfrio_ndel;
+	if (nchange != NULL)
+		*nchange = io.pfrio_nchange;
+	if (size2 != NULL)
+		*size2 = io.pfrio_size2;
+	return (0);
+}
+
+int pfctl_table_get_addrs(int dev, struct pfr_table *tbl, struct pfr_addr *addr,
+    int *size, int flags)
+{
+	struct pfioc_table io;
+
+	if (tbl == NULL || size == NULL || *size < 0 ||
+	    (*size && addr == NULL)) {
+		return (EINVAL);
+	}
+	bzero(&io, sizeof io);
+	io.pfrio_flags = flags;
+	io.pfrio_table = *tbl;
+	io.pfrio_buffer = addr;
+	io.pfrio_esize = sizeof(*addr);
+	io.pfrio_size = *size;
+	if (ioctl(dev, DIOCRGETADDRS, &io))
+		return (-1);
+	*size = io.pfrio_size;
 	return (0);
 }

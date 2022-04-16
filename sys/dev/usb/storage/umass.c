@@ -2129,11 +2129,11 @@ umass_cam_attach(struct umass_softc *sc)
 static void
 umass_cam_detach_sim(struct umass_softc *sc)
 {
-	cam_status status;
+	int error;
 
 	if (sc->sc_sim != NULL) {
-		status = xpt_bus_deregister(cam_sim_path(sc->sc_sim));
-		if (status == CAM_REQ_CMP) {
+		error = xpt_bus_deregister(cam_sim_path(sc->sc_sim));
+		if (error == 0) {
 			/* accessing the softc is not possible after this */
 			sc->sc_sim->softc = NULL;
 			DPRINTF(sc, UDMASS_SCSI, "%s: %s:%d:%d caling "
@@ -2143,8 +2143,8 @@ umass_cam_detach_sim(struct umass_softc *sc)
 			    sc->sc_sim->refcount, sc->sc_sim->mtx);
 			cam_sim_free(sc->sc_sim, /* free_devq */ TRUE);
 		} else {
-			panic("%s: %s: CAM layer is busy: %#x\n",
-			    __func__, sc->sc_name, status);
+			panic("%s: %s: CAM layer is busy: errno %d\n",
+			    __func__, sc->sc_name, error);
 		}
 		sc->sc_sim = NULL;
 	}
@@ -2157,7 +2157,7 @@ umass_cam_detach_sim(struct umass_softc *sc)
 static void
 umass_cam_action(struct cam_sim *sim, union ccb *ccb)
 {
-	struct umass_softc *sc = (struct umass_softc *)sim->softc;
+	struct umass_softc *sc = cam_sim_softc(sim);
 
 	if (sc == NULL) {
 		ccb->ccb_h.status = CAM_SEL_TIMEOUT;
@@ -2440,7 +2440,7 @@ done:
 static void
 umass_cam_poll(struct cam_sim *sim)
 {
-	struct umass_softc *sc = (struct umass_softc *)sim->softc;
+	struct umass_softc *sc = cam_sim_softc(sim);
 
 	if (sc == NULL)
 		return;

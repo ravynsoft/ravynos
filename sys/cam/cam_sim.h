@@ -94,7 +94,6 @@ struct cam_sim {
 	const char		*sim_name;
 	void			*softc;
 	struct mtx		*mtx;
-	TAILQ_HEAD(, ccb_hdr)	sim_doneq;
 	TAILQ_ENTRY(cam_sim)	links;
 	u_int32_t		path_id;/* The Boot device may set this to 0? */
 	u_int32_t		unit_number;
@@ -102,15 +101,9 @@ struct cam_sim {
 	int			max_tagged_dev_openings;
 	int			max_dev_openings;
 	u_int32_t		flags;
-#define	CAM_SIM_REL_TIMEOUT_PENDING	0x01
-	struct callout		callout;
 	struct cam_devq 	*devq;	/* Device Queue to use for this SIM */
 	int			refcount; /* References to the SIM. */
-	device_t		sim_dev; /* For attached peripherals. */
 };
-
-#define CAM_SIM_LOCK(sim)	mtx_lock((sim)->mtx)
-#define CAM_SIM_UNLOCK(sim)	mtx_unlock((sim)->mtx)
 
 static __inline u_int32_t
 cam_sim_path(const struct cam_sim *sim)

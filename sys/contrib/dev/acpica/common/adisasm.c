@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -478,7 +478,7 @@ AdDisassembleOneTable (
         AcpiOsPrintf (" * ACPI Data Table [%4.4s]\n *\n",
             Table->Signature);
         AcpiOsPrintf (" * Format: [HexOffset DecimalOffset ByteLength]  "
-            "FieldName : FieldValue\n */\n\n");
+            "FieldName : FieldValue (in hex)\n */\n\n");
 
         AcpiDmDumpDataTable (Table);
         fprintf (stderr, "Acpi Data Table [%4.4s] decoded\n",

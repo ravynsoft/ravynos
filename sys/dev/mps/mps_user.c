@@ -468,12 +468,6 @@ mpi_pre_fw_download(struct mps_command *cm, struct mps_usr_command *cmd)
 	MPI2_FW_DOWNLOAD_TCSGE tc;
 	int error;
 
-	/*
-	 * This code assumes there is room in the request's SGL for
-	 * the TransactionContext plus at least a SGL chain element.
-	 */
-	CTASSERT(sizeof req->SGL >= sizeof tc + MPS_SGC_SIZE);
-
 	if (cmd->req_len != sizeof *req)
 		return (EINVAL);
 	if (cmd->rpl_len != sizeof *rpl)
@@ -520,12 +514,6 @@ mpi_pre_fw_upload(struct mps_command *cm, struct mps_usr_command *cmd)
 	MPI2_FW_UPLOAD_REQUEST *req = (void *)cm->cm_req;
 	MPI2_FW_UPLOAD_REPLY *rpl;
 	MPI2_FW_UPLOAD_TCSGE tc;
-
-	/*
-	 * This code assumes there is room in the request's SGL for
-	 * the TransactionContext plus at least a SGL chain element.
-	 */
-	CTASSERT(sizeof req->SGL >= sizeof tc + MPS_SGC_SIZE);
 
 	if (cmd->req_len != sizeof *req)
 		return (EINVAL);
@@ -2168,6 +2156,10 @@ mps_ioctl(struct cdev *dev, u_long cmd, void *arg, int flag,
 		mps_unlock(sc);
 		break;
 	case MPSIO_READ_CFG_PAGE:
+		if (page_req->len < (int)sizeof(MPI2_CONFIG_PAGE_HEADER)) {
+			error = EINVAL;
+			break;
+		}
 		mps_page = malloc(page_req->len, M_MPSUSER, M_WAITOK | M_ZERO);
 		error = copyin(page_req->buf, mps_page,
 		    sizeof(MPI2_CONFIG_PAGE_HEADER));
@@ -2186,6 +2178,11 @@ mps_ioctl(struct cdev *dev, u_long cmd, void *arg, int flag,
 		mps_unlock(sc);
 		break;
 	case MPSIO_READ_EXT_CFG_PAGE:
+		if (ext_page_req->len <
+		    (int)sizeof(MPI2_CONFIG_EXTENDED_PAGE_HEADER)) {
+			error = EINVAL;
+			break;
+		}
 		mps_page = malloc(ext_page_req->len, M_MPSUSER, M_WAITOK|M_ZERO);
 		error = copyin(ext_page_req->buf, mps_page,
 		    sizeof(MPI2_CONFIG_EXTENDED_PAGE_HEADER));
@@ -2199,6 +2196,10 @@ mps_ioctl(struct cdev *dev, u_long cmd, void *arg, int flag,
 		error = copyout(mps_page, ext_page_req->buf, ext_page_req->len);
 		break;
 	case MPSIO_WRITE_CFG_PAGE:
+		if (page_req->len < (int)sizeof(MPI2_CONFIG_PAGE_HEADER)) {
+			error = EINVAL;
+			break;
+		}
 		mps_page = malloc(page_req->len, M_MPSUSER, M_WAITOK|M_ZERO);
 		error = copyin(page_req->buf, mps_page, page_req->len);
 		if (error)

@@ -166,13 +166,37 @@ extern char etext[];
 
 extern uint64_t __cpu_affinity[];
 
+struct arm64_addr_mask;
+extern struct arm64_addr_mask elf64_addr_mask;
+
 void	cpu_halt(void) __dead2;
 void	cpu_reset(void) __dead2;
 void	fork_trampoline(void);
 void	identify_cache(uint64_t);
 void	identify_cpu(u_int);
 void	install_cpu_errata(void);
-void	swi_vm(void *v);
+
+/* Pointer Authentication Code (PAC) support */
+void	ptrauth_init(void);
+void	ptrauth_fork(struct thread *, struct thread *);
+void	ptrauth_exec(struct thread *);
+void	ptrauth_copy_thread(struct thread *, struct thread *);
+void	ptrauth_thread_alloc(struct thread *);
+void	ptrauth_thread0(struct thread *);
+#ifdef SMP
+void	ptrauth_mp_start(uint64_t);
+#endif
+
+/* Pointer Authentication Code (PAC) support */
+void	ptrauth_init(void);
+void	ptrauth_fork(struct thread *, struct thread *);
+void	ptrauth_exec(struct thread *);
+void	ptrauth_copy_thread(struct thread *, struct thread *);
+void	ptrauth_thread_alloc(struct thread *);
+void	ptrauth_thread0(struct thread *);
+#ifdef SMP
+void	ptrauth_mp_start(uint64_t);
+#endif
 
 /* Functions to read the sanitised view of the special registers */
 void	update_special_regs(u_int);

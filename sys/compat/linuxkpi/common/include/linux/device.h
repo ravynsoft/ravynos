@@ -289,6 +289,8 @@ put_device(struct device *dev)
 		kobject_put(&dev->kobj);
 }
 
+struct class *class_create(struct module *owner, const char *name);
+
 static inline int
 class_register(struct class *class)
 {
@@ -312,6 +314,12 @@ static inline struct device *kobj_to_dev(struct kobject *kobj)
 {
 	return container_of(kobj, struct device, kobj);
 }
+
+struct device *device_create(struct class *class, struct device *parent,
+	    dev_t devt, void *drvdata, const char *fmt, ...);
+struct device *device_create_groups_vargs(struct class *class, struct device *parent,
+    dev_t devt, void *drvdata, const struct attribute_group **groups,
+    const char *fmt, va_list args);
 
 /*
  * Devices are registered and created for exporting to sysfs. Create
@@ -370,47 +378,6 @@ static inline void
 device_create_release(struct device *dev)
 {
 	kfree(dev);
-}
-
-static inline struct device *
-device_create_groups_vargs(struct class *class, struct device *parent,
-    dev_t devt, void *drvdata, const struct attribute_group **groups,
-    const char *fmt, va_list args)
-{
-	struct device *dev = NULL;
-	int retval = -ENODEV;
-
-	if (class == NULL || IS_ERR(class))
-		goto error;
-
-	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
-	if (!dev) {
-		retval = -ENOMEM;
-		goto error;
-	}
-
-	dev->devt = devt;
-	dev->class = class;
-	dev->parent = parent;
-	dev->groups = groups;
-	dev->release = device_create_release;
-	/* device_initialize() needs the class and parent to be set */
-	device_initialize(dev);
-	dev_set_drvdata(dev, drvdata);
-
-	retval = kobject_set_name_vargs(&dev->kobj, fmt, args);
-	if (retval)
-		goto error;
-
-	retval = device_add(dev);
-	if (retval)
-		goto error;
-
-	return dev;
-
-error:
-	put_device(dev);
-	return ERR_PTR(retval);
 }
 
 static inline struct device *
@@ -484,9 +451,9 @@ device_unregister(struct device *dev)
 	dev->bsddev = NULL;
 
 	if (bsddev != NULL && dev->bsddev_attached_here) {
-		mtx_lock(&Giant);
+		bus_topo_lock();
 		device_delete_child(device_get_parent(bsddev), bsddev);
-		mtx_unlock(&Giant);
+		bus_topo_unlock();
 	}
 	put_device(dev);
 }
@@ -500,14 +467,11 @@ device_del(struct device *dev)
 	dev->bsddev = NULL;
 
 	if (bsddev != NULL && dev->bsddev_attached_here) {
-		mtx_lock(&Giant);
+		bus_topo_lock();
 		device_delete_child(device_get_parent(bsddev), bsddev);
-		mtx_unlock(&Giant);
+		bus_topo_unlock();
 	}
 }
-
-struct device *device_create(struct class *class, struct device *parent,
-	    dev_t devt, void *drvdata, const char *fmt, ...);
 
 static inline void
 device_destroy(struct class *class, dev_t devt)
@@ -533,10 +497,10 @@ device_release_driver(struct device *dev)
 	dev_set_drvdata(dev, NULL);
 	/* Do not call dev->release! */
 
-	mtx_lock(&Giant);
+	bus_topo_lock();
 	if (device_is_attached(dev->bsddev))
 		device_detach(dev->bsddev);
-	mtx_unlock(&Giant);
+	bus_topo_unlock();
 #endif
 }
 
@@ -546,9 +510,9 @@ device_reprobe(struct device *dev)
 	int error;
 
 	device_release_driver(dev);
-	mtx_lock(&Giant);
+	bus_topo_lock();
 	error = device_probe_and_attach(dev->bsddev);
-	mtx_unlock(&Giant);
+	bus_topo_unlock();
 
 	return (-error);
 }
@@ -561,25 +525,6 @@ linux_class_kfree(struct class *class)
 {
 
 	kfree(class);
-}
-
-static inline struct class *
-class_create(struct module *owner, const char *name)
-{
-	struct class *class;
-	int error;
-
-	class = kzalloc(sizeof(*class), M_WAITOK);
-	class->owner = owner;
-	class->name = name;
-	class->class_release = linux_class_kfree;
-	error = class_register(class);
-	if (error) {
-		kfree(class);
-		return (NULL);
-	}
-
-	return (class);
 }
 
 static inline void

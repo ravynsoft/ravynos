@@ -794,8 +794,8 @@ S_efi_map(size_t l2, void *p)
 			type = types[map->md_type];
 		if (type == NULL)
 			type = "<INVALID>";
-		printf("\n%23s %012jx %12p %08jx ", type,
-		    (uintmax_t)map->md_phys, map->md_virt,
+		printf("\n%23s %012jx %012jx %08jx ", type,
+		    (uintmax_t)map->md_phys, (uintmax_t)map->md_virt,
 		    (uintmax_t)map->md_pages);
 		if (map->md_attr & EFI_MD_ATTR_UC)
 			printf("UC ");
@@ -981,9 +981,8 @@ show_var(int *oid, int nlen, bool honor_skip)
 	bzero(fmt, BUFSIZ);
 	bzero(name, BUFSIZ);
 	qoid[0] = CTL_SYSCTL;
-	memcpy(qoid + 2, oid, nlen * sizeof(int));
-
 	qoid[1] = CTL_SYSCTL_NAME;
+	memcpy(qoid + 2, oid, nlen * sizeof(int));
 	j = sizeof(name);
 	i = sysctl(qoid, nlen + 2, name, &j, 0, 0);
 	if (i || !j)

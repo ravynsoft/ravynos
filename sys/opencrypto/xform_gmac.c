@@ -52,9 +52,10 @@ __FBSDID("$FreeBSD$");
 
 #include <opencrypto/gmac.h>
 #include <opencrypto/xform_auth.h>
+#include <opencrypto/xform_enc.h>
 
 /* Encryption instances */
-struct enc_xform enc_xform_aes_nist_gmac = {
+const struct enc_xform enc_xform_aes_nist_gmac = {
 	.type = CRYPTO_AES_NIST_GMAC,
 	.name = "AES-GMAC",
 	.blocksize = AES_ICM_BLOCK_LEN,
@@ -64,7 +65,7 @@ struct enc_xform enc_xform_aes_nist_gmac = {
 };
 
 /* Authentication instances */
-struct auth_hash auth_hash_nist_gmac_aes_128 = {
+const struct auth_hash auth_hash_nist_gmac_aes_128 = {
 	.type = CRYPTO_AES_NIST_GMAC,
 	.name = "GMAC-AES-128",
 	.keysize = AES_128_GMAC_KEY_LEN,
@@ -78,7 +79,7 @@ struct auth_hash auth_hash_nist_gmac_aes_128 = {
 	.Final = AES_GMAC_Final,
 };
 
-struct auth_hash auth_hash_nist_gmac_aes_192 = {
+const struct auth_hash auth_hash_nist_gmac_aes_192 = {
 	.type = CRYPTO_AES_NIST_GMAC,
 	.name = "GMAC-AES-192",
 	.keysize = AES_192_GMAC_KEY_LEN,
@@ -92,7 +93,7 @@ struct auth_hash auth_hash_nist_gmac_aes_192 = {
 	.Final = AES_GMAC_Final,
 };
 
-struct auth_hash auth_hash_nist_gmac_aes_256 = {
+const struct auth_hash auth_hash_nist_gmac_aes_256 = {
 	.type = CRYPTO_AES_NIST_GMAC,
 	.name = "GMAC-AES-256",
 	.keysize = AES_256_GMAC_KEY_LEN,

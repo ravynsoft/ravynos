@@ -42,8 +42,6 @@
 #define	SUN_CKM_AES_GCM	"CKM_AES_GCM"
 #define	SUN_CKM_SHA512_HMAC	"CKM_SHA512_HMAC"
 
-#define	CRYPTO_KEY_RAW	1
-
 #define	CRYPTO_BITS2BYTES(n) ((n) == 0 ? 0 : (((n) - 1) >> 3) + 1)
 #define	CRYPTO_BYTES2BITS(n) ((n) << 3)
 
@@ -61,12 +59,11 @@ typedef struct freebsd_crypt_session {
 typedef void *crypto_mechanism_t;
 typedef void *crypto_ctx_template_t;
 /*
- * Unlike the ICP crypto_key type, this only
+ * Like the ICP crypto_key type, this only
  * supports <data, length> (the equivalent of
- * CRYPTO_KEY_RAW).
+ * the former CRYPTO_KEY_RAW).
  */
 typedef struct crypto_key {
-	int	ck_format;	/* Unused, but minimizes code diff */
 	void	*ck_data;
 	size_t	ck_length;
 } crypto_key_t;
@@ -88,11 +85,11 @@ void crypto_mac_final(struct hmac_ctx *ctx, void *out_data,
 	size_t out_data_size);
 
 int freebsd_crypt_newsession(freebsd_crypt_session_t *sessp,
-    struct zio_crypt_info *, crypto_key_t *);
+    const struct zio_crypt_info *, crypto_key_t *);
 void freebsd_crypt_freesession(freebsd_crypt_session_t *sessp);
 
 int freebsd_crypt_uio(boolean_t, freebsd_crypt_session_t *,
-	struct zio_crypt_info *, zfs_uio_t *, crypto_key_t *, uint8_t *,
+	const struct zio_crypt_info *, zfs_uio_t *, crypto_key_t *, uint8_t *,
 	size_t, size_t);
 
 #endif /* _ZFS_FREEBSD_CRYPTO_H */

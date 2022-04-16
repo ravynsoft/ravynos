@@ -25,7 +25,7 @@
 .\"	From: @(#)style	1.14 (Berkeley) 4/28/95
 .\" $FreeBSD$
 .\"
-.Dd October 28, 2020
+.Dd February 2, 2022
 .Dt STYLE 9
 .Os
 .Sh NAME
@@ -36,6 +36,10 @@ This file specifies the preferred style for kernel source files in the
 .Fx
 source tree.
 It is also a guide for the preferred userland code style.
+The preferred line width is 80 characters, but some exceptions are
+made when a slightly longer line is clearer or easier to read.
+Anything that is frequently grepped for, such as diagnostic, error or panic
+messages, should not be broken up over multiple lines despite this rule.
 Many of the style rules are implicit in the examples.
 Be careful to check the examples before assuming that
 .Nm
@@ -45,7 +49,6 @@ is silent on an issue.
  * Style guide for FreeBSD.  Based on the CSRG's KNF (Kernel Normal Form).
  *
  *	@(#)style	1.14 (Berkeley) 4/28/95
- * $FreeBSD$
  */
 
 /*
@@ -108,13 +111,17 @@ New
 lines should only be added when making substantial changes to the file,
 not for trivial changes.
 .Pp
-After any copyright and license comment, there is a blank line, and the
+After any copyright and license comment, there is a blank line.
+Include
 .Li $\&FreeBSD$
-for non C/C++ language source files.
-Version control system ID tags should only exist once in a file
-(unlike in this one).
+or
+.Li __FBSDID("$\&FreeBSD$");
+only if you are certain the new code will be merged to stable/12.
+The tag will be removed from legacy code in the future.
 Non-C/C++ source files follow the example above, while C/C++ source files
 follow the one below.
+Version control system ID tags should only exist once in a file
+(unlike in this one).
 All VCS (version control system) revision identification in files obtained
 from elsewhere should be maintained, including, where applicable, multiple IDs
 showing a file's history.
@@ -128,11 +135,13 @@ and to keep the IDs out of object files.
 Only add
 .Dq Li "From: "
 in front of foreign VCS IDs if the file is renamed.
+Add
+.Dq Li "From: "
+and FreeBSD git hash with full path name if the file was derived
+from another FreeBSD file and include relevant copyright info
+from the original file.
 .Bd -literal
 /* From: @(#)style	1.14 (Berkeley) 4/28/95 */
-
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 .Ed
 .Pp
 Leave one blank line before the header files.
@@ -215,9 +224,9 @@ macros (ones that have side effects), and the names of macros for
 manifest constants, are all in uppercase.
 The expansions of expression-like macros are either a single token
 or have outer parentheses.
-Put a single tab character between the
+Put a single space or tab character between the
 .Ic #define
-and the macro name.
+and the macro name, but be consistent within a file.
 If a macro is an inline expansion of a function, the function name is
 all in lowercase and the macro has the same name all in uppercase.
 .\" XXX the above conflicts with ANSI style where the names are the

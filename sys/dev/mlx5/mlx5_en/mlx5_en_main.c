@@ -39,6 +39,8 @@
 #include <net/debugnet.h>
 
 static int mlx5e_get_wqe_sz(struct mlx5e_priv *priv, u32 *wqe_sz, u32 *nsegs);
+static if_snd_tag_query_t mlx5e_ul_snd_tag_query;
+static if_snd_tag_free_t mlx5e_ul_snd_tag_free;
 
 struct mlx5e_channel_param {
 	struct mlx5e_rq_param rq;
@@ -347,6 +349,12 @@ static const struct media mlx5e_ext_mode_table[MLX5E_EXT_LINK_SPEEDS_NUMBER][MLX
 		.subtype = IFM_400G_LR8,	/* XXX */
 		.baudrate = IF_Gbps(400ULL),
 	},
+};
+
+static const struct if_snd_tag_sw mlx5e_ul_snd_tag_sw = {
+	.snd_tag_query = mlx5e_ul_snd_tag_query,
+	.snd_tag_free = mlx5e_ul_snd_tag_free,
+	.type = IF_SND_TAG_TYPE_UNLIMITED
 };
 
 DEBUGNET_DEFINE(mlx5_en);
@@ -820,6 +828,8 @@ mlx5e_update_stats_locked(struct mlx5e_priv *priv)
 	u64 rx_wqe_err = 0;
 	u64 rx_packets = 0;
 	u64 rx_bytes = 0;
+	u64 rx_decrypted_error = 0;
+	u64 rx_decrypted_ok = 0;
 	u32 rx_out_of_buffer = 0;
 	int error;
 	int i;
@@ -846,6 +856,8 @@ mlx5e_update_stats_locked(struct mlx5e_priv *priv)
 		rx_wqe_err += rq_stats->wqe_err;
 		rx_packets += rq_stats->packets;
 		rx_bytes += rq_stats->bytes;
+		rx_decrypted_error += rq_stats->decrypted_error_packets;
+		rx_decrypted_ok += rq_stats->decrypted_ok_packets;
 
 		for (j = 0; j < priv->num_tc; j++) {
 			sq_stats = &pch->sq[j].stats;
@@ -896,6 +908,8 @@ mlx5e_update_stats_locked(struct mlx5e_priv *priv)
 	s->rx_wqe_err = rx_wqe_err;
 	s->rx_packets = rx_packets;
 	s->rx_bytes = rx_bytes;
+	s->rx_decrypted_error_packets = rx_decrypted_error;
+	s->rx_decrypted_ok_packets = rx_decrypted_ok;
 
 	mlx5e_grp_vnic_env_update_stats(priv);
 
@@ -2180,7 +2194,7 @@ mlx5e_chan_static_init(struct mlx5e_priv *priv, struct mlx5e_channel *c, int ix)
 	c->ix = ix;
 
 	/* setup send tag */
-	m_snd_tag_init(&c->tag, c->priv->ifp, IF_SND_TAG_TYPE_UNLIMITED);
+	m_snd_tag_init(&c->tag, c->priv->ifp, &mlx5e_ul_snd_tag_sw);
 
 	init_completion(&c->completion);
 
@@ -2245,7 +2259,7 @@ mlx5e_open_channel(struct mlx5e_priv *priv,
 	struct epoch_tracker et;
 	int i, err;
 
-	/* zero non-persistant data */
+	/* zero non-persistent data */
 	MLX5E_ZERO(&c->rq, mlx5e_rq_zero_start);
 	for (i = 0; i != priv->num_tc; i++)
 		MLX5E_ZERO(&c->sq[i], mlx5e_sq_zero_start);
@@ -2708,7 +2722,7 @@ mlx5e_open_tis(struct mlx5e_priv *priv, int tc)
 static void
 mlx5e_close_tis(struct mlx5e_priv *priv, int tc)
 {
-	mlx5_core_destroy_tis(priv->mdev, priv->tisn[tc]);
+	mlx5_core_destroy_tis(priv->mdev, priv->tisn[tc], 0);
 }
 
 static int
@@ -2790,9 +2804,9 @@ mlx5e_open_rqts(struct mlx5e_priv *priv)
 
 err_channel:
 	while (i--)
-		mlx5_core_destroy_rqt(priv->mdev, priv->channel[i].rqtn);
+		mlx5_core_destroy_rqt(priv->mdev, priv->channel[i].rqtn, 0);
 
-	mlx5_core_destroy_rqt(priv->mdev, priv->rqtn);
+	mlx5_core_destroy_rqt(priv->mdev, priv->rqtn, 0);
 
 err_default:
 	return (err);
@@ -2804,9 +2818,9 @@ mlx5e_close_rqts(struct mlx5e_priv *priv)
 	int i;
 
 	for (i = 0; i != priv->mdev->priv.eq_table.num_comp_vectors; i++)
-		mlx5_core_destroy_rqt(priv->mdev, priv->channel[i].rqtn);
+		mlx5_core_destroy_rqt(priv->mdev, priv->channel[i].rqtn, 0);
 
-	mlx5_core_destroy_rqt(priv->mdev, priv->rqtn);
+	mlx5_core_destroy_rqt(priv->mdev, priv->rqtn, 0);
 }
 
 static int
@@ -3155,7 +3169,7 @@ static void
 mlx5e_close_tir(struct mlx5e_priv *priv, int tt, bool inner_vxlan)
 {
 	mlx5_core_destroy_tir(priv->mdev, inner_vxlan ?
-	    priv->tirn_inner_vxlan[tt] : priv->tirn[tt]);
+	    priv->tirn_inner_vxlan[tt] : priv->tirn[tt], 0);
 }
 
 static int
@@ -3877,7 +3891,7 @@ mlx5e_mkey_set_relaxed_ordering(struct mlx5_core_dev *mdev, void *mkc)
 
 static int
 mlx5e_create_mkey(struct mlx5e_priv *priv, u32 pdn,
-		  struct mlx5_core_mr *mkey)
+		  struct mlx5_core_mkey *mkey)
 {
 	struct ifnet *ifp = priv->ifp;
 	struct mlx5_core_dev *mdev = priv->mdev;
@@ -4299,7 +4313,7 @@ mlx5e_setup_pauseframes(struct mlx5e_priv *priv)
 	PRIV_UNLOCK(priv);
 }
 
-int
+static int
 mlx5e_ul_snd_tag_alloc(struct ifnet *ifp,
     union if_snd_tag_alloc_params *params,
     struct m_snd_tag **ppmt)
@@ -4341,7 +4355,7 @@ mlx5e_ul_snd_tag_alloc(struct ifnet *ifp,
 	}
 }
 
-int
+static int
 mlx5e_ul_snd_tag_query(struct m_snd_tag *pmt, union if_snd_tag_query_params *params)
 {
 	struct mlx5e_channel *pch =
@@ -4352,7 +4366,7 @@ mlx5e_ul_snd_tag_query(struct m_snd_tag *pmt, union if_snd_tag_query_params *par
 	return (0);
 }
 
-void
+static void
 mlx5e_ul_snd_tag_free(struct m_snd_tag *pmt)
 {
 	struct mlx5e_channel *pch =
@@ -4381,52 +4395,8 @@ mlx5e_snd_tag_alloc(struct ifnet *ifp,
 #ifdef KERN_TLS
 	case IF_SND_TAG_TYPE_TLS:
 		return (mlx5e_tls_snd_tag_alloc(ifp, params, ppmt));
-#endif
-	default:
-		return (EOPNOTSUPP);
-	}
-}
-
-static int
-mlx5e_snd_tag_modify(struct m_snd_tag *pmt, union if_snd_tag_modify_params *params)
-{
-
-	switch (pmt->type) {
-#ifdef RATELIMIT
-	case IF_SND_TAG_TYPE_RATE_LIMIT:
-		return (mlx5e_rl_snd_tag_modify(pmt, params));
-#ifdef KERN_TLS
-	case IF_SND_TAG_TYPE_TLS_RATE_LIMIT:
-		return (mlx5e_tls_snd_tag_modify(pmt, params));
-#endif
-#endif
-	case IF_SND_TAG_TYPE_UNLIMITED:
-#ifdef KERN_TLS
-	case IF_SND_TAG_TYPE_TLS:
-#endif
-	default:
-		return (EOPNOTSUPP);
-	}
-}
-
-static int
-mlx5e_snd_tag_query(struct m_snd_tag *pmt, union if_snd_tag_query_params *params)
-{
-
-	switch (pmt->type) {
-#ifdef RATELIMIT
-	case IF_SND_TAG_TYPE_RATE_LIMIT:
-		return (mlx5e_rl_snd_tag_query(pmt, params));
-#ifdef KERN_TLS
-	case IF_SND_TAG_TYPE_TLS_RATE_LIMIT:
-		return (mlx5e_tls_snd_tag_query(pmt, params));
-#endif
-#endif
-	case IF_SND_TAG_TYPE_UNLIMITED:
-		return (mlx5e_ul_snd_tag_query(pmt, params));
-#ifdef KERN_TLS
-	case IF_SND_TAG_TYPE_TLS:
-		return (mlx5e_tls_snd_tag_query(pmt, params));
+	case IF_SND_TAG_TYPE_TLS_RX:
+		return (mlx5e_tls_rx_snd_tag_alloc(ifp, params, ppmt));
 #endif
 	default:
 		return (EOPNOTSUPP);
@@ -4476,34 +4446,6 @@ mlx5e_ratelimit_query(struct ifnet *ifp __unused, struct if_ratelimit_query_resu
 	q->min_segment_burst = 1;
 }
 #endif
-
-static void
-mlx5e_snd_tag_free(struct m_snd_tag *pmt)
-{
-
-	switch (pmt->type) {
-#ifdef RATELIMIT
-	case IF_SND_TAG_TYPE_RATE_LIMIT:
-		mlx5e_rl_snd_tag_free(pmt);
-		break;
-#ifdef KERN_TLS
-	case IF_SND_TAG_TYPE_TLS_RATE_LIMIT:
-		mlx5e_tls_snd_tag_free(pmt);
-		break;
-#endif
-#endif
-	case IF_SND_TAG_TYPE_UNLIMITED:
-		mlx5e_ul_snd_tag_free(pmt);
-		break;
-#ifdef KERN_TLS
-	case IF_SND_TAG_TYPE_TLS:
-		mlx5e_tls_snd_tag_free(pmt);
-		break;
-#endif
-	default:
-		break;
-	}
-}
 
 static void
 mlx5e_ifm_add(struct mlx5e_priv *priv, int type)
@@ -4590,9 +4532,6 @@ mlx5e_create_ifp(struct mlx5_core_dev *mdev)
 #endif
 	ifp->if_capabilities |= IFCAP_VXLAN_HWCSUM | IFCAP_VXLAN_HWTSO;
 	ifp->if_snd_tag_alloc = mlx5e_snd_tag_alloc;
-	ifp->if_snd_tag_free = mlx5e_snd_tag_free;
-	ifp->if_snd_tag_modify = mlx5e_snd_tag_modify;
-	ifp->if_snd_tag_query = mlx5e_snd_tag_query;
 #ifdef RATELIMIT
 	ifp->if_ratelimit_query = mlx5e_ratelimit_query;
 #endif
@@ -4653,12 +4592,12 @@ mlx5e_create_ifp(struct mlx5_core_dev *mdev)
 	/* reuse mlx5core's watchdog workqueue */
 	priv->wq = mdev->priv.health.wq_watchdog;
 
-	err = mlx5_core_alloc_pd(mdev, &priv->pdn);
+	err = mlx5_core_alloc_pd(mdev, &priv->pdn, 0);
 	if (err) {
 		mlx5_en_err(ifp, "mlx5_core_alloc_pd failed, %d\n", err);
 		goto err_free_wq;
 	}
-	err = mlx5_alloc_transport_domain(mdev, &priv->tdn);
+	err = mlx5_alloc_transport_domain(mdev, &priv->tdn, 0);
 	if (err) {
 		mlx5_en_err(ifp,
 		    "mlx5_alloc_transport_domain failed, %d\n", err);
@@ -4712,6 +4651,12 @@ mlx5e_create_ifp(struct mlx5_core_dev *mdev)
 	if (err) {
 		if_printf(ifp, "%s: mlx5e_open_flow_tables failed (%d)\n", __func__, err);
 		goto err_open_tirs;
+	}
+
+	err = mlx5e_tls_rx_init(priv);
+	if (err) {
+		if_printf(ifp, "%s: mlx5e_tls_rx_init() failed, %d\n", __func__, err);
+		goto err_open_flow_tables;
 	}
 
 	/* set default MTU */
@@ -4849,6 +4794,9 @@ mlx5e_create_ifp(struct mlx5_core_dev *mdev)
 
 	return (priv);
 
+err_open_flow_tables:
+	mlx5e_close_flow_tables(priv);
+
 err_open_tirs:
 	mlx5e_close_tirs(priv);
 
@@ -4868,10 +4816,10 @@ err_create_mkey:
 	mlx5_core_destroy_mkey(priv->mdev, &priv->mr);
 
 err_dealloc_transport_domain:
-	mlx5_dealloc_transport_domain(mdev, priv->tdn);
+	mlx5_dealloc_transport_domain(mdev, priv->tdn, 0);
 
 err_dealloc_pd:
-	mlx5_core_dealloc_pd(mdev, priv->pdn);
+	mlx5_core_dealloc_pd(mdev, priv->pdn, 0);
 
 err_free_wq:
 	flush_workqueue(priv->wq);
@@ -4923,6 +4871,14 @@ mlx5e_destroy_ifp(struct mlx5_core_dev *mdev, void *vpriv)
 		    "Waiting for all TLS connections to terminate\n");
 		pause("W", hz);
 	}
+
+	/* wait for all TLS RX tags to get freed */
+	while (priv->tls_rx.init != 0 &&
+	    uma_zone_get_cur(priv->tls_rx.zone) != 0)  {
+		mlx5_en_err(priv->ifp,
+		    "Waiting for all TLS RX connections to terminate\n");
+		pause("W", hz);
+	}
 #endif
 	/* wait for all unlimited send tags to complete */
 	mlx5e_priv_wait_for_completion(priv, mdev->priv.eq_table.num_comp_vectors);
@@ -4957,6 +4913,7 @@ mlx5e_destroy_ifp(struct mlx5_core_dev *mdev, void *vpriv)
 	ifmedia_removeall(&priv->media);
 	ether_ifdetach(ifp);
 
+	mlx5e_tls_rx_cleanup(priv);
 	mlx5e_close_flow_tables(priv);
 	mlx5e_close_tirs(priv);
 	mlx5e_close_rqts(priv);
@@ -4972,8 +4929,8 @@ mlx5e_destroy_ifp(struct mlx5_core_dev *mdev, void *vpriv)
 	sysctl_ctx_free(&priv->sysctl_ctx);
 
 	mlx5_core_destroy_mkey(priv->mdev, &priv->mr);
-	mlx5_dealloc_transport_domain(priv->mdev, priv->tdn);
-	mlx5_core_dealloc_pd(priv->mdev, priv->pdn);
+	mlx5_dealloc_transport_domain(priv->mdev, priv->tdn, 0);
+	mlx5_core_dealloc_pd(priv->mdev, priv->pdn, 0);
 	mlx5e_disable_async_events(priv);
 	flush_workqueue(priv->wq);
 	mlx5e_priv_static_destroy(priv, mdev, mdev->priv.eq_table.num_comp_vectors);

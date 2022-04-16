@@ -601,6 +601,13 @@ This gently reduces the congestion window during periods, where TCP is
 application limited and the network bandwidth is not utilized completely.
 That prevents self-inflicted packet losses once the application starts to
 transmit data at a higher speed.
+.It Va do_lrd
+Enable Lost Retransmission Detection for SACK-enabled sessions, disabled by
+default.
+Under severe congestion, a retransmission can be lost which then leads to a
+mandatory Retransmission Timeout (RTO), followed by slow-start.
+LRD will try to resend the repeatedly lost packet, preventing the time-consuming
+RTO and performance reducing slow-start.
 .It Va do_prr
 Perform SACK loss recovery using the Proportional Rate Reduction (PRR) algorithm
 described in RFC6937.
@@ -615,16 +622,8 @@ Helpful when a misconfigured token bucket traffic policer causes persistent
 high losses leading to RTO, but reduces PRR effectiveness in more common settings
 (default is false).
 .It Va rfc6675_pipe
-Calculate the bytes in flight using the algorithm described in RFC 6675, and
-is also an improvement when Proportional Rate Reduction is enabled.
-Also enables two other mechanisms from RFC6675.
-Rescue Retransmission helps timely loss recovery, when the trailing segments
-of a transmission are lost, while no additional data is ready to be sent.
-In case a partial ACK without a SACK block is received during SACK loss
-recovery, the trailing segment is immediately resent, rather than waiting
-for a Retransmission timeout.
-SACK loss recovery is also engaged, once two segments plus one byte are
-SACKed - even if no traditional duplicate ACKs were seen.
+Deprecated and superseded by
+.Va sack.revised
 .It Va rfc3042
 Enable the Limited Transmit algorithm as described in RFC 3042.
 It helps avoid timeouts on lossy links and also when the congestion window
@@ -641,6 +640,17 @@ Enable support for RFC 2018, TCP Selective Acknowledgment option,
 which allows the receiver to inform the sender about all successfully
 arrived segments, allowing the sender to retransmit the missing segments
 only.
+.It Va sack.revised
+Enables three updated mechanisms from RFC6675 (default is true).
+Calculate the bytes in flight using the algorithm described in RFC 6675, and
+is also an improvement when Proportional Rate Reduction is enabled.
+Next, Rescue Retransmission helps timely loss recovery, when the trailing segments
+of a transmission are lost, while no additional data is ready to be sent.
+In case a partial ACK without a SACK block is received during SACK loss
+recovery, the trailing segment is immediately resent, rather than waiting
+for a Retransmission timeout.
+Finally, SACK loss recovery is also engaged, once two segments plus one byte are
+SACKed - even if no traditional duplicate ACKs were observed.
 .It Va sack.maxholes
 Maximum number of SACK holes per connection.
 Defaults to 128.

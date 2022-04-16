@@ -599,6 +599,7 @@ ad1816_attach(device_t dev)
 	struct ad1816_info *ad1816;
     	char status[SND_STATUSLEN], status2[SND_STATUSLEN];
 
+	gone_in_dev(dev, 14, "ISA sound driver");
 	ad1816 = malloc(sizeof(*ad1816), M_DEVBUF, M_WAITOK | M_ZERO);
 	ad1816->lock = snd_mtxcreate(device_get_nameunit(dev),
 	    "snd_ad1816 softc");
@@ -620,8 +621,8 @@ ad1816_attach(device_t dev)
 			/*filter*/NULL, /*filterarg*/NULL,
 			/*maxsize*/ad1816->bufsize, /*nsegments*/1,
 			/*maxsegz*/0x3ffff,
-			/*flags*/0, /*lockfunc*/busdma_lock_mutex,
-			/*lockarg*/ &Giant, &ad1816->parent_dmat) != 0) {
+			/*flags*/0, /*lockfunc*/NULL, /*lockarg*/NULL,
+			&ad1816->parent_dmat) != 0) {
 		device_printf(dev, "unable to create dma tag\n");
 		goto no;
     	}

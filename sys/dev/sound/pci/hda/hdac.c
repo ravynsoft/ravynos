@@ -1390,12 +1390,20 @@ sysctl_hdac_pindump(SYSCTL_HANDLER_ARGS)
 		return (0);
 	}
 
-	if ((err = device_get_children(dev, &devlist, &devcount)) != 0)
+	bus_topo_lock();
+
+	if ((err = device_get_children(dev, &devlist, &devcount)) != 0) {
+		bus_topo_unlock();
 		return (err);
+	}
+
 	hdac_lock(sc);
 	for (i = 0; i < devcount; i++)
 		HDAC_PINDUMP(devlist[i]);
 	hdac_unlock(sc);
+
+	bus_topo_unlock();
+
 	free(devlist, M_TEMP);
 	return (0);
 }
@@ -1610,11 +1618,11 @@ hdac_attach2(void *arg)
 
 	SYSCTL_ADD_PROC(device_get_sysctl_ctx(sc->dev),
 	    SYSCTL_CHILDREN(device_get_sysctl_tree(sc->dev)), OID_AUTO,
-	    "pindump", CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, sc->dev,
+	    "pindump", CTLTYPE_INT | CTLFLAG_RW, sc->dev,
 	    sizeof(sc->dev), sysctl_hdac_pindump, "I", "Dump pin states/data");
 	SYSCTL_ADD_PROC(device_get_sysctl_ctx(sc->dev),
 	    SYSCTL_CHILDREN(device_get_sysctl_tree(sc->dev)), OID_AUTO,
-	    "polling", CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_NEEDGIANT, sc->dev,
+	    "polling", CTLTYPE_INT | CTLFLAG_RW, sc->dev,
 	    sizeof(sc->dev), sysctl_hdac_polling, "I", "Enable polling mode");
 }
 
@@ -1778,21 +1786,20 @@ hdac_print_child(device_t dev, device_t child)
 }
 
 static int
-hdac_child_location_str(device_t dev, device_t child, char *buf, size_t buflen)
+hdac_child_location(device_t dev, device_t child, struct sbuf *sb)
 {
 
-	snprintf(buf, buflen, "cad=%d", (int)(intptr_t)device_get_ivars(child));
+	sbuf_printf(sb, "cad=%d", (int)(intptr_t)device_get_ivars(child));
 	return (0);
 }
 
 static int
-hdac_child_pnpinfo_str_method(device_t dev, device_t child, char *buf,
-    size_t buflen)
+hdac_child_pnpinfo_method(device_t dev, device_t child, struct sbuf *sb)
 {
 	struct hdac_softc *sc = device_get_softc(dev);
 	nid_t cad = (uintptr_t)device_get_ivars(child);
 
-	snprintf(buf, buflen,
+	sbuf_printf(sb,
 	    "vendor=0x%04x device=0x%04x revision=0x%02x stepping=0x%02x",
 	    sc->codecs[cad].vendor_id, sc->codecs[cad].device_id,
 	    sc->codecs[cad].revision_id, sc->codecs[cad].stepping_id);
@@ -2141,8 +2148,8 @@ static device_method_t hdac_methods[] = {
 	/* Bus interface */
 	DEVMETHOD(bus_get_dma_tag,	hdac_get_dma_tag),
 	DEVMETHOD(bus_print_child,	hdac_print_child),
-	DEVMETHOD(bus_child_location_str, hdac_child_location_str),
-	DEVMETHOD(bus_child_pnpinfo_str, hdac_child_pnpinfo_str_method),
+	DEVMETHOD(bus_child_location,	hdac_child_location),
+	DEVMETHOD(bus_child_pnpinfo,	hdac_child_pnpinfo_method),
 	DEVMETHOD(bus_read_ivar,	hdac_read_ivar),
 	DEVMETHOD(hdac_get_mtx,		hdac_get_mtx),
 	DEVMETHOD(hdac_codec_command,	hdac_codec_command),

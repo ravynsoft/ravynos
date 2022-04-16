@@ -39,7 +39,6 @@ __FBSDID("$FreeBSD$");
 #include <stand.h>
 #define FREEBSD_ELF
 #include <sys/link_elf.h>
-#include <gfx_fb.h>
 
 #include "bootstrap.h"
 
@@ -90,8 +89,6 @@ static int __elfN(lookup_symbol)(elf_file_t ef, const char* name,
 static int __elfN(reloc_ptr)(struct preloaded_file *mp, elf_file_t ef,
     Elf_Addr p, void *val, size_t len);
 static int __elfN(parse_modmetadata)(struct preloaded_file *mp, elf_file_t ef,
-    Elf_Addr p_start, Elf_Addr p_end);
-static bool __elfN(parse_vt_drv_set)(struct preloaded_file *mp, elf_file_t ef,
     Elf_Addr p_start, Elf_Addr p_end);
 static symaddr_fn __elfN(symaddr);
 static char	*fake_modname(const char *name);
@@ -216,6 +213,43 @@ is_kernphys_relocatable(elf_file_t ef)
 
 	return (__elfN(lookup_symbol)(ef, "kernphys", &sym, STT_OBJECT) == 0 &&
 	    sym.st_size == 8);
+}
+#endif
+
+#ifdef __i386__
+static bool
+is_tg_kernel_support(struct preloaded_file *fp, elf_file_t ef)
+{
+	Elf_Sym		sym;
+	Elf_Addr	p_start, p_end, v, p;
+	char		vd_name[16];
+	int		error;
+
+	if (__elfN(lookup_symbol)(ef, "__start_set_vt_drv_set", &sym, STT_NOTYPE) != 0)
+		return (false);
+	p_start = sym.st_value + ef->off;
+	if (__elfN(lookup_symbol)(ef, "__stop_set_vt_drv_set", &sym, STT_NOTYPE) != 0)
+		return (false);
+	p_end = sym.st_value + ef->off;
+
+	/*
+	 * Walk through vt_drv_set, each vt driver structure starts with
+	 * static 16 chars for driver name. If we have "vbefb", return true.
+	 */
+	for (p = p_start; p < p_end; p += sizeof(Elf_Addr)) {
+		COPYOUT(p, &v, sizeof(v));
+
+		error = __elfN(reloc_ptr)(fp, ef, p, &v, sizeof(v));
+		if (error == EOPNOTSUPP)
+			v += ef->off;
+		else if (error != 0)
+			return (false);
+		COPYOUT(v, &vd_name, sizeof(vd_name));
+		if (strncmp(vd_name, "vbefb", sizeof(vd_name)) == 0)
+			return (true);
+	}
+
+	return (false);
 }
 #endif
 
@@ -429,13 +463,12 @@ __elfN(loadfile_raw)(char *filename, uint64_t dest,
 	else
 		fp->f_type = strdup("elf multiboot kernel");
 
-#ifdef ELF_VERBOSE
-	if (ef.kernel)
-		printf("%s entry at 0x%jx\n", filename,
-		    (uintmax_t)ehdr->e_entry);
-#else
-	printf("%s ", filename);
-#endif
+	if (module_verbose >= MODULE_VERBOSE_FULL) {
+		if (ef.kernel)
+			printf("%s entry at 0x%jx\n", filename,
+			    (uintmax_t)ehdr->e_entry);
+	} else if (module_verbose > MODULE_VERBOSE_SILENT)
+		printf("%s ", filename);
 
 	fp->f_size = __elfN(loadimage)(fp, &ef, dest);
 	if (fp->f_size == 0 || fp->f_addr == 0)
@@ -449,6 +482,9 @@ __elfN(loadfile_raw)(char *filename, uint64_t dest,
 	err = 0;
 #ifdef __amd64__
 	fp->f_kernphys_relocatable = multiboot || is_kernphys_relocatable(&ef);
+#endif
+#ifdef __i386__
+	fp->f_tg_kernel_support = is_tg_kernel_support(fp, &ef);
 #endif
 	goto out;
 
@@ -543,9 +579,10 @@ __elfN(loadimage)(struct preloaded_file *fp, elf_file_t ef, uint64_t off)
 			off += 0x01000000;
 		}
 		ehdr->e_entry += off;
-#ifdef ELF_VERBOSE
-		printf("Converted entry 0x%jx\n", (uintmax_t)ehdr->e_entry);
-#endif
+		if (module_verbose >= MODULE_VERBOSE_FULL)
+			printf("Converted entry 0x%jx\n",
+			    (uintmax_t)ehdr->e_entry);
+
 #elif defined(__arm__) && !defined(EFI)
 		/*
 		 * The elf headers in arm kernels specify virtual addresses in
@@ -567,10 +604,9 @@ __elfN(loadimage)(struct preloaded_file *fp, elf_file_t ef, uint64_t off)
 		 */
 		off -= ehdr->e_entry & ~PAGE_MASK;
 		ehdr->e_entry += off;
-#ifdef ELF_VERBOSE
-		printf("ehdr->e_entry 0x%jx, va<->pa off %llx\n",
-		    (uintmax_t)ehdr->e_entry, off);
-#endif
+		if (module_verbose >= MODULE_VERBOSE_FULL)
+			printf("ehdr->e_entry 0x%jx, va<->pa off %llx\n",
+			    (uintmax_t)ehdr->e_entry, off);
 #else
 		off = 0;	/* other archs use direct mapped kernels */
 #endif
@@ -595,22 +631,22 @@ __elfN(loadimage)(struct preloaded_file *fp, elf_file_t ef, uint64_t off)
 		if (phdr[i].p_type != PT_LOAD)
 			continue;
 
-#ifdef ELF_VERBOSE
-		printf("Segment: 0x%lx@0x%lx -> 0x%lx-0x%lx",
-		    (long)phdr[i].p_filesz, (long)phdr[i].p_offset,
-		    (long)(phdr[i].p_vaddr + off),
-		    (long)(phdr[i].p_vaddr + off + phdr[i].p_memsz - 1));
-#else
-		if ((phdr[i].p_flags & PF_W) == 0) {
-			printf("text=0x%lx ", (long)phdr[i].p_filesz);
-		} else {
-			printf("data=0x%lx", (long)phdr[i].p_filesz);
-			if (phdr[i].p_filesz < phdr[i].p_memsz)
-				printf("+0x%lx", (long)(phdr[i].p_memsz -
-				    phdr[i].p_filesz));
-			printf(" ");
+		if (module_verbose >= MODULE_VERBOSE_FULL) {
+			printf("Segment: 0x%lx@0x%lx -> 0x%lx-0x%lx",
+			    (long)phdr[i].p_filesz, (long)phdr[i].p_offset,
+			    (long)(phdr[i].p_vaddr + off),
+			    (long)(phdr[i].p_vaddr + off + phdr[i].p_memsz - 1));
+		} else if (module_verbose > MODULE_VERBOSE_SILENT) {
+			if ((phdr[i].p_flags & PF_W) == 0) {
+				printf("text=0x%lx ", (long)phdr[i].p_filesz);
+			} else {
+				printf("data=0x%lx", (long)phdr[i].p_filesz);
+				if (phdr[i].p_filesz < phdr[i].p_memsz)
+					printf("+0x%lx", (long)(phdr[i].p_memsz -
+						phdr[i].p_filesz));
+				printf(" ");
+			}
 		}
-#endif
 		fpcopy = 0;
 		if (ef->firstlen > phdr[i].p_offset) {
 			fpcopy = ef->firstlen - phdr[i].p_offset;
@@ -629,18 +665,16 @@ __elfN(loadimage)(struct preloaded_file *fp, elf_file_t ef, uint64_t off)
 		}
 		/* clear space from oversized segments; eg: bss */
 		if (phdr[i].p_filesz < phdr[i].p_memsz) {
-#ifdef ELF_VERBOSE
-			printf(" (bss: 0x%lx-0x%lx)",
-			    (long)(phdr[i].p_vaddr + off + phdr[i].p_filesz),
-			    (long)(phdr[i].p_vaddr + off + phdr[i].p_memsz -1));
-#endif
-
+			if (module_verbose >= MODULE_VERBOSE_FULL) {
+				printf(" (bss: 0x%lx-0x%lx)",
+				    (long)(phdr[i].p_vaddr + off + phdr[i].p_filesz),
+				    (long)(phdr[i].p_vaddr + off + phdr[i].p_memsz -1));
+			}	
 			kern_bzero(phdr[i].p_vaddr + off + phdr[i].p_filesz,
 			    phdr[i].p_memsz - phdr[i].p_filesz);
 		}
-#ifdef ELF_VERBOSE
-		printf("\n");
-#endif
+		if (module_verbose >= MODULE_VERBOSE_FULL)
+			printf("\n");
 
 		if (archsw.arch_loadseg != NULL)
 			archsw.arch_loadseg(ehdr, phdr + i, off);
@@ -730,12 +764,10 @@ __elfN(loadimage)(struct preloaded_file *fp, elf_file_t ef, uint64_t off)
 		goto nosyms;
 
 	/* Ok, committed to a load. */
-#ifndef ELF_VERBOSE
-	printf("syms=[");
-#endif
+	if (module_verbose >= MODULE_VERBOSE_FULL)
+		printf("syms=[");
 	ssym = lastaddr;
 	for (i = symtabindex; i >= 0; i = symstrindex) {
-#ifdef ELF_VERBOSE
 		char	*secname;
 
 		switch(shdr[i].sh_type) {
@@ -749,23 +781,21 @@ __elfN(loadimage)(struct preloaded_file *fp, elf_file_t ef, uint64_t off)
 			secname = "WHOA!!";
 			break;
 		}
-#endif
 		size = shdr[i].sh_size;
 
 		archsw.arch_copyin(&size, lastaddr, sizeof(size));
 		lastaddr += sizeof(size);
 
-#ifdef ELF_VERBOSE
-		printf("\n%s: 0x%jx@0x%jx -> 0x%jx-0x%jx", secname,
-		    (uintmax_t)shdr[i].sh_size, (uintmax_t)shdr[i].sh_offset,
-		    (uintmax_t)lastaddr,
-		    (uintmax_t)(lastaddr + shdr[i].sh_size));
-#else
-		if (i == symstrindex)
-			printf("+");
-		printf("0x%lx+0x%lx", (long)sizeof(size), (long)size);
-#endif
-
+		if (module_verbose >= MODULE_VERBOSE_FULL) {
+			printf("\n%s: 0x%jx@0x%jx -> 0x%jx-0x%jx", secname,
+			    (uintmax_t)shdr[i].sh_size, (uintmax_t)shdr[i].sh_offset,
+			    (uintmax_t)lastaddr,
+			    (uintmax_t)(lastaddr + shdr[i].sh_size));
+		} else if (module_verbose > MODULE_VERBOSE_SILENT) {
+			if (i == symstrindex)
+				printf("+");
+			printf("0x%lx+0x%lx", (long)sizeof(size), (long)size);
+		}
 		if (VECTX_LSEEK(VECTX_HANDLE(ef), (off_t)shdr[i].sh_offset, SEEK_SET) == -1) {
 			printf("\nelf" __XSTRING(__ELF_WORD_SIZE)
 			   "_loadimage: could not seek for symbols - skipped!");
@@ -792,15 +822,15 @@ __elfN(loadimage)(struct preloaded_file *fp, elf_file_t ef, uint64_t off)
 			symstrindex = -1;
 	}
 	esym = lastaddr;
-#ifndef ELF_VERBOSE
-	printf("]");
-#endif
+	if (module_verbose >= MODULE_VERBOSE_FULL)
+		printf("]");
 
 	file_addmetadata(fp, MODINFOMD_SSYM, sizeof(ssym), &ssym);
 	file_addmetadata(fp, MODINFOMD_ESYM, sizeof(esym), &esym);
 
 nosyms:
-	printf("\n");
+	if (module_verbose > MODULE_VERBOSE_SILENT)
+		printf("\n");
 
 	ret = lastaddr - firstaddr;
 	fp->f_addr = firstaddr;
@@ -872,18 +902,6 @@ nosyms:
 	COPYOUT(ef->hashtab + 1, &ef->nchains, sizeof(ef->nchains));
 	ef->buckets = ef->hashtab + 2;
 	ef->chains = ef->buckets + ef->nbuckets;
-
-	if (!gfx_state.tg_kernel_supported &&
-	    __elfN(lookup_symbol)(ef, "__start_set_vt_drv_set", &sym,
-	    STT_NOTYPE) == 0) {
-		p_start = sym.st_value + ef->off;
-		if (__elfN(lookup_symbol)(ef, "__stop_set_vt_drv_set", &sym,
-		    STT_NOTYPE) == 0) {
-			p_end = sym.st_value + ef->off;
-			gfx_state.tg_kernel_supported =
-			    __elfN(parse_vt_drv_set)(fp, ef, p_start, p_end);
-		}
-	}
 
 	if (__elfN(lookup_symbol)(ef, "__start_set_modmetadata_set", &sym,
 	    STT_NOTYPE) != 0)
@@ -1083,36 +1101,6 @@ out:
 		close(ef.fd);
 	}
 	return (err);
-}
-
-/*
- * Walk through vt_drv_set, each vt driver structure starts with
- * static 16 chars for driver name. If we have "vbefb", return true.
- */
-static bool
-__elfN(parse_vt_drv_set)(struct preloaded_file *fp, elf_file_t ef,
-    Elf_Addr p_start, Elf_Addr p_end)
-{
-	Elf_Addr v, p;
-	char vd_name[16];
-	int error;
-
-	p = p_start;
-	while (p < p_end) {
-		COPYOUT(p, &v, sizeof(v));
-
-		error = __elfN(reloc_ptr)(fp, ef, p, &v, sizeof(v));
-		if (error == EOPNOTSUPP)
-			v += ef->off;
-		else if (error != 0)
-			return (false);
-		COPYOUT(v, &vd_name, sizeof(vd_name));
-		if (strncmp(vd_name, "vbefb", sizeof(vd_name)) == 0)
-			return (true);
-		p += sizeof(Elf_Addr);
-	}
-
-	return (false);
 }
 
 int

@@ -42,6 +42,11 @@ __FBSDID("$FreeBSD$");
  * Routines to handle clock hardware.
  */
 
+#ifdef __amd64__
+#define	DEV_APIC
+#else
+#include "opt_apic.h"
+#endif
 #include "opt_clock.h"
 #include "opt_isa.h"
 
@@ -129,6 +134,7 @@ clock_init(void)
 	mtx_init(&clock_lock, "clk", NULL, MTX_SPIN | MTX_NOPROFILE);
 	/* Init the clock in order to use DELAY */
 	init_ops.early_clock_source_init();
+	tsc_init();
 }
 
 static int
@@ -398,10 +404,10 @@ i8254_init(void)
 }
 
 void
-startrtclock()
+startrtclock(void)
 {
 
-	init_TSC();
+	start_TSC();
 }
 
 void
@@ -414,7 +420,9 @@ cpu_initclocks(void)
 	td = curthread;
 
 	tsc_calibrate();
+#ifdef DEV_APIC
 	lapic_calibrate_timer();
+#endif
 	cpu_initclocks_bsp();
 	CPU_FOREACH(i) {
 		if (i == 0)
@@ -430,7 +438,9 @@ cpu_initclocks(void)
 	thread_unlock(td);
 #else
 	tsc_calibrate();
+#ifdef DEV_APIC
 	lapic_calibrate_timer();
+#endif
 	cpu_initclocks_bsp();
 #endif
 }

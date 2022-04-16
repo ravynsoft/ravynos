@@ -716,8 +716,8 @@ csa_allocres(struct csa_info *csa, device_t dev)
 			       /*highaddr*/BUS_SPACE_MAXADDR,
 			       /*filter*/NULL, /*filterarg*/NULL,
 			       /*maxsize*/CS461x_BUFFSIZE, /*nsegments*/1, /*maxsegz*/0x3ffff,
-			       /*flags*/0, /*lockfunc*/busdma_lock_mutex,
-			       /*lockarg*/&Giant, &csa->parent_dmat) != 0)
+			       /*flags*/0, /*lockfunc*/NULL, /*lockarg*/NULL,
+			       &csa->parent_dmat) != 0)
 		return (1);
 
 	return (0);
@@ -777,13 +777,11 @@ pcmcsa_attach(device_t dev)
 {
 	struct csa_info *csa;
 	csa_res *resp;
-	int unit;
 	char status[SND_STATUSLEN];
 	struct ac97_info *codec;
 	struct sndcard_func *func;
 
 	csa = malloc(sizeof(*csa), M_DEVBUF, M_WAITOK | M_ZERO);
-	unit = device_get_unit(dev);
 	func = device_get_ivars(dev);
 	csa->binfo = func->varinfo;
 	/*

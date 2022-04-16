@@ -4,8 +4,6 @@
 
 .if ${MACHINE_CPUARCH} == "amd64" && ${DO32:U0} == 1
 FICL_CPUARCH=	i386
-.elif ${MACHINE_ARCH:Mmips64*} != ""
-FICL_CPUARCH=	mips64
 .else
 FICL_CPUARCH=	${MACHINE_CPUARCH}
 .endif
@@ -17,6 +15,4 @@ CFLAGS+=	-fPIC
 CFLAGS+=	-I${FICLSRC} -I${FICLSRC}/${FICL_CPUARCH} -I${LDRSRC}
 CFLAGS+=	-DBF_DICTSIZE=30000
 
-.if ${MK_LOADER_VERIEXEC} != "no"
-CFLAGS+= -DLOADER_VERIEXEC -I${SRCTOP}/lib/libsecureboot/h
-.endif
+.include	"${BOOTSRC}/veriexec.mk"

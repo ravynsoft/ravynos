@@ -192,7 +192,8 @@ struct m_snd_tag;
 #define	IF_SND_TAG_TYPE_UNLIMITED 1
 #define	IF_SND_TAG_TYPE_TLS 2
 #define	IF_SND_TAG_TYPE_TLS_RATE_LIMIT 3
-#define	IF_SND_TAG_TYPE_MAX 4
+#define	IF_SND_TAG_TYPE_TLS_RX 4
+#define	IF_SND_TAG_TYPE_MAX 5
 
 struct if_snd_tag_alloc_header {
 	uint32_t type;		/* send tag type, see IF_SND_TAG_XXX */
@@ -214,6 +215,13 @@ struct if_snd_tag_alloc_tls {
 	const struct ktls_session *tls;
 };
 
+struct if_snd_tag_alloc_tls_rx {
+	struct if_snd_tag_alloc_header hdr;
+	struct inpcb *inp;
+	const struct ktls_session *tls;
+	uint16_t vlan_id;	/* valid if non-zero */
+};
+
 struct if_snd_tag_alloc_tls_rate_limit {
 	struct if_snd_tag_alloc_header hdr;
 	struct inpcb *inp;
@@ -229,11 +237,26 @@ struct if_snd_tag_rate_limit_params {
 	uint32_t flags;		/* M_NOWAIT or M_WAITOK */
 };
 
+struct if_snd_tag_modify_tls_rx {
+	/* TCP sequence number of TLS header in host endian format */
+	uint32_t tls_hdr_tcp_sn;
+
+	/*
+	 * TLS record length, including all headers, data and trailers.
+	 * If the tls_rec_length is zero, it means HW encryption resumed.
+	 */
+	uint32_t tls_rec_length;
+
+	/* TLS sequence number in host endian format */
+	uint64_t tls_seq_number;
+};
+
 union if_snd_tag_alloc_params {
 	struct if_snd_tag_alloc_header hdr;
 	struct if_snd_tag_alloc_rate_limit rate_limit;
 	struct if_snd_tag_alloc_rate_limit unlimited;
 	struct if_snd_tag_alloc_tls tls;
+	struct if_snd_tag_alloc_tls_rx tls_rx;
 	struct if_snd_tag_alloc_tls_rate_limit tls_rate_limit;
 };
 
@@ -241,12 +264,28 @@ union if_snd_tag_modify_params {
 	struct if_snd_tag_rate_limit_params rate_limit;
 	struct if_snd_tag_rate_limit_params unlimited;
 	struct if_snd_tag_rate_limit_params tls_rate_limit;
+	struct if_snd_tag_modify_tls_rx tls_rx;
 };
 
 union if_snd_tag_query_params {
 	struct if_snd_tag_rate_limit_params rate_limit;
 	struct if_snd_tag_rate_limit_params unlimited;
 	struct if_snd_tag_rate_limit_params tls_rate_limit;
+};
+
+typedef int (if_snd_tag_alloc_t)(struct ifnet *, union if_snd_tag_alloc_params *,
+    struct m_snd_tag **);
+typedef int (if_snd_tag_modify_t)(struct m_snd_tag *, union if_snd_tag_modify_params *);
+typedef int (if_snd_tag_query_t)(struct m_snd_tag *, union if_snd_tag_query_params *);
+typedef void (if_snd_tag_free_t)(struct m_snd_tag *);
+typedef struct m_snd_tag *(if_next_send_tag_t)(struct m_snd_tag *);
+
+struct if_snd_tag_sw {
+	if_snd_tag_modify_t *snd_tag_modify;
+	if_snd_tag_query_t *snd_tag_query;
+	if_snd_tag_free_t *snd_tag_free;
+	if_next_send_tag_t *next_snd_tag;
+	u_int	type;			/* One of IF_SND_TAG_TYPE_*. */
 };
 
 /* Query return flags */
@@ -273,12 +312,6 @@ struct if_ratelimit_query_results {
 	uint32_t min_segment_burst;	/* The amount the adapter bursts at each send */
 };
 
-typedef int (if_snd_tag_alloc_t)(struct ifnet *, union if_snd_tag_alloc_params *,
-    struct m_snd_tag **);
-typedef int (if_snd_tag_modify_t)(struct m_snd_tag *, union if_snd_tag_modify_params *);
-typedef int (if_snd_tag_query_t)(struct m_snd_tag *, union if_snd_tag_query_params *);
-typedef void (if_snd_tag_free_t)(struct m_snd_tag *);
-typedef struct m_snd_tag *(if_next_send_tag_t)(struct m_snd_tag *);
 typedef void (if_ratelimit_query_t)(struct ifnet *,
     struct if_ratelimit_query_results *);
 typedef int (if_ratelimit_setup_t)(struct ifnet *, uint64_t, uint32_t);
@@ -301,7 +334,7 @@ struct ifnet {
 	const char *if_dname;		/* driver name */
 	int	if_dunit;		/* unit or IF_DUNIT_NONE */
 	u_short	if_index;		/* numeric abbreviation for this if  */
-	short	if_index_reserved;	/* spare space to grow if_index */
+	u_short	if_idxgen;		/* ... and its generation count */
 	char	if_xname[IFNAMSIZ];	/* external name (name + unit) */
 	char	*if_description;	/* interface description */
 
@@ -340,7 +373,7 @@ struct ifnet {
 		 * addresses which store the link-level address and the name
 		 * of the interface.
 		 * However, access to the AF_LINK address through this
-		 * field is deprecated. Use if_addr or ifaddr_byindex() instead.
+		 * field is deprecated. Use if_addr instead.
 		 */
 	struct	ifaddrhead if_addrhead;	/* linked list of addresses per if */
 	struct	ifmultihead if_multiaddrs; /* multicast addresses configured */
@@ -420,10 +453,8 @@ struct ifnet {
 	 * Network adapter send tag support:
 	 */
 	if_snd_tag_alloc_t *if_snd_tag_alloc;
-	if_snd_tag_modify_t *if_snd_tag_modify;
-	if_snd_tag_query_t *if_snd_tag_query;
-	if_snd_tag_free_t *if_snd_tag_free;
-	if_next_send_tag_t *if_next_snd_tag;
+
+	/* Ratelimit (packet pacing) */
 	if_ratelimit_query_t *if_ratelimit_query;
 	if_ratelimit_setup_t *if_ratelimit_setup;
 
@@ -606,28 +637,26 @@ extern	struct sx ifnet_sxlock;
 #define	IFNET_RUNLOCK()		sx_sunlock(&ifnet_sxlock)
 
 /*
- * Look up an ifnet given its index; the _ref variant also acquires a
- * reference that must be freed using if_rele().  It is almost always a bug
- * to call ifnet_byindex() instead of ifnet_byindex_ref().
+ * Look up an ifnet given its index.  The returned value protected from
+ * being freed by the network epoch.  The _ref variant also acquires a
+ * reference that must be freed using if_rele().
  */
-struct ifnet	*ifnet_byindex(u_short idx);
-struct ifnet	*ifnet_byindex_ref(u_short idx);
+struct ifnet	*ifnet_byindex(u_int);
+struct ifnet	*ifnet_byindex_ref(u_int);
 
 /*
- * Given the index, ifaddr_byindex() returns the one and only
- * link-level ifaddr for the interface. You are not supposed to use
- * it to traverse the list of addresses associated to the interface.
+ * ifnet_byindexgen() looks up ifnet by index and generation count,
+ * attempting to restore a weak pointer that had been stored across
+ * the epoch.
  */
-struct ifaddr	*ifaddr_byindex(u_short idx);
+struct ifnet   *ifnet_byindexgen(uint16_t idx, uint16_t gen);
 
 VNET_DECLARE(struct ifnethead, ifnet);
 VNET_DECLARE(struct ifgrouphead, ifg_head);
-VNET_DECLARE(int, if_index);
 VNET_DECLARE(struct ifnet *, loif);	/* first loopback interface */
 
 #define	V_ifnet		VNET(ifnet)
 #define	V_ifg_head	VNET(ifg_head)
-#define	V_if_index	VNET(if_index)
 #define	V_loif		VNET(loif)
 
 #ifdef MCAST_VERBOSE
@@ -642,7 +671,6 @@ int	if_addmulti(struct ifnet *, struct sockaddr *, struct ifmultiaddr **);
 int	if_allmulti(struct ifnet *, int);
 struct	ifnet* if_alloc(u_char);
 struct	ifnet* if_alloc_dev(u_char, device_t dev);
-struct	ifnet* if_alloc_domain(u_char, int numa_domain);
 void	if_attach(struct ifnet *);
 void	if_dead(struct ifnet *);
 int	if_delmulti(struct ifnet *, struct sockaddr *);
@@ -659,6 +687,7 @@ void	if_free(struct ifnet *);
 void	if_initname(struct ifnet *, const char *, int);
 void	if_link_state_change(struct ifnet *, int);
 int	if_printf(struct ifnet *, const char *, ...) __printflike(2, 3);
+int	if_log(struct ifnet *, int, const char *, ...) __printflike(3, 4);
 void	if_ref(struct ifnet *);
 void	if_rele(struct ifnet *);
 bool	__result_use_check if_try_ref(struct ifnet *);
@@ -767,12 +796,6 @@ void if_setstartfn(if_t ifp, void (*)(if_t));
 void if_settransmitfn(if_t ifp, if_transmit_fn_t);
 void if_setqflushfn(if_t ifp, if_qflush_fn_t);
 void if_setgetcounterfn(if_t ifp, if_get_counter_t);
-
-/* Revisit the below. These are inline functions originally */
-int drbr_inuse_drv(if_t ifp, struct buf_ring *br);
-struct mbuf* drbr_dequeue_drv(if_t ifp, struct buf_ring *br);
-int drbr_needs_enqueue_drv(if_t ifp, struct buf_ring *br);
-int drbr_enqueue_drv(if_t ifp, struct buf_ring *br, struct mbuf *m);
 
 /* TSO */
 void if_hw_tsomax_common(if_t ifp, struct ifnet_hw_tsomax *);

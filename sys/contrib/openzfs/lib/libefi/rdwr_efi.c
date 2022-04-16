@@ -29,14 +29,12 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
-#include <strings.h>
 #include <unistd.h>
 #include <uuid/uuid.h>
 #include <zlib.h>
 #include <libintl.h>
 #include <sys/types.h>
 #include <sys/dkio.h>
-#include <sys/vtoc.h>
 #include <sys/mhd.h>
 #include <sys/param.h>
 #include <sys/dktp/fdisk.h>
@@ -140,40 +138,6 @@ static struct uuid_to_ptag {
 	{ EFI_FREEDESKTOP_BOOT }
 };
 
-/*
- * Default vtoc information for non-SVr4 partitions
- */
-struct dk_map2  default_vtoc_map[NDKMAP] = {
-	{	V_ROOT,		0	},		/* a - 0 */
-	{	V_SWAP,		V_UNMNT	},		/* b - 1 */
-	{	V_BACKUP,	V_UNMNT	},		/* c - 2 */
-	{	V_UNASSIGNED,	0	},		/* d - 3 */
-	{	V_UNASSIGNED,	0	},		/* e - 4 */
-	{	V_UNASSIGNED,	0	},		/* f - 5 */
-	{	V_USR,		0	},		/* g - 6 */
-	{	V_UNASSIGNED,	0	},		/* h - 7 */
-
-#if defined(_SUNOS_VTOC_16)
-
-#if defined(i386) || defined(__amd64) || defined(__arm) || \
-    defined(__powerpc) || defined(__sparc) || defined(__s390__) || \
-    defined(__mips__) || defined(__rv64g__)
-	{	V_BOOT,		V_UNMNT	},		/* i - 8 */
-	{	V_ALTSCTR,	0	},		/* j - 9 */
-
-#else
-#error No VTOC format defined.
-#endif			/* defined(i386) */
-
-	{	V_UNASSIGNED,	0	},		/* k - 10 */
-	{	V_UNASSIGNED,	0	},		/* l - 11 */
-	{	V_UNASSIGNED,	0	},		/* m - 12 */
-	{	V_UNASSIGNED,	0	},		/* n - 13 */
-	{	V_UNASSIGNED,	0	},		/* o - 14 */
-	{	V_UNASSIGNED,	0	},		/* p - 15 */
-#endif			/* defined(_SUNOS_VTOC_16) */
-};
-
 int efi_debug = 0;
 
 static int efi_read(int, struct dk_gpt *);
@@ -218,22 +182,15 @@ read_disk_info(int fd, diskaddr_t *capacity, uint_t *lbsize)
 static char *
 efi_get_devname(int fd)
 {
-	char *path;
-	char *dev_name;
-
-	path = calloc(1, PATH_MAX);
-	if (path == NULL)
-		return (NULL);
+	char path[32];
 
 	/*
 	 * The libefi API only provides the open fd and not the file path.
 	 * To handle this realpath(3) is used to resolve the block device
 	 * name from /proc/self/fd/<fd>.
 	 */
-	(void) sprintf(path, "/proc/self/fd/%d", fd);
-	dev_name = realpath(path, NULL);
-	free(path);
-	return (dev_name);
+	(void) snprintf(path, sizeof (path), "/proc/self/fd/%d", fd);
+	return (realpath(path, NULL));
 }
 
 static int
@@ -898,7 +855,6 @@ efi_read(int fd, struct dk_gpt *vtoc)
 	}
 
 	for (i = 0; i < vtoc->efi_nparts; i++) {
-
 		UUID_LE_CONVERT(vtoc->efi_parts[i].p_guid,
 		    efi_parts[i].efi_gpe_PartitionTypeGUID);
 
@@ -906,7 +862,7 @@ efi_read(int fd, struct dk_gpt *vtoc)
 		    j < sizeof (conversion_array)
 		    / sizeof (struct uuid_to_ptag); j++) {
 
-			if (bcmp(&vtoc->efi_parts[i].p_guid,
+			if (memcmp(&vtoc->efi_parts[i].p_guid,
 			    &conversion_array[j].uuid,
 			    sizeof (struct uuid)) == 0) {
 				vtoc->efi_parts[i].p_tag = j;
@@ -961,18 +917,17 @@ write_pmbr(int fd, struct dk_gpt *vtoc)
 	/* LINTED -- always longlong aligned */
 	dk_ioc.dki_data = (efi_gpt_t *)buf;
 	if (efi_ioctl(fd, DKIOCGETEFI, &dk_ioc) == -1) {
-		(void) memcpy(&mb, buf, sizeof (mb));
-		bzero(&mb, sizeof (mb));
+		memset(&mb, 0, sizeof (mb));
 		mb.signature = LE_16(MBB_MAGIC);
 	} else {
 		(void) memcpy(&mb, buf, sizeof (mb));
 		if (mb.signature != LE_16(MBB_MAGIC)) {
-			bzero(&mb, sizeof (mb));
+			memset(&mb, 0, sizeof (mb));
 			mb.signature = LE_16(MBB_MAGIC);
 		}
 	}
 
-	bzero(&mb.parts, sizeof (mb.parts));
+	memset(&mb.parts, 0, sizeof (mb.parts));
 	cp = (uchar_t *)&mb.parts[0];
 	/* bootable or not */
 	*cp++ = 0;
@@ -1496,8 +1451,8 @@ efi_write(int fd, struct dk_gpt *vtoc)
 			(void) uuid_generate((uchar_t *)
 			    &vtoc->efi_parts[i].p_uguid);
 		}
-		bcopy(&vtoc->efi_parts[i].p_uguid,
-		    &efi_parts[i].efi_gpe_UniquePartitionGUID,
+		memcpy(&efi_parts[i].efi_gpe_UniquePartitionGUID,
+		    &vtoc->efi_parts[i].p_uguid,
 		    sizeof (uuid_t));
 	}
 	efi->efi_gpt_PartitionEntryArrayCRC32 =
@@ -1580,33 +1535,6 @@ void
 efi_free(struct dk_gpt *ptr)
 {
 	free(ptr);
-}
-
-/*
- * Input: File descriptor
- * Output: 1 if disk has an EFI label, or > 2TB with no VTOC or legacy MBR.
- * Otherwise 0.
- */
-int
-efi_type(int fd)
-{
-#if 0
-	struct vtoc vtoc;
-	struct extvtoc extvtoc;
-
-	if (ioctl(fd, DKIOCGEXTVTOC, &extvtoc) == -1) {
-		if (errno == ENOTSUP)
-			return (1);
-		else if (errno == ENOTTY) {
-			if (ioctl(fd, DKIOCGVTOC, &vtoc) == -1)
-				if (errno == ENOTSUP)
-					return (1);
-		}
-	}
-	return (0);
-#else
-	return (ENOSYS);
-#endif
 }
 
 void
@@ -1698,58 +1626,4 @@ efi_err_check(struct dk_gpt *vtoc)
 		(void) fprintf(stderr,
 		    "no reserved partition found\n");
 	}
-}
-
-/*
- * We need to get information necessary to construct a *new* efi
- * label type
- */
-int
-efi_auto_sense(int fd, struct dk_gpt **vtoc)
-{
-
-	int	i;
-
-	/*
-	 * Now build the default partition table
-	 */
-	if (efi_alloc_and_init(fd, EFI_NUMPAR, vtoc) != 0) {
-		if (efi_debug) {
-			(void) fprintf(stderr, "efi_alloc_and_init failed.\n");
-		}
-		return (-1);
-	}
-
-	for (i = 0; i < MIN((*vtoc)->efi_nparts, V_NUMPAR); i++) {
-		(*vtoc)->efi_parts[i].p_tag = default_vtoc_map[i].p_tag;
-		(*vtoc)->efi_parts[i].p_flag = default_vtoc_map[i].p_flag;
-		(*vtoc)->efi_parts[i].p_start = 0;
-		(*vtoc)->efi_parts[i].p_size = 0;
-	}
-	/*
-	 * Make constants first
-	 * and variable partitions later
-	 */
-
-	/* root partition - s0 128 MB */
-	(*vtoc)->efi_parts[0].p_start = 34;
-	(*vtoc)->efi_parts[0].p_size = 262144;
-
-	/* partition - s1  128 MB */
-	(*vtoc)->efi_parts[1].p_start = 262178;
-	(*vtoc)->efi_parts[1].p_size = 262144;
-
-	/* partition -s2 is NOT the Backup disk */
-	(*vtoc)->efi_parts[2].p_tag = V_UNASSIGNED;
-
-	/* partition -s6 /usr partition - HOG */
-	(*vtoc)->efi_parts[6].p_start = 524322;
-	(*vtoc)->efi_parts[6].p_size = (*vtoc)->efi_last_u_lba - 524322
-	    - (1024 * 16);
-
-	/* efi reserved partition - s9 16K */
-	(*vtoc)->efi_parts[8].p_start = (*vtoc)->efi_last_u_lba - (1024 * 16);
-	(*vtoc)->efi_parts[8].p_size = (1024 * 16);
-	(*vtoc)->efi_parts[8].p_tag = V_RESERVED;
-	return (0);
 }

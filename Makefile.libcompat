@@ -4,7 +4,7 @@
 __<${_this:T}>__:
 
 # Makefile for the compatibility libraries.
-# - 32-bit compat libraries on MIPS, PowerPC, and AMD64.
+# - 32-bit compat libraries on PowerPC, and AMD64.
 
 .include <bsd.compat.mk>
 
@@ -25,10 +25,10 @@ LIBCOMPATWMAKEFLAGS+= CC="${XCC} ${LIBCOMPATCFLAGS}" \
 		CPP="${XCPP} ${LIBCOMPATCFLAGS}" \
 		DESTDIR=${LIBCOMPATTMP} \
 		-DNO_CPU_CFLAGS \
+		MK_BOOT=no \
 		MK_CTF=no \
-		-DNO_LINT \
 		MK_TESTS=no
-LIBCOMPATWMAKE+=	${LIBCOMPATWMAKEENV} ${MAKE} ${LIBCOMPATWMAKEFLAGS} \
+LIBCOMPATWMAKE+=	${TIME_ENV} ${LIBCOMPATWMAKEENV} ${MAKE} ${LIBCOMPATWMAKEFLAGS} \
 			OBJTOP=${LIBCOMPAT_OBJTOP} \
 			OBJROOT='$${OBJTOP}/' \
 			MAKEOBJDIRPREFIX= \
@@ -45,7 +45,7 @@ _LC_LIBDIRS.${MK_KERBEROS:tl}+=	kerberos5/lib
 
 _LC_INCDIRS=	\
 		include \
-		lib/ncurses/ncurses \
+		lib/ncurses/tinfo \
 		${_LC_LIBDIRS.yes}
 
 .if ${MK_FILE} != "no"
@@ -94,7 +94,7 @@ build${libcompat}: .PHONY
 	    DIRPRFX=${_dir}/ ${_t}
 .endfor
 .endfor
-.for _dir in lib/ncurses/ncurses ${_libmagic} ${_jevents}
+.for _dir in lib/ncurses/tinfo ${_libmagic} ${_jevents}
 .for _t in ${_obj} build-tools
 	${_+_}cd ${.CURDIR}/${_dir}; \
 	    WORLDTMP=${WORLDTMP} \
@@ -106,9 +106,11 @@ build${libcompat}: .PHONY
 	    DIRPRFX=${_dir}/ \
 	    -DNO_LINT \
 	    -DNO_CPU_CFLAGS \
+	    MK_ASAN=no \
 	    MK_CTF=no \
 	    MK_RETPOLINE=no \
 	    MK_SSP=no \
+	    MK_UBSAN=no \
 	    MK_WERROR=no \
 	    ${_t}
 .endfor

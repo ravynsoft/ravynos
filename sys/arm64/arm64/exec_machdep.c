@@ -40,6 +40,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/mutex.h>
 #include <sys/proc.h>
 #include <sys/ptrace.h>
+#include <sys/reg.h>
 #include <sys/rwlock.h>
 #include <sys/signalvar.h>
 #include <sys/syscallsubr.h>
@@ -54,11 +55,14 @@ __FBSDID("$FreeBSD$");
 #include <machine/kdb.h>
 #include <machine/md_var.h>
 #include <machine/pcb.h>
-#include <machine/reg.h>
 
 #ifdef VFP
 #include <machine/vfp.h>
 #endif
+
+_Static_assert(sizeof(mcontext_t) == 880, "mcontext_t size incorrect");
+_Static_assert(sizeof(ucontext_t) == 960, "ucontext_t size incorrect");
+_Static_assert(sizeof(siginfo_t) == 80, "siginfo_t size incorrect");
 
 static void get_fpcontext(struct thread *td, mcontext_t *mcp);
 static void set_fpcontext(struct thread *td, mcontext_t *mcp);
@@ -225,11 +229,9 @@ set_dbregs(struct thread *td, struct dbreg *regs)
 	struct debug_monitor_state *monitor;
 	uint64_t addr;
 	uint32_t ctrl;
-	int count;
 	int i;
 
 	monitor = &td->td_pcb->pcb_dbg_regs;
-	count = 0;
 	monitor->dbg_enable_count = 0;
 
 	for (i = 0; i < DBG_BRP_MAX; i++) {
@@ -413,6 +415,9 @@ exec_setregs(struct thread *td, struct image_params *imgp, uintptr_t stack)
 	 * Clear debug register state. It is not applicable to the new process.
 	 */
 	bzero(&pcb->pcb_dbg_regs, sizeof(pcb->pcb_dbg_regs));
+
+	/* Generate new pointer authentication keys */
+	ptrauth_exec(td);
 }
 
 /* Sanity check these are the same size, they will be memcpy'd to and from */
@@ -619,10 +624,9 @@ sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 	tf->tf_x[0] = sig;
 	tf->tf_x[1] = (register_t)&fp->sf_si;
 	tf->tf_x[2] = (register_t)&fp->sf_uc;
-
-	tf->tf_elr = (register_t)catcher;
+	tf->tf_x[8] = (register_t)catcher;
 	tf->tf_sp = (register_t)fp;
-	tf->tf_lr = (register_t)p->p_sysent->sv_sigcode_base;
+	tf->tf_elr = (register_t)p->p_sysent->sv_sigcode_base;
 
 	/* Clear the single step flag while in the signal handler */
 	if ((td->td_pcb->pcb_flags & PCB_SINGLE_STEP) != 0) {

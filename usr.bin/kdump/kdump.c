@@ -711,9 +711,6 @@ dumpheader(struct ktr_header *kth, u_int sv_flags)
 		case SV_ABI_FREEBSD:
 			abi = "F";
 			break;
-		case SV_ABI_CLOUDABI:
-			abi = "C";
-			break;
 		default:
 			abi = "U";
 			break;
@@ -761,8 +758,6 @@ syscallabi(u_int sv_flags)
 			return (SYSDECODE_ABI_LINUX32);
 #endif
 		return (SYSDECODE_ABI_LINUX);
-	case SV_ABI_CLOUDABI:
-		return (SYSDECODE_ABI_CLOUDABI64);
 	default:
 		return (SYSDECODE_ABI_UNKNOWN);
 	}
@@ -2155,8 +2150,8 @@ ktrstructarray(struct ktr_struct_array *ksa, size_t buflen)
 				goto bad_size;
 			memcpy(&kev, data, sizeof(kev));
 			ktrkevent(&kev);
-		} else if (strcmp(name, "kevent_freebsd11") == 0) {
-			struct kevent_freebsd11 kev11;
+		} else if (strcmp(name, "freebsd11_kevent") == 0) {
+			struct freebsd11_kevent kev11;
 
 			if (ksa->struct_size != sizeof(kev11))
 				goto bad_size;
@@ -2188,8 +2183,8 @@ ktrstructarray(struct ktr_struct_array *ksa, size_t buflen)
 #endif
 			kev.udata = (void *)(uintptr_t)kev32.udata;
 			ktrkevent(&kev);
-		} else if (strcmp(name, "kevent32_freebsd11") == 0) {
-			struct kevent32_freebsd11 kev32;
+		} else if (strcmp(name, "freebsd11_kevent32") == 0) {
+			struct freebsd11_kevent32 kev32;
 
 			if (ksa->struct_size != sizeof(kev32))
 				goto bad_size;

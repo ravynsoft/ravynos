@@ -85,6 +85,8 @@
 
 #define	PT_VM_TIMESTAMP	40	/* Get VM version (timestamp) */
 #define	PT_VM_ENTRY	41	/* Get VM map (entry) */
+#define	PT_GETREGSET	42	/* Get a target register set */
+#define	PT_SETREGSET	43	/* Set a target register set */
 
 #define PT_FIRSTMACH    64	/* for machine-specific requests */
 #include <machine/ptrace.h>	/* machine-specific requests, if any */
@@ -160,7 +162,7 @@ struct ptrace_lwpinfo32 {
 
 /* Argument structure for PT_GET_SC_RET. */
 struct ptrace_sc_ret {
-	register_t	sr_retval[2];	/* Only valid if sr_error == 0. */
+	syscallarg_t	sr_retval[2];	/* Only valid if sr_error == 0. */
 	int		sr_error;
 };
 

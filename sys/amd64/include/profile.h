@@ -35,74 +35,9 @@
 #ifndef _MACHINE_PROFILE_H_
 #define	_MACHINE_PROFILE_H_
 
-#ifndef _SYS_CDEFS_H_
-#error this file needs sys/cdefs.h as a prerequisite
-#endif
+#ifndef _KERNEL
 
-#ifdef _KERNEL
-
-/*
- * Config generates something to tell the compiler to align functions on 16
- * byte boundaries.  A strict alignment is good for keeping the tables small.
- */
-#define	FUNCTION_ALIGNMENT	16
-
-/*
- * The kernel uses assembler stubs instead of unportable inlines.
- * This is mainly to save a little time when profiling is not enabled,
- * which is the usual case for the kernel.
- */
-#define	_MCOUNT_DECL void mcount
-#define	MCOUNT
-
-#ifdef GUPROF
-#define	MCOUNT_DECL(s)
-#define	MCOUNT_ENTER(s)
-#define	MCOUNT_EXIT(s)
-#ifdef __GNUCLIKE_ASM
-#define	MCOUNT_OVERHEAD(label)						\
-	__asm __volatile("pushq %0; call __mcount; popq %%rcx"		\
-			 :						\
-			 : "i" (label)					\
-			 : "cx", "r10", "r11", "memory")
-#define	MEXITCOUNT_OVERHEAD()						\
-	__asm __volatile("call .mexitcount; 1:"				\
-			 : :						\
-			 : "r10", "r11", "memory")
-#define	MEXITCOUNT_OVERHEAD_GETLABEL(labelp)				\
-	__asm __volatile("movq $1b,%0" : "=rm" (labelp))
-#else
-#error this file needs to be ported to your compiler
-#endif /* !__GNUCLIKE_ASM */
-#else /* !GUPROF */
-#define	MCOUNT_DECL(s)	register_t s;
-#ifdef SMP
-extern int	mcount_lock;
-#define	MCOUNT_ENTER(s)	{ s = intr_disable(); \
- 			  while (!atomic_cmpset_acq_int(&mcount_lock, 0, 1)) \
-			  	/* nothing */ ; }
-#define	MCOUNT_EXIT(s)	{ atomic_store_rel_int(&mcount_lock, 0); \
-			  intr_restore(s); }
-#else
-#define	MCOUNT_ENTER(s)	{ s = intr_disable(); }
-#define	MCOUNT_EXIT(s)	(intr_restore(s))
-#endif
-#endif /* GUPROF */
-
-void bintr(void);
-void btrap(void);
-void eintr(void);
-void user(void);
-
-#define	MCOUNT_FROMPC_USER(pc)					\
-	((pc < (uintfptr_t)VM_MAXUSER_ADDRESS) ? (uintfptr_t)user : pc)
-
-#define	MCOUNT_FROMPC_INTR(pc)					\
-	((pc >= (uintfptr_t)btrap && pc < (uintfptr_t)eintr) ?	\
-	    ((pc >= (uintfptr_t)bintr) ? (uintfptr_t)bintr :	\
-		(uintfptr_t)btrap) : ~0UL)
-
-#else /* !_KERNEL */
+#include <sys/cdefs.h>
 
 #define	FUNCTION_ALIGNMENT	4
 
@@ -110,7 +45,6 @@ void user(void);
 static void _mcount(uintfptr_t frompc, uintfptr_t selfpc) __used; \
 static void _mcount
 
-#ifdef __GNUCLIKE_ASM
 #define	MCOUNT __asm("			\n\
 	.text				\n\
 	.p2align 4,0x90			\n\
@@ -166,13 +100,8 @@ mcount()								\
 	_mcount(frompc, selfpc);					\
 }
 #endif
-#else /* !__GNUCLIKE_ASM */
-#define	MCOUNT
-#endif /* __GNUCLIKE_ASM */
 
 typedef	u_long	uintfptr_t;
-
-#endif /* _KERNEL */
 
 /*
  * An unsigned integral type that can hold non-negative difference between
@@ -180,20 +109,10 @@ typedef	u_long	uintfptr_t;
  */
 typedef	u_long	fptrdiff_t;
 
-#ifdef _KERNEL
-
-void	mcount(uintfptr_t frompc, uintfptr_t selfpc);
-
-#else /* !_KERNEL */
-
-#include <sys/cdefs.h>
-
 __BEGIN_DECLS
-#ifdef __GNUCLIKE_ASM
 void	mcount(void) __asm(".mcount");
-#endif
 __END_DECLS
 
-#endif /* _KERNEL */
+#endif /* !_KERNEL */
 
 #endif /* !_MACHINE_PROFILE_H_ */

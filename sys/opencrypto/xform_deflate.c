@@ -50,6 +50,7 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
+#include <sys/types.h>
 #include <opencrypto/deflate.h>
 #include <opencrypto/xform_comp.h>
 
@@ -57,7 +58,7 @@ static	uint32_t deflate_compress(uint8_t *, uint32_t, uint8_t **);
 static	uint32_t deflate_decompress(uint8_t *, uint32_t, uint8_t **);
 
 /* Compression instance */
-struct comp_algo comp_algo_deflate = {
+const struct comp_algo comp_algo_deflate = {
 	CRYPTO_DEFLATE_COMP, "Deflate",
 	90, deflate_compress,
 	deflate_decompress

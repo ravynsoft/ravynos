@@ -77,11 +77,13 @@ __FBSDID("$FreeBSD$");
 #include <sys/lock.h>
 #include <sys/malloc.h>
 #include <sys/memrange.h>
+#include <sys/msan.h>
 #include <sys/msgbuf.h>
 #include <sys/mutex.h>
 #include <sys/pcpu.h>
 #include <sys/ptrace.h>
 #include <sys/reboot.h>
+#include <sys/reg.h>
 #include <sys/rwlock.h>
 #include <sys/sched.h>
 #include <sys/signalvar.h>
@@ -128,7 +130,6 @@ __FBSDID("$FreeBSD$");
 #include <machine/pc/bios.h>
 #include <machine/pcb.h>
 #include <machine/proc.h>
-#include <machine/reg.h>
 #include <machine/sigframe.h>
 #include <machine/specialreg.h>
 #include <machine/trap.h>
@@ -168,6 +169,9 @@ extern u_int64_t hammer_time(u_int64_t, u_int64_t);
 static void cpu_startup(void *);
 SYSINIT(cpu, SI_SUB_CPU, SI_ORDER_FIRST, cpu_startup, NULL);
 
+/* Probe 8254 PIT and TSC. */
+static void native_clock_source_init(void);
+
 /* Preload data parse function */
 static caddr_t native_parse_preload_data(u_int64_t);
 
@@ -176,16 +180,10 @@ static void native_parse_memmap(caddr_t, vm_paddr_t *, int *);
 
 /* Default init_ops implementation. */
 struct init_ops init_ops = {
-	.parse_preload_data =	native_parse_preload_data,
-	.early_clock_source_init =	i8254_init,
+	.parse_preload_data =		native_parse_preload_data,
+	.early_clock_source_init =	native_clock_source_init,
 	.early_delay =			i8254_delay,
 	.parse_memmap =			native_parse_memmap,
-#ifdef SMP
-	.start_all_aps =		native_start_all_aps,
-#endif
-#ifdef DEV_PCI
-	.msi_init =			msi_init,
-#endif
 };
 
 /*
@@ -207,7 +205,6 @@ long realmem = 0;
 
 struct kva_md_info kmi;
 
-static struct trapframe proc0_tf;
 struct region_descriptor r_idt;
 
 struct pcpu *__pcpu;
@@ -776,7 +773,7 @@ add_efi_map_entries(struct efi_map_header *efihdr, vm_paddr_t *physmap,
 				type = types[p->md_type];
 			else
 				type = "<INVALID>";
-			printf("%23s %012lx %12p %08lx ", type, p->md_phys,
+			printf("%23s %012lx %012lx %08lx ", type, p->md_phys,
 			    p->md_virt, p->md_pages);
 			if (p->md_attr & EFI_MD_ATTR_UC)
 				printf("UC ");
@@ -819,15 +816,11 @@ add_efi_map_entries(struct efi_map_header *efihdr, vm_paddr_t *physmap,
 			continue;
 		}
 
-		if (!add_physmap_entry(p->md_phys, (p->md_pages * PAGE_SIZE),
+		if (!add_physmap_entry(p->md_phys, p->md_pages * EFI_PAGE_SIZE,
 		    physmap, physmap_idx))
 			break;
 	}
 }
-
-static char bootmethod[16] = "";
-SYSCTL_STRING(_machdep, OID_AUTO, bootmethod, CTLFLAG_RD, bootmethod, 0,
-    "System firmware boot method");
 
 static void
 native_parse_memmap(caddr_t kmdp, vm_paddr_t *physmap, int *physmap_idx)
@@ -1171,6 +1164,12 @@ native_parse_preload_data(u_int64_t modulep)
 }
 
 static void
+native_clock_source_init(void)
+{
+	i8254_init();
+}
+
+static void
 amd64_kdb_init(void)
 {
 	kdb_init();
@@ -1458,12 +1457,6 @@ hammer_time(u_int64_t modulep, u_int64_t physfree)
 	lidt(&r_idt);
 
 	/*
-	 * Initialize the clock before the console so that console
-	 * initialization can use DELAY().
-	 */
-	clock_init();
-
-	/*
 	 * Use vt(4) by default for UEFI boot (during the sc(4)/vt(4)
 	 * transition).
 	 * Once bootblocks have updated, we can test directly for
@@ -1490,6 +1483,13 @@ hammer_time(u_int64_t modulep, u_int64_t physfree)
 	    &x86_rngds_mitg_enable);
 
 	finishidentcpu();	/* Final stage of CPU initialization */
+
+	/*
+	 * Initialize the clock before the console so that console
+	 * initialization can use DELAY().
+	 */
+	clock_init();
+
 	initializecpu();	/* Initialize CPU registers */
 
 	amd64_bsp_ist_init(pc);
@@ -1593,7 +1593,6 @@ hammer_time(u_int64_t modulep, u_int64_t physfree)
 
 	/* setup proc 0's pcb */
 	thread0.td_pcb->pcb_flags = 0;
-	thread0.td_frame = &proc0_tf;
 
         env = kern_getenv("kernelname");
 	if (env != NULL)
@@ -1607,6 +1606,7 @@ hammer_time(u_int64_t modulep, u_int64_t physfree)
 	thread0.td_critnest = 0;
 
 	kasan_init();
+	kmsan_init();
 
 	TSEXIT();
 

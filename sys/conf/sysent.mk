@@ -26,7 +26,6 @@ SRCS+=	${SYSENT_CONF}
 # even though it is not an explicit input to makesyscalls.lua.  For some
 # targets, like Linux system calls, this is unnecessary, but a spurious rebuild
 # is both rare and harmless.
-CAPABILITIES_CONF?= ${SYSDIR}/kern/capabilities.conf
 SRCS+=	${CAPABILITIES_CONF}
 
 MAKESYSCALLS_INTERP?=	${LUA}
@@ -40,6 +39,11 @@ all:
 # potentially once for each ${GENERATED} file.
 .ORDER: ${GENERATED}
 sysent: ${GENERATED}
+
+# We slap a .PHONY on makesyscalls.lua so that we regenerate every single time,
+# for now, which can be less painful across rebases or other things that may
+# have odd effects on mtimes.
+${MAKESYSCALLS_SCRIPT}: .PHONY
 
 ${GENERATED}: ${MAKESYSCALLS_SCRIPT} ${SRCS}
 	${MAKESYSCALLS} ${SYSENT_FILE} ${SYSENT_CONF}

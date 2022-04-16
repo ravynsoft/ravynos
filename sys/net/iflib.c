@@ -917,13 +917,16 @@ netmap_fl_refill(iflib_rxq_t rxq, struct netmap_kring *kring, bool init)
 		nic_i_first = nic_i;
 		for (i = 0; n > 0 && i < IFLIB_MAX_RX_REFRESH; n--, i++) {
 			struct netmap_slot *slot = &ring->slot[nm_i];
-			void *addr = PNMB(na, slot, &fl->ifl_bus_addrs[i]);
+			uint64_t paddr;
+			void *addr = PNMB(na, slot, &paddr);
 
 			MPASS(i < IFLIB_MAX_RX_REFRESH);
 
 			if (addr == NETMAP_BUF_BASE(na)) /* bad buf */
 			        return netmap_ring_reinit(kring);
 
+			fl->ifl_bus_addrs[i] = paddr +
+			    nm_get_offset(kring, slot);
 			fl->ifl_rxd_idxs[i] = nic_i;
 
 			if (__predict_false(init)) {
@@ -1042,6 +1045,7 @@ iflib_netmap_txsync(struct netmap_kring *kring, int flags)
 
 		for (n = 0; nm_i != head; n++) {
 			struct netmap_slot *slot = &ring->slot[nm_i];
+			uint64_t offset = nm_get_offset(kring, slot);
 			u_int len = slot->len;
 			uint64_t paddr;
 			void *addr = PNMB(na, slot, &paddr);
@@ -1057,7 +1061,7 @@ iflib_netmap_txsync(struct netmap_kring *kring, int flags)
 			if (nic_i_start < 0)
 				nic_i_start = nic_i;
 
-			pi.ipi_segs[seg_idx].ds_addr = paddr;
+			pi.ipi_segs[seg_idx].ds_addr = paddr + offset;
 			pi.ipi_segs[seg_idx].ds_len = len;
 			if (len) {
 				pkt_len += len;
@@ -1089,7 +1093,7 @@ iflib_netmap_txsync(struct netmap_kring *kring, int flags)
 			__builtin_prefetch(&txq->ift_sds.ifsd_m[nic_i + 1]);
 			__builtin_prefetch(&txq->ift_sds.ifsd_map[nic_i + 1]);
 
-			NM_CHECK_ADDR_LEN(na, addr, len);
+			NM_CHECK_ADDR_LEN_OFF(na, len, offset);
 
 			if (slot->flags & NS_BUF_CHANGED) {
 				/* buffer has changed, reload map */
@@ -1308,7 +1312,7 @@ iflib_netmap_attach(if_ctx_t ctx)
 	bzero(&na, sizeof(na));
 
 	na.ifp = ctx->ifc_ifp;
-	na.na_flags = NAF_BDG_MAYSLEEP | NAF_MOREFRAG;
+	na.na_flags = NAF_BDG_MAYSLEEP | NAF_MOREFRAG | NAF_OFFSETS;
 	MPASS(ctx->ifc_softc_ctx.isc_ntxqsets);
 	MPASS(ctx->ifc_softc_ctx.isc_nrxqsets);
 
@@ -1395,6 +1399,7 @@ prefetch(void *x)
 {
 	__asm volatile("prefetcht0 %0" :: "m" (*(unsigned long *)x));
 }
+
 static __inline void
 prefetch2cachelines(void *x)
 {
@@ -1404,8 +1409,15 @@ prefetch2cachelines(void *x)
 #endif
 }
 #else
-#define prefetch(x)
-#define prefetch2cachelines(x)
+static __inline void
+prefetch(void *x)
+{
+}
+
+static __inline void
+prefetch2cachelines(void *x)
+{
+}
 #endif
 
 static void
@@ -1429,15 +1441,22 @@ _iflib_dmamap_cb(void *arg, bus_dma_segment_t *segs, int nseg, int err)
 	*(bus_addr_t *) arg = segs[0].ds_addr;
 }
 
+#define	DMA_WIDTH_TO_BUS_LOWADDR(width)				\
+	(((width) == 0) || (width) == flsll(BUS_SPACE_MAXADDR) ?	\
+	    BUS_SPACE_MAXADDR : (1ULL << (width)) - 1ULL)
+
 int
 iflib_dma_alloc_align(if_ctx_t ctx, int size, int align, iflib_dma_info_t dma, int mapflags)
 {
 	int err;
 	device_t dev = ctx->ifc_dev;
+	bus_addr_t lowaddr;
+
+	lowaddr = DMA_WIDTH_TO_BUS_LOWADDR(ctx->ifc_softc_ctx.isc_dma_width);
 
 	err = bus_dma_tag_create(bus_get_dma_tag(dev),	/* parent */
 				align, 0,		/* alignment, bounds */
-				BUS_SPACE_MAXADDR,	/* lowaddr */
+				lowaddr,		/* lowaddr */
 				BUS_SPACE_MAXADDR,	/* highaddr */
 				NULL, NULL,		/* filter, filterarg */
 				size,			/* maxsize */
@@ -1688,6 +1707,7 @@ iflib_txsd_alloc(iflib_txq_t txq)
 	if_softc_ctx_t scctx = &ctx->ifc_softc_ctx;
 	device_t dev = ctx->ifc_dev;
 	bus_size_t tsomaxsize;
+	bus_addr_t lowaddr;
 	int err, nsegments, ntsosegments;
 	bool tso;
 
@@ -1704,12 +1724,14 @@ iflib_txsd_alloc(iflib_txq_t txq)
 		MPASS(sctx->isc_tso_maxsize >= tsomaxsize);
 	}
 
+	lowaddr = DMA_WIDTH_TO_BUS_LOWADDR(scctx->isc_dma_width);
+
 	/*
 	 * Set up DMA tags for TX buffers.
 	 */
 	if ((err = bus_dma_tag_create(bus_get_dma_tag(dev),
 			       1, 0,			/* alignment, bounds */
-			       BUS_SPACE_MAXADDR,	/* lowaddr */
+			       lowaddr,			/* lowaddr */
 			       BUS_SPACE_MAXADDR,	/* highaddr */
 			       NULL, NULL,		/* filter, filterarg */
 			       sctx->isc_tx_maxsize,		/* maxsize */
@@ -1727,7 +1749,7 @@ iflib_txsd_alloc(iflib_txq_t txq)
 	tso = (if_getcapabilities(ctx->ifc_ifp) & IFCAP_TSO) != 0;
 	if (tso && (err = bus_dma_tag_create(bus_get_dma_tag(dev),
 			       1, 0,			/* alignment, bounds */
-			       BUS_SPACE_MAXADDR,	/* lowaddr */
+			       lowaddr,			/* lowaddr */
 			       BUS_SPACE_MAXADDR,	/* highaddr */
 			       NULL, NULL,		/* filter, filterarg */
 			       tsomaxsize,		/* maxsize */
@@ -1929,10 +1951,13 @@ iflib_rxsd_alloc(iflib_rxq_t rxq)
 	if_softc_ctx_t scctx = &ctx->ifc_softc_ctx;
 	device_t dev = ctx->ifc_dev;
 	iflib_fl_t fl;
+	bus_addr_t lowaddr;
 	int			err;
 
 	MPASS(scctx->isc_nrxd[0] > 0);
 	MPASS(scctx->isc_nrxd[rxq->ifr_fl_offset] > 0);
+
+	lowaddr = DMA_WIDTH_TO_BUS_LOWADDR(scctx->isc_dma_width);
 
 	fl = rxq->ifr_fl;
 	for (int i = 0; i <  rxq->ifr_nfl; i++, fl++) {
@@ -1940,7 +1965,7 @@ iflib_rxsd_alloc(iflib_rxq_t rxq)
 		/* Set up DMA tag for RX buffers. */
 		err = bus_dma_tag_create(bus_get_dma_tag(dev), /* parent */
 					 1, 0,			/* alignment, bounds */
-					 BUS_SPACE_MAXADDR,	/* lowaddr */
+					 lowaddr,		/* lowaddr */
 					 BUS_SPACE_MAXADDR,	/* highaddr */
 					 NULL, NULL,		/* filter, filterarg */
 					 sctx->isc_rx_maxsize,	/* maxsize */
@@ -2122,7 +2147,7 @@ iflib_fl_refill(if_ctx_t ctx, iflib_fl_t fl, int count)
 		    BUS_DMASYNC_PREREAD);
 
 		if (sd_m[frag_idx] == NULL) {
-			m = m_gethdr(M_NOWAIT, MT_NOINIT);
+			m = m_gethdr_raw(M_NOWAIT, 0);
 			if (__predict_false(m == NULL))
 				break;
 			sd_m[frag_idx] = m;
@@ -2494,7 +2519,7 @@ iflib_init_locked(if_ctx_t ctx)
 		callout_stop(&txq->ift_netmap_timer);
 #endif /* DEV_NETMAP */
 		CALLOUT_UNLOCK(txq);
-		iflib_netmap_txq_init(ctx, txq);
+		(void)iflib_netmap_txq_init(ctx, txq);
 	}
 
 	/*
@@ -2604,7 +2629,12 @@ iflib_stop(if_ctx_t ctx)
 			iflib_txsd_free(ctx, txq, j);
 		}
 		txq->ift_processed = txq->ift_cleaned = txq->ift_cidx_processed = 0;
-		txq->ift_in_use = txq->ift_gen = txq->ift_cidx = txq->ift_pidx = txq->ift_no_desc_avail = 0;
+		txq->ift_in_use = txq->ift_gen = txq->ift_no_desc_avail = 0;
+		if (sctx->isc_flags & IFLIB_PRESERVE_TX_INDICES)
+			txq->ift_cidx = txq->ift_pidx;
+		else
+			txq->ift_cidx = txq->ift_pidx = 0;
+
 		txq->ift_closed = txq->ift_mbuf_defrag = txq->ift_mbuf_defrag_failed = 0;
 		txq->ift_no_tx_dma_setup = txq->ift_txd_encap_efbig = txq->ift_map_failed = 0;
 		txq->ift_pullups = 0;
@@ -2828,11 +2858,13 @@ iflib_rxd_pkt_get(iflib_rxq_t rxq, if_rxd_info_t ri)
 		if (pf_rv == PFIL_PASS) {
 			m_init(m, M_NOWAIT, MT_DATA, M_PKTHDR);
 #ifndef __NO_STRICT_ALIGNMENT
-			if (!IP_ALIGNED(m))
+			if (!IP_ALIGNED(m) && ri->iri_pad == 0)
 				m->m_data += 2;
 #endif
 			memcpy(m->m_data, *sd.ifsd_cl, ri->iri_len);
 			m->m_len = ri->iri_frags[0].irf_len;
+			m->m_data += ri->iri_pad;
+			ri->iri_len -= ri->iri_pad;
 		}
 	} else {
 		m = assemble_segments(rxq, ri, &sd, &pf_rv);
@@ -4036,6 +4068,8 @@ _task_fn_admin(void *context)
 		callout_stop(&txq->ift_timer);
 		CALLOUT_UNLOCK(txq);
 	}
+	if (ctx->ifc_sctx->isc_flags & IFLIB_HAS_ADMINCQ)
+		IFDI_ADMIN_COMPLETION_HANDLE(ctx);
 	if (do_watchdog) {
 		ctx->ifc_watchdog_events++;
 		IFDI_WATCHDOG_RESET(ctx);
@@ -5043,6 +5077,8 @@ iflib_device_register(device_t dev, void *sc, if_shared_ctx_t sctx, if_ctx_t *ct
 	}
 	_iflib_pre_assert(scctx);
 	ctx->ifc_txrx = *scctx->isc_txrx;
+
+	MPASS(scctx->isc_dma_width <= flsll(BUS_SPACE_MAXADDR));
 
 	if (sctx->isc_flags & IFLIB_DRIVER_MEDIA)
 		ctx->ifc_mediap = scctx->isc_media;
@@ -6149,15 +6185,13 @@ iflib_rx_structures_setup(if_ctx_t ctx)
 
 	for (q = 0; q < ctx->ifc_softc_ctx.isc_nrxqsets; q++, rxq++) {
 #if defined(INET6) || defined(INET)
-		if (if_getcapabilities(ctx->ifc_ifp) & IFCAP_LRO) {
-			err = tcp_lro_init_args(&rxq->ifr_lc, ctx->ifc_ifp,
-			    TCP_LRO_ENTRIES, min(1024,
-			    ctx->ifc_softc_ctx.isc_nrxd[rxq->ifr_fl_offset]));
-			if (err != 0) {
-				device_printf(ctx->ifc_dev,
-				    "LRO Initialization failed!\n");
-				goto fail;
-			}
+		err = tcp_lro_init_args(&rxq->ifr_lc, ctx->ifc_ifp,
+		    TCP_LRO_ENTRIES, min(1024,
+		    ctx->ifc_softc_ctx.isc_nrxd[rxq->ifr_fl_offset]));
+		if (err != 0) {
+			device_printf(ctx->ifc_dev,
+			    "LRO Initialization failed!\n");
+			goto fail;
 		}
 #endif
 		IFDI_RXQ_SETUP(ctx, rxq->ifr_id);
@@ -6172,8 +6206,7 @@ fail:
 	 */
 	rxq = ctx->ifc_rxqs;
 	for (i = 0; i < q; ++i, rxq++) {
-		if (if_getcapabilities(ctx->ifc_ifp) & IFCAP_LRO)
-			tcp_lro_free(&rxq->ifr_lc);
+		tcp_lro_free(&rxq->ifr_lc);
 	}
 	return (err);
 #endif
@@ -6196,8 +6229,7 @@ iflib_rx_structures_free(if_ctx_t ctx)
 			iflib_dma_free(&rxq->ifr_ifdi[j]);
 		iflib_rx_sds_free(rxq);
 #if defined(INET6) || defined(INET)
-		if (if_getcapabilities(ctx->ifc_ifp) & IFCAP_LRO)
-			tcp_lro_free(&rxq->ifr_lc);
+		tcp_lro_free(&rxq->ifr_lc);
 #endif
 	}
 	free(ctx->ifc_rxqs, M_IFLIB);

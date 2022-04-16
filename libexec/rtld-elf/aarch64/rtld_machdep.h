@@ -35,6 +35,7 @@
 
 #include <sys/types.h>
 #include <machine/atomic.h>
+#include <machine/tls.h>
 
 struct Struct_Obj_Entry;
 
@@ -79,7 +80,6 @@ Elf_Addr reloc_jmpslot(Elf_Addr *where, Elf_Addr target,
 #define calculate_tls_post_size(align) \
 	round(TLS_TCB_SIZE, align) - TLS_TCB_SIZE
 
-#define	TLS_TCB_SIZE	16
 typedef struct {
     unsigned long ti_module;
     unsigned long ti_offset;

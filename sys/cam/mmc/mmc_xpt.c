@@ -176,7 +176,6 @@ CAM_XPT_PROTO(mmc_proto);
 typedef struct {
 	probe_action	action;
 	int             restart;
-	union ccb	saved_ccb;
 	uint32_t	host_ocr;
 	uint32_t	flags;
 #define PROBE_FLAG_ACMD_SENT	0x1 /* CMD55 is sent, card expects ACMD */
@@ -388,6 +387,7 @@ mmc_announce_periph(struct cam_periph *periph)
 
 	CAM_DEBUG(periph->path, CAM_DEBUG_TRACE, ("mmc_announce_periph"));
 
+	memset(&cts, 0, sizeof(cts));
 	xpt_setup_ccb(&cts.ccb_h, path, CAM_PRIORITY_NORMAL);
 	cts.ccb_h.func_code = XPT_GET_TRAN_SETTINGS;
 	cts.type = CTS_TYPE_CURRENT_SETTINGS;
@@ -405,8 +405,6 @@ mmccam_start_discovery(struct cam_sim *sim)
 	union ccb *ccb;
 	uint32_t pathid;
 
-	KASSERT(sim->sim_dev != NULL, ("mmccam_start_discovery(%s): sim_dev is not initialized,"
-	    " has cam_sim_alloc_dev() been used?", cam_sim_name(sim)));
 	pathid = cam_sim_path(sim);
 	ccb = xpt_alloc_ccb();
 
@@ -419,6 +417,10 @@ mmccam_start_discovery(struct cam_sim *sim)
 		xpt_free_ccb(ccb);
 		return;
 	}
+
+	KASSERT(xpt_path_sim_device(ccb->ccb_h.path) != NULL,
+	    ("%s(%s): device is not initialized on sim's path",
+	    __func__, cam_sim_name(sim)));
 	xpt_rescan(ccb);
 }
 

@@ -30,8 +30,47 @@
 #ifndef _MACHINE_X86_XEN_XEN_OS_H_
 #define _MACHINE_X86_XEN_XEN_OS_H_
 
+#ifndef _XEN_XEN_OS_H_
+#error "do not #include machine/xen/xen-os.h, #include xen/xen-os.h instead"
+#endif
+
+/* Shared memory needs write-back as its cache attribute for coherency. */
+#define VM_MEMATTR_XEN VM_MEMATTR_WRITE_BACK
+
 /* Everything below this point is not included by assembler (.S) files. */
 #ifndef __ASSEMBLY__
+
+/* If non-zero, the hypervisor has been configured to use a direct vector */
+extern int xen_vector_callback_enabled;
+
+/* tunable for disabling PV disks */
+extern int xen_disable_pv_disks;
+
+/* tunable for disabling PV nics */
+extern int xen_disable_pv_nics;
+
+extern uint32_t xen_cpuid_base;
+
+static inline bool
+xen_has_percpu_evtchn(void)
+{
+
+	return (!xen_hvm_domain() || xen_vector_callback_enabled);
+}
+
+static inline bool
+xen_pv_disks_disabled(void)
+{
+
+	return (xen_hvm_domain() && xen_disable_pv_disks != 0);
+}
+
+static inline bool
+xen_pv_nics_disabled(void)
+{
+
+	return (xen_hvm_domain() && xen_disable_pv_nics != 0);
+}
 
 #endif /* !__ASSEMBLY__ */
 

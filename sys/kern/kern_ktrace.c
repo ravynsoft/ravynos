@@ -524,7 +524,7 @@ ktr_get_tracevp(struct proc *p, bool ref)
 }
 
 void
-ktrsyscall(int code, int narg, register_t args[])
+ktrsyscall(int code, int narg, syscallarg_t args[])
 {
 	struct ktr_request *req;
 	struct ktr_syscall *ktp;
@@ -699,8 +699,7 @@ ktruserret(struct thread *td)
 }
 
 void
-ktrnamei(path)
-	char *path;
+ktrnamei(const char *path)
 {
 	struct ktr_request *req;
 	int namelen;
@@ -1008,7 +1007,7 @@ sys_ktrace(struct thread *td, struct ktrace_args *uap)
 	int facs = uap->facs & ~KTRFAC_ROOT;
 	int ops = KTROP(uap->ops);
 	int descend = uap->ops & KTRFLAG_DESCEND;
-	int nfound, ret = 0;
+	int ret = 0;
 	int flags, error = 0;
 	struct nameidata nd;
 	struct ktr_io_params *kiop, *old_kiop;
@@ -1020,31 +1019,29 @@ sys_ktrace(struct thread *td, struct ktrace_args *uap)
 		return (EINVAL);
 
 	kiop = NULL;
-	ktrace_enter(td);
 	if (ops != KTROP_CLEAR) {
 		/*
 		 * an operation which requires a file argument.
 		 */
-		NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_USERSPACE, uap->fname, td);
+		NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_USERSPACE, uap->fname);
 		flags = FREAD | FWRITE | O_NOFOLLOW;
 		error = vn_open(&nd, &flags, 0, NULL);
-		if (error) {
-			ktrace_exit(td);
+		if (error)
 			return (error);
-		}
-		NDFREE(&nd, NDF_ONLY_PNBUF);
+		NDFREE_PNBUF(&nd);
 		vp = nd.ni_vp;
 		VOP_UNLOCK(vp);
 		if (vp->v_type != VREG) {
-			(void) vn_close(vp, FREAD|FWRITE, td->td_ucred, td);
-			ktrace_exit(td);
+			(void)vn_close(vp, FREAD|FWRITE, td->td_ucred, td);
 			return (EACCES);
 		}
 		kiop = ktr_io_params_alloc(td, vp);
 	}
+
 	/*
 	 * Clear all uses of the tracefile.
 	 */
+	ktrace_enter(td);
 	if (ops == KTROP_CLEARFILE) {
 restart:
 		sx_slock(&allproc_lock);
@@ -1084,42 +1081,31 @@ restart:
 			error = ESRCH;
 			goto done;
 		}
+
 		/*
 		 * ktrops() may call vrele(). Lock pg_members
 		 * by the proctree_lock rather than pg_mtx.
 		 */
 		PGRP_UNLOCK(pg);
-		nfound = 0;
+		if (LIST_EMPTY(&pg->pg_members)) {
+			sx_sunlock(&proctree_lock);
+			error = ESRCH;
+			goto done;
+		}
 		LIST_FOREACH(p, &pg->pg_members, p_pglist) {
 			PROC_LOCK(p);
-			if (p->p_state == PRS_NEW ||
-			    p_cansee(td, p) != 0) {
-				PROC_UNLOCK(p); 
-				continue;
-			}
-			nfound++;
 			if (descend)
 				ret |= ktrsetchildren(td, p, ops, facs, kiop);
 			else
 				ret |= ktrops(td, p, ops, facs, kiop);
-		}
-		if (nfound == 0) {
-			sx_sunlock(&proctree_lock);
-			error = ESRCH;
-			goto done;
 		}
 	} else {
 		/*
 		 * by pid
 		 */
 		p = pfind(uap->pid);
-		if (p == NULL)
+		if (p == NULL) {
 			error = ESRCH;
-		else
-			error = p_cansee(td, p);
-		if (error) {
-			if (p != NULL)
-				PROC_UNLOCK(p);
 			sx_sunlock(&proctree_lock);
 			goto done;
 		}
@@ -1191,8 +1177,21 @@ ktrops(struct thread *td, struct proc *p, int ops, int facs,
 		PROC_UNLOCK(p);
 		return (0);
 	}
-	if (p->p_flag & P_WEXIT) {
-		/* If the process is exiting, just ignore it. */
+	if ((ops == KTROP_SET && p->p_state == PRS_NEW) ||
+	    p_cansee(td, p) != 0) {
+		/*
+		 * Disallow setting trace points if the process is being born.
+		 * This avoids races with trace point inheritance in
+		 * ktrprocfork().
+		 */
+		PROC_UNLOCK(p);
+		return (0);
+	}
+	if ((p->p_flag & P_WEXIT) != 0) {
+		/*
+		 * There's nothing to do if the process is exiting, but avoid
+		 * signaling an error.
+		 */
 		PROC_UNLOCK(p);
 		return (1);
 	}

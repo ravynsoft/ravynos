@@ -54,6 +54,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/procfs.h>
 #include <sys/ptrace.h>
 #include <sys/racct.h>
+#include <sys/reg.h>
 #include <sys/resourcevar.h>
 #include <sys/rwlock.h>
 #include <sys/sbuf.h>
@@ -96,17 +97,17 @@ static int __CONCAT(exec_, __elfN(imgact))(struct image_params *imgp);
 static bool __elfN(freebsd_trans_osrel)(const Elf_Note *note,
     int32_t *osrel);
 static bool kfreebsd_trans_osrel(const Elf_Note *note, int32_t *osrel);
-static boolean_t __elfN(check_note)(struct image_params *imgp,
-    Elf_Brandnote *checknote, int32_t *osrel, boolean_t *has_fctl0,
+static bool __elfN(check_note)(struct image_params *imgp,
+    Elf_Brandnote *checknote, int32_t *osrel, bool *has_fctl0,
     uint32_t *fctl0);
 static vm_prot_t __elfN(trans_prot)(Elf_Word);
 static Elf_Word __elfN(untrans_prot)(vm_prot_t);
+static size_t __elfN(prepare_register_notes)(struct thread *td,
+    struct note_info_list *list, struct thread *target_td);
 
 SYSCTL_NODE(_kern, OID_AUTO, __CONCAT(elf, __ELF_WORD_SIZE),
     CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
     "");
-
-#define	CORE_BUF_SIZE	(16 * 1024)
 
 int __elfN(fallback_brand) = -1;
 SYSCTL_INT(__CONCAT(_kern_elf, __ELF_WORD_SIZE), OID_AUTO,
@@ -171,19 +172,33 @@ SYSCTL_NODE(__CONCAT(_kern_elf, __ELF_WORD_SIZE), OID_AUTO, aslr,
     "");
 #define	ASLR_NODE_OID	__CONCAT(__CONCAT(_kern_elf, __ELF_WORD_SIZE), _aslr)
 
-static int __elfN(aslr_enabled) = 0;
+/*
+ * While for 64-bit machines ASLR works properly, there are
+ * still some problems when using 32-bit architectures. For this
+ * reason ASLR is only enabled by default when running native
+ * 64-bit non-PIE executables.
+ */
+static int __elfN(aslr_enabled) = __ELF_WORD_SIZE == 64;
 SYSCTL_INT(ASLR_NODE_OID, OID_AUTO, enable, CTLFLAG_RWTUN,
     &__elfN(aslr_enabled), 0,
     __XSTRING(__CONCAT(ELF, __ELF_WORD_SIZE))
     ": enable address map randomization");
 
-static int __elfN(pie_aslr_enabled) = 0;
+/*
+ * Enable ASLR only for 64-bit PIE binaries by default.
+ */
+static int __elfN(pie_aslr_enabled) = __ELF_WORD_SIZE == 64;
 SYSCTL_INT(ASLR_NODE_OID, OID_AUTO, pie_enable, CTLFLAG_RWTUN,
     &__elfN(pie_aslr_enabled), 0,
     __XSTRING(__CONCAT(ELF, __ELF_WORD_SIZE))
     ": enable address map randomization for PIE binaries");
 
-static int __elfN(aslr_honor_sbrk) = 1;
+/*
+ * Sbrk is now deprecated and it can be assumed, that in most
+ * cases it will not be used anyway. This setting is valid only
+ * for the ASLR enabled and allows for utilizing the bss grow region.
+ */
+static int __elfN(aslr_honor_sbrk) = 0;
 SYSCTL_INT(ASLR_NODE_OID, OID_AUTO, honor_sbrk, CTLFLAG_RW,
     &__elfN(aslr_honor_sbrk), 0,
     __XSTRING(__CONCAT(ELF, __ELF_WORD_SIZE)) ": assume sbrk is used");
@@ -207,8 +222,6 @@ SYSCTL_BOOL(__CONCAT(_kern_elf, __ELF_WORD_SIZE), OID_AUTO, allow_wx,
 static Elf_Brandinfo *elf_brand_list[MAX_BRANDS];
 
 #define	aligned(a, t)	(rounddown2((u_long)(a), sizeof(t)) == (u_long)(a))
-
-static const char FREEBSD_ABI_VENDOR[] = "FreeBSD";
 
 Elf_Brandnote __elfN(freebsd_brandnote) = {
 	.hdr.n_namesz	= sizeof(FREEBSD_ABI_VENDOR),
@@ -300,16 +313,16 @@ __elfN(remove_brand_entry)(Elf_Brandinfo *entry)
 	return (0);
 }
 
-int
+bool
 __elfN(brand_inuse)(Elf_Brandinfo *entry)
 {
 	struct proc *p;
-	int rval = FALSE;
+	bool rval = false;
 
 	sx_slock(&allproc_lock);
 	FOREACH_PROC_IN_SYSTEM(p) {
 		if (p->p_sysent == entry->sysvec) {
-			rval = TRUE;
+			rval = true;
 			break;
 		}
 	}
@@ -324,7 +337,7 @@ __elfN(get_brandinfo)(struct image_params *imgp, const char *interp,
 {
 	const Elf_Ehdr *hdr = (const Elf_Ehdr *)imgp->image_header;
 	Elf_Brandinfo *bi, *bi_m;
-	boolean_t ret, has_fctl0;
+	bool ret, has_fctl0;
 	int i, interp_name_len;
 
 	interp_name_len = interp != NULL ? strlen(interp) + 1 : 0;
@@ -798,12 +811,12 @@ __elfN(load_file)(struct proc *p, const char *file, u_long *addr,
 	imgp->attr = attr;
 
 	NDINIT(nd, LOOKUP, ISOPEN | FOLLOW | LOCKSHARED | LOCKLEAF,
-	    UIO_SYSSPACE, file, curthread);
+	    UIO_SYSSPACE, file);
 	if ((error = namei(nd)) != 0) {
 		nd->ni_vp = NULL;
 		goto fail;
 	}
-	NDFREE(nd, NDF_ONLY_PNBUF);
+	NDFREE_PNBUF(nd);
 	imgp->vp = nd->ni_vp;
 
 	/*
@@ -1302,6 +1315,7 @@ __CONCAT(exec_, __elfN(imgact))(struct image_params *imgp)
 	error = exec_new_vmspace(imgp, sv);
 
 	imgp->proc->p_sysent = sv;
+	imgp->proc->p_elf_brandinfo = brand_info;
 
 	vmspace = imgp->proc->p_vmspace;
 	map = &vmspace->vm_map;
@@ -1403,7 +1417,6 @@ __CONCAT(exec_, __elfN(imgact))(struct image_params *imgp)
 	imgp->reloc_base = addr;
 	imgp->proc->p_osrel = osrel;
 	imgp->proc->p_fctl0 = fctl0;
-	imgp->proc->p_elf_machine = hdr->e_machine;
 	imgp->proc->p_elf_flags = hdr->e_flags;
 
 ret:
@@ -1506,16 +1519,9 @@ struct phdr_closure {
 	Elf_Off offset;		/* Offset of segment in core file */
 };
 
-/* Closure for cb_size_segment(). */
-struct sseg_closure {
-	int count;		/* Count of writable segments. */
-	size_t size;		/* Total size of all writable segments. */
-};
-
-typedef void (*outfunc_t)(void *, struct sbuf *, size_t *);
-
 struct note_info {
 	int		type;		/* Note type. */
+	struct regset	*regset;	/* Register set. */
 	outfunc_t 	outfunc; 	/* Output function. */
 	void		*outarg;	/* Argument for the output function. */
 	size_t		outsize;	/* Output size. */
@@ -1524,37 +1530,18 @@ struct note_info {
 
 TAILQ_HEAD(note_info_list, note_info);
 
-/* Coredump output parameters. */
-struct coredump_params {
-	off_t		offset;
-	struct ucred	*active_cred;
-	struct ucred	*file_cred;
-	struct thread	*td;
-	struct vnode	*vp;
-	struct compressor *comp;
-};
-
 extern int compress_user_cores;
 extern int compress_user_cores_level;
 
 static void cb_put_phdr(vm_map_entry_t, void *);
 static void cb_size_segment(vm_map_entry_t, void *);
-static int core_write(struct coredump_params *, const void *, size_t, off_t,
-    enum uio_seg, size_t *);
 static void each_dumpable_segment(struct thread *, segment_callback, void *,
     int);
 static int __elfN(corehdr)(struct coredump_params *, int, void *, size_t,
     struct note_info_list *, size_t, int);
-static void __elfN(prepare_notes)(struct thread *, struct note_info_list *,
-    size_t *);
-static void __elfN(puthdr)(struct thread *, void *, size_t, int, size_t, int);
-static void __elfN(putnote)(struct note_info *, struct sbuf *);
-static size_t register_note(struct note_info_list *, int, outfunc_t, void *);
-static int sbuf_drain_core_output(void *, const char *, int);
+static void __elfN(putnote)(struct thread *td, struct note_info *, struct sbuf *);
 
-static void __elfN(note_fpregset)(void *, struct sbuf *, size_t *);
 static void __elfN(note_prpsinfo)(void *, struct sbuf *, size_t *);
-static void __elfN(note_prstatus)(void *, struct sbuf *, size_t *);
 static void __elfN(note_threadmd)(void *, struct sbuf *, size_t *);
 static void __elfN(note_thrmisc)(void *, struct sbuf *, size_t *);
 static void __elfN(note_ptlwpinfo)(void *, struct sbuf *, size_t *);
@@ -1568,161 +1555,12 @@ static void note_procstat_rlimit(void *, struct sbuf *, size_t *);
 static void note_procstat_umask(void *, struct sbuf *, size_t *);
 static void note_procstat_vmmap(void *, struct sbuf *, size_t *);
 
-/*
- * Write out a core segment to the compression stream.
- */
-static int
-compress_chunk(struct coredump_params *p, char *base, char *buf, size_t len)
-{
-	size_t chunk_len;
-	int error;
-
-	while (len > 0) {
-		chunk_len = MIN(len, CORE_BUF_SIZE);
-
-		/*
-		 * We can get EFAULT error here.
-		 * In that case zero out the current chunk of the segment.
-		 */
-		error = copyin(base, buf, chunk_len);
-		if (error != 0)
-			bzero(buf, chunk_len);
-		error = compressor_write(p->comp, buf, chunk_len);
-		if (error != 0)
-			break;
-		base += chunk_len;
-		len -= chunk_len;
-	}
-	return (error);
-}
-
 static int
 core_compressed_write(void *base, size_t len, off_t offset, void *arg)
 {
 
 	return (core_write((struct coredump_params *)arg, base, len, offset,
 	    UIO_SYSSPACE, NULL));
-}
-
-static int
-core_write(struct coredump_params *p, const void *base, size_t len,
-    off_t offset, enum uio_seg seg, size_t *resid)
-{
-
-	return (vn_rdwr_inchunks(UIO_WRITE, p->vp, __DECONST(void *, base),
-	    len, offset, seg, IO_UNIT | IO_DIRECT | IO_RANGELOCKED,
-	    p->active_cred, p->file_cred, resid, p->td));
-}
-
-extern int core_dump_can_intr;
-
-static int
-core_output(char *base, size_t len, off_t offset, struct coredump_params *p,
-    void *tmpbuf)
-{
-	vm_map_t map;
-	struct mount *mp;
-	size_t resid, runlen;
-	int error;
-	bool success;
-
-	KASSERT((uintptr_t)base % PAGE_SIZE == 0,
-	    ("%s: user address %p is not page-aligned", __func__, base));
-
-	if (p->comp != NULL)
-		return (compress_chunk(p, base, tmpbuf, len));
-
-	map = &p->td->td_proc->p_vmspace->vm_map;
-	for (; len > 0; base += runlen, offset += runlen, len -= runlen) {
-		/*
-		 * Attempt to page in all virtual pages in the range.  If a
-		 * virtual page is not backed by the pager, it is represented as
-		 * a hole in the file.  This can occur with zero-filled
-		 * anonymous memory or truncated files, for example.
-		 */
-		for (runlen = 0; runlen < len; runlen += PAGE_SIZE) {
-			if (core_dump_can_intr && curproc_sigkilled())
-				return (EINTR);
-			error = vm_fault(map, (uintptr_t)base + runlen,
-			    VM_PROT_READ, VM_FAULT_NOFILL, NULL);
-			if (runlen == 0)
-				success = error == KERN_SUCCESS;
-			else if ((error == KERN_SUCCESS) != success)
-				break;
-		}
-
-		if (success) {
-			error = core_write(p, base, runlen, offset,
-			    UIO_USERSPACE, &resid);
-			if (error != 0) {
-				if (error != EFAULT)
-					break;
-
-				/*
-				 * EFAULT may be returned if the user mapping
-				 * could not be accessed, e.g., because a mapped
-				 * file has been truncated.  Skip the page if no
-				 * progress was made, to protect against a
-				 * hypothetical scenario where vm_fault() was
-				 * successful but core_write() returns EFAULT
-				 * anyway.
-				 */
-				runlen -= resid;
-				if (runlen == 0) {
-					success = false;
-					runlen = PAGE_SIZE;
-				}
-			}
-		}
-		if (!success) {
-			error = vn_start_write(p->vp, &mp, V_WAIT);
-			if (error != 0)
-				break;
-			vn_lock(p->vp, LK_EXCLUSIVE | LK_RETRY);
-			error = vn_truncate_locked(p->vp, offset + runlen,
-			    false, p->td->td_ucred);
-			VOP_UNLOCK(p->vp);
-			vn_finished_write(mp);
-			if (error != 0)
-				break;
-		}
-	}
-	return (error);
-}
-
-/*
- * Drain into a core file.
- */
-static int
-sbuf_drain_core_output(void *arg, const char *data, int len)
-{
-	struct coredump_params *p;
-	int error, locked;
-
-	p = (struct coredump_params *)arg;
-
-	/*
-	 * Some kern_proc out routines that print to this sbuf may
-	 * call us with the process lock held. Draining with the
-	 * non-sleepable lock held is unsafe. The lock is needed for
-	 * those routines when dumping a live process. In our case we
-	 * can safely release the lock before draining and acquire
-	 * again after.
-	 */
-	locked = PROC_LOCKED(p->td->td_proc);
-	if (locked)
-		PROC_UNLOCK(p->td->td_proc);
-	if (p->comp != NULL)
-		error = compressor_write(p->comp, __DECONST(char *, data), len);
-	else
-		error = core_write(p, __DECONST(void *, data), len, p->offset,
-		    UIO_SYSSPACE, NULL);
-	if (locked)
-		PROC_LOCK(p->td->td_proc);
-	if (error != 0)
-		return (-error);
-	p->offset += len;
-	return (len);
 }
 
 int
@@ -1742,9 +1580,7 @@ __elfN(coredump)(struct thread *td, struct vnode *vp, off_t limit, int flags)
 	TAILQ_INIT(&notelst);
 
 	/* Size the program segments. */
-	seginfo.count = 0;
-	seginfo.size = 0;
-	each_dumpable_segment(td, cb_size_segment, &seginfo, flags);
+	__elfN(size_segments)(td, &seginfo, flags);
 
 	/*
 	 * Collect info about the core file header area.
@@ -1752,7 +1588,7 @@ __elfN(coredump)(struct thread *td, struct vnode *vp, off_t limit, int flags)
 	hdrsize = sizeof(Elf_Ehdr) + sizeof(Elf_Phdr) * (1 + seginfo.count);
 	if (seginfo.count + 1 >= PN_XNUM)
 		hdrsize += sizeof(Elf_Shdr);
-	__elfN(prepare_notes)(td, &notelst, &notesz);
+	td->td_proc->p_sysent->sv_elf_core_prepare_notes(td, &notelst, &notesz);
 	coresize = round_page(hdrsize + notesz) + seginfo.size;
 
 	/* Set up core dump parameters. */
@@ -1879,6 +1715,16 @@ cb_size_segment(vm_map_entry_t entry, void *closure)
 	ssc->size += entry->end - entry->start;
 }
 
+void
+__elfN(size_segments)(struct thread *td, struct sseg_closure *seginfo,
+    int flags)
+{
+	seginfo->count = 0;
+	seginfo->size = 0;
+
+	each_dumpable_segment(td, cb_size_segment, seginfo, flags);
+}
+
 /*
  * For each writable segment in the process's memory map, call the given
  * function with a pointer to the map entry and some arbitrary
@@ -1968,7 +1814,7 @@ __elfN(corehdr)(struct coredump_params *p, int numsegs, void *hdr,
 	sbuf_start_section(sb, NULL);
 	sbuf_bcat(sb, hdr, hdrsize);
 	TAILQ_FOREACH(ninfo, notelst, link)
-	    __elfN(putnote)(ninfo, sb);
+	    __elfN(putnote)(p->td, ninfo, sb);
 	/* Align up to a page boundary for the program segments. */
 	sbuf_end_section(sb, -1, PAGE_SIZE, 0);
 	error = sbuf_finish(sb);
@@ -1977,7 +1823,7 @@ __elfN(corehdr)(struct coredump_params *p, int numsegs, void *hdr,
 	return (error);
 }
 
-static void
+void
 __elfN(prepare_notes)(struct thread *td, struct note_info_list *list,
     size_t *sizep)
 {
@@ -1988,7 +1834,8 @@ __elfN(prepare_notes)(struct thread *td, struct note_info_list *list,
 	p = td->td_proc;
 	size = 0;
 
-	size += register_note(list, NT_PRPSINFO, __elfN(note_prpsinfo), p);
+	size += __elfN(register_note)(td, list, NT_PRPSINFO,
+	    __elfN(note_prpsinfo), p);
 
 	/*
 	 * To have the debugger select the right thread (LWP) as the initial
@@ -1998,46 +1845,43 @@ __elfN(prepare_notes)(struct thread *td, struct note_info_list *list,
 	 */
 	thr = td;
 	while (thr != NULL) {
-		size += register_note(list, NT_PRSTATUS,
-		    __elfN(note_prstatus), thr);
-		size += register_note(list, NT_FPREGSET,
-		    __elfN(note_fpregset), thr);
-		size += register_note(list, NT_THRMISC,
+		size += __elfN(prepare_register_notes)(td, list, thr);
+		size += __elfN(register_note)(td, list, NT_THRMISC,
 		    __elfN(note_thrmisc), thr);
-		size += register_note(list, NT_PTLWPINFO,
+		size += __elfN(register_note)(td, list, NT_PTLWPINFO,
 		    __elfN(note_ptlwpinfo), thr);
-		size += register_note(list, -1,
+		size += __elfN(register_note)(td, list, -1,
 		    __elfN(note_threadmd), thr);
 
-		thr = (thr == td) ? TAILQ_FIRST(&p->p_threads) :
+		thr = thr == td ? TAILQ_FIRST(&p->p_threads) :
 		    TAILQ_NEXT(thr, td_plist);
 		if (thr == td)
 			thr = TAILQ_NEXT(thr, td_plist);
 	}
 
-	size += register_note(list, NT_PROCSTAT_PROC,
+	size += __elfN(register_note)(td, list, NT_PROCSTAT_PROC,
 	    __elfN(note_procstat_proc), p);
-	size += register_note(list, NT_PROCSTAT_FILES,
+	size += __elfN(register_note)(td, list, NT_PROCSTAT_FILES,
 	    note_procstat_files, p);
-	size += register_note(list, NT_PROCSTAT_VMMAP,
+	size += __elfN(register_note)(td, list, NT_PROCSTAT_VMMAP,
 	    note_procstat_vmmap, p);
-	size += register_note(list, NT_PROCSTAT_GROUPS,
+	size += __elfN(register_note)(td, list, NT_PROCSTAT_GROUPS,
 	    note_procstat_groups, p);
-	size += register_note(list, NT_PROCSTAT_UMASK,
+	size += __elfN(register_note)(td, list, NT_PROCSTAT_UMASK,
 	    note_procstat_umask, p);
-	size += register_note(list, NT_PROCSTAT_RLIMIT,
+	size += __elfN(register_note)(td, list, NT_PROCSTAT_RLIMIT,
 	    note_procstat_rlimit, p);
-	size += register_note(list, NT_PROCSTAT_OSREL,
+	size += __elfN(register_note)(td, list, NT_PROCSTAT_OSREL,
 	    note_procstat_osrel, p);
-	size += register_note(list, NT_PROCSTAT_PSSTRINGS,
+	size += __elfN(register_note)(td, list, NT_PROCSTAT_PSSTRINGS,
 	    __elfN(note_procstat_psstrings), p);
-	size += register_note(list, NT_PROCSTAT_AUXV,
+	size += __elfN(register_note)(td, list, NT_PROCSTAT_AUXV,
 	    __elfN(note_procstat_auxv), p);
 
 	*sizep = size;
 }
 
-static void
+void
 __elfN(puthdr)(struct thread *td, void *hdr, size_t hdrsize, int numsegs,
     size_t notesz, int flags)
 {
@@ -2045,8 +1889,10 @@ __elfN(puthdr)(struct thread *td, void *hdr, size_t hdrsize, int numsegs,
 	Elf_Phdr *phdr;
 	Elf_Shdr *shdr;
 	struct phdr_closure phc;
+	Elf_Brandinfo *bi;
 
 	ehdr = (Elf_Ehdr *)hdr;
+	bi = td->td_proc->p_elf_brandinfo;
 
 	ehdr->e_ident[EI_MAG0] = ELFMAG0;
 	ehdr->e_ident[EI_MAG1] = ELFMAG1;
@@ -2055,11 +1901,11 @@ __elfN(puthdr)(struct thread *td, void *hdr, size_t hdrsize, int numsegs,
 	ehdr->e_ident[EI_CLASS] = ELF_CLASS;
 	ehdr->e_ident[EI_DATA] = ELF_DATA;
 	ehdr->e_ident[EI_VERSION] = EV_CURRENT;
-	ehdr->e_ident[EI_OSABI] = ELFOSABI_FREEBSD;
+	ehdr->e_ident[EI_OSABI] = td->td_proc->p_sysent->sv_elf_core_osabi;
 	ehdr->e_ident[EI_ABIVERSION] = 0;
 	ehdr->e_ident[EI_PAD] = 0;
 	ehdr->e_type = ET_CORE;
-	ehdr->e_machine = td->td_proc->p_elf_machine;
+	ehdr->e_machine = bi->machine;
 	ehdr->e_version = EV_CURRENT;
 	ehdr->e_entry = 0;
 	ehdr->e_phoff = sizeof(Elf_Ehdr);
@@ -2122,11 +1968,42 @@ __elfN(puthdr)(struct thread *td, void *hdr, size_t hdrsize, int numsegs,
 }
 
 static size_t
-register_note(struct note_info_list *list, int type, outfunc_t out, void *arg)
+__elfN(register_regset_note)(struct thread *td, struct note_info_list *list,
+    struct regset *regset, struct thread *target_td)
 {
+	const struct sysentvec *sv;
 	struct note_info *ninfo;
 	size_t size, notesize;
 
+	size = 0;
+	if (!regset->get(regset, target_td, NULL, &size) || size == 0)
+		return (0);
+
+	ninfo = malloc(sizeof(*ninfo), M_TEMP, M_ZERO | M_WAITOK);
+	ninfo->type = regset->note;
+	ninfo->regset = regset;
+	ninfo->outarg = target_td;
+	ninfo->outsize = size;
+	TAILQ_INSERT_TAIL(list, ninfo, link);
+
+	sv = td->td_proc->p_sysent;
+	notesize = sizeof(Elf_Note) +		/* note header */
+	    roundup2(strlen(sv->sv_elf_core_abi_vendor) + 1, ELF_NOTE_ROUNDSIZE) +
+						/* note name */
+	    roundup2(size, ELF_NOTE_ROUNDSIZE);	/* note description */
+
+	return (notesize);
+}
+
+size_t
+__elfN(register_note)(struct thread *td, struct note_info_list *list,
+    int type, outfunc_t out, void *arg)
+{
+	const struct sysentvec *sv;
+	struct note_info *ninfo;
+	size_t size, notesize;
+
+	sv = td->td_proc->p_sysent;
 	size = 0;
 	out(arg, NULL, &size);
 	ninfo = malloc(sizeof(*ninfo), M_TEMP, M_ZERO | M_WAITOK);
@@ -2140,7 +2017,7 @@ register_note(struct note_info_list *list, int type, outfunc_t out, void *arg)
 		return (size);
 
 	notesize = sizeof(Elf_Note) +		/* note header */
-	    roundup2(sizeof(FREEBSD_ABI_VENDOR), ELF_NOTE_ROUNDSIZE) +
+	    roundup2(strlen(sv->sv_elf_core_abi_vendor) + 1, ELF_NOTE_ROUNDSIZE) +
 						/* note name */
 	    roundup2(size, ELF_NOTE_ROUNDSIZE);	/* note description */
 
@@ -2190,9 +2067,10 @@ __elfN(populate_note)(int type, void *src, void *dst, size_t size, void **descp)
 }
 
 static void
-__elfN(putnote)(struct note_info *ninfo, struct sbuf *sb)
+__elfN(putnote)(struct thread *td, struct note_info *ninfo, struct sbuf *sb)
 {
 	Elf_Note note;
+	const struct sysentvec *sv;
 	ssize_t old_len, sect_len;
 	size_t new_len, descsz, i;
 
@@ -2201,18 +2079,30 @@ __elfN(putnote)(struct note_info *ninfo, struct sbuf *sb)
 		return;
 	}
 
-	note.n_namesz = sizeof(FREEBSD_ABI_VENDOR);
+	sv = td->td_proc->p_sysent;
+
+	note.n_namesz = strlen(sv->sv_elf_core_abi_vendor) + 1;
 	note.n_descsz = ninfo->outsize;
 	note.n_type = ninfo->type;
 
 	sbuf_bcat(sb, &note, sizeof(note));
 	sbuf_start_section(sb, &old_len);
-	sbuf_bcat(sb, FREEBSD_ABI_VENDOR, sizeof(FREEBSD_ABI_VENDOR));
+	sbuf_bcat(sb, sv->sv_elf_core_abi_vendor,
+	    strlen(sv->sv_elf_core_abi_vendor) + 1);
 	sbuf_end_section(sb, old_len, ELF_NOTE_ROUNDSIZE, 0);
 	if (note.n_descsz == 0)
 		return;
 	sbuf_start_section(sb, &old_len);
-	ninfo->outfunc(ninfo->outarg, sb, &ninfo->outsize);
+	if (ninfo->regset != NULL) {
+		struct regset *regset = ninfo->regset;
+		void *buf;
+
+		buf = malloc(ninfo->outsize, M_TEMP, M_ZERO | M_WAITOK);
+		(void)regset->get(regset, ninfo->outarg, buf, &ninfo->outsize);
+		sbuf_bcat(sb, buf, ninfo->outsize);
+		free(buf, M_TEMP);
+	} else
+		ninfo->outfunc(ninfo->outarg, sb, &ninfo->outsize);
 	sect_len = sbuf_end_section(sb, old_len, ELF_NOTE_ROUNDSIZE, 0);
 	if (sect_len < 0)
 		return;
@@ -2281,7 +2171,7 @@ __elfN(note_prpsinfo)(void *arg, struct sbuf *sb, size_t *sizep)
 	elf_prpsinfo_t *psinfo;
 	int error;
 
-	p = (struct proc *)arg;
+	p = arg;
 	if (sb != NULL) {
 		KASSERT(*sizep == sizeof(*psinfo), ("invalid size"));
 		psinfo = malloc(sizeof(*psinfo), M_TEMP, M_ZERO | M_WAITOK);
@@ -2332,16 +2222,17 @@ __elfN(note_prpsinfo)(void *arg, struct sbuf *sb, size_t *sizep)
 	*sizep = sizeof(*psinfo);
 }
 
-static void
-__elfN(note_prstatus)(void *arg, struct sbuf *sb, size_t *sizep)
+static bool
+__elfN(get_prstatus)(struct regset *rs, struct thread *td, void *buf,
+    size_t *sizep)
 {
-	struct thread *td;
 	elf_prstatus_t *status;
 
-	td = (struct thread *)arg;
-	if (sb != NULL) {
-		KASSERT(*sizep == sizeof(*status), ("invalid size"));
-		status = malloc(sizeof(*status), M_TEMP, M_ZERO | M_WAITOK);
+	if (buf != NULL) {
+		KASSERT(*sizep == sizeof(*status), ("%s: invalid size",
+		    __func__));
+		status = buf;
+		memset(status, 0, *sizep);
 		status->pr_version = PRSTATUS_VERSION;
 		status->pr_statussz = sizeof(elf_prstatus_t);
 		status->pr_gregsetsz = sizeof(elf_gregset_t);
@@ -2354,31 +2245,110 @@ __elfN(note_prstatus)(void *arg, struct sbuf *sb, size_t *sizep)
 #else
 		fill_regs(td, &status->pr_reg);
 #endif
-		sbuf_bcat(sb, status, sizeof(*status));
-		free(status, M_TEMP);
 	}
 	*sizep = sizeof(*status);
+	return (true);
 }
 
-static void
-__elfN(note_fpregset)(void *arg, struct sbuf *sb, size_t *sizep)
+static bool
+__elfN(set_prstatus)(struct regset *rs, struct thread *td, void *buf,
+    size_t size)
 {
-	struct thread *td;
+	elf_prstatus_t *status;
+
+	KASSERT(size == sizeof(*status), ("%s: invalid size", __func__));
+	status = buf;
+#if defined(COMPAT_FREEBSD32) && __ELF_WORD_SIZE == 32
+	set_regs32(td, &status->pr_reg);
+#else
+	set_regs(td, &status->pr_reg);
+#endif
+	return (true);
+}
+
+static struct regset __elfN(regset_prstatus) = {
+	.note = NT_PRSTATUS,
+	.size = sizeof(elf_prstatus_t),
+	.get = __elfN(get_prstatus),
+	.set = __elfN(set_prstatus),
+};
+ELF_REGSET(__elfN(regset_prstatus));
+
+static bool
+__elfN(get_fpregset)(struct regset *rs, struct thread *td, void *buf,
+    size_t *sizep)
+{
 	elf_prfpregset_t *fpregset;
 
-	td = (struct thread *)arg;
-	if (sb != NULL) {
-		KASSERT(*sizep == sizeof(*fpregset), ("invalid size"));
-		fpregset = malloc(sizeof(*fpregset), M_TEMP, M_ZERO | M_WAITOK);
+	if (buf != NULL) {
+		KASSERT(*sizep == sizeof(*fpregset), ("%s: invalid size",
+		    __func__));
+		fpregset = buf;
 #if defined(COMPAT_FREEBSD32) && __ELF_WORD_SIZE == 32
 		fill_fpregs32(td, fpregset);
 #else
 		fill_fpregs(td, fpregset);
 #endif
-		sbuf_bcat(sb, fpregset, sizeof(*fpregset));
-		free(fpregset, M_TEMP);
 	}
 	*sizep = sizeof(*fpregset);
+	return (true);
+}
+
+static bool
+__elfN(set_fpregset)(struct regset *rs, struct thread *td, void *buf,
+    size_t size)
+{
+	elf_prfpregset_t *fpregset;
+
+	fpregset = buf;
+	KASSERT(size == sizeof(*fpregset), ("%s: invalid size", __func__));
+#if defined(COMPAT_FREEBSD32) && __ELF_WORD_SIZE == 32
+	set_fpregs32(td, fpregset);
+#else
+	set_fpregs(td, fpregset);
+#endif
+	return (true);
+}
+
+static struct regset __elfN(regset_fpregset) = {
+	.note = NT_FPREGSET,
+	.size = sizeof(elf_prfpregset_t),
+	.get = __elfN(get_fpregset),
+	.set = __elfN(set_fpregset),
+};
+ELF_REGSET(__elfN(regset_fpregset));
+
+static size_t
+__elfN(prepare_register_notes)(struct thread *td, struct note_info_list *list,
+    struct thread *target_td)
+{
+	struct sysentvec *sv = td->td_proc->p_sysent;
+	struct regset **regsetp, **regset_end, *regset;
+	size_t size;
+
+	size = 0;
+
+	/* NT_PRSTATUS must be the first register set note. */
+	size += __elfN(register_regset_note)(td, list, &__elfN(regset_prstatus),
+	    target_td);
+
+	regsetp = sv->sv_regset_begin;
+	if (regsetp == NULL) {
+		/* XXX: This shouldn't be true for any FreeBSD ABIs. */
+		size += __elfN(register_regset_note)(td, list,
+		    &__elfN(regset_fpregset), target_td);
+		return (size);
+	}
+	regset_end = sv->sv_regset_end;
+	MPASS(regset_end != NULL);
+	for (; regsetp < regset_end; regsetp++) {
+		regset = *regsetp;
+		if (regset->note == NT_PRSTATUS)
+			continue;
+		size += __elfN(register_regset_note)(td, list, regset,
+		    target_td);
+	}
+	return (size);
 }
 
 static void
@@ -2387,7 +2357,7 @@ __elfN(note_thrmisc)(void *arg, struct sbuf *sb, size_t *sizep)
 	struct thread *td;
 	elf_thrmisc_t thrmisc;
 
-	td = (struct thread *)arg;
+	td = arg;
 	if (sb != NULL) {
 		KASSERT(*sizep == sizeof(thrmisc), ("invalid size"));
 		bzero(&thrmisc, sizeof(thrmisc));
@@ -2409,7 +2379,7 @@ __elfN(note_ptlwpinfo)(void *arg, struct sbuf *sb, size_t *sizep)
 	struct ptrace_lwpinfo pl;
 #endif
 
-	td = (struct thread *)arg;
+	td = arg;
 	size = sizeof(structsize) + sizeof(pl);
 	if (sb != NULL) {
 		KASSERT(*sizep == size, ("invalid size"));
@@ -2473,7 +2443,7 @@ __elfN(note_procstat_proc)(void *arg, struct sbuf *sb, size_t *sizep)
 	size_t size;
 	int structsize;
 
-	p = (struct proc *)arg;
+	p = arg;
 	size = sizeof(structsize) + p->p_numthreads *
 	    sizeof(elf_kinfo_proc_t);
 
@@ -2506,7 +2476,7 @@ note_procstat_files(void *arg, struct sbuf *sb, size_t *sizep)
 	else
 		filedesc_flags = 0;
 
-	p = (struct proc *)arg;
+	p = arg;
 	structsize = sizeof(struct kinfo_file);
 	if (sb == NULL) {
 		size = 0;
@@ -2557,7 +2527,7 @@ note_procstat_vmmap(void *arg, struct sbuf *sb, size_t *sizep)
 	else
 		vmmap_flags = 0;
 
-	p = (struct proc *)arg;
+	p = arg;
 	structsize = sizeof(struct kinfo_vmentry);
 	if (sb == NULL) {
 		size = 0;
@@ -2584,7 +2554,7 @@ note_procstat_groups(void *arg, struct sbuf *sb, size_t *sizep)
 	size_t size;
 	int structsize;
 
-	p = (struct proc *)arg;
+	p = arg;
 	size = sizeof(structsize) + p->p_ucred->cr_ngroups * sizeof(gid_t);
 	if (sb != NULL) {
 		KASSERT(*sizep == size, ("invalid size"));
@@ -2603,7 +2573,7 @@ note_procstat_umask(void *arg, struct sbuf *sb, size_t *sizep)
 	size_t size;
 	int structsize;
 
-	p = (struct proc *)arg;
+	p = arg;
 	size = sizeof(structsize) + sizeof(p->p_pd->pd_cmask);
 	if (sb != NULL) {
 		KASSERT(*sizep == size, ("invalid size"));
@@ -2622,7 +2592,7 @@ note_procstat_rlimit(void *arg, struct sbuf *sb, size_t *sizep)
 	size_t size;
 	int structsize, i;
 
-	p = (struct proc *)arg;
+	p = arg;
 	size = sizeof(structsize) + sizeof(rlim);
 	if (sb != NULL) {
 		KASSERT(*sizep == size, ("invalid size"));
@@ -2644,7 +2614,7 @@ note_procstat_osrel(void *arg, struct sbuf *sb, size_t *sizep)
 	size_t size;
 	int structsize;
 
-	p = (struct proc *)arg;
+	p = arg;
 	size = sizeof(structsize) + sizeof(p->p_osrel);
 	if (sb != NULL) {
 		KASSERT(*sizep == size, ("invalid size"));
@@ -2663,7 +2633,7 @@ __elfN(note_procstat_psstrings)(void *arg, struct sbuf *sb, size_t *sizep)
 	size_t size;
 	int structsize;
 
-	p = (struct proc *)arg;
+	p = arg;
 	size = sizeof(structsize) + sizeof(ps_strings);
 	if (sb != NULL) {
 		KASSERT(*sizep == size, ("invalid size"));
@@ -2686,10 +2656,11 @@ __elfN(note_procstat_auxv)(void *arg, struct sbuf *sb, size_t *sizep)
 	size_t size;
 	int structsize;
 
-	p = (struct proc *)arg;
+	p = arg;
 	if (sb == NULL) {
 		size = 0;
-		sb = sbuf_new(NULL, NULL, 128, SBUF_FIXEDLEN);
+		sb = sbuf_new(NULL, NULL, AT_COUNT * sizeof(Elf_Auxinfo),
+		    SBUF_FIXEDLEN);
 		sbuf_set_drain(sb, sbuf_count_drain, &size);
 		sbuf_bcat(sb, &structsize, sizeof(structsize));
 		PHOLD(p);
@@ -2707,20 +2678,20 @@ __elfN(note_procstat_auxv)(void *arg, struct sbuf *sb, size_t *sizep)
 	}
 }
 
-static boolean_t
+static bool
 __elfN(parse_notes)(struct image_params *imgp, Elf_Note *checknote,
     const char *note_vendor, const Elf_Phdr *pnote,
-    boolean_t (*cb)(const Elf_Note *, void *, boolean_t *), void *cb_arg)
+    bool (*cb)(const Elf_Note *, void *, bool *), void *cb_arg)
 {
 	const Elf_Note *note, *note0, *note_end;
 	const char *note_name;
 	char *buf;
 	int i, error;
-	boolean_t res;
+	bool res;
 
 	/* We need some limit, might as well use PAGE_SIZE. */
 	if (pnote == NULL || pnote->p_filesz > PAGE_SIZE)
-		return (FALSE);
+		return (false);
 	ASSERT_VOP_LOCKED(imgp->vp, "parse_notes");
 	if (pnote->p_offset > PAGE_SIZE ||
 	    pnote->p_filesz > PAGE_SIZE - pnote->p_offset) {
@@ -2769,7 +2740,7 @@ nextnote:
 		    roundup2(note->n_descsz, ELF_NOTE_ROUNDSIZE));
 	}
 retf:
-	res = FALSE;
+	res = false;
 ret:
 	free(buf, M_TEMP);
 	return (res);
@@ -2780,8 +2751,8 @@ struct brandnote_cb_arg {
 	int32_t *osrel;
 };
 
-static boolean_t
-brandnote_cb(const Elf_Note *note, void *arg0, boolean_t *res)
+static bool
+brandnote_cb(const Elf_Note *note, void *arg0, bool *res)
 {
 	struct brandnote_cb_arg *arg;
 
@@ -2793,9 +2764,9 @@ brandnote_cb(const Elf_Note *note, void *arg0, boolean_t *res)
 	 */
 	*res = (arg->brandnote->flags & BN_TRANSLATE_OSREL) != 0 &&
 	    arg->brandnote->trans_osrel != NULL ?
-	    arg->brandnote->trans_osrel(note, arg->osrel) : TRUE;
+	    arg->brandnote->trans_osrel(note, arg->osrel) : true;
 
-	return (TRUE);
+	return (true);
 }
 
 static Elf_Note fctl_note = {
@@ -2805,12 +2776,12 @@ static Elf_Note fctl_note = {
 };
 
 struct fctl_cb_arg {
-	boolean_t *has_fctl0;
+	bool *has_fctl0;
 	uint32_t *fctl0;
 };
 
-static boolean_t
-note_fctl_cb(const Elf_Note *note, void *arg0, boolean_t *res)
+static bool
+note_fctl_cb(const Elf_Note *note, void *arg0, bool *res)
 {
 	struct fctl_cb_arg *arg;
 	const Elf32_Word *desc;
@@ -2820,10 +2791,10 @@ note_fctl_cb(const Elf_Note *note, void *arg0, boolean_t *res)
 	p = (uintptr_t)(note + 1);
 	p += roundup2(note->n_namesz, ELF_NOTE_ROUNDSIZE);
 	desc = (const Elf32_Word *)p;
-	*arg->has_fctl0 = TRUE;
+	*arg->has_fctl0 = true;
 	*arg->fctl0 = desc[0];
-	*res = TRUE;
-	return (TRUE);
+	*res = true;
+	return (true);
 }
 
 /*
@@ -2832,9 +2803,9 @@ note_fctl_cb(const Elf_Note *note, void *arg0, boolean_t *res)
  * OSABI-note.  Only the first page of the image is searched, the same
  * as for headers.
  */
-static boolean_t
+static bool
 __elfN(check_note)(struct image_params *imgp, Elf_Brandnote *brandnote,
-    int32_t *osrel, boolean_t *has_fctl0, uint32_t *fctl0)
+    int32_t *osrel, bool *has_fctl0, uint32_t *fctl0)
 {
 	const Elf_Phdr *phdr;
 	const Elf_Ehdr *hdr;
@@ -2860,10 +2831,10 @@ __elfN(check_note)(struct image_params *imgp, Elf_Brandnote *brandnote,
 				    note_fctl_cb, &f_arg))
 					break;
 			}
-			return (TRUE);
+			return (true);
 		}
 	}
-	return (FALSE);
+	return (false);
 
 }
 

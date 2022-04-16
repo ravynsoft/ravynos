@@ -97,12 +97,12 @@ lockdep_is_held(void *__m)
 #define	mutex_acquire(...) do { } while (0)
 #define	mutex_release(...) do { } while (0)
 
-#define	lockdep_pin_lock(l) ({ struct pin_cookie __pc = { }; __pc; })
-#define	lockdep_repin_lock(l,c) do { (void)(l); (void)(c); } while (0)
-#define	lockdep_unpin_lock(l,c) do { (void)(l); (void)(c); } while (0)
-
 #define	lock_map_acquire(_map) do { } while (0)
 #define	lock_map_acquire_read(_map) do { } while (0)
 #define	lock_map_release(_map) do { } while (0)
+
+#define	lockdep_pin_lock(l) ({ struct pin_cookie __pc = { }; __pc; })
+#define	lockdep_repin_lock(l,c) do { (void)(l); (void)(c); } while (0)
+#define	lockdep_unpin_lock(l,c) do { (void)(l); (void)(c); } while (0)
 
 #endif /* _LINUXKPI_LINUX_LOCKDEP_H_ */

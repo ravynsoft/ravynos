@@ -177,7 +177,7 @@
  * block size as we expect to be writing a lot of data to them at
  * once.
  */
-unsigned long zfs_log_sm_blksz = 1ULL << 17;
+static const unsigned long zfs_log_sm_blksz = 1ULL << 17;
 
 /*
  * Percentage of the overall system's memory that ZFS allows to be
@@ -188,13 +188,13 @@ unsigned long zfs_log_sm_blksz = 1ULL << 17;
  * (thus the _ppm suffix; reads as "parts per million"). As an example,
  * the default of 1000 allows 0.1% of memory to be used.
  */
-unsigned long zfs_unflushed_max_mem_ppm = 1000;
+static unsigned long zfs_unflushed_max_mem_ppm = 1000;
 
 /*
  * Specific hard-limit in memory that ZFS allows to be used for
  * unflushed changes.
  */
-unsigned long zfs_unflushed_max_mem_amt = 1ULL << 30;
+static unsigned long zfs_unflushed_max_mem_amt = 1ULL << 30;
 
 /*
  * The following tunable determines the number of blocks that can be used for
@@ -243,28 +243,28 @@ unsigned long zfs_unflushed_max_mem_amt = 1ULL << 30;
  * provide upper and lower bounds for the log block limit.
  * [see zfs_unflushed_log_block_{min,max}]
  */
-unsigned long zfs_unflushed_log_block_pct = 400;
+static unsigned long zfs_unflushed_log_block_pct = 400;
 
 /*
  * If the number of metaslabs is small and our incoming rate is high, we could
  * get into a situation that we are flushing all our metaslabs every TXG. Thus
  * we always allow at least this many log blocks.
  */
-unsigned long zfs_unflushed_log_block_min = 1000;
+static unsigned long zfs_unflushed_log_block_min = 1000;
 
 /*
  * If the log becomes too big, the import time of the pool can take a hit in
  * terms of performance. Thus we have a hard limit in the size of the log in
  * terms of blocks.
  */
-unsigned long zfs_unflushed_log_block_max = (1ULL << 18);
+static unsigned long zfs_unflushed_log_block_max = (1ULL << 18);
 
 /*
  * Max # of rows allowed for the log_summary. The tradeoff here is accuracy and
  * stability of the flushing algorithm (longer summary) vs its runtime overhead
  * (smaller summary is faster to traverse).
  */
-unsigned long zfs_max_logsm_summary_length = 10;
+static unsigned long zfs_max_logsm_summary_length = 10;
 
 /*
  * Tunable that sets the lower bound on the metaslabs to flush every TXG.
@@ -277,7 +277,7 @@ unsigned long zfs_max_logsm_summary_length = 10;
  * The point of this tunable is to be used in extreme cases where we really
  * want to flush more metaslabs than our adaptable heuristic plans to flush.
  */
-unsigned long zfs_min_metaslabs_to_flush = 1;
+static unsigned long zfs_min_metaslabs_to_flush = 1;
 
 /*
  * Tunable that specifies how far in the past do we want to look when trying to
@@ -288,7 +288,7 @@ unsigned long zfs_min_metaslabs_to_flush = 1;
  * average over all the blocks that we walk
  * [see spa_estimate_incoming_log_blocks].
  */
-unsigned long zfs_max_log_walking = 5;
+static unsigned long zfs_max_log_walking = 5;
 
 /*
  * This tunable exists solely for testing purposes. It ensures that the log
@@ -1033,8 +1033,8 @@ spa_ld_log_sm_metadata(spa_t *spa)
 		if (sls == NULL) {
 			spa_load_failed(spa, "spa_ld_log_sm_metadata(): bug "
 			    "encountered: could not find log spacemap for "
-			    "TXG %ld [error %d]",
-			    metaslab_unflushed_txg(m), ENOENT);
+			    "TXG %llu [error %d]",
+			    (u_longlong_t)metaslab_unflushed_txg(m), ENOENT);
 			return (ENOENT);
 		}
 		sls->sls_mscount++;
@@ -1284,39 +1284,39 @@ spa_ld_log_spacemaps(spa_t *spa)
 
 /* BEGIN CSTYLED */
 ZFS_MODULE_PARAM(zfs, zfs_, unflushed_max_mem_amt, ULONG, ZMOD_RW,
-    "Specific hard-limit in memory that ZFS allows to be used for "
-    "unflushed changes");
+	"Specific hard-limit in memory that ZFS allows to be used for "
+	"unflushed changes");
 
 ZFS_MODULE_PARAM(zfs, zfs_, unflushed_max_mem_ppm, ULONG, ZMOD_RW,
-    "Percentage of the overall system memory that ZFS allows to be "
-    "used for unflushed changes (value is calculated over 1000000 for "
-    "finer granularity)");
+	"Percentage of the overall system memory that ZFS allows to be "
+	"used for unflushed changes (value is calculated over 1000000 for "
+	"finer granularity)");
 
 ZFS_MODULE_PARAM(zfs, zfs_, unflushed_log_block_max, ULONG, ZMOD_RW,
-    "Hard limit (upper-bound) in the size of the space map log "
-    "in terms of blocks.");
+	"Hard limit (upper-bound) in the size of the space map log "
+	"in terms of blocks.");
 
 ZFS_MODULE_PARAM(zfs, zfs_, unflushed_log_block_min, ULONG, ZMOD_RW,
-    "Lower-bound limit for the maximum amount of blocks allowed in "
-    "log spacemap (see zfs_unflushed_log_block_max)");
+	"Lower-bound limit for the maximum amount of blocks allowed in "
+	"log spacemap (see zfs_unflushed_log_block_max)");
 
 ZFS_MODULE_PARAM(zfs, zfs_, unflushed_log_block_pct, ULONG, ZMOD_RW,
-    "Tunable used to determine the number of blocks that can be used for "
-    "the spacemap log, expressed as a percentage of the total number of "
-    "metaslabs in the pool (e.g. 400 means the number of log blocks is "
-    "capped at 4 times the number of metaslabs)");
+	"Tunable used to determine the number of blocks that can be used for "
+	"the spacemap log, expressed as a percentage of the total number of "
+	"metaslabs in the pool (e.g. 400 means the number of log blocks is "
+	"capped at 4 times the number of metaslabs)");
 
 ZFS_MODULE_PARAM(zfs, zfs_, max_log_walking, ULONG, ZMOD_RW,
-    "The number of past TXGs that the flushing algorithm of the log "
-    "spacemap feature uses to estimate incoming log blocks");
-
-ZFS_MODULE_PARAM(zfs, zfs_, max_logsm_summary_length, ULONG, ZMOD_RW,
-    "Maximum number of rows allowed in the summary of the spacemap log");
-
-ZFS_MODULE_PARAM(zfs, zfs_, min_metaslabs_to_flush, ULONG, ZMOD_RW,
-    "Minimum number of metaslabs to flush per dirty TXG");
+	"The number of past TXGs that the flushing algorithm of the log "
+	"spacemap feature uses to estimate incoming log blocks");
 
 ZFS_MODULE_PARAM(zfs, zfs_, keep_log_spacemaps_at_export, INT, ZMOD_RW,
-    "Prevent the log spacemaps from being flushed and destroyed "
-    "during pool export/destroy");
+	"Prevent the log spacemaps from being flushed and destroyed "
+	"during pool export/destroy");
 /* END CSTYLED */
+
+ZFS_MODULE_PARAM(zfs, zfs_, max_logsm_summary_length, ULONG, ZMOD_RW,
+	"Maximum number of rows allowed in the summary of the spacemap log");
+
+ZFS_MODULE_PARAM(zfs, zfs_, min_metaslabs_to_flush, ULONG, ZMOD_RW,
+	"Minimum number of metaslabs to flush per dirty TXG");

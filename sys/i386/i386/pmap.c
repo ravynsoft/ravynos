@@ -3493,7 +3493,9 @@ pmap_promote_pde(pmap_t pmap, pd_entry_t *pde, vm_offset_t va)
 {
 	pd_entry_t newpde;
 	pt_entry_t *firstpte, oldpte, pa, *pte;
-	vm_offset_t oldpteva __diagused;
+#ifdef KTR
+	vm_offset_t oldpteva;
+#endif
 	vm_page_t mpte;
 
 	PMAP_LOCK_ASSERT(pmap, MA_OWNED);
@@ -3553,8 +3555,10 @@ setpte:
 			    oldpte & ~PG_RW))
 				goto setpte;
 			oldpte &= ~PG_RW;
+#ifdef KTR
 			oldpteva = (oldpte & PG_FRAME & PDRMASK) |
 			    (va & ~PDRMASK);
+#endif
 			CTR2(KTR_PMAP, "pmap_promote_pde: protect for va %#x"
 			    " in pmap %p", oldpteva, pmap);
 		}
@@ -3646,7 +3650,7 @@ __CONCAT(PMTYPE, enter)(pmap_t pmap, vm_offset_t va, vm_page_t m,
 	    ("pmap_enter: invalid to pmap_enter into trampoline (va: 0x%x)",
 	    va));
 	KASSERT(pmap != kernel_pmap || (m->oflags & VPO_UNMANAGED) != 0 ||
-	    va < kmi.clean_sva || va >= kmi.clean_eva,
+	    !VA_IS_CLEANMAP(va),
 	    ("pmap_enter: managed mapping within the clean submap"));
 	if ((m->oflags & VPO_UNMANAGED) == 0)
 		VM_PAGE_OBJECT_BUSY_ASSERT(m);
@@ -4100,8 +4104,8 @@ pmap_enter_quick_locked(pmap_t pmap, vm_offset_t va, vm_page_t m,
 {
 	pt_entry_t newpte, *pte;
 
-	KASSERT(pmap != kernel_pmap || va < kmi.clean_sva ||
-	    va >= kmi.clean_eva || (m->oflags & VPO_UNMANAGED) != 0,
+	KASSERT(pmap != kernel_pmap || !VA_IS_CLEANMAP(va) ||
+	    (m->oflags & VPO_UNMANAGED) != 0,
 	    ("pmap_enter_quick_locked: managed mapping within the clean submap"));
 	rw_assert(&pvh_global_lock, RA_WLOCKED);
 	PMAP_LOCK_ASSERT(pmap, MA_OWNED);
@@ -4529,7 +4533,7 @@ __CONCAT(PMTYPE, zero_page)(vm_page_t m)
 }
 
 /*
- * Zero an an area within a single hardware page.  off and size must not
+ * Zero an area within a single hardware page.  off and size must not
  * cover an area beyond a single hardware page.
  */
 static void

@@ -25,7 +25,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd December 26, 2020
+.Dd January 26, 2021
 .Dt ALTQ 4
 .Os
 .Sh NAME
@@ -173,12 +173,6 @@ and
 .Xr xl 4 .
 .Pp
 The
-.Xr ndis 4
-framework also has support for
-.Nm
-and thus all encapsulated drivers.
-.Pp
-The
 .Xr tun 4
 and
 .Xr ng_iface 4
@@ -193,7 +187,6 @@ but as packets (mbufs) are passed to the underlying interface, a queue
 can be defined for the underlying interface, and any packets directed
 to the queue will be processed at the interface level.
 An example:
-.Pp
 .Bd -literal -offset indent
 altq on igb0 cbq queue { def aq }
 queue def bandwidth 90% cbq (default borrow)
@@ -211,7 +204,7 @@ pass in on igb0.10 proto udp all queue aq keep state
 The
 .Nm
 system first appeared in March 1997 and found home in the KAME project
-(http://www.kame.net).
+(https://www.kame.net).
 It was imported to
 .Fx
 in 5.3 .

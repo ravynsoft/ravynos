@@ -561,7 +561,7 @@ dmar_get_ctx_for_dev1(struct dmar_unit *dmar, device_t dev, uint16_t rid,
 			error = domain_init_rmrr(domain1, dev, bus,
 			    slot, func, dev_domain, dev_busno, dev_path,
 			    dev_path_len);
-			if (error == 0)
+			if (error == 0 && dev != NULL)
 				error = dmar_reserve_pci_regions(domain1, dev);
 			if (error != 0) {
 				dmar_domain_destroy(domain1);
@@ -631,6 +631,10 @@ dmar_get_ctx_for_dev1(struct dmar_unit *dmar, device_t dev, uint16_t rid,
 	 * to avoid unneeded command.
 	 */
 	if (enable && !rmrr_init && (dmar->hw_gcmd & DMAR_GCMD_TE) == 0) {
+		error = dmar_disable_protected_regions(dmar);
+		if (error != 0)
+			printf("dmar%d: Failed to disable protected regions\n",
+			    dmar->iommu.unit);
 		error = dmar_enable_translation(dmar);
 		if (error == 0) {
 			if (bootverbose) {

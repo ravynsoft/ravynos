@@ -659,11 +659,11 @@
 	}
 120	AUE_RFORK	STD {
 		int linux_clone(
-		    l_int flags,
-		    void *stack,
-		    void *parent_tidptr,
-		    void *tls,
-		    void *child_tidptr
+		    l_ulong flags,
+		    l_ulong stack,
+		    l_int *parent_tidptr,
+		    l_ulong tls,
+		    l_int *child_tidptr
 		);
 	}
 121	AUE_SYSCTL	STD {
@@ -912,8 +912,8 @@
 		int linux_vm86(void);
 	}
 167	AUE_NULL	UNIMPL	query_module
-168	AUE_POLL	NOPROTO {
-		int poll(
+168	AUE_POLL	STD {
+		int linux_poll(
 		    struct pollfd *fds,
 		    unsigned int nfds,
 		    long timeout
@@ -974,7 +974,7 @@
 		int linux_rt_sigtimedwait(
 		    l_sigset_t *mask,
 		    l_siginfo_t *ptr,
-		    struct l_timeval *timeout,
+		    struct l_timespec *timeout,
 		    l_size_t sigsetsize
 		);
 	}
@@ -1343,8 +1343,8 @@
 	}
 240	AUE_NULL	STD {
 		int linux_sys_futex(
-		    void *uaddr,
-		    int op,
+		    uint32_t *uaddr,
+		    l_int op,
 		    uint32_t val,
 		    struct l_timespec *timeout,
 		    uint32_t *uaddr2,
@@ -2359,19 +2359,33 @@
 	}
 ; Linux 5.0:
 403	AUE_NULL	STD {
-		int linux_clock_gettime64(void);
+		int linux_clock_gettime64(
+		    clockid_t which,
+		    struct l_timespec64 *tp
+		);
 	}
 404	AUE_NULL	STD {
-		int linux_clock_settime64(void);
+		int linux_clock_settime64(
+		    clockid_t which,
+		    struct l_timespec64 *tp
+		);
 	}
 405	AUE_NULL	STD {
 		int linux_clock_adjtime64(void);
 	}
 406	AUE_NULL	STD {
-		int linux_clock_getres_time64(void);
+		int linux_clock_getres_time64(
+		    clockid_t which,
+		    struct l_timespec64 *tp
+		);
 	}
 407	AUE_NULL	STD {
-		int linux_clock_nanosleep_time64(void);
+		int linux_clock_nanosleep_time64(
+		    clockid_t which,
+		    l_int flags,
+		    struct l_timespec64 *rqtp,
+		    struct l_timespec64 *rmtp
+		);
 	}
 408	AUE_NULL	STD {
 		int linux_timer_gettime64(void);
@@ -2386,13 +2400,31 @@
 		int linux_timerfd_settime64(void);
 	}
 412	AUE_NULL	STD {
-		int linux_utimensat_time64(void);
+		int linux_utimensat_time64(
+		    l_int dfd,
+		    const char *pathname,
+		    const struct l_timespec64 *times64,
+		    l_int flags
+		);
 	}
 413	AUE_NULL	STD {
-		int linux_pselect6_time64(void);
+		int linux_pselect6_time64(
+		    l_int nfds,
+		    l_fd_set *readfds,
+		    l_fd_set *writefds,
+		    l_fd_set *exceptfds,
+		    struct l_timespec64 *tsp,
+		    l_uintptr_t *sig
+		);
 	}
 414	AUE_NULL	STD {
-		int linux_ppoll_time64(void);
+		int linux_ppoll_time64(
+		    struct pollfd *fds,
+		    uint32_t nfds,
+		    struct l_timespec64 *tsp,
+		    l_sigset_t *sset,
+		    l_size_t ssize
+		);
 	}
 415	AUE_NULL	UNIMPL	nosys
 416	AUE_NULL	STD {
@@ -2411,10 +2443,22 @@
 		int linux_semtimedop_time64(void);
 	}
 421	AUE_NULL	STD {
-		int linux_rt_sigtimedwait_time64(void);
+		int linux_rt_sigtimedwait_time64(
+		    l_sigset_t *mask,
+		    l_siginfo_t *ptr,
+		    struct l_timespec64 *timeout,
+		    l_size_t sigsetsize
+		);
 	}
 422	AUE_NULL	STD {
-		int linux_futex_time64(void);
+		int linux_sys_futex_time64(
+		    uint32_t *uaddr,
+		    l_int op,
+		    uint32_t val,
+		    struct l_timespec64 *timeout,
+		    uint32_t *uaddr2,
+		    uint32_t val3
+		);
 	}
 423	AUE_NULL	STD {
 		int linux_sched_rr_get_interval_time64(void);
@@ -2458,7 +2502,10 @@
 		int linux_pidfd_open(void);
 	}
 435    AUE_NULL		STD {
-		int linux_clone3(void);
+		int linux_clone3(
+		    struct l_user_clone_args *uargs,
+		    l_size_t usize
+		);
 	}
 436    AUE_NULL		STD {
 		int linux_close_range(void);
@@ -2470,7 +2517,12 @@
 		int linux_pidfd_getfd(void);
 	}
 439    AUE_NULL		STD {
-		int linux_faccessat2(void);
+		int linux_faccessat2(
+		    l_int dfd,
+		    const char *filename,
+		    l_int amode,
+		    l_int flags
+		);
 	}
 440    AUE_NULL		STD {
 		int linux_process_madvise(void);

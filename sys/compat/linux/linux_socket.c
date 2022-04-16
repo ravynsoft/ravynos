@@ -553,6 +553,8 @@ linux_to_bsd_so_sockopt(int opt)
 		return (SO_ACCEPTCONN);
 	case LINUX_SO_PROTOCOL:
 		return (SO_PROTOCOL);
+	case LINUX_SO_DOMAIN:
+		return (SO_DOMAIN);
 	}
 	return (-1);
 }
@@ -727,7 +729,7 @@ linux_copyout_sockaddr(const struct sockaddr *sa, void *uaddr, size_t len)
 	error = bsd_to_linux_sockaddr(sa, &lsa, len);
 	if (error != 0)
 		return (error);
-	
+
 	error = copyout(lsa, uaddr, len);
 	free(lsa, M_SONAME);
 
@@ -1044,11 +1046,9 @@ linux_accept_common(struct thread *td, int s, l_uintptr_t addr,
 
 	if (len != 0) {
 		error = linux_copyout_sockaddr(sa, PTRIN(addr), len);
-
-		/*
-		 * XXX: We should also copyout the len, shouldn't we?
-		 */
-
+		if (error == 0)
+			error = copyout(&len, PTRIN(namelen),
+			    sizeof(len));
 		if (error != 0) {
 			fdclose(td, fp, td->td_retval[0]);
 			td->td_retval[0] = 0;
@@ -1270,6 +1270,7 @@ linux_recvfrom(struct thread *td, struct linux_recvfrom_args *args)
 			return (error);
 		if (fromlen < 0)
 			return (EINVAL);
+		fromlen = min(fromlen, SOCK_MAXADDRLEN);
 		sa = malloc(fromlen, M_SONAME, M_WAITOK);
 	} else {
 		fromlen = 0;
@@ -1289,8 +1290,16 @@ linux_recvfrom(struct thread *td, struct linux_recvfrom_args *args)
 	if (error != 0)
 		goto out;
 
-	if (PTRIN(args->from) != NULL)
-		error = linux_copyout_sockaddr(sa, PTRIN(args->from), msg.msg_namelen);
+	/*
+	 * XXX. Seems that FreeBSD is different from Linux here. Linux
+	 * fill source address if underlying protocol provides it, while
+	 * FreeBSD fill it if underlying protocol is not connection-oriented.
+	 * So, kern_recvit() set msg.msg_namelen to 0 if protocol pr_flags
+	 * does not contains PR_ADDR flag.
+	 */
+	if (PTRIN(args->from) != NULL && msg.msg_namelen != 0)
+		error = linux_copyout_sockaddr(sa, PTRIN(args->from),
+		    msg.msg_namelen);
 
 	if (error == 0 && PTRIN(args->fromlen) != NULL)
 		error = copyout(&msg.msg_namelen, PTRIN(args->fromlen),
@@ -1579,8 +1588,8 @@ linux_recvmsg_common(struct thread *td, l_int s, struct l_msghdr *msghdr,
 	 */
 	if (msg->msg_name != NULL && msg->msg_namelen > 0) {
 		msg->msg_name = PTRIN(linux_msghdr.msg_name);
-		error = linux_copyout_sockaddr(sa,
-		    PTRIN(msg->msg_name), msg->msg_namelen);
+		error = linux_copyout_sockaddr(sa, msg->msg_name,
+		    msg->msg_namelen);
 		if (error != 0)
 			goto bad;
 	}
@@ -1998,6 +2007,17 @@ linux_getsockopt(struct thread *td, struct linux_getsockopt_args *args)
 			if (error != 0)
 				return (error);
 			newval = -bsd_to_linux_errno(newval);
+			return (copyout(&newval, PTRIN(args->optval), len));
+			/* NOTREACHED */
+		case SO_DOMAIN:
+			len = sizeof(newval);
+			error = kern_getsockopt(td, args->s, level,
+			    name, &newval, UIO_SYSSPACE, &len);
+			if (error != 0)
+				return (error);
+			newval = bsd_to_linux_domain(newval);
+			if (newval == -1)
+				return (ENOPROTOOPT);
 			return (copyout(&newval, PTRIN(args->optval), len));
 			/* NOTREACHED */
 		default:

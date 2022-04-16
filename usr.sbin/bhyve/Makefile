@@ -50,6 +50,7 @@ SRCS=	\
 	pci_virtio_9p.c		\
 	pci_virtio_block.c	\
 	pci_virtio_console.c	\
+	pci_virtio_input.c	\
 	pci_virtio_net.c	\
 	pci_virtio_rnd.c	\
 	pci_virtio_scsi.c	\
@@ -132,4 +133,5 @@ CFLAGS+=-DGDB_LOG
 
 WARNS?=	2
 
+SUBDIR=	kbdlayout
 .include <bsd.prog.mk>

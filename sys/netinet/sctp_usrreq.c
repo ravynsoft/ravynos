@@ -58,8 +58,8 @@ __FBSDID("$FreeBSD$");
 extern const struct sctp_cc_functions sctp_cc_functions[];
 extern const struct sctp_ss_functions sctp_ss_functions[];
 
-void
-sctp_init(void)
+static void
+sctp_init(void *arg SCTP_UNUSED)
 {
 	u_long sb_max_adj;
 
@@ -91,6 +91,8 @@ sctp_init(void)
 	SCTP_BASE_VAR(eh_tag) = EVENTHANDLER_REGISTER(rt_addrmsg,
 	    sctp_addr_change_event_handler, NULL, EVENTHANDLER_PRI_FIRST);
 }
+
+VNET_SYSINIT(sctp_init, SI_SUB_PROTO_DOMAIN, SI_ORDER_THIRD, sctp_init, NULL);
 
 #ifdef VIMAGE
 static void
@@ -1104,7 +1106,7 @@ sctp_fill_up_addresses_vrf(struct sctp_inpcb *inp,
 						if (sin->sin_addr.s_addr == 0) {
 							/*
 							 * we skip
-							 * unspecifed
+							 * unspecified
 							 * addresses
 							 */
 							continue;
@@ -1152,7 +1154,7 @@ sctp_fill_up_addresses_vrf(struct sctp_inpcb *inp,
 						if (IN6_IS_ADDR_UNSPECIFIED(&sin6->sin6_addr)) {
 							/*
 							 * we skip
-							 * unspecifed
+							 * unspecified
 							 * addresses
 							 */
 							continue;
@@ -4066,12 +4068,10 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 			}
 			SCTP_FIND_STCB(inp, stcb, av->assoc_id);
 			if (stcb) {
-				SCTP_TCB_SEND_LOCK(stcb);
 				stcb->asoc.ss_functions.sctp_ss_clear(stcb, &stcb->asoc, true);
 				stcb->asoc.ss_functions = sctp_ss_functions[av->assoc_value];
 				stcb->asoc.stream_scheduling_module = av->assoc_value;
 				stcb->asoc.ss_functions.sctp_ss_init(stcb, &stcb->asoc);
-				SCTP_TCB_SEND_UNLOCK(stcb);
 				SCTP_TCB_UNLOCK(stcb);
 			} else {
 				if ((inp->sctp_flags & SCTP_PCB_FLAGS_TCPTYPE) ||
@@ -4089,12 +4089,10 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 					SCTP_INP_RLOCK(inp);
 					LIST_FOREACH(stcb, &inp->sctp_asoc_list, sctp_tcblist) {
 						SCTP_TCB_LOCK(stcb);
-						SCTP_TCB_SEND_LOCK(stcb);
 						stcb->asoc.ss_functions.sctp_ss_clear(stcb, &stcb->asoc, true);
 						stcb->asoc.ss_functions = sctp_ss_functions[av->assoc_value];
 						stcb->asoc.stream_scheduling_module = av->assoc_value;
 						stcb->asoc.ss_functions.sctp_ss_init(stcb, &stcb->asoc);
-						SCTP_TCB_SEND_UNLOCK(stcb);
 						SCTP_TCB_UNLOCK(stcb);
 					}
 					SCTP_INP_RUNLOCK(inp);
@@ -7197,19 +7195,13 @@ sctp_listen(struct socket *so, int backlog, struct thread *p)
 			}
 		}
 	}
-	SCTP_INP_RLOCK(inp);
+	SCTP_INP_INFO_WLOCK();
+	SCTP_INP_WLOCK(inp);
 #ifdef SCTP_LOCK_LOGGING
 	if (SCTP_BASE_SYSCTL(sctp_logging_level) & SCTP_LOCK_LOGGING_ENABLE) {
 		sctp_log_lock(inp, (struct sctp_tcb *)NULL, SCTP_LOG_LOCK_SOCK);
 	}
 #endif
-	SOCK_LOCK(so);
-	error = solisten_proto_check(so);
-	SOCK_UNLOCK(so);
-	if (error) {
-		SCTP_INP_RUNLOCK(inp);
-		return (error);
-	}
 	if ((sctp_is_feature_on(inp, SCTP_PCB_FLAGS_PORTREUSE)) &&
 	    (inp->sctp_flags & SCTP_PCB_FLAGS_IN_TCPPOOL)) {
 		/*
@@ -7219,39 +7211,49 @@ sctp_listen(struct socket *so, int backlog, struct thread *p)
 		 * move the guy that was listener to the TCP Pool.
 		 */
 		if (sctp_swap_inpcb_for_listen(inp)) {
-			SCTP_INP_RUNLOCK(inp);
-			SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP_USRREQ, EADDRINUSE);
-			return (EADDRINUSE);
+			error = EADDRINUSE;
+			SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP_USRREQ, error);
+			goto out;
 		}
 	}
-
+	SOCK_LOCK(so);
+	error = solisten_proto_check(so);
+	if (error) {
+		SOCK_UNLOCK(so);
+		goto out;
+	}
 	if ((inp->sctp_flags & SCTP_PCB_FLAGS_TCPTYPE) &&
 	    (inp->sctp_flags & SCTP_PCB_FLAGS_CONNECTED)) {
-		/* We are already connected AND the TCP model */
-		SCTP_INP_RUNLOCK(inp);
-		SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP_USRREQ, EADDRINUSE);
-		return (EADDRINUSE);
+		SOCK_UNLOCK(so);
+		solisten_proto_abort(so);
+		error = EADDRINUSE;
+		SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP_USRREQ, error);
+		goto out;
 	}
-	SCTP_INP_RUNLOCK(inp);
 	if (inp->sctp_flags & SCTP_PCB_FLAGS_UNBOUND) {
-		/* We must do a bind. */
-		if ((error = sctp_inpcb_bind(so, NULL, NULL, p))) {
+		if ((error = sctp_inpcb_bind_locked(inp, NULL, NULL, p))) {
+			SOCK_UNLOCK(so);
+			solisten_proto_abort(so);
 			/* bind error, probably perm */
-			return (error);
+			goto out;
 		}
 	}
-	SCTP_INP_WLOCK(inp);
 	if ((inp->sctp_flags & SCTP_PCB_FLAGS_UDPTYPE) == 0) {
-		SOCK_LOCK(so);
 		solisten_proto(so, backlog);
 		SOCK_UNLOCK(so);
-	}
-	if (backlog > 0) {
 		inp->sctp_flags |= SCTP_PCB_FLAGS_ACCEPTING;
 	} else {
-		inp->sctp_flags &= ~SCTP_PCB_FLAGS_ACCEPTING;
+		solisten_proto_abort(so);
+		SOCK_UNLOCK(so);
+		if (backlog > 0) {
+			inp->sctp_flags |= SCTP_PCB_FLAGS_ACCEPTING;
+		} else {
+			inp->sctp_flags &= ~SCTP_PCB_FLAGS_ACCEPTING;
+		}
 	}
+out:
 	SCTP_INP_WUNLOCK(inp);
+	SCTP_INP_INFO_WUNLOCK();
 	return (error);
 }
 

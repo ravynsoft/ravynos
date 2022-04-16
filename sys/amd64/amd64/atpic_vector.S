@@ -44,11 +44,11 @@
  */
 	.macro	INTR	irq_num, vec_name
 	INTR_HANDLER	\vec_name
-	FAKE_MCOUNT(TF_RIP(%rsp))
+	KMSAN_ENTER
 	movq	%rsp, %rsi
 	movl	$\irq_num, %edi	 	/* pass the IRQ */
 	call	atpic_handle_intr
-	MEXITCOUNT
+	KMSAN_LEAVE
 	jmp	doreti
 	.endm
 

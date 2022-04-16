@@ -1615,7 +1615,7 @@ g_mirror_request_split(struct g_mirror_softc *sc, struct bio *bp)
 {
 	struct bio_queue queue;
 	struct g_mirror_disk *disk;
-	struct g_consumer *cp;
+	struct g_consumer *cp __diagused;
 	struct bio *cbp;
 	off_t left, mod, offset, slice;
 	u_char *data;
@@ -2093,7 +2093,7 @@ g_mirror_sync_start(struct g_mirror_disk *disk)
 	struct g_mirror_disk_sync *sync;
 	struct g_consumer *cp;
 	struct bio *bp;
-	int error, i;
+	int error __diagused, i;
 
 	g_topology_assert_not();
 	sc = disk->d_softc;

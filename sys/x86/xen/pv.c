@@ -48,6 +48,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/ctype.h>
 #include <sys/mutex.h>
 #include <sys/smp.h>
+#include <sys/efi.h>
 
 #include <vm/vm.h>
 #include <vm/vm_extern.h>
@@ -65,6 +66,7 @@ __FBSDID("$FreeBSD$");
 #include <machine/pc/bios.h>
 #include <machine/smp.h>
 #include <machine/intr_machdep.h>
+#include <machine/md_var.h>
 #include <machine/metadata.h>
 
 #include <xen/xen-os.h>
@@ -72,10 +74,9 @@ __FBSDID("$FreeBSD$");
 #include <xen/hypervisor.h>
 #include <xen/xenstore/xenstorevar.h>
 #include <xen/xen_pv.h>
-#include <xen/xen_msi.h>
 
-#include <xen/interface/arch-x86/hvm/start_info.h>
-#include <xen/interface/vcpu.h>
+#include <contrib/xen/arch-x86/hvm/start_info.h>
+#include <contrib/xen/vcpu.h>
 
 #include <dev/xen/timer/timer.h>
 
@@ -86,29 +87,15 @@ __FBSDID("$FreeBSD$");
 /* Native initial function */
 extern u_int64_t hammer_time(u_int64_t, u_int64_t);
 /* Xen initial function */
-uint64_t hammer_time_xen_legacy(start_info_t *, uint64_t);
 uint64_t hammer_time_xen(vm_paddr_t);
 
 #define MAX_E820_ENTRIES	128
 
 /*--------------------------- Forward Declarations ---------------------------*/
-static caddr_t xen_legacy_pvh_parse_preload_data(uint64_t);
 static caddr_t xen_pvh_parse_preload_data(uint64_t);
 static void xen_pvh_parse_memmap(caddr_t, vm_paddr_t *, int *);
 
-#ifdef SMP
-static int xen_pv_start_all_aps(void);
-#endif
-
 /*---------------------------- Extern Declarations ---------------------------*/
-#ifdef SMP
-/* Variables used by amd64 mp_machdep to start APs */
-extern char *doublefault_stack;
-extern char *mce_stack;
-extern char *nmi_stack;
-extern char *dbg_stack;
-#endif
-
 /*
  * Placed by the linker at the end of the bss section, which is the last
  * section loaded by Xen before loading the symtab and strtab.
@@ -116,159 +103,18 @@ extern char *dbg_stack;
 extern uint32_t end;
 
 /*-------------------------------- Global Data -------------------------------*/
-/* Xen init_ops implementation. */
-struct init_ops xen_legacy_init_ops = {
-	.parse_preload_data		= xen_legacy_pvh_parse_preload_data,
-	.early_clock_source_init	= xen_clock_init,
-	.early_delay			= xen_delay,
-	.parse_memmap			= xen_pvh_parse_memmap,
-#ifdef SMP
-	.start_all_aps			= xen_pv_start_all_aps,
-#endif
-	.msi_init			= xen_msi_init,
-};
-
 struct init_ops xen_pvh_init_ops = {
 	.parse_preload_data		= xen_pvh_parse_preload_data,
 	.early_clock_source_init	= xen_clock_init,
 	.early_delay			= xen_delay,
 	.parse_memmap			= xen_pvh_parse_memmap,
-#ifdef SMP
-	.start_all_aps			= native_start_all_aps,
-#endif
-	.msi_init			= msi_init,
 };
 
 static struct bios_smap xen_smap[MAX_E820_ENTRIES];
 
-static start_info_t *legacy_start_info;
 static struct hvm_start_info *start_info;
 
-/*----------------------- Legacy PVH start_info accessors --------------------*/
-static vm_paddr_t
-legacy_get_xenstore_mfn(void)
-{
-
-	return (legacy_start_info->store_mfn);
-}
-
-static evtchn_port_t
-legacy_get_xenstore_evtchn(void)
-{
-
-	return (legacy_start_info->store_evtchn);
-}
-
-static vm_paddr_t
-legacy_get_console_mfn(void)
-{
-
-	return (legacy_start_info->console.domU.mfn);
-}
-
-static evtchn_port_t
-legacy_get_console_evtchn(void)
-{
-
-	return (legacy_start_info->console.domU.evtchn);
-}
-
-static uint32_t
-legacy_get_start_flags(void)
-{
-
-	return (legacy_start_info->flags);
-}
-
-struct hypervisor_info legacy_info = {
-	.get_xenstore_mfn		= legacy_get_xenstore_mfn,
-	.get_xenstore_evtchn		= legacy_get_xenstore_evtchn,
-	.get_console_mfn		= legacy_get_console_mfn,
-	.get_console_evtchn		= legacy_get_console_evtchn,
-	.get_start_flags		= legacy_get_start_flags,
-};
-
 /*-------------------------------- Xen PV init -------------------------------*/
-/*
- * First function called by the Xen legacy PVH boot sequence.
- *
- * Set some Xen global variables and prepare the environment so it is
- * as similar as possible to what native FreeBSD init function expects.
- */
-uint64_t
-hammer_time_xen_legacy(start_info_t *si, uint64_t xenstack)
-{
-	uint64_t physfree;
-	uint64_t *PT4 = (u_int64_t *)xenstack;
-	uint64_t *PT3 = (u_int64_t *)(xenstack + PAGE_SIZE);
-	uint64_t *PT2 = (u_int64_t *)(xenstack + 2 * PAGE_SIZE);
-	int i;
-	char *kenv;
-
-	xen_domain_type = XEN_PV_DOMAIN;
-	vm_guest = VM_GUEST_XEN;
-
-	if ((si == NULL) || (xenstack == 0)) {
-		xc_printf("ERROR: invalid start_info or xen stack, halting\n");
-		HYPERVISOR_shutdown(SHUTDOWN_crash);
-	}
-
-	xc_printf("FreeBSD PVH running on %s\n", si->magic);
-
-	/* We use 3 pages of xen stack for the boot pagetables */
-	physfree = xenstack + 3 * PAGE_SIZE - KERNBASE;
-
-	/* Setup Xen global variables */
-	legacy_start_info = si;
-	HYPERVISOR_shared_info =
-	    (shared_info_t *)(si->shared_info + KERNBASE);
-
-	/*
-	 * Use the stack Xen gives us to build the page tables
-	 * as native FreeBSD expects to find them (created
-	 * by the boot trampoline).
-	 */
-	for (i = 0; i < (PAGE_SIZE / sizeof(uint64_t)); i++) {
-		/*
-		 * Each slot of the level 4 pages points
-		 * to the same level 3 page
-		 */
-		PT4[i] = ((uint64_t)&PT3[0]) - KERNBASE;
-		PT4[i] |= PG_V | PG_RW | PG_U;
-
-		/*
-		 * Each slot of the level 3 pages points
-		 * to the same level 2 page
-		 */
-		PT3[i] = ((uint64_t)&PT2[0]) - KERNBASE;
-		PT3[i] |= PG_V | PG_RW | PG_U;
-
-		/*
-		 * The level 2 page slots are mapped with
-		 * 2MB pages for 1GB.
-		 */
-		PT2[i] = i * (2 * 1024 * 1024);
-		PT2[i] |= PG_V | PG_RW | PG_PS | PG_U;
-	}
-	load_cr3(((uint64_t)&PT4[0]) - KERNBASE);
-
-	/*
-	 * Init an empty static kenv using a free page. The contents will be
-	 * filled from the parse_preload_data hook.
-	 */
-	kenv = (void *)(physfree + KERNBASE);
-	physfree += PAGE_SIZE;
-	bzero_early(kenv, PAGE_SIZE);
-	init_static_kenv(kenv, PAGE_SIZE);
-
-	/* Set the hooks for early functions that diverge from bare metal */
-	init_ops = xen_legacy_init_ops;
-	apic_ops = xen_apic_ops;
-	hypervisor_info = legacy_info;
-
-	/* Now we can jump into the native init function */
-	return (hammer_time(0, physfree));
-}
 
 uint64_t
 hammer_time_xen(vm_paddr_t start_info_paddr)
@@ -350,71 +196,6 @@ hammer_time_xen(vm_paddr_t start_info_paddr)
 }
 
 /*-------------------------------- PV specific -------------------------------*/
-#ifdef SMP
-static bool
-start_xen_ap(int cpu)
-{
-	struct vcpu_guest_context *ctxt;
-	int ms, cpus = mp_naps;
-	const size_t stacksize = kstack_pages * PAGE_SIZE;
-
-	/* allocate and set up an idle stack data page */
-	bootstacks[cpu] = (void *)kmem_malloc(stacksize, M_WAITOK | M_ZERO);
-	doublefault_stack = (char *)kmem_malloc(PAGE_SIZE, M_WAITOK | M_ZERO);
-	mce_stack = (char *)kmem_malloc(PAGE_SIZE, M_WAITOK | M_ZERO);
-	nmi_stack = (char *)kmem_malloc(PAGE_SIZE, M_WAITOK | M_ZERO);
-	dbg_stack = (void *)kmem_malloc(PAGE_SIZE, M_WAITOK | M_ZERO);
-	dpcpu = (void *)kmem_malloc(DPCPU_SIZE, M_WAITOK | M_ZERO);
-
-	bootSTK = (char *)bootstacks[cpu] + kstack_pages * PAGE_SIZE - 8;
-	bootAP = cpu;
-
-	ctxt = malloc(sizeof(*ctxt), M_TEMP, M_WAITOK | M_ZERO);
-
-	ctxt->flags = VGCF_IN_KERNEL;
-	ctxt->user_regs.rip = (unsigned long) init_secondary;
-	ctxt->user_regs.rsp = (unsigned long) bootSTK;
-
-	/* Set the AP to use the same page tables */
-	ctxt->ctrlreg[3] = KPML4phys;
-
-	if (HYPERVISOR_vcpu_op(VCPUOP_initialise, cpu, ctxt))
-		panic("unable to initialize AP#%d", cpu);
-
-	free(ctxt, M_TEMP);
-
-	/* Launch the vCPU */
-	if (HYPERVISOR_vcpu_op(VCPUOP_up, cpu, NULL))
-		panic("unable to start AP#%d", cpu);
-
-	/* Wait up to 5 seconds for it to start. */
-	for (ms = 0; ms < 5000; ms++) {
-		if (mp_naps > cpus)
-			return (true);
-		DELAY(1000);
-	}
-
-	return (false);
-}
-
-static int
-xen_pv_start_all_aps(void)
-{
-	int cpu;
-
-	mtx_init(&ap_boot_mtx, "ap boot", NULL, MTX_SPIN);
-
-	for (cpu = 1; cpu < mp_ncpus; cpu++) {
-		/* attempt to start the Application Processor */
-		if (!start_xen_ap(cpu))
-			panic("AP #%d failed to start!", cpu);
-
-		CPU_SET(cpu, &all_cpus);	/* record AP in CPU map */
-	}
-
-	return (mp_naps);
-}
-#endif /* SMP */
 
 /*
  * When booted as a PVH guest FreeBSD needs to avoid using the RSDP address
@@ -474,10 +255,7 @@ xen_pvh_parse_symtab(void)
 {
 	Elf_Ehdr *ehdr;
 	Elf_Shdr *shdr;
-	uint32_t size;
 	int i, j;
-
-	size = end;
 
 	ehdr = (Elf_Ehdr *)(&end + 1);
 	if (memcmp(ehdr->e_ident, ELFMAG, SELFMAG) ||
@@ -508,53 +286,6 @@ xen_pvh_parse_symtab(void)
     "Unable to load ELF symtab: could not find symtab or strtab\n");
 }
 #endif
-
-static caddr_t
-xen_legacy_pvh_parse_preload_data(uint64_t modulep)
-{
-	caddr_t		 kmdp;
-	vm_ooffset_t	 off;
-	vm_paddr_t	 metadata;
-	char             *envp;
-
-	if (legacy_start_info->mod_start != 0) {
-		preload_metadata = (caddr_t)legacy_start_info->mod_start;
-
-		kmdp = preload_search_by_type("elf kernel");
-		if (kmdp == NULL)
-			kmdp = preload_search_by_type("elf64 kernel");
-		KASSERT(kmdp != NULL, ("unable to find kernel"));
-
-		/*
-		 * Xen has relocated the metadata and the modules,
-		 * so we need to recalculate it's position. This is
-		 * done by saving the original modulep address and
-		 * then calculating the offset with mod_start,
-		 * which contains the relocated modulep address.
-		 */
-		metadata = MD_FETCH(kmdp, MODINFOMD_MODULEP, vm_paddr_t);
-		off = legacy_start_info->mod_start - metadata;
-
-		preload_bootstrap_relocate(off);
-
-		boothowto = MD_FETCH(kmdp, MODINFOMD_HOWTO, int);
-		envp = MD_FETCH(kmdp, MODINFOMD_ENVP, char *);
-		if (envp != NULL)
-			envp += off;
-		xen_pvh_set_env(envp, NULL);
-	} else {
-		/* Parse the extra boot information given by Xen */
-		boot_parse_cmdline_delim(legacy_start_info->cmd_line, ",");
-		kmdp = NULL;
-	}
-
-	boothowto |= boot_env_to_howto();
-
-#ifdef DDB
-	xen_pvh_parse_symtab();
-#endif
-	return (kmdp);
-}
 
 static caddr_t
 xen_pvh_parse_preload_data(uint64_t modulep)
@@ -629,6 +360,11 @@ xen_pvh_parse_preload_data(uint64_t modulep)
 		if (envp != NULL)
 			envp += off;
 		xen_pvh_set_env(envp, reject_option);
+
+		if (MD_FETCH(kmdp, MODINFOMD_EFI_MAP, void *) != NULL)
+		    strlcpy(bootmethod, "UEFI", sizeof(bootmethod));
+		else
+		    strlcpy(bootmethod, "BIOS", sizeof(bootmethod));
 	} else {
 		/* Parse the extra boot information given by Xen */
 		if (start_info->cmdline_paddr != 0)
@@ -636,6 +372,7 @@ xen_pvh_parse_preload_data(uint64_t modulep)
 			    (char *)(start_info->cmdline_paddr + KERNBASE),
 			    ",");
 		kmdp = NULL;
+		strlcpy(bootmethod, "XEN", sizeof(bootmethod));
 	}
 
 	boothowto |= boot_env_to_howto();

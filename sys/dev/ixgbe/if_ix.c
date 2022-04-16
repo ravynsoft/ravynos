@@ -2075,7 +2075,6 @@ ixgbe_if_msix_intr_assign(if_ctx_t ctx, int msix)
 	struct ix_rx_queue *rx_que = sc->rx_queues;
 	struct ix_tx_queue *tx_que;
 	int                error, rid, vector = 0;
-	int                cpu_id = 0;
 	char               buf[16];
 
 	/* Admin Que is vector 0*/
@@ -2095,25 +2094,6 @@ ixgbe_if_msix_intr_assign(if_ctx_t ctx, int msix)
 		}
 
 		rx_que->msix = vector;
-		if (sc->feat_en & IXGBE_FEATURE_RSS) {
-			/*
-			 * The queue ID is used as the RSS layer bucket ID.
-			 * We look up the queue ID -> RSS CPU ID and select
-			 * that.
-			 */
-			cpu_id = rss_getcpu(i % rss_getnumbuckets());
-		} else {
-			/*
-			 * Bind the MSI-X vector, and thus the
-			 * rings to the corresponding cpu.
-			 *
-			 * This just happens to match the default RSS
-			 * round-robin bucket -> queue -> CPU allocation.
-			 */
-			if (sc->num_rx_queues > 1)
-				cpu_id = i;
-		}
-
 	}
 	for (int i = 0; i < sc->num_tx_queues; i++) {
 		snprintf(buf, sizeof(buf), "txq%d", i);
@@ -3420,6 +3400,12 @@ ixgbe_if_multi_set(if_ctx_t ctx)
 
 	mcnt = if_foreach_llmaddr(iflib_get_ifp(ctx), ixgbe_mc_filter_apply, sc);
 
+	if (mcnt < MAX_NUM_MULTICAST_ADDRESSES) {
+		update_ptr = (u8 *)mta;
+		ixgbe_update_mc_addr_list(&sc->hw, update_ptr, mcnt,
+		    ixgbe_mc_array_itr, true);
+	}
+
 	fctrl = IXGBE_READ_REG(&sc->hw, IXGBE_FCTRL);
 
 	if (ifp->if_flags & IFF_PROMISC)
@@ -3432,13 +3418,6 @@ ixgbe_if_multi_set(if_ctx_t ctx)
 		fctrl &= ~(IXGBE_FCTRL_UPE | IXGBE_FCTRL_MPE);
 
 	IXGBE_WRITE_REG(&sc->hw, IXGBE_FCTRL, fctrl);
-
-	if (mcnt < MAX_NUM_MULTICAST_ADDRESSES) {
-		update_ptr = (u8 *)mta;
-		ixgbe_update_mc_addr_list(&sc->hw, update_ptr, mcnt,
-		    ixgbe_mc_array_itr, true);
-	}
-
 } /* ixgbe_if_multi_set */
 
 /************************************************************************

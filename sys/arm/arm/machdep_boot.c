@@ -396,7 +396,7 @@ arm_add_efi_map_entries(struct efi_map_header *efihdr, struct mem_region *mr,
 {
 	struct efi_md *map, *p;
 	const char *type;
-	size_t efisz, memory_size;
+	size_t efisz;
 	int ndesc, i, j;
 
 	static const char *types[] = {
@@ -434,7 +434,6 @@ arm_add_efi_map_entries(struct efi_map_header *efihdr, struct mem_region *mr,
 		printf("%23s %12s %12s %8s %4s\n",
 		    "Type", "Physical", "Virtual", "#Pages", "Attr");
 
-	memory_size = 0;
 	for (i = 0, j = 0, p = map; i < ndesc; i++,
 	    p = efi_next_descriptor(p, efihdr->descriptor_size)) {
 		if (boothowto & RB_VERBOSE) {
@@ -442,7 +441,7 @@ arm_add_efi_map_entries(struct efi_map_header *efihdr, struct mem_region *mr,
 				type = types[p->md_type];
 			else
 				type = "<INVALID>";
-			printf("%23s %012llx %12p %08llx ", type, p->md_phys,
+			printf("%23s %012llx %012llx %08llx ", type, p->md_phys,
 			    p->md_virt, p->md_pages);
 			if (p->md_attr & EFI_MD_ATTR_UC)
 				printf("UC ");
@@ -490,8 +489,7 @@ arm_add_efi_map_entries(struct efi_map_header *efihdr, struct mem_region *mr,
 			break;
 
 		mr[j].mr_start = p->md_phys;
-		mr[j].mr_size = p->md_pages * PAGE_SIZE;
-		memory_size += mr[j].mr_size;
+		mr[j].mr_size = p->md_pages * EFI_PAGE_SIZE;
 	}
 
 	*mrcnt = j;

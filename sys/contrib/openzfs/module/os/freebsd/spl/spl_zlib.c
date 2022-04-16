@@ -40,19 +40,17 @@ __FBSDID("$FreeBSD$");
 #include <sys/kobj.h>
 
 
-/*ARGSUSED*/
 static void *
 zcalloc(void *opaque, uint_t items, uint_t size)
 {
-
+	(void) opaque;
 	return (malloc((size_t)items*size, M_SOLARIS, M_NOWAIT));
 }
 
-/*ARGSUSED*/
 static void
 zcfree(void *opaque, void *ptr)
 {
-
+	(void) opaque;
 	free(ptr, M_SOLARIS);
 }
 
@@ -143,10 +141,9 @@ int
 z_compress_level(void *dest, size_t *destLen, const void *source,
     size_t sourceLen, int level)
 {
-	z_stream stream;
+	z_stream stream = {0};
 	int err;
 
-	bzero(&stream, sizeof (stream));
 	stream.next_in = (Byte *)source;
 	stream.avail_in = (uInt)sourceLen;
 	stream.next_out = dest;
@@ -198,10 +195,8 @@ z_compress_level(void *dest, size_t *destLen, const void *source,
 int
 z_uncompress(void *dest, size_t *destLen, const void *source, size_t sourceLen)
 {
-	z_stream stream;
+	z_stream stream = {0};
 	int err;
-
-	bzero(&stream, sizeof (stream));
 
 	stream.next_in = (Byte *)source;
 	stream.avail_in = (uInt)sourceLen;

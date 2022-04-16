@@ -68,7 +68,7 @@ syscallenter(struct thread *td)
 	sa = &td->td_sa;
 
 	td->td_pticks = 0;
-	if (__predict_false(td->td_cowgen != p->p_cowgen))
+	if (__predict_false(td->td_cowgen != atomic_load_int(&p->p_cowgen)))
 		thread_cow_update(td);
 	traced = (p->p_flag & P_TRACED) != 0;
 	if (__predict_false(traced || td->td_dbgflags & TDB_USERWR)) {
@@ -215,8 +215,6 @@ syscallret(struct thread *td)
 	ksiginfo_t ksi;
 	int traced;
 
-	KASSERT((td->td_pflags & TDP_FORKING) == 0,
-	    ("fork() did not clear TDP_FORKING upon completion"));
 	KASSERT(td->td_errno != ERELOOKUP,
 	    ("ERELOOKUP not consumed syscall %d", td->td_sa.code));
 
@@ -230,6 +228,7 @@ syscallret(struct thread *td)
 			ksi.ksi_signo = SIGTRAP;
 			ksi.ksi_errno = td->td_errno;
 			ksi.ksi_code = TRAP_CAP;
+			ksi.ksi_info.si_syscall = sa->original_code;
 			trapsignal(td, &ksi);
 		}
 	}
@@ -286,7 +285,4 @@ syscallret(struct thread *td)
 		td->td_dbgflags &= ~(TDB_SCX | TDB_EXEC | TDB_FORK);
 		PROC_UNLOCK(p);
 	}
-
-	if (__predict_false(td->td_pflags & TDP_RFPPWAIT))
-		fork_rfppwait(td);
 }

@@ -74,7 +74,7 @@
 #include <libintl.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <unistd.h>
 #include <zone.h>
 #include <sys/mntent.h>
@@ -95,28 +95,28 @@
 static int mount_tp_nthr = 512;	/* tpool threads for multi-threaded mounting */
 
 static void zfs_mount_task(void *);
-zfs_share_type_t zfs_is_shared_proto(zfs_handle_t *, char **,
+static zfs_share_type_t zfs_is_shared_proto(zfs_handle_t *, char **,
     zfs_share_proto_t);
 
 /*
  * The share protocols table must be in the same order as the zfs_share_proto_t
  * enum in libzfs_impl.h
  */
-proto_table_t proto_table[PROTO_END] = {
+static const proto_table_t proto_table[PROTO_END] = {
 	{ZFS_PROP_SHARENFS, "nfs", EZFS_SHARENFSFAILED, EZFS_UNSHARENFSFAILED},
 	{ZFS_PROP_SHARESMB, "smb", EZFS_SHARESMBFAILED, EZFS_UNSHARESMBFAILED},
 };
 
-zfs_share_proto_t nfs_only[] = {
+static const zfs_share_proto_t nfs_only[] = {
 	PROTO_NFS,
 	PROTO_END
 };
 
-zfs_share_proto_t smb_only[] = {
+static const zfs_share_proto_t smb_only[] = {
 	PROTO_SMB,
 	PROTO_END
 };
-zfs_share_proto_t share_all_proto[] = {
+static const zfs_share_proto_t share_all_proto[] = {
 	PROTO_NFS,
 	PROTO_SMB,
 	PROTO_END
@@ -244,12 +244,11 @@ zfs_is_mounted(zfs_handle_t *zhp, char **where)
  * Checks any higher order concerns about whether the given dataset is
  * mountable, false otherwise.  zfs_is_mountable_internal specifically assumes
  * that the caller has verified the sanity of mounting the dataset at
- * mountpoint to the extent the caller wants.
+ * its mountpoint to the extent the caller wants.
  */
 static boolean_t
-zfs_is_mountable_internal(zfs_handle_t *zhp, const char *mountpoint)
+zfs_is_mountable_internal(zfs_handle_t *zhp)
 {
-
 	if (zfs_prop_get_int(zhp, ZFS_PROP_ZONED) &&
 	    getzoneid() == GLOBAL_ZONEID)
 		return (B_FALSE);
@@ -282,7 +281,7 @@ zfs_is_mountable(zfs_handle_t *zhp, char *buf, size_t buflen,
 	if (zfs_prop_get_int(zhp, ZFS_PROP_CANMOUNT) == ZFS_CANMOUNT_OFF)
 		return (B_FALSE);
 
-	if (!zfs_is_mountable_internal(zhp, buf))
+	if (!zfs_is_mountable_internal(zhp))
 		return (B_FALSE);
 
 	if (zfs_prop_get_int(zhp, ZFS_PROP_REDACTED) && !(flags & MS_FORCE))
@@ -402,7 +401,7 @@ zfs_mount_at(zfs_handle_t *zhp, const char *options, int flags,
 		remount = 1;
 
 	/* Potentially duplicates some checks if invoked by zfs_mount(). */
-	if (!zfs_is_mountable_internal(zhp, mountpoint))
+	if (!zfs_is_mountable_internal(zhp))
 		return (0);
 
 	/*
@@ -568,11 +567,11 @@ zfs_mount_at(zfs_handle_t *zhp, const char *options, int flags,
  * Unmount a single filesystem.
  */
 static int
-unmount_one(libzfs_handle_t *hdl, const char *mountpoint, int flags)
+unmount_one(zfs_handle_t *zhp, const char *mountpoint, int flags)
 {
 	int error;
 
-	error = do_unmount(mountpoint, flags);
+	error = do_unmount(zhp, mountpoint, flags);
 	if (error != 0) {
 		int libzfs_err;
 
@@ -595,9 +594,13 @@ unmount_one(libzfs_handle_t *hdl, const char *mountpoint, int flags)
 		default:
 			libzfs_err = EZFS_UMOUNTFAILED;
 		}
-		return (zfs_error_fmt(hdl, libzfs_err,
-		    dgettext(TEXT_DOMAIN, "cannot unmount '%s'"),
-		    mountpoint));
+		if (zhp) {
+			return (zfs_error_fmt(zhp->zfs_hdl, libzfs_err,
+			    dgettext(TEXT_DOMAIN, "cannot unmount '%s'"),
+			    mountpoint));
+		} else {
+			return (-1);
+		}
 	}
 
 	return (0);
@@ -637,7 +640,7 @@ zfs_unmount(zfs_handle_t *zhp, const char *mountpoint, int flags)
 		}
 		zfs_commit_all_shares();
 
-		if (unmount_one(hdl, mntpt, flags) != 0) {
+		if (unmount_one(zhp, mntpt, flags) != 0) {
 			free(mntpt);
 			(void) zfs_shareall(zhp);
 			zfs_commit_all_shares();
@@ -672,6 +675,8 @@ zfs_unmount(zfs_handle_t *zhp, const char *mountpoint, int flags)
 		}
 	}
 
+	zpool_disable_volume_os(zhp->zfs_name);
+
 	return (0);
 }
 
@@ -701,7 +706,7 @@ boolean_t
 zfs_is_shared(zfs_handle_t *zhp)
 {
 	zfs_share_type_t rc = 0;
-	zfs_share_proto_t *curr_proto;
+	const zfs_share_proto_t *curr_proto;
 
 	if (ZFS_IS_VOLUME(zhp))
 		return (B_FALSE);
@@ -757,12 +762,12 @@ is_shared(const char *mountpoint, zfs_share_proto_t proto)
  * on "libshare" to do the dirty work for us.
  */
 int
-zfs_share_proto(zfs_handle_t *zhp, zfs_share_proto_t *proto)
+zfs_share_proto(zfs_handle_t *zhp, const zfs_share_proto_t *proto)
 {
 	char mountpoint[ZFS_MAXPROPLEN];
 	char shareopts[ZFS_MAXPROPLEN];
 	char sourcestr[ZFS_MAXPROPLEN];
-	zfs_share_proto_t *curr_proto;
+	const zfs_share_proto_t *curr_proto;
 	zprop_source_t sourcetype;
 	int err = 0;
 
@@ -818,7 +823,7 @@ zfs_unshare(zfs_handle_t *zhp)
 /*
  * Check to see if the filesystem is currently shared.
  */
-zfs_share_type_t
+static zfs_share_type_t
 zfs_is_shared_proto(zfs_handle_t *zhp, char **where, zfs_share_proto_t proto)
 {
 	char *mountpoint;
@@ -867,12 +872,11 @@ zfs_parse_options(char *options, zfs_share_proto_t proto)
 }
 
 void
-zfs_commit_proto(zfs_share_proto_t *proto)
+zfs_commit_proto(const zfs_share_proto_t *proto)
 {
-	zfs_share_proto_t *curr_proto;
-	for (curr_proto = proto; *curr_proto != PROTO_END; curr_proto++) {
+	const zfs_share_proto_t *curr_proto;
+	for (curr_proto = proto; *curr_proto != PROTO_END; curr_proto++)
 		sa_commit_shares(proto_table[*curr_proto].p_name);
-	}
 }
 
 void
@@ -927,7 +931,7 @@ zfs_shareall(zfs_handle_t *zhp)
  */
 int
 zfs_unshare_proto(zfs_handle_t *zhp, const char *mountpoint,
-    zfs_share_proto_t *proto)
+    const zfs_share_proto_t *proto)
 {
 	libzfs_handle_t *hdl = zhp->zfs_hdl;
 	struct mnttab entry;
@@ -939,7 +943,7 @@ zfs_unshare_proto(zfs_handle_t *zhp, const char *mountpoint,
 
 	if (mountpoint != NULL || ((zfs_get_type(zhp) == ZFS_TYPE_FILESYSTEM) &&
 	    libzfs_mnttab_find(hdl, zfs_get_name(zhp), &entry) == 0)) {
-		zfs_share_proto_t *curr_proto;
+		const zfs_share_proto_t *curr_proto;
 
 		if (mountpoint == NULL)
 			mntpt = zfs_strdup(zhp->zfs_hdl, entry.mnt_mountp);
@@ -979,7 +983,7 @@ zfs_unshare_smb(zfs_handle_t *zhp, const char *mountpoint)
  * Same as zfs_unmountall(), but for NFS and SMB unshares.
  */
 static int
-zfs_unshareall_proto(zfs_handle_t *zhp, zfs_share_proto_t *proto)
+zfs_unshareall_proto(zfs_handle_t *zhp, const zfs_share_proto_t *proto)
 {
 	prop_changelist_t *clp;
 	int ret;
@@ -1348,7 +1352,7 @@ zfs_mount_task(void *arg)
 	    sizeof (mountpoint), NULL, NULL, 0, B_FALSE) == 0);
 
 	if (mp->mnt_func(handles[idx], mp->mnt_data) != 0)
-		return;
+		goto out;
 
 	/*
 	 * We dispatch tasks to mount filesystems with mountpoints underneath
@@ -1369,6 +1373,8 @@ zfs_mount_task(void *arg)
 		zfs_dispatch_mount(mp->mnt_hdl, handles, num_handles, i,
 		    mp->mnt_func, mp->mnt_data, mp->mnt_tp);
 	}
+
+out:
 	free(mp);
 }
 
@@ -1451,7 +1457,6 @@ zfs_foreach_mountpoint(libzfs_handle_t *hdl, zfs_handle_t **handles,
  * Mount and share all datasets within the given pool.  This assumes that no
  * datasets within the pool are currently mounted.
  */
-#pragma weak zpool_mount_datasets = zpool_enable_datasets
 int
 zpool_enable_datasets(zpool_handle_t *zhp, const char *mntopts, int flags)
 {
@@ -1504,17 +1509,20 @@ out:
 	return (ret);
 }
 
+struct sets_s {
+	char *mountpoint;
+	zfs_handle_t *dataset;
+};
+
 static int
 mountpoint_compare(const void *a, const void *b)
 {
-	const char *mounta = *((char **)a);
-	const char *mountb = *((char **)b);
+	const struct sets_s *mounta = (struct sets_s *)a;
+	const struct sets_s *mountb = (struct sets_s *)b;
 
-	return (strcmp(mountb, mounta));
+	return (strcmp(mountb->mountpoint, mounta->mountpoint));
 }
 
-/* alias for 2002/240 */
-#pragma weak zpool_unmount_datasets = zpool_disable_datasets
 /*
  * Unshare and unmount all datasets within the given pool.  We don't want to
  * rely on traversing the DSL to discover the filesystems within the pool,
@@ -1526,10 +1534,10 @@ int
 zpool_disable_datasets(zpool_handle_t *zhp, boolean_t force)
 {
 	int used, alloc;
+	FILE *mnttab;
 	struct mnttab entry;
 	size_t namelen;
-	char **mountpoints = NULL;
-	zfs_handle_t **datasets = NULL;
+	struct sets_s *sets = NULL;
 	libzfs_handle_t *hdl = zhp->zpool_hdl;
 	int i;
 	int ret = -1;
@@ -1537,12 +1545,11 @@ zpool_disable_datasets(zpool_handle_t *zhp, boolean_t force)
 
 	namelen = strlen(zhp->zpool_name);
 
-	/* Reopen MNTTAB to prevent reading stale data from open file */
-	if (freopen(MNTTAB, "re", hdl->libzfs_mnttab) == NULL)
+	if ((mnttab = fopen(MNTTAB, "re")) == NULL)
 		return (ENOENT);
 
 	used = alloc = 0;
-	while (getmntent(hdl->libzfs_mnttab, &entry) == 0) {
+	while (getmntent(mnttab, &entry) == 0) {
 		/*
 		 * Ignore non-ZFS entries.
 		 */
@@ -1565,35 +1572,27 @@ zpool_disable_datasets(zpool_handle_t *zhp, boolean_t force)
 		 */
 		if (used == alloc) {
 			if (alloc == 0) {
-				if ((mountpoints = zfs_alloc(hdl,
-				    8 * sizeof (void *))) == NULL)
-					goto out;
 
-				if ((datasets = zfs_alloc(hdl,
-				    8 * sizeof (void *))) == NULL)
+				if ((sets = zfs_alloc(hdl,
+				    8 * sizeof (struct sets_s))) == NULL)
 					goto out;
 
 				alloc = 8;
 			} else {
 				void *ptr;
 
-				if ((ptr = zfs_realloc(hdl, mountpoints,
-				    alloc * sizeof (void *),
-				    alloc * 2 * sizeof (void *))) == NULL)
+				if ((ptr = zfs_realloc(hdl, sets,
+				    alloc * sizeof (struct sets_s),
+				    alloc * 2 * sizeof (struct sets_s)))
+				    == NULL)
 					goto out;
-				mountpoints = ptr;
-
-				if ((ptr = zfs_realloc(hdl, datasets,
-				    alloc * sizeof (void *),
-				    alloc * 2 * sizeof (void *))) == NULL)
-					goto out;
-				datasets = ptr;
+				sets = ptr;
 
 				alloc *= 2;
 			}
 		}
 
-		if ((mountpoints[used] = zfs_strdup(hdl,
+		if ((sets[used].mountpoint = zfs_strdup(hdl,
 		    entry.mnt_mountp)) == NULL)
 			goto out;
 
@@ -1602,7 +1601,8 @@ zpool_disable_datasets(zpool_handle_t *zhp, boolean_t force)
 		 * is only used to determine if we need to remove the underlying
 		 * mountpoint, so failure is not fatal.
 		 */
-		datasets[used] = make_dataset_handle(hdl, entry.mnt_special);
+		sets[used].dataset = make_dataset_handle(hdl,
+		    entry.mnt_special);
 
 		used++;
 	}
@@ -1611,18 +1611,19 @@ zpool_disable_datasets(zpool_handle_t *zhp, boolean_t force)
 	 * At this point, we have the entire list of filesystems, so sort it by
 	 * mountpoint.
 	 */
-	qsort(mountpoints, used, sizeof (char *), mountpoint_compare);
+	if (used != 0)
+		qsort(sets, used, sizeof (struct sets_s), mountpoint_compare);
 
 	/*
 	 * Walk through and first unshare everything.
 	 */
 	for (i = 0; i < used; i++) {
-		zfs_share_proto_t *curr_proto;
+		const zfs_share_proto_t *curr_proto;
 		for (curr_proto = share_all_proto; *curr_proto != PROTO_END;
 		    curr_proto++) {
-			if (is_shared(mountpoints[i], *curr_proto) &&
-			    unshare_one(hdl, mountpoints[i],
-			    mountpoints[i], *curr_proto) != 0)
+			if (is_shared(sets[i].mountpoint, *curr_proto) &&
+			    unshare_one(hdl, sets[i].mountpoint,
+			    sets[i].mountpoint, *curr_proto) != 0)
 				goto out;
 		}
 	}
@@ -1633,24 +1634,27 @@ zpool_disable_datasets(zpool_handle_t *zhp, boolean_t force)
 	 * appropriate.
 	 */
 	for (i = 0; i < used; i++) {
-		if (unmount_one(hdl, mountpoints[i], flags) != 0)
+		if (unmount_one(sets[i].dataset, sets[i].mountpoint,
+		    flags) != 0)
 			goto out;
 	}
 
 	for (i = 0; i < used; i++) {
-		if (datasets[i])
-			remove_mountpoint(datasets[i]);
+		if (sets[i].dataset)
+			remove_mountpoint(sets[i].dataset);
 	}
+
+	zpool_disable_datasets_os(zhp, force);
 
 	ret = 0;
 out:
+	(void) fclose(mnttab);
 	for (i = 0; i < used; i++) {
-		if (datasets[i])
-			zfs_close(datasets[i]);
-		free(mountpoints[i]);
+		if (sets[i].dataset)
+			zfs_close(sets[i].dataset);
+		free(sets[i].mountpoint);
 	}
-	free(datasets);
-	free(mountpoints);
+	free(sets);
 
 	return (ret);
 }

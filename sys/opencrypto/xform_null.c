@@ -55,6 +55,7 @@ __FBSDID("$FreeBSD$");
 
 static	int null_setkey(void *, const uint8_t *, int);
 static	void null_crypt(void *, const uint8_t *, uint8_t *);
+static	void null_crypt_multi(void *, const uint8_t *, uint8_t *, size_t);
 
 static	void null_init(void *);
 static	void null_reinit(void *ctx, const uint8_t *buf, u_int len);
@@ -62,7 +63,7 @@ static	int null_update(void *, const void *, u_int);
 static	void null_final(uint8_t *, void *);
 
 /* Encryption instances */
-struct enc_xform enc_xform_null = {
+const struct enc_xform enc_xform_null = {
 	.type = CRYPTO_NULL_CBC,
 	.name = "NULL",
 	/* NB: blocksize of 4 is to generate a properly aligned ESP header */
@@ -70,13 +71,15 @@ struct enc_xform enc_xform_null = {
 	.ivsize = 0,
 	.minkey = NULL_MIN_KEY,
 	.maxkey = NULL_MAX_KEY,
+	.setkey = null_setkey,
 	.encrypt = null_crypt,
 	.decrypt = null_crypt,
-	.setkey = null_setkey,
+	.encrypt_multi = null_crypt_multi,
+	.decrypt_multi = null_crypt_multi,
 };
 
 /* Authentication instances */
-struct auth_hash auth_hash_null = {
+const struct auth_hash auth_hash_null = {
 	.type = CRYPTO_NULL_HMAC,
 	.name = "NULL-HMAC",
 	.keysize = 0,
@@ -95,6 +98,11 @@ struct auth_hash auth_hash_null = {
  */
 static void
 null_crypt(void *key, const uint8_t *in, uint8_t *out)
+{
+}
+
+static void
+null_crypt_multi(void *key, const uint8_t *in, uint8_t *out, size_t len)
 {
 }
 

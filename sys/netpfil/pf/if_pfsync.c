@@ -278,7 +278,7 @@ SYSCTL_NODE(_net, OID_AUTO, pfsync, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
 SYSCTL_STRUCT(_net_pfsync, OID_AUTO, stats, CTLFLAG_VNET | CTLFLAG_RW,
     &VNET_NAME(pfsyncstats), pfsyncstats,
     "PFSYNC statistics (struct pfsyncstats, net/if_pfsync.h)");
-SYSCTL_INT(_net_pfsync, OID_AUTO, carp_demotion_factor, CTLFLAG_RW,
+SYSCTL_INT(_net_pfsync, OID_AUTO, carp_demotion_factor, CTLFLAG_VNET | CTLFLAG_RW,
     &VNET_NAME(pfsync_carp_adj), 0, "pfsync's CARP demotion factor adjustment");
 SYSCTL_ULONG(_net_pfsync, OID_AUTO, pfsync_buckets, CTLFLAG_RDTUN,
     &pfsync_buckets, 0, "Number of pfsync hash buckets");
@@ -760,7 +760,7 @@ relock:
 			LIST_FOREACH(s, &ih->states, entry) {
 				if (s->creatorid == creatorid) {
 					s->state_flags |= PFSTATE_NOSYNC;
-					pf_unlink_state(s, PF_ENTER_LOCKED);
+					pf_unlink_state(s);
 					goto relock;
 				}
 			}
@@ -1119,7 +1119,7 @@ pfsync_in_del(struct pfsync_pkt *pkt, struct mbuf *m, int offset, int count)
 			continue;
 		}
 		st->state_flags |= PFSTATE_NOSYNC;
-		pf_unlink_state(st, PF_ENTER_LOCKED);
+		pf_unlink_state(st);
 	}
 
 	return (len);
@@ -1151,7 +1151,7 @@ pfsync_in_del_c(struct pfsync_pkt *pkt, struct mbuf *m, int offset, int count)
 		}
 
 		st->state_flags |= PFSTATE_NOSYNC;
-		pf_unlink_state(st, PF_ENTER_LOCKED);
+		pf_unlink_state(st);
 	}
 
 	return (len);
@@ -2484,7 +2484,7 @@ VNET_SYSINIT(vnet_pfsync_init, SI_SUB_PROTO_FIREWALL, SI_ORDER_ANY,
 static void
 vnet_pfsync_uninit(const void *unused __unused)
 {
-	int ret;
+	int ret __diagused;
 
 	pfsync_pointers_uninit();
 

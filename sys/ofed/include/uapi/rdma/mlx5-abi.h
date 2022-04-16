@@ -281,4 +281,44 @@ struct mlx5_ib_modify_wq {
 	__u32	comp_mask;
 	__u32	reserved;
 };
+
+enum mlx5_ib_mmap_cmd {
+	MLX5_IB_MMAP_REGULAR_PAGE               = 0,
+	MLX5_IB_MMAP_GET_CONTIGUOUS_PAGES       = 1,
+	MLX5_IB_MMAP_WC_PAGE                    = 2,
+	MLX5_IB_MMAP_NC_PAGE                    = 3,
+	/* 5 is chosen in order to be compatible with old versions of libmlx5 */
+	MLX5_IB_MMAP_CORE_CLOCK                 = 5,
+	MLX5_IB_MMAP_ALLOC_WC                   = 6,
+	MLX5_IB_MMAP_CLOCK_INFO                 = 7,
+	MLX5_IB_MMAP_DEVICE_MEM                 = 8,
+};
+
+/* Bit indexes for the mlx5_alloc_ucontext_resp.clock_info_versions bitmap */
+enum {
+	MLX5_IB_CLOCK_INFO_V1              = 0,
+};
+
+struct mlx5_ib_flow_counters_desc {
+	__u32	description;
+	__u32	index;
+};
+
+struct mlx5_ib_flow_counters_data {
+	RDMA_UAPI_PTR(struct mlx5_ib_flow_counters_desc *, counters_data);
+	__u32   ncounters;
+	__u32   reserved;
+};
+
+struct mlx5_ib_create_flow {
+	__u32   ncounters_data;
+	__u32   reserved;
+	/*
+	 * Following are counters data based on ncounters_data, each
+	 * entry in the data[] should match a corresponding counter object
+	 * that was pointed by a counters spec upon the flow creation
+	 */
+	struct mlx5_ib_flow_counters_data data[];
+};
+
 #endif /* MLX5_ABI_USER_H */

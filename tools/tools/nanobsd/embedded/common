@@ -217,7 +217,7 @@ create_diskimage_mbr ( ) (
 		if [ -d ${NANO_FAT_DIR} ]; then
 			# Need to copy files from ${NANO_FATDIR} with mtools, or use
 			# makefs -t msdos once that's supported
-			mcopy -i ${NANO_LOG}/_.${NANO_SLICE_FAT} ${NANO_FAT_DIR}/* ::
+			mcopy -s -i ${NANO_LOG}/_.${NANO_SLICE_FAT} ${NANO_FAT_DIR}/* ::
 		fi
 	fi
 
@@ -452,11 +452,6 @@ dos_boot_part ( ) (
 	chdir $f
 	cp ${d}/* .
 
-	# Also copy ubldr. u-boot will load it and it will load the kernel
-	# from the ufs partition
-	cp ${NANO_WORLDDIR}/boot/ubldr .
-	cp ${NANO_WORLDDIR}/boot/ubldr.bin .
-
 	# We have to touch the saveenv file
 	touch uEnv.txt
 
@@ -646,6 +641,14 @@ esac
 
 
 NANO_SLICE_DATA=		# Not included
+
+# These don't make any sense to this strategy, so stub them out.
+calculate_partitioning ( ) (
+)
+
+# These don't make any sense to this strategy, so stub them out.
+create_code_slice ( ) (
+)
 
 # Each major disk scheme has its own routine. Generally
 # this is for mbr, gpt, etc. These are generally are widely

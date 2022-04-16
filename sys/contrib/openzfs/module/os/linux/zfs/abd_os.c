@@ -149,8 +149,6 @@ struct {
 #define	abd_for_each_sg(abd, sg, n, i)	\
 	for_each_sg(ABD_SCATTER(abd).abd_sgl, sg, n, i)
 
-unsigned zfs_abd_scatter_max_order = MAX_ORDER - 1;
-
 /*
  * zfs_abd_scatter_min_size is the minimum allocation size to use scatter
  * ABD's.  Smaller allocations will use linear ABD's which uses
@@ -173,7 +171,7 @@ unsigned zfs_abd_scatter_max_order = MAX_ORDER - 1;
  * By default we use linear allocations for 512B and 1KB, and scatter
  * allocations for larger (1.5KB and up).
  */
-int zfs_abd_scatter_min_size = 512 * 3;
+static int zfs_abd_scatter_min_size = 512 * 3;
 
 /*
  * We use a scattered SPA_MAXBLOCKSIZE sized ABD whose pages are
@@ -184,8 +182,11 @@ abd_t *abd_zero_scatter = NULL;
 
 struct page;
 /*
- * abd_zero_page we will be an allocated zero'd PAGESIZE buffer, which is
- * assigned to set each of the pages of abd_zero_scatter.
+ * _KERNEL   - Will point to ZERO_PAGE if it is available or it will be
+ *             an allocated zero'd PAGESIZE buffer.
+ * Userspace - Will be an allocated zero'ed PAGESIZE buffer.
+ *
+ * abd_zero_page is assigned to each of the pages of abd_zero_scatter.
  */
 static struct page *abd_zero_page = NULL;
 
@@ -205,6 +206,7 @@ abd_alloc_struct_impl(size_t size)
 	 * In Linux we do not use the size passed in during ABD
 	 * allocation, so we just ignore it.
 	 */
+	(void) size;
 	abd_t *abd = kmem_cache_alloc(abd_cache, KM_PUSHPAGE);
 	ASSERT3P(abd, !=, NULL);
 	ABDSTAT_INCR(abdstat_struct_size, sizeof (abd_t));
@@ -220,6 +222,8 @@ abd_free_struct_impl(abd_t *abd)
 }
 
 #ifdef _KERNEL
+static unsigned zfs_abd_scatter_max_order = MAX_ORDER - 1;
+
 /*
  * Mark zfs data pages so they can be excluded from kernel crash dumps
  */
@@ -465,15 +469,19 @@ abd_alloc_zero_scatter(void)
 	struct scatterlist *sg = NULL;
 	struct sg_table table;
 	gfp_t gfp = __GFP_NOWARN | GFP_NOIO;
-	gfp_t gfp_zero_page = gfp | __GFP_ZERO;
 	int nr_pages = abd_chunkcnt_for_bytes(SPA_MAXBLOCKSIZE);
 	int i = 0;
 
+#if defined(HAVE_ZERO_PAGE_GPL_ONLY)
+	gfp_t gfp_zero_page = gfp | __GFP_ZERO;
 	while ((abd_zero_page = __page_cache_alloc(gfp_zero_page)) == NULL) {
 		ABDSTAT_BUMP(abdstat_scatter_page_alloc_retry);
 		schedule_timeout_interruptible(1);
 	}
 	abd_mark_zfs_page(abd_zero_page);
+#else
+	abd_zero_page = ZERO_PAGE(0);
+#endif /* HAVE_ZERO_PAGE_GPL_ONLY */
 
 	while (sg_alloc_table(&table, nr_pages, gfp)) {
 		ABDSTAT_BUMP(abdstat_scatter_sg_table_retry);
@@ -632,7 +640,7 @@ abd_alloc_zero_scatter(void)
 boolean_t
 abd_size_alloc_linear(size_t size)
 {
-	return (size < zfs_abd_scatter_min_size ? B_TRUE : B_FALSE);
+	return (!zfs_abd_scatter_enabled || size < zfs_abd_scatter_min_size);
 }
 
 void
@@ -694,8 +702,10 @@ abd_free_zero_scatter(void)
 	abd_zero_scatter = NULL;
 	ASSERT3P(abd_zero_page, !=, NULL);
 #if defined(_KERNEL)
+#if defined(HAVE_ZERO_PAGE_GPL_ONLY)
 	abd_unmark_zfs_page(abd_zero_page);
 	__free_page(abd_zero_page);
+#endif /* HAVE_ZERO_PAGE_GPL_ONLY */
 #else
 	umem_free(abd_zero_page, PAGESIZE);
 #endif /* _KERNEL */
@@ -838,6 +848,7 @@ abd_t *
 abd_get_offset_scatter(abd_t *abd, abd_t *sabd, size_t off,
     size_t size)
 {
+	(void) size;
 	int i = 0;
 	struct scatterlist *sg = NULL;
 

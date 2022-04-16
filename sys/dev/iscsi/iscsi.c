@@ -33,6 +33,7 @@
 __FBSDID("$FreeBSD$");
 
 #include <sys/param.h>
+#include <sys/bio.h>
 #include <sys/condvar.h>
 #include <sys/conf.h>
 #include <sys/endian.h>
@@ -42,9 +43,11 @@ __FBSDID("$FreeBSD$");
 #include <sys/kthread.h>
 #include <sys/lock.h>
 #include <sys/malloc.h>
+#include <sys/mbuf.h>
 #include <sys/mutex.h>
 #include <sys/module.h>
 #include <sys/socket.h>
+#include <sys/sockopt.h>
 #include <sys/sysctl.h>
 #include <sys/systm.h>
 #include <sys/sx.h>
@@ -86,6 +89,7 @@ SYSCTL_NODE(_kern, OID_AUTO, iscsi, CTLFLAG_RD | CTLFLAG_MPSAFE, 0,
 static int debug = 1;
 SYSCTL_INT(_kern_iscsi, OID_AUTO, debug, CTLFLAG_RWTUN,
     &debug, 0, "Enable debug messages");
+
 static int ping_timeout = 5;
 SYSCTL_INT(_kern_iscsi, OID_AUTO, ping_timeout, CTLFLAG_RWTUN, &ping_timeout,
     0, "Timeout for ping (NOP-Out) requests, in seconds");
@@ -380,6 +384,26 @@ iscsi_session_cleanup(struct iscsi_session *is, bool destroy_sim)
 static void
 iscsi_maintenance_thread_reconnect(struct iscsi_session *is)
 {
+	/*
+	 * As we will be reconnecting shortly,
+	 * discard outstanding data immediately on
+	 * close(), also notify peer via RST if
+	 * any packets come in.
+	 */
+	struct socket *so;
+	so = is->is_conn->ic_socket;
+	if (so != NULL) {
+		struct sockopt sopt;
+		struct linger sl;
+		sopt.sopt_dir     = SOPT_SET;
+		sopt.sopt_level   = SOL_SOCKET;
+		sopt.sopt_name    = SO_LINGER;
+		sopt.sopt_val     = &sl;
+		sopt.sopt_valsize = sizeof(sl);
+		sl.l_onoff        = 1;	/* non-zero value enables linger option in kernel */
+		sl.l_linger       = 0;	/* timeout interval in seconds */
+		sosetopt(is->is_conn->ic_socket, &sopt);
+	}
 
 	icl_conn_close(is->is_conn);
 
@@ -546,6 +570,7 @@ iscsi_callout(void *context)
 	struct iscsi_bhs_nop_out *bhsno;
 	struct iscsi_session *is;
 	bool reconnect_needed = false;
+	sbintime_t sbt, pr;
 
 	is = context;
 
@@ -555,7 +580,9 @@ iscsi_callout(void *context)
 		return;
 	}
 
-	callout_schedule(&is->is_callout, 1 * hz);
+	sbt = mstosbt(995);
+	pr  = mstosbt(10);
+	callout_schedule_sbt(&is->is_callout, sbt, pr, 0);
 
 	if (is->is_conf.isc_enable == 0)
 		goto out;
@@ -573,7 +600,7 @@ iscsi_callout(void *context)
 	}
 
 	if (is->is_login_phase) {
-		if (login_timeout > 0 && is->is_timeout > login_timeout) {
+		if (is->is_login_timeout > 0 && is->is_timeout > is->is_login_timeout) {
 			ISCSI_SESSION_WARN(is, "login timed out after %d seconds; "
 			    "reconnecting", is->is_timeout);
 			reconnect_needed = true;
@@ -581,7 +608,7 @@ iscsi_callout(void *context)
 		goto out;
 	}
 
-	if (ping_timeout <= 0) {
+	if (is->is_ping_timeout <= 0) {
 		/*
 		 * Pings are disabled.  Don't send NOP-Out in this case.
 		 * Reset the timeout, to avoid triggering reconnection,
@@ -591,9 +618,9 @@ iscsi_callout(void *context)
 		goto out;
 	}
 
-	if (is->is_timeout >= ping_timeout) {
+	if (is->is_timeout >= is->is_ping_timeout) {
 		ISCSI_SESSION_WARN(is, "no ping reply (NOP-In) after %d seconds; "
-		    "reconnecting", ping_timeout);
+		    "reconnecting", is->is_ping_timeout);
 		reconnect_needed = true;
 		goto out;
 	}
@@ -1060,6 +1087,24 @@ iscsi_pdu_handle_task_response(struct icl_pdu *response)
 }
 
 static void
+iscsi_pdu_get_data_csio(struct icl_pdu *response, size_t pdu_offset,
+    struct ccb_scsiio *csio, size_t oreceived, size_t data_segment_len)
+{
+	switch (csio->ccb_h.flags & CAM_DATA_MASK) {
+	case CAM_DATA_BIO:
+		icl_pdu_get_bio(response, pdu_offset,
+		    (struct bio *)csio->data_ptr, oreceived, data_segment_len);
+		break;
+	case CAM_DATA_VADDR:
+		icl_pdu_get_data(response, pdu_offset,
+		    csio->data_ptr + oreceived, data_segment_len);
+		break;
+	default:
+		__assert_unreachable();
+	}
+}
+
+static void
 iscsi_pdu_handle_data_in(struct icl_pdu *response)
 {
 	struct iscsi_bhs_data_in *bhsdi;
@@ -1137,7 +1182,7 @@ iscsi_pdu_handle_data_in(struct icl_pdu *response)
 		iscsi_outstanding_remove(is, io);
 	ISCSI_SESSION_UNLOCK(is);
 
-	icl_pdu_get_data(response, 0, csio->data_ptr + oreceived, data_segment_len);
+	iscsi_pdu_get_data_csio(response, 0, csio, oreceived, data_segment_len);
 
 	/*
 	 * XXX: Check F.
@@ -1188,6 +1233,22 @@ iscsi_pdu_handle_logout_response(struct icl_pdu *response)
 	icl_pdu_free(response);
 }
 
+static int
+iscsi_pdu_append_data_csio(struct icl_pdu *request, struct ccb_scsiio *csio,
+    size_t off, size_t len, int how)
+{
+	switch (csio->ccb_h.flags & CAM_DATA_MASK) {
+	case CAM_DATA_BIO:
+		return (icl_pdu_append_bio(request,
+			(struct bio *)csio->data_ptr, off, len, how));
+	case CAM_DATA_VADDR:
+		return (icl_pdu_append_data(request, csio->data_ptr + off, len,
+		    how));
+	default:
+		__assert_unreachable();
+	}
+}
+
 static void
 iscsi_pdu_handle_r2t(struct icl_pdu *response)
 {
@@ -1229,7 +1290,7 @@ iscsi_pdu_handle_r2t(struct icl_pdu *response)
 	off = ntohl(bhsr2t->bhsr2t_buffer_offset);
 	if (off > csio->dxfer_len) {
 		ISCSI_SESSION_WARN(is, "target requested invalid offset "
-		    "%zd, buffer is is %d; reconnecting", off, csio->dxfer_len);
+		    "%zd, buffer is %d; reconnecting", off, csio->dxfer_len);
 		icl_pdu_free(response);
 		iscsi_session_reconnect(is);
 		return;
@@ -1282,8 +1343,8 @@ iscsi_pdu_handle_r2t(struct icl_pdu *response)
 		    bhsr2t->bhsr2t_target_transfer_tag;
 		bhsdo->bhsdo_datasn = htonl(datasn);
 		bhsdo->bhsdo_buffer_offset = htonl(off);
-		error = icl_pdu_append_data(request, csio->data_ptr + off, len,
-		    M_NOWAIT);
+		error = iscsi_pdu_append_data_csio(request, csio, off, len,
+		    M_NOWAIT | ICL_NOCOPY);
 		if (error != 0) {
 			ISCSI_SESSION_WARN(is, "failed to allocate memory; "
 			    "reconnecting");
@@ -1506,6 +1567,12 @@ iscsi_ioctl_daemon_handoff(struct iscsi_softc *sc,
 	is->is_waiting_for_iscsid = false;
 	is->is_login_phase = false;
 	is->is_timeout = 0;
+	is->is_ping_timeout = is->is_conf.isc_ping_timeout;
+	if (is->is_ping_timeout < 0)
+		is->is_ping_timeout = ping_timeout;
+	is->is_login_timeout = is->is_conf.isc_login_timeout;
+	if (is->is_login_timeout < 0)
+		is->is_login_timeout = login_timeout;
 	is->is_connected = true;
 	is->is_reason[0] = '\0';
 
@@ -1557,8 +1624,7 @@ iscsi_ioctl_daemon_handoff(struct iscsi_softc *sc,
 			return (ENOMEM);
 		}
 
-		error = xpt_bus_register(is->is_sim, NULL, 0);
-		if (error != 0) {
+		if (xpt_bus_register(is->is_sim, NULL, 0) != 0) {
 			ISCSI_SESSION_UNLOCK(is);
 			ISCSI_SESSION_WARN(is, "failed to register bus");
 			iscsi_session_terminate(is);
@@ -1836,6 +1902,7 @@ iscsi_ioctl_session_add(struct iscsi_softc *sc, struct iscsi_session_add *isa)
 	struct iscsi_session *is;
 	const struct iscsi_session *is2;
 	int error;
+	sbintime_t sbt, pr;
 
 	iscsi_sanitize_session_conf(&isa->isa_conf);
 	if (iscsi_valid_session_conf(&isa->isa_conf) == false)
@@ -1912,8 +1979,16 @@ iscsi_ioctl_session_add(struct iscsi_softc *sc, struct iscsi_session_add *isa)
 		sx_xunlock(&sc->sc_lock);
 		return (error);
 	}
+	is->is_ping_timeout = is->is_conf.isc_ping_timeout;
+	if (is->is_ping_timeout < 0)
+		is->is_ping_timeout = ping_timeout;
+	is->is_login_timeout = is->is_conf.isc_login_timeout;
+	if (is->is_login_timeout < 0)
+		is->is_login_timeout = login_timeout;
 
-	callout_reset(&is->is_callout, 1 * hz, iscsi_callout, is);
+	sbt = mstosbt(995);
+	pr = mstosbt(10);
+	callout_reset_sbt(&is->is_callout, sbt, pr, iscsi_callout, is, 0);
 	TAILQ_INSERT_TAIL(&sc->sc_sessions, is, is_next);
 
 	ISCSI_SESSION_LOCK(is);
@@ -2387,7 +2462,8 @@ iscsi_action_scsiio(struct iscsi_session *is, union ccb *ccb)
 			len = is->is_conn->ic_max_send_data_segment_length;
 		}
 
-		error = icl_pdu_append_data(request, csio->data_ptr, len, M_NOWAIT);
+		error = iscsi_pdu_append_data_csio(request, csio, 0, len,
+		    M_NOWAIT | ICL_NOCOPY);
 		if (error != 0) {
 			iscsi_outstanding_remove(is, io);
 			icl_pdu_free(request);

@@ -60,7 +60,7 @@ CWARNFLAGS+=	-Wcast-align
 .endif # !NO_WCAST_ALIGN !NO_WCAST_ALIGN.${COMPILER_TYPE}
 .endif # WARNS >= 4
 .if ${WARNS} >= 6
-CWARNFLAGS+=	-Wchar-subscripts -Wnested-externs -Wredundant-decls\
+CWARNFLAGS+=	-Wchar-subscripts -Wnested-externs \
 		-Wold-style-definition
 .if !defined(NO_WMISSING_VARIABLE_DECLARATIONS)
 CWARNFLAGS.clang+=	-Wmissing-variable-declarations
@@ -166,7 +166,6 @@ CWARNFLAGS+=	-Wno-error=address			\
 CWARNFLAGS+=	-Wno-error=empty-body			\
 		-Wno-error=maybe-uninitialized		\
 		-Wno-error=nonnull-compare		\
-		-Wno-error=redundant-decls		\
 		-Wno-error=shift-negative-value		\
 		-Wno-error=tautological-compare		\
 		-Wno-error=unused-const-variable
@@ -198,6 +197,17 @@ CWARNFLAGS+=	-Wno-error=aggressive-loop-optimizations	\
 		-Wno-error=sizeof-pointer-memaccess		\
 		-Wno-error=stringop-truncation
 .endif
+
+# GCC 9.2.0
+.if ${COMPILER_VERSION} >= 90200
+.if ${MACHINE_ARCH} == "i386"
+CWARNFLAGS+=	-Wno-error=overflow
+.endif
+.endif
+
+# GCC produces false positives for functions that switch on an
+# enum (GCC bug 87950)
+CWARNFLAGS+=	-Wno-return-type
 
 # GCC's own arm_neon.h triggers various warnings
 .if ${MACHINE_CPUARCH} == "aarch64"
@@ -255,7 +265,7 @@ CFLAGS+=	${SSP_CFLAGS}
 
 # Additional flags passed in CFLAGS and CXXFLAGS when MK_DEBUG_FILES is
 # enabled.
-DEBUG_FILES_CFLAGS?= -g
+DEBUG_FILES_CFLAGS?= -g -gz=zlib
 
 # Allow user-specified additional warning flags, plus compiler and file
 # specific flag overrides, unless we've overridden this...

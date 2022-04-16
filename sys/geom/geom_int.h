@@ -46,7 +46,7 @@ extern int g_collectstats;
 
 /* geom_dump.c */
 void g_confxml(void *, int flag);
-void g_conf_specific(struct sbuf *sb, struct g_class *mp, struct g_geom *gp, struct g_provider *pp, struct g_consumer *cp);
+void g_conf_specific(struct sbuf *sb, struct g_geom **gps);
 void g_conf_cat_escaped(struct sbuf *sb, const char *buf);
 void g_conf_printf_escaped(struct sbuf *sb, const char *fmt, ...);
 void g_confdot(void *, int flag);
@@ -59,7 +59,7 @@ void g_do_wither(void);
 
 /* geom_subr.c */
 extern struct class_list_head g_classes;
-extern char *g_wait_event, *g_wait_sim, *g_wait_up, *g_wait_down;
+extern char *g_wait_event, *g_wait_up, *g_wait_down;
 void g_wither_washer(void);
 
 /* geom_io.c */

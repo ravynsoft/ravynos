@@ -4,7 +4,7 @@
 # For more information on this file, please read the config(5) manual page,
 # and/or the handbook section on Kernel Configuration Files:
 #
-#    https://www.FreeBSD.org/doc/en_US.ISO8859-1/books/handbook/kernelconfig-config.html
+#    https://docs.freebsd.org/en/books/handbook/kernelconfig/#kernelconfig-config
 #
 # The handbook is also available locally in /usr/share/doc/handbook
 # if you've installed the doc distribution, otherwise always see the
@@ -32,6 +32,7 @@ options 	INET			# InterNETworking
 options 	INET6			# IPv6 communications protocols
 options 	IPSEC_SUPPORT		# Allow kldload of ipsec and tcpmd5
 options		ROUTE_MPATH		# Multipath routing support
+options		FIB_ALGO		# Modular fib lookups
 options 	TCP_OFFLOAD		# TCP offload
 options 	TCP_BLACKBOX		# Enhanced TCP event logging
 options 	TCP_HHOOK		# hhook(9) framework for TCP
@@ -66,6 +67,7 @@ options 	COMPAT_FREEBSD9		# Compatible with FreeBSD9
 options 	COMPAT_FREEBSD10	# Compatible with FreeBSD10
 options 	COMPAT_FREEBSD11	# Compatible with FreeBSD11
 options 	COMPAT_FREEBSD12	# Compatible with FreeBSD12
+options 	COMPAT_FREEBSD13	# Compatible with FreeBSD13
 options 	SCSI_DELAY=5000		# Delay (in ms) before probing SCSI
 options 	KTRACE			# ktrace(1) support
 options 	STACK			# stack(9) support
@@ -88,13 +90,22 @@ options 	RACCT			# Resource accounting framework
 options 	RACCT_DEFAULT_TO_DISABLED # Set kern.racct.enable=0 by default
 options 	RCTL			# Resource limits
 
-options 	THRWORKQ			# Thread work queues
-#options 	MALLOC_DEBUG_MAXZONES=8			# Separate malloc(9) zones
-options		COMPAT_MACH_PORT_DEBUG
-
 # Debugging support.  Always need this:
 options 	KDB			# Enable kernel debugger support.
 options 	KDB_TRACE		# Print a stack trace for a panic.
+# For full debugger support use (turn off in stable branch):
+options 	BUF_TRACKING		# Track buffer history
+options 	DDB			# Support DDB.
+options 	FULL_BUF_TRACKING	# Track more buffer history
+options 	GDB			# Support remote GDB.
+options 	DEADLKRES		# Enable the deadlock resolver
+options 	INVARIANTS		# Enable calls of extra sanity checking
+options 	INVARIANT_SUPPORT	# Extra sanity checks of internal structures, required by INVARIANTS
+options 	QUEUE_MACRO_DEBUG_TRASH	# Trash queue(2) internal pointers on invalidation
+options 	WITNESS			# Enable checks to detect deadlocks and cycles
+options 	WITNESS_SKIPSPIN	# Don't run witness on spinlocks for speed
+options 	MALLOC_DEBUG_MAXZONES=8	# Separate malloc(9) zones
+options 	VERBOSE_SYSINIT=0	# Support debug.verbose_sysinit, off by default
 
 # Kernel Sanitizers
 #options 	COVERAGE		# Generic kernel coverage. Used by KCOV
@@ -146,7 +157,6 @@ device		siis			# SiliconImage SiI3124/SiI3132/SiI3531 SATA
 # SCSI Controllers
 device		ahc			# AHA2940 and onboard AIC7xxx devices
 device		ahd			# AHA39320/29320 and onboard AIC79xx devices
-device		esp			# AMD Am53C974 (Tekram DC-390(T))
 device		hptiop			# Highpoint RocketRaid 3xxx series
 device		isp			# Qlogic family
 #device		ispfw			# Firmware for QLogic HBAs- normally a module
@@ -169,13 +179,9 @@ device		ses			# Enclosure Services (SES and SAF-TE)
 #device		ctl			# CAM Target Layer
 
 # RAID controllers interfaced to the SCSI subsystem
-device		amr			# AMI MegaRAID
 device		arcmsr			# Areca SATA II RAID
 device		ciss			# Compaq Smart RAID 5*
-device		iir			# Intel Integrated RAID
 device		ips			# IBM (Adaptec) ServeRAID
-device		mly			# Mylex AcceleRAID/eXtremeRAID
-device		twa			# 3ware 9000 series PATA/SATA RAID
 device		smartpqi		# Microsemi smartpqi driver
 device		tws			# LSI 3ware 9750 SATA+SAS 6Gb/s RAID controller
 
@@ -206,12 +212,9 @@ device		psm			# PS/2 mouse
 
 device		kbdmux			# keyboard multiplexer
 
-device		vga			# VGA video card driver
-options 	VESA			# Add support for VESA BIOS Extensions (VBE)
-
-device		splash			# Splash screen and screen saver support
-
 # syscons is the legacy console driver, resembling an SCO console
+device		vga			# VGA video card driver
+device		splash			# Splash screen and screen saver support
 device		sc
 options 	SC_PIXEL_MODE		# add support for the raster text mode
 
@@ -223,10 +226,8 @@ device		vt_vbefb
 
 device		agp			# support several AGP chipsets
 
-# PCCARD (PCMCIA) support
-# PCMCIA and cardbus bridge support
-device		cbb			# cardbus (yenta) bridge
-device		pccard			# PC Card (16-bit) bus
+# CardBus bridge support
+device		cbb			# CardBus (yenta) bridge
 device		cardbus			# CardBus (32-bit) bus
 
 # Serial (COM) ports
@@ -251,7 +252,7 @@ device		ixl			# Intel 700 Series Physical Function
 device		iavf			# Intel Adaptive Virtual Function
 device		ice			# Intel 800 Series Physical Function
 device		vmx			# VMware VMXNET3 Ethernet
-device		axp			# AMD EPYC integrated NIC
+device		axp			# AMD EPYC integrated NIC (requires miibus)
 
 # PCI Ethernet NICs.
 device		bxe			# Broadcom NetXtreme II BCM5771X/BCM578XX 10GbE
@@ -303,7 +304,6 @@ device		wlan_wep		# 802.11 WEP support
 device		wlan_ccmp		# 802.11 CCMP support
 device		wlan_tkip		# 802.11 TKIP support
 device		wlan_amrr		# AMRR transmit rate control algorithm
-device		an			# Aironet 4500/4800 802.11 wireless NICs.
 device		ath			# Atheros NICs
 device		ath_pci			# Atheros pci/cardbus glue
 device		ath_hal			# pci/cardbus chip support
@@ -380,9 +380,11 @@ device		kvm_clock		# KVM paravirtual clock driver
 device		hyperv			# HyperV drivers 
 
 # Xen HVM Guest Optimizations
-# NOTE: XENHVM depends on xenpci.  They must be added or removed together.
+# NOTE: XENHVM depends on xenpci and xentimer.
+# They must be added or removed together.
 options 	XENHVM			# Xen HVM kernel infrastructure
 device		xenpci			# Xen HVM Hypervisor services driver
+device		xentimer		# Xen x86 PV timer device
 
 # Netmap provides direct access to TX/RX rings on supported NICs
 device		netmap			# netmap(4) support
@@ -396,6 +398,3 @@ device		uinput			# install /dev/uinput cdev
 options 	HID_DEBUG		# enable debug msgs
 device		hid			# Generic HID support
 options 	IICHID_SAMPLING		# Workaround missing GPIO INTR support
-
-device		cryptodev
-options		ZFS

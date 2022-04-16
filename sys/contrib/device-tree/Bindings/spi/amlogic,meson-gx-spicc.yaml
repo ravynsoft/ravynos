@@ -77,6 +77,8 @@ required:
   - clocks
   - clock-names
 
+unevaluatedProperties: false
+
 examples:
   - |
     spi@c1108d80 {
@@ -88,8 +90,8 @@ examples:
           #address-cells = <1>;
           #size-cells = <0>;
 
-          ethernet-switch@0 {
-              compatible = "micrel,ks8995m";
+          display@0 {
+              compatible = "lg,lg4573";
               spi-max-frequency = <1000000>;
               reg = <0>;
           };

@@ -1,6 +1,9 @@
 # $FreeBSD$
 #
-# Option file for src builds.
+# Option file for bmake builds. These options are available to all users of
+# bmake (including the source tree userland and kernel builds). They generally
+# control how binaries are made, shared vs dynamic, etc and some general options
+# relevant for all build environments.
 #
 # Users define WITH_FOO and WITHOUT_FOO on the command line or in /etc/src.conf
 # and /etc/make.conf files. These translate in the build system to MK_FOO={yes,no}
@@ -61,7 +64,6 @@ __DEFAULT_YES_OPTIONS = \
     NIS \
     NLS \
     OPENSSH \
-    PROFILE \
     SSP \
     TESTS \
     TOOLCHAIN \
@@ -69,6 +71,7 @@ __DEFAULT_YES_OPTIONS = \
     WERROR
 
 __DEFAULT_NO_OPTIONS = \
+    ASAN \
     BIND_NOW \
     CCACHE_BUILD \
     CTF \
@@ -76,8 +79,10 @@ __DEFAULT_NO_OPTIONS = \
     INIT_ALL_ZERO \
     INSTALL_AS_USER \
     MANSPLITPKG \
+    PROFILE \
     RETPOLINE \
-    STALE_STAGED
+    STALE_STAGED \
+    UBSAN
 
 __DEFAULT_DEPENDENT_OPTIONS = \
     MAKE_CHECK_USE_SANDBOX/TESTS \
@@ -91,10 +96,7 @@ __DEFAULT_DEPENDENT_OPTIONS = \
 # some memory-hungry workloads.
 #
 .if ${MACHINE_ARCH} == "armv6" || ${MACHINE_ARCH} == "armv7" \
-    || ${MACHINE_ARCH} == "i386" || ${MACHINE_ARCH} == "mips" \
-    || ${MACHINE_ARCH} == "mipsel" || ${MACHINE_ARCH} == "mipselhf" \
-    || ${MACHINE_ARCH} == "mipshf" || ${MACHINE_ARCH} == "mipsn32" \
-    || ${MACHINE_ARCH} == "mipsn32el" || ${MACHINE_ARCH} == "powerpc" \
+    || ${MACHINE_ARCH} == "i386" || ${MACHINE_ARCH} == "powerpc" \
     || ${MACHINE_ARCH} == "powerpcspe"
 __DEFAULT_NO_OPTIONS+= PIE
 .else
@@ -122,7 +124,7 @@ __DEFAULT_YES_OPTIONS+=PIE
     WARNS \
     WERROR
 .if defined(NO_${var})
-.error "NO_${var} is defined, but deprecated. Please use MK_${var}=no instead."
+.error NO_${var} is defined, but deprecated. Please use MK_${var}=no instead.
 MK_${var}:=no
 .endif
 .endfor

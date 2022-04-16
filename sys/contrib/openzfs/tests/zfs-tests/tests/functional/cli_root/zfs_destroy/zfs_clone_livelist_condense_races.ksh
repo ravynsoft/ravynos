@@ -42,6 +42,7 @@ function cleanup
 	# reset the condense tests to 0
 	set_tunable32 LIVELIST_CONDENSE_ZTHR_PAUSE 0
 	set_tunable32 LIVELIST_CONDENSE_SYNC_PAUSE 0
+	log_must zfs inherit compression $TESTPOOL
 }
 
 function delete_race
@@ -49,11 +50,11 @@ function delete_race
 	set_tunable32 "$1" 0
 	log_must zfs clone $TESTPOOL/$TESTFS1@snap $TESTPOOL/$TESTCLONE
 	for i in {1..5}; do
-		log_must zpool sync $TESTPOOL
+		sync_pool $TESTPOOL
 		log_must mkfile 5m /$TESTPOOL/$TESTCLONE/out
 	done
 	log_must zfs destroy $TESTPOOL/$TESTCLONE
-	log_must zpool sync $TESTPOOL
+	sync_pool $TESTPOOL
 	[[ "1" == "$(get_tunable "$1")" ]] || \
 	    log_fail "delete/condense race test failed"
 }
@@ -63,7 +64,7 @@ function export_race
 	set_tunable32 "$1" 0
 	log_must zfs clone $TESTPOOL/$TESTFS1@snap $TESTPOOL/$TESTCLONE
 	for i in {1..5}; do
-		log_must zpool sync $TESTPOOL
+		sync_pool $TESTPOOL
 		log_must mkfile 5m /$TESTPOOL/$TESTCLONE/out
 	done
 	log_must zpool export $TESTPOOL
@@ -78,12 +79,12 @@ function disable_race
 	set_tunable32 "$1" 0
 	log_must zfs clone $TESTPOOL/$TESTFS1@snap $TESTPOOL/$TESTCLONE
 	for i in {1..5}; do
-		log_must zpool sync $TESTPOOL
+		sync_pool $TESTPOOL
 		log_must mkfile 5m /$TESTPOOL/$TESTCLONE/out
 	done
 	# overwrite the file shared with the origin to trigger disable
 	log_must mkfile 100m /$TESTPOOL/$TESTCLONE/atestfile
-	log_must zpool sync $TESTPOOL
+	sync_pool $TESTPOOL
 	[[ "1" == "$(get_tunable "$1")" ]] || \
 	    log_fail "disable/condense race test failed"
 	log_must zfs destroy $TESTPOOL/$TESTCLONE
@@ -93,9 +94,14 @@ ORIGINAL_MAX=$(get_tunable LIVELIST_MAX_ENTRIES)
 
 log_onexit cleanup
 
+# You might think that setting compression=off for $TESTFS1 would be
+# sufficient. You would be mistaken.
+# You need compression=off for whatever the parent of $TESTFS1 is,
+# and $TESTFS1.
+log_must zfs set compression=off $TESTPOOL
 log_must zfs create $TESTPOOL/$TESTFS1
 log_must mkfile 100m /$TESTPOOL/$TESTFS1/atestfile
-log_must zpool sync $TESTPOOL
+sync_pool $TESTPOOL
 log_must zfs snapshot $TESTPOOL/$TESTFS1@snap
 
 # Reduce livelist size to trigger condense more easily

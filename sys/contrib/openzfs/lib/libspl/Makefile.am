@@ -8,7 +8,9 @@ libspl_assert_la_SOURCES = \
 	assert.c
 
 USER_C = \
+	libspl_impl.h \
 	atomic.c \
+	getexecname.c \
 	list.c \
 	mkdirp.c \
 	page.c \

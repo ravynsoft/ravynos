@@ -30,11 +30,14 @@ __FBSDID("$FreeBSD$");
 
 #include "opt_inet.h"
 #include "opt_inet6.h"
+#include "opt_kern_tls.h"
+#include "opt_ratelimit.h"
 #include "opt_rss.h"
 
 #include <sys/param.h>
 #include <sys/kernel.h>
 #include <sys/domainset.h>
+#include <sys/endian.h>
 #include <sys/ktls.h>
 #include <sys/lock.h>
 #include <sys/mbuf.h>
@@ -71,40 +74,49 @@ __FBSDID("$FreeBSD$");
 #ifdef TCP_OFFLOAD
 #include <netinet/tcp_offload.h>
 #endif
-#include <opencrypto/xform.h>
+#include <opencrypto/cryptodev.h>
+#include <opencrypto/ktls.h>
 #include <vm/uma_dbg.h>
 #include <vm/vm.h>
 #include <vm/vm_pageout.h>
 #include <vm/vm_page.h>
+#include <vm/vm_pagequeue.h>
 
 struct ktls_wq {
 	struct mtx	mtx;
 	STAILQ_HEAD(, mbuf) m_head;
 	STAILQ_HEAD(, socket) so_head;
 	bool		running;
+	int		lastallocfail;
 } __aligned(CACHE_LINE_SIZE);
+
+struct ktls_alloc_thread {
+	uint64_t wakeups;
+	uint64_t allocs;
+	struct thread *td;
+	int running;
+};
 
 struct ktls_domain_info {
 	int count;
 	int cpu[MAXCPU];
+	struct ktls_alloc_thread alloc_td;
 };
 
 struct ktls_domain_info ktls_domains[MAXMEMDOM];
 static struct ktls_wq *ktls_wq;
 static struct proc *ktls_proc;
-LIST_HEAD(, ktls_crypto_backend) ktls_backends;
-static struct rmlock ktls_backends_lock;
 static uma_zone_t ktls_session_zone;
+static uma_zone_t ktls_buffer_zone;
 static uint16_t ktls_cpuid_lookup[MAXCPU];
+static int ktls_init_state;
+static struct sx ktls_init_lock;
+SX_SYSINIT(ktls_init_lock, &ktls_init_lock, "ktls init");
 
 SYSCTL_NODE(_kern_ipc, OID_AUTO, tls, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
     "Kernel TLS offload");
 SYSCTL_NODE(_kern_ipc_tls, OID_AUTO, stats, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
     "Kernel TLS offload stats");
-
-static int ktls_allow_unload;
-SYSCTL_INT(_kern_ipc_tls, OID_AUTO, allow_unload, CTLFLAG_RDTUN,
-    &ktls_allow_unload, 0, "Allow software crypto modules to unload");
 
 #ifdef RSS
 static int ktls_bind_threads = 1;
@@ -116,13 +128,18 @@ SYSCTL_INT(_kern_ipc_tls, OID_AUTO, bind_threads, CTLFLAG_RDTUN,
     "Bind crypto threads to cores (1) or cores and domains (2) at boot");
 
 static u_int ktls_maxlen = 16384;
-SYSCTL_UINT(_kern_ipc_tls, OID_AUTO, maxlen, CTLFLAG_RWTUN,
+SYSCTL_UINT(_kern_ipc_tls, OID_AUTO, maxlen, CTLFLAG_RDTUN,
     &ktls_maxlen, 0, "Maximum TLS record size");
 
 static int ktls_number_threads;
 SYSCTL_INT(_kern_ipc_tls_stats, OID_AUTO, threads, CTLFLAG_RD,
     &ktls_number_threads, 0,
     "Number of TLS threads in thread-pool");
+
+unsigned int ktls_ifnet_max_rexmit_pct = 2;
+SYSCTL_UINT(_kern_ipc_tls, OID_AUTO, ifnet_max_rexmit_pct, CTLFLAG_RWTUN,
+    &ktls_ifnet_max_rexmit_pct, 2,
+    "Max percent bytes retransmitted before ifnet TLS is disabled");
 
 static bool ktls_offload_enable;
 SYSCTL_BOOL(_kern_ipc_tls, OID_AUTO, enable, CTLFLAG_RWTUN,
@@ -133,6 +150,16 @@ static bool ktls_cbc_enable = true;
 SYSCTL_BOOL(_kern_ipc_tls, OID_AUTO, cbc_enable, CTLFLAG_RWTUN,
     &ktls_cbc_enable, 1,
     "Enable Support of AES-CBC crypto for kernel TLS");
+
+static bool ktls_sw_buffer_cache = true;
+SYSCTL_BOOL(_kern_ipc_tls, OID_AUTO, sw_buffer_cache, CTLFLAG_RDTUN,
+    &ktls_sw_buffer_cache, 1,
+    "Enable caching of output buffers for SW encryption");
+
+static int ktls_max_alloc = 128;
+SYSCTL_INT(_kern_ipc_tls, OID_AUTO, max_alloc, CTLFLAG_RWTUN,
+    &ktls_max_alloc, 128,
+    "Max number of 16k buffers to allocate in thread context");
 
 static COUNTER_U64_DEFINE_EARLY(ktls_tasks_active);
 SYSCTL_COUNTER_U64(_kern_ipc_tls, OID_AUTO, tasks_active, CTLFLAG_RD,
@@ -186,6 +213,14 @@ SYSCTL_COUNTER_U64(_kern_ipc_tls_stats, OID_AUTO, switch_to_sw, CTLFLAG_RD,
 static COUNTER_U64_DEFINE_EARLY(ktls_switch_failed);
 SYSCTL_COUNTER_U64(_kern_ipc_tls_stats, OID_AUTO, switch_failed, CTLFLAG_RD,
     &ktls_switch_failed, "TLS sessions unable to switch between SW and ifnet");
+
+static COUNTER_U64_DEFINE_EARLY(ktls_ifnet_disable_fail);
+SYSCTL_COUNTER_U64(_kern_ipc_tls_stats, OID_AUTO, ifnet_disable_failed, CTLFLAG_RD,
+    &ktls_ifnet_disable_fail, "TLS sessions unable to switch to SW from ifnet");
+
+static COUNTER_U64_DEFINE_EARLY(ktls_ifnet_disable_ok);
+SYSCTL_COUNTER_U64(_kern_ipc_tls_stats, OID_AUTO, ifnet_disable_ok, CTLFLAG_RD,
+    &ktls_ifnet_disable_ok, "TLS sessions able to switch to SW from ifnet");
 
 SYSCTL_NODE(_kern_ipc_tls, OID_AUTO, sw, CTLFLAG_RD | CTLFLAG_MPSAFE, 0,
     "Software TLS session stats");
@@ -267,76 +302,7 @@ static void ktls_cleanup(struct ktls_session *tls);
 static void ktls_reset_send_tag(void *context, int pending);
 #endif
 static void ktls_work_thread(void *ctx);
-
-int
-ktls_crypto_backend_register(struct ktls_crypto_backend *be)
-{
-	struct ktls_crypto_backend *curr_be, *tmp;
-
-	if (be->api_version != KTLS_API_VERSION) {
-		printf("KTLS: API version mismatch (%d vs %d) for %s\n",
-		    be->api_version, KTLS_API_VERSION,
-		    be->name);
-		return (EINVAL);
-	}
-
-	rm_wlock(&ktls_backends_lock);
-	printf("KTLS: Registering crypto method %s with prio %d\n",
-	       be->name, be->prio);
-	if (LIST_EMPTY(&ktls_backends)) {
-		LIST_INSERT_HEAD(&ktls_backends, be, next);
-	} else {
-		LIST_FOREACH_SAFE(curr_be, &ktls_backends, next, tmp) {
-			if (curr_be->prio < be->prio) {
-				LIST_INSERT_BEFORE(curr_be, be, next);
-				break;
-			}
-			if (LIST_NEXT(curr_be, next) == NULL) {
-				LIST_INSERT_AFTER(curr_be, be, next);
-				break;
-			}
-		}
-	}
-	rm_wunlock(&ktls_backends_lock);
-	return (0);
-}
-
-int
-ktls_crypto_backend_deregister(struct ktls_crypto_backend *be)
-{
-	struct ktls_crypto_backend *tmp;
-
-	/*
-	 * Don't error if the backend isn't registered.  This permits
-	 * MOD_UNLOAD handlers to use this function unconditionally.
-	 */
-	rm_wlock(&ktls_backends_lock);
-	LIST_FOREACH(tmp, &ktls_backends, next) {
-		if (tmp == be)
-			break;
-	}
-	if (tmp == NULL) {
-		rm_wunlock(&ktls_backends_lock);
-		return (0);
-	}
-
-	if (!ktls_allow_unload) {
-		rm_wunlock(&ktls_backends_lock);
-		printf(
-		    "KTLS: Deregistering crypto method %s is not supported\n",
-		    be->name);
-		return (EBUSY);
-	}
-
-	if (be->use_count) {
-		rm_wunlock(&ktls_backends_lock);
-		return (EBUSY);
-	}
-
-	LIST_REMOVE(be, next);
-	rm_wunlock(&ktls_backends_lock);
-	return (0);
-}
+static void ktls_alloc_thread(void *ctx);
 
 #if defined(INET) || defined(INET6)
 static u_int
@@ -356,7 +322,7 @@ ktls_get_cpu(struct socket *so)
 #endif
 	/*
 	 * Just use the flowid to shard connections in a repeatable
-	 * fashion.  Note that some crypto backends rely on the
+	 * fashion.  Note that TLS 1.0 sessions rely on the
 	 * serialization provided by having the same connection use
 	 * the same queue.
 	 */
@@ -371,16 +337,56 @@ ktls_get_cpu(struct socket *so)
 }
 #endif
 
+static int
+ktls_buffer_import(void *arg, void **store, int count, int domain, int flags)
+{
+	vm_page_t m;
+	int i, req;
+
+	KASSERT((ktls_maxlen & PAGE_MASK) == 0,
+	    ("%s: ktls max length %d is not page size-aligned",
+	    __func__, ktls_maxlen));
+
+	req = VM_ALLOC_WIRED | VM_ALLOC_NODUMP | malloc2vm_flags(flags);
+	for (i = 0; i < count; i++) {
+		m = vm_page_alloc_noobj_contig_domain(domain, req,
+		    atop(ktls_maxlen), 0, ~0ul, PAGE_SIZE, 0,
+		    VM_MEMATTR_DEFAULT);
+		if (m == NULL)
+			break;
+		store[i] = (void *)PHYS_TO_DMAP(VM_PAGE_TO_PHYS(m));
+	}
+	return (i);
+}
+
 static void
-ktls_init(void *dummy __unused)
+ktls_buffer_release(void *arg __unused, void **store, int count)
+{
+	vm_page_t m;
+	int i, j;
+
+	for (i = 0; i < count; i++) {
+		m = PHYS_TO_VM_PAGE(DMAP_TO_PHYS((vm_offset_t)store[i]));
+		for (j = 0; j < atop(ktls_maxlen); j++) {
+			(void)vm_page_unwire_noq(m + j);
+			vm_page_free(m + j);
+		}
+	}
+}
+
+static void
+ktls_free_mext_contig(struct mbuf *m)
+{
+	M_ASSERTEXTPG(m);
+	uma_zfree(ktls_buffer_zone, (void *)PHYS_TO_DMAP(m->m_epg_pa[0]));
+}
+
+static int
+ktls_init(void)
 {
 	struct thread *td;
 	struct pcpu *pc;
-	cpuset_t mask;
 	int count, domain, error, i;
-
-	rm_init(&ktls_backends_lock, "ktls backends");
-	LIST_INIT(&ktls_backends);
 
 	ktls_wq = malloc(sizeof(*ktls_wq) * (mp_maxid + 1), M_KTLS,
 	    M_WAITOK | M_ZERO);
@@ -390,6 +396,13 @@ ktls_init(void *dummy __unused)
 	    NULL, NULL, NULL, NULL,
 	    UMA_ALIGN_CACHE, 0);
 
+	if (ktls_sw_buffer_cache) {
+		ktls_buffer_zone = uma_zcache_create("ktls_buffers",
+		    roundup2(ktls_maxlen, PAGE_SIZE), NULL, NULL, NULL, NULL,
+		    ktls_buffer_import, ktls_buffer_release, NULL,
+		    UMA_ZONE_FIRSTTOUCH);
+	}
+
 	/*
 	 * Initialize the workqueues to run the TLS work.  We create a
 	 * work queue for each CPU.
@@ -398,31 +411,12 @@ ktls_init(void *dummy __unused)
 		STAILQ_INIT(&ktls_wq[i].m_head);
 		STAILQ_INIT(&ktls_wq[i].so_head);
 		mtx_init(&ktls_wq[i].mtx, "ktls work queue", NULL, MTX_DEF);
-		error = kproc_kthread_add(ktls_work_thread, &ktls_wq[i],
-		    &ktls_proc, &td, 0, 0, "KTLS", "thr_%d", i);
-		if (error)
-			panic("Can't add KTLS thread %d error %d", i, error);
-
-		/*
-		 * Bind threads to cores.  If ktls_bind_threads is >
-		 * 1, then we bind to the NUMA domain.
-		 */
-		if (ktls_bind_threads) {
-			if (ktls_bind_threads > 1) {
-				pc = pcpu_find(i);
-				domain = pc->pc_domain;
-				CPU_COPY(&cpuset_domain[domain], &mask);
-				count = ktls_domains[domain].count;
-				ktls_domains[domain].cpu[count] = i;
-				ktls_domains[domain].count++;
-			} else {
-				CPU_SETOF(i, &mask);
-			}
-			error = cpuset_setthread(td->td_tid, &mask);
-			if (error)
-				panic(
-			    "Unable to bind KTLS thread for CPU %d error %d",
-				     i, error);
+		if (ktls_bind_threads > 1) {
+			pc = pcpu_find(i);
+			domain = pc->pc_domain;
+			count = ktls_domains[domain].count;
+			ktls_domains[domain].cpu[count] = i;
+			ktls_domains[domain].count++;
 		}
 		ktls_cpuid_lookup[ktls_number_threads] = i;
 		ktls_number_threads++;
@@ -441,10 +435,70 @@ ktls_init(void *dummy __unused)
 		}
 	}
 
+	/* Start kthreads for each workqueue. */
+	CPU_FOREACH(i) {
+		error = kproc_kthread_add(ktls_work_thread, &ktls_wq[i],
+		    &ktls_proc, &td, 0, 0, "KTLS", "thr_%d", i);
+		if (error) {
+			printf("Can't add KTLS thread %d error %d\n", i, error);
+			return (error);
+		}
+	}
+
+	/*
+	 * Start an allocation thread per-domain to perform blocking allocations
+	 * of 16k physically contiguous TLS crypto destination buffers.
+	 */
+	if (ktls_sw_buffer_cache) {
+		for (domain = 0; domain < vm_ndomains; domain++) {
+			if (VM_DOMAIN_EMPTY(domain))
+				continue;
+			if (CPU_EMPTY(&cpuset_domain[domain]))
+				continue;
+			error = kproc_kthread_add(ktls_alloc_thread,
+			    &ktls_domains[domain], &ktls_proc,
+			    &ktls_domains[domain].alloc_td.td,
+			    0, 0, "KTLS", "alloc_%d", domain);
+			if (error) {
+				printf("Can't add KTLS alloc thread %d error %d\n",
+				    domain, error);
+				return (error);
+			}
+		}
+	}
+
 	if (bootverbose)
 		printf("KTLS: Initialized %d threads\n", ktls_number_threads);
+	return (0);
 }
-SYSINIT(ktls, SI_SUB_SMP + 1, SI_ORDER_ANY, ktls_init, NULL);
+
+static int
+ktls_start_kthreads(void)
+{
+	int error, state;
+
+start:
+	state = atomic_load_acq_int(&ktls_init_state);
+	if (__predict_true(state > 0))
+		return (0);
+	if (state < 0)
+		return (ENXIO);
+
+	sx_xlock(&ktls_init_lock);
+	if (ktls_init_state != 0) {
+		sx_xunlock(&ktls_init_lock);
+		goto start;
+	}
+
+	error = ktls_init();
+	if (error == 0)
+		state = 1;
+	else
+		state = -1;
+	atomic_store_rel_int(&ktls_init_state, state);
+	sx_xunlock(&ktls_init_lock);
+	return (error);
+}
 
 #if defined(INET) || defined(INET6)
 static int
@@ -522,7 +576,14 @@ ktls_create_session(struct socket *so, struct tls_enable *en,
 		default:
 			return (EINVAL);
 		}
-		if (en->auth_key_len == 0)
+		break;
+	case CRYPTO_CHACHA20_POLY1305:
+		if (en->auth_algorithm != 0 || en->auth_key_len != 0)
+			return (EINVAL);
+		if (en->tls_vminor != TLS_MINOR_VER_TWO &&
+		    en->tls_vminor != TLS_MINOR_VER_THREE)
+			return (EINVAL);
+		if (en->iv_len != TLS_CHACHA20_IV_LEN)
 			return (EINVAL);
 
 		/*
@@ -555,6 +616,10 @@ ktls_create_session(struct socket *so, struct tls_enable *en,
 	default:
 		return (EINVAL);
 	}
+
+	error = ktls_start_kthreads();
+	if (error != 0)
+		return (error);
 
 	tls = uma_zalloc(ktls_session_zone, M_WAITOK | M_ZERO);
 
@@ -726,7 +791,6 @@ ktls_cleanup(struct ktls_session *tls)
 	counter_u64_add(ktls_offload_active, -1);
 	switch (tls->mode) {
 	case TCP_TLS_MODE_SW:
-		MPASS(tls->be != NULL);
 		switch (tls->params.cipher_algorithm) {
 		case CRYPTO_AES_CBC:
 			counter_u64_add(ktls_sw_cbc, -1);
@@ -738,7 +802,6 @@ ktls_cleanup(struct ktls_session *tls)
 			counter_u64_add(ktls_sw_chacha20, -1);
 			break;
 		}
-		tls->free(tls);
 		break;
 	case TCP_TLS_MODE_IFNET:
 		switch (tls->params.cipher_algorithm) {
@@ -771,6 +834,8 @@ ktls_cleanup(struct ktls_session *tls)
 		break;
 #endif
 	}
+	if (tls->ocf_session != NULL)
+		ktls_ocf_free(tls);
 	if (tls->params.auth_key != NULL) {
 		zfree(tls->params.auth_key, M_KTLS);
 		tls->params.auth_key = NULL;
@@ -796,10 +861,6 @@ ktls_try_toe(struct socket *so, struct ktls_session *tls, int direction)
 
 	inp = so->so_pcb;
 	INP_WLOCK(inp);
-	if (inp->inp_flags2 & INP_FREED) {
-		INP_WUNLOCK(inp);
-		return (ECONNRESET);
-	}
 	if (inp->inp_flags & (INP_TIMEWAIT | INP_DROPPED)) {
 		INP_WUNLOCK(inp);
 		return (ECONNRESET);
@@ -851,10 +912,6 @@ ktls_alloc_snd_tag(struct inpcb *inp, struct ktls_session *tls, bool force,
 	int error;
 
 	INP_RLOCK(inp);
-	if (inp->inp_flags2 & INP_FREED) {
-		INP_RUNLOCK(inp);
-		return (ECONNRESET);
-	}
 	if (inp->inp_flags & (INP_TIMEWAIT | INP_DROPPED)) {
 		INP_RUNLOCK(inp);
 		return (ECONNRESET);
@@ -958,36 +1015,9 @@ ktls_try_ifnet(struct socket *so, struct ktls_session *tls, bool force)
 	return (error);
 }
 
-static int
-ktls_try_sw(struct socket *so, struct ktls_session *tls, int direction)
+static void
+ktls_use_sw(struct ktls_session *tls)
 {
-	struct rm_priotracker prio;
-	struct ktls_crypto_backend *be;
-
-	/*
-	 * Choose the best software crypto backend.  Backends are
-	 * stored in sorted priority order (larget value == most
-	 * important at the head of the list), so this just stops on
-	 * the first backend that claims the session by returning
-	 * success.
-	 */
-	if (ktls_allow_unload)
-		rm_rlock(&ktls_backends_lock, &prio);
-	LIST_FOREACH(be, &ktls_backends, next) {
-		if (be->try(so, tls, direction) == 0)
-			break;
-		KASSERT(tls->cipher == NULL,
-		    ("ktls backend leaked a cipher pointer"));
-	}
-	if (be != NULL) {
-		if (ktls_allow_unload)
-			be->use_count++;
-		tls->be = be;
-	}
-	if (ktls_allow_unload)
-		rm_runlock(&ktls_backends_lock, &prio);
-	if (be == NULL)
-		return (EOPNOTSUPP);
 	tls->mode = TCP_TLS_MODE_SW;
 	switch (tls->params.cipher_algorithm) {
 	case CRYPTO_AES_CBC:
@@ -1000,6 +1030,17 @@ ktls_try_sw(struct socket *so, struct ktls_session *tls, int direction)
 		counter_u64_add(ktls_sw_chacha20, 1);
 		break;
 	}
+}
+
+static int
+ktls_try_sw(struct socket *so, struct ktls_session *tls, int direction)
+{
+	int error;
+
+	error = ktls_ocf_try(so, tls, direction);
+	if (error)
+		return (error);
+	ktls_use_sw(tls);
 	return (0);
 }
 
@@ -1058,6 +1099,69 @@ sb_mark_notready(struct sockbuf *sb)
 	    sb->sb_ccc));
 }
 
+/*
+ * Return information about the pending TLS data in a socket
+ * buffer.  On return, 'seqno' is set to the sequence number
+ * of the next TLS record to be received, 'resid' is set to
+ * the amount of bytes still needed for the last pending
+ * record.  The function returns 'false' if the last pending
+ * record contains a partial TLS header.  In that case, 'resid'
+ * is the number of bytes needed to complete the TLS header.
+ */
+bool
+ktls_pending_rx_info(struct sockbuf *sb, uint64_t *seqnop, size_t *residp)
+{
+	struct tls_record_layer hdr;
+	struct mbuf *m;
+	uint64_t seqno;
+	size_t resid;
+	u_int offset, record_len;
+
+	SOCKBUF_LOCK_ASSERT(sb);
+	MPASS(sb->sb_flags & SB_TLS_RX);
+	seqno = sb->sb_tls_seqno;
+	resid = sb->sb_tlscc;
+	m = sb->sb_mtls;
+	offset = 0;
+
+	if (resid == 0) {
+		*seqnop = seqno;
+		*residp = 0;
+		return (true);
+	}
+
+	for (;;) {
+		seqno++;
+
+		if (resid < sizeof(hdr)) {
+			*seqnop = seqno;
+			*residp = sizeof(hdr) - resid;
+			return (false);
+		}
+
+		m_copydata(m, offset, sizeof(hdr), (void *)&hdr);
+
+		record_len = sizeof(hdr) + ntohs(hdr.tls_length);
+		if (resid <= record_len) {
+			*seqnop = seqno;
+			*residp = record_len - resid;
+			return (true);
+		}
+		resid -= record_len;
+
+		while (record_len != 0) {
+			if (m->m_len - offset > record_len) {
+				offset += record_len;
+				break;
+			}
+
+			record_len -= (m->m_len - offset);
+			offset = 0;
+			m = m->m_next;
+		}
+	}
+}
+
 int
 ktls_enable_rx(struct socket *so, struct tls_enable *en)
 {
@@ -1088,21 +1192,11 @@ ktls_enable_rx(struct socket *so, struct tls_enable *en)
 	if (en->cipher_algorithm == CRYPTO_AES_CBC && !ktls_cbc_enable)
 		return (ENOTSUP);
 
-	/* TLS 1.3 is not yet supported. */
-	if (en->tls_vmajor == TLS_MAJOR_VER_ONE &&
-	    en->tls_vminor == TLS_MINOR_VER_THREE)
-		return (ENOTSUP);
-
 	error = ktls_create_session(so, en, &tls);
 	if (error)
 		return (error);
 
-#ifdef TCP_OFFLOAD
-	error = ktls_try_toe(so, tls, KTLS_RX);
-	if (error)
-#endif
-		error = ktls_try_sw(so, tls, KTLS_RX);
-
+	error = ktls_ocf_try(so, tls, KTLS_RX);
 	if (error) {
 		ktls_cleanup(tls);
 		return (error);
@@ -1120,6 +1214,12 @@ ktls_enable_rx(struct socket *so, struct tls_enable *en)
 		ktls_check_rx(&so->so_rcv);
 	}
 	SOCKBUF_UNLOCK(&so->so_rcv);
+
+#ifdef TCP_OFFLOAD
+	error = ktls_try_toe(so, tls, KTLS_RX);
+	if (error)
+#endif
+		ktls_use_sw(tls);
 
 	counter_u64_add(ktls_offload_total, 1);
 
@@ -1207,45 +1307,86 @@ ktls_enable_tx(struct socket *so, struct tls_enable *en)
 }
 
 int
-ktls_get_rx_mode(struct socket *so)
+ktls_get_rx_mode(struct socket *so, int *modep)
 {
 	struct ktls_session *tls;
-	struct inpcb *inp;
-	int mode;
+	struct inpcb *inp __diagused;
 
 	if (SOLISTENING(so))
 		return (EINVAL);
 	inp = so->so_pcb;
 	INP_WLOCK_ASSERT(inp);
-	SOCKBUF_LOCK(&so->so_rcv);
+	SOCK_RECVBUF_LOCK(so);
 	tls = so->so_rcv.sb_tls_info;
 	if (tls == NULL)
-		mode = TCP_TLS_MODE_NONE;
+		*modep = TCP_TLS_MODE_NONE;
 	else
-		mode = tls->mode;
+		*modep = tls->mode;
+	SOCK_RECVBUF_UNLOCK(so);
+	return (0);
+}
+
+/*
+ * ktls_get_rx_sequence - get the next TCP- and TLS- sequence number.
+ *
+ * This function gets information about the next TCP- and TLS-
+ * sequence number to be processed by the TLS receive worker
+ * thread. The information is extracted from the given "inpcb"
+ * structure. The values are stored in host endian format at the two
+ * given output pointer locations. The TCP sequence number points to
+ * the beginning of the TLS header.
+ *
+ * This function returns zero on success, else a non-zero error code
+ * is returned.
+ */
+int
+ktls_get_rx_sequence(struct inpcb *inp, uint32_t *tcpseq, uint64_t *tlsseq)
+{
+	struct socket *so;
+	struct tcpcb *tp;
+
+	INP_RLOCK(inp);
+	so = inp->inp_socket;
+	if (__predict_false(so == NULL)) {
+		INP_RUNLOCK(inp);
+		return (EINVAL);
+	}
+	if (inp->inp_flags & (INP_TIMEWAIT | INP_DROPPED)) {
+		INP_RUNLOCK(inp);
+		return (ECONNRESET);
+	}
+
+	tp = intotcpcb(inp);
+	MPASS(tp != NULL);
+
+	SOCKBUF_LOCK(&so->so_rcv);
+	*tcpseq = tp->rcv_nxt - so->so_rcv.sb_tlscc;
+	*tlsseq = so->so_rcv.sb_tls_seqno;
 	SOCKBUF_UNLOCK(&so->so_rcv);
-	return (mode);
+
+	INP_RUNLOCK(inp);
+
+	return (0);
 }
 
 int
-ktls_get_tx_mode(struct socket *so)
+ktls_get_tx_mode(struct socket *so, int *modep)
 {
 	struct ktls_session *tls;
-	struct inpcb *inp;
-	int mode;
+	struct inpcb *inp __diagused;
 
 	if (SOLISTENING(so))
 		return (EINVAL);
 	inp = so->so_pcb;
 	INP_WLOCK_ASSERT(inp);
-	SOCKBUF_LOCK(&so->so_snd);
+	SOCK_SENDBUF_LOCK(so);
 	tls = so->so_snd.sb_tls_info;
 	if (tls == NULL)
-		mode = TCP_TLS_MODE_NONE;
+		*modep = TCP_TLS_MODE_NONE;
 	else
-		mode = tls->mode;
-	SOCKBUF_UNLOCK(&so->so_snd);
-	return (mode);
+		*modep = tls->mode;
+	SOCK_SENDBUF_UNLOCK(so);
+	return (0);
 }
 
 /*
@@ -1322,6 +1463,7 @@ ktls_set_tx_mode(struct socket *so, int mode)
 		return (EBUSY);
 	}
 
+	INP_WLOCK(inp);
 	SOCKBUF_LOCK(&so->so_snd);
 	so->so_snd.sb_tls_info = tls_new;
 	if (tls_new->mode != TCP_TLS_MODE_SW)
@@ -1343,7 +1485,6 @@ ktls_set_tx_mode(struct socket *so, int mode)
 	else
 		counter_u64_add(ktls_switch_to_sw, 1);
 
-	INP_WLOCK(inp);
 	return (0);
 }
 
@@ -1467,8 +1608,6 @@ ktls_modify_txrtlmt(struct ktls_session *tls, uint64_t max_pacing_rate)
 		.rate_limit.flags = M_NOWAIT,
 	};
 	struct m_snd_tag *mst;
-	struct ifnet *ifp;
-	int error;
 
 	/* Can't get to the inp, but it should be locked. */
 	/* INP_LOCK_ASSERT(inp); */
@@ -1486,11 +1625,10 @@ ktls_modify_txrtlmt(struct ktls_session *tls, uint64_t max_pacing_rate)
 	}
 
 	MPASS(tls->snd_tag != NULL);
-	MPASS(tls->snd_tag->type == IF_SND_TAG_TYPE_TLS_RATE_LIMIT);
+	MPASS(tls->snd_tag->sw->type == IF_SND_TAG_TYPE_TLS_RATE_LIMIT);
 
 	mst = tls->snd_tag;
-	ifp = mst->ifp;
-	return (ifp->if_snd_tag_modify(mst, &params));
+	return (mst->sw->snd_tag_modify(mst, &params));
 }
 #endif
 #endif
@@ -1498,7 +1636,6 @@ ktls_modify_txrtlmt(struct ktls_session *tls, uint64_t max_pacing_rate)
 void
 ktls_destroy(struct ktls_session *tls)
 {
-	struct rm_priotracker prio;
 
 	if (tls->sequential_records) {
 		struct mbuf *m, *n;
@@ -1515,11 +1652,6 @@ ktls_destroy(struct ktls_session *tls)
 		}
 	}
 	ktls_cleanup(tls);
-	if (tls->be != NULL && ktls_allow_unload) {
-		rm_rlock(&ktls_backends_lock, &prio);
-		tls->be->use_count--;
-		rm_runlock(&ktls_backends_lock, &prio);
-	}
 	uma_zfree(ktls_session_zone, tls);
 }
 
@@ -1559,7 +1691,7 @@ ktls_frame(struct mbuf *top, struct ktls_session *tls, int *enq_cnt,
 	struct mbuf *m;
 	uint64_t *noncep;
 	uint16_t tls_len;
-	int maxlen;
+	int maxlen __diagused;
 
 	maxlen = tls->params.max_frame_len;
 	*enq_cnt = 0;
@@ -1601,7 +1733,7 @@ ktls_frame(struct mbuf *top, struct ktls_session *tls, int *enq_cnt,
 			 *
 			 * Compute the final trailer length assuming
 			 * at most one block of padding.
-			 * tls->params.sb_tls_tlen is the maximum
+			 * tls->params.tls_tlen is the maximum
 			 * possible trailer length (padding + digest).
 			 * delta holds the number of excess padding
 			 * bytes if the maximum were used.  Those
@@ -1822,6 +1954,53 @@ out:
 	return (top);
 }
 
+/*
+ * Determine the length of the trailing zero padding and find the real
+ * record type in the byte before the padding.
+ *
+ * Walking the mbuf chain backwards is clumsy, so another option would
+ * be to scan forwards remembering the last non-zero byte before the
+ * trailer.  However, it would be expensive to scan the entire record.
+ * Instead, find the last non-zero byte of each mbuf in the chain
+ * keeping track of the relative offset of that nonzero byte.
+ *
+ * trail_len is the size of the MAC/tag on input and is set to the
+ * size of the full trailer including padding and the record type on
+ * return.
+ */
+static int
+tls13_find_record_type(struct ktls_session *tls, struct mbuf *m, int tls_len,
+    int *trailer_len, uint8_t *record_typep)
+{
+	char *cp;
+	u_int digest_start, last_offset, m_len, offset;
+	uint8_t record_type;
+
+	digest_start = tls_len - *trailer_len;
+	last_offset = 0;
+	offset = 0;
+	for (; m != NULL && offset < digest_start;
+	     offset += m->m_len, m = m->m_next) {
+		/* Don't look for padding in the tag. */
+		m_len = min(digest_start - offset, m->m_len);
+		cp = mtod(m, char *);
+
+		/* Find last non-zero byte in this mbuf. */
+		while (m_len > 0 && cp[m_len - 1] == 0)
+			m_len--;
+		if (m_len > 0) {
+			record_type = cp[m_len - 1];
+			last_offset = offset + m_len;
+		}
+	}
+	if (last_offset < tls->params.tls_hlen)
+		return (EBADMSG);
+
+	*record_typep = record_type;
+	*trailer_len = tls_len - last_offset + 1;
+	return (0);
+}
+
 static void
 ktls_decrypt(struct socket *so)
 {
@@ -1833,6 +2012,8 @@ ktls_decrypt(struct socket *so)
 	struct mbuf *control, *data, *m;
 	uint64_t seqno;
 	int error, remain, tls_len, trail_len;
+	bool tls13;
+	uint8_t vminor, record_type;
 
 	hdr = (struct tls_record_layer *)tls_header;
 	sb = &so->so_rcv;
@@ -1843,6 +2024,11 @@ ktls_decrypt(struct socket *so)
 	tls = sb->sb_tls_info;
 	MPASS(tls != NULL);
 
+	tls13 = (tls->params.tls_vminor == TLS_MINOR_VER_THREE);
+	if (tls13)
+		vminor = TLS_MINOR_VER_TWO;
+	else
+		vminor = tls->params.tls_vminor;
 	for (;;) {
 		/* Is there enough queued for a TLS header? */
 		if (sb->sb_tlscc < tls->params.tls_hlen)
@@ -1852,7 +2038,9 @@ ktls_decrypt(struct socket *so)
 		tls_len = sizeof(*hdr) + ntohs(hdr->tls_length);
 
 		if (hdr->tls_vmajor != tls->params.tls_vmajor ||
-		    hdr->tls_vminor != tls->params.tls_vminor)
+		    hdr->tls_vminor != vminor)
+			error = EINVAL;
+		else if (tls13 && hdr->tls_type != TLS_RLTYPE_APP)
 			error = EINVAL;
 		else if (tls_len < tls->params.tls_hlen || tls_len >
 		    tls->params.tls_hlen + TLS_MAX_MSG_SIZE_V10_2 +
@@ -1895,6 +2083,13 @@ ktls_decrypt(struct socket *so)
 		SOCKBUF_UNLOCK(sb);
 
 		error = tls->sw_decrypt(tls, hdr, data, seqno, &trail_len);
+		if (error == 0) {
+			if (tls13)
+				error = tls13_find_record_type(tls, data,
+				    tls_len, &trail_len, &record_type);
+			else
+				record_type = hdr->tls_type;
+		}
 		if (error) {
 			counter_u64_add(ktls_offload_failed_crypto, 1);
 
@@ -1927,7 +2122,8 @@ ktls_decrypt(struct socket *so)
 		}
 
 		/* Allocate the control mbuf. */
-		tgr.tls_type = hdr->tls_type;
+		memset(&tgr, 0, sizeof(tgr));
+		tgr.tls_type = record_type;
 		tgr.tls_vmajor = hdr->tls_vmajor;
 		tgr.tls_vminor = hdr->tls_vminor;
 		tgr.tls_length = htobe16(tls_len - tls->params.tls_hlen -
@@ -1999,7 +2195,6 @@ deref:
 	SOCKBUF_UNLOCK_ASSERT(sb);
 
 	CURVNET_SET(so->so_vnet);
-	SOCK_LOCK(so);
 	sorele(so);
 	CURVNET_RESTORE();
 }
@@ -2019,6 +2214,108 @@ ktls_enqueue_to_free(struct mbuf *m)
 	mtx_unlock(&wq->mtx);
 	if (!running)
 		wakeup(wq);
+}
+
+static void *
+ktls_buffer_alloc(struct ktls_wq *wq, struct mbuf *m)
+{
+	void *buf;
+	int domain, running;
+
+	if (m->m_epg_npgs <= 2)
+		return (NULL);
+	if (ktls_buffer_zone == NULL)
+		return (NULL);
+	if ((u_int)(ticks - wq->lastallocfail) < hz) {
+		/*
+		 * Rate-limit allocation attempts after a failure.
+		 * ktls_buffer_import() will acquire a per-domain mutex to check
+		 * the free page queues and may fail consistently if memory is
+		 * fragmented.
+		 */
+		return (NULL);
+	}
+	buf = uma_zalloc(ktls_buffer_zone, M_NOWAIT | M_NORECLAIM);
+	if (buf == NULL) {
+		domain = PCPU_GET(domain);
+		wq->lastallocfail = ticks;
+
+		/*
+		 * Note that this check is "racy", but the races are
+		 * harmless, and are either a spurious wakeup if
+		 * multiple threads fail allocations before the alloc
+		 * thread wakes, or waiting an extra second in case we
+		 * see an old value of running == true.
+		 */
+		if (!VM_DOMAIN_EMPTY(domain)) {
+			running = atomic_load_int(&ktls_domains[domain].alloc_td.running);
+			if (!running)
+				wakeup(&ktls_domains[domain].alloc_td);
+		}
+	}
+	return (buf);
+}
+
+static int
+ktls_encrypt_record(struct ktls_wq *wq, struct mbuf *m,
+    struct ktls_session *tls, struct ktls_ocf_encrypt_state *state)
+{
+	vm_page_t pg;
+	int error, i, len, off;
+
+	KASSERT((m->m_flags & (M_EXTPG | M_NOTREADY)) == (M_EXTPG | M_NOTREADY),
+	    ("%p not unready & nomap mbuf\n", m));
+	KASSERT(ptoa(m->m_epg_npgs) <= ktls_maxlen,
+	    ("page count %d larger than maximum frame length %d", m->m_epg_npgs,
+	    ktls_maxlen));
+
+	/* Anonymous mbufs are encrypted in place. */
+	if ((m->m_epg_flags & EPG_FLAG_ANON) != 0)
+		return (tls->sw_encrypt(state, tls, m, NULL, 0));
+
+	/*
+	 * For file-backed mbufs (from sendfile), anonymous wired
+	 * pages are allocated and used as the encryption destination.
+	 */
+	if ((state->cbuf = ktls_buffer_alloc(wq, m)) != NULL) {
+		len = ptoa(m->m_epg_npgs - 1) + m->m_epg_last_len -
+		    m->m_epg_1st_off;
+		state->dst_iov[0].iov_base = (char *)state->cbuf +
+		    m->m_epg_1st_off;
+		state->dst_iov[0].iov_len = len;
+		state->parray[0] = DMAP_TO_PHYS((vm_offset_t)state->cbuf);
+		i = 1;
+	} else {
+		off = m->m_epg_1st_off;
+		for (i = 0; i < m->m_epg_npgs; i++, off = 0) {
+			pg = vm_page_alloc_noobj(VM_ALLOC_NODUMP |
+			    VM_ALLOC_WIRED | VM_ALLOC_WAITOK);
+			len = m_epg_pagelen(m, i, off);
+			state->parray[i] = VM_PAGE_TO_PHYS(pg);
+			state->dst_iov[i].iov_base =
+			    (char *)PHYS_TO_DMAP(state->parray[i]) + off;
+			state->dst_iov[i].iov_len = len;
+		}
+	}
+	KASSERT(i + 1 <= nitems(state->dst_iov), ("dst_iov is too small"));
+	state->dst_iov[i].iov_base = m->m_epg_trail;
+	state->dst_iov[i].iov_len = m->m_epg_trllen;
+
+	error = tls->sw_encrypt(state, tls, m, state->dst_iov, i + 1);
+
+	if (__predict_false(error != 0)) {
+		/* Free the anonymous pages. */
+		if (state->cbuf != NULL)
+			uma_zfree(ktls_buffer_zone, state->cbuf);
+		else {
+			for (i = 0; i < m->m_epg_npgs; i++) {
+				pg = PHYS_TO_VM_PAGE(state->parray[i]);
+				(void)vm_page_unwire_noq(pg);
+				vm_page_free(pg);
+			}
+		}
+	}
+	return (error);
 }
 
 /* Number of TLS records in a batch passed to ktls_enqueue(). */
@@ -2137,18 +2434,48 @@ ktls_enqueue(struct mbuf *m, struct socket *so, int page_count)
 	counter_u64_add(ktls_cnt_tx_queued, queued);
 }
 
-static __noinline void
-ktls_encrypt(struct mbuf *top)
+/*
+ * Once a file-backed mbuf (from sendfile) has been encrypted, free
+ * the pages from the file and replace them with the anonymous pages
+ * allocated in ktls_encrypt_record().
+ */
+static void
+ktls_finish_nonanon(struct mbuf *m, struct ktls_ocf_encrypt_state *state)
 {
+	int i;
+
+	MPASS((m->m_epg_flags & EPG_FLAG_ANON) == 0);
+
+	/* Free the old pages. */
+	m->m_ext.ext_free(m);
+
+	/* Replace them with the new pages. */
+	if (state->cbuf != NULL) {
+		for (i = 0; i < m->m_epg_npgs; i++)
+			m->m_epg_pa[i] = state->parray[0] + ptoa(i);
+
+		/* Contig pages should go back to the cache. */
+		m->m_ext.ext_free = ktls_free_mext_contig;
+	} else {
+		for (i = 0; i < m->m_epg_npgs; i++)
+			m->m_epg_pa[i] = state->parray[i];
+
+		/* Use the basic free routine. */
+		m->m_ext.ext_free = mb_free_mext_pgs;
+	}
+
+	/* Pages are now writable. */
+	m->m_epg_flags |= EPG_FLAG_ANON;
+}
+
+static __noinline void
+ktls_encrypt(struct ktls_wq *wq, struct mbuf *top)
+{
+	struct ktls_ocf_encrypt_state state;
 	struct ktls_session *tls;
 	struct socket *so;
 	struct mbuf *m;
-	vm_paddr_t parray[1 + btoc(TLS_MAX_MSG_SIZE_V10_2)];
-	struct iovec src_iov[1 + btoc(TLS_MAX_MSG_SIZE_V10_2)];
-	struct iovec dst_iov[1 + btoc(TLS_MAX_MSG_SIZE_V10_2)];
-	vm_page_t pg;
-	int error, i, len, npages, off, total_pages;
-	bool is_anon;
+	int error, npages, total_pages;
 
 	so = top->m_epg_so;
 	tls = top->m_epg_tls;
@@ -2182,79 +2509,20 @@ ktls_encrypt(struct mbuf *top)
 		KASSERT(m->m_epg_tls == tls,
 		    ("different TLS sessions in a single mbuf chain: %p vs %p",
 		    tls, m->m_epg_tls));
-		KASSERT((m->m_flags & (M_EXTPG | M_NOTREADY)) ==
-		    (M_EXTPG | M_NOTREADY),
-		    ("%p not unready & nomap mbuf (top = %p)\n", m, top));
 		KASSERT(npages + m->m_epg_npgs <= total_pages,
 		    ("page count mismatch: top %p, total_pages %d, m %p", top,
 		    total_pages, m));
 
-		/*
-		 * Generate source and destination ivoecs to pass to
-		 * the SW encryption backend.  For writable mbufs, the
-		 * destination iovec is a copy of the source and
-		 * encryption is done in place.  For file-backed mbufs
-		 * (from sendfile), anonymous wired pages are
-		 * allocated and assigned to the destination iovec.
-		 */
-		is_anon = (m->m_epg_flags & EPG_FLAG_ANON) != 0;
-
-		off = m->m_epg_1st_off;
-		for (i = 0; i < m->m_epg_npgs; i++, off = 0) {
-			len = m_epg_pagelen(m, i, off);
-			src_iov[i].iov_len = len;
-			src_iov[i].iov_base =
-			    (char *)(void *)PHYS_TO_DMAP(m->m_epg_pa[i]) +
-				off;
-
-			if (is_anon) {
-				dst_iov[i].iov_base = src_iov[i].iov_base;
-				dst_iov[i].iov_len = src_iov[i].iov_len;
-				continue;
-			}
-retry_page:
-			pg = vm_page_alloc_noobj(VM_ALLOC_NODUMP |
-			    VM_ALLOC_WIRED);
-			if (pg == NULL) {
-				vm_wait(NULL);
-				goto retry_page;
-			}
-			parray[i] = VM_PAGE_TO_PHYS(pg);
-			dst_iov[i].iov_base =
-			    (char *)(void *)PHYS_TO_DMAP(parray[i]) + off;
-			dst_iov[i].iov_len = len;
-		}
-
-		npages += m->m_epg_nrdy;
-
-		error = (*tls->sw_encrypt)(tls,
-		    (const struct tls_record_layer *)m->m_epg_hdr,
-		    m->m_epg_trail, src_iov, dst_iov, i, m->m_epg_seqno,
-		    m->m_epg_record_type);
+		error = ktls_encrypt_record(wq, m, tls, &state);
 		if (error) {
 			counter_u64_add(ktls_offload_failed_crypto, 1);
 			break;
 		}
 
-		/*
-		 * For file-backed mbufs, release the file-backed
-		 * pages and replace them in the ext_pgs array with
-		 * the anonymous wired pages allocated above.
-		 */
-		if (!is_anon) {
-			/* Free the old pages. */
-			m->m_ext.ext_free(m);
+		if ((m->m_epg_flags & EPG_FLAG_ANON) == 0)
+			ktls_finish_nonanon(m, &state);
 
-			/* Replace them with the new pages. */
-			for (i = 0; i < m->m_epg_npgs; i++)
-				m->m_epg_pa[i] = parray[i];
-
-			/* Use the basic free routine. */
-			m->m_ext.ext_free = mb_free_mext_pgs;
-
-			/* Pages are now writable. */
-			m->m_epg_flags |= EPG_FLAG_ANON;
-		}
+		npages += m->m_epg_nrdy;
 
 		/*
 		 * Drop a reference to the session now that it is no
@@ -2276,9 +2544,193 @@ retry_page:
 		mb_free_notready(top, total_pages);
 	}
 
-	SOCK_LOCK(so);
 	sorele(so);
 	CURVNET_RESTORE();
+}
+
+void
+ktls_encrypt_cb(struct ktls_ocf_encrypt_state *state, int error)
+{
+	struct ktls_session *tls;
+	struct socket *so;
+	struct mbuf *m;
+	int npages;
+
+	m = state->m;
+
+	if ((m->m_epg_flags & EPG_FLAG_ANON) == 0)
+		ktls_finish_nonanon(m, state);
+
+	so = state->so;
+	free(state, M_KTLS);
+
+	/*
+	 * Drop a reference to the session now that it is no longer
+	 * needed.  Existing code depends on encrypted records having
+	 * no associated session vs yet-to-be-encrypted records having
+	 * an associated session.
+	 */
+	tls = m->m_epg_tls;
+	m->m_epg_tls = NULL;
+	ktls_free(tls);
+
+	if (error != 0)
+		counter_u64_add(ktls_offload_failed_crypto, 1);
+
+	CURVNET_SET(so->so_vnet);
+	npages = m->m_epg_nrdy;
+
+	if (error == 0) {
+		(void)(*so->so_proto->pr_usrreqs->pru_ready)(so, m, npages);
+	} else {
+		so->so_proto->pr_usrreqs->pru_abort(so);
+		so->so_error = EIO;
+		mb_free_notready(m, npages);
+	}
+
+	sorele(so);
+	CURVNET_RESTORE();
+}
+
+/*
+ * Similar to ktls_encrypt, but used with asynchronous OCF backends
+ * (coprocessors) where encryption does not use host CPU resources and
+ * it can be beneficial to queue more requests than CPUs.
+ */
+static __noinline void
+ktls_encrypt_async(struct ktls_wq *wq, struct mbuf *top)
+{
+	struct ktls_ocf_encrypt_state *state;
+	struct ktls_session *tls;
+	struct socket *so;
+	struct mbuf *m, *n;
+	int error, mpages, npages, total_pages;
+
+	so = top->m_epg_so;
+	tls = top->m_epg_tls;
+	KASSERT(tls != NULL, ("tls = NULL, top = %p\n", top));
+	KASSERT(so != NULL, ("so = NULL, top = %p\n", top));
+#ifdef INVARIANTS
+	top->m_epg_so = NULL;
+#endif
+	total_pages = top->m_epg_enc_cnt;
+	npages = 0;
+
+	error = 0;
+	for (m = top; npages != total_pages; m = n) {
+		KASSERT(m->m_epg_tls == tls,
+		    ("different TLS sessions in a single mbuf chain: %p vs %p",
+		    tls, m->m_epg_tls));
+		KASSERT(npages + m->m_epg_npgs <= total_pages,
+		    ("page count mismatch: top %p, total_pages %d, m %p", top,
+		    total_pages, m));
+
+		state = malloc(sizeof(*state), M_KTLS, M_WAITOK | M_ZERO);
+		soref(so);
+		state->so = so;
+		state->m = m;
+
+		mpages = m->m_epg_nrdy;
+		n = m->m_next;
+
+		error = ktls_encrypt_record(wq, m, tls, state);
+		if (error) {
+			counter_u64_add(ktls_offload_failed_crypto, 1);
+			free(state, M_KTLS);
+			CURVNET_SET(so->so_vnet);
+			sorele(so);
+			CURVNET_RESTORE();
+			break;
+		}
+
+		npages += mpages;
+	}
+
+	CURVNET_SET(so->so_vnet);
+	if (error != 0) {
+		so->so_proto->pr_usrreqs->pru_abort(so);
+		so->so_error = EIO;
+		mb_free_notready(m, total_pages - npages);
+	}
+
+	sorele(so);
+	CURVNET_RESTORE();
+}
+
+static int
+ktls_bind_domain(int domain)
+{
+	int error;
+
+	error = cpuset_setthread(curthread->td_tid, &cpuset_domain[domain]);
+	if (error != 0)
+		return (error);
+	curthread->td_domain.dr_policy = DOMAINSET_PREF(domain);
+	return (0);
+}
+
+static void
+ktls_alloc_thread(void *ctx)
+{
+	struct ktls_domain_info *ktls_domain = ctx;
+	struct ktls_alloc_thread *sc = &ktls_domain->alloc_td;
+	void **buf;
+	struct sysctl_oid *oid;
+	char name[80];
+	int domain, error, i, nbufs;
+
+	domain = ktls_domain - ktls_domains;
+	if (bootverbose)
+		printf("Starting KTLS alloc thread for domain %d\n", domain);
+	error = ktls_bind_domain(domain);
+	if (error)
+		printf("Unable to bind KTLS alloc thread for domain %d: error %d\n",
+		    domain, error);
+	snprintf(name, sizeof(name), "domain%d", domain);
+	oid = SYSCTL_ADD_NODE(NULL, SYSCTL_STATIC_CHILDREN(_kern_ipc_tls), OID_AUTO,
+	    name, CTLFLAG_RD | CTLFLAG_MPSAFE, NULL, "");
+	SYSCTL_ADD_U64(NULL, SYSCTL_CHILDREN(oid), OID_AUTO, "allocs",
+	    CTLFLAG_RD,  &sc->allocs, 0, "buffers allocated");
+	SYSCTL_ADD_U64(NULL, SYSCTL_CHILDREN(oid), OID_AUTO, "wakeups",
+	    CTLFLAG_RD,  &sc->wakeups, 0, "thread wakeups");
+	SYSCTL_ADD_INT(NULL, SYSCTL_CHILDREN(oid), OID_AUTO, "running",
+	    CTLFLAG_RD,  &sc->running, 0, "thread running");
+
+	buf = NULL;
+	nbufs = 0;
+	for (;;) {
+		atomic_store_int(&sc->running, 0);
+		tsleep(sc, PZERO | PNOLOCK, "-",  0);
+		atomic_store_int(&sc->running, 1);
+		sc->wakeups++;
+		if (nbufs != ktls_max_alloc) {
+			free(buf, M_KTLS);
+			nbufs = atomic_load_int(&ktls_max_alloc);
+			buf = malloc(sizeof(void *) * nbufs, M_KTLS,
+			    M_WAITOK | M_ZERO);
+		}
+		/*
+		 * Below we allocate nbufs with different allocation
+		 * flags than we use when allocating normally during
+		 * encryption in the ktls worker thread.  We specify
+		 * M_NORECLAIM in the worker thread. However, we omit
+		 * that flag here and add M_WAITOK so that the VM
+		 * system is permitted to perform expensive work to
+		 * defragment memory.  We do this here, as it does not
+		 * matter if this thread blocks.  If we block a ktls
+		 * worker thread, we risk developing backlogs of
+		 * buffers to be encrypted, leading to surges of
+		 * traffic and potential NIC output drops.
+		 */
+		for (i = 0; i < nbufs; i++) {
+			buf[i] = uma_zalloc(ktls_buffer_zone, M_WAITOK);
+			sc->allocs++;
+		}
+		for (i = 0; i < nbufs; i++) {
+			uma_zfree(ktls_buffer_zone, buf[i]);
+			buf[i] = NULL;
+		}
+	}
 }
 
 static void
@@ -2289,10 +2741,32 @@ ktls_work_thread(void *ctx)
 	struct socket *so, *son;
 	STAILQ_HEAD(, mbuf) local_m_head;
 	STAILQ_HEAD(, socket) local_so_head;
+	int cpu;
 
-	if (ktls_bind_threads > 1) {
-		curthread->td_domain.dr_policy =
-			DOMAINSET_PREF(PCPU_GET(domain));
+	cpu = wq - ktls_wq;
+	if (bootverbose)
+		printf("Starting KTLS worker thread for CPU %d\n", cpu);
+
+	/*
+	 * Bind to a core.  If ktls_bind_threads is > 1, then
+	 * we bind to the NUMA domain instead.
+	 */
+	if (ktls_bind_threads) {
+		int error;
+
+		if (ktls_bind_threads > 1) {
+			struct pcpu *pc = pcpu_find(cpu);
+
+			error = ktls_bind_domain(pc->pc_domain);
+		} else {
+			cpuset_t mask;
+
+			CPU_SETOF(cpu, &mask);
+			error = cpuset_setthread(curthread->td_tid, &mask);
+		}
+		if (error)
+			printf("Unable to bind KTLS worker thread for CPU %d: error %d\n",
+				cpu, error);
 	}
 #if defined(__aarch64__) || defined(__amd64__) || defined(__i386__)
 	fpu_kern_thread(0);
@@ -2317,7 +2791,10 @@ ktls_work_thread(void *ctx)
 				ktls_free(m->m_epg_tls);
 				m_free_raw(m);
 			} else {
-				ktls_encrypt(m);
+				if (m->m_epg_tls->sync_dispatch)
+					ktls_encrypt(wq, m);
+				else
+					ktls_encrypt_async(wq, m);
 				counter_u64_add(ktls_cnt_tx_queued, -1);
 			}
 		}
@@ -2328,3 +2805,95 @@ ktls_work_thread(void *ctx)
 		}
 	}
 }
+
+#if defined(INET) || defined(INET6)
+static void
+ktls_disable_ifnet_help(void *context, int pending __unused)
+{
+	struct ktls_session *tls;
+	struct inpcb *inp;
+	struct tcpcb *tp;
+	struct socket *so;
+	int err;
+
+	tls = context;
+	inp = tls->inp;
+	if (inp == NULL)
+		return;
+	INP_WLOCK(inp);
+	so = inp->inp_socket;
+	MPASS(so != NULL);
+	if (inp->inp_flags & (INP_TIMEWAIT | INP_DROPPED)) {
+		goto out;
+	}
+
+	if (so->so_snd.sb_tls_info != NULL)
+		err = ktls_set_tx_mode(so, TCP_TLS_MODE_SW);
+	else
+		err = ENXIO;
+	if (err == 0) {
+		counter_u64_add(ktls_ifnet_disable_ok, 1);
+		/* ktls_set_tx_mode() drops inp wlock, so recheck flags */
+		if ((inp->inp_flags & (INP_TIMEWAIT | INP_DROPPED)) == 0 &&
+		    (tp = intotcpcb(inp)) != NULL &&
+		    tp->t_fb->tfb_hwtls_change != NULL)
+			(*tp->t_fb->tfb_hwtls_change)(tp, 0);
+	} else {
+		counter_u64_add(ktls_ifnet_disable_fail, 1);
+	}
+
+out:
+	sorele(so);
+	if (!in_pcbrele_wlocked(inp))
+		INP_WUNLOCK(inp);
+	ktls_free(tls);
+}
+
+/*
+ * Called when re-transmits are becoming a substantial portion of the
+ * sends on this connection.  When this happens, we transition the
+ * connection to software TLS.  This is needed because most inline TLS
+ * NICs keep crypto state only for in-order transmits.  This means
+ * that to handle a TCP rexmit (which is out-of-order), the NIC must
+ * re-DMA the entire TLS record up to and including the current
+ * segment.  This means that when re-transmitting the last ~1448 byte
+ * segment of a 16KB TLS record, we could wind up re-DMA'ing an order
+ * of magnitude more data than we are sending.  This can cause the
+ * PCIe link to saturate well before the network, which can cause
+ * output drops, and a general loss of capacity.
+ */
+void
+ktls_disable_ifnet(void *arg)
+{
+	struct tcpcb *tp;
+	struct inpcb *inp;
+	struct socket *so;
+	struct ktls_session *tls;
+
+	tp = arg;
+	inp = tp->t_inpcb;
+	INP_WLOCK_ASSERT(inp);
+	so = inp->inp_socket;
+	SOCK_LOCK(so);
+	tls = so->so_snd.sb_tls_info;
+	if (tls->disable_ifnet_pending) {
+		SOCK_UNLOCK(so);
+		return;
+	}
+
+	/*
+	 * note that disable_ifnet_pending is never cleared; disabling
+	 * ifnet can only be done once per session, so we never want
+	 * to do it again
+	 */
+
+	(void)ktls_hold(tls);
+	in_pcbref(inp);
+	soref(so);
+	tls->disable_ifnet_pending = true;
+	tls->inp = inp;
+	SOCK_UNLOCK(so);
+	TASK_INIT(&tls->disable_ifnet_task, 0, ktls_disable_ifnet_help, tls);
+	(void)taskqueue_enqueue(taskqueue_thread, &tls->disable_ifnet_task);
+}
+#endif

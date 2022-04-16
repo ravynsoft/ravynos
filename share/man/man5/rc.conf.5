@@ -24,7 +24,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd March 9, 2022
+.Dd March 3, 2022
 .Dt RC.CONF 5
 .Os
 .Sh NAME
@@ -192,24 +192,53 @@ services are enabled that utilize the force_depend check.
 .Pq Vt str
 .Xr chroot 8
 to this directory before running the service.
-.It Ao Ar name Ac Ns Va _user
-.Pq Vt str
-Run the service under this user account.
-.It Ao Ar name Ac Ns Va _group
-.Pq Vt str
-Run the chrooted service under this system group.
-Unlike the _user
-setting, this setting has no effect if the service is not chrooted.
 .It Ao Ar name Ac Ns Va _fib
 .Pq Vt int
 The
 .Xr setfib 1
 value to run the service under.
+.It Ao Ar name Ac Ns Va _group
+.Pq Vt str
+Run the chrooted service under this system group.
+Unlike the
+.Ao Ar name Ac Ns Va _user
+setting, this setting has no effect if the service is not chrooted.
+.It Ao Ar name Ac Ns Va _limits
+.Pq Vt str
+Resource limits to apply to the service using
+.Xr limits 1 .
+By default, resource limits are based on the login class defined in
+.Ao Ar name Ac Ns Va _login_class .
+.It Ao Ar name Ac Ns Va _login_class
+.Pq Vt str
+Login class to be used with
+.Ao Ar name Ac Ns Va _limits .
+Defaults to
+.Dq Li daemon .
 .It Ao Ar name Ac Ns Va _nice
 .Pq Vt int
 The
 .Xr nice 1
 value to run the service under.
+.It Ao Ar name Ac Ns Va _oomprotect
+Use
+.Xr protect 1
+to prevent the service from being killed when swap space
+is exhausted.
+Use
+.Dq Li YES
+to protect only the service itself, and
+.Dq Li ALL
+to protect the service and all child processes.
+.Pp
+Please note rc scripts that redefine
+.Bd -literal
+${name}_cmd
+.Ed
+such as PostgreSQL will not inherit the OOM killer protection.
+.It Ao Ar name Ac Ns Va _user
+.Pq Vt str
+Run the service under this user account.
 .It Va apm_enable
 .Pq Vt bool
 If set to
@@ -261,6 +290,12 @@ disable auto-loading of kernel modules with
 .Pq Vt str
 A whitespace-separated list of kernel modules to be ignored by
 .Xr devmatch 8 .
+In addition, the
+.Xr kenv 1
+.Va devmatch_blocklist
+is appended to this variable to allow disabling of
+.Xr devmatch 8
+loaded modules from the boot loader.
 .It Va devmatch_blacklist
 .Pq Vt str
 This variable is deprecated.
@@ -539,7 +574,7 @@ Valid selections from
 .Pa /etc/rc.firewall
 are:
 .Pp
-.Bl -tag -width ".Li simple" -compact
+.Bl -tag -width ".Li workstation" -compact
 .It Li open
 unrestricted IP access
 .It Li closed
@@ -547,12 +582,18 @@ all IP services disabled, except via
 .Dq Li lo0
 .It Li client
 basic protection for a workstation
+.It Li workstation
+basic protection for a workstation using stateful firewalling
 .It Li simple
 basic protection for a LAN.
 .El
 .Pp
 If a filename is specified, the full path
 must be given.
+.Pp
+Most of the predefined rulesets define additional configuration variables.
+These are documented in
+.Pa /etc/rc.firewall .
 .It Va firewall_quiet
 .Pq Vt bool
 Set to
@@ -795,16 +836,6 @@ Set to
 .Pa /etc/ipf.rules
 by default.
 This variable contains the name of the filter rule definition file.
-The file is expected to be readable for the
-.Xr ipf 8
-command to execute.
-.\" ----- ipv6_ipfilter_rules setting ---------------------------
-.It Va ipv6_ipfilter_rules
-.Pq Vt str
-Set to
-.Pa /etc/ipf6.rules
-by default.
-This variable contains the IPv6 filter rule definition file.
 The file is expected to be readable for the
 .Xr ipf 8
 command to execute.
@@ -1431,7 +1462,7 @@ ifconfig_em0_aliases="\\
 It also supports CIDR notation.
 .Pp
 If the
-.Pa /etc/start_if. Ns Aq Ar interface
+.Pa /etc/start_if . Ns Aq Ar interface
 file is present, it is read and executed by the
 .Xr sh 1
 interpreter
@@ -1557,7 +1588,7 @@ will use the settings from
 Finally, you can add
 .Xr ifconfig 8
 options in this variable, in addition to the
-.Pa /etc/start_if. Ns Aq Ar interface
+.Pa /etc/start_if . Ns Aq Ar interface
 file.
 For instance, to configure an
 .Xr ath 4
@@ -1927,16 +1958,16 @@ The value of this variable is used to configure the link layer of the
 tunnel using the
 .Cm tunnel
 option to
-.Xr ifconfig .
+.Xr ifconfig 8 .
 Additionally, this option ensures that each listed interface is created
 via the
 .Cm create
 option to
-.Xr ifconfig
+.Xr ifconfig 8
 before attempting to configure it.
 .Pp
 For example, configure two
-.Xr gif
+.Xr gif 4
 interfaces with:
 .Bd -literal
 gif_interfaces="gif0 gif1"
@@ -1945,21 +1976,6 @@ ifconfig_gif0="inet 10.0.0.1 10.0.0.2 netmask 255.255.255.252"
 gifconfig_gif1="inet6 2a00::1 2a01::1"
 ifconfig_gif1="inet 10.1.0.1 10.1.0.2 netmask 255.255.255.252"
 .Ed
-.It Va sppp_interfaces
-.Pq Vt str
-Set to the list of
-.Xr sppp 4
-interfaces to configure on this host.
-A
-.Va spppconfig_ Ns Aq Ar interface
-variable is assumed to exist for each value of
-.Ar interface .
-Each interface should also be configured by a general
-.Va ifconfig_ Ns Aq Ar interface
-setting.
-Refer to
-.Xr spppcontrol 8
-for more information about available options.
 .It Va ppp_enable
 .Pq Vt bool
 If set to
@@ -2620,29 +2636,6 @@ This is mandatory when
 .Va pppoed_enable
 is set to
 .Dq Li YES .
-.It Va timed_enable
-.Pq Vt bool
-If set to
-.Dq Li YES ,
-run the
-.Xr timed 8
-service at boot time.
-This command is intended for networks of
-machines where a consistent
-.Dq "network time"
-for all hosts must be established.
-This is often useful in large NFS
-environments where time stamps on files are expected to be consistent
-network-wide.
-.It Va timed_flags
-.Pq Vt str
-If
-.Va timed_enable
-is set to
-.Dq Li YES ,
-these are the flags to pass to the
-.Xr timed 8
-service.
 .It Va ntpdate_enable
 .Pq Vt bool
 If set to
@@ -2864,10 +2857,19 @@ If not set to
 create a default route to this host name or IP address
 (use an IP address if this router is also required to get to the
 name server!).
+.It Va defaultrouter_fibN
+.Pq Vt str
+If not set to
+.Dq Li NO ,
+create a default route in FIB N to this host name or IP address.
 .It Va ipv6_defaultrouter
 .Pq Vt str
 The IPv6 equivalent of
 .Va defaultrouter .
+.It Va ipv6_defaultrouter_fibN
+.Pq Vt str
+The IPv6 equivalent of
+.Va defaultrouter_fibN .
 .It Va static_arp_pairs
 .Pq Vt str
 Set to the list of static ARP pairs that are to be added at system
@@ -3955,7 +3957,7 @@ For backward compatibility,
 when per-jail configuration variables are defined,
 .Xr jail 8
 configuration files are created as
-.Pa /var/run/jail. Ns Ao Ar jname Ac Ns Pa .conf
+.Pa /var/run/jail . Ns Ao Ar jname Ac Ns Pa .conf
 and used.
 .Pp
 The following per-jail parameters are handled by
@@ -4676,7 +4678,8 @@ The default is 10.
 .Xr gdb 1 ,
 .Xr info 1 ,
 .Xr kbdcontrol 1 ,
-.Xr makewhatis 1 ,
+.Xr limits 1 ,
+.Xr protect 1 ,
 .Xr sh 1 ,
 .Xr vi 1 ,
 .Xr vidcontrol 1 ,
@@ -4698,10 +4701,14 @@ The default is 10.
 .Xr ipnat 5 ,
 .Xr jail.conf 5 ,
 .Xr loader.conf 5 ,
+.Xr login.conf 5 ,
 .Xr motd 5 ,
 .Xr newsyslog.conf 5 ,
 .Xr pf.conf 5 ,
+.Xr firewall 7 ,
+.Xr growfs 7 ,
 .Xr security 7 ,
+.Xr tuning 7 ,
 .Xr accton 8 ,
 .Xr apm 8 ,
 .Xr bsdinstall 8 ,
@@ -4724,6 +4731,7 @@ The default is 10.
 .Xr kldxref 8 ,
 .Xr loader 8 ,
 .Xr lpd 8 ,
+.Xr makewhatis 8 ,
 .Xr mdconfig 8 ,
 .Xr mdmfs 8 ,
 .Xr mixer 8 ,
@@ -4742,6 +4750,8 @@ The default is 10.
 .Xr quotaon 8 ,
 .Xr rc 8 ,
 .Xr rc.sendmail 8 ,
+.Xr rc.subr 8 ,
+.Xr rcorder 8 ,
 .Xr rfcomm_pppd 8 ,
 .Xr route 8 ,
 .Xr routed 8 ,
@@ -4759,7 +4769,6 @@ The default is 10.
 .Xr sysctl 8 ,
 .Xr syslogd 8 ,
 .Xr sysrc 8 ,
-.Xr timed 8 ,
 .Xr unbound 8 ,
 .Xr usbconfig 8 ,
 .Xr wlandebug 8 ,

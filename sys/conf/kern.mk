@@ -3,7 +3,7 @@
 #
 # Warning flags for compiling the kernel and components of the kernel:
 #
-CWARNFLAGS?=	-Wall -Wredundant-decls -Wnested-externs -Wstrict-prototypes \
+CWARNFLAGS?=	-Wall -Wnested-externs -Wstrict-prototypes \
 		-Wmissing-prototypes -Wpointer-arith -Wcast-qual \
 		-Wundef -Wno-pointer-sign ${FORMAT_EXTENSIONS} \
 		-Wmissing-include-dirs -fdiagnostics-show-option \
@@ -28,6 +28,9 @@ NO_WTAUTOLOGICAL_POINTER_COMPARE= -Wno-tautological-pointer-compare
 .if ${COMPILER_VERSION} >= 100000
 NO_WMISLEADING_INDENTATION=	-Wno-misleading-indentation
 .endif
+.if ${COMPILER_VERSION} >= 130000
+NO_WUNUSED_BUT_SET_VARIABLE=	-Wno-unused-but-set-variable
+.endif
 .if ${COMPILER_VERSION} >= 140000
 NO_WBITWISE_INSTEAD_OF_LOGICAL=	-Wno-bitwise-instead-of-logical
 .endif
@@ -40,14 +43,18 @@ CWARNEXTRA?=	-Wno-error=tautological-compare -Wno-error=empty-body \
 CWARNEXTRA+=	-Wno-error=shift-negative-value
 CWARNEXTRA+=	-Wno-address-of-packed-member
 .if ${COMPILER_VERSION} >= 130000
-CWARNFLAGS+=	-Wno-error=unused-but-set-variable
+.if ${MK_SET_BUT_NOTUSED_KERNEL_WARNINGS} == "no"
+CWARNEXTRA+=	${NO_WUNUSED_BUT_SET_VARIABLE}
+.else
+CWARNEXTRA+=	-Wno-error=unused-but-set-variable
+.endif
 .endif
 .endif	# clang
 
 .if ${COMPILER_TYPE} == "gcc"
 # Catch-all for all the things that are in our tree, but for which we're
 # not yet ready for this compiler.
-NO_WUNUSED_BUT_SET_VARIABLE = -Wno-unused-but-set-variable
+NO_WUNUSED_BUT_SET_VARIABLE=-Wno-unused-but-set-variable
 CWARNEXTRA?=	-Wno-error=address				\
 		-Wno-error=aggressive-loop-optimizations	\
 		-Wno-error=array-bounds				\
@@ -72,8 +79,13 @@ CWARNEXTRA+=	-Wno-error=memset-elt-size
 CWARNEXTRA+=	-Wno-error=packed-not-aligned
 .endif
 .if ${COMPILER_VERSION} >= 90100
-CWARNEXTRA+=	-Wno-address-of-packed-member
+CWARNEXTRA+=	-Wno-address-of-packed-member			\
+		-Wno-error=alloca-larger-than=
 .endif
+
+# GCC produces false positives for functions that switch on an
+# enum (GCC bug 87950)
+CWARNFLAGS+=	-Wno-return-type
 .endif	# gcc
 
 # This warning is utter nonsense
@@ -195,14 +207,6 @@ CFLAGS+=	-mabi=elfv2
 .endif
 
 #
-# For MIPS we also tell gcc to use floating point emulation
-#
-.if ${MACHINE_CPUARCH} == "mips"
-CFLAGS+=	-msoft-float
-INLINE_LIMIT?=	8000
-.endif
-
-#
 # GCC 3.0 and above like to do certain optimizations based on the
 # assumption that the program is linked against libc.  Stop this.
 #
@@ -309,16 +313,6 @@ LD_EMULATION_arm=armelf_fbsd
 LD_EMULATION_armv6=armelf_fbsd
 LD_EMULATION_armv7=armelf_fbsd
 LD_EMULATION_i386=elf_i386_fbsd
-LD_EMULATION_mips= elf32btsmip_fbsd
-LD_EMULATION_mipshf= elf32btsmip_fbsd
-LD_EMULATION_mips64= elf64btsmip_fbsd
-LD_EMULATION_mips64hf= elf64btsmip_fbsd
-LD_EMULATION_mipsel= elf32ltsmip_fbsd
-LD_EMULATION_mipselhf= elf32ltsmip_fbsd
-LD_EMULATION_mips64el= elf64ltsmip_fbsd
-LD_EMULATION_mips64elhf= elf64ltsmip_fbsd
-LD_EMULATION_mipsn32= elf32btsmipn32_fbsd
-LD_EMULATION_mipsn32el= elf32btsmipn32_fbsd   # I don't think this is a thing that works
 LD_EMULATION_powerpc= elf32ppc_fbsd
 LD_EMULATION_powerpcspe= elf32ppc_fbsd
 LD_EMULATION_powerpc64= elf64ppc_fbsd

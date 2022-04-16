@@ -44,6 +44,7 @@
 #include <sys/lock.h>
 #include <sys/mutex.h>
 #include <sys/queue.h>
+#include <sys/buf.h>
 
 #include <fs/ext2fs/ext2_extents.h>
 
@@ -61,6 +62,7 @@
 typedef uint32_t e2fs_daddr_t;
 typedef int64_t e2fs_lbn_t;
 typedef int64_t e4fs_daddr_t;
+typedef int64_t ext_time_t;
 
 /*
  * The inode is used to describe each active (or recently active) file in the
@@ -98,10 +100,10 @@ struct inode {
 	uint32_t	i_gid;		/* File group. */
 	uint64_t	i_size;		/* File byte count. */
 	uint64_t	i_blocks;	/* Blocks actually held. */
-	int32_t		i_atime;	/* Last access time. */
-	int32_t		i_mtime;	/* Last modified time. */
-	int32_t		i_ctime;	/* Last inode change time. */
-	int32_t		i_birthtime;	/* Inode creation time. */
+	ext_time_t	i_atime;	/* Last access time. */
+	ext_time_t	i_mtime;	/* Last modified time. */
+	ext_time_t	i_ctime;	/* Last inode change time. */
+	ext_time_t	i_birthtime;	/* Inode creation time. */
 	int32_t		i_mtimensec;	/* Last modified time. */
 	int32_t		i_atimensec;	/* Last access time. */
 	int32_t		i_ctimensec;	/* Last inode change time. */
@@ -109,6 +111,7 @@ struct inode {
 	uint32_t	i_gen;		/* Generation number. */
 	uint64_t	i_facl;		/* EA block number. */
 	uint32_t	i_flags;	/* Status flags (chflags). */
+	dev_t		i_rdev; 	/* Major/minor inode values. */
 	union {
 		struct {
 			uint32_t i_db[EXT2_NDADDR]; /* Direct disk blocks. */
@@ -118,6 +121,8 @@ struct inode {
 	};
 
 	struct ext4_extent_cache i_ext_cache; /* cache for ext4 extent */
+
+	struct vn_clusterw i_clusterw;	/* Buffer clustering information */
 };
 
 /*
@@ -128,7 +133,6 @@ struct inode {
  * di_db area.
  */
 #define	i_shortlink	i_db
-#define	i_rdev		i_db[0]
 
 /* File permissions. */
 #define	IEXEC		0000100		/* Executable. */

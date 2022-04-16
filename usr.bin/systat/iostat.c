@@ -72,6 +72,7 @@ static const char sccsid[] = "@(#)iostat.c	8.1 (Berkeley) 6/6/93";
 #include <err.h>
 #include <nlist.h>
 #include <paths.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -81,8 +82,8 @@ static const char sccsid[] = "@(#)iostat.c	8.1 (Berkeley) 6/6/93";
 
 static  int linesperregion;
 static  double etime;
-static  int numbers = 0;		/* default display bar graphs */
-static  int kbpt = 0;			/* default ms/seek shown */
+static  bool numbers = false;		/* default display bar graphs */
+static  bool kbpt = false;		/* default ms/seek shown */
 
 static int barlabels(int);
 static void histogram(long double, int, double);
@@ -185,7 +186,7 @@ static int
 numlabels(int row)
 {
 	int i, _col, regions, ndrives;
-	char tmpstr[10];
+	char tmpstr[32];
 
 #define COLWIDTH	17
 #define DRIVESPERLINE	((getmaxx(wnd) - 1 - INSET) / COLWIDTH)
@@ -211,7 +212,7 @@ numlabels(int row)
 				if (row > getmaxy(wnd) - 1 - (linesperregion + 1))
 					break;
 			}
-			sprintf(tmpstr, "%s%d", dev_select[i].device_name,
+			snprintf(tmpstr, sizeof(tmpstr), "%s%d", dev_select[i].device_name,
 				dev_select[i].unit_number);
 			mvwaddstr(wnd, row, _col + 4, tmpstr);
 			mvwaddstr(wnd, row + 1, _col, "  KB/t tps  MB/s ");
@@ -226,7 +227,7 @@ static int
 barlabels(int row)
 {
 	int i;
-	char tmpstr[10];
+	char tmpstr[32];
 
 	mvwaddstr(wnd, row++, INSET,
 	    "/0%  /10  /20  /30  /40  /50  /60  /70  /80  /90  /100");
@@ -235,7 +236,7 @@ barlabels(int row)
 		if (dev_select[i].selected) {
 			if (row > getmaxy(wnd) - 1 - linesperregion)
 				break;
-			sprintf(tmpstr, "%s%d", dev_select[i].device_name,
+			snprintf(tmpstr, sizeof(tmpstr), "%s%d", dev_select[i].device_name,
 				dev_select[i].unit_number);
 			mvwprintw(wnd, row++, 0, "%-5.5s MB/s|",
 				  tmpstr);
@@ -377,9 +378,9 @@ cmdiostat(const char *cmd, const char *args)
 	if (prefix(cmd, "kbpt"))
 		kbpt = !kbpt;
 	else if (prefix(cmd, "numbers"))
-		numbers = 1;
+		numbers = true;
 	else if (prefix(cmd, "bars"))
-		numbers = 0;
+		numbers = false;
 	else if (!dscmd(cmd, args, 100, &cur_dev))
 		return (0);
 	wclear(wnd);

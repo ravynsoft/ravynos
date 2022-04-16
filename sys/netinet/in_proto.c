@@ -112,7 +112,7 @@ struct protosw inetsw[] = {
 	.pr_type =		0,
 	.pr_domain =		&inetdomain,
 	.pr_protocol =		IPPROTO_IP,
-	.pr_init =		ip_init,
+	.pr_flags =		PR_CAPATTACH,
 	.pr_slowtimo =		ip_slowtimo,
 	.pr_drain =		ip_drain,
 	.pr_usrreqs =		&nousrreqs
@@ -121,22 +121,21 @@ struct protosw inetsw[] = {
 	.pr_type =		SOCK_DGRAM,
 	.pr_domain =		&inetdomain,
 	.pr_protocol =		IPPROTO_UDP,
-	.pr_flags =		PR_ATOMIC|PR_ADDR,
+	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_CAPATTACH,
 	.pr_input =		udp_input,
 	.pr_ctlinput =		udp_ctlinput,
 	.pr_ctloutput =		udp_ctloutput,
-	.pr_init =		udp_init,
 	.pr_usrreqs =		&udp_usrreqs
 },
 {
 	.pr_type =		SOCK_STREAM,
 	.pr_domain =		&inetdomain,
 	.pr_protocol =		IPPROTO_TCP,
-	.pr_flags =		PR_CONNREQUIRED|PR_IMPLOPCL|PR_WANTRCVD,
+	.pr_flags =		PR_CONNREQUIRED|PR_IMPLOPCL|PR_WANTRCVD|
+				    PR_CAPATTACH,
 	.pr_input =		tcp_input,
 	.pr_ctlinput =		tcp_ctlinput,
 	.pr_ctloutput =		tcp_ctloutput,
-	.pr_init =		tcp_init,
 	.pr_slowtimo =		tcp_slowtimo,
 	.pr_drain =		tcp_drain,
 	.pr_usrreqs =		&tcp_usrreqs
@@ -150,7 +149,6 @@ struct protosw inetsw[] = {
 	.pr_input =		sctp_input,
 	.pr_ctlinput =		sctp_ctlinput,
 	.pr_ctloutput =		sctp_ctloutput,
-	.pr_init =		sctp_init,
 	.pr_drain =		sctp_drain,
 	.pr_usrreqs =		&sctp_usrreqs
 },
@@ -170,11 +168,10 @@ struct protosw inetsw[] = {
 	.pr_type =		SOCK_DGRAM,
 	.pr_domain =		&inetdomain,
 	.pr_protocol =		IPPROTO_UDPLITE,
-	.pr_flags =		PR_ATOMIC|PR_ADDR,
+	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_CAPATTACH,
 	.pr_input =		udp_input,
 	.pr_ctlinput =		udplite_ctlinput,
 	.pr_ctloutput =		udp_ctloutput,
-	.pr_init =		udplite_init,
 	.pr_usrreqs =		&udp_usrreqs
 },
 {
@@ -288,7 +285,6 @@ IPPROTOSPACER,
 	.pr_flags =		PR_ATOMIC|PR_ADDR,
 	.pr_input =		rip_input,
 	.pr_ctloutput =		rip_ctloutput,
-	.pr_init =		rip_init,
 	.pr_usrreqs =		&rip_usrreqs
 },
 };
@@ -306,7 +302,7 @@ struct domain inetdomain = {
 	.dom_ifdetach =		in_domifdetach
 };
 
-VNET_DOMAIN_SET(inet);
+DOMAIN_SET(inet);
 #endif /* INET */
 
 SYSCTL_NODE(_net, PF_INET, inet, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,

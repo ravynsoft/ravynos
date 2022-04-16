@@ -59,7 +59,7 @@ log_assert "Verify that the space used by multiple copies is charged correctly."
 log_onexit cleanup
 
 for val in 1 2 3; do
-	log_must zfs create -o copies=$val $TESTPOOL/fs_$val
+	log_must zfs create -o compression=off -o copies=$val $TESTPOOL/fs_$val
 
 	log_must mkfile $FILESIZE /$TESTPOOL/fs_$val/$FILE
 done
@@ -67,7 +67,7 @@ done
 #
 # Sync up the filesystem
 #
-sync
+sync_all_pools
 
 #
 # Verify 'zfs list' can correctly list the space charged

@@ -29,6 +29,8 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
+#include <assert.h>
+#include <ctype.h>
 #include <err.h>
 #include <errno.h>
 #include <sysexits.h>
@@ -36,8 +38,8 @@ __FBSDID("$FreeBSD$");
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 #include <unistd.h>
+#include <sys/endian.h>
 #include <sys/ioctl.h>
 
 #include <dev/iicbus/iic.h>
@@ -50,31 +52,30 @@ __FBSDID("$FreeBSD$");
 #define	I2C_MODE_TRANSFER	4
 
 struct options {
-	int	width;
-	int	count;
-	int	verbose;
-	int	addr_set;
-	int	binary;
-	int	scan;
-	int	skip;
-	int	reset;
-	int	mode;
-	char	dir;
+	const char	*width;
+	unsigned	count;
+	int		verbose;
+	int		binary;
+	const char	*skip;
+	int		mode;
+	char		dir;
 	uint32_t	addr;
 	uint32_t	off;
+	uint8_t		off_buf[2];
+	size_t		off_len;
 };
 
-struct skip_range {
-	int	start;
-	int	end;
-};
+#define N_FDCACHE 128
+static int fd_cache[N_FDCACHE];
 
 __dead2 static void
-usage(void)
+usage(const char *msg)
 {
 
+	if (msg != NULL)
+		fprintf(stderr, "%s\n", msg);
 	fprintf(stderr, "usage: %s -a addr [-f device] [-d [r|w]] [-o offset] "
-	    "[-w [0|8|16]] [-c count] [-m [tr|ss|rs|no]] [-b] [-v]\n",
+	    "[-w [0|8|16|16LE|16BE]] [-c count] [-m [tr|ss|rs|no]] [-b] [-v]\n",
 	    getprogname());
 	fprintf(stderr, "       %s -s [-f device] [-n skip_addr] -v\n",
 	    getprogname());
@@ -82,466 +83,357 @@ usage(void)
 	exit(EX_USAGE);
 }
 
-static struct skip_range
-skip_get_range(char *skip_addr)
-{
-	struct skip_range addr_range;
-	char *token;
-
-	addr_range.start = 0;
-	addr_range.end = 0;
-
-	token = strsep(&skip_addr, "..");
-	if (token) {
-		addr_range.start = strtoul(token, 0, 16);
-		token = strsep(&skip_addr, "..");
-		if ((token != NULL) && !atoi(token)) {
-			token = strsep(&skip_addr, "..");
-			if (token)
-				addr_range.end = strtoul(token, 0, 16);
-		}
-	}
-
-	return (addr_range);
-}
-
-/* Parse the string to get hex 7 bits addresses */
 static int
-skip_get_tokens(char *skip_addr, int *sk_addr, int max_index)
+i2c_do_stop(int fd)
 {
-	char *token;
 	int i;
 
-	for (i = 0; i < max_index; i++) {
-		token = strsep(&skip_addr, ":");
-		if (token == NULL)
-			break;
-		sk_addr[i] = strtoul(token, 0, 16);
-	}
+	i = ioctl(fd, I2CSTOP);
+	if (i < 0)
+		fprintf(stderr, "ioctl: error sending stop condition: %s\n",
+		    strerror(errno));
 	return (i);
 }
 
 static int
-scan_bus(struct iiccmd cmd, char *dev, int skip, char *skip_addr)
+i2c_do_start(int fd, struct iiccmd *cmd)
 {
-	struct iic_msg rdmsg;
-	struct iic_rdwr_data rdwrdata;
-	struct skip_range addr_range = { 0, 0 };
-	int *tokens, fd, error, i, index, j;
-	int len = 0, do_skip = 0, no_range = 1, num_found = 0, use_read_xfer = 0;
-	uint8_t rdbyte;
+	int i;
 
-	fd = open(dev, O_RDWR);
-	if (fd == -1) {
-		fprintf(stderr, "Error opening I2C controller (%s) for "
-		    "scanning: %s\n", dev, strerror(errno));
-		return (EX_NOINPUT);
-	}
-
-	if (skip) {
-		len = strlen(skip_addr);
-		if (strstr(skip_addr, "..") != NULL) {
-			addr_range = skip_get_range(skip_addr);
-			no_range = 0;
-		} else {
-			tokens = (int *)malloc((len / 2 + 1) * sizeof(int));
-			if (tokens == NULL) {
-				fprintf(stderr, "Error allocating tokens "
-				    "buffer\n");
-				error = -1;
-				goto out;
-			}
-			index = skip_get_tokens(skip_addr, tokens,
-			    len / 2 + 1);
-		}
-
-		if (!no_range && (addr_range.start > addr_range.end)) {
-			fprintf(stderr, "Skip address out of range\n");
-			error = -1;
-			goto out;
-		}
-	}
-
-	printf("Scanning I2C devices on %s: ", dev);
-
-start_over:
-	if (use_read_xfer) {
-		fprintf(stderr, 
-		    "Hardware may not support START/STOP scanning; "
-		    "trying less-reliable read method.\n");
-	}
-
-	for (i = 1; i < 127; i++) {
-
-		if (skip && ( addr_range.start < addr_range.end)) {
-			if (i >= addr_range.start && i <= addr_range.end)
-				continue;
-
-		} else if (skip && no_range)
-			for (j = 0; j < index; j++) {
-				if (tokens[j] == i) {
-					do_skip = 1;
-					break;
-				}
-			}
-
-		if (do_skip) {
-			do_skip = 0;
-			continue;
-		}
-
-		cmd.slave = i << 1;
-		cmd.last = 1;
-		cmd.count = 0;
-		error = ioctl(fd, I2CRSTCARD, &cmd);
-		if (error) {
-			fprintf(stderr, "Controller reset failed\n");
-			goto out;
-		}
-		if (use_read_xfer) {
-			rdmsg.buf = &rdbyte;
-			rdmsg.len = 1;
-			rdmsg.flags = IIC_M_RD;
-			rdmsg.slave = i << 1;
-			rdwrdata.msgs = &rdmsg;
-			rdwrdata.nmsgs = 1;
-			error = ioctl(fd, I2CRDWR, &rdwrdata);
-		} else {
-			cmd.slave = i << 1;
-			cmd.last = 1;
-			error = ioctl(fd, I2CSTART, &cmd);
-			if (errno == ENODEV || errno == EOPNOTSUPP) {
-				/* If START not supported try reading. */
-				use_read_xfer = 1;
-				goto start_over;
-			}
-			ioctl(fd, I2CSTOP);
-		}
-		if (error == 0) {
-			++num_found;
-			printf("%02x ", i);
-		}
-	}
-
-	/*
-	 * If we found nothing, maybe START is not supported and returns a
-	 * generic error code such as EIO or ENXIO, so try again using reads.
-	 */
-	if (num_found == 0) {
-		if (!use_read_xfer) {
-			use_read_xfer = 1;
-			goto start_over;
-		}
-		printf("<none found>");
-	}
-	printf("\n");
-
-	error = ioctl(fd, I2CRSTCARD, &cmd);
-out:
-	close(fd);
-	if (skip && no_range)
-		free(tokens);
-
-	if (error) {
-		fprintf(stderr, "Error scanning I2C controller (%s): %s\n",
-		    dev, strerror(errno));
-		return (EX_NOINPUT);
-	} else
-		return (EX_OK);
+	i = ioctl(fd, I2CSTART, cmd);
+	if (i < 0)
+		fprintf(stderr, "ioctl: error sending start condition: %s\n",
+		    strerror(errno));
+	return (i);
 }
 
 static int
-reset_bus(struct iiccmd cmd, char *dev)
+i2c_do_repeatstart(int fd, struct iiccmd *cmd)
 {
-	int fd, error;
+	int i;
 
-	fd = open(dev, O_RDWR);
-	if (fd == -1) {
-		fprintf(stderr, "Error opening I2C controller (%s) for "
-		    "resetting: %s\n", dev, strerror(errno));
-		return (EX_NOINPUT);
-	}
-
-	printf("Resetting I2C controller on %s: ", dev);
-	error = ioctl(fd, I2CRSTCARD, &cmd);
-	close (fd);
-
-	if (error) {
-		printf("error: %s\n", strerror(errno));
-		return (EX_IOERR);
-	} else {
-		printf("OK\n");
-		return (EX_OK);
-	}
-}
-
-static char *
-prepare_buf(int size, uint32_t off)
-{
-	char *buf;
-
-	buf = malloc(size);
-	if (buf == NULL)
-		return (buf);
-
-	if (size == 1)
-		buf[0] = off & 0xff;
-	else if (size == 2) {
-		buf[0] = (off >> 8) & 0xff;
-		buf[1] = off & 0xff;
-	}
-
-	return (buf);
+	i = ioctl(fd, I2CRPTSTART, cmd);
+	if (i < 0)
+		fprintf(stderr, "ioctl: error sending repeated start: %s\n",
+		    strerror(errno));
+	return (i);
 }
 
 static int
-i2c_write(char *dev, struct options i2c_opt, char *i2c_buf)
+i2c_do_write(int fd, struct iiccmd *cmd)
+{
+	int i;
+
+	i = ioctl(fd, I2CWRITE, cmd);
+	if (i < 0)
+		fprintf(stderr, "ioctl: error writing: %s\n",
+		    strerror(errno));
+	return (i);
+}
+
+static int
+i2c_do_read(int fd, struct iiccmd *cmd)
+{
+	int i;
+
+	i = ioctl(fd, I2CREAD, cmd);
+	if (i < 0)
+		fprintf(stderr, "ioctl: error reading: %s\n",
+		    strerror(errno));
+	return (i);
+}
+
+static int
+i2c_do_reset(int fd)
 {
 	struct iiccmd cmd;
-	int error, fd, bufsize;
-	char *err_msg, *buf;
+	int i;
 
-	fd = open(dev, O_RDWR);
-	if (fd == -1) {
-		free(i2c_buf);
-		err(1, "open failed");
-	}
+	memset(&cmd, 0, sizeof cmd);
+	i = ioctl(fd, I2CRSTCARD, &cmd);
+	if (i < 0)
+		fprintf(stderr, "ioctl: error resetting controller: %s\n",
+		    strerror(errno));
+	return (i);
+}
 
-	cmd.slave = i2c_opt.addr;
-	error = ioctl(fd, I2CSTART, &cmd);
-	if (error == -1) {
-		err_msg = "ioctl: error sending start condition";
-		goto err1;
-	}
+static void
+parse_skip(const char *skip, char blacklist[128])
+{
+	const char *p;
+	unsigned x, y;
 
-	if (i2c_opt.width) {
-		bufsize = i2c_opt.width / 8;
-		buf = prepare_buf(bufsize, i2c_opt.off);
-		if (buf == NULL) {
-			err_msg = "error: offset malloc";
-			goto err1;
+	for (p = skip; *p != '\0';) {
+		if (*p == '0' && p[1] == 'x')
+			p += 2;
+		if (!isxdigit(*p))
+			usage("Bad -n argument, expected (first) hex-digit");
+		x = digittoint(*p++) << 4;
+		if (!isxdigit(*p))
+			usage("Bad -n argument, expected (second) hex-digit");
+		x |= digittoint(*p++);
+		if (x == 0 || x > 0x7f)
+			usage("Bad -n argument, (01..7f)");
+		if (*p == ':' || *p == ',' || *p == '\0') {
+			blacklist[x] = 1;
+			if (*p != '\0')
+				p++;
+			continue;
 		}
-	} else {
-		bufsize = 0;
-		buf = NULL;
+		if (*p == '-') {
+			p++;
+		} else if (*p == '.' && p[1] == '.') {
+			p += 2;
+		} else {
+			usage("Bad -n argument, ([:|,|..|-])");
+		}
+		if (*p == '0' && p[1] == 'x')
+			p += 2;
+		if (!isxdigit(*p))
+			usage("Bad -n argument, expected (first) hex-digit");
+		y = digittoint(*p++) << 4;
+		if (!isxdigit(*p))
+			usage("Bad -n argument, expected (second) hex-digit");
+		y |= digittoint(*p++);
+		if (y == 0 || y > 0x7f)
+			usage("Bad -n argument, (01..7f)");
+		if (y < x)
+			usage("Bad -n argument, (end < start)");
+		for (;x <= y; x++)
+			blacklist[x] = 1;
+		if (*p == ':' || *p == ',')
+			p++;
 	}
+}
+
+static int
+scan_bus(const char *dev, int fd, const char *skip, int verbose)
+{
+	struct iiccmd cmd;
+	struct iic_msg rdmsg;
+	struct iic_rdwr_data rdwrdata;
+	int error;
+	unsigned u;
+	int num_found = 0, use_read_xfer;
+	uint8_t rdbyte;
+	char blacklist[128];
+	const char *sep = "";
+
+	memset(blacklist, 0, sizeof blacklist);
+
+	if (skip != NULL)
+		parse_skip(skip, blacklist);
+
+	for (use_read_xfer = 0; use_read_xfer < 2; use_read_xfer++) {
+		for (u = 1; u < 127; u++) {
+			if (blacklist[u])
+				continue;
+
+			cmd.slave = u << 1;
+			cmd.last = 1;
+			cmd.count = 0;
+			if (i2c_do_reset(fd))
+				return (EX_NOINPUT);
+
+			if (use_read_xfer) {
+				rdmsg.buf = &rdbyte;
+				rdmsg.len = 1;
+				rdmsg.flags = IIC_M_RD;
+				rdmsg.slave = u << 1;
+				rdwrdata.msgs = &rdmsg;
+				rdwrdata.nmsgs = 1;
+				error = ioctl(fd, I2CRDWR, &rdwrdata);
+			} else {
+				error = ioctl(fd, I2CSTART, &cmd);
+				if (errno == ENODEV || errno == EOPNOTSUPP)
+					break; /* Try reads instead */
+				(void)ioctl(fd, I2CSTOP);
+			}
+			if (error == 0) {
+				if (!num_found++ && verbose) {
+					fprintf(stderr,
+					    "Scanning I2C devices on %s:\n",
+					    dev);
+				}
+				printf("%s%02x", sep, u);
+				sep = " ";
+			}
+		}
+		if (num_found > 0)
+			break;
+		if (verbose && !use_read_xfer)
+			fprintf(stderr,
+			    "Hardware may not support START/STOP scanning; "
+			    "trying less-reliable read method.\n");
+	}
+	if (num_found == 0 && verbose)
+		printf("<Nothing Found>");
+
+	printf("\n");
+
+	return (i2c_do_reset(fd));
+}
+
+static int
+reset_bus(const char *dev, int fd, int verbose)
+{
+
+	if (verbose)
+		fprintf(stderr, "Resetting I2C controller on %s\n", dev);
+	return (i2c_do_reset(fd));
+}
+
+static const char *
+encode_offset(const char *width, unsigned offset, uint8_t *dst, size_t *len)
+{
+
+	if (!strcmp(width, "0")) {
+		*len = 0;
+		return (NULL);
+	}
+	if (!strcmp(width, "8")) {
+		if (offset > 0xff)
+			return ("Invalid 8-bit offset\n");
+		*dst = offset;
+		*len = 1;
+		return (NULL);
+	}
+	if (offset > 0xffff)
+		return ("Invalid 16-bit offset\n");
+	if (!strcmp(width, "16LE") || !strcmp(width, "16")) {
+		le16enc(dst, offset);
+		*len = 2;
+		return (NULL);
+	}
+	if (!strcmp(width, "16BE")) {
+		be16enc(dst, offset);
+		*len = 2;
+		return (NULL);
+	}
+	return ("Invalid offset width, must be: 0|8|16|16LE|16BE\n");
+}
+
+static int
+write_offset(int fd, struct options i2c_opt, struct iiccmd *cmd)
+{
+
+	if (i2c_opt.off_len > 0) {
+		cmd->count = i2c_opt.off_len;
+		cmd->buf = (void*)i2c_opt.off_buf;
+		return (i2c_do_write(fd, cmd));
+	}
+	return (0);
+}
+
+static int
+i2c_write(int fd, struct options i2c_opt, uint8_t *i2c_buf)
+{
+	struct iiccmd cmd;
+	char buf[i2c_opt.off_len + i2c_opt.count];
+
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.slave = i2c_opt.addr;
+
+	if (i2c_do_start(fd, &cmd))
+		return (i2c_do_stop(fd) | 1);
 
 	switch(i2c_opt.mode) {
 	case I2C_MODE_STOP_START:
-		/*
-		 * Write offset where the data will go
-		 */
-		if (i2c_opt.width) {
-			cmd.count = bufsize;
-			cmd.buf = buf;
-			error = ioctl(fd, I2CWRITE, &cmd);
-			free(buf);
-			if (error == -1) {
-				err_msg = "ioctl: error writing offset";
-				goto err1;
-			}
-		}
+		if (write_offset(fd, i2c_opt, &cmd))
+			return (i2c_do_stop(fd) | 1);
 
-		error = ioctl(fd, I2CSTOP);
-		if (error == -1) {
-			err_msg = "ioctl: error sending stop condition";
-			goto err2;
-		}
-		cmd.slave = i2c_opt.addr;
-		error = ioctl(fd, I2CSTART, &cmd);
-		if (error == -1) {
-			err_msg = "ioctl: error sending start condition";
-			goto err1;
-		}
+		if (i2c_do_stop(fd))
+			return (1);
+
+		if (i2c_do_start(fd, &cmd))
+			return (i2c_do_stop(fd) | 1);
 
 		/*
 		 * Write the data
 		 */
 		cmd.count = i2c_opt.count;
-		cmd.buf = i2c_buf;
+		cmd.buf = (void*)i2c_buf;
 		cmd.last = 0;
-		error = ioctl(fd, I2CWRITE, &cmd);
-		if (error == -1) {
-			err_msg = "ioctl: error writing";
-			goto err1;
-		}
+		if (i2c_do_write(fd, &cmd))
+			return (i2c_do_stop(fd) | 1);
 		break;
 
 	case I2C_MODE_REPEATED_START:
-		/*
-		 * Write offset where the data will go
-		 */
-		if (i2c_opt.width) {
-			cmd.count = bufsize;
-			cmd.buf = buf;
-			error = ioctl(fd, I2CWRITE, &cmd);
-			free(buf);
-			if (error == -1) {
-				err_msg = "ioctl: error writing offset";
-				goto err1;
-			}
-		}
+		if (write_offset(fd, i2c_opt, &cmd))
+			return (i2c_do_stop(fd) | 1);
 
-		cmd.slave = i2c_opt.addr;
-		error = ioctl(fd, I2CRPTSTART, &cmd);
-		if (error == -1) {
-			err_msg = "ioctl: error sending repeated start "
-			    "condition";
-			goto err1;
-		}
+		if (i2c_do_repeatstart(fd, &cmd))
+			return (i2c_do_stop(fd) | 1);
 
 		/*
 		 * Write the data
 		 */
 		cmd.count = i2c_opt.count;
-		cmd.buf = i2c_buf;
+		cmd.buf = (void*)i2c_buf;
 		cmd.last = 0;
-		error = ioctl(fd, I2CWRITE, &cmd);
-		if (error == -1) {
-			err_msg = "ioctl: error writing";
-			goto err1;
-		}
+		if (i2c_do_write(fd, &cmd))
+			return (i2c_do_stop(fd) | 1);
 		break;
 
 	case I2C_MODE_NONE: /* fall through */
-	default:		
-		buf = realloc(buf, bufsize + i2c_opt.count);
-		if (buf == NULL) {
-			err_msg = "error: data malloc";
-			goto err1;
-		}
-
-		memcpy(buf + bufsize, i2c_buf, i2c_opt.count);
+	default:
+		memcpy(buf, i2c_opt.off_buf, i2c_opt.off_len);
+		memcpy(buf + i2c_opt.off_len, i2c_buf, i2c_opt.count);
 		/*
 		 * Write offset and data
 		 */
-		cmd.count = bufsize + i2c_opt.count;
-		cmd.buf = buf;
+		cmd.count = i2c_opt.off_len + i2c_opt.count;
+		cmd.buf = (void*)buf;
 		cmd.last = 0;
-		error = ioctl(fd, I2CWRITE, &cmd);
-		free(buf);
-		if (error == -1) {
-			err_msg = "ioctl: error writing";
-			goto err1;
-		}
+		if (i2c_do_write(fd, &cmd))
+			return (i2c_do_stop(fd) | 1);
 		break;
 	}
-	error = ioctl(fd, I2CSTOP);
-	if (error == -1) {
-		err_msg = "ioctl: error sending stop condition";
-		goto err2;
-	}
 
-	close(fd);
-	return (0);
-
-err1:
-	error = ioctl(fd, I2CSTOP);
-	if (error == -1)
-		fprintf(stderr, "error sending stop condition\n");
-err2:
-	if (err_msg)
-		fprintf(stderr, "%s\n", err_msg);
-
-	close(fd);
-	return (1);
+	return (i2c_do_stop(fd));
 }
 
 static int
-i2c_read(char *dev, struct options i2c_opt, char *i2c_buf)
+i2c_read(int fd, struct options i2c_opt, uint8_t *i2c_buf)
 {
 	struct iiccmd cmd;
-	int fd, error, bufsize;
-	char *err_msg, data = 0, *buf;
+	char data = 0;
 
-	fd = open(dev, O_RDWR);
-	if (fd == -1)
-		err(1, "open failed");
+	memset(&cmd, 0, sizeof(cmd));
+	cmd.slave = i2c_opt.addr;
 
-	bzero(&cmd, sizeof(cmd));
-
-	if (i2c_opt.width) {
-		cmd.slave = i2c_opt.addr;
+	if (i2c_opt.off_len) {
 		cmd.count = 1;
 		cmd.last = 0;
 		cmd.buf = &data;
-		error = ioctl(fd, I2CSTART, &cmd);
-		if (error == -1) {
-			err_msg = "ioctl: error sending start condition";
-			goto err1;
-		}
-		bufsize = i2c_opt.width / 8;
-		buf = prepare_buf(bufsize, i2c_opt.off);
-		if (buf == NULL) {
-			err_msg = "error: offset malloc";
-			goto err1;
-		}
+		if (i2c_do_start(fd, &cmd))
+			return (i2c_do_stop(fd) | 1);
 
-		cmd.count = bufsize;
-		cmd.buf = buf;
-		cmd.last = 0;
-		error = ioctl(fd, I2CWRITE, &cmd);
-		free(buf);
-		if (error == -1) {
-			err_msg = "ioctl: error writing offset";
-			goto err1;
-		}
+		if (write_offset(fd, i2c_opt, &cmd))
+			return (i2c_do_stop(fd) | 1);
 
-		if (i2c_opt.mode == I2C_MODE_STOP_START) {
-			error = ioctl(fd, I2CSTOP);
-			if (error == -1) {
-				err_msg = "error sending stop condition";
-				goto err2;
-			}
-		}
+		if (i2c_opt.mode == I2C_MODE_STOP_START && i2c_do_stop(fd))
+			return (1);
 	}
 	cmd.slave = i2c_opt.addr | 1;
 	cmd.count = 1;
 	cmd.last = 0;
 	cmd.buf = &data;
-	if (i2c_opt.mode == I2C_MODE_STOP_START || i2c_opt.width == 0) {
-		error = ioctl(fd, I2CSTART, &cmd);
-		if (error == -1) {
-			err_msg = "ioctl: error sending start condition";
-			goto err2;
-		}
+	if (i2c_opt.mode == I2C_MODE_STOP_START || i2c_opt.off_len == 0) {
+		if (i2c_do_start(fd, &cmd))
+			return (i2c_do_stop(fd) | 1);
 	} else if (i2c_opt.mode == I2C_MODE_REPEATED_START) {
-		error = ioctl(fd, I2CRPTSTART, &cmd);
-		if (error == -1) {
-			err_msg = "ioctl: error sending repeated start "
-			    "condition";
-			goto err1;
-		}
+		if (i2c_do_repeatstart(fd, &cmd))
+			return (i2c_do_stop(fd) | 1);
 	}
 
 	cmd.count = i2c_opt.count;
-	cmd.buf = i2c_buf;
+	cmd.buf = (void*)i2c_buf;
 	cmd.last = 1;
-	error = ioctl(fd, I2CREAD, &cmd);
-	if (error == -1) {
-		err_msg = "ioctl: error while reading";
-		goto err1;
-	}
+	if (i2c_do_read(fd, &cmd))
+		return (i2c_do_stop(fd) | 1);
 
-	error = ioctl(fd, I2CSTOP);
-	if (error == -1) {
-		err_msg = "error sending stop condtion\n";
-		goto err2;
-	}
-
-	close(fd);
-	return (0);
-
-err1:
-	error = ioctl(fd, I2CSTOP);
-	if (error == -1)
-		fprintf(stderr, "error sending stop condition\n");
-err2:
-	if (err_msg)
-		fprintf(stderr, "%s\n", err_msg);
-
-	close(fd);
-	return (1);
+	return (i2c_do_stop(fd));
 }
 
 /*
@@ -556,30 +448,19 @@ err2:
  * driver to be handled as a single transfer.
  */
 static int
-i2c_rdwr_transfer(char *dev, struct options i2c_opt, char *i2c_buf)
+i2c_rdwr_transfer(int fd, struct options i2c_opt, uint8_t *i2c_buf)
 {
-	struct iic_msg msgs[2];
+	struct iic_msg msgs[2], *msgp = msgs;
 	struct iic_rdwr_data xfer;
-	int fd, i;
-	union {
-		uint8_t  buf[2];
-		uint8_t  off8;
-		uint16_t off16;
-	} off;
+	int flag = 0;
 
-	i = 0;
-	if (i2c_opt.width > 0) {
-		msgs[i].flags = IIC_M_WR | IIC_M_NOSTOP;
-		msgs[i].slave = i2c_opt.addr;
-		msgs[i].buf   = off.buf;
-		if (i2c_opt.width == 8) {
-			off.off8 = (uint8_t)i2c_opt.off;
-			msgs[i].len = 1;
-		} else {
-			off.off16 = (uint16_t)i2c_opt.off;
-			msgs[i].len = 2;
-		}
-		++i;
+	if (i2c_opt.off_len) {
+		msgp->flags = IIC_M_WR | IIC_M_NOSTOP;
+		msgp->slave = i2c_opt.addr;
+		msgp->buf   = i2c_opt.off_buf;
+		msgp->len   = i2c_opt.off_len;
+		msgp++;
+		flag = IIC_M_NOSTART;
 	}
 
 	/*
@@ -590,81 +471,357 @@ i2c_rdwr_transfer(char *dev, struct options i2c_opt, char *i2c_buf)
 	 * because of the NOSTOP flag used above.
 	 */
 	if (i2c_opt.dir == 'w')
-		msgs[i].flags = IIC_M_WR | ((i > 0) ? IIC_M_NOSTART : 0);
+		msgp->flags = IIC_M_WR | flag;
 	else
-		msgs[i].flags = IIC_M_RD;
-	msgs[i].slave = i2c_opt.addr;
-	msgs[i].len   = i2c_opt.count;
-	msgs[i].buf   = i2c_buf;
-	++i;
+		msgp->flags = IIC_M_RD;
+	msgp->slave = i2c_opt.addr;
+	msgp->len   = i2c_opt.count;
+	msgp->buf   = i2c_buf;
+	msgp++;
 
 	xfer.msgs = msgs;
-	xfer.nmsgs = i;
+	xfer.nmsgs = msgp - msgs;
 
-	if ((fd = open(dev, O_RDWR)) == -1)
-		err(1, "open(%s) failed", dev);
 	if (ioctl(fd, I2CRDWR, &xfer) == -1 )
 		err(1, "ioctl(I2CRDWR) failed");
-	close(fd);
 
+	return (0);
+}
+
+static int
+access_bus(int fd, struct options i2c_opt)
+{
+	uint8_t i2c_buf[i2c_opt.count];
+	int error;
+	unsigned u, chunk_size = 16;
+
+	/*
+	 * For a write, read the data to be written to the chip from stdin.
+	 */
+	if (i2c_opt.dir == 'w') {
+		if (i2c_opt.verbose && !i2c_opt.binary)
+			fprintf(stderr, "Enter %u bytes of data: ",
+			    i2c_opt.count);
+		if (fread(i2c_buf, 1, i2c_opt.count, stdin) != i2c_opt.count)
+			err(1, "not enough data, exiting\n");
+	}
+
+	if (i2c_opt.mode == I2C_MODE_TRANSFER)
+		error = i2c_rdwr_transfer(fd, i2c_opt, i2c_buf);
+	else if (i2c_opt.dir == 'w')
+		error = i2c_write(fd, i2c_opt, i2c_buf);
+	else
+		error = i2c_read(fd, i2c_opt, i2c_buf);
+
+	if (error == 0) {
+		if (i2c_opt.dir == 'r' && i2c_opt.binary) {
+			(void)fwrite(i2c_buf, 1, i2c_opt.count, stdout);
+		} else if (i2c_opt.verbose || i2c_opt.dir == 'r') {
+			if (i2c_opt.verbose)
+				fprintf(stderr, "\nData %s (hex):\n",
+				    i2c_opt.dir == 'r' ?  "read" : "written");
+
+			for (u = 0; u < i2c_opt.count; u++) {
+				printf("%02hhx ", i2c_buf[u]);
+				if ((u % chunk_size) == chunk_size - 1)
+					printf("\n");
+			}
+			if ((u % chunk_size) != 0)
+				printf("\n");
+		}
+	}
+
+	return (error);
+}
+
+static const char *widths[] = {
+	"0",
+	"8",
+	"16LE",
+	"16BE",
+	"16",
+	NULL,
+};
+
+static int
+command_bus(struct options i2c_opt, char *cmd)
+{
+	int error, fd;
+	char devbuf[64];
+	uint8_t dbuf[BUFSIZ];
+	unsigned bus;
+	const char *width = NULL;
+	const char *err_msg;
+	unsigned offset;
+	unsigned u;
+	size_t length;
+
+	while (isspace(*cmd))
+		cmd++;
+
+	switch(*cmd) {
+	case 0:
+	case '#':
+		return (0);
+	case 'p':
+	case 'P':
+		printf("%s", cmd);
+		return (0);
+	case 'r':
+	case 'R':
+		i2c_opt.dir = 'r';
+		break;
+	case 'w':
+	case 'W':
+		i2c_opt.dir = 'w';
+		break;
+	default:
+		fprintf(stderr,
+		    "Did not understand command: 0x%02x ", *cmd);
+		if (isgraph(*cmd))
+			fprintf(stderr, "'%c'", *cmd);
+		fprintf(stderr, "\n");
+		return(-1);
+	}
+	cmd++;
+
+	bus = strtoul(cmd, &cmd, 0);
+	if (bus == 0 && errno == EINVAL) {
+		fprintf(stderr, "Could not translate bus number\n");
+		return(-1);
+	}
+
+	i2c_opt.addr = strtoul(cmd, &cmd, 0);
+	if (i2c_opt.addr == 0 && errno == EINVAL) {
+		fprintf(stderr, "Could not translate device\n");
+		return(-1);
+	}
+	if (i2c_opt.addr < 1 || i2c_opt.addr > 0x7f) {
+		fprintf(stderr, "Invalid device (0x%x)\n", i2c_opt.addr);
+		return(-1);
+	}
+	i2c_opt.addr <<= 1;
+
+	while(isspace(*cmd))
+		cmd++;
+
+	for(u = 0; widths[u]; u++) {
+		length = strlen(widths[u]);
+		if (memcmp(cmd, widths[u], length))
+			continue;
+		if (!isspace(cmd[length]))
+			continue;
+		width = widths[u];
+		cmd += length;
+		break;
+	}
+	if (width == NULL) {
+		fprintf(stderr, "Invalid width\n");
+		return(-1);
+	}
+
+	offset = strtoul(cmd, &cmd, 0);
+	if (offset == 0 && errno == EINVAL) {
+		fprintf(stderr, "Could not translate offset\n");
+		return(-1);
+	}
+
+	err_msg = encode_offset(width, offset,
+	    i2c_opt.off_buf, &i2c_opt.off_len);
+	if (err_msg) {
+		fprintf(stderr, "%s", err_msg);
+		return(-1);
+	}
+
+	if (i2c_opt.dir == 'r') {
+		i2c_opt.count = strtoul(cmd, &cmd, 0);
+		if (i2c_opt.count == 0 && errno == EINVAL) {
+			fprintf(stderr, "Could not translate length\n");
+			return(-1);
+		}
+	} else {
+		i2c_opt.count = 0;
+		while (1) {
+			while(isspace(*cmd))
+				cmd++;
+			if (!*cmd)
+				break;
+			if (!isxdigit(*cmd)) {
+				fprintf(stderr, "Not a hex digit.\n");
+				return(-1);
+			}
+			dbuf[i2c_opt.count] = digittoint(*cmd++) << 4;
+			while(isspace(*cmd))
+				cmd++;
+			if (!*cmd) {
+				fprintf(stderr,
+				    "Uneven number of hex digits.\n");
+				return(-1);
+			}
+			if (!isxdigit(*cmd)) {
+				fprintf(stderr, "Not a hex digit.\n");
+				return(-1);
+			}
+			dbuf[i2c_opt.count++] |= digittoint(*cmd++);
+		}
+	}
+	assert(bus < N_FDCACHE);
+	fd = fd_cache[bus];
+	if (fd < 0) {
+		(void)sprintf(devbuf, "/dev/iic%u", bus);
+		fd = open(devbuf, O_RDWR);
+		if (fd == -1) {
+			fprintf(stderr, "Error opening I2C controller (%s): %s\n",
+			    devbuf, strerror(errno));
+			return (EX_NOINPUT);
+		}
+		fd_cache[bus] = fd;
+	}
+
+	error = i2c_rdwr_transfer(fd, i2c_opt, dbuf);
+	if (error)
+		return(-1);
+
+	if (i2c_opt.dir == 'r') {
+		for (u = 0; u < i2c_opt.count; u++)
+			printf("%02x", dbuf[u]);
+		printf("\n");
+	}
+	return (0);
+}
+
+static int
+exec_bus(struct options i2c_opt, char *cmd)
+{
+	int error;
+
+	while (isspace(*cmd))
+		cmd++;
+	if (*cmd == '#' || *cmd == '\0')
+		return (0);
+	error = command_bus(i2c_opt, cmd);
+	if (i2c_opt.verbose) {
+		(void)fflush(stderr);
+		printf(error ? "ERROR\n" : "OK\n");
+		error = 0;
+	} else if (error) {
+		fprintf(stderr, "  in: %s", cmd);
+	}
+	(void)fflush(stdout);
+	return (error);
+}
+
+static int
+instruct_bus(struct options i2c_opt, int argc, char **argv)
+{
+	char buf[BUFSIZ];
+	int rd_cmds = (argc == 0);
+	int error;
+
+	while (argc-- > 0) {
+		if (argc == 0 && !strcmp(*argv, "-")) {
+			rd_cmds = 1;
+		} else {
+			error = exec_bus(i2c_opt, *argv);
+			if (error)
+				return (error);
+		}
+		argv++;
+	}
+	if (!rd_cmds)
+		return (0);
+	while (fgets(buf, sizeof buf, stdin) != NULL) {
+		error = exec_bus(i2c_opt, buf);
+		if (error)
+			return (error);
+	}
 	return (0);
 }
 
 int
 main(int argc, char** argv)
 {
-	struct iiccmd cmd;
 	struct options i2c_opt;
-	char *dev, *skip_addr, *i2c_buf;
-	int error, chunk_size, i, j, ch;
-
-	errno = 0;
-	error = 0;
-
-	/* Line-break the output every chunk_size bytes */
-	chunk_size = 16;
+	const char *dev, *err_msg;
+	int fd, error = 0, ch;
+	const char *optflags = "a:f:d:o:iw:c:m:n:sbvrh";
+	char do_what = 0;
 
 	dev = I2C_DEV;
+	for (ch = 0; ch < N_FDCACHE; ch++)
+		fd_cache[ch] = -1;
 
 	/* Default values */
-	i2c_opt.addr_set = 0;
 	i2c_opt.off = 0;
 	i2c_opt.verbose = 0;
 	i2c_opt.dir = 'r';	/* direction = read */
-	i2c_opt.width = 8;
+	i2c_opt.width = "8";
 	i2c_opt.count = 1;
 	i2c_opt.binary = 0;	/* ASCII text output */
-	i2c_opt.scan = 0;	/* no bus scan */
-	i2c_opt.skip = 0;	/* scan all addresses */
-	i2c_opt.reset = 0;	/* no bus reset */
-	i2c_opt.mode = I2C_MODE_NOTSET;
+	i2c_opt.skip = NULL;	/* scan all addresses */
+	i2c_opt.mode = I2C_MODE_TRANSFER;
 
-	while ((ch = getopt(argc, argv, "a:f:d:o:w:c:m:n:sbvrh")) != -1) {
+	/* Find out what we are going to do */
+
+	while ((ch = getopt(argc, argv, optflags)) != -1) {
 		switch(ch) {
 		case 'a':
-			i2c_opt.addr = (strtoul(optarg, 0, 16) << 1);
+		case 'i':
+		case 'r':
+		case 's':
+			if (do_what)
+				usage("Only one of [-a|-h|-r|-s]");
+			do_what = ch;
+			break;
+		case 'h':
+			usage("Help:");
+			break;
+		default:
+			break;
+		}
+	}
+
+	/* Then handle the legal subset of arguments */
+
+	switch (do_what) {
+	case 0: usage("Pick one of [-a|-h|-i|-r|-s]"); break;
+	case 'a': optflags = "a:f:d:w:o:c:m:bv"; break;
+	case 'i': optflags = "iv"; break;
+	case 'r': optflags = "rf:v"; break;
+	case 's': optflags = "sf:n:v"; break;
+	default: assert("Bad do_what");
+	}
+
+	optreset = 1;
+	optind = 1;
+
+	while ((ch = getopt(argc, argv, optflags)) != -1) {
+		switch(ch) {
+		case 'a':
+			i2c_opt.addr = strtoul(optarg, 0, 16);
 			if (i2c_opt.addr == 0 && errno == EINVAL)
-				i2c_opt.addr_set = 0;
-			else
-				i2c_opt.addr_set = 1;
+				usage("Bad -a argument (hex)");
+			if (i2c_opt.addr == 0 || i2c_opt.addr > 0x7f)
+				usage("Bad -a argument (01..7f)");
+			i2c_opt.addr <<= 1;
+			break;
+		case 'b':
+			i2c_opt.binary = 1;
+			break;
+		case 'c':
+			i2c_opt.count = (strtoul(optarg, 0, 10));
+			if (i2c_opt.count == 0 && errno == EINVAL)
+				usage("Bad -c argument (decimal)");
+			break;
+		case 'd':
+			if (strcmp(optarg, "r") && strcmp(optarg, "w"))
+				usage("Bad -d argument ([r|w])");
+			i2c_opt.dir = optarg[0];
 			break;
 		case 'f':
 			dev = optarg;
 			break;
-		case 'd':
-			i2c_opt.dir = optarg[0];
-			break;
-		case 'o':
-			i2c_opt.off = strtoul(optarg, 0, 16);
-			if (i2c_opt.off == 0 && errno == EINVAL)
-				error = 1;
-			break;
-		case 'w':
-			i2c_opt.width = atoi(optarg);
-			break;
-		case 'c':
-			i2c_opt.count = atoi(optarg);
-			break;
+		case 'i': break;
 		case 'm':
 			if (!strcmp(optarg, "no"))
 				i2c_opt.mode = I2C_MODE_NONE;
@@ -675,31 +832,35 @@ main(int argc, char** argv)
 			else if (!strcmp(optarg, "tr"))
 				i2c_opt.mode = I2C_MODE_TRANSFER;
 			else
-				usage();
+				usage("Bad -m argument ([no|ss|rs|tr])");
 			break;
 		case 'n':
-			i2c_opt.skip = 1;
-			skip_addr = optarg;
+			i2c_opt.skip = optarg;
 			break;
-		case 's':
-			i2c_opt.scan = 1;
+		case 'o':
+			i2c_opt.off = strtoul(optarg, 0, 16);
+			if (i2c_opt.off == 0 && errno == EINVAL)
+				usage("Bad -o argument (hex)");
 			break;
-		case 'b':
-			i2c_opt.binary = 1;
-			break;
+		case 'r': break;
+		case 's': break;
 		case 'v':
 			i2c_opt.verbose = 1;
 			break;
-		case 'r':
-			i2c_opt.reset = 1;
+		case 'w':
+			i2c_opt.width = optarg;		// checked later.
 			break;
-		case 'h':
 		default:
-			usage();
+			fprintf(stderr, "Illegal -%c option", ch);
+			usage(NULL);
 		}
 	}
 	argc -= optind;
 	argv += optind;
+	if (do_what == 'i')
+		return(instruct_bus(i2c_opt, argc, argv));
+	if (argc > 0)
+		usage("Too many arguments");
 
 	/* Set default mode if option -m is not specified */
 	if (i2c_opt.mode == I2C_MODE_NOTSET) {
@@ -709,91 +870,41 @@ main(int argc, char** argv)
 			i2c_opt.mode = I2C_MODE_NONE;
 	}
 
-	/* Basic sanity check of command line arguments */
-	if (i2c_opt.scan) {
-		if (i2c_opt.addr_set)
-			usage();
-	} else if (i2c_opt.reset) {
-		if (i2c_opt.addr_set)
-			usage();
-	} else if (error) {
-		usage();
-	} else if ((i2c_opt.dir == 'r' || i2c_opt.dir == 'w')) {
-		if ((i2c_opt.addr_set == 0) ||
-		    !(i2c_opt.width == 0 || i2c_opt.width == 8 ||
-		    i2c_opt.width == 16))
-		usage();
+	err_msg = encode_offset(i2c_opt.width, i2c_opt.off,
+	    i2c_opt.off_buf, &i2c_opt.off_len);
+	if (err_msg != NULL) {
+		fprintf(stderr, "%s", err_msg);
+		return(EX_USAGE);
 	}
 
 	if (i2c_opt.verbose)
 		fprintf(stderr, "dev: %s, addr: 0x%x, r/w: %c, "
-		    "offset: 0x%02x, width: %u, count: %u\n", dev,
+		    "offset: 0x%02x, width: %s, count: %u\n", dev,
 		    i2c_opt.addr >> 1, i2c_opt.dir, i2c_opt.off,
 		    i2c_opt.width, i2c_opt.count);
 
-	if (i2c_opt.scan)
-		exit(scan_bus(cmd, dev, i2c_opt.skip, skip_addr));
-
-	if (i2c_opt.reset)
-		exit(reset_bus(cmd, dev));
-
-	i2c_buf = malloc(i2c_opt.count);
-	if (i2c_buf == NULL)
-		err(1, "data malloc");
-
-	/*
-	 * For a write, read the data to be written to the chip from stdin.
-	 */
-	if (i2c_opt.dir == 'w') {
-		if (i2c_opt.verbose && !i2c_opt.binary)
-			fprintf(stderr, "Enter %u bytes of data: ",
-			    i2c_opt.count);
-		for (i = 0; i < i2c_opt.count; i++) {
-			ch = getchar();
-			if (ch == EOF) {
-				free(i2c_buf);
-				err(1, "not enough data, exiting\n");
-			}
-			i2c_buf[i] = ch;
-		}
+	fd = open(dev, O_RDWR);
+	if (fd == -1) {
+		fprintf(stderr, "Error opening I2C controller (%s): %s\n",
+		    dev, strerror(errno));
+		return (EX_NOINPUT);
 	}
 
-	if (i2c_opt.mode == I2C_MODE_TRANSFER)
-		error = i2c_rdwr_transfer(dev, i2c_opt, i2c_buf);
-	else if (i2c_opt.dir == 'w')
-		error = i2c_write(dev, i2c_opt, i2c_buf);
-	else
-		error = i2c_read(dev, i2c_opt, i2c_buf);
-
-	if (error != 0) {
-		free(i2c_buf);
-		return (1);
+	switch (do_what) {
+	case 'a':
+		error = access_bus(fd, i2c_opt);
+		break;
+	case 's':
+		error = scan_bus(dev, fd, i2c_opt.skip, i2c_opt.verbose);
+		break;
+	case 'r':
+		error = reset_bus(dev, fd, i2c_opt.verbose);
+		break;
+	default:
+		assert("Bad do_what");
 	}
 
-	if (i2c_opt.verbose)
-		fprintf(stderr, "\nData %s (hex):\n", i2c_opt.dir == 'r' ?
-		    "read" : "written");
-
-	i = 0;
-	j = 0;
-	while (i < i2c_opt.count) {
-		if (i2c_opt.verbose || (i2c_opt.dir == 'r' &&
-		    !i2c_opt.binary))
-			fprintf (stderr, "%02hhx ", i2c_buf[i++]);
-
-		if (i2c_opt.dir == 'r' && i2c_opt.binary) {
-			fprintf(stdout, "%c", i2c_buf[j++]);
-			if(!i2c_opt.verbose)
-				i++;
-		}
-		if (!i2c_opt.verbose && (i2c_opt.dir == 'w'))
-			break;
-		if ((i % chunk_size) == 0)
-			fprintf(stderr, "\n");
-	}
-	if ((i % chunk_size) != 0)
-		fprintf(stderr, "\n");
-
-	free(i2c_buf);
-	return (0);
+	ch = close(fd);
+	assert(ch == 0);
+	return (error);
 }

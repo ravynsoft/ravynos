@@ -22,6 +22,7 @@ properties:
           - renesas,r8a774a1-csi2 # RZ/G2M
           - renesas,r8a774b1-csi2 # RZ/G2N
           - renesas,r8a774c0-csi2 # RZ/G2E
+          - renesas,r8a774e1-csi2 # RZ/G2H
           - renesas,r8a7795-csi2  # R-Car H3
           - renesas,r8a7796-csi2  # R-Car M3-W
           - renesas,r8a77965-csi2 # R-Car M3-N
@@ -45,24 +46,19 @@ properties:
     maxItems: 1
 
   ports:
-    type: object
-    description:
-      A node containing input and output port nodes with endpoint definitions
-      as documented in
-      Documentation/devicetree/bindings/media/video-interfaces.txt
+    $ref: /schemas/graph.yaml#/properties/ports
 
     properties:
       port@0:
-        type: object
+        $ref: /schemas/graph.yaml#/$defs/port-base
+        unevaluatedProperties: false
         description:
           Input port node, single endpoint describing the CSI-2 transmitter.
 
         properties:
-          reg:
-            const: 0
-
           endpoint:
-            type: object
+            $ref: video-interfaces.yaml#
+            unevaluatedProperties: false
 
             properties:
               clock-lanes:
@@ -71,50 +67,19 @@ properties:
               data-lanes:
                 maxItems: 1
 
-              remote-endpoint: true
-
             required:
               - clock-lanes
               - data-lanes
-              - remote-endpoint
-
-            additionalProperties: false
-
-        additionalProperties: false
 
       port@1:
-        type: object
+        $ref: /schemas/graph.yaml#/properties/port
         description:
           Output port node, multiple endpoints describing all the R-Car VIN
           modules connected the CSI-2 receiver.
 
-        properties:
-          '#address-cells':
-            const: 1
-
-          '#size-cells':
-            const: 0
-
-          reg:
-            const: 1
-
-        patternProperties:
-          "^endpoint@[0-9a-f]$":
-            type: object
-
-            properties:
-              reg:
-                maxItems: 1
-
-              remote-endpoint: true
-
-            required:
-              - reg
-              - remote-endpoint
-
-            additionalProperties: false
-
-        additionalProperties: false
+    required:
+      - port@0
+      - port@1
 
 required:
   - compatible

@@ -50,8 +50,6 @@
 #include "ldconfig.h"
 #include "rtld_paths.h"
 
-#define	_PATH_ELFSOFT_HINTS	"/var/run/ld-elf-soft.so.hints"
-
 static void usage(void);
 
 int
@@ -59,9 +57,9 @@ main(int argc, char **argv)
 {
 	const char *hints_file;
 	int c;
-	bool is_32, is_soft, justread, merge, rescan, verbose;
+	bool is_32, justread, merge, rescan, verbose;
 
-	is_32 = is_soft = justread = merge = rescan = verbose = false;
+	is_32 = justread = merge = rescan = verbose = false;
 
 	while (argc > 1) {
 		if (strcmp(argv[1], "-aout") == 0) {
@@ -73,18 +71,12 @@ main(int argc, char **argv)
 			is_32 = true;
 			argc--;
 			argv++;
-		} else if (strcmp(argv[1], "-soft") == 0) {
-			is_soft = true;
-			argc--;
-			argv++;
 		} else {
 			break;
 		}
 	}
 
-	if (is_soft)
-		hints_file = _PATH_SOFT_ELF_HINTS;
-	else if (is_32)
+	if (is_32)
 		hints_file = _PATH_ELF32_HINTS;
 	else
 		hints_file = _PATH_ELF_HINTS;

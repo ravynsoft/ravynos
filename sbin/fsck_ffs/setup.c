@@ -256,14 +256,14 @@ readsb(int listerr)
 	struct fs *fs;
 
 	super = bflag ? bflag * dev_bsize :
-	    sbhashfailed ? STDSB_NOHASHFAIL : STDSB;
+	    sbhashfailed ? STDSB_NOHASHFAIL_NOMSG : STDSB_NOMSG;
 	readcnt[sblk.b_type]++;
 	while ((ret = sbget(fsreadfd, &fs, super)) != 0) {
 		switch (ret) {
 		case EINTEGRITY:
-			if (bflag || super == STDSB_NOHASHFAIL)
+			if (bflag || super == STDSB_NOHASHFAIL_NOMSG)
 				return (0);
-			super = STDSB_NOHASHFAIL;
+			super = STDSB_NOHASHFAIL_NOMSG;
 			sbhashfailed = 1;
 			continue;
 		case ENOENT:

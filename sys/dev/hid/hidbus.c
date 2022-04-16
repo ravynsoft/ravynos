@@ -40,8 +40,9 @@ __FBSDID("$FreeBSD$");
 #include <sys/module.h>
 #include <sys/mutex.h>
 #include <sys/proc.h>
-#include <sys/systm.h>
+#include <sys/sbuf.h>
 #include <sys/sx.h>
+#include <sys/systm.h>
 
 #define	HID_DEBUG_VAR	hid_debug
 #include <dev/hid/hid.h>
@@ -495,24 +496,22 @@ hidbus_write_ivar(device_t bus, device_t child, int which, uintptr_t value)
 
 /* Location hint for devctl(8) */
 static int
-hidbus_child_location_str(device_t bus, device_t child, char *buf,
-    size_t buflen)
+hidbus_child_location(device_t bus, device_t child, struct sbuf *sb)
 {
 	struct hidbus_ivars *tlc = device_get_ivars(child);
 
-	snprintf(buf, buflen, "index=%hhu", tlc->index);
+	sbuf_printf(sb, "index=%hhu", tlc->index);
         return (0);
 }
 
 /* PnP information for devctl(8) */
 static int
-hidbus_child_pnpinfo_str(device_t bus, device_t child, char *buf,
-    size_t buflen)
+hidbus_child_pnpinfo(device_t bus, device_t child, struct sbuf *sb)
 {
 	struct hidbus_ivars *tlc = device_get_ivars(child);
 	struct hid_device_info *devinfo = device_get_ivars(bus);
 
-	snprintf(buf, buflen, "page=0x%04x usage=0x%04x bus=0x%02hx "
+	sbuf_printf(sb, "page=0x%04x usage=0x%04x bus=0x%02hx "
 	    "vendor=0x%04hx product=0x%04hx version=0x%04hx%s%s",
 	    HID_GET_USAGE_PAGE(tlc->usage), HID_GET_USAGE(tlc->usage),
 	    devinfo->idBus, devinfo->idVendor, devinfo->idProduct,
@@ -545,7 +544,7 @@ hidbus_find_child(device_t bus, int32_t usage)
 	device_t *children, child;
 	int ccount, i;
 
-	GIANT_REQUIRED;
+	bus_topo_assert();
 
 	/* Get a list of all hidbus children */
 	if (device_get_children(bus, &children, &ccount) != 0)
@@ -725,7 +724,7 @@ hid_set_report_descr(device_t dev, const void *data, hid_size_t len)
 	bool is_bus;
 	int error;
 
-	GIANT_REQUIRED;
+	bus_topo_assert();
 
 	is_bus = device_get_devclass(dev) == hidbus_devclass;
 	bus = is_bus ? dev : device_get_parent(dev);
@@ -901,8 +900,8 @@ static device_method_t hidbus_methods[] = {
 	DEVMETHOD(bus_child_deleted,	hidbus_child_deleted),
 	DEVMETHOD(bus_read_ivar,	hidbus_read_ivar),
 	DEVMETHOD(bus_write_ivar,	hidbus_write_ivar),
-	DEVMETHOD(bus_child_pnpinfo_str,hidbus_child_pnpinfo_str),
-	DEVMETHOD(bus_child_location_str,hidbus_child_location_str),
+	DEVMETHOD(bus_child_pnpinfo,	hidbus_child_pnpinfo),
+	DEVMETHOD(bus_child_location,	hidbus_child_location),
 
 	/* hid interface */
 	DEVMETHOD(hid_get_rdesc,	hid_get_rdesc),
@@ -912,6 +911,7 @@ static device_method_t hidbus_methods[] = {
 	DEVMETHOD(hid_set_report,	hid_set_report),
 	DEVMETHOD(hid_set_idle,		hid_set_idle),
 	DEVMETHOD(hid_set_protocol,	hid_set_protocol),
+	DEVMETHOD(hid_ioctl,		hid_ioctl),
 
 	DEVMETHOD_END
 };

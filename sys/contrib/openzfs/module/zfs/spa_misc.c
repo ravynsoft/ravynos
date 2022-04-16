@@ -235,14 +235,13 @@
 static avl_tree_t spa_namespace_avl;
 kmutex_t spa_namespace_lock;
 static kcondvar_t spa_namespace_cv;
-int spa_max_replication_override = SPA_DVAS_PER_BP;
+static const int spa_max_replication_override = SPA_DVAS_PER_BP;
 
 static kmutex_t spa_spare_lock;
 static avl_tree_t spa_spare_avl;
 static kmutex_t spa_l2cache_lock;
 static avl_tree_t spa_l2cache_avl;
 
-kmem_cache_t *spa_buffer_pool;
 spa_mode_t spa_mode_global = SPA_MODE_UNINIT;
 
 #ifdef ZFS_DEBUG
@@ -304,25 +303,25 @@ int zfs_free_leak_on_eio = B_FALSE;
  * has not completed in zfs_deadman_synctime_ms is considered "hung" resulting
  * in one of three behaviors controlled by zfs_deadman_failmode.
  */
-unsigned long zfs_deadman_synctime_ms = 600000UL;
+unsigned long zfs_deadman_synctime_ms = 600000UL;  /* 10 min. */
 
 /*
  * This value controls the maximum amount of time zio_wait() will block for an
  * outstanding IO.  By default this is 300 seconds at which point the "hung"
  * behavior will be applied as described for zfs_deadman_synctime_ms.
  */
-unsigned long zfs_deadman_ziotime_ms = 300000UL;
+unsigned long zfs_deadman_ziotime_ms = 300000UL;  /* 5 min. */
 
 /*
  * Check time in milliseconds. This defines the frequency at which we check
  * for hung I/O.
  */
-unsigned long zfs_deadman_checktime_ms = 60000UL;
+unsigned long zfs_deadman_checktime_ms = 60000UL;  /* 1 min. */
 
 /*
  * By default the deadman is enabled.
  */
-int zfs_deadman_enabled = 1;
+int zfs_deadman_enabled = B_TRUE;
 
 /*
  * Controls the behavior of the deadman when it detects a "hung" I/O.
@@ -332,7 +331,7 @@ int zfs_deadman_enabled = 1;
  * continue - Attempt to recover from a "hung" I/O
  * panic    - Panic the system
  */
-char *zfs_deadman_failmode = "wait";
+const char *zfs_deadman_failmode = "wait";
 
 /*
  * The worst case is single-sector max-parity RAID-Z blocks, in which
@@ -384,12 +383,11 @@ int spa_asize_inflation = 24;
  * See also the comments in zfs_space_check_t.
  */
 int spa_slop_shift = 5;
-uint64_t spa_min_slop = 128ULL * 1024 * 1024;
-uint64_t spa_max_slop = 128ULL * 1024 * 1024 * 1024;
-int spa_allocators = 4;
+static const uint64_t spa_min_slop = 128ULL * 1024 * 1024;
+static const uint64_t spa_max_slop = 128ULL * 1024 * 1024 * 1024;
+static const int spa_allocators = 4;
 
 
-/*PRINTFLIKE2*/
 void
 spa_load_failed(spa_t *spa, const char *fmt, ...)
 {
@@ -404,7 +402,6 @@ spa_load_failed(spa_t *spa, const char *fmt, ...)
 	    spa->spa_trust_config ? "trusted" : "untrusted", buf);
 }
 
-/*PRINTFLIKE2*/
 void
 spa_load_note(spa_t *spa, const char *fmt, ...)
 {
@@ -422,15 +419,15 @@ spa_load_note(spa_t *spa, const char *fmt, ...)
 /*
  * By default dedup and user data indirects land in the special class
  */
-int zfs_ddt_data_is_special = B_TRUE;
-int zfs_user_indirect_is_special = B_TRUE;
+static int zfs_ddt_data_is_special = B_TRUE;
+static int zfs_user_indirect_is_special = B_TRUE;
 
 /*
  * The percentage of special class final space reserved for metadata only.
  * Once we allocate 100 - zfs_special_class_metadata_reserve_pct we only
  * let metadata into the class.
  */
-int zfs_special_class_metadata_reserve_pct = 25;
+static int zfs_special_class_metadata_reserve_pct = 25;
 
 /*
  * ==========================================================================
@@ -444,9 +441,9 @@ spa_config_lock_init(spa_t *spa)
 		spa_config_lock_t *scl = &spa->spa_config_lock[i];
 		mutex_init(&scl->scl_lock, NULL, MUTEX_DEFAULT, NULL);
 		cv_init(&scl->scl_cv, NULL, CV_DEFAULT, NULL);
-		zfs_refcount_create_untracked(&scl->scl_count);
 		scl->scl_writer = NULL;
 		scl->scl_write_wanted = 0;
+		scl->scl_count = 0;
 	}
 }
 
@@ -457,9 +454,9 @@ spa_config_lock_destroy(spa_t *spa)
 		spa_config_lock_t *scl = &spa->spa_config_lock[i];
 		mutex_destroy(&scl->scl_lock);
 		cv_destroy(&scl->scl_cv);
-		zfs_refcount_destroy(&scl->scl_count);
 		ASSERT(scl->scl_writer == NULL);
 		ASSERT(scl->scl_write_wanted == 0);
+		ASSERT(scl->scl_count == 0);
 	}
 }
 
@@ -480,7 +477,7 @@ spa_config_tryenter(spa_t *spa, int locks, void *tag, krw_t rw)
 			}
 		} else {
 			ASSERT(scl->scl_writer != curthread);
-			if (!zfs_refcount_is_zero(&scl->scl_count)) {
+			if (scl->scl_count != 0) {
 				mutex_exit(&scl->scl_lock);
 				spa_config_exit(spa, locks & ((1 << i) - 1),
 				    tag);
@@ -488,7 +485,7 @@ spa_config_tryenter(spa_t *spa, int locks, void *tag, krw_t rw)
 			}
 			scl->scl_writer = curthread;
 		}
-		(void) zfs_refcount_add(&scl->scl_count, tag);
+		scl->scl_count++;
 		mutex_exit(&scl->scl_lock);
 	}
 	return (1);
@@ -515,14 +512,14 @@ spa_config_enter(spa_t *spa, int locks, const void *tag, krw_t rw)
 			}
 		} else {
 			ASSERT(scl->scl_writer != curthread);
-			while (!zfs_refcount_is_zero(&scl->scl_count)) {
+			while (scl->scl_count != 0) {
 				scl->scl_write_wanted++;
 				cv_wait(&scl->scl_cv, &scl->scl_lock);
 				scl->scl_write_wanted--;
 			}
 			scl->scl_writer = curthread;
 		}
-		(void) zfs_refcount_add(&scl->scl_count, tag);
+		scl->scl_count++;
 		mutex_exit(&scl->scl_lock);
 	}
 	ASSERT3U(wlocks_held, <=, locks);
@@ -537,8 +534,8 @@ spa_config_exit(spa_t *spa, int locks, const void *tag)
 		if (!(locks & (1 << i)))
 			continue;
 		mutex_enter(&scl->scl_lock);
-		ASSERT(!zfs_refcount_is_zero(&scl->scl_count));
-		if (zfs_refcount_remove(&scl->scl_count, tag) == 0) {
+		ASSERT(scl->scl_count > 0);
+		if (--scl->scl_count == 0) {
 			ASSERT(scl->scl_writer == NULL ||
 			    scl->scl_writer == curthread);
 			scl->scl_writer = NULL;	/* OK in either case */
@@ -557,8 +554,7 @@ spa_config_held(spa_t *spa, int locks, krw_t rw)
 		spa_config_lock_t *scl = &spa->spa_config_lock[i];
 		if (!(locks & (1 << i)))
 			continue;
-		if ((rw == RW_READER &&
-		    !zfs_refcount_is_zero(&scl->scl_count)) ||
+		if ((rw == RW_READER && scl->scl_count != 0) ||
 		    (rw == RW_WRITER && scl->scl_writer == curthread))
 			locks_held |= 1 << i;
 	}
@@ -1481,8 +1477,7 @@ spa_strdup(const char *s)
 
 	len = strlen(s);
 	new = kmem_alloc(len + 1, KM_SLEEP);
-	bcopy(s, new, len);
-	new[len] = '\0';
+	memcpy(new, s, len + 1);
 
 	return (new);
 }
@@ -1838,36 +1833,27 @@ spa_update_dspace(spa_t *spa)
 {
 	spa->spa_dspace = metaslab_class_get_dspace(spa_normal_class(spa)) +
 	    ddt_get_dedup_dspace(spa);
-	if (spa->spa_vdev_removal != NULL) {
+	if (spa->spa_nonallocating_dspace > 0) {
 		/*
-		 * We can't allocate from the removing device, so subtract
-		 * its size if it was included in dspace (i.e. if this is a
-		 * normal-class vdev, not special/dedup).  This prevents the
-		 * DMU/DSL from filling up the (now smaller) pool while we
-		 * are in the middle of removing the device.
+		 * Subtract the space provided by all non-allocating vdevs that
+		 * contribute to dspace.  If a file is overwritten, its old
+		 * blocks are freed and new blocks are allocated.  If there are
+		 * no snapshots of the file, the available space should remain
+		 * the same.  The old blocks could be freed from the
+		 * non-allocating vdev, but the new blocks must be allocated on
+		 * other (allocating) vdevs.  By reserving the entire size of
+		 * the non-allocating vdevs (including allocated space), we
+		 * ensure that there will be enough space on the allocating
+		 * vdevs for this file overwrite to succeed.
 		 *
 		 * Note that the DMU/DSL doesn't actually know or care
 		 * how much space is allocated (it does its own tracking
 		 * of how much space has been logically used).  So it
 		 * doesn't matter that the data we are moving may be
-		 * allocated twice (on the old device and the new
-		 * device).
+		 * allocated twice (on the old device and the new device).
 		 */
-		spa_config_enter(spa, SCL_VDEV, FTAG, RW_READER);
-		vdev_t *vd =
-		    vdev_lookup_top(spa, spa->spa_vdev_removal->svr_vdev_id);
-		/*
-		 * If the stars align, we can wind up here after
-		 * vdev_remove_complete() has cleared vd->vdev_mg but before
-		 * spa->spa_vdev_removal gets cleared, so we must check before
-		 * we dereference.
-		 */
-		if (vd->vdev_mg &&
-		    vd->vdev_mg->mg_class == spa_normal_class(spa)) {
-			spa->spa_dspace -= spa_deflate(spa) ?
-			    vd->vdev_stat.vs_dspace : vd->vdev_stat.vs_space;
-		}
-		spa_config_exit(spa, SCL_VDEV, FTAG);
+		ASSERT3U(spa->spa_dspace, >=, spa->spa_nonallocating_dspace);
+		spa->spa_dspace -= spa->spa_nonallocating_dspace;
 	}
 }
 
@@ -2434,6 +2420,7 @@ spa_init(spa_mode_t mode)
 	zpool_prop_init();
 	zpool_feature_init();
 	spa_config_load();
+	vdev_prop_init();
 	l2arc_start();
 	scan_init();
 	qat_init();
@@ -2578,7 +2565,7 @@ spa_scan_get_stats(spa_t *spa, pool_scan_stat_t *ps)
 
 	if (scn == NULL || scn->scn_phys.scn_func == POOL_SCAN_NONE)
 		return (SET_ERROR(ENOENT));
-	bzero(ps, sizeof (pool_scan_stat_t));
+	memset(ps, 0, sizeof (pool_scan_stat_t));
 
 	/* data stored on disk */
 	ps->pss_func = scn->scn_phys.scn_func;

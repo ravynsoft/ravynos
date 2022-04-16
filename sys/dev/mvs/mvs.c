@@ -844,7 +844,6 @@ mvs_legacy_intr(device_t dev, int poll)
 	struct mvs_slot *slot = &ch->slot[0]; /* PIO is always in slot 0. */
 	union ccb *ccb = slot->ccb;
 	enum mvs_err_type et = MVS_ERR_NONE;
-	int port;
 	u_int length, resid, size;
 	uint8_t buf[2];
 	uint8_t status, ireason;
@@ -853,7 +852,6 @@ mvs_legacy_intr(device_t dev, int poll)
 	status = mvs_getstatus(dev, 1);
 	if (slot->state < MVS_SLOT_RUNNING)
 	    return;
-	port = ccb->ccb_h.target_id & 0x0f;
 	/* Wait a bit for late !BUSY status update. */
 	if (status & ATA_S_BUSY) {
 		if (poll)
@@ -1803,7 +1801,8 @@ completeall:
 		mvs_reset(dev);
 		return;
 	}
-	ccb->ccb_h = ch->hold[i]->ccb_h;	/* Reuse old header. */
+	xpt_setup_ccb(&ccb->ccb_h, ch->hold[i]->ccb_h.path,
+	    ch->hold[i]->ccb_h.pinfo.priority);
 	if (ccb->ccb_h.func_code == XPT_ATA_IO) {
 		/* READ LOG */
 		ccb->ccb_h.recovery_type = RECOVERY_READ_LOG;

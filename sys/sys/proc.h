@@ -183,6 +183,7 @@ struct kaudit_record;
 struct kcov_info;
 struct kdtrace_proc;
 struct kdtrace_thread;
+struct kmsan_td;
 struct kq_timer_cb_data;
 struct mqueue_notifier;
 struct p_sched;
@@ -192,7 +193,6 @@ struct racct;
 struct sbuf;
 struct sleepqueue;
 struct socket;
-struct syscall_args;
 struct td_sched;
 struct thread;
 struct trapframe;
@@ -204,6 +204,12 @@ struct vm_map_entry;
 struct epoch_tracker;
 
 typedef void (*mi_switchcb_t)(int, struct thread *);
+struct syscall_args {
+	u_int code;
+	u_int original_code;
+	struct sysent *callp;
+	register_t args[8];
+};
 
 /*
  * XXX: Does this belong in resource.h or resourcevar.h instead?
@@ -254,6 +260,7 @@ struct thread {
 #define	td_siglist	td_sigqueue.sq_signals
 	u_char		td_lend_user_pri; /* (t) Lend user pri. */
 	u_char		td_allocdomain;	/* (b) NUMA domain backing this struct thread. */
+	struct kmsan_td	*td_kmsan;	/* (k) KMSAN state */
 
 /* Cleared during fork1() */
 #define	td_startzero td_flags
@@ -329,7 +336,6 @@ struct thread {
 	u_char		td_pri_class;	/* (t) Scheduling class. */
 	u_char		td_user_pri;	/* (t) User pri from estcpu and nice. */
 	u_char		td_base_user_pri; /* (t) Base user pri */
-	u_char		td_unused_0;	/* no longer used field */
 	uintptr_t	td_rb_list;	/* (k) Robust list head. */
 	uintptr_t	td_rbp_list;	/* (k) Robust priv list head. */
 	uintptr_t	td_rb_inact;	/* (k) Current in-action mutex loc. */
@@ -352,8 +358,9 @@ struct thread {
 		TDS_RUNQ,
 		TDS_RUNNING
 	} td_state;			/* (t) thread state */
+	/* Note: td_state must be accessed using TD_{GET,SET}_STATE(). */
 	union {
-		register_t	tdu_retval[2];
+		syscallarg_t	tdu_retval[2];
 		off_t		tdu_off;
 	} td_uretoff;			/* (k) Syscall aux returns. */
 #define td_retval	td_uretoff.tdu_retval
@@ -530,7 +537,7 @@ do {									\
 #define	TDP_RESETSPUR	0x04000000 /* Reset spurious page fault history. */
 #define	TDP_NERRNO	0x08000000 /* Last errno is already in td_errno */
 #define	TDP_UIOHELD	0x10000000 /* Current uio has pages held in td_ma */
-#define	TDP_FORKING	0x20000000 /* Thread is being created through fork() */
+#define	TDP_UNUSED0	0x20000000 /* UNUSED */
 #define	TDP_EXECVMSPC	0x40000000 /* Execve destroyed old vmspace */
 #define	TDP_SIGFASTPENDING 0x80000000 /* Pending signal due to sigfastblock */
 
@@ -554,10 +561,15 @@ do {									\
 #define	TD_IS_SWAPPED(td)	((td)->td_inhibitors & TDI_SWAPPED)
 #define	TD_ON_LOCK(td)		((td)->td_inhibitors & TDI_LOCK)
 #define	TD_AWAITING_INTR(td)	((td)->td_inhibitors & TDI_IWAIT)
-#define	TD_IS_RUNNING(td)	((td)->td_state == TDS_RUNNING)
-#define	TD_ON_RUNQ(td)		((td)->td_state == TDS_RUNQ)
-#define	TD_CAN_RUN(td)		((td)->td_state == TDS_CAN_RUN)
-#define	TD_IS_INHIBITED(td)	((td)->td_state == TDS_INHIBITED)
+#ifdef _KERNEL
+#define	TD_GET_STATE(td)	atomic_load_int(&(td)->td_state)
+#else
+#define	TD_GET_STATE(td)	((td)->td_state)
+#endif
+#define	TD_IS_RUNNING(td)	(TD_GET_STATE(td) == TDS_RUNNING)
+#define	TD_ON_RUNQ(td)		(TD_GET_STATE(td) == TDS_RUNQ)
+#define	TD_CAN_RUN(td)		(TD_GET_STATE(td) == TDS_CAN_RUN)
+#define	TD_IS_INHIBITED(td)	(TD_GET_STATE(td) == TDS_INHIBITED)
 #define	TD_ON_UPILOCK(td)	((td)->td_flags & TDF_UPIBLOCKED)
 #define TD_IS_IDLETHREAD(td)	((td)->td_flags & TDF_IDLETD)
 
@@ -571,15 +583,15 @@ do {									\
 	((td)->td_inhibitors & TDI_LOCK) != 0 ? "blocked" :		\
 	((td)->td_inhibitors & TDI_IWAIT) != 0 ? "iwait" : "yielding")
 
-#define	TD_SET_INHIB(td, inhib) do {			\
-	(td)->td_state = TDS_INHIBITED;			\
-	(td)->td_inhibitors |= (inhib);			\
+#define	TD_SET_INHIB(td, inhib) do {		\
+	TD_SET_STATE(td, TDS_INHIBITED);	\
+	(td)->td_inhibitors |= (inhib);		\
 } while (0)
 
 #define	TD_CLR_INHIB(td, inhib) do {			\
 	if (((td)->td_inhibitors & (inhib)) &&		\
 	    (((td)->td_inhibitors &= ~(inhib)) == 0))	\
-		(td)->td_state = TDS_CAN_RUN;		\
+		TD_SET_STATE(td, TDS_CAN_RUN);		\
 } while (0)
 
 #define	TD_SET_SLEEPING(td)	TD_SET_INHIB((td), TDI_SLEEPING)
@@ -595,9 +607,15 @@ do {									\
 #define	TD_CLR_SUSPENDED(td)	TD_CLR_INHIB((td), TDI_SUSPENDED)
 #define	TD_CLR_IWAIT(td)	TD_CLR_INHIB((td), TDI_IWAIT)
 
-#define	TD_SET_RUNNING(td)	(td)->td_state = TDS_RUNNING
-#define	TD_SET_RUNQ(td)		(td)->td_state = TDS_RUNQ
-#define	TD_SET_CAN_RUN(td)	(td)->td_state = TDS_CAN_RUN
+#ifdef _KERNEL
+#define	TD_SET_STATE(td, state)	atomic_store_int(&(td)->td_state, state)
+#else
+#define	TD_SET_STATE(td, state)	(td)->td_state = state
+#endif
+#define	TD_SET_RUNNING(td)	TD_SET_STATE(td, TDS_RUNNING)
+#define	TD_SET_RUNQ(td)		TD_SET_STATE(td, TDS_RUNQ)
+#define	TD_SET_CAN_RUN(td)	TD_SET_STATE(td, TDS_CAN_RUN)
+
 
 #define	TD_SBDRY_INTR(td) \
     (((td)->td_flags & (TDF_SEINTR | TDF_SERESTART)) != 0)
@@ -660,8 +678,9 @@ struct proc {
 	volatile int	p_exitthreads;	/* (j) Number of threads exiting */
 	int		p_traceflag;	/* (o) Kernel trace points. */
 	struct ktr_io_params	*p_ktrioparms;	/* (c + o) Params for ktrace. */
-	void		*p_pad0;
 	struct vnode	*p_textvp;	/* (b) Vnode of executable. */
+	struct vnode	*p_textdvp;	/* (b) Dir containing textvp. */
+	char		*p_binname;	/* (b) Binary hardlink name. */
 	u_int		p_lock;		/* (c) Proclock (prevent swap) count. */
 	struct sigiolst	p_sigiolst;	/* (c) List of sigio sources. */
 	int		p_sigparent;	/* (c) Signal to parent on exit. */
@@ -697,8 +716,9 @@ struct proc {
 	pid_t		p_reapsubtree;	/* (e) Pid of the direct child of the
 					       reaper which spawned
 					       our subtree. */
-	uint16_t	p_elf_machine;	/* (x) ELF machine type */
 	uint64_t	p_elf_flags;	/* (x) ELF flags */
+	void		*p_elf_brandinfo; /* (x) Elf_Brandinfo, NULL for
+						 non ELF binaries. */
 /* End area that is copied on creation. */
 #define	p_endcopy	p_xexit
 
@@ -736,8 +756,6 @@ struct proc {
 	void		*p_machdata;	/* (c) Mach state data. */
 
 	TAILQ_HEAD(, kq_timer_cb_data)	p_kqtim_stop;	/* (c) */
-	struct vnode	*p_textdvp;	/* (b) Dir containing textvp. */
-	char		*p_binname;	/* (b) Binary hardlink name. */
 };
 
 #define	p_session	p_pgrp->pg_session
@@ -1002,9 +1020,18 @@ extern pid_t pid_max;
 } while (0)
 
 #define	PROC_UPDATE_COW(p) do {						\
-	PROC_LOCK_ASSERT((p), MA_OWNED);				\
-	(p)->p_cowgen++;						\
+	struct proc *_p = (p);						\
+	PROC_LOCK_ASSERT((_p), MA_OWNED);				\
+	atomic_store_int(&_p->p_cowgen, _p->p_cowgen + 1);		\
 } while (0)
+
+#define	PROC_COW_CHANGECOUNT(td, p) ({					\
+	struct thread *_td = (td);					\
+	struct proc *_p = (p);						\
+	MPASS(_td == curthread);					\
+	PROC_LOCK_ASSERT(_p, MA_OWNED);					\
+	_p->p_cowgen - _td->td_cowgen;					\
+})
 
 /* Check whether a thread is safe to be swapped out. */
 #define	thread_safetoswapout(td)	((td)->td_flags & TDF_CANSWAP)
@@ -1198,6 +1225,7 @@ void	thread_cow_get_proc(struct thread *newtd, struct proc *p);
 void	thread_cow_get(struct thread *newtd, struct thread *td);
 void	thread_cow_free(struct thread *td);
 void	thread_cow_update(struct thread *td);
+void	thread_cow_synced(struct thread *td);
 int	thread_create(struct thread *td, struct rtprio *rtp,
 	    int (*initialize_thread)(struct thread *, void *), void *thunk);
 void	thread_exit(void) __dead2;

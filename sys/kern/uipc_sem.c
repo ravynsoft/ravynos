@@ -161,8 +161,7 @@ static struct fileops ksem_ops = {
 FEATURE(posix_sem, "POSIX semaphores");
 
 static int
-ksem_stat(struct file *fp, struct stat *sb, struct ucred *active_cred,
-    struct thread *td)
+ksem_stat(struct file *fp, struct stat *sb, struct ucred *active_cred)
 {
 	struct ksem *ks;
 #ifdef MAC
@@ -971,7 +970,7 @@ int
 freebsd32_ksem_init(struct thread *td, struct freebsd32_ksem_init_args *uap)
 {
 
-	return (ksem_create(td, NULL, uap->idp, S_IRWXU | S_IRWXG, uap->value,
+	return (ksem_create(td, NULL, (semid_t *)uap->idp, S_IRWXU | S_IRWXG, uap->value,
 	    0, 1));
 }
 
@@ -981,7 +980,7 @@ freebsd32_ksem_open(struct thread *td, struct freebsd32_ksem_open_args *uap)
 
 	if ((uap->oflag & ~(O_CREAT | O_EXCL)) != 0)
 		return (EINVAL);
-	return (ksem_create(td, uap->name, uap->idp, uap->mode, uap->value,
+	return (ksem_create(td, uap->name, (semid_t *)uap->idp, uap->mode, uap->value,
 	    uap->oflag, 1));
 }
 

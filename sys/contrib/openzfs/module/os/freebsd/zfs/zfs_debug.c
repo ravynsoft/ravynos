@@ -33,11 +33,11 @@ typedef struct zfs_dbgmsg {
 	char zdm_msg[1]; /* variable length allocation */
 } zfs_dbgmsg_t;
 
-list_t zfs_dbgmsgs;
-int zfs_dbgmsg_size = 0;
-kmutex_t zfs_dbgmsgs_lock;
+static list_t zfs_dbgmsgs;
+static int zfs_dbgmsg_size = 0;
+static kmutex_t zfs_dbgmsgs_lock;
 int zfs_dbgmsg_maxsize = 4<<20; /* 4MB */
-kstat_t *zfs_dbgmsg_kstat;
+static kstat_t *zfs_dbgmsg_kstat;
 
 /*
  * Internal ZFS debug messages are enabled by default.
@@ -51,7 +51,7 @@ kstat_t *zfs_dbgmsg_kstat;
  * # Disable the kernel debug message log.
  * sysctl vfs.zfs.dbgmsg_enable=0
  */
-int zfs_dbgmsg_enable = 1;
+int zfs_dbgmsg_enable = B_TRUE;
 
 static int
 zfs_dbgmsg_headers(char *buf, size_t size)
@@ -245,10 +245,8 @@ zfs_dbgmsg_print(const char *tag)
 }
 #endif /* _KERNEL */
 
-/* BEGIN CSTYLED */
 ZFS_MODULE_PARAM(zfs, zfs_, dbgmsg_enable, INT, ZMOD_RW,
-    "Enable ZFS debug message log");
+	"Enable ZFS debug message log");
 
 ZFS_MODULE_PARAM(zfs, zfs_, dbgmsg_maxsize, INT, ZMOD_RW,
-    "Maximum ZFS debug log size");
-/* END CSTYLED */
+	"Maximum ZFS debug log size");

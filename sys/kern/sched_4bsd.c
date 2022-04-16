@@ -56,7 +56,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/sysctl.h>
 #include <sys/sx.h>
 #include <sys/turnstile.h>
-#include <sys/umtx.h>
+#include <sys/umtxvar.h>
 #include <machine/pcb.h>
 #include <machine/smp.h>
 
@@ -987,13 +987,9 @@ sched_switch(struct thread *td, int flags)
 {
 	struct thread *newtd;
 	struct mtx *tmtx;
-	struct td_sched *ts;
-	struct proc *p;
 	int preempted;
 
 	tmtx = &sched_lock;
-	ts = td_get_sched(td);
-	p = td->td_proc;
 
 	THREAD_LOCK_ASSERT(td, MA_OWNED);
 
@@ -1530,12 +1526,12 @@ sched_userret_slowpath(struct thread *td)
 void
 sched_bind(struct thread *td, int cpu)
 {
-	struct td_sched *ts;
+#ifdef SMP
+	struct td_sched *ts = td_get_sched(td);
+#endif
 
 	THREAD_LOCK_ASSERT(td, MA_OWNED|MA_NOTRECURSED);
 	KASSERT(td == curthread, ("sched_bind: can only bind curthread"));
-
-	ts = td_get_sched(td);
 
 	td->td_flags |= TDF_BOUND;
 #ifdef SMP
@@ -1662,12 +1658,22 @@ sched_idletd(void *dummy)
 	}
 }
 
+static void
+sched_throw_tail(struct thread *td)
+{
+
+	mtx_assert(&sched_lock, MA_OWNED);
+	KASSERT(curthread->td_md.md_spinlock_count == 1, ("invalid count"));
+	cpu_throw(td, choosethread());	/* doesn't return */
+}
+
 /*
- * A CPU is entering for the first time or a thread is exiting.
+ * A CPU is entering for the first time.
  */
 void
-sched_throw(struct thread *td)
+sched_ap_entry(void)
 {
+
 	/*
 	 * Correct spinlock nesting.  The idle thread context that we are
 	 * borrowing was created so that it would start out with a single
@@ -1677,20 +1683,29 @@ sched_throw(struct thread *td)
 	 * spinlock_exit() will simply adjust the counts without allowing
 	 * spin lock using code to interrupt us.
 	 */
-	if (td == NULL) {
-		mtx_lock_spin(&sched_lock);
-		spinlock_exit();
-		PCPU_SET(switchtime, cpu_ticks());
-		PCPU_SET(switchticks, ticks);
-	} else {
-		lock_profile_release_lock(&sched_lock.lock_object, true);
-		MPASS(td->td_lock == &sched_lock);
-		td->td_lastcpu = td->td_oncpu;
-		td->td_oncpu = NOCPU;
-	}
-	mtx_assert(&sched_lock, MA_OWNED);
-	KASSERT(curthread->td_md.md_spinlock_count == 1, ("invalid count"));
-	cpu_throw(td, choosethread());	/* doesn't return */
+	mtx_lock_spin(&sched_lock);
+	spinlock_exit();
+	PCPU_SET(switchtime, cpu_ticks());
+	PCPU_SET(switchticks, ticks);
+
+	sched_throw_tail(NULL);
+}
+
+/*
+ * A thread is exiting.
+ */
+void
+sched_throw(struct thread *td)
+{
+
+	MPASS(td != NULL);
+	MPASS(td->td_lock == &sched_lock);
+
+	lock_profile_release_lock(&sched_lock.lock_object, true);
+	td->td_lastcpu = td->td_oncpu;
+	td->td_oncpu = NOCPU;
+
+	sched_throw_tail(td);
 }
 
 void
@@ -1771,7 +1786,7 @@ sched_affinity(struct thread *td)
 	if (td->td_pinned != 0 || td->td_flags & TDF_BOUND)
 		return;
 
-	switch (td->td_state) {
+	switch (TD_GET_STATE(td)) {
 	case TDS_RUNQ:
 		/*
 		 * If we are on a per-CPU runqueue that is in the set,

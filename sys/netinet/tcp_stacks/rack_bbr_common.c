@@ -210,7 +210,6 @@ ctf_get_enet_type(struct ifnet *ifp, struct mbuf *m)
 				m = m_pullup(m, sizeof(*ip6) + sizeof(*th));
 				if (m == NULL) {
 					KMOD_TCPSTAT_INC(tcps_rcvshort);
-					m_freem(m);
 					return (-1);
 				}
 			}
@@ -243,7 +242,6 @@ ctf_get_enet_type(struct ifnet *ifp, struct mbuf *m)
 				m = m_pullup(m, sizeof (struct tcpiphdr));
 				if (m == NULL) {
 					KMOD_TCPSTAT_INC(tcps_rcvshort);
-					m_freem(m);
 					return (-1);
 				}
 			}
@@ -383,7 +381,7 @@ ctf_process_inbound_raw(struct tcpcb *tp, struct socket *so, struct mbuf *m, int
 	 * 1) It returns 0 if all went well and you (the caller) need
 	 *    to release the lock.
 	 * 2) If nxt_pkt is set, then the function will surpress calls
-	 *    to tfb_tcp_output() since you are promising to call again
+	 *    to tcp_output() since you are promising to call again
 	 *    with another packet.
 	 * 3) If it returns 1, then you must free all the packets being
 	 *    shipped in, the tcb has been destroyed (or about to be destroyed).
@@ -766,7 +764,8 @@ ctf_do_drop(struct mbuf *m, struct tcpcb *tp)
 }
 
 int
-ctf_process_rst(struct mbuf *m, struct tcphdr *th, struct socket *so, struct tcpcb *tp)
+__ctf_process_rst(struct mbuf *m, struct tcphdr *th, struct socket *so,
+		struct tcpcb *tp, uint32_t *ts, uint32_t *cnt)
 {
 	/*
 	 * RFC5961 Section 3.2
@@ -813,11 +812,40 @@ ctf_process_rst(struct mbuf *m, struct tcphdr *th, struct socket *so, struct tcp
 			dropped = 1;
 			ctf_do_drop(m, tp);
 		} else {
+			int send_challenge;
+
 			KMOD_TCPSTAT_INC(tcps_badrst);
-			/* Send challenge ACK. */
-			tcp_respond(tp, mtod(m, void *), th, m,
-			    tp->rcv_nxt, tp->snd_nxt, TH_ACK);
-			tp->last_ack_sent = tp->rcv_nxt;
+			if ((ts != NULL) && (cnt != NULL) &&
+			    (tcp_ack_war_time_window > 0) &&
+			    (tcp_ack_war_cnt > 0)) {
+				/* We are possibly preventing an  ack-rst  war prevention */
+				uint32_t cts;
+
+				/*
+				 * We use a msec tick here which gives us
+				 * roughly 49 days. We don't need the
+				 * precision of a microsecond timestamp which
+				 * would only give us hours.
+				 */
+				cts = tcp_ts_getticks();
+				if (TSTMP_LT((*ts), cts)) {
+					/* Timestamp is in the past */
+					*cnt = 0;
+					*ts = (cts + tcp_ack_war_time_window);
+				}
+				if (*cnt < tcp_ack_war_cnt) {
+					*cnt = (*cnt + 1);
+					send_challenge = 1;
+				} else
+					send_challenge = 0;
+			} else
+				send_challenge = 1;
+			if (send_challenge) {
+				/* Send challenge ACK. */
+				tcp_respond(tp, mtod(m, void *), th, m,
+					    tp->rcv_nxt, tp->snd_nxt, TH_ACK);
+				tp->last_ack_sent = tp->rcv_nxt;
+			}
 		}
 	} else {
 		m_freem(m);
@@ -941,11 +969,10 @@ ctf_do_dropwithreset_conn(struct mbuf *m, struct tcpcb *tp, struct tcphdr *th,
     int32_t rstreason, int32_t tlen)
 {
 
-	if (tp->t_inpcb) {
-		tcp_set_inp_to_drop(tp->t_inpcb, ETIMEDOUT);
-	}
 	tcp_dropwithreset(m, th, tp, tlen, rstreason);
-	INP_WUNLOCK(tp->t_inpcb);
+	tp = tcp_drop(tp, ETIMEDOUT);
+	if (tp)
+		INP_WUNLOCK(tp->t_inpcb);
 }
 
 uint32_t

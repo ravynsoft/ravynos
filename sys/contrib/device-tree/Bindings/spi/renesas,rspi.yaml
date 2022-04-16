@@ -25,6 +25,7 @@ properties:
 
       - items:
           - enum:
+              - renesas,qspi-r8a7742   # RZ/G1H
               - renesas,qspi-r8a7743   # RZ/G1M
               - renesas,qspi-r8a7744   # RZ/G1N
               - renesas,qspi-r8a7745   # RZ/G1E
@@ -67,6 +68,8 @@ properties:
     maxItems: 1
 
   dmas:
+    minItems: 2
+    maxItems: 4
     description:
       Must contain a list of pairs of references to DMA specifiers, one for
       transmission, and one for reception.
@@ -122,6 +125,8 @@ allOf:
     then:
       required:
         - resets
+
+unevaluatedProperties: false
 
 examples:
   - |

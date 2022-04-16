@@ -199,6 +199,14 @@ toedev_alloc_tls_session(struct toedev *tod __unused, struct tcpcb *tp __unused,
 	return (EINVAL);
 }
 
+static void
+toedev_pmtu_update(struct toedev *tod __unused, struct tcpcb *tp __unused,
+    tcp_seq seq __unused, int mtu __unused)
+{
+
+	return;
+}
+
 /*
  * Inform one or more TOE devices about a listening socket.
  */
@@ -290,6 +298,7 @@ init_toedev(struct toedev *tod)
 	tod->tod_ctloutput = toedev_ctloutput;
 	tod->tod_tcp_info = toedev_tcp_info;
 	tod->tod_alloc_tls_session = toedev_alloc_tls_session;
+	tod->tod_pmtu_update = toedev_pmtu_update;
 }
 
 /*
@@ -348,11 +357,11 @@ void
 toe_syncache_add(struct in_conninfo *inc, struct tcpopt *to, struct tcphdr *th,
     struct inpcb *inp, void *tod, void *todctx, uint8_t iptos)
 {
-	struct socket *lso = inp->inp_socket;
 
-	INP_WLOCK_ASSERT(inp);
+	INP_RLOCK_ASSERT(inp);
 
-	syncache_add(inc, to, th, inp, &lso, NULL, tod, todctx, iptos, htons(0));
+	(void )syncache_add(inc, to, th, inp, inp->inp_socket, NULL, tod,
+	    todctx, iptos, htons(0));
 }
 
 int
@@ -381,19 +390,19 @@ toe_4tuple_check(struct in_conninfo *inc, struct tcphdr *th, struct ifnet *ifp)
 	if (inc->inc_flags & INC_ISIPV6) {
 		inp = in6_pcblookup(&V_tcbinfo, &inc->inc6_faddr,
 		    inc->inc_fport, &inc->inc6_laddr, inc->inc_lport,
-		    INPLOOKUP_WLOCKPCB, ifp);
+		    INPLOOKUP_RLOCKPCB, ifp);
 	} else {
 		inp = in_pcblookup(&V_tcbinfo, inc->inc_faddr, inc->inc_fport,
-		    inc->inc_laddr, inc->inc_lport, INPLOOKUP_WLOCKPCB, ifp);
+		    inc->inc_laddr, inc->inc_lport, INPLOOKUP_RLOCKPCB, ifp);
 	}
 	if (inp != NULL) {
-		INP_WLOCK_ASSERT(inp);
+		INP_RLOCK_ASSERT(inp);
 
 		if ((inp->inp_flags & INP_TIMEWAIT) && th != NULL) {
 			if (!tcp_twcheck(inp, NULL, th, NULL, 0))
 				return (EADDRINUSE);
 		} else {
-			INP_WUNLOCK(inp);
+			INP_RUNLOCK(inp);
 			return (EADDRINUSE);
 		}
 	}
@@ -523,7 +532,8 @@ toe_connect_failed(struct toedev *tod, struct inpcb *inp, int err)
 			KASSERT(!(tp->t_flags & TF_TOE),
 			    ("%s: tp %p still offloaded.", __func__, tp));
 			tcp_timer_activate(tp, TT_KEEP, TP_KEEPINIT(tp));
-			(void) tp->t_fb->tfb_tcp_output(tp);
+			if (tcp_output(tp) < 0)
+				INP_WLOCK(inp);	/* re-acquire */
 		} else {
 			tp = tcp_drop(tp, err);
 			if (tp == NULL)

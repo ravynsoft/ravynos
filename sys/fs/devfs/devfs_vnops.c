@@ -120,9 +120,8 @@ static int
 devfs_fp_check(struct file *fp, struct cdev **devp, struct cdevsw **dswp,
     int *ref)
 {
-
 	*dswp = devvn_refthread(fp->f_vnode, devp, ref);
-	if (*devp != fp->f_data) {
+	if (*dswp == NULL || *devp != fp->f_data) {
 		if (*dswp != NULL)
 			dev_relthread(*devp, *ref);
 		return (ENXIO);
@@ -508,20 +507,6 @@ devfs_allocv_drop_refs(int drop_dm_lock, struct devfs_mount *dmp,
 	return (not_found);
 }
 
-static void
-devfs_insmntque_dtr(struct vnode *vp, void *arg)
-{
-	struct devfs_dirent *de;
-
-	de = (struct devfs_dirent *)arg;
-	mtx_lock(&devfs_de_interlock);
-	vp->v_data = NULL;
-	de->de_vnode = NULL;
-	mtx_unlock(&devfs_de_interlock);
-	vgone(vp);
-	vput(vp);
-}
-
 /*
  * devfs_allocv shall be entered with dmp->dm_lock held, and it drops
  * it on return.
@@ -618,8 +603,14 @@ loop:
 	vp->v_data = de;
 	de->de_vnode = vp;
 	mtx_unlock(&devfs_de_interlock);
-	error = insmntque1(vp, mp, devfs_insmntque_dtr, de);
+	error = insmntque1(vp, mp);
 	if (error != 0) {
+		mtx_lock(&devfs_de_interlock);
+		vp->v_data = NULL;
+		de->de_vnode = NULL;
+		mtx_unlock(&devfs_de_interlock);
+		vgone(vp);
+		vput(vp);
 		(void) devfs_allocv_drop_refs(1, dmp, de);
 		return (error);
 	}
@@ -682,7 +673,7 @@ devfs_close(struct vop_close_args *ap)
 
 	/*
 	 * XXX: Don't call d_close() if we were called because of
-	 * XXX: insmntque1() failure.
+	 * XXX: insmntque() failure.
 	 */
 	if (vp->v_data == NULL)
 		return (0);
@@ -1045,11 +1036,11 @@ devfs_lookupx(struct vop_lookup_args *ap, int *dm_unlock)
 	int error, flags, nameiop, dvplocked;
 	char specname[SPECNAMELEN + 1], *pname;
 
+	td = curthread;
 	cnp = ap->a_cnp;
 	vpp = ap->a_vpp;
 	dvp = ap->a_dvp;
 	pname = cnp->cn_nameptr;
-	td = cnp->cn_thread;
 	flags = cnp->cn_flags;
 	nameiop = cnp->cn_nameiop;
 	mp = dvp->v_mount;
@@ -1839,10 +1830,10 @@ devfs_setlabel(struct vop_setlabel_args *ap)
 #endif
 
 static int
-devfs_stat_f(struct file *fp, struct stat *sb, struct ucred *cred, struct thread *td)
+devfs_stat_f(struct file *fp, struct stat *sb, struct ucred *cred)
 {
 
-	return (vnops.fo_stat(fp, sb, cred, td));
+	return (vnops.fo_stat(fp, sb, cred));
 }
 
 static int
@@ -2065,6 +2056,7 @@ static struct vop_vector devfs_vnodeops = {
 	.vop_lock1 =		vop_lock,
 	.vop_unlock =		vop_unlock,
 	.vop_islocked =		vop_islocked,
+	.vop_add_writecount =	vop_stdadd_writecount_nomsync,
 };
 VFS_VOP_VECTOR_REGISTER(devfs_vnodeops);
 
@@ -2106,6 +2098,7 @@ static struct vop_vector devfs_specops = {
 	.vop_lock1 =		vop_lock,
 	.vop_unlock =		vop_unlock,
 	.vop_islocked =		vop_islocked,
+	.vop_add_writecount =	vop_stdadd_writecount_nomsync,
 };
 VFS_VOP_VECTOR_REGISTER(devfs_specops);
 

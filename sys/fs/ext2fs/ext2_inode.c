@@ -581,6 +581,7 @@ ext2_truncate(struct vnode *vp, off_t length, int flags, struct ucred *cred,
 		error = ext2_ext_truncate(vp, length, flags, cred, td);
 	else
 		error = ext2_ind_truncate(vp, length, flags, cred, td);
+	cluster_init_vn(&ip->i_clusterw);
 
 	return (error);
 }
@@ -604,8 +605,7 @@ ext2_inactive(struct vop_inactive_args *ap)
 	if (ip->i_nlink <= 0) {
 		ext2_extattr_free(ip);
 		error = ext2_truncate(vp, (off_t)0, 0, NOCRED, td);
-		if (!(ip->i_flag & IN_E4EXTENTS))
-			ip->i_rdev = 0;
+		ip->i_rdev = 0;
 		mode = ip->i_mode;
 		ip->i_mode = 0;
 		ip->i_flag |= IN_CHANGE | IN_UPDATE;

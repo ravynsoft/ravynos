@@ -285,12 +285,13 @@ rtc_to_secs(struct vrtc *vrtc)
 	struct clocktime ct;
 	struct timespec ts;
 	struct rtcdev *rtc;
-	struct vm *vm;
+#ifdef KTR
+	struct vm *vm = vrtc->vm;
+#endif
 	int century, error, hour, pm, year;
 
 	KASSERT(VRTC_LOCKED(vrtc), ("%s: vrtc not locked", __func__));
 
-	vm = vrtc->vm;
 	rtc = &vrtc->rtcdev;
 
 	bzero(&ct, sizeof(struct clocktime));
@@ -401,7 +402,6 @@ static int
 vrtc_time_update(struct vrtc *vrtc, time_t newtime, sbintime_t newbase)
 {
 	struct rtcdev *rtc;
-	sbintime_t oldbase;
 	time_t oldtime;
 	uint8_t alarm_sec, alarm_min, alarm_hour;
 
@@ -416,9 +416,8 @@ vrtc_time_update(struct vrtc *vrtc, time_t newtime, sbintime_t newbase)
 	VM_CTR2(vrtc->vm, "Updating RTC secs from %#lx to %#lx",
 	    oldtime, newtime);
 
-	oldbase = vrtc->base_uptime;
 	VM_CTR2(vrtc->vm, "Updating RTC base uptime from %#lx to %#lx",
-	    oldbase, newbase);
+	    vrtc->base_uptime, newbase);
 	vrtc->base_uptime = newbase;
 
 	if (newtime == oldtime)
@@ -545,7 +544,7 @@ vrtc_callout_handler(void *arg)
 	struct vrtc *vrtc = arg;
 	sbintime_t freqsbt, basetime;
 	time_t rtctime;
-	int error;
+	int error __diagused;
 
 	VM_CTR0(vrtc->vm, "vrtc callout fired");
 
@@ -581,7 +580,7 @@ done:
 static __inline void
 vrtc_callout_check(struct vrtc *vrtc, sbintime_t freq)
 {
-	int active;
+	int active __diagused;
 
 	active = callout_active(&vrtc->callout) ? 1 : 0;
 	KASSERT((freq == 0 && !active) || (freq != 0 && active),
@@ -633,7 +632,7 @@ vrtc_set_reg_b(struct vrtc *vrtc, uint8_t newval)
 	struct rtcdev *rtc;
 	sbintime_t oldfreq, newfreq, basetime;
 	time_t curtime, rtctime;
-	int error;
+	int error __diagused;
 	uint8_t oldval, changed;
 
 	KASSERT(VRTC_LOCKED(vrtc), ("%s: vrtc not locked", __func__));

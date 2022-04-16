@@ -59,7 +59,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/sysctl.h>
 #include <sys/sysent.h>
 #include <sys/time.h>
-#include <sys/umtx.h>
+#include <sys/umtxvar.h>
 
 #include <vm/vm.h>
 #include <vm/vm_param.h>
@@ -593,13 +593,13 @@ ogetrlimit(struct thread *td, struct ogetrlimit_args *uap)
 #endif /* COMPAT_43 */
 
 #ifndef _SYS_SYSPROTO_H_
-struct __setrlimit_args {
+struct setrlimit_args {
 	u_int	which;
 	struct	rlimit *rlp;
 };
 #endif
 int
-sys_setrlimit(struct thread *td, struct __setrlimit_args *uap)
+sys_setrlimit(struct thread *td, struct setrlimit_args *uap)
 {
 	struct rlimit alim;
 	int error;
@@ -656,7 +656,7 @@ int
 kern_proc_setrlimit(struct thread *td, struct proc *p, u_int which,
     struct rlimit *limp)
 {
-	struct plimit *newlim, *oldlim;
+	struct plimit *newlim, *oldlim, *oldlim_td;
 	struct rlimit *alimp;
 	struct rlimit oldssiz;
 	int error;
@@ -738,8 +738,18 @@ kern_proc_setrlimit(struct thread *td, struct proc *p, u_int which,
 	*alimp = *limp;
 	p->p_limit = newlim;
 	PROC_UPDATE_COW(p);
+	oldlim_td = NULL;
+	if (td == curthread && PROC_COW_CHANGECOUNT(td, p) == 1) {
+		oldlim_td = lim_cowsync();
+		thread_cow_synced(td);
+	}
 	PROC_UNLOCK(p);
-	lim_free(oldlim);
+	if (oldlim_td != NULL) {
+		MPASS(oldlim_td == oldlim);
+		lim_freen(oldlim, 2);
+	} else {
+		lim_free(oldlim);
+	}
 
 	if (which == RLIMIT_STACK &&
 	    /*
@@ -780,14 +790,14 @@ kern_proc_setrlimit(struct thread *td, struct proc *p, u_int which,
 }
 
 #ifndef _SYS_SYSPROTO_H_
-struct __getrlimit_args {
+struct getrlimit_args {
 	u_int	which;
 	struct	rlimit *rlp;
 };
 #endif
 /* ARGSUSED */
 int
-sys_getrlimit(struct thread *td, struct __getrlimit_args *uap)
+sys_getrlimit(struct thread *td, struct getrlimit_args *uap)
 {
 	struct rlimit rlim;
 	int error;
@@ -1015,7 +1025,7 @@ calcru1(struct proc *p, struct rusage_ext *ruxp, struct timeval *up,
 		uu = ruxp->rux_uu;
 		su = ruxp->rux_su;
 		tu = ruxp->rux_tu;
-	} else { /* tu < ruxp->rux_tu */
+	} else if (vm_guest == VM_GUEST_NO) {  /* tu < ruxp->rux_tu */
 		/*
 		 * What happened here was likely that a laptop, which ran at
 		 * a reduced clock frequency at boot, kicked into high gear.
@@ -1214,6 +1224,26 @@ lim_hold(struct plimit *limp)
 
 	refcount_acquire(&limp->pl_refcnt);
 	return (limp);
+}
+
+struct plimit *
+lim_cowsync(void)
+{
+	struct thread *td;
+	struct proc *p;
+	struct plimit *oldlimit;
+
+	td = curthread;
+	p = td->td_proc;
+	PROC_LOCK_ASSERT(p, MA_OWNED);
+
+	if (td->td_limit == p->p_limit)
+		return (NULL);
+
+	oldlimit = td->td_limit;
+	td->td_limit = lim_hold(p->p_limit);
+
+	return (oldlimit);
 }
 
 void

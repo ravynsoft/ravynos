@@ -1,9 +1,9 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
  *
- * Copyright (c) 2013 Dmitry Chagin
  * Copyright (c) 1994-1996 Søren Schmidt
  * All rights reserved.
+ * Copyright (c) 2013 Dmitry Chagin <dchagin@FreeBSD.org>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -369,7 +369,8 @@ struct l_ifmap {
 	u_char		irq;
 	u_char		dma;
 	u_char		port;
-} __packed;
+	/* 3 bytes spare */
+};
 
 struct l_ifreq {
 	union {
@@ -389,7 +390,7 @@ struct l_ifreq {
 		char		ifru_slave[LINUX_IFNAMSIZ];
 		l_uintptr_t	ifru_data;
 	} ifr_ifru;
-} __packed;
+};
 
 #define	ifr_name	ifr_ifrn.ifrn_name	/* Interface name */
 #define	ifr_hwaddr	ifr_ifru.ifru_hwaddr	/* MAC address */
@@ -405,27 +406,6 @@ struct l_ifconf {
 
 #define	ifc_buf		ifc_ifcu.ifcu_buf
 #define	ifc_req		ifc_ifcu.ifcu_req
-
-/*
- * poll()
- */
-#define	LINUX_POLLIN		0x0001
-#define	LINUX_POLLPRI		0x0002
-#define	LINUX_POLLOUT		0x0004
-#define	LINUX_POLLERR		0x0008
-#define	LINUX_POLLHUP		0x0010
-#define	LINUX_POLLNVAL		0x0020
-#define	LINUX_POLLRDNORM	0x0040
-#define	LINUX_POLLRDBAND	0x0080
-#define	LINUX_POLLWRNORM	0x0100
-#define	LINUX_POLLWRBAND	0x0200
-#define	LINUX_POLLMSG		0x0400
-
-struct l_pollfd {
-	l_int		fd;
-	l_short		events;
-	l_short		revents;
-};
 
 #define LINUX_ARCH_SET_GS		0x1001
 #define LINUX_ARCH_SET_FS		0x1002
@@ -478,8 +458,15 @@ struct linux_pt_regset {
 };
 
 struct reg;
+struct syscall_info;
 
-void	bsd_to_linux_regset(struct reg *b_reg,
+void	bsd_to_linux_regset(const struct reg *b_reg,
+	    struct linux_pt_regset *l_regset);
+void	linux_to_bsd_regset(struct reg *b_reg,
+	    const struct linux_pt_regset *l_regset);
+void	linux_ptrace_get_syscall_info_machdep(const struct reg *reg,
+	    struct syscall_info *si);
+int	linux_ptrace_getregs_machdep(struct thread *td, pid_t pid,
 	    struct linux_pt_regset *l_regset);
 
 #endif /* !_AMD64_LINUX_H_ */

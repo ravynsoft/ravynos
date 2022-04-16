@@ -23,7 +23,6 @@
  * Copyright 2013 Saso Kiselkov. All rights reserved.
  */
 
-#include <sys/modctl.h>
 #include <sys/crypto/common.h>
 #include <sys/crypto/icp.h>
 #include <sys/crypto/spi.h>
@@ -31,78 +30,42 @@
 #define	SKEIN_MODULE_IMPL
 #include <sys/skein.h>
 
-/*
- * Like the sha2 module, we create the skein module with two modlinkages:
- * - modlmisc to allow direct calls to Skein_* API functions.
- * - modlcrypto to integrate well into the Kernel Crypto Framework (KCF).
- */
-static struct modlmisc modlmisc = {
-	&mod_cryptoops,
-	"Skein Message-Digest Algorithm"
-};
-
-static struct modlcrypto modlcrypto = {
-	&mod_cryptoops,
-	"Skein Kernel SW Provider"
-};
-
-static struct modlinkage modlinkage = {
-	MODREV_1, {&modlmisc, &modlcrypto, NULL}
-};
-
-static crypto_mech_info_t skein_mech_info_tab[] = {
+static const crypto_mech_info_t skein_mech_info_tab[] = {
 	{CKM_SKEIN_256, SKEIN_256_MECH_INFO_TYPE,
-	    CRYPTO_FG_DIGEST | CRYPTO_FG_DIGEST_ATOMIC,
-	    0, 0, CRYPTO_KEYSIZE_UNIT_IN_BITS},
+	    CRYPTO_FG_DIGEST | CRYPTO_FG_DIGEST_ATOMIC},
 	{CKM_SKEIN_256_MAC, SKEIN_256_MAC_MECH_INFO_TYPE,
-	    CRYPTO_FG_MAC | CRYPTO_FG_MAC_ATOMIC, 1, INT_MAX,
-	    CRYPTO_KEYSIZE_UNIT_IN_BYTES},
+	    CRYPTO_FG_MAC | CRYPTO_FG_MAC_ATOMIC},
 	{CKM_SKEIN_512, SKEIN_512_MECH_INFO_TYPE,
-	    CRYPTO_FG_DIGEST | CRYPTO_FG_DIGEST_ATOMIC,
-	    0, 0, CRYPTO_KEYSIZE_UNIT_IN_BITS},
+	    CRYPTO_FG_DIGEST | CRYPTO_FG_DIGEST_ATOMIC},
 	{CKM_SKEIN_512_MAC, SKEIN_512_MAC_MECH_INFO_TYPE,
-	    CRYPTO_FG_MAC | CRYPTO_FG_MAC_ATOMIC, 1, INT_MAX,
-	    CRYPTO_KEYSIZE_UNIT_IN_BYTES},
+	    CRYPTO_FG_MAC | CRYPTO_FG_MAC_ATOMIC},
 	{CKM_SKEIN1024, SKEIN1024_MECH_INFO_TYPE,
-	    CRYPTO_FG_DIGEST | CRYPTO_FG_DIGEST_ATOMIC,
-	    0, 0, CRYPTO_KEYSIZE_UNIT_IN_BITS},
+	    CRYPTO_FG_DIGEST | CRYPTO_FG_DIGEST_ATOMIC},
 	{CKM_SKEIN1024_MAC, SKEIN1024_MAC_MECH_INFO_TYPE,
-	    CRYPTO_FG_MAC | CRYPTO_FG_MAC_ATOMIC, 1, INT_MAX,
-	    CRYPTO_KEYSIZE_UNIT_IN_BYTES}
+	    CRYPTO_FG_MAC | CRYPTO_FG_MAC_ATOMIC},
 };
 
-static void skein_provider_status(crypto_provider_handle_t, uint_t *);
+static int skein_digest_init(crypto_ctx_t *, crypto_mechanism_t *);
+static int skein_digest(crypto_ctx_t *, crypto_data_t *, crypto_data_t *);
+static int skein_update(crypto_ctx_t *, crypto_data_t *);
+static int skein_final(crypto_ctx_t *, crypto_data_t *);
+static int skein_digest_atomic(crypto_mechanism_t *, crypto_data_t *,
+    crypto_data_t *);
 
-static crypto_control_ops_t skein_control_ops = {
-	skein_provider_status
-};
-
-static int skein_digest_init(crypto_ctx_t *, crypto_mechanism_t *,
-    crypto_req_handle_t);
-static int skein_digest(crypto_ctx_t *, crypto_data_t *, crypto_data_t *,
-    crypto_req_handle_t);
-static int skein_update(crypto_ctx_t *, crypto_data_t *, crypto_req_handle_t);
-static int skein_final(crypto_ctx_t *, crypto_data_t *, crypto_req_handle_t);
-static int skein_digest_atomic(crypto_provider_handle_t, crypto_session_id_t,
-    crypto_mechanism_t *, crypto_data_t *, crypto_data_t *,
-    crypto_req_handle_t);
-
-static crypto_digest_ops_t skein_digest_ops = {
+static const crypto_digest_ops_t skein_digest_ops = {
 	.digest_init = skein_digest_init,
 	.digest = skein_digest,
 	.digest_update = skein_update,
-	.digest_key = NULL,
 	.digest_final = skein_final,
 	.digest_atomic = skein_digest_atomic
 };
 
 static int skein_mac_init(crypto_ctx_t *, crypto_mechanism_t *, crypto_key_t *,
-    crypto_spi_ctx_template_t, crypto_req_handle_t);
-static int skein_mac_atomic(crypto_provider_handle_t, crypto_session_id_t,
-    crypto_mechanism_t *, crypto_key_t *, crypto_data_t *, crypto_data_t *,
-    crypto_spi_ctx_template_t, crypto_req_handle_t);
+    crypto_spi_ctx_template_t);
+static int skein_mac_atomic(crypto_mechanism_t *, crypto_key_t *,
+    crypto_data_t *, crypto_data_t *, crypto_spi_ctx_template_t);
 
-static crypto_mac_ops_t skein_mac_ops = {
+static const crypto_mac_ops_t skein_mac_ops = {
 	.mac_init = skein_mac_init,
 	.mac = NULL,
 	.mac_update = skein_update, /* using regular digest update is OK here */
@@ -111,42 +74,28 @@ static crypto_mac_ops_t skein_mac_ops = {
 	.mac_verify_atomic = NULL
 };
 
-static int skein_create_ctx_template(crypto_provider_handle_t,
-    crypto_mechanism_t *, crypto_key_t *, crypto_spi_ctx_template_t *,
-    size_t *, crypto_req_handle_t);
+static int skein_create_ctx_template(crypto_mechanism_t *, crypto_key_t *,
+    crypto_spi_ctx_template_t *, size_t *);
 static int skein_free_context(crypto_ctx_t *);
 
-static crypto_ctx_ops_t skein_ctx_ops = {
+static const crypto_ctx_ops_t skein_ctx_ops = {
 	.create_ctx_template = skein_create_ctx_template,
 	.free_context = skein_free_context
 };
 
-static crypto_ops_t skein_crypto_ops = {{{{{
-	&skein_control_ops,
+static const crypto_ops_t skein_crypto_ops = {
 	&skein_digest_ops,
 	NULL,
 	&skein_mac_ops,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
-	NULL,
 	&skein_ctx_ops,
-}}}}};
+};
 
-static crypto_provider_info_t skein_prov_info = {{{{
-	CRYPTO_SPI_VERSION_1,
+static const crypto_provider_info_t skein_prov_info = {
 	"Skein Software Provider",
-	CRYPTO_SW_PROVIDER,
-	NULL,
 	&skein_crypto_ops,
 	sizeof (skein_mech_info_tab) / sizeof (crypto_mech_info_t),
 	skein_mech_info_tab
-}}}};
+};
 
 static crypto_kcf_provider_handle_t skein_prov_handle = 0;
 
@@ -179,7 +128,6 @@ typedef struct skein_ctx {
 			(void) Skein1024_ ## _op(&sc->sc_1024, __VA_ARGS__);\
 			break;						\
 		}							\
-		_NOTE(CONSTCOND)					\
 	} while (0)
 
 static int
@@ -215,11 +163,6 @@ skein_get_digest_bitlen(const crypto_mechanism_t *mechanism, size_t *result)
 int
 skein_mod_init(void)
 {
-	int error;
-
-	if ((error = mod_install(&modlinkage)) != 0)
-		return (error);
-
 	/*
 	 * Try to register with KCF - failure shouldn't unload us, since we
 	 * still may want to continue providing misc/skein functionality.
@@ -232,7 +175,7 @@ skein_mod_init(void)
 int
 skein_mod_fini(void)
 {
-	int ret;
+	int ret = 0;
 
 	if (skein_prov_handle != 0) {
 		if ((ret = crypto_unregister_provider(skein_prov_handle)) !=
@@ -245,17 +188,7 @@ skein_mod_fini(void)
 		skein_prov_handle = 0;
 	}
 
-	return (mod_remove(&modlinkage));
-}
-
-/*
- * KCF software provider control entry points.
- */
-/* ARGSUSED */
-static void
-skein_provider_status(crypto_provider_handle_t provider, uint_t *status)
-{
-	*status = CRYPTO_PROVIDER_READY;
+	return (0);
 }
 
 /*
@@ -319,8 +252,7 @@ skein_digest_update_uio(skein_ctx_t *ctx, const crypto_data_t *data)
  * Performs a Final on a context and writes to a uio digest output.
  */
 static int
-skein_digest_final_uio(skein_ctx_t *ctx, crypto_data_t *digest,
-    crypto_req_handle_t req)
+skein_digest_final_uio(skein_ctx_t *ctx, crypto_data_t *digest)
 {
 	off_t offset = digest->cd_offset;
 	uint_t vec_idx = 0;
@@ -353,15 +285,15 @@ skein_digest_final_uio(skein_ctx_t *ctx, crypto_data_t *digest,
 		size_t cur_len;
 
 		digest_tmp = kmem_alloc(CRYPTO_BITS2BYTES(
-		    ctx->sc_digest_bitlen), crypto_kmflag(req));
+		    ctx->sc_digest_bitlen), KM_SLEEP);
 		if (digest_tmp == NULL)
 			return (CRYPTO_HOST_MEMORY);
 		SKEIN_OP(ctx, Final, digest_tmp);
 		while (vec_idx < zfs_uio_iovcnt(uio) && length > 0) {
 			cur_len = MIN(zfs_uio_iovlen(uio, vec_idx) - offset,
 			    length);
-			bcopy(digest_tmp + scratch_offset,
-			    zfs_uio_iovbase(uio, vec_idx) + offset, cur_len);
+			memcpy(zfs_uio_iovbase(uio, vec_idx) + offset,
+			    digest_tmp + scratch_offset, cur_len);
 
 			length -= cur_len;
 			vec_idx++;
@@ -397,16 +329,14 @@ skein_digest_final_uio(skein_ctx_t *ctx, crypto_data_t *digest,
  * for Skein-1024).
  */
 static int
-skein_digest_init(crypto_ctx_t *ctx, crypto_mechanism_t *mechanism,
-    crypto_req_handle_t req)
+skein_digest_init(crypto_ctx_t *ctx, crypto_mechanism_t *mechanism)
 {
 	int	error = CRYPTO_SUCCESS;
 
 	if (!VALID_SKEIN_DIGEST_MECH(mechanism->cm_type))
 		return (CRYPTO_MECHANISM_INVALID);
 
-	SKEIN_CTX_LVALUE(ctx) = kmem_alloc(sizeof (*SKEIN_CTX(ctx)),
-	    crypto_kmflag(req));
+	SKEIN_CTX_LVALUE(ctx) = kmem_alloc(sizeof (*SKEIN_CTX(ctx)), KM_SLEEP);
 	if (SKEIN_CTX(ctx) == NULL)
 		return (CRYPTO_HOST_MEMORY);
 
@@ -419,7 +349,7 @@ skein_digest_init(crypto_ctx_t *ctx, crypto_mechanism_t *mechanism,
 
 	return (CRYPTO_SUCCESS);
 errout:
-	bzero(SKEIN_CTX(ctx), sizeof (*SKEIN_CTX(ctx)));
+	memset(SKEIN_CTX(ctx), 0, sizeof (*SKEIN_CTX(ctx)));
 	kmem_free(SKEIN_CTX(ctx), sizeof (*SKEIN_CTX(ctx)));
 	SKEIN_CTX_LVALUE(ctx) = NULL;
 	return (error);
@@ -431,8 +361,7 @@ errout:
  * see what to pass here.
  */
 static int
-skein_digest(crypto_ctx_t *ctx, crypto_data_t *data, crypto_data_t *digest,
-    crypto_req_handle_t req)
+skein_digest(crypto_ctx_t *ctx, crypto_data_t *data, crypto_data_t *digest)
 {
 	int error = CRYPTO_SUCCESS;
 
@@ -445,15 +374,15 @@ skein_digest(crypto_ctx_t *ctx, crypto_data_t *data, crypto_data_t *digest,
 		return (CRYPTO_BUFFER_TOO_SMALL);
 	}
 
-	error = skein_update(ctx, data, req);
+	error = skein_update(ctx, data);
 	if (error != CRYPTO_SUCCESS) {
-		bzero(SKEIN_CTX(ctx), sizeof (*SKEIN_CTX(ctx)));
+		memset(SKEIN_CTX(ctx), 0, sizeof (*SKEIN_CTX(ctx)));
 		kmem_free(SKEIN_CTX(ctx), sizeof (*SKEIN_CTX(ctx)));
 		SKEIN_CTX_LVALUE(ctx) = NULL;
 		digest->cd_length = 0;
 		return (error);
 	}
-	error = skein_final(ctx, digest, req);
+	error = skein_final(ctx, digest);
 
 	return (error);
 }
@@ -463,9 +392,8 @@ skein_digest(crypto_ctx_t *ctx, crypto_data_t *data, crypto_data_t *digest,
  * can push more data). This is used both for digest and MAC operation.
  * Supported input data formats are raw, uio and mblk.
  */
-/*ARGSUSED*/
 static int
-skein_update(crypto_ctx_t *ctx, crypto_data_t *data, crypto_req_handle_t req)
+skein_update(crypto_ctx_t *ctx, crypto_data_t *data)
 {
 	int error = CRYPTO_SUCCESS;
 
@@ -492,9 +420,8 @@ skein_update(crypto_ctx_t *ctx, crypto_data_t *data, crypto_req_handle_t req)
  * for digest and MAC operation.
  * Supported output digest formats are raw, uio and mblk.
  */
-/*ARGSUSED*/
 static int
-skein_final(crypto_ctx_t *ctx, crypto_data_t *digest, crypto_req_handle_t req)
+skein_final(crypto_ctx_t *ctx, crypto_data_t *digest)
 {
 	int error = CRYPTO_SUCCESS;
 
@@ -513,7 +440,7 @@ skein_final(crypto_ctx_t *ctx, crypto_data_t *digest, crypto_req_handle_t req)
 		    (uint8_t *)digest->cd_raw.iov_base + digest->cd_offset);
 		break;
 	case CRYPTO_DATA_UIO:
-		error = skein_digest_final_uio(SKEIN_CTX(ctx), digest, req);
+		error = skein_digest_final_uio(SKEIN_CTX(ctx), digest);
 		break;
 	default:
 		error = CRYPTO_ARGUMENTS_BAD;
@@ -525,7 +452,7 @@ skein_final(crypto_ctx_t *ctx, crypto_data_t *digest, crypto_req_handle_t req)
 	else
 		digest->cd_length = 0;
 
-	bzero(SKEIN_CTX(ctx), sizeof (*SKEIN_CTX(ctx)));
+	memset(SKEIN_CTX(ctx), 0, sizeof (*SKEIN_CTX(ctx)));
 	kmem_free(SKEIN_CTX(ctx), sizeof (*(SKEIN_CTX(ctx))));
 	SKEIN_CTX_LVALUE(ctx) = NULL;
 
@@ -538,15 +465,13 @@ skein_final(crypto_ctx_t *ctx, crypto_data_t *digest, crypto_req_handle_t req)
  * `data' and writing the output to `digest'.
  * Supported input/output formats are raw, uio and mblk.
  */
-/*ARGSUSED*/
 static int
-skein_digest_atomic(crypto_provider_handle_t provider,
-    crypto_session_id_t session_id, crypto_mechanism_t *mechanism,
-    crypto_data_t *data, crypto_data_t *digest, crypto_req_handle_t req)
+skein_digest_atomic(crypto_mechanism_t *mechanism, crypto_data_t *data,
+    crypto_data_t *digest)
 {
-	int		error;
-	skein_ctx_t	skein_ctx;
-	crypto_ctx_t	ctx;
+	int	 error;
+	skein_ctx_t skein_ctx;
+	crypto_ctx_t ctx;
 	SKEIN_CTX_LVALUE(&ctx) = &skein_ctx;
 
 	/* Init */
@@ -558,9 +483,9 @@ skein_digest_atomic(crypto_provider_handle_t provider,
 		goto out;
 	SKEIN_OP(&skein_ctx, Init, skein_ctx.sc_digest_bitlen);
 
-	if ((error = skein_update(&ctx, data, digest)) != CRYPTO_SUCCESS)
+	if ((error = skein_update(&ctx, data)) != CRYPTO_SUCCESS)
 		goto out;
-	if ((error = skein_final(&ctx, data, digest)) != CRYPTO_SUCCESS)
+	if ((error = skein_final(&ctx, data)) != CRYPTO_SUCCESS)
 		goto out;
 
 out:
@@ -569,7 +494,7 @@ out:
 		    CRYPTO_BITS2BYTES(skein_ctx.sc_digest_bitlen);
 	else
 		digest->cd_length = 0;
-	bzero(&skein_ctx, sizeof (skein_ctx));
+	memset(&skein_ctx, 0, sizeof (skein_ctx));
 
 	return (error);
 }
@@ -586,8 +511,6 @@ skein_mac_ctx_build(skein_ctx_t *ctx, crypto_mechanism_t *mechanism,
 
 	if (!VALID_SKEIN_MAC_MECH(mechanism->cm_type))
 		return (CRYPTO_MECHANISM_INVALID);
-	if (key->ck_format != CRYPTO_KEY_RAW)
-		return (CRYPTO_ARGUMENTS_BAD);
 	ctx->sc_mech_type = mechanism->cm_type;
 	error = skein_get_digest_bitlen(mechanism, &ctx->sc_digest_bitlen);
 	if (error != CRYPTO_SUCCESS)
@@ -611,18 +534,16 @@ skein_mac_ctx_build(skein_ctx_t *ctx, crypto_mechanism_t *mechanism,
  */
 static int
 skein_mac_init(crypto_ctx_t *ctx, crypto_mechanism_t *mechanism,
-    crypto_key_t *key, crypto_spi_ctx_template_t ctx_template,
-    crypto_req_handle_t req)
+    crypto_key_t *key, crypto_spi_ctx_template_t ctx_template)
 {
 	int	error;
 
-	SKEIN_CTX_LVALUE(ctx) = kmem_alloc(sizeof (*SKEIN_CTX(ctx)),
-	    crypto_kmflag(req));
+	SKEIN_CTX_LVALUE(ctx) = kmem_alloc(sizeof (*SKEIN_CTX(ctx)), KM_SLEEP);
 	if (SKEIN_CTX(ctx) == NULL)
 		return (CRYPTO_HOST_MEMORY);
 
 	if (ctx_template != NULL) {
-		bcopy(ctx_template, SKEIN_CTX(ctx),
+		memcpy(SKEIN_CTX(ctx), ctx_template,
 		    sizeof (*SKEIN_CTX(ctx)));
 	} else {
 		error = skein_mac_ctx_build(SKEIN_CTX(ctx), mechanism, key);
@@ -632,7 +553,7 @@ skein_mac_init(crypto_ctx_t *ctx, crypto_mechanism_t *mechanism,
 
 	return (CRYPTO_SUCCESS);
 errout:
-	bzero(SKEIN_CTX(ctx), sizeof (*SKEIN_CTX(ctx)));
+	memset(SKEIN_CTX(ctx), 0, sizeof (*SKEIN_CTX(ctx)));
 	kmem_free(SKEIN_CTX(ctx), sizeof (*SKEIN_CTX(ctx)));
 	return (error);
 }
@@ -641,40 +562,38 @@ errout:
  * The MAC update and final calls are reused from the regular digest code.
  */
 
-/*ARGSUSED*/
 /*
  * Same as skein_digest_atomic, performs an atomic Skein MAC operation in
  * one step. All the same properties apply to the arguments of this
  * function as to those of the partial operations above.
  */
 static int
-skein_mac_atomic(crypto_provider_handle_t provider,
-    crypto_session_id_t session_id, crypto_mechanism_t *mechanism,
+skein_mac_atomic(crypto_mechanism_t *mechanism,
     crypto_key_t *key, crypto_data_t *data, crypto_data_t *mac,
-    crypto_spi_ctx_template_t ctx_template, crypto_req_handle_t req)
+    crypto_spi_ctx_template_t ctx_template)
 {
 	/* faux crypto context just for skein_digest_{update,final} */
-	int		error;
-	crypto_ctx_t	ctx;
-	skein_ctx_t	skein_ctx;
+	int	error;
+	crypto_ctx_t ctx;
+	skein_ctx_t skein_ctx;
 	SKEIN_CTX_LVALUE(&ctx) = &skein_ctx;
 
 	if (ctx_template != NULL) {
-		bcopy(ctx_template, &skein_ctx, sizeof (skein_ctx));
+		memcpy(&skein_ctx, ctx_template, sizeof (skein_ctx));
 	} else {
 		error = skein_mac_ctx_build(&skein_ctx, mechanism, key);
 		if (error != CRYPTO_SUCCESS)
 			goto errout;
 	}
 
-	if ((error = skein_update(&ctx, data, req)) != CRYPTO_SUCCESS)
+	if ((error = skein_update(&ctx, data)) != CRYPTO_SUCCESS)
 		goto errout;
-	if ((error = skein_final(&ctx, mac, req)) != CRYPTO_SUCCESS)
+	if ((error = skein_final(&ctx, mac)) != CRYPTO_SUCCESS)
 		goto errout;
 
 	return (CRYPTO_SUCCESS);
 errout:
-	bzero(&skein_ctx, sizeof (skein_ctx));
+	memset(&skein_ctx, 0, sizeof (skein_ctx));
 	return (error);
 }
 
@@ -687,17 +606,14 @@ errout:
  * properties apply to the arguments of this function as to those of
  * skein_mac_init.
  */
-/*ARGSUSED*/
 static int
-skein_create_ctx_template(crypto_provider_handle_t provider,
-    crypto_mechanism_t *mechanism, crypto_key_t *key,
-    crypto_spi_ctx_template_t *ctx_template, size_t *ctx_template_size,
-    crypto_req_handle_t req)
+skein_create_ctx_template(crypto_mechanism_t *mechanism, crypto_key_t *key,
+    crypto_spi_ctx_template_t *ctx_template, size_t *ctx_template_size)
 {
-	int		error;
-	skein_ctx_t	*ctx_tmpl;
+	int	 error;
+	skein_ctx_t *ctx_tmpl;
 
-	ctx_tmpl = kmem_alloc(sizeof (*ctx_tmpl), crypto_kmflag(req));
+	ctx_tmpl = kmem_alloc(sizeof (*ctx_tmpl), KM_SLEEP);
 	if (ctx_tmpl == NULL)
 		return (CRYPTO_HOST_MEMORY);
 	error = skein_mac_ctx_build(ctx_tmpl, mechanism, key);
@@ -708,7 +624,7 @@ skein_create_ctx_template(crypto_provider_handle_t provider,
 
 	return (CRYPTO_SUCCESS);
 errout:
-	bzero(ctx_tmpl, sizeof (*ctx_tmpl));
+	memset(ctx_tmpl, 0, sizeof (*ctx_tmpl));
 	kmem_free(ctx_tmpl, sizeof (*ctx_tmpl));
 	return (error);
 }
@@ -720,7 +636,7 @@ static int
 skein_free_context(crypto_ctx_t *ctx)
 {
 	if (SKEIN_CTX(ctx) != NULL) {
-		bzero(SKEIN_CTX(ctx), sizeof (*SKEIN_CTX(ctx)));
+		memset(SKEIN_CTX(ctx), 0, sizeof (*SKEIN_CTX(ctx)));
 		kmem_free(SKEIN_CTX(ctx), sizeof (*SKEIN_CTX(ctx)));
 		SKEIN_CTX_LVALUE(ctx) = NULL;
 	}

@@ -234,7 +234,7 @@ static void
 ccp_init_hmac_digest(struct ccp_session *s, const char *key, int klen)
 {
 	union authctx auth_ctx;
-	struct auth_hash *axf;
+	const struct auth_hash *axf;
 	u_int i;
 
 	/*
@@ -378,11 +378,6 @@ ccp_probesession(device_t dev, const struct crypto_session_params *csp)
 	case CSP_MODE_AEAD:
 		switch (csp->csp_cipher_alg) {
 		case CRYPTO_AES_NIST_GCM_16:
-			if (csp->csp_ivlen != AES_GCM_IV_LEN)
-				return (EINVAL);
-			if (csp->csp_auth_mlen < 0 ||
-			    csp->csp_auth_mlen > AES_GMAC_HASH_LEN)
-				return (EINVAL);
 			if ((sc->hw_features & VERSION_CAP_AES) == 0)
 				return (EINVAL);
 			break;
@@ -408,7 +403,7 @@ ccp_newsession(device_t dev, crypto_session_t cses,
 {
 	struct ccp_softc *sc;
 	struct ccp_session *s;
-	struct auth_hash *auth_hash;
+	const struct auth_hash *auth_hash;
 	enum ccp_aes_mode cipher_mode;
 	unsigned auth_mode;
 	unsigned q;

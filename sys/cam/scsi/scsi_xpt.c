@@ -185,7 +185,6 @@ typedef enum {
 typedef struct {
 	TAILQ_HEAD(, ccb_hdr) request_ccbs;
 	probe_action	action;
-	union ccb	saved_ccb;
 	probe_flags	flags;
 	MD5_CTX		context;
 	u_int8_t	digest[16];
@@ -1048,6 +1047,7 @@ proberequestdefaultnegotiation(struct cam_periph *periph)
 {
 	struct ccb_trans_settings cts;
 
+	memset(&cts, 0, sizeof(cts));
 	xpt_setup_ccb(&cts.ccb_h, periph->path, CAM_PRIORITY_NONE);
 	cts.ccb_h.func_code = XPT_GET_TRAN_SETTINGS;
 	cts.type = CTS_TYPE_USER_SETTINGS;
@@ -1221,8 +1221,6 @@ out:
 
 			if (periph_qual == SID_QUAL_LU_CONNECTED ||
 			    periph_qual == SID_QUAL_LU_OFFLINE) {
-				u_int8_t len;
-
 				/*
 				 * We conservatively request only
 				 * SHORT_INQUIRY_LEN bytes of inquiry
@@ -1233,11 +1231,9 @@ out:
 				 * the amount of information the device
 				 * is willing to give.
 				 */
-				len = inq_buf->additional_length
-				    + offsetof(struct scsi_inquiry_data,
-                                               additional_length) + 1;
 				if (softc->action == PROBE_INQUIRY
-				    && len > SHORT_INQUIRY_LENGTH) {
+				    && SID_ADDITIONAL_LENGTH(inq_buf)
+				    > SHORT_INQUIRY_LENGTH) {
 					PROBE_SET_ACTION(softc, PROBE_FULL_INQUIRY);
 					xpt_release_ccb(done_ccb);
 					xpt_schedule(periph, priority);
@@ -1619,6 +1615,14 @@ probe_device_check:
 					 */
 					slen = 0;
 				}
+				/*
+				 * In apparent violation of the spec, some
+				 * devices pad their serial numbers with
+				 * trailing spaces. Remove them.
+				 */
+				while (slen > 0 &&
+				    serial_buf->serial_num[slen - 1] == ' ')
+					slen--;
 				memcpy(path->device->serial_num,
 				       &serial_buf->serial_num[start], slen);
 				path->device->serial_num_len = slen;
@@ -2301,6 +2305,7 @@ scsi_scan_lun(struct cam_periph *periph, struct cam_path *path,
 
 	CAM_DEBUG(path, CAM_DEBUG_TRACE, ("scsi_scan_lun\n"));
 
+	memset(&cpi, 0, sizeof(cpi));
 	xpt_setup_ccb(&cpi.ccb_h, path, CAM_PRIORITY_NONE);
 	cpi.ccb_h.func_code = XPT_PATH_INQ;
 	xpt_action((union ccb *)&cpi);
@@ -2427,6 +2432,7 @@ scsi_devise_transport(struct cam_path *path)
 	struct scsi_inquiry_data *inq_buf;
 
 	/* Get transport information from the SIM */
+	memset(&cpi, 0, sizeof(cpi));
 	xpt_setup_ccb(&cpi.ccb_h, path, CAM_PRIORITY_NONE);
 	cpi.ccb_h.func_code = XPT_PATH_INQ;
 	xpt_action((union ccb *)&cpi);
@@ -2487,6 +2493,7 @@ scsi_devise_transport(struct cam_path *path)
 	 */
 
 	/* Tell the controller what we think */
+	memset(&cts, 0, sizeof(cts));
 	xpt_setup_ccb(&cts.ccb_h, path, CAM_PRIORITY_NONE);
 	cts.ccb_h.func_code = XPT_SET_TRAN_SETTINGS;
 	cts.type = CTS_TYPE_CURRENT_SETTINGS;
@@ -2620,6 +2627,13 @@ static void
 scsi_action(union ccb *start_ccb)
 {
 
+	if (start_ccb->ccb_h.func_code != XPT_SCSI_IO) {
+		KASSERT((start_ccb->ccb_h.alloc_flags & CAM_CCB_FROM_UMA) == 0,
+		    ("%s: ccb %p, func_code %#x should not be allocated "
+		    "from UMA zone\n",
+		    __func__, start_ccb, start_ccb->ccb_h.func_code));
+	}
+
 	switch (start_ccb->ccb_h.func_code) {
 	case XPT_SET_TRAN_SETTINGS:
 	{
@@ -2728,6 +2742,7 @@ scsi_set_transfer_settings(struct ccb_trans_settings *cts, struct cam_path *path
 
 	inq_data = &device->inq_data;
 	scsi = &cts->proto_specific.scsi;
+	memset(&cpi, 0, sizeof(cpi));
 	xpt_setup_ccb(&cpi.ccb_h, path, CAM_PRIORITY_NONE);
 	cpi.ccb_h.func_code = XPT_PATH_INQ;
 	xpt_action((union ccb *)&cpi);
@@ -2749,6 +2764,7 @@ scsi_set_transfer_settings(struct ccb_trans_settings *cts, struct cam_path *path
 		 * Perform sanity checking against what the
 		 * controller and device can do.
 		 */
+		memset(&cur_cts, 0, sizeof(cur_cts));
 		xpt_setup_ccb(&cur_cts.ccb_h, path, CAM_PRIORITY_NONE);
 		cur_cts.ccb_h.func_code = XPT_GET_TRAN_SETTINGS;
 		cur_cts.type = cts->type;
@@ -2932,6 +2948,7 @@ scsi_toggle_tags(struct cam_path *path)
  	  && (dev->inq_flags & (SID_Sync|SID_WBus16|SID_WBus32)) != 0)) {
 		struct ccb_trans_settings cts;
 
+		memset(&cts, 0, sizeof(cts));
 		xpt_setup_ccb(&cts.ccb_h, path, CAM_PRIORITY_NONE);
 		cts.protocol = PROTO_SCSI;
 		cts.protocol_version = PROTO_VERSION_UNSPECIFIED;
@@ -3039,6 +3056,7 @@ _scsi_announce_periph(struct cam_periph *periph, u_int *speed, u_int *freq, stru
 		return;
 
 	/* Ask the SIM for its base transfer speed */
+	memset(&cpi, 0, sizeof(cpi));
 	xpt_setup_ccb(&cpi.ccb_h, path, CAM_PRIORITY_NORMAL);
 	cpi.ccb_h.func_code = XPT_PATH_INQ;
 	xpt_action((union ccb *)&cpi);
@@ -3081,6 +3099,7 @@ scsi_announce_periph_sbuf(struct cam_periph *periph, struct sbuf *sb)
 	struct	ccb_trans_settings cts;
 	u_int speed, freq, mb;
 
+	memset(&cts, 0, sizeof(cts));
 	_scsi_announce_periph(periph, &speed, &freq, &cts);
 	if (cam_ccb_status((union ccb *)&cts) != CAM_REQ_CMP)
 		return;
@@ -3137,6 +3156,7 @@ scsi_announce_periph(struct cam_periph *periph)
 	struct	ccb_trans_settings cts;
 	u_int speed, freq, mb;
 
+	memset(&cts, 0, sizeof(cts));
 	_scsi_announce_periph(periph, &speed, &freq, &cts);
 	if (cam_ccb_status((union ccb *)&cts) != CAM_REQ_CMP)
 		return;

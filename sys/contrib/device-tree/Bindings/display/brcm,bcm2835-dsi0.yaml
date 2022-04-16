@@ -9,12 +9,16 @@ title: Broadcom VC4 (VideoCore4) DSI Controller
 maintainers:
   - Eric Anholt <eric@anholt.net>
 
+allOf:
+  - $ref: dsi-controller.yaml#
+
 properties:
   "#clock-cells":
     const: 1
 
   compatible:
     enum:
+      - brcm,bcm2711-dsi1
       - brcm,bcm2835-dsi0
       - brcm,bcm2835-dsi1
 
@@ -73,12 +77,6 @@ examples:
 
         clock-output-names = "dsi1_byte", "dsi1_ddr2", "dsi1_ddr";
 
-        pitouchscreen: panel@0 {
-            compatible = "raspberrypi,touchscreen";
-            reg = <0>;
-
-            /* ... */
-        };
     };
 
 ...

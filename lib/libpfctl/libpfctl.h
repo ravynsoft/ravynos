@@ -37,6 +37,7 @@
 #include <netpfil/pf/pf.h>
 
 struct pfctl_anchor;
+struct pfctl_eth_anchor;
 
 struct pfctl_status_counter {
 	uint64_t	 id;
@@ -63,6 +64,75 @@ struct pfctl_status {
 	struct pfctl_status_counters	 scounters;
 	uint64_t	pcounters[2][2][3];
 	uint64_t	bcounters[2][2];
+};
+
+struct pfctl_eth_rulesets_info {
+	uint32_t	nr;
+};
+
+struct pfctl_eth_rules_info {
+	uint32_t	nr;
+	uint32_t	ticket;
+};
+
+struct pfctl_eth_addr {
+	uint8_t	addr[ETHER_ADDR_LEN];
+	uint8_t	mask[ETHER_ADDR_LEN];
+	bool	neg;
+	bool	isset;
+};
+
+struct pfctl_eth_rule {
+	uint32_t		 nr;
+
+	bool			 quick;
+
+	/* Filter */
+	char			 ifname[IFNAMSIZ];
+	uint8_t			 ifnot;
+	uint8_t			 direction;
+	uint16_t		 proto;
+	struct pfctl_eth_addr	 src, dst;
+	struct pf_rule_addr	 ipsrc, ipdst;
+
+	/* Stats */
+	uint64_t		 evaluations;
+	uint64_t		 packets[2];
+	uint64_t		 bytes[2];
+
+	/* Action */
+	char			 qname[PF_QNAME_SIZE];
+	char			 tagname[PF_TAG_NAME_SIZE];
+	uint16_t		 dnpipe;
+	uint32_t		 dnflags;
+	uint8_t			 action;
+
+	struct pfctl_eth_anchor	*anchor;
+	uint8_t			 anchor_relative;
+	uint8_t			 anchor_wildcard;
+
+	TAILQ_ENTRY(pfctl_eth_rule)	 entries;
+};
+TAILQ_HEAD(pfctl_eth_rules, pfctl_eth_rule);
+
+struct pfctl_eth_ruleset_info {
+	uint32_t	nr;
+	char		name[PF_ANCHOR_NAME_SIZE];
+	char		path[MAXPATHLEN];
+};
+
+struct pfctl_eth_ruleset {
+	struct pfctl_eth_rules	 rules;
+	struct pfctl_eth_anchor	*anchor;
+};
+
+struct pfctl_eth_anchor {
+	struct pfctl_eth_anchor		*parent;
+	char				 name[PF_ANCHOR_NAME_SIZE];
+	char				 path[MAXPATHLEN];
+	struct pfctl_eth_ruleset	 ruleset;
+	int				 refcnt;	/* anchor rules */
+	int				 match;	/* XXX: used for pfctl black magic */
 };
 
 struct pfctl_pool {
@@ -120,6 +190,9 @@ struct pfctl_rule {
 	}			 max_src_conn_rate;
 	uint32_t		 qid;
 	uint32_t		 pqid;
+	uint16_t		 dnpipe;
+	uint16_t		 dnrpipe;
+	uint32_t		 free_flags;
 	uint32_t		 nr;
 	uint32_t		 prob;
 	uid_t			 cuid;
@@ -293,6 +366,17 @@ struct pfctl_syncookies {
 struct pfctl_status* pfctl_get_status(int dev);
 void	pfctl_free_status(struct pfctl_status *status);
 
+int	pfctl_get_eth_rulesets_info(int dev,
+	    struct pfctl_eth_rulesets_info *ri, const char *path);
+int	pfctl_get_eth_ruleset(int dev, const char *path, int nr,
+	    struct pfctl_eth_ruleset_info *ri);
+int	pfctl_get_eth_rules_info(int dev, struct pfctl_eth_rules_info *rules,
+	    const char *path);
+int	pfctl_get_eth_rule(int dev, uint32_t nr, uint32_t ticket,
+	    const char *path, struct pfctl_eth_rule *rule, bool clear,
+	    char *anchor_call);
+int	pfctl_add_eth_rule(int dev, const struct pfctl_eth_rule *r,
+	    const char *anchor, const char *anchor_call, uint32_t ticket);
 int	pfctl_get_rules_info(int dev, struct pfctl_rules_info *rules,
 	    uint32_t ruleset, const char *path);
 int	pfctl_get_rule(int dev, uint32_t nr, uint32_t ticket,
@@ -313,7 +397,16 @@ int	pfctl_kill_states(int dev, const struct pfctl_kill *kill,
 	    unsigned int *killed);
 int	pfctl_clear_rules(int dev, const char *anchorname);
 int	pfctl_clear_nat(int dev, const char *anchorname);
+int	pfctl_clear_eth_rules(int dev, const char *anchorname);
 int	pfctl_set_syncookies(int dev, const struct pfctl_syncookies *s);
 int	pfctl_get_syncookies(int dev, struct pfctl_syncookies *s);
-
+int	pfctl_table_add_addrs(int dev, struct pfr_table *tbl, struct pfr_addr
+	    *addr, int size, int *nadd, int flags);
+int	pfctl_table_del_addrs(int dev, struct pfr_table *tbl, struct pfr_addr
+	    *addr, int size, int *ndel, int flags);
+int     pfctl_table_set_addrs(int dev, struct pfr_table *tbl, struct pfr_addr
+	    *addr, int size, int *size2, int *nadd, int *ndel, int *nchange,
+	    int flags);
+int	pfctl_table_get_addrs(int dev, struct pfr_table *tbl, struct pfr_addr
+	    *addr, int *size, int flags);
 #endif

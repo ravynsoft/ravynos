@@ -31,8 +31,7 @@
 #ifndef _CRYPTO_XFORM_COMP_H_
 #define _CRYPTO_XFORM_COMP_H_
 
-#include <sys/malloc.h>
-#include <sys/errno.h>
+#include <sys/types.h>
 
 #include <opencrypto/deflate.h>
 #include <opencrypto/cryptodev.h>
@@ -46,6 +45,6 @@ struct comp_algo {
 	uint32_t (*decompress) (uint8_t *, uint32_t, uint8_t **);
 };
 
-extern struct comp_algo comp_algo_deflate;
+extern const struct comp_algo comp_algo_deflate;
 
 #endif /* _CRYPTO_XFORM_COMP_H_ */

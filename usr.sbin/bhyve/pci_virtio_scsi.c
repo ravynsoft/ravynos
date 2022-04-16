@@ -628,7 +628,7 @@ pci_vtscsi_requestq_notify(void *vsc, struct vqueue_info *vq)
 }
 
 static int
-pci_vtscsi_init_queue(struct pci_vtscsi_softc *sc, 
+pci_vtscsi_init_queue(struct pci_vtscsi_softc *sc,
     struct pci_vtscsi_queue *queue, int num)
 {
 	struct pci_vtscsi_worker *worker;
@@ -699,6 +699,8 @@ pci_vtscsi_init(struct vmctx *ctx, struct pci_devinst *pi, nvlist_t *nvl)
 		free(sc);
 		return (1);
 	}
+
+	pthread_mutex_init(&sc->vss_mtx, NULL);
 
 	vi_softc_linkup(&sc->vss_vs, &vtscsi_vi_consts, sc, pi, sc->vss_vq);
 	sc->vss_vs.vs_mtx = &sc->vss_mtx;

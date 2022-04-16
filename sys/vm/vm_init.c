@@ -226,7 +226,7 @@ again:
 	kmi->buffer_sva = firstaddr;
 	kmi->buffer_eva = kmi->buffer_sva + size;
 	vmem_init(buffer_arena, "buffer arena", kmi->buffer_sva, size,
-	    PAGE_SIZE, (mp_ncpus > 4) ? BKVASIZE * 8 : 0, 0);
+	    PAGE_SIZE, (mp_ncpus > 4) ? BKVASIZE * 8 : 0, M_WAITOK);
 	firstaddr += size;
 
 	/*
@@ -235,7 +235,7 @@ again:
 	if (bio_transient_maxcnt != 0) {
 		size = (long)bio_transient_maxcnt * maxphys;
 		vmem_init(transient_arena, "transient arena",
-		    firstaddr, size, PAGE_SIZE, 0, 0);
+		    firstaddr, size, PAGE_SIZE, 0, M_WAITOK);
 		firstaddr += size;
 	}
 	if (firstaddr != kmi->clean_eva)

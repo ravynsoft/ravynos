@@ -48,6 +48,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/disk.h>
 #include <sys/socket.h>
 #include <sys/sysctl.h>
+#include <sys/wait.h>
 
 #include <assert.h>
 #include <capsicum_helpers.h>
@@ -210,7 +211,7 @@ check_size(int fd, const char *fn)
 
 #ifdef HAVE_CRYPTO
 static void
-genkey(const char *pubkeyfile, struct diocskerneldump_arg *kdap)
+_genkey(const char *pubkeyfile, struct diocskerneldump_arg *kdap)
 {
 	FILE *fp;
 	RSA *pubkey;
@@ -304,6 +305,64 @@ genkey(const char *pubkeyfile, struct diocskerneldump_arg *kdap)
 		    ERR_error_string(ERR_get_error(), NULL));
 	}
 	RSA_free(pubkey);
+}
+
+/*
+ * Run genkey() in a child so it can use capability mode without affecting
+ * the rest of the runtime.
+ */
+static void
+genkey(const char *pubkeyfile, struct diocskerneldump_arg *kdap)
+{
+	pid_t pid;
+	int error, filedes[2], status;
+	ssize_t bytes;
+
+	if (pipe2(filedes, O_CLOEXEC) != 0)
+		err(1, "pipe");
+	pid = fork();
+	switch (pid) {
+	case -1:
+		err(1, "fork");
+		break;
+	case 0:
+		close(filedes[0]);
+		_genkey(pubkeyfile, kdap);
+		/* Write the new kdap back to the parent. */
+		bytes = write(filedes[1], kdap, sizeof(*kdap));
+		if (bytes != sizeof(*kdap))
+			err(1, "genkey pipe write");
+		bytes = write(filedes[1], kdap->kda_encryptedkey,
+		    kdap->kda_encryptedkeysize);
+		if (bytes != (ssize_t)kdap->kda_encryptedkeysize)
+			err(1, "genkey pipe write kda_encryptedkey");
+		_exit(0);
+	}
+	close(filedes[1]);
+	/* Read in the child's genkey() result into kdap. */
+	bytes = read(filedes[0], kdap, sizeof(*kdap));
+	if (bytes != sizeof(*kdap))
+		errx(1, "genkey pipe read");
+	if (kdap->kda_encryptedkeysize > KERNELDUMP_ENCKEY_MAX_SIZE)
+		errx(1, "Public key has to be at most %db long.",
+		    8 * KERNELDUMP_ENCKEY_MAX_SIZE);
+	kdap->kda_encryptedkey = calloc(1, kdap->kda_encryptedkeysize);
+	if (kdap->kda_encryptedkey == NULL)
+		err(1, "Unable to allocate encrypted key");
+	bytes = read(filedes[0], kdap->kda_encryptedkey,
+	    kdap->kda_encryptedkeysize);
+	if (bytes != (ssize_t)kdap->kda_encryptedkeysize)
+		errx(1, "genkey pipe read kda_encryptedkey");
+	error = waitpid(pid, &status, WEXITED);
+	if (error == -1)
+		err(1, "waitpid");
+	if (WIFEXITED(status) && WEXITSTATUS(status) != 0)
+		errx(1, "genkey child exited with status %d",
+		    WEXITSTATUS(status));
+	else if (WIFSIGNALED(status))
+		errx(1, "genkey child exited with signal %d",
+		    WTERMSIG(status));
+	close(filedes[0]);
 }
 #endif
 
@@ -505,6 +564,24 @@ main(int argc, char *argv[])
 		} else
 			dev = argv[0];
 		netdump = false;
+
+		if (strcmp(dev, _PATH_DEVNULL) == 0) {
+			/*
+			 * Netdump has its own configuration tracking that
+			 * is not removed when using /dev/null.
+			 */
+			fd = open(_PATH_NETDUMP, O_RDONLY);
+			if (fd != -1) {
+				bzero(&ndconf, sizeof(ndconf));
+				ndconf.kda_index = KDA_REMOVE_ALL;
+				ndconf.kda_af = AF_INET;
+				error = ioctl(fd, DIOCSKERNELDUMP, &ndconf);
+				if (error != 0)
+					err(1, "ioctl(%s, DIOCSKERNELDUMP)",
+					    _PATH_NETDUMP);
+				close(fd);
+			}
+		}
 	} else
 		usage();
 
@@ -532,10 +609,11 @@ main(int argc, char *argv[])
 		hints.ai_protocol = IPPROTO_UDP;
 		res = NULL;
 		error = getaddrinfo(server, NULL, &hints, &res);
-		if (error != 0)
-			err(1, "%s", gai_strerror(error));
-		if (res == NULL)
-			errx(1, "failed to resolve '%s'", server);
+		if (error != 0) {
+			if (error == EAI_SYSTEM)
+				err(EX_OSERR, "%s", gai_strerror(error));
+			errx(EX_NOHOST, "%s", gai_strerror(error));
+		}
 		server = inet_ntoa(
 		    ((struct sockaddr_in *)(void *)res->ai_addr)->sin_addr);
 		freeaddrinfo(res);
@@ -572,6 +650,15 @@ main(int argc, char *argv[])
 	error = ioctl(fd, DIOCSKERNELDUMP, kdap);
 	if (error != 0)
 		error = errno;
+	if (error == EINVAL && (gzip || zstd)) {
+		/* Retry without compression in case kernel lacks support. */
+		kdap->kda_compression = KERNELDUMP_COMP_NONE;
+		error = ioctl(fd, DIOCSKERNELDUMP, kdap);
+		if (error == 0)
+			warnx("Compression disabled; kernel may lack gzip or zstd support.");
+		else
+			error = errno;
+	}
 	explicit_bzero(kdap->kda_encryptedkey, kdap->kda_encryptedkeysize);
 	free(kdap->kda_encryptedkey);
 	explicit_bzero(kdap, sizeof(*kdap));

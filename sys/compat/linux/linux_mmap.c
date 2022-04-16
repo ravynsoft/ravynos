@@ -83,14 +83,12 @@ linux_mmap_common(struct thread *td, uintptr_t addr, size_t len, int prot,
 	struct proc *p = td->td_proc;
 	struct vmspace *vms = td->td_proc->p_vmspace;
 	int bsd_flags, error;
-	struct file *fp;
 
 	LINUX_CTR6(mmap2, "0x%lx, %ld, %ld, 0x%08lx, %ld, 0x%lx",
 	    addr, len, prot, flags, fd, pos);
 
 	error = 0;
 	bsd_flags = 0;
-	fp = NULL;
 
 	/*
 	 * Linux mmap(2):
@@ -217,12 +215,12 @@ linux_mmap_common(struct thread *td, uintptr_t addr, size_t len, int prot,
 	    (bsd_flags & MAP_EXCL) == 0) {
 		mr_fixed = mr;
 		mr_fixed.mr_flags |= MAP_FIXED | MAP_EXCL;
-		error = kern_mmap_req(td, &mr_fixed);
+		error = kern_mmap(td, &mr_fixed);
 		if (error == 0)
 			goto out;
 	}
 
-	error = kern_mmap_req(td, &mr);
+	error = kern_mmap(td, &mr);
 out:
 	LINUX_CTR2(mmap2, "return: %d (%p)", error, td->td_retval[0]);
 

@@ -710,12 +710,6 @@ static int
 tegra_pcib_msi_setup_intr(device_t dev, struct intr_irqsrc *isrc,
     struct resource *res, struct intr_map_data *data)
 {
-	struct tegra_pcib_softc *sc;
-	struct tegra_pcib_irqsrc *tgi;
-
-	sc = device_get_softc(dev);
-	tgi = (struct tegra_pcib_irqsrc *)isrc;
-
 	if (data == NULL || data->type != INTR_MAP_DATA_MSI)
 		return (ENOTSUP);
 
@@ -835,17 +829,16 @@ tegra_pcib_msi_map_msi(device_t dev, device_t child, struct intr_irqsrc *isrc,
 static bus_size_t
 tegra_pcib_pex_ctrl(struct tegra_pcib_softc *sc, int port)
 {
-	if (port >= TEGRA_PCIB_MAX_PORTS)
-		panic("invalid port number: %d\n", port);
-
-	if (port == 0)
+	switch (port) {
+	case 0:
 		return (AFI_PEX0_CTRL);
-	else if (port == 1)
+	case 1:
 		return (AFI_PEX1_CTRL);
-	else if (port == 2)
+	case 2:
 		return (AFI_PEX2_CTRL);
-	else
+	default:
 		panic("invalid port number: %d\n", port);
+	}
 }
 
 static int
@@ -1533,7 +1526,7 @@ tegra_pcib_attach(device_t dev)
 	}
 
 	sc->ofw_pci.sc_range_mask = 0x3;
-	rv = ofw_pci_init(dev);
+	rv = ofw_pcib_init(dev);
 	if (rv != 0)
 		goto out;
 
@@ -1625,6 +1618,6 @@ static device_method_t tegra_pcib_methods[] = {
 
 static devclass_t pcib_devclass;
 DEFINE_CLASS_1(pcib, tegra_pcib_driver, tegra_pcib_methods,
-    sizeof(struct tegra_pcib_softc), ofw_pci_driver);
+    sizeof(struct tegra_pcib_softc), ofw_pcib_driver);
 DRIVER_MODULE(tegra_pcib, simplebus, tegra_pcib_driver, pcib_devclass,
     NULL, NULL);

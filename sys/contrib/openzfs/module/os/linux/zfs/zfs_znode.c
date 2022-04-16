@@ -80,7 +80,7 @@ unsigned int zfs_object_mutex_size = ZFS_OBJ_MTX_SZ;
  * This is used by the test suite so that it can delay znodes from being
  * freed in order to inspect the unlinked set.
  */
-int zfs_unlink_suspend_progress = 0;
+static int zfs_unlink_suspend_progress = 0;
 
 /*
  * This callback is invoked when acquiring a RL_WRITER or RL_APPEND lock on
@@ -113,10 +113,10 @@ zfs_rangelock_cb(zfs_locked_range_t *new, void *arg)
 	}
 }
 
-/*ARGSUSED*/
 static int
 zfs_znode_cache_constructor(void *buf, void *arg, int kmflags)
 {
+	(void) arg, (void) kmflags;
 	znode_t *zp = buf;
 
 	inode_init_once(ZTOI(zp));
@@ -137,10 +137,10 @@ zfs_znode_cache_constructor(void *buf, void *arg, int kmflags)
 	return (0);
 }
 
-/*ARGSUSED*/
 static void
 zfs_znode_cache_destructor(void *buf, void *arg)
 {
+	(void) arg;
 	znode_t *zp = buf;
 
 	ASSERT(!list_link_active(&zp->z_link_node));
@@ -151,14 +151,15 @@ zfs_znode_cache_destructor(void *buf, void *arg)
 	rw_destroy(&zp->z_xattr_lock);
 	zfs_rangelock_fini(&zp->z_rangelock);
 
-	ASSERT(zp->z_dirlocks == NULL);
-	ASSERT(zp->z_acl_cached == NULL);
-	ASSERT(zp->z_xattr_cached == NULL);
+	ASSERT3P(zp->z_dirlocks, ==, NULL);
+	ASSERT3P(zp->z_acl_cached, ==, NULL);
+	ASSERT3P(zp->z_xattr_cached, ==, NULL);
 }
 
 static int
 zfs_znode_hold_cache_constructor(void *buf, void *arg, int kmflags)
 {
+	(void) arg, (void) kmflags;
 	znode_hold_t *zh = buf;
 
 	mutex_init(&zh->zh_lock, NULL, MUTEX_DEFAULT, NULL);
@@ -171,6 +172,7 @@ zfs_znode_hold_cache_constructor(void *buf, void *arg, int kmflags)
 static void
 zfs_znode_hold_cache_destructor(void *buf, void *arg)
 {
+	(void) arg;
 	znode_hold_t *zh = buf;
 
 	mutex_destroy(&zh->zh_lock);
@@ -430,7 +432,7 @@ zfs_inode_set_ops(zfsvfs_t *zfsvfs, struct inode *ip)
 	case S_IFBLK:
 		(void) sa_lookup(ITOZ(ip)->z_sa_hdl, SA_ZPL_RDEV(zfsvfs), &rdev,
 		    sizeof (rdev));
-		fallthrough;
+		zfs_fallthrough;
 	case S_IFIFO:
 	case S_IFSOCK:
 		init_special_inode(ip, ip->i_mode, rdev);
@@ -1579,7 +1581,7 @@ zfs_zero_partial_page(znode_t *zp, uint64_t start, uint64_t len)
 			flush_dcache_page(pp);
 
 		pb = kmap(pp);
-		bzero(pb + off, len);
+		memset(pb + off, 0, len);
 		kunmap(pp);
 
 		if (mapping_writably_mapped(mp))
@@ -2151,7 +2153,7 @@ zfs_obj_to_path_impl(objset_t *osp, uint64_t obj, sa_handle_t *hdl,
 
 		component[0] = '/';
 		if (is_xattrdir) {
-			(void) sprintf(component + 1, "<xattrdir>");
+			strcpy(component + 1, "<xattrdir>");
 		} else {
 			error = zap_value_search(osp, pobj, obj,
 			    ZFS_DIRENT_OBJ(-1ULL), component + 1);
@@ -2162,7 +2164,7 @@ zfs_obj_to_path_impl(objset_t *osp, uint64_t obj, sa_handle_t *hdl,
 		complen = strlen(component);
 		path -= complen;
 		ASSERT(path >= buf);
-		bcopy(component, path, complen);
+		memcpy(path, component, complen);
 		obj = pobj;
 
 		if (sa_hdl != hdl) {

@@ -900,9 +900,8 @@ sis_attach(device_t dev)
 	u_char			eaddr[ETHER_ADDR_LEN];
 	struct sis_softc	*sc;
 	struct ifnet		*ifp;
-	int			error = 0, pmc, waittime = 0;
+	int			error = 0, pmc;
 
-	waittime = 0;
 	sc = device_get_softc(dev);
 
 	sc->sis_dev = dev;
@@ -1028,7 +1027,7 @@ sis_attach(device_t dev)
 			 * time we access it, we need to set SIS_EECMD_REQ.
 			 */
 			SIO_SET(SIS_EECMD_REQ);
-			for (waittime = 0; waittime < SIS_TIMEOUT;
+			for (int waittime = 0; waittime < SIS_TIMEOUT;
 			    waittime++) {
 				/* Force EEPROM to idle state. */
 				sis_eeprom_idle(sc);
@@ -2372,12 +2371,10 @@ sis_add_sysctls(struct sis_softc *sc)
 {
 	struct sysctl_ctx_list *ctx;
 	struct sysctl_oid_list *children;
-	int unit;
 
 	ctx = device_get_sysctl_ctx(sc->sis_dev);
 	children = SYSCTL_CHILDREN(device_get_sysctl_tree(sc->sis_dev));
 
-	unit = device_get_unit(sc->sis_dev);
 	/*
 	 * Unlike most other controllers, NS DP83815/DP83816 controllers
 	 * seem to pad with 0xFF when it encounter short frames.  According

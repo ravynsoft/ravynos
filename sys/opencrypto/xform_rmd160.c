@@ -50,6 +50,7 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
+#include <sys/types.h>
 #include <opencrypto/rmd160.h>
 #include <opencrypto/xform_auth.h>
 
@@ -57,8 +58,20 @@ static	void RMD160Init_int(void *);
 static	int RMD160Update_int(void *, const void *, u_int);
 static	void RMD160Final_int(uint8_t *, void *);
 
+/* Plain hash */
+const struct auth_hash auth_hash_ripemd_160 = {
+	.type = CRYPTO_RIPEMD160,
+	.name = "RIPEMD-160",
+	.hashsize = RIPEMD160_HASH_LEN,
+	.ctxsize = sizeof(RMD160_CTX),
+	.blocksize = RIPEMD160_BLOCK_LEN,
+	.Init = RMD160Init_int,
+	.Update = RMD160Update_int,
+	.Final = RMD160Final_int,
+};
+
 /* Authentication instances */
-struct auth_hash auth_hash_hmac_ripemd_160 = {
+const struct auth_hash auth_hash_hmac_ripemd_160 = {
 	.type = CRYPTO_RIPEMD160_HMAC,
 	.name = "HMAC-RIPEMD-160",
 	.keysize = RIPEMD160_BLOCK_LEN,

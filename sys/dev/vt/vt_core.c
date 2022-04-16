@@ -129,7 +129,7 @@ const struct terminal_class vt_termclass = {
 static SYSCTL_NODE(_kern, OID_AUTO, vt, CTLFLAG_RD | CTLFLAG_MPSAFE, 0,
     "vt(9) parameters");
 static VT_SYSCTL_INT(enable_altgr, 1, "Enable AltGr key (Do not assume R.Alt as Alt)");
-static VT_SYSCTL_INT(enable_bell, 1, "Enable bell");
+static VT_SYSCTL_INT(enable_bell, 0, "Enable bell");
 static VT_SYSCTL_INT(debug, 0, "vt(9) debug level");
 static VT_SYSCTL_INT(deadtimer, 15, "Time to wait busy process in VT_PROCESS mode");
 static VT_SYSCTL_INT(suspendswitch, 1, "Switch to VT0 before suspend");
@@ -2418,8 +2418,8 @@ skip_thunk:
 	case KDGKBTYPE:
 	case KDGETREPEAT:	/* get keyboard repeat & delay rates */
 	case KDSETREPEAT:	/* set keyboard repeat & delay rates (new) */
-	case KBADDKBD:		/* add/remove keyboard to/from mux */
-	case KBRELKBD: {
+	case KBADDKBD:		/* add keyboard to mux */
+	case KBRELKBD: {	/* release keyboard from mux */
 		error = 0;
 
 		mtx_lock(&Giant);
@@ -2559,6 +2559,7 @@ skip_thunk:
 	case FBIO_GETDISPSTART:	/* get display start address */
 	case FBIO_GETLINEWIDTH:	/* get scan line width in bytes */
 	case FBIO_BLANK:	/* blank display */
+	case FBIO_GETRGBOFFS:	/* get RGB offsets */
 		if (vd->vd_driver->vd_fb_ioctl)
 			return (vd->vd_driver->vd_fb_ioctl(vd, cmd, data, td));
 		break;

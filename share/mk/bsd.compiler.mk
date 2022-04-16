@@ -65,8 +65,9 @@ CCACHE_BUILD_TYPE?=	command
 # PATH since it is more clear that ccache is used and avoids wasting time
 # for mkdep/linking/asm builds.
 LOCALBASE?=		/usr/local
-CCACHE_WRAPPER_PATH?=	${LOCALBASE}/libexec/ccache
-CCACHE_BIN?=		${LOCALBASE}/bin/ccache
+CCACHE_PKG_PREFIX?=	${LOCALBASE}
+CCACHE_WRAPPER_PATH?=	${CCACHE_PKG_PREFIX}/libexec/ccache
+CCACHE_BIN?=		${CCACHE_PKG_PREFIX}/bin/ccache
 .if exists(${CCACHE_BIN})
 # Export to ensure sub-makes can filter it out for mkdep/linking and
 # to chain down into kernel build which won't include this file.
@@ -159,7 +160,7 @@ _can_export=	yes
 .for var in ${_exported_vars}
 .if defined(${var}) && (!defined(${var}__${${X_}_cc_hash}) || ${${var}__${${X_}_cc_hash}} != ${${var}})
 .if defined(${var}__${${X_}_ld_hash})
-.info "Cannot import ${X_}COMPILER variables since cached ${var} is different: ${${var}__${${X_}_cc_hash}} != ${${var}}"
+.info Cannot import ${X_}COMPILER variables since cached ${var} is different: ${${var}__${${X_}_cc_hash}} != ${${var}}
 .endif
 _can_export=	no
 .endif
@@ -236,6 +237,30 @@ ${X_}COMPILER_FEATURES+=	c++17
 .endif
 .if ${${X_}COMPILER_TYPE} == "clang"
 ${X_}COMPILER_FEATURES+=	retpoline init-all
+# PR257638 lld fails with BE compressed debug.  Fixed in main but external tool
+# chains will initially not have the fix.  For now limit the feature to LE
+# targets.
+# When compiling bootstrap tools on non-FreeBSD, the various MACHINE variables
+# for the host can be missing or not match FreeBSD's naming (e.g. Linux/amd64
+# reports as MACHINE=x86_64 MACHINE_ARCH=x86_64), causing TARGET_ENDIANNESS to
+# be undefined; be conservative and default to off until we turn this on by
+# default everywhere.
+.include <bsd.endian.mk>
+.if (${.MAKE.OS} == "FreeBSD" || defined(TARGET_ENDIANNESS)) && \
+    ${TARGET_ENDIANNESS} == "1234"
+${X_}COMPILER_FEATURES+=	compressed-debug
+.endif
+.endif
+.if ${${X_}COMPILER_TYPE} == "clang" && ${${X_}COMPILER_VERSION} >= 100000 || \
+	(${${X_}COMPILER_TYPE} == "gcc" && ${${X_}COMPILER_VERSION} >= 80100)
+${X_}COMPILER_FEATURES+=	fileprefixmap
+.endif
+
+.if (${${X_}COMPILER_TYPE} == "clang" && ${${X_}COMPILER_VERSION} >= 130000) || \
+	(${${X_}COMPILER_TYPE} == "gcc" && ${${X_}COMPILER_VERSION} >= 90000)
+# AArch64 sha512 intrinsics are supported (and have been tested) in
+# clang 13 and gcc 9.
+${X_}COMPILER_FEATURES+=	aarch64-sha512
 .endif
 
 .if (${${X_}COMPILER_TYPE} == "clang" && ${${X_}COMPILER_VERSION} >= 130000) || \

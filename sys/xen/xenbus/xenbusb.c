@@ -67,9 +67,9 @@ __FBSDID("$FreeBSD$");
 #include <sys/sx.h>
 #include <sys/taskqueue.h>
 
-#include <machine/xen/xen-os.h>
 #include <machine/stdarg.h>
 
+#include <xen/xen-os.h>
 #include <xen/gnttab.h>
 #include <xen/xenstore/xenstorevar.h>
 #include <xen/xenbus/xenbusb.h>
@@ -533,12 +533,9 @@ xenbusb_probe_children_cb(void *arg, int pending __unused)
 {
 	device_t dev = (device_t)arg;
 
-	/*
-	 * Hold Giant until the Giant free newbus changes are committed.
-	 */
-	mtx_lock(&Giant);
+	bus_topo_lock();
 	xenbusb_probe_children(dev);
-	mtx_unlock(&Giant);
+	bus_topo_unlock();
 }
 
 /**

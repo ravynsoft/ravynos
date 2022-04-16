@@ -3053,7 +3053,6 @@ aac_ioctl_send_raw_srb(struct aac_softc *sc, caddr_t arg)
 	struct aac_fib *fib;
 	struct aac_srb *srbcmd, *user_srb;
 	struct aac_sg_entry *sge;
-	struct aac_sg_entry64 *sge64;
 	void *srb_sg_address, *ureply;
 	uint32_t fibsize, srb_sg_bytecount;
 	int error, transfer_data;
@@ -3108,7 +3107,6 @@ aac_ioctl_send_raw_srb(struct aac_softc *sc, caddr_t arg)
 		struct aac_sg_entry sg;
 
 		sge = srbcmd->sg_map.SgEntry;
-		sge64 = NULL;
 
 		if ((error = copyin(sge, &sg, sizeof(sg))) != 0)
 			goto out;
@@ -3119,6 +3117,7 @@ aac_ioctl_send_raw_srb(struct aac_softc *sc, caddr_t arg)
 #ifdef __amd64__
 	else if (fibsize == (sizeof(struct aac_srb) +
 	    srbcmd->sg_map.SgCount * sizeof(struct aac_sg_entry64))) {
+		struct aac_sg_entry64 *sge64;
 		struct aac_sg_entry64 sg;
 
 		sge = NULL;
@@ -3305,10 +3304,10 @@ aac_handle_aif(struct aac_softc *sc, struct aac_fib *fib)
 			while (co != NULL) {
 				if (co->co_found == 0) {
 					mtx_unlock(&sc->aac_io_lock);
-					mtx_lock(&Giant);
+					bus_topo_lock();
 					device_delete_child(sc->aac_dev,
 							    co->co_disk);
-					mtx_unlock(&Giant);
+					bus_topo_unlock();
 					mtx_lock(&sc->aac_io_lock);
 					co_next = TAILQ_NEXT(co, co_link);
 					mtx_lock(&sc->aac_container_lock);
@@ -3326,9 +3325,9 @@ aac_handle_aif(struct aac_softc *sc, struct aac_fib *fib)
 			/* Attach the newly created containers */
 			if (added) {
 				mtx_unlock(&sc->aac_io_lock);
-				mtx_lock(&Giant);
+				bus_topo_lock();
 				bus_generic_attach(sc->aac_dev);
-				mtx_unlock(&Giant);
+				bus_topo_unlock();
 				mtx_lock(&sc->aac_io_lock);
 			}
 

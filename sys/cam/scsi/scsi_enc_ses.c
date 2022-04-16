@@ -422,7 +422,7 @@ ses_iter_init(enc_softc_t *enc, enc_cache_t *cache, struct ses_iterator *iter)
 
 /**
  * \brief Traverse the provided SES iterator to the next element
- *        within the configuraiton.
+ *        within the configuration.
  *
  * \param iter  The iterator to move.
  *
@@ -982,6 +982,7 @@ ses_paths_iter(enc_softc_t *enc, enc_element_t *elm,
 			     != CAM_REQ_CMP)
 				return;
 
+			memset(&cgd, 0, sizeof(cgd));
 			xpt_setup_ccb(&cgd.ccb_h, path, CAM_PRIORITY_NORMAL);
 			cgd.ccb_h.func_code = XPT_GDEV_TYPE;
 			xpt_action((union ccb *)&cgd);
@@ -1043,6 +1044,7 @@ ses_setphyspath_callback(enc_softc_t *enc, enc_element_t *elm,
 	args = (ses_setphyspath_callback_args_t *)arg;
 	old_physpath = malloc(MAXPATHLEN, M_SCSIENC, M_WAITOK|M_ZERO);
 	xpt_path_lock(path);
+	memset(&cdai, 0, sizeof(cdai));
 	xpt_setup_ccb(&cdai.ccb_h, path, CAM_PRIORITY_NORMAL);
 	cdai.ccb_h.func_code = XPT_DEV_ADVINFO;
 	cdai.buftype = CDAI_TYPE_PHYS_PATH;
@@ -1103,6 +1105,7 @@ ses_set_physpath(enc_softc_t *enc, enc_element_t *elm,
 	 * Assemble the components of the physical path starting with
 	 * the device ID of the enclosure itself.
 	 */
+	memset(&cdai, 0, sizeof(cdai));
 	xpt_setup_ccb(&cdai.ccb_h, enc->periph->path, CAM_PRIORITY_NORMAL);
 	cdai.ccb_h.func_code = XPT_DEV_ADVINFO;
 	cdai.flags = CDAI_FLAG_NONE;

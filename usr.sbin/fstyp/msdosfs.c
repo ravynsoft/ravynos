@@ -41,6 +41,24 @@ __FBSDID("$FreeBSD$");
 
 #define LABEL_NO_NAME		"NO NAME    "
 
+/*
+ * XXX the signature 0x55 0xAA as the last two bytes of 512 is not required
+ * by specifications, but was historically required by fstyp.  This check
+ * should be removed, with a more comprehensive BPB validation instead.
+ */
+static bool
+check_signature(uint8_t sector0[512])
+{
+	/* Check for the FAT boot sector signature. */
+	if (sector0[510] == 0x55 && sector0[511] == 0xaa)
+		return (true);
+	/* Special case for Raspberry Pi Pico bootloader. */
+	if (sector0[510] == 0 && sector0[511] == 0 &&
+	    sector0[0] == 0xeb && sector0[1] == 0x3c && sector0[2] == 0x90)
+		return (true);
+	return (false);
+}
+
 int
 fstyp_msdosfs(FILE *fp, char *label, size_t size)
 {
@@ -48,6 +66,7 @@ fstyp_msdosfs(FILE *fp, char *label, size_t size)
 	FAT32_BSBPB *pfat32_bsbpb;
 	FAT_DES *pfat_entry;
 	uint8_t *sector0, *sector;
+	size_t copysize;
 
 	sector0 = NULL;
 	sector = NULL;
@@ -57,8 +76,7 @@ fstyp_msdosfs(FILE *fp, char *label, size_t size)
 	if (sector0 == NULL)
 		return (1);
 
-	/* Check for the FAT boot sector signature. */
-	if (sector0[510] != 0x55 || sector0[511] != 0xaa) {
+	if (!check_signature(sector0)) {
 		goto error;
 	}
 
@@ -83,8 +101,9 @@ fstyp_msdosfs(FILE *fp, char *label, size_t size)
 		    sizeof(pfat_bsbpb->BS_VolLab)) == 0) {
 			goto endofchecks;
 		}
-		strlcpy(label, pfat_bsbpb->BS_VolLab,
-		    MIN(size, sizeof(pfat_bsbpb->BS_VolLab) + 1));
+		copysize = MIN(size - 1, sizeof(pfat_bsbpb->BS_VolLab));
+		memcpy(label, pfat_bsbpb->BS_VolLab, copysize);
+		label[copysize] = '\0';
 	} else if (UINT32BYTES(pfat32_bsbpb->BPB_FATSz32) != 0) {
 		uint32_t fat_FirstDataSector, fat_BytesPerSector, offset;
 
@@ -101,8 +120,10 @@ fstyp_msdosfs(FILE *fp, char *label, size_t size)
 		 */
 		if (strncmp(pfat32_bsbpb->BS_VolLab, LABEL_NO_NAME,
 		    sizeof(pfat32_bsbpb->BS_VolLab)) != 0) {
-			strlcpy(label, pfat32_bsbpb->BS_VolLab,
-			    MIN(size, sizeof(pfat32_bsbpb->BS_VolLab) + 1));
+			copysize = MIN(size - 1,
+			    sizeof(pfat32_bsbpb->BS_VolLab));
+			memcpy(label, pfat32_bsbpb->BS_VolLab, copysize);
+			label[copysize] = '\0';
 			goto endofchecks;
 		}
 
@@ -146,9 +167,11 @@ fstyp_msdosfs(FILE *fp, char *label, size_t size)
 				 */
 				if (pfat_entry->DIR_Attr &
 				    FAT_DES_ATTR_VOLUME_ID) {
-					strlcpy(label, pfat_entry->DIR_Name,
-					    MIN(size,
-					    sizeof(pfat_entry->DIR_Name) + 1));
+					copysize = MIN(size - 1,
+					    sizeof(pfat_entry->DIR_Name));
+					memcpy(label, pfat_entry->DIR_Name,
+					    copysize);
+					label[copysize] = '\0';
 					goto endofchecks;
 				}
 			} while((uint8_t *)(++pfat_entry) <

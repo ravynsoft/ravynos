@@ -40,6 +40,27 @@
 
 #ifdef KERN_TLS
 
+#ifdef RATELIMIT
+static if_snd_tag_modify_t mlx5e_tls_rl_snd_tag_modify;
+#endif
+static if_snd_tag_query_t mlx5e_tls_snd_tag_query;
+static if_snd_tag_free_t mlx5e_tls_snd_tag_free;
+
+static const struct if_snd_tag_sw mlx5e_tls_snd_tag_sw = {
+	.snd_tag_query = mlx5e_tls_snd_tag_query,
+	.snd_tag_free = mlx5e_tls_snd_tag_free,
+	.type = IF_SND_TAG_TYPE_TLS
+};
+
+#ifdef RATELIMIT
+static const struct if_snd_tag_sw mlx5e_tls_rl_snd_tag_sw = {
+	.snd_tag_modify = mlx5e_tls_rl_snd_tag_modify,
+	.snd_tag_query = mlx5e_tls_snd_tag_query,
+	.snd_tag_free = mlx5e_tls_snd_tag_free,
+	.type = IF_SND_TAG_TYPE_TLS_RATE_LIMIT
+};
+#endif
+
 MALLOC_DEFINE(M_MLX5E_TLS, "MLX5E_TLS", "MLX5 ethernet HW TLS");
 
 /* software TLS context */
@@ -293,6 +314,7 @@ mlx5e_tls_snd_tag_alloc(struct ifnet *ifp,
     struct m_snd_tag **ppmt)
 {
 	union if_snd_tag_alloc_params rl_params;
+	const struct if_snd_tag_sw *snd_tag_sw;
 	struct mlx5e_priv *priv;
 	struct mlx5e_tls_tag *ptag;
 	const struct tls_session_params *en;
@@ -395,10 +417,12 @@ mlx5e_tls_snd_tag_alloc(struct ifnet *ifp,
 	case IF_SND_TAG_TYPE_TLS_RATE_LIMIT:
 		rl_params.hdr.type = IF_SND_TAG_TYPE_RATE_LIMIT;
 		rl_params.rate_limit.max_rate = params->tls_rate_limit.max_rate;
+		snd_tag_sw = &mlx5e_tls_rl_snd_tag_sw;
 		break;
 #endif
 	case IF_SND_TAG_TYPE_TLS:
 		rl_params.hdr.type = IF_SND_TAG_TYPE_UNLIMITED;
+		snd_tag_sw = &mlx5e_tls_snd_tag_sw;
 		break;
 	default:
 		error = EOPNOTSUPP;
@@ -411,7 +435,7 @@ mlx5e_tls_snd_tag_alloc(struct ifnet *ifp,
 
 	/* store pointer to mbuf tag */
 	MPASS(ptag->tag.refcount == 0);
-	m_snd_tag_init(&ptag->tag, ifp, params->hdr.type);
+	m_snd_tag_init(&ptag->tag, ifp, snd_tag_sw);
 	*ppmt = &ptag->tag;
 
 	/* reset state */
@@ -427,53 +451,32 @@ failure:
 	return (error);
 }
 
-int
-mlx5e_tls_snd_tag_modify(struct m_snd_tag *pmt, union if_snd_tag_modify_params *params)
-{
 #ifdef RATELIMIT
+static int
+mlx5e_tls_rl_snd_tag_modify(struct m_snd_tag *pmt, union if_snd_tag_modify_params *params)
+{
 	union if_snd_tag_modify_params rl_params;
 	struct mlx5e_tls_tag *ptag =
 	    container_of(pmt, struct mlx5e_tls_tag, tag);
 	int error;
-#endif
 
-	switch (pmt->type) {
-#ifdef RATELIMIT
-	case IF_SND_TAG_TYPE_TLS_RATE_LIMIT:
-		memset(&rl_params, 0, sizeof(rl_params));
-		rl_params.rate_limit.max_rate = params->tls_rate_limit.max_rate;
-		error = ptag->rl_tag->ifp->if_snd_tag_modify(ptag->rl_tag,
-		    &rl_params);
-		return (error);
-#endif
-	default:
-		return (EOPNOTSUPP);
-	}
+	memset(&rl_params, 0, sizeof(rl_params));
+	rl_params.rate_limit.max_rate = params->tls_rate_limit.max_rate;
+	error = ptag->rl_tag->sw->snd_tag_modify(ptag->rl_tag, &rl_params);
+	return (error);
 }
+#endif
 
-int
+static int
 mlx5e_tls_snd_tag_query(struct m_snd_tag *pmt, union if_snd_tag_query_params *params)
 {
 	struct mlx5e_tls_tag *ptag =
 	    container_of(pmt, struct mlx5e_tls_tag, tag);
-	int error;
 
-	switch (pmt->type) {
-#ifdef RATELIMIT
-	case IF_SND_TAG_TYPE_TLS_RATE_LIMIT:
-#endif
-	case IF_SND_TAG_TYPE_TLS:
-		error = ptag->rl_tag->ifp->if_snd_tag_query(ptag->rl_tag,
-		    params);
-		break;
-	default:
-		error = EOPNOTSUPP;
-		break;
-	}
-	return (error);
+	return (ptag->rl_tag->sw->snd_tag_query(ptag->rl_tag, params));
 }
 
-void
+static void
 mlx5e_tls_snd_tag_free(struct m_snd_tag *pmt)
 {
 	struct mlx5e_tls_tag *ptag =
@@ -704,9 +707,9 @@ mlx5e_sq_tls_xmit(struct mlx5e_sq *sq, struct mlx5e_xmit_args *parg, struct mbuf
 
 	if (
 #ifdef RATELIMIT
-	    ptag->type != IF_SND_TAG_TYPE_TLS_RATE_LIMIT &&
+	    ptag->sw->type != IF_SND_TAG_TYPE_TLS_RATE_LIMIT &&
 #endif
-	    ptag->type != IF_SND_TAG_TYPE_TLS)
+	    ptag->sw->type != IF_SND_TAG_TYPE_TLS)
 		return (MLX5E_TLS_CONTINUE);
 
 	ptls_tag = container_of(ptag, struct mlx5e_tls_tag, tag);

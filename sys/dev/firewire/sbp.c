@@ -935,7 +935,6 @@ static void
 sbp_mgm_callback(struct fw_xfer *xfer)
 {
 	struct sbp_dev *sdev;
-	int resp;
 
 	sdev = (struct sbp_dev *)xfer->sc;
 
@@ -943,7 +942,6 @@ SBP_DEBUG(1)
 	device_printf(sdev->target->sbp->fd.dev,
 		"%s:%s\n", __func__, sdev->bustgtlun);
 END_DEBUG
-	resp = xfer->resp;
 	SBP_LOCK(sdev->target->sbp);
 	sbp_xfer_free(xfer);
 	SBP_UNLOCK(sdev->target->sbp);
@@ -2273,7 +2271,7 @@ static void
 sbp_action(struct cam_sim *sim, union ccb *ccb)
 {
 
-	struct sbp_softc *sbp = (struct sbp_softc *)sim->softc;
+	struct sbp_softc *sbp = cam_sim_softc(sim);
 	struct sbp_target *target = NULL;
 	struct sbp_dev *sdev = NULL;
 
@@ -2632,7 +2630,7 @@ sbp_poll(struct cam_sim *sim)
 	struct sbp_softc *sbp;
 	struct firewire_comm *fc;
 
-	sbp = (struct sbp_softc *)sim->softc;
+	sbp = cam_sim_softc(sim);
 	fc = sbp->fd.fc;
 
 	fc->poll(fc, 0, -1);

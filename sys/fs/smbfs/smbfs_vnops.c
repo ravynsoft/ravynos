@@ -560,7 +560,7 @@ smbfs_create(ap)
 	if ((error = VOP_GETATTR(dvp, &vattr, cnp->cn_cred)))
 		return error;
 	scred = smbfs_malloc_scred();
-	smb_makescred(scred, cnp->cn_thread, cnp->cn_cred);
+	smb_makescred(scred, curthread, cnp->cn_cred);
 
 	error = smbfs_smb_create(dnp, name, nmlen, scred);
 	if (error)
@@ -598,7 +598,7 @@ smbfs_remove(ap)
 	if (vp->v_type == VDIR || (np->n_flag & NOPEN) != 0 || vrefcnt(vp) != 1)
 		return EPERM;
 	scred = smbfs_malloc_scred();
-	smb_makescred(scred, cnp->cn_thread, cnp->cn_cred);
+	smb_makescred(scred, curthread, cnp->cn_cred);
 	error = smbfs_smb_delete(np, scred);
 	if (error == 0)
 		np->n_flag |= NGONE;
@@ -628,7 +628,9 @@ smbfs_rename(ap)
 	struct componentname *tcnp = ap->a_tcnp;
 /*	struct componentname *fcnp = ap->a_fcnp;*/
 	struct smb_cred *scred;
+#ifdef notnow
 	u_int16_t flags = 6;
+#endif
 	int error=0;
 
 	scred = NULL;
@@ -643,16 +645,22 @@ smbfs_rename(ap)
 		error = EBUSY;
 		goto out;
 	}
+#ifdef notnow
 	flags = 0x10;			/* verify all writes */
+#endif
 	if (fvp->v_type == VDIR) {
+#ifdef notnow
 		flags |= 2;
+#endif
 	} else if (fvp->v_type == VREG) {
+#ifdef notnow
 		flags |= 1;
+#endif
 	} else {
 		return EINVAL;
 	}
 	scred = smbfs_malloc_scred();
-	smb_makescred(scred, tcnp->cn_thread, tcnp->cn_cred);
+	smb_makescred(scred, curthread, tcnp->cn_cred);
 	/*
 	 * It seems that Samba doesn't implement SMB_COM_MOVE call...
 	 */
@@ -769,7 +777,7 @@ smbfs_mkdir(ap)
 	if ((name[0] == '.') && ((len == 1) || ((len == 2) && (name[1] == '.'))))
 		return EEXIST;
 	scred = smbfs_malloc_scred();
-	smb_makescred(scred, cnp->cn_thread, cnp->cn_cred);
+	smb_makescred(scred, curthread, cnp->cn_cred);
 	error = smbfs_smb_mkdir(dnp, name, len, scred);
 	if (error)
 		goto out;
@@ -809,7 +817,7 @@ smbfs_rmdir(ap)
 		return EINVAL;
 
 	scred = smbfs_malloc_scred();
-	smb_makescred(scred, cnp->cn_thread, cnp->cn_cred);
+	smb_makescred(scred, curthread, cnp->cn_cred);
 	error = smbfs_smb_rmdir(np, scred);
 	if (error == 0)
 		np->n_flag |= NGONE;
@@ -831,7 +839,7 @@ smbfs_readdir(ap)
 		struct uio *a_uio;
 		struct ucred *a_cred;
 		int *a_eofflag;
-		u_long *a_cookies;
+		uint64_t *a_cookies;
 		int a_ncookies;
 	} */ *ap;
 {
@@ -1170,7 +1178,7 @@ smbfs_lookup(ap)
 	} */ *ap;
 {
 	struct componentname *cnp = ap->a_cnp;
-	struct thread *td = cnp->cn_thread;
+	struct thread *td = curthread;
 	struct vnode *dvp = ap->a_dvp;
 	struct vnode **vpp = ap->a_vpp;
 	struct vnode *vp;

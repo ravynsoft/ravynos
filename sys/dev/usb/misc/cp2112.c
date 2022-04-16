@@ -374,7 +374,7 @@ static int
 cp2112_gpio_read_pin(device_t dev, uint32_t pin_num, bool *on)
 {
 	struct gpio_get_req data;
-	struct cp2112gpio_softc *sc;
+	struct cp2112gpio_softc *sc __diagused;
 	int err;
 
 	sc = device_get_softc(dev);
@@ -393,7 +393,7 @@ static int
 cp2112_gpio_write_pin(device_t dev, uint32_t pin_num, bool on)
 {
 	struct gpio_set_req data;
-	struct cp2112gpio_softc *sc;
+	struct cp2112gpio_softc *sc __diagused;
 	int err;
 	bool actual;
 
@@ -419,7 +419,7 @@ cp2112_gpio_configure_write_pin(device_t dev, uint32_t pin_num,
     bool output, enum cp2112_out_mode *mode)
 {
 	struct gpio_config_req data;
-	struct cp2112gpio_softc *sc;
+	struct cp2112gpio_softc *sc __diagused;
 	int err;
 	uint8_t mask;
 
@@ -752,11 +752,9 @@ static void
 cp2112iic_intr_write_callback(struct usb_xfer *xfer, usb_error_t error)
 {
 	struct cp2112iic_softc *sc;
-	struct cp2112_softc *psc;
 	struct usb_page_cache *pc;
 
 	sc = usbd_xfer_softc(xfer);
-	psc = device_get_softc(device_get_parent(sc->dev));
 
 	mtx_assert(&sc->io.lock, MA_OWNED);
 

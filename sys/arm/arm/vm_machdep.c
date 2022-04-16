@@ -235,6 +235,8 @@ cpu_set_upcall(struct thread *td, void (*entry)(void *), void *arg,
 	tf->tf_pc = (int)entry;
 	tf->tf_r0 = (int)arg;
 	tf->tf_spsr = PSR_USR32_MODE;
+	if ((register_t)entry & 1)
+		tf->tf_spsr |= PSR_T;
 }
 
 int
@@ -286,17 +288,6 @@ cpu_fork_kthread_handler(struct thread *td, void (*func)(void *), void *arg)
 {
 	td->td_pcb->pcb_regs.sf_r4 = (register_t)func;	/* function */
 	td->td_pcb->pcb_regs.sf_r5 = (register_t)arg;	/* first arg */
-}
-
-/*
- * Software interrupt handler for queued VM system processing.
- */
-void
-swi_vm(void *dummy)
-{
-
-	if (busdma_swi_pending)
-		busdma_swi();
 }
 
 void

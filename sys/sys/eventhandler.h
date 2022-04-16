@@ -93,7 +93,7 @@ struct eventhandler_list {
  * to pre-define a symbol for the eventhandler list. This symbol can be used by
  * EVENTHANDLER_DIRECT_INVOKE, which has the advantage of not needing to do a
  * locked search of the global list of eventhandler lists. At least
- * EVENTHANDLER_LIST_DEFINE must be be used for EVENTHANDLER_DIRECT_INVOKE to
+ * EVENTHANDLER_LIST_DEFINE must be used for EVENTHANDLER_DIRECT_INVOKE to
  * work. EVENTHANDLER_LIST_DECLARE is only needed if the call to
  * EVENTHANDLER_DIRECT_INVOKE is in a different compilation unit from
  * EVENTHANDLER_LIST_DEFINE. If the events are even relatively high frequency
@@ -147,7 +147,7 @@ do {									\
 									\
 	if ((_el = eventhandler_find_list(#name)) != NULL)		\
 		eventhandler_deregister(_el, tag);			\
-} while(0)
+} while (0)
 
 #define EVENTHANDLER_DEREGISTER_NOWAIT(name, tag)			\
 do {									\
@@ -155,7 +155,7 @@ do {									\
 									\
 	if ((_el = eventhandler_find_list(#name)) != NULL)		\
 		eventhandler_deregister_nowait(_el, tag);		\
-} while(0)
+} while (0)
 
 eventhandler_tag eventhandler_register(struct eventhandler_list *list, 
 	    const char *name, void *func, void *arg, int priority);

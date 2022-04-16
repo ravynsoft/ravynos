@@ -79,7 +79,7 @@
  * of this setting.
  */
 int zfs_max_recordsize = 1 * 1024 * 1024;
-int zfs_allow_redacted_dataset_mount = 0;
+static int zfs_allow_redacted_dataset_mount = 0;
 
 #define	SWITCH64(x, y) \
 	{ \
@@ -894,14 +894,14 @@ dsl_dataset_own(dsl_pool_t *dp, const char *name, ds_hold_flags_t flags,
  * and accessed.
  */
 void
-dsl_dataset_long_hold(dsl_dataset_t *ds, void *tag)
+dsl_dataset_long_hold(dsl_dataset_t *ds, const void *tag)
 {
 	ASSERT(dsl_pool_config_held(ds->ds_dir->dd_pool));
 	(void) zfs_refcount_add(&ds->ds_longholds, tag);
 }
 
 void
-dsl_dataset_long_rele(dsl_dataset_t *ds, void *tag)
+dsl_dataset_long_rele(dsl_dataset_t *ds, const void *tag)
 {
 	(void) zfs_refcount_remove(&ds->ds_longholds, tag);
 }
@@ -1148,7 +1148,7 @@ dsl_dataset_create_sync_dd(dsl_dir_t *dd, dsl_dataset_t *origin,
 	VERIFY0(dmu_bonus_hold(mos, dsobj, FTAG, &dbuf));
 	dmu_buf_will_dirty(dbuf, tx);
 	dsphys = dbuf->db_data;
-	bzero(dsphys, sizeof (dsl_dataset_phys_t));
+	memset(dsphys, 0, sizeof (dsl_dataset_phys_t));
 	dsphys->ds_dir_obj = dd->dd_object;
 	dsphys->ds_flags = flags;
 	dsphys->ds_fsid_guid = unique_create();
@@ -1248,11 +1248,11 @@ dsl_dataset_zero_zil(dsl_dataset_t *ds, dmu_tx_t *tx)
 	objset_t *os;
 
 	VERIFY0(dmu_objset_from_ds(ds, &os));
-	if (bcmp(&os->os_zil_header, &zero_zil, sizeof (zero_zil)) != 0) {
+	if (memcmp(&os->os_zil_header, &zero_zil, sizeof (zero_zil)) != 0) {
 		dsl_pool_t *dp = ds->ds_dir->dd_pool;
 		zio_t *zio;
 
-		bzero(&os->os_zil_header, sizeof (os->os_zil_header));
+		memset(&os->os_zil_header, 0, sizeof (os->os_zil_header));
 		if (os->os_encrypted)
 			os->os_next_write_raw[tx->tx_txg & TXG_MASK] = B_TRUE;
 
@@ -1696,7 +1696,7 @@ dsl_dataset_snapshot_sync_impl(dsl_dataset_t *ds, const char *snapname,
 	 */
 	ASSERT(spa_version(dmu_tx_pool(tx)->dp_spa) >= SPA_VERSION_FAST_SNAP ||
 	    dmu_objset_from_ds(ds, &os) != 0 ||
-	    bcmp(&os->os_phys->os_zil_header, &zero_zil,
+	    memcmp(&os->os_phys->os_zil_header, &zero_zil,
 	    sizeof (zero_zil)) == 0);
 
 	/* Should not snapshot a dirty dataset. */
@@ -1718,7 +1718,7 @@ dsl_dataset_snapshot_sync_impl(dsl_dataset_t *ds, const char *snapname,
 	VERIFY0(dmu_bonus_hold(mos, dsobj, FTAG, &dbuf));
 	dmu_buf_will_dirty(dbuf, tx);
 	dsphys = dbuf->db_data;
-	bzero(dsphys, sizeof (dsl_dataset_phys_t));
+	memset(dsphys, 0, sizeof (dsl_dataset_phys_t));
 	dsphys->ds_dir_obj = ds->ds_dir->dd_object;
 	dsphys->ds_fsid_guid = unique_create();
 	(void) random_get_pseudo_bytes((void*)&dsphys->ds_guid,
@@ -2329,161 +2329,147 @@ get_clones_stat(dsl_dataset_t *ds, nvlist_t *nv)
 	nvlist_free(propval);
 }
 
-/*
- * Returns a string that represents the receive resume stats token. It should
- * be freed with strfree().
- */
-char *
-get_receive_resume_stats_impl(dsl_dataset_t *ds)
+static char *
+get_receive_resume_token_impl(dsl_dataset_t *ds)
 {
+	if (!dsl_dataset_has_resume_receive_state(ds))
+		return (NULL);
+
 	dsl_pool_t *dp = ds->ds_dir->dd_pool;
+	char *str;
+	void *packed;
+	uint8_t *compressed;
+	uint64_t val;
+	nvlist_t *token_nv = fnvlist_alloc();
+	size_t packed_size, compressed_size;
 
-	if (dsl_dataset_has_resume_receive_state(ds)) {
-		char *str;
-		void *packed;
-		uint8_t *compressed;
-		uint64_t val;
-		nvlist_t *token_nv = fnvlist_alloc();
-		size_t packed_size, compressed_size;
-
-		if (zap_lookup(dp->dp_meta_objset, ds->ds_object,
-		    DS_FIELD_RESUME_FROMGUID, sizeof (val), 1, &val) == 0) {
-			fnvlist_add_uint64(token_nv, "fromguid", val);
-		}
-		if (zap_lookup(dp->dp_meta_objset, ds->ds_object,
-		    DS_FIELD_RESUME_OBJECT, sizeof (val), 1, &val) == 0) {
-			fnvlist_add_uint64(token_nv, "object", val);
-		}
-		if (zap_lookup(dp->dp_meta_objset, ds->ds_object,
-		    DS_FIELD_RESUME_OFFSET, sizeof (val), 1, &val) == 0) {
-			fnvlist_add_uint64(token_nv, "offset", val);
-		}
-		if (zap_lookup(dp->dp_meta_objset, ds->ds_object,
-		    DS_FIELD_RESUME_BYTES, sizeof (val), 1, &val) == 0) {
-			fnvlist_add_uint64(token_nv, "bytes", val);
-		}
-		if (zap_lookup(dp->dp_meta_objset, ds->ds_object,
-		    DS_FIELD_RESUME_TOGUID, sizeof (val), 1, &val) == 0) {
-			fnvlist_add_uint64(token_nv, "toguid", val);
-		}
-		char buf[MAXNAMELEN];
-		if (zap_lookup(dp->dp_meta_objset, ds->ds_object,
-		    DS_FIELD_RESUME_TONAME, 1, sizeof (buf), buf) == 0) {
-			fnvlist_add_string(token_nv, "toname", buf);
-		}
-		if (zap_contains(dp->dp_meta_objset, ds->ds_object,
-		    DS_FIELD_RESUME_LARGEBLOCK) == 0) {
-			fnvlist_add_boolean(token_nv, "largeblockok");
-		}
-		if (zap_contains(dp->dp_meta_objset, ds->ds_object,
-		    DS_FIELD_RESUME_EMBEDOK) == 0) {
-			fnvlist_add_boolean(token_nv, "embedok");
-		}
-		if (zap_contains(dp->dp_meta_objset, ds->ds_object,
-		    DS_FIELD_RESUME_COMPRESSOK) == 0) {
-			fnvlist_add_boolean(token_nv, "compressok");
-		}
-		if (zap_contains(dp->dp_meta_objset, ds->ds_object,
-		    DS_FIELD_RESUME_RAWOK) == 0) {
-			fnvlist_add_boolean(token_nv, "rawok");
-		}
-		if (dsl_dataset_feature_is_active(ds,
-		    SPA_FEATURE_REDACTED_DATASETS)) {
-			uint64_t num_redact_snaps;
-			uint64_t *redact_snaps;
-			VERIFY(dsl_dataset_get_uint64_array_feature(ds,
-			    SPA_FEATURE_REDACTED_DATASETS, &num_redact_snaps,
-			    &redact_snaps));
-			fnvlist_add_uint64_array(token_nv, "redact_snaps",
-			    redact_snaps, num_redact_snaps);
-		}
-		if (zap_contains(dp->dp_meta_objset, ds->ds_object,
-		    DS_FIELD_RESUME_REDACT_BOOKMARK_SNAPS) == 0) {
-			uint64_t num_redact_snaps, int_size;
-			uint64_t *redact_snaps;
-			VERIFY0(zap_length(dp->dp_meta_objset, ds->ds_object,
-			    DS_FIELD_RESUME_REDACT_BOOKMARK_SNAPS, &int_size,
-			    &num_redact_snaps));
-			ASSERT3U(int_size, ==, sizeof (uint64_t));
-
-			redact_snaps = kmem_alloc(int_size * num_redact_snaps,
-			    KM_SLEEP);
-			VERIFY0(zap_lookup(dp->dp_meta_objset, ds->ds_object,
-			    DS_FIELD_RESUME_REDACT_BOOKMARK_SNAPS, int_size,
-			    num_redact_snaps, redact_snaps));
-			fnvlist_add_uint64_array(token_nv, "book_redact_snaps",
-			    redact_snaps, num_redact_snaps);
-			kmem_free(redact_snaps, int_size * num_redact_snaps);
-		}
-		packed = fnvlist_pack(token_nv, &packed_size);
-		fnvlist_free(token_nv);
-		compressed = kmem_alloc(packed_size, KM_SLEEP);
-
-		compressed_size = gzip_compress(packed, compressed,
-		    packed_size, packed_size, 6);
-
-		zio_cksum_t cksum;
-		fletcher_4_native_varsize(compressed, compressed_size, &cksum);
-
-		size_t alloc_size = compressed_size * 2 + 1;
-		str = kmem_alloc(alloc_size, KM_SLEEP);
-		for (int i = 0; i < compressed_size; i++) {
-			size_t offset = i * 2;
-			(void) snprintf(str + offset, alloc_size - offset,
-		    "%02x", compressed[i]);
-		}
-		str[compressed_size * 2] = '\0';
-		char *propval = kmem_asprintf("%u-%llx-%llx-%s",
-		    ZFS_SEND_RESUME_TOKEN_VERSION,
-		    (longlong_t)cksum.zc_word[0],
-		    (longlong_t)packed_size, str);
-		kmem_free(packed, packed_size);
-		kmem_free(str, alloc_size);
-		kmem_free(compressed, packed_size);
-		return (propval);
+	if (zap_lookup(dp->dp_meta_objset, ds->ds_object,
+	    DS_FIELD_RESUME_FROMGUID, sizeof (val), 1, &val) == 0) {
+		fnvlist_add_uint64(token_nv, "fromguid", val);
 	}
-	return (kmem_strdup(""));
+	if (zap_lookup(dp->dp_meta_objset, ds->ds_object,
+	    DS_FIELD_RESUME_OBJECT, sizeof (val), 1, &val) == 0) {
+		fnvlist_add_uint64(token_nv, "object", val);
+	}
+	if (zap_lookup(dp->dp_meta_objset, ds->ds_object,
+	    DS_FIELD_RESUME_OFFSET, sizeof (val), 1, &val) == 0) {
+		fnvlist_add_uint64(token_nv, "offset", val);
+	}
+	if (zap_lookup(dp->dp_meta_objset, ds->ds_object,
+	    DS_FIELD_RESUME_BYTES, sizeof (val), 1, &val) == 0) {
+		fnvlist_add_uint64(token_nv, "bytes", val);
+	}
+	if (zap_lookup(dp->dp_meta_objset, ds->ds_object,
+	    DS_FIELD_RESUME_TOGUID, sizeof (val), 1, &val) == 0) {
+		fnvlist_add_uint64(token_nv, "toguid", val);
+	}
+	char buf[MAXNAMELEN];
+	if (zap_lookup(dp->dp_meta_objset, ds->ds_object,
+	    DS_FIELD_RESUME_TONAME, 1, sizeof (buf), buf) == 0) {
+		fnvlist_add_string(token_nv, "toname", buf);
+	}
+	if (zap_contains(dp->dp_meta_objset, ds->ds_object,
+	    DS_FIELD_RESUME_LARGEBLOCK) == 0) {
+		fnvlist_add_boolean(token_nv, "largeblockok");
+	}
+	if (zap_contains(dp->dp_meta_objset, ds->ds_object,
+	    DS_FIELD_RESUME_EMBEDOK) == 0) {
+		fnvlist_add_boolean(token_nv, "embedok");
+	}
+	if (zap_contains(dp->dp_meta_objset, ds->ds_object,
+	    DS_FIELD_RESUME_COMPRESSOK) == 0) {
+		fnvlist_add_boolean(token_nv, "compressok");
+	}
+	if (zap_contains(dp->dp_meta_objset, ds->ds_object,
+	    DS_FIELD_RESUME_RAWOK) == 0) {
+		fnvlist_add_boolean(token_nv, "rawok");
+	}
+	if (dsl_dataset_feature_is_active(ds,
+	    SPA_FEATURE_REDACTED_DATASETS)) {
+		uint64_t num_redact_snaps = 0;
+		uint64_t *redact_snaps = NULL;
+		VERIFY3B(dsl_dataset_get_uint64_array_feature(ds,
+		    SPA_FEATURE_REDACTED_DATASETS, &num_redact_snaps,
+		    &redact_snaps), ==, B_TRUE);
+		fnvlist_add_uint64_array(token_nv, "redact_snaps",
+		    redact_snaps, num_redact_snaps);
+	}
+	if (zap_contains(dp->dp_meta_objset, ds->ds_object,
+	    DS_FIELD_RESUME_REDACT_BOOKMARK_SNAPS) == 0) {
+		uint64_t num_redact_snaps = 0, int_size = 0;
+		uint64_t *redact_snaps = NULL;
+		VERIFY0(zap_length(dp->dp_meta_objset, ds->ds_object,
+		    DS_FIELD_RESUME_REDACT_BOOKMARK_SNAPS, &int_size,
+		    &num_redact_snaps));
+		ASSERT3U(int_size, ==, sizeof (uint64_t));
+
+		redact_snaps = kmem_alloc(int_size * num_redact_snaps,
+		    KM_SLEEP);
+		VERIFY0(zap_lookup(dp->dp_meta_objset, ds->ds_object,
+		    DS_FIELD_RESUME_REDACT_BOOKMARK_SNAPS, int_size,
+		    num_redact_snaps, redact_snaps));
+		fnvlist_add_uint64_array(token_nv, "book_redact_snaps",
+		    redact_snaps, num_redact_snaps);
+		kmem_free(redact_snaps, int_size * num_redact_snaps);
+	}
+	packed = fnvlist_pack(token_nv, &packed_size);
+	fnvlist_free(token_nv);
+	compressed = kmem_alloc(packed_size, KM_SLEEP);
+
+	compressed_size = gzip_compress(packed, compressed,
+	    packed_size, packed_size, 6);
+
+	zio_cksum_t cksum;
+	fletcher_4_native_varsize(compressed, compressed_size, &cksum);
+
+	size_t alloc_size = compressed_size * 2 + 1;
+	str = kmem_alloc(alloc_size, KM_SLEEP);
+	for (int i = 0; i < compressed_size; i++) {
+		size_t offset = i * 2;
+		(void) snprintf(str + offset, alloc_size - offset,
+	    "%02x", compressed[i]);
+	}
+	str[compressed_size * 2] = '\0';
+	char *propval = kmem_asprintf("%u-%llx-%llx-%s",
+	    ZFS_SEND_RESUME_TOKEN_VERSION,
+	    (longlong_t)cksum.zc_word[0],
+	    (longlong_t)packed_size, str);
+	kmem_free(packed, packed_size);
+	kmem_free(str, alloc_size);
+	kmem_free(compressed, packed_size);
+	return (propval);
 }
 
 /*
- * Returns a string that represents the receive resume stats token of the
- * dataset's child. It should be freed with strfree().
+ * Returns a string that represents the receive resume state token. It should
+ * be freed with strfree(). NULL is returned if no resume state is present.
  */
 char *
-get_child_receive_stats(dsl_dataset_t *ds)
+get_receive_resume_token(dsl_dataset_t *ds)
 {
-	char recvname[ZFS_MAX_DATASET_NAME_LEN + 6];
+	/*
+	 * A failed "newfs" (e.g. full) resumable receive leaves
+	 * the stats set on this dataset.  Check here for the prop.
+	 */
+	char *token = get_receive_resume_token_impl(ds);
+	if (token != NULL)
+		return (token);
+	/*
+	 * A failed incremental resumable receive leaves the
+	 * stats set on our child named "%recv".  Check the child
+	 * for the prop.
+	 */
+	/* 6 extra bytes for /%recv */
+	char name[ZFS_MAX_DATASET_NAME_LEN + 6];
 	dsl_dataset_t *recv_ds;
-	dsl_dataset_name(ds, recvname);
-	if (strlcat(recvname, "/", sizeof (recvname)) <
-	    sizeof (recvname) &&
-	    strlcat(recvname, recv_clone_name, sizeof (recvname)) <
-	    sizeof (recvname) &&
-	    dsl_dataset_hold(ds->ds_dir->dd_pool, recvname, FTAG,
-	    &recv_ds)  == 0) {
-		char *propval = get_receive_resume_stats_impl(recv_ds);
+	dsl_dataset_name(ds, name);
+	if (strlcat(name, "/", sizeof (name)) < sizeof (name) &&
+	    strlcat(name, recv_clone_name, sizeof (name)) < sizeof (name) &&
+	    dsl_dataset_hold(ds->ds_dir->dd_pool, name, FTAG, &recv_ds) == 0) {
+		token = get_receive_resume_token_impl(recv_ds);
 		dsl_dataset_rele(recv_ds, FTAG);
-		return (propval);
 	}
-	return (kmem_strdup(""));
-}
-
-static void
-get_receive_resume_stats(dsl_dataset_t *ds, nvlist_t *nv)
-{
-	char *propval = get_receive_resume_stats_impl(ds);
-	if (strcmp(propval, "") != 0) {
-		dsl_prop_nvlist_add_string(nv,
-		    ZFS_PROP_RECEIVE_RESUME_TOKEN, propval);
-	} else {
-		char *childval = get_child_receive_stats(ds);
-		if (strcmp(childval, "") != 0) {
-			dsl_prop_nvlist_add_string(nv,
-			    ZFS_PROP_RECEIVE_RESUME_TOKEN, childval);
-		}
-		kmem_strfree(childval);
-	}
-	kmem_strfree(propval);
+	return (token);
 }
 
 uint64_t
@@ -2759,7 +2745,7 @@ dsl_get_mountpoint(dsl_dataset_t *ds, const char *dsname, char *value,
 void
 dsl_dataset_stats(dsl_dataset_t *ds, nvlist_t *nv)
 {
-	dsl_pool_t *dp = ds->ds_dir->dd_pool;
+	dsl_pool_t *dp __maybe_unused = ds->ds_dir->dd_pool;
 
 	ASSERT(dsl_pool_config_held(dp));
 
@@ -2821,28 +2807,11 @@ dsl_dataset_stats(dsl_dataset_t *ds, nvlist_t *nv)
 	}
 
 	if (!dsl_dataset_is_snapshot(ds)) {
-		/*
-		 * A failed "newfs" (e.g. full) resumable receive leaves
-		 * the stats set on this dataset.  Check here for the prop.
-		 */
-		get_receive_resume_stats(ds, nv);
-
-		/*
-		 * A failed incremental resumable receive leaves the
-		 * stats set on our child named "%recv".  Check the child
-		 * for the prop.
-		 */
-		/* 6 extra bytes for /%recv */
-		char recvname[ZFS_MAX_DATASET_NAME_LEN + 6];
-		dsl_dataset_t *recv_ds;
-		dsl_dataset_name(ds, recvname);
-		if (strlcat(recvname, "/", sizeof (recvname)) <
-		    sizeof (recvname) &&
-		    strlcat(recvname, recv_clone_name, sizeof (recvname)) <
-		    sizeof (recvname) &&
-		    dsl_dataset_hold(dp, recvname, FTAG, &recv_ds) == 0) {
-			get_receive_resume_stats(recv_ds, nv);
-			dsl_dataset_rele(recv_ds, FTAG);
+		char *token = get_receive_resume_token(ds);
+		if (token != NULL) {
+			dsl_prop_nvlist_add_string(nv,
+			    ZFS_PROP_RECEIVE_RESUME_TOKEN, token);
+			kmem_strfree(token);
 		}
 	}
 }
@@ -2926,7 +2895,7 @@ dsl_dataset_modified_since_snap(dsl_dataset_t *ds, dsl_dataset_t *snap)
 			return (B_TRUE);
 		if (dmu_objset_from_ds(snap, &os_snap) != 0)
 			return (B_TRUE);
-		return (bcmp(&os->os_phys->os_meta_dnode,
+		return (memcmp(&os->os_phys->os_meta_dnode,
 		    &os_snap->os_phys->os_meta_dnode,
 		    sizeof (os->os_phys->os_meta_dnode)) != 0);
 	}
@@ -4947,7 +4916,7 @@ dsl_dataset_activate_redaction(dsl_dataset_t *ds, uint64_t *redact_snaps,
 	if (num_redact_snaps > 0) {
 		ftuaa->array = kmem_alloc(num_redact_snaps * sizeof (uint64_t),
 		    KM_SLEEP);
-		bcopy(redact_snaps, ftuaa->array, num_redact_snaps *
+		memcpy(ftuaa->array, redact_snaps, num_redact_snaps *
 		    sizeof (uint64_t));
 	}
 	dsl_dataset_activate_feature(dsobj, SPA_FEATURE_REDACTED_DATASETS,
@@ -4955,7 +4924,6 @@ dsl_dataset_activate_redaction(dsl_dataset_t *ds, uint64_t *redact_snaps,
 	ds->ds_feature[SPA_FEATURE_REDACTED_DATASETS] = ftuaa;
 }
 
-/* BEGIN CSTYLED */
 #if defined(_LP64)
 #define	RECORDSIZE_PERM ZMOD_RW
 #else
@@ -4967,7 +4935,6 @@ ZFS_MODULE_PARAM(zfs, zfs_, max_recordsize, INT, RECORDSIZE_PERM,
 
 ZFS_MODULE_PARAM(zfs, zfs_, allow_redacted_dataset_mount, INT, ZMOD_RW,
 	"Allow mounting of redacted datasets");
-/* END CSTYLED */
 
 EXPORT_SYMBOL(dsl_dataset_hold);
 EXPORT_SYMBOL(dsl_dataset_hold_flags);

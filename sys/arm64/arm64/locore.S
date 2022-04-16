@@ -38,7 +38,6 @@
 #include <machine/vmparam.h>
 
 #define	VIRT_BITS	48
-#define	DMAP_TABLES	((DMAP_MAX_ADDRESS - DMAP_MIN_ADDRESS) >> L0_SHIFT)
 
 	.globl	kernbase
 	.set	kernbase, KERNBASE
@@ -152,6 +151,16 @@ virtdone:
 	bl	initarm
 	/* We are done with the boot params */
 	add	sp, sp, #BOOTPARAMS_SIZE
+
+	/*
+	 * Enable pointer authentication in the kernel. We set the keys for
+	 * thread0 in initarm so have to wait until it returns to enable it.
+	 * If we were to enable it in initarm then any authentication when
+	 * returning would fail as it was called with pointer authentication
+	 * disabled.
+	 */
+	bl	ptrauth_start
+
 	bl	mi_startup
 
 	/* We should not get here */
@@ -239,7 +248,7 @@ LENTRY(drop_to_el1)
 	ret
 1:
 	/* Configure the Hypervisor */
-	mov	x2, #(HCR_RW)
+	ldr	x2, =(HCR_RW | HCR_APK | HCR_API)
 	msr	hcr_el2, x2
 
 	/* Load the Virtualization Process ID Register */
@@ -368,7 +377,6 @@ LEND(get_virt_delta)
  *    - The Kernel L0 table             (TTBR1)
  *    - The identity (PA = VA) L1 table
  *    - The identity (PA = VA) L0 table (TTBR0)
- *    - The DMAP L1 tables
  */
 LENTRY(create_pagetables)
 	/* Save the Link register */
@@ -444,8 +452,8 @@ common:
 
 	/* Create the kernel space L2 table */
 	mov	x6, x26
-	mov	x7, #VM_MEMATTR_WRITE_BACK
-	mov	x8, #(KERNBASE & L2_BLOCK_MASK)
+	mov	x7, #(ATTR_S1_IDX(VM_MEMATTR_WRITE_BACK))
+	mov	x8, #(KERNBASE)
 	mov	x9, x28
 	bl	build_l2_block_pagetable
 
@@ -466,13 +474,6 @@ common:
 	mov	x10, #1
 	bl	link_l0_pagetable
 
-	/* Link the DMAP tables */
-	ldr	x8, =DMAP_MIN_ADDRESS
-	adrp	x9, pagetable_dmap
-	add	x9, x9, :lo12:pagetable_dmap
-	mov	x10, #DMAP_TABLES
-	bl	link_l0_pagetable
-
 	/*
 	 * Build the TTBR0 maps.  As TTBR0 maps, they must specify ATTR_S1_nG.
 	 * They are only needed early on, so the VA = PA map is uncached.
@@ -480,35 +481,58 @@ common:
 	add	x27, x24, #PAGE_SIZE
 
 	mov	x6, x27		/* The initial page table */
-#if defined(SOCDEV_PA) && defined(SOCDEV_VA)
+
+	/* Create the VA = PA map */
+	mov	x7, #(ATTR_S1_nG | ATTR_S1_IDX(VM_MEMATTR_WRITE_BACK))
+	adrp	x16, _start
+	and	x16, x16, #(~L2_OFFSET)
+	mov	x9, x16		/* PA start */
+	mov	x8, x16		/* VA start (== PA start) */
+	mov	x10, #1
+	bl	build_l2_block_pagetable
+
+#if defined(SOCDEV_PA)
 	/* Create a table for the UART */
 	mov	x7, #(ATTR_S1_nG | ATTR_S1_IDX(VM_MEMATTR_DEVICE))
-	mov	x8, #(SOCDEV_VA)	/* VA start */
-	mov	x9, #(SOCDEV_PA)	/* PA start */
+	add	x16, x16, #(L2_SIZE)	/* VA start */
+	mov	x8, x16
+
+	/* Store the socdev virtual address */
+	add	x17, x8, #(SOCDEV_PA & L2_OFFSET)
+	adrp	x9, socdev_va
+	str	x17, [x9, :lo12:socdev_va]
+
+	mov	x9, #(SOCDEV_PA & ~L2_OFFSET)	/* PA start */
 	mov	x10, #1
-	bl	build_l1_block_pagetable
+	bl	build_l2_block_pagetable
 #endif
 
 #if defined(LINUX_BOOT_ABI)
 	/* Map FDT data ? */
 	cbz	x19, 1f
 
-	/* Create the identity mapping for FDT data (2 MiB max) */
+	/* Create the mapping for FDT data (2 MiB max) */
 	mov	x7, #(ATTR_S1_nG | ATTR_S1_IDX(VM_MEMATTR_WRITE_BACK))
-	mov	x9, x0
-	mov	x8, x0		/* VA start (== PA start) */
+	add	x16, x16, #(L2_SIZE)	/* VA start */
+	mov	x8, x16
+	mov	x9, x0			/* PA start */
+	/* Update the module pointer to point at the allocated memory */
+	and	x0, x0, #(L2_OFFSET)	/* Keep the lower bits */
+	add	x0, x0, x8		/* Add the aligned virtual address */
+
 	mov	x10, #1
-	bl	build_l1_block_pagetable
+	bl	build_l2_block_pagetable
 
 1:
 #endif
 
-	/* Create the VA = PA map */
-	mov	x7, #(ATTR_S1_nG | ATTR_S1_IDX(VM_MEMATTR_WRITE_BACK))
-	mov	x9, x28
-	mov	x8, x9		/* VA start (== PA start) */
-	mov	x10, #1
-	bl	build_l1_block_pagetable
+	/* Move to the l1 table */
+	add	x27, x27, #PAGE_SIZE
+
+	/* Link the l1 -> l2 table */
+	mov	x9, x6
+	mov	x6, x27
+	bl	link_l1_pagetable
 
 	/* Move to the l0 table */
 	add	x27, x27, #PAGE_SIZE
@@ -527,13 +551,10 @@ LEND(create_pagetables)
 /*
  * Builds an L0 -> L1 table descriptor
  *
- * This is a link for a 512GiB block of memory with up to 1GiB regions mapped
- * within it by build_l1_block_pagetable.
- *
  *  x6  = L0 table
  *  x8  = Virtual Address
  *  x9  = L1 PA (trashed)
- *  x10 = Entry count
+ *  x10 = Entry count (trashed)
  *  x11, x12 and x13 are trashed
  */
 LENTRY(link_l0_pagetable)
@@ -566,9 +587,6 @@ LEND(link_l0_pagetable)
 /*
  * Builds an L1 -> L2 table descriptor
  *
- * This is a link for a 1GiB block of memory with up to 2MiB regions mapped
- * within it by build_l2_block_pagetable.
- *
  *  x6  = L1 table
  *  x8  = Virtual Address
  *  x9  = L2 PA (trashed)
@@ -596,50 +614,12 @@ LENTRY(link_l1_pagetable)
 LEND(link_l1_pagetable)
 
 /*
- * Builds count 1 GiB page table entry
- *  x6  = L1 table
- *  x7  = Variable lower block attributes
- *  x8  = VA start
- *  x9  = PA start (trashed)
- *  x10 = Entry count
- *  x11, x12 and x13 are trashed
- */
-LENTRY(build_l1_block_pagetable)
-	/*
-	 * Build the L1 table entry.
-	 */
-	/* Find the table index */
-	lsr	x11, x8, #L1_SHIFT
-	and	x11, x11, #Ln_ADDR_MASK
-
-	/* Build the L1 block entry */
-	orr	x12, x7, #L1_BLOCK
-	orr	x12, x12, #(ATTR_DEFAULT)
-
-	/* Only use the output address bits */
-	lsr	x9, x9, #L1_SHIFT
-
-	/* Set the physical address for this virtual address */
-1:	orr	x13, x12, x9, lsl #L1_SHIFT
-
-	/* Store the entry */
-	str	x13, [x6, x11, lsl #3]
-
-	sub	x10, x10, #1
-	add	x11, x11, #1
-	add	x9, x9, #1
-	cbnz	x10, 1b
-
-	ret
-LEND(build_l1_block_pagetable)
-
-/*
  * Builds count 2 MiB page table entry
  *  x6  = L2 table
- *  x7  = Type (0 = Device, 1 = Normal)
+ *  x7  = Block attributes
  *  x8  = VA start
  *  x9  = PA start (trashed)
- *  x10 = Entry count
+ *  x10 = Entry count (trashed)
  *  x11, x12 and x13 are trashed
  */
 LENTRY(build_l2_block_pagetable)
@@ -651,8 +631,7 @@ LENTRY(build_l2_block_pagetable)
 	and	x11, x11, #Ln_ADDR_MASK
 
 	/* Build the L2 block entry */
-	lsl	x12, x7, #2
-	orr	x12, x12, #L2_BLOCK
+	orr	x12, x7, #L2_BLOCK
 	orr	x12, x12, #(ATTR_DEFAULT)
 	orr	x12, x12, #(ATTR_S1_UXN)
 
@@ -748,12 +727,13 @@ LENTRY(start_mmu)
 
 	.align 3
 mair:
-	.quad	MAIR_ATTR(MAIR_DEVICE_nGnRnE, VM_MEMATTR_DEVICE)    |	\
+	.quad	MAIR_ATTR(MAIR_DEVICE_nGnRnE, VM_MEMATTR_DEVICE_nGnRnE) | \
 		MAIR_ATTR(MAIR_NORMAL_NC, VM_MEMATTR_UNCACHEABLE)   |	\
 		MAIR_ATTR(MAIR_NORMAL_WB, VM_MEMATTR_WRITE_BACK)    |	\
-		MAIR_ATTR(MAIR_NORMAL_WT, VM_MEMATTR_WRITE_THROUGH)
+		MAIR_ATTR(MAIR_NORMAL_WT, VM_MEMATTR_WRITE_THROUGH) |	\
+		MAIR_ATTR(MAIR_DEVICE_nGnRE, VM_MEMATTR_DEVICE_nGnRE)
 tcr:
-	.quad (TCR_TxSZ(64 - VIRT_BITS) | TCR_TG1_4K | \
+	.quad (TCR_TxSZ(64 - VIRT_BITS) | TCR_TG1_4K | TCR_TG0_4K | \
 	    TCR_CACHE_ATTRS | TCR_SMP_ATTRS)
 sctlr_set:
 	/* Bits to set */
@@ -782,11 +762,14 @@ END(abort)
 	 *           L0 bootstrap for user
 	 *           L0 for user
 	 */
+	.globl pagetable_l0_ttbr1
 pagetable:
 	.space	PAGE_SIZE
 pagetable_l1_ttbr1:
 	.space	PAGE_SIZE
 pagetable_l0_ttbr1:
+	.space	PAGE_SIZE
+pagetable_l2_ttbr0_bootstrap:
 	.space	PAGE_SIZE
 pagetable_l1_ttbr0_bootstrap:
 	.space	PAGE_SIZE
@@ -795,9 +778,6 @@ pagetable_l0_ttbr0_boostrap:
 pagetable_l0_ttbr0:
 	.space	PAGE_SIZE
 
-	.globl pagetable_dmap
-pagetable_dmap:
-	.space	PAGE_SIZE * DMAP_TABLES
 pagetable_end:
 
 el2_pagetable:

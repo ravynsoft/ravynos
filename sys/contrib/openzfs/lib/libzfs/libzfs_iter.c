@@ -28,7 +28,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <unistd.h>
 #include <stddef.h>
 #include <libintl.h>
@@ -575,8 +575,11 @@ zfs_iter_mounted(zfs_handle_t *zhp, zfs_iter_f func, void *data)
 
 		/* Ignore datasets not within the provided dataset */
 		if (strncmp(entry.mnt_special, zhp->zfs_name, namelen) != 0 ||
-		    (entry.mnt_special[namelen] != '/' &&
-		    entry.mnt_special[namelen] != '@'))
+		    entry.mnt_special[namelen] != '/')
+			continue;
+
+		/* Skip snapshot of any child dataset */
+		if (strchr(entry.mnt_special, '@') != NULL)
 			continue;
 
 		if ((mtab_zhp = zfs_open(zhp->zfs_hdl, entry.mnt_special,

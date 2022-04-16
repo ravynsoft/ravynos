@@ -50,11 +50,6 @@ uint32_t ffs_calc_sbhash(struct fs *);
 struct malloc_type;
 #define UFS_MALLOC(size, type, flags) malloc(size)
 #define UFS_FREE(ptr, type) free(ptr)
-/*
- * Request standard superblock location in ffs_sbget
- */
-#define	STDSB			-1	/* Fail if check-hash is bad */
-#define	STDSB_NOHASHFAIL	-2	/* Ignore check-hash failure */
 
 #else /* _KERNEL */
 #include <sys/systm.h>
@@ -160,7 +155,6 @@ ffs_sbget(void *devfd, struct fs **fsp, off_t altsblock,
 	int i, error, size, blks;
 	uint8_t *space;
 	int32_t *lp;
-	int chkhash;
 	char *buf;
 
 	fs = NULL;
@@ -173,12 +167,9 @@ ffs_sbget(void *devfd, struct fs **fsp, off_t altsblock,
 			return (error);
 		}
 	} else {
-		chkhash = 1;
-		if (altsblock == STDSB_NOHASHFAIL)
-			chkhash = 0;
 		for (i = 0; sblock_try[i] != -1; i++) {
 			if ((error = readsuper(devfd, &fs, sblock_try[i], 0,
-			     chkhash, readfunc)) == 0)
+			     altsblock, readfunc)) == 0)
 				break;
 			if (fs != NULL) {
 				UFS_FREE(fs, filltype);
@@ -284,11 +275,15 @@ readsuper(void *devfd, struct fs **fsp, off_t sblockloc, int isaltsblk,
 		fs->fs_metackhash &= CK_SUPPORTED;
 		fs->fs_flags &= FS_SUPPORTED;
 		if (fs->fs_ckhash != (ckhash = ffs_calc_sbhash(fs))) {
+			if (chkhash == STDSB_NOMSG)
+				return (EINTEGRITY);
+			if (chkhash == STDSB_NOHASHFAIL_NOMSG)
+				return (0);
 #ifdef _KERNEL
 			res = uprintf("Superblock check-hash failed: recorded "
 			    "check-hash 0x%x != computed check-hash 0x%x%s\n",
 			    fs->fs_ckhash, ckhash,
-			    chkhash == 0 ? " (Ignored)" : "");
+			    chkhash == STDSB_NOHASHFAIL ? " (Ignored)" : "");
 #else
 			res = 0;
 #endif
@@ -300,11 +295,12 @@ readsuper(void *devfd, struct fs **fsp, off_t sblockloc, int isaltsblk,
 				printf("Superblock check-hash failed: recorded "
 				    "check-hash 0x%x != computed check-hash "
 				    "0x%x%s\n", fs->fs_ckhash, ckhash,
-				    chkhash == 0 ? " (Ignored)" : "");
-			/* STDSB_NOHASHFAIL */
-			if (chkhash == 0)
-				return (0);
-			return (EINTEGRITY);
+				    chkhash == STDSB_NOHASHFAIL ?
+				    " (Ignored)" : "");
+			if (chkhash == STDSB)
+				return (EINTEGRITY);
+			/* chkhash == STDSB_NOHASHFAIL */
+			return (0);
 		}
 		/* Have to set for old filesystems that predate this field */
 		fs->fs_sblockactualloc = sblockloc;

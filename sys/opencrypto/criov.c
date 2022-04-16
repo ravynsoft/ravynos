@@ -158,10 +158,11 @@ static int
 cvm_page_apply(vm_page_t *pages, int off, int len,
     int (*f)(void *, const void *, u_int), void *arg)
 {
-	int processed = 0;
+	int processed __unused;
 	unsigned count;
 	int rval;
 
+	processed = 0;
 	CVM_PAGE_SKIP();
 	while (len > 0) {
 		char *kaddr = (char *)PHYS_TO_DMAP(VM_PAGE_TO_PHYS(*pages));
@@ -431,23 +432,6 @@ crypto_cursor_segment(struct crypto_buffer_cursor *cc, size_t *len)
 		*len = 0;
 		return (NULL);
 	}
-}
-
-void *
-crypto_cursor_segbase(struct crypto_buffer_cursor *cc)
-{
-	size_t len;
-
-	return (crypto_cursor_segment(cc, &len));
-}
-
-size_t
-crypto_cursor_seglen(struct crypto_buffer_cursor *cc)
-{
-	size_t len;
-
-	crypto_cursor_segment(cc, &len);
-	return (len);
 }
 
 void

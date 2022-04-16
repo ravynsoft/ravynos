@@ -1,7 +1,7 @@
 /*
- * SPDX-License-Identifier: BSD-4-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
  *
- * Copyright (c) 1995 Wolfram Schneider <wosch@FreeBSD.org>. Berlin.
+ * Copyright (c) 1995-2022 Wolfram Schneider <wosch@FreeBSD.org>
  * Copyright (c) 1989, 1993
  *	The Regents of the University of California.  All rights reserved.
  *
@@ -16,11 +16,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors
+ * 3. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
@@ -39,19 +35,19 @@
  * $FreeBSD$
  */
 
-
+#include <sys/param.h>
 #include <stdlib.h>
 #include <string.h>
 #include <err.h>
-#include <sys/param.h>
 #include <arpa/inet.h>
 #include <stdio.h>
+#include <sys/stat.h>
 
 #include "locate.h"
+#include "pathnames.h"
 
 char 	**colon(char **, char*, char*);
 char 	*patprep(char *);
-void print_matches(u_int);
 u_char 	*tolower_word(u_char *);
 int 	getwm(caddr_t);
 int 	getwf(FILE *);
@@ -68,7 +64,7 @@ check_bigram_char(ch)
 	/* legal bigram: 0, ASCII_MIN ... ASCII_MAX */
 	if (ch == 0 ||
 	    (ch >= ASCII_MIN && ch <= ASCII_MAX))
-		return(ch);
+		return (ch);
 
 	errx(1,
 		"locate database header corrupt, bigram char outside 0, %d-%d: %d",  
@@ -100,7 +96,7 @@ colon(char **dbv, char *path, char *dot)
 	/* empty string */
 	if (*path == '\0') {
 		warnx("empty database name, ignored");
-		return(dbv);
+		return (dbv);
 	}
 
 	/* length of string vector */
@@ -135,14 +131,6 @@ colon(char **dbv, char *path, char *dot)
 	return (dbv);
 }
 
-void 
-print_matches(counter)
-	u_int counter;
-{
-	(void)printf("%d\n", counter);
-}
-
-
 /*
  * extract last glob-free subpattern in name for fast pre-match; prepend
  * '\0' for backwards match; return end of new pattern
@@ -153,7 +141,7 @@ char *
 patprep(name)
 	char *name;
 {
-	register char *endmark, *p, *subp;
+	char *endmark, *p, *subp;
 
 	subp = globfree;
 	*subp++ = '\0';   /* set first element to '\0' */
@@ -199,7 +187,7 @@ patprep(name)
 			*subp++ = *p++;
 	}
 	*subp = '\0';
-	return(--subp);
+	return (--subp);
 }
 
 /* tolower word */
@@ -207,12 +195,12 @@ u_char *
 tolower_word(word)
 	u_char *word;
 {
-	register u_char *p;
+	u_char *p;
 
 	for(p = word; *p != '\0'; p++)
 		*p = TOLOWER(*p);
 
-	return(word);
+	return (word);
 }
 
 
@@ -234,21 +222,25 @@ getwm(p)
 		char buf[INTSIZE];
 		int i;
 	} u;
-	register int i, hi;
+	int i, hi;
+
+	/* the integer is stored by an offset of 14 (!!!) */
+        int i_max = LOCATE_PATH_MAX + OFFSET;
+        int i_min = -(LOCATE_PATH_MAX - OFFSET);
 
 	for (i = 0; i < (int)INTSIZE; i++)
 		u.buf[i] = *p++;
 
 	i = u.i;
 
-	if (i > MAXPATHLEN || i < -(MAXPATHLEN)) {
+	if (i >= i_max || i <= i_min) {
 		hi = ntohl(i);
-		if (hi > MAXPATHLEN || hi < -(MAXPATHLEN))
-			errx(1, "integer out of +-MAXPATHLEN (%d): %u",
-			    MAXPATHLEN, abs(i) < abs(hi) ? i : hi);
-		return(hi);
+		if (hi >= i_max || hi <= i_min)
+			errx(1, "integer out of range: %d < %d < %d",
+			    i_min, abs(i) < abs(hi) ? i : hi, i_max);
+		return (hi);
 	}
-	return(i);
+	return (i);
 }
 
 /*
@@ -263,16 +255,50 @@ int
 getwf(fp)
 	FILE *fp;
 {
-	register int word, hword;
+	int word, hword;
+        int i_max = LOCATE_PATH_MAX + OFFSET;
+        int i_min = -(LOCATE_PATH_MAX - OFFSET);
 
 	word = getw(fp);
 
-	if (word > MAXPATHLEN || word < -(MAXPATHLEN)) {
+	if (word >= i_max || word <= i_min) {
 		hword = ntohl(word);
-		if (hword > MAXPATHLEN || hword < -(MAXPATHLEN))
-			errx(1, "integer out of +-MAXPATHLEN (%d): %u",
-			    MAXPATHLEN, abs(word) < abs(hword) ? word : hword);
-		return(hword);
+		if (hword >= i_max || hword <= i_min)
+			errx(1, "integer out of range: %d < %d < %d",
+			    i_min, abs(word) < abs(hword) ? word : hword, i_max);
+		return (hword);
 	}
-	return(word);
+	return (word);
+}
+
+void
+rebuild_message(char *db)
+{
+	/* only for the default locate database */
+	if (strcmp(_PATH_FCODES, db) == 0) {
+		fprintf(stderr, "\nTo create a new database, please run the following command as root:\n\n");
+		fprintf(stderr, "  /etc/periodic/weekly/310.locate\n\n");
+	}
+}
+
+int
+check_size(char *db) 
+{
+        struct stat sb;
+        off_t len;
+
+	if (stat(db, &sb) == -1) {
+		warnx("the locate database '%s' does not exist.", db);
+		rebuild_message(db);
+		return (0);
+	}
+	len = sb.st_size;
+
+	if (len < (2 * NBG)) {
+		warnx("the locate database '%s' is smaller than %d bytes large.", db, (2 * NBG));
+		rebuild_message(db);
+		return (0);
+	}
+
+	return (1);
 }

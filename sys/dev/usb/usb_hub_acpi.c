@@ -526,9 +526,9 @@ acpi_uhub_read_ivar(device_t dev, device_t child, int idx, uintptr_t *res)
 	struct acpi_uhub_softc *sc = device_get_softc(dev);
 	ACPI_HANDLE ah;
 
-	mtx_lock(&Giant);
+	bus_topo_lock();
 	uhub_find_iface_index(sc->usc.sc_udev->hub, child, &hres);
-	mtx_unlock(&Giant);
+	bus_topo_unlock();
 
 	if ((idx == ACPI_IVAR_HANDLE) &&
 	    (hres.portno > 0) &&
@@ -541,26 +541,34 @@ acpi_uhub_read_ivar(device_t dev, device_t child, int idx, uintptr_t *res)
 }
 
 static int
-acpi_uhub_child_location_string(device_t parent, device_t child,
-    char *buf, size_t buflen)
+acpi_uhub_child_location(device_t parent, device_t child, struct sbuf *sb)
 {
 	ACPI_HANDLE ah;
 
-	uhub_child_location_string(parent, child, buf, buflen);
+	uhub_child_location(parent, child, sb);
 
 	ah = acpi_get_handle(child);
-	if (ah != NULL) {
-		strlcat(buf, " handle=", buflen);
-		strlcat(buf, acpi_name(ah), buflen);
-	}
+	if (ah != NULL)
+		sbuf_printf(sb, " handle=%s", acpi_name(ah));
 	return (0);
+}
+
+static int
+acpi_uhub_get_device_path(device_t bus, device_t child, const char *locator, struct sbuf *sb)
+{
+	if (strcmp(locator, BUS_LOCATOR_ACPI) == 0)
+		return (acpi_get_acpi_device_path(bus, child, locator, sb));
+
+	/* Otherwise call the parent class' method. */
+	return (uhub_get_device_path(bus, child, locator, sb));
 }
 
 static device_method_t acpi_uhub_methods[] = {
 	DEVMETHOD(device_probe, acpi_uhub_probe),
 	DEVMETHOD(device_attach, acpi_uhub_attach),
 	DEVMETHOD(device_detach, acpi_uhub_detach),
-	DEVMETHOD(bus_child_location_str, acpi_uhub_child_location_string),
+	DEVMETHOD(bus_child_location, acpi_uhub_child_location),
+	DEVMETHOD(bus_get_device_path, acpi_uhub_get_device_path),
 	DEVMETHOD(bus_read_ivar, acpi_uhub_read_ivar),
 	DEVMETHOD_END
 
@@ -571,7 +579,8 @@ static device_method_t acpi_uhub_root_methods[] = {
 	DEVMETHOD(device_attach, acpi_uhub_root_attach),
 	DEVMETHOD(device_detach, acpi_uhub_detach),
 	DEVMETHOD(bus_read_ivar, acpi_uhub_read_ivar),
-	DEVMETHOD(bus_child_location_str, acpi_uhub_child_location_string),
+	DEVMETHOD(bus_child_location, acpi_uhub_child_location),
+	DEVMETHOD(bus_get_device_path, acpi_uhub_get_device_path),
 	DEVMETHOD_END
 };
 

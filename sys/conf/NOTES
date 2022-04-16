@@ -151,7 +151,7 @@ options 	BOOTHOWTO=RB_MULTIPLE
 # Default boot tag; may use 'kern.boot_tag' loader tunable to override.  The
 # current boot's tag is also exposed via the 'kern.boot_tag' sysctl.
 options 	BOOT_TAG=\"\"
-# Maximum boot tag size the kernel's static buffer should accomodate.  Maximum
+# Maximum boot tag size the kernel's static buffer should accommodate.  Maximum
 # size for both BOOT_TAG and the assocated tunable.
 options 	BOOT_TAG_SZ=32
 
@@ -363,6 +363,9 @@ options 	COMPAT_FREEBSD11
 
 # Enable FreeBSD12 compatibility syscalls
 options 	COMPAT_FREEBSD12
+
+# Enable FreeBSD13 compatibility syscalls
+options 	COMPAT_FREEBSD13
 
 # Enable Linux Kernel Programming Interface
 options 	COMPAT_LINUXKPI
@@ -645,7 +648,26 @@ options 	HWPMC_HOOKS		# Other necessary kernel hooks
 #
 options 	INET			#Internet communications protocols
 options 	INET6			#IPv6 communications protocols
-
+#
+# Note if you include INET/INET6 or both options
+# You *must* define at least one of the congestion control
+# options or the compile will fail. Generic defines
+# options CC_NEWRENO. You also will need to specify
+# a default or the compile of your kernel will fail
+# as well. The string in default is the name of the
+# cc module as it would appear in the sysctl for
+# setting the default. Generic defines newreno
+# as shown below.
+#
+options 	CC_CDG
+options 	CC_CHD
+options 	CC_CUBIC
+options 	CC_DCTCP
+options 	CC_HD
+options 	CC_HTCP
+options 	CC_NEWRENO
+options 	CC_VEGAS
+options		CC_DEFAULT=\"newreno\"
 options		RATELIMIT		# TX rate limiting support
 
 options 	ROUTETABLES=2		# allocated fibs up to 65536. default is 1.
@@ -809,7 +831,6 @@ options 	NETGRAPH_PRED1
 options 	NETGRAPH_RFC1490
 options 	NETGRAPH_SOCKET
 options 	NETGRAPH_SPLIT
-options 	NETGRAPH_SPPP
 options 	NETGRAPH_TAG
 options 	NETGRAPH_TCPMSS
 options 	NETGRAPH_TEE
@@ -824,8 +845,6 @@ options 	NGATM_SSCOP
 options 	NGATM_SSCFU
 options 	NGATM_UNI
 options 	NGATM_CCATM
-
-device		mn	# Munich32x/Falc54 Nx64kbit/sec cards.
 
 # Network stack virtualization.
 options	VIMAGE
@@ -875,10 +894,6 @@ device		wlan_xauth
 #  The 'wlan_amrr' device provides AMRR transmit rate control algorithm
 device		wlan_acl
 device		wlan_amrr
-
-#  The `sppp' device serves a similar role for certain types
-#  of synchronous PPP links (like `cx', `ar').
-device		sppp
 
 #  The `bpf' device enables the Berkeley Packet Filter.  Be
 #  aware of the legal and administrative consequences of enabling this
@@ -1050,8 +1065,7 @@ options 	TCP_SIGNATURE		#include support for RFC 2385
 
 # DUMMYNET enables the "dummynet" bandwidth limiter.  You need IPFIREWALL
 # as well.  See dummynet(4) and ipfw(8) for more info.  When you run
-# DUMMYNET it is advisable to also have at least "options HZ=1000" to achieve
-# a smooth scheduling of the traffic.
+# DUMMYNET, HZ/kern.hz should be at least 1000 for adequate response.
 options 	DUMMYNET
 
 # The DEBUGNET option enables a basic debug/panic-time networking API.  It
@@ -1244,14 +1258,10 @@ options 	CAPABILITY_MODE	# sandboxes with no global namespace access
 #####################################################################
 # CLOCK OPTIONS
 
-# The granularity of operation is controlled by the kernel option HZ whose
-# default value (1000 on most architectures) means a granularity of 1ms
-# (1s/HZ).  Historically, the default was 100, but finer granularity is
-# required for DUMMYNET and other systems on modern hardware.  There are
-# reasonable arguments that HZ should, in fact, be 100 still; consider,
-# that reducing the granularity too much might cause excessive overhead in
-# clock interrupt processing, potentially causing ticks to be missed and thus
-# actually reducing the accuracy of operation.
+# The granularity of operation is controlled by the kernel option HZ (default
+# frequency of 1000 Hz or a period 1ms between calls). Virtual machine guests
+# use a value of 100. Lower values may lower overhead at the expense of accuracy
+# of scheduling, though the adaptive tick code reduces that overhead.
 
 options 	HZ=100
 
@@ -1333,8 +1343,8 @@ envvar		hint.sa.1.target="6"
 # The pt driver drives SCSI Processor devices.
 #
 # The sg driver provides a passthrough API that is compatible with the
-# Linux SG driver.  It will work in conjunction with the COMPAT_LINUX
-# option to run linux SG apps.  It can also stand on its own and provide
+# Linux SG driver.  It will work in conjunction with the Linuxulator
+# to run linux SG apps.  It can also stand on its own and provide
 # source level API compatibility for porting apps to FreeBSD.
 #
 # Target Mode support is provided here but also requires that a SIM
@@ -1468,7 +1478,7 @@ options 	PCI_IOV			# PCI SR-IOV support
 # HARDWARE DEVICE CONFIGURATION
 
 # For ISA the required hints are listed.
-# PCI, CardBus, SD/MMC and pccard are self identifying buses, so
+# PCI, CardBus, and SD/MMC are self identifying buses, so
 # no hints are needed.
 
 #
@@ -1515,9 +1525,6 @@ options		TERMINAL_KERN_ATTR=(FG_LIGHTRED|BG_BLACK)
 # ahc: Adaptec 274x/284x/2910/293x/294x/394x/3950x/3960x/398X/4944/
 #      19160x/29160x, aic7770/aic78xx
 # ahd: Adaptec 29320/39320 Controllers.
-# esp: Emulex ESP, NCR 53C9x and QLogic FAS families based controllers
-#      including the AMD Am53C974 (found on devices such as the Tekram
-#      DC-390(T)) and the Sun ESP and FAS families of controllers
 # isp: Qlogic ISP 1020, 1040 and 1040B PCI SCSI host adapters,
 #      ISP 1240 Dual Ultra SCSI, ISP 1080 and 1280 (Dual) Ultra2,
 #      ISP 12160 Ultra3 SCSI,
@@ -1537,8 +1544,6 @@ options		TERMINAL_KERN_ATTR=(FG_LIGHTRED|BG_BLACK)
 device		aacraid
 device		ahc
 device		ahd
-device		esp
-device		iscsi_initiator
 device		isp
 envvar		hint.isp.0.disable="1"
 envvar		hint.isp.0.role="3"
@@ -1630,30 +1635,12 @@ options 	ISP_DEFAULT_ROLES=0
 device		ciss
 
 #
-# Intel Integrated RAID controllers.
-# This driver was developed and is maintained by Intel.  Contacts
-# at Intel for this driver are
-# "Kannanthanam, Boji T" <boji.t.kannanthanam@intel.com> and
-# "Leubner, Achim" <achim.leubner@intel.com>.
-#
-device		iir
-
-#
-# Mylex AcceleRAID and eXtremeRAID controllers with v6 and later
-# firmware.  These controllers have a SCSI-like interface, and require
-# the CAM infrastructure.
-#
-device		mly
-
-#
 # Compaq Smart RAID, Mylex DAC960 and AMI MegaRAID controllers.  Only
 # one entry is needed; the code will find and configure all supported
 # controllers.
 #
 device		ida		# Compaq Smart RAID
 device		mlx		# Mylex DAC960
-device		amr		# AMI MegaRAID
-device		amrp		# SCSI Passthrough interface (optional, CAM req.)
 device		mfi		# LSI MegaRAID SAS
 device		mfip		# LSI MegaRAID SAS passthrough, requires CAM
 options 	MFI_DEBUG
@@ -1690,7 +1677,6 @@ device		ata
 
 # Modular ATA
 #device		atacore		# Core ATA functionality
-#device		atapccard	# CARDBUS support
 #device		ataisa		# ISA bus support
 #device		atapci		# PCI bus support; only generic chipset support
 
@@ -1788,7 +1774,7 @@ device		puc
 # namely those which use MII-compliant transceivers or implement
 # transceiver control interfaces that operate like an MII.  Adding
 # "device miibus" to the kernel config pulls in support for the generic
-# miibus API, the common support for for bit-bang'ing the MII and all
+# miibus API, the common support for bit-bang'ing the MII and all
 # of the PHY drivers, including a generic one for PHYs that aren't
 # specifically handled by an individual driver.  Support for specific
 # PHYs may be built by adding "device mii", "device mii_bitbang" if
@@ -1826,8 +1812,6 @@ device  	tdkphy		# TDK 89Q2120
 device  	truephy		# LSI TruePHY
 device		xmphy		# XaQti XMAC II
 
-# an:   Aironet 4500/4800 802.11 wireless adapters. Supports the PCMCIA,
-#       PCI and ISA varieties.
 # ae:   Support for gigabit ethernet adapters based on the Attansic/Atheros
 #       L2 PCI-Express FastEthernet controllers.
 # age:  Support for gigabit ethernet adapters based on the Attansic/Atheros
@@ -1933,10 +1917,6 @@ device		xmphy		# XaQti XMAC II
 #       in Dell Latitude laptop docking stations.
 #       Also supported: 3Com 3c980(C)-TX, 3Com 3cSOHO100-TX, 3Com 3c450-TX
 
-# Order for ISA devices is important here
-
-device		an
-
 # PCI Ethernet NICs that use the common MII bus controller code.
 device		ae		# Attansic/Atheros L2 FastEthernet
 device		age		# Attansic/Atheros L1 Gigabit Ethernet
@@ -1953,6 +1933,7 @@ envvar		hint.fxp.0.prefer_iomap="0"
 device		gem		# Apple GMAC/Sun ERI/Sun GEM
 device		jme		# JMicron JMC250 Gigabit/JMC260 Fast Ethernet
 device		lge		# Level 1 LXT1001 gigabit Ethernet
+device		lio		# Support for Cavium 23XX Ethernet adapters
 device		mlxfw		# Mellanox firmware update module
 device		mlx5		# Shared code module between IB and Ethernet
 device		mlx5en		# Mellanox ConnectX-4 and ConnectX-4 LX
@@ -2063,7 +2044,6 @@ device		sound
 # snd_cs4281:		Crystal Semiconductor CS4281 PCI.
 # snd_csa:		Crystal Semiconductor CS461x/428x PCI. (except
 #			4281)
-# snd_ds1:		Yamaha DS-1 PCI.
 # snd_emu10k1:		Creative EMU10K1 PCI and EMU10K2 (Audigy) PCI.
 # snd_emu10kx:		Creative SoundBlaster Live! and Audigy
 # snd_envy24:		VIA Envy24 and compatible, needs snd_spicds.
@@ -2079,7 +2059,6 @@ device		sound
 # snd_ich:		Intel ICH AC'97 and some more audio controllers
 #			embedded in a chipset, for example nVidia
 #			nForce controllers.
-# snd_maestro:		ESS Technology Maestro-1/2x PCI.
 # snd_maestro3:		ESS Technology Maestro-3/Allegro PCI.
 # snd_mss:		Microsoft Sound System ISA PnP/non-PnP.
 # snd_neomagic:		Neomagic 256 AV/ZX PCI.
@@ -2104,7 +2083,6 @@ device		snd_atiixp
 device		snd_cmi
 device		snd_cs4281
 device		snd_csa
-device		snd_ds1
 device		snd_emu10k1
 device		snd_emu10kx
 device		snd_envy24
@@ -2116,7 +2094,6 @@ device		snd_gusc
 device		snd_hda
 device		snd_hdspe
 device		snd_ich
-device		snd_maestro
 device		snd_maestro3
 device		snd_mss
 device		snd_neomagic
@@ -2184,13 +2161,11 @@ options		SND_PCM_64
 options		SND_OLDSTEREO
 
 #
-# PC Card/PCMCIA and Cardbus
+# Cardbus
 #
-# cbb: pci/cardbus bridge implementing YENTA interface
-# pccard: pccard slots
-# cardbus: cardbus slots
+# cbb: pci/CardBus bridge implementing YENTA interface
+# cardbus: CardBus slots
 device		cbb
-device		pccard
 device		cardbus
 
 #
@@ -2281,6 +2256,7 @@ device		ds1307		# Dallas DS1307 RTC and compatible
 device		ds13rtc		# All Dallas/Maxim ds13xx chips
 device		ds1672		# Dallas DS1672 RTC
 device		ds3231		# Dallas DS3231 RTC + temperature
+device		fan53555	# Fairchild Semi FAN53555/SYR82x Regulator
 device		icee		# AT24Cxxx and compatible EEPROMs
 device		isl12xx		# Intersil ISL12xx RTC
 device		lm75		# LM75 compatible temperature sensor
@@ -2288,7 +2264,6 @@ device		nxprtc		# NXP RTCs: PCA/PFC212x PCA/PCF85xx
 device		rtc8583		# Epson RTC-8583
 device		s35390a		# Seiko Instruments S-35390A RTC
 device		sy8106a		# Silergy Corp. SY8106A buck regulator
-device		syr827		# Silergy Corp. DC/DC regulator
 
 # Parallel-Port Bus
 #

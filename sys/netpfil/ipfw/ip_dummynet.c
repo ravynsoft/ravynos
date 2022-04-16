@@ -110,6 +110,18 @@ dummynet(void *arg)
 }
 
 void
+dummynet_sched_lock(void)
+{
+	mtx_lock(&sched_mtx);
+}
+
+void
+dummynet_sched_unlock(void)
+{
+	mtx_unlock(&sched_mtx);
+}
+
+void
 dn_reschedule(void)
 {
 
@@ -2737,7 +2749,6 @@ static moduledata_t dummynet_mod = {
 #define	DN_SI_SUB	SI_SUB_PROTO_FIREWALL
 #define	DN_MODEV_ORD	(SI_ORDER_ANY - 128) /* after ipfw */
 DECLARE_MODULE(dummynet, dummynet_mod, DN_SI_SUB, DN_MODEV_ORD);
-MODULE_DEPEND(dummynet, ipfw, 3, 3, 3);
 MODULE_VERSION(dummynet, 3);
 
 /*

@@ -34,7 +34,7 @@ _MACOS_SDK_DIR=${_XCODE_ROOT}/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sd
 .endif
 HOST_INCLUDE_ROOT=${_MACOS_SDK_DIR}/usr/include
 .if !exists(${HOST_INCLUDE_ROOT}/stdio.h)
-.error "You must install the macOS SDK (try xcode-select --install)"
+.error You must install the macOS SDK (try xcode-select --install)
 .endif
 .else
 HOST_INCLUDE_ROOT=/usr/include
@@ -88,6 +88,11 @@ INCS+=		strings.h
 SRCS+=		explicit_bzero.c
 .endif
 
+_WITH_FSPACECTL!= grep -c fspacectl ${HOST_INCLUDE_ROOT}/fcntl.h || true
+.if ${_WITH_FSPACECTL} == 0
+INCS+=		fcntl.h
+SRCS+=		fspacectl.c
+.endif
 
 .if exists(${HOST_INCLUDE_ROOT}/capsicum_helpers.h)
 _WITH_CAPH_ENTER!= grep -c caph_enter ${HOST_INCLUDE_ROOT}/capsicum_helpers.h || true
@@ -120,6 +125,11 @@ _host_arch=${MACHINE}
 .if ${_host_arch} == "x86_64"
 # bmake on Linux/mac often prints that instead of amd64
 _host_arch=amd64
+.elif ${_host_arch} == "aarch64"
+# Linux calls arm64, aarch64, across the board
+_host_arch=arm64
+.elif ${_host_arch:Mppc*}
+_host_arch=powerpc
 .endif
 .if ${_host_arch} == "unknown"
 # HACK: If MACHINE is unknown, assume we are building on x86
@@ -253,6 +263,7 @@ SYSINCS+=	${SRCTOP}/sys/sys/fnv_hash.h
 # opensolaris compatibility
 INCS+=	${SRCTOP}/include/elf.h
 SYSINCS+=	${SRCTOP}/sys/sys/elf.h
+SYSINCS+=	${SRCTOP}/sys/sys/ctf.h
 
 # We want to run the build with only ${WORLDTMP} in $PATH to ensure we don't
 # accidentally run tools that are incompatible but happen to be in $PATH.
@@ -266,8 +277,8 @@ SYSINCS+=	${SRCTOP}/sys/sys/elf.h
 # Linux/MacOS since we only use flags that are supported by all of them.
 _host_tools_to_symlink=	basename bzip2 bunzip2 chmod chown cmp comm cp date dd \
 	dirname echo env false find fmt gzip gunzip head hostname id ln ls \
-	mkdir mv nice patch rm sh sleep stat tee touch tr true uname uniq unxz \
-	wc which xz
+	mkdir mv nice patch rm sh sleep stat tee time touch tr true uname uniq \
+	unxz wc which xz
 
 # We also need a symlink to the absolute path to the make binary used for
 # the toplevel makefile. This is not necessarily the same as `which make`

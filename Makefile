@@ -1,7 +1,7 @@
 #
 # $FreeBSD$
 #
-# The user-driven targets are:
+# The common user-driven targets are (for a complete list, see build(7)):
 #
 # universe            - *Really* build *everything* (buildworld and
 #                       all kernels on all architectures).  Define
@@ -33,6 +33,9 @@
 # delete-old-dirs     - Delete obsolete directories.
 # delete-old-files    - Delete obsolete files.
 # delete-old-libs     - Delete obsolete libraries.
+# list-old-dirs       - Raw list of possibly obsolete directories.
+# list-old-files      - Raw list of possibly obsolete files.
+# list-old-libs       - Raw list of possibly obsolete libraries.
 # targets             - Print a list of supported TARGET/TARGET_ARCH pairs
 #                       for world and kernel targets.
 # toolchains          - Build a toolchain for all world and kernel targets.
@@ -145,8 +148,8 @@ __DO_KERNELS?=yes
 
 TGTS=	all all-man buildenv buildenvvars buildkernel buildworld \
 	check check-old check-old-dirs check-old-files check-old-libs \
-	checkdpadd checkworld clean cleandepend cleandir cleanworld \
-	cleanuniverse \
+	checkdpadd checkworld clean cleandepend cleandir cleankernel \
+	cleanworld cleanuniverse \
 	delete-old delete-old-dirs delete-old-files delete-old-libs \
 	depend distribute distributekernel distributekernel.debug \
 	distributeworld distrib-dirs distribution doxygen \
@@ -154,17 +157,19 @@ TGTS=	all all-man buildenv buildenvvars buildkernel buildworld \
 	installkernel.debug packagekernel packageworld \
 	reinstallkernel reinstallkernel.debug \
 	installworld kernel-toolchain libraries maninstall \
+	list-old-dirs list-old-files list-old-libs \
 	obj objlink showconfig tags toolchain \
 	makeman sysent \
 	_worldtmp _legacy _bootstrap-tools _cleanobj _obj \
 	_build-tools _build-metadata _cross-tools _includes _libraries \
-	build32 distribute32 install32 buildsoft distributesoft installsoft \
+	build32 distribute32 install32 \
 	builddtb xdev xdev-build xdev-install \
 	xdev-links native-xtools native-xtools-install stageworld stagekernel \
 	stage-packages stage-packages-kernel stage-packages-world \
 	create-packages-world create-packages-kernel create-packages \
 	update-packages packages installconfig real-packages real-update-packages \
-	sign-packages package-pkg print-dir test-system-compiler test-system-linker
+	sign-packages package-pkg print-dir test-system-compiler test-system-linker \
+	test-includes
 
 # These targets require a TARGET and TARGET_ARCH be defined.
 XTGTS=	native-xtools native-xtools-install xdev xdev-build xdev-install \
@@ -186,10 +191,10 @@ TGTS+=	${BITGTS}
 # the interactive tty prompt.  The safest route is to just whitelist
 # the ones that benefit from it.
 META_TGT_WHITELIST+= \
-	_* build32 buildfiles buildincludes buildkernel buildsoft \
+	_* build32 buildfiles buildincludes buildkernel \
 	buildworld everything kernel-toolchain kernel-toolchains kernel \
-	kernels libraries native-xtools showconfig test-system-compiler \
-	test-system-linker tinderbox toolchain \
+	kernels libraries native-xtools showconfig test-includes \
+	test-system-compiler test-system-linker tinderbox toolchain \
 	toolchains universe universe-toolchain world worlds xdev xdev-build
 
 .ORDER: buildworld installworld
@@ -507,17 +512,14 @@ worlds: .PHONY
 # Don't build rarely used, semi-supported architectures unless requested.
 #
 .if defined(EXTRA_TARGETS)
-EXTRA_ARCHES_mips=	mipsel mipshf mipselhf mips64el mips64hf mips64elhf
-EXTRA_ARCHES_mips+=	mipsn32
 # powerpcspe excluded from main list until clang fixed
-EXTRA_ARCHES_powerpc=	powerpcspe powerpc64le
+EXTRA_ARCHES_powerpc=	powerpcspe
 .endif
-TARGETS?=amd64 arm arm64 i386 mips powerpc riscv
+TARGETS?=amd64 arm arm64 i386 powerpc riscv
 _UNIVERSE_TARGETS=	${TARGETS}
 TARGET_ARCHES_arm?=	armv6 armv7
 TARGET_ARCHES_arm64?=	aarch64
-TARGET_ARCHES_mips?=	mips mips64 ${EXTRA_ARCHES_mips}
-TARGET_ARCHES_powerpc?=	powerpc powerpc64 ${EXTRA_ARCHES_powerpc}
+TARGET_ARCHES_powerpc?=	powerpc powerpc64 powerpc64le ${EXTRA_ARCHES_powerpc}
 TARGET_ARCHES_riscv?=	riscv64 riscv64sf
 .for target in ${TARGETS}
 TARGET_ARCHES_${target}?= ${target}
@@ -527,7 +529,6 @@ TARGET_ARCHES_${target}?= ${target}
 TOOLCHAINS_amd64=	amd64-gcc6
 TOOLCHAINS_arm64=	aarch64-gcc6
 TOOLCHAINS_i386=	i386-gcc6
-TOOLCHAINS_mips=	mips-gcc6
 TOOLCHAINS_powerpc=	powerpc-gcc6 powerpc64-gcc6
 TOOLCHAIN_powerpc64=	powerpc64-gcc6
 .endif
@@ -728,7 +729,7 @@ TARGET_ARCH_${kernel}!=	cd ${KERNSRCDIR}/${TARGET}/conf && \
 	config -m ${KERNSRCDIR}/${TARGET}/conf/${kernel} 2> /dev/null | \
 	grep -v WARNING: | cut -f 2
 .if empty(TARGET_ARCH_${kernel})
-.error "Target architecture for ${TARGET}/conf/${kernel} unknown.  config(8) likely too old."
+.error Target architecture for ${TARGET}/conf/${kernel} unknown.  config(8) likely too old.
 .endif
 universe_kernconfs_${TARGET_ARCH_${kernel}}: universe_kernconf_${TARGET}_${kernel}
 universe_kernconf_${TARGET}_${kernel}: .MAKE

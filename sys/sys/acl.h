@@ -30,7 +30,7 @@
  *
  * $FreeBSD$
  */
-/* 
+/*
  * Developed by the TrustedBSD Project.
  * Support for POSIX.1e and NFSv4 access control lists.
  */
@@ -363,6 +363,7 @@ int	acl_add_perm(acl_permset_t _permset_d, acl_perm_t _perm);
 int	acl_calc_mask(acl_t *_acl_p);
 int	acl_clear_flags_np(acl_flagset_t _flagset_d);
 int	acl_clear_perms(acl_permset_t _permset_d);
+int	acl_cmp_np(acl_t _acl1, acl_t _acl2);
 int	acl_copy_entry(acl_entry_t _dest_d, acl_entry_t _src_d);
 ssize_t	acl_copy_ext(void *_buf_p, acl_t _acl, ssize_t _size);
 acl_t	acl_copy_int(const void *_buf_p);
@@ -378,7 +379,12 @@ int	acl_delete_def_link_np(const char *_path_p);
 int	acl_delete_flag_np(acl_flagset_t _flagset_d, acl_flag_t _flag);
 int	acl_delete_perm(acl_permset_t _permset_d, acl_perm_t _perm);
 acl_t	acl_dup(acl_t _acl);
+int	acl_equiv_mode_np(acl_t _acl, mode_t *_mode_p);
+int	acl_extended_file_np(const char* _path_p);
+int	acl_extended_file_nofollow_np(const char* _path_p);
+int	acl_extended_link_np(const char* _path_p);
 int	acl_free(void *_obj_p);
+acl_t	acl_from_mode_np(const mode_t _mode);
 acl_t	acl_from_text(const char *_buf_p);
 int	acl_get_brand_np(acl_t _acl, int *_brand_p);
 int	acl_get_entry(acl_t _acl, int _entry_id, acl_entry_t *_entry_p);

@@ -2,7 +2,7 @@
 #
 # SPDX-License-Identifier: BSD-2-Clause-FreeBSD
 #
-# Copyright (c) September 1995 Wolfram Schneider <wosch@FreeBSD.org>. Berlin.
+# Copyright (c) September 1995-2022 Wolfram Schneider <wosch@FreeBSD.org>
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,19 +30,19 @@
 # 
 # usage: concatdb database1 ... databaseN > newdb
 #
-# Sequence of databases is important.
+# Please note: the sequence of databases is important.
 #
 # $FreeBSD$
+
+# stop on first error
+set -e
+set -o pipefail
 
 # The directory containing locate subprograms
 : ${LIBEXECDIR:=/usr/libexec}; export LIBEXECDIR
 
 PATH=$LIBEXECDIR:/bin:/usr/bin:$PATH; export PATH
-
-umask 077			# protect temp files
-
 : ${TMPDIR:=/var/tmp}; export TMPDIR;
-test -d "$TMPDIR" || TMPDIR=/var/tmp
 
 # utilities to built locate database
 : ${bigram:=locate.bigram}
@@ -50,23 +50,23 @@ test -d "$TMPDIR" || TMPDIR=/var/tmp
 : ${sort:=sort}
 : ${locate:=locate}
 
+if [ $# -lt 2 ]; then
+	echo 'usage: concatdb databases1 ... databaseN > newdb'
+	exit 1
+fi
 
-case $# in 
-        [01]) 	echo 'usage: concatdb databases1 ... databaseN > newdb'
-		exit 1
-		;;
-esac
-
-
-bigrams=`mktemp ${TMPDIR=/tmp}/_bigrams.XXXXXXXXXX` || exit 1
+bigrams=$(mktemp -t bigrams)
 trap 'rm -f $bigrams' 0 1 2 3 5 10 15
 
 for db 
 do
        $locate -d $db /
-done | $bigram | $sort -nr | awk 'NR <= 128 { printf $2 }' > $bigrams
+done | $bigram | $sort -nr | \
+  awk 'NR <= 128 && /^[ \t]*[1-9][0-9]*[ \t]+..$/ { printf("%s", substr($0, length($0)-1, 2)) }' > $bigrams
 
 for db
 do
 	$locate -d $db /
 done | $code $bigrams
+
+#EOF

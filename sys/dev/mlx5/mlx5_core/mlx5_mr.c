@@ -52,7 +52,7 @@ void mlx5_cleanup_mr_table(struct mlx5_core_dev *dev)
 }
 
 int mlx5_core_create_mkey_cb(struct mlx5_core_dev *dev,
-			     struct mlx5_core_mr *mkey,
+			     struct mlx5_core_mkey *mkey,
 			     struct mlx5_async_ctx *async_ctx, u32 *in,
 			     int inlen, u32 *out, int outlen,
 			     mlx5_async_cbk_t callback,
@@ -114,7 +114,7 @@ int mlx5_core_create_mkey_cb(struct mlx5_core_dev *dev,
 EXPORT_SYMBOL(mlx5_core_create_mkey_cb);
 
 int mlx5_core_create_mkey(struct mlx5_core_dev *dev,
-			  struct mlx5_core_mr *mkey,
+			  struct mlx5_core_mkey *mkey,
 			  u32 *in, int inlen)
 {
 	return mlx5_core_create_mkey_cb(dev, mkey, NULL, in, inlen,
@@ -122,12 +122,12 @@ int mlx5_core_create_mkey(struct mlx5_core_dev *dev,
 }
 EXPORT_SYMBOL(mlx5_core_create_mkey);
 
-int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mkey)
+int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mkey *mkey)
 {
 	struct mlx5_mr_table *table = &dev->priv.mr_table;
 	u32 out[MLX5_ST_SZ_DW(destroy_mkey_out)] = {0};
 	u32 in[MLX5_ST_SZ_DW(destroy_mkey_in)] = {0};
-	struct mlx5_core_mr *deleted_mr;
+	struct mlx5_core_mkey *deleted_mr;
 	unsigned long flags;
 
 	spin_lock_irqsave(&table->lock, flags);
@@ -145,7 +145,7 @@ int mlx5_core_destroy_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mkey)
 }
 EXPORT_SYMBOL(mlx5_core_destroy_mkey);
 
-int mlx5_core_query_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mkey,
+int mlx5_core_query_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mkey *mkey,
 			 u32 *out, int outlen)
 {
 	u32 in[MLX5_ST_SZ_DW(query_mkey_in)] = {0};
@@ -158,7 +158,7 @@ int mlx5_core_query_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *mkey,
 }
 EXPORT_SYMBOL(mlx5_core_query_mkey);
 
-int mlx5_core_dump_fill_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mr *_mkey,
+int mlx5_core_dump_fill_mkey(struct mlx5_core_dev *dev, struct mlx5_core_mkey *_mkey,
 			     u32 *mkey)
 {
 	u32 out[MLX5_ST_SZ_DW(query_special_contexts_out)] = {0};

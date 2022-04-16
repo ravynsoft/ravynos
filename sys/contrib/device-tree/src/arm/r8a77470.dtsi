@@ -187,7 +187,7 @@
 			resets = <&cpg 907>;
 		};
 
-		pfc: pin-controller@e6060000 {
+		pfc: pinctrl@e6060000 {
 			compatible = "renesas,pfc-r8a77470";
 			reg = <0 0xe6060000 0 0x118>;
 		};
@@ -205,7 +205,7 @@
 		apmu@e6151000 {
 			compatible = "renesas,r8a77470-apmu", "renesas,apmu";
 			reg = <0 0xe6151000 0 0x188>;
-			cpus = <&cpu0 &cpu1>;
+			cpus = <&cpu0>, <&cpu1>;
 		};
 
 		rst: reset-controller@e6160000 {

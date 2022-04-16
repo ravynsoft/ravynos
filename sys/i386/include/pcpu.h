@@ -31,10 +31,6 @@
 #ifndef _MACHINE_PCPU_H_
 #define	_MACHINE_PCPU_H_
 
-#ifndef _SYS_CDEFS_H_
-#error "sys/cdefs.h is a prerequisite for this file"
-#endif
-
 #include <machine/segments.h>
 #include <machine/tss.h>
 
@@ -98,8 +94,6 @@ _Static_assert(sizeof(struct monitorbuf) == 128, "2x cache line");
 
 #define MONITOR_STOPSTATE_RUNNING	0
 #define MONITOR_STOPSTATE_STOPPED	1
-
-#if defined(__GNUCLIKE_ASM) && defined(__GNUCLIKE___TYPEOF)
 
 /*
  * Evaluates to the byte offset of the per-cpu variable name.
@@ -170,29 +164,6 @@ _Static_assert(sizeof(struct monitorbuf) == 128, "2x cache line");
 } while (0)
 
 /*
- * Increments the value of the per-cpu counter name.  The implementation
- * must be atomic with respect to interrupts.
- */
-#define	__PCPU_INC(name) do {						\
-	CTASSERT(sizeof(__pcpu_type(name)) == 1 ||			\
-	    sizeof(__pcpu_type(name)) == 2 ||				\
-	    sizeof(__pcpu_type(name)) == 4);				\
-	if (sizeof(__pcpu_type(name)) == 1) {				\
-		__asm __volatile("incb %%fs:%0"				\
-		    : "=m" (*(__pcpu_type(name) *)(__pcpu_offset(name)))\
-		    : "m" (*(__pcpu_type(name) *)(__pcpu_offset(name))));\
-	} else if (sizeof(__pcpu_type(name)) == 2) {			\
-		__asm __volatile("incw %%fs:%0"				\
-		    : "=m" (*(__pcpu_type(name) *)(__pcpu_offset(name)))\
-		    : "m" (*(__pcpu_type(name) *)(__pcpu_offset(name))));\
-	} else if (sizeof(__pcpu_type(name)) == 4) {			\
-		__asm __volatile("incl %%fs:%0"				\
-		    : "=m" (*(__pcpu_type(name) *)(__pcpu_offset(name)))\
-		    : "m" (*(__pcpu_type(name) *)(__pcpu_offset(name))));\
-	}								\
-} while (0)
-
-/*
  * Sets the value of the per-cpu variable name to value val.
  */
 #define	__PCPU_SET(name, val) do {					\
@@ -224,17 +195,10 @@ _Static_assert(sizeof(struct monitorbuf) == 128, "2x cache line");
 
 #define	PCPU_GET(member)	__PCPU_GET(pc_ ## member)
 #define	PCPU_ADD(member, val)	__PCPU_ADD(pc_ ## member, val)
-#define	PCPU_INC(member)	__PCPU_INC(pc_ ## member)
 #define	PCPU_PTR(member)	__PCPU_PTR(pc_ ## member)
 #define	PCPU_SET(member, val)	__PCPU_SET(pc_ ## member, val)
 
 #define	IS_BSP()	(PCPU_GET(cpuid) == 0)
-
-#else /* defined(__GNUCLIKE_ASM) && defined(__GNUCLIKE___TYPEOF) */
-
-#error "this file needs to be ported to your compiler"
-
-#endif /* __GNUCLIKE_ASM etc. */
 
 #endif /* _KERNEL */
 

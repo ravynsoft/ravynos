@@ -141,7 +141,7 @@ static int sa_modify_attrs(sa_handle_t *hdl, sa_attr_type_t newattr,
     sa_data_op_t action, sa_data_locator_t *locator, void *datastart,
     uint16_t buflen, dmu_tx_t *tx);
 
-arc_byteswap_func_t sa_bswap_table[] = {
+static const arc_byteswap_func_t sa_bswap_table[] = {
 	byteswap_uint64_array,
 	byteswap_uint32_array,
 	byteswap_uint16_array,
@@ -160,7 +160,7 @@ do {								\
 			*(uint64_t *)((uintptr_t)t + 8) =	\
 			    *(uint64_t *)((uintptr_t)s + 8);	\
 		} else {					\
-			bcopy(s, t, l);				\
+			memcpy(t, s, l);				\
 		}						\
 	} else {						\
 		sa_copy_data(f, s, t, l);			\
@@ -178,7 +178,7 @@ do {								\
  * won't have the registry.  Only objsets of type ZFS_TYPE_FILESYSTEM will
  * use this static table.
  */
-sa_attr_reg_t sa_legacy_attrs[] = {
+static const sa_attr_reg_t sa_legacy_attrs[] = {
 	{"ZPL_ATIME", sizeof (uint64_t) * 2, SA_UINT64_ARRAY, 0},
 	{"ZPL_MTIME", sizeof (uint64_t) * 2, SA_UINT64_ARRAY, 1},
 	{"ZPL_CTIME", sizeof (uint64_t) * 2, SA_UINT64_ARRAY, 2},
@@ -200,16 +200,16 @@ sa_attr_reg_t sa_legacy_attrs[] = {
 /*
  * This is only used for objects of type DMU_OT_ZNODE
  */
-sa_attr_type_t sa_legacy_zpl_layout[] = {
+static const sa_attr_type_t sa_legacy_zpl_layout[] = {
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15
 };
 
 /*
  * Special dummy layout used for buffers with no attributes.
  */
-sa_attr_type_t sa_dummy_zpl_layout[] = { 0 };
+static const sa_attr_type_t sa_dummy_zpl_layout[] = { 0 };
 
-static int sa_legacy_attr_count = ARRAY_SIZE(sa_legacy_attrs);
+static const size_t sa_legacy_attr_count = ARRAY_SIZE(sa_legacy_attrs);
 static kmem_cache_t *sa_cache = NULL;
 
 static int
@@ -285,12 +285,11 @@ sa_layout_equal(sa_lot_t *tbf, sa_attr_type_t *attrs, int count)
 #define	SA_ATTR_HASH(attr) (zfs_crc64_table[(-1ULL ^ attr) & 0xFF])
 
 static uint64_t
-sa_layout_info_hash(sa_attr_type_t *attrs, int attr_count)
+sa_layout_info_hash(const sa_attr_type_t *attrs, int attr_count)
 {
-	int i;
 	uint64_t crc = -1ULL;
 
-	for (i = 0; i != attr_count; i++)
+	for (int i = 0; i != attr_count; i++)
 		crc ^= SA_ATTR_HASH(attrs[i]);
 
 	return (crc);
@@ -402,7 +401,7 @@ sa_attr_op(sa_handle_t *hdl, sa_bulk_attr_t *bulk, int count,
 }
 
 static sa_lot_t *
-sa_add_layout_entry(objset_t *os, sa_attr_type_t *attrs, int attr_count,
+sa_add_layout_entry(objset_t *os, const sa_attr_type_t *attrs, int attr_count,
     uint64_t lot_num, uint64_t hash, boolean_t zapadd, dmu_tx_t *tx)
 {
 	sa_os_t *sa = os->os_sa;
@@ -415,7 +414,7 @@ sa_add_layout_entry(objset_t *os, sa_attr_type_t *attrs, int attr_count,
 	tb->lot_attr_count = attr_count;
 	tb->lot_attrs = kmem_alloc(sizeof (sa_attr_type_t) * attr_count,
 	    KM_SLEEP);
-	bcopy(attrs, tb->lot_attrs, sizeof (sa_attr_type_t) * attr_count);
+	memcpy(tb->lot_attrs, attrs, sizeof (sa_attr_type_t) * attr_count);
 	tb->lot_num = lot_num;
 	tb->lot_hash = hash;
 	tb->lot_instance = 0;
@@ -512,7 +511,7 @@ static void
 sa_copy_data(sa_data_locator_t *func, void *datastart, void *target, int buflen)
 {
 	if (func == NULL) {
-		bcopy(datastart, target, buflen);
+		memcpy(target, datastart, buflen);
 	} else {
 		boolean_t start;
 		int bytes;
@@ -524,7 +523,7 @@ sa_copy_data(sa_data_locator_t *func, void *datastart, void *target, int buflen)
 		bytes = 0;
 		while (bytes < buflen) {
 			func(&dataptr, &length, buflen, start, datastart);
-			bcopy(dataptr, saptr, length);
+			memcpy(saptr, dataptr, length);
 			saptr = (void *)((caddr_t)saptr + length);
 			bytes += length;
 			start = B_FALSE;
@@ -831,7 +830,7 @@ sa_free_attr_table(sa_os_t *sa)
 }
 
 static int
-sa_attr_table_setup(objset_t *os, sa_attr_reg_t *reg_attrs, int count)
+sa_attr_table_setup(objset_t *os, const sa_attr_reg_t *reg_attrs, int count)
 {
 	sa_os_t *sa = os->os_sa;
 	uint64_t sa_attr_count = 0;
@@ -992,8 +991,8 @@ bail:
 }
 
 int
-sa_setup(objset_t *os, uint64_t sa_obj, sa_attr_reg_t *reg_attrs, int count,
-    sa_attr_type_t **user_table)
+sa_setup(objset_t *os, uint64_t sa_obj, const sa_attr_reg_t *reg_attrs,
+    int count, sa_attr_type_t **user_table)
 {
 	zap_cursor_t zc;
 	zap_attribute_t za;
@@ -1665,8 +1664,9 @@ sa_add_projid(sa_handle_t *hdl, dmu_tx_t *tx, uint64_t projid)
 		    &xattr, 8);
 
 	if (zp->z_pflags & ZFS_BONUS_SCANSTAMP) {
-		bcopy((caddr_t)db->db_data + ZFS_OLD_ZNODE_PHYS_SIZE,
-		    scanstamp, AV_SCANSTAMP_SZ);
+		memcpy(scanstamp,
+		    (caddr_t)db->db_data + ZFS_OLD_ZNODE_PHYS_SIZE,
+		    AV_SCANSTAMP_SZ);
 		SA_ADD_BULK_ATTR(attrs, count, SA_ZPL_SCANSTAMP(zfsvfs), NULL,
 		    scanstamp, AV_SCANSTAMP_SZ);
 		zp->z_pflags &= ~ZFS_BONUS_SCANSTAMP;
@@ -1874,7 +1874,7 @@ sa_modify_attrs(sa_handle_t *hdl, sa_attr_type_t newattr,
 	if (dn->dn_bonuslen != 0) {
 		bonus_data_size = hdl->sa_bonus->db_size;
 		old_data[0] = kmem_alloc(bonus_data_size, KM_SLEEP);
-		bcopy(hdl->sa_bonus->db_data, old_data[0],
+		memcpy(old_data[0], hdl->sa_bonus->db_data,
 		    hdl->sa_bonus->db_size);
 		bonus_attr_count = hdl->sa_bonus_tab->sa_layout->lot_attr_count;
 	} else {
@@ -1887,7 +1887,7 @@ sa_modify_attrs(sa_handle_t *hdl, sa_attr_type_t newattr,
 	if ((error = sa_get_spill(hdl)) == 0) {
 		spill_data_size = hdl->sa_spill->db_size;
 		old_data[1] = vmem_alloc(spill_data_size, KM_SLEEP);
-		bcopy(hdl->sa_spill->db_data, old_data[1],
+		memcpy(old_data[1], hdl->sa_spill->db_data,
 		    hdl->sa_spill->db_size);
 		spill_attr_count =
 		    hdl->sa_spill_tab->sa_layout->lot_attr_count;

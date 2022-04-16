@@ -145,7 +145,7 @@ struct protosw inet6sw[] = {
 	.pr_type =		0,
 	.pr_domain =		&inet6domain,
 	.pr_protocol =		IPPROTO_IPV6,
-	.pr_init =		ip6_init,
+	.pr_flags =		PR_CAPATTACH,
 	.pr_slowtimo =		frag6_slowtimo,
 	.pr_drain =		frag6_drain,
 	.pr_usrreqs =		&nousrreqs,
@@ -154,25 +154,22 @@ struct protosw inet6sw[] = {
 	.pr_type =		SOCK_DGRAM,
 	.pr_domain =		&inet6domain,
 	.pr_protocol =		IPPROTO_UDP,
-	.pr_flags =		PR_ATOMIC|PR_ADDR,
+	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_CAPATTACH,
 	.pr_input =		udp6_input,
 	.pr_ctlinput =		udp6_ctlinput,
 	.pr_ctloutput =		ip6_ctloutput,
-#ifndef INET	/* Do not call initialization twice. */
-	.pr_init =		udp_init,
-#endif
 	.pr_usrreqs =		&udp6_usrreqs,
 },
 {
 	.pr_type =		SOCK_STREAM,
 	.pr_domain =		&inet6domain,
 	.pr_protocol =		IPPROTO_TCP,
-	.pr_flags =		PR_CONNREQUIRED|PR_IMPLOPCL|PR_WANTRCVD|PR_LISTEN,
+	.pr_flags =		PR_CONNREQUIRED|PR_IMPLOPCL|PR_WANTRCVD|
+				    PR_LISTEN|PR_CAPATTACH,
 	.pr_input =		tcp6_input,
 	.pr_ctlinput =		tcp6_ctlinput,
 	.pr_ctloutput =		tcp_ctloutput,
 #ifndef INET	/* don't call initialization, timeout, and drain routines twice */
-	.pr_init =		tcp_init,
 	.pr_slowtimo =		tcp_slowtimo,
 	.pr_drain =		tcp_drain,
 #endif
@@ -189,7 +186,6 @@ struct protosw inet6sw[] = {
 	.pr_ctloutput =	sctp_ctloutput,
 #ifndef INET	/* Do not call initialization and drain routines twice. */
 	.pr_drain =		sctp_drain,
-	.pr_init =		sctp_init,
 #endif
 	.pr_usrreqs =		&sctp6_usrreqs
 },
@@ -209,13 +205,10 @@ struct protosw inet6sw[] = {
 	.pr_type =		SOCK_DGRAM,
 	.pr_domain =		&inet6domain,
 	.pr_protocol =		IPPROTO_UDPLITE,
-	.pr_flags =		PR_ATOMIC|PR_ADDR,
+	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_CAPATTACH,
 	.pr_input =		udp6_input,
 	.pr_ctlinput =		udplite6_ctlinput,
 	.pr_ctloutput =		udp_ctloutput,
-#ifndef INET	/* Do not call initialization twice. */
-	.pr_init =		udplite_init,
-#endif
 	.pr_usrreqs =		&udp6_usrreqs,
 },
 {
@@ -227,9 +220,6 @@ struct protosw inet6sw[] = {
 	.pr_output =		rip6_output,
 	.pr_ctlinput =		rip6_ctlinput,
 	.pr_ctloutput =		rip6_ctloutput,
-#ifndef INET	/* Do not call initialization twice. */
-	.pr_init =		rip_init,
-#endif
 	.pr_usrreqs =		&rip6_usrreqs
 },
 {
@@ -294,6 +284,15 @@ struct protosw inet6sw[] = {
 {
 	.pr_type =		SOCK_RAW,
 	.pr_domain =		&inet6domain,
+	.pr_protocol =		IPPROTO_ETHERIP,
+	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_LASTHDR,
+	.pr_input =		encap6_input,
+	.pr_ctloutput =		rip6_ctloutput,
+	.pr_usrreqs =		&rip6_usrreqs
+},
+{
+	.pr_type =		SOCK_RAW,
+	.pr_domain =		&inet6domain,
 	.pr_protocol =		IPPROTO_GRE,
 	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_LASTHDR,
 	.pr_input =		encap6_input,
@@ -346,7 +345,7 @@ struct domain inet6domain = {
 	.dom_ifmtu    =		in6_domifmtu
 };
 
-VNET_DOMAIN_SET(inet6);
+DOMAIN_SET(inet6);
 
 /*
  * Internet configuration info

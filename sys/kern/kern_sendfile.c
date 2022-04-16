@@ -399,7 +399,6 @@ sendfile_iodone(void *arg, vm_page_t *pa, int count, int error)
 		(void)(so->so_proto->pr_usrreqs->pru_ready)(so, sfio->m,
 		    sfio->npages);
 
-	SOCK_LOCK(so);
 	sorele(so);
 #ifdef KERN_TLS
 out_with_ref:
@@ -668,8 +667,6 @@ sendfile_getsock(struct thread *td, int s, struct file **sock_fp,
 	 */
 	if ((*so)->so_proto->pr_protocol == IPPROTO_SCTP)
 		return (EINVAL);
-	if (SOLISTENING(*so))
-		return (ENOTCONN);
 	return (0);
 }
 

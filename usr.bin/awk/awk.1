@@ -23,7 +23,7 @@
 .\" THIS SOFTWARE.
 .\"
 .\"	$FreeBSD$
-.Dd $Mdocdate: June 6 2020 $
+.Dd July 30, 2021
 .Dt AWK 1
 .Os
 .Sh NAME
@@ -131,8 +131,9 @@ and newlines are used as field separators
 This is convenient when working with multi-line records.
 .Pp
 An input line is normally made up of fields separated by whitespace,
-or by the regular expression
-.Va FS .
+or by the extended regular expression
+.Va FS
+as described below.
 The fields are denoted
 .Va $1 , $2 , ... ,
 while
@@ -141,6 +142,22 @@ refers to the entire line.
 If
 .Va FS
 is null, the input line is split into one field per character.
+While both gawk and mawk have the same behavior, it is unspecified in the
+.St -p1003.1-2008
+standard.
+If
+.Va FS
+is a single space, then leading and trailing blank and newline characters are
+skipped.
+Fields are delimited by one or more blank or newline characters.
+A blank character is a space or a tab.
+If
+.Va FS
+is a single character, other than space, fields are delimited by each single
+occurrence of that character.
+The
+.Va FS
+variable defaults to a single space.
 .Pp
 Normally, any number of blanks separate fields.
 In order to set the field separator to a single blank, use the
@@ -795,3 +812,46 @@ to it.
 .Pp
 The scope rules for variables in functions are a botch;
 the syntax is worse.
+.Sh DEPRECATED BEHAVIOR
+One True Awk has accpeted
+.Fl F Ar t
+to mean the same as
+.Fl F Ar <TAB>
+to make it easier to specify tabs as the separator character.
+Upstream One True Awk has deprecated this wart in the name of better
+compatibility with other awk implementations like gawk and mawk.
+.Pp
+Historically,
+.Nm
+did not accept
+.Dq 0x
+as a hex string.
+However, since One True Awk used strtod to convert strings to floats, and since
+.Dq 0x12
+is a valid hexadecimal representation of a floating point number,
+On
+.Fx ,
+.Nm
+has accepted this notation as an extension since One True Awk was imported in
+.Fx 5.0 .
+Upstream One True Awk has restored the historical behavior for better
+compatibility between the different awk implementations.
+Both gawk and mawk already behave similarly.
+Starting with
+.Fx 14.0
+.Nm
+will no longer accept this extension.
+.Pp
+The
+.Fx
+.Nm
+sets the locale for many years to match the environment it was running in.
+This lead to pattern ranges, like
+.Dq "[A-Z]"
+sometimes matching lower case characters in some locales.
+This misbehavior was never in upstream One True Awk and has been removed as a
+bug in
+.Fx 12.3 ,
+.Fx 13.1 ,
+and
+.Fx 14.0 .

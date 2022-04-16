@@ -24,7 +24,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd January 20, 2022
+.Dd April 13, 2022
 .Dt KQUEUE 2
 .Os
 .Sh NAME
@@ -262,6 +262,22 @@ Filters may set this flag to indicate filter-specific EOF condition.
 See
 .Sx RETURN VALUES
 below.
+.It Dv EV_KEEPUDATA
+Causes
+.Fn kevent
+to leave unchanged any
+.Fa udata
+associated with an existing event.
+This allows other aspects of the event to be modified without requiring the
+caller to know the
+.Fa udata
+value presently associated.
+This is especially useful with
+.Dv NOTE_TRIGGER
+or flags like
+.Dv EV_ENABLE .
+This flag may not be used with
+.Dv EV_ADD .
 .El
 .Pp
 The predefined system filters are listed below.
@@ -362,7 +378,7 @@ The filter will set
 .Dv EV_EOF
 when the reader disconnects, and for the fifo case, this will be cleared
 when a new reader connects.
-Note that this filter is not supported for vnodes or BPF devices.
+Note that this filter is not supported for vnodes.
 .Pp
 For sockets, the low water mark and socket error handling is
 identical to the
@@ -373,6 +389,11 @@ For eventfds,
 .Va data
 will contain the maximum value that can be added to the counter
 without blocking.
+.Pp
+For BPF devices, when the descriptor is attached to an interface the filter
+always indicates that it is possible to write and
+.Va data
+will contain the MTU size of the underlying interface.
 .It Dv EVFILT_EMPTY
 Takes a descriptor as the identifier, and returns whenever
 there is no remaining data in the write buffer.
@@ -721,8 +742,6 @@ main(int argc, char **argv)
     ret = kevent(kq, &event, 1, NULL, 0, NULL);
     if (ret == -1)
 	err(EXIT_FAILURE, "kevent register");
-    if (event.flags & EV_ERROR)
-	errx(EXIT_FAILURE, "Event error: %s", strerror(event.data));
 
     for (;;) {
 	/* Sleep until something happens. */
@@ -730,8 +749,12 @@ main(int argc, char **argv)
 	if (ret == -1) {
 	    err(EXIT_FAILURE, "kevent wait");
 	} else if (ret > 0) {
-	    printf("Something was written in '%s'\en", argv[1]);
-	}
+	    if (tevent.flags & EV_ERROR)
+		errx(EXIT_FAILURE, "Event error: %s", strerror(event.data));
+	    else
+		printf("Something was written in '%s'\en", argv[1]);
+}
+
     }
 }
 .Ed

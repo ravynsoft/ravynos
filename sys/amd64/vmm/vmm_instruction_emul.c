@@ -58,6 +58,7 @@ __FBSDID("$FreeBSD$");
 #include <string.h>
 #include <strings.h>
 #include <vmmapi.h>
+#define	__diagused
 #define	KASSERT(exp,msg)	assert((exp))
 #define	panic(...)		errx(4, __VA_ARGS__)
 #endif	/* _KERNEL */
@@ -717,7 +718,7 @@ get_gla(void *vm, int vcpuid, struct vie *vie, struct vm_guest_paging *paging,
 {
 	struct seg_desc desc;
 	uint64_t cr0, val, rflags;
-	int error;
+	int error __diagused;
 
 	error = vie_read_register(vm, vcpuid, VM_REG_GUEST_CR0, &cr0);
 	KASSERT(error == 0, ("%s: error %d getting cr0", __func__, error));

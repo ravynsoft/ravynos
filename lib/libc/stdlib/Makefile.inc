@@ -18,6 +18,8 @@ MISRCS+=C99_Exit.c a64l.c abort.c abs.c atexit.c atof.c atoi.c atol.c atoll.c \
 	strtol.c strtold.c strtoll.c strtoq.c strtoul.c strtonum.c strtoull.c \
 	strtoumax.c strtouq.c system.c tdelete.c tfind.c tsearch.c twalk.c
 
+CFLAGS.qsort.c+= -Wsign-compare
+
 # Work around an issue on case-insensitive file systems.
 # libc has both _Exit.c and _exit.s and they both yield
 # _exit.o (case insensitively speaking).
@@ -44,7 +46,8 @@ MAN+=	a64l.3 abort.3 abs.3 alloca.3 atexit.3 atof.3 \
 MLINKS+=a64l.3 l64a.3 a64l.3 l64a_r.3
 MLINKS+=atol.3 atoll.3
 MLINKS+=exit.3 _Exit.3
-MLINKS+=getenv.3 putenv.3 getenv.3 setenv.3 getenv.3 unsetenv.3
+MLINKS+=getenv.3 clearenv.3 getenv.3 putenv.3 getenv.3 setenv.3 \
+	getenv.3 unsetenv.3
 MLINKS+=getopt_long.3 getopt_long_only.3
 MLINKS+=hcreate.3 hdestroy.3 hcreate.3 hsearch.3
 MLINKS+=hcreate.3 hcreate_r.3 hcreate.3 hdestroy_r.3 hcreate.3 hsearch_r.3

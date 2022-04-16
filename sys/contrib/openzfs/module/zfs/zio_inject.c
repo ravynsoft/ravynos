@@ -148,7 +148,8 @@ zio_match_handler(const zbookmark_phys_t *zb, uint64_t type, int dva,
 	    zb->zb_level == record->zi_level &&
 	    zb->zb_blkid >= record->zi_start &&
 	    zb->zb_blkid <= record->zi_end &&
-	    (record->zi_dvas == 0 || (record->zi_dvas & (1ULL << dva))) &&
+	    (record->zi_dvas == 0 ||
+	    (dva != ZI_NO_DVA && (record->zi_dvas & (1ULL << dva)))) &&
 	    error == record->zi_error) {
 		return (freq_triggered(record->zi_freq));
 	}
@@ -341,15 +342,14 @@ zio_handle_label_injection(zio_t *zio, int error)
 	return (ret);
 }
 
-/*ARGSUSED*/
 static int
 zio_inject_bitflip_cb(void *data, size_t len, void *private)
 {
-	zio_t *zio __maybe_unused = private;
+	zio_t *zio = private;
 	uint8_t *buffer = data;
 	uint_t byte = random_in_range(len);
 
-	ASSERT(zio->io_type == ZIO_TYPE_READ);
+	ASSERT3U(zio->io_type, ==, ZIO_TYPE_READ);
 
 	/* flip a single random bit in an abd data buffer */
 	buffer[byte] ^= 1 << random_in_range(8);

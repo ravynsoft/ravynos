@@ -210,7 +210,7 @@ be_mounted_at(libbe_handle_t *lbh, const char *path, nvlist_t *details)
 
 	if (info.name != NULL) {
 		if (details != NULL) {
-			if ((root_hdl = zfs_open(lbh->lzh, lbh->root,
+			if ((root_hdl = zfs_open(lbh->lzh, info.name,
 			    ZFS_TYPE_FILESYSTEM)) == NULL) {
 				free(info.name);
 				return (BE_ERR_ZFSOPEN);
@@ -219,6 +219,7 @@ be_mounted_at(libbe_handle_t *lbh, const char *path, nvlist_t *details)
 			propinfo.lbh = lbh;
 			propinfo.list = details;
 			propinfo.single_object = false;
+			propinfo.bootonce = NULL;
 			prop_list_builder_cb(root_hdl, &propinfo);
 			zfs_close(root_hdl);
 		}

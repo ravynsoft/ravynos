@@ -1142,7 +1142,6 @@ static enum fault_status
 vm_fault_allocate(struct faultstate *fs)
 {
 	struct domainset *dset;
-	int alloc_req;
 	enum fault_status res;
 
 	if ((fs->object->flags & OBJ_SIZEVNLOCK) != 0) {
@@ -1181,9 +1180,14 @@ vm_fault_allocate(struct faultstate *fs)
 	/*
 	 * Allocate a new page for this object/offset pair.
 	 *
-	 * Unlocked read of the p_flag is harmless. At worst, the P_KILLED
-	 * might be not observed there, and allocation can fail, causing
-	 * restart and new reading of the p_flag.
+	 * If the process has a fatal signal pending, prioritize the allocation
+	 * with the expectation that the process will exit shortly and free some
+	 * pages.  In particular, the signal may have been posted by the page
+	 * daemon in an attempt to resolve an out-of-memory condition.
+	 *
+	 * The unlocked read of the p_flag is harmless.  At worst, the P_KILLED
+	 * might be not observed here, and allocation fails, causing a restart
+	 * and new reading of the p_flag.
 	 */
 	dset = fs->object->domain.dr_policy;
 	if (dset == NULL)
@@ -1192,12 +1196,8 @@ vm_fault_allocate(struct faultstate *fs)
 #if VM_NRESERVLEVEL > 0
 		vm_object_color(fs->object, atop(fs->vaddr) - fs->pindex);
 #endif
-		alloc_req = P_KILLED(curproc) ?
-		    VM_ALLOC_SYSTEM : VM_ALLOC_NORMAL;
-		if (fs->object->type != OBJT_VNODE &&
-		    fs->object->backing_object == NULL)
-			alloc_req |= VM_ALLOC_ZERO;
-		fs->m = vm_page_alloc(fs->object, fs->pindex, alloc_req);
+		fs->m = vm_page_alloc(fs->object, fs->pindex,
+		    P_KILLED(curproc) ? VM_ALLOC_SYSTEM : 0);
 	}
 	if (fs->m == NULL) {
 		if (vm_fault_allocate_oom(fs))
@@ -1314,7 +1314,7 @@ vm_fault_getpages(struct faultstate *fs, int *behindp, int *aheadp)
 		return (FAULT_OUT_OF_BOUNDS);
 	}
 	KASSERT(rv == VM_PAGER_FAIL,
-	    ("%s: unepxected pager error %d", __func__, rv));
+	    ("%s: unexpected pager error %d", __func__, rv));
 	return (FAULT_CONTINUE);
 }
 
@@ -1730,14 +1730,13 @@ static void
 vm_fault_dontneed(const struct faultstate *fs, vm_offset_t vaddr, int ahead)
 {
 	vm_map_entry_t entry;
-	vm_object_t first_object, object;
+	vm_object_t first_object;
 	vm_offset_t end, start;
 	vm_page_t m, m_next;
 	vm_pindex_t pend, pstart;
 	vm_size_t size;
 
-	object = fs->object;
-	VM_OBJECT_ASSERT_UNLOCKED(object);
+	VM_OBJECT_ASSERT_UNLOCKED(fs->object);
 	first_object = fs->first_object;
 	/* Neither fictitious nor unmanaged pages can be reclaimed. */
 	if ((first_object->flags & (OBJ_FICTITIOUS | OBJ_UNMANAGED)) == 0) {

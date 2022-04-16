@@ -115,6 +115,81 @@ def check_ping6_request(args, packet):
 	if icmp.data != PAYLOAD_MAGIC:
 		return False
 
+	# Wait to check expectations until we've established this is the packet we
+	# sent.
+	if args.expect_tc:
+		if ip.tc != int(args.expect_tc[0]):
+			print("Unexpected traffic class value %d, expected %d" \
+				% (ip.tc, int(args.expect_tc[0])))
+			return False
+
+	return True
+
+def check_ping_reply(args, packet):
+	if args.ip6:
+		return check_ping6_reply(args, packet)
+	else:
+		return check_ping4_reply(args, packet)
+
+def check_ping4_reply(args, packet):
+	"""
+	Check that this is a reply to the ping request we sent
+	"""
+	dst_ip = args.to[0]
+
+	ip = packet.getlayer(sp.IP)
+	if not ip:
+		return False
+	if ip.src != dst_ip:
+		return False
+
+	icmp = packet.getlayer(sp.ICMP)
+	if not icmp:
+		return False
+	if sp.icmptypes[icmp.type] != 'echo-reply':
+		return False
+
+	raw = packet.getlayer(sp.Raw)
+	if not raw:
+		return False
+	if raw.load != PAYLOAD_MAGIC:
+		return False
+
+	if args.expect_tos:
+		if ip.tos != int(args.expect_tos[0]):
+			print("Unexpected ToS value %d, expected %d" \
+				% (ip.tos, int(args.expect_tos[0])))
+			return False
+
+	return True
+
+def check_ping6_reply(args, packet):
+	"""
+	Check that this is a reply to the ping request we sent
+	"""
+	dst_ip = args.to[0]
+
+	ip = packet.getlayer(sp.IPv6)
+	if not ip:
+		return False
+	if ip.src != dst_ip:
+		return False
+
+	icmp = packet.getlayer(sp.ICMPv6EchoReply)
+	if not icmp:
+		print("No echo reply!")
+		return False
+
+	if icmp.data != PAYLOAD_MAGIC:
+		print("data mismatch")
+		return False
+
+	if args.expect_tc:
+		if ip.tc != int(args.expect_tc[0]):
+			print("Unexpected traffic class value %d, expected %d" \
+				% (ip.tc, int(args.expect_tc[0])))
+			return False
+
 	return True
 
 def check_ping_reply(args, packet):
@@ -192,8 +267,11 @@ def ping6(send_if, dst_ip, args):
 	ip6 = sp.IPv6(dst=dst_ip)
 	icmp = sp.ICMPv6EchoRequest(data=sp.raw(PAYLOAD_MAGIC))
 
+	if args.send_tc:
+		ip6.tc = int(args.send_tc[0])
+
 	if args.fromaddr:
-		ip.src = args.fromaddr[0]
+		ip6.src = args.fromaddr[0]
 
 	req = ether / ip6 / icmp
 	sp.sendp(req, iface=send_if, verbose=False)
@@ -274,10 +352,14 @@ def main():
 	# Packet settings
 	parser.add_argument('--send-tos', nargs=1,
 		help='Set the ToS value for the transmitted packet')
+	parser.add_argument('--send-tc', nargs=1,
+		help='Set the traffic class value for the transmitted packet')
 
 	# Expectations
 	parser.add_argument('--expect-tos', nargs=1,
 		help='The expected ToS value in the received packet')
+	parser.add_argument('--expect-tc', nargs=1,
+		help='The expected traffic class value in the received packet')
 
 	args = parser.parse_args()
 

@@ -30,10 +30,6 @@
 #ifndef _MACHINE_ATOMIC_H_
 #define	_MACHINE_ATOMIC_H_
 
-#ifndef _SYS_CDEFS_H_
-#error this file needs sys/cdefs.h as a prerequisite
-#endif
-
 #include <sys/atomic_common.h>
 
 #ifdef _KERNEL
@@ -95,42 +91,6 @@ __mbu(void)
  * atomic_swap_long(P, V)	(return (*(u_long *)(P)); *(u_long *)(P) = (V);)
  * atomic_readandclear_long(P)	(return (*(u_long *)(P)); *(u_long *)(P) = 0;)
  */
-
-#if !defined(__GNUCLIKE_ASM)
-#define	ATOMIC_ASM(NAME, TYPE, OP, CONS, V)			\
-void atomic_##NAME##_##TYPE(volatile u_##TYPE *p, u_##TYPE v);	\
-void atomic_##NAME##_barr_##TYPE(volatile u_##TYPE *p, u_##TYPE v)
-
-int	atomic_cmpset_char(volatile u_char *dst, u_char expect, u_char src);
-int	atomic_cmpset_short(volatile u_short *dst, u_short expect, u_short src);
-int	atomic_cmpset_int(volatile u_int *dst, u_int expect, u_int src);
-int	atomic_fcmpset_char(volatile u_char *dst, u_char *expect, u_char src);
-int	atomic_fcmpset_short(volatile u_short *dst, u_short *expect,
-	    u_short src);
-int	atomic_fcmpset_int(volatile u_int *dst, u_int *expect, u_int src);
-u_int	atomic_fetchadd_int(volatile u_int *p, u_int v);
-int	atomic_testandset_int(volatile u_int *p, u_int v);
-int	atomic_testandclear_int(volatile u_int *p, u_int v);
-void	atomic_thread_fence_acq(void);
-void	atomic_thread_fence_acq_rel(void);
-void	atomic_thread_fence_rel(void);
-void	atomic_thread_fence_seq_cst(void);
-
-#define	ATOMIC_LOAD(TYPE)					\
-u_##TYPE	atomic_load_acq_##TYPE(volatile u_##TYPE *p)
-#define	ATOMIC_STORE(TYPE)					\
-void		atomic_store_rel_##TYPE(volatile u_##TYPE *p, u_##TYPE v)
-
-int		atomic_cmpset_64(volatile uint64_t *, uint64_t, uint64_t);
-int		atomic_fcmpset_64(volatile uint64_t *, uint64_t *, uint64_t);
-uint64_t	atomic_load_acq_64(volatile uint64_t *);
-void		atomic_store_rel_64(volatile uint64_t *, uint64_t);
-uint64_t	atomic_swap_64(volatile uint64_t *, uint64_t);
-uint64_t	atomic_fetchadd_64(volatile uint64_t *, uint64_t);
-void		atomic_add_64(volatile uint64_t *, uint64_t);
-void		atomic_subtract_64(volatile uint64_t *, uint64_t);
-
-#else /* !__GNUCLIKE_ASM */
 
 /*
  * Always use lock prefixes.  The result is slighly less optimal for
@@ -622,8 +582,6 @@ atomic_subtract_64(volatile uint64_t *p, uint64_t v)
 
 #endif /* _KERNEL */
 
-#endif /* !__GNUCLIKE_ASM */
-
 ATOMIC_ASM(set,	     char,  "orb %b1,%0",  "iq",  v);
 ATOMIC_ASM(clear,    char,  "andb %b1,%0", "iq", ~v);
 ATOMIC_ASM(add,	     char,  "addb %b1,%0", "iq",  v);
@@ -698,8 +656,6 @@ atomic_testandclear_long(volatile u_long *p, u_int v)
 }
 
 /* Read the current value and store a new value in the destination. */
-#ifdef __GNUCLIKE_ASM
-
 static __inline u_int
 atomic_swap_int(volatile u_int *p, u_int v)
 {
@@ -718,13 +674,6 @@ atomic_swap_long(volatile u_long *p, u_long v)
 
 	return (atomic_swap_int((volatile u_int *)p, (u_int)v));
 }
-
-#else /* !__GNUCLIKE_ASM */
-
-u_int	atomic_swap_int(volatile u_int *p, u_int v);
-u_long	atomic_swap_long(volatile u_long *p, u_long v);
-
-#endif /* __GNUCLIKE_ASM */
 
 #define	atomic_set_acq_char		atomic_set_barr_char
 #define	atomic_set_rel_char		atomic_set_barr_char

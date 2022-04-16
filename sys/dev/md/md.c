@@ -90,6 +90,7 @@
 #include <sys/sf_buf.h>
 #include <sys/sysctl.h>
 #include <sys/uio.h>
+#include <sys/unistd.h>
 #include <sys/vnode.h>
 #include <sys/disk.h>
 
@@ -260,6 +261,7 @@ struct md_s {
 	struct g_provider *pp;
 	int (*start)(struct md_s *sc, struct bio *bp);
 	struct devstat *devstat;
+	bool candelete;
 
 	/* MD_MALLOC related fields */
 	struct indir *indir;
@@ -878,7 +880,7 @@ mdstart_vnode(struct md_s *sc, struct bio *bp)
 	struct buf *pb;
 	bus_dma_segment_t *vlist;
 	struct thread *td;
-	off_t iolen, iostart, len, zerosize;
+	off_t iolen, iostart, off, len;
 	int ma_offs, npages;
 
 	switch (bp->bio_cmd) {
@@ -886,11 +888,14 @@ mdstart_vnode(struct md_s *sc, struct bio *bp)
 		auio.uio_rw = UIO_READ;
 		break;
 	case BIO_WRITE:
-	case BIO_DELETE:
 		auio.uio_rw = UIO_WRITE;
 		break;
 	case BIO_FLUSH:
 		break;
+	case BIO_DELETE:
+		if (sc->candelete)
+			break;
+		/* FALLTHROUGH */
 	default:
 		return (EOPNOTSUPP);
 	}
@@ -900,6 +905,7 @@ mdstart_vnode(struct md_s *sc, struct bio *bp)
 	pb = NULL;
 	piov = NULL;
 	ma_offs = bp->bio_ma_offset;
+	off = bp->bio_offset;
 	len = bp->bio_length;
 
 	/*
@@ -917,6 +923,11 @@ mdstart_vnode(struct md_s *sc, struct bio *bp)
 		VOP_UNLOCK(vp);
 		vn_finished_write(mp);
 		return (error);
+	} else if (bp->bio_cmd == BIO_DELETE) {
+		error = vn_deallocate(vp, &off, &len, 0,
+		    sc->flags & MD_ASYNC ? 0 : IO_SYNC, sc->cred, NOCRED);
+		bp->bio_resid = len;
+		return (error);
 	}
 
 	auio.uio_offset = (vm_ooffset_t)bp->bio_offset;
@@ -924,25 +935,7 @@ mdstart_vnode(struct md_s *sc, struct bio *bp)
 	auio.uio_segflg = UIO_SYSSPACE;
 	auio.uio_td = td;
 
-	if (bp->bio_cmd == BIO_DELETE) {
-		/*
-		 * Emulate BIO_DELETE by writing zeros.
-		 */
-		zerosize = ZERO_REGION_SIZE -
-		    (ZERO_REGION_SIZE % sc->sectorsize);
-		auio.uio_iovcnt = howmany(bp->bio_length, zerosize);
-		piov = malloc(sizeof(*piov) * auio.uio_iovcnt, M_MD, M_WAITOK);
-		auio.uio_iov = piov;
-		while (len > 0) {
-			piov->iov_base = __DECONST(void *, zero_region);
-			piov->iov_len = len;
-			if (len > zerosize)
-				piov->iov_len = zerosize;
-			len -= piov->iov_len;
-			piov++;
-		}
-		piov = auio.uio_iov;
-	} else if ((bp->bio_flags & BIO_VLIST) != 0) {
+	if ((bp->bio_flags & BIO_VLIST) != 0) {
 		piov = malloc(sizeof(*piov) * bp->bio_ma_n, M_MD, M_WAITOK);
 		auio.uio_iov = piov;
 		vlist = (bus_dma_segment_t *)bp->bio_data;
@@ -1193,7 +1186,7 @@ md_handleattr(struct md_s *sc, struct bio *bp)
 	    (g_handleattr_int(bp, "GEOM::fwsectors", sc->fwsectors) != 0 ||
 	    g_handleattr_int(bp, "GEOM::fwheads", sc->fwheads) != 0))
 		return;
-	if (g_handleattr_int(bp, "GEOM::candelete", 1) != 0)
+	if (g_handleattr_int(bp, "GEOM::candelete", sc->candelete) != 0)
 		return;
 	if (sc->ident[0] != '\0' &&
 	    g_handleattr_str(bp, "GEOM::ident", sc->ident) != 0)
@@ -1422,6 +1415,7 @@ mdcreate_vnode(struct md_s *sc, struct md_req *mdr, struct thread *td)
 	struct nameidata nd;
 	char *fname;
 	int error, flags;
+	long v;
 
 	fname = mdr->md_file;
 	if (mdr->md_file_seg == UIO_USERSPACE) {
@@ -1439,11 +1433,11 @@ mdcreate_vnode(struct md_s *sc, struct md_req *mdr, struct thread *td)
 	 */
 	flags = FREAD | ((mdr->md_options & MD_READONLY) ? 0 : FWRITE) \
 	    | ((mdr->md_options & MD_VERIFY) ? O_VERIFY : 0);
-	NDINIT(&nd, LOOKUP, FOLLOW, UIO_SYSSPACE, sc->file, td);
+	NDINIT(&nd, LOOKUP, FOLLOW, UIO_SYSSPACE, sc->file);
 	error = vn_open(&nd, &flags, 0, NULL);
 	if (error != 0)
 		return (error);
-	NDFREE(&nd, NDF_ONLY_PNBUF);
+	NDFREE_PNBUF(&nd);
 	if (nd.ni_vp->v_type != VREG) {
 		error = EINVAL;
 		goto bad;
@@ -1451,6 +1445,13 @@ mdcreate_vnode(struct md_s *sc, struct md_req *mdr, struct thread *td)
 	error = VOP_GETATTR(nd.ni_vp, &vattr, td->td_ucred);
 	if (error != 0)
 		goto bad;
+	if ((mdr->md_options & MD_MUSTDEALLOC) != 0) {
+		error = VOP_PATHCONF(nd.ni_vp, _PC_DEALLOC_PRESENT, &v);
+		if (error != 0)
+			goto bad;
+		if (v == 0)
+			sc->candelete = false;
+	}
 	if (VOP_ISLOCKED(nd.ni_vp) != LK_EXCLUSIVE) {
 		vn_lock(nd.ni_vp, LK_UPGRADE | LK_RETRY);
 		if (VN_IS_DOOMED(nd.ni_vp)) {
@@ -1707,6 +1708,7 @@ kern_mdattach_locked(struct thread *td, struct md_req *mdr)
 		mdr->md_unit = sc->unit;
 	sc->mediasize = mdr->md_mediasize;
 	sc->sectorsize = sectsize;
+	sc->candelete = true;
 	error = EDOOFUS;
 	switch (sc->type) {
 	case MD_MALLOC:

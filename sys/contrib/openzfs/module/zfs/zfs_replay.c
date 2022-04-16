@@ -47,6 +47,8 @@
 #include <sys/atomic.h>
 #include <sys/cred.h>
 #include <sys/zpl.h>
+#include <sys/dmu_objset.h>
+#include <sys/zfeature.h>
 
 /*
  * NB: FreeBSD expects to be able to do vnode locking in lookup and
@@ -68,10 +70,10 @@ static void
 zfs_init_vattr(vattr_t *vap, uint64_t mask, uint64_t mode,
     uint64_t uid, uint64_t gid, uint64_t rdev, uint64_t nodeid)
 {
-	bzero(vap, sizeof (*vap));
+	memset(vap, 0, sizeof (*vap));
 	vap->va_mask = (uint_t)mask;
 	vap->va_mode = mode;
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__APPLE__)
 	vap->va_type = IFTOVT(mode);
 #endif
 	vap->va_uid = (uid_t)(IS_EPHEMERAL(uid)) ? -1 : uid;
@@ -80,10 +82,10 @@ zfs_init_vattr(vattr_t *vap, uint64_t mask, uint64_t mode,
 	vap->va_nodeid = nodeid;
 }
 
-/* ARGSUSED */
 static int
 zfs_replay_error(void *arg1, void *arg2, boolean_t byteswap)
 {
+	(void) arg1, (void) arg2, (void) byteswap;
 	return (SET_ERROR(ENOTSUP));
 }
 
@@ -141,13 +143,13 @@ zfs_replay_xvattr(lr_attr_t *lrattr, xvattr_t *xvap)
 	if (XVA_ISSET_REQ(xvap, XAT_AV_SCANSTAMP)) {
 		ASSERT(!XVA_ISSET_REQ(xvap, XAT_PROJID));
 
-		bcopy(scanstamp, xoap->xoa_av_scanstamp, AV_SCANSTAMP_SZ);
+		memcpy(xoap->xoa_av_scanstamp, scanstamp, AV_SCANSTAMP_SZ);
 	} else if (XVA_ISSET_REQ(xvap, XAT_PROJID)) {
 		/*
 		 * XAT_PROJID and XAT_AV_SCANSTAMP will never be valid
 		 * at the same time, so we can share the same space.
 		 */
-		bcopy(scanstamp, &xoap->xoa_projid, sizeof (uint64_t));
+		memcpy(&xoap->xoa_projid, scanstamp, sizeof (uint64_t));
 	}
 	if (XVA_ISSET_REQ(xvap, XAT_REPARSE))
 		xoap->xoa_reparse = ((*attrs & XAT0_REPARSE) != 0);
@@ -362,7 +364,7 @@ zfs_replay_create_acl(void *arg1, void *arg2, boolean_t byteswap)
 		zfsvfs->z_fuid_replay = zfs_replay_fuids(fuidstart,
 		    (void *)&name, lracl->lr_fuidcnt, lracl->lr_domcnt,
 		    lr->lr_uid, lr->lr_gid);
-		fallthrough;
+		zfs_fallthrough;
 	case TX_CREATE_ACL_ATTR:
 		if (name == NULL) {
 			lrattr = (lr_attr_t *)(caddr_t)(lracl + 1);
@@ -394,7 +396,7 @@ zfs_replay_create_acl(void *arg1, void *arg2, boolean_t byteswap)
 		zfsvfs->z_fuid_replay = zfs_replay_fuids(fuidstart,
 		    (void *)&name, lracl->lr_fuidcnt, lracl->lr_domcnt,
 		    lr->lr_uid, lr->lr_gid);
-		fallthrough;
+		zfs_fallthrough;
 	case TX_MKDIR_ACL_ATTR:
 		if (name == NULL) {
 			lrattr = (lr_attr_t *)(caddr_t)(lracl + 1);
@@ -519,7 +521,8 @@ zfs_replay_create(void *arg1, void *arg2, boolean_t byteswap)
 		    zfs_replay_fuid_domain(start, &start,
 		    lr->lr_uid, lr->lr_gid);
 		name = (char *)start;
-		fallthrough;
+		zfs_fallthrough;
+
 	case TX_CREATE:
 		if (name == NULL)
 			name = (char *)start;
@@ -536,7 +539,8 @@ zfs_replay_create(void *arg1, void *arg2, boolean_t byteswap)
 		    zfs_replay_fuid_domain(start, &start,
 		    lr->lr_uid, lr->lr_gid);
 		name = (char *)start;
-		fallthrough;
+		zfs_fallthrough;
+
 	case TX_MKDIR:
 		if (name == NULL)
 			name = (char *)(lr + 1);
@@ -787,7 +791,7 @@ zfs_replay_truncate(void *arg1, void *arg2, boolean_t byteswap)
 	zfsvfs_t *zfsvfs = arg1;
 	lr_truncate_t *lr = arg2;
 	znode_t *zp;
-	flock64_t fl;
+	flock64_t fl = {0};
 	int error;
 
 	if (byteswap)
@@ -796,7 +800,6 @@ zfs_replay_truncate(void *arg1, void *arg2, boolean_t byteswap)
 	if ((error = zfs_zget(zfsvfs, lr->lr_foid, &zp)) != 0)
 		return (error);
 
-	bzero(&fl, sizeof (fl));
 	fl.l_type = F_WRLCK;
 	fl.l_whence = SEEK_SET;
 	fl.l_start = lr->lr_offset;
@@ -867,12 +870,92 @@ zfs_replay_setattr(void *arg1, void *arg2, boolean_t byteswap)
 }
 
 static int
+zfs_replay_setsaxattr(void *arg1, void *arg2, boolean_t byteswap)
+{
+	zfsvfs_t *zfsvfs = arg1;
+	lr_setsaxattr_t *lr = arg2;
+	znode_t *zp;
+	nvlist_t *nvl;
+	size_t sa_size;
+	char *name;
+	char *value;
+	size_t size;
+	int error = 0;
+
+	ASSERT(spa_feature_is_active(zfsvfs->z_os->os_spa,
+	    SPA_FEATURE_ZILSAXATTR));
+	if (byteswap)
+		byteswap_uint64_array(lr, sizeof (*lr));
+
+	if ((error = zfs_zget(zfsvfs, lr->lr_foid, &zp)) != 0)
+		return (error);
+
+	rw_enter(&zp->z_xattr_lock, RW_WRITER);
+	mutex_enter(&zp->z_lock);
+	if (zp->z_xattr_cached == NULL)
+		error = zfs_sa_get_xattr(zp);
+	mutex_exit(&zp->z_lock);
+
+	if (error)
+		goto out;
+
+	ASSERT(zp->z_xattr_cached);
+	nvl = zp->z_xattr_cached;
+
+	/* Get xattr name, value and size from log record */
+	size = lr->lr_size;
+	name = (char *)(lr + 1);
+	if (size == 0) {
+		value = NULL;
+		error = nvlist_remove(nvl, name, DATA_TYPE_BYTE_ARRAY);
+	} else {
+		value = name + strlen(name) + 1;
+		/* Limited to 32k to keep nvpair memory allocations small */
+		if (size > DXATTR_MAX_ENTRY_SIZE) {
+			error = SET_ERROR(EFBIG);
+			goto out;
+		}
+
+		/* Prevent the DXATTR SA from consuming the entire SA region */
+		error = nvlist_size(nvl, &sa_size, NV_ENCODE_XDR);
+		if (error)
+			goto out;
+
+		if (sa_size > DXATTR_MAX_SA_SIZE) {
+			error = SET_ERROR(EFBIG);
+			goto out;
+		}
+
+		error = nvlist_add_byte_array(nvl, name, (uchar_t *)value,
+		    size);
+	}
+
+	/*
+	 * Update the SA for additions, modifications, and removals. On
+	 * error drop the inconsistent cached version of the nvlist, it
+	 * will be reconstructed from the ARC when next accessed.
+	 */
+	if (error == 0)
+		error = zfs_sa_set_xattr(zp, name, value, size);
+
+	if (error) {
+		nvlist_free(nvl);
+		zp->z_xattr_cached = NULL;
+	}
+
+out:
+	rw_exit(&zp->z_xattr_lock);
+	zrele(zp);
+	return (error);
+}
+
+static int
 zfs_replay_acl_v0(void *arg1, void *arg2, boolean_t byteswap)
 {
 	zfsvfs_t *zfsvfs = arg1;
 	lr_acl_v0_t *lr = arg2;
 	ace_t *ace = (ace_t *)(lr + 1);	/* ace array follows lr_acl_t */
-	vsecattr_t vsa;
+	vsecattr_t vsa = {0};
 	znode_t *zp;
 	int error;
 
@@ -884,7 +967,6 @@ zfs_replay_acl_v0(void *arg1, void *arg2, boolean_t byteswap)
 	if ((error = zfs_zget(zfsvfs, lr->lr_foid, &zp)) != 0)
 		return (error);
 
-	bzero(&vsa, sizeof (vsa));
 	vsa.vsa_mask = VSA_ACE | VSA_ACECNT;
 	vsa.vsa_aclcnt = lr->lr_aclcnt;
 	vsa.vsa_aclentsz = sizeof (ace_t) * vsa.vsa_aclcnt;
@@ -918,7 +1000,7 @@ zfs_replay_acl(void *arg1, void *arg2, boolean_t byteswap)
 	zfsvfs_t *zfsvfs = arg1;
 	lr_acl_t *lr = arg2;
 	ace_t *ace = (ace_t *)(lr + 1);
-	vsecattr_t vsa;
+	vsecattr_t vsa = {0};
 	znode_t *zp;
 	int error;
 
@@ -935,7 +1017,6 @@ zfs_replay_acl(void *arg1, void *arg2, boolean_t byteswap)
 	if ((error = zfs_zget(zfsvfs, lr->lr_foid, &zp)) != 0)
 		return (error);
 
-	bzero(&vsa, sizeof (vsa));
 	vsa.vsa_mask = VSA_ACE | VSA_ACECNT | VSA_ACE_ACLFLAGS;
 	vsa.vsa_aclcnt = lr->lr_aclcnt;
 	vsa.vsa_aclentp = ace;
@@ -965,7 +1046,7 @@ zfs_replay_acl(void *arg1, void *arg2, boolean_t byteswap)
 /*
  * Callback vectors for replaying records
  */
-zil_replay_func_t *zfs_replay_vector[TX_MAX_TYPE] = {
+zil_replay_func_t *const zfs_replay_vector[TX_MAX_TYPE] = {
 	zfs_replay_error,	/* no such type */
 	zfs_replay_create,	/* TX_CREATE */
 	zfs_replay_create,	/* TX_MKDIR */
@@ -987,4 +1068,5 @@ zil_replay_func_t *zfs_replay_vector[TX_MAX_TYPE] = {
 	zfs_replay_create,	/* TX_MKDIR_ATTR */
 	zfs_replay_create_acl,	/* TX_MKDIR_ACL_ATTR */
 	zfs_replay_write2,	/* TX_WRITE2 */
+	zfs_replay_setsaxattr,	/* TX_SETSAXATTR */
 };

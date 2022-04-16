@@ -21,8 +21,8 @@
 
 	memory@0 {
 		device_type = "memory";
-		reg = <0x00000000 0x08000000
-		       0x88000000 0x08000000>;
+		reg = <0x00000000 0x08000000>,
+		      <0x88000000 0x08000000>;
 	};
 
 	spi {
@@ -116,8 +116,4 @@
 			gpios = <&chipcommon 15 GPIO_ACTIVE_LOW>;
 		};
 	};
-};
-
-&usb3_phy {
-	status = "okay";
 };

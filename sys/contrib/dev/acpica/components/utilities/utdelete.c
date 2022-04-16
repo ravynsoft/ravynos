@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -266,7 +266,7 @@ AcpiUtDeleteInternalObj (
             (void) AcpiEvDeleteGpeBlock (Object->Device.GpeBlock);
         }
 
-        /*lint -fallthrough */
+        ACPI_FALLTHROUGH;
 
     case ACPI_TYPE_PROCESSOR:
     case ACPI_TYPE_THERMAL:
@@ -443,6 +443,14 @@ AcpiUtDeleteInternalObj (
         }
         break;
 
+    case ACPI_TYPE_LOCAL_ADDRESS_HANDLER:
+
+        ACPI_DEBUG_PRINT ((ACPI_DB_ALLOCATIONS,
+            "***** Address handler %p\n", Object));
+
+        AcpiOsDeleteMutex (Object->AddressSpace.ContextMutex);
+        break;
+
     default:
 
         break;
@@ -586,6 +594,7 @@ AcpiUtUpdateRefCount (
             ACPI_WARNING ((AE_INFO,
                 "Obj %p, Reference Count is already zero, cannot decrement\n",
                 Object));
+            return;
         }
 
         ACPI_DEBUG_PRINT_RAW ((ACPI_DB_ALLOCATIONS,

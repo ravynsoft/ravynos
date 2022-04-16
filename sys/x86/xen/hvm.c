@@ -58,9 +58,9 @@ __FBSDID("$FreeBSD$");
 #include <xen/hvm.h>
 #include <xen/xen_intr.h>
 
-#include <xen/interface/arch-x86/cpuid.h>
-#include <xen/interface/hvm/params.h>
-#include <xen/interface/vcpu.h>
+#include <contrib/xen/arch-x86/cpuid.h>
+#include <contrib/xen/hvm/params.h>
+#include <contrib/xen/vcpu.h>
 
 /*--------------------------- Forward Declarations ---------------------------*/
 static void xen_hvm_cpu_init(void);
@@ -110,7 +110,7 @@ TUNABLE_INT("hw.xen.disable_pv_nics", &xen_disable_pv_nics);
 
 /*---------------------- XEN Hypervisor Probe and Setup ----------------------*/
 
-static uint32_t cpuid_base;
+uint32_t xen_cpuid_base;
 
 static uint32_t
 xen_hvm_cpuid_base(void)
@@ -153,7 +153,7 @@ hypervisor_version(void)
 	uint32_t regs[4];
 	int major, minor;
 
-	do_cpuid(cpuid_base + 1, regs);
+	do_cpuid(xen_cpuid_base + 1, regs);
 
 	major = regs[0] >> 16;
 	minor = regs[0] & 0xffff;
@@ -171,9 +171,9 @@ xen_hvm_init_hypercall_stubs(enum xen_hvm_init_type init_type)
 	uint32_t regs[4];
 
 	/* Legacy PVH will get here without the cpuid leaf being set. */
-	if (cpuid_base == 0)
-		cpuid_base = xen_hvm_cpuid_base();
-	if (cpuid_base == 0)
+	if (xen_cpuid_base == 0)
+		xen_cpuid_base = xen_hvm_cpuid_base();
+	if (xen_cpuid_base == 0)
 		return (ENXIO);
 
 	if (xen_domain() && init_type == XEN_HVM_INIT_LATE) {
@@ -192,7 +192,7 @@ xen_hvm_init_hypercall_stubs(enum xen_hvm_init_type init_type)
 	/*
 	 * Find the hypercall pages.
 	 */
-	do_cpuid(cpuid_base + 2, regs);
+	do_cpuid(xen_cpuid_base + 2, regs);
 	if (regs[0] != 1)
 		return (EINVAL);
 
@@ -448,8 +448,8 @@ xen_hvm_cpu_init(void)
 	 * Set vCPU ID. If available fetch the ID from CPUID, if not just use
 	 * the ACPI ID.
 	 */
-	KASSERT(cpuid_base != 0, ("Invalid base Xen CPUID leaf"));
-	cpuid_count(cpuid_base + 4, 0, regs);
+	KASSERT(xen_cpuid_base != 0, ("Invalid base Xen CPUID leaf"));
+	cpuid_count(xen_cpuid_base + 4, 0, regs);
 	KASSERT((regs[0] & XEN_HVM_CPUID_VCPU_ID_PRESENT) ||
 	    !xen_pv_domain(),
 	    ("Xen PV domain without vcpu_id in cpuid"));
@@ -489,47 +489,3 @@ xen_hvm_cpu_init(void)
 		DPCPU_SET(vcpu_info, vcpu_info);
 }
 SYSINIT(xen_hvm_cpu_init, SI_SUB_INTR, SI_ORDER_FIRST, xen_hvm_cpu_init, NULL);
-
-/* HVM/PVH start_info accessors */
-static vm_paddr_t
-hvm_get_xenstore_mfn(void)
-{
-
-	return (hvm_get_parameter(HVM_PARAM_STORE_PFN));
-}
-
-static evtchn_port_t
-hvm_get_xenstore_evtchn(void)
-{
-
-	return (hvm_get_parameter(HVM_PARAM_STORE_EVTCHN));
-}
-
-static vm_paddr_t
-hvm_get_console_mfn(void)
-{
-
-	return (hvm_get_parameter(HVM_PARAM_CONSOLE_PFN));
-}
-
-static evtchn_port_t
-hvm_get_console_evtchn(void)
-{
-
-	return (hvm_get_parameter(HVM_PARAM_CONSOLE_EVTCHN));
-}
-
-static uint32_t
-hvm_get_start_flags(void)
-{
-
-	return (hvm_start_flags);
-}
-
-struct hypervisor_info hypervisor_info = {
-	.get_xenstore_mfn		= hvm_get_xenstore_mfn,
-	.get_xenstore_evtchn		= hvm_get_xenstore_evtchn,
-	.get_console_mfn		= hvm_get_console_mfn,
-	.get_console_evtchn		= hvm_get_console_evtchn,
-	.get_start_flags		= hvm_get_start_flags,
-};

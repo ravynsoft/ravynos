@@ -1,12 +1,17 @@
 /*-
+<<<<<<<< HEAD:libexec/dyld/tests/target/target.c
  * Copyright 2014 Jonathan Anderson.
+========
+ * Copyright (c) 2017 Mellanox Technologies, Ltd.
+>>>>>>>> freebsd/main:sys/compat/linuxkpi/common/include/linux/stringify.h
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
  * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
+ *    notice unmodified, this list of conditions, and the following
+ *    disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
@@ -25,6 +30,7 @@
  * $FreeBSD$
  */
 
+<<<<<<<< HEAD:libexec/dyld/tests/target/target.c
 #include "pythagoras.h"
 
 #include <stdio.h>
@@ -37,3 +43,14 @@ main(int argc, char *argv[])
 
 	return 0;
 }
+========
+#ifndef	_LINUXKPI_LINUX_STRINGIFY_H_
+#define	_LINUXKPI_LINUX_STRINGIFY_H_
+
+#include <sys/cdefs.h>
+
+#define	___stringify(...)		#__VA_ARGS__
+#define	__stringify(...)		___stringify(__VA_ARGS__)
+
+#endif	/* _LINUXKPI_LINUX_STRINGIFY_H_ */
+>>>>>>>> freebsd/main:sys/compat/linuxkpi/common/include/linux/stringify.h

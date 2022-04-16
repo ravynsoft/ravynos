@@ -46,10 +46,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <stdio.h>
-#include <strings.h>
 
 int
-main(int argc, char *argvp[])
+main(void)
 {
 	int i = 1;
 
@@ -58,6 +57,7 @@ main(int argc, char *argvp[])
 		perror("fork");
 		exit(1);
 		break;
+
 	case 0:
 		while (i > 0) {
 			int c_count = 0;
@@ -65,11 +65,11 @@ main(int argc, char *argvp[])
 				c_count++;
 			if (rename("1/2/3/c", "a/b/c") == 0)
 				c_count++;
-			if (c_count) {
+			if (c_count)
 				(void) fprintf(stderr, "c_count: %d", c_count);
-			}
 		}
-		break;
+		_exit(0);
+
 	default:
 		while (i > 0) {
 			int p_count = 0;
@@ -77,12 +77,9 @@ main(int argc, char *argvp[])
 				p_count++;
 			if (rename("a/b/c/d/e/1", "1") == 0)
 				p_count++;
-			if (p_count) {
+			if (p_count)
 				(void) fprintf(stderr, "p_count: %d", p_count);
-			}
 		}
-		break;
+		return (0);
 	}
-
-	return (0);
 }

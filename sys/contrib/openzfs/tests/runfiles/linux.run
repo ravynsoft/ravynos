@@ -38,10 +38,6 @@ tags = ['functional', 'atime']
 tests = ['chattr_001_pos', 'chattr_002_neg']
 tags = ['functional', 'chattr']
 
-[tests/functional/checksum:Linux]
-tests = ['run_edonr_test']
-tags = ['functional', 'checksum']
-
 [tests/functional/cli_root/zfs:Linux]
 tests = ['zfs_003_neg']
 tags = ['functional', 'cli_root', 'zfs']
@@ -53,7 +49,7 @@ tags = ['functional', 'cli_root', 'zfs_mount']
 
 [tests/functional/cli_root/zfs_share:Linux]
 tests = ['zfs_share_005_pos', 'zfs_share_007_neg', 'zfs_share_009_neg',
-    'zfs_share_012_pos']
+    'zfs_share_012_pos', 'zfs_share_013_pos']
 tags = ['functional', 'cli_root', 'zfs_share']
 
 [tests/functional/cli_root/zfs_sysfs:Linux]
@@ -135,7 +131,7 @@ tests = ['umount_unlinked_drain']
 tags = ['functional', 'mount']
 
 [tests/functional/pam:Linux]
-tests = ['pam_basic', 'pam_nounmount']
+tests = ['pam_basic', 'pam_nounmount', 'pam_short_password']
 tags = ['functional', 'pam']
 
 [tests/functional/procfs:Linux]
@@ -152,6 +148,10 @@ tests = ['projectid_001_pos', 'projectid_002_pos', 'projectid_003_pos',
     'projectspace_004_pos',
     'projecttree_001_pos', 'projecttree_002_pos', 'projecttree_003_neg']
 tags = ['functional', 'projectquota']
+
+[tests/functional/dos_attributes:Linux]
+tests = ['read_dos_attrs_001', 'write_dos_attrs_001']
+tags = ['functional', 'dos_attributes']
 
 [tests/functional/rsend:Linux]
 tests = ['send_realloc_dnode_size', 'send_encrypted_files']

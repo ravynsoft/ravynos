@@ -55,12 +55,12 @@ struct tcphdr {
 	tcp_seq	th_seq;			/* sequence number */
 	tcp_seq	th_ack;			/* acknowledgement number */
 #if BYTE_ORDER == LITTLE_ENDIAN
-	u_char	th_x2:4,		/* (unused) */
+	u_char	th_x2:4,		/* upper 4 (reserved) flags */
 		th_off:4;		/* data offset */
 #endif
 #if BYTE_ORDER == BIG_ENDIAN
 	u_char	th_off:4,		/* data offset */
-		th_x2:4;		/* (unused) */
+		th_x2:4;		/* upper 4 (reserved) flags */
 #endif
 	u_char	th_flags;
 #define	TH_FIN	0x01
@@ -201,6 +201,7 @@ struct tcphdr {
 #define TCP_PROC_ACCOUNTING 76	/* Do accounting on tcp cpu usage and counts */
 #define TCP_USE_CMP_ACKS 77 	/* The transport can handle the Compressed mbuf acks */
 #define	TCP_PERF_INFO	78	/* retrieve accounting counters */
+#define	TCP_LRD		79	/* toggle Lost Retransmission Detection for A/B testing */
 #define	TCP_KEEPINIT	128	/* N, time to establish connection */
 #define	TCP_KEEPIDLE	256	/* L,N,X start keeplives after this period */
 #define	TCP_KEEPINTVL	512	/* L,N interval between keepalives */
@@ -209,6 +210,7 @@ struct tcphdr {
 #define	TCP_PCAP_OUT	2048	/* number of output packets to keep */
 #define	TCP_PCAP_IN	4096	/* number of input packets to keep */
 #define TCP_FUNCTION_BLK 8192	/* Set the tcp function pointers to the specified stack */
+#define TCP_FUNCTION_ALIAS 8193	/* Get the current tcp function pointer name alias */
 /* Options for Rack and BBR */
 #define	TCP_REUSPORT_LB_NUMA   1026	/* set listen socket numa domain */
 #define TCP_RACK_MBUF_QUEUE   1050 /* Do we allow mbuf queuing if supported */
@@ -308,7 +310,8 @@ struct tcphdr {
 #define TCP_RACK_PACING_BETA 1138	/* Changing the beta for pacing */
 #define TCP_RACK_PACING_BETA_ECN 1139	/* Changing the beta for ecn with pacing */
 #define TCP_RACK_TIMER_SLOP 1140	/* Set or get the timer slop used */
-
+#define TCP_RACK_DSACK_OPT 1141		/* How do we setup rack timer DSACK options bit 1/2 */
+#define TCP_RACK_ENABLE_HYSTART 1142	/* Do we allow hystart in the CC modules */
 /* Start of reserved space for third-party user-settable options. */
 #define	TCP_VENDOR	SO_VENDOR
 

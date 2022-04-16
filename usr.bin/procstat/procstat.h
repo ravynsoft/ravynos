@@ -44,6 +44,7 @@ enum {
 	PS_OPT_SIGNUM		= 0x08,
 	PS_OPT_VERBOSE		= 0x10,
 	PS_MODE_COMPAT		= 0x20,
+	PS_MODE_NO_KINFO_PROC	= 0x40,
 };
 
 #define PS_SUBCOMMAND_OPTS			\
@@ -56,6 +57,7 @@ struct kinfo_proc;
 void	kinfo_proc_sort(struct kinfo_proc *kipp, int count);
 const char *	kinfo_proc_thread_name(const struct kinfo_proc *kipp);
 
+void	procstat_advlocks(struct procstat *prstat, struct kinfo_proc *kipp);
 void	procstat_args(struct procstat *prstat, struct kinfo_proc *kipp);
 void	procstat_auxv(struct procstat *prstat, struct kinfo_proc *kipp);
 void	procstat_basic(struct procstat *prstat, struct kinfo_proc *kipp);

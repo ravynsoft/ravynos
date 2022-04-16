@@ -174,23 +174,10 @@
  *	ZFS_EXIT(zfsvfs);		// finished in zfs
  *	return (error);			// done, report error
  */
-
-/*
- * Virus scanning is unsupported.  It would be possible to add a hook
- * here to performance the required virus scan.  This could be done
- * entirely in the kernel or potentially as an update to invoke a
- * scanning utility.
- */
-static int
-zfs_vscan(struct inode *ip, cred_t *cr, int async)
-{
-	return (0);
-}
-
-/* ARGSUSED */
 int
 zfs_open(struct inode *ip, int mode, int flag, cred_t *cr)
 {
+	(void) cr;
 	znode_t	*zp = ITOZ(ip);
 	zfsvfs_t *zfsvfs = ITOZSB(ip);
 
@@ -204,15 +191,6 @@ zfs_open(struct inode *ip, int mode, int flag, cred_t *cr)
 		return (SET_ERROR(EPERM));
 	}
 
-	/* Virus scan eligible files on open */
-	if (!zfs_has_ctldir(zp) && zfsvfs->z_vscan && S_ISREG(ip->i_mode) &&
-	    !(zp->z_pflags & ZFS_AV_QUARANTINED) && zp->z_size > 0) {
-		if (zfs_vscan(ip, cr, 0) != 0) {
-			ZFS_EXIT(zfsvfs);
-			return (SET_ERROR(EACCES));
-		}
-	}
-
 	/* Keep a count of the synchronous opens in the znode */
 	if (flag & O_SYNC)
 		atomic_inc_32(&zp->z_sync_cnt);
@@ -221,10 +199,10 @@ zfs_open(struct inode *ip, int mode, int flag, cred_t *cr)
 	return (0);
 }
 
-/* ARGSUSED */
 int
 zfs_close(struct inode *ip, int flag, cred_t *cr)
 {
+	(void) cr;
 	znode_t	*zp = ITOZ(ip);
 	zfsvfs_t *zfsvfs = ITOZSB(ip);
 
@@ -234,10 +212,6 @@ zfs_close(struct inode *ip, int flag, cred_t *cr)
 	/* Decrement the synchronous opens in the znode */
 	if (flag & O_SYNC)
 		atomic_dec_32(&zp->z_sync_cnt);
-
-	if (!zfs_has_ctldir(zp) && zfsvfs->z_vscan && S_ISREG(ip->i_mode) &&
-	    !(zp->z_pflags & ZFS_AV_QUARANTINED) && zp->z_size > 0)
-		VERIFY(zfs_vscan(ip, cr, 1) == 0);
 
 	ZFS_EXIT(zfsvfs);
 	return (0);
@@ -345,7 +319,7 @@ mappedread(znode_t *zp, int nbytes, zfs_uio_t *uio)
 }
 #endif /* _KERNEL */
 
-unsigned long zfs_delete_blocks = DMU_MAX_DELETEBLKCNT;
+static unsigned long zfs_delete_blocks = DMU_MAX_DELETEBLKCNT;
 
 /*
  * Write the bytes to a file.
@@ -440,7 +414,6 @@ zfs_zrele_async(znode_t *zp)
  * Timestamps:
  *	NA
  */
-/* ARGSUSED */
 int
 zfs_lookup(znode_t *zdp, char *nm, znode_t **zpp, int flags, cred_t *cr,
     int *direntflags, pathname_t *realpnp)
@@ -560,8 +533,6 @@ zfs_lookup(znode_t *zdp, char *nm, znode_t **zpp, int flags, cred_t *cr,
  *	dzp - ctime|mtime updated if new entry created
  *	 zp - ctime|mtime always, atime if new
  */
-
-/* ARGSUSED */
 int
 zfs_create(znode_t *dzp, char *name, vattr_t *vap, int excl,
     int mode, znode_t **zpp, cred_t *cr, int flag, vsecattr_t *vsecp)
@@ -807,11 +778,11 @@ out:
 	return (error);
 }
 
-/* ARGSUSED */
 int
 zfs_tmpfile(struct inode *dip, vattr_t *vap, int excl,
     int mode, struct inode **ipp, cred_t *cr, int flag, vsecattr_t *vsecp)
 {
+	(void) excl, (void) mode, (void) flag;
 	znode_t		*zp = NULL, *dzp = ITOZ(dip);
 	zfsvfs_t	*zfsvfs = ITOZSB(dip);
 	objset_t	*os;
@@ -943,9 +914,8 @@ out:
  *	 ip - ctime (if nlink > 0)
  */
 
-uint64_t null_xattr = 0;
+static uint64_t null_xattr = 0;
 
-/*ARGSUSED*/
 int
 zfs_remove(znode_t *dzp, char *name, cred_t *cr, int flags)
 {
@@ -1185,7 +1155,6 @@ out:
  *	dzp - ctime|mtime updated
  *	zpp - ctime|mtime|atime updated
  */
-/*ARGSUSED*/
 int
 zfs_mkdir(znode_t *dzp, char *dirname, vattr_t *vap, znode_t **zpp,
     cred_t *cr, int flags, vsecattr_t *vsecp)
@@ -1374,7 +1343,6 @@ out:
  * Timestamps:
  *	dzp - ctime|mtime updated
  */
-/*ARGSUSED*/
 int
 zfs_rmdir(znode_t *dzp, char *name, znode_t *cwd, cred_t *cr,
     int flags)
@@ -1507,10 +1475,10 @@ out:
  * We use 0 for '.', and 1 for '..'.  If this is the root of the filesystem,
  * we use the offset 2 for the '.zfs' directory.
  */
-/* ARGSUSED */
 int
 zfs_readdir(struct inode *ip, zpl_dir_context_t *ctx, cred_t *cr)
 {
+	(void) cr;
 	znode_t		*zp = ITOZ(ip);
 	zfsvfs_t	*zfsvfs = ITOZSB(ip);
 	objset_t	*os;
@@ -1660,7 +1628,6 @@ out:
  *
  *	RETURN:	0 (always succeeds)
  */
-/* ARGSUSED */
 int
 zfs_getattr_fast(struct user_namespace *user_ns, struct inode *ip,
     struct kstat *sp)
@@ -1848,7 +1815,6 @@ next:
  * Timestamps:
  *	ip - ctime updated, mtime updated if size changed.
  */
-/* ARGSUSED */
 int
 zfs_setattr(znode_t *zp, vattr_t *vap, int flags, cred_t *cr)
 {
@@ -2677,7 +2643,6 @@ zfs_rename_lock(znode_t *szp, znode_t *tdzp, znode_t *sdzp, zfs_zlock_t **zlpp)
  * Timestamps:
  *	sdzp,tdzp - ctime|mtime updated
  */
-/*ARGSUSED*/
 int
 zfs_rename(znode_t *sdzp, char *snm, znode_t *tdzp, char *tnm,
     cred_t *cr, int flags)
@@ -3045,7 +3010,6 @@ out:
  * Timestamps:
  *	dip - ctime|mtime updated
  */
-/*ARGSUSED*/
 int
 zfs_symlink(znode_t *dzp, char *name, vattr_t *vap, char *link,
     znode_t **zpp, cred_t *cr, int flags)
@@ -3213,10 +3177,10 @@ top:
  * Timestamps:
  *	ip - atime updated
  */
-/* ARGSUSED */
 int
 zfs_readlink(struct inode *ip, zfs_uio_t *uio, cred_t *cr)
 {
+	(void) cr;
 	znode_t		*zp = ITOZ(ip);
 	zfsvfs_t	*zfsvfs = ITOZSB(ip);
 	int		error;
@@ -3252,7 +3216,6 @@ zfs_readlink(struct inode *ip, zfs_uio_t *uio, cred_t *cr)
  *	tdzp - ctime|mtime updated
  *	 szp - ctime updated
  */
-/* ARGSUSED */
 int
 zfs_link(znode_t *tdzp, znode_t *szp, char *name, cred_t *cr,
     int flags)
@@ -3455,7 +3418,6 @@ zfs_putpage_commit_cb(void *arg)
  * Timestamps:
  *	ip - ctime|mtime updated
  */
-/* ARGSUSED */
 int
 zfs_putpage(struct inode *ip, struct page *pp, struct writeback_control *wbc)
 {
@@ -3712,7 +3674,6 @@ out:
 	return (error);
 }
 
-/*ARGSUSED*/
 void
 zfs_inactive(struct inode *ip)
 {
@@ -3816,7 +3777,6 @@ zfs_fillpage(struct inode *ip, struct page *pl[], int nr_pages)
  * Timestamps:
  *	vp - atime updated
  */
-/* ARGSUSED */
 int
 zfs_getpage(struct inode *ip, struct page *pl[], int nr_pages)
 {
@@ -3850,11 +3810,11 @@ zfs_getpage(struct inode *ip, struct page *pl[], int nr_pages)
  *	RETURN:	0 if success
  *		error code if failure
  */
-/*ARGSUSED*/
 int
 zfs_map(struct inode *ip, offset_t off, caddr_t *addrp, size_t len,
     unsigned long vm_flags)
 {
+	(void) addrp;
 	znode_t  *zp = ITOZ(ip);
 	zfsvfs_t *zfsvfs = ITOZSB(ip);
 
@@ -3900,11 +3860,11 @@ zfs_map(struct inode *ip, offset_t off, caddr_t *addrp, size_t len,
  * Timestamps:
  *	zp - ctime|mtime updated
  */
-/* ARGSUSED */
 int
 zfs_space(znode_t *zp, int cmd, flock64_t *bfp, int flag,
     offset_t offset, cred_t *cr)
 {
+	(void) offset;
 	zfsvfs_t	*zfsvfs = ZTOZSB(zp);
 	uint64_t	off, len;
 	int		error;
@@ -3951,7 +3911,6 @@ zfs_space(znode_t *zp, int cmd, flock64_t *bfp, int flag,
 	return (error);
 }
 
-/*ARGSUSED*/
 int
 zfs_fid(struct inode *ip, fid_t *fidp)
 {
@@ -4024,9 +3983,8 @@ EXPORT_SYMBOL(zfs_putpage);
 EXPORT_SYMBOL(zfs_dirty_inode);
 EXPORT_SYMBOL(zfs_map);
 
-/* BEGIN CSTYLED */
+/* CSTYLED */
 module_param(zfs_delete_blocks, ulong, 0644);
 MODULE_PARM_DESC(zfs_delete_blocks, "Delete files larger than N blocks async");
-/* END CSTYLED */
 
 #endif

@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -1025,7 +1025,7 @@ AslLogNewError (
     AslGbl_ExceptionCount[ModifiedLevel]++;
     if (!AslGbl_IgnoreErrors && AslGbl_ExceptionCount[ASL_ERROR] > ASL_MAX_ERROR_COUNT)
     {
-        printf ("\nMaximum error count (%u) exceeded\n", ASL_MAX_ERROR_COUNT);
+        printf ("\nMaximum error count (%u) exceeded (aslerror.c)\n", ASL_MAX_ERROR_COUNT);
 
         AslGbl_SourceLine = 0;
         AslGbl_NextError = AslGbl_ErrorLog;
@@ -1033,6 +1033,7 @@ AslLogNewError (
         exit(1);
     }
 
+    AslGbl_ExceptionCount[ASL_ERROR] = 0;
     return;
 }
 
@@ -1125,7 +1126,7 @@ void
 AslCheckExpectedExceptions (
     void)
 {
-    UINT8                   i;
+    UINT32                  i;
     ASL_EXPECTED_MSG_NODE   *Current = AslGbl_ExpectedErrorCodeList;
     ASL_LOCATION_NODE       *LocationNode;
 
@@ -1188,7 +1189,7 @@ AslLogExpectedException (
 
     if (MessageId > 6999)
     {
-        printf ("\"%s\" is not a valid warning/remark/erro ID\n",
+        printf ("\"%s\" is not a valid warning/remark/error ID\n",
             MessageIdString);
         return (AE_BAD_PARAMETER);
     }
@@ -1336,7 +1337,7 @@ AslElevateException (
 
     if (MessageId > 6999)
     {
-        printf ("\"%s\" is not a valid warning/remark/erro ID\n",
+        printf ("\"%s\" is not a valid warning/remark/error ID\n",
             MessageIdString);
         return (AE_BAD_PARAMETER);
     }
@@ -1456,7 +1457,7 @@ AslIsExceptionDisabled (
         {
             return (TRUE);
         }
-        /* Fall through */
+        ACPI_FALLTHROUGH;
 
     case ASL_WARNING:
     case ASL_REMARK:

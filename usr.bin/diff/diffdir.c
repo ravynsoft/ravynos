@@ -33,11 +33,14 @@ __FBSDID("$FreeBSD$");
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <unistd.h>
 
 #include "diff.h"
 
 static int selectfile(const struct dirent *);
-static void diffit(struct dirent *, char *, size_t, char *, size_t, int);
+static void diffit(struct dirent *, char *, size_t, struct dirent *,
+	char *, size_t, int);
+static void print_only(const char *, size_t, const char *);
 
 #define d_status	d_type		/* we need to store status for -l */
 
@@ -126,14 +129,14 @@ diffdir(char *p1, char *p2, int flags)
 		    strcmp(dent1->d_name, dent2->d_name) ;
 		if (pos == 0) {
 			/* file exists in both dirs, diff it */
-			diffit(dent1, path1, dirlen1, path2, dirlen2, flags);
+			diffit(dent1, path1, dirlen1, dent2, path2, dirlen2, flags);
 			dp1++;
 			dp2++;
 		} else if (pos < 0) {
 			/* file only in first dir, only diff if -N */
 			if (Nflag) {
-				diffit(dent1, path1, dirlen1, path2, dirlen2,
-				    flags);
+				diffit(dent1, path1, dirlen1, dent2, path2,
+					dirlen2, flags);
 			} else {
 				print_only(path1, dirlen1, dent1->d_name);
 				status |= 1;
@@ -142,8 +145,8 @@ diffdir(char *p1, char *p2, int flags)
 		} else {
 			/* file only in second dir, only diff if -N or -P */
 			if (Nflag || Pflag)
-				diffit(dent2, path1, dirlen1, path2, dirlen2,
-				    flags);
+				diffit(dent2, path1, dirlen1, dent1, path2,
+					dirlen2, flags);
 			else {
 				print_only(path2, dirlen2, dent2->d_name);
 				status |= 1;
@@ -169,33 +172,100 @@ closem:
  * Do the actual diff by calling either diffreg() or diffdir().
  */
 static void
-diffit(struct dirent *dp, char *path1, size_t plen1, char *path2, size_t plen2,
-    int flags)
+diffit(struct dirent *dp, char *path1, size_t plen1, struct dirent *dp2,
+	char *path2, size_t plen2, int flags)
 {
 	flags |= D_HEADER;
 	strlcpy(path1 + plen1, dp->d_name, PATH_MAX - plen1);
-	if (stat(path1, &stb1) != 0) {
-		if (!(Nflag || Pflag) || errno != ENOENT) {
-			warn("%s", path1);
+
+	/*
+	 * If we are ignoring file case, use dent2s name here if both names are
+	 * the same apart from case.
+	 */
+	if (ignore_file_case && strcasecmp(dp2->d_name, dp2->d_name) == 0)
+		strlcpy(path2 + plen2, dp2->d_name, PATH_MAX - plen2);
+	else
+		strlcpy(path2 + plen2, dp->d_name, PATH_MAX - plen2);
+
+	if (noderef) {
+		if (lstat(path1, &stb1) != 0) {
+			if (!(Nflag || Pflag) || errno != ENOENT) {
+				warn("%s", path1);
+				return;
+			}
+			flags |= D_EMPTY1;
+			memset(&stb1, 0, sizeof(stb1));
+		}
+
+		if (lstat(path2, &stb2) != 0) {
+			if (!Nflag || errno != ENOENT) {
+				warn("%s", path2);
+				return;
+			}
+			flags |= D_EMPTY2;
+			memset(&stb2, 0, sizeof(stb2));
+			stb2.st_mode = stb1.st_mode;
+		}
+		if (stb1.st_mode == 0)
+			stb1.st_mode = stb2.st_mode;
+		if (S_ISLNK(stb1.st_mode) || S_ISLNK(stb2.st_mode)) {
+			if  (S_ISLNK(stb1.st_mode) && S_ISLNK(stb2.st_mode)) {
+				char buf1[PATH_MAX];
+				char buf2[PATH_MAX];
+				ssize_t len1 = 0;
+				ssize_t len2 = 0;
+
+				len1 = readlink(path1, buf1, sizeof(buf1));
+				len2 = readlink(path2, buf2, sizeof(buf2));
+
+				if (len1 < 0 || len2 < 0) {
+					perror("reading links");
+					return;
+				}
+				buf1[len1] = '\0';
+				buf2[len2] = '\0';
+
+				if (len1 != len2 || strncmp(buf1, buf2, len1) != 0) {
+					printf("Symbolic links %s and %s differ\n",
+						path1, path2);
+					status |= 1;
+				}
+
+				return;
+			}
+
+			printf("File %s is a %s while file %s is a %s\n",
+				path1, S_ISLNK(stb1.st_mode) ? "symbolic link" :
+					(S_ISDIR(stb1.st_mode) ? "directory" :
+					(S_ISREG(stb1.st_mode) ? "file" : "error")),
+				path2, S_ISLNK(stb2.st_mode) ? "symbolic link" :
+					(S_ISDIR(stb2.st_mode) ? "directory" :
+					(S_ISREG(stb2.st_mode) ? "file" : "error")));
+			status |= 1;
 			return;
 		}
-		flags |= D_EMPTY1;
-		memset(&stb1, 0, sizeof(stb1));
-	}
-
-	strlcpy(path2 + plen2, dp->d_name, PATH_MAX - plen2);
-	if (stat(path2, &stb2) != 0) {
-		if (!Nflag || errno != ENOENT) {
-			warn("%s", path2);
-			return;
+	} else {
+		if (stat(path1, &stb1) != 0) {
+			if (!(Nflag || Pflag) || errno != ENOENT) {
+				warn("%s", path1);
+				return;
+			}
+			flags |= D_EMPTY1;
+			memset(&stb1, 0, sizeof(stb1));
 		}
-		flags |= D_EMPTY2;
-		memset(&stb2, 0, sizeof(stb2));
-		stb2.st_mode = stb1.st_mode;
-	}
-	if (stb1.st_mode == 0)
-		stb1.st_mode = stb2.st_mode;
 
+		if (stat(path2, &stb2) != 0) {
+			if (!Nflag || errno != ENOENT) {
+				warn("%s", path2);
+				return;
+			}
+			flags |= D_EMPTY2;
+			memset(&stb2, 0, sizeof(stb2));
+			stb2.st_mode = stb1.st_mode;
+		}
+		if (stb1.st_mode == 0)
+			stb1.st_mode = stb2.st_mode;
+	}
 	if (S_ISDIR(stb1.st_mode) && S_ISDIR(stb2.st_mode)) {
 		if (rflag)
 			diffdir(path1, path2, flags);
@@ -236,4 +306,12 @@ selectfile(const struct dirent *dp)
 			return (0);
 
 	return (1);
+}
+
+void
+print_only(const char *path, size_t dirlen, const char *entry)
+{
+	if (dirlen > 1)
+		dirlen--;
+	printf("Only in %.*s: %s\n", (int)dirlen, path, entry);
 }

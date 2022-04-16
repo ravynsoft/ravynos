@@ -43,8 +43,7 @@ __FBSDID("$FreeBSD$");
 	mov	x18, sp
 	sub	sp, sp, #128
 .endif
-	sub	sp, sp, #(TF_SIZE + 16)
-	stp	x29, lr, [sp, #(TF_SIZE)]
+	sub	sp, sp, #(TF_SIZE)
 	stp	x28, x29, [sp, #(TF_X + 28 * 8)]
 	stp	x26, x27, [sp, #(TF_X + 26 * 8)]
 	stp	x24, x25, [sp, #(TF_X + 24 * 8)]
@@ -89,6 +88,9 @@ __FBSDID("$FreeBSD$");
 	blr	x1
 1:
 
+	ldr	x0, [x18, #PC_CURTHREAD]
+	bl	ptrauth_exit_el0
+
 	ldr	x0, [x18, #(PC_CURTHREAD)]
 	bl	dbg_monitor_enter
 
@@ -114,6 +116,9 @@ __FBSDID("$FreeBSD$");
 	ldr	x0, [x18, #PC_CURTHREAD]
 	mov	x1, sp
 	bl	dbg_monitor_exit
+
+	ldr	x0, [x18, #PC_CURTHREAD]
+	bl	ptrauth_enter_el0
 
 	/* Remove the SSBD (CVE-2018-3639) workaround if needed */
 	ldr	x1, [x18, #PC_SSBD]
@@ -153,7 +158,7 @@ __FBSDID("$FreeBSD$");
 	ldr	     x29, [sp, #(TF_X + 29 * 8)]
 .endif
 .if \el == 0
-	add	sp, sp, #(TF_SIZE + 16)
+	add	sp, sp, #(TF_SIZE)
 .else
 	mov	sp, x18
 	mrs	x18, tpidr_el1
@@ -241,7 +246,7 @@ ENTRY(handle_empty_exception)
 	mov	x0, sp
 1:	bl	unhandled_exception
 	b	1b
-END(handle_unhandled_exception)
+END(handle_empty_exception)
 
 .macro	vector	name, el
 	.align 7

@@ -41,6 +41,7 @@ DEPENDFILES+=	${TGHDRS:C/$/.d/}
 DPSRCS+=	${TGHDRS}
 CLEANFILES+=	${TGHDRS} ${TGHDRS:C/$/.d/}
 
+LIBADD+=	tinfow
 LIBADD+=	edit
 LIBADD+=	execinfo
 LIBADD+=	lua

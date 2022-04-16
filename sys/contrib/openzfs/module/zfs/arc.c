@@ -250,7 +250,7 @@
  * since the physical block is about to be rewritten. The new data contents
  * will be contained in the arc_buf_t. As the I/O pipeline performs the write,
  * it may compress the data before writing it to disk. The ARC will be called
- * with the transformed data and will bcopy the transformed on-disk block into
+ * with the transformed data and will memcpy the transformed on-disk block into
  * a newly allocated b_pabd. Writes are always done into buffers which have
  * either been loaned (and hence are new and don't have other readers) or
  * buffers which have been released (and hence have their own hdr, if there
@@ -354,7 +354,7 @@ static list_t arc_evict_waiters;
  * can still happen, even during the potentially long time that arc_size is
  * more than arc_c.
  */
-int zfs_arc_eviction_pct = 200;
+static int zfs_arc_eviction_pct = 200;
 
 /*
  * The number of headers to evict in arc_evict_state_impl() before
@@ -363,7 +363,7 @@ int zfs_arc_eviction_pct = 200;
  * oldest header in the arc state), but comes with higher overhead
  * (i.e. more invocations of arc_evict_state_impl()).
  */
-int zfs_arc_evict_batch_limit = 10;
+static int zfs_arc_evict_batch_limit = 10;
 
 /* number of seconds before growing cache again */
 int arc_grow_retry = 5;
@@ -371,13 +371,13 @@ int arc_grow_retry = 5;
 /*
  * Minimum time between calls to arc_kmem_reap_soon().
  */
-int arc_kmem_cache_reap_retry_ms = 1000;
+static const int arc_kmem_cache_reap_retry_ms = 1000;
 
 /* shift of arc_c for calculating overflow limit in arc_get_data_impl */
-int zfs_arc_overflow_shift = 8;
+static int zfs_arc_overflow_shift = 8;
 
 /* shift of arc_c for calculating both min and max arc_p */
-int arc_p_min_shift = 4;
+static int arc_p_min_shift = 4;
 
 /* log2(fraction of arc to reclaim) */
 int arc_shrink_shift = 7;
@@ -423,19 +423,22 @@ unsigned long zfs_arc_max = 0;
 unsigned long zfs_arc_min = 0;
 unsigned long zfs_arc_meta_limit = 0;
 unsigned long zfs_arc_meta_min = 0;
-unsigned long zfs_arc_dnode_limit = 0;
-unsigned long zfs_arc_dnode_reduce_percent = 10;
-int zfs_arc_grow_retry = 0;
-int zfs_arc_shrink_shift = 0;
-int zfs_arc_p_min_shift = 0;
+static unsigned long zfs_arc_dnode_limit = 0;
+static unsigned long zfs_arc_dnode_reduce_percent = 10;
+static int zfs_arc_grow_retry = 0;
+static int zfs_arc_shrink_shift = 0;
+static int zfs_arc_p_min_shift = 0;
 int zfs_arc_average_blocksize = 8 * 1024; /* 8KB */
 
 /*
- * ARC dirty data constraints for arc_tempreserve_space() throttle.
+ * ARC dirty data constraints for arc_tempreserve_space() throttle:
+ * * total dirty data limit
+ * * anon block dirty limit
+ * * each pool's anon allowance
  */
-unsigned long zfs_arc_dirty_limit_percent = 50;	/* total dirty data limit */
-unsigned long zfs_arc_anon_limit_percent = 25;	/* anon block dirty limit */
-unsigned long zfs_arc_pool_dirty_percent = 20;	/* each pool's anon allowance */
+static const unsigned long zfs_arc_dirty_limit_percent = 50;
+static const unsigned long zfs_arc_anon_limit_percent = 25;
+static const unsigned long zfs_arc_pool_dirty_percent = 20;
 
 /*
  * Enable or disable compressed arc buffers.
@@ -446,24 +449,24 @@ int zfs_compressed_arc_enabled = B_TRUE;
  * ARC will evict meta buffers that exceed arc_meta_limit. This
  * tunable make arc_meta_limit adjustable for different workloads.
  */
-unsigned long zfs_arc_meta_limit_percent = 75;
+static unsigned long zfs_arc_meta_limit_percent = 75;
 
 /*
  * Percentage that can be consumed by dnodes of ARC meta buffers.
  */
-unsigned long zfs_arc_dnode_limit_percent = 10;
+static unsigned long zfs_arc_dnode_limit_percent = 10;
 
 /*
- * These tunables are Linux specific
+ * These tunables are Linux-specific
  */
-unsigned long zfs_arc_sys_free = 0;
-int zfs_arc_min_prefetch_ms = 0;
-int zfs_arc_min_prescient_prefetch_ms = 0;
-int zfs_arc_p_dampener_disable = 1;
-int zfs_arc_meta_prune = 10000;
-int zfs_arc_meta_strategy = ARC_STRATEGY_META_BALANCED;
-int zfs_arc_meta_adjust_restarts = 4096;
-int zfs_arc_lotsfree_percent = 10;
+static unsigned long zfs_arc_sys_free = 0;
+static int zfs_arc_min_prefetch_ms = 0;
+static int zfs_arc_min_prescient_prefetch_ms = 0;
+static int zfs_arc_p_dampener_disable = 1;
+static int zfs_arc_meta_prune = 10000;
+static int zfs_arc_meta_strategy = ARC_STRATEGY_META_BALANCED;
+static int zfs_arc_meta_adjust_restarts = 4096;
+static int zfs_arc_lotsfree_percent = 10;
 
 /*
  * Number of arc_prune threads
@@ -651,10 +654,9 @@ arc_sums_t arc_sums;
 		x = x - x / ARCSTAT_F_AVG_FACTOR + \
 		    (value) / ARCSTAT_F_AVG_FACTOR; \
 		ARCSTAT(stat) = x; \
-		_NOTE(CONSTCOND) \
 	} while (0)
 
-kstat_t			*arc_ksp;
+static kstat_t			*arc_ksp;
 
 /*
  * There are several ARC variables that are critical to export as kstats --
@@ -788,7 +790,7 @@ unsigned long l2arc_feed_min_ms = L2ARC_FEED_MIN_MS;	/* min interval msecs */
 int l2arc_noprefetch = B_TRUE;			/* don't cache prefetch bufs */
 int l2arc_feed_again = B_TRUE;			/* turbo warmup */
 int l2arc_norw = B_FALSE;			/* no reads during writes */
-int l2arc_meta_percent = 33;			/* limit on headers size */
+static int l2arc_meta_percent = 33;		/* limit on headers size */
 
 /*
  * L2ARC Internals
@@ -878,10 +880,18 @@ static void l2arc_hdr_arcstats_update(arc_buf_hdr_t *hdr, boolean_t incr,
 	l2arc_hdr_arcstats_update((hdr), B_FALSE, B_TRUE)
 
 /*
+ * l2arc_exclude_special : A zfs module parameter that controls whether buffers
+ * 		present on special vdevs are eligibile for caching in L2ARC. If
+ * 		set to 1, exclude dbufs on special vdevs from being cached to
+ * 		L2ARC.
+ */
+int l2arc_exclude_special = 0;
+
+/*
  * l2arc_mfuonly : A ZFS module parameter that controls whether only MFU
  * 		metadata and data are cached from ARC into L2ARC.
  */
-int l2arc_mfuonly = 0;
+static int l2arc_mfuonly = 0;
 
 /*
  * L2ARC TRIM
@@ -898,7 +908,7 @@ int l2arc_mfuonly = 0;
  * 		will vary depending of how well the specific device handles
  * 		these commands.
  */
-unsigned long l2arc_trim_ahead = 0;
+static unsigned long l2arc_trim_ahead = 0;
 
 /*
  * Performance tuning of L2ARC persistence:
@@ -913,12 +923,12 @@ unsigned long l2arc_trim_ahead = 0;
  * 		data. In this case do not write log blocks in L2ARC in order
  * 		not to waste space.
  */
-int l2arc_rebuild_enabled = B_TRUE;
-unsigned long l2arc_rebuild_blocks_min_l2size = 1024 * 1024 * 1024;
+static int l2arc_rebuild_enabled = B_TRUE;
+static unsigned long l2arc_rebuild_blocks_min_l2size = 1024 * 1024 * 1024;
 
 /* L2ARC persistence rebuild control routines. */
 void l2arc_rebuild_vdev(vdev_t *vd, boolean_t reopen);
-static void l2arc_dev_rebuild_thread(void *arg);
+static __attribute__((noreturn)) void l2arc_dev_rebuild_thread(void *arg);
 static int l2arc_rebuild(l2arc_dev_t *dev);
 
 /* L2ARC persistence read I/O routines. */
@@ -1122,7 +1132,7 @@ hdr_full_cons(void *vbuf, void *unused, int kmflag)
 	(void) unused, (void) kmflag;
 	arc_buf_hdr_t *hdr = vbuf;
 
-	bzero(hdr, HDR_FULL_SIZE);
+	memset(hdr, 0, HDR_FULL_SIZE);
 	hdr->b_l1hdr.b_byteswap = DMU_BSWAP_NUMFUNCS;
 	cv_init(&hdr->b_l1hdr.b_cv, NULL, CV_DEFAULT, NULL);
 	zfs_refcount_create(&hdr->b_l1hdr.b_refcnt);
@@ -1142,7 +1152,7 @@ hdr_full_crypt_cons(void *vbuf, void *unused, int kmflag)
 	arc_buf_hdr_t *hdr = vbuf;
 
 	hdr_full_cons(vbuf, unused, kmflag);
-	bzero(&hdr->b_crypt_hdr, sizeof (hdr->b_crypt_hdr));
+	memset(&hdr->b_crypt_hdr, 0, sizeof (hdr->b_crypt_hdr));
 	arc_space_consume(sizeof (hdr->b_crypt_hdr), ARC_SPACE_HDRS);
 
 	return (0);
@@ -1154,7 +1164,7 @@ hdr_l2only_cons(void *vbuf, void *unused, int kmflag)
 	(void) unused, (void) kmflag;
 	arc_buf_hdr_t *hdr = vbuf;
 
-	bzero(hdr, HDR_L2ONLY_SIZE);
+	memset(hdr, 0, HDR_L2ONLY_SIZE);
 	arc_space_consume(HDR_L2ONLY_SIZE, ARC_SPACE_L2HDRS);
 
 	return (0);
@@ -1166,7 +1176,7 @@ buf_cons(void *vbuf, void *unused, int kmflag)
 	(void) unused, (void) kmflag;
 	arc_buf_t *buf = vbuf;
 
-	bzero(buf, sizeof (arc_buf_t));
+	memset(buf, 0, sizeof (arc_buf_t));
 	mutex_init(&buf->b_evict_lock, NULL, MUTEX_DEFAULT, NULL);
 	arc_space_consume(sizeof (arc_buf_t), ARC_SPACE_HDRS);
 
@@ -1194,18 +1204,18 @@ hdr_full_dest(void *vbuf, void *unused)
 static void
 hdr_full_crypt_dest(void *vbuf, void *unused)
 {
-	(void) unused;
-	arc_buf_hdr_t *hdr = vbuf;
+	(void) vbuf, (void) unused;
 
 	hdr_full_dest(vbuf, unused);
-	arc_space_return(sizeof (hdr->b_crypt_hdr), ARC_SPACE_HDRS);
+	arc_space_return(sizeof (((arc_buf_hdr_t *)NULL)->b_crypt_hdr),
+	    ARC_SPACE_HDRS);
 }
 
 static void
 hdr_l2only_dest(void *vbuf, void *unused)
 {
 	(void) unused;
-	arc_buf_hdr_t *hdr __maybe_unused = vbuf;
+	arc_buf_hdr_t *hdr = vbuf;
 
 	ASSERT(HDR_EMPTY(hdr));
 	arc_space_return(HDR_L2ONLY_SIZE, ARC_SPACE_L2HDRS);
@@ -1322,9 +1332,9 @@ arc_get_raw_params(arc_buf_t *buf, boolean_t *byteorder, uint8_t *salt,
 
 	ASSERT(HDR_PROTECTED(hdr));
 
-	bcopy(hdr->b_crypt_hdr.b_salt, salt, ZIO_DATA_SALT_LEN);
-	bcopy(hdr->b_crypt_hdr.b_iv, iv, ZIO_DATA_IV_LEN);
-	bcopy(hdr->b_crypt_hdr.b_mac, mac, ZIO_DATA_MAC_LEN);
+	memcpy(salt, hdr->b_crypt_hdr.b_salt, ZIO_DATA_SALT_LEN);
+	memcpy(iv, hdr->b_crypt_hdr.b_iv, ZIO_DATA_IV_LEN);
+	memcpy(mac, hdr->b_crypt_hdr.b_mac, ZIO_DATA_MAC_LEN);
 	*byteorder = (hdr->b_l1hdr.b_byteswap == DMU_BSWAP_NUMFUNCS) ?
 	    ZFS_HOST_BYTEORDER : !ZFS_HOST_BYTEORDER;
 }
@@ -1682,7 +1692,7 @@ arc_buf_try_copy_decompressed_data(arc_buf_t *buf)
 		}
 
 		if (!ARC_BUF_COMPRESSED(from)) {
-			bcopy(from->b_data, buf->b_data, arc_buf_size(buf));
+			memcpy(buf->b_data, from->b_data, arc_buf_size(buf));
 			copied = B_TRUE;
 			break;
 		}
@@ -3339,7 +3349,7 @@ arc_hdr_realloc(arc_buf_hdr_t *hdr, kmem_cache_t *old, kmem_cache_t *new)
 	ASSERT(MUTEX_HELD(HDR_LOCK(hdr)));
 	buf_hash_remove(hdr);
 
-	bcopy(hdr, nhdr, HDR_L2ONLY_SIZE);
+	memcpy(nhdr, hdr, HDR_L2ONLY_SIZE);
 
 	if (new == hdr_full_cache || new == hdr_full_crypt_cache) {
 		arc_hdr_set_flags(nhdr, ARC_FLAG_HAS_L1HDR);
@@ -3430,7 +3440,6 @@ arc_hdr_realloc_crypt(arc_buf_hdr_t *hdr, boolean_t need_crypt)
 	arc_buf_hdr_t *nhdr;
 	arc_buf_t *buf;
 	kmem_cache_t *ncache, *ocache;
-	unsigned nsize, osize;
 
 	/*
 	 * This function requires that hdr is in the arc_anon state.
@@ -3447,14 +3456,10 @@ arc_hdr_realloc_crypt(arc_buf_hdr_t *hdr, boolean_t need_crypt)
 
 	if (need_crypt) {
 		ncache = hdr_full_crypt_cache;
-		nsize = sizeof (hdr->b_crypt_hdr);
 		ocache = hdr_full_cache;
-		osize = HDR_FULL_SIZE;
 	} else {
 		ncache = hdr_full_cache;
-		nsize = HDR_FULL_SIZE;
 		ocache = hdr_full_crypt_cache;
-		osize = sizeof (hdr->b_crypt_hdr);
 	}
 
 	nhdr = kmem_cache_alloc(ncache, KM_PUSHPAGE);
@@ -3507,7 +3512,7 @@ arc_hdr_realloc_crypt(arc_buf_hdr_t *hdr, boolean_t need_crypt)
 	}
 
 	/* unset all members of the original hdr */
-	bzero(&hdr->b_dva, sizeof (dva_t));
+	memset(&hdr->b_dva, 0, sizeof (dva_t));
 	hdr->b_birth = 0;
 	hdr->b_type = ARC_BUFC_INVALID;
 	hdr->b_flags = 0;
@@ -3532,9 +3537,9 @@ arc_hdr_realloc_crypt(arc_buf_hdr_t *hdr, boolean_t need_crypt)
 		hdr->b_crypt_hdr.b_ot = DMU_OT_NONE;
 		hdr->b_crypt_hdr.b_ebufcnt = 0;
 		hdr->b_crypt_hdr.b_dsobj = 0;
-		bzero(hdr->b_crypt_hdr.b_salt, ZIO_DATA_SALT_LEN);
-		bzero(hdr->b_crypt_hdr.b_iv, ZIO_DATA_IV_LEN);
-		bzero(hdr->b_crypt_hdr.b_mac, ZIO_DATA_MAC_LEN);
+		memset(hdr->b_crypt_hdr.b_salt, 0, ZIO_DATA_SALT_LEN);
+		memset(hdr->b_crypt_hdr.b_iv, 0, ZIO_DATA_IV_LEN);
+		memset(hdr->b_crypt_hdr.b_mac, 0, ZIO_DATA_MAC_LEN);
 	}
 
 	buf_discard_identity(hdr);
@@ -3572,11 +3577,11 @@ arc_convert_to_raw(arc_buf_t *buf, uint64_t dsobj, boolean_t byteorder,
 		arc_cksum_free(hdr);
 
 	if (salt != NULL)
-		bcopy(salt, hdr->b_crypt_hdr.b_salt, ZIO_DATA_SALT_LEN);
+		memcpy(hdr->b_crypt_hdr.b_salt, salt, ZIO_DATA_SALT_LEN);
 	if (iv != NULL)
-		bcopy(iv, hdr->b_crypt_hdr.b_iv, ZIO_DATA_IV_LEN);
+		memcpy(hdr->b_crypt_hdr.b_iv, iv, ZIO_DATA_IV_LEN);
 	if (mac != NULL)
-		bcopy(mac, hdr->b_crypt_hdr.b_mac, ZIO_DATA_MAC_LEN);
+		memcpy(hdr->b_crypt_hdr.b_mac, mac, ZIO_DATA_MAC_LEN);
 }
 
 /*
@@ -3652,9 +3657,9 @@ arc_alloc_raw_buf(spa_t *spa, void *tag, uint64_t dsobj, boolean_t byteorder,
 	hdr->b_crypt_hdr.b_ot = ot;
 	hdr->b_l1hdr.b_byteswap = (byteorder == ZFS_HOST_BYTEORDER) ?
 	    DMU_BSWAP_NUMFUNCS : DMU_OT_BYTESWAP(ot);
-	bcopy(salt, hdr->b_crypt_hdr.b_salt, ZIO_DATA_SALT_LEN);
-	bcopy(iv, hdr->b_crypt_hdr.b_iv, ZIO_DATA_IV_LEN);
-	bcopy(mac, hdr->b_crypt_hdr.b_mac, ZIO_DATA_MAC_LEN);
+	memcpy(hdr->b_crypt_hdr.b_salt, salt, ZIO_DATA_SALT_LEN);
+	memcpy(hdr->b_crypt_hdr.b_iv, iv, ZIO_DATA_IV_LEN);
+	memcpy(hdr->b_crypt_hdr.b_mac, mac, ZIO_DATA_MAC_LEN);
 
 	/*
 	 * This buffer will be considered encrypted even if the ot is not an
@@ -3789,8 +3794,13 @@ arc_hdr_destroy(arc_buf_hdr_t *hdr)
 		 * to acquire the l2ad_mtx. If that happens, we don't
 		 * want to re-destroy the header's L2 portion.
 		 */
-		if (HDR_HAS_L2HDR(hdr))
+		if (HDR_HAS_L2HDR(hdr)) {
+
+			if (!HDR_EMPTY(hdr))
+				buf_discard_identity(hdr);
+
 			arc_hdr_l2hdr_destroy(hdr);
+		}
 
 		if (!buflist_held)
 			mutex_exit(&dev->l2ad_mtx);
@@ -4832,8 +4842,6 @@ arc_kmem_reap_soon(void)
 	size_t			i;
 	kmem_cache_t		*prev_cache = NULL;
 	kmem_cache_t		*prev_data_cache = NULL;
-	extern kmem_cache_t	*zio_buf_cache[];
-	extern kmem_cache_t	*zio_data_buf_cache[];
 
 #ifdef _KERNEL
 	if ((aggsum_compare(&arc_sums.arcstat_meta_used,
@@ -5635,7 +5643,7 @@ arc_bcopy_func(zio_t *zio, const zbookmark_phys_t *zb, const blkptr_t *bp,
 	if (buf == NULL)
 		return;
 
-	bcopy(buf->b_data, arg, arc_buf_size(buf));
+	memcpy(arg, buf->b_data, arc_buf_size(buf));
 	arc_buf_destroy(buf, arg);
 }
 
@@ -5715,17 +5723,20 @@ arc_read_done(zio_t *zio)
 		zio_crypt_decode_params_bp(bp, hdr->b_crypt_hdr.b_salt,
 		    hdr->b_crypt_hdr.b_iv);
 
-		if (BP_GET_TYPE(bp) == DMU_OT_INTENT_LOG) {
-			void *tmpbuf;
+		if (zio->io_error == 0) {
+			if (BP_GET_TYPE(bp) == DMU_OT_INTENT_LOG) {
+				void *tmpbuf;
 
-			tmpbuf = abd_borrow_buf_copy(zio->io_abd,
-			    sizeof (zil_chain_t));
-			zio_crypt_decode_mac_zil(tmpbuf,
-			    hdr->b_crypt_hdr.b_mac);
-			abd_return_buf(zio->io_abd, tmpbuf,
-			    sizeof (zil_chain_t));
-		} else {
-			zio_crypt_decode_mac_bp(bp, hdr->b_crypt_hdr.b_mac);
+				tmpbuf = abd_borrow_buf_copy(zio->io_abd,
+				    sizeof (zil_chain_t));
+				zio_crypt_decode_mac_zil(tmpbuf,
+				    hdr->b_crypt_hdr.b_mac);
+				abd_return_buf(zio->io_abd, tmpbuf,
+				    sizeof (zil_chain_t));
+			} else {
+				zio_crypt_decode_mac_bp(bp,
+				    hdr->b_crypt_hdr.b_mac);
+			}
 		}
 	}
 
@@ -6922,7 +6933,8 @@ arc_write_ready(zio_t *zio)
 		arc_hdr_alloc_abd(hdr, ARC_HDR_DO_ADAPT | ARC_HDR_ALLOC_RDATA |
 		    ARC_HDR_USE_RESERVE);
 		abd_copy(hdr->b_crypt_hdr.b_rabd, zio->io_abd, psize);
-	} else if (zfs_abd_scatter_enabled || !arc_can_share(hdr, buf)) {
+	} else if (!abd_size_alloc_linear(arc_buf_size(buf)) ||
+	    !arc_can_share(hdr, buf)) {
 		/*
 		 * Ideally, we would always copy the io_abd into b_pabd, but the
 		 * user may have disabled compressed ARC, thus we must check the
@@ -7094,11 +7106,11 @@ arc_write(zio_t *pio, spa_t *spa, uint64_t txg,
 		localprop.zp_byteorder =
 		    (hdr->b_l1hdr.b_byteswap == DMU_BSWAP_NUMFUNCS) ?
 		    ZFS_HOST_BYTEORDER : !ZFS_HOST_BYTEORDER;
-		bcopy(hdr->b_crypt_hdr.b_salt, localprop.zp_salt,
+		memcpy(localprop.zp_salt, hdr->b_crypt_hdr.b_salt,
 		    ZIO_DATA_SALT_LEN);
-		bcopy(hdr->b_crypt_hdr.b_iv, localprop.zp_iv,
+		memcpy(localprop.zp_iv, hdr->b_crypt_hdr.b_iv,
 		    ZIO_DATA_IV_LEN);
-		bcopy(hdr->b_crypt_hdr.b_mac, localprop.zp_mac,
+		memcpy(localprop.zp_mac, hdr->b_crypt_hdr.b_mac,
 		    ZIO_DATA_MAC_LEN);
 		if (DMU_OT_IS_ENCRYPTED(localprop.zp_type)) {
 			localprop.zp_nopwrite = B_FALSE;
@@ -7527,7 +7539,7 @@ arc_state_l2c_multilist_index_func(multilist_t *ml, void *obj)
 	if ((do_warn) && (tuning) && ((tuning) != (value))) {	\
 		cmn_err(CE_WARN,				\
 		    "ignoring tunable %s (using %llu instead)",	\
-		    (#tuning), (value));			\
+		    (#tuning), (u_longlong_t)(value));	\
 	}							\
 } while (0)
 
@@ -8057,6 +8069,18 @@ arc_init(void)
 		zfs_dirty_data_max = MIN(zfs_dirty_data_max,
 		    zfs_dirty_data_max_max);
 	}
+
+	if (zfs_wrlog_data_max == 0) {
+
+		/*
+		 * dp_wrlog_total is reduced for each txg at the end of
+		 * spa_sync(). However, dp_dirty_total is reduced every time
+		 * a block is written out. Thus under normal operation,
+		 * dp_wrlog_total could grow 2 times as big as
+		 * zfs_dirty_data_max.
+		 */
+		zfs_wrlog_data_max = zfs_dirty_data_max * 2;
+	}
 }
 
 void
@@ -8422,8 +8446,8 @@ l2arc_write_size(l2arc_dev_t *dev)
 		    "plus the overhead of log blocks (persistent L2ARC, "
 		    "%llu bytes) exceeds the size of the cache device "
 		    "(guid %llu), resetting them to the default (%d)",
-		    l2arc_log_blk_overhead(size, dev),
-		    dev->l2ad_vdev->vdev_guid, L2ARC_WRITE_SIZE);
+		    (u_longlong_t)l2arc_log_blk_overhead(size, dev),
+		    (u_longlong_t)dev->l2ad_vdev->vdev_guid, L2ARC_WRITE_SIZE);
 		size = l2arc_write_max = l2arc_write_boost = L2ARC_WRITE_SIZE;
 
 		if (arc_warm == B_FALSE)
@@ -8698,14 +8722,15 @@ top:
 				 * block pointer in the header.
 				 */
 				if (i == 0) {
-					bzero(l2dhdr, dev->l2ad_dev_hdr_asize);
+					memset(l2dhdr, 0,
+					    dev->l2ad_dev_hdr_asize);
 				} else {
-					bzero(&l2dhdr->dh_start_lbps[i],
+					memset(&l2dhdr->dh_start_lbps[i], 0,
 					    sizeof (l2arc_log_blkptr_t));
 				}
 				break;
 			}
-			bcopy(lb_ptr_buf->lb_ptr, &l2dhdr->dh_start_lbps[i],
+			memcpy(&l2dhdr->dh_start_lbps[i], lb_ptr_buf->lb_ptr,
 			    sizeof (l2arc_log_blkptr_t));
 			lb_ptr_buf = list_next(&dev->l2ad_lbptr_list,
 			    lb_ptr_buf);
@@ -9329,7 +9354,7 @@ l2arc_apply_transforms(spa_t *spa, arc_buf_hdr_t *hdr, uint64_t asize,
 		}
 		ASSERT3U(psize, <=, HDR_GET_PSIZE(hdr));
 		if (psize < asize)
-			bzero((char *)tmp + psize, asize - psize);
+			memset((char *)tmp + psize, 0, asize - psize);
 		psize = HDR_GET_PSIZE(hdr);
 		abd_return_buf_copy(cabd, tmp, asize);
 		to_write = cabd;
@@ -9364,7 +9389,7 @@ encrypt:
 			abd_zero_off(eabd, psize, asize - psize);
 
 		/* assert that the MAC we got here matches the one we saved */
-		ASSERT0(bcmp(mac, hdr->b_crypt_hdr.b_mac, ZIO_DATA_MAC_LEN));
+		ASSERT0(memcmp(mac, hdr->b_crypt_hdr.b_mac, ZIO_DATA_MAC_LEN));
 		spa_keystore_dsl_key_rele(spa, dck, FTAG);
 
 		if (to_write == cabd)
@@ -9496,12 +9521,6 @@ l2arc_write_buffers(spa_t *spa, l2arc_dev_t *dev, uint64_t target_sz)
 				continue;
 			}
 
-			/*
-			 * We rely on the L1 portion of the header below, so
-			 * it's invalid for this header to have been evicted out
-			 * of the ghost cache, prior to being written out. The
-			 * ARC_FLAG_L2_WRITING bit ensures this won't happen.
-			 */
 			ASSERT(HDR_HAS_L1HDR(hdr));
 
 			ASSERT3U(HDR_GET_PSIZE(hdr), >, 0);
@@ -9525,12 +9544,6 @@ l2arc_write_buffers(spa_t *spa, l2arc_dev_t *dev, uint64_t target_sz)
 			 * ARC_FLAG_L2_WRITING bit ensures this won't happen.
 			 */
 			arc_hdr_set_flags(hdr, ARC_FLAG_L2_WRITING);
-			ASSERT(HDR_HAS_L1HDR(hdr));
-
-			ASSERT3U(HDR_GET_PSIZE(hdr), >, 0);
-			ASSERT(hdr->b_l1hdr.b_pabd != NULL ||
-			    HDR_HAS_RABD(hdr));
-			ASSERT3U(arc_hdr_size(hdr), >, 0);
 
 			/*
 			 * If this header has b_rabd, we can use this since it
@@ -9694,7 +9707,7 @@ l2arc_hdr_limit_reached(void)
  * This thread feeds the L2ARC at regular intervals.  This is the beating
  * heart of the L2ARC.
  */
-static void
+static  __attribute__((noreturn)) void
 l2arc_feed_thread(void *unused)
 {
 	(void) unused;
@@ -9885,7 +9898,7 @@ l2arc_rebuild_dev(l2arc_dev_t *dev, boolean_t reopen)
 		if (l2arc_trim_ahead > 0) {
 			dev->l2ad_trim_all = B_TRUE;
 		} else {
-			bzero(l2dhdr, l2dhdr_asize);
+			memset(l2dhdr, 0, l2dhdr_asize);
 			l2arc_dev_hdr_update(dev);
 		}
 	}
@@ -10133,7 +10146,7 @@ l2arc_spa_rebuild_start(spa_t *spa)
 /*
  * Main entry point for L2ARC rebuilding.
  */
-static void
+static __attribute__((noreturn)) void
 l2arc_dev_rebuild_thread(void *arg)
 {
 	l2arc_dev_t *dev = arg;
@@ -10206,7 +10219,7 @@ l2arc_rebuild(l2arc_dev_t *dev)
 		goto out;
 
 	/* Prepare the rebuild process */
-	bcopy(l2dhdr->dh_start_lbps, lbps, sizeof (lbps));
+	memcpy(lbps, l2dhdr->dh_start_lbps, sizeof (lbps));
 
 	/* Start the rebuild process */
 	for (;;) {
@@ -10252,7 +10265,7 @@ l2arc_rebuild(l2arc_dev_t *dev)
 		lb_ptr_buf = kmem_zalloc(sizeof (l2arc_lb_ptr_buf_t), KM_SLEEP);
 		lb_ptr_buf->lb_ptr = kmem_zalloc(sizeof (l2arc_log_blkptr_t),
 		    KM_SLEEP);
-		bcopy(&lbps[0], lb_ptr_buf->lb_ptr,
+		memcpy(lb_ptr_buf->lb_ptr, &lbps[0],
 		    sizeof (l2arc_log_blkptr_t));
 		mutex_enter(&dev->l2ad_mtx);
 		list_insert_tail(&dev->l2ad_lbptr_list, lb_ptr_buf);
@@ -10350,7 +10363,7 @@ out:
 		 */
 		spa_history_log_internal(spa, "L2ARC rebuild", NULL,
 		    "no valid log blocks");
-		bzero(l2dhdr, dev->l2ad_dev_hdr_asize);
+		memset(l2dhdr, 0, dev->l2ad_dev_hdr_asize);
 		l2arc_dev_hdr_update(dev);
 	} else if (err == ECANCELED) {
 		/*
@@ -10832,7 +10845,6 @@ l2arc_log_blk_commit(l2arc_dev_t *dev, zio_t *pio, l2arc_write_callback_t *cb)
 	    dev->l2ad_log_blk_payload_asize;
 	l2dhdr->dh_start_lbps[0].lbp_payload_start =
 	    dev->l2ad_log_blk_payload_start;
-	_NOTE(CONSTCOND)
 	L2BLK_SET_LSIZE(
 	    (&l2dhdr->dh_start_lbps[0])->lbp_prop, sizeof (*lb));
 	L2BLK_SET_PSIZE(
@@ -10842,13 +10854,13 @@ l2arc_log_blk_commit(l2arc_dev_t *dev, zio_t *pio, l2arc_write_callback_t *cb)
 	    ZIO_CHECKSUM_FLETCHER_4);
 	if (asize < sizeof (*lb)) {
 		/* compression succeeded */
-		bzero(tmpbuf + psize, asize - psize);
+		memset(tmpbuf + psize, 0, asize - psize);
 		L2BLK_SET_COMPRESS(
 		    (&l2dhdr->dh_start_lbps[0])->lbp_prop,
 		    ZIO_COMPRESS_LZ4);
 	} else {
 		/* compression failed */
-		bcopy(lb, tmpbuf, sizeof (*lb));
+		memcpy(tmpbuf, lb, sizeof (*lb));
 		L2BLK_SET_COMPRESS(
 		    (&l2dhdr->dh_start_lbps[0])->lbp_prop,
 		    ZIO_COMPRESS_OFF);
@@ -10874,7 +10886,7 @@ l2arc_log_blk_commit(l2arc_dev_t *dev, zio_t *pio, l2arc_write_callback_t *cb)
 	 * Include the committed log block's pointer  in the list of pointers
 	 * to log blocks present in the L2ARC device.
 	 */
-	bcopy(&l2dhdr->dh_start_lbps[0], lb_ptr_buf->lb_ptr,
+	memcpy(lb_ptr_buf->lb_ptr, &l2dhdr->dh_start_lbps[0],
 	    sizeof (l2arc_log_blkptr_t));
 	mutex_enter(&dev->l2ad_mtx);
 	list_insert_head(&dev->l2ad_lbptr_list, lb_ptr_buf);
@@ -10963,7 +10975,7 @@ l2arc_log_blk_insert(l2arc_dev_t *dev, const arc_buf_hdr_t *hdr)
 	ASSERT(HDR_HAS_L2HDR(hdr));
 
 	le = &lb->lb_entries[index];
-	bzero(le, sizeof (*le));
+	memset(le, 0, sizeof (*le));
 	le->le_dva = hdr->b_dva;
 	le->le_birth = hdr->b_birth;
 	le->le_daddr = hdr->b_l2hdr.b_daddr;
@@ -11032,7 +11044,6 @@ EXPORT_SYMBOL(arc_getbuf_func);
 EXPORT_SYMBOL(arc_add_prune_callback);
 EXPORT_SYMBOL(arc_remove_prune_callback);
 
-/* BEGIN CSTYLED */
 ZFS_MODULE_PARAM_CALL(zfs_arc, zfs_arc_, min, param_set_arc_min,
 	param_get_long, ZMOD_RW, "Min arc size");
 
@@ -11043,7 +11054,7 @@ ZFS_MODULE_PARAM_CALL(zfs_arc, zfs_arc_, meta_limit, param_set_arc_long,
 	param_get_long, ZMOD_RW, "Metadata limit for arc size");
 
 ZFS_MODULE_PARAM_CALL(zfs_arc, zfs_arc_, meta_limit_percent,
-	param_set_arc_long, param_get_long, ZMOD_RW,
+    param_set_arc_long, param_get_long, ZMOD_RW,
 	"Percent of arc size for arc meta limit");
 
 ZFS_MODULE_PARAM_CALL(zfs_arc, zfs_arc_, meta_min, param_set_arc_long,
@@ -11083,7 +11094,7 @@ ZFS_MODULE_PARAM_CALL(zfs_arc, zfs_arc_, min_prefetch_ms, param_set_arc_int,
 	param_get_int, ZMOD_RW, "Min life of prefetch block in ms");
 
 ZFS_MODULE_PARAM_CALL(zfs_arc, zfs_arc_, min_prescient_prefetch_ms,
-	param_set_arc_int, param_get_int, ZMOD_RW,
+    param_set_arc_int, param_get_int, ZMOD_RW,
 	"Min life of prescient prefetched block in ms");
 
 ZFS_MODULE_PARAM(zfs_l2arc, l2arc_, write_max, ULONG, ZMOD_RW,
@@ -11128,6 +11139,9 @@ ZFS_MODULE_PARAM(zfs_l2arc, l2arc_, rebuild_blocks_min_l2size, ULONG, ZMOD_RW,
 ZFS_MODULE_PARAM(zfs_l2arc, l2arc_, mfuonly, INT, ZMOD_RW,
 	"Cache only MFU data from ARC into L2ARC");
 
+ZFS_MODULE_PARAM(zfs_l2arc, l2arc_, exclude_special, INT, ZMOD_RW,
+	"Exclude dbufs on special vdevs from being cached to L2ARC if set.");
+
 ZFS_MODULE_PARAM_CALL(zfs_arc, zfs_arc_, lotsfree_percent, param_set_arc_int,
 	param_get_int, ZMOD_RW, "System free memory I/O throttle in bytes");
 
@@ -11138,7 +11152,7 @@ ZFS_MODULE_PARAM_CALL(zfs_arc, zfs_arc_, dnode_limit, param_set_arc_long,
 	param_get_long, ZMOD_RW, "Minimum bytes of dnodes in arc");
 
 ZFS_MODULE_PARAM_CALL(zfs_arc, zfs_arc_, dnode_limit_percent,
-	param_set_arc_long, param_get_long, ZMOD_RW,
+    param_set_arc_long, param_get_long, ZMOD_RW,
 	"Percent of ARC meta buffers for dnodes");
 
 ZFS_MODULE_PARAM(zfs_arc, zfs_arc_, dnode_reduce_percent, ULONG, ZMOD_RW,
@@ -11152,4 +11166,3 @@ ZFS_MODULE_PARAM(zfs_arc, zfs_arc_, evict_batch_limit, INT, ZMOD_RW,
 
 ZFS_MODULE_PARAM(zfs_arc, zfs_arc_, prune_task_threads, INT, ZMOD_RW,
 	"Number of arc_prune threads");
-/* END CSTYLED */

@@ -68,7 +68,9 @@ static uint64_t spa_config_generation = 1;
  * userland pools when doing testing.
  */
 char *spa_config_path = ZPOOL_CACHE;
-int zfs_autoimport_disable = 1;
+#ifdef _KERNEL
+static int zfs_autoimport_disable = B_TRUE;
+#endif
 
 /*
  * Called when the module is first loaded, this routine loads the configuration
@@ -611,7 +613,6 @@ EXPORT_SYMBOL(spa_config_set);
 EXPORT_SYMBOL(spa_config_generate);
 EXPORT_SYMBOL(spa_config_update);
 
-/* BEGIN CSTYLED */
 #ifdef __linux__
 /* string sysctls require a char array on FreeBSD */
 ZFS_MODULE_PARAM(zfs_spa, spa_, config_path, STRING, ZMOD_RD,
@@ -620,4 +621,3 @@ ZFS_MODULE_PARAM(zfs_spa, spa_, config_path, STRING, ZMOD_RD,
 
 ZFS_MODULE_PARAM(zfs, zfs_, autoimport_disable, INT, ZMOD_RW,
 	"Disable pool import at module load");
-/* END CSTYLED */

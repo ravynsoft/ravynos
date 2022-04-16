@@ -31,6 +31,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/systm.h>
 #include <sys/kdb.h>
 #include <sys/proc.h>
+#include <sys/reg.h>
 #include <sys/smp.h>
 #include <sys/stack.h>
 #include <sys/sysent.h>
@@ -38,7 +39,6 @@ __FBSDID("$FreeBSD$");
 #include <machine/cpu.h>
 #include <machine/md_var.h>
 #include <machine/pcb.h>
-#include <machine/reg.h>
 #include <machine/stack.h>
 
 #include <vm/vm.h>
@@ -258,7 +258,7 @@ db_nextframe(struct amd64_frame **fp, db_addr_t *ip, struct thread *td)
 	*fp = (struct amd64_frame *) rbp;
 }
 
-static int
+static int __nosanitizeaddress __nosanitizememory
 db_backtrace(struct thread *td, struct trapframe *tf, struct amd64_frame *frame,
     db_addr_t pc, register_t sp, int count)
 {

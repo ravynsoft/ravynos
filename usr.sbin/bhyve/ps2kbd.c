@@ -31,6 +31,7 @@
 __FBSDID("$FreeBSD$");
 
 #include <sys/types.h>
+#include <sys/stat.h>
 
 #include <machine/vmm_snapshot.h>
 
@@ -42,9 +43,13 @@ __FBSDID("$FreeBSD$");
 #include <strings.h>
 #include <pthread.h>
 #include <pthread_np.h>
+#include <unistd.h>
+#include <fcntl.h>
 
+#include "bhyverun.h"
 #include "atkbdc.h"
 #include "debug.h"
+#include "config.h"
 #include "console.h"
 
 /* keyboard device commands */
@@ -61,6 +66,10 @@ __FBSDID("$FreeBSD$");
 #define	PS2KC_ACK		0xfa
 
 #define	PS2KBD_FIFOSZ		16
+
+#define	PS2KBD_LAYOUT_BASEDIR	"/usr/share/bhyve/kbdlayout/"
+
+#define	MAX_PATHNAME		256
 
 struct fifo {
 	uint8_t	buf[PS2KBD_FIFOSZ];
@@ -90,7 +99,7 @@ struct extended_translation {
 /*
  * FIXME: Pause/break and Print Screen/SysRq require special handling.
  */
-static const struct extended_translation extended_translations[] = {
+static struct extended_translation extended_translations[128] = {
 		{0xff08, 0x66},		/* Back space */
 		{0xff09, 0x0d},		/* Tab */
 		{0xff0d, 0x5a},		/* Return */
@@ -162,7 +171,7 @@ static const struct extended_translation extended_translations[] = {
 };
 
 /* ASCII to type 2 scancode lookup table */
-static const uint8_t ascii_translations[128] = {
+static uint8_t ascii_translations[128] = {
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
 		0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
@@ -179,6 +188,26 @@ static const uint8_t ascii_translations[128] = {
 		0x33, 0x43, 0x3b, 0x42, 0x4b, 0x3a, 0x31, 0x44,
 		0x4d, 0x15, 0x2d, 0x1b, 0x2c, 0x3c, 0x2a, 0x1d,
 		0x22, 0x35, 0x1a, 0x54, 0x5d, 0x5b, 0x0e, 0x00,
+};
+
+/* ScanCode set1 to set2 lookup table */
+const uint8_t keyset1to2_translations[128] = {
+		   0, 0x76, 0x16, 0x1E, 0x26, 0x25, 0x2e, 0x36,
+		0x3d, 0x3e, 0x46, 0x45, 0x4e, 0x55, 0x66, 0x0d,
+		0x15, 0x1d, 0x24, 0x2d, 0x2c, 0x35, 0x3c, 0x43,
+		0x44, 0x4d, 0x54, 0x5b, 0x5a, 0x14, 0x1c, 0x1b,
+		0x23, 0x2b, 0x34, 0x33, 0x3b, 0x42, 0x4b, 0x4c,
+		0x52, 0x0e, 0x12, 0x5d, 0x1a, 0x22, 0x21, 0x2a,
+		0x32, 0x31, 0x3a, 0x41, 0x49, 0x4a, 0x59, 0x7c,
+		0x11, 0x29, 0x58, 0x05, 0x06, 0x04, 0x0c, 0x03,
+		0x0b, 0x83, 0x0a, 0x01, 0x09, 0x77, 0x7e, 0x6c,
+		0x75, 0x7d, 0x7b, 0x6b, 0x73, 0x74, 0x79, 0x69,
+		0x72, 0x7a, 0x70, 0x71, 0x84, 0x60, 0x61, 0x78,
+		0x07, 0x0f, 0x17, 0x1f, 0x27, 0x2f, 0x37, 0x3f,
+		0x47, 0x4f, 0x56, 0x5e, 0x08, 0x10, 0x18, 0x20,
+		0x28, 0x30, 0x38, 0x40, 0x48, 0x50, 0x57, 0x6f,
+		0x13, 0x19, 0x39, 0x51, 0x53, 0x5c, 0x5f, 0x62,
+		0x63, 0x64, 0x65, 0x67, 0x68, 0x6a, 0x6d, 0x6e,
 };
 
 static void
@@ -315,26 +344,32 @@ ps2kbd_write(struct ps2kbd_softc *sc, uint8_t val)
  */
 static void
 ps2kbd_keysym_queue(struct ps2kbd_softc *sc,
-    int down, uint32_t keysym)
+    int down, uint32_t keysym, uint32_t keycode)
 {
 	assert(pthread_mutex_isowned_np(&sc->mtx));
 	int e0_prefix, found;
 	uint8_t code;
-	const struct extended_translation *trans;
+	struct extended_translation *trans;
 
-	found = 0;
-	if (keysym < 0x80) {
-		code = ascii_translations[keysym];
-		e0_prefix = 0;
+	if (keycode) {
+		code =  keyset1to2_translations[(uint8_t)(keycode & 0x7f)];
+		e0_prefix = ((keycode & 0x80) ?  SCANCODE_E0_PREFIX : 0);
 		found = 1;
 	} else {
-		for (trans = &(extended_translations[0]); trans->keysym != 0;
-		    trans++) {
-			if (keysym == trans->keysym) {
-				code = trans->scancode;
-				e0_prefix = trans->flags & SCANCODE_E0_PREFIX;
-				found = 1;
-				break;
+		found = 0;
+		if (keysym < 0x80) {
+			code = ascii_translations[keysym];
+			e0_prefix = 0;
+			found = 1;
+		} else {
+			for (trans = &(extended_translations[0]); trans->keysym != 0;
+		    	trans++) {
+				if (keysym == trans->keysym) {
+					code = trans->scancode;
+					e0_prefix = trans->flags & SCANCODE_E0_PREFIX;
+					found = 1;
+					break;
+				}
 			}
 		}
 	}
@@ -352,7 +387,7 @@ ps2kbd_keysym_queue(struct ps2kbd_softc *sc,
 }
 
 static void
-ps2kbd_event(int down, uint32_t keysym, void *arg)
+ps2kbd_event(int down, uint32_t keysym, uint32_t keycode, void *arg)
 {
 	struct ps2kbd_softc *sc = arg;
 	int fifo_full;
@@ -363,17 +398,97 @@ ps2kbd_event(int down, uint32_t keysym, void *arg)
 		return;
 	}
 	fifo_full = sc->fifo.num == PS2KBD_FIFOSZ;
-	ps2kbd_keysym_queue(sc, down, keysym);
+	ps2kbd_keysym_queue(sc, down, keysym, keycode);
 	pthread_mutex_unlock(&sc->mtx);
 
 	if (!fifo_full)
 		atkbdc_event(sc->atkbdc_sc, 1);
 }
 
+static void
+ps2kbd_update_extended_translation(uint32_t keycode, uint32_t scancode, uint32_t prefix)
+{
+	int i = 0;
+
+	do	{
+		if (extended_translations[i].keysym == keycode)
+			break;
+	} while(extended_translations[++i].keysym);
+
+	if (i == (sizeof(extended_translations) / sizeof(struct extended_translation) - 1))
+		return;
+
+	if (!extended_translations[i].keysym)	{
+		extended_translations[i].keysym = keycode;
+
+		extended_translations[i+1].keysym = 0;
+		extended_translations[i+1].scancode = 0;
+		extended_translations[i+1].flags = 0;
+	}
+
+	extended_translations[i].scancode = (uint8_t)(scancode & 0xff);
+	extended_translations[i].flags = (prefix ? SCANCODE_E0_PREFIX : 0);
+}
+
+static void
+ps2kbd_setkbdlayout(void)
+{
+	int err;
+	int fd;
+	char path[MAX_PATHNAME];
+	char *buf, *next, *line;
+	struct stat sb;
+	size_t sz;
+	uint8_t ascii;
+	uint32_t keycode, scancode, prefix;
+
+	snprintf(path, MAX_PATHNAME, PS2KBD_LAYOUT_BASEDIR"%s", get_config_value("keyboard.layout") );
+
+	err = stat(path, &sb);
+	if (err)
+		return;
+
+	buf = (char *)malloc(sizeof(char) * sb.st_size);
+	if (buf == NULL)
+		return;
+
+	fd = open(path, O_RDONLY);
+	if (fd == -1)
+		goto out;
+
+	sz = read(fd, buf, sb.st_size );
+
+	close(fd);
+
+	if (sz != sb.st_size )
+		goto out;
+
+	next = buf;
+	while ((line = strsep(&next, "\n")) != NULL)	{
+		if (sscanf(line, "'%c',%x;", &ascii, &scancode) == 2)	{
+			if (ascii < 0x80)
+				ascii_translations[ascii] = (uint8_t)(scancode & 0xff);
+		} else if (sscanf(line, "%x,%x,%x;", &keycode, &scancode, &prefix) == 3 )	{
+			ps2kbd_update_extended_translation(keycode, scancode, prefix);
+		} else if (sscanf(line, "%x,%x;", &keycode, &scancode) == 2)	{
+			if (keycode < 0x80)
+				ascii_translations[(uint8_t)(keycode & 0xff)] = (uint8_t)(scancode & 0xff);
+			else
+				ps2kbd_update_extended_translation(keycode, scancode, 0);
+		}
+	}
+
+out:
+	free(buf);
+}
+
 struct ps2kbd_softc *
 ps2kbd_init(struct atkbdc_softc *atkbdc_sc)
 {
 	struct ps2kbd_softc *sc;
+
+	if (get_config_value("keyboard.layout") != NULL)
+		ps2kbd_setkbdlayout();
 
 	sc = calloc(1, sizeof (struct ps2kbd_softc));
 	pthread_mutex_init(&sc->mtx, NULL);

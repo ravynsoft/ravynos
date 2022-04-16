@@ -1,4 +1,5 @@
 #!/bin/sh
+# shellcheck disable=SC2154
 #
 # CDDL HEADER START
 #
@@ -38,6 +39,7 @@ VERBOSE="no"
 QUIET=""
 CLEANUP="yes"
 CLEANUPALL="no"
+KMSG=""
 LOOPBACK="yes"
 STACK_TRACER="no"
 FILESIZE="4G"
@@ -53,6 +55,7 @@ ZFS_DBGMSG="$STF_SUITE/callbacks/zfs_dbgmsg.ksh"
 ZFS_DMESG="$STF_SUITE/callbacks/zfs_dmesg.ksh"
 UNAME=$(uname -s)
 RERUN=""
+KMEMLEAK=""
 
 # Override some defaults if on FreeBSD
 if [ "$UNAME" = "FreeBSD" ] ; then
@@ -147,7 +150,7 @@ trap cleanup EXIT
 # be dangerous and should only be used in a dedicated test environment.
 #
 cleanup_all() {
-	TEST_POOLS=$(sudo "$ZPOOL" list -H -o name | grep testpool)
+	TEST_POOLS=$(sudo env ASAN_OPTIONS=detect_leaks=false "$ZPOOL" list -H -o name | grep testpool)
 	if [ "$UNAME" = "FreeBSD" ] ; then
 		TEST_LOOPBACKS=$(sudo "${LOSETUP}" -l)
 	else
@@ -159,7 +162,7 @@ cleanup_all() {
 	msg "--- Cleanup ---"
 	msg "Removing pool(s):     $(echo "${TEST_POOLS}" | tr '\n' ' ')"
 	for TEST_POOL in $TEST_POOLS; do
-		sudo "$ZPOOL" destroy "${TEST_POOL}"
+		sudo env ASAN_OPTIONS=detect_leaks=false "$ZPOOL" destroy "${TEST_POOL}"
 	done
 
 	if [ "$UNAME" != "FreeBSD" ] ; then
@@ -324,10 +327,12 @@ OPTIONS:
 	-q          Quiet test-runner output
 	-x          Remove all testpools, dm, lo, and files (unsafe)
 	-k          Disable cleanup after test failure
+	-K          Log test names to /dev/kmsg
 	-f          Use files only, disables block device tests
 	-S          Enable stack tracer (negative performance impact)
 	-c          Only create and populate constrained path
 	-R          Automatically rerun failing tests
+	-m          Enable kmemleak reporting (Linux only)
 	-n NFSFILE  Use the nfsfile to determine the NFS configuration
 	-I NUM      Number of iterations
 	-d DIR      Use DIR for files and loopback devices
@@ -354,7 +359,7 @@ $0 -x
 EOF
 }
 
-while getopts 'hvqxkfScRn:d:s:r:?t:T:u:I:' OPTION; do
+while getopts 'hvqxkKfScRmn:d:s:r:?t:T:u:I:' OPTION; do
 	case $OPTION in
 	h)
 		usage
@@ -372,6 +377,9 @@ while getopts 'hvqxkfScRn:d:s:r:?t:T:u:I:' OPTION; do
 	k)
 		CLEANUP="no"
 		;;
+	K)
+		KMSG="yes"
+		;;
 	f)
 		LOOPBACK="no"
 		;;
@@ -384,6 +392,9 @@ while getopts 'hvqxkfScRn:d:s:r:?t:T:u:I:' OPTION; do
 		;;
 	R)
 		RERUN="yes"
+		;;
+	m)
+		KMEMLEAK="yes"
 		;;
 	n)
 		nfsfile=$OPTARG
@@ -422,6 +433,8 @@ while getopts 'hvqxkfScRn:d:s:r:?t:T:u:I:' OPTION; do
 		usage
 		exit
 		;;
+	*)
+		;;
 	esac
 done
 
@@ -442,7 +455,7 @@ if [ -n "$SINGLETEST" ]; then
 		SINGLEQUIET="True"
 	fi
 
-	cat >$RUNFILE_DIR/$RUNFILES << EOF
+	cat >"${RUNFILE_DIR}/${RUNFILES}" << EOF
 [DEFAULT]
 pre =
 quiet = $SINGLEQUIET
@@ -466,7 +479,7 @@ EOF
 		CLEANUPSCRIPT="cleanup"
 	fi
 
-	cat >>$RUNFILE_DIR/$RUNFILES << EOF
+	cat >>"${RUNFILE_DIR}/${RUNFILES}" << EOF
 
 [$SINGLETESTDIR]
 tests = ['$SINGLETESTFILE']
@@ -551,7 +564,7 @@ fi
 # space-delimited to newline-delimited.
 #
 if [ -z "${KEEP}" ]; then
-	KEEP="$(sudo "$ZPOOL" list -H -o name)"
+	KEEP="$(sudo env ASAN_OPTIONS=detect_leaks=false "$ZPOOL" list -H -o name)"
 	if [ -z "${KEEP}" ]; then
 		KEEP="rpool"
 	fi
@@ -694,17 +707,25 @@ REPORT_FILE=$(mktemp_file zts-report)
 #
 # Run all the tests as specified.
 #
-msg "${TEST_RUNNER} ${QUIET:+-q}" \
+msg "${TEST_RUNNER}" \
+    "${QUIET:+-q}" \
+    "${KMEMLEAK:+-m}" \
+    "${KMSG:+-K}" \
     "-c \"${RUNFILES}\"" \
     "-T \"${TAGS}\"" \
     "-i \"${STF_SUITE}\"" \
     "-I \"${ITERATIONS}\""
-${TEST_RUNNER} ${QUIET:+-q} \
+{ ${TEST_RUNNER} \
+    ${QUIET:+-q} \
+    ${KMEMLEAK:+-m} \
+    ${KMSG:+-K} \
     -c "${RUNFILES}" \
     -T "${TAGS}" \
     -i "${STF_SUITE}" \
     -I "${ITERATIONS}" \
-    2>&1 | tee "$RESULTS_FILE"
+    2>&1; echo $? >"$REPORT_FILE"; } | tee "$RESULTS_FILE"
+read -r RUNRESULT <"$REPORT_FILE"
+
 #
 # Analyze the results.
 #
@@ -719,13 +740,16 @@ if [ "$RESULT" -eq "2" ] && [ -n "$RERUN" ]; then
 	for test_name in $MAYBES; do
 		grep "$test_name " "$TEMP_RESULTS_FILE" >>"$TEST_LIST"
 	done
-	${TEST_RUNNER} ${QUIET:+-q} \
+	{ ${TEST_RUNNER} \
+            ${QUIET:+-q} \
+            ${KMEMLEAK:+-m} \
 	    -c "${RUNFILES}" \
 	    -T "${TAGS}" \
 	    -i "${STF_SUITE}" \
 	    -I "${ITERATIONS}" \
 	    -l "${TEST_LIST}" \
-	    2>&1 | tee "$RESULTS_FILE"
+	    2>&1; echo $? >"$REPORT_FILE"; } | tee "$RESULTS_FILE"
+	read -r RUNRESULT <"$REPORT_FILE"
 	#
 	# Analyze the results.
 	#
@@ -747,4 +771,4 @@ if [ -n "$SINGLETEST" ]; then
 	rm -f "$RUNFILES" >/dev/null 2>&1
 fi
 
-exit ${RESULT}
+[ "$RUNRESULT" -gt 3 ] && exit "$RUNRESULT" || exit "$RESULT"

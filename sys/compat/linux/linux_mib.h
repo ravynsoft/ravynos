@@ -46,8 +46,8 @@ int	linux_get_oss_version(struct thread *td);
 
 int	linux_kernver(struct thread *td);
 
-#define	LINUX_KVERSION		3
-#define	LINUX_KPATCHLEVEL	17
+#define	LINUX_KVERSION		4
+#define	LINUX_KPATCHLEVEL	4
 #define	LINUX_KSUBLEVEL		0
 
 #define	LINUX_KERNVER(a,b,c)	(((a) << 16) + ((b) << 8) + (c))
@@ -58,9 +58,10 @@ int	linux_kernver(struct thread *td);
 #define	LINUX_VERSION_STR	LINUX_XKERNVERSTR(LINUX_KVERSION.LINUX_KPATCHLEVEL.LINUX_KSUBLEVEL)
 
 #define	LINUX_KERNVER_2004000	LINUX_KERNVER(2,4,0)
-#define	LINUX_KERNVER_2006000	LINUX_KERNVER(2,6,0)
+#define	LINUX_KERNVER_2006039	LINUX_KERNVER(2,6,39)
+#define	LINUX_KERNVER_5004000	LINUX_KERNVER(5,4,0)
 
-#define	linux_use26(t)		(linux_kernver(t) >= LINUX_KERNVER_2006000)
+#define	linux_use54(t)		(linux_kernver(t) >= LINUX_KERNVER_5004000)
 
 extern int linux_debug;
 extern int linux_default_openfiles;

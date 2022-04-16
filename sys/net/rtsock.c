@@ -632,7 +632,6 @@ fill_addrinfo(struct rt_msghdr *rtm, int len, struct linear_buffer *lb, u_int fi
     struct rt_addrinfo *info)
 {
 	int error;
-	sa_family_t saf;
 
 	rtm->rtm_pid = curproc->p_pid;
 	info->rti_addrs = rtm->rtm_addrs;
@@ -652,7 +651,6 @@ fill_addrinfo(struct rt_msghdr *rtm, int len, struct linear_buffer *lb, u_int fi
 	error = cleanup_xaddrs(info, lb);
 	if (error != 0)
 		return (error);
-	saf = info->rti_info[RTAX_DST]->sa_family;
 	/*
 	 * Verify that the caller has the appropriate privilege; RTM_GET
 	 * is the only operation the non-superuser is allowed.
@@ -1007,6 +1005,7 @@ save_add_notification(struct rib_cmd_info *rc, void *_cbdata)
 }
 #endif
 
+#if defined(INET6) || defined(INET)
 static struct sockaddr *
 alloc_sockaddr_aligned(struct linear_buffer *lb, int len)
 {
@@ -1017,13 +1016,13 @@ alloc_sockaddr_aligned(struct linear_buffer *lb, int len)
 	lb->offset += len;
 	return (sa);
 }
+#endif
 
 /*ARGSUSED*/
 static int
 route_output(struct mbuf *m, struct socket *so, ...)
 {
 	struct rt_msghdr *rtm = NULL;
-	struct rtentry *rt = NULL;
 	struct rt_addrinfo info;
 	struct epoch_tracker et;
 #ifdef INET6
@@ -1185,7 +1184,6 @@ route_output(struct mbuf *m, struct socket *so, ...)
 
 flush:
 	NET_EPOCH_EXIT(et);
-	rt = NULL;
 
 #ifdef INET6
 	if (rtm != NULL) {
@@ -1358,6 +1356,7 @@ fill_sockaddr_inet6(struct sockaddr_in6 *sin6, const struct in6_addr *addr6,
 }
 #endif
 
+#if defined(INET6) || defined(INET)
 /*
  * Checks if gateway is suitable for lltable operations.
  * Lltable code requires AF_LINK gateway with ifindex
@@ -1448,6 +1447,7 @@ cleanup_xaddrs_gateway(struct rt_addrinfo *info, struct linear_buffer *lb)
 
 	return (0);
 }
+#endif
 
 static void
 remove_netmask(struct rt_addrinfo *info)
@@ -2169,14 +2169,12 @@ rt_dispatch(struct mbuf *m, sa_family_t saf)
 		*(unsigned short *)(tag + 1) = saf;
 		m_tag_prepend(m, tag);
 	}
-#ifdef VIMAGE
 	if (V_loif)
 		m->m_pkthdr.rcvif = V_loif;
 	else {
 		m_freem(m);
 		return;
 	}
-#endif
 	netisr_queue(NETISR_ROUTE, m);	/* mbuf is free'd on failure. */
 }
 
@@ -2205,7 +2203,6 @@ sysctl_dumpentry(struct rtentry *rt, void *vw)
 {
 	struct walkarg *w = vw;
 	struct nhop_object *nh;
-	int error = 0;
 
 	NET_EPOCH_ASSERT();
 
@@ -2217,6 +2214,7 @@ sysctl_dumpentry(struct rtentry *rt, void *vw)
 	if (NH_IS_NHGRP(nh)) {
 		struct weightened_nhop *wn;
 		uint32_t num_nhops;
+		int error;
 		wn = nhgrp_get_nhops((struct nhgrp_object *)nh, &num_nhops);
 		for (int i = 0; i < num_nhops; i++) {
 			error = sysctl_dumpnhop(rt, wn[i].nh, wn[i].weight, w);
@@ -2225,7 +2223,7 @@ sysctl_dumpentry(struct rtentry *rt, void *vw)
 		}
 	} else
 #endif
-		error = sysctl_dumpnhop(rt, nh, rt->rt_weight, w);
+		sysctl_dumpnhop(rt, nh, rt->rt_weight, w);
 
 	return (0);
 }
@@ -2691,7 +2689,6 @@ static struct protosw routesw[] = {
 	.pr_flags =		PR_ATOMIC|PR_ADDR,
 	.pr_output =		route_output,
 	.pr_ctlinput =		raw_ctlinput,
-	.pr_init =		raw_init,
 	.pr_usrreqs =		&route_usrreqs
 }
 };
@@ -2703,4 +2700,4 @@ static struct domain routedomain = {
 	.dom_protoswNPROTOSW =	&routesw[nitems(routesw)]
 };
 
-VNET_DOMAIN_SET(route);
+DOMAIN_SET(route);

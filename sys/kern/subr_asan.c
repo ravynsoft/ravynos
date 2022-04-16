@@ -119,7 +119,7 @@ kasan_shadow_map(vm_offset_t addr, size_t size)
 	    ("%s: invalid address range %#lx-%#lx", __func__, sva, eva));
 
 	for (i = 0; i < npages; i++)
-		pmap_kasan_enter(sva + ptoa(i));
+		pmap_san_enter(sva + ptoa(i));
 }
 
 void
@@ -522,8 +522,90 @@ kasan_copyout(const void *kaddr, void *uaddr, size_t len)
 
 /* -------------------------------------------------------------------------- */
 
+int
+kasan_fubyte(volatile const void *base)
+{
+	return (fubyte(base));
+}
+
+int
+kasan_fuword16(volatile const void *base)
+{
+	return (fuword16(base));
+}
+
+int
+kasan_fueword(volatile const void *base, long *val)
+{
+	kasan_shadow_check((unsigned long)val, sizeof(*val), true, __RET_ADDR);
+	return (fueword(base, val));
+}
+
+int
+kasan_fueword32(volatile const void *base, int32_t *val)
+{
+	kasan_shadow_check((unsigned long)val, sizeof(*val), true, __RET_ADDR);
+	return (fueword32(base, val));
+}
+
+int
+kasan_fueword64(volatile const void *base, int64_t *val)
+{
+	kasan_shadow_check((unsigned long)val, sizeof(*val), true, __RET_ADDR);
+	return (fueword64(base, val));
+}
+
+int
+kasan_subyte(volatile void *base, int byte)
+{
+	return (subyte(base, byte));
+}
+
+int
+kasan_suword(volatile void *base, long word)
+{
+	return (suword(base, word));
+}
+
+int
+kasan_suword16(volatile void *base, int word)
+{
+	return (suword16(base, word));
+}
+
+int
+kasan_suword32(volatile void *base, int32_t word)
+{
+	return (suword32(base, word));
+}
+
+int
+kasan_suword64(volatile void *base, int64_t word)
+{
+	return (suword64(base, word));
+}
+
+int
+kasan_casueword32(volatile uint32_t *base, uint32_t oldval, uint32_t *oldvalp,
+    uint32_t newval)
+{
+	kasan_shadow_check((unsigned long)oldvalp, sizeof(*oldvalp), true,
+	    __RET_ADDR);
+	return (casueword32(base, oldval, oldvalp, newval));
+}
+
+int
+kasan_casueword(volatile u_long *base, u_long oldval, u_long *oldvalp,
+    u_long newval)
+{
+	kasan_shadow_check((unsigned long)oldvalp, sizeof(*oldvalp), true,
+	    __RET_ADDR);
+	return (casueword(base, oldval, oldvalp, newval));
+}
+
+/* -------------------------------------------------------------------------- */
+
 #include <machine/atomic.h>
-#define	ATOMIC_SAN_PREFIX	kasan
 #include <sys/atomic_san.h>
 
 #define _ASAN_ATOMIC_FUNC_ADD(name, type)				\
@@ -785,7 +867,6 @@ kasan_atomic_interrupt_fence(void)
 
 #include <sys/bus.h>
 #include <machine/bus.h>
-#define	BUS_SAN_PREFIX	kasan
 #include <sys/bus_san.h>
 
 int

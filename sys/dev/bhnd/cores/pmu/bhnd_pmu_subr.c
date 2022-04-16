@@ -1091,7 +1091,8 @@ bhnd_pmu_res_init(struct bhnd_pmu_softc *sc)
 				break;
 			}
 			
-			
+			BHND_PMU_WRITE_4(sc, BHND_PMU_RES_DEP_MASK,
+			    depend_mask);
 		}
 	}
 
@@ -2603,12 +2604,10 @@ bhnd_pmu_sdiod_drive_strength_init(struct bhnd_pmu_softc *sc,
 	const sdiod_drive_str_t	*str_tab;
 	uint32_t		 str_mask;
 	uint32_t		 str_shift;
-	u_int			 intr_val;
 
 	str_tab = NULL;
 	str_mask = 0;
 	str_shift = 0;
-	intr_val = 0;
 
 	switch (SDIOD_DRVSTR_KEY(sc->cid.chip_id, BHND_PMU_REV(sc))) {
 	case SDIOD_DRVSTR_KEY(BHND_CHIPID_BCM4325, 1):

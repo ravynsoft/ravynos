@@ -65,11 +65,11 @@ ext2_print_inode(struct inode *in)
 	    in->i_uid, in->i_gid, (uintmax_t)in->i_size);
 	printf("Links: %3d Blockcount: %ju\n",
 	    in->i_nlink, (uintmax_t)in->i_blocks);
-	printf("ctime: 0x%x ", in->i_ctime);
-	printf("atime: 0x%x ", in->i_atime);
-	printf("mtime: 0x%x ", in->i_mtime);
+	printf("ctime: 0x%llx ", (unsigned long long)in->i_ctime);
+	printf("atime: 0x%llx ", (unsigned long long)in->i_atime);
+	printf("mtime: 0x%llx ", (unsigned long long)in->i_mtime);
 	if (E2DI_HAS_XTIME(in))
-		printf("crtime %#x\n", in->i_birthtime);
+		printf("crtime %llx\n", (unsigned long long)in->i_birthtime);
 	else
 		printf("\n");
 	if (in->i_flag & IN_E4EXTENTS) {
@@ -86,7 +86,7 @@ ext2_print_inode(struct inode *in)
 		    le16toh(ep->e_start_hi));
 		printf("\n");
 	} else {
-		printf("BLOCKS:");
+		printf("Blocks:");
 		for (i = 0; i < (in->i_blocks <= 24 ? (in->i_blocks + 1) / 2 : 12); i++)
 			printf("  %d", in->i_db[i]);
 		printf("\n");
@@ -94,7 +94,50 @@ ext2_print_inode(struct inode *in)
 }
 #endif	/* EXT2FS_PRINT_EXTENTS */
 
-#define XTIME_TO_NSEC(x)	((le32toh(x) & EXT3_NSEC_MASK) >> 2)
+static inline bool
+ext2_old_valid_dev(dev_t dev)
+{
+	return (major(dev) < 256 && minor(dev) < 256);
+}
+
+static inline uint16_t
+ext2_old_encode_dev(dev_t dev)
+{
+	return ((major(dev) << 8) | minor(dev));
+}
+
+static inline dev_t
+ext2_old_decode_dev(uint16_t val)
+{
+	return (makedev((val >> 8) & 255, val & 255));
+}
+
+static inline uint32_t
+ext2_new_encode_dev(dev_t dev)
+{
+	unsigned maj = major(dev);
+	unsigned min = minor(dev);
+
+	return ((min & 0xff) | (maj << 8) | ((min & ~0xff) << 12));
+}
+
+static inline dev_t
+ext2_new_decode_dev(uint32_t dev)
+{
+	unsigned maj = (dev & 0xfff00) >> 8;
+	unsigned min = (dev & 0xff) | ((dev >> 12) & 0xfff00);
+
+	return (makedev(maj, min));
+}
+
+static inline void
+ext2_decode_extra_time(ext_time_t *sec, int32_t *nsec, uint32_t extra)
+{
+	if (extra & htole32(EXT3_EPOCH_MASK))
+		*sec += (uint64_t)(le32toh(extra) & EXT3_EPOCH_MASK) << 32;
+
+	*nsec = (le32toh(extra) & EXT3_NSEC_MASK) >> EXT3_EPOCH_BITS;
+}
 
 /*
  *	raw ext2 inode LE to host inode conversion
@@ -114,9 +157,17 @@ ext2_ei2i(struct ext2fs_dinode *ei, struct inode *ip)
 		return (EINVAL);
 	}
 
+	/*
+	 * Godmar thinks - if the link count is zero, then the inode is
+	 * unused - according to ext2 standards. Ufs marks this fact by
+	 * setting i_mode to zero - why ? I can see that this might lead to
+	 * problems in an undelete.
+	 */
 	ip->i_nlink = le16toh(ei->e2di_nlink);
-	if (ip->i_number == EXT2_ROOTINO && ip->i_nlink == 0) {
-		SDT_PROBE2(ext2fs, , trace, inode_cnv, 1, "root inode unallocated");
+	ip->i_mode = ip->i_nlink ? le16toh(ei->e2di_mode) : 0;
+	if (ip->i_number == EXT2_ROOTINO &&
+	    (ip->i_nlink < 2 || !S_ISDIR(ip->i_mode))) {
+		SDT_PROBE2(ext2fs, , trace, inode_cnv, 1, "root inode invalid");
 		return (EINVAL);
 	}
 
@@ -131,25 +182,22 @@ ext2_ei2i(struct ext2fs_dinode *ei, struct inode *ip)
 		}
 	}
 
-	/*
-	 * Godmar thinks - if the link count is zero, then the inode is
-	 * unused - according to ext2 standards. Ufs marks this fact by
-	 * setting i_mode to zero - why ? I can see that this might lead to
-	 * problems in an undelete.
-	 */
-	ip->i_mode = ip->i_nlink ? le16toh(ei->e2di_mode) : 0;
 	ip->i_size = le32toh(ei->e2di_size);
 	if (S_ISREG(ip->i_mode))
 		ip->i_size |= (uint64_t)le32toh(ei->e2di_size_high) << 32;
-	ip->i_atime = le32toh(ei->e2di_atime);
-	ip->i_mtime = le32toh(ei->e2di_mtime);
-	ip->i_ctime = le32toh(ei->e2di_ctime);
+	ip->i_atime = (signed)le32toh(ei->e2di_atime);
+	ip->i_mtime = (signed)le32toh(ei->e2di_mtime);
+	ip->i_ctime = (signed)le32toh(ei->e2di_ctime);
 	if (E2DI_HAS_XTIME(ip)) {
-		ip->i_atimensec = XTIME_TO_NSEC(ei->e2di_atime_extra);
-		ip->i_mtimensec = XTIME_TO_NSEC(ei->e2di_mtime_extra);
-		ip->i_ctimensec = XTIME_TO_NSEC(ei->e2di_ctime_extra);
-		ip->i_birthtime = le32toh(ei->e2di_crtime);
-		ip->i_birthnsec = XTIME_TO_NSEC(ei->e2di_crtime_extra);
+		ext2_decode_extra_time(&ip->i_atime, &ip->i_atimensec,
+		    ei->e2di_atime_extra);
+		ext2_decode_extra_time(&ip->i_mtime, &ip->i_mtimensec,
+		    ei->e2di_mtime_extra);
+		ext2_decode_extra_time(&ip->i_ctime, &ip->i_ctimensec,
+		    ei->e2di_ctime_extra);
+		ip->i_birthtime = (signed)le32toh(ei->e2di_crtime);
+		ext2_decode_extra_time(&ip->i_birthtime, &ip->i_birthnsec,
+		    ei->e2di_crtime_extra);
 	}
 	ip->i_flags = 0;
 	ei_flags_host = le32toh(ei->e2di_flags);
@@ -172,7 +220,12 @@ ext2_ei2i(struct ext2fs_dinode *ei, struct inode *ip)
 	ip->i_uid |= (uint32_t)le16toh(ei->e2di_uid_high) << 16;
 	ip->i_gid |= (uint32_t)le16toh(ei->e2di_gid_high) << 16;
 
-	if ((ip->i_flag & IN_E4EXTENTS)) {
+	if (S_ISCHR(ip->i_mode) || S_ISBLK(ip->i_mode)) {
+		if (ei->e2di_blocks[0])
+			ip->i_rdev = ext2_old_decode_dev(le32toh(ei->e2di_blocks[0]));
+		else
+			ip->i_rdev = ext2_new_decode_dev(le32toh(ei->e2di_blocks[1]));
+	} else if ((ip->i_flag & IN_E4EXTENTS)) {
 		memcpy(ip->i_data, ei->e2di_blocks, sizeof(ei->e2di_blocks));
 	} else {
 		for (i = 0; i < EXT2_NDADDR; i++)
@@ -185,7 +238,15 @@ ext2_ei2i(struct ext2fs_dinode *ei, struct inode *ip)
 	return (ext2_ei_csum_verify(ip, ei));
 }
 
-#define NSEC_TO_XTIME(t)	(htole32((t << 2) & EXT3_NSEC_MASK))
+static inline uint32_t
+ext2_encode_extra_time(int64_t sec, int32_t nsec)
+{
+	uint32_t extra;
+
+	extra = ((sec - (int32_t)sec) >> 32) & EXT3_EPOCH_MASK;
+
+	return (htole32(extra | (nsec << EXT3_EPOCH_BITS)));
+}
 
 /*
  *	inode to raw ext2 LE inode conversion
@@ -212,11 +273,15 @@ ext2_i2ei(struct inode *ip, struct ext2fs_dinode *ei)
 	ei->e2di_dtime = htole32(le16toh(ei->e2di_nlink) ? 0 :
 	    le32toh(ei->e2di_mtime));
 	if (E2DI_HAS_XTIME(ip)) {
-		ei->e2di_ctime_extra = NSEC_TO_XTIME(ip->i_ctimensec);
-		ei->e2di_mtime_extra = NSEC_TO_XTIME(ip->i_mtimensec);
-		ei->e2di_atime_extra = NSEC_TO_XTIME(ip->i_atimensec);
+		ei->e2di_ctime_extra = ext2_encode_extra_time(ip->i_ctime,
+		    ip->i_ctimensec);
+		ei->e2di_mtime_extra = ext2_encode_extra_time(ip->i_mtime,
+		    ip->i_mtimensec);
+		ei->e2di_atime_extra = ext2_encode_extra_time(ip->i_atime,
+		    ip->i_atimensec);
 		ei->e2di_crtime = htole32(ip->i_birthtime);
-		ei->e2di_crtime_extra = NSEC_TO_XTIME(ip->i_birthnsec);
+		ei->e2di_crtime_extra = ext2_encode_extra_time(ip->i_birthtime,
+		    ip->i_birthnsec);
 	}
 	/* Keep these in host endian for a while since they change a lot */
 	ei->e2di_flags = 0;
@@ -247,7 +312,16 @@ ext2_i2ei(struct inode *ip, struct ext2fs_dinode *ei)
 	ei->e2di_gid = htole16(ip->i_gid & 0xffff);
 	ei->e2di_gid_high = htole16(ip->i_gid >> 16 & 0xffff);
 
-	if ((ip->i_flag & IN_E4EXTENTS)) {
+	if (S_ISCHR(ip->i_mode) || S_ISBLK(ip->i_mode)) {
+		if (ext2_old_valid_dev(ip->i_rdev)) {
+			ei->e2di_blocks[0] = htole32(ext2_old_encode_dev(ip->i_rdev));
+			ei->e2di_blocks[1] = 0;
+		} else {
+			ei->e2di_blocks[0] = 0;
+			ei->e2di_blocks[1] = htole32(ext2_new_encode_dev(ip->i_rdev));
+			ei->e2di_blocks[2] = 0;
+		}
+	} else if ((ip->i_flag & IN_E4EXTENTS)) {
 		memcpy(ei->e2di_blocks, ip->i_data, sizeof(ei->e2di_blocks));
 	} else {
 		for (i = 0; i < EXT2_NDADDR; i++)

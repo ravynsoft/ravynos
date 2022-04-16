@@ -119,7 +119,7 @@
  * additional memory reference. Since the translation arrays are both very
  * small the data should remain efficiently in cache.
  */
-static const int  avl_child2balance[2]	= {-1, 1};
+static const int  avl_child2balance[]	= {-1, 1};
 static const int  avl_balance2child[]	= {0, 0, 1};
 
 
@@ -319,7 +319,6 @@ avl_rotation(avl_tree_t *tree, avl_node_t *node, int balance)
 	int which_child = AVL_XCHILD(node);
 	int child_bal = AVL_XBALANCE(child);
 
-	/* BEGIN CSTYLED */
 	/*
 	 * case 1 : node is overly left heavy, the left child is balanced or
 	 * also left heavy. This requires the following rotation.
@@ -345,7 +344,6 @@ avl_rotation(avl_tree_t *tree, avl_node_t *node, int balance)
 	 * we detect this situation by noting that child's balance is not
 	 * right_heavy.
 	 */
-	/* END CSTYLED */
 	if (child_bal != right_heavy) {
 
 		/*
@@ -388,7 +386,6 @@ avl_rotation(avl_tree_t *tree, avl_node_t *node, int balance)
 		return (child_bal == 0);
 	}
 
-	/* BEGIN CSTYLED */
 	/*
 	 * case 2 : When node is left heavy, but child is right heavy we use
 	 * a different rotation.
@@ -420,7 +417,6 @@ avl_rotation(avl_tree_t *tree, avl_node_t *node, int balance)
 	 *	 if gchild was right_heavy, then child is now left heavy
 	 *		else it is balanced
 	 */
-	/* END CSTYLED */
 	gchild = child->avl_child[right];
 	gleft = gchild->avl_child[left];
 	gright = gchild->avl_child[right];
@@ -875,7 +871,6 @@ avl_swap(avl_tree_t *tree1, avl_tree_t *tree2)
 
 	ASSERT3P(tree1->avl_compar, ==, tree2->avl_compar);
 	ASSERT3U(tree1->avl_offset, ==, tree2->avl_offset);
-	ASSERT3U(tree1->avl_size, ==, tree2->avl_size);
 
 	temp_node = tree1->avl_root;
 	temp_numnodes = tree1->avl_numnodes;
@@ -903,14 +898,12 @@ avl_create(avl_tree_t *tree, int (*compar) (const void *, const void *),
 	tree->avl_compar = compar;
 	tree->avl_root = NULL;
 	tree->avl_numnodes = 0;
-	tree->avl_size = size;
 	tree->avl_offset = offset;
 }
 
 /*
  * Delete a tree.
  */
-/* ARGSUSED */
 void
 avl_destroy(avl_tree_t *tree)
 {

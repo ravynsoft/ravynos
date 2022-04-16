@@ -12,7 +12,7 @@
 #include <amd64/linux/linux.h>
 #include <amd64/linux/linux_proto.h>
 
-#define AS(name) (sizeof(struct name) / sizeof(register_t))
+#define AS(name) (sizeof(struct name) / sizeof(syscallarg_t))
 
 /* The casts are bogus but will do for now. */
 struct sysent linux_sysent[] = {
@@ -24,7 +24,7 @@ struct sysent linux_sysent[] = {
 	{ .sy_narg = AS(linux_newstat_args), .sy_call = (sy_call_t *)linux_newstat, .sy_auevent = AUE_STAT, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 4 = linux_newstat */
 	{ .sy_narg = AS(linux_newfstat_args), .sy_call = (sy_call_t *)linux_newfstat, .sy_auevent = AUE_FSTAT, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 5 = linux_newfstat */
 	{ .sy_narg = AS(linux_newlstat_args), .sy_call = (sy_call_t *)linux_newlstat, .sy_auevent = AUE_LSTAT, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 6 = linux_newlstat */
-	{ .sy_narg = AS(poll_args), .sy_call = (sy_call_t *)sys_poll, .sy_auevent = AUE_POLL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 7 = poll */
+	{ .sy_narg = AS(linux_poll_args), .sy_call = (sy_call_t *)linux_poll, .sy_auevent = AUE_POLL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 7 = linux_poll */
 	{ .sy_narg = AS(linux_lseek_args), .sy_call = (sy_call_t *)linux_lseek, .sy_auevent = AUE_LSEEK, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 8 = linux_lseek */
 	{ .sy_narg = AS(linux_mmap2_args), .sy_call = (sy_call_t *)linux_mmap2, .sy_auevent = AUE_MMAP, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 9 = linux_mmap2 */
 	{ .sy_narg = AS(linux_mprotect_args), .sy_call = (sy_call_t *)linux_mprotect, .sy_auevent = AUE_MPROTECT, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 10 = linux_mprotect */
@@ -452,11 +452,11 @@ struct sysent linux_sysent[] = {
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_fsmount, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 432 = linux_fsmount */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_fspick, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 433 = linux_fspick */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_pidfd_open, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 434 = linux_pidfd_open */
-	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_clone3, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 435 = linux_clone3 */
+	{ .sy_narg = AS(linux_clone3_args), .sy_call = (sy_call_t *)linux_clone3, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 435 = linux_clone3 */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_close_range, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 436 = linux_close_range */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_openat2, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 437 = linux_openat2 */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_pidfd_getfd, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 438 = linux_pidfd_getfd */
-	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_faccessat2, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 439 = linux_faccessat2 */
+	{ .sy_narg = AS(linux_faccessat2_args), .sy_call = (sy_call_t *)linux_faccessat2, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 439 = linux_faccessat2 */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_process_madvise, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 440 = linux_process_madvise */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_epoll_pwait2, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 441 = linux_epoll_pwait2 */
 	{ .sy_narg = 0, .sy_call = (sy_call_t *)linux_mount_setattr, .sy_auevent = AUE_NULL, .sy_flags = 0, .sy_thrcnt = SY_THR_STATIC },	/* 442 = linux_mount_setattr */

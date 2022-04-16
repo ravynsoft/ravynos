@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -389,6 +389,7 @@ typedef enum
     ASL_MSG_LOWER_CASE_NAMESEG,
     ASL_MSG_LOWER_CASE_NAMEPATH,
     ASL_MSG_UUID_NOT_FOUND,
+    ASL_MSG_LEGACY_DDB_TYPE,
 
 
     /* These messages are used by the Data Table compiler only */
@@ -401,7 +402,7 @@ typedef enum
     ASL_MSG_INVALID_FIELD_NAME,
     ASL_MSG_INVALID_HEX_INTEGER,
     ASL_MSG_OEM_TABLE,
-    ASL_MSG_RESERVED_VALUE,
+    ASL_MSG_RESERVED_FIELD,
     ASL_MSG_UNKNOWN_LABEL,
     ASL_MSG_UNKNOWN_SUBTABLE,
     ASL_MSG_UNKNOWN_TABLE,
@@ -409,6 +410,10 @@ typedef enum
     ASL_MSG_INVALID_LABEL,
     ASL_MSG_BUFFER_LIST,
     ASL_MSG_ENTRY_LIST,
+    ASL_MSG_UNKNOWN_FORMAT,
+    ASL_MSG_RESERVED_VALUE,
+    ASL_MSG_TWO_ZERO_VALUES,
+    ASL_MSG_BAD_PARSE_TREE,
 
     /* These messages are used by the Preprocessor only */
 

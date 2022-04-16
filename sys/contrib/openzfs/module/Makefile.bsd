@@ -12,13 +12,16 @@ KMOD=	openzfs
 .PATH:	${SRCDIR}/avl \
 	${SRCDIR}/lua \
 	${SRCDIR}/nvpair \
+	${SRCDIR}/icp/algs/edonr \
 	${SRCDIR}/os/freebsd/spl \
 	${SRCDIR}/os/freebsd/zfs \
 	${SRCDIR}/unicode \
 	${SRCDIR}/zcommon \
 	${SRCDIR}/zfs \
 	${SRCDIR}/zstd \
-	${SRCDIR}/zstd/lib
+	${SRCDIR}/zstd/lib/common \
+	${SRCDIR}/zstd/lib/compress \
+	${SRCDIR}/zstd/lib/decompress
 
 
 
@@ -72,6 +75,9 @@ SRCS=	vnode_if.h device_if.h bus_if.h
 
 # avl
 SRCS+=	avl.c
+
+# icp
+SRCS+=  edonr.c
 
 #lua
 SRCS+=	lapi.c \
@@ -219,10 +225,12 @@ SRCS+=	abd.c \
 	dsl_scan.c \
 	dsl_synctask.c \
 	dsl_userhold.c \
+	edonr_zfs.c \
 	fm.c \
 	gzip.c \
 	lzjb.c \
 	lz4.c \
+	lz4_zfs.c \
 	metaslab.c \
 	mmp.c \
 	multilist.c \
@@ -263,12 +271,12 @@ SRCS+=	abd.c \
 	vdev_raidz.c \
 	vdev_raidz_math.c \
 	vdev_raidz_math_scalar.c \
-	vdev_rebuild.c \
 	vdev_raidz_math_avx2.c \
 	vdev_raidz_math_avx512bw.c \
 	vdev_raidz_math_avx512f.c \
 	vdev_raidz_math_sse2.c \
 	vdev_raidz_math_ssse3.c \
+	vdev_rebuild.c \
 	vdev_removal.c \
 	vdev_root.c \
 	vdev_trim.c \
@@ -307,7 +315,29 @@ SRCS+=	abd.c \
 
 #zstd
 SRCS+=	zfs_zstd.c \
-	zstd.c
+	entropy_common.c \
+	error_private.c \
+	fse_decompress.c \
+	pool.c \
+	zstd_common.c \
+	fse_compress.c \
+	hist.c \
+	huf_compress.c \
+	zstd_compress.c \
+	zstd_compress_literals.c \
+	zstd_compress_sequences.c \
+	zstd_compress_superblock.c \
+	zstd_double_fast.c \
+	zstd_fast.c \
+	zstd_lazy.c \
+	zstd_ldm.c \
+	zstd_opt.c \
+	huf_decompress.c \
+	zstd_ddict.c \
+	zstd_decompress.c \
+	zstd_decompress_block.c
+
+	
 
 beforeinstall:
 .if ${MK_DEBUG_FILES} != "no"
@@ -345,8 +375,9 @@ CFLAGS.dmu_traverse.c= -Wno-cast-qual
 CFLAGS.dsl_dir.c= -Wno-cast-qual
 CFLAGS.dsl_deadlist.c= -Wno-cast-qual
 CFLAGS.dsl_prop.c= -Wno-cast-qual
+CFLAGS.edonr.c=-Wno-cast-qual
 CFLAGS.fm.c= -Wno-cast-qual
-CFLAGS.lz4.c= -Wno-cast-qual
+CFLAGS.lz4_zfs.c= -Wno-cast-qual
 CFLAGS.spa.c= -Wno-cast-qual
 CFLAGS.spa_misc.c= -Wno-cast-qual
 CFLAGS.sysctl_os.c= -include ../zfs_config.h
@@ -366,4 +397,25 @@ CFLAGS.zil.c= -Wno-cast-qual
 CFLAGS.zio.c= -Wno-cast-qual
 CFLAGS.zrlock.c= -Wno-cast-qual
 CFLAGS.zfs_zstd.c= -Wno-cast-qual -Wno-pointer-arith
-CFLAGS.zstd.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.entropy_common.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.error_private.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.fse_decompress.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.pool.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.xxhash.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_common.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.fse_compress.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.hist.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.huf_compress.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_compress.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_compress_literals.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_compress_sequences.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_compress_superblock.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_double_fast.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_fast.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_lazy.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_ldm.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_opt.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.huf_decompress.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_ddict.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_decompress.c= -fno-tree-vectorize -U__BMI__
+CFLAGS.zstd_decompress_block.c= -fno-tree-vectorize -U__BMI__

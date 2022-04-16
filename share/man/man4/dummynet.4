@@ -1,7 +1,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd October 28, 2002
+.Dd September 10, 2021
 .Dt DUMMYNET 4
 .Os
 .Sh NAME
@@ -18,9 +18,9 @@ management policies, and emulating delays and losses.
 The user interface for
 .Nm
 is implemented by the
-.Xr ipfw 8
+.Xr dnctl 8
 utility, so please refer to the
-.Xr ipfw 8
+.Xr dnctl 8
 manpage for a complete description of the
 .Nm
 capabilities and how to use it.
@@ -31,8 +31,9 @@ operation:
 .Pp
 .Bl -tag -width ".Dv IPFIREWALL_VERBOSE_LIMIT" -offset indent -compact
 .It Dv IPFIREWALL
-enable ipfirewall (required for
-.Nm )
+enable ipfirewall (if
+.Nm
+is to be used with ipfw)
 .It Dv IPFIREWALL_VERBOSE
 enable firewall output
 .It Dv IPFIREWALL_VERBOSE_LIMIT
@@ -61,6 +62,8 @@ pipes.
 .Xr if_bridge 4 ,
 .Xr ip 4 ,
 .Xr ipfw 8 ,
+.Xr dnctl 8 ,
+.Xr pf.conf 5 ,
 .Xr sysctl 8
 .Sh HISTORY
 The

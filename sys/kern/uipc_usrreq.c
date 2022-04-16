@@ -303,7 +303,6 @@ static void	unp_gc(__unused void *, int);
 static void	unp_scan(struct mbuf *, void (*)(struct filedescent **, int));
 static void	unp_discard(struct file *);
 static void	unp_freerights(struct filedescent **, int);
-static void	unp_init(void);
 static int	unp_internalize(struct mbuf **, struct thread *);
 static void	unp_internalize_fp(struct file *);
 static int	unp_externalize(struct mbuf *, struct mbuf **, int);
@@ -428,14 +427,15 @@ static struct protosw localsw[] = {
 {
 	.pr_type =		SOCK_STREAM,
 	.pr_domain =		&localdomain,
-	.pr_flags =		PR_CONNREQUIRED|PR_WANTRCVD|PR_RIGHTS,
+	.pr_flags =		PR_CONNREQUIRED|PR_WANTRCVD|PR_RIGHTS|
+				    PR_CAPATTACH,
 	.pr_ctloutput =		&uipc_ctloutput,
 	.pr_usrreqs =		&uipc_usrreqs_stream
 },
 {
 	.pr_type =		SOCK_DGRAM,
 	.pr_domain =		&localdomain,
-	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_RIGHTS,
+	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_RIGHTS|PR_CAPATTACH,
 	.pr_ctloutput =		&uipc_ctloutput,
 	.pr_usrreqs =		&uipc_usrreqs_dgram
 },
@@ -448,8 +448,8 @@ static struct protosw localsw[] = {
 	 * due to our use of sbappendaddr.  A new sbappend variants is needed
 	 * that supports both atomic record writes and control data.
 	 */
-	.pr_flags =		PR_ADDR|PR_ATOMIC|PR_CONNREQUIRED|PR_WANTRCVD|
-				    PR_RIGHTS,
+	.pr_flags =		PR_ADDR|PR_ATOMIC|PR_CONNREQUIRED|
+				    PR_WANTRCVD|PR_RIGHTS|PR_CAPATTACH,
 	.pr_ctloutput =		&uipc_ctloutput,
 	.pr_usrreqs =		&uipc_usrreqs_seqpacket,
 },
@@ -458,7 +458,6 @@ static struct protosw localsw[] = {
 static struct domain localdomain = {
 	.dom_family =		AF_LOCAL,
 	.dom_name =		"local",
-	.dom_init =		unp_init,
 	.dom_externalize =	unp_externalize,
 	.dom_dispose =		unp_dispose,
 	.dom_protosw =		localsw,
@@ -636,15 +635,14 @@ uipc_bindat(int fd, struct socket *so, struct sockaddr *nam, struct thread *td)
 
 restart:
 	NDINIT_ATRIGHTS(&nd, CREATE, NOFOLLOW | LOCKPARENT | SAVENAME | NOCACHE,
-	    UIO_SYSSPACE, buf, fd, cap_rights_init_one(&rights, CAP_BINDAT),
-	    td);
+	    UIO_SYSSPACE, buf, fd, cap_rights_init_one(&rights, CAP_BINDAT));
 /* SHOULD BE ABLE TO ADOPT EXISTING AND wakeup() ALA FIFO's */
 	error = namei(&nd);
 	if (error)
 		goto error;
 	vp = nd.ni_vp;
 	if (vp != NULL || vn_start_write(nd.ni_dvp, &mp, V_NOWAIT) != 0) {
-		NDFREE(&nd, NDF_ONLY_PNBUF);
+		NDFREE_PNBUF(&nd);
 		if (nd.ni_dvp == vp)
 			vrele(nd.ni_dvp);
 		else
@@ -668,7 +666,7 @@ restart:
 #endif
 	if (error == 0)
 		error = VOP_CREATE(nd.ni_dvp, &nd.ni_vp, &nd.ni_cnd, &vattr);
-	NDFREE(&nd, NDF_ONLY_PNBUF);
+	NDFREE_PNBUF(&nd);
 	if (error) {
 		VOP_VPUT_PAIR(nd.ni_dvp, NULL, true);
 		vn_finished_write(mp);
@@ -889,13 +887,17 @@ uipc_listen(struct socket *so, int backlog, struct thread *td)
 	if (so->so_type != SOCK_STREAM && so->so_type != SOCK_SEQPACKET)
 		return (EOPNOTSUPP);
 
+	/*
+	 * Synchronize with concurrent connection attempts.
+	 */
+	error = 0;
 	unp = sotounpcb(so);
-	KASSERT(unp != NULL, ("uipc_listen: unp == NULL"));
-
 	UNP_PCB_LOCK(unp);
-	if (unp->unp_vnode == NULL) {
-		/* Already connected or not bound to an address. */
-		error = unp->unp_conn != NULL ? EINVAL : EDESTADDRREQ;
+	if (unp->unp_conn != NULL || (unp->unp_flags & UNP_CONNECTING) != 0)
+		error = EINVAL;
+	else if (unp->unp_vnode == NULL)
+		error = EDESTADDRREQ;
+	if (error != 0) {
 		UNP_PCB_UNLOCK(unp);
 		return (error);
 	}
@@ -1060,7 +1062,7 @@ uipc_send(struct socket *so, int flags, struct mbuf *m, struct sockaddr *nam,
 			control = NULL;
 		} else {
 			soroverflow_locked(so2);
-			error = ENOBUFS;
+			error = (so->so_state & SS_NBIO) ? EAGAIN : ENOBUFS;
 		}
 		if (nam != NULL)
 			unp_disconnect(unp, unp2);
@@ -1522,6 +1524,7 @@ unp_connectat(int fd, struct socket *so, struct sockaddr *nam,
 	bcopy(soun->sun_path, buf, len);
 	buf[len] = 0;
 
+	error = 0;
 	unp = sotounpcb(so);
 	UNP_PCB_LOCK(unp);
 	for (;;) {
@@ -1537,13 +1540,16 @@ unp_connectat(int fd, struct socket *so, struct sockaddr *nam,
 		 * lock the peer socket, to ensure that unp_conn cannot
 		 * transition between two valid sockets while locks are dropped.
 		 */
-		if (unp->unp_conn != NULL) {
-			UNP_PCB_UNLOCK(unp);
-			return (EISCONN);
+		if (SOLISTENING(so))
+			error = EOPNOTSUPP;
+		else if (unp->unp_conn != NULL)
+			error = EISCONN;
+		else if ((unp->unp_flags & UNP_CONNECTING) != 0) {
+			error = EALREADY;
 		}
-		if ((unp->unp_flags & UNP_CONNECTING) != 0) {
+		if (error != 0) {
 			UNP_PCB_UNLOCK(unp);
-			return (EALREADY);
+			return (error);
 		}
 		if (unp->unp_pairbusy > 0) {
 			unp->unp_flags |= UNP_WAITING;
@@ -1561,8 +1567,7 @@ unp_connectat(int fd, struct socket *so, struct sockaddr *nam,
 	else
 		sa = NULL;
 	NDINIT_ATRIGHTS(&nd, LOOKUP, FOLLOW | LOCKSHARED | LOCKLEAF,
-	    UIO_SYSSPACE, buf, fd, cap_rights_init_one(&rights, CAP_CONNECTAT),
-	    td);
+	    UIO_SYSSPACE, buf, fd, cap_rights_init_one(&rights, CAP_CONNECTAT));
 	error = namei(&nd);
 	if (error)
 		vp = NULL;
@@ -2141,14 +2146,9 @@ unp_zdtor(void *mem, int size __unused, void *arg __unused)
 #endif
 
 static void
-unp_init(void)
+unp_init(void *arg __unused)
 {
 	uma_dtor dtor;
-
-#ifdef VIMAGE
-	if (!IS_DEFAULT_VNET(curvnet))
-		return;
-#endif
 
 #ifdef INVARIANTS
 	dtor = unp_zdtor;
@@ -2170,6 +2170,7 @@ unp_init(void)
 	UNP_LINK_LOCK_INIT();
 	UNP_DEFERRED_LOCK_INIT();
 }
+SYSINIT(unp_init, SI_SUB_PROTO_DOMAIN, SI_ORDER_SECOND, unp_init, NULL);
 
 static void
 unp_internalize_cleanup_rights(struct mbuf *control)
@@ -2261,7 +2262,7 @@ unp_internalize(struct mbuf **controlp, struct thread *td)
 			fdp = data;
 			FILEDESC_SLOCK(fdesc);
 			for (i = 0; i < oldfds; i++, fdp++) {
-				fp = fget_locked(fdesc, *fdp);
+				fp = fget_noref(fdesc, *fdp);
 				if (fp == NULL) {
 					FILEDESC_SUNLOCK(fdesc);
 					error = EBADF;

@@ -90,6 +90,9 @@ struct acpi_device {
     int				ad_flags;
     int				ad_cls_class;
 
+    ACPI_BUFFER			dsd;	/* Device Specific Data */
+    const ACPI_OBJECT	*dsd_pkg;
+
     /* Resources */
     struct resource_list	ad_rl;
 };
@@ -236,8 +239,8 @@ extern int	acpi_quirks;
  * is compatible with ids parameter of ACPI_ID_PROBE bus method.
  *
  * XXX: While ACPI_ID_PROBE matches against _HID and all _CIDs, current
- *      acpi_pnpinfo_str() exports only _HID and first _CID.  That means second
- *      and further _CIDs should be added to both acpi_pnpinfo_str() and
+ *      acpi_pnpinfo() exports only _HID and first _CID.  That means second
+ *      and further _CIDs should be added to both acpi_pnpinfo() and
  *      ACPICOMPAT_PNP_INFO if device matching against them is required.
  */
 #define	ACPICOMPAT_PNP_INFO(t, busname)					\
@@ -350,6 +353,8 @@ BOOLEAN		acpi_DeviceIsPresent(device_t dev);
 BOOLEAN		acpi_BatteryIsPresent(device_t dev);
 ACPI_STATUS	acpi_GetHandleInScope(ACPI_HANDLE parent, char *path,
 		    ACPI_HANDLE *result);
+ACPI_STATUS	acpi_GetProperty(device_t dev, ACPI_STRING propname,
+		    const ACPI_OBJECT **value);
 ACPI_BUFFER	*acpi_AllocBuffer(int size);
 ACPI_STATUS	acpi_ConvertBufferToInteger(ACPI_BUFFER *bufp,
 		    UINT32 *number);
@@ -395,6 +400,13 @@ int		acpi_MatchHid(ACPI_HANDLE h, const char *hid);
 #define ACPI_MATCHHID_NOMATCH 0
 #define ACPI_MATCHHID_HID 1
 #define ACPI_MATCHHID_CID 2
+
+static __inline bool
+acpi_HasProperty(device_t dev, ACPI_STRING propname)
+{
+
+	return ACPI_SUCCESS(acpi_GetProperty(dev, propname, NULL));
+}
 
 struct acpi_parse_resource_set {
     void	(*set_init)(device_t dev, void *arg, void **context);
@@ -483,6 +495,8 @@ acpi_get_verbose(struct acpi_softc *sc)
 char		*acpi_name(ACPI_HANDLE handle);
 int		acpi_avoid(ACPI_HANDLE handle);
 int		acpi_disabled(char *subsys);
+int		acpi_get_acpi_device_path(device_t bus, device_t child,
+		    const char *locator, struct sbuf *sb);
 int		acpi_machdep_init(device_t dev);
 void		acpi_install_wakeup_handler(struct acpi_softc *sc);
 int		acpi_sleep_machdep(struct acpi_softc *sc, int state);
@@ -490,7 +504,7 @@ int		acpi_wakeup_machdep(struct acpi_softc *sc, int state,
 		    int sleep_result, int intr_enabled);
 int		acpi_table_quirks(int *quirks);
 int		acpi_machdep_quirks(int *quirks);
-int		acpi_pnpinfo_str(ACPI_HANDLE handle, char *buf, size_t buflen);
+int		acpi_pnpinfo(ACPI_HANDLE handle, struct sbuf *sb);
 
 uint32_t	hpet_get_uid(device_t dev);
 

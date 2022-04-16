@@ -300,7 +300,7 @@ acpi_cpu_probe(device_t dev)
 	    device_quiet_children(dev);
     }
 
-    return (0);
+    return (BUS_PROBE_DEFAULT);
 }
 
 static int
@@ -447,7 +447,7 @@ acpi_cpu_postattach(void *unused __unused)
     if (cpu_softc == NULL)
 	return;
 
-    mtx_lock(&Giant);
+    bus_topo_lock();
     CPU_FOREACH(i) {
 	if ((sc = cpu_softc[i]) != NULL)
 		bus_generic_probe(sc->cpu_dev);
@@ -458,7 +458,7 @@ acpi_cpu_postattach(void *unused __unused)
 		attached = 1;
 	}
     }
-    mtx_unlock(&Giant);
+    bus_topo_unlock();
 
     if (attached) {
 #ifdef EARLY_AP_STARTUP

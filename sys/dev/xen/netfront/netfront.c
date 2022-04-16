@@ -67,8 +67,8 @@ __FBSDID("$FreeBSD$");
 #include <xen/hypervisor.h>
 #include <xen/xen_intr.h>
 #include <xen/gnttab.h>
-#include <xen/interface/memory.h>
-#include <xen/interface/io/netif.h>
+#include <contrib/xen/memory.h>
+#include <contrib/xen/io/netif.h>
 #include <xen/xenbus/xenbusvar.h>
 
 #include "xenbus_if.h"
@@ -378,7 +378,7 @@ static int
 netfront_probe(device_t dev)
 {
 
-	if (xen_hvm_domain() && xen_disable_pv_nics != 0)
+	if (xen_pv_nics_disabled())
 		return (ENXIO);
 
 	if (!strcmp(xenbus_get_type(dev), "vif")) {
@@ -1409,10 +1409,9 @@ xn_get_responses(struct netfront_rxq *rxq,
 	struct netif_extra_info *extras = rinfo->extras;
 	struct mbuf *m, *m0, *m_prev;
 	grant_ref_t ref = xn_get_rx_ref(rxq, *cons);
-	RING_IDX ref_cons = *cons;
 	int frags = 1;
 	int err = 0;
-	u_long ret;
+	u_long ret __diagused;
 
 	m0 = m = m_prev = xn_get_rx_mbuf(rxq, *cons);
 
@@ -1500,7 +1499,6 @@ next_skip_queue:
 			m0 = m;
 		m->m_next = NULL;
 		ref = xn_get_rx_ref(rxq, *cons + frags);
-		ref_cons = *cons + frags;
 		frags++;
 	}
 	*list = m0;

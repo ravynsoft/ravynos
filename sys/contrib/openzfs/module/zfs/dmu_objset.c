@@ -63,6 +63,8 @@
 #include <sys/dmu_recv.h>
 #include <sys/zfs_project.h>
 #include "zfs_namecheck.h"
+#include <sys/vdev_impl.h>
+#include <sys/arc.h>
 
 /*
  * Needed to close a window in dnode_move() that allows the objset to be freed
@@ -76,16 +78,16 @@ krwlock_t os_lock;
  * datasets.
  * Default is 4 times the number of leaf vdevs.
  */
-int dmu_find_threads = 0;
+static const int dmu_find_threads = 0;
 
 /*
  * Backfill lower metadnode objects after this many have been freed.
  * Backfilling negatively impacts object creation rates, so only do it
  * if there are enough holes to fill.
  */
-int dmu_rescan_dnode_threshold = 1 << DN_MAX_INDBLKSHIFT;
+static const int dmu_rescan_dnode_threshold = 1 << DN_MAX_INDBLKSHIFT;
 
-static char *upgrade_tag = "upgrade_tag";
+static const char *upgrade_tag = "upgrade_tag";
 
 static void dmu_objset_find_dp_cb(void *arg);
 
@@ -411,6 +413,34 @@ dnode_multilist_index_func(multilist_t *ml, void *obj)
 	    multilist_get_num_sublists(ml));
 }
 
+static inline boolean_t
+dmu_os_is_l2cacheable(objset_t *os)
+{
+	vdev_t *vd = NULL;
+	zfs_cache_type_t cache = os->os_secondary_cache;
+	blkptr_t *bp = os->os_rootbp;
+
+	if (bp != NULL && !BP_IS_HOLE(bp)) {
+		uint64_t vdev = DVA_GET_VDEV(bp->blk_dva);
+		vdev_t *rvd = os->os_spa->spa_root_vdev;
+
+		if (vdev < rvd->vdev_children)
+			vd = rvd->vdev_child[vdev];
+
+		if (cache == ZFS_CACHE_ALL || cache == ZFS_CACHE_METADATA) {
+			if (vd == NULL)
+				return (B_TRUE);
+
+			if ((vd->vdev_alloc_bias != VDEV_BIAS_SPECIAL &&
+			    vd->vdev_alloc_bias != VDEV_BIAS_DEDUP) ||
+			    l2arc_exclude_special == 0)
+				return (B_TRUE);
+		}
+	}
+
+	return (B_FALSE);
+}
+
 /*
  * Instantiates the objset_t in-memory structure corresponding to the
  * objset_phys_t that's pointed to by the specified blkptr_t.
@@ -453,7 +483,7 @@ dmu_objset_open_impl(spa_t *spa, dsl_dataset_t *ds, blkptr_t *bp,
 		SET_BOOKMARK(&zb, ds ? ds->ds_object : DMU_META_OBJSET,
 		    ZB_ROOT_OBJECT, ZB_ROOT_LEVEL, ZB_ROOT_BLKID);
 
-		if (DMU_OS_IS_L2CACHEABLE(os))
+		if (dmu_os_is_l2cacheable(os))
 			aflags |= ARC_FLAG_L2CACHE;
 
 		if (ds != NULL && ds->ds_dir->dd_crypto_obj != 0) {
@@ -486,8 +516,8 @@ dmu_objset_open_impl(spa_t *spa, dsl_dataset_t *ds, blkptr_t *bp,
 		if (arc_buf_size(os->os_phys_buf) < size) {
 			arc_buf_t *buf = arc_alloc_buf(spa, &os->os_phys_buf,
 			    ARC_BUFC_METADATA, size);
-			bzero(buf->b_data, size);
-			bcopy(os->os_phys_buf->b_data, buf->b_data,
+			memset(buf->b_data, 0, size);
+			memcpy(buf->b_data, os->os_phys_buf->b_data,
 			    arc_buf_size(os->os_phys_buf));
 			arc_buf_destroy(os->os_phys_buf, &os->os_phys_buf);
 			os->os_phys_buf = buf;
@@ -501,7 +531,7 @@ dmu_objset_open_impl(spa_t *spa, dsl_dataset_t *ds, blkptr_t *bp,
 		os->os_phys_buf = arc_alloc_buf(spa, &os->os_phys_buf,
 		    ARC_BUFC_METADATA, size);
 		os->os_phys = os->os_phys_buf->b_data;
-		bzero(os->os_phys, size);
+		memset(os->os_phys, 0, size);
 	}
 	/*
 	 * These properties will be filled in by the logic in zfs_get_zplprop()
@@ -1661,7 +1691,7 @@ dmu_objset_sync(objset_t *os, zio_t *pio, dmu_tx_t *tx)
 	}
 
 	zio = arc_write(pio, os->os_spa, tx->tx_txg,
-	    blkptr_copy, os->os_phys_buf, DMU_OS_IS_L2CACHEABLE(os),
+	    blkptr_copy, os->os_phys_buf, dmu_os_is_l2cacheable(os),
 	    &zp, dmu_objset_write_ready, NULL, NULL, dmu_objset_write_done,
 	    os, ZIO_PRIORITY_ASYNC_WRITE, ZIO_FLAG_MUSTSUCCEED, &zb);
 

@@ -55,8 +55,6 @@ __FBSDID("$FreeBSD$");
 #include <machine/vfp.h>
 #endif
 
-uint32_t initial_fpcr = VFPCR_DN;
-
 #include <dev/psci/psci.h>
 
 /*
@@ -95,6 +93,8 @@ cpu_fork(struct thread *td1, struct proc *p2, struct thread *td2, int flags)
 
 	/* Clear the debug register state. */
 	bzero(&pcb2->pcb_dbg_regs, sizeof(pcb2->pcb_dbg_regs));
+
+	ptrauth_fork(td2, td1);
 
 	tf = (struct trapframe *)STACKALIGN((struct trapframe *)pcb2 - 1);
 	bcopy(td1->td_frame, tf, sizeof(*tf));
@@ -199,6 +199,9 @@ cpu_copy_thread(struct thread *td, struct thread *td0)
 	/* Set the new canary */
 	arc4random_buf(&td->td_md.md_canary, sizeof(td->td_md.md_canary));
 #endif
+
+	/* Generate new pointer authentication keys. */
+	ptrauth_copy_thread(td, td0);
 }
 
 /*
@@ -212,9 +215,11 @@ cpu_set_upcall(struct thread *td, void (*entry)(void *), void *arg,
 	struct trapframe *tf = td->td_frame;
 
 	/* 32bits processes use r13 for sp */
-	if (td->td_frame->tf_spsr & PSR_M_32)
+	if (td->td_frame->tf_spsr & PSR_M_32) {
 		tf->tf_x[13] = STACKALIGN((uintptr_t)stack->ss_sp + stack->ss_size);
-	else
+		if ((register_t)entry & 1)
+			tf->tf_spsr |= PSR_T;
+	} else
 		tf->tf_sp = STACKALIGN((uintptr_t)stack->ss_sp + stack->ss_size);
 	tf->tf_elr = (register_t)entry;
 	tf->tf_x[0] = (register_t)arg;
@@ -259,6 +264,7 @@ cpu_thread_alloc(struct thread *td)
 	    td->td_kstack_pages * PAGE_SIZE) - 1;
 	td->td_frame = (struct trapframe *)STACKALIGN(
 	    (struct trapframe *)td->td_pcb - 1);
+	ptrauth_thread_alloc(td);
 }
 
 void
@@ -303,12 +309,4 @@ cpu_procctl(struct thread *td __unused, int idtype __unused, id_t id __unused,
 {
 
 	return (EINVAL);
-}
-
-void
-swi_vm(void *v)
-{
-
-	if (busdma_swi_pending != 0)
-		busdma_swi();
 }

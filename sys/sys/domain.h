@@ -50,10 +50,8 @@ struct	rib_head;
 struct domain {
 	int	dom_family;		/* AF_xxx */
 	char	*dom_name;
-	void	(*dom_init)		/* initialize domain data structures */
-		(void);
-	void	(*dom_destroy)		/* cleanup structures / state */
-		(void);
+	int	dom_flags;
+	int	(*dom_probe)(void);	/* check for support (optional) */
 	int	(*dom_externalize)	/* externalize access rights */
 		(struct mbuf *, struct mbuf **, int);
 	void	(*dom_dispose)		/* dispose of internalized rights */
@@ -70,6 +68,10 @@ struct domain {
 					/* af-dependent data on ifnet */
 };
 
+/* dom_flags */
+#define	DOMF_SUPPORTED	0x0001	/* System supports this domain. */
+#define	DOMF_INITED	0x0002	/* Initialized in the default vnet. */
+
 #ifdef _KERNEL
 extern int	domain_init_status;
 extern struct	domain *domains;
@@ -85,19 +87,6 @@ void		vnet_domain_uninit(void *);
 	    SI_ORDER_FIRST, domain_add, & name ## domain);		\
 	SYSINIT(domain_init_ ## name, SI_SUB_PROTO_DOMAIN,		\
 	    SI_ORDER_SECOND, domain_init, & name ## domain);
-#ifdef VIMAGE
-#define	VNET_DOMAIN_SET(name)						\
-	SYSINIT(domain_add_ ## name, SI_SUB_PROTO_DOMAIN,		\
-	    SI_ORDER_FIRST, domain_add, & name ## domain);		\
-	VNET_SYSINIT(vnet_domain_init_ ## name, SI_SUB_PROTO_DOMAIN,	\
-	    SI_ORDER_SECOND, vnet_domain_init, & name ## domain);	\
-	VNET_SYSUNINIT(vnet_domain_uninit_ ## name,			\
-	    SI_SUB_PROTO_DOMAIN, SI_ORDER_SECOND, vnet_domain_uninit,	\
-	    & name ## domain)
-#else /* !VIMAGE */
-#define	VNET_DOMAIN_SET(name)	DOMAIN_SET(name)
-#endif /* VIMAGE */
-
 #endif /* _KERNEL */
 
 #endif /* !_SYS_DOMAIN_H_ */

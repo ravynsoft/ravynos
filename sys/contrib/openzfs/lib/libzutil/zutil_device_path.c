@@ -31,6 +31,22 @@
 
 #include <libzutil.h>
 
+/* Substring from after the last slash, or the string itself if none */
+const char *
+zfs_basename(const char *path)
+{
+	const char *bn = strrchr(path, '/');
+	return (bn ? bn + 1 : path);
+}
+
+/* Return index of last slash or -1 if none */
+ssize_t
+zfs_dirnamelen(const char *path)
+{
+	const char *end = strrchr(path, '/');
+	return (end ? end - path : -1);
+}
+
 /*
  * Given a shorthand device name check if a file by that name exists in any
  * of the 'zpool_default_import_path' or ZPOOL_IMPORT_PATH directories.  If
@@ -40,35 +56,36 @@
 int
 zfs_resolve_shortname(const char *name, char *path, size_t len)
 {
-	int i, error = -1;
-	char *dir, *env, *envdup;
-
-	env = getenv("ZPOOL_IMPORT_PATH");
-	errno = ENOENT;
+	const char *env = getenv("ZPOOL_IMPORT_PATH");
 
 	if (env) {
-		envdup = strdup(env);
-		dir = strtok(envdup, ":");
-		while (dir && error) {
-			(void) snprintf(path, len, "%s/%s", dir, name);
-			error = access(path, F_OK);
-			dir = strtok(NULL, ":");
+		for (;;) {
+			env += strspn(env, ":");
+			size_t dirlen = strcspn(env, ":");
+			if (dirlen) {
+				(void) snprintf(path, len, "%.*s/%s",
+				    (int)dirlen, env, name);
+				if (access(path, F_OK) == 0)
+					return (0);
+
+				env += dirlen;
+			} else
+				break;
 		}
-		free(envdup);
 	} else {
-		const char * const *zpool_default_import_path;
 		size_t count;
+		const char *const *zpool_default_import_path =
+		    zpool_default_search_paths(&count);
 
-		zpool_default_import_path = zpool_default_search_paths(&count);
-
-		for (i = 0; i < count && error < 0; i++) {
+		for (size_t i = 0; i < count; ++i) {
 			(void) snprintf(path, len, "%s/%s",
 			    zpool_default_import_path[i], name);
-			error = access(path, F_OK);
+			if (access(path, F_OK) == 0)
+				return (0);
 		}
 	}
 
-	return (error ? ENOENT : 0);
+	return (errno = ENOENT);
 }
 
 /*
@@ -82,21 +99,20 @@ static int
 zfs_strcmp_shortname(const char *name, const char *cmp_name, int wholedisk)
 {
 	int path_len, cmp_len, i = 0, error = ENOENT;
-	char *dir, *env, *envdup = NULL;
+	char *dir, *env, *envdup = NULL, *tmp = NULL;
 	char path_name[MAXPATHLEN];
-	const char * const *zpool_default_import_path;
+	const char *const *zpool_default_import_path = NULL;
 	size_t count;
-
-	zpool_default_import_path = zpool_default_search_paths(&count);
 
 	cmp_len = strlen(cmp_name);
 	env = getenv("ZPOOL_IMPORT_PATH");
 
 	if (env) {
 		envdup = strdup(env);
-		dir = strtok(envdup, ":");
+		dir = strtok_r(envdup, ":", &tmp);
 	} else {
-		dir =  (char *)zpool_default_import_path[i];
+		zpool_default_import_path = zpool_default_search_paths(&count);
+		dir = (char *)zpool_default_import_path[i];
 	}
 
 	while (dir) {
@@ -116,7 +132,7 @@ zfs_strcmp_shortname(const char *name, const char *cmp_name, int wholedisk)
 		}
 
 		if (env) {
-			dir = strtok(NULL, ":");
+			dir = strtok_r(NULL, ":", &tmp);
 		} else if (++i < count) {
 			dir = (char *)zpool_default_import_path[i];
 		} else {
@@ -141,18 +157,17 @@ zfs_strcmp_pathname(const char *name, const char *cmp, int wholedisk)
 	int path_len, cmp_len;
 	char path_name[MAXPATHLEN];
 	char cmp_name[MAXPATHLEN];
-	char *dir, *dup;
+	char *dir, *tmp = NULL;
 
-	/* Strip redundant slashes if one exists due to ZPOOL_IMPORT_PATH */
-	memset(cmp_name, 0, MAXPATHLEN);
-	dup = strdup(cmp);
-	dir = strtok(dup, "/");
-	while (dir) {
+	/* Strip redundant slashes if they exist due to ZPOOL_IMPORT_PATH */
+	cmp_name[0] = '\0';
+	(void) strlcpy(path_name, cmp, sizeof (path_name));
+	for (dir = strtok_r(path_name, "/", &tmp);
+	    dir != NULL;
+	    dir = strtok_r(NULL, "/", &tmp)) {
 		strlcat(cmp_name, "/", sizeof (cmp_name));
 		strlcat(cmp_name, dir, sizeof (cmp_name));
-		dir = strtok(NULL, "/");
 	}
-	free(dup);
 
 	if (name[0] != '/')
 		return (zfs_strcmp_shortname(name, cmp_name, wholedisk));

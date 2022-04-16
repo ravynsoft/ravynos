@@ -1754,6 +1754,27 @@ in6_localip(struct in6_addr *in6)
 }
 
 /*
+ * Like in6_localip(), but FIB-aware.
+ */
+bool
+in6_localip_fib(struct in6_addr *in6, uint16_t fib)
+{
+	struct rm_priotracker in6_ifa_tracker;
+	struct in6_ifaddr *ia;
+
+	IN6_IFADDR_RLOCK(&in6_ifa_tracker);
+	CK_LIST_FOREACH(ia, IN6ADDR_HASH(in6), ia6_hash) {
+		if (IN6_ARE_ADDR_EQUAL(in6, &ia->ia_addr.sin6_addr) &&
+		    ia->ia_ifa.ifa_ifp->if_fib == fib) {
+			IN6_IFADDR_RUNLOCK(&in6_ifa_tracker);
+			return (true);
+		}
+	}
+	IN6_IFADDR_RUNLOCK(&in6_ifa_tracker);
+	return (false);
+}
+
+/*
  * Return 1 if an internet address is configured on an interface.
  */
 int
@@ -2162,7 +2183,7 @@ in6_lltable_match_prefix(const struct sockaddr *saddr,
 static void
 in6_lltable_free_entry(struct lltable *llt, struct llentry *lle)
 {
-	struct ifnet *ifp;
+	struct ifnet *ifp __diagused;
 
 	LLE_WLOCK_ASSERT(lle);
 	KASSERT(llt != NULL, ("lltable is NULL"));
@@ -2304,7 +2325,7 @@ in6_lltable_alloc(struct lltable *llt, u_int flags,
 		linkhdrsize = LLE_MAX_LINKHDR;
 		if (lltable_calc_llheader(ifp, AF_INET6, IF_LLADDR(ifp),
 		    linkhdr, &linkhdrsize, &lladdr_off) != 0) {
-			NET_EPOCH_CALL(in6_lltable_destroy_lle_unlocked, &lle->lle_epoch_ctx);
+			in6_lltable_free_entry(llt, lle);
 			return (NULL);
 		}
 		lltable_set_entry_addr(ifp, lle, linkhdr, linkhdrsize,

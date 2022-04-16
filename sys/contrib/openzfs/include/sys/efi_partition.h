@@ -24,7 +24,7 @@
  */
 
 #ifndef	_SYS_EFI_PARTITION_H
-#define	_SYS_EFI_PARTITION_H
+#define	_SYS_EFI_PARTITION_H extern __attribute__((visibility("default")))
 
 #include <sys/uuid.h>
 
@@ -73,18 +73,15 @@ typedef struct efi_gpe_Attrs {
 			RequiredPartition	:1;
 } efi_gpe_Attrs_t;
 
+/* MBR partition identification tags */
+#define	V_UNASSIGNED	0x00		/* unassigned partition */
+#define	V_USR		0x04		/* Usr filesystem */
+#define	V_RESERVED	0x0b		/* SMI reserved data */
+
 /*
  * 6a96237f-1dd2-11b2-99a6-080020736631	V_UNASSIGNED (not used as such)
- * 6a82cb45-1dd2-11b2-99a6-080020736631	V_BOOT
- * 6a85cf4d-1dd2-11b2-99a6-080020736631	V_ROOT
- * 6a87c46f-1dd2-11b2-99a6-080020736631	V_SWAP
  * 6a898cc3-1dd2-11b2-99a6-080020736631	V_USR
- * 6a8b642b-1dd2-11b2-99a6-080020736631	V_BACKUP
- * 6a8d2ac7-1dd2-11b2-99a6-080020736631	V_STAND (not used)
- * 6a8ef2e9-1dd2-11b2-99a6-080020736631	V_VAR
- * 6a90ba39-1dd2-11b2-99a6-080020736631	V_HOME
- * 6a9283a5-1dd2-11b2-99a6-080020736631	V_ALTSCTR
- * 6a945a3b-1dd2-11b2-99a6-080020736631	V_CACHE
+ * 6a945a3b-1dd2-11b2-99a6-080020736631	V_RESERVED
  */
 
 #define	EFI_UNUSED		{ 0x00000000, 0x0000, 0x0000, 0x00, 0x00, \
@@ -363,15 +360,19 @@ struct partition64 {
 #endif
 
 #ifndef _KERNEL
-extern	int	efi_alloc_and_init(int, uint32_t, struct dk_gpt **);
-extern	int	efi_alloc_and_read(int, struct dk_gpt **);
-extern	int	efi_write(int, struct dk_gpt *);
-extern	int	efi_rescan(int);
-extern	void	efi_free(struct dk_gpt *);
-extern	int	efi_type(int);
-extern	void	efi_err_check(struct dk_gpt *);
-extern	int	efi_auto_sense(int fd, struct dk_gpt **);
-extern	int	efi_use_whole_disk(int fd);
+#define	VT_ERROR	(-2)		/* errno supplies specific error */
+#define	VT_EIO		(-3)		/* I/O error accessing vtoc */
+#define	VT_EINVAL	(-4)		/* illegal value in vtoc or request */
+#define	VT_ENOSPC	(-6)		/* requested space not found */
+
+_SYS_EFI_PARTITION_H int efi_debug;
+_SYS_EFI_PARTITION_H int efi_alloc_and_init(int, uint32_t, struct dk_gpt **);
+_SYS_EFI_PARTITION_H int efi_alloc_and_read(int, struct dk_gpt **);
+_SYS_EFI_PARTITION_H int efi_write(int, struct dk_gpt *);
+_SYS_EFI_PARTITION_H int efi_rescan(int);
+_SYS_EFI_PARTITION_H void efi_free(struct dk_gpt *);
+_SYS_EFI_PARTITION_H void efi_err_check(struct dk_gpt *);
+_SYS_EFI_PARTITION_H int efi_use_whole_disk(int fd);
 #endif
 
 #ifdef __cplusplus

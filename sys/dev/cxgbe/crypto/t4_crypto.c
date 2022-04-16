@@ -140,7 +140,7 @@ __FBSDID("$FreeBSD$");
 static MALLOC_DEFINE(M_CCR, "ccr", "Chelsio T6 crypto");
 
 struct ccr_session_hmac {
-	struct auth_hash *auth_hash;
+	const struct auth_hash *auth_hash;
 	int hash_len;
 	unsigned int partial_digest_len;
 	unsigned int auth_mode;
@@ -157,7 +157,7 @@ struct ccr_session_ccm_mac {
 	int hash_len;
 };
 
-struct ccr_session_blkcipher {
+struct ccr_session_cipher {
 	unsigned int cipher_mode;
 	unsigned int key_len;
 	unsigned int iv_len;
@@ -181,15 +181,22 @@ struct ccr_session {
 #ifdef INVARIANTS
 	int pending;
 #endif
-	enum { HASH, HMAC, BLKCIPHER, ETA, GCM, CCM } mode;
+	enum { HASH, HMAC, CIPHER, ETA, GCM, CCM } mode;
 	struct ccr_port *port;
 	union {
 		struct ccr_session_hmac hmac;
 		struct ccr_session_gmac gmac;
 		struct ccr_session_ccm_mac ccm_mac;
 	};
-	struct ccr_session_blkcipher blkcipher;
+	struct ccr_session_cipher cipher;
 	struct mtx lock;
+
+	/*
+	 * A fallback software session is used for certain GCM/CCM
+	 * requests that the hardware can't handle such as requests
+	 * with only AAD and no payload.
+	 */
+	crypto_session_t sw_session;
 
 	/*
 	 * Pre-allocate S/G lists used when preparing a work request.
@@ -225,8 +232,8 @@ struct ccr_softc {
 	struct sglist *sg_iv_aad;
 
 	/* Statistics. */
-	counter_u64_t stats_blkcipher_encrypt;
-	counter_u64_t stats_blkcipher_decrypt;
+	counter_u64_t stats_cipher_encrypt;
+	counter_u64_t stats_cipher_decrypt;
 	counter_u64_t stats_hash;
 	counter_u64_t stats_hmac;
 	counter_u64_t stats_eta_encrypt;
@@ -472,7 +479,7 @@ ccr_hash(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 {
 	struct chcr_wr *crwr;
 	struct wrqe *wr;
-	struct auth_hash *axf;
+	const struct auth_hash *axf;
 	char *dst;
 	u_int hash_size_in_response, kctx_flits, kctx_len, transhdr_len, wr_len;
 	u_int hmac_ctrl, imm_len, iopad_size;
@@ -612,7 +619,7 @@ ccr_hash_done(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp,
 }
 
 static int
-ccr_blkcipher(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
+ccr_cipher(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 {
 	char iv[CHCR_MAX_CRYPTO_IV_LEN];
 	struct chcr_wr *crwr;
@@ -624,9 +631,9 @@ ccr_blkcipher(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	int sgl_nsegs, sgl_len;
 	int error;
 
-	if (s->blkcipher.key_len == 0 || crp->crp_payload_length == 0)
+	if (s->cipher.key_len == 0 || crp->crp_payload_length == 0)
 		return (EINVAL);
-	if (s->blkcipher.cipher_mode == SCMD_CIPH_MODE_AES_CBC &&
+	if (s->cipher.cipher_mode == SCMD_CIPH_MODE_AES_CBC &&
 	    (crp->crp_payload_length % AES_BLOCK_LEN) != 0)
 		return (EINVAL);
 
@@ -654,14 +661,14 @@ ccr_blkcipher(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	dsgl_len = ccr_phys_dsgl_len(dsgl_nsegs);
 
 	/* The 'key' must be 128-bit aligned. */
-	kctx_len = roundup2(s->blkcipher.key_len, 16);
+	kctx_len = roundup2(s->cipher.key_len, 16);
 	transhdr_len = CIPHER_TRANSHDR_SIZE(kctx_len, dsgl_len);
 
 	/* For AES-XTS we send a 16-byte IV in the work request. */
-	if (s->blkcipher.cipher_mode == SCMD_CIPH_MODE_AES_XTS)
+	if (s->cipher.cipher_mode == SCMD_CIPH_MODE_AES_XTS)
 		iv_len = AES_BLOCK_LEN;
 	else
-		iv_len = s->blkcipher.iv_len;
+		iv_len = s->cipher.iv_len;
 
 	if (ccr_use_imm_data(transhdr_len, crp->crp_payload_length + iv_len)) {
 		imm_len = crp->crp_payload_length;
@@ -693,7 +700,7 @@ ccr_blkcipher(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	crypto_read_iv(crp, iv);
 
 	/* Zero the remainder of the IV for AES-XTS. */
-	memset(iv + s->blkcipher.iv_len, 0, iv_len - s->blkcipher.iv_len);
+	memset(iv + s->cipher.iv_len, 0, iv_len - s->cipher.iv_len);
 
 	ccr_populate_wreq(sc, s, crwr, kctx_len, wr_len, imm_len, sgl_len, 0,
 	    crp);
@@ -718,7 +725,7 @@ ccr_blkcipher(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	    V_SCMD_SEQ_NO_CTRL(0) |
 	    V_SCMD_PROTO_VERSION(SCMD_PROTO_VERSION_GENERIC) |
 	    V_SCMD_ENC_DEC_CTRL(op_type) |
-	    V_SCMD_CIPH_MODE(s->blkcipher.cipher_mode) |
+	    V_SCMD_CIPH_MODE(s->cipher.cipher_mode) |
 	    V_SCMD_AUTH_MODE(SCMD_AUTH_MODE_NOP) |
 	    V_SCMD_HMAC_CTRL(SCMD_HMAC_CTRL_NOP) |
 	    V_SCMD_IV_SIZE(iv_len / 2) |
@@ -728,30 +735,30 @@ ccr_blkcipher(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	    V_SCMD_MORE_FRAGS(0) | V_SCMD_LAST_FRAG(0) | V_SCMD_MAC_ONLY(0) |
 	    V_SCMD_AADIVDROP(1) | V_SCMD_HDR_LEN(dsgl_len));
 
-	crwr->key_ctx.ctx_hdr = s->blkcipher.key_ctx_hdr;
-	switch (s->blkcipher.cipher_mode) {
+	crwr->key_ctx.ctx_hdr = s->cipher.key_ctx_hdr;
+	switch (s->cipher.cipher_mode) {
 	case SCMD_CIPH_MODE_AES_CBC:
 		if (CRYPTO_OP_IS_ENCRYPT(crp->crp_op))
-			memcpy(crwr->key_ctx.key, s->blkcipher.enckey,
-			    s->blkcipher.key_len);
+			memcpy(crwr->key_ctx.key, s->cipher.enckey,
+			    s->cipher.key_len);
 		else
-			memcpy(crwr->key_ctx.key, s->blkcipher.deckey,
-			    s->blkcipher.key_len);
+			memcpy(crwr->key_ctx.key, s->cipher.deckey,
+			    s->cipher.key_len);
 		break;
 	case SCMD_CIPH_MODE_AES_CTR:
-		memcpy(crwr->key_ctx.key, s->blkcipher.enckey,
-		    s->blkcipher.key_len);
+		memcpy(crwr->key_ctx.key, s->cipher.enckey,
+		    s->cipher.key_len);
 		break;
 	case SCMD_CIPH_MODE_AES_XTS:
-		key_half = s->blkcipher.key_len / 2;
-		memcpy(crwr->key_ctx.key, s->blkcipher.enckey + key_half,
+		key_half = s->cipher.key_len / 2;
+		memcpy(crwr->key_ctx.key, s->cipher.enckey + key_half,
 		    key_half);
 		if (CRYPTO_OP_IS_ENCRYPT(crp->crp_op))
 			memcpy(crwr->key_ctx.key + key_half,
-			    s->blkcipher.enckey, key_half);
+			    s->cipher.enckey, key_half);
 		else
 			memcpy(crwr->key_ctx.key + key_half,
-			    s->blkcipher.deckey, key_half);
+			    s->cipher.deckey, key_half);
 		break;
 	}
 
@@ -774,7 +781,7 @@ ccr_blkcipher(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 }
 
 static int
-ccr_blkcipher_done(struct ccr_softc *sc, struct ccr_session *s,
+ccr_cipher_done(struct ccr_softc *sc, struct ccr_session *s,
     struct cryptop *crp, const struct cpl_fw6_pld *cpl, int error)
 {
 
@@ -809,7 +816,7 @@ ccr_eta(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	char iv[CHCR_MAX_CRYPTO_IV_LEN];
 	struct chcr_wr *crwr;
 	struct wrqe *wr;
-	struct auth_hash *axf;
+	const struct auth_hash *axf;
 	char *dst;
 	u_int kctx_len, key_half, op_type, transhdr_len, wr_len;
 	u_int hash_size_in_response, imm_len, iopad_size, iv_len;
@@ -825,17 +832,17 @@ ccr_eta(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	 * If there is a need in the future, requests with an empty
 	 * payload could be supported as HMAC-only requests.
 	 */
-	if (s->blkcipher.key_len == 0 || crp->crp_payload_length == 0)
+	if (s->cipher.key_len == 0 || crp->crp_payload_length == 0)
 		return (EINVAL);
-	if (s->blkcipher.cipher_mode == SCMD_CIPH_MODE_AES_CBC &&
+	if (s->cipher.cipher_mode == SCMD_CIPH_MODE_AES_CBC &&
 	    (crp->crp_payload_length % AES_BLOCK_LEN) != 0)
 		return (EINVAL);
 
 	/* For AES-XTS we send a 16-byte IV in the work request. */
-	if (s->blkcipher.cipher_mode == SCMD_CIPH_MODE_AES_XTS)
+	if (s->cipher.cipher_mode == SCMD_CIPH_MODE_AES_XTS)
 		iv_len = AES_BLOCK_LEN;
 	else
-		iv_len = s->blkcipher.iv_len;
+		iv_len = s->cipher.iv_len;
 
 	if (crp->crp_aad_length + iv_len > MAX_AAD_LEN)
 		return (EINVAL);
@@ -900,7 +907,7 @@ ccr_eta(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	 * The 'key' part of the key context consists of the key followed
 	 * by the IPAD and OPAD.
 	 */
-	kctx_len = roundup2(s->blkcipher.key_len, 16) + iopad_size * 2;
+	kctx_len = roundup2(s->cipher.key_len, 16) + iopad_size * 2;
 	transhdr_len = CIPHER_TRANSHDR_SIZE(kctx_len, dsgl_len);
 
 	/*
@@ -994,7 +1001,7 @@ ccr_eta(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	crypto_read_iv(crp, iv);
 
 	/* Zero the remainder of the IV for AES-XTS. */
-	memset(iv + s->blkcipher.iv_len, 0, iv_len - s->blkcipher.iv_len);
+	memset(iv + s->cipher.iv_len, 0, iv_len - s->cipher.iv_len);
 
 	ccr_populate_wreq(sc, s, crwr, kctx_len, wr_len, imm_len, sgl_len,
 	    op_type == CHCR_DECRYPT_OP ? hash_size_in_response : 0, crp);
@@ -1026,7 +1033,7 @@ ccr_eta(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	    V_SCMD_PROTO_VERSION(SCMD_PROTO_VERSION_GENERIC) |
 	    V_SCMD_ENC_DEC_CTRL(op_type) |
 	    V_SCMD_CIPH_AUTH_SEQ_CTRL(op_type == CHCR_ENCRYPT_OP ? 1 : 0) |
-	    V_SCMD_CIPH_MODE(s->blkcipher.cipher_mode) |
+	    V_SCMD_CIPH_MODE(s->cipher.cipher_mode) |
 	    V_SCMD_AUTH_MODE(s->hmac.auth_mode) |
 	    V_SCMD_HMAC_CTRL(hmac_ctrl) |
 	    V_SCMD_IV_SIZE(iv_len / 2) |
@@ -1036,34 +1043,34 @@ ccr_eta(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	    V_SCMD_MORE_FRAGS(0) | V_SCMD_LAST_FRAG(0) | V_SCMD_MAC_ONLY(0) |
 	    V_SCMD_AADIVDROP(0) | V_SCMD_HDR_LEN(dsgl_len));
 
-	crwr->key_ctx.ctx_hdr = s->blkcipher.key_ctx_hdr;
-	switch (s->blkcipher.cipher_mode) {
+	crwr->key_ctx.ctx_hdr = s->cipher.key_ctx_hdr;
+	switch (s->cipher.cipher_mode) {
 	case SCMD_CIPH_MODE_AES_CBC:
 		if (CRYPTO_OP_IS_ENCRYPT(crp->crp_op))
-			memcpy(crwr->key_ctx.key, s->blkcipher.enckey,
-			    s->blkcipher.key_len);
+			memcpy(crwr->key_ctx.key, s->cipher.enckey,
+			    s->cipher.key_len);
 		else
-			memcpy(crwr->key_ctx.key, s->blkcipher.deckey,
-			    s->blkcipher.key_len);
+			memcpy(crwr->key_ctx.key, s->cipher.deckey,
+			    s->cipher.key_len);
 		break;
 	case SCMD_CIPH_MODE_AES_CTR:
-		memcpy(crwr->key_ctx.key, s->blkcipher.enckey,
-		    s->blkcipher.key_len);
+		memcpy(crwr->key_ctx.key, s->cipher.enckey,
+		    s->cipher.key_len);
 		break;
 	case SCMD_CIPH_MODE_AES_XTS:
-		key_half = s->blkcipher.key_len / 2;
-		memcpy(crwr->key_ctx.key, s->blkcipher.enckey + key_half,
+		key_half = s->cipher.key_len / 2;
+		memcpy(crwr->key_ctx.key, s->cipher.enckey + key_half,
 		    key_half);
 		if (CRYPTO_OP_IS_ENCRYPT(crp->crp_op))
 			memcpy(crwr->key_ctx.key + key_half,
-			    s->blkcipher.enckey, key_half);
+			    s->cipher.enckey, key_half);
 		else
 			memcpy(crwr->key_ctx.key + key_half,
-			    s->blkcipher.deckey, key_half);
+			    s->cipher.deckey, key_half);
 		break;
 	}
 
-	dst = crwr->key_ctx.key + roundup2(s->blkcipher.key_len, 16);
+	dst = crwr->key_ctx.key + roundup2(s->cipher.key_len, 16);
 	memcpy(dst, s->hmac.pads, iopad_size * 2);
 
 	dst = (char *)(crwr + 1) + kctx_len;
@@ -1123,7 +1130,7 @@ ccr_gcm(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	int sgl_nsegs, sgl_len;
 	int error;
 
-	if (s->blkcipher.key_len == 0)
+	if (s->cipher.key_len == 0)
 		return (EINVAL);
 
 	/*
@@ -1200,7 +1207,7 @@ ccr_gcm(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	 * The 'key' part of the key context consists of the key followed
 	 * by the Galois hash key.
 	 */
-	kctx_len = roundup2(s->blkcipher.key_len, 16) + GMAC_BLOCK_LEN;
+	kctx_len = roundup2(s->cipher.key_len, 16) + GMAC_BLOCK_LEN;
 	transhdr_len = CIPHER_TRANSHDR_SIZE(kctx_len, dsgl_len);
 
 	/*
@@ -1332,9 +1339,9 @@ ccr_gcm(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	    V_SCMD_MORE_FRAGS(0) | V_SCMD_LAST_FRAG(0) | V_SCMD_MAC_ONLY(0) |
 	    V_SCMD_AADIVDROP(0) | V_SCMD_HDR_LEN(dsgl_len));
 
-	crwr->key_ctx.ctx_hdr = s->blkcipher.key_ctx_hdr;
-	memcpy(crwr->key_ctx.key, s->blkcipher.enckey, s->blkcipher.key_len);
-	dst = crwr->key_ctx.key + roundup2(s->blkcipher.key_len, 16);
+	crwr->key_ctx.ctx_hdr = s->cipher.key_ctx_hdr;
+	memcpy(crwr->key_ctx.key, s->cipher.enckey, s->cipher.key_len);
+	dst = crwr->key_ctx.key + roundup2(s->cipher.key_len, 16);
 	memcpy(dst, s->gmac.ghash_h, GMAC_BLOCK_LEN);
 
 	dst = (char *)(crwr + 1) + kctx_len;
@@ -1379,151 +1386,6 @@ ccr_gcm_done(struct ccr_softc *sc, struct ccr_session *s,
 	 * Note that the hardware should always verify the GMAC hash.
 	 */
 	return (error);
-}
-
-/*
- * Handle a GCM request that is not supported by the crypto engine by
- * performing the operation in software.  Derived from swcr_authenc().
- */
-static void
-ccr_gcm_soft(struct ccr_session *s, struct cryptop *crp)
-{
-	struct auth_hash *axf;
-	struct enc_xform *exf;
-	void *auth_ctx, *kschedule;
-	char block[GMAC_BLOCK_LEN];
-	char digest[GMAC_DIGEST_LEN];
-	int error, i, len;
-
-	auth_ctx = NULL;
-	kschedule = NULL;
-
-	/* Initialize the MAC. */
-	switch (s->blkcipher.key_len) {
-	case 16:
-		axf = &auth_hash_nist_gmac_aes_128;
-		break;
-	case 24:
-		axf = &auth_hash_nist_gmac_aes_192;
-		break;
-	case 32:
-		axf = &auth_hash_nist_gmac_aes_256;
-		break;
-	default:
-		error = EINVAL;
-		goto out;
-	}
-	auth_ctx = malloc(axf->ctxsize, M_CCR, M_NOWAIT);
-	if (auth_ctx == NULL) {
-		error = ENOMEM;
-		goto out;
-	}
-	axf->Init(auth_ctx);
-	axf->Setkey(auth_ctx, s->blkcipher.enckey, s->blkcipher.key_len);
-
-	/* Initialize the cipher. */
-	exf = &enc_xform_aes_nist_gcm;
-	kschedule = malloc(exf->ctxsize, M_CCR, M_NOWAIT);
-	if (kschedule == NULL) {
-		error = ENOMEM;
-		goto out;
-	}
-	error = exf->setkey(kschedule, s->blkcipher.enckey,
-	    s->blkcipher.key_len);
-	if (error)
-		goto out;
-
-	if ((crp->crp_flags & CRYPTO_F_IV_SEPARATE) == 0) {
-		error = EINVAL;
-		goto out;
-	}
-
-	axf->Reinit(auth_ctx, crp->crp_iv, AES_GCM_IV_LEN);
-
-	/* MAC the AAD. */
-	if (crp->crp_aad != NULL) {
-		len = rounddown(crp->crp_aad_length, sizeof(block));
-		if (len != 0)
-			axf->Update(auth_ctx, crp->crp_aad, len);
-		if (crp->crp_aad_length != len) {
-			memset(block, 0, sizeof(block));
-			memcpy(block, (char *)crp->crp_aad + len,
-			    crp->crp_aad_length - len);
-			axf->Update(auth_ctx, block, sizeof(block));
-		}
-	} else {
-		for (i = 0; i < crp->crp_aad_length; i += sizeof(block)) {
-			len = imin(crp->crp_aad_length - i, sizeof(block));
-			crypto_copydata(crp, crp->crp_aad_start + i, len,
-			    block);
-			bzero(block + len, sizeof(block) - len);
-			axf->Update(auth_ctx, block, sizeof(block));
-		}
-	}
-
-	exf->reinit(kschedule, crp->crp_iv, AES_GCM_IV_LEN);
-
-	/* Do encryption with MAC */
-	for (i = 0; i < crp->crp_payload_length; i += sizeof(block)) {
-		len = imin(crp->crp_payload_length - i, sizeof(block));
-		crypto_copydata(crp, crp->crp_payload_start + i, len, block);
-		bzero(block + len, sizeof(block) - len);
-		if (CRYPTO_OP_IS_ENCRYPT(crp->crp_op)) {
-			exf->encrypt(kschedule, block, block);
-			axf->Update(auth_ctx, block, len);
-			crypto_copyback(crp, crp->crp_payload_start + i, len,
-			    block);
-		} else {
-			axf->Update(auth_ctx, block, len);
-		}
-	}
-
-	/* Length block. */
-	bzero(block, sizeof(block));
-	((uint32_t *)block)[1] = htobe32(crp->crp_aad_length * 8);
-	((uint32_t *)block)[3] = htobe32(crp->crp_payload_length * 8);
-	axf->Update(auth_ctx, block, sizeof(block));
-
-	/* Finalize MAC. */
-	axf->Final(digest, auth_ctx);
-
-	/* Inject or validate tag. */
-	if (CRYPTO_OP_IS_ENCRYPT(crp->crp_op)) {
-		crypto_copyback(crp, crp->crp_digest_start, sizeof(digest),
-		    digest);
-		error = 0;
-	} else {
-		char digest2[GMAC_DIGEST_LEN];
-
-		crypto_copydata(crp, crp->crp_digest_start, sizeof(digest2),
-		    digest2);
-		if (timingsafe_bcmp(digest, digest2, sizeof(digest)) == 0) {
-			error = 0;
-
-			/* Tag matches, decrypt data. */
-			for (i = 0; i < crp->crp_payload_length;
-			     i += sizeof(block)) {
-				len = imin(crp->crp_payload_length - i,
-				    sizeof(block));
-				crypto_copydata(crp, crp->crp_payload_start + i,
-				    len, block);
-				bzero(block + len, sizeof(block) - len);
-				exf->decrypt(kschedule, block, block);
-				crypto_copyback(crp, crp->crp_payload_start + i,
-				    len, block);
-			}
-		} else
-			error = EBADMSG;
-		explicit_bzero(digest2, sizeof(digest2));
-	}
-
-out:
-	zfree(kschedule, M_CCR);
-	zfree(auth_ctx, M_CCR);
-	explicit_bzero(block, sizeof(block));
-	explicit_bzero(digest, sizeof(digest));
-	crp->crp_etype = error;
-	crypto_done(crp);
 }
 
 static int
@@ -1600,7 +1462,7 @@ ccr_ccm(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 
 	csp = crypto_get_params(crp->crp_session);
 
-	if (s->blkcipher.key_len == 0)
+	if (s->cipher.key_len == 0)
 		return (EINVAL);
 
 	/*
@@ -1695,7 +1557,7 @@ ccr_ccm(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	 * The 'key' part of the key context consists of two copies of
 	 * the AES key.
 	 */
-	kctx_len = roundup2(s->blkcipher.key_len, 16) * 2;
+	kctx_len = roundup2(s->cipher.key_len, 16) * 2;
 	transhdr_len = CIPHER_TRANSHDR_SIZE(kctx_len, dsgl_len);
 
 	/*
@@ -1824,10 +1686,10 @@ ccr_ccm(struct ccr_softc *sc, struct ccr_session *s, struct cryptop *crp)
 	    V_SCMD_MORE_FRAGS(0) | V_SCMD_LAST_FRAG(0) | V_SCMD_MAC_ONLY(0) |
 	    V_SCMD_AADIVDROP(0) | V_SCMD_HDR_LEN(dsgl_len));
 
-	crwr->key_ctx.ctx_hdr = s->blkcipher.key_ctx_hdr;
-	memcpy(crwr->key_ctx.key, s->blkcipher.enckey, s->blkcipher.key_len);
-	memcpy(crwr->key_ctx.key + roundup(s->blkcipher.key_len, 16),
-	    s->blkcipher.enckey, s->blkcipher.key_len);
+	crwr->key_ctx.ctx_hdr = s->cipher.key_ctx_hdr;
+	memcpy(crwr->key_ctx.key, s->cipher.enckey, s->cipher.key_len);
+	memcpy(crwr->key_ctx.key + roundup(s->cipher.key_len, 16),
+	    s->cipher.enckey, s->cipher.key_len);
 
 	dst = (char *)(crwr + 1) + kctx_len;
 	ccr_write_phys_dsgl(s, dst, dsgl_nsegs);
@@ -1894,208 +1756,47 @@ ccr_ccm_done(struct ccr_softc *sc, struct ccr_session *s,
 }
 
 /*
- * Handle a CCM request that is not supported by the crypto engine by
- * performing the operation in software.  Derived from swcr_ccm().
+ * Use the software session for requests not supported by the crypto
+ * engine (e.g. CCM and GCM requests with an empty payload).
  */
-static void
-build_ccm_b0(const char *nonce, u_int nonce_length, u_int aad_length,
-    u_int data_length, u_int tag_length, uint8_t *b0)
-{
-	uint8_t *bp;
-	uint8_t flags, L;
-
-	KASSERT(nonce_length >= 7 && nonce_length <= 13,
-	    ("nonce_length must be between 7 and 13 bytes"));
-
-	/*
-	 * Need to determine the L field value.  This is the number of
-	 * bytes needed to specify the length of the message; the length
-	 * is whatever is left in the 16 bytes after specifying flags and
-	 * the nonce.
-	 */
-	L = 15 - nonce_length;
-
-	flags = ((aad_length > 0) << 6) +
-	    (((tag_length - 2) / 2) << 3) +
-	    L - 1;
-
-	/*
-	 * Now we need to set up the first block, which has flags, nonce,
-	 * and the message length.
-	 */
-	b0[0] = flags;
-	memcpy(b0 + 1, nonce, nonce_length);
-	bp = b0 + 1 + nonce_length;
-
-	/* Need to copy L' [aka L-1] bytes of data_length */
-	for (uint8_t *dst = b0 + CCM_CBC_BLOCK_LEN - 1; dst >= bp; dst--) {
-		*dst = data_length;
-		data_length >>= 8;
-	}
-}
-
-/* NB: OCF only supports AAD lengths < 2^32. */
 static int
-build_ccm_aad_length(u_int aad_length, uint8_t *blk)
+ccr_soft_done(struct cryptop *crp)
 {
-	if (aad_length < ((1 << 16) - (1 << 8))) {
-		be16enc(blk, aad_length);
-		return (sizeof(uint16_t));
-	} else {
-		blk[0] = 0xff;
-		blk[1] = 0xfe;
-		be32enc(blk + 2, aad_length);
-		return (2 + sizeof(uint32_t));
-	}
+	struct cryptop *orig;
+
+	orig = crp->crp_opaque;
+	orig->crp_etype = crp->crp_etype;
+	crypto_freereq(crp);
+	crypto_done(orig);
+	return (0);
 }
 
 static void
-ccr_ccm_soft(struct ccr_session *s, struct cryptop *crp)
+ccr_soft(struct ccr_session *s, struct cryptop *crp)
 {
-	const struct crypto_session_params *csp;
-	struct auth_hash *axf;
-	struct enc_xform *exf;
-	union authctx *auth_ctx;
-	void *kschedule;
-	char block[CCM_CBC_BLOCK_LEN];
-	char tag[AES_CBC_MAC_HASH_LEN];
-	u_int taglen;
-	int error, i, len;
+	struct cryptop *new;
+	int error;
 
-	auth_ctx = NULL;
-	kschedule = NULL;
-	taglen = s->ccm_mac.hash_len;
-
-	csp = crypto_get_params(crp->crp_session);
-	if (crp->crp_payload_length > ccm_max_payload_length(csp)) {
-		error = EMSGSIZE;
-		goto out;
+	new = crypto_clonereq(crp, s->sw_session, M_NOWAIT);
+	if (new == NULL) {
+		crp->crp_etype = ENOMEM;
+		crypto_done(crp);
+		return;
 	}
 
-	/* Initialize the MAC. */
-	switch (s->blkcipher.key_len) {
-	case 16:
-		axf = &auth_hash_ccm_cbc_mac_128;
-		break;
-	case 24:
-		axf = &auth_hash_ccm_cbc_mac_192;
-		break;
-	case 32:
-		axf = &auth_hash_ccm_cbc_mac_256;
-		break;
-	default:
-		error = EINVAL;
-		goto out;
+	/*
+	 * XXX: This only really needs CRYPTO_ASYNC_ORDERED if the
+	 * original request was dispatched that way.  There is no way
+	 * to know that though since crypto_dispatch_async() discards
+	 * the flag for async backends (such as ccr(4)).
+	 */
+	new->crp_opaque = crp;
+	new->crp_callback = ccr_soft_done;
+	error = crypto_dispatch_async(new, CRYPTO_ASYNC_ORDERED);
+	if (error != 0) {
+		crp->crp_etype = error;
+		crypto_done(crp);
 	}
-	auth_ctx = malloc(axf->ctxsize, M_CCR, M_NOWAIT);
-	if (auth_ctx == NULL) {
-		error = ENOMEM;
-		goto out;
-	}
-	axf->Init(auth_ctx);
-	axf->Setkey(auth_ctx, s->blkcipher.enckey, s->blkcipher.key_len);
-
-	/* Initialize the cipher. */
-	exf = &enc_xform_ccm;
-	kschedule = malloc(exf->ctxsize, M_CCR, M_NOWAIT);
-	if (kschedule == NULL) {
-		error = ENOMEM;
-		goto out;
-	}
-	error = exf->setkey(kschedule, s->blkcipher.enckey,
-	    s->blkcipher.key_len);
-	if (error)
-		goto out;
-
-	if ((crp->crp_flags & CRYPTO_F_IV_SEPARATE) == 0) {
-		error = EINVAL;
-		goto out;
-	}
-
-	axf->Reinit(auth_ctx, crp->crp_iv, csp->csp_ivlen);
-
-	/* Supply MAC with b0. */
-	build_ccm_b0(crp->crp_iv, csp->csp_ivlen, crp->crp_aad_length,
-	    crp->crp_payload_length, taglen, block);
-	axf->Update(auth_ctx, block, CCM_CBC_BLOCK_LEN);
-
-	/* MAC the AAD. */
-	if (crp->crp_aad_length != 0) {
-		len = build_ccm_aad_length(crp->crp_aad_length, block);
-		axf->Update(auth_ctx, block, len);
-		if (crp->crp_aad != NULL)
-			axf->Update(auth_ctx, crp->crp_aad,
-			    crp->crp_aad_length);
-		else
-			crypto_apply(crp, crp->crp_aad_start,
-			    crp->crp_aad_length, axf->Update, auth_ctx);
-
-		/* Pad the AAD (including length field) to a full block. */
-		len = (len + crp->crp_aad_length) % CCM_CBC_BLOCK_LEN;
-		if (len != 0) {
-			len = CCM_CBC_BLOCK_LEN - len;
-			memset(block, 0, CCM_CBC_BLOCK_LEN);
-			axf->Update(auth_ctx, block, len);
-		}
-	}
-
-	exf->reinit(kschedule, crp->crp_iv, csp->csp_ivlen);
-
-	/* Do encryption/decryption with MAC */
-	for (i = 0; i < crp->crp_payload_length; i += sizeof(block)) {
-		len = imin(crp->crp_payload_length - i, sizeof(block));
-		crypto_copydata(crp, crp->crp_payload_start + i, len, block);
-		bzero(block + len, sizeof(block) - len);
-		if (CRYPTO_OP_IS_ENCRYPT(crp->crp_op)) {
-			axf->Update(auth_ctx, block, len);
-			exf->encrypt(kschedule, block, block);
-			crypto_copyback(crp, crp->crp_payload_start + i, len,
-			    block);
-		} else {
-			exf->decrypt(kschedule, block, block);
-			axf->Update(auth_ctx, block, len);
-		}
-	}
-
-	/* Finalize MAC. */
-	axf->Final(tag, auth_ctx);
-
-	/* Inject or validate tag. */
-	if (CRYPTO_OP_IS_ENCRYPT(crp->crp_op)) {
-		crypto_copyback(crp, crp->crp_digest_start, taglen, tag);
-		error = 0;
-	} else {
-		char tag2[AES_CBC_MAC_HASH_LEN];
-
-		crypto_copydata(crp, crp->crp_digest_start, taglen, tag2);
-		if (timingsafe_bcmp(tag, tag2, taglen) == 0) {
-			error = 0;
-
-			/* Tag matches, decrypt data. */
-			exf->reinit(kschedule, crp->crp_iv, csp->csp_ivlen);
-			for (i = 0; i < crp->crp_payload_length;
-			     i += sizeof(block)) {
-				len = imin(crp->crp_payload_length - i,
-				    sizeof(block));
-				crypto_copydata(crp, crp->crp_payload_start + i,
-				    len, block);
-				bzero(block + len, sizeof(block) - len);
-				exf->decrypt(kschedule, block, block);
-				crypto_copyback(crp, crp->crp_payload_start + i,
-				    len, block);
-			}
-		} else
-			error = EBADMSG;
-		explicit_bzero(tag2, sizeof(tag2));
-	}
-
-out:
-	zfree(kschedule, M_CCR);
-	zfree(auth_ctx, M_CCR);
-	explicit_bzero(block, sizeof(block));
-	explicit_bzero(tag, sizeof(tag));
-	crp->crp_etype = error;
-	crypto_done(crp);
 }
 
 static void
@@ -2147,10 +1848,10 @@ ccr_sysctls(struct ccr_softc *sc)
 	SYSCTL_ADD_COUNTER_U64(ctx, children, OID_AUTO, "hmac", CTLFLAG_RD,
 	    &sc->stats_hmac, "HMAC requests submitted");
 	SYSCTL_ADD_COUNTER_U64(ctx, children, OID_AUTO, "cipher_encrypt",
-	    CTLFLAG_RD, &sc->stats_blkcipher_encrypt,
+	    CTLFLAG_RD, &sc->stats_cipher_encrypt,
 	    "Cipher encryption requests submitted");
 	SYSCTL_ADD_COUNTER_U64(ctx, children, OID_AUTO, "cipher_decrypt",
-	    CTLFLAG_RD, &sc->stats_blkcipher_decrypt,
+	    CTLFLAG_RD, &sc->stats_cipher_decrypt,
 	    "Cipher decryption requests submitted");
 	SYSCTL_ADD_COUNTER_U64(ctx, children, OID_AUTO, "eta_encrypt",
 	    CTLFLAG_RD, &sc->stats_eta_encrypt,
@@ -2274,8 +1975,8 @@ ccr_attach(device_t dev)
 	mtx_init(&sc->lock, "ccr", NULL, MTX_DEF);
 	sc->iv_aad_buf = malloc(MAX_AAD_LEN, M_CCR, M_WAITOK);
 	sc->sg_iv_aad = sglist_build(sc->iv_aad_buf, MAX_AAD_LEN, M_WAITOK);
-	sc->stats_blkcipher_encrypt = counter_u64_alloc(M_WAITOK);
-	sc->stats_blkcipher_decrypt = counter_u64_alloc(M_WAITOK);
+	sc->stats_cipher_encrypt = counter_u64_alloc(M_WAITOK);
+	sc->stats_cipher_decrypt = counter_u64_alloc(M_WAITOK);
 	sc->stats_hash = counter_u64_alloc(M_WAITOK);
 	sc->stats_hmac = counter_u64_alloc(M_WAITOK);
 	sc->stats_eta_encrypt = counter_u64_alloc(M_WAITOK);
@@ -2320,8 +2021,8 @@ ccr_detach(device_t dev)
 
 	sysctl_ctx_free(&sc->ctx);
 	mtx_destroy(&sc->lock);
-	counter_u64_free(sc->stats_blkcipher_encrypt);
-	counter_u64_free(sc->stats_blkcipher_decrypt);
+	counter_u64_free(sc->stats_cipher_encrypt);
+	counter_u64_free(sc->stats_cipher_decrypt);
 	counter_u64_free(sc->stats_hash);
 	counter_u64_free(sc->stats_hmac);
 	counter_u64_free(sc->stats_eta_encrypt);
@@ -2350,7 +2051,7 @@ static void
 ccr_init_hash_digest(struct ccr_session *s)
 {
 	union authctx auth_ctx;
-	struct auth_hash *axf;
+	const struct auth_hash *axf;
 
 	axf = s->hmac.auth_hash;
 	axf->Init(&auth_ctx);
@@ -2385,7 +2086,7 @@ ccr_aes_setkey(struct ccr_session *s, const void *key, int klen)
 	unsigned int ck_size, iopad_size, kctx_flits, kctx_len, kbits, mk_size;
 	unsigned int opad_present;
 
-	if (s->blkcipher.cipher_mode == SCMD_CIPH_MODE_AES_XTS)
+	if (s->cipher.cipher_mode == SCMD_CIPH_MODE_AES_XTS)
 		kbits = (klen / 2) * 8;
 	else
 		kbits = klen * 8;
@@ -2403,16 +2104,16 @@ ccr_aes_setkey(struct ccr_session *s, const void *key, int klen)
 		panic("should not get here");
 	}
 
-	s->blkcipher.key_len = klen;
-	memcpy(s->blkcipher.enckey, key, s->blkcipher.key_len);
-	switch (s->blkcipher.cipher_mode) {
+	s->cipher.key_len = klen;
+	memcpy(s->cipher.enckey, key, s->cipher.key_len);
+	switch (s->cipher.cipher_mode) {
 	case SCMD_CIPH_MODE_AES_CBC:
 	case SCMD_CIPH_MODE_AES_XTS:
-		t4_aes_getdeckey(s->blkcipher.deckey, key, kbits);
+		t4_aes_getdeckey(s->cipher.deckey, key, kbits);
 		break;
 	}
 
-	kctx_len = roundup2(s->blkcipher.key_len, 16);
+	kctx_len = roundup2(s->cipher.key_len, 16);
 	switch (s->mode) {
 	case ETA:
 		mk_size = s->hmac.mk_size;
@@ -2448,8 +2149,8 @@ ccr_aes_setkey(struct ccr_session *s, const void *key, int klen)
 		break;
 	}
 	kctx_flits = (sizeof(struct _key_ctx) + kctx_len) / 16;
-	s->blkcipher.key_ctx_hdr = htobe32(V_KEY_CONTEXT_CTX_LEN(kctx_flits) |
-	    V_KEY_CONTEXT_DUAL_CK(s->blkcipher.cipher_mode ==
+	s->cipher.key_ctx_hdr = htobe32(V_KEY_CONTEXT_CTX_LEN(kctx_flits) |
+	    V_KEY_CONTEXT_DUAL_CK(s->cipher.cipher_mode ==
 	    SCMD_CIPH_MODE_AES_XTS) |
 	    V_KEY_CONTEXT_OPAD_PRESENT(opad_present) |
 	    V_KEY_CONTEXT_SALT_PRESENT(1) | V_KEY_CONTEXT_CK_SIZE(ck_size) |
@@ -2542,12 +2243,6 @@ ccr_probesession(device_t dev, const struct crypto_session_params *csp)
 	case CSP_MODE_AEAD:
 		switch (csp->csp_cipher_alg) {
 		case CRYPTO_AES_NIST_GCM_16:
-			if (csp->csp_ivlen != AES_GCM_IV_LEN)
-				return (EINVAL);
-			if (csp->csp_auth_mlen < 0 ||
-			    csp->csp_auth_mlen > AES_GMAC_HASH_LEN)
-				return (EINVAL);
-			break;
 		case CRYPTO_AES_CCM_16:
 			break;
 		default:
@@ -2611,6 +2306,7 @@ ccr_choose_port(struct ccr_softc *sc)
 static void
 ccr_delete_session(struct ccr_session *s)
 {
+	crypto_freesession(s->sw_session);
 	sglist_free(s->sg_input);
 	sglist_free(s->sg_output);
 	sglist_free(s->sg_ulptx);
@@ -2624,9 +2320,10 @@ ccr_newsession(device_t dev, crypto_session_t cses,
 {
 	struct ccr_softc *sc;
 	struct ccr_session *s;
-	struct auth_hash *auth_hash;
+	const struct auth_hash *auth_hash;
 	unsigned int auth_mode, cipher_mode, mk_size;
 	unsigned int partial_digest_len;
+	int error;
 
 	switch (csp->csp_auth_alg) {
 	case CRYPTO_SHA1:
@@ -2718,6 +2415,15 @@ ccr_newsession(device_t dev, crypto_session_t cses,
 		return (ENOMEM);
 	}
 
+	if (csp->csp_mode == CSP_MODE_AEAD) {
+		error = crypto_newsession(&s->sw_session, csp,
+		    CRYPTOCAP_F_SOFTWARE);
+		if (error) {
+			ccr_delete_session(s);
+			return (error);
+		}
+	}
+
 	sc = device_get_softc(dev);
 
 	mtx_lock(&sc->lock);
@@ -2751,7 +2457,7 @@ ccr_newsession(device_t dev, crypto_session_t cses,
 			s->mode = HASH;
 		break;
 	case CSP_MODE_CIPHER:
-		s->mode = BLKCIPHER;
+		s->mode = CIPHER;
 		break;
 	}
 
@@ -2784,8 +2490,8 @@ ccr_newsession(device_t dev, crypto_session_t cses,
 			ccr_init_hash_digest(s);
 	}
 	if (cipher_mode != SCMD_CIPH_MODE_NOP) {
-		s->blkcipher.cipher_mode = cipher_mode;
-		s->blkcipher.iv_len = csp->csp_ivlen;
+		s->cipher.cipher_mode = cipher_mode;
+		s->cipher.iv_len = csp->csp_ivlen;
 		if (csp->csp_cipher_key != NULL)
 			ccr_aes_setkey(s, csp->csp_cipher_key,
 			    csp->csp_cipher_klen);
@@ -2852,16 +2558,16 @@ ccr_process(device_t dev, struct cryptop *crp, int hint)
 		if (error == 0)
 			counter_u64_add(sc->stats_hmac, 1);
 		break;
-	case BLKCIPHER:
+	case CIPHER:
 		if (crp->crp_cipher_key != NULL)
 			ccr_aes_setkey(s, crp->crp_cipher_key,
 			    csp->csp_cipher_klen);
-		error = ccr_blkcipher(sc, s, crp);
+		error = ccr_cipher(sc, s, crp);
 		if (error == 0) {
 			if (CRYPTO_OP_IS_ENCRYPT(crp->crp_op))
-				counter_u64_add(sc->stats_blkcipher_encrypt, 1);
+				counter_u64_add(sc->stats_cipher_encrypt, 1);
 			else
-				counter_u64_add(sc->stats_blkcipher_decrypt, 1);
+				counter_u64_add(sc->stats_cipher_decrypt, 1);
 		}
 		break;
 	case ETA:
@@ -2887,16 +2593,11 @@ ccr_process(device_t dev, struct cryptop *crp, int hint)
 			ccr_aes_setkey(s, crp->crp_cipher_key,
 			    csp->csp_cipher_klen);
 		}
-		if (crp->crp_payload_length == 0) {
-			mtx_unlock(&s->lock);
-			ccr_gcm_soft(s, crp);
-			return (0);
-		}
 		error = ccr_gcm(sc, s, crp);
 		if (error == EMSGSIZE || error == EFBIG) {
 			counter_u64_add(sc->stats_sw_fallback, 1);
 			mtx_unlock(&s->lock);
-			ccr_gcm_soft(s, crp);
+			ccr_soft(s, crp);
 			return (0);
 		}
 		if (error == 0) {
@@ -2915,7 +2616,7 @@ ccr_process(device_t dev, struct cryptop *crp, int hint)
 		if (error == EMSGSIZE || error == EFBIG) {
 			counter_u64_add(sc->stats_sw_fallback, 1);
 			mtx_unlock(&s->lock);
-			ccr_ccm_soft(s, crp);
+			ccr_soft(s, crp);
 			return (0);
 		}
 		if (error == 0) {
@@ -2984,8 +2685,8 @@ do_cpl6_fw_pld(struct sge_iq *iq, const struct rss_header *rss,
 	case HMAC:
 		error = ccr_hash_done(sc, s, crp, cpl, error);
 		break;
-	case BLKCIPHER:
-		error = ccr_blkcipher_done(sc, s, crp, cpl, error);
+	case CIPHER:
+		error = ccr_cipher_done(sc, s, crp, cpl, error);
 		break;
 	case ETA:
 		error = ccr_eta_done(sc, s, crp, cpl, error);

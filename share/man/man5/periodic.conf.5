@@ -25,7 +25,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd November 7, 2020
+.Dd March 9, 2022
 .Dt PERIODIC.CONF 5
 .Os
 .Sh NAME
@@ -365,7 +365,7 @@ daily.
 .Pq Vt bool
 Set to
 .Dq Li YES
-if you want to rotate your daily accounting files.
+if you want to rotate your daily process accounting files.
 No rotations are necessary unless
 .Va accounting_enable
 is enabled in
@@ -396,12 +396,6 @@ is set to
 .Dq Li YES .
 The default is
 .Fl q .
-.It Va daily_news_expire_enable
-.Pq Vt bool
-Set to
-.Dq Li YES
-if you want to run
-.Pa /etc/news.expire .
 .It Va daily_status_disks_enable
 .Pq Vt bool
 Set to
@@ -966,6 +960,13 @@ Set to
 to show log entries for packets denied by
 .Xr pf 4
 since yesterday's check.
+.It Va security_status_pfdenied_additionalanchors
+.Pq Vt str
+Space-separated list of additional anchors whose denied packets log entries to
+show.
+The main ruleset (i.e., the empty-string anchor) and any
+.Xr blacklistd 8
+anchors, if present, are always shown.
 .It Va security_status_pfdenied_period
 .Pq Vt str
 Set to either

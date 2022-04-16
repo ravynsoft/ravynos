@@ -86,7 +86,7 @@ VNET_DECLARE(unsigned long, io_pkt_drop);
 #define V_io_pkt_drop VNET(io_pkt_drop)
 
 /* list of queues */
-STAILQ_HEAD(fq_pie_list, fq_pie_flow) ;
+STAILQ_HEAD(fq_pie_list, fq_pie_flow);
 
 /* FQ_PIE parameters including PIE */
 struct dn_sch_fq_pie_parms {
@@ -341,8 +341,9 @@ __inline static struct mbuf *
 fq_pie_extract_head(struct fq_pie_flow *q, aqm_time_t *pkt_ts,
 	struct fq_pie_si *si, int getts)
 {
-	struct mbuf *m = q->mq.head;
+	struct mbuf *m;
 
+next:	m = q->mq.head;
 	if (m == NULL)
 		return m;
 	q->mq.head = m->m_nextpkt;
@@ -364,6 +365,11 @@ fq_pie_extract_head(struct fq_pie_flow *q, aqm_time_t *pkt_ts,
 			m_tag_delete(m,mtag); 
 		}
 	}
+	if (m->m_pkthdr.rcvif != NULL &&
+	    __predict_false(m_rcvif_restore(m) == NULL)) {
+		m_freem(m);
+		goto next;
+	}
 	return m;
 }
 
@@ -379,10 +385,8 @@ fq_calculate_drop_prob(void *x)
 	struct pie_status *pst = &q->pst;
 	struct dn_aqm_pie_parms *pprms; 
 	int64_t p, prob, oldprob;
-	aqm_time_t now;
 	int p_isneg;
 
-	now = AQM_UNOW;
 	pprms = pst->parms;
 	prob = pst->drop_prob;
 
@@ -580,7 +584,7 @@ fqpie_callout_cleanup(void *x)
 	mtx_destroy(&pst->lock_mtx);
 	psi_extra = q->psi_extra;
 
-	DN_BH_WLOCK();
+	dummynet_sched_lock();
 	psi_extra->nr_active_q--;
 
 	/* when all sub-queues are destroyed, free flows fq_pie extra vars memory */
@@ -589,7 +593,7 @@ fqpie_callout_cleanup(void *x)
 		free(psi_extra, M_DUMMYNET);
 		fq_pie_desc.ref_count--;
 	}
-	DN_BH_WUNLOCK();
+	dummynet_sched_unlock();
 }
 
 /* 
@@ -648,10 +652,10 @@ pie_dequeue(struct fq_pie_flow *q, struct fq_pie_si *si)
 				if(pst->avg_dq_time == 0)
 					pst->avg_dq_time = dq_time;
 				else {
-					/* 
-					 * weight = PIE_DQ_THRESHOLD/2^6, but we scaled 
-					 * weight by 2^8. Thus, scaled 
-					 * weight = PIE_DQ_THRESHOLD /2^8 
+					/*
+					 * weight = PIE_DQ_THRESHOLD/2^6, but we scaled
+					 * weight by 2^8. Thus, scaled
+					 * weight = PIE_DQ_THRESHOLD /2^8
 					 * */
 					w = PIE_DQ_THRESHOLD >> 8;
 					pst->avg_dq_time = (dq_time* w
@@ -661,11 +665,11 @@ pie_dequeue(struct fq_pie_flow *q, struct fq_pie_si *si)
 			}
 		}
 
-		/* 
-		 * Start new measurment cycle when the queue has
-		 *  PIE_DQ_THRESHOLD worth of bytes.
+		/*
+		 * Start new measurement cycle when the queue has
+		 * PIE_DQ_THRESHOLD worth of bytes.
 		 */
-		if(!(pst->sflags & PIE_INMEASUREMENT) && 
+		if(!(pst->sflags & PIE_INMEASUREMENT) &&
 			q->stats.len_bytes >= PIE_DQ_THRESHOLD) {
 			pst->sflags |= PIE_INMEASUREMENT;
 			pst->measurement_start = now;
@@ -676,7 +680,7 @@ pie_dequeue(struct fq_pie_flow *q, struct fq_pie_si *si)
 	else
 		pst->current_qdelay = now - pkt_ts;
 
-	return m;	
+	return m;
 }
 
  /*
@@ -1060,7 +1064,9 @@ fq_pie_new_sched(struct dn_sch_inst *_si)
 		pie_init(&flows[i], schk);
 	}
 
+	dummynet_sched_lock();
 	fq_pie_desc.ref_count++;
+	dummynet_sched_unlock();
 
 	return 0;
 }

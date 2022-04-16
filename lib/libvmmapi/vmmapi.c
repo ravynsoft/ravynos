@@ -486,7 +486,7 @@ vm_rev_map_gpa(struct vmctx *ctx, void *addr)
 	offaddr = (char *)addr - ctx->baseaddr;
 
 	if (ctx->lowmem > 0)
-		if (offaddr >= 0 && offaddr <= ctx->lowmem)
+		if (offaddr <= ctx->lowmem)
 			return (offaddr);
 
 	if (ctx->highmem > 0)
@@ -496,14 +496,11 @@ vm_rev_map_gpa(struct vmctx *ctx, void *addr)
 	return ((vm_paddr_t)-1);
 }
 
-/* TODO: maximum size for vmname */
-int
-vm_get_name(struct vmctx *ctx, char *buf, size_t max_len)
+const char *
+vm_get_name(struct vmctx *ctx)
 {
 
-	if (strlcpy(buf, ctx->name, max_len) >= max_len)
-		return (EINVAL);
-	return (0);
+	return (ctx->name);
 }
 
 size_t
@@ -1066,19 +1063,44 @@ uint64_t *
 vm_get_stats(struct vmctx *ctx, int vcpu, struct timeval *ret_tv,
 	     int *ret_entries)
 {
-	int error;
+	static _Thread_local uint64_t *stats_buf;
+	static _Thread_local u_int stats_count;
+	uint64_t *new_stats;
+	struct vm_stats vmstats;
+	u_int count, index;
+	bool have_stats;
 
-	static struct vm_stats vmstats;
-
+	have_stats = false;
 	vmstats.cpuid = vcpu;
+	count = 0;
+	for (index = 0;; index += nitems(vmstats.statbuf)) {
+		vmstats.index = index;
+		if (ioctl(ctx->fd, VM_STATS, &vmstats) != 0)
+			break;
+		if (stats_count < index + vmstats.num_entries) {
+			new_stats = realloc(stats_buf,
+			    (index + vmstats.num_entries) * sizeof(uint64_t));
+			if (new_stats == NULL) {
+				errno = ENOMEM;
+				return (NULL);
+			}
+			stats_count = index + vmstats.num_entries;
+			stats_buf = new_stats;
+		}
+		memcpy(stats_buf + index, vmstats.statbuf,
+		    vmstats.num_entries * sizeof(uint64_t));
+		count += vmstats.num_entries;
+		have_stats = true;
 
-	error = ioctl(ctx->fd, VM_STATS, &vmstats);
-	if (error == 0) {
+		if (vmstats.num_entries != nitems(vmstats.statbuf))
+			break;
+	}
+	if (have_stats) {
 		if (ret_entries)
-			*ret_entries = vmstats.num_entries;
+			*ret_entries = count;
 		if (ret_tv)
 			*ret_tv = vmstats.tv;
-		return (vmstats.statbuf);
+		return (stats_buf);
 	} else
 		return (NULL);
 }

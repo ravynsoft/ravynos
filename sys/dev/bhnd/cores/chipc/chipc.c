@@ -411,7 +411,7 @@ chipc_find_nvram_src(struct chipc_softc *sc, struct chipc_caps *caps)
 
 	/*
 	 * We check for hardware presence in order of precedence. For example,
-	 * SPROM is is always used in preference to internal OTP if found.
+	 * SPROM is always used in preference to internal OTP if found.
 	 */
 	if (CHIPC_QUIRK(sc, SUPPORTS_SPROM) && caps->sprom) {
 		srom_ctrl = bhnd_bus_read_4(sc->core, CHIPC_SPROM_CTRL);
@@ -594,28 +594,6 @@ chipc_print_child(device_t dev, device_t child)
 	retval += bus_print_child_footer(dev, child);
 
 	return (retval);
-}
-
-static int
-chipc_child_pnpinfo_str(device_t dev, device_t child, char *buf,
-    size_t buflen)
-{
-	if (buflen == 0)
-		return (EOVERFLOW);
-
-	*buf = '\0';
-	return (0);
-}
-
-static int
-chipc_child_location_str(device_t dev, device_t child, char *buf,
-    size_t buflen)
-{
-	if (buflen == 0)
-		return (EOVERFLOW);
-
-	*buf = '\0';
-	return (ENXIO);
 }
 
 static device_t
@@ -1164,13 +1142,13 @@ chipc_should_enable_muxed_sprom(struct chipc_softc *sc)
 	if (!CHIPC_QUIRK(sc, MUX_SPROM))
 		return (true);
 
-	mtx_lock(&Giant);	/* for newbus */
+	bus_topo_lock();
 
 	parent = device_get_parent(sc->dev);
 	hostb = bhnd_bus_find_hostb_device(parent);
 
 	if ((error = device_get_children(parent, &devs, &devcount))) {
-		mtx_unlock(&Giant);
+		bus_topo_unlock();
 		return (false);
 	}
 
@@ -1193,7 +1171,7 @@ chipc_should_enable_muxed_sprom(struct chipc_softc *sc)
 	}
 
 	free(devs, M_TEMP);
-	mtx_unlock(&Giant);
+	bus_topo_unlock();
 	return (result);
 }
 
@@ -1409,8 +1387,6 @@ static device_method_t chipc_methods[] = {
 	/* Bus interface */
 	DEVMETHOD(bus_probe_nomatch,		chipc_probe_nomatch),
 	DEVMETHOD(bus_print_child,		chipc_print_child),
-	DEVMETHOD(bus_child_pnpinfo_str,	chipc_child_pnpinfo_str),
-	DEVMETHOD(bus_child_location_str,	chipc_child_location_str),
 
 	DEVMETHOD(bus_add_child,		chipc_add_child),
 	DEVMETHOD(bus_child_deleted,		chipc_child_deleted),

@@ -871,7 +871,11 @@ bootstrap_pkg(bool force, const char *fetchOpts)
 	for (int j = 0; bootstrap_names[j] != NULL; j++) {
 		bootstrap_name = bootstrap_names[j];
 
+<<<<<<< HEAD
 		snprintf(url, MAXPATHLEN, "%s/%s", packagesite, bootstrap_name);
+=======
+		snprintf(url, MAXPATHLEN, "%s/Latest/%s", packagesite, bootstrap_name);
+>>>>>>> freebsd/main
 		snprintf(tmppkg, MAXPATHLEN, "%s/%s.XXXXXX",
 		    getenv("TMPDIR") ? getenv("TMPDIR") : _PATH_TMP,
 		    bootstrap_name);
@@ -889,7 +893,11 @@ bootstrap_pkg(bool force, const char *fetchOpts)
 			snprintf(tmpsig, MAXPATHLEN, "%s/%s.sig.XXXXXX",
 			    getenv("TMPDIR") ? getenv("TMPDIR") : _PATH_TMP,
 			    bootstrap_name);
+<<<<<<< HEAD
 			snprintf(url, MAXPATHLEN, "%s/%s.sig",
+=======
+			snprintf(url, MAXPATHLEN, "%s/Latest/%s.sig",
+>>>>>>> freebsd/main
 			    packagesite, bootstrap_name);
 
 			if ((fd_sig = fetch_to_fd(url, tmpsig, fetchOpts)) == -1) {
@@ -906,7 +914,11 @@ bootstrap_pkg(bool force, const char *fetchOpts)
 			    "%s/%s.pubkeysig.XXXXXX",
 			    getenv("TMPDIR") ? getenv("TMPDIR") : _PATH_TMP,
 			    bootstrap_name);
+<<<<<<< HEAD
 			snprintf(url, MAXPATHLEN, "%s/%s.pubkeysig",
+=======
+			snprintf(url, MAXPATHLEN, "%s/Latest/%s.pubkeysig",
+>>>>>>> freebsd/main
 			    packagesite, bootstrap_name);
 
 			if ((fd_sig = fetch_to_fd(url, tmpsig, fetchOpts)) == -1) {
@@ -1063,9 +1075,19 @@ cleanup:
 static bool
 pkg_is_pkg_pkg(const char *pkg)
 {
+<<<<<<< HEAD
 	char *vstart;
 	size_t namelen;
 
+=======
+	char *vstart, *basename;
+	size_t namelen;
+
+	/* Strip path. */
+	if ((basename = strrchr(pkg, '/')) != NULL)
+		pkg = basename + 1;
+
+>>>>>>> freebsd/main
 	/*
 	 * Chop off the final "-" (version delimiter) and check the name that
 	 * precedes it.  If we didn't have a version delimiter, it must be the

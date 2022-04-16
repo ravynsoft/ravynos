@@ -44,9 +44,11 @@
 #
 # DESTDIR	The tree where the module gets installed. [not set]
 #
-# KERNBUILDDIR
-#		Set to the location of the kernel build directory where
+# KERNBUILDDIR	Set to the location of the kernel build directory where
 #		the opt_*.h files, .o's and kernel winds up.
+#
+# BLOB_OBJS	Prebuilt binary blobs .o's from the src tree to be linked into
+#		the module. These are precious and not removed in make clean.
 #
 # +++ targets +++
 #
@@ -78,8 +80,8 @@ OBJCOPY?=	objcopy
 
 .SUFFIXES: .out .o .c .cc .cxx .C .y .l .s .S .m
 
-# amd64 and mips use direct linking for kmod, all others use shared binaries
-.if ${MACHINE_CPUARCH} != amd64 && ${MACHINE_CPUARCH} != mips
+# amd64 uses direct linking for kmod, all others use shared binaries
+.if ${MACHINE_CPUARCH} != amd64
 __KLD_SHARED=yes
 .else
 __KLD_SHARED=no
@@ -94,6 +96,10 @@ LINUXKPI_GENSRCS+= \
 	backlight_if.h \
 	bus_if.h \
 	device_if.h \
+	iicbus_if.h \
+	iicbb_if.h \
+	lkpi_iic_if.c \
+	lkpi_iic_if.h \
 	pci_if.h \
 	pci_iov_if.h \
 	pcib_if.h \
@@ -171,10 +177,6 @@ LDFLAGS+=	--no-toc-optimize
 .endif
 .endif
 
-.if ${MACHINE_CPUARCH} == mips
-CFLAGS+=	-G0 -fno-pic -mno-abicalls -mlong-calls
-.endif
-
 .if defined(DEBUG) || defined(DEBUG_FLAGS)
 CTFFLAGS+=	-g
 .endif
@@ -241,14 +243,14 @@ LDSCRIPT_FLAGS?= -T ${SYSDIR}/conf/ldscript.kmod.${MACHINE}
 .endif
 
 .if ${__KLD_SHARED} == yes
-${KMOD}.kld: ${OBJS}
+${KMOD}.kld: ${OBJS} ${BLOB_OBJS}
 .else
-${FULLPROG}: ${OBJS}
+${FULLPROG}: ${OBJS} ${BLOB_OBJS}
 .endif
 	${LD} -m ${LD_EMULATION} ${_LDFLAGS} ${LDSCRIPT_FLAGS} -r -d \
-	    -o ${.TARGET} ${OBJS}
+	    -o ${.TARGET} ${OBJS} ${BLOB_OBJS}
 .if ${MK_CTF} != "no"
-	${CTFMERGE} ${CTFFLAGS} -o ${.TARGET} ${OBJS}
+	${CTFMERGE} ${CTFFLAGS} -o ${.TARGET} ${OBJS} ${BLOB_OBJS}
 .endif
 .if defined(EXPORT_SYMS)
 .if ${EXPORT_SYMS} != YES
@@ -542,8 +544,7 @@ OPENZFS_CFLAGS=     \
 	-I${SYSDIR}/cddl/contrib/opensolaris/uts/common \
 	-include ${ZINCDIR}/os/freebsd/spl/sys/ccompile.h
 OPENZFS_CWARNFLAGS= \
-	-Wno-nested-externs \
-	-Wno-redundant-decls
+	-Wno-nested-externs
 
 .include <bsd.dep.mk>
 .include <bsd.clang-analyze.mk>

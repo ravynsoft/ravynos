@@ -33,7 +33,8 @@ function file_in_special_vdev # <dataset> <inode>
 {
 	typeset dataset="$1"
 	typeset inum="$2"
-	typeset num_normal=$(echo $ZPOOL_DISKS | wc -w | xargs)
+	typeset num_normal=$(echo $ZPOOL_DISKS | wc -w)
+	num_normal=${num_normal##* }
 
 	zdb -dddddd $dataset $inum | awk -v d=$num_normal '{
 # find DVAs from string "offset level dva" only for L0 (data) blocks
@@ -85,7 +86,7 @@ function check_removal
 		    bs=1M count=$blocks
 		((blocks = blocks + 25))
 	done
-	log_must sync_pool $TESTPOOL
+	sync_pool $TESTPOOL
 	log_must zpool list -v $TESTPOOL
 
 	# Verify the files were written in the special class vdevs
@@ -98,7 +99,7 @@ function check_removal
 	log_must zpool remove $TESTPOOL $CLASS_DISK0
 
 	sleep 5
-	log_must sync_pool $TESTPOOL
+	sync_pool $TESTPOOL
 	sleep 1
 
 	log_must zdb -bbcc $TESTPOOL

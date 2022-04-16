@@ -32,26 +32,7 @@
 
 #include <dev/iscsi/icl.h>
 
-enum {
-	CWT_SLEEPING	= 1,
-	CWT_RUNNING	= 2,
-	CWT_STOP	= 3,
-	CWT_STOPPED	= 4,
-};
-
-struct cxgbei_worker_thread_softc {
-	struct mtx	cwt_lock;
-	struct cv	cwt_cv;
-	volatile int	cwt_state;
-
-	TAILQ_HEAD(, icl_cxgbei_conn) rx_head;
-} __aligned(CACHE_LINE_SIZE);
-
 #define CXGBEI_CONN_SIGNATURE 0x56788765
-
-enum {
-	RXF_ACTIVE	= 1 << 0,	/* In the worker thread's queue */
-};
 
 struct cxgbei_cmp {
 	LIST_ENTRY(cxgbei_cmp) link;
@@ -73,14 +54,19 @@ struct icl_cxgbei_conn {
 	struct toepcb *toep;
 
 	/* Receive related. */
-	u_int rx_flags;				/* protected by so_rcv lock */
-	u_int cwt;
+	bool rx_active;				/* protected by so_rcv lock */
+	bool rx_exiting;			/* protected by so_rcv lock */
 	STAILQ_HEAD(, icl_pdu) rcvd_pdus;	/* protected by so_rcv lock */
-	TAILQ_ENTRY(icl_cxgbei_conn) rx_link;	/* protected by cwt lock */
+	struct thread *rx_thread;
 
 	struct cxgbei_cmp_head *cmp_table;	/* protected by cmp_lock */
 	struct mtx cmp_lock;
 	unsigned long cmp_hash_mask;
+
+	/* Transmit related. */
+	bool tx_active;				/* protected by ic lock */
+	STAILQ_HEAD(, icl_pdu) sent_pdus;	/* protected by ic lock */
+	struct thread *tx_thread;
 };
 
 static inline struct icl_cxgbei_conn *
@@ -134,8 +120,11 @@ struct cxgbei_data {
 
 /* cxgbei.c */
 u_int cxgbei_select_worker_thread(struct icl_cxgbei_conn *);
+void cwt_queue_for_tx(struct icl_cxgbei_conn *);
+void parse_pdus(struct icl_cxgbei_conn *, struct sockbuf *);
 
 /* icl_cxgbei.c */
+void cwt_tx_main(void *);
 int icl_cxgbei_mod_load(void);
 int icl_cxgbei_mod_unload(void);
 struct icl_pdu *icl_cxgbei_new_pdu(int);

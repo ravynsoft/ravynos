@@ -2203,14 +2203,6 @@ getout:
 	return (res);
 }
 
-/* never used and never worked, to be removed in FreeBSD 14 */
-int
-LibAliasCheckNewLink(struct libalias *la)
-{
-	(void)la;
-	return (0);
-}
-
 #ifndef NO_FW_PUNCH
 
 /*****************

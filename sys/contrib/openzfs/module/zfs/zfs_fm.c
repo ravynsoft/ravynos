@@ -124,14 +124,14 @@ static taskqid_t recent_events_cleaner_tqid;
  * This setting can be changed dynamically and setting it to zero
  * disables duplicate detection.
  */
-unsigned int zfs_zevent_retain_max = 2000;
+static unsigned int zfs_zevent_retain_max = 2000;
 
 /*
  * The lifespan for a recent ereport entry. The default of 15 minutes is
  * intended to outlive the zfs diagnosis engine's threshold of 10 errors
  * over a period of 10 minutes.
  */
-unsigned int zfs_zevent_retain_expire_secs = 900;
+static unsigned int zfs_zevent_retain_expire_secs = 900;
 
 typedef enum zfs_subclass {
 	ZSC_IO,
@@ -825,9 +825,6 @@ annotate_ecksum(nvlist_t *ereport, zio_bad_cksum_t *info,
 	const uint64_t *good;
 	const uint64_t *bad;
 
-	uint64_t allset = 0;
-	uint64_t allcleared = 0;
-
 	size_t nui64s = size / sizeof (uint64_t);
 
 	size_t inline_size;
@@ -928,9 +925,6 @@ annotate_ecksum(nvlist_t *ereport, zio_bad_cksum_t *info,
 			set = ((~good[idx]) & bad[idx]);
 			// bits set in good, but not in bad
 			cleared = (good[idx] & (~bad[idx]));
-
-			allset |= set;
-			allcleared |= cleared;
 
 			if (!no_inline) {
 				ASSERT3U(offset, <, inline_size);
@@ -1156,7 +1150,7 @@ zfs_ereport_start_checksum(spa_t *spa, vdev_t *vd, const zbookmark_phys_t *zb,
 	/* copy the checksum failure information if it was provided */
 	if (info != NULL) {
 		report->zcr_ckinfo = kmem_zalloc(sizeof (*info), KM_SLEEP);
-		bcopy(info, report->zcr_ckinfo, sizeof (*info));
+		memcpy(report->zcr_ckinfo, info, sizeof (*info));
 	}
 
 	report->zcr_sector = 1ULL << vd->vdev_top->vdev_ashift;

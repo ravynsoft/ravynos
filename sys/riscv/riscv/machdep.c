@@ -59,6 +59,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/proc.h>
 #include <sys/ptrace.h>
 #include <sys/reboot.h>
+#include <sys/reg.h>
 #include <sys/rwlock.h>
 #include <sys/sched.h>
 #include <sys/signalvar.h>
@@ -86,7 +87,6 @@ __FBSDID("$FreeBSD$");
 #include <machine/metadata.h>
 #include <machine/pcb.h>
 #include <machine/pte.h>
-#include <machine/reg.h>
 #include <machine/riscvreg.h>
 #include <machine/sbi.h>
 #include <machine/trap.h>
@@ -110,9 +110,6 @@ int early_boot = 1;
 int cold = 1;
 
 #define	DTB_SIZE_MAX	(1024 * 1024)
-
-vm_paddr_t physmap[PHYS_AVAIL_ENTRIES];
-u_int physmap_idx;
 
 struct kva_md_info kmi;
 
@@ -553,18 +550,15 @@ initriscv(struct riscv_bootparams *rvbp)
 
 #ifdef FDT
 	/*
-	 * XXX: Exclude the lowest 2MB of physical memory, if it hasn't been
-	 * already, as this area is assumed to contain the SBI firmware. This
-	 * is a little fragile, but it is consistent with the platforms we
-	 * support so far.
+	 * XXX: Unconditionally exclude the lowest 2MB of physical memory, as
+	 * this area is assumed to contain the SBI firmware. This is a little
+	 * fragile, but it is consistent with the platforms we support so far.
 	 *
 	 * TODO: remove this when the all regular booting methods properly
 	 * report their reserved memory in the device tree.
 	 */
-	if (mem_regions[0].mr_start == physmap[0]) {
-		physmem_exclude_region(mem_regions[0].mr_start, L2_SIZE,
-		    EXFLAG_NODUMP | EXFLAG_NOALLOC);
-	}
+	physmem_exclude_region(mem_regions[0].mr_start, L2_SIZE,
+	    EXFLAG_NODUMP | EXFLAG_NOALLOC);
 #endif
 	physmem_init_kernel_globals();
 
@@ -602,15 +596,4 @@ initriscv(struct riscv_bootparams *rvbp)
 	early_boot = 0;
 
 	TSEXIT();
-}
-
-#undef bzero
-void
-bzero(void *buf, size_t len)
-{
-	uint8_t *p;
-
-	p = buf;
-	while(len-- > 0)
-		*p++ = 0;
 }

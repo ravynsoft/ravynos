@@ -554,6 +554,9 @@ pf_nvrule_to_krule(const nvlist_t *nvl, struct pf_krule *rule)
 	    sizeof(rule->pqname)));
 	PFNV_CHK(pf_nvstring(nvl, "tagname", rule->tagname,
 	    sizeof(rule->tagname)));
+	PFNV_CHK(pf_nvuint16_opt(nvl, "dnpipe", &rule->dnpipe, 0));
+	PFNV_CHK(pf_nvuint16_opt(nvl, "dnrpipe", &rule->dnrpipe, 0));
+	PFNV_CHK(pf_nvuint32_opt(nvl, "dnflags", &rule->free_flags, 0));
 	PFNV_CHK(pf_nvstring(nvl, "match_tagname", rule->match_tagname,
 	    sizeof(rule->match_tagname)));
 	PFNV_CHK(pf_nvstring(nvl, "overload_tblname", rule->overload_tblname,
@@ -713,6 +716,9 @@ pf_krule_to_nvrule(struct pf_krule *rule)
 	nvlist_add_string(nvl, "ifname", rule->ifname);
 	nvlist_add_string(nvl, "qname", rule->qname);
 	nvlist_add_string(nvl, "pqname", rule->pqname);
+	nvlist_add_number(nvl, "dnpipe", rule->dnpipe);
+	nvlist_add_number(nvl, "dnrpipe", rule->dnrpipe);
+	nvlist_add_number(nvl, "dnflags", rule->free_flags);
 	nvlist_add_string(nvl, "tagname", rule->tagname);
 	nvlist_add_string(nvl, "match_tagname", rule->match_tagname);
 	nvlist_add_string(nvl, "overload_tblname", rule->overload_tblname);
@@ -996,4 +1002,178 @@ pf_state_to_nvstate(const struct pf_kstate *s)
 errout:
 	nvlist_destroy(nvl);
 	return (NULL);
+}
+
+static int
+pf_nveth_rule_addr_to_keth_rule_addr(const nvlist_t *nvl,
+    struct pf_keth_rule_addr *krule)
+{
+	static const u_int8_t EMPTY_MAC[ETHER_ADDR_LEN] = { 0 };
+	int error = 0;
+
+	PFNV_CHK(pf_nvbinary(nvl, "addr", &krule->addr, sizeof(krule->addr)));
+	PFNV_CHK(pf_nvbool(nvl, "neg", &krule->neg));
+	if (nvlist_exists_binary(nvl, "mask"))
+		PFNV_CHK(pf_nvbinary(nvl, "mask", &krule->mask,
+		    sizeof(krule->mask)));
+
+	/* To make checks for 'is this address set?' easier. */
+	if (memcmp(krule->addr, EMPTY_MAC, ETHER_ADDR_LEN) != 0)
+		krule->isset = 1;
+
+errout:
+	return (error);
+}
+
+static nvlist_t*
+pf_keth_rule_addr_to_nveth_rule_addr(const struct pf_keth_rule_addr *krule)
+{
+	nvlist_t *nvl;
+
+	nvl = nvlist_create(0);
+	if (nvl == NULL)
+		return (NULL);
+
+	nvlist_add_binary(nvl, "addr", &krule->addr, sizeof(krule->addr));
+	nvlist_add_binary(nvl, "mask", &krule->mask, sizeof(krule->mask));
+	nvlist_add_bool(nvl, "neg", krule->neg);
+
+	return (nvl);
+}
+
+nvlist_t*
+pf_keth_rule_to_nveth_rule(const struct pf_keth_rule *krule)
+{
+	nvlist_t *nvl, *addr;
+
+	nvl = nvlist_create(0);
+	if (nvl == NULL)
+		return (NULL);
+
+	nvlist_add_number(nvl, "nr", krule->nr);
+	nvlist_add_bool(nvl, "quick", krule->quick);
+	nvlist_add_string(nvl, "ifname", krule->ifname);
+	nvlist_add_bool(nvl, "ifnot", krule->ifnot);
+	nvlist_add_number(nvl, "direction", krule->direction);
+	nvlist_add_number(nvl, "proto", krule->proto);
+
+	addr = pf_keth_rule_addr_to_nveth_rule_addr(&krule->src);
+	if (addr == NULL) {
+		nvlist_destroy(nvl);
+		return (NULL);
+	}
+	nvlist_add_nvlist(nvl, "src", addr);
+
+	addr = pf_keth_rule_addr_to_nveth_rule_addr(&krule->dst);
+	if (addr == NULL) {
+		nvlist_destroy(nvl);
+		return (NULL);
+	}
+	nvlist_add_nvlist(nvl, "dst", addr);
+
+	addr = pf_rule_addr_to_nvrule_addr(&krule->ipsrc);
+	if (addr == NULL) {
+		nvlist_destroy(nvl);
+		return (NULL);
+	}
+	nvlist_add_nvlist(nvl, "ipsrc", addr);
+	nvlist_destroy(addr);
+
+	addr = pf_rule_addr_to_nvrule_addr(&krule->ipdst);
+	if (addr == NULL) {
+		nvlist_destroy(nvl);
+		return (NULL);
+	}
+	nvlist_add_nvlist(nvl, "ipdst", addr);
+	nvlist_destroy(addr);
+
+	nvlist_add_number(nvl, "evaluations",
+	    counter_u64_fetch(krule->evaluations));
+	nvlist_add_number(nvl, "packets-in",
+	    counter_u64_fetch(krule->packets[0]));
+	nvlist_add_number(nvl, "packets-out",
+	    counter_u64_fetch(krule->packets[1]));
+	nvlist_add_number(nvl, "bytes-in",
+	    counter_u64_fetch(krule->bytes[0]));
+	nvlist_add_number(nvl, "bytes-out",
+	    counter_u64_fetch(krule->bytes[1]));
+
+	nvlist_add_string(nvl, "qname", krule->qname);
+	nvlist_add_string(nvl, "tagname", krule->tagname);
+
+	nvlist_add_number(nvl, "dnpipe", krule->dnpipe);
+	nvlist_add_number(nvl, "dnflags", krule->dnflags);
+
+	nvlist_add_number(nvl, "anchor_relative", krule->anchor_relative);
+	nvlist_add_number(nvl, "anchor_wildcard", krule->anchor_wildcard);
+
+	nvlist_add_number(nvl, "action", krule->action);
+
+	return (nvl);
+}
+
+int
+pf_nveth_rule_to_keth_rule(const nvlist_t *nvl,
+    struct pf_keth_rule *krule)
+{
+	int error = 0;
+
+	bzero(krule, sizeof(*krule));
+
+	PFNV_CHK(pf_nvuint32(nvl, "nr", &krule->nr));
+	PFNV_CHK(pf_nvbool(nvl, "quick", &krule->quick));
+	PFNV_CHK(pf_nvstring(nvl, "ifname", krule->ifname,
+	    sizeof(krule->ifname)));
+	PFNV_CHK(pf_nvbool(nvl, "ifnot", &krule->ifnot));
+	PFNV_CHK(pf_nvuint8(nvl, "direction", &krule->direction));
+	PFNV_CHK(pf_nvuint16(nvl, "proto", &krule->proto));
+
+	if (nvlist_exists_nvlist(nvl, "src")) {
+		error = pf_nveth_rule_addr_to_keth_rule_addr(
+		    nvlist_get_nvlist(nvl, "src"), &krule->src);
+		if (error)
+			return (error);
+	}
+	if (nvlist_exists_nvlist(nvl, "dst")) {
+		error = pf_nveth_rule_addr_to_keth_rule_addr(
+		    nvlist_get_nvlist(nvl, "dst"), &krule->dst);
+		if (error)
+			return (error);
+	}
+
+	if (nvlist_exists_nvlist(nvl, "ipsrc")) {
+		error = pf_nvrule_addr_to_rule_addr(
+		    nvlist_get_nvlist(nvl, "ipsrc"), &krule->ipsrc);
+		if (error != 0)
+			return (error);
+
+		if (krule->ipsrc.addr.type != PF_ADDR_ADDRMASK)
+			return (EINVAL);
+	}
+
+	if (nvlist_exists_nvlist(nvl, "ipdst")) {
+		error = pf_nvrule_addr_to_rule_addr(
+		    nvlist_get_nvlist(nvl, "ipdst"), &krule->ipdst);
+		if (error != 0)
+			return (error);
+
+		if (krule->ipdst.addr.type != PF_ADDR_ADDRMASK)
+			return (EINVAL);
+	}
+
+	PFNV_CHK(pf_nvstring(nvl, "qname", krule->qname, sizeof(krule->qname)));
+	PFNV_CHK(pf_nvstring(nvl, "tagname", krule->tagname,
+	    sizeof(krule->tagname)));
+
+	PFNV_CHK(pf_nvuint16_opt(nvl, "dnpipe", &krule->dnpipe, 0));
+	PFNV_CHK(pf_nvuint32_opt(nvl, "dnflags", &krule->dnflags, 0));
+
+	PFNV_CHK(pf_nvuint8(nvl, "action", &krule->action));
+
+	if (krule->action != PF_PASS && krule->action != PF_DROP &&
+	    krule->action != PF_MATCH)
+		return (EBADMSG);
+
+errout:
+	return (error);
 }

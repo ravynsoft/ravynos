@@ -1,12 +1,4 @@
-#include "config.h"
-
-#if HAVE_VASPRINTF
-
-int dummy;
-
-#else
-
-/*	$Id: compat_vasprintf.c,v 1.3 2015/10/06 18:32:19 schwarze Exp $	*/
+/* $Id: compat_vasprintf.c,v 1.4 2020/06/15 01:37:15 schwarze Exp $ */
 /*
  * Copyright (c) 2015 Ingo Schwarze <schwarze@openbsd.org>
  *
@@ -28,6 +20,7 @@ int dummy;
  * printf(3) or completely reimplementing printf(3), i can't think
  * of another portable solution.
  */
+#include "config.h"
 
 #include <stdarg.h>
 #include <stdio.h>
@@ -52,5 +45,3 @@ vasprintf(char **ret, const char *format, va_list ap)
 	*ret = NULL;
 	return -1;
 }
-
-#endif

@@ -45,7 +45,6 @@
 extern "C" {
 #endif
 
-extern int zfs_allow_redacted_dataset_mount;
 struct dsl_dataset;
 struct dsl_dir;
 struct dsl_pool;
@@ -386,8 +385,7 @@ int dsl_dataset_snap_lookup(dsl_dataset_t *ds, const char *name,
 void dsl_dataset_dirty(dsl_dataset_t *ds, dmu_tx_t *tx);
 
 int get_clones_stat_impl(dsl_dataset_t *ds, nvlist_t *val);
-char *get_receive_resume_stats_impl(dsl_dataset_t *ds);
-char *get_child_receive_stats(dsl_dataset_t *ds);
+char *get_receive_resume_token(dsl_dataset_t *ds);
 uint64_t dsl_get_refratio(dsl_dataset_t *ds);
 uint64_t dsl_get_logicalreferenced(dsl_dataset_t *ds);
 uint64_t dsl_get_compressratio(dsl_dataset_t *ds);
@@ -441,8 +439,8 @@ int dsl_dataset_set_compression(const char *dsname, zprop_source_t source,
 
 boolean_t dsl_dataset_is_before(dsl_dataset_t *later, dsl_dataset_t *earlier,
     uint64_t earlier_txg);
-void dsl_dataset_long_hold(dsl_dataset_t *ds, void *tag);
-void dsl_dataset_long_rele(dsl_dataset_t *ds, void *tag);
+void dsl_dataset_long_hold(dsl_dataset_t *ds, const void *tag);
+void dsl_dataset_long_rele(dsl_dataset_t *ds, const void *tag);
 boolean_t dsl_dataset_long_held(dsl_dataset_t *ds);
 
 int dsl_dataset_clone_swap_check_impl(dsl_dataset_t *clone,
@@ -497,7 +495,7 @@ void dsl_dataset_activate_redaction(dsl_dataset_t *ds, uint64_t *redact_snaps,
 	dprintf("ds=%s " fmt, __ds_name, __VA_ARGS__); \
 	kmem_free(__ds_name, ZFS_MAX_DATASET_NAME_LEN); \
 	} \
-_NOTE(CONSTCOND) } while (0)
+} while (0)
 #else
 #define	dprintf_ds(dd, fmt, ...)
 #endif

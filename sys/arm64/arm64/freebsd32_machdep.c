@@ -48,6 +48,10 @@ __FBSDID("$FreeBSD$");
 #include <vm/pmap.h>
 #include <vm/vm_map.h>
 
+_Static_assert(sizeof(mcontext32_t) == 208, "mcontext32_t size incorrect");
+_Static_assert(sizeof(ucontext32_t) == 260, "ucontext32_t size incorrect");
+_Static_assert(sizeof(struct siginfo32) == 64, "struct siginfo32 size incorrect");
+
 extern void freebsd32_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask);
 
 /*
@@ -56,10 +60,6 @@ extern void freebsd32_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask);
  * when copying out contexts.
  */
 #define UC32_COPY_SIZE  offsetof(ucontext32_t, uc_link)
-
-#ifdef VFP
-static void get_fpcontext32(struct thread *td, mcontext32_vfp_t *);
-#endif
 
 /*
  * Stubs for machine dependent 32-bits system calls.
@@ -123,35 +123,39 @@ freebsd32_sysarch(struct thread *td, struct freebsd32_sysarch_args *uap)
 }
 
 #ifdef VFP
-static void
+void
 get_fpcontext32(struct thread *td, mcontext32_vfp_t *mcp)
 {
-	struct pcb *curpcb;
+	struct pcb *pcb;
 	int i;
 
-	critical_enter();
-	curpcb = curthread->td_pcb;
+	KASSERT(td == curthread || TD_IS_SUSPENDED(td) ||
+	    P_SHOULDSTOP(td->td_proc),
+	    ("not suspended thread %p", td));
 
-	if ((curpcb->pcb_fpflags & PCB_FP_STARTED) != 0) {
+	memset(mcp, 0, sizeof(*mcp));
+	pcb = td->td_pcb;
+
+	if ((pcb->pcb_fpflags & PCB_FP_STARTED) != 0) {
 		/*
 		 * If we have just been running VFP instructions we will
 		 * need to save the state to memcpy it below.
 		 */
-		vfp_save_state(td, curpcb);
+		if (td == curthread)
+			vfp_save_state(td, pcb);
 
-		KASSERT(curpcb->pcb_fpusaved == &curpcb->pcb_fpustate,
-				("Called get_fpcontext while the kernel is using the VFP"));
-		KASSERT((curpcb->pcb_fpflags & ~PCB_FP_USERMASK) == 0,
-				("Non-userspace FPU flags set in get_fpcontext"));
+		KASSERT(pcb->pcb_fpusaved == &pcb->pcb_fpustate,
+		    ("Called get_fpcontext32 while the kernel is using the VFP"));
+		KASSERT((pcb->pcb_fpflags & ~PCB_FP_USERMASK) == 0,
+		    ("Non-userspace FPU flags set in get_fpcontext32"));
 		for (i = 0; i < 32; i++)
-			mcp->mcv_reg[i] = (uint64_t)curpcb->pcb_fpustate.vfp_regs[i];
-		mcp->mcv_fpscr = VFP_FPSCR_FROM_SRCR(curpcb->pcb_fpustate.vfp_fpcr,
-				curpcb->pcb_fpustate.vfp_fpsr);
+			mcp->mcv_reg[i] = (uint64_t)pcb->pcb_fpustate.vfp_regs[i];
+		mcp->mcv_fpscr = VFP_FPSCR_FROM_SRCR(pcb->pcb_fpustate.vfp_fpcr,
+		    pcb->pcb_fpustate.vfp_fpsr);
 	}
- critical_exit();
 }
 
-static void
+void
 set_fpcontext32(struct thread *td, mcontext32_vfp_t *mcp)
 {
 	struct pcb *pcb;
@@ -168,14 +172,13 @@ set_fpcontext32(struct thread *td, mcontext32_vfp_t *mcp)
 	critical_exit();
 }
 #endif
+
 static void
 get_mcontext32(struct thread *td, mcontext32_t *mcp, int flags)
 {
-	struct pcb *pcb;
 	struct trapframe *tf;
 	int i;
 
-	pcb = td->td_pcb;
 	tf = td->td_frame;
 
 	if ((flags & GET_MC_CLEAR_RET) != 0) {
@@ -341,14 +344,12 @@ freebsd32_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 	struct sysentvec *sysent;
 	int onstack;
 	int sig;
-	int code;
 
 	siginfo_to_siginfo32(&ksi->ksi_info, &siginfo);
 	td = curthread;
 	p = td->td_proc;
 	PROC_LOCK_ASSERT(p, MA_OWNED);
 	sig = ksi->ksi_signo;
-	code = ksi->ksi_code;
 	psp = p->p_sigacts;
 	mtx_assert(&psp->ps_mtx, MA_OWNED);
 	tf = td->td_frame;
@@ -445,20 +446,6 @@ freebsd32_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 }
 
 #ifdef COMPAT_43
-/*
- * COMPAT_FREEBSD32 assumes we have this system call when COMPAT_43 is defined.
- * FreeBSD/arm provies a similar getpagesize() syscall.
- */
-#define ARM32_PAGE_SIZE 4096
-int
-ofreebsd32_getpagesize(struct thread *td,
-    struct ofreebsd32_getpagesize_args *uap)
-{
-
-	td->td_retval[0] = ARM32_PAGE_SIZE;
-	return (0);
-}
-
 /*
  * Mirror the osigreturn definition in kern_sig.c for !i386 platforms. This
  * mirrors what's connected to the FreeBSD/arm syscall.

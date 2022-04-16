@@ -66,6 +66,7 @@ __FBSDID("$FreeBSD$");
 #include <i386/linux/linux.h>
 #include <i386/linux/linux_proto.h>
 #include <compat/linux/linux_emul.h>
+#include <compat/linux/linux_fork.h>
 #include <compat/linux/linux_ipc.h>
 #include <compat/linux/linux_misc.h>
 #include <compat/linux/linux_mmap.h>
@@ -75,8 +76,6 @@ __FBSDID("$FreeBSD$");
 #include <i386/include/pcb.h>			/* needed for pcb definition in linux_set_thread_area */
 
 #include "opt_posix.h"
-
-extern struct sysentvec elf32_freebsd_sysvec;	/* defined in i386/i386/elf_machdep.c */
 
 struct l_descriptor {
 	l_uint		entry_number;
@@ -109,7 +108,7 @@ linux_execve(struct thread *td, struct linux_execve_args *args)
 		error = exec_copyin_args(&eargs, args->path, UIO_USERSPACE,
 		    args->argp, args->envp);
 	} else {
-		LCONVPATHEXIST(td, args->path, &newpath);
+		LCONVPATHEXIST(args->path, &newpath);
 		error = exec_copyin_args(&eargs, newpath, UIO_SYSSPACE,
 		    args->argp, args->envp);
 		LFREEPATH(newpath);
@@ -517,34 +516,6 @@ linux_pause(struct thread *td, struct linux_pause_args *args)
 	sigmask = td->td_sigmask;
 	PROC_UNLOCK(p);
 	return (kern_sigsuspend(td, sigmask));
-}
-
-int
-linux_sigaltstack(struct thread *td, struct linux_sigaltstack_args *uap)
-{
-	stack_t ss, oss;
-	l_stack_t lss;
-	int error;
-
-	if (uap->uss != NULL) {
-		error = copyin(uap->uss, &lss, sizeof(l_stack_t));
-		if (error)
-			return (error);
-
-		ss.ss_sp = lss.ss_sp;
-		ss.ss_size = lss.ss_size;
-		ss.ss_flags = linux_to_bsd_sigaltstack(lss.ss_flags);
-	}
-	error = kern_sigaltstack(td, (uap->uss != NULL) ? &ss : NULL,
-	    (uap->uoss != NULL) ? &oss : NULL);
-	if (!error && uap->uoss != NULL) {
-		lss.ss_sp = oss.ss_sp;
-		lss.ss_size = oss.ss_size;
-		lss.ss_flags = bsd_to_linux_sigaltstack(oss.ss_flags);
-		error = copyout(&lss, uap->uoss, sizeof(l_stack_t));
-	}
-
-	return (error);
 }
 
 int

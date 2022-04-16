@@ -5,7 +5,6 @@
 .PATH: ${SRCTOP}/sys/contrib/openzfs/lib/libzfs
 .PATH: ${SRCTOP}/sys/contrib/openzfs/lib/libzfs/os/freebsd
 .PATH: ${SRCTOP}/sys/contrib/openzfs/lib/libshare
-.PATH: ${SRCTOP}/sys/contrib/openzfs/lib/libshare/os/freebsd
 .PATH: ${SRCTOP}/sys/contrib/openzfs/include
 .PATH: ${SRCTOP}/sys/contrib/openzfs/module/zstd
 .PATH: ${SRCTOP}/sys/contrib/openzfs/module/zstd/lib
@@ -46,15 +45,14 @@ USER_C = \
 # FreeBSD
 USER_C += \
         libzfs_compat.c \
-        libzfs_ioctl_compat.c \
         libzfs_zmount.c
 
 # libshare
 USER_C += \
 	libshare.c \
 	nfs.c \
-	smb.c
-
+	os/freebsd/nfs.c \
+	os/freebsd/smb.c
 
 KERNEL_C = \
         algs/sha2/sha2.c \

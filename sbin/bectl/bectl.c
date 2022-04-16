@@ -134,7 +134,6 @@ get_cmd_info(const char *cmd)
 	return (NULL);
 }
 
-
 static int
 bectl_cmd_activate(int argc, char *argv[])
 {
@@ -478,7 +477,6 @@ bectl_cmd_rename(int argc, char *argv[])
 	dest = argv[2];
 
 	err = be_rename(be, src, dest);
-
 	switch (err) {
 	case BE_ERR_SUCCESS:
 		break;
@@ -487,7 +485,7 @@ bectl_cmd_rename(int argc, char *argv[])
 		    src, dest);
 	}
 
-	return (0);
+	return (err);
 }
 
 static int

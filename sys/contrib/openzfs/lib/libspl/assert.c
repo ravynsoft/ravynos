@@ -25,7 +25,13 @@
 
 #include <assert.h>
 
-int aok = 0;
+static boolean_t libspl_assert_ok = B_FALSE;
+
+void
+libspl_set_assert_ok(boolean_t val)
+{
+	libspl_assert_ok = val;
+}
 
 /* printf version of libspl_assert */
 void
@@ -39,7 +45,7 @@ libspl_assertf(const char *file, const char *func, int line,
 	fprintf(stderr, "\n");
 	fprintf(stderr, "ASSERT at %s:%d:%s()", file, line, func);
 	va_end(args);
-	if (aok) {
+	if (libspl_assert_ok) {
 		return;
 	}
 	abort();

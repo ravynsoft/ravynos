@@ -29,6 +29,7 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
+#include "opt_ffclock.h"
 #include "opt_inet.h"
 #include "opt_inet6.h"
 #include "opt_ktrace.h"
@@ -61,6 +62,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/mount.h>
 #include <sys/mutex.h>
 #include <sys/namei.h>
+#include <sys/priv.h>
 #include <sys/proc.h>
 #include <sys/procctl.h>
 #include <sys/ptrace.h>
@@ -85,13 +87,13 @@ __FBSDID("$FreeBSD$");
 #include <sys/timex.h>
 #include <sys/unistd.h>
 #include <sys/ucontext.h>
-#include <sys/umtx.h>
 #include <sys/vnode.h>
 #include <sys/wait.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
 #include <sys/sem.h>
 #include <sys/shm.h>
+#include <sys/timeffc.h>
 #ifdef KTRACE
 #include <sys/ktrace.h>
 #endif
@@ -154,10 +156,17 @@ CTASSERT(sizeof(struct timeval32) == 8);
 CTASSERT(sizeof(struct timespec32) == 8);
 CTASSERT(sizeof(struct itimerval32) == 16);
 CTASSERT(sizeof(struct bintime32) == 12);
+#else
+CTASSERT(sizeof(struct timeval32) == 16);
+CTASSERT(sizeof(struct timespec32) == 16);
+CTASSERT(sizeof(struct itimerval32) == 32);
+CTASSERT(sizeof(struct bintime32) == 16);
 #endif
-CTASSERT(sizeof(struct statfs32) == 256);
+CTASSERT(sizeof(struct ostatfs32) == 256);
 #ifdef __amd64__
 CTASSERT(sizeof(struct rusage32) == 72);
+#else
+CTASSERT(sizeof(struct rusage32) == 88);
 #endif
 CTASSERT(sizeof(struct sigaltstack32) == 12);
 #ifdef __amd64__
@@ -170,6 +179,9 @@ CTASSERT(sizeof(struct msghdr32) == 28);
 #ifdef __amd64__
 CTASSERT(sizeof(struct stat32) == 208);
 CTASSERT(sizeof(struct freebsd11_stat32) == 96);
+#else
+CTASSERT(sizeof(struct stat32) == 224);
+CTASSERT(sizeof(struct freebsd11_stat32) == 120);
 #endif
 CTASSERT(sizeof(struct sigaction32) == 24);
 
@@ -226,7 +238,7 @@ freebsd32_wait4(struct thread *td, struct freebsd32_wait4_args *uap)
 int
 freebsd32_wait6(struct thread *td, struct freebsd32_wait6_args *uap)
 {
-	struct wrusage32 wru32;
+	struct __wrusage32 wru32;
 	struct __wrusage wru, *wrup;
 	struct siginfo32 si32;
 	struct __siginfo si, *sip;
@@ -261,7 +273,7 @@ freebsd32_wait6(struct thread *td, struct freebsd32_wait6_args *uap)
 
 #ifdef COMPAT_FREEBSD4
 static void
-copy_statfs(struct statfs *in, struct statfs32 *out)
+copy_statfs(struct statfs *in, struct ostatfs32 *out)
 {
 
 	statfs_scale_blocks(in, INT32_MAX);
@@ -282,13 +294,28 @@ copy_statfs(struct statfs *in, struct statfs32 *out)
 	strlcpy(out->f_fstypename,
 	      in->f_fstypename, MFSNAMELEN);
 	strlcpy(out->f_mntonname,
-	      in->f_mntonname, min(MNAMELEN, FREEBSD4_MNAMELEN));
+	      in->f_mntonname, min(MNAMELEN, FREEBSD4_OMNAMELEN));
 	out->f_syncreads = MIN(in->f_syncreads, INT32_MAX);
 	out->f_asyncreads = MIN(in->f_asyncreads, INT32_MAX);
 	strlcpy(out->f_mntfromname,
-	      in->f_mntfromname, min(MNAMELEN, FREEBSD4_MNAMELEN));
+	      in->f_mntfromname, min(MNAMELEN, FREEBSD4_OMNAMELEN));
 }
 #endif
+
+int
+freebsd32_getfsstat(struct thread *td, struct freebsd32_getfsstat_args *uap)
+{
+	size_t count;
+	int error;
+
+	if (uap->bufsize < 0 || uap->bufsize > SIZE_MAX)
+		return (EINVAL);
+	error = kern_getfsstat(td, &uap->buf, uap->bufsize, &count,
+	    UIO_USERSPACE, uap->mode);
+	if (error == 0)
+		td->td_retval[0] = count;
+	return (error);
+}
 
 #ifdef COMPAT_FREEBSD4
 int
@@ -296,11 +323,11 @@ freebsd4_freebsd32_getfsstat(struct thread *td,
     struct freebsd4_freebsd32_getfsstat_args *uap)
 {
 	struct statfs *buf, *sp;
-	struct statfs32 stat32;
+	struct ostatfs32 stat32;
 	size_t count, size, copycount;
 	int error;
 
-	count = uap->bufsize / sizeof(struct statfs32);
+	count = uap->bufsize / sizeof(struct ostatfs32);
 	size = count * sizeof(struct statfs);
 	error = kern_getfsstat(td, &buf, size, &count, UIO_SYSSPACE, uap->mode);
 	if (size > 0) {
@@ -321,11 +348,13 @@ freebsd4_freebsd32_getfsstat(struct thread *td,
 }
 #endif
 
-#ifdef COMPAT_FREEBSD10
+#ifdef COMPAT_FREEBSD11
 int
-freebsd10_freebsd32_pipe(struct thread *td,
-    struct freebsd10_freebsd32_pipe_args *uap) {
-	return (freebsd10_pipe(td, (struct freebsd10_pipe_args*)uap));
+freebsd11_freebsd32_getfsstat(struct thread *td,
+    struct freebsd11_freebsd32_getfsstat_args *uap)
+{
+	return(kern_freebsd11_getfsstat(td, uap->buf, uap->bufsize,
+	    uap->mode));
 }
 #endif
 
@@ -363,10 +392,10 @@ freebsd32_sigaltstack(struct thread *td,
  */
 int
 freebsd32_exec_copyin_args(struct image_args *args, const char *fname,
-    enum uio_seg segflg, u_int32_t *argv, u_int32_t *envv)
+    enum uio_seg segflg, uint32_t *argv, uint32_t *envv)
 {
 	char *argp, *envp;
-	u_int32_t *p32, arg;
+	uint32_t *p32, arg;
 	int error;
 
 	bzero(args, sizeof(*args));
@@ -403,7 +432,7 @@ freebsd32_exec_copyin_args(struct image_args *args, const char *fname,
 		if (error != 0)
 			goto err_exit;
 	}
-			
+
 	/*
 	 * extract environment strings
 	 */
@@ -502,8 +531,14 @@ freebsd32_mmap(struct thread *td, struct freebsd32_mmap_args *uap)
 		prot |= PROT_EXEC;
 #endif
 
-	return (kern_mmap(td, (uintptr_t)uap->addr, uap->len, prot,
-	    uap->flags, uap->fd, PAIR32TO64(off_t, uap->pos)));
+	return (kern_mmap(td, &(struct mmap_req){
+		.mr_hint = (uintptr_t)uap->addr,
+		.mr_len = uap->len,
+		.mr_prot = prot,
+		.mr_flags = uap->flags,
+		.mr_fd = uap->fd,
+		.mr_pos = PAIR32TO64(off_t, uap->pos),
+	    }));
 }
 
 #ifdef COMPAT_FREEBSD6
@@ -519,8 +554,23 @@ freebsd6_freebsd32_mmap(struct thread *td,
 		prot |= PROT_EXEC;
 #endif
 
-	return (kern_mmap(td, (uintptr_t)uap->addr, uap->len, prot,
-	    uap->flags, uap->fd, PAIR32TO64(off_t, uap->pos)));
+	return (kern_mmap(td, &(struct mmap_req){
+		.mr_hint = (uintptr_t)uap->addr,
+		.mr_len = uap->len,
+		.mr_prot = prot,
+		.mr_flags = uap->flags,
+		.mr_fd = uap->fd,
+		.mr_pos = PAIR32TO64(off_t, uap->pos),
+	    }));
+}
+#endif
+
+#ifdef COMPAT_43
+int
+ofreebsd32_mmap(struct thread *td, struct ofreebsd32_mmap_args *uap)
+{
+	return (kern_ommap(td, (uintptr_t)uap->addr, uap->len, uap->prot,
+	    uap->flags, uap->fd, uap->pos));
 }
 #endif
 
@@ -751,7 +801,7 @@ static int
 freebsd32_kevent11_copyout(void *arg, struct kevent *kevp, int count)
 {
 	struct freebsd11_freebsd32_kevent_args *uap;
-	struct kevent32_freebsd11 ks32[KQ_NEVENTS];
+	struct freebsd11_kevent32 ks32[KQ_NEVENTS];
 	int i, error;
 
 	KASSERT(count <= KQ_NEVENTS, ("count (%d) > KQ_NEVENTS", count));
@@ -778,7 +828,7 @@ static int
 freebsd32_kevent11_copyin(void *arg, struct kevent *kevp, int count)
 {
 	struct freebsd11_freebsd32_kevent_args *uap;
-	struct kevent32_freebsd11 ks32[KQ_NEVENTS];
+	struct freebsd11_kevent32 ks32[KQ_NEVENTS];
 	int i, j, error;
 
 	KASSERT(count <= KQ_NEVENTS, ("count (%d) > KQ_NEVENTS", count));
@@ -815,7 +865,7 @@ freebsd11_freebsd32_kevent(struct thread *td,
 		.k_copyin = freebsd32_kevent11_copyin,
 	};
 #ifdef KTRACE
-	struct kevent32_freebsd11 *eventlist = uap->eventlist;
+	struct freebsd11_kevent32 *eventlist = uap->eventlist;
 #endif
 	int error;
 
@@ -830,17 +880,17 @@ freebsd11_freebsd32_kevent(struct thread *td,
 		tsp = NULL;
 #ifdef KTRACE
 	if (KTRPOINT(td, KTR_STRUCT_ARRAY))
-		ktrstructarray("kevent32_freebsd11", UIO_USERSPACE,
+		ktrstructarray("freebsd11_kevent32", UIO_USERSPACE,
 		    uap->changelist, uap->nchanges,
-		    sizeof(struct kevent32_freebsd11));
+		    sizeof(struct freebsd11_kevent32));
 #endif
 	error = kern_kevent(td, uap->fd, uap->nchanges, uap->nevents,
 	    &k_ops, tsp);
 #ifdef KTRACE
 	if (error == 0 && KTRPOINT(td, KTR_STRUCT_ARRAY))
-		ktrstructarray("kevent32_freebsd11", UIO_USERSPACE,
+		ktrstructarray("freebsd11_kevent32", UIO_USERSPACE,
 		    eventlist, td->td_retval[0],
-		    sizeof(struct kevent32_freebsd11));
+		    sizeof(struct freebsd11_kevent32));
 #endif
 	return (error);
 }
@@ -924,6 +974,7 @@ freebsd32_ptrace(struct thread *td, struct freebsd32_ptrace_args *uap)
 		struct dbreg32 dbreg;
 		struct fpreg32 fpreg;
 		struct reg32 reg;
+		struct iovec vec;
 		register_t args[nitems(td->td_sa.args)];
 		struct ptrace_sc_ret psr;
 		int ptevents;
@@ -935,6 +986,7 @@ freebsd32_ptrace(struct thread *td, struct freebsd32_ptrace_args *uap)
 		struct ptrace_coredump32 pc;
 		uint32_t args[nitems(td->td_sa.args)];
 		struct ptrace_sc_ret32 psr;
+		struct iovec32 vec;
 	} r32;
 	void *addr;
 	int data, error, i;
@@ -983,6 +1035,15 @@ freebsd32_ptrace(struct thread *td, struct freebsd32_ptrace_args *uap)
 		break;
 	case PT_SETDBREGS:
 		error = copyin(uap->addr, &r.dbreg, sizeof(r.dbreg));
+		break;
+	case PT_GETREGSET:
+	case PT_SETREGSET:
+		error = copyin(uap->addr, &r32.vec, sizeof(r32.vec));
+		if (error != 0)
+			break;
+
+		r.vec.iov_len = r32.vec.iov_len;
+		r.vec.iov_base = PTRIN(r32.vec.iov_base);
 		break;
 	case PT_SET_EVENT_MASK:
 		if (uap->data != sizeof(r.ptevents))
@@ -1061,6 +1122,10 @@ freebsd32_ptrace(struct thread *td, struct freebsd32_ptrace_args *uap)
 		break;
 	case PT_GETDBREGS:
 		error = copyout(&r.dbreg, uap->addr, sizeof(r.dbreg));
+		break;
+	case PT_GETREGSET:
+		r32.vec.iov_len = r.vec.iov_len;
+		error = copyout(&r32.vec, uap->addr, sizeof(r32.vec));
 		break;
 	case PT_GET_EVENT_MASK:
 		/* NB: The size in uap->data is validated in kern_ptrace(). */
@@ -1211,7 +1276,7 @@ freebsd32_copyiniov(struct iovec32 *iovp32, u_int iovcnt, struct iovec **iovp,
 }
 
 static int
-freebsd32_copyinmsghdr(struct msghdr32 *msg32, struct msghdr *msg)
+freebsd32_copyinmsghdr(const struct msghdr32 *msg32, struct msghdr *msg)
 {
 	struct msghdr32 m32;
 	int error;
@@ -1321,12 +1386,11 @@ freebsd32_copy_msg_out(struct msghdr *msg, struct mbuf *control)
 	socklen_t clen, datalen, datalen_out, oldclen;
 	int error;
 	caddr_t ctlbuf;
-	int len, maxlen, copylen;
+	int len, copylen;
 	struct mbuf *m;
 	error = 0;
 
 	len    = msg->msg_controllen;
-	maxlen = msg->msg_controllen;
 	msg->msg_controllen = 0;
 
 	ctlbuf = msg->msg_control;
@@ -1446,6 +1510,14 @@ freebsd32_recvmsg(struct thread *td, struct freebsd32_recvmsg_args *uap)
 
 	return (error);
 }
+
+#ifdef COMPAT_43
+int
+ofreebsd32_recvmsg(struct thread *td, struct ofreebsd32_recvmsg_args *uap)
+{
+	return (ENOSYS);
+}
+#endif
 
 /*
  * Copy-in the array of control messages constructed using alignment
@@ -1595,36 +1667,14 @@ out:
 	return (error);
 }
 
+#ifdef COMPAT_43
 int
-freebsd32_recvfrom(struct thread *td,
-		   struct freebsd32_recvfrom_args *uap)
+ofreebsd32_sendmsg(struct thread *td, struct ofreebsd32_sendmsg_args *uap)
 {
-	struct msghdr msg;
-	struct iovec aiov;
-	int error;
-
-	if (uap->fromlenaddr) {
-		error = copyin(PTRIN(uap->fromlenaddr), &msg.msg_namelen,
-		    sizeof(msg.msg_namelen));
-		if (error)
-			return (error);
-	} else {
-		msg.msg_namelen = 0;
-	}
-
-	msg.msg_name = PTRIN(uap->from);
-	msg.msg_iov = &aiov;
-	msg.msg_iovlen = 1;
-	aiov.iov_base = PTRIN(uap->buf);
-	aiov.iov_len = uap->len;
-	msg.msg_control = NULL;
-	msg.msg_flags = uap->flags;
-	error = kern_recvit(td, uap->s, &msg, UIO_USERSPACE, NULL);
-	if (error == 0 && uap->fromlenaddr)
-		error = copyout(&msg.msg_namelen, PTRIN(uap->fromlenaddr),
-		    sizeof (msg.msg_namelen));
-	return (error);
+	return (ENOSYS);
 }
+#endif
+
 
 int
 freebsd32_settimeofday(struct thread *td,
@@ -1812,7 +1862,7 @@ freebsd32_adjtime(struct thread *td, struct freebsd32_adjtime_args *uap)
 int
 freebsd4_freebsd32_statfs(struct thread *td, struct freebsd4_freebsd32_statfs_args *uap)
 {
-	struct statfs32 s32;
+	struct ostatfs32 s32;
 	struct statfs *sp;
 	int error;
 
@@ -1831,7 +1881,7 @@ freebsd4_freebsd32_statfs(struct thread *td, struct freebsd4_freebsd32_statfs_ar
 int
 freebsd4_freebsd32_fstatfs(struct thread *td, struct freebsd4_freebsd32_fstatfs_args *uap)
 {
-	struct statfs32 s32;
+	struct ostatfs32 s32;
 	struct statfs *sp;
 	int error;
 
@@ -1850,7 +1900,7 @@ freebsd4_freebsd32_fstatfs(struct thread *td, struct freebsd4_freebsd32_fstatfs_
 int
 freebsd4_freebsd32_fhstatfs(struct thread *td, struct freebsd4_freebsd32_fhstatfs_args *uap)
 {
-	struct statfs32 s32;
+	struct ostatfs32 s32;
 	struct statfs *sp;
 	fhandle_t fh;
 	int error;
@@ -1916,6 +1966,14 @@ freebsd32_truncate(struct thread *td, struct freebsd32_truncate_args *uap)
 	    PAIR32TO64(off_t, uap->length)));
 }
 
+#ifdef COMPAT_43
+int
+ofreebsd32_truncate(struct thread *td, struct ofreebsd32_truncate_args *uap)
+{
+	return (kern_truncate(td, uap->path, UIO_USERSPACE, uap->length));
+}
+#endif
+
 int
 freebsd32_ftruncate(struct thread *td, struct freebsd32_ftruncate_args *uap)
 {
@@ -1924,6 +1982,12 @@ freebsd32_ftruncate(struct thread *td, struct freebsd32_ftruncate_args *uap)
 }
 
 #ifdef COMPAT_43
+int
+ofreebsd32_ftruncate(struct thread *td, struct ofreebsd32_ftruncate_args *uap)
+{
+	return (kern_ftruncate(td, uap->fd, uap->length));
+}
+
 int
 ofreebsd32_getdirentries(struct thread *td,
     struct ofreebsd32_getdirentries_args *uap)
@@ -1964,19 +2028,6 @@ freebsd11_freebsd32_getdirentries(struct thread *td,
 		error = copyout(&base32, uap->basep, sizeof(int32_t));
 	}
 	return (error);
-}
-
-int
-freebsd11_freebsd32_getdents(struct thread *td,
-    struct freebsd11_freebsd32_getdents_args *uap)
-{
-	struct freebsd11_freebsd32_getdirentries_args ap;
-
-	ap.fd = uap->fd;
-	ap.buf = uap->buf;
-	ap.count = uap->count;
-	ap.basep = NULL;
-	return (freebsd11_freebsd32_getdirentries(td, &ap));
 }
 #endif /* COMPAT_FREEBSD11 */
 
@@ -2135,6 +2186,17 @@ static void
 copy_stat(struct stat *in, struct stat32 *out)
 {
 
+#ifndef __amd64__
+	/*
+	 * 32-bit architectures other than i386 have 64-bit time_t.  This
+	 * results in struct timespec32 with 12 bytes for tv_sec and tv_nsec,
+	 * and 4 bytes of padding.  Zero the padding holes in struct stat32.
+	 */
+	bzero(&out->st_atim, sizeof(out->st_atim));
+	bzero(&out->st_mtim, sizeof(out->st_mtim));
+	bzero(&out->st_ctim, sizeof(out->st_ctim));
+	bzero(&out->st_birthtim, sizeof(out->st_birthtim));
+#endif
 	CP(*in, *out, st_dev);
 	CP(*in, *out, st_ino);
 	CP(*in, *out, st_mode);
@@ -2215,7 +2277,7 @@ freebsd32_fstat(struct thread *td, struct freebsd32_fstat_args *uap)
 	if (error)
 		return (error);
 	copy_stat(&ub, &ub32);
-	error = copyout(&ub32, uap->ub, sizeof(ub32));
+	error = copyout(&ub32, uap->sb, sizeof(ub32));
 	return (error);
 }
 
@@ -2231,7 +2293,7 @@ ofreebsd32_fstat(struct thread *td, struct ofreebsd32_fstat_args *uap)
 	if (error)
 		return (error);
 	copy_ostat(&ub, &ub32);
-	error = copyout(&ub32, uap->ub, sizeof(ub32));
+	error = copyout(&ub32, uap->sb, sizeof(ub32));
 	return (error);
 }
 #endif
@@ -2295,6 +2357,18 @@ extern int ino64_trunc_error;
 static int
 freebsd11_cvtstat32(struct stat *in, struct freebsd11_stat32 *out)
 {
+
+#ifndef __amd64__
+	/*
+	 * 32-bit architectures other than i386 have 64-bit time_t.  This
+	 * results in struct timespec32 with 12 bytes for tv_sec and tv_nsec,
+	 * and 4 bytes of padding.  Zero the padding holes in freebsd11_stat32.
+	 */
+	bzero(&out->st_atim, sizeof(out->st_atim));
+	bzero(&out->st_mtim, sizeof(out->st_mtim));
+	bzero(&out->st_ctim, sizeof(out->st_ctim));
+	bzero(&out->st_birthtim, sizeof(out->st_birthtim));
+#endif
 
 	CP(*in, *out, st_ino);
 	if (in->st_ino != out->st_ino) {
@@ -2390,7 +2464,7 @@ freebsd11_freebsd32_fstat(struct thread *td,
 		return (error);
 	error = freebsd11_cvtstat32(&sb, &sb32);
 	if (error == 0)
-		error = copyout(&sb32, uap->ub, sizeof (sb32));
+		error = copyout(&sb32, uap->sb, sizeof (sb32));
 	return (error);
 }
 
@@ -2448,6 +2522,93 @@ freebsd11_freebsd32_fhstat(struct thread *td,
 	error = freebsd11_cvtstat32(&sb, &sb32);
 	if (error == 0)
 		error = copyout(&sb32, uap->sb, sizeof (sb32));
+	return (error);
+}
+
+static int
+freebsd11_cvtnstat32(struct stat *sb, struct nstat32 *nsb32)
+{
+	struct nstat nsb;
+	int error;
+
+	error = freebsd11_cvtnstat(sb, &nsb);
+	if (error != 0)
+		return (error);
+
+	bzero(nsb32, sizeof(*nsb32));
+	CP(nsb, *nsb32, st_dev);
+	CP(nsb, *nsb32, st_ino);
+	CP(nsb, *nsb32, st_mode);
+	CP(nsb, *nsb32, st_nlink);
+	CP(nsb, *nsb32, st_uid);
+	CP(nsb, *nsb32, st_gid);
+	CP(nsb, *nsb32, st_rdev);
+	CP(nsb, *nsb32, st_atim.tv_sec);
+	CP(nsb, *nsb32, st_atim.tv_nsec);
+	CP(nsb, *nsb32, st_mtim.tv_sec);
+	CP(nsb, *nsb32, st_mtim.tv_nsec);
+	CP(nsb, *nsb32, st_ctim.tv_sec);
+	CP(nsb, *nsb32, st_ctim.tv_nsec);
+	CP(nsb, *nsb32, st_size);
+	CP(nsb, *nsb32, st_blocks);
+	CP(nsb, *nsb32, st_blksize);
+	CP(nsb, *nsb32, st_flags);
+	CP(nsb, *nsb32, st_gen);
+	CP(nsb, *nsb32, st_birthtim.tv_sec);
+	CP(nsb, *nsb32, st_birthtim.tv_nsec);
+	return (0);
+}
+
+int
+freebsd11_freebsd32_nstat(struct thread *td,
+    struct freebsd11_freebsd32_nstat_args *uap)
+{
+	struct stat sb;
+	struct nstat32 nsb;
+	int error;
+
+	error = kern_statat(td, 0, AT_FDCWD, uap->path, UIO_USERSPACE,
+	    &sb, NULL);
+	if (error != 0)
+		return (error);
+	error = freebsd11_cvtnstat32(&sb, &nsb);
+	if (error != 0)
+		error = copyout(&nsb, uap->ub, sizeof (nsb));
+	return (error);
+}
+
+int
+freebsd11_freebsd32_nlstat(struct thread *td,
+    struct freebsd11_freebsd32_nlstat_args *uap)
+{
+	struct stat sb;
+	struct nstat32 nsb;
+	int error;
+
+	error = kern_statat(td, AT_SYMLINK_NOFOLLOW, AT_FDCWD, uap->path,
+	    UIO_USERSPACE, &sb, NULL);
+	if (error != 0)
+		return (error);
+	error = freebsd11_cvtnstat32(&sb, &nsb);
+	if (error == 0)
+		error = copyout(&nsb, uap->ub, sizeof (nsb));
+	return (error);
+}
+
+int
+freebsd11_freebsd32_nfstat(struct thread *td,
+    struct freebsd11_freebsd32_nfstat_args *uap)
+{
+	struct nstat32 nub;
+	struct stat ub;
+	int error;
+
+	error = kern_fstat(td, uap->fd, &ub);
+	if (error != 0)
+		return (error);
+	error = freebsd11_cvtnstat32(&ub, &nub);
+	if (error == 0)
+		error = copyout(&nub, uap->sb, sizeof(nub));
 	return (error);
 }
 #endif
@@ -2673,7 +2834,7 @@ freebsd4_freebsd32_sigaction(struct thread *td,
 
 #ifdef COMPAT_43
 struct osigaction32 {
-	u_int32_t	sa_u;
+	uint32_t	sa_u;
 	osigset_t	sa_mask;
 	int		sa_flags;
 };
@@ -2711,36 +2872,8 @@ ofreebsd32_sigaction(struct thread *td,
 	return (error);
 }
 
-int
-ofreebsd32_sigprocmask(struct thread *td,
-			       struct ofreebsd32_sigprocmask_args *uap)
-{
-	sigset_t set, oset;
-	int error;
-
-	OSIG2SIG(uap->mask, set);
-	error = kern_sigprocmask(td, uap->how, &set, &oset, SIGPROCMASK_OLD);
-	SIG2OSIG(oset, td->td_retval[0]);
-	return (error);
-}
-
-int
-ofreebsd32_sigpending(struct thread *td,
-			      struct ofreebsd32_sigpending_args *uap)
-{
-	struct proc *p = td->td_proc;
-	sigset_t siglist;
-
-	PROC_LOCK(p);
-	siglist = p->p_siglist;
-	SIGSETOR(siglist, td->td_siglist);
-	PROC_UNLOCK(p);
-	SIG2OSIG(siglist, td->td_retval[0]);
-	return (0);
-}
-
 struct sigvec32 {
-	u_int32_t	sv_handler;
+	uint32_t	sv_handler;
 	int		sv_mask;
 	int		sv_flags;
 };
@@ -2779,42 +2912,8 @@ ofreebsd32_sigvec(struct thread *td,
 	return (error);
 }
 
-int
-ofreebsd32_sigblock(struct thread *td,
-			    struct ofreebsd32_sigblock_args *uap)
-{
-	sigset_t set, oset;
-
-	OSIG2SIG(uap->mask, set);
-	kern_sigprocmask(td, SIG_BLOCK, &set, &oset, 0);
-	SIG2OSIG(oset, td->td_retval[0]);
-	return (0);
-}
-
-int
-ofreebsd32_sigsetmask(struct thread *td,
-			      struct ofreebsd32_sigsetmask_args *uap)
-{
-	sigset_t set, oset;
-
-	OSIG2SIG(uap->mask, set);
-	kern_sigprocmask(td, SIG_SETMASK, &set, &oset, 0);
-	SIG2OSIG(oset, td->td_retval[0]);
-	return (0);
-}
-
-int
-ofreebsd32_sigsuspend(struct thread *td,
-			      struct ofreebsd32_sigsuspend_args *uap)
-{
-	sigset_t mask;
-
-	OSIG2SIG(uap->mask, mask);
-	return (kern_sigsuspend(td, mask));
-}
-
 struct sigstack32 {
-	u_int32_t	ss_sp;
+	uint32_t	ss_sp;
 	int		ss_onstack;
 };
 
@@ -3121,7 +3220,7 @@ freebsd32_sigqueue(struct thread *td, struct freebsd32_sigqueue_args *uap)
 	 * more common.
 	 */
 	bzero(&sv, sizeof(sv));
-	sv.sival_int = uap->value;
+	sv.sival_int = (uint32_t)(uint64_t)uap->value;
 
 	return (kern_sigqueue(td, uap->pid, uap->signum, &sv));
 }
@@ -3346,7 +3445,7 @@ freebsd32_copyout_strings(struct image_params *imgp, uintptr_t *stack_base)
 {
 	struct sysentvec *sysent;
 	int argc, envc, i;
-	u_int32_t *vectp;
+	uint32_t *vectp;
 	char *stringp;
 	uintptr_t destp, ustringp;
 	struct freebsd32_ps_strings *arginfo;
@@ -3454,7 +3553,7 @@ freebsd32_copyout_strings(struct image_params *imgp, uintptr_t *stack_base)
 	 * Fill in "ps_strings" struct for ps, w, etc.
 	 */
 	imgp->argv = vectp;
-	if (suword32(&arginfo->ps_argvstr, (u_int32_t)(intptr_t)vectp) != 0 ||
+	if (suword32(&arginfo->ps_argvstr, (uint32_t)(intptr_t)vectp) != 0 ||
 	    suword32(&arginfo->ps_nargvstr, argc) != 0)
 		return (EFAULT);
 
@@ -3474,7 +3573,7 @@ freebsd32_copyout_strings(struct image_params *imgp, uintptr_t *stack_base)
 		return (EFAULT);
 
 	imgp->envv = vectp;
-	if (suword32(&arginfo->ps_envstr, (u_int32_t)(intptr_t)vectp) != 0 ||
+	if (suword32(&arginfo->ps_envstr, (uint32_t)(intptr_t)vectp) != 0 ||
 	    suword32(&arginfo->ps_nenvstr, envc) != 0)
 		return (EFAULT);
 
@@ -3508,14 +3607,14 @@ int
 freebsd32_kldstat(struct thread *td, struct freebsd32_kldstat_args *uap)
 {
 	struct kld_file_stat *stat;
-	struct kld32_file_stat *stat32;
+	struct kld_file_stat32 *stat32;
 	int error, version;
 
 	if ((error = copyin(&uap->stat->version, &version, sizeof(version)))
 	    != 0)
 		return (error);
-	if (version != sizeof(struct kld32_file_stat_1) &&
-	    version != sizeof(struct kld32_file_stat))
+	if (version != sizeof(struct kld_file_stat_1_32) &&
+	    version != sizeof(struct kld_file_stat32))
 		return (EINVAL);
 
 	stat = malloc(sizeof(*stat), M_TEMP, M_WAITOK | M_ZERO);
@@ -3829,3 +3928,97 @@ freebsd32_ntp_adjtime(struct thread *td, struct freebsd32_ntp_adjtime_args *uap)
 	}
 	return (error);
 }
+
+#ifdef FFCLOCK
+extern struct mtx ffclock_mtx;
+extern struct ffclock_estimate ffclock_estimate;
+extern int8_t ffclock_updated;
+
+int
+freebsd32_ffclock_setestimate(struct thread *td,
+    struct freebsd32_ffclock_setestimate_args *uap)
+{
+	struct ffclock_estimate cest;
+	struct ffclock_estimate32 cest32;
+	int error;
+
+	/* Reuse of PRIV_CLOCK_SETTIME. */
+	if ((error = priv_check(td, PRIV_CLOCK_SETTIME)) != 0)
+		return (error);
+
+	if ((error = copyin(uap->cest, &cest32,
+	    sizeof(struct ffclock_estimate32))) != 0)
+		return (error);
+
+	CP(cest.update_time, cest32.update_time, sec);
+	memcpy(&cest.update_time.frac, &cest32.update_time.frac, sizeof(uint64_t));
+	CP(cest, cest32, update_ffcount);
+	CP(cest, cest32, leapsec_next);
+	CP(cest, cest32, period);
+	CP(cest, cest32, errb_abs);
+	CP(cest, cest32, errb_rate);
+	CP(cest, cest32, status);
+	CP(cest, cest32, leapsec_total);
+	CP(cest, cest32, leapsec);
+
+	mtx_lock(&ffclock_mtx);
+	memcpy(&ffclock_estimate, &cest, sizeof(struct ffclock_estimate));
+	ffclock_updated++;
+	mtx_unlock(&ffclock_mtx);
+	return (error);
+}
+
+int
+freebsd32_ffclock_getestimate(struct thread *td,
+    struct freebsd32_ffclock_getestimate_args *uap)
+{
+	struct ffclock_estimate cest;
+	struct ffclock_estimate32 cest32;
+	int error;
+
+	mtx_lock(&ffclock_mtx);
+	memcpy(&cest, &ffclock_estimate, sizeof(struct ffclock_estimate));
+	mtx_unlock(&ffclock_mtx);
+
+	CP(cest32.update_time, cest.update_time, sec);
+	memcpy(&cest32.update_time.frac, &cest.update_time.frac, sizeof(uint64_t));
+	CP(cest32, cest, update_ffcount);
+	CP(cest32, cest, leapsec_next);
+	CP(cest32, cest, period);
+	CP(cest32, cest, errb_abs);
+	CP(cest32, cest, errb_rate);
+	CP(cest32, cest, status);
+	CP(cest32, cest, leapsec_total);
+	CP(cest32, cest, leapsec);
+
+	error = copyout(&cest32, uap->cest, sizeof(struct ffclock_estimate32));
+	return (error);
+}
+#else /* !FFCLOCK */
+int
+freebsd32_ffclock_setestimate(struct thread *td,
+    struct freebsd32_ffclock_setestimate_args *uap)
+{
+	return (ENOSYS);
+}
+
+int
+freebsd32_ffclock_getestimate(struct thread *td,
+    struct freebsd32_ffclock_getestimate_args *uap)
+{
+	return (ENOSYS);
+}
+#endif /* FFCLOCK */
+
+#ifdef COMPAT_43
+int
+ofreebsd32_sethostid(struct thread *td, struct ofreebsd32_sethostid_args *uap)
+{
+	int name[] = { CTL_KERN, KERN_HOSTID };
+	long hostid;
+
+	hostid = uap->hostid;
+	return (kernel_sysctl(td, name, nitems(name), NULL, NULL, &hostid,
+	    sizeof(hostid), NULL, 0));
+}
+#endif

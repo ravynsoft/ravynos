@@ -126,7 +126,7 @@ sysctl_vm_loadavg(SYSCTL_HANDLER_ARGS)
 {
 
 #ifdef SCTL_MASK32
-	u_int32_t la[4];
+	uint32_t la[4];
 
 	if (req->flags & SCTL_MASK32) {
 		la[0] = averunnable.ldavg[0];
@@ -192,7 +192,7 @@ vmtotal(SYSCTL_HANDLER_ARGS)
 		if (p->p_state != PRS_NEW) {
 			FOREACH_THREAD_IN_PROC(p, td) {
 				thread_lock(td);
-				switch (td->td_state) {
+				switch (TD_GET_STATE(td)) {
 				case TDS_INHIBITED:
 					if (TD_IS_SWAPPED(td))
 						total.t_sw++;

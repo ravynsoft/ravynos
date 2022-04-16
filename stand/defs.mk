@@ -25,6 +25,12 @@ INTERNALLIB=
 # enough to make that hassle worth chasing.
 _CPUCFLAGS=
 
+.if ${LDFLAGS:M-nostdlib}
+# Sanitizers won't work unless we link against libc (e.g. in userboot/test).
+MK_ASAN:=	no
+MK_UBSAN:=	no
+.endif
+
 .include <src.opts.mk>
 .include <bsd.linker.mk>
 
@@ -179,10 +185,6 @@ CFLAGS+=	-mno-relax
 # when this test succeeds rather than require dd to be a bootstrap tool.
 DD_NOSTATUS!=(dd status=none count=0 2> /dev/null && echo status=none) || true
 DD=dd ${DD_NOSTATUS}
-
-.if ${MACHINE_CPUARCH} == "mips"
-CFLAGS+=	-G0 -fno-pic -mno-abicalls
-.endif
 
 #
 # Have a sensible default

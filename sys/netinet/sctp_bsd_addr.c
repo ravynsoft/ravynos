@@ -224,7 +224,7 @@ sctp_init_ifns_for_vrf(int vrfid)
 #ifdef INET6
 			case AF_INET6:
 				if (IN6_IS_ADDR_UNSPECIFIED(&((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr)) {
-					/* skip unspecifed addresses */
+					/* skip unspecified addresses */
 					continue;
 				}
 				break;
@@ -326,7 +326,7 @@ sctp_addr_change(struct ifaddr *ifa, int cmd)
 	case AF_INET6:
 		ifa_flags = ((struct in6_ifaddr *)ifa)->ia6_flags;
 		if (IN6_IS_ADDR_UNSPECIFIED(&((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr)) {
-			/* skip unspecifed addresses */
+			/* skip unspecified addresses */
 			return;
 		}
 		break;
@@ -486,11 +486,10 @@ sctp_copy_out_packet_log(uint8_t *target, int length)
 	 * We wind through the packet log starting at start copying up to
 	 * length bytes out. We return the number of bytes copied.
 	 */
-	int tocopy, this_copy;
+	int this_copy;
 	int *lenat;
 	int did_delay = 0;
 
-	tocopy = length;
 	if (length < (int)(2 * sizeof(int))) {
 		/* not enough room */
 		return (0);

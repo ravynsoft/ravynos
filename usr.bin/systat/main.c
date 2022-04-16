@@ -38,7 +38,7 @@ static const char sccsid[] = "@(#)main.c	8.1 (Berkeley) 6/6/93";
 #endif
 
 #ifndef lint
-static const char copyright[] =
+static const char copyright[] __unused =
 "@(#) Copyright (c) 1980, 1992, 1993\n\
 	The Regents of the University of California.  All rights reserved.\n";
 #endif
@@ -65,12 +65,11 @@ static const char copyright[] =
 static int     dellave;
 
 kvm_t *kd;
-sig_t	sigtstpdfl;
 double avenrun[3];
 int     col;
 unsigned int	delay = 5000000;	/* in microseconds */
 int     verbose = 1;                    /* to report kvm read errs */
-struct	clockinfo clkinfo;
+static struct	clockinfo clkinfo;
 double	hertz;
 char    c;
 char    *namp;
@@ -86,7 +85,7 @@ struct cmdentry {
 	char		*cmd;		/* Command name	*/
 	char		*argv;		/* Arguments vector for a command */
 };
-SLIST_HEAD(, cmdentry) commands;
+static SLIST_HEAD(, cmdentry) commands;
 
 static void
 parse_cmd_args (int argc, char **argv)
@@ -156,6 +155,7 @@ main(int argc, char **argv)
 	char errbuf[_POSIX2_LINE_MAX], dummy;
 	size_t	size;
 	struct cmdentry *cmd = NULL;
+	short cf, cb;
 
 	(void) setlocale(LC_ALL, "");
 
@@ -215,6 +215,13 @@ main(int argc, char **argv)
 	 * routines to minimize update work by curses.
 	 */
 	initscr();
+	start_color();
+	use_default_colors();
+	pair_content(0, &cf, &cb);
+	init_pair(1, COLOR_GREEN, cb);
+	init_pair(2, COLOR_MAGENTA, cb);
+	init_pair(3, COLOR_RED, cb);
+	init_pair(4, COLOR_BLUE, cb);
 	CMDLINE = LINES - 1;
 	wnd = (*curcmd->c_open)();
 	if (wnd == NULL) {
@@ -277,6 +284,7 @@ void
 display(void)
 {
 	uint64_t arc_stat;
+	unsigned int ui;
 	int i, j;
 
 	/* Get the load average over the last minute. */
@@ -316,8 +324,8 @@ display(void)
 		    GETSYSCTL("kstat.zfs.misc.arcstats.dbuf_size", arc_stat);
 		    arc[6] += arc_stat;
 		    wmove(wload, 0, 0); wclrtoeol(wload);
-		    for (i = 0 ; i < nitems(arc); i++)
-			sysputuint64(wload, 0, i*8+2, 6, arc[i], 0);
+		    for (ui = 0 ; ui < nitems(arc); ui++)
+			sysputuint64(wload, 0, ui*8+2, 6, arc[ui], 0);
 	    }
 	}
 	(*curcmd->c_refresh)();

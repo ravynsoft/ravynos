@@ -1,5 +1,5 @@
 /*
- * SPDX-License-Identifier: BSD-4-Clause
+ * SPDX-License-Identifier: BSD-3-Clause
  *
  * Copyright (c) 1995 Wolfram Schneider <wosch@FreeBSD.org>. Berlin.
  * Copyright (c) 1989, 1993
@@ -13,11 +13,7 @@
  * 2. Redistributions in binary form must reproduce the above copyright
  *    notice, this list of conditions and the following disclaimer in the
  *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *	This product includes software developed by the University of
- *	California, Berkeley and its contributors.
- * 4. Neither the name of the University nor the names of its contributors
+ * 3. Neither the name of the University nor the names of its contributors
  *    may be used to endorse or promote products derived from this software
  *    without specific prior written permission.
  *
@@ -72,3 +68,9 @@ extern u_char myctype[UCHAR_MAX + 1];
 #define INTSIZE (sizeof(int))
 
 #define LOCATE_REG "*?[]\\"  /* fnmatch(3) meta characters */
+
+/* max. path length for locate. Should be at least 1024 (PATH_MAX), but can be longer */
+#ifndef LOCATE_PATH_MAX
+#define LOCATE_PATH_MAX (1*1024)
+#endif
+

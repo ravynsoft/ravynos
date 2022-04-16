@@ -28,22 +28,23 @@
 #ifndef _NETINET_TCP_RACK_H_
 #define _NETINET_TCP_RACK_H_
 
-#define RACK_ACKED	    0x0001/* The remote endpoint acked this */
-#define RACK_TO_REXT	    0x0002/* A timeout occured on this sendmap entry */
-#define RACK_DEFERRED	    0x0004/* We can't use this for RTT calc - not used */
-#define RACK_OVERMAX	    0x0008/* We have more retran's then we can fit */
-#define RACK_SACK_PASSED    0x0010/* A sack was done above this block */
-#define RACK_WAS_SACKPASS   0x0020/* We retransmitted due to SACK pass */
-#define RACK_HAS_FIN	    0x0040/* segment is sent with fin */
-#define RACK_TLP	    0x0080/* segment sent as tail-loss-probe */
-#define RACK_RWND_COLLAPSED 0x0100/* The peer collapsed the rwnd on the segment */
-#define RACK_APP_LIMITED    0x0200/* We went app limited after this send */
-#define RACK_WAS_ACKED	    0x0400/* a RTO undid the ack, but it already had a rtt calc done */
-#define RACK_HAS_SYN	    0x0800/* SYN is on this guy */
-#define RACK_SENT_W_DSACK   0x1000/* Sent with a dsack */
-#define RACK_SENT_SP	    0x2000/* sent in slow path */
-#define RACK_SENT_FP        0x4000/* sent in fast path */
-#define RACK_HAD_PUSH	    0x8000/* Push was sent on original send */
+#define RACK_ACKED	    0x000001/* The remote endpoint acked this */
+#define RACK_TO_REXT	    0x000002/* A timeout occured on this sendmap entry */
+#define RACK_DEFERRED	    0x000004/* We can't use this for RTT calc - not used */
+#define RACK_OVERMAX	    0x000008/* We have more retran's then we can fit */
+#define RACK_SACK_PASSED    0x000010/* A sack was done above this block */
+#define RACK_WAS_SACKPASS   0x000020/* We retransmitted due to SACK pass */
+#define RACK_HAS_FIN	    0x000040/* segment is sent with fin */
+#define RACK_TLP	    0x000080/* segment sent as tail-loss-probe */
+#define RACK_RWND_COLLAPSED 0x000100/* The peer collapsed the rwnd on the segment */
+#define RACK_APP_LIMITED    0x000200/* We went app limited after this send */
+#define RACK_WAS_ACKED	    0x000400/* a RTO undid the ack, but it already had a rtt calc done */
+#define RACK_HAS_SYN	    0x000800/* SYN is on this guy */
+#define RACK_SENT_W_DSACK   0x001000/* Sent with a dsack */
+#define RACK_SENT_SP	    0x002000/* sent in slow path */
+#define RACK_SENT_FP        0x004000/* sent in fast path */
+#define RACK_HAD_PUSH	    0x008000/* Push was sent on original send */
+#define RACK_MUST_RXT	    0x010000/* We must retransmit this rsm (non-sack/mtu chg)*/
 #define RACK_NUM_OF_RETRANS 3
 
 #define RACK_INITIAL_RTO 1000000 /* 1 second in microseconds */
@@ -55,9 +56,8 @@ struct rack_sendmap {
 	uint32_t r_start;	/* Sequence number of the segment */
 	uint32_t r_end;		/* End seq, this is 1 beyond actually */
 	uint32_t r_rtr_bytes;	/* How many bytes have been retransmitted */
-	uint16_t r_rtr_cnt;	/* Retran count, index this -1 to get time
-				 * sent */
-	uint16_t r_flags;	/* Flags as defined above */
+	uint32_t r_flags : 24,	/* Flags as defined above */
+		 r_rtr_cnt : 8;	/* Retran count, index this -1 to get time */
 	struct mbuf *m;
 	uint32_t soff;
 	uint32_t orig_m_len;
@@ -73,6 +73,7 @@ struct rack_sendmap {
 	uint64_t r_tim_lastsent[RACK_NUM_OF_RETRANS];
 	uint64_t r_ack_arrival;	/* This is the time of ack-arrival (if SACK'd) */
 	RB_ENTRY(rack_sendmap) r_next;		/* RB Tree next */
+	uint32_t r_fas;		/* Flight at send */
 };
 
 struct deferred_opt_list {
@@ -157,23 +158,6 @@ struct rack_rtt_sample {
 #define RACK_LOG_TYPE_ALLOC     0x04
 #define RACK_LOG_TYPE_FREE      0x05
 
-struct rack_log {
-	union {
-		struct rack_sendmap *rsm;	/* For alloc/free */
-		uint64_t sb_acc;/* For out/ack or t-o */
-	};
-	uint32_t th_seq;
-	uint32_t th_ack;
-	uint32_t snd_una;
-	uint32_t snd_nxt;	/* th_win for TYPE_ACK */
-	uint32_t snd_max;
-	uint32_t blk_start[4];
-	uint32_t blk_end[4];
-	uint8_t type;
-	uint8_t n_sackblks;
-	uint16_t len;		/* Timeout T3=1, TLP=2, RACK=3 */
-};
-
 /*
  * Magic numbers for logging timeout events if the
  * logging is enabled.
@@ -247,6 +231,7 @@ struct rack_opts_stats {
 	uint64_t tcp_rack_beta;
 	uint64_t tcp_rack_beta_ecn;
 	uint64_t tcp_rack_timer_slop;
+	uint64_t tcp_rack_dsack_opt;
 };
 
 /* RTT shrink reasons */
@@ -276,6 +261,36 @@ struct rack_opts_stats {
 #define RACK_QUALITY_PROBERTT	4	/* A measurement where we went into or exited probe RTT */
 #define RACK_QUALITY_ALLACKED	5	/* All data is now acknowledged */
 
+/*********************/
+/* Rack Trace points */
+/*********************/
+/*
+ * Rack trace points are interesting points within
+ * the rack code that the author/debugger may want
+ * to have BB logging enabled if we hit that point.
+ * In order to enable a trace point you set the
+ * sysctl var net.inet.tcp.<stack>.tp.number to
+ * one of the numbers listed below. You also
+ * must make sure net.inet.tcp.<stack>.tp.bbmode is
+ * non-zero, the default is 4 for continous tracing.
+ * You also set in the number of connections you want
+ * have get BB logs in net.inet.tcp.<stack>.tp.count.
+ * 
+ * Count will decrement every time BB logging is assigned
+ * to a connection that hit your tracepoint.
+ *
+ * You can enable all trace points by setting the number
+ * to 0xffffffff. You can disable all trace points by
+ * setting number to zero (or count to 0).
+ *
+ * Below are the enumerated list of tracepoints that
+ * have currently been defined in the code. Add more
+ * as you add a call to rack_trace_point(rack, <name>);
+ * where <name> is defined below.
+ */
+#define RACK_TP_HWENOBUF	0x00000001	/* When we are doing hardware pacing and hit enobufs */
+#define RACK_TP_ENOBUF		0x00000002	/* When we hit enobufs with software pacing */
+#define RACK_TP_COLLAPSED_WND	0x00000003	/* When a peer to collapses its rwnd on us */
 
 #define MIN_GP_WIN 6	/* We need at least 6 MSS in a GP measurement */
 #ifdef _KERNEL
@@ -371,8 +386,6 @@ struct rack_control {
 	uint64_t last_hw_bw_req;
 	uint64_t crte_prev_rate;
 	uint64_t bw_rate_cap;
-	uint32_t rc_time_last_sent;	/* Time we last sent some data and
-					 * logged it Lock(a). */
 	uint32_t rc_reorder_ts;	/* Last time we saw reordering Lock(a) */
 
 	uint32_t rc_tlp_new_data;	/* we need to send new-data on a TLP
@@ -384,12 +397,11 @@ struct rack_control {
 	uint32_t rc_prr_sndcnt;	/* Prr sndcnt Lock(a) */
 
 	uint32_t rc_sacked;	/* Tot sacked on scoreboard Lock(a) */
-	uint32_t xxx_rc_last_tlp_seq;	/* Last tlp sequence Lock(a) */
+	uint32_t last_sent_tlp_seq;	/* Last tlp sequence that was retransmitted Lock(a) */
 
 	uint32_t rc_prr_delivered;	/* during recovery prr var Lock(a) */
 	uint16_t rc_tlp_cnt_out;	/* count of times we have sent a TLP without new data */
-	uint16_t xxx_rc_tlp_seg_send_cnt;	/* Number of times we have TLP sent
-					 * rc_last_tlp_seq Lock(a) */
+	uint16_t last_sent_tlp_len;	/* Number of bytes in the last sent tlp */
 
 	uint32_t rc_loss_count;	/* How many bytes have been retransmitted
 				 * Lock(a) */
@@ -401,11 +413,6 @@ struct rack_control {
 	uint32_t rc_rack_tmit_time;	/* Rack transmit time Lock(a) */
 	uint32_t rc_holes_rxt;	/* Tot retraned from scoreboard Lock(a) */
 
-	/* Variables to track bad retransmits and recover */
-	uint32_t rc_rsm_start;	/* RSM seq number we retransmitted Lock(a) */
-	uint32_t rc_cwnd_at;	/* cwnd at the retransmit Lock(a) */
-
-	uint32_t rc_ssthresh_at;/* ssthresh at the retransmit Lock(a) */
 	uint32_t rc_num_maps_alloced;	/* Number of map blocks (sacks) we
 					 * have allocated */
 	uint32_t rc_rcvtime;	/* When we last received data */
@@ -417,16 +424,12 @@ struct rack_control {
 	struct rack_sendmap *rc_sacklast;	/* sack remembered place
 						 * Lock(a) */
 
-	struct rack_sendmap *rc_rsm_at_retran;	/* Debug variable kept for
-						 * cache line alignment
-						 * Lock(a) */
 	struct rack_sendmap *rc_first_appl;	/* Pointer to first app limited */
 	struct rack_sendmap *rc_end_appl;	/* Pointer to last app limited */
 	/* Cache line split 0x100 */
 	struct sack_filter rack_sf;
 	/* Cache line split 0x140 */
 	/* Flags for various things */
-	uint32_t last_pacing_time;
 	uint32_t rc_pace_max_segs;
 	uint32_t rc_pace_min_segs;
 	uint32_t rc_app_limited_cnt;
@@ -464,6 +467,10 @@ struct rack_control {
 	uint32_t rc_entry_gp_rtt;	/* Entry to PRTT gp-rtt */
 	uint32_t rc_loss_at_start;	/* At measurement window where was our lost value */
 
+	uint32_t dsack_round_end;	/* In a round of seeing a DSACK */
+	uint32_t current_round;		/* Starting at zero */
+	uint32_t roundends;		/* acked value above which round ends */
+	uint32_t num_dsack;		/* Count of dsack's seen  (1 per window)*/
 	uint32_t forced_ack_ts;
 	uint32_t rc_lower_rtt_us_cts;	/* Time our GP rtt was last lowered */
 	uint32_t rc_time_probertt_entered;
@@ -485,10 +492,13 @@ struct rack_control {
 	int32_t rc_scw_index;
 	uint32_t rc_tlp_threshold;	/* Socket option value Lock(a) */
 	uint32_t rc_last_timeout_snduna;
+	uint32_t last_tlp_acked_start;
+	uint32_t last_tlp_acked_end;
 	uint32_t challenge_ack_ts;
 	uint32_t challenge_ack_cnt;
 	uint32_t rc_min_to;	/* Socket option value Lock(a) */
 	uint32_t rc_pkt_delay;	/* Socket option value Lock(a) */
+	uint32_t persist_lost_ends;
 	struct newreno rc_saved_beta;	/*
 					 * For newreno cc:
 					 * rc_saved_cc are the values we have had
@@ -503,18 +513,26 @@ struct rack_control {
 					 */
 	uint16_t rc_early_recovery_segs;	/* Socket option value Lock(a) */
 	uint16_t rc_reorder_shift;	/* Socket option value Lock(a) */
+	uint8_t dsack_persist;
 	uint8_t rc_no_push_at_mrtt;	/* No push when we exceed max rtt */
 	uint8_t num_measurements;	/* Number of measurements (up to 0xff, we freeze at 0xff)  */
 	uint8_t req_measurements;	/* How many measurements are required? */
 	uint8_t rc_tlp_cwnd_reduce;	/* Socket option value Lock(a) */
 	uint8_t rc_prr_sendalot;/* Socket option value Lock(a) */
 	uint8_t rc_rate_sample_method;
-	uint8_t rc_gp_hist_idx;
 };
 #endif
 
 #define RACK_TIMELY_CNT_BOOST 5	/* At 5th increase boost */
 #define RACK_MINRTT_FILTER_TIM 10 /* Seconds */
+
+#define RACK_HYSTART_OFF	0
+#define RACK_HYSTART_ON		1	/* hystart++ on */
+#define RACK_HYSTART_ON_W_SC	2	/* hystart++ on +Slam Cwnd */
+#define RACK_HYSTART_ON_W_SC_C	3	/* hystart++ on,
+					 * Conservative ssthresh and
+					 * +Slam cwnd
+					 */
 
 #ifdef _KERNEL
 
@@ -552,8 +570,15 @@ struct tcp_rack {
 					      * Note this only happens if the cc name is newreno (CCALGONAME_NEWRENO).
 					      */
 
-		avail :2;
-	uint8_t avail_bytes;
+		rc_rack_tmr_std_based :1,
+		rc_rack_use_dsack: 1;
+	uint8_t rc_dsack_round_seen: 1,
+		rc_last_tlp_acked_set: 1,
+		rc_last_tlp_past_cumack: 1,
+		rc_last_sent_tlp_seq_valid: 1,
+		rc_last_sent_tlp_past_cumack: 1,
+		probe_not_answered: 1,
+		avail_bytes : 2;
 	uint32_t rc_rack_rtt;	/* RACK-RTT Lock(a) */
 	uint16_t r_mbuf_queue : 1,	/* Do we do mbuf queue for non-paced */
 		 rtt_limit_mul : 4,	/* muliply this by low rtt */
@@ -581,8 +606,8 @@ struct tcp_rack {
 		rc_dragged_bottom: 1,
 		rc_dack_mode : 1,		/* Mac O/S emulation of d-ack */
 		rc_dack_toggle : 1,		/* For Mac O/S emulation of d-ack */
-		pacing_longer_than_rtt : 1,
-		rc_gp_filled : 1;
+		rc_gp_filled : 1,
+		rc_is_spare : 1;
 	uint8_t r_state;	/* Current rack state Lock(a) */
 	uint8_t rc_tmr_stopped : 7,
 		t_timers_stopped : 1;
@@ -618,13 +643,11 @@ struct tcp_rack {
 		sack_attack_disable : 1,
 		do_detection : 1,
 		rc_force_max_seg : 1;
-	uint8_t rack_cwnd_limited : 1,
-		r_early : 1,
+	uint8_t r_early : 1,
 		r_late : 1,
-		r_running_early : 1,
-		r_running_late : 1,
 		r_wanted_output: 1,
-		r_rr_config : 2;
+		r_rr_config : 2,
+		rc_avail_bit : 3;
 	uint16_t rc_init_win : 8,
 		rc_gp_rtt_set : 1,
 		rc_gp_dyn_mul : 1,

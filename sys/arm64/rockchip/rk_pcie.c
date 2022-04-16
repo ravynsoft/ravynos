@@ -336,7 +336,7 @@ rk_pcie_map_out_atu(struct rk_pcie_softc *sc, int idx, int type,
    int num_bits, uint64_t pa)
 {
 	uint32_t addr0;
-	uint64_t max_size;
+	uint64_t max_size __diagused;
 
 	/* Check HW constrains */
 	max_size = idx == 0 ? ATU_OB_REGION_0_SIZE: ATU_OB_REGION_SIZE;
@@ -1276,7 +1276,7 @@ rk_pcie_attach(device_t dev)
 	if (rv != 0)
 		goto out;
 
-	rv = ofw_pci_init(dev);
+	rv = ofw_pcib_init(dev);
 	if (rv != 0)
 		goto out;
 
@@ -1383,7 +1383,7 @@ static device_method_t rk_pcie_methods[] = {
 };
 
 DEFINE_CLASS_1(pcib, rk_pcie_driver, rk_pcie_methods,
-    sizeof(struct rk_pcie_softc), ofw_pci_driver);
+    sizeof(struct rk_pcie_softc), ofw_pcib_driver);
 static devclass_t rk_pcie_devclass;
 DRIVER_MODULE( rk_pcie, simplebus, rk_pcie_driver, rk_pcie_devclass,
     NULL, NULL);

@@ -38,7 +38,9 @@ __FBSDID("$FreeBSD$");
 #include <sys/kernel.h>
 #include <sys/linker.h>
 #include <sys/lock.h>
+#include <sys/malloc.h>
 #include <sys/module.h>
+#include <sys/msan.h>
 #include <sys/mutex.h>
 #include <sys/clock.h>
 #include <sys/proc.h>
@@ -47,6 +49,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/sched.h>
 #include <sys/sysctl.h>
 #include <sys/systm.h>
+#include <sys/uio.h>
 #include <sys/vmmeter.h>
 
 #include <machine/fpu.h>
@@ -57,6 +60,8 @@ __FBSDID("$FreeBSD$");
 #include <vm/vm.h>
 #include <vm/pmap.h>
 #include <vm/vm_map.h>
+
+#define EFI_TABLE_ALLOC_MAX 0x800000
 
 static struct efi_systbl *efi_systbl;
 static eventhandler_tag efi_shutdown_tag;
@@ -96,10 +101,15 @@ static int efi_status2err[25] = {
 	EPROTO		/* EFI_PROTOCOL_ERROR */
 };
 
+enum efi_table_type {
+	TYPE_ESRT = 0,
+	TYPE_PROP
+};
+
 static int efi_enter(void);
 static void efi_leave(void);
 
-static int
+int
 efi_status_to_errno(efi_status status)
 {
 	u_long code;
@@ -126,8 +136,8 @@ efi_is_in_map(struct efi_md *map, int ndesc, int descsz, vm_offset_t addr)
 		if ((p->md_attr & EFI_MD_ATTR_RT) == 0)
 			continue;
 
-		if (addr >= (uintptr_t)p->md_virt &&
-		    addr < (uintptr_t)p->md_virt + p->md_pages * PAGE_SIZE)
+		if (addr >= p->md_virt &&
+		    addr < p->md_virt + p->md_pages * PAGE_SIZE)
 			return (true);
 	}
 
@@ -262,8 +272,8 @@ efi_uninit(void)
 	mtx_destroy(&efi_lock);
 }
 
-int
-efi_rt_ok(void)
+static int
+rt_ok(void)
 {
 
 	if (efi_runtime == NULL)
@@ -309,8 +319,8 @@ efi_leave(void)
 	PMAP_UNLOCK(curpmap);
 }
 
-int
-efi_get_table(struct uuid *uuid, void **ptr)
+static int
+get_table(struct uuid *uuid, void **ptr)
 {
 	struct efi_cfgtbl *ct;
 	u_long count;
@@ -334,6 +344,124 @@ efi_get_table(struct uuid *uuid, void **ptr)
 
 	efi_leave();
 	return (ENOENT);
+}
+
+static int
+get_table_length(enum efi_table_type type, size_t *table_len, void **taddr)
+{
+	switch (type) {
+	case TYPE_ESRT:
+	{
+		struct efi_esrt_table *esrt = NULL;
+		struct uuid uuid = EFI_TABLE_ESRT;
+		uint32_t fw_resource_count = 0;
+		size_t len = sizeof(*esrt);
+		int error;
+		void *buf;
+
+		error = efi_get_table(&uuid, (void **)&esrt);
+		if (error != 0)
+			return (error);
+
+		buf = malloc(len, M_TEMP, M_WAITOK);
+		error = physcopyout((vm_paddr_t)esrt, buf, len);
+		if (error != 0) {
+			free(buf, M_TEMP);
+			return (error);
+		}
+
+		/* Check ESRT version */
+		if (((struct efi_esrt_table *)buf)->fw_resource_version !=
+		    ESRT_FIRMWARE_RESOURCE_VERSION) {
+			free(buf, M_TEMP);
+			return (ENODEV);
+		}
+
+		fw_resource_count = ((struct efi_esrt_table *)buf)->
+		    fw_resource_count;
+		if (fw_resource_count > EFI_TABLE_ALLOC_MAX /
+		    sizeof(struct efi_esrt_entry_v1)) {
+			free(buf, M_TEMP);
+			return (ENOMEM);
+		}
+
+		len += fw_resource_count * sizeof(struct efi_esrt_entry_v1);
+		*table_len = len;
+
+		if (taddr != NULL)
+			*taddr = esrt;
+		free(buf, M_TEMP);
+		return (0);
+	}
+	case TYPE_PROP:
+	{
+		struct uuid uuid = EFI_PROPERTIES_TABLE;
+		struct efi_prop_table *prop;
+		size_t len = sizeof(*prop);
+		uint32_t prop_len;
+		int error;
+		void *buf;
+
+		error = efi_get_table(&uuid, (void **)&prop);
+		if (error != 0)
+			return (error);
+
+		buf = malloc(len, M_TEMP, M_WAITOK);
+		error = physcopyout((vm_paddr_t)prop, buf, len);
+		if (error != 0) {
+			free(buf, M_TEMP);
+			return (error);
+		}
+
+		prop_len = ((struct efi_prop_table *)buf)->length;
+		if (prop_len > EFI_TABLE_ALLOC_MAX) {
+			free(buf, M_TEMP);
+			return (ENOMEM);
+		}
+		*table_len = prop_len;
+
+		if (taddr != NULL)
+			*taddr = prop;
+		free(buf, M_TEMP);
+		return (0);
+	}
+	}
+	return (ENOENT);
+}
+
+static int
+copy_table(struct uuid *uuid, void **buf, size_t buf_len, size_t *table_len)
+{
+	static const struct known_table {
+		struct uuid uuid;
+		enum efi_table_type type;
+	} tables[] = {
+		{ EFI_TABLE_ESRT,       TYPE_ESRT },
+		{ EFI_PROPERTIES_TABLE, TYPE_PROP }
+	};
+	size_t table_idx;
+	void *taddr;
+	int rc;
+
+	for (table_idx = 0; table_idx < nitems(tables); table_idx++) {
+		if (!bcmp(&tables[table_idx].uuid, uuid, sizeof(*uuid)))
+			break;
+	}
+
+	if (table_idx == nitems(tables))
+		return (EINVAL);
+
+	rc = get_table_length(tables[table_idx].type, table_len, &taddr);
+	if (rc != 0)
+		return rc;
+
+	/* return table length to userspace */
+	if (buf == NULL)
+		return (0);
+
+	*buf = malloc(*table_len, M_TEMP, M_WAITOK);
+	rc = physcopyout((vm_paddr_t)taddr, *buf, *table_len);
+	return (rc);
 }
 
 static int efi_rt_handle_faults = EFI_RT_HANDLE_FAULTS_DEFAULT;
@@ -406,6 +534,7 @@ static int
 efi_get_time_locked(struct efi_tm *tm, struct efi_tmcap *tmcap)
 {
 	struct efirt_callinfo ec;
+	int error;
 
 	EFI_TIME_OWNED();
 	if (efi_runtime == NULL)
@@ -416,11 +545,14 @@ efi_get_time_locked(struct efi_tm *tm, struct efi_tmcap *tmcap)
 	ec.ec_arg1 = (uintptr_t)tm;
 	ec.ec_arg2 = (uintptr_t)tmcap;
 	ec.ec_fptr = EFI_RT_METHOD_PA(rt_gettime);
-	return (efi_call(&ec));
+	error = efi_call(&ec);
+	if (error == 0)
+		kmsan_mark(tm, sizeof(*tm), KMSAN_STATE_INITED);
+	return (error);
 }
 
-int
-efi_get_time(struct efi_tm *tm)
+static int
+get_time(struct efi_tm *tm)
 {
 	struct efi_tmcap dummy;
 	int error;
@@ -439,8 +571,8 @@ efi_get_time(struct efi_tm *tm)
 	return (error);
 }
 
-int
-efi_get_time_capabilities(struct efi_tmcap *tmcap)
+static int
+get_time_capabilities(struct efi_tmcap *tmcap)
 {
 	struct efi_tm dummy;
 	int error;
@@ -453,8 +585,8 @@ efi_get_time_capabilities(struct efi_tmcap *tmcap)
 	return (error);
 }
 
-int
-efi_reset_system(enum efi_reset type)
+static int
+reset_system(enum efi_reset type)
 {
 	struct efirt_callinfo ec;
 
@@ -495,8 +627,8 @@ efi_set_time_locked(struct efi_tm *tm)
 	return (efi_call(&ec));
 }
 
-int
-efi_set_time(struct efi_tm *tm)
+static int
+set_time(struct efi_tm *tm)
 {
 	int error;
 
@@ -508,11 +640,12 @@ efi_set_time(struct efi_tm *tm)
 	return (error);
 }
 
-int
-efi_var_get(efi_char *name, struct uuid *vendor, uint32_t *attrib,
+static int
+var_get(efi_char *name, struct uuid *vendor, uint32_t *attrib,
     size_t *datasize, void *data)
 {
 	struct efirt_callinfo ec;
+	int error;
 
 	if (efi_runtime == NULL)
 		return (ENXIO);
@@ -525,13 +658,17 @@ efi_var_get(efi_char *name, struct uuid *vendor, uint32_t *attrib,
 	ec.ec_arg4 = (uintptr_t)datasize;
 	ec.ec_arg5 = (uintptr_t)data;
 	ec.ec_fptr = EFI_RT_METHOD_PA(rt_getvar);
-	return (efi_call(&ec));
+	error = efi_call(&ec);
+	if (error == 0)
+		kmsan_mark(data, *datasize, KMSAN_STATE_INITED);
+	return (error);
 }
 
-int
-efi_var_nextname(size_t *namesize, efi_char *name, struct uuid *vendor)
+static int
+var_nextname(size_t *namesize, efi_char *name, struct uuid *vendor)
 {
 	struct efirt_callinfo ec;
+	int error;
 
 	if (efi_runtime == NULL)
 		return (ENXIO);
@@ -542,11 +679,14 @@ efi_var_nextname(size_t *namesize, efi_char *name, struct uuid *vendor)
 	ec.ec_arg2 = (uintptr_t)name;
 	ec.ec_arg3 = (uintptr_t)vendor;
 	ec.ec_fptr = EFI_RT_METHOD_PA(rt_scanvar);
-	return (efi_call(&ec));
+	error = efi_call(&ec);
+	if (error == 0)
+		kmsan_mark(name, *namesize, KMSAN_STATE_INITED);
+	return (error);
 }
 
-int
-efi_var_set(efi_char *name, struct uuid *vendor, uint32_t attrib,
+static int
+var_set(efi_char *name, struct uuid *vendor, uint32_t attrib,
     size_t datasize, void *data)
 {
 	struct efirt_callinfo ec;
@@ -564,6 +704,20 @@ efi_var_set(efi_char *name, struct uuid *vendor, uint32_t attrib,
 	ec.ec_fptr = EFI_RT_METHOD_PA(rt_setvar);
 	return (efi_call(&ec));
 }
+
+const static struct efi_ops efi_ops = {
+	.rt_ok = rt_ok,
+	.get_table = get_table,
+	.copy_table = copy_table,
+	.get_time = get_time,
+	.get_time_capabilities = get_time_capabilities,
+	.reset_system = reset_system,
+	.set_time = set_time,
+	.var_get = var_get,
+	.var_nextname = var_nextname,
+	.var_set = var_set,
+};
+const struct efi_ops *active_efi_ops = &efi_ops;
 
 static int
 efirt_modevents(module_t m, int event, void *arg __unused)

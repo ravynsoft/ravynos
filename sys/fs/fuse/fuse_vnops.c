@@ -133,6 +133,7 @@ static vop_close_t fuse_fifo_close;
 static vop_close_t fuse_vnop_close;
 static vop_copy_file_range_t fuse_vnop_copy_file_range;
 static vop_create_t fuse_vnop_create;
+static vop_deallocate_t fuse_vnop_deallocate;
 static vop_deleteextattr_t fuse_vnop_deleteextattr;
 static vop_fdatasync_t fuse_vnop_fdatasync;
 static vop_fsync_t fuse_vnop_fsync;
@@ -189,6 +190,7 @@ struct vop_vector fuse_vnops = {
 	.vop_close = fuse_vnop_close,
 	.vop_copy_file_range = fuse_vnop_copy_file_range,
 	.vop_create = fuse_vnop_create,
+	.vop_deallocate = fuse_vnop_deallocate,
 	.vop_deleteextattr = fuse_vnop_deleteextattr,
 	.vop_fsync = fuse_vnop_fsync,
 	.vop_fdatasync = fuse_vnop_fdatasync,
@@ -621,11 +623,8 @@ fuse_vnop_allocate(struct vop_allocate_args *ap)
 	} else if (err == EOPNOTSUPP) {
 		/*
 		 * The file system server does not support FUSE_FALLOCATE with
-		 * the supplied mode.  That's effectively the same thing as
-		 * ENOSYS since we only ever issue mode=0.
-		 * TODO: revise this section once we support fspacectl.
+		 * the supplied mode for this particular file.
 		 */
-		fsess_set_notimpl(mp, FUSE_FALLOCATE);
 		err = EINVAL;
 	} else if (!err) {
 		*offset += *len;
@@ -957,7 +956,7 @@ fuse_vnop_create(struct vop_create_args *ap)
 	struct vnode **vpp = ap->a_vpp;
 	struct componentname *cnp = ap->a_cnp;
 	struct vattr *vap = ap->a_vap;
-	struct thread *td = cnp->cn_thread;
+	struct thread *td = curthread;
 	struct ucred *cred = cnp->cn_cred;
 
 	struct fuse_data *data;
@@ -1372,7 +1371,7 @@ fuse_vnop_lookup(struct vop_lookup_args *ap)
 	struct vnode *dvp = ap->a_dvp;
 	struct vnode **vpp = ap->a_vpp;
 	struct componentname *cnp = ap->a_cnp;
-	struct thread *td = cnp->cn_thread;
+	struct thread *td = curthread;
 	struct ucred *cred = cnp->cn_cred;
 	struct timespec now;
 
@@ -1430,7 +1429,7 @@ fuse_vnop_lookup(struct vop_lookup_args *ap)
 		vtyp = VDIR;
 	} else {
 		struct timespec timeout;
-		int ncpticks; /* here to accomodate for API contract */
+		int ncpticks; /* here to accommodate for API contract */
 
 		err = cache_lookup(dvp, vpp, cnp, &timeout, &ncpticks);
 		getnanouptime(&now);
@@ -1837,7 +1836,7 @@ fuse_vnop_read(struct vop_read_args *ap)
 	struct ucred *a_cred;
 	int *a_eofflag;
 	int *a_ncookies;
-	u_long **a_cookies;
+	uint64_t **a_cookies;
     };
 */
 static int
@@ -1850,7 +1849,7 @@ fuse_vnop_readdir(struct vop_readdir_args *ap)
 	struct mount *mp = vnode_mount(vp);
 	struct fuse_iov cookediov;
 	int err = 0;
-	u_long *cookies;
+	uint64_t *cookies;
 	ssize_t tresid;
 	int ncookies;
 	bool closefufh = false;
@@ -1981,7 +1980,24 @@ fuse_vnop_reclaim(struct vop_reclaim_args *ap)
 		fuse_filehandle_close(vp, fufh, td, NULL);
 	}
 
-	if (!fuse_isdeadfs(vp) && fvdat->nlookup > 0) {
+	if (VTOI(vp) == 1) {
+		/*
+		 * Don't send FUSE_FORGET for the root inode, because
+		 * we never send FUSE_LOOKUP for it (see
+		 * fuse_vfsop_root) and we don't want the server to see
+		 * mismatched lookup counts.
+		 */
+		struct fuse_data *data;
+		struct vnode *vroot;
+
+		data = fuse_get_mpdata(vnode_mount(vp));
+		FUSE_LOCK();
+		vroot = data->vroot;
+		data->vroot = NULL;
+		FUSE_UNLOCK();
+		if (vroot)
+			vrele(vroot);
+	} else if (!fuse_isdeadfs(vp) && fvdat->nlookup > 0) {
 		fuse_internal_forget_send(vnode_mount(vp), td, NULL, VTOI(vp),
 		    fvdat->nlookup);
 	}
@@ -2067,7 +2083,7 @@ fuse_vnop_rename(struct vop_rename_args *ap)
 	data = fuse_get_mpdata(vnode_mount(tdvp));
 	if (data->dataflags & FSESS_DEFAULT_PERMISSIONS && isdir && newparent) {
 		err = fuse_internal_access(fvp, VWRITE,
-			tcnp->cn_thread, tcnp->cn_cred);
+			curthread, tcnp->cn_cred);
 		if (err)
 			goto out;
 	}
@@ -2884,6 +2900,114 @@ out:
 	free(bsd_list, M_TEMP);
 	fdisp_destroy(&fdi);
 	return (err);
+}
+
+/*
+    struct vop_deallocate_args {
+	struct vop_generic_args a_gen;
+	struct vnode *a_vp;
+	off_t *a_offset;
+	off_t *a_len;
+	int a_flags;
+	int a_ioflag;
+        struct ucred *a_cred;
+    };
+*/
+static int
+fuse_vnop_deallocate(struct vop_deallocate_args *ap)
+{
+	struct vnode *vp = ap->a_vp;
+	struct mount *mp = vnode_mount(vp);
+	struct fuse_filehandle *fufh;
+	struct fuse_dispatcher fdi;
+	struct fuse_fallocate_in *ffi;
+	struct ucred *cred = ap->a_cred;
+	pid_t pid = curthread->td_proc->p_pid;
+	off_t *len = ap->a_len;
+	off_t *offset = ap->a_offset;
+	int ioflag = ap->a_ioflag;
+	off_t filesize;
+	int err;
+	bool closefufh = false;
+
+	if (fuse_isdeadfs(vp))
+		return (ENXIO);
+
+	if (vfs_isrdonly(mp))
+		return (EROFS);
+
+	if (fsess_not_impl(mp, FUSE_FALLOCATE))
+		goto fallback;
+
+	err = fuse_filehandle_getrw(vp, FWRITE, &fufh, cred, pid);
+	if (err == EBADF && vnode_mount(vp)->mnt_flag & MNT_EXPORTED) {
+		/*
+		 * nfsd will do I/O without first doing VOP_OPEN.  We
+		 * must implicitly open the file here
+		 */
+		err = fuse_filehandle_open(vp, FWRITE, &fufh, curthread, cred);
+		closefufh = true;
+	}
+	if (err)
+		return (err);
+
+	fuse_vnode_update(vp, FN_MTIMECHANGE | FN_CTIMECHANGE);
+
+	err = fuse_vnode_size(vp, &filesize, cred, curthread);
+	if (err)
+		goto out;
+	fuse_inval_buf_range(vp, filesize, *offset, *offset + *len);
+
+	fdisp_init(&fdi, sizeof(*ffi));
+	fdisp_make_vp(&fdi, FUSE_FALLOCATE, vp, curthread, cred);
+	ffi = fdi.indata;
+	ffi->fh = fufh->fh_id;
+	ffi->offset = *offset;
+	ffi->length = *len;
+	/*
+	 * FreeBSD's fspacectl is equivalent to Linux's fallocate with
+	 * mode == FALLOC_FL_PUNCH_HOLE | FALLOC_FL_KEEP_SIZE
+	 */
+	ffi->mode = FUSE_FALLOC_FL_PUNCH_HOLE | FUSE_FALLOC_FL_KEEP_SIZE;
+	err = fdisp_wait_answ(&fdi);
+
+	if (err == ENOSYS) {
+		fsess_set_notimpl(mp, FUSE_FALLOCATE);
+		goto fallback;
+	} else if (err == EOPNOTSUPP) {
+		/*
+		 * The file system server does not support FUSE_FALLOCATE with
+		 * the supplied mode for this particular file.
+		 */
+		goto fallback;
+	} else if (!err) {
+		/*
+		 * Clip the returned offset to EoF.  Do it here rather than
+		 * before FUSE_FALLOCATE just in case the kernel's cached file
+		 * size is out of date.  Unfortunately, FUSE does not return
+		 * any information about filesize from that operation.
+		 */
+		*offset = MIN(*offset + *len, filesize);
+		*len = 0;
+		fuse_vnode_undirty_cached_timestamps(vp, false);
+		fuse_internal_clear_suid_on_write(vp, cred, curthread);
+
+		if (ioflag & IO_SYNC)
+			err = fuse_internal_fsync(vp, curthread, MNT_WAIT,
+			    false);
+	}
+
+out:
+	if (closefufh)
+		fuse_filehandle_close(vp, fufh, curthread, cred);
+
+	return (err);
+
+fallback:
+	if (closefufh)
+		fuse_filehandle_close(vp, fufh, curthread, cred);
+
+	return (vop_stddeallocate(ap));
 }
 
 /*

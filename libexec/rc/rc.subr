@@ -716,6 +716,15 @@ check_startmsgs()
 }
 
 #
+# startmsg
+#	Preferred method to use when displaying start messages in lieu of echo.
+#
+startmsg()
+{
+	check_startmsgs && echo "$@"
+}
+
+#
 # run_rc_command argument
 #	Search for argument in the list of supported commands, which is:
 #		"start stop restart rcvar status poll ${extra_commands}"
@@ -958,6 +967,11 @@ run_rc_command()
 			_pidcmd='rc_pid=$(check_process '"$_procname $command_interpreter"')'
 		fi
 		_keywords="${_keywords} status poll"
+	else
+		if [ ! -z "${status_cmd}" ]
+		then
+			_keywords="${_keywords} status"
+		fi
 	fi
 
 	if [ -z "$rc_arg" ]; then
@@ -1106,7 +1120,7 @@ run_rc_command()
 
 					# setup the full command to run
 					#
-			check_startmsgs && echo "Starting ${name}."
+			startmsg "Starting ${name}."
 			if [ -n "$_chroot" ]; then
 				_cd=
 				_doit="\
@@ -1272,13 +1286,13 @@ $command $rc_flags $command_args"
 			# We cannot use protect(1) inside jails.
 			if [ -n "$_oomprotect" ] && [ -f "${PROTECT}" ] &&
 			    [ "$(sysctl -n security.jail.jailed)" -eq 0 ]; then
-				pid=$(check_process $command)
+				[ -z "${rc_pid}" ] && eval $_pidcmd
 				case $_oomprotect in
 				[Aa][Ll][Ll])
-					${PROTECT} -i -p ${pid}
+					${PROTECT} -i -p ${rc_pid}
 					;;
 				[Yy][Ee][Ss])
-					${PROTECT} -p ${pid}
+					${PROTECT} -p ${rc_pid}
 					;;
 				esac
 			fi
@@ -1406,7 +1420,9 @@ run_rc_script()
 		;;
 	*)				# run in subshell
 		if [ -x $_file ]; then
-			if [ -n "$rc_fast_and_loose" ]; then
+			if [ -n "$rc_boottrace" ]; then
+				boottrace_fn "$_file" "$_arg"
+			elif [ -n "$rc_fast_and_loose" ]; then
 				set $_arg; . $_file
 			else
 				( trap "echo Script $_file interrupted >&2 ; kill -QUIT $$" 3
@@ -1417,6 +1433,26 @@ run_rc_script()
 		fi
 		;;
 	esac
+}
+
+boottrace_fn()
+{
+	local _file _arg
+	_file=$1
+	_arg=$2
+
+	if [ -n "$rc_fast_and_loose" ]; then
+		boottrace_sysctl "$_file start"
+		set $_arg; . $_file
+		boottrace_sysctl "$_file done"
+	else
+		$boottrace_cmd "$_file" "$_arg"
+	fi
+}
+
+boottrace_sysctl()
+{
+	${SYSCTL} kern.boottrace.boottrace="$1"
 }
 
 #
@@ -2189,4 +2225,9 @@ _echoonce()
 # since it would undo what we've done here.
 if kenv -q rc.debug > /dev/null ; then
 	rc_debug=YES
+fi
+
+boottrace_cmd=`command -v boottrace`
+if [ -n "$boottrace_cmd" ] && [ "`${SYSCTL_N} -q kern.boottrace.enabled`" = "1" ]; then
+	rc_boottrace=YES
 fi

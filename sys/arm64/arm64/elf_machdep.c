@@ -41,6 +41,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/imgact.h>
 #include <sys/linker.h>
 #include <sys/proc.h>
+#include <sys/reg.h>
 #include <sys/sysent.h>
 #include <sys/imgact_elf.h>
 #include <sys/syscall.h>
@@ -58,6 +59,8 @@ __FBSDID("$FreeBSD$");
 u_long __read_frequently elf_hwcap;
 u_long __read_frequently elf_hwcap2;
 
+struct arm64_addr_mask elf64_addr_mask;
+
 static struct sysentvec elf64_freebsd_sysvec = {
 	.sv_size	= SYS_MAXSYSCALL,
 	.sv_table	= sysent,
@@ -68,6 +71,9 @@ static struct sysentvec elf64_freebsd_sysvec = {
 	.sv_szsigcode	= &szsigcode,
 	.sv_name	= "FreeBSD ELF64",
 	.sv_coredump	= __elfN(coredump),
+	.sv_elf_core_osabi = ELFOSABI_FREEBSD,
+	.sv_elf_core_abi_vendor = FREEBSD_ABI_VENDOR,
+	.sv_elf_core_prepare_notes = __elfN(prepare_notes),
 	.sv_imgact_try	= NULL,
 	.sv_minsigstksz	= MINSIGSTKSZ,
 	.sv_minuser	= VM_MIN_ADDRESS,
@@ -95,6 +101,8 @@ static struct sysentvec elf64_freebsd_sysvec = {
 	.sv_hwcap2	= &elf_hwcap2,
 	.sv_onexec_old	= exec_onexec_old,
 	.sv_onexit	= exit_onexit,
+	.sv_regset_begin = SET_BEGIN(__elfN(regset)),
+	.sv_regset_end	= SET_LIMIT(__elfN(regset)),
 };
 INIT_SYSENTVEC(elf64_sysvec, &elf64_freebsd_sysvec);
 
@@ -113,11 +121,31 @@ static Elf64_Brandinfo freebsd_brand_info = {
 SYSINIT(elf64, SI_SUB_EXEC, SI_ORDER_FIRST,
     (sysinit_cfunc_t)elf64_insert_brand_entry, &freebsd_brand_info);
 
+static bool
+get_arm64_addr_mask(struct regset *rs, struct thread *td, void *buf,
+    size_t *sizep)
+{
+	if (buf != NULL) {
+		KASSERT(*sizep == sizeof(elf64_addr_mask),
+		    ("%s: invalid size", __func__));
+		memcpy(buf, &elf64_addr_mask, sizeof(elf64_addr_mask));
+	}
+	*sizep = sizeof(elf64_addr_mask);
+
+	return (true);
+}
+
+static struct regset regset_arm64_addr_mask = {
+	.note = NT_ARM_ADDR_MASK,
+	.size = sizeof(struct arm64_addr_mask),
+	.get = get_arm64_addr_mask,
+};
+ELF_REGSET(regset_arm64_addr_mask);
+
 void
 elf64_dump_thread(struct thread *td __unused, void *dst __unused,
     size_t *off __unused)
 {
-
 }
 
 bool

@@ -111,7 +111,7 @@ enum ieee80211_bss_changed {
 };
 
 /* 802.11 Figure 9-256 Suite selector format. [OUI(3), SUITE TYPE(1)] */
-#define	WLAN_CIPHER_SUITE_OUI(_oui, _x)	((_oui) << 8 | (_x) & 0xff)
+#define	WLAN_CIPHER_SUITE_OUI(_oui, _x)	(((_oui) << 8) | ((_x) & 0xff))
 
 /* 802.11 Table 9-131 Cipher suite selectors. */
 /* 802.1x suite B			11 */
@@ -509,8 +509,8 @@ struct ieee80211_rx_status {
 	uint8_t				ampdu_reference;
 	uint8_t				band;
 	uint8_t				chains;
-	uint8_t				chain_signal[4];
-	uint8_t				signal;
+	int8_t				chain_signal[IEEE80211_MAX_CHAINS];
+	int8_t				signal;
 	uint8_t				enc_flags;
 	uint8_t				he_dcm;
 	uint8_t				he_gi;
@@ -670,7 +670,7 @@ struct ieee80211_tx_info {
 			uint8_t				antenna;
 			uint16_t			tx_time;
 			bool				is_valid_ack_signal;
-			void				*status_driver_data[2];		/* XXX TODO */
+			void				*status_driver_data[16 / sizeof(void *)];		/* XXX TODO */
 		} status;
 #define	IEEE80211_TX_INFO_DRIVER_DATA_SIZE	(5 * sizeof(void *))			/* XXX TODO 5? */
 		void					*driver_data[IEEE80211_TX_INFO_DRIVER_DATA_SIZE / sizeof(void *)];
@@ -900,8 +900,8 @@ struct sk_buff *linuxkpi_ieee80211_pspoll_get(struct ieee80211_hw *,
     struct ieee80211_vif *);
 struct sk_buff *linuxkpi_ieee80211_nullfunc_get(struct ieee80211_hw *,
     struct ieee80211_vif *, bool);
-void linuxkpi_ieee80211_txq_get_depth(struct ieee80211_txq *, uint64_t *,
-    uint64_t *);
+void linuxkpi_ieee80211_txq_get_depth(struct ieee80211_txq *, unsigned long *,
+    unsigned long *);
 struct wireless_dev *linuxkpi_ieee80211_vif_to_wdev(struct ieee80211_vif *);
 void linuxkpi_ieee80211_connection_loss(struct ieee80211_vif *);
 void linuxkpi_ieee80211_beacon_loss(struct ieee80211_vif *);
@@ -1315,6 +1315,19 @@ ieee80211_get_tid(struct ieee80211_hdr *hdr)
 	return (linuxkpi_ieee80211_get_tid(hdr));
 }
 
+static __inline struct sk_buff *
+ieee80211_beacon_get_tim(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+    uint16_t *tim_offset, uint16_t *tim_len)
+{
+
+	if (tim_offset != NULL)
+		*tim_offset = 0;
+	if (tim_len != NULL)
+		*tim_len = 0;
+	TODO();
+	return (NULL);
+}
+
 static __inline void
 ieee80211_iterate_active_interfaces_atomic(struct ieee80211_hw *hw,
     enum ieee80211_iface_iter flags,
@@ -1672,11 +1685,10 @@ ieee80211_send_eosp_nullfunc(struct ieee80211_sta *sta, uint8_t tid)
 }
 
 static __inline uint16_t
-ieee80211_sn_sub(uint16_t sn, uint16_t n)
+ieee80211_sn_sub(uint16_t sa, uint16_t sb)
 {
-	TODO();
 
-	return (0);
+	return ((sa - sb) & IEEE80211_SEQ_SEQ_MASK);
 }
 
 static __inline void
@@ -1931,7 +1943,8 @@ ieee80211_tx_info_clear_status(struct ieee80211_tx_info *info)
 }
 
 static __inline void
-ieee80211_txq_get_depth(struct ieee80211_txq *txq, uint64_t *frame_cnt, uint64_t *byte_cnt)
+ieee80211_txq_get_depth(struct ieee80211_txq *txq, unsigned long *frame_cnt,
+    unsigned long *byte_cnt)
 {
 
 	if (frame_cnt == NULL && byte_cnt == NULL)

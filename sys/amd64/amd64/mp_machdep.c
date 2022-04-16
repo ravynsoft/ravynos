@@ -99,10 +99,10 @@ __FBSDID("$FreeBSD$");
 #define	AP_BOOTPT_SZ		(PAGE_SIZE * 4)
 
 /* Temporary variables for init_secondary()  */
-char *doublefault_stack;
-char *mce_stack;
-char *nmi_stack;
-char *dbg_stack;
+static char *doublefault_stack;
+static char *mce_stack;
+static char *nmi_stack;
+static char *dbg_stack;
 void *bootpcpu;
 
 extern u_int mptramp_la57;
@@ -170,7 +170,7 @@ cpu_mp_start(void)
 	mptramp_pagetables = kernel_pmap->pm_cr3;
 
 	/* Start each Application Processor */
-	init_ops.start_all_aps();
+	start_all_aps();
 
 	set_interrupt_apic_ids();
 
@@ -319,7 +319,7 @@ mp_realloc_pcpu(int cpuid, int domain)
  * start each AP in our list
  */
 int
-native_start_all_aps(void)
+start_all_aps(void)
 {
 	vm_page_t m_boottramp, m_pml4, m_pdp, m_pd[4];
 	pml5_entry_t old_pml45;
@@ -802,7 +802,8 @@ invltlb_invpcid_pti_handler(pmap_t smp_tlb_pmap)
 		invpcid(&d, INVPCID_CTXGLOB);
 	} else {
 		invpcid(&d, INVPCID_CTX);
-		if (smp_tlb_pmap == PCPU_GET(curpmap))
+		if (smp_tlb_pmap == PCPU_GET(curpmap) &&
+		    smp_tlb_pmap->pm_ucr3 != PMAP_NO_CR3)
 			PCPU_SET(ucr3_load_mask, ~CR3_PCID_SAVE);
 	}
 }

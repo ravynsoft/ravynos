@@ -134,7 +134,7 @@ int
 cpu_fetch_syscall_args(struct thread *td)
 {
 	struct proc *p;
-	register_t *ap, *dst_ap;
+	syscallarg_t *ap, *dst_ap;
 	struct syscall_args *sa;
 
 	p = td->td_proc;
@@ -143,6 +143,7 @@ cpu_fetch_syscall_args(struct thread *td)
 	dst_ap = &sa->args[0];
 
 	sa->code = td->td_frame->tf_x[8];
+	sa->original_code = sa->code;
 
 	if (__predict_false(sa->code == SYS_syscall || sa->code == SYS___syscall)) {
 		sa->code = *ap++;
@@ -158,7 +159,7 @@ cpu_fetch_syscall_args(struct thread *td)
 	KASSERT(sa->callp->sy_narg <= nitems(sa->args),
 	    ("Syscall %d takes too many arguments", sa->code));
 
-	memcpy(dst_ap, ap, (MAXARGS - 1) * sizeof(register_t));
+	memcpy(dst_ap, ap, (nitems(sa->args) - 1) * sizeof(*dst_ap));
 
 	td->td_retval[0] = 0;
 	td->td_retval[1] = 0;
@@ -317,8 +318,16 @@ data_abort(struct thread *td, struct trapframe *frame, uint64_t esr,
 		ftype = VM_PROT_EXECUTE;
 		break;
 	default:
-		ftype = (esr & ISS_DATA_WnR) == 0 ? VM_PROT_READ :
-		    VM_PROT_WRITE;
+		/*
+		 * If the exception was because of a read or cache operation
+		 * pass a read fault type into the vm code. Cache operations
+		 * need read permission but will set the WnR flag when the
+		 * memory is unmapped.
+		 */
+		if ((esr & ISS_DATA_WnR) == 0 || (esr & ISS_DATA_CM) != 0)
+			ftype = VM_PROT_READ;
+		else
+			ftype = VM_PROT_WRITE;
 		break;
 	}
 
@@ -352,7 +361,8 @@ bad_far:
 					return;
 			}
 #endif
-			panic("vm_fault failed: %lx", frame->tf_elr);
+			panic("vm_fault failed: %lx error %d",
+			    frame->tf_elr, error);
 		}
 	}
 
@@ -481,9 +491,17 @@ do_el1h_sync(struct thread *td, struct trapframe *frame)
 		panic("No debugger in kernel.");
 #endif
 		break;
+	case EXCP_FPAC:
+		/* We can see this if the authentication on PAC fails */
+		print_registers(frame);
+		printf(" far: %16lx\n", READ_SPECIALREG(far_el1));
+		panic("FPAC kernel exception");
+		break;
 	case EXCP_UNKNOWN:
 		if (undef_insn(1, frame))
 			break;
+		printf("Undefined instruction: %08x\n",
+		    *(uint32_t *)frame->tf_elr);
 		/* FALLTHROUGH */
 	default:
 		print_registers(frame);
@@ -571,6 +589,11 @@ do_el0_sync(struct thread *td, struct trapframe *frame)
 			    exception);
 		userret(td, frame);
 		break;
+	case EXCP_FPAC:
+		call_trapsignal(td, SIGILL, ILL_ILLOPN, (void *)frame->tf_elr,
+		    exception);
+		userret(td, frame);
+		break;
 	case EXCP_SP_ALIGN:
 		call_trapsignal(td, SIGBUS, BUS_ADRALN, (void *)frame->tf_sp,
 		    exception);
@@ -583,6 +606,9 @@ do_el0_sync(struct thread *td, struct trapframe *frame)
 		break;
 	case EXCP_BRKPT_EL0:
 	case EXCP_BRK:
+#ifdef COMPAT_FREEBSD32
+	case EXCP_BRKPT_32:
+#endif /* COMPAT_FREEBSD32 */
 		call_trapsignal(td, SIGTRAP, TRAP_BRKPT, (void *)frame->tf_elr,
 		    exception);
 		userret(td, frame);

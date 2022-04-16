@@ -57,7 +57,6 @@ __FBSDID("$FreeBSD$");
 #include <machine/stdarg.h>
 
 #include <machine/xen/synch_bitops.h>
-#include <machine/xen/xen-os.h>
 
 #include <xen/xen-os.h>
 #include <xen/hvm.h>
@@ -114,8 +113,6 @@ DPCPU_DEFINE_STATIC(struct xen_intr_pcpu_data, xen_intr_pcpu) = {
 
 DPCPU_DECLARE(struct vcpu_info *, vcpu_info);
 
-#define	XEN_EEXIST		17 /* Xen "already exists" error */
-#define	XEN_ALLOCATE_VECTOR	0 /* Allocate a vector for this event channel */
 #define	XEN_INVALID_EVTCHN	0 /* Invalid event channel */
 
 #define	is_valid_evtchn(x)	((x) != XEN_INVALID_EVTCHN)
@@ -126,12 +123,9 @@ struct xenisrc {
 	int		xi_cpu;		/* VCPU for delivery. */
 	int		xi_vector;	/* Global isrc vector number. */
 	evtchn_port_t	xi_port;
-	int		xi_pirq;
 	int		xi_virq;
 	void		*xi_cookie;
 	u_int		xi_close:1;	/* close on unbind? */
-	u_int		xi_activehi:1;
-	u_int		xi_edgetrigger:1;
 	u_int		xi_masked:1;
 	volatile u_int	xi_refcount;
 };
@@ -148,14 +142,6 @@ static int	xen_intr_source_pending(struct intsrc *isrc);
 static int	xen_intr_config_intr(struct intsrc *isrc,
 		     enum intr_trigger trig, enum intr_polarity pol);
 static int	xen_intr_assign_cpu(struct intsrc *isrc, u_int apic_id);
-
-static void	xen_intr_pirq_enable_source(struct intsrc *isrc);
-static void	xen_intr_pirq_disable_source(struct intsrc *isrc, int eoi);
-static void	xen_intr_pirq_eoi_source(struct intsrc *isrc);
-static void	xen_intr_pirq_enable_intr(struct intsrc *isrc);
-static void	xen_intr_pirq_disable_intr(struct intsrc *isrc);
-static int	xen_intr_pirq_config_intr(struct intsrc *isrc,
-		     enum intr_trigger trig, enum intr_polarity pol);
 
 /**
  * PIC interface for all event channel port types except physical IRQs.
@@ -174,32 +160,43 @@ struct pic xen_intr_pic = {
 	.pic_assign_cpu     = xen_intr_assign_cpu
 };
 
-/**
- * PIC interface for all event channel representing
- * physical interrupt sources.
- */
-struct pic xen_intr_pirq_pic = {
-#ifdef __amd64__
-	.pic_register_sources = xenpv_register_pirqs,
-#endif
-	.pic_enable_source  = xen_intr_pirq_enable_source,
-	.pic_disable_source = xen_intr_pirq_disable_source,
-	.pic_eoi_source     = xen_intr_pirq_eoi_source,
-	.pic_enable_intr    = xen_intr_pirq_enable_intr,
-	.pic_disable_intr   = xen_intr_pirq_disable_intr,
-	.pic_vector         = xen_intr_vector,
-	.pic_source_pending = xen_intr_source_pending,
-	.pic_config_intr    = xen_intr_pirq_config_intr,
-	.pic_assign_cpu     = xen_intr_assign_cpu
-};
-
 static struct mtx	 xen_intr_isrc_lock;
 static u_int		 xen_intr_auto_vector_count;
 static struct xenisrc	*xen_intr_port_to_isrc[NR_EVENT_CHANNELS];
-static u_long		*xen_intr_pirq_eoi_map;
-static boolean_t	 xen_intr_pirq_eoi_map_enabled;
 
 /*------------------------- Private Functions --------------------------------*/
+
+/**
+ * Retrieve a handle for a Xen interrupt source.
+ *
+ * \param isrc  A valid Xen interrupt source structure.
+ *
+ * \returns  A handle suitable for use with xen_intr_isrc_from_handle()
+ *           to retrieve the original Xen interrupt source structure.
+ */
+
+static inline xen_intr_handle_t
+xen_intr_handle_from_isrc(struct xenisrc *isrc)
+{
+	return (isrc);
+}
+
+/**
+ * Lookup a Xen interrupt source object given an interrupt binding handle.
+ *
+ * \param handle  A handle initialized by a previous call to
+ *                xen_intr_bind_isrc().
+ *
+ * \returns  A pointer to the Xen interrupt source object associated
+ *           with the given interrupt handle.  NULL if no association
+ *           currently exists.
+ */
+static inline struct xenisrc *
+xen_intr_isrc_from_handle(xen_intr_handle_t handle)
+{
+	return ((struct xenisrc *)handle);
+}
+
 /**
  * Disable signal delivery for an event channel port on the
  * specified CPU.
@@ -305,33 +302,31 @@ xen_intr_find_unused_isrc(enum evtchn_type type)
  *          object or NULL.
  */
 static struct xenisrc *
-xen_intr_alloc_isrc(enum evtchn_type type, int vector)
+xen_intr_alloc_isrc(enum evtchn_type type)
 {
 	static int warned;
 	struct xenisrc *isrc;
+	unsigned int vector;
 
 	KASSERT(mtx_owned(&xen_intr_isrc_lock), ("Evtchn alloc lock not held"));
 
 	if (xen_intr_auto_vector_count > NR_EVENT_CHANNELS) {
 		if (!warned) {
 			warned = 1;
-			printf("xen_intr_alloc: Event channels exhausted.\n");
+			printf("%s: Event channels exhausted.\n", __func__);
 		}
 		return (NULL);
 	}
 
-	if (type != EVTCHN_TYPE_PIRQ) {
-		vector = first_evtchn_irq + xen_intr_auto_vector_count;
-		xen_intr_auto_vector_count++;
-	}
+	vector = first_evtchn_irq + xen_intr_auto_vector_count;
+	xen_intr_auto_vector_count++;
 
 	KASSERT((intr_lookup_source(vector) == NULL),
 	    ("Trying to use an already allocated vector"));
 
 	mtx_unlock(&xen_intr_isrc_lock);
 	isrc = malloc(sizeof(*isrc), M_XENINTR, M_WAITOK | M_ZERO);
-	isrc->xi_intsrc.is_pic =
-	    (type == EVTCHN_TYPE_PIRQ) ? &xen_intr_pirq_pic : &xen_intr_pic;
+	isrc->xi_intsrc.is_pic = &xen_intr_pic;
 	isrc->xi_vector = vector;
 	isrc->xi_type = type;
 	intr_register_source(&isrc->xi_intsrc);
@@ -408,15 +403,14 @@ xen_intr_bind_isrc(struct xenisrc **isrcp, evtchn_port_t local_port,
 
 	*isrcp = NULL;
 	if (port_handlep == NULL) {
-		printf("%s: xen_intr_bind_isrc: Bad event handle\n",
-		    intr_owner);
+		printf("%s: %s: Bad event handle\n", intr_owner, __func__);
 		return (EINVAL);
 	}
 
 	mtx_lock(&xen_intr_isrc_lock);
 	isrc = xen_intr_find_unused_isrc(type);
 	if (isrc == NULL) {
-		isrc = xen_intr_alloc_isrc(type, XEN_ALLOCATE_VECTOR);
+		isrc = xen_intr_alloc_isrc(type);
 		if (isrc == NULL) {
 			mtx_unlock(&xen_intr_isrc_lock);
 			return (ENOSPC);
@@ -427,8 +421,8 @@ xen_intr_bind_isrc(struct xenisrc **isrcp, evtchn_port_t local_port,
 	refcount_init(&isrc->xi_refcount, 1);
 	mtx_unlock(&xen_intr_isrc_lock);
 
-	/* Assign the opaque handler (the event channel port) */
-	*port_handlep = &isrc->xi_vector;
+	/* Assign the opaque handler */
+	*port_handlep = xen_intr_handle_from_isrc(isrc);
 
 #ifdef SMP
 	if (type == EVTCHN_TYPE_PORT) {
@@ -462,36 +456,10 @@ xen_intr_bind_isrc(struct xenisrc **isrcp, evtchn_port_t local_port,
 }
 
 /**
- * Lookup a Xen interrupt source object given an interrupt binding handle.
- * 
- * \param handle  A handle initialized by a previous call to
- *                xen_intr_bind_isrc().
- *
- * \returns  A pointer to the Xen interrupt source object associated
- *           with the given interrupt handle.  NULL if no association
- *           currently exists.
- */
-static struct xenisrc *
-xen_intr_isrc(xen_intr_handle_t handle)
-{
-	int vector;
-
-	if (handle == NULL)
-		return (NULL);
-
-	vector = *(int *)handle;
-	KASSERT(vector >= first_evtchn_irq &&
-	    vector < (first_evtchn_irq + xen_intr_auto_vector_count),
-	    ("Xen interrupt vector is out of range"));
-
-	return ((struct xenisrc *)intr_lookup_source(vector));
-}
-
-/**
  * Determine the event channel ports at the given section of the
  * event port bitmap which have pending events for the given cpu.
  * 
- * \param pcpu  The Xen interrupt pcpu data for the cpu being querried.
+ * \param pcpu  The Xen interrupt pcpu data for the cpu being queried.
  * \param sh    The Xen shared info area.
  * \param idx   The index of the section of the event channel bitmap to
  *              inspect.
@@ -521,7 +489,7 @@ xen_intr_active_ports(struct xen_intr_pcpu_data *pcpu, shared_info_t *sh,
 void
 xen_intr_handle_upcall(struct trapframe *trap_frame)
 {
-	u_int l1i, l2i, port, cpu;
+	u_int l1i, l2i, port, cpu __diagused;
 	u_long masked_l1, masked_l2;
 	struct xenisrc *isrc;
 	shared_info_t *s;
@@ -540,7 +508,7 @@ xen_intr_handle_upcall(struct trapframe *trap_frame)
 	s   = HYPERVISOR_shared_info;
 	v   = DPCPU_GET(vcpu_info);
 
-	if (xen_hvm_domain() && !xen_vector_callback_enabled) {
+	if (!xen_has_percpu_evtchn()) {
 		KASSERT((cpu == 0), ("Fired PCI event callback on wrong CPU"));
 	}
 
@@ -632,8 +600,7 @@ xen_intr_init(void *dummy __unused)
 {
 	shared_info_t *s = HYPERVISOR_shared_info;
 	struct xen_intr_pcpu_data *pcpu;
-	struct physdev_pirq_eoi_gmfn eoi_gmfn;
-	int i, rc;
+	int i;
 
 	if (!xen_domain())
 		return (0);
@@ -653,18 +620,7 @@ xen_intr_init(void *dummy __unused)
 	for (i = 0; i < nitems(s->evtchn_mask); i++)
 		atomic_store_rel_long(&s->evtchn_mask[i], ~0);
 
-	/* Try to register PIRQ EOI map */
-	xen_intr_pirq_eoi_map = malloc(PAGE_SIZE, M_XENINTR, M_WAITOK | M_ZERO);
-	eoi_gmfn.gmfn = atop(vtophys(xen_intr_pirq_eoi_map));
-	rc = HYPERVISOR_physdev_op(PHYSDEVOP_pirq_eoi_gmfn_v2, &eoi_gmfn);
-	if (rc != 0 && bootverbose)
-		printf("Xen interrupts: unable to register PIRQ EOI map\n");
-	else
-		xen_intr_pirq_eoi_map_enabled = true;
-
 	intr_register_pic(&xen_intr_pic);
-	if (xen_pv_domain() && xen_initial_domain())
-		intr_register_pic(&xen_intr_pirq_pic);
 
 	if (bootverbose)
 		printf("Xen interrupt system initialized\n");
@@ -901,7 +857,7 @@ xen_intr_assign_cpu(struct intsrc *base_isrc, u_int apic_id)
 	u_int to_cpu, vcpu_id;
 	int error, masked;
 
-	if (xen_vector_callback_enabled == 0)
+	if (!xen_has_percpu_evtchn())
 		return (EOPNOTSUPP);
 
 	to_cpu = apic_cpuid(apic_id);
@@ -1018,184 +974,6 @@ xen_intr_enable_intr(struct intsrc *base_isrc)
 	struct xenisrc *isrc = (struct xenisrc *)base_isrc;
 
 	evtchn_unmask_port(isrc->xi_port);
-}
-
-/*------------------ Physical Interrupt Source PIC Functions -----------------*/
-/*
- * Mask a level triggered interrupt source.
- *
- * \param isrc  The interrupt source to mask (if necessary).
- * \param eoi   If non-zero, perform any necessary end-of-interrupt
- *              acknowledgements.
- */
-static void
-xen_intr_pirq_disable_source(struct intsrc *base_isrc, int eoi)
-{
-	struct xenisrc *isrc;
-
-	isrc = (struct xenisrc *)base_isrc;
-
-	if (isrc->xi_edgetrigger == 0)
-		evtchn_mask_port(isrc->xi_port);
-	if (eoi == PIC_EOI)
-		xen_intr_pirq_eoi_source(base_isrc);
-}
-
-/*
- * Unmask a level triggered interrupt source.
- *
- * \param isrc  The interrupt source to unmask (if necessary).
- */
-static void
-xen_intr_pirq_enable_source(struct intsrc *base_isrc)
-{
-	struct xenisrc *isrc;
-
-	isrc = (struct xenisrc *)base_isrc;
-
-	if (isrc->xi_edgetrigger == 0)
-		evtchn_unmask_port(isrc->xi_port);
-}
-
-/*
- * Perform any necessary end-of-interrupt acknowledgements.
- *
- * \param isrc  The interrupt source to EOI.
- */
-static void
-xen_intr_pirq_eoi_source(struct intsrc *base_isrc)
-{
-	struct xenisrc *isrc;
-	int error;
-
-	isrc = (struct xenisrc *)base_isrc;
-
-	if (xen_test_bit(isrc->xi_pirq, xen_intr_pirq_eoi_map)) {
-		struct physdev_eoi eoi = { .irq = isrc->xi_pirq };
-
-		error = HYPERVISOR_physdev_op(PHYSDEVOP_eoi, &eoi);
-		if (error != 0)
-			panic("Unable to EOI PIRQ#%d: %d\n",
-			    isrc->xi_pirq, error);
-	}
-}
-
-/*
- * Enable and unmask the interrupt source.
- *
- * \param isrc  The interrupt source to enable.
- */
-static void
-xen_intr_pirq_enable_intr(struct intsrc *base_isrc)
-{
-	struct xenisrc *isrc;
-	struct evtchn_bind_pirq bind_pirq;
-	struct physdev_irq_status_query irq_status;
-	int error;
-
-	isrc = (struct xenisrc *)base_isrc;
-
-	if (!xen_intr_pirq_eoi_map_enabled) {
-		irq_status.irq = isrc->xi_pirq;
-		error = HYPERVISOR_physdev_op(PHYSDEVOP_irq_status_query,
-		    &irq_status);
-		if (error)
-			panic("unable to get status of IRQ#%d", isrc->xi_pirq);
-
-		if (irq_status.flags & XENIRQSTAT_needs_eoi) {
-			/*
-			 * Since the dynamic PIRQ EOI map is not available
-			 * mark the PIRQ as needing EOI unconditionally.
-			 */
-			xen_set_bit(isrc->xi_pirq, xen_intr_pirq_eoi_map);
-		}
-	}
-
-	bind_pirq.pirq = isrc->xi_pirq;
-	bind_pirq.flags = isrc->xi_edgetrigger ? 0 : BIND_PIRQ__WILL_SHARE;
-	error = HYPERVISOR_event_channel_op(EVTCHNOP_bind_pirq, &bind_pirq);
-	if (error)
-		panic("unable to bind IRQ#%d", isrc->xi_pirq);
-
-	isrc->xi_port = bind_pirq.port;
-
-	mtx_lock(&xen_intr_isrc_lock);
-	KASSERT((xen_intr_port_to_isrc[bind_pirq.port] == NULL),
-	    ("trying to override an already setup event channel port"));
-	xen_intr_port_to_isrc[bind_pirq.port] = isrc;
-	mtx_unlock(&xen_intr_isrc_lock);
-
-	evtchn_unmask_port(isrc->xi_port);
-}
-
-/*
- * Disable an interrupt source.
- *
- * \param isrc  The interrupt source to disable.
- */
-static void
-xen_intr_pirq_disable_intr(struct intsrc *base_isrc)
-{
-	struct xenisrc *isrc;
-	struct evtchn_close close;
-	int error;
-
-	isrc = (struct xenisrc *)base_isrc;
-
-	evtchn_mask_port(isrc->xi_port);
-
-	close.port = isrc->xi_port;
-	error = HYPERVISOR_event_channel_op(EVTCHNOP_close, &close);
-	if (error)
-		panic("unable to close event channel %d IRQ#%d",
-		    isrc->xi_port, isrc->xi_pirq);
-
-	mtx_lock(&xen_intr_isrc_lock);
-	xen_intr_port_to_isrc[isrc->xi_port] = NULL;
-	mtx_unlock(&xen_intr_isrc_lock);
-
-	isrc->xi_port = 0;
-}
-
-/**
- * Perform configuration of an interrupt source.
- *
- * \param isrc  The interrupt source to configure.
- * \param trig  Edge or level.
- * \param pol   Active high or low.
- *
- * \returns  0 if no events are pending, otherwise non-zero.
- */
-static int
-xen_intr_pirq_config_intr(struct intsrc *base_isrc, enum intr_trigger trig,
-    enum intr_polarity pol)
-{
-	struct xenisrc *isrc = (struct xenisrc *)base_isrc;
-	struct physdev_setup_gsi setup_gsi;
-	int error;
-
-	KASSERT(!(trig == INTR_TRIGGER_CONFORM || pol == INTR_POLARITY_CONFORM),
-	    ("%s: Conforming trigger or polarity\n", __func__));
-
-	setup_gsi.gsi = isrc->xi_pirq;
-	setup_gsi.triggering = trig == INTR_TRIGGER_EDGE ? 0 : 1;
-	setup_gsi.polarity = pol == INTR_POLARITY_HIGH ? 0 : 1;
-
-	error = HYPERVISOR_physdev_op(PHYSDEVOP_setup_gsi, &setup_gsi);
-	if (error == -XEN_EEXIST) {
-		if ((isrc->xi_edgetrigger && (trig != INTR_TRIGGER_EDGE)) ||
-		    (isrc->xi_activehi && (pol != INTR_POLARITY_HIGH)))
-			panic("unable to reconfigure interrupt IRQ#%d",
-			    isrc->xi_pirq);
-		error = 0;
-	}
-	if (error)
-		panic("unable to configure IRQ#%d\n", isrc->xi_pirq);
-
-	isrc->xi_activehi = pol == INTR_POLARITY_HIGH ? 1 : 0;
-	isrc->xi_edgetrigger = trig == INTR_TRIGGER_EDGE ? 1 : 0;
-
-	return (0);
 }
 
 /*--------------------------- Public Functions -------------------------------*/
@@ -1413,108 +1191,13 @@ xen_intr_alloc_and_bind_ipi(u_int cpu, driver_filter_t filter,
 }
 
 int
-xen_register_pirq(int vector, enum intr_trigger trig, enum intr_polarity pol)
-{
-	struct physdev_map_pirq map_pirq;
-	struct xenisrc *isrc;
-	int error;
-
-	if (vector == 0)
-		return (EINVAL);
-
-	if (bootverbose)
-		printf("xen: register IRQ#%d\n", vector);
-
-	map_pirq.domid = DOMID_SELF;
-	map_pirq.type = MAP_PIRQ_TYPE_GSI;
-	map_pirq.index = vector;
-	map_pirq.pirq = vector;
-
-	error = HYPERVISOR_physdev_op(PHYSDEVOP_map_pirq, &map_pirq);
-	if (error) {
-		printf("xen: unable to map IRQ#%d\n", vector);
-		return (error);
-	}
-
-	mtx_lock(&xen_intr_isrc_lock);
-	isrc = xen_intr_alloc_isrc(EVTCHN_TYPE_PIRQ, vector);
-	mtx_unlock(&xen_intr_isrc_lock);
-	KASSERT((isrc != NULL), ("xen: unable to allocate isrc for interrupt"));
-	isrc->xi_pirq = vector;
-	isrc->xi_activehi = pol == INTR_POLARITY_HIGH ? 1 : 0;
-	isrc->xi_edgetrigger = trig == INTR_TRIGGER_EDGE ? 1 : 0;
-
-	return (0);
-}
-
-int
-xen_register_msi(device_t dev, int vector, int count)
-{
-	struct physdev_map_pirq msi_irq;
-	struct xenisrc *isrc;
-	int ret;
-
-	memset(&msi_irq, 0, sizeof(msi_irq));
-	msi_irq.domid = DOMID_SELF;
-	msi_irq.type = count == 1 ?
-	    MAP_PIRQ_TYPE_MSI_SEG : MAP_PIRQ_TYPE_MULTI_MSI;
-	msi_irq.index = -1;
-	msi_irq.pirq = -1;
-	msi_irq.bus = pci_get_bus(dev) | (pci_get_domain(dev) << 16);
-	msi_irq.devfn = (pci_get_slot(dev) << 3) | pci_get_function(dev);
-	msi_irq.entry_nr = count;
-
-	ret = HYPERVISOR_physdev_op(PHYSDEVOP_map_pirq, &msi_irq);
-	if (ret != 0)
-		return (ret);
-	if (count != msi_irq.entry_nr) {
-		panic("unable to setup all requested MSI vectors "
-		    "(expected %d got %d)", count, msi_irq.entry_nr);
-	}
-
-	mtx_lock(&xen_intr_isrc_lock);
-	for (int i = 0; i < count; i++) {
-		isrc = xen_intr_alloc_isrc(EVTCHN_TYPE_PIRQ, vector + i);
-		KASSERT(isrc != NULL,
-		    ("xen: unable to allocate isrc for interrupt"));
-		isrc->xi_pirq = msi_irq.pirq + i;
-		/* MSI interrupts are always edge triggered */
-		isrc->xi_edgetrigger = 1;
-	}
-	mtx_unlock(&xen_intr_isrc_lock);
-
-	return (0);
-}
-
-int
-xen_release_msi(int vector)
-{
-	struct physdev_unmap_pirq unmap;
-	struct xenisrc *isrc;
-	int ret;
-
-	isrc = (struct xenisrc *)intr_lookup_source(vector);
-	if (isrc == NULL)
-		return (ENXIO);
-
-	unmap.pirq = isrc->xi_pirq;
-	ret = HYPERVISOR_physdev_op(PHYSDEVOP_unmap_pirq, &unmap);
-	if (ret != 0)
-		return (ret);
-
-	xen_intr_release_isrc(isrc);
-
-	return (0);
-}
-
-int
 xen_intr_describe(xen_intr_handle_t port_handle, const char *fmt, ...)
 {
 	char descr[MAXCOMLEN + 1];
 	struct xenisrc *isrc;
 	va_list ap;
 
-	isrc = xen_intr_isrc(port_handle);
+	isrc = xen_intr_isrc_from_handle(port_handle);
 	if (isrc == NULL)
 		return (EINVAL);
 
@@ -1530,9 +1213,9 @@ xen_intr_unbind(xen_intr_handle_t *port_handlep)
 	struct xenisrc *isrc;
 
 	KASSERT(port_handlep != NULL,
-	    ("NULL xen_intr_handle_t passed to xen_intr_unbind"));
+	    ("NULL xen_intr_handle_t passed to %s", __func__));
 
-	isrc = xen_intr_isrc(*port_handlep);
+	isrc = xen_intr_isrc_from_handle(*port_handlep);
 	*port_handlep = NULL;
 	if (isrc == NULL)
 		return;
@@ -1554,7 +1237,7 @@ xen_intr_signal(xen_intr_handle_t handle)
 {
 	struct xenisrc *isrc;
 
-	isrc = xen_intr_isrc(handle);
+	isrc = xen_intr_isrc_from_handle(handle);
 	if (isrc != NULL) {
 		KASSERT(isrc->xi_type == EVTCHN_TYPE_PORT ||
 			isrc->xi_type == EVTCHN_TYPE_IPI,
@@ -1569,7 +1252,7 @@ xen_intr_port(xen_intr_handle_t handle)
 {
 	struct xenisrc *isrc;
 
-	isrc = xen_intr_isrc(handle);
+	isrc = xen_intr_isrc_from_handle(handle);
 	if (isrc == NULL)
 		return (0);
 
@@ -1584,17 +1267,15 @@ xen_intr_add_handler(const char *name, driver_filter_t filter,
 	struct xenisrc *isrc;
 	int error;
 
-	isrc = xen_intr_isrc(handle);
+	isrc = xen_intr_isrc_from_handle(handle);
 	if (isrc == NULL || isrc->xi_cookie != NULL)
 		return (EINVAL);
 
 	error = intr_add_handler(name, isrc->xi_vector,filter, handler, arg,
 	    flags|INTR_EXCL, &isrc->xi_cookie, 0);
-	if (error != 0) {
-		printf(
-		    "%s: xen_intr_add_handler: intr_add_handler failed: %d\n",
-		    name, error);
-	}
+	if (error != 0)
+		printf("%s: %s: add handler failed: %d\n", name, __func__,
+		    error);
 
 	return (error);
 }
@@ -1618,8 +1299,8 @@ xen_intr_get_evtchn_from_port(evtchn_port_t port, xen_intr_handle_t *handlep)
 	refcount_acquire(&xen_intr_port_to_isrc[port]->xi_refcount);
 	mtx_unlock(&xen_intr_isrc_lock);
 
-	/* Assign the opaque handler (the event channel port) */
-	*handlep = &xen_intr_port_to_isrc[port]->xi_vector;
+	/* Assign the opaque handler */
+	*handlep = xen_intr_handle_from_isrc(xen_intr_port_to_isrc[port]);
 
 	return (0);
 }
@@ -1630,7 +1311,6 @@ xen_intr_print_type(enum evtchn_type type)
 {
 	static const char *evtchn_type_to_string[EVTCHN_TYPE_COUNT] = {
 		[EVTCHN_TYPE_UNBOUND]	= "UNBOUND",
-		[EVTCHN_TYPE_PIRQ]	= "PIRQ",
 		[EVTCHN_TYPE_VIRQ]	= "VIRQ",
 		[EVTCHN_TYPE_IPI]	= "IPI",
 		[EVTCHN_TYPE_PORT]	= "PORT",
@@ -1651,12 +1331,6 @@ xen_intr_dump_port(struct xenisrc *isrc)
 
 	db_printf("Port %d Type: %s\n",
 	    isrc->xi_port, xen_intr_print_type(isrc->xi_type));
-	if (isrc->xi_type == EVTCHN_TYPE_PIRQ) {
-		db_printf("\tPirq: %d ActiveHi: %d EdgeTrigger: %d "
-		    "NeedsEOI: %d\n",
-		    isrc->xi_pirq, isrc->xi_activehi, isrc->xi_edgetrigger,
-		    !!xen_test_bit(isrc->xi_pirq, xen_intr_pirq_eoi_map));
-	}
 	if (isrc->xi_type == EVTCHN_TYPE_VIRQ)
 		db_printf("\tVirq: %d\n", isrc->xi_virq);
 

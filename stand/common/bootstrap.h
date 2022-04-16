@@ -124,6 +124,14 @@ void cons_probe(void);
 bool		cons_update_mode(bool);
 void		autoload_font(bool);
 
+extern int module_verbose;
+enum {
+	MODULE_VERBOSE_SILENT,		/* say nothing */
+	MODULE_VERBOSE_SIZE,		/* print name and size */
+	MODULE_VERBOSE_TWIDDLE,		/* show progress */
+	MODULE_VERBOSE_FULL,		/* all we have */
+};
+
 /*
  * Plug-and-play enumerator/configurator interface.
  */
@@ -231,6 +239,9 @@ struct preloaded_file
 	struct preloaded_file	*f_next;	/* next file */
 #ifdef __amd64__
 	bool			f_kernphys_relocatable;
+#endif
+#if defined(__i386__)
+	bool			f_tg_kernel_support;
 #endif
 };
 

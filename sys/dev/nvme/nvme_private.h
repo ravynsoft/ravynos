@@ -97,6 +97,11 @@ MALLOC_DECLARE(M_NVME);
 #define NVME_MAX_AER_LOG_SIZE		(4096)
 
 /*
+ * Page size parameters
+ */
+#define NVME_BASE_SHIFT		12	/* Several parameters (MSP) are 2^(12+x) */
+
+/*
  * Define CACHE_LINE_SIZE here for older FreeBSD versions that do not define
  *  it.
  */
@@ -278,6 +283,10 @@ struct nvme_controller {
 
 	/** maximum i/o size in bytes */
 	uint32_t		max_xfer_size;
+
+	/** LO and HI capacity mask */
+	uint32_t		cap_lo;
+	uint32_t		cap_hi;
 
 	/** minimum page size supported by this controller in bytes */
 	uint32_t		min_page_size;

@@ -32,7 +32,10 @@ SUBDIRS = \
 
 if BUILD_LINUX
 SUBDIRS += \
+	getversion \
 	randfree_file \
+	read_dos_attributes \
 	user_ns_exec \
+	write_dos_attributes \
 	xattrtest
 endif

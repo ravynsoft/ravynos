@@ -36,13 +36,13 @@
 
 int
 geliboot_crypt(u_int algo, geli_op_t enc, u_char *data, size_t datasize,
-    const u_char *key, size_t keysize, u_char *iv, size_t ivlen)
+    const u_char *key, size_t keysize, u_char *iv)
 {
 	keyInstance aeskey;
 	cipherInstance cipher;
 	struct aes_xts_ctx xtsctx, *ctxp;
 	size_t xts_len;
-	int err, blks, i;
+	int err, blks;
 
 	switch (algo) {
 	case CRYPTO_AES_CBC:
@@ -81,20 +81,16 @@ geliboot_crypt(u_int algo, geli_op_t enc, u_char *data, size_t datasize,
 		ctxp = &xtsctx;
 
 		enc_xform_aes_xts.setkey(ctxp, key, xts_len / 8);
-		enc_xform_aes_xts.reinit(ctxp, iv, ivlen);
+		enc_xform_aes_xts.reinit(ctxp, iv, AES_XTS_IV_LEN);
 
 		switch (enc) {
 		case GELI_DECRYPT:
-			for (i = 0; i < datasize; i += AES_XTS_BLOCKSIZE) {
-				enc_xform_aes_xts.decrypt(ctxp, data + i,
-				    data + i);
-			}
+			enc_xform_aes_xts.decrypt_multi(ctxp, data, data,
+			    datasize);
 			break;
 		case GELI_ENCRYPT:
-			for (i = 0; i < datasize; i += AES_XTS_BLOCKSIZE) {
-				enc_xform_aes_xts.encrypt(ctxp, data + i,
-				    data + i);
-			}
+			enc_xform_aes_xts.encrypt_multi(ctxp, data, data,
+			    datasize);
 			break;
 		}
 		break;
@@ -110,11 +106,10 @@ static int
 g_eli_crypto_cipher(u_int algo, geli_op_t enc, u_char *data, size_t datasize,
     const u_char *key, size_t keysize)
 {
-	u_char iv[keysize];
+	u_char iv[G_ELI_IVKEYLEN];
 
 	explicit_bzero(iv, sizeof(iv));
-	return (geliboot_crypt(algo, enc, data, datasize, key, keysize, iv,
-	    sizeof(iv)));
+	return (geliboot_crypt(algo, enc, data, datasize, key, keysize, iv));
 }
 
 int

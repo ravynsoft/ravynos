@@ -320,9 +320,6 @@ ext2_access(struct vop_access_args *ap)
 	accmode_t accmode = ap->a_accmode;
 	int error;
 
-	if (vp->v_type == VBLK || vp->v_type == VCHR)
-		return (EOPNOTSUPP);
-
 	/*
 	 * Disallow write attempts on read-only file systems;
 	 * unless the file is a socket, fifo, or a block or
@@ -375,7 +372,7 @@ ext2_getattr(struct vop_getattr_args *ap)
 	vap->va_mtime.tv_nsec = E2DI_HAS_XTIME(ip) ? ip->i_mtimensec : 0;
 	vap->va_ctime.tv_sec = ip->i_ctime;
 	vap->va_ctime.tv_nsec = E2DI_HAS_XTIME(ip) ? ip->i_ctimensec : 0;
-	if E2DI_HAS_XTIME(ip) {
+	if (E2DI_HAS_XTIME(ip)) {
 		vap->va_birthtime.tv_sec = ip->i_birthtime;
 		vap->va_birthtime.tv_nsec = ip->i_birthnsec;
 	}
@@ -504,8 +501,10 @@ ext2_setattr(struct vop_setattr_args *ap)
 			ip->i_mtime = vap->va_mtime.tv_sec;
 			ip->i_mtimensec = vap->va_mtime.tv_nsec;
 		}
-		ip->i_birthtime = vap->va_birthtime.tv_sec;
-		ip->i_birthnsec = vap->va_birthtime.tv_nsec;
+		if (E2DI_HAS_XTIME(ip) && vap->va_birthtime.tv_sec != VNOVAL) {
+			ip->i_birthtime = vap->va_birthtime.tv_sec;
+			ip->i_birthnsec = vap->va_birthtime.tv_nsec;
+		}
 		error = ext2_update(vp, 0);
 		if (error)
 			return (error);
@@ -618,6 +617,18 @@ ext2_fsync(struct vop_fsync_args *ap)
 	return (ext2_update(ap->a_vp, ap->a_waitfor == MNT_WAIT));
 }
 
+static int
+ext2_check_mknod_limits(dev_t dev)
+{
+	unsigned maj = major(dev);
+	unsigned min = minor(dev);
+
+	if (maj > EXT2_MAJOR_MAX || min > EXT2_MINOR_MAX)
+		return (EINVAL);
+
+	return (0);
+}
+
 /*
  * Mknod vnode call
  */
@@ -631,20 +642,21 @@ ext2_mknod(struct vop_mknod_args *ap)
 	ino_t ino;
 	int error;
 
+	if (vap->va_rdev != VNOVAL) {
+		error = ext2_check_mknod_limits(vap->va_rdev);
+		if (error)
+			return (error);
+	}
+
 	error = ext2_makeinode(MAKEIMODE(vap->va_type, vap->va_mode),
 	    ap->a_dvp, vpp, ap->a_cnp);
 	if (error)
 		return (error);
 	ip = VTOI(*vpp);
 	ip->i_flag |= IN_ACCESS | IN_CHANGE | IN_UPDATE;
-	if (vap->va_rdev != VNOVAL) {
-		/*
-		 * Want to be able to use this to make badblock
-		 * inodes, so don't truncate the dev number.
-		 */
-		if (!(ip->i_flag & IN_E4EXTENTS))
-			ip->i_rdev = vap->va_rdev;
-	}
+	if (vap->va_rdev != VNOVAL)
+		ip->i_rdev = vap->va_rdev;
+
 	/*
 	 * Remove inode, then reload it through VFS_VGET so it is
 	 * checked to see if it is an alias of an existing entry in
@@ -894,7 +906,7 @@ abortit:
 	 * to namei, as the parent directory is unlocked by the
 	 * call to checkpath().
 	 */
-	error = VOP_ACCESS(fvp, VWRITE, tcnp->cn_cred, tcnp->cn_thread);
+	error = VOP_ACCESS(fvp, VWRITE, tcnp->cn_cred, curthread);
 	VOP_UNLOCK(fvp);
 	if (oldparent != dp->i_number)
 		newparent = dp->i_number;
@@ -907,7 +919,7 @@ abortit:
 		if (error)
 			goto out;
 		VREF(tdvp);
-		error = relookup(tdvp, &tvp, tcnp);
+		error = vfs_relookup(tdvp, &tvp, tcnp);
 		if (error)
 			goto out;
 		vrele(tdvp);
@@ -1019,7 +1031,7 @@ abortit:
 			if (xp->i_nlink > 2)
 				panic("ext2_rename: linked directory");
 			error = ext2_truncate(tvp, (off_t)0, IO_SYNC,
-			    tcnp->cn_cred, tcnp->cn_thread);
+			    tcnp->cn_cred, curthread);
 			xp->i_nlink = 0;
 		}
 		xp->i_flag |= IN_CHANGE;
@@ -1033,7 +1045,7 @@ abortit:
 	fcnp->cn_flags &= ~MODMASK;
 	fcnp->cn_flags |= LOCKPARENT | LOCKLEAF;
 	VREF(fdvp);
-	error = relookup(fdvp, &fvp, fcnp);
+	error = vfs_relookup(fdvp, &fvp, fcnp);
 	if (error == 0)
 		vrele(fdvp);
 	if (fvp != NULL) {
@@ -1412,7 +1424,7 @@ ext2_mkdir(struct vop_mkdir_args *ap)
 #ifdef UFS_ACL
 	if (dvp->v_mount->mnt_flag & MNT_ACLS) {
 		error = ext2_do_posix1e_acl_inheritance_dir(dvp, tvp, dmode,
-		    cnp->cn_cred, cnp->cn_thread);
+		    cnp->cn_cred, curthread);
 		if (error)
 			goto bad;
 	}
@@ -1492,7 +1504,7 @@ ext2_rmdir(struct vop_rmdir_args *ap)
 	 */
 	ip->i_nlink = 0;
 	error = ext2_truncate(vp, (off_t)0, IO_SYNC, cnp->cn_cred,
-	    cnp->cn_thread);
+	    curthread);
 	cache_purge(ITOV(ip));
 	if (vn_lock(dvp, LK_EXCLUSIVE | LK_NOWAIT) != 0) {
 		VOP_UNLOCK(vp);
@@ -1992,7 +2004,7 @@ ext2_makeinode(int mode, struct vnode *dvp, struct vnode **vpp,
 #ifdef UFS_ACL
 	if (dvp->v_mount->mnt_flag & MNT_ACLS) {
 		error = ext2_do_posix1e_acl_inheritance_file(dvp, tvp, mode,
-		    cnp->cn_cred, cnp->cn_thread);
+		    cnp->cn_cred, curthread);
 		if (error)
 			goto bad;
 	}
@@ -2296,7 +2308,8 @@ ext2_write(struct vop_write_args *ap)
 		} else if (xfersize + blkoffset == fs->e2fs_fsize) {
 			if ((vp->v_mount->mnt_flag & MNT_NOCLUSTERW) == 0) {
 				bp->b_flags |= B_CLUSTEROK;
-				cluster_write(vp, bp, ip->i_size, seqcount, 0);
+				cluster_write(vp, &ip->i_clusterw, bp,
+				    ip->i_size, seqcount, 0);
 			} else {
 				bawrite(bp);
 			}

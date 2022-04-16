@@ -93,11 +93,6 @@ __FBSDID("$FreeBSD$");
 #include <netinet/icmp6.h>
 #include <netinet6/nd6.h>
 
-#include <netinet/tcp.h>
-#include <netinet/tcp_seq.h>
-#include <netinet/tcp_timer.h>
-#include <netinet/tcp_var.h>
-
 static int
 rib6_preadd(u_int fibnum, const struct sockaddr *addr, const struct sockaddr *mask,
     struct nhop_object *nh)
@@ -143,7 +138,7 @@ struct rib_head *
 in6_inithead(uint32_t fibnum)
 {
 	struct rib_head *rh;
-	struct rib_subscription *rs;
+	struct rib_subscription *rs __diagused;
 
 	rh = rt_table_init(offsetof(struct sockaddr_in6, sin6_addr) << 3,
 	    AF_INET6, fibnum);

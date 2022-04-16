@@ -47,6 +47,7 @@
 #include <sys/lock.h>
 #include <sys/mutex.h>
 #include <sys/condvar.h>
+#include <sys/sbuf.h>
 #include <sys/sysctl.h>
 #include <sys/sx.h>
 #include <sys/unistd.h>
@@ -117,7 +118,7 @@ static device_suspend_t uhub_suspend;
 static device_resume_t uhub_resume;
 
 static bus_driver_added_t uhub_driver_added;
-static bus_child_pnpinfo_str_t uhub_child_pnpinfo_string;
+static bus_child_pnpinfo_t uhub_child_pnpinfo;
 
 static usb_callback_t uhub_intr_callback;
 #if USB_HAVE_TT_SUPPORT
@@ -166,8 +167,9 @@ static device_method_t uhub_methods[] = {
 	DEVMETHOD(device_suspend, uhub_suspend),
 	DEVMETHOD(device_resume, uhub_resume),
 
-	DEVMETHOD(bus_child_location_str, uhub_child_location_string),
-	DEVMETHOD(bus_child_pnpinfo_str, uhub_child_pnpinfo_string),
+	DEVMETHOD(bus_child_location, uhub_child_location),
+	DEVMETHOD(bus_child_pnpinfo, uhub_child_pnpinfo),
+	DEVMETHOD(bus_get_device_path, uhub_get_device_path),
 	DEVMETHOD(bus_driver_added, uhub_driver_added),
 	DEVMETHOD_END
 };
@@ -720,7 +722,7 @@ repeat:
 		if ((sc->sc_st.port_change & UPS_C_CONNECT_STATUS) ||
 		    (!(sc->sc_st.port_status & UPS_CURRENT_CONNECT_STATUS))) {
 			if (timeout) {
-				DPRINTFN(0, "giving up port %d reset - "
+				DPRINTFN(1, "giving up port %d reset - "
 				   "device vanished: change %#x status %#x\n",
 				   portno, sc->sc_st.port_change,
 				   sc->sc_st.port_status);
@@ -1633,32 +1635,25 @@ uhub_find_iface_index(struct usb_hub *hub, device_t child,
 }
 
 int
-uhub_child_location_string(device_t parent, device_t child,
-    char *buf, size_t buflen)
+uhub_child_location(device_t parent, device_t child, struct sbuf *sb)
 {
 	struct uhub_softc *sc;
 	struct usb_hub *hub;
 	struct hub_result res;
 
-	if (!device_is_attached(parent)) {
-		if (buflen)
-			buf[0] = 0;
+	if (!device_is_attached(parent))
 		return (0);
-	}
 
 	sc = device_get_softc(parent);
 	hub = sc->sc_udev->hub;
 
-	mtx_lock(&Giant);
+	bus_topo_lock();
 	uhub_find_iface_index(hub, child, &res);
 	if (!res.udev) {
 		DPRINTF("device not on hub\n");
-		if (buflen) {
-			buf[0] = '\0';
-		}
 		goto done;
 	}
-	snprintf(buf, buflen, "bus=%u hubaddr=%u port=%u devaddr=%u"
+	sbuf_printf(sb, "bus=%u hubaddr=%u port=%u devaddr=%u"
 	    " interface=%u"
 #if USB_HAVE_UGEN
 	    " ugen=%s"
@@ -1672,14 +1667,46 @@ uhub_child_location_string(device_t parent, device_t child,
 #endif
 	    );
 done:
-	mtx_unlock(&Giant);
+	bus_topo_unlock();
 
 	return (0);
 }
 
+int
+uhub_get_device_path(device_t bus, device_t child, const char *locator,
+    struct sbuf *sb)
+{
+	struct uhub_softc *sc;
+	struct usb_hub *hub;
+	struct hub_result res;
+	int rv;
+
+	if (strcmp(locator, BUS_LOCATOR_UEFI) == 0) {
+		rv = bus_generic_get_device_path(device_get_parent(bus), bus, locator, sb);
+		if (rv != 0)
+			return (rv);
+
+		sc = device_get_softc(bus);
+		hub = sc->sc_udev->hub;
+
+		bus_topo_lock();
+		uhub_find_iface_index(hub, child, &res);
+		if (!res.udev) {
+			printf("device not on hub\n");
+			goto done;
+		}
+		sbuf_printf(sb, "/USB(0x%x,0x%x)", res.portno - 1, res.iface_index);
+	done:
+		bus_topo_unlock();
+		return (0);
+	}
+
+	/* For the rest, punt to the default handler */
+	return (bus_generic_get_device_path(bus, child, locator, sb));
+}
+
 static int
-uhub_child_pnpinfo_string(device_t parent, device_t child,
-    char *buf, size_t buflen)
+uhub_child_pnpinfo(device_t parent, device_t child, struct sbuf*sb)
 {
 	struct uhub_softc *sc;
 	struct usb_hub *hub;
@@ -1687,22 +1714,16 @@ uhub_child_pnpinfo_string(device_t parent, device_t child,
 	struct hub_result res;
 	uint8_t do_unlock;
 
-	if (!device_is_attached(parent)) {
-		if (buflen)
-			buf[0] = 0;
+	if (!device_is_attached(parent))
 		return (0);
-	}
 
 	sc = device_get_softc(parent);
 	hub = sc->sc_udev->hub;
 
-	mtx_lock(&Giant);
+	bus_topo_lock();
 	uhub_find_iface_index(hub, child, &res);
 	if (!res.udev) {
 		DPRINTF("device not on hub\n");
-		if (buflen) {
-			buf[0] = '\0';
-		}
 		goto done;
 	}
 	iface = usbd_get_iface(res.udev, res.iface_index);
@@ -1710,7 +1731,7 @@ uhub_child_pnpinfo_string(device_t parent, device_t child,
 		/* Make sure device information is not changed during the print. */
 		do_unlock = usbd_ctrl_lock(res.udev);
 
-		snprintf(buf, buflen, "vendor=0x%04x product=0x%04x "
+		sbuf_printf(sb, "vendor=0x%04x product=0x%04x "
 		    "devclass=0x%02x devsubclass=0x%02x "
 		    "devproto=0x%02x "
 		    "sernum=\"%s\" "
@@ -1734,14 +1755,9 @@ uhub_child_pnpinfo_string(device_t parent, device_t child,
 
 		if (do_unlock)
 			usbd_ctrl_unlock(res.udev);
-	} else {
-		if (buflen) {
-			buf[0] = '\0';
-		}
-		goto done;
 	}
 done:
-	mtx_unlock(&Giant);
+	bus_topo_unlock();
 
 	return (0);
 }

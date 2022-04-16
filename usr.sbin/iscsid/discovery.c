@@ -42,58 +42,6 @@ __FBSDID("$FreeBSD$");
 #include "iscsi_proto.h"
 
 static struct pdu *
-text_receive(struct connection *conn)
-{
-	struct pdu *response;
-	struct iscsi_bhs_text_response *bhstr;
-
-	response = pdu_new(conn);
-	pdu_receive(response);
-	if (response->pdu_bhs->bhs_opcode != ISCSI_BHS_OPCODE_TEXT_RESPONSE)
-		log_errx(1, "protocol error: received invalid opcode 0x%x",
-		    response->pdu_bhs->bhs_opcode);
-	bhstr = (struct iscsi_bhs_text_response *)response->pdu_bhs;
-#if 0
-	if ((bhstr->bhstr_flags & BHSTR_FLAGS_FINAL) == 0)
-		log_errx(1, "received Text PDU without the \"F\" flag");
-#endif
-	/*
-	 * XXX: Implement the C flag some day.
-	 */
-	if ((bhstr->bhstr_flags & BHSTR_FLAGS_CONTINUE) != 0)
-		log_errx(1, "received Text PDU with unsupported \"C\" flag");
-	if (ntohl(bhstr->bhstr_statsn) != conn->conn_statsn + 1) {
-		log_errx(1, "received Text PDU with wrong StatSN: "
-		    "is %u, should be %u", ntohl(bhstr->bhstr_statsn),
-		    conn->conn_statsn + 1);
-	}
-	conn->conn_statsn = ntohl(bhstr->bhstr_statsn);
-
-	return (response);
-}
-
-static struct pdu *
-text_new_request(struct connection *conn)
-{
-	struct pdu *request;
-	struct iscsi_bhs_text_request *bhstr;
-
-	request = pdu_new(conn);
-	bhstr = (struct iscsi_bhs_text_request *)request->pdu_bhs;
-	bhstr->bhstr_opcode = ISCSI_BHS_OPCODE_TEXT_REQUEST |
-	    ISCSI_BHS_OPCODE_IMMEDIATE;
-	bhstr->bhstr_flags = BHSTR_FLAGS_FINAL;
-	bhstr->bhstr_initiator_task_tag = 0;
-	bhstr->bhstr_target_transfer_tag = 0xffffffff;
-
-	bhstr->bhstr_initiator_task_tag = 0; /* XXX */
-	bhstr->bhstr_cmdsn = 0; /* XXX */
-	bhstr->bhstr_expstatsn = htonl(conn->conn_statsn + 1);
-
-	return (request);
-}
-
-static struct pdu *
 logout_receive(struct connection *conn)
 {
 	struct pdu *response;
@@ -138,7 +86,7 @@ logout_new_request(struct connection *conn)
 }
 
 static void
-kernel_add(const struct connection *conn, const char *target)
+kernel_add(const struct iscsid_connection *conn, const char *target)
 {
 	struct iscsi_session_add isa;
 	int error;
@@ -154,7 +102,7 @@ kernel_add(const struct connection *conn, const char *target)
 }
 
 static void
-kernel_remove(const struct connection *conn)
+kernel_remove(const struct iscsid_connection *conn)
 {
 	struct iscsi_session_remove isr;
 	int error;
@@ -167,27 +115,21 @@ kernel_remove(const struct connection *conn)
 }
 
 void
-discovery(struct connection *conn)
+discovery(struct iscsid_connection *conn)
 {
 	struct pdu *request, *response;
 	struct keys *request_keys, *response_keys;
 	int i;
 
 	log_debugx("beginning discovery session");
-	request = text_new_request(conn);
 	request_keys = keys_new();
 	keys_add(request_keys, "SendTargets", "All");
-	keys_save(request_keys, request);
+	text_send_request(&conn->conn, request_keys);
 	keys_delete(request_keys);
 	request_keys = NULL;
-	pdu_send(request);
-	pdu_delete(request);
-	request = NULL;
 
 	log_debugx("waiting for Text Response");
-	response = text_receive(conn);
-	response_keys = keys_new();
-	keys_load(response_keys, response);
+	response_keys = text_read_response(&conn->conn);
 	for (i = 0; i < KEYS_MAX; i++) {
 		if (response_keys->keys_names[i] == NULL)
 			break;
@@ -202,7 +144,6 @@ discovery(struct connection *conn)
 		kernel_add(conn, response_keys->keys_values[i]);
 	}
 	keys_delete(response_keys);
-	pdu_delete(response);
 
 	log_debugx("removing temporary discovery session");
 	kernel_remove(conn);
@@ -220,13 +161,13 @@ discovery(struct connection *conn)
 #endif
 
 	log_debugx("discovery done; logging out");
-	request = logout_new_request(conn);
+	request = logout_new_request(&conn->conn);
 	pdu_send(request);
 	pdu_delete(request);
 	request = NULL;
 
 	log_debugx("waiting for Logout Response");
-	response = logout_receive(conn);
+	response = logout_receive(&conn->conn);
 	pdu_delete(response);
 
 	log_debugx("discovery session done");

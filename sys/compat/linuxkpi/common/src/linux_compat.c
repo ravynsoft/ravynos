@@ -51,6 +51,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/rwlock.h>
 #include <sys/mman.h>
 #include <sys/stack.h>
+#include <sys/sysent.h>
 #include <sys/time.h>
 #include <sys/user.h>
 
@@ -86,6 +87,7 @@ __FBSDID("$FreeBSD$");
 #include <linux/kthread.h>
 #include <linux/kernel.h>
 #include <linux/compat.h>
+#include <linux/io-mapping.h>
 #include <linux/poll.h>
 #include <linux/smp.h>
 #include <linux/wait_bit.h>
@@ -115,7 +117,7 @@ static int lkpi_net_maxpps = 99;
 SYSCTL_INT(_compat_linuxkpi, OID_AUTO, net_ratelimit, CTLFLAG_RWTUN,
     &lkpi_net_maxpps, 0, "Limit number of LinuxKPI net messages per second.");
 
-MALLOC_DEFINE(M_KMALLOC, "linux", "Linux kmalloc compat");
+MALLOC_DEFINE(M_KMALLOC, "lkpikmalloc", "Linux kmalloc compat");
 
 #include <linux/rbtree.h>
 /* Undo Linux compat changes. */
@@ -154,6 +156,20 @@ RB_GENERATE(linux_root, rb_node, __entry, panic_cmp);
 
 INTERVAL_TREE_DEFINE(struct interval_tree_node, rb, unsigned long,, START,
     LAST,, lkpi_interval_tree)
+
+struct kobject *
+kobject_create(void)
+{
+	struct kobject *kobj;
+
+	kobj = kzalloc(sizeof(*kobj), GFP_KERNEL);
+	if (kobj == NULL)
+		return (NULL);
+	kobject_init(kobj, &linux_kfree_type);
+
+	return (kobj);
+}
+
 
 int
 kobject_set_name_vargs(struct kobject *kobj, const char *fmt, va_list args)
@@ -440,6 +456,66 @@ device_create(struct class *class, struct device *parent, dev_t devt,
 	return (dev);
 }
 
+struct device *
+device_create_groups_vargs(struct class *class, struct device *parent,
+    dev_t devt, void *drvdata, const struct attribute_group **groups,
+    const char *fmt, va_list args)
+{
+	struct device *dev = NULL;
+	int retval = -ENODEV;
+
+	if (class == NULL || IS_ERR(class))
+		goto error;
+
+	dev = kzalloc(sizeof(*dev), GFP_KERNEL);
+	if (!dev) {
+		retval = -ENOMEM;
+		goto error;
+	}
+
+	dev->devt = devt;
+	dev->class = class;
+	dev->parent = parent;
+	dev->groups = groups;
+	dev->release = device_create_release;
+	/* device_initialize() needs the class and parent to be set */
+	device_initialize(dev);
+	dev_set_drvdata(dev, drvdata);
+
+	retval = kobject_set_name_vargs(&dev->kobj, fmt, args);
+	if (retval)
+		goto error;
+
+	retval = device_add(dev);
+	if (retval)
+		goto error;
+
+	return dev;
+
+error:
+	put_device(dev);
+	return ERR_PTR(retval);
+}
+
+struct class *
+class_create(struct module *owner, const char *name)
+{
+	struct class *class;
+	int error;
+
+	class = kzalloc(sizeof(*class), M_WAITOK);
+	class->owner = owner;
+	class->name = name;
+	class->class_release = linux_class_kfree;
+	error = class_register(class);
+	if (error) {
+		kfree(class);
+		return (NULL);
+	}
+
+	return (class);
+}
+
 int
 kobject_init_and_add(struct kobject *kobj, const struct kobj_type *ktype,
     struct kobject *parent, const char *fmt, ...)
@@ -527,6 +603,17 @@ linux_file_free(struct linux_file *filp)
 	}
 }
 
+struct linux_cdev *
+cdev_alloc(void)
+{
+	struct linux_cdev *cdev;
+
+	cdev = kzalloc(sizeof(struct linux_cdev), M_WAITOK);
+	kobject_init(&cdev->kobj, &linux_cdev_ktype);
+	cdev->refs = 1;
+	return (cdev);
+}
+
 static int
 linux_cdev_pager_fault(vm_object_t vm_obj, vm_ooffset_t offset, int prot,
     vm_page_t *mres)
@@ -602,11 +689,11 @@ linux_cdev_pager_populate(vm_object_t vm_obj, vm_pindex_t pidx, int fault_type,
 		vmap->vm_pfn_pcount = &vmap->vm_pfn_count;
 		vmap->vm_obj = vm_obj;
 
-		err = vmap->vm_ops->fault(vmap, &vmf);
+		err = vmap->vm_ops->fault(&vmf);
 
 		while (vmap->vm_pfn_count == 0 && err == VM_FAULT_NOPAGE) {
 			kern_yield(PRI_USER);
-			err = vmap->vm_ops->fault(vmap, &vmf);
+			err = vmap->vm_ops->fault(&vmf);
 		}
 	}
 
@@ -1009,8 +1096,8 @@ linux_file_ioctl_sub(struct file *fp, struct linux_file *filp,
 		/* fetch user-space pointer */
 		data = *(void **)data;
 	}
-#if defined(__amd64__)
-	if (td->td_proc->p_elf_machine == EM_386) {
+#ifdef COMPAT_FREEBSD32
+	if (SV_PROC_FLAG(td->td_proc, SV_ILP32)) {
 		/* try the compat IOCTL handler first */
 		if (fop->compat_ioctl != NULL) {
 			error = -OPW(fp, td, fop->compat_ioctl(filp,
@@ -1740,8 +1827,7 @@ out:
 }
 
 static int
-linux_file_stat(struct file *fp, struct stat *sb, struct ucred *active_cred,
-    struct thread *td)
+linux_file_stat(struct file *fp, struct stat *sb, struct ucred *active_cred)
 {
 	struct linux_file *filp;
 	struct vnode *vp;
@@ -1754,7 +1840,7 @@ linux_file_stat(struct file *fp, struct stat *sb, struct ucred *active_cred,
 	vp = filp->f_vnode;
 
 	vn_lock(vp, LK_SHARED | LK_RETRY);
-	error = VOP_STAT(vp, sb, td->td_ucred, NOCRED, td);
+	error = VOP_STAT(vp, sb, curthread->td_ucred, NOCRED);
 	VOP_UNLOCK(vp);
 
 	return (error);
@@ -2618,7 +2704,6 @@ linux_dump_stack(void)
 #ifdef STACK
 	struct stack st;
 
-	stack_zero(&st);
 	stack_save(&st);
 	stack_print(&st);
 #endif
@@ -2630,6 +2715,17 @@ linuxkpi_net_ratelimit(void)
 
 	return (ppsratecheck(&lkpi_net_lastlog, &lkpi_net_curpps,
 	   lkpi_net_maxpps));
+}
+
+struct io_mapping *
+io_mapping_create_wc(resource_size_t base, unsigned long size)
+{
+	struct io_mapping *mapping;
+
+	mapping = kmalloc(sizeof(*mapping), GFP_KERNEL);
+	if (mapping == NULL)
+		return (NULL);
+	return (io_mapping_init_wc(mapping, base, size));
 }
 
 #if defined(__i386__) || defined(__amd64__)

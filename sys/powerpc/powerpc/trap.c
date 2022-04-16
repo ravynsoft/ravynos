@@ -254,7 +254,7 @@ trap(struct trapframe *frame)
 		td->td_pticks = 0;
 		td->td_frame = frame;
 		addr = frame->srr0;
-		if (td->td_cowgen != p->p_cowgen)
+		if (td->td_cowgen != atomic_load_int(&p->p_cowgen))
 			thread_cow_update(td);
 
 		/* User Mode Traps */
@@ -667,6 +667,7 @@ cpu_fetch_syscall_args(struct thread *td)
 	sa = &td->td_sa;
 
 	sa->code = frame->fixreg[0];
+	sa->original_code = sa->code;
 	params = (caddr_t)(frame->fixreg + FIRSTARG);
 	n = NARGREG;
 

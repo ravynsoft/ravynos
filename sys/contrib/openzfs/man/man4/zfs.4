@@ -109,6 +109,11 @@ A value of
 .Sy 100
 disables this feature.
 .
+.It Sy l2arc_exclude_special Ns = Ns Sy 0 Ns | Ns 1 Pq int
+Controls whether buffers present on special vdevs are eligible for caching
+into L2ARC.
+If set to 1, exclude dbufs on special vdevs from being cached to L2ARC.
+.
 .It Sy l2arc_mfuonly Ns = Ns Sy 0 Ns | Ns 1 Pq  int
 Controls whether only MFU metadata and data are cached from ARC into L2ARC.
 This may be desired to avoid wasting space on L2ARC when reading/writing large
@@ -343,7 +348,7 @@ When a vdev is added, target this number of metaslabs per top-level vdev.
 Default limit for metaslab size.
 .
 .It Sy zfs_vdev_max_auto_ashift Ns = Ns Sy ASHIFT_MAX Po 16 Pc Pq ulong
-Maximum ashift used when optimizing for logical -> physical sector size on new
+Maximum ashift used when optimizing for logical \[->] physical sector size on new
 top-level vdevs.
 .
 .It Sy zfs_vdev_min_auto_ashift Ns = Ns Sy ASHIFT_MIN Po 9 Pc Pq ulong
@@ -493,7 +498,7 @@ linear in kernel memory.
 Disabling can improve performance in some code paths
 at the expense of fragmented kernel memory.
 .
-.It Sy zfs_abd_scatter_max_order Ns = Ns Sy MAX_ORDER-1 Pq uint
+.It Sy zfs_abd_scatter_max_order Ns = Ns Sy MAX_ORDER\-1 Pq uint
 Maximum number of consecutive memory pages allocated in a single block for
 scatter/gather lists.
 .Pp
@@ -590,7 +595,9 @@ Under Linux, half of system memory will be used as the limit.
 Under
 .Fx ,
 the larger of
-.Sy all_system_memory - 1GB No and Sy 5/8 * all_system_memory
+.Sy all_system_memory No \- Sy 1GB
+and
+.Sy 5/8 No \(mu Sy all_system_memory
 will be used as the limit.
 This value must be at least
 .Sy 67108864 Ns B Pq 64MB .
@@ -661,7 +668,9 @@ to evict the required number of metadata buffers.
 Min size of ARC in bytes.
 .No If set to Sy 0 , arc_c_min
 will default to consuming the larger of
-.Sy 32MB No or Sy all_system_memory/32 .
+.Sy 32MB
+and
+.Sy all_system_memory No / Sy 32 .
 .
 .It Sy zfs_arc_min_prefetch_ms Ns = Ns Sy 0 Ns ms Ns Po Ns ≡ Ns 1s Pc Pq int
 Minimum time prefetched blocks are locked in the ARC.
@@ -721,10 +730,10 @@ ARC target size
 .Pq Sy arc_c
 by thresholds determined by this parameter.
 Exceeding by
-.Sy ( arc_c >> zfs_arc_overflow_shift ) * 0.5
+.Sy ( arc_c No >> Sy zfs_arc_overflow_shift ) No / Sy 2
 starts ARC reclamation process.
 If that appears insufficient, exceeding by
-.Sy ( arc_c >> zfs_arc_overflow_shift ) * 1.5
+.Sy ( arc_c No >> Sy zfs_arc_overflow_shift ) No \(mu Sy 1.5
 blocks new buffer allocation until the reclaim thread catches up.
 Started reclamation process continues till ARC size returns below the
 target size.
@@ -871,7 +880,7 @@ is set, then the deadman behavior is invoked as described by
 .Sy zfs_deadman_failmode .
 By default, the deadman is enabled and set to
 .Sy wait
-which results in "hung" I/Os only being logged.
+which results in "hung" I/O operations only being logged.
 The deadman is automatically disabled when a pool gets suspended.
 .
 .It Sy zfs_deadman_failmode Ns = Ns Sy wait Pq charp
@@ -933,7 +942,7 @@ by the maximum number of operations per second.
 This will smoothly handle between ten times and a tenth of this number.
 .No See Sx ZFS TRANSACTION DELAY .
 .Pp
-.Sy zfs_delay_scale * zfs_dirty_data_max Em must be smaller than Sy 2^64 .
+.Sy zfs_delay_scale No \(mu Sy zfs_dirty_data_max Em must No be smaller than Sy 2^64 .
 .
 .It Sy zfs_disable_ivset_guid_check Ns = Ns Sy 0 Ns | Ns 1 Pq int
 Disables requirement for IVset GUIDs to be present and match when doing a raw
@@ -955,7 +964,7 @@ will result in objects waiting when there is not actually contention on the
 same object.
 .
 .It Sy zfs_slow_io_events_per_second Ns = Ns Sy 20 Ns /s Pq int
-Rate limit delay and deadman zevents (which report slow I/Os) to this many per
+Rate limit delay and deadman zevents (which report slow I/O operations) to this many per
 second.
 .
 .It Sy zfs_unflushed_max_mem_amt Ns = Ns Sy 1073741824 Ns B Po 1GB Pc Pq ulong
@@ -981,7 +990,7 @@ This tunable is important because it involves a trade-off between import
 time after an unclean export and the frequency of flushing metaslabs.
 The higher this number is, the more log blocks we allow when the pool is
 active which means that we flush metaslabs less often and thus decrease
-the number of I/Os for spacemap updates per TXG.
+the number of I/O operations for spacemap updates per TXG.
 At the same time though, that means that in the event of an unclean export,
 there will be more log spacemap blocks for us to read, inducing overhead
 in the import time of the pool.
@@ -1075,6 +1084,19 @@ Start syncing out a transaction group if there's at least this much dirty data
 This should be less than
 .Sy zfs_vdev_async_write_active_min_dirty_percent .
 .
+.It Sy zfs_wrlog_data_max Ns = Pq int
+The upper limit of write-transaction zil log data size in bytes.
+Once it is reached, write operation is blocked, until log data is cleared out
+after transaction group sync.
+Because of some overhead, it should be set
+at least 2 times the size of
+.Sy zfs_dirty_data_max
+.No to prevent harming normal write throughput.
+It also should be smaller than the size of the slog device if slog is present.
+.Pp
+Defaults to
+.Sy zfs_dirty_data_max*2
+.
 .It Sy zfs_fallocate_reserve_percent Ns = Ns Sy 110 Ns % Pq uint
 Since ZFS is a copy-on-write filesystem with snapshots, blocks cannot be
 preallocated for a file in order to guarantee that later writes will not
@@ -1123,11 +1145,6 @@ Maximum number of blocks freed in a single TXG.
 .
 .It Sy zfs_max_async_dedup_frees Ns = Ns Sy 100000 Po 10^5 Pc Pq ulong
 Maximum number of dedup blocks freed in a single TXG.
-.
-.It Sy zfs_override_estimate_recordsize Ns = Ns Sy 0 Pq ulong
-If nonzer, override record size calculation for
-.Nm zfs Cm send
-estimates.
 .
 .It Sy zfs_vdev_async_read_max_active Ns = Ns Sy 3 Pq int
 Maximum asynchronous read I/O operations active to each device.
@@ -1239,7 +1256,7 @@ For non-interactive I/O (scrub, resilver, removal, initialize and rebuild),
 the number of concurrently-active I/O operations is limited to
 .Sy zfs_*_min_active ,
 unless the vdev is "idle".
-When there are no interactive I/O operatinons active (synchronous or otherwise),
+When there are no interactive I/O operations active (synchronous or otherwise),
 and
 .Sy zfs_vdev_nia_delay
 operations have completed since the last interactive operation,
@@ -1405,7 +1422,7 @@ This option is used by the test suite to track race conditions.
 .
 .It Sy zfs_livelist_condense_sync_pause Ns = Ns Sy 0 Ns | Ns 1 Pq int
 When set, the livelist condense process pauses indefinitely before
-executing the synctask -
+executing the synctask \(em
 .Fn spa_livelist_condense_sync .
 This option is used by the test suite to trigger race conditions.
 .
@@ -1514,7 +1531,7 @@ This is one of the factors used to determine the
 length of the activity check during import.
 .Pp
 The multihost write period is
-.Sy zfs_multihost_interval / leaf-vdevs .
+.Sy zfs_multihost_interval No / Sy leaf-vdevs .
 On average a multihost write will be issued for each leaf vdev
 every
 .Sy zfs_multihost_interval
@@ -1531,7 +1548,7 @@ the risk of failing to detect an active pool.
 The total activity check time is never allowed to drop below one second.
 .Pp
 On import the activity check waits a minimum amount of time determined by
-.Sy zfs_multihost_interval * zfs_multihost_import_intervals ,
+.Sy zfs_multihost_interval No \(mu Sy zfs_multihost_import_intervals ,
 or the same product computed on the host which last had the pool imported,
 whichever is greater.
 The activity check time may be further extended if the value of MMP
@@ -1556,7 +1573,7 @@ its configuration may take action such as suspending the pool or offlining a
 device.
 .Pp
 Otherwise, the pool will be suspended if
-.Sy zfs_multihost_fail_intervals * zfs_multihost_interval
+.Sy zfs_multihost_fail_intervals No \(mu Sy zfs_multihost_interval
 milliseconds pass without a successful MMP write.
 This guarantees the activity test will see MMP writes if the pool is imported.
 .Sy 1 No is equivalent to Sy 2 ;
@@ -1581,12 +1598,12 @@ Allow no-operation writes.
 The occurrence of nopwrites will further depend on other pool properties
 .Pq i.a. the checksumming and compression algorithms .
 .
-.It Sy zfs_dmu_offset_next_sync Ns = Ns Sy 0 Ns | Ns 1 Pq int
+.It Sy zfs_dmu_offset_next_sync Ns = Ns Sy 1 Ns | Ns 0 Pq int
 Enable forcing TXG sync to find holes.
-When enabled forces ZFS to act like prior versions when
+When enabled forces ZFS to sync data when
 .Sy SEEK_HOLE No or Sy SEEK_DATA
-flags are used, which, when a dnode is dirty,
-causes TXGs to be synced so that this data can be found.
+flags are used allowing holes in a file to be accurately reported.
+When disabled holes will not be reported in recently dirtied files.
 .
 .It Sy zfs_pd_bytes_max Ns = Ns Sy 52428800 Ns B Po 50MB Pc Pq int
 The number of bytes which should be prefetched during a pool traversal, like
@@ -1606,8 +1623,8 @@ After this threshold is crossed, additional frees will wait until the next TXG.
 .
 .It Sy zfs_prefetch_disable Ns = Ns Sy 0 Ns | Ns 1 Pq int
 Disable predictive prefetch.
-Note that it leaves "prescient" prefetch (for. e.g.\&
-.Nm zfs Cm send )
+Note that it leaves "prescient" prefetch
+.Pq for, e.g., Nm zfs Cm send
 intact.
 Unlike predictive prefetch, prescient prefetch never issues I/O
 that ends up not being needed, so it can't hurt performance.
@@ -1667,8 +1684,8 @@ This should only be used as a last resort,
 as it typically results in leaked space, or worse.
 .
 .It Sy zfs_removal_ignore_errors Ns = Ns Sy 0 Ns | Ns 1 Pq int
-Ignore hard IO errors during device removal.
-When set, if a device encounters a hard IO error during the removal process
+Ignore hard I/O errors during device removal.
+When set, if a device encounters a hard I/O error during the removal process
 the removal will not be cancelled.
 This can result in a normally recoverable block becoming permanently damaged
 and is hence not recommended.
@@ -1719,7 +1736,7 @@ A higher number indicates that we care more about how filled in a segment is,
 while a lower number indicates we care more about the size of the extent without
 considering the gaps within a segment.
 This value is only tunable upon module insertion.
-Changing the value afterwards will have no affect on scrub or resilver performance.
+Changing the value afterwards will have no effect on scrub or resilver performance.
 .
 .It Sy zfs_scan_issue_strategy Ns = Ns Sy 0 Pq int
 Determines the order that data will be verified while scrubbing or resilvering:
@@ -1788,7 +1805,7 @@ remove the spill block from an existing object.
 Including unmodified copies of the spill blocks creates a backwards-compatible
 stream which will recreate a spill block if it was incorrectly removed.
 .
-.It Sy zfs_send_no_prefetch_queue_ff Ns = Ns Sy 20 Ns ^-1 Pq int
+.It Sy zfs_send_no_prefetch_queue_ff Ns = Ns Sy 20 Ns ^\-1 Pq int
 The fill fraction of the
 .Nm zfs Cm send
 internal queues.
@@ -1799,7 +1816,7 @@ The maximum number of bytes allowed in
 .Nm zfs Cm send Ns 's
 internal queues.
 .
-.It Sy zfs_send_queue_ff Ns = Ns Sy 20 Ns ^-1 Pq int
+.It Sy zfs_send_queue_ff Ns = Ns Sy 20 Ns ^\-1 Pq int
 The fill fraction of the
 .Nm zfs Cm send
 prefetch queue.
@@ -1810,7 +1827,7 @@ The maximum number of bytes allowed that will be prefetched by
 .Nm zfs Cm send .
 This value must be at least twice the maximum block size in use.
 .
-.It Sy zfs_recv_queue_ff Ns = Ns Sy 20 Ns ^-1 Pq int
+.It Sy zfs_recv_queue_ff Ns = Ns Sy 20 Ns ^\-1 Pq int
 The fill fraction of the
 .Nm zfs Cm receive
 queue.
@@ -1932,7 +1949,7 @@ Historical statistics for this many latest TXGs will be available in
 Flush dirty data to disk at least every this many seconds (maximum TXG duration).
 .
 .It Sy zfs_vdev_aggregate_trim Ns = Ns Sy 0 Ns | Ns 1 Pq int
-Allow TRIM I/Os to be aggregated.
+Allow TRIM I/O operations to be aggregated.
 This is normally not helpful because the extents to be trimmed
 will have been already been aggregated by the metaslab.
 This option is provided for debugging and performance analysis.
@@ -2082,7 +2099,17 @@ Limit SLOG write size per commit executed with synchronous priority.
 Any writes above that will be executed with lower (asynchronous) priority
 to limit potential SLOG device abuse by single active ZIL writer.
 .
-.It Sy zfs_embedded_slog_min_ms Ns = Ns Sy 64  Pq int
+.It Sy zfs_zil_saxattr Ns = Ns Sy 1 Ns | Ns 0 Pq int
+Setting this tunable to zero disables ZIL logging of new
+.Sy xattr Ns = Ns Sy sa
+records if the
+.Sy org.openzfs:zilsaxattr
+feature is enabled on the pool.
+This would only be necessary to work around bugs in the ZIL logging or replay
+code for this record type.
+The tunable has no effect if the feature is disabled.
+.
+.It Sy zfs_embedded_slog_min_ms Ns = Ns Sy 64 Pq int
 Usually, one metaslab from each normal-class vdev is dedicated for use by
 the ZIL to log synchronous writes.
 However, if there are fewer than
@@ -2112,6 +2139,30 @@ This allows for dynamic allocation distribution when devices are imbalanced.
 When enabled, the maximum number of pending allocations per top-level vdev
 is limited by
 .Sy zfs_vdev_queue_depth_pct .
+.
+.It Sy zfs_xattr_compat Ns = Ns 0 Ns | Ns 1 Pq int
+Control the naming scheme used when setting new xattrs in the user namespace.
+If
+.Sy 0
+.Pq the default on Linux ,
+user namespace xattr names are prefixed with the namespace, to be backwards
+compatible with previous versions of ZFS on Linux.
+If
+.Sy 1
+.Pq the default on Fx ,
+user namespace xattr names are not prefixed, to be backwards compatible with
+previous versions of ZFS on illumos and
+.Fx .
+.Pp
+Either naming scheme can be read on this and future versions of ZFS, regardless
+of this tunable, but legacy ZFS on illumos or
+.Fx
+are unable to read user namespace xattrs written in the Linux format, and
+legacy versions of ZFS on Linux are unable to read user namespace xattrs written
+in the legacy ZFS format.
+.Pp
+An existing xattr with the alternate naming scheme is removed when overwriting
+the xattr so as to not accumulate duplicates.
 .
 .It Sy zio_requeue_io_start_cut_in_line Ns = Ns Sy 0 Ns | Ns 1 Pq int
 Prioritize requeued I/O.
@@ -2302,7 +2353,7 @@ This credits the transaction for "time already served",
 e.g. reading indirect blocks.
 .Pp
 The minimum time for a transaction to take is calculated as
-.Dl min_time = min( Ns Sy zfs_delay_scale No * (dirty - min) / (max - dirty), 100ms)
+.D1 min_time = min( Ns Sy zfs_delay_scale No \(mu Po Sy dirty No \- Sy min Pc / Po Sy max No \- Sy dirty Pc , 100ms)
 .Pp
 The delay has two degrees of freedom that can be adjusted via tunables.
 The percentage of dirty data at which we start to delay is defined by

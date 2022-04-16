@@ -128,7 +128,7 @@ enum SCIC_SDS_STP_REMOTE_DEVICE_READY_SUBSTATES
    SCIC_SDS_STP_REMOTE_DEVICE_READY_SUBSTATE_IDLE,
 
    /**
-    * This is the command state for for the STP remote device.  This state is
+    * This is the command state for the STP remote device.  This state is
     * entered when the device is processing a non-NCQ command.  The device object
     * will fail any new start IO requests until this command is complete.
     */
@@ -277,7 +277,7 @@ typedef struct SCIC_SDS_REMOTE_DEVICE
    U32 not_ready_reason;
 
    /**
-    * This field is TRUE if this remote device has an initialzied ready substate
+    * This field is TRUE if this remote device has an initialized ready substate
     * machine. SSP devices do not have a ready substate machine and STP devices
     * have a ready substate machine.
     */

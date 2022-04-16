@@ -11,6 +11,7 @@ FBSD_1.0 {
 	/* PSEUDO syscalls */
 	_exit;
 
+	.mcount;
 	_setjmp;
 	_longjmp;
 	fabs;
@@ -32,6 +33,5 @@ FBSD_1.0 {
 };
 
 FBSDprivate_1.0 {
-	_set_tp;
 	__makecontext;
 };

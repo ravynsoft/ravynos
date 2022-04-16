@@ -41,6 +41,7 @@
 
 #include <sys/param.h>
 #include <sys/systm.h>
+#include <sys/malloc.h>
 #include <sys/mbuf.h>
 #include <sys/socket.h>
 #include <sys/syslog.h>
@@ -101,6 +102,8 @@ SYSCTL_INT(_net_inet_esp, OID_AUTO, ctr_compatibility,
 SYSCTL_VNET_PCPUSTAT(_net_inet_esp, IPSECCTL_STATS, stats,
     struct espstat, espstat,
     "ESP statistics (struct espstat, netipsec/esp_var.h");
+
+static MALLOC_DEFINE(M_ESP, "esp", "IPsec ESP");
 
 static int esp_input_cb(struct cryptop *op);
 static int esp_output_cb(struct cryptop *crp);
@@ -355,7 +358,7 @@ esp_input(struct mbuf *m, struct secasvar *sav, int skip, int protoff)
 	}
 
 	/* Get IPsec-specific opaque pointer */
-	xd = malloc(sizeof(*xd), M_XDATA, M_NOWAIT | M_ZERO);
+	xd = malloc(sizeof(*xd), M_ESP, M_NOWAIT | M_ZERO);
 	if (xd == NULL) {
 		DPRINTF(("%s: failed to allocate xform_data\n", __func__));
 		goto xd_fail;
@@ -374,7 +377,7 @@ esp_input(struct mbuf *m, struct secasvar *sav, int skip, int protoff)
 			int aad_skip;
 
 			crp->crp_aad_length += sizeof(seqh);
-			crp->crp_aad = malloc(crp->crp_aad_length, M_XDATA, M_NOWAIT);
+			crp->crp_aad = malloc(crp->crp_aad_length, M_ESP, M_NOWAIT);
 			if (crp->crp_aad == NULL) {
 				DPRINTF(("%s: failed to allocate xform_data\n",
 					 __func__));
@@ -406,8 +409,6 @@ esp_input(struct mbuf *m, struct secasvar *sav, int skip, int protoff)
 
 	/* Crypto operation descriptor */
 	crp->crp_flags = CRYPTO_F_CBIFSYNC;
-	if (V_async_crypto)
-		crp->crp_flags |= CRYPTO_F_ASYNC | CRYPTO_F_ASYNC_KEEPORDER;
 	crypto_use_mbuf(crp, m);
 	crp->crp_callback = esp_input_cb;
 	crp->crp_opaque = xd;
@@ -460,10 +461,13 @@ esp_input(struct mbuf *m, struct secasvar *sav, int skip, int protoff)
 	} else if (sav->ivlen != 0)
 		crp->crp_iv_start = skip + hlen - sav->ivlen;
 
-	return (crypto_dispatch(crp));
+	if (V_async_crypto)
+		return (crypto_dispatch_async(crp, CRYPTO_ASYNC_ORDERED));
+	else
+		return (crypto_dispatch(crp));
 
 crp_aad_fail:
-	free(xd, M_XDATA);
+	free(xd, M_ESP);
 xd_fail:
 	crypto_freereq(crp);
 	ESPSTAT_INC(esps_crypto);
@@ -549,8 +553,8 @@ esp_input_cb(struct cryptop *crp)
 	}
 
 	/* Release the crypto descriptors */
-	free(xd, M_XDATA), xd = NULL;
-	free(crp->crp_aad, M_XDATA), crp->crp_aad = NULL;
+	free(xd, M_ESP), xd = NULL;
+	free(crp->crp_aad, M_ESP), crp->crp_aad = NULL;
 	crypto_freereq(crp), crp = NULL;
 
 	/*
@@ -653,17 +657,17 @@ esp_input_cb(struct cryptop *crp)
 	CURVNET_RESTORE();
 	return error;
 bad:
-	CURVNET_RESTORE();
 	if (sav != NULL)
 		key_freesav(&sav);
 	if (m != NULL)
 		m_freem(m);
 	if (xd != NULL)
-		free(xd, M_XDATA);
+		free(xd, M_ESP);
 	if (crp != NULL) {
-		free(crp->crp_aad, M_XDATA);
+		free(crp->crp_aad, M_ESP);
 		crypto_freereq(crp);
 	}
+	CURVNET_RESTORE();
 	return error;
 }
 /*
@@ -853,7 +857,7 @@ esp_output(struct mbuf *m, struct secpolicy *sp, struct secasvar *sav,
 	}
 
 	/* IPsec-specific opaque crypto info. */
-	xd = malloc(sizeof(struct xform_data), M_XDATA, M_NOWAIT | M_ZERO);
+	xd = malloc(sizeof(struct xform_data), M_ESP, M_NOWAIT | M_ZERO);
 	if (xd == NULL) {
 		DPRINTF(("%s: failed to allocate xform_data\n", __func__));
 		goto xd_fail;
@@ -895,8 +899,6 @@ esp_output(struct mbuf *m, struct secpolicy *sp, struct secasvar *sav,
 
 	/* Crypto operation descriptor. */
 	crp->crp_flags |= CRYPTO_F_CBIFSYNC;
-	if (V_async_crypto)
-		crp->crp_flags |= CRYPTO_F_ASYNC | CRYPTO_F_ASYNC_KEEPORDER;
 	crypto_use_mbuf(crp, m);
 	crp->crp_callback = esp_output_cb;
 	crp->crp_opaque = xd;
@@ -915,7 +917,7 @@ esp_output(struct mbuf *m, struct secpolicy *sp, struct secasvar *sav,
 			int aad_skip;
 
 			crp->crp_aad_length += sizeof(seqh);
-			crp->crp_aad = malloc(crp->crp_aad_length, M_XDATA, M_NOWAIT);
+			crp->crp_aad = malloc(crp->crp_aad_length, M_ESP, M_NOWAIT);
 			if (crp->crp_aad == NULL) {
 				DPRINTF(("%s: failed to allocate xform_data\n",
 					 __func__));
@@ -944,10 +946,13 @@ esp_output(struct mbuf *m, struct secpolicy *sp, struct secasvar *sav,
 		crp->crp_digest_start = m->m_pkthdr.len - alen;
 	}
 
-	return crypto_dispatch(crp);
+	if (V_async_crypto)
+		return (crypto_dispatch_async(crp, CRYPTO_ASYNC_ORDERED));
+	else
+		return (crypto_dispatch(crp));
 
 crp_aad_fail:
-	free(xd, M_XDATA);
+	free(xd, M_ESP);
 xd_fail:
 	crypto_freereq(crp);
 	ESPSTAT_INC(esps_crypto);
@@ -1005,8 +1010,8 @@ esp_output_cb(struct cryptop *crp)
 		error = EINVAL;
 		goto bad;
 	}
-	free(xd, M_XDATA);
-	free(crp->crp_aad, M_XDATA);
+	free(xd, M_ESP);
+	free(crp->crp_aad, M_ESP);
 	crypto_freereq(crp);
 	ESPSTAT_INC(esps_hist[sav->alg_enc]);
 	if (sav->tdb_authalgxform != NULL)
@@ -1038,12 +1043,12 @@ esp_output_cb(struct cryptop *crp)
 	CURVNET_RESTORE();
 	return (error);
 bad:
-	CURVNET_RESTORE();
-	free(xd, M_XDATA);
-	free(crp->crp_aad, M_XDATA);
+	free(xd, M_ESP);
+	free(crp->crp_aad, M_ESP);
 	crypto_freereq(crp);
 	key_freesav(&sav);
 	key_freesp(&sp);
+	CURVNET_RESTORE();
 	return (error);
 }
 

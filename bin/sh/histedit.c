@@ -41,8 +41,11 @@ __FBSDID("$FreeBSD$");
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <dirent.h>
+#include <errno.h>
+#include <fcntl.h>
 #include <limits.h>
 #include <paths.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -69,14 +72,77 @@ __FBSDID("$FreeBSD$");
 History *hist;	/* history cookie */
 EditLine *el;	/* editline cookie */
 int displayhist;
+static int savehist;
 static FILE *el_in, *el_out;
+static bool in_command_completion;
 
 static char *fc_replace(const char *, char *, char *);
 static int not_fcnumber(const char *);
 static int str_to_event(const char *, int);
 static int comparator(const void *, const void *, void *);
 static char **sh_matches(const char *, int, int);
+static const char *append_char_function(const char *);
 static unsigned char sh_complete(EditLine *, int);
+
+static const char *
+get_histfile(void)
+{
+	const char *histfile;
+
+	/* don't try to save if the history size is 0 */
+	if (hist == NULL || histsizeval() == 0)
+		return (NULL);
+	histfile = expandstr("${HISTFILE-${HOME-}/.sh_history}");
+
+	if (histfile[0] == '\0')
+		return (NULL);
+	return (histfile);
+}
+
+void
+histsave(void)
+{
+	HistEvent he;
+	char *histtmpname = NULL;
+	const char *histfile;
+	int fd;
+	FILE *f;
+
+	if (!savehist || (histfile = get_histfile()) == NULL)
+		return;
+	INTOFF;
+	asprintf(&histtmpname, "%s.XXXXXXXXXX", histfile);
+	if (histtmpname == NULL) {
+		INTON;
+		return;
+	}
+	fd = mkstemp(histtmpname);
+	if (fd == -1 || (f = fdopen(fd, "w")) == NULL) {
+		free(histtmpname);
+		INTON;
+		return;
+	}
+	if (history(hist, &he, H_SAVE_FP, f) < 1 ||
+	    rename(histtmpname, histfile) == -1)
+		unlink(histtmpname);
+	fclose(f);
+	free(histtmpname);
+	INTON;
+
+}
+
+void
+histload(void)
+{
+	const char *histfile;
+	HistEvent he;
+
+	if ((histfile = get_histfile()) == NULL)
+		return;
+	errno = 0;
+	if (history(hist, &he, H_LOAD, histfile) != -1 || errno == ENOENT)
+		savehist = 1;
+}
 
 /*
  * Set history and editing status.  Called whenever the status may
@@ -144,7 +210,6 @@ bad:
 				el_set(el, EL_EDITOR, "vi");
 			else if (Eflag) {
 				el_set(el, EL_EDITOR, "emacs");
-				el_set(el, EL_BIND, "^R", "em-inc-search-prev", NULL);
 			}
 			el_set(el, EL_BIND, "^I", "sh-complete", NULL);
 			el_source(el, NULL);
@@ -385,7 +450,7 @@ histcmd(int argc, char **argv __unused)
 		editcmd = stalloc(strlen(editor) + strlen(editfile) + 2);
 		sprintf(editcmd, "%s %s", editor, editfile);
 		evalstring(editcmd, 0);	/* XXX - should use no JC command */
-		readcmdfile(editfile);	/* XXX - should read back - quick tst */
+		readcmdfile(editfile, 0 /* verify */);	/* XXX - should read back - quick tst */
 		unlink(editfile);
 	}
 
@@ -540,8 +605,10 @@ static char
 	size_t i = 0, size = 16, uniq;
 	size_t curpos = end - start, lcstring = -1;
 
+	in_command_completion = false;
 	if (start > 0 || memchr("/.~", text[0], 3) != NULL)
 		return (NULL);
+	in_command_completion = true;
 	if ((free_path = path = strdup(pathval())) == NULL)
 		goto out;
 	if ((matches = malloc(size * sizeof(matches[0]))) == NULL)
@@ -635,6 +702,32 @@ out:
 }
 
 /*
+ * If we don't specify this function as app_func in the call to fn_complete2,
+ * libedit will use the default one, which adds a " " to plain files and
+ * a "/" to directories regardless of whether it's a command name or a plain
+ * path (relative or absolute). We never want to add "/" to commands.
+ *
+ * For example, after I did "mkdir rmdir", "rmdi" would be autocompleted to
+ * "rmdir/" instead of "rmdir ".
+ */
+static const char *
+append_char_function(const char *name)
+{
+	struct stat stbuf;
+	char *expname = name[0] == '~' ? fn_tilde_expand(name) : NULL;
+	const char *rs;
+
+	if (!in_command_completion &&
+	    stat(expname ? expname : name, &stbuf) == 0 &&
+	    S_ISDIR(stbuf.st_mode))
+		rs = "/";
+	else
+		rs = " ";
+	free(expname);
+	return (rs);
+}
+
+/*
  * This is passed to el_set(el, EL_ADDFN, ...) so that it's possible to
  * bind a key (tab by default) to execute the function.
  */
@@ -642,8 +735,8 @@ unsigned char
 sh_complete(EditLine *sel, int ch __unused)
 {
 	return (unsigned char)fn_complete2(sel, NULL, sh_matches,
-		L" \t\n\"\\'`@$><=;|&{(", NULL, NULL, (size_t)100,
-		NULL, &((int) {0}), NULL, NULL, FN_QUOTE_MATCH);
+		L" \t\n\"\\'`@$><=;|&{(", NULL, append_char_function,
+		(size_t)100, NULL, &((int) {0}), NULL, NULL, FN_QUOTE_MATCH);
 }
 
 #else

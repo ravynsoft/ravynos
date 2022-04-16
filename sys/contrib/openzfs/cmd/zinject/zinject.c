@@ -144,6 +144,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <strings.h>
 #include <unistd.h>
 
@@ -159,7 +160,7 @@
 libzfs_handle_t *g_zfs;
 int zfs_fd;
 
-static const char *errtable[TYPE_INVAL] = {
+static const char *const errtable[TYPE_INVAL] = {
 	"data",
 	"dnode",
 	"mos",
@@ -497,11 +498,11 @@ print_all_handlers(void)
 	return (count + total);
 }
 
-/* ARGSUSED */
 static int
 cancel_one_handler(int id, const char *pool, zinject_record_t *record,
     void *data)
 {
+	(void) pool, (void) record, (void) data;
 	zfs_cmd_t zc = {"\0"};
 
 	zc.zc_guid = (uint64_t)id;

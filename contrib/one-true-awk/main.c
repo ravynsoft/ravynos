@@ -22,7 +22,7 @@ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 ****************************************************************/
 
-const char	*version = "version 20210215";
+const char	*version = "version 20210724";
 
 #define DEBUG
 #include <stdio.h>
@@ -89,8 +89,10 @@ static const char *
 setfs(char *p)
 {
 	/* wart: t=>\t */
-	if (p[0] == 't' && p[1] == '\0')
+	if (p[0] == 't' && p[1] == '\0') {
+		WARNING("-Ft to imply tab separator is deprecated behavior.");
 		return "\t";
+	}
 	return p;
 }
 

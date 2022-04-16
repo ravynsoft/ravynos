@@ -236,7 +236,7 @@ tests = ['zfs_upgrade_001_pos', 'zfs_upgrade_002_pos', 'zfs_upgrade_006_neg',
 tags = ['functional', 'cli_root', 'zfs_upgrade']
 
 [tests/functional/cli_root/zfs_wait]
-tests = ['zfs_wait_deleteq']
+tests = ['zfs_wait_deleteq', 'zfs_wait_getsubopt']
 tags = ['functional', 'cli_root', 'zfs_wait']
 
 [tests/functional/cli_root/zpool]
@@ -414,7 +414,7 @@ user =
 tags = ['functional', 'cli_user', 'zpool_list']
 
 [tests/functional/compression]
-tests = ['compress_003_pos']
+tests = ['compress_003_pos','compress_zstd_bswap']
 tags = ['functional', 'compression']
 
 [tests/functional/exec]
@@ -602,7 +602,7 @@ tags = ['functional', 'vdev_zaps']
 [tests/functional/xattr]
 tests = ['xattr_001_pos', 'xattr_002_neg', 'xattr_003_neg', 'xattr_004_pos',
     'xattr_005_pos', 'xattr_006_pos', 'xattr_007_neg',
-    'xattr_011_pos', 'xattr_013_pos']
+    'xattr_011_pos', 'xattr_013_pos', 'xattr_compat']
 tags = ['functional', 'xattr']
 
 [tests/functional/zvol/zvol_ENOSPC]

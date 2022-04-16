@@ -28,7 +28,7 @@
 .\"     From: @(#)ifconfig.8	8.3 (Berkeley) 1/5/94
 .\" $FreeBSD$
 .\"
-.Dd April 29, 2021
+.Dd April 11, 2022
 .Dt IFCONFIG 8
 .Os
 .Sh NAME
@@ -36,17 +36,16 @@
 .Nd configure network interface parameters
 .Sh SYNOPSIS
 .Nm
-.Op Fl f Ar type Ns Cm \&: Ns Ar format Ns Op Cm \&, Ns Ar type Ns Cm \& : Ns Ar format ...
-.Op Fl L
-.Op Fl k
-.Op Fl m
-.Op Fl n
+.Op Fl kLmn
+.Op Fl f Ar type Ns Cm \&: Ns Ar format
 .Ar interface
 .Op Cm create
+.Oo
 .Ar address_family
 .Oo
 .Ar address
 .Op Ar dest_address
+.Oc
 .Oc
 .Op Ar parameters
 .Nm
@@ -54,28 +53,23 @@
 .Cm destroy
 .Nm
 .Fl a
-.Op Fl L
-.Op Fl d
-.Op Fl [gG] Ar groupname
-.Op Fl m
-.Op Fl u
-.Op Fl v
+.Op Fl dkLmuv
+.Op Fl f Ar type Ns Cm \&: Ns Ar format
+.Op Fl G Ar groupname
+.Op Fl g Ar groupname
 .Op Ar address_family
+.Nm
+.Fl C
+.Nm
+.Fl g Ar groupname
 .Nm
 .Fl l
-.Op Fl d
-.Op Fl u
+.Op Fl du
+.Op Fl g Ar groupname
 .Op Ar address_family
 .Nm
-.Op Fl L
-.Op Fl d
-.Op Fl k
-.Op Fl m
-.Op Fl u
-.Op Fl v
-.Op Fl C
-.Nm
-.Op Fl g Ar groupname
+.Op Fl dkLmuv
+.Op Fl f Ar type Ns Cm \&: Ns Ar format
 .Sh DESCRIPTION
 The
 .Nm
@@ -91,6 +85,194 @@ or other operating parameters.
 .Pp
 The following options are available:
 .Bl -tag -width indent
+.It Fl a
+Display information about all interfaces in the system.
+.Pp
+The
+.Fl a
+flag may be used instead of the
+.Ar interface
+argument.
+.It Fl C
+List all the interface cloners available on the system,
+with no additional information.
+Use of this flag is mutually exclusive with all other flags and commands.
+.It Fl d
+Display only the interfaces that are down.
+.It Fl f Xo
+.Ar type Ns Cm \&: Ns Ar format Ns
+.Op Cm \&, Ns Ar type Ns Cm \&: Ns Ar format Ar ...
+.Xc
+Control the output format of
+.Nm .
+The format is specified as a comma-separated list of
+.Ar type Ns Cm \&: Ns Ar format
+pairs
+.Po see the
+.Sx EXAMPLES
+section for more information
+.Pc .
+.Pp
+The output format can also be specified via the
+.Ev IFCONFIG_FORMAT
+environment variable.
+The
+.Fl f
+flag can be supplied multiple times.
+.Pp
+The
+.Ar type Ns s
+and their associated
+.Ar format
+strings are:
+.Pp
+.Bl -tag -width ether
+.It Cm addr
+Adjust the display of inet and inet6 addresses:
+.Pp
+.Bl -tag -width default -compact
+.It Cm default
+Default format,
+.Cm numeric
+.It Cm fqdn
+Fully qualified domain names
+.Pq FQDN
+.It Cm host
+Unqualified hostnames
+.It Cm numeric
+Numeric format
+.El
+.It Cm ether
+Adjust the display of link-level ethernet (MAC) addresses:
+.Pp
+.Bl -tag -width default -compact
+.It Cm colon
+Separate address segments with a colon
+.It Cm dash
+Separate address segments with a dash
+.It Cm default
+Default format,
+.Cm colon
+.El
+.It Cm inet
+Adjust the display of inet address subnet masks:
+.Pp
+.Bl -tag -width default -compact
+.It Cm cidr
+CIDR notation, for example:
+.Ql 203.0.113.224/26
+.It Cm default
+Default format,
+.Cm hex
+.It Cm dotted
+Dotted quad notation, for example:
+.Ql 255.255.255.192
+.It Cm hex
+Hexadecimal format, for example:
+.Ql 0xffffffc0
+.El
+.It Cm inet6
+Adjust the display of inet6 address prefixes (subnet masks):
+.Pp
+.Bl -tag -width default -compact
+.It Cm cidr
+CIDR notation, for example:
+.Ql ::1/128
+or
+.Ql fe80::1%lo0/64
+.It Cm default
+Default format,
+.Cm numeric
+.It Cm numeric
+Integer format, for example:
+.Ql prefixlen 64
+.El
+.El
+.It Fl G Ar groupname
+Exclude members of the specified
+.Ar groupname
+from the output.
+.Ar groupname .
+.Pp
+Only one option
+.Fl G
+should be specified as later override previous ones
+.Ar groupname
+may contain shell patterns in which case it should be quoted.
+.It Fl g Ar groupname
+Limit the output to the members of the specified
+.Ar groupname .
+.Pp
+If
+.Fl g
+is specified before other significant flags like, e.g.,
+.Fl a ,
+.Fl l ,
+or
+.Fl C ,
+then
+.Nm
+lists names of interfaces beloning to
+.Ar groupname .
+Any other flags and arguments are ignored in this case.
+.Pp
+Only one option
+.Fl g
+should be specified as later override previous ones
+.Ar groupname
+may contain shell patterns in which case it should be quoted.
+.It Fl k
+Print keying information for the
+.Ar interface ,
+if available.
+.Pp
+For example, the values of 802.11 WEP keys and
+.Xr carp 4
+passphrases will be printed, if accessible to the current user.
+.Pp
+This information is not printed by default, as it may be considered
+sensitive.
+.It Fl L
+Display address lifetime for IPv6 addresses as time offset string.
+.It Fl l
+List all available interfaces on the system,
+with no other additional information.
+.Pp
+If an
+.Ar address_family
+is specified, only interfaces of that type will be listed.
+.Pp
+If the
+.Ar address_family
+is set to
+.Cm ether ,
+then
+.Fl l
+will exclude loopback interfaces from the list of Ethernet interfaces.
+This is a special case, because all the other synonyms of the
+.Cm link
+address family will include loopback interfaces in the list.
+.Pp
+Use of this flag is mutually exclusive
+with all other flags and commands, except for
+.Fl d ,
+.Fl g ,
+and
+.Fl u .
+.It Fl m
+Display the capability list and all
+of the supported media for the specified interface.
+.It Fl n
+Disable automatic loading of network interface drivers.
+.Pp
+If the network interface driver is not present in the kernel then
+.Nm
+will attempt to load it.
+This flag disables this behavior.
+.It Fl u
+Display only the interfaces that are up.
+.It Fl v
+Get more verbose status for an interface.
 .It Ar address
 For the DARPA-Internet family,
 the address is either a host name present in the host name data
@@ -105,49 +287,32 @@ That is, one can specify an address like
 .Li 192.168.0.1/16 .
 .Pp
 For the
-.Dq inet6
+.Cm inet6
 family, it is also possible to specify the prefix length using the slash
 notation, like
 .Li ::1/128 .
 See the
 .Cm prefixlen
 parameter below for more information.
-.\" For the Xerox Network Systems(tm) family,
-.\" addresses are
-.\" .Ar net:a.b.c.d.e.f ,
-.\" where
-.\" .Ar net
-.\" is the assigned network number (in decimal),
-.\" and each of the six bytes of the host number,
-.\" .Ar a
-.\" through
-.\" .Ar f ,
-.\" are specified in hexadecimal.
-.\" The host number may be omitted on IEEE 802 protocol
-.\" (Ethernet, FDDI, and Token Ring) interfaces,
-.\" which use the hardware physical address,
-.\" and on interfaces other than the first.
-.\" For the ISO family, addresses are specified as a long hexadecimal string,
-.\" as in the Xerox family.
-.\" However, two consecutive dots imply a zero
-.\" byte, and the dots are optional, if the user wishes to (carefully)
-.\" count out long strings of digits in network byte order.
 .Pp
 The link-level
-.Pq Dq link
+.Pq Cm link
 address
 is specified as a series of colon-separated hex digits.
 This can be used to, for example,
 set a new MAC address on an Ethernet interface, though the
 mechanism used is not Ethernet specific.
+.Pp
 Use the
-.Pq Dq random
+.Cm random
 keyword to set a randomly generated MAC address.
 A randomly-generated MAC address might be the same as one already in use
 in the network.
 Such duplications are extremely unlikely.
+.Pp
 If the interface is already
-up when this option is used, it will be briefly brought down and
+up when the link-level address is modified,
+it will be briefly brought down and
 then brought back up again in order to ensure that the receive
 filter in the underlying Ethernet hardware is properly reprogrammed.
 .It Ar address_family
@@ -157,32 +322,25 @@ which affects interpretation of the remaining parameters.
 Since an interface can receive transmissions in differing protocols
 with different naming schemes, specifying the address family is recommended.
 The address or protocol families currently
-supported are
-.Dq inet ,
-.Dq inet6 ,
-and
-.Dq link .
-The default if available is
-.Dq inet
-or otherwise
-.Dq link .
-.Dq ether
-and
-.Dq lladdr
-are synonyms for
-.Dq link .
-When using the
+supported are:
+.Bl -tag
+.It Cm ether
+Synonymous with
+.Cm link
+.Po with some exceptions, see
 .Fl l
-flag, the
-.Dq ether
-address family has special meaning and is no longer synonymous with
-.Dq link
-or
-.Dq lladdr .
-Specifying
-.Fl l Dq ether
-will list only Ethernet interfaces, excluding all other interface types,
-including the loopback interface.
+.Pc .
+.It Cm inet
+Default, if available.
+.It Cm inet6
+.It Cm link
+Default, if
+.Cm inet
+is not available.
+.It Cm lladdr
+Synonymous with
+.Cm link .
+.El
 .It Ar dest_address
 Specify the address of the correspondent on the other end
 of a point to point link.
@@ -192,91 +350,25 @@ parameter is a string of the form
 .Dq name unit ,
 for example,
 .Dq Li em0 .
-.It Ar groupname
-List the interfaces in the given group.
 .El
 .Pp
-The output format of
-.Nm
-can be controlled using the
-.Fl f
-flag or the
-.Ev IFCONFIG_FORMAT
-environment variable.
-The format is specified as a comma separated list of
-.Sy type:format
-pairs.
-See the
-.Sx EXAMPLES
-section for more information.
 The
-.Sy types
-and their associated
-.Sy format
-strings are:
-.Bl -tag -width ether
-.It Sy addr
-Adjust the display of inet and inet6 addresses
-.Bl -tag -width default
-.It Sy default
-Display inet and inet6 addresses in the default format,
-.Sy numeric
-.It Sy fqdn
-Display inet and inet6 addresses as fully qualified domain names
-.Pq FQDN
-.It Sy host
-Display inet and inet6 addresses as unqualified hostnames
-.It Sy numeric
-Display inet and inet6 addresses in numeric format
-.El
-.It Sy ether
-Adjust the display of link-level ethernet (MAC) addresses
-.Bl -tag -width default
-.It Sy colon
-Separate address segments with a colon
-.It Sy dash
-Separate address segments with a dash
-.It Sy default
-Display ethernet addresses in the default format,
-.Sy colon
-.El
-.It Sy inet
-Adjust the display of inet address subnet masks:
-.Bl -tag -width default
-.It Sy cidr
-Display subnet masks in CIDR notation, for example:
-.br
-10.0.0.0/8 or 203.0.113.224/26
-.It Sy default
-Display subnet masks in the default format,
-.Sy hex
-.It Sy dotted
-Display subnet masks in dotted quad notation, for example:
-.br
-255.255.0.0 or 255.255.255.192
-.It Sy hex
-Display subnet masks in hexadecimal, for example:
-.br
-0xffff0000 or 0xffffffc0
-.El
-.It Sy inet6
-Adjust the display of inet6 address prefixes (subnet masks):
-.Bl -tag -width default
-.It Sy cidr
-Display subnet prefix in CIDR notation, for example:
-.br
-::1/128 or fe80::1%lo0/64
-.It Sy default
-Display subnet prefix in the default format
-.Sy numeric
-.It Sy numeric
-Display subnet prefix in integer format, for example:
-.br
-prefixlen 64
-.El
-.El
+.Nm
+utility displays the current configuration for a network interface
+when no optional parameters are supplied.
+If a protocol family is specified,
+.Nm
+will report only the details specific to that protocol family.
 .Pp
-The following parameters may be set with
+When no arguments are given,
+.Fl a
+is implied.
+.Pp
+Only the super-user may modify the configuration of a network interface.
+.Sh PARAMETERS
+The following
+.Ar parameter Ns s
+may be set with
 .Nm :
 .Bl -tag -width indent
 .It Cm add
@@ -570,7 +662,10 @@ There are three types of packets that may wake a system:
 ucast (directed solely to the machine's mac address),
 mcast (directed to a broadcast or multicast address),
 or
-magic (unicast or multicast frames with a ``magic contents'').
+magic
+.Po unicast or multicast frames with a
+.Dq magic contents
+.Pc .
 Not all devices support WOL, those that do indicate the mechanisms
 they support in their capabilities.
 .Cm wol
@@ -587,10 +682,10 @@ Note that this must be configured on a physical interface associated with
 not on a
 .Xr vlan 4
 interface itself.
-.It Fl vlanmtu , vlanhwtag , vlanhwfilter , vlanhwtso
+.It Fl vlanmtu , vlanhwtag , vlanhwfilter , vlanhwcsum , vlanhwtso
 If the driver offers user-configurable VLAN support, disable
 reception of extended frames, tag processing in hardware,
-frame filtering in hardware, or TSO on VLAN,
+frame filtering in hardware, checksum offloading, or TSO on VLAN,
 respectively.
 .It Cm vxlanhwcsum , vxlanhwtso
 If the driver offers user-configurable VXLAN support, enable inner checksum
@@ -750,7 +845,7 @@ It happens automatically when setting the first address on an interface.
 If the interface was reset when previously marked down,
 the hardware will be re-initialized.
 .El
-.Pp
+.Ss ICMPv6 Neighbor Discovery Protocol Parameters
 The following parameters are for ICMPv6 Neighbor Discovery Protocol.
 Note that the address family keyword
 .Dq Li inet6
@@ -832,7 +927,7 @@ Set a flag to disable Duplicate Address Detection.
 Clear a flag
 .Cm no_dad .
 .El
-.Pp
+.Ss IPv6 Parameters
 The following parameters are specific for IPv6 addresses.
 Note that the address family keyword
 .Dq Li inet6
@@ -857,7 +952,7 @@ Clear a flag
 .It Cm vltime Ar n
 Set valid lifetime for the address.
 .El
-.Pp
+.Ss IEEE 802.11 Wireless Interfaces Cloning Parameters
 The following parameters are specific to cloning
 IEEE 802.11 wireless interfaces with the
 .Cm create
@@ -909,7 +1004,8 @@ the device (if supported).
 .It Cm wdslegacy
 Mark a
 .Cm wds
-device as operating in ``legacy mode''.
+device as operating in
+.Dq legacy mode .
 Legacy
 .Cm wds
 devices have a fixed peer relationship and do not, for example, roam
@@ -935,7 +1031,7 @@ be transmitted; this can be useful when creating a WDS configuration but
 .Cm wds
 interfaces can only be created as companions to an access point.
 .El
-.Pp
+.Ss Cloned IEEE 802.11 Wireless Interface Parameters
 The following parameters are specific to IEEE 802.11 wireless interfaces
 cloned with a
 .Cm create
@@ -1129,9 +1225,9 @@ Channels range from 1 to 255, but the exact selection available
 depends on the region your adaptor was manufactured for.
 Setting
 the channel to
-.Li any ,
+.Cm any ,
 or
-.Cm -
+.Dq Cm -
 will clear any desired channel and, if the device is marked up,
 force a scan for a channel to operate on.
 Alternatively the frequency, in megahertz, may be specified
@@ -1141,42 +1237,71 @@ When there are several ways to use a channel the channel
 number/frequency may be appended with attributes to clarify.
 For example, if a device is capable of operating on channel 6
 with 802.11n and 802.11g then one can specify that g-only use
-should be used by specifying ``6:g''.
+should be used by specifying
+.Cm 6:g .
 Similarly the channel width can be specified by appending it
-with ``/''; e.g., ``6/40'' specifies a 40MHz wide channel,
-These attributes can be combined as in: ``6:ht/40''.
-The full set of flags specified following a ``:'' are:
-.Cm a
-(802.11a),
-.Cm b
-(802.11b),
-.Cm d
-(Atheros Dynamic Turbo mode),
-.Cm g
-(802.11g),
-.Cm h
-or
+with
+.Dq Cm \&/ ;
+e.g.,
+.Cm 6/40
+specifies a 40MHz wide channel.
+These attributes can be combined as in:
+.Cm 6:ht/40 .
+.Pp
+The full set of flags specified following a
+.Dq Cm \&:
+are:
+.Pp
+.Bl -tag -compact
+.It Cm a
+802.11a
+.It Cm b
+802.11b
+.It Cm d
+Atheros Dynamic Turbo mode
+.It Cm g
+802.11g
+.It Cm h
+Same as
 .Cm n
-(802.11n aka HT),
-.Cm s
-(Atheros Static Turbo mode),
+.It Cm n
+802.11n aka HT
+.It Cm s
+Atheros Static Turbo mode
+.It Cm t
+Atheros Dynamic Turbo mode, or appended to
+.Cm st
 and
-.Cm t
-(Atheros Dynamic Turbo mode, or appended to ``st'' and ``dt'').
-The full set of channel widths following a '/' are:
-.Cm 5
-(5MHz aka quarter-rate channel),
-.Cm 10
-(10MHz aka half-rate channel),
-.Cm 20
-(20MHz mostly for use in specifying ht20),
-and
-.Cm 40
-(40MHz mostly for use in specifying ht40).
+.Cm dt
+.El
+.Pp
+The full set of channel widths following a
+.Cm \&/
+are:
+.Pp
+.Bl -tag -compact
+.It Cm 5
+5MHz aka quarter-rate channel
+.It Cm 10
+10MHz aka half-rate channel
+.It Cm 20
+20MHz mostly for use in specifying
+.Cm ht20
+.It Cm 40
+40MHz mostly for use in specifying
+.Cm ht40
+.El
+.Pp
 In addition,
 a 40MHz HT channel specification may include the location
-of the extension channel by appending ``+'' or ``-'' for above and below,
-respectively; e.g., ``2437:ht/40+'' specifies 40MHz wide HT operation
+of the extension channel by appending
+.Dq Cm \&+
+or
+.Dq Cm \&-
+for above and below,
+respectively; e.g.,
+.Cm 2437:ht/40+
+specifies 40MHz wide HT operation
 with the center channel at frequency 2437 and the extension channel above.
 .It Cm country Ar name
 Set the country code to use in calculating the regulatory constraints
@@ -1190,7 +1315,9 @@ e.g., "ES" and "Spain".
 The set of country codes are taken from
 .Pa /etc/regdomain.xml
 and can also
-be viewed with the ``list countries'' request.
+be viewed with the
+.Cm list countries
+request.
 Note that not all devices support changing the country code from a default
 setting; typically stored in EEPROM.
 See also
@@ -1297,7 +1424,8 @@ The value should be less than beacon interval.
 Enable the use of Atheros Dynamic Turbo mode when communicating with
 another Dynamic Turbo-capable station.
 Dynamic Turbo mode is an Atheros-specific mechanism by which
-stations switch between normal 802.11 operation and a ``boosted''
+stations switch between normal 802.11 operation and a
+.Dq boosted
 mode in which a 40MHz wide channel is used for communication.
 Stations using Dynamic Turbo mode operate boosted only when the
 channel is free of non-dturbo stations; when a non-dturbo station
@@ -1322,7 +1450,9 @@ DWDS extends the normal WDS mechanism by leveraging existing security
 protocols and eliminating static binding.
 .Pp
 When DWDS is enabled on an access point 4-address frames received from
-an authorized station will generate a ``DWDS discovery'' event to user
+an authorized station will generate a
+.Dq DWDS discovery
+event to user
 applications.
 This event should be used to create a WDS interface that is bound
 to the remote station (and usually plumbed into a bridge).
@@ -1388,7 +1518,9 @@ To disable use of HT20 (e.g., to force only HT40 use) use
 To disable use of HT40 use
 .Fl ht40 .
 .Pp
-HT configuration is used to ``auto promote'' operation
+HT configuration is used to
+.Dq auto promote
+operation
 when several choices are available.
 For example, if a station associates to an 11n-capable access point
 it controls whether the station uses legacy operation, HT20, or HT40.
@@ -1409,7 +1541,8 @@ for old devices are different.
 When compatibility support is enabled both standard and compatible data
 will be provided.
 Stations that associate using the compatibility mechanisms are flagged
-in ``list sta''.
+in
+.Cm list sta .
 To disable compatibility support use
 .Fl htcompat .
 .It Cm htprotmode Ar technique
@@ -1428,7 +1561,8 @@ access point (default).
 When operating as an access point the 802.11 layer monitors
 the activity of each associated station.
 When a station is inactive for 5 minutes it will send several
-``probe frames'' to see if the station is still present.
+.Dq probe frames
+to see if the station is still present.
 If no response is received then the station is deauthenticated.
 Applications that prefer to handle this work can disable this
 facility by using
@@ -1515,7 +1649,7 @@ with a
 .Cm scan
 request or through background scanning.
 Depending on the capabilities of the stations the following
-flags can be included in the output:
+flags (capability codes) can be included in the output:
 .Bl -tag -width 3n
 .It Li A
 Channel agility.
@@ -1527,21 +1661,33 @@ Poll request capability.
 DSSS/OFDM capability.
 .It Li E
 Extended Service Set (ESS).
+Indicates that the station is part of an infrastructure network
+rather than an IBSS/ad-hoc network.
 .It Li I
 Independent Basic Service Set (IBSS).
+Indicates that the station is part of an ad-hoc network
+rather than an ESS network.
 .It Li P
 Privacy capability.
-The station requires authentication.
+The station requires authentication and encryption
+for all data frames exchanged within the BSS using cryptographic means
+such as WEP, TKIP, or AES-CCMP.
 .It Li R
 Robust Secure Network (RSN).
 .It Li S
 Short Preamble.
-Indicates that the station is doing short preamble to optionally
+Indicates that the network is using short preambles,
+defined in 802.11b High Rate/DSSS PHY,
+and utilizes a 56 bit sync field
+rather than the 128 bit field used in long preamble mode.
+Short preambles are used to optionally
 improve throughput performance with 802.11g and 802.11b.
 .It Li c
 Pollable capability.
 .It Li s
 Short slot time capability.
+Indicates that the 802.11g network is using a short slot time
+because there are no legacy (802.11b) stations present.
 .El
 .Pp
 By default interesting information elements captured from the neighboring
@@ -1716,7 +1862,9 @@ can be used on a channel are defined by this setting.
 Regdomain codes (SKU's) are taken from
 .Pa /etc/regdomain.xml
 and can also
-be viewed with the ``list countries'' request.
+be viewed with the
+.Cm list countries
+request.
 Note that not all devices support changing the regdomain from a default
 setting; typically stored in EEPROM.
 See also
@@ -2082,7 +2230,7 @@ Note that WPS support requires a WPS-capable supplicant.
 To disable this function use
 .Fl wps .
 .El
-.Pp
+.Ss MAC-Based Access Control List Parameters
 The following parameters support an optional access control list
 feature available with some adapters when operating in ap mode; see
 .Xr wlan_acl 4 .
@@ -2120,7 +2268,7 @@ program be configured to do the right thing
 as it handles the RADIUS processing
 (and marks stations as authorized).
 .El
-.Pp
+.Ss Mesh Mode Wireless Interface Parameters
 The following parameters are related to a wireless interface operating in mesh
 mode:
 .Bl -tag -width indent
@@ -2130,7 +2278,9 @@ The Mesh ID is a string up to 32 characters in length.
 A mesh interface must have a Mesh Identifier specified
 to reach an operational state.
 .It Cm meshttl Ar ttl
-Set the desired ``time to live'' for mesh forwarded packets;
+Set the desired
+.Dq time to live
+for mesh forwarded packets;
 this is the number of hops a packet may be forwarded before
 it is discarded.
 The default setting for
@@ -2169,7 +2319,8 @@ The only available protocol at the moment is called
 (Hybrid Wireless Mesh Protocol).
 The mesh interface will restart after changing this setting.
 .It Cm hwmprootmode Ar mode
-Stations on a mesh network can operate as ``root nodes.''
+Stations on a mesh network can operate as
+.Dq root nodes .
 Root nodes try to find paths to all mesh nodes and advertise themselves
 regularly.
 When there is a root mesh node on a network, other mesh nodes can setup
@@ -2205,7 +2356,7 @@ The default setting for
 .Cm hwmpmaxhops
 is 31.
 .El
-.Pp
+.Ss Compatibility Parameters
 The following parameters are for compatibility with other systems:
 .Bl -tag -width indent
 .It Cm nwid Ar ssid
@@ -2262,7 +2413,7 @@ Included for
 .Nx
 compatibility.
 .El
-.Pp
+.Ss Bridge Interface Parameters
 The following parameters are specific to bridge interfaces:
 .Bl -tag -width indent
 .It Cm addm Ar interface
@@ -2467,7 +2618,7 @@ source addresses are dropped until an existing host cache entry expires or is
 removed.
 Set to 0 to disable.
 .El
-.Pp
+.Ss Link Aggregation and Link Failover Parameters
 The following parameters are specific to lagg interfaces:
 .Bl -tag -width indent
 .It Cm laggtype Ar type
@@ -2577,7 +2728,7 @@ Disable lacp strict compliance on the interface.
 Configure a stride for an interface in round-robin mode.
 The default stride is 1.
 .El
-.Pp
+.Ss Generic IP Tunnel Parameters
 The following parameters apply to IP tunnel interfaces,
 .Xr gif 4 :
 .Bl -tag -width indent
@@ -2627,7 +2778,7 @@ This is for backward compatibility with
 Clear a flag
 .Cm send_rev_ethip_ver .
 .El
-.Pp
+.Ss GRE Tunnel Parameters
 The following parameters apply to GRE tunnel interfaces,
 .Xr gre 4 :
 .Bl -tag -width indent
@@ -2654,7 +2805,7 @@ Note that
 .Xr gre 4 will always accept GRE packets with invalid or absent keys.
 This command will result in a four byte MTU reduction on the interface.
 .El
-.Pp
+.Ss Packet Filter State Table Sychronisation Parameters
 The following parameters are specific to
 .Xr pfsync 4
 interfaces:
@@ -2682,7 +2833,7 @@ acknowledged that the associated state has been inserted.
 Do not defer the first packet in a state.
 This is the default.
 .El
-.Pp
+.Ss VLAN Parameters
 The following parameters are specific to
 .Xr vlan 4
 interfaces:
@@ -2794,7 +2945,7 @@ The
 .Ar iface
 argument is useless and hence deprecated.
 .El
-.Pp
+.Ss Virtual eXtensible LAN Parameters
 The following parameters are used to configure
 .Xr vxlan 4
 interfaces.
@@ -2864,7 +3015,7 @@ Delete all dynamically-learned addresses from the forwarding table.
 .It Cm vxlanflushall
 Delete all addresses, including static addresses, from the forwarding table.
 .El
-.Pp
+.Ss CARP Parameters
 The following parameters are used to configure
 .Xr carp 4
 protocol on an interface:
@@ -2904,105 +3055,23 @@ The default value is 0.
 .It Cm pass Ar phrase
 Set the authentication key to
 .Ar phrase .
-.It Cm state Ar MASTER|BACKUP
+.It Cm state Ar state
 Forcibly change state of a given vhid.
+The following states are recognized:
+.Cm MASTER
+and
+.Cm BACKUP .
 .El
-.Pp
-The
-.Nm
-utility displays the current configuration for a network interface
-when no optional parameters are supplied.
-If a protocol family is specified,
-.Nm
-will report only the details specific to that protocol family.
-.Pp
-If the
-.Fl m
-flag is passed before an interface name,
-.Nm
-will display the capability list and all
-of the supported media for the specified interface.
-If
-.Fl L
-flag is supplied, address lifetime is displayed for IPv6 addresses,
-as time offset string.
-.Pp
-Optionally, the
-.Fl a
-flag may be used instead of an interface name.
-This flag instructs
-.Nm
-to display information about all interfaces in the system.
-The
-.Fl d
-flag limits this to interfaces that are down,
-.Fl u
-limits this to interfaces that are up,
-.Fl g
-limits this to members of the specified group of interfaces, and
-.Fl G
-excludes members of the specified group from the list.
-Both
-.Fl g
-and
-.Fl G
-flags may be specified to apply both conditions.
-Only one option
-.Fl g
-should be specified as later override previous ones
-(same for
-.Fl G ) .
-.Sy groupname
-may contain shell patterns in which case it should be quoted.
-When no arguments are given,
-.Fl a
-is implied.
-.Pp
-The
-.Fl l
-flag may be used to list all available interfaces on the system, with
-no other additional information.
-If an
-.Ar address_family
-is specified, only interfaces of that type will be listed.
-.Fl l Dq ether
-will list only Ethernet adapters, excluding the loopback interface.
-Use of this flag is mutually exclusive
-with all other flags and commands, except for
-.Fl d
-(only list interfaces that are down)
-and
-.Fl u
-(only list interfaces that are up).
-.Pp
-The
-.Fl v
-flag may be used to get more verbose status for an interface.
-.Pp
-The
-.Fl C
-flag may be used to list all of the interface cloners available on
-the system, with no additional information.
-Use of this flag is mutually exclusive with all other flags and commands.
-.Pp
-The
-.Fl k
-flag causes keying information for the interface, if available, to be
-printed.
-For example, the values of 802.11 WEP keys and
-.Xr carp 4
-passphrases will be printed, if accessible to the current user.
-This information is not printed by default, as it may be considered
-sensitive.
-.Pp
-If the network interface driver is not present in the kernel then
-.Nm
-will attempt to load it.
-The
-.Fl n
-flag disables this behavior.
-.Pp
-Only the super-user may modify the configuration of a network interface.
+.Sh ENVIRONMENT
+The following environment variables affect the execution of
+.Nm :
+.Bl -tag -width IFCONFIG_FORMAT
+.It Ev IFCONFIG_FORMAT
+This variable can contain a specification of the output format.
+See the description of the
+.Fl f
+flag for more details.
+.El
 .Sh EXAMPLES
 Assign the IPv4 address
 .Li 192.0.2.10 ,
@@ -3017,12 +3086,8 @@ Add the IPv4 address
 with the CIDR network prefix
 .Li /28 ,
 to the interface
-.Li em0 ,
-using
-.Cm add
-as a synonym for the canonical form of the option
-.Cm alias :
-.Dl # ifconfig em0 inet 192.0.2.45/28 add
+.Li em0 :
+.Dl # ifconfig em0 inet 192.0.2.45/28 alias
 .Pp
 Remove the IPv4 address
 .Li 192.0.2.45
@@ -3043,17 +3108,15 @@ Note that lower case hexadecimal IPv6 addresses are acceptable.
 Remove the IPv6 address added in the above example,
 using the
 .Li /
-character as shorthand for the network prefix,
-and using
-.Cm delete
-as a synonym for the canonical form of the option
-.Fl alias :
-.Dl # ifconfig em0 inet6 2001:db8:bdbd::123/48 delete
+character as shorthand for the network prefix:
+.Dl # ifconfig em0 inet6 2001:db8:bdbd::123/48 -alias
 .Pp
 Configure a single CARP redundant address on igb0, and then switch it
 to be master:
-.Dl # ifconfig igb0 vhid 1 10.0.0.1/24 pass foobar up
-.Dl # ifconfig igb0 vhid 1 state master
+.Bd -literal -offset indent -compact
+# ifconfig igb0 vhid 1 10.0.0.1/24 pass foobar up
+# ifconfig igb0 vhid 1 state master
+.Ed
 .Pp
 Configure the interface
 .Li xl0 ,
@@ -3080,6 +3143,46 @@ Display inet and inet6 address subnet masks in CIDR notation
 .Pp
 Display interfaces that are up with the exception of loopback
 .Dl # ifconfig -a -u -G lo
+.Pp
+Display a list of interface names beloning to the wlan group:
+.Bd -literal -offset indent -compact
+# ifconfig -g wlan
+wlan0
+wlan1
+.Ed
+.Pp
+Display details about the interfaces belonging to the wlan group:
+.Bd -literal -offset indent -compact
+# ifconfig -a -g wlan
+wlan0: flags=8843<UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST> metric 0 mtu 1500
+        ether 75:4c:61:6b:7a:73
+        inet6 fe80::4c75:636a:616e:ffd8%wlan0 prefixlen 64 scopeid 0x3
+        inet6 2001:5761:6e64:6152:6f6d:616e:fea4:ffe2 prefixlen 64 autoconf
+        inet 192.168.10.5 netmask 0xffffff00 broadcast 192.168.10.255
+        groups: wlan
+        ssid "Hotspot" channel 11 (2462 MHz 11g) bssid 12:34:ff:ff:43:21
+        regdomain ETSI country DE authmode WPA2/802.11i privacy ON
+        deftxkey UNDEF AES-CCM 2:128-bit AES-CCM 3:128-bit txpower 30 bmiss 10
+        scanvalid 60 protmode CTS wme roaming MANUAL
+        parent interface: iwm0
+        media: IEEE 802.11 Wireless Ethernet DS/2Mbps mode 11g
+        status: associated
+        nd6 options=23<PERFORMNUD,ACCEPT_RTADV,AUTO_LINKLOCAL>
+wlan1: flags=8843<UP,BROADCAST,RUNNING,SIMPLEX,MULTICAST> metric 0 mtu 1500
+        ether 00:50:69:6f:74:72
+        groups: wlan
+        ssid "" channel 2 (2417 MHz 11g)
+        regdomain FCC country US authmode OPEN privacy OFF txpower 30 bmiss 7
+        scanvalid 60 bgscan bgscanintvl 300 bgscanidle 250 roam:rssi 7
+        roam:rate 5 protmode CTS wme bintval 0
+        parent interface: rum0
+        media: IEEE 802.11 Wireless Ethernet autoselect (autoselect)
+        status: no carrier
+        nd6 options=29<PERFORMNUD,IFDISABLED,AUTO_LINKLOCAL>
+.Ed
+.Pp
+Set a randomly-generated MAC address on tap0:
+.Dl # ifconfig tap0 ether random
 .Sh DIAGNOSTICS
 Messages indicating the specified interface does not exist, the
 requested address is unknown, or the user is not privileged and
@@ -3094,7 +3197,6 @@ tried to alter an interface's configuration.
 .Xr vlan 4 ,
 .Xr vxlan 4 ,
 .Xr devd.conf 5 ,
-.\" .Xr eon 5 ,
 .Xr devd 8 ,
 .Xr jail 8 ,
 .Xr rc 8 ,

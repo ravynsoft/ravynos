@@ -39,7 +39,7 @@
 #ifndef _MACHINE_REG_H_
 #define	_MACHINE_REG_H_
 
-#include <machine/_types.h>
+#include <sys/_types.h>
 
 #ifdef __i386__
 /*
@@ -86,6 +86,7 @@
 #define	__reg32		reg
 #define	__fpreg32	fpreg
 #define	__dbreg32	dbreg
+#define	__segbasereg32	segbasereg
 #else
 #define	__reg32		reg32
 #define	__reg64		reg
@@ -93,6 +94,8 @@
 #define	__fpreg64	fpreg
 #define	__dbreg32	dbreg32
 #define	__dbreg64	dbreg
+#define	__segbasereg32	segbasereg32
+#define	__segbasereg64	segbasereg
 #define	__HAVE_REG32
 #endif
 
@@ -236,34 +239,33 @@ struct __dbreg64 {
 #define	DBREG_DRX(d,x)	((d)->dr[(x)])	/* reference dr0 - dr7 by
 					   register number */
 
+/*
+ * Register set accessible via NT_X86_SEGBASES.
+ */
+struct __segbasereg32 {
+	__uint32_t	r_fsbase;
+	__uint32_t	r_gsbase;
+};
+
+struct __segbasereg64 {
+	__uint64_t	r_fsbase;
+	__uint64_t	r_gsbase;
+};
+
 #undef __reg32
 #undef __reg64
 #undef __fpreg32
 #undef __fpreg64
 #undef __dbreg32
 #undef __dbreg64
+#undef __segbasereg32
+#undef __segbasereg64
 
 #ifdef _KERNEL
-struct thread;
-
 /*
  * XXX these interfaces are MI, so they should be declared in a MI place.
  */
-int	fill_regs(struct thread *, struct reg *);
 int	fill_frame_regs(struct trapframe *, struct reg *);
-int	set_regs(struct thread *, struct reg *);
-int	fill_fpregs(struct thread *, struct fpreg *);
-int	set_fpregs(struct thread *, struct fpreg *);
-int	fill_dbregs(struct thread *, struct dbreg *);
-int	set_dbregs(struct thread *, struct dbreg *);
-#ifdef COMPAT_FREEBSD32
-int	fill_regs32(struct thread *, struct reg32 *);
-int	set_regs32(struct thread *, struct reg32 *);
-int	fill_fpregs32(struct thread *, struct fpreg32 *);
-int	set_fpregs32(struct thread *, struct fpreg32 *);
-int	fill_dbregs32(struct thread *, struct dbreg32 *);
-int	set_dbregs32(struct thread *, struct dbreg32 *);
-#endif
 #endif
 
 #endif /* !_MACHINE_REG_H_ */

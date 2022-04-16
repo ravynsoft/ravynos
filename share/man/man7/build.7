@@ -40,9 +40,11 @@ normally
 and
 .Pa /usr/ports .
 These directories may be initially empty or non-existent until updated with
-.Xr svn 1
-(or
-.Xr svnlite 1 ) .
+Git
+.Po installed from packages with
+.Xr pkg 7
+or from
+.Xr ports 7 Pc .
 Directory
 .Pa /usr/src
 contains the
@@ -214,10 +216,15 @@ for native builds, and
 for cross builds and native builds with variable
 .Va CROSS_BUILD_TESTING
 set.
+.It Cm cleankernel
+Attempts to clean up targets built by a preceding
+.Cm buildkernel ,
+or similar step, built from the same source directory and
+.Va KERNCONF .
 .It Cm cleanworld
 Attempt to clean up targets built by a preceding
 .Cm buildworld ,
-or similar step built from this source directory.
+or similar step, built from this source directory.
 .It Cm cleanuniverse
 When
 .Va WITH_UNIFIED_OBJDIR
@@ -308,9 +315,6 @@ Like
 with
 .Va WITHOUT_KERNELS
 defined so only the worlds for each architecture are built.
-.It Cm update
-Get updated sources as configured in
-.Xr make.conf 5 .
 .It Cm targets
 Print a list of supported
 .Va TARGET
@@ -662,6 +666,14 @@ This variable can also be useful when debugging failed builds.
 .Bd -literal -offset indent
 make some-target SUBDIR_OVERRIDE=foo/bar
 .Ed
+.It Va SYSDIR
+Specify the location of the kernel source to override the default
+.Pa /usr/src/sys .
+The kernel source is located in the
+.Pa sys
+subdirectory of the source tree checked out from the
+.Pa src.git
+repository.
 .It Va TARGET
 The target hardware platform.
 This is analogous to the
@@ -765,26 +777,12 @@ If set, the build process does not run
 as part of the
 .Cm buildkernel
 target.
-.It Va NO_DOCUPDATE
-If set, the update process does not update the source of the
-.Fx
-documentation as part of the
-.Dq make update
-target.
 .It Va NO_LIBS
 If set, the libraries phase will be skipped.
 .It Va NO_OBJWALK
 If set, no object directories will be created.
 This should only be used if object directories were created in a
 previous build and no new directories are connected.
-.It Va NO_PORTSUPDATE
-If set, the update process does not update the Ports tree as part of the
-.Dq make update
-target.
-.It Va NO_WWWUPDATE
-If set, the update process does not update the www tree as part of the
-.Dq make update
-target.
 .It Va WORLDFAST
 If set, the build target
 .Cm buildworld
@@ -880,11 +878,10 @@ manpage first appeared in
 .Xr cc 1 ,
 .Xr install 1 ,
 .Xr make 1 ,
-.Xr svn 1 ,
-.Xr svnlite 1 ,
 .Xr make.conf 5 ,
 .Xr src.conf 5 ,
 .Xr arch 7 ,
+.Xr pkg 7 ,
 .Xr ports 7 ,
 .Xr release 7 ,
 .Xr tests 7 ,

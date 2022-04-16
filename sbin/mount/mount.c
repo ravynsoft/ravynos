@@ -192,7 +192,7 @@ specified_ro(const char *arg)
 
 	optbuf = strdup(arg);
 	if (optbuf == NULL)
-		 xo_err(1, NULL);
+		 xo_err(1, "strdup failed");
 
 	for (opt = optbuf; (opt = strtok(opt, ",")) != NULL; opt = NULL) {
 		if (strcmp(opt, "ro") == 0) {
@@ -207,33 +207,8 @@ specified_ro(const char *arg)
 static void
 restart_mountd(void)
 {
-	struct pidfh *pfh;
-	pid_t mountdpid;
 
-	mountdpid = 0;
-	pfh = pidfile_open(_PATH_MOUNTDPID, 0600, &mountdpid);
-	if (pfh != NULL) {
-		/* Mountd is not running. */
-		pidfile_remove(pfh);
-		return;
-	}
-	if (errno != EEXIST) {
-		/* Cannot open pidfile for some reason. */
-		return;
-	}
-
-	/*
-	 * Refuse to send broadcast or group signals, this has
-	 * happened due to the bugs in pidfile(3).
-	 */
-	if (mountdpid <= 0) {
-		xo_warnx("mountd pid %d, refusing to send SIGHUP", mountdpid);
-		return;
-	}
-
-	/* We have mountd(8) PID in mountdpid varible, let's signal it. */
-	if (kill(mountdpid, SIGHUP) == -1)
-		xo_err(1, "signal mountd");
+	pidfile_signal(_PATH_MOUNTDPID, SIGHUP, NULL);
 }
 
 int
@@ -502,7 +477,7 @@ ismounted(struct fstab *fs, struct statfs *mntbuf, int mntsize)
 
 	/* 
 	 * Consider the filesystem to be mounted if:
-	 * It has the same mountpoint as a mounted filesytem, and
+	 * It has the same mountpoint as a mounted filesystem, and
 	 * It has the same type as that same mounted filesystem, and
 	 * It has the same device name as that same mounted filesystem, OR
 	 *     It is a nonremountable filesystem

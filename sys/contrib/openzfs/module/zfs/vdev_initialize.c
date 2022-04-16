@@ -37,16 +37,16 @@
  * Value that is written to disk during initialization.
  */
 #ifdef _ILP32
-unsigned long zfs_initialize_value = 0xdeadbeefUL;
+static unsigned long zfs_initialize_value = 0xdeadbeefUL;
 #else
-unsigned long zfs_initialize_value = 0xdeadbeefdeadbeeeULL;
+static unsigned long zfs_initialize_value = 0xdeadbeefdeadbeeeULL;
 #endif
 
 /* maximum number of I/Os outstanding per leaf vdev */
-int zfs_initialize_limit = 1;
+static const int zfs_initialize_limit = 1;
 
 /* size of initializing writes; default 1MiB, see zfs_remove_max_segment */
-unsigned long zfs_initialize_chunk_size = 1024 * 1024;
+static unsigned long zfs_initialize_chunk_size = 1024 * 1024;
 
 static boolean_t
 vdev_initialize_should_stop(vdev_t *vd)
@@ -488,7 +488,7 @@ vdev_initialize_range_add(void *arg, uint64_t start, uint64_t size)
 	vdev_xlate_walk(vd, &logical_rs, vdev_initialize_xlate_range_add, arg);
 }
 
-static void
+static __attribute__((noreturn)) void
 vdev_initialize_thread(void *arg)
 {
 	vdev_t *vd = arg;
@@ -765,10 +765,8 @@ EXPORT_SYMBOL(vdev_initialize_stop_all);
 EXPORT_SYMBOL(vdev_initialize_stop_wait);
 EXPORT_SYMBOL(vdev_initialize_restart);
 
-/* BEGIN CSTYLED */
 ZFS_MODULE_PARAM(zfs, zfs_, initialize_value, ULONG, ZMOD_RW,
 	"Value written during zpool initialize");
 
 ZFS_MODULE_PARAM(zfs, zfs_, initialize_chunk_size, ULONG, ZMOD_RW,
 	"Size in bytes of writes by zpool initialize");
-/* END CSTYLED */

@@ -196,7 +196,7 @@ static cpuset_t cpumask;
 
 static void vm_loop(struct vmctx *ctx, int vcpu, uint64_t rip);
 
-static struct vm_exit vmexit[VM_MAXCPU];
+static struct vm_exit *vmexit;
 
 struct bhyvestats {
 	uint64_t	vmexit_bogus;
@@ -212,10 +212,10 @@ struct bhyvestats {
 struct mt_vmm_info {
 	pthread_t	mt_thr;
 	struct vmctx	*mt_ctx;
-	int		mt_vcpu;	
-} mt_vmm_info[VM_MAXCPU];
+	int		mt_vcpu;
+} *mt_vmm_info;
 
-static cpuset_t *vcpumap[VM_MAXCPU] = { NULL };
+static cpuset_t **vcpumap;
 
 static void
 usage(int code)
@@ -236,8 +236,9 @@ usage(int code)
 		"       -H: vmexit from the guest on HLT\n"
 		"       -h: help\n"
 		"       -k: key=value flat config file\n"
+		"       -K: PS2 keyboard layout\n"
 		"       -l: LPC device configuration\n"
-		"       -m: memory size in MB\n"
+		"       -m: memory size\n"
 		"       -o: set config 'var' to 'value'\n"
 		"       -P: vmexit from the guest on pause\n"
 		"       -p: pin 'vcpu' to 'hostcpu'\n"
@@ -269,7 +270,7 @@ usage(int code)
 static int
 topology_parse(const char *opt)
 {
-	char *cp, *str;
+	char *cp, *str, *tofree;
 
 	if (*opt == '\0') {
 		set_config_value("sockets", "1");
@@ -279,7 +280,7 @@ topology_parse(const char *opt)
 		return (0);
 	}
 
-	str = strdup(opt);
+	tofree = str = strdup(opt);
 	if (str == NULL)
 		errx(4, "Failed to allocate memory");
 
@@ -301,11 +302,11 @@ topology_parse(const char *opt)
 		else
 			set_config_value("cpus", cp);
 	}
-	free(str);
+	free(tofree);
 	return (0);
 
 out:
-	free(str);
+	free(tofree);
 	return (-1);
 }
 
@@ -392,9 +393,8 @@ pincpu_parse(const char *opt)
 		return (-1);
 	}
 
-	if (vcpu < 0 || vcpu >= VM_MAXCPU) {
-		fprintf(stderr, "vcpu '%d' outside valid range from 0 to %d\n",
-		    vcpu, VM_MAXCPU - 1);
+	if (vcpu < 0) {
+		fprintf(stderr, "invalid vcpu '%d'\n", vcpu);
 		return (-1);
 	}
 
@@ -471,6 +471,7 @@ build_vcpumaps(void)
 	const char *value;
 	int vcpu;
 
+	vcpumap = calloc(guest_ncpus, sizeof(*vcpumap));
 	for (vcpu = 0; vcpu < guest_ncpus; vcpu++) {
 		snprintf(key, sizeof(key), "vcpu.%d.cpuset", vcpu);
 		value = get_config_value(key);
@@ -1000,16 +1001,20 @@ vm_loop(struct vmctx *ctx, int vcpu, uint64_t startrip)
 static int
 num_vcpus_allowed(struct vmctx *ctx)
 {
+	uint16_t sockets, cores, threads, maxcpus;
 	int tmp, error;
-
-	error = vm_get_capability(ctx, BSP, VM_CAP_UNRESTRICTED_GUEST, &tmp);
 
 	/*
 	 * The guest is allowed to spinup more than one processor only if the
 	 * UNRESTRICTED_GUEST capability is available.
 	 */
+	error = vm_get_capability(ctx, BSP, VM_CAP_UNRESTRICTED_GUEST, &tmp);
+	if (error != 0)
+		return (1);
+
+	error = vm_get_topology(ctx, &sockets, &cores, &threads, &maxcpus);
 	if (error == 0)
-		return (VM_MAXCPU);
+		return (maxcpus);
 	else
 		return (1);
 }
@@ -1066,7 +1071,7 @@ do_open(const char *vmname)
 	bool reinit, romboot;
 #ifndef WITHOUT_CAPSICUM
 	cap_rights_t rights;
-	const cap_ioctl_t *cmds;	
+	const cap_ioctl_t *cmds;
 	size_t ncmds;
 #endif
 
@@ -1109,7 +1114,7 @@ do_open(const char *vmname)
 
 #ifndef WITHOUT_CAPSICUM
 	cap_rights_init(&rights, CAP_IOCTL, CAP_MMAP_RW);
-	if (caph_rights_limit(vm_get_device_fd(ctx), &rights) == -1) 
+	if (caph_rights_limit(vm_get_device_fd(ctx), &rights) == -1)
 		errx(EX_OSERR, "Unable to apply rights for sandbox");
 	vm_get_ioctls(&ncmds);
 	cmds = vm_get_ioctls(NULL);
@@ -1119,7 +1124,7 @@ do_open(const char *vmname)
 		errx(EX_OSERR, "Unable to apply rights for sandbox");
 	free((cap_ioctl_t *)cmds);
 #endif
- 
+
 	if (reinit) {
 		error = vm_reinit(ctx);
 		if (error) {
@@ -1194,6 +1199,30 @@ parse_simple_config_file(const char *path)
 }
 
 static void
+parse_gdb_options(char *optarg)
+{
+	const char *sport;
+	char *colon;
+
+	if (optarg[0] == 'w') {
+		set_config_bool("gdb.wait", true);
+		optarg++;
+	}
+
+	colon = strrchr(optarg, ':');
+	if (colon == NULL) {
+		sport = optarg;
+	} else {
+		*colon = '\0';
+		colon++;
+		sport = colon;
+		set_config_value("gdb.address", optarg);
+	}
+
+	set_config_value("gdb.port", sport);
+}
+
+static void
 set_defaults(void)
 {
 
@@ -1225,9 +1254,9 @@ main(int argc, char *argv[])
 	progname = basename(argv[0]);
 
 #ifdef BHYVE_SNAPSHOT
-	optstr = "aehuwxACDHIPSWYk:o:p:G:c:s:m:l:U:r:";
+	optstr = "aehuwxACDHIPSWYk:o:p:G:c:s:m:l:K:U:r:";
 #else
-	optstr = "aehuwxACDHIPSWYk:o:p:G:c:s:m:l:U:";
+	optstr = "aehuwxACDHIPSWYk:o:p:G:c:s:m:l:K:U:";
 #endif
 	while ((c = getopt(argc, argv, optstr)) != -1) {
 		switch (c) {
@@ -1256,14 +1285,13 @@ main(int argc, char *argv[])
 			set_config_bool("memory.guest_in_core", true);
 			break;
 		case 'G':
-			if (optarg[0] == 'w') {
-				set_config_bool("gdb.wait", true);
-				optarg++;
-			}
-			set_config_value("gdb.port", optarg);
+			parse_gdb_options(optarg);
 			break;
 		case 'k':
 			parse_simple_config_file(optarg);
+			break;
+		case 'K':
+			set_config_value("keyboard.layout", optarg);
 			break;
 		case 'l':
 			if (strncmp(optarg, "help", strlen(optarg)) == 0) {
@@ -1334,7 +1362,7 @@ main(int argc, char *argv[])
 			set_config_bool("x86.mptable", false);
 			break;
 		case 'h':
-			usage(0);			
+			usage(0);
 		default:
 			usage(1);
 		}
@@ -1421,7 +1449,7 @@ main(int argc, char *argv[])
 		exit(4);
 	}
 
-	init_mem();
+	init_mem(guest_ncpus);
 	init_inout();
 	kernemu_dev_init();
 	init_bootrom(ctx);
@@ -1447,10 +1475,7 @@ main(int argc, char *argv[])
 	if (get_config_bool("acpi_tables"))
 		vmgenc_init(ctx);
 
-	value = get_config_value("gdb.port");
-	if (value != NULL)
-		init_gdb(ctx, atoi(value), get_config_bool_default("gdb.wait",
-		    false));
+	init_gdb(ctx);
 
 	if (lpc_bootrom()) {
 		if (vm_set_capability(ctx, BSP, VM_CAP_UNRESTRICTED_GUEST, 1)) {
@@ -1540,6 +1565,9 @@ main(int argc, char *argv[])
 	if (restore_file != NULL)
 		destroy_restore_state(&rstate);
 
+	/* initialize mutex/cond variables */
+	init_snapshot();
+
 	/*
 	 * checkpointing thread for communication with bhyvectl
 	 */
@@ -1549,6 +1577,10 @@ main(int argc, char *argv[])
 	if (restore_file != NULL)
 		vm_restore_time(ctx);
 #endif
+
+	/* Allocate per-VCPU resources. */
+	vmexit = calloc(guest_ncpus, sizeof(*vmexit));
+	mt_vmm_info = calloc(guest_ncpus, sizeof(*mt_vmm_info));
 
 	/*
 	 * Add CPU 0

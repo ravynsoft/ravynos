@@ -30,6 +30,7 @@
 # $FreeBSD$
 #
 
+#include <sys/bio.h>
 #include <sys/socket.h>
 #include <dev/iscsi/icl.h>
 
@@ -50,12 +51,30 @@ METHOD size_t pdu_data_segment_length {
 	const struct icl_pdu *_ip;
 };
 
+METHOD int pdu_append_bio {
+	struct icl_conn *_ic;
+	struct icl_pdu *_ip;
+	struct bio *_bp;
+	size_t _offset;
+	size_t _len;
+	int _flags;
+};
+
 METHOD int pdu_append_data {
 	struct icl_conn *_ic;
 	struct icl_pdu *_ip;
 	const void *_addr;
 	size_t _len;
 	int _flags;
+};
+
+METHOD void pdu_get_bio {
+	struct icl_conn *_ic;
+	struct icl_pdu *_ip;
+	size_t _pdu_off;
+	struct bio *_bp;
+	size_t _bio_off;
+	size_t _len;
 };
 
 METHOD void pdu_get_data {
@@ -115,6 +134,7 @@ METHOD void task_done {
 
 METHOD int transfer_setup {
 	struct icl_conn *_ic;
+	struct icl_pdu *_ip;
 	union ctl_io *_io;
 	uint32_t *_transfer_tag;
 	void **_prvp;

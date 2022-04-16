@@ -84,6 +84,10 @@ status_stress_body()
 {
 	local TAP0 TAP1 LAGG MAC
 
+	if [ "$(atf_config_get ci false)" = "true" ]; then
+		atf_skip "Skipping this test because it panics the machine fairly often"
+	fi
+
 	# Configure the lagg interface to use an RFC5737 nonrouteable addresses
 	ADDR="192.0.2.2"
 	MASK="24"
@@ -402,9 +406,8 @@ witness_head()
 }
 witness_body()
 {
-	if [ "$(atf_config_get ci false)" = "true" ] && \
-		[ "$(uname -p)" = "i386" ]; then
-		atf_skip "https://bugs.freebsd.org/244163"
+	if [ "$(atf_config_get ci false)" = "true" ]; then
+		atf_skip "https://bugs.freebsd.org/244163 and https://bugs.freebsd.org/251726"
 	fi
 	if [ `sysctl -n debug.witness.watch` -ne 1 ]; then
 		atf_skip "witness(4) is not enabled"

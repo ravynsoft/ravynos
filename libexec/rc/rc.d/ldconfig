@@ -37,7 +37,7 @@ ldconfig_start()
 				_LDC="${_LDC} ${i}"
 			fi
 		done
-		check_startmsgs && echo 'ELF ldconfig path:' ${_LDC}
+		startmsg 'ELF ldconfig path:' ${_LDC}
 		${ldconfig} -elf ${_ins} ${_LDC}
 
 		machine_arch=$(sysctl -n hw.machine_arch)
@@ -58,33 +58,11 @@ ldconfig_start()
 					_LDC="${_LDC} ${i}"
 				fi
 			done
-			check_startmsgs &&
-			    echo '32-bit compatibility ldconfig path:' ${_LDC}
+			startmsg '32-bit compatibility ldconfig path:' ${_LDC}
 			${ldconfig} -32 ${_ins} ${_LDC}
 			;;
 		esac
 
-		case ${machine_arch} in
-		armv[67])
-			for i in ${ldconfig_localsoft_dirs}; do
-				if [ -d "${i}" ]; then
-					_files=`find ${i} -type f`
-					if [ -n "${_files}" ]; then
-						ldconfigsoft_paths="${ldconfigsoft_paths} `cat ${_files} | sort -u`"
-					fi
-				fi
-			done
-			_LDC=""
-			for i in ${ldconfigsoft_paths}; do
-				if [ -r "${i}" ]; then
-					_LDC="${_LDC} ${i}"
-				fi
-			done
-			check_startmsgs &&
-			    echo 'Soft Float compatibility ldconfig path:' ${_LDC}
-			${ldconfig} -soft ${_ins} ${_LDC}
-			;;
-		esac
 	fi
 }
 

@@ -52,6 +52,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/sched.h>
 #include <sys/smp.h>
 #include <sys/timetc.h>
+#include <sys/uuid.h>
 
 #if defined(__i386__) || defined(__amd64__)
 #include <machine/clock.h>
@@ -143,14 +144,19 @@ static void	acpi_delete_resource(device_t bus, device_t child, int type,
 		    int rid);
 static uint32_t	acpi_isa_get_logicalid(device_t dev);
 static int	acpi_isa_get_compatid(device_t dev, uint32_t *cids, int count);
+static ssize_t acpi_bus_get_prop(device_t bus, device_t child, const char *propname,
+		    void *propvalue, size_t size, device_property_type_t type);
 static int	acpi_device_id_probe(device_t bus, device_t dev, char **ids, char **match);
 static ACPI_STATUS acpi_device_eval_obj(device_t bus, device_t dev,
 		    ACPI_STRING pathname, ACPI_OBJECT_LIST *parameters,
 		    ACPI_BUFFER *ret);
+static ACPI_STATUS acpi_device_get_prop(device_t bus, device_t dev,
+		    ACPI_STRING propname, const ACPI_OBJECT **value);
 static ACPI_STATUS acpi_device_scan_cb(ACPI_HANDLE h, UINT32 level,
 		    void *context, void **retval);
 static ACPI_STATUS acpi_device_scan_children(device_t bus, device_t dev,
 		    int max_depth, acpi_scan_cb_t user_fn, void *arg);
+static ACPI_STATUS acpi_find_dsd(device_t bus, device_t dev);
 static int	acpi_isa_pnp_probe(device_t bus, device_t child,
 		    struct isa_pnp_id *ids);
 static void	acpi_platform_osc(device_t dev);
@@ -177,10 +183,12 @@ static int	acpi_supported_sleep_state_sysctl(SYSCTL_HANDLER_ARGS);
 static int	acpi_sleep_state_sysctl(SYSCTL_HANDLER_ARGS);
 static int	acpi_debug_objects_sysctl(SYSCTL_HANDLER_ARGS);
 static int	acpi_pm_func(u_long cmd, void *arg, ...);
-static int	acpi_child_location_str_method(device_t acdev, device_t child,
-					       char *buf, size_t buflen);
-static int	acpi_child_pnpinfo_str_method(device_t acdev, device_t child,
-					      char *buf, size_t buflen);
+static int	acpi_child_location_method(device_t acdev, device_t child,
+		    struct sbuf *sb);
+static int	acpi_child_pnpinfo_method(device_t acdev, device_t child,
+		    struct sbuf *sb);
+static int	acpi_get_device_path(device_t bus, device_t child,
+		    const char *locator, struct sbuf *sb);
 static void	acpi_enable_pcie(void);
 static void	acpi_hint_device_unit(device_t acdev, device_t child,
 		    const char *name, int *unitp);
@@ -210,8 +218,8 @@ static device_method_t acpi_methods[] = {
     DEVMETHOD(bus_adjust_resource,	acpi_adjust_resource),
     DEVMETHOD(bus_release_resource,	acpi_release_resource),
     DEVMETHOD(bus_delete_resource,	acpi_delete_resource),
-    DEVMETHOD(bus_child_pnpinfo_str,	acpi_child_pnpinfo_str_method),
-    DEVMETHOD(bus_child_location_str,	acpi_child_location_str_method),
+    DEVMETHOD(bus_child_pnpinfo,	acpi_child_pnpinfo_method),
+    DEVMETHOD(bus_child_location,	acpi_child_location_method),
     DEVMETHOD(bus_activate_resource,	bus_generic_activate_resource),
     DEVMETHOD(bus_deactivate_resource,	bus_generic_deactivate_resource),
     DEVMETHOD(bus_setup_intr,		bus_generic_setup_intr),
@@ -219,10 +227,13 @@ static device_method_t acpi_methods[] = {
     DEVMETHOD(bus_hint_device_unit,	acpi_hint_device_unit),
     DEVMETHOD(bus_get_cpus,		acpi_get_cpus),
     DEVMETHOD(bus_get_domain,		acpi_get_domain),
+    DEVMETHOD(bus_get_property,		acpi_bus_get_prop),
+    DEVMETHOD(bus_get_device_path,	acpi_get_device_path),
 
     /* ACPI bus */
     DEVMETHOD(acpi_id_probe,		acpi_device_id_probe),
     DEVMETHOD(acpi_evaluate_object,	acpi_device_eval_obj),
+    DEVMETHOD(acpi_get_property,	acpi_device_get_prop),
     DEVMETHOD(acpi_pwr_for_sleep,	acpi_device_pwr_for_sleep),
     DEVMETHOD(acpi_scan_children,	acpi_device_scan_children),
 
@@ -295,6 +306,15 @@ TUNABLE_INT("debug.acpi.quirks", &acpi_quirks);
 int acpi_susp_bounce;
 SYSCTL_INT(_debug_acpi, OID_AUTO, suspend_bounce, CTLFLAG_RW,
     &acpi_susp_bounce, 0, "Don't actually suspend, just test devices.");
+
+/*
+ * ACPI standard UUID for Device Specific Data Package
+ * "Device Properties UUID for _DSD" Rev. 2.0
+ */
+static const struct uuid acpi_dsd_uuid = {
+	0xdaffd814, 0x6eba, 0x4d8c, 0x8a, 0x91,
+	{ 0xbc, 0x9b, 0xbf, 0x4a, 0xa3, 0x01 }
+};
 
 /*
  * ACPI can only be loaded as a module by the loader; activating it after
@@ -738,7 +758,7 @@ acpi_suspend(device_t dev)
 {
     int error;
 
-    GIANT_REQUIRED;
+    bus_topo_assert();
 
     error = bus_generic_suspend(dev);
     if (error == 0)
@@ -751,7 +771,7 @@ static int
 acpi_resume(device_t dev)
 {
 
-    GIANT_REQUIRED;
+    bus_topo_assert();
 
     acpi_set_power_children(dev, ACPI_STATE_D0);
 
@@ -762,7 +782,7 @@ static int
 acpi_shutdown(device_t dev)
 {
 
-    GIANT_REQUIRED;
+    bus_topo_assert();
 
     /* Allow children to shutdown first. */
     bus_generic_shutdown(dev);
@@ -865,37 +885,32 @@ acpi_driver_added(device_t dev, driver_t *driver)
 
 /* Location hint for devctl(8) */
 static int
-acpi_child_location_str_method(device_t cbdev, device_t child, char *buf,
-    size_t buflen)
+acpi_child_location_method(device_t cbdev, device_t child, struct sbuf *sb)
 {
     struct acpi_device *dinfo = device_get_ivars(child);
-    char buf2[32];
     int pxm;
 
     if (dinfo->ad_handle) {
-        snprintf(buf, buflen, "handle=%s", acpi_name(dinfo->ad_handle));
+        sbuf_printf(sb, "handle=%s", acpi_name(dinfo->ad_handle));
         if (ACPI_SUCCESS(acpi_GetInteger(dinfo->ad_handle, "_PXM", &pxm))) {
-                snprintf(buf2, 32, " _PXM=%d", pxm);
-                strlcat(buf, buf2, buflen);
-        }
-    } else {
-        snprintf(buf, buflen, "");
+            sbuf_printf(sb, " _PXM=%d", pxm);
+	}
     }
     return (0);
 }
 
 /* PnP information for devctl(8) */
 int
-acpi_pnpinfo_str(ACPI_HANDLE handle, char *buf, size_t buflen)
+acpi_pnpinfo(ACPI_HANDLE handle, struct sbuf *sb)
 {
     ACPI_DEVICE_INFO *adinfo;
 
     if (ACPI_FAILURE(AcpiGetObjectInfo(handle, &adinfo))) {
-	snprintf(buf, buflen, "unknown");
+	sbuf_printf(sb, "unknown");
 	return (0);
     }
 
-    snprintf(buf, buflen, "_HID=%s _UID=%lu _CID=%s",
+    sbuf_printf(sb, "_HID=%s _UID=%lu _CID=%s",
 	(adinfo->Valid & ACPI_VALID_HID) ?
 	adinfo->HardwareId.String : "none",
 	(adinfo->Valid & ACPI_VALID_UID) ?
@@ -909,12 +924,88 @@ acpi_pnpinfo_str(ACPI_HANDLE handle, char *buf, size_t buflen)
 }
 
 static int
-acpi_child_pnpinfo_str_method(device_t cbdev, device_t child, char *buf,
-    size_t buflen)
+acpi_child_pnpinfo_method(device_t cbdev, device_t child, struct sbuf *sb)
 {
     struct acpi_device *dinfo = device_get_ivars(child);
 
-    return (acpi_pnpinfo_str(dinfo->ad_handle, buf, buflen));
+    return (acpi_pnpinfo(dinfo->ad_handle, sb));
+}
+
+/*
+ * Note: the check for ACPI locator may be reduntant. However, this routine is
+ * suitable for both busses whose only locator is ACPI and as a building block
+ * for busses that have multiple locators to cope with.
+ */
+int
+acpi_get_acpi_device_path(device_t bus, device_t child, const char *locator, struct sbuf *sb)
+{
+	if (strcmp(locator, BUS_LOCATOR_ACPI) == 0) {
+		ACPI_HANDLE *handle = acpi_get_handle(child);
+
+		if (handle != NULL)
+			sbuf_printf(sb, "%s", acpi_name(handle));
+		return (0);
+	}
+
+	return (bus_generic_get_device_path(bus, child, locator, sb));
+}
+
+static int
+acpi_get_device_path(device_t bus, device_t child, const char *locator, struct sbuf *sb)
+{
+	struct acpi_device *dinfo = device_get_ivars(child);
+
+	if (strcmp(locator, BUS_LOCATOR_ACPI) == 0)
+		return (acpi_get_acpi_device_path(bus, child, locator, sb));
+
+	if (strcmp(locator, BUS_LOCATOR_UEFI) == 0) {
+		ACPI_DEVICE_INFO *adinfo;
+		if (!ACPI_FAILURE(AcpiGetObjectInfo(dinfo->ad_handle, &adinfo)) &&
+		    dinfo->ad_handle != 0 && (adinfo->Valid & ACPI_VALID_HID)) {
+			const char *hid = adinfo->HardwareId.String;
+			u_long uid = (adinfo->Valid & ACPI_VALID_UID) ?
+			    strtoul(adinfo->UniqueId.String, NULL, 10) : 0UL;
+			u_long hidval;
+
+			/*
+			 * In UEFI Stanard Version 2.6, Section 9.6.1.6 Text
+			 * Device Node Reference, there's an insanely long table
+			 * 98. This implements the relevant bits from that
+			 * table. Newer versions appear to have not required
+			 * anything new. The EDK2 firmware presents both PciRoot
+			 * and PcieRoot as PciRoot. Follow the EDK2 standard.
+			 */
+			if (strncmp("PNP", hid, 3) != 0)
+				goto nomatch;
+			hidval = strtoul(hid + 3, NULL, 16);
+			switch (hidval) {
+			case 0x0301:
+				sbuf_printf(sb, "Keyboard(0x%lx)", uid);
+				break;
+			case 0x0401:
+				sbuf_printf(sb, "ParallelPort(0x%lx)", uid);
+				break;
+			case 0x0501:
+				sbuf_printf(sb, "Serial(0x%lx)", uid);
+				break;
+			case 0x0604:
+				sbuf_printf(sb, "Floppy(0x%lx)", uid);
+				break;
+			case 0x0a03:
+			case 0x0a08:
+				sbuf_printf(sb, "PciRoot(0x%lx)", uid);
+				break;
+			default: /* Everything else gets a generic encode */
+			nomatch:
+				sbuf_printf(sb, "Acpi(%s,0x%lx)", hid, uid);
+				break;
+			}
+		}
+		/* Not handled: AcpiAdr... unsure how to know it's one */
+	}
+
+	/* For the rest, punt to the default handler */
+	return (bus_generic_get_device_path(bus, child, locator, sb));
 }
 
 /*
@@ -1034,27 +1125,14 @@ acpi_match_resource_hint(device_t dev, int type, long value)
 }
 
 /*
- * Wire device unit numbers based on resource matches in hints.
+ * Does this device match because the resources match?
  */
-static void
-acpi_hint_device_unit(device_t acdev, device_t child, const char *name,
-    int *unitp)
+static bool
+acpi_hint_device_matches_resources(device_t child, const char *name,
+    int unit)
 {
-    const char *s;
-    long value;
-    int line, matches, unit;
-
-    /*
-     * Iterate over all the hints for the devices with the specified
-     * name to see if one's resources are a subset of this device.
-     */
-    line = 0;
-    while (resource_find_dev(&line, name, &unit, "at", NULL) == 0) {
-	/* Must have an "at" for acpi or isa. */
-	resource_string_value(name, unit, "at", &s);
-	if (!(strcmp(s, "acpi0") == 0 || strcmp(s, "acpi") == 0 ||
-	    strcmp(s, "isa0") == 0 || strcmp(s, "isa") == 0))
-	    continue;
+	long value;
+	bool matches;
 
 	/*
 	 * Check for matching resources.  We must have at least one match.
@@ -1064,53 +1142,92 @@ acpi_hint_device_unit(device_t acdev, device_t child, const char *name,
 	 * XXX: We may want to revisit this to be more lenient and wire
 	 * as long as it gets one match.
 	 */
-	matches = 0;
+	matches = false;
 	if (resource_long_value(name, unit, "port", &value) == 0) {
-	    /*
-	     * Floppy drive controllers are notorious for having a
-	     * wide variety of resources not all of which include the
-	     * first port that is specified by the hint (typically
-	     * 0x3f0) (see the comment above fdc_isa_alloc_resources()
-	     * in fdc_isa.c).  However, they do all seem to include
-	     * port + 2 (e.g. 0x3f2) so for a floppy device, look for
-	     * 'value + 2' in the port resources instead of the hint
-	     * value.
-	     */
-	    if (strcmp(name, "fdc") == 0)
-		value += 2;
-	    if (acpi_match_resource_hint(child, SYS_RES_IOPORT, value))
-		matches++;
-	    else
-		continue;
+		/*
+		 * Floppy drive controllers are notorious for having a
+		 * wide variety of resources not all of which include the
+		 * first port that is specified by the hint (typically
+		 * 0x3f0) (see the comment above fdc_isa_alloc_resources()
+		 * in fdc_isa.c).  However, they do all seem to include
+		 * port + 2 (e.g. 0x3f2) so for a floppy device, look for
+		 * 'value + 2' in the port resources instead of the hint
+		 * value.
+		 */
+		if (strcmp(name, "fdc") == 0)
+			value += 2;
+		if (acpi_match_resource_hint(child, SYS_RES_IOPORT, value))
+			matches = true;
+		else
+			return false;
 	}
 	if (resource_long_value(name, unit, "maddr", &value) == 0) {
-	    if (acpi_match_resource_hint(child, SYS_RES_MEMORY, value))
-		matches++;
-	    else
-		continue;
-	}
-	if (matches > 0)
-	    goto matched;
-	if (resource_long_value(name, unit, "irq", &value) == 0) {
-	    if (acpi_match_resource_hint(child, SYS_RES_IRQ, value))
-		matches++;
-	    else
-		continue;
-	}
-	if (resource_long_value(name, unit, "drq", &value) == 0) {
-	    if (acpi_match_resource_hint(child, SYS_RES_DRQ, value))
-		matches++;
-	    else
-		continue;
+		if (acpi_match_resource_hint(child, SYS_RES_MEMORY, value))
+			matches = true;
+		else
+			return false;
 	}
 
-    matched:
-	if (matches > 0) {
+	/*
+	 * If either the I/O address and/or the memory address matched, then
+	 * assumed this devices matches and that any mismatch in other resources
+	 * will be resolved by siltently ignoring those other resources. Otherwise
+	 * all further resources must match.
+	 */
+	if (matches) {
+		return (true);
+	}
+	if (resource_long_value(name, unit, "irq", &value) == 0) {
+		if (acpi_match_resource_hint(child, SYS_RES_IRQ, value))
+			matches = true;
+		else
+			return false;
+	}
+	if (resource_long_value(name, unit, "drq", &value) == 0) {
+		if (acpi_match_resource_hint(child, SYS_RES_DRQ, value))
+			matches = true;
+		else
+			return false;
+	}
+	return matches;
+}
+
+
+/*
+ * Wire device unit numbers based on resource matches in hints.
+ */
+static void
+acpi_hint_device_unit(device_t acdev, device_t child, const char *name,
+    int *unitp)
+{
+    device_location_cache_t *cache;
+    const char *s;
+    int line, unit;
+    bool matches;
+
+    /*
+     * Iterate over all the hints for the devices with the specified
+     * name to see if one's resources are a subset of this device.
+     */
+    line = 0;
+    cache = dev_wired_cache_init();
+    while (resource_find_dev(&line, name, &unit, "at", NULL) == 0) {
+	/* Must have an "at" for acpi or isa. */
+	resource_string_value(name, unit, "at", &s);
+	matches = false;
+	if (strcmp(s, "acpi0") == 0 || strcmp(s, "acpi") == 0 ||
+	    strcmp(s, "isa0") == 0 || strcmp(s, "isa") == 0)
+	    matches = acpi_hint_device_matches_resources(child, name, unit);
+	else
+	    matches = dev_wired_cache_match(cache, child, s);
+
+	if (matches) {
 	    /* We have a winner! */
 	    *unitp = unit;
 	    break;
 	}
     }
+    dev_wired_cache_fini(cache);
 }
 
 /*
@@ -1733,6 +1850,136 @@ acpi_device_eval_obj(device_t bus, device_t dev, ACPI_STRING pathname,
     return (AcpiEvaluateObject(h, pathname, parameters, ret));
 }
 
+static ACPI_STATUS
+acpi_device_get_prop(device_t bus, device_t dev, ACPI_STRING propname,
+    const ACPI_OBJECT **value)
+{
+	const ACPI_OBJECT *pkg, *name, *val;
+	struct acpi_device *ad;
+	ACPI_STATUS status;
+	int i;
+
+	ad = device_get_ivars(dev);
+
+	if (ad == NULL || propname == NULL)
+		return (AE_BAD_PARAMETER);
+	if (ad->dsd_pkg == NULL) {
+		if (ad->dsd.Pointer == NULL) {
+			status = acpi_find_dsd(bus, dev);
+			if (ACPI_FAILURE(status))
+				return (status);
+		} else {
+			return (AE_NOT_FOUND);
+		}
+	}
+
+	for (i = 0; i < ad->dsd_pkg->Package.Count; i ++) {
+		pkg = &ad->dsd_pkg->Package.Elements[i];
+		if (pkg->Type != ACPI_TYPE_PACKAGE || pkg->Package.Count != 2)
+			continue;
+
+		name = &pkg->Package.Elements[0];
+		val = &pkg->Package.Elements[1];
+		if (name->Type != ACPI_TYPE_STRING)
+			continue;
+		if (strncmp(propname, name->String.Pointer, name->String.Length) == 0) {
+			if (value != NULL)
+				*value = val;
+
+			return (AE_OK);
+		}
+	}
+
+	return (AE_NOT_FOUND);
+}
+
+static ACPI_STATUS
+acpi_find_dsd(device_t bus, device_t dev)
+{
+	const ACPI_OBJECT *dsd, *guid, *pkg;
+	struct acpi_device *ad;
+	ACPI_STATUS status;
+
+	ad = device_get_ivars(dev);
+	ad->dsd.Length = ACPI_ALLOCATE_BUFFER;
+	ad->dsd.Pointer = NULL;
+	ad->dsd_pkg = NULL;
+
+	status = ACPI_EVALUATE_OBJECT(bus, dev, "_DSD", NULL, &ad->dsd);
+	if (ACPI_FAILURE(status))
+		return (status);
+
+	dsd = ad->dsd.Pointer;
+	guid = &dsd->Package.Elements[0];
+	pkg = &dsd->Package.Elements[1];
+
+	if (guid->Type != ACPI_TYPE_BUFFER || pkg->Type != ACPI_TYPE_PACKAGE ||
+		guid->Buffer.Length != sizeof(acpi_dsd_uuid))
+		return (AE_NOT_FOUND);
+	if (memcmp(guid->Buffer.Pointer, &acpi_dsd_uuid,
+		sizeof(acpi_dsd_uuid)) == 0) {
+
+		ad->dsd_pkg = pkg;
+		return (AE_OK);
+	}
+
+	return (AE_NOT_FOUND);
+}
+
+static ssize_t
+acpi_bus_get_prop(device_t bus, device_t child, const char *propname,
+    void *propvalue, size_t size, device_property_type_t type)
+{
+	ACPI_STATUS status;
+	const ACPI_OBJECT *obj;
+
+	status = acpi_device_get_prop(bus, child, __DECONST(char *, propname),
+		&obj);
+	if (ACPI_FAILURE(status))
+		return (-1);
+
+	switch (type) {
+	case DEVICE_PROP_ANY:
+	case DEVICE_PROP_BUFFER:
+	case DEVICE_PROP_UINT32:
+	case DEVICE_PROP_UINT64:
+		break;
+	default:
+		return (-1);
+	}
+
+	switch (obj->Type) {
+	case ACPI_TYPE_INTEGER:
+		if (type == DEVICE_PROP_UINT32) {
+			if (propvalue != NULL && size >= sizeof(uint32_t))
+				*((uint32_t *)propvalue) = obj->Integer.Value;
+			return (sizeof(uint32_t));
+		}
+		if (propvalue != NULL && size >= sizeof(uint64_t))
+			*((uint64_t *) propvalue) = obj->Integer.Value;
+		return (sizeof(uint64_t));
+
+	case ACPI_TYPE_STRING:
+		if (type != DEVICE_PROP_ANY &&
+		    type != DEVICE_PROP_BUFFER)
+			return (-1);
+
+		if (propvalue != NULL && size > 0)
+			memcpy(propvalue, obj->String.Pointer,
+			    MIN(size, obj->String.Length));
+		return (obj->String.Length);
+
+	case ACPI_TYPE_BUFFER:
+		if (propvalue != NULL && size > 0)
+			memcpy(propvalue, obj->Buffer.Pointer,
+			    MIN(size, obj->Buffer.Length));
+		return (obj->Buffer.Length);
+
+	default:
+		return (0);
+	}
+}
+
 int
 acpi_device_pwr_for_sleep(device_t bus, device_t dev, int *dstate)
 {
@@ -2138,6 +2385,15 @@ acpi_probe_child(ACPI_HANDLE handle, UINT32 level, void *context, void **status)
 		/* Never disable PCI link devices. */
 		if (acpi_MatchHid(handle, "PNP0C0F"))
 		    break;
+
+		/*
+		 * RTC Device should be enabled for CMOS register space
+		 * unless FADT indicate it is not present.
+		 * (checked in RTC probe routine.)
+		 */
+		if (acpi_MatchHid(handle, "PNP0B00"))
+		    break;
+
 		/*
 		 * Docking stations should remain enabled since the system
 		 * may be undocked at boot.
@@ -2403,6 +2659,15 @@ acpi_GetHandleInScope(ACPI_HANDLE parent, char *path, ACPI_HANDLE *result)
 	    return (AE_NOT_FOUND);
 	parent = r;
     }
+}
+
+ACPI_STATUS
+acpi_GetProperty(device_t dev, ACPI_STRING propname,
+    const ACPI_OBJECT **value)
+{
+	device_t bus = device_get_parent(dev);
+
+	return (ACPI_GET_PROPERTY(bus, dev, propname, value));
 }
 
 /*
@@ -3102,10 +3367,9 @@ acpi_EnterSleepState(struct acpi_softc *sc, int state)
 #endif
 
     /*
-     * Be sure to hold Giant across DEVICE_SUSPEND/RESUME since non-MPSAFE
-     * drivers need this.
+     * Be sure to hold Giant across DEVICE_SUSPEND/RESUME
      */
-    mtx_lock(&Giant);
+    bus_topo_lock();
 
     slp_state = ACPI_SS_NONE;
 
@@ -3231,7 +3495,7 @@ backout:
     }
     sc->acpi_next_sstate = 0;
 
-    mtx_unlock(&Giant);
+    bus_topo_unlock();
 
 #ifdef EARLY_AP_STARTUP
     thread_lock(curthread);

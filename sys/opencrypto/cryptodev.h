@@ -70,6 +70,8 @@
 #ifdef _KERNEL
 #include <opencrypto/_cryptodev.h>
 #include <sys/_task.h>
+#include <sys/libkern.h>
+#include <sys/time.h>
 #endif
 
 /* Some initial values */
@@ -95,6 +97,7 @@
 #define	SHA2_256_BLOCK_LEN	64
 #define	SHA2_384_BLOCK_LEN	128
 #define	SHA2_512_BLOCK_LEN	128
+#define	POLY1305_BLOCK_LEN	16
 
 /* HMAC values */
 #define	NULL_HMAC_BLOCK_LEN		64
@@ -128,6 +131,7 @@
 #define	AES_XTS_IV_LEN		8
 #define	AES_XTS_ALPHA		0x87	/* GF(2^128) generator polynomial */
 #define	CHACHA20_POLY1305_IV_LEN	12
+#define	XCHACHA20_POLY1305_IV_LEN	24
 
 /* Min and Max Encryption Key Sizes */
 #define	NULL_MIN_KEY		0
@@ -141,6 +145,7 @@
 #define	CAMELLIA_MIN_KEY	16
 #define	CAMELLIA_MAX_KEY	32
 #define	CHACHA20_POLY1305_KEY	32
+#define	XCHACHA20_POLY1305_KEY	32
 
 /* Maximum hash algorithm result length */
 #define	AALG_MAX_RESULT_LEN	64 /* Keep this updated */
@@ -190,15 +195,11 @@
 #define	CRYPTO_AES_CCM_CBC_MAC	39	/* auth side */
 #define	CRYPTO_AES_CCM_16	40	/* cipher side */
 #define	CRYPTO_CHACHA20_POLY1305 41	/* combined AEAD cipher per RFC 8439 */
-#define	CRYPTO_ALGORITHM_MAX	41	/* Keep updated - see below */
+#define	CRYPTO_XCHACHA20_POLY1305 42
+#define	CRYPTO_ALGORITHM_MAX	42	/* Keep updated - see below */
 
 #define	CRYPTO_ALGO_VALID(x)	((x) >= CRYPTO_ALGORITHM_MIN && \
 				 (x) <= CRYPTO_ALGORITHM_MAX)
-
-/* Algorithm flags */
-#define	CRYPTO_ALG_FLAG_SUPPORTED	0x01 /* Algorithm is supported */
-#define	CRYPTO_ALG_FLAG_RNG_ENABLE	0x02 /* Has HW RNG for DH/DSA */
-#define	CRYPTO_ALG_FLAG_DSA_SHA		0x04 /* Can do SHA on msg */
 
 /*
  * Crypto driver/device flags.  They can set in the crid
@@ -294,43 +295,10 @@ struct crypt_find_op {
 	char		name[32];	/* device/driver name */
 };
 
-/* bignum parameter, in packed bytes, ... */
-struct crparam {
-	void		*crp_p;
-	u_int		crp_nbits;
-};
-
-#define CRK_MAXPARAM	8
-
-struct crypt_kop {
-	u_int		crk_op;		/* ie. CRK_MOD_EXP or other */
-	u_int		crk_status;	/* return status */
-	u_short		crk_iparams;	/* # of input parameters */
-	u_short		crk_oparams;	/* # of output parameters */
-	u_int		crk_crid;	/* NB: only used by CIOCKEY2 (rw) */
-	struct crparam	crk_param[CRK_MAXPARAM];
-};
-#define	CRK_ALGORITM_MIN	0
-#define CRK_MOD_EXP		0
-#define CRK_MOD_EXP_CRT		1
-#define CRK_DSA_SIGN		2
-#define CRK_DSA_VERIFY		3
-#define CRK_DH_COMPUTE_KEY	4
-#define CRK_ALGORITHM_MAX	4 /* Keep updated - see below */
-
-#define CRF_MOD_EXP		(1 << CRK_MOD_EXP)
-#define CRF_MOD_EXP_CRT		(1 << CRK_MOD_EXP_CRT)
-#define CRF_DSA_SIGN		(1 << CRK_DSA_SIGN)
-#define CRF_DSA_VERIFY		(1 << CRK_DSA_VERIFY)
-#define CRF_DH_COMPUTE_KEY	(1 << CRK_DH_COMPUTE_KEY)
-
 #define	CIOCGSESSION	_IOWR('c', 101, struct session_op)
 #define	CIOCFSESSION	_IOW('c', 102, uint32_t)
 #define CIOCCRYPT	_IOWR('c', 103, struct crypt_op)
-#define CIOCKEY		_IOWR('c', 104, struct crypt_kop)
-#define CIOCASYMFEAT	_IOR('c', 105, uint32_t)
 #define	CIOCGSESSION2	_IOWR('c', 106, struct session2_op)
-#define	CIOCKEY2	_IOWR('c', 107, struct crypt_kop)
 #define	CIOCFINDDEV	_IOWR('c', 108, struct crypt_find_op)
 #define	CIOCCRYPTAEAD	_IOWR('c', 109, struct crypt_aead)
 
@@ -462,20 +430,13 @@ struct cryptop {
 					 * should always check and use the new
 					 * value on future requests.
 					 */
+#define	crp_startcopy	crp_flags
 	int		crp_flags;
 
-#define	CRYPTO_F_BATCH		0x0008	/* Batch op if possible */
 #define	CRYPTO_F_CBIMM		0x0010	/* Do callback immediately */
 #define	CRYPTO_F_DONE		0x0020	/* Operation completed */
 #define	CRYPTO_F_CBIFSYNC	0x0040	/* Do CBIMM if op is synchronous */
-#define	CRYPTO_F_ASYNC		0x0080	/* Dispatch crypto jobs on several threads
-					 * if op is synchronous
-					 */
-#define	CRYPTO_F_ASYNC_KEEPORDER	0x0100	/*
-					 * Dispatch the crypto jobs in the same
-					 * order there are submitted. Applied only
-					 * if CRYPTO_F_ASYNC flags is set
-					 */
+#define	CRYPTO_F_ASYNC_ORDERED	0x0100	/* Completions must happen in order */
 #define	CRYPTO_F_IV_SEPARATE	0x0200	/* Use crp_iv[] as IV. */
 
 	int		crp_op;
@@ -502,6 +463,7 @@ struct cryptop {
 
 	const void	*crp_cipher_key; /* New cipher key if non-NULL. */
 	const void	*crp_auth_key;	/* New auth key if non-NULL. */
+#define	crp_endcopy	crp_opaque
 
 	void		*crp_opaque;	/* Opaque pointer, passed along */
 
@@ -514,6 +476,8 @@ struct cryptop {
 					 *  used for ordered dispatch
 					 */
 };
+
+TAILQ_HEAD(cryptopq, cryptop);
 
 static __inline void
 _crypto_use_buf(struct crypto_buffer *cb, void *buf, int len)
@@ -615,12 +579,6 @@ crypto_use_output_uio(struct cryptop *crp, struct uio *uio)
 	_crypto_use_uio(&crp->crp_obuf, uio);
 }
 
-#define	CRYPTOP_ASYNC(crp)			\
-	(((crp)->crp_flags & CRYPTO_F_ASYNC) && \
-	crypto_ses2caps((crp)->crp_session) & CRYPTOCAP_F_SYNC)
-#define	CRYPTOP_ASYNC_KEEPORDER(crp) \
-	(CRYPTOP_ASYNC(crp) && \
-	(crp)->crp_flags & CRYPTO_F_ASYNC_KEEPORDER)
 #define	CRYPTO_HAS_OUTPUT_BUFFER(crp)					\
 	((crp)->crp_obuf.cb_type != CRYPTO_BUF_NONE)
 
@@ -639,60 +597,48 @@ crypto_use_output_uio(struct cryptop *crp, struct uio *uio)
  */
 #define	CRYPTO_HINT_MORE	0x1	/* more ops coming shortly */
 
-struct cryptkop {
-	TAILQ_ENTRY(cryptkop) krp_next;
-
-	u_int		krp_op;		/* ie. CRK_MOD_EXP or other */
-	u_int		krp_status;	/* return status */
-	u_short		krp_iparams;	/* # of input parameters */
-	u_short		krp_oparams;	/* # of output parameters */
-	u_int		krp_crid;	/* desired device, etc. */
-	uint32_t	krp_hid;	/* device used */
-	struct crparam	krp_param[CRK_MAXPARAM];	/* kvm */
-	void		(*krp_callback)(struct cryptkop *);
-	struct cryptocap *krp_cap;
-};
-
 uint32_t crypto_ses2hid(crypto_session_t crypto_session);
 uint32_t crypto_ses2caps(crypto_session_t crypto_session);
-void *crypto_get_driver_session(crypto_session_t crypto_session);
+void	*crypto_get_driver_session(crypto_session_t crypto_session);
 const struct crypto_session_params *crypto_get_params(
     crypto_session_t crypto_session);
-struct auth_hash *crypto_auth_hash(const struct crypto_session_params *csp);
-struct enc_xform *crypto_cipher(const struct crypto_session_params *csp);
+const struct auth_hash *crypto_auth_hash(const struct crypto_session_params *csp);
+const struct enc_xform *crypto_cipher(const struct crypto_session_params *csp);
 
+#ifdef MALLOC_DECLARE
 MALLOC_DECLARE(M_CRYPTO_DATA);
+#endif
 
-extern	int crypto_newsession(crypto_session_t *cses,
-    const struct crypto_session_params *params, int hard);
-extern	void crypto_freesession(crypto_session_t cses);
+int	crypto_newsession(crypto_session_t *cses,
+    const struct crypto_session_params *params, int crid);
+void	crypto_freesession(crypto_session_t cses);
 #define	CRYPTOCAP_F_HARDWARE	CRYPTO_FLAG_HARDWARE
 #define	CRYPTOCAP_F_SOFTWARE	CRYPTO_FLAG_SOFTWARE
 #define	CRYPTOCAP_F_SYNC	0x04000000	/* operates synchronously */
 #define	CRYPTOCAP_F_ACCEL_SOFTWARE 0x08000000
-extern	int32_t crypto_get_driverid(device_t dev, size_t session_size,
-    int flags);
-extern	int crypto_find_driver(const char *);
-extern	device_t crypto_find_device_byhid(int hid);
-extern	int crypto_getcaps(int hid);
-extern	int crypto_kregister(uint32_t, int, uint32_t);
-extern	int crypto_unregister_all(uint32_t driverid);
-extern	int crypto_dispatch(struct cryptop *crp);
-extern	int crypto_kdispatch(struct cryptkop *);
+#define	CRYPTO_SESS_SYNC(sess)	\
+	((crypto_ses2caps(sess) & CRYPTOCAP_F_SYNC) != 0)
+int32_t	crypto_get_driverid(device_t dev, size_t session_size, int flags);
+int	crypto_find_driver(const char *);
+device_t crypto_find_device_byhid(int hid);
+int	crypto_getcaps(int hid);
+int	crypto_unregister_all(uint32_t driverid);
+int	crypto_dispatch(struct cryptop *crp);
+#define	CRYPTO_ASYNC_ORDERED	0x1	/* complete in order dispatched */
+int	crypto_dispatch_async(struct cryptop *crp, int flags);
+void	crypto_dispatch_batch(struct cryptopq *crpq, int flags);
 #define	CRYPTO_SYMQ	0x1
-#define	CRYPTO_ASYMQ	0x2
-extern	int crypto_unblock(uint32_t, int);
-extern	void crypto_done(struct cryptop *crp);
-extern	void crypto_kdone(struct cryptkop *);
-extern	int crypto_getfeat(int *);
+int	crypto_unblock(uint32_t, int);
+void	crypto_done(struct cryptop *crp);
 
-extern	void crypto_destroyreq(struct cryptop *crp);
-extern	void crypto_initreq(struct cryptop *crp, crypto_session_t cses);
-extern	void crypto_freereq(struct cryptop *crp);
-extern	struct cryptop *crypto_getreq(crypto_session_t cses, int how);
+struct cryptop *crypto_clonereq(struct cryptop *crp, crypto_session_t cses,
+    int how);
+void	crypto_destroyreq(struct cryptop *crp);
+void	crypto_initreq(struct cryptop *crp, crypto_session_t cses);
+void	crypto_freereq(struct cryptop *crp);
+struct cryptop *crypto_getreq(crypto_session_t cses, int how);
 
 extern	int crypto_usercrypto;		/* userland may do crypto requests */
-extern	int crypto_userasymcrypto;	/* userland may do asym crypto reqs */
 extern	int crypto_devallowsoft;	/* only use hardware crypto */
 
 #ifdef SYSCTL_DECL
@@ -732,8 +678,6 @@ void	crypto_cursor_init(struct crypto_buffer_cursor *cc,
 	    const struct crypto_buffer *cb);
 void	crypto_cursor_advance(struct crypto_buffer_cursor *cc, size_t amount);
 void	*crypto_cursor_segment(struct crypto_buffer_cursor *cc, size_t *len);
-void	*crypto_cursor_segbase(struct crypto_buffer_cursor *cc);
-size_t	crypto_cursor_seglen(struct crypto_buffer_cursor *cc);
 void	crypto_cursor_copyback(struct crypto_buffer_cursor *cc, int size,
 	    const void *vsrc);
 void	crypto_cursor_copydata(struct crypto_buffer_cursor *cc, int size,

@@ -63,6 +63,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/kernel.h>
 #include <sys/ktr.h>
 #include <sys/lock.h>
+#include <sys/msan.h>
 #include <sys/mutex.h>
 #include <sys/resourcevar.h>
 #include <sys/signalvar.h>
@@ -112,7 +113,6 @@ void dblfault_handler(struct trapframe *frame);
 
 static int trap_pfault(struct trapframe *, bool, int *, int *);
 static void trap_fatal(struct trapframe *, vm_offset_t);
-struct sysent *mach_sysent_p;
 #ifdef KDTRACE_HOOKS
 static bool trap_user_dtrace(struct trapframe *,
     int (**hook)(struct trapframe *));
@@ -230,6 +230,7 @@ trap(struct trapframe *frame)
 	dr6 = 0;
 
 	kasan_mark(frame, sizeof(*frame), sizeof(*frame), 0);
+	kmsan_mark(frame, sizeof(*frame), KMSAN_STATE_INITED);
 
 	VM_CNT_INC(v_trap);
 	type = frame->tf_trapno;
@@ -308,7 +309,7 @@ trap(struct trapframe *frame)
 		td->td_pticks = 0;
 		td->td_frame = frame;
 		addr = frame->tf_rip;
-		if (td->td_cowgen != p->p_cowgen)
+		if (td->td_cowgen != atomic_load_int(&p->p_cowgen))
 			thread_cow_update(td);
 
 		switch (type) {
@@ -974,6 +975,7 @@ trap_user_dtrace(struct trapframe *frame, int (**hookp)(struct trapframe *))
 void
 dblfault_handler(struct trapframe *frame)
 {
+	kmsan_mark(frame, sizeof(*frame), KMSAN_STATE_INITED);
 #ifdef KDTRACE_HOOKS
 	if (dtrace_doubletrap_func != NULL)
 		(*dtrace_doubletrap_func)();
@@ -1009,7 +1011,7 @@ cpu_fetch_syscall_args_fallback(struct thread *td, struct syscall_args *sa)
 {
 	struct proc *p;
 	struct trapframe *frame;
-	register_t *argp;
+	syscallarg_t *argp;
 	caddr_t params;
 	int reg, regcnt, error;
 
@@ -1060,6 +1062,7 @@ cpu_fetch_syscall_args(struct thread *td)
 	sa = &td->td_sa;
 
 	sa->code = frame->tf_rax;
+	sa->original_code = sa->code;
 
 	if (__predict_false(sa->code == SYS_syscall ||
 	    sa->code == SYS___syscall ||
@@ -1176,6 +1179,8 @@ void
 amd64_syscall(struct thread *td, int traced)
 {
 	ksiginfo_t ksi;
+
+	kmsan_mark(td->td_frame, sizeof(*td->td_frame), KMSAN_STATE_INITED);
 
 #ifdef DIAGNOSTIC
 	if (!TRAPF_USERMODE(td->td_frame)) {

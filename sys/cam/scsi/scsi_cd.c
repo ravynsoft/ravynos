@@ -168,7 +168,6 @@ struct cd_softc {
 	struct bio_queue_head	bio_queue;
 	LIST_HEAD(, ccb_hdr)	pending_ccbs;
 	struct cd_params	params;
-	union ccb		saved_ccb;
 	cd_quirks		quirks;
 	struct cam_periph	*periph;
 	int			minimum_command_size;
@@ -1271,6 +1270,7 @@ cddone(struct cam_periph *periph, union ccb *done_ccb)
 
 				status = done_ccb->ccb_h.status;
 
+				bzero(&cgd, sizeof(cgd));
 				xpt_setup_ccb(&cgd.ccb_h,
 					      done_ccb->ccb_h.path,
 					      CAM_PRIORITY_NORMAL);

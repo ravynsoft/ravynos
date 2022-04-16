@@ -23,12 +23,13 @@ endif
 
 AM_LIBTOOLFLAGS = --silent
 
-AM_CFLAGS  = -std=gnu99 -Wall -Wstrict-prototypes -Wmissing-prototypes
+AM_CFLAGS  = -std=gnu99 -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Wno-sign-compare -Wno-missing-field-initializers
 AM_CFLAGS += -fno-strict-aliasing
 AM_CFLAGS += $(NO_OMIT_FRAME_POINTER)
 AM_CFLAGS += $(IMPLICIT_FALLTHROUGH)
 AM_CFLAGS += $(DEBUG_CFLAGS)
 AM_CFLAGS += $(ASAN_CFLAGS)
+AM_CFLAGS += $(UBSAN_CFLAGS)
 AM_CFLAGS += $(CODE_COVERAGE_CFLAGS) $(NO_FORMAT_ZERO_LENGTH)
 if BUILD_FREEBSD
 AM_CFLAGS += -fPIC -Werror -Wno-unknown-pragmas -Wno-enum-conversion
@@ -53,9 +54,25 @@ endif
 if BUILD_FREEBSD
 AM_CPPFLAGS += -DTEXT_DOMAIN=\"zfs-freebsd-user\"
 endif
+AM_CPPFLAGS += -D"strtok(...)=strtok(__VA_ARGS__) __attribute__((deprecated(\"Use strtok_r(3) instead!\")))"
+AM_CPPFLAGS += -D"__xpg_basename(...)=__xpg_basename(__VA_ARGS__) __attribute__((deprecated(\"basename(3) is underspecified. Use zfs_basename() instead!\")))"
+AM_CPPFLAGS += -D"basename(...)=basename(__VA_ARGS__) __attribute__((deprecated(\"basename(3) is underspecified. Use zfs_basename() instead!\")))"
+AM_CPPFLAGS += -D"dirname(...)=dirname(__VA_ARGS__) __attribute__((deprecated(\"dirname(3) is underspecified. Use zfs_dirnamelen() instead!\")))"
+AM_CPPFLAGS += -D"bcopy(...)=__attribute__((deprecated(\"bcopy(3) is deprecated. Use memcpy(3)/memmove(3) instead!\"))) bcopy(__VA_ARGS__)"
+AM_CPPFLAGS += -D"bcmp(...)=__attribute__((deprecated(\"bcmp(3) is deprecated. Use memcmp(3) instead!\"))) bcmp(__VA_ARGS__)"
+AM_CPPFLAGS += -D"bzero(...)=__attribute__((deprecated(\"bzero(3) is deprecated. Use memset(3) instead!\"))) bzero(__VA_ARGS__)"
+
+if ASAN_ENABLED
+AM_CPPFLAGS += -DZFS_ASAN_ENABLED
+endif
+
+if UBSAN_ENABLED
+AM_CPPFLAGS += -DZFS_UBSAN_ENABLED
+endif
 
 AM_LDFLAGS  = $(DEBUG_LDFLAGS)
 AM_LDFLAGS += $(ASAN_LDFLAGS)
+AM_LDFLAGS += $(UBSAN_LDFLAGS)
 
 if BUILD_FREEBSD
 AM_LDFLAGS += -fstack-protector-strong -shared

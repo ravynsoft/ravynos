@@ -30,6 +30,7 @@ __FBSDID("$FreeBSD$");
 
 #include <sys/param.h>
 #include <sys/systm.h>
+#include <sys/elf.h>
 #include <sys/exec.h>
 #include <sys/imgact.h>
 #include <sys/kernel.h>
@@ -38,6 +39,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/mutex.h>
 #include <sys/proc.h>
 #include <sys/ptrace.h>
+#include <sys/reg.h>
 #include <sys/rwlock.h>
 #include <sys/signalvar.h>
 #include <sys/syscallsubr.h>
@@ -46,6 +48,86 @@ __FBSDID("$FreeBSD$");
 #include <sys/ucontext.h>
 
 #include <machine/armreg.h>
+
+#if defined(VFP) && defined(COMPAT_FREEBSD32)
+static bool
+get_arm_vfp(struct regset *rs, struct thread *td, void *buf, size_t *sizep)
+{
+	if (buf != NULL) {
+		KASSERT(*sizep == sizeof(mcontext32_vfp_t),
+		    ("%s: invalid size", __func__));
+		get_fpcontext32(td, buf);
+	}
+	*sizep = sizeof(mcontext32_vfp_t);
+	return (true);
+}
+
+static bool
+set_arm_vfp(struct regset *rs, struct thread *td, void *buf,
+    size_t size)
+{
+	KASSERT(size == sizeof(mcontext32_vfp_t), ("%s: invalid size",
+	    __func__));
+	set_fpcontext32(td, buf);
+	return (true);
+}
+
+static struct regset regset_arm_vfp = {
+	.note = NT_ARM_VFP,
+	.size = sizeof(mcontext32_vfp_t),
+	.get = get_arm_vfp,
+	.set = set_arm_vfp,
+};
+ELF32_REGSET(regset_arm_vfp);
+#endif
+
+static bool
+get_arm64_tls(struct regset *rs, struct thread *td, void *buf,
+    size_t *sizep)
+{
+	if (buf != NULL) {
+		KASSERT(*sizep == sizeof(td->td_pcb->pcb_tpidr_el0),
+		    ("%s: invalid size", __func__));
+		memcpy(buf, &td->td_pcb->pcb_tpidr_el0,
+		    sizeof(td->td_pcb->pcb_tpidr_el0));
+	}
+	*sizep = sizeof(td->td_pcb->pcb_tpidr_el0);
+
+	return (true);
+}
+
+static struct regset regset_arm64_tls = {
+	.note = NT_ARM_TLS,
+	.size = sizeof(uint64_t),
+	.get = get_arm64_tls,
+};
+ELF_REGSET(regset_arm64_tls);
+
+#ifdef COMPAT_FREEBSD32
+static bool
+get_arm_tls(struct regset *rs, struct thread *td, void *buf,
+    size_t *sizep)
+{
+	if (buf != NULL) {
+		uint32_t tp;
+
+		KASSERT(*sizep == sizeof(uint32_t),
+		    ("%s: invalid size", __func__));
+		tp = (uint32_t)td->td_pcb->pcb_tpidr_el0;
+		memcpy(buf, &tp, sizeof(tp));
+	}
+	*sizep = sizeof(uint32_t);
+
+	return (true);
+}
+
+static struct regset regset_arm_tls = {
+	.note = NT_ARM_TLS,
+	.size = sizeof(uint32_t),
+	.get = get_arm_tls,
+};
+ELF32_REGSET(regset_arm_tls);
+#endif
 
 int
 ptrace_set_pc(struct thread *td, u_long addr)
@@ -76,3 +158,4 @@ ptrace_clear_single_step(struct thread *td)
 	td->td_dbgflags &= ~TDB_STEP;
 	return (0);
 }
+

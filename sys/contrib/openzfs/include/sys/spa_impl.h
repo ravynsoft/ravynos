@@ -146,9 +146,9 @@ typedef struct spa_config_lock {
 	kmutex_t	scl_lock;
 	kthread_t	*scl_writer;
 	int		scl_write_wanted;
+	int		scl_count;
 	kcondvar_t	scl_cv;
-	zfs_refcount_t	scl_count;
-} spa_config_lock_t;
+} ____cacheline_aligned spa_config_lock_t;
 
 typedef struct spa_config_dirent {
 	list_node_t	scd_link;
@@ -308,6 +308,7 @@ struct spa {
 	uint64_t	spa_missing_tvds;	/* unopenable tvds on load */
 	uint64_t	spa_missing_tvds_allowed; /* allow loading spa? */
 
+	uint64_t	spa_nonallocating_dspace;
 	spa_removing_phys_t spa_removing_phys;
 	spa_vdev_removal_t *spa_vdev_removal;
 
@@ -370,6 +371,7 @@ struct spa {
 	boolean_t	spa_is_root;		/* pool is root */
 	int		spa_minref;		/* num refs when first opened */
 	spa_mode_t	spa_mode;		/* SPA_MODE_{READ|WRITE} */
+	boolean_t	spa_read_spacemaps;	/* spacemaps available if ro */
 	spa_log_state_t spa_log_state;		/* log state */
 	uint64_t	spa_autoexpand;		/* lun expansion on/off */
 	ddt_t		*spa_ddt[ZIO_CHECKSUM_FUNCTIONS]; /* in-core DDTs */
@@ -442,7 +444,7 @@ struct spa {
 };
 
 extern char *spa_config_path;
-extern char *zfs_deadman_failmode;
+extern const char *zfs_deadman_failmode;
 extern int spa_slop_shift;
 extern void spa_taskq_dispatch_ent(spa_t *spa, zio_type_t t, zio_taskq_type_t q,
     task_func_t *func, void *arg, uint_t flags, taskq_ent_t *ent);

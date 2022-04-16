@@ -1,4 +1,4 @@
-/*	$NetBSD: histedit.h,v 1.57 2017/09/01 10:19:10 christos Exp $	*/
+/*	$NetBSD: histedit.h,v 1.61 2022/02/08 21:13:22 rillig Exp $	*/
 
 /*-
  * Copyright (c) 1992, 1993
@@ -158,6 +158,7 @@ unsigned char	_el_fn_sh_complete(EditLine *, int);
 #define	EL_RPROMPT_ESC	22	/* , prompt_func, Char);	      set/get */
 #define	EL_RESIZE	23	/* , el_zfunc_t, void *);	      set     */
 #define	EL_ALIAS_TEXT	24	/* , el_afunc_t, void *);	      set     */
+#define	EL_SAFEREAD	25	/* , int);			      set/get */
 
 #define	EL_BUILTIN_GETCFN	(NULL)
 
@@ -179,7 +180,8 @@ void		 el_resize(EditLine *);
 const LineInfo	*el_line(EditLine *);
 int		 el_insertstr(EditLine *, const char *);
 void		 el_deletestr(EditLine *, int);
-
+int		 el_replacestr(EditLine *, const char *);
+int		 el_deletestr1(EditLine *, int, int);
 
 /*
  * ==== History ====
@@ -278,6 +280,7 @@ int		 el_cursor(EditLine *, int);
 const LineInfoW	*el_wline(EditLine *);
 int		 el_winsertstr(EditLine *, const wchar_t *);
 #define          el_wdeletestr  el_deletestr
+int		 el_wreplacestr(EditLine *, const wchar_t *);
 
 /*
  * ==== History ====

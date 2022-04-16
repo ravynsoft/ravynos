@@ -1,8 +1,8 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
  *
- * Copyright (c) 2020 Alstom Group.
- * Copyright (c) 2020 Semihalf.
+ * Copyright (c) 2020 - 2021 Alstom Group.
+ * Copyright (c) 2020 - 2021 Semihalf.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -43,8 +43,10 @@ __FBSDID("$FreeBSD$");
 #include <machine/resource.h>
 
 #include <dev/extres/clk/clk.h>
+#include <dev/extres/syscon/syscon.h>
 #include <dev/mmc/bridge.h>
 #include <dev/mmc/mmcbrvar.h>
+#include <dev/mmc/mmc_fdt_helpers.h>
 #include <dev/ofw/ofw_bus.h>
 #include <dev/ofw/ofw_bus_subr.h>
 #include <dev/sdhci/sdhci.h>
@@ -52,6 +54,7 @@ __FBSDID("$FreeBSD$");
 
 #include "mmcbr_if.h"
 #include "sdhci_if.h"
+#include "syscon_if.h"
 
 #define	RD4	(sc->read)
 #define	WR4	(sc->write)
@@ -69,6 +72,13 @@ __FBSDID("$FreeBSD$");
 #define	SDHCI_FSL_PROT_CTRL_BYTE_NATIVE	(2 << 4)
 #define	SDHCI_FSL_PROT_CTRL_BYTE_MASK	(3 << 4)
 #define	SDHCI_FSL_PROT_CTRL_DMA_MASK	(3 << 8)
+#define	SDHCI_FSL_PROT_CTRL_VOLT_SEL	(1 << 10)
+
+#define SDHCI_FSL_IRQSTAT		0x30
+#define SDHCI_FSL_IRQSTAT_BRR		(1 << 5)
+#define SDHCI_FSL_IRQSTAT_CINTSEN	(1 << 8)
+#define SDHCI_FSL_IRQSTAT_RTE		(1 << 12)
+#define SDHCI_FSL_IRQSTAT_TNE		(1 << 26)
 
 #define	SDHCI_FSL_SYS_CTRL		0x2c
 #define	SDHCI_FSL_CLK_IPGEN		(1 << 0)
@@ -82,12 +92,99 @@ __FBSDID("$FreeBSD$");
 #define	SDHCI_FSL_WTMK_RD_512B		(0 << 0)
 #define	SDHCI_FSL_WTMK_WR_512B		(0 << 15)
 
+#define SDHCI_FSL_AUTOCERR		0x3C
+#define SDHCI_FSL_AUTOCERR_UHMS_HS200	(3 << 16)
+#define SDHCI_FSL_AUTOCERR_UHMS		(7 << 16)
+#define SDHCI_FSL_AUTOCERR_EXTN		(1 << 22)
+#define SDHCI_FSL_AUTOCERR_SMPCLKSEL	(1 << 23)
+#define SDHCI_FSL_AUTOCERR_UHMS_SHIFT	16
+
 #define	SDHCI_FSL_HOST_VERSION		0xfc
+#define	SDHCI_FSL_VENDOR_V23		0x13
+
 #define	SDHCI_FSL_CAPABILITIES2		0x114
+
+#define	SDHCI_FSL_TBCTL			0x120
+
+#define SDHCI_FSL_TBSTAT		0x124
+#define	SDHCI_FSL_TBCTL_TBEN		(1 << 2)
+#define SDHCI_FSL_TBCTL_HS400_EN	(1 << 4)
+#define SDHCI_FSL_TBCTL_SAMP_CMD_DQS	(1 << 5)
+#define SDHCI_FSL_TBCTL_HS400_WND_ADJ	(1 << 6)
+#define SDHCI_FSL_TBCTL_TB_MODE_MASK	0x3
+#define SDHCI_FSL_TBCTL_MODE_1		0
+#define SDHCI_FSL_TBCTL_MODE_2		1
+#define SDHCI_FSL_TBCTL_MODE_3		2
+#define SDHCI_FSL_TBCTL_MODE_SW		3
+
+#define SDHCI_FSL_TBPTR			0x128
+#define SDHCI_FSL_TBPTR_WND_START_SHIFT 8
+#define SDHCI_FSL_TBPTR_WND_MASK	0x7F
+
+#define SDHCI_FSL_SDCLKCTL		0x144
+#define SDHCI_FSL_SDCLKCTL_CMD_CLK_CTL	(1 << 15)
+#define SDHCI_FSL_SDCLKCTL_LPBK_CLK_SEL	(1 << 31)
+
+#define SDHCI_FSL_SDTIMINGCTL		0x148
+#define SDHCI_FSL_SDTIMINGCTL_FLW_CTL	(1 << 15)
+
+#define SDHCI_FSL_DLLCFG0		0x160
+#define SDHCI_FSL_DLLCFG0_FREQ_SEL	(1 << 27)
+#define SDHCI_FSL_DLLCFG0_RESET		(1 << 30)
+#define SDHCI_FSL_DLLCFG0_EN		(1 << 31)
+
+#define SDHCI_FSL_DLLCFG1		0x164
+#define SDHCI_FSL_DLLCFG1_PULSE_STRETCH	(1 << 31)
+
+#define SDHCI_FSL_DLLSTAT0		0x170
+#define SDHCI_FSL_DLLSTAT0_SLV_STS	(1 << 27)
 
 #define	SDHCI_FSL_ESDHC_CTRL		0x40c
 #define	SDHCI_FSL_ESDHC_CTRL_SNOOP	(1 << 6)
+#define SDHCI_FSL_ESDHC_CTRL_FAF	(1 << 18)
 #define	SDHCI_FSL_ESDHC_CTRL_CLK_DIV2	(1 << 19)
+
+#define SCFG_SDHCIOVSELCR		0x408
+#define SCFG_SDHCIOVSELCR_TGLEN		(1 << 0)
+#define SCFG_SDHCIOVSELCR_VS		(1 << 31)
+#define SCFG_SDHCIOVSELCR_VSELVAL_MASK	(3 << 1)
+#define SCFG_SDHCIOVSELCR_VSELVAL_1_8	0x0
+#define SCFG_SDHCIOVSELCR_VSELVAL_3_3	0x2
+
+#define SDHCI_FSL_CAN_VDD_MASK		\
+    (SDHCI_CAN_VDD_180 | SDHCI_CAN_VDD_300 | SDHCI_CAN_VDD_330)
+
+/* Some platforms do not detect pulse width correctly. */
+#define SDHCI_FSL_UNRELIABLE_PULSE_DET	(1 << 0)
+/* On some platforms switching voltage to 1.8V is not supported */
+#define SDHCI_FSL_UNSUPP_1_8V		(1 << 1)
+/* Hardware tuning can fail, fallback to SW tuning in that case. */
+#define SDHCI_FSL_TUNING_ERRATUM_TYPE1	(1 << 2)
+/*
+ * Pointer window might not be set properly on some platforms.
+ * Check window and perform SW tuning.
+ */
+#define SDHCI_FSL_TUNING_ERRATUM_TYPE2	(1 << 3)
+/*
+ * In HS400 mode only 4, 8, 12 clock dividers can be used.
+ * Use the smallest value, bigger than requested in that case.
+ */
+#define SDHCI_FSL_HS400_LIMITED_CLK_DIV	(1 << 4)
+
+/*
+ * Some SoCs don't have a fixed regulator. Switching voltage
+ * requires special routine including syscon registers.
+ */
+#define SDHCI_FSL_MISSING_VCCQ_REG	(1 << 5)
+
+/*
+ * HS400 tuning is done in HS200 mode, but it has to be done using
+ * the target frequency. In order to apply the errata above we need to
+ * know the target mode during tuning procedure. Use this flag for just that.
+ */
+#define SDHCI_FSL_HS400_FLAG		(1 << 0)
+
+#define SDHCI_FSL_MAX_RETRIES		20000	/* DELAY(10) * this = 200ms */
 
 struct sdhci_fsl_fdt_softc {
 	device_t				dev;
@@ -96,11 +193,16 @@ struct sdhci_fsl_fdt_softc {
 	struct resource				*irq_res;
 	void					*irq_cookie;
 	uint32_t				baseclk_hz;
+	uint32_t				maxclk_hz;
 	struct sdhci_fdt_gpio			*gpio;
 	struct sdhci_slot			slot;
 	bool					slot_init_done;
 	uint32_t				cmd_and_mode;
 	uint16_t				sdclk_bits;
+	struct mmc_helper			fdt_helper;
+	uint32_t				div_ratio;
+	uint8_t					vendor_ver;
+	uint32_t				flags;
 
 	uint32_t (* read)(struct sdhci_fsl_fdt_softc *, bus_size_t);
 	void (* write)(struct sdhci_fsl_fdt_softc *, bus_size_t, uint32_t);
@@ -108,17 +210,48 @@ struct sdhci_fsl_fdt_softc {
 
 struct sdhci_fsl_fdt_soc_data {
 	int quirks;
+	int baseclk_div;
+	uint8_t errata;
+	char *syscon_compat;
+};
+
+static const struct sdhci_fsl_fdt_soc_data sdhci_fsl_fdt_ls1012a_soc_data = {
+	.quirks = 0,
+	.baseclk_div = 1,
+	.errata = SDHCI_FSL_MISSING_VCCQ_REG | SDHCI_FSL_TUNING_ERRATUM_TYPE2,
+	.syscon_compat = "fsl,ls1012a-scfg",
+};
+
+static const struct sdhci_fsl_fdt_soc_data sdhci_fsl_fdt_ls1028a_soc_data = {
+	.quirks = SDHCI_QUIRK_DONT_SET_HISPD_BIT |
+	    SDHCI_QUIRK_BROKEN_AUTO_STOP | SDHCI_QUIRK_DATA_TIMEOUT_USES_SDCLK,
+	.baseclk_div = 2,
+	.errata = SDHCI_FSL_UNRELIABLE_PULSE_DET |
+	    SDHCI_FSL_HS400_LIMITED_CLK_DIV,
 };
 
 static const struct sdhci_fsl_fdt_soc_data sdhci_fsl_fdt_ls1046a_soc_data = {
-	.quirks = SDHCI_QUIRK_DONT_SET_HISPD_BIT | SDHCI_QUIRK_BROKEN_AUTO_STOP
+	.quirks = SDHCI_QUIRK_DONT_SET_HISPD_BIT | SDHCI_QUIRK_BROKEN_AUTO_STOP,
+	.baseclk_div = 2,
+	.errata = SDHCI_FSL_MISSING_VCCQ_REG | SDHCI_FSL_TUNING_ERRATUM_TYPE2,
+	.syscon_compat = "fsl,ls1046a-scfg",
+};
+
+static const struct sdhci_fsl_fdt_soc_data sdhci_fsl_fdt_lx2160a_soc_data = {
+	.quirks = 0,
+	.baseclk_div = 2,
+	.errata = SDHCI_FSL_UNRELIABLE_PULSE_DET |
+	    SDHCI_FSL_HS400_LIMITED_CLK_DIV,
 };
 
 static const struct sdhci_fsl_fdt_soc_data sdhci_fsl_fdt_gen_data = {
 	.quirks = 0,
+	.baseclk_div = 1,
 };
 
 static const struct ofw_compat_data sdhci_fsl_fdt_compat_data[] = {
+	{"fsl,ls1012a-esdhc",	(uintptr_t)&sdhci_fsl_fdt_ls1012a_soc_data},
+	{"fsl,ls1028a-esdhc",	(uintptr_t)&sdhci_fsl_fdt_ls1028a_soc_data},
 	{"fsl,ls1046a-esdhc",	(uintptr_t)&sdhci_fsl_fdt_ls1046a_soc_data},
 	{"fsl,esdhc",		(uintptr_t)&sdhci_fsl_fdt_gen_data},
 	{NULL,			0}
@@ -167,10 +300,26 @@ sdhci_fsl_fdt_get_clock(struct sdhci_fsl_fdt_softc *sc)
 	return (val);
 }
 
+/*
+ * Calculate clock prescaler and divisor values based on the following formula:
+ * `frequency = base clock / (prescaler * divisor)`.
+ */
+#define	SDHCI_FSL_FDT_CLK_DIV(sc, base, freq, pre, div)			\
+	do {								\
+		(pre) = (sc)->vendor_ver < SDHCI_FSL_VENDOR_V23 ? 2 : 1;\
+		while ((freq) < (base) / ((pre) * 16) && (pre) < 256)	\
+			(pre) <<= 1;					\
+		/* div/pre can't both be set to 1, according to PM. */	\
+		(div) = ((pre) == 1 ? 2 : 1);				\
+		while ((freq) < (base) / ((pre) * (div)) && (div) < 16)	\
+			++(div);					\
+	} while (0)
+
 static void
-fsl_sdhc_fdt_set_clock(struct sdhci_fsl_fdt_softc *sc, uint16_t val)
+fsl_sdhc_fdt_set_clock(struct sdhci_fsl_fdt_softc *sc, struct sdhci_slot *slot,
+    uint16_t val)
 {
-	uint32_t div, freq, prescale, val32;
+	uint32_t prescale, div, val32, div_ratio;
 
 	sc->sdclk_bits = val & SDHCI_DIVIDERS_MASK;
 	val32 = RD4(sc, SDHCI_CLOCK_CONTROL);
@@ -180,25 +329,41 @@ fsl_sdhc_fdt_set_clock(struct sdhci_fsl_fdt_softc *sc, uint16_t val)
 		return;
 	}
 
-	div = ((val >> SDHCI_DIVIDER_SHIFT) & SDHCI_DIVIDER_MASK) |
-	    ((val >> SDHCI_DIVIDER_HI_SHIFT) & SDHCI_DIVIDER_HI_MASK) <<
-	    SDHCI_DIVIDER_MASK_LEN;
-	if (div == 0)
-		freq = sc->baseclk_hz;
-	else
-		freq = sc->baseclk_hz / (2 * div);
+	/*
+	 * Ignore dividers provided by core in `sdhci_set_clock` and calculate
+	 * them anew with higher accuracy.
+	 */
+	SDHCI_FSL_FDT_CLK_DIV(sc, sc->baseclk_hz, slot->clock, prescale, div);
 
-	for (prescale = 2; freq < sc->baseclk_hz / (prescale * 16); )
-		prescale <<= 1;
-	for (div = 1; freq < sc->baseclk_hz / (prescale * div); )
-		++div;
+	div_ratio = prescale * div;
 
-#ifdef DEBUG
-	device_printf(sc->dev,
-	    "Desired SD/MMC freq: %d, actual: %d; base %d prescale %d divisor %d\n",
-	    freq, sc->baseclk_hz / (prescale * div),
-	    sc->baseclk_hz, prescale, div);
-#endif
+	/*
+	 * According to limited clock division erratum, clock dividers in hs400
+	 * can be only 4, 8 or 12
+	 */
+	if ((sc->soc_data->errata & SDHCI_FSL_HS400_LIMITED_CLK_DIV) &&
+	    (sc->slot.host.ios.timing == bus_timing_mmc_hs400 ||
+	     (sc->flags & SDHCI_FSL_HS400_FLAG))) {
+		if (div_ratio <= 4) {
+			prescale = 4;
+			div = 1;
+		} else if (div_ratio <= 8) {
+			prescale = 4;
+			div = 2;
+		} else if (div_ratio <= 12) {
+			prescale = 4;
+			div = 3;
+		} else {
+			device_printf(sc->dev, "Unsupported clock divider.\n");
+		}
+	}
+
+	sc->div_ratio = prescale * div;
+	if (bootverbose)
+		device_printf(sc->dev,
+		    "Desired SD/MMC freq: %d, actual: %d; base %d prescale %d divisor %d\n",
+		    slot->clock, sc->baseclk_hz / (prescale * div),
+		    sc->baseclk_hz, prescale, div);
 
 	prescale >>= 1;
 	div -= 1;
@@ -282,18 +447,11 @@ sdhci_fsl_fdt_read_4(device_t dev, struct sdhci_slot *slot, bus_size_t off)
 
 	val32 = RD4(sc, off);
 
-	switch (off) {
-	case SDHCI_CAPABILITIES:
-		val32 &= ~(SDHCI_CAN_DO_SUSPEND | SDHCI_CAN_VDD_180);
-		break;
-	case SDHCI_PRESENT_STATE:
+	if (off == SDHCI_PRESENT_STATE) {
 		wrk32 = val32;
 		val32 &= SDHCI_FSL_PRES_COMPAT_MASK;
 		val32 |= (wrk32 >> 4) & SDHCI_STATE_DAT_MASK;
 		val32 |= (wrk32 << 1) & SDHCI_STATE_CMD;
-		break;
-	default:
-		break;
 	}
 
 	return (val32);
@@ -338,9 +496,6 @@ sdhci_fsl_fdt_write_1(device_t dev, struct sdhci_slot *slot, bus_size_t off,
 		return;
 	case SDHCI_POWER_CONTROL:
 		return;
-	case SDHCI_SOFTWARE_RESET:
-		val &= ~SDHCI_RESET_ALL;
-	/* FALLTHROUGH. */
 	default:
 		val32 = RD4(sc, off & ~3);
 		val32 &= ~(UINT8_MAX << (off & 3) * 8);
@@ -361,7 +516,7 @@ sdhci_fsl_fdt_write_2(device_t dev, struct sdhci_slot *slot, bus_size_t off,
 
 	switch (off) {
 	case SDHCI_CLOCK_CONTROL:
-		fsl_sdhc_fdt_set_clock(sc, val);
+		fsl_sdhc_fdt_set_clock(sc, slot, val);
 		return;
 	/*
 	 * eSDHC hardware combines command and mode into a single
@@ -377,6 +532,13 @@ sdhci_fsl_fdt_write_2(device_t dev, struct sdhci_slot *slot, bus_size_t off,
 		WR4(sc, SDHCI_TRANSFER_MODE, sc->cmd_and_mode);
 		sc->cmd_and_mode = 0;
 		return;
+	case SDHCI_HOST_CONTROL2:
+		/*
+		 * Switching to HS400 requires a special procedure,
+		 * which is done in sdhci_fsl_fdt_set_uhs_timing.
+		 */
+		if ((val & SDHCI_CTRL2_UHS_MASK) == SDHCI_CTRL2_MMC_HS400)
+			val &= ~SDHCI_CTRL2_MMC_HS400;
 	default:
 		val32 = RD4(sc, off & ~3);
 		val32 &= ~(UINT16_MAX << (off & 3) * 8);
@@ -436,6 +598,161 @@ sdhci_fsl_fdt_irq(void *arg)
 }
 
 static int
+sdhci_fsl_fdt_update_ios(device_t brdev, device_t reqdev)
+{
+	int err;
+	struct sdhci_fsl_fdt_softc *sc;
+	struct mmc_ios *ios;
+	struct sdhci_slot *slot;
+
+	err = sdhci_generic_update_ios(brdev, reqdev);
+	if (err != 0)
+		return (err);
+
+	sc = device_get_softc(brdev);
+	slot = device_get_ivars(reqdev);
+	ios = &slot->host.ios;
+
+	switch (ios->power_mode) {
+	case power_on:
+		break;
+	case power_off:
+		if (bootverbose)
+			device_printf(sc->dev, "Powering down sd/mmc\n");
+
+		if (sc->fdt_helper.vmmc_supply)
+			regulator_disable(sc->fdt_helper.vmmc_supply);
+		if (sc->fdt_helper.vqmmc_supply)
+			regulator_disable(sc->fdt_helper.vqmmc_supply);
+		break;
+	case power_up:
+		if (bootverbose)
+			device_printf(sc->dev, "Powering up sd/mmc\n");
+
+		if (sc->fdt_helper.vmmc_supply)
+			regulator_enable(sc->fdt_helper.vmmc_supply);
+		if (sc->fdt_helper.vqmmc_supply)
+			regulator_enable(sc->fdt_helper.vqmmc_supply);
+		break;
+	};
+
+	return (0);
+}
+
+static int
+sdhci_fsl_fdt_switch_syscon_voltage(device_t dev,
+    struct sdhci_fsl_fdt_softc *sc, enum mmc_vccq vccq)
+{
+	struct syscon *syscon;
+	phandle_t syscon_node;
+	uint32_t reg;
+
+	if (sc->soc_data->syscon_compat == NULL) {
+		device_printf(dev, "Empty syscon compat string.\n");
+		return (ENXIO);
+	}
+
+	syscon_node = ofw_bus_find_compatible(OF_finddevice("/"),
+	    sc->soc_data->syscon_compat);
+
+	if (syscon_get_by_ofw_node(dev, syscon_node, &syscon) != 0) {
+		device_printf(dev, "Could not find syscon node.\n");
+		return (ENXIO);
+	}
+
+	reg = SYSCON_READ_4(syscon, SCFG_SDHCIOVSELCR);
+	reg &= ~SCFG_SDHCIOVSELCR_VSELVAL_MASK;
+	reg |= SCFG_SDHCIOVSELCR_TGLEN;
+
+	switch (vccq) {
+	case vccq_180:
+		reg |= SCFG_SDHCIOVSELCR_VSELVAL_1_8;
+		SYSCON_WRITE_4(syscon, SCFG_SDHCIOVSELCR, reg);
+
+		DELAY(5000);
+
+		reg = SYSCON_READ_4(syscon, SCFG_SDHCIOVSELCR);
+		reg |= SCFG_SDHCIOVSELCR_VS;
+		break;
+	case vccq_330:
+		reg |= SCFG_SDHCIOVSELCR_VSELVAL_3_3;
+		SYSCON_WRITE_4(syscon, SCFG_SDHCIOVSELCR, reg);
+
+		DELAY(5000);
+
+		reg = SYSCON_READ_4(syscon, SCFG_SDHCIOVSELCR);
+		reg &= ~SCFG_SDHCIOVSELCR_VS;
+		break;
+	default:
+		device_printf(dev, "Unsupported voltage requested.\n");
+		return (ENXIO);
+	}
+
+	SYSCON_WRITE_4(syscon, SCFG_SDHCIOVSELCR, reg);
+
+	return (0);
+}
+
+static int
+sdhci_fsl_fdt_switch_vccq(device_t brdev, device_t reqdev)
+{
+	struct sdhci_fsl_fdt_softc *sc;
+	struct sdhci_slot *slot;
+	regulator_t vqmmc_supply;
+	uint32_t val_old, val;
+	int uvolt, err = 0;
+
+	sc = device_get_softc(brdev);
+	slot = device_get_ivars(reqdev);
+
+	val_old = val = RD4(sc, SDHCI_FSL_PROT_CTRL);
+
+	switch (slot->host.ios.vccq) {
+	case vccq_180:
+		if (sc->soc_data->errata & SDHCI_FSL_UNSUPP_1_8V)
+			return (EOPNOTSUPP);
+
+		val |= SDHCI_FSL_PROT_CTRL_VOLT_SEL;
+		uvolt = 1800000;
+		break;
+	case vccq_330:
+		val &= ~SDHCI_FSL_PROT_CTRL_VOLT_SEL;
+		uvolt = 3300000;
+		break;
+	default:
+		return (EOPNOTSUPP);
+	}
+
+	WR4(sc, SDHCI_FSL_PROT_CTRL, val);
+
+	if (sc->soc_data->errata & SDHCI_FSL_MISSING_VCCQ_REG) {
+		err = sdhci_fsl_fdt_switch_syscon_voltage(brdev, sc,
+		    slot->host.ios.vccq);
+		if (err != 0)
+			goto vccq_fail;
+	}
+
+	vqmmc_supply = sc->fdt_helper.vqmmc_supply;
+	/*
+	 * Even though we expect to find a fixed regulator in this controller
+	 * family, let's play safe.
+	 */
+	if (vqmmc_supply != NULL) {
+		err = regulator_set_voltage(vqmmc_supply, uvolt, uvolt);
+		if (err != 0)
+			goto vccq_fail;
+	}
+
+	return (0);
+
+vccq_fail:
+	device_printf(sc->dev, "Cannot set vqmmc to %d<->%d\n", uvolt, uvolt);
+	WR4(sc, SDHCI_FSL_PROT_CTRL, val_old);
+
+	return (err);
+}
+
+static int
 sdhci_fsl_fdt_get_ro(device_t bus, device_t child)
 {
 	struct sdhci_fsl_fdt_softc *sc;
@@ -453,10 +770,103 @@ sdhci_fsl_fdt_get_card_present(device_t dev, struct sdhci_slot *slot)
 	return (sdhci_fdt_gpio_get_present(sc->gpio));
 }
 
+static uint32_t
+sdhci_fsl_fdt_vddrange_to_mask(device_t dev, uint32_t *vdd_ranges, int len)
+{
+	uint32_t vdd_min, vdd_max;
+	uint32_t vdd_mask = 0;
+	int i;
+
+	/* Ranges are organized as pairs of values. */
+	if ((len % 2) != 0) {
+		device_printf(dev, "Invalid voltage range\n");
+		return (0);
+	}
+	len = len / 2;
+
+	for (i = 0; i < len; i++) {
+		vdd_min = vdd_ranges[2 * i];
+		vdd_max = vdd_ranges[2 * i + 1];
+
+		if (vdd_min > vdd_max || vdd_min < 1650 || vdd_min > 3600 ||
+		    vdd_max < 1650 || vdd_max > 3600) {
+			device_printf(dev, "Voltage range %d - %d is out of bounds\n",
+			    vdd_min, vdd_max);
+			return (0);
+		}
+
+		if (vdd_min <= 1800 && vdd_max >= 1800)
+			vdd_mask |= SDHCI_CAN_VDD_180;
+		if (vdd_min <= 3000 && vdd_max >= 3000)
+			vdd_mask |= SDHCI_CAN_VDD_300;
+		if (vdd_min <= 3300 && vdd_max >= 3300)
+			vdd_mask |= SDHCI_CAN_VDD_330;
+	}
+
+	return (vdd_mask);
+}
+
+static void
+sdhci_fsl_fdt_of_parse(device_t dev)
+{
+	struct sdhci_fsl_fdt_softc *sc;
+	phandle_t node;
+	pcell_t *voltage_ranges;
+	uint32_t vdd_mask = 0;
+	ssize_t num_ranges;
+
+	sc = device_get_softc(dev);
+	node = ofw_bus_get_node(dev);
+
+	/* Call mmc_fdt_parse in order to get mmc related properties. */
+	mmc_fdt_parse(dev, node, &sc->fdt_helper, &sc->slot.host);
+
+	sc->slot.caps = sdhci_fsl_fdt_read_4(dev, &sc->slot,
+	    SDHCI_CAPABILITIES) & ~(SDHCI_CAN_DO_SUSPEND);
+	sc->slot.caps2 = sdhci_fsl_fdt_read_4(dev, &sc->slot,
+	    SDHCI_CAPABILITIES2);
+
+	/* Parse the "voltage-ranges" dts property. */
+	num_ranges = OF_getencprop_alloc(node, "voltage-ranges",
+	    (void **) &voltage_ranges);
+	if (num_ranges <= 0)
+		return;
+	vdd_mask = sdhci_fsl_fdt_vddrange_to_mask(dev, voltage_ranges,
+	    num_ranges / sizeof(uint32_t));
+	OF_prop_free(voltage_ranges);
+
+	/* Overwrite voltage caps only if we got something from dts. */
+	if (vdd_mask != 0 &&
+	    (vdd_mask != (sc->slot.caps & SDHCI_FSL_CAN_VDD_MASK))) {
+		sc->slot.caps &= ~(SDHCI_FSL_CAN_VDD_MASK);
+		sc->slot.caps |= vdd_mask;
+		sc->slot.quirks |= SDHCI_QUIRK_MISSING_CAPS;
+	}
+}
+
+static int
+sdhci_fsl_poll_register(struct sdhci_fsl_fdt_softc *sc,
+    uint32_t reg, uint32_t mask, int value)
+{
+	int retries;
+
+	retries = SDHCI_FSL_MAX_RETRIES;
+
+	while ((RD4(sc, reg) & mask) != value) {
+		if (!retries--)
+			return (ENXIO);
+
+		DELAY(10);
+	}
+
+	return (0);
+}
+
 static int
 sdhci_fsl_fdt_attach(device_t dev)
 {
 	struct sdhci_fsl_fdt_softc *sc;
+	struct mmc_host *host;
 	uint32_t val, buf_order;
 	uintptr_t ocd_data;
 	uint64_t clk_hz;
@@ -468,11 +878,23 @@ sdhci_fsl_fdt_attach(device_t dev)
 	sc = device_get_softc(dev);
 	ocd_data = ofw_bus_search_compatible(dev,
 	    sdhci_fsl_fdt_compat_data)->ocd_data;
-	sc->soc_data = (struct sdhci_fsl_fdt_soc_data *)ocd_data;
 	sc->dev = dev;
+	sc->flags = 0;
+	host = &sc->slot.host;
+	rid = 0;
+
+	/*
+	 * LX2160A needs its own soc_data in order to apply SoC
+	 * specific quriks. Since the controller is identified
+	 * only with a generic compatible string we need to do this dance here.
+	 */
+	if (ofw_bus_node_is_compatible(OF_finddevice("/"), "fsl,lx2160a"))
+		sc->soc_data = &sdhci_fsl_fdt_lx2160a_soc_data;
+	else
+		sc->soc_data = (struct sdhci_fsl_fdt_soc_data *)ocd_data;
+
 	sc->slot.quirks = sc->soc_data->quirks;
 
-	rid = 0;
 	sc->mem_res = bus_alloc_resource_any(dev, SYS_RES_MEMORY, &rid,
 	    RF_ACTIVE);
 	if (sc->mem_res == NULL) {
@@ -511,7 +933,7 @@ sdhci_fsl_fdt_attach(device_t dev)
 		goto err_free_irq;
 	}
 
-	sc->baseclk_hz = clk_hz / 2;
+	sc->baseclk_hz = clk_hz / sc->soc_data->baseclk_div;
 
 	/* Figure out eSDHC block endianness before we touch any HW regs. */
 	if (OF_hasprop(node, "little-endian")) {
@@ -523,6 +945,12 @@ sdhci_fsl_fdt_attach(device_t dev)
 		sc->write = write_be;
 		buf_order = SDHCI_FSL_PROT_CTRL_BYTE_SWAP;
 	}
+
+	sc->vendor_ver = (RD4(sc, SDHCI_FSL_HOST_VERSION) &
+	    SDHCI_VENDOR_VER_MASK) >> SDHCI_VENDOR_VER_SHIFT;
+
+	sdhci_fsl_fdt_of_parse(dev);
+	sc->maxclk_hz = host->f_max ? host->f_max : sc->baseclk_hz;
 
 	/*
 	 * Setting this register affects byte order in SDHCI_BUFFER only.
@@ -537,14 +965,15 @@ sdhci_fsl_fdt_attach(device_t dev)
 	WR4(sc, SDHCI_FSL_PROT_CTRL, val | buf_order);
 
 	/*
-	 * Gate the SD clock and set its source to peripheral clock / 2.
-	 * The frequency in baseclk_hz is set to match this.
+	 * Gate the SD clock and set its source to
+	 * peripheral clock / baseclk_div. The frequency in baseclk_hz is set
+	 * to match this.
 	 */
 	val = RD4(sc, SDHCI_CLOCK_CONTROL);
 	WR4(sc, SDHCI_CLOCK_CONTROL, val & ~SDHCI_FSL_CLK_SDCLKEN);
 	val = RD4(sc, SDHCI_FSL_ESDHC_CTRL);
 	WR4(sc, SDHCI_FSL_ESDHC_CTRL, val | SDHCI_FSL_ESDHC_CTRL_CLK_DIV2);
-	sc->slot.max_clk = sc->baseclk_hz;
+	sc->slot.max_clk = sc->maxclk_hz;
 	sc->gpio = sdhci_fdt_gpio_setup(dev, &sc->slot);
 
 	/*
@@ -634,6 +1063,470 @@ sdhci_fsl_fdt_read_ivar(device_t bus, device_t child, int which,
 	return (sdhci_generic_read_ivar(bus, child, which, result));
 }
 
+static int
+sdhci_fsl_fdt_write_ivar(device_t bus, device_t child, int which,
+    uintptr_t value)
+{
+	struct sdhci_fsl_fdt_softc *sc;
+	struct sdhci_slot *slot = device_get_ivars(child);
+	uint32_t prescale, div;
+
+	/* Don't depend on clock resolution limits from sdhci core. */
+	if (which == MMCBR_IVAR_CLOCK) {
+		if (value == 0) {
+			slot->host.ios.clock = 0;
+			return (0);
+		}
+
+		sc = device_get_softc(bus);
+
+		SDHCI_FSL_FDT_CLK_DIV(sc, sc->baseclk_hz, value, prescale, div);
+		slot->host.ios.clock = sc->baseclk_hz / (prescale * div);
+
+		return (0);
+	}
+
+	return (sdhci_generic_write_ivar(bus, child, which, value));
+}
+
+static void
+sdhci_fsl_fdt_reset(device_t dev, struct sdhci_slot *slot, uint8_t mask)
+{
+	struct sdhci_fsl_fdt_softc *sc;
+	uint32_t val;
+
+	sdhci_generic_reset(dev, slot, mask);
+
+	if (!(mask & SDHCI_RESET_ALL))
+		return;
+
+	sc = device_get_softc(dev);
+
+	/* Some registers have to be cleared by hand. */
+	if (slot->version >= SDHCI_SPEC_300) {
+		val = RD4(sc, SDHCI_FSL_TBCTL);
+		val &= ~SDHCI_FSL_TBCTL_TBEN;
+		WR4(sc, SDHCI_FSL_TBCTL, val);
+	}
+
+	/*
+	 * Pulse width detection is not reliable on some boards. Perform
+	 * workaround by clearing register's bit according to errata.
+	 */
+	if (sc->soc_data->errata & SDHCI_FSL_UNRELIABLE_PULSE_DET) {
+		val = RD4(sc, SDHCI_FSL_DLLCFG1);
+		val &= ~SDHCI_FSL_DLLCFG1_PULSE_STRETCH;
+		WR4(sc, SDHCI_FSL_DLLCFG1, val);
+	}
+
+	sc->flags = 0;
+}
+
+static void
+sdhci_fsl_switch_tuning_block(device_t dev, bool enable)
+{
+	struct sdhci_fsl_fdt_softc *sc;
+	uint32_t reg;
+
+	sc = device_get_softc(dev);
+
+	reg = RD4(sc, SDHCI_FSL_TBCTL);
+
+	if (enable)
+		reg |= SDHCI_FSL_TBCTL_TBEN;
+	else
+		reg &= ~SDHCI_FSL_TBCTL_TBEN;
+
+	WR4(sc, SDHCI_FSL_TBCTL, reg);
+}
+
+static int
+sdhci_fsl_sw_tuning(struct sdhci_fsl_fdt_softc *sc, device_t bus,
+    device_t child, bool hs400, uint32_t wnd_start, uint32_t wnd_end)
+{
+	uint32_t reg;
+	int error;
+
+	if (sc->soc_data->errata & SDHCI_FSL_TUNING_ERRATUM_TYPE1 ||
+	    abs(wnd_start - wnd_end) <= (4 * sc->div_ratio + 2)) {
+		wnd_start = 5 * sc->div_ratio;
+		wnd_end = 3 * sc->div_ratio;
+	} else {
+		wnd_start = 8 * sc->div_ratio;
+		wnd_end = 4 * sc->div_ratio;
+	}
+
+	reg = RD4(sc, SDHCI_FSL_TBPTR);
+	reg &= ~SDHCI_FSL_TBPTR_WND_MASK;
+	reg &= ~(SDHCI_FSL_TBPTR_WND_MASK << SDHCI_FSL_TBPTR_WND_START_SHIFT);
+	reg |= wnd_start << SDHCI_FSL_TBPTR_WND_START_SHIFT;
+	reg |= wnd_end;
+	WR4(sc, SDHCI_FSL_TBPTR, reg);
+
+	/*
+	 * Normally those are supposed to be set in sdhci_execute_tuning.
+	 * However in our case we need a small delay between setting the two.
+	 */
+	reg = RD4(sc, SDHCI_FSL_AUTOCERR);
+	reg |= SDHCI_FSL_AUTOCERR_EXTN;
+	WR4(sc, SDHCI_FSL_AUTOCERR, reg);
+	DELAY(10);
+	reg |= SDHCI_FSL_AUTOCERR_SMPCLKSEL;
+	WR4(sc, SDHCI_FSL_AUTOCERR, reg);
+
+	reg = RD4(sc, SDHCI_FSL_TBCTL);
+	reg &= ~SDHCI_FSL_TBCTL_TB_MODE_MASK;
+	reg |= SDHCI_FSL_TBCTL_MODE_SW;
+	WR4(sc, SDHCI_FSL_TBCTL, reg);
+
+	error = sdhci_generic_tune(bus, child, hs400);
+	if (error != 0) {
+		device_printf(bus,
+		    "Failed to execute generic tune while performing software tuning.\n");
+	}
+
+	return (error);
+}
+
+static int
+sdhci_fsl_fdt_tune(device_t bus, device_t child, bool hs400)
+{
+	struct sdhci_fsl_fdt_softc *sc;
+	uint32_t wnd_start, wnd_end;
+	uint32_t clk_divider, reg;
+	struct sdhci_slot *slot;
+	int error;
+
+	sc = device_get_softc(bus);
+	slot = device_get_ivars(child);
+	error = 0;
+	clk_divider = sc->baseclk_hz / slot->clock;
+
+	switch (sc->slot.host.ios.timing) {
+	case bus_timing_mmc_hs400:
+		return (EINVAL);
+	case bus_timing_mmc_hs200:
+	case bus_timing_uhs_ddr50:
+	case bus_timing_uhs_sdr104:
+		break;
+	case bus_timing_uhs_sdr50:
+		if (slot->opt & SDHCI_SDR50_NEEDS_TUNING)
+			break;
+	default:
+		return (0);
+	}
+
+	/*
+	 * For tuning mode SD clock divider must be within 3 to 16.
+	 * We also need to match the frequency to whatever mode is used.
+	 * For that reason we're just bailing if the dividers don't match
+	 * that requirement.
+	 */
+	if (clk_divider < 3 || clk_divider > 16)
+		return (ENXIO);
+
+	if (hs400)
+		sc->flags |= SDHCI_FSL_HS400_FLAG;
+
+	/* Disable clock. */
+	fsl_sdhc_fdt_set_clock(sc, slot, sc->sdclk_bits);
+
+	/* Wait for PRSSTAT[SDSTB] to be set by hardware. */
+	error = sdhci_fsl_poll_register(sc, SDHCI_FSL_PRES_STATE,
+	    SDHCI_FSL_PRES_SDSTB, SDHCI_FSL_PRES_SDSTB);
+	if (error != 0)
+		device_printf(bus,
+		    "Timeout while waiting for clock to stabilize.\n");
+
+	/* Flush async IO. */
+	reg = RD4(sc, SDHCI_FSL_ESDHC_CTRL);
+	reg |= SDHCI_FSL_ESDHC_CTRL_FAF;
+	WR4(sc, SDHCI_FSL_ESDHC_CTRL, reg);
+
+	/* Wait for ESDHC[FAF] to be cleared by hardware. */
+	error = sdhci_fsl_poll_register(sc, SDHCI_FSL_ESDHC_CTRL,
+	    SDHCI_FSL_ESDHC_CTRL_FAF, 0);
+	if (error)
+		device_printf(bus,
+		    "Timeout while waiting for hardware.\n");
+
+	/*
+	 * Set TBCTL[TB_EN] register and program valid tuning mode.
+	 * According to RM MODE_3 means that:
+	 * "eSDHC takes care of the re-tuning during data transfer
+	 * (auto re-tuning).".
+	 * Tuning mode can only be changed while the clock is disabled.
+	 */
+	reg = RD4(sc, SDHCI_FSL_TBCTL);
+	reg &= ~SDHCI_FSL_TBCTL_TB_MODE_MASK;
+	reg |= SDHCI_FSL_TBCTL_TBEN | SDHCI_FSL_TBCTL_MODE_3;
+	WR4(sc, SDHCI_FSL_TBCTL, reg);
+
+	/* Enable clock. */
+	fsl_sdhc_fdt_set_clock(sc, slot, SDHCI_CLOCK_CARD_EN | sc->sdclk_bits);
+
+	/* Wait for clock to stabilize. */
+	error = sdhci_fsl_poll_register(sc, SDHCI_FSL_PRES_STATE,
+	    SDHCI_FSL_PRES_SDSTB, SDHCI_FSL_PRES_SDSTB);
+	if (error)
+		device_printf(bus,
+		    "Timeout while waiting for clock to stabilize.\n");
+
+	/* Perform hardware tuning. */
+	error = sdhci_generic_tune(bus, child, hs400);
+
+	reg = RD4(sc, SDHCI_FSL_TBPTR);
+	wnd_start = reg >> SDHCI_FSL_TBPTR_WND_START_SHIFT;
+	wnd_start &= SDHCI_FSL_TBPTR_WND_MASK;
+	wnd_end = reg & SDHCI_FSL_TBPTR_WND_MASK;
+
+	/*
+	 * For erratum type2 affected platforms, the controller can erroneously
+	 * declare that the tuning was successful. Verify the tuning window to
+	 * make sure that we're fine.
+	 */
+	if (error == 0 &&
+	    sc->soc_data->errata & SDHCI_FSL_TUNING_ERRATUM_TYPE2 &&
+	    abs(wnd_start - wnd_end) > (4 * sc->div_ratio + 2)) {
+		error = EIO;
+	}
+
+	/* If hardware tuning failed, try software tuning. */
+	if (error != 0 &&
+	    (sc->soc_data->errata &
+	    (SDHCI_FSL_TUNING_ERRATUM_TYPE1 |
+	    SDHCI_FSL_TUNING_ERRATUM_TYPE2))) {
+		error = sdhci_fsl_sw_tuning(sc, bus, child, hs400, wnd_start,
+		    wnd_end);
+		if (error != 0)
+			device_printf(bus, "Software tuning failed.\n");
+	}
+
+	if (error != 0) {
+		sdhci_fsl_switch_tuning_block(bus, false);
+		return (error);
+	}
+	if (hs400) {
+		reg = RD4(sc, SDHCI_FSL_SDTIMINGCTL);
+		reg |= SDHCI_FSL_SDTIMINGCTL_FLW_CTL;
+		WR4(sc, SDHCI_FSL_SDTIMINGCTL, reg);
+	}
+
+	return (0);
+}
+
+static int
+sdhci_fsl_fdt_retune(device_t bus, device_t child, bool reset)
+{
+	struct sdhci_slot *slot;
+	struct sdhci_fsl_fdt_softc *sc;
+
+	slot = device_get_ivars(child);
+	sc = device_get_softc(bus);
+
+	if (!(slot->opt & SDHCI_TUNING_ENABLED))
+		return (0);
+
+	/* HS400 must be tuned in HS200 mode. */
+	if (slot->host.ios.timing == bus_timing_mmc_hs400)
+		return (EINVAL);
+
+	/*
+	 * Only re-tuning with full reset is supported.
+	 * The controller is normally put in "mode 3", which means that
+	 * periodic re-tuning is done automatically. See comment in
+	 * sdhci_fsl_fdt_tune for details.
+	 * Because of that re-tuning should only be triggered as a result
+	 * of a CRC error.
+	 */
+	 if (!reset)
+		return (ENOTSUP);
+
+	return (sdhci_fsl_fdt_tune(bus, child,
+	    sc->flags & SDHCI_FSL_HS400_FLAG));
+}
+static void
+sdhci_fsl_disable_hs400_mode(device_t dev, struct sdhci_fsl_fdt_softc *sc)
+{
+	uint32_t reg;
+	int error;
+
+	/* Check if HS400 is enabled right now. */
+	reg = RD4(sc, SDHCI_FSL_TBCTL);
+	if ((reg & SDHCI_FSL_TBCTL_HS400_EN) == 0)
+		return;
+
+	reg = RD4(sc, SDHCI_FSL_SDTIMINGCTL);
+	reg &= ~SDHCI_FSL_SDTIMINGCTL_FLW_CTL;
+	WR4(sc, SDHCI_FSL_SDTIMINGCTL, reg);
+
+	reg = RD4(sc, SDHCI_FSL_SDCLKCTL);
+	reg &= ~SDHCI_FSL_SDCLKCTL_CMD_CLK_CTL;
+	WR4(sc, SDHCI_FSL_SDCLKCTL, reg);
+
+	fsl_sdhc_fdt_set_clock(sc, &sc->slot, sc->sdclk_bits);
+	error = sdhci_fsl_poll_register(sc, SDHCI_FSL_PRES_STATE,
+	    SDHCI_FSL_PRES_SDSTB, SDHCI_FSL_PRES_SDSTB);
+	if (error != 0)
+		device_printf(dev,
+		    "Internal clock never stabilized.\n");
+
+	reg = RD4(sc, SDHCI_FSL_TBCTL);
+	reg &= ~SDHCI_FSL_TBCTL_HS400_EN;
+	WR4(sc, SDHCI_FSL_TBCTL, reg);
+
+	fsl_sdhc_fdt_set_clock(sc, &sc->slot, SDHCI_CLOCK_CARD_EN |
+	    sc->sdclk_bits);
+
+	error = sdhci_fsl_poll_register(sc, SDHCI_FSL_PRES_STATE,
+	    SDHCI_FSL_PRES_SDSTB, SDHCI_FSL_PRES_SDSTB);
+	if (error != 0)
+		device_printf(dev,
+		    "Internal clock never stabilized.\n");
+
+	reg = RD4(sc, SDHCI_FSL_DLLCFG0);
+	reg &= ~(SDHCI_FSL_DLLCFG0_EN |
+	    SDHCI_FSL_DLLCFG0_FREQ_SEL);
+	WR4(sc, SDHCI_FSL_DLLCFG0, reg);
+
+	reg = RD4(sc, SDHCI_FSL_TBCTL);
+	reg &= ~SDHCI_FSL_TBCTL_HS400_WND_ADJ;
+	WR4(sc, SDHCI_FSL_TBCTL, reg);
+
+	sdhci_fsl_switch_tuning_block(dev, false);
+}
+
+static void
+sdhci_fsl_enable_hs400_mode(device_t dev, struct sdhci_slot *slot,
+    struct sdhci_fsl_fdt_softc *sc)
+{
+	uint32_t reg;
+	int error;
+
+	sdhci_fsl_switch_tuning_block(dev, true);
+	fsl_sdhc_fdt_set_clock(sc, slot, sc->sdclk_bits);
+
+	error = sdhci_fsl_poll_register(sc, SDHCI_FSL_PRES_STATE,
+	    SDHCI_FSL_PRES_SDSTB, SDHCI_FSL_PRES_SDSTB);
+	if (error != 0)
+		device_printf(dev,
+		    "Timeout while waiting for clock to stabilize.\n");
+
+	reg = RD4(sc, SDHCI_FSL_TBCTL);
+	reg |= SDHCI_FSL_TBCTL_HS400_EN;
+	WR4(sc, SDHCI_FSL_TBCTL, reg);
+	reg = RD4(sc, SDHCI_FSL_SDCLKCTL);
+	reg |= SDHCI_FSL_SDCLKCTL_CMD_CLK_CTL;
+	WR4(sc, SDHCI_FSL_SDCLKCTL, reg);
+
+	fsl_sdhc_fdt_set_clock(sc, slot, SDHCI_CLOCK_CARD_EN |
+	    sc->sdclk_bits);
+	error = sdhci_fsl_poll_register(sc, SDHCI_FSL_PRES_STATE,
+	    SDHCI_FSL_PRES_SDSTB, SDHCI_FSL_PRES_SDSTB);
+	if (error != 0)
+		device_printf(dev,
+		    "Timeout while waiting for clock to stabilize.\n");
+
+	reg = RD4(sc, SDHCI_FSL_DLLCFG0);
+	reg |= SDHCI_FSL_DLLCFG0_EN | SDHCI_FSL_DLLCFG0_RESET |
+	    SDHCI_FSL_DLLCFG0_FREQ_SEL;
+	WR4(sc, SDHCI_FSL_DLLCFG0, reg);
+
+	/*
+	 * The reset bit is not a self clearing one.
+	 * Give it some time and clear it manually.
+	 */
+	DELAY(100);
+	reg &= ~SDHCI_FSL_DLLCFG0_RESET;
+	WR4(sc, SDHCI_FSL_DLLCFG0, reg);
+
+	error = sdhci_fsl_poll_register(sc, SDHCI_FSL_DLLSTAT0,
+	    SDHCI_FSL_DLLSTAT0_SLV_STS, SDHCI_FSL_DLLSTAT0_SLV_STS);
+	if (error != 0)
+		device_printf(dev,
+		    "Timeout while waiting for DLL0.\n");
+
+	reg = RD4(sc, SDHCI_FSL_TBCTL);
+	reg |= SDHCI_FSL_TBCTL_HS400_WND_ADJ;
+	WR4(sc, SDHCI_FSL_TBCTL, reg);
+
+	fsl_sdhc_fdt_set_clock(sc, slot, sc->sdclk_bits);
+
+	error = sdhci_fsl_poll_register(sc, SDHCI_FSL_PRES_STATE,
+	    SDHCI_FSL_PRES_SDSTB, SDHCI_FSL_PRES_SDSTB);
+	if (error != 0)
+		device_printf(dev,
+		    "timeout while waiting for clock to stabilize.\n");
+
+	reg = RD4(sc, SDHCI_FSL_ESDHC_CTRL);
+	reg |= SDHCI_FSL_ESDHC_CTRL_FAF;
+	WR4(sc, SDHCI_FSL_ESDHC_CTRL, reg);
+
+	error = sdhci_fsl_poll_register(sc, SDHCI_FSL_ESDHC_CTRL,
+	    SDHCI_FSL_ESDHC_CTRL_FAF, 0);
+	if (error != 0)
+		device_printf(dev,
+		    "Timeout while waiting for hardware.\n");
+
+	fsl_sdhc_fdt_set_clock(sc, slot, SDHCI_CLOCK_CARD_EN |
+	    sc->sdclk_bits);
+
+	error = sdhci_fsl_poll_register(sc, SDHCI_FSL_PRES_STATE,
+	    SDHCI_FSL_PRES_SDSTB, SDHCI_FSL_PRES_SDSTB);
+	if (error != 0)
+		device_printf(dev,
+		    "Timeout while waiting for clock to stabilize.\n");
+}
+
+static void
+sdhci_fsl_fdt_set_uhs_timing(device_t dev, struct sdhci_slot *slot)
+{
+	struct sdhci_fsl_fdt_softc *sc;
+	const struct mmc_ios *ios;
+	uint32_t mode, reg;
+
+	sc = device_get_softc(dev);
+	ios = &slot->host.ios;
+	mode = 0;
+
+	/*
+	 * When we switch to HS400 this function is called twice.
+	 * First after the timing is set, and then after the clock
+	 * is changed to the target frequency.
+	 * The controller can be switched to HS400 only after the latter
+	 * is done.
+	 */
+	if (slot->host.ios.timing == bus_timing_mmc_hs400 &&
+	    ios->clock > SD_SDR50_MAX)
+		sdhci_fsl_enable_hs400_mode(dev, slot, sc);
+	else if (slot->host.ios.timing < bus_timing_mmc_hs400) {
+		sdhci_fsl_disable_hs400_mode(dev, sc);
+
+		/*
+		 * Switching to HS400 requires a custom procedure executed in
+		 * sdhci_fsl_enable_hs400_mode in case above.
+		 * For all other modes we just need to set the corresponding flag.
+		 */
+		reg = RD4(sc, SDHCI_FSL_AUTOCERR);
+		reg &= ~SDHCI_FSL_AUTOCERR_UHMS;
+		if (ios->clock > SD_SDR50_MAX)
+			mode = SDHCI_CTRL2_UHS_SDR104;
+		else if (ios->clock > SD_SDR25_MAX)
+			mode = SDHCI_CTRL2_UHS_SDR50;
+		else if (ios->clock > SD_SDR12_MAX) {
+			if (ios->timing == bus_timing_uhs_ddr50 ||
+			    ios->timing == bus_timing_mmc_ddr52)
+				mode = SDHCI_CTRL2_UHS_DDR50;
+			else
+				mode = SDHCI_CTRL2_UHS_SDR25;
+		} else if (ios->clock > SD_MMC_CARD_ID_FREQUENCY)
+			mode = SDHCI_CTRL2_UHS_SDR12;
+
+		reg |= mode << SDHCI_FSL_AUTOCERR_UHMS_SHIFT;
+		WR4(sc, SDHCI_FSL_AUTOCERR, reg);
+	}
+}
+
 static const device_method_t sdhci_fsl_fdt_methods[] = {
 	/* Device interface. */
 	DEVMETHOD(device_probe,			sdhci_fsl_fdt_probe),
@@ -642,14 +1535,17 @@ static const device_method_t sdhci_fsl_fdt_methods[] = {
 
 	/* Bus interface. */
 	DEVMETHOD(bus_read_ivar,		sdhci_fsl_fdt_read_ivar),
-	DEVMETHOD(bus_write_ivar,		sdhci_generic_write_ivar),
+	DEVMETHOD(bus_write_ivar,		sdhci_fsl_fdt_write_ivar),
 
 	/* MMC bridge interface. */
-	DEVMETHOD(mmcbr_update_ios,		sdhci_generic_update_ios),
 	DEVMETHOD(mmcbr_request,		sdhci_generic_request),
 	DEVMETHOD(mmcbr_get_ro,			sdhci_fsl_fdt_get_ro),
 	DEVMETHOD(mmcbr_acquire_host,		sdhci_generic_acquire_host),
 	DEVMETHOD(mmcbr_release_host,		sdhci_generic_release_host),
+	DEVMETHOD(mmcbr_switch_vccq,		sdhci_fsl_fdt_switch_vccq),
+	DEVMETHOD(mmcbr_update_ios,		sdhci_fsl_fdt_update_ios),
+	DEVMETHOD(mmcbr_tune,			sdhci_fsl_fdt_tune),
+	DEVMETHOD(mmcbr_retune,			sdhci_fsl_fdt_retune),
 
 	/* SDHCI accessors. */
 	DEVMETHOD(sdhci_read_1,			sdhci_fsl_fdt_read_1),
@@ -661,6 +1557,8 @@ static const device_method_t sdhci_fsl_fdt_methods[] = {
 	DEVMETHOD(sdhci_write_4,		sdhci_fsl_fdt_write_4),
 	DEVMETHOD(sdhci_write_multi_4,		sdhci_fsl_fdt_write_multi_4),
 	DEVMETHOD(sdhci_get_card_present,	sdhci_fsl_fdt_get_card_present),
+	DEVMETHOD(sdhci_reset,			sdhci_fsl_fdt_reset),
+	DEVMETHOD(sdhci_set_uhs_timing,		sdhci_fsl_fdt_set_uhs_timing),
 	DEVMETHOD_END
 };
 

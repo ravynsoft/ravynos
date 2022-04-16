@@ -691,6 +691,114 @@ print_src_node(struct pf_src_node *sn, int opts)
 	}
 }
 
+static void
+print_eth_addr(const struct pfctl_eth_addr *a)
+{
+	int i, masklen = ETHER_ADDR_LEN * 8;
+	bool seen_unset = false;
+
+	for (i = 0; i < ETHER_ADDR_LEN; i++) {
+		if (a->addr[i] != 0)
+			break;
+	}
+
+	/* Unset, so don't print anything. */
+	if (i == ETHER_ADDR_LEN)
+		return;
+
+	printf("%s%02x:%02x:%02x:%02x:%02x:%02x", a->neg ? "! " : "",
+	    a->addr[0], a->addr[1], a->addr[2], a->addr[3], a->addr[4],
+	    a->addr[5]);
+
+	for (i = 0; i < (ETHER_ADDR_LEN * 8); i++) {
+		bool isset = a->mask[i / 8] & (1 << i % 8);
+
+		if (! seen_unset) {
+			if (isset)
+				continue;
+			seen_unset = true;
+			masklen = i;
+		} else {
+			/* Not actually a continuous mask, so print the whole
+			 * thing. */
+			if (isset)
+				break;
+			continue;
+		}
+	}
+
+	if (masklen == (ETHER_ADDR_LEN * 8))
+		return;
+
+	if (i == (ETHER_ADDR_LEN * 8)) {
+		printf("/%d", masklen);
+		return;
+	}
+
+	printf("&%02x:%02x:%02x:%02x:%02x:%02x",
+	    a->mask[0], a->mask[1], a->mask[2], a->mask[3], a->mask[4],
+	    a->mask[5]);
+}
+
+void
+print_eth_rule(struct pfctl_eth_rule *r, const char *anchor_call,
+    int rule_numbers)
+{
+	static const char *actiontypes[] = { "pass", "block", "", "", "", "",
+	    "", "", "", "", "", "", "match" };
+
+	if (rule_numbers)
+		printf("@%u ", r->nr);
+
+	printf("ether ");
+	if (anchor_call[0]) {
+		if (anchor_call[0] == '_') {
+			printf("anchor");
+		} else
+			printf("anchor \"%s\"", anchor_call);
+	} else {
+		printf("%s", actiontypes[r->action]);
+	}
+	if (r->direction == PF_IN)
+		printf(" in");
+	else if (r->direction == PF_OUT)
+		printf(" out");
+
+	if (r->quick)
+		printf(" quick");
+	if (r->ifname[0]) {
+		if (r->ifnot)
+			printf(" on ! %s", r->ifname);
+		else
+			printf(" on %s", r->ifname);
+	}
+	if (r->proto)
+		printf(" proto 0x%04x", r->proto);
+
+	if (r->src.isset) {
+		printf(" from ");
+		print_eth_addr(&r->src);
+	}
+	if (r->dst.isset) {
+		printf(" to ");
+		print_eth_addr(&r->dst);
+	}
+	if (r->proto == ETHERTYPE_IP || r->proto == ETHERTYPE_IPV6) {
+		printf(" l3");
+		print_fromto(&r->ipsrc, PF_OSFP_ANY, &r->ipdst,
+		    r->proto == ETHERTYPE_IP ? AF_INET : AF_INET6, 0,
+		    0, 0);
+	}
+	if (r->qname[0])
+		printf(" queue %s", r->qname);
+	if (r->tagname[0])
+		printf(" tag %s", r->tagname);
+	if (r->dnpipe)
+		printf(" %s %d",
+		    r->dnflags & PFRULE_DN_IS_PIPE ? "dnpipe" : "dnqueue",
+		    r->dnpipe);
+}
+
 void
 print_rule(struct pfctl_rule *r, const char *anchor_call, int verbose, int numeric)
 {
@@ -1021,6 +1129,15 @@ print_rule(struct pfctl_rule *r, const char *anchor_call, int verbose, int numer
 		printf(" label \"%s\"", r->label[i++]);
 	if (r->ridentifier)
 		printf(" ridentifier %u", r->ridentifier);
+	/* Only dnrpipe as we might do (0, 42) to only queue return traffic. */
+	if (r->dnrpipe)
+		printf(" %s(%d, %d)",
+		    r->free_flags & PFRULE_DN_IS_PIPE ? "dnpipe" : "dnqueue",
+		    r->dnpipe, r->dnrpipe);
+	else if (r->dnpipe)
+		printf(" %s %d",
+		    r->free_flags & PFRULE_DN_IS_PIPE ? "dnpipe" : "dnqueue",
+		    r->dnpipe);
 	if (r->qname[0] && r->pqname[0])
 		printf(" queue(%s, %s)", r->qname, r->pqname);
 	else if (r->qname[0])

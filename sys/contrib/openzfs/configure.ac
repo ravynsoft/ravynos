@@ -147,8 +147,6 @@ AC_CONFIG_FILES([
 	lib/libshare/Makefile
 	lib/libspl/Makefile
 	lib/libspl/include/Makefile
-	lib/libspl/include/ia32/Makefile
-	lib/libspl/include/ia32/sys/Makefile
 	lib/libspl/include/os/Makefile
 	lib/libspl/include/os/freebsd/Makefile
 	lib/libspl/include/os/freebsd/sys/Makefile
@@ -213,6 +211,7 @@ AC_CONFIG_FILES([
 	tests/zfs-tests/cmd/file_trunc/Makefile
 	tests/zfs-tests/cmd/file_write/Makefile
 	tests/zfs-tests/cmd/get_diff/Makefile
+	tests/zfs-tests/cmd/getversion/Makefile
 	tests/zfs-tests/cmd/largest_file/Makefile
 	tests/zfs-tests/cmd/libzfs_input_check/Makefile
 	tests/zfs-tests/cmd/mkbusy/Makefile
@@ -227,12 +226,14 @@ AC_CONFIG_FILES([
 	tests/zfs-tests/cmd/randfree_file/Makefile
 	tests/zfs-tests/cmd/randwritecomp/Makefile
 	tests/zfs-tests/cmd/readmmap/Makefile
+	tests/zfs-tests/cmd/read_dos_attributes/Makefile
 	tests/zfs-tests/cmd/rename_dir/Makefile
 	tests/zfs-tests/cmd/rm_lnkcnt_zero_file/Makefile
 	tests/zfs-tests/cmd/send_doall/Makefile
 	tests/zfs-tests/cmd/stride_dd/Makefile
 	tests/zfs-tests/cmd/threadsappend/Makefile
 	tests/zfs-tests/cmd/user_ns_exec/Makefile
+	tests/zfs-tests/cmd/write_dos_attributes/Makefile
 	tests/zfs-tests/cmd/xattrtest/Makefile
 	tests/zfs-tests/include/Makefile
 	tests/zfs-tests/tests/Makefile
@@ -288,6 +289,7 @@ AC_CONFIG_FILES([
 	tests/zfs-tests/tests/functional/cli_root/zfs_unshare/Makefile
 	tests/zfs-tests/tests/functional/cli_root/zfs_upgrade/Makefile
 	tests/zfs-tests/tests/functional/cli_root/zfs_wait/Makefile
+	tests/zfs-tests/tests/functional/cli_root/zhack/Makefile
 	tests/zfs-tests/tests/functional/cli_root/zpool/Makefile
 	tests/zfs-tests/tests/functional/cli_root/zpool_add/Makefile
 	tests/zfs-tests/tests/functional/cli_root/zpool_attach/Makefile
@@ -333,6 +335,7 @@ AC_CONFIG_FILES([
 	tests/zfs-tests/tests/functional/deadman/Makefile
 	tests/zfs-tests/tests/functional/delegate/Makefile
 	tests/zfs-tests/tests/functional/devices/Makefile
+	tests/zfs-tests/tests/functional/dos_attributes/Makefile
 	tests/zfs-tests/tests/functional/events/Makefile
 	tests/zfs-tests/tests/functional/exec/Makefile
 	tests/zfs-tests/tests/functional/fallocate/Makefile
@@ -388,6 +391,7 @@ AC_CONFIG_FILES([
 	tests/zfs-tests/tests/functional/snapshot/Makefile
 	tests/zfs-tests/tests/functional/snapused/Makefile
 	tests/zfs-tests/tests/functional/sparse/Makefile
+	tests/zfs-tests/tests/functional/stat/Makefile
 	tests/zfs-tests/tests/functional/suid/Makefile
 	tests/zfs-tests/tests/functional/threadsappend/Makefile
 	tests/zfs-tests/tests/functional/tmpfile/Makefile

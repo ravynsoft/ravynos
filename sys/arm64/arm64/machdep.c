@@ -54,6 +54,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/proc.h>
 #include <sys/ptrace.h>
 #include <sys/reboot.h>
+#include <sys/reg.h>
 #include <sys/rwlock.h>
 #include <sys/sched.h>
 #include <sys/signalvar.h>
@@ -82,7 +83,6 @@ __FBSDID("$FreeBSD$");
 #include <machine/metadata.h>
 #include <machine/md_var.h>
 #include <machine/pcb.h>
-#include <machine/reg.h>
 #include <machine/undefined.h>
 #include <machine/vmparam.h>
 
@@ -374,6 +374,7 @@ init_proc0(vm_offset_t kstack)
 	thread0.td_pcb->pcb_fpusaved = &thread0.td_pcb->pcb_fpustate;
 	thread0.td_pcb->pcb_vfpcpu = UINT_MAX;
 	thread0.td_frame = &proc0_tf;
+	ptrauth_thread0(&thread0);
 	pcpup->pc_curpcb = thread0.td_pcb;
 
 	/*
@@ -468,7 +469,7 @@ exclude_efi_map_entry(struct efi_md *p)
 		 */
 		break;
 	default:
-		physmem_exclude_region(p->md_phys, p->md_pages * PAGE_SIZE,
+		physmem_exclude_region(p->md_phys, p->md_pages * EFI_PAGE_SIZE,
 		    EXFLAG_NOALLOC);
 	}
 }
@@ -485,6 +486,12 @@ add_efi_map_entry(struct efi_md *p)
 {
 
 	switch (p->md_type) {
+	case EFI_MD_TYPE_RT_CODE:
+		/*
+		 * Some UEFI implementations put the system table in the
+		 * runtime code section. Include it in the DMAP, but will
+		 * be excluded from phys_avail later.
+		 */
 	case EFI_MD_TYPE_RT_DATA:
 		/*
 		 * Runtime data will be excluded after the DMAP
@@ -500,7 +507,7 @@ add_efi_map_entry(struct efi_md *p)
 		 * We're allowed to use any entry with these types.
 		 */
 		physmem_hardware_region(p->md_phys,
-		    p->md_pages * PAGE_SIZE);
+		    p->md_pages * EFI_PAGE_SIZE);
 		break;
 	}
 }
@@ -538,7 +545,7 @@ print_efi_map_entry(struct efi_md *p)
 		type = types[p->md_type];
 	else
 		type = "<INVALID>";
-	printf("%23s %012lx %12p %08lx ", type, p->md_phys,
+	printf("%23s %012lx %012lx %08lx ", type, p->md_phys,
 	    p->md_virt, p->md_pages);
 	if (p->md_attr & EFI_MD_ATTR_UC)
 		printf("UC ");
@@ -831,6 +838,13 @@ initarm(struct arm64_bootparams *abp)
 	if (!valid)
 		panic("Invalid bus configuration: %s",
 		    kern_getenv("kern.cfg.order"));
+
+	/*
+	 * Check if pointer authentication is available on this system, and
+	 * if so enable its use. This needs to be called before init_proc0
+	 * as that will configure the thread0 pointer authentication keys.
+	 */
+	ptrauth_init();
 
 	/*
 	 * Dump the boot metadata. We have to wait for cninit() since console

@@ -83,6 +83,7 @@ __FBSDID("$FreeBSD$");
 #include <netinet/tcp_seq.h>
 #include <netinet/tcp_timer.h>
 #include <netinet/tcp_var.h>
+#include <netinet/tcp_hpts.h>
 #ifdef INET6
 #include <netinet6/tcp6_var.h>
 #endif
@@ -180,10 +181,10 @@ SYSCTL_PROC(_net_inet_tcp, OID_AUTO, maxtcptw,
     &maxtcptw, 0, sysctl_maxtcptw, "IU",
     "Maximum number of compressed TCP TIME_WAIT entries");
 
-VNET_DEFINE_STATIC(int, nolocaltimewait) = 0;
+VNET_DEFINE_STATIC(bool, nolocaltimewait) = true;
 #define	V_nolocaltimewait	VNET(nolocaltimewait)
-SYSCTL_INT(_net_inet_tcp, OID_AUTO, nolocaltimewait, CTLFLAG_VNET | CTLFLAG_RW,
-    &VNET_NAME(nolocaltimewait), 0,
+SYSCTL_BOOL(_net_inet_tcp, OID_AUTO, nolocaltimewait, CTLFLAG_VNET | CTLFLAG_RW,
+    &VNET_NAME(nolocaltimewait), true,
     "Do not create compressed TCP TIME_WAIT entries for local connections");
 
 void
@@ -279,16 +280,17 @@ tcp_twstart(struct tcpcb *tp)
 		 * Reached limit on total number of TIMEWAIT connections
 		 * allowed. Remove a connection from TIMEWAIT queue in LRU
 		 * fashion to make room for this connection.
+		 * If that fails, use on stack tw at least to be able to
+		 * run through tcp_twrespond() and standard tcpcb discard
+		 * routine.
 		 *
 		 * XXX:  Check if it possible to always have enough room
 		 * in advance based on guarantees provided by uma_zalloc().
 		 */
 		tw = tcp_tw_2msl_scan(1);
 		if (tw == NULL) {
-			tp = tcp_close(tp);
-			if (tp != NULL)
-				INP_WUNLOCK(inp);
-			return;
+			tw = &twlocal;
+			local = true;
 		}
 	}
 	/*
@@ -326,9 +328,6 @@ tcp_twstart(struct tcpcb *tp)
 	tw->snd_nxt = tp->snd_nxt;
 	tw->t_port = tp->t_port;
 	tw->rcv_nxt = tp->rcv_nxt;
-	tw->iss     = tp->iss;
-	tw->irs     = tp->irs;
-	tw->t_starttime = tp->t_starttime;
 	tw->tw_time = 0;
 	tw->tw_flags = tp->t_flags;
 
@@ -347,6 +346,9 @@ tcp_twstart(struct tcpcb *tp)
 	 * Note: soisdisconnected() call used to be made in tcp_discardcb(),
 	 * and might not be needed here any longer.
 	 */
+#ifdef TCPHPTS
+	tcp_hpts_remove(inp);
+#endif
 	tcp_discardcb(tp);
 	soisdisconnected(so);
 	tw->tw_so_options = so->so_options;
@@ -382,7 +384,9 @@ tcp_twstart(struct tcpcb *tp)
 /*
  * Returns 1 if the TIME_WAIT state was killed and we should start over,
  * looking for a pcb in the listen state.  Returns 0 otherwise.
- * It be called with to == NULL only for pure SYN-segments.
+ *
+ * For pure SYN-segments the PCB shall be read-locked and the tcpopt pointer
+ * may be NULL.  For the rest write-lock and valid tcpopt.
  */
 int
 tcp_twcheck(struct inpcb *inp, struct tcpopt *to, struct tcphdr *th,
@@ -393,7 +397,7 @@ tcp_twcheck(struct inpcb *inp, struct tcpopt *to, struct tcphdr *th,
 	tcp_seq seq;
 
 	NET_EPOCH_ASSERT();
-	INP_WLOCK_ASSERT(inp);
+	INP_LOCK_ASSERT(inp);
 
 	/*
 	 * XXXRW: Time wait state for inpcb has been recycled, but inpcb is
@@ -405,9 +409,17 @@ tcp_twcheck(struct inpcb *inp, struct tcpopt *to, struct tcphdr *th,
 	if (tw == NULL)
 		goto drop;
 
-	thflags = th->th_flags;
-	KASSERT(to != NULL || (thflags & (TH_SYN | TH_ACK)) == TH_SYN,
-	        ("tcp_twcheck: called without options on a non-SYN segment"));
+	thflags = tcp_get_flags(th);
+#ifdef INVARIANTS
+	if ((thflags & (TH_SYN | TH_ACK)) == TH_SYN)
+		INP_RLOCK_ASSERT(inp);
+	else {
+		INP_WLOCK_ASSERT(inp);
+		KASSERT(to != NULL,
+		    ("%s: called without options on a non-SYN segment",
+		    __func__));
+	}
+#endif
 
 	/*
 	 * NOTE: for FIN_WAIT_2 (to be added later),
@@ -447,6 +459,13 @@ tcp_twcheck(struct inpcb *inp, struct tcpopt *to, struct tcphdr *th,
 	 * Allow UDP port number changes in this case.
 	 */
 	if ((thflags & TH_SYN) && SEQ_GT(th->th_seq, tw->rcv_nxt)) {
+		/*
+		 * In case we can't upgrade our lock just pretend we have
+		 * lost this packet.
+		 */
+		if (((thflags & (TH_SYN | TH_ACK)) == TH_SYN) &&
+		    INP_TRY_UPGRADE(inp) == 0)
+			goto drop;
 		tcp_twclose(tw, 0);
 		TCPSTAT_INC(tcps_tw_recycles);
 		return (1);
@@ -456,18 +475,18 @@ tcp_twcheck(struct inpcb *inp, struct tcpopt *to, struct tcphdr *th,
 	 * Send RST if UDP port numbers don't match
 	 */
 	if (tw->t_port != m->m_pkthdr.tcp_tun_port) {
-		if (th->th_flags & TH_ACK) {
+		if (tcp_get_flags(th) & TH_ACK) {
 			tcp_respond(NULL, mtod(m, void *), th, m,
 			    (tcp_seq)0, th->th_ack, TH_RST);
 		} else {
-			if (th->th_flags & TH_SYN)
+			if (tcp_get_flags(th) & TH_SYN)
 				tlen++;
-			if (th->th_flags & TH_FIN)
+			if (tcp_get_flags(th) & TH_FIN)
 				tlen++;
 			tcp_respond(NULL, mtod(m, void *), th, m,
 			    th->th_seq+tlen, (tcp_seq)0, TH_RST|TH_ACK);
 		}
-		INP_WUNLOCK(inp);
+		INP_UNLOCK(inp);
 		TCPSTAT_INC(tcps_tw_resets);
 		return (0);
 	}
@@ -477,6 +496,8 @@ tcp_twcheck(struct inpcb *inp, struct tcpopt *to, struct tcphdr *th,
 	 */
 	if ((thflags & TH_ACK) == 0)
 		goto drop;
+
+	INP_WLOCK_ASSERT(inp);
 
 	/*
 	 * If timestamps were negotiated during SYN/ACK and a
@@ -511,7 +532,7 @@ tcp_twcheck(struct inpcb *inp, struct tcpopt *to, struct tcphdr *th,
 drop:
 	TCP_PROBE5(receive, NULL, NULL, m, NULL, th);
 dropnoprobe:
-	INP_WUNLOCK(inp);
+	INP_UNLOCK(inp);
 	m_freem(m);
 	return (0);
 }
@@ -671,7 +692,7 @@ tcp_twrespond(struct tcptw *tw, int flags)
 	th->th_seq = htonl(tw->snd_nxt);
 	th->th_ack = htonl(tw->rcv_nxt);
 	th->th_off = (sizeof(struct tcphdr) + optlen) >> 2;
-	th->th_flags = flags;
+	tcp_set_flags(th, flags);
 	th->th_win = htons(tw->last_win);
 
 #if defined(IPSEC_SUPPORT) || defined(TCP_SIGNATURE)

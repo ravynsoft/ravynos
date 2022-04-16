@@ -16,6 +16,7 @@ _PRIVATELIBS=	\
 		atf_c \
 		atf_cxx \
 		auditd \
+		bsddialog \
 		bsdstat \
 		cbor \
 		devdctl \
@@ -47,6 +48,7 @@ _INTERNALLIBS=	\
 		fifolog \
 		ifconfig \
 		ipf \
+		iscsiutil \
 		lpr \
 		lua \
 		lutok \
@@ -114,6 +116,7 @@ _LIBRARIES=	\
 		cap_fileargs \
 		cap_grp \
 		cap_net \
+		cap_netdb \
 		cap_pwd \
 		cap_sysctl \
 		cap_syslog \
@@ -140,6 +143,7 @@ _LIBRARIES=	\
 		execinfo \
 		fetch \
 		figpar \
+		formw \
 		geom \
 		gpio \
 		gssapi \
@@ -211,6 +215,7 @@ _LIBRARIES=	\
 		sysdecode \
 		tacplus \
 		termcapw \
+		tinfow \
 		tpool \
 		ufs \
 		ugidfw \
@@ -282,6 +287,7 @@ _DP_archive=	z bz2 lzma bsdxml zstd
 .endif
 _DP_bsm=	System notify
 _DP_avl=	spl
+_DP_bsddialog=	formw ncursesw tinfow
 _DP_zstd=	pthread
 .if ${MK_BLACKLIST} != "no"
 _DP_blacklist+=	pthread
@@ -301,7 +307,7 @@ _DP_ssh=	crypto crypt z
 .if ${MK_LDNS} != "no"
 _DP_ssh+=	ldns
 .endif
-_DP_edit=	ncursesw
+_DP_edit=	tinfow
 .if ${MK_OPENSSL} != "no"
 _DP_bsnmp=	crypto
 .endif
@@ -331,11 +337,7 @@ _DP_radius=	crypto
 _DP_rtld_db=	elf procstat
 _DP_procstat=	kvm util elf
 .if ${MK_CXX} == "yes"
-.if ${MK_LIBCPLUSPLUS} != "no"
 _DP_proc=	cxxrt
-.else
-_DP_proc=	supcplusplus
-.endif
 .endif
 .if ${MK_CDDL} != "no"
 _DP_proc+=	ctf
@@ -355,8 +357,8 @@ _DP_fetch=	md
 .endif
 _DP_execinfo=	elf
 _DP_dwarf=	elf z
-_DP_dpv=	dialog figpar util ncursesw
-_DP_dialog=	ncursesw m
+_DP_dpv=	dialog figpar util tinfow ncursesw
+_DP_dialog=	tinfow ncursesw m
 _DP_cuse=	pthread
 _DP_atf_cxx=	atf_c
 _DP_gtest=	pthread regex
@@ -410,6 +412,8 @@ _DP_c+=		ssp_nonshared
 _DP_stats=	sbuf pthread
 _DP_stdthreads=	pthread
 _DP_tacplus=	md
+_DP_ncursesw=	tinfow
+_DP_formw=	ncursesw
 _DP_nvpair=	spl
 _DP_panelw=	ncursesw
 _DP_rpcsec_gss=	gssapi
@@ -574,6 +578,9 @@ LIBIFCONFIG?=	${LIBIFCONFIGDIR}/libifconfig${PIE_SUFFIX}.a
 LIBIPFDIR=	${_LIB_OBJTOP}/sbin/ipf/libipf
 LIBIPF?=	${LIBIPFDIR}/libipf${PIE_SUFFIX}.a
 
+LIBISCSIUTILDIR=	${_LIB_OBJTOP}/lib/libiscsiutil
+LIBISCSIUTIL?=	${LIBISCSIUTILDIR}/libiscsiutil${PIE_SUFFIX}.a
+
 LIBTELNETDIR=	${_LIB_OBJTOP}/lib/libtelnet
 LIBTELNET?=	${LIBTELNETDIR}/libtelnet${PIE_SUFFIX}.a
 
@@ -603,9 +610,6 @@ LIBFIFOLOG?=	${LIBFIFOLOGDIR}/libfifolog${PIE_SUFFIX}.a
 
 LIBBSNMPTOOLSDIR=	${_LIB_OBJTOP}/usr.sbin/bsnmpd/tools/libbsnmptools
 LIBBSNMPTOOLS?=	${LIBBSNMPTOOLSDIR}/libbsnmptools${PIE_SUFFIX}.a
-
-LIBAMUDIR=	${_LIB_OBJTOP}/usr.sbin/amd/libamu
-LIBAMU?=	${LIBAMUDIR}/libamu${PIE_SUFFIX}.a
 
 LIBBE?=		${LIBBEDIR}/libbe${PIE_SUFFIX}.a
 
@@ -737,6 +741,7 @@ LIBMDIR=	${OBJTOP}/lib/msun
 LIBFORMWDIR=	${OBJTOP}/lib/ncurses/form
 LIBMENUWDIR=	${OBJTOP}/lib/ncurses/menu
 LIBNCURSESWDIR=	${OBJTOP}/lib/ncurses/ncurses
+LIBTINFOWDIR=	${OBJTOP}/lib/ncurses/tinfo
 LIBPANELWDIR=	${OBJTOP}/lib/ncurses/panel
 LIBCRYPTODIR=	${OBJTOP}/secure/lib/libcrypto
 LIBSPLDIR=	${OBJTOP}/cddl/lib/libspl
@@ -746,7 +751,7 @@ LIBTEKENDIR=	${OBJTOP}/sys/teken/libteken
 LIBEGACYDIR=	${OBJTOP}/tools/build
 LIBLNDIR=	${OBJTOP}/usr.bin/lex/lib
 
-LIBTERMCAPWDIR=	${LIBNCURSESWDIR}
+LIBTERMCAPWDIR=	${LIBTINFOWDIR}
 
 # Default other library directories to lib/libNAME.
 .for lib in ${_LIBRARIES}

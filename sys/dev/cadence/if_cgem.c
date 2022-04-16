@@ -76,10 +76,9 @@ __FBSDID("$FreeBSD$");
 
 #include <dev/mii/mii.h>
 #include <dev/mii/miivar.h>
+#include <dev/mii/mii_fdt.h>
 
-#ifdef EXT_RESOURCES
 #include <dev/extres/clk/clk.h>
-#endif
 
 #if BUS_SPACE_MAXADDR > BUS_SPACE_MAXADDR_32BIT
 #define CGEM64
@@ -102,18 +101,21 @@ __FBSDID("$FreeBSD$");
 #define CGEM_CKSUM_ASSIST	(CSUM_IP | CSUM_TCP | CSUM_UDP | \
 				 CSUM_TCP_IPV6 | CSUM_UDP_IPV6)
 
-#define HWTYPE_GENERIC_GEM	1
-#define HWTYPE_ZYNQ		2
-#define HWTYPE_ZYNQMP		3
-#define HWTYPE_SIFIVE		4
+#define HWQUIRK_NONE		0
+#define HWQUIRK_NEEDNULLQS	1
+#define HWQUIRK_RXHANGWAR	2
+#define HWQUIRK_TXCLK		4
+#define HWQUIRK_PCLK		8
 
 static struct ofw_compat_data compat_data[] = {
-	{ "cdns,zynq-gem",		HWTYPE_ZYNQ },
-	{ "cdns,zynqmp-gem",		HWTYPE_ZYNQMP },
-	{ "sifive,fu540-c000-gem",	HWTYPE_SIFIVE },
-	{ "sifive,fu740-c000-gem",	HWTYPE_SIFIVE },
-	{ "cdns,gem",			HWTYPE_GENERIC_GEM },
-	{ "cadence,gem",		HWTYPE_GENERIC_GEM },
+	{ "cdns,zynq-gem",		HWQUIRK_RXHANGWAR | HWQUIRK_TXCLK },
+	{ "cdns,zynqmp-gem",		HWQUIRK_NEEDNULLQS | HWQUIRK_TXCLK },
+	{ "microchip,mpfs-mss-gem",	HWQUIRK_NEEDNULLQS | HWQUIRK_TXCLK },
+	{ "sifive,fu540-c000-gem",	HWQUIRK_PCLK },
+	{ "sifive,fu740-c000-gem",	HWQUIRK_PCLK },
+	{ "cdns,gem",			HWQUIRK_NONE },
+	{ "cdns,macb",			HWQUIRK_NONE },
+	{ "cadence,gem",		HWQUIRK_NONE },
 	{ NULL,				0 }
 };
 
@@ -130,12 +132,9 @@ struct cgem_softc {
 	struct callout		tick_ch;
 	uint32_t		net_ctl_shadow;
 	uint32_t		net_cfg_shadow;
-#ifdef EXT_RESOURCES
 	clk_t			ref_clk;
-#else
-	int			ref_clk_num;
-#endif
 	int			neednullqs;
+	int			phy_contype;
 
 	bus_dma_tag_t		desc_dma_tag;
 	bus_dma_tag_t		mbuf_dma_tag;
@@ -1089,6 +1088,12 @@ cgem_config(struct cgem_softc *sc)
 	    CGEM_NET_CFG_GIGE_EN | CGEM_NET_CFG_1536RXEN |
 	    CGEM_NET_CFG_FULL_DUPLEX | CGEM_NET_CFG_SPEED100);
 
+	/* Check connection type, enable SGMII bits if necessary. */
+	if (sc->phy_contype == MII_CONTYPE_SGMII) {
+		sc->net_cfg_shadow |= CGEM_NET_CFG_SGMII_EN;
+		sc->net_cfg_shadow |= CGEM_NET_CFG_PCS_SEL;
+	}
+
 	/* Enable receive checksum offloading? */
 	if ((if_getcapenable(ifp) & IFCAP_RXCSUM) != 0)
 		sc->net_cfg_shadow |=  CGEM_NET_CFG_RX_CHKSUM_OFFLD_EN;
@@ -1497,7 +1502,6 @@ cgem_mediachange(struct cgem_softc *sc,	struct mii_data *mii)
 
 	WR4(sc, CGEM_NET_CFG, sc->net_cfg_shadow);
 
-#ifdef EXT_RESOURCES
 	if (sc->ref_clk != NULL) {
 		CGEM_UNLOCK(sc);
 		if (clk_set_freq(sc->ref_clk, ref_clk_freq, 0))
@@ -1505,13 +1509,6 @@ cgem_mediachange(struct cgem_softc *sc,	struct mii_data *mii)
 			    ref_clk_freq);
 		CGEM_LOCK(sc);
 	}
-#else
-	/* Set the reference clock if necessary. */
-	if (cgem_set_ref_clk(sc->ref_clk_num, ref_clk_freq))
-		device_printf(sc->dev,
-		    "cgem_mediachange: could not set ref clk%d to %d.\n",
-		    sc->ref_clk_num, ref_clk_freq);
-#endif
 
 	sc->mii_media_active = mii->mii_media_active;
 }
@@ -1726,7 +1723,7 @@ cgem_probe(device_t dev)
 	if (!ofw_bus_status_okay(dev))
 		return (ENXIO);
 
-	if (ofw_bus_search_compatible(dev, compat_data)->ocd_data == 0)
+	if (ofw_bus_search_compatible(dev, compat_data)->ocd_str == NULL)
 		return (ENXIO);
 
 	device_set_desc(dev, "Cadence CGEM Gigabit Ethernet Interface");
@@ -1740,43 +1737,35 @@ cgem_attach(device_t dev)
 	if_t ifp = NULL;
 	int rid, err;
 	u_char eaddr[ETHER_ADDR_LEN];
-	int hwtype;
-#ifndef EXT_RESOURCES
+	int hwquirks;
 	phandle_t node;
-	pcell_t cell;
-#endif
 
 	sc->dev = dev;
 	CGEM_LOCK_INIT(sc);
 
 	/* Key off of compatible string and set hardware-specific options. */
-	hwtype = ofw_bus_search_compatible(dev, compat_data)->ocd_data;
-	if (hwtype == HWTYPE_ZYNQMP)
+	hwquirks = ofw_bus_search_compatible(dev, compat_data)->ocd_data;
+	if ((hwquirks & HWQUIRK_NEEDNULLQS) != 0)
 		sc->neednullqs = 1;
-	if (hwtype == HWTYPE_ZYNQ)
+	if ((hwquirks & HWQUIRK_RXHANGWAR) != 0)
 		sc->rxhangwar = 1;
-
-#ifdef EXT_RESOURCES
-	if (hwtype == HWTYPE_ZYNQ || hwtype == HWTYPE_ZYNQMP) {
+	if ((hwquirks & HWQUIRK_TXCLK) != 0) {
 		if (clk_get_by_ofw_name(dev, 0, "tx_clk", &sc->ref_clk) != 0)
 			device_printf(dev,
 			    "could not retrieve reference clock.\n");
 		else if (clk_enable(sc->ref_clk) != 0)
 			device_printf(dev, "could not enable clock.\n");
-	} else if (hwtype == HWTYPE_SIFIVE) {
+	}
+	if ((hwquirks & HWQUIRK_PCLK) != 0) {
 		if (clk_get_by_ofw_name(dev, 0, "pclk", &sc->ref_clk) != 0)
 			device_printf(dev,
 			    "could not retrieve reference clock.\n");
 		else if (clk_enable(sc->ref_clk) != 0)
 			device_printf(dev, "could not enable clock.\n");
 	}
-#else
-	/* Get reference clock number and base divider from fdt. */
+
 	node = ofw_bus_get_node(dev);
-	sc->ref_clk_num = 0;
-	if (OF_getprop(node, "ref-clock-num", &cell, sizeof(cell)) > 0)
-		sc->ref_clk_num = fdt32_to_cpu(cell);
-#endif
+	sc->phy_contype = mii_fdt_get_contype(node);
 
 	/* Get memory resource. */
 	rid = 0;
@@ -1939,12 +1928,10 @@ cgem_detach(device_t dev)
 		sc->mbuf_dma_tag = NULL;
 	}
 
-#ifdef EXT_RESOURCES
 	if (sc->ref_clk != NULL) {
 		clk_release(sc->ref_clk);
 		sc->ref_clk = NULL;
 	}
-#endif
 
 	bus_generic_detach(dev);
 

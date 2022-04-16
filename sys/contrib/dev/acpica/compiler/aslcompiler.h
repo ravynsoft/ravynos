@@ -8,7 +8,7 @@
  *
  * 1. Copyright Notice
  *
- * Some or all of this work - Copyright (c) 1999 - 2020, Intel Corp.
+ * Some or all of this work - Copyright (c) 1999 - 2022, Intel Corp.
  * All rights reserved.
  *
  * 2. License
@@ -1224,6 +1224,10 @@ DbgPrint (
 #define ASL_PARSE_OUTPUT    1
 #define ASL_TREE_OUTPUT     2
 
+BOOLEAN
+UtIsIdInteger (
+    UINT8                   *Target);
+
 UINT8
 UtIsBigEndianMachine (
     void);
@@ -1536,6 +1540,10 @@ RsDoSpiSerialBusDescriptor (
 
 ASL_RESOURCE_NODE *
 RsDoUartSerialBusDescriptor (
+    ASL_RESOURCE_INFO       *Info);
+
+ASL_RESOURCE_NODE *
+RsDoCsi2SerialBusDescriptor (
     ASL_RESOURCE_INFO       *Info);
 
 ASL_RESOURCE_NODE *

@@ -47,7 +47,6 @@ KERNEL_H = \
 	simd.h \
 	spl_condvar.h \
 	string.h \
-	strings.h \
 	sunddi.h \
 	sysmacros.h \
 	systeminfo.h \

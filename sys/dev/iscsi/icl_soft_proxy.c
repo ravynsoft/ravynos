@@ -111,7 +111,6 @@ icl_soft_proxy_connect(struct icl_conn *ic, int domain, int socktype,
 {
 	struct socket *so;
 	int error;
-	int interrupted = 0;
 
 	error = socreate(domain, &so, socktype, protocol,
 	    curthread->td_ucred, curthread);
@@ -136,11 +135,8 @@ icl_soft_proxy_connect(struct icl_conn *ic, int domain, int socktype,
 	while ((so->so_state & SS_ISCONNECTING) && so->so_error == 0) {
 		error = msleep(&so->so_timeo, SOCK_MTX(so), PSOCK | PCATCH,
 		    "icl_connect", 0);
-		if (error) {
-			if (error == EINTR || error == ERESTART)
-				interrupted = 1;
+		if (error)
 			break;
-		}
 	}
 	if (error == 0) {
 		error = so->so_error;
@@ -177,6 +173,7 @@ void
 icl_listen_free(struct icl_listen *il)
 {
 	struct icl_listen_sock *ils;
+	sbintime_t sbt, pr;
 
 	sx_xlock(&il->il_lock);
 	while (!TAILQ_EMPTY(&il->il_sockets)) {
@@ -188,7 +185,9 @@ icl_listen_free(struct icl_listen *il)
 			ils->ils_socket->so_error = ENOTCONN;
 			SOLISTEN_UNLOCK(ils->ils_socket);
 			wakeup(&ils->ils_socket->so_timeo);
-			pause("icl_unlisten", 1 * hz);
+			sbt = mstosbt(995);
+			pr = mstosbt(10);
+			pause_sbt("icl_unlisten", sbt, pr, 0);
 			sx_xlock(&il->il_lock);
 		}
 

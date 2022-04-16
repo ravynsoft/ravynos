@@ -1,8 +1,8 @@
 #
 # $FreeBSD$
 #
-# This file add support for the WITHOUT_* and WITH_* knobs in src.conf(5) to
-# the check-old and delete-old* targets.
+# This file adds support for the WITHOUT_* and WITH_* knobs in src.conf(5) to
+# the check-old* and delete-old* targets.
 #
 
 .if ${MK_ACCT} == no
@@ -64,8 +64,6 @@ OLD_FILES+=etc/rc.d/apmd
 OLD_FILES+=etc/apmd.conf
 OLD_FILES+=usr/sbin/apm
 OLD_FILES+=usr/share/examples/etc/apmd.conf
-OLD_FILES+=usr/share/man/man8/amd64/apm.8.gz
-OLD_FILES+=usr/share/man/man8/amd64/apmconf.8.gz
 .endif
 
 .if ${MK_AT} == no
@@ -111,12 +109,6 @@ OLD_FILES+=usr/lib/libngatm.a
 OLD_FILES+=usr/lib/libngatm.so
 OLD_LIBS+=usr/lib/libngatm.so.4
 OLD_FILES+=usr/lib/libngatm_p.a
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/libngatm.a
-OLD_FILES+=usr/lib32/libngatm.so
-OLD_LIBS+=usr/lib32/libngatm.so.4
-OLD_FILES+=usr/lib32/libngatm_p.a
-.endif
 OLD_FILES+=usr/share/man/man1/sscop.1.gz
 OLD_FILES+=usr/share/man/man3/libngatm.3.gz
 OLD_FILES+=usr/share/man/man3/uniaddr.3.gz
@@ -268,16 +260,6 @@ OLD_FILES+=usr/lib/libsdp.a
 OLD_FILES+=usr/lib/libsdp.so
 OLD_LIBS+=usr/lib/libsdp.so.4
 OLD_FILES+=usr/lib/libsdp_p.a
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/libbluetooth.a
-OLD_FILES+=usr/lib32/libbluetooth.so
-OLD_LIBS+=usr/lib32/libbluetooth.so.4
-OLD_FILES+=usr/lib32/libbluetooth_p.a
-OLD_FILES+=usr/lib32/libsdp.a
-OLD_FILES+=usr/lib32/libsdp.so
-OLD_LIBS+=usr/lib32/libsdp.so.4
-OLD_FILES+=usr/lib32/libsdp_p.a
-.endif
 OLD_FILES+=usr/sbin/ath3kfw
 OLD_FILES+=usr/sbin/bcmfw
 OLD_FILES+=usr/sbin/bluetooth-config
@@ -536,10 +518,6 @@ OLD_FILES+=usr/lib/snmp_vacm.so
 OLD_LIBS+=usr/lib/snmp_vacm.so.6
 OLD_FILES+=usr/lib/snmp_wlan.so
 OLD_LIBS+=usr/lib/snmp_wlan.so.6
-OLD_FILES+=usr/lib32/libbsnmp.a
-OLD_FILES+=usr/lib32/libbsnmp.so
-OLD_LIBS+=usr/lib32/libbsnmp.so.6
-OLD_FILES+=usr/lib32/libbsnmp_p.a
 OLD_FILES+=usr/sbin/bsnmpd
 OLD_FILES+=usr/sbin/gensnmptree
 OLD_FILES+=usr/share/examples/etc/snmpd.config
@@ -969,33 +947,6 @@ OLD_FILES+=usr/lib/libumem_p.a
 OLD_FILES+=usr/lib/libuutil.a
 OLD_FILES+=usr/lib/libuutil.so
 OLD_FILES+=usr/lib/libuutil_p.a
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/dtrace/drti.o
-OLD_FILES+=usr/lib32/libavl.a
-OLD_FILES+=usr/lib32/libavl.so
-OLD_LIBS+=usr/lib32/libavl.so.2
-OLD_FILES+=usr/lib32/libavl_p.a
-OLD_FILES+=usr/lib32/libctf.a
-OLD_FILES+=usr/lib32/libctf.so
-OLD_LIBS+=usr/lib32/libctf.so.2
-OLD_FILES+=usr/lib32/libctf_p.a
-OLD_FILES+=usr/lib32/libdtrace.a
-OLD_FILES+=usr/lib32/libdtrace.so
-OLD_LIBS+=usr/lib32/libdtrace.so.2
-OLD_FILES+=usr/lib32/libdtrace_p.a
-OLD_FILES+=usr/lib32/libnvpair.a
-OLD_FILES+=usr/lib32/libnvpair.so
-OLD_LIBS+=usr/lib32/libnvpair.so.2
-OLD_FILES+=usr/lib32/libnvpair_p.a
-OLD_FILES+=usr/lib32/libumem.a
-OLD_FILES+=usr/lib32/libumem.so
-OLD_LIBS+=usr/lib32/libumem.so.2
-OLD_FILES+=usr/lib32/libumem_p.a
-OLD_FILES+=usr/lib32/libuutil.a
-OLD_FILES+=usr/lib32/libuutil.so
-OLD_LIBS+=usr/lib32/libuutil.so.2
-OLD_FILES+=usr/lib32/libuutil_p.a
-.endif
 OLD_LIBS+=lib/libdtrace.so.2
 OLD_FILES+=usr/libexec/dwatch/chmod
 OLD_FILES+=usr/libexec/dwatch/errno
@@ -1148,28 +1099,14 @@ OLD_FILES+=usr/lib/libbe_p.a
 OLD_FILES+=usr/lib/libbe.so
 OLD_LIBS+=lib/libbe.so.1
 OLD_FILES+=usr/lib/libzfs.a
-OLD_LIBS+=usr/lib/libzfs.so
+OLD_FILES+=usr/lib/libzfs.so
 OLD_FILES+=usr/lib/libzfs_core.a
-OLD_LIBS+=usr/lib/libzfs_core.so
-OLD_LIBS+=usr/lib/libzfs_core_p.a
+OLD_FILES+=usr/lib/libzfs_core.so
+OLD_FILES+=usr/lib/libzfs_core_p.a
 OLD_FILES+=usr/lib/libzfs_p.a
 OLD_FILES+=usr/lib/libzpool.a
 OLD_FILES+=usr/lib/libzpool.so
 OLD_LIBS+=usr/lib/libzpool.so.2
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/libzfs.a
-OLD_FILES+=usr/lib32/libzfs.so
-OLD_LIBS+=usr/lib32/libzfs.so.2
-OLD_LIBS+=usr/lib32/libzfs.so.3
-OLD_FILES+=usr/lib32/libzfs_core.a
-OLD_FILES+=usr/lib32/libzfs_core.so
-OLD_LIBS+=usr/lib32/libzfs_core.so.2
-OLD_FILES+=usr/lib32/libzfs_core_p.a
-OLD_FILES+=usr/lib32/libzfs_p.a
-OLD_FILES+=usr/lib32/libzpool.a
-OLD_FILES+=usr/lib32/libzpool.so
-OLD_LIBS+=usr/lib32/libzpool.so.2
-.endif
 OLD_FILES+=usr/sbin/zfsd
 OLD_FILES+=usr/sbin/zhack
 OLD_FILES+=usr/sbin/zdb
@@ -1664,11 +1601,11 @@ OLD_FILES+=usr/bin/dialog
 OLD_FILES+=usr/bin/dpv
 OLD_FILES+=usr/lib/libdialog.a
 OLD_FILES+=usr/lib/libdialog.so
-OLD_FILES+=usr/lib/libdialog.so.8
+OLD_FILES+=usr/lib/libdialog.so.10
 OLD_FILES+=usr/lib/libdialog_p.a
 OLD_FILES+=usr/lib/libdpv.a
 OLD_FILES+=usr/lib/libdpv.so
-OLD_FILES+=usr/lib/libdpv.so.1
+OLD_FILES+=usr/lib/libdpv.so.3
 OLD_FILES+=usr/lib/libdpv_p.a
 OLD_FILES+=usr/sbin/bsdconfig
 OLD_FILES+=usr/share/man/man1/dialog.1.gz
@@ -1692,11 +1629,6 @@ OLD_FILES+=usr/sbin/efidp
 OLD_FILES+=usr/sbin/efivar
 OLD_FILES+=usr/sbin/uefisign
 OLD_FILES+=usr/share/examples/uefisign/uefikeys
-.endif
-
-.if ${MK_FMTREE} == no
-OLD_FILES+=usr/sbin/fmtree
-OLD_FILES+=usr/share/man/man8/fmtree.8.gz
 .endif
 
 .if ${MK_FTP} == no
@@ -2154,6 +2086,14 @@ OLD_FILES+=usr/share/man/man1/llvm-cov.1.gz
 OLD_FILES+=usr/share/man/man1/llvm-profdata.1.gz
 .endif
 
+.if ${MK_GH_BC} == no
+OLD_FILES+=usr/share/misc/bc.library
+OLD_FILES+=usr/tests/usr.bin/dc/Kyuafile
+OLD_FILES+=usr/tests/usr.bin/dc/bcode
+OLD_FILES+=usr/tests/usr.bin/dc/inout
+OLD_DIRS+=usr/tests/usr.bin/dc
+.endif
+
 .if ${MK_GOOGLETEST} == no
 OLD_FILES+=usr/include/gmock/gmock-actions.h
 OLD_FILES+=usr/include/gmock/gmock-cardinalities.h
@@ -2248,6 +2188,7 @@ OLD_FILES+=usr/tests/lib/googletest/gtest/gtest-death-test_ex_nocatch_test
 OLD_FILES+=usr/tests/lib/googletest/gtest/gtest-unittest-api_test
 OLD_FILES+=usr/tests/lib/googletest/gtest/Kyuafile
 OLD_DIRS+=usr/tests/lib/googletest/gtest
+OLD_FILES+=usr/tests/lib/googletest/gtest_main/Kyuafile
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-death-test-test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-filepath-test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-linked-ptr-test
@@ -2257,16 +2198,17 @@ OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-options-test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-port-test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-printers-test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-test-part-test
+OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest-typed-test_test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_help_test_
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_main_unittest
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_pred_impl_unittest
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_prod_test
+OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_skip_in_environment_setup_test
+OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_skip_test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_sole_header_test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_unittest
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_xml_outfile1_test_
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_xml_outfile2_test_
-OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest-typed-test_test
-OLD_FILES+=usr/tests/lib/googletest/gtest_main/Kyuafile
 OLD_DIRS+=usr/tests/lib/googletest/gtest_main
 OLD_FILES+=usr/tests/lib/googletest/Kyuafile
 OLD_DIRS+=usr/tests/lib/googletest/
@@ -2289,10 +2231,6 @@ OLD_FILES+=usr/lib/libgpio.a
 OLD_FILES+=usr/lib/libgpio.so
 OLD_LIBS+=usr/lib/libgpio.so.0
 OLD_FILES+=usr/lib/libgpio_p.a
-OLD_FILES+=usr/lib32/libgpio.a
-OLD_FILES+=usr/lib32/libgpio.so
-OLD_LIBS+=usr/lib32/libgpio.so.0
-OLD_FILES+=usr/lib32/libgpio_p.a
 OLD_FILES+=usr/sbin/gpioctl
 OLD_FILES+=usr/share/man/man3/gpio.3.gz
 OLD_FILES+=usr/share/man/man3/gpio_close.3.gz
@@ -2334,15 +2272,6 @@ OLD_FILES+=usr/lib/libgssapi_p.a
 OLD_FILES+=usr/lib/librpcsec_gss.a
 OLD_FILES+=usr/lib/librpcsec_gss.so
 OLD_LIBS+=usr/lib/librpcsec_gss.so.1
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/libgssapi.a
-OLD_FILES+=usr/lib32/libgssapi.so
-OLD_LIBS+=usr/lib32/libgssapi.so.10
-OLD_FILES+=usr/lib32/libgssapi_p.a
-OLD_FILES+=usr/lib32/librpcsec_gss.a
-OLD_FILES+=usr/lib32/librpcsec_gss.so
-OLD_LIBS+=usr/lib32/librpcsec_gss.so.1
-.endif
 OLD_FILES+=usr/sbin/gssd
 OLD_FILES+=usr/share/man/man3/gss_accept_sec_context.3.gz
 OLD_FILES+=usr/share/man/man3/gss_acquire_cred.3.gz
@@ -2718,13 +2647,10 @@ OLD_FILES+=etc/rc.d/iscsictl
 OLD_FILES+=etc/rc.d/iscsid
 OLD_FILES+=rescue/iscsictl
 OLD_FILES+=rescue/iscsid
-OLD_FILES+=sbin/iscontrol
 OLD_FILES+=usr/bin/iscsictl
 OLD_FILES+=usr/sbin/iscsid
 OLD_FILES+=usr/share/man/man4/iscsi.4.gz
-OLD_FILES+=usr/share/man/man4/iscsi_initiator.4.gz
 OLD_FILES+=usr/share/man/man5/iscsi.conf.5.gz
-OLD_FILES+=usr/share/man/man8/iscontrol.8.gz
 OLD_FILES+=usr/share/man/man8/iscsictl.8.gz
 OLD_FILES+=usr/share/man/man8/iscsid.8.gz
 .endif
@@ -2915,84 +2841,6 @@ OLD_FILES+=usr/lib/libprivateheimipcs.a
 OLD_FILES+=usr/lib/libprivateheimipcs.so
 OLD_LIBS+=usr/lib/libprivateheimipcs.so.11
 OLD_FILES+=usr/lib/libprivateheimipcs_p.a
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/libasn1.a
-OLD_FILES+=usr/lib32/libasn1.so
-OLD_LIBS+=usr/lib32/libasn1.so.11
-OLD_FILES+=usr/lib32/libasn1_p.a
-OLD_FILES+=usr/lib32/libgssapi_krb5.a
-OLD_FILES+=usr/lib32/libgssapi_krb5.so
-OLD_LIBS+=usr/lib32/libgssapi_krb5.so.10
-OLD_FILES+=usr/lib32/libgssapi_krb5_p.a
-OLD_FILES+=usr/lib32/libgssapi_ntlm.a
-OLD_FILES+=usr/lib32/libgssapi_ntlm.so
-OLD_LIBS+=usr/lib32/libgssapi_ntlm.so.10
-OLD_FILES+=usr/lib32/libgssapi_ntlm_p.a
-OLD_FILES+=usr/lib32/libgssapi_spnego.a
-OLD_FILES+=usr/lib32/libgssapi_spnego.so
-OLD_LIBS+=usr/lib32/libgssapi_spnego.so.10
-OLD_FILES+=usr/lib32/libgssapi_spnego_p.a
-OLD_FILES+=usr/lib32/libhdb.a
-OLD_FILES+=usr/lib32/libhdb.so
-OLD_LIBS+=usr/lib32/libhdb.so.11
-OLD_FILES+=usr/lib32/libhdb_p.a
-OLD_FILES+=usr/lib32/libheimbase.a
-OLD_FILES+=usr/lib32/libheimbase.so
-OLD_LIBS+=usr/lib32/libheimbase.so.11
-OLD_FILES+=usr/lib32/libheimbase_p.a
-OLD_FILES+=usr/lib32/libheimntlm.a
-OLD_FILES+=usr/lib32/libheimntlm.so
-OLD_LIBS+=usr/lib32/libheimntlm.so.11
-OLD_FILES+=usr/lib32/libheimntlm_p.a
-OLD_FILES+=usr/lib32/libheimsqlite.a
-OLD_FILES+=usr/lib32/libheimsqlite.so
-OLD_LIBS+=usr/lib32/libheimsqlite.so.11
-OLD_FILES+=usr/lib32/libheimsqlite_p.a
-OLD_FILES+=usr/lib32/libhx509.a
-OLD_FILES+=usr/lib32/libhx509.so
-OLD_LIBS+=usr/lib32/libhx509.so.11
-OLD_FILES+=usr/lib32/libhx509_p.a
-OLD_FILES+=usr/lib32/libkadm5clnt.a
-OLD_FILES+=usr/lib32/libkadm5clnt.so
-OLD_LIBS+=usr/lib32/libkadm5clnt.so.11
-OLD_FILES+=usr/lib32/libkadm5clnt_p.a
-OLD_FILES+=usr/lib32/libkadm5srv.a
-OLD_FILES+=usr/lib32/libkadm5srv.so
-OLD_LIBS+=usr/lib32/libkadm5srv.so.11
-OLD_FILES+=usr/lib32/libkadm5srv_p.a
-OLD_FILES+=usr/lib32/libkafs5.a
-OLD_FILES+=usr/lib32/libkafs5.so
-OLD_LIBS+=usr/lib32/libkafs5.so.11
-OLD_FILES+=usr/lib32/libkafs5_p.a
-OLD_FILES+=usr/lib32/libkdc.a
-OLD_FILES+=usr/lib32/libkdc.so
-OLD_LIBS+=usr/lib32/libkdc.so.11
-OLD_FILES+=usr/lib32/libkdc_p.a
-OLD_FILES+=usr/lib32/libkrb5.a
-OLD_FILES+=usr/lib32/libkrb5.so
-OLD_LIBS+=usr/lib32/libkrb5.so.11
-OLD_FILES+=usr/lib32/libkrb5_p.a
-OLD_FILES+=usr/lib32/libroken.a
-OLD_FILES+=usr/lib32/libroken.so
-OLD_LIBS+=usr/lib32/libroken.so.11
-OLD_FILES+=usr/lib32/libroken_p.a
-OLD_FILES+=usr/lib32/libwind.a
-OLD_FILES+=usr/lib32/libwind.so
-OLD_LIBS+=usr/lib32/libwind.so.11
-OLD_FILES+=usr/lib32/libwind_p.a
-OLD_FILES+=usr/lib32/pam_krb5.so
-OLD_LIBS+=usr/lib32/pam_krb5.so.6
-OLD_FILES+=usr/lib32/pam_ksu.so
-OLD_LIBS+=usr/lib32/pam_ksu.so.6
-OLD_FILES+=usr/lib32/libprivateheimipcc.a
-OLD_FILES+=usr/lib32/libprivateheimipcc.so
-OLD_LIBS+=usr/lib32/libprivateheimipcc.so.11
-OLD_FILES+=usr/lib32/libprivateheimipcc_p.a
-OLD_FILES+=usr/lib32/libprivateheimipcs.a
-OLD_FILES+=usr/lib32/libprivateheimipcs.so
-OLD_LIBS+=usr/lib32/libprivateheimipcs.so.11
-OLD_FILES+=usr/lib32/libprivateheimipcs_p.a
-.endif
 OLD_FILES+=usr/libexec/digest-service
 OLD_FILES+=usr/libexec/hprop
 OLD_FILES+=usr/libexec/hpropd
@@ -3734,10 +3582,6 @@ OLD_FILES+=usr/lib/libcom_err.a
 OLD_FILES+=usr/lib/libcom_err.so
 OLD_LIBS+=usr/lib/libcom_err.so.5
 OLD_FILES+=usr/lib/libcom_err_p.a
-OLD_FILES+=usr/lib32/libcom_err.a
-OLD_FILES+=usr/lib32/libcom_err.so
-OLD_LIBS+=usr/lib32/libcom_err.so.5
-OLD_FILES+=usr/lib32/libcom_err_p.a
 OLD_FILES+=usr/share/man/man1/compile_et.1.gz
 OLD_FILES+=usr/share/man/man3/com_err.3.gz
 .endif
@@ -3747,12 +3591,6 @@ OLD_FILES+=usr/lib/libprivateldns.a
 OLD_FILES+=usr/lib/libprivateldns.so
 OLD_LIBS+=usr/lib/libprivateldns.so.5
 OLD_FILES+=usr/lib/libprivateldns_p.a
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/libprivateldns.a
-OLD_FILES+=usr/lib32/libprivateldns.so
-OLD_LIBS+=usr/lib32/libprivateldns.so.5
-OLD_FILES+=usr/lib32/libprivateldns_p.a
-.endif
 .endif
 
 .if ${MK_LDNS_UTILS} == no
@@ -3808,7 +3646,7 @@ OLD_LIBS+=${DEBUG_LIB32_LIBS}
 .  endif
 .endif
 
-.if ${MK_LIBCPLUSPLUS} == no
+.if ${MK_CXX} == no
 OLD_LIBS+=lib/libcxxrt.so.1
 OLD_FILES+=usr/lib/libc++.a
 OLD_FILES+=usr/lib/libc++_p.a
@@ -4197,16 +4035,6 @@ OLD_FILES+=usr/include/c++/v1/version
 OLD_FILES+=usr/include/c++/v1/wchar.h
 OLD_FILES+=usr/include/c++/v1/wctype.h
 OLD_DIRS+=usr/include/c++/v1
-OLD_FILES+=usr/lib32/libc++.a
-OLD_FILES+=usr/lib32/libc++.so
-OLD_LIBS+=usr/lib32/libc++.so.1
-OLD_FILES+=usr/lib32/libc++_p.a
-OLD_FILES+=usr/lib32/libc++experimental.a
-OLD_FILES+=usr/lib32/libc++fs.a
-OLD_FILES+=usr/lib32/libcxxrt.a
-OLD_FILES+=usr/lib32/libcxxrt.so
-OLD_LIBS+=usr/lib32/libcxxrt.so.1
-OLD_FILES+=usr/lib32/libcxxrt_p.a
 .endif
 
 .if ${MK_LLD} == no
@@ -6039,14 +5867,6 @@ OLD_FILES+=usr/share/man/whatis
 OLD_FILES+=usr/share/openssl/man/whatis
 .endif
 
-.if ${MK_NDIS} == no
-OLD_FILES+=usr/sbin/ndiscvt
-OLD_FILES+=usr/sbin/ndisgen
-OLD_FILES+=usr/share/man/man8/ndiscvt.8.gz
-OLD_FILES+=usr/share/man/man8/ndisgen.8.gz
-OLD_FILES+=usr/share/misc/windrv_stub.c
-.endif
-
 .if ${MK_NETCAT} == no
 OLD_FILES+=rescue/nc
 OLD_FILES+=usr/bin/nc
@@ -6059,10 +5879,6 @@ OLD_FILES+=usr/lib/libnetgraph.a
 OLD_FILES+=usr/lib/libnetgraph.so
 OLD_LIBS+=usr/lib/libnetgraph.so.4
 OLD_FILES+=usr/lib/libnetgraph_p.a
-OLD_FILES+=usr/lib32/libnetgraph.a
-OLD_FILES+=usr/lib32/libnetgraph.so
-OLD_LIBS+=usr/lib32/libnetgraph.so.4
-OLD_FILES+=usr/lib32/libnetgraph_p.a
 OLD_FILES+=usr/libexec/pppoed
 OLD_FILES+=usr/sbin/flowctl
 OLD_FILES+=usr/sbin/lmcconfig
@@ -6123,12 +5939,6 @@ OLD_FILES+=usr/lib/libypclnt.a
 OLD_FILES+=usr/lib/libypclnt.so
 OLD_LIBS+=usr/lib/libypclnt.so.4
 OLD_FILES+=usr/lib/libypclnt_p.a
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/libypclnt.a
-OLD_FILES+=usr/lib32/libypclnt.so
-OLD_LIBS+=usr/lib32/libypclnt.so.4
-OLD_FILES+=usr/lib32/libypclnt_p.a
-.endif
 OLD_FILES+=usr/libexec/mknetid
 OLD_FILES+=usr/libexec/yppwupdate
 OLD_FILES+=usr/libexec/ypxfr
@@ -6967,44 +6777,6 @@ OLD_LIBS+=usr/lib/libosmvendor.so.4
 OLD_FILES+=usr/lib/librdmacm.a
 OLD_FILES+=usr/lib/librdmacm.so
 OLD_LIBS+=usr/lib/librdmacm.so.1
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/libcxgb4.a
-OLD_FILES+=usr/lib32/libcxgb4.so
-OLD_LIBS+=usr/lib32/libcxgb4.so.1
-OLD_FILES+=usr/lib32/libibcm.a
-OLD_FILES+=usr/lib32/libibcm.so
-OLD_LIBS+=usr/lib32/libibcm.so.1
-OLD_FILES+=usr/lib32/libibmad.a
-OLD_FILES+=usr/lib32/libibmad.so
-OLD_LIBS+=usr/lib32/libibmad.so.5
-OLD_FILES+=usr/lib32/libibnetdisc.a
-OLD_FILES+=usr/lib32/libibnetdisc.so
-OLD_LIBS+=usr/lib32/libibnetdisc.so.5
-OLD_FILES+=usr/lib32/libibumad.a
-OLD_FILES+=usr/lib32/libibumad.so
-OLD_LIBS+=usr/lib32/libibumad.so.1
-OLD_FILES+=usr/lib32/libibverbs.a
-OLD_FILES+=usr/lib32/libibverbs.so
-OLD_LIBS+=usr/lib32/libibverbs.so.1
-OLD_FILES+=usr/lib32/libmlx4.a
-OLD_FILES+=usr/lib32/libmlx4.so
-OLD_LIBS+=usr/lib32/libmlx4.so.1
-OLD_FILES+=usr/lib32/libmlx5.a
-OLD_FILES+=usr/lib32/libmlx5.so
-OLD_LIBS+=usr/lib32/libmlx5.so.1
-OLD_FILES+=usr/lib32/libopensm.a
-OLD_FILES+=usr/lib32/libopensm.so
-OLD_LIBS+=usr/lib32/libopensm.so.5
-OLD_FILES+=usr/lib32/libosmcomp.a
-OLD_FILES+=usr/lib32/libosmcomp.so
-OLD_LIBS+=usr/lib32/libosmcomp.so.3
-OLD_FILES+=usr/lib32/libosmvendor.a
-OLD_FILES+=usr/lib32/libosmvendor.so
-OLD_LIBS+=usr/lib32/libosmvendor.so.4
-OLD_FILES+=usr/lib32/librdmacm.a
-OLD_FILES+=usr/lib32/librdmacm.so
-OLD_LIBS+=usr/lib32/librdmacm.so.1
-.endif
 OLD_FILES+=usr/share/man/man1/ibv_asyncwatch.1.gz
 OLD_FILES+=usr/share/man/man1/ibv_devices.1.gz
 OLD_FILES+=usr/share/man/man1/ibv_devinfo.1.gz
@@ -7173,10 +6945,8 @@ OLD_FILES+=usr/share/man/man8/vendstat.8.gz
 
 .if ${MK_OPENMP} == no
 OLD_FILES+=usr/include/omp.h
-OLD_LIBS+=usr/lib/libgomp.so
-OLD_LIBS+=usr/lib32/libgomp.so
+OLD_FILES+=usr/lib/libgomp.so
 OLD_LIBS+=usr/lib/libomp.so
-OLD_LIBS+=usr/lib32/libomp.so
 .endif
 
 .if ${MK_OPENSSH} == no
@@ -7206,14 +6976,6 @@ OLD_FILES+=usr/lib/libprivatessh.a
 OLD_FILES+=usr/lib/libprivatessh.so
 OLD_LIBS+=usr/lib/libprivatessh.so.5
 OLD_FILES+=usr/lib/libprivatessh_p.a
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/pam_ssh.so
-OLD_LIBS+=usr/lib32/pam_ssh.so.6
-OLD_FILES+=usr/lib32/libprivatessh.a
-OLD_FILES+=usr/lib32/libprivatessh.so
-OLD_LIBS+=usr/lib32/libprivatessh.so.5
-OLD_FILES+=usr/lib32/libprivatessh_p.a
-.endif
 OLD_FILES+=usr/libexec/sftp-server
 OLD_FILES+=usr/libexec/ssh-keysign
 OLD_FILES+=usr/libexec/ssh-pkcs11-helper
@@ -7362,10 +7124,6 @@ OLD_FILES+=usr/lib/libpmc.a
 OLD_FILES+=usr/lib/libpmc.so
 OLD_LIBS+=usr/lib/libpmc.so.5
 OLD_FILES+=usr/lib/libpmc_p.a
-OLD_FILES+=usr/lib32/libpmc.a
-OLD_FILES+=usr/lib32/libpmc.so
-OLD_LIBS+=usr/lib32/libpmc.so.5
-OLD_FILES+=usr/lib32/libpmc_p.a
 OLD_FILES+=usr/sbin/pmc
 OLD_FILES+=usr/sbin/pmcannotate
 OLD_FILES+=usr/sbin/pmccontrol
@@ -7463,6 +7221,7 @@ OLD_FILES+=usr/share/man/man8/pppctl.8.gz
 
 .if ${MK_PROFILE} == no
 OLD_FILES+=usr/lib/lib80211_p.a
+OLD_FILES+=usr/lib/lib9p_p.a
 OLD_FILES+=usr/lib/libBlocksRuntime_p.a
 OLD_FILES+=usr/lib/libalias_dummy_p.a
 OLD_FILES+=usr/lib/libalias_ftp_p.a
@@ -7529,6 +7288,8 @@ OLD_FILES+=usr/lib/libheimntlm_p.a
 OLD_FILES+=usr/lib/libheimsqlite_p.a
 OLD_FILES+=usr/lib/libhistory_p.a
 OLD_FILES+=usr/lib/libhx509_p.a
+OLD_FILES+=usr/lib/libicp_p.a
+OLD_FILES+=usr/lib/libicp_rescue_p.a
 OLD_FILES+=usr/lib/libipsec_p.a
 OLD_FILES+=usr/lib/libipt_p.a
 OLD_FILES+=usr/lib/libjail_p.a
@@ -7554,6 +7315,7 @@ OLD_FILES+=usr/lib/libmt_p.a
 OLD_FILES+=usr/lib/libncurses_p.a
 OLD_FILES+=usr/lib/libncursesw_p.a
 OLD_FILES+=usr/lib/libnetgraph_p.a
+OLD_FILES+=usr/lib/libnetmap_p.a
 OLD_FILES+=usr/lib/libngatm_p.a
 OLD_FILES+=usr/lib/libnv_p.a
 OLD_FILES+=usr/lib/libnvpair_p.a
@@ -7565,9 +7327,17 @@ OLD_FILES+=usr/lib/libpathconv_p.a
 OLD_FILES+=usr/lib/libpcap_p.a
 OLD_FILES+=usr/lib/libpjdlog_p.a
 OLD_FILES+=usr/lib/libpmc_p.a
+OLD_FILES+=usr/lib/libprivateatf-c++_p.a
+OLD_FILES+=usr/lib/libprivateatf-c_p.a
+OLD_FILES+=usr/lib/libprivateauditd_p.a
 OLD_FILES+=usr/lib/libprivatebsdstat_p.a
 OLD_FILES+=usr/lib/libprivatedevdctl_p.a
 OLD_FILES+=usr/lib/libprivateevent_p.a
+OLD_FILES+=usr/lib/libprivateevent1_p.a
+OLD_FILES+=usr/lib/libprivategmock_main_p.a
+OLD_FILES+=usr/lib/libprivategmock_p.a
+OLD_FILES+=usr/lib/libprivategtest_main_p.a
+OLD_FILES+=usr/lib/libprivategtest_p.a
 OLD_FILES+=usr/lib/libprivateheimipcc_p.a
 OLD_FILES+=usr/lib/libprivateheimipcs_p.a
 OLD_FILES+=usr/lib/libprivateifconfig_p.a
@@ -7590,7 +7360,9 @@ OLD_FILES+=usr/lib/librtld_db_p.a
 OLD_FILES+=usr/lib/libsbuf_p.a
 OLD_FILES+=usr/lib/libsdp_p.a
 OLD_FILES+=usr/lib/libsmb_p.a
+OLD_FILES+=usr/lib/libspl_p.a
 OLD_FILES+=usr/lib/libssl_p.a
+OLD_FILES+=usr/lib/libstats_p.a
 OLD_FILES+=usr/lib/libstdbuf_p.a
 OLD_FILES+=usr/lib/libstdc++_p.a
 OLD_FILES+=usr/lib/libstdthreads_p.a
@@ -7605,6 +7377,7 @@ OLD_FILES+=usr/lib/libthr_p.a
 OLD_FILES+=usr/lib/libthread_db_p.a
 OLD_FILES+=usr/lib/libtinfo_p.a
 OLD_FILES+=usr/lib/libtinfow_p.a
+OLD_FILES+=usr/lib/libtpool_p.a
 OLD_FILES+=usr/lib/libufs_p.a
 OLD_FILES+=usr/lib/libugidfw_p.a
 OLD_FILES+=usr/lib/libulog_p.a
@@ -7624,8 +7397,8 @@ OLD_FILES+=usr/lib/libypclnt_p.a
 OLD_FILES+=usr/lib/libz_p.a
 OLD_FILES+=usr/lib/libzfs_core_p.a
 OLD_FILES+=usr/lib/libzfs_p.a
-OLD_FILES+=usr/lib/libprivateldns_p.a
-OLD_FILES+=usr/lib/libprivatessh_p.a
+OLD_FILES+=usr/lib/libzfsbootenv_p.a
+OLD_FILES+=usr/lib/libzutil_p.a
 .endif
 
 .if ${MK_QUOTAS} == no
@@ -7650,12 +7423,6 @@ OLD_LIBS+=usr/lib/libradius.so.4
 OLD_FILES+=usr/lib/libradius_p.a
 OLD_FILES+=usr/lib/pam_radius.so
 OLD_LIBS+=usr/lib/pam_radius.so.6
-OLD_FILES+=usr/lib32/libradius.a
-OLD_FILES+=usr/lib32/libradius.so
-OLD_LIBS+=usr/lib32/libradius.so.4
-OLD_FILES+=usr/lib32/libradius_p.a
-OLD_FILES+=usr/lib32/pam_radius.so
-OLD_LIBS+=usr/lib32/pam_radius.so.6
 OLD_FILES+=usr/include/radlib.h
 OLD_FILES+=usr/include/radlib_vs.h
 OLD_FILES+=usr/share/man/man3/libradius.3.gz
@@ -7738,12 +7505,6 @@ OLD_FILES+=usr/lib/libmilter.a
 OLD_FILES+=usr/lib/libmilter.so
 OLD_LIBS+=usr/lib/libmilter.so.5
 OLD_FILES+=usr/lib/libmilter_p.a
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/libmilter.a
-OLD_FILES+=usr/lib32/libmilter.so
-OLD_LIBS+=usr/lib32/libmilter.so.5
-OLD_FILES+=usr/lib32/libmilter_p.a
-.endif
 OLD_FILES+=usr/libexec/mail.local
 OLD_FILES+=usr/libexec/sendmail/sendmail
 OLD_FILES+=usr/libexec/smrsh
@@ -8249,30 +8010,17 @@ OLD_FILES+=usr/share/man/man8/telnetd.8.gz
 OLD_FILES+=usr/bin/atf-sh
 OLD_FILES+=usr/include/atf-c++/config.hpp
 OLD_FILES+=usr/include/atf-c/config.h
-OLD_LIBS+=usr/lib/libatf-c++.a
-OLD_LIBS+=usr/lib/libatf-c++.so
+OLD_FILES+=usr/lib/libatf-c++.a
+OLD_FILES+=usr/lib/libatf-c++.so
 OLD_LIBS+=usr/lib/libatf-c++.so.1
 OLD_LIBS+=usr/lib/libatf-c++.so.2
-OLD_LIBS+=usr/lib/libatf-c++_p.a
-OLD_LIBS+=usr/lib/libatf-c.a
-OLD_LIBS+=usr/lib/libatf-c.so
+OLD_FILES+=usr/lib/libatf-c++_p.a
+OLD_FILES+=usr/lib/libatf-c.a
+OLD_FILES+=usr/lib/libatf-c.so
 OLD_LIBS+=usr/lib/libatf-c.so.1
-OLD_LIBS+=usr/lib/libatf-c_p.a
+OLD_FILES+=usr/lib/libatf-c_p.a
 OLD_LIBS+=usr/lib/libprivateatf-c.so.0
 OLD_LIBS+=usr/lib/libprivateatf-c++.so.1
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_LIBS+=usr/lib32/libatf-c++.a
-OLD_LIBS+=usr/lib32/libatf-c++.so
-OLD_LIBS+=usr/lib32/libatf-c++.so.1
-OLD_LIBS+=usr/lib32/libatf-c++.so.2
-OLD_LIBS+=usr/lib32/libatf-c++_p.a
-OLD_LIBS+=usr/lib32/libatf-c.a
-OLD_LIBS+=usr/lib32/libatf-c.so
-OLD_LIBS+=usr/lib32/libatf-c.so.1
-OLD_LIBS+=usr/lib32/libatf-c_p.a
-OLD_LIBS+=usr/lib32/libprivateatf-c.so.0
-OLD_LIBS+=usr/lib32/libprivateatf-c++.so.1
-.endif
 OLD_FILES+=usr/libdata/pkgconfig/atf-c++.pc
 OLD_FILES+=usr/libdata/pkgconfig/atf-c.pc
 OLD_FILES+=usr/libdata/pkgconfig/atf-sh.pc
@@ -8799,7 +8547,6 @@ OLD_FILES+=usr/include/atf-c/macros.h
 OLD_FILES+=usr/include/atf-c/tc.h
 OLD_FILES+=usr/include/atf-c/tp.h
 OLD_FILES+=usr/include/atf-c/utils.h
-OLD_FILES+=usr/lib/debug/usr/bin/kyua.debug
 OLD_LIBS+=usr/lib/libprivateatf-c++.so.2
 OLD_LIBS+=usr/lib/libprivateatf-c.so.1
 OLD_FILES+=usr/share/examples/kyua/kyua.conf
@@ -9298,17 +9045,11 @@ OLD_FILES+=usr/lib/libprivateunbound.a
 OLD_FILES+=usr/lib/libprivateunbound.so
 OLD_LIBS+=usr/lib/libprivateunbound.so.5
 OLD_FILES+=usr/lib/libprivateunbound_p.a
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "powerpc64"
-OLD_FILES+=usr/lib32/libprivateunbound.a
-OLD_FILES+=usr/lib32/libprivateunbound.so
-OLD_LIBS+=usr/lib32/libprivateunbound.so.5
-OLD_FILES+=usr/lib32/libprivateunbound_p.a
 OLD_FILES+=usr/share/man/man5/local-unbound.conf.5.gz
 OLD_FILES+=usr/share/man/man8/local-unbound-anchor.8.gz
 OLD_FILES+=usr/share/man/man8/local-unbound-checkconf.8.gz
 OLD_FILES+=usr/share/man/man8/local-unbound-control.8.gz
 OLD_FILES+=usr/share/man/man8/local-unbound.8.gz
-.endif
 OLD_FILES+=usr/sbin/local-unbound-setup
 OLD_FILES+=usr/sbin/local-unbound
 OLD_FILES+=usr/sbin/local-unbound-anchor
@@ -9336,14 +9077,6 @@ OLD_FILES+=usr/lib/libusbhid.a
 OLD_FILES+=usr/lib/libusbhid.so
 OLD_LIBS+=usr/lib/libusbhid.so.4
 OLD_FILES+=usr/lib/libusbhid_p.a
-OLD_FILES+=usr/lib32/libusb.a
-OLD_FILES+=usr/lib32/libusb.so
-OLD_LIBS+=usr/lib32/libusb.so.3
-OLD_FILES+=usr/lib32/libusb_p.a
-OLD_FILES+=usr/lib32/libusbhid.a
-OLD_FILES+=usr/lib32/libusbhid.so
-OLD_LIBS+=usr/lib32/libusbhid.so.4
-OLD_FILES+=usr/lib32/libusbhid_p.a
 OLD_FILES+=usr/libdata/pkgconfig/libusb-0.1.pc
 OLD_FILES+=usr/libdata/pkgconfig/libusb-1.0.pc
 OLD_FILES+=usr/libdata/pkgconfig/libusb-2.0.pc
@@ -9757,35 +9490,6 @@ OLD_LIBS+=usr/lib/snmp_wlan.so.6
 OLD_FILES+=usr/share/man/man3/snmp_wlan.3.gz
 OLD_FILES+=usr/share/snmp/defs/wlan_tree.def
 OLD_FILES+=usr/share/snmp/mibs/BEGEMOT-WIRELESS-MIB.txt
-.endif
-
-.if ${MK_SVNLITE} == no || ${MK_SVN} == yes
-OLD_FILES+=usr/bin/svnlite
-OLD_FILES+=usr/bin/svnliteadmin
-OLD_FILES+=usr/bin/svnlitebench
-OLD_FILES+=usr/bin/svnlitedumpfilter
-OLD_FILES+=usr/bin/svnlitefsfs
-OLD_FILES+=usr/bin/svnlitelook
-OLD_FILES+=usr/bin/svnlitemucc
-OLD_FILES+=usr/bin/svnliterdump
-OLD_FILES+=usr/bin/svnliteserve
-OLD_FILES+=usr/bin/svnlitesync
-OLD_FILES+=usr/bin/svnliteversion
-OLD_FILES+=usr/share/man/man1/svnlite.1.gz
-.endif
-
-.if ${MK_SVN} == no
-OLD_FILES+=usr/bin/svn
-OLD_FILES+=usr/bin/svnadmin
-OLD_FILES+=usr/bin/svnbench
-OLD_FILES+=usr/bin/svndumpfilter
-OLD_FILES+=usr/bin/svnfsfs
-OLD_FILES+=usr/bin/svnlook
-OLD_FILES+=usr/bin/svnmucc
-OLD_FILES+=usr/bin/svnrdump
-OLD_FILES+=usr/bin/svnserve
-OLD_FILES+=usr/bin/svnsync
-OLD_FILES+=usr/bin/svnversion
 .endif
 
 .if ${MK_HYPERV} == no

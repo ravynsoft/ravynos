@@ -39,6 +39,7 @@ function cleanup
 	set_tunable64 LIVELIST_MAX_ENTRIES $ORIGINAL_MAX
 	# reset the minimum percent shared to 75
 	set_tunable32 LIVELIST_MIN_PERCENT_SHARED $ORIGINAL_MIN
+	log_must zfs inherit compression $TESTPOOL
 }
 
 function check_ll_len
@@ -66,7 +67,7 @@ function test_condense
 	# sync between each write to make sure a new entry is created
 	for i in {0..4}; do
 	    log_must mkfile 5m /$TESTPOOL/$TESTCLONE/testfile$i
-	    log_must zpool sync $TESTPOOL
+	    sync_pool $TESTPOOL
 	done
 
 	check_ll_len "5 entries" "Unexpected livelist size"
@@ -74,7 +75,7 @@ function test_condense
 	# sync between each write to allow for a condense of the previous entry
 	for i in {0..4}; do
 	    log_must mkfile 5m /$TESTPOOL/$TESTCLONE/testfile$i
-	    log_must zpool sync $TESTPOOL
+	    sync_pool $TESTPOOL
 	done
 
 	check_ll_len "6 entries" "Condense did not occur"
@@ -91,7 +92,7 @@ function test_deactivated
 
 	log_must mkfile 5m /$TESTPOOL/$TESTCLONE/$TESTFILE0
 	log_must mkfile 5m /$TESTPOOL/$TESTCLONE/$TESTFILE1
-	log_must zpool sync $TESTPOOL
+	sync_pool $TESTPOOL
 	# snapshot and clone share 'atestfile', 33 percent
 	check_livelist_gone
 	log_must zfs destroy -R $TESTPOOL/$TESTCLONE
@@ -103,7 +104,7 @@ function test_deactivated
 	log_must mkfile 5m /$TESTPOOL/$TESTCLONE/$TESTFILE0
 	log_must mkfile 5m /$TESTPOOL/$TESTCLONE/$TESTFILE1
 	log_must mkfile 5m /$TESTPOOL/$TESTCLONE/$TESTFILE2
-	log_must zpool sync $TESTPOOL
+	sync_pool $TESTPOOL
 	# snapshot and clone share 'atestfile', 25 percent
 	check_livelist_exists $TESTCLONE
 	log_must rm /$TESTPOOL/$TESTCLONE/atestfile
@@ -116,6 +117,11 @@ ORIGINAL_MAX=$(get_tunable LIVELIST_MAX_ENTRIES)
 ORIGINAL_MIN=$(get_tunable LIVELIST_MIN_PERCENT_SHARED)
 
 log_onexit cleanup
+# You might think that setting compression=off for $TESTFS1 would be
+# sufficient. You would be mistaken.
+# You need compression=off for whatever the parent of $TESTFS1 is,
+# and $TESTFS1.
+log_must zfs set compression=off $TESTPOOL
 log_must zfs create $TESTPOOL/$TESTFS1
 log_must mkfile 5m /$TESTPOOL/$TESTFS1/atestfile
 log_must zfs snapshot $TESTPOOL/$TESTFS1@snap

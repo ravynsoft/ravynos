@@ -10,7 +10,11 @@ TESTSRC=	${SRCTOP}/contrib/netbsd-tests/kernel
 TESTSDIR=	${TESTSBASE}/sys/kern
 
 ATF_TESTS_C+=	basic_signal
-#ATF_TESTS_C+=	kcov
+.if ${MACHINE_ARCH} != "i386" && ${MACHINE_ARCH} != "powerpc" && \
+	${MACHINE_ARCH} != "powerpcspe"
+# No support for atomic_load_64 on i386 or (32-bit) powerpc
+ATF_TESTS_C+=	kcov
+.endif
 ATF_TESTS_C+=	kern_copyin
 ATF_TESTS_C+=	kern_descrip_test
 ATF_TESTS_C+=	fdgrowtable_test
@@ -18,10 +22,14 @@ ATF_TESTS_C+=	kill_zombie
 .if ${MK_OPENSSL} != "no"
 ATF_TESTS_C+=	ktls_test
 .endif
+ATF_TESTS_C+=	module_test
 ATF_TESTS_C+=	ptrace_test
 TEST_METADATA.ptrace_test+=		timeout="15"
 ATF_TESTS_C+=	reaper
 ATF_TESTS_C+=	sigaltstack
+.if ${MACHINE_ARCH} != "i386" && ${MACHINE_ARCH:Mpowerpc*} == ""
+ATF_TESTS_C+=	subr_physmem_test
+.endif
 PLAIN_TESTS_C+=	subr_unit_test
 ATF_TESTS_C+=	sysctl_kern_proc
 ATF_TESTS_C+=	sys_getrandom
@@ -76,6 +84,9 @@ SRCS.libkern_crc32+=	crc32_sse42.c
 .PATH: ${SRCTOP}/sys/libkern/arm64
 SRCS.libkern_crc32+=	crc32c_armv8.S
 .endif
+
+CFLAGS.subr_physmem.c+=	-D_WANT_FREEBSD_BITSET
+SRCS.subr_physmem_test+= subr_physmem_test.c subr_physmem.c
 
 # subr_unit.c contains functions whose prototypes lie in headers that cannot be
 # included in userland.  But as far as subr_unit_test goes, they're effectively

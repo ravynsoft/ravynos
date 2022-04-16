@@ -114,7 +114,6 @@ extern const char * volatile kdb_why;
 #define	KDB_WHY_BREAK		"break"		/* Console or serial break. */
 #define	KDB_WHY_WATCHDOG	"watchdog"	/* Watchdog entered debugger. */
 #define	KDB_WHY_CAM		"cam"		/* CAM has entered debugger. */
-#define	KDB_WHY_NDIS		"ndis"		/* NDIS entered debugger. */
 #define	KDB_WHY_ACPI		"acpi"		/* ACPI entered debugger. */
 #define	KDB_WHY_TRAPSIG		"trapsig"	/* Sparc fault. */
 #define	KDB_WHY_POWERFAIL	"powerfail"	/* Powerfail NMI. */
@@ -122,6 +121,7 @@ extern const char * volatile kdb_why;
 #define	KDB_WHY_POWERPC		"powerpc"	/* Unhandled powerpc intr. */
 #define	KDB_WHY_UNIONFS		"unionfs"	/* Unionfs bug. */
 #define	KDB_WHY_DTRACE		"dtrace"	/* DTrace action entered debugger. */
+#define	KDB_WHY_REBOOT		"reboot"	/* reboot was requested. */
 
 /* Return values for kdb_alt_break */
 #define	KDB_REQ_DEBUGGER	1	/* User requested Debugger */

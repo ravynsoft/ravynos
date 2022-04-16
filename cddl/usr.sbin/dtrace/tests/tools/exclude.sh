@@ -17,9 +17,11 @@
 # 1) and 2).
 #
 # The SKIP variable contains tests that should not be executed at all. The
-# EXFAIL variable contains tests that are expected to fail when run. Please
-# avoid adding tests to SKIP unless it really is necessary; with EXFAIL, tests
-# that begin passing as the result of a change are visible in the test summary.
+# EXFAIL variable contains tests that are expected to fail when run. The
+# SKIPCI variable contains tests that are flakey and should not be executed in
+# the CI environment. Please avoid adding tests to SKIP unless it really is
+# necessary; with EXFAIL, tests that begin passing as the result of a change
+# are visible in the test summary.
 
 exclude()
 {
@@ -206,3 +208,6 @@ exclude EXFAIL common/usdt/tst.user.ksh
 
 # Triggers a lock assertion by using the raise() action from a profile probe.
 exclude SKIP common/ustack/tst.spin.ksh
+
+# https://bugs.freebsd.org/237641
+exclude SKIPCI common/misc/tst.dynopt.d

@@ -256,10 +256,10 @@ zfs_is_readonly(zfsvfs_t *zfsvfs)
 	return (!!(zfsvfs->z_sb->s_flags & SB_RDONLY));
 }
 
-/*ARGSUSED*/
 int
 zfs_sync(struct super_block *sb, int wait, cred_t *cr)
 {
+	(void) cr;
 	zfsvfs_t *zfsvfs = sb->s_fs_info;
 
 	/*
@@ -434,12 +434,6 @@ snapdir_changed_cb(void *arg, uint64_t newval)
 }
 
 static void
-vscan_changed_cb(void *arg, uint64_t newval)
-{
-	((zfsvfs_t *)arg)->z_vscan = newval;
-}
-
-static void
 acl_mode_changed_cb(void *arg, uint64_t newval)
 {
 	zfsvfs_t *zfsvfs = arg;
@@ -511,8 +505,6 @@ zfs_register_callbacks(vfs_t *vfsp)
 	error = error ? error : dsl_prop_register(ds,
 	    zfs_prop_to_name(ZFS_PROP_ACLINHERIT), acl_inherit_changed_cb,
 	    zfsvfs);
-	error = error ? error : dsl_prop_register(ds,
-	    zfs_prop_to_name(ZFS_PROP_VSCAN), vscan_changed_cb, zfsvfs);
 	error = error ? error : dsl_prop_register(ds,
 	    zfs_prop_to_name(ZFS_PROP_NBMAND), nbmand_changed_cb, zfsvfs);
 	dsl_pool_config_exit(dmu_objset_pool(os), FTAG);
@@ -1145,7 +1137,7 @@ zfs_statvfs(struct inode *ip, struct kstatfs *statp)
 	 * We have all of 40 characters to stuff a string here.
 	 * Is there anything useful we could/should provide?
 	 */
-	bzero(statp->f_spare, sizeof (statp->f_spare));
+	memset(statp->f_spare, 0, sizeof (statp->f_spare));
 
 	if (dmu_objset_projectquota_enabled(zfsvfs->z_os) &&
 	    dmu_objset_projectquota_present(zfsvfs->z_os)) {
@@ -1608,7 +1600,6 @@ zfs_preumount(struct super_block *sb)
  * Called once all other unmount released tear down has occurred.
  * It is our responsibility to release any remaining infrastructure.
  */
-/*ARGSUSED*/
 int
 zfs_umount(struct super_block *sb)
 {
@@ -2136,7 +2127,6 @@ zfs_get_vfs_flag_unmounted(objset_t *os)
 	return (unmounted);
 }
 
-/*ARGSUSED*/
 void
 zfsvfs_update_fromname(const char *oldname, const char *newname)
 {
@@ -2144,6 +2134,7 @@ zfsvfs_update_fromname(const char *oldname, const char *newname)
 	 * We don't need to do anything here, the devname is always current by
 	 * virtue of zfsvfs->z_sb->s_op->show_devname.
 	 */
+	(void) oldname, (void) newname;
 }
 
 void

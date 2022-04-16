@@ -33,6 +33,7 @@ arm/arm/gdb_machdep.c		optional	gdb
 arm/arm/generic_timer.c		optional	generic_timer
 arm/arm/gic.c			optional	gic
 arm/arm/gic_fdt.c		optional	gic fdt
+arm/arm/gic_if.m		optional	gic
 arm/arm/identcpu-v6.c		standard
 arm/arm/in_cksum_arm.S		optional	inet | inet6
 arm/arm/in_cksum_machdep.c	optional	inet | inet6
@@ -76,7 +77,6 @@ arm/arm/undefined.c		standard
 arm/arm/unwind.c		optional	ddb | kdtrace_hooks | stack
 arm/arm/vm_machdep.c		standard
 arm/arm/vfp.c			standard
-arm/cloudabi32/cloudabi32_sysvec.c	optional compat_cloudabi32
 cddl/compat/opensolaris/kern/opensolaris_atomic.c	optional !armv7 !armv6 zfs | !armv7 !armv6 dtrace compile-with "${CDDL_C}"
 cddl/dev/dtrace/arm/dtrace_asm.S			optional dtrace compile-with "${DTRACE_S}"
 cddl/dev/dtrace/arm/dtrace_subr.c			optional dtrace compile-with "${DTRACE_C}"
@@ -92,13 +92,14 @@ dev/hwpmc/hwpmc_arm.c		optional	hwpmc
 dev/hwpmc/hwpmc_armv7.c		optional	hwpmc armv6
 dev/hwpmc/hwpmc_armv7.c		optional	hwpmc armv7
 dev/iicbus/twsi/twsi.c		optional	twsi
-dev/ofw/ofwpci.c		optional	fdt pci
+dev/ofw/ofw_pcib.c		optional	fdt pci
 dev/pci/pci_host_generic.c	optional	pci_host_generic pci
 dev/pci/pci_host_generic_fdt.c	optional	pci_host_generic pci fdt
 dev/psci/psci.c			optional	psci
 dev/psci/smccc_arm.S		optional	psci
 dev/syscons/scgfbrndr.c		optional	sc
 dev/uart/uart_cpu_fdt.c		optional	uart fdt
+dev/usb/controller/dwc3.c	optional	fdt dwc3
 
 kern/msi_if.m			optional	intrng
 kern/pic_if.m			optional	intrng
@@ -131,20 +132,6 @@ libkern/ucmpdi2.c		standard
 libkern/udivdi3.c		standard
 libkern/umoddi3.c		standard
 
-# CloudABI support
-cloudabi32_vdso.o		optional	compat_cloudabi32	\
-	dependency	"$S/contrib/cloudabi/cloudabi_vdso_armv6.S" \
-	compile-with	"${CC} -x assembler-with-cpp -shared -nostdinc -nostdlib -Wl,-T$S/compat/cloudabi/cloudabi_vdso.lds $S/contrib/cloudabi/cloudabi_vdso_armv6.S -o ${.TARGET}" \
-	no-obj no-implicit-rule						\
-	clean		"cloudabi32_vdso.o"
-#
-cloudabi32_vdso_blob.o		optional	compat_cloudabi32	\
-	dependency 	"cloudabi32_vdso.o"				\
-	compile-with	"${OBJCOPY} --input-target binary --output-target elf32-littlearm --binary-architecture arm cloudabi32_vdso.o ${.TARGET}" \
-	no-implicit-rule						\
-	clean		"cloudabi32_vdso_blob.o"
-#
-
 # Annapurna support
 arm/annapurna/alpine/alpine_ccu.c		optional al_ccu fdt
 arm/annapurna/alpine/alpine_nb_service.c	optional al_nb_service fdt
@@ -152,4 +139,4 @@ arm/annapurna/alpine/alpine_pci.c		optional al_pci fdt
 arm/annapurna/alpine/alpine_pci_msix.c		optional al_pci fdt
 arm/annapurna/alpine/alpine_serdes.c		optional al_serdes fdt		\
 	no-depend	\
-	compile-with "${CC} -c -o ${.TARGET} ${CFLAGS} -I$S/contrib/alpine-hal -I$S/contrib/alpine-hal/eth ${PROF} ${.IMPSRC}"
+	compile-with "${CC} -c -o ${.TARGET} ${CFLAGS} -I$S/contrib/alpine-hal -I$S/contrib/alpine-hal/eth ${.IMPSRC}"

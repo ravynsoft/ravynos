@@ -46,11 +46,10 @@ MAN=	aac.4 \
 	${_amdsmn.4} \
 	${_amdtemp.4} \
 	${_bxe.4} \
-	amr.4 \
-	an.4 \
 	${_aout.4} \
 	${_apic.4} \
 	arcmsr.4 \
+	arswitch.4 \
 	${_asmc.4} \
 	at45d.4 \
 	ata.4 \
@@ -69,7 +68,9 @@ MAN=	aac.4 \
 	aue.4 \
 	axe.4 \
 	axge.4 \
+	axp.4 \
 	bce.4 \
+	bcm5974.4 \
 	bcma.4 \
 	bfe.4 \
 	bge.4 \
@@ -81,9 +82,9 @@ MAN=	aac.4 \
 	bhndb_pci.4 \
 	blackhole.4 \
 	bnxt.4 \
+	boottrace.4 \
 	bpf.4 \
 	bridge.4 \
-	bt.4 \
 	bwi.4 \
 	bwn.4 \
 	${_bytgpio.4} \
@@ -111,7 +112,6 @@ MAN=	aac.4 \
 	chromebook_platform.4 \
 	${_chvgpio.4} \
 	ciss.4 \
-	cloudabi.4 \
 	${_coretemp.4} \
 	cp2112.4 \
 	${_cpuctl.4} \
@@ -143,7 +143,6 @@ MAN=	aac.4 \
 	ena.4 \
 	enc.4 \
 	epair.4 \
-	esp.4 \
 	est.4 \
 	et.4 \
 	etherswitch.4 \
@@ -213,6 +212,7 @@ MAN=	aac.4 \
 	icmp.4 \
 	icmp6.4 \
 	ida.4 \
+	ietp.4 \
 	if_ipsec.4 \
 	iflib.4 \
 	ifmib.4 \
@@ -225,7 +225,6 @@ MAN=	aac.4 \
 	iichid.4 \
 	iicmux.4 \
 	iicsmb.4 \
-	iir.4 \
 	${_igc.4} \
 	${_imcsmb.4} \
 	inet.4 \
@@ -302,7 +301,6 @@ MAN=	aac.4 \
 	mdio.4 \
 	me.4 \
 	mem.4 \
-	meteor.4 \
 	mfi.4 \
 	${_mgb.4} \
 	miibus.4 \
@@ -310,10 +308,8 @@ MAN=	aac.4 \
 	mlx.4 \
 	mlx4en.4 \
 	mlx5en.4 \
-	mly.4 \
 	mmc.4 \
 	mmcsd.4 \
-	mn.4 \
 	mod_cc.4 \
 	mos.4 \
 	mouse.4 \
@@ -331,7 +327,6 @@ MAN=	aac.4 \
 	mx25l.4 \
 	mxge.4 \
 	my.4 \
-	${_ndis.4} \
 	net80211.4 \
 	netdump.4 \
 	netfpga10g_nf10bmac.4 \
@@ -362,7 +357,6 @@ MAN=	aac.4 \
 	ng_frame_relay.4 \
 	ng_gif.4 \
 	ng_gif_demux.4 \
-	ng_h4.4 \
 	ng_hci.4 \
 	ng_hole.4 \
 	ng_hub.4 \
@@ -388,7 +382,6 @@ MAN=	aac.4 \
 	ng_socket.4 \
 	ng_source.4 \
 	ng_split.4 \
-	ng_sppp.4 \
 	ng_sscfu.4 \
 	ng_sscop.4 \
 	ng_tag.4 \
@@ -473,6 +466,8 @@ MAN=	aac.4 \
 	rndtest.4 \
 	route.4 \
 	rtsx.4 \
+	rtw88.4 \
+	rtw88fw.4 \
 	rtwn.4 \
 	rtwnfw.4 \
 	rtwn_pci.4 \
@@ -512,7 +507,6 @@ MAN=	aac.4 \
 	snd_cmi.4 \
 	snd_cs4281.4 \
 	snd_csa.4 \
-	snd_ds1.4 \
 	snd_emu10k1.4 \
 	snd_emu10kx.4 \
 	snd_envy24.4 \
@@ -525,7 +519,6 @@ MAN=	aac.4 \
 	snd_hdspe.4 \
 	snd_ich.4 \
 	snd_maestro3.4 \
-	snd_maestro.4 \
 	snd_mss.4 \
 	snd_neomagic.4 \
 	snd_sbc.4 \
@@ -536,11 +529,11 @@ MAN=	aac.4 \
 	snd_via8233.4 \
 	snd_via82c686.4 \
 	snd_vibes.4 \
+	sndstat.4 \
 	snp.4 \
 	spigen.4 \
 	${_spkr.4} \
 	splash.4 \
-	sppp.4 \
 	ste.4 \
 	stf.4 \
 	stge.4 \
@@ -556,7 +549,6 @@ MAN=	aac.4 \
 	tcp.4 \
 	tcp_bbr.4 \
 	tdfx.4 \
-	terasic_mtl.4 \
 	termios.4 \
 	textdump.4 \
 	ti.4 \
@@ -565,7 +557,6 @@ MAN=	aac.4 \
 	tslog.4 \
 	tty.4 \
 	tun.4 \
-	twa.4 \
 	twe.4 \
 	tws.4 \
 	udp.4 \
@@ -630,7 +621,6 @@ MLINKS+=altera_sdcard.4 altera_sdcardc.4
 MLINKS+=altq.4 ALTQ.4
 MLINKS+=ath.4 if_ath.4
 MLINKS+=ath_pci.4 if_ath_pci.4
-MLINKS+=an.4 if_an.4
 MLINKS+=aue.4 if_aue.4
 MLINKS+=axe.4 if_axe.4
 MLINKS+=bce.4 if_bce.4
@@ -644,8 +634,6 @@ MLINKS+=${_bxe.4} ${_if_bxe.4}
 MLINKS+=cas.4 if_cas.4
 MLINKS+=cdce.4 if_cdce.4
 MLINKS+=cfi.4 cfid.4
-MLINKS+=cloudabi.4 cloudabi32.4 \
-	cloudabi.4 cloudabi64.4
 MLINKS+=crypto.4 cryptodev.4
 MLINKS+=cue.4 if_cue.4
 MLINKS+=cxgb.4 if_cxgb.4
@@ -721,13 +709,11 @@ MLINKS+=mem.4 kmem.4
 MLINKS+=mfi.4 mfi_linux.4 \
 	mfi.4 mfip.4
 MLINKS+=mlx5en.4 mce.4
-MLINKS+=mn.4 if_mn.4
 MLINKS+=mos.4 if_mos.4
 MLINKS+=msk.4 if_msk.4
 MLINKS+=mwl.4 if_mwl.4
 MLINKS+=mxge.4 if_mxge.4
 MLINKS+=my.4 if_my.4
-MLINKS+=${_ndis.4} ${_if_ndis.4}
 MLINKS+=netfpga10g_nf10bmac.4 if_nf10bmac.4
 MLINKS+=netintro.4 net.4 \
 	netintro.4 networking.4
@@ -827,7 +813,6 @@ _hwpstate_intel.4=	hwpstate_intel.4
 _i8254.4=	i8254.4
 _ichwd.4=	ichwd.4
 _if_bxe.4=	if_bxe.4
-_if_ndis.4=	if_ndis.4
 _if_nfe.4=	if_nfe.4
 _if_urtw.4=	if_urtw.4
 _if_vmx.4=	if_vmx.4
@@ -838,7 +823,6 @@ _io.4=		io.4
 _itwd.4=	itwd.4
 _mgb.4=		mgb.4
 _nda.4=		nda.4
-_ndis.4=	ndis.4
 _nfe.4=		nfe.4
 _nfsmb.4=	nfsmb.4
 _if_ntb.4=	if_ntb.4
@@ -916,9 +900,7 @@ _cgem.4=	cgem.4
 MLINKS+=cgem.4 if_cgem.4
 .endif
 
-.if empty(MAN_ARCH)
-__arches=	${MACHINE} ${MACHINE_ARCH} ${MACHINE_CPUARCH}
-.elif ${MAN_ARCH} == "all"
+.if empty(MAN_ARCH) || ${MAN_ARCH} == "all"
 __arches=	${:!/bin/sh -c "/bin/ls -d ${.CURDIR}/man4.*"!:E}
 .else
 __arches=	${MAN_ARCH}
@@ -961,7 +943,6 @@ MLINKS+=	efidev.4 efirtc.4
 .if ${MK_ISCSI} != "no"
 MAN+=		cfiscsi.4
 MAN+=		iscsi.4
-MAN+=		iscsi_initiator.4
 MAN+=		iser.4
 .endif
 

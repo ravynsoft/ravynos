@@ -48,6 +48,8 @@ __FBSDID("$FreeBSD$");
 #include <sys/socketvar.h>
 #include <sys/systm.h>
 
+#include <machine/atomic.h>
+
 #include <net/vnet.h>
 
 /*
@@ -114,12 +116,12 @@ struct pr_usrreqs nousrreqs = {
 };
 
 static void
-protosw_init(struct protosw *pr)
+pr_usrreqs_init(struct protosw *pr)
 {
 	struct pr_usrreqs *pu;
 
 	pu = pr->pr_usrreqs;
-	KASSERT(pu != NULL, ("protosw_init: %ssw[%d] has no usrreqs!",
+	KASSERT(pu != NULL, ("%s: %ssw[%d] has no usrreqs!", __func__,
 	    pr->pr_domain->dom_name,
 	    (int)(pr - pr->pr_domain->dom_protosw)));
 
@@ -167,8 +169,6 @@ protosw_init(struct protosw *pr)
 	DEFAULT(pu->pru_sopoll, sopoll_generic);
 	DEFAULT(pu->pru_ready, pru_ready_notsupp);
 #undef DEFAULT
-	if (pr->pr_init)
-		(*pr->pr_init)();
 }
 
 /*
@@ -181,28 +181,23 @@ domain_init(void *arg)
 {
 	struct domain *dp = arg;
 	struct protosw *pr;
+	int flags;
 
-	if (dp->dom_init)
-		(*dp->dom_init)();
+	MPASS(IS_DEFAULT_VNET(curvnet));
+
+	flags = atomic_load_acq_int(&dp->dom_flags);
+	if ((flags & DOMF_SUPPORTED) == 0)
+		return;
+	MPASS((flags & DOMF_INITED) == 0);
+
 	for (pr = dp->dom_protosw; pr < dp->dom_protoswNPROTOSW; pr++) {
-		protosw_init(pr);
-
-		/*
-		 * Note that with VIMAGE enabled, domain_init() will be
-		 * re-invoked for each new vnet that's created.  The below lists
-		 * are intended to be system-wide, so avoid altering global
-		 * state for non-default vnets.
-		 */
-		if (IS_DEFAULT_VNET(curvnet)) {
-			rm_wlock(&pftimo_lock);
-			if (pr->pr_fasttimo != NULL)
-				LIST_INSERT_HEAD(&pffast_list, pr,
-				    pr_fasttimos);
-			if (pr->pr_slowtimo != NULL)
-				LIST_INSERT_HEAD(&pfslow_list, pr,
-				    pr_slowtimos);
-			rm_wunlock(&pftimo_lock);
-		}
+		pr_usrreqs_init(pr);
+		rm_wlock(&pftimo_lock);
+		if (pr->pr_fasttimo != NULL)
+			LIST_INSERT_HEAD(&pffast_list, pr, pr_fasttimos);
+		if (pr->pr_slowtimo != NULL)
+			LIST_INSERT_HEAD(&pfslow_list, pr, pr_slowtimos);
+		rm_wunlock(&pftimo_lock);
 	}
 
 	/*
@@ -212,26 +207,8 @@ domain_init(void *arg)
 	max_datalen = MHLEN - max_hdr;
 	if (max_datalen < 1)
 		panic("%s: max_datalen < 1", __func__);
+	atomic_set_rel_int(&dp->dom_flags, DOMF_INITED);
 }
-
-#ifdef VIMAGE
-void
-vnet_domain_init(void *arg)
-{
-
-	/* Virtualized case is no different -- call init functions. */
-	domain_init(arg);
-}
-
-void
-vnet_domain_uninit(void *arg)
-{
-	struct domain *dp = arg;
-
-	if (dp->dom_destroy)
-		(*dp->dom_destroy)();
-}
-#endif
 
 /*
  * Add a new protocol domain to the list of supported domains
@@ -244,6 +221,9 @@ domain_add(void *data)
 	struct domain *dp;
 
 	dp = (struct domain *)data;
+	if (dp->dom_probe != NULL && (*dp->dom_probe)() != 0)
+		return;
+	atomic_set_rel_int(&dp->dom_flags, DOMF_SUPPORTED);
 	mtx_lock(&dom_mtx);
 	dp->dom_next = domains;
 	domains = dp;
@@ -255,15 +235,6 @@ domain_add(void *data)
 	if (domain_init_status < 1)
 		printf("WARNING: attempt to domain_add(%s) before "
 		    "domaininit()\n", dp->dom_name);
-#endif
-#ifdef notyet
-	KASSERT(domain_init_status < 2,
-	    ("attempt to domain_add(%s) after domainfinalize()",
-	    dp->dom_name));
-#else
-	if (domain_init_status >= 2)
-		printf("WARNING: attempt to domain_add(%s) after "
-		    "domainfinalize()\n", dp->dom_name);
 #endif
 	mtx_unlock(&dom_mtx);
 }
@@ -359,7 +330,6 @@ pffindproto(int family, int protocol, int type)
 int
 pf_proto_register(int family, struct protosw *npr)
 {
-	VNET_ITERATOR_DECL(vnet_iter);
 	struct domain *dp;
 	struct protosw *pr, *fpr;
 
@@ -409,6 +379,7 @@ pf_proto_register(int family, struct protosw *npr)
 	/* Copy the new struct protosw over the spacer. */
 	bcopy(npr, fpr, sizeof(*fpr));
 
+	pr_usrreqs_init(fpr);
 	rm_wlock(&pftimo_lock);
 	if (fpr->pr_fasttimo != NULL)
 		LIST_INSERT_HEAD(&pffast_list, fpr, pr_fasttimos);
@@ -418,15 +389,6 @@ pf_proto_register(int family, struct protosw *npr)
 
 	/* Job is done, no more protection required. */
 	mtx_unlock(&dom_mtx);
-
-	/* Initialize and activate the protocol. */
-	VNET_LIST_RLOCK();
-	VNET_FOREACH(vnet_iter) {
-		CURVNET_SET_QUIET(vnet_iter);
-		protosw_init(fpr);
-		CURVNET_RESTORE();
-	}
-	VNET_LIST_RUNLOCK();
 
 	return (0);
 }
@@ -492,7 +454,6 @@ pf_proto_unregister(int family, int protocol, int type)
 	dpr->pr_output = NULL;
 	dpr->pr_ctlinput = NULL;
 	dpr->pr_ctloutput = NULL;
-	dpr->pr_init = NULL;
 	dpr->pr_fasttimo = NULL;
 	dpr->pr_slowtimo = NULL;
 	dpr->pr_drain = NULL;

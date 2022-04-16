@@ -1,5 +1,9 @@
 /*-
+<<<<<<<< HEAD:libexec/dyld/tests/target/target.c
+ * Copyright 2014 Jonathan Anderson.
+========
  * Copyright (c) 2017 Mellanox Technologies, Ltd.
+>>>>>>>> freebsd/main:sys/compat/linuxkpi/common/include/linux/stringify.h
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -26,6 +30,20 @@
  * $FreeBSD$
  */
 
+<<<<<<<< HEAD:libexec/dyld/tests/target/target.c
+#include "pythagoras.h"
+
+#include <stdio.h>
+
+int
+main(int argc, char *argv[])
+{
+	float hypotenuse = pythagorean_theorem(3, 4);
+	printf("the hypotenuse of 3 and 4 is %d\n", (int) hypotenuse);
+
+	return 0;
+}
+========
 #ifndef	_LINUXKPI_LINUX_STRINGIFY_H_
 #define	_LINUXKPI_LINUX_STRINGIFY_H_
 
@@ -35,3 +53,4 @@
 #define	__stringify(...)		___stringify(__VA_ARGS__)
 
 #endif	/* _LINUXKPI_LINUX_STRINGIFY_H_ */
+>>>>>>>> freebsd/main:sys/compat/linuxkpi/common/include/linux/stringify.h

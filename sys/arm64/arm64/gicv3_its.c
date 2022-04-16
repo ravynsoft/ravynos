@@ -40,6 +40,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/systm.h>
 #include <sys/bus.h>
 #include <sys/cpuset.h>
+#include <sys/domainset.h>
 #include <sys/endian.h>
 #include <sys/kernel.h>
 #include <sys/lock.h>
@@ -245,6 +246,7 @@ struct gicv3_its_softc {
 	struct resource *sc_its_res;
 
 	cpuset_t	sc_cpus;
+	struct domainset *sc_ds;
 	u_int		gic_irq_cpu;
 
 	struct its_ptable sc_its_ptab[GITS_BASER_NUM];
@@ -384,8 +386,9 @@ gicv3_its_cmdq_init(struct gicv3_its_softc *sc)
 	uint64_t reg, tmp;
 
 	/* Set up the command circular buffer */
-	sc->sc_its_cmd_base = contigmalloc(ITS_CMDQ_SIZE, M_GICV3_ITS,
-	    M_WAITOK | M_ZERO, 0, (1ul << 48) - 1, ITS_CMDQ_ALIGN, 0);
+	sc->sc_its_cmd_base = contigmalloc_domainset(ITS_CMDQ_SIZE, M_GICV3_ITS,
+	    sc->sc_ds, M_WAITOK | M_ZERO, 0, (1ul << 48) - 1, ITS_CMDQ_ALIGN,
+	    0);
 	sc->sc_its_cmd_next_idx = 0;
 
 	cmd_paddr = vtophys(sc->sc_its_cmd_base);
@@ -485,9 +488,9 @@ gicv3_its_table_init(device_t dev, struct gicv3_its_softc *sc)
 		npages = howmany(its_tbl_size, PAGE_SIZE);
 
 		/* Allocate the table */
-		table = (vm_offset_t)contigmalloc(npages * PAGE_SIZE,
-		    M_GICV3_ITS, M_WAITOK | M_ZERO, 0, (1ul << 48) - 1,
-		    PAGE_SIZE_64K, 0);
+		table = (vm_offset_t)contigmalloc_domainset(npages * PAGE_SIZE,
+		    M_GICV3_ITS, sc->sc_ds, M_WAITOK | M_ZERO, 0,
+		    (1ul << 48) - 1, PAGE_SIZE_64K, 0);
 
 		sc->sc_its_ptab[i].ptab_vaddr = table;
 		sc->sc_its_ptab[i].ptab_size = npages * PAGE_SIZE;
@@ -822,7 +825,7 @@ gicv3_its_attach(device_t dev)
 	struct gicv3_its_softc *sc;
 	int domain, err, i, rid;
 	uint64_t phys;
-	uint32_t iidr;
+	uint32_t ctlr, iidr;
 
 	sc = device_get_softc(dev);
 
@@ -843,6 +846,7 @@ gicv3_its_attach(device_t dev)
 	sc->ma = malloc(sizeof(struct vm_page), M_DEVBUF, M_WAITOK | M_ZERO);
 	vm_page_initfake(sc->ma, phys, VM_MEMATTR_DEFAULT);
 
+	CPU_COPY(&all_cpus, &sc->sc_cpus);
 	iidr = gic_its_read_4(sc, GITS_IIDR);
 	for (i = 0; i < nitems(its_quirks); i++) {
 		if ((iidr & its_quirks[i].iidr_mask) == its_quirks[i].iidr) {
@@ -853,6 +857,24 @@ gicv3_its_attach(device_t dev)
 			its_quirks[i].func(dev);
 			break;
 		}
+	}
+
+	if (bus_get_domain(dev, &domain) == 0 && domain < MAXMEMDOM) {
+		sc->sc_ds = DOMAINSET_PREF(domain);
+	} else {
+		sc->sc_ds = DOMAINSET_RR();
+	}
+
+	/*
+	 * GIT_CTLR_EN is mandated to reset to 0 on a Warm reset, but we may be
+	 * coming in via, for instance, a kexec/kboot style setup where a
+	 * previous kernel has configured then relinquished control.  Clear it
+	 * so that we can reconfigure GITS_BASER*.
+	 */
+	ctlr = gic_its_read_4(sc, GITS_CTLR);
+	if ((ctlr & GITS_CTLR_EN) != 0) {
+		ctlr &= ~GITS_CTLR_EN;
+		gic_its_write_4(sc, GITS_CTLR, ctlr);
 	}
 
 	/* Allocate the private tables */
@@ -866,29 +888,21 @@ gicv3_its_attach(device_t dev)
 	/* Protects access to the ITS command circular buffer. */
 	mtx_init(&sc->sc_its_cmd_lock, "ITS cmd lock", NULL, MTX_SPIN);
 
-	CPU_ZERO(&sc->sc_cpus);
-	if (bus_get_domain(dev, &domain) == 0) {
-		if (domain < MAXMEMDOM)
-			CPU_COPY(&cpuset_domain[domain], &sc->sc_cpus);
-	} else {
-		CPU_COPY(&all_cpus, &sc->sc_cpus);
-	}
-
 	/* Allocate the command circular buffer */
 	gicv3_its_cmdq_init(sc);
 
 	/* Allocate the per-CPU collections */
 	for (int cpu = 0; cpu <= mp_maxid; cpu++)
 		if (CPU_ISSET(cpu, &sc->sc_cpus) != 0)
-			sc->sc_its_cols[cpu] = malloc(
+			sc->sc_its_cols[cpu] = malloc_domainset(
 			    sizeof(*sc->sc_its_cols[0]), M_GICV3_ITS,
+			    DOMAINSET_PREF(pcpu_find(cpu)->pc_domain),
 			    M_WAITOK | M_ZERO);
 		else
 			sc->sc_its_cols[cpu] = NULL;
 
 	/* Enable the ITS */
-	gic_its_write_4(sc, GITS_CTLR,
-	    gic_its_read_4(sc, GITS_CTLR) | GITS_CTLR_EN);
+	gic_its_write_4(sc, GITS_CTLR, ctlr | GITS_CTLR_EN);
 
 	/* Create the LPI configuration table */
 	gicv3_its_conftable_init(sc);
@@ -933,9 +947,23 @@ static void
 its_quirk_cavium_22375(device_t dev)
 {
 	struct gicv3_its_softc *sc;
+	int domain;
 
 	sc = device_get_softc(dev);
 	sc->sc_its_flags |= ITS_FLAGS_ERRATA_CAVIUM_22375;
+
+	/*
+	 * We need to limit which CPUs we send these interrupts to on
+	 * the original dual socket ThunderX as it is unable to
+	 * forward them between the two sockets.
+	 */
+	if (bus_get_domain(dev, &domain) == 0) {
+		if (domain < MAXMEMDOM) {
+			CPU_COPY(&cpuset_domain[domain], &sc->sc_cpus);
+		} else {
+			CPU_ZERO(&sc->sc_cpus);
+		}
+	}
 }
 
 static void
@@ -1008,11 +1036,8 @@ static void
 gicv3_its_pre_ithread(device_t dev, struct intr_irqsrc *isrc)
 {
 	struct gicv3_its_irqsrc *girq;
-	struct gicv3_its_softc *sc;
 
-	sc = device_get_softc(dev);
 	girq = (struct gicv3_its_irqsrc *)isrc;
-	gicv3_its_disable_intr(dev, isrc);
 	gic_icc_write(EOIR1, girq->gi_lpi + GIC_FIRST_LPI);
 }
 
@@ -1020,16 +1045,13 @@ static void
 gicv3_its_post_ithread(device_t dev, struct intr_irqsrc *isrc)
 {
 
-	gicv3_its_enable_intr(dev, isrc);
 }
 
 static void
 gicv3_its_post_filter(device_t dev, struct intr_irqsrc *isrc)
 {
 	struct gicv3_its_irqsrc *girq;
-	struct gicv3_its_softc *sc;
 
-	sc = device_get_softc(dev);
 	girq = (struct gicv3_its_irqsrc *)isrc;
 	gic_icc_write(EOIR1, girq->gi_lpi + GIC_FIRST_LPI);
 }
@@ -1173,14 +1195,18 @@ its_device_get(device_t dev, device_t child, u_int nvecs)
 	 * PA has to be 256 B aligned. At least two entries for device.
 	 */
 	its_dev->itt_size = roundup2(MAX(nvecs, 2) * esize, 256);
-	its_dev->itt = (vm_offset_t)contigmalloc(its_dev->itt_size,
-	    M_GICV3_ITS, M_NOWAIT | M_ZERO, 0, LPI_INT_TRANS_TAB_MAX_ADDR,
-	    LPI_INT_TRANS_TAB_ALIGN, 0);
+	its_dev->itt = (vm_offset_t)contigmalloc_domainset(its_dev->itt_size,
+	    M_GICV3_ITS, sc->sc_ds, M_NOWAIT | M_ZERO, 0,
+	    LPI_INT_TRANS_TAB_MAX_ADDR, LPI_INT_TRANS_TAB_ALIGN, 0);
 	if (its_dev->itt == 0) {
 		vmem_free(sc->sc_irq_alloc, its_dev->lpis.lpi_base, nvecs);
 		free(its_dev, M_GICV3_ITS);
 		return (NULL);
 	}
+
+	/* Make sure device sees zeroed ITT. */
+	if ((sc->sc_its_flags & ITS_FLAGS_CMDQ_FLUSH) != 0)
+		cpu_dcache_wb_range(its_dev->itt, its_dev->itt_size);
 
 	mtx_lock_spin(&sc->sc_its_dev_lock);
 	TAILQ_INSERT_TAIL(&sc->sc_its_dev_list, its_dev, entry);

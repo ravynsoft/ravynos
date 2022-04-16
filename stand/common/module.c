@@ -112,8 +112,9 @@ command_load(int argc, char *argv[])
 {
 	struct preloaded_file *fp;
 	char	*typestr;
-	char	*prefix;
-	char	*skip;
+#ifdef LOADER_VERIEXEC
+	char	*prefix, *skip;
+#endif
 	int		dflag, dofile, dokld, ch, error;
 
 	dflag = dokld = dofile = 0;
@@ -124,7 +125,10 @@ command_load(int argc, char *argv[])
 		command_errmsg = "no filename specified";
 		return (CMD_CRIT);
 	}
-	prefix = skip = NULL;
+#ifdef LOADER_VERIEXEC
+	prefix = NULL;
+	skip = NULL;
+#endif
 	while ((ch = getopt(argc, argv, "dkp:s:t:")) != -1) {
 		switch(ch) {
 		case 'd':
@@ -133,12 +137,14 @@ command_load(int argc, char *argv[])
 		case 'k':
 			dokld = 1;
 			break;
+#ifdef LOADER_VERIEXEC
 		case 'p':
 			prefix = optarg;
 			break;
 		case 's':
 			skip = optarg;
 			break;
+#endif
 		case 't':
 			typestr = optarg;
 			dofile = 1;
@@ -601,7 +607,8 @@ file_load_dependencies(struct preloaded_file *base_file)
 		verinfo = (struct mod_depend*)md->md_data;
 		dmodname = (char *)(verinfo + 1);
 		if (file_findmodule(NULL, dmodname, verinfo) == NULL) {
-			printf("loading required module '%s'\n", dmodname);
+			if (module_verbose > MODULE_VERBOSE_SILENT)
+				printf("loading required module '%s'\n", dmodname);
 			error = mod_load(dmodname, verinfo, 0, NULL);
 			if (error)
 				break;
@@ -793,7 +800,8 @@ file_loadraw(const char *fname, char *type, int insert)
 	if (archsw.arch_loadaddr != NULL)
 		loadaddr = archsw.arch_loadaddr(LOAD_RAW, name, loadaddr);
 
-	printf("%s ", name);
+	if (module_verbose > MODULE_VERBOSE_SILENT)
+		printf("%s ", name);
 
 	laddr = loadaddr;
 	for (;;) {
@@ -815,7 +823,8 @@ file_loadraw(const char *fname, char *type, int insert)
 		laddr += got;
 	}
 
-	printf("size=%#jx\n", (uintmax_t)(laddr - loadaddr));
+	if (module_verbose > MODULE_VERBOSE_SILENT)
+		printf("size=%#jx\n", (uintmax_t)(laddr - loadaddr));
 #ifdef LOADER_VERIEXEC_VECTX
 	verror = vectx_close(vctx, VE_MUST, __func__);
 	if (verror) {

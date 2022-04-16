@@ -33,6 +33,8 @@
 
 #include <sys/sysctl.h>
 
+#define	LINUX_MAX_PID_NS_LEVEL	32
+
 				/* bits per mask */
 #define	LINUX_NFDBITS		sizeof(l_fd_mask) * 8
 
@@ -74,8 +76,6 @@
 
 #define	LINUX_PATH_MAX		4096
 
-extern const char *linux_kplatform;
-
 /*
  * Non-standard aux entry types used in Linux ELF binaries.
  */
@@ -99,31 +99,6 @@ extern const char *linux_kplatform;
 #if defined(__i386__) || defined(__amd64__)
 #define	__LINUX_NPXCW__		0x37f
 #endif
-
-#define	LINUX_CLONE_VM			0x00000100
-#define	LINUX_CLONE_FS			0x00000200
-#define	LINUX_CLONE_FILES		0x00000400
-#define	LINUX_CLONE_SIGHAND		0x00000800
-#define	LINUX_CLONE_PID			0x00001000	/* No longer exist in Linux */
-#define	LINUX_CLONE_PTRACE		0x00002000
-#define	LINUX_CLONE_VFORK		0x00004000
-#define	LINUX_CLONE_PARENT		0x00008000
-#define	LINUX_CLONE_THREAD		0x00010000
-#define	LINUX_CLONE_NEWNS		0x00020000	/* New mount NS */
-#define	LINUX_CLONE_SYSVSEM		0x00040000
-#define	LINUX_CLONE_SETTLS		0x00080000
-#define	LINUX_CLONE_PARENT_SETTID	0x00100000
-#define	LINUX_CLONE_CHILD_CLEARTID	0x00200000
-#define	LINUX_CLONE_DETACHED		0x00400000	/* Unused */
-#define	LINUX_CLONE_UNTRACED		0x00800000
-#define	LINUX_CLONE_CHILD_SETTID	0x01000000
-#define	LINUX_CLONE_NEWCGROUP		0x02000000	/* New cgroup NS */
-#define	LINUX_CLONE_NEWUTS		0x04000000
-#define	LINUX_CLONE_NEWIPC		0x08000000
-#define	LINUX_CLONE_NEWUSER		0x10000000
-#define	LINUX_CLONE_NEWPID		0x20000000
-#define	LINUX_CLONE_NEWNET		0x40000000
-#define	LINUX_CLONE_IO			0x80000000
 
 /* Scheduling policies */
 #define	LINUX_SCHED_OTHER	0
@@ -161,6 +136,7 @@ extern int stclohz;
 #define	LINUX_P_ALL		0
 #define	LINUX_P_PID		1
 #define	LINUX_P_PGID		2
+#define	LINUX_P_PIDFD		3
 
 #define	LINUX_RLIMIT_LOCKS	10
 #define	LINUX_RLIMIT_SIGPENDING	11
@@ -178,12 +154,39 @@ extern int stclohz;
 /* Linux syslog flags */
 #define	LINUX_SYSLOG_ACTION_READ_ALL	3
 
-#if defined(__amd64__) && !defined(COMPAT_LINUX32)
+/* Linux seccomp flags */
+#define	LINUX_SECCOMP_GET_ACTION_AVAIL	2
+
+/* Linux /proc/self/oom_score_adj */
+#define	LINUX_OOM_SCORE_ADJ_MIN	-1000
+#define	LINUX_OOM_SCORE_ADJ_MAX	1000
+
+#if defined(__aarch64__) || (defined(__amd64__) && !defined(COMPAT_LINUX32))
 int linux_ptrace_status(struct thread *td, int pid, int status);
 #endif
 void linux_to_bsd_waitopts(int options, int *bsdopts);
-int linux_set_upcall(struct thread *td, register_t stack);
-int linux_set_cloned_tls(struct thread *td, void *desc);
 struct thread	*linux_tdfind(struct thread *, lwpid_t, pid_t);
+
+struct syscall_info {
+	uint8_t op;
+	uint32_t arch;
+	uint64_t instruction_pointer;
+	uint64_t stack_pointer;
+	union {
+		struct {
+			uint64_t nr;
+			uint64_t args[6];
+		} entry;
+		struct {
+			int64_t rval;
+			uint8_t is_error;
+		} exit;
+		struct {
+			uint64_t nr;
+			uint64_t args[6];
+			uint32_t ret_data;
+		} seccomp;
+	};
+};
 
 #endif	/* _LINUX_MISC_H_ */

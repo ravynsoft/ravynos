@@ -106,6 +106,7 @@ static fo_kqfilter_t	vn_kqfilter;
 static fo_close_t	vn_closefile;
 static fo_mmap_t	vn_mmap;
 static fo_fallocate_t	vn_fallocate;
+static fo_fspacectl_t	vn_fspacectl;
 
 struct 	fileops vnops = {
 	.fo_read = vn_io_fault,
@@ -123,6 +124,7 @@ struct 	fileops vnops = {
 	.fo_fill_kinfo = vn_fill_kinfo,
 	.fo_mmap = vn_mmap,
 	.fo_fallocate = vn_fallocate,
+	.fo_fspacectl = vn_fspacectl,
 	.fo_flags = DFLAG_PASSABLE | DFLAG_SEEKABLE
 };
 
@@ -188,7 +190,7 @@ static int vn_io_fault1(struct vnode *vp, struct uio *uio,
 int
 vn_open(struct nameidata *ndp, int *flagp, int cmode, struct file *fp)
 {
-	struct thread *td = ndp->ni_cnd.cn_thread;
+	struct thread *td = curthread;
 
 	return (vn_open_cred(ndp, flagp, cmode, 0, td->td_ucred, fp));
 }
@@ -203,10 +205,16 @@ open2nameif(int fmode, u_int vn_open_flags)
 		res |= RBENEATH;
 	if ((fmode & O_EMPTY_PATH) != 0)
 		res |= EMPTYPATH;
+	if ((fmode & FREAD) != 0)
+		res |= OPENREAD;
+	if ((fmode & FWRITE) != 0)
+		res |= OPENWRITE;
 	if ((vn_open_flags & VN_OPEN_NOAUDIT) == 0)
 		res |= AUDITVNODE1;
 	if ((vn_open_flags & VN_OPEN_NOCAPCHECK) != 0)
 		res |= NOCAPCHECK;
+	if ((vn_open_flags & VN_OPEN_WANTIOCTLCAPS) != 0)
+		res |= WANTIOCTLCAPS;
 	return (res);
 }
 
@@ -224,7 +232,6 @@ vn_open_cred(struct nameidata *ndp, int *flagp, int cmode, u_int vn_open_flags,
 {
 	struct vnode *vp;
 	struct mount *mp;
-	struct thread *td = ndp->ni_cnd.cn_thread;
 	struct vattr vat;
 	struct vattr *vap = &vat;
 	int fmode, error;
@@ -261,7 +268,7 @@ restart:
 			if (fmode & O_EXCL)
 				vap->va_vaflags |= VA_EXCLUSIVE;
 			if (vn_start_write(ndp->ni_dvp, &mp, V_NOWAIT) != 0) {
-				NDFREE(ndp, NDF_ONLY_PNBUF);
+				NDFREE_PNBUF(ndp);
 				vput(ndp->ni_dvp);
 				if ((error = vn_start_write(NULL, &mp,
 				    V_XSLEEP | PCATCH)) != 0)
@@ -290,7 +297,7 @@ restart:
 			    false);
 			vn_finished_write(mp);
 			if (error) {
-				NDFREE(ndp, NDF_ONLY_PNBUF);
+				NDFREE_PNBUF(ndp);
 				if (error == ERELOOKUP) {
 					NDREINIT(ndp);
 					goto restart;
@@ -326,7 +333,7 @@ restart:
 			return (error);
 		vp = ndp->ni_vp;
 	}
-	error = vn_open_vnode(vp, fmode, cred, td, fp);
+	error = vn_open_vnode(vp, fmode, cred, curthread, fp);
 	if (first_open) {
 		VI_LOCK(vp);
 		vp->v_iflag &= ~VI_FOPENING;
@@ -338,7 +345,7 @@ restart:
 	*flagp = fmode;
 	return (0);
 bad:
-	NDFREE(ndp, NDF_ONLY_PNBUF);
+	NDFREE_PNBUF(ndp);
 	vput(vp);
 	*flagp = fmode;
 	ndp->ni_vp = NULL;
@@ -1665,14 +1672,13 @@ vn_truncate_locked(struct vnode *vp, off_t length, bool sync,
  * File table vnode stat routine.
  */
 int
-vn_statfile(struct file *fp, struct stat *sb, struct ucred *active_cred,
-    struct thread *td)
+vn_statfile(struct file *fp, struct stat *sb, struct ucred *active_cred)
 {
 	struct vnode *vp = fp->f_vnode;
 	int error;
 
 	vn_lock(vp, LK_SHARED | LK_RETRY);
-	error = VOP_STAT(vp, sb, active_cred, fp->f_cred, td);
+	error = VOP_STAT(vp, sb, active_cred, fp->f_cred);
 	VOP_UNLOCK(vp);
 
 	return (error);
@@ -2460,7 +2466,8 @@ vn_pages_remove_valid(struct vnode *vp, vm_pindex_t start, vm_pindex_t end)
 }
 
 int
-vn_bmap_seekhole(struct vnode *vp, u_long cmd, off_t *off, struct ucred *cred)
+vn_bmap_seekhole_locked(struct vnode *vp, u_long cmd, off_t *off,
+    struct ucred *cred)
 {
 	struct vattr va;
 	daddr_t bn, bnp;
@@ -2469,21 +2476,20 @@ vn_bmap_seekhole(struct vnode *vp, u_long cmd, off_t *off, struct ucred *cred)
 	int error;
 
 	KASSERT(cmd == FIOSEEKHOLE || cmd == FIOSEEKDATA,
-	    ("Wrong command %lu", cmd));
+	    ("%s: Wrong command %lu", __func__, cmd));
+	ASSERT_VOP_LOCKED(vp, "vn_bmap_seekhole_locked");
 
-	if (vn_lock(vp, LK_SHARED) != 0)
-		return (EBADF);
 	if (vp->v_type != VREG) {
 		error = ENOTTY;
-		goto unlock;
+		goto out;
 	}
 	error = VOP_GETATTR(vp, &va, cred);
 	if (error != 0)
-		goto unlock;
+		goto out;
 	noff = *off;
 	if (noff >= va.va_size) {
 		error = ENXIO;
-		goto unlock;
+		goto out;
 	}
 	bsize = vp->v_mount->mnt_stat.f_iosize;
 	for (bn = noff / bsize; noff < va.va_size; bn++, noff += bsize -
@@ -2491,14 +2497,14 @@ vn_bmap_seekhole(struct vnode *vp, u_long cmd, off_t *off, struct ucred *cred)
 		error = VOP_BMAP(vp, bn, NULL, &bnp, NULL, NULL);
 		if (error == EOPNOTSUPP) {
 			error = ENOTTY;
-			goto unlock;
+			goto out;
 		}
 		if ((bnp == -1 && cmd == FIOSEEKHOLE) ||
 		    (bnp != -1 && cmd == FIOSEEKDATA)) {
 			noff = bn * bsize;
 			if (noff < *off)
 				noff = *off;
-			goto unlock;
+			goto out;
 		}
 	}
 	if (noff > va.va_size)
@@ -2506,10 +2512,24 @@ vn_bmap_seekhole(struct vnode *vp, u_long cmd, off_t *off, struct ucred *cred)
 	/* noff == va.va_size. There is an implicit hole at the end of file. */
 	if (cmd == FIOSEEKDATA)
 		error = ENXIO;
-unlock:
-	VOP_UNLOCK(vp);
+out:
 	if (error == 0)
 		*off = noff;
+	return (error);
+}
+
+int
+vn_bmap_seekhole(struct vnode *vp, u_long cmd, off_t *off, struct ucred *cred)
+{
+	int error;
+
+	KASSERT(cmd == FIOSEEKHOLE || cmd == FIOSEEKDATA,
+	    ("%s: Wrong command %lu", __func__, cmd));
+
+	if (vn_lock(vp, LK_SHARED) != 0)
+		return (EBADF);
+	error = vn_bmap_seekhole_locked(vp, cmd, off, cred);
+	VOP_UNLOCK(vp);
 	return (error);
 }
 
@@ -3483,6 +3503,127 @@ vn_fallocate(struct file *fp, off_t offset, off_t len, struct thread *td)
 			break;
 		KASSERT(olen > len, ("Iteration did not make progress?"));
 		maybe_yield();
+	}
+
+	return (error);
+}
+
+static int
+vn_deallocate_impl(struct vnode *vp, off_t *offset, off_t *length, int flags,
+    int ioflag, struct ucred *cred, struct ucred *active_cred,
+    struct ucred *file_cred)
+{
+	struct mount *mp;
+	void *rl_cookie;
+	off_t off, len;
+	int error;
+#ifdef AUDIT
+	bool audited_vnode1 = false;
+#endif
+
+	rl_cookie = NULL;
+	error = 0;
+	mp = NULL;
+	off = *offset;
+	len = *length;
+
+	if ((ioflag & (IO_NODELOCKED | IO_RANGELOCKED)) == 0)
+		rl_cookie = vn_rangelock_wlock(vp, off, off + len);
+	while (len > 0 && error == 0) {
+		/*
+		 * Try to deallocate the longest range in one pass.
+		 * In case a pass takes too long to be executed, it returns
+		 * partial result. The residue will be proceeded in the next
+		 * pass.
+		 */
+
+		if ((ioflag & IO_NODELOCKED) == 0) {
+			bwillwrite();
+			if ((error = vn_start_write(vp, &mp,
+			    V_WAIT | PCATCH)) != 0)
+				goto out;
+			vn_lock(vp, vn_lktype_write(mp, vp) | LK_RETRY);
+		}
+#ifdef AUDIT
+		if (!audited_vnode1) {
+			AUDIT_ARG_VNODE1(vp);
+			audited_vnode1 = true;
+		}
+#endif
+
+#ifdef MAC
+		if ((ioflag & IO_NOMACCHECK) == 0)
+			error = mac_vnode_check_write(active_cred, file_cred,
+			    vp);
+#endif
+		if (error == 0)
+			error = VOP_DEALLOCATE(vp, &off, &len, flags, ioflag,
+			    cred);
+
+		if ((ioflag & IO_NODELOCKED) == 0) {
+			VOP_UNLOCK(vp);
+			if (mp != NULL) {
+				vn_finished_write(mp);
+				mp = NULL;
+			}
+		}
+		if (error == 0 && len != 0)
+			maybe_yield();
+	}
+out:
+	if (rl_cookie != NULL)
+		vn_rangelock_unlock(vp, rl_cookie);
+	*offset = off;
+	*length = len;
+	return (error);
+}
+
+/*
+ * This function is supposed to be used in the situations where the deallocation
+ * is not triggered by a user request.
+ */
+int
+vn_deallocate(struct vnode *vp, off_t *offset, off_t *length, int flags,
+    int ioflag, struct ucred *active_cred, struct ucred *file_cred)
+{
+	struct ucred *cred;
+
+	if (*offset < 0 || *length <= 0 || *length > OFF_MAX - *offset ||
+	    flags != 0)
+		return (EINVAL);
+	if (vp->v_type != VREG)
+		return (ENODEV);
+
+	cred = file_cred != NOCRED ? file_cred : active_cred;
+	return (vn_deallocate_impl(vp, offset, length, flags, ioflag, cred,
+	    active_cred, file_cred));
+}
+
+static int
+vn_fspacectl(struct file *fp, int cmd, off_t *offset, off_t *length, int flags,
+    struct ucred *active_cred, struct thread *td)
+{
+	int error;
+	struct vnode *vp;
+	int ioflag;
+
+	vp = fp->f_vnode;
+
+	if (cmd != SPACECTL_DEALLOC || *offset < 0 || *length <= 0 ||
+	    *length > OFF_MAX - *offset || flags != 0)
+		return (EINVAL);
+	if (vp->v_type != VREG)
+		return (ENODEV);
+
+	ioflag = get_write_ioflag(fp);
+
+	switch (cmd) {
+	case SPACECTL_DEALLOC:
+		error = vn_deallocate_impl(vp, offset, length, flags, ioflag,
+		    active_cred, active_cred, fp->f_cred);
+		break;
+	default:
+		panic("vn_fspacectl: unknown cmd %d", cmd);
 	}
 
 	return (error);

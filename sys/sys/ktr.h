@@ -82,7 +82,7 @@ void	ktr_tracepoint(uint64_t mask, const char *file, int line,
 		ktr_tracepoint((m), __FILE__, __LINE__, format,		\
 		    (u_long)(p1), (u_long)(p2), (u_long)(p3),		\
 		    (u_long)(p4), (u_long)(p5), (u_long)(p6));		\
-	} while(0)
+	} while (0)
 #define CTR0(m, format)			CTR6(m, format, 0, 0, 0, 0, 0, 0)
 #define CTR1(m, format, p1)		CTR6(m, format, p1, 0, 0, 0, 0, 0)
 #define	CTR2(m, format, p1, p2)		CTR6(m, format, p1, p2, 0, 0, 0, 0)
@@ -106,6 +106,13 @@ void	ktr_tracepoint(uint64_t mask, const char *file, int line,
 #define	TR4(d, p1, p2, p3, p4)		CTR4(KTR_GEN, d, p1, p2, p3, p4)
 #define	TR5(d, p1, p2, p3, p4, p5)	CTR5(KTR_GEN, d, p1, p2, p3, p4, p5)
 #define	TR6(d, p1, p2, p3, p4, p5, p6)	CTR6(KTR_GEN, d, p1, p2, p3, p4, p5, p6)
+
+#define	_KTR_MACRO(m, format, _1, _2, _3, _4, _5, _6, NAME, ...)	\
+	NAME
+#define	CTR(...)							\
+	_KTR_MACRO(__VA_ARGS__, CTR6, CTR5, CTR4, CTR3, CTR2, CTR1,	\
+	    CTR0)(__VA_ARGS__)
+#define	TR(...)				CTR(KTR_GEN, __VA_ARGS__)
 
 /*
  * The event macros implement KTR graphic plotting facilities provided

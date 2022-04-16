@@ -63,7 +63,17 @@ SDT_PROBE_DEFINE5_XLATE(sdt, , , m__init,
     "uint32_t", "uint32_t",
     "uint32_t", "uint32_t");
 
+SDT_PROBE_DEFINE3_XLATE(sdt, , , m__gethdr_raw,
+    "uint32_t", "uint32_t",
+    "uint16_t", "uint16_t",
+    "struct mbuf *", "mbufinfo_t *");
+
 SDT_PROBE_DEFINE3_XLATE(sdt, , , m__gethdr,
+    "uint32_t", "uint32_t",
+    "uint16_t", "uint16_t",
+    "struct mbuf *", "mbufinfo_t *");
+
+SDT_PROBE_DEFINE3_XLATE(sdt, , , m__get_raw,
     "uint32_t", "uint32_t",
     "uint16_t", "uint16_t",
     "struct mbuf *", "mbufinfo_t *");
@@ -617,7 +627,7 @@ m_copyfromunmapped(const struct mbuf *m, int off, int len, caddr_t cp)
 {
 	struct iovec iov;
 	struct uio uio;
-	int error;
+	int error __diagused;
 
 	KASSERT(off >= 0, ("m_copyfromunmapped: negative off %d", off));
 	KASSERT(len >= 0, ("m_copyfromunmapped: negative len %d", len));
@@ -1147,7 +1157,7 @@ m_copytounmapped(const struct mbuf *m, int off, int len, c_caddr_t cp)
 {
 	struct iovec iov;
 	struct uio uio;
-	int error;
+	int error __diagused;
 
 	KASSERT(off >= 0, ("m_copytounmapped: negative off %d", off));
 	KASSERT(len >= 0, ("m_copytounmapped: negative len %d", len));
@@ -1293,7 +1303,7 @@ m_apply_extpg_one(struct mbuf *m, int off, int len,
 		pglen = m_epg_pagelen(m, i, pgoff);
 		if (off < pglen) {
 			count = min(pglen - off, len);
-			p = (void *)PHYS_TO_DMAP(m->m_epg_pa[i] + pgoff);
+			p = (void *)PHYS_TO_DMAP(m->m_epg_pa[i] + pgoff + off);
 			rval = f(arg, p, count);
 			if (rval)
 				return (rval);

@@ -47,6 +47,7 @@
 #ifdef DIAGNOSTIC
 #include <sys/stack.h>
 #endif
+#include <sys/buf.h>
 
 /*
  * This must agree with the definition in <ufs/ufs/dir.h>.
@@ -114,6 +115,8 @@ struct inode {
 #endif
 
 	int	i_nextclustercg; /* last cg searched for cluster */
+
+	struct vn_clusterw i_clusterw;	/* Buffer clustering information */
 
 	/*
 	 * Data for extended attribute modification.
@@ -207,13 +210,13 @@ struct inode {
 #define	i_din1 dinode_u.din1
 #define	i_din2 dinode_u.din2
 
-#ifdef _KERNEL
-
 #define	ITOUMP(ip)	((ip)->i_ump)
 #define	ITODEV(ip)	(ITOUMP(ip)->um_dev)
 #define	ITODEVVP(ip)	(ITOUMP(ip)->um_devvp)
 #define	ITOFS(ip)	(ITOUMP(ip)->um_fs)
 #define	ITOVFS(ip)	((ip)->i_vnode->v_mount)
+
+#ifdef _KERNEL
 
 static inline _Bool
 I_IS_UFS1(const struct inode *ip)
@@ -228,6 +231,7 @@ I_IS_UFS2(const struct inode *ip)
 
 	return ((ip->i_flag & IN_UFS2) != 0);
 }
+#endif	/* _KERNEL */
 
 /*
  * The DIP macro is used to access fields in the dinode that are
@@ -242,8 +246,6 @@ I_IS_UFS2(const struct inode *ip)
 		(ip)->i_din2->d##field = (val); 		\
 	} while (0)
 
-#define	SHORTLINK(ip)	(I_IS_UFS1(ip) ?			\
-    (caddr_t)(ip)->i_din1->di_db : (caddr_t)(ip)->i_din2->di_db)
 #define	IS_SNAPSHOT(ip)		((ip)->i_flags & SF_SNAPSHOT)
 #define	IS_UFS(vp)		((vp)->v_data != NULL)
 
@@ -276,6 +278,7 @@ struct ufid {
 	uint32_t  ufid_gen;	/* Generation number. */
 };
 
+#ifdef _KERNEL
 #ifdef DIAGNOSTIC
 void ufs_init_trackers(struct inode *ip);
 void ufs_unlock_tracker(struct inode *ip);

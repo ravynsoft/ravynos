@@ -6,7 +6,6 @@
 
 PACKAGE=	runtime
 
-#CONFS=	fbtab login.conf motd.template login.access
 CONFS=	fbtab login.conf login.access
 PROG=	login
 SRCS=	login.c login_fbtab.c
@@ -31,7 +30,7 @@ PRECIOUSPROG=
 afterinstallconfig:
 	${CAP_MKDB_CMD} ${CAP_MKDB_ENDIAN} ${DESTDIR}/etc/login.conf
 .if defined(NO_ROOT) && defined(METALOG)
-	echo "./etc/login.conf.db type=file mode=0644 uname=root gname=wheel" | \
+	echo ".${DISTBASE}/etc/login.conf.db type=file mode=0644 uname=root gname=wheel" | \
 		cat -l >> ${METALOG}
 .endif
 
