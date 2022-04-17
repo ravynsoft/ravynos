@@ -264,24 +264,8 @@ const char *syscallnames[] = {
 	"aio_read",			/* 255 = aio_read */
 	"aio_write",			/* 256 = aio_write */
 	"lio_listio",			/* 257 = lio_listio */
-<<<<<<< HEAD
 	"__proc_info",			/* 258 = __proc_info */
 	"__iopolicysys",			/* 259 = __iopolicysys */
-	"#260",			/* 260 = nosys */
-	"#261",			/* 261 = nosys */
-	"#262",			/* 262 = nosys */
-	"#263",			/* 263 = nosys */
-	"#264",			/* 264 = nosys */
-	"#265",			/* 265 = nosys */
-	"#266",			/* 266 = nosys */
-	"#267",			/* 267 = nosys */
-	"#268",			/* 268 = nosys */
-	"#269",			/* 269 = nosys */
-	"#270",			/* 270 = nosys */
-	"#271",			/* 271 = nosys */
-=======
-	"#258",			/* 258 = reserved for local use */
-	"#259",			/* 259 = reserved for local use */
 	"#260",			/* 260 = reserved for local use */
 	"#261",			/* 261 = reserved for local use */
 	"#262",			/* 262 = reserved for local use */
@@ -294,7 +278,6 @@ const char *syscallnames[] = {
 	"#269",			/* 269 = reserved for local use */
 	"#270",			/* 270 = reserved for local use */
 	"#271",			/* 271 = reserved for local use */
->>>>>>> freebsd/main
 	"compat11.getdents",		/* 272 = freebsd11 getdents */
 	"#273",			/* 273 = reserved for local use */
 	"lchmod",			/* 274 = lchmod */
@@ -304,25 +287,14 @@ const char *syscallnames[] = {
 	"compat11.nstat",		/* 278 = freebsd11 nstat */
 	"compat11.nfstat",		/* 279 = freebsd11 nfstat */
 	"compat11.nlstat",		/* 280 = freebsd11 nlstat */
-<<<<<<< HEAD
 	"audit_session_self",			/* 281 = audit_session_self */
 	"audit_session_join",			/* 282 = audit_session_join */
 	"audit_session_port",			/* 283 = audit_session_port */
-	"#284",			/* 284 = nosys */
-	"#285",			/* 285 = nosys */
-	"#286",			/* 286 = nosys */
-	"#287",			/* 287 = nosys */
-	"#288",			/* 288 = nosys */
-=======
-	"#281",			/* 281 = reserved for local use */
-	"#282",			/* 282 = reserved for local use */
-	"#283",			/* 283 = reserved for local use */
 	"#284",			/* 284 = reserved for local use */
 	"#285",			/* 285 = reserved for local use */
 	"#286",			/* 286 = reserved for local use */
 	"#287",			/* 287 = reserved for local use */
 	"#288",			/* 288 = reserved for local use */
->>>>>>> freebsd/main
 	"preadv",			/* 289 = preadv */
 	"pwritev",			/* 290 = pwritev */
 	"#291",			/* 291 = reserved for local use */
@@ -404,11 +376,7 @@ const char *syscallnames[] = {
 	"obs___cap_get_file",			/* 367 = obsolete __cap_get_file */
 	"obs___cap_set_fd",			/* 368 = obsolete __cap_set_fd */
 	"obs___cap_set_file",			/* 369 = obsolete __cap_set_file */
-<<<<<<< HEAD
 	"kevent64",			/* 370 = kevent64 */
-=======
-	"#370",			/* 370 = reserved for local use */
->>>>>>> freebsd/main
 	"extattr_set_fd",			/* 371 = extattr_set_fd */
 	"extattr_get_fd",			/* 372 = extattr_get_fd */
 	"extattr_delete_fd",			/* 373 = extattr_delete_fd */
@@ -462,11 +430,7 @@ const char *syscallnames[] = {
 	"getcontext",			/* 421 = getcontext */
 	"setcontext",			/* 422 = setcontext */
 	"swapcontext",			/* 423 = swapcontext */
-<<<<<<< HEAD
-	"freebsd13_swapoff",			/* 424 = freebsd13_swapoff */
-=======
 	"compat13.swapoff",		/* 424 = freebsd13 swapoff */
->>>>>>> freebsd/main
 	"__acl_get_link",			/* 425 = __acl_get_link */
 	"__acl_set_link",			/* 426 = __acl_set_link */
 	"__acl_delete_link",			/* 427 = __acl_delete_link */
@@ -509,17 +473,10 @@ const char *syscallnames[] = {
 	"thr_set_name",			/* 464 = thr_set_name */
 	"aio_fsync",			/* 465 = aio_fsync */
 	"rtprio_thread",			/* 466 = rtprio_thread */
-<<<<<<< HEAD
 	"thr_stack",			/* 467 = thr_stack */
 	"thr_workq",			/* 468 = thr_workq */
 	"#469",			/* 469 = __getpath_fromfd */
 	"#470",			/* 470 = __getpath_fromaddr */
-=======
-	"#467",			/* 467 = reserved for local use */
-	"#468",			/* 468 = reserved for local use */
-	"#469",			/* 469 = reserved for local use */
-	"#470",			/* 470 = reserved for local use */
->>>>>>> freebsd/main
 	"sctp_peeloff",			/* 471 = sctp_peeloff */
 	"sctp_generic_sendmsg",			/* 472 = sctp_generic_sendmsg */
 	"sctp_generic_sendmsg_iov",			/* 473 = sctp_generic_sendmsg_iov */
@@ -629,8 +586,7 @@ const char *syscallnames[] = {
 	"__specialfd",			/* 577 = __specialfd */
 	"aio_writev",			/* 578 = aio_writev */
 	"aio_readv",			/* 579 = aio_readv */
-<<<<<<< HEAD
-	"#580",			/* 580 = fspacectl */
+	"fspacectl",			/* 580 = fspacectl */
 	"sched_getcpu",			/* 581 = sched_getcpu */
 	"swapoff",			/* 582 = swapoff */
 	"#583",			/* 583 = nosys */
@@ -771,9 +727,4 @@ const char *syscallnames[] = {
 	"#718",			/* 718 = nosys */
 	"#719",			/* 719 = nosys */
 	"#720",			/* 720 = nosys */
-=======
-	"fspacectl",			/* 580 = fspacectl */
-	"sched_getcpu",			/* 581 = sched_getcpu */
-	"swapoff",			/* 582 = swapoff */
->>>>>>> freebsd/main
 };

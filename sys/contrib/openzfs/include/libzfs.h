@@ -974,20 +974,6 @@ typedef enum {
 	ZPOOL_COMPATIBILITY_NOFILES
 } zpool_compat_status_t;
 
-_LIBZFS_H zpool_compat_status_t zpool_load_compat(const char *,
-    boolean_t *, char *, size_t);
-
-/*
- * Parse a features file for -o compatibility
- */
-typedef enum {
-	ZPOOL_COMPATIBILITY_OK,
-	ZPOOL_COMPATIBILITY_WARNTOKEN,
-	ZPOOL_COMPATIBILITY_BADTOKEN,
-	ZPOOL_COMPATIBILITY_BADFILE,
-	ZPOOL_COMPATIBILITY_NOFILES
-} zpool_compat_status_t;
-
 extern zpool_compat_status_t zpool_load_compat(const char *,
     boolean_t *, char *, size_t);
 

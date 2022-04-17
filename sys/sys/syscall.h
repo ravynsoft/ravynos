@@ -525,7 +525,7 @@
 #define	SYS___specialfd	577
 #define	SYS_aio_writev	578
 #define	SYS_aio_readv	579
-<<<<<<< HEAD
+#define	SYS_fspacectl	580
 #define	SYS_sched_getcpu	581
 #define	SYS_swapoff	582
 #define	SYS__kernelrpc_mach_vm_allocate_trap	610
@@ -577,9 +577,3 @@
 #define	SYS_mk_timer_arm	693
 #define	SYS_mk_timer_cancel	694
 #define	SYS_MAXSYSCALL	721
-=======
-#define	SYS_fspacectl	580
-#define	SYS_sched_getcpu	581
-#define	SYS_swapoff	582
-#define	SYS_MAXSYSCALL	583
->>>>>>> freebsd/main

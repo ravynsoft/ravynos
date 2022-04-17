@@ -230,6 +230,8 @@
 #define	FREEBSD32_SYS_freebsd32_aio_read	255
 #define	FREEBSD32_SYS_freebsd32_aio_write	256
 #define	FREEBSD32_SYS_freebsd32_lio_listio	257
+#define	FREEBSD32_SYS___proc_info	258
+#define	FREEBSD32_SYS___iopolicysys	259
 #define	FREEBSD32_SYS_freebsd11_getdents	272
 #define	FREEBSD32_SYS_lchmod	274
 				/* 275 is obsolete netbsd_lchown */
@@ -238,6 +240,9 @@
 #define	FREEBSD32_SYS_freebsd11_freebsd32_nstat	278
 #define	FREEBSD32_SYS_freebsd11_freebsd32_nfstat	279
 #define	FREEBSD32_SYS_freebsd11_freebsd32_nlstat	280
+#define	FREEBSD32_SYS_audit_session_self	281
+#define	FREEBSD32_SYS_audit_session_join	282
+#define	FREEBSD32_SYS_audit_session_port	283
 #define	FREEBSD32_SYS_freebsd32_preadv	289
 #define	FREEBSD32_SYS_freebsd32_pwritev	290
 				/* 297 is freebsd4 freebsd32_fhstatfs */
@@ -311,6 +316,7 @@
 				/* 367 is obsolete __cap_get_file */
 				/* 368 is obsolete __cap_set_fd */
 				/* 369 is obsolete __cap_set_file */
+#define	FREEBSD32_SYS_kevent64	370
 #define	FREEBSD32_SYS_extattr_set_fd	371
 #define	FREEBSD32_SYS_extattr_get_fd	372
 #define	FREEBSD32_SYS_extattr_delete_fd	373
@@ -390,6 +396,8 @@
 #define	FREEBSD32_SYS_thr_set_name	464
 #define	FREEBSD32_SYS_freebsd32_aio_fsync	465
 #define	FREEBSD32_SYS_rtprio_thread	466
+#define	FREEBSD32_SYS_thr_stack	467
+#define	FREEBSD32_SYS_thr_workq	468
 #define	FREEBSD32_SYS_sctp_peeloff	471
 #define	FREEBSD32_SYS_sctp_generic_sendmsg	472
 #define	FREEBSD32_SYS_sctp_generic_sendmsg_iov	473
@@ -501,4 +509,52 @@
 #define	FREEBSD32_SYS_fspacectl	580
 #define	FREEBSD32_SYS_sched_getcpu	581
 #define	FREEBSD32_SYS_swapoff	582
-#define	FREEBSD32_SYS_MAXSYSCALL	583
+#define	FREEBSD32_SYS__kernelrpc_mach_vm_allocate_trap	610
+#define	FREEBSD32_SYS__kernelrpc_mach_vm_deallocate_trap	612
+#define	FREEBSD32_SYS__kernelrpc_mach_vm_protect_trap	614
+#define	FREEBSD32_SYS__kernelrpc_mach_vm_map_trap	615
+#define	FREEBSD32_SYS__kernelrpc_mach_port_allocate_trap	616
+#define	FREEBSD32_SYS__kernelrpc_mach_port_destroy_trap	617
+#define	FREEBSD32_SYS__kernelrpc_mach_port_deallocate_trap	618
+#define	FREEBSD32_SYS__kernelrpc_mach_port_mod_refs_trap	619
+#define	FREEBSD32_SYS__kernelrpc_mach_port_move_member_trap	620
+#define	FREEBSD32_SYS__kernelrpc_mach_port_insert_right_trap	621
+#define	FREEBSD32_SYS__kernelrpc_mach_port_insert_member_trap	622
+#define	FREEBSD32_SYS__kernelrpc_mach_port_extract_member_trap	623
+#define	FREEBSD32_SYS__kernelrpc_mach_port_construct_trap	624
+#define	FREEBSD32_SYS__kernelrpc_mach_port_destruct_trap	625
+#define	FREEBSD32_SYS_mach_reply_port	626
+#define	FREEBSD32_SYS_thread_self_trap	627
+#define	FREEBSD32_SYS_task_self_trap	628
+#define	FREEBSD32_SYS_host_self_trap	629
+#define	FREEBSD32_SYS_mach_msg_trap	631
+#define	FREEBSD32_SYS_mach_msg_overwrite_trap	632
+#define	FREEBSD32_SYS_semaphore_signal_trap	633
+#define	FREEBSD32_SYS_semaphore_signal_all_trap	634
+#define	FREEBSD32_SYS_semaphore_signal_thread_trap	635
+#define	FREEBSD32_SYS_semaphore_wait_trap	636
+#define	FREEBSD32_SYS_semaphore_wait_signal_trap	637
+#define	FREEBSD32_SYS_semaphore_timedwait_trap	638
+#define	FREEBSD32_SYS_semaphore_timedwait_signal_trap	639
+#define	FREEBSD32_SYS__kernelrpc_mach_port_guard_trap	641
+#define	FREEBSD32_SYS__kernelrpc_mach_port_unguard_trap	642
+				/* 643 is obsolete  */
+#define	FREEBSD32_SYS_task_name_for_pid	644
+#define	FREEBSD32_SYS_task_for_pid	645
+#define	FREEBSD32_SYS_pid_for_task	646
+#define	FREEBSD32_SYS_macx_swapon	648
+#define	FREEBSD32_SYS_macx_swapoff	649
+#define	FREEBSD32_SYS_macx_triggers	651
+#define	FREEBSD32_SYS_macx_backing_store_suspend	652
+#define	FREEBSD32_SYS_macx_backing_store_recovery	653
+#define	FREEBSD32_SYS_swtch_pri	659
+#define	FREEBSD32_SYS_swtch	660
+#define	FREEBSD32_SYS_thread_switch	661
+#define	FREEBSD32_SYS_clock_sleep_trap	662
+#define	FREEBSD32_SYS_mach_timebase_info	689
+#define	FREEBSD32_SYS_mach_wait_until	690
+#define	FREEBSD32_SYS_mk_timer_create	691
+#define	FREEBSD32_SYS_mk_timer_destroy	692
+#define	FREEBSD32_SYS_mk_timer_arm	693
+#define	FREEBSD32_SYS_mk_timer_cancel	694
+#define	FREEBSD32_SYS_MAXSYSCALL	721

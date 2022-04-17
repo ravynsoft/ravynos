@@ -1509,7 +1509,6 @@
 					int buffersize); }
 259 AUE_NULL	NOSTD	{ int __iopolicysys(int cmd, struct _iopol_param_t * param); }
 260-271	AUE_NULL	RESERVED
-272	AUE_O_GETDENTS	COMPAT11 {
 272	AUE_O_GETDENTS	COMPAT11|CAPENABLED {
 		int getdents(
 		    int fd,
@@ -3325,16 +3324,6 @@
 		int sched_getcpu(void);
 	}
 
-582	AUE_SWAPOFF	STD {
-		int swapoff(
-		    _In_z_ const char *name,
-		    u_int flags,
-		);
-	}
-580	AUE_NULL	UNIMPL	fspacectl
-581	AUE_NULL	STD|CAPENABLED {
-		int sched_getcpu(void);
-	}
 582	AUE_SWAPOFF	STD {
 		int swapoff(
 		    _In_z_ const char *name,

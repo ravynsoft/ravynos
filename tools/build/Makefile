@@ -74,6 +74,13 @@ SYSINCS+=	stat.h
 SRCS+=		futimens.c utimensat.c
 .endif
 
+Availability.h: ${SRCTOP}/include/Availability.h
+	cp ${.ALLSRC} ${.TARGET}
+AvailabilityInternal.h: ${SRCTOP}/include/AvailabilityInternal.h
+	cp ${.ALLSRC} ${.TARGET}
+CLEANFILES+=	Availability.h AvailabilityInternal.h
+INCS+=		Availability.h AvailabilityInternal.h
+
 _WITH_EXPLICIT_BZERO!= grep -c explicit_bzero ${HOST_INCLUDE_ROOT}/strings.h || true
 .if ${_WITH_EXPLICIT_BZERO} == 0
 # .PATH: ${SRCTOP}/sys/libkern

@@ -59,8 +59,8 @@ struct wqa_init {
 	void	(*workqfunc)(void *);	/* workq entry function */
 	void	(*newtdfunc)(void *);	/* new thread startup function */
 	void	(*exitfunc)(void *);	/* thread shutdown function */
-	size_t	stacksize;		/* per worker thread stack size */
-	size_t	guardsize;		/* per worker thread stack guard size */
+	unsigned long	stacksize;		/* per worker thread stack size */
+	unsigned long	guardsize;		/* per worker thread stack guard size */
 };
 
 struct wqa_qadd {
