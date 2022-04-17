@@ -337,22 +337,6 @@ mountpoint_sorter(const void *xa, const void *xb)
 }
 
 static int
-mountpoint_sorter(const void *xa, const void *xb)
-{
-	struct partition_metadata *a = *(struct partition_metadata **)xa;
-	struct partition_metadata *b = *(struct partition_metadata **)xb;
-
-	if (a->fstab == NULL && b->fstab == NULL)
-		return 0;
-	if (a->fstab == NULL)
-		return 1;
-	if (b->fstab == NULL)
-		return -1;
-
-	return strcmp(a->fstab->fs_file, b->fstab->fs_file);
-}
-
-static int
 apply_changes(struct gmesh *mesh)
 {
 	struct partition_metadata *md;
