@@ -172,6 +172,8 @@ struct sk_buff *linuxkpi_alloc_skb(size_t, gfp_t);
 struct sk_buff *linuxkpi_dev_alloc_skb(size_t, gfp_t);
 void linuxkpi_kfree_skb(struct sk_buff *);
 
+struct sk_buff *linuxkpi_skb_copy(struct sk_buff *, gfp_t);
+
 /* -------------------------------------------------------------------------- */
 
 static inline struct sk_buff *
@@ -231,7 +233,8 @@ static inline void
 dev_kfree_skb_irq(struct sk_buff *skb)
 {
 	SKB_TRACE(skb);
-	SKB_TODO();
+	SKB_IMPROVE("Do we have to defer this?");
+	dev_kfree_skb(skb);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -331,6 +334,8 @@ skb_put(struct sk_buff *skb, size_t len)
 	    skb, skb->tail, len, skb->end, skb->head, skb->data, skb->len));
 
 	s = skb_tail_pointer(skb);
+	if (len == 0)
+		return (s);
 	skb->tail += len;
 	skb->len += len;
 #ifdef SKB_DEBUG
@@ -350,6 +355,8 @@ skb_put_data(struct sk_buff *skb, const void *buf, size_t len)
 
 	SKB_TRACE2(skb, buf);
 	s = skb_put(skb, len);
+	if (len == 0)
+		return (s);
 	memcpy(s, buf, len);
 	return (s);
 }
@@ -662,9 +669,11 @@ skb_queue_prev(struct sk_buff_head *q, struct sk_buff *skb)
 static inline struct sk_buff *
 skb_copy(struct sk_buff *skb, gfp_t gfp)
 {
-	SKB_TRACE(skb);
-	SKB_TODO();
-	return (NULL);
+	struct sk_buff *new;
+
+	new = linuxkpi_skb_copy(skb, gfp);
+	SKB_TRACE2(skb, new);
+	return (new);
 }
 
 static inline void
@@ -752,7 +761,7 @@ static inline bool
 skb_is_gso(struct sk_buff *skb)
 {
 	SKB_TRACE(skb);
-	SKB_TODO();
+	SKB_IMPROVE("Really a TODO but get it away from logging");
 	return (false);
 }
 

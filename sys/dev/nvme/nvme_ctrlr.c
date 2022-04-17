@@ -388,8 +388,12 @@ nvme_ctrlr_enable(struct nvme_controller *ctrlr)
 	cc |= 6 << NVME_CC_REG_IOSQES_SHIFT; /* SQ entry size == 64 == 2^6 */
 	cc |= 4 << NVME_CC_REG_IOCQES_SHIFT; /* CQ entry size == 16 == 2^4 */
 
-	/* This evaluates to 0, which is according to spec. */
-	cc |= (PAGE_SHIFT - NVME_BASE_SHIFT) << NVME_CC_REG_MPS_SHIFT;
+	/*
+	 * Use the Memory Page Size selected during device initialization.  Note
+	 * that value stored in mps is suitable to use here without adjusting by
+	 * NVME_MPS_SHIFT.
+	 */
+	cc |= ctrlr->mps << NVME_CC_REG_MPS_SHIFT;
 
 	nvme_ctrlr_barrier(ctrlr, BUS_SPACE_BARRIER_WRITE);
 	nvme_mmio_write_4(ctrlr, cc, cc);
@@ -474,7 +478,8 @@ nvme_ctrlr_identify(struct nvme_controller *ctrlr)
 	 */
 	if (ctrlr->cdata.mdts > 0)
 		ctrlr->max_xfer_size = min(ctrlr->max_xfer_size,
-		    ctrlr->min_page_size * (1 << (ctrlr->cdata.mdts)));
+		    1 << (ctrlr->cdata.mdts + NVME_MPS_SHIFT +
+			NVME_CAP_HI_MPSMIN(ctrlr->cap_hi)));
 
 	return (0);
 }
@@ -936,24 +941,32 @@ nvme_ctrlr_hmb_alloc(struct nvme_controller *ctrlr)
 	max = (uint64_t)physmem * PAGE_SIZE / 20;
 	TUNABLE_UINT64_FETCH("hw.nvme.hmb_max", &max);
 
+	/*
+	 * Units of Host Memory Buffer in the Identify info are always in terms
+	 * of 4k units.
+	 */
 	min = (long long unsigned)ctrlr->cdata.hmmin * NVME_HMB_UNITS;
 	if (max == 0 || max < min)
 		return;
 	pref = MIN((long long unsigned)ctrlr->cdata.hmpre * NVME_HMB_UNITS, max);
-	minc = MAX(ctrlr->cdata.hmminds * NVME_HMB_UNITS, PAGE_SIZE);
+	minc = MAX(ctrlr->cdata.hmminds * NVME_HMB_UNITS, ctrlr->page_size);
 	if (min > 0 && ctrlr->cdata.hmmaxd > 0)
 		minc = MAX(minc, min / ctrlr->cdata.hmmaxd);
 	ctrlr->hmb_chunk = pref;
 
 again:
-	ctrlr->hmb_chunk = roundup2(ctrlr->hmb_chunk, PAGE_SIZE);
+	/*
+	 * However, the chunk sizes, number of chunks, and alignment of chunks
+	 * are all based on the current MPS (ctrlr->page_size).
+	 */
+	ctrlr->hmb_chunk = roundup2(ctrlr->hmb_chunk, ctrlr->page_size);
 	ctrlr->hmb_nchunks = howmany(pref, ctrlr->hmb_chunk);
 	if (ctrlr->cdata.hmmaxd > 0 && ctrlr->hmb_nchunks > ctrlr->cdata.hmmaxd)
 		ctrlr->hmb_nchunks = ctrlr->cdata.hmmaxd;
 	ctrlr->hmb_chunks = malloc(sizeof(struct nvme_hmb_chunk) *
 	    ctrlr->hmb_nchunks, M_NVME, M_WAITOK);
 	err = bus_dma_tag_create(bus_get_dma_tag(ctrlr->dev),
-	    PAGE_SIZE, 0, BUS_SPACE_MAXADDR, BUS_SPACE_MAXADDR, NULL, NULL,
+	    ctrlr->page_size, 0, BUS_SPACE_MAXADDR, BUS_SPACE_MAXADDR, NULL, NULL,
 	    ctrlr->hmb_chunk, 1, ctrlr->hmb_chunk, 0, NULL, NULL, &ctrlr->hmb_tag);
 	if (err != 0) {
 		nvme_printf(ctrlr, "HMB tag create failed %d\n", err);
@@ -1023,7 +1036,7 @@ again:
 	for (i = 0; i < ctrlr->hmb_nchunks; i++) {
 		ctrlr->hmb_desc_vaddr[i].addr =
 		    htole64(ctrlr->hmb_chunks[i].hmbc_paddr);
-		ctrlr->hmb_desc_vaddr[i].size = htole32(ctrlr->hmb_chunk / NVME_HMB_UNITS);
+		ctrlr->hmb_desc_vaddr[i].size = htole32(ctrlr->hmb_chunk / ctrlr->page_size);
 	}
 	bus_dmamap_sync(ctrlr->hmb_desc_tag, ctrlr->hmb_desc_map,
 	    BUS_DMASYNC_PREWRITE);
@@ -1046,8 +1059,9 @@ nvme_ctrlr_hmb_enable(struct nvme_controller *ctrlr, bool enable, bool memret)
 		cdw11 |= 2;
 	status.done = 0;
 	nvme_ctrlr_cmd_set_feature(ctrlr, NVME_FEAT_HOST_MEMORY_BUFFER, cdw11,
-	    ctrlr->hmb_nchunks * ctrlr->hmb_chunk / 4096, ctrlr->hmb_desc_paddr,
-	    ctrlr->hmb_desc_paddr >> 32, ctrlr->hmb_nchunks, NULL, 0,
+	    ctrlr->hmb_nchunks * ctrlr->hmb_chunk / ctrlr->page_size,
+	    ctrlr->hmb_desc_paddr, ctrlr->hmb_desc_paddr >> 32,
+	    ctrlr->hmb_nchunks, NULL, 0,
 	    nvme_completion_poll_cb, &status);
 	nvme_completion_poll(&status);
 	if (nvme_completion_is_error(&status.cpl))
@@ -1379,7 +1393,6 @@ nvme_ctrlr_construct(struct nvme_controller *ctrlr, device_t dev)
 	uint32_t	cap_lo;
 	uint32_t	cap_hi;
 	uint32_t	to, vs, pmrcap;
-	uint8_t		mpsmin;
 	int		status, timeout_period;
 
 	ctrlr->dev = dev;
@@ -1431,8 +1444,8 @@ nvme_ctrlr_construct(struct nvme_controller *ctrlr, device_t dev)
 
 	ctrlr->dstrd = NVME_CAP_HI_DSTRD(cap_hi) + 2;
 
-	mpsmin = NVME_CAP_HI_MPSMIN(cap_hi);
-	ctrlr->min_page_size = 1 << (12 + mpsmin);
+	ctrlr->mps = NVME_CAP_HI_MPSMIN(cap_hi);
+	ctrlr->page_size = 1 << (NVME_MPS_SHIFT + ctrlr->mps);
 
 	/* Get ready timeout value from controller, in units of 500ms. */
 	to = NVME_CAP_LO_TO(cap_lo) + 1;
@@ -1450,7 +1463,8 @@ nvme_ctrlr_construct(struct nvme_controller *ctrlr, device_t dev)
 	ctrlr->enable_aborts = 0;
 	TUNABLE_INT_FETCH("hw.nvme.enable_aborts", &ctrlr->enable_aborts);
 
-	ctrlr->max_xfer_size = NVME_MAX_XFER_SIZE;
+	/* Cap transfers by the maximum addressable by page-sized PRP (4KB pages -> 2MB). */
+	ctrlr->max_xfer_size = MIN(maxphys, (ctrlr->page_size / 8 * ctrlr->page_size));
 	if (nvme_ctrlr_construct_admin_qpair(ctrlr) != 0)
 		return (ENXIO);
 

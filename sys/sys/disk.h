@@ -58,12 +58,6 @@ void disk_err(struct bio *bp, const char *what, int blkdone, int nl);
 	 * disk label formats.  Don't use it unless you have to.
 	 */
 
-#define	DIOCSKERNELDUMP_FREEBSD11 _IOW('d', 133, u_int)
-	/*
-	 * Enable/Disable (the argument is boolean) the device for kernel
-	 * core dumps.
-	 */
-
 #define	DIOCGFLUSH _IO('d', 135)		/* Flush write cache */
 	/*
 	 * Flush write cache of the device.
@@ -136,17 +130,6 @@ struct diocgattr_arg {
 
 #define	DIOCZONECMD	_IOWR('d', 143, struct disk_zone_args)
 
-struct diocskerneldump_arg_freebsd12 {
-	uint8_t		 kda12_enable;
-	uint8_t		 kda12_compression;
-	uint8_t		 kda12_encryption;
-	uint8_t		 kda12_key[KERNELDUMP_KEY_MAX_SIZE];
-	uint32_t	 kda12_encryptedkeysize;
-	uint8_t		*kda12_encryptedkey;
-};
-#define	DIOCSKERNELDUMP_FREEBSD12 \
-	_IOW('d', 144, struct diocskerneldump_arg_freebsd12)
-
 #ifndef WITHOUT_NETDUMP
 #include <net/if.h>
 #include <netinet/in.h>
@@ -190,8 +173,6 @@ struct diocskerneldump_arg {
 	union kd_ip	 kda_gateway;
 	uint8_t		 kda_af;
 };
-_Static_assert(__offsetof(struct diocskerneldump_arg, kda_iface) ==
-    sizeof(struct diocskerneldump_arg_freebsd12), "simplifying assumption");
 #define	DIOCSKERNELDUMP _IOW('d', 145, struct diocskerneldump_arg)
 	/*
 	 * Enable/Disable the device for kernel core dumps.
