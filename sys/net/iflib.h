@@ -417,16 +417,6 @@ typedef enum {
  */
 #define IFLIB_FEATURE_QUEUE_SELECT	1400050
 
-/* The following IFLIB_FEATURE_* defines are for driver modules to determine
- * what features this version of iflib supports. They shall be defined to the
- * first __FreeBSD_version that introduced the feature.
- */
-/*
- * Driver can set its own TX queue selection function
- * as ift_txq_select in struct if_txrx
- */
-#define IFLIB_FEATURE_QUEUE_SELECT	1300527
-
 /*
  * These enum values are used in iflib_needs_restart to indicate to iflib
  * functions whether or not the interface needs restarting when certain events

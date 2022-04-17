@@ -585,33 +585,6 @@ ktls_create_session(struct socket *so, struct tls_enable *en,
 			return (EINVAL);
 		if (en->iv_len != TLS_CHACHA20_IV_LEN)
 			return (EINVAL);
-
-		/*
-		 * TLS 1.0 requires an implicit IV.  TLS 1.1 and 1.2
-		 * use explicit IVs.
-		 */
-		switch (en->tls_vminor) {
-		case TLS_MINOR_VER_ZERO:
-			if (en->iv_len != TLS_CBC_IMPLICIT_IV_LEN)
-				return (EINVAL);
-			break;
-		case TLS_MINOR_VER_ONE:
-		case TLS_MINOR_VER_TWO:
-			/* Ignore any supplied IV. */
-			en->iv_len = 0;
-			break;
-		default:
-			return (EINVAL);
-		}
-		break;
-	case CRYPTO_CHACHA20_POLY1305:
-		if (en->auth_algorithm != 0 || en->auth_key_len != 0)
-			return (EINVAL);
-		if (en->tls_vminor != TLS_MINOR_VER_TWO &&
-		    en->tls_vminor != TLS_MINOR_VER_THREE)
-			return (EINVAL);
-		if (en->iv_len != TLS_CHACHA20_IV_LEN)
-			return (EINVAL);
 		break;
 	default:
 		return (EINVAL);

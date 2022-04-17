@@ -791,13 +791,6 @@ malloc_aligned(size_t size, size_t align, struct malloc_type *type, int flags)
 }
 
 void *
-malloc_aligned(size_t size, size_t align, struct malloc_type *type, int flags)
-{
-	return (malloc_domainset_aligned(size, align, type, DOMAINSET_RR(),
-	    flags));
-}
-
-void *
 malloc_domainset_aligned(size_t size, size_t align,
     struct malloc_type *mtp, struct domainset *ds, int flags)
 {

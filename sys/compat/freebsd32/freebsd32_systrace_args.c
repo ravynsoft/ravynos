@@ -3548,12 +3548,12 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 	case 631: {
 		struct mach_msg_trap_args *p = params;
 		uarg[a++] = (intptr_t)p->msg; /* mach_msg_header_t	* */
-		iarg[a++] = p->mach_msg_option_t	option; /*  */
-		iarg[a++] = p->mach_msg_size_t	send_size; /*  */
-		iarg[a++] = p->mach_msg_size_t	rcv_size; /*  */
-		iarg[a++] = p->mach_port_name_t	rcv_name; /*  */
-		iarg[a++] = p->mach_msg_timeout_t	timeout; /*  */
-		iarg[a++] = p->mach_port_name_t	notify; /*  */
+		iarg[a++] = p->option; /* mach_msg_option_t	 */
+		iarg[a++] = p->send_size; /* mach_msg_size_t	 */
+		iarg[a++] = p->rcv_size; /* mach_msg_size_t	 */
+		iarg[a++] = p->rcv_name; /* mach_port_name_t	 */
+		iarg[a++] = p->timeout; /* mach_msg_timeout_t	 */
+		iarg[a++] = p->notify; /* mach_port_name_t	 */
 		*n_args = 7;
 		break;
 	}
@@ -3561,14 +3561,14 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 	case 632: {
 		struct mach_msg_overwrite_trap_args *p = params;
 		uarg[a++] = (intptr_t)p->msg; /* mach_msg_header_t	* */
-		iarg[a++] = p->mach_msg_option_t	option; /*  */
-		iarg[a++] = p->mach_msg_size_t	send_size; /*  */
-		iarg[a++] = p->mach_msg_size_t	rcv_size; /*  */
-		iarg[a++] = p->mach_port_name_t	rcv_name; /*  */
-		iarg[a++] = p->mach_msg_timeout_t	timeout; /*  */
-		iarg[a++] = p->mach_port_name_t	notify; /*  */
+		iarg[a++] = p->option; /* mach_msg_option_t	 */
+		iarg[a++] = p->send_size; /* mach_msg_size_t	 */
+		iarg[a++] = p->rcv_size; /* mach_msg_size_t	 */
+		iarg[a++] = p->rcv_name; /* mach_port_name_t	 */
+		iarg[a++] = p->timeout; /* mach_msg_timeout_t	 */
+		iarg[a++] = p->notify; /* mach_port_name_t	 */
 		uarg[a++] = (intptr_t)p->rcv_msg; /* mach_msg_header_t	* */
-		iarg[a++] = p->mach_msg_size_t	scatter_list_size; /*  */
+		iarg[a++] = p->scatter_list_size; /* mach_msg_size_t	 */
 		*n_args = 9;
 		break;
 	}

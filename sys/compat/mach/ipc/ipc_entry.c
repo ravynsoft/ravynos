@@ -1,5 +1,6 @@
 /*-
  * Copyright (c) 2014-2015, Matthew Macy <mmacy@nextbsd.org>
+ * Copyright (c) 2022, Zoe Knox <zoe@pixin.net>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -159,6 +160,7 @@ static int kern_finstall(struct thread *td, struct file *fp, int *fd, int flags,
 
 #define MODERN (__FreeBSD_version >= 1100000)
 #define FNOFDALLOC    0x80000000
+#define        fde_change_size (offsetof(struct filedescent, fde_seqc))
 
 static void
 ipc_entry_hash_delete(
@@ -255,7 +257,7 @@ mach_port_close(struct file *fp, struct thread *td)
 
 static int
 mach_port_stat(struct file *fp __unused, struct stat *sb,
-			   struct ucred *active_cred __unused, struct thread *td __unused)
+			   struct ucred *active_cred __unused)
 {
 	ipc_entry_t entry;
 
@@ -593,7 +595,7 @@ ipc_entry_close(
 	fdp = td->td_proc->p_fd;
 
 	FILEDESC_XLOCK(fdp);
-	if ((fp = fget_locked(fdp, fd)) == NULL) {
+	if ((fp = fget_noref(fdp, fd)) == NULL) {
 		FILEDESC_XUNLOCK(fdp);
 		audit_sysclose(td, fd, NULL);
 		return;
