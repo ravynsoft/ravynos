@@ -134,7 +134,7 @@ SUBDIR_DEPEND_libarchive= libz libbz2 libexpat liblzma libmd libzstd
 SUBDIR_DEPEND_libasl= libSystem libdispatch libxpc
 SUBDIR_DEPEND_libauditdm= libbsm
 SUBDIR_DEPEND_libbsddialog= ncurses
-SUBDIR_DEPEND_libbsm=	libSystem libnotify
+SUBDIR_DEPEND_libbsm=	libnotify libSystem
 SUBDIR_DEPEND_libbsnmp= ${_libnetgraph}
 SUBDIR_DEPEND_libc++:= libcxxrt
 # libssp_nonshared doesn't need to be linked into libc on every arch, but it is

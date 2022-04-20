@@ -285,7 +285,7 @@ _DP_9p=		sbuf
 .if ${.MAKE.OS} == "FreeBSD" || !defined(BOOTSTRAPPING)
 _DP_archive=	z bz2 lzma bsdxml zstd
 .endif
-_DP_bsm=	System notify
+_DP_bsm=	notify System
 _DP_avl=	spl
 _DP_bsddialog=	formw ncursesw tinfow
 _DP_zstd=	pthread
