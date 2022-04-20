@@ -693,10 +693,6 @@ main(int ac, char *av[])
 	 */
 
 	if (ac > 1 && av[ac - 1][0] == '/') {
-		if (! is_ipfw())
-			errx(EX_USAGE, "usage: dnctl [options]\n"
-			    "do \"dnctl -h\" for details");
-
 		if (access(av[ac - 1], R_OK) == 0)
 			ipfw_readfile(ac, av);
 		else

@@ -428,29 +428,6 @@ apply_changes(struct gmesh *mesh)
 		free(tobesorted);
 	}
 
-	/* Sort filesystems for fstab so that mountpoints are ordered */
-	{
-		struct partition_metadata **tobesorted;
-		struct partition_metadata *tmp;
-		int nparts = 0;
-		TAILQ_FOREACH(md, &part_metadata, metadata)
-			nparts++;
-		tobesorted = malloc(sizeof(struct partition_metadata *)*nparts);
-		nparts = 0;
-		TAILQ_FOREACH_SAFE(md, &part_metadata, metadata, tmp) {
-			tobesorted[nparts++] = md;
-			TAILQ_REMOVE(&part_metadata, md, metadata);
-		}
-		qsort(tobesorted, nparts, sizeof(tobesorted[0]),
-		    mountpoint_sorter);
-
-		/* Now re-add everything */
-		while (nparts-- > 0)
-			TAILQ_INSERT_HEAD(&part_metadata,
-			    tobesorted[nparts], metadata);
-		free(tobesorted);
-	}
-
 	if (getenv("PATH_FSTAB") != NULL)
 		fstab_path = getenv("PATH_FSTAB");
 	else

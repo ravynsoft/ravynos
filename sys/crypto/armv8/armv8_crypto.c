@@ -217,11 +217,6 @@ armv8_crypto_probesession(device_t dev,
 		case CRYPTO_AES_NIST_GCM_16:
 			if (!sc->has_pmul)
 				return (EINVAL);
-<<<<<<< HEAD
-			if (csp->csp_ivlen != AES_GCM_IV_LEN)
-				return (EINVAL);
-=======
->>>>>>> freebsd/main
 			if (csp->csp_auth_mlen != 0 &&
 			    csp->csp_auth_mlen != GMAC_DIGEST_LEN)
 				return (EINVAL);

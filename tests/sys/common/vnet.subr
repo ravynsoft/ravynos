@@ -36,13 +36,6 @@ vnet_mkbridge()
 vnet_mkvlan()
 {
 	ifname=$(ifconfig vlan create)
-	list_interface $ifname
-	echo ${ifname}
-}
-
-vnet_mkvlan()
-{
-	ifname=$(ifconfig vlan create)
 	echo ${ifname} >> created_interfaces.lst
 	echo ${ifname}
 }

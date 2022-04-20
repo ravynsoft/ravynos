@@ -82,9 +82,6 @@
 
 #define DN_SCHED_FQ_PIE 7
 
-VNET_DECLARE(unsigned long, io_pkt_drop);
-#define V_io_pkt_drop VNET(io_pkt_drop)
-
 /* list of queues */
 STAILQ_HEAD(fq_pie_list, fq_pie_flow);
 

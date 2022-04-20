@@ -576,6 +576,26 @@ ktls_create_session(struct socket *so, struct tls_enable *en,
 		default:
 			return (EINVAL);
 		}
+		if (en->auth_key_len == 0)
+			return (EINVAL);
+ 
+		/*
+		 * TLS 1.0 requires an implicit IV.  TLS 1.1 and 1.2
+		 * use explicit IVs.
+		 */
+		switch (en->tls_vminor) {
+		case TLS_MINOR_VER_ZERO:
+			if (en->iv_len != TLS_CBC_IMPLICIT_IV_LEN)
+				return (EINVAL);
+			break;
+		case TLS_MINOR_VER_ONE:
+		case TLS_MINOR_VER_TWO:
+			/* Ignore any supplied IV. */
+			en->iv_len = 0;
+			break;
+		default:
+			return (EINVAL);
+		}
 		break;
 	case CRYPTO_CHACHA20_POLY1305:
 		if (en->auth_algorithm != 0 || en->auth_key_len != 0)
@@ -1182,10 +1202,8 @@ ktls_enable_rx(struct socket *so, struct tls_enable *en)
 	so->so_rcv.sb_flags |= SB_TLS_RX;
 
 	/* Mark existing data as not ready until it can be decrypted. */
-	if (tls->mode != TCP_TLS_MODE_TOE) {
-		sb_mark_notready(&so->so_rcv);
-		ktls_check_rx(&so->so_rcv);
-	}
+	sb_mark_notready(&so->so_rcv);
+	ktls_check_rx(&so->so_rcv);
 	SOCKBUF_UNLOCK(&so->so_rcv);
 
 #ifdef TCP_OFFLOAD

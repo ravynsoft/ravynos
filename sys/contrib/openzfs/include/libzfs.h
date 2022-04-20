@@ -974,7 +974,7 @@ typedef enum {
 	ZPOOL_COMPATIBILITY_NOFILES
 } zpool_compat_status_t;
 
-extern zpool_compat_status_t zpool_load_compat(const char *,
+_LIBZFS_H zpool_compat_status_t zpool_load_compat(const char *,
     boolean_t *, char *, size_t);
 
 #ifdef __FreeBSD__

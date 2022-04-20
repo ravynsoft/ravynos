@@ -1178,10 +1178,6 @@ _ncpu_cmd=sysctl -n hw.ncpu 2>/dev/null || nproc 2>/dev/null || echo unknown
 buildworld_prologue: .PHONY
 	@echo "--------------------------------------------------------------"
 	@echo ">>> World build started on `LC_ALL=C date`"
-.if ${TARGET:Mmips}
-	@echo "--------------------------------------------------------------"
-	@echo "WARNING: MIPS architecture is gone in FreeBSD 14.0"
-.endif
 	@echo "--------------------------------------------------------------"
 
 buildworld_epilogue: .PHONY
@@ -1191,10 +1187,6 @@ buildworld_epilogue: .PHONY
 	@seconds=$$(($$(date '+%s') - ${_BUILDWORLD_START})); \
 	  echo -n ">>> World built in $$seconds seconds, "; \
 	  echo "ncpu: $$(${_ncpu_cmd})${.MAKE.JOBS:S/^/, make -j/}"
-.if ${TARGET:Mmips}
-	@echo "--------------------------------------------------------------"
-	@echo "WARNING: MIPS architecture is gone in FreeBSD 14.0"
-.endif
 	@echo "--------------------------------------------------------------"
 
 #
@@ -2364,13 +2356,6 @@ ${_bt}-usr.bin/mkesdb: ${_bt}-usr.bin/yacc ${_bt_lex_depend}
 ${_bt}-usr.bin/mkcsmapper: ${_bt}-usr.bin/yacc ${_bt_lex_depend}
 .endif
 
-.if ${MK_ICONV} != "no"
-_mkesdb=	usr.bin/mkesdb
-_mkcsmapper=	usr.bin/mkcsmapper
-${_bt}-usr.bin/mkesdb: ${_bt}-usr.bin/yacc ${_bt_lex_depend}
-${_bt}-usr.bin/mkcsmapper: ${_bt}-usr.bin/yacc ${_bt_lex_depend}
-.endif
-
 .if ${MK_KERBEROS} != "no"
 _kerberos5_bootstrap_tools= \
 	kerberos5/tools/make-roken \
@@ -2800,7 +2785,6 @@ NXBMAKEARGS+= \
 	MK_PROFILE=no \
 	MK_RETPOLINE=no \
 	MK_SENDMAIL=no \
-	MK_SVNLITE=no \
 	MK_SSP=no \
 	MK_TESTS=no \
 	MK_WERROR=no \

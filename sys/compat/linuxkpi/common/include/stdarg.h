@@ -1,12 +1,7 @@
 /*-
-<<<<<<<< HEAD:libexec/dyld/tests/libpythagoras/pythagoras.h
- * Copyright 2014 Jonathan Anderson.
- * All rights reserved.
-========
  * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
  *
  * Copyright (c) 2021 Vladimir Kondratyev <wulf@FreeBSD.org>
->>>>>>>> freebsd/main:sys/compat/linuxkpi/common/include/stdarg.h
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,13 +27,9 @@
  * $FreeBSD$
  */
 
-<<<<<<<< HEAD:libexec/dyld/tests/libpythagoras/pythagoras.h
-double	pythagorean_theorem(double, double);
-========
 #ifndef _LINUXKPI_STDARG_H_
 #define	_LINUXKPI_STDARG_H_
 
 #include <machine/stdarg.h>
 
 #endif	/* _LINUXKPI_STDARG_H_ */
->>>>>>>> freebsd/main:sys/compat/linuxkpi/common/include/stdarg.h

@@ -154,9 +154,7 @@ send_output(struct mbuf *m, struct ifnet *ifp, int direction)
 		NET_EPOCH_ENTER(et);
 		switch (icmp6->icmp6_type) {
 		case ND_NEIGHBOR_SOLICIT:
-			NET_EPOCH_ENTER(et);
 			nd6_ns_input(m, sizeof(struct ip6_hdr), icmp6len);
-			NET_EPOCH_EXIT(et);
 			break;
 		case ND_NEIGHBOR_ADVERT:
 			nd6_na_input(m, sizeof(struct ip6_hdr), icmp6len);

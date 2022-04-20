@@ -263,13 +263,6 @@ ${X_}COMPILER_FEATURES+=	fileprefixmap
 ${X_}COMPILER_FEATURES+=	aarch64-sha512
 .endif
 
-.if (${${X_}COMPILER_TYPE} == "clang" && ${${X_}COMPILER_VERSION} >= 130000) || \
-	(${${X_}COMPILER_TYPE} == "gcc" && ${${X_}COMPILER_VERSION} >= 90000)
-# AArch64 sha512 intrinsics are supported (and have been tested) in
-# clang 13 and gcc 9.
-${X_}COMPILER_FEATURES+=	aarch64-sha512
-.endif
-
 .else
 # Use CC's values
 X_COMPILER_TYPE=	${COMPILER_TYPE}

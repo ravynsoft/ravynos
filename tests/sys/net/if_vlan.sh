@@ -214,7 +214,6 @@ atf_test_case "bpf_pcp" "cleanup"
 bpf_pcp_head()
 {
 	atf_set descr 'Set VLAN PCP through BPF'
-	atf_set require.config 'allow_sysctl_side_effects'
 	atf_set require.user root
 	atf_set require.progs scapy
 }

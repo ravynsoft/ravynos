@@ -291,8 +291,6 @@ extern void zfs_log_setsaxattr(zilog_t *zilog, dmu_tx_t *tx, int txtype,
 
 extern void zfs_znode_update_vfs(struct znode *);
 
-extern void zfs_znode_update_vfs(struct znode *);
-
 #endif
 #ifdef	__cplusplus
 }

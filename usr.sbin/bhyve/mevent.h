@@ -50,9 +50,6 @@ struct mevent *mevent_add(int fd, enum ev_type type,
 struct mevent *mevent_add_flags(int fd, enum ev_type type, int fflags,
 			  void (*func)(int, enum ev_type, void *),
 			  void *param);
-struct mevent *mevent_add_flags(int fd, enum ev_type type, int fflags,
-			  void (*func)(int, enum ev_type, void *),
-			  void *param);
 struct mevent *mevent_add_disabled(int fd, enum ev_type type,
 			  void (*func)(int, enum ev_type, void *),
 			  void *param);

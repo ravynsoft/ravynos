@@ -1038,11 +1038,7 @@ TEST_F(PosixFallocate, clear_suid)
 }
 
 /*
-<<<<<<< HEAD
- * posix_fallcoate() of a file without writable permissions should succeed as
-=======
  * posix_fallocate() of a file without writable permissions should succeed as
->>>>>>> freebsd/main
  * long as the file descriptor is writable.  This is important when combined
  * with O_CREAT
  */

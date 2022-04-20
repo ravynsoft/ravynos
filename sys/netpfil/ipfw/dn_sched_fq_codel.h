@@ -36,9 +36,6 @@
 #ifndef _IP_DN_SCHED_FQ_CODEL_H
 #define _IP_DN_SCHED_FQ_CODEL_H
 
-VNET_DECLARE(unsigned long, io_pkt_drop);
-#define V_io_pkt_drop VNET(io_pkt_drop)
-
 /* list of queues */
 STAILQ_HEAD(fq_codel_list, fq_codel_flow);
 

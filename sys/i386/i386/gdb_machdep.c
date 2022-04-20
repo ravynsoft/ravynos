@@ -41,7 +41,6 @@ __FBSDID("$FreeBSD$");
 #include <machine/frame.h>
 #include <machine/gdb_machdep.h>
 #include <machine/pcb.h>
-#include <machine/reg.h>
 #include <machine/trap.h>
 
 #include <gdb/gdb.h>

@@ -1286,7 +1286,6 @@ drop:
 	if (so->so_proto->pr_usrreqs->pru_close != NULL)
 		(*so->so_proto->pr_usrreqs->pru_close)(so);
 
-	TAILQ_INIT(&lqueue);
 	SOCK_LOCK(so);
 	if ((listening = SOLISTENING(so))) {
 		struct socket *sp;

@@ -7,6 +7,4 @@ SRCS		= device_if.h bus_if.h iicbus_if.h \
 
 EXPORT_SYMS=	YES
 
-EXPORT_SYMS=	YES
-
 .include <bsd.kmod.mk>
