@@ -33,6 +33,8 @@ SRCS=	bsm_audit.c							\
 # Must use BSM include files from within the contrib area, not the system.
 #
 CFLAGS+=	-fPIC -I${OPENBSMDIR} -I${_LIBBSMDIR} -I${SRCTOP}/include/apple -D__APPLE__
+LDFLAGS+=	-L${WORLDTMP}/lib/libnotify
+LIBADD=		notify
 
 WARNS?=		1
 

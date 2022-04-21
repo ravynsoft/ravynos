@@ -33,9 +33,11 @@ SUBDIR_BOOTSTRAP= \
 
 SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	.WAIT \
+	libnotify \
+	libSystem \
+	.WAIT \
 	libsqlite3 \
 	geom \
-	libSystem \
 	lib9p \
 	libalias \
 	libarchive \
@@ -87,7 +89,6 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	lib80211 \
 	libnetbsd \
 	libnetmap \
-	libnotify \
 	libnv \
 	libopenbsd \
 	libopie \
