@@ -1987,24 +1987,24 @@ struct host_self_trap_args {
 	syscallarg_t dummy;
 };
 struct mach_msg_trap_args {
-	char msg_l_[PADL_(mach_msg_header_t	*)]; mach_msg_header_t	* msg; char msg_r_[PADR_(mach_msg_header_t	*)];
-	char option_l_[PADL_(mach_msg_option_t	)];  mach_msg_option_t	option; char option_r_[PADR_(mach_msg_option_t	)];
-	char send_size_l_[PADL_(mach_msg_size_t	)];  mach_msg_size_t	send_size; char send_size_r_[PADR_(mach_msg_size_t	)];
-	char rcv_size_l_[PADL_(mach_msg_size_t	)];  mach_msg_size_t	rcv_size; char rcv_size_r_[PADR_(mach_msg_size_t	)];
-	char rcv_name_l_[PADL_(mach_port_name_t	)];  mach_port_name_t	rcv_name; char rcv_name_r_[PADR_(mach_port_name_t	)];
-	char timeout_l_[PADL_(mach_msg_timeout_t	)];  mach_msg_timeout_t	timeout; char timeout_r_[PADR_(mach_msg_timeout_t	)];
-	char notify_l_[PADL_(mach_port_name_t	)];  mach_port_name_t	notify; char notify_r_[PADR_(mach_port_name_t	)];
+	char msg_l_[PADL_(mach_msg_header_t *)]; mach_msg_header_t * msg; char msg_r_[PADR_(mach_msg_header_t *)];
+	char option_l_[PADL_(mach_msg_option_t)]; mach_msg_option_t option; char option_r_[PADR_(mach_msg_option_t)];
+	char send_size_l_[PADL_(mach_msg_size_t)]; mach_msg_size_t send_size; char send_size_r_[PADR_(mach_msg_size_t)];
+	char rcv_size_l_[PADL_(mach_msg_size_t)]; mach_msg_size_t rcv_size; char rcv_size_r_[PADR_(mach_msg_size_t)];
+	char rcv_name_l_[PADL_(mach_port_name_t)]; mach_port_name_t rcv_name; char rcv_name_r_[PADR_(mach_port_name_t)];
+	char timeout_l_[PADL_(mach_msg_timeout_t)]; mach_msg_timeout_t timeout; char timeout_r_[PADR_(mach_msg_timeout_t)];
+	char notify_l_[PADL_(mach_port_name_t)]; mach_port_name_t notify; char notify_r_[PADR_(mach_port_name_t)];
 };
 struct mach_msg_overwrite_trap_args {
-	char msg_l_[PADL_(mach_msg_header_t	*)]; mach_msg_header_t	* msg; char msg_r_[PADR_(mach_msg_header_t	*)];
-	char option_l_[PADL_(mach_msg_option_t	)];  mach_msg_option_t	option; char option_r_[PADR_(mach_msg_option_t	)];
-	char send_size_l_[PADL_(mach_msg_size_t	)];  mach_msg_size_t	send_size; char send_size_r_[PADR_(mach_msg_size_t	)];
-	char rcv_size_l_[PADL_(mach_msg_size_t	)];  mach_msg_size_t	rcv_size; char rcv_size_r_[PADR_(mach_msg_size_t	)];
-	char rcv_name_l_[PADL_(mach_port_name_t	)];  mach_port_name_t	rcv_name; char rcv_name_r_[PADR_(mach_port_name_t	)];
-	char timeout_l_[PADL_(mach_msg_timeout_t	)];  mach_msg_timeout_t	timeout; char timeout_r_[PADR_(mach_msg_timeout_t	)];
-	char notify_l_[PADL_(mach_port_name_t	)];  mach_port_name_t	notify; char notify_r_[PADR_(mach_port_name_t	)];
-	char rcv_msg_l_[PADL_(mach_msg_header_t	*)]; mach_msg_header_t	* rcv_msg; char rcv_msg_r_[PADR_(mach_msg_header_t	*)];
-	char scatter_list_size_l_[PADL_(mach_msg_size_t	)];  mach_msg_size_t	scatter_list_size; char scatter_list_size_r_[PADR_(mach_msg_size_t	)];
+	char msg_l_[PADL_(mach_msg_header_t *)]; mach_msg_header_t * msg; char msg_r_[PADR_(mach_msg_header_t *)];
+	char option_l_[PADL_(mach_msg_option_t)]; mach_msg_option_t option; char option_r_[PADR_(mach_msg_option_t)];
+	char send_size_l_[PADL_(mach_msg_size_t)]; mach_msg_size_t send_size; char send_size_r_[PADR_(mach_msg_size_t)];
+	char rcv_size_l_[PADL_(mach_msg_size_t)]; mach_msg_size_t rcv_size; char rcv_size_r_[PADR_(mach_msg_size_t)];
+	char rcv_name_l_[PADL_(mach_port_name_t)]; mach_port_name_t rcv_name; char rcv_name_r_[PADR_(mach_port_name_t)];
+	char timeout_l_[PADL_(mach_msg_timeout_t)]; mach_msg_timeout_t timeout; char timeout_r_[PADR_(mach_msg_timeout_t)];
+	char notify_l_[PADL_(mach_port_name_t)]; mach_port_name_t notify; char notify_r_[PADR_(mach_port_name_t)];
+	char rcv_msg_l_[PADL_(mach_msg_header_t *)]; mach_msg_header_t * rcv_msg; char rcv_msg_r_[PADR_(mach_msg_header_t *)];
+	char scatter_list_size_l_[PADL_(mach_msg_size_t)]; mach_msg_size_t scatter_list_size; char scatter_list_size_r_[PADR_(mach_msg_size_t)];
 };
 struct semaphore_signal_trap_args {
 	char signal_name_l_[PADL_(mach_port_name_t)]; mach_port_name_t signal_name; char signal_name_r_[PADR_(mach_port_name_t)];

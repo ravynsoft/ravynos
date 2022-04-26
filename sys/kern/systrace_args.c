@@ -3643,28 +3643,28 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 	/* mach_msg_trap */
 	case 631: {
 		struct mach_msg_trap_args *p = params;
-		uarg[a++] = (intptr_t)p->msg; /* mach_msg_header_t	* */
-		iarg[a++] = p->option; /* mach_msg_option_t	 */
-		iarg[a++] = p->send_size; /* mach_msg_size_t	 */
-		iarg[a++] = p->rcv_size; /* mach_msg_size_t	 */
-		iarg[a++] = p->rcv_name; /* mach_port_name_t	 */
-		iarg[a++] = p->timeout; /* mach_msg_timeout_t	 */
-		iarg[a++] = p->notify; /* mach_port_name_t	 */
+		uarg[a++] = (intptr_t)p->msg; /* mach_msg_header_t * */
+		iarg[a++] = p->option; /* mach_msg_option_t */
+		iarg[a++] = p->send_size; /* mach_msg_size_t */
+		iarg[a++] = p->rcv_size; /* mach_msg_size_t */
+		iarg[a++] = p->rcv_name; /* mach_port_name_t */
+		iarg[a++] = p->timeout; /* mach_msg_timeout_t */
+		iarg[a++] = p->notify; /* mach_port_name_t */
 		*n_args = 7;
 		break;
 	}
 	/* mach_msg_overwrite_trap */
 	case 632: {
 		struct mach_msg_overwrite_trap_args *p = params;
-		uarg[a++] = (intptr_t)p->msg; /* mach_msg_header_t	* */
-		iarg[a++] = p->option; /* mach_msg_option_t	 */
-		iarg[a++] = p->send_size; /* mach_msg_size_t	 */
-		iarg[a++] = p->rcv_size; /* mach_msg_size_t	 */
-		iarg[a++] = p->rcv_name; /* mach_port_name_t	 */
-		iarg[a++] = p->timeout; /* mach_msg_timeout_t	 */
-		iarg[a++] = p->notify; /* mach_port_name_t	 */
-		uarg[a++] = (intptr_t)p->rcv_msg; /* mach_msg_header_t	* */
-		iarg[a++] = p->scatter_list_size; /* mach_msg_size_t	 */
+		uarg[a++] = (intptr_t)p->msg; /* mach_msg_header_t * */
+		iarg[a++] = p->option; /* mach_msg_option_t */
+		iarg[a++] = p->send_size; /* mach_msg_size_t */
+		iarg[a++] = p->rcv_size; /* mach_msg_size_t */
+		iarg[a++] = p->rcv_name; /* mach_port_name_t */
+		iarg[a++] = p->timeout; /* mach_msg_timeout_t */
+		iarg[a++] = p->notify; /* mach_port_name_t */
+		uarg[a++] = (intptr_t)p->rcv_msg; /* mach_msg_header_t * */
+		iarg[a++] = p->scatter_list_size; /* mach_msg_size_t */
 		*n_args = 9;
 		break;
 	}
@@ -9984,25 +9984,25 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	case 631:
 		switch (ndx) {
 		case 0:
-			p = "userland mach_msg_header_t	*";
+			p = "userland mach_msg_header_t *";
 			break;
 		case 1:
-			p = "";
+			p = "mach_msg_option_t";
 			break;
 		case 2:
-			p = "";
+			p = "mach_msg_size_t";
 			break;
 		case 3:
-			p = "";
+			p = "mach_msg_size_t";
 			break;
 		case 4:
-			p = "";
+			p = "mach_port_name_t";
 			break;
 		case 5:
-			p = "";
+			p = "mach_msg_timeout_t";
 			break;
 		case 6:
-			p = "";
+			p = "mach_port_name_t";
 			break;
 		default:
 			break;
@@ -10012,31 +10012,31 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	case 632:
 		switch (ndx) {
 		case 0:
-			p = "userland mach_msg_header_t	*";
+			p = "userland mach_msg_header_t *";
 			break;
 		case 1:
-			p = "";
+			p = "mach_msg_option_t";
 			break;
 		case 2:
-			p = "";
+			p = "mach_msg_size_t";
 			break;
 		case 3:
-			p = "";
+			p = "mach_msg_size_t";
 			break;
 		case 4:
-			p = "";
+			p = "mach_port_name_t";
 			break;
 		case 5:
-			p = "";
+			p = "mach_msg_timeout_t";
 			break;
 		case 6:
-			p = "";
+			p = "mach_port_name_t";
 			break;
 		case 7:
-			p = "userland mach_msg_header_t	*";
+			p = "userland mach_msg_header_t *";
 			break;
 		case 8:
-			p = "";
+			p = "mach_msg_size_t";
 			break;
 		default:
 			break;
