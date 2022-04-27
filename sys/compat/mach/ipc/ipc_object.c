@@ -655,10 +655,11 @@ ipc_object_copyout(
 	assert(IE_BITS_TYPE(entry->ie_bits) == MACH_PORT_TYPE_NONE);
 	assert(entry->ie_object == IO_NULL);
 
+	is_write_lock(space);
+
 	io_lock(object);
 	if (!io_active(object)) {
 		io_unlock(object);
-		is_write_lock(space);
 		/* unlocks */
 		ipc_entry_dealloc(space, name, entry);
 		return KERN_INVALID_CAPABILITY;
@@ -666,7 +667,6 @@ ipc_object_copyout(
 
 	entry->ie_object = object;
 	/* space is write-locked and active, object is locked and active */
-	is_write_lock(space);
 done:
 	kr = ipc_right_copyout(space, name, entry,
 			       msgt_name, object);

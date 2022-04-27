@@ -789,8 +789,8 @@ kern_return_t	vm_map_copyin(
 		vm_map_insert(src_map, tmp_entry->object.vm_object, offset, new_addr, 
 					new_addr + size, VM_PROT_READ|VM_PROT_WRITE,
 					VM_PROT_READ|VM_PROT_WRITE, 0);
-		vm_map_remove(src_map, src_start, src_end);
 		vm_map_unlock(src_map);
+		vm_map_remove(src_map, src_start, src_end);
 	} else {
 		offset = tmp_entry->offset;
 		vm_map_unlock(src_map);
