@@ -41,7 +41,6 @@
  */
 
 #include "includes.h"
-__RCSID("$FreeBSD$");
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_STAT_H
@@ -873,14 +872,14 @@ main(int ac, char **av)
 			}
 			break;
 		case 'V':
-			if (options.version_addendum &&
+			if (options.version_addendum != NULL &&
 			    *options.version_addendum != '\0')
 				fprintf(stderr, "%s %s, %s\n", SSH_RELEASE,
 				    options.version_addendum,
-				    OPENSSL_VERSION_STRING);
+				    SSH_OPENSSL_VERSION);
 			else
 				fprintf(stderr, "%s, %s\n", SSH_RELEASE,
-				    OPENSSL_VERSION_STRING);
+				    SSH_OPENSSL_VERSION);
 			if (opt == 'V')
 				exit(0);
 			break;
@@ -1148,7 +1147,7 @@ main(int ac, char **av)
 
 	if (debug_flag)
 		/* version_addendum is always NULL at this point */
-		logit("%s, %s", SSH_RELEASE, OPENSSL_VERSION_STRING);
+		logit("%s, %s", SSH_RELEASE, SSH_OPENSSL_VERSION);
 
 	/* Parse the configuration files */
 	process_config_files(host_arg, pw, 0, &want_final_pass);

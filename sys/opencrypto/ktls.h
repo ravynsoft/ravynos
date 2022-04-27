@@ -49,5 +49,14 @@ struct ktls_ocf_encrypt_state {
 void ktls_encrypt_cb(struct ktls_ocf_encrypt_state *state, int error);
 void ktls_ocf_free(struct ktls_session *tls);
 int ktls_ocf_try(struct socket *so, struct ktls_session *tls, int direction);
+int ktls_ocf_encrypt(struct ktls_ocf_encrypt_state *state,
+    struct ktls_session *tls, struct mbuf *m, struct iovec *outiov,
+    int outiovcnt);
+int ktls_ocf_decrypt(struct ktls_session *tls,
+    const struct tls_record_layer *hdr, struct mbuf *m, uint64_t seqno,
+    int *trailer_len);
+int ktls_ocf_recrypt(struct ktls_session *tls,
+    const struct tls_record_layer *hdr, struct mbuf *m, uint64_t seqno);
+bool ktls_ocf_recrypt_supported(struct ktls_session *tls);
 
 #endif	/* !__OPENCRYPTO_KTLS_H__ */

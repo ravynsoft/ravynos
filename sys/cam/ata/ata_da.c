@@ -1240,12 +1240,17 @@ adaoninvalidate(struct cam_periph *periph)
 #endif
 
 	/*
-	 * Return all queued I/O with ENXIO.
-	 * XXX Handle any transactions queued to the card
-	 *     with XPT_ABORT_CCB.
+	 * Return all queued I/O with ENXIO. Transactions may be queued up here
+	 * for retry (since we are called while there's other transactions
+	 * pending). Any requests in the hardware will drain before ndacleanup
+	 * is called.
 	 */
 	cam_iosched_flush(softc->cam_iosched, NULL, ENXIO);
 
+	/*
+	 * Tell GEOM that we've gone away, we'll get a callback when it is
+	 * done cleaning up its resources.
+	 */
 	disk_gone(softc->disk);
 }
 
@@ -1347,8 +1352,6 @@ adaasync(void *callback_arg, u_int32_t code,
 		adasetflags(softc, &cgd);
 		adasetgeom(softc, &cgd);
 		disk_resize(softc->disk, M_NOWAIT);
-
-		cam_periph_async(periph, code, path, arg);
 		break;
 	}
 	case AC_ADVINFO_CHANGED:
@@ -1369,13 +1372,8 @@ adaasync(void *callback_arg, u_int32_t code,
 	case AC_BUS_RESET:
 	{
 		softc = (struct ada_softc *)periph->softc;
-		cam_periph_async(periph, code, path, arg);
 		if (softc->state != ADA_STATE_NORMAL)
 			break;
-		memset(&cgd, 0, sizeof(cgd));
-		xpt_setup_ccb(&cgd.ccb_h, periph->path, CAM_PRIORITY_NORMAL);
-		cgd.ccb_h.func_code = XPT_GDEV_TYPE;
-		xpt_action((union ccb *)&cgd);
 		if (ADA_RA >= 0 && softc->flags & ADA_FLAG_CAN_RAHEAD)
 			softc->state = ADA_STATE_RAHEAD;
 		else if (ADA_WC >= 0 && softc->flags & ADA_FLAG_CAN_WCACHE)
@@ -1384,16 +1382,17 @@ adaasync(void *callback_arg, u_int32_t code,
 		      && (softc->zone_mode != ADA_ZONE_NONE))
 			softc->state = ADA_STATE_LOGDIR;
 		else
-		    break;
+			break;
 		if (cam_periph_acquire(periph) != 0)
 			softc->state = ADA_STATE_NORMAL;
 		else
 			xpt_schedule(periph, CAM_PRIORITY_DEV);
-	}
-	default:
-		cam_periph_async(periph, code, path, arg);
 		break;
 	}
+	default:
+		break;
+	}
+	cam_periph_async(periph, code, path, arg);
 }
 
 static int
@@ -3703,6 +3702,9 @@ static void
 adashutdown(void *arg, int howto)
 {
 	int how;
+
+	if ((howto & RB_NOSYNC) != 0)
+		return;
 
 	adaflush();
 

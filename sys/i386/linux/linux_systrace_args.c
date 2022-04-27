@@ -2906,7 +2906,12 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 	}
 	/* linux_rseq */
 	case 386: {
-		*n_args = 0;
+		struct linux_rseq_args *p = params;
+		uarg[a++] = (intptr_t)p->rseq; /* struct linux_rseq * */
+		uarg[a++] = p->rseq_len; /* uint32_t */
+		iarg[a++] = p->flags; /* l_int */
+		uarg[a++] = p->sig; /* uint32_t */
+		*n_args = 4;
 		break;
 	}
 	/* linux_semget */
@@ -3242,9 +3247,16 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 0;
 		break;
 	}
-	/* linux_epoll_pwait2 */
+	/* linux_epoll_pwait2_64 */
 	case 441: {
-		*n_args = 0;
+		struct linux_epoll_pwait2_64_args *p = params;
+		iarg[a++] = p->epfd; /* l_int */
+		uarg[a++] = (intptr_t)p->events; /* struct epoll_event * */
+		iarg[a++] = p->maxevents; /* l_int */
+		uarg[a++] = (intptr_t)p->timeout; /* struct l_timespec64 * */
+		uarg[a++] = (intptr_t)p->mask; /* l_sigset_t * */
+		iarg[a++] = p->sigsetsize; /* l_size_t */
+		*n_args = 6;
 		break;
 	}
 	/* linux_mount_setattr */
@@ -7950,6 +7962,22 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		break;
 	/* linux_rseq */
 	case 386:
+		switch (ndx) {
+		case 0:
+			p = "userland struct linux_rseq *";
+			break;
+		case 1:
+			p = "uint32_t";
+			break;
+		case 2:
+			p = "l_int";
+			break;
+		case 3:
+			p = "uint32_t";
+			break;
+		default:
+			break;
+		};
 		break;
 	/* linux_semget */
 	case 393:
@@ -8408,8 +8436,30 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	/* linux_process_madvise */
 	case 440:
 		break;
-	/* linux_epoll_pwait2 */
+	/* linux_epoll_pwait2_64 */
 	case 441:
+		switch (ndx) {
+		case 0:
+			p = "l_int";
+			break;
+		case 1:
+			p = "userland struct epoll_event *";
+			break;
+		case 2:
+			p = "l_int";
+			break;
+		case 3:
+			p = "userland struct l_timespec64 *";
+			break;
+		case 4:
+			p = "userland l_sigset_t *";
+			break;
+		case 5:
+			p = "l_size_t";
+			break;
+		default:
+			break;
+		};
 		break;
 	/* linux_mount_setattr */
 	case 442:
@@ -10030,6 +10080,9 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	case 385:
 	/* linux_rseq */
 	case 386:
+		if (ndx == 0 || ndx == 1)
+			p = "int";
+		break;
 	/* linux_semget */
 	case 393:
 		if (ndx == 0 || ndx == 1)
@@ -10190,8 +10243,11 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		break;
 	/* linux_process_madvise */
 	case 440:
-	/* linux_epoll_pwait2 */
+	/* linux_epoll_pwait2_64 */
 	case 441:
+		if (ndx == 0 || ndx == 1)
+			p = "int";
+		break;
 	/* linux_mount_setattr */
 	case 442:
 	default:

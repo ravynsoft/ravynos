@@ -68,6 +68,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/param.h>
 #include <sys/disk.h>
 #include <sys/kerneldump.h>
+#include <sys/memrange.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
 
@@ -106,9 +107,11 @@ __FBSDID("$FreeBSD$");
 static cap_channel_t *capsyslog;
 static fileargs_t *capfa;
 static bool checkfor, compress, uncompress, clear, force, keep;	/* flags */
+static bool livecore;	/* flags cont. */
 static int verbose;
 static int nfound, nsaved, nerr;			/* statistics */
 static int maxdumps;
+static uint8_t comp_desired;
 
 extern FILE *zdopen(int, const char *);
 
@@ -257,6 +260,8 @@ getbounds(int savedirfd)
 	ret = (int)strtol(buf, NULL, 10);
 	if (ret == 0 && (errno == EINVAL || errno == ERANGE))
 		logmsg(LOG_WARNING, "invalid value found in bounds, using 0");
+	if (maxdumps > 0 && ret == maxdumps)
+		ret = 0;
 	fclose(fp);
 	return (ret);
 }
@@ -302,6 +307,43 @@ writekey(int savedirfd, const char *keyname, uint8_t *dumpkey,
 	return (true);
 }
 
+static int
+write_header_info(xo_handle_t *xostdout, const struct kerneldumpheader *kdh,
+    int savedirfd, const char *infoname, const char *device, int bounds,
+    int status)
+{
+	xo_handle_t *xoinfo;
+	FILE *info;
+
+	/*
+	 * Create or overwrite any existing dump header files.
+	 */
+	if ((info = xfopenat(savedirfd, infoname,
+	    O_WRONLY | O_CREAT | O_TRUNC, "w", 0600)) == NULL) {
+		logmsg(LOG_ERR, "open(%s): %m", infoname);
+		return (-1);
+	}
+
+	xoinfo = xo_create_to_file(info, xo_get_style(NULL), 0);
+	if (xoinfo == NULL) {
+		logmsg(LOG_ERR, "%s: %m", infoname);
+		fclose(info);
+		return (-1);
+	}
+	xo_open_container_h(xoinfo, "crashdump");
+
+	if (verbose)
+		printheader(xostdout, kdh, device, bounds, status);
+
+	printheader(xoinfo, kdh, device, bounds, status);
+	xo_close_container_h(xoinfo, "crashdump");
+	xo_flush_h(xoinfo);
+	xo_finish_h(xoinfo);
+	fclose(info);
+
+	return (0);
+}
+
 static off_t
 file_size(int savedirfd, const char *path)
 {
@@ -316,7 +358,7 @@ file_size(int savedirfd, const char *path)
 static off_t
 saved_dump_size(int savedirfd, int bounds)
 {
-	static char path[PATH_MAX];
+	char path[32];
 	off_t dumpsize;
 
 	dumpsize = 0;
@@ -340,7 +382,7 @@ saved_dump_size(int savedirfd, int bounds)
 static void
 saved_dump_remove(int savedirfd, int bounds)
 {
-	static char path[PATH_MAX];
+	char path[32];
 
 	(void)snprintf(path, sizeof(path), "info.%d", bounds);
 	(void)unlinkat(savedirfd, path, 0);
@@ -353,6 +395,12 @@ saved_dump_remove(int savedirfd, int bounds)
 	(void)snprintf(path, sizeof(path), "textdump.tar.%d", bounds);
 	(void)unlinkat(savedirfd, path, 0);
 	(void)snprintf(path, sizeof(path), "textdump.tar.%d.gz", bounds);
+	(void)unlinkat(savedirfd, path, 0);
+	(void)snprintf(path, sizeof(path), "livecore.%d", bounds);
+	(void)unlinkat(savedirfd, path, 0);
+	(void)snprintf(path, sizeof(path), "livecore.%d.gz", bounds);
+	(void)unlinkat(savedirfd, path, 0);
+	(void)snprintf(path, sizeof(path), "livecore.%d.zst", bounds);
 	(void)unlinkat(savedirfd, path, 0);
 }
 
@@ -369,6 +417,9 @@ symlinks_remove(int savedirfd)
 	(void)unlinkat(savedirfd, "vmcore_encrypted.last.gz", 0);
 	(void)unlinkat(savedirfd, "textdump.tar.last", 0);
 	(void)unlinkat(savedirfd, "textdump.tar.last.gz", 0);
+	(void)unlinkat(savedirfd, "livecore.last", 0);
+	(void)unlinkat(savedirfd, "livecore.last.gz", 0);
+	(void)unlinkat(savedirfd, "livecore.last.zst", 0);
 }
 
 /*
@@ -693,22 +744,204 @@ DoTextdumpFile(int fd, off_t dumpsize, off_t lasthd, char *buf,
 }
 
 static void
+DoLiveFile(const char *savedir, int savedirfd, const char *device)
+{
+	char infoname[32], corename[32], linkname[32], tmpname[32];
+	struct mem_livedump_arg marg;
+	struct kerneldumpheader kdhl;
+	xo_handle_t *xostdout;
+	off_t dumplength;
+	uint32_t version;
+	int fddev, fdcore;
+	int bounds;
+	int error, status;
+
+	bounds = getbounds(savedirfd);
+	status = STATUS_UNKNOWN;
+
+	xostdout = xo_create_to_file(stdout, XO_STYLE_TEXT, 0);
+	if (xostdout == NULL) {
+		logmsg(LOG_ERR, "xo_create_to_file() failed: %m");
+		return;
+	}
+
+	/*
+	 * Create a temporary file. We will invoke the live dump and its
+	 * contents will be written to this fd. After validating and removing
+	 * the kernel dump header from the tail-end of this file, it will be
+	 * renamed to its definitive filename (e.g. livecore.2.gz).
+	 *
+	 * If any errors are encountered before the rename, the temporary file
+	 * is unlinked.
+	 */
+	strcpy(tmpname, "livecore.tmp.XXXXXX");
+	fdcore = mkostempsat(savedirfd, tmpname, 0, 0);
+	if (fdcore < 0) {
+		logmsg(LOG_ERR, "error opening temp file: %m");
+		return;
+	}
+
+	fddev = fileargs_open(capfa, device);
+	if (fddev < 0) {
+		logmsg(LOG_ERR, "%s: %m", device);
+		goto unlinkexit;
+	}
+
+	bzero(&marg, sizeof(marg));
+	marg.fd = fdcore;
+	marg.compression = comp_desired;
+	if (ioctl(fddev, MEM_KERNELDUMP, &marg) == -1) {
+		logmsg(LOG_ERR,
+		    "failed to invoke live-dump on system: %m");
+		close(fddev);
+		goto unlinkexit;
+	}
+
+	/* Close /dev/mem fd, we are finished with it. */
+	close(fddev);
+
+	/* Seek to the end of the file, minus the size of the header. */
+	if (lseek(fdcore, -(off_t)sizeof(kdhl), SEEK_END) == -1) {
+		logmsg(LOG_ERR, "failed to lseek: %m");
+		goto unlinkexit;
+	}
+
+	if (read(fdcore, &kdhl, sizeof(kdhl)) != sizeof(kdhl)) {
+		logmsg(LOG_ERR, "failed to read kernel dump header: %m");
+		goto unlinkexit;
+	}
+	/* Reset cursor */
+	(void)lseek(fdcore, 0, SEEK_SET);
+
+	/* Validate the dump header. */
+	version = dtoh32(kdhl.version);
+	if (compare_magic(&kdhl, KERNELDUMPMAGIC)) {
+		if (version != KERNELDUMPVERSION) {
+			logmsg(LOG_ERR,
+			    "unknown version (%d) in dump header on %s",
+			    version, device);
+			goto unlinkexit;
+		} else if (kdhl.compression != comp_desired) {
+			/* This should be impossible. */
+			logmsg(LOG_ERR,
+			    "dump compression (%u) doesn't match request (%u)",
+			    kdhl.compression, comp_desired);
+			if (!force)
+				goto unlinkexit;
+		}
+	} else {
+		logmsg(LOG_ERR, "magic mismatch on live dump header");
+		goto unlinkexit;
+	}
+	if (kerneldump_parity(&kdhl)) {
+		logmsg(LOG_ERR,
+		    "parity error on last dump header on %s", device);
+		nerr++;
+		status = STATUS_BAD;
+		if (!force)
+			goto unlinkexit;
+	} else {
+		status = STATUS_GOOD;
+	}
+
+	nfound++;
+	dumplength = dtoh64(kdhl.dumplength);
+	if (dtoh32(kdhl.dumpkeysize) != 0) {
+		logmsg(LOG_ERR,
+		    "dump header unexpectedly reported keysize > 0");
+		goto unlinkexit;
+	}
+
+	/* Remove the vestigial kernel dump header. */
+	error = ftruncate(fdcore, dumplength);
+	if (error != 0) {
+		logmsg(LOG_ERR, "failed to truncate the core file: %m");
+		goto unlinkexit;
+	}
+
+	if (verbose >= 2) {
+		printf("\nDump header:\n");
+		printheader(xostdout, &kdhl, device, bounds, -1);
+		printf("\n");
+	}
+	logmsg(LOG_ALERT, "livedump");
+
+	writebounds(savedirfd, bounds + 1);
+	saved_dump_remove(savedirfd, bounds);
+
+	snprintf(corename, sizeof(corename), "livecore.%d", bounds);
+	if (compress)
+		strcat(corename, kdhl.compression == KERNELDUMP_COMP_ZSTD ?
+		    ".zst" : ".gz");
+
+	if (verbose)
+		printf("renaming %s to %s\n", tmpname, corename);
+	if (renameat(savedirfd, tmpname, savedirfd, corename) != 0) {
+		logmsg(LOG_ERR, "renameat failed: %m");
+		goto unlinkexit;
+	}
+
+	snprintf(infoname, sizeof(infoname), "info.%d", bounds);
+	if (write_header_info(xostdout, &kdhl, savedirfd, infoname, device,
+	    bounds, status) != 0) {
+		nerr++;
+		return;
+	}
+
+	logmsg(LOG_NOTICE, "writing %score to %s/%s",
+	    compress ? "compressed " : "", savedir, corename);
+
+	if (verbose)
+		printf("\n");
+
+	symlinks_remove(savedirfd);
+	if (symlinkat(infoname, savedirfd, "info.last") == -1) {
+		logmsg(LOG_WARNING, "unable to create symlink %s/%s: %m",
+		    savedir, "info.last");
+	}
+
+	snprintf(linkname, sizeof(linkname), "livecore.last");
+	if (compress)
+		strcat(linkname, kdhl.compression == KERNELDUMP_COMP_ZSTD ?
+		    ".zst" : ".gz");
+	if (symlinkat(corename, savedirfd, linkname) == -1) {
+		logmsg(LOG_WARNING, "unable to create symlink %s/%s: %m",
+		    savedir, linkname);
+	}
+
+	nsaved++;
+	if (verbose)
+		printf("dump saved\n");
+
+	close(fdcore);
+	return;
+unlinkexit:
+	funlinkat(savedirfd, tmpname, fdcore, 0);
+	close(fdcore);
+}
+
+static void
 DoFile(const char *savedir, int savedirfd, const char *device)
 {
-	xo_handle_t *xostdout, *xoinfo;
-	static char infoname[PATH_MAX], corename[PATH_MAX], linkname[PATH_MAX];
-	static char keyname[PATH_MAX];
 	static char *buf = NULL;
+	xo_handle_t *xostdout;
+	char infoname[32], corename[32], linkname[32], keyname[32];
 	char *temp = NULL;
 	struct kerneldumpheader kdhf, kdhl;
 	uint8_t *dumpkey;
 	off_t mediasize, dumpextent, dumplength, firsthd, lasthd;
-	FILE *core, *info;
+	FILE *core;
 	int fdcore, fddev, error;
 	int bounds, status;
-	u_int sectorsize, xostyle;
+	u_int sectorsize;
 	uint32_t dumpkeysize;
 	bool iscompressed, isencrypted, istextdump, ret;
+
+	/* Live kernel dumps are handled separately. */
+	if (livecore) {
+		DoLiveFile(savedir, savedirfd, device);
+		return;
+	}
 
 	bounds = getbounds(savedirfd);
 	dumpkey = NULL;
@@ -717,12 +950,9 @@ DoFile(const char *savedir, int savedirfd, const char *device)
 
 	xostdout = xo_create_to_file(stdout, XO_STYLE_TEXT, 0);
 	if (xostdout == NULL) {
-		logmsg(LOG_ERR, "%s: %m", infoname);
+		logmsg(LOG_ERR, "xo_create_to_file() failed: %m");
 		return;
 	}
-
-	if (maxdumps > 0 && bounds == maxdumps)
-		bounds = 0;
 
 	if (buf == NULL) {
 		buf = malloc(BUFFERSIZE);
@@ -917,18 +1147,6 @@ DoFile(const char *savedir, int savedirfd, const char *device)
 
 	saved_dump_remove(savedirfd, bounds);
 
-	snprintf(infoname, sizeof(infoname), "info.%d", bounds);
-
-	/*
-	 * Create or overwrite any existing dump header files.
-	 */
-	if ((info = xfopenat(savedirfd, infoname,
-	    O_WRONLY | O_CREAT | O_TRUNC, "w", 0600)) == NULL) {
-		logmsg(LOG_ERR, "open(%s): %m", infoname);
-		nerr++;
-		goto closefd;
-	}
-
 	isencrypted = (dumpkeysize > 0);
 	if (compress)
 		snprintf(corename, sizeof(corename), "%s.%d.gz",
@@ -945,7 +1163,6 @@ DoFile(const char *savedir, int savedirfd, const char *device)
 	    0600);
 	if (fdcore < 0) {
 		logmsg(LOG_ERR, "open(%s): %m", corename);
-		fclose(info);
 		nerr++;
 		goto closefd;
 	}
@@ -957,30 +1174,17 @@ DoFile(const char *savedir, int savedirfd, const char *device)
 	if (core == NULL) {
 		logmsg(LOG_ERR, "%s: %m", corename);
 		(void)close(fdcore);
-		(void)fclose(info);
 		nerr++;
 		goto closefd;
 	}
 	fdcore = -1;
 
-	xostyle = xo_get_style(NULL);
-	xoinfo = xo_create_to_file(info, xostyle, 0);
-	if (xoinfo == NULL) {
-		logmsg(LOG_ERR, "%s: %m", infoname);
-		fclose(info);
+	snprintf(infoname, sizeof(infoname), "info.%d", bounds);
+	if (write_header_info(xostdout, &kdhl, savedirfd, infoname, device,
+	    bounds, status) != 0) {
 		nerr++;
 		goto closeall;
 	}
-	xo_open_container_h(xoinfo, "crashdump");
-
-	if (verbose)
-		printheader(xostdout, &kdhl, device, bounds, status);
-
-	printheader(xoinfo, &kdhl, device, bounds, status);
-	xo_close_container_h(xoinfo, "crashdump");
-	xo_flush_h(xoinfo);
-	xo_finish_h(xoinfo);
-	fclose(info);
 
 	if (isencrypted) {
 		dumpkey = calloc(1, dumpkeysize);
@@ -1211,9 +1415,10 @@ init_caps(int argc, char **argv)
 static void
 usage(void)
 {
-	xo_error("%s\n%s\n%s\n",
+	xo_error("%s\n%s\n%s\n%s\n",
 	    "usage: savecore -c [-v] [device ...]",
 	    "       savecore -C [-v] [device ...]",
+	    "       savecore -L [-fvZz] [-m maxdumps] [directory]",
 	    "       savecore [-fkuvz] [-m maxdumps] [directory [device ...]]");
 	exit(1);
 }
@@ -1226,10 +1431,11 @@ main(int argc, char **argv)
 	char **devs;
 	int i, ch, error, savedirfd;
 
-	checkfor = compress = clear = force = keep = false;
+	checkfor = compress = clear = force = keep = livecore = false;
 	verbose = 0;
 	nfound = nsaved = nerr = 0;
 	savedir = ".";
+	comp_desired = KERNELDUMP_COMP_NONE;
 
 	openlog("savecore", LOG_PERROR, LOG_DAEMON);
 	signal(SIGINFO, infohandler);
@@ -1238,7 +1444,7 @@ main(int argc, char **argv)
 	if (argc < 0)
 		exit(1);
 
-	while ((ch = getopt(argc, argv, "Ccfkm:uvz")) != -1)
+	while ((ch = getopt(argc, argv, "CcfkLm:uvZz")) != -1)
 		switch(ch) {
 		case 'C':
 			checkfor = true;
@@ -1251,6 +1457,9 @@ main(int argc, char **argv)
 			break;
 		case 'k':
 			keep = true;
+			break;
+		case 'L':
+			livecore = true;
 			break;
 		case 'm':
 			maxdumps = atoi(optarg);
@@ -1265,8 +1474,16 @@ main(int argc, char **argv)
 		case 'v':
 			verbose++;
 			break;
+		case 'Z':
+			/* No on-the-fly compression with zstd at the moment. */
+			if (!livecore)
+				usage();
+			compress = true;
+			comp_desired = KERNELDUMP_COMP_ZSTD;
+			break;
 		case 'z':
 			compress = true;
+			comp_desired = KERNELDUMP_COMP_GZIP;
 			break;
 		case '?':
 		default:
@@ -1280,6 +1497,8 @@ main(int argc, char **argv)
 		usage();
 	if (compress && uncompress)
 		usage();
+	if (livecore && (checkfor || clear || uncompress || keep))
+		usage();
 	argc -= optind;
 	argv += optind;
 	if (argc >= 1 && !checkfor && !clear) {
@@ -1292,7 +1511,15 @@ main(int argc, char **argv)
 		argc--;
 		argv++;
 	}
-	if (argc == 0)
+	if (livecore) {
+		if (argc > 0)
+			usage();
+
+		/* Always need /dev/mem to invoke the dump */
+		devs = malloc(sizeof(char *));
+		devs[0] = strdup("/dev/mem");
+		argc++;
+	} else if (argc == 0)
 		devs = enum_dumpdevs(&argc);
 	else
 		devs = devify(argc, argv);
@@ -1305,6 +1532,9 @@ main(int argc, char **argv)
 	(void)cap_rights_init(&rights, CAP_CREATE, CAP_FCNTL, CAP_FSTATAT,
 	    CAP_FSTATFS, CAP_PREAD, CAP_SYMLINKAT, CAP_FTRUNCATE, CAP_UNLINKAT,
 	    CAP_WRITE);
+	if (livecore)
+		cap_rights_set(&rights, CAP_RENAMEAT_SOURCE,
+		    CAP_RENAMEAT_TARGET);
 	if (caph_rights_limit(savedirfd, &rights) < 0) {
 		logmsg(LOG_ERR, "cap_rights_limit(): %m");
 		exit(1);

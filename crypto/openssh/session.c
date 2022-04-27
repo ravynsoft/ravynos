@@ -34,7 +34,6 @@
  */
 
 #include "includes.h"
-__RCSID("$FreeBSD$");
 
 #include <sys/types.h>
 #ifdef HAVE_SYS_STAT_H
@@ -1076,12 +1075,6 @@ do_setup_env(struct ssh *ssh, Session *s, const char *shell)
 	}
 # endif /* HAVE_CYGWIN */
 #endif /* HAVE_LOGIN_CAP */
-
-	if (!options.use_pam) {
-		snprintf(buf, sizeof buf, "%.200s/%.50s",
-		    _PATH_MAILDIR, pw->pw_name);
-		child_set_env(&env, &envsize, "MAIL", buf);
-	}
 
 	/* Normal systems set SHELL by default. */
 	child_set_env(&env, &envsize, "SHELL", shell);

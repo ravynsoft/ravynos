@@ -737,6 +737,7 @@ pf_krule_to_nvrule(struct pf_krule *rule)
 		nvlist_append_number_array(nvl, "bytes",
 		    pf_counter_u64_fetch(&rule->bytes[i]));
 	}
+	nvlist_add_number(nvl, "timestamp", pf_get_timestamp(rule));
 
 	nvlist_add_number(nvl, "os_fingerprint", rule->os_fingerprint);
 
@@ -1098,6 +1099,7 @@ pf_keth_rule_to_nveth_rule(const struct pf_keth_rule *krule)
 	nvlist_add_number(nvl, "bytes-out",
 	    counter_u64_fetch(krule->bytes[1]));
 
+	nvlist_add_number(nvl, "timestamp", pf_get_timestamp(krule));
 	nvlist_add_string(nvl, "qname", krule->qname);
 	nvlist_add_string(nvl, "tagname", krule->tagname);
 
@@ -1147,7 +1149,8 @@ pf_nveth_rule_to_keth_rule(const nvlist_t *nvl,
 		if (error != 0)
 			return (error);
 
-		if (krule->ipsrc.addr.type != PF_ADDR_ADDRMASK)
+		if (krule->ipsrc.addr.type != PF_ADDR_ADDRMASK &&
+		    krule->ipsrc.addr.type != PF_ADDR_TABLE)
 			return (EINVAL);
 	}
 
@@ -1157,7 +1160,8 @@ pf_nveth_rule_to_keth_rule(const nvlist_t *nvl,
 		if (error != 0)
 			return (error);
 
-		if (krule->ipdst.addr.type != PF_ADDR_ADDRMASK)
+		if (krule->ipdst.addr.type != PF_ADDR_ADDRMASK &&
+		    krule->ipdst.addr.type != PF_ADDR_TABLE)
 			return (EINVAL);
 	}
 

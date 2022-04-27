@@ -498,6 +498,7 @@ int root_mounted(void);
  * Unit number allocation API. (kern/subr_unit.c)
  */
 struct unrhdr;
+#define	UNR_NO_MTX	((void *)(uintptr_t)-1)
 struct unrhdr *new_unrhdr(int low, int high, struct mtx *mutex);
 void init_unrhdr(struct unrhdr *uh, int low, int high, struct mtx *mutex);
 void delete_unrhdr(struct unrhdr *uh);
@@ -554,10 +555,16 @@ void _gone_in_dev(device_t dev, int major, const char *msg);
 #define gone_in(major, msg)		__gone_ok(major, msg) _gone_in(major, msg)
 #define gone_in_dev(dev, major, msg)	__gone_ok(major, msg) _gone_in_dev(dev, major, msg)
 
-#if defined(INVARIANTS) || defined(WITNESS)
+#ifdef INVARIANTS
 #define	__diagused
 #else
 #define	__diagused	__unused
+#endif
+
+#ifdef WITNESS
+#define	__witness_used
+#else
+#define	__witness_used	__unused
 #endif
 
 #endif /* _KERNEL */

@@ -67,6 +67,7 @@ __FBSDID("$FreeBSD$");
 #include <compat/linux/linux_emul.h>
 #include <compat/linux/linux_event.h>
 #include <compat/linux/linux_file.h>
+#include <compat/linux/linux_signal.h>
 #include <compat/linux/linux_timer.h>
 #include <compat/linux/linux_util.h>
 
@@ -421,15 +422,15 @@ leave1:
 /*
  * Wait for a filter to be triggered on the epoll file descriptor.
  */
+
 static int
-linux_epoll_wait_common(struct thread *td, int epfd, struct epoll_event *events,
-    int maxevents, int timeout, sigset_t *uset)
+linux_epoll_wait_ts(struct thread *td, int epfd, struct epoll_event *events,
+    int maxevents, struct timespec *tsp, sigset_t *uset)
 {
 	struct epoll_copyout_args coargs;
 	struct kevent_copyops k_ops = { &coargs,
 					epoll_kev_copyout,
 					NULL};
-	struct timespec ts, *tsp;
 	cap_rights_t rights;
 	struct file *epfp;
 	sigset_t omask;
@@ -467,20 +468,6 @@ linux_epoll_wait_common(struct thread *td, int epfd, struct epoll_event *events,
 	coargs.count = 0;
 	coargs.error = 0;
 
-	/*
-	 * Linux epoll_wait(2) man page states that timeout of -1 causes caller
-	 * to block indefinitely. Real implementation does it if any negative
-	 * timeout value is passed.
-	 */
-	if (timeout >= 0) {
-		/* Convert from milliseconds to timespec. */
-		ts.tv_sec = timeout / 1000;
-		ts.tv_nsec = (timeout % 1000) * 1000000;
-		tsp = &ts;
-	} else {
-		tsp = NULL;
-	}
-
 	error = kern_kevent_fp(td, epfp, 0, maxevents, &k_ops, tsp);
 	if (error == 0 && coargs.error != 0)
 		error = coargs.error;
@@ -500,6 +487,29 @@ leave:
 	return (error);
 }
 
+static int
+linux_epoll_wait_common(struct thread *td, int epfd, struct epoll_event *events,
+    int maxevents, int timeout, sigset_t *uset)
+{
+	struct timespec ts, *tsp;
+
+	/*
+	 * Linux epoll_wait(2) man page states that timeout of -1 causes caller
+	 * to block indefinitely. Real implementation does it if any negative
+	 * timeout value is passed.
+	 */
+	if (timeout >= 0) {
+		/* Convert from milliseconds to timespec. */
+		ts.tv_sec = timeout / 1000;
+		ts.tv_nsec = (timeout % 1000) * 1000000;
+		tsp = &ts;
+	} else {
+		tsp = NULL;
+	}
+	return (linux_epoll_wait_ts(td, epfd, events, maxevents, tsp, uset));
+
+}
+
 #ifdef LINUX_LEGACY_SYSCALLS
 int
 linux_epoll_wait(struct thread *td, struct linux_epoll_wait_args *args)
@@ -514,22 +524,72 @@ int
 linux_epoll_pwait(struct thread *td, struct linux_epoll_pwait_args *args)
 {
 	sigset_t mask, *pmask;
-	l_sigset_t lmask;
 	int error;
 
-	if (args->mask != NULL) {
-		if (args->sigsetsize != sizeof(l_sigset_t))
-			return (EINVAL);
-		error = copyin(args->mask, &lmask, sizeof(l_sigset_t));
-		if (error != 0)
-			return (error);
-		linux_to_bsd_sigset(&lmask, &mask);
-		pmask = &mask;
-	} else
-		pmask = NULL;
+	error = linux_copyin_sigset(args->mask, sizeof(l_sigset_t),
+	    &mask, &pmask);
+	if (error != 0)
+		return (error);
+
 	return (linux_epoll_wait_common(td, args->epfd, args->events,
 	    args->maxevents, args->timeout, pmask));
 }
+
+#if defined(__i386__) || (defined(__amd64__) && defined(COMPAT_LINUX32))
+int
+linux_epoll_pwait2_64(struct thread *td, struct linux_epoll_pwait2_64_args *args)
+{
+	struct timespec ts, *tsa;
+	struct l_timespec64 lts;
+	sigset_t mask, *pmask;
+	int error;
+
+	error = linux_copyin_sigset(args->mask, sizeof(l_sigset_t),
+	    &mask, &pmask);
+	if (error != 0)
+		return (error);
+
+	if (args->timeout) {
+		if ((error = copyin(args->timeout, &lts, sizeof(lts))))
+			return (error);
+		error = linux_to_native_timespec64(&ts, &lts);
+		if (error != 0)
+			return (error);
+		tsa = &ts;
+	} else
+		tsa = NULL;
+
+	return (linux_epoll_wait_ts(td, args->epfd, args->events,
+	    args->maxevents, tsa, pmask));
+}
+#else
+int
+linux_epoll_pwait2(struct thread *td, struct linux_epoll_pwait2_args *args)
+{
+	struct timespec ts, *tsa;
+	struct l_timespec lts;
+	sigset_t mask, *pmask;
+	int error;
+
+	error = linux_copyin_sigset(args->mask, sizeof(l_sigset_t),
+	    &mask, &pmask);
+	if (error != 0)
+		return (error);
+
+	if (args->timeout) {
+		if ((error = copyin(args->timeout, &lts, sizeof(lts))))
+			return (error);
+		error = linux_to_native_timespec(&ts, &lts);
+		if (error != 0)
+			return (error);
+		tsa = &ts;
+	} else
+		tsa = NULL;
+
+	return (linux_epoll_wait_ts(td, args->epfd, args->events,
+	    args->maxevents, tsa, pmask));
+}
+#endif /* __i386__ || (__amd64__ && COMPAT_LINUX32) */
 
 static int
 epoll_register_kevent(struct thread *td, struct file *epfp, int fd, int filter,

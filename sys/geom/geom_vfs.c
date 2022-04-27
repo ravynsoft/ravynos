@@ -55,8 +55,9 @@ struct g_vfs_softc {
 	struct bufobj	*sc_bo;
 	struct g_event	*sc_event;
 	int		 sc_active;
-	int		 sc_orphaned;
+	bool		 sc_orphaned;
 	int		 sc_enxio_active;
+	int		 sc_enxio_reported;
 };
 
 static struct buf_ops __g_vfs_bufops = {
@@ -143,12 +144,20 @@ g_vfs_done(struct bio *bip)
 	cp = bip->bio_from;
 	sc = cp->geom->softc;
 	if (bip->bio_error != 0 && bip->bio_error != EOPNOTSUPP) {
-		if ((bp->b_xflags & BX_CVTENXIO) != 0)
-			sc->sc_enxio_active = 1;
+		if ((bp->b_xflags & BX_CVTENXIO) != 0) {
+			if (atomic_cmpset_int(&sc->sc_enxio_active, 0, 1))
+				printf("g_vfs_done(): %s converting all errors to ENXIO\n",
+				    bip->bio_to->name);
+		}
 		if (sc->sc_enxio_active)
 			bip->bio_error = ENXIO;
-		g_print_bio("g_vfs_done():", bip, "error = %d",
-		    bip->bio_error);
+		if (bip->bio_error != ENXIO ||
+		    atomic_cmpset_int(&sc->sc_enxio_reported, 0, 1)) {
+			g_print_bio("g_vfs_done():", bip, "error = %d%s",
+			    bip->bio_error,
+			    bip->bio_error != ENXIO ? "" :
+			    " supressing further ENXIO");
+		}
 	}
 	bp->b_error = bip->bio_error;
 	bp->b_ioflags = bip->bio_flags;
@@ -233,7 +242,7 @@ g_vfs_orphan(struct g_consumer *cp)
 	event = g_alloc_event(M_WAITOK);
 	mtx_lock(&sc->sc_mtx);
 	KASSERT(sc->sc_event == NULL, ("g_vfs %p already has an event", sc));
-	sc->sc_orphaned = 1;
+	sc->sc_orphaned = true;
 	destroy = (sc->sc_active == 0);
 	if (!destroy) {
 		sc->sc_event = event;

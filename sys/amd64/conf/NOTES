@@ -283,6 +283,8 @@ device		cpufreq
 # Network interfaces:
 #
 
+# axp: AMD EPYC integrated NIC
+#	Requires the miibus module
 # bxe:  Broadcom NetXtreme II (BCM5771X/BCM578XX) PCIe 10Gb Ethernet
 #       adapters.
 # ice:	Intel 800 Series Physical Function
@@ -299,13 +301,15 @@ device		cpufreq
 # mlx4ib: Mellanox ConnectX HCA InfiniBand
 # mlx4en: Mellanox ConnectX HCA Ethernet
 # nfe:	nVidia nForce MCP on-board Ethernet Networking (BSD open source)
+# qlxgb: QLogic 3200 and 8200 series 10 Gigabit Ethernet & CNA Adapter
+# qlxgbe: QLogic 8300 series 10 Gigabit Ethernet & CNA Adapter
+# qlxge: QLogic 8100 series 10 Gigabit Ethernet & CNA Adapter
 # sfxge: Solarflare SFC9000 family 10Gb Ethernet adapters
 # vmx:	VMware VMXNET3 Ethernet (BSD open source)
 # wpi:	Intel 3945ABG Wireless LAN controller
 #	Requires the wpi firmware module
-# axp: AMD EPYC integrated NIC
-#   Requires the miibus module
 
+device		axp		# AMD EPYC integrated NIC
 device		bxe		# Broadcom NetXtreme II BCM5771X/BCM578XX 10GbE
 device		igc		# Intel I225 2.5G Ethernet
 device		ipw		# Intel 2100 wireless NICs.
@@ -320,10 +324,12 @@ device  	mlx4		# Shared code module between IB and Ethernet
 device  	mlx4ib		# Mellanox ConnectX HCA InfiniBand
 device  	mlx4en		# Mellanox ConnectX HCA Ethernet
 device		nfe		# nVidia nForce MCP on-board Ethernet
+device		qlxgb		# QLogic 3200/8200 Ethernet
+device		qlxgbe		# QLogic 8300 Ethernet
+device		qlxge		# QLogic 8100 Ethernet
 device		sfxge		# Solarflare SFC9000 10Gb Ethernet
 device		vmx		# VMware VMXNET3 Ethernet
 device		wpi		# Intel 3945ABG wireless NICs.
-device		axp		# AMD EPYC integrated NIC
 
 # IEEE 802.11 adapter firmware modules
 
@@ -638,8 +644,6 @@ options 	PV_STATS
 
 # More undocumented options for linting.
 # Note that documenting these are not considered an affront.
-
-options 	FB_INSTALL_CDEV		# install a CDEV entry in /dev
 
 options 	KBDIO_DEBUG=2
 options 	KBD_MAXRETRY=4

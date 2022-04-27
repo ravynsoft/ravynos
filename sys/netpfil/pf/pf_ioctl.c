@@ -344,6 +344,8 @@ pfattach_vnet(void)
 	V_pf_default_rule.states_tot = counter_u64_alloc(M_WAITOK);
 	V_pf_default_rule.src_nodes = counter_u64_alloc(M_WAITOK);
 
+	V_pf_default_rule.timestamp = uma_zalloc_pcpu(pcpu_zone_4, M_WAITOK | M_ZERO);
+
 #ifdef PF_WANT_32_TO_64_COUNTER
 	V_pf_kifmarker = malloc(sizeof(*V_pf_kifmarker), PFI_MTYPE, M_WAITOK | M_ZERO);
 	V_pf_rulemarker = malloc(sizeof(*V_pf_rulemarker), M_PFRULE, M_WAITOK | M_ZERO);
@@ -520,11 +522,17 @@ pf_free_eth_rule(struct pf_keth_rule *rule)
 	if (rule->kif)
 		pfi_kkif_unref(rule->kif);
 
+	if (rule->ipsrc.addr.type == PF_ADDR_TABLE)
+		pfr_detach_table(rule->ipsrc.addr.p.tbl);
+	if (rule->ipdst.addr.type == PF_ADDR_TABLE)
+		pfr_detach_table(rule->ipdst.addr.p.tbl);
+
 	counter_u64_free(rule->evaluations);
 	for (int i = 0; i < 2; i++) {
 		counter_u64_free(rule->packets[i]);
 		counter_u64_free(rule->bytes[i]);
 	}
+	uma_zfree_pcpu(pcpu_zone_4, rule->timestamp);
 	pf_keth_anchor_remove(rule);
 
 	free(rule, M_PFRULE);
@@ -1428,6 +1436,24 @@ pf_setup_pfsync_matching(struct pf_kruleset *rs)
 }
 
 static int
+pf_eth_addr_setup(struct pf_keth_ruleset *ruleset, struct pf_addr_wrap *addr)
+{
+	int error = 0;
+
+	switch (addr->type) {
+	case PF_ADDR_TABLE:
+		addr->p.tbl = pfr_eth_attach_table(ruleset, addr->v.tblname);
+		if (addr->p.tbl == NULL)
+			error = ENOMEM;
+		break;
+	default:
+		error = EINVAL;
+	}
+
+	return (error);
+}
+
+static int
 pf_addr_setup(struct pf_kruleset *ruleset, struct pf_addr_wrap *addr,
     sa_family_t af)
 {
@@ -1778,6 +1804,7 @@ pf_krule_free(struct pf_krule *rule)
 	counter_u64_free(rule->states_cur);
 	counter_u64_free(rule->states_tot);
 	counter_u64_free(rule->src_nodes);
+	uma_zfree_pcpu(pcpu_zone_4, rule->timestamp);
 
 	mtx_destroy(&rule->rpool.mtx);
 	free(rule, M_PFRULE);
@@ -2107,6 +2134,7 @@ pf_ioctl_addrule(struct pf_krule *rule, uint32_t ticket,
 	rule->states_cur = counter_u64_alloc(M_WAITOK);
 	rule->states_tot = counter_u64_alloc(M_WAITOK);
 	rule->src_nodes = counter_u64_alloc(M_WAITOK);
+	rule->timestamp = uma_zalloc_pcpu(pcpu_zone_4, M_WAITOK | M_ZERO);
 	rule->cuid = td->td_ucred->cr_ruid;
 	rule->cpid = td->td_proc ? td->td_proc->p_pid : 0;
 	TAILQ_INIT(&rule->rpool.list);
@@ -2809,6 +2837,7 @@ DIOCGETETHRULE_error:
 		rule = malloc(sizeof(*rule), M_PFRULE, M_WAITOK);
 		if (rule == NULL)
 			ERROUT(ENOMEM);
+		rule->timestamp = NULL;
 
 		error = pf_nveth_rule_to_keth_rule(nvl, rule);
 		if (error != 0)
@@ -2821,6 +2850,8 @@ DIOCGETETHRULE_error:
 			rule->packets[i] = counter_u64_alloc(M_WAITOK);
 			rule->bytes[i] = counter_u64_alloc(M_WAITOK);
 		}
+		rule->timestamp = uma_zalloc_pcpu(pcpu_zone_4,
+		    M_WAITOK | M_ZERO);
 
 		PF_RULES_WLOCK();
 
@@ -2842,6 +2873,11 @@ DIOCGETETHRULE_error:
 		if (rule->tagname[0])
 			if ((rule->tag = pf_tagname2tag(rule->tagname)) == 0)
 				error = EBUSY;
+
+		if (error == 0 && rule->ipdst.addr.type == PF_ADDR_TABLE)
+			error = pf_eth_addr_setup(ruleset, &rule->ipdst.addr);
+		if (error == 0 && rule->ipsrc.addr.type == PF_ADDR_TABLE)
+			error = pf_eth_addr_setup(ruleset, &rule->ipsrc.addr);
 
 		if (error) {
 			pf_free_eth_rule(rule);
@@ -6669,6 +6705,7 @@ pf_unload_vnet(void)
 	counter_u64_free(V_pf_default_rule.states_cur);
 	counter_u64_free(V_pf_default_rule.states_tot);
 	counter_u64_free(V_pf_default_rule.src_nodes);
+	uma_zfree_pcpu(pcpu_zone_4, V_pf_default_rule.timestamp);
 
 	for (int i = 0; i < PFRES_MAX; i++)
 		counter_u64_free(V_pf_status.counters[i]);

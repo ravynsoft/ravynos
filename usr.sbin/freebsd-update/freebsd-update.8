@@ -25,7 +25,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd March 29, 2022
+.Dd April 22, 2022
 .Dt FREEBSD-UPDATE 8
 .Os
 .Sh NAME
@@ -33,16 +33,17 @@
 .Nd fetch and install binary updates to FreeBSD
 .Sh SYNOPSIS
 .Nm
+.Op Fl F
 .Op Fl b Ar basedir
+.Op Fl -currently-running Ar release
 .Op Fl d Ar workdir
 .Op Fl f Ar conffile
-.Op Fl F
 .Op Fl j Ar jail
 .Op Fl k Ar KEY
+.Op Fl -not-running-from-cron
 .Op Fl r Ar newrelease
 .Op Fl s Ar server
 .Op Fl t Ar address
-.Op Fl -not-running-from-cron
 .Ar command ...
 .Sh DESCRIPTION
 The
@@ -51,22 +52,42 @@ tool is used to fetch, install, and rollback binary
 updates to the
 .Fx
 base system.
-Note that updates are only available if they are being built for the
+.Sh BINARY UPDATES AVAILABILITY
+Binary updates are not available for every single
 .Fx
-release and architecture being used; in particular, the
+version and architecture.
+.Pp
+In general, binary updates are available for ALPHA, BETA, RC, and RELEASE
+versions of
+.Fx ,
+e.g.:
+.Bl -item -offset indent -compact
+.It
+.Fx 13.1-ALPHA3
+.It
+.Fx 13.1-BETA2
+.It
+.Fx 13.1-RC1
+.It
+.Fx 13.1-RELEASE
+.El
+They are not available for branches such as PRERELEASE, STABLE, and CURRENT,
+e.g.:
+.Bl -item -offset indent -compact
+.It
+.Fx 13.0-PRERELEASE
+.It
+.Fx 13.1-STABLE
+.It
+.Fx 14.0-CURRENT
+.El
+.Pp
+In particular, the
 .Fx
 Security Team only builds updates for releases shipped in binary form
 by the
 .Fx
-Release Engineering Team, e.g.,
-.Fx
-11.2-RELEASE and
-.Fx
-12.0-RELEASE, but not
-.Fx
-11.2-STABLE or
-.Fx
-13.0-CURRENT.
+Release Engineering Team.
 .Sh OPTIONS
 The following options are supported:
 .Bl -tag -width "-r newrelease"

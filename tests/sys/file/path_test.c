@@ -452,14 +452,17 @@ ATF_TC_BODY(path_event, tc)
 	ATF_REQUIRE_MSG(kevent(kq, &ev, 1, NULL, 0, NULL) == 0,
 	    FMT_ERR("kevent"));
 
-	/* Try to get a EVFILT_VNODE/NOTE_LINK event through a path fd. */
-	EV_SET(&ev, pathfd, EVFILT_VNODE, EV_ADD | EV_ENABLE, NOTE_LINK, 0, 0);
+	/* Try to get a EVFILT_VNODE/NOTE_DELETE event through a path fd. */
+	EV_SET(&ev, pathfd, EVFILT_VNODE, EV_ADD | EV_ENABLE, NOTE_DELETE, 0,
+	    0);
 	ATF_REQUIRE_MSG(kevent(kq, &ev, 1, NULL, 0, NULL) == 0,
 	    FMT_ERR("kevent"));
 	ATF_REQUIRE_MSG(funlinkat(AT_FDCWD, path, pathfd, 0) == 0,
 	    FMT_ERR("funlinkat"));
 	ATF_REQUIRE_MSG(kevent(kq, NULL, 0, &ev, 1, NULL) == 1,
 	    FMT_ERR("kevent"));
+	ATF_REQUIRE_MSG(ev.fflags == NOTE_DELETE,
+	    "unexpected fflags %#x", ev.fflags);
 	EV_SET(&ev, pathfd, EVFILT_VNODE, EV_DELETE, 0, 0, 0);
 	ATF_REQUIRE_MSG(kevent(kq, &ev, 1, NULL, 0, NULL) == 0,
 	    FMT_ERR("kevent"));
@@ -897,6 +900,38 @@ ATF_TC_BODY(path_unix, tc)
 	CHECKED_CLOSE(pathfd);
 }
 
+/*
+ * Check that we can perform operations using an O_PATH fd for an unlinked file.
+ */
+ATF_TC_WITHOUT_HEAD(path_unlinked);
+ATF_TC_BODY(path_unlinked, tc)
+{
+	char path[PATH_MAX];
+	struct stat sb;
+	int pathfd;
+
+	mktfile(path, "path_rights.XXXXXX");
+
+	pathfd = open(path, O_PATH);
+	ATF_REQUIRE_MSG(pathfd >= 0, FMT_ERR("open"));
+
+	ATF_REQUIRE_MSG(fstatat(pathfd, "", &sb, AT_EMPTY_PATH) == 0,
+	    FMT_ERR("fstatat"));
+	ATF_REQUIRE(sb.st_nlink == 1);
+	ATF_REQUIRE_MSG(fstat(pathfd, &sb) == 0, FMT_ERR("fstat"));
+	ATF_REQUIRE(sb.st_nlink == 1);
+
+	ATF_REQUIRE_MSG(unlink(path) == 0, FMT_ERR("unlink"));
+
+	ATF_REQUIRE_MSG(fstatat(pathfd, "", &sb, AT_EMPTY_PATH) == 0,
+	    FMT_ERR("fstatat"));
+	ATF_REQUIRE(sb.st_nlink == 0);
+	ATF_REQUIRE_MSG(fstat(pathfd, &sb) == 0, FMT_ERR("fstat"));
+	ATF_REQUIRE(sb.st_nlink == 0);
+
+	CHECKED_CLOSE(pathfd);
+}
+
 ATF_TP_ADD_TCS(tp)
 {
 	ATF_TP_ADD_TC(tp, path_access);
@@ -919,6 +954,7 @@ ATF_TP_ADD_TCS(tp)
 	ATF_TP_ADD_TC(tp, path_pipe_fstatat);
 	ATF_TP_ADD_TC(tp, path_rights);
 	ATF_TP_ADD_TC(tp, path_unix);
+	ATF_TP_ADD_TC(tp, path_unlinked);
 
 	return (atf_no_error());
 }

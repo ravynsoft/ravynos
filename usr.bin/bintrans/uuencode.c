@@ -55,6 +55,7 @@ __FBSDID("$FreeBSD$");
 #include <netinet/in.h>
 
 #include <err.h>
+#include <errno.h>
 #include <libgen.h>
 #include <resolv.h>
 #include <stdio.h>
@@ -63,17 +64,37 @@ __FBSDID("$FreeBSD$");
 #include <string.h>
 #include <unistd.h>
 
+extern int main_encode(int, char *[]);
+extern int main_base64_encode(const char *, const char *);
+
 static void encode(void);
 static void base64_encode(void);
+static int arg_to_col(const char *);
 static void usage(void);
 
 static FILE *output;
 static int mode;
 static bool raw;
 static char **av;
+static int columns = 76;
 
 int
-main(int argc, char *argv[])
+main_base64_encode(const char *in, const char *w)
+{
+	raw = 1;
+	if (in != NULL && freopen(in, "r", stdin) == NULL)
+		err(1, "%s", in);
+	output = stdout;
+	if (w != NULL)
+		columns = arg_to_col(w);
+	base64_encode();
+	if (ferror(output))
+		errx(1, "write error");
+	exit(0);
+}
+
+int
+main_encode(int argc, char *argv[])
 {
 	struct stat sb;
 	bool base64;
@@ -86,7 +107,7 @@ main(int argc, char *argv[])
 	if (strcmp(basename(argv[0]), "b64encode") == 0)
 		base64 = 1;
 
-	while ((ch = getopt(argc, argv, "mo:r")) != -1) {
+	while ((ch = getopt(argc, argv, "mo:rw:")) != -1) {
 		switch (ch) {
 		case 'm':
 			base64 = true;
@@ -96,6 +117,9 @@ main(int argc, char *argv[])
 			break;
 		case 'r':
 			raw = true;
+			break;
+		case 'w':
+			columns = arg_to_col(optarg);
 			break;
 		case '?':
 		default:
@@ -149,27 +173,37 @@ static void
 base64_encode(void)
 {
 	/*
-	 * Output must fit into 80 columns, chunks come in 4, leave 1.
+	 * This buffer's length should be a multiple of 24 bits to avoid "="
+	 * padding. Once it reached ~1 KB, further expansion didn't improve
+	 * performance for me.
 	 */
-#define	GROUPS	((80 / 4) - 1)
-	unsigned char buf[3];
+	unsigned char buf[1023];
 	char buf2[sizeof(buf) * 2 + 1];
 	size_t n;
-	int rv, sequence;
-
-	sequence = 0;
+	unsigned carry = 0;
+	int rv, written;
 
 	if (!raw)
 		fprintf(output, "begin-base64 %o %s\n", mode, *av);
 	while ((n = fread(buf, 1, sizeof(buf), stdin))) {
-		++sequence;
 		rv = b64_ntop(buf, n, buf2, nitems(buf2));
 		if (rv == -1)
 			errx(1, "b64_ntop: error encoding base64");
-		fprintf(output, "%s%s", buf2, (sequence % GROUPS) ? "" : "\n");
+		if (columns == 0) {
+			fputs(buf2, output);
+			continue;
+		}
+		for (int i = 0; i < rv; i += written) {
+			written = fprintf(output, "%.*s", columns - carry,
+			    &buf2[i]);
+
+			carry = (carry + written) % columns;
+			if (carry == 0)
+				fputc('\n', output);
+		}
 	}
-	if (sequence % GROUPS)
-		fprintf(output, "\n");
+	if (columns == 0 || carry != 0)
+		fputc('\n', output);
 	if (!raw)
 		fprintf(output, "====\n");
 }
@@ -221,6 +255,28 @@ encode(void)
 		errx(1, "read error");
 	if (!raw)
 		(void)fprintf(output, "%c\nend\n", ENC('\0'));
+}
+
+static int
+arg_to_col(const char *w)
+{
+	char *ep;
+	long option;
+
+	errno = 0;
+	option = strtol(w, &ep, 10);
+	if (option > INT_MAX)
+		errno = ERANGE;
+	else if (ep[0] != '\0')
+		errno = EINVAL;
+	if (errno != 0)
+		err(2, NULL);
+
+	if (option < 0) {
+		errno = EINVAL;
+		err(2, "columns argument must be non-negative");
+	}
+	return (option);
 }
 
 static void

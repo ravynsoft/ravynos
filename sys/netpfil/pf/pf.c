@@ -3845,6 +3845,8 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 	MPASS(kif->pfik_ifp->if_vnet == curvnet);
 	NET_EPOCH_ASSERT();
 
+	PF_RULES_RLOCK_TRACKER;
+
 	SDT_PROBE3(pf, eth, test_rule, entry, dir, kif->pfik_ifp, m);
 
 	ruleset = V_pf_keth;
@@ -3891,6 +3893,8 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 	}
 	e = mtod(m, struct ether_header *);
 	*m0 = m;
+
+	PF_RULES_RLOCK();
 
 	while (r != NULL) {
 		counter_u64_add(r->evaluations, 1);
@@ -3959,20 +3963,26 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 	SDT_PROBE2(pf, eth, test_rule, final_match, (r != NULL ? r->nr : -1), r);
 
 	/* Default to pass. */
-	if (r == NULL)
+	if (r == NULL) {
+		PF_RULES_RUNLOCK();
 		return (PF_PASS);
+	}
 
 	/* Execute action. */
 	counter_u64_add(r->packets[dir == PF_OUT], 1);
 	counter_u64_add(r->bytes[dir == PF_OUT], m_length(m, NULL));
+	pf_update_timestamp(r);
 
 	/* Shortcut. Don't tag if we're just going to drop anyway. */
-	if (r->action == PF_DROP)
+	if (r->action == PF_DROP) {
+		PF_RULES_RUNLOCK();
 		return (PF_DROP);
+	}
 
 	if (r->tag > 0) {
 		mtag = pf_get_mtag(m);
 		if (mtag == NULL) {
+			PF_RULES_RUNLOCK();
 			counter_u64_add(V_pf_status.counters[PFRES_MEMORY], 1);
 			return (PF_DROP);
 		}
@@ -3982,6 +3992,7 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 	if (r->qid != 0) {
 		mtag = pf_get_mtag(m);
 		if (mtag == NULL) {
+			PF_RULES_RUNLOCK();
 			counter_u64_add(V_pf_status.counters[PFRES_MEMORY], 1);
 			return (PF_DROP);
 		}
@@ -3997,6 +4008,7 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 		 **/
 		mtag = pf_get_mtag(m);
 		if (mtag == NULL) {
+			PF_RULES_RUNLOCK();
 			counter_u64_add(V_pf_status.counters[PFRES_MEMORY], 1);
 			return (PF_DROP);
 		}
@@ -4005,6 +4017,8 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 	}
 
 	action = r->action;
+
+	PF_RULES_RUNLOCK();
 
 	return (action);
 }
@@ -7185,6 +7199,8 @@ done:
 		dirndx = (dir == PF_OUT);
 		pf_counter_u64_add_protected(&r->packets[dirndx], 1);
 		pf_counter_u64_add_protected(&r->bytes[dirndx], pd.tot_len);
+		pf_update_timestamp(r);
+
 		if (a != NULL) {
 			pf_counter_u64_add_protected(&a->packets[dirndx], 1);
 			pf_counter_u64_add_protected(&a->bytes[dirndx], pd.tot_len);

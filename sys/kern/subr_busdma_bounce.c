@@ -45,6 +45,9 @@
  *   - dmat_lockarg()
  */
 
+#include <sys/kthread.h>
+#include <sys/sched.h>
+
 struct bounce_page {
 	vm_offset_t	vaddr;		/* kva of bounce buffer */
 	bus_addr_t	busaddr;	/* Physical address */
@@ -62,6 +65,7 @@ struct bounce_page {
 struct bounce_zone {
 	STAILQ_ENTRY(bounce_zone) links;
 	STAILQ_HEAD(, bounce_page) bounce_page_list;
+	STAILQ_HEAD(, bus_dmamap) bounce_map_waitinglist;
 	int		total_bpages;
 	int		free_bpages;
 	int		reserved_bpages;
@@ -85,21 +89,21 @@ static int total_bpages;
 static int busdma_zonecount;
 
 static STAILQ_HEAD(, bounce_zone) bounce_zone_list;
-static STAILQ_HEAD(, bus_dmamap) bounce_map_waitinglist;
 static STAILQ_HEAD(, bus_dmamap) bounce_map_callbacklist;
-static void *busdma_ih;
 
 static MALLOC_DEFINE(M_BOUNCE, "bounce", "busdma bounce pages");
 
 SYSCTL_INT(_hw_busdma, OID_AUTO, total_bpages, CTLFLAG_RD, &total_bpages, 0,
    "Total bounce pages");
 
+static void busdma_thread(void *);
 static int reserve_bounce_pages(bus_dma_tag_t dmat, bus_dmamap_t map,
     int commit);
 
 static int
 _bus_dmamap_reserve_pages(bus_dma_tag_t dmat, bus_dmamap_t map, int flags)
 {
+	struct bounce_zone *bz;
 
 	/* Reserve Necessary Bounce Pages */
 	mtx_lock(&bounce_lock);
@@ -112,7 +116,9 @@ _bus_dmamap_reserve_pages(bus_dma_tag_t dmat, bus_dmamap_t map, int flags)
 	} else {
 		if (reserve_bounce_pages(dmat, map, 1) != 0) {
 			/* Queue us for resources */
-			STAILQ_INSERT_TAIL(&bounce_map_waitinglist, map, links);
+			bz = dmat->bounce_zone;
+			STAILQ_INSERT_TAIL(&bz->bounce_map_waitinglist, map,
+			    links);
 			mtx_unlock(&bounce_lock);
 			return (EINPROGRESS);
 		}
@@ -128,7 +134,6 @@ init_bounce_pages(void *dummy __unused)
 
 	total_bpages = 0;
 	STAILQ_INIT(&bounce_zone_list);
-	STAILQ_INIT(&bounce_map_waitinglist);
 	STAILQ_INIT(&bounce_map_callbacklist);
 	mtx_init(&bounce_lock, "bounce pages lock", NULL, MTX_DEF);
 }
@@ -152,6 +157,7 @@ static int
 alloc_bounce_zone(bus_dma_tag_t dmat)
 {
 	struct bounce_zone *bz;
+	bool start_thread;
 
 	/* Check to see if we already have a suitable zone */
 	STAILQ_FOREACH(bz, &bounce_zone_list, links) {
@@ -170,6 +176,7 @@ alloc_bounce_zone(bus_dma_tag_t dmat)
 		return (ENOMEM);
 
 	STAILQ_INIT(&bz->bounce_page_list);
+	STAILQ_INIT(&bz->bounce_map_waitinglist);
 	bz->free_bpages = 0;
 	bz->reserved_bpages = 0;
 	bz->active_bpages = 0;
@@ -183,6 +190,7 @@ alloc_bounce_zone(bus_dma_tag_t dmat)
 	busdma_zonecount++;
 	snprintf(bz->lowaddrid, sizeof(bz->lowaddrid), "%#jx",
 	    (uintmax_t)bz->lowaddr);
+	start_thread = STAILQ_EMPTY(&bounce_zone_list);
 	STAILQ_INSERT_TAIL(&bounce_zone_list, bz, links);
 	dmat->bounce_zone = bz;
 
@@ -232,6 +240,11 @@ alloc_bounce_zone(bus_dma_tag_t dmat)
 	    "memory domain");
 #endif
 
+	if (start_thread) {
+		if (kproc_create(busdma_thread, NULL, NULL, 0, 0, "busdma") !=
+		    0)
+			printf("failed to create busdma thread");
+	}
 	return (0);
 }
 
@@ -369,70 +382,81 @@ add_bounce_page(bus_dma_tag_t dmat, bus_dmamap_t map, vm_offset_t vaddr,
 }
 
 static void
-free_bounce_page(bus_dma_tag_t dmat, struct bounce_page *bpage)
+free_bounce_pages(bus_dma_tag_t dmat, bus_dmamap_t map)
 {
-	struct bus_dmamap *map;
+	struct bounce_page *bpage;
 	struct bounce_zone *bz;
-	bool schedule_swi;
+	bool schedule_thread;
+	u_int count;
+
+	if (STAILQ_EMPTY(&map->bpages))
+		return;
 
 	bz = dmat->bounce_zone;
-	bpage->datavaddr = 0;
-	bpage->datacount = 0;
-	if (dmat_flags(dmat) & BUS_DMA_KEEP_PG_OFFSET) {
-		/*
-		 * Reset the bounce page to start at offset 0.  Other uses
-		 * of this bounce page may need to store a full page of
-		 * data and/or assume it starts on a page boundary.
-		 */
-		bpage->vaddr &= ~PAGE_MASK;
-		bpage->busaddr &= ~PAGE_MASK;
+	count = 0;
+	schedule_thread = false;
+	STAILQ_FOREACH(bpage, &map->bpages, links) {
+		bpage->datavaddr = 0;
+		bpage->datacount = 0;
+
+		if (dmat_flags(dmat) & BUS_DMA_KEEP_PG_OFFSET) {
+			/*
+			 * Reset the bounce page to start at offset 0.
+			 * Other uses of this bounce page may need to
+			 * store a full page of data and/or assume it
+			 * starts on a page boundary.
+			 */
+			bpage->vaddr &= ~PAGE_MASK;
+			bpage->busaddr &= ~PAGE_MASK;
+		}
+		count++;
 	}
 
-	schedule_swi = false;
 	mtx_lock(&bounce_lock);
-	STAILQ_INSERT_HEAD(&bz->bounce_page_list, bpage, links);
-	bz->free_bpages++;
-	bz->active_bpages--;
-	if ((map = STAILQ_FIRST(&bounce_map_waitinglist)) != NULL) {
-		if (reserve_bounce_pages(map->dmat, map, 1) == 0) {
-			STAILQ_REMOVE_HEAD(&bounce_map_waitinglist, links);
-			STAILQ_INSERT_TAIL(&bounce_map_callbacklist,
-			    map, links);
-			bz->total_deferred++;
-			schedule_swi = true;
+	STAILQ_CONCAT(&bz->bounce_page_list, &map->bpages);
+	bz->free_bpages += count;
+	bz->active_bpages -= count;
+	while ((map = STAILQ_FIRST(&bz->bounce_map_waitinglist)) != NULL) {
+		if (reserve_bounce_pages(map->dmat, map, 1) != 0)
+			break;
+
+		STAILQ_REMOVE_HEAD(&bz->bounce_map_waitinglist, links);
+		STAILQ_INSERT_TAIL(&bounce_map_callbacklist, map, links);
+		bz->total_deferred++;
+		schedule_thread = true;
+	}
+	mtx_unlock(&bounce_lock);
+	if (schedule_thread)
+		wakeup(&bounce_map_callbacklist);
+}
+
+static void
+busdma_thread(void *dummy __unused)
+{
+	STAILQ_HEAD(, bus_dmamap) callbacklist;
+	bus_dma_tag_t dmat;
+	struct bus_dmamap *map, *nmap;
+
+	thread_lock(curthread);
+	sched_prio(curthread, PI_SWI(SWI_BUSDMA));
+	thread_unlock(curthread);
+	for (;;) {
+		mtx_lock(&bounce_lock);
+		while (STAILQ_EMPTY(&bounce_map_callbacklist))
+			mtx_sleep(&bounce_map_callbacklist, &bounce_lock, 0,
+			    "-", 0);
+		STAILQ_INIT(&callbacklist);
+		STAILQ_CONCAT(&callbacklist, &bounce_map_callbacklist);
+		mtx_unlock(&bounce_lock);
+
+		STAILQ_FOREACH_SAFE(map, &callbacklist, links, nmap) {
+			dmat = map->dmat;
+			dmat_lockfunc(dmat)(dmat_lockfuncarg(dmat),
+			    BUS_DMA_LOCK);
+			bus_dmamap_load_mem(map->dmat, map, &map->mem,
+			    map->callback, map->callback_arg, BUS_DMA_WAITOK);
+			dmat_lockfunc(dmat)(dmat_lockfuncarg(dmat),
+			    BUS_DMA_UNLOCK);
 		}
 	}
-	mtx_unlock(&bounce_lock);
-	if (schedule_swi)
-		swi_sched(busdma_ih, 0);
 }
-
-static void
-busdma_swi(void *dummy __unused)
-{
-	bus_dma_tag_t dmat;
-	struct bus_dmamap *map;
-
-	mtx_lock(&bounce_lock);
-	while ((map = STAILQ_FIRST(&bounce_map_callbacklist)) != NULL) {
-		STAILQ_REMOVE_HEAD(&bounce_map_callbacklist, links);
-		mtx_unlock(&bounce_lock);
-		dmat = map->dmat;
-		dmat_lockfunc(dmat)(dmat_lockfuncarg(dmat), BUS_DMA_LOCK);
-		bus_dmamap_load_mem(map->dmat, map, &map->mem, map->callback,
-		    map->callback_arg, BUS_DMA_WAITOK);
-		dmat_lockfunc(dmat)(dmat_lockfuncarg(dmat), BUS_DMA_UNLOCK);
-		mtx_lock(&bounce_lock);
-	}
-	mtx_unlock(&bounce_lock);
-}
-
-static void
-start_busdma_swi(void *dummy __unused)
-{
-	if (swi_add(NULL, "busdma", busdma_swi, NULL, SWI_BUSDMA, INTR_MPSAFE,
-	    &busdma_ih))
-		panic("died while creating busdma swi ithread");
-}
-SYSINIT(start_busdma_swi, SI_SUB_SOFTINTR, SI_ORDER_ANY, start_busdma_swi,
-    NULL);
