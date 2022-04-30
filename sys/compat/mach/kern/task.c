@@ -192,7 +192,9 @@ task_init_internal(
 	task_t		parent_task,
 	task_t		new_task)
 {
+#ifdef notyet
 	register processor_set_t	pset;
+#endif
 
 	/* one ref for just being alive; one for our caller */
 	new_task->ref_count = 2;
@@ -209,7 +211,9 @@ task_init_internal(
 		set_security_token(new_task);
 		new_task->policy = parent_task->policy;
 	} else {
+#ifdef notyet
 		pset = &default_pset;
+#endif
 		new_task->policy = POLICY_TIMESHARE;
 		new_task->sec_token = KERNEL_SECURITY_TOKEN;
 		new_task->audit_token = KERNEL_AUDIT_TOKEN;
@@ -229,8 +233,6 @@ task_init_internal(
 void
 task_free( register task_t	task )
 {
-	register processor_set_t pset;
-
 	/* tasks are tied to proc structures so should only be freed if proc goes away */
 	task_unlock(task);
 	return;
@@ -242,7 +244,6 @@ task_free( register task_t	task )
 	 */
 	++task->ref_count;
 	task_unlock(task);
-	pset = task->processor_set;
 	task_lock(task);
 	if (--task->ref_count > 0) {
 		/*
@@ -804,14 +805,17 @@ task_info(
 	switch (flavor) {
 	    case TASK_BASIC_INFO:
 	    {
+#ifdef notyet
 		register task_basic_info_t	basic_info;
+#endif
 
 		if (*task_info_count < TASK_BASIC_INFO_COUNT) {
 		    return(KERN_INVALID_ARGUMENT);
 		}
 
-		basic_info = (task_basic_info_t) task_info_out;
 #ifdef notyet
+		basic_info = (task_basic_info_t) task_info_out;
+
 		map = (task == kernel_task) ? kernel_map : task->map;
 
 		basic_info->virtual_size  = map->size;

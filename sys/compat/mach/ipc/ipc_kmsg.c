@@ -1564,7 +1564,7 @@ ipc_kmsg_copyin_ool_descriptor(
 	}
 	else {
 		/*
-		 * Make a virtual copy of the of the data if requested
+		 * Make a virtual copy of the data if requested
 		 * or if a physical copy was requested but the source
 		 * is being deallocated.  This is an invalid
 		 * path if RT.
@@ -1610,7 +1610,7 @@ ipc_kmsg_copyin_ool_ports_descriptor(
 	mach_msg_type_name_t		user_disp, result_disp;
 	ipc_object_t            		*objects;
 	void						*data;
-	int					count, j, iskernel;
+	int					count, j;
 	mach_msg_ool_ports_descriptor_t *user_ool_dsc;
 
 	user_ool_dsc = (mach_msg_ool_ports_descriptor_t *)user_dsc;
@@ -1621,7 +1621,6 @@ ipc_kmsg_copyin_ool_ports_descriptor(
 	/* this is really the type SEND, SEND_ONCE, etc. */
 	typename = user_ool_dsc->type;
 	user_disp = user_ool_dsc->disposition;
-	iskernel = (kmsg->ikm_header->msgh_remote_port->ip_receiver == ipc_space_kernel);
 
 	user_dsc = (mach_msg_descriptor_t *)(user_ool_dsc + 1);
 
@@ -2620,27 +2619,14 @@ ipc_kmsg_copyout_body(
 {
     mach_msg_body_t 		*body;
 	mach_msg_descriptor_t	*kern_dsc, *user_dsc;
-    mach_msg_descriptor_t 	*saddr;
     mach_msg_return_t 		mr = MACH_MSG_SUCCESS;
-	mach_msg_type_number_t	dsc_count, sdsc_count;
+	mach_msg_type_number_t	dsc_count;
 	int i;
 
 	body = (mach_msg_body_t *) (kmsg->ikm_header + 1);
 	dsc_count = body->msgh_descriptor_count;
     kern_dsc = (mach_msg_descriptor_t *) (body + 1);
 	user_dsc = &kern_dsc[dsc_count];
-
-    /*
-     * Do scatter list setup
-     */
-    if (slist != MACH_MSG_BODY_NULL) {
-		saddr = (mach_msg_descriptor_t *) (slist + 1);
-		sdsc_count = slist->msgh_descriptor_count;
-    }
-    else {
-		saddr = MACH_MSG_DESCRIPTOR_NULL;
-		sdsc_count = 0;
-    }
 
     for (i = dsc_count-1; i >= 0; i--) {
 		switch (kern_dsc[i].type.type) {

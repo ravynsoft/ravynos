@@ -75,6 +75,7 @@ int mach_vm_wire_32(
 	);
 
 
+#ifdef notused
 static kern_return_t
 vm_map_copyout_internal(
 	register vm_map_t	dst_map,
@@ -92,7 +93,8 @@ first_free_is_valid(vm_map_t map)
 {
 	return TRUE;
 }
-#endif	
+#endif
+#endif
 
 int
 mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
@@ -102,7 +104,6 @@ mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
 {
 	vm_offset_t addr = 0;
 	size_t size;
-	int flags;
 	int docow, error, find_space;
 
 	/* XXX Darwin fails on mapping a page at address 0 */
@@ -116,19 +117,19 @@ mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
 		_mask++;
 
 	find_space = _mask ? VMFS_ALIGNED_SPACE(ffs(_mask)) : VMFS_ANY_SPACE;
-	flags = MAP_ANON;
+	//flags = MAP_ANON;
 	if ((_flags & VM_FLAGS_ANYWHERE) == 0) {
-		flags |= MAP_FIXED;
+	//	flags |= MAP_FIXED;
 		addr = trunc_page(*address);
 	} else
 		addr = 0;
 
 	switch(inh) {
 	case VM_INHERIT_SHARE:
-		flags |= MAP_INHERIT_SHARE;
+	//	flags |= MAP_INHERIT_SHARE;
 		break;
 	case VM_INHERIT_COPY:
-		flags |= MAP_COPY_ON_WRITE;
+	//	flags |= MAP_COPY_ON_WRITE;
 		docow = MAP_COPY_ON_WRITE;
 		break;
 	case VM_INHERIT_NONE:
@@ -367,12 +368,9 @@ mach_vm_read(vm_map_t map, mach_vm_address_t addr, mach_vm_size_t size,
 {
 	caddr_t tbuf;
 	vm_offset_t dstaddr;
-	vm_prot_t prot, protmax;
 	int error;
 
 	size = round_page(size);
-	prot = VM_PROT_READ|VM_PROT_WRITE;
-	protmax = VM_PROT_ALL;
 
 	if ((error = mach_vm_allocate(map, &dstaddr, size, 0)))
 		return (KERN_NO_SPACE);
@@ -482,6 +480,7 @@ MACRO_END
 #define	vm_map_copy_entry_dispose(map, entry) \
 	_vm_map_entry_dispose(&(copy)->cpy_hdr, (entry))
 
+#ifdef notused
 static uma_zone_t vm_map_entry_zone;
 static uma_zone_t vm_map_kentry_zone;
 
@@ -499,6 +498,7 @@ _vm_map_entry_dispose(
 
 	uma_zfree(zone, entry);
 }
+#endif
 
 /*
  *	Routine: vm_map_copyin_internal [internal use only]
@@ -786,17 +786,19 @@ kern_return_t	vm_map_copyin(
 		unsigned long size = src_end - src_start;
 		vm_offset_t new_addr = vm_map_findspace(src_map, 0, size);
 		vm_object_reference(object);
-		vm_map_insert(src_map, tmp_entry->object.vm_object, offset, new_addr, 
+		vm_map_insert(src_map, object, offset, new_addr, 
 					new_addr + size, VM_PROT_READ|VM_PROT_WRITE,
 					VM_PROT_READ|VM_PROT_WRITE, 0);
 		vm_map_unlock(src_map);
 		vm_map_remove(src_map, src_start, src_end);
+		printf("src_destroy=1 object=%p src_map=%p\n", object, src_map);
 	} else {
 		offset = tmp_entry->offset;
 		vm_map_unlock(src_map);
 		vm_object_reference(object);
 		vm_map_protect(src_map, src_start, src_end, tmp_entry->protection & ~VM_PROT_WRITE, 0, VM_MAP_PROTECT_SET_PROT);
 		tmp_entry->eflags |= MAP_ENTRY_NEEDS_COPY | MAP_ENTRY_COW;
+		printf("src_destroy=0 object=%p src_map=%p\n", object, src_map);
 	}
 
 	vm_map_copyin_object(object, offset, src_end - src_start, copy_result);

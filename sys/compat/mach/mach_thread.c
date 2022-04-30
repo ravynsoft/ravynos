@@ -87,12 +87,14 @@ _intr_tdsigwakeup(struct thread *td, int intrval)
 int
 mach_thread_switch(mach_port_name_t thread_name, int option, mach_msg_timeout_t option_time)
 {
-       int timeout;
-       struct mach_emuldata *med;
-	   struct thread *td = curthread;
+	struct thread *td = curthread;
+#ifdef notyet		   
+	int timeout;
+        struct mach_emuldata *med;
 
        med = (struct mach_emuldata *)td->td_proc->p_emuldata;
        timeout = option_time * hz / 1000;
+#endif
 
        /*
         * The day we will be able to find out the struct proc from

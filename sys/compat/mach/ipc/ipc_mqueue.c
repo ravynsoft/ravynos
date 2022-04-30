@@ -734,7 +734,6 @@ ipc_mqueue_receive(
 	ipc_pset_t pset;
 	ipc_kmsg_t kmsg;
 	ipc_mqueue_t mqueue;
-	mach_port_seqno_t seqno;
 	mach_msg_return_t mr;
 	ipc_kmsg_queue_t kmsgs;
 	thread_t self;
@@ -766,7 +765,6 @@ ipc_mqueue_receive(
 				return (thread->ith_state);
 			} else {
 				kmsg = thread->ith_kmsg;
-				seqno = thread->ith_seqno;
 				MPASS(pset != (ipc_pset_t)thread->ith_object);
 				/* drop passed in pset lock and acquire the port lock */
 				ips_unlock(pset);
