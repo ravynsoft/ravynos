@@ -15,9 +15,9 @@ UPDATE_DEPENDFILE= no
 
 FILES=	\
 	auto.obj.mk \
-	airyx.app.mk \
-	airyx.common.mk \
-	airyx.framework.mk \
+	rvn.app.mk \
+	rvn.common.mk \
+	rvn.framework.mk \
 	bsd.README \
 	bsd.arch.inc.mk \
 	bsd.clang-analyze.mk \

@@ -28,7 +28,7 @@ Downloads.app::
 	${MAKE} -C ${.CURDIR}/Downloads
 	mv Downloads/Downloads.app .
 
-.include <airyx.app.mk>
+.include <rvn.app.mk>
 
 all: Trash.app Downloads.app
 	cp -fv ${.CURDIR}/Info.plist ${APP_DIR}/Contents/

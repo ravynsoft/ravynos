@@ -1,5 +1,5 @@
 /*
- * Airyx LaunchServices - `open` command
+ * ravynOS LaunchServices - `open` command
  *
  * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
  * 

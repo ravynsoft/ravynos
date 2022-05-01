@@ -10,7 +10,7 @@ LDFLAGS+=	-lc++ -framework Foundation \
 		-framework LaunchServices -lobjc -lX11
 
 
-.include <airyx.app.mk>
+.include <rvn.app.mk>
 
 all:
 	cp -fv ${.CURDIR}/Info.plist ${APP_DIR}/Contents/

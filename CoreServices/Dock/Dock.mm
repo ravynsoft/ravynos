@@ -1,5 +1,5 @@
 /*
- * airyxOS Application Launcher & Status Bar
+ * ravynOS Application Launcher & Status Bar
  *
  * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
  *
@@ -197,8 +197,8 @@ void Dock::addNonResident(unsigned int pid, const char *path)
     fprintf(stderr, "checking bundle id\n");
     // never show icons for my own services, which can happen because
     // of weird fork() scenarios like fail to exec()
-    if([[di bundleIdentifier] isEqualToString:@"org.airyx.Dock"] ||
-       [[di bundleIdentifier] hasPrefix:@"org.airyx.Dock."]) {
+    if([[di bundleIdentifier] isEqualToString:@"com.ravynos.Dock"] ||
+       [[di bundleIdentifier] hasPrefix:@"com.ravynos.Dock."]) {
        fprintf(stderr, "early return for Dock component\n");
         return;
     }

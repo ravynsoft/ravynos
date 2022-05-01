@@ -87,6 +87,6 @@ fi
 
 # Set hostname other than the default based on SMBIOS information
 HOSTNAME=$(hostname)
-if [ "${HOSTNAME}" = "Airyx" ] ; then
+if [ "${HOSTNAME}" = "ravynOS" ] ; then
   hostname $(kenv -q "smbios.system.product" | xargs | sed -e 's| |-|g')
 fi

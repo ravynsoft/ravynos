@@ -1,0 +1,15 @@
+cat << EOF
+name:          ravynOS
+version:       $(head -1 ${RAVYNOS}/version.txt)
+origin:        ravynOS
+comment:       Package that installs ravynOS core components
+arch:          freebsd:13:x86:64
+www:           n/a
+maintainer:    n/a
+prefix:        /
+licenselogic:  single
+licenses:      [BSD]
+flatsize:      ${DIR_SIZE}
+desc:          Package that installs ravynOS core components
+categories:    [ravynOS]
+EOF

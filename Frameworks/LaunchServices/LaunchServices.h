@@ -1,5 +1,5 @@
 /*
- * Airyx LaunchServices
+ * ravynOS LaunchServices
  *
  * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
  * 
@@ -60,7 +60,7 @@ enum {
 typedef enum LSLaunchFlags : OptionBits {
     kLSLaunchDefaults = 0x00000001,
     kLSLaunchAndPrint = 0x00000002,
-    kLSLaunchAndWaitForExit = 0x00000004, // specific to Airyx
+    kLSLaunchAndWaitForExit = 0x00000004, // specific to ravynOS
     kLSLaunchAndDisplayErrors = 0x00000040,
     kLSLaunchDontAddToRecents = 0x00000100,
     kLSLaunchDontSwitch = 0x00000200,
@@ -95,8 +95,8 @@ typedef struct LSLaunchURLSpec {
     CFArrayRef itemURLs;
     LSLaunchFlags launchFlags;
     const void *passThruParams; // ignored - not implemented
-    CFArrayRef taskArgs;        // specific to Airyx
-    CFDictionaryRef taskEnv;    // specific to Airyx
+    CFArrayRef taskArgs;        // specific to ravynOS
+    CFDictionaryRef taskEnv;    // specific to ravynOS
 } LSLaunchURLSpec;
 
 const CFStringRef    kCFBundleTypeExtensionsKey = CFSTR("CFBundleTypeExtensions");

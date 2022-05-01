@@ -1,10 +1,10 @@
-# Cos'è Airyx? [![Build Status](https://api.cirrus-ci.com/github/mszoek/airyx.svg?branch=main&task=airyx)](https://cirrus-ci.com/github/mszoek/airyx) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+# Cos'è ravynOS? [![Build Status](https://api.cirrus-ci.com/github/mszoek/airyx.svg?branch=main&task=airyx)](https://cirrus-ci.com/github/mszoek/airyx) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 ### Don't you speak italian? Read this in: [English](README.md)
-Airyx è un nuovo sistema operativo open source che cerca di fornire un'esperienza simile a quella di macOS cercando di fornire anche la possibilità di eseguire le sue applicazioni per i sistemi basati su x86-64. È basato sulla fondazione solida di FreeBSD, con nuovo codice e con pacchetti open source già esistenti.
+ravynOS è un nuovo sistema operativo open source che cerca di fornire un'esperienza simile a quella di macOS cercando di fornire anche la possibilità di eseguire le sue applicazioni per i sistemi basati su x86-64. È basato sulla fondazione solida di FreeBSD, con nuovo codice e con pacchetti open source già esistenti.
 
 Gli obiettivi principali sono:
 
-- Compatibiltà a livello source con le applicazioni macOS (e.s. puoi compilare un'applicazione per macOS su airyxOS ed eseguirla)
+- Compatibiltà a livello source con le applicazioni macOS (e.s. puoi compilare un'applicazione per macOS su ravynOS ed eseguirla)
 - Mantenere una filosofia dell'inferfaccia utente simile (gestore file, launcher delle applicazioni, barra superiore che cambia rispetto all'applicazione che si sta usando, etc)
 - Compatibilità con la struttura delle cartelle di macOS (/Library, /System, /Users, /Volumes, etc) e anche dei suoi filesystem (HFS+, APFS) mantenendo anche la compatibilità con ZFS
 - Applicazioni auto contenute in [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), e [AppImage](https://github.com/AppImage) con un'esperienza senza installer per /Applications
@@ -13,7 +13,7 @@ Gli obiettivi principali sono:
 - Eventuale compatibilità con i file binari x86-64 di macOS (Mach-O) e delle sue librerie
 - Piacevole da usare, sicuro, stabile e performante
 
-Visita [airyx.org](https://airyx.org/) per più informazioni (in inglese): [Note di rilascio](https://airyx.org/releases.html) | [Screenshots](https://airyx.org/screenshots.html) | [FAQ](https://airyx.org/faq.html)
+Visita [ravynos.com](https://ravynos.com/) per più informazioni (in inglese): [Note di rilascio](https://ravynos.com/releases.html) | [Screenshots](https://ravynos.com/screenshots.html) | [FAQ](https://ravynos.com/faq.html)
 ### Vieni a far parte del progetto!
 
 * Il nostro server [Discord](https://discord.com/invite/8caJbAGNwY)

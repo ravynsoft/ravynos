@@ -44,7 +44,7 @@ void AXMessageBox::closeEvent(QCloseEvent *event)
     this->done(0);
 }
 
-AiryxMenu::AiryxMenu(QObject *parent, const QVariantList &args)
+ravynOSMenu::ravynOSMenu(QObject *parent, const QVariantList &args)
     : Plasma::Applet(parent, args)
     , m_dbus(QDBusConnection::sessionBus())
     , m_refreshedRecent(false)
@@ -55,71 +55,71 @@ AiryxMenu::AiryxMenu(QObject *parent, const QVariantList &args)
 
     QAction *a;
     a = m_menu.addAction("About This Computer");
-    connect(a, &QAction::triggered, this, &AiryxMenu::aboutThisComputer);
+    connect(a, &QAction::triggered, this, &ravynOSMenu::aboutThisComputer);
     m_menu.addSeparator();
     a = m_menu.addAction("System Preferences...");
-    connect(a, &QAction::triggered, this, &AiryxMenu::systemPreferences);
+    connect(a, &QAction::triggered, this, &ravynOSMenu::systemPreferences);
     a = m_menu.addAction("Software Store...");
     a->setEnabled(false);
     m_menu.addSeparator();
     m_recentItemsAction = m_menu.addAction("Recent Items");
     m_recentItemsAction->setMenu(&m_recentItems);
-    connect(m_recentItemsAction, &QAction::hovered, this, &AiryxMenu::refreshRecentItems);
+    connect(m_recentItemsAction, &QAction::hovered, this, &ravynOSMenu::refreshRecentItems);
     m_menu.addSeparator();
     a = m_menu.addAction("Force Quit...");
     a->setEnabled(false);
     m_menu.addSeparator();
     a = m_menu.addAction("Sleep");
-    connect(a, &QAction::triggered, this, &AiryxMenu::suspend);
+    connect(a, &QAction::triggered, this, &ravynOSMenu::suspend);
     a = m_menu.addAction("Restart...");
-    connect(a, &QAction::triggered, this, &AiryxMenu::requestRestart);
+    connect(a, &QAction::triggered, this, &ravynOSMenu::requestRestart);
     a = m_menu.addAction("Shut Down...");
-    connect(a, &QAction::triggered, this, &AiryxMenu::requestShutDown);
+    connect(a, &QAction::triggered, this, &ravynOSMenu::requestShutDown);
     m_menu.addSeparator();
     a = m_menu.addAction("Lock Screen");
-    connect(a, &QAction::triggered, this, &AiryxMenu::requestLockScreen);
+    connect(a, &QAction::triggered, this, &ravynOSMenu::requestLockScreen);
     a = m_menu.addAction("Log Out"); // FIXME: add full name here
-    connect(a, &QAction::triggered, this, &AiryxMenu::requestLogout);
+    connect(a, &QAction::triggered, this, &ravynOSMenu::requestLogout);
 
-    connect(&m_menu, &QMenu::hovered, this, &AiryxMenu::menuHovered);
-    connect(&m_menu, &QMenu::triggered, this, &AiryxMenu::menuTriggered);
+    connect(&m_menu, &QMenu::hovered, this, &ravynOSMenu::menuHovered);
+    connect(&m_menu, &QMenu::triggered, this, &ravynOSMenu::menuTriggered);
 
 #ifdef __MACH__
     /* Kickstart the Mach subsystem to trigger launchd. Save the ports
      * of our core services in case we want them later.
      */
-    kern_return_t kr = bootstrap_look_up(bootstrap_port, "org.airyx.Dock",
+    kern_return_t kr = bootstrap_look_up(bootstrap_port, "com.ravynos.Dock",
 	&m_bportDock);
     if(kr != KERN_SUCCESS)
     	m_bportDock = MACH_PORT_NULL;
-    kr = bootstrap_look_up(bootstrap_port, "org.airyx.Filer", &m_bportFiler);
+    kr = bootstrap_look_up(bootstrap_port, "com.ravynos.Filer", &m_bportFiler);
     if(kr != KERN_SUCCESS)
     	m_bportFiler = MACH_PORT_NULL;
 #endif
 }
 
-AiryxMenu::~AiryxMenu()
+ravynOSMenu::~ravynOSMenu()
 {
 }
 
-void AiryxMenu::openMenu(int x, int y)
+void ravynOSMenu::openMenu(int x, int y)
 {
     m_menu.popup(QPoint(x,y));
 }
 
-void AiryxMenu::menuHovered(QAction *action)
+void ravynOSMenu::menuHovered(QAction *action)
 {
     if(action != m_recentItemsAction)
         m_refreshedRecent = false;
 }
 
-void AiryxMenu::menuTriggered(QAction *action)
+void ravynOSMenu::menuTriggered(QAction *action)
 {
     if(action != m_recentItemsAction)
         m_refreshedRecent = false;
 }
 
-unsigned int AiryxMenu::numCPUs()
+unsigned int ravynOSMenu::numCPUs()
 {
     int mib[2];
     unsigned int cpus;
@@ -132,7 +132,7 @@ unsigned int AiryxMenu::numCPUs()
     return cpus;
 }
 
-unsigned long AiryxMenu::realMemory()
+unsigned long ravynOSMenu::realMemory()
 {
     int mib[2];
     unsigned long mem;
@@ -145,14 +145,14 @@ unsigned long AiryxMenu::realMemory()
     return mem;
 }
 
-QString AiryxMenu::formatAsGB(unsigned long bytes)
+QString ravynOSMenu::formatAsGB(unsigned long bytes)
 {
     double gb = (double)bytes;
     gb /=  (1024.0 * 1024.0 * 1024.0);
     return QString::asprintf("%.1f GB", gb);
 }
 
-QString AiryxMenu::CPUModel()
+QString ravynOSMenu::CPUModel()
 {
     int mib[2];
     char model[128];
@@ -165,7 +165,7 @@ QString AiryxMenu::CPUModel()
     return QString(model);
 }
 
-QStringList AiryxMenu::graphicsAdaptors()
+QStringList ravynOSMenu::graphicsAdaptors()
 {
     if(!m_adaptorsFound.isEmpty())
         return m_adaptorsFound;
@@ -185,7 +185,7 @@ QStringList AiryxMenu::graphicsAdaptors()
     return m_adaptorsFound;
 }
 
-void AiryxMenu::pciconfOutputReady()
+void ravynOSMenu::pciconfOutputReady()
 {
     QProcess *p = (QProcess *)sender();
     QList<QByteArray> lines = p->readAllStandardOutput().split('\n');
@@ -211,13 +211,13 @@ void AiryxMenu::pciconfOutputReady()
         m_adaptorsFound << QString::asprintf("%s", subclass.constData());
 }
 
-void AiryxMenu::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
+void ravynOSMenu::processFinished(int exitCode, QProcess::ExitStatus exitStatus)
 {
     QProcess *p = (QProcess *)sender();
     delete p;
 }
 
-QString AiryxMenu::hostUUID()
+QString ravynOSMenu::hostUUID()
 {
     int mib[2];
     char uuid[64];
@@ -230,7 +230,7 @@ QString AiryxMenu::hostUUID()
     return QString(uuid);
 }
 
-void AiryxMenu::productName()
+void ravynOSMenu::productName()
 {
     QProcess *dmihelper = new QProcess(this);
     connect(dmihelper, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(processFinished(int, QProcess::ExitStatus)));
@@ -239,7 +239,7 @@ void AiryxMenu::productName()
     dmihelper->start("/System/Library/CoreServices/DMIHelper", QStringList());
 }
 
-void AiryxMenu::dmiOutputReady()
+void ravynOSMenu::dmiOutputReady()
 {
     QProcess *p = (QProcess *)sender();
     QByteArray output = p->readAllStandardOutput();
@@ -248,7 +248,7 @@ void AiryxMenu::dmiOutputReady()
     m_productName = QString::asprintf("%s %s", lines[0].constData(), lines[1].constData());
 }
 
-void AiryxMenu::aboutThisComputer()
+void ravynOSMenu::aboutThisComputer()
 {
     if(m_about) {
         m_about->open();
@@ -261,10 +261,10 @@ void AiryxMenu::aboutThisComputer()
     m_about->setWindowTitle("About This Computer");
     m_about->setStandardButtons(0);
     m_about->setText("<table style=\"table-layout: fixed; borders: 0;\"><tr><td width=\"100%\" align=\"center\" valign=\"middle\">"
-                   "<img width=\"140\" height=\"140\" src=\"/usr/share/plasma/plasmoids/org.airyx.plasma.AiryxMenu/contents/images/MarmosetLogo.tiff\">"
+                   "<img width=\"140\" height=\"140\" src=\"/usr/share/plasma/plasmoids/com.ravynos.plasma.ravynOSMenu/contents/images/MarmosetLogo.tiff\">"
                    "</td><td>&nbsp;&nbsp;</td><td style=\"word-wrap: break-word; width: 100%;\">"
-                   "<font face=\"Nimbus Sans\"><font size=\"+7\"><b>airyxOS</b> " AIRYX_CODENAME "</font><br>"
-                   "Version " AIRYX_VERSION "<br>"
+                   "<font face=\"Nimbus Sans\"><font size=\"+7\"><b>ravynOS</b> " RAVYNOS_CODENAME "</font><br>"
+                   "Version " RAVYNOS_VERSION "<br>"
                    "</font size=\"-2\"><p><b>" + m_productName + "</b></p>"
                    "<p><b>Processor</b>&nbsp;&nbsp; "+ QString::asprintf("%d-core ", numCPUs()) + CPUModel() +"</p>"
                    "<p><b>Memory</b>&nbsp;&nbsp; "+ formatAsGB(realMemory()) +"</p>"
@@ -275,34 +275,34 @@ void AiryxMenu::aboutThisComputer()
     m_about->open(this, SLOT(aboutFinished()));
 }
 
-void AiryxMenu::aboutFinished()
+void ravynOSMenu::aboutFinished()
 {
     delete m_about;
     m_about = NULL;
 }
 
-void AiryxMenu::requestRestart()
+void ravynOSMenu::requestRestart()
 {
     requestKSMLogout(1,1,3); // KSMServer restart with confirmation
 }
 
-void AiryxMenu::requestShutDown()
+void ravynOSMenu::requestShutDown()
 {
     requestKSMLogout(1,2,3); // KSMServer shut down with confirmation
 }
 
-void AiryxMenu::requestLockScreen()
+void ravynOSMenu::requestLockScreen()
 {
     QDBusMessage msgLock = QDBusMessage::createMethodCall("org.kde.ksmserver", "/ScreenSaver", "", "Lock");
     m_dbus.asyncCall(msgLock);
 }
 
-void AiryxMenu::requestLogout()
+void ravynOSMenu::requestLogout()
 {
     requestKSMLogout(1,0,3); // KSMServer logout with confirmation
 }
 
-void AiryxMenu::requestKSMLogout(int a, int b, int c)
+void ravynOSMenu::requestKSMLogout(int a, int b, int c)
 {
     QDBusMessage msgLogout = QDBusMessage::createMethodCall("org.kde.ksmserver", "/KSMServer", "", "logout");
     QVariantList args;
@@ -313,7 +313,7 @@ void AiryxMenu::requestKSMLogout(int a, int b, int c)
     m_dbus.asyncCall(msgLogout);
 }
 
-void AiryxMenu::systemPreferences()
+void ravynOSMenu::systemPreferences()
 {
     LSLaunchURLSpec spec;
     spec.appURL = CFURLCreateWithFileSystemPath(NULL, CFSTR("/usr/bin/systemsettings5"), kCFURLPOSIXPathStyle, false);
@@ -324,14 +324,14 @@ void AiryxMenu::systemPreferences()
     CFRelease(spec.appURL);
 }
 
-void AiryxMenu::suspend()
+void ravynOSMenu::suspend()
 {
     QDBusMessage msgSuspend = QDBusMessage::createMethodCall("org.kde.Solid.PowerManagement", "/org/kde/Solid/PowerManagement/Actions/SuspendSession",
         "org.kde.Solid.PowerManagement.Actions.SuspendSession", "suspendHybrid");
     m_dbus.asyncCall(msgSuspend);
 }
 
-void AiryxMenu::refreshRecentItems()
+void ravynOSMenu::refreshRecentItems()
 {
     if(m_refreshedRecent)
         return; // I told em we already got one!
@@ -343,7 +343,7 @@ void AiryxMenu::refreshRecentItems()
         KDesktopFile df(item);
         QAction *a = new QAction(df.readName());
         a->setData(df.readUrl());
-        connect(a, &QAction::triggered, this, &AiryxMenu::openRecentItemsEntry);
+        connect(a, &QAction::triggered, this, &ravynOSMenu::openRecentItemsEntry);
         m_recentItems.addAction(a);
     }
     m_refreshedRecent = true;
@@ -354,7 +354,7 @@ void AiryxMenu::refreshRecentItems()
     }
 }
 
-void AiryxMenu::openRecentItemsEntry()
+void ravynOSMenu::openRecentItemsEntry()
 {
     QString path(((QAction *)QObject::sender())->data().toString());
     QUrl url(path);
@@ -372,6 +372,6 @@ void AiryxMenu::openRecentItemsEntry()
     CFRelease(CFLSFiles);
 }
 
-K_PLUGIN_CLASS_WITH_JSON(AiryxMenu, "metadata.json")
+K_PLUGIN_CLASS_WITH_JSON(ravynOSMenu, "metadata.json")
 
 #include "sysmenu.moc"

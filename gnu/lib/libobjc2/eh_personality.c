@@ -30,7 +30,7 @@ __attribute__((weak)) void *__cxa_begin_catch(void *e);
 __attribute__((weak)) void __cxa_end_catch(void);
 __attribute__((weak)) void __cxa_rethrow(void);
 
-#if defined(__AIRYX__)
+#if defined(__RAVYNOS__)
 typedef void NSUncaughtExceptionHandler(id exception);
 
 typedef struct NSExceptionFrame {
@@ -108,7 +108,7 @@ struct thread_data
 	id lastThrownObject;
 	BOOL cxxCaughtException;
 	struct objc_exception *caughtExceptions;
-#if defined(__AIRYX__)
+#if defined(__RAVYNOS__)
 	NSExceptionFrame *exception_frame;
 	NSUncaughtExceptionHandler *uncaught_exception_handler;
 #endif
@@ -763,7 +763,7 @@ void objc_exception_rethrow(struct _Unwind_Exception *e)
 	abort();
 }
 
-#if defined(__AIRYX__)
+#if defined(__RAVYNOS__)
 // Emulate the cocotron runtime's exception handling
 
 static NSUncaughtExceptionHandler *uncaughtExceptionHandler = NULL;

@@ -260,7 +260,7 @@ void childSignalHandler(int sig) {
     }
 }
 
-// airyxOS-specific
+// ravynOS-specific
 -(void)blockAndWaitUntilExit {
     int status = 0;
     pid_t id = waitpid([self processIdentifier], &status, 0);

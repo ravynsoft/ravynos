@@ -1,8 +1,14 @@
-# Sponsors of Airyx Development
+# Sponsors of ravynOS Development
 
 Thank you to the following people and organizations for their generous
-financial support of Airyx!
+financial support of ravynOS!
 
+- Иван Морозов
+- Trevor Rudolph
+- Alistair Lundy
+- Ankush Yadav (Rocker2102)
+- Raymond Lucke (rwl4)
+- Osama Nas (OsamaNas)
 - Joseph D. Marhee (jmarhee)
 - Arnaud Lefort
 - srdjan
@@ -15,5 +21,3 @@ financial support of Airyx!
 Package repo hosting by [Cloudsmith](https://cloudsmith.io)
 
 CI/CD services by [Cirrus CI](https://cirrus-ci.org)
-
-Download hosting by Atzition Developer

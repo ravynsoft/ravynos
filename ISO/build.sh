@@ -19,12 +19,12 @@ else
 fi
 
 
-if [ -z "${AIRYX}" ]; then
-  AIRYX=$(pwd)/..
+if [ -z "${RAVYNOS}" ]; then
+  RAVYNOS=$(pwd)/..
 fi
-AIRYX_VERSION=$(head -1 ${AIRYX}/version.txt)
-AIRYX_CODENAME=$(tail -1 ${AIRYX}/version.txt)
-version=${AIRYX_VERSION}
+RAVYNOS_VERSION=$(head -1 ${RAVYNOS}/version.txt)
+RAVYNOS_CODENAME=$(tail -1 ${RAVYNOS}/version.txt)
+version=${RAVYNOS_VERSION}
 
 desktop=$1
 tag=$2
@@ -50,8 +50,8 @@ export uzip="${livecd}/uzip"
 export cdroot="${livecd}/cdroot"
 ramdisk_root="${cdroot}/data/ramdisk"
 vol="furybsd"
-label="AIRYX"
-export DISTRIBUTIONS="kernel.txz base.txz airyx.txz"
+label="RAVYNOS"
+export DISTRIBUTIONS="kernel.txz base.txz ravynos.txz"
 
 # Only run as superuser
 if [ "$(id -u)" != "0" ]; then
@@ -120,7 +120,7 @@ if [ "${desktop}" = "hello" ] ; then
   fi
 fi
 
-if [ "${desktop}" = "airyx" ]; then
+if [ "${desktop}" = "ravynos" ]; then
     MAJLABEL="f${MAJOR}"
     if [ ! -z "${CIRRUS_BUILD_ID}" ]; then
       MAJLABEL="${MAJLABEL}_${CIRRUS_BUILD_ID}"
@@ -306,8 +306,8 @@ pkg()
   mkdir -p "${packages}/transient"
   cd "${packages}/transient"
   rm -f *.pkg # Make sure there are no leftover transient packages from earlier runs
-  splashqml="${cwd}/overlays/uzip/airyx/files/usr/share/plasma/look-and-feel/Airyx/contents/splash/Splash.qml" 
-  sed -e "s@__CODENAME__@${AIRYX_CODENAME}@" -e "s@__VERSION__@${AIRYX_VERSION}@" < "${splashqml}.in" > "${splashqml}"
+  splashqml="${cwd}/overlays/uzip/ravynos/files/usr/share/plasma/look-and-feel/ravynOS/contents/splash/Splash.qml" 
+  sed -e "s@__CODENAME__@${RAVYNOS_CODENAME}@" -e "s@__VERSION__@${RAVYNOS_VERSION}@" < "${splashqml}.in" > "${splashqml}"
   while read -r p; do
     sh -ex "${cwd}/scripts/build-pkg.sh" -m "${cwd}/overlays/uzip/${p}"/manifest -d "${cwd}/overlays/uzip/${p}/files"
   done <"${cwd}"/settings/overlays.common

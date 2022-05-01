@@ -1,7 +1,7 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
  *
- * Copyright (c) 2021 Zoe Knox <zoe@airyx.org> 
+ * Copyright (c) 2021 Zoe Knox <zoe@ravynsoft.com> 
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

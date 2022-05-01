@@ -6,7 +6,7 @@ compute_engine_instance:
   memory: 16G
   disk: 80
 
-airyx_task:
+ravynOS_task:
   timeout_in: 120m
   environment:
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
@@ -29,7 +29,7 @@ airyx_task:
     fi
   setup_script:
     - rm -fv /etc/pkg/FreeBSD.conf
-    - cp -fv etc/pkg/Airyx.conf /etc/pkg/
+    - cp -fv etc/pkg/ravynOS.conf /etc/pkg/
     - pkg install -fy openssl libarchive 
     - pkg update && pkg fetch -y -o /tmp binutils
     - tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
@@ -40,14 +40,14 @@ airyx_task:
     - mkdir -p /usr/obj/$(pwd -P)
     - make -j$(sysctl -n hw.ncpu) MK_LIB32=no buildworld buildkernel
     - make -C release MK_LIB32=no NOSRC=true NOPORTS=true packagesystem
-    - cloudsmith push raw -k $KEY airyx/core --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz
-    - cloudsmith push raw -k $KEY airyx/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz
+    - cloudsmith push raw -k $KEY ravynOS/core --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz
+    - cloudsmith push raw -k $KEY ravynOS/core --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz
   system_build_script:
-    - make -f Makefile.airyx prep
+    - make -f Makefile.ravynOS prep
     - cp -fv share/mk/* /usr/share/mk/
-    - make -f Makefile.airyx
-    - rm -f dist/airyx.txz
-    - tar cvJ -C /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/airyx --gid 0 --uid 0 -f $(pwd)/dist/airyx.txz .
+    - make -f Makefile.ravynOS
+    - rm -f dist/ravynOS.txz
+    - tar cvJ -C /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/ravynOS --gid 0 --uid 0 -f $(pwd)/dist/ravynOS.txz .
   iso_script:
     - echo >> /root/.ssh/id_rsa
     - chmod 600 /root/.ssh/id_rsa
@@ -55,15 +55,15 @@ airyx_task:
     - ln -sf /usr/bin/bash /bin/bash
     - cp -fv version.txt ISO/overlays/ramdisk/version
     - mkdir -p /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base
-    - cp -fv /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz ${CIRRUS_WORKING_DIR}/dist/airyx.txz /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base/
-    - cd ISO; IGNORE_OSVERSION=yes AIRYX=${CIRRUS_WORKING_DIR} ./build.sh airyx airyxOS_$(head -1 ../version.txt)
+    - cp -fv /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz ${CIRRUS_WORKING_DIR}/dist/ravynOS.txz /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base/
+    - cd ISO; IGNORE_OSVERSION=yes RAVYNOS=${CIRRUS_WORKING_DIR} ./build.sh ravynOS ravynOS_$(head -1 ../version.txt)
     - SSHPASS="${MIRROR1_PASS}" sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* ${MIRROR1_USER}@${MIRROR1_HOST}:www/nightly/
     - scp -P2200 -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* ${MIRROR1_USER}@${MIRROR2_HOST}:nightly/
     - date -u +'%s' > timestamp
     - SSHPASS="${MIRROR1_PASS}" sshpass -e scp -o StrictHostKeyChecking=no timestamp ${MIRROR1_USER}@${MIRROR1_HOST}:www/
     - scp -P2200 -o StrictHostKeyChecking=no timestamp ${MIRROR1_USER}@${MIRROR2_HOST}:
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
-  airyx_artifacts:
-    path: dist/airyx.txz
+  ravynOS_artifacts:
+    path: dist/ravynOS.txz
   package_artifacts:
-    path: dist/airyx-*.pkg
+    path: dist/ravynOS-*.pkg

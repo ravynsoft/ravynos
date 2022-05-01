@@ -1,5 +1,5 @@
 /*
- * Airyx LaunchServices - system core types
+ * ravynOS LaunchServices - system core types
  *
  * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
  * 

@@ -48,7 +48,7 @@ void closeLog() {
     myBundle = [NSBundle mainBundle];
     _updateTimer = nil;
     
-    NSString *verLabel = [[_versionLabel stringValue] stringByReplacingOccurrencesOfString:@"X.X.X" withString:[NSString stringWithUTF8String:AIRYX_VERSION]];
+    NSString *verLabel = [[_versionLabel stringValue] stringByReplacingOccurrencesOfString:@"X.X.X" withString:[NSString stringWithUTF8String:RAVYNOS_VERSION]];
     [_versionLabel setStringValue:verLabel];
 
     [_scrollView setAutoresizesSubviews:YES];
@@ -75,7 +75,7 @@ void closeLog() {
         documentView] textStorage];
 
     [textStorage setAttributedString:[[NSAttributedString alloc]
-        initWithString:@"Select the disk where airyxOS should be installed.\n\n" // FIXME: localize
+        initWithString:@"Select the disk where ravynOS should be installed.\n\n" // FIXME: localize
         attributes:attr]];
 
     [attr setObject:[NSColor redColor] forKey:NSForegroundColorAttributeName];
@@ -90,7 +90,7 @@ void closeLog() {
     if(discoverGEOMs(YES) == NO || [disks count] < 1) {
         NSLog(@"error discovering devices!");
         [textStorage setAttributedString:[[NSAttributedString alloc]
-            initWithString:@"No suitable disk was found on which to install airyxOS.\n\n"
+            initWithString:@"No suitable disk was found on which to install ravynOS.\n\n"
             "Ensure you have a compatible device of at least 10 GB installed and try again." // FIXME: localize
             attributes:attr]];
 
@@ -126,7 +126,7 @@ void closeLog() {
     [_scrollView setContentView:clip];
     [_scrollView setAutohidesScrollers:YES];
 
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
     [_NextButton setEnabled:NO];
 #endif
     
@@ -183,7 +183,7 @@ void closeLog() {
         [_timeZones selectItemWithTitle:@"UTC"];
     [_timeZones synchronizeTitleAndSelectedItem];
 
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
     [[_scrollView contentView] release];
 #endif
 
@@ -237,7 +237,7 @@ void closeLog() {
     [_confirmDisk setStringValue:[NSString stringWithFormat:@"%@ (%@, %@)", [disk name],
         formatMediaSize([disk mediaSize]), [disk mediaDescription]]];
 
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
     [[_scrollView contentView] release];
 #endif
     [_scrollView setAutohidesScrollers:YES];
@@ -344,18 +344,18 @@ void closeLog() {
     switch([name count]) {
     case 0:
         user = @"user";
-        host = @"Airyx";
+        host = @"ravynOS";
         break;
     case 1:
         user = [name firstObject];
-        host = [user stringByAppendingString:@"-Airyx"];
+        host = [user stringByAppendingString:@"-ravynOS"];
         break;
     default:
         user = [NSString stringWithFormat:@"%@%@",
             [[name firstObject] substringToIndex:1],
             [name lastObject]];
         host = [[name componentsJoinedByString:@"-"]
-                stringByAppendingString:@"-Airyx"];
+                stringByAppendingString:@"-ravynOS"];
     }
 
     if(!userDidEditUserName) {
@@ -377,7 +377,7 @@ void closeLog() {
     [_BackButton setEnabled:NO];
     [_CancelButton setEnabled:NO];
 
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
     [[[_scrollView contentView] documentView] release];
 #endif
 

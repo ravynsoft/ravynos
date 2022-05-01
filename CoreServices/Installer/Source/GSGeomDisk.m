@@ -37,7 +37,7 @@ const char *GEOM_CMD = "/sbin/geom";
 const char *GPART_CMD = "/sbin/gpart";
 const char *ZPOOL_CMD = "/sbin/zpool";
 const char *ZFS_CMD = "/sbin/zfs";
-const char *ZFS_POOL_NAME = "airyxOS";
+const char *ZFS_POOL_NAME = "ravynOS";
 NSMutableArray *disks = nil;
 
 const long KB = 1024;
@@ -82,7 +82,7 @@ NSData *_runCommand(const char *tool, const char *args, id delegate) {
         NSFileHandle *reader = [[NSFileHandle alloc] initWithFileDescriptor:filedesc[0]];
         if(delegate == nil) {
             NSData *data = [reader readDataToEndOfFile];
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
             [data retain];
             [reader release];
 #endif
@@ -119,7 +119,7 @@ BOOL parserError(NSString *msg) {
 }
 
 BOOL discoverGEOMs(BOOL onlyUsable) {
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
     if(disks != nil)
         [disks release];
     disks = [[NSMutableArray arrayWithCapacity:4] retain];
@@ -227,7 +227,7 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)setName:(NSString *)name {
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
     _name = [name retain];
 #else
     _name = name;
@@ -246,7 +246,7 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)setMediaDescription:(NSString *)description {
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
     _description = [description retain];
 #else
     _description = description;
@@ -262,7 +262,7 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)deletePartitions {
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
   @autoreleasepool {
     NSString *cmd = [[NSString stringWithFormat:@"list %@", _name] autorelease];
     NSData *parts = runCommand(GPART_CMD, [cmd UTF8String]);
@@ -283,7 +283,7 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)createGPT {
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
     [self deletePartitions]; // just in case
 
   @autoreleasepool {
@@ -296,7 +296,7 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)createPartitions {
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
   @autoreleasepool {
     NSString *cmd = [[NSString stringWithFormat:@"add -t efi -s 1m -l efi %@", _name] autorelease];
     appendLog(runCommand(GPART_CMD, [cmd UTF8String]));
@@ -311,7 +311,7 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)createPools {
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
   @autoreleasepool {
     mkdir("/tmp/pool",0755);
     NSString *cmd = [[NSString stringWithFormat:@"create -f -R /tmp/pool -O mountpoint=/ -O atime=off -O canmount=off -O compression=on %s %@p3", ZFS_POOL_NAME, _name] autorelease];
@@ -340,7 +340,7 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)initializeEFI {
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
     mkdir("/tmp/efi",0755);
     runCommand("/sbin/mount_msdosfs", [[NSString stringWithFormat:@"/dev/%@p1 /tmp/efi", _name] UTF8String]);
     mkdir("/tmp/efi/efi",0755);
@@ -359,9 +359,9 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)copyFilesystem {
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
     int fd = open("/tmp/excludes", O_CREAT|O_RDWR, 0644);
-    const char *str = "/dev\n/proc\n/tmp\n/Applications/Utilities/Install airyxOS.app\n";
+    const char *str = "/dev\n/proc\n/tmp\n/Applications/Utilities/Install ravynOS.app\n";
     write(fd, str, strlen(str));
     close(fd);
     _runCommand("/usr/bin/cpdup","-uIof -X/tmp/excludes / /tmp/pool",_delegate);
@@ -370,7 +370,7 @@ NSString *formatMediaSize(long bytes) {
 }
 
 -(void)finalizeInstallation {
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
     setenv("BSDINSTALL_CHROOT", "/tmp/pool", 1);
     appendLog(runCommand("/usr/sbin/bsdinstall", "config"));
     appendLog(runCommand("/usr/sbin/bsdinstall", "entropy"));

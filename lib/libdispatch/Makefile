@@ -76,5 +76,5 @@ beforeinstall: mkincdir
 mkincdir: .PHONY
 	${INSTALL} -d -o ${BINOWN} -g ${BINGRP} -m 0755 ${DESTDIR}${INCSDIR}
 
-.include <airyx.common.mk>
+.include <rvn.common.mk>
 .include <bsd.lib.mk>

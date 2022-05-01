@@ -1,5 +1,5 @@
 /*
- * Airyx LaunchServices
+ * ravynOS LaunchServices
  *
  * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
  * 

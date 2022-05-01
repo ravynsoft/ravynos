@@ -42,13 +42,13 @@ protected:
     void closeEvent(QCloseEvent *event) override;
 };
 
-class AiryxMenu: public Plasma::Applet
+class ravynOSMenu: public Plasma::Applet
 {
     Q_OBJECT
 
 public:
-    AiryxMenu(QObject *parent, const QVariantList &args);
-    ~AiryxMenu();
+    ravynOSMenu(QObject *parent, const QVariantList &args);
+    ~ravynOSMenu();
 
     Q_INVOKABLE void openMenu(int x, int y);
 

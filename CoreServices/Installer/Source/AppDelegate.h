@@ -23,8 +23,8 @@
 #import <Cocoa/Cocoa.h>
 #include <pthread.h>
 
-#ifndef AIRYX_VERSION
-#define AIRYX_VERSION "0.1.2a"
+#ifndef RAVYNOS_VERSION
+#define RAVYNOS_VERSION "0.1.2a"
 #endif
 
 void appendLog(NSData *data);
@@ -51,7 +51,7 @@ void closeLog();
 @property (strong) IBOutlet NSButton *BackButton;
 @property (strong) IBOutlet NSButton *NextButton;
 @property (strong) IBOutlet NSButton *CancelButton;
-@property (strong) IBOutlet NSTextField *airyxOSLabel;
+@property (strong) IBOutlet NSTextField *ravynOSLabel;
 @property (strong) IBOutlet NSTextField *versionLabel;
 @property (strong) IBOutlet NSForm *userInfoView;
 @property (strong) IBOutlet NSView *infoConfirmationView;

@@ -1,0 +1,18 @@
+{
+  "EnvironmentVariables": {
+    "ASL_DISABLE": "1"
+  },
+  "MachServices": {
+    "com.ravynos.Filer": {
+      "HostSpecialPort": 11
+    }
+  },
+  "EnableTransactions": true,
+  "ProgramArguments": [
+    "/System/Library/CoreServices/Filer.app/Contents/ravynOS/Filer",
+    "--desktop"
+  ],
+  "RunAtLoad": true,
+  "KeepAlive": true,
+  "Label": "com.ravynos.Filer"
+}

@@ -202,10 +202,10 @@ int __NSConstantStringClassReference[24];
 FOUNDATION_EXPORT void __NSInitializeProcess(int argc,const char *argv[]) {
    NSProcessInfoArgc=argc;
    NSProcessInfoArgv=argv;
-#if !defined(APPLE_RUNTIME_4) && !defined(__AIRYX__)
+#if !defined(APPLE_RUNTIME_4) && !defined(__RAVYNOS__)
     OBJCInitializeProcess();
 #endif
-#if defined(__APPLE__) || defined(__AIRYX__)
+#if defined(__APPLE__) || defined(__RAVYNOS__)
     Class cls = objc_getClass("__builtin_NSString");
     memcpy(&__NSConstantStringClassReference, cls, sizeof(__NSConstantStringClassReference));
 

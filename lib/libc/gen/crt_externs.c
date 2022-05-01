@@ -1,5 +1,5 @@
 /*
- * Implementation of Apple crt_externs.h functions for airyxOS/FreeBSD
+ * Implementation of Apple crt_externs.h functions for ravynOS/FreeBSD
  *
  * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
  *
@@ -24,7 +24,7 @@
 
 #include <crt_externs.h>
 #include <mach/mach.h>
-__FBSDID("$airyxOS$");
+__FBSDID("$ravynOS$");
 
 char ***__argv = 0;
 int *__argc = 0;

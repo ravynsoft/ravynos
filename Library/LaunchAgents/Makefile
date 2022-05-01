@@ -1,8 +1,8 @@
 SYSLIB= /System/Library/LaunchAgents
 LIBLIB= /Library/LaunchAgents
 
-SYSAGENTS=	org.airyx.Dock.json \
-		org.airyx.Filer.json
+SYSAGENTS=	com.ravynos.Dock.json \
+		com.ravynos.Filer.json
 AGENTS=
 
 all: clean build
