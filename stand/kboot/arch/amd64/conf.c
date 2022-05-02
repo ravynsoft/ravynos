@@ -1,5 +1,5 @@
 /*-
- * Copyright (c) 1999 Michael Smith <msmith@freebsd.org>
+ * Copyright (C) 1999 Michael Smith <msmith@freebsd.org>
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,14 +29,12 @@ __FBSDID("$FreeBSD$");
 
 #include <stand.h>
 #include "bootstrap.h"
-#include "libuboot.h"
 
 #if defined(LOADER_NET_SUPPORT)
 #include "dev_net.h"
 #endif
 
-/* Make sure we have an explicit reference to exit so libsa's panic pulls in the MD exit */
-void (*exitfn)(int) = exit;
+extern struct devsw hostdisk;
 
 /*
  * We could use linker sets for some or all of these, but
@@ -50,7 +48,7 @@ void (*exitfn)(int) = exit;
 /* Exported for libsa */
 struct devsw *devsw[] = {
 #if defined(LOADER_DISK_SUPPORT) || defined(LOADER_CD9660_SUPPORT)
-    &uboot_storage,
+    &hostdisk,
 #endif
 #if defined(LOADER_NET_SUPPORT)
     &netdev,
@@ -80,35 +78,27 @@ struct fs_ops *file_system[] = {
 #if defined(LOADER_BZIP2_SUPPORT)
     &bzipfs_fsops,
 #endif
+    &dosfs_fsops,
     NULL
 };
 
+extern struct netif_driver kbootnet;
+
 struct netif_driver *netif_drivers[] = {
+#if 0 /* XXX */
 #if defined(LOADER_NET_SUPPORT)
-	&uboot_net,
+	&kbootnet,
+#endif
 #endif
 	NULL,
 };
 
-/* Exported for PowerPC only */
-/* 
- * Sort formats so that those that can detect based on arguments
- * rather than reading the file go first.
+/*
+ * Consoles
  */
-extern struct file_format uboot_elf64;
-
-struct file_format *file_formats[] = {
-	&uboot_elf,
-	&uboot_elf64,
-	NULL
-};
-
-/* 
- * Consoles 
- */
-extern struct console uboot_console;
+extern struct console hostconsole;
 
 struct console *consoles[] = {
-	&uboot_console,
-	NULL
+    &hostconsole,
+    NULL
 };
