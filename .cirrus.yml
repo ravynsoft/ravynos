@@ -28,7 +28,7 @@ ravynOS_task:
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
   setup_script:
-    - rm -fv /etc/pkg/FreeBSD.conf
+    - rm -fv /etc/pkg/FreeBSD.conf /etc/pkg/Airyx.conf
     - cp -fv etc/pkg/ravynOS.conf /etc/pkg/
     - pkg install -fy openssl libarchive 
     - pkg update && pkg fetch -y -o /tmp binutils
