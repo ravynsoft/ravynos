@@ -57,6 +57,7 @@ __FBSDID("$FreeBSD$");
 
 #include <mach-o/loader.h>
 
+static int  macho_fixup(uintptr_t *stack_base, struct image_params *imgp);
 static int	exec_macho_imgact(struct image_params *imgp);
 
 extern const char _binary_elf_vdso_so_1_start[];
@@ -64,14 +65,16 @@ extern const char _binary_elf_vdso_so_1_end[];
 extern char _binary_elf_vdso_so_1_size;
 extern const char *syscallnames[];
 
+static int macho_szsigcode;
+
 struct sysentvec macho_sysvec = {
 	.sv_size	= SYS_MAXSYSCALL,
 	.sv_table	= sysent,
 	.sv_transtrap	= NULL,
-	.sv_fixup	= NULL,
+	.sv_fixup	= macho_fixup,
 	.sv_sendsig	= sendsig,
 	.sv_sigcode	= _binary_elf_vdso_so_1_start,
-	.sv_szsigcode	= _binary_elf_vdso_so_1_size,
+	.sv_szsigcode	= &macho_szsigcode,
 	.sv_name	= "FreeBSD MachO64",
 	.sv_coredump	= NULL,
 	.sv_imgact_try	= NULL,
@@ -79,8 +82,8 @@ struct sysentvec macho_sysvec = {
 	.sv_minuser	= VM_MIN_ADDRESS,
 	.sv_maxuser	= VM_MAXUSER_ADDRESS_LA48,
 	.sv_usrstack	= USRSTACK_LA48,
-	.sv_psstrings	= PS_STRINGS_LA48,
-	.sv_psstringssz	= sizeof(struct ps_strings),
+	.sv_psstrings	= 0, //PS_STRINGS_LA48,
+	.sv_psstringssz	= 0, //sizeof(struct ps_strings),
 	.sv_stackprot	= VM_PROT_ALL,
 	.sv_copyout_strings	= exec_copyout_strings,
 	.sv_setregs	= exec_setregs,
@@ -94,6 +97,23 @@ struct sysentvec macho_sysvec = {
 	.sv_onexit	= exit_onexit,
 	.sv_set_fork_retval = x86_set_fork_retval,
 };
+
+static void
+macho_sysent(void *arg __unused)
+{
+	macho_szsigcode = (int)(uintptr_t)&_binary_elf_vdso_so_1_size;
+}
+SYSINIT(macho_sysent, SI_SUB_EXEC, SI_ORDER_ANY, macho_sysent, NULL);
+
+static int
+macho_fixup(uintptr_t *stack_base, struct image_params *imgp)
+{
+        *stack_base -= sizeof(uintptr_t);
+        if (suword((void *)stack_base, imgp->args->argc) != 0)
+                return (EFAULT);
+        *stack_base += sizeof(uintptr_t);
+        return (0);
+}
 
 static int
 exec_macho_imgact(struct image_params *imgp)
@@ -166,6 +186,7 @@ exec_macho_imgact(struct image_params *imgp)
     VOP_UNLOCK(imgp->vp);
     error = exec_new_vmspace(imgp, &macho_sysvec);
     vn_lock(imgp->vp, LK_SHARED | LK_RETRY);
+    printf("exec_new_vmspace = %d, vmspace = %p\n", error, imgp->proc->p_vmspace);
 
     if(error)
         return error;
@@ -175,6 +196,7 @@ exec_macho_imgact(struct image_params *imgp)
     map = &vmspace->vm_map;
     vm_map_lock(map);
     vm_object_reference(object);
+    printf("referenced object\n");
 
     text_end = virtual_offset + total_size;
     error = vm_map_insert(map, object,
@@ -182,6 +204,7 @@ exec_macho_imgact(struct image_params *imgp)
         virtual_offset, text_end,
         VM_PROT_READ | VM_PROT_EXECUTE, VM_PROT_ALL,
         MAP_COPY_ON_WRITE | MAP_PREFAULT | MAP_VN_EXEC);
+    printf("vm_map_insert = %d\n", error);
     if (error) {
         vm_map_unlock(map);
         vm_object_deallocate(object);
@@ -190,7 +213,8 @@ exec_macho_imgact(struct image_params *imgp)
     VOP_SET_TEXT_CHECKED(imgp->vp);
 
     vm_map_unlock(map);
-    printf("mapped object foff %lx vmaddr %lx end %lx\n", file_offset, virtual_offset, text_end);
+    printf("mapped object foff %lx vmaddr %lx end %lx entry %lx\n",
+        file_offset, virtual_offset, text_end, entry_addr);
 
     /* Fill in process VM information */
     vmspace->vm_tsize = total_size >> PAGE_SHIFT;
@@ -198,14 +222,18 @@ exec_macho_imgact(struct image_params *imgp)
     vmspace->vm_taddr = (caddr_t) (uintptr_t) virtual_offset;
     vmspace->vm_daddr = (caddr_t) (uintptr_t) text_end;
 
+    imgp->stack_sz = PAGE_SIZE*64;
+
     error = exec_map_stack(imgp);
+    printf("exec_map_stack = %d sz %ld\n", error, imgp->stack_sz);
     if (error != 0)
         return (error);
 
     /* Fill in image_params */
     imgp->interpreted = 0;
-    imgp->entry_addr = entry_addr + virtual_offset;
+    imgp->entry_addr = entry_addr;
     imgp->proc->p_sysent = &macho_sysvec;
+    printf("returning 0\n");
 
     return 0;
 }
