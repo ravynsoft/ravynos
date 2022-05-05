@@ -1,5 +1,5 @@
 /*
- * airyxOS Application Launcher & Status Bar - Trash.app
+ * ravynOS Application Launcher & Status Bar - Trash.app
  *
  * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
  *

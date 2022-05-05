@@ -3,7 +3,7 @@
 #import <Onyx2D/O2Image.h>
 #import <GLES2/gl2.h>
 #import <GLES2/gl2ext.h>
-#if defined(__AIRYX__)
+#if defined(__RAVYNOS__)
 #import <Onyx2D/O2Surface.h>
 #else
 #import <AppKit/O2Surface_DIBSection.h>

@@ -1,20 +1,20 @@
-name = "airyx-bin"
+name = "ravynos-bin"
 version = "%%VERSION%%"
-origin = "airyx/bin"
-comment = "System tools (/usr/bin) from airyxOS"
+origin = "ravynos/bin"
+comment = "System tools (/usr/bin) from ravynOS"
 licenses = [ "MIT" ]
 desc = <<EOD
 This package provides some system tools normally found
-in /usr/bin on airyxOS, an open-source BSD-derived
+in /usr/bin on ravynOS, an open-source BSD-derived
 operating system aiming for macOS compatibility.
 EOD
 deps : {
-  "airyx-frameworks" : {
+  "ravynos-frameworks" : {
     "version" : "%%VERSION%%",
-    "origin" : "airyx/frameworks"
+    "origin" : "ravynos/frameworks"
   }
 }
 arch = "amd64"
-www = "https://airyx.org"
-maintainer = "zoe@airyx.org"
+www = "https://ravynos.com"
+maintainer = "zoe@ravynos.com"
 prefix = "/"

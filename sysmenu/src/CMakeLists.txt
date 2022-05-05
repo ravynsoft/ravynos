@@ -1,13 +1,13 @@
-add_definitions(-DTRANSLATION_DOMAIN=\"plasma_applet_org.airyx.plasma.AiryxMenu\")
+add_definitions(-DTRANSLATION_DOMAIN=\"plasma_applet_com.ravynos.plasma.ravynOSMenu\")
 
 set(sysmenu_SRCS
     sysmenu.mm
 )
-add_library(plasma_applet_AiryxMenu MODULE ${sysmenu_SRCS})
+add_library(plasma_applet_ravynOSMenu MODULE ${sysmenu_SRCS})
 
-kcoreaddons_desktop_to_json(plasma_applet_AiryxMenu package/metadata.desktop SERVICE_TYPES plasma-applet.desktop)
+kcoreaddons_desktop_to_json(plasma_applet_ravynOSMenu package/metadata.desktop SERVICE_TYPES plasma-applet.desktop)
 
-target_link_libraries(plasma_applet_AiryxMenu
+target_link_libraries(plasma_applet_ravynOSMenu
     Qt5::DBus
     Qt5::Widgets
     KF5::Plasma
@@ -22,6 +22,6 @@ target_link_libraries(plasma_applet_AiryxMenu
     )
 
 
-install(TARGETS plasma_applet_AiryxMenu DESTINATION ${KDE_INSTALL_PLUGINDIR}/plasma/applets)
+install(TARGETS plasma_applet_ravynOSMenu DESTINATION ${KDE_INSTALL_PLUGINDIR}/plasma/applets)
 
-plasma_install_package(package org.airyx.plasma.AiryxMenu)
+plasma_install_package(package com.ravynos.plasma.ravynOSMenu)

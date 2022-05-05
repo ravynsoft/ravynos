@@ -1,5 +1,5 @@
 /*
- * Airyx DBusKit: a simple Cocoa binding to libdbus
+ * ravynOS DBusKit: a simple Cocoa binding to libdbus
  *
  * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
  * 
@@ -31,7 +31,7 @@
 static const char *REGISTRAR_INTERFACE = "com.canonical.AppMenu.Registrar";
 static const char *REGISTRAR_PATH = "/com/canonical/AppMenu/Registrar";
 static NSString *DBUSMENU_INTERFACE = @"com.canonical.dbusmenu";
-static NSString *DBUSMENU_PATH = @"/org/airyx/Airyx/MenuBar";
+static NSString *DBUSMENU_PATH = @"/com/ravynos/ravynOS/MenuBar";
 
 // Let's get recursive... let's get recursive in here
 void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int rootID, int curDepth, int maxDepth) {

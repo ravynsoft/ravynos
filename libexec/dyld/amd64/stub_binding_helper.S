@@ -21,8 +21,8 @@
  * @APPLE_LICENSE_HEADER_END@
  *
  * THIS CODE HAS BEEN MODIFIED AS FOLLOWS
- *   2021-12-13 Adapted for airyxOS - Zoe Knox
- * Modifications Copyright (c) 2021 Zoe Knox and the Airyx Project.
+ *   2021-12-13 Adapted for ravynOS - Zoe Knox
+ * Modifications Copyright (c) 2021 Zoe Knox
  */
  
  

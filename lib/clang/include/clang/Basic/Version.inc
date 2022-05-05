@@ -6,4 +6,4 @@
 #define	CLANG_VERSION_MINOR		0
 #define	CLANG_VERSION_PATCHLEVEL	0
 
-#define	CLANG_VENDOR			"Airyx "
+#define	CLANG_VENDOR			"ravynOS"

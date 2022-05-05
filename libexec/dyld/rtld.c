@@ -37,7 +37,7 @@
  * Dynamic linker for ELF and MachO.
  *
  * Original ELF code by John Polstra <jdp@polstra.com>.
- * MachO support for airyxOS by Zoe Knox <zoe@pixin.net>.
+ * MachO support for ravynOS by Zoe Knox <zoe@pixin.net>.
  */
 
 #include <sys/cdefs.h>
@@ -6523,7 +6523,7 @@ parse_args(char* argv[], int argc, bool *use_pathp, int *fdp,
 				sz = sizeof(machine);
 				sysctl(mib, nitems(mib), machine, &sz, NULL, 0);
 				rtld_printf(
-				    "airyxOS MachO-ELF dyld (ld-elf.so.1) %s\n"
+				    "ravynOS MachO-ELF dyld (ld-elf.so.1) %s\n"
 				    "FreeBSD_version %d\n"
 				    "Default lib path %s\n"
 				    "Env prefix %s\n"

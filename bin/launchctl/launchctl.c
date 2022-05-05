@@ -493,7 +493,7 @@ do_single_user_mode2(void)
 		fprintf(stdout, "Singleuser boot -- fsck not done\n");
 		fprintf(stdout, "Root device is mounted read-only\n");
 		fprintf(stdout, "If you want to make modifications to files:\n");
-		fprintf(stdout, "\t/sbin/zfs mount -a\n\t/sbin/zfs set readonly=off airyxOS/ROOT/default\n");
+		fprintf(stdout, "\t/sbin/zfs mount -a\n\t/sbin/zfs set readonly=off ravynOS/ROOT/default\n");
 		fprintf(stdout, "If you wish to boot the system:\n");
 		fprintf(stdout, "\texit\n");
 		fflush(stdout);

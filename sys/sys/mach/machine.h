@@ -1,6 +1,6 @@
 /*
  * Copyright 1991-1998 by Open Software Foundation, Inc. 
- * Copyright 2021 Zoe Knox <zoe@airyx.org>
+ * Copyright 2021 Zoe Knox <zoe@ravynsoft.com>
  *              All Rights Reserved 
  *  
  * Permission to use, copy, modify, and distribute this software and 

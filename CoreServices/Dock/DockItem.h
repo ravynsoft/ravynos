@@ -1,5 +1,5 @@
 /*
- * airyxOS Application Launcher & Status Bar
+ * ravynOS Application Launcher & Status Bar
  *
  * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
  *

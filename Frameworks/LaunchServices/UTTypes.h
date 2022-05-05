@@ -1,5 +1,5 @@
 /*
- * Airyx LaunchServices - unified types functions
+ * ravynOS LaunchServices - unified types functions
  *
  * Copyright (C) 2021 Zoe Knox <zoe@pixin.net>
  * 

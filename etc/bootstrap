@@ -2,7 +2,7 @@
 echo -=- Bootstrap running -=-
 /sbin/sysctl -w kern.coredump=0
 /sbin/zfs mount -a
-/sbin/zfs set readonly=off airyxOS/ROOT/default
+/sbin/zfs set readonly=off ravynOS/ROOT/default
 /bin/rm -f /var/run/nologin /var/run/windowserver
 if [ ! -d /private ]; then
     mkdir /private

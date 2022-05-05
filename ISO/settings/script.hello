@@ -173,9 +173,6 @@ chmod g+w "${uzip}/Applications"
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/featherpad.desktop /Applications/
 chroot "${uzip}" /usr/local/bin/desktop2app /usr/local/share/applications/qpdfview.desktop /Applications/
 
-# Airyx CocoaDemo.app
-tar -C "${uzip}/Applications" -xvf ${AIRYX}/freebsd-src/release/CocoaDemo.app.txz
-
 # Links on the Desktop
 # mkdir -p "${uzip}"/usr/share/skel/Desktop
 # cd "${uzip}"/usr/share/skel/Desktop/

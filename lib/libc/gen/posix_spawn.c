@@ -45,7 +45,7 @@ __FBSDID("$FreeBSD$");
 #include "un-namespace.h"
 #include "libc_private.h"
 
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
 #include <apple/sys/spawn.h>
 #endif
 
@@ -320,7 +320,7 @@ do_posix_spawn(pid_t *pid, const char *path,
 	psa.use_env_path = use_env_path;
 	psa.error = 0;
 
-#ifdef __AIRYX__
+#ifdef __RAVYNOS__
 	/* Apple extension needed for launchd */
 	if(sa && ((*sa)->sa_flags & POSIX_SPAWN_SETEXEC)) {
 		if (pid != NULL)

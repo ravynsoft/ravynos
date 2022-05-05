@@ -1,5 +1,5 @@
 /*
- * airyxOS Application Launcher & Status Bar
+ * ravynOS Application Launcher & Status Bar
  *
  * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
  *
@@ -85,7 +85,7 @@ void DIWidget::mouseReleaseEvent(QMouseEvent *e)
                 }
 
                 // If Filer with no windows, fall through & launch folder
-                if(![[owner bundleIdentifier] isEqualToString:@"org.airyx.Filer"] ||
+                if(![[owner bundleIdentifier] isEqualToString:@"com.ravynos.Filer"] ||
                     [[owner windows] count] > 1) {
                     e->accept();
                     break;
@@ -95,7 +95,7 @@ void DIWidget::mouseReleaseEvent(QMouseEvent *e)
             spec.appURL = (__bridge CFURLRef)[NSURL fileURLWithPath:
                 [owner path]];
             if([[owner bundleIdentifier]
-                isEqualToString:@"org.airyx.Filer"]) // Filer is special
+                isEqualToString:@"com.ravynos.Filer"]) // Filer is special
                 spec.itemURLs = (__bridge CFArrayRef)[NSArray arrayWithObject:
                     [NSURL fileURLWithPath:
                     [[[NSUserDefaults standardUserDefaults]

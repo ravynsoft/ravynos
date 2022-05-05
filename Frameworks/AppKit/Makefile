@@ -675,7 +675,7 @@ clean-gen-files:
                 xdg-output-management-unstable-v1-client-protocol.h \
                 output-management-v1.c
 
-.include <airyx.framework.mk>
+.include <rvn.framework.mk>
 
 clean: fmwkclean
 post-resources: _install-hook

@@ -18,7 +18,7 @@
                 <outlet property="BackButton" destination="2S1-mV-lEi" id="LxW-ZC-LGn"/>
                 <outlet property="CancelButton" destination="OFx-nr-vEW" id="FE9-MN-woZ"/>
                 <outlet property="NextButton" destination="cma-Gu-p3n" id="Qsh-ay-i4z"/>
-                <outlet property="airyxOSLabel" destination="F6G-vx-ikt" id="OEA-dC-n5U"/>
+                <outlet property="ravynOSLabel" destination="F6G-vx-ikt" id="OEA-dC-n5U"/>
                 <outlet property="confirmDisk" destination="wVK-KQ-TIz" id="YRD-UB-ll8"/>
                 <outlet property="confirmFullName" destination="62p-aD-KjP" id="0vp-6t-Avu"/>
                 <outlet property="confirmHostName" destination="F2B-k3-MbI" id="4I5-GG-XzX"/>
@@ -41,11 +41,11 @@
         <customObject id="YLy-65-1bz" customClass="NSFontManager"/>
         <menu title="Main Menu" systemMenu="main" id="AYu-sK-qS6">
             <items>
-                <menuItem title="Install airyxOS" id="1Xt-HY-uBw">
+                <menuItem title="Install ravynOS" id="1Xt-HY-uBw">
                     <modifierMask key="keyEquivalentModifierMask"/>
-                    <menu key="submenu" title="Install airyxOS" systemMenu="apple" id="uQy-DD-JDr">
+                    <menu key="submenu" title="Install ravynOS" systemMenu="apple" id="uQy-DD-JDr">
                         <items>
-                            <menuItem title="About Install airyxOS" id="5kV-Vb-QxS">
+                            <menuItem title="About Install ravynOS" id="5kV-Vb-QxS">
                                 <modifierMask key="keyEquivalentModifierMask"/>
                                 <connections>
                                     <action selector="orderFrontStandardAboutPanel:" target="-1" id="Exp-CZ-Vem"/>
@@ -59,7 +59,7 @@
                                 <menu key="submenu" title="Services" systemMenu="services" id="hz9-B4-Xy5"/>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="4je-JR-u6R"/>
-                            <menuItem title="Hide Install airyxOS" keyEquivalent="h" id="Olw-nP-bQN">
+                            <menuItem title="Hide Install ravynOS" keyEquivalent="h" id="Olw-nP-bQN">
                                 <connections>
                                     <action selector="hide:" target="-1" id="PnN-Uc-m68"/>
                                 </connections>
@@ -77,7 +77,7 @@
                                 </connections>
                             </menuItem>
                             <menuItem isSeparatorItem="YES" id="kCx-OE-vgT"/>
-                            <menuItem title="Quit Install airyxOS" keyEquivalent="q" id="4sb-4s-VLi">
+                            <menuItem title="Quit Install ravynOS" keyEquivalent="q" id="4sb-4s-VLi">
                                 <connections>
                                     <action selector="terminate:" target="-1" id="Te7-pn-YzF"/>
                                 </connections>
@@ -114,7 +114,7 @@
                     <modifierMask key="keyEquivalentModifierMask"/>
                     <menu key="submenu" title="Help" systemMenu="help" id="F2S-fz-NVQ">
                         <items>
-                            <menuItem title="Install airyxOS Help" keyEquivalent="?" id="FKE-Sm-Kum">
+                            <menuItem title="Install ravynOS Help" keyEquivalent="?" id="FKE-Sm-Kum">
                                 <connections>
                                     <action selector="showHelp:" target="-1" id="y7X-2Q-9no"/>
                                 </connections>
@@ -125,7 +125,7 @@
             </items>
             <point key="canvasLocation" x="-31" y="42"/>
         </menu>
-        <window title="Install airyxOS" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" animationBehavior="default" id="QvC-M9-y7g">
+        <window title="Install ravynOS" allowsToolTipsWhenApplicationIsInactive="NO" autorecalculatesKeyViewLoop="NO" restorable="NO" releasedWhenClosed="NO" animationBehavior="default" id="QvC-M9-y7g">
             <windowStyleMask key="styleMask" titled="YES" closable="YES" miniaturizable="YES"/>
             <windowPositionMask key="initialPositionMask" leftStrut="YES" rightStrut="YES" topStrut="YES" bottomStrut="YES"/>
             <rect key="contentRect" x="335" y="390" width="720" height="480"/>
@@ -180,7 +180,7 @@
                     <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="F6G-vx-ikt">
                         <rect key="frame" x="35" y="222" width="141" height="54"/>
                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                        <textFieldCell key="cell" lineBreakMode="clipping" allowsUndo="NO" title="airyxOS" id="oni-yT-squ">
+                        <textFieldCell key="cell" lineBreakMode="clipping" allowsUndo="NO" title="ravynOS" id="oni-yT-squ">
                             <font key="font" metaFont="system" size="36"/>
                             <color key="textColor" name="textColor" catalog="System" colorSpace="catalog"/>
                             <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>

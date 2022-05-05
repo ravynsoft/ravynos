@@ -1,19 +1,19 @@
-# What is Airyx? [![Build Status](https://api.cirrus-ci.com/github/mszoek/airyx.svg?branch=main&task=airyx)](https://cirrus-ci.com/github/mszoek/airyx) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+# What is ravynOS? [![Build Status](https://api.cirrus-ci.com/github/mszoek/airyx.svg?branch=main&task=airyx)](https://cirrus-ci.com/github/mszoek/airyx) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 ### Don't speak English? Read this in: [Italian](README.IT.md) 
 
-Airyx is a new open source OS project that aims to provide a similar experience and some compatibility with macOS on x86-64 sytems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps.
+ravynOS is a new open source OS project that aims to provide a similar experience and some compatibility with macOS on x86-64 (and eventually ARM) systems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps.
 
 The main design goals are:
-- Source compatibility with macOS applications (i.e. you could compile a Mac application on airyxOS and run it)
+- Source compatibility with macOS applications (i.e. you could compile a Mac application on ravynOS and run it)
 - Similar GUI metaphors and familiar UX (file manager, application launcher, top menu bar that reflects the open application, etc)
 - Compatible with macOS folder layouts (/Library, /System, /Users, /Volumes, etc) and perhaps filesystems (HFS+, APFS) as well as fully supporting ZFS
 - Self-contained applications in [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), and [AppImage](https://github.com/AppImage) files - an installer-less experience for /Applications
 - Mostly maintain compatibility with the FreeBSD base system and X11 - a standard Unix environment under the hood
 - Compatible with Linux binaries via FreeBSD's Linux support
-- Eventual compatibility with x86-64 macOS binaries (Mach-O) and libraries
+- Eventual compatibility with x86-64/arm64 macOS binaries (Mach-O) and libraries
 - Pleasant to use, secure, stable, and performant
 
-Please visit [airyx.org](https://airyx.org/) for more info: [Release Notes](https://airyx.org/releases.html) | [Screenshots](https://airyx.org/screenshots.html) | [FAQ](https://airyx.org/faq.html)
+Please visit [ravynos.com](https://ravynos.com/) for more info: [Release Notes](https://ravynos.com/releases.html) | [Screenshots](https://ravynos.com/screenshots.html) | [FAQ](https://ravynos.com/faq.html)
 
 ### Join us!
 

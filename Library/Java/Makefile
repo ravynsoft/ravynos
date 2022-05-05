@@ -13,7 +13,7 @@ build: ${SRCDIR}
 	#cd ${SRCDIR} && git checkout ${TAG}
 	cd ${SRCDIR} && bash configure --with-boot-jdk=${INSTDIR}/Contents/Home \
 	  --with-toolchain-type=clang --enable-jvm-feature-dtrace=no \
-	  --with-version-opt="airyx" --with-version-pre="" --with-version-build=8
+	  --with-version-opt="ravynos" --with-version-pre="" --with-version-build=8
 	gmake -C ${SRCDIR}
 
 install:
@@ -24,8 +24,8 @@ install:
 	  ${BUNDLEDIR}/Contents/Home/
 	cd ${SRCDIR}/build/bsd-x86_64-server-release && \
 	  cp -a support ${BUNDLEDIR}/Contents/
-	mkdir -p ${BUNDLEDIR}/Contents/Airyx
-	ln -sf ../Home/lib/libjli.so ${BUNDLEDIR}/Contents/Airyx/libjli.so
+	mkdir -p ${BUNDLEDIR}/Contents/ravynOS
+	ln -sf ../Home/lib/libjli.so ${BUNDLEDIR}/Contents/ravynOS/libjli.so
 	find ${BUNDLEDIR} -name \*.debuginfo -exec rm {} \;
 	# create Info.plist in Contents
 

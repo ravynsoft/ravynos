@@ -34,7 +34,7 @@ package:
 	mkdir -p /tmp/meta
 	cd ${BUILDROOT}; find ./System/Library/Frameworks -not -type d | \
 	  sed 's@^\.@@' > /tmp/meta/pkg-plist
-	sed "s/%%VERSION%%/${AIRYX_VERSION}_${CIRRUS_BUILD_ID}/" < +MANIFEST \
+	sed "s/%%VERSION%%/${RAVYNOS_VERSION}_${CIRRUS_BUILD_ID}/" < +MANIFEST \
 	  > /tmp/meta/+MANIFEST
 	mkdir -p ${TOPDIR}/dist
 	pkg create -o ${TOPDIR}/dist/ -r ${BUILDROOT} -m /tmp/meta \

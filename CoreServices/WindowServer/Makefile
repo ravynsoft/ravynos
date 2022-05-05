@@ -58,7 +58,7 @@ clean-waybox:
 clean-deps:
 	rm -f .depend.*
 
-.include <airyx.app.mk>
+.include <rvn.app.mk>
 
 ${OBJS}: build-wlroots build-waybox
 clean: clean-wlroots clean-deps clean-waybox

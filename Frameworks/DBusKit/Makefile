@@ -33,7 +33,7 @@ install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
 	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
 
-.include <airyx.framework.mk>
+.include <rvn.framework.mk>
 
 all: copydbus
 installresources: install-hook
