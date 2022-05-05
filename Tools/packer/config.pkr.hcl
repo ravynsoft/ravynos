@@ -14,13 +14,13 @@ packer {
 source "googlecompute" "ravynbuild" {
   disk_size               = "80"
   project_id              = "ravyn-images"
-  source_image_family            = "freebsd-14-0-snap"
+  source_image            = "freebsd-14-0-current-amd64-v20220414"
   source_image_project_id       = ["freebsd-org-cloud-dev"]
   #source_image            = "ravynbuild-0-4-b2"
   ssh_username            = "packer"
   temporary_key_pair_type = "ed25519"
   zone                    = "us-central1-a"
-  image_name = "ravynbuild-0-4-b8"
+  image_name = "ravynbuild-0-4-b9"
 }
 
 build {
