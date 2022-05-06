@@ -1,7 +1,7 @@
 /*-
  * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
  *
- * Copyright (c) 2021 Zoe Knox <zoe@ravynsoft.com> 
+ * Copyright (c) 2021-2022 Zoe Knox <zoe@ravynsoft.com> 
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,68 +57,183 @@ __FBSDID("$FreeBSD$");
 
 #include <mach-o/loader.h>
 
+static int  macho_fixup(uintptr_t *stack_base, struct image_params *imgp);
 static int	exec_macho_imgact(struct image_params *imgp);
-int		exec_elf64_imgact(struct image_params *imgp);
+
+extern const char _binary_elf_vdso_so_1_start[];
+extern const char _binary_elf_vdso_so_1_end[];
+extern char _binary_elf_vdso_so_1_size;
+extern const char *syscallnames[];
+
+static int macho_szsigcode;
+
+struct sysentvec macho_sysvec = {
+	.sv_size	= SYS_MAXSYSCALL,
+	.sv_table	= sysent,
+	.sv_transtrap	= NULL,
+	.sv_fixup	= macho_fixup,
+	.sv_sendsig	= sendsig,
+	.sv_sigcode	= _binary_elf_vdso_so_1_start,
+	.sv_szsigcode	= &macho_szsigcode,
+	.sv_name	= "FreeBSD MachO64",
+	.sv_coredump	= NULL,
+	.sv_imgact_try	= NULL,
+	.sv_minsigstksz	= MINSIGSTKSZ,
+	.sv_minuser	= VM_MIN_ADDRESS,
+	.sv_maxuser	= VM_MAXUSER_ADDRESS_LA48,
+	.sv_usrstack	= USRSTACK_LA48,
+	.sv_psstrings	= 0, //PS_STRINGS_LA48,
+	.sv_psstringssz	= 0, //sizeof(struct ps_strings),
+	.sv_stackprot	= VM_PROT_ALL,
+	.sv_copyout_strings	= exec_copyout_strings,
+	.sv_setregs	= exec_setregs,
+	.sv_fixlimit	= NULL,
+	.sv_maxssiz	= NULL,
+	.sv_flags	= SV_ABI_FREEBSD | SV_LP64,
+	.sv_set_syscall_retval = cpu_set_syscall_retval,
+	.sv_fetch_syscall_args = cpu_fetch_syscall_args,
+	.sv_syscallnames = syscallnames,
+	.sv_onexec_old	= exec_onexec_old,
+	.sv_onexit	= exit_onexit,
+	.sv_set_fork_retval = x86_set_fork_retval,
+};
+
+static void
+macho_sysent(void *arg __unused)
+{
+	macho_szsigcode = (int)(uintptr_t)&_binary_elf_vdso_so_1_size;
+}
+SYSINIT(macho_sysent, SI_SUB_EXEC, SI_ORDER_ANY, macho_sysent, NULL);
+
+static int
+macho_fixup(uintptr_t *stack_base, struct image_params *imgp)
+{
+        *stack_base -= sizeof(uintptr_t);
+        if (suword((void *)stack_base, imgp->args->argc) != 0)
+                return (EFAULT);
+        *stack_base += sizeof(uintptr_t);
+        return (0);
+}
 
 static int
 exec_macho_imgact(struct image_params *imgp)
 {
     const struct mach_header_64 *mh = (const struct mach_header_64 *)imgp->image_header;
-    const char *path = NULL; 
-    uint32_t pathlen = 0;
-    char *d;
+    const char *path = NULL;
+    struct vmspace *vmspace;
+    vm_map_t map;
+    vm_object_t object;
+    vm_offset_t text_end, entry_addr;
+    unsigned int found_offset = 0;
+    unsigned long virtual_offset = 0;
+    unsigned long file_offset = 0;
+    //unsigned long bss_size = 0;
+    unsigned long total_size = 0;
+    int error;
+
 
     /* We currently only handle thin 64-bit executables */
-    if (mh->magic != MH_MAGIC_64 ||
-	mh->filetype != MH_EXECUTE ||
-	(mh->cputype != CPU_TYPE_X86_64 && 
-	mh->cputype != (uint32_t)CPU_TYPE_ANY))
-	return -1;
+    if (mh->magic != MH_MAGIC_64 ||	mh->filetype != MH_EXECUTE ||
+        (mh->cputype != CPU_TYPE_X86_64 && mh->cputype != (uint32_t)CPU_TYPE_ANY))
+        return -1;
 
-    /* For now, MachO is really a special case of binfmt_misc. When
-     * a suitable binary is exec'd, look for its DYLD and actually
-     * run that with the original path in argv[0].
-     */
     uint32_t offset = sizeof(struct mach_header_64);
     for(int i = 0; i < mh->ncmds; ++i) {
-	const struct load_command *lc = (const struct
-	    load_command *)((uint64_t)mh + offset);
-	switch(lc->cmd) {
-	    case LC_LOAD_DYLINKER: {
-		const struct dylinker_command *dl = (const struct dylinker_command *)lc;
-		path = (const char *)((uint64_t)lc + dl->name.offset);
-		break;
-	    }
-	    default:
-		break;
-	}
-	offset += lc->cmdsize;
-	if(offset > PAGE_SIZE)
-	    return -1;
+        const struct load_command *lc = (const struct load_command *)((uint64_t)mh + offset);
+        switch(lc->cmd) {
+            case LC_LOAD_DYLINKER: {
+                const struct dylinker_command *dl = (const struct dylinker_command *)lc;
+                path = (const char *)((uint64_t)lc + dl->name.offset);
+                break;
+            }
+
+            case LC_SEGMENT_64: {
+                const struct segment_command_64 *ls = (const struct segment_command_64 *)lc;
+                printf("LC_SEGMENT_64 %s at %lx (%d) sz %lx\n", ls->segname, ls->vmaddr, offset, ls->vmsize);
+                if(strcmp(SEG_PAGEZERO, ls->segname)) {
+                    if(!found_offset) {
+                        virtual_offset = trunc_page(ls->vmaddr);
+                        file_offset = offset;
+                        found_offset = 1;
+                        printf("virtual_offset = 0x%lx\n", virtual_offset);
+                    }
+                    total_size += ls->vmsize;
+                }
+                break;
+            }
+
+            case LC_MAIN: {
+                const struct entry_point_command *lm = (const struct entry_point_command *)lc;
+                printf("LC_MAIN entry point %lx\n",lm->entryoff);
+                entry_addr = lm->entryoff;
+                break;
+            }
+
+            default:
+                break;
+        }
+        offset += lc->cmdsize;
+        if(offset > 4*PAGE_SIZE)
+            return -1;
     }
 
-    if (!path)
-	return ENOEXEC;
+    if (!path) {
+        printf("No DYLINKER - loading directly\n");
+    } else {
+        printf("Loading %s from DYLINKER section\n", path);
+    }
 
-    pathlen = strlen(path);
-    offset = pathlen + 1;
-    if (offset > imgp->args->stringspace)
-	return E2BIG;
+    VOP_UNLOCK(imgp->vp);
+    error = exec_new_vmspace(imgp, &macho_sysvec);
+    vn_lock(imgp->vp, LK_SHARED | LK_RETRY);
+    printf("exec_new_vmspace = %d, vmspace = %p\n", error, imgp->proc->p_vmspace);
 
-    bcopy(imgp->args->begin_argv, imgp->args->begin_argv + offset,
-	imgp->args->endp - imgp->args->begin_argv);
+    if(error)
+        return error;
 
-    imgp->args->begin_envv += offset;
-    imgp->args->endp += offset;
-    imgp->args->stringspace -= offset;
-    imgp->args->argc++;
-    d = imgp->args->begin_argv;
-    memcpy(d, path, pathlen);
-    d += pathlen;
-    *d++ = '\0';
+    vmspace = imgp->proc->p_vmspace;
+    object = imgp->object;
+    map = &vmspace->vm_map;
+    vm_map_lock(map);
+    vm_object_reference(object);
+    printf("referenced object\n");
 
-    imgp->interpreter_name = imgp->args->begin_argv;
-    imgp->interpreted |= IMGACT_BINMISC;
+    text_end = virtual_offset + total_size;
+    error = vm_map_insert(map, object,
+        file_offset,
+        virtual_offset, text_end,
+        VM_PROT_READ | VM_PROT_EXECUTE, VM_PROT_ALL,
+        MAP_COPY_ON_WRITE | MAP_PREFAULT | MAP_VN_EXEC);
+    printf("vm_map_insert = %d\n", error);
+    if (error) {
+        vm_map_unlock(map);
+        vm_object_deallocate(object);
+        return (error);
+    }
+    VOP_SET_TEXT_CHECKED(imgp->vp);
+
+    vm_map_unlock(map);
+    printf("mapped object foff %lx vmaddr %lx end %lx entry %lx\n",
+        file_offset, virtual_offset, text_end, entry_addr);
+
+    /* Fill in process VM information */
+    vmspace->vm_tsize = total_size >> PAGE_SHIFT;
+    vmspace->vm_dsize = 0 >> PAGE_SHIFT;
+    vmspace->vm_taddr = (caddr_t) (uintptr_t) virtual_offset;
+    vmspace->vm_daddr = (caddr_t) (uintptr_t) text_end;
+
+    imgp->stack_sz = PAGE_SIZE*64;
+
+    error = exec_map_stack(imgp);
+    printf("exec_map_stack = %d sz %ld\n", error, imgp->stack_sz);
+    if (error != 0)
+        return (error);
+
+    /* Fill in image_params */
+    imgp->interpreted = 0;
+    imgp->entry_addr = entry_addr;
+    imgp->proc->p_sysent = &macho_sysvec;
+    printf("returning 0\n");
 
     return 0;
 }
@@ -128,6 +243,6 @@ exec_macho_imgact(struct image_params *imgp)
 */
 static struct execsw macho_execsw = {
     .ex_imgact = exec_macho_imgact,
-    .ex_name = "macho"
+    .ex_name = "mach-o"
 };
 EXEC_SET(macho, macho_execsw);
