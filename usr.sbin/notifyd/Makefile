@@ -13,6 +13,7 @@ MK_MAN= no
 
 BASE_INCLUDE=  -I. -I${.CURDIR} -I${.CURDIR}/init -I${.CURDIR}/../../include/apple -I${MACHINE_INCLUDES}
 BASE_INCLUDE+= -I${.CURDIR}/../../include -I${.CURDIR}/../../sys -I${.CURDIR}/../../lib/libnotify
+BASE_INCLUDE+= -I${SRCTOP}/include
 DEFINES= -D__APPLE__ -fblocks -DLIBC_NO_LIBCRASHREPORTERCLIENT -DPRIVATE
 MIG_FLAGS= ${BASE_INCLUDE} 	${DEFINES}
 #override default CFLAGS
