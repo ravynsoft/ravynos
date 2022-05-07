@@ -78,9 +78,9 @@ fi
 /usr/sbin/sysrc -f /etc/rc.conf sendmail_submit_enable="NO" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf sendmail_outbound_enable="NO" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf sendmail_msp_queue_enable="NO" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf linux_enable="YES" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf dbus_enable="YES" >/dev/null 2>/dev/null
-/usr/sbin/sysrc -f /etc/rc.conf kld_list+="cuse ig4 iicbus iichid utouch asmc" >/dev/null 2>/dev/null
+#/usr/sbin/sysrc -f /etc/rc.conf linux_enable="YES" >/dev/null 2>/dev/null
+#/usr/sbin/sysrc -f /etc/rc.conf dbus_enable="YES" >/dev/null 2>/dev/null
+#/usr/sbin/sysrc -f /etc/rc.conf kld_list+="cuse ig4 utouch asmc" >/dev/null 2>/dev/null
 /usr/sbin/sysrc -f /etc/rc.conf allscreens_kbdflags="-b quiet.off" >/dev/null 2>/dev/null
 # Work around https://github.com/mszoek/airyx/issues/106
 /usr/sbin/sysrc -f /etc/rc.conf cron_enable="NO" >/dev/null 2>/dev/null

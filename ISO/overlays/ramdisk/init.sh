@@ -18,7 +18,7 @@ if [ "$(kenv boot_mute)" = "YES" ] ; then
       exec 1>>/dev/null 2>&1
 fi
 
-set -x
+#set -x
 
 RAVYNOS_VERSION=$(head -1 /version)
 RAVYNOS_CODENAME=$(tail -1 /version)
@@ -79,6 +79,9 @@ cat > /etc/bootstrap <<EOT
 #!/rescue/sh
 
 rm -f /var/run/nologin
+mount -t devfs none /dev
+mount -t procfs none /proc
+mount -t fdescfs none /dev/fd
 EOT
 chmod 755 /etc/bootstrap
 
@@ -95,11 +98,15 @@ for d in *; do
 done
 rm -f /System/Library/LaunchDaemons
 mkdir -p /System/Library/LaunchDaemons
-ln -s /sysroot/System/Library/LaunchDaemons/com.apple.auditd.json /System/Library/LaunchDaemons/
+#ln -s /sysroot/System/Library/LaunchDaemons/com.apple.auditd.json /System/Library/LaunchDaemons/
 ln -s /sysroot/System/Library/LaunchDaemons/com.apple.notifyd.json /System/Library/LaunchDaemons/
+ln -s /sysroot/System/Library/LaunchDaemons/org.freebsd.devd.json /System/Library/LaunchDaemons/
 for tty in 0 1 2 3; do
     cat > /System/Library/LaunchDaemons/org.freebsd.ttyv${tty}.json <<EOT
 {
+	"EnvironmentVariables": {
+		"ASL_DISABLE": "1"
+	},
 	"Label": "org.freebsd.getty.ttyv${tty}",
 	"ProgramArguments": [
 		"/usr/libexec/getty",
@@ -107,7 +114,7 @@ for tty in 0 1 2 3; do
 		"ttyv${tty}"
 	],
 	"RunAtLoad": true,
-	"KeepAlive": true
+	"KeepAlive": false
 }
 EOT
 done

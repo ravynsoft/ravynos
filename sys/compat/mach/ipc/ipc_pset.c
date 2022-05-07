@@ -151,6 +151,7 @@ kn_sx_assert_lock(void *arg, int what)
 void
 io_validate(ipc_object_t io)
 {
+#if MACH_ASSERT
 	ipc_port_t port;
 	ipc_pset_t pset;
 
@@ -162,7 +163,7 @@ io_validate(ipc_object_t io)
 		pset = (ipc_pset_t)io;
 		MPASS(TAILQ_EMPTY(&pset->ips_ports));
 	}
-
+#endif
 }
 
 /*

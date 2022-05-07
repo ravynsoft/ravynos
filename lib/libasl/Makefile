@@ -8,6 +8,7 @@ MK_WERROR=no
 DEFINES= -D__APPLE__ -fblocks -DLIBC_NO_LIBCRASHREPORTERCLIENT -DPRIVATE
 BASE_INCLUDE= -I${.CURDIR}/../../include/apple -I${.CURDIR}/../liblaunch/ -I${.CURDIR}/../libosxsupport/ -I${.CURDIR}/../libdispatch/ -I${.CURDIR}/../libxpc/
 BASE_INCLUDE+= -I${.CURDIR} -I${.CURDIR}/../../include -I${MACHINE_INCLUDES} -I${.CURDIR}/../../sys
+BASE_INCLUDE+= -I${SRCTOP}/include -I${SRCTOP}/sys
 MIG_FLAGS= ${BASE_INCLUDE} ${DEFINES}
 CFLAGS+= ${BASE_INCLUDE} ${DEFINES} -fPIC -DPRIVATE -D__MigTypeCheck=1 -DLIBSYSCALL_INTERFACE=1
 

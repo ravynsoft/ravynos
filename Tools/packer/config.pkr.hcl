@@ -14,7 +14,7 @@ packer {
 source "googlecompute" "ravynbuild" {
   disk_size               = "80"
   project_id              = "ravyn-images"
-  source_image            = "freebsd-14-0-current-amd64-v20220414"
+  source_image            = "freebsd-14-0-current-amd64-v20220505"
   source_image_project_id       = ["freebsd-org-cloud-dev"]
   #source_image            = "ravynbuild-0-4-b2"
   ssh_username            = "packer"

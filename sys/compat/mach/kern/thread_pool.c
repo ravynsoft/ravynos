@@ -73,8 +73,9 @@ thread_pool_remove(thread_act_t thread)
 {
 	thread_pool_t pool = &((struct rpc_common_data *)thread->ith_object)->rcd_thread_pool;
 	thread_act_t act = pool->thr_acts;
+#if MACH_ASSERT
 	int found = 0;
-
+#endif
 	mtx_assert(thread->ith_block_lock_data, MA_OWNED);
 	if (act == thread) {
 		pool->thr_acts = pool->thr_acts->ith_pool_next;
@@ -84,12 +85,16 @@ thread_pool_remove(thread_act_t thread)
 	while (act != NULL) {
 		if (act->ith_pool_next == thread) {
 			act->ith_pool_next = thread->ith_pool_next;
+#if MACH_ASSERT
 			found = 1;
+#endif
 			break;
 		}
 		act = act->ith_pool_next;
 	}
+#if MACH_ASSERT
 	assert(found);
+#endif
 }
 
 

@@ -747,9 +747,9 @@ kern_return_t	vm_map_copyin(
 	prev_end = 0;
 	while (prev_end != tmp_entry->end  && tmp_entry->end < src_end) {
 		prev_end = tmp_entry->end;
-        prev_entry = vm_map_entry_pred(tmp_entry);
+		prev_entry = vm_map_entry_pred(tmp_entry);
 		next_entry = vm_map_entry_succ(tmp_entry);
-        vm_map_try_merge_entries(src_map, prev_entry, tmp_entry);
+		vm_map_try_merge_entries(src_map, prev_entry, tmp_entry);
 		vm_map_try_merge_entries(src_map, tmp_entry, next_entry);
 	}
 	/* only handle single map entry for now */
@@ -791,14 +791,12 @@ kern_return_t	vm_map_copyin(
 					VM_PROT_READ|VM_PROT_WRITE, 0);
 		vm_map_unlock(src_map);
 		vm_map_remove(src_map, src_start, src_end);
-		printf("src_destroy=1 object=%p src_map=%p\n", object, src_map);
 	} else {
 		offset = tmp_entry->offset;
 		vm_map_unlock(src_map);
 		vm_object_reference(object);
 		vm_map_protect(src_map, src_start, src_end, tmp_entry->protection & ~VM_PROT_WRITE, 0, VM_MAP_PROTECT_SET_PROT);
 		tmp_entry->eflags |= MAP_ENTRY_NEEDS_COPY | MAP_ENTRY_COW;
-		printf("src_destroy=0 object=%p src_map=%p\n", object, src_map);
 	}
 
 	vm_map_copyin_object(object, offset, src_end - src_start, copy_result);

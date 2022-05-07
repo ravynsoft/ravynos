@@ -174,7 +174,9 @@ extern void mig_init(void);
 static void
 ipc_bootstrap_sysinit(void *arg __unused)
 {
+#if MACH_ASSERT
 	kern_return_t kr;
+#endif
 
 	ipc_port_multiple_lock_init();
 
@@ -211,12 +213,19 @@ ipc_bootstrap_sysinit(void *arg __unused)
 
 	/* create special spaces */
 
-	kr = ipc_space_create_special(&ipc_space_kernel);
+#if MACH_ASSERT
+	kr = 
+#endif
+		ipc_space_create_special(&ipc_space_kernel);
+#if MACH_ASSERT
 	assert(kr == KERN_SUCCESS);
 
-
-	kr = ipc_space_create_special(&ipc_space_reply);
+	kr = 
+#endif
+		ipc_space_create_special(&ipc_space_reply);
+#if MACH_ASSERT
 	assert(kr == KERN_SUCCESS);
+#endif
 
 	/* initialize modules with hidden data structures */
 

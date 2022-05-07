@@ -38,8 +38,8 @@ ravynOS_task:
     - pip install --upgrade cloudsmith-cli
   base_build_script:
     - mkdir -p /usr/obj/$(pwd -P)
-    - make -j$(sysctl -n hw.ncpu) MK_LIB32=no buildworld buildkernel
-    - make -C release MK_LIB32=no NOSRC=true NOPORTS=true packagesystem
+    - make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN buildworld buildkernel
+    - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN packagesystem
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz
   system_build_script:
