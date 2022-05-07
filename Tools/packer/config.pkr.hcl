@@ -35,6 +35,7 @@ build {
           "echo 'mach_load=\"YES\"'|sudo tee /boot/loader.conf",
           "echo 'cryptodev_load=\"YES\"'|sudo tee /boot/loader.conf",
           "echo 'zfs_load=\"YES\"'|sudo tee /boot/loader.conf",
+	  "echo 'init_path=\"/sbin/init\"'|sudo tee /boot/loader.conf",
           #"sudo tar -C / -xf /tmp/base.txz ./etc/pkg/ravynOS.conf",
           "sudo rm -f /etc/pkg/FreeBSD.conf",
           #"sudo -E IGNORE_OSVERSION=yes pkg update && sudo -E IGNORE_OSVERSION=yes pkg install -yf openssl git-tiny cmake bash dbus dbus-glib expat fontconfig freetype2 gdk-pixbuf2 gettext-runtime gettext-tools glib jpeg-turbo mesa-libs mesa-dri pkgconf py38-pip python3 py38-setuptools qt5-buildtools qt5-qmake libqtxdg sqlite3 tiff png",
