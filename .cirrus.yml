@@ -1,6 +1,6 @@
 compute_engine_instance:
   image_project: ravyn-images
-  image: ravynbuild-0-4-b9
+  image: ravynbuild-0-4-b10
   platform: freebsd
   cpu: 8
   memory: 16G
@@ -17,7 +17,7 @@ ravynOS_task:
     path: /root/.ssh/id_rsa.pub
     variable_name: MIRROR2_SSH_PUBKEY
   clone_script: |
-    pkg-static install -yf openssl pkg && pkg update
+    pkg-static install -yf pkg && pkg update
     pkg install -yf git-tiny
     if [ -z "$CIRRUS_PR" ]; then
       git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
@@ -30,7 +30,7 @@ ravynOS_task:
   setup_script:
     - rm -fv /etc/pkg/FreeBSD.conf /etc/pkg/Airyx.conf
     - cp -fv etc/pkg/ravynOS.conf /etc/pkg/
-    - pkg install -fy openssl libarchive 
+    - pkg install -fy libarchive 
     - pkg update && pkg fetch -y -o /tmp binutils
     - tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
     - pkg install -fy python38 python3 py38-pip py38-setuptools
@@ -38,8 +38,8 @@ ravynOS_task:
     - pip install --upgrade cloudsmith-cli
   base_build_script:
     - mkdir -p /usr/obj/$(pwd -P)
-    - make -j$(sysctl -n hw.ncpu) MK_LIB32=no buildworld buildkernel
-    - make -C release MK_LIB32=no NOSRC=true NOPORTS=true packagesystem
+    - make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN buildworld buildkernel
+    - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN packagesystem
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz
   system_build_script:

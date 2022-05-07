@@ -517,6 +517,7 @@ ipc_mqueue_copyin(
 	ipc_object_reference(object);
 
 	if (bits & MACH_PORT_TYPE_RECEIVE) {
+#if MACH_ASSERT
 		ipc_port_t port = NULL;
 
 		port = (ipc_port_t) object;
@@ -525,8 +526,10 @@ ipc_mqueue_copyin(
 		assert(ip_active(port));
 		assert(port->ip_receiver_name == name);
 		assert(port->ip_receiver == space);
+#endif
 		is_read_unlock(space);
 	} else if (bits & MACH_PORT_TYPE_PORT_SET) {
+#if MACH_ASSERT
 		ipc_pset_t pset;
 
 		pset = (ipc_pset_t) object;
@@ -534,6 +537,7 @@ ipc_mqueue_copyin(
 
 		assert(ips_active(pset));
 		assert(pset->ips_local_name == name);
+#endif
 		is_read_unlock(space);
 	} else {
 		ipc_object_release(object);
