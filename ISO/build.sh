@@ -429,7 +429,7 @@ split()
 cleanup
 workspace
 repos
-pkg
+#pkg
 base
 packages
 initgfx

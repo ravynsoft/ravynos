@@ -108,7 +108,7 @@ export DIR_SIZE
 
 
 # Create the package
-pkg create --verbose -r ${STAGEDIR} -m . -o .
+IGNORE_OSVERSION=yes pkg create --verbose -r ${STAGEDIR} -m . -o .
 
 # Replace transient-packages-list with a new one reflecting all transient packages;
 # this will be used for installing them later on

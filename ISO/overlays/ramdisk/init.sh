@@ -79,9 +79,6 @@ cat > /etc/bootstrap <<EOT
 #!/rescue/sh
 
 rm -f /var/run/nologin
-mount -t devfs none /dev
-mount -t procfs none /proc
-mount -t fdescfs none /dev/fd
 EOT
 chmod 755 /etc/bootstrap
 
