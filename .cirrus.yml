@@ -43,9 +43,9 @@ ravynOS_task:
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz
   system_build_script:
-    - make -f Makefile.ravynOS prep
+    - make COMPILER_TYPE=clang -f Makefile.ravynOS prep
     - cp -fv share/mk/* /usr/share/mk/
-    - make -f Makefile.ravynOS
+    - make COMPILER_TYPE=clang -f Makefile.ravynOS
     - rm -f dist/ravynOS.txz
     - tar cvJ -C /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/ravynOS --gid 0 --uid 0 -f $(pwd)/dist/ravynOS.txz .
   iso_script:
