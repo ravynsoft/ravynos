@@ -47,6 +47,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/taskqueue.h>
 #include <sys/lock.h>
 #include <sys/mutex.h>
+#include <sys/sx.h>
 #include <sys/sysctl.h>
 #include <vm/vm.h>
 
@@ -61,13 +62,13 @@ __FBSDID("$FreeBSD$");
 
 static MALLOC_DEFINE(M_IOMMU, "IOMMU", "IOMMU framework");
 
-#define	IOMMU_LIST_LOCK()		mtx_lock(&iommu_mtx)
-#define	IOMMU_LIST_UNLOCK()		mtx_unlock(&iommu_mtx)
-#define	IOMMU_LIST_ASSERT_LOCKED()	mtx_assert(&iommu_mtx, MA_OWNED)
+#define	IOMMU_LIST_LOCK()		sx_xlock(&iommu_sx)
+#define	IOMMU_LIST_UNLOCK()		sx_xunlock(&iommu_sx)
+#define	IOMMU_LIST_ASSERT_LOCKED()	sx_assert(&iommu_sx, SA_XLOCKED)
 
 #define dprintf(fmt, ...)
 
-static struct mtx iommu_mtx;
+static struct sx iommu_sx;
 
 struct iommu_entry {
 	struct iommu_unit *iommu;
@@ -112,7 +113,7 @@ iommu_domain_map_buf(struct iommu_domain *iodom, iommu_gaddr_t base,
 
 	error = IOMMU_MAP(iommu->dev, iodom, va, ma, size, prot);
 
-	return (0);
+	return (error);
 }
 
 static const struct iommu_domain_map_ops domain_map_ops = {
@@ -299,7 +300,7 @@ iommu_domain_unload(struct iommu_domain *iodom,
     struct iommu_map_entries_tailq *entries, bool cansleep)
 {
 	struct iommu_map_entry *entry, *entry1;
-	int error;
+	int error __diagused;
 
 	TAILQ_FOREACH_SAFE(entry, entries, dmamap_link, entry1) {
 		KASSERT((entry->flags & IOMMU_MAP_ENTRY_MAP) != 0,
@@ -391,7 +392,7 @@ static void
 iommu_init(void)
 {
 
-	mtx_init(&iommu_mtx, "IOMMU", NULL, MTX_DEF);
+	sx_init(&iommu_sx, "IOMMU list");
 }
 
 SYSINIT(iommu, SI_SUB_DRIVERS, SI_ORDER_FIRST, iommu_init, NULL);

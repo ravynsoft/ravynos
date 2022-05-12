@@ -573,12 +573,11 @@ static device_method_t ukswitch_methods[] = {
 
 DEFINE_CLASS_0(ukswitch, ukswitch_driver, ukswitch_methods,
     sizeof(struct ukswitch_softc));
-static devclass_t ukswitch_devclass;
 
-DRIVER_MODULE(ukswitch, mdio, ukswitch_driver, ukswitch_devclass, 0, 0);
-DRIVER_MODULE(miibus, ukswitch, miibus_driver, miibus_devclass, 0, 0);
-DRIVER_MODULE(mdio, ukswitch, mdio_driver, mdio_devclass, 0, 0);
-DRIVER_MODULE(etherswitch, ukswitch, etherswitch_driver, etherswitch_devclass, 0, 0);
+DRIVER_MODULE(ukswitch, mdio, ukswitch_driver, 0, 0);
+DRIVER_MODULE(miibus, ukswitch, miibus_driver, 0, 0);
+DRIVER_MODULE(mdio, ukswitch, mdio_driver, 0, 0);
+DRIVER_MODULE(etherswitch, ukswitch, etherswitch_driver, 0, 0);
 MODULE_VERSION(ukswitch, 1);
 MODULE_DEPEND(ukswitch, miibus, 1, 1, 1); /* XXX which versions? */
 MODULE_DEPEND(ukswitch, etherswitch, 1, 1, 1); /* XXX which versions? */

@@ -646,17 +646,16 @@ static device_method_t ip17x_methods[] = {
 
 DEFINE_CLASS_0(ip17x, ip17x_driver, ip17x_methods,
     sizeof(struct ip17x_softc));
-static devclass_t ip17x_devclass;
 
-DRIVER_MODULE(ip17x, mdio, ip17x_driver, ip17x_devclass, 0, 0);
-DRIVER_MODULE(miibus, ip17x, miibus_driver, miibus_devclass, 0, 0);
-DRIVER_MODULE(etherswitch, ip17x, etherswitch_driver, etherswitch_devclass, 0, 0);
+DRIVER_MODULE(ip17x, mdio, ip17x_driver, 0, 0);
+DRIVER_MODULE(miibus, ip17x, miibus_driver, 0, 0);
+DRIVER_MODULE(etherswitch, ip17x, etherswitch_driver, 0, 0);
 MODULE_VERSION(ip17x, 1);
 
 #ifdef FDT
 MODULE_DEPEND(ip17x, mdio, 1, 1, 1); /* XXX which versions? */
 #else
-DRIVER_MODULE(mdio, ip17x, mdio_driver, mdio_devclass, 0, 0);
+DRIVER_MODULE(mdio, ip17x, mdio_driver, 0, 0);
 MODULE_DEPEND(ip17x, miibus, 1, 1, 1); /* XXX which versions? */
 MODULE_DEPEND(ip17x, etherswitch, 1, 1, 1); /* XXX which versions? */
 #endif

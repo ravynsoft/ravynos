@@ -193,16 +193,14 @@ static device_method_t pca954x_methods[] = {
 	DEVMETHOD_END
 };
 
-static devclass_t pca954x_devclass;
-
 DEFINE_CLASS_1(pca9548, pca954x_driver, pca954x_methods,
     sizeof(struct pca954x_softc), iicmux_driver);
-DRIVER_MODULE(pca9548, iicbus, pca954x_driver, pca954x_devclass, 0, 0);
+DRIVER_MODULE(pca9548, iicbus, pca954x_driver, 0, 0);
 
 #ifdef FDT
-DRIVER_MODULE(ofw_iicbus, pca9548, ofw_iicbus_driver, ofw_iicbus_devclass, 0, 0);
+DRIVER_MODULE(ofw_iicbus, pca9548, ofw_iicbus_driver, 0, 0);
 #else
-DRIVER_MODULE(iicbus, pca9548, iicbus_driver, iicbus_devclass, 0, 0);
+DRIVER_MODULE(iicbus, pca9548, iicbus_driver, 0, 0);
 #endif
 
 MODULE_DEPEND(pca9548, iicmux, 1, 1, 1);

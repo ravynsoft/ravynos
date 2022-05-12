@@ -173,12 +173,11 @@ static driver_t ae_driver = {
         ae_methods,
         sizeof(ae_softc_t)
 };
-static devclass_t ae_devclass;
 
-DRIVER_MODULE(ae, pci, ae_driver, ae_devclass, 0, 0);
+DRIVER_MODULE(ae, pci, ae_driver, 0, 0);
 MODULE_PNP_INFO("U16:vendor;U16:device;D:#", pci, ae, ae_devs,
     nitems(ae_devs));
-DRIVER_MODULE(miibus, ae, miibus_driver, miibus_devclass, 0, 0);
+DRIVER_MODULE(miibus, ae, miibus_driver, 0, 0);
 MODULE_DEPEND(ae, pci, 1, 1, 1);
 MODULE_DEPEND(ae, ether, 1, 1, 1);
 MODULE_DEPEND(ae, miibus, 1, 1, 1);

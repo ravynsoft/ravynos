@@ -566,16 +566,14 @@ static device_method_t amdsmb_methods[] = {
 	{ 0, 0 }
 };
 
-static devclass_t amdsmb_devclass;
-
 static driver_t amdsmb_driver = {
 	"amdsmb",
 	amdsmb_methods,
 	sizeof(struct amdsmb_softc),
 };
 
-DRIVER_MODULE(amdsmb, pci, amdsmb_driver, amdsmb_devclass, 0, 0);
-DRIVER_MODULE(smbus, amdsmb, smbus_driver, smbus_devclass, 0, 0);
+DRIVER_MODULE(amdsmb, pci, amdsmb_driver, 0, 0);
+DRIVER_MODULE(smbus, amdsmb, smbus_driver, 0, 0);
 
 MODULE_DEPEND(amdsmb, pci, 1, 1, 1);
 MODULE_DEPEND(amdsmb, smbus, SMBUS_MINVER, SMBUS_PREFVER, SMBUS_MAXVER);

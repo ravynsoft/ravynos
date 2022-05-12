@@ -1195,8 +1195,10 @@ sofree(struct socket *so)
 		so->so_dtor(so);
 
 	VNET_SO_ASSERT(so);
-	if (pr->pr_flags & PR_RIGHTS && pr->pr_domain->dom_dispose != NULL)
+	if ((pr->pr_flags & PR_RIGHTS) && !SOLISTENING(so)) {
+		MPASS(pr->pr_domain->dom_dispose != NULL);
 		(*pr->pr_domain->dom_dispose)(so);
+	}
 	if (pr->pr_usrreqs->pru_detach != NULL)
 		(*pr->pr_usrreqs->pru_detach)(so);
 
@@ -1204,15 +1206,6 @@ sofree(struct socket *so)
 	 * From this point on, we assume that no other references to this
 	 * socket exist anywhere else in the stack.  Therefore, no locks need
 	 * to be acquired or held.
-	 *
-	 * We used to do a lot of socket buffer and socket locking here, as
-	 * well as invoke sorflush() and perform wakeups.  The direct call to
-	 * dom_dispose() and sbdestroy() are an inlining of what was
-	 * necessary from sorflush().
-	 *
-	 * Notice that the socket buffer and kqueue state are torn down
-	 * before calling pru_detach.  This means that protocols shold not
-	 * assume they can perform socket wakeups, etc, in their detach code.
 	 */
 	if (!SOLISTENING(so)) {
 		sbdestroy(&so->so_snd, so);
@@ -2942,22 +2935,12 @@ done:
 void
 sorflush(struct socket *so)
 {
-	struct socket aso;
 	struct protosw *pr;
 	int error;
 
 	VNET_SO_ASSERT(so);
 
 	/*
-	 * In order to avoid calling dom_dispose with the socket buffer mutex
-	 * held, we make a partial copy of the socket buffer and clear the
-	 * original.  The new socket buffer copy won't have initialized locks so
-	 * we can only call routines that won't use or assert those locks.
-	 * Ideally calling socantrcvmore() would prevent data from being added
-	 * to the buffer, but currently it merely prevents buffered data from
-	 * being read by userspace.  We make this effort to free buffered data
-	 * nonetheless.
-	 *
 	 * Dislodge threads currently blocked in receive and wait to acquire
 	 * a lock against other simultaneous readers before clearing the
 	 * socket buffer.  Don't let our acquire be interrupted by a signal
@@ -2972,26 +2955,15 @@ sorflush(struct socket *so)
 		return;
 	}
 
-	SOCK_RECVBUF_LOCK(so);
-	bzero(&aso, sizeof(aso));
-	aso.so_pcb = so->so_pcb;
-	bcopy(&so->so_rcv.sb_startzero, &aso.so_rcv.sb_startzero,
-	    offsetof(struct sockbuf, sb_endzero) -
-	    offsetof(struct sockbuf, sb_startzero));
-	bzero(&so->so_rcv.sb_startzero,
-	    offsetof(struct sockbuf, sb_endzero) -
-	    offsetof(struct sockbuf, sb_startzero));
-	SOCK_RECVBUF_UNLOCK(so);
-	SOCK_IO_RECV_UNLOCK(so);
-
-	/*
-	 * Dispose of special rights and flush the copied socket.  Don't call
-	 * any unsafe routines (that rely on locks being initialized) on aso.
-	 */
 	pr = so->so_proto;
-	if (pr->pr_flags & PR_RIGHTS && pr->pr_domain->dom_dispose != NULL)
-		(*pr->pr_domain->dom_dispose)(&aso);
-	sbrelease_internal(&aso.so_rcv, so);
+	if (pr->pr_flags & PR_RIGHTS) {
+		MPASS(pr->pr_domain->dom_dispose != NULL);
+		(*pr->pr_domain->dom_dispose)(so);
+	} else {
+		sbrelease(&so->so_rcv, so);
+		SOCK_IO_RECV_UNLOCK(so);
+	}
+
 }
 
 /*
@@ -4240,7 +4212,7 @@ sodtor_set(struct socket *so, so_dtor_t *func)
  * Register per-socket buffer upcalls.
  */
 void
-soupcall_set(struct socket *so, int which, so_upcall_t func, void *arg)
+soupcall_set(struct socket *so, sb_which which, so_upcall_t func, void *arg)
 {
 	struct sockbuf *sb;
 
@@ -4263,7 +4235,7 @@ soupcall_set(struct socket *so, int which, so_upcall_t func, void *arg)
 }
 
 void
-soupcall_clear(struct socket *so, int which)
+soupcall_clear(struct socket *so, sb_which which)
 {
 	struct sockbuf *sb;
 
@@ -4276,8 +4248,6 @@ soupcall_clear(struct socket *so, int which)
 	case SO_SND:
 		sb = &so->so_snd;
 		break;
-	default:
-		panic("soupcall_clear: bad which");
 	}
 	SOCKBUF_LOCK_ASSERT(sb);
 	KASSERT(sb->sb_upcall != NULL,

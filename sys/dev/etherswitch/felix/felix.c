@@ -140,16 +140,12 @@ static device_method_t felix_methods[] = {
 	DEVMETHOD_END
 };
 
-static devclass_t felix_devclass;
 DEFINE_CLASS_0(felix, felix_driver, felix_methods,
     sizeof(struct felix_softc));
 
-DRIVER_MODULE_ORDERED(felix, pci, felix_driver, felix_devclass,
-    NULL, NULL, SI_ORDER_ANY);
-DRIVER_MODULE(miibus, felix, miibus_fdt_driver, miibus_fdt_devclass,
-    NULL, NULL);
-DRIVER_MODULE(etherswitch, felix, etherswitch_driver, etherswitch_devclass,
-    NULL, NULL);
+DRIVER_MODULE_ORDERED(felix, pci, felix_driver, NULL, NULL, SI_ORDER_ANY);
+DRIVER_MODULE(miibus, felix, miibus_fdt_driver, NULL, NULL);
+DRIVER_MODULE(etherswitch, felix, etherswitch_driver, NULL, NULL);
 MODULE_VERSION(felix, 1);
 MODULE_PNP_INFO("U16:vendor;U16:device;D:#", pci, felix,
     felix_pci_ids, nitems(felix_pci_ids) - 1);

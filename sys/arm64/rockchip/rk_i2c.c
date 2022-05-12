@@ -726,11 +726,9 @@ static driver_t rk_i2c_driver = {
 	sizeof(struct rk_i2c_softc),
 };
 
-static devclass_t rk_i2c_devclass;
-
-EARLY_DRIVER_MODULE(rk_i2c, simplebus, rk_i2c_driver, rk_i2c_devclass, 0, 0,
+EARLY_DRIVER_MODULE(rk_i2c, simplebus, rk_i2c_driver, 0, 0,
     BUS_PASS_INTERRUPT + BUS_PASS_ORDER_LATE);
-EARLY_DRIVER_MODULE(ofw_iicbus, rk_i2c, ofw_iicbus_driver, ofw_iicbus_devclass,
+EARLY_DRIVER_MODULE(ofw_iicbus, rk_i2c, ofw_iicbus_driver,
     0, 0, BUS_PASS_INTERRUPT + BUS_PASS_ORDER_LATE);
 MODULE_DEPEND(rk_i2c, iicbus, 1, 1, 1);
 MODULE_VERSION(rk_i2c, 1);

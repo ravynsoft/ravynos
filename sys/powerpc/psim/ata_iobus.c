@@ -92,10 +92,7 @@ static driver_t ata_iobus_driver = {
 	0,
 };
 
-static devclass_t ata_iobus_devclass;
-
-DRIVER_MODULE(ataiobus, iobus, ata_iobus_driver, ata_iobus_devclass, NULL,
-    NULL);
+DRIVER_MODULE(ataiobus, iobus, ata_iobus_driver, NULL, NULL);
 MODULE_DEPEND(ata, ata, 1, 1, 1);
 
 static int
@@ -230,7 +227,7 @@ static driver_t ata_iobus_sub_driver = {
 	sizeof(struct ata_channel),
 };
 
-DRIVER_MODULE(ata, ataiobus, ata_iobus_sub_driver, ata_devclass, NULL, NULL);
+DRIVER_MODULE(ata, ataiobus, ata_iobus_sub_driver, NULL, NULL);
 
 static int
 ata_iobus_sub_probe(device_t dev)

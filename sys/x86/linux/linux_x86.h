@@ -28,6 +28,11 @@
 #ifndef _X86_INCLUDE_LINUX_LINUX_X86_H_
 #define _X86_INCLUDE_LINUX_LINUX_X86_H_
 
+#define	LINUX_VDSO_CPU_DEFAULT		0
+#define	LINUX_VDSO_CPU_RDPID		1
+#define	LINUX_VDSO_CPU_RDTSCP		2
+
 int	linux_vdso_tsc_selector_idx(void);
+int	linux_vdso_cpu_selector_idx(void);
 
 #endif /* _X86_INCLUDE_LINUX_LINUX_X86_H_ */

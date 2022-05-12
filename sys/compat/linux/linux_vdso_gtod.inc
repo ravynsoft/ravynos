@@ -37,25 +37,25 @@ fls(int mask)
 
 #ifdef _LP64
 static int
-ffsl(long mask)
+flsl(long mask)
 {
 	int bit;
 
 	if (mask == 0)
 		return (0);
-	for (bit = 1; !(mask & 1); bit++)
+	for (bit = 1; mask != 1; bit++)
 		mask = (unsigned long)mask >> 1;
 	return (bit);
 }
 #else
 static int
-ffsll(long long mask)
+flsll(long long mask)
 {
 	int bit;
 
 	if (mask == 0)
 		return (0);
-	for (bit = 1; !(mask & 1); bit++)
+	for (bit = 1; mask != 1; bit++)
 		mask = (unsigned long long)mask >> 1;
 	return (bit);
 }
@@ -186,9 +186,9 @@ freebsd_binuptime(struct bintime *bt, struct vdso_timekeep *tk, bool abs)
 			return (error);
 		scale = th->th_scale;
 #ifdef _LP64
-		scale_bits = ffsl(scale);
+		scale_bits = flsl(scale);
 #else
-		scale_bits = ffsll(scale);
+		scale_bits = flsll(scale);
 #endif
 		if (__predict_false(scale_bits + fls(delta) > 63)) {
 			x = (scale >> 32) * delta;
@@ -352,12 +352,19 @@ int clock_gettime64(clockid_t clock_id, struct l_timespec64 *lts)
     __attribute__((weak, alias("__vdso_clock_gettime64")));
 #endif
 
-#if defined(__amd64__) && !defined(COMPAT_LINUX32)
+#if defined(__i386__) || defined(__amd64__)
 int
 __vdso_getcpu(uint32_t *cpu, uint32_t *node, void *cache)
 {
+	int ret;
 
-	return (__vdso_getcpu_fallback(cpu, node, cache));
+	if (node != NULL)
+		return (__vdso_getcpu_fallback(cpu, node, cache));
+	ret = __vdso_getcpu_try();
+	if (ret < 0)
+		return (__vdso_getcpu_fallback(cpu, node, cache));
+	*cpu = ret;
+	return (0);
 }
 #endif
 

@@ -89,9 +89,8 @@ static driver_t dtsec_driver = {
 	sizeof(struct dtsec_softc),
 };
 
-static devclass_t dtsec_devclass;
-DRIVER_MODULE(dtsec, fman, dtsec_driver, dtsec_devclass, 0, 0);
-DRIVER_MODULE(miibus, dtsec, miibus_driver, miibus_devclass, 0, 0);
+DRIVER_MODULE(dtsec, fman, dtsec_driver, 0, 0);
+DRIVER_MODULE(miibus, dtsec, miibus_driver, 0, 0);
 MODULE_DEPEND(dtsec, ether, 1, 1, 1);
 MODULE_DEPEND(dtsec, miibus, 1, 1, 1);
 

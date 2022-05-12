@@ -257,15 +257,15 @@ nvdimm_e820_remove_spas(device_t dev)
 }
 
 static void
-nvdimm_e820_identify(driver_t *driver __unused, device_t parent)
+nvdimm_e820_identify(driver_t *driver, device_t parent)
 {
 	device_t child;
 	caddr_t kmdp;
 
-	if (resource_disabled(NVDIMM_E820, 0))
+	if (resource_disabled(driver->name, 0))
 		return;
 	/* Just create a single instance of the fake bus. */
-	if (device_find_child(parent, NVDIMM_E820, -1) != NULL)
+	if (device_find_child(parent, driver->name, -1) != NULL)
 		return;
 
 	kmdp = preload_search_by_type("elf kernel");
@@ -278,9 +278,9 @@ nvdimm_e820_identify(driver_t *driver __unused, device_t parent)
 	if (smapbase == NULL)
 		return;
 
-	child = BUS_ADD_CHILD(parent, 0, NVDIMM_E820, -1);
+	child = BUS_ADD_CHILD(parent, 0, driver->name, -1);
 	if (child == NULL)
-		device_printf(parent, "add %s child failed\n", NVDIMM_E820);
+		device_printf(parent, "add %s child failed\n", driver->name);
 }
 
 static int
@@ -356,8 +356,6 @@ static driver_t	nvdimm_e820_driver = {
 	sizeof(struct nvdimm_e820_bus),
 };
 
-static devclass_t nvdimm_e820_devclass;
-
 static int
 nvdimm_e820_chainevh(struct module *m, int e, void *arg __unused)
 {
@@ -367,7 +365,7 @@ nvdimm_e820_chainevh(struct module *m, int e, void *arg __unused)
 
 	switch (e) {
 	case MOD_UNLOAD:
-		dc = nvdimm_e820_devclass;
+		dc = devclass_find(nvdimm_e820_driver.name);
 		maxunit = devclass_get_maxunit(dc);
 		for (i = 0; i < maxunit; i++) {
 			dev = devclass_get_device(dc, i);
@@ -390,5 +388,5 @@ nvdimm_e820_chainevh(struct module *m, int e, void *arg __unused)
 	return (0);
 }
 
-DRIVER_MODULE(nvdimm_e820, nexus, nvdimm_e820_driver, nvdimm_e820_devclass,
+DRIVER_MODULE(nvdimm_e820, nexus, nvdimm_e820_driver,
     nvdimm_e820_chainevh, NULL);

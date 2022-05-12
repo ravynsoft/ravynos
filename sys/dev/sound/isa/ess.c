@@ -939,14 +939,12 @@ static driver_t ess_driver = {
 	PCM_SOFTC_SIZE,
 };
 
-DRIVER_MODULE(snd_ess, sbc, ess_driver, pcm_devclass, 0, 0);
+DRIVER_MODULE(snd_ess, sbc, ess_driver, 0, 0);
 MODULE_DEPEND(snd_ess, sound, SOUND_MINVER, SOUND_PREFVER, SOUND_MAXVER);
 MODULE_DEPEND(snd_ess, snd_sbc, 1, 1, 1);
 MODULE_VERSION(snd_ess, 1);
 
 /************************************************************/
-
-static devclass_t esscontrol_devclass;
 
 static struct isa_pnp_id essc_ids[] = {
 	{0x06007316, "ESS Control"},
@@ -1010,6 +1008,6 @@ static driver_t esscontrol_driver = {
 	1,
 };
 
-DRIVER_MODULE(esscontrol, isa, esscontrol_driver, esscontrol_devclass, 0, 0);
-DRIVER_MODULE(esscontrol, acpi, esscontrol_driver, esscontrol_devclass, 0, 0);
+DRIVER_MODULE(esscontrol, isa, esscontrol_driver, 0, 0);
+DRIVER_MODULE(esscontrol, acpi, esscontrol_driver, 0, 0);
 ISA_PNP_INFO(essc_ids);

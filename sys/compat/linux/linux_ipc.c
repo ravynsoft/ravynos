@@ -51,6 +51,7 @@ __FBSDID("$FreeBSD$");
 #endif
 #include <compat/linux/linux_ipc.h>
 #include <compat/linux/linux_ipc64.h>
+#include <compat/linux/linux_timer.h>
 #include <compat/linux/linux_util.h>
 
 /*
@@ -504,21 +505,42 @@ linux_shminfo_pushdown(l_int ver, struct l_shminfo64 *linux_shminfo64,
 	}
 }
 
+#if defined(__i386__) || (defined(__amd64__) && defined(COMPAT_LINUX32))
 int
-linux_semop(struct thread *td, struct linux_semop_args *args)
+linux_semtimedop_time64(struct thread *td, struct linux_semtimedop_time64_args *args)
 {
-	struct semop_args /* {
-	int	semid;
-	struct	sembuf *sops;
-	int		nsops;
-	} */ bsd_args;
+	struct timespec ts, *tsa;
+	int error;
 
-	if (args->nsops < 1 || args->semid < 0)
-		return (EINVAL);
-	bsd_args.semid = args->semid;
-	bsd_args.sops = PTRIN(args->tsops);
-	bsd_args.nsops = args->nsops;
-	return (sys_semop(td, &bsd_args));
+	if (args->timeout) {
+		error = linux_get_timespec64(&ts, args->timeout);
+		if (error != 0)
+			return (error);
+		tsa = &ts;
+	} else
+		tsa = NULL;
+
+	return (kern_semop(td, args->semid, PTRIN(args->tsops),
+	    args->nsops, tsa));
+}
+#endif /* __i386__) || (__amd64__ && COMPAT_LINUX32) */
+
+int
+linux_semtimedop(struct thread *td, struct linux_semtimedop_args *args)
+{
+	struct timespec ts, *tsa;
+	int error;
+
+	if (args->timeout) {
+		error = linux_get_timespec(&ts, args->timeout);
+		if (error != 0)
+			return (error);
+		tsa = &ts;
+	} else
+		tsa = NULL;
+
+	return (kern_semop(td, args->semid, PTRIN(args->tsops),
+	    args->nsops, tsa));
 }
 
 int

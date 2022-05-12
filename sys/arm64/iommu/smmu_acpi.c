@@ -40,6 +40,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/bus.h>
 #include <sys/bitstring.h>
 #include <sys/kernel.h>
+#include <sys/rman.h>
 #include <sys/tree.h>
 #include <sys/taskqueue.h>
 #include <sys/malloc.h>
@@ -146,8 +147,10 @@ smmu_acpi_identify(driver_t *driver, device_t parent)
 		BUS_SET_RESOURCE(parent, dev, SYS_RES_IRQ, 0,
 		    iort_data.smmu[i]->EventGsiv, 1);
 		BUS_SET_RESOURCE(parent, dev, SYS_RES_IRQ, 1,
-		    iort_data.smmu[i]->SyncGsiv, 1);
+		    iort_data.smmu[i]->PriGsiv, 1);
 		BUS_SET_RESOURCE(parent, dev, SYS_RES_IRQ, 2,
+		    iort_data.smmu[i]->SyncGsiv, 1);
+		BUS_SET_RESOURCE(parent, dev, SYS_RES_IRQ, 3,
 		    iort_data.smmu[i]->GerrGsiv, 1);
 		BUS_SET_RESOURCE(parent, dev, SYS_RES_MEMORY, 0,
 		    iort_data.smmu[i]->BaseAddress, MEMORY_RESOURCE_SIZE);
@@ -190,6 +193,7 @@ smmu_acpi_attach(device_t dev)
 	struct iommu_unit *iommu;
 	uintptr_t priv;
 	int err;
+	int rid;
 
 	sc = device_get_softc(dev);
 	sc->dev = dev;
@@ -201,6 +205,43 @@ smmu_acpi_attach(device_t dev)
 	if (bootverbose)
 		device_printf(sc->dev, "%s: features %x\n",
 		    __func__, sc->features);
+
+	rid = 0;
+	sc->res[0] = bus_alloc_resource_any(dev, SYS_RES_MEMORY, &rid,
+	    RF_ACTIVE);
+	if (sc->res[0] == NULL) {
+		device_printf(dev, "Can't allocate memory resource.\n");
+		err = ENXIO;
+		goto error;
+	}
+
+	/*
+	 * Interrupt lines are "eventq", "priq", "cmdq-sync", "gerror".
+	 */
+
+	rid = 0;
+	sc->res[1] = bus_alloc_resource_any(dev, SYS_RES_IRQ, &rid, RF_ACTIVE);
+	if (sc->res[1] == NULL) {
+		device_printf(dev, "Can't allocate eventq IRQ resource.\n");
+		err = ENXIO;
+		goto error;
+	}
+
+	rid = 2;
+	sc->res[3] = bus_alloc_resource_any(dev, SYS_RES_IRQ, &rid, RF_ACTIVE);
+	if (sc->res[3] == NULL) {
+		device_printf(dev, "Can't allocate cmdq-sync IRQ resource.\n");
+		err = ENXIO;
+		goto error;
+	}
+
+	rid = 3;
+	sc->res[4] = bus_alloc_resource_any(dev, SYS_RES_IRQ, &rid, RF_ACTIVE);
+	if (sc->res[4] == NULL) {
+		device_printf(dev, "Can't allocate gerror IRQ resource.\n");
+		err = ENXIO;
+		goto error;
+	}
 
 	err = smmu_attach(dev);
 	if (err != 0)
@@ -249,7 +290,5 @@ static device_method_t smmu_acpi_methods[] = {
 DEFINE_CLASS_1(smmu, smmu_acpi_driver, smmu_acpi_methods,
     sizeof(struct smmu_softc), smmu_driver);
 
-static devclass_t smmu_acpi_devclass;
-
-EARLY_DRIVER_MODULE(smmu, acpi, smmu_acpi_driver, smmu_acpi_devclass,
-    0, 0, BUS_PASS_INTERRUPT + BUS_PASS_ORDER_MIDDLE);
+EARLY_DRIVER_MODULE(smmu, acpi, smmu_acpi_driver, 0, 0,
+    BUS_PASS_INTERRUPT + BUS_PASS_ORDER_MIDDLE);

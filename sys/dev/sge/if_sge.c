@@ -173,10 +173,8 @@ static driver_t sge_driver = {
 	"sge", sge_methods, sizeof(struct sge_softc)
 };
 
-static devclass_t sge_devclass;
-
-DRIVER_MODULE(sge, pci, sge_driver, sge_devclass, 0, 0);
-DRIVER_MODULE(miibus, sge, miibus_driver, miibus_devclass, 0, 0);
+DRIVER_MODULE(sge, pci, sge_driver, 0, 0);
+DRIVER_MODULE(miibus, sge, miibus_driver, 0, 0);
 
 /*
  * Register space access macros.

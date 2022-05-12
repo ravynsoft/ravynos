@@ -937,10 +937,10 @@
 172	AUE_PRCTL	STD {
 		int linux_prctl(
 		    l_int option,
-		    l_int arg2,
-		    l_int arg3,
-		    l_int arg4,
-		    l_int arg5
+		    l_uintptr_t arg2,
+		    l_uintptr_t arg3,
+		    l_uintptr_t arg4,
+		    l_uintptr_t arg5
 		);
 	}
 173	AUE_NULL	STD {
@@ -2393,16 +2393,32 @@
 		);
 	}
 408	AUE_NULL	STD {
-		int linux_timer_gettime64(void);
+		int linux_timer_gettime64(
+		    l_timer_t timerid,
+		    struct l_itimerspec64 *setting
+		);
 	}
 409	AUE_NULL	STD {
-		int linux_timer_settime64(void);
+		int linux_timer_settime64(
+		    l_timer_t timerid,
+		    l_int flags,
+		    const struct l_itimerspec64 *new,
+		    struct l_itimerspec64 *old
+		);
 	}
 410	AUE_NULL	STD {
-		int linux_timerfd_gettime64(void);
+		int linux_timerfd_gettime64(
+		    l_int fd,
+		    struct l_itimerspec64 *old_value
+		);
 	}
 411	AUE_NULL	STD {
-		int linux_timerfd_settime64(void);
+		int linux_timerfd_settime64(
+		    l_int fd,
+		    l_int flags,
+		    const struct l_itimerspec64 *new_value,
+		    struct l_itimerspec64 *old_value
+		);
 	}
 412	AUE_NULL	STD {
 		int linux_utimensat_time64(
@@ -2436,7 +2452,13 @@
 		int linux_io_pgetevents_time64(void);
 	}
 417	AUE_NULL	STD {
-		int linux_recvmmsg_time64(void);
+		int linux_recvmmsg_time64(
+		    l_int s,
+		    struct l_mmsghdr *msg,
+		    l_uint vlen,
+		    l_uint flags,
+		    struct l_timespec64 *timeout
+		);
 	}
 418	AUE_NULL	STD {
 		int linux_mq_timedsend_time64(void);
@@ -2445,7 +2467,12 @@
 		int linux_mq_timedreceive_time64(void);
 	}
 420	AUE_NULL	STD {
-		int linux_semtimedop_time64(void);
+		int linux_semtimedop_time64(
+		    l_int semid,
+		    struct sembuf *tsops,
+		    l_size_t nsops,
+		    struct l_timespec64 *timeout
+		);
 	}
 421	AUE_NULL	STD {
 		int linux_rt_sigtimedwait_time64(
@@ -2465,8 +2492,11 @@
 		    uint32_t val3
 		);
 	}
-423	AUE_NULL	STD {
-		int linux_sched_rr_get_interval_time64(void);
+423	AUE_SCHED_RR_GET_INTERVAL	STD {
+		int linux_sched_rr_get_interval_time64(
+		    l_pid_t pid,
+		    struct l_timespec64 *interval
+		);
 	}
 424	AUE_NULL	STD {
 		int linux_pidfd_send_signal(

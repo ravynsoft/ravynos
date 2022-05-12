@@ -1254,11 +1254,10 @@ gen_parse_tx(struct mbuf *m, int csum_flags)
 			m0->m_data = m0->m_pktdat;			\
 			bcopy(p0, mtodo(m0, sizeof(struct statusblock)),\
 			    m0->m_len - sizeof(struct statusblock));	\
-			copy_p = mtodo(m0, sizeof(struct statusblock));	\
+			copy_p = mtodo(m0, m0->m_len);			\
 		}							\
 		bcopy(p, copy_p, hsize);				\
 		m0->m_len += hsize;					\
-		m0->m_pkthdr.len += hsize;	/* unneeded */		\
 		m->m_len -= hsize;					\
 		m->m_data += hsize;					\
 	}								\
@@ -1822,9 +1821,7 @@ static driver_t gen_driver = {
 	sizeof(struct gen_softc),
 };
 
-static devclass_t gen_devclass;
-
-DRIVER_MODULE(genet, simplebus, gen_driver, gen_devclass, 0, 0);
-DRIVER_MODULE(miibus, genet, miibus_driver, miibus_devclass, 0, 0);
+DRIVER_MODULE(genet, simplebus, gen_driver, 0, 0);
+DRIVER_MODULE(miibus, genet, miibus_driver, 0, 0);
 MODULE_DEPEND(genet, ether, 1, 1, 1);
 MODULE_DEPEND(genet, miibus, 1, 1, 1);

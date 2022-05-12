@@ -101,16 +101,13 @@ LIN_SDT_PROBE_DEFINE1(time, linux_clock_getres, copyout_error, "int");
 #if defined(__i386__) || (defined(__amd64__) && defined(COMPAT_LINUX32))
 LIN_SDT_PROBE_DEFINE1(time, linux_clock_getres_time64, copyout_error, "int");
 #endif
-LIN_SDT_PROBE_DEFINE1(time, linux_nanosleep, conversion_error, "int");
 LIN_SDT_PROBE_DEFINE1(time, linux_nanosleep, copyout_error, "int");
 LIN_SDT_PROBE_DEFINE1(time, linux_nanosleep, copyin_error, "int");
-LIN_SDT_PROBE_DEFINE1(time, linux_clock_nanosleep, conversion_error, "int");
 LIN_SDT_PROBE_DEFINE1(time, linux_clock_nanosleep, copyout_error, "int");
 LIN_SDT_PROBE_DEFINE1(time, linux_clock_nanosleep, copyin_error, "int");
 LIN_SDT_PROBE_DEFINE1(time, linux_common_clock_nanosleep, unsupported_flags, "int");
 LIN_SDT_PROBE_DEFINE1(time, linux_common_clock_nanosleep, unsupported_clockid, "int");
 #if defined(__i386__) || (defined(__amd64__) && defined(COMPAT_LINUX32))
-LIN_SDT_PROBE_DEFINE1(time, linux_clock_nanosleep_time64, conversion_error, "int");
 LIN_SDT_PROBE_DEFINE1(time, linux_clock_nanosleep_time64, copyout_error, "int");
 LIN_SDT_PROBE_DEFINE1(time, linux_clock_nanosleep_time64, copyin_error, "int");
 #endif
@@ -150,6 +147,30 @@ linux_to_native_timespec(struct timespec *ntp, struct l_timespec *ltp)
 	return (0);
 }
 
+int
+linux_put_timespec(struct timespec *ntp, struct l_timespec *ltp)
+{
+	struct l_timespec lts;
+	int error;
+
+	error = native_to_linux_timespec(&lts, ntp);
+	if (error != 0)
+		return (error);
+	return (copyout(&lts, ltp, sizeof(lts)));
+}
+
+int
+linux_get_timespec(struct timespec *ntp, const struct l_timespec *ultp)
+{
+	struct l_timespec lts;
+	int error;
+
+	error = copyin(ultp, &lts, sizeof(lts));
+	if (error != 0)
+		return (error);
+	return (linux_to_native_timespec(ntp, &lts));
+}
+
 #if defined(__i386__) || (defined(__amd64__) && defined(COMPAT_LINUX32))
 int
 native_to_linux_timespec64(struct l_timespec64 *ltp64, struct timespec *ntp)
@@ -165,12 +186,43 @@ int
 linux_to_native_timespec64(struct timespec *ntp, struct l_timespec64 *ltp64)
 {
 
-	if (!timespecvalid_interval(ltp64))
-		return (EINVAL);
+#if defined(__i386__)
+	/* i386 time_t is still 32-bit */
+	if (ltp64->tv_sec > INT_MAX || ltp64->tv_sec < INT_MIN)
+		return (EOVERFLOW);
+#endif
+	/* Zero out the padding in compat mode. */
+	ntp->tv_nsec = ltp64->tv_nsec & 0xFFFFFFFFUL;
 	ntp->tv_sec = ltp64->tv_sec;
-	ntp->tv_nsec = ltp64->tv_nsec;
+
+	if (!timespecvalid_interval(ntp))
+		return (EINVAL);
 
 	return (0);
+}
+
+int
+linux_put_timespec64(struct timespec *ntp, struct l_timespec64 *ltp)
+{
+	struct l_timespec64 lts;
+	int error;
+
+	error = native_to_linux_timespec64(&lts, ntp);
+	if (error != 0)
+		return (error);
+	return (copyout(&lts, ltp, sizeof(lts)));
+}
+
+int
+linux_get_timespec64(struct timespec *ntp, const struct l_timespec64 *ultp)
+{
+	struct l_timespec64 lts;
+	int error;
+
+	error = copyin(ultp, &lts, sizeof(lts));
+	if (error != 0)
+		return (error);
+	return (linux_to_native_timespec64(ntp, &lts));
 }
 #endif
 
@@ -195,6 +247,30 @@ linux_to_native_itimerspec(struct itimerspec *ntp, struct l_itimerspec *ltp)
 		error = linux_to_native_timespec(&ntp->it_value, &ltp->it_value);
 	return (error);
 }
+
+#if defined(__i386__) || (defined(__amd64__) && defined(COMPAT_LINUX32))
+int
+linux_to_native_itimerspec64(struct itimerspec *ntp, struct l_itimerspec64 *ltp)
+{
+	int error;
+
+	error = linux_to_native_timespec64(&ntp->it_interval, &ltp->it_interval);
+	if (error == 0)
+		error = linux_to_native_timespec64(&ntp->it_value, &ltp->it_value);
+	return (error);
+}
+
+int
+native_to_linux_itimerspec64(struct l_itimerspec64 *ltp, struct itimerspec *ntp)
+{
+	int error;
+
+	error = native_to_linux_timespec64(&ltp->it_interval, &ntp->it_interval);
+	if (error == 0)
+		error = native_to_linux_timespec64(&ltp->it_value, &ntp->it_value);
+	return (error);
+}
+#endif
 
 int
 linux_to_native_clockid(clockid_t *n, clockid_t l)
@@ -390,7 +466,6 @@ linux_common_clock_gettime(struct thread *td, clockid_t which,
 int
 linux_clock_gettime(struct thread *td, struct linux_clock_gettime_args *args)
 {
-	struct l_timespec lts;
 	struct timespec tp;
 	int error;
 
@@ -399,10 +474,7 @@ linux_clock_gettime(struct thread *td, struct linux_clock_gettime_args *args)
 		LIN_SDT_PROBE1(time, linux_clock_gettime, gettime_error, error);
 		return (error);
 	}
-	error = native_to_linux_timespec(&lts, &tp);
-	if (error != 0)
-		return (error);
-	error = copyout(&lts, args->tp, sizeof(lts));
+	error = linux_put_timespec(&tp, args->tp);
 	if (error != 0)
 		LIN_SDT_PROBE1(time, linux_clock_gettime, copyout_error, error);
 
@@ -413,7 +485,6 @@ linux_clock_gettime(struct thread *td, struct linux_clock_gettime_args *args)
 int
 linux_clock_gettime64(struct thread *td, struct linux_clock_gettime64_args *args)
 {
-	struct l_timespec64 lts;
 	struct timespec tp;
 	int error;
 
@@ -422,10 +493,7 @@ linux_clock_gettime64(struct thread *td, struct linux_clock_gettime64_args *args
 		LIN_SDT_PROBE1(time, linux_clock_gettime64, gettime_error, error);
 		return (error);
 	}
-	error = native_to_linux_timespec64(&lts, &tp);
-	if (error != 0)
-		return (error);
-	error = copyout(&lts, args->tp, sizeof(lts));
+	error = linux_put_timespec64(&tp, args->tp);
 	if (error != 0)
 		LIN_SDT_PROBE1(time, linux_clock_gettime64, copyout_error, error);
 
@@ -461,19 +529,13 @@ int
 linux_clock_settime(struct thread *td, struct linux_clock_settime_args *args)
 {
 	struct timespec ts;
-	struct l_timespec lts;
 	int error;
 
-	error = copyin(args->tp, &lts, sizeof(lts));
+	error = linux_get_timespec(&ts, args->tp);
 	if (error != 0) {
 		LIN_SDT_PROBE1(time, linux_clock_settime, copyin_error, error);
 		return (error);
 	}
-	error = linux_to_native_timespec(&ts, &lts);
-	if (error != 0)
-		LIN_SDT_PROBE1(time, linux_clock_settime, conversion_error,
-		    error);
-
 	return (linux_common_clock_settime(td, args->which, &ts));
 }
 
@@ -482,18 +544,13 @@ int
 linux_clock_settime64(struct thread *td, struct linux_clock_settime64_args *args)
 {
 	struct timespec ts;
-	struct l_timespec64 lts;
 	int error;
 
-	error = copyin(args->tp, &lts, sizeof(lts));
+	error = linux_get_timespec64(&ts, args->tp);
 	if (error != 0) {
 		LIN_SDT_PROBE1(time, linux_clock_settime64, copyin_error, error);
 		return (error);
 	}
-	error = linux_to_native_timespec64(&ts, &lts);
-	if (error != 0)
-		LIN_SDT_PROBE1(time, linux_clock_settime64, conversion_error,
-		    error);
 	return (linux_common_clock_settime(td, args->which, &ts));
 }
 #endif
@@ -598,17 +655,12 @@ linux_clock_getres(struct thread *td,
     struct linux_clock_getres_args *args)
 {
 	struct timespec ts;
-	struct l_timespec lts;
 	int error;
 
 	error = linux_common_clock_getres(td, args->which, &ts);
 	if (error != 0 || args->tp == NULL)
 		return (error);
-
-	error = native_to_linux_timespec(&lts, &ts);
-	if (error != 0)
-		return (error);
-	error = copyout(&lts, args->tp, sizeof(lts));
+	error = linux_put_timespec(&ts, args->tp);
 	if (error != 0)
 		LIN_SDT_PROBE1(time, linux_clock_getres,
 		    copyout_error, error);
@@ -621,17 +673,12 @@ linux_clock_getres_time64(struct thread *td,
     struct linux_clock_getres_time64_args *args)
 {
 	struct timespec ts;
-	struct l_timespec64 lts;
 	int error;
 
 	error = linux_common_clock_getres(td, args->which, &ts);
 	if (error != 0 || args->tp == NULL)
 		return (error);
-
-	error = native_to_linux_timespec64(&lts, &ts);
-	if (error != 0)
-		return (error);
-	error = copyout(&lts, args->tp, sizeof(lts));
+	error = linux_put_timespec64(&ts, args->tp);
 	if (error != 0)
 		LIN_SDT_PROBE1(time, linux_clock_getres_time64,
 		    copyout_error, error);
@@ -643,32 +690,22 @@ int
 linux_nanosleep(struct thread *td, struct linux_nanosleep_args *args)
 {
 	struct timespec *rmtp;
-	struct l_timespec lrqts, lrmts;
 	struct timespec rqts, rmts;
 	int error, error2;
 
-	error = copyin(args->rqtp, &lrqts, sizeof lrqts);
+	error = linux_get_timespec(&rqts, args->rqtp);
 	if (error != 0) {
 		LIN_SDT_PROBE1(time, linux_nanosleep, copyin_error, error);
 		return (error);
 	}
-
 	if (args->rmtp != NULL)
 		rmtp = &rmts;
 	else
 		rmtp = NULL;
 
-	error = linux_to_native_timespec(&rqts, &lrqts);
-	if (error != 0) {
-		LIN_SDT_PROBE1(time, linux_nanosleep, conversion_error, error);
-		return (error);
-	}
 	error = kern_nanosleep(td, &rqts, rmtp);
 	if (error == EINTR && args->rmtp != NULL) {
-		error2 = native_to_linux_timespec(&lrmts, rmtp);
-		if (error2 != 0)
-			return (error2);
-		error2 = copyout(&lrmts, args->rmtp, sizeof(lrmts));
+		error2 = linux_put_timespec(rmtp, args->rmtp);
 		if (error2 != 0) {
 			LIN_SDT_PROBE1(time, linux_nanosleep, copyout_error,
 			    error2);
@@ -712,24 +749,15 @@ linux_clock_nanosleep(struct thread *td,
     struct linux_clock_nanosleep_args *args)
 {
 	struct timespec *rmtp;
-	struct l_timespec lrqts, lrmts;
 	struct timespec rqts, rmts;
 	int error, error2;
 
-	error = copyin(args->rqtp, &lrqts, sizeof(lrqts));
+	error = linux_get_timespec(&rqts, args->rqtp);
 	if (error != 0) {
 		LIN_SDT_PROBE1(time, linux_clock_nanosleep, copyin_error,
 		    error);
 		return (error);
 	}
-
-	error = linux_to_native_timespec(&rqts, &lrqts);
-	if (error != 0) {
-		LIN_SDT_PROBE1(time, linux_clock_nanosleep, conversion_error,
-		    error);
-		return (error);
-	}
-
 	if (args->rmtp != NULL)
 		rmtp = &rmts;
 	else
@@ -739,10 +767,7 @@ linux_clock_nanosleep(struct thread *td,
 	    &rqts, rmtp);
 	if (error == EINTR && (args->flags & LINUX_TIMER_ABSTIME) == 0 &&
 	    args->rmtp != NULL) {
-		error2 = native_to_linux_timespec(&lrmts, rmtp);
-		if (error2 != 0)
-			return (error2);
-		error2 = copyout(&lrmts, args->rmtp, sizeof(lrmts));
+		error2 = linux_put_timespec(rmtp, args->rmtp);
 		if (error2 != 0) {
 			LIN_SDT_PROBE1(time, linux_clock_nanosleep,
 			    copyout_error, error2);
@@ -758,24 +783,15 @@ linux_clock_nanosleep_time64(struct thread *td,
     struct linux_clock_nanosleep_time64_args *args)
 {
 	struct timespec *rmtp;
-	struct l_timespec64 lrqts, lrmts;
 	struct timespec rqts, rmts;
 	int error, error2;
 
-	error = copyin(args->rqtp, &lrqts, sizeof(lrqts));
+	error = linux_get_timespec64(&rqts, args->rqtp);
 	if (error != 0) {
 		LIN_SDT_PROBE1(time, linux_clock_nanosleep_time64,
 		    copyin_error, error);
 		return (error);
 	}
-
-	error = linux_to_native_timespec64(&rqts, &lrqts);
-	if (error != 0) {
-		LIN_SDT_PROBE1(time, linux_clock_nanosleep_time64,
-		    conversion_error, error);
-		return (error);
-	}
-
 	if (args->rmtp != NULL)
 		rmtp = &rmts;
 	else
@@ -785,10 +801,7 @@ linux_clock_nanosleep_time64(struct thread *td,
 	    &rqts, rmtp);
 	if (error == EINTR && (args->flags & LINUX_TIMER_ABSTIME) == 0 &&
 	    args->rmtp != NULL) {
-		error2 = native_to_linux_timespec64(&lrmts, rmtp);
-		if (error2 != 0)
-			return (error2);
-		error2 = copyout(&lrmts, args->rmtp, sizeof(lrmts));
+		error2 = linux_put_timespec64(rmtp, args->rmtp);
 		if (error2 != 0) {
 			LIN_SDT_PROBE1(time, linux_clock_nanosleep_time64,
 			    copyout_error, error2);

@@ -120,7 +120,7 @@ static driver_t pcm_i2s_driver = {
 	PCM_SOFTC_SIZE
 };
 
-DRIVER_MODULE(pcm_i2s, macio, pcm_i2s_driver, pcm_devclass, 0, 0);
+DRIVER_MODULE(pcm_i2s, macio, pcm_i2s_driver, 0, 0);
 MODULE_DEPEND(pcm_i2s, sound, SOUND_MINVER, SOUND_PREFVER, SOUND_MAXVER);
 
 static int	aoagpio_probe(device_t);
@@ -146,9 +146,8 @@ static driver_t aoagpio_driver = {
 	aoagpio_methods,
 	sizeof(struct aoagpio_softc)
 };
-static devclass_t aoagpio_devclass;
 
-DRIVER_MODULE(aoagpio, macgpio, aoagpio_driver, aoagpio_devclass, 0, 0);
+DRIVER_MODULE(aoagpio, macgpio, aoagpio_driver, 0, 0);
 
 /*****************************************************************************
 			Probe and attachment routines.

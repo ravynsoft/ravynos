@@ -90,8 +90,6 @@ __FBSDID("$FreeBSD$");
 #define	SMC_RX_PRIORITY		5
 #define	SMC_TX_PRIORITY		10
 
-devclass_t	smc_devclass;
-
 static const char *smc_chip_ids[16] = {
 	NULL, NULL, NULL,
 	/* 3 */ "SMSC LAN91C90 or LAN91C92",
@@ -500,7 +498,7 @@ driver_t smc_driver = {
 	sizeof(struct smc_softc),
 };
 
-DRIVER_MODULE(miibus, smc, miibus_driver, miibus_devclass, 0, 0);
+DRIVER_MODULE(miibus, smc, miibus_driver, 0, 0);
 
 static void
 smc_start(struct ifnet *ifp)

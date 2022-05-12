@@ -2247,8 +2247,11 @@ ffs_use_bwrite(void *devfd, off_t loc, void *buf, int size)
 	}
 	if (MOUNTEDSOFTDEP(ump->um_mountp))
 		softdep_setup_sbupdate(ump, (struct fs *)bp->b_data, bp);
+	UFS_LOCK(ump);
 	bcopy((caddr_t)fs, bp->b_data, (u_int)fs->fs_sbsize);
+	UFS_UNLOCK(ump);
 	fs = (struct fs *)bp->b_data;
+	fs->fs_fmod = 0;
 	ffs_oldfscompat_write(fs, ump);
 	fs->fs_si = NULL;
 	/* Recalculate the superblock hash */

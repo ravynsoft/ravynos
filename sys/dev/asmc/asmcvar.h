@@ -42,7 +42,7 @@ struct asmc_softc {
 	struct sysctl_oid 	*sc_temp_tree;
 	struct sysctl_oid 	*sc_sms_tree;
 	struct sysctl_oid 	*sc_light_tree;
-	struct asmc_model 	*sc_model;
+	const struct asmc_model *sc_model;
 	int 			sc_rid_port;
 	int 			sc_rid_irq;
 	struct resource 	*sc_ioport;
@@ -271,19 +271,49 @@ struct asmc_softc {
 				  "TMBS", "TP0P", "TPCD", "TW0P", "Th1H", \
 				  "Th2H", "Tm0P", "Ts0P", "Ts0S" }
 
-#define ASMC_MBP9_TEMPS		{ "Ts0P", "Ts0S", "TA0P", "TB1T", "TB2T", \
+#define ASMC_MBP91_TEMPS	{ "TA0P", "TB0T", "TB1T", "TB2T", "TC0E", \
+				  "TC0F", "TC0P", "TC1C", "TC2C", "TC3C", \
+				  "TC4C", "TCGC", "TCSA", "TCXC", "TG0D", \
+				  "TG0P", "TG1D", "TG1F", "TG1d", "TGTC", \
+				  "TGTD", "TM0P", "TM0S", "TP0P", "TPCD", \
+				  "Th1H", "Th2H", "Ts0P", "Ts0S", "Tsqf", NULL }
+
+#define ASMC_MBP91_TEMPNAMES	{ "ambient", "enclosure_bottom_1", "enclosure_bottom_2", \
+				  "enclosure_bottom_3", "cpu_die_peci_0", "cpu_die_peci_1", \
+				  "cpu_proximity", "cpu_core_1", "cpu_core_2", "cpu_core_3", \
+				  "cpu_core_4", "intel_gpu", "cpu_sys_agent", \
+				  "cpu_core_peci", "gpu_analog", \
+				  "gpu_proximity", "geforce_gpu_digital", "tg1f", \
+				  "gpu_2_die", "tgtc", "tgtd", "memory_proximity", \
+				  "mem_bank_a1", "platform_ctrl_hub", "pch_digital", \
+				  "main_heatsink_r", "main_heatsink_l", "palm_rest", \
+				  "bottom_skin", "tsqf" }
+
+#define ASMC_MBP91_TEMPDESCS	{ "Ambient", "Enclosure Bottom 1", "Enclosure Bottom 2", \
+				  "Enclosure Bottom 3", "CPU Die PECI 0", "CPU Die PECI 1", \
+				  "CPU Proximity", "CPU Core 1", "CPU Core 2", \
+				  "CPU Core 3", "CPU Core 4", "Intel GPU", \
+				  "CPU System Agent Core", "CPU Core - PECI", \
+				  "GPU Die - Analog", "GPU Proximity", \
+				  "GeForce GPU Die - Digital", "TG1F", "GPU 2 Die" \
+				  "TGTC", "TGTD", "Memory Proximity", \
+				  "Memory Bank A1", "Platform Controller Hub", "PCH Die - Digital", \
+				  "Main Heatsink Right", "Main Heatsink Left", "Palm Rest",  \
+				  "Bottom Skin", "Tsqf" }
+
+#define ASMC_MBP92_TEMPS	{ "Ts0P", "Ts0S", "TA0P", "TB1T", "TB2T", \
 				  "TB0T", "TC1C", "TC2C", "TC0E", "TC0F", \
 				  "TC0J", "TC0P", "TCFC", "TCGC", "TCSA", \
 				  "TCTD", "TCXC", "TG1D", "TM0P", "TM0S", \
 				  "TPCD", NULL }
 
-#define ASMC_MBP9_TEMPNAMES	{ "Ts0P", "Ts0S", "TA0P", "TB1T", "TB2T", \
+#define ASMC_MBP92_TEMPNAMES	{ "Ts0P", "Ts0S", "TA0P", "TB1T", "TB2T", \
 				  "TB0T", "TC1C", "TC2C", "TC0E", "TC0F", \
 				  "TC0J", "TC0P", "TCFC", "TCGC", "TCSA", \
 				  "TCTD", "TCXC", "TG1D", "TM0P", "TM0S", \
 				  "TPCD" }
 
-#define ASMC_MBP9_TEMPDESCS	{ "Palm Rest", "Memory Proximity", "Airflow 1", \
+#define ASMC_MBP92_TEMPDESCS	{ "Palm Rest", "Memory Proximity", "Airflow 1", \
 				  "Battery 1", "Battery 2", "Battery TS_MAX", \
 				  "CPU Core 1", "CPU Core 2", "CPU1", "CPU1", \
 				  "TC0J", "CPU 1 Proximity", "TCFC", \
@@ -318,7 +348,7 @@ struct asmc_softc {
 				  "TaSP", "Th1H", "Th2H", "Ts0P", "Ts0S", \
 				  "Ts1S" }
 
-#define ASMC_MBP113_TEMPS	{ "TB0T", "TB1T", "TB2T", "TBXT", "TC0E",	\
+#define ASMC_MBP113_TEMPS	{ "TB0T", "TB1T", "TB2T", "TBXT", "TC0E", \
 				  "TC0F", "TC0P", "TC1C", "TC2C", "TC3C", \
 				  "TC4C", "TCFC", "TCGC", "TCSA", "TCTD", \
 				  "TCXC", "TG0D", "TG0P", "TG1D", "TG1F", \
@@ -444,6 +474,37 @@ struct asmc_softc {
 				  "Platform Controller Hub Die Temperature", \
 				  "Power Supply Temperature", \
 				  "Wireless Module Proximity Temperature", }
+
+#define ASMC_MM71_TEMPS		{ "TA0p", "TA1p", \
+				  "TA2p", "TC0c", \
+				  "TC0p", "TC1c", \
+				  "TCGc", "TCSc", \
+				  "TCXC", "TCXR", \
+				  "TM0p", "TPCd", \
+				  "TW0p", "Te0T", \
+				  "Tm0P", NULL }
+
+#define ASMC_MM71_TEMPNAMES	{ "ambient_air1", "ambient_air2", \
+				  "ambient_air3", "cpu_core1_peci", \
+				  "cpu_proximity", "cpu_core2_peci", \
+				  "intel_gpu", "cpu_sa_core_peci", \
+				  "cpu_core", "cpu_peci_dts", \
+				  "memory_proximity", "pch_controller_die", \
+				  "wireless_proximity", "thunderbolt_diode", \
+				  "logic_board", }
+
+#define ASMC_MM71_TEMPDESCS	{ "Ambient Air Temperature 1", \
+				  "Ambient Air Temperature 2", \
+				  "Ambient Air Temperature 3", \
+				  "CPU Core 1 PECI Temperature", "CPU Proximity Temperature", \
+				  "CPU Core 2 PECI Temperature", "Intel GPU Temperature", \
+				  "CPU System Agent Core PECI Temperature", \
+				  "CPU Core Temperature", "CPU PECI DTS Temperature", \
+				  "Memory Proximity Temperature", \
+				  "Platform Controller Hub Die Temperature", \
+				  "Wireless Module Proximity Temperature", \
+				  "Thunderbolt Diode Temperature", \
+				  "Logic Board temperature", }
 
 #define ASMC_MP1_TEMPS		{ "TA0P", \
 				  "TCAH", "TCBH", \
@@ -581,6 +642,22 @@ struct asmc_softc {
 				  "Te3F", "Te3S", "Te4F", "Te4S", "Te5F", \
 				  "Te5S", "TeGG", "TeGP", "TeRG", "TeRP", \
 				  "TeRV", "Tp0C", "Tp1C", "TpPS", "TpTG", }
+
+#define ASMC_MP6_TEMPS		{ "TA0P", "TA1P", "TC0P", "TG0D", "TG0P", \
+				  "TG1D", "TG1P", "TM0P", "TM1P", NULL }
+
+#define ASMC_MP6_TEMPNAMES	{ "ambient_air_1", "ambient_air_2", \
+				  "cpu_proximity", "gpu_diode_1", \
+				  "gpu_proximity_1", "gpu_diode_2", \
+				  "gpu_proximity_2", "mem_proximity_1", \
+				  "mem_proximity_2" }
+
+#define ASMC_MP6_TEMPDESCS	{ "Ambient Air 1", "Ambient Air 2", \
+				  "CPU Proximity", "GPU Diode 1", \
+				  "GPU Proximity 1", "GPU Diode 2", \
+				  "GPU Proximity 2", "Memory Bank A", \
+				  "Memory Bank B" }
+
 #define	ASMC_MBA_TEMPS		{ "TB0T", NULL }
 #define	ASMC_MBA_TEMPNAMES	{ "enclosure" }
 #define	ASMC_MBA_TEMPDESCS	{ "Enclosure Bottom" }
@@ -593,6 +670,30 @@ struct asmc_softc {
 
 #define	ASMC_MBA3_TEMPDESCS	{ "Enclosure Bottom", "TB1T", "TB2T", \
 				  "TC0D", "TC0E", "TC0P" }
+
+#define	ASMC_MBA4_TEMPS		{ "TB0T", "TB1T", "TB2T", "TC0C", \
+				  "TC0D", "TC0E", "TC0F", "TC0P", \
+				  "TC1C", "TC2C", "TCGC", "TCSA", \
+				  "TH0F", "TH0J", "TH0O", "TH0o", \
+				  "TM0P", "TPCD", "Ta0P", "Th1H", \
+				  "Tm0P", "Tm1P", "Ts0P", "Ts0S", \
+				  NULL }
+
+#define	ASMC_MBA4_TEMPNAMES	{ "TB0T", "TB1T", "TB2T", "TC0C", \
+				  "TC0D", "TC0E", "TC0F", "TC0P", \
+				  "TC1C", "TC2C", "TCGC", "TCSA", \
+				  "TH0F", "TH0J", "TH0O", "TH0o", \
+				  "TM0P", "TPCD", "Ta0P", "Th1H", \
+				  "Tm0P", "Tm1P", "Ts0P", "Ts0S", \
+				  NULL }
+
+#define	ASMC_MBA4_TEMPDESCS	{ "TB0T", "TB1T", "TB2T", "TC0C", \
+				  "TC0D", "TC0E", "TC0F", "TC0P", \
+				  "TC1C", "TC2C", "TCGC", "TCSA", \
+				  "TH0F", "TH0J", "TH0O", "TH0o", \
+				  "TM0P", "TPCD", "Ta0P", "Th1H", \
+				  "Tm0P", "Tm1P", "Ts0P", "Ts0S", \
+				  NULL }
 
 #define	ASMC_MBA5_TEMPS		{ "TB0T", "TB1T", "TB2T", "TC0C", \
                          	  "TC0D", "TC0E", "TC0F", "TC0P", \

@@ -350,13 +350,10 @@ static driver_t dc_driver = {
 	sizeof(struct dc_softc)
 };
 
-static devclass_t dc_devclass;
-
-DRIVER_MODULE_ORDERED(dc, pci, dc_driver, dc_devclass, NULL, NULL,
-    SI_ORDER_ANY);
+DRIVER_MODULE_ORDERED(dc, pci, dc_driver, NULL, NULL, SI_ORDER_ANY);
 MODULE_PNP_INFO("W32:vendor/device;U8:revision;D:#", pci, dc, dc_devs,
     nitems(dc_devs) - 1);
-DRIVER_MODULE(miibus, dc, miibus_driver, miibus_devclass, NULL, NULL);
+DRIVER_MODULE(miibus, dc, miibus_driver, NULL, NULL);
 
 #define	DC_SETBIT(sc, reg, x)				\
 	CSR_WRITE_4(sc, reg, CSR_READ_4(sc, reg) | (x))

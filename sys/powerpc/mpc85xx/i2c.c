@@ -122,10 +122,9 @@ static driver_t i2c_driver = {
 	i2c_methods,
 	sizeof(struct i2c_softc),
 };
-static devclass_t  i2c_devclass;
 
-DRIVER_MODULE(i2c, simplebus, i2c_driver, i2c_devclass, 0, 0);
-DRIVER_MODULE(iicbus, i2c, iicbus_driver, iicbus_devclass, 0, 0);
+DRIVER_MODULE(i2c, simplebus, i2c_driver, 0, 0);
+DRIVER_MODULE(iicbus, i2c, iicbus_driver, 0, 0);
 
 static __inline void
 i2c_write_reg(struct i2c_softc *sc, bus_size_t off, uint8_t val)

@@ -1056,7 +1056,6 @@ ahci_ch_resume(device_t dev)
 	return (0);
 }
 
-devclass_t ahcich_devclass;
 static device_method_t ahcich_methods[] = {
 	DEVMETHOD(device_probe,     ahci_ch_probe),
 	DEVMETHOD(device_attach,    ahci_ch_attach),
@@ -1070,7 +1069,7 @@ static driver_t ahcich_driver = {
         ahcich_methods,
         sizeof(struct ahci_channel)
 };
-DRIVER_MODULE(ahcich, ahci, ahcich_driver, ahcich_devclass, NULL, NULL);
+DRIVER_MODULE(ahcich, ahci, ahcich_driver, NULL, NULL);
 
 struct ahci_dc_cb_args {
 	bus_addr_t maddr;
@@ -2905,8 +2904,6 @@ ahcipoll(struct cam_sim *sim)
 		ahci_reset_to(ch);
 	}
 }
-
-devclass_t ahci_devclass;
 
 MODULE_VERSION(ahci, 1);
 MODULE_DEPEND(ahci, cam, 1, 1, 1);

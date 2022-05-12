@@ -314,11 +314,6 @@ struct linux_semget_args {
 	char nsems_l_[PADL_(l_int)]; l_int nsems; char nsems_r_[PADR_(l_int)];
 	char semflg_l_[PADL_(l_int)]; l_int semflg; char semflg_r_[PADR_(l_int)];
 };
-struct linux_semop_args {
-	char semid_l_[PADL_(l_int)]; l_int semid; char semid_r_[PADR_(l_int)];
-	char tsops_l_[PADL_(struct l_sembuf *)]; struct l_sembuf * tsops; char tsops_r_[PADR_(struct l_sembuf *)];
-	char nsops_l_[PADL_(l_uint)]; l_uint nsops; char nsops_r_[PADR_(l_uint)];
-};
 struct linux_semctl_args {
 	char semid_l_[PADL_(l_int)]; l_int semid; char semid_r_[PADR_(l_int)];
 	char semnum_l_[PADL_(l_int)]; l_int semnum; char semnum_r_[PADR_(l_int)];
@@ -766,7 +761,10 @@ struct linux_restart_syscall_args {
 	syscallarg_t dummy;
 };
 struct linux_semtimedop_args {
-	syscallarg_t dummy;
+	char semid_l_[PADL_(l_int)]; l_int semid; char semid_r_[PADR_(l_int)];
+	char tsops_l_[PADL_(struct sembuf *)]; struct sembuf * tsops; char tsops_r_[PADR_(struct sembuf *)];
+	char nsops_l_[PADL_(l_size_t)]; l_size_t nsops; char nsops_r_[PADR_(l_size_t)];
+	char timeout_l_[PADL_(struct l_timespec *)]; struct l_timespec * timeout; char timeout_r_[PADR_(struct l_timespec *)];
 };
 struct linux_fadvise64_args {
 	char fd_l_[PADL_(l_int)]; l_int fd; char fd_r_[PADR_(l_int)];
@@ -1452,7 +1450,6 @@ int	linux_wait4(struct thread *, struct linux_wait4_args *);
 int	linux_kill(struct thread *, struct linux_kill_args *);
 int	linux_newuname(struct thread *, struct linux_newuname_args *);
 int	linux_semget(struct thread *, struct linux_semget_args *);
-int	linux_semop(struct thread *, struct linux_semop_args *);
 int	linux_semctl(struct thread *, struct linux_semctl_args *);
 int	linux_shmdt(struct thread *, struct linux_shmdt_args *);
 int	linux_msgget(struct thread *, struct linux_msgget_args *);
@@ -1750,7 +1747,6 @@ int	linux_mount_setattr(struct thread *, struct linux_mount_setattr_args *);
 #define	LINUX_SYS_AUE_linux_kill	AUE_KILL
 #define	LINUX_SYS_AUE_linux_newuname	AUE_NULL
 #define	LINUX_SYS_AUE_linux_semget	AUE_NULL
-#define	LINUX_SYS_AUE_linux_semop	AUE_NULL
 #define	LINUX_SYS_AUE_linux_semctl	AUE_NULL
 #define	LINUX_SYS_AUE_linux_shmdt	AUE_NULL
 #define	LINUX_SYS_AUE_linux_msgget	AUE_NULL

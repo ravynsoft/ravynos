@@ -245,10 +245,8 @@ static driver_t mos_driver = {
 	.size = sizeof(struct mos_softc)
 };
 
-static devclass_t mos_devclass;
-
-DRIVER_MODULE(mos, uhub, mos_driver, mos_devclass, NULL, 0);
-DRIVER_MODULE(miibus, mos, miibus_driver, miibus_devclass, 0, 0);
+DRIVER_MODULE(mos, uhub, mos_driver, NULL, NULL);
+DRIVER_MODULE(miibus, mos, miibus_driver, 0, 0);
 MODULE_DEPEND(mos, uether, 1, 1, 1);
 MODULE_DEPEND(mos, usb, 1, 1, 1);
 MODULE_DEPEND(mos, ether, 1, 1, 1);

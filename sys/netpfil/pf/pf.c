@@ -3576,7 +3576,7 @@ pf_rule_to_actions(struct pf_krule *r, struct pf_rule_actions *a)
 	if (r->dnpipe)
 		a->dnpipe = r->dnpipe;
 	if (r->dnrpipe)
-		a->dnpipe = r->dnrpipe;
+		a->dnrpipe = r->dnrpipe;
 	if (r->free_flags & PFRULE_DN_IS_PIPE)
 		a->flags |= PFRULE_DN_IS_PIPE;
 }
@@ -6743,7 +6743,7 @@ pf_pdesc_to_dnflow(int dir, const struct pf_pdesc *pd,
 	if (dir != dndir && pd->act.dnrpipe) {
 		dnflow->rule.info = pd->act.dnrpipe;
 	}
-	else if (dir == dndir) {
+	else if (dir == dndir && pd->act.dnpipe) {
 		dnflow->rule.info = pd->act.dnpipe;
 	}
 	else {
@@ -7298,8 +7298,8 @@ done:
 			if (pf_pdesc_to_dnflow(dir, &pd, r, s, &dnflow)) {
 				pd.pf_mtag->flags |= PF_TAG_DUMMYNET;
 				ip_dn_io_ptr(m0, &dnflow);
-				if (*m0 == NULL)
-					action = PF_DROP;
+				if (*m0 != NULL)
+					pd.pf_mtag->flags &= ~PF_TAG_DUMMYNET;
 			}
 		}
 		break;
@@ -7756,8 +7756,8 @@ done:
 			if (pf_pdesc_to_dnflow(dir, &pd, r, s, &dnflow)) {
 				pd.pf_mtag->flags |= PF_TAG_DUMMYNET;
 				ip_dn_io_ptr(m0, &dnflow);
-				if (*m0 == NULL)
-					action = PF_DROP;
+				if (*m0 != NULL)
+					pd.pf_mtag->flags &= ~PF_TAG_DUMMYNET;
 			}
 		}
 		break;

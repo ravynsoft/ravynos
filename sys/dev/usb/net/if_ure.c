@@ -189,10 +189,8 @@ static driver_t ure_driver = {
 	.size = sizeof(struct ure_softc),
 };
 
-static devclass_t ure_devclass;
-
-DRIVER_MODULE(ure, uhub, ure_driver, ure_devclass, NULL, NULL);
-DRIVER_MODULE(miibus, ure, miibus_driver, miibus_devclass, NULL, NULL);
+DRIVER_MODULE(ure, uhub, ure_driver, NULL, NULL);
+DRIVER_MODULE(miibus, ure, miibus_driver, NULL, NULL);
 MODULE_DEPEND(ure, uether, 1, 1, 1);
 MODULE_DEPEND(ure, usb, 1, 1, 1);
 MODULE_DEPEND(ure, ether, 1, 1, 1);

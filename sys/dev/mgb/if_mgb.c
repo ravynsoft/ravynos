@@ -206,17 +206,16 @@ static driver_t mgb_driver = {
 	"mgb", mgb_methods, sizeof(struct mgb_softc)
 };
 
-static devclass_t mgb_devclass;
-DRIVER_MODULE(mgb, pci, mgb_driver, mgb_devclass, NULL, NULL);
+DRIVER_MODULE(mgb, pci, mgb_driver, NULL, NULL);
 IFLIB_PNP_INFO(pci, mgb, mgb_vendor_info_array);
 MODULE_VERSION(mgb, 1);
 
 #if 0 /* MIIBUS_DEBUG */
 /* If MIIBUS debug stuff is in attach then order matters. Use below instead. */
-DRIVER_MODULE_ORDERED(miibus, mgb, miibus_driver, miibus_devclass, NULL, NULL,
+DRIVER_MODULE_ORDERED(miibus, mgb, miibus_driver, NULL, NULL,
     SI_ORDER_ANY);
 #endif /* MIIBUS_DEBUG */
-DRIVER_MODULE(miibus, mgb, miibus_driver, miibus_devclass, NULL, NULL);
+DRIVER_MODULE(miibus, mgb, miibus_driver, NULL, NULL);
 
 MODULE_DEPEND(mgb, pci, 1, 1, 1);
 MODULE_DEPEND(mgb, ether, 1, 1, 1);

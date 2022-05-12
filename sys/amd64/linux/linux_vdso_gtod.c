@@ -38,6 +38,7 @@ __FBSDID("$FreeBSD$");
 #include <stdbool.h>
 
 #include <machine/atomic.h>
+#include <machine/cpufunc.h>
 #include <machine/stdarg.h>
 
 #include <amd64/linux/linux.h>
@@ -48,8 +49,10 @@ __FBSDID("$FreeBSD$");
 /* The kernel fixup this at vDSO install */
 uintptr_t *kern_timekeep_base = NULL;
 uint32_t kern_tsc_selector = 0;
+uint32_t kern_cpu_selector = 0;
 
 #include <x86/linux/linux_vdso_gettc_x86.inc>
+#include <x86/linux/linux_vdso_getcpu_x86.inc>
 
 /* for debug purpose */
 static int

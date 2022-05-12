@@ -1481,6 +1481,8 @@ gicv3_iommu_init(device_t dev, device_t child, struct iommu_domain **domain)
 
 	sc = device_get_softc(dev);
 	ctx = iommu_get_dev_ctx(child);
+	if (ctx == NULL)
+		return (ENXIO);
 	error = iommu_map_msi(ctx, PAGE_SIZE, GITS_TRANSLATER,
 	    IOMMU_MAP_ENTRY_WRITE, IOMMU_MF_CANWAIT, &sc->ma);
 	*domain = iommu_get_ctx_domain(ctx);
@@ -1494,6 +1496,9 @@ gicv3_iommu_deinit(device_t dev, device_t child)
 	struct iommu_ctx *ctx;
 
 	ctx = iommu_get_dev_ctx(child);
+	if (ctx == NULL)
+		return;
+
 	iommu_unmap_msi(ctx);
 }
 #endif
@@ -1932,10 +1937,9 @@ static device_method_t gicv3_its_fdt_methods[] = {
 DEFINE_CLASS_1(its, gicv3_its_fdt_driver, gicv3_its_fdt_methods,
     sizeof(struct gicv3_its_softc), gicv3_its_driver);
 #undef its_baseclasses
-static devclass_t gicv3_its_fdt_devclass;
 
-EARLY_DRIVER_MODULE(its_fdt, gic, gicv3_its_fdt_driver,
-    gicv3_its_fdt_devclass, 0, 0, BUS_PASS_INTERRUPT + BUS_PASS_ORDER_MIDDLE);
+EARLY_DRIVER_MODULE(its_fdt, gic, gicv3_its_fdt_driver, 0, 0,
+    BUS_PASS_INTERRUPT + BUS_PASS_ORDER_MIDDLE);
 
 static int
 gicv3_its_fdt_probe(device_t dev)
@@ -2002,10 +2006,9 @@ static device_method_t gicv3_its_acpi_methods[] = {
 DEFINE_CLASS_1(its, gicv3_its_acpi_driver, gicv3_its_acpi_methods,
     sizeof(struct gicv3_its_softc), gicv3_its_driver);
 #undef its_baseclasses
-static devclass_t gicv3_its_acpi_devclass;
 
-EARLY_DRIVER_MODULE(its_acpi, gic, gicv3_its_acpi_driver,
-    gicv3_its_acpi_devclass, 0, 0, BUS_PASS_INTERRUPT + BUS_PASS_ORDER_MIDDLE);
+EARLY_DRIVER_MODULE(its_acpi, gic, gicv3_its_acpi_driver, 0, 0,
+    BUS_PASS_INTERRUPT + BUS_PASS_ORDER_MIDDLE);
 
 static int
 gicv3_its_acpi_probe(device_t dev)

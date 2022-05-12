@@ -178,10 +178,8 @@ static driver_t ste_driver = {
 	sizeof(struct ste_softc)
 };
 
-static devclass_t ste_devclass;
-
-DRIVER_MODULE(ste, pci, ste_driver, ste_devclass, 0, 0);
-DRIVER_MODULE(miibus, ste, miibus_driver, miibus_devclass, 0, 0);
+DRIVER_MODULE(ste, pci, ste_driver, 0, 0);
+DRIVER_MODULE(miibus, ste, miibus_driver, 0, 0);
 
 #define STE_SETBIT4(sc, reg, x)				\
 	CSR_WRITE_4(sc, reg, CSR_READ_4(sc, reg) | (x))
