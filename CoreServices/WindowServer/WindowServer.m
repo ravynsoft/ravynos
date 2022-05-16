@@ -218,28 +218,34 @@ int main(int argc, const char *argv[]) {
         exit(0);
     }
 
+    NSLog(@"Waiting for pipe");
     close(pfd[1]);
     char buf[8];
     read(pfd[0], buf, 4);
     close(pfd[0]);
 
+    NSLog(@"Initializing NSApplication");
     [NSApplication sharedApplication];
     NSNotificationCenter *nctr = [NSNotificationCenter defaultCenter];
     AppDelegate *del = [AppDelegate new];
     if(!del)
         exit(EXIT_FAILURE);
 
+    NSLog(@"Adding observers");
     [nctr addObserver:del selector:@selector(screenDidResize:)
         name:WLOutputDidResizeNotification object:nil];
     [nctr addObserver:del selector:@selector(menuDidUpdate:)
         name:WLMenuDidUpdateNotification object:nil];
 
+    NSLog(@"Creating menu thread");
     pthread_t menuThread;
     pthread_create(&menuThread, NULL, menuListener, NULL);
 
+    NSLog(@"Creating Mach service thread");
     pthread_t machSvcThread;
     pthread_create(&machSvcThread, NULL, machSvcLoop, (__bridge void *)del);
 
+    NSLog(@"Entering main loop");
     [NSApp run];
     kill(pid, SIGTERM);
     return 0;

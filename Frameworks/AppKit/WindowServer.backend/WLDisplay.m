@@ -63,8 +63,8 @@ const NSString *WLOutputXDGOutputKey = @"WLOutputXDGOutputKey";
 const NSString *WLModeSizeKey = @"WLModeSize";
 const NSString *WLModeRefreshKey = @"WLModeRefresh";
 
-const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
-const NSString *WLOutputDidMoveNotification = @"WLOutputDidMoveNotification";
+NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
+NSString *WLOutputDidMoveNotification = @"WLOutputDidMoveNotification";
 
 @implementation NSDisplay(WL)
 

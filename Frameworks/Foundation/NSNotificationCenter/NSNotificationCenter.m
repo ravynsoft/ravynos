@@ -135,14 +135,14 @@ static NSNotificationCenter *defaultCenter = nil;
 static inline void postNotification(NSNotificationCenter *self,NSNotification *note){
    NSAutoreleasePool       *pool=[NSAutoreleasePool new];
 
-	@synchronized(self) {
-   NSObjectToObservers *registry=self->_noNameRegistry;
+   @synchronized(self) {
+   	NSObjectToObservers *registry=self->_noNameRegistry;
 
-   [registry postNotification:note];
-   registry=[self->_nameToRegistry objectForKey:[note name]];
-   [[registry retain] postNotification:note];
-   [registry release];
-	}
+   	[registry postNotification:note];
+   	registry=[self->_nameToRegistry objectForKey:[note name]];
+   	[[registry retain] postNotification:note];
+   	[registry release];
+   }
 
    [pool release];
 }

@@ -34,6 +34,7 @@
 const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
 const NSString *WLMenuDidUpdateNotification = @"WLMenuDidUpdateNotification";
 
+
 void menuListener(void *arg __unused) {
     int conn;
     struct xucred xucred;
@@ -107,13 +108,13 @@ int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
     [NSApplication sharedApplication];
 
-    NSNotificationCenter *nctr = [NSNotificationCenter defaultCenter];
     AppDelegate *del = [AppDelegate new];
     if(!del)
         exit(1);
 
-    [nctr addObserver:del selector:@selector(screenDidResize:)
+    [[NSNotificationCenter defaultCenter] addObserver:del selector:@selector(screenDidResize:)
         name:WLOutputDidResizeNotification object:nil];
+#if 0
     [nctr addObserver:del selector:@selector(menuDidUpdate:)
         name:WLMenuDidUpdateNotification object:nil];
 
@@ -122,6 +123,7 @@ int main(int argc, const char *argv[]) {
 
     pthread_t machSvcThread;
     pthread_create(&machSvcThread, NULL, machSvcLoop, (__bridge void *)del);
+#endif
 
     [NSApp run];
     return 0;
