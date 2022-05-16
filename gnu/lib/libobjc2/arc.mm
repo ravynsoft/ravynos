@@ -145,14 +145,12 @@ static inline void release(id obj);
  */
 static void emptyPool(struct arc_tls *tls, void *stop)
 {
-	fprintf(stderr, "emptyPool tls=%p stop=%p\n",tls,stop);
 	struct arc_autorelease_pool *stopPool = NULL;
 	if (NULL != stop)
 	{
 		stopPool = tls->pool;
 		while (1)
 		{
-			fprintf(stderr,"looping: stopPool=%p\n",stopPool);
 			// Invalid stop location
 			if (NULL == stopPool)
 			{
@@ -194,7 +192,7 @@ static void emptyPool(struct arc_tls *tls, void *stop)
 			release(*tls->pool->insert);
 		}
 	}
-	fprintf(stderr, "New insert: %p.  Stop: %p\n", tls->pool->insert, stop);
+	//fprintf(stderr, "New insert: %p.  Stop: %p\n", tls->pool->insert, stop);
 }
 
 #ifdef arc_tls_store
@@ -246,7 +244,7 @@ extern "C" OBJC_PUBLIC size_t object_getRetainCount_np(id obj)
 {
 	uintptr_t *refCount = ((uintptr_t*)obj) - 1;
 	uintptr_t refCountVal = __sync_fetch_and_add(refCount, 0);
-	return (((size_t)refCountVal) & refcount_mask) + 1;
+	return (((size_t)refCountVal) & refcount_mask)/* + 1*/;
 }
 
 extern "C" OBJC_PUBLIC id objc_retain_fast_np(id obj)
@@ -291,19 +289,16 @@ extern "C" OBJC_PUBLIC id objc_retain_fast_np(id obj)
 __attribute__((always_inline))
 static inline BOOL isPersistentObject(id obj)
 {
-	fprintf(stderr,"checking for nil\n");
 	// No reference count manipulations on nil objects.
 	if (obj == nil)
 	{
 		return YES;
 	}
-	fprintf(stderr,"checking for smol\n");
 	// Small objects are never accessibly by reference
 	if (isSmallObject(obj))
 	{
 		return YES;
 	}
-	fprintf(stderr,"poking isa\n");
 	// Persistent objects are persistent.  Safe to access isa directly here
 	// because we've already handled the small object case separately.
 	return objc_test_class_flag(obj->isa, objc_class_flag_permanent_instances);
@@ -387,11 +382,8 @@ extern "C" OBJC_PUBLIC void objc_release_fast_np(id obj)
 
 static inline void release(id obj)
 {
-	fprintf(stderr,"checking %p\n",obj);
 	if (isPersistentObject(obj)) { return; }
-	fprintf(stderr,"nonpersist obj=%p\n", obj);
 	Class cls = obj->isa;
-	fprintf(stderr,"class %p\n", cls);
 	if (cls == static_cast<Class>(&_NSConcreteMallocBlock))
 	{
 		_Block_release(obj);
@@ -406,7 +398,6 @@ static inline void release(id obj)
 		objc_release_fast_np(obj);
 		return;
 	}
-	fprintf(stderr,"regular release %p\n",obj);
 	[obj release];
 }
 
