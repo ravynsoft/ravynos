@@ -28,7 +28,7 @@ SRCS= \
 MAN=		rtld.1
 CSTD?=		c11
 CFLAGS+=	-Wall -DFREEBSD_ELF -DFREEBSD_MACHO -DIN_RTLD -ffreestanding
-CFLAGS+=	-I${SRCTOP}/lib/csu/common -I${SRCTOP}/sys
+CFLAGS+=	-I${SRCTOP}/lib/csu/common -I${SRCTOP}/sys -I${SRCTOP}/include
 .if exists(${.CURDIR}/${MACHINE_ARCH})
 RTLD_ARCH=	${MACHINE_ARCH}
 .else
