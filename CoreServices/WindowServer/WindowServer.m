@@ -138,6 +138,8 @@ enum ShellType {
 int main(int argc, const char *argv[]) {
     enum wlr_log_importance debuglevel = WLR_ERROR;
     enum ShellType shell = LOGINWINDOW;
+    BOOL runCompositor = YES;
+
     __NSInitializeProcess(argc, argv);
 
     if(getenv("XDG_RUNTIME_DIR") == NULL) {
@@ -156,11 +158,14 @@ int main(int argc, const char *argv[]) {
     NSString *confPath = [[NSBundle mainBundle] pathForResource:@"ws" ofType:@"conf"];
     server.config_file = [confPath UTF8String];
 
-    while(getopt(argc, argv, "Lxv") != -1) {
+    while(getopt(argc, argv, "Ldxv") != -1) {
         switch(optopt) {
             case 'L': // bypass loginwindow, run desktop for current user
                 shell = DESKTOP;
                 break;
+	    case 'd': // just run the desktop shell
+		runCompositor = NO;
+		break;
             case 'x': // just run the compositor
                 shell = NONE;
                 break;
@@ -181,48 +186,51 @@ int main(int argc, const char *argv[]) {
         exit(EXIT_FAILURE);
     }
 
-    pid_t pid = fork();
-    if(pid == 0) {
-        close(pfd[0]);
-        if (wb_create_backend(&server)) {
-            wlr_log(WLR_INFO, "%s", _("Successfully created backend"));
-        } else {
-            wlr_log(WLR_ERROR, "%s", _("Failed to create backend"));
-            kill(getppid(), SIGTERM);
-            exit(EXIT_FAILURE);
-        }
+    pid_t pid = -1;
+    if(runCompositor) {
+	pid = fork();
+	if(pid == 0) {
+            close(pfd[0]);
+            if (wb_create_backend(&server)) {
+                wlr_log(WLR_INFO, "%s", _("Successfully created backend"));
+            } else {
+                wlr_log(WLR_ERROR, "%s", _("Failed to create backend"));
+                kill(getppid(), SIGTERM);
+                exit(EXIT_FAILURE);
+            }
 
-        if (wb_start_server(&server)) {
-            wlr_log(WLR_INFO, "%s", _("Successfully started server"));
-        } else {
-            wlr_log(WLR_ERROR, "%s", _("Failed to start server"));
+            if (wb_start_server(&server)) {
+                wlr_log(WLR_INFO, "%s", _("Successfully started server"));
+            } else {
+                wlr_log(WLR_ERROR, "%s", _("Failed to start server"));
+                wb_terminate(&server);
+                kill(getppid(), SIGTERM);
+                exit(EXIT_FAILURE);
+            }
+
+            struct sigaction sa;
+            sigemptyset(&sa.sa_mask);
+            sa.sa_flags = SA_RESTART;
+            sa.sa_handler = signal_handler;
+            sigaction(SIGINT, &sa, NULL);
+            sigaction(SIGTERM, &sa, NULL);
+            sigaction(SIGUSR1, &sa, NULL);
+            sigaction(SIGUSR2, &sa, NULL);
+
+            write(pfd[1], "GO!", 4);
+            close(pfd[1]);
+            wl_display_run(server.wl_display);
             wb_terminate(&server);
             kill(getppid(), SIGTERM);
-            exit(EXIT_FAILURE);
+            exit(0);
         }
 
-        struct sigaction sa;
-        sigemptyset(&sa.sa_mask);
-        sa.sa_flags = SA_RESTART;
-        sa.sa_handler = signal_handler;
-        sigaction(SIGINT, &sa, NULL);
-        sigaction(SIGTERM, &sa, NULL);
-        sigaction(SIGUSR1, &sa, NULL);
-        sigaction(SIGUSR2, &sa, NULL);
-
-        write(pfd[1], "GO!", 4);
+        NSLog(@"Waiting for pipe");
         close(pfd[1]);
-        wl_display_run(server.wl_display);
-        wb_terminate(&server);
-        kill(getppid(), SIGTERM);
-        exit(0);
+        char buf[8];
+        read(pfd[0], buf, 4);
+        close(pfd[0]);
     }
-
-    NSLog(@"Waiting for pipe");
-    close(pfd[1]);
-    char buf[8];
-    read(pfd[0], buf, 4);
-    close(pfd[0]);
 
     NSLog(@"Initializing NSApplication");
     [NSApplication sharedApplication];

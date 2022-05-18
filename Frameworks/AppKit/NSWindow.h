@@ -218,6 +218,8 @@ APPKIT_EXPORT NSString *const NSWindowDidEndLiveResizeNotification;
 
     NSRect _savedFrame;
     NSPoint _mouseDownLocationInWindow;
+
+    NSScreen *_preferredScreen;
 }
 
 + (NSWindowDepth)defaultDepthLimit;

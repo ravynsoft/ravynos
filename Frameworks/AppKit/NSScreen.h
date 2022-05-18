@@ -11,6 +11,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @interface NSScreen : NSObject {
     NSRect _frame;
     NSRect _visibleFrame;
+    NSNumber *_outputKey;
 }
 
 + (NSScreen *)mainScreen;
@@ -22,6 +23,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (NSRect)frame;
 
 - (NSRect)visibleFrame;
+
+- (NSNumber *)key;
 
 - (CGFloat)userSpaceScaleFactor;
 

@@ -73,6 +73,9 @@
 
 - initWithFrame:(NSRect)frame styleMask:(unsigned)styleMask
         isPanel:(BOOL)isPanel backingType:(NSUInteger)backingType;
+- initWithFrame:(NSRect)frame styleMask:(unsigned)styleMask
+        isPanel:(BOOL)isPanel backingType:(NSUInteger)backingType
+        output:(struct wl_output *)wlo;
 - (O2Rect)frame;
 - (NSPoint)transformPoint:(NSPoint)pos;
 - (O2Rect)transformFrame:(O2Rect)frame;

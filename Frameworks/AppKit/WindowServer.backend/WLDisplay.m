@@ -58,7 +58,7 @@ const NSString *WLOutputTransformKey = @"WLOutputTransform";
 const NSString *WLOutputScaleKey = @"WLOutputScale";
 const NSString *WLOutputManufacturerKey = @"WLOutputManufacturer";
 const NSString *WLOutputModelKey = @"WLOutputModel";
-const NSString *WLOutputXDGOutputKey = @"WLOutputXDGOutputKey";
+const NSString *WLOutputXDGOutputKey = @"WLOutputXDGOutput";
 
 const NSString *WLModeSizeKey = @"WLModeSize";
 const NSString *WLModeRefreshKey = @"WLModeRefresh";
@@ -457,6 +457,8 @@ static const struct wl_seat_listener wl_seat_listener = {
 
 
 static void handleWOMDone(void *data, struct wl_output *output) {
+    NSMutableDictionary *dict = (NSMutableDictionary *)data;
+    [dict setObject:@"YES" forKey:@"WOMDone"];
 }
 
 static void handleWOMGeometry(void *data, struct wl_output *output, int32_t x, int32_t y,
@@ -512,19 +514,21 @@ static void handleOMDescription(void *data, struct zxdg_output_v1 *head, const c
 static void handleOMSize(void *data, struct zxdg_output_v1 *head, int32_t w, int32_t h) {
     NSMutableDictionary *dict = (NSMutableDictionary *)data;
     [dict setObject:NSStringFromSize(NSMakeSize(w, h)) forKey:WLOutputSizeKey];
-    [[NSNotificationCenter defaultCenter] postNotificationName:WLOutputDidResizeNotification
-        object:nil userInfo:dict];
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:WLOutputDidResizeNotification object:nil userInfo:dict];
 }
 
 static void handleOMPosition(void *data, struct zxdg_output_v1 *head,
     int32_t x, int32_t y) {
     NSMutableDictionary *dict = (NSMutableDictionary *)data;
     [dict setObject:NSStringFromPoint(NSMakePoint(x, y)) forKey:WLOutputPositionKey];
-    [[NSNotificationCenter defaultCenter] postNotificationName:WLOutputDidMoveNotification
-        object:nil userInfo:dict];
+    [[NSNotificationCenter defaultCenter]
+        postNotificationName:WLOutputDidMoveNotification object:nil userInfo:dict];
 }
 
 static void handleOMDone(void *data, struct zxdg_output_v1 *head) {
+    NSMutableDictionary *dict = (NSMutableDictionary *)data;
+    [dict setObject:@"YES" forKey:@"OMDone"];
 }
 
 static const struct zxdg_output_v1_listener xdg_output_listener = {
@@ -640,12 +644,37 @@ static const struct wl_registry_listener registry_listener = {
     [super dealloc];
 }
 
+-(struct wl_output *)wlOutputWithXDGKey:(NSNumber *)key {
+    if(key == nil)
+        return NULL;
+
+    NSArray *keys = [_outputs allKeys];
+    NSArray *vals = [_outputs allValues];
+
+    for(int i = 0; i < [keys count]; ++i) {
+        NSDictionary *d = [vals objectAtIndex:i];
+        if([[d objectForKey:WLOutputXDGOutputKey] isEqualTo:key])
+            return (struct wl_output *)[[keys objectAtIndex:i] longValue];
+    }
+    return NULL;
+}
+
+-(CGWindow *)windowWithFrame:(NSRect)frame styleMask:(unsigned)styleMask backingType:(unsigned)backingType screen:(NSScreen *)screen {
+        struct wl_output *output = [self wlOutputWithXDGKey:[screen key]]; 
+	return [[[WLWindow alloc] initWithFrame:frame styleMask:styleMask isPanel:NO backingType:backingType output:output] autorelease];
+}
+
 -(CGWindow *)windowWithFrame:(NSRect)frame styleMask:(unsigned)styleMask backingType:(unsigned)backingType {
-	return [[[WLWindow alloc] initWithFrame:frame styleMask:styleMask isPanel:NO backingType:backingType] autorelease];
+	return [[[WLWindow alloc] initWithFrame:frame styleMask:styleMask isPanel:NO backingType:backingType output:NULL] autorelease];
+}
+
+-(CGWindow *)panelWithFrame:(NSRect)frame styleMask:(unsigned)styleMask backingType:(unsigned)backingType screen:(NSScreen *)screen {
+        struct wl_output *output = [self wlOutputWithXDGKey:[screen key]]; 
+	return [[[WLWindow alloc] initWithFrame:frame styleMask:styleMask isPanel:YES backingType:backingType output:output] autorelease];
 }
 
 -(CGWindow *)panelWithFrame:(NSRect)frame styleMask:(unsigned)styleMask backingType:(unsigned)backingType {
-	return [[[WLWindow alloc] initWithFrame:frame styleMask:styleMask isPanel:YES backingType:backingType] autorelease];
+	return [[[WLWindow alloc] initWithFrame:frame styleMask:styleMask isPanel:YES backingType:backingType output:NULL] autorelease];
 }
 
 -(struct wl_display *)display {
@@ -666,12 +695,14 @@ static const struct wl_registry_listener registry_listener = {
     NSMutableArray *scr = [NSMutableArray arrayWithCapacity:numHeads];
 
     for(int i = 0; i < numHeads; ++i) {
-        NSDictionary *d = [_outputs objectForKey:[keys objectAtIndex:i]];
+        NSString *key = [keys objectAtIndex:i];
+        NSDictionary *d = [_outputs objectForKey:key];
         NSDictionary *mode = [d objectForKey:WLOutputCurrentModeKey];
         NSRect frame = NSMakeRect(0, 0, 0, 0);
         frame.size = NSSizeFromString([mode objectForKey:WLModeSizeKey]);
         frame.origin = NSPointFromString([d objectForKey:WLOutputPositionKey]);
-        [scr addObject:[[[NSScreen alloc] initWithFrame:frame visibleFrame:frame] autorelease]];
+        [scr addObject:[[[NSScreen alloc] initWithFrame:frame visibleFrame:frame
+            outputKey:[d objectForKey:WLOutputXDGOutputKey]] autorelease]];
     }
     return [NSArray arrayWithArray:scr];
 }
@@ -905,10 +936,10 @@ static const struct wl_registry_listener registry_listener = {
     if(_outputManager) {
         struct zxdg_output_v1 *xdgOut = zxdg_output_manager_v1_get_xdg_output(_outputManager, output);
         zxdg_output_v1_add_listener(xdgOut, &xdg_output_listener, (void *)dict);
-        [dict setObject:[NSNumber numberWithInteger:(uintptr_t)xdgOut] forKey:WLOutputXDGOutputKey];
+        [dict setObject:[NSNumber numberWithUnsignedLong:(uintptr_t)xdgOut] forKey:WLOutputXDGOutputKey];
     }
 
-    [_outputs setObject:dict forKey:[NSNumber numberWithInteger:(uintptr_t)output]];
+    [_outputs setObject:dict forKey:[NSNumber numberWithUnsignedLong:(uintptr_t)output]];
 }
 
 - (void)setOutputManager:(struct zxdg_output_manager_v1 *)manager
@@ -918,10 +949,10 @@ static const struct wl_registry_listener registry_listener = {
     for(int i = 0; i < [keys count]; ++i) {
         NSDictionary *d = [_outputs objectForKey:[keys objectAtIndex:i]];
         if([d objectForKey:WLOutputXDGOutputKey] == nil) {
-            struct wl_output *output = (struct wl_output *)[[keys objectAtIndex:i] integerValue];
+            struct wl_output *output = (struct wl_output *)[[keys objectAtIndex:i] longValue];
             struct zxdg_output_v1 *xdgOut = zxdg_output_manager_v1_get_xdg_output(_outputManager, output);
             zxdg_output_v1_add_listener(xdgOut, &xdg_output_listener, (void *)d);
-            [d setObject:[NSNumber numberWithInteger:(uintptr_t)xdgOut] forKey:WLOutputXDGOutputKey];
+            [d setObject:[NSNumber numberWithUnsignedLong:(uintptr_t)xdgOut] forKey:WLOutputXDGOutputKey];
         }
     }
 }

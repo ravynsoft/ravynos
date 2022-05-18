@@ -92,7 +92,7 @@ extern const NSString *WLMenuDidUpdateNotification;
     MenuBarWindow *_menuBar;
 }
 
-- (DesktopWindow *)init;
+- (DesktopWindow *)initWithFrame:(NSRect)frame forOutput:(NSNumber *)outputKey;
 - (id)platformWindow;
 - (void)updateBackground;
 - (MenuBarWindow *)menuBar;
@@ -103,7 +103,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 @interface AppDelegate: NSObject {
     mach_port_t _bootstrapPort;
     mach_port_name_t _servicePort;
-    DesktopWindow *desktop;
+    NSMutableDictionary *desktops;
     MenuBarWindow *menuBar;
 }
 

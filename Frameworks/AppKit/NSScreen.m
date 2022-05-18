@@ -15,8 +15,13 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 @implementation NSScreen
 
 -initWithFrame:(NSRect)frame visibleFrame:(NSRect)visibleFrame {
+    return [self initWithFrame:frame visibleFrame:visibleFrame outputKey:nil];
+}
+
+-initWithFrame:(NSRect)frame visibleFrame:(NSRect)visibleFrame outputKey:(NSNumber *)key {
    _frame=frame;
    _visibleFrame=visibleFrame;
+   _outputKey=key;
    return self;
 }
 
@@ -41,12 +46,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
    return _visibleFrame;
 }
 
+-(NSNumber *)key {
+    return _outputKey;
+}
+
 -(CGFloat)userSpaceScaleFactor {
+   // FIXME: should we get this from XDG output settings?
    return 1.0;
 }
 
 -(id)description {
-   return [NSString stringWithFormat:@"< %@ - frame %@, visible %@ >", [super description], NSStringFromRect(_frame), NSStringFromRect(_visibleFrame)];
+   return [NSString stringWithFormat:@"< %@ - frame %@, visible %@, key %@>", [super description], NSStringFromRect(_frame), NSStringFromRect(_visibleFrame), _outputKey];
 }
 
 @end

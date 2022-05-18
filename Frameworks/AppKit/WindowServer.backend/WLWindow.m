@@ -178,9 +178,15 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 }
 
 @implementation WLWindow
+- initWithFrame:(O2Rect)frame styleMask:(unsigned)styleMask isPanel:(BOOL)isPanel
+    backingType:(NSUInteger)backingType 
+{
+    return [self initWithFrame:frame styleMask:styleMask isPanel:isPanel
+        backingType:backingType output:NULL];
+}
 
 - initWithFrame:(O2Rect)frame styleMask:(unsigned)styleMask isPanel:(BOOL)isPanel
-    backingType:(NSUInteger)backingType
+    backingType:(NSUInteger)backingType output:(struct wl_output *)wlo
 {
     _level = kCGNormalWindowLevel;
     _backingType = backingType;
@@ -217,15 +223,15 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         return nil;
     }
 
-    [self _buildSurface];
+    [self _buildSurface:wlo];
 
     if(isPanel && (styleMask & NSDocModalWindowMask))
         _styleMask=NSBorderlessWindowMask;
-      
+
     return self;
 }
 
--(void)_buildSurface
+-(void)_buildSurface:(struct wl_output *)wlo
 {
     wl_surface = wl_compositor_create_surface(compositor);
 
@@ -233,9 +239,8 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
         layerType = (_styleMask & WLWindowLayerMask) >> 20;
         anchorType = (_styleMask & WLWindowLayerAnchorMask) >> 12;
 
-        // FIXME: NULL below should be a wl_output to display the surface on
 	layer_surface = zwlr_layer_shell_v1_get_layer_surface(layer_shell,
-            wl_surface, NULL, layerType, "AppKit");
+            wl_surface, wlo, layerType, "AppKit");
 	assert(layer_surface);
 	zwlr_layer_surface_v1_set_anchor(layer_surface, anchorType);
 	zwlr_layer_surface_v1_set_size(layer_surface, _frame.size.width,

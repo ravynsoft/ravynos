@@ -48,7 +48,7 @@ typedef union {
 
 @implementation AppDelegate
 - (AppDelegate *)init {
-    desktop = nil;
+    desktops = [NSMutableDictionary new];
     menuBar = nil;
 
     kern_return_t kr;
@@ -81,16 +81,29 @@ typedef union {
 }
 
 - (void)screenDidResize:(NSNotification *)note {
-    NSRect frame = [[NSScreen mainScreen] visibleFrame];
+    NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
+    NSNumber *key = [dict objectForKey:@"WLOutputXDGOutput"];
 
-    desktop = [DesktopWindow new];
+    if(key == nil) {
+        NSLog(@"ERROR: screenDidResize for null output key");
+        return;
+    }
+
+    NSRect frame = NSZeroRect;
+    frame.size = NSSizeFromString([dict objectForKey:@"WLOutputSize"]);
+    //frame.origin = NSPointFromString([dict objectForKey:@"WLOutputPosition"]);
+
+    DesktopWindow *desktop = [[DesktopWindow alloc] initWithFrame:frame forOutput:key];
+    [desktops setObject:desktop forKey:key];
     [desktop setDelegate:self];
     [desktop makeKeyAndOrderFront:nil];
     menuBar = [desktop menuBar];
 }
 
 - (void)updateBackground {
-    [desktop updateBackground];
+    NSArray *values = [desktops allValues];
+    for(int i = 0; i < [values count]; ++i)
+        [[values objectAtIndex:i] updateBackground];
 }
 
 /* Recursively set all menu targets and delegates to our proxy */

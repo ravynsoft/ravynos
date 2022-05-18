@@ -219,10 +219,11 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    return self;
 }
 
--initWithContentRect:(NSRect)contentRect styleMask:(unsigned)styleMask backing:(unsigned)backing defer:(BOOL)defer {
+-initWithContentRect:(NSRect)contentRect styleMask:(unsigned int)styleMask backing:(unsigned)backing defer:(BOOL)defer screen:(NSScreen *)screen {
    NSRect backgroundFrame;
    NSRect contentViewFrame;
 
+    _preferredScreen = screen;
    _styleMask=styleMask;
 
     _frame=[self frameRectForContentRect:contentRect];
@@ -312,9 +313,9 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    return self;
 }
 
--initWithContentRect:(NSRect)contentRect styleMask:(unsigned int)styleMask backing:(unsigned)backing defer:(BOOL)defer screen:(NSScreen *)screen {
 // FIX, relocate contentRect
-   return [self initWithContentRect:contentRect styleMask:styleMask backing:backing defer:defer];
+-initWithContentRect:(NSRect)contentRect styleMask:(unsigned)styleMask backing:(unsigned)backing defer:(BOOL)defer {
+   return [self initWithContentRect:contentRect styleMask:styleMask backing:backing defer:defer screen:nil];
 }
 
 -(NSWindow *)initWithWindowRef:(void *)carbonRef {
@@ -366,9 +367,9 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 -(void)_createPlatformWindowOnMainThread {
 	if(_platformWindow==nil){
 		if([self isKindOfClass:[NSPanel class]])
-			_platformWindow=[[[NSDisplay currentDisplay] panelWithFrame: _frame styleMask:_styleMask backingType:_backingType] retain];
+			_platformWindow=[[[NSDisplay currentDisplay] panelWithFrame: _frame styleMask:_styleMask backingType:_backingType screen:_preferredScreen] retain];
 		else
-			_platformWindow=[[[NSDisplay currentDisplay] windowWithFrame: _frame styleMask:_styleMask backingType:_backingType] retain];
+			_platformWindow=[[[NSDisplay currentDisplay] windowWithFrame: _frame styleMask:_styleMask backingType:_backingType screen:_preferredScreen] retain];
 		
 		[_platformWindow setDelegate:self];
 		[_platformWindow setLevel:_level];
