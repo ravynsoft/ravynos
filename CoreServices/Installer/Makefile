@@ -1,7 +1,8 @@
 APP=Install_ravynOS
 SRCS=Source/main.m Source/AppDelegate.m Source/GSGeomDisk.m
 MK_DEBUG_FILES=no
-RESOURCES=MarmosetLogo.tiff header.rtf terms.rtf English.lproj Icon.png
+RESOURCES=${.CURDIR}/MarmosetLogo.tiff ${.CURDIR}/header.rtf ${.CURDIR}/terms.rtf \
+        ${.CURDIR}/English.lproj ${.CURDIR}/Icon.png
 SLF=/System/Library/Frameworks
 FRAMEWORKS=${SLF}/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
 	${SLF}/Foundation ${SLF}/CoreFoundation ${SLF}/DBusKit
