@@ -5,9 +5,8 @@ void output_frame_notify(struct wl_listener *listener, void *data) {
 	 * generally at the output's refresh rate (e.g. 60Hz). */
 	struct wb_output *output = wl_container_of(listener, output, frame);
 	struct wlr_scene *scene = output->server->scene;
-
-	struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(
-		scene, output->wlr_output);
+	struct wlr_scene_output *scene_output =
+		wlr_scene_get_scene_output(scene, output->wlr_output);
 
 #if WLR_CHECK_VERSION(0, 16, 0)
 	wlr_output_layout_get_box(output->server->output_layout,
@@ -35,7 +34,6 @@ void output_destroy_notify(struct wl_listener *listener, void *data) {
 
 	wl_list_remove(&output->destroy.link);
 	wl_list_remove(&output->frame.link);
-	wl_list_remove(&output->link);
 
 	/* Frees the layers */
 	size_t num_layers = sizeof(output->layers) / sizeof(struct wlr_scene_node *);
@@ -45,6 +43,7 @@ void output_destroy_notify(struct wl_listener *listener, void *data) {
 		wlr_scene_node_destroy(node);
 	}
 
+	wl_list_remove(&output->link);
 	free(output);
 }
 

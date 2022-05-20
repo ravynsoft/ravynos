@@ -55,7 +55,7 @@ static void arrange_surface(struct wb_output *output, struct wlr_box *full_area,
 #if WLR_CHECK_VERSION(0, 16, 0)
 			struct wb_layer_surface *surface = desc->data;
 			wlr_scene_layer_surface_v1_configure(surface->scene,
-				full_area, usable_area);
+					full_area, usable_area);
 #endif
 		}
 	}
@@ -246,11 +246,11 @@ static void popup_unconstrain(struct wb_layer_popup *popup) {
 	int lx, ly;
 	wlr_scene_node_coords(popup->scene, &lx, &ly);
 
-	/* the output box expressed in the coordinate system of the toplevel parent
-	 * of the popup */
+	/* The output box expressed in the coordinate system of the toplevel
+	 * parent of the popup. */
 	struct wlr_box output_toplevel_sx_box = {
-		.x = output->geometry.x - lx,
-		.y = output->geometry.y - ly,
+		.x = output->geometry.x - MIN(lx, 0),
+		.y = output->geometry.y - MAX(ly, 0),
 		.width = output->geometry.width,
 		.height = output->geometry.height,
 	};
@@ -271,7 +271,7 @@ static struct wb_layer_popup *create_popup(struct wlr_xdg_popup *wlr_popup,
 	popup->wlr_popup = wlr_popup;
 
 	popup->scene = wlr_scene_xdg_surface_create(parent,
-		wlr_popup->base);
+			wlr_popup->base);
 
 	if (!popup->scene) {
 		free(popup);
@@ -279,7 +279,7 @@ static struct wb_layer_popup *create_popup(struct wlr_xdg_popup *wlr_popup,
 	}
 
 	assign_scene_descriptor(popup->scene, WB_SCENE_DESC_LAYER_SHELL_POPUP,
-		popup);
+			popup);
 
 	popup->destroy.notify = popup_handle_destroy;
 	wl_signal_add(&wlr_popup->base->events.destroy, &popup->destroy);
@@ -288,7 +288,8 @@ static struct wb_layer_popup *create_popup(struct wlr_xdg_popup *wlr_popup,
 	wl_signal_add(&wlr_popup->base->events.new_popup, &popup->new_popup);
 
 	popup_unconstrain(popup);
-	return NULL;
+
+	return popup;
 }
 
 static void popup_handle_new_popup(struct wl_listener *listener, void *data) {
@@ -308,28 +309,25 @@ static void handle_new_popup(struct wl_listener *listener, void *data) {
 
 void handle_layer_shell_surface(struct wl_listener *listener, void *data) {
 	struct wlr_layer_surface_v1 *layer_surface = data;
-	struct wb_server *server = wl_container_of(listener, server, new_layer_surface);
 
 	if (layer_surface->output == NULL) {
-		struct wb_view *view = wl_container_of(server->views.next, view, link);
+		struct wb_server *server =
+			wl_container_of(listener, server, new_layer_surface);
+		struct wb_view *view =
+			wl_container_of(server->views.next, view, link);
 		layer_surface->output = get_active_output(view);
 	}
+	struct wb_output *output = layer_surface->output->data;
 
 	if (!layer_surface->output) {
-		/* Assign a default output */
-		layer_surface->output = wlr_output_layout_get_center_output(server->output_layout);
+		/* Assign last active output */
+		layer_surface->output = output->wlr_output;
 	}
 
-	if(!layer_surface->output) {
-		wlr_log(WLR_ERROR, "Failed to find an output for layer surface %p!\n", layer_surface);
-		return;
-	}
-
-	struct wb_output *output = layer_surface->output->data;
 
 	enum zwlr_layer_shell_v1_layer layer_type = layer_surface->pending.layer;
 	struct wlr_scene_node *output_layer = wb_layer_get_scene(
-		output, layer_type);
+			output, layer_type);
 #if WLR_CHECK_VERSION(0, 16, 0)
 	struct wlr_scene_layer_surface_v1 *scene_surface =
 		wlr_scene_layer_surface_v1_create(output_layer, layer_surface);

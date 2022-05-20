@@ -6,8 +6,8 @@ struct wb_view *get_view_at(
 	/* This returns the topmost node in the scene at the given layout coords.
 	 * we only care about surface nodes as we are specifically looking for a
 	 * surface in the surface tree of a wb_view. */
-	struct wlr_scene_node *node = wlr_scene_node_at(
-		&server->scene->node, lx, ly, sx, sy);
+	struct wlr_scene_node *node =
+		wlr_scene_node_at(&server->scene->node, lx, ly, sx, sy);
 	if (node == NULL || node->type != WLR_SCENE_NODE_SURFACE) {
 		return NULL;
 	}
@@ -44,8 +44,8 @@ void focus_view(struct wb_view *view, struct wlr_surface *surface) {
 		 * it no longer has focus and the client will repaint accordingly, e.g.
 		 * stop displaying a caret.
 		 */
-		struct wlr_xdg_surface *previous = wlr_xdg_surface_from_wlr_surface(
-					prev_surface);
+		struct wlr_xdg_surface *previous =
+			wlr_xdg_surface_from_wlr_surface(prev_surface);
 #if WLR_CHECK_VERSION(0, 16, 0)
 		wlr_xdg_toplevel_set_activated(previous->toplevel, false);
 #else
@@ -79,8 +79,7 @@ struct wlr_output *get_active_output(struct wb_view *view) {
 			view->current_position.x + view->current_position.width / 2,
 			view->current_position.y + view->current_position.height / 2,
 			&closest_x, &closest_y);
-        output = wlr_output_layout_output_at(view->server->output_layout, closest_x, closest_y);
-        return output;
+	return wlr_output_layout_output_at(view->server->output_layout, closest_x, closest_y);
 }
 
 static struct wlr_box get_usable_area(struct wb_view *view) {
@@ -285,11 +284,13 @@ static void handle_new_popup(struct wl_listener *listener, void *data) {
 	if (!wlr_output) return;
 	struct wb_output *output = wlr_output->data;
 
+	int top_margin = (view->server->config) ?
+		view->server->config->margins.top : 0;
 	struct wlr_box output_toplevel_box = {
 		.x = output->geometry.x - view->current_position.x,
 		.y = output->geometry.y - view->current_position.y,
 		.width = output->geometry.width,
-		.height = output->geometry.height,
+		.height = output->geometry.height - top_margin,
 	};
 	wlr_xdg_popup_unconstrain_from_box(popup, &output_toplevel_box);
 }

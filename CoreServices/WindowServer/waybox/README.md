@@ -28,5 +28,5 @@ ninja
 After that, you should have an executable as waybox/waybox
 
 ### Contact
-I can be found as wiz on Rizon and WizBright on Freenode. 
-Join [#waybox](http://webchat.freenode.net/?channels=waybox) for discussion
+I can be found as wiz on Rizon and wizbright on Libera. 
+Join [#waybox](https://libera.chat/guides/connect) for discussion
