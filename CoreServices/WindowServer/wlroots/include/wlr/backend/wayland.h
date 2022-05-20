@@ -4,9 +4,8 @@
 #include <wayland-client.h>
 #include <wayland-server-core.h>
 #include <wlr/backend.h>
+#include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_output.h>
-
-struct wlr_input_device;
 
 /**
  * Creates a new wlr_wl_backend. This backend will be created with no outputs;

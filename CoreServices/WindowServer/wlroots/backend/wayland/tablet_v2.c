@@ -10,6 +10,7 @@
 #include <wlr/interfaces/wlr_tablet_pad.h>
 #include <wlr/interfaces/wlr_tablet_tool.h>
 #include <wlr/types/wlr_input_device.h>
+#include <wlr/interfaces/wlr_input_device.h>
 
 #include "util/signal.h"
 #include "util/time.h"
@@ -289,11 +290,10 @@ static void handle_tablet_pad_group_removed(
 
 	zwp_tablet_pad_group_v2_destroy(group->pad_group);
 
-	free(group->group.buttons);
-	free(group->group.strips);
-	free(group->group.rings);
+	/* While I'm pretty sure we have control over this as well, it's
+	 * outside the scope of a single function, so better be safe than
+	 * sorry */
 	wl_list_remove(&group->group.link);
-
 	free(group);
 }
 
@@ -397,15 +397,22 @@ static void handle_tablet_pad_leave(void *data,
 static void handle_tablet_pad_removed(void *data,
 		struct zwp_tablet_pad_v2 *zwp_tablet_pad_v2) {
 	struct wlr_wl_input_device *dev = data;
-
 	struct wlr_tablet_pad *tablet_pad = dev->wlr_input_device.tablet_pad;
+
+	/* This doesn't free anything, but emits the destroy signal */
+	wlr_input_device_destroy(&dev->wlr_input_device);
+	/* This is a bit ugly, but we need to remove it from our list */
+	wl_list_remove(&dev->link);
+
 	struct wlr_wl_tablet_pad_group *group, *it;
 	wl_list_for_each_safe(group, it, &tablet_pad->groups, group.link) {
 		handle_tablet_pad_group_removed(group);
 	}
 
+	/* This frees */
+	wlr_tablet_pad_destroy(tablet_pad);
 	zwp_tablet_pad_v2_destroy(dev->resource);
-	destroy_wl_input_device(dev);
+	free(dev);
 }
 
 static const struct zwp_tablet_pad_v2_listener tablet_pad_listener = {
@@ -417,10 +424,6 @@ static const struct zwp_tablet_pad_v2_listener tablet_pad_listener = {
 	.enter = handle_tablet_pad_enter,
 	.leave = handle_tablet_pad_leave,
 	.removed = handle_tablet_pad_removed,
-};
-
-const struct wlr_tablet_pad_impl tablet_pad_impl = {
-	.name = "wl-tablet-pad",
 };
 
 static void handle_pad_added(void *data,
@@ -450,7 +453,7 @@ static void handle_pad_added(void *data,
 		zwp_tablet_pad_v2_destroy(id);
 		return;
 	}
-	wlr_tablet_pad_init(wlr_dev->tablet_pad, &tablet_pad_impl, "wlr_tablet_v2");
+	wlr_tablet_pad_init(wlr_dev->tablet_pad, NULL);
 	zwp_tablet_pad_v2_add_listener(id, &tablet_pad_listener, dev);
 }
 
@@ -836,8 +839,8 @@ static void handle_tablet_name(void *data, struct zwp_tablet_v2 *zwp_tablet_v2,
 	struct wlr_wl_input_device *dev = data;
 	struct wlr_tablet *tablet = dev->wlr_input_device.tablet;
 
-	free(tablet->base.name);
-	tablet->base.name = strdup(name);
+	free(tablet->name);
+	tablet->name = strdup(name);
 }
 
 static void handle_tablet_id(void *data, struct zwp_tablet_v2 *zwp_tablet_v2,
@@ -867,8 +870,13 @@ static void handle_tablet_removed(void *data,
 		struct zwp_tablet_v2 *zwp_tablet_v2) {
 	struct wlr_wl_input_device *dev = data;
 
+	/* This doesn't free anything, but emits the destroy signal */
+	wlr_input_device_destroy(&dev->wlr_input_device);
+	/* This is a bit ugly, but we need to remove it from our list */
+	wl_list_remove(&dev->link);
+
 	zwp_tablet_v2_destroy(dev->resource);
-	destroy_wl_input_device(dev);
+	free(dev);
 }
 
 static const struct zwp_tablet_v2_listener tablet_listener = {
@@ -877,10 +885,6 @@ static const struct zwp_tablet_v2_listener tablet_listener = {
 	.path = handle_tablet_path,
 	.done = handle_tablet_done,
 	.removed = handle_tablet_removed,
-};
-
-const struct wlr_tablet_impl tablet_impl = {
-	.name = "wl-tablet-tool",
 };
 
 static void handle_tab_added(void *data,
@@ -905,7 +909,7 @@ static void handle_tab_added(void *data,
 		return;
 	}
 	zwp_tablet_v2_set_user_data(id, wlr_dev->tablet);
-	wlr_tablet_init(wlr_dev->tablet, &tablet_impl, "wlr_tablet_v2");
+	wlr_tablet_init(wlr_dev->tablet, NULL);
 	zwp_tablet_v2_add_listener(id, &tablet_listener, dev);
 }
 

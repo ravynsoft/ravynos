@@ -15,10 +15,11 @@
 
 #include <pixman.h>
 #include <wlr/backend/x11.h>
+#include <wlr/interfaces/wlr_input_device.h>
 #include <wlr/interfaces/wlr_keyboard.h>
 #include <wlr/interfaces/wlr_output.h>
+#include <wlr/interfaces/wlr_pointer.h>
 #include <wlr/interfaces/wlr_touch.h>
-#include <wlr/types/wlr_pointer.h>
 #include <wlr/render/drm_format_set.h>
 
 #define XCB_EVENT_RESPONSE_TYPE_MASK 0x7f
@@ -34,8 +35,10 @@ struct wlr_x11_output {
 	xcb_present_event_t present_event_id;
 
 	struct wlr_pointer pointer;
+	struct wlr_input_device pointer_dev;
 
 	struct wlr_touch touch;
+	struct wlr_input_device touch_dev;
 	struct wl_list touchpoints; // wlr_x11_touchpoint::link
 
 	struct wl_list buffers; // wlr_x11_buffer::link
@@ -78,6 +81,7 @@ struct wlr_x11_backend {
 	struct wl_list outputs; // wlr_x11_output::link
 
 	struct wlr_keyboard keyboard;
+	struct wlr_input_device keyboard_dev;
 
 	int drm_fd;
 	struct wlr_drm_format_set dri3_formats;
@@ -126,9 +130,10 @@ struct wlr_x11_backend *get_x11_backend_from_backend(
 struct wlr_x11_output *get_x11_output_from_window_id(
 	struct wlr_x11_backend *x11, xcb_window_t window);
 
-extern const struct wlr_keyboard_impl x11_keyboard_impl;
-extern const struct wlr_pointer_impl x11_pointer_impl;
-extern const struct wlr_touch_impl x11_touch_impl;
+extern const struct wlr_keyboard_impl keyboard_impl;
+extern const struct wlr_pointer_impl pointer_impl;
+extern const struct wlr_touch_impl touch_impl;
+extern const struct wlr_input_device_impl input_device_impl;
 
 void handle_x11_xinput_event(struct wlr_x11_backend *x11,
 		xcb_ge_generic_event_t *event);

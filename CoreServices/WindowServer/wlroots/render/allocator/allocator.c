@@ -3,7 +3,6 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <wlr/interfaces/wlr_buffer.h>
 #include <wlr/render/allocator.h>
 #include <wlr/util/log.h>
 #include <xf86drm.h>
@@ -30,7 +29,7 @@ static int reopen_drm_node(int drm_fd, bool allow_render_node) {
 	if (drmIsMaster(drm_fd)) {
 		// Only recent kernels support empty leases
 		uint32_t lessee_id;
-		int lease_fd = drmModeCreateLease(drm_fd, NULL, 0, O_CLOEXEC, &lessee_id);
+		int lease_fd = drmModeCreateLease(drm_fd, NULL, 0, 0, &lessee_id);
 		if (lease_fd >= 0) {
 			return lease_fd;
 		} else if (lease_fd != -EINVAL && lease_fd != -EOPNOTSUPP) {

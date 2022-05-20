@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <wlr/interfaces/wlr_input_device.h>
 #include <wlr/interfaces/wlr_output.h>
 #include <wlr/util/log.h>
 #include "backend/headless.h"
@@ -24,6 +25,12 @@ static bool backend_start(struct wlr_backend *wlr_backend) {
 			&output->wlr_output);
 	}
 
+	struct wlr_headless_input_device *input_device;
+	wl_list_for_each(input_device, &backend->input_devices, link) {
+		wlr_signal_emit_safe(&backend->backend.events.new_input,
+			&input_device->wlr_input_device);
+	}
+
 	backend->started = true;
 	return true;
 }
@@ -40,6 +47,12 @@ static void backend_destroy(struct wlr_backend *wlr_backend) {
 	struct wlr_headless_output *output, *output_tmp;
 	wl_list_for_each_safe(output, output_tmp, &backend->outputs, link) {
 		wlr_output_destroy(&output->wlr_output);
+	}
+
+	struct wlr_headless_input_device *input_device, *input_device_tmp;
+	wl_list_for_each_safe(input_device, input_device_tmp,
+			&backend->input_devices, link) {
+		wlr_input_device_destroy(&input_device->wlr_input_device);
 	}
 
 	wlr_backend_finish(wlr_backend);
@@ -79,6 +92,7 @@ struct wlr_backend *wlr_headless_backend_create(struct wl_display *display) {
 
 	backend->display = display;
 	wl_list_init(&backend->outputs);
+	wl_list_init(&backend->input_devices);
 
 	backend->display_destroy.notify = handle_display_destroy;
 	wl_display_add_destroy_listener(display, &backend->display_destroy);

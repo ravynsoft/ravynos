@@ -21,12 +21,11 @@
 
 #include <pixman.h>
 #include <wayland-server-core.h>
-#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_surface.h>
 
 struct wlr_output;
 struct wlr_output_layout;
 struct wlr_xdg_surface;
-struct wlr_layer_surface_v1;
 
 enum wlr_scene_node_type {
 	WLR_SCENE_NODE_ROOT,
@@ -135,19 +134,6 @@ struct wlr_scene_output {
 	// private state
 
 	bool prev_scanout;
-};
-
-/** A layer shell scene helper */
-struct wlr_scene_layer_surface_v1 {
-	struct wlr_scene_node *node;
-	struct wlr_layer_surface_v1 *layer_surface;
-
-	// private state
-
-	struct wl_listener tree_destroy;
-	struct wl_listener layer_surface_destroy;
-	struct wl_listener layer_surface_map;
-	struct wl_listener layer_surface_unmap;
 };
 
 typedef void (*wlr_scene_node_iterator_func_t)(struct wlr_scene_node *node,
@@ -367,29 +353,5 @@ struct wlr_scene_node *wlr_scene_subsurface_tree_create(
  */
 struct wlr_scene_node *wlr_scene_xdg_surface_create(
 	struct wlr_scene_node *parent, struct wlr_xdg_surface *xdg_surface);
-
-/**
- * Add a node displaying a layer_surface_v1 and all of its sub-surfaces to the
- * scene-graph.
- *
- * The origin of the returned scene-graph node will match the top-left corner
- * of the layer surface.
- */
-struct wlr_scene_layer_surface_v1 *wlr_scene_layer_surface_v1_create(
-	struct wlr_scene_node *parent, struct wlr_layer_surface_v1 *layer_surface);
-
-/**
- * Configure a layer_surface_v1, position its scene node in accordance to its
- * current state, and update the remaining usable area.
- *
- * full_area represents the entire area that may be used by the layer surface
- * if its exclusive_zone is -1, and is usually the output dimensions.
- * usable_area represents what remains of full_area that can be used if
- * exclusive_zone is >= 0. usable_area is updated if the surface has a positive
- * exclusive_zone, so that it can be used for the next layer surface.
- */
-void wlr_scene_layer_surface_v1_configure(
-	struct wlr_scene_layer_surface_v1 *scene_layer_surface,
-	const struct wlr_box *full_area, struct wlr_box *usable_area);
 
 #endif

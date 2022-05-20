@@ -1,5 +1,4 @@
 #define _POSIX_C_SOURCE 199309L
-#include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
 #include <libavutil/display.h>
 #include <libavutil/hwcontext_drm.h>
@@ -620,12 +619,12 @@ static int init_encoding(struct capture_context *ctx) {
 	}
 
 	/* Find encoder */
-	const AVCodec *out_codec = avcodec_find_encoder_by_name(ctx->encoder_name);
+	AVCodec *out_codec = avcodec_find_encoder_by_name(ctx->encoder_name);
 	if (!out_codec) {
 		av_log(ctx, AV_LOG_ERROR, "Codec not found (not compiled in lavc?)!\n");
 		return AVERROR(EINVAL);
 	}
-	ctx->avf->oformat = av_guess_format(ctx->encoder_name, NULL, NULL);
+	ctx->avf->oformat->video_codec = out_codec->id;
 	ctx->is_software_encoder = !(out_codec->capabilities & AV_CODEC_CAP_HARDWARE);
 
 	ctx->avctx = avcodec_alloc_context3(out_codec);

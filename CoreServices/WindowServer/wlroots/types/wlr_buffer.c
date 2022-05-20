@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <drm_fourcc.h>
 #include <stdlib.h>
-#include <wlr/interfaces/wlr_buffer.h>
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_buffer.h>
 #include <wlr/types/wlr_drm.h>

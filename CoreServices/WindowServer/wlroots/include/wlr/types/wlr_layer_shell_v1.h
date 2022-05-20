@@ -12,7 +12,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <wayland-server-core.h>
-#include <wlr/types/wlr_compositor.h>
+#include <wlr/types/wlr_surface.h>
 #include "wlr-layer-shell-unstable-v1-protocol.h"
 
 /**
@@ -58,7 +58,7 @@ struct wlr_layer_surface_v1_state {
 	uint32_t anchor;
 	int32_t exclusive_zone;
 	struct {
-		int32_t top, right, bottom, left;
+		uint32_t top, right, bottom, left;
 	} margin;
 	enum zwlr_layer_surface_v1_keyboard_interactivity keyboard_interactive;
 	uint32_t desired_width, desired_height;

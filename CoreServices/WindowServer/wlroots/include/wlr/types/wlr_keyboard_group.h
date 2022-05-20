@@ -11,9 +11,11 @@
 
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_keyboard.h>
+#include <wlr/types/wlr_input_device.h>
 
 struct wlr_keyboard_group {
 	struct wlr_keyboard keyboard;
+	struct wlr_input_device *input_device;
 	struct wl_list devices; // keyboard_group_device::link
 	struct wl_list keys; // keyboard_group_key::link
 

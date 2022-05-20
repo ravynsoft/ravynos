@@ -4,10 +4,9 @@
 #include <stdlib.h>
 #include <sys/mman.h>
 #include <unistd.h>
-#include <wlr/interfaces/wlr_buffer.h>
 #include <wlr/render/wlr_renderer.h>
-#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_linux_dmabuf_v1.h>
+#include <wlr/types/wlr_surface.h>
 #include <wlr/util/log.h>
 #include "linux-dmabuf-unstable-v1-protocol.h"
 #include "render/drm_format_set.h"

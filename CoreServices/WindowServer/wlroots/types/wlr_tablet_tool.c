@@ -4,13 +4,8 @@
 #include <wlr/interfaces/wlr_tablet_tool.h>
 #include <wlr/types/wlr_tablet_tool.h>
 
-#include "interfaces/wlr_input_device.h"
-
 void wlr_tablet_init(struct wlr_tablet *tablet,
-		const struct wlr_tablet_impl *impl, const char *name) {
-	wlr_input_device_init(&tablet->base, WLR_INPUT_DEVICE_TABLET_TOOL, name);
-	tablet->base.tablet = tablet;
-
+		const struct wlr_tablet_impl *impl) {
 	tablet->impl = impl;
 	wl_signal_init(&tablet->events.axis);
 	wl_signal_init(&tablet->events.proximity);
@@ -19,12 +14,20 @@ void wlr_tablet_init(struct wlr_tablet *tablet,
 	wl_array_init(&tablet->paths);
 }
 
-void wlr_tablet_finish(struct wlr_tablet *tablet) {
-	wlr_input_device_finish(&tablet->base);
+void wlr_tablet_destroy(struct wlr_tablet *tablet) {
+	if (!tablet) {
+		return;
+	}
 
 	char **path_ptr;
 	wl_array_for_each(path_ptr, &tablet->paths) {
 		free(*path_ptr);
 	}
 	wl_array_release(&tablet->paths);
+
+	if (tablet->impl && tablet->impl->destroy) {
+		tablet->impl->destroy(tablet);
+	} else {
+		free(tablet);
+	}
 }

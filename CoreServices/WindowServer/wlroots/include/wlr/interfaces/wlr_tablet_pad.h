@@ -12,17 +12,11 @@
 #include <wlr/types/wlr_tablet_pad.h>
 
 struct wlr_tablet_pad_impl {
-	const char *name;
+	void (*destroy)(struct wlr_tablet_pad *pad);
 };
 
 void wlr_tablet_pad_init(struct wlr_tablet_pad *pad,
-	const struct wlr_tablet_pad_impl *impl, const char *name);
-
-/**
- * Cleans up the resources owned by a wlr_tablet_pad.
- * This function will not clean the memory allocated by wlr_tablet_pad_group,
- * it's the responsibility of the caller to clean it.
- */
-void wlr_tablet_pad_finish(struct wlr_tablet_pad *pad);
+		struct wlr_tablet_pad_impl *impl);
+void wlr_tablet_pad_destroy(struct wlr_tablet_pad *pad);
 
 #endif

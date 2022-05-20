@@ -12,11 +12,11 @@
 #include <wlr/types/wlr_touch.h>
 
 struct wlr_touch_impl {
-	const char *name;
+	void (*destroy)(struct wlr_touch *touch);
 };
 
 void wlr_touch_init(struct wlr_touch *touch,
-	const struct wlr_touch_impl *impl, const char *name);
-void wlr_touch_finish(struct wlr_touch *touch);
+		const struct wlr_touch_impl *impl);
+void wlr_touch_destroy(struct wlr_touch *touch);
 
 #endif

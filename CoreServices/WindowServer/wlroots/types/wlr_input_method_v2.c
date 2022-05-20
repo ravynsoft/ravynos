@@ -6,8 +6,8 @@
 #include <sys/mman.h>
 #include <unistd.h>
 #include <wayland-util.h>
-#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_input_method_v2.h>
+#include <wlr/types/wlr_surface.h>
 #include <wlr/util/log.h>
 #include <xkbcommon/xkbcommon.h>
 #include "input-method-unstable-v2-protocol.h"
@@ -157,13 +157,13 @@ static void popup_surface_surface_role_commit(struct wlr_surface *surface) {
 		&& popup_surface->input_method->client_active);
 }
 
-static void popup_surface_surface_role_precommit(struct wlr_surface *surface,
-		const struct wlr_surface_state *state) {
+static void popup_surface_surface_role_precommit(struct wlr_surface *surface) {
 	struct wlr_input_popup_surface_v2 *popup_surface = surface->role_data;
 	if (popup_surface == NULL) {
 		return;
 	}
-	if (state->committed & WLR_SURFACE_STATE_BUFFER && state->buffer == NULL) {
+	if (surface->pending.committed & WLR_SURFACE_STATE_BUFFER &&
+			surface->pending.buffer == NULL) {
 		// This is a NULL commit
 		popup_surface_set_mapped(popup_surface, false);
 	}
@@ -410,7 +410,7 @@ void wlr_input_method_keyboard_grab_v2_set_keyboard(
 			&keyboard_grab->keyboard_repeat_info);
 		keyboard_grab->keyboard_destroy.notify =
 			handle_keyboard_destroy;
-		wl_signal_add(&keyboard->base.events.destroy,
+		wl_signal_add(&keyboard->events.destroy,
 			&keyboard_grab->keyboard_destroy);
 
 		wlr_input_method_keyboard_grab_v2_send_modifiers(keyboard_grab,

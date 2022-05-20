@@ -32,8 +32,9 @@ to implement yourself.
 Check out our [wiki] to get started with wlroots. Join our IRC channel:
 [#sway-devel on Libera Chat].
 
-A variety of [wrapper libraries] are available for using it with your favorite
-programming language.
+wlroots is developed under the direction of the [sway] project. A variety of
+[wrapper libraries] are available for using it with your favorite programming
+language.
 
 ## Building
 
@@ -76,6 +77,7 @@ See [CONTRIBUTING.md].
 [Wayland]: https://wayland.freedesktop.org/
 [wiki]: https://gitlab.freedesktop.org/wlroots/wlroots/-/wikis/Getting-started
 [#sway-devel on Libera Chat]: https://web.libera.chat/gamja/?channels=#sway-devel
+[Sway]: https://github.com/swaywm/sway
 [wrapper libraries]: https://gitlab.freedesktop.org/wlroots/wlroots/-/wikis/Projects-which-use-wlroots#wrapper-libraries
 [libseat]: https://git.sr.ht/~kennylevinsen/seatd
 [CONTRIBUTING.md]: https://gitlab.freedesktop.org/wlroots/wlroots/-/blob/master/CONTRIBUTING.md

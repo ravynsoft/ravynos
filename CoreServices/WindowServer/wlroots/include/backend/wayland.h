@@ -134,12 +134,9 @@ struct wlr_wl_input_device *create_wl_input_device(
 	struct wlr_wl_seat *seat, enum wlr_input_device_type type);
 bool create_wl_seat(struct wl_seat *wl_seat, struct wlr_wl_backend *wl);
 void destroy_wl_seats(struct wlr_wl_backend *wl);
-void destroy_wl_input_device(struct wlr_wl_input_device *dev);
 void destroy_wl_buffer(struct wlr_wl_buffer *buffer);
 
 extern const struct wl_seat_listener seat_listener;
-extern const struct wlr_tablet_pad_impl tablet_pad_impl;
-extern const struct wlr_tablet_impl tablet_impl;
 
 struct wlr_wl_tablet_seat *wl_add_tablet_seat(
 		struct zwp_tablet_manager_v2 *manager,

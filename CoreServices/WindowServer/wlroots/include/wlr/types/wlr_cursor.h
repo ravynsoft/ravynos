@@ -10,10 +10,9 @@
 #define WLR_TYPES_WLR_CURSOR_H
 
 #include <wayland-server-core.h>
+#include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_output.h>
-
-struct wlr_input_device;
 
 /**
  * wlr_cursor implements the behavior of the "cursor", that is, the image on the
@@ -193,13 +192,13 @@ void wlr_cursor_map_input_to_output(struct wlr_cursor *cur,
 /**
  * Maps this cursor to an arbitrary region on the associated wlr_output_layout.
  */
-void wlr_cursor_map_to_region(struct wlr_cursor *cur, const struct wlr_box *box);
+void wlr_cursor_map_to_region(struct wlr_cursor *cur, struct wlr_box *box);
 
 /**
  * Maps inputs from this input device to an arbitrary region on the associated
  * wlr_output_layout.
  */
 void wlr_cursor_map_input_to_region(struct wlr_cursor *cur,
-	struct wlr_input_device *dev, const struct wlr_box *box);
+	struct wlr_input_device *dev, struct wlr_box *box);
 
 #endif

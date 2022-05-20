@@ -25,8 +25,7 @@ static void safe_close(int fd) {
 	}
 }
 
-noreturn static void exec_xwayland(struct wlr_xwayland_server *server,
-		int notify_fd) {
+noreturn static void exec_xwayland(struct wlr_xwayland_server *server) {
 	if (!set_cloexec(server->x_fd[0], false) ||
 			!set_cloexec(server->x_fd[1], false) ||
 			!set_cloexec(server->wl_fd[1], false)) {
@@ -38,13 +37,16 @@ noreturn static void exec_xwayland(struct wlr_xwayland_server *server,
 		_exit(EXIT_FAILURE);
 	}
 
+	/* Make Xwayland signal us when it's ready */
+	/* TODO: can we use -displayfd instead? */
+	signal(SIGUSR1, SIG_IGN);
+
 	char *argv[64] = {0};
 	size_t i = 0;
 
-	char listenfd0[16], listenfd1[16], displayfd[16];
+	char listenfd0[16], listenfd1[16];
 	snprintf(listenfd0, sizeof(listenfd0), "%d", server->x_fd[0]);
 	snprintf(listenfd1, sizeof(listenfd1), "%d", server->x_fd[1]);
-	snprintf(displayfd, sizeof(displayfd), "%d", notify_fd);
 
 	argv[i++] = "Xwayland";
 	argv[i++] = server->display_name;
@@ -63,8 +65,6 @@ noreturn static void exec_xwayland(struct wlr_xwayland_server *server,
 	argv[i++] = "-listen";
 	argv[i++] = listenfd1;
 #endif
-	argv[i++] = "-displayfd";
-	argv[i++] = displayfd;
 
 	char wmfd[16];
 	if (server->options.enable_wm) {
@@ -219,44 +219,36 @@ static void handle_display_destroy(struct wl_listener *listener, void *data) {
 }
 
 static int xserver_handle_ready(int fd, uint32_t mask, void *data) {
+	// There are three ways in which we can end up here, from server_start:
+	// 1. the second fork failed
+	// 2. the exec failed
+	// 3. Xwayland sent a SIGUSR1
+	//
+	// All three cases result in a write to the pipe, which triggers us.
+	//
+	// For the first two cases, the first fork will exit with
+	// EXIT_FAILURE, notifying us that startup failed.
+	//
+	// For the third case, the first fork will exit with EXIT_SUCCESS
+	// and we'll know that Xwayland started successfully.
+
+	close(fd);
 	struct wlr_xwayland_server *server = data;
 
-	if (mask & WL_EVENT_READABLE) {
-		/* Xwayland writes to the pipe twice, so if we close it too early
-		 * it's possible the second write will fail and Xwayland shuts down.
-		 * Make sure we read until end of line marker to avoid this.
-		 */
-		char buf[64];
-		ssize_t n = read(fd, buf, sizeof(buf));
-		if (n < 0 && errno != EINTR) {
-			/* Clear mask to signal start failure after reaping child */
-			wlr_log_errno(WLR_ERROR, "read from Xwayland display_fd failed");
-			mask = 0;
-		} else if (n <= 0 || buf[n-1] != '\n') {
-			/* Returning 1 here means recheck and call us again if required. */
-			return 1;
-		}
-	}
-
-	while (waitpid(server->pid, NULL, 0) < 0) {
+	int stat_val = -1;
+	while (waitpid(server->pid, &stat_val, 0) < 0) {
 		if (errno == EINTR) {
 			continue;
 		}
 		wlr_log_errno(WLR_ERROR, "waitpid for Xwayland fork failed");
 		goto error;
 	}
-	/* Xwayland will only write on the fd once it has finished its
-	 * initial setup. Getting an event here without READABLE means
-	 * the server end failed.
-	 */
-	if (!(mask & WL_EVENT_READABLE)) {
-		assert(mask & WL_EVENT_HANGUP);
+	if (stat_val) {
 		wlr_log(WLR_ERROR, "Xwayland startup failed, not setting up xwm");
 		goto error;
 	}
 	wlr_log(WLR_DEBUG, "Xserver is ready");
 
-	close(fd);
 	wl_event_source_remove(server->pipe_source);
 	server->pipe_source = NULL;
 
@@ -266,15 +258,13 @@ static int xserver_handle_ready(int fd, uint32_t mask, void *data) {
 	};
 	wlr_signal_emit_safe(&server->events.ready, &event);
 
-	/* We removed the source, so don't need recheck */
-	return 0;
+	return 1; /* wayland event loop dispatcher's count */
 
 error:
 	/* clean up */
-	close(fd);
 	server_finish_process(server);
 	server_finish_display(server);
-	return 0;
+	return 1;
 }
 
 static bool server_start_display(struct wlr_xwayland_server *server,
@@ -333,36 +323,63 @@ static bool server_start(struct wlr_xwayland_server *server) {
 	server->client_destroy.notify = handle_client_destroy;
 	wl_client_add_destroy_listener(server->client, &server->client_destroy);
 
-	int notify_fd[2];
-	if (pipe(notify_fd) == -1) {
+	int p[2];
+	if (pipe(p) == -1) {
 		wlr_log_errno(WLR_ERROR, "pipe failed");
 		server_finish_process(server);
 		return false;
 	}
-	if (!set_cloexec(notify_fd[0], true)) {
+	if (!set_cloexec(p[1], true) || !set_cloexec(p[0], true)) {
 		wlr_log(WLR_ERROR, "Failed to set CLOEXEC on FD");
 		server_finish_process(server);
 		return false;
 	}
 
 	struct wl_event_loop *loop = wl_display_get_event_loop(server->wl_display);
-	server->pipe_source = wl_event_loop_add_fd(loop, notify_fd[0],
+	server->pipe_source = wl_event_loop_add_fd(loop, p[0],
 		WL_EVENT_READABLE, xserver_handle_ready, server);
 
 	server->pid = fork();
 	if (server->pid < 0) {
 		wlr_log_errno(WLR_ERROR, "fork failed");
-		close(notify_fd[0]);
-		close(notify_fd[1]);
+		close(p[0]);
+		close(p[1]);
 		server_finish_process(server);
 		return false;
 	} else if (server->pid == 0) {
+		/* Double-fork, but we need to forward SIGUSR1 once Xserver(1)
+		 * is ready, or error if there was one. */
+		close(p[0]);
+		sigset_t sigset;
+		sigemptyset(&sigset);
+		sigaddset(&sigset, SIGUSR1);
+		sigaddset(&sigset, SIGCHLD);
+		sigprocmask(SIG_BLOCK, &sigset, NULL);
+
 		pid_t pid = fork();
 		if (pid < 0) {
 			wlr_log_errno(WLR_ERROR, "second fork failed");
+			(void)!write(p[1], "\n", 1);
 			_exit(EXIT_FAILURE);
 		} else if (pid == 0) {
-			exec_xwayland(server, notify_fd[1]);
+			exec_xwayland(server);
+		}
+
+		int sig;
+		sigwait(&sigset, &sig);
+		if (write(p[1], "\n", 1) < 1) {
+			// Note: if this write failed and we've leaked the write
+			// end of the pipe (due to a race between another thread
+			// exec'ing and our call to fcntl), then our handler will
+			// never wake up and never notice this failure. Hopefully
+			// that combination of events is extremely unlikely. This
+			// applies to the other write, too.
+			wlr_log_errno(WLR_ERROR, "write to pipe failed");
+			_exit(EXIT_FAILURE);
+		}
+		if (sig == SIGCHLD) {
+			waitpid(pid, NULL, 0);
+			_exit(EXIT_FAILURE);
 		}
 
 		_exit(EXIT_SUCCESS);
@@ -370,7 +387,7 @@ static bool server_start(struct wlr_xwayland_server *server) {
 
 	/* close child fds */
 	/* remain managing x sockets for lazy start */
-	close(notify_fd[1]);
+	close(p[1]);
 	close(server->wl_fd[1]);
 	safe_close(server->wm_fd[1]);
 	server->wl_fd[1] = server->wm_fd[1] = -1;

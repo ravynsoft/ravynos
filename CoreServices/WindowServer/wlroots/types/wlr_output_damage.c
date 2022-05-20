@@ -187,17 +187,11 @@ void wlr_output_damage_add(struct wlr_output_damage *output_damage,
 	int width, height;
 	wlr_output_transformed_resolution(output_damage->output, &width, &height);
 
-	pixman_region32_t clipped_damage;
-	pixman_region32_init(&clipped_damage);
-	pixman_region32_intersect_rect(&clipped_damage, damage, 0, 0, width, height);
-
-	if (pixman_region32_not_empty(&clipped_damage)) {
-		pixman_region32_union(&output_damage->current, &output_damage->current,
-			&clipped_damage);
-		wlr_output_schedule_frame(output_damage->output);
-	}
-
-	pixman_region32_fini(&clipped_damage);
+	pixman_region32_union(&output_damage->current, &output_damage->current,
+		damage);
+	pixman_region32_intersect_rect(&output_damage->current,
+		&output_damage->current, 0, 0, width, height);
+	wlr_output_schedule_frame(output_damage->output);
 }
 
 void wlr_output_damage_add_whole(struct wlr_output_damage *output_damage) {
@@ -212,9 +206,12 @@ void wlr_output_damage_add_whole(struct wlr_output_damage *output_damage) {
 
 void wlr_output_damage_add_box(struct wlr_output_damage *output_damage,
 		struct wlr_box *box) {
-	pixman_region32_t damage;
-	pixman_region32_init_rect(&damage,
+	int width, height;
+	wlr_output_transformed_resolution(output_damage->output, &width, &height);
+
+	pixman_region32_union_rect(&output_damage->current, &output_damage->current,
 		box->x, box->y, box->width, box->height);
-	wlr_output_damage_add(output_damage, &damage);
-	pixman_region32_fini(&damage);
+	pixman_region32_intersect_rect(&output_damage->current,
+		&output_damage->current, 0, 0, width, height);
+	wlr_output_schedule_frame(output_damage->output);
 }

@@ -5,13 +5,12 @@
 #include <unistd.h>
 #include <wayland-server-core.h>
 #include <wlr/interfaces/wlr_keyboard.h>
+#include <wlr/types/wlr_keyboard.h>
 #include <wlr/util/log.h>
-#include "interfaces/wlr_input_device.h"
 #include "types/wlr_keyboard.h"
 #include "util/array.h"
 #include "util/shm.h"
 #include "util/signal.h"
-#include "util/time.h"
 
 void keyboard_led_update(struct wlr_keyboard *keyboard) {
 	if (keyboard->xkb_state == NULL) {
@@ -115,15 +114,13 @@ void wlr_keyboard_notify_key(struct wlr_keyboard *keyboard,
 }
 
 void wlr_keyboard_init(struct wlr_keyboard *kb,
-		const struct wlr_keyboard_impl *impl, const char *name) {
-	wlr_input_device_init(&kb->base, WLR_INPUT_DEVICE_KEYBOARD, name);
-	kb->base.keyboard = kb;
-
+		const struct wlr_keyboard_impl *impl) {
 	kb->impl = impl;
 	wl_signal_init(&kb->events.key);
 	wl_signal_init(&kb->events.modifiers);
 	wl_signal_init(&kb->events.keymap);
 	wl_signal_init(&kb->events.repeat_info);
+	wl_signal_init(&kb->events.destroy);
 
 	kb->keymap_fd = -1;
 
@@ -132,28 +129,22 @@ void wlr_keyboard_init(struct wlr_keyboard *kb,
 	kb->repeat_info.delay = 600;
 }
 
-void wlr_keyboard_finish(struct wlr_keyboard *kb) {
-	/* Release pressed keys */
-	size_t orig_num_keycodes = kb->num_keycodes;
-	for (size_t i = 0; i < orig_num_keycodes; ++i) {
-		assert(kb->num_keycodes == orig_num_keycodes - i);
-		struct wlr_event_keyboard_key event = {
-			.time_msec = get_current_time_msec(),
-			.keycode = kb->keycodes[orig_num_keycodes - i - 1],
-			.update_state = false,
-			.state = WL_KEYBOARD_KEY_STATE_RELEASED,
-		};
-		wlr_keyboard_notify_key(kb, &event);  // updates num_keycodes
+void wlr_keyboard_destroy(struct wlr_keyboard *kb) {
+	if (kb == NULL) {
+		return;
 	}
-
-	wlr_input_device_finish(&kb->base);
-
-	/* Finish xkbcommon resources */
+	wlr_signal_emit_safe(&kb->events.destroy, kb);
 	xkb_state_unref(kb->xkb_state);
 	xkb_keymap_unref(kb->keymap);
 	free(kb->keymap_string);
 	if (kb->keymap_fd >= 0) {
 		close(kb->keymap_fd);
+	}
+	if (kb->impl && kb->impl->destroy) {
+		kb->impl->destroy(kb);
+	} else {
+		wl_list_remove(&kb->events.key.listener_list);
+		free(kb);
 	}
 }
 

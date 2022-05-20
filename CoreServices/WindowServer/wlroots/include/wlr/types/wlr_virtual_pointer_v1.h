@@ -11,6 +11,7 @@
 
 #include <wayland-server-core.h>
 #include <wayland-server-protocol.h>
+#include <wlr/interfaces/wlr_input_device.h>
 #include <wlr/interfaces/wlr_pointer.h>
 #include <wlr/interfaces/wlr_output.h>
 
@@ -27,7 +28,7 @@ struct wlr_virtual_pointer_manager_v1 {
 };
 
 struct wlr_virtual_pointer_v1 {
-	struct wlr_pointer pointer;
+	struct wlr_input_device input_device;
 	struct wl_resource *resource;
 	/* Vertical and horizontal */
 	struct wlr_event_pointer_axis axis_event[2];
@@ -35,6 +36,10 @@ struct wlr_virtual_pointer_v1 {
 	bool axis_valid[2];
 
 	struct wl_list link;
+
+	struct {
+		struct wl_signal destroy; // struct wlr_virtual_pointer_v1*
+	} events;
 };
 
 struct wlr_virtual_pointer_v1_new_pointer_event {

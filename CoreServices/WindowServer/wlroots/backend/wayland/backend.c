@@ -13,6 +13,7 @@
 #include <xf86drm.h>
 
 #include <wlr/backend/interface.h>
+#include <wlr/interfaces/wlr_input_device.h>
 #include <wlr/interfaces/wlr_output.h>
 #include <wlr/util/log.h>
 
@@ -443,7 +444,7 @@ static void backend_destroy(struct wlr_backend *backend) {
 
 	struct wlr_wl_input_device *input_device, *tmp_input_device;
 	wl_list_for_each_safe(input_device, tmp_input_device, &wl->devices, link) {
-		destroy_wl_input_device(input_device);
+		wlr_input_device_destroy(&input_device->wlr_input_device);
 	}
 
 	struct wlr_wl_buffer *buffer, *tmp_buffer;

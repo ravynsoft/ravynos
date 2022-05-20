@@ -15,6 +15,7 @@
 #include <wlr/util/addon.h>
 
 struct wlr_box;
+struct wlr_output_layout_state;
 
 /**
  * Helper to arrange outputs in a 2D coordinate space. The output effective
@@ -26,6 +27,7 @@ struct wlr_box;
  */
 struct wlr_output_layout {
 	struct wl_list outputs;
+	struct wlr_output_layout_state *state;
 
 	struct {
 		struct wl_signal add;
@@ -105,10 +107,10 @@ void wlr_output_layout_closest_point(struct wlr_output_layout *layout,
 /**
  * Get the box of the layout for the given reference output in layout
  * coordinates. If `reference` is NULL, the box will be for the extents of the
- * entire layout. If the output isn't in the layout, the box will be empty.
+ * entire layout.
  */
-void wlr_output_layout_get_box(struct wlr_output_layout *layout,
-		struct wlr_output *reference, struct wlr_box *dest_box);
+struct wlr_box *wlr_output_layout_get_box(
+		struct wlr_output_layout *layout, struct wlr_output *reference);
 
 /**
 * Add an auto configured output to the layout. This will place the output in a
