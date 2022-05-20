@@ -1,4 +1,11 @@
 APP=	        WindowServer
+.if ${MAKEOBJDIR}
+MODIR=          ${MAKEOBJDIR}
+.else
+MODIR=          .
+.endif
+.PATH:          ${MODIR}/wlroots/protocol
+.PATH:          ${.CURDIR}
 SRCS=           WindowServer.m \
                 waybox/waybox/config.c \
                 waybox/waybox/cursor.c \
@@ -8,6 +15,7 @@ SRCS=           WindowServer.m \
                 waybox/waybox/seat.c \
                 waybox/waybox/server.c \
                 waybox/waybox/xdg_shell.c \
+                waybox/waybox/wlr-output-management-unstable-v1.c \
                 Desktop/AppDelegate.m \
                 Desktop/ClockView.m \
                 Desktop/MenuView.m \
@@ -60,6 +68,6 @@ clean-deps:
 
 .include <rvn.app.mk>
 
-${OBJS}: build-wlroots build-waybox
-clean: clean-wlroots clean-deps clean-waybox
+${OBJS}: build-wlroots
+clean: clean-wlroots clean-deps
 
