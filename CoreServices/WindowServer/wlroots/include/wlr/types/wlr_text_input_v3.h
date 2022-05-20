@@ -11,8 +11,9 @@
 
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_seat.h>
-#include <wlr/types/wlr_surface.h>
 #include <wlr/util/box.h>
+
+struct wlr_surface;
 
 enum wlr_text_input_v3_features {
 	WLR_TEXT_INPUT_V3_FEATURE_SURROUNDING_TEXT = 1 << 0,

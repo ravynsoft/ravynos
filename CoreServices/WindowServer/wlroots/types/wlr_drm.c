@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <xf86drm.h>
+#include <wlr/interfaces/wlr_buffer.h>
 #include <wlr/render/drm_format_set.h>
 #include <wlr/render/wlr_renderer.h>
 #include <wlr/types/wlr_buffer.h>

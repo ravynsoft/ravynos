@@ -1,6 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
-#include <wlr/types/wlr_surface.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_viewporter.h>
 #include <wlr/util/log.h>
 #include "util/signal.h"

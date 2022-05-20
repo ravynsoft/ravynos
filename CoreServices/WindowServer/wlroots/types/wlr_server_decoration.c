@@ -1,7 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_server_decoration.h>
-#include <wlr/types/wlr_surface.h>
 #include <wlr/util/log.h>
 #include "server-decoration-protocol.h"
 #include "util/signal.h"

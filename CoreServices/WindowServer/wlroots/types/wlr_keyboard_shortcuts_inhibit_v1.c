@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <util/signal.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_keyboard_shortcuts_inhibit_v1.h>
 #include "keyboard-shortcuts-inhibit-unstable-v1-protocol.h"
 

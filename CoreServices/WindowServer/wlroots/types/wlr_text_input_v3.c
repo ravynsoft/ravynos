@@ -4,6 +4,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_text_input_v3.h>
 #include <wlr/util/log.h>
 #include "text-input-unstable-v3-protocol.h"

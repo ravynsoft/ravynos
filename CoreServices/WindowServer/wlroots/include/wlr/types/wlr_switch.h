@@ -16,7 +16,9 @@
 struct wlr_switch_impl;
 
 struct wlr_switch {
-	struct wlr_switch_impl *impl;
+	struct wlr_input_device base;
+
+	const struct wlr_switch_impl *impl;
 
 	struct {
 		struct wl_signal toggle;
@@ -32,8 +34,7 @@ enum wlr_switch_type {
 
 enum wlr_switch_state {
 	WLR_SWITCH_STATE_OFF = 0,
-	WLR_SWITCH_STATE_ON,
-	WLR_SWITCH_STATE_TOGGLE
+	WLR_SWITCH_STATE_ON
 };
 
 struct wlr_event_switch_toggle {

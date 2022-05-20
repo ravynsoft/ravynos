@@ -84,7 +84,7 @@ static int xdg_client_ping_timeout(void *user_data) {
 
 	struct wlr_xdg_surface *surface;
 	wl_list_for_each(surface, &client->surfaces, link) {
-		wlr_signal_emit_safe(&surface->events.ping_timeout, surface);
+		wlr_signal_emit_safe(&surface->events.ping_timeout, NULL);
 	}
 
 	client->ping_serial = 0;

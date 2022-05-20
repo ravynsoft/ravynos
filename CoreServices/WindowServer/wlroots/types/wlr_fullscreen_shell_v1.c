@@ -1,8 +1,8 @@
 #include <assert.h>
 #include <stdlib.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_fullscreen_shell_v1.h>
 #include <wlr/types/wlr_output.h>
-#include <wlr/types/wlr_surface.h>
 #include <wlr/util/log.h>
 #include "util/signal.h"
 

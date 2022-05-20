@@ -173,11 +173,10 @@ static void decoration_manager_handle_get_toplevel_decoration(
 		uint32_t id, struct wl_resource *toplevel_resource) {
 	struct wlr_xdg_decoration_manager_v1 *manager =
 		decoration_manager_from_resource(manager_resource);
-	struct wlr_xdg_surface *surface =
-		wlr_xdg_surface_from_toplevel_resource(toplevel_resource);
-	assert(surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL);
+	struct wlr_xdg_toplevel *toplevel =
+		wlr_xdg_toplevel_from_resource(toplevel_resource);
 
-	if (wlr_surface_has_buffer(surface->surface)) {
+	if (wlr_surface_has_buffer(toplevel->base->surface)) {
 		wl_resource_post_error(manager_resource,
 			ZXDG_TOPLEVEL_DECORATION_V1_ERROR_UNCONFIGURED_BUFFER,
 			"xdg_toplevel_decoration must not have a buffer at creation");
@@ -191,7 +190,7 @@ static void decoration_manager_handle_get_toplevel_decoration(
 		return;
 	}
 	decoration->manager = manager;
-	decoration->surface = surface;
+	decoration->surface = toplevel->base;
 
 	uint32_t version = wl_resource_get_version(manager_resource);
 	decoration->resource = wl_resource_create(client,
@@ -212,24 +211,26 @@ static void decoration_manager_handle_get_toplevel_decoration(
 	wl_signal_init(&decoration->events.destroy);
 	wl_signal_init(&decoration->events.request_mode);
 
-	wl_signal_add(&surface->events.destroy, &decoration->surface_destroy);
+	wl_signal_add(&toplevel->base->events.destroy,
+		&decoration->surface_destroy);
 	decoration->surface_destroy.notify =
 		toplevel_decoration_handle_surface_destroy;
-	wl_signal_add(&surface->events.configure, &decoration->surface_configure);
+	wl_signal_add(&toplevel->base->events.configure,
+		&decoration->surface_configure);
 	decoration->surface_configure.notify =
 		toplevel_decoration_handle_surface_configure;
-	wl_signal_add(&surface->events.ack_configure,
+	wl_signal_add(&toplevel->base->events.ack_configure,
 		&decoration->surface_ack_configure);
 	decoration->surface_ack_configure.notify =
 		toplevel_decoration_handle_surface_ack_configure;
-	wl_signal_add(&surface->surface->events.commit,
+	wl_signal_add(&toplevel->base->surface->events.commit,
 		&decoration->surface_commit);
 	decoration->surface_commit.notify =
 		toplevel_decoration_handle_surface_commit;
 
 	wl_list_insert(&manager->decorations, &decoration->link);
 
-	if (surface->added) {
+	if (toplevel->base->added) {
 		decoration->added = true;
 		wlr_signal_emit_safe(&manager->events.new_toplevel_decoration,
 			decoration);

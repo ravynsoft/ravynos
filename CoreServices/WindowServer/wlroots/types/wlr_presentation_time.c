@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <wlr/backend.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_presentation_time.h>
-#include <wlr/types/wlr_surface.h>
 #include <wlr/util/addon.h>
 #include "presentation-time-protocol.h"
 #include "util/signal.h"

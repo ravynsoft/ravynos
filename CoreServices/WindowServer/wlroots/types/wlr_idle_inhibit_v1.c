@@ -3,8 +3,8 @@
 #include <util/signal.h>
 #include <wayland-server-core.h>
 #include <wayland-util.h>
+#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_idle_inhibit_v1.h>
-#include <wlr/types/wlr_surface.h>
 #include <wlr/util/log.h>
 #include "idle-inhibit-unstable-v1-protocol.h"
 

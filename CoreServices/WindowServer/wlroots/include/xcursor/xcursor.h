@@ -54,9 +54,6 @@ typedef struct _XcursorImages {
     char	    *name;	/* name used to load images */
 } XcursorImages;
 
-XcursorImages *
-XcursorLibraryLoadImages (const char *file, const char *theme, int size);
-
 void
 XcursorImagesDestroy (XcursorImages *images);
 

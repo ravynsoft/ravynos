@@ -253,12 +253,6 @@ static void handle_display_destroy(struct wl_listener *listener, void *data) {
 
 struct wlr_xdg_output_manager_v1 *wlr_xdg_output_manager_v1_create(
 		struct wl_display *display, struct wlr_output_layout *layout) {
-	// TODO: require wayland-protocols 1.18 and remove this condition
-	int version = OUTPUT_MANAGER_VERSION;
-	if (version > zxdg_output_manager_v1_interface.version) {
-		version = zxdg_output_manager_v1_interface.version;
-	}
-
 	struct wlr_xdg_output_manager_v1 *manager =
 		calloc(1, sizeof(struct wlr_xdg_output_manager_v1));
 	if (manager == NULL) {
@@ -266,7 +260,7 @@ struct wlr_xdg_output_manager_v1 *wlr_xdg_output_manager_v1_create(
 	}
 	manager->layout = layout;
 	manager->global = wl_global_create(display,
-		&zxdg_output_manager_v1_interface, version, manager,
+		&zxdg_output_manager_v1_interface, OUTPUT_MANAGER_VERSION, manager,
 		output_manager_bind);
 	if (!manager->global) {
 		free(manager);

@@ -343,21 +343,39 @@ VkPhysicalDevice vulkan_find_drm_phdev(struct wlr_vk_instance *ini, int drm_fd) 
 		}
 
 		const char *name = VK_EXT_PHYSICAL_DEVICE_DRM_EXTENSION_NAME;
-		if (find_extensions(avail_ext_props, avail_extc, &name, 1) != NULL) {
+		bool has_drm_props = find_extensions(avail_ext_props, avail_extc, &name, 1) == NULL;
+		name = VK_KHR_DRIVER_PROPERTIES_EXTENSION_NAME;
+		bool has_driver_props = find_extensions(avail_ext_props, avail_extc, &name, 1) == NULL;
+
+		VkPhysicalDeviceProperties2 props = {0};
+		props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
+
+		VkPhysicalDeviceDrmPropertiesEXT drm_props = {0};
+		drm_props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRM_PROPERTIES_EXT;
+		if (has_drm_props) {
+			drm_props.pNext = props.pNext;
+			props.pNext = &drm_props;
+		}
+
+		VkPhysicalDeviceDriverPropertiesKHR driver_props = {0};
+		driver_props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES;
+		if (has_driver_props) {
+			driver_props.pNext = props.pNext;
+			props.pNext = &driver_props;
+		}
+
+		vkGetPhysicalDeviceProperties2(phdev, &props);
+
+		if (has_driver_props) {
+			wlr_log(WLR_INFO, "  Driver name: %s (%s)", driver_props.driverName, driver_props.driverInfo);
+		}
+
+		if (!has_drm_props) {
 			wlr_log(WLR_DEBUG, "  Ignoring physical device \"%s\": "
 				"VK_EXT_physical_device_drm not supported",
 				phdev_props.deviceName);
 			continue;
 		}
-
-		VkPhysicalDeviceDrmPropertiesEXT drm_props = {0};
-		drm_props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRM_PROPERTIES_EXT;
-
-		VkPhysicalDeviceProperties2 props = {0};
-		props.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2;
-		props.pNext = &drm_props;
-
-		vkGetPhysicalDeviceProperties2(phdev, &props);
 
 		dev_t primary_devid = makedev(drm_props.primaryMajor, drm_props.primaryMinor);
 		dev_t render_devid = makedev(drm_props.renderMajor, drm_props.renderMinor);

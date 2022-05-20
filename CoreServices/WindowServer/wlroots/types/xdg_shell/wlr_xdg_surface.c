@@ -32,44 +32,20 @@ void unmap_xdg_surface(struct wlr_xdg_surface *surface) {
 
 	struct wlr_xdg_popup *popup, *popup_tmp;
 	wl_list_for_each_safe(popup, popup_tmp, &surface->popups, link) {
-		wlr_xdg_popup_destroy(popup->base);
+		wlr_xdg_popup_destroy(popup);
 	}
 
 	// TODO: probably need to ungrab before this event
 	if (surface->mapped) {
-		wlr_signal_emit_safe(&surface->events.unmap, surface);
+		wlr_signal_emit_safe(&surface->events.unmap, NULL);
 	}
 
 	switch (surface->role) {
 	case WLR_XDG_SURFACE_ROLE_TOPLEVEL:
-		if (surface->toplevel->parent) {
-			wl_list_remove(&surface->toplevel->parent_unmap.link);
-			surface->toplevel->parent = NULL;
-		}
-		free(surface->toplevel->title);
-		surface->toplevel->title = NULL;
-		free(surface->toplevel->app_id);
-		surface->toplevel->app_id = NULL;
+		unmap_xdg_toplevel(surface->toplevel);
 		break;
 	case WLR_XDG_SURFACE_ROLE_POPUP:
-		if (surface->popup->seat != NULL) {
-			struct wlr_xdg_popup_grab *grab =
-				get_xdg_shell_popup_grab_from_seat(surface->client->shell,
-					surface->popup->seat);
-
-			wl_list_remove(&surface->popup->grab_link);
-
-			if (wl_list_empty(&grab->popups)) {
-				if (grab->seat->pointer_state.grab == &grab->pointer_grab) {
-					wlr_seat_pointer_end_grab(grab->seat);
-				}
-				if (grab->seat->keyboard_state.grab == &grab->keyboard_grab) {
-					wlr_seat_keyboard_end_grab(grab->seat);
-				}
-			}
-
-			surface->popup->seat = NULL;
-		}
+		unmap_xdg_popup(surface->popup);
 		break;
 	case WLR_XDG_SURFACE_ROLE_NONE:
 		assert(false && "not reached");
@@ -130,7 +106,8 @@ static void xdg_surface_handle_ack_configure(struct wl_client *client,
 		assert(0 && "not reached");
 		break;
 	case WLR_XDG_SURFACE_ROLE_TOPLEVEL:
-		handle_xdg_toplevel_ack_configure(surface, configure);
+		handle_xdg_toplevel_ack_configure(surface->toplevel,
+				configure->toplevel_configure);
 		break;
 	case WLR_XDG_SURFACE_ROLE_POPUP:
 		break;
@@ -164,7 +141,8 @@ static void surface_send_configure(void *user_data) {
 		assert(0 && "not reached");
 		break;
 	case WLR_XDG_SURFACE_ROLE_TOPLEVEL:
-		send_xdg_toplevel_configure(surface, configure);
+		configure->toplevel_configure =
+			send_xdg_toplevel_configure(surface->toplevel);
 		break;
 	case WLR_XDG_SURFACE_ROLE_POPUP:
 		xdg_popup_send_configure(surface->popup->resource,
@@ -208,8 +186,8 @@ static void xdg_surface_handle_get_popup(struct wl_client *client,
 	if (xdg_surface == NULL) {
 		return; // TODO: create an inert xdg_popup
 	}
-	struct wlr_xdg_positioner_resource *positioner =
-		get_xdg_positioner_from_resource(positioner_resource);
+	struct wlr_xdg_positioner *positioner =
+		wlr_xdg_positioner_from_resource(positioner_resource);
 	create_xdg_popup(xdg_surface, parent, positioner, id);
 }
 
@@ -305,7 +283,7 @@ static void xdg_surface_handle_surface_commit(struct wl_listener *listener,
 	}
 }
 
-void handle_xdg_surface_commit(struct wlr_surface *wlr_surface) {
+void xdg_surface_role_commit(struct wlr_surface *wlr_surface) {
 	struct wlr_xdg_surface *surface =
 		wlr_xdg_surface_from_wlr_surface(wlr_surface);
 	if (surface == NULL) {
@@ -319,10 +297,10 @@ void handle_xdg_surface_commit(struct wlr_surface *wlr_surface) {
 		// inert toplevel or popup
 		return;
 	case WLR_XDG_SURFACE_ROLE_TOPLEVEL:
-		handle_xdg_surface_toplevel_committed(surface);
+		handle_xdg_toplevel_committed(surface->toplevel);
 		break;
 	case WLR_XDG_SURFACE_ROLE_POPUP:
-		handle_xdg_surface_popup_committed(surface);
+		handle_xdg_popup_committed(surface->popup);
 		break;
 	}
 
@@ -334,19 +312,19 @@ void handle_xdg_surface_commit(struct wlr_surface *wlr_surface) {
 	if (surface->configured && wlr_surface_has_buffer(surface->surface) &&
 			!surface->mapped) {
 		surface->mapped = true;
-		wlr_signal_emit_safe(&surface->events.map, surface);
+		wlr_signal_emit_safe(&surface->events.map, NULL);
 	}
 }
 
-void handle_xdg_surface_precommit(struct wlr_surface *wlr_surface) {
+void xdg_surface_role_precommit(struct wlr_surface *wlr_surface,
+		const struct wlr_surface_state *state) {
 	struct wlr_xdg_surface *surface =
 		wlr_xdg_surface_from_wlr_surface(wlr_surface);
 	if (surface == NULL) {
 		return;
 	}
 
-	if (wlr_surface->pending.committed & WLR_SURFACE_STATE_BUFFER &&
-			wlr_surface->pending.buffer == NULL) {
+	if (state->committed & WLR_SURFACE_STATE_BUFFER && state->buffer == NULL) {
 		// This is a NULL commit
 		if (surface->configured && surface->mapped) {
 			unmap_xdg_surface(surface);
@@ -362,102 +340,90 @@ static void xdg_surface_handle_surface_destroy(struct wl_listener *listener,
 }
 
 struct wlr_xdg_surface *create_xdg_surface(
-		struct wlr_xdg_client *client, struct wlr_surface *surface,
+		struct wlr_xdg_client *client, struct wlr_surface *wlr_surface,
 		uint32_t id) {
-	struct wlr_xdg_surface *xdg_surface =
+	struct wlr_xdg_surface *surface =
 		calloc(1, sizeof(struct wlr_xdg_surface));
-	if (xdg_surface == NULL) {
+	if (surface == NULL) {
 		wl_client_post_no_memory(client->client);
 		return NULL;
 	}
 
-	xdg_surface->client = client;
-	xdg_surface->role = WLR_XDG_SURFACE_ROLE_NONE;
-	xdg_surface->surface = surface;
-	xdg_surface->resource = wl_resource_create(client->client,
+	surface->client = client;
+	surface->role = WLR_XDG_SURFACE_ROLE_NONE;
+	surface->surface = wlr_surface;
+	surface->resource = wl_resource_create(client->client,
 		&xdg_surface_interface, wl_resource_get_version(client->resource),
 		id);
-	if (xdg_surface->resource == NULL) {
-		free(xdg_surface);
+	if (surface->resource == NULL) {
+		free(surface);
 		wl_client_post_no_memory(client->client);
 		return NULL;
 	}
 
-	if (wlr_surface_has_buffer(xdg_surface->surface)) {
-		wl_resource_destroy(xdg_surface->resource);
-		free(xdg_surface);
+	if (wlr_surface_has_buffer(surface->surface)) {
+		wl_resource_destroy(surface->resource);
+		free(surface);
 		wl_resource_post_error(client->resource,
 			XDG_SURFACE_ERROR_UNCONFIGURED_BUFFER,
 			"xdg_surface must not have a buffer at creation");
 		return NULL;
 	}
 
-	wl_list_init(&xdg_surface->configure_list);
-	wl_list_init(&xdg_surface->popups);
+	wl_list_init(&surface->configure_list);
+	wl_list_init(&surface->popups);
 
-	wl_signal_init(&xdg_surface->events.destroy);
-	wl_signal_init(&xdg_surface->events.ping_timeout);
-	wl_signal_init(&xdg_surface->events.new_popup);
-	wl_signal_init(&xdg_surface->events.map);
-	wl_signal_init(&xdg_surface->events.unmap);
-	wl_signal_init(&xdg_surface->events.configure);
-	wl_signal_init(&xdg_surface->events.ack_configure);
+	wl_signal_init(&surface->events.destroy);
+	wl_signal_init(&surface->events.ping_timeout);
+	wl_signal_init(&surface->events.new_popup);
+	wl_signal_init(&surface->events.map);
+	wl_signal_init(&surface->events.unmap);
+	wl_signal_init(&surface->events.configure);
+	wl_signal_init(&surface->events.ack_configure);
 
-	wl_signal_add(&xdg_surface->surface->events.destroy,
-		&xdg_surface->surface_destroy);
-	xdg_surface->surface_destroy.notify = xdg_surface_handle_surface_destroy;
+	wl_signal_add(&surface->surface->events.destroy,
+		&surface->surface_destroy);
+	surface->surface_destroy.notify = xdg_surface_handle_surface_destroy;
 
-	wl_signal_add(&xdg_surface->surface->events.commit,
-		&xdg_surface->surface_commit);
-	xdg_surface->surface_commit.notify = xdg_surface_handle_surface_commit;
+	wl_signal_add(&surface->surface->events.commit,
+		&surface->surface_commit);
+	surface->surface_commit.notify = xdg_surface_handle_surface_commit;
 
-	wlr_log(WLR_DEBUG, "new xdg_surface %p (res %p)", xdg_surface,
-		xdg_surface->resource);
-	wl_resource_set_implementation(xdg_surface->resource,
-		&xdg_surface_implementation, xdg_surface,
+	wlr_log(WLR_DEBUG, "new xdg_surface %p (res %p)", surface,
+		surface->resource);
+	wl_resource_set_implementation(surface->resource,
+		&xdg_surface_implementation, surface,
 		xdg_surface_handle_resource_destroy);
-	wl_list_insert(&client->surfaces, &xdg_surface->link);
+	wl_list_insert(&client->surfaces, &surface->link);
 
-	return xdg_surface;
+	return surface;
 }
 
-void reset_xdg_surface(struct wlr_xdg_surface *xdg_surface) {
-	if (xdg_surface->role != WLR_XDG_SURFACE_ROLE_NONE) {
-		unmap_xdg_surface(xdg_surface);
+void reset_xdg_surface(struct wlr_xdg_surface *surface) {
+	if (surface->role != WLR_XDG_SURFACE_ROLE_NONE) {
+		unmap_xdg_surface(surface);
 	}
 
-	if (xdg_surface->added) {
-		wlr_signal_emit_safe(&xdg_surface->events.destroy, xdg_surface);
-		xdg_surface->added = false;
+	if (surface->added) {
+		wlr_signal_emit_safe(&surface->events.destroy, NULL);
+		surface->added = false;
 	}
 
-	switch (xdg_surface->role) {
+	switch (surface->role) {
 	case WLR_XDG_SURFACE_ROLE_TOPLEVEL:
-		wl_resource_set_user_data(xdg_surface->toplevel->resource, NULL);
-		xdg_surface->toplevel->resource = NULL;
-		struct wlr_xdg_toplevel_requested *req =
-			&xdg_surface->toplevel->requested;
-		if (req->fullscreen_output) {
-			wl_list_remove(&req->fullscreen_output_destroy.link);
-		}
-		free(xdg_surface->toplevel);
-		xdg_surface->toplevel = NULL;
+		destroy_xdg_toplevel(surface->toplevel);
+		surface->toplevel = NULL;
 		break;
 	case WLR_XDG_SURFACE_ROLE_POPUP:
-		wl_resource_set_user_data(xdg_surface->popup->resource, NULL);
-		xdg_surface->popup->resource = NULL;
-
-		wl_list_remove(&xdg_surface->popup->link);
-
-		free(xdg_surface->popup);
-		xdg_surface->popup = NULL;
+		destroy_xdg_popup(surface->popup);
+		surface->popup = NULL;
 		break;
 	case WLR_XDG_SURFACE_ROLE_NONE:
 		// This space is intentionally left blank
 		break;
 	}
 
-	xdg_surface->role = WLR_XDG_SURFACE_ROLE_NONE;
+	surface->role = WLR_XDG_SURFACE_ROLE_NONE;
 }
 
 void destroy_xdg_surface(struct wlr_xdg_surface *surface) {
@@ -493,29 +459,6 @@ void wlr_xdg_surface_ping(struct wlr_xdg_surface *surface) {
 		surface->client->ping_serial);
 }
 
-void wlr_xdg_toplevel_send_close(struct wlr_xdg_surface *surface) {
-	assert(surface->toplevel);
-	assert(surface->role == WLR_XDG_SURFACE_ROLE_TOPLEVEL);
-	xdg_toplevel_send_close(surface->toplevel->resource);
-}
-
-void wlr_xdg_popup_destroy(struct wlr_xdg_surface *surface) {
-	if (surface == NULL) {
-		return;
-	}
-	assert(surface->popup);
-	assert(surface->role == WLR_XDG_SURFACE_ROLE_POPUP);
-
-	struct wlr_xdg_popup *popup, *popup_tmp;
-	wl_list_for_each_safe(popup, popup_tmp, &surface->popups, link) {
-		wlr_xdg_popup_destroy(popup->base);
-	}
-
-	xdg_popup_send_popup_done(surface->popup->resource);
-	wl_resource_set_user_data(surface->popup->resource, NULL);
-	reset_xdg_surface(surface);
-}
-
 void wlr_xdg_popup_get_position(struct wlr_xdg_popup *popup,
 		double *popup_sx, double *popup_sy) {
 	struct wlr_xdg_surface *parent =
@@ -542,19 +485,17 @@ struct wlr_surface *wlr_xdg_surface_surface_at(
 struct wlr_surface *wlr_xdg_surface_popup_surface_at(
 		struct wlr_xdg_surface *surface, double sx, double sy,
 		double *sub_x, double *sub_y) {
-	struct wlr_xdg_popup *popup_state;
-	wl_list_for_each(popup_state, &surface->popups, link) {
-		struct wlr_xdg_surface *popup = popup_state->base;
-		if (!popup->mapped) {
+	struct wlr_xdg_popup *popup;
+	wl_list_for_each(popup, &surface->popups, link) {
+		if (!popup->base->mapped) {
 			continue;
 		}
 
 		double popup_sx, popup_sy;
-		wlr_xdg_popup_get_position(popup_state, &popup_sx, &popup_sy);
+		wlr_xdg_popup_get_position(popup, &popup_sx, &popup_sy);
 
-		struct wlr_surface *sub = wlr_xdg_surface_surface_at(popup,
-			sx - popup_sx,
-			sy - popup_sy,
+		struct wlr_surface *sub = wlr_xdg_surface_surface_at(
+			popup->base, sx - popup_sx, sy - popup_sy,
 			sub_x, sub_y);
 		if (sub != NULL) {
 			return sub;
@@ -579,28 +520,25 @@ static void xdg_surface_iterator(struct wlr_surface *surface,
 
 static void xdg_surface_for_each_popup_surface(struct wlr_xdg_surface *surface,
 		int x, int y, wlr_surface_iterator_func_t iterator, void *user_data) {
-	struct wlr_xdg_popup *popup_state;
-	wl_list_for_each(popup_state, &surface->popups, link) {
-		struct wlr_xdg_surface *popup = popup_state->base;
-		if (!popup->configured || !popup->mapped) {
+	struct wlr_xdg_popup *popup;
+	wl_list_for_each(popup, &surface->popups, link) {
+		if (!popup->base->configured || !popup->base->mapped) {
 			continue;
 		}
 
 		double popup_sx, popup_sy;
-		wlr_xdg_popup_get_position(popup_state, &popup_sx, &popup_sy);
+		wlr_xdg_popup_get_position(popup, &popup_sx, &popup_sy);
 
 		struct xdg_surface_iterator_data data = {
 			.user_iterator = iterator,
 			.user_data = user_data,
 			.x = x + popup_sx, .y = y + popup_sy,
 		};
-		wlr_surface_for_each_surface(popup->surface, xdg_surface_iterator,
-			&data);
+		wlr_surface_for_each_surface(popup->base->surface,
+			xdg_surface_iterator, &data);
 
-		xdg_surface_for_each_popup_surface(popup,
-			x + popup_sx,
-			y + popup_sy,
-			iterator, user_data);
+		xdg_surface_for_each_popup_surface(popup->base,
+			x + popup_sx, y + popup_sy, iterator, user_data);
 	}
 }
 

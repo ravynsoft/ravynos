@@ -14,7 +14,6 @@
 #include <wlr/types/wlr_matrix.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_output.h>
-#include <wlr/types/wlr_surface.h>
 #include <wlr/util/box.h>
 #include <wlr/util/log.h>
 

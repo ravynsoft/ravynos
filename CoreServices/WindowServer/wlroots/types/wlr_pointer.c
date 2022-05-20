@@ -4,8 +4,13 @@
 #include <wlr/interfaces/wlr_pointer.h>
 #include <wlr/types/wlr_pointer.h>
 
+#include "interfaces/wlr_input_device.h"
+
 void wlr_pointer_init(struct wlr_pointer *pointer,
-		const struct wlr_pointer_impl *impl) {
+		const struct wlr_pointer_impl *impl, const char *name) {
+	wlr_input_device_init(&pointer->base, WLR_INPUT_DEVICE_POINTER, name);
+	pointer->base.pointer = pointer;
+
 	pointer->impl = impl;
 	wl_signal_init(&pointer->events.motion);
 	wl_signal_init(&pointer->events.motion_absolute);
@@ -22,13 +27,6 @@ void wlr_pointer_init(struct wlr_pointer *pointer,
 	wl_signal_init(&pointer->events.hold_end);
 }
 
-void wlr_pointer_destroy(struct wlr_pointer *pointer) {
-	if (!pointer) {
-		return;
-	}
-	if (pointer->impl && pointer->impl->destroy) {
-		pointer->impl->destroy(pointer);
-	} else {
-		free(pointer);
-	}
+void wlr_pointer_finish(struct wlr_pointer *pointer) {
+	wlr_input_device_finish(&pointer->base);
 }

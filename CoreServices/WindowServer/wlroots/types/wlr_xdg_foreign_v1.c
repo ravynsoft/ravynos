@@ -103,7 +103,7 @@ static void xdg_imported_handle_set_parent_of(struct wl_client *client,
 	struct wlr_xdg_surface *surface_child =
 		wlr_xdg_surface_from_wlr_surface(wlr_surface_child);
 
-	wlr_xdg_toplevel_set_parent(surface_child, surface);
+	wlr_xdg_toplevel_set_parent(surface_child->toplevel, surface->toplevel);
 	wl_signal_add(&surface_child->events.unmap,
 			&child->xdg_surface_unmap);
 	wl_signal_add(&surface_child->toplevel->events.set_parent,
@@ -153,7 +153,7 @@ static void destroy_imported(struct wlr_xdg_imported_v1 *imported) {
 			wlr_xdg_surface_from_wlr_surface(child->surface);
 
 		if (xdg_child != NULL) {
-			wlr_xdg_toplevel_set_parent(xdg_child, NULL);
+			wlr_xdg_toplevel_set_parent(xdg_child->toplevel, NULL);
 		}
 	}
 
