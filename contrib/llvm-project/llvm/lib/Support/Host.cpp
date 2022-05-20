@@ -83,12 +83,12 @@ StringRef sys::detail::getHostCPUNameForPowerPC(StringRef ProcCpuinfoContent) {
 
   StringRef::const_iterator CIP = CPUInfoStart;
 
-  StringRef::const_iterator CPUStart = 0;
+  StringRef::const_iterator CPUStart = nullptr;
   size_t CPULen = 0;
 
   // We need to find the first line which starts with cpu, spaces, and a colon.
   // After the colon, there may be some additional spaces and then the cpu type.
-  while (CIP < CPUInfoEnd && CPUStart == 0) {
+  while (CIP < CPUInfoEnd && CPUStart == nullptr) {
     if (CIP < CPUInfoEnd && *CIP == '\n')
       ++CIP;
 
@@ -118,12 +118,12 @@ StringRef sys::detail::getHostCPUNameForPowerPC(StringRef ProcCpuinfoContent) {
       }
     }
 
-    if (CPUStart == 0)
+    if (CPUStart == nullptr)
       while (CIP < CPUInfoEnd && *CIP != '\n')
         ++CIP;
   }
 
-  if (CPUStart == 0)
+  if (CPUStart == nullptr)
     return generic;
 
   return StringSwitch<const char *>(StringRef(CPUStart, CPULen))
@@ -211,8 +211,10 @@ StringRef sys::detail::getHostCPUNameForARM(StringRef ProcCpuinfoContent) {
         .Case("0xd0d", "cortex-a77")
         .Case("0xd41", "cortex-a78")
         .Case("0xd44", "cortex-x1")
+        .Case("0xd4c", "cortex-x1c")
         .Case("0xd0c", "neoverse-n1")
         .Case("0xd49", "neoverse-n2")
+        .Case("0xd40", "neoverse-v1")
         .Default("generic");
   }
 
@@ -772,6 +774,22 @@ getIntelProcessorTypeAndSubtype(unsigned Family, unsigned Model,
       *Subtype = X86::INTEL_COREI7_ICELAKE_CLIENT;
       break;
 
+    // Tigerlake:
+    case 0x8c:
+    case 0x8d:
+      CPU = "tigerlake";
+      *Type = X86::INTEL_COREI7;
+      *Subtype = X86::INTEL_COREI7_TIGERLAKE;
+      break;
+
+    // Alderlake:
+    case 0x97:
+    case 0x9a:
+      CPU = "alderlake";
+      *Type = X86::INTEL_COREI7;
+      *Subtype = X86::INTEL_COREI7_ALDERLAKE;
+      break;
+
     // Icelake Xeon:
     case 0x6a:
     case 0x6c:
@@ -1055,8 +1073,10 @@ static void getAvailableFeatures(unsigned ECX, unsigned EDX, unsigned MaxLeaf,
     setFeature(X86::FEATURE_FMA);
   if ((ECX >> 19) & 1)
     setFeature(X86::FEATURE_SSE4_1);
-  if ((ECX >> 20) & 1)
+  if ((ECX >> 20) & 1) {
     setFeature(X86::FEATURE_SSE4_2);
+    setFeature(X86::FEATURE_CRC32);
+  }
   if ((ECX >> 23) & 1)
     setFeature(X86::FEATURE_POPCNT);
   if ((ECX >> 25) & 1)
@@ -1338,6 +1358,16 @@ StringRef sys::getHostCPUName() {
     return "generic";
   }
 }
+#elif defined(__riscv)
+StringRef sys::getHostCPUName() {
+#if __riscv_xlen == 64
+  return "generic-rv64";
+#elif __riscv_xlen == 32
+  return "generic-rv32";
+#else
+#error "Unhandled value of __riscv_xlen"
+#endif
+}
 #else
 StringRef sys::getHostCPUName() { return "generic"; }
 namespace llvm {
@@ -1502,6 +1532,7 @@ bool sys::getHostCPUFeatures(StringMap<bool> &Features) {
   Features["cx16"]   = (ECX >> 13) & 1;
   Features["sse4.1"] = (ECX >> 19) & 1;
   Features["sse4.2"] = (ECX >> 20) & 1;
+  Features["crc32"]  = Features["sse4.2"];
   Features["movbe"]  = (ECX >> 22) & 1;
   Features["popcnt"] = (ECX >> 23) & 1;
   Features["aes"]    = (ECX >> 25) & 1;
@@ -1617,6 +1648,7 @@ bool sys::getHostCPUFeatures(StringMap<bool> &Features) {
   // For more info, see X86 ISA docs.
   Features["pconfig"] = HasLeaf7 && ((EDX >> 18) & 1);
   Features["amx-bf16"]   = HasLeaf7 && ((EDX >> 22) & 1) && HasAMXSave;
+  Features["avx512fp16"] = HasLeaf7 && ((EDX >> 23) & 1) && HasAVX512Save;
   Features["amx-tile"]   = HasLeaf7 && ((EDX >> 24) & 1) && HasAMXSave;
   Features["amx-int8"]   = HasLeaf7 && ((EDX >> 25) & 1) && HasAMXSave;
   bool HasLeaf7Subleaf1 =

@@ -45,12 +45,13 @@ private:
   bool IsObjCNonFragileABIDefault() const override;
   bool UseObjCMixedDispatch() const override;
   bool isPICDefault() const override;
-  bool isPIEDefault() const override;
+  bool isPIEDefault(const llvm::opt::ArgList &Args) const override;
   bool isPICDefaultForced() const override;
   bool IsIntegratedAssemblerDefault() const override;
   bool hasBlocksRuntime() const override;
   bool SupportsProfiling() const override;
   bool HasNativeLLVMSupport() const override;
+  unsigned GetDefaultDwarfVersion() const override { return 4; }
   void
   addClangTargetOptions(const llvm::opt::ArgList &DriverArgs,
                         llvm::opt::ArgStringList &CC1Args,

@@ -1,4 +1,4 @@
-//===-------------------------- DwarfInstructions.hpp ---------------------===//
+//===----------------------------------------------------------------------===//
 //
 // Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
 // See https://llvm.org/LICENSE.txt for license information.
@@ -74,6 +74,13 @@ private:
   }
 };
 
+template <typename R>
+auto getSparcWCookie(const R &r, int) -> decltype(r.getWCookie()) {
+  return r.getWCookie();
+}
+template <typename R> uint64_t getSparcWCookie(const R &, long) {
+  return 0;
+}
 
 template <typename A, typename R>
 typename A::pint_t DwarfInstructions<A, R>::getSavedRegister(
@@ -82,6 +89,10 @@ typename A::pint_t DwarfInstructions<A, R>::getSavedRegister(
   switch (savedReg.location) {
   case CFI_Parser<A>::kRegisterInCFA:
     return (pint_t)addressSpace.getRegister(cfa + (pint_t)savedReg.value);
+
+  case CFI_Parser<A>::kRegisterInCFADecrypt: // sparc64 specific
+    return (pint_t)(addressSpace.getP(cfa + (pint_t)savedReg.value) ^
+           getSparcWCookie(registers, 0));
 
   case CFI_Parser<A>::kRegisterAtExpression:
     return (pint_t)addressSpace.getRegister(evaluateExpression(
@@ -114,11 +125,14 @@ double DwarfInstructions<A, R>::getSavedFloatRegister(
     return addressSpace.getDouble(
         evaluateExpression((pint_t)savedReg.value, addressSpace,
                             registers, cfa));
-
+  case CFI_Parser<A>::kRegisterInRegister:
+#ifndef _LIBUNWIND_TARGET_ARM
+    return registers.getFloatRegister((int)savedReg.value);
+#endif
   case CFI_Parser<A>::kRegisterIsExpression:
   case CFI_Parser<A>::kRegisterUnused:
   case CFI_Parser<A>::kRegisterOffsetFromCFA:
-  case CFI_Parser<A>::kRegisterInRegister:
+  case CFI_Parser<A>::kRegisterInCFADecrypt:
     // FIX ME
     break;
   }
@@ -142,6 +156,7 @@ v128 DwarfInstructions<A, R>::getSavedVectorRegister(
   case CFI_Parser<A>::kRegisterUnused:
   case CFI_Parser<A>::kRegisterOffsetFromCFA:
   case CFI_Parser<A>::kRegisterInRegister:
+  case CFI_Parser<A>::kRegisterInCFADecrypt:
     // FIX ME
     break;
   }
@@ -212,7 +227,7 @@ int DwarfInstructions<A, R>::stepWithDwarf(A &addressSpace, pint_t pc,
       // restored. autia1716 is used instead of autia as autia1716 assembles
       // to a NOP on pre-v8.3a architectures.
       if ((R::getArch() == REGISTERS_ARM64) &&
-          prolog.savedRegisters[UNW_ARM64_RA_SIGN_STATE].value &&
+          prolog.savedRegisters[UNW_AARCH64_RA_SIGN_STATE].value &&
           returnAddress != 0) {
 #if !defined(_LIBUNWIND_IS_NATIVE_ONLY)
         return UNW_ECROSSRASIGNING;
@@ -232,6 +247,20 @@ int DwarfInstructions<A, R>::stepWithDwarf(A &addressSpace, pint_t pc,
       }
 #endif
 
+#if defined(_LIBUNWIND_IS_NATIVE_ONLY) && defined(_LIBUNWIND_TARGET_ARM) &&    \
+    defined(__ARM_FEATURE_PAUTH)
+      if ((R::getArch() == REGISTERS_ARM) &&
+          prolog.savedRegisters[UNW_ARM_RA_AUTH_CODE].value) {
+        pint_t pac =
+            getSavedRegister(addressSpace, registers, cfa,
+                             prolog.savedRegisters[UNW_ARM_RA_AUTH_CODE]);
+        __asm__ __volatile__("autg %0, %1, %2"
+                             :
+                             : "r"(pac), "r"(returnAddress), "r"(cfa)
+                             :);
+      }
+#endif
+
 #if defined(_LIBUNWIND_TARGET_SPARC)
       if (R::getArch() == REGISTERS_SPARC) {
         // Skip call site instruction and delay slot
@@ -240,6 +269,12 @@ int DwarfInstructions<A, R>::stepWithDwarf(A &addressSpace, pint_t pc,
         if ((addressSpace.get32(returnAddress) & 0xC1C00000) == 0)
           returnAddress += 4;
       }
+#endif
+
+#if defined(_LIBUNWIND_TARGET_SPARC64)
+      // Skip call site instruction and delay slot.
+      if (R::getArch() == REGISTERS_SPARC64)
+        returnAddress += 8;
 #endif
 
 #if defined(_LIBUNWIND_TARGET_PPC64)

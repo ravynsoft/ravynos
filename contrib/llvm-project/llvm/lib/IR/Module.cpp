@@ -13,7 +13,6 @@
 #include "llvm/IR/Module.h"
 #include "SymbolTableListTraitsImpl.h"
 #include "llvm/ADT/Optional.h"
-#include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallString.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringMap.h"
@@ -39,7 +38,6 @@
 #include "llvm/IR/TypeFinder.h"
 #include "llvm/IR/Value.h"
 #include "llvm/IR/ValueSymbolTable.h"
-#include "llvm/Pass.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Support/Error.h"
@@ -750,8 +748,8 @@ void Module::setSDKVersion(const VersionTuple &V) {
                 ConstantDataArray::get(Context, Entries));
 }
 
-VersionTuple Module::getSDKVersion() const {
-  auto *CM = dyn_cast_or_null<ConstantAsMetadata>(getModuleFlag("SDK Version"));
+static VersionTuple getSDKVersionMD(Metadata *MD) {
+  auto *CM = dyn_cast_or_null<ConstantAsMetadata>(MD);
   if (!CM)
     return {};
   auto *Arr = dyn_cast_or_null<ConstantDataArray>(CM->getValue());
@@ -773,6 +771,10 @@ VersionTuple Module::getSDKVersion() const {
     }
   }
   return Result;
+}
+
+VersionTuple Module::getSDKVersion() const {
+  return getSDKVersionMD(getModuleFlag("SDK Version"));
 }
 
 GlobalVariable *llvm::collectUsedGlobalVariables(
@@ -808,4 +810,14 @@ void Module::setPartialSampleProfileRatio(const ModuleSummaryIndex &Index) {
                         ProfileSummary::PSK_Sample);
     }
   }
+}
+
+StringRef Module::getDarwinTargetVariantTriple() const {
+  if (const auto *MD = getModuleFlag("darwin.target_variant.triple"))
+    return cast<MDString>(MD)->getString();
+  return "";
+}
+
+VersionTuple Module::getDarwinTargetVariantSDKVersion() const {
+  return getSDKVersionMD(getModuleFlag("darwin.target_variant.SDK Version"));
 }

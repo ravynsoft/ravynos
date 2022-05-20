@@ -12,8 +12,8 @@
 /// It needs to be called after IfCvt for best results.
 //===----------------------------------------------------------------------===//
 
-#include "AMDGPU.h"
-#include "MCTargetDesc/AMDGPUMCTargetDesc.h"
+#include "MCTargetDesc/R600MCTargetDesc.h"
+#include "R600.h"
 #include "R600Subtarget.h"
 
 using namespace llvm;
@@ -177,9 +177,7 @@ bool R600ClauseMergePass::runOnMachineFunction(MachineFunction &MF) {
   const R600Subtarget &ST = MF.getSubtarget<R600Subtarget>();
   TII = ST.getInstrInfo();
 
-  for (MachineFunction::iterator BB = MF.begin(), BB_E = MF.end();
-                                                  BB != BB_E; ++BB) {
-    MachineBasicBlock &MBB = *BB;
+  for (MachineBasicBlock &MBB : MF) {
     MachineBasicBlock::iterator I = MBB.begin(),  E = MBB.end();
     MachineBasicBlock::iterator LatestCFAlu = E;
     while (I != E) {

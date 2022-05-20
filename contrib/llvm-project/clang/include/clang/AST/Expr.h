@@ -572,6 +572,12 @@ public:
   bool isConstantInitializer(ASTContext &Ctx, bool ForRef,
                              const Expr **Culprit = nullptr) const;
 
+  /// If this expression is an unambiguous reference to a single declaration,
+  /// in the style of __builtin_function_start, return that declaration.  Note
+  /// that this may return a non-static member function or field in C++ if this
+  /// expression is a member pointer constant.
+  const ValueDecl *getAsBuiltinConstantDeclRef(const ASTContext &Context) const;
+
   /// EvalStatus is a struct with detailed info about an evaluation in progress.
   struct EvalStatus {
     /// Whether the evaluated expression has side effects.
@@ -738,6 +744,12 @@ public:
   /// "type" parameter of __builtin_object_size
   bool tryEvaluateObjectSize(uint64_t &Result, ASTContext &Ctx,
                              unsigned Type) const;
+
+  /// If the current Expr is a pointer, this will try to statically
+  /// determine the strlen of the string pointed to.
+  /// Returns true if all of the above holds and we were able to figure out the
+  /// strlen, false otherwise.
+  bool tryEvaluateStrLen(uint64_t &Result, ASTContext &Ctx) const;
 
   /// Enumeration used to describe the kind of Null pointer constant
   /// returned from \c isNullPointerConstant().
@@ -2375,7 +2387,7 @@ public:
 
   /// Create an offsetof node that refers into a C++ base class.
   explicit OffsetOfNode(const CXXBaseSpecifier *Base)
-      : Range(), Data(reinterpret_cast<uintptr_t>(Base) | OffsetOfNode::Base) {}
+      : Data(reinterpret_cast<uintptr_t>(Base) | OffsetOfNode::Base) {}
 
   /// Determine what kind of offsetof node this is.
   Kind getKind() const { return static_cast<Kind>(Data & Mask); }
@@ -6298,8 +6310,10 @@ public:
   bool isCmpXChg() const {
     return getOp() == AO__c11_atomic_compare_exchange_strong ||
            getOp() == AO__c11_atomic_compare_exchange_weak ||
+           getOp() == AO__hip_atomic_compare_exchange_strong ||
            getOp() == AO__opencl_atomic_compare_exchange_strong ||
            getOp() == AO__opencl_atomic_compare_exchange_weak ||
+           getOp() == AO__hip_atomic_compare_exchange_weak ||
            getOp() == AO__atomic_compare_exchange ||
            getOp() == AO__atomic_compare_exchange_n;
   }
@@ -6334,6 +6348,8 @@ public:
     auto Kind =
         (Op >= AO__opencl_atomic_load && Op <= AO__opencl_atomic_fetch_max)
             ? AtomicScopeModelKind::OpenCL
+        : (Op >= AO__hip_atomic_load && Op <= AO__hip_atomic_fetch_max)
+            ? AtomicScopeModelKind::HIP
             : AtomicScopeModelKind::None;
     return AtomicScopeModel::create(Kind);
   }

@@ -20,8 +20,6 @@
 #include "llvm/IR/DiagnosticInfo.h"
 #include "llvm/IR/DiagnosticPrinter.h"
 #include "llvm/IR/LLVMRemarkStreamer.h"
-#include "llvm/IR/Metadata.h"
-#include "llvm/IR/Module.h"
 #include "llvm/Remarks/RemarkStreamer.h"
 #include "llvm/Support/Casting.h"
 #include "llvm/Support/ErrorHandling.h"
@@ -348,6 +346,12 @@ std::unique_ptr<DiagnosticHandler> LLVMContext::getDiagnosticHandler() {
   return std::move(pImpl->DiagHandler);
 }
 
+void LLVMContext::enableOpaquePointers() const {
+  assert(pImpl->PointerTypes.empty() && pImpl->ASPointerTypes.empty() &&
+         "Must be called before creating any pointer types");
+  pImpl->setOpaquePointers(true);
+}
+
 bool LLVMContext::supportsTypedPointers() const {
-  return !pImpl->ForceOpaquePointers;
+  return !pImpl->getOpaquePointers();
 }

@@ -293,9 +293,8 @@ static Loop *separateNestedLoop(Loop *L, BasicBlock *Preheader,
   // L is now a subloop of our outer loop.
   NewOuter->addChildLoop(L);
 
-  for (Loop::block_iterator I = L->block_begin(), E = L->block_end();
-       I != E; ++I)
-    NewOuter->addBlockEntry(*I);
+  for (BasicBlock *BB : L->blocks())
+    NewOuter->addBlockEntry(BB);
 
   // Now reset the header in L, which had been moved by
   // SplitBlockPredecessors for the outer loop.
@@ -496,12 +495,12 @@ ReprocessLoop:
   // predecessors that are not in the loop.  This is not valid for natural
   // loops, but can occur if the blocks are unreachable.  Since they are
   // unreachable we can just shamelessly delete those CFG edges!
-  for (Loop::block_iterator BB = L->block_begin(), E = L->block_end();
-       BB != E; ++BB) {
-    if (*BB == L->getHeader()) continue;
+  for (BasicBlock *BB : L->blocks()) {
+    if (BB == L->getHeader())
+      continue;
 
     SmallPtrSet<BasicBlock*, 4> BadPreds;
-    for (BasicBlock *P : predecessors(*BB))
+    for (BasicBlock *P : predecessors(BB))
       if (!L->contains(P))
         BadPreds.insert(P);
 
@@ -779,8 +778,7 @@ namespace {
       AU.addPreserved<DependenceAnalysisWrapperPass>();
       AU.addPreservedID(BreakCriticalEdgesID);  // No critical edges added.
       AU.addPreserved<BranchProbabilityInfoWrapperPass>();
-      if (EnableMSSALoopDependency)
-        AU.addPreserved<MemorySSAWrapperPass>();
+      AU.addPreserved<MemorySSAWrapperPass>();
     }
 
     /// verifyAnalysis() - Verify LoopSimplifyForm's guarantees.
@@ -814,12 +812,10 @@ bool LoopSimplify::runOnFunction(Function &F) {
       &getAnalysis<AssumptionCacheTracker>().getAssumptionCache(F);
   MemorySSA *MSSA = nullptr;
   std::unique_ptr<MemorySSAUpdater> MSSAU;
-  if (EnableMSSALoopDependency) {
-    auto *MSSAAnalysis = getAnalysisIfAvailable<MemorySSAWrapperPass>();
-    if (MSSAAnalysis) {
-      MSSA = &MSSAAnalysis->getMSSA();
-      MSSAU = std::make_unique<MemorySSAUpdater>(MSSA);
-    }
+  auto *MSSAAnalysis = getAnalysisIfAvailable<MemorySSAWrapperPass>();
+  if (MSSAAnalysis) {
+    MSSA = &MSSAAnalysis->getMSSA();
+    MSSAU = std::make_unique<MemorySSAUpdater>(MSSA);
   }
 
   bool PreserveLCSSA = mustPreserveAnalysisID(LCSSAID);

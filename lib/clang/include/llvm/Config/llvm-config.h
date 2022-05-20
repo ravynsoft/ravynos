@@ -51,6 +51,9 @@
 /* LLVM name for the native target MC init function, if available */
 /* #undef LLVM_NATIVE_TARGETMC */
 
+/* LLVM name for the native target MCA init function, if available */
+/* #undef LLVM_NATIVE_TARGETMCA */
+
 /* Define if this is Unixish platform */
 #define LLVM_ON_UNIX 1
 
@@ -64,16 +67,16 @@
 #define LLVM_USE_PERF 0
 
 /* Major version of the LLVM API */
-#define LLVM_VERSION_MAJOR 13
+#define LLVM_VERSION_MAJOR 14
 
 /* Minor version of the LLVM API */
 #define LLVM_VERSION_MINOR 0
 
 /* Patch version of the LLVM API */
-#define LLVM_VERSION_PATCH 0
+#define LLVM_VERSION_PATCH 3
 
 /* LLVM version string */
-#define LLVM_VERSION_STRING "13.0.0"
+#define LLVM_VERSION_STRING "14.0.3"
 
 /* Whether LLVM records statistics for use with GetStatistics(),
  * PrintStatistics() or PrintStatisticsJSON()
@@ -83,11 +86,14 @@
 /* Define if we have z3 and want to build it */
 /* #undef LLVM_WITH_Z3 */
 
+/* Define if we have curl and want to use it */
+/* #undef LLVM_ENABLE_CURL */
+
+/* Define if zlib compression is available */
+#define LLVM_ENABLE_ZLIB 1
+
 /* Define if LLVM was built with a dependency to the libtensorflow dynamic library */
 /* #undef LLVM_HAVE_TF_API */
-
-/* Define if LLVM was built with a dependency to the tensorflow compiler */
-/* #undef LLVM_HAVE_TF_AOT */
 
 /* Define to 1 if you have the <sysexits.h> header file. */
 #define HAVE_SYSEXITS_H 1
@@ -100,12 +106,13 @@
 #define LLVM_HAVE_LIBXAR 1
 #endif
 
-/* Whether Timers signpost passes in Xcode Instruments */
-#if defined(__APPLE__)
-#define LLVM_SUPPORT_XCODE_SIGNPOSTS 1
-#else
-#define LLVM_SUPPORT_XCODE_SIGNPOSTS 0
-#endif
+/* Define if building libLLVM shared library */
+/* #undef LLVM_BUILD_LLVM_DYLIB */
 
+/* Define if building LLVM with BUILD_SHARED_LIBS */
+/* #undef LLVM_BUILD_SHARED_LIBS */
+
+/* Define if building LLVM with LLVM_FORCE_USE_OLD_TOOLCHAIN_LIBS */
+/* #undef LLVM_FORCE_USE_OLD_TOOLCHAIN */
 
 #endif

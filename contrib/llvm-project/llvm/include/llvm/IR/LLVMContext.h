@@ -15,6 +15,7 @@
 #define LLVM_IR_LLVMCONTEXT_H
 
 #include "llvm-c/Types.h"
+#include "llvm/ADT/Optional.h"
 #include "llvm/IR/DiagnosticHandler.h"
 #include "llvm/Support/CBindingWrapping.h"
 #include <cstdint>
@@ -32,11 +33,9 @@ class Module;
 class OptPassGate;
 template <typename T> class SmallVectorImpl;
 template <typename T> class StringMapEntry;
-class SMDiagnostic;
 class StringRef;
 class Twine;
 class LLVMRemarkStreamer;
-class raw_ostream;
 
 namespace remarks {
 class RemarkStreamer;
@@ -304,6 +303,10 @@ public:
   /// The lifetime of the object must be guaranteed to extend as long as the
   /// LLVMContext is used by compilation.
   void setOptPassGate(OptPassGate&);
+
+  /// Enable opaque pointers. Can only be called before creating the first
+  /// pointer type.
+  void enableOpaquePointers() const;
 
   /// Whether typed pointers are supported. If false, all pointers are opaque.
   bool supportsTypedPointers() const;

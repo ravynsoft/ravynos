@@ -43,7 +43,9 @@ void ARMTargetStreamer::emitCurrentConstantPool() {
 }
 
 // finish() - write out any non-empty assembler constant pools.
-void ARMTargetStreamer::finish() { ConstantPools->emitAll(Streamer); }
+void ARMTargetStreamer::emitConstantPools() {
+  ConstantPools->emitAll(Streamer);
+}
 
 // reset() - Reset any state
 void ARMTargetStreamer::reset() {}
@@ -297,4 +299,9 @@ void ARMTargetStreamer::emitTargetAttributes(const MCSubtargetInfo &STI) {
   else if (STI.hasFeature(ARM::FeatureVirtualization))
     emitAttribute(ARMBuildAttrs::Virtualization_use,
                   ARMBuildAttrs::AllowVirtualization);
+
+  if (STI.hasFeature(ARM::FeaturePACBTI)) {
+    emitAttribute(ARMBuildAttrs::PAC_extension, ARMBuildAttrs::AllowPAC);
+    emitAttribute(ARMBuildAttrs::BTI_extension, ARMBuildAttrs::AllowBTI);
+  }
 }

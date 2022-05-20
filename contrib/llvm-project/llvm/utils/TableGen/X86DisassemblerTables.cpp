@@ -15,9 +15,12 @@
 
 #include "X86DisassemblerTables.h"
 #include "X86DisassemblerShared.h"
-#include "llvm/ADT/STLExtras.h"
+#include "X86ModRMFilters.h"
+#include "llvm/ADT/STLArrayExtras.h"
+#include "llvm/ADT/SmallVector.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/Format.h"
+#include "llvm/Support/raw_ostream.h"
 #include <map>
 
 using namespace llvm;
@@ -657,7 +660,7 @@ static const char* stringForDecisionType(ModRMDecisionType dt) {
 }
 
 DisassemblerTables::DisassemblerTables() {
-  for (unsigned i = 0; i < array_lengthof(Tables); i++)
+  for (unsigned i = 0; i < llvm::array_lengthof(Tables); i++)
     Tables[i] = std::make_unique<ContextDecision>();
 
   HasConflicts = false;
@@ -994,6 +997,8 @@ void DisassemblerTables::emitContextDecisions(raw_ostream &o1, raw_ostream &o2,
   emitContextDecision(o1, o2, i1, i2, ModRMTableNum, *Tables[5], XOP9_MAP_STR);
   emitContextDecision(o1, o2, i1, i2, ModRMTableNum, *Tables[6], XOPA_MAP_STR);
   emitContextDecision(o1, o2, i1, i2, ModRMTableNum, *Tables[7], THREEDNOW_MAP_STR);
+  emitContextDecision(o1, o2, i1, i2, ModRMTableNum, *Tables[8], MAP5_STR);
+  emitContextDecision(o1, o2, i1, i2, ModRMTableNum, *Tables[9], MAP6_STR);
 }
 
 void DisassemblerTables::emit(raw_ostream &o) const {

@@ -55,6 +55,8 @@ enum NodeType : unsigned {
   // x29, x29` marker instruction.
   CALL_RVMARKER,
 
+  CALL_BTI, // Function call followed by a BTI instruction.
+
   // Produces the full sequence of instructions for getting the thread pointer
   // offset of a variable into X0, using the TLSDesc model.
   TLSDESC_CALLSEQ,
@@ -77,14 +79,16 @@ enum NodeType : unsigned {
   SBC, // adc, sbc instructions
 
   // Predicated instructions where inactive lanes produce undefined results.
+  ABDS_PRED,
+  ABDU_PRED,
   ADD_PRED,
   FADD_PRED,
   FDIV_PRED,
   FMA_PRED,
-  FMAXNM_PRED,
-  FMINNM_PRED,
   FMAX_PRED,
+  FMAXNM_PRED,
   FMIN_PRED,
+  FMINNM_PRED,
   FMUL_PRED,
   FSUB_PRED,
   MUL_PRED,
@@ -103,6 +107,8 @@ enum NodeType : unsigned {
 
   // Unpredicated vector instructions
   BIC,
+
+  SRAD_MERGE_OP1,
 
   // Predicated instructions with the result of inactive lanes provided by the
   // last operand.
@@ -322,6 +328,8 @@ enum NodeType : unsigned {
 
   BITREVERSE_MERGE_PASSTHRU,
   BSWAP_MERGE_PASSTHRU,
+  REVH_MERGE_PASSTHRU,
+  REVW_MERGE_PASSTHRU,
   CTLZ_MERGE_PASSTHRU,
   CTPOP_MERGE_PASSTHRU,
   DUP_MERGE_PASSTHRU,
@@ -405,6 +413,10 @@ enum NodeType : unsigned {
   SSTNT1_PRED,
   SSTNT1_INDEX_PRED,
 
+  // Asserts that a function argument (i32) is zero-extended to i8 by
+  // the caller
+  ASSERT_ZEXT_BOOL,
+
   // Strict (exception-raising) floating point comparison
   STRICT_FCMP = ISD::FIRST_TARGET_STRICTFP_OPCODE,
   STRICT_FCMPE,
@@ -442,6 +454,12 @@ enum NodeType : unsigned {
   LDP,
   STP,
   STNP,
+
+  // Memory Operations
+  MOPS_MEMSET,
+  MOPS_MEMSET_TAGGING,
+  MOPS_MEMCOPY,
+  MOPS_MEMMOVE,
 };
 
 } // end namespace AArch64ISD
@@ -479,7 +497,6 @@ const unsigned RoundingBitsPos = 22;
 } // namespace AArch64
 
 class AArch64Subtarget;
-class AArch64TargetMachine;
 
 class AArch64TargetLowering : public TargetLowering {
 public:
@@ -595,6 +612,9 @@ public:
   bool isLegalAddImmediate(int64_t) const override;
   bool isLegalICmpImmediate(int64_t) const override;
 
+  bool isMulAddWithConstProfitable(const SDValue &AddNode,
+                                   const SDValue &ConstNode) const override;
+
   bool shouldConsiderGEPOffsetSplit() const override;
 
   EVT getOptimalMemOpType(const MemOp &Op,
@@ -657,6 +677,9 @@ public:
 
   void emitAtomicCmpXchgNoStoreLLBalance(IRBuilderBase &Builder) const override;
 
+  bool isOpSuitableForLDPSTP(const Instruction *I) const;
+  bool shouldInsertFencesForAtomic(const Instruction *I) const override;
+
   TargetLoweringBase::AtomicExpansionKind
   shouldExpandAtomicLoadInIR(LoadInst *LI) const override;
   bool shouldExpandAtomicStoreInIR(StoreInst *SI) const override;
@@ -701,12 +724,11 @@ public:
   bool isIntDivCheap(EVT VT, AttributeList Attr) const override;
 
   bool canMergeStoresTo(unsigned AddressSpace, EVT MemVT,
-                        const SelectionDAG &DAG) const override {
+                        const MachineFunction &MF) const override {
     // Do not merge to float value size (128 bytes) if no implicit
     // float attribute is set.
 
-    bool NoFloat = DAG.getMachineFunction().getFunction().hasFnAttribute(
-        Attribute::NoImplicitFloat);
+    bool NoFloat = MF.getFunction().hasFnAttribute(Attribute::NoImplicitFloat);
 
     if (NoFloat)
       return (MemVT.getSizeInBits() <= 64);
@@ -734,7 +756,9 @@ public:
     if (!VT.isVector())
       return hasAndNotCompare(Y);
 
-    return VT.getSizeInBits() >= 64; // vector 'bic'
+    TypeSize TS = VT.getSizeInBits();
+    // TODO: We should be able to use bic/bif too for SVE.
+    return !TS.isScalable() && TS.getFixedValue() >= 64; // vector 'bic'
   }
 
   bool shouldProduceAndByConstByHoistingConstFromShiftsLHSOfAnd(
@@ -763,6 +787,8 @@ public:
 
   bool preferIncOfAddToSubOfNot(EVT VT) const override;
 
+  bool shouldConvertFpToSat(unsigned Op, EVT FPVT, EVT VT) const override;
+
   bool hasBitPreservingFPLogic(EVT VT) const override {
     // FIXME: Is this always true? It should be true for vectors at least.
     return VT == MVT::f32 || VT == MVT::f64;
@@ -790,13 +816,13 @@ public:
   /// Returns true if \p VecTy is a legal interleaved access type. This
   /// function checks the vector element type and the overall width of the
   /// vector.
-  bool isLegalInterleavedAccessType(VectorType *VecTy,
-                                    const DataLayout &DL) const;
+  bool isLegalInterleavedAccessType(VectorType *VecTy, const DataLayout &DL,
+                                    bool &UseScalable) const;
 
   /// Returns the number of interleaved accesses that will be generated when
   /// lowering accesses of the given type.
-  unsigned getNumInterleavedAccesses(VectorType *VecTy,
-                                     const DataLayout &DL) const;
+  unsigned getNumInterleavedAccesses(VectorType *VecTy, const DataLayout &DL,
+                                     bool UseScalable) const;
 
   MachineMemOperand::Flags getTargetMMOFlags(
     const Instruction &I) const override;
@@ -825,11 +851,13 @@ public:
     return 128;
   }
 
-  bool isAllActivePredicate(SDValue N) const;
+  bool isAllActivePredicate(SelectionDAG &DAG, SDValue N) const;
   EVT getPromotedVTForPredicate(EVT VT) const;
 
   EVT getAsmOperandValueType(const DataLayout &DL, Type *Ty,
                              bool AllowUnknown = false) const override;
+
+  bool shouldExpandGetActiveLaneMask(EVT VT, EVT OpVT) const override;
 
 private:
   /// Keep a pointer to the AArch64Subtarget around so that we can
@@ -861,6 +889,7 @@ private:
 
   SDValue LowerLOAD(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerSTORE(SDValue Op, SelectionDAG &DAG) const;
+  SDValue LowerStore128(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerABS(SDValue Op, SelectionDAG &DAG) const;
 
   SDValue LowerMGATHER(SDValue Op, SelectionDAG &DAG) const;
@@ -868,13 +897,11 @@ private:
 
   SDValue LowerMLOAD(SDValue Op, SelectionDAG &DAG) const;
 
+  SDValue LowerINTRINSIC_W_CHAIN(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerINTRINSIC_WO_CHAIN(SDValue Op, SelectionDAG &DAG) const;
 
-  bool isEligibleForTailCallOptimization(
-      SDValue Callee, CallingConv::ID CalleeCC, bool isVarArg,
-      const SmallVectorImpl<ISD::OutputArg> &Outs,
-      const SmallVectorImpl<SDValue> &OutVals,
-      const SmallVectorImpl<ISD::InputArg> &Ins, SelectionDAG &DAG) const;
+  bool
+  isEligibleForTailCallOptimization(const CallLoweringInfo &CLI) const;
 
   /// Finds the incoming stack arguments which overlap the given fixed stack
   /// object and incorporates their load into the current chain. This prevents
@@ -966,10 +993,12 @@ private:
   SDValue LowerCTPOP(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerCTTZ(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerBitreverse(SDValue Op, SelectionDAG &DAG) const;
+  SDValue LowerMinMax(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerFCOPYSIGN(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerFP_EXTEND(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerFP_ROUND(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerVectorFP_TO_INT(SDValue Op, SelectionDAG &DAG) const;
+  SDValue LowerVectorFP_TO_INT_SAT(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerFP_TO_INT(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerFP_TO_INT_SAT(SDValue Op, SelectionDAG &DAG) const;
   SDValue LowerINT_TO_FP(SDValue Op, SelectionDAG &DAG) const;
@@ -1115,8 +1144,8 @@ private:
   // with BITCAST used otherwise.
   SDValue getSVESafeBitCast(EVT VT, SDValue Op, SelectionDAG &DAG) const;
 
-  bool isConstantUnsignedBitfieldExtactLegal(unsigned Opc, LLT Ty1,
-                                             LLT Ty2) const override;
+  bool isConstantUnsignedBitfieldExtractLegal(unsigned Opc, LLT Ty1,
+                                              LLT Ty2) const override;
 };
 
 namespace AArch64 {

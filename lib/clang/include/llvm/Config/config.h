@@ -20,6 +20,10 @@
 /* Define to 1 to enable crash memory dumps, and to 0 otherwise. */
 #define LLVM_ENABLE_CRASH_DUMPS 0
 
+/* Define to 1 to prefer forward slashes on Windows, and to 0 prefer
+   backslashes. */
+#define LLVM_WINDOWS_PREFER_FORWARD_SLASH 0
+
 /* Define to 1 if you have the `backtrace' function. */
 #define HAVE_BACKTRACE TRUE
 
@@ -70,6 +74,9 @@
 /* Define to 1 if we can deregister EH frames on this platform. */
 #define HAVE_DEREGISTER_FRAME 1
 #endif // !arm || USING_SJLJ_EXCEPTIONS || ARM_DWARF_EH_
+
+/* Define if __unw_add_dynamic_fde() is available on this platform. */
+/* #undef HAVE_UNW_ADD_DYNAMIC_FDE */
 
 /* Define to 1 if you have the <errno.h> header file. */
 #define HAVE_ERRNO_H 1
@@ -166,11 +173,6 @@
 /* Define to 1 if you have the `malloc_zone_statistics' function. */
 #if defined(__APPLE__)
 #define HAVE_MALLOC_ZONE_STATISTICS 1
-#endif
-
-/* Define to 1 if you have the `posix_fallocate' function. */
-#if !defined(__APPLE__)
-#define HAVE_POSIX_FALLOCATE 1
 #endif
 
 /* Define to 1 if you have the `posix_spawn' function. */
@@ -271,9 +273,7 @@
 /* #undef HAVE__CHSIZE_S */
 
 /* Define to 1 if you have the `_Unwind_Backtrace' function. */
-#if !defined(__FreeBSD__)
 #define HAVE__UNWIND_BACKTRACE 1
-#endif
 
 /* Have host's __alloca */
 /* #undef HAVE___ALLOCA */
@@ -333,9 +333,6 @@
 /* Doesn't use `cmakedefine` because it is allowed to be empty. */
 /* #undef LLVM_DEFAULT_TARGET_TRIPLE */
 
-/* Define if zlib compression is available */
-#define LLVM_ENABLE_ZLIB 1
-
 /* Define if overriding target triple is enabled */
 /* #undef LLVM_TARGET_TRIPLE_ENV */
 
@@ -369,10 +366,10 @@
 #define PACKAGE_NAME "LLVM"
 
 /* Define to the full name and version of this package. */
-#define PACKAGE_STRING "LLVM 13.0.0"
+#define PACKAGE_STRING "LLVM 14.0.3"
 
 /* Define to the version of this package. */
-#define PACKAGE_VERSION "13.0.0"
+#define PACKAGE_VERSION "14.0.3"
 
 /* Define to the vendor of this package. */
 /* #undef PACKAGE_VENDOR */
@@ -394,6 +391,13 @@
 
 /* Define to the default GlobalISel coverage file prefix */
 /* #undef LLVM_GISEL_COV_PREFIX */
+
+/* Whether Timers signpost passes in Xcode Instruments */
+#if defined(__APPLE__)
+#define LLVM_SUPPORT_XCODE_SIGNPOSTS 1
+#else
+#define LLVM_SUPPORT_XCODE_SIGNPOSTS 0
+#endif
 
 /* #undef HAVE_PROC_PID_RUSAGE */
 

@@ -297,7 +297,7 @@ static void createMemMoveLoop(Instruction *InsertBefore, Value *SrcAddr,
   Function *F = OrigBB->getParent();
   const DataLayout &DL = F->getParent()->getDataLayout();
 
-  Type *EltTy = cast<PointerType>(SrcAddr->getType())->getElementType();
+  Type *EltTy = SrcAddr->getType()->getPointerElementType();
 
   // Create the a comparison of src and dst, based on which we jump to either
   // the forward-copy part of the function (if src >= dst) or the backwards-copy
@@ -442,7 +442,7 @@ void llvm::expandMemCpyAsLoop(MemCpyInst *Memcpy,
         /* DestAlign */ Memcpy->getDestAlign().valueOrOne(),
         /* SrcIsVolatile */ Memcpy->isVolatile(),
         /* DstIsVolatile */ Memcpy->isVolatile(),
-        /* TargetTransfomrInfo */ TTI);
+        /* TargetTransformInfo */ TTI);
   }
 }
 

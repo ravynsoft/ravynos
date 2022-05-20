@@ -69,6 +69,30 @@ Expected<std::string> python::As<std::string>(Expected<PythonObject> &&obj) {
   return std::string(utf8.get());
 }
 
+static bool python_is_finalizing() {
+#if PY_MAJOR_VERSION == 2
+  return false;
+#elif PY_MAJOR_VERSION == 3 && PY_MINOR_VERSION < 7
+  return _Py_Finalizing != nullptr;
+#else
+  return _Py_IsFinalizing();
+#endif
+}
+
+void PythonObject::Reset() {
+  if (m_py_obj && Py_IsInitialized()) {
+    if (python_is_finalizing()) {
+      // Leak m_py_obj rather than crashing the process.
+      // https://docs.python.org/3/c-api/init.html#c.PyGILState_Ensure
+    } else {
+      PyGILState_STATE state = PyGILState_Ensure();
+      Py_DECREF(m_py_obj);
+      PyGILState_Release(state);
+    }
+  }
+  m_py_obj = nullptr;
+}
+
 Expected<long long> PythonObject::AsLongLong() const {
   if (!m_py_obj)
     return nullDeref();
@@ -257,6 +281,9 @@ PythonObject PythonObject::GetAttributeValue(llvm::StringRef attr) const {
 }
 
 StructuredData::ObjectSP PythonObject::CreateStructuredObject() const {
+#if PY_MAJOR_VERSION >= 3
+  assert(PyGILState_Check());
+#endif
   switch (GetObjectType()) {
   case PyObjectType::Dictionary:
     return PythonDictionary(PyRefType::Borrowed, m_py_obj)
@@ -279,7 +306,8 @@ StructuredData::ObjectSP PythonObject::CreateStructuredObject() const {
   case PyObjectType::None:
     return StructuredData::ObjectSP();
   default:
-    return StructuredData::ObjectSP(new StructuredPythonObject(m_py_obj));
+    return StructuredData::ObjectSP(new StructuredPythonObject(
+        PythonObject(PyRefType::Borrowed, m_py_obj)));
   }
 }
 
@@ -998,20 +1026,6 @@ bool PythonFile::Check(PyObject *py_obj) {
 #endif
 }
 
-namespace {
-class GIL {
-public:
-  GIL() {
-    m_state = PyGILState_Ensure();
-    assert(!PyErr_Occurred());
-  }
-  ~GIL() { PyGILState_Release(m_state); }
-
-protected:
-  PyGILState_STATE m_state;
-};
-} // namespace
-
 const char *PythonException::toCString() const {
   if (!m_repr_bytes)
     return "unknown exception";
@@ -1114,10 +1128,12 @@ GetOptionsForPyObject(const PythonObject &obj) {
   auto writable = As<bool>(obj.CallMethod("writable"));
   if (!writable)
     return writable.takeError();
-  if (readable.get())
-    options |= File::eOpenOptionRead;
-  if (writable.get())
-    options |= File::eOpenOptionWrite;
+  if (readable.get() && writable.get())
+    options |= File::eOpenOptionReadWrite;
+  else if (writable.get())
+    options |= File::eOpenOptionWriteOnly;
+  else if (readable.get())
+    options |= File::eOpenOptionReadOnly;
   return options;
 #else
   PythonString py_mode = obj.GetAttributeValue("mode").AsType<PythonString>();
@@ -1413,7 +1429,10 @@ llvm::Expected<FileSP> PythonFile::ConvertToFile(bool borrowed) {
   if (!options)
     return options.takeError();
 
-  if (options.get() & File::eOpenOptionWrite) {
+  File::OpenOptions rw =
+      options.get() & (File::eOpenOptionReadOnly | File::eOpenOptionWriteOnly |
+                       File::eOpenOptionReadWrite);
+  if (rw == File::eOpenOptionWriteOnly || rw == File::eOpenOptionReadWrite) {
     // LLDB and python will not share I/O buffers.  We should probably
     // flush the python buffers now.
     auto r = CallMethod("flush");

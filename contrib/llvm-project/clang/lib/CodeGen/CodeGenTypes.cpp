@@ -97,10 +97,10 @@ llvm::Type *CodeGenTypes::ConvertTypeForMem(QualType T, bool ForBitField) {
 
   llvm::Type *R = ConvertType(T);
 
-  // If this is a bool type, or an ExtIntType in a bitfield representation,
-  // map this integer to the target-specified size.
-  if ((ForBitField && T->isExtIntType()) ||
-      (!T->isExtIntType() && R->isIntegerTy(1)))
+  // If this is a bool type, or a bit-precise integer type in a bitfield
+  // representation, map this integer to the target-specified size.
+  if ((ForBitField && T->isBitIntType()) ||
+      (!T->isBitIntType() && R->isIntegerTy(1)))
     return llvm::IntegerType::get(getLLVMContext(),
                                   (unsigned)Context.getTypeSize(T));
 
@@ -512,6 +512,7 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
     case BuiltinType::Double:
     case BuiltinType::LongDouble:
     case BuiltinType::Float128:
+    case BuiltinType::Ibm128:
       ResultType = getTypeForFormat(getLLVMContext(),
                                     Context.getFloatTypeSemantics(T),
                                     /* UseNativeHalf = */ false);
@@ -642,11 +643,7 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
     llvm::Type *PointeeType = ConvertTypeForMem(ETy);
     if (PointeeType->isVoidTy())
       PointeeType = llvm::Type::getInt8Ty(getLLVMContext());
-
-    unsigned AS = PointeeType->isFunctionTy()
-                      ? getDataLayout().getProgramAddressSpace()
-                      : Context.getTargetAddressSpace(ETy);
-
+    unsigned AS = Context.getTargetAddressSpace(ETy);
     ResultType = llvm::PointerType::get(PointeeType, AS);
     break;
   }
@@ -747,7 +744,13 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
     llvm::Type *PointeeType = CGM.getLangOpts().OpenCL
                                   ? CGM.getGenericBlockLiteralType()
                                   : ConvertTypeForMem(FTy);
-    unsigned AS = Context.getTargetAddressSpace(FTy);
+    // Block pointers lower to function type. For function type,
+    // getTargetAddressSpace() returns default address space for
+    // function pointer i.e. program address space. Therefore, for block
+    // pointers, it is important to pass qualifiers when calling
+    // getTargetAddressSpace(), to ensure that we get the address space
+    // for data pointers and not function pointers.
+    unsigned AS = Context.getTargetAddressSpace(FTy.getQualifiers());
     ResultType = llvm::PointerType::get(PointeeType, AS);
     break;
   }
@@ -785,8 +788,8 @@ llvm::Type *CodeGenTypes::ConvertType(QualType T) {
     ResultType = CGM.getOpenCLRuntime().getPipeType(cast<PipeType>(Ty));
     break;
   }
-  case Type::ExtInt: {
-    const auto &EIT = cast<ExtIntType>(Ty);
+  case Type::BitInt: {
+    const auto &EIT = cast<BitIntType>(Ty);
     ResultType = llvm::Type::getIntNTy(getLLVMContext(), EIT->getNumBits());
     break;
   }

@@ -1139,7 +1139,7 @@ AArch64LoadStoreOpt::promoteLoadFromStore(MachineBasicBlock::iterator LoadI,
                                ? getLdStOffsetOp(*StoreI).getImm()
                                : getLdStOffsetOp(*StoreI).getImm() * StoreSize;
     int Width = LoadSize * 8;
-    unsigned DestReg =
+    Register DestReg =
         IsStoreXReg ? Register(TRI->getMatchingSuperReg(
                           LdRt, AArch64::sub_32, &AArch64::GPR64RegClass))
                     : LdRt;
@@ -1613,8 +1613,8 @@ AArch64LoadStoreOpt::findMatchingInsn(MachineBasicBlock::iterator I,
           // If the stored value and the address of the second instruction is
           // the same, it needs to be using the updated register and therefore
           // it must not be folded.
-          bool IsMIRegTheSame =
-              getLdStRegOp(MI).getReg() == getLdStBaseOp(MI).getReg();
+          bool IsMIRegTheSame = TRI->regsOverlap(getLdStRegOp(MI).getReg(),
+                                                 getLdStBaseOp(MI).getReg());
           if (IsOutOfBounds || IsBaseRegUsed || IsBaseRegModified ||
               IsMIRegTheSame) {
             LiveRegUnits::accumulateUsedDefed(MI, ModifiedRegUnits,

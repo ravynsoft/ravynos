@@ -16,12 +16,15 @@
 #ifndef LLVM_UTILS_TABLEGEN_X86RECOGNIZABLEINSTR_H
 #define LLVM_UTILS_TABLEGEN_X86RECOGNIZABLEINSTR_H
 
-#include "CodeGenTarget.h"
-#include "X86DisassemblerTables.h"
+#include "CodeGenInstruction.h"
 #include "llvm/Support/DataTypes.h"
-#include "llvm/TableGen/Record.h"
+#include "llvm/Support/X86DisassemblerDecoderCommon.h"
+
+struct InstructionSpecifier;
 
 namespace llvm {
+
+class Record;
 
 #define X86_INSTR_MRM_MAPPING     \
   MAP(C0, 64)                     \
@@ -130,7 +133,8 @@ namespace X86Local {
   };
 
   enum {
-    OB = 0, TB = 1, T8 = 2, TA = 3, XOP8 = 4, XOP9 = 5, XOPA = 6, ThreeDNow = 7
+    OB = 0, TB = 1, T8 = 2, TA = 3, XOP8 = 4, XOP9 = 5, XOPA = 6, ThreeDNow = 7,
+    T_MAP5 = 8, T_MAP6 = 9
   };
 
   enum {
@@ -151,6 +155,8 @@ namespace X86Local {
 }
 
 namespace X86Disassembler {
+
+class DisassemblerTables;
 
 /// RecognizableInstr - Encapsulates all information required to decode a single
 ///   instruction, as extracted from the LLVM instruction tables.  Has methods

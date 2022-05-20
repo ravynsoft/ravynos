@@ -18,6 +18,7 @@ class AddressSpacesImpl {
   int Local = 3;
   int Constant = 4;
   int Private = 5;
+  int Constant32Bit = 6;
 }
 
 def AddrSpaces : AddressSpacesImpl;
@@ -237,6 +238,52 @@ def select_oneuse : HasOneUseTernaryOp<select>;
 def AMDGPUmul_u24_oneuse : HasOneUseBinOp<AMDGPUmul_u24>;
 def AMDGPUmul_i24_oneuse : HasOneUseBinOp<AMDGPUmul_i24>;
 
+//===----------------------------------------------------------------------===//
+// PatFrags for shifts
+//===----------------------------------------------------------------------===//
+
+// Constrained shift PatFrags.
+
+def csh_mask_16 : PatFrag<(ops node:$src0), (and node:$src0, imm),
+  [{ return isUnneededShiftMask(N, 4); }]> {
+    let GISelPredicateCode = [{ return isUnneededShiftMask(MI, 4); }];
+  }
+
+def csh_mask_32 : PatFrag<(ops node:$src0), (and node:$src0, imm),
+  [{ return isUnneededShiftMask(N, 5); }]> {
+    let GISelPredicateCode = [{ return isUnneededShiftMask(MI, 5); }];
+  }
+
+def csh_mask_64 : PatFrag<(ops node:$src0), (and node:$src0, imm),
+  [{ return isUnneededShiftMask(N, 6); }]> {
+    let GISelPredicateCode = [{ return isUnneededShiftMask(MI, 6); }];
+  }
+
+foreach width = [16, 32, 64] in {
+defvar csh_mask = !cast<SDPatternOperator>("csh_mask_"#width);
+
+def cshl_#width : PatFrags<(ops node:$src0, node:$src1),
+  [(shl node:$src0, node:$src1), (shl node:$src0, (csh_mask node:$src1))]>;
+defvar cshl = !cast<SDPatternOperator>("cshl_"#width);
+def cshl_#width#_oneuse : HasOneUseBinOp<cshl>;
+def clshl_rev_#width : PatFrag <(ops node:$src0, node:$src1),
+  (cshl $src1, $src0)>;
+
+def csrl_#width : PatFrags<(ops node:$src0, node:$src1),
+  [(srl node:$src0, node:$src1), (srl node:$src0, (csh_mask node:$src1))]>;
+defvar csrl = !cast<SDPatternOperator>("csrl_"#width);
+def csrl_#width#_oneuse : HasOneUseBinOp<csrl>;
+def clshr_rev_#width : PatFrag <(ops node:$src0, node:$src1),
+  (csrl $src1, $src0)>;
+
+def csra_#width : PatFrags<(ops node:$src0, node:$src1),
+  [(sra node:$src0, node:$src1), (sra node:$src0, (csh_mask node:$src1))]>;
+defvar csra = !cast<SDPatternOperator>("csra_"#width);
+def csra_#width#_oneuse : HasOneUseBinOp<csra>;
+def cashr_rev_#width : PatFrag <(ops node:$src0, node:$src1),
+  (csra $src1, $src0)>;
+} // end foreach width
+
 def srl_16 : PatFrag<
   (ops node:$src0), (srl_oneuse node:$src0, (i32 16))
 >;
@@ -359,18 +406,23 @@ class Aligned<int Bytes> {
   int MinAlignment = Bytes;
 }
 
-class StoreHi16<SDPatternOperator op> : PatFrag <
+class StoreHi16<SDPatternOperator op, ValueType vt> : PatFrag <
   (ops node:$value, node:$ptr), (op (srl node:$value, (i32 16)), node:$ptr)> {
   let IsStore = 1;
+  let MemoryVT = vt;
 }
 
-def LoadAddress_constant : AddressSpaceList<[  AddrSpaces.Constant ]>;
-def LoadAddress_global : AddressSpaceList<[  AddrSpaces.Global, AddrSpaces.Constant ]>;
+def LoadAddress_constant : AddressSpaceList<[ AddrSpaces.Constant,
+                                              AddrSpaces.Constant32Bit ]>;
+def LoadAddress_global : AddressSpaceList<[ AddrSpaces.Global,
+                                            AddrSpaces.Constant,
+                                            AddrSpaces.Constant32Bit ]>;
 def StoreAddress_global : AddressSpaceList<[ AddrSpaces.Global ]>;
 
-def LoadAddress_flat : AddressSpaceList<[  AddrSpaces.Flat,
-                                           AddrSpaces.Global,
-                                           AddrSpaces.Constant ]>;
+def LoadAddress_flat : AddressSpaceList<[ AddrSpaces.Flat,
+                                          AddrSpaces.Global,
+                                          AddrSpaces.Constant,
+                                          AddrSpaces.Constant32Bit ]>;
 def StoreAddress_flat : AddressSpaceList<[ AddrSpaces.Flat, AddrSpaces.Global ]>;
 
 def LoadAddress_private : AddressSpaceList<[ AddrSpaces.Private ]>;
@@ -422,6 +474,16 @@ def zextloadi16_#as : PatFrag<(ops node:$ptr), (zextload node:$ptr)> {
   let MemoryVT = i16;
 }
 
+def atomic_load_8_#as : PatFrag<(ops node:$ptr), (atomic_load_8 node:$ptr)> {
+  let IsAtomic = 1;
+  let MemoryVT = i8;
+}
+
+def atomic_load_16_#as : PatFrag<(ops node:$ptr), (atomic_load_16 node:$ptr)> {
+  let IsAtomic = 1;
+  let MemoryVT = i16;
+}
+
 def atomic_load_32_#as : PatFrag<(ops node:$ptr), (atomic_load_32 node:$ptr)> {
   let IsAtomic = 1;
   let MemoryVT = i32;
@@ -466,9 +528,9 @@ def truncstorei16_#as : PatFrag<(ops node:$val, node:$ptr),
   let MemoryVT = i16;
 }
 
-def store_hi16_#as : StoreHi16 <truncstorei16>;
-def truncstorei8_hi16_#as : StoreHi16<truncstorei8>;
-def truncstorei16_hi16_#as : StoreHi16<truncstorei16>;
+def store_hi16_#as : StoreHi16 <truncstorei16, i16>;
+def truncstorei8_hi16_#as : StoreHi16<truncstorei8, i8>;
+def truncstorei16_hi16_#as : StoreHi16<truncstorei16, i16>;
 
 defm atomic_store_#as : binary_atomic_op<atomic_store>;
 
@@ -654,11 +716,6 @@ class UMad24Pat<Instruction Inst, bit HasClamp = 0> : AMDGPUPat <
 class RcpPat<Instruction RcpInst, ValueType vt> : AMDGPUPat <
   (fdiv FP_ONE, vt:$src),
   (RcpInst $src)
->;
-
-class RsqPat<Instruction RsqInst, ValueType vt> : AMDGPUPat <
-  (AMDGPUrcp (fsqrt vt:$src)),
-  (RsqInst $src)
 >;
 
 // Instructions which select to the same v_min_f*

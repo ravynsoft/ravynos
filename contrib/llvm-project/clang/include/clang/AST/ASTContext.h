@@ -99,14 +99,12 @@ class CXXMethodDecl;
 class CXXRecordDecl;
 class DiagnosticsEngine;
 class ParentMapContext;
-class DynTypedNode;
 class DynTypedNodeList;
 class Expr;
+enum class FloatModeKind;
 class GlobalDecl;
-class ItaniumMangleContext;
 class MangleContext;
 class MangleNumberingContext;
-class MaterializeTemporaryExpr;
 class MemberSpecializationInfo;
 class Module;
 struct MSGuidDeclParts;
@@ -125,7 +123,6 @@ class ObjCTypeParamDecl;
 class OMPTraitInfo;
 struct ParsedTargetAttr;
 class Preprocessor;
-class Stmt;
 class StoredDeclsMap;
 class TargetAttr;
 class TargetInfo;
@@ -164,24 +161,46 @@ namespace serialization {
 template <class> class AbstractTypeReader;
 } // namespace serialization
 
+enum class AlignRequirementKind {
+  /// The alignment was not explicit in code.
+  None,
+
+  /// The alignment comes from an alignment attribute on a typedef.
+  RequiredByTypedef,
+
+  /// The alignment comes from an alignment attribute on a record type.
+  RequiredByRecord,
+
+  /// The alignment comes from an alignment attribute on a enum type.
+  RequiredByEnum,
+};
+
 struct TypeInfo {
   uint64_t Width = 0;
   unsigned Align = 0;
-  bool AlignIsRequired : 1;
+  AlignRequirementKind AlignRequirement;
 
-  TypeInfo() : AlignIsRequired(false) {}
-  TypeInfo(uint64_t Width, unsigned Align, bool AlignIsRequired)
-      : Width(Width), Align(Align), AlignIsRequired(AlignIsRequired) {}
+  TypeInfo() : AlignRequirement(AlignRequirementKind::None) {}
+  TypeInfo(uint64_t Width, unsigned Align,
+           AlignRequirementKind AlignRequirement)
+      : Width(Width), Align(Align), AlignRequirement(AlignRequirement) {}
+  bool isAlignRequired() {
+    return AlignRequirement != AlignRequirementKind::None;
+  }
 };
 
 struct TypeInfoChars {
   CharUnits Width;
   CharUnits Align;
-  bool AlignIsRequired : 1;
+  AlignRequirementKind AlignRequirement;
 
-  TypeInfoChars() : AlignIsRequired(false) {}
-  TypeInfoChars(CharUnits Width, CharUnits Align, bool AlignIsRequired)
-      : Width(Width), Align(Align), AlignIsRequired(AlignIsRequired) {}
+  TypeInfoChars() : AlignRequirement(AlignRequirementKind::None) {}
+  TypeInfoChars(CharUnits Width, CharUnits Align,
+                AlignRequirementKind AlignRequirement)
+      : Width(Width), Align(Align), AlignRequirement(AlignRequirement) {}
+  bool isAlignRequired() {
+    return AlignRequirement != AlignRequirementKind::None;
+  }
 };
 
 /// Holds long-lived AST nodes (such as types and decls) that can be
@@ -225,6 +244,7 @@ class ASTContext : public RefCountedBase<ASTContext> {
   mutable llvm::ContextualFoldingSet<TemplateSpecializationType, ASTContext&>
     TemplateSpecializationTypes;
   mutable llvm::FoldingSet<ParenType> ParenTypes;
+  mutable llvm::FoldingSet<UsingType> UsingTypes;
   mutable llvm::FoldingSet<ElaboratedType> ElaboratedTypes;
   mutable llvm::FoldingSet<DependentNameType> DependentNameTypes;
   mutable llvm::ContextualFoldingSet<DependentTemplateSpecializationType,
@@ -241,8 +261,8 @@ class ASTContext : public RefCountedBase<ASTContext> {
   mutable llvm::FoldingSet<AtomicType> AtomicTypes;
   llvm::FoldingSet<AttributedType> AttributedTypes;
   mutable llvm::FoldingSet<PipeType> PipeTypes;
-  mutable llvm::FoldingSet<ExtIntType> ExtIntTypes;
-  mutable llvm::FoldingSet<DependentExtIntType> DependentExtIntTypes;
+  mutable llvm::FoldingSet<BitIntType> BitIntTypes;
+  mutable llvm::FoldingSet<DependentBitIntType> DependentBitIntTypes;
 
   mutable llvm::FoldingSet<QualifiedTemplateName> QualifiedTemplateNames;
   mutable llvm::FoldingSet<DependentTemplateName> DependentTemplateNames;
@@ -633,6 +653,20 @@ public:
   /// Returns the clang bytecode interpreter context.
   interp::Context &getInterpContext();
 
+  struct CUDAConstantEvalContext {
+    /// Do not allow wrong-sided variables in constant expressions.
+    bool NoWrongSidedVars = false;
+  } CUDAConstantEvalCtx;
+  struct CUDAConstantEvalContextRAII {
+    ASTContext &Ctx;
+    CUDAConstantEvalContext SavedCtx;
+    CUDAConstantEvalContextRAII(ASTContext &Ctx_, bool NoWrongSidedVars)
+        : Ctx(Ctx_), SavedCtx(Ctx_.CUDAConstantEvalCtx) {
+      Ctx_.CUDAConstantEvalCtx.NoWrongSidedVars = NoWrongSidedVars;
+    }
+    ~CUDAConstantEvalContextRAII() { Ctx.CUDAConstantEvalCtx = SavedCtx; }
+  };
+
   /// Returns the dynamic AST node parent map context.
   ParentMapContext &getParentMapContext();
 
@@ -671,6 +705,12 @@ public:
 
   SourceManager& getSourceManager() { return SourceMgr; }
   const SourceManager& getSourceManager() const { return SourceMgr; }
+
+  // Cleans up some of the data structures. This allows us to do cleanup
+  // normally done in the destructor earlier. Renders much of the ASTContext
+  // unusable, mostly the actual AST nodes, so should be called when we no
+  // longer need access to the AST.
+  void cleanup();
 
   llvm::BumpPtrAllocator &getAllocator() const {
     return BumpAlloc;
@@ -728,7 +768,8 @@ public:
   /// getRealTypeForBitwidth -
   /// sets floating point QualTy according to specified bitwidth.
   /// Returns empty type if there is no appropriate target types.
-  QualType getRealTypeForBitwidth(unsigned DestWidth, bool ExplicitIEEE) const;
+  QualType getRealTypeForBitwidth(unsigned DestWidth,
+                                  FloatModeKind ExplicitType) const;
 
   bool AtomicUsesUnsupportedLibcall(const AtomicExpr *E) const;
 
@@ -1054,7 +1095,7 @@ public:
   CanQualType SignedCharTy, ShortTy, IntTy, LongTy, LongLongTy, Int128Ty;
   CanQualType UnsignedCharTy, UnsignedShortTy, UnsignedIntTy, UnsignedLongTy;
   CanQualType UnsignedLongLongTy, UnsignedInt128Ty;
-  CanQualType FloatTy, DoubleTy, LongDoubleTy, Float128Ty;
+  CanQualType FloatTy, DoubleTy, LongDoubleTy, Float128Ty, Ibm128Ty;
   CanQualType ShortAccumTy, AccumTy,
       LongAccumTy;  // ISO/IEC JTC1 SC22 WG14 N1169 Extension
   CanQualType UnsignedShortAccumTy, UnsignedAccumTy, UnsignedLongAccumTy;
@@ -1069,8 +1110,6 @@ public:
   CanQualType HalfTy; // [OpenCL 6.1.1.1], ARM NEON
   CanQualType BFloat16Ty;
   CanQualType Float16Ty; // C11 extension ISO/IEC TS 18661-3
-  CanQualType FloatComplexTy, DoubleComplexTy, LongDoubleComplexTy;
-  CanQualType Float128ComplexTy;
   CanQualType VoidPtrTy, NullPtrTy;
   CanQualType DependentTy, OverloadTy, BoundMemberTy, UnknownAnyTy;
   CanQualType BuiltinFnTy;
@@ -1322,13 +1361,13 @@ public:
   /// Return a write_only pipe type for the specified type.
   QualType getWritePipeType(QualType T) const;
 
-  /// Return an extended integer type with the specified signedness and bit
+  /// Return a bit-precise integer type with the specified signedness and bit
   /// count.
-  QualType getExtIntType(bool Unsigned, unsigned NumBits) const;
+  QualType getBitIntType(bool Unsigned, unsigned NumBits) const;
 
-  /// Return a dependent extended integer type with the specified signedness and
-  /// bit count.
-  QualType getDependentExtIntType(bool Unsigned, Expr *BitsExpr) const;
+  /// Return a dependent bit-precise integer type with the specified signedness
+  /// and bit count.
+  QualType getDependentBitIntType(bool Unsigned, Expr *BitsExpr) const;
 
   /// Gets the struct used to keep track of the extended descriptor for
   /// pointer to blocks.
@@ -1339,6 +1378,12 @@ public:
 
   /// Get address space for OpenCL type.
   LangAS getOpenCLTypeAddrSpace(const Type *T) const;
+
+  /// Returns default address space based on OpenCL version and enabled features
+  inline LangAS getDefaultOpenCLPointeeAddrSpace() {
+    return LangOpts.OpenCLGenericAddressSpace ? LangAS::opencl_generic
+                                              : LangAS::opencl_private;
+  }
 
   void setcudaConfigureCallDecl(FunctionDecl *FD) {
     cudaConfigureCallDecl = FD;
@@ -1497,6 +1542,12 @@ private:
   QualType getFunctionTypeInternal(QualType ResultTy, ArrayRef<QualType> Args,
                                    const FunctionProtoType::ExtProtoInfo &EPI,
                                    bool OnlyWantCanonical) const;
+  QualType
+  getAutoTypeInternal(QualType DeducedType, AutoTypeKeyword Keyword,
+                      bool IsDependent, bool IsPack = false,
+                      ConceptDecl *TypeConstraintConcept = nullptr,
+                      ArrayRef<TemplateArgument> TypeConstraintArgs = {},
+                      bool IsCanon = false) const;
 
 public:
   /// Return the unique reference to the type for the specified type
@@ -1515,6 +1566,9 @@ public:
     return getTypeDeclTypeSlow(Decl);
   }
 
+  QualType getUsingType(const UsingShadowDecl *Found,
+                        QualType Underlying) const;
+
   /// Return the unique reference to the type for the specified
   /// typedef-name decl.
   QualType getTypedefType(const TypedefNameDecl *Decl,
@@ -1523,6 +1577,9 @@ public:
   QualType getRecordType(const RecordDecl *Decl) const;
 
   QualType getEnumType(const EnumDecl *Decl) const;
+
+  QualType
+  getUnresolvedUsingType(const UnresolvedUsingTypenameDecl *Decl) const;
 
   QualType getInjectedClassNameType(CXXRecordDecl *Decl, QualType TST) const;
 
@@ -1630,6 +1687,8 @@ public:
   /// GCC extension.
   QualType getTypeOfExprType(Expr *e) const;
   QualType getTypeOfType(QualType t) const;
+
+  QualType getReferenceQualifiedType(const Expr *e) const;
 
   /// C++11 decltype.
   QualType getDecltypeType(Expr *e, QualType UnderlyingType) const;
@@ -2505,8 +2564,10 @@ public:
   bool ObjCMethodsAreEqual(const ObjCMethodDecl *MethodDecl,
                            const ObjCMethodDecl *MethodImp);
 
-  bool UnwrapSimilarTypes(QualType &T1, QualType &T2);
-  void UnwrapSimilarArrayTypes(QualType &T1, QualType &T2);
+  bool UnwrapSimilarTypes(QualType &T1, QualType &T2,
+                          bool AllowPiMismatch = true);
+  void UnwrapSimilarArrayTypes(QualType &T1, QualType &T2,
+                               bool AllowPiMismatch = true);
 
   /// Determine if two types are similar, according to the C++ rules. That is,
   /// determine if they are the same other than qualifiers on the initial
@@ -2569,11 +2630,32 @@ public:
   /// template name uses the shortest form of the dependent
   /// nested-name-specifier, which itself contains all canonical
   /// types, values, and templates.
-  TemplateName getCanonicalTemplateName(TemplateName Name) const;
+  TemplateName getCanonicalTemplateName(const TemplateName &Name) const;
 
   /// Determine whether the given template names refer to the same
   /// template.
-  bool hasSameTemplateName(TemplateName X, TemplateName Y);
+  bool hasSameTemplateName(const TemplateName &X, const TemplateName &Y) const;
+
+  /// Determine whether the two declarations refer to the same entity.
+  ///
+  /// FIXME: isSameEntity is not const due to its implementation calls
+  /// hasSameFunctionTypeIgnoringExceptionSpec which may alter this.
+  bool isSameEntity(const NamedDecl *X, const NamedDecl *Y);
+
+  /// Determine whether two template parameter lists are similar enough
+  /// that they may be used in declarations of the same template.
+  ///
+  /// FIXME: isSameTemplateParameterList is not const since it calls
+  /// isSameTemplateParameter.
+  bool isSameTemplateParameterList(const TemplateParameterList *X,
+                                   const TemplateParameterList *Y);
+
+  /// Determine whether two template parameters are similar enough
+  /// that they may be used in declarations of the same template.
+  ///
+  /// FIXME: isSameTemplateParameterList is not const since it calls
+  /// isSameEntity.
+  bool isSameTemplateParameter(const NamedDecl *X, const NamedDecl *Y);
 
   /// Retrieve the "canonical" template argument.
   ///
@@ -2679,13 +2761,9 @@ public:
   QualType getFloatingTypeOfSizeWithinDomain(QualType typeSize,
                                              QualType typeDomain) const;
 
-  unsigned getTargetAddressSpace(QualType T) const {
-    return getTargetAddressSpace(T.getQualifiers());
-  }
+  unsigned getTargetAddressSpace(QualType T) const;
 
-  unsigned getTargetAddressSpace(Qualifiers Q) const {
-    return getTargetAddressSpace(Q.getAddressSpace());
-  }
+  unsigned getTargetAddressSpace(Qualifiers Q) const;
 
   unsigned getTargetAddressSpace(LangAS AS) const;
 
@@ -3209,31 +3287,10 @@ public:
 
   StringRef getCUIDHash() const;
 
-  void AddSYCLKernelNamingDecl(const CXXRecordDecl *RD);
-  bool IsSYCLKernelNamingDecl(const NamedDecl *RD) const;
-  unsigned GetSYCLKernelNamingIndex(const NamedDecl *RD);
-  /// A SourceLocation to store whether we have evaluated a kernel name already,
-  /// and where it happened.  If so, we need to diagnose an illegal use of the
-  /// builtin.
-  llvm::MapVector<const SYCLUniqueStableNameExpr *, std::string>
-      SYCLUniqueStableNameEvaluatedValues;
-
 private:
   /// All OMPTraitInfo objects live in this collection, one per
   /// `pragma omp [begin] declare variant` directive.
   SmallVector<std::unique_ptr<OMPTraitInfo>, 4> OMPTraitInfoVector;
-
-  /// A list of the (right now just lambda decls) declarations required to
-  /// name all the SYCL kernels in the translation unit, so that we can get the
-  /// correct kernel name, as well as implement
-  /// __builtin_sycl_unique_stable_name.
-  llvm::DenseMap<const DeclContext *,
-                 llvm::SmallPtrSet<const CXXRecordDecl *, 4>>
-      SYCLKernelNamingTypes;
-  std::unique_ptr<ItaniumMangleContext> SYCLKernelFilterContext;
-  void FilterSYCLKernelNamingDecls(
-      const CXXRecordDecl *RD,
-      llvm::SmallVectorImpl<const CXXRecordDecl *> &Decls);
 };
 
 /// Insertion operator for diagnostics.

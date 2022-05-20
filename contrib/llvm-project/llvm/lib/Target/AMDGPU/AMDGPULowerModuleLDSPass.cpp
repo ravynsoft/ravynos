@@ -24,13 +24,6 @@
 // A possible future refinement is to specialise the structure per-kernel, so
 // that fields can be elided based on more expensive analysis.
 //
-// NOTE: Since this pass will directly pack LDS (assume large LDS) into a struct
-// type which would cause allocating huge memory for struct instance within
-// every kernel. Hence, before running this pass, it is advisable to run the
-// pass "amdgpu-replace-lds-use-with-pointer" which will replace LDS uses within
-// non-kernel functions by pointers and thereby minimizes the unnecessary per
-// kernel allocation of LDS memory.
-//
 //===----------------------------------------------------------------------===//
 
 #include "AMDGPU.h"
@@ -42,6 +35,7 @@
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/InlineAsm.h"
 #include "llvm/IR/Instructions.h"
+#include "llvm/IR/MDBuilder.h"
 #include "llvm/InitializePasses.h"
 #include "llvm/Pass.h"
 #include "llvm/Support/CommandLine.h"
@@ -60,6 +54,20 @@ static cl::opt<bool> SuperAlignLDSGlobals(
     cl::init(true), cl::Hidden);
 
 namespace {
+
+SmallPtrSet<GlobalValue *, 32> getUsedList(Module &M) {
+  SmallPtrSet<GlobalValue *, 32> UsedList;
+
+  SmallVector<GlobalValue *, 32> TmpVec;
+  collectUsedGlobalVariables(M, TmpVec, true);
+  UsedList.insert(TmpVec.begin(), TmpVec.end());
+
+  TmpVec.clear();
+  collectUsedGlobalVariables(M, TmpVec, false);
+  UsedList.insert(TmpVec.begin(), TmpVec.end());
+
+  return UsedList;
+}
 
 class AMDGPULowerModuleLDS : public ModulePass {
 
@@ -104,11 +112,9 @@ class AMDGPULowerModuleLDS : public ModulePass {
   removeFromUsedLists(Module &M,
                       const std::vector<GlobalVariable *> &LocalVars) {
     SmallPtrSet<Constant *, 32> LocalVarsSet;
-    for (size_t I = 0; I < LocalVars.size(); I++) {
-      if (Constant *C = dyn_cast<Constant>(LocalVars[I]->stripPointerCasts())) {
+    for (GlobalVariable *LocalVar : LocalVars)
+      if (Constant *C = dyn_cast<Constant>(LocalVar->stripPointerCasts()))
         LocalVarsSet.insert(C);
-      }
-    }
     removeFromUsedList(M, "llvm.used", LocalVarsSet);
     removeFromUsedList(M, "llvm.compiler.used", LocalVarsSet);
   }
@@ -118,7 +124,7 @@ class AMDGPULowerModuleLDS : public ModulePass {
     // The llvm.amdgcn.module.lds instance is implicitly used by all kernels
     // that might call a function which accesses a field within it. This is
     // presently approximated to 'all kernels' if there are any such functions
-    // in the module. This implicit use is reified as an explicit use here so
+    // in the module. This implicit use is redefined as an explicit use here so
     // that later passes, specifically PromoteAlloca, account for the required
     // memory without any knowledge of this transform.
 
@@ -157,11 +163,14 @@ public:
   }
 
   bool runOnModule(Module &M) override {
-    UsedList = AMDGPU::getUsedList(M);
-
-    bool Changed = processUsedLDS(M);
+    UsedList = getUsedList(M);
+    bool Changed = superAlignLDSGlobals(M);
+    Changed |= processUsedLDS(M);
 
     for (Function &F : M.functions()) {
+      if (F.isDeclaration())
+        continue;
+
       // Only lower compute kernels' LDS.
       if (!AMDGPU::isKernel(F.getCallingConv()))
         continue;
@@ -173,6 +182,50 @@ public:
   }
 
 private:
+  // Increase the alignment of LDS globals if necessary to maximise the chance
+  // that we can use aligned LDS instructions to access them.
+  static bool superAlignLDSGlobals(Module &M) {
+    const DataLayout &DL = M.getDataLayout();
+    bool Changed = false;
+    if (!SuperAlignLDSGlobals) {
+      return Changed;
+    }
+
+    for (auto &GV : M.globals()) {
+      if (GV.getType()->getPointerAddressSpace() != AMDGPUAS::LOCAL_ADDRESS) {
+        // Only changing alignment of LDS variables
+        continue;
+      }
+      if (!GV.hasInitializer()) {
+        // cuda/hip extern __shared__ variable, leave alignment alone
+        continue;
+      }
+
+      Align Alignment = AMDGPU::getAlign(DL, &GV);
+      TypeSize GVSize = DL.getTypeAllocSize(GV.getValueType());
+
+      if (GVSize > 8) {
+        // We might want to use a b96 or b128 load/store
+        Alignment = std::max(Alignment, Align(16));
+      } else if (GVSize > 4) {
+        // We might want to use a b64 load/store
+        Alignment = std::max(Alignment, Align(8));
+      } else if (GVSize > 2) {
+        // We might want to use a b32 load/store
+        Alignment = std::max(Alignment, Align(4));
+      } else if (GVSize > 1) {
+        // We might want to use a b16 load/store
+        Alignment = std::max(Alignment, Align(2));
+      }
+
+      if (Alignment != AMDGPU::getAlign(DL, &GV)) {
+        Changed = true;
+        GV.setAlignment(Alignment);
+      }
+    }
+    return Changed;
+  }
+
   bool processUsedLDS(Module &M, Function *F = nullptr) {
     LLVMContext &Ctx = M.getContext();
     const DataLayout &DL = M.getDataLayout();
@@ -184,31 +237,6 @@ private:
     if (FoundLocalVars.empty()) {
       // No variables to rewrite, no changes made.
       return false;
-    }
-
-    // Increase the alignment of LDS globals if necessary to maximise the chance
-    // that we can use aligned LDS instructions to access them.
-    if (SuperAlignLDSGlobals) {
-      for (auto *GV : FoundLocalVars) {
-        Align Alignment = AMDGPU::getAlign(DL, GV);
-        TypeSize GVSize = DL.getTypeAllocSize(GV->getValueType());
-
-        if (GVSize > 8) {
-          // We might want to use a b96 or b128 load/store
-          Alignment = std::max(Alignment, Align(16));
-        } else if (GVSize > 4) {
-          // We might want to use a b64 load/store
-          Alignment = std::max(Alignment, Align(8));
-        } else if (GVSize > 2) {
-          // We might want to use a b32 load/store
-          Alignment = std::max(Alignment, Align(4));
-        } else if (GVSize > 1) {
-          // We might want to use a b16 load/store
-          Alignment = std::max(Alignment, Align(2));
-        }
-
-        GV->setAlignment(Alignment);
-      }
     }
 
     SmallVector<OptimizedStructLayoutField, 8> LayoutFields;
@@ -282,6 +310,21 @@ private:
     // so remove the variables from these lists before replaceAllUsesWith
     removeFromUsedLists(M, LocalVars);
 
+    // Create alias.scope and their lists. Each field in the new structure
+    // does not alias with all other fields.
+    SmallVector<MDNode *> AliasScopes;
+    SmallVector<Metadata *> NoAliasList;
+    if (LocalVars.size() > 1) {
+      MDBuilder MDB(Ctx);
+      AliasScopes.reserve(LocalVars.size());
+      MDNode *Domain = MDB.createAnonymousAliasScopeDomain();
+      for (size_t I = 0; I < LocalVars.size(); I++) {
+        MDNode *Scope = MDB.createAnonymousAliasScope(Domain);
+        AliasScopes.push_back(Scope);
+      }
+      NoAliasList.append(&AliasScopes[1], AliasScopes.end());
+    }
+
     // Replace uses of ith variable with a constantexpr to the ith field of the
     // instance that will be allocated by AMDGPUMachineFunction
     Type *I32 = Type::getInt32Ty(Ctx);
@@ -313,33 +356,51 @@ private:
 
       uint64_t Off = DL.getStructLayout(LDSTy)->getElementOffset(I);
       Align A = commonAlignment(StructAlign, Off);
-      refineUsesAlignment(GEP, A, DL);
+
+      if (I)
+        NoAliasList[I - 1] = AliasScopes[I - 1];
+      MDNode *NoAlias =
+          NoAliasList.empty() ? nullptr : MDNode::get(Ctx, NoAliasList);
+      MDNode *AliasScope =
+          AliasScopes.empty() ? nullptr : MDNode::get(Ctx, {AliasScopes[I]});
+
+      refineUsesAlignmentAndAA(GEP, A, DL, AliasScope, NoAlias);
     }
 
-    // Mark kernels with asm that reads the address of the allocated structure
-    // This is not necessary for lowering. This lets other passes, specifically
-    // PromoteAlloca, accurately calculate how much LDS will be used by the
-    // kernel after lowering.
+    // This ensures the variable is allocated when called functions access it.
+    // It also lets other passes, specifically PromoteAlloca, accurately
+    // calculate how much LDS will be used by the kernel after lowering.
     if (!F) {
       IRBuilder<> Builder(Ctx);
-      SmallPtrSet<Function *, 32> Kernels;
-      for (auto &I : M.functions()) {
-        Function *Func = &I;
-        if (AMDGPU::isKernelCC(Func) && !Kernels.contains(Func)) {
-          markUsedByKernel(Builder, Func, SGV);
-          Kernels.insert(Func);
+      for (Function &Func : M.functions()) {
+        if (!Func.isDeclaration() && AMDGPU::isKernelCC(&Func)) {
+          markUsedByKernel(Builder, &Func, SGV);
         }
       }
     }
     return true;
   }
 
-  void refineUsesAlignment(Value *Ptr, Align A, const DataLayout &DL,
-                           unsigned MaxDepth = 5) {
-    if (!MaxDepth || A == 1)
+  void refineUsesAlignmentAndAA(Value *Ptr, Align A, const DataLayout &DL,
+                                MDNode *AliasScope, MDNode *NoAlias,
+                                unsigned MaxDepth = 5) {
+    if (!MaxDepth || (A == 1 && !AliasScope))
       return;
 
     for (User *U : Ptr->users()) {
+      if (auto *I = dyn_cast<Instruction>(U)) {
+        if (AliasScope && I->mayReadOrWriteMemory()) {
+          MDNode *AS = I->getMetadata(LLVMContext::MD_alias_scope);
+          AS = (AS ? MDNode::getMostGenericAliasScope(AS, AliasScope)
+                   : AliasScope);
+          I->setMetadata(LLVMContext::MD_alias_scope, AS);
+
+          MDNode *NA = I->getMetadata(LLVMContext::MD_noalias);
+          NA = (NA ? MDNode::intersect(NA, NoAlias) : NoAlias);
+          I->setMetadata(LLVMContext::MD_noalias, NA);
+        }
+      }
+
       if (auto *LI = dyn_cast<LoadInst>(U)) {
         LI->setAlignment(std::max(A, LI->getAlign()));
         continue;
@@ -364,17 +425,19 @@ private:
       if (auto *GEP = dyn_cast<GetElementPtrInst>(U)) {
         unsigned BitWidth = DL.getIndexTypeSizeInBits(GEP->getType());
         APInt Off(BitWidth, 0);
-        if (GEP->getPointerOperand() == Ptr &&
-            GEP->accumulateConstantOffset(DL, Off)) {
-          Align GA = commonAlignment(A, Off.getLimitedValue());
-          refineUsesAlignment(GEP, GA, DL, MaxDepth - 1);
+        if (GEP->getPointerOperand() == Ptr) {
+          Align GA;
+          if (GEP->accumulateConstantOffset(DL, Off))
+            GA = commonAlignment(A, Off.getLimitedValue());
+          refineUsesAlignmentAndAA(GEP, GA, DL, AliasScope, NoAlias,
+                                   MaxDepth - 1);
         }
         continue;
       }
       if (auto *I = dyn_cast<Instruction>(U)) {
         if (I->getOpcode() == Instruction::BitCast ||
             I->getOpcode() == Instruction::AddrSpaceCast)
-          refineUsesAlignment(I, A, DL, MaxDepth - 1);
+          refineUsesAlignmentAndAA(I, A, DL, AliasScope, NoAlias, MaxDepth - 1);
       }
     }
   }

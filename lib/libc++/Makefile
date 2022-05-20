@@ -37,6 +37,7 @@ SRCS+=		hash.cpp
 SRCS+=		ios.cpp
 SRCS+=		ios.instantiations.cpp
 SRCS+=		iostream.cpp
+SRCS+=		legacy_pointer_safety.cpp
 SRCS+=		locale.cpp
 SRCS+=		memory.cpp
 SRCS+=		mutex.cpp
@@ -46,6 +47,9 @@ SRCS+=		optional.cpp
 SRCS+=		random.cpp
 SRCS+=		random_shuffle.cpp
 SRCS+=		regex.cpp
+SRCS+=		ryu/d2fixed.cpp
+SRCS+=		ryu/d2s.cpp
+SRCS+=		ryu/f2s.cpp
 SRCS+=		shared_mutex.cpp
 SRCS+=		stdexcept.cpp
 SRCS+=		string.cpp
@@ -78,6 +82,7 @@ cxxrt_${_S}: ${_LIBCXXRTDIR}/${_S} .NOMETA
 WARNS?=		0
 CFLAGS+=	-isystem ${.CURDIR}
 CFLAGS+=	-isystem ${HDRDIR}
+CFLAGS+=	-isystem ${SRCDIR}
 CFLAGS+=	-isystem ${_LIBCXXRTDIR}
 CFLAGS+=	-nostdinc++
 CFLAGS+=	-nostdlib
@@ -85,7 +90,7 @@ CFLAGS+=	-D_LIBCPP_BUILDING_LIBRARY
 CFLAGS+=	-DLIBCXXRT
 CFLAGS+=	-ffunction-sections
 CFLAGS+=	-fdata-sections
-CXXSTD?=	c++14
+CXXSTD?=	c++20
 
 LIBADD+=	cxxrt
 
@@ -99,11 +104,11 @@ STD_HEADERS+=	__bsd_locale_fallbacks.h
 STD_HEADERS+=	__config
 STD_HEADERS+=	__debug
 STD_HEADERS+=	__errc
-STD_HEADERS+=	__function_like.h
 STD_HEADERS+=	__functional_base
 STD_HEADERS+=	__hash_table
 STD_HEADERS+=	__libcpp_version
 STD_HEADERS+=	__locale
+STD_HEADERS+=	__mbstate_t.h
 STD_HEADERS+=	__mutex_base
 STD_HEADERS+=	__node_handle
 STD_HEADERS+=	__nullptr
@@ -140,6 +145,7 @@ STD_HEADERS+=	complex
 STD_HEADERS+=	complex.h
 STD_HEADERS+=	concepts
 STD_HEADERS+=	condition_variable
+STD_HEADERS+=	coroutine
 STD_HEADERS+=	csetjmp
 STD_HEADERS+=	csignal
 STD_HEADERS+=	cstdarg
@@ -272,6 +278,9 @@ ALG_HEADERS+=	for_each_n.h
 ALG_HEADERS+=	generate.h
 ALG_HEADERS+=	generate_n.h
 ALG_HEADERS+=	half_positive.h
+ALG_HEADERS+=	in_in_out_result.h
+ALG_HEADERS+=	in_in_result.h
+ALG_HEADERS+=	in_out_result.h
 ALG_HEADERS+=	includes.h
 ALG_HEADERS+=	inplace_merge.h
 ALG_HEADERS+=	is_heap.h
@@ -342,10 +351,135 @@ ALG_HEADERS+=	upper_bound.h
 ALG+=		${HDRDIR}/__algorithm/${hdr}
 .endfor
 
+INCSGROUPS+=	BIT
+BITDIR=		${CXXINCLUDEDIR}/__bit
+BIT_HEADERS+=	bit_cast.h
+BIT_HEADERS+=	byteswap.h
+.for hdr in ${BIT_HEADERS}
+BIT+=		${HDRDIR}/__bit/${hdr}
+.endfor
+
+INCSGROUPS+=	CHC
+CHCDIR=		${CXXINCLUDEDIR}/__charconv
+CHC_HEADERS+=	chars_format.h
+CHC_HEADERS+=	from_chars_result.h
+CHC_HEADERS+=	to_chars_result.h
+.for hdr in ${CHC_HEADERS}
+CHC+=		${HDRDIR}/__charconv/${hdr}
+.endfor
+
+INCSGROUPS+=	CHR
+CHRDIR=		${CXXINCLUDEDIR}/__chrono
+CHR_HEADERS+=	calendar.h
+CHR_HEADERS+=	convert_to_timespec.h
+CHR_HEADERS+=	duration.h
+CHR_HEADERS+=	file_clock.h
+CHR_HEADERS+=	high_resolution_clock.h
+CHR_HEADERS+=	steady_clock.h
+CHR_HEADERS+=	system_clock.h
+CHR_HEADERS+=	time_point.h
+.for hdr in ${CHR_HEADERS}
+CHR+=		${HDRDIR}/__chrono/${hdr}
+.endfor
+
+INCSGROUPS+=	CMP
+CMPDIR=		${CXXINCLUDEDIR}/__compare
+CMP_HEADERS+=	common_comparison_category.h
+CMP_HEADERS+=	compare_partial_order_fallback.h
+CMP_HEADERS+=	compare_strong_order_fallback.h
+CMP_HEADERS+=	compare_three_way.h
+CMP_HEADERS+=	compare_three_way_result.h
+CMP_HEADERS+=	compare_weak_order_fallback.h
+CMP_HEADERS+=	is_eq.h
+CMP_HEADERS+=	ordering.h
+CMP_HEADERS+=	partial_order.h
+CMP_HEADERS+=	strong_order.h
+CMP_HEADERS+=	synth_three_way.h
+CMP_HEADERS+=	three_way_comparable.h
+CMP_HEADERS+=	weak_order.h
+.for hdr in ${CMP_HEADERS}
+CMP+=		${HDRDIR}/__compare/${hdr}
+.endfor
+
+INCSGROUPS+=	CON
+CONDIR=		${CXXINCLUDEDIR}/__concepts
+CON_HEADERS+=	arithmetic.h
+CON_HEADERS+=	assignable.h
+CON_HEADERS+=	boolean_testable.h
+CON_HEADERS+=	class_or_enum.h
+CON_HEADERS+=	common_reference_with.h
+CON_HEADERS+=	common_with.h
+CON_HEADERS+=	constructible.h
+CON_HEADERS+=	convertible_to.h
+CON_HEADERS+=	copyable.h
+CON_HEADERS+=	derived_from.h
+CON_HEADERS+=	destructible.h
+CON_HEADERS+=	different_from.h
+CON_HEADERS+=	equality_comparable.h
+CON_HEADERS+=	invocable.h
+CON_HEADERS+=	movable.h
+CON_HEADERS+=	predicate.h
+CON_HEADERS+=	regular.h
+CON_HEADERS+=	relation.h
+CON_HEADERS+=	same_as.h
+CON_HEADERS+=	semiregular.h
+CON_HEADERS+=	swappable.h
+CON_HEADERS+=	totally_ordered.h
+.for hdr in ${CON_HEADERS}
+CON+=		${HDRDIR}/__concepts/${hdr}
+.endfor
+
+INCSGROUPS+=	COR
+CORDIR=		${CXXINCLUDEDIR}/__coroutine
+COR_HEADERS+=	coroutine_handle.h
+COR_HEADERS+=	coroutine_traits.h
+COR_HEADERS+=	noop_coroutine_handle.h
+COR_HEADERS+=	trivial_awaitables.h
+.for hdr in ${COR_HEADERS}
+COR+=		${HDRDIR}/__coroutine/${hdr}
+.endfor
+
+INCSGROUPS+=	FS
+FSDIR=		${CXXINCLUDEDIR}/__filesystem
+FS_HEADERS+=	copy_options.h
+FS_HEADERS+=	directory_entry.h
+FS_HEADERS+=	directory_iterator.h
+FS_HEADERS+=	directory_options.h
+FS_HEADERS+=	file_status.h
+FS_HEADERS+=	file_time_type.h
+FS_HEADERS+=	file_type.h
+FS_HEADERS+=	filesystem_error.h
+FS_HEADERS+=	operations.h
+FS_HEADERS+=	path.h
+FS_HEADERS+=	path_iterator.h
+FS_HEADERS+=	perm_options.h
+FS_HEADERS+=	perms.h
+FS_HEADERS+=	recursive_directory_iterator.h
+FS_HEADERS+=	space_info.h
+FS_HEADERS+=	u8path.h
+.for hdr in ${FS_HEADERS}
+FS+=		${HDRDIR}/__filesystem/${hdr}
+.endfor
+
 INCSGROUPS+=	FMT
 FMTDIR=		${CXXINCLUDEDIR}/__format
+FMT_HEADERS+=	format_arg.h
+FMT_HEADERS+=	format_args.h
+FMT_HEADERS+=	format_context.h
 FMT_HEADERS+=	format_error.h
+FMT_HEADERS+=	format_fwd.h
 FMT_HEADERS+=	format_parse_context.h
+FMT_HEADERS+=	format_string.h
+FMT_HEADERS+=	format_to_n_result.h
+FMT_HEADERS+=	formatter.h
+FMT_HEADERS+=	formatter_bool.h
+FMT_HEADERS+=	formatter_char.h
+FMT_HEADERS+=	formatter_floating_point.h
+FMT_HEADERS+=	formatter_integer.h
+FMT_HEADERS+=	formatter_integral.h
+FMT_HEADERS+=	formatter_pointer.h
+FMT_HEADERS+=	formatter_string.h
+FMT_HEADERS+=	parser_std_format_spec.h
 .for hdr in ${FMT_HEADERS}
 FMT+=		${HDRDIR}/__format/${hdr}
 .endfor
@@ -355,9 +489,11 @@ FUNDIR=		${CXXINCLUDEDIR}/__functional
 FUN_HEADERS+=	binary_function.h
 FUN_HEADERS+=	binary_negate.h
 FUN_HEADERS+=	bind.h
+FUN_HEADERS+=	bind_back.h
 FUN_HEADERS+=	bind_front.h
 FUN_HEADERS+=	binder1st.h
 FUN_HEADERS+=	binder2nd.h
+FUN_HEADERS+=	compose.h
 FUN_HEADERS+=	default_searcher.h
 FUN_HEADERS+=	function.h
 FUN_HEADERS+=	hash.h
@@ -396,6 +532,7 @@ IT_HEADERS+=	empty.h
 IT_HEADERS+=	erase_if_container.h
 IT_HEADERS+=	front_insert_iterator.h
 IT_HEADERS+=	incrementable_traits.h
+IT_HEADERS+=	indirectly_comparable.h
 IT_HEADERS+=	insert_iterator.h
 IT_HEADERS+=	istream_iterator.h
 IT_HEADERS+=	istreambuf_iterator.h
@@ -413,6 +550,7 @@ IT_HEADERS+=	readable_traits.h
 IT_HEADERS+=	reverse_access.h
 IT_HEADERS+=	reverse_iterator.h
 IT_HEADERS+=	size.h
+IT_HEADERS+=	unreachable_sentinel.h
 IT_HEADERS+=	wrap_iter.h
 .for hdr in ${IT_HEADERS}
 IT+=		${HDRDIR}/__iterator/${hdr}
@@ -427,22 +565,79 @@ MEM_HEADERS+=	allocator_arg_t.h
 MEM_HEADERS+=	allocator_traits.h
 MEM_HEADERS+=	auto_ptr.h
 MEM_HEADERS+=	compressed_pair.h
+MEM_HEADERS+=	concepts.h
 MEM_HEADERS+=	construct_at.h
-MEM_HEADERS+=	pointer_safety.h
 MEM_HEADERS+=	pointer_traits.h
+MEM_HEADERS+=	ranges_construct_at.h
+MEM_HEADERS+=	ranges_uninitialized_algorithms.h
 MEM_HEADERS+=	raw_storage_iterator.h
 MEM_HEADERS+=	shared_ptr.h
 MEM_HEADERS+=	temporary_buffer.h
 MEM_HEADERS+=	uninitialized_algorithms.h
 MEM_HEADERS+=	unique_ptr.h
 MEM_HEADERS+=	uses_allocator.h
+MEM_HEADERS+=	voidify.h
 .for hdr in ${MEM_HEADERS}
 MEM+=		${HDRDIR}/__memory/${hdr}
 .endfor
 
+INCSGROUPS+=    NUM
+NUMDIR=		${CXXINCLUDEDIR}/__numeric
+NUM_HEADERS+=	accumulate.h
+NUM_HEADERS+=	adjacent_difference.h
+NUM_HEADERS+=	exclusive_scan.h
+NUM_HEADERS+=	gcd_lcm.h
+NUM_HEADERS+=	inclusive_scan.h
+NUM_HEADERS+=	inner_product.h
+NUM_HEADERS+=	iota.h
+NUM_HEADERS+=	midpoint.h
+NUM_HEADERS+=	partial_sum.h
+NUM_HEADERS+=	reduce.h
+NUM_HEADERS+=	transform_exclusive_scan.h
+NUM_HEADERS+=	transform_inclusive_scan.h
+NUM_HEADERS+=	transform_reduce.h
+.for hdr in ${NUM_HEADERS}
+NUM+=		${HDRDIR}/__numeric/${hdr}
+.endfor
+
 INCSGROUPS+=	RND
 RNDDIR=		${CXXINCLUDEDIR}/__random
+RND_HEADERS+=	bernoulli_distribution.h
+RND_HEADERS+=	binomial_distribution.h
+RND_HEADERS+=	cauchy_distribution.h
+RND_HEADERS+=	chi_squared_distribution.h
+RND_HEADERS+=	clamp_to_integral.h
+RND_HEADERS+=	default_random_engine.h
+RND_HEADERS+=	discard_block_engine.h
+RND_HEADERS+=	discrete_distribution.h
+RND_HEADERS+=	exponential_distribution.h
+RND_HEADERS+=	extreme_value_distribution.h
+RND_HEADERS+=	fisher_f_distribution.h
+RND_HEADERS+=	gamma_distribution.h
+RND_HEADERS+=	generate_canonical.h
+RND_HEADERS+=	geometric_distribution.h
+RND_HEADERS+=	independent_bits_engine.h
+RND_HEADERS+=	is_seed_sequence.h
+RND_HEADERS+=	knuth_b.h
+RND_HEADERS+=	linear_congruential_engine.h
+RND_HEADERS+=	log2.h
+RND_HEADERS+=	lognormal_distribution.h
+RND_HEADERS+=	mersenne_twister_engine.h
+RND_HEADERS+=	negative_binomial_distribution.h
+RND_HEADERS+=	normal_distribution.h
+RND_HEADERS+=	piecewise_constant_distribution.h
+RND_HEADERS+=	piecewise_linear_distribution.h
+RND_HEADERS+=	poisson_distribution.h
+RND_HEADERS+=	random_device.h
+RND_HEADERS+=	ranlux.h
+RND_HEADERS+=	seed_seq.h
+RND_HEADERS+=	shuffle_order_engine.h
+RND_HEADERS+=	student_t_distribution.h
+RND_HEADERS+=	subtract_with_carry_engine.h
 RND_HEADERS+=	uniform_int_distribution.h
+RND_HEADERS+=	uniform_random_bit_generator.h
+RND_HEADERS+=	uniform_real_distribution.h
+RND_HEADERS+=	weibull_distribution.h
 .for hdr in ${RND_HEADERS}
 RND+=		${HDRDIR}/__random/${hdr}
 .endfor
@@ -454,6 +649,7 @@ RNG_HEADERS+=	all.h
 RNG_HEADERS+=	common_view.h
 RNG_HEADERS+=	concepts.h
 RNG_HEADERS+=	copyable_box.h
+RNG_HEADERS+=	counted.h
 RNG_HEADERS+=	dangling.h
 RNG_HEADERS+=	data.h
 RNG_HEADERS+=	drop_view.h
@@ -461,20 +657,36 @@ RNG_HEADERS+=	empty.h
 RNG_HEADERS+=	empty_view.h
 RNG_HEADERS+=	enable_borrowed_range.h
 RNG_HEADERS+=	enable_view.h
+RNG_HEADERS+=	iota_view.h
+RNG_HEADERS+=	join_view.h
 RNG_HEADERS+=	non_propagating_cache.h
+RNG_HEADERS+=	owning_view.h
+RNG_HEADERS+=	range_adaptor.h
 RNG_HEADERS+=	ref_view.h
+RNG_HEADERS+=	reverse_view.h
+RNG_HEADERS+=	single_view.h
 RNG_HEADERS+=	size.h
 RNG_HEADERS+=	subrange.h
+RNG_HEADERS+=	take_view.h
 RNG_HEADERS+=	transform_view.h
 RNG_HEADERS+=	view_interface.h
+RNG_HEADERS+=	views.h
 .for hdr in ${RNG_HEADERS}
 RNG+=		${HDRDIR}/__ranges/${hdr}
 .endfor
 
+INCSGROUPS+=	THR
+THRDIR=		${CXXINCLUDEDIR}/__thread
+THR_HEADERS+=	poll_with_backoff.h
+THR_HEADERS+=	timed_backoff_policy.h
+.for hdr in ${THR_HEADERS}
+THR+=		${HDRDIR}/__thread/${hdr}
+.endfor
+
 INCSGROUPS+=	UTL
 UTLDIR=		${CXXINCLUDEDIR}/__utility
-UTL_HEADERS+=	__decay_copy.h
 UTL_HEADERS+=	as_const.h
+UTL_HEADERS+=	auto_cast.h
 UTL_HEADERS+=	cmp.h
 UTL_HEADERS+=	declval.h
 UTL_HEADERS+=	exchange.h
@@ -484,16 +696,18 @@ UTL_HEADERS+=	integer_sequence.h
 UTL_HEADERS+=	move.h
 UTL_HEADERS+=	pair.h
 UTL_HEADERS+=	piecewise_construct.h
+UTL_HEADERS+=	priority_tag.h
 UTL_HEADERS+=	rel_ops.h
 UTL_HEADERS+=	swap.h
 UTL_HEADERS+=	to_underlying.h
+UTL_HEADERS+=	transaction.h
 .for hdr in ${UTL_HEADERS}
 UTL+=		${HDRDIR}/__utility/${hdr}
 .endfor
 
 INCSGROUPS+=	VAR
-VAR_HEADERS+=	monostate.h
 VARDIR=	${CXXINCLUDEDIR}/__variant
+VAR_HEADERS+=	monostate.h
 .for hdr in ${VAR_HEADERS}
 VAR+=		${HDRDIR}/__variant/${hdr}
 .endfor

@@ -47,11 +47,17 @@ class DiagnosticsEngine;
 class LangOptions;
 class CodeGenOptions;
 class MacroBuilder;
-class QualType;
-class SourceLocation;
-class SourceManager;
 
 namespace Builtin { struct Info; }
+
+enum class FloatModeKind {
+  NoFloat = 255,
+  Float = 0,
+  Double,
+  LongDouble,
+  Float128,
+  Ibm128
+};
 
 /// Fields controlling how types are laid out in memory; these may need to
 /// be copied for targets like AMDGPU that base their ABIs on an auxiliary
@@ -64,7 +70,7 @@ struct TransferrableTargetInfo {
   unsigned char BFloat16Width, BFloat16Align;
   unsigned char FloatWidth, FloatAlign;
   unsigned char DoubleWidth, DoubleAlign;
-  unsigned char LongDoubleWidth, LongDoubleAlign, Float128Align;
+  unsigned char LongDoubleWidth, LongDoubleAlign, Float128Align, Ibm128Align;
   unsigned char LargeArrayMinWidth, LargeArrayAlign;
   unsigned char LongWidth, LongAlign;
   unsigned char LongLongWidth, LongLongAlign;
@@ -104,7 +110,7 @@ struct TransferrableTargetInfo {
   unsigned MaxTLSAlign;
 
   const llvm::fltSemantics *HalfFormat, *BFloat16Format, *FloatFormat,
-    *DoubleFormat, *LongDoubleFormat, *Float128Format;
+      *DoubleFormat, *LongDoubleFormat, *Float128Format, *Ibm128Format;
 
   ///===---- Target Data Type Query Methods -------------------------------===//
   enum IntType {
@@ -121,13 +127,6 @@ struct TransferrableTargetInfo {
     UnsignedLongLong
   };
 
-  enum RealType {
-    NoFloat = 255,
-    Float = 0,
-    Double,
-    LongDouble,
-    Float128
-  };
 protected:
   IntType SizeType, IntMaxType, PtrDiffType, IntPtrType, WCharType, WIntType,
       Char16Type, Char32Type, Int64Type, Int16Type, SigAtomicType,
@@ -200,6 +199,9 @@ protected:
   bool HasFloat128;
   bool HasFloat16;
   bool HasBFloat16;
+  bool HasIbm128;
+  bool HasLongDouble;
+  bool HasFPReturn;
   bool HasStrictFP;
 
   unsigned char MaxAtomicPromoteWidth, MaxAtomicInlineWidth;
@@ -210,9 +212,7 @@ protected:
   unsigned char RegParmMax, SSERegParmMax;
   TargetCXXABI TheCXXABI;
   const LangASMap *AddrSpaceMap;
-  const unsigned *GridValues =
-      nullptr; // Array of target-specific GPU grid values that must be
-               // consistent between host RTL (plugin), device RTL, and clang.
+  unsigned ProgramAddrSpace;
 
   mutable StringRef PlatformName;
   mutable VersionTuple PlatformMinVersion;
@@ -401,7 +401,8 @@ public:
   /// is represented as one of those two). At this time, there is no support
   /// for an explicit "PPC double-double" type (i.e. __ibm128) so we only
   /// need to differentiate between "long double" and IEEE quad precision.
-  RealType getRealTypeByWidth(unsigned BitWidth, bool ExplicitIEEE) const;
+  FloatModeKind getRealTypeByWidth(unsigned BitWidth,
+                                   FloatModeKind ExplicitType) const;
 
   /// Return the alignment (in bits) of the specified integer type enum.
   ///
@@ -579,10 +580,25 @@ public:
     return (getPointerWidth(0) >= 64) || getTargetOpts().ForceEnableInt128;
   } // FIXME
 
-  /// Determine whether the _ExtInt type is supported on this target. This
+  /// Determine whether the _BitInt type is supported on this target. This
   /// limitation is put into place for ABI reasons.
-  virtual bool hasExtIntType() const {
+  /// FIXME: _BitInt is a required type in C23, so there's not much utility in
+  /// asking whether the target supported it or not; I think this should be
+  /// removed once backends have been alerted to the type and have had the
+  /// chance to do implementation work if needed.
+  virtual bool hasBitIntType() const {
     return false;
+  }
+
+  // Different targets may support a different maximum width for the _BitInt
+  // type, depending on what operations are supported.
+  virtual size_t getMaxBitIntWidth() const {
+    // FIXME: this value should be llvm::IntegerType::MAX_INT_BITS, which is
+    // maximum bit width that LLVM claims its IR can support. However, most
+    // backends currently have a bug where they only support division
+    // operations on types that are <= 128 bits and crash otherwise. We're
+    // setting the max supported value to 128 to be conservative.
+    return 128;
   }
 
   /// Determine whether _Float16 is supported on this target.
@@ -596,6 +612,16 @@ public:
 
   /// Determine whether the _BFloat16 type is supported on this target.
   virtual bool hasBFloat16Type() const { return HasBFloat16; }
+
+  /// Determine whether the __ibm128 type is supported on this target.
+  virtual bool hasIbm128Type() const { return HasIbm128; }
+
+  /// Determine whether the long double type is supported on this target.
+  virtual bool hasLongDoubleType() const { return HasLongDouble; }
+
+  /// Determine whether return of a floating point value is supported
+  /// on this target.
+  virtual bool hasFPReturn() const { return HasFPReturn; }
 
   /// Determine whether constrained floating point is supported on this target.
   virtual bool hasStrictFP() const { return HasStrictFP; }
@@ -618,8 +644,8 @@ public:
   }
 
   /// Return the largest alignment for which a suitably-sized allocation with
-  /// '::operator new(size_t)' or 'malloc' is guaranteed to produce a
-  /// correctly-aligned pointer.
+  /// '::operator new(size_t)' is guaranteed to produce a correctly-aligned
+  /// pointer.
   unsigned getNewAlign() const {
     return NewAlign ? NewAlign : std::max(LongDoubleAlign, LongLongAlign);
   }
@@ -675,11 +701,22 @@ public:
     return *Float128Format;
   }
 
+  /// getIbm128Width/Align/Format - Return the size/align/format of
+  /// '__ibm128'.
+  unsigned getIbm128Width() const { return 128; }
+  unsigned getIbm128Align() const { return Ibm128Align; }
+  const llvm::fltSemantics &getIbm128Format() const { return *Ibm128Format; }
+
   /// Return the mangled code of long double.
   virtual const char *getLongDoubleMangling() const { return "e"; }
 
   /// Return the mangled code of __float128.
   virtual const char *getFloat128Mangling() const { return "g"; }
+
+  /// Return the mangled code of __ibm128.
+  virtual const char *getIbm128Mangling() const {
+    llvm_unreachable("ibm128 not implemented on this target");
+  }
 
   /// Return the mangled code of bfloat.
   virtual const char *getBFloat16Mangling() const {
@@ -741,6 +778,9 @@ public:
   unsigned getIntMaxTWidth() const {
     return getTypeWidth(IntMaxType);
   }
+
+  /// Return the address space for functions for the given target.
+  unsigned getProgramAddressSpace() const { return ProgramAddrSpace; }
 
   // Return the size of unwind_word for this target.
   virtual unsigned getUnwindWordWidth() const { return getPointerWidth(0); }
@@ -833,8 +873,8 @@ public:
 
   /// Check whether the given real type should use the "fpret" flavor of
   /// Objective-C message passing on this target.
-  bool useObjCFPRetForRealType(RealType T) const {
-    return RealTypeUsesObjCFPRet & (1 << T);
+  bool useObjCFPRetForRealType(FloatModeKind T) const {
+    return RealTypeUsesObjCFPRet & (1 << (int)T);
   }
 
   /// Check whether _Complex long double should use the "fp2ret" flavor
@@ -870,6 +910,11 @@ public:
   /// across the current set of primary and secondary targets.
   virtual ArrayRef<Builtin::Info> getTargetBuiltins() const = 0;
 
+  /// Returns target-specific min and max values VScale_Range.
+  virtual Optional<std::pair<unsigned, unsigned>>
+  getVScaleRange(const LangOptions &LangOpts) const {
+    return None;
+  }
   /// The __builtin_clz* and __builtin_ctz* built-in
   /// functions are specified to have undefined results for zero inputs, but
   /// on targets that support these operations in a way that provides
@@ -993,8 +1038,7 @@ public:
     }
     bool isValidAsmImmediate(const llvm::APInt &Value) const {
       if (!ImmSet.empty())
-        return Value.isSignedIntN(32) &&
-               ImmSet.count(Value.getZExtValue()) != 0;
+        return Value.isSignedIntN(32) && ImmSet.contains(Value.getZExtValue());
       return !ImmRange.isConstrained ||
              (Value.sge(ImmRange.Min) && Value.sle(ImmRange.Max));
     }
@@ -1256,9 +1300,15 @@ public:
     bool BranchTargetEnforcement = false;
   };
 
+  /// Determine if the Architecture in this TargetInfo supports branch
+  /// protection
+  virtual bool isBranchProtectionSupportedArch(StringRef Arch) const {
+    return false;
+  }
+
   /// Determine if this TargetInfo supports the given branch protection
   /// specification
-  virtual bool validateBranchProtection(StringRef Spec,
+  virtual bool validateBranchProtection(StringRef Spec, StringRef Arch,
                                         BranchProtectionInfo &BPI,
                                         StringRef &Err) const {
     Err = "";
@@ -1404,10 +1454,10 @@ public:
     return LangAS::Default;
   }
 
-  /// Return a target-specific GPU grid value based on the GVIDX enum \p gv
-  unsigned getGridValue(llvm::omp::GVIDX gv) const {
-    assert(GridValues != nullptr && "GridValues not initialized");
-    return GridValues[gv];
+  // access target-specific GPU grid values that must be consistent between
+  // host RTL (plugin), deviceRTL and clang.
+  virtual const llvm::omp::GV &getGridValue() const {
+    llvm_unreachable("getGridValue not implemented on this target");
   }
 
   /// Retrieve the name of the platform as it is used in the

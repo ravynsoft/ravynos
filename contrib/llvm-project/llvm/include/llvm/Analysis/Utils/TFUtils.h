@@ -104,6 +104,9 @@ Optional<TensorSpec> getTensorSpecFromJSON(LLVMContext &Ctx,
 struct LoggedFeatureSpec {
   TensorSpec Spec;
   Optional<std::string> LoggingName;
+  const std::string &getLoggingName() const {
+    return LoggingName ? *LoggingName : Spec.name();
+  }
 };
 
 /// Load the output specs. If SpecFileOverride is not empty, that path is used.
@@ -144,6 +147,9 @@ public:
   /// Construct a Logger. If IncludeReward is false, then logReward or
   /// logFinalReward shouldn't be called, and the reward feature won't be
   /// printed out.
+  /// NOTE: the FeatureSpecs are expected to be in the same order (i.e. have
+  /// corresponding indices) with any MLModelRunner implementations
+  /// corresponding to the model being trained/logged.
   Logger(const std::vector<LoggedFeatureSpec> &FeatureSpecs,
          const TensorSpec &RewardSpec, bool IncludeReward);
 
@@ -170,7 +176,15 @@ public:
   // we can consider using bytes.
   char *addEntryAndGetFloatOrInt64Buffer(size_t FeatureID);
 
-  void print(raw_ostream &OS);
+  // Flush the content of the log to the stream, clearing the stored data in the
+  // process.
+  void flush(std::string *Str);
+  void flush(raw_ostream &OS);
+
+  // Flush a set of logs that are produced from the same module, e.g.
+  // per-function regalloc traces, as a google::protobuf::Struct message.
+  static void flushLogs(raw_ostream &OS,
+                        const StringMap<std::unique_ptr<Logger>> &Loggers);
 
 private:
   std::vector<LoggedFeatureSpec> FeatureSpecs;
@@ -241,8 +255,10 @@ public:
   /// otherwise.
   bool isValid() const { return !!Impl; }
 
-private:
+  /// Untyped access to input.
   void *getUntypedInput(size_t Index);
+
+private:
   std::unique_ptr<TFModelEvaluatorImpl> Impl;
 };
 

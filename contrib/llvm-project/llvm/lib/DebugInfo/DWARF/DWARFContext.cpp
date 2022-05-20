@@ -33,6 +33,7 @@
 #include "llvm/DebugInfo/DWARF/DWARFUnitIndex.h"
 #include "llvm/DebugInfo/DWARF/DWARFVerifier.h"
 #include "llvm/MC/MCRegisterInfo.h"
+#include "llvm/MC/TargetRegistry.h"
 #include "llvm/Object/Decompressor.h"
 #include "llvm/Object/MachO.h"
 #include "llvm/Object/ObjectFile.h"
@@ -44,7 +45,6 @@
 #include "llvm/Support/LEB128.h"
 #include "llvm/Support/MemoryBuffer.h"
 #include "llvm/Support/Path.h"
-#include "llvm/Support/TargetRegistry.h"
 #include "llvm/Support/raw_ostream.h"
 #include <algorithm>
 #include <cstdint>
@@ -693,6 +693,34 @@ void DWARFContext::dump(
     getDebugNames().dump(OS);
 }
 
+DWARFTypeUnit *DWARFContext::getTypeUnitForHash(uint16_t Version, uint64_t Hash,
+                                                bool IsDWO) {
+  parseDWOUnits(LazyParse);
+
+  if (const auto &TUI = getTUIndex()) {
+    if (const auto *R = TUI.getFromHash(Hash))
+      return dyn_cast_or_null<DWARFTypeUnit>(
+          DWOUnits.getUnitForIndexEntry(*R));
+    return nullptr;
+  }
+
+  struct UnitContainers {
+    const DWARFUnitVector &Units;
+    Optional<DenseMap<uint64_t, DWARFTypeUnit *>> &Map;
+  };
+  UnitContainers Units = IsDWO ? UnitContainers{DWOUnits, DWOTypeUnits}
+                               : UnitContainers{NormalUnits, NormalTypeUnits};
+  if (!Units.Map) {
+    Units.Map.emplace();
+    for (const auto &U : IsDWO ? dwo_units() : normal_units()) {
+      if (DWARFTypeUnit *TU = dyn_cast<DWARFTypeUnit>(U.get()))
+        (*Units.Map)[TU->getTypeHash()] = TU;
+    }
+  }
+
+  return (*Units.Map)[Hash];
+}
+
 DWARFCompileUnit *DWARFContext::getDWOCompileUnitForHash(uint64_t Hash) {
   parseDWOUnits(LazyParse);
 
@@ -1086,6 +1114,7 @@ static Optional<uint64_t> getTypeSize(DWARFDie Type, uint64_t PointerSize) {
     return PointerSize;
   }
   case DW_TAG_const_type:
+  case DW_TAG_immutable_type:
   case DW_TAG_volatile_type:
   case DW_TAG_restrict_type:
   case DW_TAG_typedef: {
@@ -1183,7 +1212,7 @@ void DWARFContext::addLocalsForDie(DWARFCompileUnit *CU, DWARFDie Subprogram,
             Die.getAttributeValueAsReferencedDie(DW_AT_abstract_origin))
       Die = Origin;
     if (auto NameAttr = Die.find(DW_AT_name))
-      if (Optional<const char *> Name = NameAttr->getAsCString())
+      if (Optional<const char *> Name = dwarf::toString(*NameAttr))
         Local.Name = *Name;
     if (auto Type = Die.getAttributeValueAsReferencedDie(DW_AT_type))
       Local.Size = getTypeSize(Type, getCUAddrSize());
@@ -1411,7 +1440,8 @@ DWARFContext::getDWOContext(StringRef AbsolutePath) {
 
   auto S = std::make_shared<DWOFile>();
   S->File = std::move(Obj.get());
-  S->Context = DWARFContext::create(*S->File.getBinary());
+  S->Context = DWARFContext::create(*S->File.getBinary(),
+                                    ProcessDebugRelocations::Ignore);
   *Entry = S;
   auto *Ctxt = S->Context.get();
   return std::shared_ptr<DWARFContext>(std::move(S), Ctxt);
@@ -1652,7 +1682,9 @@ public:
     }
   }
   DWARFObjInMemory(const object::ObjectFile &Obj, const LoadedObjectInfo *L,
-                   function_ref<void(Error)> HandleError, function_ref<void(Error)> HandleWarning )
+                   function_ref<void(Error)> HandleError,
+                   function_ref<void(Error)> HandleWarning,
+                   DWARFContext::ProcessDebugRelocations RelocAction)
       : IsLittleEndian(Obj.isLittleEndian()),
         AddressSize(Obj.getBytesInAddress()), FileName(Obj.getFileName()),
         Obj(&Obj) {
@@ -1735,7 +1767,12 @@ public:
         S.Data = Data;
       }
 
-      if (RelocatedSection == Obj.section_end())
+      if (RelocatedSection != Obj.section_end() && Name.contains(".dwo"))
+        HandleWarning(
+            createError("Unexpected relocations for dwo section " + Name));
+
+      if (RelocatedSection == Obj.section_end() ||
+          (RelocAction == DWARFContext::ProcessDebugRelocations::Ignore))
         continue;
 
       StringRef RelSecName;
@@ -1772,18 +1809,10 @@ public:
         if (RelSecName == "debug_info")
           Map = &static_cast<DWARFSectionMap &>(InfoSections[*RelocatedSection])
                      .Relocs;
-        else if (RelSecName == "debug_info.dwo")
-          Map = &static_cast<DWARFSectionMap &>(
-                     InfoDWOSections[*RelocatedSection])
-                     .Relocs;
         else if (RelSecName == "debug_types")
           Map =
               &static_cast<DWARFSectionMap &>(TypesSections[*RelocatedSection])
                    .Relocs;
-        else if (RelSecName == "debug_types.dwo")
-          Map = &static_cast<DWARFSectionMap &>(
-                     TypesDWOSections[*RelocatedSection])
-                     .Relocs;
         else
           continue;
       }
@@ -1966,12 +1995,13 @@ public:
 } // namespace
 
 std::unique_ptr<DWARFContext>
-DWARFContext::create(const object::ObjectFile &Obj, const LoadedObjectInfo *L,
-                     std::string DWPName,
+DWARFContext::create(const object::ObjectFile &Obj,
+                     ProcessDebugRelocations RelocAction,
+                     const LoadedObjectInfo *L, std::string DWPName,
                      std::function<void(Error)> RecoverableErrorHandler,
                      std::function<void(Error)> WarningHandler) {
-  auto DObj =
-      std::make_unique<DWARFObjInMemory>(Obj, L, RecoverableErrorHandler, WarningHandler);
+  auto DObj = std::make_unique<DWARFObjInMemory>(
+      Obj, L, RecoverableErrorHandler, WarningHandler, RelocAction);
   return std::make_unique<DWARFContext>(std::move(DObj), std::move(DWPName),
                                         RecoverableErrorHandler,
                                         WarningHandler);

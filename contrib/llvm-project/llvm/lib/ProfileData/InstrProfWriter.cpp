@@ -32,6 +32,7 @@
 #include <vector>
 
 using namespace llvm;
+extern cl::opt<bool> DebugInfoCorrelate;
 
 // A struct to define how the data stream should be patched. For Indexed
 // profiling, only uint64_t data type is needed.
@@ -165,9 +166,8 @@ public:
 
 } // end namespace llvm
 
-InstrProfWriter::InstrProfWriter(bool Sparse, bool InstrEntryBBEnabled)
-    : Sparse(Sparse), InstrEntryBBEnabled(InstrEntryBBEnabled),
-      InfoObj(new InstrProfRecordWriterTrait()) {}
+InstrProfWriter::InstrProfWriter(bool Sparse)
+    : Sparse(Sparse), InfoObj(new InstrProfRecordWriterTrait()) {}
 
 InstrProfWriter::~InstrProfWriter() { delete InfoObj; }
 
@@ -215,8 +215,7 @@ void InstrProfWriter::overlapRecord(NamedInstrProfRecord &&Other,
   InstrProfRecord &Dest = Where->second;
 
   uint64_t ValueCutoff = FuncFilter.ValueCutoff;
-  if (!FuncFilter.NameFilter.empty() &&
-      Name.find(FuncFilter.NameFilter) != Name.npos)
+  if (!FuncFilter.NameFilter.empty() && Name.contains(FuncFilter.NameFilter))
     ValueCutoff = 0;
 
   Dest.overlap(Other, Overlap, FuncLevelOverlap, ValueCutoff);
@@ -272,7 +271,7 @@ static void setSummary(IndexedInstrProf::Summary *TheSummary,
                        ProfileSummary &PS) {
   using namespace IndexedInstrProf;
 
-  std::vector<ProfileSummaryEntry> &Res = PS.getDetailedSummary();
+  const std::vector<ProfileSummaryEntry> &Res = PS.getDetailedSummary();
   TheSummary->NumSummaryFields = Summary::NumKinds;
   TheSummary->NumCutoffEntries = Res.size();
   TheSummary->set(Summary::MaxFunctionCount, PS.getMaxFunctionCount());
@@ -303,14 +302,16 @@ Error InstrProfWriter::writeImpl(ProfOStream &OS) {
   IndexedInstrProf::Header Header;
   Header.Magic = IndexedInstrProf::Magic;
   Header.Version = IndexedInstrProf::ProfVersion::CurrentVersion;
-  if (ProfileKind == PF_IRLevel)
+  if (static_cast<bool>(ProfileKind & InstrProfKind::IR))
     Header.Version |= VARIANT_MASK_IR_PROF;
-  if (ProfileKind == PF_IRLevelWithCS) {
-    Header.Version |= VARIANT_MASK_IR_PROF;
+  if (static_cast<bool>(ProfileKind & InstrProfKind::CS))
     Header.Version |= VARIANT_MASK_CSIR_PROF;
-  }
-  if (InstrEntryBBEnabled)
+  if (static_cast<bool>(ProfileKind & InstrProfKind::BB))
     Header.Version |= VARIANT_MASK_INSTR_ENTRY;
+  if (static_cast<bool>(ProfileKind & InstrProfKind::SingleByteCoverage))
+    Header.Version |= VARIANT_MASK_BYTE_COVERAGE;
+  if (static_cast<bool>(ProfileKind & InstrProfKind::FunctionEntryOnly))
+    Header.Version |= VARIANT_MASK_FUNCTION_ENTRY_ONLY;
 
   Header.Unused = 0;
   Header.HashType = static_cast<uint64_t>(IndexedInstrProf::HashType);
@@ -337,7 +338,7 @@ Error InstrProfWriter::writeImpl(ProfOStream &OS) {
     OS.write(0);
   uint64_t CSSummaryOffset = 0;
   uint64_t CSSummarySize = 0;
-  if (ProfileKind == PF_IRLevelWithCS) {
+  if (static_cast<bool>(ProfileKind & InstrProfKind::CS)) {
     CSSummaryOffset = OS.tell();
     CSSummarySize = SummarySize / sizeof(uint64_t);
     for (unsigned I = 0; I < CSSummarySize; I++)
@@ -358,7 +359,7 @@ Error InstrProfWriter::writeImpl(ProfOStream &OS) {
 
   // For Context Sensitive summary.
   std::unique_ptr<IndexedInstrProf::Summary> TheCSSummary = nullptr;
-  if (ProfileKind == PF_IRLevelWithCS) {
+  if (static_cast<bool>(ProfileKind & InstrProfKind::CS)) {
     TheCSSummary = IndexedInstrProf::allocSummary(SummarySize);
     std::unique_ptr<ProfileSummary> CSPS = CSISB.getSummary();
     setSummary(TheCSSummary.get(), *CSPS);
@@ -470,11 +471,13 @@ void InstrProfWriter::writeRecordInText(StringRef Name, uint64_t Hash,
 }
 
 Error InstrProfWriter::writeText(raw_fd_ostream &OS) {
-  if (ProfileKind == PF_IRLevel)
-    OS << "# IR level Instrumentation Flag\n:ir\n";
-  else if (ProfileKind == PF_IRLevelWithCS)
+  // Check CS first since it implies an IR level profile.
+  if (static_cast<bool>(ProfileKind & InstrProfKind::CS))
     OS << "# CSIR level Instrumentation Flag\n:csir\n";
-  if (InstrEntryBBEnabled)
+  else if (static_cast<bool>(ProfileKind & InstrProfKind::IR))
+    OS << "# IR level Instrumentation Flag\n:ir\n";
+
+  if (static_cast<bool>(ProfileKind & InstrProfKind::BB))
     OS << "# Always instrument the function entry block\n:entry_first\n";
   InstrProfSymtab Symtab;
 

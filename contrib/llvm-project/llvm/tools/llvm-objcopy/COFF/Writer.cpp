@@ -116,7 +116,7 @@ void COFFWriter::layoutSections() {
   }
 }
 
-size_t COFFWriter::finalizeStringTable() {
+Expected<size_t> COFFWriter::finalizeStringTable() {
   for (const auto &S : Obj.getSections())
     if (S.Name.size() > COFF::NameSize)
       StrTabBuilder.add(S.Name);
@@ -129,11 +129,16 @@ size_t COFFWriter::finalizeStringTable() {
 
   for (auto &S : Obj.getMutableSections()) {
     memset(S.Header.Name, 0, sizeof(S.Header.Name));
-    if (S.Name.size() > COFF::NameSize) {
-      snprintf(S.Header.Name, sizeof(S.Header.Name), "/%d",
-               (int)StrTabBuilder.getOffset(S.Name));
-    } else {
+    if (S.Name.size() <= COFF::NameSize) {
+      // Short names can go in the field directly.
       memcpy(S.Header.Name, S.Name.data(), S.Name.size());
+    } else {
+      // Offset of the section name in the string table.
+      size_t Offset = StrTabBuilder.getOffset(S.Name);
+      if (!COFF::encodeSectionName(S.Header.Name, Offset))
+        return createStringError(object_error::invalid_section_index,
+                                 "COFF string table is greater than 64GB, "
+                                 "unable to encode section name offset");
     }
   }
   for (auto &S : Obj.getMutableSymbols()) {
@@ -219,7 +224,11 @@ Error COFFWriter::finalize(bool IsBigObj) {
     Obj.PeHeader.CheckSum = 0;
   }
 
-  size_t StrTabSize = finalizeStringTable();
+  Expected<size_t> StrTabSizeOrErr = finalizeStringTable();
+  if (!StrTabSizeOrErr)
+    return StrTabSizeOrErr.takeError();
+
+  size_t StrTabSize = *StrTabSizeOrErr;
 
   size_t PointerToSymbolTable = FileSize;
   // StrTabSize <= 4 is the size of an empty string table, only consisting
@@ -406,7 +415,7 @@ Expected<uint32_t> COFFWriter::virtualAddressToFileAddress(uint32_t RVA) {
 // the debug_directory structs in there, and set the PointerToRawData field
 // in all of them, according to their new physical location in the file.
 Error COFFWriter::patchDebugDirectory() {
-  if (Obj.DataDirectories.size() < DEBUG_DIRECTORY)
+  if (Obj.DataDirectories.size() <= DEBUG_DIRECTORY)
     return Error::success();
   const data_directory *Dir = &Obj.DataDirectories[DEBUG_DIRECTORY];
   if (Dir->Size <= 0)
@@ -426,15 +435,13 @@ Error COFFWriter::patchDebugDirectory() {
       uint8_t *End = Ptr + Dir->Size;
       while (Ptr < End) {
         debug_directory *Debug = reinterpret_cast<debug_directory *>(Ptr);
-        if (!Debug->AddressOfRawData)
-          return createStringError(object_error::parse_failed,
-                                   "debug directory payload outside of "
-                                   "mapped sections not supported");
-        if (Expected<uint32_t> FilePosOrErr =
-                virtualAddressToFileAddress(Debug->AddressOfRawData))
-          Debug->PointerToRawData = *FilePosOrErr;
-        else
-          return FilePosOrErr.takeError();
+        if (Debug->PointerToRawData) {
+          if (Expected<uint32_t> FilePosOrErr =
+                  virtualAddressToFileAddress(Debug->AddressOfRawData))
+            Debug->PointerToRawData = *FilePosOrErr;
+          else
+            return FilePosOrErr.takeError();
+        }
         Ptr += sizeof(debug_directory);
         Offset += sizeof(debug_directory);
       }

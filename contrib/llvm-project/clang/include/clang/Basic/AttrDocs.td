@@ -22,7 +22,7 @@
 // Windows (from within the clang\docs directory):
 //   make.bat html
 // Non-Windows (from within the clang\docs directory):
-//   make -f Makefile.sphinx html
+//   sphinx-build -b html _build/html
 
 def GlobalDocumentation {
   code Intro =[{..
@@ -186,6 +186,10 @@ under the ``-fdeclspec`` flag for compatibility with various compilers. The
 primary use is for COFF object files which explicitly specify what interfaces
 are imported from external modules. See the dllimport_ documentation on MSDN
 for more information.
+
+Note that a dllimport function may still be inlined, if its definition is
+available and it doesn't reference any non-dllimport functions or global
+variables.
 
 .. _dllimport: https://msdn.microsoft.com/en-us/library/3y1sfaz2.aspx
   }];
@@ -402,6 +406,71 @@ function marked with the ``sycl_kernel`` attribute:
   generate the OpenCL kernel body, and the OpenCL kernel must return ``void``.
 
 The SYCL kernel in the previous code sample meets these expectations.
+  }];
+}
+
+def SYCLSpecialClassDocs : Documentation {
+  let Category = DocCatStmt;
+  let Content = [{
+SYCL defines some special classes (accessor, sampler, and stream) which require
+specific handling during the generation of the SPIR entry point.
+The ``__attribute__((sycl_special_class))`` attribute is used in SYCL
+headers to indicate that a class or a struct needs a specific handling when
+it is passed from host to device.
+Special classes will have a mandatory ``__init`` method and an optional
+``__finalize`` method (the ``__finalize`` method is used only with the
+``stream`` type). Kernel parameters types are extract from the ``__init`` method
+parameters. The kernel function arguments list is derived from the
+arguments of the ``__init`` method. The arguments of the ``__init`` method are
+copied into the kernel function argument list and the ``__init`` and
+``__finalize`` methods are called at the beginning and the end of the kernel,
+respectively.
+The ``__init`` and ``__finalize`` methods must be defined inside the
+special class.
+Please note that this is an attribute that is used as an internal
+implementation detail and not intended to be used by external users.
+
+The syntax of the attribute is as follows:
+
+.. code-block:: text
+
+  class __attribute__((sycl_special_class)) accessor {};
+  class [[clang::sycl_special_class]] accessor {};
+
+This is a code example that illustrates the use of the attribute:
+
+.. code-block:: c++
+
+  class __attribute__((sycl_special_class)) SpecialType {
+    int F1;
+    int F2;
+    void __init(int f1) {
+      F1 = f1;
+      F2 = f1;
+    }
+    void __finalize() {}
+  public:
+    SpecialType() = default;
+    int getF2() const { return F2; }
+  };
+
+  int main () {
+    SpecialType T;
+    cgh.single_task([=] {
+      T.getF2();
+    });
+  }
+
+This would trigger the following kernel entry point in the AST:
+
+.. code-block:: c++
+
+  void __sycl_kernel(int f1) {
+    SpecialType T;
+    T.__init(f1);
+    ...
+    T.__finalize()
+  }
   }];
 }
 
@@ -2011,6 +2080,34 @@ preserving struct or union member access debuginfo indices of this
 struct or union, similar to clang ``__builtin_preserve_access_index()``.
   }];
 }
+def BTFDeclTagDocs : Documentation {
+  let Category = DocCatFunction;
+  let Content = [{
+Clang supports the ``__attribute__((btf_decl_tag("ARGUMENT")))`` attribute for
+all targets. This attribute may be attached to a struct/union, struct/union
+field, function, function parameter, variable or typedef declaration. If -g is
+specified, the ``ARGUMENT`` info will be preserved in IR and be emitted to
+dwarf. For BPF targets, the ``ARGUMENT`` info will be emitted to .BTF ELF
+section too.
+  }];
+}
+
+def BTFTypeTagDocs : Documentation {
+  let Category = DocCatType;
+  let Content = [{
+Clang supports the ``__attribute__((btf_type_tag("ARGUMENT")))`` attribute for
+all targets. It only has effect when ``-g`` is specified on the command line and
+is currently silently ignored when not applied to a pointer type (note: this
+scenario may be diagnosed in the future).
+
+The ``ARGUMENT`` string will be preserved in IR and emitted to DWARF for the
+types used in variable declarations, function declarations, or typedef
+declarations.
+
+For BPF targets, the ``ARGUMENT`` string will also be emitted to .BTF ELF
+section.
+  }];
+}
 
 def MipsInterruptDocs : Documentation {
   let Category = DocCatFunction;
@@ -2202,6 +2299,40 @@ example:
 All multiversioned functions must contain a ``default`` (fallback)
 implementation, otherwise usages of the function are considered invalid.
 Additionally, a function may not become multiversioned after its first use.
+}];
+}
+
+def TargetClonesDocs : Documentation {
+  let Category = DocCatFunction;
+  let Content = [{
+Clang supports the ``target_clones("OPTIONS")`` attribute. This attribute may be
+attached to a function declaration and causes function multiversioning, where
+multiple versions of the function will be emitted with different code
+generation options.  Additionally, these versions will be resolved at runtime
+based on the priority of their attribute options. All ``target_clone`` functions
+are considered multiversioned functions.
+
+All multiversioned functions must contain a ``default`` (fallback)
+implementation, otherwise usages of the function are considered invalid.
+Additionally, a function may not become multiversioned after its first use.
+
+The options to ``target_clones`` can either be a target-specific architecture
+(specified as ``arch=CPU``), or one of a list of subtarget features.
+
+Example "subtarget features" from the x86 backend include: "mmx", "sse", "sse4.2",
+"avx", "xop" and largely correspond to the machine specific options handled by
+the front end.
+
+The versions can either be listed as a comma-separated sequence of string
+literals or as a single string literal containing a comma-separated list of
+versions.  For compatibility with GCC, the two formats can be mixed.  For
+example, the following will emit 4 versions of the function:
+
+  .. code-block:: c++
+
+    __attribute__((target_clones("arch=atom,avx2","arch=ivybridge","default")))
+    void foo() {}
+
 }];
 }
 
@@ -2589,6 +2720,18 @@ SanitizerCoverage should not be applied to the function.
 
 See :ref:`Controlling Code Generation <controlling-code-generation>` for a
 full list of supported sanitizer flags.
+  }];
+}
+
+def DisableSanitizerInstrumentationDocs : Documentation {
+  let Category = DocCatFunction;
+  let Content = [{
+Use the ``disable_sanitizer_instrumentation`` attribute on a function,
+Objective-C method, or global variable, to specify that no sanitizer
+instrumentation should be applied.
+
+This is not the same as ``__attribute__((no_sanitize(...)))``, which depending
+on the tool may still insert instrumentation to prevent false positive reports.
   }];
 }
 
@@ -5859,19 +6002,21 @@ def AcquireHandleDocs : Documentation {
 If this annotation is on a function or a function type it is assumed to return
 a new handle. In case this annotation is on an output parameter,
 the function is assumed to fill the corresponding argument with a new
-handle.
+handle. The attribute requires a string literal argument which used to
+identify the handle with later uses of ``use_handle`` or
+``release_handle``.
 
 .. code-block:: c++
 
   // Output arguments from Zircon.
   zx_status_t zx_socket_create(uint32_t options,
-                               zx_handle_t __attribute__((acquire_handle)) * out0,
-                               zx_handle_t* out1 [[clang::acquire_handle]]);
+                               zx_handle_t __attribute__((acquire_handle("zircon"))) * out0,
+                               zx_handle_t* out1 [[clang::acquire_handle("zircon")]]);
 
 
   // Returned handle.
-  [[clang::acquire_handle]] int open(const char *path, int oflag, ... );
-  int open(const char *path, int oflag, ... ) __attribute__((acquire_handle));
+  [[clang::acquire_handle("tag")]] int open(const char *path, int oflag, ... );
+  int open(const char *path, int oflag, ... ) __attribute__((acquire_handle("tag")));
   }];
 }
 
@@ -5879,12 +6024,13 @@ def UseHandleDocs : Documentation {
   let Category = HandleDocs;
   let Content = [{
 A function taking a handle by value might close the handle. If a function
-parameter is annotated with ``use_handle`` it is assumed to not to change
+parameter is annotated with ``use_handle(tag)`` it is assumed to not to change
 the state of the handle. It is also assumed to require an open handle to work with.
+The attribute requires a string literal argument to identify the handle being used.
 
 .. code-block:: c++
 
-  zx_status_t zx_port_wait(zx_handle_t handle [[clang::use_handle]],
+  zx_status_t zx_port_wait(zx_handle_t handle [[clang::use_handle("zircon")]],
                            zx_time_t deadline,
                            zx_port_packet_t* packet);
   }];
@@ -5893,13 +6039,59 @@ the state of the handle. It is also assumed to require an open handle to work wi
 def ReleaseHandleDocs : Documentation {
   let Category = HandleDocs;
   let Content = [{
-If a function parameter is annotated with ``release_handle`` it is assumed to
-close the handle. It is also assumed to require an open handle to work with.
+If a function parameter is annotated with ``release_handle(tag)`` it is assumed to
+close the handle. It is also assumed to require an open handle to work with. The
+attribute requires a string literal argument to identify the handle being released.
 
 .. code-block:: c++
 
-  zx_status_t zx_handle_close(zx_handle_t handle [[clang::release_handle]]);
+  zx_status_t zx_handle_close(zx_handle_t handle [[clang::release_handle("tag")]]);
   }];
+}
+
+def DiagnoseAsBuiltinDocs : Documentation {
+  let Category = DocCatFunction;
+  let Content = [{
+The ``diagnose_as_builtin`` attribute indicates that Fortify diagnostics are to
+be applied to the declared function as if it were the function specified by the
+attribute. The builtin function whose diagnostics are to be mimicked should be
+given. In addition, the order in which arguments should be applied must also
+be given.
+
+For example, the attribute can be used as follows.
+
+.. code-block:: c
+
+  __attribute__((diagnose_as_builtin(__builtin_memset, 3, 2, 1)))
+  void *mymemset(int n, int c, void *s) {
+    // ...
+  }
+
+This indicates that calls to ``mymemset`` should be diagnosed as if they were
+calls to ``__builtin_memset``. The arguments ``3, 2, 1`` indicate by index the
+order in which arguments of ``mymemset`` should be applied to
+``__builtin_memset``. The third argument should be applied first, then the
+second, and then the first. Thus (when Fortify warnings are enabled) the call
+``mymemset(n, c, s)`` will diagnose overflows as if it were the call
+``__builtin_memset(s, c, n)``.
+
+For variadic functions, the variadic arguments must come in the same order as
+they would to the builtin function, after all normal arguments. For instance,
+to diagnose a new function as if it were `sscanf`, we can use the attribute as
+follows.
+
+.. code-block:: c
+
+  __attribute__((diagnose_as_builtin(sscanf, 1, 2)))
+  int mysscanf(const char *str, const char *format, ...)  {
+    // ...
+  }
+
+Then the call `mysscanf("abc def", "%4s %4s", buf1, buf2)` will be diagnosed as
+if it were the call `sscanf("abc def", "%4s %4s", buf1, buf2)`.
+
+This attribute cannot be applied to non-static member functions.
+}];
 }
 
 def ArmSveVectorBitsDocs : Documentation {
@@ -6043,5 +6235,31 @@ def EnforceTCBLeafDocs : Documentation {
   continue to check the functions called from within the leaf function.
 
   - ``enforce_tcb_leaf(Name)`` indicates that this function is a part of the TCB named ``Name``
+  }];
+}
+
+def ErrorAttrDocs : Documentation {
+  let Category = DocCatFunction;
+  let Heading = "error, warning";
+  let Content = [{
+The ``error`` and ``warning`` function attributes can be used to specify a
+custom diagnostic to be emitted when a call to such a function is not
+eliminated via optimizations. This can be used to create compile time
+assertions that depend on optimizations, while providing diagnostics
+pointing to precise locations of the call site in the source.
+
+.. code-block:: c++
+
+  __attribute__((warning("oh no"))) void dontcall();
+  void foo() {
+    if (someCompileTimeAssertionThatsTrue)
+      dontcall(); // Warning
+
+    dontcall(); // Warning
+
+    if (someCompileTimeAssertionThatsFalse)
+      dontcall(); // No Warning
+    sizeof(dontcall()); // No Warning
+  }
   }];
 }

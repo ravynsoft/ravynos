@@ -14,16 +14,11 @@
 
 #define LLDB_HAVE_EL_RFUNC_T 1
 
-
-#define HAVE_SYS_TYPES_H 1
-
 #define HAVE_SYS_EVENT_H 1
 
 #define HAVE_PPOLL 1
 
 #define HAVE_PTSNAME_R 1
-
-#define HAVE_SIGACTION 1
 
 #define HAVE_PROCESS_VM_READV 0
 
@@ -50,6 +45,8 @@
 #define LLDB_ENABLE_LUA 1
 
 #define LLDB_ENABLE_PYTHON 0
+
+#define LLDB_ENABLE_FBSDVMCORE 0
 
 #define LLDB_EMBED_PYTHON_HOME 0
 

@@ -27,6 +27,7 @@
 #include "llvm/Support/Error.h"
 #include "llvm/Support/MD5.h"
 #include "llvm/Support/SMLoc.h"
+#include "llvm/Support/ARMTargetParser.h"
 #include "llvm/Support/TargetParser.h"
 #include "llvm/Support/VersionTuple.h"
 #include <cassert>
@@ -40,7 +41,6 @@ namespace llvm {
 
 class AssemblerConstantPools;
 class MCAsmBackend;
-class MCCodeEmitter;
 class MCContext;
 struct MCDwarfFrameInfo;
 class MCExpr;
@@ -123,6 +123,8 @@ public:
   /// This is used to emit bytes in \p Data as sequence of .byte directives.
   virtual void emitRawBytes(StringRef Data);
 
+  virtual void emitConstantPools();
+
   virtual void finish();
 };
 
@@ -165,7 +167,7 @@ public:
 
   virtual void emitThumbSet(MCSymbol *Symbol, const MCExpr *Value);
 
-  void finish() override;
+  void emitConstantPools() override;
 
   /// Reset any state between object emissions, i.e. the equivalent of
   /// MCStreamer's reset method.
@@ -445,7 +447,7 @@ public:
   }
 
   /// Create the default sections and set the initial one.
-  virtual void InitSections(bool NoExecStack);
+  virtual void initSections(bool NoExecStack, const MCSubtargetInfo &STI);
 
   MCSymbol *endSection(MCSection *Section);
 
@@ -494,8 +496,16 @@ public:
                                 unsigned Minor, unsigned Update,
                                 VersionTuple SDKVersion) {}
 
+  virtual void emitDarwinTargetVariantBuildVersion(unsigned Platform,
+                                                   unsigned Major,
+                                                   unsigned Minor,
+                                                   unsigned Update,
+                                                   VersionTuple SDKVersion) {}
+
   void emitVersionForTarget(const Triple &Target,
-                            const VersionTuple &SDKVersion);
+                            const VersionTuple &SDKVersion,
+                            const Triple *DarwinTargetVariantTriple,
+                            const VersionTuple &DarwinTargetVariantSDKVersion);
 
   /// Note in the output that the specified \p Func is a Thumb mode
   /// function (ARM target only).
@@ -513,6 +523,10 @@ public:
   /// \param Symbol - The symbol being assigned to.
   /// \param Value - The value for the symbol.
   virtual void emitAssignment(MCSymbol *Symbol, const MCExpr *Value);
+
+  /// Emit an assignment of \p Value to \p Symbol, but only if \p Value is also
+  /// emitted.
+  virtual void emitConditionalAssignment(MCSymbol *Symbol, const MCExpr *Value);
 
   /// Emit an weak reference from \p Alias to \p Symbol.
   ///
@@ -797,7 +811,7 @@ public:
                         SMLoc Loc = SMLoc());
 
   virtual void emitNops(int64_t NumBytes, int64_t ControlledNopLength,
-                        SMLoc Loc);
+                        SMLoc Loc, const MCSubtargetInfo& STI);
 
   /// Emit NumBytes worth of zeros.
   /// This function properly handles data in virtual sections.
@@ -831,10 +845,12 @@ public:
   ///
   /// \param ByteAlignment - The alignment to reach. This must be a power of
   /// two on some targets.
+  /// \param STI - The MCSubtargetInfo in operation when padding is emitted.
   /// \param MaxBytesToEmit - The maximum numbers of bytes to emit, or 0. If
   /// the alignment cannot be reached in this many bytes, no bytes are
   /// emitted.
   virtual void emitCodeAlignment(unsigned ByteAlignment,
+                                 const MCSubtargetInfo *STI,
                                  unsigned MaxBytesToEmit = 0);
 
   /// Emit some number of copies of \p Value until the byte offset \p

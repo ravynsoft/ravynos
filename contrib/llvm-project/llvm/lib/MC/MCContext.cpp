@@ -67,10 +67,10 @@ static void defaultDiagHandler(const SMDiagnostic &SMD, bool, const SourceMgr &,
 MCContext::MCContext(const Triple &TheTriple, const MCAsmInfo *mai,
                      const MCRegisterInfo *mri, const MCSubtargetInfo *msti,
                      const SourceMgr *mgr, MCTargetOptions const *TargetOpts,
-                     bool DoAutoReset)
-    : TT(TheTriple), SrcMgr(mgr), InlineSrcMgr(nullptr),
-      DiagHandler(defaultDiagHandler), MAI(mai), MRI(mri), MSTI(msti),
-      Symbols(Allocator), UsedNames(Allocator),
+                     bool DoAutoReset, StringRef Swift5ReflSegmentName)
+    : Swift5ReflectionSegmentName(Swift5ReflSegmentName), TT(TheTriple),
+      SrcMgr(mgr), InlineSrcMgr(nullptr), DiagHandler(defaultDiagHandler),
+      MAI(mai), MRI(mri), MSTI(msti), Symbols(Allocator), UsedNames(Allocator),
       InlineAsmUsedLabelNames(Allocator),
       CurrentDwarfLoc(0, 0, 0, DWARF2_FLAG_IS_STMT, 0, 0),
       AutoReset(DoAutoReset), TargetOptions(TargetOpts) {
@@ -586,7 +586,7 @@ void MCContext::recordELFMergeableSectionInfo(StringRef SectionName,
                                               unsigned Flags, unsigned UniqueID,
                                               unsigned EntrySize) {
   bool IsMergeable = Flags & ELF::SHF_MERGE;
-  if (IsMergeable && (UniqueID == GenericSectionID))
+  if (UniqueID == GenericSectionID)
     ELFSeenGenericMergeableSections.insert(SectionName);
 
   // For mergeable sections or non-mergeable sections with a generic mergeable
@@ -977,14 +977,4 @@ void MCContext::reportWarning(SMLoc Loc, const Twine &Msg) {
       D = SMP->GetMessage(Loc, SourceMgr::DK_Warning, Msg);
     });
   }
-}
-
-void MCContext::reportFatalError(SMLoc Loc, const Twine &Msg) {
-  reportError(Loc, Msg);
-
-  // If we reached here, we are failing ungracefully. Run the interrupt handlers
-  // to make sure any special cleanups get done, in particular that we remove
-  // files registered with RemoveFileOnSignal.
-  sys::RunInterruptHandlers();
-  exit(1);
 }

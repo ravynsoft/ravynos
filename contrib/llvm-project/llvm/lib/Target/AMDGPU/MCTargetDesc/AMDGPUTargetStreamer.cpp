@@ -319,6 +319,10 @@ void AMDGPUTargetAsmStreamer::EmitAmdhsaKernelDescriptor(
      << KD.private_segment_fixed_size << '\n';
   OS << "\t\t.amdhsa_kernarg_size " << KD.kernarg_size << '\n';
 
+  PRINT_FIELD(OS, ".amdhsa_user_sgpr_count", KD,
+              compute_pgm_rsrc2,
+              amdhsa::COMPUTE_PGM_RSRC2_USER_SGPR_COUNT);
+
   if (!hasArchitectedFlatScratch(STI))
     PRINT_FIELD(
         OS, ".amdhsa_user_sgpr_private_segment_buffer", KD,
@@ -392,6 +396,7 @@ void AMDGPUTargetAsmStreamer::EmitAmdhsaKernelDescriptor(
       break;
     case ELF::ELFABIVERSION_AMDGPU_HSA_V3:
     case ELF::ELFABIVERSION_AMDGPU_HSA_V4:
+    case ELF::ELFABIVERSION_AMDGPU_HSA_V5:
       if (getTargetID()->isXnackSupported())
         OS << "\t\t.amdhsa_reserve_xnack_mask " << getTargetID()->isXnackOnOrAny() << '\n';
       break;
@@ -574,6 +579,7 @@ unsigned AMDGPUTargetELFStreamer::getEFlagsAMDHSA() {
     case ELF::ELFABIVERSION_AMDGPU_HSA_V3:
       return getEFlagsV3();
     case ELF::ELFABIVERSION_AMDGPU_HSA_V4:
+    case ELF::ELFABIVERSION_AMDGPU_HSA_V5:
       return getEFlagsV4();
     }
   }

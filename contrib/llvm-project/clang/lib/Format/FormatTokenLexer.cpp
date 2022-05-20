@@ -37,27 +37,40 @@ FormatTokenLexer::FormatTokenLexer(
                       getFormattingLangOpts(Style)));
   Lex->SetKeepWhitespaceMode(true);
 
-  for (const std::string &ForEachMacro : Style.ForEachMacros)
-    Macros.insert({&IdentTable.get(ForEachMacro), TT_ForEachMacro});
-  for (const std::string &IfMacro : Style.IfMacros)
-    Macros.insert({&IdentTable.get(IfMacro), TT_IfMacro});
-  for (const std::string &AttributeMacro : Style.AttributeMacros)
-    Macros.insert({&IdentTable.get(AttributeMacro), TT_AttributeMacro});
-  for (const std::string &StatementMacro : Style.StatementMacros)
-    Macros.insert({&IdentTable.get(StatementMacro), TT_StatementMacro});
-  for (const std::string &TypenameMacro : Style.TypenameMacros)
-    Macros.insert({&IdentTable.get(TypenameMacro), TT_TypenameMacro});
-  for (const std::string &NamespaceMacro : Style.NamespaceMacros)
-    Macros.insert({&IdentTable.get(NamespaceMacro), TT_NamespaceMacro});
+  for (const std::string &ForEachMacro : Style.ForEachMacros) {
+    auto Identifier = &IdentTable.get(ForEachMacro);
+    Macros.insert({Identifier, TT_ForEachMacro});
+  }
+  for (const std::string &IfMacro : Style.IfMacros) {
+    auto Identifier = &IdentTable.get(IfMacro);
+    Macros.insert({Identifier, TT_IfMacro});
+  }
+  for (const std::string &AttributeMacro : Style.AttributeMacros) {
+    auto Identifier = &IdentTable.get(AttributeMacro);
+    Macros.insert({Identifier, TT_AttributeMacro});
+  }
+  for (const std::string &StatementMacro : Style.StatementMacros) {
+    auto Identifier = &IdentTable.get(StatementMacro);
+    Macros.insert({Identifier, TT_StatementMacro});
+  }
+  for (const std::string &TypenameMacro : Style.TypenameMacros) {
+    auto Identifier = &IdentTable.get(TypenameMacro);
+    Macros.insert({Identifier, TT_TypenameMacro});
+  }
+  for (const std::string &NamespaceMacro : Style.NamespaceMacros) {
+    auto Identifier = &IdentTable.get(NamespaceMacro);
+    Macros.insert({Identifier, TT_NamespaceMacro});
+  }
   for (const std::string &WhitespaceSensitiveMacro :
        Style.WhitespaceSensitiveMacros) {
-    Macros.insert(
-        {&IdentTable.get(WhitespaceSensitiveMacro), TT_UntouchableMacroFunc});
+    auto Identifier = &IdentTable.get(WhitespaceSensitiveMacro);
+    Macros.insert({Identifier, TT_UntouchableMacroFunc});
   }
   for (const std::string &StatementAttributeLikeMacro :
-       Style.StatementAttributeLikeMacros)
-    Macros.insert({&IdentTable.get(StatementAttributeLikeMacro),
-                   TT_StatementAttributeLikeMacro});
+       Style.StatementAttributeLikeMacros) {
+    auto Identifier = &IdentTable.get(StatementAttributeLikeMacro);
+    Macros.insert({Identifier, TT_StatementAttributeLikeMacro});
+  }
 }
 
 ArrayRef<FormatToken *> FormatTokenLexer::lex() {
@@ -65,7 +78,7 @@ ArrayRef<FormatToken *> FormatTokenLexer::lex() {
   assert(FirstInLineIndex == 0);
   do {
     Tokens.push_back(getNextToken());
-    if (Style.Language == FormatStyle::LK_JavaScript) {
+    if (Style.isJavaScript()) {
       tryParseJSRegexLiteral();
       handleTemplateStrings();
     }
@@ -94,7 +107,7 @@ void FormatTokenLexer::tryMergePreviousTokens() {
   if (Style.isCpp() && tryTransformTryUsageForC())
     return;
 
-  if (Style.Language == FormatStyle::LK_JavaScript || Style.isCSharp()) {
+  if (Style.isJavaScript() || Style.isCSharp()) {
     static const tok::TokenKind NullishCoalescingOperator[] = {tok::question,
                                                                tok::question};
     static const tok::TokenKind NullPropagatingOperator[] = {tok::question,
@@ -139,7 +152,7 @@ void FormatTokenLexer::tryMergePreviousTokens() {
   if (tryMergeNSStringLiteral())
     return;
 
-  if (Style.Language == FormatStyle::LK_JavaScript) {
+  if (Style.isJavaScript()) {
     static const tok::TokenKind JSIdentity[] = {tok::equalequal, tok::equal};
     static const tok::TokenKind JSNotIdentity[] = {tok::exclaimequal,
                                                    tok::equal};
@@ -416,18 +429,21 @@ bool FormatTokenLexer::tryMergeLessLess() {
   if (Tokens.size() < 3)
     return false;
 
-  bool FourthTokenIsLess = false;
-  if (Tokens.size() > 3)
-    FourthTokenIsLess = (Tokens.end() - 4)[0]->is(tok::less);
-
   auto First = Tokens.end() - 3;
-  if (First[2]->is(tok::less) || First[1]->isNot(tok::less) ||
-      First[0]->isNot(tok::less) || FourthTokenIsLess)
+  if (First[0]->isNot(tok::less) || First[1]->isNot(tok::less))
     return false;
 
   // Only merge if there currently is no whitespace between the two "<".
-  if (First[1]->WhitespaceRange.getBegin() !=
-      First[1]->WhitespaceRange.getEnd())
+  if (First[1]->hasWhitespaceBefore())
+    return false;
+
+  auto X = Tokens.size() > 3 ? First[-1] : nullptr;
+  auto Y = First[2];
+  if ((X && X->is(tok::less)) || Y->is(tok::less))
+    return false;
+
+  // Do not remove a whitespace between the two "<" e.g. "operator< <>".
+  if (X && X->is(tok::kw_operator) && Y->is(tok::greater))
     return false;
 
   First[0]->Tok.setKind(tok::lessless);
@@ -448,8 +464,7 @@ bool FormatTokenLexer::tryMergeTokens(ArrayRef<tok::TokenKind> Kinds,
     return false;
   unsigned AddLength = 0;
   for (unsigned i = 1; i < Kinds.size(); ++i) {
-    if (!First[i]->is(Kinds[i]) || First[i]->WhitespaceRange.getBegin() !=
-                                       First[i]->WhitespaceRange.getEnd())
+    if (!First[i]->is(Kinds[i]) || First[i]->hasWhitespaceBefore())
       return false;
     AddLength += First[i]->TokenText.size();
   }
@@ -506,11 +521,11 @@ void FormatTokenLexer::tryParseJSRegexLiteral() {
     return;
 
   FormatToken *Prev = nullptr;
-  for (auto I = Tokens.rbegin() + 1, E = Tokens.rend(); I != E; ++I) {
+  for (FormatToken *FT : llvm::drop_begin(llvm::reverse(Tokens))) {
     // NB: Because previous pointers are not initialized yet, this cannot use
     // Token.getPreviousNonComment.
-    if ((*I)->isNot(tok::comment)) {
-      Prev = *I;
+    if (FT->isNot(tok::comment)) {
+      Prev = FT;
       break;
     }
   }
@@ -739,6 +754,8 @@ bool FormatTokenLexer::tryMerge_TMacro() {
   Tokens.pop_back();
   Tokens.pop_back();
   Tokens.back() = String;
+  if (FirstInLineIndex >= Tokens.size())
+    FirstInLineIndex = Tokens.size() - 1;
   return true;
 }
 
@@ -905,8 +922,7 @@ FormatToken *FormatTokenLexer::getNextToken() {
   // finds comments that contain a backslash followed by a line break, truncates
   // the comment token at the backslash, and resets the lexer to restart behind
   // the backslash.
-  if ((Style.Language == FormatStyle::LK_JavaScript ||
-       Style.Language == FormatStyle::LK_Java) &&
+  if ((Style.isJavaScript() || Style.Language == FormatStyle::LK_Java) &&
       FormatTok->is(tok::comment) && FormatTok->TokenText.startswith("//")) {
     size_t BackslashPos = FormatTok->TokenText.find('\\');
     while (BackslashPos != StringRef::npos) {
@@ -967,7 +983,7 @@ FormatToken *FormatTokenLexer::getNextToken() {
                            tok::kw_operator)) {
       FormatTok->Tok.setKind(tok::identifier);
       FormatTok->Tok.setIdentifierInfo(nullptr);
-    } else if (Style.Language == FormatStyle::LK_JavaScript &&
+    } else if (Style.isJavaScript() &&
                FormatTok->isOneOf(tok::kw_struct, tok::kw_union,
                                   tok::kw_operator)) {
       FormatTok->Tok.setKind(tok::identifier);
@@ -1045,14 +1061,12 @@ void FormatTokenLexer::readRawToken(FormatToken &Tok) {
     if (!Tok.TokenText.empty() && Tok.TokenText[0] == '"') {
       Tok.Tok.setKind(tok::string_literal);
       Tok.IsUnterminatedLiteral = true;
-    } else if (Style.Language == FormatStyle::LK_JavaScript &&
-               Tok.TokenText == "''") {
+    } else if (Style.isJavaScript() && Tok.TokenText == "''") {
       Tok.Tok.setKind(tok::string_literal);
     }
   }
 
-  if ((Style.Language == FormatStyle::LK_JavaScript ||
-       Style.Language == FormatStyle::LK_Proto ||
+  if ((Style.isJavaScript() || Style.Language == FormatStyle::LK_Proto ||
        Style.Language == FormatStyle::LK_TextProto) &&
       Tok.is(tok::char_constant)) {
     Tok.Tok.setKind(tok::string_literal);

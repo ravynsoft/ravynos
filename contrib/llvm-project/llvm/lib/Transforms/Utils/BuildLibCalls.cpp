@@ -34,6 +34,7 @@ STATISTIC(NumReadNone, "Number of functions inferred as readnone");
 STATISTIC(NumInaccessibleMemOnly,
           "Number of functions inferred as inaccessiblememonly");
 STATISTIC(NumReadOnly, "Number of functions inferred as readonly");
+STATISTIC(NumWriteOnly, "Number of functions inferred as writeonly");
 STATISTIC(NumArgMemOnly, "Number of functions inferred as argmemonly");
 STATISTIC(NumInaccessibleMemOrArgMemOnly,
           "Number of functions inferred as inaccessiblemem_or_argmemonly");
@@ -71,6 +72,19 @@ static bool setOnlyReadsMemory(Function &F) {
   return true;
 }
 
+static bool setOnlyWritesMemory(Function &F) {
+  if (F.onlyWritesMemory()) // writeonly or readnone
+    return false;
+  // Turn readonly and writeonly into readnone.
+  if (F.hasFnAttribute(Attribute::ReadOnly)) {
+    F.removeFnAttr(Attribute::ReadOnly);
+    return setDoesNotAccessMemory(F);
+  }
+  ++NumWriteOnly;
+  F.setOnlyWritesMemory();
+  return true;
+}
+
 static bool setOnlyAccessesArgMemory(Function &F) {
   if (F.onlyAccessesArgMemory())
     return false;
@@ -96,9 +110,9 @@ static bool setDoesNotThrow(Function &F) {
 }
 
 static bool setRetDoesNotAlias(Function &F) {
-  if (F.hasAttribute(AttributeList::ReturnIndex, Attribute::NoAlias))
+  if (F.hasRetAttribute(Attribute::NoAlias))
     return false;
-  F.addAttribute(AttributeList::ReturnIndex, Attribute::NoAlias);
+  F.addRetAttr(Attribute::NoAlias);
   ++NumNoAlias;
   return true;
 }
@@ -145,8 +159,8 @@ static bool setSignExtendedArg(Function &F, unsigned ArgNo) {
 
 static bool setRetNoUndef(Function &F) {
   if (!F.getReturnType()->isVoidTy() &&
-      !F.hasAttribute(AttributeList::ReturnIndex, Attribute::NoUndef)) {
-    F.addAttribute(AttributeList::ReturnIndex, Attribute::NoUndef);
+      !F.hasRetAttribute(Attribute::NoUndef)) {
+    F.addRetAttr(Attribute::NoUndef);
     ++NumNoUndef;
     return true;
   }
@@ -174,7 +188,10 @@ static bool setArgNoUndef(Function &F, unsigned ArgNo) {
 }
 
 static bool setRetAndArgsNoUndef(Function &F) {
-  return setRetNoUndef(F) | setArgsNoUndef(F);
+  bool UndefAdded = false;
+  UndefAdded |= setRetNoUndef(F);
+  UndefAdded |= setArgsNoUndef(F);
+  return UndefAdded;
 }
 
 static bool setReturnedArg(Function &F, unsigned ArgNo) {
@@ -230,6 +247,7 @@ bool llvm::inferLibFuncAttributes(Function &F, const TargetLibraryInfo &TLI) {
 
   switch (TheLibFunc) {
   case LibFunc_strlen:
+  case LibFunc_strnlen:
   case LibFunc_wcslen:
     Changed |= setOnlyReadsMemory(F);
     Changed |= setDoesNotThrow(F);
@@ -397,6 +415,8 @@ bool llvm::inferLibFuncAttributes(Function &F, const TargetLibraryInfo &TLI) {
     Changed |= setDoesNotCapture(F, 0);
     Changed |= setOnlyReadsMemory(F, 0);
     return Changed;
+  case LibFunc_aligned_alloc:
+  case LibFunc_valloc:
   case LibFunc_malloc:
   case LibFunc_vec_malloc:
     Changed |= setOnlyAccessesInaccessibleMemory(F);
@@ -449,17 +469,16 @@ bool llvm::inferLibFuncAttributes(Function &F, const TargetLibraryInfo &TLI) {
     return Changed;
   case LibFunc_mempcpy:
   case LibFunc_memccpy:
+    Changed |= setWillReturn(F);
+    LLVM_FALLTHROUGH;
+  case LibFunc_memcpy_chk:
     Changed |= setDoesNotThrow(F);
     Changed |= setOnlyAccessesArgMemory(F);
-    Changed |= setWillReturn(F);
     Changed |= setDoesNotAlias(F, 0);
     Changed |= setOnlyWritesMemory(F, 0);
     Changed |= setDoesNotAlias(F, 1);
     Changed |= setDoesNotCapture(F, 1);
     Changed |= setOnlyReadsMemory(F, 1);
-    return Changed;
-  case LibFunc_memcpy_chk:
-    Changed |= setDoesNotThrow(F);
     return Changed;
   case LibFunc_memalign:
     Changed |= setOnlyAccessesInaccessibleMemory(F);
@@ -482,17 +501,13 @@ bool llvm::inferLibFuncAttributes(Function &F, const TargetLibraryInfo &TLI) {
     return Changed;
   case LibFunc_realloc:
   case LibFunc_vec_realloc:
+  case LibFunc_reallocf:
     Changed |= setOnlyAccessesInaccessibleMemOrArgMem(F);
     Changed |= setRetNoUndef(F);
     Changed |= setDoesNotThrow(F);
     Changed |= setRetDoesNotAlias(F);
     Changed |= setWillReturn(F);
     Changed |= setDoesNotCapture(F, 0);
-    Changed |= setArgNoUndef(F, 1);
-    return Changed;
-  case LibFunc_reallocf:
-    Changed |= setRetNoUndef(F);
-    Changed |= setWillReturn(F);
     Changed |= setArgNoUndef(F, 1);
     return Changed;
   case LibFunc_read:
@@ -534,13 +549,6 @@ bool llvm::inferLibFuncAttributes(Function &F, const TargetLibraryInfo &TLI) {
     Changed |= setDoesNotCapture(F, 1);
     Changed |= setOnlyReadsMemory(F, 1);
     return Changed;
-  case LibFunc_aligned_alloc:
-    Changed |= setOnlyAccessesInaccessibleMemory(F);
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setWillReturn(F);
-    return Changed;
   case LibFunc_bcopy:
     Changed |= setDoesNotThrow(F);
     Changed |= setOnlyAccessesArgMemory(F);
@@ -567,6 +575,7 @@ bool llvm::inferLibFuncAttributes(Function &F, const TargetLibraryInfo &TLI) {
     return Changed;
   case LibFunc_calloc:
   case LibFunc_vec_calloc:
+    Changed |= setOnlyAccessesInaccessibleMemory(F);
     Changed |= setRetAndArgsNoUndef(F);
     Changed |= setDoesNotThrow(F);
     Changed |= setRetDoesNotAlias(F);
@@ -849,13 +858,6 @@ bool llvm::inferLibFuncAttributes(Function &F, const TargetLibraryInfo &TLI) {
     Changed |= setDoesNotCapture(F, 1);
     Changed |= setOnlyReadsMemory(F, 1);
     return Changed;
-  case LibFunc_valloc:
-    Changed |= setOnlyAccessesInaccessibleMemory(F);
-    Changed |= setRetAndArgsNoUndef(F);
-    Changed |= setDoesNotThrow(F);
-    Changed |= setRetDoesNotAlias(F);
-    Changed |= setWillReturn(F);
-    return Changed;
   case LibFunc_vprintf:
     Changed |= setRetAndArgsNoUndef(F);
     Changed |= setDoesNotThrow(F);
@@ -1015,21 +1017,20 @@ bool llvm::inferLibFuncAttributes(Function &F, const TargetLibraryInfo &TLI) {
     Changed |= setDoesNotCapture(F, 0);
     Changed |= setDoesNotCapture(F, 1);
     return Changed;
-  // TODO: add LibFunc entries for:
-  // case LibFunc_memset_pattern4:
-  // case LibFunc_memset_pattern8:
+  case LibFunc_memset_pattern4:
+  case LibFunc_memset_pattern8:
   case LibFunc_memset_pattern16:
-    Changed |= setOnlyAccessesArgMemory(F);
     Changed |= setDoesNotCapture(F, 0);
-    Changed |= setOnlyWritesMemory(F, 0);
     Changed |= setDoesNotCapture(F, 1);
     Changed |= setOnlyReadsMemory(F, 1);
-    return Changed;
+    LLVM_FALLTHROUGH;
   case LibFunc_memset:
-    Changed |= setOnlyAccessesArgMemory(F);
     Changed |= setWillReturn(F);
-    Changed |= setDoesNotThrow(F);
+    LLVM_FALLTHROUGH;
+  case LibFunc_memset_chk:
+    Changed |= setOnlyAccessesArgMemory(F);
     Changed |= setOnlyWritesMemory(F, 0);
+    Changed |= setDoesNotThrow(F);
     return Changed;
   // int __nvvm_reflect(const char *)
   case LibFunc_nvvm_reflect:
@@ -1155,7 +1156,6 @@ bool llvm::inferLibFuncAttributes(Function &F, const TargetLibraryInfo &TLI) {
   case LibFunc_sqrt:
   case LibFunc_sqrtf:
   case LibFunc_sqrtl:
-  case LibFunc_strnlen:
   case LibFunc_tan:
   case LibFunc_tanf:
   case LibFunc_tanh:
@@ -1168,6 +1168,7 @@ bool llvm::inferLibFuncAttributes(Function &F, const TargetLibraryInfo &TLI) {
   case LibFunc_truncl:
     Changed |= setDoesNotThrow(F);
     Changed |= setDoesNotFreeMemory(F);
+    Changed |= setOnlyWritesMemory(F);
     Changed |= setWillReturn(F);
     return Changed;
   default:
@@ -1268,7 +1269,7 @@ Value *llvm::emitStrNCmp(Value *Ptr1, Value *Ptr2, Value *Len, IRBuilderBase &B,
 
 Value *llvm::emitStrCpy(Value *Dst, Value *Src, IRBuilderBase &B,
                         const TargetLibraryInfo *TLI) {
-  Type *I8Ptr = B.getInt8PtrTy();
+  Type *I8Ptr = Dst->getType();
   return emitLibCall(LibFunc_strcpy, I8Ptr, {I8Ptr, I8Ptr},
                      {castToCStr(Dst, B), castToCStr(Src, B)}, B, TLI);
 }
@@ -1453,9 +1454,8 @@ static Value *emitUnaryFloatFnCallHelper(Value *Op, StringRef Name,
   // The incoming attribute set may have come from a speculatable intrinsic, but
   // is being replaced with a library call which is not allowed to be
   // speculatable.
-  CI->setAttributes(Attrs.removeAttribute(B.getContext(),
-                                          AttributeList::FunctionIndex,
-                                          Attribute::Speculatable));
+  CI->setAttributes(
+      Attrs.removeFnAttribute(B.getContext(), Attribute::Speculatable));
   if (const Function *F =
           dyn_cast<Function>(Callee.getCallee()->stripPointerCasts()))
     CI->setCallingConv(F->getCallingConv());
@@ -1498,9 +1498,8 @@ static Value *emitBinaryFloatFnCallHelper(Value *Op1, Value *Op2,
   // The incoming attribute set may have come from a speculatable intrinsic, but
   // is being replaced with a library call which is not allowed to be
   // speculatable.
-  CI->setAttributes(Attrs.removeAttribute(B.getContext(),
-                                          AttributeList::FunctionIndex,
-                                          Attribute::Speculatable));
+  CI->setAttributes(
+      Attrs.removeFnAttribute(B.getContext(), Attribute::Speculatable));
   if (const Function *F =
           dyn_cast<Function>(Callee.getCallee()->stripPointerCasts()))
     CI->setCallingConv(F->getCallingConv());
@@ -1655,8 +1654,8 @@ Value *llvm::emitMalloc(Value *Num, IRBuilderBase &B, const DataLayout &DL,
   return CI;
 }
 
-Value *llvm::emitCalloc(Value *Num, Value *Size, const AttributeList &Attrs,
-                        IRBuilderBase &B, const TargetLibraryInfo &TLI) {
+Value *llvm::emitCalloc(Value *Num, Value *Size, IRBuilderBase &B,
+                        const TargetLibraryInfo &TLI) {
   if (!TLI.has(LibFunc_calloc))
     return nullptr;
 
@@ -1664,8 +1663,8 @@ Value *llvm::emitCalloc(Value *Num, Value *Size, const AttributeList &Attrs,
   StringRef CallocName = TLI.getName(LibFunc_calloc);
   const DataLayout &DL = M->getDataLayout();
   IntegerType *PtrType = DL.getIntPtrType((B.GetInsertBlock()->getContext()));
-  FunctionCallee Calloc = M->getOrInsertFunction(
-      CallocName, Attrs, B.getInt8PtrTy(), PtrType, PtrType);
+  FunctionCallee Calloc =
+      M->getOrInsertFunction(CallocName, B.getInt8PtrTy(), PtrType, PtrType);
   inferLibFuncAttributes(M, CallocName, TLI);
   CallInst *CI = B.CreateCall(Calloc, {Num, Size}, CallocName);
 

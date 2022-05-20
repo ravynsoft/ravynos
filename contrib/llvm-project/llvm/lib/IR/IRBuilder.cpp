@@ -29,7 +29,6 @@
 #include "llvm/IR/Type.h"
 #include "llvm/IR/Value.h"
 #include "llvm/Support/Casting.h"
-#include "llvm/Support/MathExtras.h"
 #include <cassert>
 #include <cstdint>
 #include <vector>
@@ -94,11 +93,22 @@ Value *IRBuilderBase::CreateVScale(Constant *Scaling, const Twine &Name) {
 }
 
 Value *IRBuilderBase::CreateStepVector(Type *DstType, const Twine &Name) {
-  if (isa<ScalableVectorType>(DstType))
-    return CreateIntrinsic(Intrinsic::experimental_stepvector, {DstType}, {},
-                           nullptr, Name);
-
   Type *STy = DstType->getScalarType();
+  if (isa<ScalableVectorType>(DstType)) {
+    Type *StepVecType = DstType;
+    // TODO: We expect this special case (element type < 8 bits) to be
+    // temporary - once the intrinsic properly supports < 8 bits this code
+    // can be removed.
+    if (STy->getScalarSizeInBits() < 8)
+      StepVecType =
+          VectorType::get(getInt8Ty(), cast<ScalableVectorType>(DstType));
+    Value *Res = CreateIntrinsic(Intrinsic::experimental_stepvector,
+                                 {StepVecType}, {}, nullptr, Name);
+    if (StepVecType != DstType)
+      Res = CreateTrunc(Res, DstType);
+    return Res;
+  }
+
   unsigned NumEls = cast<FixedVectorType>(DstType)->getNumElements();
 
   // Create a vector of consecutive numbers from zero to VF.
@@ -668,7 +678,7 @@ static CallInst *CreateGCStatepointCallCommon(
     const Twine &Name) {
   // Extract out the type of the callee.
   auto *FuncPtrType = cast<PointerType>(ActualCallee->getType());
-  assert(isa<FunctionType>(FuncPtrType->getElementType()) &&
+  assert(isa<FunctionType>(FuncPtrType->getPointerElementType()) &&
          "actual callee must be a callable value");
 
   Module *M = Builder->GetInsertBlock()->getParent()->getParent();
@@ -725,7 +735,7 @@ static InvokeInst *CreateGCStatepointInvokeCommon(
     ArrayRef<T3> GCArgs, const Twine &Name) {
   // Extract out the type of the callee.
   auto *FuncPtrType = cast<PointerType>(ActualInvokee->getType());
-  assert(isa<FunctionType>(FuncPtrType->getElementType()) &&
+  assert(isa<FunctionType>(FuncPtrType->getPointerElementType()) &&
          "actual callee must be a callable value");
 
   Module *M = Builder->GetInsertBlock()->getParent()->getParent();
@@ -973,10 +983,8 @@ CallInst *IRBuilderBase::CreateConstrainedFPCall(
 
 Value *IRBuilderBase::CreateSelect(Value *C, Value *True, Value *False,
                                    const Twine &Name, Instruction *MDFrom) {
-  if (auto *CC = dyn_cast<Constant>(C))
-    if (auto *TC = dyn_cast<Constant>(True))
-      if (auto *FC = dyn_cast<Constant>(False))
-        return Insert(Folder.CreateSelect(CC, TC, FC), Name);
+  if (auto *V = Folder.FoldSelect(C, True, False))
+    return V;
 
   SelectInst *Sel = SelectInst::Create(C, True, False);
   if (MDFrom) {
@@ -989,16 +997,17 @@ Value *IRBuilderBase::CreateSelect(Value *C, Value *True, Value *False,
   return Insert(Sel, Name);
 }
 
-Value *IRBuilderBase::CreatePtrDiff(Value *LHS, Value *RHS,
+Value *IRBuilderBase::CreatePtrDiff(Type *ElemTy, Value *LHS, Value *RHS,
                                     const Twine &Name) {
   assert(LHS->getType() == RHS->getType() &&
          "Pointer subtraction operand types must match!");
-  auto *ArgType = cast<PointerType>(LHS->getType());
+  assert(cast<PointerType>(LHS->getType())
+             ->isOpaqueOrPointeeTypeMatches(ElemTy) &&
+         "Pointer type must match element type");
   Value *LHS_int = CreatePtrToInt(LHS, Type::getInt64Ty(Context));
   Value *RHS_int = CreatePtrToInt(RHS, Type::getInt64Ty(Context));
   Value *Difference = CreateSub(LHS_int, RHS_int);
-  return CreateExactSDiv(Difference,
-                         ConstantExpr::getSizeOf(ArgType->getElementType()),
+  return CreateExactSDiv(Difference, ConstantExpr::getSizeOf(ElemTy),
                          Name);
 }
 

@@ -826,7 +826,7 @@ SparcTargetLowering::LowerCall_32(TargetLowering::CallLoweringInfo &CLI,
       // sret only allowed on first argument
       assert(Outs[realArgIdx].OrigArgIndex == 0);
       PointerType *Ty = cast<PointerType>(CLI.getArgs()[0].Ty);
-      Type *ElementTy = Ty->getElementType();
+      Type *ElementTy = Ty->getPointerElementType();
       SRetArgSize = DAG.getDataLayout().getTypeAllocSize(ElementTy);
       continue;
     }
@@ -1614,10 +1614,13 @@ SparcTargetLowering::SparcTargetLowering(const TargetMachine &TM,
 
   if (!Subtarget->is64Bit()) {
     // These libcalls are not available in 32-bit.
+    setLibcallName(RTLIB::MULO_I64, nullptr);
     setLibcallName(RTLIB::SHL_I128, nullptr);
     setLibcallName(RTLIB::SRL_I128, nullptr);
     setLibcallName(RTLIB::SRA_I128, nullptr);
   }
+
+  setLibcallName(RTLIB::MULO_I128, nullptr);
 
   if (!Subtarget->isV9()) {
     // SparcV8 does not have FNEGD and FABSD.
@@ -2681,7 +2684,7 @@ static SDValue LowerRETURNADDR(SDValue Op, SelectionDAG &DAG,
   SDValue RetAddr;
   if (depth == 0) {
     auto PtrVT = TLI.getPointerTy(DAG.getDataLayout());
-    unsigned RetReg = MF.addLiveIn(SP::I7, TLI.getRegClassFor(PtrVT));
+    Register RetReg = MF.addLiveIn(SP::I7, TLI.getRegClassFor(PtrVT));
     RetAddr = DAG.getCopyFromReg(DAG.getEntryNode(), dl, RetReg, VT);
     return RetAddr;
   }
@@ -2957,8 +2960,15 @@ static SDValue LowerUMULO_SMULO(SDValue Op, SelectionDAG &DAG,
   SDValue ShiftAmt = DAG.getConstant(63, dl, VT);
 
   SDValue RHS = Op.getOperand(1);
-  SDValue HiLHS = DAG.getNode(ISD::SRA, dl, VT, LHS, ShiftAmt);
-  SDValue HiRHS = DAG.getNode(ISD::SRA, dl, MVT::i64, RHS, ShiftAmt);
+  SDValue HiLHS, HiRHS;
+  if (isSigned) {
+    HiLHS = DAG.getNode(ISD::SRA, dl, VT, LHS, ShiftAmt);
+    HiRHS = DAG.getNode(ISD::SRA, dl, MVT::i64, RHS, ShiftAmt);
+  } else {
+    HiLHS = DAG.getConstant(0, dl, VT);
+    HiRHS = DAG.getConstant(0, dl, MVT::i64);
+  }
+
   SDValue Args[] = { HiLHS, LHS, HiRHS, RHS };
 
   TargetLowering::MakeLibCallOptions CallOptions;
@@ -3235,7 +3245,7 @@ LowerAsmOperandForConstraint(SDValue Op,
                              std::string &Constraint,
                              std::vector<SDValue> &Ops,
                              SelectionDAG &DAG) const {
-  SDValue Result(nullptr, 0);
+  SDValue Result;
 
   // Only support length 1 constraints for now.
   if (Constraint.length() > 1)

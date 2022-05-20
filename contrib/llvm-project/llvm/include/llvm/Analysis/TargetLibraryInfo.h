@@ -76,7 +76,7 @@ class TargetLibraryInfoImpl {
   /// Return true if the function type FTy is valid for the library function
   /// F, regardless of whether the function is available.
   bool isValidProtoForLibFunc(const FunctionType &FTy, LibFunc F,
-                              const DataLayout *DL) const;
+                              const Module &M) const;
 
 public:
   /// List of known vector-functions libraries.
@@ -115,6 +115,8 @@ public:
   ///
   /// If it is one of the known library functions, return true and set F to the
   /// corresponding value.
+  ///
+  /// FDecl is assumed to have a parent Module when using this function.
   bool getLibFunc(const Function &FDecl, LibFunc &F) const;
 
   /// Forces a function to be marked as unavailable.
@@ -238,7 +240,7 @@ public:
     else {
       // Disable individual libc/libm calls in TargetLibraryInfo.
       LibFunc LF;
-      AttributeSet FnAttrs = (*F)->getAttributes().getFnAttributes();
+      AttributeSet FnAttrs = (*F)->getAttributes().getFnAttrs();
       for (const Attribute &Attr : FnAttrs) {
         if (!Attr.isStringAttribute())
           continue;
@@ -252,15 +254,10 @@ public:
   }
 
   // Provide value semantics.
-  TargetLibraryInfo(const TargetLibraryInfo &TLI)
-      : Impl(TLI.Impl), OverrideAsUnavailable(TLI.OverrideAsUnavailable) {}
+  TargetLibraryInfo(const TargetLibraryInfo &TLI) = default;
   TargetLibraryInfo(TargetLibraryInfo &&TLI)
       : Impl(TLI.Impl), OverrideAsUnavailable(TLI.OverrideAsUnavailable) {}
-  TargetLibraryInfo &operator=(const TargetLibraryInfo &TLI) {
-    Impl = TLI.Impl;
-    OverrideAsUnavailable = TLI.OverrideAsUnavailable;
-    return *this;
-  }
+  TargetLibraryInfo &operator=(const TargetLibraryInfo &TLI) = default;
   TargetLibraryInfo &operator=(TargetLibraryInfo &&TLI) {
     Impl = TLI.Impl;
     OverrideAsUnavailable = TLI.OverrideAsUnavailable;
@@ -443,7 +440,7 @@ public:
   ///
   /// This will use the module's triple to construct the library info for that
   /// module.
-  TargetLibraryAnalysis() {}
+  TargetLibraryAnalysis() = default;
 
   /// Construct a library analysis with baseline Module-level info.
   ///

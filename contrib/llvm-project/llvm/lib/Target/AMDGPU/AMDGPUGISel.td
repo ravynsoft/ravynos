@@ -159,6 +159,7 @@ def : GINodeEquiv<G_ATOMICRMW_UMAX, atomic_load_umax_glue>;
 def : GINodeEquiv<G_ATOMICRMW_FADD, atomic_load_fadd_glue>;
 
 def : GINodeEquiv<G_AMDGPU_FFBH_U32, AMDGPUffbh_u32_impl>;
+def : GINodeEquiv<G_AMDGPU_FFBL_B32, AMDGPUffbl_b32_impl>;
 def : GINodeEquiv<G_AMDGPU_FMIN_LEGACY, AMDGPUfmin_legacy>;
 def : GINodeEquiv<G_AMDGPU_FMAX_LEGACY, AMDGPUfmax_legacy>;
 def : GINodeEquiv<G_AMDGPU_RCP_IFLAG, AMDGPUrcp_iflag>;
@@ -171,6 +172,8 @@ def : GINodeEquiv<G_AMDGPU_CVT_F32_UBYTE3, AMDGPUcvt_f32_ubyte3>;
 def : GINodeEquiv<G_AMDGPU_CVT_PK_I16_I32, AMDGPUpk_i16_i32_impl>;
 def : GINodeEquiv<G_AMDGPU_SMED3, AMDGPUsmed3>;
 def : GINodeEquiv<G_AMDGPU_UMED3, AMDGPUumed3>;
+def : GINodeEquiv<G_AMDGPU_FMED3, AMDGPUfmed3_impl>;
+def : GINodeEquiv<G_AMDGPU_CLAMP, AMDGPUclamp>;
 
 def : GINodeEquiv<G_AMDGPU_ATOMIC_CMPXCHG, AMDGPUatomic_cmp_swap>;
 def : GINodeEquiv<G_AMDGPU_BUFFER_LOAD, SIbuffer_load>;

@@ -24,7 +24,6 @@ namespace llvm {
 class ModuleSummaryIndex;
 class Pass;
 class TargetLibraryInfoImpl;
-class TargetMachine;
 
 // The old pass manager infrastructure is hidden in a legacy namespace now.
 namespace legacy {
@@ -154,7 +153,6 @@ public:
   /// tests.
   const ModuleSummaryIndex *ImportSummary = nullptr;
 
-  bool DisableTailCalls;
   bool DisableUnrollLoops;
   bool CallGraphProfile;
   bool SLPVectorize;

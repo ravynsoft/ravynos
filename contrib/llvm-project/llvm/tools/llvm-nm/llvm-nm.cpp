@@ -31,6 +31,7 @@
 #include "llvm/Object/TapiFile.h"
 #include "llvm/Object/TapiUniversal.h"
 #include "llvm/Object/Wasm.h"
+#include "llvm/Object/XCOFFObjectFile.h"
 #include "llvm/Option/Arg.h"
 #include "llvm/Option/ArgList.h"
 #include "llvm/Option/Option.h"
@@ -64,7 +65,7 @@ enum ID {
 #include "Opts.inc"
 #undef PREFIX
 
-static const opt::OptTable::Info InfoTable[] = {
+const opt::OptTable::Info InfoTable[] = {
 #define OPTION(PREFIX, NAME, ID, KIND, GROUP, ALIAS, ALIASARGS, FLAGS, PARAM,  \
                HELPTEXT, METAVAR, VALUES)                                      \
   {                                                                            \
@@ -126,6 +127,20 @@ static bool MultipleFiles = false;
 static bool HadError = false;
 
 static StringRef ToolName;
+
+static void warn(Error Err, Twine FileName, Twine Context = Twine()) {
+  assert(Err);
+
+  // Flush the standard output so that the warning isn't interleaved with other
+  // output if stdout and stderr are writing to the same place.
+  outs().flush();
+
+  handleAllErrors(std::move(Err), [&](const ErrorInfoBase &EI) {
+    WithColor::warning(errs(), ToolName)
+        << FileName << ": " << (Context.str().empty() ? "" : Context + ": ")
+        << EI.message() << "\n";
+  });
+}
 
 static void error(Twine Message, Twine Path = Twine()) {
   HadError = true;
@@ -246,6 +261,9 @@ static char isSymbolList64Bit(SymbolicFile &Obj) {
     return Triple(IRObj->getTargetTriple()).isArch64Bit();
   if (isa<COFFObjectFile>(Obj) || isa<COFFImportFile>(Obj))
     return false;
+  if (XCOFFObjectFile *XCOFFObj = dyn_cast<XCOFFObjectFile>(&Obj))
+    return XCOFFObj->is64Bit();
+
   if (isa<WasmObjectFile>(Obj))
     return false;
   if (TapiFile *Tapi = dyn_cast<TapiFile>(&Obj))
@@ -530,7 +548,7 @@ struct DarwinStabName {
   uint8_t NType;
   const char *Name;
 };
-static const struct DarwinStabName DarwinStabNames[] = {
+const struct DarwinStabName DarwinStabNames[] = {
     {MachO::N_GSYM, "GSYM"},
     {MachO::N_FNAME, "FNAME"},
     {MachO::N_FUN, "FUN"},
@@ -599,22 +617,28 @@ static void darwinPrintStab(MachOObjectFile *MachO, const NMSymbol &S) {
     outs() << format("   %02x", NType);
 }
 
-static Optional<std::string> demangle(StringRef Name, bool StripUnderscore) {
-  if (StripUnderscore && !Name.empty() && Name[0] == '_')
-    Name = Name.substr(1);
+static Optional<std::string> demangle(StringRef Name) {
+  std::string Demangled;
+  if (nonMicrosoftDemangle(Name.str().c_str(), Demangled))
+    return Demangled;
+  return None;
+}
 
-  if (!Name.startswith("_Z"))
-    return None;
+static Optional<std::string> demangleXCOFF(StringRef Name) {
+  if (Name.empty() || Name[0] != '.')
+    return demangle(Name);
 
-  int Status;
-  char *Undecorated =
-      itaniumDemangle(Name.str().c_str(), nullptr, nullptr, &Status);
-  if (Status != 0)
-    return None;
+  Name = Name.drop_front();
+  Optional<std::string> DemangledName = demangle(Name);
+  if (DemangledName)
+    return "." + *DemangledName;
+  return None;
+}
 
-  std::string S(Undecorated);
-  free(Undecorated);
-  return S;
+static Optional<std::string> demangleMachO(StringRef Name) {
+  if (!Name.empty() && Name[0] == '_')
+    Name = Name.drop_front();
+  return demangle(Name);
 }
 
 static bool symbolIsDefined(const NMSymbol &Sym) {
@@ -705,7 +729,12 @@ static void sortAndPrintSymbolList(SymbolicFile &Obj, bool printName,
     std::string Name = S.Name;
     MachOObjectFile *MachO = dyn_cast<MachOObjectFile>(&Obj);
     if (Demangle) {
-      if (Optional<std::string> Opt = demangle(S.Name, MachO))
+      function_ref<Optional<std::string>(StringRef)> Fn = ::demangle;
+      if (Obj.isXCOFF())
+        Fn = demangleXCOFF;
+      if (Obj.isMachO())
+        Fn = demangleMachO;
+      if (Optional<std::string> Opt = Fn(S.Name))
         Name = *Opt;
     }
     if (S.Sym.getRawDataRefImpl().p) {
@@ -903,6 +932,42 @@ static char getSymbolNMTypeChar(COFFObjectFile &Obj, symbol_iterator I) {
   return '?';
 }
 
+static char getSymbolNMTypeChar(XCOFFObjectFile &Obj, symbol_iterator I) {
+  Expected<uint32_t> TypeOrErr = I->getType();
+  if (!TypeOrErr) {
+    warn(TypeOrErr.takeError(), Obj.getFileName(),
+         "for symbol with index " +
+             Twine(Obj.getSymbolIndex(I->getRawDataRefImpl().p)));
+    return '?';
+  }
+
+  uint32_t SymType = *TypeOrErr;
+
+  if (SymType == SymbolRef::ST_File)
+    return 'f';
+
+  // If the I->getSection() call would return an error, the earlier I->getType()
+  // call will already have returned the same error first.
+  section_iterator SecIter = cantFail(I->getSection());
+
+  if (SecIter == Obj.section_end())
+    return '?';
+
+  if (Obj.isDebugSection(SecIter->getRawDataRefImpl()))
+    return 'N';
+
+  if (SecIter->isText())
+    return 't';
+
+  if (SecIter->isData())
+    return 'd';
+
+  if (SecIter->isBSS())
+    return 'b';
+
+  return '?';
+}
+
 static char getSymbolNMTypeChar(COFFImportFile &Obj) {
   switch (Obj.getCOFFImportHeader()->getType()) {
   case COFF::IMPORT_CODE:
@@ -1051,6 +1116,8 @@ static char getNMSectionTagAndName(SymbolicFile &Obj, basic_symbol_iterator I,
     Ret = getSymbolNMTypeChar(*IR, I);
   else if (COFFObjectFile *COFF = dyn_cast<COFFObjectFile>(&Obj))
     Ret = getSymbolNMTypeChar(*COFF, I);
+  else if (XCOFFObjectFile *XCOFF = dyn_cast<XCOFFObjectFile>(&Obj))
+    Ret = getSymbolNMTypeChar(*XCOFF, I);
   else if (COFFImportFile *COFFImport = dyn_cast<COFFImportFile>(&Obj))
     Ret = getSymbolNMTypeChar(*COFFImport);
   else if (MachOObjectFile *MachO = dyn_cast<MachOObjectFile>(&Obj))
@@ -1575,90 +1642,11 @@ static void dumpSymbolsFromDLInfoMachO(MachOObjectFile &MachO) {
   }
 }
 
-namespace {
-struct SymbolVersion {
-  std::string Name;
-  bool IsDefault;
-};
-} // namespace
-
-template <class ELFT>
-static Expected<std::vector<SymbolVersion>>
-readSymbolVersionsELF(const ELFFile<ELFT> &Obj, StringRef FileName,
-                      ELFObjectFileBase::elf_symbol_iterator_range Symbols) {
-  using Elf_Shdr = typename ELFT::Shdr;
-
-  // We called sections() earlier, so can't fail here.
-  typename ELFT::ShdrRange SectionsOrErr = cantFail(Obj.sections());
-  const Elf_Shdr *SymVerSec = nullptr;
-  const Elf_Shdr *SymVerNeedSec = nullptr;
-  const Elf_Shdr *SymVerDefSec = nullptr;
-  for (const Elf_Shdr &Sec : SectionsOrErr) {
-    if (Sec.sh_type == ELF::SHT_GNU_versym)
-      SymVerSec = &Sec;
-    else if (Sec.sh_type == ELF::SHT_GNU_verdef)
-      SymVerDefSec = &Sec;
-    else if (Sec.sh_type == ELF::SHT_GNU_verneed)
-      SymVerNeedSec = &Sec;
-  }
-
-  if (!SymVerSec)
-    return std::vector<SymbolVersion>{};
-
-  Expected<SmallVector<Optional<VersionEntry>, 0>> MapOrErr =
-      Obj.loadVersionMap(SymVerNeedSec, SymVerDefSec);
-  if (!MapOrErr)
-    return MapOrErr.takeError();
-
-  std::vector<SymbolVersion> Ret;
-  size_t I = 0;
-  for (auto It = Symbols.begin(), E = Symbols.end(); It != E; ++It) {
-    ++I;
-    Expected<const typename ELFT::Versym *> VerEntryOrErr =
-        Obj.template getEntry<typename ELFT::Versym>(*SymVerSec, I);
-    if (!VerEntryOrErr)
-      return createError("unable to read an entry with index " + Twine(I) +
-                         " from " + describe(Obj, *SymVerSec) + ": " +
-                         toString(VerEntryOrErr.takeError()));
-
-    Expected<uint32_t> FlagsOrErr = It->getFlags();
-    if (!FlagsOrErr)
-      return createError("unable to read flags for symbol with index " +
-                         Twine(I) + ": " + toString(FlagsOrErr.takeError()));
-
-    bool IsDefault;
-    Expected<StringRef> VerOrErr = Obj.getSymbolVersionByIndex(
-        (*VerEntryOrErr)->vs_index, IsDefault, *MapOrErr,
-        (*FlagsOrErr) & SymbolRef::SF_Undefined);
-    if (!VerOrErr)
-      return createError("unable to get a version for entry " + Twine(I) +
-                         " of " + describe(Obj, *SymVerSec) + ": " +
-                         toString(VerOrErr.takeError()));
-
-    Ret.push_back({(*VerOrErr).str(), IsDefault});
-  }
-
-  return Ret;
-}
-
-static Expected<std::vector<SymbolVersion>>
-readSymbolVersionsELF(const ELFObjectFileBase &Obj,
-                      ELFObjectFileBase::elf_symbol_iterator_range Symbols) {
-  if (const auto *ELF = dyn_cast<ELF32LEObjectFile>(&Obj))
-    return readSymbolVersionsELF(ELF->getELFFile(), Obj.getFileName(), Symbols);
-  else if (const auto *ELF = dyn_cast<ELF32BEObjectFile>(&Obj))
-    return readSymbolVersionsELF(ELF->getELFFile(), Obj.getFileName(), Symbols);
-  else if (const auto *ELF = dyn_cast<ELF64LEObjectFile>(&Obj))
-    return readSymbolVersionsELF(ELF->getELFFile(), Obj.getFileName(), Symbols);
-  return readSymbolVersionsELF(cast<ELF64BEObjectFile>(&Obj)->getELFFile(),
-                               Obj.getFileName(), Symbols);
-}
-
 static void dumpSymbolNamesFromObject(SymbolicFile &Obj, bool printName,
                                       StringRef ArchiveName = {},
                                       StringRef ArchitectureName = {}) {
   auto Symbols = Obj.symbols();
-  std::vector<SymbolVersion> SymbolVersions;
+  std::vector<VersionEntry> SymbolVersions;
   if (DynamicSyms) {
     const auto *E = dyn_cast<ELFObjectFileBase>(&Obj);
     if (!E) {
@@ -1667,8 +1655,8 @@ static void dumpSymbolNamesFromObject(SymbolicFile &Obj, bool printName,
     }
     Symbols = E->getDynamicSymbolIterators();
 
-    if (Expected<std::vector<SymbolVersion>> VersionsOrErr =
-            readSymbolVersionsELF(*E, Symbols))
+    if (Expected<std::vector<VersionEntry>> VersionsOrErr =
+            E->readDynsymVersions())
       SymbolVersions = std::move(*VersionsOrErr);
     else
       WithColor::warning(errs(), ToolName)
@@ -1716,6 +1704,11 @@ static void dumpSymbolNamesFromObject(SymbolicFile &Obj, bool printName,
       S.Address = 0;
       if (isa<ELFObjectFileBase>(&Obj))
         S.Size = ELFSymbolRef(Sym).getSize();
+
+      if (const XCOFFObjectFile *XCOFFObj =
+              dyn_cast<const XCOFFObjectFile>(&Obj))
+        S.Size = XCOFFObj->getSymbolSize(Sym.getRawDataRefImpl());
+
       if (PrintAddress && isa<ObjectFile>(Obj)) {
         SymbolRef SymRef(Sym);
         Expected<uint64_t> AddressOrErr = SymRef.getAddress();
@@ -1738,7 +1731,7 @@ static void dumpSymbolNamesFromObject(SymbolicFile &Obj, bool printName,
       }
       if (!SymbolVersions.empty() && !SymbolVersions[I].Name.empty())
         S.Name +=
-            (SymbolVersions[I].IsDefault ? "@@" : "@") + SymbolVersions[I].Name;
+            (SymbolVersions[I].IsVerDef ? "@@" : "@") + SymbolVersions[I].Name;
 
       S.Sym = Sym;
       SymbolList.push_back(S);

@@ -68,15 +68,8 @@ Sema::ActOnGlobalModuleFragmentDecl(SourceLocation ModuleLoc) {
 
   // We start in the global module; all those declarations are implicitly
   // module-private (though they do not have module linkage).
-  auto &Map = PP.getHeaderSearchInfo().getModuleMap();
-  auto *GlobalModule = Map.createGlobalModuleFragmentForModuleUnit(ModuleLoc);
-  assert(GlobalModule && "module creation should not fail");
-
-  // Enter the scope of the global module.
-  ModuleScopes.push_back({});
-  ModuleScopes.back().BeginLoc = ModuleLoc;
-  ModuleScopes.back().Module = GlobalModule;
-  VisibleModules.setVisible(GlobalModule, ModuleLoc);
+  Module *GlobalModule =
+      PushGlobalModuleFragment(ModuleLoc, /*IsImplicit=*/false);
 
   // All declarations created from now on are owned by the global module.
   auto *TU = Context.getTranslationUnitDecl();
@@ -390,12 +383,19 @@ DeclResult Sema::ActOnModuleImport(SourceLocation StartLoc,
   if (!ModuleScopes.empty())
     Context.addModuleInitializer(ModuleScopes.back().Module, Import);
 
-  // Re-export the module if needed.
   if (!ModuleScopes.empty() && ModuleScopes.back().ModuleInterface) {
+    // Re-export the module if the imported module is exported.
+    // Note that we don't need to add re-exported module to Imports field
+    // since `Exports` implies the module is imported already.
     if (ExportLoc.isValid() || getEnclosingExportDecl(Import))
       getCurrentModule()->Exports.emplace_back(Mod, false);
+    else
+      getCurrentModule()->Imports.insert(Mod);
   } else if (ExportLoc.isValid()) {
-    Diag(ExportLoc, diag::err_export_not_in_module_interface);
+    // [module.interface]p1:
+    // An export-declaration shall inhabit a namespace scope and appear in the
+    // purview of a module interface unit.
+    Diag(ExportLoc, diag::err_export_not_in_module_interface) << 0;
   }
 
   return Import;
@@ -527,21 +527,30 @@ Decl *Sema::ActOnStartExportDecl(Scope *S, SourceLocation ExportLoc,
   // Set this temporarily so we know the export-declaration was braced.
   D->setRBraceLoc(LBraceLoc);
 
+  CurContext->addDecl(D);
+  PushDeclContext(S, D);
+
   // C++2a [module.interface]p1:
   //   An export-declaration shall appear only [...] in the purview of a module
   //   interface unit. An export-declaration shall not appear directly or
   //   indirectly within [...] a private-module-fragment.
   if (ModuleScopes.empty() || !ModuleScopes.back().Module->isModulePurview()) {
     Diag(ExportLoc, diag::err_export_not_in_module_interface) << 0;
+    D->setInvalidDecl();
+    return D;
   } else if (!ModuleScopes.back().ModuleInterface) {
     Diag(ExportLoc, diag::err_export_not_in_module_interface) << 1;
     Diag(ModuleScopes.back().BeginLoc,
          diag::note_not_module_interface_add_export)
         << FixItHint::CreateInsertion(ModuleScopes.back().BeginLoc, "export ");
+    D->setInvalidDecl();
+    return D;
   } else if (ModuleScopes.back().Module->Kind ==
              Module::PrivateModuleFragment) {
     Diag(ExportLoc, diag::err_export_in_private_module_fragment);
     Diag(ModuleScopes.back().BeginLoc, diag::note_private_module_fragment);
+    D->setInvalidDecl();
+    return D;
   }
 
   for (const DeclContext *DC = CurContext; DC; DC = DC->getLexicalParent()) {
@@ -553,7 +562,7 @@ Decl *Sema::ActOnStartExportDecl(Scope *S, SourceLocation ExportLoc,
         Diag(ND->getLocation(), diag::note_anonymous_namespace);
         // Don't diagnose internal-linkage declarations in this region.
         D->setInvalidDecl();
-        break;
+        return D;
       }
 
       //   A declaration is exported if it is [...] a namespace-definition
@@ -572,10 +581,10 @@ Decl *Sema::ActOnStartExportDecl(Scope *S, SourceLocation ExportLoc,
     Diag(ExportLoc, diag::err_export_within_export);
     if (ED->hasBraces())
       Diag(ED->getLocation(), diag::note_export);
+    D->setInvalidDecl();
+    return D;
   }
 
-  CurContext->addDecl(D);
-  PushDeclContext(S, D);
   D->setModuleOwnershipKind(Decl::ModuleOwnershipKind::VisibleWhenImported);
   return D;
 }
@@ -707,4 +716,27 @@ Decl *Sema::ActOnFinishExportDecl(Scope *S, Decl *D, SourceLocation RBraceLoc) {
   }
 
   return D;
+}
+
+Module *Sema::PushGlobalModuleFragment(SourceLocation BeginLoc,
+                                       bool IsImplicit) {
+  ModuleMap &Map = PP.getHeaderSearchInfo().getModuleMap();
+  Module *GlobalModule =
+      Map.createGlobalModuleFragmentForModuleUnit(BeginLoc, getCurrentModule());
+  assert(GlobalModule && "module creation should not fail");
+
+  // Enter the scope of the global module.
+  ModuleScopes.push_back({BeginLoc, GlobalModule,
+                          /*ModuleInterface=*/false,
+                          /*ImplicitGlobalModuleFragment=*/IsImplicit,
+                          /*VisibleModuleSet*/{}});
+  VisibleModules.setVisible(GlobalModule, BeginLoc);
+
+  return GlobalModule;
+}
+
+void Sema::PopGlobalModuleFragment() {
+  assert(!ModuleScopes.empty() && getCurrentModule()->isGlobalModule() &&
+         "left the wrong module scope, which is not global module fragment");
+  ModuleScopes.pop_back();
 }

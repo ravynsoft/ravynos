@@ -47,7 +47,14 @@
 // Make sure this comes before MSVCSetupApi.h
 #include <comdef.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnon-virtual-dtor"
+#endif
 #include "MSVCSetupApi.h"
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 #include "llvm/Support/COM.h"
 _COM_SMARTPTR_TYPEDEF(ISetupConfiguration, __uuidof(ISetupConfiguration));
 _COM_SMARTPTR_TYPEDEF(ISetupConfiguration2, __uuidof(ISetupConfiguration2));
@@ -62,6 +69,61 @@ using namespace clang::driver::toolchains;
 using namespace clang::driver::tools;
 using namespace clang;
 using namespace llvm::opt;
+
+// Windows SDKs and VC Toolchains group their contents into subdirectories based
+// on the target architecture. This function converts an llvm::Triple::ArchType
+// to the corresponding subdirectory name.
+static const char *llvmArchToWindowsSDKArch(llvm::Triple::ArchType Arch) {
+  using ArchType = llvm::Triple::ArchType;
+  switch (Arch) {
+  case ArchType::x86:
+    return "x86";
+  case ArchType::x86_64:
+    return "x64";
+  case ArchType::arm:
+    return "arm";
+  case ArchType::aarch64:
+    return "arm64";
+  default:
+    return "";
+  }
+}
+
+// Similar to the above function, but for Visual Studios before VS2017.
+static const char *llvmArchToLegacyVCArch(llvm::Triple::ArchType Arch) {
+  using ArchType = llvm::Triple::ArchType;
+  switch (Arch) {
+  case ArchType::x86:
+    // x86 is default in legacy VC toolchains.
+    // e.g. x86 libs are directly in /lib as opposed to /lib/x86.
+    return "";
+  case ArchType::x86_64:
+    return "amd64";
+  case ArchType::arm:
+    return "arm";
+  case ArchType::aarch64:
+    return "arm64";
+  default:
+    return "";
+  }
+}
+
+// Similar to the above function, but for DevDiv internal builds.
+static const char *llvmArchToDevDivInternalArch(llvm::Triple::ArchType Arch) {
+  using ArchType = llvm::Triple::ArchType;
+  switch (Arch) {
+  case ArchType::x86:
+    return "i386";
+  case ArchType::x86_64:
+    return "amd64";
+  case ArchType::arm:
+    return "arm";
+  case ArchType::aarch64:
+    return "arm64";
+  default:
+    return "";
+  }
+}
 
 static bool canExecute(llvm::vfs::FileSystem &VFS, StringRef Path) {
   auto Status = VFS.status(Path);
@@ -396,6 +458,20 @@ void visualstudio::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   // the environment variable is set however, assume the user knows what
   // they're doing. If the user passes /vctoolsdir or /winsdkdir, trust that
   // over env vars.
+  if (const Arg *A = Args.getLastArg(options::OPT__SLASH_diasdkdir,
+                                     options::OPT__SLASH_winsysroot)) {
+    // cl.exe doesn't find the DIA SDK automatically, so this too requires
+    // explicit flags and doesn't automatically look in "DIA SDK" relative
+    // to the path we found for VCToolChainPath.
+    llvm::SmallString<128> DIAPath(A->getValue());
+    if (A->getOption().getID() == options::OPT__SLASH_winsysroot)
+      llvm::sys::path::append(DIAPath, "DIA SDK");
+
+    // The DIA SDK always uses the legacy vc arch, even in new MSVC versions.
+    llvm::sys::path::append(DIAPath, "lib",
+                            llvmArchToLegacyVCArch(TC.getArch()));
+    CmdArgs.push_back(Args.MakeArgString(Twine("-libpath:") + DIAPath));
+  }
   if (!llvm::sys::Process::GetEnv("LIB") ||
       Args.getLastArg(options::OPT__SLASH_vctoolsdir,
                       options::OPT__SLASH_winsysroot)) {
@@ -442,6 +518,11 @@ void visualstudio::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   if (Args.hasArg(options::OPT_g_Group, options::OPT__SLASH_Z7))
     CmdArgs.push_back("-debug");
 
+  // If we specify /hotpatch, let the linker add padding in front of each
+  // function, like MSVC does.
+  if (Args.hasArg(options::OPT_fms_hotpatch, options::OPT__SLASH_hotpatch))
+    CmdArgs.push_back("-functionpadmin");
+
   // Pass on /Brepro if it was passed to the compiler.
   // Note that /Brepro maps to -mno-incremental-linker-compatible.
   bool DefaultIncrementalLinkerCompatible =
@@ -461,7 +542,7 @@ void visualstudio::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back(Args.MakeArgString(std::string("-implib:") + ImplibName));
   }
 
-  if (TC.getSanitizerArgs().needsFuzzer()) {
+  if (TC.getSanitizerArgs(Args).needsFuzzer()) {
     if (!Args.hasArg(options::OPT_shared))
       CmdArgs.push_back(
           Args.MakeArgString(std::string("-wholearchive:") +
@@ -472,10 +553,10 @@ void visualstudio::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     CmdArgs.push_back(Args.MakeArgString("-incremental:no"));
   }
 
-  if (TC.getSanitizerArgs().needsAsanRt()) {
+  if (TC.getSanitizerArgs(Args).needsAsanRt()) {
     CmdArgs.push_back(Args.MakeArgString("-debug"));
     CmdArgs.push_back(Args.MakeArgString("-incremental:no"));
-    if (TC.getSanitizerArgs().needsSharedRt() ||
+    if (TC.getSanitizerArgs(Args).needsSharedRt() ||
         Args.hasArg(options::OPT__SLASH_MD, options::OPT__SLASH_MDd)) {
       for (const auto &Lib : {"asan_dynamic", "asan_dynamic_runtime_thunk"})
         CmdArgs.push_back(TC.getCompilerRTArgString(Args, Lib));
@@ -726,15 +807,17 @@ bool MSVCToolChain::IsUnwindTablesDefault(const ArgList &Args) const {
 }
 
 bool MSVCToolChain::isPICDefault() const {
-  return getArch() == llvm::Triple::x86_64;
+  return getArch() == llvm::Triple::x86_64 ||
+         getArch() == llvm::Triple::aarch64;
 }
 
-bool MSVCToolChain::isPIEDefault() const {
+bool MSVCToolChain::isPIEDefault(const llvm::opt::ArgList &Args) const {
   return false;
 }
 
 bool MSVCToolChain::isPICDefaultForced() const {
-  return getArch() == llvm::Triple::x86_64;
+  return getArch() == llvm::Triple::x86_64 ||
+         getArch() == llvm::Triple::aarch64;
 }
 
 void MSVCToolChain::AddCudaIncludeArgs(const ArgList &DriverArgs,
@@ -750,61 +833,6 @@ void MSVCToolChain::AddHIPIncludeArgs(const ArgList &DriverArgs,
 void MSVCToolChain::printVerboseInfo(raw_ostream &OS) const {
   CudaInstallation.print(OS);
   RocmInstallation.print(OS);
-}
-
-// Windows SDKs and VC Toolchains group their contents into subdirectories based
-// on the target architecture. This function converts an llvm::Triple::ArchType
-// to the corresponding subdirectory name.
-static const char *llvmArchToWindowsSDKArch(llvm::Triple::ArchType Arch) {
-  using ArchType = llvm::Triple::ArchType;
-  switch (Arch) {
-  case ArchType::x86:
-    return "x86";
-  case ArchType::x86_64:
-    return "x64";
-  case ArchType::arm:
-    return "arm";
-  case ArchType::aarch64:
-    return "arm64";
-  default:
-    return "";
-  }
-}
-
-// Similar to the above function, but for Visual Studios before VS2017.
-static const char *llvmArchToLegacyVCArch(llvm::Triple::ArchType Arch) {
-  using ArchType = llvm::Triple::ArchType;
-  switch (Arch) {
-  case ArchType::x86:
-    // x86 is default in legacy VC toolchains.
-    // e.g. x86 libs are directly in /lib as opposed to /lib/x86.
-    return "";
-  case ArchType::x86_64:
-    return "amd64";
-  case ArchType::arm:
-    return "arm";
-  case ArchType::aarch64:
-    return "arm64";
-  default:
-    return "";
-  }
-}
-
-// Similar to the above function, but for DevDiv internal builds.
-static const char *llvmArchToDevDivInternalArch(llvm::Triple::ArchType Arch) {
-  using ArchType = llvm::Triple::ArchType;
-  switch (Arch) {
-  case ArchType::x86:
-    return "i386";
-  case ArchType::x86_64:
-    return "amd64";
-  case ArchType::arm:
-    return "arm";
-  case ArchType::aarch64:
-    return "arm64";
-  default:
-    return "";
-  }
 }
 
 // Get the path to a specific subdirectory in the current toolchain for
@@ -1178,14 +1206,6 @@ bool MSVCToolChain::getUniversalCRTLibraryPath(const ArgList &Args,
   return true;
 }
 
-static VersionTuple getMSVCVersionFromTriple(const llvm::Triple &Triple) {
-  unsigned Major, Minor, Micro;
-  Triple.getEnvironmentVersion(Major, Minor, Micro);
-  if (Major || Minor || Micro)
-    return VersionTuple(Major, Minor, Micro);
-  return VersionTuple();
-}
-
 static VersionTuple getMSVCVersionFromExe(const std::string &BinDir) {
   VersionTuple Version;
 #ifdef _WIN32
@@ -1263,6 +1283,19 @@ void MSVCToolChain::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
     AddSystemIncludesFromEnv(Var);
   }
 
+  // Add DIA SDK include if requested.
+  if (const Arg *A = DriverArgs.getLastArg(options::OPT__SLASH_diasdkdir,
+                                           options::OPT__SLASH_winsysroot)) {
+    // cl.exe doesn't find the DIA SDK automatically, so this too requires
+    // explicit flags and doesn't automatically look in "DIA SDK" relative
+    // to the path we found for VCToolChainPath.
+    llvm::SmallString<128> DIASDKPath(A->getValue());
+    if (A->getOption().getID() == options::OPT__SLASH_winsysroot)
+      llvm::sys::path::append(DIASDKPath, "DIA SDK");
+    AddSystemIncludeWithSubfolder(DriverArgs, CC1Args, std::string(DIASDKPath),
+                                  "include");
+  }
+
   if (DriverArgs.hasArg(options::OPT_nostdlibinc))
     return;
 
@@ -1312,6 +1345,15 @@ void MSVCToolChain::AddClangSystemIncludeArgs(const ArgList &DriverArgs,
         AddSystemIncludeWithSubfolder(DriverArgs, CC1Args, WindowsSDKDir,
                                       "Include", windowsSDKIncludeVersion,
                                       "winrt");
+        if (major >= 10) {
+          llvm::VersionTuple Tuple;
+          if (!Tuple.tryParse(windowsSDKIncludeVersion) &&
+              Tuple.getSubminor().getValueOr(0) >= 17134) {
+            AddSystemIncludeWithSubfolder(DriverArgs, CC1Args, WindowsSDKDir,
+                                          "Include", windowsSDKIncludeVersion,
+                                          "cppwinrt");
+          }
+        }
       } else {
         AddSystemIncludeWithSubfolder(DriverArgs, CC1Args, WindowsSDKDir,
                                       "Include");
@@ -1345,14 +1387,14 @@ VersionTuple MSVCToolChain::computeMSVCVersion(const Driver *D,
   bool IsWindowsMSVC = getTriple().isWindowsMSVCEnvironment();
   VersionTuple MSVT = ToolChain::computeMSVCVersion(D, Args);
   if (MSVT.empty())
-    MSVT = getMSVCVersionFromTriple(getTriple());
+    MSVT = getTriple().getEnvironmentVersion();
   if (MSVT.empty() && IsWindowsMSVC)
     MSVT = getMSVCVersionFromExe(getSubDirectoryPath(SubDirectoryType::Bin));
   if (MSVT.empty() &&
       Args.hasFlag(options::OPT_fms_extensions, options::OPT_fno_ms_extensions,
                    IsWindowsMSVC)) {
-    // -fms-compatibility-version=19.14 is default, aka 2017, 15.7
-    MSVT = VersionTuple(19, 14);
+    // -fms-compatibility-version=19.20 is default, aka 2019, 16.x
+    MSVT = VersionTuple(19, 20);
   }
   return MSVT;
 }

@@ -30,8 +30,7 @@ using namespace lldb_private;
 #define LLDB_OPTIONS_disassemble
 #include "CommandOptions.inc"
 
-CommandObjectDisassemble::CommandOptions::CommandOptions()
-    : Options(), func_name(), plugin_name(), flavor_string(), arch() {
+CommandObjectDisassemble::CommandOptions::CommandOptions() {
   OptionParsingStarting(nullptr);
 }
 
@@ -322,13 +321,15 @@ CommandObjectDisassemble::GetCurrentLineRanges() {
 llvm::Expected<std::vector<AddressRange>>
 CommandObjectDisassemble::GetNameRanges(CommandReturnObject &result) {
   ConstString name(m_options.func_name.c_str());
-  const bool include_symbols = true;
-  const bool include_inlines = true;
+
+  ModuleFunctionSearchOptions function_options;
+  function_options.include_symbols = true;
+  function_options.include_inlines = true;
 
   // Find functions matching the given name.
   SymbolContextList sc_list;
-  GetSelectedTarget().GetImages().FindFunctions(
-      name, eFunctionNameTypeAuto, include_symbols, include_inlines, sc_list);
+  GetSelectedTarget().GetImages().FindFunctions(name, eFunctionNameTypeAuto,
+                                                function_options, sc_list);
 
   std::vector<AddressRange> ranges;
   llvm::Error range_errs = llvm::Error::success();

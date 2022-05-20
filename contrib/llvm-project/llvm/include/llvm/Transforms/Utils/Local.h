@@ -42,9 +42,7 @@ class BasicBlock;
 class BranchInst;
 class CallBase;
 class CallInst;
-class DbgDeclareInst;
 class DbgVariableIntrinsic;
-class DbgValueInst;
 class DIBuilder;
 class DomTreeUpdater;
 class Function;
@@ -78,7 +76,8 @@ bool ConstantFoldTerminator(BasicBlock *BB, bool DeleteDeadConditions = false,
 //
 
 /// Return true if the result produced by the instruction is not used, and the
-/// instruction has no side effects.
+/// instruction will return. Certain side-effecting instructions are also
+/// considered dead if there are no uses of the instruction.
 bool isInstructionTriviallyDead(Instruction *I,
                                 const TargetLibraryInfo *TLI = nullptr);
 
@@ -87,6 +86,14 @@ bool isInstructionTriviallyDead(Instruction *I,
 /// isInstructionTriviallyDead would be true if the use count was 0.
 bool wouldInstructionBeTriviallyDead(Instruction *I,
                                      const TargetLibraryInfo *TLI = nullptr);
+
+/// Return true if the result produced by the instruction has no side effects on
+/// any paths other than where it is used. This is less conservative than 
+/// wouldInstructionBeTriviallyDead which is based on the assumption
+/// that the use count will be 0. An example usage of this API is for
+/// identifying instructions that can be sunk down to use(s).
+bool wouldInstructionBeTriviallyDeadOnUnusedPaths(
+    Instruction *I, const TargetLibraryInfo *TLI = nullptr);
 
 /// If the specified value is a trivially dead instruction, delete it.
 /// If that makes any of its operands trivially dead, delete them too,
@@ -234,7 +241,7 @@ inline Align getKnownAlignment(Value *V, const DataLayout &DL,
 CallInst *createCallMatchingInvoke(InvokeInst *II);
 
 /// This function converts the specified invoek into a normall call.
-void changeToCall(InvokeInst *II, DomTreeUpdater *DTU = nullptr);
+CallInst *changeToCall(InvokeInst *II, DomTreeUpdater *DTU = nullptr);
 
 ///===---------------------------------------------------------------------===//
 ///  Dbg Intrinsic utilities
@@ -292,14 +299,30 @@ void salvageDebugInfo(Instruction &I);
 void salvageDebugInfoForDbgValues(Instruction &I,
                                   ArrayRef<DbgVariableIntrinsic *> Insns);
 
-/// Given an instruction \p I and DIExpression \p DIExpr operating on it, write
-/// the effects of \p I into the returned DIExpression, or return nullptr if
-/// it cannot be salvaged. \p StackVal: whether DW_OP_stack_value should be
-/// appended to the expression. \p LocNo: the index of the location operand to
-/// which \p I applies, should be 0 for debug info without a DIArgList.
-DIExpression *salvageDebugInfoImpl(Instruction &I, DIExpression *DIExpr,
-                                   bool StackVal, unsigned LocNo,
-                                   SmallVectorImpl<Value *> &AdditionalValues);
+/// Given an instruction \p I and DIExpression \p DIExpr operating on
+/// it, append the effects of \p I to the DIExpression operand list
+/// \p Ops, or return \p nullptr if it cannot be salvaged.
+/// \p CurrentLocOps is the number of SSA values referenced by the
+/// incoming \p Ops.  \return the first non-constant operand
+/// implicitly referred to by Ops. If \p I references more than one
+/// non-constant operand, any additional operands are added to
+/// \p AdditionalValues.
+///
+/// \example
+////
+///   I = add %a, i32 1
+///
+///   Return = %a
+///   Ops = llvm::dwarf::DW_OP_lit1 llvm::dwarf::DW_OP_add
+///
+///   I = add %a, %b
+///
+///   Return = %a
+///   Ops = llvm::dwarf::DW_OP_LLVM_arg0 llvm::dwarf::DW_OP_add
+///   AdditionalValues = %b
+Value *salvageDebugInfoImpl(Instruction &I, uint64_t CurrentLocOps,
+                            SmallVectorImpl<uint64_t> &Ops,
+                            SmallVectorImpl<Value *> &AdditionalValues);
 
 /// Point debug users of \p From to \p To or salvage them. Use this function
 /// only when replacing all uses of \p From with \p To, with a guarantee that

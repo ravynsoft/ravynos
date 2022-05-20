@@ -20,6 +20,7 @@
 #include "llvm/DebugInfo/DWARF/DWARFContext.h"
 #include "llvm/DebugInfo/PDB/PDB.h"
 #include "llvm/DebugInfo/PDB/PDBContext.h"
+#include "llvm/DebugInfo/Symbolize/DIFetcher.h"
 #include "llvm/Demangle/Demangle.h"
 #include "llvm/Object/COFF.h"
 #include "llvm/Object/MachO.h"
@@ -229,61 +230,13 @@ bool checkFileCRC(StringRef Path, uint32_t CRCHash) {
   return CRCHash == llvm::crc32(arrayRefFromStringRef(MB.get()->getBuffer()));
 }
 
-bool findDebugBinary(const std::string &OrigPath,
-                     const std::string &DebuglinkName, uint32_t CRCHash,
-                     const std::string &FallbackDebugPath,
-                     std::string &Result) {
-  SmallString<16> OrigDir(OrigPath);
-  llvm::sys::path::remove_filename(OrigDir);
-  SmallString<16> DebugPath = OrigDir;
-  // Try relative/path/to/original_binary/debuglink_name
-  llvm::sys::path::append(DebugPath, DebuglinkName);
-  if (checkFileCRC(DebugPath, CRCHash)) {
-    Result = std::string(DebugPath.str());
-    return true;
-  }
-  // Try relative/path/to/original_binary/.debug/debuglink_name
-  DebugPath = OrigDir;
-  llvm::sys::path::append(DebugPath, ".debug", DebuglinkName);
-  if (checkFileCRC(DebugPath, CRCHash)) {
-    Result = std::string(DebugPath.str());
-    return true;
-  }
-  // Make the path absolute so that lookups will go to
-  // "/usr/lib/debug/full/path/to/debug", not
-  // "/usr/lib/debug/to/debug"
-  llvm::sys::fs::make_absolute(OrigDir);
-  if (!FallbackDebugPath.empty()) {
-    // Try <FallbackDebugPath>/absolute/path/to/original_binary/debuglink_name
-    DebugPath = FallbackDebugPath;
-  } else {
-#if defined(__NetBSD__)
-    // Try /usr/libdata/debug/absolute/path/to/original_binary/debuglink_name
-    DebugPath = "/usr/libdata/debug";
-#else
-    // Try /usr/lib/debug/absolute/path/to/original_binary/debuglink_name
-    DebugPath = "/usr/lib/debug";
-#endif
-  }
-  llvm::sys::path::append(DebugPath, llvm::sys::path::relative_path(OrigDir),
-                          DebuglinkName);
-  if (checkFileCRC(DebugPath, CRCHash)) {
-    Result = std::string(DebugPath.str());
-    return true;
-  }
-  return false;
-}
-
 bool getGNUDebuglinkContents(const ObjectFile *Obj, std::string &DebugName,
                              uint32_t &CRCHash) {
   if (!Obj)
     return false;
   for (const SectionRef &Section : Obj->sections()) {
     StringRef Name;
-    if (Expected<StringRef> NameOrErr = Section.getName())
-      Name = *NameOrErr;
-    else
-      consumeError(NameOrErr.takeError());
+    consumeError(Section.getName().moveInto(Name));
 
     Name = Name.substr(Name.find_first_not_of("._"));
     if (Name == "gnu_debuglink") {
@@ -353,43 +306,6 @@ Optional<ArrayRef<uint8_t>> getBuildID(const ELFObjectFileBase *Obj) {
   return BuildID;
 }
 
-bool findDebugBinary(const std::vector<std::string> &DebugFileDirectory,
-                     const ArrayRef<uint8_t> BuildID, std::string &Result) {
-  auto getDebugPath = [&](StringRef Directory) {
-    SmallString<128> Path{Directory};
-    sys::path::append(Path, ".build-id",
-                      llvm::toHex(BuildID[0], /*LowerCase=*/true),
-                      llvm::toHex(BuildID.slice(1), /*LowerCase=*/true));
-    Path += ".debug";
-    return Path;
-  };
-  if (DebugFileDirectory.empty()) {
-    SmallString<128> Path = getDebugPath(
-#if defined(__NetBSD__)
-        // Try /usr/libdata/debug/.build-id/../...
-        "/usr/libdata/debug"
-#else
-        // Try /usr/lib/debug/.build-id/../...
-        "/usr/lib/debug"
-#endif
-    );
-    if (llvm::sys::fs::exists(Path)) {
-      Result = std::string(Path.str());
-      return true;
-    }
-  } else {
-    for (const auto &Directory : DebugFileDirectory) {
-      // Try <debug-file-directory>/.build-id/../...
-      SmallString<128> Path = getDebugPath(Directory);
-      if (llvm::sys::fs::exists(Path)) {
-        Result = std::string(Path.str());
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 } // end anonymous namespace
 
 ObjectFile *LLVMSymbolizer::lookUpDsymFile(const std::string &ExePath,
@@ -432,8 +348,7 @@ ObjectFile *LLVMSymbolizer::lookUpDebuglinkObject(const std::string &Path,
   std::string DebugBinaryPath;
   if (!getGNUDebuglinkContents(Obj, DebuglinkName, CRCHash))
     return nullptr;
-  if (!findDebugBinary(Path, DebuglinkName, CRCHash, Opts.FallbackDebugPath,
-                       DebugBinaryPath))
+  if (!findDebugBinary(Path, DebuglinkName, CRCHash, DebugBinaryPath))
     return nullptr;
   auto DbgObjOrErr = getOrCreateObject(DebugBinaryPath, ArchName);
   if (!DbgObjOrErr) {
@@ -453,7 +368,7 @@ ObjectFile *LLVMSymbolizer::lookUpBuildIDObject(const std::string &Path,
   if (BuildID->size() < 2)
     return nullptr;
   std::string DebugBinaryPath;
-  if (!findDebugBinary(Opts.DebugFileDirectory, *BuildID, DebugBinaryPath))
+  if (!findDebugBinary(*BuildID, DebugBinaryPath))
     return nullptr;
   auto DbgObjOrErr = getOrCreateObject(DebugBinaryPath, ArchName);
   if (!DbgObjOrErr) {
@@ -461,6 +376,71 @@ ObjectFile *LLVMSymbolizer::lookUpBuildIDObject(const std::string &Path,
     return nullptr;
   }
   return DbgObjOrErr.get();
+}
+
+bool LLVMSymbolizer::findDebugBinary(const std::string &OrigPath,
+                                     const std::string &DebuglinkName,
+                                     uint32_t CRCHash, std::string &Result) {
+  SmallString<16> OrigDir(OrigPath);
+  llvm::sys::path::remove_filename(OrigDir);
+  SmallString<16> DebugPath = OrigDir;
+  // Try relative/path/to/original_binary/debuglink_name
+  llvm::sys::path::append(DebugPath, DebuglinkName);
+  if (checkFileCRC(DebugPath, CRCHash)) {
+    Result = std::string(DebugPath.str());
+    return true;
+  }
+  // Try relative/path/to/original_binary/.debug/debuglink_name
+  DebugPath = OrigDir;
+  llvm::sys::path::append(DebugPath, ".debug", DebuglinkName);
+  if (checkFileCRC(DebugPath, CRCHash)) {
+    Result = std::string(DebugPath.str());
+    return true;
+  }
+  // Make the path absolute so that lookups will go to
+  // "/usr/lib/debug/full/path/to/debug", not
+  // "/usr/lib/debug/to/debug"
+  llvm::sys::fs::make_absolute(OrigDir);
+  if (!Opts.FallbackDebugPath.empty()) {
+    // Try <FallbackDebugPath>/absolute/path/to/original_binary/debuglink_name
+    DebugPath = Opts.FallbackDebugPath;
+  } else {
+#if defined(__NetBSD__)
+    // Try /usr/libdata/debug/absolute/path/to/original_binary/debuglink_name
+    DebugPath = "/usr/libdata/debug";
+#else
+    // Try /usr/lib/debug/absolute/path/to/original_binary/debuglink_name
+    DebugPath = "/usr/lib/debug";
+#endif
+  }
+  llvm::sys::path::append(DebugPath, llvm::sys::path::relative_path(OrigDir),
+                          DebuglinkName);
+  if (checkFileCRC(DebugPath, CRCHash)) {
+    Result = std::string(DebugPath.str());
+    return true;
+  }
+  return false;
+}
+
+bool LLVMSymbolizer::findDebugBinary(const ArrayRef<uint8_t> BuildID,
+                                     std::string &Result) {
+  Optional<std::string> Path;
+  Path = LocalDIFetcher(Opts.DebugFileDirectory).fetchBuildID(BuildID);
+  if (Path) {
+    Result = std::move(*Path);
+    return true;
+  }
+
+  // Try caller-provided debug info fetchers.
+  for (const std::unique_ptr<DIFetcher> &Fetcher : DIFetchers) {
+    Path = Fetcher->fetchBuildID(BuildID);
+    if (Path) {
+      Result = std::move(*Path);
+      return true;
+    }
+  }
+
+  return false;
 }
 
 Expected<LLVMSymbolizer::ObjectPair>
@@ -606,7 +586,9 @@ LLVMSymbolizer::getOrCreateModuleInfo(const std::string &ModuleName) {
     }
   }
   if (!Context)
-    Context = DWARFContext::create(*Objects.second, nullptr, Opts.DWPName);
+    Context = DWARFContext::create(
+        *Objects.second, DWARFContext::ProcessDebugRelocations::Process,
+        nullptr, Opts.DWPName);
   return createModuleInfo(Objects.first, std::move(Context), ModuleName);
 }
 
@@ -656,18 +638,9 @@ StringRef demanglePE32ExternCFunc(StringRef SymbolName) {
 std::string
 LLVMSymbolizer::DemangleName(const std::string &Name,
                              const SymbolizableModule *DbiModuleDescriptor) {
-  // We can spoil names of symbols with C linkage, so use an heuristic
-  // approach to check if the name should be demangled.
-  if (Name.substr(0, 2) == "_Z") {
-    int status = 0;
-    char *DemangledName =
-        itaniumDemangle(Name.c_str(), nullptr, nullptr, &status);
-    if (status != 0)
-      return Name;
-    std::string Result = DemangledName;
-    free(DemangledName);
+  std::string Result;
+  if (nonMicrosoftDemangle(Name.c_str(), Result))
     return Result;
-  }
 
   if (!Name.empty() && Name.front() == '?') {
     // Only do MSVC C++ demangling on symbols starting with '?'.
@@ -678,7 +651,7 @@ LLVMSymbolizer::DemangleName(const std::string &Name,
                         MSDF_NoMemberType | MSDF_NoReturnType));
     if (status != 0)
       return Name;
-    std::string Result = DemangledName;
+    Result = DemangledName;
     free(DemangledName);
     return Result;
   }

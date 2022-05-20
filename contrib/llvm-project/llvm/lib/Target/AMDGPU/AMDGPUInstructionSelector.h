@@ -14,10 +14,7 @@
 #define LLVM_LIB_TARGET_AMDGPU_AMDGPUINSTRUCTIONSELECTOR_H
 
 #include "llvm/CodeGen/GlobalISel/InstructionSelector.h"
-#include "llvm/CodeGen/Register.h"
 #include "llvm/IR/InstrTypes.h"
-#include "llvm/IR/Intrinsics.h"
-#include "llvm/IR/IntrinsicsAMDGPU.h"
 
 namespace {
 #define GET_GLOBALISEL_PREDICATE_BITSET
@@ -33,7 +30,6 @@ namespace AMDGPU {
 struct ImageDimIntrinsicInfo;
 }
 
-class AMDGPUInstrInfo;
 class AMDGPURegisterBankInfo;
 class AMDGPUTargetMachine;
 class BlockFrequencyInfo;
@@ -45,7 +41,6 @@ class MachineOperand;
 class MachineRegisterInfo;
 class RegisterBank;
 class SIInstrInfo;
-class SIMachineFunctionInfo;
 class SIRegisterInfo;
 class TargetRegisterClass;
 
@@ -135,7 +130,6 @@ private:
   bool hasVgprParts(ArrayRef<GEPInfo> AddrInfo) const;
   void getAddrModeInfo(const MachineInstr &Load, const MachineRegisterInfo &MRI,
                        SmallVectorImpl<GEPInfo> &AddrInfo) const;
-  bool selectSMRD(MachineInstr &I, ArrayRef<GEPInfo> AddrInfo) const;
 
   void initM0(MachineInstr &I) const;
   bool selectG_LOAD_STORE_ATOMICRMW(MachineInstr &I) const;
@@ -151,6 +145,7 @@ private:
   bool selectGlobalAtomicFadd(MachineInstr &I, MachineOperand &AddrOp,
                               MachineOperand &DataOp) const;
   bool selectBVHIntrinsic(MachineInstr &I) const;
+  bool selectWaveAddress(MachineInstr &I) const;
 
   std::pair<Register, unsigned> selectVOP3ModsImpl(MachineOperand &Root,
                                                    bool AllowAbs = true) const;
@@ -303,6 +298,10 @@ private:
   bool isInlineImmediate32(int64_t Imm) const;
   bool isInlineImmediate64(int64_t Imm) const;
   bool isInlineImmediate(const APFloat &Imm) const;
+
+  // Returns true if TargetOpcode::G_AND MachineInstr `MI`'s masking of the
+  // shift amount operand's `ShAmtBits` bits is unneeded.
+  bool isUnneededShiftMask(const MachineInstr &MI, unsigned ShAmtBits) const;
 
   const SIInstrInfo &TII;
   const SIRegisterInfo &TRI;

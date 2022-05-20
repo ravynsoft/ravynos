@@ -1,9 +1,8 @@
 //===- DFAJumpThreading.cpp - Threads a switch statement inside a loop ----===//
 //
-//                     The LLVM Compiler Infrastructure
-//
-// This file is distributed under the University of Illinois Open Source
-// License. See LICENSE.TXT for details.
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
 //
 //===----------------------------------------------------------------------===//
 //
@@ -84,8 +83,6 @@
 #include "llvm/Transforms/Utils/ValueMapper.h"
 #include <algorithm>
 #include <deque>
-#include <unordered_map>
-#include <unordered_set>
 
 using namespace llvm;
 
@@ -147,8 +144,7 @@ private:
       Stack.push_back(SIToUnfold);
 
     while (!Stack.empty()) {
-      SelectInstToUnfold SIToUnfold = Stack.back();
-      Stack.pop_back();
+      SelectInstToUnfold SIToUnfold = Stack.pop_back_val();
 
       std::vector<SelectInstToUnfold> NewSIsToUnfold;
       std::vector<BasicBlock *> NewBBs;
@@ -174,6 +170,7 @@ public:
   void getAnalysisUsage(AnalysisUsage &AU) const override {
     AU.addRequired<AssumptionCacheTracker>();
     AU.addRequired<DominatorTreeWrapperPass>();
+    AU.addPreserved<DominatorTreeWrapperPass>();
     AU.addRequired<TargetTransformInfoWrapperPass>();
     AU.addRequired<OptimizationRemarkEmitterWrapperPass>();
   }
@@ -350,7 +347,7 @@ struct ClonedBlock {
 
 typedef std::deque<BasicBlock *> PathType;
 typedef std::vector<PathType> PathsType;
-typedef std::set<const BasicBlock *> VisitedBlocks;
+typedef SmallPtrSet<const BasicBlock *, 8> VisitedBlocks;
 typedef std::vector<ClonedBlock> CloneList;
 
 // This data structure keeps track of all blocks that have been cloned.  If two
@@ -360,7 +357,7 @@ typedef DenseMap<BasicBlock *, CloneList> DuplicateBlockMap;
 
 // This map keeps track of all the new definitions for an instruction. This
 // information is needed when restoring SSA form after cloning blocks.
-typedef DenseMap<Instruction *, std::vector<Instruction *>> DefMap;
+typedef MapVector<Instruction *, std::vector<Instruction *>> DefMap;
 
 inline raw_ostream &operator<<(raw_ostream &OS, const PathType &Path) {
   OS << "< ";
@@ -493,7 +490,7 @@ private:
   }
 
   bool isPredictableValue(Value *InpVal, SmallSet<Value *, 16> &SeenValues) {
-    if (SeenValues.find(InpVal) != SeenValues.end())
+    if (SeenValues.contains(InpVal))
       return true;
 
     if (isa<ConstantInt>(InpVal))
@@ -508,7 +505,7 @@ private:
 
   void addInstToQueue(Value *Val, std::deque<Instruction *> &Q,
                       SmallSet<Value *, 16> &SeenValues) {
-    if (SeenValues.find(Val) != SeenValues.end())
+    if (SeenValues.contains(Val))
       return;
     if (Instruction *I = dyn_cast<Instruction>(Val))
       Q.push_back(I);
@@ -533,7 +530,7 @@ private:
       return false;
 
     if (isa<PHINode>(SIUse) &&
-        SIBB->getSingleSuccessor() != dyn_cast<Instruction>(SIUse)->getParent())
+        SIBB->getSingleSuccessor() != cast<Instruction>(SIUse)->getParent())
       return false;
 
     // If select will not be sunk during unfolding, and it is in the same basic
@@ -591,7 +588,7 @@ struct AllSwitchPaths {
         PrevBB = BB;
       }
 
-      if (TPath.isExitValueSet())
+      if (TPath.isExitValueSet() && isSupported(TPath))
         TPaths.push_back(TPath);
     }
   }
@@ -621,13 +618,9 @@ private:
     // Some blocks have multiple edges to the same successor, and this set
     // is used to prevent a duplicate path from being generated
     SmallSet<BasicBlock *, 4> Successors;
-
-    for (succ_iterator SI = succ_begin(BB), E = succ_end(BB); SI != E; ++SI) {
-      BasicBlock *Succ = *SI;
-
-      if (Successors.find(Succ) != Successors.end())
+    for (BasicBlock *Succ : successors(BB)) {
+      if (!Successors.insert(Succ).second)
         continue;
-      Successors.insert(Succ);
 
       // Found a cycle through the SwitchBlock
       if (Succ == SwitchBlock) {
@@ -636,7 +629,7 @@ private:
       }
 
       // We have encountered a cycle, do not get caught in it
-      if (Visited.find(Succ) != Visited.end())
+      if (Visited.contains(Succ))
         continue;
 
       PathsType SuccPaths = paths(Succ, Visited, PathDepth + 1);
@@ -668,15 +661,14 @@ private:
     SmallSet<Value *, 16> SeenValues;
 
     while (!Stack.empty()) {
-      PHINode *CurPhi = Stack.back();
-      Stack.pop_back();
+      PHINode *CurPhi = Stack.pop_back_val();
 
       Res[CurPhi->getParent()] = CurPhi;
       SeenValues.insert(CurPhi);
 
       for (Value *Incoming : CurPhi->incoming_values()) {
         if (Incoming == FirstDef || isa<ConstantInt>(Incoming) ||
-            SeenValues.find(Incoming) != SeenValues.end()) {
+            SeenValues.contains(Incoming)) {
           continue;
         }
 
@@ -689,6 +681,62 @@ private:
     }
 
     return Res;
+  }
+
+  /// The determinator BB should precede the switch-defining BB.
+  ///
+  /// Otherwise, it is possible that the state defined in the determinator block
+  /// defines the state for the next iteration of the loop, rather than for the
+  /// current one.
+  ///
+  /// Currently supported paths:
+  /// \code
+  /// < switch bb1 determ def > [ 42, determ ]
+  /// < switch_and_def bb1 determ > [ 42, determ ]
+  /// < switch_and_def_and_determ bb1 > [ 42, switch_and_def_and_determ ]
+  /// \endcode
+  ///
+  /// Unsupported paths:
+  /// \code
+  /// < switch bb1 def determ > [ 43, determ ]
+  /// < switch_and_determ bb1 def > [ 43, switch_and_determ ]
+  /// \endcode
+  bool isSupported(const ThreadingPath &TPath) {
+    Instruction *SwitchCondI = dyn_cast<Instruction>(Switch->getCondition());
+    assert(SwitchCondI);
+    if (!SwitchCondI)
+      return false;
+
+    const BasicBlock *SwitchCondDefBB = SwitchCondI->getParent();
+    const BasicBlock *SwitchCondUseBB = Switch->getParent();
+    const BasicBlock *DeterminatorBB = TPath.getDeterminatorBB();
+
+    assert(
+        SwitchCondUseBB == TPath.getPath().front() &&
+        "The first BB in a threading path should have the switch instruction");
+    if (SwitchCondUseBB != TPath.getPath().front())
+      return false;
+
+    // Make DeterminatorBB the first element in Path.
+    PathType Path = TPath.getPath();
+    auto ItDet = std::find(Path.begin(), Path.end(), DeterminatorBB);
+    std::rotate(Path.begin(), ItDet, Path.end());
+
+    bool IsDetBBSeen = false;
+    bool IsDefBBSeen = false;
+    bool IsUseBBSeen = false;
+    for (BasicBlock *BB : Path) {
+      if (BB == DeterminatorBB)
+        IsDetBBSeen = true;
+      if (BB == SwitchCondDefBB)
+        IsDefBBSeen = true;
+      if (BB == SwitchCondUseBB)
+        IsUseBBSeen = true;
+      if (IsDetBBSeen && IsUseBBSeen && !IsDefBBSeen)
+        return false;
+    }
+
+    return true;
   }
 
   SwitchInst *Switch;
@@ -1078,6 +1126,9 @@ private:
   /// Add new value mappings to the DefMap to keep track of all new definitions
   /// for a particular instruction. These will be used while updating SSA form.
   void updateDefMap(DefMap &NewDefs, ValueToValueMapTy &VMap) {
+    SmallVector<std::pair<Instruction *, Instruction *>> NewDefsVector;
+    NewDefsVector.reserve(VMap.size());
+
     for (auto Entry : VMap) {
       Instruction *Inst =
           dyn_cast<Instruction>(const_cast<Value *>(Entry.first));
@@ -1090,11 +1141,18 @@ private:
       if (!Cloned)
         continue;
 
-      if (NewDefs.find(Inst) == NewDefs.end())
-        NewDefs[Inst] = {Cloned};
-      else
-        NewDefs[Inst].push_back(Cloned);
+      NewDefsVector.push_back({Inst, Cloned});
     }
+
+    // Sort the defs to get deterministic insertion order into NewDefs.
+    sort(NewDefsVector, [](const auto &LHS, const auto &RHS) {
+      if (LHS.first == RHS.first)
+        return LHS.second->comesBefore(RHS.second);
+      return LHS.first->comesBefore(RHS.first);
+    });
+
+    for (const auto &KV : NewDefsVector)
+      NewDefs[KV.first].push_back(KV.second);
   }
 
   /// Update the last branch of a particular cloned path to point to the correct

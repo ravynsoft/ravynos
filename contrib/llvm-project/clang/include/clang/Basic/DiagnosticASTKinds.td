@@ -567,8 +567,8 @@ def remark_sanitize_address_insert_extra_padding_accepted : Remark<
 def remark_sanitize_address_insert_extra_padding_rejected : Remark<
     "-fsanitize-address-field-padding ignored for %0 because it "
     "%select{is not C++|is packed|is a union|is trivially copyable|"
-    "has trivial destructor|is standard layout|is in a blacklisted file|"
-    "is blacklisted}1">, ShowInSystemHeader,
+    "has trivial destructor|is standard layout|is in a ignorelisted file|"
+    "is ignorelisted}1">, ShowInSystemHeader,
     InGroup<SanitizeAddressRemarks>;
 
 def warn_npot_ms_struct : Warning<
@@ -590,4 +590,9 @@ def warn_padded_struct_size : Warning<
   InGroup<Padded>, DefaultIgnore;
 def warn_unnecessary_packed : Warning<
   "packed attribute is unnecessary for %0">, InGroup<Packed>, DefaultIgnore;
+
+// -Wunaligned-access
+def warn_unaligned_access : Warning<
+  "field %1 within %0 is less aligned than %2 and is usually due to %0 being "
+  "packed, which can lead to unaligned accesses">, InGroup<UnalignedAccess>, DefaultIgnore;
 }

@@ -225,6 +225,18 @@ def G_FREEZE : GenericInstruction {
   let hasSideEffects = false;
 }
 
+def G_LROUND: GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins type1:$src);
+  let hasSideEffects = false;
+}
+
+def G_LLROUND: GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins type1:$src);
+  let hasSideEffects = false;
+}
+
 //------------------------------------------------------------------------------
 // Binary ops.
 //------------------------------------------------------------------------------
@@ -1420,5 +1432,12 @@ def G_ASSERT_ZEXT : GenericInstruction {
 def G_ASSERT_SEXT : GenericInstruction {
   let OutOperandList = (outs type0:$dst);
   let InOperandList = (ins type0:$src, untyped_imm_0:$sz);
+  let hasSideEffects = false;
+}
+
+// Asserts that a value has at least the given alignment.
+def G_ASSERT_ALIGN : GenericInstruction {
+  let OutOperandList = (outs type0:$dst);
+  let InOperandList = (ins type0:$src, untyped_imm_0:$align);
   let hasSideEffects = false;
 }

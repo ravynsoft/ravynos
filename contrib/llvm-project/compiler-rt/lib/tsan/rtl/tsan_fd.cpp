@@ -11,8 +11,11 @@
 //===----------------------------------------------------------------------===//
 
 #include "tsan_fd.h"
-#include "tsan_rtl.h"
+
 #include <sanitizer_common/sanitizer_atomic.h>
+
+#include "tsan_interceptors.h"
+#include "tsan_rtl.h"
 
 namespace __tsan {
 
@@ -26,8 +29,8 @@ struct FdSync {
 
 struct FdDesc {
   FdSync *sync;
-  int creation_tid;
-  u32 creation_stack;
+  Tid creation_tid;
+  StackID creation_stack;
 };
 
 struct FdContext {
@@ -115,7 +118,7 @@ static void init(ThreadState *thr, uptr pc, int fd, FdSync *s,
     MemoryRangeImitateWrite(thr, pc, (uptr)d, 8);
   } else {
     // See the dup-related comment in FdClose.
-    MemoryRead(thr, pc, (uptr)d, kSizeLog8);
+    MemoryAccess(thr, pc, (uptr)d, 8, kAccessRead);
   }
 }
 
@@ -140,7 +143,7 @@ void FdOnFork(ThreadState *thr, uptr pc) {
   }
 }
 
-bool FdLocation(uptr addr, int *fd, int *tid, u32 *stack) {
+bool FdLocation(uptr addr, int *fd, Tid *tid, StackID *stack) {
   for (int l1 = 0; l1 < kTableSizeL1; l1++) {
     FdDesc *tab = (FdDesc*)atomic_load(&fdctx.tab[l1], memory_order_relaxed);
     if (tab == 0)
@@ -163,7 +166,7 @@ void FdAcquire(ThreadState *thr, uptr pc, int fd) {
   FdDesc *d = fddesc(thr, pc, fd);
   FdSync *s = d->sync;
   DPrintf("#%d: FdAcquire(%d) -> %p\n", thr->tid, fd, s);
-  MemoryRead(thr, pc, (uptr)d, kSizeLog8);
+  MemoryAccess(thr, pc, (uptr)d, 8, kAccessRead);
   if (s)
     Acquire(thr, pc, (uptr)s);
 }
@@ -174,7 +177,7 @@ void FdRelease(ThreadState *thr, uptr pc, int fd) {
   FdDesc *d = fddesc(thr, pc, fd);
   FdSync *s = d->sync;
   DPrintf("#%d: FdRelease(%d) -> %p\n", thr->tid, fd, s);
-  MemoryRead(thr, pc, (uptr)d, kSizeLog8);
+  MemoryAccess(thr, pc, (uptr)d, 8, kAccessRead);
   if (s)
     Release(thr, pc, (uptr)s);
 }
@@ -184,7 +187,7 @@ void FdAccess(ThreadState *thr, uptr pc, int fd) {
   if (bogusfd(fd))
     return;
   FdDesc *d = fddesc(thr, pc, fd);
-  MemoryRead(thr, pc, (uptr)d, kSizeLog8);
+  MemoryAccess(thr, pc, (uptr)d, 8, kAccessRead);
 }
 
 void FdClose(ThreadState *thr, uptr pc, int fd, bool write) {
@@ -192,27 +195,29 @@ void FdClose(ThreadState *thr, uptr pc, int fd, bool write) {
   if (bogusfd(fd))
     return;
   FdDesc *d = fddesc(thr, pc, fd);
-  if (write) {
-    // To catch races between fd usage and close.
-    MemoryWrite(thr, pc, (uptr)d, kSizeLog8);
-  } else {
-    // This path is used only by dup2/dup3 calls.
-    // We do read instead of write because there is a number of legitimate
-    // cases where write would lead to false positives:
-    // 1. Some software dups a closed pipe in place of a socket before closing
-    //    the socket (to prevent races actually).
-    // 2. Some daemons dup /dev/null in place of stdin/stdout.
-    // On the other hand we have not seen cases when write here catches real
-    // bugs.
-    MemoryRead(thr, pc, (uptr)d, kSizeLog8);
+  if (!MustIgnoreInterceptor(thr)) {
+    if (write) {
+      // To catch races between fd usage and close.
+      MemoryAccess(thr, pc, (uptr)d, 8, kAccessWrite);
+    } else {
+      // This path is used only by dup2/dup3 calls.
+      // We do read instead of write because there is a number of legitimate
+      // cases where write would lead to false positives:
+      // 1. Some software dups a closed pipe in place of a socket before closing
+      //    the socket (to prevent races actually).
+      // 2. Some daemons dup /dev/null in place of stdin/stdout.
+      // On the other hand we have not seen cases when write here catches real
+      // bugs.
+      MemoryAccess(thr, pc, (uptr)d, 8, kAccessRead);
+    }
   }
   // We need to clear it, because if we do not intercept any call out there
   // that creates fd, we will hit false postives.
   MemoryResetRange(thr, pc, (uptr)d, 8);
   unref(thr, pc, d->sync);
   d->sync = 0;
-  d->creation_tid = 0;
-  d->creation_stack = 0;
+  d->creation_tid = kInvalidTid;
+  d->creation_stack = kInvalidStackID;
 }
 
 void FdFileCreate(ThreadState *thr, uptr pc, int fd) {
@@ -228,7 +233,7 @@ void FdDup(ThreadState *thr, uptr pc, int oldfd, int newfd, bool write) {
     return;
   // Ignore the case when user dups not yet connected socket.
   FdDesc *od = fddesc(thr, pc, oldfd);
-  MemoryRead(thr, pc, (uptr)od, kSizeLog8);
+  MemoryAccess(thr, pc, (uptr)od, 8, kAccessRead);
   FdClose(thr, pc, newfd, write);
   init(thr, pc, newfd, ref(od->sync), write);
 }

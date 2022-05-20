@@ -9,8 +9,10 @@
 #ifndef LLVM_LIB_CODEGEN_LIVEDEBUGVALUES_LIVEDEBUGVALUES_H
 #define LLVM_LIB_CODEGEN_LIVEDEBUGVALUES_LIVEDEBUGVALUES_H
 
+#include "llvm/CodeGen/MachineDominators.h"
 #include "llvm/CodeGen/MachineFunction.h"
 #include "llvm/CodeGen/TargetPassConfig.h"
+#include "llvm/ADT/Triple.h"
 
 namespace llvm {
 
@@ -23,7 +25,9 @@ inline namespace SharedLiveDebugValues {
 // implementation.
 class LDVImpl {
 public:
-  virtual bool ExtendRanges(MachineFunction &MF, TargetPassConfig *TPC) = 0;
+  virtual bool ExtendRanges(MachineFunction &MF, MachineDominatorTree *DomTree,
+                            TargetPassConfig *TPC, unsigned InputBBLimit,
+                            unsigned InputDbgValLimit) = 0;
   virtual ~LDVImpl() {}
 };
 
@@ -32,6 +36,9 @@ public:
 // Factory functions for LiveDebugValues implementations.
 extern LDVImpl *makeVarLocBasedLiveDebugValues();
 extern LDVImpl *makeInstrRefBasedLiveDebugValues();
+
+extern bool debuginfoShouldUseDebugInstrRef(const Triple &T);
+
 } // namespace llvm
 
 #endif // LLVM_LIB_CODEGEN_LIVEDEBUGVALUES_LIVEDEBUGVALUES_H

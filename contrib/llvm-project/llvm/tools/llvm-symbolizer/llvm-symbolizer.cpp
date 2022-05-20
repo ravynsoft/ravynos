@@ -19,6 +19,8 @@
 #include "llvm/Config/config.h"
 #include "llvm/DebugInfo/Symbolize/DIPrinter.h"
 #include "llvm/DebugInfo/Symbolize/Symbolize.h"
+#include "llvm/Debuginfod/DIFetcher.h"
+#include "llvm/Debuginfod/HTTPClient.h"
 #include "llvm/Option/Arg.h"
 #include "llvm/Option/ArgList.h"
 #include "llvm/Option/Option.h"
@@ -52,7 +54,7 @@ enum ID {
 #include "Opts.inc"
 #undef PREFIX
 
-static const opt::OptTable::Info InfoTable[] = {
+const opt::OptTable::Info InfoTable[] = {
 #define OPTION(PREFIX, NAME, ID, KIND, GROUP, ALIAS, ALIASARGS, FLAGS, PARAM,  \
                HELPTEXT, METAVAR, VALUES)                                      \
   {                                                                            \
@@ -327,6 +329,12 @@ int main(int argc, char **argv) {
   }
 
   LLVMSymbolizer Symbolizer(Opts);
+
+  // Look up symbols using the debuginfod client.
+  Symbolizer.addDIFetcher(std::make_unique<DebuginfodDIFetcher>());
+  // The HTTPClient must be initialized for use by the debuginfod client.
+  HTTPClient::initialize();
+
   std::unique_ptr<DIPrinter> Printer;
   if (Style == OutputStyle::GNU)
     Printer = std::make_unique<GNUPrinter>(outs(), errs(), Config);

@@ -15,6 +15,7 @@
 
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/StringRef.h"
+#include "llvm/Support/MemoryBuffer.h"
 #include <utility> // for std::pair
 
 namespace llvm {
@@ -92,7 +93,7 @@ void appendToCompilerUsed(Module &M, ArrayRef<GlobalValue *> Values);
 /// DeadComdatFunctions are those where every member of the comdat is listed
 /// and thus removing them is safe (provided *all* are removed).
 void filterDeadComdatFunctions(
-    Module &M, SmallVectorImpl<Function *> &DeadComdatFunctions);
+    SmallVectorImpl<Function *> &DeadComdatFunctions);
 
 /// Produce a unique identifier for this module by taking the MD5 sum of
 /// the names of the module's strong external symbols that are not comdat
@@ -105,6 +106,10 @@ void filterDeadComdatFunctions(
 /// semantic effect if it performs global initialization), we cannot produce a
 /// unique identifier for this module, so we return the empty string.
 std::string getUniqueModuleId(Module *M);
+
+/// Embed the memory buffer \p Buf into the module \p M as a global using the
+/// specified section name.
+void embedBufferInModule(Module &M, MemoryBufferRef Buf, StringRef SectionName);
 
 class CallInst;
 namespace VFABI {

@@ -89,9 +89,6 @@ defm split_stack_adjust_size
          "non-split-stack function">,
       MetaVarName<"<value>">;
 
-defm library_path:
-  Eq<"library-path", "Add a directory to the library search path">, MetaVarName<"<dir>">;
-
 def O: JoinedOrSeparate<["-"], "O">, HelpText<"Optimize output file size">;
 
 defm Tbss: Eq<"Tbss", "Same as --section-start with .bss as the sectionname">;
@@ -129,17 +126,18 @@ defm call_graph_profile_sort: BB<"call-graph-profile-sort",
     "Reorder sections with call graph profile (default)",
     "Do not reorder sections with call graph profile">;
 
-// -chroot doesn't have a help text because it is an internal option.
-def chroot: Separate<["--", "-"], "chroot">;
+// --chroot doesn't have a help text because it is an internal option.
+def chroot: Separate<["--"], "chroot">;
 
-defm color_diagnostics: B<"color-diagnostics",
+defm color_diagnostics: BB<"color-diagnostics",
   "Alias for --color-diagnostics=always",
   "Alias for --color-diagnostics=never">;
-def color_diagnostics_eq: J<"color-diagnostics=">,
+def color_diagnostics_eq: JJ<"color-diagnostics=">,
   HelpText<"Use colors in diagnostics (default: auto)">,
   MetaVarName<"[auto,always,never]">;
 
-def cref: FF<"cref">, HelpText<"Output cross reference table">;
+def cref: FF<"cref">,
+  HelpText<"Output cross reference table. If -Map is specified, print to the map file">;
 
 defm define_common: B<"define-common",
     "Assign space to common symbols",
@@ -166,10 +164,8 @@ def discard_none: F<"discard-none">,
 defm dynamic_linker: Eq<"dynamic-linker", "Which dynamic linker to use">;
 
 defm dynamic_list : Eq<"dynamic-list",
-   "Read a list of dynamic symbols. (executable) Put matched non-local defined"
-   "symbols to the dynamic symbol table. (shared object) References to matched"
-   "non-local STV_DEFAULT symbols shouldn't be bound to definitions within the "
-   "shared object. Implies -Bsymbolic but does not set DF_SYMBOLIC">,
+   "Similar to --export-dynamic-symbol-list. When creating a shared object, "
+   "this additionally implies -Bsymbolic but does not set DF_SYMBOLIC">,
    MetaVarName<"<file>">;
 
 def eb: F<"EB">, HelpText<"Select the big-endian format in OUTPUT_FORMAT">;
@@ -219,6 +215,10 @@ defm export_dynamic_symbol : EEq<"export-dynamic-symbol",
     "Does not imply -Bsymbolic.">,
     MetaVarName<"glob">;
 
+defm export_dynamic_symbol_list : EEq<"export-dynamic-symbol-list",
+   "Read a list of dynamic symbol patterns. Apply --export-dynamic-symbol on each pattern">,
+    MetaVarName<"file">;
+
 defm fatal_warnings: B<"fatal-warnings",
     "Treat warnings as errors",
     "Do not treat warnings as errors (default)">;
@@ -258,13 +258,13 @@ def icf_safe: F<"icf=safe">, HelpText<"Enable safe identical code folding">;
 
 def icf_none: F<"icf=none">, HelpText<"Disable identical code folding (default)">;
 
-def ignore_function_address_equality: F<"ignore-function-address-equality">,
+def ignore_function_address_equality: FF<"ignore-function-address-equality">,
   HelpText<"lld can break the address equality of functions">;
 
-def ignore_data_address_equality: F<"ignore-data-address-equality">,
+def ignore_data_address_equality: FF<"ignore-data-address-equality">,
   HelpText<"lld can break the address equality of data">;
 
-defm image_base: Eq<"image-base", "Set the base address">;
+defm image_base: EEq<"image-base", "Set the base address">;
 
 defm init: Eq<"init", "Specify an initializer function">,
   MetaVarName<"<symbol>">;
@@ -273,8 +273,10 @@ defm just_symbols: Eq<"just-symbols", "Just link symbols">;
 
 defm keep_unique: Eq<"keep-unique", "Do not fold this symbol during ICF">;
 
-defm library: Eq<"library", "Root name of library to use">,
-  MetaVarName<"<libName>">;
+def library: JoinedOrSeparate<["-"], "l">, MetaVarName<"<libname>">,
+  HelpText<"Search for library <libname>">;
+def library_path: JoinedOrSeparate<["-"], "L">, MetaVarName<"<dir>">,
+  HelpText<"Add <dir> to the library search path">;
 
 def m: JoinedOrSeparate<["-"], "m">, HelpText<"Set target emulation">;
 
@@ -312,8 +314,8 @@ def no_undefined: F<"no-undefined">,
 def o: JoinedOrSeparate<["-"], "o">, MetaVarName<"<path>">,
   HelpText<"Path to file to write output">;
 
-def oformat: Separate<["--"], "oformat">, MetaVarName<"<format>">,
-  HelpText<"Specify the binary format for the output object file">;
+defm oformat: EEq<"oformat", "Specify the binary format for the output object file">,
+  MetaVarName<"[elf,binary]">;
 
 def omagic: FF<"omagic">, MetaVarName<"<magic>">,
   HelpText<"Set the text and data sections to be readable and writable, do not page align sections, link against static libraries">;
@@ -322,7 +324,7 @@ defm orphan_handling:
   Eq<"orphan-handling", "Control how orphan sections are handled when linker script used">;
 
 defm pack_dyn_relocs:
-  Eq<"pack-dyn-relocs", "Pack dynamic relocations in the given format">,
+  EEq<"pack-dyn-relocs", "Pack dynamic relocations in the given format">,
   MetaVarName<"[none,android,relr,android+relr]">;
 
 defm use_android_relr_tags: BB<"use-android-relr-tags",
@@ -346,22 +348,26 @@ defm print_icf_sections: B<"print-icf-sections",
 
 def print_archive_stats: J<"print-archive-stats=">,
   HelpText<"Write archive usage statistics to the specified file. "
-           "Print the numbers of members and fetched members for each archive">;
+           "Print the numbers of members and extracted members for each archive">;
 
 defm print_symbol_order: Eq<"print-symbol-order",
   "Print a symbol order specified by --call-graph-ordering-file into the specified file">;
 
 def pop_state: F<"pop-state">,
-  HelpText<"Undo the effect of -push-state">;
+  HelpText<"Restore the states saved by --push-state">;
 
 def push_state: F<"push-state">,
-  HelpText<"Save the current state of -as-needed, -static and -whole-archive">;
+  HelpText<"Save the current state of --as-needed, -static and --whole-archive">;
 
 def print_map: F<"print-map">,
   HelpText<"Print a link map to the standard output">;
 
+defm relax: BB<"relax",
+  "Enable target-specific relaxations if supported (default)",
+  "Disable target-specific relaxations">;
+
 defm reproduce:
-  Eq<"reproduce",
+  EEq<"reproduce",
      "Write tar file containing inputs and command to reproduce link">;
 
 defm rosegment: BB<"rosegment",
@@ -399,7 +405,7 @@ def strip_all: F<"strip-all">, HelpText<"Strip all symbols. Implies --strip-debu
 def strip_debug: F<"strip-debug">, HelpText<"Strip debugging information">;
 
 defm symbol_ordering_file:
-  Eq<"symbol-ordering-file", "Layout sections to place symbols in the order specified by symbol ordering file">;
+  EEq<"symbol-ordering-file", "Layout sections to place symbols in the order specified by symbol ordering file">;
 
 defm sysroot: Eq<"sysroot", "Set the system root">;
 
@@ -412,7 +418,7 @@ defm target2:
   MetaVarName<"<type>">;
 
 defm threads
-    : Eq<"threads",
+    : EEq<"threads",
          "Number of threads. '1' disables multi-threading. By default all "
          "available hardware threads are used">;
 
@@ -449,7 +455,7 @@ defm undefined_version: B<"undefined-version",
   "Allow unused version in version script (default)",
   "Report version scripts that refer undefined symbols">;
 
-defm rsp_quoting: Eq<"rsp-quoting", "Quoting style for response files">,
+defm rsp_quoting: EEq<"rsp-quoting", "Quoting style for response files">,
   MetaVarName<"[posix,windows]">;
 
 def v: Flag<["-"], "v">, HelpText<"Display the version number">;
@@ -458,22 +464,19 @@ def verbose: F<"verbose">, HelpText<"Verbose mode">;
 
 def version: F<"version">, HelpText<"Display the version number and exit">;
 
-def power10_stubs: F<"power10-stubs">, HelpText<"Alias for --power10-stubs=auto">;
-
-def no_power10_stubs: F<"no-power10-stubs">, HelpText<"Alias for --power10-stubs=no">;
-
-def power10_stubs_eq:
-  J<"power10-stubs=">, HelpText<
-                     "Enables Power10 instructions in all stubs without options, "
-                     "options override previous flags."
-                     "auto: Allow Power10 instructions in stubs if applicable."
-                     "no:   No Power10 instructions in stubs.">;
+def power10_stubs_eq: JJ<"power10-stubs=">, MetaVarName<"<mode>">,
+  HelpText<"Whether to use Power10 instructions in call stubs for R_PPC64_REL24_NOTOC and TOC/NOTOC "
+  "interworking (yes (default): use; no: don't use). \"auto\" is currently the same as \"yes\"">;
+def power10_stubs: FF<"power10-stubs">, Alias<power10_stubs_eq>, AliasArgs<["yes"]>,
+  HelpText<"Alias for --power10-stubs=auto">;
+def no_power10_stubs: FF<"no-power10-stubs">, Alias<power10_stubs_eq>, AliasArgs<["no"]>,
+  HelpText<"Alias for --power10-stubs=no">;
 
 defm version_script: Eq<"version-script", "Read a version script">;
 
 defm warn_backrefs: BB<"warn-backrefs",
-    "Warn about backward symbol references to fetch archive members",
-    "Do not warn about backward symbol references to fetch archive members (default)">;
+    "Warn about backward symbol references to extract archive members",
+    "Do not warn about backward symbol references to extract archive members (default)">;
 
 defm warn_backrefs_exclude
     : EEq<"warn-backrefs-exclude",
@@ -500,6 +503,8 @@ defm whole_archive: B<"whole-archive",
     "Force load of all members in a static library",
     "Do not force load of all members in a static library (default)">;
 
+def why_extract: JJ<"why-extract=">, HelpText<"Print to a file about why archive members are extracted">;
+
 defm wrap : Eq<"wrap", "Redirect symbol references to __wrap_symbol and "
                        "__real_symbol references to symbol">,
             MetaVarName<"<symbol>">;
@@ -507,7 +512,7 @@ defm wrap : Eq<"wrap", "Redirect symbol references to __wrap_symbol and "
 def z: JoinedOrSeparate<["-"], "z">, MetaVarName<"<option>">,
   HelpText<"Linker option extensions">;
 
-def visual_studio_diagnostics_format : F<"vs-diagnostics">,
+def visual_studio_diagnostics_format : FF<"vs-diagnostics">,
 HelpText<"Format diagnostics for Visual Studio compatibility">;
 
 // Aliases
@@ -528,9 +533,10 @@ def: JoinedOrSeparate<["-"], "e">, Alias<entry>, HelpText<"Alias for --entry">;
 def: Flag<["-"], "E">, Alias<export_dynamic>, HelpText<"Alias for --export-dynamic">;
 //def: Separate<["-"], "F">, Alias<filter>, HelpText<"Alias for --filter">;
 def: Separate<["-"], "b">, Alias<format>, HelpText<"Alias for --format">;
-def: JoinedOrSeparate<["-"], "l">, Alias<library>, HelpText<"Alias for --library">;
-def: JoinedOrSeparate<["-"], "L">, Alias<library_path>, HelpText<"Alias for --library-path">;
-def: F<"no-pic-executable">, Alias<no_pie>, HelpText<"Alias for --no-pie">;
+def: Separate<["--", "-"], "library">, Alias<library>;
+def: Joined<["--", "-"], "library=">, Alias<library>;
+def: Separate<["--", "-"], "library-path">, Alias<library_path>;
+def: Joined<["--", "-"], "library-path=">, Alias<library_path>;
 def: Flag<["-"], "n">, Alias<nmagic>, HelpText<"Alias for --nmagic">;
 def: Flag<["-"], "N">, Alias<omagic>, HelpText<"Alias for --omagic">;
 def: Joined<["--"], "output=">, Alias<o>, HelpText<"Alias for -o">;
@@ -571,14 +577,15 @@ def lto_cs_profile_generate: FF<"lto-cs-profile-generate">,
   HelpText<"Perform context sensitive PGO instrumentation">;
 def lto_cs_profile_file: JJ<"lto-cs-profile-file=">,
   HelpText<"Context sensitive profile file path">;
+defm lto_pgo_warn_mismatch: BB<"lto-pgo-warn-mismatch",
+  "turn on warnings about profile cfg mismatch (default)>",
+  "turn off warnings about profile cfg mismatch">;
 def lto_obj_path_eq: JJ<"lto-obj-path=">;
 def lto_sample_profile: JJ<"lto-sample-profile=">,
   HelpText<"Sample profile file path">;
 defm lto_whole_program_visibility: BB<"lto-whole-program-visibility",
   "Asserts that the LTO link has whole program visibility",
   "Asserts that the LTO link does not have whole program visibility">;
-def lto_pseudo_probe_for_profiling: F<"lto-pseudo-probe-for-profiling">,
-  HelpText<"Emit pseudo probes for sample profiling">;
 def disable_verify: F<"disable-verify">;
 defm mllvm: Eq<"mllvm", "Additional arguments to forward to LLVM's option processing">;
 def opt_remarks_filename: Separate<["--"], "opt-remarks-filename">,
@@ -654,8 +661,6 @@ def: F<"plugin-opt=opt-remarks-with-hotness">,
 def: J<"plugin-opt=opt-remarks-hotness-threshold=">,
   Alias<opt_remarks_hotness_threshold>,
   HelpText<"Alias for --opt-remarks-hotness-threshold">;
-def: J<"plugin-opt=pseudo-probe-for-profiling">,
-  Alias<lto_pseudo_probe_for_profiling>, HelpText<"Alias for --lto-pseudo-probe-for-profiling">;
 def: J<"plugin-opt=sample-profile=">,
   Alias<lto_sample_profile>, HelpText<"Alias for --lto-sample-profile">;
 def: F<"plugin-opt=save-temps">, Alias<save_temps>, HelpText<"Alias for --save-temps">;
@@ -700,14 +705,10 @@ def plugin_opt_eq : J<"plugin-opt=">;
 def: F<"detect-odr-violations">;
 def: Flag<["-"], "g">;
 def: F<"long-plt">;
-def: F<"no-add-needed">;
 def: F<"no-copy-dt-needed-entries">;
 def: F<"no-ctors-in-init-array">;
 def: F<"no-keep-memory">;
-def: F<"no-pipeline-knowledge">;
-def: F<"no-relax">;
 def: F<"no-warn-mismatch">;
-def: Flag<["-"], "p">;
 def: Separate<["--", "-"], "rpath-link">;
 def: J<"rpath-link=">;
 def: F<"secure-plt">;
@@ -717,7 +718,6 @@ def: F<"warn-execstack">;
 def: F<"warn-once">;
 def: F<"warn-shared-textrel">;
 def: JoinedOrSeparate<["-"], "G">;
-def: F<"Qy">;
 
 // Hidden option used for testing MIPS multi-GOT implementation.
 defm mips_got_size:

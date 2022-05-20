@@ -21,13 +21,6 @@
 #include "SIInstrInfo.h"
 #include "llvm/CodeGen/SelectionDAGTargetInfo.h"
 
-namespace llvm {
-
-class MCInst;
-class MCInstrInfo;
-
-} // namespace llvm
-
 #define GET_SUBTARGETINFO_HEADER
 #include "AMDGPUGenSubtargetInfo.inc"
 
@@ -104,7 +97,6 @@ protected:
   bool FP64;
   bool FMA;
   bool MIMG_R128;
-  bool IsGCN;
   bool CIInsts;
   bool GFX8Insts;
   bool GFX9Insts;
@@ -161,7 +153,6 @@ protected:
   bool HasGetWaveIdInst;
   bool HasSMemTimeInst;
   bool HasShaderCyclesRegister;
-  bool HasRegisterBanking;
   bool HasVOP3Literal;
   bool HasNoDataDepHazard;
   bool FlatAddressSpace;
@@ -172,13 +163,8 @@ protected:
   bool HasArchitectedFlatScratch;
   bool AddNoCarryInsts;
   bool HasUnpackedD16VMem;
-  bool R600ALUInst;
-  bool CaymanISA;
-  bool CFALUBug;
   bool LDSMisalignedBug;
   bool HasMFMAInlineLiteralBug;
-  bool HasVertexCache;
-  short TexVTXClauseSize;
   bool UnalignedBufferAccess;
   bool UnalignedDSAccess;
   bool HasPackedTID;
@@ -272,7 +258,7 @@ public:
     return (Generation)Gen;
   }
 
-  /// Return the number of high bits known to be zero fror a frame index.
+  /// Return the number of high bits known to be zero for a frame index.
   unsigned getKnownHighZeroBitsForFrameIndex() const {
     return countLeadingZeros(MaxWaveScratchSize) + getWavefrontSizeLog2();
   }
@@ -612,7 +598,7 @@ public:
   }
 
   /// Return if most LDS instructions have an m0 use that require m0 to be
-  /// iniitalized.
+  /// initialized.
   bool ldsRequiresM0Init() const {
     return getGeneration() < GFX9;
   }
@@ -736,10 +722,6 @@ public:
     return HasShaderCyclesRegister;
   }
 
-  bool hasRegisterBanking() const {
-    return HasRegisterBanking;
-  }
-
   bool hasVOP3Literal() const {
     return HasVOP3Literal;
   }
@@ -753,7 +735,7 @@ public:
   }
 
   // Scratch is allocated in 256 dword per wave blocks for the entire
-  // wavefront. When viewed from the perspecive of an arbitrary workitem, this
+  // wavefront. When viewed from the perspective of an arbitrary workitem, this
   // is 4-byte aligned.
   //
   // Only 4-byte alignment is really needed to access anything. Transformations
@@ -818,9 +800,7 @@ public:
     return HasScalarAtomics;
   }
 
-  bool hasLDSFPAtomics() const {
-    return GFX8Insts;
-  }
+  bool hasLDSFPAtomicAdd() const { return GFX8Insts; }
 
   /// \returns true if the subtarget has the v_permlanex16_b32 instruction.
   bool hasPermLaneX16() const { return getGeneration() >= GFX10; }
@@ -1044,7 +1024,7 @@ public:
   /// \returns Reserved number of SGPRs. This is common
   /// utility function called by MachineFunction and
   /// Function variants of getReservedNumSGPRs.
-  unsigned getBaseReservedNumSGPRs(const bool HasFlatScratchInit) const;
+  unsigned getBaseReservedNumSGPRs(const bool HasFlatScratch) const;
   /// \returns Reserved number of SGPRs for given machine function \p MF.
   unsigned getReservedNumSGPRs(const MachineFunction &MF) const;
 
@@ -1138,6 +1118,9 @@ public:
   void getPostRAMutations(
       std::vector<std::unique_ptr<ScheduleDAGMutation>> &Mutations)
       const override;
+
+  std::unique_ptr<ScheduleDAGMutation>
+  createFillMFMAShadowMutation(const TargetInstrInfo *TII) const;
 
   bool isWave32() const {
     return getWavefrontSize() == 32;

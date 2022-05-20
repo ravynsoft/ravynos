@@ -46,9 +46,9 @@ class Value;
 /// instruction. If \p Updates is specified, collect all necessary DT updates
 /// into this vector. If \p KeepOneInputPHIs is true, one-input Phis in
 /// successors of blocks being deleted will be preserved.
-void DetatchDeadBlocks(ArrayRef <BasicBlock *> BBs,
-                       SmallVectorImpl<DominatorTree::UpdateType> *Updates,
-                       bool KeepOneInputPHIs = false);
+void detachDeadBlocks(ArrayRef <BasicBlock *> BBs,
+                      SmallVectorImpl<DominatorTree::UpdateType> *Updates,
+                      bool KeepOneInputPHIs = false);
 
 /// Delete the specified block, which must have no predecessors.
 void DeleteDeadBlock(BasicBlock *BB, DomTreeUpdater *DTU = nullptr,
@@ -128,6 +128,13 @@ void ReplaceInstWithInst(BasicBlock::InstListType &BIL,
 /// Replace the instruction specified by From with the instruction specified by
 /// To. Copies DebugLoc from BI to I, if I doesn't already have a DebugLoc.
 void ReplaceInstWithInst(Instruction *From, Instruction *To);
+
+/// Check if we can prove that all paths starting from this block converge
+/// to a block that either has a @llvm.experimental.deoptimize call
+/// prior to its terminating return instruction or is terminated by unreachable.
+/// All blocks in the traversed sequence must have an unique successor, maybe
+/// except for the last one.
+bool IsBlockFollowedByDeoptOrUnreachable(const BasicBlock *BB);
 
 /// Option class for critical edge splitting.
 ///
@@ -213,29 +220,6 @@ BasicBlock *SplitKnownCriticalEdge(Instruction *TI, unsigned SuccNum,
                                    const CriticalEdgeSplittingOptions &Options =
                                        CriticalEdgeSplittingOptions(),
                                    const Twine &BBName = "");
-
-inline BasicBlock *
-SplitCriticalEdge(BasicBlock *BB, succ_iterator SI,
-                  const CriticalEdgeSplittingOptions &Options =
-                      CriticalEdgeSplittingOptions()) {
-  return SplitCriticalEdge(BB->getTerminator(), SI.getSuccessorIndex(),
-                           Options);
-}
-
-/// If the edge from *PI to BB is not critical, return false. Otherwise, split
-/// all edges between the two blocks and return true. This updates all of the
-/// same analyses as the other SplitCriticalEdge function. If P is specified, it
-/// updates the analyses described above.
-inline bool SplitCriticalEdge(BasicBlock *Succ, pred_iterator PI,
-                              const CriticalEdgeSplittingOptions &Options =
-                                  CriticalEdgeSplittingOptions()) {
-  bool MadeChange = false;
-  Instruction *TI = (*PI)->getTerminator();
-  for (unsigned i = 0, e = TI->getNumSuccessors(); i != e; ++i)
-    if (TI->getSuccessor(i) == Succ)
-      MadeChange |= !!SplitCriticalEdge(TI, i, Options);
-  return MadeChange;
-}
 
 /// If an edge from Src to Dst is critical, split the edge and return true,
 /// otherwise return false. This method requires that there be an edge between

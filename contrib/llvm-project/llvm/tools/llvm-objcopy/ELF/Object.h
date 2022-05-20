@@ -48,12 +48,12 @@ class Object;
 struct Symbol;
 
 class SectionTableRef {
-  MutableArrayRef<std::unique_ptr<SectionBase>> Sections;
+  ArrayRef<std::unique_ptr<SectionBase>> Sections;
 
 public:
-  using iterator = pointee_iterator<std::unique_ptr<SectionBase> *>;
+  using iterator = pointee_iterator<const std::unique_ptr<SectionBase> *>;
 
-  explicit SectionTableRef(MutableArrayRef<std::unique_ptr<SectionBase>> Secs)
+  explicit SectionTableRef(ArrayRef<std::unique_ptr<SectionBase>> Secs)
       : Sections(Secs) {}
   SectionTableRef(const SectionTableRef &) = default;
 
@@ -429,6 +429,7 @@ public:
   virtual void markSymbols();
   virtual void
   replaceSectionReferences(const DenseMap<SectionBase *, SectionBase *> &);
+  virtual bool hasContents() const { return false; }
   // Notify the section that it is subject to removal.
   virtual void onRemove();
 };
@@ -493,6 +494,9 @@ public:
       function_ref<bool(const SectionBase *)> ToRemove) override;
   Error initialize(SectionTableRef SecTable) override;
   void finalize() override;
+  bool hasContents() const override {
+    return Type != ELF::SHT_NOBITS && Type != ELF::SHT_NULL;
+  }
 };
 
 class OwnedDataSection : public SectionBase {
@@ -518,9 +522,15 @@ public:
     OriginalOffset = SecOff;
   }
 
+  OwnedDataSection(SectionBase &S, ArrayRef<uint8_t> Data)
+      : SectionBase(S), Data(std::begin(Data), std::end(Data)) {
+    Size = Data.size();
+  }
+
   void appendHexData(StringRef HexData);
   Error accept(SectionVisitor &Sec) const override;
   Error accept(MutableSectionVisitor &Visitor) override;
+  bool hasContents() const override { return true; }
 };
 
 class CompressedSection : public SectionBase {
@@ -745,6 +755,8 @@ public:
   const SectionBase *getSection() const { return SecToApplyRel; }
   void setSection(SectionBase *Sec) { SecToApplyRel = Sec; }
 
+  StringRef getNamePrefix() const;
+
   static bool classof(const SectionBase *S) {
     return S->OriginalType == ELF::SHT_REL || S->OriginalType == ELF::SHT_RELA;
   }
@@ -771,8 +783,10 @@ class RelocationSection
   MAKE_SEC_WRITER_FRIEND
 
   std::vector<Relocation> Relocations;
+  const Object &Obj;
 
 public:
+  RelocationSection(const Object &O) : Obj(O) {}
   void addRelocation(Relocation Rel) { Relocations.push_back(Rel); }
   Error accept(SectionVisitor &Visitor) const override;
   Error accept(MutableSectionVisitor &Visitor) override;
@@ -783,6 +797,7 @@ public:
   void markSymbols() override;
   void replaceSectionReferences(
       const DenseMap<SectionBase *, SectionBase *> &FromTo) override;
+  const Object &getObject() const { return Obj; }
 
   static bool classof(const SectionBase *S) {
     if (S->OriginalFlags & ELF::SHF_ALLOC)
@@ -919,8 +934,7 @@ class BinaryELFBuilder : public BasicELFBuilder {
 
 public:
   BinaryELFBuilder(MemoryBuffer *MB, uint8_t NewSymbolVisibility)
-      : BasicELFBuilder(), MemBuf(MB),
-        NewSymbolVisibility(NewSymbolVisibility) {}
+      : MemBuf(MB), NewSymbolVisibility(NewSymbolVisibility) {}
 
   Expected<std::unique_ptr<Object>> build();
 };
@@ -931,8 +945,7 @@ class IHexELFBuilder : public BasicELFBuilder {
   void addDataSections();
 
 public:
-  IHexELFBuilder(const std::vector<IHexRecord> &Records)
-      : BasicELFBuilder(), Records(Records) {}
+  IHexELFBuilder(const std::vector<IHexRecord> &Records) : Records(Records) {}
 
   Expected<std::unique_ptr<Object>> build();
 };
@@ -959,9 +972,7 @@ private:
 
 public:
   ELFBuilder(const ELFObjectFile<ELFT> &ElfObj, Object &Obj,
-             Optional<StringRef> ExtractPartition)
-      : ElfFile(ElfObj.getELFFile()), Obj(Obj),
-        ExtractPartition(ExtractPartition) {}
+             Optional<StringRef> ExtractPartition);
 
   Error build(bool EnsureSymtab);
 };
@@ -1016,16 +1027,13 @@ private:
   std::vector<SecPtr> Sections;
   std::vector<SegPtr> Segments;
   std::vector<SecPtr> RemovedSections;
+  DenseMap<SectionBase *, std::vector<uint8_t>> UpdatedSections;
 
   static bool sectionIsAlloc(const SectionBase &Sec) {
     return Sec.Flags & ELF::SHF_ALLOC;
   };
 
 public:
-  template <class T>
-  using Range = iterator_range<
-      pointee_iterator<typename std::vector<std::unique_ptr<T>>::iterator>>;
-
   template <class T>
   using ConstRange = iterator_range<pointee_iterator<
       typename std::vector<std::unique_ptr<T>>::const_iterator>>;
@@ -1054,17 +1062,18 @@ public:
   SymbolTableSection *SymbolTable = nullptr;
   SectionIndexSection *SectionIndexTable = nullptr;
 
-  void sortSections();
-  SectionTableRef sections() { return SectionTableRef(Sections); }
-  ConstRange<SectionBase> sections() const {
-    return make_pointee_range(Sections);
-  }
+  bool IsMips64EL = false;
+
+  SectionTableRef sections() const { return SectionTableRef(Sections); }
   iterator_range<
       filter_iterator<pointee_iterator<std::vector<SecPtr>::const_iterator>,
                       decltype(&sectionIsAlloc)>>
   allocSections() const {
     return make_filter_range(make_pointee_range(Sections), sectionIsAlloc);
   }
+
+  const auto &getUpdatedSections() const { return UpdatedSections; }
+  Error updateSection(StringRef Name, ArrayRef<uint8_t> Data);
 
   SectionBase *findSection(StringRef Name) {
     auto SecIt =
@@ -1073,11 +1082,11 @@ public:
   }
   SectionTableRef removedSections() { return SectionTableRef(RemovedSections); }
 
-  Range<Segment> segments() { return make_pointee_range(Segments); }
   ConstRange<Segment> segments() const { return make_pointee_range(Segments); }
 
   Error removeSections(bool AllowBrokenLinks,
                        std::function<bool(const SectionBase &)> ToRemove);
+  Error replaceSections(const DenseMap<SectionBase *, SectionBase *> &FromTo);
   Error removeSymbols(function_ref<bool(const Symbol &)> ToRemove);
   template <class T, class... Ts> T &addSection(Ts &&... Args) {
     auto Sec = std::make_unique<T>(std::forward<Ts>(Args)...);

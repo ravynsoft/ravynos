@@ -243,9 +243,16 @@ defm : Zn2WriteResPair<WriteIDiv32, [Zn2ALU2, Zn2Divider], 25, [1,25], 2>;
 defm : Zn2WriteResPair<WriteIDiv64, [Zn2ALU2, Zn2Divider], 41, [1,41], 2>;
 
 // IMULH
-def  : WriteRes<WriteIMulH, [Zn2ALU1, Zn2Multiplier]>{
-  let Latency = 4;
+def Zn2WriteIMulH : WriteRes<WriteIMulH, [Zn2Multiplier]>{
+  let Latency = 3;
+  let NumMicroOps = 0;
 }
+
+def  : WriteRes<WriteIMulHLd, [Zn2Multiplier]>{
+  let Latency = !add(Zn2WriteIMulH.Latency, Znver2Model.LoadLatency);
+  let NumMicroOps = Zn2WriteIMulH.NumMicroOps;
+}
+
 
 // Floating point operations
 defm : X86WriteRes<WriteFLoad,         [Zn2AGU], 8, [1], 1>;
@@ -267,6 +274,7 @@ defm : X86WriteRes<WriteFStoreNTY,     [Zn2AGU], 1, [1], 1>;
 defm : X86WriteRes<WriteFMove,         [Zn2FPU], 1, [1], 1>;
 defm : X86WriteRes<WriteFMoveX,        [Zn2FPU], 1, [1], 1>;
 defm : X86WriteRes<WriteFMoveY,        [Zn2FPU], 1, [1], 1>;
+defm : X86WriteResUnsupported<WriteFMoveZ>;
 
 defm : Zn2WriteResFpuPair<WriteFAdd,      [Zn2FPU0],  3>;
 defm : Zn2WriteResFpuPair<WriteFAddX,     [Zn2FPU0],  3>;
@@ -381,6 +389,7 @@ defm : X86WriteRes<WriteVecMaskedStore64Y, [Zn2AGU,Zn2FPU01], 5, [1,2], 2>;
 defm : X86WriteRes<WriteVecMove,         [Zn2FPU], 1, [1], 1>;
 defm : X86WriteRes<WriteVecMoveX,        [Zn2FPU], 1, [1], 1>;
 defm : X86WriteRes<WriteVecMoveY,        [Zn2FPU], 2, [1], 2>;
+defm : X86WriteResUnsupported<WriteVecMoveZ>;
 defm : X86WriteRes<WriteVecMoveToGpr,    [Zn2FPU2], 2, [1], 1>;
 defm : X86WriteRes<WriteVecMoveFromGpr,  [Zn2FPU2], 3, [1], 1>;
 defm : X86WriteRes<WriteEMMS,            [Zn2FPU], 2, [1], 1>;
@@ -658,31 +667,9 @@ def : SchedAlias<WriteIMul64ImmLd, Zn2WriteMul64Ld>;
 def : SchedAlias<WriteIMul64RegLd, Zn2WriteMul64Ld>;
 
 // MULX.
-// r32,r32,r32.
-def Zn2WriteMulX32 : SchedWriteRes<[Zn2ALU1, Zn2Multiplier]> {
-  let Latency = 3;
-  let ResourceCycles = [1, 2];
-}
-def : InstRW<[Zn2WriteMulX32], (instrs MULX32rr)>;
-
-// r32,r32,m32.
-def Zn2WriteMulX32Ld : SchedWriteRes<[Zn2AGU, Zn2ALU1, Zn2Multiplier]> {
-  let Latency = 7;
-  let ResourceCycles = [1, 2, 2];
-}
-def : InstRW<[Zn2WriteMulX32Ld, ReadAfterLd], (instrs MULX32rm)>;
-
-// r64,r64,r64.
-def Zn2WriteMulX64 : SchedWriteRes<[Zn2ALU1]> {
-  let Latency = 3;
-}
-def : InstRW<[Zn2WriteMulX64], (instrs MULX64rr)>;
-
-// r64,r64,m64.
-def Zn2WriteMulX64Ld : SchedWriteRes<[Zn2AGU, Zn2ALU1, Zn2Multiplier]> {
-  let Latency = 7;
-}
-def : InstRW<[Zn2WriteMulX64Ld, ReadAfterLd], (instrs MULX64rm)>;
+// Numbers are based on the AMD SOG for Family 17h - Instruction Latencies.
+defm : Zn2WriteResPair<WriteMULX32, [Zn2ALU1, Zn2Multiplier], 3, [1, 1], 1, 4, 0>;
+defm : Zn2WriteResPair<WriteMULX64, [Zn2ALU1, Zn2Multiplier], 3, [1, 1], 1, 4, 0>;
 
 //-- Control transfer instructions --//
 
@@ -712,7 +699,7 @@ def : InstRW<[WriteMicrocoded], (instregex "CALL(16|32)m")>;
 def Zn2WriteRET : SchedWriteRes<[Zn2ALU03]> {
   let NumMicroOps = 2;
 }
-def : InstRW<[Zn2WriteRET], (instregex "RET(L|Q|W)", "LRET(L|Q|W)",
+def : InstRW<[Zn2WriteRET], (instregex "RET(16|32|64)", "LRET(16|32|64)",
                             "IRET(16|32|64)")>;
 
 //-- Logic instructions --//
@@ -1027,12 +1014,12 @@ def Zn2WriteFPU12Ym : SchedWriteRes<[Zn2AGU, Zn2FPU12]> {
   let NumMicroOps = 2;
 }
 
-def : InstRW<[Zn2WriteFPU12], (instrs MMX_PACKSSDWirr,
-                                     MMX_PACKSSWBirr,
-                                     MMX_PACKUSWBirr)>;
-def : InstRW<[Zn2WriteFPU12m], (instrs MMX_PACKSSDWirm,
-                                      MMX_PACKSSWBirm,
-                                      MMX_PACKUSWBirm)>;
+def : InstRW<[Zn2WriteFPU12], (instrs MMX_PACKSSDWrr,
+                                     MMX_PACKSSWBrr,
+                                     MMX_PACKUSWBrr)>;
+def : InstRW<[Zn2WriteFPU12m], (instrs MMX_PACKSSDWrm,
+                                      MMX_PACKSSWBrm,
+                                      MMX_PACKUSWBrm)>;
 
 def Zn2WriteFPU013 : SchedWriteRes<[Zn2FPU013]> ;
 def Zn2WriteFPU013Y : SchedWriteRes<[Zn2FPU013]> ;
@@ -1319,15 +1306,15 @@ def Zn2WriteCVTPS2PIr: SchedWriteRes<[Zn2FPU3]> {
 }
 // CVT(T)PS2PI.
 // mm,x.
-def : InstRW<[Zn2WriteCVTPS2PIr], (instregex "MMX_CVT(T?)PS2PIirr")>;
+def : InstRW<[Zn2WriteCVTPS2PIr], (instregex "MMX_CVT(T?)PS2PIrr")>;
 
 // CVTPI2PD.
 // x,mm.
-def : InstRW<[Zn2WriteCVTPS2PDr], (instrs MMX_CVTPI2PDirr)>;
+def : InstRW<[Zn2WriteCVTPS2PDr], (instrs MMX_CVTPI2PDrr)>;
 
 // CVT(T)PD2PI.
 // mm,x.
-def : InstRW<[Zn2WriteCVTPS2PIr], (instregex "MMX_CVT(T?)PD2PIirr")>;
+def : InstRW<[Zn2WriteCVTPS2PIr], (instregex "MMX_CVT(T?)PD2PIrr")>;
 
 def Zn2WriteCVSTSI2SSr: SchedWriteRes<[Zn2FPU3]> {
   let Latency = 3;
@@ -1544,5 +1531,84 @@ def : InstRW<[WriteALU], (instrs VZEROUPPER)>;
 
 // VZEROALL.
 def : InstRW<[WriteMicrocoded], (instrs VZEROALL)>;
+
+///////////////////////////////////////////////////////////////////////////////
+// Dependency breaking instructions.
+///////////////////////////////////////////////////////////////////////////////
+
+def : IsZeroIdiomFunction<[
+  // GPR Zero-idioms.
+  DepBreakingClass<[
+    SUB32rr, SUB64rr,
+    XOR32rr, XOR64rr
+  ], ZeroIdiomPredicate>,
+
+  // MMX Zero-idioms.
+  DepBreakingClass<[
+    MMX_PXORrr, MMX_PANDNrr, MMX_PSUBBrr,
+    MMX_PSUBDrr, MMX_PSUBQrr, MMX_PSUBWrr,
+    MMX_PSUBSBrr, MMX_PSUBSWrr, MMX_PSUBUSBrr, MMX_PSUBUSWrr,
+    MMX_PCMPGTBrr, MMX_PCMPGTDrr, MMX_PCMPGTWrr
+  ], ZeroIdiomPredicate>,
+
+  // SSE Zero-idioms.
+  DepBreakingClass<[
+    // fp variants.
+    XORPSrr, XORPDrr, ANDNPSrr, ANDNPDrr,
+
+    // int variants.
+    PXORrr, PANDNrr,
+    PSUBBrr, PSUBWrr, PSUBDrr, PSUBQrr,
+    PCMPGTBrr, PCMPGTDrr, PCMPGTQrr, PCMPGTWrr
+  ], ZeroIdiomPredicate>,
+
+  // AVX XMM Zero-idioms.
+  DepBreakingClass<[
+    // fp variants.
+    VXORPSrr, VXORPDrr, VANDNPSrr, VANDNPDrr,
+
+    // int variants.
+    VPXORrr, VPANDNrr,
+    VPSUBBrr, VPSUBWrr, VPSUBDrr, VPSUBQrr,
+    VPCMPGTBrr, VPCMPGTWrr, VPCMPGTDrr, VPCMPGTQrr
+  ], ZeroIdiomPredicate>,
+
+  // AVX YMM Zero-idioms.
+  DepBreakingClass<[
+    // fp variants
+    VXORPSYrr, VXORPDYrr, VANDNPSYrr, VANDNPDYrr,
+
+    // int variants
+    VPXORYrr, VPANDNYrr,
+    VPSUBBYrr, VPSUBWYrr, VPSUBDYrr, VPSUBQYrr,
+    VPCMPGTBYrr, VPCMPGTWYrr, VPCMPGTDYrr, VPCMPGTQYrr
+  ], ZeroIdiomPredicate>
+]>;
+
+def : IsDepBreakingFunction<[
+  // GPR
+  DepBreakingClass<[ SBB32rr, SBB64rr ], ZeroIdiomPredicate>,
+  DepBreakingClass<[ CMP32rr, CMP64rr ], CheckSameRegOperand<0, 1> >,
+
+  // MMX
+  DepBreakingClass<[
+    MMX_PCMPEQBrr, MMX_PCMPEQWrr, MMX_PCMPEQDrr
+  ], ZeroIdiomPredicate>,
+
+  // SSE
+  DepBreakingClass<[
+    PCMPEQBrr, PCMPEQWrr, PCMPEQDrr, PCMPEQQrr
+  ], ZeroIdiomPredicate>,
+
+  // AVX XMM
+  DepBreakingClass<[
+    VPCMPEQBrr, VPCMPEQWrr, VPCMPEQDrr, VPCMPEQQrr
+  ], ZeroIdiomPredicate>,
+
+  // AVX YMM
+  DepBreakingClass<[
+    VPCMPEQBYrr, VPCMPEQWYrr, VPCMPEQDYrr, VPCMPEQQYrr
+  ], ZeroIdiomPredicate>,
+]>;
 
 } // SchedModel

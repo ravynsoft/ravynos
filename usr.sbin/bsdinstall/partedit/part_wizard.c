@@ -105,7 +105,7 @@ boot_disk_select(struct gmesh *mesh)
 	const char *type, *desc;
 	char diskdesc[512];
 	char *chosen;
-	int i, button, selected, n = 0;
+	int i, button, fd, selected, n = 0;
 	struct bsddialog_conf conf;
 
 	bsddialog_initconf(&conf);
@@ -135,6 +135,16 @@ boot_disk_select(struct gmesh *mesh)
 					continue;
 				if (strncmp(pp->lg_name, "cd", 2) == 0)
 					continue;
+				/*
+				 * Check if the disk is available to be opened for
+				 * write operations, it helps prevent the USB
+				 * stick used to boot from being listed as an option
+				 */
+				fd = g_open(pp->lg_name, 1);
+				if (fd == -1) {
+					continue;
+				}
+				g_close(fd);
 
 				disks = realloc(disks, (++n)*sizeof(disks[0]));
 				disks[n-1].name = pp->lg_name;
@@ -163,7 +173,7 @@ boot_disk_select(struct gmesh *mesh)
 	if (n > 1) {
 		conf.title = "Partitioning";
 		button = bsddialog_menu(&conf,
-		    "Select the disk on which to install FreeBSD.", 0, 0, 0,
+		    "Select the disk on which to install " OSNAME ".", 0, 0, 0,
 		    n, disks, &selected);
 
 		chosen = (button == BSDDIALOG_OK) ?
@@ -249,7 +259,7 @@ query:
 		conf.button.default_cancel = true;
 
 	snprintf(message, sizeof(message), "Would you like to use this entire "
-	    "disk (%s) for FreeBSD or partition it to share it with other "
+	    "disk (%s) for " OSNAME " or partition it to share it with other "
 	    "operating systems? Using the entire disk will erase any data "
 	    "currently stored there.", disk);
 	conf.title = "Partition";
@@ -265,7 +275,7 @@ query:
 
 		sprintf(warning, "The existing partition scheme on this "
 		    "disk (%s) is not bootable on this platform. To install "
-		    "FreeBSD, it must be repartitioned. This will destroy all "
+		    OSNAME ", it must be repartitioned. This will destroy all "
 		    "data on the disk. Are you sure you want to proceed?",
 		    scheme);
 		conf.title = "Non-bootable Disk";
@@ -352,7 +362,7 @@ wizard_makeparts(struct gmesh *mesh, const char *disk, const char *fstype,
 		humanize_number(neededstr, 7, MIN_FREE_SPACE, "B", HN_AUTOSCALE,
 		    HN_DECIMAL);
 		sprintf(message, "There is not enough free space on %s to "
-		    "install FreeBSD (%s free, %s required). Would you like "
+		    "install " OSNAME " (%s free, %s required). Would you like "
 		    "to choose another disk or to open the partition editor?",
 		    disk, availablestr, neededstr);
 

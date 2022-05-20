@@ -10,8 +10,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef LLVM_LIB_ASMPARSER_LLTOKEN_H
-#define LLVM_LIB_ASMPARSER_LLTOKEN_H
+#ifndef LLVM_ASMPARSER_LLTOKEN_H
+#define LLVM_ASMPARSER_LLTOKEN_H
 
 namespace llvm {
 namespace lltok {
@@ -190,6 +190,7 @@ enum Kind {
   kw_convergent,
   kw_dereferenceable,
   kw_dereferenceable_or_null,
+  kw_disable_sanitizer_instrumentation,
   kw_elementtype,
   kw_inaccessiblememonly,
   kw_inaccessiblemem_or_argmemonly,
@@ -369,6 +370,7 @@ enum Kind {
   kw_insertvalue,
   kw_blockaddress,
   kw_dso_local_equivalent,
+  kw_no_cfi,
 
   kw_freeze,
 
@@ -403,6 +405,10 @@ enum Kind {
   kw_returnDoesNotAlias,
   kw_noInline,
   kw_alwaysInline,
+  kw_noUnwind,
+  kw_mayThrow,
+  kw_hasUnknownCall,
+  kw_mustBeUnreachable,
   kw_calls,
   kw_callee,
   kw_params,

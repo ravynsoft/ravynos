@@ -18,6 +18,7 @@
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Analysis/ConstraintSystem.h"
 #include "llvm/Analysis/GlobalsModRef.h"
+#include "llvm/Analysis/ValueTracking.h"
 #include "llvm/IR/DataLayout.h"
 #include "llvm/IR/Dominators.h"
 #include "llvm/IR/Function.h"
@@ -41,6 +42,51 @@ DEBUG_COUNTER(EliminatedCounter, "conds-eliminated",
               "Controls which conditions are eliminated");
 
 static int64_t MaxConstraintValue = std::numeric_limits<int64_t>::max();
+
+namespace {
+struct ConstraintTy {
+  SmallVector<int64_t, 8> Coefficients;
+
+  ConstraintTy(SmallVector<int64_t, 8> Coefficients)
+      : Coefficients(Coefficients) {}
+
+  unsigned size() const { return Coefficients.size(); }
+};
+
+/// Struct to manage a list of constraints.
+struct ConstraintListTy {
+  SmallVector<ConstraintTy, 4> Constraints;
+
+  ConstraintListTy() {}
+
+  ConstraintListTy(const SmallVector<ConstraintTy, 4> &Constraints)
+      : Constraints(Constraints) {}
+
+  void mergeIn(const ConstraintListTy &Other) {
+    append_range(Constraints, Other.Constraints);
+  }
+
+  unsigned size() const { return Constraints.size(); }
+
+  unsigned empty() const { return Constraints.empty(); }
+
+  /// Returns true if any constraint has a non-zero coefficient for any of the
+  /// newly added indices. Zero coefficients for new indices are removed. If it
+  /// returns true, no new variable need to be added to the system.
+  bool needsNewIndices(const DenseMap<Value *, unsigned> &NewIndices) {
+    assert(size() == 1);
+    for (unsigned I = 0; I < NewIndices.size(); ++I) {
+      int64_t Last = get(0).Coefficients.pop_back_val();
+      if (Last != 0)
+        return true;
+    }
+    return false;
+  }
+
+  ConstraintTy &get(unsigned I) { return Constraints[I]; }
+};
+
+} // namespace
 
 // Decomposes \p V into a vector of pairs of the form { c, X } where c * X. The
 // sum of the pairs equals \p V.  The first pair is the constant-factor and X
@@ -107,24 +153,15 @@ static SmallVector<std::pair<int64_t, Value *>, 4> decompose(Value *V) {
   if (match(V, m_NUWSub(m_Value(Op0), m_ConstantInt(CI))))
     return {{-1 * CI->getSExtValue(), nullptr}, {1, Op0}};
   if (match(V, m_NUWSub(m_Value(Op0), m_Value(Op1))))
-    return {{0, nullptr}, {1, Op0}, {1, Op1}};
+    return {{0, nullptr}, {1, Op0}, {-1, Op1}};
 
   return {{0, nullptr}, {1, V}};
 }
 
-struct ConstraintTy {
-  SmallVector<int64_t, 8> Coefficients;
-
-  ConstraintTy(SmallVector<int64_t, 8> Coefficients)
-      : Coefficients(Coefficients) {}
-
-  unsigned size() const { return Coefficients.size(); }
-};
-
 /// Turn a condition \p CmpI into a vector of constraints, using indices from \p
 /// Value2Index. Additional indices for newly discovered values are added to \p
 /// NewIndices.
-static SmallVector<ConstraintTy, 4>
+static ConstraintListTy
 getConstraint(CmpInst::Predicate Pred, Value *Op0, Value *Op1,
               const DenseMap<Value *, unsigned> &Value2Index,
               DenseMap<Value *, unsigned> &NewIndices) {
@@ -150,11 +187,15 @@ getConstraint(CmpInst::Predicate Pred, Value *Op0, Value *Op1,
                          Value2Index, NewIndices);
 
   if (Pred == CmpInst::ICMP_EQ) {
+    if (match(Op1, m_Zero()))
+      return getConstraint(CmpInst::ICMP_ULE, Op0, Op1, Value2Index,
+                           NewIndices);
+
     auto A =
         getConstraint(CmpInst::ICMP_UGE, Op0, Op1, Value2Index, NewIndices);
     auto B =
         getConstraint(CmpInst::ICMP_ULE, Op0, Op1, Value2Index, NewIndices);
-    append_range(A, B);
+    A.mergeIn(B);
     return A;
   }
 
@@ -199,10 +240,10 @@ getConstraint(CmpInst::Predicate Pred, Value *Op0, Value *Op1,
     R[GetOrAddIndex(KV.second)] -= KV.first;
 
   R[0] = Offset1 + Offset2 + (Pred == CmpInst::ICMP_ULT ? -1 : 0);
-  return {R};
+  return {{R}};
 }
 
-static SmallVector<ConstraintTy, 4>
+static ConstraintListTy
 getConstraint(CmpInst *Cmp, const DenseMap<Value *, unsigned> &Value2Index,
               DenseMap<Value *, unsigned> &NewIndices) {
   return getConstraint(Cmp->getPredicate(), Cmp->getOperand(0),
@@ -267,6 +308,31 @@ static bool eliminateConstraints(Function &F, DominatorTree &DT) {
     if (!DT.getNode(&BB))
       continue;
     WorkList.emplace_back(DT.getNode(&BB));
+
+    // True as long as long as the current instruction is guaranteed to execute.
+    bool GuaranteedToExecute = true;
+    // Scan BB for assume calls.
+    // TODO: also use this scan to queue conditions to simplify, so we can
+    // interleave facts from assumes and conditions to simplify in a single
+    // basic block. And to skip another traversal of each basic block when
+    // simplifying.
+    for (Instruction &I : BB) {
+      Value *Cond;
+      // For now, just handle assumes with a single compare as condition.
+      if (match(&I, m_Intrinsic<Intrinsic::assume>(m_Value(Cond))) &&
+          isa<CmpInst>(Cond)) {
+        if (GuaranteedToExecute) {
+          // The assume is guaranteed to execute when BB is entered, hence Cond
+          // holds on entry to BB.
+          WorkList.emplace_back(DT.getNode(&BB), cast<CmpInst>(Cond), false);
+        } else {
+          // Otherwise the condition only holds in the successors.
+          for (BasicBlock *Succ : successors(&BB))
+            WorkList.emplace_back(DT.getNode(Succ), cast<CmpInst>(Cond), false);
+        }
+      }
+      GuaranteedToExecute &= isGuaranteedToTransferExecutionToSuccessor(&I);
+    }
 
     auto *Br = dyn_cast<BranchInst>(BB.getTerminator());
     if (!Br || !Br->isConditional())
@@ -371,21 +437,10 @@ static bool eliminateConstraints(Function &F, DominatorTree &DT) {
         if (R.size() != 1)
           continue;
 
-        // Check if all coefficients of new indices are 0 after building the
-        // constraint. Skip if any of the new indices has a non-null
-        // coefficient.
-        bool HasNewIndex = false;
-        for (unsigned I = 0; I < NewIndices.size(); ++I) {
-          int64_t Last = R[0].Coefficients.pop_back_val();
-          if (Last != 0) {
-            HasNewIndex = true;
-            break;
-          }
-        }
-        if (HasNewIndex || R[0].size() == 1)
+        if (R.needsNewIndices(NewIndices))
           continue;
 
-        if (CS.isConditionImplied(R[0].Coefficients)) {
+        if (CS.isConditionImplied(R.get(0).Coefficients)) {
           if (!DebugCounter::shouldExecute(EliminatedCounter))
             continue;
 
@@ -395,13 +450,18 @@ static bool eliminateConstraints(Function &F, DominatorTree &DT) {
             for (auto &E : reverse(DFSInStack))
               dbgs() << "   C " << *E.Condition << " " << E.IsNot << "\n";
           });
-          Cmp->replaceAllUsesWith(
-              ConstantInt::getTrue(F.getParent()->getContext()));
+          Cmp->replaceUsesWithIf(
+              ConstantInt::getTrue(F.getParent()->getContext()), [](Use &U) {
+                // Conditions in an assume trivially simplify to true. Skip uses
+                // in assume calls to not destroy the available information.
+                auto *II = dyn_cast<IntrinsicInst>(U.getUser());
+                return !II || II->getIntrinsicID() != Intrinsic::assume;
+              });
           NumCondsRemoved++;
           Changed = true;
         }
         if (CS.isConditionImplied(
-                ConstraintSystem::negate(R[0].Coefficients))) {
+                ConstraintSystem::negate(R.get(0).Coefficients))) {
           if (!DebugCounter::shouldExecute(EliminatedCounter))
             continue;
 
@@ -448,7 +508,7 @@ static bool eliminateConstraints(Function &F, DominatorTree &DT) {
 
     LLVM_DEBUG(dbgs() << "Adding " << *CB.Condition << " " << CB.Not << "\n");
     bool Added = false;
-    for (auto &C : R) {
+    for (auto &C : R.Constraints) {
       auto Coeffs = C.Coefficients;
       LLVM_DEBUG({
         dbgs() << "  constraint: ";

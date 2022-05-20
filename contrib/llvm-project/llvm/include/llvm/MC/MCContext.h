@@ -80,6 +80,10 @@ namespace llvm {
   private:
     Environment Env;
 
+    /// The name of the Segment where Swift5 Reflection Section data will be
+    /// outputted
+    StringRef Swift5ReflectionSegmentName;
+
     /// The triple for this object.
     Triple TT;
 
@@ -374,17 +378,17 @@ namespace llvm {
       bool operator<(const ELFEntrySizeKey &Other) const {
         if (SectionName != Other.SectionName)
           return SectionName < Other.SectionName;
-        if ((Flags & ELF::SHF_STRINGS) != (Other.Flags & ELF::SHF_STRINGS))
-          return Other.Flags & ELF::SHF_STRINGS;
+        if (Flags != Other.Flags)
+          return Flags < Other.Flags;
         return EntrySize < Other.EntrySize;
       }
     };
 
-    // Symbols must be assigned to a section with a compatible entry
-    // size. This map is used to assign unique IDs to sections to
-    // distinguish between sections with identical names but incompatible entry
-    // sizes. This can occur when a symbol is explicitly assigned to a
-    // section, e.g. via __attribute__((section("myname"))).
+    // Symbols must be assigned to a section with a compatible entry size and
+    // flags. This map is used to assign unique IDs to sections to distinguish
+    // between sections with identical names but incompatible entry sizes and/or
+    // flags. This can occur when a symbol is explicitly assigned to a section,
+    // e.g. via __attribute__((section("myname"))).
     std::map<ELFEntrySizeKey, unsigned> ELFEntrySizeMap;
 
     // This set is used to record the generic mergeable section names seen.
@@ -399,13 +403,17 @@ namespace llvm {
                        const MCRegisterInfo *MRI, const MCSubtargetInfo *MSTI,
                        const SourceMgr *Mgr = nullptr,
                        MCTargetOptions const *TargetOpts = nullptr,
-                       bool DoAutoReset = true);
+                       bool DoAutoReset = true,
+                       StringRef Swift5ReflSegmentName = {});
     MCContext(const MCContext &) = delete;
     MCContext &operator=(const MCContext &) = delete;
     ~MCContext();
 
     Environment getObjectFileType() const { return Env; }
 
+    const StringRef &getSwift5ReflectionSegmentName() const {
+      return Swift5ReflectionSegmentName;
+    }
     const Triple &getTargetTriple() const { return TT; }
     const SourceMgr *getSourceManager() const { return SrcMgr; }
 
@@ -592,6 +600,8 @@ namespace llvm {
 
     bool isELFGenericMergeableSection(StringRef Name);
 
+    /// Return the unique ID of the section with the given name, flags and entry
+    /// size, if it exists.
     Optional<unsigned> getELFUniqueIDForEntsize(StringRef SectionName,
                                                 unsigned Flags,
                                                 unsigned EntrySize);
@@ -812,10 +822,6 @@ namespace llvm {
     void diagnose(const SMDiagnostic &SMD);
     void reportError(SMLoc L, const Twine &Msg);
     void reportWarning(SMLoc L, const Twine &Msg);
-    // Unrecoverable error has occurred. Display the best diagnostic we can
-    // and bail via exit(1). For now, most MC backend errors are unrecoverable.
-    // FIXME: We should really do something about that.
-    LLVM_ATTRIBUTE_NORETURN void reportFatalError(SMLoc L, const Twine &Msg);
 
     const MCAsmMacro *lookupMacro(StringRef Name) {
       StringMap<MCAsmMacro>::iterator I = MacroMap.find(Name);

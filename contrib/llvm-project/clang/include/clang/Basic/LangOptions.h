@@ -124,6 +124,7 @@ public:
     MSVC2017_5 = 1912,
     MSVC2017_7 = 1914,
     MSVC2019 = 1920,
+    MSVC2019_5 = 1925,
     MSVC2019_8 = 1928,
   };
 
@@ -430,6 +431,13 @@ public:
 
   /// Return the OpenCL C or C++ version as a VersionTuple.
   VersionTuple getOpenCLVersionTuple() const;
+
+  /// Return the OpenCL version that kernel language is compatible with
+  unsigned getOpenCLCompatibleVersion() const;
+
+  /// Return the OpenCL C or C++ for OpenCL language name and version
+  /// as a string.
+  std::string getOpenCLVersionString() const;
 
   /// Check if return address signing is enabled.
   bool hasSignReturnAddress() const {

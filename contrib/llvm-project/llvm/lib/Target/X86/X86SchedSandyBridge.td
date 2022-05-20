@@ -124,12 +124,17 @@ defm : X86WriteRes<WriteIMul16Imm,    [SBPort1,SBPort015], 4, [1,1], 2>;
 defm : X86WriteRes<WriteIMul16ImmLd,  [SBPort1,SBPort015,SBPort23], 8, [1,1,1], 3>;
 defm : SBWriteResPair<WriteIMul16Reg, [SBPort1],   3>;
 defm : SBWriteResPair<WriteIMul32,    [SBPort1,SBPort05,SBPort015], 4, [1,1,1], 3>;
+defm : SBWriteResPair<WriteMULX32,    [SBPort1,SBPort05,SBPort015], 3, [1,1,1], 3>;
 defm : SBWriteResPair<WriteIMul32Imm, [SBPort1],   3>;
 defm : SBWriteResPair<WriteIMul32Reg, [SBPort1],   3>;
 defm : SBWriteResPair<WriteIMul64,    [SBPort1,SBPort0], 4, [1,1], 2>;
+defm : SBWriteResPair<WriteMULX64,    [SBPort1,SBPort0], 3, [1,1], 2>;
 defm : SBWriteResPair<WriteIMul64Imm, [SBPort1],   3>;
 defm : SBWriteResPair<WriteIMul64Reg, [SBPort1],   3>;
-def  : WriteRes<WriteIMulH, []> { let Latency = 3; }
+def SBWriteIMulH : WriteRes<WriteIMulH, []> { let Latency = 4; }
+def  : WriteRes<WriteIMulHLd, []> {
+  let Latency = !add(SBWriteIMulH.Latency, SandyBridgeModel.LoadLatency);
+}
 
 defm : X86WriteRes<WriteXCHG,      [SBPort015], 2, [3], 3>;
 defm : X86WriteRes<WriteBSWAP32,   [SBPort1], 1, [1], 1>;
@@ -218,6 +223,7 @@ defm : X86WriteRes<WriteFMaskedStore64Y, [SBPort4,SBPort01,SBPort23], 5, [1,1,1]
 defm : X86WriteRes<WriteFMove,         [SBPort5], 1, [1], 1>;
 defm : X86WriteRes<WriteFMoveX,        [SBPort5], 1, [1], 1>;
 defm : X86WriteRes<WriteFMoveY,        [SBPort5], 1, [1], 1>;
+defm : X86WriteRes<WriteFMoveZ,        [SBPort5], 1, [1], 1>;
 defm : X86WriteRes<WriteEMMS,          [SBPort015], 31, [31], 31>;
 
 defm : SBWriteResPair<WriteFAdd,    [SBPort1],  3, [1], 1, 6>;
@@ -375,6 +381,7 @@ defm : X86WriteRes<WriteVecMaskedStore64Y, [SBPort4,SBPort01,SBPort23], 5, [1,1,
 defm : X86WriteRes<WriteVecMove,         [SBPort05], 1, [1], 1>;
 defm : X86WriteRes<WriteVecMoveX,        [SBPort015], 1, [1], 1>;
 defm : X86WriteRes<WriteVecMoveY,        [SBPort05], 1, [1], 1>;
+defm : X86WriteRes<WriteVecMoveZ,        [SBPort05], 1, [1], 1>;
 defm : X86WriteRes<WriteVecMoveToGpr,    [SBPort0], 2, [1], 1>;
 defm : X86WriteRes<WriteVecMoveFromGpr,  [SBPort5], 1, [1], 1>;
 
@@ -601,7 +608,7 @@ def SBWriteResGroup2 : SchedWriteRes<[SBPort5]> {
 def: InstRW<[SBWriteResGroup2], (instrs FDECSTP, FINCSTP, FFREE, FFREEP, FNOP,
                                         LD_Frr, ST_Frr, ST_FPrr)>;
 def: InstRW<[SBWriteResGroup2], (instrs LOOP, LOOPE, LOOPNE)>; // FIXME: This seems wrong compared to other Intel CPUs.
-def: InstRW<[SBWriteResGroup2], (instrs RETQ)>;
+def: InstRW<[SBWriteResGroup2], (instrs RET64)>;
 
 def SBWriteResGroup4 : SchedWriteRes<[SBPort05]> {
   let Latency = 1;
@@ -618,7 +625,7 @@ def SBWriteResGroup5 : SchedWriteRes<[SBPort15]> {
 def: InstRW<[SBWriteResGroup5], (instrs MMX_PABSBrr,
                                         MMX_PABSDrr,
                                         MMX_PABSWrr,
-                                        MMX_PADDQirr,
+                                        MMX_PADDQrr,
                                         MMX_PALIGNRrri,
                                         MMX_PSIGNBrr,
                                         MMX_PSIGNDrr,
@@ -865,7 +872,7 @@ def SBWriteResGroup59 : SchedWriteRes<[SBPort23,SBPort15]> {
   let NumMicroOps = 2;
   let ResourceCycles = [1,1];
 }
-def: InstRW<[SBWriteResGroup59], (instrs MMX_PADDQirm)>;
+def: InstRW<[SBWriteResGroup59], (instrs MMX_PADDQrm)>;
 
 def SBWriteResGroup62 : SchedWriteRes<[SBPort5,SBPort23]> {
   let Latency = 7;
@@ -1224,5 +1231,36 @@ def SBSETA_SETBErm :  SchedWriteVariant<[
 
 def : InstRW<[SBSETA_SETBErr], (instrs SETCCr)>;
 def : InstRW<[SBSETA_SETBErm], (instrs SETCCm)>;
+
+///////////////////////////////////////////////////////////////////////////////
+// Dependency breaking instructions.
+///////////////////////////////////////////////////////////////////////////////
+
+def : IsZeroIdiomFunction<[
+  // GPR Zero-idioms.
+  DepBreakingClass<[ SUB32rr, SUB64rr, XOR32rr, XOR64rr ], ZeroIdiomPredicate>,
+
+  // SSE Zero-idioms.
+  DepBreakingClass<[
+    // fp variants.
+    XORPSrr, XORPDrr,
+
+    // int variants.
+    PXORrr,
+    PSUBBrr, PSUBWrr, PSUBDrr, PSUBQrr,
+    PCMPGTBrr, PCMPGTDrr, PCMPGTQrr, PCMPGTWrr
+  ], ZeroIdiomPredicate>,
+
+  // AVX Zero-idioms.
+  DepBreakingClass<[
+    // xmm fp variants.
+    VXORPSrr, VXORPDrr,
+
+    // xmm int variants.
+    VPXORrr,
+    VPSUBBrr, VPSUBWrr, VPSUBDrr, VPSUBQrr,
+    VPCMPGTBrr, VPCMPGTWrr, VPCMPGTDrr, VPCMPGTQrr,
+  ], ZeroIdiomPredicate>,
+]>;
 
 } // SchedModel

@@ -22,7 +22,7 @@
 #include "Symbols.h"
 #include "SyntheticSections.h"
 #include "Target.h"
-#include "lld/Common/Memory.h"
+#include "lld/Common/CommonLinkerContext.h"
 #include "lld/Common/Strings.h"
 #include "llvm/Support/Endian.h"
 #include "llvm/Support/raw_ostream.h"
@@ -142,9 +142,9 @@ Patch657417Section::Patch657417Section(InputSection *p, uint64_t off,
       patchee(p), patcheeOffset(off), instr(instr), isARM(isARM) {
   parent = p->getParent();
   patchSym = addSyntheticLocal(
-      saver.save("__CortexA8657417_" + utohexstr(getBranchAddr())), STT_FUNC,
+      saver().save("__CortexA8657417_" + utohexstr(getBranchAddr())), STT_FUNC,
       isARM ? 0 : 1, getSize(), *this);
-  addSyntheticLocal(saver.save(isARM ? "$a" : "$t"), STT_NOTYPE, 0, 0, *this);
+  addSyntheticLocal(saver().save(isARM ? "$a" : "$t"), STT_NOTYPE, 0, 0, *this);
 }
 
 uint64_t Patch657417Section::getBranchAddr() const {
@@ -329,9 +329,8 @@ void ARMErr657417Patcher::init() {
   };
 
   // Collect mapping symbols for every executable InputSection.
-  for (InputFile *file : objectFiles) {
-    auto *f = cast<ObjFile<ELF32LE>>(file);
-    for (Symbol *s : f->getLocalSymbols()) {
+  for (ELFFileBase *file : objectFiles) {
+    for (Symbol *s : file->getLocalSymbols()) {
       auto *def = dyn_cast<Defined>(s);
       if (!def)
         continue;
@@ -396,7 +395,7 @@ void ARMErr657417Patcher::insertPatches(
   // determine the insertion point. This is ok as we only merge into an
   // InputSectionDescription once per pass, and at the end of the pass
   // assignAddresses() will recalculate all the outSecOff values.
-  std::vector<InputSection *> tmp;
+  SmallVector<InputSection *, 0> tmp;
   tmp.reserve(isd.sections.size() + patches.size());
   auto mergeCmp = [](const InputSection *a, const InputSection *b) {
     if (a->outSecOff != b->outSecOff)
@@ -525,8 +524,8 @@ bool ARMErr657417Patcher::createFixes() {
   for (OutputSection *os : outputSections) {
     if (!(os->flags & SHF_ALLOC) || !(os->flags & SHF_EXECINSTR))
       continue;
-    for (BaseCommand *bc : os->sectionCommands)
-      if (auto *isd = dyn_cast<InputSectionDescription>(bc)) {
+    for (SectionCommand *cmd : os->commands)
+      if (auto *isd = dyn_cast<InputSectionDescription>(cmd)) {
         std::vector<Patch657417Section *> patches =
             patchInputSectionDescription(*isd);
         if (!patches.empty()) {

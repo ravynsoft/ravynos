@@ -29,6 +29,7 @@
 #include "llvm/Support/CommandLine.h"
 #include "llvm/Support/Debug.h"
 #include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Utils.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 #include "llvm/Transforms/Utils/ScalarEvolutionExpander.h"
 #include "llvm/Transforms/Utils/ValueMapper.h"
@@ -127,6 +128,8 @@ public:
     AU.addPreserved<DominatorTreeWrapperPass>();
     AU.addRequired<LoopInfoWrapperPass>();
     AU.addPreserved<LoopInfoWrapperPass>();
+    AU.addRequiredID(LoopSimplifyID);
+    AU.addPreservedID(LoopSimplifyID);
     AU.addRequired<OptimizationRemarkEmitterWrapperPass>();
     AU.addRequired<ScalarEvolutionWrapperPass>();
     AU.addPreserved<ScalarEvolutionWrapperPass>();
@@ -143,6 +146,7 @@ INITIALIZE_PASS_BEGIN(LoopDataPrefetchLegacyPass, "loop-data-prefetch",
 INITIALIZE_PASS_DEPENDENCY(AssumptionCacheTracker)
 INITIALIZE_PASS_DEPENDENCY(TargetTransformInfoWrapperPass)
 INITIALIZE_PASS_DEPENDENCY(LoopInfoWrapperPass)
+INITIALIZE_PASS_DEPENDENCY(LoopSimplify)
 INITIALIZE_PASS_DEPENDENCY(OptimizationRemarkEmitterWrapperPass)
 INITIALIZE_PASS_DEPENDENCY(ScalarEvolutionWrapperPass)
 INITIALIZE_PASS_END(LoopDataPrefetchLegacyPass, "loop-data-prefetch",
@@ -220,8 +224,8 @@ bool LoopDataPrefetch::run() {
   bool MadeChange = false;
 
   for (Loop *I : *LI)
-    for (auto L = df_begin(I), LE = df_end(I); L != LE; ++L)
-      MadeChange |= runOnLoop(*L);
+    for (Loop *L : depth_first(I))
+      MadeChange |= runOnLoop(L);
 
   return MadeChange;
 }

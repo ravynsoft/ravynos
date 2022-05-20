@@ -272,7 +272,7 @@ class MigratorOpts<string base>
 // Args.hasArg(OPT_ffoo) can be used to check that the flag is enabled.
 // This is useful if the option is usually disabled.
 // Use this only when the option cannot be declared via BoolFOption.
-multiclass OptInFFlag<string name, string pos_prefix, string neg_prefix="",
+multiclass OptInCC1FFlag<string name, string pos_prefix, string neg_prefix="",
                       string help="", list<OptionFlag> flags=[]> {
   def f#NAME : Flag<["-"], "f"#name>, Flags<[CC1Option] # flags>,
                Group<f_Group>, HelpText<pos_prefix # help>;
@@ -283,11 +283,32 @@ multiclass OptInFFlag<string name, string pos_prefix, string neg_prefix="",
 // A boolean option which is opt-out in CC1. The negative option exists in CC1 and
 // Args.hasArg(OPT_fno_foo) can be used to check that the flag is disabled.
 // Use this only when the option cannot be declared via BoolFOption.
-multiclass OptOutFFlag<string name, string pos_prefix, string neg_prefix,
+multiclass OptOutCC1FFlag<string name, string pos_prefix, string neg_prefix,
                        string help="", list<OptionFlag> flags=[]> {
   def f#NAME : Flag<["-"], "f"#name>, Flags<flags>,
                Group<f_Group>, HelpText<pos_prefix # help>;
   def fno_#NAME : Flag<["-"], "fno-"#name>, Flags<[CC1Option] # flags>,
+                  Group<f_Group>, HelpText<neg_prefix # help>;
+}
+
+// A boolean option which is opt-in in FC1. The positive option exists in FC1 and
+// Args.hasArg(OPT_ffoo) can be used to check that the flag is enabled.
+// This is useful if the option is usually disabled.
+multiclass OptInFC1FFlag<string name, string pos_prefix, string neg_prefix="",
+                      string help="", list<OptionFlag> flags=[]> {
+  def f#NAME : Flag<["-"], "f"#name>, Flags<[FC1Option] # flags>,
+               Group<f_Group>, HelpText<pos_prefix # help>;
+  def fno_#NAME : Flag<["-"], "fno-"#name>, Flags<flags>,
+                  Group<f_Group>, HelpText<neg_prefix # help>;
+}
+
+// A boolean option which is opt-out in FC1. The negative option exists in FC1 and
+// Args.hasArg(OPT_fno_foo) can be used to check that the flag is disabled.
+multiclass OptOutFC1FFlag<string name, string pos_prefix, string neg_prefix,
+                       string help="", list<OptionFlag> flags=[]> {
+  def f#NAME : Flag<["-"], "f"#name>, Flags<flags>,
+               Group<f_Group>, HelpText<pos_prefix # help>;
+  def fno_#NAME : Flag<["-"], "fno-"#name>, Flags<[FC1Option] # flags>,
                   Group<f_Group>, HelpText<neg_prefix # help>;
 }
 
@@ -386,8 +407,7 @@ class MarshalledFlagRec<FlagDefExpanded flag, FlagDefExpanded other,
                         Default default>
   : Flag<["-"], flag.Spelling>, Flags<flag.OptionFlags>, HelpText<flag.Help>,
     MarshallingInfoBooleanFlag<kpm, default.Value, flag.ValueAsCode,
-                               flag.RecordName, other.ValueAsCode,
-                               other.RecordName>,
+                               other.ValueAsCode, other.RecordName>,
     ImpliedByAnyOf<implied.ImpliedBy, implied.ValueAsCode> {}
 
 // Generates TableGen records for two command line flags that control the same
@@ -467,7 +487,6 @@ defvar render_script = LangOpts<"RenderScript">;
 defvar hip = LangOpts<"HIP">;
 defvar gnu_mode = LangOpts<"GNUMode">;
 defvar asm_preprocessor = LangOpts<"AsmPreprocessor">;
-defvar cpp_modules = LangOpts<"CPlusPlusModules">;
 
 defvar std = !strconcat("LangStandard::getLangStandardForKind(", lang_std.KeyPath, ")");
 
@@ -598,12 +617,15 @@ def objcmt_migrate_designated_init : Flag<["-"], "objcmt-migrate-designated-init
   HelpText<"Enable migration to infer NS_DESIGNATED_INITIALIZER for initializer methods">,
   MarshallingInfoBitfieldFlag<FrontendOpts<"ObjCMTAction">, "FrontendOptions::ObjCMT_DesignatedInitializer">;
 
-def objcmt_whitelist_dir_path: Joined<["-"], "objcmt-whitelist-dir-path=">, Flags<[CC1Option]>,
+def objcmt_allowlist_dir_path: Joined<["-"], "objcmt-allowlist-dir-path=">, Flags<[CC1Option]>,
   HelpText<"Only modify files with a filename contained in the provided directory path">,
-  MarshallingInfoString<FrontendOpts<"ObjCMTWhiteListPath">>;
+  MarshallingInfoString<FrontendOpts<"ObjCMTAllowListPath">>;
+def : Joined<["-"], "objcmt-whitelist-dir-path=">, Flags<[CC1Option]>,
+  HelpText<"Alias for -objcmt-allowlist-dir-path">,
+  Alias<objcmt_allowlist_dir_path>;
 // The misspelt "white-list" [sic] alias is due for removal.
 def : Joined<["-"], "objcmt-white-list-dir-path=">, Flags<[CC1Option]>,
-    Alias<objcmt_whitelist_dir_path>;
+  Alias<objcmt_allowlist_dir_path>;
 
 // Make sure all other -ccc- options are rejected.
 def ccc_ : Joined<["-"], "ccc-">, Group<internal_Group>, Flags<[Unsupported]>;
@@ -616,8 +638,8 @@ def _DASH_DASH : Option<["--"], "", KIND_REMAINING_ARGS>,
     Flags<[NoXarchOption, CoreOption]>;
 def A : JoinedOrSeparate<["-"], "A">, Flags<[RenderJoined]>, Group<gfortran_Group>;
 def B : JoinedOrSeparate<["-"], "B">, MetaVarName<"<prefix>">,
-    HelpText<"Search $prefix/$triple-$file and $prefix$file for executables, libraries, "
-    "includes, and data files used by the compiler. $prefix may or may not be a directory">;
+    HelpText<"Search $prefix$file for executables, libraries, and data files. "
+    "If $prefix is a directory, search $prefix/$file">;
 def gcc_toolchain : Joined<["--"], "gcc-toolchain=">, Flags<[NoXarchOption]>,
   HelpText<"Search for GCC installation in the specified directory on targets which commonly use GCC. "
   "The directory usually contains 'lib{,32,64}/gcc{,-cross}/$triple' and 'include'. If specified, "
@@ -701,7 +723,7 @@ def ObjC : Flag<["-"], "ObjC">, Flags<[NoXarchOption]>,
 def O : Joined<["-"], "O">, Group<O_Group>, Flags<[CC1Option]>;
 def O_flag : Flag<["-"], "O">, Flags<[CC1Option]>, Alias<O>, AliasArgs<["1"]>;
 def Ofast : Joined<["-"], "Ofast">, Group<O_Group>, Flags<[CC1Option]>;
-def P : Flag<["-"], "P">, Flags<[CC1Option]>, Group<Preprocessor_Group>,
+def P : Flag<["-"], "P">, Flags<[CC1Option,FlangOption,FC1Option]>, Group<Preprocessor_Group>,
   HelpText<"Disable linemarker output in -E mode">,
   MarshallingInfoNegativeFlag<PreprocessorOutputOpts<"ShowLineMarkers">>;
 def Qy : Flag<["-"], "Qy">, Flags<[CC1Option]>,
@@ -815,7 +837,9 @@ def autocomplete : Joined<["--"], "autocomplete=">;
 def bind__at__load : Flag<["-"], "bind_at_load">;
 def bundle__loader : Separate<["-"], "bundle_loader">;
 def bundle : Flag<["-"], "bundle">;
-def b : JoinedOrSeparate<["-"], "b">, Flags<[Unsupported]>;
+def b : JoinedOrSeparate<["-"], "b">, Flags<[LinkerInput, RenderAsInput]>,
+  HelpText<"Pass -b <arg> to the linker on AIX (only).">, MetaVarName<"<arg>">,
+  Group<Link_Group>;
 def cl_opt_disable : Flag<["-"], "cl-opt-disable">, Group<opencl_Group>, Flags<[CC1Option]>,
   HelpText<"OpenCL only. This option disables all optimizations. By default optimizations are enabled.">;
 def cl_strict_aliasing : Flag<["-"], "cl-strict-aliasing">, Group<opencl_Group>, Flags<[CC1Option]>,
@@ -843,7 +867,8 @@ def cl_no_signed_zeros : Flag<["-"], "cl-no-signed-zeros">, Group<opencl_Group>,
   HelpText<"OpenCL only. Allow use of less precise no signed zeros computations in the generated binary.">,
   MarshallingInfoFlag<LangOpts<"CLNoSignedZero">>;
 def cl_std_EQ : Joined<["-"], "cl-std=">, Group<opencl_Group>, Flags<[CC1Option]>,
-  HelpText<"OpenCL language standard to compile for.">, Values<"cl,CL,cl1.0,CL1.0,cl1.1,CL1.1,cl1.2,CL1.2,cl2.0,CL2.0,cl3.0,CL3.0,clc++,CLC++">;
+  HelpText<"OpenCL language standard to compile for.">,
+  Values<"cl,CL,cl1.0,CL1.0,cl1.1,CL1.1,cl1.2,CL1.2,cl2.0,CL2.0,cl3.0,CL3.0,clc++,CLC++,clc++1.0,CLC++1.0,clc++2021,CLC++2021">;
 def cl_denorms_are_zero : Flag<["-"], "cl-denorms-are-zero">, Group<opencl_Group>,
   HelpText<"OpenCL only. Allow denormals to be flushed to zero.">;
 def cl_fp32_correctly_rounded_divide_sqrt : Flag<["-"], "cl-fp32-correctly-rounded-divide-sqrt">, Group<opencl_Group>, Flags<[CC1Option]>,
@@ -960,6 +985,9 @@ defm hip_fp32_correctly_rounded_divide_sqrt : BoolFOption<"hip-fp32-correctly-ro
   BothFlags<[], " that single precision floating-point divide and sqrt used in "
   "the program source are correctly rounded (HIP device compilation only)">>,
   ShouldParseIf<hip.KeyPath>;
+def hipspv_pass_plugin_EQ : Joined<["--"], "hipspv-pass-plugin=">,
+  Group<Link_Group>, MetaVarName<"<dsopath>">,
+  HelpText<"path to a pass plugin for HIP to SPIR-V passes.">;
 defm gpu_allow_device_init : BoolFOption<"gpu-allow-device-init",
   LangOpts<"GPUAllowDeviceInit">, DefaultFalse,
   PosFlag<SetTrue, [CC1Option], "Allow">, NegFlag<SetFalse, [], "Don't allow">,
@@ -1004,7 +1032,7 @@ def fuse_cuid_EQ : Joined<["-"], "fuse-cuid=">,
            "offloading languages CUDA and HIP: 'hash' (ID's generated by hashing "
            "file path and command line options) | 'random' (ID's generated as "
            "random numbers) | 'none' (disabled). Default is 'hash'. This option "
-           "will be overriden by option '-cuid=[ID]' if it is specified." >;
+           "will be overridden by option '-cuid=[ID]' if it is specified." >;
 def libomptarget_amdgcn_bc_path_EQ : Joined<["--"], "libomptarget-amdgcn-bc-path=">, Group<i_Group>,
   HelpText<"Path to libomptarget-amdgcn bitcode library">;
 def libomptarget_nvptx_bc_path_EQ : Joined<["--"], "libomptarget-nvptx-bc-path=">, Group<i_Group>,
@@ -1048,8 +1076,12 @@ def emit_interface_stubs : Flag<["-"], "emit-interface-stubs">, Flags<[CC1Option
 def emit_merged_ifs : Flag<["-"], "emit-merged-ifs">,
   Flags<[CC1Option]>, Group<Action_Group>,
   HelpText<"Generate Interface Stub Files, emit merged text not binary.">;
+def end_no_unused_arguments : Flag<["--"], "end-no-unused-arguments">, Flags<[CoreOption]>,
+  HelpText<"Start emitting warnings for unused driver arguments">;
 def interface_stub_version_EQ : JoinedOrSeparate<["-"], "interface-stub-version=">, Flags<[CC1Option]>;
 def exported__symbols__list : Separate<["-"], "exported_symbols_list">;
+def extract_api : Flag<["-"], "extract-api">, Flags<[CC1Option]>, Group<Action_Group>,
+  HelpText<"Extract API information">;
 def e : JoinedOrSeparate<["-"], "e">, Flags<[LinkerInput]>, Group<Link_Group>;
 def fmax_tokens_EQ : Joined<["-"], "fmax-tokens=">, Group<f_Group>, Flags<[CC1Option]>,
   HelpText<"Max total number of preprocessed tokens for -Wmax-tokens.">,
@@ -1064,6 +1096,9 @@ defm access_control : BoolFOption<"access-control",
   PosFlag<SetTrue>>;
 def falign_functions : Flag<["-"], "falign-functions">, Group<f_Group>;
 def falign_functions_EQ : Joined<["-"], "falign-functions=">, Group<f_Group>;
+def falign_loops_EQ : Joined<["-"], "falign-loops=">, Group<f_Group>, Flags<[CC1Option]>, MetaVarName<"<N>">,
+  HelpText<"N must be a power of two. Align loops to the boundary">,
+  MarshallingInfoInt<CodeGenOpts<"LoopAlignment">>;
 def fno_align_functions: Flag<["-"], "fno-align-functions">, Group<f_Group>;
 defm allow_editor_placeholders : BoolFOption<"allow-editor-placeholders",
   LangOpts<"AllowEditorPlaceholders">, DefaultFalse,
@@ -1104,12 +1139,22 @@ defm autolink : BoolFOption<"autolink",
   NegFlag<SetFalse, [CC1Option], "Disable generation of linker directives for automatic library linking">,
   PosFlag<SetTrue>>;
 
+// In the future this option will be supported by other offloading
+// languages and accept other values such as CPU/GPU architectures,
+// offload kinds and target aliases.
+def offload_EQ : CommaJoined<["--"], "offload=">, Flags<[NoXarchOption]>,
+  HelpText<"Specify comma-separated list of offloading target triples (CUDA and HIP only)">;
+
 // C++ Coroutines TS
 defm coroutines_ts : BoolFOption<"coroutines-ts",
   LangOpts<"Coroutines">, Default<cpp20.KeyPath>,
   PosFlag<SetTrue, [CC1Option], "Enable support for the C++ Coroutines TS">,
   NegFlag<SetFalse>>;
 
+def fembed_offload_object_EQ : Joined<["-"], "fembed-offload-object=">,
+  Group<f_Group>, Flags<[NoXarchOption, CC1Option]>,
+  HelpText<"Embed Offloading device-side binary into host object file as a section.">,
+  MarshallingInfoStringVector<CodeGenOpts<"OffloadObjects">>;
 def fembed_bitcode_EQ : Joined<["-"], "fembed-bitcode=">,
     Group<f_Group>, Flags<[NoXarchOption, CC1Option, CC1AsOption]>, MetaVarName<"<option>">,
     HelpText<"Embed LLVM bitcode (option: off, all, bitcode, marker)">,
@@ -1250,12 +1295,19 @@ def fprofile_list_EQ : Joined<["-"], "fprofile-list=">,
     Group<f_Group>, Flags<[CC1Option, CoreOption]>,
     HelpText<"Filename defining the list of functions/files to instrument">,
     MarshallingInfoStringVector<LangOpts<"ProfileListFiles">>;
+def fswift_async_fp_EQ : Joined<["-"], "fswift-async-fp=">,
+    Group<f_Group>, Flags<[CC1Option, CC1AsOption, CoreOption]>, MetaVarName<"<option>">,
+    HelpText<"Control emission of Swift async extended frame info (option: auto, always, never)">,
+    Values<"auto,always,never">,
+    NormalizedValuesScope<"CodeGenOptions::SwiftAsyncFramePointerKind">,
+    NormalizedValues<["Auto", "Always", "Never"]>,
+    MarshallingInfoEnum<CodeGenOpts<"SwiftAsyncFramePointer">, "Always">;
 
 defm addrsig : BoolFOption<"addrsig",
   CodeGenOpts<"Addrsig">, DefaultFalse,
   PosFlag<SetTrue, [CC1Option], "Emit">, NegFlag<SetFalse, [], "Don't emit">,
   BothFlags<[CoreOption], " an address-significance table">>;
-defm blocks : OptInFFlag<"blocks", "Enable the 'blocks' language feature", "", "", [CoreOption]>;
+defm blocks : OptInCC1FFlag<"blocks", "Enable the 'blocks' language feature", "", "", [CoreOption]>;
 def fbootclasspath_EQ : Joined<["-"], "fbootclasspath=">, Group<f_Group>;
 defm borland_extensions : BoolFOption<"borland-extensions",
   LangOpts<"Borland">, DefaultFalse,
@@ -1271,7 +1323,7 @@ def fclang_abi_compat_EQ : Joined<["-"], "fclang-abi-compat=">, Group<f_clang_Gr
   Flags<[CC1Option]>, MetaVarName<"<version>">, Values<"<major>.<minor>,latest">,
   HelpText<"Attempt to match the ABI of Clang <version>">;
 def fclasspath_EQ : Joined<["-"], "fclasspath=">, Group<f_Group>;
-defm color_diagnostics : OptInFFlag<"color-diagnostics", "Enable", "Disable", " colors in diagnostics",
+defm color_diagnostics : OptInCC1FFlag<"color-diagnostics", "Enable", "Disable", " colors in diagnostics",
   [CoreOption, FlangOption]>;
 def fdiagnostics_color : Flag<["-"], "fdiagnostics-color">, Group<f_Group>,
   Flags<[CoreOption, NoXarchOption]>;
@@ -1329,8 +1381,11 @@ defm cxx_exceptions: BoolFOption<"cxx-exceptions",
 defm async_exceptions: BoolFOption<"async-exceptions",
   LangOpts<"EHAsynch">, DefaultFalse,
   PosFlag<SetTrue, [CC1Option], "Enable EH Asynchronous exceptions">, NegFlag<SetFalse>>;
-def fcxx_modules : Flag <["-"], "fcxx-modules">, Group<f_Group>,
-  Flags<[NoXarchOption]>;
+defm cxx_modules : BoolFOption<"cxx-modules",
+  LangOpts<"CPlusPlusModules">, Default<cpp20.KeyPath>,
+  NegFlag<SetFalse, [CC1Option], "Disable">, PosFlag<SetTrue, [], "Enable">,
+  BothFlags<[NoXarchOption], " modules for C++">>,
+  ShouldParseIf<cplusplus.KeyPath>;
 def fdebug_pass_arguments : Flag<["-"], "fdebug-pass-arguments">, Group<f_Group>;
 def fdebug_pass_structure : Flag<["-"], "fdebug-pass-structure">, Group<f_Group>;
 def fdepfile_entry : Joined<["-"], "fdepfile-entry=">,
@@ -1389,7 +1444,7 @@ def fno_elide_type : Flag<["-"], "fno-elide-type">, Group<f_Group>,
     HelpText<"Do not elide types when printing diagnostics">,
     MarshallingInfoNegativeFlag<DiagnosticOpts<"ElideType">>;
 def feliminate_unused_debug_symbols : Flag<["-"], "feliminate-unused-debug-symbols">, Group<f_Group>;
-defm eliminate_unused_debug_types : OptOutFFlag<"eliminate-unused-debug-types",
+defm eliminate_unused_debug_types : OptOutCC1FFlag<"eliminate-unused-debug-types",
   "Do not emit ", "Emit ", " debug info for defined but unused types">;
 def femit_all_decls : Flag<["-"], "femit-all-decls">, Group<f_Group>, Flags<[CC1Option]>,
   HelpText<"Emit all declarations, even if unused">,
@@ -1489,7 +1544,7 @@ defm cxx_static_destructors : BoolFOption<"c++-static-destructors",
 def fsymbol_partition_EQ : Joined<["-"], "fsymbol-partition=">, Group<f_Group>,
   Flags<[CC1Option]>, MarshallingInfoString<CodeGenOpts<"SymbolPartition">>;
 
-defm memory_profile : OptInFFlag<"memory-profile", "Enable", "Disable", " heap memory profiling">;
+defm memory_profile : OptInCC1FFlag<"memory-profile", "Enable", "Disable", " heap memory profiling">;
 def fmemory_profile_EQ : Joined<["-"], "fmemory-profile=">,
     Group<f_Group>, Flags<[CC1Option]>, MetaVarName<"<directory>">,
     HelpText<"Enable heap memory profiling and dump results into <directory>">;
@@ -1619,7 +1674,13 @@ def sanitize_address_destructor_EQ
       NormalizedValuesScope<"llvm::AsanDtorKind">,
       NormalizedValues<["None", "Global"]>,
       MarshallingInfoEnum<CodeGenOpts<"SanitizeAddressDtor">, "Global">;
-// Note: This flag was introduced when it was necessary to distinguish between
+defm sanitize_memory_param_retval
+    : BoolFOption<"sanitize-memory-param-retval",
+        CodeGenOpts<"SanitizeMemoryParamRetval">,
+        DefaultFalse,
+        PosFlag<SetTrue, [CC1Option], "Enable">, NegFlag<SetFalse, [], "Disable">,
+        BothFlags<[], " detection of uninitialized parameters and return values">>;
+//// Note: This flag was introduced when it was necessary to distinguish between
 //       ABI for correct codegen.  This is no longer needed, but the flag is
 //       not removed since targeting either ABI will behave the same.
 //       This way we cause no disturbance to existing scripts & code, and if we
@@ -1729,8 +1790,11 @@ defm reciprocal_math : BoolFOption<"reciprocal-math",
   PosFlag<SetTrue, [CC1Option], "Allow division operations to be reassociated",
           [menable_unsafe_fp_math.KeyPath]>,
   NegFlag<SetFalse>>;
-def fapprox_func : Flag<["-"], "fapprox-func">, Group<f_Group>, Flags<[CC1Option, NoDriverOption]>,
-  MarshallingInfoFlag<LangOpts<"ApproxFunc">>, ImpliedByAnyOf<[menable_unsafe_fp_math.KeyPath]>;
+defm approx_func : BoolFOption<"approx-func", LangOpts<"ApproxFunc">, DefaultFalse,
+   PosFlag<SetTrue, [CC1Option], "Allow certain math function calls to be replaced "
+           "with an approximately equivalent calculation",
+           [menable_unsafe_fp_math.KeyPath]>,
+   NegFlag<SetFalse>>;
 defm finite_math_only : BoolFOption<"finite-math-only",
   LangOpts<"FiniteMathOnly">, DefaultFalse,
   PosFlag<SetTrue, [CC1Option], "", [cl_finite_math_only.KeyPath, ffast_math.KeyPath]>,
@@ -1770,7 +1834,7 @@ defm strict_float_cast_overflow : BoolFOption<"strict-float-cast-overflow",
 
 defm protect_parens : BoolFOption<"protect-parens",
   LangOpts<"ProtectParens">, DefaultFalse,
-  PosFlag<SetTrue, [CoreOption, CC1Option], 
+  PosFlag<SetTrue, [CoreOption, CC1Option],
           "Determines whether the optimizer honors parentheses when "
           "floating-point expressions are evaluated">,
   NegFlag<SetFalse>>;
@@ -1799,6 +1863,9 @@ def frewrite_map_file_EQ : Joined<["-"], "frewrite-map-file=">,
 defm use_line_directives : BoolFOption<"use-line-directives",
   PreprocessorOutputOpts<"UseLineDirectives">, DefaultFalse,
   PosFlag<SetTrue, [CC1Option], "Use #line in preprocessed output">, NegFlag<SetFalse>>;
+defm minimize_whitespace : BoolFOption<"minimize-whitespace",
+  PreprocessorOutputOpts<"MinimizeWhitespace">, DefaultFalse,
+  PosFlag<SetTrue, [CC1Option], "Minimize whitespace when emitting preprocessor output">, NegFlag<SetFalse>>;
 
 def ffreestanding : Flag<["-"], "ffreestanding">, Group<f_Group>, Flags<[CC1Option]>,
   HelpText<"Assert that the compilation takes place in a freestanding environment">,
@@ -1837,13 +1904,13 @@ def fexperimental_isel : Flag<["-"], "fexperimental-isel">, Group<f_clang_Group>
   Alias<fglobal_isel>;
 defm legacy_pass_manager : BoolOption<"f", "legacy-pass-manager",
   CodeGenOpts<"LegacyPassManager">, Default<"!static_cast<unsigned>(LLVM_ENABLE_NEW_PASS_MANAGER)">,
-  PosFlag<SetTrue, [], "Use the legacy pass manager in LLVM">,
+  PosFlag<SetTrue, [], "Use the legacy pass manager in LLVM (deprecated, to be removed in a future release)">,
   NegFlag<SetFalse, [], "Use the new pass manager in LLVM">,
   BothFlags<[CC1Option]>>, Group<f_clang_Group>;
 def fexperimental_new_pass_manager : Flag<["-"], "fexperimental-new-pass-manager">,
   Group<f_clang_Group>, Flags<[CC1Option]>, Alias<fno_legacy_pass_manager>;
 def fno_experimental_new_pass_manager : Flag<["-"], "fno-experimental-new-pass-manager">,
-  Group<f_clang_Group>, Flags<[CC1Option]>, Alias<flegacy_pass_manager>;
+  Group<f_clang_Group>, Flags<[CC1Option,NoDriverOption]>, Alias<flegacy_pass_manager>;
 def fexperimental_strict_floating_point : Flag<["-"], "fexperimental-strict-floating-point">,
   Group<f_clang_Group>, Flags<[CC1Option]>,
   HelpText<"Enables experimental strict floating point in LLVM.">,
@@ -1865,6 +1932,8 @@ def fcf_protection_EQ : Joined<["-"], "fcf-protection=">, Flags<[CoreOption, CC1
 def fcf_protection : Flag<["-"], "fcf-protection">, Group<f_Group>, Flags<[CoreOption, CC1Option]>,
   Alias<fcf_protection_EQ>, AliasArgs<["full"]>,
   HelpText<"Enable cf-protection in 'full' mode">;
+def mibt_seal : Flag<["-"], "mibt-seal">, Group<m_Group>, Flags<[CoreOption, CC1Option]>,
+  HelpText<"Optimize fcf-protection=branch/full (requires LTO).">;
 
 defm xray_instrument : BoolFOption<"xray-instrument",
   LangOpts<"XRayInstrument">, DefaultFalse,
@@ -1985,16 +2054,18 @@ def fapple_link_rtlib : Flag<["-"], "fapple-link-rtlib">, Group<f_Group>,
   HelpText<"Force linking the clang builtins runtime library">;
 def flto_EQ : Joined<["-"], "flto=">, Flags<[CoreOption, CC1Option]>, Group<f_Group>,
   HelpText<"Set LTO mode to either 'full' or 'thin'">, Values<"thin,full">;
-def flto_EQ_jobserver : Flag<["-"], "flto=jobserver">, Group<f_Group>;
-def flto_EQ_auto : Flag<["-"], "flto=auto">, Group<f_Group>;
+def flto_EQ_jobserver : Flag<["-"], "flto=jobserver">, Group<f_Group>,
+  Alias<flto_EQ>, AliasArgs<["full"]>, HelpText<"Enable LTO in 'full' mode">;
+def flto_EQ_auto : Flag<["-"], "flto=auto">, Group<f_Group>,
+  Alias<flto_EQ>, AliasArgs<["full"]>, HelpText<"Enable LTO in 'full' mode">;
 def flto : Flag<["-"], "flto">, Flags<[CoreOption, CC1Option]>, Group<f_Group>,
-  HelpText<"Enable LTO in 'full' mode">;
+  Alias<flto_EQ>, AliasArgs<["full"]>, HelpText<"Enable LTO in 'full' mode">;
 def fno_lto : Flag<["-"], "fno-lto">, Flags<[CoreOption, CC1Option]>, Group<f_Group>,
   HelpText<"Disable LTO mode (default)">;
 def foffload_lto_EQ : Joined<["-"], "foffload-lto=">, Flags<[CoreOption]>, Group<f_Group>,
   HelpText<"Set LTO mode to either 'full' or 'thin' for offload compilation">, Values<"thin,full">;
 def foffload_lto : Flag<["-"], "foffload-lto">, Flags<[CoreOption]>, Group<f_Group>,
-  HelpText<"Enable LTO in 'full' mode for offload compilation">;
+  Alias<foffload_lto_EQ>, AliasArgs<["full"]>, HelpText<"Enable LTO in 'full' mode for offload compilation">;
 def fno_offload_lto : Flag<["-"], "fno-offload-lto">, Flags<[CoreOption]>, Group<f_Group>,
   HelpText<"Disable LTO mode (default) for offload compilation">;
 def flto_jobs_EQ : Joined<["-"], "flto-jobs=">,
@@ -2130,9 +2201,9 @@ defm pch_instantiate_templates : BoolFOption<"pch-instantiate-templates",
   LangOpts<"PCHInstantiateTemplates">, DefaultFalse,
   PosFlag<SetTrue, [], "Instantiate templates already while building a PCH">,
   NegFlag<SetFalse>, BothFlags<[CC1Option, CoreOption]>>;
-defm pch_codegen: OptInFFlag<"pch-codegen", "Generate ", "Do not generate ",
+defm pch_codegen: OptInCC1FFlag<"pch-codegen", "Generate ", "Do not generate ",
   "code for uses of this PCH that assumes an explicit object file will be built for the PCH">;
-defm pch_debuginfo: OptInFFlag<"pch-debuginfo", "Generate ", "Do not generate ",
+defm pch_debuginfo: OptInCC1FFlag<"pch-debuginfo", "Generate ", "Do not generate ",
   "debug info for types in an object file built from this PCH and do not generate them elsewhere">;
 
 def fimplicit_module_maps : Flag <["-"], "fimplicit-module-maps">, Group<f_Group>,
@@ -2143,7 +2214,7 @@ def fmodules_ts : Flag <["-"], "fmodules-ts">, Group<f_Group>,
   Flags<[CC1Option]>, HelpText<"Enable support for the C++ Modules TS">,
   MarshallingInfoFlag<LangOpts<"ModulesTS">>;
 defm modules : BoolFOption<"modules",
-  LangOpts<"Modules">, Default<!strconcat(fmodules_ts.KeyPath, "||", cpp_modules.KeyPath)>,
+  LangOpts<"Modules">, Default<!strconcat(fmodules_ts.KeyPath, "||", fcxx_modules.KeyPath)>,
   PosFlag<SetTrue, [CC1Option], "Enable the 'modules' language feature">,
   NegFlag<SetFalse>, BothFlags<[NoXarchOption, CoreOption]>>;
 def fmodule_maps : Flag <["-"], "fmodule-maps">, Flags<[CoreOption]>, Alias<fimplicit_module_maps>;
@@ -2202,8 +2273,6 @@ def fno_diagnostics_color : Flag<["-"], "fno-diagnostics-color">, Group<f_Group>
   Flags<[CoreOption, NoXarchOption]>;
 def fno_common : Flag<["-"], "fno-common">, Group<f_Group>, Flags<[CC1Option]>,
     HelpText<"Compile common globals like normal definitions">;
-def fno_cxx_modules : Flag <["-"], "fno-cxx-modules">, Group<f_Group>,
-  Flags<[NoXarchOption]>;
 defm digraphs : BoolFOption<"digraphs",
   LangOpts<"Digraphs">, Default<std#".hasDigraphs()">,
   PosFlag<SetTrue, [], "Enable alternative token representations '<:', ':>', '<%', '%>', '%:', '%:%:' (default)">,
@@ -2338,12 +2407,24 @@ def fobjc_disable_direct_methods_for_testing :
   Group<f_Group>, Flags<[CC1Option]>,
   HelpText<"Ignore attribute objc_direct so that direct methods can be tested">,
   MarshallingInfoFlag<LangOpts<"ObjCDisableDirectMethodsForTesting">>;
+defm objc_avoid_heapify_local_blocks : BoolFOption<"objc-avoid-heapify-local-blocks",
+  CodeGenOpts<"ObjCAvoidHeapifyLocalBlocks">, DefaultFalse,
+  PosFlag<SetTrue, [], "Try">,
+  NegFlag<SetFalse, [], "Don't try">,
+  BothFlags<[CC1Option, NoDriverOption], " to avoid heapifying local blocks">>;
 
 def fomit_frame_pointer : Flag<["-"], "fomit-frame-pointer">, Group<f_Group>;
 def fopenmp : Flag<["-"], "fopenmp">, Group<f_Group>, Flags<[CC1Option, NoArgumentUnused, FlangOption, FC1Option]>,
   HelpText<"Parse OpenMP pragmas and generate parallel code.">;
 def fno_openmp : Flag<["-"], "fno-openmp">, Group<f_Group>, Flags<[NoArgumentUnused]>;
-def fopenmp_version_EQ : Joined<["-"], "fopenmp-version=">, Group<f_Group>, Flags<[CC1Option, NoArgumentUnused]>;
+def fopenmp_version_EQ : Joined<["-"], "fopenmp-version=">, Group<f_Group>, Flags<[CC1Option, NoArgumentUnused]>,
+  HelpText<"Set OpenMP version (e.g. 45 for OpenMP 4.5, 50 for OpenMP 5.0). Default value is 50.">;
+defm openmp_extensions: BoolFOption<"openmp-extensions",
+  LangOpts<"OpenMPExtensions">, DefaultTrue,
+  PosFlag<SetTrue, [CC1Option, NoArgumentUnused],
+          "Enable all Clang extensions for OpenMP directives and clauses">,
+  NegFlag<SetFalse, [CC1Option, NoArgumentUnused],
+          "Disable all Clang extensions for OpenMP directives and clauses">>;
 def fopenmp_EQ : Joined<["-"], "fopenmp=">, Group<f_Group>;
 def fopenmp_use_tls : Flag<["-"], "fopenmp-use-tls">, Group<f_Group>,
   Flags<[NoArgumentUnused, HelpHidden]>;
@@ -2374,8 +2455,20 @@ def fopenmp_cuda_blocks_per_sm_EQ : Joined<["-"], "fopenmp-cuda-blocks-per-sm=">
   Flags<[CC1Option, NoArgumentUnused, HelpHidden]>;
 def fopenmp_cuda_teams_reduction_recs_num_EQ : Joined<["-"], "fopenmp-cuda-teams-reduction-recs-num=">, Group<f_Group>,
   Flags<[CC1Option, NoArgumentUnused, HelpHidden]>;
+def fopenmp_target_debug : Flag<["-"], "fopenmp-target-debug">, Group<f_Group>, Flags<[CC1Option, NoArgumentUnused]>,
+  HelpText<"Enable debugging in the OpenMP offloading device RTL">;
+def fno_openmp_target_debug : Flag<["-"], "fno-openmp-target-debug">, Group<f_Group>, Flags<[NoArgumentUnused]>;
+def fopenmp_target_debug_EQ : Joined<["-"], "fopenmp-target-debug=">, Group<f_Group>, Flags<[CC1Option, NoArgumentUnused, HelpHidden]>;
+def fopenmp_assume_teams_oversubscription : Flag<["-"], "fopenmp-assume-teams-oversubscription">,
+  Group<f_Group>, Flags<[CC1Option, NoArgumentUnused, HelpHidden]>;
+def fopenmp_assume_threads_oversubscription : Flag<["-"], "fopenmp-assume-threads-oversubscription">,
+  Group<f_Group>, Flags<[CC1Option, NoArgumentUnused, HelpHidden]>;
+def fno_openmp_assume_teams_oversubscription : Flag<["-"], "fno-openmp-assume-teams-oversubscription">,
+  Group<f_Group>, Flags<[CC1Option, NoArgumentUnused, HelpHidden]>;
+def fno_openmp_assume_threads_oversubscription : Flag<["-"], "fno-openmp-assume-threads-oversubscription">,
+  Group<f_Group>, Flags<[CC1Option, NoArgumentUnused, HelpHidden]>;
 defm openmp_target_new_runtime: BoolFOption<"openmp-target-new-runtime",
-  LangOpts<"OpenMPTargetNewRuntime">, DefaultFalse,
+  LangOpts<"OpenMPTargetNewRuntime">, DefaultTrue,
   PosFlag<SetTrue, [CC1Option], "Use the new bitcode library for OpenMP offloading">,
   NegFlag<SetFalse>>;
 defm openmp_optimistic_collapse : BoolFOption<"openmp-optimistic-collapse",
@@ -2383,6 +2476,8 @@ defm openmp_optimistic_collapse : BoolFOption<"openmp-optimistic-collapse",
   PosFlag<SetTrue, [CC1Option]>, NegFlag<SetFalse>, BothFlags<[NoArgumentUnused, HelpHidden]>>;
 def static_openmp: Flag<["-"], "static-openmp">,
   HelpText<"Use the static host OpenMP runtime while linking.">;
+def fopenmp_new_driver : Flag<["-"], "fopenmp-new-driver">, Flags<[CC1Option]>, Group<Action_Group>,
+  HelpText<"Use the new driver for OpenMP offloading.">;
 def fno_optimize_sibling_calls : Flag<["-"], "fno-optimize-sibling-calls">, Group<f_Group>;
 def foptimize_sibling_calls : Flag<["-"], "foptimize-sibling-calls">, Group<f_Group>;
 defm escaping_block_tail_calls : BoolFOption<"escaping-block-tail-calls",
@@ -2412,6 +2507,9 @@ defm pascal_strings : BoolFOption<"pascal-strings",
 def fpatchable_function_entry_EQ : Joined<["-"], "fpatchable-function-entry=">, Group<f_Group>, Flags<[CC1Option]>,
   MetaVarName<"<N,M>">, HelpText<"Generate M NOPs before function entry and N-M NOPs after function entry">,
   MarshallingInfoInt<CodeGenOpts<"PatchableFunctionEntryCount">>;
+def fms_hotpatch : Flag<["-"], "fms-hotpatch">, Group<f_Group>, Flags<[CC1Option, CoreOption]>,
+  HelpText<"Ensure that all functions can be hotpatched at runtime">,
+  MarshallingInfoFlag<CodeGenOpts<"HotPatch">>;
 def fpcc_struct_return : Flag<["-"], "fpcc-struct-return">, Group<f_Group>, Flags<[CC1Option]>,
   HelpText<"Override the default ABI to return all structs on the stack">;
 def fpch_preprocess : Flag<["-"], "fpch-preprocess">, Group<f_Group>;
@@ -2437,6 +2535,9 @@ defm rwpi : BoolFOption<"rwpi",
   NegFlag<SetFalse>>;
 def fplugin_EQ : Joined<["-"], "fplugin=">, Group<f_Group>, Flags<[NoXarchOption]>, MetaVarName<"<dsopath>">,
   HelpText<"Load the named plugin (dynamic shared object)">;
+def fplugin_arg : Joined<["-"], "fplugin-arg-">,
+  MetaVarName<"<name>-<arg>">,
+  HelpText<"Pass <arg> to plugin <name>">;
 def fpass_plugin_EQ : Joined<["-"], "fpass-plugin=">,
   Group<f_Group>, Flags<[CC1Option]>, MetaVarName<"<dsopath>">,
   HelpText<"Load pass plugin from a dynamic shared object file (only with new pass manager).">,
@@ -2495,7 +2596,7 @@ defm signed_char : BoolFOption<"signed-char",
   ShouldParseIf<!strconcat("!", open_cl.KeyPath)>;
 defm split_stack : BoolFOption<"split-stack",
   CodeGenOpts<"EnableSegmentedStacks">, DefaultFalse,
-  NegFlag<SetFalse, [], "Wouldn't use segmented stack">, 
+  NegFlag<SetFalse, [], "Wouldn't use segmented stack">,
   PosFlag<SetTrue, [CC1Option], "Use segmented stack">>;
 def fstack_protector_all : Flag<["-"], "fstack-protector-all">, Group<f_Group>,
   HelpText<"Enable stack protectors for all functions">;
@@ -2526,7 +2627,7 @@ def ftrivial_auto_var_init : Joined<["-"], "ftrivial-auto-var-init=">, Group<f_G
   NormalizedValues<["Uninitialized", "Zero", "Pattern"]>,
   MarshallingInfoEnum<LangOpts<"TrivialAutoVarInit">, "Uninitialized">;
 def enable_trivial_var_init_zero : Flag<["-"], "enable-trivial-auto-var-init-zero-knowing-it-will-be-removed-from-clang">,
-  Flags<[CC1Option, CoreOption]>,
+  Flags<[CC1Option, CoreOption, NoArgumentUnused]>,
   HelpText<"Trivial automatic variable initialization to zero is only here for benchmarks, it'll eventually be removed, and I'm OK with that because I'm only using it to benchmark">;
 def ftrivial_auto_var_init_stop_after : Joined<["-"], "ftrivial-auto-var-init-stop-after=">, Group<f_Group>,
   Flags<[CC1Option, CoreOption]>, HelpText<"Stop initializing trivial automatic stack variables after the specified number of instances">,
@@ -2683,10 +2784,10 @@ def fverbose_asm : Flag<["-"], "fverbose-asm">, Group<f_Group>,
 def dA : Flag<["-"], "dA">, Alias<fverbose_asm>;
 defm visibility_from_dllstorageclass : BoolFOption<"visibility-from-dllstorageclass",
   LangOpts<"VisibilityFromDLLStorageClass">, DefaultFalse,
-  PosFlag<SetTrue, [CC1Option], "Set the visiblity of symbols in the generated code from their DLL storage class">,
+  PosFlag<SetTrue, [CC1Option], "Set the visibility of symbols in the generated code from their DLL storage class">,
   NegFlag<SetFalse>>;
 def fvisibility_dllexport_EQ : Joined<["-"], "fvisibility-dllexport=">, Group<f_Group>, Flags<[CC1Option]>,
-  HelpText<"The visibility for dllexport defintions [-fvisibility-from-dllstorageclass]">,
+  HelpText<"The visibility for dllexport definitions [-fvisibility-from-dllstorageclass]">,
   MarshallingInfoVisibility<LangOpts<"DLLExportVisibility">, "DefaultVisibility">,
   ShouldParseIf<fvisibility_from_dllstorageclass.KeyPath>;
 def fvisibility_nodllstorageclass_EQ : Joined<["-"], "fvisibility-nodllstorageclass=">, Group<f_Group>, Flags<[CC1Option]>,
@@ -2719,6 +2820,11 @@ def fvisibility_ms_compat : Flag<["-"], "fvisibility-ms-compat">, Group<f_Group>
 def fvisibility_global_new_delete_hidden : Flag<["-"], "fvisibility-global-new-delete-hidden">, Group<f_Group>,
   HelpText<"Give global C++ operator new and delete declarations hidden visibility">, Flags<[CC1Option]>,
   MarshallingInfoFlag<LangOpts<"GlobalAllocationFunctionVisibilityHidden">>;
+defm new_infallible : BoolFOption<"new-infallible",
+  LangOpts<"NewInfallible">, DefaultFalse,
+  PosFlag<SetTrue, [], "Enable">, NegFlag<SetFalse, [], "Disable">,
+  BothFlags<[CC1Option], " treating throwing global C++ operator new as always returning valid memory "
+  "(annotates with __attribute__((returns_nonnull)) and throw()). This is detectable in source.">>;
 defm whole_program_vtables : BoolFOption<"whole-program-vtables",
   CodeGenOpts<"WholeProgramVTables">, DefaultFalse,
   PosFlag<SetTrue, [CC1Option], "Enables whole-program vtable optimization. Requires -flto">,
@@ -2910,6 +3016,14 @@ def gsplit_dwarf_EQ : Joined<["-"], "gsplit-dwarf=">, Group<g_flags_Group>,
   HelpText<"Set DWARF fission mode to either 'split' or 'single'">,
   Values<"split,single">;
 def gno_split_dwarf : Flag<["-"], "gno-split-dwarf">, Group<g_flags_Group>;
+def gsimple_template_names : Flag<["-"], "gsimple-template-names">, Group<g_flags_Group>;
+def gsimple_template_names_EQ
+    : Joined<["-"], "gsimple-template-names=">,
+      HelpText<"Use simple template names in DWARF, or include the full "
+               "template name with a modified prefix for validation">,
+      Values<"simple,mangled">, Flags<[CC1Option, NoDriverOption]>;
+def gno_simple_template_names : Flag<["-"], "gno-simple-template-names">,
+                                Group<g_flags_Group>;
 def ggnu_pubnames : Flag<["-"], "ggnu-pubnames">, Group<g_flags_Group>, Flags<[CC1Option]>;
 def gno_gnu_pubnames : Flag<["-"], "gno-gnu-pubnames">, Group<g_flags_Group>;
 def gpubnames : Flag<["-"], "gpubnames">, Group<g_flags_Group>, Flags<[CC1Option]>;
@@ -3052,6 +3166,10 @@ def mwatchos_simulator_version_min_EQ : Joined<["-"], "mwatchos-simulator-versio
 def mwatchsimulator_version_min_EQ : Joined<["-"], "mwatchsimulator-version-min=">, Alias<mwatchos_simulator_version_min_EQ>;
 def march_EQ : Joined<["-"], "march=">, Group<m_Group>, Flags<[CoreOption]>;
 def masm_EQ : Joined<["-"], "masm=">, Group<m_Group>, Flags<[NoXarchOption]>;
+def inline_asm_EQ : Joined<["-"], "inline-asm=">, Group<m_Group>, Flags<[CC1Option]>,
+  Values<"att,intel">,
+  NormalizedValuesScope<"CodeGenOptions">, NormalizedValues<["IAD_ATT", "IAD_Intel"]>,
+  MarshallingInfoEnum<CodeGenOpts<"InlineAsmDialect">, "IAD_ATT">;
 def mcmodel_EQ : Joined<["-"], "mcmodel=">, Group<m_Group>, Flags<[CC1Option]>,
   MarshallingInfoString<TargetOpts<"CodeModel">, [{"default"}]>;
 def mtls_size_EQ : Joined<["-"], "mtls-size=">, Group<m_Group>, Flags<[NoXarchOption, CC1Option]>,
@@ -3097,6 +3215,9 @@ def mlinker_version_EQ : Joined<["-"], "mlinker-version=">,
 def mllvm : Separate<["-"], "mllvm">, Flags<[CC1Option,CC1AsOption,CoreOption]>,
   HelpText<"Additional arguments to forward to LLVM's option processing">,
   MarshallingInfoStringVector<FrontendOpts<"LLVMArgs">>;
+def ffuchsia_api_level_EQ : Joined<["-"], "ffuchsia-api-level=">,
+  Group<m_Group>, Flags<[CC1Option]>, HelpText<"Set Fuchsia API level">,
+  MarshallingInfoInt<LangOpts<"FuchsiaAPILevel">>;
 def mmacosx_version_min_EQ : Joined<["-"], "mmacosx-version-min=">,
   Group<m_Group>, HelpText<"Set Mac OS X deployment target">;
 def mmacos_version_min_EQ : Joined<["-"], "mmacos-version-min=">,
@@ -3110,6 +3231,10 @@ def mno_outline : Flag<["-"], "mno-outline">, Group<f_clang_Group>, Flags<[CC1Op
     HelpText<"Disable function outlining (AArch64 only)">;
 def mno_ms_bitfields : Flag<["-"], "mno-ms-bitfields">, Group<m_Group>,
   HelpText<"Do not set the default structure layout to be compatible with the Microsoft compiler standard">;
+def mskip_rax_setup : Flag<["-"], "mskip-rax-setup">, Group<m_Group>, Flags<[CC1Option]>,
+  HelpText<"Skip setting up RAX register when passing variable arguments (x86 only)">,
+  MarshallingInfoFlag<CodeGenOpts<"SkipRaxSetup">>;
+def mno_skip_rax_setup : Flag<["-"], "mno-skip-rax-setup">, Group<m_Group>, Flags<[CC1Option]>;
 def mstackrealign : Flag<["-"], "mstackrealign">, Group<m_Group>, Flags<[CC1Option]>,
   HelpText<"Force realign the stack at entry to every function">,
   MarshallingInfoFlag<CodeGenOpts<"StackRealignment">>;
@@ -3133,6 +3258,8 @@ def meabi : Separate<["-"], "meabi">, Group<m_Group>, Flags<[CC1Option]>,
   MarshallingInfoEnum<TargetOpts<"EABIVersion">, "Default">,
   NormalizedValuesScope<"llvm::EABI">,
   NormalizedValues<["Default", "EABI4", "EABI5", "GNU"]>;
+def mtargetos_EQ : Joined<["-"], "mtargetos=">, Group<m_Group>,
+  HelpText<"Set the deployment target to be the specified OS and OS version">;
 
 def mno_constant_cfstrings : Flag<["-"], "mno-constant-cfstrings">, Group<m_Group>;
 def mno_global_merge : Flag<["-"], "mno-global-merge">, Group<m_Group>, Flags<[CC1Option]>,
@@ -3227,6 +3354,12 @@ defm aapcs_bitfield_width : BoolOption<"f", "aapcs-bitfield-width",
 
 def mgeneral_regs_only : Flag<["-"], "mgeneral-regs-only">, Group<m_Group>,
   HelpText<"Generate code which only uses the general purpose registers (AArch64/x86 only)">;
+def mfix_cmse_cve_2021_35465 : Flag<["-"], "mfix-cmse-cve-2021-35465">,
+  Group<m_arm_Features_Group>,
+  HelpText<"Work around VLLDM erratum CVE-2021-35465 (ARM only)">;
+def mno_fix_cmse_cve_2021_35465 : Flag<["-"], "mno-fix-cmse-cve-2021-35465">,
+  Group<m_arm_Features_Group>,
+  HelpText<"Don't work around VLLDM erratum CVE-2021-35465 (ARM only)">;
 def mfix_cortex_a53_835769 : Flag<["-"], "mfix-cortex-a53-835769">,
   Group<m_aarch64_Features_Group>,
   HelpText<"Workaround Cortex-A53 erratum 835769 (AArch64 only)">;
@@ -3236,6 +3369,11 @@ def mno_fix_cortex_a53_835769 : Flag<["-"], "mno-fix-cortex-a53-835769">,
 def mmark_bti_property : Flag<["-"], "mmark-bti-property">,
   Group<m_aarch64_Features_Group>,
   HelpText<"Add .note.gnu.property with BTI to assembly files (AArch64 only)">;
+def mno_bti_at_return_twice : Flag<["-"], "mno-bti-at-return-twice">,
+  Group<m_arm_Features_Group>,
+  HelpText<"Do not add a BTI instruction after a setjmp or other"
+           " return-twice construct (Arm/AArch64 only)">;
+
 foreach i = {1-31} in
   def ffixed_x#i : Flag<["-"], "ffixed-x"#i>, Group<m_Group>,
     HelpText<"Reserve the x"#i#" register (AArch64/RISC-V only)">;
@@ -3244,18 +3382,25 @@ foreach i = {8-15,18} in
   def fcall_saved_x#i : Flag<["-"], "fcall-saved-x"#i>, Group<m_aarch64_Features_Group>,
     HelpText<"Make the x"#i#" register call-saved (AArch64 only)">;
 
-def msve_vector_bits_EQ : Joined<["-"], "msve-vector-bits=">,
-  Group<m_aarch64_Features_Group>, Flags<[NoXarchOption,CC1Option]>,
+def msve_vector_bits_EQ : Joined<["-"], "msve-vector-bits=">, Group<m_aarch64_Features_Group>,
   HelpText<"Specify the size in bits of an SVE vector register. Defaults to the"
-           " vector length agnostic value of \"scalable\". (AArch64 only)">,
-  Values<"128,256,512,1024,2048,scalable">,
-  NormalizedValues<["128", "256", "512", "1024", "2048", "0"]>,
-  MarshallingInfoEnum<LangOpts<"ArmSveVectorBits">, "0">;
+           " vector length agnostic value of \"scalable\". (AArch64 only)">;
+
+def mvscale_min_EQ : Joined<["-"], "mvscale-min=">,
+  Group<m_aarch64_Features_Group>, Flags<[NoXarchOption,CC1Option]>,
+  HelpText<"Specify the vscale minimum. Defaults to \"1\". (AArch64 only)">,
+  MarshallingInfoInt<LangOpts<"VScaleMin">>;
+def mvscale_max_EQ : Joined<["-"], "mvscale-max=">,
+  Group<m_aarch64_Features_Group>, Flags<[NoXarchOption,CC1Option]>,
+  HelpText<"Specify the vscale maximum. Defaults to the"
+           " vector length agnostic value of \"0\". (AArch64 only)">,
+  MarshallingInfoInt<LangOpts<"VScaleMax">>;
 
 def msign_return_address_EQ : Joined<["-"], "msign-return-address=">,
   Flags<[CC1Option]>, Group<m_Group>, Values<"none,all,non-leaf">,
   HelpText<"Select return address signing scope">;
 def mbranch_protection_EQ : Joined<["-"], "mbranch-protection=">,
+  Group<m_Group>,
   HelpText<"Enforce targets of indirect branches and function returns">;
 
 def mharden_sls_EQ : Joined<["-"], "mharden-sls=">,
@@ -3263,6 +3408,8 @@ def mharden_sls_EQ : Joined<["-"], "mharden-sls=">,
 
 def msimd128 : Flag<["-"], "msimd128">, Group<m_wasm_Features_Group>;
 def mno_simd128 : Flag<["-"], "mno-simd128">, Group<m_wasm_Features_Group>;
+def mrelaxed_simd : Flag<["-"], "mrelaxed-simd">, Group<m_wasm_Features_Group>;
+def mno_relaxed_simd : Flag<["-"], "mno-relaxed-simd">, Group<m_wasm_Features_Group>;
 def mnontrapping_fptoint : Flag<["-"], "mnontrapping-fptoint">, Group<m_wasm_Features_Group>;
 def mno_nontrapping_fptoint : Flag<["-"], "mno-nontrapping-fptoint">, Group<m_wasm_Features_Group>;
 def msign_ext : Flag<["-"], "msign-ext">, Group<m_wasm_Features_Group>;
@@ -3491,6 +3638,7 @@ def mcheck_zero_division : Flag<["-"], "mcheck-zero-division">,
                            Group<m_mips_Features_Group>;
 def mno_check_zero_division : Flag<["-"], "mno-check-zero-division">,
                               Group<m_mips_Features_Group>;
+def mfix4300 : Flag<["-"], "mfix4300">, Group<m_mips_Features_Group>;
 def mcompact_branches_EQ : Joined<["-"], "mcompact-branches=">,
                            Group<m_mips_Features_Group>;
 def mbranch_likely : Flag<["-"], "mbranch-likely">, Group<m_Group>,
@@ -3635,8 +3783,10 @@ def multi__module : Flag<["-"], "multi_module">;
 def multiply__defined__unused : Separate<["-"], "multiply_defined_unused">;
 def multiply__defined : Separate<["-"], "multiply_defined">;
 def mwarn_nonportable_cfstrings : Flag<["-"], "mwarn-nonportable-cfstrings">, Group<m_Group>;
+def canonical_prefixes : Flag<["-"], "canonical-prefixes">, Flags<[HelpHidden, CoreOption]>,
+  HelpText<"Use absolute paths for invoking subcommands (default)">;
 def no_canonical_prefixes : Flag<["-"], "no-canonical-prefixes">, Flags<[HelpHidden, CoreOption]>,
-  HelpText<"Use relative instead of canonical paths">;
+  HelpText<"Use relative paths for invoking subcommands">;
 def no_cpp_precomp : Flag<["-"], "no-cpp-precomp">, Group<clang_ignored_f_Group>;
 def no_integrated_cpp : Flag<["-", "--"], "no-integrated-cpp">, Flags<[NoXarchOption]>;
 def no_pedantic : Flag<["-", "--"], "no-pedantic">, Group<pedantic_Group>;
@@ -3646,6 +3796,8 @@ def nobuiltininc : Flag<["-"], "nobuiltininc">, Flags<[CC1Option, CoreOption]>,
   MarshallingInfoNegativeFlag<HeaderSearchOpts<"UseBuiltinIncludes">>;
 def nogpuinc : Flag<["-"], "nogpuinc">, HelpText<"Do not add include paths for CUDA/HIP and"
   " do not include the default CUDA/HIP wrapper headers">;
+def nohipwrapperinc : Flag<["-"], "nohipwrapperinc">,
+  HelpText<"Do not include the default HIP wrapper headers and include paths">;
 def : Flag<["-"], "nocudainc">, Alias<nogpuinc>;
 def nogpulib : Flag<["-"], "nogpulib">,
   HelpText<"Do not link device library for CUDA/HIP device compilation">;
@@ -3672,6 +3824,11 @@ def o : JoinedOrSeparate<["-"], "o">, Flags<[NoXarchOption, RenderAsInput,
   CC1Option, CC1AsOption, FC1Option, FlangOption]>,
   HelpText<"Write output to <file>">, MetaVarName<"<file>">,
   MarshallingInfoString<FrontendOpts<"OutputFile">>;
+def object_file_name_EQ : Joined<["-"], "object-file-name=">, Flags<[CC1Option, CC1AsOption, CoreOption]>,
+  HelpText<"Set the output <file> for debug infos">, MetaVarName<"<file>">,
+  MarshallingInfoString<CodeGenOpts<"ObjectFilenameForDebug">>;
+def object_file_name : Separate<["-"], "object-file-name">, Flags<[CC1Option, CC1AsOption, CoreOption]>,
+    Alias<object_file_name_EQ>;
 def pagezero__size : JoinedOrSeparate<["-"], "pagezero_size">;
 def pass_exit_codes : Flag<["-", "--"], "pass-exit-codes">, Flags<[Unsupported]>;
 def pedantic_errors : Flag<["-", "--"], "pedantic-errors">, Group<pedantic_Group>, Flags<[CC1Option]>,
@@ -3744,6 +3901,11 @@ def frtlib_add_rpath: Flag<["-"], "frtlib-add-rpath">, Flags<[NoArgumentUnused]>
   HelpText<"Add -rpath with architecture-specific resource directory to the linker flags">;
 def fno_rtlib_add_rpath: Flag<["-"], "fno-rtlib-add-rpath">, Flags<[NoArgumentUnused]>,
   HelpText<"Do not add -rpath with architecture-specific resource directory to the linker flags">;
+defm openmp_implicit_rpath: BoolFOption<"openmp-implicit-rpath",
+  LangOpts<"OpenMP">,
+  DefaultTrue,
+  PosFlag<SetTrue, [], "Set rpath on OpenMP executables">,
+  NegFlag<SetFalse>>;
 def r : Flag<["-"], "r">, Flags<[LinkerInput,NoArgumentUnused]>,
         Group<Link_Group>;
 def save_temps_EQ : Joined<["-", "--"], "save-temps=">, Flags<[CC1Option, NoXarchOption]>,
@@ -3777,6 +3939,8 @@ def shared : Flag<["-", "--"], "shared">, Group<Link_Group>;
 def single__module : Flag<["-"], "single_module">;
 def specs_EQ : Joined<["-", "--"], "specs=">, Group<Link_Group>;
 def specs : Separate<["-", "--"], "specs">, Flags<[Unsupported]>;
+def start_no_unused_arguments : Flag<["--"], "start-no-unused-arguments">, Flags<[CoreOption]>,
+  HelpText<"Don't emit warnings about unused arguments for the following arguments">;
 def static_libgcc : Flag<["-"], "static-libgcc">;
 def static_libstdcxx : Flag<["-"], "static-libstdc++">;
 def static : Flag<["-", "--"], "static">, Group<Link_Group>, Flags<[NoArgumentUnused]>;
@@ -4025,6 +4189,8 @@ def mv67t : Flag<["-"], "mv67t">, Group<m_hexagon_Features_Group>,
   Alias<mcpu_EQ>, AliasArgs<["hexagonv67t"]>;
 def mv68 : Flag<["-"], "mv68">, Group<m_hexagon_Features_Group>,
   Alias<mcpu_EQ>, AliasArgs<["hexagonv68"]>;
+def mv69 : Flag<["-"], "mv69">, Group<m_hexagon_Features_Group>,
+  Alias<mcpu_EQ>, AliasArgs<["hexagonv69"]>;
 def mhexagon_hvx : Flag<["-"], "mhvx">, Group<m_hexagon_Features_HVX_Group>,
   HelpText<"Enable Hexagon Vector eXtensions">;
 def mhexagon_hvx_EQ : Joined<["-"], "mhvx=">,
@@ -4036,6 +4202,18 @@ def mno_hexagon_hvx : Flag<["-"], "mno-hvx">,
 def mhexagon_hvx_length_EQ : Joined<["-"], "mhvx-length=">,
   Group<m_hexagon_Features_HVX_Group>, HelpText<"Set Hexagon Vector Length">,
   Values<"64B,128B">;
+def mhexagon_hvx_qfloat : Flag<["-"], "mhvx-qfloat">,
+  Group<m_hexagon_Features_HVX_Group>,
+  HelpText<"Enable Hexagon HVX QFloat instructions">;
+def mno_hexagon_hvx_qfloat : Flag<["-"], "mno-hvx-qfloat">,
+  Group<m_hexagon_Features_HVX_Group>,
+  HelpText<"Disable Hexagon HVX QFloat instructions">;
+def mhexagon_hvx_ieee_fp : Flag<["-"], "mhvx-ieee-fp">,
+  Group<m_hexagon_Features_Group>,
+  HelpText<"Enable Hexagon HVX IEEE floating-point">;
+def mno_hexagon_hvx_ieee_fp : Flag<["-"], "mno-hvx-ieee-fp">,
+  Group<m_hexagon_Features_Group>,
+  HelpText<"Disable Hexagon HVX IEEE floating-point">;
 def ffixed_r19: Flag<["-"], "ffixed-r19">,
   HelpText<"Reserve register r19 (Hexagon only)">;
 def mmemops : Flag<["-"], "mmemops">, Group<m_hexagon_Features_Group>,
@@ -4075,6 +4253,7 @@ def mx87 : Flag<["-"], "mx87">, Group<m_x86_Features_Group>;
 def mno_x87 : Flag<["-"], "mno-x87">, Group<m_x86_Features_Group>;
 def m80387 : Flag<["-"], "m80387">, Alias<mx87>;
 def mno_80387 : Flag<["-"], "mno-80387">, Alias<mno_x87>;
+def mno_fp_ret_in_387 : Flag<["-"], "mno-fp-ret-in-387">, Alias<mno_x87>;
 def mmmx : Flag<["-"], "mmmx">, Group<m_x86_Features_Group>;
 def mno_mmx : Flag<["-"], "mno-mmx">, Group<m_x86_Features_Group>;
 def m3dnow : Flag<["-"], "m3dnow">, Group<m_x86_Features_Group>;
@@ -4124,6 +4303,8 @@ def mavx512dq : Flag<["-"], "mavx512dq">, Group<m_x86_Features_Group>;
 def mno_avx512dq : Flag<["-"], "mno-avx512dq">, Group<m_x86_Features_Group>;
 def mavx512er : Flag<["-"], "mavx512er">, Group<m_x86_Features_Group>;
 def mno_avx512er : Flag<["-"], "mno-avx512er">, Group<m_x86_Features_Group>;
+def mavx512fp16 : Flag<["-"], "mavx512fp16">, Group<m_x86_Features_Group>;
+def mno_avx512fp16 : Flag<["-"], "mno-avx512fp16">, Group<m_x86_Features_Group>;
 def mavx512ifma : Flag<["-"], "mavx512ifma">, Group<m_x86_Features_Group>;
 def mno_avx512ifma : Flag<["-"], "mno-avx512ifma">, Group<m_x86_Features_Group>;
 def mavx512pf : Flag<["-"], "mavx512pf">, Group<m_x86_Features_Group>;
@@ -4160,6 +4341,8 @@ def mwbnoinvd : Flag<["-"], "mwbnoinvd">, Group<m_x86_Features_Group>;
 def mno_wbnoinvd : Flag<["-"], "mno-wbnoinvd">, Group<m_x86_Features_Group>;
 def mclzero : Flag<["-"], "mclzero">, Group<m_x86_Features_Group>;
 def mno_clzero : Flag<["-"], "mno-clzero">, Group<m_x86_Features_Group>;
+def mcrc32 : Flag<["-"], "mcrc32">, Group<m_x86_Features_Group>;
+def mno_crc32 : Flag<["-"], "mno-crc32">, Group<m_x86_Features_Group>;
 def mcx16 : Flag<["-"], "mcx16">, Group<m_x86_Features_Group>;
 def mno_cx16 : Flag<["-"], "mno-cx16">, Group<m_x86_Features_Group>;
 def menqcmd : Flag<["-"], "menqcmd">, Group<m_x86_Features_Group>;
@@ -4258,7 +4441,6 @@ def mno_vzeroupper : Flag<["-"], "mno-vzeroupper">, Group<m_x86_Features_Group>;
 // These are legacy user-facing driver-level option spellings. They are always
 // aliases for options that are spelled using the more common Unix / GNU flag
 // style of double-dash and equals-joined flags.
-def gcc_toolchain_legacy_spelling : Separate<["-"], "gcc-toolchain">, Alias<gcc_toolchain>;
 def target_legacy_spelling : Separate<["-"], "target">, Alias<target>;
 
 // Special internal option to handle -Xlinker --no-demangle.
@@ -4298,7 +4480,6 @@ def ld_path_EQ : Joined<["--"], "ld-path=">, Group<Link_Group>;
 defm align_labels : BooleanFFlag<"align-labels">, Group<clang_ignored_gcc_optimization_f_Group>;
 def falign_labels_EQ : Joined<["-"], "falign-labels=">, Group<clang_ignored_gcc_optimization_f_Group>;
 defm align_loops : BooleanFFlag<"align-loops">, Group<clang_ignored_gcc_optimization_f_Group>;
-def falign_loops_EQ : Joined<["-"], "falign-loops=">, Group<clang_ignored_gcc_optimization_f_Group>;
 defm align_jumps : BooleanFFlag<"align-jumps">, Group<clang_ignored_gcc_optimization_f_Group>;
 def falign_jumps_EQ : Joined<["-"], "falign-jumps=">, Group<clang_ignored_gcc_optimization_f_Group>;
 
@@ -4407,7 +4588,7 @@ def frecord_marker_EQ : Joined<["-"], "frecord-marker=">, Group<gfortran_Group>;
 defm aggressive_function_elimination : BooleanFFlag<"aggressive-function-elimination">, Group<gfortran_Group>;
 defm align_commons : BooleanFFlag<"align-commons">, Group<gfortran_Group>;
 defm all_intrinsics : BooleanFFlag<"all-intrinsics">, Group<gfortran_Group>;
-defm automatic : BooleanFFlag<"automatic">, Group<gfortran_Group>;
+def fautomatic : Flag<["-"], "fautomatic">; // -fno-automatic is significant
 defm backtrace : BooleanFFlag<"backtrace">, Group<gfortran_Group>;
 defm bounds_check : BooleanFFlag<"bounds-check">, Group<gfortran_Group>;
 defm check_array_temporaries : BooleanFFlag<"check-array-temporaries">, Group<gfortran_Group>;
@@ -4492,26 +4673,21 @@ def fdefault_real_8 : Flag<["-"],"fdefault-real-8">, Group<f_Group>,
   HelpText<"Set the default real kind to an 8 byte wide type">;
 def flarge_sizes : Flag<["-"],"flarge-sizes">, Group<f_Group>,
   HelpText<"Use INTEGER(KIND=8) for the result type in size-related intrinsics">;
-def fbackslash : Flag<["-"], "fbackslash">, Group<f_Group>,
-  HelpText<"Specify that backslash in string introduces an escape character">,
-  DocBrief<[{Change the interpretation of backslashes in string literals from
-a single backslash character to "C-style" escape characters.}]>;
-def fno_backslash : Flag<["-"], "fno-backslash">, Group<f_Group>;
-def fxor_operator : Flag<["-"], "fxor-operator">, Group<f_Group>,
-  HelpText<"Enable .XOR. as a synonym of .NEQV.">;
-def fno_xor_operator : Flag<["-"], "fno-xor-operator">, Group<f_Group>;
-def flogical_abbreviations : Flag<["-"], "flogical-abbreviations">, Group<f_Group>,
-  HelpText<"Enable logical abbreviations">;
-def fno_logical_abbreviations : Flag<["-"], "fno-logical-abbreviations">, Group<f_Group>;
-def fimplicit_none : Flag<["-"], "fimplicit-none">, Group<f_Group>,
-  HelpText<"No implicit typing allowed unless overridden by IMPLICIT statements">;
-def fno_implicit_none : Flag<["-"], "fno-implicit-none">, Group<f_Group>;
+
 def falternative_parameter_statement : Flag<["-"], "falternative-parameter-statement">, Group<f_Group>,
   HelpText<"Enable the old style PARAMETER statement">;
 def fintrinsic_modules_path : Separate<["-"], "fintrinsic-modules-path">,  Group<f_Group>, MetaVarName<"<dir>">,
   HelpText<"Specify where to find the compiled intrinsic modules">,
-  DocBrief<[{This option specifies the location of pre-compiled intrinsic modules, 
+  DocBrief<[{This option specifies the location of pre-compiled intrinsic modules,
   if they are not in the default location expected by the compiler.}]>;
+
+defm backslash : OptInFC1FFlag<"backslash", "Specify that backslash in string introduces an escape character">;
+defm xor_operator : OptInFC1FFlag<"xor-operator", "Enable .XOR. as a synonym of .NEQV.">;
+defm logical_abbreviations : OptInFC1FFlag<"logical-abbreviations", "Enable logical abbreviations">;
+defm implicit_none : OptInFC1FFlag<"implicit-none", "No implicit typing allowed unless overridden by IMPLICIT statements">;
+
+def fno_automatic : Flag<["-"], "fno-automatic">, Group<f_Group>,
+  HelpText<"Implies the SAVE attribute for non-automatic local objects in subprograms unless RECURSIVE">;
 }
 
 def J : JoinedOrSeparate<["-"], "J">,
@@ -4559,18 +4735,16 @@ def fdebug_measure_parse_tree : Flag<["-"], "fdebug-measure-parse-tree">, Group<
   HelpText<"Measure the parse tree">;
 def fdebug_pre_fir_tree : Flag<["-"], "fdebug-pre-fir-tree">, Group<Action_Group>,
   HelpText<"Dump the pre-FIR tree">;
-def fdebug_module_writer : Flag<["-"],"fdebug-module-writer">, 
+def fdebug_module_writer : Flag<["-"],"fdebug-module-writer">,
   HelpText<"Enable debug messages while writing module files">;
 def fget_symbols_sources : Flag<["-"], "fget-symbols-sources">, Group<Action_Group>,
   HelpText<"Dump symbols and their source code locations">;
 
 def module_suffix : Separate<["-"], "module-suffix">,  Group<f_Group>, MetaVarName<"<suffix>">,
   HelpText<"Use <suffix> as the suffix for module files (the default value is `.mod`)">;
-def fanalyzed_objects_for_unparse : Flag<["-"],
-  "fanalyzed-objects-for-unparse">,  Group<f_Group>;
-def fno_analyzed_objects_for_unparse : Flag<["-"],
-  "fno-analyzed-objects-for-unparse">,  Group<f_Group>,
-  HelpText<"Do not use the analyzed objects when unparsing">;
+def fno_reformat : Flag<["-"], "fno-reformat">, Group<Preprocessor_Group>,
+  HelpText<"Dump the cooked character stream in -E mode">;
+defm analyzed_objects_for_unparse : OptOutFC1FFlag<"analyzed-objects-for-unparse", "", "Do not use the analyzed objects when unparsing">;
 
 }
 
@@ -4811,8 +4985,8 @@ def record_command_line : Separate<["-"], "record-command-line">,
   HelpText<"The string to embed in the .LLVM.command.line section.">,
   MarshallingInfoString<CodeGenOpts<"RecordCommandLine">>;
 def compress_debug_sections_EQ : Joined<["-", "--"], "compress-debug-sections=">,
-    HelpText<"DWARF debug sections compression type">, Values<"none,zlib,zlib-gnu">,
-    NormalizedValuesScope<"llvm::DebugCompressionType">, NormalizedValues<["None", "Z", "GNU"]>,
+    HelpText<"DWARF debug sections compression type">, Values<"none,zlib">,
+    NormalizedValuesScope<"llvm::DebugCompressionType">, NormalizedValues<["None", "Z"]>,
     MarshallingInfoEnum<CodeGenOpts<"CompressDebugSections">, "None">;
 def compress_debug_sections : Flag<["-", "--"], "compress-debug-sections">,
   Alias<compress_debug_sections_EQ>, AliasArgs<["zlib"]>;
@@ -4954,12 +5128,13 @@ def mregparm : Separate<["-"], "mregparm">,
 def msmall_data_limit : Separate<["-"], "msmall-data-limit">,
   HelpText<"Put global and static data smaller than the limit into a special section">,
   MarshallingInfoInt<CodeGenOpts<"SmallDataLimit">>;
-def munwind_tables : Flag<["-"], "munwind-tables">,
+def funwind_tables_EQ : Joined<["-"], "funwind-tables=">,
   HelpText<"Generate unwinding tables for all functions">,
-  MarshallingInfoFlag<CodeGenOpts<"UnwindTables">>;
-def mconstructor_aliases : Flag<["-"], "mconstructor-aliases">,
-  HelpText<"Emit complete constructors and destructors as aliases when possible">,
-  MarshallingInfoFlag<CodeGenOpts<"CXXCtorDtorAliases">>;
+  MarshallingInfoInt<CodeGenOpts<"UnwindTables">>;
+defm constructor_aliases : BoolOption<"m", "constructor-aliases",
+  CodeGenOpts<"CXXCtorDtorAliases">, DefaultFalse,
+  PosFlag<SetTrue, [], "Enable">, NegFlag<SetFalse, [], "Disable">,
+  BothFlags<[CC1Option], " emitting complete constructors and destructors as aliases when possible">>;
 def mlink_bitcode_file : Separate<["-"], "mlink-bitcode-file">,
   HelpText<"Link the given bitcode file before performing optimizations.">;
 def mlink_builtin_bitcode : Separate<["-"], "mlink-builtin-bitcode">,
@@ -5034,6 +5209,14 @@ def fsanitize_coverage_stack_depth
     : Flag<["-"], "fsanitize-coverage-stack-depth">,
       HelpText<"Enable max stack depth tracing">,
       MarshallingInfoFlag<CodeGenOpts<"SanitizeCoverageStackDepth">>;
+def fsanitize_coverage_trace_loads
+    : Flag<["-"], "fsanitize-coverage-trace-loads">,
+      HelpText<"Enable tracing of loads">,
+      MarshallingInfoFlag<CodeGenOpts<"SanitizeCoverageTraceLoads">>;
+def fsanitize_coverage_trace_stores
+    : Flag<["-"], "fsanitize-coverage-trace-stores">,
+      HelpText<"Enable tracing of stores">,
+      MarshallingInfoFlag<CodeGenOpts<"SanitizeCoverageTraceStores">>;
 def fpatchable_function_entry_offset_EQ
     : Joined<["-"], "fpatchable-function-entry-offset=">, MetaVarName<"<M>">,
       HelpText<"Generate M NOPs before function entry">,
@@ -5064,10 +5247,6 @@ defm debug_pass_manager : BoolOption<"f", "debug-pass-manager",
   CodeGenOpts<"DebugPassManager">, DefaultFalse,
   PosFlag<SetTrue, [], "Prints debug information for the new pass manager">,
   NegFlag<SetFalse, [], "Disables debug printing for the new pass manager">>;
-def fexperimental_debug_variable_locations : Flag<["-"],
-    "fexperimental-debug-variable-locations">,
-    HelpText<"Use experimental new value-tracking variable locations">,
-    MarshallingInfoFlag<CodeGenOpts<"ValueTrackingVariableLocations">>;
 def fverify_debuginfo_preserve
     : Flag<["-"], "fverify-debuginfo-preserve">,
       HelpText<"Enable Debug Info Metadata preservation testing in "
@@ -5228,16 +5407,19 @@ def code_completion_with_fixits : Flag<["-"], "code-completion-with-fixits">,
 def disable_free : Flag<["-"], "disable-free">,
   HelpText<"Disable freeing of memory on exit">,
   MarshallingInfoFlag<FrontendOpts<"DisableFree">>;
-def enable_noundef_analysis : Flag<["-"], "enable-noundef-analysis">, Group<f_Group>,
-  HelpText<"Enable analyzing function argument and return types for mandatory definedness">,
-  MarshallingInfoFlag<CodeGenOpts<"EnableNoundefAttrs">>;
+defm clear_ast_before_backend : BoolOption<"",
+  "clear-ast-before-backend",
+  CodeGenOpts<"ClearASTBeforeBackend">,
+  DefaultFalse,
+  PosFlag<SetTrue, [], "Clear">,
+  NegFlag<SetFalse, [], "Don't clear">,
+  BothFlags<[], " the Clang AST before running backend code generation">>;
+def disable_noundef_analysis : Flag<["-"], "disable-noundef-analysis">, Group<f_Group>,
+  HelpText<"Disable analyzing function argument and return types for mandatory definedness">,
+  MarshallingInfoFlag<CodeGenOpts<"DisableNoundefAttrs">>;
 def discard_value_names : Flag<["-"], "discard-value-names">,
   HelpText<"Discard value names in LLVM IR">,
   MarshallingInfoFlag<CodeGenOpts<"DiscardValueNames">>;
-def load : Separate<["-"], "load">, MetaVarName<"<dsopath>">,
-  HelpText<"Load the named plugin (dynamic shared object)">;
-def plugin : Separate<["-"], "plugin">, MetaVarName<"<name>">,
-  HelpText<"Use the named plugin action instead of the default action (use \"help\" to list available options)">;
 def plugin_arg : JoinedAndSeparate<["-"], "plugin-arg-">,
     MetaVarName<"<name> <arg>">,
     HelpText<"Pass <arg> to plugin <name>">;
@@ -5250,6 +5432,8 @@ def ast_dump_filter : Separate<["-"], "ast-dump-filter">,
            " nodes having a certain substring in a qualified name. Use"
            " -ast-list to list all filterable declaration node names.">,
   MarshallingInfoString<FrontendOpts<"ASTDumpFilter">>;
+def ast_dump_filter_EQ : Joined<["-"], "ast-dump-filter=">,
+  Alias<ast_dump_filter>;
 def fno_modules_global_index : Flag<["-"], "fno-modules-global-index">,
   HelpText<"Do not automatically generate or update the global module index">,
   MarshallingInfoNegativeFlag<FrontendOpts<"UseGlobalModuleIndex">>;
@@ -5273,6 +5457,12 @@ def fmodules_embed_all_files : Joined<["-"], "fmodules-embed-all-files">,
   HelpText<"Embed the contents of all files read by this compilation into "
            "the produced module file.">,
   MarshallingInfoFlag<FrontendOpts<"ModulesEmbedAllFiles">>;
+defm fimplicit_modules_use_lock : BoolOption<"f", "implicit-modules-use-lock",
+  FrontendOpts<"BuildingImplicitModuleUsesLock">, DefaultTrue,
+  NegFlag<SetFalse>,
+  PosFlag<SetTrue, [],
+          "Use filesystem locks for implicit modules builds to avoid "
+          "duplicating work in competing clang invocations.">>;
 // FIXME: We only need this in C++ modules / Modules TS if we might textually
 // enter a different module (eg, when building a header unit).
 def fmodules_local_submodule_visibility :
@@ -5280,7 +5470,7 @@ def fmodules_local_submodule_visibility :
   HelpText<"Enforce name visibility rules across submodules of the same "
            "top-level module.">,
   MarshallingInfoFlag<LangOpts<"ModulesLocalVisibility">>,
-  ImpliedByAnyOf<[fmodules_ts.KeyPath, cpp_modules.KeyPath]>;
+  ImpliedByAnyOf<[fmodules_ts.KeyPath, fcxx_modules.KeyPath]>;
 def fmodules_codegen :
   Flag<["-"], "fmodules-codegen">,
   HelpText<"Generate code for uses of this module that assumes an explicit "
@@ -5804,6 +5994,12 @@ def init_only : Flag<["-"], "init-only">,
   HelpText<"Only execute frontend initialization">;
 
 } // let Group = Action_Group
+
+def load : Separate<["-"], "load">, MetaVarName<"<dsopath>">,
+  HelpText<"Load the named plugin (dynamic shared object)">;
+def plugin : Separate<["-"], "plugin">, MetaVarName<"<name>">,
+  HelpText<"Use the named plugin action instead of the default action (use \"help\" to list available options)">;
+
 } // let Flags = [CC1Option, FC1Option, NoDriverOption]
 
 //===----------------------------------------------------------------------===//
@@ -5946,6 +6142,8 @@ def _SLASH_Gw_ : CLFlag<"Gw-">,
 def _SLASH_help : CLFlag<"help">, Alias<help>,
   HelpText<"Display available options">;
 def _SLASH_HELP : CLFlag<"HELP">, Alias<help>;
+def _SLASH_hotpatch : CLFlag<"hotpatch">, Alias<fms_hotpatch>,
+  HelpText<"Create hotpatchable image">;
 def _SLASH_I : CLJoinedOrSeparate<"I">,
   HelpText<"Add directory to include search path">, MetaVarName<"<dir>">,
   Alias<I>;
@@ -6027,16 +6225,7 @@ def _SLASH_WX_ : CLFlag<"WX-">,
   HelpText<"Do not treat warnings as errors (default)">,
   Alias<W_Joined>, AliasArgs<["no-error"]>;
 def _SLASH_w_flag : CLFlag<"w">, HelpText<"Disable all warnings">, Alias<w>;
-def _SLASH_wd4005 : CLFlag<"wd4005">, Alias<W_Joined>,
-  AliasArgs<["no-macro-redefined"]>;
-def _SLASH_wd4018 : CLFlag<"wd4018">, Alias<W_Joined>,
-  AliasArgs<["no-sign-compare"]>;
-def _SLASH_wd4100 : CLFlag<"wd4100">, Alias<W_Joined>,
-  AliasArgs<["no-unused-parameter"]>;
-def _SLASH_wd4910 : CLFlag<"wd4910">, Alias<W_Joined>,
-  AliasArgs<["no-dllexport-explicit-instantiation-decl"]>;
-def _SLASH_wd4996 : CLFlag<"wd4996">, Alias<W_Joined>,
-  AliasArgs<["no-deprecated-declarations"]>;
+def _SLASH_wd : CLCompileJoined<"wd">;
 def _SLASH_vd : CLJoined<"vd">, HelpText<"Control vtordisp placement">,
   Alias<vtordisp_mode_EQ>;
 def _SLASH_X : CLFlag<"X">,
@@ -6172,6 +6361,8 @@ def _SLASH_TC : CLCompileFlag<"TC">, HelpText<"Treat all source files as C">;
 def _SLASH_Tp : CLCompileJoinedOrSeparate<"Tp">,
   HelpText<"Treat <file> as C++ source file">, MetaVarName<"<file>">;
 def _SLASH_TP : CLCompileFlag<"TP">, HelpText<"Treat all source files as C++">;
+def _SLASH_diasdkdir : CLJoinedOrSeparate<"diasdkdir">,
+  HelpText<"Path to the DIA SDK">, MetaVarName<"<dir>">;
 def _SLASH_vctoolsdir : CLJoinedOrSeparate<"vctoolsdir">,
   HelpText<"Path to the VCToolChain">, MetaVarName<"<dir>">;
 def _SLASH_vctoolsversion : CLJoinedOrSeparate<"vctoolsversion">,
@@ -6181,7 +6372,7 @@ def _SLASH_winsdkdir : CLJoinedOrSeparate<"winsdkdir">,
 def _SLASH_winsdkversion : CLJoinedOrSeparate<"winsdkversion">,
   HelpText<"Full version of the Windows SDK, defaults to newest found">;
 def _SLASH_winsysroot : CLJoinedOrSeparate<"winsysroot">,
-  HelpText<"Same as /vctoolsdir <dir>/VC/Tools/MSVC/<vctoolsversion> /winsdkdir <dir>/Windows Kits/10">,
+  HelpText<"Same as \"/diasdkdir <dir>/DIA SDK\" /vctoolsdir <dir>/VC/Tools/MSVC/<vctoolsversion> \"/winsdkdir <dir>/Windows Kits/10\"">,
   MetaVarName<"<dir>">;
 def _SLASH_volatile_iso : Option<["/", "-"], "volatile:iso", KIND_FLAG>,
   Group<_SLASH_volatile_Group>, Flags<[CLOption, NoXarchOption]>,
@@ -6309,7 +6500,6 @@ def _SLASH_headerUnit : CLJoinedOrSeparate<"headerUnit">;
 def _SLASH_headerUnitAngle : CLJoinedOrSeparate<"headerUnit:angle">;
 def _SLASH_headerUnitQuote : CLJoinedOrSeparate<"headerUnit:quote">;
 def _SLASH_homeparams : CLFlag<"homeparams">;
-def _SLASH_hotpatch : CLFlag<"hotpatch">;
 def _SLASH_kernel : CLFlag<"kernel">;
 def _SLASH_LN : CLFlag<"LN">;
 def _SLASH_MP : CLJoined<"MP">;

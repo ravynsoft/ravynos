@@ -259,8 +259,18 @@ bool TargetTransformInfo::isNoopAddrSpaceCast(unsigned FromAS,
   return TTIImpl->isNoopAddrSpaceCast(FromAS, ToAS);
 }
 
+bool TargetTransformInfo::canHaveNonUndefGlobalInitializerInAddressSpace(
+    unsigned AS) const {
+  return TTIImpl->canHaveNonUndefGlobalInitializerInAddressSpace(AS);
+}
+
 unsigned TargetTransformInfo::getAssumedAddrSpace(const Value *V) const {
   return TTIImpl->getAssumedAddrSpace(V);
+}
+
+std::pair<const Value *, unsigned>
+TargetTransformInfo::getPredicatedAddrSpace(const Value *V) const {
+  return TTIImpl->getPredicatedAddrSpace(V);
 }
 
 Value *TargetTransformInfo::rewriteIntrinsicWithAddressSpace(
@@ -313,8 +323,9 @@ Optional<Value *> TargetTransformInfo::simplifyDemandedVectorEltsIntrinsic(
 }
 
 void TargetTransformInfo::getUnrollingPreferences(
-    Loop *L, ScalarEvolution &SE, UnrollingPreferences &UP) const {
-  return TTIImpl->getUnrollingPreferences(L, SE, UP);
+    Loop *L, ScalarEvolution &SE, UnrollingPreferences &UP,
+    OptimizationRemarkEmitter *ORE) const {
+  return TTIImpl->getUnrollingPreferences(L, SE, UP, ORE);
 }
 
 void TargetTransformInfo::getPeelingPreferences(Loop *L, ScalarEvolution &SE,
@@ -397,12 +408,26 @@ bool TargetTransformInfo::isLegalMaskedScatter(Type *DataType,
   return TTIImpl->isLegalMaskedScatter(DataType, Alignment);
 }
 
+bool TargetTransformInfo::forceScalarizeMaskedGather(VectorType *DataType,
+                                                     Align Alignment) const {
+  return TTIImpl->forceScalarizeMaskedGather(DataType, Alignment);
+}
+
+bool TargetTransformInfo::forceScalarizeMaskedScatter(VectorType *DataType,
+                                                      Align Alignment) const {
+  return TTIImpl->forceScalarizeMaskedScatter(DataType, Alignment);
+}
+
 bool TargetTransformInfo::isLegalMaskedCompressStore(Type *DataType) const {
   return TTIImpl->isLegalMaskedCompressStore(DataType);
 }
 
 bool TargetTransformInfo::isLegalMaskedExpandLoad(Type *DataType) const {
   return TTIImpl->isLegalMaskedExpandLoad(DataType);
+}
+
+bool TargetTransformInfo::enableOrderedReductions() const {
+  return TTIImpl->enableOrderedReductions();
 }
 
 bool TargetTransformInfo::hasDivRemOp(Type *DataType, bool IsSigned) const {
@@ -592,6 +617,10 @@ unsigned TargetTransformInfo::getMinVectorRegisterBitWidth() const {
 
 Optional<unsigned> TargetTransformInfo::getMaxVScale() const {
   return TTIImpl->getMaxVScale();
+}
+
+Optional<unsigned> TargetTransformInfo::getVScaleForTuning() const {
+  return TTIImpl->getVScaleForTuning();
 }
 
 bool TargetTransformInfo::shouldMaximizeVectorBandwidth() const {
@@ -814,6 +843,15 @@ InstructionCost TargetTransformInfo::getVectorInstrCost(unsigned Opcode,
   return Cost;
 }
 
+InstructionCost TargetTransformInfo::getReplicationShuffleCost(
+    Type *EltTy, int ReplicationFactor, int VF, const APInt &DemandedDstElts,
+    TTI::TargetCostKind CostKind) {
+  InstructionCost Cost = TTIImpl->getReplicationShuffleCost(
+      EltTy, ReplicationFactor, VF, DemandedDstElts, CostKind);
+  assert(Cost >= 0 && "TTI should not produce negative costs!");
+  return Cost;
+}
+
 InstructionCost TargetTransformInfo::getMemoryOpCost(
     unsigned Opcode, Type *Src, Align Alignment, unsigned AddressSpace,
     TTI::TargetCostKind CostKind, const Instruction *I) const {
@@ -954,10 +992,10 @@ bool TargetTransformInfo::areInlineCompatible(const Function *Caller,
   return TTIImpl->areInlineCompatible(Caller, Callee);
 }
 
-bool TargetTransformInfo::areFunctionArgsABICompatible(
+bool TargetTransformInfo::areTypesABICompatible(
     const Function *Caller, const Function *Callee,
-    SmallPtrSetImpl<Argument *> &Args) const {
-  return TTIImpl->areFunctionArgsABICompatible(Caller, Callee, Args);
+    const ArrayRef<Type *> &Types) const {
+  return TTIImpl->areTypesABICompatible(Caller, Callee, Types);
 }
 
 bool TargetTransformInfo::isIndexedLoadLegal(MemIndexedMode Mode,
@@ -1044,8 +1082,13 @@ bool TargetTransformInfo::supportsScalableVectors() const {
   return TTIImpl->supportsScalableVectors();
 }
 
-bool TargetTransformInfo::hasActiveVectorLength() const {
-  return TTIImpl->hasActiveVectorLength();
+bool TargetTransformInfo::enableScalableVectorization() const {
+  return TTIImpl->enableScalableVectorization();
+}
+
+bool TargetTransformInfo::hasActiveVectorLength(unsigned Opcode, Type *DataType,
+                                                Align Alignment) const {
+  return TTIImpl->hasActiveVectorLength(Opcode, DataType, Alignment);
 }
 
 InstructionCost

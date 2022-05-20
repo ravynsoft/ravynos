@@ -12,12 +12,12 @@
 //===----------------------------------------------------------------------===//
 
 #include "AMDGPUSubtarget.h"
-#include "AMDGPU.h"
 #include "AMDGPUCallLowering.h"
 #include "AMDGPUInstructionSelector.h"
 #include "AMDGPULegalizerInfo.h"
 #include "AMDGPURegisterBankInfo.h"
 #include "AMDGPUTargetMachine.h"
+#include "R600Subtarget.h"
 #include "SIMachineFunctionInfo.h"
 #include "Utils/AMDGPUBaseInfo.h"
 #include "llvm/ADT/SmallString.h"
@@ -38,10 +38,7 @@ using namespace llvm;
 #define GET_SUBTARGETINFO_CTOR
 #define AMDGPUSubtarget GCNSubtarget
 #include "AMDGPUGenSubtargetInfo.inc"
-#define GET_SUBTARGETINFO_TARGET_DESC
-#define GET_SUBTARGETINFO_CTOR
 #undef AMDGPUSubtarget
-#include "R600GenSubtargetInfo.inc"
 
 static cl::opt<bool> DisablePowerSched(
   "amdgpu-disable-power-sched",
@@ -64,19 +61,6 @@ static cl::opt<bool> UseAA("amdgpu-use-aa-in-codegen",
 
 GCNSubtarget::~GCNSubtarget() = default;
 
-R600Subtarget &
-R600Subtarget::initializeSubtargetDependencies(const Triple &TT,
-                                               StringRef GPU, StringRef FS) {
-  SmallString<256> FullFS("+promote-alloca,");
-  FullFS += FS;
-  ParseSubtargetFeatures(GPU, /*TuneCPU*/ GPU, FullFS);
-
-  HasMulU24 = getGeneration() >= EVERGREEN;
-  HasMulI24 = hasCaymanISA();
-
-  return *this;
-}
-
 GCNSubtarget &
 GCNSubtarget::initializeSubtargetDependencies(const Triple &TT,
                                               StringRef GPU, StringRef FS) {
@@ -98,12 +82,12 @@ GCNSubtarget::initializeSubtargetDependencies(const Triple &TT,
   FullFS += "+enable-prt-strict-null,"; // This is overridden by a disable in FS
 
   // Disable mutually exclusive bits.
-  if (FS.find_insensitive("+wavefrontsize") != StringRef::npos) {
-    if (FS.find_insensitive("wavefrontsize16") == StringRef::npos)
+  if (FS.contains_insensitive("+wavefrontsize")) {
+    if (!FS.contains_insensitive("wavefrontsize16"))
       FullFS += "-wavefrontsize16,";
-    if (FS.find_insensitive("wavefrontsize32") == StringRef::npos)
+    if (!FS.contains_insensitive("wavefrontsize32"))
       FullFS += "-wavefrontsize32,";
-    if (FS.find_insensitive("wavefrontsize64") == StringRef::npos)
+    if (!FS.contains_insensitive("wavefrontsize64"))
       FullFS += "-wavefrontsize64,";
   }
 
@@ -285,7 +269,6 @@ GCNSubtarget::GCNSubtarget(const Triple &TT, StringRef GPU, StringRef FS,
     HasGetWaveIdInst(false),
     HasSMemTimeInst(false),
     HasShaderCyclesRegister(false),
-    HasRegisterBanking(false),
     HasVOP3Literal(false),
     HasNoDataDepHazard(false),
     FlatAddressSpace(false),
@@ -429,21 +412,21 @@ bool GCNSubtarget::zeroesHigh16BitsOfDest(unsigned Opcode) const {
   case AMDGPU::V_MAX_I16_e32:
   case AMDGPU::V_MIN_I16_e64:
   case AMDGPU::V_MIN_I16_e32:
+  case AMDGPU::V_MAD_F16_e64:
+  case AMDGPU::V_MAD_U16_e64:
+  case AMDGPU::V_MAD_I16_e64:
+  case AMDGPU::V_FMA_F16_e64:
+  case AMDGPU::V_DIV_FIXUP_F16_e64:
     // On gfx10, all 16-bit instructions preserve the high bits.
     return getGeneration() <= AMDGPUSubtarget::GFX9;
-  case AMDGPU::V_MAD_F16_e64:
   case AMDGPU::V_MADAK_F16:
   case AMDGPU::V_MADMK_F16:
   case AMDGPU::V_MAC_F16_e64:
   case AMDGPU::V_MAC_F16_e32:
   case AMDGPU::V_FMAMK_F16:
   case AMDGPU::V_FMAAK_F16:
-  case AMDGPU::V_MAD_U16_e64:
-  case AMDGPU::V_MAD_I16_e64:
-  case AMDGPU::V_FMA_F16_e64:
   case AMDGPU::V_FMAC_F16_e64:
   case AMDGPU::V_FMAC_F16_e32:
-  case AMDGPU::V_DIV_FIXUP_F16_e64:
     // In gfx9, the preferred handling of the unused high 16-bits changed. Most
     // instructions maintain the legacy behavior of 0ing. Some instructions
     // changed to preserving the high bits.
@@ -549,12 +532,9 @@ std::pair<unsigned, unsigned> AMDGPUSubtarget::getFlatWorkGroupSizes(
 }
 
 std::pair<unsigned, unsigned> AMDGPUSubtarget::getWavesPerEU(
-  const Function &F) const {
+    const Function &F, std::pair<unsigned, unsigned> FlatWorkGroupSizes) const {
   // Default minimum/maximum number of waves per execution unit.
   std::pair<unsigned, unsigned> Default(1, getMaxWavesPerEU());
-
-  // Default/requested minimum/maximum flat work group sizes.
-  std::pair<unsigned, unsigned> FlatWorkGroupSizes = getFlatWorkGroupSizes(F);
 
   // If minimum/maximum flat work group sizes were explicitly requested using
   // "amdgpu-flat-work-group-size" attribute, then set default minimum/maximum
@@ -563,8 +543,6 @@ std::pair<unsigned, unsigned> AMDGPUSubtarget::getWavesPerEU(
   unsigned MinImpliedByFlatWorkGroupSize =
     getWavesPerEUForWorkGroup(FlatWorkGroupSizes.second);
   Default.first = MinImpliedByFlatWorkGroupSize;
-  bool RequestedFlatWorkGroupSize =
-      F.hasFnAttribute("amdgpu-flat-work-group-size");
 
   // Requested minimum/maximum number of waves per execution unit.
   std::pair<unsigned, unsigned> Requested = AMDGPU::getIntegerPairAttribute(
@@ -581,8 +559,7 @@ std::pair<unsigned, unsigned> AMDGPUSubtarget::getWavesPerEU(
 
   // Make sure requested values are compatible with values implied by requested
   // minimum/maximum flat work group sizes.
-  if (RequestedFlatWorkGroupSize &&
-      Requested.first < MinImpliedByFlatWorkGroupSize)
+  if (Requested.first < MinImpliedByFlatWorkGroupSize)
     return Default;
 
   return Requested;
@@ -670,9 +647,18 @@ bool AMDGPUSubtarget::makeLIDRangeMetadata(Instruction *I) const {
 }
 
 unsigned AMDGPUSubtarget::getImplicitArgNumBytes(const Function &F) const {
+  assert(AMDGPU::isKernel(F.getCallingConv()));
+
+  // We don't allocate the segment if we know the implicit arguments weren't
+  // used, even if the ABI implies we need them.
+  if (F.hasFnAttribute("amdgpu-no-implicitarg-ptr"))
+    return 0;
+
   if (isMesaKernel(F))
     return 16;
-  return AMDGPU::getIntegerAttribute(F, "amdgpu-implicitarg-num-bytes", 0);
+
+  // Assume all implicit inputs are used by default
+  return AMDGPU::getIntegerAttribute(F, "amdgpu-implicitarg-num-bytes", 56);
 }
 
 uint64_t AMDGPUSubtarget::getExplicitKernArgSize(const Function &F,
@@ -710,6 +696,7 @@ unsigned AMDGPUSubtarget::getKernArgSegmentSize(const Function &F,
   if (ImplicitBytes != 0) {
     const Align Alignment = getAlignmentForImplicitArgPtr();
     TotalSize = alignTo(ExplicitArgBytes, Alignment) + ImplicitBytes;
+    MaxAlign = std::max(MaxAlign, Alignment);
   }
 
   // Being able to dereference past the end is useful for emitting scalar loads.
@@ -720,23 +707,6 @@ AMDGPUDwarfFlavour AMDGPUSubtarget::getAMDGPUDwarfFlavour() const {
   return getWavefrontSize() == 32 ? AMDGPUDwarfFlavour::Wave32
                                   : AMDGPUDwarfFlavour::Wave64;
 }
-
-R600Subtarget::R600Subtarget(const Triple &TT, StringRef GPU, StringRef FS,
-                             const TargetMachine &TM) :
-  R600GenSubtargetInfo(TT, GPU, /*TuneCPU*/GPU, FS),
-  AMDGPUSubtarget(TT),
-  InstrInfo(*this),
-  FrameLowering(TargetFrameLowering::StackGrowsUp, getStackAlignment(), 0),
-  FMA(false),
-  CaymanISA(false),
-  CFALUBug(false),
-  HasVertexCache(false),
-  R600ALUInst(false),
-  FP64(false),
-  TexVTXClauseSize(0),
-  Gen(R600),
-  TLInfo(TM, initializeSubtargetDependencies(TT, GPU, FS)),
-  InstrItins(getInstrItineraryForCPU(GPU)) { }
 
 void GCNSubtarget::overrideSchedPolicy(MachineSchedPolicy &Policy,
                                       unsigned NumRegionInstrs) const {
@@ -801,11 +771,11 @@ unsigned GCNSubtarget::getOccupancyWithNumVGPRs(unsigned VGPRs) const {
 }
 
 unsigned
-GCNSubtarget::getBaseReservedNumSGPRs(const bool HasFlatScratchInit) const {
+GCNSubtarget::getBaseReservedNumSGPRs(const bool HasFlatScratch) const {
   if (getGeneration() >= AMDGPUSubtarget::GFX10)
     return 2; // VCC. FLAT_SCRATCH and XNACK are no longer in SGPRs.
 
-  if (HasFlatScratchInit) {
+  if (HasFlatScratch || HasArchitectedFlatScratch) {
     if (getGeneration() >= AMDGPUSubtarget::VOLCANIC_ISLANDS)
       return 6; // FLAT_SCRATCH, XNACK, VCC (in that order).
     if (getGeneration() == AMDGPUSubtarget::SEA_ISLANDS)
@@ -823,20 +793,11 @@ unsigned GCNSubtarget::getReservedNumSGPRs(const MachineFunction &MF) const {
 }
 
 unsigned GCNSubtarget::getReservedNumSGPRs(const Function &F) const {
-  // The logic to detect if the function has
-  // flat scratch init is slightly different than how
-  // SIMachineFunctionInfo constructor derives.
-  // We don't use amdgpu-calls, amdgpu-stack-objects
-  // attributes and isAmdHsaOrMesa here as it doesn't really matter.
-  // TODO: Outline this derivation logic and have just
-  // one common function in the backend to avoid duplication.
-  bool isEntry = AMDGPU::isEntryFunctionCC(F.getCallingConv());
-  bool FunctionHasFlatScratchInit = false;
-  if (hasFlatAddressSpace() && isEntry && !flatScratchIsArchitected() &&
-      enableFlatScratch()) {
-    FunctionHasFlatScratchInit = true;
-  }
-  return getBaseReservedNumSGPRs(FunctionHasFlatScratchInit);
+  // In principle we do not need to reserve SGPR pair used for flat_scratch if
+  // we know flat instructions do not access the stack anywhere in the
+  // program. For now assume it's needed if we have flat instructions.
+  const bool KernelUsesFlatScratch = hasFlatAddressSpace();
+  return getBaseReservedNumSGPRs(KernelUsesFlatScratch);
 }
 
 unsigned GCNSubtarget::computeOccupancy(const Function &F, unsigned LDSSize,
@@ -1003,6 +964,13 @@ void GCNSubtarget::adjustSchedDependency(SUnit *Def, int DefOpIdx, SUnit *Use,
       --Lat;
     }
     Dep.setLatency(Lat);
+  } else if (Dep.getLatency() == 0 && Dep.getReg() == AMDGPU::VCC_LO) {
+    // Work around the fact that SIInstrInfo::fixImplicitOperands modifies
+    // implicit operands which come from the MCInstrDesc, which can fool
+    // ScheduleDAGInstrs::addPhysRegDataDeps into treating them as implicit
+    // pseudo operands.
+    Dep.setLatency(InstrInfo.getSchedModel().computeOperandLatency(
+        DefI, DefOpIdx, UseI, UseOpIdx));
   }
 }
 
@@ -1052,7 +1020,7 @@ struct FillMFMAShadowMutation : ScheduleDAGMutation {
     return true;
   }
 
-  // Link as much SALU intructions in chain as possible. Return the size
+  // Link as many SALU instructions in chain as possible. Return the size
   // of the chain. Links up to MaxChain instructions.
   unsigned linkSALUChain(SUnit *From, SUnit *To, unsigned MaxChain,
                          SmallPtrSetImpl<SUnit *> &Visited) const {
@@ -1134,6 +1102,11 @@ struct FillMFMAShadowMutation : ScheduleDAGMutation {
 void GCNSubtarget::getPostRAMutations(
     std::vector<std::unique_ptr<ScheduleDAGMutation>> &Mutations) const {
   Mutations.push_back(std::make_unique<FillMFMAShadowMutation>(&InstrInfo));
+}
+
+std::unique_ptr<ScheduleDAGMutation>
+GCNSubtarget::createFillMFMAShadowMutation(const TargetInstrInfo *TII) const {
+  return std::make_unique<FillMFMAShadowMutation>(&InstrInfo);
 }
 
 const AMDGPUSubtarget &AMDGPUSubtarget::get(const MachineFunction &MF) {

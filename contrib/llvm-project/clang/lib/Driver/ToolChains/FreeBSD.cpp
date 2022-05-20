@@ -100,7 +100,7 @@ void freebsd::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
   case llvm::Triple::sparc:
   case llvm::Triple::sparcel:
   case llvm::Triple::sparcv9: {
-    std::string CPU = getCPUName(Args, getToolChain().getTriple());
+    std::string CPU = getCPUName(D, Args, getToolChain().getTriple());
     CmdArgs.push_back(
         sparc::getSparcAsmModeForCPU(CPU, getToolChain().getTriple()));
     AddAssemblerKPIC(getToolChain(), Args, CmdArgs);
@@ -111,7 +111,7 @@ void freebsd::Assembler::ConstructJob(Compilation &C, const JobAction &JA,
   for (const Arg *A : Args.filtered(options::OPT_ffile_prefix_map_EQ,
                                     options::OPT_fdebug_prefix_map_EQ)) {
     StringRef Map = A->getValue();
-    if (Map.find('=') == StringRef::npos)
+    if (!Map.contains('='))
       D.Diag(diag::err_drv_invalid_argument_to_option)
           << Map << A->getOption().getName();
     else {
@@ -146,7 +146,7 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   const llvm::Triple::ArchType Arch = ToolChain.getArch();
   const bool IsPIE =
       !Args.hasArg(options::OPT_shared) &&
-      (Args.hasArg(options::OPT_pie) || ToolChain.isPIEDefault());
+      (Args.hasArg(options::OPT_pie) || ToolChain.isPIEDefault(Args));
   ArgStringList CmdArgs;
 
   // Silence warning for "clang -g foo.o -o foo"
@@ -269,7 +269,8 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     it++;
   }
 
-  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles)) {
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles,
+                   options::OPT_r)) {
     const char *crt1 = nullptr;
     if (!Args.hasArg(options::OPT_shared)) {
       if (Args.hasArg(options::OPT_pg))
@@ -315,9 +316,10 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
   addLinkerCompressDebugSectionsOption(ToolChain, Args, CmdArgs);
   AddLinkerInputs(ToolChain, Inputs, Args, CmdArgs, JA);
 
-  bool Profiling = Args.hasArg(options::OPT_pg) &&
-                   ToolChain.getTriple().getOSMajorVersion() < 14;
-  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs)) {
+  unsigned Major = ToolChain.getTriple().getOSMajorVersion();
+  bool Profiling = Args.hasArg(options::OPT_pg) && Major != 0 && Major < 14;
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nodefaultlibs,
+                   options::OPT_r)) {
     // Use the static OpenMP runtime with -static-openmp
     bool StaticOpenMP = Args.hasArg(options::OPT_static_openmp) &&
                         !Args.hasArg(options::OPT_static);
@@ -380,7 +382,8 @@ void freebsd::Linker::ConstructJob(Compilation &C, const JobAction &JA,
     }
   }
 
-  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles)) {
+  if (!Args.hasArg(options::OPT_nostdlib, options::OPT_nostartfiles,
+                   options::OPT_r)) {
     if (Args.hasArg(options::OPT_shared) || IsPIE)
       CmdArgs.push_back(Args.MakeArgString(ToolChain.GetFilePath("crtendS.o")));
     else
@@ -413,7 +416,8 @@ FreeBSD::FreeBSD(const Driver &D, const llvm::Triple &Triple,
 }
 
 ToolChain::CXXStdlibType FreeBSD::GetDefaultCXXStdlibType() const {
-  if (getTriple().getOSMajorVersion() >= 10)
+  unsigned Major = getTriple().getOSMajorVersion();
+  if (Major >= 10 || Major == 0)
     return ToolChain::CST_Libcxx;
   return ToolChain::CST_Libstdcxx;
 }
@@ -440,8 +444,8 @@ void FreeBSD::addLibStdCxxIncludePaths(
 void FreeBSD::AddCXXStdlibLibArgs(const ArgList &Args,
                                   ArgStringList &CmdArgs) const {
   CXXStdlibType Type = GetCXXStdlibType(Args);
-  bool Profiling =
-      Args.hasArg(options::OPT_pg) && getTriple().getOSMajorVersion() < 14;
+  unsigned Major = getTriple().getOSMajorVersion();
+  bool Profiling = Args.hasArg(options::OPT_pg) && Major != 0 && Major < 14;
 
   switch (Type) {
   case ToolChain::CST_Libcxx:
@@ -489,7 +493,9 @@ bool FreeBSD::HasNativeLLVMSupport() const { return true; }
 
 bool FreeBSD::IsUnwindTablesDefault(const ArgList &Args) const { return true; }
 
-bool FreeBSD::isPIEDefault() const { return getSanitizerArgs().requiresPIE(); }
+bool FreeBSD::isPIEDefault(const llvm::opt::ArgList &Args) const {
+  return getSanitizerArgs(Args).requiresPIE();
+}
 
 SanitizerMask FreeBSD::getSupportedSanitizers() const {
   const bool IsAArch64 = getTriple().getArch() == llvm::Triple::aarch64;

@@ -46,10 +46,14 @@ void dfsan_set_label_origin(dfsan_label label, dfsan_origin origin, void *addr,
 
 // Copy or move the origins of the len bytes from src to dst.
 void dfsan_mem_origin_transfer(const void *dst, const void *src, uptr len);
+
+// Copy shadow bytes from src to dst.
+// Note this preserves distinct taint labels at specific offsets.
+void dfsan_mem_shadow_transfer(void *dst, const void *src, uptr len);
 }  // extern "C"
 
 template <typename T>
-void dfsan_set_label(dfsan_label label, T &data) {  // NOLINT
+void dfsan_set_label(dfsan_label label, T &data) {
   dfsan_set_label(label, (void *)&data, sizeof(T));
 }
 

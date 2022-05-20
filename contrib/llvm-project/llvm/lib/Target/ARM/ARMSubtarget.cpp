@@ -15,7 +15,6 @@
 #include "ARMCallLowering.h"
 #include "ARMLegalizerInfo.h"
 #include "ARMRegisterBankInfo.h"
-#include "ARMSubtarget.h"
 #include "ARMFrameLowering.h"
 #include "ARMInstrInfo.h"
 #include "ARMSubtarget.h"
@@ -35,6 +34,7 @@
 #include "llvm/MC/MCTargetOptions.h"
 #include "llvm/Support/CodeGen.h"
 #include "llvm/Support/CommandLine.h"
+#include "llvm/Support/ARMTargetParser.h"
 #include "llvm/Support/TargetParser.h"
 #include "llvm/Target/TargetOptions.h"
 
@@ -295,6 +295,7 @@ void ARMSubtarget::initSubtargetFeatures(StringRef CPU, StringRef FS) {
   case CortexA77:
   case CortexA78:
   case CortexA78C:
+  case CortexA710:
   case CortexR4:
   case CortexR4F:
   case CortexR5:
@@ -303,6 +304,7 @@ void ARMSubtarget::initSubtargetFeatures(StringRef CPU, StringRef FS) {
   case CortexM7:
   case CortexR52:
   case CortexX1:
+  case CortexX1C:
     break;
   case Exynos:
     LdStMultipleTiming = SingleIssuePlusExtras;
@@ -389,7 +391,13 @@ bool ARMSubtarget::enableMachineScheduler() const {
   return useMachineScheduler();
 }
 
-bool ARMSubtarget::enableSubRegLiveness() const { return EnableSubRegLiveness; }
+bool ARMSubtarget::enableSubRegLiveness() const {
+  if (EnableSubRegLiveness.getNumOccurrences())
+    return EnableSubRegLiveness;
+  // Enable SubRegLiveness for MVE to better optimize s subregs for mqpr regs
+  // and q subregs for qqqqpr regs.
+  return hasMVEIntegerOps();
+}
 
 // This overrides the PostRAScheduler bit in the SchedModel for any CPU.
 bool ARMSubtarget::enablePostRAScheduler() const {

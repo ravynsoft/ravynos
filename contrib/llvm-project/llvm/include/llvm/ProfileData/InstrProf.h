@@ -16,6 +16,7 @@
 #define LLVM_PROFILEDATA_INSTRPROF_H
 
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/BitmaskEnum.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/StringRef.h"
 #include "llvm/ADT/StringSet.h"
@@ -205,9 +206,9 @@ StringRef getFuncNameWithoutPrefix(StringRef PGOFuncName,
                                    StringRef FileName = "<unknown>");
 
 /// Given a vector of strings (function PGO names) \c NameStrs, the
-/// method generates a combined string \c Result thatis ready to be
+/// method generates a combined string \c Result that is ready to be
 /// serialized.  The \c Result string is comprised of three fields:
-/// The first field is the legnth of the uncompressed strings, and the
+/// The first field is the length of the uncompressed strings, and the
 /// the second field is the length of the zlib-compressed string.
 /// Both fields are encoded in ULEB128.  If \c doCompress is false, the
 ///  third field is the uncompressed strings; otherwise it is the
@@ -277,6 +278,18 @@ void createPGOFuncNameMetadata(Function &F, StringRef PGOFuncName);
 /// the duplicated profile variables for Comdat functions.
 bool needsComdatForCounter(const Function &F, const Module &M);
 
+/// An enum describing the attributes of an instrumented profile.
+enum class InstrProfKind {
+  Unknown = 0x0,
+  FE = 0x1, // A frontend clang profile, incompatible with other attrs.
+  IR = 0x2, // An IR-level profile (default when -fprofile-generate is used).
+  BB = 0x4, // A profile with entry basic block instrumentation.
+  CS = 0x8, // A context sensitive IR-level profile.
+  SingleByteCoverage = 0x10, // Use single byte probes for coverage.
+  FunctionEntryOnly = 0x20,  // Only instrument the function entry basic block.
+  LLVM_MARK_AS_BITMASK_ENUM(/*LargestValue=*/FunctionEntryOnly)
+};
+
 const std::error_category &instrprof_category();
 
 enum class instrprof_error {
@@ -290,6 +303,9 @@ enum class instrprof_error {
   too_large,
   truncated,
   malformed,
+  missing_debug_info_for_correlation,
+  unexpected_debug_info_for_correlation,
+  unable_to_correlate_profile,
   unknown_function,
   invalid_prof,
   hash_mismatch,
@@ -308,7 +324,8 @@ inline std::error_code make_error_code(instrprof_error E) {
 
 class InstrProfError : public ErrorInfo<InstrProfError> {
 public:
-  InstrProfError(instrprof_error Err) : Err(Err) {
+  InstrProfError(instrprof_error Err, const Twine &ErrStr = Twine())
+      : Err(Err), Msg(ErrStr.str()) {
     assert(Err != instrprof_error::success && "Not an error");
   }
 
@@ -321,6 +338,7 @@ public:
   }
 
   instrprof_error get() const { return Err; }
+  const std::string &getMessage() const { return Msg; }
 
   /// Consume an Error and return the raw enum value contained within it. The
   /// Error must either be a success value, or contain a single InstrProfError.
@@ -337,6 +355,7 @@ public:
 
 private:
   instrprof_error Err;
+  std::string Msg;
 };
 
 class SoftInstrProfErrors {
@@ -474,7 +493,8 @@ public:
   /// is used by the raw and text profile readers.
   Error addFuncName(StringRef FuncName) {
     if (FuncName.empty())
-      return make_error<InstrProfError>(instrprof_error::malformed);
+      return make_error<InstrProfError>(instrprof_error::malformed,
+                                        "function name is empty");
     auto Ins = NameTab.insert(FuncName);
     if (Ins.second) {
       MD5NameMap.push_back(std::make_pair(
@@ -522,6 +542,12 @@ public:
 
   /// Return the name section data.
   inline StringRef getNameData() const { return Data; }
+
+  /// Dump the symbols in this table.
+  void dumpNames(raw_ostream &OS) const {
+    for (StringRef S : NameTab.keys())
+      OS << S << "\n";
+  }
 };
 
 Error InstrProfSymtab::create(StringRef D, uint64_t BaseAddr) {
@@ -1105,6 +1131,7 @@ namespace RawInstrProf {
 // sensitive records.
 // Version 6: Added binary id.
 // Version 7: Reorder binary id and include version in signature.
+// Version 8: Use relative counter pointer.
 const uint64_t Version = INSTR_PROF_RAW_VERSION;
 
 template <class IntPtrT> inline uint64_t getMagic();
@@ -1140,11 +1167,6 @@ struct Header {
 // Parse MemOP Size range option.
 void getMemOPSizeRangeFromOption(StringRef Str, int64_t &RangeStart,
                                  int64_t &RangeLast);
-
-// Create a COMDAT variable INSTR_PROF_RAW_VERSION_VAR to make the runtime
-// aware this is an ir_level profile so it can set the version flag.
-void createIRLevelProfileFlagVar(Module &M, bool IsCS,
-                                 bool InstrEntryBBEnabled);
 
 // Create the variable for the profile file name.
 void createProfileFileNameVar(Module &M, StringRef InstrProfileOutput);

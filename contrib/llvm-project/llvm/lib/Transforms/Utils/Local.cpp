@@ -45,6 +45,7 @@
 #include "llvm/IR/Constants.h"
 #include "llvm/IR/DIBuilder.h"
 #include "llvm/IR/DataLayout.h"
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/DebugInfoMetadata.h"
 #include "llvm/IR/DebugLoc.h"
 #include "llvm/IR/DerivedTypes.h"
@@ -402,6 +403,18 @@ bool llvm::isInstructionTriviallyDead(Instruction *I,
   return wouldInstructionBeTriviallyDead(I, TLI);
 }
 
+bool llvm::wouldInstructionBeTriviallyDeadOnUnusedPaths(
+    Instruction *I, const TargetLibraryInfo *TLI) {
+  // Instructions that are "markers" and have implied meaning on code around
+  // them (without explicit uses), are not dead on unused paths.
+  if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(I))
+    if (II->getIntrinsicID() == Intrinsic::stacksave ||
+        II->getIntrinsicID() == Intrinsic::launder_invariant_group ||
+        II->isLifetimeStartOrEnd())
+      return false;
+  return wouldInstructionBeTriviallyDead(I, TLI);
+}
+
 bool llvm::wouldInstructionBeTriviallyDead(Instruction *I,
                                            const TargetLibraryInfo *TLI) {
   if (I->isTerminator())
@@ -480,7 +493,7 @@ bool llvm::wouldInstructionBeTriviallyDead(Instruction *I,
     }
   }
 
-  if (isAllocLikeFn(I, TLI))
+  if (isAllocationFn(I, TLI) && isAllocRemovable(cast<CallBase>(I), TLI))
     return true;
 
   if (CallInst *CI = isFreeCall(I, TLI))
@@ -529,8 +542,8 @@ bool llvm::RecursivelyDeleteTriviallyDeadInstructionsPermissive(
     std::function<void(Value *)> AboutToDeleteCallback) {
   unsigned S = 0, E = DeadInsts.size(), Alive = 0;
   for (; S != E; ++S) {
-    auto *I = cast<Instruction>(DeadInsts[S]);
-    if (!isInstructionTriviallyDead(I)) {
+    auto *I = dyn_cast<Instruction>(DeadInsts[S]);
+    if (!I || !isInstructionTriviallyDead(I)) {
       DeadInsts[S] = nullptr;
       ++Alive;
     }
@@ -760,15 +773,18 @@ void llvm::MergeBasicBlockIntoOnlyPred(BasicBlock *DestBB,
   SmallVector<DominatorTree::UpdateType, 32> Updates;
 
   if (DTU) {
-    SmallPtrSet<BasicBlock *, 2> PredsOfPredBB(pred_begin(PredBB),
-                                               pred_end(PredBB));
-    Updates.reserve(Updates.size() + 2 * PredsOfPredBB.size() + 1);
-    for (BasicBlock *PredOfPredBB : PredsOfPredBB)
+    // To avoid processing the same predecessor more than once.
+    SmallPtrSet<BasicBlock *, 2> SeenPreds;
+    Updates.reserve(Updates.size() + 2 * pred_size(PredBB) + 1);
+    for (BasicBlock *PredOfPredBB : predecessors(PredBB))
       // This predecessor of PredBB may already have DestBB as a successor.
       if (PredOfPredBB != PredBB)
-        Updates.push_back({DominatorTree::Insert, PredOfPredBB, DestBB});
-    for (BasicBlock *PredOfPredBB : PredsOfPredBB)
-      Updates.push_back({DominatorTree::Delete, PredOfPredBB, PredBB});
+        if (SeenPreds.insert(PredOfPredBB).second)
+          Updates.push_back({DominatorTree::Insert, PredOfPredBB, DestBB});
+    SeenPreds.clear();
+    for (BasicBlock *PredOfPredBB : predecessors(PredBB))
+      if (SeenPreds.insert(PredOfPredBB).second)
+        Updates.push_back({DominatorTree::Delete, PredOfPredBB, PredBB});
     Updates.push_back({DominatorTree::Delete, PredBB, DestBB});
   }
 
@@ -1096,16 +1112,20 @@ bool llvm::TryToSimplifyUncondBranchFromEmptyBlock(BasicBlock *BB,
 
   SmallVector<DominatorTree::UpdateType, 32> Updates;
   if (DTU) {
+    // To avoid processing the same predecessor more than once.
+    SmallPtrSet<BasicBlock *, 8> SeenPreds;
     // All predecessors of BB will be moved to Succ.
-    SmallPtrSet<BasicBlock *, 8> PredsOfBB(pred_begin(BB), pred_end(BB));
     SmallPtrSet<BasicBlock *, 8> PredsOfSucc(pred_begin(Succ), pred_end(Succ));
-    Updates.reserve(Updates.size() + 2 * PredsOfBB.size() + 1);
-    for (auto *PredOfBB : PredsOfBB)
+    Updates.reserve(Updates.size() + 2 * pred_size(BB) + 1);
+    for (auto *PredOfBB : predecessors(BB))
       // This predecessor of BB may already have Succ as a successor.
       if (!PredsOfSucc.contains(PredOfBB))
-        Updates.push_back({DominatorTree::Insert, PredOfBB, Succ});
-    for (auto *PredOfBB : PredsOfBB)
-      Updates.push_back({DominatorTree::Delete, PredOfBB, BB});
+        if (SeenPreds.insert(PredOfBB).second)
+          Updates.push_back({DominatorTree::Insert, PredOfBB, Succ});
+    SeenPreds.clear();
+    for (auto *PredOfBB : predecessors(BB))
+      if (SeenPreds.insert(PredOfBB).second)
+        Updates.push_back({DominatorTree::Delete, PredOfBB, BB});
     Updates.push_back({DominatorTree::Delete, BB, Succ});
   }
 
@@ -1413,8 +1433,6 @@ static bool valueCoversEntireFragment(Type *ValTy, DbgVariableIntrinsic *DII) {
     if (auto *AI =
             dyn_cast_or_null<AllocaInst>(DII->getVariableLocationOp(0))) {
       if (Optional<TypeSize> FragmentSize = AI->getAllocationSizeInBits(DL)) {
-        assert(ValueSize.isScalable() == FragmentSize->isScalable() &&
-               "Both sizes should agree on the scalable flag.");
         return TypeSize::isKnownGE(ValueSize, *FragmentSize);
       }
     }
@@ -1733,9 +1751,11 @@ void llvm::salvageDebugInfo(Instruction &I) {
 
 void llvm::salvageDebugInfoForDbgValues(
     Instruction &I, ArrayRef<DbgVariableIntrinsic *> DbgUsers) {
-  // This is an arbitrary chosen limit on the maximum number of values we can
-  // salvage up to in a DIArgList, used for performance reasons.
+  // These are arbitrary chosen limits on the maximum number of values and the
+  // maximum size of a debug expression we can salvage up to, used for
+  // performance reasons.
   const unsigned MaxDebugArgs = 16;
+  const unsigned MaxExpressionSize = 128;
   bool Salvaged = false;
 
   for (auto *DII : DbgUsers) {
@@ -1752,23 +1772,30 @@ void llvm::salvageDebugInfoForDbgValues(
     // must be updated in the DIExpression and potentially have additional
     // values added; thus we call salvageDebugInfoImpl for each `I` instance in
     // DIILocation.
+    Value *Op0 = nullptr;
     DIExpression *SalvagedExpr = DII->getExpression();
     auto LocItr = find(DIILocation, &I);
     while (SalvagedExpr && LocItr != DIILocation.end()) {
+      SmallVector<uint64_t, 16> Ops;
       unsigned LocNo = std::distance(DIILocation.begin(), LocItr);
-      SalvagedExpr = salvageDebugInfoImpl(I, SalvagedExpr, StackValue, LocNo,
-                                          AdditionalValues);
+      uint64_t CurrentLocOps = SalvagedExpr->getNumLocationOperands();
+      Op0 = salvageDebugInfoImpl(I, CurrentLocOps, Ops, AdditionalValues);
+      if (!Op0)
+        break;
+      SalvagedExpr =
+          DIExpression::appendOpsToArg(SalvagedExpr, Ops, LocNo, StackValue);
       LocItr = std::find(++LocItr, DIILocation.end(), &I);
     }
     // salvageDebugInfoImpl should fail on examining the first element of
     // DbgUsers, or none of them.
-    if (!SalvagedExpr)
+    if (!Op0)
       break;
 
-    DII->replaceVariableLocationOp(&I, I.getOperand(0));
-    if (AdditionalValues.empty()) {
+    DII->replaceVariableLocationOp(&I, Op0);
+    bool IsValidSalvageExpr = SalvagedExpr->getNumElements() <= MaxExpressionSize;
+    if (AdditionalValues.empty() && IsValidSalvageExpr) {
       DII->setExpression(SalvagedExpr);
-    } else if (isa<DbgValueInst>(DII) &&
+    } else if (isa<DbgValueInst>(DII) && IsValidSalvageExpr &&
                DII->getNumVariableLocationOps() + AdditionalValues.size() <=
                    MaxDebugArgs) {
       DII->addVariableLocationOps(AdditionalValues, SalvagedExpr);
@@ -1793,16 +1820,16 @@ void llvm::salvageDebugInfoForDbgValues(
   }
 }
 
-bool getSalvageOpsForGEP(GetElementPtrInst *GEP, const DataLayout &DL,
-                         uint64_t CurrentLocOps,
-                         SmallVectorImpl<uint64_t> &Opcodes,
-                         SmallVectorImpl<Value *> &AdditionalValues) {
+Value *getSalvageOpsForGEP(GetElementPtrInst *GEP, const DataLayout &DL,
+                           uint64_t CurrentLocOps,
+                           SmallVectorImpl<uint64_t> &Opcodes,
+                           SmallVectorImpl<Value *> &AdditionalValues) {
   unsigned BitWidth = DL.getIndexSizeInBits(GEP->getPointerAddressSpace());
   // Rewrite a GEP into a DIExpression.
   MapVector<Value *, APInt> VariableOffsets;
   APInt ConstantOffset(BitWidth, 0);
   if (!GEP->collectOffset(DL, BitWidth, VariableOffsets, ConstantOffset))
-    return false;
+    return nullptr;
   if (!VariableOffsets.empty() && !CurrentLocOps) {
     Opcodes.insert(Opcodes.begin(), {dwarf::DW_OP_LLVM_arg, 0});
     CurrentLocOps = 1;
@@ -1816,7 +1843,7 @@ bool getSalvageOpsForGEP(GetElementPtrInst *GEP, const DataLayout &DL,
                     dwarf::DW_OP_plus});
   }
   DIExpression::appendOffset(Opcodes, ConstantOffset.getSExtValue());
-  return true;
+  return GEP->getOperand(0);
 }
 
 uint64_t getDwarfOpForBinOp(Instruction::BinaryOps Opcode) {
@@ -1849,14 +1876,14 @@ uint64_t getDwarfOpForBinOp(Instruction::BinaryOps Opcode) {
   }
 }
 
-bool getSalvageOpsForBinOp(BinaryOperator *BI, uint64_t CurrentLocOps,
-                           SmallVectorImpl<uint64_t> &Opcodes,
-                           SmallVectorImpl<Value *> &AdditionalValues) {
+Value *getSalvageOpsForBinOp(BinaryOperator *BI, uint64_t CurrentLocOps,
+                             SmallVectorImpl<uint64_t> &Opcodes,
+                             SmallVectorImpl<Value *> &AdditionalValues) {
   // Handle binary operations with constant integer operands as a special case.
   auto *ConstInt = dyn_cast<ConstantInt>(BI->getOperand(1));
   // Values wider than 64 bits cannot be represented within a DIExpression.
   if (ConstInt && ConstInt->getBitWidth() > 64)
-    return false;
+    return nullptr;
 
   Instruction::BinaryOps BinOpcode = BI->getOpcode();
   // Push any Constant Int operand onto the expression stack.
@@ -1867,7 +1894,7 @@ bool getSalvageOpsForBinOp(BinaryOperator *BI, uint64_t CurrentLocOps,
     if (BinOpcode == Instruction::Add || BinOpcode == Instruction::Sub) {
       uint64_t Offset = BinOpcode == Instruction::Add ? Val : -int64_t(Val);
       DIExpression::appendOffset(Opcodes, Offset);
-      return true;
+      return BI->getOperand(0);
     }
     Opcodes.append({dwarf::DW_OP_constu, Val});
   } else {
@@ -1883,62 +1910,51 @@ bool getSalvageOpsForBinOp(BinaryOperator *BI, uint64_t CurrentLocOps,
   // representation in a DIExpression.
   uint64_t DwarfBinOp = getDwarfOpForBinOp(BinOpcode);
   if (!DwarfBinOp)
-    return false;
+    return nullptr;
   Opcodes.push_back(DwarfBinOp);
-
-  return true;
+  return BI->getOperand(0);
 }
 
-DIExpression *
-llvm::salvageDebugInfoImpl(Instruction &I, DIExpression *SrcDIExpr,
-                           bool WithStackValue, unsigned LocNo,
-                           SmallVectorImpl<Value *> &AdditionalValues) {
-  uint64_t CurrentLocOps = SrcDIExpr->getNumLocationOperands();
+Value *llvm::salvageDebugInfoImpl(Instruction &I, uint64_t CurrentLocOps,
+                                  SmallVectorImpl<uint64_t> &Ops,
+                                  SmallVectorImpl<Value *> &AdditionalValues) {
   auto &M = *I.getModule();
   auto &DL = M.getDataLayout();
 
-  // Apply a vector of opcodes to the source DIExpression.
-  auto doSalvage = [&](SmallVectorImpl<uint64_t> &Ops) -> DIExpression * {
-    DIExpression *DIExpr = SrcDIExpr;
-    if (!Ops.empty()) {
-      DIExpr = DIExpression::appendOpsToArg(DIExpr, Ops, LocNo, WithStackValue);
-    }
-    return DIExpr;
-  };
-
-  // initializer-list helper for applying operators to the source DIExpression.
-  auto applyOps = [&](ArrayRef<uint64_t> Opcodes) {
-    SmallVector<uint64_t, 8> Ops(Opcodes.begin(), Opcodes.end());
-    return doSalvage(Ops);
-  };
-
   if (auto *CI = dyn_cast<CastInst>(&I)) {
+    Value *FromValue = CI->getOperand(0);
     // No-op casts are irrelevant for debug info.
-    if (CI->isNoopCast(DL))
-      return SrcDIExpr;
+    if (CI->isNoopCast(DL)) {
+      return FromValue;
+    }
 
     Type *Type = CI->getType();
+    if (Type->isPointerTy())
+      Type = DL.getIntPtrType(Type);
     // Casts other than Trunc, SExt, or ZExt to scalar types cannot be salvaged.
     if (Type->isVectorTy() ||
-        !(isa<TruncInst>(&I) || isa<SExtInst>(&I) || isa<ZExtInst>(&I)))
+        !(isa<TruncInst>(&I) || isa<SExtInst>(&I) || isa<ZExtInst>(&I) ||
+          isa<IntToPtrInst>(&I) || isa<PtrToIntInst>(&I)))
       return nullptr;
 
-    Value *FromValue = CI->getOperand(0);
-    unsigned FromTypeBitSize = FromValue->getType()->getScalarSizeInBits();
+    llvm::Type *FromType = FromValue->getType();
+    if (FromType->isPointerTy())
+      FromType = DL.getIntPtrType(FromType);
+
+    unsigned FromTypeBitSize = FromType->getScalarSizeInBits();
     unsigned ToTypeBitSize = Type->getScalarSizeInBits();
 
-    return applyOps(DIExpression::getExtOps(FromTypeBitSize, ToTypeBitSize,
-                                            isa<SExtInst>(&I)));
+    auto ExtOps = DIExpression::getExtOps(FromTypeBitSize, ToTypeBitSize,
+                                          isa<SExtInst>(&I));
+    Ops.append(ExtOps.begin(), ExtOps.end());
+    return FromValue;
   }
 
-  SmallVector<uint64_t, 8> Ops;
-  if (auto *GEP = dyn_cast<GetElementPtrInst>(&I)) {
-    if (getSalvageOpsForGEP(GEP, DL, CurrentLocOps, Ops, AdditionalValues))
-      return doSalvage(Ops);
-  } else if (auto *BI = dyn_cast<BinaryOperator>(&I)) {
-    if (getSalvageOpsForBinOp(BI, CurrentLocOps, Ops, AdditionalValues))
-      return doSalvage(Ops);
-  }
+  if (auto *GEP = dyn_cast<GetElementPtrInst>(&I))
+    return getSalvageOpsForGEP(GEP, DL, CurrentLocOps, Ops, AdditionalValues);
+  if (auto *BI = dyn_cast<BinaryOperator>(&I))
+    return getSalvageOpsForBinOp(BI, CurrentLocOps, Ops, AdditionalValues);
+
   // *Not* to do: we should not attempt to salvage load instructions,
   // because the validity and lifetime of a dbg.value containing
   // DW_OP_deref becomes difficult to analyze. See PR40628 for examples.
@@ -2174,8 +2190,8 @@ CallInst *llvm::createCallMatchingInvoke(InvokeInst *II) {
   return NewCall;
 }
 
-/// changeToCall - Convert the specified invoke into a normal call.
-void llvm::changeToCall(InvokeInst *II, DomTreeUpdater *DTU) {
+// changeToCall - Convert the specified invoke into a normal call.
+CallInst *llvm::changeToCall(InvokeInst *II, DomTreeUpdater *DTU) {
   CallInst *NewCall = createCallMatchingInvoke(II);
   NewCall->takeName(II);
   NewCall->insertBefore(II);
@@ -2192,6 +2208,7 @@ void llvm::changeToCall(InvokeInst *II, DomTreeUpdater *DTU) {
   II->eraseFromParent();
   if (DTU)
     DTU->applyUpdates({{DominatorTree::Delete, BB, UnwindDestBB}});
+  return NewCall;
 }
 
 BasicBlock *llvm::changeToInvokeAndSplitBasicBlock(CallInst *CI,
@@ -2669,9 +2686,7 @@ static unsigned replaceDominatedUsesWith(Value *From, Value *To,
   assert(From->getType() == To->getType());
 
   unsigned Count = 0;
-  for (Value::use_iterator UI = From->use_begin(), UE = From->use_end();
-       UI != UE;) {
-    Use &U = *UI++;
+  for (Use &U : llvm::make_early_inc_range(From->uses())) {
     if (!Dominates(Root, U))
       continue;
     U.set(To);
@@ -2687,9 +2702,7 @@ unsigned llvm::replaceNonLocalUsesWith(Instruction *From, Value *To) {
    auto *BB = From->getParent();
    unsigned Count = 0;
 
-  for (Value::use_iterator UI = From->use_begin(), UE = From->use_end();
-       UI != UE;) {
-    Use &U = *UI++;
+   for (Use &U : llvm::make_early_inc_range(From->uses())) {
     auto *I = cast<Instruction>(U.getUser());
     if (I->getParent() == BB)
       continue;
@@ -3136,11 +3149,6 @@ bool llvm::recognizeBSwapOrBitReverseIdiom(
   if (!ITy->isIntOrIntVectorTy() || ITy->getScalarSizeInBits() > 128)
     return false;  // Can't do integer/elements > 128 bits.
 
-  Type *DemandedTy = ITy;
-  if (I->hasOneUse())
-    if (auto *Trunc = dyn_cast<TruncInst>(I->user_back()))
-      DemandedTy = Trunc->getType();
-
   // Try to find all the pieces corresponding to the bswap.
   bool FoundRoot = false;
   std::map<Value *, Optional<BitPart>> BPS;
@@ -3154,6 +3162,7 @@ bool llvm::recognizeBSwapOrBitReverseIdiom(
          "Illegal bit provenance index");
 
   // If the upper bits are zero, then attempt to perform as a truncated op.
+  Type *DemandedTy = ITy;
   if (BitProvenance.back() == BitPart::Unset) {
     while (!BitProvenance.empty() && BitProvenance.back() == BitPart::Unset)
       BitProvenance = BitProvenance.drop_back();
@@ -3171,7 +3180,7 @@ bool llvm::recognizeBSwapOrBitReverseIdiom(
 
   // Now, is the bit permutation correct for a bswap or a bitreverse? We can
   // only byteswap values with an even number of bytes.
-  APInt DemandedMask = APInt::getAllOnesValue(DemandedBW);
+  APInt DemandedMask = APInt::getAllOnes(DemandedBW);
   bool OKForBSwap = MatchBSwaps && (DemandedBW % 16) == 0;
   bool OKForBitReverse = MatchBitReversals;
   for (unsigned BitIdx = 0;
@@ -3208,7 +3217,7 @@ bool llvm::recognizeBSwapOrBitReverseIdiom(
   Instruction *Result = CallInst::Create(F, Provider, "rev", I);
   InsertedInsts.push_back(Result);
 
-  if (!DemandedMask.isAllOnesValue()) {
+  if (!DemandedMask.isAllOnes()) {
     auto *Mask = ConstantInt::get(DemandedTy, DemandedMask);
     Result = BinaryOperator::Create(Instruction::And, Result, Mask, "mask", I);
     InsertedInsts.push_back(Result);
@@ -3235,7 +3244,7 @@ void llvm::maybeMarkSanitizerLibraryCallNoBuiltin(
   if (F && !F->hasLocalLinkage() && F->hasName() &&
       TLI->getLibFunc(F->getName(), Func) && TLI->hasOptimizedCodeGen(Func) &&
       !F->doesNotAccessMemory())
-    CI->addAttribute(AttributeList::FunctionIndex, Attribute::NoBuiltin);
+    CI->addFnAttr(Attribute::NoBuiltin);
 }
 
 bool llvm::canReplaceOperandWithVariable(const Instruction *I, unsigned OpIdx) {
@@ -3263,7 +3272,7 @@ bool llvm::canReplaceOperandWithVariable(const Instruction *I, unsigned OpIdx) {
     if (CB.isBundleOperand(OpIdx))
       return false;
 
-    if (OpIdx < CB.getNumArgOperands()) {
+    if (OpIdx < CB.arg_size()) {
       // Some variadic intrinsics require constants in the variadic arguments,
       // which currently aren't markable as immarg.
       if (isa<IntrinsicInst>(CB) &&

@@ -34,6 +34,7 @@
 #include "llvm/Support/Error.h"
 #include "llvm/Support/ErrorHandling.h"
 #include "llvm/Support/MemoryBuffer.h"
+#include "llvm/Support/ScopedPrinter.h"
 #include <cassert>
 #include <cstdint>
 #include <system_error>
@@ -96,6 +97,10 @@ public:
 
   std::vector<std::pair<Optional<DataRefImpl>, uint64_t>>
   getPltAddresses() const;
+
+  /// Returns a vector containing a symbol version for each dynamic symbol.
+  /// Returns an empty vector if version sections do not exist.
+  Expected<std::vector<VersionEntry>> readDynsymVersions() const;
 };
 
 class ELFSectionRef : public SectionRef {
@@ -407,7 +412,8 @@ public:
   const Elf_Shdr *getRelSection(DataRefImpl Rel) const {
     auto RelSecOrErr = EF.getSection(Rel.d.a);
     if (!RelSecOrErr)
-      report_fatal_error(errorToErrorCode(RelSecOrErr.takeError()).message());
+      report_fatal_error(
+          Twine(errorToErrorCode(RelSecOrErr.takeError()).message()));
     return *RelSecOrErr;
   }
 
@@ -728,7 +734,8 @@ Expected<uint32_t> ELFObjectFile<ELFT>::getSymbolFlags(DataRefImpl Sym) const {
   } else if (EF.getHeader().e_machine == ELF::EM_ARM) {
     if (Expected<StringRef> NameOrErr = getSymbolName(Sym)) {
       StringRef Name = *NameOrErr;
-      if (Name.startswith("$d") || Name.startswith("$t") ||
+      // TODO Investigate why empty name symbols need to be marked.
+      if (Name.empty() || Name.startswith("$d") || Name.startswith("$t") ||
           Name.startswith("$a"))
         Result |= SymbolRef::SF_FormatSpecific;
     } else {
@@ -966,7 +973,8 @@ ELFObjectFile<ELFT>::section_rel_end(DataRefImpl Sec) const {
   // Error check sh_link here so that getRelocationSymbol can just use it.
   auto SymSecOrErr = EF.getSection(RelSec->sh_link);
   if (!SymSecOrErr)
-    report_fatal_error(errorToErrorCode(SymSecOrErr.takeError()).message());
+    report_fatal_error(
+        Twine(errorToErrorCode(SymSecOrErr.takeError()).message()));
 
   RelData.d.b += S->sh_size / S->sh_entsize;
   return relocation_iterator(RelocationRef(RelData, this));
@@ -1055,7 +1063,7 @@ ELFObjectFile<ELFT>::getRel(DataRefImpl Rel) const {
   assert(getRelSection(Rel)->sh_type == ELF::SHT_REL);
   auto Ret = EF.template getEntry<Elf_Rel>(Rel.d.a, Rel.d.b);
   if (!Ret)
-    report_fatal_error(errorToErrorCode(Ret.takeError()).message());
+    report_fatal_error(Twine(errorToErrorCode(Ret.takeError()).message()));
   return *Ret;
 }
 
@@ -1065,7 +1073,7 @@ ELFObjectFile<ELFT>::getRela(DataRefImpl Rela) const {
   assert(getRelSection(Rela)->sh_type == ELF::SHT_RELA);
   auto Ret = EF.template getEntry<Elf_Rela>(Rela.d.a, Rela.d.b);
   if (!Ret)
-    report_fatal_error(errorToErrorCode(Ret.takeError()).message());
+    report_fatal_error(Twine(errorToErrorCode(Ret.takeError()).message()));
   return *Ret;
 }
 

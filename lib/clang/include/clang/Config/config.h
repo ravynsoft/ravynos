@@ -9,6 +9,9 @@
 /* Bug report URL. */
 #define BUG_REPORT_URL "https://bugs.freebsd.org/submit/"
 
+/* Default to -fPIE and -pie on Linux. */
+#define CLANG_DEFAULT_PIE_ON_LINUX 0
+
 /* Default linker to use. */
 #define CLANG_DEFAULT_LINKER ""
 
@@ -65,7 +68,7 @@
 #define CLANG_HAVE_RLIMITS 1
 
 /* The LLVM product name and version */
-#define BACKEND_PACKAGE_STRING "LLVM 13.0.0"
+#define BACKEND_PACKAGE_STRING "LLVM 14.0.3"
 
 /* Linker version detected at compile time. */
 /* #undef HOST_LINK_VERSION */
@@ -75,6 +78,9 @@
 
 /* enable x86 relax relocations by default */
 #define ENABLE_X86_RELAX_RELOCATIONS 1
+
+/* Enable IEEE binary128 as default long double format on PowerPC Linux. */
+#define PPC_LINUX_DEFAULT_IEEELONGDOUBLE 0
 
 /* Enable each functionality of modules */
 /* #undef CLANG_ENABLE_ARCMT */

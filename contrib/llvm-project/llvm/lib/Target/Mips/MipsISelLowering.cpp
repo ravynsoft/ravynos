@@ -509,6 +509,9 @@ MipsTargetLowering::MipsTargetLowering(const MipsTargetMachine &TM,
     setLibcallName(RTLIB::SHL_I128, nullptr);
     setLibcallName(RTLIB::SRL_I128, nullptr);
     setLibcallName(RTLIB::SRA_I128, nullptr);
+    setLibcallName(RTLIB::MUL_I128, nullptr);
+    setLibcallName(RTLIB::MULO_I64, nullptr);
+    setLibcallName(RTLIB::MULO_I128, nullptr);
   }
 
   setMinFunctionAlignment(Subtarget.isGP64bit() ? Align(8) : Align(4));
@@ -2073,7 +2076,7 @@ SDValue MipsTargetLowering::lowerGlobalAddress(SDValue Op,
     const MipsTargetObjectFile *TLOF =
         static_cast<const MipsTargetObjectFile *>(
             getTargetMachine().getObjFileLowering());
-    const GlobalObject *GO = GV->getBaseObject();
+    const GlobalObject *GO = GV->getAliaseeObject();
     if (GO && TLOF->IsGlobalInSmallSection(GO, getTargetMachine()))
       // %gp_rel relocation
       return getAddrGPRel(N, SDLoc(N), Ty, DAG, ABI.IsN64());
@@ -2520,7 +2523,7 @@ SDValue MipsTargetLowering::lowerRETURNADDR(SDValue Op,
   MFI.setReturnAddressIsTaken(true);
 
   // Return RA, which contains the return address. Mark it an implicit live-in.
-  unsigned Reg = MF.addLiveIn(RA, getRegClassFor(VT));
+  Register Reg = MF.addLiveIn(RA, getRegClassFor(VT));
   return DAG.getCopyFromReg(DAG.getEntryNode(), SDLoc(Op), Reg, VT);
 }
 
@@ -3048,17 +3051,15 @@ getOpndList(SmallVectorImpl<SDValue> &Ops,
   // stuck together.
   SDValue InFlag;
 
-  for (unsigned i = 0, e = RegsToPass.size(); i != e; ++i) {
-    Chain = CLI.DAG.getCopyToReg(Chain, CLI.DL, RegsToPass[i].first,
-                                 RegsToPass[i].second, InFlag);
+  for (auto &R : RegsToPass) {
+    Chain = CLI.DAG.getCopyToReg(Chain, CLI.DL, R.first, R.second, InFlag);
     InFlag = Chain.getValue(1);
   }
 
   // Add argument registers to the end of the list so that they are
   // known live into the call.
-  for (unsigned i = 0, e = RegsToPass.size(); i != e; ++i)
-    Ops.push_back(CLI.DAG.getRegister(RegsToPass[i].first,
-                                      RegsToPass[i].second.getValueType()));
+  for (auto &R : RegsToPass)
+    Ops.push_back(CLI.DAG.getRegister(R.first, R.second.getValueType()));
 
   // Add a register mask operand representing the call-preserved registers.
   const TargetRegisterInfo *TRI = Subtarget.getRegisterInfo();
@@ -3714,7 +3715,7 @@ SDValue MipsTargetLowering::LowerFormalArguments(
           LocVT = VA.getValVT();
       }
 
-      // sanity check
+      // Only arguments pased on the stack should make it here. 
       assert(VA.isMemLoc());
 
       // The stack pointer offset is relative to the caller stack frame.
@@ -4118,7 +4119,7 @@ MipsTargetLowering::getRegForInlineAsmConstraint(const TargetRegisterInfo *TRI,
     case 'd': // Address register. Same as 'r' unless generating MIPS16 code.
     case 'y': // Same as 'r'. Exists for compatibility.
     case 'r':
-      if (VT == MVT::i32 || VT == MVT::i16 || VT == MVT::i8) {
+      if (VT == MVT::i32 || VT == MVT::i16 || VT == MVT::i8 || VT == MVT::i1) {
         if (Subtarget.inMips16Mode())
           return std::make_pair(0U, &Mips::CPU16RegsRegClass);
         return std::make_pair(0U, &Mips::GPR32RegClass);
@@ -4731,18 +4732,19 @@ MipsTargetLowering::emitPseudoD_SELECT(MachineInstr &MI,
 Register
 MipsTargetLowering::getRegisterByName(const char *RegName, LLT VT,
                                       const MachineFunction &MF) const {
-  // Named registers is expected to be fairly rare. For now, just support $28
-  // since the linux kernel uses it.
+  // The Linux kernel uses $28 and sp.
   if (Subtarget.isGP64bit()) {
     Register Reg = StringSwitch<Register>(RegName)
-                         .Case("$28", Mips::GP_64)
-                         .Default(Register());
+                       .Case("$28", Mips::GP_64)
+                       .Case("sp", Mips::SP_64)
+                       .Default(Register());
     if (Reg)
       return Reg;
   } else {
     Register Reg = StringSwitch<Register>(RegName)
-                         .Case("$28", Mips::GP)
-                         .Default(Register());
+                       .Case("$28", Mips::GP)
+                       .Case("sp", Mips::SP)
+                       .Default(Register());
     if (Reg)
       return Reg;
   }
