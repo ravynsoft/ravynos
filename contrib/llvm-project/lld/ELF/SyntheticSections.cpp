@@ -1331,14 +1331,6 @@ DynamicSection<ELFT>::computeContents() {
   for (StringRef s : config->auxiliaryList)
     addInt(DT_AUXILIARY, part.dynStrTab->addString(s));
 
-  if (!config->frameworkRunPaths.empty()) {
-    std::string s(llvm::join(config->frameworkRunPaths.begin(),config->frameworkRunPaths.end(),":"));
-    if(config->rpath.empty())
-      config->rpath = s;
-    else
-      config->rpath.append(":" + s);
-  }
-
   if (!config->rpath.empty())
     addInt(config->enableNewDtags ? DT_RUNPATH : DT_RPATH,
            part.dynStrTab->addString(config->rpath));

@@ -93,7 +93,7 @@ std::string getClangToolFullVersion(StringRef ToolName) {
   std::string buf;
   llvm::raw_string_ostream OS(buf);
 #ifdef CLANG_VENDOR
-  OS << CLANG_VENDOR;
+  OS << CLANG_VENDOR << " ";
 #endif
   OS << ToolName << " version " CLANG_VERSION_STRING;
 
