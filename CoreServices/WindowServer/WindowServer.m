@@ -187,50 +187,59 @@ int main(int argc, const char *argv[]) {
     }
 
     pid_t pid = -1;
-    if(runCompositor) {
-	pid = fork();
-	if(pid == 0) {
-            close(pfd[0]);
-            if (wb_create_backend(&server)) {
-                wlr_log(WLR_INFO, "%s", _("Successfully created backend"));
-            } else {
-                wlr_log(WLR_ERROR, "%s", _("Failed to create backend"));
-                kill(getppid(), SIGTERM);
-                exit(EXIT_FAILURE);
-            }
+    if(!runCompositor)
+        goto desktopShell;
 
-            if (wb_start_server(&server)) {
-                wlr_log(WLR_INFO, "%s", _("Successfully started server"));
-            } else {
-                wlr_log(WLR_ERROR, "%s", _("Failed to start server"));
-                wb_terminate(&server);
-                kill(getppid(), SIGTERM);
-                exit(EXIT_FAILURE);
-            }
-
-            struct sigaction sa;
-            sigemptyset(&sa.sa_mask);
-            sa.sa_flags = SA_RESTART;
-            sa.sa_handler = signal_handler;
-            sigaction(SIGINT, &sa, NULL);
-            sigaction(SIGTERM, &sa, NULL);
-            sigaction(SIGUSR1, &sa, NULL);
-            sigaction(SIGUSR2, &sa, NULL);
-
-            write(pfd[1], "GO!", 4);
-            close(pfd[1]);
-            wl_display_run(server.wl_display);
-            wb_terminate(&server);
+    pid = fork();
+    if(pid == 0) {
+        close(pfd[0]);
+        if (wb_create_backend(&server)) {
+            wlr_log(WLR_INFO, "%s", _("Successfully created backend"));
+        } else {
+            wlr_log(WLR_ERROR, "%s", _("Failed to create backend"));
             kill(getppid(), SIGTERM);
-            exit(0);
+            exit(EXIT_FAILURE);
         }
 
+        if (wb_start_server(&server)) {
+            wlr_log(WLR_INFO, "%s", _("Successfully started server"));
+        } else {
+            wlr_log(WLR_ERROR, "%s", _("Failed to start server"));
+            wb_terminate(&server);
+            kill(getppid(), SIGTERM);
+            exit(EXIT_FAILURE);
+        }
+
+        struct sigaction sa;
+        sigemptyset(&sa.sa_mask);
+        sa.sa_flags = SA_RESTART;
+        sa.sa_handler = signal_handler;
+        sigaction(SIGINT, &sa, NULL);
+        sigaction(SIGTERM, &sa, NULL);
+        sigaction(SIGUSR1, &sa, NULL);
+        sigaction(SIGUSR2, &sa, NULL);
+
+        write(pfd[1], "GO!", 4);
+        close(pfd[1]);
+        wl_display_run(server.wl_display);
+        wb_terminate(&server);
+        kill(getppid(), SIGTERM);
+        exit(0);
+    }
+
+desktopShell:
+    if(runCompositor) {
         NSLog(@"Waiting for pipe");
         close(pfd[1]);
         char buf[8];
-        read(pfd[0], buf, 4);
+        do {
+            read(pfd[0], buf, 4);
+        } while(strcmp(buf,"GO!"));
         close(pfd[0]);
     }
+
+    if(shell == NONE)
+        return 0;
 
     NSLog(@"Initializing NSApplication");
     [NSApplication sharedApplication];

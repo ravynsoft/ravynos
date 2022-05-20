@@ -91,7 +91,7 @@ typedef union {
 
     NSRect frame = NSZeroRect;
     frame.size = NSSizeFromString([dict objectForKey:@"WLOutputSize"]);
-    //frame.origin = NSPointFromString([dict objectForKey:@"WLOutputPosition"]);
+    frame.origin = NSPointFromString([dict objectForKey:@"WLOutputPosition"]);
 
     DesktopWindow *desktop = [[DesktopWindow alloc] initWithFrame:frame forOutput:key];
     [desktops setObject:desktop forKey:key];

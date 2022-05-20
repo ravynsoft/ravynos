@@ -14,7 +14,7 @@ SRCS=           WindowServer.m \
                 Desktop/ExtrasView.m \
                 Desktop/DesktopWindow.m \
                 Desktop/MenuBarWindow.m
-RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf ravynos-mark-64.png
+RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf ${.CURDIR}/ravynos-mark-64.png
 
 MK_WERROR=	no
 WARNS=	        1
