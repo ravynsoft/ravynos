@@ -36,14 +36,21 @@
 #include <sys/ucred.h>
 #include <sys/socket.h>
 
+#include "common/font.h"
+#include "common/spawn.h"
+#include "config/session.h"
+#include "labwc.h"
+#include "theme.h"
+#include "xbm/xbm.h"
+#include "menu/menu.h"
+
 #include <Desktop/desktop.h>
-#include <waybox/server.h>
 
 #define SA_RESTART      0x0002  /* restart system call on signal return */
 
-struct wb_server server = {0};
 const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
 const NSString *WLMenuDidUpdateNotification = @"WLMenuDidUpdateNotification";
+struct rcxml rc = { 0 };
 
 void menuListener(void *arg __unused) {
     int conn;
@@ -114,23 +121,6 @@ void machSvcLoop(void *arg) {
         [delegate receiveMachMessage];
 }
 
-void signal_handler(int sig) {
-    switch (sig) {
-        case SIGINT:
-        case SIGTERM:
-            wl_display_terminate(server.wl_display);
-            break;
-        case SIGUSR1:
-            /* Openbox uses SIGUSR1 to restart. I'm not sure of the
-             * difference between restarting and reconfiguring.
-             */
-        case SIGUSR2:
-            deinit_config(server.config);
-            init_config(&server);
-            break;
-    }
-}
-
 enum ShellType {
     NONE, LOGINWINDOW, DESKTOP
 };
@@ -139,6 +129,7 @@ int main(int argc, const char *argv[]) {
     enum wlr_log_importance debuglevel = WLR_ERROR;
     enum ShellType shell = LOGINWINDOW;
     BOOL runCompositor = YES;
+    char *config_file = NULL;
 
     __NSInitializeProcess(argc, argv);
 
@@ -156,7 +147,7 @@ int main(int argc, const char *argv[]) {
     }
 
     NSString *confPath = [[NSBundle mainBundle] pathForResource:@"ws" ofType:@"conf"];
-    server.config_file = [confPath UTF8String];
+    config_file = [confPath UTF8String];
 
     while(getopt(argc, argv, "Ldxv") != -1) {
         switch(optopt) {
@@ -193,36 +184,33 @@ int main(int argc, const char *argv[]) {
     pid = fork();
     if(pid == 0) {
         close(pfd[0]);
-        if (wb_create_backend(&server)) {
-            wlr_log(WLR_INFO, "%s", _("Successfully created backend"));
-        } else {
-            wlr_log(WLR_ERROR, "%s", _("Failed to create backend"));
-            kill(getppid(), SIGTERM);
-            exit(EXIT_FAILURE);
-        }
 
-        if (wb_start_server(&server)) {
-            wlr_log(WLR_INFO, "%s", _("Successfully started server"));
-        } else {
-            wlr_log(WLR_ERROR, "%s", _("Failed to start server"));
-            wb_terminate(&server);
-            kill(getppid(), SIGTERM);
-            exit(EXIT_FAILURE);
-        }
+	session_environment_init();
+	rcxml_read(config_file);
 
-        struct sigaction sa;
-        sigemptyset(&sa.sa_mask);
-        sa.sa_flags = SA_RESTART;
-        sa.sa_handler = signal_handler;
-        sigaction(SIGINT, &sa, NULL);
-        sigaction(SIGTERM, &sa, NULL);
-        sigaction(SIGUSR1, &sa, NULL);
-        sigaction(SIGUSR2, &sa, NULL);
+	struct server server = { 0 };
+	server_init(&server);
+	server_start(&server);
+
+	struct theme theme = { 0 };
+	theme_init(&theme, server.renderer, rc.theme_name);
+	server.theme = &theme;
+
+	menu_init_rootmenu(&server);
+	menu_init_windowmenu(&server);
 
         write(pfd[1], "GO!", 4);
         close(pfd[1]);
-        wl_display_run(server.wl_display);
-        wb_terminate(&server);
+
+	wl_display_run(server.wl_display);
+
+	server_finish(&server);
+
+	menu_finish();
+	theme_finish(&theme);
+	rcxml_finish();
+	font_finish();
+
         kill(getppid(), SIGTERM);
         exit(0);
     }
@@ -267,5 +255,3 @@ desktopShell:
     kill(pid, SIGTERM);
     return 0;
 }
-
-

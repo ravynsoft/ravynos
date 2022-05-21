@@ -582,7 +582,8 @@ id NSApp=nil;
 
     // UGLY HACK: this dummy window triggers wayland to tell us about wl_outputs.
     NSWindow *w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,1,1)
-        styleMask:NSBorderlessWindowMask backing:NSBackingStoreBuffered defer:NO];
+        styleMask:NSBorderlessWindowMask|WLWindowLayerBackground
+        backing:NSBackingStoreBuffered defer:NO];
     [w makeKeyAndOrderFront:nil];
 
    NS_DURING

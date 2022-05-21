@@ -1,0 +1,25 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    steps:
+      - name: install dependencies
+        run: |
+          pacman-key --init
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm git meson clang wlroots libdrm libinput \
+            wayland-protocols cairo pango libxml2 xorg-xwayland
+      - uses: actions/checkout@v2
+      - name: build with gcc
+        run: |
+          export CC=gcc
+          meson build-gcc/ --werror
+          ninja -C build-gcc/
+      - name: build with clang
+        run: |
+          export CC=clang
+          meson build-clang/ --werror
+          ninja -C build-clang/
+

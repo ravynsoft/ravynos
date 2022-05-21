@@ -44,6 +44,7 @@ const NSString *PrefsWallpaperPathKey = @"WallpaperPath";
             |WLWindowLayerAnchorLeft|WLWindowLayerAnchorRight
         backing:NSBackingStoreBuffered defer:NO screen:output];
 
+
     _menuBar = [MenuBarWindow new];
     [_contentView addSubview:_menuBar];
     [_menuBar setAutoresizingMask:0];
