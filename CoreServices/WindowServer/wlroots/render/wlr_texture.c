@@ -63,6 +63,7 @@ struct wlr_texture *wlr_texture_from_dmabuf(struct wlr_renderer *renderer,
 
 struct wlr_texture *wlr_texture_from_buffer(struct wlr_renderer *renderer,
 		struct wlr_buffer *buffer) {
+	assert(!renderer->rendering);
 	if (!renderer->impl->texture_from_buffer) {
 		return NULL;
 	}

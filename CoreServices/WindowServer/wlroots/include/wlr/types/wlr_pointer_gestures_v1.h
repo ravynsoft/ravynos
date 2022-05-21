@@ -11,8 +11,7 @@
 
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_seat.h>
-
-struct wlr_surface;
+#include <wlr/types/wlr_surface.h>
 
 struct wlr_pointer_gestures_v1 {
 	struct wl_global *global;

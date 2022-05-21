@@ -76,8 +76,8 @@ static void output_destroy(struct wlr_output *wlr_output) {
 
 	pixman_region32_fini(&output->exposed);
 
-	wlr_pointer_finish(&output->pointer);
-	wlr_touch_finish(&output->touch);
+	wlr_input_device_destroy(&output->pointer_dev);
+	wlr_input_device_destroy(&output->touch_dev);
 
 	struct wlr_x11_buffer *buffer, *buffer_tmp;
 	wl_list_for_each_safe(buffer, buffer_tmp, &output->buffers, link) {
@@ -573,16 +573,22 @@ struct wlr_output *wlr_x11_output_create(struct wlr_backend *backend) {
 
 	wlr_output_update_enabled(wlr_output, true);
 
-	wlr_pointer_init(&output->pointer, &x11_pointer_impl, "x11-pointer");
-	output->pointer.base.output_name = strdup(wlr_output->name);
+	wlr_input_device_init(&output->pointer_dev, WLR_INPUT_DEVICE_POINTER,
+		&input_device_impl, "X11 pointer", 0, 0);
+	wlr_pointer_init(&output->pointer, &pointer_impl);
+	output->pointer_dev.pointer = &output->pointer;
+	output->pointer_dev.output_name = strdup(wlr_output->name);
 
-	wlr_touch_init(&output->touch, &x11_touch_impl, "x11-touch");
-	output->touch.base.output_name = strdup(wlr_output->name);
+	wlr_input_device_init(&output->touch_dev, WLR_INPUT_DEVICE_TOUCH,
+		&input_device_impl, "X11 touch", 0, 0);
+	wlr_touch_init(&output->touch, &touch_impl);
+	output->touch_dev.touch = &output->touch;
+	output->touch_dev.output_name = strdup(wlr_output->name);
 	wl_list_init(&output->touchpoints);
 
 	wlr_signal_emit_safe(&x11->backend.events.new_output, wlr_output);
-	wlr_signal_emit_safe(&x11->backend.events.new_input, &output->pointer.base);
-	wlr_signal_emit_safe(&x11->backend.events.new_input, &output->touch.base);
+	wlr_signal_emit_safe(&x11->backend.events.new_input, &output->pointer_dev);
+	wlr_signal_emit_safe(&x11->backend.events.new_input, &output->touch_dev);
 
 	// Start the rendering loop by requesting the compositor to render a frame
 	wlr_output_schedule_frame(wlr_output);

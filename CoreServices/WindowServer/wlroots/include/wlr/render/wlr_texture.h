@@ -25,6 +25,9 @@ struct wlr_texture {
 /**
  * Create a new texture from raw pixel data. `stride` is in bytes. The returned
  * texture is mutable.
+ *
+ * Should not be called in a rendering block like renderer_begin()/end() or
+ * between attaching a renderer to an output and committing it.
  */
 struct wlr_texture *wlr_texture_from_pixels(struct wlr_renderer *renderer,
 	uint32_t fmt, uint32_t stride, uint32_t width, uint32_t height,
@@ -32,6 +35,9 @@ struct wlr_texture *wlr_texture_from_pixels(struct wlr_renderer *renderer,
 
 /**
  * Create a new texture from a DMA-BUF. The returned texture is immutable.
+ *
+ * Should not be called in a rendering block like renderer_begin()/end() or
+ * between attaching a renderer to an output and committing it.
  */
 struct wlr_texture *wlr_texture_from_dmabuf(struct wlr_renderer *renderer,
 	struct wlr_dmabuf_attributes *attribs);
@@ -44,6 +50,9 @@ bool wlr_texture_is_opaque(struct wlr_texture *texture);
 /**
   * Update a texture with raw pixels. The texture must be mutable, and the input
   * data must have the same pixel format that the texture was created with.
+  *
+  * Should not be called in a rendering block like renderer_begin()/end() or
+  * between attaching a renderer to an output and committing it.
   */
 bool wlr_texture_write_pixels(struct wlr_texture *texture,
 	uint32_t stride, uint32_t width, uint32_t height,
@@ -57,6 +66,9 @@ void wlr_texture_destroy(struct wlr_texture *texture);
 
 /**
  * Create a new texture from a buffer.
+ *
+ * Should not be called in a rendering block like renderer_begin()/end() or
+ * between attaching a renderer to an output and committing it.
  */
 struct wlr_texture *wlr_texture_from_buffer(struct wlr_renderer *renderer,
 	struct wlr_buffer *buffer);

@@ -60,8 +60,6 @@ struct wlr_tablet_tool {
 struct wlr_tablet_impl;
 
 struct wlr_tablet {
-	struct wlr_input_device base;
-
 	const struct wlr_tablet_impl *impl;
 
 	struct {
@@ -71,6 +69,7 @@ struct wlr_tablet {
 		struct wl_signal button;
 	} events;
 
+	char *name;
 	struct wl_array paths; // char *
 
 	void *data;

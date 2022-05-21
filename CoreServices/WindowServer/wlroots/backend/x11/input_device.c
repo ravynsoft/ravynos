@@ -10,6 +10,7 @@
 #include <xcb/xfixes.h>
 #include <xcb/xinput.h>
 
+#include <wlr/interfaces/wlr_input_device.h>
 #include <wlr/interfaces/wlr_keyboard.h>
 #include <wlr/interfaces/wlr_pointer.h>
 #include <wlr/interfaces/wlr_touch.h>
@@ -32,7 +33,7 @@ static void send_key_event(struct wlr_x11_backend *x11, uint32_t key,
 static void send_button_event(struct wlr_x11_output *output, uint32_t key,
 		enum wlr_button_state st, xcb_timestamp_t time) {
 	struct wlr_event_pointer_button ev = {
-		.device = &output->pointer.base,
+		.device = &output->pointer_dev,
 		.time_msec = time,
 		.button = key,
 		.state = st,
@@ -44,7 +45,7 @@ static void send_button_event(struct wlr_x11_output *output, uint32_t key,
 static void send_axis_event(struct wlr_x11_output *output, int32_t delta,
 		xcb_timestamp_t time) {
 	struct wlr_event_pointer_axis ev = {
-		.device = &output->pointer.base,
+		.device = &output->pointer_dev,
 		.time_msec = time,
 		.source = WLR_AXIS_SOURCE_WHEEL,
 		.orientation = WLR_AXIS_ORIENTATION_VERTICAL,
@@ -59,7 +60,7 @@ static void send_axis_event(struct wlr_x11_output *output, int32_t delta,
 static void send_pointer_position_event(struct wlr_x11_output *output,
 		int16_t x, int16_t y, xcb_timestamp_t time) {
 	struct wlr_event_pointer_motion_absolute ev = {
-		.device = &output->pointer.base,
+		.device = &output->pointer_dev,
 		.time_msec = time,
 		.x = (double)x / output->wlr_output.width,
 		.y = (double)y / output->wlr_output.height,
@@ -71,7 +72,7 @@ static void send_pointer_position_event(struct wlr_x11_output *output,
 static void send_touch_down_event(struct wlr_x11_output *output,
 		int16_t x, int16_t y, int32_t touch_id, xcb_timestamp_t time) {
 	struct wlr_event_touch_down ev = {
-		.device = &output->touch.base,
+		.device = &output->touch_dev,
 		.time_msec = time,
 		.x = (double)x / output->wlr_output.width,
 		.y = (double)y / output->wlr_output.height,
@@ -84,7 +85,7 @@ static void send_touch_down_event(struct wlr_x11_output *output,
 static void send_touch_motion_event(struct wlr_x11_output *output,
 		int16_t x, int16_t y, int32_t touch_id, xcb_timestamp_t time) {
 	struct wlr_event_touch_motion ev = {
-		.device = &output->touch.base,
+		.device = &output->touch_dev,
 		.time_msec = time,
 		.x = (double)x / output->wlr_output.width,
 		.y = (double)y / output->wlr_output.height,
@@ -97,7 +98,7 @@ static void send_touch_motion_event(struct wlr_x11_output *output,
 static void send_touch_up_event(struct wlr_x11_output *output,
 		int32_t touch_id, xcb_timestamp_t time) {
 	struct wlr_event_touch_up ev = {
-		.device = &output->touch.base,
+		.device = &output->touch_dev,
 		.time_msec = time,
 		.touch_id = touch_id,
 	};
@@ -285,16 +286,36 @@ void handle_x11_xinput_event(struct wlr_x11_backend *x11,
 	}
 }
 
-const struct wlr_keyboard_impl x11_keyboard_impl = {
-	.name = "x11-keyboard",
+static void input_device_destroy(struct wlr_input_device *wlr_device) {
+	// Don't free the input device, it's on the stack
+}
+
+const struct wlr_input_device_impl input_device_impl = {
+	.destroy = input_device_destroy,
 };
 
-const struct wlr_pointer_impl x11_pointer_impl = {
-	.name = "x11-pointer",
+static void keyboard_destroy(struct wlr_keyboard *wlr_keyboard) {
+	// Don't free the keyboard, it's on the stack
+}
+
+const struct wlr_keyboard_impl keyboard_impl = {
+	.destroy = keyboard_destroy,
 };
 
-const struct wlr_touch_impl x11_touch_impl = {
-	.name = "x11-touch",
+static void pointer_destroy(struct wlr_pointer *wlr_pointer) {
+	// Don't free the pointer, it's on the stack
+}
+
+const struct wlr_pointer_impl pointer_impl = {
+	.destroy = pointer_destroy,
+};
+
+static void touch_destroy(struct wlr_touch *wlr_touch) {
+	// Don't free the touch, it's on the stack
+}
+
+const struct wlr_touch_impl touch_impl = {
+	.destroy = touch_destroy,
 };
 
 void update_x11_pointer_position(struct wlr_x11_output *output,
@@ -315,14 +336,5 @@ void update_x11_pointer_position(struct wlr_x11_output *output,
 }
 
 bool wlr_input_device_is_x11(struct wlr_input_device *wlr_dev) {
-	switch (wlr_dev->type) {
-	case WLR_INPUT_DEVICE_KEYBOARD:
-		return wlr_dev->keyboard->impl == &x11_keyboard_impl;
-	case WLR_INPUT_DEVICE_POINTER:
-		return wlr_dev->pointer->impl == &x11_pointer_impl;
-	case WLR_INPUT_DEVICE_TOUCH:
-		return wlr_dev->touch->impl == &x11_touch_impl;
-	default:
-		return false;
-	}
+	return wlr_dev->impl == &input_device_impl;
 }

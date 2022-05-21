@@ -5,6 +5,7 @@
 #include <time.h>
 #include <wayland-server-core.h>
 #include <wlr/types/wlr_data_device.h>
+#include <wlr/types/wlr_input_device.h>
 #include <wlr/types/wlr_primary_selection.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/util/log.h>

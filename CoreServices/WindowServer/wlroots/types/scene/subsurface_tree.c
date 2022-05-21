@@ -1,7 +1,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <wlr/types/wlr_scene.h>
-#include <wlr/types/wlr_subcompositor.h>
 #include <wlr/util/addon.h>
 
 /**

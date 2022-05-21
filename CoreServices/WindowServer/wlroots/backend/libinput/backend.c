@@ -110,9 +110,9 @@ static bool backend_start(struct wlr_backend *wlr_backend) {
 			no_devs = NULL;
 		}
 	}
-	if (!no_devs && wl_list_empty(&backend->devices)) {
+	if (!no_devs && backend->wlr_device_lists.size == 0) {
 		handle_libinput_readable(libinput_fd, WL_EVENT_READABLE, backend);
-		if (wl_list_empty(&backend->devices)) {
+		if (backend->wlr_device_lists.size == 0) {
 			wlr_log(WLR_ERROR, "libinput initialization failed, no input devices");
 			wlr_log(WLR_ERROR, "Set WLR_LIBINPUT_NO_DEVICES=1 to suppress this check");
 			return false;
@@ -141,9 +141,13 @@ static void backend_destroy(struct wlr_backend *wlr_backend) {
 	struct wlr_libinput_backend *backend =
 		get_libinput_backend_from_backend(wlr_backend);
 
-	struct wlr_libinput_input_device *dev, *tmp;
-	wl_list_for_each_safe(dev, tmp, &backend->devices, link) {
-		destroy_libinput_input_device(dev);
+	struct wl_list **wlr_devices_ptr;
+	wl_array_for_each(wlr_devices_ptr, &backend->wlr_device_lists) {
+		struct wlr_libinput_input_device *dev, *tmp;
+		wl_list_for_each_safe(dev, tmp, *wlr_devices_ptr, link) {
+			wlr_input_device_destroy(&dev->wlr_input_device);
+		}
+		free(*wlr_devices_ptr);
 	}
 
 	wlr_backend_finish(wlr_backend);
@@ -152,6 +156,7 @@ static void backend_destroy(struct wlr_backend *wlr_backend) {
 	wl_list_remove(&backend->session_destroy.link);
 	wl_list_remove(&backend->session_signal.link);
 
+	wl_array_release(&backend->wlr_device_lists);
 	if (backend->input_event) {
 		wl_event_source_remove(backend->input_event);
 	}
@@ -206,7 +211,7 @@ struct wlr_backend *wlr_libinput_backend_create(struct wl_display *display,
 	}
 	wlr_backend_init(&backend->backend, &backend_impl);
 
-	wl_list_init(&backend->devices);
+	wl_array_init(&backend->wlr_device_lists);
 
 	backend->session = session;
 	backend->display = display;
@@ -225,27 +230,8 @@ struct wlr_backend *wlr_libinput_backend_create(struct wl_display *display,
 
 struct libinput_device *wlr_libinput_get_device_handle(
 		struct wlr_input_device *wlr_dev) {
-	struct wlr_libinput_input_device *dev = NULL;
-	switch (wlr_dev->type) {
-	case WLR_INPUT_DEVICE_KEYBOARD:
-		dev = device_from_keyboard(wlr_dev->keyboard);
-		break;
-	case WLR_INPUT_DEVICE_POINTER:
-		dev = device_from_pointer(wlr_dev->pointer);
-		break;
-	case WLR_INPUT_DEVICE_SWITCH:
-		dev = device_from_switch(wlr_dev->switch_device);
-		break;
-	case WLR_INPUT_DEVICE_TOUCH:
-		dev = device_from_touch(wlr_dev->touch);
-		break;
-	case WLR_INPUT_DEVICE_TABLET_TOOL:
-		dev = device_from_tablet(wlr_dev->tablet);
-		break;
-	case WLR_INPUT_DEVICE_TABLET_PAD:
-		dev = device_from_tablet_pad(wlr_dev->tablet_pad);
-		break;
-	}
+	struct wlr_libinput_input_device *dev =
+		(struct wlr_libinput_input_device *)wlr_dev;
 	return dev->handle;
 }
 

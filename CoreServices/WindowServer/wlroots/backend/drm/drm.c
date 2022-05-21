@@ -1629,7 +1629,7 @@ struct wlr_drm_lease *wlr_drm_create_lease(struct wlr_output **outputs,
 	wl_signal_init(&lease->events.destroy);
 
 	wlr_log(WLR_DEBUG, "Issuing DRM lease with %d objects", n_objects);
-	int lease_fd = drmModeCreateLease(drm->fd, objects, n_objects, O_CLOEXEC,
+	int lease_fd = drmModeCreateLease(drm->fd, objects, n_objects, 0,
 			&lease->lessee_id);
 	if (lease_fd < 0) {
 		free(lease);

@@ -37,8 +37,18 @@ static void keyboard_set_leds(struct wlr_keyboard *kb, uint32_t leds) {
 	}
 }
 
+static void keyboard_destroy(struct wlr_keyboard *kb) {
+	// Just remove the event listeners. The keyboard will be freed as part of
+	// the wlr_keyboard_group in wlr_keyboard_group_destroy.
+	wl_list_remove(&kb->events.key.listener_list);
+	wl_list_remove(&kb->events.modifiers.listener_list);
+	wl_list_remove(&kb->events.keymap.listener_list);
+	wl_list_remove(&kb->events.repeat_info.listener_list);
+	wl_list_remove(&kb->events.destroy.listener_list);
+}
+
 static const struct wlr_keyboard_impl impl = {
-	.name = "keyboard-group",
+	.destroy = keyboard_destroy,
 	.led_update = keyboard_set_leds
 };
 
@@ -50,7 +60,16 @@ struct wlr_keyboard_group *wlr_keyboard_group_create(void) {
 		return NULL;
 	}
 
-	wlr_keyboard_init(&group->keyboard, &impl, "wlr_keyboard_group");
+	group->input_device = calloc(1, sizeof(struct wlr_input_device));
+	if (!group->input_device) {
+		wlr_log(WLR_ERROR, "Failed to allocate wlr_input_device for group");
+		free(group);
+		return NULL;
+	}
+	wl_signal_init(&group->input_device->events.destroy);
+	group->input_device->keyboard = &group->keyboard;
+
+	wlr_keyboard_init(&group->keyboard, &impl);
 	wl_list_init(&group->devices);
 	wl_list_init(&group->keys);
 
@@ -279,7 +298,7 @@ bool wlr_keyboard_group_add_keyboard(struct wlr_keyboard_group *group,
 	wl_signal_add(&keyboard->events.repeat_info, &device->repeat_info);
 	device->repeat_info.notify = handle_keyboard_repeat_info;
 
-	wl_signal_add(&keyboard->base.events.destroy, &device->destroy);
+	wl_signal_add(&keyboard->events.destroy, &device->destroy);
 	device->destroy.notify = handle_keyboard_destroy;
 
 	struct wlr_keyboard *group_kb = &group->keyboard;
@@ -315,8 +334,10 @@ void wlr_keyboard_group_destroy(struct wlr_keyboard_group *group) {
 	wl_list_for_each_safe(device, tmp, &group->devices, link) {
 		wlr_keyboard_group_remove_keyboard(group, device->keyboard);
 	}
-	wlr_keyboard_finish(&group->keyboard);
+	wlr_keyboard_destroy(&group->keyboard);
+	wl_list_remove(&group->input_device->events.destroy.listener_list);
 	wl_list_remove(&group->events.enter.listener_list);
 	wl_list_remove(&group->events.leave.listener_list);
+	free(group->input_device);
 	free(group);
 }

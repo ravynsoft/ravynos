@@ -186,23 +186,16 @@ all of the characters, and replace any invalid characters with an underscore.
 
 ### Construction/Destruction Functions
 
-Functions that are responsible for constructing objects should take one of the
-two following forms:
+For functions that are responsible for constructing and destructing an object,
+they should be written as a pair of one of two forms:
+* `init`/`finish`: These initialize/deinitialize a type, but are **NOT**
+responsible for allocating it. They should accept a pointer to some
+pre-allocated memory (e.g. a member of a struct).
+* `create`/`destroy`: These also initialize/deinitialize, but will return a
+pointer to a `malloc`ed chunk of memory, and will `free` it in `destroy`.
 
-* `init`: for functions which accept a pointer to a pre-allocated object (e.g.
-a member of a struct) and initialize it.
-* `create`: for functions which allocate the memory for an object, initialize
-it, and return a pointer.
-
-Likewise, functions that are responsible for destructing objects should take
-one of the two following forms:
-
-* `finish`: for functions which accept a pointer to an object and deinitialize
-it. Such functions should always be able to accept an already deinitialized
-object.
-* `destroy`: for functions which accept a pointer to an object, deinitialize
-it, and free the memory. Such functions should always be able to accept a NULL
-pointer.
+A destruction function should always be able to accept a NULL pointer or a
+zeroed value and exit cleanly; this simplifies error handling a lot.
 
 ### Error Codes
 

@@ -4,7 +4,6 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <wlr/interfaces/wlr_buffer.h>
 #include <wlr/render/allocator.h>
 #include <wlr/render/drm_format_set.h>
 #include <wlr/util/log.h>

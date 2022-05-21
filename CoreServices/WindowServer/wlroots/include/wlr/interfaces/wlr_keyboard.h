@@ -13,18 +13,13 @@
 #include <wlr/types/wlr_keyboard.h>
 
 struct wlr_keyboard_impl {
-	const char *name;
+	void (*destroy)(struct wlr_keyboard *keyboard);
 	void (*led_update)(struct wlr_keyboard *keyboard, uint32_t leds);
 };
 
 void wlr_keyboard_init(struct wlr_keyboard *keyboard,
-	const struct wlr_keyboard_impl *impl, const char *name);
-
-/**
- * Cleans up all of the resources owned by wlr_keyboard.
- */
-void wlr_keyboard_finish(struct wlr_keyboard *keyboard);
-
+		const struct wlr_keyboard_impl *impl);
+void wlr_keyboard_destroy(struct wlr_keyboard *keyboard);
 void wlr_keyboard_notify_key(struct wlr_keyboard *keyboard,
 		struct wlr_event_keyboard_key *event);
 void wlr_keyboard_notify_modifiers(struct wlr_keyboard *keyboard,

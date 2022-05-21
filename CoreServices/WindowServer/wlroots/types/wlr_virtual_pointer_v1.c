@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <stdlib.h>
-#include <wlr/interfaces/wlr_pointer.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_virtual_pointer_v1.h>
 #include <wlr/types/wlr_pointer.h>
@@ -8,8 +7,17 @@
 #include "util/signal.h"
 #include "wlr-virtual-pointer-unstable-v1-protocol.h"
 
-static const struct wlr_pointer_impl pointer_impl = {
-	.name = "virtual-pointer",
+static void input_device_destroy(struct wlr_input_device *dev) {
+	struct wlr_virtual_pointer_v1 *pointer =
+		(struct wlr_virtual_pointer_v1 *)dev;
+	wl_resource_set_user_data(pointer->resource, NULL);
+	wlr_signal_emit_safe(&pointer->events.destroy, pointer);
+	wl_list_remove(&pointer->link);
+	free(pointer);
+}
+
+static const struct wlr_input_device_impl input_device_impl = {
+	.destroy = input_device_destroy
 };
 
 static const struct zwlr_virtual_pointer_v1_interface virtual_pointer_impl;
@@ -29,7 +37,7 @@ static void virtual_pointer_motion(struct wl_client *client,
 	if (pointer == NULL) {
 		return;
 	}
-	struct wlr_input_device *wlr_dev = &pointer->pointer.base;
+	struct wlr_input_device *wlr_dev = &pointer->input_device;
 	struct wlr_event_pointer_motion event = {
 		.device = wlr_dev,
 		.time_msec = time,
@@ -38,7 +46,7 @@ static void virtual_pointer_motion(struct wl_client *client,
 		.unaccel_dx = wl_fixed_to_double(dx),
 		.unaccel_dy = wl_fixed_to_double(dy),
 	};
-	wlr_signal_emit_safe(&pointer->pointer.events.motion, &event);
+	wlr_signal_emit_safe(&wlr_dev->pointer->events.motion, &event);
 }
 
 static void virtual_pointer_motion_absolute(struct wl_client *client,
@@ -52,7 +60,7 @@ static void virtual_pointer_motion_absolute(struct wl_client *client,
 	if (x_extent == 0 || y_extent == 0) {
 		return;
 	}
-	struct wlr_input_device *wlr_dev = &pointer->pointer.base;
+	struct wlr_input_device *wlr_dev = &pointer->input_device;
 	struct wlr_event_pointer_motion_absolute event = {
 		.device = wlr_dev,
 		.time_msec = time,
@@ -70,7 +78,7 @@ static void virtual_pointer_button(struct wl_client *client,
 	if (pointer == NULL) {
 		return;
 	}
-	struct wlr_input_device *wlr_dev = &pointer->pointer.base;
+	struct wlr_input_device *wlr_dev = &pointer->input_device;
 	struct wlr_event_pointer_button event = {
 		.device = wlr_dev,
 		.time_msec = time,
@@ -94,7 +102,7 @@ static void virtual_pointer_axis(struct wl_client *client,
 	if (pointer == NULL) {
 		return;
 	}
-	struct wlr_input_device *wlr_dev = &pointer->pointer.base;
+	struct wlr_input_device *wlr_dev = &pointer->input_device;
 	pointer->axis = axis;
 	pointer->axis_valid[pointer->axis] = true;
 	pointer->axis_event[pointer->axis].device = wlr_dev;
@@ -110,7 +118,7 @@ static void virtual_pointer_frame(struct wl_client *client,
 	if (pointer == NULL) {
 		return;
 	}
-	struct wlr_input_device *wlr_dev = &pointer->pointer.base;
+	struct wlr_input_device *wlr_dev = &pointer->input_device;
 
 	for (size_t i = 0;
 			i < sizeof(pointer->axis_valid) / sizeof(pointer->axis_valid[0]);
@@ -140,7 +148,7 @@ static void virtual_pointer_axis_source(struct wl_client *client,
 	if (pointer == NULL) {
 		return;
 	}
-	struct wlr_input_device *wlr_dev = &pointer->pointer.base;
+	struct wlr_input_device *wlr_dev = &pointer->input_device;
 	pointer->axis_event[pointer->axis].device = wlr_dev;
 	pointer->axis_event[pointer->axis].source = source;
 }
@@ -158,7 +166,7 @@ static void virtual_pointer_axis_stop(struct wl_client *client,
 	if (pointer == NULL) {
 		return;
 	}
-	struct wlr_input_device *wlr_dev = &pointer->pointer.base;
+	struct wlr_input_device *wlr_dev = &pointer->input_device;
 	pointer->axis = axis;
 	pointer->axis_valid[pointer->axis] = true;
 	pointer->axis_event[pointer->axis].device = wlr_dev;
@@ -182,7 +190,7 @@ static void virtual_pointer_axis_discrete(struct wl_client *client,
 	if (pointer == NULL) {
 		return;
 	}
-	struct wlr_input_device *wlr_dev = &pointer->pointer.base;
+	struct wlr_input_device *wlr_dev = &pointer->input_device;
 	pointer->axis = axis;
 	pointer->axis_valid[pointer->axis] = true;
 	pointer->axis_event[pointer->axis].device = wlr_dev;
@@ -195,15 +203,9 @@ static void virtual_pointer_axis_discrete(struct wl_client *client,
 static void virtual_pointer_destroy_resource(struct wl_resource *resource) {
 	struct wlr_virtual_pointer_v1 *pointer =
 		virtual_pointer_from_resource(resource);
-	if (pointer == NULL) {
-		return;
+	if (pointer != NULL) {
+		wlr_input_device_destroy(&pointer->input_device);
 	}
-
-	wlr_pointer_finish(&pointer->pointer);
-
-	wl_resource_set_user_data(pointer->resource, NULL);
-	wl_list_remove(&pointer->link);
-	free(pointer);
 }
 
 static void virtual_pointer_destroy(struct wl_client *client,
@@ -245,13 +247,20 @@ static void virtual_pointer_manager_create_virtual_pointer_with_output(
 		return;
 	}
 
-	wlr_pointer_init(&virtual_pointer->pointer, &pointer_impl,
-		"wlr_virtual_pointer_v1");
+	struct wlr_pointer *pointer = calloc(1, sizeof(struct wlr_pointer));
+	if (!pointer) {
+		wlr_log(WLR_ERROR, "Cannot allocate wlr_pointer");
+		free(virtual_pointer);
+		wl_client_post_no_memory(client);
+		return;
+	}
+	wlr_pointer_init(pointer, NULL);
 
 	struct wl_resource *pointer_resource = wl_resource_create(client,
 		&zwlr_virtual_pointer_v1_interface, wl_resource_get_version(resource),
 		id);
 	if (!pointer_resource) {
+		free(pointer);
 		free(virtual_pointer);
 		wl_client_post_no_memory(client);
 		return;
@@ -259,6 +268,10 @@ static void virtual_pointer_manager_create_virtual_pointer_with_output(
 
 	wl_resource_set_implementation(pointer_resource, &virtual_pointer_impl,
 		virtual_pointer, virtual_pointer_destroy_resource);
+
+	wlr_input_device_init(&virtual_pointer->input_device,
+		WLR_INPUT_DEVICE_POINTER, &input_device_impl, "virtual pointer",
+		0x0, 0x0);
 
 	struct wlr_virtual_pointer_v1_new_pointer_event event = {
 		.new_pointer = virtual_pointer,
@@ -275,7 +288,9 @@ static void virtual_pointer_manager_create_virtual_pointer_with_output(
 		event.suggested_output = wlr_output;
 	}
 
+	virtual_pointer->input_device.pointer = pointer;
 	virtual_pointer->resource = pointer_resource;
+	wl_signal_init(&virtual_pointer->events.destroy);
 
 	wl_list_insert(&manager->virtual_pointers, &virtual_pointer->link);
 	wlr_signal_emit_safe(&manager->events.new_virtual_pointer, &event);

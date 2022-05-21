@@ -17,8 +17,6 @@
 struct wlr_pointer_impl;
 
 struct wlr_pointer {
-	struct wlr_input_device base;
-
 	const struct wlr_pointer_impl *impl;
 
 	struct {

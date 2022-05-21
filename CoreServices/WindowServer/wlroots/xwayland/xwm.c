@@ -5,9 +5,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <wlr/config.h>
-#include <wlr/types/wlr_compositor.h>
 #include <wlr/types/wlr_data_device.h>
 #include <wlr/types/wlr_primary_selection.h>
+#include <wlr/types/wlr_surface.h>
 #include <wlr/util/edges.h>
 #include <wlr/util/log.h>
 #include <wlr/xcursor.h>
@@ -852,15 +852,15 @@ static void xwayland_surface_role_commit(struct wlr_surface *wlr_surface) {
 	}
 }
 
-static void xwayland_surface_role_precommit(struct wlr_surface *wlr_surface,
-		const struct wlr_surface_state *state) {
+static void xwayland_surface_role_precommit(struct wlr_surface *wlr_surface) {
 	assert(wlr_surface->role == &xwayland_surface_role);
 	struct wlr_xwayland_surface *surface = wlr_surface->role_data;
 	if (surface == NULL) {
 		return;
 	}
 
-	if (state->committed & WLR_SURFACE_STATE_BUFFER && state->buffer == NULL) {
+	if (wlr_surface->pending.committed & WLR_SURFACE_STATE_BUFFER &&
+			wlr_surface->pending.buffer == NULL) {
 		// This is a NULL commit
 		if (surface->mapped) {
 			wlr_signal_emit_safe(&surface->events.unmap, surface);

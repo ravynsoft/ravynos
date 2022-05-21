@@ -194,7 +194,7 @@ static void do_updates(void) {
 		update_stage++;
 		break;
 	case 2:
-		if (current.surrounding.text && strcmp(current.surrounding.text, "_Commit_") != 0) {
+		if (strcmp(current.surrounding.text, "_Commit_") != 0) {
 			return;
 		}
 		zwp_input_method_v2_commit_string(input_method, "_CommitNoPreed_");
@@ -203,7 +203,7 @@ static void do_updates(void) {
 		update_stage++;
 		break;
 	case 3:
-		if (current.surrounding.text && strcmp(current.surrounding.text, "_Commit__CommitNoPreed_") != 0) {
+		if (strcmp(current.surrounding.text, "_Commit__CommitNoPreed_") != 0) {
 			return;
 		}
 		zwp_input_method_v2_commit_string(input_method, "_WaitNo_");
@@ -212,7 +212,7 @@ static void do_updates(void) {
 		update_stage++;
 		break;
 	case 4:
-		if (current.surrounding.text && strcmp(current.surrounding.text, "_Commit__WaitNo_") != 0) {
+		if (strcmp(current.surrounding.text, "_Commit__WaitNo_") != 0) {
 			return;
 		}
 		zwp_input_method_v2_set_preedit_string(input_method, "PreedWithDel", strlen("Preed"), strlen("Preed"));
@@ -221,7 +221,7 @@ static void do_updates(void) {
 		update_stage++;
 		break;
 	case 5:
-		if (current.surrounding.text && strcmp(current.surrounding.text, "_Commit_") != 0) {
+		if (strcmp(current.surrounding.text, "_Commit_") != 0) {
 			return;
 		}
 		zwp_input_method_v2_delete_surrounding_text(input_method, strlen("mit_"), 0);
@@ -229,7 +229,7 @@ static void do_updates(void) {
 		update_stage++;
 		break;
 	case 6:
-		if (current.surrounding.text && strcmp(current.surrounding.text, "_Com") != 0) {
+		if (strcmp(current.surrounding.text, "_Com") != 0) {
 			printf("Failed\n");
 		}
 		update_stage++;

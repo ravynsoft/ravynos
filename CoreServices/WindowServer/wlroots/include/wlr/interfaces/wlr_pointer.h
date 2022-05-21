@@ -12,11 +12,11 @@
 #include <wlr/types/wlr_pointer.h>
 
 struct wlr_pointer_impl {
-	const char *name;
+	void (*destroy)(struct wlr_pointer *pointer);
 };
 
 void wlr_pointer_init(struct wlr_pointer *pointer,
-		const struct wlr_pointer_impl *impl, const char *name);
-void wlr_pointer_finish(struct wlr_pointer *pointer);
+		const struct wlr_pointer_impl *impl);
+void wlr_pointer_destroy(struct wlr_pointer *pointer);
 
 #endif

@@ -1,36 +1,38 @@
 #include <assert.h>
 #include <libinput.h>
+#include <stdlib.h>
+#include <wlr/backend/session.h>
 #include <wlr/interfaces/wlr_switch.h>
+#include <wlr/types/wlr_input_device.h>
+#include <wlr/util/log.h>
 #include "backend/libinput.h"
 #include "util/signal.h"
 
-const struct wlr_switch_impl libinput_switch_impl = {
-	.name = "libinput-switch",
-};
-
-void init_device_switch(struct wlr_libinput_input_device *dev) {
-	const char *name = libinput_device_get_name(dev->handle);
-	struct wlr_switch *wlr_switch = &dev->switch_device;
-	wlr_switch_init(wlr_switch, &libinput_switch_impl, name);
-	wlr_switch->base.vendor = libinput_device_get_id_vendor(dev->handle);
-	wlr_switch->base.product = libinput_device_get_id_product(dev->handle);
-}
-
-struct wlr_libinput_input_device *device_from_switch(
-		struct wlr_switch *wlr_switch) {
-	assert(wlr_switch->impl == &libinput_switch_impl);
-
-	struct wlr_libinput_input_device *dev =
-		wl_container_of(wlr_switch, dev, switch_device);
-	return dev;
+struct wlr_switch *create_libinput_switch(
+		struct libinput_device *libinput_dev) {
+	assert(libinput_dev);
+	struct wlr_switch *wlr_switch = calloc(1, sizeof(struct wlr_switch));
+	if (!wlr_switch) {
+		wlr_log(WLR_ERROR, "Unable to allocate wlr_switch");
+		return NULL;
+	}
+	wlr_switch_init(wlr_switch, NULL);
+	wlr_log(WLR_DEBUG, "Created switch for device %s", libinput_device_get_name(libinput_dev));
+	return wlr_switch;
 }
 
 void handle_switch_toggle(struct libinput_event *event,
-		struct wlr_switch *wlr_switch) {
+		struct libinput_device *libinput_dev) {
+	struct wlr_input_device *wlr_dev =
+		get_appropriate_device(WLR_INPUT_DEVICE_SWITCH, libinput_dev);
+	if (!wlr_dev) {
+		wlr_log(WLR_DEBUG, "Got a switch event for a device with no switch?");
+		return;
+	}
 	struct libinput_event_switch *sevent =
 		libinput_event_get_switch_event	(event);
 	struct wlr_event_switch_toggle wlr_event = { 0 };
-	wlr_event.device = &wlr_switch->base;
+	wlr_event.device = wlr_dev;
 	switch (libinput_event_switch_get_switch(sevent)) {
 	case LIBINPUT_SWITCH_LID:
 		wlr_event.switch_type = WLR_SWITCH_TYPE_LID;
@@ -49,5 +51,5 @@ void handle_switch_toggle(struct libinput_event *event,
 	}
 	wlr_event.time_msec =
 		usec_to_msec(libinput_event_switch_get_time_usec(sevent));
-	wlr_signal_emit_safe(&wlr_switch->events.toggle, &wlr_event);
+	wlr_signal_emit_safe(&wlr_dev->switch_device->events.toggle, &wlr_event);
 }
