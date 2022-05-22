@@ -39,8 +39,6 @@ base_task:
   base_build_script:
     - mkdir -p /usr/obj/$(pwd -P)
     - make -j$(sysctl -n hw.ncpu) MK_LIB32=no COMPILER_TYPE=clang buildworld
-    - make -C release MK_LIB32=no NOSRC=true NOPORTS=true COMPILER_TYPE=clang packagesystem
-    - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz
 
 kernel_task:
   timeout_in: 120m
@@ -76,6 +74,7 @@ kernel_task:
     - mkdir -p /usr/obj/$(pwd -P)
     - make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN COMPILER_TYPE=clang buildkernel
     - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang packagesystem
+    - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz
   system_build_script:
     - make COMPILER_TYPE=clang -f Makefile.ravynOS prep
