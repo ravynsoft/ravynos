@@ -73,7 +73,7 @@
 - (BOOL)activateMenuForPID:(unsigned int)pid {
     NSMenu *menu = [menuDict objectForKey:[NSNumber numberWithInt:pid]];
     mach_port_t port = [self portForMenu:menu];
-    if(menu && port != MACH_PORT_NULL) {
+    if(menu /*&& port != MACH_PORT_NULL*/) {
         [menuView setMenu:menu];
         _menuPort = port;
         return YES;

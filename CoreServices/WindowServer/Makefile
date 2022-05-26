@@ -1,16 +1,14 @@
 APP=	        WindowServer
-.if ${MAKEOBJDIR}
-MODIR=          ${MAKEOBJDIR}
-.else
-MODIR=          .
-.endif
-.PATH:          ${MODIR}/wlroots/protocol
 .PATH:          ${.CURDIR}
 .PATH:          ${.CURDIR}/gplv2/src
+.PATH:          ${.CURDIR}/gplv2/src/menu
+.PATH:          ${.CURDIR}/gplv2/src/config
+.PATH:          ${.CURDIR}/gplv2/src/xbm
+.PATH:          ${.CURDIR}/gplv2/src/common
 SRCS=           WindowServer.m \
                 cursor.c \
                 key-state.c \
-                menu/menu.c \
+                menu.c \
                 server.c \
                 resistance.c \
                 osd.c \
@@ -29,25 +27,29 @@ SRCS=           WindowServer.m \
                 action.c \
                 xdg-deco.c \
                 foreign.c \
-                common/dir.c \
-                common/nodename.c \
-                common/font.c \
-                common/spawn.c \
-                common/grab-file.c \
-                common/buf.c \
-                common/zfree.c \
-                common/string-helpers.c \
-                xbm/parse.c \
-                xbm/tokenize.c \
-                xbm/xbm.c \
+                dir.c \
+                nodename.c \
+                font.c \
+                spawn.c \
+                grab-file.c \
+                buf.c \
+                zfree.c \
+                string-helpers.c \
+                parse.c \
+                tokenize.c \
+                xbm.c \
                 damage.c \
                 output.c \
-                config/rcxml.c \
-                config/libinput.c \
-                config/keybind.c \
-                config/mousebind.c \
-                config/session.c \
+                rcxml.c \
+                libinput.c \
+                keybind.c \
+                mousebind.c \
+                session.c \
                 desktop.c \
+                wlr-output-management-unstable-v1-protocol.c \
+                wlr-layer-shell-unstable-v1-protocol.c \
+                wlr-input-inhibitor-unstable-v1-protocol.c \
+                xdg-shell-protocol.c \
                 Desktop/AppDelegate.m \
                 Desktop/ClockView.m \
                 Desktop/MenuView.m \

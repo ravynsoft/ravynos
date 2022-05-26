@@ -112,6 +112,7 @@ typedef union {
     [menu setDelegate:self];
     for(int i = 0; i < [items count]; ++i) {
         NSMenuItem *item = [items objectAtIndex:i];
+        NSLog(@"enumerating %@", item);
         if([item isSeparatorItem] || [item isHidden] || ![item isEnabled])
             continue;
         [item setTarget:self];
@@ -125,6 +126,7 @@ typedef union {
     NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
     pid_t pid = [[dict objectForKey:@"ProcessID"] intValue];
     NSMenu *mainMenu = [dict objectForKey:@"MainMenu"];
+    NSLog(@"received menu %@ for pid %d\n",mainMenu,pid);
     [self _menuEnumerateAndChange:mainMenu];
     [menuBar setMenu:mainMenu forPID:pid];
     if(![menuBar activateMenuForPID:pid]) // FIXME: don't activ8 right away

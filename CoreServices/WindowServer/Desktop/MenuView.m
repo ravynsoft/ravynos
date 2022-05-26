@@ -39,6 +39,18 @@
     NSString *ravyn = [[NSBundle mainBundle] pathForResource:@"ravynos-mark-64" ofType:@"png"];
     NSImage *logo = [[NSImage alloc] initWithContentsOfFile:ravyn];
     logoView = [[NSImageView alloc] initWithFrame:NSMakeRect(menuBarHPad,menuBarVPad,16,16)];
+    
+    NSMenu *mainmenu = [[NSMenu alloc] initWithTitle:@"MainMenu"];
+    [mainmenu setValue:@"NSMainMenu" forKey:@"name"];
+    NSMenuItem *fileItem = [[NSMenuItem alloc] initWithTitle:@"File" action:NULL keyEquivalent:@""];
+    NSMenu *fileMenu = [[NSMenu alloc] initWithTitle:@"File"];
+    NSMenuItem *quitItem = [[NSMenuItem alloc] initWithTitle:@"Quit" action:@selector(terminate:)
+        keyEquivalent:@""];
+    [fileMenu addItem:quitItem];
+    [fileItem setSubmenu:fileMenu];
+    [mainmenu addItem:fileItem];
+    [self setMenu:mainmenu];
+
     [logoView setImage:logo];
     [self addSubview:logoView];
     [self setNeedsDisplay:YES];
