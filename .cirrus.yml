@@ -6,8 +6,76 @@ compute_engine_instance:
   memory: 16G
   disk: 80
 
-ravynOS_task:
+base_task:
   timeout_in: 120m
+  environment:
+    PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
+  clone_script: |
+    pkg-static install -yf pkg && pkg update
+    pkg install -yf git-tiny
+    if [ -z "$CIRRUS_PR" ]; then
+      git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    else
+      git clone --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    fi
+  setup_script:
+    - rm -fv /etc/pkg/FreeBSD.conf /etc/pkg/Airyx.conf
+    - cp -fv etc/pkg/ravynOS.conf /etc/pkg/
+    - pkg install -fy libarchive 
+    - pkg update && pkg fetch -y -o /tmp binutils
+    - tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
+    - pkg install -fy python38 python3 py38-pip py38-setuptools
+    - pkg install -fy cmake jpeg-turbo tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 qt5-buildtools qt5-qmake qt5-dbus qt5-widgets qt5-dbus glib dbus-glib libffi gettext-runtime icu lxqt-build-tools gmake autoconf zip bash alsa-lib alsa-plugins mesa-dri expat gdk-pixbuf2 gettext-tools meson ninja wayland seatd evdev-proto
+    - pip install --upgrade cloudsmith-cli
+  obj_cache:
+    folder: /usr/obj
+    fingerprint_key: ${CIRRUS_BUILD_ID}
+  base_build_script:
+    - mkdir -p /usr/obj/$(pwd -P)
+    - make -j$(sysctl -n hw.ncpu) WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang buildworld
+    - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang base.txz
+    - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz
+  only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
+  depends_on:
+    - kernel
+
+kernel_task:
+  environment:
+    PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
+  clone_script: |
+    pkg-static install -yf pkg && pkg update
+    pkg install -yf git-tiny
+    if [ -z "$CIRRUS_PR" ]; then
+      git clone --recursive --branch=$CIRRUS_BRANCH https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    else
+      git clone --recursive https://x-access-token:${CIRRUS_REPO_CLONE_TOKEN}@github.com/${CIRRUS_REPO_FULL_NAME}.git $CIRRUS_WORKING_DIR
+      git fetch origin pull/$CIRRUS_PR/head:pull/$CIRRUS_PR
+      git reset --hard $CIRRUS_CHANGE_IN_REPO
+    fi
+  setup_script:
+    - rm -fv /etc/pkg/FreeBSD.conf /etc/pkg/Airyx.conf
+    - cp -fv etc/pkg/ravynOS.conf /etc/pkg/
+    - pkg install -fy libarchive 
+    - pkg update && pkg fetch -y -o /tmp binutils
+    - tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
+    - pkg install -fy python38 python3 py38-pip py38-setuptools
+    - pkg install -fy cmake jpeg-turbo tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 qt5-buildtools qt5-qmake qt5-dbus qt5-widgets qt5-dbus glib dbus-glib libffi gettext-runtime icu lxqt-build-tools gmake autoconf zip bash alsa-lib alsa-plugins mesa-dri expat gdk-pixbuf2 gettext-tools meson ninja wayland seatd evdev-proto
+    - pip install --upgrade cloudsmith-cli
+  obj_cache:
+    folder: /usr/obj
+    fingerprint_key: ${CIRRUS_BUILD_ID}
+  kernel_build_script:
+    - mkdir -p /usr/obj/$(pwd -P)
+    - make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN COMPILER_TYPE=clang buildkernel
+    - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang kernel.txz
+    - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz
+  only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
+
+system_task:
   environment:
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
   id_rsa_priv_file:
@@ -35,13 +103,9 @@ ravynOS_task:
     - tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
     - pkg install -fy python38 python3 py38-pip py38-setuptools
     - pkg install -fy cmake jpeg-turbo tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 qt5-buildtools qt5-qmake qt5-dbus qt5-widgets qt5-dbus glib dbus-glib libffi gettext-runtime icu lxqt-build-tools gmake autoconf zip bash alsa-lib alsa-plugins mesa-dri expat gdk-pixbuf2 gettext-tools meson ninja wayland seatd evdev-proto
-    - pip install --upgrade cloudsmith-cli
-  base_build_script:
-    - mkdir -p /usr/obj/$(pwd -P)
-    - make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN COMPILER_TYPE=clang buildworld buildkernel
-    - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang packagesystem
-    - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/base.txz
-    - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz
+  obj_cache:
+    folder: /usr/obj
+    fingerprint_key: ${CIRRUS_BUILD_ID}
   system_build_script:
     - make COMPILER_TYPE=clang -f Makefile.ravynOS prep
     - cp -fv share/mk/* /usr/share/mk/
@@ -63,7 +127,9 @@ ravynOS_task:
     - SSHPASS="${MIRROR1_PASS}" sshpass -e scp -o StrictHostKeyChecking=no timestamp ${MIRROR1_USER}@${MIRROR1_HOST}:www/
     - scp -P2200 -o StrictHostKeyChecking=no timestamp ${MIRROR1_USER}@${MIRROR2_HOST}:
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
+  depends_on:
+    - base
+    - kernel
   ravynOS_artifacts:
     path: dist/ravynOS.txz
-  package_artifacts:
-    path: dist/ravynOS-*.pkg
+
