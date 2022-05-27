@@ -224,6 +224,9 @@ desktopShell:
             read(pfd[0], buf, 4);
         } while(strcmp(buf,"GO!"));
         close(pfd[0]);
+
+        if(fork() == 0)
+            execl("/usr/bin/foot", "foot", NULL);
     }
 
     if(shell == NONE)
@@ -252,6 +255,9 @@ desktopShell:
 
     NSLog(@"Entering main loop");
     [NSApp run];
-    kill(pid, SIGTERM);
+
+    NSLog(@"Terminating");
+    if(runCompositor && pid > 0)
+        kill(pid, SIGTERM);
     return 0;
 }
