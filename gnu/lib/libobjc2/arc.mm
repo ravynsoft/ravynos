@@ -188,7 +188,6 @@ static void emptyPool(struct arc_tls *tls, void *stop)
 		       (tls->pool->insert > tls->pool->pool))
 		{
 			tls->pool->insert--;
-			fprintf(stderr,"2nd release %p (0x%lx)\n",tls->pool->insert,*tls->pool->insert);
 			release(*tls->pool->insert);
 		}
 	}
