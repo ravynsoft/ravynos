@@ -36,6 +36,9 @@ buildInstaller:
 
 buildWindowServer:
 	${MAKE} -C ${.CURDIR}/WindowServer
+	${MAKE} -C ${.CURDIR}/WindowServer/Desktop
+	cp -afv ${.CURDIR}/WindowServer/Desktop/SystemUIServer.app \
+                ${.CURDIR}/WindowServer/WindowServer.app/Contents/Resources/
 
 ${.CURDIR}/Filer:
 	git clone https://github.com/mszoek/Filer.git ${.CURDIR}/Filer

@@ -29,7 +29,7 @@ const NSString *PrefsWallpaperPathKey = @"WallpaperPath";
 - initWithFrame:(NSRect)frame forOutput:(NSNumber *)outputKey {
     NSArray *screens = [NSScreen screens];
     NSScreen *output = nil;
-    BOOL _priDisplay = NO;
+    _priDisplay = NO;
 
     for(int i = 0; i < [screens count]; ++i) {
         NSScreen *s = [screens objectAtIndex:i];
@@ -49,7 +49,6 @@ const NSString *PrefsWallpaperPathKey = @"WallpaperPath";
 
 
     if(_priDisplay) {
-        NSLog(@"primary display");
         _menuBar = [MenuBarWindow new];
         [_contentView addSubview:_menuBar];
         [_menuBar setAutoresizingMask:0];
@@ -74,6 +73,10 @@ const NSString *PrefsWallpaperPathKey = @"WallpaperPath";
 
 - (MenuBarWindow *)menuBar {
     return _menuBar;
+}
+
+- (BOOL)isPrimaryDisplay {
+    return _priDisplay;
 }
 
 - (void)updateBackground {

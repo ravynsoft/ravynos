@@ -90,12 +90,14 @@ extern const NSString *WLMenuDidUpdateNotification;
 @interface DesktopWindow: NSWindow {
     NSImageView *view;
     MenuBarWindow *_menuBar;
+    BOOL _priDisplay; // primary display has the menu bar
 }
 
 - (DesktopWindow *)initWithFrame:(NSRect)frame forOutput:(NSNumber *)outputKey;
 - (id)platformWindow;
 - (void)updateBackground;
 - (MenuBarWindow *)menuBar;
+- (BOOL)isPrimaryDisplay;
 @end
 
 

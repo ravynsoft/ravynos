@@ -97,7 +97,8 @@ typedef union {
     [desktops setObject:desktop forKey:key];
     [desktop setDelegate:self];
     [desktop makeKeyAndOrderFront:nil];
-    menuBar = [desktop menuBar];
+    if([desktop isPrimaryDisplay])
+        menuBar = [desktop menuBar];
 }
 
 - (void)updateBackground {

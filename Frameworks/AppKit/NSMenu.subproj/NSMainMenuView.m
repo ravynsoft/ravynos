@@ -317,6 +317,12 @@ static void drawSunkenBorder(NSRect rect){
    if(topLeft.x<NSMinX(screenVisible))
     topLeft.x=NSMinX(screenVisible);
 
+    // Wayland hack: our WLWindowPopUp is a subsurface that is attached
+    // to the parent surface, so its x,y are relative to that, not the
+    // screen frame. FIXME: find a better way to do this.
+    topLeft.x -= screenVisible.origin.x;
+    topLeft.y -= screenVisible.origin.y;
+
   [branch setFrameTopLeftPoint:topLeft];
 }
 

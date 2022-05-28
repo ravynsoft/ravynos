@@ -264,16 +264,34 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 -(void)_destroySurface
 {
-    if(xdg_toplevel)
+    if(xdg_toplevel) {
         xdg_toplevel_destroy(xdg_toplevel);
-    if(wl_subsurface)
+        xdg_toplevel = NULL;
+    }
+    if(wl_subsurface) {
         wl_subsurface_destroy(wl_subsurface);
-    if(xdg_surface)
+        wl_subsurface = NULL;
+    }
+    if(layer_surface) {
+        zwlr_layer_surface_v1_destroy(layer_surface);
+        layer_surface = NULL;
+    }
+    if(xdg_surface) {
         xdg_surface_destroy(xdg_surface);
-    if(wl_surface)
+        xdg_surface = NULL;
+    }
+    if(wl_surface) {
         wl_surface_destroy(wl_surface);
+        wl_surface = NULL;
+    }
     [self setReady:NO];
     [_display setWindow:nil forID:(uintptr_t)wl_surface];
+}
+
+-(void)close {
+    if(_styleMask & WLWindowPopUp)
+        [self _destroySurface];
+    [self release];
 }
 
 -(void)dealloc
@@ -282,8 +300,6 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     [self _destroySurface];
     if(registry)
         wl_registry_destroy(registry);
-    if(layer_surface)
-        zwlr_layer_surface_v1_destroy(layer_surface);
     [super dealloc];
 }
 
@@ -300,9 +316,13 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     }
     parentWindow = window;
 
+    if(wl_subsurface)
+        wl_subsurface_destroy(wl_subsurface);
+
     wl_subsurface = wl_subcompositor_get_subsurface(subcompositor, wl_surface,
         parentSurface);
     wl_subsurface_set_desync(wl_subsurface);
+    // FIXME: adjust point by screen position/output layout & remove hack from NSMainMenuView
     NSPoint point = NSMakePoint(_frame.origin.x, [window frame].size.height - _frame.origin.y
         - _frame.size.height );
     wl_subsurface_set_position(wl_subsurface, point.x, point.y);

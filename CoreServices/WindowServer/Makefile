@@ -49,14 +49,8 @@ SRCS=           WindowServer.m \
                 wlr-output-management-unstable-v1-protocol.c \
                 wlr-layer-shell-unstable-v1-protocol.c \
                 wlr-input-inhibitor-unstable-v1-protocol.c \
-                xdg-shell-protocol.c \
-                Desktop/AppDelegate.m \
-                Desktop/ClockView.m \
-                Desktop/MenuView.m \
-                Desktop/ExtrasView.m \
-                Desktop/DesktopWindow.m \
-                Desktop/MenuBarWindow.m
-RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf ${.CURDIR}/ravynos-mark-64.png
+                xdg-shell-protocol.c
+RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf
 
 MK_WERROR=	no
 WARNS=	        1
@@ -66,10 +60,10 @@ CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${.CURDIR}/gplv2/include -I${MAKEOBJDIR} \
 		-I${.CURDIR}/wlroots/include ${CFLAGS_PKGS} -I/usr/include/libdrm \
                 -I${MAKEOBJDIR}/wlroots/include -DWLR_USE_UNSTABLE \
                 -I/usr/include/pixman-1 -I${MAKEOBJDIR}/wlroots/protocol/ \
-                -framework Foundation -framework AppKit
+                -framework Foundation 
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' ${LDFLAGS_PKGS} \
 		-L${MAKEOBJDIR}/wlroots -lwlroots -lm -linput -lpixman-1 \
-                -lobjc -lwayland-client -lwayland-server -lSystem -lxkbcommon -lseat
+                -lobjc -lwayland-server -lSystem -lxkbcommon -lseat
 WLPROTOS=       ${.CURDIR}/wayland-protocols
 WLR_VER!=       grep version: ${.CURDIR}/wlroots/meson.build|sed -e '1s/[^0-9.]*//g;q'
 
@@ -83,7 +77,8 @@ build-wlroots: build-wayland-protos
 	ninja -C ${MAKEOBJDIR}/wlroots
 	sed -e 's,@CURDIR@,${.CURDIR},g' -e 's,@MAKEOBJDIR@,${MAKEOBJDIR},g' -e 's,@VERSION@,${WLR_VER},g' \
                 < ${.CURDIR}/wlroots.pc.in > ${MAKEOBJDIR}/wlroots/wlroots.pc
-	cp -afv ${MAKEOBJDIR}/wlroots/libwlroots.so* ${.CURDIR}/${APP_DIR}/Contents/Resources/
+	cp -afv ${MAKEOBJDIR}/wlroots/libwlroots.so ${.CURDIR}/${APP_DIR}/Contents/Resources/
+	cp -afv ${MAKEOBJDIR}/wlroots/libwlroots.so.10 ${.CURDIR}/${APP_DIR}/Contents/Resources/
 
 clean-wlroots:
 	rm -rf ${MAKEOBJDIR}/wlroots
