@@ -34,8 +34,19 @@
 #include <sys/param.h>
 #include <sys/taskqueue.h>
 
+#include <linux/llist.h>
+#include <linux/workqueue.h>
+
+#define	LKPI_IRQ_WORK_STD_TQ	system_wq->taskqueue
+#define	LKPI_IRQ_WORK_FAST_TQ	linux_irq_work_tq
+
+#ifdef LKPI_IRQ_WORK_USE_FAST_TQ
+#define	LKPI_IRQ_WORK_TQ	LKPI_IRQ_WORK_FAST_TQ
+#else
+#define	LKPI_IRQ_WORK_TQ	LKPI_IRQ_WORK_STD_TQ
+#endif
+
 struct irq_work;
-struct llist_node;
 typedef void (*irq_work_func_t)(struct irq_work *);
 
 struct irq_work {
@@ -63,16 +74,14 @@ init_irq_work(struct irq_work *irqw, irq_work_func_t func)
 static inline bool
 irq_work_queue(struct irq_work *irqw)
 {
-	if(taskqueue_enqueue(linux_irq_work_tq, &irqw->irq_task) == 0)
-		return (true);
-
-	return (false);
+	return (taskqueue_enqueue_flags(LKPI_IRQ_WORK_TQ, &irqw->irq_task,
+	    TASKQUEUE_FAIL_IF_PENDING) == 0);
 }
 
 static inline void
 irq_work_sync(struct irq_work *irqw)
 {
-	taskqueue_drain(linux_irq_work_tq, &irqw->irq_task);
+	taskqueue_drain(LKPI_IRQ_WORK_TQ, &irqw->irq_task);
 }
 
 #endif /* _LINUXKPI_LINUX_IRQ_WORK_H_ */

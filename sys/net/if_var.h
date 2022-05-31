@@ -342,7 +342,9 @@ struct ifnet {
 	int	if_flags;		/* up/down, broadcast, etc. */
 	int	if_drv_flags;		/* driver-managed status flags */
 	int	if_capabilities;	/* interface features & capabilities */
+	int	if_capabilities2;	/* part 2 */
 	int	if_capenable;		/* enabled features & capabilities */
+	int	if_capenable2;		/* part 2 */
 	void	*if_linkmib;		/* link-type-specific MIB data */
 	size_t	if_linkmiblen;		/* length of above data */
 	u_int	if_refcount;		/* reference count */
@@ -515,6 +517,7 @@ EVENTHANDLER_DECLARE(ifnet_link_event, ifnet_link_event_handler_t);
 #define IFNET_EVENT_UP		0
 #define IFNET_EVENT_DOWN	1
 #define IFNET_EVENT_PCP		2	/* priority code point, PCP */
+#define	IFNET_EVENT_UPDATE_BAUDRATE	3
 
 typedef void (*ifnet_event_fn)(void *, struct ifnet *ifp, int event);
 EVENTHANDLER_DECLARE(ifnet_event, ifnet_event_fn);

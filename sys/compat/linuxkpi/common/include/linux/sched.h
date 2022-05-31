@@ -34,6 +34,7 @@
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/proc.h>
+#include <sys/rtprio.h>
 #include <sys/sched.h>
 #include <sys/sleepqueue.h>
 #include <sys/time.h>
@@ -41,6 +42,7 @@
 #include <linux/bitmap.h>
 #include <linux/compat.h>
 #include <linux/completion.h>
+#include <linux/hrtimer.h>
 #include <linux/mm_types.h>
 #include <linux/pid.h>
 #include <linux/slab.h>
@@ -60,6 +62,8 @@
 #define	TASK_PARKED		0x0200
 
 #define	TASK_COMM_LEN		(MAXCOMLEN + 1)
+
+struct seq_file;
 
 struct work_struct;
 struct task_struct {
@@ -134,9 +138,9 @@ cond_resched_lock(spinlock_t *lock)
 
 	if (need_resched() == 0)
 		return (0);
-	spin_lock(lock);
-	cond_resched();
 	spin_unlock(lock);
+	cond_resched();
+	spin_lock(lock);
 	return (1);
 }
 
@@ -212,6 +216,26 @@ get_task_comm(char *buf, struct task_struct *task)
 
 	buf[0] = 0; /* buffer is too small */
 	return (task->comm);
+}
+
+static inline void
+sched_set_fifo(struct task_struct *t)
+{
+	struct rtprio rtp;
+
+	rtp.prio = (RTP_PRIO_MIN + RTP_PRIO_MAX) / 2;
+	rtp.type = RTP_PRIO_FIFO;
+	rtp_to_pri(&rtp, t->task_thread);
+}
+
+static inline void
+sched_set_fifo_low(struct task_struct *t)
+{
+	struct rtprio rtp;
+
+	rtp.prio = RTP_PRIO_MAX;	/* lowest priority */
+	rtp.type = RTP_PRIO_FIFO;
+	rtp_to_pri(&rtp, t->task_thread);
 }
 
 #endif	/* _LINUXKPI_LINUX_SCHED_H_ */

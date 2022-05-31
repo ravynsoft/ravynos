@@ -153,10 +153,8 @@ sbready_compress(struct sockbuf *sb, struct mbuf *m0, struct mbuf *end)
 		if ((m->m_flags & M_EXTPG) && m->m_len <= MLEN &&
 		    !mbuf_has_tls_session(m)) {
 			ext_size = m->m_ext.ext_size;
-			if (mb_unmapped_compress(m) == 0) {
+			if (mb_unmapped_compress(m) == 0)
 				sb->sb_mbcnt -= ext_size;
-				sb->sb_ccnt -= 1;
-			}
 		}
 
 		while ((n != NULL) && (n != end) && (m->m_flags & M_EOR) == 0 &&
@@ -178,11 +176,8 @@ sbready_compress(struct sockbuf *sb, struct mbuf *m0, struct mbuf *end)
 				sb->sb_mbtail = m;
 
 			sb->sb_mbcnt -= MSIZE;
-			sb->sb_mcnt -= 1;
-			if (n->m_flags & M_EXT) {
+			if (n->m_flags & M_EXT)
 				sb->sb_mbcnt -= n->m_ext.ext_size;
-				sb->sb_ccnt -= 1;
-			}
 			m_free(n);
 			n = m->m_next;
 		}
@@ -281,12 +276,9 @@ sballoc(struct sockbuf *sb, struct mbuf *m)
 		sb->sb_ctl += m->m_len;
 
 	sb->sb_mbcnt += MSIZE;
-	sb->sb_mcnt += 1;
 
-	if (m->m_flags & M_EXT) {
+	if (m->m_flags & M_EXT)
 		sb->sb_mbcnt += m->m_ext.ext_size;
-		sb->sb_ccnt += 1;
-	}
 }
 
 /*
@@ -324,11 +316,8 @@ sbfree(struct sockbuf *sb, struct mbuf *m)
 		sb->sb_ctl -= m->m_len;
 
 	sb->sb_mbcnt -= MSIZE;
-	sb->sb_mcnt -= 1;
-	if (m->m_flags & M_EXT) {
+	if (m->m_flags & M_EXT)
 		sb->sb_mbcnt -= m->m_ext.ext_size;
-		sb->sb_ccnt -= 1;
-	}
 
 	if (sb->sb_sndptr == m) {
 		sb->sb_sndptr = NULL;
@@ -354,12 +343,9 @@ sballoc_ktls_rx(struct sockbuf *sb, struct mbuf *m)
 	sb->sb_tlscc += m->m_len;
 
 	sb->sb_mbcnt += MSIZE;
-	sb->sb_mcnt += 1;
 
-	if (m->m_flags & M_EXT) {
+	if (m->m_flags & M_EXT)
 		sb->sb_mbcnt += m->m_ext.ext_size;
-		sb->sb_ccnt += 1;
-	}
 }
 
 void
@@ -374,12 +360,9 @@ sbfree_ktls_rx(struct sockbuf *sb, struct mbuf *m)
 	sb->sb_tlscc -= m->m_len;
 
 	sb->sb_mbcnt -= MSIZE;
-	sb->sb_mcnt -= 1;
 
-	if (m->m_flags & M_EXT) {
+	if (m->m_flags & M_EXT)
 		sb->sb_mbcnt -= m->m_ext.ext_size;
-		sb->sb_ccnt -= 1;
-	}
 }
 #endif
 
@@ -1760,29 +1743,35 @@ sbdroprecord(struct sockbuf *sb)
  * type for presentation on a socket buffer.
  */
 struct mbuf *
-sbcreatecontrol_how(void *p, int size, int type, int level, int wait)
+sbcreatecontrol(const void *p, u_int size, int type, int level, int wait)
 {
 	struct cmsghdr *cp;
 	struct mbuf *m;
 
 	MBUF_CHECKSLEEP(wait);
-	if (CMSG_SPACE((u_int)size) > MCLBYTES)
-		return ((struct mbuf *) NULL);
-	if (CMSG_SPACE((u_int)size) > MLEN)
+
+	if (wait == M_NOWAIT) {
+		if (CMSG_SPACE(size) > MCLBYTES)
+			return (NULL);
+	} else
+		KASSERT(CMSG_SPACE(size) <= MCLBYTES,
+		    ("%s: passed CMSG_SPACE(%u) > MCLBYTES", __func__, size));
+
+	if (CMSG_SPACE(size) > MLEN)
 		m = m_getcl(wait, MT_CONTROL, 0);
 	else
 		m = m_get(wait, MT_CONTROL);
 	if (m == NULL)
-		return ((struct mbuf *) NULL);
-	cp = mtod(m, struct cmsghdr *);
-	m->m_len = 0;
-	KASSERT(CMSG_SPACE((u_int)size) <= M_TRAILINGSPACE(m),
+		return (NULL);
+
+	KASSERT(CMSG_SPACE(size) <= M_TRAILINGSPACE(m),
 	    ("sbcreatecontrol: short mbuf"));
 	/*
 	 * Don't leave the padding between the msg header and the
 	 * cmsg data and the padding after the cmsg data un-initialized.
 	 */
-	bzero(cp, CMSG_SPACE((u_int)size));
+	cp = mtod(m, struct cmsghdr *);
+	bzero(cp, CMSG_SPACE(size));
 	if (p != NULL)
 		(void)memcpy(CMSG_DATA(cp), p, size);
 	m->m_len = CMSG_SPACE(size);
@@ -1790,13 +1779,6 @@ sbcreatecontrol_how(void *p, int size, int type, int level, int wait)
 	cp->cmsg_level = level;
 	cp->cmsg_type = type;
 	return (m);
-}
-
-struct mbuf *
-sbcreatecontrol(caddr_t p, int size, int type, int level)
-{
-
-	return (sbcreatecontrol_how(p, size, type, level, M_NOWAIT));
 }
 
 /*
@@ -1813,8 +1795,6 @@ sbtoxsockbuf(struct sockbuf *sb, struct xsockbuf *xsb)
 	xsb->sb_cc = sb->sb_ccc;
 	xsb->sb_hiwat = sb->sb_hiwat;
 	xsb->sb_mbcnt = sb->sb_mbcnt;
-	xsb->sb_mcnt = sb->sb_mcnt;	
-	xsb->sb_ccnt = sb->sb_ccnt;
 	xsb->sb_mbmax = sb->sb_mbmax;
 	xsb->sb_lowat = sb->sb_lowat;
 	xsb->sb_flags = sb->sb_flags;

@@ -82,6 +82,8 @@ typedef l_int		l_timer_t;
 typedef l_int		l_mqd_t;
 typedef	l_ulong		l_fd_mask;
 
+#include <compat/linux/linux_siginfo.h>
+
 typedef struct {
 	l_int		val[2];
 } l_fsid_t;
@@ -90,6 +92,11 @@ typedef struct {
 	l_time_t	tv_sec;
 	l_suseconds_t	tv_usec;
 } l_timeval;
+
+typedef struct {
+	l_time64_t	tv_sec;
+	l_time64_t	tv_usec;
+} l_sock_timeval;
 
 #define	l_fd_set	fd_set
 
@@ -256,11 +263,6 @@ struct l_statfs64 {
 #define	LINUX_SA_NOMASK		0x40000000
 #define	LINUX_SA_ONESHOT	0x80000000
 
-/* sigprocmask actions */
-#define	LINUX_SIG_BLOCK		0
-#define	LINUX_SIG_UNBLOCK	1
-#define	LINUX_SIG_SETMASK	2
-
 /* sigaltstack */
 #define	LINUX_MINSIGSTKSZ	2048
 
@@ -286,168 +288,6 @@ typedef struct {
 	l_int		ss_flags;
 	l_size_t	ss_size;
 } l_stack_t;
-
-/* The Linux sigcontext, pretty much a standard 386 trapframe. */
-struct l_sigcontext {
-	l_uint		sc_gs;
-	l_uint		sc_fs;
-	l_uint		sc_es;
-	l_uint		sc_ds;
-	l_uint		sc_edi;
-	l_uint		sc_esi;
-	l_uint		sc_ebp;
-	l_uint		sc_esp;
-	l_uint		sc_ebx;
-	l_uint		sc_edx;
-	l_uint		sc_ecx;
-	l_uint		sc_eax;
-	l_uint		sc_trapno;
-	l_uint		sc_err;
-	l_uint		sc_eip;
-	l_uint		sc_cs;
-	l_uint		sc_eflags;
-	l_uint		sc_esp_at_signal;
-	l_uint		sc_ss;
-	l_uint		sc_387;
-	l_uint		sc_mask;
-	l_uint		sc_cr2;
-};
-
-struct l_ucontext {
-	l_ulong		uc_flags;
-	l_uintptr_t	uc_link;
-	l_stack_t	uc_stack;
-	struct l_sigcontext	uc_mcontext;
-	l_sigset_t	uc_sigmask;
-} __packed;
-
-#define	LINUX_SI_MAX_SIZE	128
-#define	LINUX_SI_PAD_SIZE	((LINUX_SI_MAX_SIZE/sizeof(l_int)) - 3)
-
-typedef union l_sigval {
-	l_int		sival_int;
-	l_uintptr_t	sival_ptr;
-} l_sigval_t;
-
-typedef struct l_siginfo {
-	l_int		lsi_signo;
-	l_int		lsi_errno;
-	l_int		lsi_code;
-	union {
-		l_int	_pad[LINUX_SI_PAD_SIZE];
-
-		struct {
-			l_pid_t		_pid;
-			l_uid_t		_uid;
-		} _kill;
-
-		struct {
-			l_timer_t	_tid;
-			l_int		_overrun;
-			char		_pad[sizeof(l_uid_t) - sizeof(l_int)];
-			l_sigval_t	_sigval;
-			l_int		_sys_private;
-		} _timer;
-
-		struct {
-			l_pid_t		_pid;		/* sender's pid */
-			l_uid_t		_uid;		/* sender's uid */
-			l_sigval_t	_sigval;
-		} _rt;
-
-		struct {
-			l_pid_t		_pid;		/* which child */
-			l_uid_t		_uid;		/* sender's uid */
-			l_int		_status;	/* exit code */
-			l_clock_t	_utime;
-			l_clock_t	_stime;
-		} _sigchld;
-
-		struct {
-			l_uintptr_t	_addr;	/* Faulting insn/memory ref. */
-		} _sigfault;
-
-		struct {
-			l_long		_band;	/* POLL_IN,POLL_OUT,POLL_MSG */
-			l_int		_fd;
-		} _sigpoll;
-	} _sifields;
-} l_siginfo_t;
-
-#define	lsi_pid		_sifields._kill._pid
-#define	lsi_uid		_sifields._kill._uid
-#define	lsi_tid		_sifields._timer._tid
-#define	lsi_overrun	_sifields._timer._overrun
-#define	lsi_sys_private	_sifields._timer._sys_private
-#define	lsi_status	_sifields._sigchld._status
-#define	lsi_utime	_sifields._sigchld._utime
-#define	lsi_stime	_sifields._sigchld._stime
-#define	lsi_value	_sifields._rt._sigval
-#define	lsi_int		_sifields._rt._sigval.sival_int
-#define	lsi_ptr		_sifields._rt._sigval.sival_ptr
-#define	lsi_addr	_sifields._sigfault._addr
-#define	lsi_band	_sifields._sigpoll._band
-#define	lsi_fd		_sifields._sigpoll._fd
-
-struct l_fpreg {
-	u_int16_t	significand[4];
-	u_int16_t	exponent;
-};
-
-struct l_fpxreg {
-	u_int16_t	significand[4];
-	u_int16_t	exponent;
-	u_int16_t	padding[3];
-};
-
-struct l_xmmreg {
-	u_int32_t	element[4];
-};
-
-struct l_fpstate {
-	/* Regular FPU environment */
-	u_int32_t		cw;
-	u_int32_t		sw;
-	u_int32_t		tag;
-	u_int32_t		ipoff;
-	u_int32_t		cssel;
-	u_int32_t		dataoff;
-	u_int32_t		datasel;
-	struct l_fpreg		_st[8];
-	u_int16_t		status;
-	u_int16_t		magic;		/* 0xffff = regular FPU data */
-
-	/* FXSR FPU environment */
-	u_int32_t		_fxsr_env[6];	/* env is ignored. */
-	u_int32_t		mxcsr;
-	u_int32_t		reserved;
-	struct l_fpxreg		_fxsr_st[8];	/* reg data is ignored. */
-	struct l_xmmreg		_xmm[8];
-	u_int32_t		padding[56];
-};
-
-/*
- * We make the stack look like Linux expects it when calling a signal
- * handler, but use the BSD way of calling the handler and sigreturn().
- * This means that we need to pass the pointer to the handler too.
- * It is appended to the frame to not interfere with the rest of it.
- */
-struct l_sigframe {
-	l_int			sf_sig;
-	struct l_sigcontext	sf_sc;
-	struct l_fpstate	sf_fpstate;
-	l_uint			sf_extramask[1];
-	l_handler_t		sf_handler;
-};
-
-struct l_rt_sigframe {
-	l_int			sf_sig;
-	l_uintptr_t		sf_siginfo;
-	l_uintptr_t		sf_ucontext;
-	l_siginfo_t		sf_si;
-	struct l_ucontext	sf_sc;
-	l_handler_t		sf_handler;
-} __packed;
 
 /*
  * arch specific open/fcntl flags

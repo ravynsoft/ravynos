@@ -513,7 +513,7 @@ bcm_pcib_msi_attach(device_t dev)
 	struct bcm_pcib_softc *sc;
 	phandle_t node, xref;
 	char const *bcm_name;
-	int i, rid;
+	int error, i, rid;
 
 	sc = device_get_softc(dev);
 	sc->msi_addr = 0xffffffffc;
@@ -532,11 +532,11 @@ bcm_pcib_msi_attach(device_t dev)
 	sc->msi_isrcs = malloc(sizeof(*sc->msi_isrcs) * NUM_MSI, M_DEVBUF,
 	    M_WAITOK | M_ZERO);
 
-	int error = bus_setup_intr(dev, sc->msi_irq_res, INTR_TYPE_BIO |
+	error = bus_setup_intr(dev, sc->msi_irq_res, INTR_TYPE_BIO |
 	    INTR_MPSAFE, bcm_pcib_msi_intr, NULL, sc, &sc->msi_intr_cookie);
-	if (error) {
+	if (error != 0) {
 		device_printf(dev, "error: failed to setup MSI handler.\n");
-		return (ENXIO);
+		return (error);
 	}
 
 	bcm_name = device_get_nameunit(dev);
@@ -544,10 +544,10 @@ bcm_pcib_msi_attach(device_t dev)
 		sc->msi_isrcs[i].irq = i;
 		error = intr_isrc_register(&sc->msi_isrcs[i].isrc, dev, 0,
 		    "%s,%u", bcm_name, i);
-		if (error) {
+		if (error != 0) {
 			device_printf(dev,
-			"error: failed to register interrupt %d.\n", i);
-			return (ENXIO);
+			    "error: failed to register interrupt %d.\n", i);
+			return (error);
 		}
 	}
 
@@ -556,8 +556,8 @@ bcm_pcib_msi_attach(device_t dev)
 	OF_device_register_xref(xref, dev);
 
 	error = intr_msi_register(dev, xref);
-	if (error)
-		return (ENXIO);
+	if (error != 0)
+		return (error);
 
 	mtx_init(&sc->msi_mtx, "bcm_pcib: msi_mtx", NULL, MTX_DEF);
 
@@ -651,15 +651,15 @@ bcm_pcib_attach(device_t dev)
 	    0, 					/* flags */
 	    NULL, NULL,				/* lockfunc, lockarg */
 	    &sc->dmat);
-	if (error)
+	if (error != 0)
 		return (error);
 
 	error = pci_host_generic_setup_fdt(dev);
-	if (error)
+	if (error != 0)
 		return (error);
 
 	error = bcm_pcib_check_ranges(dev);
-	if (error)
+	if (error != 0)
 		return (error);
 
 	mtx_init(&sc->config_mtx, "bcm_pcib: config_mtx", NULL, MTX_DEF);
@@ -743,7 +743,7 @@ bcm_pcib_attach(device_t dev)
 
 	/* Configure interrupts. */
 	error = bcm_pcib_msi_attach(dev);
-	if (error)
+	if (error != 0)
 		return (error);
 
 	/* Done. */

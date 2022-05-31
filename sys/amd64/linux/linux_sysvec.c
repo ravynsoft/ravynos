@@ -86,6 +86,8 @@ __FBSDID("$FreeBSD$");
 #include <compat/linux/linux_util.h>
 #include <compat/linux/linux_vdso.h>
 
+#include <x86/linux/linux_x86_sigframe.h>
+
 MODULE_VERSION(linux64, 1);
 
 #define	LINUX_VDSOPAGE_SIZE	PAGE_SIZE * 2
@@ -129,73 +131,11 @@ static int	linux_on_exec_vmspace(struct proc *p,
 static void	linux_set_fork_retval(struct thread *td);
 static int	linux_vsyscall(struct thread *td);
 
-#define LINUX_T_UNKNOWN  255
-static int _bsd_to_linux_trapcode[] = {
-	LINUX_T_UNKNOWN,	/* 0 */
-	6,			/* 1  T_PRIVINFLT */
-	LINUX_T_UNKNOWN,	/* 2 */
-	3,			/* 3  T_BPTFLT */
-	LINUX_T_UNKNOWN,	/* 4 */
-	LINUX_T_UNKNOWN,	/* 5 */
-	16,			/* 6  T_ARITHTRAP */
-	254,			/* 7  T_ASTFLT */
-	LINUX_T_UNKNOWN,	/* 8 */
-	13,			/* 9  T_PROTFLT */
-	1,			/* 10 T_TRCTRAP */
-	LINUX_T_UNKNOWN,	/* 11 */
-	14,			/* 12 T_PAGEFLT */
-	LINUX_T_UNKNOWN,	/* 13 */
-	17,			/* 14 T_ALIGNFLT */
-	LINUX_T_UNKNOWN,	/* 15 */
-	LINUX_T_UNKNOWN,	/* 16 */
-	LINUX_T_UNKNOWN,	/* 17 */
-	0,			/* 18 T_DIVIDE */
-	2,			/* 19 T_NMI */
-	4,			/* 20 T_OFLOW */
-	5,			/* 21 T_BOUND */
-	7,			/* 22 T_DNA */
-	8,			/* 23 T_DOUBLEFLT */
-	9,			/* 24 T_FPOPFLT */
-	10,			/* 25 T_TSSFLT */
-	11,			/* 26 T_SEGNPFLT */
-	12,			/* 27 T_STKFLT */
-	18,			/* 28 T_MCHK */
-	19,			/* 29 T_XMMFLT */
-	15			/* 30 T_RESERVED */
-};
-#define bsd_to_linux_trapcode(code) \
-    ((code)<nitems(_bsd_to_linux_trapcode)? \
-     _bsd_to_linux_trapcode[(code)]: \
-     LINUX_T_UNKNOWN)
-
 LINUX_VDSO_SYM_INTPTR(linux_rt_sigcode);
 LINUX_VDSO_SYM_CHAR(linux_platform);
 LINUX_VDSO_SYM_INTPTR(kern_timekeep_base);
 LINUX_VDSO_SYM_INTPTR(kern_tsc_selector);
 LINUX_VDSO_SYM_INTPTR(kern_cpu_selector);
-
-/*
- * If FreeBSD & Linux have a difference of opinion about what a trap
- * means, deal with it here.
- *
- * MPSAFE
- */
-static int
-linux_translate_traps(int signal, int trap_code)
-{
-
-	if (signal != SIGBUS)
-		return (signal);
-	switch (trap_code) {
-	case T_PROTFLT:
-	case T_TSSFLT:
-	case T_DOUBLEFLT:
-	case T_PAGEFLT:
-		return (SIGSEGV);
-	default:
-		return (signal);
-	}
-}
 
 static int
 linux_fetch_syscall_args(struct thread *td)
@@ -526,6 +466,7 @@ linux_rt_sigreturn(struct thread *td, struct linux_rt_sigreturn_args *args)
 	struct l_sigcontext *context;
 	struct trapframe *regs;
 	unsigned long rflags;
+	sigset_t bmask;
 	int error;
 	ksiginfo_t ksi;
 
@@ -574,11 +515,8 @@ linux_rt_sigreturn(struct thread *td, struct linux_rt_sigreturn_args *args)
 		return (EINVAL);
 	}
 
-	PROC_LOCK(p);
-	linux_to_bsd_sigset(&uc.uc_sigmask, &td->td_sigmask);
-	SIG_CANTMASK(td->td_sigmask);
-	signotify(td);
-	PROC_UNLOCK(p);
+	linux_to_bsd_sigset(&uc.uc_sigmask, &bmask);
+	kern_sigprocmask(td, SIG_SETMASK, &bmask, NULL, 0);
 
 	regs->tf_rdi    = context->sc_rdi;
 	regs->tf_rsi    = context->sc_rsi;
@@ -620,13 +558,14 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 	caddr_t sp;
 	struct trapframe *regs;
 	int sig, code;
-	int oonstack;
+	int oonstack, issiginfo;
 
 	td = curthread;
 	p = td->td_proc;
 	PROC_LOCK_ASSERT(p, MA_OWNED);
-	sig = ksi->ksi_signo;
+	sig = linux_translate_traps(ksi->ksi_signo, ksi->ksi_trapno);
 	psp = p->p_sigacts;
+	issiginfo = SIGISMEMBER(psp->ps_siginfo, sig);
 	code = ksi->ksi_code;
 	mtx_assert(&psp->ps_mtx, MA_OWNED);
 	regs = td->td_frame;
@@ -637,36 +576,36 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 
 	/* Save user context. */
 	bzero(&sf, sizeof(sf));
-	bsd_to_linux_sigset(mask, &sf.sf_sc.uc_sigmask);
-	bsd_to_linux_sigset(mask, &sf.sf_sc.uc_mcontext.sc_mask);
+	bsd_to_linux_sigset(mask, &sf.sf_uc.uc_sigmask);
+	sf.sf_uc.uc_mcontext.sc_mask = sf.sf_uc.uc_sigmask;
 
-	sf.sf_sc.uc_stack.ss_sp = PTROUT(td->td_sigstk.ss_sp);
-	sf.sf_sc.uc_stack.ss_size = td->td_sigstk.ss_size;
-	sf.sf_sc.uc_stack.ss_flags = (td->td_pflags & TDP_ALTSTACK)
+	sf.sf_uc.uc_stack.ss_sp = PTROUT(td->td_sigstk.ss_sp);
+	sf.sf_uc.uc_stack.ss_size = td->td_sigstk.ss_size;
+	sf.sf_uc.uc_stack.ss_flags = (td->td_pflags & TDP_ALTSTACK)
 	    ? ((oonstack) ? LINUX_SS_ONSTACK : 0) : LINUX_SS_DISABLE;
 
-	sf.sf_sc.uc_mcontext.sc_rdi    = regs->tf_rdi;
-	sf.sf_sc.uc_mcontext.sc_rsi    = regs->tf_rsi;
-	sf.sf_sc.uc_mcontext.sc_rdx    = regs->tf_rdx;
-	sf.sf_sc.uc_mcontext.sc_rbp    = regs->tf_rbp;
-	sf.sf_sc.uc_mcontext.sc_rbx    = regs->tf_rbx;
-	sf.sf_sc.uc_mcontext.sc_rcx    = regs->tf_rcx;
-	sf.sf_sc.uc_mcontext.sc_rax    = regs->tf_rax;
-	sf.sf_sc.uc_mcontext.sc_rip    = regs->tf_rip;
-	sf.sf_sc.uc_mcontext.sc_rsp    = regs->tf_rsp;
-	sf.sf_sc.uc_mcontext.sc_r8     = regs->tf_r8;
-	sf.sf_sc.uc_mcontext.sc_r9     = regs->tf_r9;
-	sf.sf_sc.uc_mcontext.sc_r10    = regs->tf_r10;
-	sf.sf_sc.uc_mcontext.sc_r11    = regs->tf_r11;
-	sf.sf_sc.uc_mcontext.sc_r12    = regs->tf_r12;
-	sf.sf_sc.uc_mcontext.sc_r13    = regs->tf_r13;
-	sf.sf_sc.uc_mcontext.sc_r14    = regs->tf_r14;
-	sf.sf_sc.uc_mcontext.sc_r15    = regs->tf_r15;
-	sf.sf_sc.uc_mcontext.sc_cs     = regs->tf_cs;
-	sf.sf_sc.uc_mcontext.sc_rflags = regs->tf_rflags;
-	sf.sf_sc.uc_mcontext.sc_err    = regs->tf_err;
-	sf.sf_sc.uc_mcontext.sc_trapno = bsd_to_linux_trapcode(code);
-	sf.sf_sc.uc_mcontext.sc_cr2    = (register_t)ksi->ksi_addr;
+	sf.sf_uc.uc_mcontext.sc_rdi    = regs->tf_rdi;
+	sf.sf_uc.uc_mcontext.sc_rsi    = regs->tf_rsi;
+	sf.sf_uc.uc_mcontext.sc_rdx    = regs->tf_rdx;
+	sf.sf_uc.uc_mcontext.sc_rbp    = regs->tf_rbp;
+	sf.sf_uc.uc_mcontext.sc_rbx    = regs->tf_rbx;
+	sf.sf_uc.uc_mcontext.sc_rcx    = regs->tf_rcx;
+	sf.sf_uc.uc_mcontext.sc_rax    = regs->tf_rax;
+	sf.sf_uc.uc_mcontext.sc_rip    = regs->tf_rip;
+	sf.sf_uc.uc_mcontext.sc_rsp    = regs->tf_rsp;
+	sf.sf_uc.uc_mcontext.sc_r8     = regs->tf_r8;
+	sf.sf_uc.uc_mcontext.sc_r9     = regs->tf_r9;
+	sf.sf_uc.uc_mcontext.sc_r10    = regs->tf_r10;
+	sf.sf_uc.uc_mcontext.sc_r11    = regs->tf_r11;
+	sf.sf_uc.uc_mcontext.sc_r12    = regs->tf_r12;
+	sf.sf_uc.uc_mcontext.sc_r13    = regs->tf_r13;
+	sf.sf_uc.uc_mcontext.sc_r14    = regs->tf_r14;
+	sf.sf_uc.uc_mcontext.sc_r15    = regs->tf_r15;
+	sf.sf_uc.uc_mcontext.sc_cs     = regs->tf_cs;
+	sf.sf_uc.uc_mcontext.sc_rflags = regs->tf_rflags;
+	sf.sf_uc.uc_mcontext.sc_err    = regs->tf_err;
+	sf.sf_uc.uc_mcontext.sc_trapno = bsd_to_linux_trapcode(code);
+	sf.sf_uc.uc_mcontext.sc_cr2    = (register_t)ksi->ksi_addr;
 
 	/* Allocate space for the signal handler context. */
 	if ((td->td_pflags & TDP_ALTSTACK) != 0 && !oonstack &&
@@ -678,21 +617,13 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 	/* Align to 16 bytes. */
 	sfp = (struct l_rt_sigframe *)((unsigned long)sp & ~0xFul);
 
-	/* Translate the signal. */
-	sig = bsd_to_linux_signal(sig);
-
-	/* Build the argument list for the signal handler. */
-	regs->tf_rdi = sig;			/* arg 1 in %rdi */
-	regs->tf_rax = 0;
-	regs->tf_rsi = (register_t)&sfp->sf_si;	/* arg 2 in %rsi */
-	regs->tf_rdx = (register_t)&sfp->sf_sc;	/* arg 3 in %rdx */
-
-	/* Fill in POSIX parts. */
-	siginfo_to_lsiginfo(&ksi->ksi_info, &sf.sf_si, sig);
-	sf.sf_handler = catcher;
-
 	mtx_unlock(&psp->ps_mtx);
 	PROC_UNLOCK(p);
+
+	/* Translate the signal. */
+	sig = bsd_to_linux_signal(sig);
+	/* Fill in POSIX parts. */
+	siginfo_to_lsiginfo(&ksi->ksi_info, &sf.sf_si, sig);
 
 	/* Copy the sigframe out to the user's stack. */
 	if (copyout(&sf, sfp, sizeof(*sfp)) != 0) {
@@ -702,6 +633,17 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 		sigexit(td, SIGILL);
 	}
 
+	/* Build the argument list for the signal handler. */
+	regs->tf_rdi = sig;			/* arg 1 in %rdi */
+	regs->tf_rax = 0;
+	if (issiginfo) {
+		regs->tf_rsi = (register_t)&sfp->sf_si;	/* arg 2 in %rsi */
+		regs->tf_rdx = (register_t)&sfp->sf_uc;	/* arg 3 in %rdx */
+	} else {
+		regs->tf_rsi = 0;
+		regs->tf_rdx = 0;
+	}
+	regs->tf_rcx = (register_t)catcher;
 	regs->tf_rsp = (long)sfp;
 	regs->tf_rip = linux_rt_sigcode;
 	regs->tf_rflags &= ~(PSL_T | PSL_D);
@@ -761,7 +703,6 @@ linux_vsyscall(struct thread *td)
 struct sysentvec elf_linux_sysvec = {
 	.sv_size	= LINUX_SYS_MAXSYSCALL,
 	.sv_table	= linux_sysent,
-	.sv_transtrap	= linux_translate_traps,
 	.sv_fixup	= linux_fixup_elf,
 	.sv_sendsig	= linux_rt_sendsig,
 	.sv_sigcode	= &_binary_linux_vdso_so_o_start,

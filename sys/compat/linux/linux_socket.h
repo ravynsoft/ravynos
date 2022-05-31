@@ -53,12 +53,6 @@
 #define LINUX_MSG_WAITFORONE	0x10000
 #define LINUX_MSG_CMSG_CLOEXEC	0x40000000
 
-/* Socket-level control message types */
-
-#define LINUX_SCM_RIGHTS	0x01
-#define LINUX_SCM_CREDENTIALS	0x02
-#define LINUX_SCM_TIMESTAMP	0x1D
-
 struct l_msghdr {
 	l_uintptr_t	msg_name;
 	l_int		msg_namelen;
@@ -193,7 +187,10 @@ int linux_accept(struct thread *td, struct linux_accept_args *args);
 #define	LINUX_SO_RCVTIMEO	20
 #define	LINUX_SO_SNDTIMEO	21
 #endif
-#define	LINUX_SO_TIMESTAMP	29
+#define	LINUX_SO_TIMESTAMPO	29
+#define	LINUX_SO_TIMESTAMPN	63
+#define	LINUX_SO_TIMESTAMPNSO	35
+#define	LINUX_SO_TIMESTAMPNSN	64
 #define	LINUX_SO_ACCEPTCONN	30
 #define	LINUX_SO_PEERSEC	31
 #define	LINUX_SO_SNDBUFFORCE	32
@@ -201,6 +198,15 @@ int linux_accept(struct thread *td, struct linux_accept_args *args);
 #define	LINUX_SO_PROTOCOL	38
 #define	LINUX_SO_DOMAIN		39
 #define	LINUX_SO_PEERGROUPS	59
+
+/* Socket-level control message types */
+
+#define LINUX_SCM_RIGHTS	0x01
+#define LINUX_SCM_CREDENTIALS	0x02
+#define LINUX_SCM_TIMESTAMPO	LINUX_SO_TIMESTAMPO
+#define LINUX_SCM_TIMESTAMPN	LINUX_SO_TIMESTAMPN
+#define LINUX_SCM_TIMESTAMPNSO	LINUX_SO_TIMESTAMPNSO
+#define LINUX_SCM_TIMESTAMPNSN	LINUX_SO_TIMESTAMPNSN
 
 /* Socket options */
 #define	LINUX_IP_TOS		1
@@ -223,6 +229,8 @@ int linux_accept(struct thread *td, struct linux_accept_args *args);
 #define	LINUX_IP_PASSSEC	18
 #define	LINUX_IP_TRANSPARENT	19
 
+#define	LINUX_IP_ORIGDSTADDR		20
+#define	LINUX_IP_RECVORIGDSTADDR	LINUX_IP_ORIGDSTADDR
 #define	LINUX_IP_MINTTL		21
 #define	LINUX_IP_NODEFRAG	22
 #define	LINUX_IP_CHECKSUM	23

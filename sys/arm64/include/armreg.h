@@ -265,6 +265,14 @@
 
 /* ESR_ELx */
 #define	ESR_ELx_ISS_MASK	0x01ffffff
+#define	 ISS_FP_TFV_SHIFT	23
+#define	 ISS_FP_TFV		(0x01 << ISS_FP_TFV_SHIFT)
+#define	 ISS_FP_IOF		0x01
+#define	 ISS_FP_DZF		0x02
+#define	 ISS_FP_OFF		0x04
+#define	 ISS_FP_UFF		0x08
+#define	 ISS_FP_IXF		0x10
+#define	 ISS_FP_IDF		0x80
 #define	 ISS_INSN_FnV		(0x01 << 10)
 #define	 ISS_INSN_EA		(0x01 << 9)
 #define	 ISS_INSN_S1PTW		(0x01 << 7)
@@ -883,6 +891,7 @@
 #define	ID_AA64PFR0_GIC_VAL(x)		((x) & ID_AA64PFR0_GIC_MASK)
 #define	 ID_AA64PFR0_GIC_CPUIF_NONE	(UL(0x0) << ID_AA64PFR0_GIC_SHIFT)
 #define	 ID_AA64PFR0_GIC_CPUIF_EN	(UL(0x1) << ID_AA64PFR0_GIC_SHIFT)
+#define	 ID_AA64PFR0_GIC_CPUIF_4_1	(UL(0x3) << ID_AA64PFR0_GIC_SHIFT)
 #define	ID_AA64PFR0_RAS_SHIFT		28
 #define	ID_AA64PFR0_RAS_MASK		(UL(0xf) << ID_AA64PFR0_RAS_SHIFT)
 #define	ID_AA64PFR0_RAS_VAL(x)		((x) & ID_AA64PFR0_RAS_MASK)

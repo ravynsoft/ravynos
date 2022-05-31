@@ -32,11 +32,39 @@ SUBDIR+=	xray-fdr
 SUBDIR+=	xray-profiling
 .endif # amd64
 
-.if ${MACHINE_CPUARCH} == "riscv"
+.if ${MACHINE_ARCH} == "powerpc64" || ${MACHINE_ARCH} == "powerpc64le"
+SUBDIR+=	include
 SUBDIR+=	asan
 SUBDIR+=	asan-preinit
 SUBDIR+=	asan_cxx
 SUBDIR+=	asan_dynamic
+SUBDIR+=	asan_static
+SUBDIR+=	msan
+SUBDIR+=	msan_cxx
+SUBDIR+=	stats
+SUBDIR+=	stats_client
+SUBDIR+=	tsan
+SUBDIR+=	tsan_cxx
+SUBDIR+=	ubsan_minimal
+SUBDIR+=	ubsan_standalone
+SUBDIR+=	ubsan_standalone_cxx
+.endif # powerpc64 || powerpc64le
+
+.if ${MACHINE_ARCH} == "powerpc64le"
+SUBDIR+=	xray
+SUBDIR+=	xray-basic
+SUBDIR+=	xray-fdr
+SUBDIR+=	xray-profiling
+.endif # powerpc64le
+
+.if ${MACHINE_CPUARCH} == "riscv"
+SUBDIR+=	include
+SUBDIR+=	asan
+SUBDIR+=	asan-preinit
+SUBDIR+=	asan_cxx
+SUBDIR+=	asan_dynamic
+SUBDIR+=	stats
+SUBDIR+=	stats_client
 SUBDIR+=	ubsan_minimal
 SUBDIR+=	ubsan_standalone
 SUBDIR+=	ubsan_standalone_cxx

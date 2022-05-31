@@ -545,7 +545,7 @@ sctp_close(struct socket *so)
 	if ((inp->sctp_flags & SCTP_PCB_FLAGS_SOCKET_GONE) == 0) {
 		inp->sctp_flags |= SCTP_PCB_FLAGS_SOCKET_GONE | SCTP_PCB_FLAGS_CLOSE_IP;
 		if (((so->so_options & SO_LINGER) && (so->so_linger == 0)) ||
-		    (so->so_rcv.sb_cc > 0)) {
+		    (SCTP_SBAVAIL(&so->so_rcv) > 0)) {
 #ifdef SCTP_LOG_CLOSING
 			sctp_log_closing(inp, NULL, 13);
 #endif
@@ -707,9 +707,8 @@ sctp_disconnect(struct socket *so)
 				return (0);
 			}
 			NET_EPOCH_ENTER(et);
-			if (((so->so_options & SO_LINGER) &&
-			    (so->so_linger == 0)) ||
-			    (so->so_rcv.sb_cc > 0)) {
+			if (((so->so_options & SO_LINGER) && (so->so_linger == 0)) ||
+			    (SCTP_SBAVAIL(&so->so_rcv) > 0)) {
 				if (SCTP_GET_STATE(stcb) != SCTP_STATE_COOKIE_WAIT) {
 					/* Left with Data unread */
 					struct mbuf *op_err;
@@ -846,18 +845,14 @@ sctp_flush(struct socket *so, int how)
 		inp->sctp_flags |= SCTP_PCB_FLAGS_SOCKET_CANT_READ;
 		SCTP_INP_READ_UNLOCK(inp);
 		SCTP_INP_WUNLOCK(inp);
-		so->so_rcv.sb_cc = 0;
-		so->so_rcv.sb_mbcnt = 0;
-		so->so_rcv.sb_mb = NULL;
+		SCTP_SB_CLEAR(so->so_rcv);
 	}
 	if ((how == PRU_FLUSH_WR) || (how == PRU_FLUSH_RDWR)) {
 		/*
 		 * First make sure the sb will be happy, we don't use these
 		 * except maybe the count
 		 */
-		so->so_snd.sb_cc = 0;
-		so->so_snd.sb_mbcnt = 0;
-		so->so_snd.sb_mb = NULL;
+		SCTP_SB_CLEAR(so->so_snd);
 	}
 	return (0);
 }
@@ -1422,8 +1417,7 @@ sctp_do_connect_x(struct socket *so, struct sctp_inpcb *inp, void *optval,
 		}
 	}
 #endif				/* INET6 */
-	if ((inp->sctp_flags & SCTP_PCB_FLAGS_UNBOUND) ==
-	    SCTP_PCB_FLAGS_UNBOUND) {
+	if (inp->sctp_flags & SCTP_PCB_FLAGS_UNBOUND) {
 		/* Bind a ephemeral port */
 		error = sctp_inpcb_bind(so, NULL, NULL, p);
 		if (error) {
@@ -5327,8 +5321,8 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 				if (net != NULL) {
 					/************************NET SPECIFIC SET ******************/
 					if (paddrp->spp_flags & SPP_HB_DISABLE) {
-						if (!(net->dest_state & SCTP_ADDR_UNCONFIRMED) &&
-						    !(net->dest_state & SCTP_ADDR_NOHB)) {
+						if (((net->dest_state & SCTP_ADDR_UNCONFIRMED) == 0) &&
+						    ((net->dest_state & SCTP_ADDR_NOHB) == 0)) {
 							sctp_timer_stop(SCTP_TIMER_TYPE_HEARTBEAT, inp, stcb, net,
 							    SCTP_FROM_SCTP_USRREQ + SCTP_LOC_9);
 						}
@@ -5484,9 +5478,9 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 					}
 					if (paddrp->spp_flags & SPP_HB_DISABLE) {
 						TAILQ_FOREACH(net, &stcb->asoc.nets, sctp_next) {
-							if (!(net->dest_state & SCTP_ADDR_NOHB)) {
+							if ((net->dest_state & SCTP_ADDR_NOHB) == 0) {
 								net->dest_state |= SCTP_ADDR_NOHB;
-								if (!(net->dest_state & SCTP_ADDR_UNCONFIRMED)) {
+								if ((net->dest_state & SCTP_ADDR_UNCONFIRMED) == 0) {
 									sctp_timer_stop(SCTP_TIMER_TYPE_HEARTBEAT,
 									    inp, stcb, net,
 									    SCTP_FROM_SCTP_USRREQ + SCTP_LOC_15);
@@ -5800,11 +5794,11 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 
 			if ((stcb != NULL) && (net != NULL)) {
 				if (net != stcb->asoc.primary_destination) {
-					if (!(net->dest_state & SCTP_ADDR_UNCONFIRMED)) {
+					if ((net->dest_state & SCTP_ADDR_UNCONFIRMED) == 0) {
 						/* Ok we need to set it */
 						if (sctp_set_primary_addr(stcb, (struct sockaddr *)NULL, net) == 0) {
 							if ((stcb->asoc.alternate) &&
-							    (!(net->dest_state & SCTP_ADDR_PF)) &&
+							    ((net->dest_state & SCTP_ADDR_PF) == 0) &&
 							    (net->dest_state & SCTP_ADDR_REACHABLE)) {
 								sctp_free_remote_addr(stcb->asoc.alternate);
 								stcb->asoc.alternate = NULL;
@@ -7015,8 +7009,7 @@ sctp_connect(struct socket *so, struct sockaddr *addr, struct thread *p)
 		goto out_now;
 	}
 #endif
-	if ((inp->sctp_flags & SCTP_PCB_FLAGS_UNBOUND) ==
-	    SCTP_PCB_FLAGS_UNBOUND) {
+	if (inp->sctp_flags & SCTP_PCB_FLAGS_UNBOUND) {
 		/* Bind a ephemeral port */
 		error = sctp_inpcb_bind(so, NULL, NULL, p);
 		if (error) {
@@ -7225,6 +7218,15 @@ sctp_listen(struct socket *so, int backlog, struct thread *p)
 		SOCK_UNLOCK(so);
 		solisten_proto_abort(so);
 		error = EADDRINUSE;
+		SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP_USRREQ, error);
+		goto out;
+	}
+	if ((inp->sctp_flags & SCTP_PCB_FLAGS_TCPTYPE) &&
+	    ((inp->sctp_flags & SCTP_PCB_FLAGS_WAS_CONNECTED) ||
+	    (inp->sctp_flags & SCTP_PCB_FLAGS_WAS_ABORTED))) {
+		SOCK_UNLOCK(so);
+		solisten_proto_abort(so);
+		error = EINVAL;
 		SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP_USRREQ, error);
 		goto out;
 	}

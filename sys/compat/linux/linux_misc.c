@@ -41,6 +41,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/imgact_aout.h>
 #endif
 #include <sys/jail.h>
+#include <sys/imgact.h>
 #include <sys/kernel.h>
 #include <sys/limits.h>
 #include <sys/lock.h>
@@ -74,6 +75,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/cpuset.h>
 #include <sys/uio.h>
 
+#include <security/audit/audit.h>
 #include <security/mac/mac_framework.h>
 
 #include <vm/vm.h>
@@ -2247,6 +2249,8 @@ linux_sched_getaffinity(struct thread *td,
     struct linux_sched_getaffinity_args *args)
 {
 	struct thread *tdt;
+	cpuset_t *mask;
+	size_t size;
 	int error;
 	id_t tid;
 
@@ -2256,13 +2260,17 @@ linux_sched_getaffinity(struct thread *td,
 	tid = tdt->td_tid;
 	PROC_UNLOCK(tdt->td_proc);
 
+	mask = malloc(sizeof(cpuset_t), M_LINUX, M_WAITOK | M_ZERO);
+	size = min(args->len, sizeof(cpuset_t));
 	error = kern_cpuset_getaffinity(td, CPU_LEVEL_WHICH, CPU_WHICH_TID,
-	    tid, args->len, (cpuset_t *)args->user_mask_ptr);
+	    tid, size, mask);
 	if (error == ERANGE)
 		error = EINVAL;
+ 	if (error == 0)
+		error = copyout(mask, args->user_mask_ptr, size);
 	if (error == 0)
-		td->td_retval[0] = min(args->len, sizeof(cpuset_t));
-
+		td->td_retval[0] = size;
+	free(mask, M_LINUX);
 	return (error);
 }
 
@@ -2412,7 +2420,6 @@ linux_common_pselect6(struct thread *td, l_int nfds, l_fd_set *readfds,
 {
 	struct timeval utv, tv0, tv1, *tvp;
 	struct l_pselect6arg lpse6;
-	l_sigset_t l_ss;
 	sigset_t *ssp;
 	sigset_t ss;
 	int error;
@@ -2422,16 +2429,10 @@ linux_common_pselect6(struct thread *td, l_int nfds, l_fd_set *readfds,
 		error = copyin(sig, &lpse6, sizeof(lpse6));
 		if (error != 0)
 			return (error);
-		if (lpse6.ss_len != sizeof(l_ss))
-			return (EINVAL);
-		if (lpse6.ss != 0) {
-			error = copyin(PTRIN(lpse6.ss), &l_ss,
-			    sizeof(l_ss));
-			if (error != 0)
-				return (error);
-			linux_to_bsd_sigset(&l_ss, &ss);
-			ssp = &ss;
-		}
+		error = linux_copyin_sigset(PTRIN(lpse6.ss),
+		    lpse6.ss_len, &ss, &ssp);
+		if (error != 0)
+		    return (error);
 	} else
 		ssp = NULL;
 
@@ -2522,7 +2523,6 @@ linux_common_ppoll(struct thread *td, struct pollfd *fds, uint32_t nfds,
 	struct timespec ts0, ts1;
 	struct pollfd stackfds[32];
 	struct pollfd *kfds;
- 	l_sigset_t l_ss;
  	sigset_t *ssp;
  	sigset_t ss;
  	int error;
@@ -2530,13 +2530,9 @@ linux_common_ppoll(struct thread *td, struct pollfd *fds, uint32_t nfds,
 	if (kern_poll_maxfds(nfds))
 		return (EINVAL);
 	if (sset != NULL) {
-		if (ssize != sizeof(l_ss))
-			return (EINVAL);
-		error = copyin(sset, &l_ss, sizeof(l_ss));
-		if (error)
-			return (error);
-		linux_to_bsd_sigset(&l_ss, &ss);
-		ssp = &ss;
+		error = linux_copyin_sigset(sset, ssize, &ss, &ssp);
+		if (error != 0)
+		    return (error);
 	} else
 		ssp = NULL;
 	if (tsp != NULL)
@@ -2901,3 +2897,29 @@ linux_seccomp(struct thread *td, struct linux_seccomp_args *args)
 		return (EINVAL);
 	}
 }
+
+#ifndef COMPAT_LINUX32
+int
+linux_execve(struct thread *td, struct linux_execve_args *args)
+{
+	struct image_args eargs;
+	char *path;
+	int error;
+
+	LINUX_CTR(execve);
+
+	if (!LUSECONVPATH(td)) {
+		error = exec_copyin_args(&eargs, args->path, UIO_USERSPACE,
+		    args->argp, args->envp);
+	} else {
+		LCONVPATHEXIST(args->path, &path);
+		error = exec_copyin_args(&eargs, path, UIO_SYSSPACE, args->argp,
+		    args->envp);
+		LFREEPATH(path);
+	}
+	if (error == 0)
+		error = linux_common_execve(td, &eargs);
+	AUDIT_SYSCALL_EXIT(error == EJUSTRETURN ? 0 : error, td);
+	return (error);
+}
+#endif

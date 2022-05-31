@@ -776,8 +776,8 @@ smmu_init_ste_s1(struct smmu_softc *sc, struct smmu_cd *cd,
 	return (0);
 }
 
-static int
-smmu_init_ste(struct smmu_softc *sc, struct smmu_cd *cd, int sid, bool bypass)
+static uint64_t *
+smmu_get_ste_addr(struct smmu_softc *sc, int sid)
 {
 	struct smmu_strtab *strtab;
 	struct l1_desc *l1_desc;
@@ -794,6 +794,16 @@ smmu_init_ste(struct smmu_softc *sc, struct smmu_cd *cd, int sid, bool bypass)
 		    STRTAB_STE_DWORDS * 8 * sid);
 	};
 
+	return (addr);
+}
+
+static int
+smmu_init_ste(struct smmu_softc *sc, struct smmu_cd *cd, int sid, bool bypass)
+{
+	uint64_t *addr;
+
+	addr = smmu_get_ste_addr(sc, sid);
+
 	if (bypass)
 		smmu_init_ste_bypass(sc, sid, addr);
 	else
@@ -802,6 +812,21 @@ smmu_init_ste(struct smmu_softc *sc, struct smmu_cd *cd, int sid, bool bypass)
 	smmu_sync(sc);
 
 	return (0);
+}
+
+static void
+smmu_deinit_ste(struct smmu_softc *sc, int sid)
+{
+	uint64_t *ste;
+
+	ste = smmu_get_ste_addr(sc, sid);
+	ste[0] = 0;
+
+	smmu_invalidate_sid(sc, sid);
+	smmu_sync_cd(sc, sid, 0, true);
+	smmu_invalidate_sid(sc, sid);
+
+	smmu_sync(sc);
 }
 
 static int
@@ -990,6 +1015,10 @@ smmu_init_l1_entry(struct smmu_softc *sc, int sid)
 
 	strtab = &sc->strtab;
 	l1_desc = &strtab->l1[sid >> STRTAB_SPLIT];
+	if (l1_desc->va) {
+		/* Already allocated. */
+		return (0);
+	}
 
 	size = 1 << (STRTAB_SPLIT + ilog2(STRTAB_STE_DWORDS) + 3);
 
@@ -1021,7 +1050,7 @@ smmu_init_l1_entry(struct smmu_softc *sc, int sid)
 	return (0);
 }
 
-static void
+static void __unused
 smmu_deinit_l1_entry(struct smmu_softc *sc, int sid)
 {
 	struct smmu_strtab *strtab;
@@ -1036,10 +1065,8 @@ smmu_deinit_l1_entry(struct smmu_softc *sc, int sid)
 	    STRTAB_L1_DESC_DWORDS * 8 * i);
 	*addr = 0;
 
-	if (sc->features & SMMU_FEATURE_2_LVL_STREAM_TABLE) {
-		l1_desc = &strtab->l1[sid >> STRTAB_SPLIT];
-		contigfree(l1_desc->va, l1_desc->size, M_SMMU);
-	}
+	l1_desc = &strtab->l1[sid >> STRTAB_SPLIT];
+	contigfree(l1_desc->va, l1_desc->size, M_SMMU);
 }
 
 static int
@@ -1817,41 +1844,62 @@ smmu_ctx_alloc(device_t dev, struct iommu_domain *iodom, device_t child,
     bool disabled)
 {
 	struct smmu_domain *domain;
+	struct smmu_ctx *ctx;
+
+	domain = (struct smmu_domain *)iodom;
+
+	ctx = malloc(sizeof(struct smmu_ctx), M_SMMU, M_WAITOK | M_ZERO);
+	ctx->dev = child;
+	ctx->domain = domain;
+	if (disabled)
+		ctx->bypass = true;
+
+	IOMMU_DOMAIN_LOCK(iodom);
+	LIST_INSERT_HEAD(&domain->ctx_list, ctx, next);
+	IOMMU_DOMAIN_UNLOCK(iodom);
+
+	return (&ctx->ioctx);
+}
+
+static int
+smmu_ctx_init(device_t dev, struct iommu_ctx *ioctx)
+{
+	struct smmu_domain *domain;
+	struct iommu_domain *iodom;
 	struct smmu_softc *sc;
 	struct smmu_ctx *ctx;
 	devclass_t pci_class;
 	u_int sid;
 	int err;
 
+	ctx = (struct smmu_ctx *)ioctx;
+
 	sc = device_get_softc(dev);
-	domain = (struct smmu_domain *)iodom;
+
+	domain = ctx->domain;
+	iodom = (struct iommu_domain *)domain;
 
 	pci_class = devclass_find("pci");
-	if (device_get_devclass(device_get_parent(child)) != pci_class)
-		return (NULL);
-
+	if (device_get_devclass(device_get_parent(ctx->dev)) == pci_class) {
 #ifdef DEV_ACPI
-	err = smmu_pci_get_sid_acpi(child, NULL, &sid);
+		err = smmu_pci_get_sid_acpi(ctx->dev, NULL, &sid);
 #else
-	err = smmu_pci_get_sid_fdt(child, NULL, &sid);
+		err = smmu_pci_get_sid_fdt(ctx->dev, NULL, &sid);
 #endif
-	if (err)
-		return (NULL);
-
-	if (sc->features & SMMU_FEATURE_2_LVL_STREAM_TABLE) {
-		err = smmu_init_l1_entry(sc, sid);
 		if (err)
-			return (NULL);
+			return (err);
+
+		ioctx->rid = pci_get_rid(dev);
+		ctx->sid = sid;
+		ctx->vendor = pci_get_vendor(ctx->dev);
+		ctx->device = pci_get_device(ctx->dev);
 	}
 
-	ctx = malloc(sizeof(struct smmu_ctx), M_SMMU, M_WAITOK | M_ZERO);
-	ctx->vendor = pci_get_vendor(child);
-	ctx->device = pci_get_device(child);
-	ctx->dev = child;
-	ctx->sid = sid;
-	ctx->domain = domain;
-	if (disabled)
-		ctx->bypass = true;
+	if (sc->features & SMMU_FEATURE_2_LVL_STREAM_TABLE) {
+		err = smmu_init_l1_entry(sc, ctx->sid);
+		if (err)
+			return (err);
+	}
 
 	/*
 	 * Neoverse N1 SDP:
@@ -1862,14 +1910,11 @@ smmu_ctx_alloc(device_t dev, struct iommu_domain *iodom, device_t child,
 
 	smmu_init_ste(sc, domain->cd, ctx->sid, ctx->bypass);
 
-	if (iommu_is_buswide_ctx(iodom->iommu, pci_get_bus(ctx->dev)))
-		smmu_set_buswide(dev, domain, ctx);
+	if (device_get_devclass(device_get_parent(ctx->dev)) == pci_class)
+		if (iommu_is_buswide_ctx(iodom->iommu, pci_get_bus(ctx->dev)))
+			smmu_set_buswide(dev, domain, ctx);
 
-	IOMMU_DOMAIN_LOCK(iodom);
-	LIST_INSERT_HEAD(&domain->ctx_list, ctx, next);
-	IOMMU_DOMAIN_UNLOCK(iodom);
-
-	return (&ctx->ioctx);
+	return (0);
 }
 
 static void
@@ -1883,7 +1928,7 @@ smmu_ctx_free(device_t dev, struct iommu_ctx *ioctx)
 	sc = device_get_softc(dev);
 	ctx = (struct smmu_ctx *)ioctx;
 
-	smmu_deinit_l1_entry(sc, ctx->sid);
+	smmu_deinit_ste(sc, ctx->sid);
 
 	LIST_REMOVE(ctx, next);
 
@@ -1966,6 +2011,24 @@ smmu_find(device_t dev, device_t child)
 	return (0);
 }
 
+#ifdef FDT
+static int
+smmu_ofw_md_data(device_t dev, struct iommu_ctx *ioctx, pcell_t *cells,
+    int ncells)
+{
+	struct smmu_ctx *ctx;
+
+	ctx = (struct smmu_ctx *)ioctx;
+
+	if (ncells != 1)
+		return (-1);
+
+	ctx->sid = cells[0];
+
+	return (0);
+}
+#endif
+
 static device_method_t smmu_methods[] = {
 	/* Device interface */
 	DEVMETHOD(device_detach,	smmu_detach),
@@ -1977,8 +2040,12 @@ static device_method_t smmu_methods[] = {
 	DEVMETHOD(iommu_domain_alloc,	smmu_domain_alloc),
 	DEVMETHOD(iommu_domain_free,	smmu_domain_free),
 	DEVMETHOD(iommu_ctx_alloc,	smmu_ctx_alloc),
+	DEVMETHOD(iommu_ctx_init,	smmu_ctx_init),
 	DEVMETHOD(iommu_ctx_free,	smmu_ctx_free),
 	DEVMETHOD(iommu_ctx_lookup,	smmu_ctx_lookup),
+#ifdef FDT
+	DEVMETHOD(iommu_ofw_md_data,	smmu_ofw_md_data),
+#endif
 
 	/* Bus interface */
 	DEVMETHOD(bus_read_ivar,	smmu_read_ivar),

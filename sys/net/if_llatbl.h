@@ -160,13 +160,17 @@ typedef void (llt_free_tbl_t)(struct lltable *);
 typedef int (llt_link_entry_t)(struct lltable *, struct llentry *);
 typedef int (llt_unlink_entry_t)(struct llentry *);
 typedef void (llt_mark_used_t)(struct llentry *);
+typedef void (llt_post_resolved_t)(struct lltable *, struct llentry *);
 
 typedef int (llt_foreach_cb_t)(struct lltable *, struct llentry *, void *);
 typedef int (llt_foreach_entry_t)(struct lltable *, llt_foreach_cb_t *, void *);
+typedef bool (llt_match_cb_t)(struct lltable *, struct llentry *, void *);
 
 struct lltable {
 	SLIST_ENTRY(lltable)	llt_link;
-	int			llt_af;
+	sa_family_t		llt_af;
+	uint8_t			llt_flags;
+	uint8_t			llt_spare[2];
 	int			llt_hsize;
 	int			llt_entries;
 	int			llt_maxentries;
@@ -187,9 +191,15 @@ struct lltable {
 	llt_fill_sa_entry_t	*llt_fill_sa_entry;
 	llt_free_tbl_t		*llt_free_tbl;
 	llt_mark_used_t		*llt_mark_used;
+	llt_post_resolved_t	*llt_post_resolved;
 };
 
 MALLOC_DECLARE(M_LLTABLE);
+
+/*
+ * LLtable flags
+ */
+#define	LLT_ADDEDPROXY	0x01	/* added a proxy llentry */
 
 /*
  * LLentry flags
@@ -255,6 +265,9 @@ bool lltable_acquire_wlock(struct ifnet *ifp, struct llentry *lle);
 
 int lltable_foreach_lle(struct lltable *llt, llt_foreach_cb_t *f,
     void *farg);
+void lltable_delete_conditional(struct lltable *llt, llt_match_cb_t *func,
+    void *farg);
+
 /*
  * Generic link layer address lookup function.
  */

@@ -673,8 +673,9 @@ install_resolved()
 		return 1
 	fi
 
-	log "cp -Rp ${CONFLICTS}$1 ${DESTDIR}$1"
-	cp -Rp ${CONFLICTS}$1 ${DESTDIR}$1 >&3 2>&1
+	# Use cat rather than cp to preserve metadata
+	log "cat ${CONFLICTS}$1 > ${DESTDIR}$1"
+	cat ${CONFLICTS}$1 > ${DESTDIR}$1 2>&3
 	post_install_file $1
 	return 0
 }
@@ -1610,6 +1611,18 @@ EOF
 	if [ -s $WARNINGS ]; then
 		echo "Warnings:"
 		cat $WARNINGS
+	fi
+
+	# If this was a dryrun, remove the temporary tree if we built
+	# a new one.
+	if [ -n "$dryrun" ]; then
+		if [ -n "$dir" ]; then
+			if [ -n "$rerun" ]; then
+				panic "Should not have a temporary directory"
+			fi
+			remove_tree $dir
+		fi
+		return
 	fi
 
 	# Finally, rotate any needed trees.

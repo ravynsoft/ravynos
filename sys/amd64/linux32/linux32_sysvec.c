@@ -91,6 +91,8 @@ __FBSDID("$FreeBSD$");
 #include <compat/linux/linux_util.h>
 #include <compat/linux/linux_vdso.h>
 
+#include <x86/linux/linux_x86_sigframe.h>
+
 MODULE_VERSION(linux, 1);
 
 #define	LINUX32_MAXUSER		((1ul << 32) - PAGE_SIZE)
@@ -132,45 +134,6 @@ static void	linux_vdso_reloc(char *mapping, Elf_Addr offset);
 static void	linux32_set_fork_retval(struct thread *td);
 static void	linux32_set_syscall_retval(struct thread *td, int error);
 
-#define LINUX_T_UNKNOWN  255
-static int _bsd_to_linux_trapcode[] = {
-	LINUX_T_UNKNOWN,	/* 0 */
-	6,			/* 1  T_PRIVINFLT */
-	LINUX_T_UNKNOWN,	/* 2 */
-	3,			/* 3  T_BPTFLT */
-	LINUX_T_UNKNOWN,	/* 4 */
-	LINUX_T_UNKNOWN,	/* 5 */
-	16,			/* 6  T_ARITHTRAP */
-	254,			/* 7  T_ASTFLT */
-	LINUX_T_UNKNOWN,	/* 8 */
-	13,			/* 9  T_PROTFLT */
-	1,			/* 10 T_TRCTRAP */
-	LINUX_T_UNKNOWN,	/* 11 */
-	14,			/* 12 T_PAGEFLT */
-	LINUX_T_UNKNOWN,	/* 13 */
-	17,			/* 14 T_ALIGNFLT */
-	LINUX_T_UNKNOWN,	/* 15 */
-	LINUX_T_UNKNOWN,	/* 16 */
-	LINUX_T_UNKNOWN,	/* 17 */
-	0,			/* 18 T_DIVIDE */
-	2,			/* 19 T_NMI */
-	4,			/* 20 T_OFLOW */
-	5,			/* 21 T_BOUND */
-	7,			/* 22 T_DNA */
-	8,			/* 23 T_DOUBLEFLT */
-	9,			/* 24 T_FPOPFLT */
-	10,			/* 25 T_TSSFLT */
-	11,			/* 26 T_SEGNPFLT */
-	12,			/* 27 T_STKFLT */
-	18,			/* 28 T_MCHK */
-	19,			/* 29 T_XMMFLT */
-	15			/* 30 T_RESERVED */
-};
-#define bsd_to_linux_trapcode(code) \
-    ((code)<nitems(_bsd_to_linux_trapcode)? \
-     _bsd_to_linux_trapcode[(code)]: \
-     LINUX_T_UNKNOWN)
-
 struct linux32_ps_strings {
 	u_int32_t ps_argvstr;	/* first of 0 or more argument strings */
 	u_int ps_nargvstr;	/* the number of argument strings */
@@ -181,34 +144,12 @@ struct linux32_ps_strings {
 				    sizeof(struct linux32_ps_strings))
 
 LINUX_VDSO_SYM_INTPTR(__kernel_vsyscall);
-LINUX_VDSO_SYM_INTPTR(__kernel_sigreturn);
-LINUX_VDSO_SYM_INTPTR(__kernel_rt_sigreturn);
+LINUX_VDSO_SYM_INTPTR(linux32_vdso_sigcode);
+LINUX_VDSO_SYM_INTPTR(linux32_vdso_rt_sigcode);
 LINUX_VDSO_SYM_INTPTR(kern_timekeep_base);
 LINUX_VDSO_SYM_INTPTR(kern_tsc_selector);
 LINUX_VDSO_SYM_INTPTR(kern_cpu_selector);
 LINUX_VDSO_SYM_CHAR(linux_platform);
-
-/*
- * If FreeBSD & Linux have a difference of opinion about what a trap
- * means, deal with it here.
- *
- * MPSAFE
- */
-static int
-linux_translate_traps(int signal, int trap_code)
-{
-	if (signal != SIGBUS)
-		return (signal);
-	switch (trap_code) {
-	case T_PROTFLT:
-	case T_TSSFLT:
-	case T_DOUBLEFLT:
-	case T_PAGEFLT:
-		return (SIGSEGV);
-	default:
-		return (signal);
-	}
-}
 
 static int
 linux_copyout_auxargs(struct image_params *imgp, uintptr_t base)
@@ -292,7 +233,7 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 	int sig;
 	int code;
 
-	sig = ksi->ksi_signo;
+	sig = linux_translate_traps(ksi->ksi_signo, ksi->ksi_trapno);
 	code = ksi->ksi_code;
 	PROC_LOCK_ASSERT(p, MA_OWNED);
 	psp = p->p_sigacts;
@@ -314,10 +255,9 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 
 	bzero(&frame, sizeof(frame));
 
-	frame.sf_handler = PTROUT(catcher);
 	frame.sf_sig = sig;
 	frame.sf_siginfo = PTROUT(&fp->sf_si);
-	frame.sf_ucontext = PTROUT(&fp->sf_sc);
+	frame.sf_ucontext = PTROUT(&fp->sf_uc);
 
 	/* Fill in POSIX parts. */
 	siginfo_to_lsiginfo(&ksi->ksi_info, &frame.sf_si, sig);
@@ -325,38 +265,35 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 	/*
 	 * Build the signal context to be used by sigreturn and libgcc unwind.
 	 */
-	frame.sf_sc.uc_flags = 0;		/* XXX ??? */
-	frame.sf_sc.uc_link = 0;		/* XXX ??? */
-
-	frame.sf_sc.uc_stack.ss_sp = PTROUT(td->td_sigstk.ss_sp);
-	frame.sf_sc.uc_stack.ss_size = td->td_sigstk.ss_size;
-	frame.sf_sc.uc_stack.ss_flags = (td->td_pflags & TDP_ALTSTACK)
+	frame.sf_uc.uc_stack.ss_sp = PTROUT(td->td_sigstk.ss_sp);
+	frame.sf_uc.uc_stack.ss_size = td->td_sigstk.ss_size;
+	frame.sf_uc.uc_stack.ss_flags = (td->td_pflags & TDP_ALTSTACK)
 	    ? ((oonstack) ? LINUX_SS_ONSTACK : 0) : LINUX_SS_DISABLE;
 	PROC_UNLOCK(p);
 
-	bsd_to_linux_sigset(mask, &frame.sf_sc.uc_sigmask);
+	bsd_to_linux_sigset(mask, &frame.sf_uc.uc_sigmask);
 
-	frame.sf_sc.uc_mcontext.sc_mask   = frame.sf_sc.uc_sigmask.__mask;
-	frame.sf_sc.uc_mcontext.sc_edi    = regs->tf_rdi;
-	frame.sf_sc.uc_mcontext.sc_esi    = regs->tf_rsi;
-	frame.sf_sc.uc_mcontext.sc_ebp    = regs->tf_rbp;
-	frame.sf_sc.uc_mcontext.sc_ebx    = regs->tf_rbx;
-	frame.sf_sc.uc_mcontext.sc_esp    = regs->tf_rsp;
-	frame.sf_sc.uc_mcontext.sc_edx    = regs->tf_rdx;
-	frame.sf_sc.uc_mcontext.sc_ecx    = regs->tf_rcx;
-	frame.sf_sc.uc_mcontext.sc_eax    = regs->tf_rax;
-	frame.sf_sc.uc_mcontext.sc_eip    = regs->tf_rip;
-	frame.sf_sc.uc_mcontext.sc_cs     = regs->tf_cs;
-	frame.sf_sc.uc_mcontext.sc_gs     = regs->tf_gs;
-	frame.sf_sc.uc_mcontext.sc_fs     = regs->tf_fs;
-	frame.sf_sc.uc_mcontext.sc_es     = regs->tf_es;
-	frame.sf_sc.uc_mcontext.sc_ds     = regs->tf_ds;
-	frame.sf_sc.uc_mcontext.sc_eflags = regs->tf_rflags;
-	frame.sf_sc.uc_mcontext.sc_esp_at_signal = regs->tf_rsp;
-	frame.sf_sc.uc_mcontext.sc_ss     = regs->tf_ss;
-	frame.sf_sc.uc_mcontext.sc_err    = regs->tf_err;
-	frame.sf_sc.uc_mcontext.sc_cr2    = (u_int32_t)(uintptr_t)ksi->ksi_addr;
-	frame.sf_sc.uc_mcontext.sc_trapno = bsd_to_linux_trapcode(code);
+	frame.sf_uc.uc_mcontext.sc_mask   = frame.sf_uc.uc_sigmask.__mask;
+	frame.sf_uc.uc_mcontext.sc_edi    = regs->tf_rdi;
+	frame.sf_uc.uc_mcontext.sc_esi    = regs->tf_rsi;
+	frame.sf_uc.uc_mcontext.sc_ebp    = regs->tf_rbp;
+	frame.sf_uc.uc_mcontext.sc_ebx    = regs->tf_rbx;
+	frame.sf_uc.uc_mcontext.sc_esp    = regs->tf_rsp;
+	frame.sf_uc.uc_mcontext.sc_edx    = regs->tf_rdx;
+	frame.sf_uc.uc_mcontext.sc_ecx    = regs->tf_rcx;
+	frame.sf_uc.uc_mcontext.sc_eax    = regs->tf_rax;
+	frame.sf_uc.uc_mcontext.sc_eip    = regs->tf_rip;
+	frame.sf_uc.uc_mcontext.sc_cs     = regs->tf_cs;
+	frame.sf_uc.uc_mcontext.sc_gs     = regs->tf_gs;
+	frame.sf_uc.uc_mcontext.sc_fs     = regs->tf_fs;
+	frame.sf_uc.uc_mcontext.sc_es     = regs->tf_es;
+	frame.sf_uc.uc_mcontext.sc_ds     = regs->tf_ds;
+	frame.sf_uc.uc_mcontext.sc_eflags = regs->tf_rflags;
+	frame.sf_uc.uc_mcontext.sc_esp_at_signal = regs->tf_rsp;
+	frame.sf_uc.uc_mcontext.sc_ss     = regs->tf_ss;
+	frame.sf_uc.uc_mcontext.sc_err    = regs->tf_err;
+	frame.sf_uc.uc_mcontext.sc_cr2    = (u_int32_t)(uintptr_t)ksi->ksi_addr;
+	frame.sf_uc.uc_mcontext.sc_trapno = bsd_to_linux_trapcode(code);
 
 	if (copyout(&frame, fp, sizeof(frame)) != 0) {
 		/*
@@ -369,7 +306,8 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 
 	/* Build context to run handler in. */
 	regs->tf_rsp = PTROUT(fp);
-	regs->tf_rip = __kernel_rt_sigreturn;
+	regs->tf_rip = linux32_vdso_rt_sigcode;
+	regs->tf_rdi = PTROUT(catcher);
 	regs->tf_rflags &= ~(PSL_T | PSL_D);
 	regs->tf_cs = _ucode32sel;
 	regs->tf_ss = _udatasel;
@@ -405,7 +343,7 @@ linux_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 	int oonstack;
 	int sig, code;
 
-	sig = ksi->ksi_signo;
+	sig = linux_translate_traps(ksi->ksi_signo, ksi->ksi_trapno);
 	code = ksi->ksi_code;
 	PROC_LOCK_ASSERT(p, MA_OWNED);
 	psp = p->p_sigacts;
@@ -434,9 +372,8 @@ linux_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 
 	bzero(&frame, sizeof(frame));
 
-	frame.sf_handler = PTROUT(catcher);
 	frame.sf_sig = sig;
-
+	frame.sf_sigmask = *mask;
 	bsd_to_linux_sigset(mask, &lmask);
 
 	/* Build the signal context to be used by sigreturn. */
@@ -462,8 +399,6 @@ linux_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 	frame.sf_sc.sc_cr2    = (u_int32_t)(uintptr_t)ksi->ksi_addr;
 	frame.sf_sc.sc_trapno = bsd_to_linux_trapcode(code);
 
-	frame.sf_extramask[0] = lmask.__mask;
-
 	if (copyout(&frame, fp, sizeof(frame)) != 0) {
 		/*
 		 * Process has trashed its stack; give it an illegal
@@ -475,7 +410,8 @@ linux_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 
 	/* Build context to run handler in. */
 	regs->tf_rsp = PTROUT(fp);
-	regs->tf_rip = __kernel_sigreturn;
+	regs->tf_rip = linux32_vdso_sigcode;
+	regs->tf_rdi = PTROUT(catcher);
 	regs->tf_rflags &= ~(PSL_T | PSL_D);
 	regs->tf_cs = _ucode32sel;
 	regs->tf_ss = _udatasel;
@@ -504,8 +440,6 @@ linux_sigreturn(struct thread *td, struct linux_sigreturn_args *args)
 {
 	struct l_sigframe frame;
 	struct trapframe *regs;
-	sigset_t bmask;
-	l_sigset_t lmask;
 	int eflags;
 	ksiginfo_t ksi;
 
@@ -539,10 +473,7 @@ linux_sigreturn(struct thread *td, struct linux_sigreturn_args *args)
 		return(EINVAL);
 	}
 
-	lmask.__mask = frame.sf_sc.sc_mask;
-	lmask.__mask = frame.sf_extramask[0];
-	linux_to_bsd_sigset(&lmask, &bmask);
-	kern_sigprocmask(td, SIG_SETMASK, &bmask, NULL, 0);
+	kern_sigprocmask(td, SIG_SETMASK, &frame.sf_sigmask, NULL, 0);
 
 	/* Restore signal context. */
 	regs->tf_rdi    = frame.sf_sc.sc_edi;
@@ -925,7 +856,6 @@ linux32_fixlimit(struct rlimit *rl, int which)
 struct sysentvec elf_linux_sysvec = {
 	.sv_size	= LINUX32_SYS_MAXSYSCALL,
 	.sv_table	= linux32_sysent,
-	.sv_transtrap	= linux_translate_traps,
 	.sv_fixup	= linux_fixup_elf,
 	.sv_sendsig	= linux_sendsig,
 	.sv_sigcode	= &_binary_linux32_vdso_so_o_start,

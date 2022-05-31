@@ -55,7 +55,6 @@ __FBSDID("$FreeBSD$");
 #include <sys/sched.h>
 #include <sys/smp.h>
 #include <sys/sysctl.h>
-#include <sys/sysent.h>
 #include <sys/systm.h>
 #include <sys/sysproto.h>
 #include <sys/syscallsubr.h>
@@ -2260,6 +2259,17 @@ do_lock_pi(struct thread *td, struct umutex *m, uint32_t flags,
 		if (owner == UMUTEX_RB_NOTRECOV) {
 			error = ENOTRECOVERABLE;
 			break;
+		}
+
+		/*
+		 * Nobody owns it, but the acquire failed. This can happen
+		 * with ll/sc atomics.
+		 */
+		if (owner == UMUTEX_UNOWNED) {
+			error = thread_check_susp(td, true);
+			if (error != 0)
+				break;
+			continue;
 		}
 
 		/*

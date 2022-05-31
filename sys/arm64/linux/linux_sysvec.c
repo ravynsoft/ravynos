@@ -68,6 +68,8 @@ __FBSDID("$FreeBSD$");
 #include <compat/linux/linux_util.h>
 #include <compat/linux/linux_vdso.h>
 
+#include <arm64/linux/linux_sigframe.h>
+
 #include <machine/md_var.h>
 
 #ifdef VFP
@@ -119,23 +121,13 @@ static int	linux_on_exec_vmspace(struct proc *p,
 LIN_SDT_PROVIDER_DECLARE(LINUX_DTRACE);
 
 /* DTrace probes */
-LIN_SDT_PROBE_DEFINE2(sysvec, linux_translate_traps, todo, "int", "int");
 LIN_SDT_PROBE_DEFINE0(sysvec, linux_exec_setregs, todo);
 LIN_SDT_PROBE_DEFINE0(sysvec, linux_copyout_auxargs, todo);
 LIN_SDT_PROBE_DEFINE0(sysvec, linux_elf_fixup, todo);
 
 LINUX_VDSO_SYM_CHAR(linux_platform);
 LINUX_VDSO_SYM_INTPTR(kern_timekeep_base);
-LINUX_VDSO_SYM_INTPTR(__kernel_rt_sigreturn);
-
-/* LINUXTODO: do we have traps to translate? */
-static int
-linux_translate_traps(int signal, int trap_code)
-{
-
-	LIN_SDT_PROBE2(sysvec, linux_translate_traps, todo, signal, trap_code);
-	return (signal);
-}
+LINUX_VDSO_SYM_INTPTR(linux_vdso_sigcode);
 
 static int
 linux_fetch_syscall_args(struct thread *td)
@@ -195,6 +187,7 @@ linux_copyout_auxargs(struct image_params *imgp, uintptr_t base)
 
 	issetugid = p->p_flag & P_SUGID ? 1 : 0;
 	AUXARGS_ENTRY(pos, LINUX_AT_SYSINFO_EHDR, linux_vdso_base);
+	AUXARGS_ENTRY(pos, LINUX_AT_MINSIGSTKSZ, LINUX_MINSIGSTKSZ);
 	AUXARGS_ENTRY(pos, LINUX_AT_HWCAP, *imgp->sysent->sv_hwcap);
 	AUXARGS_ENTRY(pos, AT_PAGESZ, args->pagesz);
 	AUXARGS_ENTRY(pos, LINUX_AT_CLKTCK, stclohz);
@@ -403,21 +396,23 @@ linux_exec_setregs(struct thread *td, struct image_params *imgp,
 int
 linux_rt_sigreturn(struct thread *td, struct linux_rt_sigreturn_args *args)
 {
-	struct l_sigframe frame;
+	struct l_sigframe *frame;
+	ucontext_t uc;
 	struct trapframe *tf;
 	int error;
 
 	tf = td->td_frame;
+	frame = (struct l_sigframe *)tf->tf_sp;
 
-	if (copyin((void *)tf->tf_sp, &frame, sizeof(frame)))
+	if (copyin((void *)&frame->uc, &uc, sizeof(uc)))
 		return (EFAULT);
 
-	error = set_mcontext(td, &frame.sf_uc.uc_mcontext);
+	error = set_mcontext(td, &uc.uc_mcontext);
 	if (error != 0)
 		return (error);
 
 	/* Restore signal mask. */
-	kern_sigprocmask(td, SIG_SETMASK, &frame.sf_uc.uc_sigmask, NULL, 0);
+	kern_sigprocmask(td, SIG_SETMASK, &uc.uc_sigmask, NULL, 0);
 
 	return (EJUSTRETURN);
 }
@@ -428,9 +423,14 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 	struct thread *td;
 	struct proc *p;
 	struct trapframe *tf;
-	struct l_sigframe *fp, frame;
+	struct l_sigframe *fp, *frame;
+	struct l_fpsimd_context *fpsimd;
+	struct l_esr_context *esr;
+	l_stack_t uc_stack;
+	ucontext_t uc;
+	uint8_t *scr;
 	struct sigacts *psp;
-	int onstack, sig;
+	int onstack, sig, issiginfo;
 
 	td = curthread;
 	p = td->td_proc;
@@ -442,6 +442,7 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 
 	tf = td->td_frame;
 	onstack = sigonstack(tf->tf_sp);
+	issiginfo = SIGISMEMBER(psp->ps_siginfo, sig);
 
 	CTR4(KTR_SIG, "sendsig: td=%p (%s) catcher=%p sig=%d", td, p->p_comm,
 	    catcher, sig);
@@ -462,36 +463,82 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 	fp--;
 	fp = (struct l_sigframe *)STACKALIGN(fp);
 
-	/* Fill in the frame to copy out */
-	bzero(&frame, sizeof(frame));
-	get_mcontext(td, &frame.sf_uc.uc_mcontext, 0);
+	get_mcontext(td, &uc.uc_mcontext, 0);
+	uc.uc_sigmask = *mask;
 
-	/* Translate the signal. */
-	sig = bsd_to_linux_signal(sig);
-
-	siginfo_to_lsiginfo(&ksi->ksi_info, &frame.sf_si, sig);
-	frame.sf_uc.uc_sigmask = *mask;
-	frame.sf_uc.uc_stack = td->td_sigstk;
-	frame.sf_uc.uc_stack.ss_flags = (td->td_pflags & TDP_ALTSTACK) != 0 ?
-	    (onstack ? SS_ONSTACK : 0) : SS_DISABLE;
+	uc_stack.ss_sp = PTROUT(td->td_sigstk.ss_sp);
+	uc_stack.ss_size = td->td_sigstk.ss_size;
+	uc_stack.ss_flags = (td->td_pflags & TDP_ALTSTACK) != 0 ?
+	    (onstack ? LINUX_SS_ONSTACK : 0) : LINUX_SS_DISABLE;
 	mtx_unlock(&psp->ps_mtx);
 	PROC_UNLOCK(td->td_proc);
 
+	/* Fill in the frame to copy out */
+	frame = malloc(sizeof(*frame), M_LINUX, M_WAITOK | M_ZERO);
+
+	memcpy(&frame->sf.sf_uc.uc_sc.regs, tf->tf_x, sizeof(tf->tf_x));
+	frame->sf.sf_uc.uc_sc.regs[30] = tf->tf_lr;
+	frame->sf.sf_uc.uc_sc.sp = tf->tf_sp;
+	frame->sf.sf_uc.uc_sc.pc = tf->tf_lr;
+	frame->sf.sf_uc.uc_sc.pstate = tf->tf_spsr;
+	frame->sf.sf_uc.uc_sc.fault_address = (register_t)ksi->ksi_addr;
+
+	/* Stack frame for unwinding */
+	frame->fp = tf->tf_x[29];
+	frame->lr = tf->tf_lr;
+
+	/* Translate the signal. */
+	sig = bsd_to_linux_signal(sig);
+	siginfo_to_lsiginfo(&ksi->ksi_info, &frame->sf.sf_si, sig);
+	bsd_to_linux_sigset(mask, &frame->sf.sf_uc.uc_sigmask);
+
+	/*
+	 * Prepare fpsimd & esr. Does not check sizes, as
+	 * __reserved is big enougth.
+	 */
+	scr = (uint8_t *)&frame->sf.sf_uc.uc_sc.__reserved;
+#ifdef VFP
+	fpsimd = (struct l_fpsimd_context *) scr;
+	fpsimd->head.magic = L_FPSIMD_MAGIC;
+	fpsimd->head.size = sizeof(struct l_fpsimd_context);
+	fpsimd->fpsr = uc.uc_mcontext.mc_fpregs.fp_sr;
+	fpsimd->fpcr = uc.uc_mcontext.mc_fpregs.fp_cr;
+
+	memcpy(fpsimd->vregs, &uc.uc_mcontext.mc_fpregs.fp_q,
+	    sizeof(uc.uc_mcontext.mc_fpregs.fp_q));
+	scr += roundup(sizeof(struct l_fpsimd_context), 16);
+#endif
+	if (ksi->ksi_addr != 0) {
+		esr = (struct l_esr_context *) scr;
+		esr->head.magic = L_ESR_MAGIC;
+		esr->head.size = sizeof(struct l_esr_context);
+		esr->esr = tf->tf_esr;
+	}
+
+	memcpy(&frame->sf.sf_uc.uc_stack, &uc_stack, sizeof(uc_stack));
+	memcpy(&frame->uc, &uc, sizeof(uc));
+
 	/* Copy the sigframe out to the user's stack. */
-	if (copyout(&frame, fp, sizeof(*fp)) != 0) {
+	if (copyout(frame, fp, sizeof(*fp)) != 0) {
 		/* Process has trashed its stack. Kill it. */
+		free(frame, M_LINUX);
 		CTR2(KTR_SIG, "sendsig: sigexit td=%p fp=%p", td, fp);
 		PROC_LOCK(p);
 		sigexit(td, SIGILL);
 	}
+	free(frame, M_LINUX);
 
 	tf->tf_x[0]= sig;
-	tf->tf_x[1] = (register_t)&fp->sf_si;
-	tf->tf_x[2] = (register_t)&fp->sf_uc;
-
-	tf->tf_elr = (register_t)catcher;
+	if (issiginfo) {
+		tf->tf_x[1] = (register_t)&fp->sf.sf_si;
+		tf->tf_x[2] = (register_t)&fp->sf.sf_uc;
+	} else {
+		tf->tf_x[1] = 0;
+		tf->tf_x[2] = 0;
+	}
+	tf->tf_x[8] = (register_t)catcher;
 	tf->tf_sp = (register_t)fp;
-	tf->tf_lr = (register_t)__kernel_rt_sigreturn;
+	tf->tf_elr = (register_t)linux_vdso_sigcode;
 
 	CTR3(KTR_SIG, "sendsig: return td=%p pc=%#x sp=%#x", td, tf->tf_elr,
 	    tf->tf_sp);
@@ -503,7 +550,6 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 struct sysentvec elf_linux_sysvec = {
 	.sv_size	= LINUX_SYS_MAXSYSCALL,
 	.sv_table	= linux_sysent,
-	.sv_transtrap	= linux_translate_traps,
 	.sv_fixup	= linux_elf_fixup,
 	.sv_sendsig	= linux_rt_sendsig,
 	.sv_sigcode	= &_binary_linux_vdso_so_o_start,

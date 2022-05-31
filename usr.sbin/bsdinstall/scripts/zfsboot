@@ -258,7 +258,7 @@ msg_encrypt_disks_help="Use geli(8) to encrypt all data partitions"
 msg_error="Error"
 msg_force_4k_sectors="Force 4K Sectors?"
 msg_force_4k_sectors_help="Align partitions to 4K sector boundries and set vfs.zfs.min_auto_ashift=12"
-msg_freebsd_installer="FreeBSD Installer"
+msg_freebsd_installer="$OSNAME Installer"
 msg_geli_password="Enter a strong passphrase, used to protect your encryption keys. You will be required to enter this passphrase each time the system is booted"
 msg_geli_setup="Initializing encryption on selected disks,\n this will take several seconds per disk"
 msg_install="Install"
@@ -659,7 +659,7 @@ dialog_menu_layout()
 		while :; do
 			# Loop over list of available disks, resetting state
 			for disk in $disks; do
-				f_isset _${disk}_status && _${disk}_status=
+				f_isset _${disk}_status && setvar _${disk}_status
 			done
 
 			# Loop over list of selected disks and create temporary
@@ -669,7 +669,7 @@ dialog_menu_layout()
 					$disk $DEVICE_TYPE_DISK disk
 				f_isset _${disk}_status ||
 					local _${disk}_status
-				_${disk}_status=on
+				setvar _${disk}_status on
 			done
 
 			# Create the checklist menu of discovered disk devices
@@ -868,7 +868,7 @@ zfs_create_diskpart()
 
 			# We'll configure the ESP in bootconfig
 			if [ -z "$efibootpart" ]; then
-				efibootpart="/dev/$(echo $justaddedpart | cut -f 1 -d ' ')"
+				efibootpart="/dev/gpt/efiboot$index"
 				f_dprintf "$funcname: configuring ESP at [%s]" \
 				          "${efibootpart}"
 

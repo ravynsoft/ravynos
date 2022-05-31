@@ -1152,6 +1152,25 @@ out:
 }
 #endif /* ALTQ */
 
+static struct pf_krule_global *
+pf_rule_tree_alloc(int flags)
+{
+	struct pf_krule_global *tree;
+
+	tree = malloc(sizeof(struct pf_krule_global), M_TEMP, flags);
+	if (tree == NULL)
+		return (NULL);
+	RB_INIT(tree);
+	return (tree);
+}
+
+static void
+pf_rule_tree_free(struct pf_krule_global *tree)
+{
+
+	free(tree, M_TEMP);
+}
+
 static int
 pf_begin_rules(u_int32_t *ticket, int rs_num, const char *anchor)
 {
@@ -1163,16 +1182,15 @@ pf_begin_rules(u_int32_t *ticket, int rs_num, const char *anchor)
 
 	if (rs_num < 0 || rs_num >= PF_RULESET_MAX)
 		return (EINVAL);
-	tree = malloc(sizeof(struct pf_krule_global), M_TEMP, M_NOWAIT);
+	tree = pf_rule_tree_alloc(M_NOWAIT);
 	if (tree == NULL)
 		return (ENOMEM);
-	RB_INIT(tree);
 	rs = pf_find_or_create_kruleset(anchor);
 	if (rs == NULL) {
 		free(tree, M_TEMP);
 		return (EINVAL);
 	}
-	free(rs->rules[rs_num].inactive.tree, M_TEMP);
+	pf_rule_tree_free(rs->rules[rs_num].inactive.tree);
 	rs->rules[rs_num].inactive.tree = tree;
 
 	while ((rule = TAILQ_FIRST(rs->rules[rs_num].inactive.ptr)) != NULL) {
@@ -1771,6 +1789,7 @@ pf_krule_alloc(void)
 
 	rule = malloc(sizeof(struct pf_krule), M_PFRULE, M_WAITOK | M_ZERO);
 	mtx_init(&rule->rpool.mtx, "pf_krule_pool", NULL, MTX_DEF);
+	rule->timestamp = uma_zalloc_pcpu(pcpu_zone_4, M_WAITOK | M_ZERO);
 	return (rule);
 }
 
@@ -2134,7 +2153,6 @@ pf_ioctl_addrule(struct pf_krule *rule, uint32_t ticket,
 	rule->states_cur = counter_u64_alloc(M_WAITOK);
 	rule->states_tot = counter_u64_alloc(M_WAITOK);
 	rule->src_nodes = counter_u64_alloc(M_WAITOK);
-	rule->timestamp = uma_zalloc_pcpu(pcpu_zone_4, M_WAITOK | M_ZERO);
 	rule->cuid = td->td_ucred->cr_ruid;
 	rule->cpid = td->td_proc ? td->td_proc->p_pid : 0;
 	TAILQ_INIT(&rule->rpool.list);
@@ -3412,7 +3430,7 @@ DIOCGETRULENV_error:
 			newrule = pf_krule_alloc();
 			error = pf_rule_to_krule(&pcr->rule, newrule);
 			if (error != 0) {
-				free(newrule, M_PFRULE);
+				pf_krule_free(newrule);
 				break;
 			}
 
@@ -3454,6 +3472,22 @@ DIOCGETRULENV_error:
 		rs_num = pf_get_ruleset_number(pcr->rule.action);
 		if (rs_num >= PF_RULESET_MAX)
 			ERROUT(EINVAL);
+
+		/*
+		 * XXXMJG: there is no guarantee that the ruleset was
+		 * created by the usual route of calling DIOCXBEGIN.
+		 * As a result it is possible the rule tree will not
+		 * be allocated yet. Hack around it by doing it here.
+		 * Note it is fine to let the tree persist in case of
+		 * error as it will be freed down the road on future
+		 * updates (if need be).
+		 */
+		if (ruleset->rules[rs_num].active.tree == NULL) {
+			ruleset->rules[rs_num].active.tree = pf_rule_tree_alloc(M_NOWAIT);
+			if (ruleset->rules[rs_num].active.tree == NULL) {
+				ERROUT(ENOMEM);
+			}
+		}
 
 		if (pcr->action == PF_CHANGE_GET_TICKET) {
 			pcr->ticket = ++ruleset->rules[rs_num].active.ticket;

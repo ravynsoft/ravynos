@@ -95,8 +95,6 @@ struct sockbuf {
 	u_int	sb_ccc;		/* (a) claimed chars in buffer */
 	u_int	sb_hiwat;	/* (a) max actual char count */
 	u_int	sb_mbcnt;	/* (a) chars of mbufs used */
-	u_int   sb_mcnt;        /* (a) number of mbufs in buffer */
-	u_int   sb_ccnt;        /* (a) number of clusters in buffer */
 	u_int	sb_mbmax;	/* (a) max chars of mbufs to use */
 	u_int	sb_ctl;		/* (a) non-data chars in buffer */
 	u_int	sb_tlscc;	/* (a) TLS chain characters */
@@ -158,9 +156,7 @@ void	sbappendrecord(struct sockbuf *sb, struct mbuf *m0);
 void	sbappendrecord_locked(struct sockbuf *sb, struct mbuf *m0);
 void	sbcompress(struct sockbuf *sb, struct mbuf *m, struct mbuf *n);
 struct mbuf *
-	sbcreatecontrol(caddr_t p, int size, int type, int level);
-struct mbuf *
-	sbcreatecontrol_how(void *p, int size, int type, int level,
+	sbcreatecontrol(const void *p, u_int size, int type, int level,
 	    int wait);
 void	sbdestroy(struct socket *, sb_which);
 void	sbdrop(struct sockbuf *sb, int len);

@@ -253,6 +253,7 @@ _LIBRARIES+= \
 		ibnetdisc \
 		ibumad \
 		ibverbs \
+		irdma \
 		mlx4 \
 		mlx5 \
 		rdmacm \
@@ -390,8 +391,8 @@ _DP_heimbase=	pthread
 _DP_heimipcc=	heimbase roken pthread
 _DP_heimipcs=	heimbase roken pthread
 _DP_kafs5=	asn1 krb5 roken
-_DP_krb5+=	asn1 com_err crypt crypto hx509 roken wind heimbase heimipcc
-_DP_gssapi_krb5+=	gssapi krb5 crypto roken asn1 com_err
+_DP_krb5=	asn1 com_err crypt crypto hx509 roken wind heimbase heimipcc
+_DP_gssapi_krb5=	gssapi krb5 crypto roken asn1 com_err
 _DP_lzma=	md pthread
 _DP_ucl=	m
 _DP_vmmapi=	util
@@ -442,6 +443,7 @@ _DP_ibmad=	ibumad
 _DP_ibnetdisc=	osmcomp ibmad ibumad
 _DP_ibumad=	
 _DP_ibverbs=
+_DP_irdma=	ibverbs pthread
 _DP_mlx4=	ibverbs pthread
 _DP_mlx5=	ibverbs pthread
 _DP_rdmacm=	ibverbs
@@ -578,6 +580,9 @@ LIBIFCONFIG?=	${LIBIFCONFIGDIR}/libifconfig${PIE_SUFFIX}.a
 LIBIPFDIR=	${_LIB_OBJTOP}/sbin/ipf/libipf
 LIBIPF?=	${LIBIPFDIR}/libipf${PIE_SUFFIX}.a
 
+LIBNVDIR=	${_LIB_OBJTOP}/lib/libnv
+LIBNV?=		${LIBNVDIR}/libnv${PIE_SUFFIX}.a
+
 LIBISCSIUTILDIR=	${_LIB_OBJTOP}/lib/libiscsiutil
 LIBISCSIUTIL?=	${LIBISCSIUTILDIR}/libiscsiutil${PIE_SUFFIX}.a
 
@@ -671,14 +676,23 @@ LIBAVLDIR=	${OBJTOP}/cddl/lib/libavl
 LIBCTFDIR=	${OBJTOP}/cddl/lib/libctf
 LIBDTRACEDIR=	${OBJTOP}/cddl/lib/libdtrace
 LIBICPDIR=	${OBJTOP}/cddl/lib/libicp
+LIBICP?=	${LIBICPDIR}/libicp${PIE_SUFFIX}.a
+LIBICP_RESCUEDIR=	${OBJTOP}/cddl/lib/libicp_rescue
+LIBICP_RESCUE?=	${LIBICP_RESCUEDIR}/libicp_rescue${PIE_SUFFIX}.a
 LIBNVPAIRDIR=	${OBJTOP}/cddl/lib/libnvpair
+LIBNVPAIR?=	${LIBNVPAIRDIR}/libnvpair${PIE_SUFFIX}.a
 LIBUMEMDIR=	${OBJTOP}/cddl/lib/libumem
 LIBUUTILDIR=	${OBJTOP}/cddl/lib/libuutil
 LIBZFSDIR=	${OBJTOP}/cddl/lib/libzfs
+LIBZFS?=	${LIBZFSDIR}/libzfs${PIE_SUFFIX}.a
 LIBZFS_COREDIR=	${OBJTOP}/cddl/lib/libzfs_core
+LIBZFS_CORE?=	${LIBZFS_COREDIR}/libzfs_core${PIE_SUFFIX}.a
 LIBZFSBOOTENVDIR=	${OBJTOP}/cddl/lib/libzfsbootenv
+LIBZFSBOOTENV?=	${LIBZFSBOOTENVDIR}/libzfsbootenv${PIE_SUFFIX}.a
 LIBZPOOLDIR=	${OBJTOP}/cddl/lib/libzpool
+LIBZPOOL?=	${LIBZPOOLDIR}/libzpool${PIE_SUFFIX}.a
 LIBZUTILDIR=	${OBJTOP}/cddl/lib/libzutil
+LIBZUTIL?=	${LIBZUTILDIR}/libzutil${PIE_SUFFIX}.a
 LIBTPOOLDIR=	${OBJTOP}/cddl/lib/libtpool
 
 # OFED support
@@ -688,6 +702,7 @@ LIBIBMADDIR=	${OBJTOP}/lib/ofed/libibmad
 LIBIBNETDISCDIR=${OBJTOP}/lib/ofed/libibnetdisc
 LIBIBUMADDIR=	${OBJTOP}/lib/ofed/libibumad
 LIBIBVERBSDIR=	${OBJTOP}/lib/ofed/libibverbs
+LIBIRDMADIR=	${OBJTOP}/lib/ofed/libirdma
 LIBMLX4DIR=	${OBJTOP}/lib/ofed/libmlx4
 LIBMLX5DIR=	${OBJTOP}/lib/ofed/libmlx5
 LIBRDMACMDIR=	${OBJTOP}/lib/ofed/librdmacm

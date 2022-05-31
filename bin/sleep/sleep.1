@@ -32,7 +32,7 @@
 .\"	@(#)sleep.1	8.3 (Berkeley) 4/18/94
 .\" $FreeBSD$
 .\"
-.Dd December 31, 2020
+.Dd May 25, 2022
 .Dt SLEEP 1
 .Os
 .Sh NAME
@@ -40,13 +40,22 @@
 .Nd suspend execution for an interval of time
 .Sh SYNOPSIS
 .Nm
-.Ar seconds
+.Ar number Ns Op Ar unit
+.Ar ...
 .Sh DESCRIPTION
 The
 .Nm
-command
-suspends execution for a minimum of
-.Ar seconds .
+command suspends execution for a minimum of
+.Ar number
+seconds (the default, or unit
+.Cm s ) ,
+minutes (unit
+.Cm m ) ,
+hours (unit
+.Cm h ) ,
+or days (unit
+.Cm d ) .
+If multiple arguments are passed, the delay will be the sum of all values.
 .Pp
 If the
 .Nm
@@ -62,11 +71,12 @@ signal is not handled specially by this implementation.
 .Pp
 The
 .Nm
-command allows and honors a non-integer number of seconds to sleep
-in any form acceptable by
-.Xr strtod 3 .
-This is a non-portable extension, but is also implemented in GNU sh-utils
-since version 2.0a (released in 2002).
+command supports other time units than seconds,
+honors a non-integer number of time units to sleep in any form acceptable by
+.Xr strtod 3 ,
+and accepts more than one delay value.
+These are non-portable extensions, but they have also been implemented
+in GNU sh-utils since version 2.0a (released in 2002).
 .Sh EXIT STATUS
 .Ex -std
 .Sh EXAMPLES
