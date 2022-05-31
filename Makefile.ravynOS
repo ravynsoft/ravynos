@@ -28,6 +28,9 @@ prep:
 	ln -sf ../$x ${BUILDROOT}/private/$x
 .endfor
 
+install:
+	${MAKE} -C ${TOPDIR}/installravynos
 
 .include <bsd.subdir.mk>
 .include <rvn.common.mk>
+

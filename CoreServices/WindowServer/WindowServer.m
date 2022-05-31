@@ -157,26 +157,27 @@ void launchShell(void *arg) {
             case DESKTOP: {
                 struct passwd *pw = getpwuid(uid);
                 if(!spawned && fork() == 0) {
-                    setsid();
                     ++spawned;
-                    execl("/usr/bin/su", "-", pw->pw_name, "-c", "/usr/bin/foot", NULL);
+                    execl("/usr/bin/foot", "foot", "-dnone", "/usr/bin/login", "-f", pw->pw_name, NULL);
+                    perror("execl");
                     spawned = 0;
                     exit(-1);
                 }
                 pid_t pid = fork();
                 if(pid == 0) {
-                    setsid();
-                    execl("/usr/bin/su", "-", pw->pw_name, "-c", 
-                        "/System/Library/CoreServices/WindowServer.app/Resources/SystemUIServer.app/SystemUIServer",
-                        NULL);
+                    execl("/System/Library/CoreServices/WindowServer.app/Resources/SystemUIServer.app/SystemUIServer",
+                        "SystemUIServer", NULL);
+                    perror("execl");
                     exit(-1);
                 } else if(pid < 0) {
-                    NSLog(@"error launching SystemUIServer");
+                    perror("fork");
                     sleep(3);
                     shell = LOGINWINDOW;
+                    break;
                 }
                 waitpid(pid, &status, 0);
                 shell = LOGINWINDOW;
+                execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
                 break;
             }
         }
