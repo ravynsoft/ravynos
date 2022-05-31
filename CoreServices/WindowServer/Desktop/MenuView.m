@@ -36,12 +36,40 @@
     NSRect frame = [[NSScreen mainScreen] visibleFrame];
 
     self = [super initWithFrame:NSMakeRect(0, 0, frame.size.width/2, menuBarHeight)];
+
+    sysMenu = [NSMenu new];
+    [sysMenu addItemWithTitle:@"About This Computer" action:NULL keyEquivalent:@""];
+    [sysMenu addItemWithTitle:@"System Preferences..." action:NULL keyEquivalent:@""];
+    NSMenuItem *item = [sysMenu addItemWithTitle:@"Software Store..." action:NULL keyEquivalent:@""];
+    [item setEnabled:NO];
+    [sysMenu addItem:[NSMenuItem separatorItem]];
+    [sysMenu addItemWithTitle:@"Recent Items" action:NULL keyEquivalent:@""];
+    [sysMenu addItem:[NSMenuItem separatorItem]];
+    item = [sysMenu addItemWithTitle:@"Force Quit..." action:NULL keyEquivalent:@""];
+    [item setEnabled:NO];
+    [sysMenu addItem:[NSMenuItem separatorItem]];
+    [sysMenu addItemWithTitle:@"Sleep" action:NULL keyEquivalent:@""];
+    [sysMenu addItemWithTitle:@"Restart..." action:NULL keyEquivalent:@""];
+    [sysMenu addItemWithTitle:@"Shut Down..." action:NULL keyEquivalent:@""];
+    [sysMenu addItem:[NSMenuItem separatorItem]];
+    [sysMenu addItemWithTitle:@"Lock Screen" action:NULL keyEquivalent:@""];
+    [sysMenu addItemWithTitle:@"Log Out" action:NULL keyEquivalent:@""];
+
     NSString *ravyn = [[NSBundle mainBundle] pathForResource:@"ravynos-mark-64" ofType:@"png"];
+    NSMenuItem *logoItem = [NSMenuItem new];
     NSImage *logo = [[NSImage alloc] initWithContentsOfFile:ravyn];
-    logoView = [[NSImageView alloc] initWithFrame:NSMakeRect(menuBarHPad,menuBarVPad,16,16)];
-    
-    [logoView setImage:logo];
-    [self addSubview:logoView];
+    [logoItem setImage:logo];
+    [logoItem setSubmenu:sysMenu];
+
+    NSMenu *logoMenu = [NSMenu new];
+    [logoMenu addItem:logoItem];
+
+    logoMenuView = [[NSMainMenuView alloc] initWithFrame:
+        NSMakeRect(menuBarHPad,menuBarVPad,16,16) menu:logoMenu];
+    [logoMenuView setAutoresizingMask:NSViewMinXMargin|NSViewMinYMargin];
+    [self addSubview:logoMenuView];
+    [logoMenuView setWindow:[self window]];
+
     [self setNeedsDisplay:YES];
     return self;
 }

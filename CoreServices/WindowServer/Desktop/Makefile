@@ -6,7 +6,8 @@ SRCS=           SystemUIServer.m \
                 ExtrasView.m \
                 DesktopWindow.m \
                 MenuBarWindow.m
-RESOURCES=	${.CURDIR}/../Icon.png ${.CURDIR}/ravynos-mark-64.png
+RESOURCES=	${.CURDIR}/../Icon.png ${.CURDIR}/ravynos-mark-64.png \
+                ${.CURDIR}/ReleaseLogo.tiff
 
 MK_WERROR=	no
 WARNS=	        1

@@ -102,7 +102,7 @@ system_task:
     - pkg update && pkg fetch -y -o /tmp binutils
     - tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
     - pkg install -fy python38 python3 py38-pip py38-setuptools
-    - pkg install -fy cmake jpeg-turbo tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 qt5-buildtools qt5-qmake qt5-dbus qt5-widgets qt5-dbus glib dbus-glib libffi gettext-runtime icu lxqt-build-tools gmake autoconf zip bash alsa-lib alsa-plugins mesa-dri expat gdk-pixbuf2 gettext-tools meson ninja wayland seatd evdev-proto libxml2
+    - pkg install -fy cmake jpeg-turbo tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 qt5-buildtools qt5-qmake qt5-dbus qt5-widgets qt5-dbus glib dbus-glib libffi gettext-runtime icu lxqt-build-tools gmake autoconf zip bash alsa-lib alsa-plugins mesa-dri expat gdk-pixbuf2 gettext-tools meson ninja wayland seatd evdev-proto libxml2 pango
   obj_cache:
     folder: /usr/obj
     fingerprint_key: ${CIRRUS_BUILD_ID}

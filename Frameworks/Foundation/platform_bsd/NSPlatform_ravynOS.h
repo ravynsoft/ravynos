@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2021 Zoe Knox
+ * Copyright (c) 2021-2022 Zoe Knox
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,5 +25,16 @@
 
 @interface NSPlatform_ravynOS : NSPlatform_posix {
 }
+
+- (NSString *)hostName;
+- (NSString *)DNSHostName;
+- (NSUInteger)processorCount;
+- (NSUInteger)activeProcessorCount;
+- (uint64_t)physicalMemory;
+- (NSUInteger)operatingSystem;
+- (NSString *)operatingSystemName;
+- (NSString *)operatingSystemVersionString;
+- (NSString *)CPUModel;
+- (NSString *)hostUUID;
 
 @end

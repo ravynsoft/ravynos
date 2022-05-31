@@ -53,10 +53,14 @@ typedef union {
     menuBar = nil;
 
     kern_return_t kr;
-    if((kr = bootstrap_check_in(bootstrap_port, SERVICE_NAME, &_servicePort) != KERN_SUCCESS)) {
+    int count = 10;
+    NSLog(@"uid=%u checking in %s, bp %u, servicePort %p", getuid(), SERVICE_NAME, bootstrap_port, &_servicePort);
+    while(count-- && (kr = bootstrap_check_in(bootstrap_port, SERVICE_NAME, &_servicePort) != KERN_SUCCESS)) {
         NSLog(@"Failed to check-in service: %d", kr);
-        return nil;
+        sleep(1);
     }
+    if(kr != KERN_SUCCESS)
+        return nil;
 
     return self;
 }
