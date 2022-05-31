@@ -77,6 +77,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 - (void)setPort:(mach_port_t)port forMenu:(NSMenu *)menu;
 - (void)removePortForMenu:(NSMenu *)menu;
 - (mach_port_t)portForMenu:(NSMenu *)menu;
+- (NSMenu *)menuForPID:(unsigned int)pid;
 - (void)setMenu:(NSMenu *)menu forPID:(unsigned int)pid;
 - (void)removeMenuForPID:(unsigned int)pid;
 - (BOOL)activateMenuForPID:(unsigned int)pid;

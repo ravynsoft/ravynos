@@ -31,6 +31,7 @@ typedef struct {
     mach_msg_header_t header;
     mach_msg_size_t msgh_descriptor_count;
     mach_msg_port_descriptor_t descriptor;
+    unsigned int pid;
     mach_msg_trailer_t trailer;
 } PortMessage;
 
@@ -71,7 +72,13 @@ typedef union {
             case MSG_ID_PORT:
             {
                 mach_port_t port = msg.portMsg.descriptor.name;
-                // FIXME: save port for menu/PID
+                pid_t pid = msg.portMsg.pid;
+                NSLog(@"receiveMachMessage port=%d pid=%d", port, pid);
+                NSMenu *menu = [menuBar menuForPID:pid];
+                if(menu)
+                    [menuBar setPort:port forMenu:menu];
+                else
+                    NSLog(@"Sequence Error: no menu for PID %d but received a port for it", pid);
                 break;
             }
             case MSG_ID_INLINE:
@@ -113,7 +120,6 @@ typedef union {
     [menu setDelegate:self];
     for(int i = 0; i < [items count]; ++i) {
         NSMenuItem *item = [items objectAtIndex:i];
-        NSLog(@"enumerating %@", item);
         if([item isSeparatorItem] || [item isHidden] || ![item isEnabled])
             continue;
         [item setTarget:self];
@@ -127,7 +133,6 @@ typedef union {
     NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
     pid_t pid = [[dict objectForKey:@"ProcessID"] intValue];
     NSMenu *mainMenu = [dict objectForKey:@"MainMenu"];
-    NSLog(@"received menu %@ for pid %d\n",mainMenu,pid);
     [self _menuEnumerateAndChange:mainMenu];
     [menuBar setMenu:mainMenu forPID:pid];
     if(![menuBar activateMenuForPID:pid]) // FIXME: don't activ8 right away

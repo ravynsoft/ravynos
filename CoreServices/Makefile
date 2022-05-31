@@ -23,7 +23,7 @@ build: buildWindowServer DMIHelper buildInstaller #buildDock buildFiler
 	#cp -av ${.CURDIR}/Dock/Dock.app ${BUILDROOT}/System/Library/CoreServices
 	#cp -av ${.CURDIR}/Filer/Filer.app ${BUILDROOT}/System/Library/CoreServices
 	cp -av ${.CURDIR}/Installer/"Install ravynOS.app" ${BUILDROOT}/Applications/Utilities/
-.for f in ${.CURDIR}/askpass ${.CURDIR}/enable_tapping ${.CURDIR}/tpquirk ${.CURDIR}/startDesktop
+.for f in ${.CURDIR}/askpass 
 		cp -fv ${f} ${BUILDROOT}/System/Library/CoreServices/
 		chmod 755 ${BUILDROOT}/System/Library/CoreServices/$$(basename ${f})
 .endfor

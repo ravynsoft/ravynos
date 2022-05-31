@@ -62,12 +62,21 @@
     return [numPort intValue];
 }
 
+- (NSMenu *)menuForPID:(unsigned int)pid {
+    return [menuDict objectForKey:[NSNumber numberWithInt:pid]];
+}
+
 - (void)setMenu:(NSMenu *)menu forPID:(unsigned int)pid {
     [menuDict setObject:menu forKey:[NSNumber numberWithInt:pid]];
 }
 
 - (void)removeMenuForPID:(unsigned int)pid {
-    [menuDict removeObjectForKey:[NSNumber numberWithInt:pid]];
+    NSNumber *key = [NSNumber numberWithInt:pid];
+    NSMenu *menu = [menuDict objectForKey:key];
+    if(menu) {
+        [self removePortForMenu:menu];
+        [menuDict removeObjectForKey:key];
+    }
 }
 
 - (BOOL)activateMenuForPID:(unsigned int)pid {

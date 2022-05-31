@@ -30,10 +30,9 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <sys/un.h>
-#include <sys/ucred.h>
-#include <sys/socket.h>
 #include <pthread.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include "common/font.h"
 #include "common/spawn.h"
@@ -44,22 +43,143 @@
 #include "menu/menu.h"
 
 #define SA_RESTART      0x0002  /* restart system call on signal return */
+#define XDG_DIR_PATTERN "/tmp/runtime.%u"
+#define DEBUG
+#ifdef DEBUG
+#define LOG(x...) NSLog(x)
+#else
+#define LOG(x...)
+#endif
 
 struct rcxml rc = { 0 };
+BOOL ready = NO;
+unsigned int nobodyUID, videoGID;
+char *xdgDir = 0;
 
 enum ShellType {
     NONE, LOGINWINDOW, DESKTOP
 };
 
+static inline void giveXdgDir(unsigned int uid, unsigned int gid, const char *path) {
+    LOG(@"giveXdgDir(%u %u %s)", uid, gid, path);
+    char *buf = 0;
+
+    chown(path, uid, gid);
+
+    asprintf(&buf, "%s/wayland-0", path);
+    chown(buf, uid, gid);
+    free(buf);
+
+    asprintf(&buf, "%s/wayland-0.lock", path);
+    chown(buf, uid, gid);
+    free(buf);
+
+    chown("/tmp/com.ravynos.WindowServer", uid, gid); // menu socket
+}
+
+static inline void createSymlinks(const char *path) {
+    LOG(@"createSymlinks(%s)", path);
+    char *buf = 0;
+    char *buf2 = 0;
+    asprintf(&buf, "%s/wayland-0", xdgDir);
+    asprintf(&buf2, "%s/wayland-0", path);
+    unlink(buf2);
+    symlink(buf, buf2);
+    free(buf);
+    free(buf2);
+
+    asprintf(&buf, "%s/wayland-0.lock", xdgDir);
+    asprintf(&buf2, "%s/wayland-0.lock", path);
+    unlink(buf2);
+    symlink(buf, buf2);
+    free(buf);
+    free(buf2);
+}
+
 void launchShell(void *arg) {
     enum ShellType shell = *(enum ShellType *)arg;
-    if(fork() == 0) {
-        setsid();
-        execl("/usr/bin/foot", "foot", NULL);
-        exit(-1);
-    }
+    int spawned = 0, status;
+
     while(shell != NONE) {
-        // FIXME: launch loginwindow or systemuiserver here
+        if(ready == NO) {
+            sleep(1);
+            continue;
+        }
+
+        switch(shell) {
+            case LOGINWINDOW:
+                if(seteuid(0) != 0) { // re-assert privileges
+                    perror("seteuid");
+                    exit(-1);
+                }
+
+                // take ownership of the socket, cutting off any previous user
+                giveXdgDir(nobodyUID, videoGID, xdgDir);
+
+                if(setresgid(videoGID, videoGID, 0) != 0) {
+                    perror("setresgid");
+                    exit(-1);
+                }
+                if(setresuid(nobodyUID, nobodyUID, 0) != 0) {
+                    perror("setresuid");
+                    exit(-1);
+                }
+
+                NSLog(@"FIXME: Doing the login window.");
+                int uid = 1001;
+                int gid = 1001;
+
+                // give socket to the logged in user
+                char *userXdgDir = 0;
+                asprintf(&userXdgDir, XDG_DIR_PATTERN, uid);
+                mkdir(userXdgDir, 0700);
+
+                if(seteuid(0) != 0) { // re-assert privileges
+                    perror("seteuid");
+                    exit(-1);
+                }
+                giveXdgDir(uid, gid, xdgDir);
+                createSymlinks(userXdgDir);
+                giveXdgDir(uid, gid, userXdgDir);
+                setenv("XDG_RUNTIME_DIR", userXdgDir, 1);
+                free(userXdgDir);
+
+                if(setresgid(gid, gid, 0) != 0) {
+                    perror("setresgid");
+                    exit(-1);
+                }
+                if(setresuid(uid, uid, 0) != 0) {
+                    perror("setresuid");
+                    exit(-1);
+                }
+                shell = DESKTOP;
+                break;
+            case DESKTOP: {
+                struct passwd *pw = getpwuid(uid);
+                if(!spawned && fork() == 0) {
+                    setsid();
+                    ++spawned;
+                    execl("/usr/bin/su", "-", pw->pw_name, "-c", "/usr/bin/foot", NULL);
+                    spawned = 0;
+                    exit(-1);
+                }
+                pid_t pid = fork();
+                if(pid == 0) {
+                    setsid();
+                    execl("/usr/bin/su", "-", pw->pw_name, "-c", 
+                        "/System/Library/CoreServices/WindowServer.app/Resources/SystemUIServer.app/SystemUIServer",
+                        NULL);
+                    exit(-1);
+                } else if(pid < 0) {
+                    NSLog(@"error launching SystemUIServer");
+                    sleep(3);
+                    shell = LOGINWINDOW;
+                }
+                waitpid(pid, &status, 0);
+                shell = LOGINWINDOW;
+                break;
+            }
+        }
     }
     pthread_exit(NULL);
 }
@@ -70,18 +190,31 @@ int main(int argc, const char *argv[]) {
     char *config_file = NULL;
     pthread_t shellThread;
 
-    if(getenv("XDG_RUNTIME_DIR") == NULL) {
-        char *buf = 0;
-        asprintf(&buf, "/tmp/runtime.%u", getuid());
-        setenv("XDG_RUNTIME_DIR", buf, 0);
-        if(access(buf, R_OK|W_OK|X_OK) != 0) {
-            switch(errno) {
-                case ENOENT: mkdir(buf, 0700); break;
-                default: perror("WindowServer"); exit(-1);
-            }
-        }
-        free(buf);
+    struct passwd *passwd = getpwnam("nobody");
+    if(!passwd) {
+        perror("getpwnam(nobody)");
+        exit(-1);
     }
+    nobodyUID = passwd->pw_uid;
+
+    struct group *group = getgrnam("video");
+    if(!group) {
+        perror("getgrnam(video)");
+        exit(-1);
+    }
+    videoGID = group->gr_gid;
+
+    asprintf(&xdgDir, XDG_DIR_PATTERN, nobodyUID);
+    setenv("XDG_RUNTIME_DIR", xdgDir, 1);
+    if(access(xdgDir, R_OK|W_OK|X_OK) != 0) {
+        switch(errno) {
+            case ENOENT:
+                mkdir(xdgDir, 0700);
+                break;
+            default: perror("WindowServer"); exit(-1);
+        }
+    }
+    giveXdgDir(nobodyUID, videoGID, xdgDir);
 
     NSString *confPath = [[NSBundle mainBundle] pathForResource:@"ws" ofType:@"conf"];
     config_file = [confPath UTF8String];
@@ -117,6 +250,10 @@ int main(int argc, const char *argv[]) {
     signal(SIGTHR, SIG_IGN);
     signal(SIGLIBRT, SIG_IGN);
 
+    pthread_create(&shellThread, NULL, launchShell, &shell);
+
+    setresgid(videoGID, videoGID, 0);
+    setresuid(nobodyUID, nobodyUID, 0);
     wlr_log_init(debuglevel, NULL);
 
     session_environment_init();
@@ -133,12 +270,7 @@ int main(int argc, const char *argv[]) {
     menu_init_rootmenu(&server);
     menu_init_windowmenu(&server);
 
-    pthread_create(&shellThread, NULL, launchShell, &shell);
-
-    close(0);
-    close(1);
-    close(2);
-
+    ready = YES;
     wl_display_run(server.wl_display);
 
     shell = NONE;

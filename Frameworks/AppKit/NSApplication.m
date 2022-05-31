@@ -74,6 +74,7 @@ typedef struct {
     mach_msg_header_t header;
     mach_msg_size_t msgh_descriptor_count;
     mach_msg_port_descriptor_t descriptor;
+    unsigned int pid;
 } PortMessage;
 
 @interface NSDocumentController(forward) 
@@ -437,12 +438,12 @@ id NSApp=nil;
     [d release];
 
     if(_wsSvcPort == MACH_PORT_NULL) {
-        //NSLog(@"bp=%d, looking up service %s", bootstrap_port, WINDOWSERVER_SVC_NAME);
+        NSLog(@"bp=%d, looking up service %s", bootstrap_port, WINDOWSERVER_SVC_NAME);
         if(bootstrap_look_up(bootstrap_port, WINDOWSERVER_SVC_NAME, &_wsSvcPort) != KERN_SUCCESS) {
             NSLog(@"Failed to locate WindowServer port");
             return;
         }
-        //NSLog(@"got service port %d", _wsSvcPort);
+        NSLog(@"got service port %d", _wsSvcPort);
     }
 
     PortMessage msg = {0};
@@ -454,6 +455,7 @@ id NSApp=nil;
     msg.descriptor.type = MACH_MSG_PORT_DESCRIPTOR;
     msg.descriptor.name = _wsReplyPort;
     msg.descriptor.disposition = MACH_MSG_TYPE_MAKE_SEND;
+    msg.pid = getpid();
 
     if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
         MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
