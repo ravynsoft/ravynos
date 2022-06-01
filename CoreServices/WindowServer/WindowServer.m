@@ -99,7 +99,7 @@ static char **setUpEnviron(int uid) {
     asprintf(&envp[1], "SHELL=%s", pw->pw_shell);
     asprintf(&envp[2], "USER=%s", pw->pw_name);
     asprintf(&envp[3], "LOGNAME=%s", pw->pw_name);
-    asprintf(&envp[4], "PATH=/bin:/usr/bin:/usr/local/bin");
+    asprintf(&envp[4], "PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin");
     asprintf(&envp[5], "XDG_RUNTIME_DIR=" XDG_DIR_PATTERN, uid);
     asprintf(&envp[6], "TERM=xterm");
     envp[entries - 1] = NULL;
@@ -169,6 +169,7 @@ void launchShell(void *arg) {
 
                 if(!spawned && fork() == 0) {
                     setlogin(pw->pw_name);
+                    chdir(pw->pw_dir);
 
                     login_cap_t *lc = login_getpwclass(pw);
                     if (setusercontext(lc, pw, pw->pw_uid,
@@ -186,6 +187,7 @@ void launchShell(void *arg) {
                 pid_t pid = fork();
                 if(pid == 0) {
                     setlogin(pw->pw_name);
+                    chdir(pw->pw_dir);
 
                     login_cap_t *lc = login_getpwclass(pw);
                     if (setusercontext(lc, pw, pw->pw_uid,
