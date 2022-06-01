@@ -52,11 +52,13 @@ extern const NSString *WLMenuDidUpdateNotification;
     NSMainMenuView *logoMenuView;
     NSMenu *sysMenu;
     NSMainMenuView *appMenuView;
+    NSWindow *aboutWindow;
 }
 
 - (MenuView *)init;
 - (void)setWindow:(NSWindow *)window;
 - (void)setMenu:(NSMenu *)menu;
+- (void)aboutThisComputer;
 @end
 
 // menu extras container

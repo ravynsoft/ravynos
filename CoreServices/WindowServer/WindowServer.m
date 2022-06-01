@@ -33,6 +33,7 @@
 #include <pthread.h>
 #include <pwd.h>
 #include <grp.h>
+#include <login_cap.h>
 
 #include "common/font.h"
 #include "common/spawn.h"
@@ -44,12 +45,6 @@
 
 #define SA_RESTART      0x0002  /* restart system call on signal return */
 #define XDG_DIR_PATTERN "/tmp/runtime.%u"
-#define DEBUG
-#ifdef DEBUG
-#define LOG(x...) NSLog(x)
-#else
-#define LOG(x...)
-#endif
 
 struct rcxml rc = { 0 };
 BOOL ready = NO;
@@ -61,7 +56,6 @@ enum ShellType {
 };
 
 static inline void giveXdgDir(unsigned int uid, unsigned int gid, const char *path) {
-    LOG(@"giveXdgDir(%u %u %s)", uid, gid, path);
     char *buf = 0;
 
     chown(path, uid, gid);
@@ -78,7 +72,6 @@ static inline void giveXdgDir(unsigned int uid, unsigned int gid, const char *pa
 }
 
 static inline void createSymlinks(const char *path) {
-    LOG(@"createSymlinks(%s)", path);
     char *buf = 0;
     char *buf2 = 0;
     asprintf(&buf, "%s/wayland-0", xdgDir);
@@ -94,6 +87,31 @@ static inline void createSymlinks(const char *path) {
     symlink(buf, buf2);
     free(buf);
     free(buf2);
+}
+
+static char **setUpEnviron(int uid) {
+    struct passwd *pw = getpwuid(uid);
+    if(!pw)
+        return NULL;
+    int entries = 8;
+    char **envp = malloc(sizeof(char *) * entries);
+    asprintf(&envp[0], "HOME=%s", pw->pw_dir);
+    asprintf(&envp[1], "SHELL=%s", pw->pw_shell);
+    asprintf(&envp[2], "USER=%s", pw->pw_name);
+    asprintf(&envp[3], "LOGNAME=%s", pw->pw_name);
+    asprintf(&envp[4], "PATH=/bin:/usr/bin:/usr/local/bin");
+    asprintf(&envp[5], "XDG_RUNTIME_DIR=" XDG_DIR_PATTERN, uid);
+    asprintf(&envp[6], "TERM=xterm");
+    envp[entries - 1] = NULL;
+    return envp;
+}
+
+static void freeEnviron(char **envp) {
+    if(envp == NULL)
+        return;
+
+    while(*envp != NULL)
+        free(*envp++);
 }
 
 void launchShell(void *arg) {
@@ -128,6 +146,7 @@ void launchShell(void *arg) {
                 NSLog(@"FIXME: Doing the login window.");
                 int uid = 1001;
                 int gid = 1001;
+                struct passwd *pw = getpwuid(uid);
 
                 // give socket to the logged in user
                 char *userXdgDir = 0;
@@ -141,32 +160,43 @@ void launchShell(void *arg) {
                 giveXdgDir(uid, gid, xdgDir);
                 createSymlinks(userXdgDir);
                 giveXdgDir(uid, gid, userXdgDir);
-                setenv("XDG_RUNTIME_DIR", userXdgDir, 1);
                 free(userXdgDir);
 
-                if(setresgid(gid, gid, 0) != 0) {
-                    perror("setresgid");
-                    exit(-1);
-                }
-                if(setresuid(uid, uid, 0) != 0) {
-                    perror("setresuid");
-                    exit(-1);
-                }
                 shell = DESKTOP;
                 break;
             case DESKTOP: {
-                struct passwd *pw = getpwuid(uid);
+                char **envp = setUpEnviron(uid);
+
                 if(!spawned && fork() == 0) {
+                    setlogin(pw->pw_name);
+
+                    login_cap_t *lc = login_getpwclass(pw);
+                    if (setusercontext(lc, pw, pw->pw_uid,
+                        LOGIN_SETALL & ~(LOGIN_SETLOGIN)) != 0) {
+                            perror("setusercontext");
+                            exit(-1);
+                    }
+                    login_close(lc);
                     ++spawned;
-                    execl("/usr/bin/foot", "foot", "-dnone", "/usr/bin/login", "-f", pw->pw_name, NULL);
+                    execle("/usr/bin/foot", "foot", "-dnone", "-L", NULL, envp);
                     perror("execl");
                     spawned = 0;
                     exit(-1);
                 }
                 pid_t pid = fork();
                 if(pid == 0) {
-                    execl("/System/Library/CoreServices/WindowServer.app/Resources/SystemUIServer.app/SystemUIServer",
-                        "SystemUIServer", NULL);
+                    setlogin(pw->pw_name);
+
+                    login_cap_t *lc = login_getpwclass(pw);
+                    if (setusercontext(lc, pw, pw->pw_uid,
+                        LOGIN_SETALL & ~(LOGIN_SETLOGIN)) != 0) {
+                            perror("setusercontext");
+                            exit(-1);
+                    }
+                    login_close(lc);
+
+                    execle("/System/Library/CoreServices/WindowServer.app/Resources/SystemUIServer.app/SystemUIServer",
+                        "SystemUIServer", NULL, envp);
                     perror("execl");
                     exit(-1);
                 } else if(pid < 0) {
@@ -175,6 +205,7 @@ void launchShell(void *arg) {
                     shell = LOGINWINDOW;
                     break;
                 }
+                freeEnviron(envp);
                 waitpid(pid, &status, 0);
                 shell = LOGINWINDOW;
                 execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);

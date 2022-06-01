@@ -63,7 +63,7 @@ CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${.CURDIR}/gplv2/include -I${MAKEOBJDIR} \
                 -framework Foundation 
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' ${LDFLAGS_PKGS} \
 		-L${MAKEOBJDIR}/wlroots -lwlroots -lm -linput -lpixman-1 \
-                -lobjc -lwayland-server -lSystem -lxkbcommon -lseat
+                -lobjc -lwayland-server -lSystem -lxkbcommon -lseat -lutil
 WLPROTOS=       ${.CURDIR}/wayland-protocols
 WLR_VER!=       grep version: ${.CURDIR}/wlroots/meson.build|sed -e '1s/[^0-9.]*//g;q'
 

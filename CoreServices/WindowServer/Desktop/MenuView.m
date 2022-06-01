@@ -36,6 +36,7 @@
     NSRect frame = [[NSScreen mainScreen] visibleFrame];
 
     self = [super initWithFrame:NSMakeRect(0, 0, frame.size.width/2, menuBarHeight)];
+    aboutWindow = nil;
 
     sysMenu = [NSMenu new];
     [sysMenu addItemWithTitle:@"About This Computer" action:NULL keyEquivalent:@""];
@@ -95,6 +96,28 @@
     [appMenuView setWindow:[self window]];
 
     [self setNeedsDisplay:YES];
+}
+
+- (void)aboutThisComputer {
+    if(aboutWindow) {
+        [aboutWindow makeKeyAndOrderFront:nil];
+        return;
+    }
+
+    aboutWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,600,400)
+        styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
+    [aboutWindow setTitle:@"About This Computer"];
+
+    NSImageView *iv = [[NSImageView alloc] initWithFrame:NSMakeRect(0,0,140,140)];
+    NSString *releaseLogo = [[NSBundle mainBundle] pathForResource:@"ReleaseLogo" ofType:@"tiff"];
+    NSImage *img = [[NSImage alloc] initWithContentsOfFile:releaseLogo];
+    [iv setImage:img];
+    [[aboutWindow contentView] addSubview:iv];
+
+    NSTextView *tv = [[NSTextView alloc] initWithFrame:NSMakeRect(0,0,460,260)];
+    [tv insertText:@"ravynOS Pygmy Marmoset\nVersion: 0.4.0pre3\nSome Computer\nProcessor: 8-core Foo Bar\nMemory: 16GB\nGraphics: CoolGPU 1234 8GB"];
+    [[aboutWindow contentView] addSubview:tv];
+    [aboutWindow makeKeyAndOrderFront:nil];
 }
 
 @end

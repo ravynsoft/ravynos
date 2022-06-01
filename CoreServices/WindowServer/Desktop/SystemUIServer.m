@@ -112,19 +112,6 @@ void machSvcLoop(void *arg) {
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
 
-    if(getenv("XDG_RUNTIME_DIR") == NULL) {
-        char *buf = 0;
-        asprintf(&buf, "/tmp/runtime.%u", getuid());
-        setenv("XDG_RUNTIME_DIR", buf, 0);
-        if(access(buf, R_OK|W_OK|X_OK) != 0) {
-            switch(errno) {
-                case ENOENT: mkdir(buf, 0700); break;
-                default: perror("SystemUIServer"); exit(-1);
-            }
-        }
-        free(buf);
-    }
-
     NSLog(@"Initializing NSApplication");
     [NSApplication sharedApplication];
     NSNotificationCenter *nctr = [NSNotificationCenter defaultCenter];
@@ -147,6 +134,7 @@ int main(int argc, const char *argv[]) {
     pthread_create(&machSvcThread, NULL, machSvcLoop, (__bridge void *)del);
 
     [NSApp run];
+    NSLog(@"App terminated");
     return 0;
 }
 
