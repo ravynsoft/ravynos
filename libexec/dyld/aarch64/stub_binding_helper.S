@@ -58,10 +58,10 @@ _stub_binding_helper:
 	stp	q4,q5, [fp, #-192]
 	stp	q6,q7, [fp, #-224]
 
-	ldr	x0, [fp, #24]			; move address of mach header to 1st parameter
-	ldr	x1, [fp, #16]			; move address of lazy pointer to 2nd parameter
+	ldr	x0, [fp, #24]			// move address of mach header to 1st parameter
+	ldr	x1, [fp, #16]			// move address of lazy pointer to 2nd parameter
 
-	; call dyld::bindLazySymbol(mh, lazy_symbol_pointer_address)
+	// call dyld::bindLazySymbol(mh, lazy_symbol_pointer_address)
 	bl	dyld_macho_fast_lazy_bind
 	mov	x16, x0
 	
@@ -77,7 +77,7 @@ _stub_binding_helper:
 
 	mov	sp, fp
 	ldp	fp, lr, [sp], #16
-	add	sp, sp, #16			; remove meta-parameters
+	add	sp, sp, #16			// remove meta-parameters
 
-	bx	x16    				; jump to the symbol`s address that was bound
+	br	x16    				// jump to the symbol`s address that was bound
 

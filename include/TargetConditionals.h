@@ -80,7 +80,6 @@
 
 ****************************************************************************************************/
 
-
 /*
  *    gcc based compiler used on Mac OS X
  */
@@ -192,7 +191,7 @@
         #define TARGET_RT_LITTLE_ENDIAN 1
         #define TARGET_RT_BIG_ENDIAN    0
         #define TARGET_RT_64_BIT        0
-    #elif defined(__arm64__)
+    #elif defined(__arm64__) || defined(__aarch64__)
         #define TARGET_CPU_PPC          0
         #define TARGET_CPU_PPC64        0
         #define TARGET_CPU_68K          0

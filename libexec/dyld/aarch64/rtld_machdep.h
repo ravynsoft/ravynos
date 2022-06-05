@@ -42,7 +42,7 @@ struct Struct_Obj_Entry;
 #define	rtld_dynamic(obj)						\
 ({									\
 	Elf_Addr _dynamic_addr;						\
-	asm volatile("adr	%0, _DYNAMIC" : "=&r"(_dynamic_addr));	\
+	__asm __volatile("adr	%0, _DYNAMIC" : "=&r"(_dynamic_addr));	\
 	(const Elf_Dyn *)_dynamic_addr;					\
 })
 

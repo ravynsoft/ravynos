@@ -61,7 +61,7 @@
 #include <machine/atomic.h>
 
 #if !(defined(__i386__) || defined(__x86_64__) || defined(__sparc64__) || \
-      defined(__sparc__) || defined(__ia64__))
+      defined(__sparc__) || defined(__ia64__) || defined(__arm64__) || defined(__aarch64__))
 /*
  * XXX atomic.h for each arch that doesn't have atomic_*_64() should maybe
  * have something like the following.

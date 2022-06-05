@@ -39,7 +39,13 @@ include/machine: ${.CURDIR}/Makefile
 	ln -sf ${.CURDIR}/../../sys/x86/include include/machine
 .endif
 
-.if ${TARGET} == "amd64" || ${TARGET} == "i386"
+.if ${TARGET} == "aarch64" || ${TARGET} == "arm64"
+include/machine: ${.CURDIR}/Makefile
+	mkdir -p include
+	ln -sf ${.CURDIR}/../../sys/arm64/include include/machine
+.endif
+
+.if ${TARGET} == "amd64" || ${TARGET} == "i386" || ${TARGET} == "aarch64" || ${TARGET} == "arm64"
 ident.c: include/machine
 .else
 ident.c: 
@@ -50,7 +56,7 @@ ident.c:
 
 
 CLEANFILES+= ident.c *.o *~ *.gz cscope.* 
-.if ${TARGET} == "amd64" || ${TARGET} == "i386"
+.if ${TARGET} == "amd64" || ${TARGET} == "i386" || ${TARGET} == "aarch64" || ${TARGET} == "arm64"
 CLEANFILES+= include/machine
 .endif
 

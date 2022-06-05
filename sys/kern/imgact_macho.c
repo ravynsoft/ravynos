@@ -67,6 +67,26 @@ extern const char *syscallnames[];
 
 static int macho_szsigcode;
 
+#if defined(__amd64__)
+
+#define __MAXUSER              VM_MAXUSER_ADDRESS_LA48
+#define __USRSTACK             USRSTACK_LA48
+#define __FORK_RETVAL          x86_set_fork_retval
+
+#elif defined(__arm64__) || defined(__aarch64__)
+
+// from sys/arm64/arm64/elf32_machdep.c
+#define FREEBSD32_MAXUSER      ((1ul << 32) - PAGE_SIZE)
+
+#define __MAXUSER              VM_MAXUSER_ADDRESS
+#define __USRSTACK             (FREEBSD32_MAXUSER - PAGE_SIZE)
+#define __FORK_RETVAL          null_set_fork_retval
+extern void null_set_fork_retval(struct thread *td);
+
+#else
+#error "unhandled architecture"
+#endif
+
 struct sysentvec macho_sysvec = {
 	.sv_size	= SYS_MAXSYSCALL,
 	.sv_table	= sysent,
@@ -79,8 +99,8 @@ struct sysentvec macho_sysvec = {
 	.sv_imgact_try	= NULL,
 	.sv_minsigstksz	= MINSIGSTKSZ,
 	.sv_minuser	= VM_MIN_ADDRESS,
-	.sv_maxuser	= VM_MAXUSER_ADDRESS_LA48,
-	.sv_usrstack	= USRSTACK_LA48,
+	.sv_maxuser	= __MAXUSER,
+	.sv_usrstack	= __USRSTACK,
 	.sv_psstrings	= 0, //PS_STRINGS_LA48,
 	.sv_psstringssz	= 0, //sizeof(struct ps_strings),
 	.sv_stackprot	= VM_PROT_ALL,
@@ -94,7 +114,7 @@ struct sysentvec macho_sysvec = {
 	.sv_syscallnames = syscallnames,
 	.sv_onexec_old	= exec_onexec_old,
 	.sv_onexit	= exit_onexit,
-	.sv_set_fork_retval = x86_set_fork_retval,
+	.sv_set_fork_retval = __FORK_RETVAL,
 };
 
 static void

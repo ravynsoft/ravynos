@@ -38,23 +38,24 @@ dyld_stub_binder:
 	stp		fp, lr, [sp, #-16]!
 	mov		fp, sp
 	sub		sp, sp, #240
-	stp		x0,x1, [fp, #-16]	; x0-x7 are int parameter registers
+	stp		x0,x1, [fp, #-16]	// x0-x7 are int parameter registers
 	stp		x2,x3, [fp, #-32]
 	stp		x4,x5, [fp, #-48]
 	stp		x6,x7, [fp, #-64]
-	stp		x8,x9, [fp, #-80]	; x8 is used for struct returns
-	stp		q0,q1, [fp, #-128]	; q0-q7 are vector/fp parameter registers
+	stp		x8,x9, [fp, #-80]	// x8 is used for struct returns
+	stp		q0,q1, [fp, #-128]	// q0-q7 are vector/fp parameter registers
 	stp		q2,q3, [fp, #-160]
 	stp		q4,q5, [fp, #-192]
 	stp		q6,q7, [fp, #-224]
 
-	ldr		x0, [fp, #24]	; move address ImageLoader cache to 1st parameter
-	ldr		x1, [fp, #16]	; move lazy info offset 2nd parameter
-	; call dyld::fastBindLazySymbol(loadercache, lazyinfo)
-	bl		__Z21_dyld_fast_stub_entryPvl
-	mov		x16,x0			; save target function address in lr
+	ldr		x0, [fp, #24]	// move address ImageLoader cache to 1st parameter
+	ldr		x1, [fp, #16]	// move lazy info offset 2nd parameter
+
+	// call dyld::fastBindLazySymbol(loadercache, lazyinfo)
+	bl		dyld_macho_fast_lazy_bind
+	mov		x16,x0			// save target function address in lr
 	
-	; restore parameter registers
+	// restore parameter registers
 	ldp		x0,x1, [fp, #-16]
 	ldp		x2,x3, [fp, #-32]
 	ldp		x4,x5, [fp, #-48]
@@ -67,6 +68,6 @@ dyld_stub_binder:
 	
 	mov		sp, fp
 	ldp		fp, lr, [sp], #16
-	add		sp, sp, #16	; remove meta-parameters
+	add		sp, sp, #16	// remove meta-parameters
 	br      x16
 
