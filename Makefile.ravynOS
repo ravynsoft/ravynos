@@ -7,11 +7,24 @@ CORES!= sysctl -n hw.ncpu
 
 MK_WERROR=      no
 WARNS=          1
-SUBDIR=		Library Frameworks .WAIT installravynos \
-		CoreServices bin/open
-#		sysmenu CoreServices bin/open
 
+WITHOUT_LIBRARY?=       0
+WITHOUT_FRAMEWORKS?=    0
+WITHOUT_CORESERVICES?=  0
+
+SUBDIR=
+.if ${WITHOUT_LIBRARY} == 0
+SUBDIR+=        Library
+.endif
+.if ${WITHOUT_FRAMEWORKS} == 0
 # We need the installed frameworks to correctly link CoreServices and applications
+SUBDIR+=	Frameworks .WAIT installravynos
+.endif
+.if ${WITHOUT_CORESERVICES} == 0
+SUBDIR+=        CoreServices
+.endif
+SUBDIR+=        bin/open
+
 
 prep:
 	mkdir -p ${OBJPREFIX} ${TOPDIR}/dist ${BUILDROOT}
