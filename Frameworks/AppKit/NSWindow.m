@@ -2000,7 +2000,9 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
        [_drawers makeObjectsPerformSelector:@selector(parentWindowDidClose:) withObject:self];
 
    [self postNotificationName:NSWindowWillCloseNotification];
-    
+
+   [[self platformWindow] close];
+
    if(_releaseWhenClosed)
     [self autorelease];
 }

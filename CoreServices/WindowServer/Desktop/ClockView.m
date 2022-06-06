@@ -65,7 +65,6 @@ static void clockLoop(void *arg) {
     f.size = [[self textStorage] size];
     f.origin.x = frame.size.width - f.size.width - menuBarHPad;
     [self setFrame:f];
-    [self display];
     pthread_create(&updater, NULL, clockLoop, (__bridge void *)self);
 
     return self;
@@ -79,11 +78,6 @@ static void clockLoop(void *arg) {
             [textStorage replaceCharactersInRange:NSMakeRange(0,[[textStorage string] length])
                 withString:[dateFormatter stringForObjectValue:[NSDate date]]];
             [textStorage endEditing];
-
-            if(window == nil)
-                window = [self window];
-            else
-                [window displayIfNeeded];
         }
         usleep(500000);
     }

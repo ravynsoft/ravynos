@@ -269,21 +269,14 @@ static NSString *_formatAsGB(unsigned long bytes)
     [aboutWindow makeKeyAndOrderFront:nil];
 }
 
+/* NSWindow delegate */
 - (BOOL)windowShouldClose:(NSWindow *)window {
-    NSLog(@"window should close: %@", window);
-    if([window isEqual:aboutWindow]) {
-        NSLog(@"aboutWindow should close");
-        aboutWindow = nil;
-    }
     return YES;
 }
 
 - (void)windowWillClose:(NSNotification *)note {
-    NSLog(@"window closing: %@", [note object]);
-    if([[note object] isEqual:aboutWindow]) {
-        NSLog(@"aboutWindow closing");
+    if([[note object] isEqual:aboutWindow])
         aboutWindow = nil;
-    }
 }
 
 @end

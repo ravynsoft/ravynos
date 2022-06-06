@@ -33,6 +33,7 @@ base_task:
   obj_cache:
     folder: /usr/obj
     fingerprint_key: ${CIRRUS_BUILD_ID}
+    reupload_on_changes: true
   base_build_script:
     - mkdir -p /usr/obj/$(pwd -P)
     - make -j$(sysctl -n hw.ncpu) WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang buildworld
@@ -70,6 +71,7 @@ kernel_task:
   obj_cache:
     folder: /usr/obj
     fingerprint_key: ${CIRRUS_BUILD_ID}
+    reupload_on_changes: true
   kernel_build_script:
     - mkdir -p /usr/obj/$(pwd -P)
     - make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN COMPILER_TYPE=clang buildkernel
@@ -108,6 +110,7 @@ system_task:
   obj_cache:
     folder: /usr/obj
     fingerprint_key: ${CIRRUS_BUILD_ID}
+    reupload_on_changes: true
   system_build_script:
     - make COMPILER_TYPE=clang -f Makefile.ravynOS prep
     - cp -fv share/mk/* /usr/share/mk/
