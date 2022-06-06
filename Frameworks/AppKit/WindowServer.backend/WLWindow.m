@@ -54,7 +54,7 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
             break;
         // FIXME: tool window style?
         default:
-            *top=44;
+            *top=36;
             *left=0;
             *bottom=0;
             *right=0;
@@ -109,7 +109,7 @@ static void layer_surface_configure(void *data,
 
 static void layer_surface_closed(void *data, struct zwlr_layer_surface_v1 *surface) {
     WLWindow *win = (WLWindow *)data;
-    [win release];
+    [win close];
 }
 
 struct zwlr_layer_surface_v1_listener layer_surface_listener = {
@@ -150,8 +150,15 @@ static void xdg_toplevel_handle_configure(void *data,
     }
 }
 
+static void xdg_toplevel_handle_close(void *data,
+    struct xdg_toplevel *xdg_toplevel) {
+    WLWindow *win = (__bridge WLWindow *)data;
+    [win close];
+}
+
 static const struct xdg_toplevel_listener xdg_toplevel_listener = {
     .configure = xdg_toplevel_handle_configure,
+    .close = xdg_toplevel_handle_close,
 };
 
 static void
@@ -289,8 +296,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 }
 
 -(void)close {
-    if(_styleMask & WLWindowPopUp)
-        [self _destroySurface];
+    [self _destroySurface];
     [self release];
 }
 

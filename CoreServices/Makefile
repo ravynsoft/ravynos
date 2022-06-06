@@ -25,6 +25,7 @@ build: buildWindowServer DMIHelper buildInstaller #buildDock buildFiler
 	mkdir -p ${BUILDROOT}/System/Library/CoreServices/
 	mkdir -p ${BUILDROOT}/Applications/Utilities/
 	sed -e 's/RAVYNOS_VERSION/${RAVYNOS_VERSION}/' \
+            -e 's/RAVYNOS_CODENAME/${RAVYNOS_CODENAME}/' \
             -e 's/BUILD_STAMP/${SHA}/' < ${.CURDIR}/SystemVersion.plist.in \
             >${BUILDROOT}/System/Library/CoreServices/SystemVersion.plist
 	cp -av ${.CURDIR}/WindowServer/WindowServer.app ${BUILDROOT}/System/Library/CoreServices

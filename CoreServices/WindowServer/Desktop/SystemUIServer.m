@@ -134,7 +134,6 @@ int main(int argc, const char *argv[]) {
     pthread_create(&machSvcThread, NULL, machSvcLoop, (__bridge void *)del);
 
     [NSApp run];
-    NSLog(@"App terminated");
     return 0;
 }
 

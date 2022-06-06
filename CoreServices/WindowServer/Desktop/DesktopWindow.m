@@ -80,9 +80,13 @@ const NSString *PrefsWallpaperPathKey = @"WallpaperPath";
 }
 
 - (void)updateBackground {
-    NSString *wallpaper = [[NSUserDefaults standardUserDefaults] stringForKey:PrefsWallpaperPathKey];
-    if(wallpaper == nil || [wallpaper length] == 0)
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    NSString *wallpaper = [prefs stringForKey:PrefsWallpaperPathKey];
+    if(wallpaper == nil || [wallpaper length] == 0) {
         wallpaper = @"/System/Library/Desktop Pictures/Mountain.jpg";
+        [prefs setObject:wallpaper forKey:PrefsWallpaperPathKey];
+        [prefs synchronize];
+    }
 
     NSImage *image = [[NSImage alloc] initWithContentsOfFile:wallpaper];
     [view setImage:image];

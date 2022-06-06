@@ -39,12 +39,11 @@ extern const NSString *WLMenuDidUpdateNotification;
 @interface ClockView: NSTextView {
     NSDateFormatter *dateFormatter;
     NSString *dateFormat;
-    NSTimer *updateTimer;
     NSDictionary *attributes;
 }
 
 - (ClockView *)init;
-- (void)update:(NSTimer *)timer;
+- (void)update:(NSWindow *)window;
 @end
 
 // system and application menu titles view
@@ -58,7 +57,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 - (MenuView *)init;
 - (void)setWindow:(NSWindow *)window;
 - (void)setMenu:(NSMenu *)menu;
-- (void)aboutThisComputer;
+- (void)aboutThisComputer:(id)sender;
 @end
 
 // menu extras container

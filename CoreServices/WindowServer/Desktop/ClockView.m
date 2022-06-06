@@ -25,6 +25,12 @@
 
 const NSString *PrefsDateFormatStringKey = @"DateFormatString";
 const NSString *defaultFormatEN = @"%a %b %d  %I:%M %p";
+pthread_t updater;
+
+static void clockLoop(void *arg) {
+    ClockView *cv = (__bridge ClockView *)arg;
+    [cv update:[cv window]];
+}
 
 @implementation ClockView
 - init {
@@ -48,28 +54,39 @@ const NSString *defaultFormatEN = @"%a %b %d  %I:%M %p";
     NSFont *font = [NSFont systemFontOfSize:15];
     attributes = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
 
-    [self update:nil];
+    NSTextStorage *textStorage = [self textStorage];
+    [textStorage beginEditing];
+    [textStorage setAttributedString:[[NSAttributedString alloc]
+            initWithString:[dateFormatter stringForObjectValue:[NSDate date]]
+            attributes:attributes]];
+    [textStorage endEditing];
+
     NSRect f = [self frame];
     f.size = [[self textStorage] size];
     f.origin.x = frame.size.width - f.size.width - menuBarHPad;
     [self setFrame:f];
-    [self setNeedsDisplay:YES];
+    [self display];
+    pthread_create(&updater, NULL, clockLoop, (__bridge void *)self);
 
-    updateTimer = [NSTimer scheduledTimerWithTimeInterval:0.5 target:self 
-        selector:@selector(update:) userInfo:nil repeats:YES];
     return self;
 }
 
-- (void)dealloc {
-    [updateTimer invalidate];
-    //[super dealloc];
-}
+- (void)update:(NSWindow*)window {
+    NSTextStorage *textStorage = [self textStorage];
+    while(1) {
+        @autoreleasepool {
+            [textStorage beginEditing];
+            [textStorage replaceCharactersInRange:NSMakeRange(0,[[textStorage string] length])
+                withString:[dateFormatter stringForObjectValue:[NSDate date]]];
+            [textStorage endEditing];
 
-- (void)update:(NSTimer *)timer {
-    [[self textStorage] setAttributedString:[[NSAttributedString alloc]
-        initWithString:[dateFormatter stringForObjectValue:[NSDate date]]
-        attributes:attributes]];
-    [self setNeedsDisplay:YES];
+            if(window == nil)
+                window = [self window];
+            else
+                [window displayIfNeeded];
+        }
+        usleep(500000);
+    }
 }
 
 @end

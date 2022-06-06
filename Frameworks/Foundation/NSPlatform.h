@@ -56,6 +56,16 @@ FOUNDATION_EXPORT NSString *const NSPlatformResourceNameSuffix;
 - (BOOL)writeContentsOfFile:(NSString *)path bytes:(const void *)bytes length:(NSUInteger)length options:(NSUInteger)options error:(NSError **)errorp;
 
 - (void)checkEnvironmentKey:(NSString *)key value:(NSString *)value;
+
+- (NSUInteger)processorCount;
+- (NSUInteger)activeProcessorCount;
+- (uint64_t)physicalMemory;
+- (NSUInteger)operatingSystem;
+- (NSString *)operatingSystemName;
+- (NSString *)operatingSystemVersionString;
+- (NSString *)CPUModel;
+- (NSString *)hostUUID;
+
 @end
 
 FOUNDATION_EXPORT int NSPlatformProcessorCount();
