@@ -126,6 +126,8 @@
 #define x86_AVX_STATE64                 17
 #define x86_AVX_STATE                   18
 
+#define ARM_THREAD_STATE                1
+#define ARM_THREAD_STATE64              7
 
 typedef	natural_t	*thread_state_t;	/* Variable-length array */
 

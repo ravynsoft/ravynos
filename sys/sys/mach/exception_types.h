@@ -1,7 +1,7 @@
 #ifndef _MACH_EXCEPTION_TYPES_H_
 #define _MACH_EXCEPTION_TYPES_H_
 
-#if defined(__i386__) || defined(__amd64__)
+#if defined(__i386__) || defined(__amd64__) || defined(__arm64__) || defined(__aarch64__)
 #define EXC_TYPES_COUNT 13
 #else
 #define EXC_TYPES_COUNT 2

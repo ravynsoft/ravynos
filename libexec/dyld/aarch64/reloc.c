@@ -551,7 +551,7 @@ allocate_initial_tls(Obj_Entry *objs)
 
 	tp = (Elf_Addr **) allocate_tls(objs, NULL, TLS_TCB_SIZE, 16);
 
-	asm volatile("msr	tpidr_el0, %0" : : "r"(tp));
+	__asm __volatile("msr	tpidr_el0, %0" : : "r"(tp));
 }
 
 void *
