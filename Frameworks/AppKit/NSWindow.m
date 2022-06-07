@@ -424,7 +424,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
 }
 
 -(NSDictionary *)deviceDescription {
-   NSValue *resolution=[NSValue valueWithSize:NSMakeSize(72.0,72.0)];
+   NSValue *resolution=[NSValue valueWithSize:NSMakeSize(96.0,96.0)];
    NSValue *size=[NSValue valueWithSize:[self frame].size];
    
    return [NSDictionary dictionaryWithObjectsAndKeys:

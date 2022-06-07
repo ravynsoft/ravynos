@@ -54,7 +54,7 @@ void CGNativeBorderFrameWidthsForStyle(unsigned styleMask,CGFloat *top,CGFloat *
             break;
         // FIXME: tool window style?
         default:
-            *top=36;
+            *top=30;
             *left=0;
             *bottom=0;
             *right=0;

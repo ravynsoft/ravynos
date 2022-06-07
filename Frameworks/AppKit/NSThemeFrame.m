@@ -97,7 +97,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     O2ContextFillPath(_context);
 
     // window controls
-    CGRect button = NSMakeRect(12, _frame.size.height - 24, 12, 12);
+    int diameter = 12;
+    CGRect button = NSMakeRect(diameter, _frame.size.height - 20, diameter, diameter);
     O2ContextSetRGBFillColor(_context, 1, 0, 0, 1);
     O2ContextFillEllipseInRect(_context, button);
     O2ContextSetRGBFillColor(_context, 1, 0.9, 0, 1);
@@ -118,7 +119,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         NSSize size = [title size];
         NSRect titleRect = NSMakeRect(
             _frame.size.width / 2 - size.width / 2,
-            _frame.size.height - 32 + size.height / 2,
+            _frame.size.height - 30 + size.height / 2,
             _frame.size.width / 2 + size.width / 2,
             _frame.size.height - 4);
         [title drawInRect:titleRect];

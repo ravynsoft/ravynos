@@ -23,6 +23,7 @@
 #import <AppKit/AppKit.h>
 #import <Foundation/NSPlatform.h>
 #import "desktop.h"
+#import "AboutWindow.h"
 
 @interface NSMenu(private)
 -(NSString *)_name;
@@ -31,13 +32,6 @@
 @interface NSMainMenuView(private)
 -(void)setWindow:(NSWindow *)window;
 @end
-
-static NSString *_formatAsGB(unsigned long bytes)
-{
-    double gb = (double)bytes;
-    gb /=  (1024.0 * 1024.0 * 1024.0);
-    return [NSString stringWithFormat:@"%.1f GB", gb];
-}
 
 @implementation MenuView
 - init {
@@ -108,164 +102,14 @@ static NSString *_formatAsGB(unsigned long bytes)
     [self setNeedsDisplay:YES];
 }
 
-#define LOGO_WIDTH 140
-#define LOGO_HEIGHT 140
-#define WIN_WIDTH 550
-#define WIN_HEIGHT 300
-#define V_SPACER 40
-#define H_SPACER 15
 - (void)aboutThisComputer:(id)sender {
     if(aboutWindow) {
-        NSLog(@"re-using aboutWindow");
         [aboutWindow orderFront:nil];
         return;
     }
 
-    aboutWindow = [[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,WIN_WIDTH,WIN_HEIGHT)
-        styleMask:NSTitledWindowMask backing:NSBackingStoreBuffered defer:NO];
-    [aboutWindow setTitle:@"About This Computer"];
+    aboutWindow = [AboutWindow new];
     [aboutWindow setDelegate:self];
-
-    NSImageView *iv = [[NSImageView alloc] initWithFrame:NSMakeRect(0, WIN_HEIGHT/2 - LOGO_HEIGHT/2,
-        LOGO_WIDTH, LOGO_HEIGHT)];
-    NSString *releaseLogo = [[NSBundle mainBundle] pathForResource:@"ReleaseLogo" ofType:@"tiff"];
-    NSImage *img = [[NSImage alloc] initWithContentsOfFile:releaseLogo];
-    [img setScalesWhenResized:YES];
-    [img setSize:NSMakeSize(LOGO_WIDTH, LOGO_HEIGHT)];
-    [iv setImage:img];
-    [[aboutWindow contentView] addSubview:iv];
-
-    NSDictionary *osVersionDictionary = [NSDictionary
-        dictionaryWithContentsOfFile:@"/System/Library/CoreServices/SystemVersion.plist"];
-
-    NSFontManager *fontmgr = [NSFontManager sharedFontManager];
-    NSFont *fontBigBold = [fontmgr convertFont:[NSFont systemFontOfSize:32] toHaveTrait:NSBoldFontMask];
-    NSFont *fontMed = [NSFont systemFontOfSize:20];
-    NSFont *fontNormal = [NSFont systemFontOfSize:14];
-    NSFont *fontBold = [fontmgr convertFont:fontNormal toHaveTrait:NSBoldFontMask];
-
-    NSTextView *tv = [[NSTextView alloc] initWithFrame:NSMakeRect(LOGO_WIDTH + H_SPACER, V_SPACER,
-        WIN_WIDTH - LOGO_WIDTH - H_SPACER, WIN_HEIGHT - V_SPACER - 10)];
-    [tv setDrawsBackground:NO];
-    NSTextStorage *ts = [tv textStorage];
-
-    [ts beginEditing];
-
-    NSAttributedString *s = [[NSAttributedString alloc] initWithString:
-        [osVersionDictionary objectForKey:@"ProductName"]
-        attributes:[NSDictionary dictionaryWithObject:fontBigBold forKey:NSFontAttributeName]];
-    [ts appendAttributedString:s];
-
-    s = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@" %@\n",
-        [osVersionDictionary objectForKey:@"ProductFamily"]]
-        attributes:[NSDictionary dictionaryWithObject:fontMed forKey:NSFontAttributeName]];
-    [ts appendAttributedString:s];
-
-    s = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"Version: %@\n\n\n\n",
-        [osVersionDictionary objectForKey:@"ProductUserVisibleVersion"]]
-        attributes:[NSDictionary dictionaryWithObject:fontNormal forKey:NSFontAttributeName]];
-    [ts appendAttributedString:s];
-
-    FILE *fp = popen("/System/Library/CoreServices/DMIHelper", "r");
-    if(fp) {
-        char buf1[80];
-        char buf2[80];
-        memset(buf1, 0, sizeof(buf1));
-        memset(buf2, 0, sizeof(buf2));
-        if(fgets(buf1, sizeof(buf1), fp) != NULL)
-            buf1[strlen(buf1) - 1] = 0;
-        if(fgets(buf2, sizeof(buf2), fp) != NULL)
-            buf2[strlen(buf2) - 1] = 0;
-        pclose(fp);
-        s = [[NSAttributedString alloc] initWithString:[NSString 
-            stringWithFormat:@"%s %s", buf1, buf2]
-            attributes:[NSDictionary dictionaryWithObject:fontBold forKey:NSFontAttributeName]];
-        [ts appendAttributedString:s];
-    }
-
-    NSPlatform *platform = [NSPlatform currentPlatform];
-    s = [[NSAttributedString alloc] initWithString:@"\n\nProcessor: "
-        attributes:[NSDictionary dictionaryWithObject:fontBold forKey:NSFontAttributeName]];
-    [ts appendAttributedString:s];
-    s = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%u-core %@",
-            [platform processorCount], [platform CPUModel]]
-            attributes:[NSDictionary dictionaryWithObject:fontNormal forKey:NSFontAttributeName]];
-    [ts appendAttributedString:s];
-
-    s = [[NSAttributedString alloc] initWithString:@"\n\nMemory: "
-        attributes:[NSDictionary dictionaryWithObject:fontBold forKey:NSFontAttributeName]];
-    [ts appendAttributedString:s];
-    s = [[NSAttributedString alloc] initWithString:_formatAsGB([platform physicalMemory])
-            attributes:[NSDictionary dictionaryWithObject:fontNormal forKey:NSFontAttributeName]];
-    [ts appendAttributedString:s];
-
-    s = [[NSAttributedString alloc] initWithString:@"\n\nGraphics: "
-        attributes:[NSDictionary dictionaryWithObject:fontBold forKey:NSFontAttributeName]];
-    [ts appendAttributedString:s];
-
-    char *cards[] = {"vgapci0", "vgapci1", NULL};
-    char buf[256];
-    for(int i = 0; cards[i] != NULL; ++i) {
-        char adaptor[300];
-
-        memset(adaptor, 0, sizeof(adaptor));
-        snprintf(buf, sizeof(buf), "/usr/sbin/pciconf -lv %s", cards[i]);
-        FILE *fp = popen(buf, "r");
-        if(fp == NULL)
-            continue;
-        
-        while(fgets(buf, sizeof(buf), fp) != NULL) {
-            NSString *line = [[NSString alloc] initWithUTF8String:buf];
-        
-            if([line rangeOfString:@"vendor"].location != NSNotFound) {
-                for(int start = 0; start < [line length]; ++start) {
-                    if([line characterAtIndex:start] == '\'') {
-                        strncat(adaptor, 
-                            [[line substringWithRange:NSMakeRange(start + 1,
-                            [line length] - start - 3)] UTF8String],
-                            sizeof(adaptor) - strlen(adaptor));
-                        strcat(adaptor, " ");
-                        break;
-                    }
-                }
-            } else if([line rangeOfString:@"device"].location != NSNotFound) {
-                for(int start = 0; start < [line length]; ++start) {
-                    if([line characterAtIndex:start] == '\'') {
-                        strncat(adaptor, 
-                            [[line substringWithRange:NSMakeRange(start + 1,
-                            [line length] - start - 3)] UTF8String],
-                            sizeof(adaptor) - strlen(adaptor));
-                        strcat(adaptor, " ");
-                        break;
-                    }
-                }
-            } else if([line rangeOfString:@"subclass"].location != NSNotFound) {
-                if(adaptor[0] != 0)
-                    continue; // skip subclass unless it's all we got
-                for(int start = 0; start < [line length]; ++start) {
-                    if([line characterAtIndex:start] == '=') {
-                        strncat(adaptor, 
-                            [[line substringWithRange:NSMakeRange(start + 1,
-                            [line length] - start - 2)] UTF8String],
-                            sizeof(adaptor) - strlen(adaptor));
-                        break;
-                    }
-                }
-            }
-        }
-
-        s = [[NSAttributedString alloc]
-            initWithString:[NSString stringWithFormat:@"%s\n", adaptor]
-            attributes:[NSDictionary dictionaryWithObject:fontNormal forKey:NSFontAttributeName]];
-        [ts appendAttributedString:s];
-
-        pclose(fp);
-    }
-
-    [ts endEditing];
-    [tv setEditable:NO];
-
-    [[aboutWindow contentView] addSubview:tv];
     [aboutWindow makeKeyAndOrderFront:nil];
 }
 
