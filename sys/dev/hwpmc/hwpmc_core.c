@@ -226,7 +226,8 @@ iaf_allocate_pmc(int cpu, int ri, struct pmc *pm,
     const struct pmc_op_pmcallocate *a)
 {
 	uint8_t ev, umask;
-	uint32_t caps, flags, config;
+	uint32_t caps;
+	uint64_t config, flags;
 	const struct pmc_md_iap_op_pmcallocate *iap;
 
 	KASSERT(cpu >= 0 && cpu < pmc_cpu_max(),
@@ -471,8 +472,7 @@ iaf_stop_pmc(int cpu, int ri)
 	cc->pc_iafctrl &= ~(IAF_MASK << (ri * 4));
 	wrmsr(IAF_CTRL, cc->pc_iafctrl);
 
-	cc->pc_globalctrl &= ~(1ULL << (ri + IAF_OFFSET));
-	wrmsr(IA_GLOBAL_CTRL, cc->pc_globalctrl);
+	/* Don't need to write IA_GLOBAL_CTRL, one disable is enough. */
 
 	PMCDBG4(MDP,STO,1,"iafctrl=%x(%x) globalctrl=%jx(%jx)",
 	    cc->pc_iafctrl, (uint32_t) rdmsr(IAF_CTRL),
@@ -613,20 +613,22 @@ iap_event_corei7_ok_on_counter(uint8_t evsel, int ri)
 	uint32_t mask;
 
 	switch (evsel) {
-		/*
-		 * Events valid only on counter 0, 1.
-		 */
-		case 0x40:
-		case 0x41:
-		case 0x42:
-		case 0x43:
-		case 0x51:
-		case 0x63:
-			mask = 0x3;
+	/* Events valid only on counter 0, 1. */
+	case 0x40:
+	case 0x41:
+	case 0x42:
+	case 0x43:
+	case 0x4C:
+	case 0x4E:
+	case 0x51:
+	case 0x52:
+	case 0x53:
+	case 0x63:
+		mask = 0x3;
 		break;
-
-		default:
-		mask = ~0;	/* Any row index is ok. */
+	/* Any row index is ok. */
+	default:
+		mask = ~0;
 	}
 
 	return (mask & (1 << ri));
@@ -638,26 +640,23 @@ iap_event_westmere_ok_on_counter(uint8_t evsel, int ri)
 	uint32_t mask;
 
 	switch (evsel) {
-		/*
-		 * Events valid only on counter 0.
-		 */
-		case 0x60:
-		case 0xB3:
+	/* Events valid only on counter 0. */
+	case 0x60:
+	case 0xB3:
 		mask = 0x1;
 		break;
 
-		/*
-		 * Events valid only on counter 0, 1.
-		 */
-		case 0x4C:
-		case 0x4E:
-		case 0x51:
-		case 0x63:
+	/* Events valid only on counter 0, 1. */
+	case 0x4C:
+	case 0x4E:
+	case 0x51:
+	case 0x52:
+	case 0x63:
 		mask = 0x3;
 		break;
-
+	/* Any row index is ok. */
 	default:
-		mask = ~0;	/* Any row index is ok. */
+		mask = ~0;
 	}
 
 	return (mask & (1 << ri));
@@ -669,34 +668,35 @@ iap_event_sb_sbx_ib_ibx_ok_on_counter(uint8_t evsel, int ri)
 	uint32_t mask;
 
 	switch (evsel) {
-		/* Events valid only on counter 0. */
-    case 0xB7:
+	/* Events valid only on counter 0. */
+	case 0xB7:
 		mask = 0x1;
 		break;
-		/* Events valid only on counter 1. */
+	/* Events valid only on counter 1. */
 	case 0xC0:
 		mask = 0x2;
 		break;
-		/* Events valid only on counter 2. */
+	/* Events valid only on counter 2. */
 	case 0x48:
 	case 0xA2:
 	case 0xA3:
 		mask = 0x4;
 		break;
-		/* Events valid only on counter 3. */
+	/* Events valid only on counter 3. */
 	case 0xBB:
 	case 0xCD:
 		mask = 0x8;
 		break;
+	/* Any row index is ok. */
 	default:
-		mask = ~0;	/* Any row index is ok. */
+		mask = ~0;
 	}
 
 	return (mask & (1 << ri));
 }
 
 static int
-iap_event_ok_on_counter(uint8_t evsel, int ri)
+iap_event_core_ok_on_counter(uint8_t evsel, int ri)
 {
 	uint32_t mask;
 
@@ -748,24 +748,14 @@ iap_allocate_pmc(int cpu, int ri, struct pmc *pm,
 	ev = IAP_EVSEL_GET(iap->pm_iap_config);
 
 	switch (core_cputype) {
+	case PMC_CPU_INTEL_CORE:
+	case PMC_CPU_INTEL_CORE2:
+	case PMC_CPU_INTEL_CORE2EXTREME:
+		if (iap_event_core_ok_on_counter(ev, ri) == 0)
+			return (EINVAL);
 	case PMC_CPU_INTEL_COREI7:
 	case PMC_CPU_INTEL_NEHALEM_EX:
 		if (iap_event_corei7_ok_on_counter(ev, ri) == 0)
-			return (EINVAL);
-		break;
-	case PMC_CPU_INTEL_SKYLAKE:
-	case PMC_CPU_INTEL_SKYLAKE_XEON:
-	case PMC_CPU_INTEL_ICELAKE:
-	case PMC_CPU_INTEL_ICELAKE_XEON:
-	case PMC_CPU_INTEL_BROADWELL:
-	case PMC_CPU_INTEL_BROADWELL_XEON:
-	case PMC_CPU_INTEL_SANDYBRIDGE:
-	case PMC_CPU_INTEL_SANDYBRIDGE_XEON:
-	case PMC_CPU_INTEL_IVYBRIDGE:
-	case PMC_CPU_INTEL_IVYBRIDGE_XEON:
-	case PMC_CPU_INTEL_HASWELL:
-	case PMC_CPU_INTEL_HASWELL_XEON:
-		if (iap_event_sb_sbx_ib_ibx_ok_on_counter(ev, ri) == 0)
 			return (EINVAL);
 		break;
 	case PMC_CPU_INTEL_WESTMERE:
@@ -773,9 +763,29 @@ iap_allocate_pmc(int cpu, int ri, struct pmc *pm,
 		if (iap_event_westmere_ok_on_counter(ev, ri) == 0)
 			return (EINVAL);
 		break;
-	default:
-		if (iap_event_ok_on_counter(ev, ri) == 0)
+	case PMC_CPU_INTEL_SANDYBRIDGE:
+	case PMC_CPU_INTEL_SANDYBRIDGE_XEON:
+	case PMC_CPU_INTEL_IVYBRIDGE:
+	case PMC_CPU_INTEL_IVYBRIDGE_XEON:
+	case PMC_CPU_INTEL_HASWELL:
+	case PMC_CPU_INTEL_HASWELL_XEON:
+	case PMC_CPU_INTEL_BROADWELL:
+	case PMC_CPU_INTEL_BROADWELL_XEON:
+		if (iap_event_sb_sbx_ib_ibx_ok_on_counter(ev, ri) == 0)
 			return (EINVAL);
+		break;
+	case PMC_CPU_INTEL_ATOM:
+	case PMC_CPU_INTEL_ATOM_SILVERMONT:
+	case PMC_CPU_INTEL_ATOM_GOLDMONT:
+	case PMC_CPU_INTEL_ATOM_GOLDMONT_P:
+	case PMC_CPU_INTEL_ATOM_TREMONT:
+	case PMC_CPU_INTEL_SKYLAKE:
+	case PMC_CPU_INTEL_SKYLAKE_XEON:
+	case PMC_CPU_INTEL_ICELAKE:
+	case PMC_CPU_INTEL_ICELAKE_XEON:
+	case PMC_CPU_INTEL_ALDERLAKE:
+	default:
+		break;
 	}
 
 	pm->pm_md.pm_iap.pm_iap_evsel = iap->pm_iap_config;
@@ -899,7 +909,7 @@ static int
 iap_start_pmc(int cpu, int ri)
 {
 	struct pmc *pm;
-	uint32_t evsel;
+	uint64_t evsel;
 	struct core_cpu *cc;
 
 	KASSERT(cpu >= 0 && cpu < pmc_cpu_max(),
@@ -966,10 +976,7 @@ iap_stop_pmc(int cpu, int ri)
 
 	wrmsr(IAP_EVSEL0 + ri, 0);
 
-	if (core_version >= 2) {
-		cc->pc_globalctrl &= ~(1ULL << ri);
-		wrmsr(IA_GLOBAL_CTRL, cc->pc_globalctrl);
-	}
+	/* Don't need to write IA_GLOBAL_CTRL, one disable is enough. */
 
 	return (0);
 }

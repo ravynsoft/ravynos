@@ -150,8 +150,8 @@ struct m_snd_tag {
 
 /*
  * Record/packet header in first mbuf of chain; valid only if M_PKTHDR is set.
- * Size ILP32: 48
- *	 LP64: 56
+ * Size ILP32: 56
+ *	 LP64: 64
  * Compile-time assertions in uipc_mbuf.c test these values to ensure that
  * they are correct.
  */
@@ -164,6 +164,13 @@ struct pkthdr {
 			uint16_t rcvgen;	/* ... and generation count */
 		};
 	};
+	union {
+		struct ifnet	*leaf_rcvif;	/* leaf rcv interface */
+		struct {
+			uint16_t leaf_rcvidx;	/* leaf rcv interface index ... */
+			uint16_t leaf_rcvgen;	/* ... and generation count */
+		};
+	};
 	SLIST_HEAD(packet_tags, m_tag) tags; /* list of packet tags */
 	int32_t		 len;		/* total packet length */
 
@@ -173,6 +180,9 @@ struct pkthdr {
 	uint16_t	 fibnum;	/* this packet should use this fib */
 	uint8_t		 numa_domain;	/* NUMA domain of recvd pkt */
 	uint8_t		 rsstype;	/* hash type */
+#if !defined(__LP64__)
+	uint32_t	 pad;		/* pad for 64bit alignment */
+#endif
 	union {
 		uint64_t	rcv_tstmp;	/* timestamp in ns */
 		struct {
@@ -238,7 +248,7 @@ struct pkthdr {
 #if defined(__LP64__)
 #define MBUF_PEXT_MAX_PGS (40 / sizeof(vm_paddr_t))
 #else
-#define MBUF_PEXT_MAX_PGS (72 / sizeof(vm_paddr_t))
+#define MBUF_PEXT_MAX_PGS (64 / sizeof(vm_paddr_t))
 #endif
 
 #define	MBUF_PEXT_MAX_BYTES						\

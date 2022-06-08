@@ -60,8 +60,8 @@ typedef enum {
 } pmu_mfr_t;
 
 static struct pmu_alias pmu_intel_alias_table[] = {
-	{"UNHALTED_CORE_CYCLES", "CPU_CLK_UNHALTED.THREAD_P_ANY"},
-	{"UNHALTED-CORE-CYCLES", "CPU_CLK_UNHALTED.THREAD_P_ANY"},
+	{"UNHALTED_CORE_CYCLES", "cpu_clk_unhalted.thread"},
+	{"UNHALTED-CORE-CYCLES", "cpu_clk_unhalted.thread"},
 	{"LLC_MISSES", "LONGEST_LAT_CACHE.MISS"},
 	{"LLC-MISSES", "LONGEST_LAT_CACHE.MISS"},
 	{"LLC_REFERENCE", "LONGEST_LAT_CACHE.REFERENCE"},
@@ -74,8 +74,8 @@ static struct pmu_alias pmu_intel_alias_table[] = {
 	{"BRANCH-INSTRUCTION-RETIRED", "BR_INST_RETIRED.ALL_BRANCHES"},
 	{"BRANCH_MISSES_RETIRED", "BR_MISP_RETIRED.ALL_BRANCHES"},
 	{"BRANCH-MISSES-RETIRED", "BR_MISP_RETIRED.ALL_BRANCHES"},
-	{"unhalted-cycles", "CPU_CLK_UNHALTED.THREAD_P_ANY"},
-	{"instructions", "inst_retired.any_p"},
+	{"unhalted-cycles", "cpu_clk_unhalted.thread"},
+	{"instructions", "inst_retired.any"},
 	{"branch-mispredicts", "br_misp_retired.all_branches"},
 	{"branches", "br_inst_retired.all_branches"},
 	{"interrupts", "hw_interrupts.received"},
@@ -510,7 +510,7 @@ pmc_pmu_amd_pmcallocate(const char *event_name, struct pmc_op_pmcallocate *pm,
 		if (ped->ped_edge)
 			amd->pm_amd_config |= AMD_PMC_EDGE;
 		if (ped->ped_inv)
-			amd->pm_amd_config |= AMD_PMC_EDGE;
+			amd->pm_amd_config |= AMD_PMC_INVERT;
 		if (pm->pm_caps & PMC_CAP_INTERRUPT)
 			amd->pm_amd_config |= AMD_PMC_INT;
 	}
@@ -553,7 +553,7 @@ pmc_pmu_intel_pmcallocate(const char *event_name, struct pmc_op_pmcallocate *pm,
 	if (ped->ped_any)
 		iap->pm_iap_config |= IAP_ANY;
 	if (ped->ped_inv)
-		iap->pm_iap_config |= IAP_EDGE;
+		iap->pm_iap_config |= IAP_INV;
 	if (pm->pm_caps & PMC_CAP_INTERRUPT)
 		iap->pm_iap_config |= IAP_INT;
 	return (0);

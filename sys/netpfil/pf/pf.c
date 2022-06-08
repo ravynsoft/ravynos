@@ -6344,6 +6344,10 @@ pf_route(struct mbuf **m, struct pf_krule *r, int dir, struct ifnet *oifp,
 				    r->rpool.cur->kif->pfik_ifp : NULL;
 			} else {
 				ifp = s->rt_kif ? s->rt_kif->pfik_ifp : NULL;
+				/* If pfsync'd */
+				if (ifp == NULL)
+					ifp = r->rpool.cur->kif ?
+					    r->rpool.cur->kif->pfik_ifp : NULL;
 				PF_STATE_UNLOCK(s);
 			}
 			if (ifp == oifp) {
@@ -6400,6 +6404,9 @@ pf_route(struct mbuf **m, struct pf_krule *r, int dir, struct ifnet *oifp,
 		ifp = s->rt_kif ? s->rt_kif->pfik_ifp : NULL;
 		PF_STATE_UNLOCK(s);
 	}
+	/* If pfsync'd */
+	if (ifp == NULL)
+		ifp = r->rpool.cur->kif ? r->rpool.cur->kif->pfik_ifp : NULL;
 	if (ifp == NULL)
 		goto bad;
 
@@ -6539,6 +6546,10 @@ pf_route6(struct mbuf **m, struct pf_krule *r, int dir, struct ifnet *oifp,
 				    r->rpool.cur->kif->pfik_ifp : NULL;
 			} else {
 				ifp = s->rt_kif ? s->rt_kif->pfik_ifp : NULL;
+				/* If pfsync'd */
+				if (ifp == NULL)
+					ifp = r->rpool.cur->kif ?
+					    r->rpool.cur->kif->pfik_ifp : NULL;
 				PF_STATE_UNLOCK(s);
 			}
 			if (ifp == oifp) {
@@ -6598,6 +6609,9 @@ pf_route6(struct mbuf **m, struct pf_krule *r, int dir, struct ifnet *oifp,
 	if (s)
 		PF_STATE_UNLOCK(s);
 
+	/* If pfsync'd */
+	if (ifp == NULL)
+		ifp = r->rpool.cur->kif ? r->rpool.cur->kif->pfik_ifp : NULL;
 	if (ifp == NULL)
 		goto bad;
 
@@ -6978,18 +6992,25 @@ pf_test(int dir, int pflags, struct ifnet *ifp, struct mbuf **m0, struct inpcb *
 	if (!V_pf_status.running)
 		return (PF_PASS);
 
+	PF_RULES_RLOCK();
+
 	kif = (struct pfi_kkif *)ifp->if_pf_kif;
 
-	if (kif == NULL) {
+	if (__predict_false(kif == NULL)) {
 		DPFPRINTF(PF_DEBUG_URGENT,
 		    ("pf_test: kif == NULL, if_xname %s\n", ifp->if_xname));
+		PF_RULES_RUNLOCK();
 		return (PF_DROP);
 	}
-	if (kif->pfik_flags & PFI_IFLAG_SKIP)
+	if (kif->pfik_flags & PFI_IFLAG_SKIP) {
+		PF_RULES_RUNLOCK();
 		return (PF_PASS);
+	}
 
-	if (m->m_flags & M_SKIP_FIREWALL)
+	if (m->m_flags & M_SKIP_FIREWALL) {
+		PF_RULES_RUNLOCK();
 		return (PF_PASS);
+	}
 
 	memset(&pd, 0, sizeof(pd));
 	pd.pf_mtag = pf_find_mtag(m);
@@ -7000,10 +7021,12 @@ pf_test(int dir, int pflags, struct ifnet *ifp, struct mbuf **m0, struct inpcb *
 		ifp = ifnet_byindexgen(pd.pf_mtag->if_index,
 		    pd.pf_mtag->if_idxgen);
 		if (ifp == NULL || ifp->if_flags & IFF_DYING) {
+			PF_RULES_RUNLOCK();
 			m_freem(*m0);
 			*m0 = NULL;
 			return (PF_PASS);
 		}
+		PF_RULES_RUNLOCK();
 		(ifp->if_output)(ifp, m, sintosa(&pd.pf_mtag->dst), NULL);
 		*m0 = NULL;
 		return (PF_PASS);
@@ -7023,11 +7046,10 @@ pf_test(int dir, int pflags, struct ifnet *ifp, struct mbuf **m0, struct inpcb *
 		/* But only once. We may see the packet multiple times (e.g.
 		 * PFIL_IN/PFIL_OUT). */
 		pd.pf_mtag->flags &= ~PF_TAG_DUMMYNET;
+		PF_RULES_RUNLOCK();
 
 		return (PF_PASS);
 	}
-
-	PF_RULES_RLOCK();
 
 	if (__predict_false(ip_divert_ptr != NULL) &&
 	    ((ipfwtag = m_tag_locate(m, MTAG_IPFW_RULE, 0, NULL)) != NULL)) {
@@ -7468,17 +7490,24 @@ pf_test6(int dir, int pflags, struct ifnet *ifp, struct mbuf **m0, struct inpcb 
 	if (!V_pf_status.running)
 		return (PF_PASS);
 
+	PF_RULES_RLOCK();
+
 	kif = (struct pfi_kkif *)ifp->if_pf_kif;
-	if (kif == NULL) {
+	if (__predict_false(kif == NULL)) {
 		DPFPRINTF(PF_DEBUG_URGENT,
 		    ("pf_test6: kif == NULL, if_xname %s\n", ifp->if_xname));
+		PF_RULES_RUNLOCK();
 		return (PF_DROP);
 	}
-	if (kif->pfik_flags & PFI_IFLAG_SKIP)
+	if (kif->pfik_flags & PFI_IFLAG_SKIP) {
+		PF_RULES_RUNLOCK();
 		return (PF_PASS);
+	}
 
-	if (m->m_flags & M_SKIP_FIREWALL)
+	if (m->m_flags & M_SKIP_FIREWALL) {
+		PF_RULES_RUNLOCK();
 		return (PF_PASS);
+	}
 
 	memset(&pd, 0, sizeof(pd));
 	pd.pf_mtag = pf_find_mtag(m);
@@ -7489,10 +7518,12 @@ pf_test6(int dir, int pflags, struct ifnet *ifp, struct mbuf **m0, struct inpcb 
 		ifp = ifnet_byindexgen(pd.pf_mtag->if_index,
 		    pd.pf_mtag->if_idxgen);
 		if (ifp == NULL || ifp->if_flags & IFF_DYING) {
+			PF_RULES_RUNLOCK();
 			m_freem(*m0);
 			*m0 = NULL;
 			return (PF_PASS);
 		}
+		PF_RULES_RUNLOCK();
 		nd6_output_ifp(ifp, ifp, m,
                     (struct sockaddr_in6 *)&pd.pf_mtag->dst, NULL);
 		*m0 = NULL;
@@ -7510,10 +7541,9 @@ pf_test6(int dir, int pflags, struct ifnet *ifp, struct mbuf **m0, struct inpcb 
 		/* Dummynet re-injects packets after they've
 		 * completed their delay. We've already
 		 * processed them, so pass unconditionally. */
+		PF_RULES_RUNLOCK();
 		return (PF_PASS);
 	}
-
-	PF_RULES_RLOCK();
 
 	/* We do IP header normalization and packet reassembly here */
 	if (pf_normalize_ip6(m0, dir, kif, &reason, &pd) != PF_PASS) {

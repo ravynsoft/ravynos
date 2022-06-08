@@ -624,7 +624,9 @@ readmap(pid_t pid)
 			errx(1, "out of memory");
 		ent->start = (vm_offset_t)kve->kve_start;
 		ent->end = (vm_offset_t)kve->kve_end;
-		ent->protection = VM_PROT_READ | VM_PROT_WRITE;
+		ent->protection = VM_PROT_READ;
+		if ((kve->kve_protection & KVME_PROT_WRITE) != 0)
+			ent->protection |= VM_PROT_WRITE;
 		if ((kve->kve_protection & KVME_PROT_EXEC) != 0)
 			ent->protection |= VM_PROT_EXECUTE;
 
@@ -726,31 +728,6 @@ elf_note_ptlwpinfo(void *arg, size_t *sizep)
 	*sizep = sizeof(int) + sizeof(struct ptrace_lwpinfo);
 	return (p);
 }
-
-#if defined(__arm__)
-static void *
-elf_note_arm_vfp(void *arg, size_t *sizep)
-{
-	lwpid_t tid;
-	struct vfpreg *vfp;
-	static bool has_vfp = true;
-	struct vfpreg info;
-
-	tid = *(lwpid_t *)arg;
-	if (has_vfp) {
-		if (ptrace(PT_GETVFPREGS, tid, (void *)&info, 0) != 0)
-			has_vfp = false;
-	}
-	if (!has_vfp) {
-		*sizep = 0;
-		return (NULL);
-	}
-	vfp = calloc(1, sizeof(*vfp));
-	memcpy(vfp, &info, sizeof(*vfp));
-	*sizep = sizeof(*vfp);
-	return (vfp);
-}
-#endif
 
 #if defined(__i386__) || defined(__amd64__)
 static void *

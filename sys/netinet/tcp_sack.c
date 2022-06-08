@@ -956,15 +956,33 @@ tcp_sack_output(struct tcpcb *tp, int *sack_bytes_rexmt)
 	INP_WLOCK_ASSERT(tp->t_inpcb);
 	*sack_bytes_rexmt = tp->sackhint.sack_bytes_rexmit;
 	hole = tp->sackhint.nexthole;
-	if (hole == NULL || SEQ_LT(hole->rxmit, hole->end))
-		goto out;
-	while ((hole = TAILQ_NEXT(hole, scblink)) != NULL) {
-		if (SEQ_LT(hole->rxmit, hole->end)) {
-			tp->sackhint.nexthole = hole;
-			break;
+	if (hole == NULL)
+		return (hole);
+	if (SEQ_GEQ(hole->rxmit, hole->end)) {
+		for (;;) {
+			hole = TAILQ_NEXT(hole, scblink);
+			if (hole == NULL)
+				return (hole);
+			if (SEQ_LT(hole->rxmit, hole->end)) {
+				tp->sackhint.nexthole = hole;
+				break;
+			}
 		}
 	}
-out:
+	KASSERT(SEQ_LT(hole->start, hole->end), ("%s: hole.start >= hole.end", __func__));
+	if (!(V_tcp_do_newsack)) {
+		KASSERT(SEQ_LT(hole->start, tp->snd_fack), ("%s: hole.start >= snd.fack", __func__));
+		KASSERT(SEQ_LT(hole->end, tp->snd_fack), ("%s: hole.end >= snd.fack", __func__));
+		KASSERT(SEQ_LT(hole->rxmit, tp->snd_fack), ("%s: hole.rxmit >= snd.fack", __func__));
+		if (SEQ_GEQ(hole->start, hole->end) ||
+		    SEQ_GEQ(hole->start, tp->snd_fack) ||
+		    SEQ_GEQ(hole->end, tp->snd_fack) ||
+		    SEQ_GEQ(hole->rxmit, tp->snd_fack)) {
+			log(LOG_CRIT,"tcp: invalid SACK hole (%u-%u,%u) vs fwd ack %u, ignoring.\n",
+					hole->start, hole->end, hole->rxmit, tp->snd_fack);
+			return (NULL);
+		}
+	}
 	return (hole);
 }
 

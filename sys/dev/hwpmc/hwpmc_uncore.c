@@ -67,7 +67,6 @@ __FBSDID("$FreeBSD$");
 static enum pmc_cputype	uncore_cputype;
 
 struct uncore_cpu {
-	volatile uint32_t	pc_resync;
 	volatile uint32_t	pc_ucfctrl;	/* Fixed function control. */
 	volatile uint64_t	pc_globalctrl;	/* Global control register. */
 	struct pmc_hw		pc_uncorepmcs[];
@@ -335,11 +334,8 @@ ucf_start_pmc(int cpu, int ri)
 
 	wrmsr(UCF_CTRL, ucfc->pc_ucfctrl);
 
-	do {
-		ucfc->pc_resync = 0;
-		ucfc->pc_globalctrl |= (1ULL << (ri + SELECTOFF(uncore_cputype)));
-		wrmsr(UC_GLOBAL_CTRL, ucfc->pc_globalctrl);
-	} while (ucfc->pc_resync != 0);
+	ucfc->pc_globalctrl |= (1ULL << (ri + SELECTOFF(uncore_cputype)));
+	wrmsr(UC_GLOBAL_CTRL, ucfc->pc_globalctrl);
 
 	PMCDBG4(MDP,STA,1,"ucfctrl=%x(%x) globalctrl=%jx(%jx)",
 	    ucfc->pc_ucfctrl, (uint32_t) rdmsr(UCF_CTRL),
@@ -370,11 +366,7 @@ ucf_stop_pmc(int cpu, int ri)
 	PMCDBG1(MDP,STO,1,"ucf-stop ucfctrl=%x", ucfc->pc_ucfctrl);
 	wrmsr(UCF_CTRL, ucfc->pc_ucfctrl);
 
-	do {
-		ucfc->pc_resync = 0;
-		ucfc->pc_globalctrl &= ~(1ULL << (ri + SELECTOFF(uncore_cputype)));
-		wrmsr(UC_GLOBAL_CTRL, ucfc->pc_globalctrl);
-	} while (ucfc->pc_resync != 0);
+	/* Don't need to write UC_GLOBAL_CTRL, one disable is enough. */
 
 	PMCDBG4(MDP,STO,1,"ucfctrl=%x(%x) globalctrl=%jx(%jx)",
 	    ucfc->pc_ucfctrl, (uint32_t) rdmsr(UCF_CTRL),
@@ -656,7 +648,7 @@ static int
 ucp_start_pmc(int cpu, int ri)
 {
 	struct pmc *pm;
-	uint32_t evsel;
+	uint64_t evsel;
 	struct uncore_cpu *cc;
 
 	KASSERT(cpu >= 0 && cpu < pmc_cpu_max(),
@@ -702,11 +694,8 @@ ucp_start_pmc(int cpu, int ri)
 	}
 	wrmsr(SELECTSEL(uncore_cputype) + ri, evsel);
 
-	do {
-		cc->pc_resync = 0;
-		cc->pc_globalctrl |= (1ULL << ri);
-		wrmsr(UC_GLOBAL_CTRL, cc->pc_globalctrl);
-	} while (cc->pc_resync != 0);
+	cc->pc_globalctrl |= (1ULL << ri);
+	wrmsr(UC_GLOBAL_CTRL, cc->pc_globalctrl);
 
 	return (0);
 }
@@ -734,11 +723,7 @@ ucp_stop_pmc(int cpu, int ri)
 	/* stop hw. */
 	wrmsr(SELECTSEL(uncore_cputype) + ri, 0);
 
-	do {
-		cc->pc_resync = 0;
-		cc->pc_globalctrl &= ~(1ULL << ri);
-		wrmsr(UC_GLOBAL_CTRL, cc->pc_globalctrl);
-	} while (cc->pc_resync != 0);
+	/* Don't need to write UC_GLOBAL_CTRL, one disable is enough. */
 
 	return (0);
 }
