@@ -6,7 +6,8 @@ RESOURCES=${.CURDIR}/MarmosetLogo.tiff ${.CURDIR}/header.rtf ${.CURDIR}/terms.rt
 SLF=/System/Library/Frameworks
 FRAMEWORKS=${SLF}/AppKit ${SLF}/CoreGraphics ${SLF}/Onyx2D ${SLF}/OpenGL \
 	${SLF}/Foundation ${SLF}/CoreFoundation ${SLF}/DBusKit
-LDFLAGS+=-L/usr/lib -lGL --sysroot=${BUILDROOT}/../../../tmp/
+#LDFLAGS+=-L/usr/lib -lGL --sysroot=${BUILDROOT}/../../../tmp/
+LDFLAGS+=-L/usr/lib -lGL
 RAVYNOS_VERSION!= head -1 ${.CURDIR}/../../version.txt
 
 do:
@@ -23,7 +24,8 @@ build: clean all
 	mv -f ${APP_DIR} "${APP_DIR:S/_/ /}"
 
 .include <rvn.app.mk>
-CFLAGS:= ${CFLAGS:S/-Werror//g} -g --sysroot=${BUILDROOT} \
+CFLAGS:= ${CFLAGS:S/-Werror//g} -g -DRAVYNOS_VERSION=\"${RAVYNOS_VERSION}\"
+#CFLAGS:= ${CFLAGS:S/-Werror//g} -g --sysroot=${BUILDROOT} \
 	 -I${BUILDROOT}/../../../tmp/usr/include \
 	 -DRAVYNOS_VERSION=\"${RAVYNOS_VERSION}\"
 
