@@ -16,6 +16,9 @@ typedef enum {
 
 @interface NSThemeFrame : NSView {
     NSWindowBorderType _borderType;
+    NSRect _closeButtonRect;
+    NSRect _miniButtonRect;
+    NSRect _zoomButtonRect;
 }
 - (NSWindowBorderType)windowBorderType;
 - (void)setWindowBorderType:(NSWindowBorderType)borderType;

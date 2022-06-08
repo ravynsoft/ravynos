@@ -270,12 +270,8 @@ WindowServer.backend/WLWindow.m \
 WindowServer.backend/WLDisplay.m \
 xdg-shell.c \
 layer-shell-v1.c \
-output-management-v1.c
-#X11.subproj/NSOpenGLDrawable_X11.m \
-X11.subproj/O2Context_cairo.m \
-X11.subproj/O2FontState_cairo.m \
-X11.subproj/O2Surface_cairo.m \
-X11.subproj/X11Event.m 
+output-management-v1.c \
+xdg-decoration-v1.c
 
 
 INCS= \
@@ -556,12 +552,7 @@ WindowServer.backend/KTFont_FT.h \
 WindowServer.backend/O2Context_builtin_FT.h \
 WindowServer.backend/O2Font_FT.h \
 WindowServer.backend/WLWindow.h \
-WindowServer.backend/WLDisplay.h \
-#X11.subproj/NSOpenGLDrawable_X11.h \
-X11.subproj/O2Context_cairo.h \
-X11.subproj/O2FontState_cairo.h \
-X11.subproj/O2Surface_cairo.h \
-X11.subproj/X11Event.h 
+WindowServer.backend/WLDisplay.h
 
 
 RESOURCES=Info.plist en.lproj de.lproj fr.lproj \
@@ -666,6 +657,15 @@ output-management-v1.c:
 	wayland-scanner private-code \
                 ${WLPROTOS}/unstable/xdg-output/xdg-output-unstable-v1.xml ${.TARGET}
 
+xdg-decoration-unstable-v1-client-protocol.h:
+	wayland-scanner client-header \
+                ${WLPROTOS}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml ${.TARGET}
+
+xdg-decoration-v1.c:
+	wayland-scanner private-code \
+                ${WLPROTOS}/unstable/xdg-decoration/xdg-decoration-unstable-v1.xml ${.TARGET}
+
+
 clean-deps:
 	rm -f .depend.*
 
@@ -681,6 +681,7 @@ clean: fmwkclean
 post-resources: _install-hook
 ${SOBJS}: xdg-shell-client-protocol.h xdg-shell.c \
         wlr-layer-shell-unstable-v1-client-protocol.h layer-shell-v1.c \
-        xdg-output-management-unstable-v1-client-protocol.h output-management-v1.c
+        xdg-output-management-unstable-v1-client-protocol.h output-management-v1.c \
+        xdg-decoration-unstable-v1-client-protocol.h xdg-decoration-v1.c
 clean: clean-deps clean-gen-files
 CFLAGS+= ${FMWK_CFLAGS}

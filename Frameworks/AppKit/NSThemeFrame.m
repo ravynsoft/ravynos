@@ -98,14 +98,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
     // window controls
     int diameter = 12;
-    CGRect button = NSMakeRect(diameter, _frame.size.height - 20, diameter, diameter);
+    CGRect button = NSMakeRect(10, _frame.size.height - 21, diameter, diameter);
+    _closeButtonRect = button;
     O2ContextSetRGBFillColor(_context, 1, 0, 0, 1);
     O2ContextFillEllipseInRect(_context, button);
     O2ContextSetRGBFillColor(_context, 1, 0.9, 0, 1);
     button.origin.x += 22;
+    _miniButtonRect = button;
     O2ContextFillEllipseInRect(_context, button);
     O2ContextSetRGBFillColor(_context, 0, 1, 0, 1);
     button.origin.x += 22;
+    _zoomButtonRect = button;
     O2ContextFillEllipseInRect(_context, button);
 
     // title
@@ -175,11 +178,29 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)mouseDown:(NSEvent *)event {
-    // FIXME: only if on titlebar or movable by background
-    [[self window] requestMove:event];
+    if([[self window] isMovableByWindowBackground]) {
+        [[self window] requestMove:event];
+        return;
+    }
 
-   if(![[self window] isMovableByWindowBackground])
-    return;
+    // is click in title bar?
+    CGFloat top, left, right, bottom;
+    CGNativeBorderFrameWidthsForStyle([[self window] styleMask], &top, &left, &bottom, &right);
+    NSPoint pos = [event locationInWindow];
+
+    // no - return.
+    if(!(pos.y > (NSMaxY(_frame) - top)))
+        return;
+
+    // did they click a button?
+    if(NSPointInRect(pos, _closeButtonRect))
+        [[self window] performClose:self];
+    else if(NSPointInRect(pos, _miniButtonRect))
+        [[self window] performMiniaturize:self];
+    else if(NSPointInRect(pos, _zoomButtonRect))
+        [[self window] performZoom:self];
+    else
+        [[self window] requestMove:event];
 }
 
 @end

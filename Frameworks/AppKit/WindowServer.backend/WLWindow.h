@@ -28,6 +28,7 @@
 #include "xdg-shell-client-protocol.h"
 #include "wlr-layer-shell-unstable-v1-client-protocol.h"
 #include "xdg-output-management-unstable-v1-client-protocol.h"
+#include "xdg-decoration-unstable-v1-client-protocol.h"
 #import "WLDisplay.h"
 
 @class CAWindowOpenGLContext;
@@ -59,6 +60,12 @@
     NSRect margins;
     uint32_t exclusiveZone;
     double layerAlpha;
+
+    // decorations support
+    struct zxdg_decoration_manager_v1 *decorationManager;
+    struct zxdg_toplevel_decoration_v1 *decoration;
+    enum zxdg_toplevel_decoration_v1_mode preferredMode;
+    enum zxdg_toplevel_decoration_v1_mode currentMode;
 
     id _delegate;
     CGSBackingStoreType _backingType;
