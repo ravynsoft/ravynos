@@ -227,7 +227,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     decorationManager = NULL;
     decoration = NULL;
     preferredMode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
-    currentMode = ZXDG_TOPLEVEL_DECORATION_V1_MODE_CLIENT_SIDE;
+    currentMode = 0;
 
     _display = (WLDisplay *)[NSDisplay currentDisplay];
     struct wl_display *display = [_display display];
@@ -276,18 +276,14 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     } else if(!(_styleMask & WLWindowPopUp)) {
         xdg_surface = xdg_wm_base_get_xdg_surface(wm_base, wl_surface);
         xdg_toplevel = xdg_surface_get_toplevel(xdg_surface);
-        if(decorationManager) {
-            decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
-                decorationManager, xdg_toplevel);
-            [self requestPreferredDecorations];
-        }
+        decoration = zxdg_decoration_manager_v1_get_toplevel_decoration(
+            decorationManager, xdg_toplevel);
+        [self requestPreferredDecorations];
         xdg_surface_add_listener(xdg_surface, &xdg_surface_listener,
             (__bridge void *)self);
         xdg_toplevel_add_listener(xdg_toplevel, &xdg_toplevel_listener,
             (__bridge void *)self);
-        if(decorationManager)
-            zxdg_toplevel_decoration_v1_add_listener(decoration,
-                &decoration_listener, self);
+        zxdg_toplevel_decoration_v1_add_listener(decoration, &decoration_listener, self);
     }
     // if WLWindowPopUp we fall through to here
 
