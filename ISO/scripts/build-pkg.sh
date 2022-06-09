@@ -20,6 +20,8 @@
 # https://github.com/bdrewery/freebsd_base_pkgng by Bryan Drewery 
 # <bdrewery@FreeBSD.org>.
 
+set -x
+
 usage () {
 	echo "Usage: $0 -m <manifest_template> [-d <files_directory>]"
 	exit 1
@@ -90,7 +92,7 @@ export DIR_SIZE
 	# Add files in
 	echo "files {"
 	find ${STAGEDIR} -type f -exec sha256 -r {} + | sed 's: :\t:' |
-       	   awk -Ft '{print "    \"" $2 "\" = \{sum: \"" $1 "\", uname: root, gname: wheel\} ;" }'
+       	   awk -F'[\t]' '{print "    \"" $2 "\" = \{sum: \"" $1 "\", uname: root, gname: wheel\} ;" }'
 
 	# Add symlinks in
 	find ${STAGEDIR} -type l |

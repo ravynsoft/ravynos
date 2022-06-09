@@ -12,7 +12,7 @@ usage() {
 
 deletePartitions() {
     for part in $(/sbin/gpart list $geom|grep '   index:'|cut -c10-); do
-        echo /sbin/gpart delete -i $part $geom
+        /sbin/gpart delete -i $part $geom
     done
 }
 
