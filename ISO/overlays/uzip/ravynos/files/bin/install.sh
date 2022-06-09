@@ -58,7 +58,7 @@ copyFilesystem() {
 /bin/install.sh
 EOT
     echo Filling the pool
-    /usr/bin/cpdup -uIof -X/tmp/excludes / /tmp/pool
+    cd /sysroot; /usr/bin/cpdup -uIof -X/tmp/excludes . /tmp/pool
 
     export BSDINSTALL_CHROOT=/tmp/pool
     /usr/sbin/bsdinstall config
