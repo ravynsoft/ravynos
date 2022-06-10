@@ -30,21 +30,22 @@ base_task:
     - pkg install -fy python38 python3 py38-pip py38-setuptools
     - pkg install -fy cmake jpeg-turbo tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 qt5-buildtools qt5-qmake qt5-dbus qt5-widgets qt5-dbus glib dbus-glib libffi gettext-runtime icu lxqt-build-tools gmake autoconf zip bash alsa-lib alsa-plugins mesa-dri expat gdk-pixbuf2 gettext-tools meson ninja wayland seatd evdev-proto
     - pip install --upgrade cloudsmith-cli
+    - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
   sys_cache:
-    folder: /usr/obj/${CIRRUS_WORKING_DIR}/$(uname -m).$(uname -p)/sys
+    folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
     fingerprint_key: ${CIRRUS_BUILD_ID}
     reupload_on_changes: false
   base_cache:
-    folder: /usr/obj/${CIRRUS_WORKING_DIR}/$(uname -m).$(uname -p)/tmp
-    folder: /usr/obj/${CIRRUS_WORKING_DIR}/$(uname -m).$(uname -p)/release
+    folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/tmp
+    folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/release
     fingerprint_key: ${CIRRUS_BUILD_ID}
     reupload_on_changes: true
   base_build_script:
-    - mkdir -p /usr/obj/$(pwd -P)
+    - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
     - make -j$(sysctl -n hw.ncpu) WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang buildworld
     - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang base.txz
-    - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -p)/release/base.txz
-    - rm -rfv /usr/obj/$(pwd -P)/$(uname -m).$(uname -p)/release/dist/base/usr/share/locale/nn_NO.*
+    - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/base.txz
+    - rm -rfv /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/base/usr/share/locale/nn_NO.*
   upload_caches:
     - base
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
@@ -74,15 +75,16 @@ kernel_task:
     - pkg install -fy python38 python3 py38-pip py38-setuptools
     - pkg install -fy cmake jpeg-turbo tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 qt5-buildtools qt5-qmake qt5-dbus qt5-widgets qt5-dbus glib dbus-glib libffi gettext-runtime icu lxqt-build-tools gmake autoconf zip bash alsa-lib alsa-plugins mesa-dri expat gdk-pixbuf2 gettext-tools meson ninja wayland seatd evdev-proto
     - pip install --upgrade cloudsmith-cli
+    - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
   sys_cache:
-    folder: /usr/obj/${CIRRUS_WORKING_DIR}/$(uname -m).$(uname -p)/sys
+    folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
     fingerprint_key: ${CIRRUS_BUILD_ID}
     reupload_on_changes: true
   kernel_build_script:
-    - mkdir -p /usr/obj/$(pwd -P)
+    - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
     - make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN COMPILER_TYPE=clang buildkernel
     - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang kernel.txz
-    - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/kernel.txz
+    - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/kernel.txz
   upload_caches:
     - sys
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
@@ -115,13 +117,14 @@ system_task:
     - tar xvf /tmp/binutils-*.pkg -C / /usr/bin/as
     - pkg install -fy python38 python3 py38-pip py38-setuptools
     - pkg install -fy cmake jpeg-turbo tiff png cairo fontconfig freetype2 libX11 libXext libXfixes libXdamage mesa-libs dbus pkgconf libqtxdg sqlite3 qt5-buildtools qt5-qmake qt5-dbus qt5-widgets qt5-dbus glib dbus-glib libffi gettext-runtime icu lxqt-build-tools gmake autoconf zip bash alsa-lib alsa-plugins mesa-dri expat gdk-pixbuf2 gettext-tools meson ninja wayland seatd evdev-proto libxml2 pango
+    - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
   sys_cache:
-    folder: /usr/obj/${CIRRUS_WORKING_DIR}/$(uname -m).$(uname -p)/sys
+    folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
     fingerprint_key: ${CIRRUS_BUILD_ID}
     reupload_on_changes: false
   base_cache:
-    folder: /usr/obj/${CIRRUS_WORKING_DIR}/$(uname -m).$(uname -p)/tmp
-    folder: /usr/obj/${CIRRUS_WORKING_DIR}/$(uname -m).$(uname -p)/release
+    folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/tmp
+    folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/release
     fingerprint_key: ${CIRRUS_BUILD_ID}
     reupload_on_changes: false
   system_build_script:
@@ -129,7 +132,7 @@ system_task:
     - cp -fv share/mk/* /usr/share/mk/
     - make COMPILER_TYPE=clang -f Makefile.ravynOS
     - rm -f dist/ravynOS.txz
-    - tar cvJ -C /usr/obj/$(pwd -P)/$(uname -m).$(uname -m)/release/dist/ravynOS --gid 0 --uid 0 -f $(pwd)/dist/ravynOS.txz .
+    - tar cvJ -C /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS --gid 0 --uid 0 -f $(pwd)/dist/ravynOS.txz .
   iso_script:
     - echo >> /root/.ssh/id_rsa
     - chmod 600 /root/.ssh/id_rsa
@@ -137,7 +140,7 @@ system_task:
     - ln -sf /usr/bin/bash /bin/bash
     - cp -fv version.txt ISO/overlays/ramdisk/version
     - mkdir -p /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base
-    - cp -fv /usr/obj/$(pwd -P)/$(uname -m).$(uname -p)/release/base.txz /usr/obj/$(pwd -P)/$(uname -m).$(uname -p)/release/kernel.txz ${CIRRUS_WORKING_DIR}/dist/ravynOS.txz /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base/
+    - cp -fv /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/base.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/kernel.txz ${CIRRUS_WORKING_DIR}/dist/ravynOS.txz /usr/local/furybsd/$(uname -m)/cache/$(head -1 version.txt)/base/
     - cd ISO; IGNORE_OSVERSION=yes RAVYNOS=${CIRRUS_WORKING_DIR} ./build.sh ravynOS ravynOS_$(head -1 ../version.txt)
     - SSHPASS="${MIRROR1_PASS}" sshpass -e scp -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* ${MIRROR1_USER}@${MIRROR1_HOST}:www/nightly/
     - scp -P2200 -o StrictHostKeyChecking=no ${CIRRUS_WORKING_DIR}/artifacts/*.iso* ${MIRROR1_USER}@${MIRROR2_HOST}:nightly/

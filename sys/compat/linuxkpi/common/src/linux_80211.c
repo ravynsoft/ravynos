@@ -1224,8 +1224,8 @@ lkpi_sta_auth_to_assoc(struct ieee80211vap *vap, enum ieee80211_state nstate, in
 	ni = ieee80211_ref_node(vap->iv_bss);
 	lsta = ni->ni_drv_data;
 	KASSERT(lsta != NULL, ("%s: ni %p lsta is NULL\n", __func__, ni));
-	KASSERT(lsta->state == IEEE80211_STA_NONE, ("%s: lsta %p state not "
-	    "NONE: %#x\n", __func__, lsta, lsta->state));
+	//KASSERT(lsta->state == IEEE80211_STA_NONE, ("%s: lsta %p state not "
+	//    "NONE: %#x\n", __func__, lsta, lsta->state));
 	sta = LSTA_TO_STA(lsta);
 	error = lkpi_80211_mo_sta_state(hw, vif, sta, IEEE80211_STA_AUTH);
 	if (error != 0)
