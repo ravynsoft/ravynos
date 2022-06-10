@@ -33,12 +33,12 @@ base_task:
     - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
   sys_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
-    fingerprint_key: ${CIRRUS_BUILD_ID}
+    fingerprint_key: ${CIRRUS_BUILD_ID}_sys
     reupload_on_changes: false
   base_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/tmp
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/release
-    fingerprint_key: ${CIRRUS_BUILD_ID}
+    fingerprint_key: ${CIRRUS_BUILD_ID}_base
     reupload_on_changes: true
   base_build_script:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
@@ -78,7 +78,7 @@ kernel_task:
     - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
   sys_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
-    fingerprint_key: ${CIRRUS_BUILD_ID}
+    fingerprint_key: ${CIRRUS_BUILD_ID}_sys
     reupload_on_changes: true
   kernel_build_script:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
@@ -120,12 +120,12 @@ system_task:
     - echo "PLATFORM=$(uname -m).$(uname -p)" >> ${CIRRUS_ENV}
   sys_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
-    fingerprint_key: ${CIRRUS_BUILD_ID}
+    fingerprint_key: ${CIRRUS_BUILD_ID}_sys
     reupload_on_changes: false
   base_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/tmp
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/release
-    fingerprint_key: ${CIRRUS_BUILD_ID}
+    fingerprint_key: ${CIRRUS_BUILD_ID}_base
     reupload_on_changes: false
   system_build_script:
     - make COMPILER_TYPE=clang -f Makefile.ravynOS prep
