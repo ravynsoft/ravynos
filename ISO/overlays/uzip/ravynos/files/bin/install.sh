@@ -26,10 +26,10 @@ createPartitions() {
 }
 
 createPools() {
-    mkdir /tmp/pool
+    mkdir -p /tmp/pool
     /sbin/zpool create -f -R /tmp/pool -O mountpoint=/ -O atime=off -O canmount=off -O compression=on $pool ${geom}p3
-    /sbin/zpool create -o canmount=off -o mountpoint=none ${pool}/ROOT
-    /sbin/zpool create -o mountpoint=/ ${pool}/ROOT/default
+    /sbin/zfs create -o canmount=off -o mountpoint=none ${pool}/ROOT
+    /sbin/zfs create -o mountpoint=/ ${pool}/ROOT/default
 
     /sbin/zfs create -o canmount=off ${pool}/usr
     /sbin/zfs create -o canmount=off ${pool}/var
@@ -41,12 +41,12 @@ createPools() {
 }
 
 initializeEFI() {
-    mkdir /tmp/efi
+    mkdir -p /tmp/efi
     /sbin/mount_msdosfs /dev/${geom}p1 /tmp/efi
     mkdir /tmp/efi/efi
     mkdir /tmp/efi/efi/boot
     cp -f /boot/loader.efi /tmp/efi/efi/boot/bootx64.efi
-    unmount /tmp/efi
+    umount /tmp/efi
 }
 
 copyFilesystem() {
@@ -73,8 +73,8 @@ EOT
 
     echo Updating rc.conf
     rm /tmp/pool/etc/rc.conf.local
-    for entry in $(cat /etc/rc.conf.local) 'root_rw_mount="YES"' 'zfs_enable="YES"' 'zfsd_enable="YES"' 'hostname="ravynOS"'; do
-        echo $entry | /usr/bin/xargs /usr/sbin/sysrc -f /tmp/pool/etc/rc.conf
+    for entry in "$(cat /etc/rc.conf.local)" 'root_rw_mount="YES"' 'zfs_enable="YES"' 'zfsd_enable="YES"' 'hostname="ravynOS"'; do
+        echo "$entry" | FS="\n" /usr/bin/xargs /usr/sbin/sysrc -f /tmp/pool/etc/rc.conf
     done
 
     rm -f /tmp/pool/var/initgfx_config.id
@@ -94,10 +94,10 @@ vfs.root.mountfrom.options="rw""
 vfs.root.mountfrom="zfs:${pool}/ROOT/default"
 EOT
 
-    userinfo="%${username}::::::${username}:/Users/${username}:/usr/bin/zsh:"
+    userinfo="${username}::::::${username}:/Users/${username}:/usr/bin/zsh:"
     echo "$userinfo" | chroot /tmp/pool /usr/sbin/adduser -f -
     chroot /tmp/pool passwd $username
-    for group in wheel video webcamd; do
+    for group in wheel video; do
             chroot /tmp/pool /usr/sbin/pw groupmod $group -m $username
     done
     chmod 1777 /tmp/pool/tmp
