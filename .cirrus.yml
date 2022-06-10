@@ -35,10 +35,13 @@ base_task:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
     fingerprint_key: ${CIRRUS_BUILD_ID}_sys
     reupload_on_changes: false
-  base_cache:
+  base_tmp_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/tmp
+    fingerprint_key: ${CIRRUS_BUILD_ID}_base_tmp
+    reupload_on_changes: true
+  base_release_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/release
-    fingerprint_key: ${CIRRUS_BUILD_ID}_base
+    fingerprint_key: ${CIRRUS_BUILD_ID}_base_release
     reupload_on_changes: true
   base_build_script:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
@@ -47,7 +50,8 @@ base_task:
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/base.txz
     - rm -rfv /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/base/usr/share/locale/nn_NO.*
   upload_caches:
-    - base
+    - base_tmp
+    - base_release
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   depends_on:
     - kernel
@@ -122,10 +126,13 @@ system_task:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
     fingerprint_key: ${CIRRUS_BUILD_ID}_sys
     reupload_on_changes: false
-  base_cache:
+  base_tmp_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/tmp
+    fingerprint_key: ${CIRRUS_BUILD_ID}_base_tmp
+    reupload_on_changes: false
+  base_release_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/release
-    fingerprint_key: ${CIRRUS_BUILD_ID}_base
+    fingerprint_key: ${CIRRUS_BUILD_ID)_base_release
     reupload_on_changes: false
   system_build_script:
     - make COMPILER_TYPE=clang -f Makefile.ravynOS prep
