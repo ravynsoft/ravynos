@@ -26,6 +26,7 @@
 
 #define MSG_ID_PORT 90210
 #define MSG_ID_INLINE 90211
+#define MSG_ADD_RECENT_ITEM 90212
 
 typedef struct {
     mach_msg_header_t header;
@@ -37,7 +38,8 @@ typedef struct {
 
 typedef struct {
     mach_msg_header_t header;
-    unsigned char data[32];
+    unsigned int code;
+    unsigned char data[64*1024];
     unsigned int len;
     mach_msg_trailer_t trailer;
 } Message;
@@ -82,6 +84,17 @@ typedef union {
                 break;
             }
             case MSG_ID_INLINE:
+                switch(msg.msg.code) {
+                    case MSG_ADD_RECENT_ITEM:
+                    {
+                        NSURL *url = [NSURL fileURLWithPath:
+                            [[NSString alloc] initWithBytes:msg.msg.data
+                            length:msg.msg.len encoding:NSUTF8StringEncoding]];
+                        if(!url)
+                            break;
+                        [menuBar addRecentItem:url];
+                    }
+                }
                 break;
         }
     }

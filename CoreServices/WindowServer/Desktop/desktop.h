@@ -50,14 +50,22 @@ extern const NSString *WLMenuDidUpdateNotification;
 @interface MenuView: NSView {
     NSMainMenuView *logoMenuView;
     NSMenu *sysMenu;
+    NSMenu *recentItemsMenu;
     NSMainMenuView *appMenuView;
     NSWindow *aboutWindow;
+    int _maxRecentItems;
 }
 
 - (MenuView *)init;
 - (void)setWindow:(NSWindow *)window;
 - (void)setMenu:(NSMenu *)menu;
 - (void)aboutThisComputer:(id)sender;
+- (void)performSleep:(id)sender;
+- (void)performRestart:(id)sender;
+- (void)performShutDown:(id)sender;
+- (void)launchSystemPreferences:(id)sender;
+- (void)addRecentItem:(NSURL *)itemURL;
+- (void)launchRecentItem:(id)sender;
 @end
 
 // menu extras container
@@ -83,6 +91,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 - (void)setMenu:(NSMenu *)menu forPID:(unsigned int)pid;
 - (void)removeMenuForPID:(unsigned int)pid;
 - (BOOL)activateMenuForPID:(unsigned int)pid;
+- (void)addRecentItem:(NSURL *)itemURL;
 @end
 
 @interface NSWindow(WLWindow_private)

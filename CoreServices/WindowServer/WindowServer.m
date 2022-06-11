@@ -30,6 +30,7 @@
 #include <sys/types.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <pthread.h>
 #include <pwd.h>
 #include <grp.h>
@@ -162,6 +163,17 @@ void launchShell(void *arg) {
                 giveXdgDir(uid, gid, userXdgDir);
                 free(userXdgDir);
 
+                // ensure our helper is owned correctly
+                {
+                    NSString *path = [[NSBundle mainBundle] pathForResource:@"SystemUIServer" ofType:@"app"];
+                    if(path)
+                        path = [[NSBundle bundleWithPath:path] pathForResource:@"shutdown" ofType:@""];
+                    if(path) {
+                        chown([path UTF8String], 0, videoGID);
+                        chmod([path UTF8String], 04550);
+                    }
+                }
+
                 shell = DESKTOP;
                 break;
             case DESKTOP: {
@@ -197,8 +209,13 @@ void launchShell(void *arg) {
                     }
                     login_close(lc);
 
-                    execle("/System/Library/CoreServices/WindowServer.app/Resources/SystemUIServer.app/SystemUIServer",
-                        "SystemUIServer", NULL, envp);
+                    NSString *path = [[NSBundle mainBundle] pathForResource:@"SystemUIServer" ofType:@"app"];
+                    if(path)
+                        path = [[NSBundle bundleWithPath:path] executablePath];
+                    
+                    if(path)
+                        execle([path UTF8String], [[path lastPathComponent] UTF8String], NULL, envp);
+
                     perror("execl");
                     exit(-1);
                 } else if(pid < 0) {

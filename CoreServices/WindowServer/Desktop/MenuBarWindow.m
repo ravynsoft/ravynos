@@ -90,5 +90,9 @@
     return NO;
 }
 
+- (void)addRecentItem:(NSURL *)itemURL {
+    [menuView addRecentItem:itemURL];
+}
+
 @end
 
