@@ -35,23 +35,25 @@ base_task:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
     fingerprint_key: ${CIRRUS_BUILD_ID}_sys
     reupload_on_changes: false
-  base_tmp_cache:
+  tmp_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/tmp
-    fingerprint_key: ${CIRRUS_BUILD_ID}_base_tmp
+    fingerprint_key: ${CIRRUS_BUILD_ID}_tmp
     reupload_on_changes: true
-  base_release_cache:
+  release_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/release
-    fingerprint_key: ${CIRRUS_BUILD_ID}_base_release
+    fingerprint_key: ${CIRRUS_BUILD_ID}_release
     reupload_on_changes: true
   base_build_script:
+    - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
+    - cp -afv ${CIRRUS_WORKING_DIR}/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/ /usr/obj/${CIRRUS_WORKING_DIR}/
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
     - make -j$(sysctl -n hw.ncpu) WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang buildworld
     - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang base.txz
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/base.txz
     - rm -rfv /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/base/usr/share/locale/nn_NO.*
   upload_caches:
-    - base_tmp
-    - base_release
+    - tmp
+    - release
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
   depends_on:
     - kernel
@@ -84,6 +86,10 @@ kernel_task:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
     fingerprint_key: ${CIRRUS_BUILD_ID}_sys
     reupload_on_changes: true
+  release_cache:
+    folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/release
+    fingerprint_key: ${CIRRUS_BUILD_ID}_release
+    reupload_on_changes: true
   kernel_build_script:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
     - make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN COMPILER_TYPE=clang buildkernel
@@ -91,6 +97,7 @@ kernel_task:
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/kernel.txz
   upload_caches:
     - sys
+    - release
   only_if: $CIRRUS_BRANCH == 'main' || $CIRRUS_BRANCH == 'staging'
 
 system_task:
@@ -126,15 +133,17 @@ system_task:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/sys
     fingerprint_key: ${CIRRUS_BUILD_ID}_sys
     reupload_on_changes: false
-  base_tmp_cache:
+  tmp_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/tmp
-    fingerprint_key: ${CIRRUS_BUILD_ID}_base_tmp
+    fingerprint_key: ${CIRRUS_BUILD_ID}_tmp
     reupload_on_changes: false
-  base_release_cache:
+  release_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/release
-    fingerprint_key: ${CIRRUS_BUILD_ID}_base_release
+    fingerprint_key: ${CIRRUS_BUILD_ID}_release
     reupload_on_changes: false
   system_build_script:
+    - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
+    - cp -afv ${CIRRUS_WORKING_DIR}/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/ /usr/obj/${CIRRUS_WORKING_DIR}/
     - make COMPILER_TYPE=clang -f Makefile.ravynOS prep
     - cp -fv share/mk/* /usr/share/mk/
     - make COMPILER_TYPE=clang -f Makefile.ravynOS
