@@ -132,7 +132,7 @@ system_task:
     reupload_on_changes: false
   base_release_cache:
     folder: /usr/obj/${CIRRUS_WORKING_DIR}/*/release
-    fingerprint_key: ${CIRRUS_BUILD_ID)_base_release
+    fingerprint_key: ${CIRRUS_BUILD_ID}_base_release
     reupload_on_changes: false
   system_build_script:
     - make COMPILER_TYPE=clang -f Makefile.ravynOS prep
