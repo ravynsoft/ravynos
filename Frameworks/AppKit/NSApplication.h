@@ -214,6 +214,7 @@ typedef enum {
 - (void)_windowWillBecomeDeactive:(NSWindow *)window;
 - (void)_windowDidBecomeDeactive:(NSWindow *)window;
 
+- (void)addRecentItem:(NSURL *)url;
 @end
 
 @interface NSObject (NSApplication_serviceRequest)

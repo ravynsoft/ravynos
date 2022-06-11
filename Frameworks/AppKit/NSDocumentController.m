@@ -600,6 +600,7 @@ static NSDocumentController *shared=nil;
     
    [[NSUserDefaults standardUserDefaults] setObject:array forKey:@"NSRecentDocumentPaths"];
    [self _updateRecentDocumentsMenu];
+   [NSApp addRecentItem:url];
 }
 
 -(void)noteNewRecentDocument:(NSDocument *)document {

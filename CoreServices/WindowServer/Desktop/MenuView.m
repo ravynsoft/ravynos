@@ -48,6 +48,7 @@
     recentItemsMenu = [NSMenu new];
     [recentItemsMenu setDelegate:self];
     [recentItemsMenu setAutoenablesItems:YES];
+    [recentItemsMenu addItemWithTitle:@"Test Item" action:NULL keyEquivalent:@""];
 
     [[sysMenu addItemWithTitle:@"About This Computer" action:@selector(aboutThisComputer:) 
         keyEquivalent:@""] setTarget:self];
@@ -82,7 +83,7 @@
     [logoItem setSubmenu:sysMenu];
     [logoMenu addItem:logoItem];
 
-    NSRect rect = NSMakeRect(menuBarHPad, 0, 64, menuBarHeight);
+    NSRect rect = NSMakeRect(menuBarHPad, 0, 32, menuBarHeight);
     NSMainMenuView *mv = [[NSMainMenuView alloc] initWithFrame:rect menu:logoMenu];
     [self addSubview:mv];
 
@@ -104,7 +105,7 @@
             attributes:attr]];
     }
 
-    NSRect rect = NSMakeRect(menuBarHPad*3, 0, _frame.size.width, menuBarHeight);
+    NSRect rect = NSMakeRect(menuBarHPad*4, 0, _frame.size.width, menuBarHeight);
     appMenuView = [[NSMainMenuView alloc] initWithFrame:rect menu:menu];
     [appMenuView setAutoresizingMask:NSViewWidthSizable|NSViewMinYMargin];
     [self addSubview:appMenuView];
@@ -164,6 +165,7 @@ static void _performShutDown(int mode) {
 - (void)addRecentItem:(NSURL *)itemURL {
     NSMenuItem *item;
 
+    NSLog(@"addRecentItem: %@",itemURL);
     // if this item is already on the menu, move it to the top
     int index = [recentItemsMenu indexOfItemWithRepresentedObject:itemURL];
     if(index >= 0) {
@@ -178,6 +180,7 @@ static void _performShutDown(int mode) {
         action:@selector(launchRecentItem:) keyEquivalent:@""];
     [item setRepresentedObject:itemURL];
     [recentItemsMenu insertItem:item atIndex:0];
+    NSLog(@"recent items %@", [recentItemsMenu itemArray]);
 
     // keep the list at our desired size by dropping off oldest entry
     int count = [[recentItemsMenu itemArray] count];

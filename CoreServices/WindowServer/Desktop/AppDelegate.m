@@ -26,7 +26,7 @@
 
 #define MSG_ID_PORT 90210
 #define MSG_ID_INLINE 90211
-#define MSG_ADD_RECENT_ITEM 90212
+#define CODE_ADD_RECENT_ITEM 1
 
 typedef struct {
     mach_msg_header_t header;
@@ -85,9 +85,9 @@ typedef union {
             }
             case MSG_ID_INLINE:
                 switch(msg.msg.code) {
-                    case MSG_ADD_RECENT_ITEM:
+                    case CODE_ADD_RECENT_ITEM:
                     {
-                        NSURL *url = [NSURL fileURLWithPath:
+                        NSURL *url = [NSURL URLWithString:
                             [[NSString alloc] initWithBytes:msg.msg.data
                             length:msg.msg.len encoding:NSUTF8StringEncoding]];
                         if(!url)

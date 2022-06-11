@@ -64,9 +64,11 @@ NSString * const NSApplicationDidChangeScreenParametersNotification=@"NSApplicat
 #define WINDOWSERVER_SVC_NAME "com.ravynos.WindowServer"
 #define MSG_ID_PORT     90210
 #define MSG_ID_INLINE   90211
+#define CODE_ADD_RECENT_ITEM 1
 typedef struct {
     mach_msg_header_t header;
-    unsigned char data[1024];
+    unsigned int code;
+    unsigned char data[64*1024];
     unsigned int len;
 } Message;
 
@@ -438,12 +440,12 @@ id NSApp=nil;
     [d release];
 
     if(_wsSvcPort == MACH_PORT_NULL) {
-        NSLog(@"bp=%d, looking up service %s", bootstrap_port, WINDOWSERVER_SVC_NAME);
+        //NSLog(@"bp=%d, looking up service %s", bootstrap_port, WINDOWSERVER_SVC_NAME);
         if(bootstrap_look_up(bootstrap_port, WINDOWSERVER_SVC_NAME, &_wsSvcPort) != KERN_SUCCESS) {
             NSLog(@"Failed to locate WindowServer port");
             return;
         }
-        NSLog(@"got service port %d", _wsSvcPort);
+        //NSLog(@"got service port %d", _wsSvcPort);
     }
 
     PortMessage msg = {0};
@@ -460,6 +462,21 @@ id NSApp=nil;
     if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
         MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
         NSLog(@"Failed to send port message to WS");
+}
+
+- (void)addRecentItem:(NSURL *)url {
+    Message msg = {0};
+    msg.header.msgh_remote_port = _wsSvcPort;
+    msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+    msg.header.msgh_id = MSG_ID_INLINE;
+    msg.header.msgh_size = sizeof(msg);
+    msg.code = CODE_ADD_RECENT_ITEM;
+    strncpy(msg.data, [[url absoluteString] UTF8String], sizeof(msg.data));
+    msg.len = strlen(msg.data);
+
+    if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
+        MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
+        NSLog(@"Failed to send recent item to WS");
 }
 
 -(void)setMenu:(NSMenu *)menu {
