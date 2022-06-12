@@ -1,4 +1,5 @@
 /* Copyright (c) 2006-2007 Christopher J. W. Lloyd
+   Copyright (c) 2022 Zoe Knox <zoe@pixin.net>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -290,13 +291,15 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
    return NSNotFound;
 }
 
--(void)positionBranchForSelectedItem:(NSWindow *)branch screen:(NSScreen *)screen {
+-(void)positionBranchForSelectedItem:(NSWindow *)branch window:(NSWindow *)window screen:(NSScreen *)screen {
    NSRect   branchFrame=[branch frame];
+   NSRect   windowFrame=[window frame];
    NSRect   screenVisible=[screen visibleFrame];
    NSArray *items=[[self menu] itemArray];
    unsigned i,count=[items count];
    NSRect   itemRect=boundsToTitleAreaRect([self bounds]);
    NSPoint  topLeft=NSZeroPoint;
+
 
    for(i=0;i<count;i++){
     NSMenuItem *item=[items objectAtIndex:i];
@@ -307,6 +310,7 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
      topLeft=itemRect.origin;
 
      topLeft.x+=itemRect.size.width;
+     //topLeft.x-=WINDOW_BORDER_THICKNESS;
      topLeft.y-=WINDOW_BORDER_THICKNESS;
 
      break;
@@ -341,6 +345,16 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
     topLeft.x=redo.x;
    }
 
+    // Wayland hack: our WLWindowPopUp is a subsurface that is attached
+    // to the parent surface, so its x,y are relative to that, not the
+    // screen frame. FIXME: find a better way to do this.
+    topLeft.x -= screenVisible.origin.x;
+    topLeft.y -= screenVisible.origin.y;
+
+    topLeft.y -= windowFrame.origin.y;
+    //topLeft.y -= itemRect.origin.y;
+    topLeft.x -= windowFrame.origin.x;
+
    [branch setFrameTopLeftPoint:topLeft];
 }
 
@@ -353,8 +367,9 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
     if([item hasSubmenu]){
      NSMenuWindow *branch=[[NSMenuWindow alloc] initWithMenu:[item submenu]];
 
-     [self positionBranchForSelectedItem:branch screen:screen];
+     [self positionBranchForSelectedItem:branch window:[self window] screen:screen];
 
+     [branch setParent:[self window]];
      [branch orderFront:nil];
      return [branch menuView];
     }
