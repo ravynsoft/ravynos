@@ -45,7 +45,7 @@ base_task:
     reupload_on_changes: true
   base_build_script:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
-    - cp -afv ${CIRRUS_WORKING_DIR}/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/ /usr/obj/${CIRRUS_WORKING_DIR}/
+    - cp -afv ${CIRRUS_WORKING_DIR}/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/ /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
     - make -j$(sysctl -n hw.ncpu) WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang buildworld
     - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang base.txz
@@ -143,7 +143,7 @@ system_task:
     reupload_on_changes: false
   system_build_script:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
-    - cp -afv ${CIRRUS_WORKING_DIR}/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/ /usr/obj/${CIRRUS_WORKING_DIR}/
+    - cp -afv ${CIRRUS_WORKING_DIR}/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/ /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/
     - make COMPILER_TYPE=clang -f Makefile.ravynOS prep
     - cp -fv share/mk/* /usr/share/mk/
     - make COMPILER_TYPE=clang -f Makefile.ravynOS
