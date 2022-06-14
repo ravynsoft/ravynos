@@ -1064,7 +1064,8 @@ id NSApp=nil;
    int result;
 
    while((result=[NSApp runModalSession:session])==NSRunContinuesResponse){
-    [[NSRunLoop currentRunLoop] runMode:NSModalPanelRunLoopMode beforeDate:[NSDate distantFuture]];
+    NSDate *date = [NSDate dateWithTimeIntervalSinceNow:0.1];
+    [[NSRunLoop currentRunLoop] runMode:NSModalPanelRunLoopMode beforeDate:date/*[NSDate distantFuture]*/];
    }
    
    [self endModalSession:session];

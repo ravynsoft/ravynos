@@ -25,6 +25,8 @@
 #import <AppKit/NSMenu.h>
 #import <mach/mach.h>
 
+#import "Label.h"
+
 #define menuBarHeight 22
 #define menuBarVPad 2
 #define menuBarHPad 16
@@ -36,7 +38,7 @@ extern const NSString *WLOutputDidResizeNotification;
 extern const NSString *WLMenuDidUpdateNotification;
 
 // the clock
-@interface ClockView: NSTextView {
+@interface ClockView: Label {
     NSDateFormatter *dateFormatter;
     NSString *dateFormat;
     NSDictionary *attributes;

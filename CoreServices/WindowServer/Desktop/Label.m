@@ -20,12 +20,38 @@
  * THE SOFTWARE.
  */
 
-#pragma once
 #import <AppKit/AppKit.h>
+#import "desktop.h"
 
-@interface AboutWindow: NSWindow {
+@implementation Label
++ (Label *)labelWithText:(NSAttributedString *)text atPoint:(NSPoint)location
+    withMaxWidth:(float)maxWidth {
+    return [[self alloc] initWithText:text atPoint:location withMaxWidth:maxWidth];
 }
 
-- (AboutWindow *)init;
+- (Label *)initWithText:(NSAttributedString *)text atPoint:(NSPoint)location
+    withMaxWidth:(float)maxWidth {
+
+    NSSize size = [text size];
+    NSRect frame = NSZeroRect;
+    frame.origin = location;
+    frame.size.height = size.height;
+    frame.size.width = maxWidth;
+
+    if(size.width > maxWidth) {
+        frame.size.height += ceilf(size.height);
+        frame.origin.y -= ceilf(size.height);
+    }
+
+    self = [super initWithFrame:frame];
+    [self setAttributedStringValue:text];
+    [self setBordered:NO];
+    [self setEditable:NO];
+    return self;
+}
+
+- (NSSize)size {
+    return _frame.size;
+}
 @end
 

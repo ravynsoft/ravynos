@@ -1131,12 +1131,6 @@ NSArray *CGSOrderedWindowNumbers() {
      [window frameChanged];
      [delegate platformWindow:window frameChanged:[window transformFrame:[window frame]] didSize:YES];
      break;
-
-
-    case ClientMessage:
-     if(ev->xclient.format=32 && ev->xclient.data.l[0]==XInternAtom(_display, "WM_DELETE_WINDOW", False))
-      [delegate platformWindowWillClose:window];
-     break;
 #endif
 
 -(void)selectInputSource:(NSSelectInputSource *)inputSource selectEvent:(NSUInteger)selectEvent {
@@ -1145,7 +1139,6 @@ NSArray *CGSOrderedWindowNumbers() {
     wl_display_flush(_display);
     wl_display_read_events(_display);
     wl_display_dispatch_pending(_display);
-    //[self postXEvent:&e];
 }
 
 -(int)handleError:(void*)errorEvent {

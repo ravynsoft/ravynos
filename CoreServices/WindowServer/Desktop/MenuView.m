@@ -136,7 +136,7 @@ static void _performShutDown(int mode) {
     argv[2] = NULL;
     envp[0] = NULL;
     if(!path || posix_spawn(&helper, [path UTF8String], NULL, NULL, argv, envp) != 0)
-        NSLog(@"performSleep: error occurred"); // FIXME: error handling
+        NSLog(@"performShutDown: error occurred"); // FIXME: error handling
     free(modestr);
 }
 
@@ -145,11 +145,21 @@ static void _performShutDown(int mode) {
 }
 
 - (void)performRestart:(id)sender {
-    _performShutDown(1);
+    int rc = NSRunAlertPanel(@"Confirm Restart", 
+        @"Are you sure you want to restart your computer?",
+        @"Restart", @"Cancel", nil);
+    if(rc == 1) {
+        _performShutDown(1);
+    }
 }
 
 - (void)performShutDown:(id)sender {
-    _performShutDown(2);
+    int rc = NSRunAlertPanel(@"Confirm Shut Down", 
+        @"Are you sure you want to shut down your computer?",
+        @"Shut Down", @"Cancel", nil);
+    if(rc == 1) {
+        _performShutDown(2);
+    }
 }
 
 - (void)launchSystemPreferences:(id)sender {
@@ -165,7 +175,6 @@ static void _performShutDown(int mode) {
 - (void)addRecentItem:(NSURL *)itemURL {
     NSMenuItem *item;
 
-    NSLog(@"addRecentItem: %@",itemURL);
     // if this item is already on the menu, move it to the top
     int index = [recentItemsMenu indexOfItemWithRepresentedObject:itemURL];
     if(index >= 0) {
@@ -179,8 +188,8 @@ static void _performShutDown(int mode) {
     item = [[NSMenuItem alloc] initWithTitle:[itemURL lastPathComponent]
         action:@selector(launchRecentItem:) keyEquivalent:@""];
     [item setRepresentedObject:itemURL];
+    [item setTarget:self];
     [recentItemsMenu insertItem:item atIndex:0];
-    NSLog(@"recent items %@", [recentItemsMenu itemArray]);
 
     // keep the list at our desired size by dropping off oldest entry
     int count = [[recentItemsMenu itemArray] count];

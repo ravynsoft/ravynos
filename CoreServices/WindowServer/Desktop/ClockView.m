@@ -48,36 +48,30 @@ static void clockLoop(void *arg) {
     dateFormatter = [[NSDateFormatter alloc] initWithDateFormat:dateFormat 
         allowNaturalLanguage:YES locale:[NSLocale currentLocale]];
 
-    self = [super initWithFrame:NSMakeRect(frame.size.width - 300, menuBarVPad, 300, menuBarHPad)];
-    [self setDrawsBackground:NO];
-    [self setEditable:NO];
     NSFont *font = [NSFont systemFontOfSize:15];
     attributes = [NSDictionary dictionaryWithObject:font forKey:NSFontAttributeName];
 
-    NSTextStorage *textStorage = [self textStorage];
-    [textStorage beginEditing];
-    [textStorage setAttributedString:[[NSAttributedString alloc]
-            initWithString:[dateFormatter stringForObjectValue:[NSDate date]]
-            attributes:attributes]];
-    [textStorage endEditing];
+    NSAttributedString *dateString = [[NSAttributedString alloc]
+        initWithString:[dateFormatter stringForObjectValue:[NSDate date]]
+        attributes:attributes];
 
-    NSRect f = [self frame];
-    f.size = [[self textStorage] size];
-    f.origin.x = frame.size.width - f.size.width - menuBarHPad;
-    [self setFrame:f];
+    NSSize sz = [dateString size];
+    self = [super initWithText:dateString
+        atPoint:NSMakePoint(frame.size.width - sz.width - menuBarHPad, menuBarVPad)
+        withMaxWidth:300];
+
     pthread_create(&updater, NULL, clockLoop, (__bridge void *)self);
 
     return self;
 }
 
 - (void)update:(NSWindow*)window {
-    NSTextStorage *textStorage = [self textStorage];
     while(1) {
         @autoreleasepool {
-            [textStorage beginEditing];
-            [textStorage replaceCharactersInRange:NSMakeRange(0,[[textStorage string] length])
-                withString:[dateFormatter stringForObjectValue:[NSDate date]]];
-            [textStorage endEditing];
+            [self setAttributedStringValue:[[NSAttributedString alloc]
+                initWithString:[dateFormatter stringForObjectValue:[NSDate date]]
+                attributes:attributes]];
+            [self setNeedsDisplay:YES];
         }
         usleep(500000);
     }

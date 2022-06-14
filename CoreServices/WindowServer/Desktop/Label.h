@@ -20,12 +20,15 @@
  * THE SOFTWARE.
  */
 
-#pragma once
 #import <AppKit/AppKit.h>
 
-@interface AboutWindow: NSWindow {
+@interface Label: NSTextField {
 }
 
-- (AboutWindow *)init;
++ (Label *)labelWithText:(NSAttributedString *)text atPoint:(NSPoint)location
+    withMaxWidth:(float)maxWidth;
+- (Label *)initWithText:(NSAttributedString *)text atPoint:(NSPoint)location
+    withMaxWidth:(float)maxWidth;
+- (NSSize)size;
 @end
 
