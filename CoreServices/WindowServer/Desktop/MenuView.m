@@ -48,7 +48,10 @@
     recentItemsMenu = [NSMenu new];
     [recentItemsMenu setDelegate:self];
     [recentItemsMenu setAutoenablesItems:YES];
-    [recentItemsMenu addItemWithTitle:@"Test Item" action:NULL keyEquivalent:@""];
+    NSMenuItem *test = [recentItemsMenu addItemWithTitle:@"Test Item" 
+        action:@selector(launchRecentItem:)
+        keyEquivalent:@""];
+    [test setTarget:self];
 
     [[sysMenu addItemWithTitle:@"About This Computer" action:@selector(aboutThisComputer:) 
         keyEquivalent:@""] setTarget:self];
