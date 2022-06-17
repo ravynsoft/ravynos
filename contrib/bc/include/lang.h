@@ -50,8 +50,8 @@
 #include <num.h>
 
 /// The instructions for bytecode.
-typedef enum BcInst {
-
+typedef enum BcInst
+{
 #if BC_ENABLED
 
 	/// Postfix increment and decrement. Prefix are translated into
@@ -332,15 +332,15 @@ typedef enum BcInst {
 } BcInst;
 
 #if BC_C11
-static_assert(BC_INST_INVALID <= UCHAR_MAX,
-              "Too many instructions to fit into an unsigned char");
+_Static_assert(BC_INST_INVALID <= UCHAR_MAX,
+               "Too many instructions to fit into an unsigned char");
 #endif // BC_C11
 
 /// Used by maps to identify where items are in the array.
-typedef struct BcId {
-
+typedef struct BcId
+{
 	/// The name of the item.
-	char *name;
+	char* name;
 
 	/// The index into the array where the item is.
 	size_t idx;
@@ -348,8 +348,8 @@ typedef struct BcId {
 } BcId;
 
 /// The location of a var, array, or array element.
-typedef struct BcLoc {
-
+typedef struct BcLoc
+{
 	/// The index of the var or array.
 	size_t loc;
 
@@ -359,10 +359,10 @@ typedef struct BcLoc {
 } BcLoc;
 
 /// An entry for a constant.
-typedef struct BcConst {
-
+typedef struct BcConst
+{
 	/// The original string as parsed from the source code.
-	char *val;
+	char* val;
 
 	/// The last base that the constant was parsed in.
 	BcBigDig base;
@@ -375,8 +375,8 @@ typedef struct BcConst {
 /// A function. This is also used in dc, not just bc. The reason is that strings
 /// are executed in dc, and they are converted to functions in order to be
 /// executed.
-typedef struct BcFunc {
-
+typedef struct BcFunc
+{
 	/// The bytecode instructions.
 	BcVec code;
 
@@ -402,7 +402,7 @@ typedef struct BcFunc {
 	BcVec consts;
 
 	/// The function's name.
-	const char *name;
+	const char* name;
 
 #if BC_ENABLED
 	/// True if the function is a void function.
@@ -412,8 +412,8 @@ typedef struct BcFunc {
 } BcFunc;
 
 /// Types of results that can be pushed onto the results stack.
-typedef enum BcResultType {
-
+typedef enum BcResultType
+{
 	/// Result is a variable.
 	BC_RESULT_VAR,
 
@@ -467,8 +467,8 @@ typedef enum BcResultType {
 } BcResultType;
 
 /// A union to store data for various result types.
-typedef union BcResultData {
-
+typedef union BcResultData
+{
 	/// A number. Strings are stored here too; they are numbers with
 	/// cap == 0 && num == NULL. The string's index into the strings vector is
 	/// stored in the scale field. But this is only used for strings stored in
@@ -485,8 +485,8 @@ typedef union BcResultData {
 } BcResultData;
 
 /// A tagged union for results.
-typedef struct BcResult {
-
+typedef struct BcResult
+{
 	/// The tag. The type of the result.
 	BcResultType t;
 
@@ -497,8 +497,8 @@ typedef struct BcResult {
 
 /// An instruction pointer. This is how bc knows where in the bytecode vector,
 /// and which function, the current execution is.
-typedef struct BcInstPtr {
-
+typedef struct BcInstPtr
+{
 	/// The index of the currently executing function in the fns vector.
 	size_t func;
 
@@ -513,8 +513,8 @@ typedef struct BcInstPtr {
 } BcInstPtr;
 
 /// Types of identifiers.
-typedef enum BcType {
-
+typedef enum BcType
+{
 	/// Variable.
 	BC_TYPE_VAR,
 
@@ -532,8 +532,8 @@ typedef enum BcType {
 
 #if BC_ENABLED
 /// An auto variable in bc.
-typedef struct BcAuto {
-
+typedef struct BcAuto
+{
 	/// The index of the variable in the vars or arrs vectors.
 	size_t idx;
 
@@ -552,7 +552,8 @@ struct BcProgram;
  * @param name  The name of the function. The string is assumed to be owned by
  *              some other entity.
  */
-void bc_func_init(BcFunc *f, const char* name);
+void
+bc_func_init(BcFunc* f, const char* name);
 
 /**
  * Inserts an auto into the function.
@@ -563,15 +564,17 @@ void bc_func_init(BcFunc *f, const char* name);
  * @param line  The line in the source code where the insert happened. This is
  *              solely for error reporting.
  */
-void bc_func_insert(BcFunc *f, struct BcProgram* p, char* name,
-                    BcType type, size_t line);
+void
+bc_func_insert(BcFunc* f, struct BcProgram* p, char* name, BcType type,
+               size_t line);
 
 /**
  * Resets a function in preparation for it to be reused. This can happen in bc
  * because it is a dynamic language and functions can be redefined.
  * @param f  The functio to reset.
  */
-void bc_func_reset(BcFunc *f);
+void
+bc_func_reset(BcFunc* f);
 
 #ifndef NDEBUG
 /**
@@ -580,7 +583,8 @@ void bc_func_reset(BcFunc *f);
  * check for memory leaks.
  * @param func  The function to free as a void pointer.
  */
-void bc_func_free(void *func);
+void
+bc_func_free(void* func);
 #endif // NDEBUG
 
 /**
@@ -594,7 +598,8 @@ void bc_func_free(void *func);
  * @param nums  True if the array should be for numbers, false if it should be
  *              for vectors.
  */
-void bc_array_init(BcVec *a, bool nums);
+void
+bc_array_init(BcVec* a, bool nums);
 
 /**
  * Copies an array to another array. This is used to do pass arrays to functions
@@ -603,19 +608,22 @@ void bc_array_init(BcVec *a, bool nums);
  * @param d  The destination array.
  * @param s  The source array.
  */
-void bc_array_copy(BcVec *d, const BcVec *s);
+void
+bc_array_copy(BcVec* d, const BcVec* s);
 
 /**
  * Frees a string stored in a function. This is a destructor.
  * @param string  The string to free as a void pointer.
  */
-void bc_string_free(void *string);
+void
+bc_string_free(void* string);
 
 /**
  * Frees a constant stored in a function. This is a destructor.
  * @param constant  The constant to free as a void pointer.
  */
-void bc_const_free(void *constant);
+void
+bc_const_free(void* constant);
 
 /**
  * Clears a result. It sets the type to BC_RESULT_TEMP and clears the union by
@@ -623,7 +631,8 @@ void bc_const_free(void *constant);
  * uninitialized data.
  * @param r  The result to clear.
  */
-void bc_result_clear(BcResult *r);
+void
+bc_result_clear(BcResult* r);
 
 /**
  * Copies a result into another. This is done for things like duplicating the
@@ -632,13 +641,15 @@ void bc_result_clear(BcResult *r);
  * @param d    The destination result.
  * @param src  The source result.
  */
-void bc_result_copy(BcResult *d, BcResult *src);
+void
+bc_result_copy(BcResult* d, BcResult* src);
 
 /**
  * Frees a result. This is a destructor.
  * @param result  The result to free as a void pointer.
  */
-void bc_result_free(void *result);
+void
+bc_result_free(void* result);
 
 /**
  * Expands an array to @a len. This can happen because in bc, you do not have to
@@ -649,7 +660,8 @@ void bc_result_free(void *result);
  * @param a    The array to expand.
  * @param len  The length to expand to.
  */
-void bc_array_expand(BcVec *a, size_t len);
+void
+bc_array_expand(BcVec* a, size_t len);
 
 /**
  * Compare two BcId's and return the result. Since they are just comparing the
@@ -659,7 +671,8 @@ void bc_array_expand(BcVec *a, size_t len);
  * @param e2  The second id.
  * @return    The result of strcmp() on the BcId's names.
  */
-int bc_id_cmp(const BcId *e1, const BcId *e2);
+int
+bc_id_cmp(const BcId* e1, const BcId* e2);
 
 #if BC_ENABLED
 

@@ -364,7 +364,8 @@ iommu_gas_match_insert(struct iommu_gas_match_args *a)
 	 * The page sized gap is created between consequent
 	 * allocations to ensure that out-of-bounds accesses fault.
 	 */
-	a->entry->end = a->entry->start + a->size;
+	a->entry->end = a->entry->start +
+	    roundup2(a->size + a->offset, IOMMU_PAGE_SIZE);
 
 	found = iommu_gas_rb_insert(a->domain, a->entry);
 	KASSERT(found, ("found dup %p start %jx size %jx",
@@ -375,34 +376,65 @@ iommu_gas_match_insert(struct iommu_gas_match_args *a)
 static int
 iommu_gas_lowermatch(struct iommu_gas_match_args *a, struct iommu_map_entry *entry)
 {
-	struct iommu_map_entry *child;
+	struct iommu_map_entry *first;
+	iommu_gaddr_t min_free;
 
 	/*
 	 * If the subtree doesn't have free space for the requested allocation
-	 * plus two guard pages, give up.
+	 * plus two guard pages, skip it.
 	 */
-	if (entry->free_down < a->size + a->offset + 2 * IOMMU_PAGE_SIZE)
-		return (ENOMEM);
-	if (entry->first >= a->common->lowaddr)
-		return (ENOMEM);
-	child = RB_RIGHT(entry, rb_entry);
-	if (child != NULL && 0 == iommu_gas_lowermatch(a, child))
-		return (0);
-	if (child != NULL && entry->end < a->common->lowaddr &&
-	    iommu_gas_match_one(a, entry->end, child->first,
-	    a->common->lowaddr)) {
-		iommu_gas_match_insert(a);
-		return (0);
+	min_free = 2 * IOMMU_PAGE_SIZE +
+	    roundup2(a->size + a->offset, IOMMU_PAGE_SIZE);
+
+	/* Find the first entry that could abut a big-enough range. */
+	first = NULL;
+	while (entry != NULL && entry->free_down >= min_free) {
+		first = entry;
+		entry = RB_LEFT(entry, rb_entry);
 	}
-	child = RB_LEFT(entry, rb_entry);
-	if (child != NULL && child->last < a->common->lowaddr &&
-	    iommu_gas_match_one(a, child->last, entry->start,
-	    a->common->lowaddr)) {
-		iommu_gas_match_insert(a);
-		return (0);
+
+	/*
+	 * Walk the big-enough ranges until one satisfies alignment
+	 * requirements, or violates lowaddr address requirement.
+	 */
+	entry = first;
+	while (entry != NULL) {
+		if ((first = RB_LEFT(entry, rb_entry)) != NULL) {
+			if (first->last >= a->common->lowaddr) {
+				/* All remaining ranges >= lowaddr */
+				break;
+			}
+			if (iommu_gas_match_one(a, first->last, entry->start,
+			    a->common->lowaddr)) {
+				iommu_gas_match_insert(a);
+				return (0);
+			}
+		}
+		if (entry->end >= a->common->lowaddr) {
+			/* All remaining ranges >= lowaddr */
+			break;
+		}
+		if ((first = RB_RIGHT(entry, rb_entry)) != NULL &&
+		    iommu_gas_match_one(a, entry->end, first->first,
+		    a->common->lowaddr)) {
+			iommu_gas_match_insert(a);
+			return (0);
+		}
+		/* Find the next entry that might abut a big-enough range. */
+		if (first != NULL && first->free_down >= min_free) {
+			/* Find next entry in right subtree. */
+			do
+				entry = first;
+			while ((first = RB_LEFT(entry, rb_entry)) != NULL &&
+			    first->free_down >= min_free);
+		} else {
+			/* Find next entry in a left-parent ancestor. */
+			while ((first = RB_PARENT(entry, rb_entry)) != NULL &&
+			    entry == RB_RIGHT(first, rb_entry))
+				entry = first;
+			entry = first;
+		}
 	}
-	if (child != NULL && 0 == iommu_gas_lowermatch(a, child))
-		return (0);
 	return (ENOMEM);
 }
 
@@ -415,7 +447,8 @@ iommu_gas_uppermatch(struct iommu_gas_match_args *a, struct iommu_map_entry *ent
 	 * If the subtree doesn't have free space for the requested allocation
 	 * plus two guard pages, give up.
 	 */
-	if (entry->free_down < a->size + a->offset + 2 * IOMMU_PAGE_SIZE)
+	if (entry->free_down < 2 * IOMMU_PAGE_SIZE +
+	    roundup2(a->size + a->offset, IOMMU_PAGE_SIZE))
 		return (ENOMEM);
 	if (entry->last < a->common->highaddr)
 		return (ENOMEM);
@@ -450,7 +483,6 @@ iommu_gas_find_space(struct iommu_domain *domain,
 
 	IOMMU_DOMAIN_ASSERT_LOCKED(domain);
 	KASSERT(entry->flags == 0, ("dirty entry %p %p", domain, entry));
-	KASSERT((size & IOMMU_PAGE_MASK) == 0, ("size %jx", (uintmax_t)size));
 
 	a.domain = domain;
 	a.size = size;
@@ -767,36 +799,6 @@ iommu_gas_reserve_region_extend(struct iommu_domain *domain,
 	return (error);
 }
 
-struct iommu_map_entry *
-iommu_map_alloc_entry(struct iommu_domain *domain, u_int flags)
-{
-	struct iommu_map_entry *res;
-
-	res = iommu_gas_alloc_entry(domain, flags);
-
-	return (res);
-}
-
-void
-iommu_map_free_entry(struct iommu_domain *domain, struct iommu_map_entry *entry)
-{
-
-	iommu_gas_free_entry(domain, entry);
-}
-
-int
-iommu_map(struct iommu_domain *domain,
-    const struct bus_dma_tag_common *common, iommu_gaddr_t size, int offset,
-    u_int eflags, u_int flags, vm_page_t *ma, struct iommu_map_entry **res)
-{
-	int error;
-
-	error = iommu_gas_map(domain, common, size, offset, eflags, flags,
-	    ma, res);
-
-	return (error);
-}
-
 void
 iommu_unmap_msi(struct iommu_ctx *ctx)
 {
@@ -883,17 +885,6 @@ iommu_translate_msi(struct iommu_domain *domain, uint64_t *addr)
 	KASSERT(*addr + sizeof(*addr) <= domain->msi_entry->end,
 	    ("%s: Address is above the MSI entry end address (%jx < %jx)",
 	    __func__, (uintmax_t)*addr, (uintmax_t)domain->msi_entry->end));
-}
-
-int
-iommu_map_region(struct iommu_domain *domain, struct iommu_map_entry *entry,
-    u_int eflags, u_int flags, vm_page_t *ma)
-{
-	int error;
-
-	error = iommu_gas_map_region(domain, entry, eflags, flags, ma);
-
-	return (error);
 }
 
 SYSCTL_NODE(_hw, OID_AUTO, iommu, CTLFLAG_RW | CTLFLAG_MPSAFE, NULL, "");

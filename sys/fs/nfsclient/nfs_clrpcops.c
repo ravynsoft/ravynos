@@ -281,8 +281,7 @@ nfsrpc_access(vnode_t vp, int acmode, struct ucred *cred,
 	/*
 	 * Now, just call nfsrpc_accessrpc() to do the actual RPC.
 	 */
-	error = nfsrpc_accessrpc(vp, mode, cred, p, nap, attrflagp, &rmode,
-	    NULL);
+	error = nfsrpc_accessrpc(vp, mode, cred, p, nap, attrflagp, &rmode);
 
 	/*
 	 * The NFS V3 spec does not clarify whether or not
@@ -299,8 +298,7 @@ nfsrpc_access(vnode_t vp, int acmode, struct ucred *cred,
  */
 int
 nfsrpc_accessrpc(vnode_t vp, u_int32_t mode, struct ucred *cred,
-    NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp, u_int32_t *rmodep,
-    void *stuff)
+    NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp, u_int32_t *rmodep)
 {
 	u_int32_t *tl;
 	u_int32_t supported, rmode;
@@ -1204,7 +1202,7 @@ nfsmout:
  */
 int
 nfsrpc_getattr(vnode_t vp, struct ucred *cred, NFSPROC_T *p,
-    struct nfsvattr *nap, void *stuff)
+    struct nfsvattr *nap)
 {
 	struct nfsrv_descript nfsd, *nd = &nfsd;
 	int error;
@@ -1271,8 +1269,7 @@ nfsrpc_getattrnovp(struct nfsmount *nmp, u_int8_t *fhp, int fhlen, int syscred,
  */
 int
 nfsrpc_setattr(vnode_t vp, struct vattr *vap, NFSACL_T *aclp,
-    struct ucred *cred, NFSPROC_T *p, struct nfsvattr *rnap, int *attrflagp,
-    void *stuff)
+    struct ucred *cred, NFSPROC_T *p, struct nfsvattr *rnap, int *attrflagp)
 {
 	int error, expireret = 0, openerr, retrycnt;
 	u_int32_t clidrev = 0, mode;
@@ -1398,8 +1395,7 @@ nfsrpc_setattrrpc(vnode_t vp, struct vattr *vap,
 int
 nfsrpc_lookup(vnode_t dvp, char *name, int len, struct ucred *cred,
     NFSPROC_T *p, struct nfsvattr *dnap, struct nfsvattr *nap,
-    struct nfsfh **nfhpp, int *attrflagp, int *dattrflagp, void *stuff,
-    uint32_t openmode)
+    struct nfsfh **nfhpp, int *attrflagp, int *dattrflagp, uint32_t openmode)
 {
 	uint32_t deleg, rflags, *tl;
 	struct nfsrv_descript nfsd, *nd = &nfsd;
@@ -1638,7 +1634,7 @@ nfsmout:
  */
 int
 nfsrpc_readlink(vnode_t vp, struct uio *uiop, struct ucred *cred,
-    NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp, void *stuff)
+    NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp)
 {
 	u_int32_t *tl;
 	struct nfsrv_descript nfsd, *nd = &nfsd;
@@ -1694,7 +1690,7 @@ nfsmout:
  */
 int
 nfsrpc_read(vnode_t vp, struct uio *uiop, struct ucred *cred,
-    NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp, void *stuff)
+    NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp)
 {
 	int error, expireret = 0, retrycnt;
 	u_int32_t clidrev = 0;
@@ -2158,7 +2154,7 @@ nfsmout:
  */
 int
 nfsrpc_deallocate(vnode_t vp, off_t offs, off_t len, struct nfsvattr *nap,
-    int *attrflagp, struct ucred *cred, NFSPROC_T *p, void *stuff)
+    int *attrflagp, struct ucred *cred, NFSPROC_T *p)
 {
 	int error, expireret = 0, openerr, retrycnt;
 	uint32_t clidrev = 0;
@@ -2272,7 +2268,7 @@ int
 nfsrpc_mknod(vnode_t dvp, char *name, int namelen, struct vattr *vap,
     u_int32_t rdev, enum vtype vtyp, struct ucred *cred, NFSPROC_T *p,
     struct nfsvattr *dnap, struct nfsvattr *nnap, struct nfsfh **nfhpp,
-    int *attrflagp, int *dattrflagp, void *dstuff)
+    int *attrflagp, int *dattrflagp)
 {
 	u_int32_t *tl;
 	int error = 0;
@@ -2352,7 +2348,7 @@ int
 nfsrpc_create(vnode_t dvp, char *name, int namelen, struct vattr *vap,
     nfsquad_t cverf, int fmode, struct ucred *cred, NFSPROC_T *p,
     struct nfsvattr *dnap, struct nfsvattr *nnap, struct nfsfh **nfhpp,
-    int *attrflagp, int *dattrflagp, void *dstuff)
+    int *attrflagp, int *dattrflagp)
 {
 	int error = 0, newone, expireret = 0, retrycnt, unlocked;
 	struct nfsclowner *owp;
@@ -2718,8 +2714,7 @@ nfsmout:
  */
 int
 nfsrpc_remove(vnode_t dvp, char *name, int namelen, vnode_t vp,
-    struct ucred *cred, NFSPROC_T *p, struct nfsvattr *dnap, int *dattrflagp,
-    void *dstuff)
+    struct ucred *cred, NFSPROC_T *p, struct nfsvattr *dnap, int *dattrflagp)
 {
 	u_int32_t *tl;
 	struct nfsrv_descript nfsd, *nd = &nfsd;
@@ -2797,7 +2792,7 @@ int
 nfsrpc_rename(vnode_t fdvp, vnode_t fvp, char *fnameptr, int fnamelen,
     vnode_t tdvp, vnode_t tvp, char *tnameptr, int tnamelen, struct ucred *cred,
     NFSPROC_T *p, struct nfsvattr *fnap, struct nfsvattr *tnap,
-    int *fattrflagp, int *tattrflagp, void *fstuff, void *tstuff)
+    int *fattrflagp, int *tattrflagp)
 {
 	u_int32_t *tl;
 	struct nfsrv_descript nfsd, *nd = &nfsd;
@@ -2953,7 +2948,7 @@ nfsmout:
 int
 nfsrpc_link(vnode_t dvp, vnode_t vp, char *name, int namelen,
     struct ucred *cred, NFSPROC_T *p, struct nfsvattr *dnap,
-    struct nfsvattr *nap, int *attrflagp, int *dattrflagp, void *dstuff)
+    struct nfsvattr *nap, int *attrflagp, int *dattrflagp)
 {
 	u_int32_t *tl;
 	struct nfsrv_descript nfsd, *nd = &nfsd;
@@ -3017,7 +3012,7 @@ int
 nfsrpc_symlink(vnode_t dvp, char *name, int namelen, const char *target,
     struct vattr *vap, struct ucred *cred, NFSPROC_T *p, struct nfsvattr *dnap,
     struct nfsvattr *nnap, struct nfsfh **nfhpp, int *attrflagp,
-    int *dattrflagp, void *dstuff)
+    int *dattrflagp)
 {
 	u_int32_t *tl;
 	struct nfsrv_descript nfsd, *nd = &nfsd;
@@ -3078,7 +3073,7 @@ int
 nfsrpc_mkdir(vnode_t dvp, char *name, int namelen, struct vattr *vap,
     struct ucred *cred, NFSPROC_T *p, struct nfsvattr *dnap,
     struct nfsvattr *nnap, struct nfsfh **nfhpp, int *attrflagp,
-    int *dattrflagp, void *dstuff)
+    int *dattrflagp)
 {
 	u_int32_t *tl;
 	struct nfsrv_descript nfsd, *nd = &nfsd;
@@ -3158,7 +3153,7 @@ nfsmout:
  */
 int
 nfsrpc_rmdir(vnode_t dvp, char *name, int namelen, struct ucred *cred,
-    NFSPROC_T *p, struct nfsvattr *dnap, int *dattrflagp, void *dstuff)
+    NFSPROC_T *p, struct nfsvattr *dnap, int *dattrflagp)
 {
 	struct nfsrv_descript nfsd, *nd = &nfsd;
 	int error = 0;
@@ -3215,7 +3210,7 @@ nfsrpc_rmdir(vnode_t dvp, char *name, int namelen, struct ucred *cred,
 int
 nfsrpc_readdir(vnode_t vp, struct uio *uiop, nfsuint64 *cookiep,
     struct ucred *cred, NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp,
-    int *eofp, void *stuff)
+    int *eofp)
 {
 	int len, left;
 	struct dirent *dp = NULL;
@@ -3659,7 +3654,7 @@ nfsmout:
 int
 nfsrpc_readdirplus(vnode_t vp, struct uio *uiop, nfsuint64 *cookiep,
     struct ucred *cred, NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp,
-    int *eofp, void *stuff)
+    int *eofp)
 {
 	int len, left;
 	struct dirent *dp = NULL;
@@ -4193,7 +4188,7 @@ nfsmout:
  */
 int
 nfsrpc_commit(vnode_t vp, u_quad_t offset, int cnt, struct ucred *cred,
-    NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp, void *stuff)
+    NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp)
 {
 	u_int32_t *tl;
 	struct nfsrv_descript nfsd, *nd = &nfsd;
@@ -4625,8 +4620,7 @@ nfsmout:
  */
 int
 nfsrpc_statfs(vnode_t vp, struct nfsstatfs *sbp, struct nfsfsinfo *fsp,
-    struct ucred *cred, NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp,
-    void *stuff)
+    struct ucred *cred, NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp)
 {
 	u_int32_t *tl = NULL;
 	struct nfsrv_descript nfsd, *nd = &nfsd;
@@ -5036,7 +5030,7 @@ nfsrpc_setacl(vnode_t vp, struct ucred *cred, NFSPROC_T *p,
 
 	if (nfsrv_useacl == 0 || !NFSHASNFSV4(nmp))
 		return (EOPNOTSUPP);
-	error = nfsrpc_setattr(vp, NULL, aclp, cred, p, NULL, NULL, stuff);
+	error = nfsrpc_setattr(vp, NULL, aclp, cred, p, NULL, NULL);
 	return (error);
 }
 

@@ -199,7 +199,7 @@ ${_firmw:C/\:.*$/.fwo/:T}:	${_firmw:C/\:.*$//} ${SYSDIR}/kern/firmw.S
 	${CC:N${CCACHE_BIN}} -c -x assembler-with-cpp -DLOCORE 	\
 	    ${CFLAGS} ${WERROR} 				\
 	    -DFIRMW_FILE="${.ALLSRC:M*${_firmw:C/\:.*$//}}" 	\
-	    -DFIRMW_SYMBOL="${_firmw:C/\:.*$//:C/[-.\/]/_/g}"	\
+	    -DFIRMW_SYMBOL="${_firmw:C/\:.*$//:C/[-.\/@]/_/g}"	\
 	    ${SYSDIR}/kern/firmw.S -o ${.TARGET}
 
 OBJS+=	${_firmw:C/\:.*$/.fwo/:T}
@@ -282,6 +282,9 @@ _MAP_DEBUG_PREFIX= yes
 _ILINKS=machine
 .if ${MACHINE_CPUARCH} == "i386" || ${MACHINE_CPUARCH} == "amd64"
 _ILINKS+=x86
+.endif
+.if ${MACHINE_CPUARCH} == "amd64"
+_ILINKS+=i386
 .endif
 CLEANFILES+=${_ILINKS}
 

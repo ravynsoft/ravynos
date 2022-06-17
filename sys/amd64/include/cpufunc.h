@@ -38,6 +38,10 @@
  * used in preference to this.
  */
 
+#ifdef __i386__
+#include <i386/cpufunc.h>
+#else /* !__i386__ */
+
 #ifndef _MACHINE_CPUFUNC_H_
 #define	_MACHINE_CPUFUNC_H_
 
@@ -105,16 +109,16 @@ static __inline void
 do_cpuid(u_int ax, u_int *p)
 {
 	__asm __volatile("cpuid"
-			 : "=a" (p[0]), "=b" (p[1]), "=c" (p[2]), "=d" (p[3])
-			 :  "0" (ax));
+	    : "=a" (p[0]), "=b" (p[1]), "=c" (p[2]), "=d" (p[3])
+	    :  "0" (ax));
 }
 
 static __inline void
 cpuid_count(u_int ax, u_int cx, u_int *p)
 {
 	__asm __volatile("cpuid"
-			 : "=a" (p[0]), "=b" (p[1]), "=c" (p[2]), "=d" (p[3])
-			 :  "0" (ax), "c" (cx));
+	    : "=a" (p[0]), "=b" (p[1]), "=c" (p[2]), "=d" (p[3])
+	    :  "0" (ax), "c" (cx));
 }
 
 static __inline void
@@ -966,3 +970,5 @@ int	wrmsr_safe(u_int msr, uint64_t newval);
 #endif
 
 #endif /* !_MACHINE_CPUFUNC_H_ */
+
+#endif /* __i386__ */

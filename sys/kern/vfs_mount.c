@@ -2610,7 +2610,6 @@ vfs_copyopt(struct vfsoptlist *opts, const char *name, void *dest, int len)
 int
 __vfs_statfs(struct mount *mp, struct statfs *sbp)
 {
-
 	/*
 	 * Filesystems only fill in part of the structure for updates, we
 	 * have to read the entirety first to get all content.
@@ -2624,6 +2623,7 @@ __vfs_statfs(struct mount *mp, struct statfs *sbp)
 	sbp->f_version = STATFS_VERSION;
 	sbp->f_namemax = NAME_MAX;
 	sbp->f_flags = mp->mnt_flag & MNT_VISFLAGMASK;
+	sbp->f_nvnodelistsize = mp->mnt_nvnodelistsize;
 
 	return (mp->mnt_op->vfs_statfs(mp, sbp));
 }
@@ -2801,16 +2801,16 @@ kernel_mount(struct mntarg *ma, uint64_t flags)
 	int error;
 
 	KASSERT(ma != NULL, ("kernel_mount NULL ma"));
-	KASSERT(ma->v != NULL, ("kernel_mount NULL ma->v"));
+	KASSERT(ma->error != 0 || ma->v != NULL, ("kernel_mount NULL ma->v"));
 	KASSERT(!(ma->len & 1), ("kernel_mount odd ma->len (%d)", ma->len));
 
-	auio.uio_iov = ma->v;
-	auio.uio_iovcnt = ma->len;
-	auio.uio_segflg = UIO_SYSSPACE;
-
 	error = ma->error;
-	if (!error)
+	if (error == 0) {
+		auio.uio_iov = ma->v;
+		auio.uio_iovcnt = ma->len;
+		auio.uio_segflg = UIO_SYSSPACE;
 		error = vfs_donmount(curthread, flags, &auio);
+	}
 	free_mntarg(ma);
 	return (error);
 }
