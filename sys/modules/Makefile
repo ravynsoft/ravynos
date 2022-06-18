@@ -230,6 +230,7 @@ SUBDIR=	\
 	${_mac_seeotheruids} \
 	${_mac_stub} \
 	${_mac_test} \
+	mach \
 	macho \
 	${_malo} \
 	${_mana} \
