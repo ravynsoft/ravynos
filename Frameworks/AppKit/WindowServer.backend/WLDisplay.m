@@ -63,8 +63,8 @@ const NSString *WLOutputXDGOutputKey = @"WLOutputXDGOutput";
 const NSString *WLModeSizeKey = @"WLModeSize";
 const NSString *WLModeRefreshKey = @"WLModeRefresh";
 
-NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
-NSString *WLOutputDidMoveNotification = @"WLOutputDidMoveNotification";
+const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
+const NSString *WLOutputDidMoveNotification = @"WLOutputDidMoveNotification";
 
 @implementation NSDisplay(WL)
 
@@ -1063,7 +1063,7 @@ static const struct wl_registry_listener registry_listener = {
 
     [loop addInputSource:_inputSource forMode:mode];
     result = [super nextEventMatchingMask:mask untilDate:untilDate inMode:mode dequeue:dequeue];
-    [loop removeInputSource:_inputSource forMode:mode]; 
+    [loop removeInputSource:_inputSource forMode:mode];
     return result;
 }
 
