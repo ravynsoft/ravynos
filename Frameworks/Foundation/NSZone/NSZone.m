@@ -24,14 +24,20 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 void NSIncrementExtraRefCount(id object) {
     objc_retain_fast_np(object);
+    //printf("NSIncrement %p %s = %d\n", object, class_getName([object class]), object_getRetainCount_np(object));
+    if(object_getRetainCount_np(object) == 0)
+        abort();
 }
 
 BOOL NSDecrementExtraRefCountWasZero(id object) {
-    return objc_release_fast_no_destroy_np(object);
+    BOOL destroy = objc_release_fast_no_destroy_np(object);
+    //printf("NSDecrement %p %s = %d (destroy=%d)\n", object, class_getName([object class]), object_getRetainCount_np(object), destroy);
+    return destroy;
 }
 
 NSUInteger NSExtraRefCount(id object) {
-    return object_getRetainCount_np(object) - 1;
+    //printf("NSExtraRefCount %p %s = %d\n", object, class_getName([object class]), object_getRetainCount_np(object));
+    return object_getRetainCount_np(object)/* - 1*/;
 }
 
 BOOL NSShouldRetainWithZone(id object,NSZone *zone) {
@@ -56,6 +62,7 @@ id NSAllocateObject(Class class, NSUInteger extraBytes, NSZone *zone)
         if (__NSAllocateObjectHook) {
             __NSAllocateObjectHook(result);
         }
+        //printf("allocated %p %s refs %d\n", result, class_getName(class),object_getRetainCount_np(result));
     }
 
     return result;
@@ -71,13 +78,12 @@ void NSDeallocateObject(id object)
     
     if (NSZombieEnabled) {
         NSRegisterZombie(object);
-    } else {
+    } //else {
+        //printf("deallocating %p %s refs %d\n", object, class_getName([object class]),object_getRetainCount_np(object));
 
 #if !defined(GCC_RUNTIME_3) && !defined(APPLE_RUNTIME_4)
         object->isa = 0;
 #endif
-
-//         object = (id)((uintptr_t)object-sizeof(uintptr_t));
         object_dispose(object);
     }
 }
