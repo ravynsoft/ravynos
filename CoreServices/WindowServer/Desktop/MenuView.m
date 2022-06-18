@@ -36,8 +36,8 @@
 @implementation MenuView
 - init {
     NSRect frame = [[NSScreen mainScreen] visibleFrame];
-
     self = [super initWithFrame:NSMakeRect(0, 0, frame.size.width/2, menuBarHeight)];
+
     aboutWindow = nil;
     _maxRecentItems = 12; // FIXME: read from preferences
 
@@ -109,9 +109,13 @@
     }
 
     NSRect rect = NSMakeRect(menuBarHPad*4, 0, _frame.size.width, menuBarHeight);
-    appMenuView = [[NSMainMenuView alloc] initWithFrame:rect menu:menu];
-    [appMenuView setAutoresizingMask:NSViewWidthSizable|NSViewMinYMargin];
-    [self addSubview:appMenuView];
+    NSMainMenuView *newView = [[NSMainMenuView alloc] initWithFrame:rect menu:menu];
+    [newView setAutoresizingMask:NSViewWidthSizable|NSViewMinYMargin];
+    if(appMenuView)
+        [self replaceSubview:appMenuView with:newView];
+    else
+        [self addSubview:newView];
+    appMenuView = newView;
     [appMenuView setWindow:[self window]];
 
     [self setNeedsDisplay:YES];
