@@ -114,12 +114,13 @@ int main(int argc, const char *argv[]) {
 
     NSLog(@"Initializing NSApplication");
     [NSApplication sharedApplication];
-    NSNotificationCenter *nctr = [NSNotificationCenter defaultCenter];
+
     AppDelegate *del = [AppDelegate new];
     if(!del)
         exit(EXIT_FAILURE);
 
     NSLog(@"Adding observers");
+    NSNotificationCenter *nctr = [NSNotificationCenter defaultCenter];
     [nctr addObserver:del selector:@selector(screenDidResize:)
         name:WLOutputDidResizeNotification object:nil];
     [nctr addObserver:del selector:@selector(menuDidUpdate:)

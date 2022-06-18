@@ -29,14 +29,14 @@ const NSString *PrefsWallpaperPathKey = @"WallpaperPath";
 - initWithFrame:(NSRect)frame forOutput:(NSNumber *)outputKey {
     NSArray *screens = [NSScreen screens];
     NSScreen *output = nil;
-    _priDisplay = NO;
+    BOOL priDisplay = NO;
 
     for(int i = 0; i < [screens count]; ++i) {
         NSScreen *s = [screens objectAtIndex:i];
         if([s key] == outputKey) {
             output = s;
             if(i == 0)
-                _priDisplay = YES;
+                priDisplay = YES;
             break;
         }
     }
@@ -46,7 +46,7 @@ const NSString *PrefsWallpaperPathKey = @"WallpaperPath";
         styleMask:NSBorderlessWindowMask|WLWindowLayerAnchorTop
             |WLWindowLayerAnchorLeft|WLWindowLayerAnchorRight
         backing:NSBackingStoreBuffered defer:NO screen:output];
-
+    _priDisplay = priDisplay;
 
     if(_priDisplay) {
         _menuBar = [MenuBarWindow new];
