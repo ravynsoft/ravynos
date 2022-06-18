@@ -47,7 +47,7 @@ base_task:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
     - cp -afv ${CIRRUS_WORKING_DIR}/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/ /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
-    - make -j$(sysctl -n hw.ncpu) WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang buildworld
+    - make -j$(sysctl -n hw.ncpu) MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang buildworld
     - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang base.txz
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/base.txz
     - rm -rfv /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/base/usr/share/locale/nn_NO.*
