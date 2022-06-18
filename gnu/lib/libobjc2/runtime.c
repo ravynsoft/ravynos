@@ -341,11 +341,10 @@ id class_createInstance(Class cls, size_t extraBytes)
 	// Don't try to allocate an object of size 0, because there's no space for
 	// its isa pointer!
 	if (cls->instance_size < sizeof(Class)) { return nil; }
-	id obj = gc->allocate_class(cls, extraBytes+sizeof(uintptr_t));
+	id obj = gc->allocate_class(cls, extraBytes);
 
-	uintptr_t *refCount = ((uintptr_t*)obj);
-	*refCount = 1;
-	(uintptr_t*)obj++;
+        intptr_t *refCount = ((intptr_t *)obj) - 1;
+        *refCount = 0;
 
 	obj->isa = cls;
 	checkARCAccessorsSlow(cls);
@@ -364,7 +363,6 @@ id object_copy(id obj, size_t size)
 id object_dispose(id obj)
 {
 	call_cxx_destruct(obj);
-	(uintptr_t*)obj--;
 	gc->free_object(obj);
 	return nil;
 }

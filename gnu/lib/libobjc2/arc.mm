@@ -243,7 +243,8 @@ extern "C" OBJC_PUBLIC size_t object_getRetainCount_np(id obj)
 {
 	uintptr_t *refCount = ((uintptr_t*)obj) - 1;
 	uintptr_t refCountVal = __sync_fetch_and_add(refCount, 0);
-	return (((size_t)refCountVal) & refcount_mask)/* + 1*/;
+        size_t realCount = refCountVal & refcount_mask;
+	return (realCount == refcount_mask) ? 0 : realCount + 1;
 }
 
 extern "C" OBJC_PUBLIC id objc_retain_fast_np(id obj)
@@ -268,10 +269,10 @@ extern "C" OBJC_PUBLIC id objc_retain_fast_np(id obj)
 		// If the serialisation happens the other way, then the locked
 		// check of the reference count will happen after we've referenced
 		// this and we don't zero the references or deallocate.
-		if (realCount < 0)
-		{
-			return nil;
-		}
+		//if (realCount < 0)
+		//{
+		//	return nil;
+		//}
 		// If the reference count is saturated, don't increment it.
 		if (realCount == refcount_mask)
 		{
@@ -344,7 +345,7 @@ extern "C" OBJC_PUBLIC BOOL objc_release_fast_no_destroy_np(id obj)
 		refCountVal = newVal;
 		size_t realCount = refCountVal & refcount_mask;
 		// If the reference count is saturated, don't decrement it.
-		if (realCount == refcount_mask)
+		if (realCount >= refcount_mask)
 		{
 			return NO;
 		}
