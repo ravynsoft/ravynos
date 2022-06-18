@@ -191,7 +191,7 @@ void launchShell(void *arg) {
                     }
                     login_close(lc);
                     ++spawned;
-                    execle("/usr/bin/foot", "foot", "-dnone", "-L", NULL, envp);
+                    execle("/usr/bin/foot", "foot", "-dnone", "-L", "-W", "80x25", NULL, envp);
                     perror("execl");
                     spawned = 0;
                     exit(-1);
