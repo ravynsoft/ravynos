@@ -78,7 +78,7 @@ void NSDeallocateObject(id object)
     
     if (NSZombieEnabled) {
         NSRegisterZombie(object);
-    } //else {
+    } else {
         //printf("deallocating %p %s refs %d\n", object, class_getName([object class]),object_getRetainCount_np(object));
 
 #if !defined(GCC_RUNTIME_3) && !defined(APPLE_RUNTIME_4)
