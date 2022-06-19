@@ -344,6 +344,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
    _platformWindow=nil;
    [_threadToContext release];
    [_undoManager release];
+   [NSApp _removeWindow:self];
    [super dealloc];
 }
 

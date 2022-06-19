@@ -13,13 +13,36 @@ desc="Start WindowServer LaunchDaemon at a safe point"
 start_cmd="windowserver_start"
 stop_cmd="windowserver_stop"
 
+probe_gpu()
+{
+    # Simple GPU detection. Prefer Intel on multi-GPU setups
+    GPUS=$(pciconf -l|awk '/^vgapci/ {print substr($5,10,4)}')
+    for gpu in $GPUS; do
+        if [ "$gpu" = "8086" ]; then
+            kldload i915kms
+            break
+        elif [ "$gpu" = "1002" ]; then
+            kldload amdgpu
+            break
+        fi
+    done
+}
+
 windowserver_start()
 {
-	touch /var/run/windowserver
+        probe_gpu
+        if [ -d /dev/dri ]; then
+            ln -sf ../drm/0 /dev/dri/card0
+            ln -sf ../drm/128 /dev/dri/renderD128
+            touch /var/run/windowserver
+        else
+            echo DRI is not loaded
+        fi
 }
 
 windowserver_stop()
 {
+	echo "Can't stop, won't stop!"
 }
 
 load_rc_config $name

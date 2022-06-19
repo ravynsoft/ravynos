@@ -227,7 +227,7 @@ void launchShell(void *arg) {
                 freeEnviron(envp);
                 waitpid(pid, &status, 0);
                 shell = LOGINWINDOW;
-                execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
+                //execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
                 break;
             }
         }

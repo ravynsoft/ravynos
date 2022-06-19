@@ -78,6 +78,7 @@ chmod 1777 /var/tmp
 cat > /etc/bootstrap <<EOT
 #!/rescue/sh
 
+/sbin/sysctl -w kern.coredump=0
 rm -f /var/run/nologin
 EOT
 chmod 755 /etc/bootstrap
@@ -98,11 +99,13 @@ mkdir -p /System/Library/LaunchDaemons
 #ln -s /sysroot/System/Library/LaunchDaemons/com.apple.auditd.json /System/Library/LaunchDaemons/
 ln -s /sysroot/System/Library/LaunchDaemons/com.apple.notifyd.json /System/Library/LaunchDaemons/
 ln -s /sysroot/System/Library/LaunchDaemons/org.freebsd.devd.json /System/Library/LaunchDaemons/
+ln -s /sysroot/System/Library/LaunchDaemons/com.ravynos.WindowServer.json /System/Library/LaunchDaemons/
 for tty in 0 1 2 3; do
     cat > /System/Library/LaunchDaemons/org.freebsd.ttyv${tty}.json <<EOT
 {
 	"EnvironmentVariables": {
-		"ASL_DISABLE": "1"
+		"ASL_DISABLE": "1",
+                "TERM": "xterm"
 	},
 	"Label": "org.freebsd.getty.ttyv${tty}",
 	"ProgramArguments": [
@@ -134,6 +137,8 @@ for mod in ums utouch firewire; do
 done
 
 /usr/bin/furybsd-init-helper
+/etc/rc.d/seatd start
+/etc/rc.d/windowserver start
 
 echo "==> Exit ramdisk init.sh"
 exit 0

@@ -113,7 +113,8 @@ CONFS=	DAEMON \
 	ugidfw \
 	${_utx} \
 	var \
-	watchdogd
+	watchdogd \
+	windowserver
 
 .if ${MK_NIS} != "no"
 CONFS+=	ypbind \

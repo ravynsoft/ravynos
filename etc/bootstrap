@@ -12,16 +12,4 @@ for d in /dev /etc /var; do
         ln -sf $d /private$d
     fi
 done
-
-# Simple GPU detection
-GPUS=$(pciconf -l|awk '/^vgapci/ {print substr($5,10,4)}')
-for gpu in $GPUS; do
-    if [ "$gpu" = "8086" ]; then
-        kldload i915kms
-        break
-    elif [ "$gpu" = "1002" ]; then
-        kldload amdgpu
-        break
-    fi
-done
 echo -=- Bootstrap complete -=-

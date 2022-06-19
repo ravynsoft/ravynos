@@ -1425,6 +1425,10 @@ standardAboutPanel] retain];
    [_windows addObject:window];
 }
 
+-(void)_removeWindow:(NSWindow *)window {
+    [_windows removeObject:window];
+}
+
 -(void)_windowWillBecomeActive:(NSWindow *)window {
    [_attentionTimer invalidate];
    _attentionTimer=nil;

@@ -84,6 +84,7 @@ fi
 /usr/sbin/sysrc -f /etc/rc.conf allscreens_kbdflags="-b quiet.off" >/dev/null 2>/dev/null
 # Work around https://github.com/mszoek/airyx/issues/106
 /usr/sbin/sysrc -f /etc/rc.conf cron_enable="NO" >/dev/null 2>/dev/null
+/usr/sbin/sysrc -f /etc/rc.conf windowserver_enable="YES" >/dev/null 2>/dev/null
 
 # Set hostname other than the default based on SMBIOS information
 HOSTNAME=$(hostname)
