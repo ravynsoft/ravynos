@@ -727,10 +727,12 @@ id NSApp=nil;
    
    do {
     // There is another pool inside nextEventMatchingMask. Do we really need this one?
-    //pool = [NSAutoreleasePool new];
+    pool = [NSAutoreleasePool new];
     NSEvent           *event;
 
-    event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate distantFuture] inMode:NSDefaultRunLoopMode dequeue:YES];
+    // FIXME: poll every 5s minimum so our clock updates when there are no other events.
+    // FIXME: this needs a better solution that does not incur 5% CPU.
+    event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate dateWithTimeIntervalSinceNow:5.0 /*distantFuture*/] inMode:NSDefaultRunLoopMode dequeue:YES];
 
     NS_DURING
      [self sendEvent:event];
@@ -742,7 +744,7 @@ id NSApp=nil;
     [self _checkForReleasedWindows];
     [self _checkForTerminate];
 
-    //[pool release];
+    [pool release];
    }while(_isRunning);
 }
 
@@ -795,12 +797,15 @@ id NSApp=nil;
     [self _checkForAppActivation];
      [self _displayAllWindowsIfNeeded];
 
-     nextEvent=[[_display nextEventMatchingMask:mask untilDate:untilDate inMode:mode dequeue:dequeue] retain];
+     nextEvent=[_display nextEventMatchingMask:mask untilDate:untilDate inMode:mode dequeue:dequeue];
 
      if([nextEvent type]==NSAppKitSystem){
       [nextEvent release];
       nextEvent=nil;
-     }
+     } else 
+     // GIANT HACK: this fixes a refcount issue where events are prematurely released. no idea why.
+     // too many NSAutoreleasePools somewhere, maybe. should be OK until we move this all to use ARC.
+        [nextEvent retain];
      
    NS_HANDLER
     [self reportException:localException];

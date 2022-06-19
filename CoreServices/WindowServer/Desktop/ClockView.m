@@ -25,12 +25,6 @@
 
 const NSString *PrefsDateFormatStringKey = @"DateFormatString";
 const NSString *defaultFormatEN = @"%a %b %d  %I:%M %p";
-pthread_t updater;
-
-static void clockLoop(void *arg) {
-    ClockView *cv = (__bridge ClockView *)arg;
-    [cv update:[cv window]];
-}
 
 @implementation ClockView
 - init {
@@ -60,19 +54,17 @@ static void clockLoop(void *arg) {
         atPoint:NSMakePoint(frame.size.width - sz.width - menuBarHPad, menuBarVPad)
         withMaxWidth:300];
 
-    pthread_create(&updater, NULL, clockLoop, (__bridge void *)self);
+    [NSThread detachNewThreadSelector:@selector(update:) toTarget:self
+        withObject:[self window]];
 
     return self;
 }
 
 - (void)update:(NSWindow*)window {
     while(1) {
-        @autoreleasepool {
-            [self setAttributedStringValue:[[NSAttributedString alloc]
-                initWithString:[dateFormatter stringForObjectValue:[NSDate date]]
-                attributes:attributes]];
-            [self setNeedsDisplay:YES];
-        }
+        [self setAttributedStringValue:[[NSAttributedString alloc]
+            initWithString:[dateFormatter stringForObjectValue:[NSDate date]]
+            attributes:attributes]];
         usleep(500000);
     }
 }
