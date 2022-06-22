@@ -118,6 +118,7 @@ static void freeEnviron(char **envp) {
 void launchShell(void *arg) {
     enum ShellType shell = *(enum ShellType *)arg;
     int spawned = 0, status;
+    NSString *lwPath = nil;
 
     while(shell != NONE) {
         if(ready == NO) {
@@ -144,10 +145,57 @@ void launchShell(void *arg) {
                     exit(-1);
                 }
 
-                NSLog(@"FIXME: Doing the login window.");
-                int uid = 1001;
-                int gid = 1001;
+                int uid = nobodyUID;
+                int gid = videoGID;
+
+                int fds[2];
+                if(pipe(fds) != 0) {
+                    perror("pipe");
+                    exit(-1);
+                }
+                char fdbuf[8];
+                sprintf(fdbuf, "%d", fds[1]);
+                int status = -1;
+
+                lwPath = [[NSBundle mainBundle] pathForResource:@"LoginWindow" ofType:@"app"];
+                if(!lwPath) {
+                    NSLog(@"missing LoginWindow.app!");
+                    break;
+                }
+                lwPath = [[NSBundle bundleWithPath:lwPath] executablePath];
+                if(!lwPath) {
+                    NSLog(@"missing LoginWindow.app!");
+                    break;
+                }
+                
+                char **envp = setUpEnviron(nobodyUID);
+
+                pid_t pid = fork();
+                if(!pid) { // child
+                    close(fds[0]);
+                    seteuid(0);
+                    execle([lwPath UTF8String], [[lwPath lastPathComponent] UTF8String], fdbuf, NULL, envp);
+                    exit(-1);
+                } else {
+                    close(fds[1]);
+                    read(fds[0], &uid, sizeof(int));
+                    waitpid(pid, &status, 0);
+                }
+                freeEnviron(envp);
+                close(fds[0]);
+                NSLog(@"received uid %d", uid);
+
+                if(uid < 500) {
+                    NSLog(@"UID below minimum");
+                    break;
+                }
+                    
                 struct passwd *pw = getpwuid(uid);
+                if(!pw || pw->pw_uid != uid) {
+                    NSLog(@"no such uid %d", uid);
+                    break;
+                }
+                gid = pw->pw_gid;
 
                 // give socket to the logged in user
                 char *userXdgDir = 0;
@@ -227,7 +275,7 @@ void launchShell(void *arg) {
                 freeEnviron(envp);
                 waitpid(pid, &status, 0);
                 shell = LOGINWINDOW;
-                //execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
+                execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
                 break;
             }
         }

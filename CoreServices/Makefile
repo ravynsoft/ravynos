@@ -45,8 +45,10 @@ buildInstaller:
 
 buildWindowServer:
 	${MAKE} -C ${.CURDIR}/WindowServer
-	${MAKE} -C ${.CURDIR}/WindowServer/Desktop
-	cp -afv ${.CURDIR}/WindowServer/Desktop/SystemUIServer.app \
+	${MAKE} -C ${.CURDIR}/WindowServer/SystemUIServer
+	${MAKE} -C ${.CURDIR}/WindowServer/LoginWindow
+	cp -afv ${.CURDIR}/WindowServer/SystemUIServer/SystemUIServer.app \
+	        ${.CURDIR}/WindowServer/LoginWindow/LoginWindow.app \
                 ${.CURDIR}/WindowServer/WindowServer.app/Contents/Resources/
 
 ${.CURDIR}/Filer:
