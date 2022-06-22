@@ -244,7 +244,7 @@ extern "C" OBJC_PUBLIC size_t object_getRetainCount_np(id obj)
 	uintptr_t *refCount = ((uintptr_t*)obj) - 1;
 	uintptr_t refCountVal = __sync_fetch_and_add(refCount, 0);
         size_t realCount = refCountVal & refcount_mask;
-	return realCount + 1;
+        return realCount + 1;
 }
 
 extern "C" OBJC_PUBLIC id objc_retain_fast_np(id obj)

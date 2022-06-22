@@ -342,10 +342,6 @@ id class_createInstance(Class cls, size_t extraBytes)
 	// its isa pointer!
 	if (cls->instance_size < sizeof(Class)) { return nil; }
 	id obj = gc->allocate_class(cls, extraBytes);
-
-        intptr_t *refCount = ((intptr_t *)obj) - 1;
-        *refCount = 0;
-
 	obj->isa = cls;
 	checkARCAccessorsSlow(cls);
 	call_cxx_construct(obj);
