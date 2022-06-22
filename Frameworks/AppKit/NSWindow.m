@@ -3179,5 +3179,10 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
     [[self platformWindow] requestResize:event];
 }
 
+// semi-private cover for platform layer-shell support
+-(void)setKeyboardInteractivity:(uint32_t)keyboardStyle {
+    [_platformWindow setKeyboardInteractivity:keyboardStyle];
+}
+
 @end
 

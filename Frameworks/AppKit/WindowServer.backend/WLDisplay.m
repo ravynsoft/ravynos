@@ -313,7 +313,9 @@ static unichar translateKeySym(xkb_keysym_t keysym)
 }
 
 -(void)startKeyRepeat:(NSTimer *)timer {
-    [self postEvent:repeatEvent atStart:NO];
+    repeatDelayTimer = 0;
+    repeatEvent = [timer userInfo];
+    //[self postEvent:repeatEvent atStart:NO];
 }
 
 - (void)keyboardInput:(uint32_t)keycode eventType:(NSEventType)type autoUp:(BOOL)autoUp
@@ -321,6 +323,15 @@ static unichar translateKeySym(xkb_keysym_t keysym)
     xkb_keysym_t sym = xkb_state_key_get_one_sym(xkb_state, keycode);
     if(sym == XKB_KEY_NoSymbol)
         return;
+
+    if(repeatEvent != nil) {
+        [repeatEvent release];
+        repeatEvent = nil;
+    }
+    if(repeatDelayTimer != nil) {
+        [repeatDelayTimer invalidate];
+        repeatDelayTimer = nil;
+    }
 
     unichar nskey = translateKeySym(sym);
     NSString *strChars, *strCharsIg;
@@ -339,10 +350,6 @@ static unichar translateKeySym(xkb_keysym_t keysym)
     WLWindow *window = [self windowForID:(unsigned long)_keyboardActiveSurface];
     id delegate = [window delegate];
     
-    if(repeatEvent != nil) {
-        [repeatEvent release];
-        repeatEvent = nil;
-    }
     NSEvent *event = [NSEvent keyEventWithType:type
                                       location:pointerPosition
                                  modifierFlags:[self modifierFlagsForState:xkb_state]
@@ -371,7 +378,7 @@ static unichar translateKeySym(xkb_keysym_t keysym)
         } else {
             // set auto-repeat delay timer
             // FIXME: do not repeat modifier keys like Shift without a non-mod key
-            repeatEvent = [[NSEvent keyEventWithType:NSKeyDown
+            NSEvent *newEvent = [[NSEvent keyEventWithType:NSKeyDown
                                       location:[event locationInWindow]
                                  modifierFlags:[event modifierFlags]
                                      timestamp:0.0
@@ -381,8 +388,8 @@ static unichar translateKeySym(xkb_keysym_t keysym)
                    charactersIgnoringModifiers:[event charactersIgnoringModifiers]
                                      isARepeat:YES
                                        keyCode:[event keyCode]] retain];
-            [NSTimer scheduledTimerWithInterval:(float)repeatDelay/1000 target:self
-                selector:@selector(startKeyRepeat:) userInfo:nil repeats:NO];
+            repeatDelayTimer = [NSTimer scheduledTimerWithTimeInterval:(float)repeatDelay/1000.0
+                target:self selector:@selector(startKeyRepeat:) userInfo:newEvent repeats:NO];
         }
     }
 }

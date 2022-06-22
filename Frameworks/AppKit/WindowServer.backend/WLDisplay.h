@@ -83,6 +83,7 @@ extern const NSString *WLOutputDidMoveNotification;
     int repeatRate;
     int repeatDelay;
     NSEvent *repeatEvent;
+    NSTimer *repeatDelayTimer;
 }
 
 - (struct wl_display *)display;

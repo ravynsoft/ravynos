@@ -600,9 +600,9 @@ id NSApp=nil;
    BOOL               needsUntitled=YES;
 
     // UGLY HACK: this dummy window triggers wayland to tell us about wl_outputs.
-    NSWindow *w = [[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,1,1)
+    NSWindow *w = [[[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,1,1)
         styleMask:NSBorderlessWindowMask|WLWindowLayerBackground
-        backing:NSBackingStoreBuffered defer:NO];
+        backing:NSBackingStoreBuffered defer:NO] retain];
     [w makeKeyAndOrderFront:nil];
 
    NS_DURING
@@ -730,8 +730,6 @@ id NSApp=nil;
     pool = [NSAutoreleasePool new];
     NSEvent           *event;
 
-    // FIXME: poll every 5s minimum so our clock updates when there are no other events.
-    // FIXME: this needs a better solution that does not incur 5% CPU.
     event=[self nextEventMatchingMask:NSAnyEventMask untilDate:[NSDate dateWithTimeIntervalSinceNow:5.0 /*distantFuture*/] inMode:NSDefaultRunLoopMode dequeue:YES];
 
     NS_DURING

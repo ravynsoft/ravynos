@@ -516,6 +516,9 @@ APPKIT_EXPORT NSString *const NSWindowDidEndLiveResizeNotification;
 - (void)toggleToolbarShown:sender;
 - (void)runToolbarCustomizationPalette:sender;
 
+// semi-private platform support for layer-shell
+- (void)setKeyboardInteractivity:(uint32_t)keyboardStyle;
+
 @end
 
 @interface NSObject (NSWindow_delegate)

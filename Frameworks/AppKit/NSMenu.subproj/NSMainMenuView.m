@@ -78,6 +78,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
             titleSize = [[self graphicsStyle] menuItemAttributedTextSize:[item attributedTitle]];
         else
             titleSize = [[self graphicsStyle] menuItemTextSize:[item title]];
+        NSImage *img = [item image];
+        if(img) {
+            titleSize.width += [img size].width;
+            titleSize.height = MIN(24, titleSize.height); // whee, magic numbers 
+        }
 
 	result.origin = NSMakePoint(NSMaxX(previousBorderRect)+6,floor(([self bounds].size.height-titleSize.height)/2));
 	result.size = titleSize;
@@ -179,11 +184,6 @@ static void drawSunkenBorder(NSRect rect){
 		NSMenuItem *item=[items objectAtIndex:i];
 		NSString   *title=[item title];
 		NSRect      titleRect=[self titleRectForItem:item previousBorderRect:previousBorderRect];
-                NSImage *img = [item image];
-                if(img) {
-                    titleRect.size.width += ([img size].width); // whee, magic numbers
-                    titleRect.size.height = MIN(22, titleRect.size.height);
-                }
 		NSRect      borderRect=[self borderRectFromTitleRect:titleRect];
 		
 		[[self graphicsStyle] drawMenuBarItemBorderInRect:borderRect hover:(i==_selectedItemIndex)/*NSPointInRect(mouseLoc,borderRect)*/ selected:(i==_selectedItemIndex)];
@@ -191,6 +191,7 @@ static void drawSunkenBorder(NSRect rect){
 		titleRect.origin.x = borderRect.origin.x + (NSWidth(borderRect) - NSWidth(titleRect)) / 2;
 		titleRect.origin.y = borderRect.origin.y + (NSHeight(borderRect) - NSHeight(titleRect)) / 2;
 
+                NSImage *img = [item image];
                 if(img) {
                     NSPoint pt = titleRect.origin;
                     pt.y += ([img size].height);
@@ -332,7 +333,7 @@ static void drawSunkenBorder(NSRect rect){
     // to the parent surface, so its x,y are relative to that, not the
     // screen frame. FIXME: find a better way to do this.
     topLeft.x -= screenVisible.origin.x;
-    topLeft.y -= screenVisible.origin.y;
+    topLeft.y = -1; // this is the bottom of the menubar frame
 
   [branch setFrameTopLeftPoint:topLeft];
 }

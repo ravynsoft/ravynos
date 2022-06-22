@@ -281,6 +281,8 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
     NSMenuItem *item=[items objectAtIndex:i];
 
     check.size.height=[self heightOfMenuItem:item];
+    check.size.height+=2;
+    check.origin.y-=2;
 
     if(NSMouseInRect(point,check,[self isFlipped]))
      return i;
@@ -345,14 +347,7 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
     topLeft.x=redo.x;
    }
 
-    // Wayland hack: our WLWindowPopUp is a subsurface that is attached
-    // to the parent surface, so its x,y are relative to that, not the
-    // screen frame. FIXME: find a better way to do this.
-    topLeft.x -= screenVisible.origin.x;
-    topLeft.y -= screenVisible.origin.y;
-
     topLeft.y -= windowFrame.origin.y;
-    //topLeft.y -= itemRect.origin.y;
     topLeft.x -= windowFrame.origin.x;
 
    [branch setFrameTopLeftPoint:topLeft];
