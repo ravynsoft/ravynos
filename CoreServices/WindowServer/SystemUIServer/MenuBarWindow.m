@@ -24,29 +24,11 @@
 #import "desktop.h"
 
 @implementation MenuBarWindow
-- initWithFrame:(NSRect)frame forOutput:(NSNumber *)outputKey {
-    NSArray *screens = [NSScreen screens];
-    NSScreen *output = nil;
-    BOOL priDisplay = NO;
-
-    for(int i = 0; i < [screens count]; ++i) {
-        NSScreen *s = [screens objectAtIndex:i];
-        if([s key] == outputKey) {
-            output = s;
-            if(i == 0)
-                priDisplay = YES;
-            break;
-        }
-    }
-
-    if(!priDisplay)
-        return nil;
-
-    NSRect visibleFrame = [output visibleFrame];
-    visibleFrame.origin = NSZeroPoint;
-
-    frame = NSMakeRect(0, NSMaxY(visibleFrame) - menuBarHeight, NSMaxX(visibleFrame), menuBarHeight);
-    self = [super initWithContentRect:frame
+- initWithFrame:(NSRect)frame forOutput:(NSScreen *)output {
+    frame.origin.x = 0;
+    frame.origin.y = frame.size.height - menuBarHeight;
+    frame.size.height = menuBarHeight;
+    self = [self initWithContentRect:frame
         styleMask:NSBorderlessWindowMask|WLWindowLayerAnchorTop
             |WLWindowLayerAnchorLeft|WLWindowLayerAnchorRight
         backing:NSBackingStoreBuffered defer:NO screen:output];
@@ -57,7 +39,9 @@
     menuView = [[MenuView alloc] initWithFrame:frame];
     extrasView = [ExtrasView new];
     menuDict = [NSMutableDictionary new];
+    portDict = [NSMutableDictionary new];
     _menuPort = MACH_PORT_NULL;
+    activePID = 0;
 
     [_contentView addSubview:menuView];
     [_contentView addSubview:extrasView];
@@ -69,19 +53,19 @@
     return self;
 }
 
-- (void)setPort:(mach_port_t)port forMenu:(NSMenu *)menu {
-    [menuDict setObject:[NSNumber numberWithInt:port] forKey:menu];
+- (void)setPort:(mach_port_t)port forPID:(unsigned int)pid {
+    [portDict setObject:[NSNumber numberWithInt:port] forKey:[NSNumber numberWithInt:pid]];
 }
 
-- (void)removePortForMenu:(NSMenu *)menu {
-    mach_port_t port = [self portForMenu:menu];
+- (void)removePortForPID:(unsigned int)pid {
+    mach_port_t port = [self portForPID:pid];
     if(port != MACH_PORT_NULL)
         mach_port_deallocate(mach_task_self(), port);
-    [menuDict removeObjectForKey:menu];
+    [portDict removeObjectForKey:[NSNumber numberWithInt:pid]];
 }
 
-- (mach_port_t)portForMenu:(NSMenu *)menu {
-    NSNumber *numPort = [menuDict objectForKey:menu];
+- (mach_port_t)portForPID:(unsigned int)pid {
+    NSNumber *numPort = [portDict objectForKey:[NSNumber numberWithInt:pid]];
     if(!numPort)
         return MACH_PORT_NULL;
     return [numPort intValue];
@@ -96,21 +80,16 @@
 }
 
 - (void)removeMenuForPID:(unsigned int)pid {
-    NSNumber *key = [NSNumber numberWithInt:pid];
-    NSMenu *menu = [menuDict objectForKey:key];
-    if(menu) {
-        [self removePortForMenu:menu];
-        [menuDict removeObjectForKey:key];
-    }
+    [menuDict removeObjectForKey:[NSNumber numberWithInt:pid]];
 }
 
 - (BOOL)activateMenuForPID:(unsigned int)pid {
     [[self platformWindow] setExclusiveZone:menuBarHeight];
-    NSMenu *menu = [menuDict objectForKey:[NSNumber numberWithInt:pid]];
-    mach_port_t port = [self portForMenu:menu];
-    if(menu /*&& port != MACH_PORT_NULL*/) {
+    activePID = pid;
+    _menuPort = [self portForPID:pid];
+    NSMenu *menu = [self menuForPID:pid];
+    if(menu) {
         [menuView setMenu:menu];
-        _menuPort = port;
         return YES;
     }
     return NO;

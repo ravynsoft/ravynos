@@ -74,12 +74,7 @@ typedef union {
             {
                 mach_port_t port = msg.portMsg.descriptor.name;
                 pid_t pid = msg.portMsg.pid;
-                NSLog(@"receiveMachMessage port=%d pid=%d", port, pid);
-                NSMenu *menu = [menuBar menuForPID:pid];
-                if(menu)
-                    [menuBar setPort:port forMenu:menu];
-                else
-                    NSLog(@"Sequence Error: no menu for PID %d but received a port for it", pid);
+                [menuBar setPort:port forPID:pid];
                 break;
             }
             case MSG_ID_INLINE:
@@ -100,6 +95,7 @@ typedef union {
 }
 
 - (void)screenDidResize:(NSNotification *)note {
+#if 0
     NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
     NSNumber *key = [dict objectForKey:@"WLOutputXDGOutput"];
 
@@ -111,14 +107,25 @@ typedef union {
     NSRect frame = NSZeroRect;
     frame.size = NSSizeFromString([dict objectForKey:@"WLOutputSize"]);
     frame.origin = NSPointFromString([dict objectForKey:@"WLOutputPosition"]);
+    if(NSEqualRects(frame, NSZeroRect))
+        return;
+#endif
+    NSArray *screens = [NSScreen screens];
+    NSScreen *output = [screens objectAtIndex:0]; //nil;
 
-    MenuBarWindow *w = [[MenuBarWindow alloc] initWithFrame:frame forOutput:key];
-    if(w) {
-        menuBar = w;
-        [menuBar setDelegate:self];
-        [menuBar makeKeyAndOrderFront:nil];
+#if 0
+    for(int i = 0; i < [screens count]; ++i) {
+        output = [screens objectAtIndex:i];
+        if([output key] == key) {
+            if(i != 0) 
+                return;
+            break;
+        }
     }
-    w = 0;
+#endif
+    menuBar = [[MenuBarWindow alloc] initWithFrame:[output visibleFrame]/*frame*/ forOutput:output];
+    [menuBar setDelegate:self];
+    [menuBar makeKeyAndOrderFront:nil];
 }
 
 /* Recursively set all menu targets and delegates to our proxy */

@@ -88,13 +88,15 @@ extern const NSString *WLMenuDidUpdateNotification;
     ExtrasView *extrasView;
     ClockView *clockView;
     NSMutableDictionary *menuDict;
+    NSMutableDictionary *portDict;
     mach_port_t _menuPort;
+    unsigned int activePID;
 }
 
-- (MenuBarWindow *)initWithFrame:(NSRect)frame forOutput:(NSNumber *)outputKey;
-- (void)setPort:(mach_port_t)port forMenu:(NSMenu *)menu;
-- (void)removePortForMenu:(NSMenu *)menu;
-- (mach_port_t)portForMenu:(NSMenu *)menu;
+- (MenuBarWindow *)initWithFrame:(NSRect)frame forOutput:(NSScreen *)output;
+- (void)setPort:(mach_port_t)port forPID:(unsigned int)pid;
+- (void)removePortForPID:(unsigned int)pid;
+- (mach_port_t)portForPID:(unsigned int)pid;
 - (NSMenu *)menuForPID:(unsigned int)pid;
 - (void)setMenu:(NSMenu *)menu forPID:(unsigned int)pid;
 - (void)removeMenuForPID:(unsigned int)pid;
