@@ -490,7 +490,7 @@ static inline id autorelease(id obj)
 		return obj;
 	}
 	//return [obj autorelease];
-        abort();
+        fprintf(stderr, "OBJC: Warning: cannot autorelease obj %p - no pool? May leak.\n", obj);
 	return obj;
 }
 

@@ -39,6 +39,7 @@ int main(int argc, const char *argv[]) {
 
     __NSInitializeProcess(argc, argv);
 
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
     [NSApplication sharedApplication];
     AppDelegate *del = [AppDelegate new];
     if(!del || argc != 2)
@@ -48,6 +49,7 @@ int main(int argc, const char *argv[]) {
 
     [[NSNotificationCenter defaultCenter] addObserver:del selector:@selector(screenDidResize:)
         name:WLOutputDidResizeNotification object:nil];
+    [pool drain];
 
     [NSApp run];
 
