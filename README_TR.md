@@ -1,30 +1,33 @@
-# What is ravynOS? [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-### Don't speak English? Read this in: [Italiano](README.IT.md), [Türkçe](README_TR.md)
+# ravynOS Nedir? [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+### Don't speak you Turkish? Read this in: [Italiano](README.IT.md), [English](README.md)
 
-ravynOS is a new open source OS project that aims to provide a similar experience and some compatibility with macOS on x86-64 (and eventually ARM) systems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps.
+ravynOS macOS ile x86-64(ve ARM) mimarisinde uyumluluk sağlamayı ve benzer bir deneyim sunmayı amaçlayan açık kaynaklı bir işletim sistemidir. FreeBSD'nin sağlam temelleri üzerine inşa edilmiş olup hali hazırda bulunan açık kaynaklı paketleri ve boşlukları doldurmak için kendi kodunu kullanır.
 
-The main design goals are:
-- Source compatibility with macOS applications (i.e. you could compile a Mac application on ravynOS and run it)
-- Similar GUI metaphors and familiar UX (file manager, application launcher, top menu bar that reflects the open application, etc)
-- Compatible with macOS folder layouts (/Library, /System, /Users, /Volumes, etc) and perhaps filesystems (HFS+, APFS) as well as fully supporting ZFS
-- Self-contained applications in [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), and [AppImage](https://github.com/AppImage) files - an installer-less experience for /Applications
-- Mostly maintain compatibility with the FreeBSD base system and X11 - a standard Unix environment under the hood
-- Compatible with Linux binaries via FreeBSD's Linux support
-- Eventual compatibility with x86-64/arm64 macOS binaries (Mach-O) and libraries
-- Pleasant to use, secure, stable, and performant
+Projenin temel amaçları:
+- macOS programları ile kaynak kodu uyumluluğu (Örn. bir Mac programını rayvnOS üzerinde derleyip onu sorunsuz bir şekilde çalıştırabilirsiniz)
+- Benzer GUI metaforları ve benzer kullanıcı deneyimi (dosya yöneticisi, uygulama başlatıcısı, açık olan uygulama ile çalışan menü çubuğu)
+- macOS dosya düzeni ile uyumluluk (/Library, /System, /Users, /Volumes, vb) ve muhtemel dosya sistemleri (HFS+, APFS) ilave olarakta ZFS dosya sistemi ile uyumluluk
+- [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir) ve [AppImage](https://github.com/AppImage) formatlarında bağımsız ve /Applications için kuruluma ihtiyaç duymayan bir deneyim 
+- FreeBSD ve X11 ile uyumluluğu korumak - kaputun altında standart bir Unix ortamı
+- FreeBSD'nin Linux desteği sayesinde Linux programları ile uyumludur
+- x86-64/arm64 macOS programları (Mach-O) ve kütüphaneleri ile nihai uyumluluk
+- Kullanımı keyifli, güvenli, kararlı ve performanslı
 
-Please visit [ravynos.com](https://ravynos.com/) for more info: [Release Notes](https://ravynos.com/releases.html) | [Screenshots](https://ravynos.com/screenshots.html) | [FAQ](https://ravynos.com/faq.html)
+Daha fazla bilgi için lütfen [ravynos.com](https://ravynos.com/) adresini ziyaret edin ziyaret edin:
+[Release Notes](https://ravynos.com/releases.html) | [Screenshots](https://ravynos.com/screenshots.html) | [FAQ](https://ravynos.com/faq.html)
 
-### Join us!
+### Bize katılın!
 
-* Can you help build the dream? See the current projects/needs in [CONTRIBUTING.md](CONTRIBUTING.md)!
-* Our [Discord](https://discord.com/invite/8caJbAGNwY) server.
-* `#airyx:matrix.org` - join via [Element.io](https://app.element.io/#/room/#airyx:matrix.org)
-* `#airyx` on [Libera IRC](https://web.libera.chat/?channel=#airyx)
+* Hayalimdekini gerçekleştirmede bize yardım edebilirmisin? Projenin şu anki ihtiyaç duyduğu şeyleri [CONTRIBUTING.md](CONTRIBUTING.md) üzerinde bulabilirsin!
+* [Discord](https://discord.com/invite/8caJbAGNwY) sunucumuz.
+* `#airyx:matrix.org` - [Element.io](https://app.element.io/#/room/#airyx:matrix.org) ile katılın
+* [Libera IRC](https://web.libera.chat/?channel=#airyx)'de `#airyx`
 
-_(note: `#airyx` on matrix.org and IRC are bridged with `#general` on Discord)_
+_(not: matrix.org üzerindeki `#airyx` ve IRC kanalları Discord sunucumuzdaki `#general` kanalı ile bağlantılıdır.)_
 
-New logo designs & artwork by [nayaabkhan](https://nayaabkhan.me). Hat tip for the palm tree concept to [llui85](https://github.com/llui85).
+Yeni logo tasarımı & sanat eseri [nayaabkhan](https://nayaabkhan.me) tarafından yapılmıştır. 
+Palmiye ağacı konsepti için [llui85](https://github.com/llui85) saygılar. 
+
 
 [![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
