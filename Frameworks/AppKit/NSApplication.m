@@ -602,7 +602,7 @@ id NSApp=nil;
     // UGLY HACK: this dummy window triggers wayland to tell us about wl_outputs.
     NSWindow *w = [[[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,1,1)
         styleMask:NSBorderlessWindowMask|WLWindowLayerBackground
-        backing:NSBackingStoreBuffered defer:NO] retain];
+        backing:NSBackingStoreBuffered defer:NO] autorelease];
     [w makeKeyAndOrderFront:nil];
 
    NS_DURING
@@ -800,10 +800,7 @@ id NSApp=nil;
      if([nextEvent type]==NSAppKitSystem){
       [nextEvent release];
       nextEvent=nil;
-     } else 
-     // GIANT HACK: this fixes a refcount issue where events are prematurely released. no idea why.
-     // too many NSAutoreleasePools somewhere, maybe. should be OK until we move this all to use ARC.
-        [nextEvent retain];
+     }
      
    NS_HANDLER
     [self reportException:localException];

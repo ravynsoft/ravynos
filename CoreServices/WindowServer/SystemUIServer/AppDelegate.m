@@ -51,7 +51,7 @@ typedef union {
 
 @implementation AppDelegate
 - (AppDelegate *)init {
-    menuBar = nil;
+    menuBar = [MenuBarWindow alloc];
 
     kern_return_t kr;
     if((kr = bootstrap_check_in(bootstrap_port, SERVICE_NAME, &_servicePort)) != KERN_SUCCESS) {
@@ -94,36 +94,11 @@ typedef union {
     }
 }
 
-- (void)screenDidResize:(NSNotification *)note {
-#if 0
-    NSMutableDictionary *dict = (NSMutableDictionary *)[note userInfo];
-    NSNumber *key = [dict objectForKey:@"WLOutputXDGOutput"];
-
-    if(key == nil) {
-        NSLog(@"ERROR: screenDidResize for null output key");
-        return;
-    }
-
-    NSRect frame = NSZeroRect;
-    frame.size = NSSizeFromString([dict objectForKey:@"WLOutputSize"]);
-    frame.origin = NSPointFromString([dict objectForKey:@"WLOutputPosition"]);
-    if(NSEqualRects(frame, NSZeroRect))
-        return;
-#endif
+- (void)createWindows:(NSNotification *)note {
     NSArray *screens = [NSScreen screens];
-    NSScreen *output = [screens objectAtIndex:0]; //nil;
+    NSScreen *output = [screens objectAtIndex:0]; //FIXME: select preferred display from prefs
 
-#if 0
-    for(int i = 0; i < [screens count]; ++i) {
-        output = [screens objectAtIndex:i];
-        if([output key] == key) {
-            if(i != 0) 
-                return;
-            break;
-        }
-    }
-#endif
-    menuBar = [[MenuBarWindow alloc] initWithFrame:[output visibleFrame]/*frame*/ forOutput:output];
+    [menuBar initWithFrame:[output visibleFrame] forOutput:output];
     [menuBar setDelegate:self];
     [menuBar makeKeyAndOrderFront:nil];
 }

@@ -46,6 +46,7 @@
     struct wl_seat *wl_seat;
     struct xdg_toplevel *xdg_toplevel;
     struct xdg_surface *xdg_surface; 
+    struct wl_callback *cb;
 
     // subsurface support
     struct wl_subcompositor *subcompositor;

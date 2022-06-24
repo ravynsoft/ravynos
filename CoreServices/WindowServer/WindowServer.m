@@ -315,6 +315,7 @@ int main(int argc, const char *argv[]) {
     }
     giveXdgDir(nobodyUID, videoGID, xdgDir);
 
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
     NSString *confPath = [[NSBundle mainBundle] pathForResource:@"ws" ofType:@"conf"];
     config_file = [confPath UTF8String];
 
@@ -331,6 +332,7 @@ int main(int argc, const char *argv[]) {
                 break;
         }
     }
+    [pool drain];
 
     while(access("/var/run/windowserver", F_OK) != 0)
         sleep(1);

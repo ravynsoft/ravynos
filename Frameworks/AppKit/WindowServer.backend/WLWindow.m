@@ -103,10 +103,10 @@ static void layer_surface_configure(void *data,
         [win createCGContextIfNeeded];
         [win createCGLContextObjIfNeeded];
         [win setFrame:_frame];
-        [win setReady:YES];
 
         [win frameChanged];
         [[win delegate] platformWindow:win frameChanged:frame didSize:YES];
+        [win setReady:YES];
     }
 }
 
@@ -192,10 +192,8 @@ static const struct wl_callback_listener frame_listener = {
 };
 
 static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
-    if(cb != NULL)
-        wl_callback_destroy(cb);
-
     WLWindow *win = (__bridge WLWindow *)data;
+    [win clearRenderCallback];
     [win openGLFlushBuffer];
 }
 
@@ -221,6 +219,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     _caContext = NULL;
     _styleMask = styleMask;
     _ready = NO;
+    cb = NULL;
     layer_surface = NULL;
     wl_subsurface = NULL;
     parentWindow = nil;
@@ -325,6 +324,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 
 -(void)dealloc
 {
+    [self clearRenderCallback];
     [[NSNotificationCenter defaultCenter] removeObserver:self];
     [self _destroySurface];
     if(registry)
@@ -655,8 +655,14 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     /* flush pending changes to our O2Surface & tell compositor we're ready */
     O2ContextFlush(_context);
     [self openGLFlushBuffer];
-    struct wl_callback *cb = wl_surface_frame(wl_surface);
+    cb = wl_surface_frame(wl_surface);
     wl_callback_add_listener(cb, &frame_listener, (__bridge void *)self);
+}
+
+-(void) clearRenderCallback {
+    if(cb != NULL)
+        wl_callback_destroy(cb);
+    cb = NULL;
 }
 
 // This seems wrong but it's exactly what was done in the Win32 version
@@ -708,7 +714,8 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 {
     _ready = ready;
     if(_ready) {
-        struct wl_callback *cb = wl_surface_frame(wl_surface);
+        [self clearRenderCallback];
+        cb = wl_surface_frame(wl_surface);
         wl_callback_add_listener(cb, &frame_listener, (__bridge void *)self);
     }
 }

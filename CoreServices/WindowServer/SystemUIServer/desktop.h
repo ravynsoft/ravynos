@@ -111,6 +111,6 @@ extern const NSString *WLMenuDidUpdateNotification;
 }
 
 - (void)receiveMachMessage;
-- (void)screenDidResize:(NSNotification *)note;
+- (void)createWindows:(NSNotification *)note;
 @end
 

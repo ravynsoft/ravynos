@@ -17,10 +17,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 @implementation NSAutoreleasePool
 
-+(void)addObject:object {
-    objc_autorelease(object);
-}
-
 -init {
     _pool=objc_autoreleasePoolPush();
    return self;
@@ -28,12 +24,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 -(void)dealloc {
     objc_autoreleasePoolPop(_pool);
-
    [super dealloc];
-}
-
--(void)addObject:object {
-    objc_autoreleasePoolAdd(_pool,object);
 }
 
 id NSAutorelease(id object){
@@ -41,14 +32,17 @@ id NSAutorelease(id object){
 }
 
 -(void)drain {
-	[self release];
+    [self release];
 }
 
 -retain {
    [NSException raise:NSInvalidArgumentException format:@"-[NSAutoreleasePool retain] not allowed"];
    return nil;
 }
+
 // indicate this class is ARC compatible
--(void)_ARCCompatibleAutoreleasePool {}
+-(void)_ARCCompatibleAutoreleasePool {
+    printf("ARCCompatibleAutoreleasePool\n");
+}
 
 @end

@@ -269,10 +269,10 @@ extern "C" OBJC_PUBLIC id objc_retain_fast_np(id obj)
 		// If the serialisation happens the other way, then the locked
 		// check of the reference count will happen after we've referenced
 		// this and we don't zero the references or deallocate.
-		//if (realCount < 0)
-		//{
-		//	return nil;
-		//}
+		if (realCount < 0)
+		{
+			return nil;
+		}
 		// If the reference count is saturated, don't increment it.
 		if (realCount == refcount_mask)
 		{
@@ -333,6 +333,28 @@ extern "C" OBJC_PUBLIC void object_decrementExternalRefCount(id value)
 // 	fprintf(stderr,"object_decrementExternalRefCount %p = %d\n",value,object_getRetainCount_np(value));
 }
 
+static BOOL removeFromPool(id obj)
+{
+	if (useARCAutoreleasePool)
+	{
+		struct arc_tls* tls = getARCThreadData();
+		if (NULL != tls && NULL != tls->pool)
+		{
+                        while (tls->pool->insert > tls->pool->pool)
+                        {
+                                if(*(tls->pool->insert) == obj) {
+                                        *(tls->pool->insert) = nil;
+                                        return YES;
+                                }
+                                tls->pool->insert--;
+                        }
+		}
+	}
+
+        return NO;
+}
+
+
 #define objc_DecrementExtraRefCountWasZero(object) objc_release_fast_no_destroy_np(object)
 extern "C" OBJC_PUBLIC BOOL objc_release_fast_no_destroy_np(id obj)
 {
@@ -367,6 +389,7 @@ extern "C" OBJC_PUBLIC BOOL objc_release_fast_no_destroy_np(id obj)
 				return NO;
 			}
 		}
+                removeFromPool(obj);
 		return YES;
 	}
 	return NO;
@@ -414,7 +437,7 @@ static inline void initAutorelease(void)
 		{
 			useARCAutoreleasePool = (0 != class_getInstanceMethod(AutoreleasePool,
 			                                                      SELECTOR(_ARCCompatibleAutoreleasePool)));
-//             printf("useARCAutoreleasePool = %d\n",useARCAutoreleasePool);
+             //printf("useARCAutoreleasePool = %d\n",useARCAutoreleasePool);
 			if (!useARCAutoreleasePool)
 			{
 				[AutoreleasePool class];
@@ -438,7 +461,7 @@ extern "C" {
 
 static inline id autorelease(id obj)
 {
-// 	fprintf(stderr, "Autoreleasing %p (ARC %d)\n", obj, useARCAutoreleasePool);
+ 	//fprintf(stderr, "Autoreleasing %p (ARC %d)\n", obj, useARCAutoreleasePool);
 	if (useARCAutoreleasePool)
 	{
 		struct arc_tls *tls = getARCThreadData();
@@ -467,6 +490,7 @@ static inline id autorelease(id obj)
 		return obj;
 	}
 	//return [obj autorelease];
+        abort();
 	return obj;
 }
 
