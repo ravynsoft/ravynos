@@ -36,9 +36,7 @@
  * Darwin8 and hopefully subsequent releases from Apple.)
  */
 typedef	struct mount *		mount_t;
-#define	vfs_flags(m)		((m)->mnt_flag)
 
 typedef struct vnode *		vnode_t;
-#define	vnode_vtype(v)		((v)->v_type)
 
 #endif	/* _NFS_NFSKPIPORT_H */

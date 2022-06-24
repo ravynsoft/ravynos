@@ -59,14 +59,17 @@ MLINKS+=eui64.3 eui64_aton.3 eui64.3 eui64_hostton.3 \
 	eui64.3 eui64_ntoa.3 eui64.3 eui64_ntohost.3
 MLINKS+=getaddrinfo.3 freeaddrinfo.3 
 MLINKS+=gethostbyname.3 endhostent.3 gethostbyname.3 gethostbyaddr.3 \
-	gethostbyname.3 gethostbyname2.3 gethostbyname.3 gethostent.3 \
-	gethostbyname.3 herror.3 gethostbyname.3 hstrerror.3 \
-	gethostbyname.3 sethostent.3
+	gethostbyname.3 gethostbyaddr_r.3 gethostbyname.3 gethostbyname2.3 \
+	gethostbyname.3 gethostbyname2_r.3 gethostbyname.3 gethostbyname_r.3 \
+	gethostbyname.3 gethostent.3 gethostbyname.3 herror.3 \
+	gethostbyname.3 hstrerror.3 gethostbyname.3 sethostent.3
 MLINKS+=getifaddrs.3 freeifaddrs.3
 MLINKS+=getifmaddrs.3 freeifmaddrs.3
 MLINKS+=getipnodebyname.3 getipnodebyaddr.3 getipnodebyname.3 freehostent.3
 MLINKS+=getnetent.3 endnetent.3 getnetent.3 getnetbyaddr.3 \
-	getnetent.3 getnetbyname.3 getnetent.3 setnetent.3
+	getnetent.3 getnetbyaddr_r.3 getnetent.3 getnetbyname.3 \
+	getnetent.3 getnetbyname_r.3 getnetent.3 setnetent.3 \
+	getnetent.3 getnetent_r.3
 MLINKS+=getprotoent.3 endprotoent.3 getprotoent.3 getprotobyname.3 \
 	getprotoent.3 getprotobynumber.3 getprotoent.3 setprotoent.3
 MLINKS+=getservent.3 endservent.3 getservent.3 getservbyname.3 \

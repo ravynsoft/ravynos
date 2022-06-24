@@ -4718,7 +4718,7 @@ bus_generic_get_device_path(device_t bus, device_t child, const char *locator,
 int
 bus_null_rescan(device_t dev)
 {
-	return (ENXIO);
+	return (ENODEV);
 }
 
 /*

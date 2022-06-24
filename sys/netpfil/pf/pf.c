@@ -3836,8 +3836,24 @@ pf_match_eth_addr(const uint8_t *a, const struct pf_keth_rule_addr *r)
 }
 
 static int
+pf_match_eth_tag(struct mbuf *m, struct pf_keth_rule *r, int *tag, int mtag)
+{
+	if (*tag == -1)
+		*tag = mtag;
+
+	return ((!r->match_tag_not && r->match_tag == *tag) ||
+	    (r->match_tag_not && r->match_tag != *tag));
+}
+
+static int
 pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 {
+#ifdef INET
+	struct ip ip;
+#endif
+#ifdef INET6
+	struct ip6_hdr ip6;
+#endif
 	struct mbuf *m = *m0;
 	struct ether_header *e;
 	struct pf_keth_rule *r, *rm, *a = NULL;
@@ -3848,6 +3864,7 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 	sa_family_t af = 0;
 	uint16_t proto;
 	int asd = 0, match = 0;
+	int tag = -1;
 	uint8_t action;
 	struct pf_keth_anchor_stackframe	anchor_stack[PF_ANCHOR_STACKSIZE];
 
@@ -3882,39 +3899,25 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 	switch (proto) {
 #ifdef INET
 	case ETHERTYPE_IP: {
-		struct ip *ip;
-		m = m_pullup(m, sizeof(struct ether_header) +
-		    sizeof(struct ip));
-		if (m == NULL) {
-			*m0 = NULL;
-			return (PF_DROP);
-		}
 		af = AF_INET;
-		ip = mtodo(m, sizeof(struct ether_header));
-		src = (struct pf_addr *)&ip->ip_src;
-		dst = (struct pf_addr *)&ip->ip_dst;
+		m_copydata(m, sizeof(struct ether_header), sizeof(ip),
+		    (caddr_t)&ip);
+		src = (struct pf_addr *)&ip.ip_src;
+		dst = (struct pf_addr *)&ip.ip_dst;
 		break;
 	}
 #endif /* INET */
 #ifdef INET6
 	case ETHERTYPE_IPV6: {
-		struct ip6_hdr *ip6;
-		m = m_pullup(m, sizeof(struct ether_header) +
-		    sizeof(struct ip6_hdr));
-		if (m == NULL) {
-			*m0 = NULL;
-			return (PF_DROP);
-		}
 		af = AF_INET6;
-		ip6 = mtodo(m, sizeof(struct ether_header));
-		src = (struct pf_addr *)&ip6->ip6_src;
-		dst = (struct pf_addr *)&ip6->ip6_dst;
+		m_copydata(m, sizeof(struct ether_header), sizeof(ip6),
+		    (caddr_t)&ip6);
+		src = (struct pf_addr *)&ip6.ip6_src;
+		dst = (struct pf_addr *)&ip6.ip6_dst;
 		break;
 	}
 #endif /* INET6 */
 	}
-	e = mtod(m, struct ether_header *);
-	*m0 = m;
 
 	PF_RULES_RLOCK();
 
@@ -3959,7 +3962,15 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 			    "ip_dst");
 			r = TAILQ_NEXT(r, entries);
 		}
+		else if (r->match_tag && !pf_match_eth_tag(m, r, &tag,
+		    mtag ? mtag->tag : 0)) {
+			SDT_PROBE3(pf, eth, test_rule, mismatch, r->nr, r,
+			    "match_tag");
+			r = TAILQ_NEXT(r, entries);
+		}
 		else {
+			if (r->tag)
+				tag = r->tag;
 			if (r->anchor == NULL) {
 				/* Rule matches */
 				rm = r;
@@ -4001,7 +4012,7 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 		return (PF_DROP);
 	}
 
-	if (r->tag > 0) {
+	if (tag > 0) {
 		if (mtag == NULL)
 			mtag = pf_get_mtag(m);
 		if (mtag == NULL) {
@@ -4009,7 +4020,7 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 			counter_u64_add(V_pf_status.counters[PFRES_MEMORY], 1);
 			return (PF_DROP);
 		}
-		mtag->tag = r->tag;
+		mtag->tag = tag;
 	}
 
 	if (r->qid != 0) {

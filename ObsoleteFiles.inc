@@ -52,6 +52,18 @@
 #   xargs -n1 | sort | uniq -d;
 # done
 
+# 20220624: unix_passfd_test -> unix_passfd_stream/unix_passfd_dgram
+OLD_FILES+=usr/tests/sys/kern/unix_passfd_test
+
+# 20220621: ISA sound card drivers removed
+OLD_FILES+=usr/share/man/man4/snd_ad1816.4
+OLD_FILES+=usr/share/man/man4/snd_ess.4
+OLD_FILES+=usr/share/man/man4/snd_gusc.4
+OLD_FILES+=usr/share/man/man4/snd_mss.4
+OLD_FILES+=usr/share/man/man4/snd_sb16.4
+OLD_FILES+=usr/share/man/man4/snd_sb8.4
+OLD_FILES+=usr/share/man/man4/snd_sbc.4
+
 # 20220612: new clang import which bumps version from 14.0.4 to 14.0.5
 OLD_FILES+=usr/lib/clang/14.0.4/include/cuda_wrappers/algorithm
 OLD_FILES+=usr/lib/clang/14.0.4/include/cuda_wrappers/complex

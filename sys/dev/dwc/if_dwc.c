@@ -354,12 +354,12 @@ dwc_miibus_statchg(device_t dev)
  */
 
 static void
-dwc_media_status(struct ifnet * ifp, struct ifmediareq *ifmr)
+dwc_media_status(if_t ifp, struct ifmediareq *ifmr)
 {
 	struct dwc_softc *sc;
 	struct mii_data *mii;
 
-	sc = ifp->if_softc;
+	sc = if_getsoftc(ifp);
 	mii = sc->mii_softc;
 	DWC_LOCK(sc);
 	mii_pollstat(mii);
@@ -376,12 +376,12 @@ dwc_media_change_locked(struct dwc_softc *sc)
 }
 
 static int
-dwc_media_change(struct ifnet * ifp)
+dwc_media_change(if_t ifp)
 {
 	struct dwc_softc *sc;
 	int error;
 
-	sc = ifp->if_softc;
+	sc = if_getsoftc(ifp);
 
 	DWC_LOCK(sc);
 	error = dwc_media_change_locked(sc);
@@ -441,7 +441,7 @@ static void
 dwc_setup_rxfilter(struct dwc_softc *sc)
 {
 	struct dwc_hash_maddr_ctx ctx;
-	struct ifnet *ifp;
+	if_t ifp;
 	uint8_t *eaddr;
 	uint32_t ffval, hi, lo;
 	int nhash, i;
@@ -454,7 +454,7 @@ dwc_setup_rxfilter(struct dwc_softc *sc)
 	/*
 	 * Set the multicast (group) filter hash.
 	 */
-	if ((ifp->if_flags & IFF_ALLMULTI) != 0) {
+	if ((if_getflags(ifp) & IFF_ALLMULTI) != 0) {
 		ffval = (FRAME_FILTER_PM);
 		for (i = 0; i < nhash; i++)
 			ctx.hash[i] = ~0;
@@ -469,7 +469,7 @@ dwc_setup_rxfilter(struct dwc_softc *sc)
 	/*
 	 * Set the individual address filter hash.
 	 */
-	if (ifp->if_flags & IFF_PROMISC)
+	if ((if_getflags(ifp) & IFF_PROMISC) != 0)
 		ffval |= (FRAME_FILTER_PR);
 
 	/*
@@ -515,6 +515,20 @@ dwc_enable_mac(struct dwc_softc *sc, bool enable)
 		reg |= CONF_TE | CONF_RE;
 	else
 		reg &= ~(CONF_TE | CONF_RE);
+	WRITE4(sc, MAC_CONFIGURATION, reg);
+}
+
+static void
+dwc_enable_csum_offload(struct dwc_softc *sc)
+{
+	uint32_t reg;
+
+	DWC_ASSERT_LOCKED(sc);
+	reg = READ4(sc, MAC_CONFIGURATION);
+	if ((if_getcapenable(sc->ifp) & IFCAP_RXCSUM) != 0)
+		reg |= CONF_IPC;
+	else
+		reg &= ~CONF_IPC;
 	WRITE4(sc, MAC_CONFIGURATION, reg);
 }
 
@@ -802,7 +816,7 @@ static struct mbuf *
 dwc_rxfinish_one(struct dwc_softc *sc, struct dwc_hwdesc *desc,
     struct dwc_bufmap *map)
 {
-	struct ifnet *ifp;
+	if_t ifp;
 	struct mbuf *m, *m0;
 	int len;
 	uint32_t rdesc0;
@@ -810,14 +824,6 @@ dwc_rxfinish_one(struct dwc_softc *sc, struct dwc_hwdesc *desc,
 	m = map->mbuf;
 	ifp = sc->ifp;
 	rdesc0 = desc ->desc0;
-	/* Validate descriptor. */
-	if (rdesc0 & RDESC0_ES) {
-		/*
-		 * Errored packet. Statistic counters are updated
-		 * globally, so do nothing
-		 */
-		return (NULL);
-	}
 
 	if ((rdesc0 & (RDESC0_FS | RDESC0_LS)) !=
 		    (RDESC0_FS | RDESC0_LS)) {
@@ -873,7 +879,7 @@ dwc_rxfinish_one(struct dwc_softc *sc, struct dwc_hwdesc *desc,
 	m_adj(m, -ETHER_CRC_LEN);
 
 	DWC_UNLOCK(sc);
-	(*ifp->if_input)(ifp, m);
+	if_input(ifp, m);
 	DWC_LOCK(sc);
 	return (m0);
 }
@@ -1043,6 +1049,48 @@ out:
 	return (0);
 }
 
+static void
+free_dma(struct dwc_softc *sc)
+{
+	bus_dmamap_t map;
+	int idx;
+
+	/* Clean up RX DMA resources and free mbufs. */
+	for (idx = 0; idx < RX_DESC_COUNT; ++idx) {
+		if ((map = sc->rxbuf_map[idx].map) != NULL) {
+			bus_dmamap_unload(sc->rxbuf_tag, map);
+			bus_dmamap_destroy(sc->rxbuf_tag, map);
+			m_freem(sc->rxbuf_map[idx].mbuf);
+		}
+	}
+	if (sc->rxbuf_tag != NULL)
+		bus_dma_tag_destroy(sc->rxbuf_tag);
+	if (sc->rxdesc_map != NULL) {
+		bus_dmamap_unload(sc->rxdesc_tag, sc->rxdesc_map);
+		bus_dmamem_free(sc->rxdesc_tag, sc->rxdesc_ring,
+		    sc->rxdesc_map);
+	}
+	if (sc->rxdesc_tag != NULL)
+		bus_dma_tag_destroy(sc->rxdesc_tag);
+
+	/* Clean up TX DMA resources. */
+	for (idx = 0; idx < TX_DESC_COUNT; ++idx) {
+		if ((map = sc->txbuf_map[idx].map) != NULL) {
+			/* TX maps are already unloaded. */
+			bus_dmamap_destroy(sc->txbuf_tag, map);
+		}
+	}
+	if (sc->txbuf_tag != NULL)
+		bus_dma_tag_destroy(sc->txbuf_tag);
+	if (sc->txdesc_map != NULL) {
+		bus_dmamap_unload(sc->txdesc_tag, sc->txdesc_map);
+		bus_dmamem_free(sc->txdesc_tag, sc->txdesc_ring,
+		    sc->txdesc_map);
+	}
+	if (sc->txdesc_tag != NULL)
+		bus_dma_tag_destroy(sc->txdesc_tag);
+}
+
 /*
  * if_ functions
  */
@@ -1050,7 +1098,7 @@ out:
 static void
 dwc_txstart_locked(struct dwc_softc *sc)
 {
-	struct ifnet *ifp;
+	if_t ifp;
 	struct mbuf *m;
 	int enqueued;
 
@@ -1099,9 +1147,9 @@ dwc_txstart_locked(struct dwc_softc *sc)
 }
 
 static void
-dwc_txstart(struct ifnet *ifp)
+dwc_txstart(if_t ifp)
 {
-	struct dwc_softc *sc = ifp->if_softc;
+	struct dwc_softc *sc = if_getsoftc(ifp);
 
 	DWC_LOCK(sc);
 	dwc_txstart_locked(sc);
@@ -1111,7 +1159,7 @@ dwc_txstart(struct ifnet *ifp)
 static void
 dwc_init_locked(struct dwc_softc *sc)
 {
-	struct ifnet *ifp = sc->ifp;
+	if_t ifp = sc->ifp;
 
 	DWC_ASSERT_LOCKED(sc);
 
@@ -1121,6 +1169,7 @@ dwc_init_locked(struct dwc_softc *sc)
 	dwc_setup_rxfilter(sc);
 	dwc_setup_core(sc);
 	dwc_enable_mac(sc, true);
+	dwc_enable_csum_offload(sc);
 	dwc_init_dma(sc);
 
 	if_setdrvflagbits(ifp, IFF_DRV_RUNNING, IFF_DRV_OACTIVE);
@@ -1146,7 +1195,7 @@ dwc_init(void *if_softc)
 static void
 dwc_stop_locked(struct dwc_softc *sc)
 {
-	struct ifnet *ifp;
+	if_t ifp;
 
 	DWC_ASSERT_LOCKED(sc);
 
@@ -1162,14 +1211,14 @@ dwc_stop_locked(struct dwc_softc *sc)
 }
 
 static int
-dwc_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
+dwc_ioctl(if_t ifp, u_long cmd, caddr_t data)
 {
 	struct dwc_softc *sc;
 	struct mii_data *mii;
 	struct ifreq *ifr;
 	int flags, mask, error;
 
-	sc = ifp->if_softc;
+	sc = if_getsoftc(ifp);
 	ifr = (struct ifreq *)data;
 
 	error = 0;
@@ -1219,6 +1268,12 @@ dwc_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
 			if_sethwassistbits(ifp, CSUM_IP | CSUM_UDP | CSUM_TCP, 0);
 		else
 			if_sethwassistbits(ifp, 0, CSUM_IP | CSUM_UDP | CSUM_TCP);
+
+		if (if_getdrvflags(ifp) & IFF_DRV_RUNNING) {
+			DWC_LOCK(sc);
+			dwc_enable_csum_offload(sc);
+			DWC_UNLOCK(sc);
+		}
 		break;
 
 	default:
@@ -1238,7 +1293,7 @@ dwc_txfinish_locked(struct dwc_softc *sc)
 {
 	struct dwc_bufmap *bmap;
 	struct dwc_hwdesc *desc;
-	struct ifnet *ifp;
+	if_t ifp;
 	int idx, last_idx;
 	bool map_finished;
 
@@ -1369,7 +1424,7 @@ static void dwc_clear_stats(struct dwc_softc *sc)
 static void
 dwc_harvest_stats(struct dwc_softc *sc)
 {
-	struct ifnet *ifp;
+	if_t ifp;
 
 	/* We don't need to harvest too often. */
 	if (++sc->stats_harvest_count < STATS_HARVEST_INTERVAL)
@@ -1378,16 +1433,12 @@ dwc_harvest_stats(struct dwc_softc *sc)
 	sc->stats_harvest_count = 0;
 	ifp = sc->ifp;
 
-	if_inc_counter(ifp, IFCOUNTER_IPACKETS, READ4(sc, RXFRAMECOUNT_GB));
-	if_inc_counter(ifp, IFCOUNTER_IMCASTS, READ4(sc, RXMULTICASTFRAMES_G));
 	if_inc_counter(ifp, IFCOUNTER_IERRORS,
 	    READ4(sc, RXOVERSIZE_G) + READ4(sc, RXUNDERSIZE_G) +
 	    READ4(sc, RXCRCERROR) + READ4(sc, RXALIGNMENTERROR) +
 	    READ4(sc, RXRUNTERROR) + READ4(sc, RXJABBERERROR) +
 	    READ4(sc, RXLENGTHERROR));
 
-	if_inc_counter(ifp, IFCOUNTER_OPACKETS, READ4(sc, TXFRAMECOUNT_G));
-	if_inc_counter(ifp, IFCOUNTER_OMCASTS, READ4(sc, TXMULTICASTFRAMES_G));
 	if_inc_counter(ifp, IFCOUNTER_OERRORS,
 	    READ4(sc, TXOVERSIZE_G) + READ4(sc, TXEXCESSDEF) +
 	    READ4(sc, TXCARRIERERR) + READ4(sc, TXUNDERFLOWERROR));
@@ -1402,7 +1453,7 @@ static void
 dwc_tick(void *arg)
 {
 	struct dwc_softc *sc;
-	struct ifnet *ifp;
+	if_t ifp;
 	int link_was_up;
 
 	sc = arg;
@@ -1551,7 +1602,7 @@ dwc_attach(device_t dev)
 {
 	uint8_t macaddr[ETHER_ADDR_LEN];
 	struct dwc_softc *sc;
-	struct ifnet *ifp;
+	if_t ifp;
 	int error, i;
 	uint32_t reg;
 	phandle_t node;
@@ -1677,7 +1728,7 @@ dwc_attach(device_t dev)
 	/* Set up the ethernet interface. */
 	sc->ifp = ifp = if_alloc(IFT_ETHER);
 
-	ifp->if_softc = sc;
+	if_setsoftc(ifp, sc);
 	if_initname(ifp, device_get_name(dev), device_get_unit(dev));
 	if_setflags(sc->ifp, IFF_BROADCAST | IFF_SIMPLEX | IFF_MULTICAST);
 	if_setstartfn(ifp, dwc_txstart);
@@ -1709,9 +1760,55 @@ dwc_attach(device_t dev)
 	return (0);
 }
 
+static int
+dwc_detach(device_t dev)
+{
+	struct dwc_softc *sc;
+
+	sc = device_get_softc(dev);
+
+	/*
+	 * Disable and tear down interrupts before anything else, so we don't
+	 * race with the handler.
+	 */
+	WRITE4(sc, INTERRUPT_ENABLE, 0);
+	if (sc->intr_cookie != NULL) {
+		bus_teardown_intr(dev, sc->res[1], sc->intr_cookie);
+	}
+
+	if (sc->is_attached) {
+		DWC_LOCK(sc);
+		sc->is_detaching = true;
+		dwc_stop_locked(sc);
+		DWC_UNLOCK(sc);
+		callout_drain(&sc->dwc_callout);
+		ether_ifdetach(sc->ifp);
+	}
+
+	if (sc->miibus != NULL) {
+		device_delete_child(dev, sc->miibus);
+		sc->miibus = NULL;
+	}
+	bus_generic_detach(dev);
+
+	/* Free DMA descriptors */
+	free_dma(sc);
+
+	if (sc->ifp != NULL) {
+		if_free(sc->ifp);
+		sc->ifp = NULL;
+	}
+
+	bus_release_resources(dev, dwc_spec, sc->res);
+
+	mtx_destroy(&sc->mtx);
+	return (0);
+}
+
 static device_method_t dwc_methods[] = {
 	DEVMETHOD(device_probe,		dwc_probe),
 	DEVMETHOD(device_attach,	dwc_attach),
+	DEVMETHOD(device_detach,	dwc_detach),
 
 	/* MII Interface */
 	DEVMETHOD(miibus_readreg,	dwc_miibus_read_reg),

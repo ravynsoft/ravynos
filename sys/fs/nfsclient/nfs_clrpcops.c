@@ -219,7 +219,7 @@ static int nfsrpc_createlayout(vnode_t, char *, int, struct vattr *,
     int, int, int, int *, struct nfsclflayouthead *, int *);
 static int nfsrpc_layoutget(struct nfsmount *, uint8_t *, int, int, uint64_t,
     uint64_t, uint64_t, int, int, nfsv4stateid_t *, int *,
-    struct nfsclflayouthead *, struct ucred *, NFSPROC_T *, void *);
+    struct nfsclflayouthead *, struct ucred *, NFSPROC_T *);
 static int nfsrpc_layoutgetres(struct nfsmount *, vnode_t, uint8_t *,
     int, nfsv4stateid_t *, int, uint32_t *, struct nfscllayout **,
     struct nfsclflayouthead *, int, int, int *, struct ucred *, NFSPROC_T *);
@@ -265,7 +265,7 @@ nfsrpc_access(vnode_t vp, int acmode, struct ucred *cred,
 		mode = NFSACCESS_READ;
 	else
 		mode = 0;
-	if (vnode_vtype(vp) == VDIR) {
+	if (vp->v_type == VDIR) {
 		if (acmode & VWRITE)
 			mode |= (NFSACCESS_MODIFY | NFSACCESS_EXTEND |
 				 NFSACCESS_DELETE);
@@ -370,7 +370,7 @@ nfsrpc_open(vnode_t vp, int amode, struct ucred *cred, NFSPROC_T *p)
 	/*
 	 * For NFSv4, Open Ops are only done on Regular Files.
 	 */
-	if (vnode_vtype(vp) != VREG)
+	if (vp->v_type != VREG)
 		return (0);
 	mode = 0;
 	if (amode & FREAD)
@@ -425,9 +425,6 @@ else printf(" fhl=0\n");
 				    NFS4NODENAME(np->n_v4),
 				    np->n_v4->n4_namelen, &dp, cred, p);
 			if (dp != NULL) {
-#ifdef APPLE
-				OSBitAndAtomic((int32_t)~NDELEGMOD, (UInt32 *)&np->n_flag);
-#else
 				NFSLOCKNODE(np);
 				np->n_flag &= ~NDELEGMOD;
 				/*
@@ -439,7 +436,6 @@ else printf(" fhl=0\n");
 				 */
 				NFSINVALATTRCACHE(np);
 				NFSUNLOCKNODE(np);
-#endif
 				(void) nfscl_deleg(nmp->nm_mountp,
 				    op->nfso_own->nfsow_clp,
 				    nfhp->nfh_fh, nfhp->nfh_len, cred, p, &dp);
@@ -746,7 +742,7 @@ nfsrpc_close(vnode_t vp, int doclose, NFSPROC_T *p)
 	struct nfsclclient *clp;
 	int error;
 
-	if (vnode_vtype(vp) != VREG)
+	if (vp->v_type != VREG)
 		return (0);
 	if (doclose)
 		error = nfscl_doclose(vp, &clp, p);
@@ -1292,7 +1288,7 @@ nfsrpc_setattr(vnode_t vp, struct vattr *vap, NFSACL_T *aclp,
 			nfhp = VTONFS(vp)->n_fhp;
 			error = nfscl_getstateid(vp, nfhp->nfh_fh,
 			    nfhp->nfh_len, mode, 0, cred, p, &stateid, &lckp);
-			if (error && vnode_vtype(vp) == VREG &&
+			if (error && vp->v_type == VREG &&
 			    (mode == NFSV4OPEN_ACCESSWRITE ||
 			     nfstest_openallsetattr)) {
 				/*
@@ -1363,7 +1359,7 @@ nfsrpc_setattrrpc(vnode_t vp, struct vattr *vap,
 	NFSCL_REQSTART(nd, NFSPROC_SETATTR, vp);
 	if (nd->nd_flag & ND_NFSV4)
 		nfsm_stateidtom(nd, stateidp, NFSSTATEID_PUTSTATEID);
-	vap->va_type = vnode_vtype(vp);
+	vap->va_type = vp->v_type;
 	nfscl_fillsattr(nd, vap, vp, NFSSATTR_FULL, 0);
 	if (nd->nd_flag & ND_NFSV3) {
 		NFSM_BUILD(tl, u_int32_t *, NFSX_UNSIGNED);
@@ -1411,7 +1407,7 @@ nfsrpc_lookup(vnode_t dvp, char *name, int len, struct ucred *cred,
 
 	*attrflagp = 0;
 	*dattrflagp = 0;
-	if (vnode_vtype(dvp) != VDIR)
+	if (dvp->v_type != VDIR)
 		return (ENOTDIR);
 	nmp = VFSTONFS(dvp->v_mount);
 	if (len > NFS_MAXNAMLEN)
@@ -3645,7 +3641,6 @@ nfsmout:
 	return (error);
 }
 
-#ifndef APPLE
 /*
  * NFS V3 readdir plus RPC. Used in place of nfsrpc_readdir().
  * (Also used for NFS V4 when mount flag set.)
@@ -4181,7 +4176,6 @@ nfsmout:
 		m_freem(nd->nd_mrep);
 	return (error);
 }
-#endif	/* !APPLE */
 
 /*
  * Nfs commit rpc
@@ -4698,8 +4692,7 @@ nfsmout:
  */
 int
 nfsrpc_pathconf(vnode_t vp, struct nfsv3_pathconf *pc,
-    struct ucred *cred, NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp,
-    void *stuff)
+    struct ucred *cred, NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp)
 {
 	struct nfsrv_descript nfsd, *nd = &nfsd;
 	struct nfsmount *nmp;
@@ -4759,7 +4752,7 @@ nfsmout:
  */
 int
 nfsrpc_fsinfo(vnode_t vp, struct nfsfsinfo *fsp, struct ucred *cred,
-    NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp, void *stuff)
+    NFSPROC_T *p, struct nfsvattr *nap, int *attrflagp)
 {
 	u_int32_t *tl;
 	struct nfsrv_descript nfsd, *nd = &nfsd;
@@ -4992,8 +4985,7 @@ nfsrpc_delegreturn(struct nfscldeleg *dp, struct ucred *cred,
  * nfs getacl call.
  */
 int
-nfsrpc_getacl(vnode_t vp, struct ucred *cred, NFSPROC_T *p,
-    struct acl *aclp, void *stuff)
+nfsrpc_getacl(vnode_t vp, struct ucred *cred, NFSPROC_T *p, struct acl *aclp)
 {
 	struct nfsrv_descript nfsd, *nd = &nfsd;
 	int error;
@@ -5022,8 +5014,7 @@ nfsrpc_getacl(vnode_t vp, struct ucred *cred, NFSPROC_T *p,
  * nfs setacl call.
  */
 int
-nfsrpc_setacl(vnode_t vp, struct ucred *cred, NFSPROC_T *p,
-    struct acl *aclp, void *stuff)
+nfsrpc_setacl(vnode_t vp, struct ucred *cred, NFSPROC_T *p, struct acl *aclp)
 {
 	int error;
 	struct nfsmount *nmp = VFSTONFS(vp->v_mount);
@@ -5358,8 +5349,7 @@ static int
 nfsrpc_layoutget(struct nfsmount *nmp, uint8_t *fhp, int fhlen, int iomode,
     uint64_t offset, uint64_t len, uint64_t minlen, int layouttype,
     int layoutlen, nfsv4stateid_t *stateidp, int *retonclosep,
-    struct nfsclflayouthead *flhp, struct ucred *cred, NFSPROC_T *p,
-    void *stuff)
+    struct nfsclflayouthead *flhp, struct ucred *cred, NFSPROC_T *p)
 {
 	struct nfsrv_descript nfsd, *nd = &nfsd;
 	int error;
@@ -5623,7 +5613,7 @@ nfsmout:
 int
 nfsrpc_layoutcommit(struct nfsmount *nmp, uint8_t *fh, int fhlen, int reclaim,
     uint64_t off, uint64_t len, uint64_t lastbyte, nfsv4stateid_t *stateidp,
-    int layouttype, struct ucred *cred, NFSPROC_T *p, void *stuff)
+    int layouttype, struct ucred *cred, NFSPROC_T *p)
 {
 	uint32_t *tl;
 	struct nfsrv_descript nfsd, *nd = &nfsd;
@@ -5837,7 +5827,7 @@ nfsrpc_getlayout(struct nfsmount *nmp, vnode_t vp, struct nfsfh *nfhp,
 			error = nfsrpc_layoutget(nmp, nfhp->nfh_fh,
 			    nfhp->nfh_len, iomode, (uint64_t)0, UINT64_MAX,
 			    (uint64_t)0, layouttype, layoutlen, &stateid,
-			    &retonclose, &flh, cred, p, NULL);
+			    &retonclose, &flh, cred, p);
 		} else {
 			islocked = 1;
 			stateid.seqid = lyp->nfsly_stateid.seqid;
@@ -5847,7 +5837,7 @@ nfsrpc_getlayout(struct nfsmount *nmp, vnode_t vp, struct nfsfh *nfhp,
 			error = nfsrpc_layoutget(nmp, nfhp->nfh_fh,
 			    nfhp->nfh_len, iomode, off, UINT64_MAX,
 			    (uint64_t)0, layouttype, layoutlen, &stateid,
-			    &retonclose, &flh, cred, p, NULL);
+			    &retonclose, &flh, cred, p);
 		}
 		error = nfsrpc_layoutgetres(nmp, vp, nfhp->nfh_fh,
 		    nfhp->nfh_len, &stateid, retonclose, notifybitsp, &lyp,
@@ -7385,7 +7375,7 @@ nfsio_adviseds(vnode_t vp, uint64_t offset, int cnt, int advise,
  */
 int
 nfsrpc_allocate(vnode_t vp, off_t off, off_t len, struct nfsvattr *nap,
-    int *attrflagp, struct ucred *cred, NFSPROC_T *p, void *stuff)
+    int *attrflagp, struct ucred *cred, NFSPROC_T *p)
 {
 	int error, expireret = 0, retrycnt, nostateid;
 	uint32_t clidrev = 0;

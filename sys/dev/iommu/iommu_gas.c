@@ -358,8 +358,7 @@ iommu_gas_match_insert(struct iommu_gas_match_args *a)
 
 	/*
 	 * The prev->end is always aligned on the page size, which
-	 * causes page alignment for the entry->start too.  The size
-	 * is checked to be multiple of the page size.
+	 * causes page alignment for the entry->start too.
 	 *
 	 * The page sized gap is created between consequent
 	 * allocations to ensure that out-of-bounds accesses fault.
@@ -399,16 +398,11 @@ iommu_gas_lowermatch(struct iommu_gas_match_args *a, struct iommu_map_entry *ent
 	 */
 	entry = first;
 	while (entry != NULL) {
-		if ((first = RB_LEFT(entry, rb_entry)) != NULL) {
-			if (first->last >= a->common->lowaddr) {
-				/* All remaining ranges >= lowaddr */
-				break;
-			}
-			if (iommu_gas_match_one(a, first->last, entry->start,
-			    a->common->lowaddr)) {
-				iommu_gas_match_insert(a);
-				return (0);
-			}
+		if ((first = RB_LEFT(entry, rb_entry)) != NULL &&
+		    iommu_gas_match_one(a, first->last, entry->start,
+		    a->common->lowaddr)) {
+			iommu_gas_match_insert(a);
+			return (0);
 		}
 		if (entry->end >= a->common->lowaddr) {
 			/* All remaining ranges >= lowaddr */
@@ -504,7 +498,7 @@ iommu_gas_find_space(struct iommu_domain *domain,
 	if (common->highaddr >= domain->end)
 		return (ENOMEM);
 	error = iommu_gas_uppermatch(&a, RB_ROOT(&domain->rb_root));
-	KASSERT(error == ENOMEM,
+	KASSERT(error == 0 || error == ENOMEM,
 	    ("error %d from iommu_gas_uppermatch", error));
 	return (error);
 }
@@ -787,8 +781,10 @@ iommu_gas_reserve_region_extend(struct iommu_domain *domain,
 		if (entry_start != entry_end) {
 			error = iommu_gas_reserve_region_locked(domain,
 			    entry_start, entry_end, entry);
-			if (error != 0)
+			if (error != 0) {
+				IOMMU_DOMAIN_UNLOCK(domain);
 				break;
+			}
 			entry = NULL;
 		}
 		IOMMU_DOMAIN_UNLOCK(domain);

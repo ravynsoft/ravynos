@@ -3655,8 +3655,7 @@ nfs_getacl(struct vop_getacl_args *ap)
 
 	if (ap->a_type != ACL_TYPE_NFS4)
 		return (EOPNOTSUPP);
-	error = nfsrpc_getacl(ap->a_vp, ap->a_cred, ap->a_td, ap->a_aclp,
-	    NULL);
+	error = nfsrpc_getacl(ap->a_vp, ap->a_cred, ap->a_td, ap->a_aclp);
 	if (error > NFSERR_STALE) {
 		(void) nfscl_maperr(ap->a_td, error, (uid_t)0, (gid_t)0);
 		error = EPERM;
@@ -3671,8 +3670,7 @@ nfs_setacl(struct vop_setacl_args *ap)
 
 	if (ap->a_type != ACL_TYPE_NFS4)
 		return (EOPNOTSUPP);
-	error = nfsrpc_setacl(ap->a_vp, ap->a_cred, ap->a_td, ap->a_aclp,
-	    NULL);
+	error = nfsrpc_setacl(ap->a_vp, ap->a_cred, ap->a_td, ap->a_aclp);
 	if (error > NFSERR_STALE) {
 		(void) nfscl_maperr(ap->a_td, error, (uid_t)0, (gid_t)0);
 		error = EPERM;
@@ -3765,7 +3763,7 @@ nfs_allocate(struct vop_allocate_args *ap)
 			error = ncl_flush(vp, MNT_WAIT, td, 1, 0);
 		if (error == 0)
 			error = nfsrpc_allocate(vp, *ap->a_offset, alen,
-			    &nfsva, &attrflag, ap->a_cred, td, NULL);
+			    &nfsva, &attrflag, ap->a_cred, td);
 		if (error == 0) {
 			*ap->a_offset += alen;
 			*ap->a_len -= alen;
@@ -4427,7 +4425,7 @@ nfs_pathconf(struct vop_pathconf_args *ap)
 		 * be used for _PC_NFS4_ACL as well.
 		 */
 		error = nfsrpc_pathconf(vp, &pc, td->td_ucred, td, &nfsva,
-		    &attrflag, NULL);
+		    &attrflag);
 		if (attrflag != 0)
 			(void) nfscl_loadattrcache(&vp, &nfsva, NULL, 0, 1);
 		if (error != 0)

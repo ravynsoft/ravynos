@@ -50,6 +50,7 @@ __FBSDID("$FreeBSD$");
 #include <dev/pci/pcib_private.h>
 #endif
 #include <x86/apicreg.h>
+#include <x86/legacyvar.h>
 #include <x86/mptable.h>
 #include <machine/frame.h>
 #include <machine/intr_machdep.h>
@@ -1250,7 +1251,7 @@ mptable_pci_host_res_init(device_t pcib)
 	struct host_res_args args;
 
 	KASSERT(pci0 != -1, ("do not know how to map PCI bus IDs"));
-	args.bus = pci_get_bus(pcib) + pci0;
+	args.bus = legacy_get_pcibus(pcib) + pci0;
 	args.dev = pcib;
 	args.sc = device_get_softc(pcib);
 	if (pcib_host_res_init(pcib, &args.sc->sc_host_res) != 0)
