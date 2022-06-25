@@ -47,9 +47,10 @@
     recentItemsMenu = [NSMenu new];
     [recentItemsMenu setDelegate:self];
     [recentItemsMenu setAutoenablesItems:YES];
-    NSMenuItem *test = [recentItemsMenu addItemWithTitle:@"Test Item" 
+    NSMenuItem *test = [recentItemsMenu addItemWithTitle:@"Install ravynOS" 
         action:@selector(launchRecentItem:)
         keyEquivalent:@""];
+    [test setRepresentedObject:[NSURL fileURLWithPath:@"/Applications/Utilities/Install ravynOS.app"]];
     [test setTarget:self];
 
     [[sysMenu addItemWithTitle:@"About This Computer" action:@selector(aboutThisComputer:) 

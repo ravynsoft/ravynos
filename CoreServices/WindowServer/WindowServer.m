@@ -117,7 +117,7 @@ static void freeEnviron(char **envp) {
 
 void launchShell(void *arg) {
     enum ShellType shell = *(enum ShellType *)arg;
-    int spawned = 0, status;
+    int status;
     NSString *lwPath = nil;
 
     while(shell != NONE) {
@@ -226,24 +226,6 @@ void launchShell(void *arg) {
                 break;
             case DESKTOP: {
                 char **envp = setUpEnviron(uid);
-
-                if(!spawned && fork() == 0) {
-                    setlogin(pw->pw_name);
-                    chdir(pw->pw_dir);
-
-                    login_cap_t *lc = login_getpwclass(pw);
-                    if (setusercontext(lc, pw, pw->pw_uid,
-                        LOGIN_SETALL & ~(LOGIN_SETLOGIN)) != 0) {
-                            perror("setusercontext");
-                            exit(-1);
-                    }
-                    login_close(lc);
-                    ++spawned;
-                    execle("/usr/bin/foot", "foot", "-dnone", "-L", "-W", "80x25", NULL, envp);
-                    perror("execl");
-                    spawned = 0;
-                    exit(-1);
-                }
                 pid_t pid = fork();
                 if(pid == 0) {
                     setlogin(pw->pw_name);
