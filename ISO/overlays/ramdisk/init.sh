@@ -138,6 +138,7 @@ done
 
 /usr/bin/furybsd-init-helper
 /etc/rc.d/seatd start
+ldconfig /usr/libdata/ldconfig /usr/lib/qt5
 /etc/rc.d/windowserver start
 
 echo "==> Exit ramdisk init.sh"

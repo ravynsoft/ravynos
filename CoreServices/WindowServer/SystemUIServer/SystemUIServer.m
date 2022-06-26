@@ -108,6 +108,11 @@ void machSvcLoop(void *arg) {
         [delegate receiveMachMessage];
 }
 
+void kqSvcLoop(void *arg) {
+    AppDelegate *delegate = (__bridge AppDelegate *)arg;
+    while(1)
+        [delegate processKernelQueue];
+} 
 
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
@@ -130,8 +135,11 @@ int main(int argc, const char *argv[]) {
 
     pthread_t machSvcThread;
     pthread_create(&machSvcThread, NULL, machSvcLoop, (__bridge void *)del);
-    [pool drain];
 
+    pthread_t kqThread;
+    pthread_create(&kqThread, NULL, kqSvcLoop, (__bridge void *)del);
+
+    [pool drain];
     [NSApp run];
     return 0;
 }

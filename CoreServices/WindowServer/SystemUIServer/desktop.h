@@ -107,10 +107,12 @@ extern const NSString *WLMenuDidUpdateNotification;
 // desktop interface controller
 @interface AppDelegate: NSObject {
     mach_port_name_t _servicePort;
+    int _kq;
     MenuBarWindow *menuBar;
 }
 
 - (void)receiveMachMessage;
+- (void)processKernelQueue;
 - (void)createWindows:(NSNotification *)note;
 @end
 

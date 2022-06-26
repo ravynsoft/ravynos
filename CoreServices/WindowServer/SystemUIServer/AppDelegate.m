@@ -21,6 +21,7 @@
  */
 
 #import <AppKit/AppKit.h>
+#import <sys/event.h>
 #import "desktop.h"
 #import <servers/bootstrap.h>
 
@@ -59,6 +60,12 @@ typedef union {
         return nil;
     }
 
+    _kq = kqueue();
+    if(_kq < 0) {
+        perror("kqueue");
+        exit(-1);
+    }
+
     return self;
 }
 
@@ -94,6 +101,26 @@ typedef union {
     }
 }
 
+// called from our kq watcher thread
+- (void)processKernelQueue {
+    struct kevent out[128];
+    int count = kevent(_kq, NULL, 0, out, 128, NULL);
+
+    for(int i = 0; i < count; ++i) {
+        switch(out[i].filter) {
+            case EVFILT_PROC:
+                if((out[i].fflags & NOTE_EXIT)) {
+                    NSLog(@"PID %lu exited", out[i].ident);
+                    [menuBar removePortForPID:out[i].ident];
+                    [menuBar removeMenuForPID:out[i].ident];
+                }
+                break;
+            default:
+                NSLog(@"unknown filter");
+        }
+    }
+}
+
 - (void)createWindows:(NSNotification *)note {
     NSArray *screens = [NSScreen screens];
     NSScreen *output = [screens objectAtIndex:0]; //FIXME: select preferred display from prefs
@@ -124,7 +151,13 @@ typedef union {
     NSMenu *mainMenu = [dict objectForKey:@"MainMenu"];
     [self _menuEnumerateAndChange:mainMenu];
     [menuBar setMenu:mainMenu forPID:pid];
-    if(![menuBar activateMenuForPID:pid]) // FIXME: don't activ8 right away
+
+    // watch for this PID to exit
+    struct kevent kev[1];
+    EV_SET(kev, pid, EVFILT_PROC, EV_ADD|EV_ONESHOT, NOTE_EXIT, 0, NULL);
+    kevent(_kq, kev, 1, NULL, 0, NULL);
+
+    if(![menuBar activateMenuForPID:pid]) // FIXME: don't activate right away?
         NSLog(@"could not activate menus!");
 }
 

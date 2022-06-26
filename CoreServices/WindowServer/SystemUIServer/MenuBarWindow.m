@@ -80,6 +80,10 @@
 }
 
 - (void)removeMenuForPID:(unsigned int)pid {
+    if(pid == activePID) {
+        [menuView setMenu:nil];
+        activePID = 0;
+    }
     [menuDict removeObjectForKey:[NSNumber numberWithInt:pid]];
 }
 
