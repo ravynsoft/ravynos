@@ -216,7 +216,7 @@ struct al_udma_s2m_completion_conf {
 
 	uint16_t comp_fifo_depth;	/* Size of completion fifo in words */
 	uint16_t unack_fifo_depth;	/* Size of unacked fifo in descs */
-	uint32_t timeout;		/* Ack timout from stream interface */
+	uint32_t timeout;		/* Ack timeout from stream interface */
 };
 
 /** M2S UDMA DWRR configuration */

@@ -276,7 +276,7 @@ datum_pts_start(
 	arg.c_cflag = B9600 | CS8 | CREAD | PARENB | CLOCAL;
 	arg.c_lflag = 0;
 	arg.c_cc[VMIN] = 0;		/* start timeout timer right away (not used) */
-	arg.c_cc[VTIME] = 30;		/* 3 second timout on reads (not used) */
+	arg.c_cc[VTIME] = 30;		/* 3 second timeout on reads (not used) */
 
 	rc = tcsetattr(datum_pts->PTS_fd, TCSANOW, &arg);
 	if (rc < 0) {

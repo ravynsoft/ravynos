@@ -433,7 +433,7 @@ static u16 cmp_rec(struct ib_sa_mcmember_data *src,
 }
 
 /* release group, return 1 if this was last release and group is destroyed
- * timout work is canceled sync */
+ * timeout work is canceled sync */
 static int release_group(struct mcast_group *group, int from_timeout_handler)
 {
 	struct mlx4_ib_demux_ctx *ctx = group->demux;
