@@ -792,7 +792,7 @@ getptyslave(void)
 # endif
 	extern int def_tspeed, def_rspeed;
 	/*
-	 * Opening the slave side may cause initilization of the
+	 * Opening the slave side may cause initialization of the
 	 * kernel tty structure.  We need remember the state of
 	 * 	if linemode was turned on
 	 *	terminal window size

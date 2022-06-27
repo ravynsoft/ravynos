@@ -816,7 +816,7 @@ void getptyslave(void)
 
     struct winsize ws;
     /*
-     * Opening the slave side may cause initilization of the
+     * Opening the slave side may cause initialization of the
      * kernel tty structure.  We need remember the state of
      * 	if linemode was turned on
      *	terminal window size
