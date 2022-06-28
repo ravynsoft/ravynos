@@ -28,7 +28,7 @@
 .\"     From: @(#)gethostbyname.3	8.4 (Berkeley) 5/25/95
 .\" $FreeBSD$
 .\"
-.Dd June 20, 2022
+.Dd June 27, 2022
 .Dt GETHOSTBYNAME 3
 .Os
 .Sh NAME
@@ -123,9 +123,7 @@ argument specifies the address family
 etc.) of this address.
 .Pp
 The structure returned contains either the information obtained from the name
-server,
-.Xr named 8 ,
-broken-out fields from a line in
+server, broken-out fields from a line in
 .Pa /etc/hosts ,
 or database entries supplied by the
 .Xr yp 8
@@ -330,8 +328,7 @@ for example, a mail-forwarder may be registered for this domain.
 .Xr inet_aton 3 ,
 .Xr resolver 3 ,
 .Xr hosts 5 ,
-.Xr hostname 7 ,
-.Xr named 8
+.Xr hostname 7
 .Sh HISTORY
 The
 .Fn herror

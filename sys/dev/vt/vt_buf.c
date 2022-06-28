@@ -741,16 +741,39 @@ vtbuf_get_marked_len(struct vt_buf *vb)
 	si = s.tp_row * vb->vb_scr_size.tp_col + s.tp_col;
 	ei = e.tp_row * vb->vb_scr_size.tp_col + e.tp_col;
 
-	/* Number symbols and number of rows to inject \n */
-	sz = ei - si + ((e.tp_row - s.tp_row) * 2);
+	/* Number symbols and number of rows to inject \r */
+	sz = ei - si + (e.tp_row - s.tp_row);
 
 	return (sz * sizeof(term_char_t));
+}
+
+static bool
+tchar_is_word_separator(term_char_t ch)
+{
+	/* List of unicode word separator characters: */
+	switch (TCHAR_CHARACTER(ch)) {
+	case 0x0020: /* SPACE */
+	case 0x180E: /* MONGOLIAN VOWEL SEPARATOR */
+	case 0x2002: /* EN SPACE (nut) */
+	case 0x2003: /* EM SPACE (mutton) */
+	case 0x2004: /* THREE-PER-EM SPACE (thick space) */
+	case 0x2005: /* FOUR-PER-EM SPACE (mid space) */
+	case 0x2006: /* SIX-PER-EM SPACE */
+	case 0x2008: /* PUNCTUATION SPACE */
+	case 0x2009: /* THIN SPACE */
+	case 0x200A: /* HAIR SPACE */
+	case 0x200B: /* ZERO WIDTH SPACE */
+	case 0x3000: /* IDEOGRAPHIC SPACE */
+		return (true);
+	default:
+		return (false);
+	}
 }
 
 void
 vtbuf_extract_marked(struct vt_buf *vb, term_char_t *buf, int sz)
 {
-	int i, r, c, cs, ce;
+	int i, j, r, c, cs, ce;
 	term_pos_t s, e;
 
 	/* Swap according to window coordinates. */
@@ -769,15 +792,28 @@ vtbuf_extract_marked(struct vt_buf *vb, term_char_t *buf, int sz)
 	for (r = s.tp_row; r <= e.tp_row; r++) {
 		cs = (r == s.tp_row)?s.tp_col:0;
 		ce = (r == e.tp_row)?e.tp_col:vb->vb_scr_size.tp_col;
-		for (c = cs; c < ce; c++) {
+
+		/* Copy characters from terminal window. */
+		j = i;
+		for (c = cs; c < ce; c++)
 			buf[i++] = vb->vb_rows[r][c];
-		}
-		/* Add new line for all rows, but not for last one. */
+
+		/* For all rows, but the last one. */
 		if (r != e.tp_row) {
+			/* Trim trailing word separators, if any. */
+			for (; i != j; i--) {
+				if (!tchar_is_word_separator(buf[i - 1]))
+					break;
+			}
+			/* Add newline character as expected by TTY. */
 			buf[i++] = '\r';
-			buf[i++] = '\n';
 		}
 	}
+	/* Zero rest of expected buffer size, if any. */
+	while ((i * sizeof(buf[0])) < sz)
+		buf[i++] = '\0';
+
+	MPASS((i * sizeof(buf[0])) == sz);
 }
 
 int
@@ -811,7 +847,7 @@ vtbuf_set_mark(struct vt_buf *vb, int type, int col, int row)
 		    vtbuf_wth(vb, row);
 		r = vb->vb_rows[vb->vb_mark_start.tp_row];
 		for (i = col; i >= 0; i --) {
-			if (TCHAR_CHARACTER(r[i]) == ' ') {
+			if (tchar_is_word_separator(r[i])) {
 				vb->vb_mark_start.tp_col = i + 1;
 				break;
 			}
@@ -820,7 +856,7 @@ vtbuf_set_mark(struct vt_buf *vb, int type, int col, int row)
 		if (i == -1)
 			vb->vb_mark_start.tp_col = 0;
 		for (i = col; i < vb->vb_scr_size.tp_col; i++) {
-			if (TCHAR_CHARACTER(r[i]) == ' ') {
+			if (tchar_is_word_separator(r[i])) {
 				vb->vb_mark_end.tp_col = i;
 				break;
 			}
