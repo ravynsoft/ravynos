@@ -102,6 +102,8 @@ extern const NSString *WLMenuDidUpdateNotification;
 - (void)removeMenuForPID:(unsigned int)pid;
 - (BOOL)activateMenuForPID:(unsigned int)pid;
 - (void)addRecentItem:(NSURL *)itemURL;
+- (mach_port_t)activePort;
+- (int)activeProcessID;
 @end
 
 // desktop interface controller

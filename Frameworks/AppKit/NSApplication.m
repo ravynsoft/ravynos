@@ -65,12 +65,22 @@ NSString * const NSApplicationDidChangeScreenParametersNotification=@"NSApplicat
 #define MSG_ID_PORT     90210
 #define MSG_ID_INLINE   90211
 #define CODE_ADD_RECENT_ITEM 1
+#define CODE_ITEM_CLICKED 2
+
 typedef struct {
     mach_msg_header_t header;
     unsigned int code;
     unsigned char data[64*1024];
     unsigned int len;
 } Message;
+
+typedef struct {
+    mach_msg_header_t header;
+    unsigned int code;
+    unsigned char data[64*1024];
+    unsigned int len;
+    mach_msg_trailer_t trailer;
+} ReceiveMessage;
 
 typedef struct {
     mach_msg_header_t header;
@@ -143,6 +153,56 @@ id NSApp=nil;
    }
 }
 
+static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
+    NSArray *items = [root itemArray];
+    NSMenuItem *item = nil;
+    for(int i = 0; i < [items count]; ++i) {
+        item = [items objectAtIndex:i];
+        if([item tag] == tag)
+            return item;
+        if([item hasSubmenu]) {
+            item = itemWithTag([item submenu], tag);
+            if(item)
+                return item;
+        }
+    }
+    return nil;
+}
+
+-(void)machServiceLoop:(id)object {
+    //NSLog(@"starting mach service loop");
+    while(1) {
+        ReceiveMessage msg = {0};
+        mach_msg_return_t result = mach_msg((mach_msg_header_t *)&msg, MACH_RCV_MSG, 0, sizeof(msg),
+            _wsReplyPort, MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL);
+        if(result != MACH_MSG_SUCCESS)
+            NSLog(@"mach_msg receive error");
+        else {
+            switch(msg.header.msgh_id) {
+                case MSG_ID_INLINE:
+                    switch(msg.code) {
+                        case CODE_ITEM_CLICKED:
+                        {
+                            int itemID;
+                            if(msg.len != sizeof(itemID)) {
+                                NSLog(@"weirdness detected! expected size %d, got %d", sizeof(itemID), msg.len);
+                                break;
+                            }
+                            memcpy(&itemID, msg.data, sizeof(itemID));
+                            NSMenuItem *item = itemWithTag(_mainMenu, itemID);
+                            if(item != nil)
+                                [self sendAction:[item action] to:[item target] from:item];
+                            else
+                                NSLog(@"Error: cannot find menu item with tag %d!", itemID);
+                        }
+                    }
+                    break;
+            }
+        }
+    }
+}
+
+
 -init {
    if(NSApp)
       NSAssert(!NSApp, @"NSApplication is a singleton");
@@ -160,8 +220,21 @@ id NSApp=nil;
     NSLog(@"Failed to allocate mach_port _wsReplyPort");
     exit(1);
    }
+   [NSThread detachNewThreadSelector:@selector(machServiceLoop:) toTarget:self withObject:nil];
    _wsSvcPort = MACH_PORT_NULL;
- 
+
+   // don't try to find the service if this is the app that provides it...
+   NSString *bundleID = [[NSBundle mainBundle] bundleIdentifier];
+   if(!([bundleID isEqualToString:@"com.ravynos.SystemUIServer"] || 
+       ([bundleID isEqualToString:@"com.ravynos.LoginWindow"]))) {
+        NSLog(@"bp=%d, looking up service %s", bootstrap_port, WINDOWSERVER_SVC_NAME);
+        if(bootstrap_look_up(bootstrap_port, WINDOWSERVER_SVC_NAME, &_wsSvcPort) != KERN_SUCCESS) {
+            NSLog(@"Failed to locate WindowServer port");
+            return nil;
+        }
+        NSLog(@"found service port %d", _wsSvcPort);
+   }
+
    _dockTile=[[NSDockTile alloc] initWithOwner:self];
    _modalStack=[NSMutableArray new];
     
@@ -368,6 +441,18 @@ id NSApp=nil;
     }
 }
 
+static int _tagAllMenus(NSMenu *menu, int tag) {
+    NSArray *items = [menu itemArray];
+    for(int i = 0; i < [items count]; ++i) {
+        NSMenuItem *item = [items objectAtIndex:i];
+        [item setTag:tag++];
+        if([item hasSubmenu])
+            tag = _tagAllMenus([item submenu], tag);
+    }
+
+    return tag;
+}
+
 -(void)setMainMenu:(NSMenu *)menu {
    int i,count=[_windows count];
 
@@ -391,6 +476,7 @@ id NSApp=nil;
      [window setMenu:_mainMenu];
    }
 
+    _tagAllMenus(_mainMenu, 1);
     [self sendMenusToWindowServer];
 }
 
@@ -439,15 +525,6 @@ id NSApp=nil;
     [menuCopy release];
     [d release];
 
-    if(_wsSvcPort == MACH_PORT_NULL) {
-        //NSLog(@"bp=%d, looking up service %s", bootstrap_port, WINDOWSERVER_SVC_NAME);
-        if(bootstrap_look_up(bootstrap_port, WINDOWSERVER_SVC_NAME, &_wsSvcPort) != KERN_SUCCESS) {
-            NSLog(@"Failed to locate WindowServer port");
-            return;
-        }
-        //NSLog(@"got service port %d", _wsSvcPort);
-    }
-
     PortMessage msg = {0};
     msg.header.msgh_remote_port = _wsSvcPort;
     msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, MACH_MSGH_BITS_COMPLEX);
@@ -460,7 +537,7 @@ id NSApp=nil;
     msg.pid = getpid();
 
     if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
-        MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
+        2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
         NSLog(@"Failed to send port message to WS");
 }
 
@@ -475,7 +552,7 @@ id NSApp=nil;
     msg.len = strlen(msg.data);
 
     if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
-        MACH_MSG_TIMEOUT_NONE, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
+        2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
         NSLog(@"Failed to send recent item to WS");
 }
 

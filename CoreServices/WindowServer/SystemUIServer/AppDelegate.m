@@ -28,6 +28,7 @@
 #define MSG_ID_PORT 90210
 #define MSG_ID_INLINE 90211
 #define CODE_ADD_RECENT_ITEM 1
+#define CODE_ITEM_CLICKED 2
 
 typedef struct {
     mach_msg_header_t header;
@@ -81,6 +82,7 @@ typedef union {
             {
                 mach_port_t port = msg.portMsg.descriptor.name;
                 pid_t pid = msg.portMsg.pid;
+                //NSLog(@"received port %d for PID %d",port,pid);
                 [menuBar setPort:port forPID:pid];
                 break;
             }
@@ -110,7 +112,7 @@ typedef union {
         switch(out[i].filter) {
             case EVFILT_PROC:
                 if((out[i].fflags & NOTE_EXIT)) {
-                    NSLog(@"PID %lu exited", out[i].ident);
+                    //NSLog(@"PID %lu exited", out[i].ident);
                     [menuBar removePortForPID:out[i].ident];
                     [menuBar removeMenuForPID:out[i].ident];
                 }
@@ -152,17 +154,32 @@ typedef union {
     [self _menuEnumerateAndChange:mainMenu];
     [menuBar setMenu:mainMenu forPID:pid];
 
+    if(![menuBar activateMenuForPID:pid]) // FIXME: don't activate right away?
+        NSLog(@"could not activate menus!");
+
     // watch for this PID to exit
     struct kevent kev[1];
     EV_SET(kev, pid, EVFILT_PROC, EV_ADD|EV_ONESHOT, NOTE_EXIT, 0, NULL);
     kevent(_kq, kev, 1, NULL, 0, NULL);
-
-    if(![menuBar activateMenuForPID:pid]) // FIXME: don't activate right away?
-        NSLog(@"could not activate menus!");
 }
 
-- (void)dump:(id)object {
-    NSLog(@"DUMP: %@", object);
+- (void)dump:(NSMenuItem *)object {
+    int itemID = [object tag];
+    //NSLog(@"DUMP clicked: %@ ID: %d", object, itemID);
+
+    Message clicked = {0};
+    clicked.header.msgh_remote_port = [menuBar activePort];
+    clicked.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+    clicked.header.msgh_id = MSG_ID_INLINE;
+    clicked.header.msgh_size = sizeof(clicked) - sizeof(mach_msg_trailer_t);
+    clicked.code = CODE_ITEM_CLICKED;
+    memcpy(clicked.data, &itemID, sizeof(itemID));
+    clicked.len = sizeof(itemID);
+
+    if(mach_msg((mach_msg_header_t *)&clicked, MACH_SEND_MSG, sizeof(clicked) - sizeof(mach_msg_trailer_t),
+        0, MACH_PORT_NULL, 2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
+        NSLog(@"Failed to send menu click to PID %d on port %d", [menuBar activeProcessID],
+            clicked.header.msgh_remote_port);
 }
 @end
 

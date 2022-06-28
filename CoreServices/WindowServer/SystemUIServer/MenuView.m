@@ -99,6 +99,15 @@
 }
 
 - (void)setMenu:(NSMenu *)menu {
+    if(menu == nil) {
+        if(appMenuView != nil) {
+            [appMenuView removeFromSuperview];
+            appMenuView = nil;
+            [self setNeedsDisplay:YES];
+        }
+        return;
+    }
+
     NSMenuItem *item = [menu itemAtIndex:0];
     if([item hasSubmenu] && [[[item submenu] _name] isEqualToString:@"NSAppleMenu"]) {
         NSFontManager *fontmgr = [NSFontManager sharedFontManager];

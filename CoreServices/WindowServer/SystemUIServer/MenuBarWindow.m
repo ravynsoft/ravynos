@@ -53,8 +53,18 @@
     return self;
 }
 
+- (mach_port_t)activePort {
+    return _menuPort;
+}
+
+- (int)activeProcessID {
+    return activePID;
+}
+
 - (void)setPort:(mach_port_t)port forPID:(unsigned int)pid {
     [portDict setObject:[NSNumber numberWithInt:port] forKey:[NSNumber numberWithInt:pid]];
+    if(activePID == pid)
+        _menuPort = port;
 }
 
 - (void)removePortForPID:(unsigned int)pid {
