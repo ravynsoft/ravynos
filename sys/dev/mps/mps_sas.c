@@ -774,8 +774,6 @@ mps_attach_sas(struct mps_softc *sc)
 
 	mps_unlock(sc);
 
-	mps_unlock(sc);
-
 	/*
 	 * Register for async events so we can determine the EEDP
 	 * capabilities of devices.
