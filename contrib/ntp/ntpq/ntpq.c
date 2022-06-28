@@ -1252,7 +1252,7 @@ getresponse(
 
 		/*
 		 * Copy the data into the data buffer, and bump the
-		 * timout base in case we need more.
+		 * timeout base in case we need more.
 		 */
 		memcpy((char *)pktdata + offset, &rpkt.u, count);
 		tobase = (uint32_t)time(NULL);

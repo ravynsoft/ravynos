@@ -240,7 +240,7 @@ irdma_get_type(struct irdma_sc_dev *dev,
 }
 
 /**
- * add_pble_prm - add a sd entry for pble resoure
+ * add_pble_prm - add a sd entry for pble resource
  * @pble_rsrc: pble resource management
  */
 static int
