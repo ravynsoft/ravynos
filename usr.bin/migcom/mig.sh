@@ -31,6 +31,11 @@ MIGCOM="/usr/bin/migcom"	# -migcom <path>
 # valid.
 SYSROOT=$(expr $(dirname $0) : "\(.*\)/usr/bin") || SYSROOT=""
 
+if [ ! -x "$MIGCOM" ]; then
+    _mydir=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd -P)
+    MIGCOM="${_mydir}/migcom"
+fi
+
 while [ $# -gt 1 ]
 do
     case "$1" in
