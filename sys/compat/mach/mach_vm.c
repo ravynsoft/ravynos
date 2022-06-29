@@ -117,19 +117,19 @@ mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
 		_mask++;
 
 	find_space = _mask ? VMFS_ALIGNED_SPACE(ffs(_mask)) : VMFS_ANY_SPACE;
-	//flags = MAP_ANON;
+	int flags = MAP_ANON;
 	if ((_flags & VM_FLAGS_ANYWHERE) == 0) {
-	//	flags |= MAP_FIXED;
+		flags |= MAP_FIXED;
 		addr = trunc_page(*address);
 	} else
 		addr = 0;
 
 	switch(inh) {
 	case VM_INHERIT_SHARE:
-	//	flags |= MAP_INHERIT_SHARE;
+		flags |= MAP_INHERIT_SHARE;
 		break;
 	case VM_INHERIT_COPY:
-	//	flags |= MAP_COPY_ON_WRITE;
+		flags |= MAP_COPY_ON_WRITE;
 		docow = MAP_COPY_ON_WRITE;
 		break;
 	case VM_INHERIT_NONE:
@@ -140,6 +140,10 @@ mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
 		break;
 	}
 
+        vm_map_lock(map);
+        map->flags = flags;
+        vm_map_unlock(map);
+
 	if (vm_map_find(map, NULL, 0, &addr, size, 0, find_space,
 	    cur_protection, max_protection, docow) != KERN_SUCCESS) {
 		error = ENOMEM;
@@ -147,6 +151,22 @@ mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
 	}
 
 	*address = addr;
+
+        /* The caller may optionally free the allocated range if either of
+         * these errors occurs. The memory is valid but may not behave as
+         * desired. Caveat emptor.
+         */
+        if(vm_map_protect(map, addr, addr + size, cur_protection, max_protection,
+            VM_MAP_PROTECT_SET_PROT|VM_MAP_PROTECT_SET_MAXPROT) != KERN_SUCCESS) {
+                /* Memory was alloc'd but not protected properly */
+		error = EACCES;
+        }
+
+        if(vm_map_inherit(map, addr, addr + size, inh) != KERN_SUCCESS) {
+            /* Memory was alloc'd but set inheritance failed */
+            error = EACCES;
+        }
+
 done:
 	return (error);
 }
@@ -659,7 +679,7 @@ vm_map_copyin_object(
 	 *	that contains the object directly.
 	 */
 
-	copy = (vm_map_copy_t) malloc(sizeof(vm_map_copy_t), M_MACH_VM, M_WAITOK|M_ZERO);
+	copy = (vm_map_copy_t) malloc(sizeof(struct vm_map_copy), M_MACH_VM, M_WAITOK|M_ZERO);
 	copy->type = VM_MAP_COPY_OBJECT;
 	copy->cpy_object = object;
 

@@ -168,7 +168,7 @@ mach_port_names_helper(
 	ipc_entry_num_t actual;
 
 	if (bits & MACH_PORT_TYPE_SEND_RIGHTS) {
-		ipc_port_t port;
+		ipc_port_t port = 0;
 		boolean_t died;
 
 		port = (ipc_port_t) entry->ie_object;
@@ -881,7 +881,7 @@ mach_port_set_mscount(
 	mach_port_name_t		name,
 	mach_port_mscount_t	mscount)
 {
-	ipc_port_t port;
+	ipc_port_t port = 0;
 	kern_return_t kr;
 
 	if (space == IS_NULL)
@@ -918,7 +918,7 @@ mach_port_set_seqno(
 	mach_port_name_t		name,
 	mach_port_seqno_t	seqno)
 {
-	ipc_port_t port;
+	ipc_port_t port = 0;
 	kern_return_t kr;
 
 	if (space == IS_NULL)
@@ -1091,7 +1091,7 @@ mach_port_move_member(
 	mach_port_name_t	after)
 {
 	ipc_entry_t entry;
-	ipc_port_t port;
+	ipc_port_t port = 0;
 	ipc_pset_t nset;
 	kern_return_t kr;
 
@@ -1212,7 +1212,7 @@ mach_port_request_notification(
 
 	switch (id) {
 	case MACH_NOTIFY_PORT_DESTROYED: {
-		ipc_port_t port, previous;
+		ipc_port_t port = 0, previous = 0;
 
 		if (sync != 0)
 			return KERN_INVALID_VALUE;
@@ -1233,7 +1233,7 @@ mach_port_request_notification(
 	}
 
 	case MACH_NOTIFY_NO_SENDERS: {
-		ipc_port_t port;
+		ipc_port_t port = 0;
 
 		if (!MACH_PORT_NAME_VALID(name))
 			return KERN_INVALID_RIGHT;
@@ -1249,7 +1249,7 @@ mach_port_request_notification(
 	}
 
 	case MACH_NOTIFY_DEAD_NAME: {
-		ipc_port_t port;
+		ipc_port_t port = 0;
 		ipc_port_request_index_t indexp;
 
 		if (!MACH_PORT_NAME_VALID(name))
@@ -1367,7 +1367,7 @@ mach_port_get_attributes(
         mach_port_info_t	info,
         mach_msg_type_number_t	*count)
 {
-	ipc_port_t port;
+	ipc_port_t port = 0;
 	kern_return_t kr;
 
 	if (space == IS_NULL)
@@ -1473,7 +1473,7 @@ mach_port_set_attributes(
         mach_port_info_t	info,
         mach_msg_type_number_t	count)
 {
-	ipc_port_t port;
+	ipc_port_t port = 0;
 	kern_return_t kr;
         
 	if (space == IS_NULL)
@@ -1671,7 +1671,7 @@ mach_port_get_context(
 	mach_vm_address_t *context
 	)
 {
-	ipc_port_t port;
+	ipc_port_t port = 0;
 	kern_return_t kr;
 
 	if (space == IS_NULL)
@@ -1735,7 +1735,7 @@ mach_port_set_context(
 	mach_vm_address_t context
 	)
 {
-	ipc_port_t port;
+	ipc_port_t port = 0;
 	kern_return_t kr;
 
 	if (space == IS_NULL)
