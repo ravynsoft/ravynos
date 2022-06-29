@@ -281,8 +281,8 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
     NSMenuItem *item=[items objectAtIndex:i];
 
     check.size.height=[self heightOfMenuItem:item];
-    check.size.height+=2;
-    check.origin.y-=2;
+//    check.size.height+=2;
+//    check.origin.y-=2;
 
     if(NSMouseInRect(point,check,[self isFlipped]))
      return i;

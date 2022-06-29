@@ -96,6 +96,7 @@ first_free_is_valid(vm_map_t map)
 #endif
 #endif
 
+#define EXPERIMENTAL_MACH_ENFORCE_PROT 1
 int
 mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
 			mach_vm_offset_t _mask, int _flags, mem_entry_name_port_t object __unused,
@@ -117,19 +118,27 @@ mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
 		_mask++;
 
 	find_space = _mask ? VMFS_ALIGNED_SPACE(ffs(_mask)) : VMFS_ANY_SPACE;
+#if EXPERIMENTAL_MACH_ENFORCE_PROT
 	int flags = MAP_ANON;
+#endif
 	if ((_flags & VM_FLAGS_ANYWHERE) == 0) {
+#if EXPERIMENTAL_MACH_ENFORCE_PROT
 		flags |= MAP_FIXED;
+#endif
 		addr = trunc_page(*address);
 	} else
 		addr = 0;
 
 	switch(inh) {
 	case VM_INHERIT_SHARE:
+#if EXPERIMENTAL_MACH_ENFORCE_PROT
 		flags |= MAP_INHERIT_SHARE;
+#endif
 		break;
 	case VM_INHERIT_COPY:
+#if EXPERIMENTAL_MACH_ENFORCE_PROT
 		flags |= MAP_COPY_ON_WRITE;
+#endif
 		docow = MAP_COPY_ON_WRITE;
 		break;
 	case VM_INHERIT_NONE:
@@ -140,9 +149,11 @@ mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
 		break;
 	}
 
+#if EXPERIMENTAL_MACH_ENFORCE_PROT
         vm_map_lock(map);
         map->flags = flags;
         vm_map_unlock(map);
+#endif
 
 	if (vm_map_find(map, NULL, 0, &addr, size, 0, find_space,
 	    cur_protection, max_protection, docow) != KERN_SUCCESS) {
@@ -152,6 +163,7 @@ mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
 
 	*address = addr;
 
+#if EXPERIMENTAL_MACH_ENFORCE_PROT
         /* The caller may optionally free the allocated range if either of
          * these errors occurs. The memory is valid but may not behave as
          * desired. Caveat emptor.
@@ -166,6 +178,7 @@ mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
             /* Memory was alloc'd but set inheritance failed */
             error = EACCES;
         }
+#endif
 
 done:
 	return (error);

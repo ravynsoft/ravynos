@@ -47,11 +47,6 @@
     recentItemsMenu = [NSMenu new];
     [recentItemsMenu setDelegate:self];
     [recentItemsMenu setAutoenablesItems:YES];
-    NSMenuItem *test = [recentItemsMenu addItemWithTitle:@"Install ravynOS" 
-        action:@selector(launchRecentItem:)
-        keyEquivalent:@""];
-    [test setRepresentedObject:[NSURL fileURLWithPath:@"/Applications/Utilities/Install ravynOS.app"]];
-    [test setTarget:self];
 
     [[sysMenu addItemWithTitle:@"About This Computer" action:@selector(aboutThisComputer:) 
         keyEquivalent:@""] setTarget:self];
@@ -86,7 +81,7 @@
     [logoItem setSubmenu:sysMenu];
     [logoMenu addItem:logoItem];
 
-    NSRect rect = NSMakeRect(menuBarHPad, 0, menuBarHPad*2, menuBarHeight+3);
+    NSRect rect = NSMakeRect(menuBarHPad, 2, menuBarHPad*2, menuBarHeight+3);
     NSMainMenuView *mv = [[NSMainMenuView alloc] initWithFrame:rect menu:logoMenu];
     [self addSubview:mv];
 

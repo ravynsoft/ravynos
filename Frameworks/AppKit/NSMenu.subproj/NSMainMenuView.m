@@ -81,7 +81,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         NSImage *img = [item image];
         if(img) {
             titleSize.width += [img size].width;
-            titleSize.height = MIN(24, titleSize.height); // whee, magic numbers 
+            if(titleSize.height < 22)
+                titleSize.height = 22; // whee, magic numbers (height of menu bar)
         }
 
 	result.origin = NSMakePoint(NSMaxX(previousBorderRect)+6,floor(([self bounds].size.height-titleSize.height)/2));
@@ -93,7 +94,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 -(NSRect)borderRectFromTitleRect:(NSRect)titleRect {
    NSRect result=NSInsetRect(titleRect,-6,0);
 
-   result.size.height=[self bounds].size.height-2;
+   result.size.height=[self bounds].size.height;
    result.origin.y=0;
 
    return result;
