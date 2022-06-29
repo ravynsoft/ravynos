@@ -2331,6 +2331,8 @@ _yacc=		usr.bin/yacc
 _gensnmptree=	usr.sbin/bsnmpd/gensnmptree
 .endif
 
+_migcom=	usr.bin/migcom
+gnu/lib/libobjc2__L: usr.bin/migcom__L
 
 # We need to build tblgen when we're building clang or lld, either as
 # bootstrap tools, or as the part of the normal build.
@@ -2524,6 +2526,7 @@ bootstrap-tools: ${_bt}-links .PHONY
     ${_localedef} \
     ${_mkcsmapper} \
     ${_mkesdb} \
+    ${_migcom} \
     ${LOCAL_BSTOOL_DIRS}
 ${_bt}-${_tool}: ${_bt}-links .PHONY .MAKE
 	${_+_}@${ECHODIR} "===> ${_tool} (obj,all,install)"; \
