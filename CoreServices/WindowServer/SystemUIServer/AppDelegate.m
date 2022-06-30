@@ -29,6 +29,8 @@
 #define MSG_ID_INLINE 90211
 #define CODE_ADD_RECENT_ITEM 1
 #define CODE_ITEM_CLICKED 2
+#define CODE_APP_BECAME_ACTIVE 3
+#define CODE_APP_BECAME_INACTIVE 4
 
 typedef struct {
     mach_msg_header_t header;
@@ -82,7 +84,6 @@ typedef union {
             {
                 mach_port_t port = msg.portMsg.descriptor.name;
                 pid_t pid = msg.portMsg.pid;
-                //NSLog(@"received port %d for PID %d",port,pid);
                 [menuBar setPort:port forPID:pid];
                 break;
             }
@@ -96,6 +97,23 @@ typedef union {
                         if(!url)
                             break;
                         [menuBar addRecentItem:url];
+                        break;
+                    }
+                    case CODE_APP_BECAME_ACTIVE:
+                    {
+                        pid_t pid;
+                        memcpy(&pid, msg.msg.data, msg.msg.len);
+                        //NSLog(@"CODE_APP_BECAME_ACTIVE: pid = %d", pid);
+                        if([menuBar activeProcessID] != pid)
+                            [menuBar activateMenuForPID:pid];
+                        break;
+                    }
+                    case CODE_APP_BECAME_INACTIVE:
+                    {
+                        pid_t pid;
+                        memcpy(&pid, msg.msg.data, msg.msg.len);
+                        //NSLog(@"CODE_APP_BECAME_INACTIVE: pid = %d", pid);
+                        break;
                     }
                 }
                 break;
@@ -154,7 +172,7 @@ typedef union {
     [self _menuEnumerateAndChange:mainMenu];
     [menuBar setMenu:mainMenu forPID:pid];
 
-    if(![menuBar activateMenuForPID:pid]) // FIXME: don't activate right away?
+    if(![menuBar activateMenuForPID:pid]) // FIXME: don't activate unless window becomes active
         NSLog(@"could not activate menus!");
 
     // watch for this PID to exit

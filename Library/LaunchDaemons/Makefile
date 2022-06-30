@@ -1,15 +1,12 @@
 SYSLIB= /System/Library/LaunchDaemons
 LIBLIB= /Library/LaunchDaemons
 
-# Removed auditd and syslogd (asld) for now - they seem to leak memory
+# Removed auditd for now - they seem to leak memory
 # or something and eventually crash the system
-#SYSDAEMONS= 	com.apple.auditd.json \
-		com.apple.notifyd.json \
-		com.apple.syslogd.json \
-		org.freebsd.tty.json \
-		org.freebsd.devd.json
+#SYSDAEMONS= 	com.apple.auditd.json 
 
 SYSDAEMONS=	com.apple.notifyd.json \
+		com.apple.syslogd.json \
 		org.freebsd.devd.json \
 		org.freebsd.tty.json \
                 com.ravynos.WindowServer.json

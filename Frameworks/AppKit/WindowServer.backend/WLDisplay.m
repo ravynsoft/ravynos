@@ -167,6 +167,18 @@ static void handlePointerButton(void *data, struct wl_pointer *ptr,
             break;
         case NSLeftMouseDown:
             pointerButtonState |= WLPointerPrimaryButton;
+            if(delegate) {
+                if([delegate attachedSheet]) {
+                    [[delegate attachedSheet] makeKeyAndOrderFront:delegate];
+                    return;
+                }
+                if(lastFocusedWindow) {
+                    [lastFocusedWindow platformWindowDeactivated:window checkForAppDeactivation:NO];
+                    lastFocusedWindow=nil;  
+                }
+                [delegate platformWindowActivated:window displayIfNeeded:YES];
+                lastFocusedWindow=delegate;
+            }
             break;
         case NSRightMouseUp:
             pointerButtonState &= ~WLPointerSecondaryButton;
@@ -1099,24 +1111,6 @@ NSArray *CGSOrderedWindowNumbers() {
 
 #if 0 // FIXME: this belongs in compositor?
 -(void)postXEvent:(XEvent *)ev {
-    case FocusIn:
-     if([delegate attachedSheet]) {
-      [[delegate attachedSheet] makeKeyAndOrderFront:delegate];
-      break;
-     }
-     if(lastFocusedWindow) {
-      [lastFocusedWindow platformWindowDeactivated:window checkForAppDeactivation:NO];
-      lastFocusedWindow=nil;  
-     }
-     [delegate platformWindowActivated:window displayIfNeeded:YES];
-     lastFocusedWindow=delegate;
-     break;
-     
-    case FocusOut:
-     [delegate platformWindowDeactivated:window checkForAppDeactivation:NO];
-     lastFocusedWindow=nil;
-     break;
-         
     case Expose:;
      O2Rect rect=NSMakeRect(ev->xexpose.x, ev->xexpose.y, ev->xexpose.width, ev->xexpose.height);
      

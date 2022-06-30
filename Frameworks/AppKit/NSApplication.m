@@ -66,6 +66,8 @@ NSString * const NSApplicationDidChangeScreenParametersNotification=@"NSApplicat
 #define MSG_ID_INLINE   90211
 #define CODE_ADD_RECENT_ITEM 1
 #define CODE_ITEM_CLICKED 2
+#define CODE_APP_BECAME_ACTIVE 3
+#define CODE_APP_BECAME_INACTIVE 4
 
 typedef struct {
     mach_msg_header_t header;
@@ -779,11 +781,10 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
 }
 
 -(void)_checkForAppActivation {
-   if([self isActive])
-    [_windows makeObjectsPerformSelector:@selector(_showForActivation)];
-   else {
-    [_windows makeObjectsPerformSelector:@selector(_hideForDeactivation)];
-   }
+    if([self isActive])
+        [_windows makeObjectsPerformSelector:@selector(_showForActivation)];
+    else
+        [_windows makeObjectsPerformSelector:@selector(_hideForDeactivation)];
 }
 
 -(void)run {
@@ -1511,8 +1512,24 @@ standardAboutPanel] retain];
 }
 
 -(void)_windowDidBecomeActive:(NSWindow *)window {
-   if(![self isActiveExcludingWindow:window]){
-    [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationDidBecomeActiveNotification object:self];
+    if(![self isActiveExcludingWindow:window]){
+        if(_wsSvcPort) {
+            Message msg = {0};
+            msg.header.msgh_remote_port = _wsSvcPort;
+            msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+            msg.header.msgh_id = MSG_ID_INLINE;
+            msg.header.msgh_size = sizeof(msg);
+            msg.code = CODE_APP_BECAME_ACTIVE;
+
+            unsigned int pid = getpid();
+            msg.len = sizeof(pid);
+            memcpy(msg.data, &pid, msg.len);
+
+            if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
+                2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
+                NSLog(@"Failed to send activation state to WS");
+        }
+        [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationDidBecomeActiveNotification object:self];
    }
 }
 
@@ -1523,18 +1540,33 @@ standardAboutPanel] retain];
 }
 
 -(void)_windowDidBecomeDeactive:(NSWindow *)window {
-   if(![self isActive]){
+    if(![self isActive]){
+        if(_wsSvcPort) {
+            Message msg = {0};
+            msg.header.msgh_remote_port = _wsSvcPort;
+            msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+            msg.header.msgh_id = MSG_ID_INLINE;
+            msg.header.msgh_size = sizeof(msg);
+            msg.code = CODE_APP_BECAME_INACTIVE;
+
+            unsigned int pid = getpid();
+            msg.len = sizeof(pid);
+            memcpy(msg.data, &pid, msg.len);
+
+            if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
+                2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
+                NSLog(@"Failed to send activation state to WS");
+        } 
+        // Exposed menus are running tight event tracking loops and would remain visible when the app deactivates (making
+        // the UI less than community minded) - unfortunately because they're in these tracking loops they're waiting
+        // on events and even though they could receive the notification sent here they can't deal with it until an event is
+        // received to let them proceed. This special event type was added to help them get unstuck and remove the menu on
+        // deactivation
+        NSEvent* appKitEvent = [NSEvent otherEventWithType: NSAppKitDefined location: NSZeroPoint modifierFlags: 0 timestamp: 0 windowNumber: 0 context: nil subtype: NSApplicationDeactivated data1: 0 data2: 0];
+        [self postEvent: appKitEvent atStart: YES];
 	   
-	   // Exposed menus are running tight event tracking loops and would remain visible when the app deactivates (making
-	   // the UI less than community minded) - unfortunately because they're in these tracking loops they're waiting
-	   // on events and even though they could receive the notification sent here they can't deal with it until an event is
-	   // received to let them proceed. This special event type was added to help them get unstuck and remove the menu on
-	   // deactivation
-	   NSEvent* appKitEvent = [NSEvent otherEventWithType: NSAppKitDefined location: NSZeroPoint modifierFlags: 0 timestamp: 0 windowNumber: 0 context: nil subtype: NSApplicationDeactivated data1: 0 data2: 0];
-	   [self postEvent: appKitEvent atStart: YES];
-	   
-	   [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationDidResignActiveNotification object:self];
-   }
+        [[NSNotificationCenter defaultCenter] postNotificationName:NSApplicationDidResignActiveNotification object:self];
+    }
 }
 
 //private method called when the application is reopened

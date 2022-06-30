@@ -92,6 +92,7 @@
 - (void)removeMenuForPID:(unsigned int)pid {
     if(pid == activePID) {
         [menuView setMenu:nil];
+        [menuView setNeedsDisplay:YES];
         activePID = 0;
     }
     [menuDict removeObjectForKey:[NSNumber numberWithInt:pid]];
@@ -104,6 +105,7 @@
     NSMenu *menu = [self menuForPID:pid];
     if(menu) {
         [menuView setMenu:menu];
+        [menuView setNeedsDisplay:YES];
         return YES;
     }
     return NO;
@@ -111,6 +113,15 @@
 
 - (void)addRecentItem:(NSURL *)itemURL {
     [menuView addRecentItem:itemURL];
+}
+
+// intercept these - we don't want this app to become activated or deactivated
+-(void)platformWindowActivated:(CGWindow *)window displayIfNeeded:(BOOL)displayIfNeeded {
+    // do nothing
+}
+
+-(void)platformWindowDeactivated:(CGWindow *)window checkForAppDeactivation:(BOOL)checkForAppDeactivation {
+    // do nothing
 }
 
 @end
