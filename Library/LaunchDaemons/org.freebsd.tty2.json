@@ -1,0 +1,15 @@
+{
+	"EnvironmentVariables": {
+		"ASL_DISABLE": "1",
+                "TERM": "xterm"
+	},
+	"Label": "org.freebsd.tty2",
+	"ProgramArguments": [
+		"/usr/libexec/getty",
+		"Pc",
+		"ttyv2"
+	],
+	"OnDemand": false,
+	"KeepAlive": true,
+	"RunAtLoad": true
+}
