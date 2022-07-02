@@ -52,7 +52,8 @@ extern const NSString *WLMenuDidUpdateNotification;
 }
 
 - (ClockView *)initWithFrame:(NSRect)frame;
-- (void)update:(NSWindow *)window;
+- (NSString *)currentDateValue;
+- (void)notifyTick:(id)arg;
 @end
 
 // system and application menu titles view
@@ -94,6 +95,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 }
 
 - (MenuBarWindow *)initWithFrame:(NSRect)frame forOutput:(NSScreen *)output;
+- (void)notifyTick:(id)arg;
 - (void)setPort:(mach_port_t)port forPID:(unsigned int)pid;
 - (void)removePortForPID:(unsigned int)pid;
 - (mach_port_t)portForPID:(unsigned int)pid;

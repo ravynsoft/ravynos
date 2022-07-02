@@ -35,6 +35,9 @@
 
     [self setMovableByWindowBackground:NO];
 
+    NSNotificationCenter *nctr = [NSNotificationCenter defaultCenter];
+    [nctr addObserver:self selector:@selector(notifyTick:) name:@"ClockTick" object:nil];
+
     clockView = [[ClockView alloc] initWithFrame:frame];
     menuView = [[MenuView alloc] initWithFrame:frame];
     extrasView = [ExtrasView new];
@@ -51,6 +54,12 @@
     [_contentView setAutoresizingMask:0];
     
     return self;
+}
+
+- (void)notifyTick:(id)arg {
+    NSString *value = [clockView currentDateValue];
+    [clockView setStringValue:value];
+    [clockView display];
 }
 
 - (mach_port_t)activePort {

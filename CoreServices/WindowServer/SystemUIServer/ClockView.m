@@ -51,19 +51,21 @@ const NSString *defaultFormatEN = @"%a %b %d  %I:%M %p";
     self = [super initWithText:dateString
         atPoint:NSMakePoint(frame.size.width - sz.width - menuBarHPad, menuBarVPad)
         withMaxWidth:300];
+    [self setFont:font];
 
-    [NSThread detachNewThreadSelector:@selector(update:) toTarget:self
-        withObject:[self window]];
+    [NSThread detachNewThreadSelector:@selector(notifyTick:) toTarget:self withObject:nil];
 
     return self;
 }
 
-- (void)update:(NSWindow*)window {
+- (NSString *)currentDateValue {
+    return [dateFormatter stringForObjectValue:[NSDate date]];
+}
+
+- (void)notifyTick:(id)arg {
     while(1) {
-        [self setAttributedStringValue:[[NSAttributedString alloc]
-            initWithString:[dateFormatter stringForObjectValue:[NSDate date]]
-            attributes:attributes]];
-        usleep(500000);
+        [[NSNotificationCenter defaultCenter] postNotificationName:@"ClockTick" object:nil userInfo:NULL];
+        usleep(400000);
     }
 }
 
