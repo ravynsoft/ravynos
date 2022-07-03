@@ -22,106 +22,13 @@
  * THE SOFTWARE.
  */
 
-#import "Dock.h"
-#import "Utils.h"
-#import "WindowTracker.h"
 #import <LaunchServices/LaunchServices.h>
-#import <XdgDesktopFile>
-#import <QMouseEvent>
+#import "Dock.h"
+#import "DockItem.h"
 
-extern Dock *g_dock;
-
-DIWidget::DIWidget(NSObject *owner)
-{
-    _owner = owner;
-    setAlignment(Qt::AlignCenter);
-    setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-}
-
-DIWidget::~DIWidget()
-{
-}
-
-void DIWidget::mousePressEvent(QMouseEvent *e)
-{
-    switch(e->button()) {
-        case Qt::LeftButton: // logical left, the primary action
-            NSDebugLog(@"click res=%d type=%d %@, start timer for menu",
-                [(DockItem*)_owner isResident],
-                [(DockItem*)_owner type],
-                [(DockItem*)_owner label]);
-            e->accept();
-            break;
-        case Qt::RightButton: // logical right, the secondary action
-            NSDebugLog(@"right click %@, show the menu now",
-                [(DockItem*)_owner label]);
-            e->accept();
-            break;
-        default: break;
-    }
-}
-
-void DIWidget::mouseReleaseEvent(QMouseEvent *e)
-{
-    DockItem *owner = (DockItem *)_owner;
-    switch(e->button()) {
-        case Qt::LeftButton: // logical left, the primary action
-        {
-            if([owner type] == DIT_WINDOW) { // unminimizing?
-                unsigned int window = [owner window];
-                WindowTracker::activateWindow(window);
-                g_dock->clearRunningLabel((__bridge void *)owner);
-                e->accept();
-                break;
-            }
-            if([owner isRunning]) { // clicked a running app?
-                unsigned int window = [owner window];
-                if(window) {
-                    WindowTracker::activateWindow(window);
-                    DockItem *di =
-                        g_dock->findDockItemForMinimizedWindow(window);
-                    if(di)
-                        g_dock->clearRunningLabel((__bridge void *)di);
-                }
-
-                // If Filer with no windows, fall through & launch folder
-                if(![[owner bundleIdentifier] isEqualToString:@"com.ravynos.Filer"] ||
-                    [[owner windows] count] > 1) {
-                    e->accept();
-                    break;
-                }
-            }
-            LSLaunchURLSpec spec = { 0 };
-            spec.appURL = (__bridge CFURLRef)[NSURL fileURLWithPath:
-                [owner path]];
-            if([[owner bundleIdentifier]
-                isEqualToString:@"com.ravynos.Filer"]) // Filer is special
-                spec.itemURLs = (__bridge CFArrayRef)[NSArray arrayWithObject:
-                    [NSURL fileURLWithPath:
-                    [[[NSUserDefaults standardUserDefaults]
-                    stringForKey:INFOKEY_FILER_DEF_FOLDER]
-                    stringByStandardizingPath]]];
-            LSOpenFromURLSpec(&spec, NULL);
-            [owner setNeedsAttention:YES]; // bouncy bouncy
-            e->accept();
-            break;
-        }
-        default: break;
-    }
-}
-
-void DIWidget::mouseDoubleClickEvent(QMouseEvent *e)
-{
-    NSLog(@"Mouse DoubleClick %@", _owner);
-    e->accept();
-}
-
-void DIWidget::mouseMoveEvent(QMouseEvent *e)
-{
-    NSLog(@"Mouse Move %@", _owner);
-    e->accept();
-}
-
+#define IconVOffset 16
+#define BadgeOffset 4
+#define BadgeScale 0.6
 
 @implementation DockItem
 
@@ -129,12 +36,8 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
     return [[DockItem alloc] initWithPath:path];
 }
 
-+dockItemWithWindow:(unsigned int)window path:(const char *)path {
-    return [[DockItem alloc] initWithWindow:window path:path];
-}
-
-+dockItemWithMinimizedWindow:(unsigned int)window {
-    return [[DockItem alloc] initWithMinimizedWindow:window];
++dockItemWithMinimizedWindow:(unsigned int)window forApp:(DockItem *)appItem {
+    return [[DockItem alloc] initWithMinimizedWindow:window forApp:appItem];
 }
 
 /* We can't rely on g_dock->iconSize because DockItems are constructed
@@ -145,18 +48,31 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
     NSString *s = [prefs stringForKey:INFOKEY_CUR_SIZE];
     if(s) {
         NSSize sz = NSSizeFromString(s);
-        return ((sz.width < sz.height) ? sz.width : sz.height) - 16;
+        return ((sz.width < sz.height) ? sz.width : sz.height) - IconVOffset;
     }
     return 64;
 }
+
+/* Application Dock Tiles
+
+   An application Dock tile defaults to display the application’s
+   applicationIconImage.
+
+   The application Dock tile never shows a smaller application icon badge.
+
+   Whether using the default or custom view, the application Dock tile may be
+   badged with a short custom string.
+*/
 
 -initWithPath:(NSString *)path {
     _path = path;
     _label = nil;
     _type = DIT_INVALID;
-    _icon = NULL;
+    _icon = nil;
     _bundleID = nil;
+    int size = [DockItem iconSize];
 
+    self = [super initWithFrame:NSMakeRect(0,0,size,size+IconVOffset)];
     // first, walk the path for .app or .AppDir in case this is the
     // path to the actual executable inside
     NSArray *comps = [path pathComponents];
@@ -182,103 +98,90 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
             @"CFBundleIconFile"];
         if(!iconFile)
             iconFile = [b objectForInfoDictionaryKey:@"NSIcon"];
-        QString iconPath(QString::fromUtf8(
-            [[NSString stringWithFormat:@"%@/Resources/%@",path,iconFile]
-            UTF8String]));
-        NSLog(@"initWithPath %@ iconPath %s",_path, iconPath.toLocal8Bit().data());
-        _icon = new QIcon(iconPath);
-        NSLog(@"_icon created at %p", _icon);
+        NSString *iconPath = [NSString stringWithFormat:@"%@/Resources/%@",path,iconFile];
+
+        _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,IconVOffset,size,size)];
+        [_icon setImage:[[NSImage alloc] initWithContentsOfFile:iconPath]];
+        [[_icon image] setScalesWhenResized:YES];
+        [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
+
         _bundleID = [b objectForInfoDictionaryKey:@"CFBundleIdentifier"];
     } else if(LSIsAppDir((__bridge CFURLRef)url)) {
         _type = DIT_APP_APPDIR;
         _execPath = [_path stringByAppendingPathComponent:@"AppRun"];
         _label = [[path lastPathComponent] stringByDeletingPathExtension];
         NSString *iconFile = [NSString stringWithFormat:@"%@/.DirIcon", path];
-        if([[NSFileManager defaultManager] fileExistsAtPath:iconFile])
-            _icon = new QIcon(QString::fromUtf8([iconFile UTF8String]));
-    } else if([[path pathExtension] isEqualToString:@"desktop"]) {
-        _type = DIT_APP_DESKTOP;
-
-        // Simplified version of the LSAppRecord parser
-        XdgDesktopFile df;
-        if(df.load([path UTF8String]) && df.isValid()
-            && df.type() == XdgDesktopFile::ApplicationType) {
-            _label = [NSString stringWithUTF8String:
-                df.name().toLocal8Bit().constData()];
-            _execPath = [[[NSString stringWithCString:
-                df.value("Exec").toString().toLocal8Bit().constData()]
-                componentsSeparatedByString:@" "] firstObject];
-            _icon = new QIcon(df.icon());
+        if([[NSFileManager defaultManager] fileExistsAtPath:iconFile]) {
+            _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,IconVOffset,size,size)];
+            [_icon setImage:[[NSImage alloc] initWithContentsOfFile:iconFile]];
+            [[_icon image] setScalesWhenResized:YES];
+            [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
         }
     }
 
-    if(_icon == NULL)
-        _icon = new QIcon(QString::fromUtf8([[[NSBundle mainBundle]
-            pathForResource:@"window" ofType:@"png"] UTF8String]));
+    if(_icon == nil) {
+        NSString *windowPNG = [[NSBundle mainBundle] pathForResource:@"window" ofType:@"png"];
+        _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,IconVOffset,size,size)];
+        [_icon setImage:[[NSImage alloc] initWithContentsOfFile:windowPNG]];
+        [[_icon image] setScalesWhenResized:YES];
+        [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
+    }
+
+    _origIcon = [_icon copy];
+    [self addSubview:_icon];
 
     _flags = DIF_NORMAL;
     _pids = [NSMutableArray new];
     _windows = [NSMutableArray new];
-    _widget = new DIWidget(self);
-    int size = [DockItem iconSize];
-    NSLog(@"size is %d",size);
-    _widget->setPixmap(_icon->pixmap(size, size));
-    _widget->setToolTip(QString::fromUtf8([_label UTF8String]));
     return self;
 }
 
-// FIXME: try to extract PID from _NET_WM_PID and identify bundle etc
-// FIXME: set a standard icon
--initWithWindow:(unsigned int)window path:(const char *)path {
-    _path = [NSString stringWithCString:path];
-    _execPath = [_path copy];
-    _label = [[_path copy] lastPathComponent];
-    _type = DIT_APP_X11;
+/*
+  Window Dock Tiles
+  
+  A window Dock tile defaults to display a miniaturized version of the windows
+  contents with a badge derived from the application Dock icon, including any
+  customized application Dock icon. The default window Dock tile image may not
+  be badged with a custom string.
 
-    _icon = new QIcon(QString::fromUtf8([[[NSBundle mainBundle]
-        pathForResource:@"window" ofType:@"png"] UTF8String]));
+  A window Dock tile can use a custom view to draw the Dock icon. If a custom
+  view is used, no application badge will be added, but the text label will be
+  overlaid on top of the icon.
+*/
 
-    _bundleID = nil;
-    _flags = DIF_NORMAL;
-    _pids = [NSMutableArray new];
-    _windows = [NSMutableArray new];
-    [_windows addObject:[NSNumber numberWithInteger:window]];
-    _widget = new DIWidget(self);
-    int size = [DockItem iconSize];
-    _widget->setPixmap(_icon->pixmap(size, size));
-    _widget->setToolTip(QString::fromUtf8([_label UTF8String]));
-    return self;
-}
-
--initWithMinimizedWindow:(unsigned int)window {
+-initWithMinimizedWindow:(unsigned int)window forApp:(DockItem *)appItem {
     _path = nil;
     _execPath = nil;
     _label = nil;
     _type = DIT_WINDOW;
+    int size = [DockItem iconSize];
+    self = [super initWithFrame:NSMakeRect(0,0,size,size+IconVOffset)];
 
-    _icon = new QIcon(QString::fromUtf8([[[NSBundle mainBundle]
-        pathForResource:@"window" ofType:@"png"] UTF8String]));
+    NSString *windowPNG = [[NSBundle mainBundle] pathForResource:@"window" ofType:@"png"];
+    _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,IconVOffset,size,size)];
+    [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
+    [_icon setImage:[[NSImage alloc] initWithContentsOfFile:windowPNG]];
+    [[_icon image] setScalesWhenResized:YES];
+    NSDebugLog(@"default _icon created %@", _icon);
+
+    _origIcon = [_icon copy];
+    [self addSubview:_icon];
+
+    if(appItem != nil) {
+        _badge = [[NSImageView alloc] initWithFrame:
+            NSMakeRect(BadgeOffset,BadgeOffset+IconVOffset,size*BadgeScale,size*BadgeScale)];
+        [_badge setImageScaling:NSImageScaleProportionallyUpOrDown];
+        [_badge setImage:[appItem icon]];
+        [[_badge image] setScalesWhenResized:YES];
+        [self addSubview:_badge];
+    }
 
     _bundleID = nil;
     _flags = DIF_NORMAL;
     _pids = [NSMutableArray new];
     _windows = [NSMutableArray new];
     [_windows addObject:[NSNumber numberWithInteger:window]];
-    _widget = new DIWidget(self);
-    int size = [DockItem iconSize];
-    _widget->setPixmap(_icon->pixmap(size, size));
-    _widget->setToolTip(QString::fromUtf8([_label UTF8String]));
     return self;
-}
-
--(void)dealloc {
-    if(_icon)
-        delete _icon;
-    if(_runMarker)
-        _runMarker->deleteLater();
-    if(_widget)
-        _widget->deleteLater();
-//     [super dealloc];
 }
 
 -(NSString *)path {
@@ -347,12 +250,8 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
     return [NSArray arrayWithArray:_windows];
 }
 
--(QIcon *)icon {
-    return _icon;
-}
-
--(QLabel *)widget {
-    return static_cast<QLabel *>(_widget);
+-(NSImage *)icon {
+    return [_icon image];
 }
 
 // YES if equal to either item path
@@ -399,17 +298,17 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
     if(pid == 0)
         NSLog(@"addPID: pid of 0 is invalid");
     else {
-        struct kevent e[1];
+//        struct kevent e[1];
 
         for(int i = 0; i < [_pids count]; ++i) {
             if([[_pids objectAtIndex:i] intValue] == pid)
                 return; // already have this PID
         }
         [_pids addObject:[NSNumber numberWithInteger:pid]];
-        EV_SET(e, pid, EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK|NOTE_EXIT, 0, (__bridge void *)self);
+//        EV_SET(e, pid, EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK|NOTE_EXIT, 0, (__bridge void *)self);
 
         // wake up kqueue to insert the event
-        write(piper(1), e, sizeof(struct kevent));
+//        write(piper(1), e, sizeof(struct kevent));
     }
 }
 
@@ -417,15 +316,15 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
     if(pid == 0)
         NSLog(@"removePID: pid of 0 is invalid");
     else {
-        struct kevent e[1];
+//        struct kevent e[1];
 
         for(int i = 0; i < [_pids count]; ++i) {
             if([[_pids objectAtIndex:i] intValue] == pid) {
                 [_pids removeObjectAtIndex:i];
-                EV_SET(e, pid, EVFILT_PROC, EV_DELETE, 0, 0, (__bridge void *)self);
+//                EV_SET(e, pid, EVFILT_PROC, EV_DELETE, 0, 0, (__bridge void *)self);
 
                 // wake up kqueue to insert the event
-                write(piper(1), e, sizeof(struct kevent));
+//                write(piper(1), e, sizeof(struct kevent));
                 return;
             }
         }
@@ -464,31 +363,32 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
         _flags &= ~DIF_ATTENTION;
 }
 
--(void)setRunningMarker:(QLabel *)label {
-    if(_runMarker)
-        _runMarker->deleteLater();
-    _runMarker = label;
+-(void)setApplicationIconImage:(NSImage *)image {
+    if(image == nil) { // user wants to remove customization
+        [_icon removeFromSuperview];
+        _icon = [_origIcon copy];
+        [self addSubview:_icon];
+        return;
+    }
+
+    [image setScalesWhenResized:YES];
+    [_icon setImage:image];
 }
 
--(QLabel *)_getRunMarker {
-    return _runMarker;
-}
+/*
+The view you specify should be height and width resizable.
 
--(void)setLabel:(const char *)label {
-    _label = [NSString stringWithUTF8String:label];
-    _widget->setToolTip(label);
-}
+Cocoa does not automatically redraw the contents of your dock tile. Instead,
+your application must explicitly send display messages to the dock tile object
+whenever the contents of your view change and need to be redrawn. Your dock
+tile view is responsible for drawing the entire contents of the dock tile. Your
+view does not need to draw the application or custom string badges.
+*/
 
--(void)setIcon:(QIcon)icon {
-    if(_icon)
-        delete _icon;
-    _icon = new QIcon(icon);
-    int size = [DockItem iconSize];
-    _widget->setPixmap(_icon->pixmap(size, size));
-}
-
--(void)resize:(int)size {
-    _widget->setPixmap(_icon->pixmap(size, size));
+-(void)setContentView:(NSView *)contentView {
+    [_icon removeFromSuperview];
+    _icon = contentView;
+    [self addSubview:_icon];
 }
 
 -(NSString *)description {
@@ -498,3 +398,4 @@ void DIWidget::mouseMoveEvent(QMouseEvent *e)
     _bundleID];
 }
 @end
+

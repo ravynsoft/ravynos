@@ -24,16 +24,7 @@
 
 #pragma once
 
-#import <Foundation/Foundation.h>
-
-#import <QWidget>
-#import <QScreen>
-#import <QApplication>
-#import <QGridLayout>
-#import <QBoxLayout>
-#import <QPixmap>
-#import <QThread>
-
+#import <AppKit/AppKit.h>
 #import <unistd.h>
 #import <sys/event.h>
 
@@ -63,77 +54,10 @@
 
 extern int kqPIDs;
 
-class Dock : public QWidget {
-    Q_OBJECT
-
-public:
-    Dock();
-    virtual ~Dock();
-
-    enum Location : int {
-        LOCATION_BOTTOM = 0,
-        LOCATION_LEFT = 1,
-        LOCATION_RIGHT = 2
-    };
-
-    void relocate();    // Move self to preferred location & size
-    void loadItems();   // Load the pinned items we should display
-
-    void mousePressEvent(QMouseEvent *e);
-    void mouseReleaseEvent(QMouseEvent *e);
-
-    DockItem *findDockItemForPath(char *path);
-    DockItem *findDockItemForMinimizedWindow(unsigned int window);
-    void removeWindowFromAll(unsigned int window);
-    int iconSize(void);
-    bool adjustSize(void);
-
-    // thread safety helpers for the kq loop
-    void emitStarted(void *di);
-    void emitStopped(void *di);
-    void emitAddNonResident(unsigned int pid, const char *path);
-
-    void _addNonResident(DockItem *di);
-
-public slots:
-    void clearRunningLabel(void *di);
-    void setRunningLabel(void *di);
-    void addNonResident(unsigned int pid, const char *path);
-
-
-signals:
-    void itemShouldClearIndicator(void *di);
-    void itemShouldSetIndicator(void *di);
-    void dockShouldAddNonResident(unsigned int pid, const char *path);
-
-private:
-    void setLength(int length);
-    int currentLength(void);
-    void savePrefs(void);
-    void swapWH(void);  // swap current width and height
-    bool capLength(void); // cap size at max for screen. Ret true if capped
-    int itemFromPos(int x, int y);
-    void loadProcessTable();
-    QFrame *makeDivider();
-
-    NSUserDefaults *m_prefs;
-    NSMutableArray *m_itemsPinned;  // Filer & resident icons go first
-    NSMutableArray *m_items;        // then temporary icons & windows
-    NSMutableArray *m_itemsSpecial; // then Downloads & Trash at the end
-    int m_itemSlots;
-    DockItem *m_emptyItem;
-    Location m_location;
-    int m_maxLength;
-    QScreen *m_screen;
-    QSize m_currentSize;
-    QBoxLayout *m_box;
-    QGridLayout *m_cellsPinned;
-    QGridLayout *m_cells;
-    QGridLayout *m_cellsSpecial;
-    QFrame *m_divider;
-    QFrame *m_divider2;
-    QPixmap *m_iconRun;
+enum Location : int {
+    LOCATION_BOTTOM = 0,
+    LOCATION_LEFT = 1,
+    LOCATION_RIGHT = 2
 };
 
-extern Dock *g_dock;
 
