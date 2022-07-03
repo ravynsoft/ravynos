@@ -1,15 +1,16 @@
 APP=	Dock
-SRCS=	main.mm Dock.mm DockItem.mm WindowTracker.mm Utils.mm
+SRCS=	main.m Dock.m DockItem.m DesktopWindow.m
 RESOURCES=	${.CURDIR}/Dock.png ${.CURDIR}/running.png \
 		${.CURDIR}/window.png Trash.app \
 		Downloads.app
 
-Dock.o: Dock.mm Dock.h Dock.moc
-DockItem.o: DockItem.mm DockItem.h
+Dock.o: Dock.m Dock.h 
+DockItem.o: DockItem.m DockItem.h
 
 MK_WERROR=	no
-CXXFLAGS+=	-g -fPIC -I${MAKEOBJDIR} -fobjc-arc
-LDFLAGS+=	-framework AppKit -framework LaunchServices -lSystem
+CFLAGS+=	-g -fobjc-arc
+LDFLAGS+=	-framework AppKit -framework LaunchServices \
+		-framework Foundation -lobjc -lSystem
 
 Trash.app::
 	rm -rf ${.TARGET}

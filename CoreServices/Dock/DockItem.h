@@ -43,6 +43,9 @@ enum DockItemFlags : unsigned int {
     DIF_ATTENTION = 0x4     // app wants attention
 };
 
+typedef enum DockItemType DockItemType;
+typedef enum DockItemFlags DockItemFlags;
+
 @interface DockItem : NSView {
     DockItemType _type;
     unsigned int _flags;
@@ -61,6 +64,7 @@ enum DockItemFlags : unsigned int {
 
 +(DockItem *)dockItemWithPath:(NSString *)path;
 +(DockItem *)dockItemWithMinimizedWindow:(unsigned int)window forApp:(DockItem *)item;
++(int)iconSize;
 
 -(DockItem *)initWithPath:(NSString *)path;
 -(DockItem *)initWithMinimizedWindow:(unsigned int)window forApp:(DockItem *)item;

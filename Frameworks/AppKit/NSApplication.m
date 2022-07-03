@@ -228,7 +228,7 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
    // don't try to find the service if this is the app that provides it...
    NSString *bundleID = [[NSBundle mainBundle] bundleIdentifier];
    if(!([bundleID isEqualToString:@"com.ravynos.SystemUIServer"] || 
-       ([bundleID isEqualToString:@"com.ravynos.LoginWindow"]))) {
+       ([bundleID isEqualToString:@"com.ravynos.LoginWindow"]) || ([bundleID isEqualToString:@"com.ravynos.Dock"]))) {
         NSLog(@"bp=%d, looking up service %s", bootstrap_port, WINDOWSERVER_SVC_NAME);
         if(bootstrap_look_up(bootstrap_port, WINDOWSERVER_SVC_NAME, &_wsSvcPort) != KERN_SUCCESS) {
             NSLog(@"Failed to locate WindowServer port");

@@ -22,11 +22,9 @@
  * THE SOFTWARE.
  */
 
-#import <LaunchServices/LaunchServices.h>
 #import "Dock.h"
 #import "DockItem.h"
 
-#define IconVOffset 16
 #define BadgeOffset 4
 #define BadgeScale 0.6
 
@@ -48,7 +46,7 @@
     NSString *s = [prefs stringForKey:INFOKEY_CUR_SIZE];
     if(s) {
         NSSize sz = NSSizeFromString(s);
-        return ((sz.width < sz.height) ? sz.width : sz.height) - IconVOffset;
+        return ((sz.width < sz.height) ? sz.width : sz.height) - 16;
     }
     return 64;
 }
@@ -72,7 +70,7 @@
     _bundleID = nil;
     int size = [DockItem iconSize];
 
-    self = [super initWithFrame:NSMakeRect(0,0,size,size+IconVOffset)];
+    self = [super initWithFrame:NSMakeRect(0,0,size,size)];
     // first, walk the path for .app or .AppDir in case this is the
     // path to the actual executable inside
     NSArray *comps = [path pathComponents];
@@ -100,7 +98,7 @@
             iconFile = [b objectForInfoDictionaryKey:@"NSIcon"];
         NSString *iconPath = [NSString stringWithFormat:@"%@/Resources/%@",path,iconFile];
 
-        _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,IconVOffset,size,size)];
+        _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,0,size,size)];
         [_icon setImage:[[NSImage alloc] initWithContentsOfFile:iconPath]];
         [[_icon image] setScalesWhenResized:YES];
         [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
@@ -112,7 +110,7 @@
         _label = [[path lastPathComponent] stringByDeletingPathExtension];
         NSString *iconFile = [NSString stringWithFormat:@"%@/.DirIcon", path];
         if([[NSFileManager defaultManager] fileExistsAtPath:iconFile]) {
-            _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,IconVOffset,size,size)];
+            _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,0,size,size)];
             [_icon setImage:[[NSImage alloc] initWithContentsOfFile:iconFile]];
             [[_icon image] setScalesWhenResized:YES];
             [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
@@ -121,7 +119,7 @@
 
     if(_icon == nil) {
         NSString *windowPNG = [[NSBundle mainBundle] pathForResource:@"window" ofType:@"png"];
-        _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,IconVOffset,size,size)];
+        _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,0,size,size)];
         [_icon setImage:[[NSImage alloc] initWithContentsOfFile:windowPNG]];
         [[_icon image] setScalesWhenResized:YES];
         [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
@@ -155,10 +153,10 @@
     _label = nil;
     _type = DIT_WINDOW;
     int size = [DockItem iconSize];
-    self = [super initWithFrame:NSMakeRect(0,0,size,size+IconVOffset)];
+    self = [super initWithFrame:NSMakeRect(0,0,size,size)];
 
     NSString *windowPNG = [[NSBundle mainBundle] pathForResource:@"window" ofType:@"png"];
-    _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,IconVOffset,size,size)];
+    _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,0,size,size)];
     [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
     [_icon setImage:[[NSImage alloc] initWithContentsOfFile:windowPNG]];
     [[_icon image] setScalesWhenResized:YES];
@@ -169,7 +167,7 @@
 
     if(appItem != nil) {
         _badge = [[NSImageView alloc] initWithFrame:
-            NSMakeRect(BadgeOffset,BadgeOffset+IconVOffset,size*BadgeScale,size*BadgeScale)];
+            NSMakeRect(BadgeOffset,BadgeOffset,size*BadgeScale,size*BadgeScale)];
         [_badge setImageScaling:NSImageScaleProportionallyUpOrDown];
         [_badge setImage:[appItem icon]];
         [[_badge image] setScalesWhenResized:YES];

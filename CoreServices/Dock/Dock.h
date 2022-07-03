@@ -39,8 +39,30 @@
 
 #define INFOKEY_CUR_SIZE @"CurrentSize"
 #define INFOKEY_LOCATION @"Location"
-#define INFOKEY_CUR_ITEMS @"CurrentItems"
-#define INFOKEY_FILER_DEF_FOLDER @"FilerDefaultFolder"
+#define INFOKEY_OPACITY @"Opacity"
+#define INFOKEY_WALLPAPER @"Wallpaper"
+
+// These properties are for compatibility with com.apple.Dock.plist
+// Source: https://gist.github.com/brandonb927/3195465/
+#define INFOKEY_PERSISTENT_APPS @"persistent-apps" // array
+#define INFOKEY_PERSISTENT_OTHERS @"persistent-others" // array (of tile data?)
+#define INFOKEY_TILESIZE @"tilesize" // int
+#define INFOKEY_AUTOHIDE @"autohide" // BOOL
+#define INFOKEY_AUTOHIDE_DELAY @"autohide-delay" // float
+#define INFOKEY_AUTOHIDE_TIME_MODIFIER @"autohide-time-modifier" // float
+
+// others found at https://real-world-systems.com/docs/defaults.1.html
+/*
+com.apple.dock persistent-others -array-add '{ "tile-data" = { "list-type" = 1; }; "tile-type" = "recents-tile"; }'; killall Dock
+com.apple.dock largesize -int 512; killall Dock
+com.apple.dock show-exposemenus -boolean no; killall Dock
+com.apple.dock showhidden -bool YES; killall Dock
+com.apple.dock no-glass -boolean YES; killall Dock
+com.apple.dock mouse-over-hilitestack -boolean YES; killall Dock
+com.apple.dock use-new-liststack -boolean YES; killall Dock 
+defaults write com.apple.dock no-bouncing -bool TRUE
+
+*/
 
 #define DIVIDER_MARGIN 10
 
@@ -59,5 +81,26 @@ enum Location : int {
     LOCATION_LEFT = 1,
     LOCATION_RIGHT = 2
 };
+typedef enum Location Location;
 
+@interface Dock: NSObject {
+    NSUserDefaults *_prefs;
+    NSMutableArray *_items;
+    int _itemSlots;
+    DockItem *_emptyItem;
+    Location _location;
+    int _maxLength;
+    NSImage *_iconRun;
+    NSScreen *_screen;
+    NSWindow *_window;
+    NSMutableDictionary *_desktops;
+    NSSize _currentSize;
+    float _alpha;
+}
 
+-(id)init;
+-(NSImage *)runningIndicator;
+-(void)screenDidResize:(NSNotification *)note;
+-(void)updateBackground;
+
+@end
