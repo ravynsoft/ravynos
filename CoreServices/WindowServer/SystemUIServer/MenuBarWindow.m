@@ -59,7 +59,9 @@
 - (void)notifyTick:(id)arg {
     NSString *value = [clockView currentDateValue];
     [clockView setStringValue:value];
-    [clockView display];
+    [clockView setNeedsDisplay:YES];
+    NSEvent *event =[[NSEvent alloc] initWithType:NSAppKitSystem location:NSMakePoint(0,0) modifierFlags:0 window:nil];
+    [NSApp postEvent:event atStart:YES];
 }
 
 - (mach_port_t)activePort {
