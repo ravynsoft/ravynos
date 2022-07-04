@@ -766,6 +766,7 @@ NSString * const NSWindowDidAnimateNotification=@"NSWindowDidAnimateNotification
      frame.origin.y=(leastY+20)-frame.size.height;
     }
 
+    NSLog(@"makeSureIsOnAScreen changed=%d frame=%@",changed,NSStringFromRect(frame));
        if(changed){
         [self setFrame:frame display:YES];
        }

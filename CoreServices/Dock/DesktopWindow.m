@@ -21,6 +21,7 @@
  */
 
 #import <AppKit/AppKit.h>
+#import "Dock.h"
 #import "DesktopWindow.h"
 
 @implementation DesktopWindow
@@ -36,31 +37,54 @@
             break;
     }
 
-    frame.origin = NSZeroPoint;
-    self = [super initWithContentRect:frame
+    frame = NSZeroRect;
+    frame.size = NSSizeFromString([outputDict objectForKey:@"WLOutputSize"]);
+    frame.origin = NSPointFromString([outputDict objectForKey:@"WLOutputPosition"]);
+
+    self = [self initWithContentRect:frame
         styleMask:NSBorderlessWindowMask|WLWindowLayerBackground
         backing:NSBackingStoreBuffered defer:NO screen:_output];
 
+    frame.origin = NSZeroPoint;
     view = [[NSImageView alloc] initWithFrame:frame];
     [view setAutoresizingMask:0];
     [view setImageScaling:NSImageScaleAxesIndependently];
     [view setImageAlignment:NSImageAlignCenter];
     [_contentView addSubview:view];
     [self updateBackground];
-    [view setNeedsDisplay:YES];
 
     return self;
 }
 
+-(void)platformWindow:(CGWindow *)window frameChanged:(NSRect)frame didSize:(BOOL)didSize {
+    NSLog(@"%@ platformWindow %@ frameChanged %@ didSize %d", self, window, NSStringFromRect(frame), didSize);
+}
+
 - (void)updateBackground {
-    NSString *wallpaper = @"/System/Library/Desktop Pictures/Path.jpg";
-    NSImage *image = [[NSImage alloc] initWithContentsOfFile:wallpaper];
+    NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
+    NSDictionary *dict = [prefs objectForKey:INFOKEY_WALLPAPER];
+    _wallpaperPath = [dict objectForKey:[_outputDict objectForKey:@"WLOutputModel"]];
+    if(!_wallpaperPath)
+        _wallpaperPath = @"/System/Library/Desktop Pictures/Mountain.jpg";
+
+    NSImage *image = [[NSImage alloc] initWithContentsOfFile:_wallpaperPath];
+    [image setScalesWhenResized:YES];
     [view setImage:image];
+    [view setNeedsDisplay:YES];
 }
 
 - (NSString *)wallpaperPath {
     return _wallpaperPath;
 }
+
+- (NSScreen *)screen {
+    return _output;
+}
+
+- (NSDictionary *)properties {
+    return _outputDict;
+}
+
 
 @end
 
