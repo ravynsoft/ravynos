@@ -73,13 +73,13 @@ static struct ofw_compat_data compat_data[] = {
 struct snps_dwc3_softc {
 	struct xhci_softc	sc;
 	device_t		dev;
-	char			dr_mode[16];
 	struct resource *	mem_res;
 	bus_space_tag_t		bst;
 	bus_space_handle_t	bsh;
 	phandle_t		node;
 	phy_t			usb2_phy;
 	phy_t			usb3_phy;
+	uint32_t		snpsid;
 };
 
 #define	DWC3_WRITE(_sc, _off, _val)		\
@@ -147,29 +147,60 @@ snps_dwc3_attach_xhci(device_t dev)
 	return (0);
 }
 
-#if 0
+#ifdef DWC3_DEBUG
 static void
-snsp_dwc3_dump_regs(struct snps_dwc3_softc *sc)
+snsp_dwc3_dump_regs(struct snps_dwc3_softc *sc, const char *msg)
 {
+	struct xhci_softc *xsc;
 	uint32_t reg;
 
+	if (!bootverbose)
+		return;
+
+	device_printf(sc->dev, "%s: %s:\n", __func__, msg ? msg : "");
+
 	reg = DWC3_READ(sc, DWC3_GCTL);
-	device_printf(sc->dev, "GCTL: %x\n", reg);
+	device_printf(sc->dev, "GCTL: %#012x\n", reg);
+	reg = DWC3_READ(sc, DWC3_GUCTL);
+	device_printf(sc->dev, "GUCTL: %#012x\n", reg);
 	reg = DWC3_READ(sc, DWC3_GUCTL1);
-	device_printf(sc->dev, "GUCTL1: %x\n", reg);
+	device_printf(sc->dev, "GUCTL1: %#012x\n", reg);
 	reg = DWC3_READ(sc, DWC3_GUSB2PHYCFG0);
-	device_printf(sc->dev, "GUSB2PHYCFG0: %x\n", reg);
+	device_printf(sc->dev, "GUSB2PHYCFG0: %#012x\n", reg);
 	reg = DWC3_READ(sc, DWC3_GUSB3PIPECTL0);
-	device_printf(sc->dev, "GUSB3PIPECTL0: %x\n", reg);
+	device_printf(sc->dev, "GUSB3PIPECTL0: %#012x\n", reg);
 	reg = DWC3_READ(sc, DWC3_DCFG);
-	device_printf(sc->dev, "DCFG: %x\n", reg);
+	device_printf(sc->dev, "DCFG: %#012x\n", reg);
+
+	xsc = &sc->sc;
+	device_printf(sc->dev, "xhci quirks: %#012x\n", xsc->sc_quirks);
+}
+#endif
+
+#ifdef DWC3_DEBUG
+static void
+snps_dwc3_dump_ctrlparams(struct snps_dwc3_softc *sc)
+{
+	const bus_size_t offs[] = {
+	    DWC3_GHWPARAMS0, DWC3_GHWPARAMS1, DWC3_GHWPARAMS2, DWC3_GHWPARAMS3,
+	    DWC3_GHWPARAMS4, DWC3_GHWPARAMS5, DWC3_GHWPARAMS6, DWC3_GHWPARAMS7,
+	    DWC3_GHWPARAMS8,
+	};
+	uint32_t reg;
+	int i;
+
+	for (i = 0; i < nitems(offs); i++) {
+		reg = DWC3_READ(sc, offs[i]);
+		if (bootverbose)
+			device_printf(sc->dev, "hwparams[%d]: %#012x\n", i, reg);
+	}
 }
 #endif
 
 static void
 snps_dwc3_reset(struct snps_dwc3_softc *sc)
 {
-	uint32_t gctl, phy2, phy3;
+	uint32_t gctl, ghwp0, phy2, phy3;
 
 	if (sc->usb2_phy)
 		phy_enable(sc->usb2_phy);
@@ -180,12 +211,19 @@ snps_dwc3_reset(struct snps_dwc3_softc *sc)
 	gctl |= DWC3_GCTL_CORESOFTRESET;
 	DWC3_WRITE(sc, DWC3_GCTL, gctl);
 
+	ghwp0 = DWC3_READ(sc, DWC3_GHWPARAMS0);
 	phy2 = DWC3_READ(sc, DWC3_GUSB2PHYCFG0);
 	phy2 |= DWC3_GUSB2PHYCFG0_PHYSOFTRST;
+	if ((ghwp0 & DWC3_GHWPARAMS0_MODE_MASK) ==
+	    DWC3_GHWPARAMS0_MODE_DUALROLEDEVICE)
+		phy2 &= ~DWC3_GUSB2PHYCFG0_SUSPENDUSB20;
 	DWC3_WRITE(sc, DWC3_GUSB2PHYCFG0, phy2);
 
 	phy3 = DWC3_READ(sc, DWC3_GUSB3PIPECTL0);
 	phy3 |= DWC3_GUSB3PIPECTL0_PHYSOFTRST;
+	if ((ghwp0 & DWC3_GHWPARAMS0_MODE_MASK) ==
+	    DWC3_GHWPARAMS0_MODE_DUALROLEDEVICE)
+		phy3 &= ~DWC3_GUSB3PIPECTL0_SUSPENDUSB3;
 	DWC3_WRITE(sc, DWC3_GUSB3PIPECTL0, phy3);
 
 	DELAY(1000);
@@ -210,6 +248,15 @@ snps_dwc3_configure_host(struct snps_dwc3_softc *sc)
 	reg &= ~DWC3_GCTL_PRTCAPDIR_MASK;
 	reg |= DWC3_GCTL_PRTCAPDIR_HOST;
 	DWC3_WRITE(sc, DWC3_GCTL, reg);
+
+	/*
+	 * Enable the Host IN Auto Retry feature, making the
+	 * host respond with a non-terminating retry ACK.
+	 * XXX If we ever support more than host mode this needs a dr_mode check.
+	 */
+	reg = DWC3_READ(sc, DWC3_GUCTL);
+	reg |= DWC3_GUCTL_HOST_AUTO_RETRY;
+	DWC3_WRITE(sc, DWC3_GUCTL, reg);
 }
 
 static void
@@ -241,42 +288,55 @@ snps_dwc3_configure_phy(struct snps_dwc3_softc *sc)
 static void
 snps_dwc3_do_quirks(struct snps_dwc3_softc *sc)
 {
-	uint32_t reg;
+	struct xhci_softc *xsc;
+	uint32_t ghwp0, reg;
 
+	ghwp0 = DWC3_READ(sc, DWC3_GHWPARAMS0);
 	reg = DWC3_READ(sc, DWC3_GUSB2PHYCFG0);
-	if (OF_hasprop(sc->node, "snps,dis-u2-freeclk-exists-quirk"))
+	if (device_has_property(sc->dev, "snps,dis-u2-freeclk-exists-quirk"))
 		reg &= ~DWC3_GUSB2PHYCFG0_U2_FREECLK_EXISTS;
 	else
 		reg |= DWC3_GUSB2PHYCFG0_U2_FREECLK_EXISTS;
-	if (OF_hasprop(sc->node, "snps,dis_u2_susphy_quirk"))
+	if (device_has_property(sc->dev, "snps,dis_u2_susphy_quirk"))
 		reg &= ~DWC3_GUSB2PHYCFG0_SUSPENDUSB20;
-	else
+	else if ((ghwp0 & DWC3_GHWPARAMS0_MODE_MASK) ==
+	    DWC3_GHWPARAMS0_MODE_DUALROLEDEVICE)
 		reg |= DWC3_GUSB2PHYCFG0_SUSPENDUSB20;
-	if (OF_hasprop(sc->node, "snps,dis_enblslpm_quirk"))
+	if (device_has_property(sc->dev, "snps,dis_enblslpm_quirk"))
 		reg &= ~DWC3_GUSB2PHYCFG0_ENBLSLPM;
 	else
 		reg |= DWC3_GUSB2PHYCFG0_ENBLSLPM;
-
 	DWC3_WRITE(sc, DWC3_GUSB2PHYCFG0, reg);
 
 	reg = DWC3_READ(sc, DWC3_GUCTL1);
-	if (OF_hasprop(sc->node, "snps,dis-tx-ipgap-linecheck-quirk"))
+	if (device_has_property(sc->dev, "snps,dis-tx-ipgap-linecheck-quirk"))
 		reg |= DWC3_GUCTL1_TX_IPGAP_LINECHECK_DIS;
 	DWC3_WRITE(sc, DWC3_GUCTL1, reg);
 
 	reg = DWC3_READ(sc, DWC3_GUSB3PIPECTL0);
-	if (OF_hasprop(sc->node, "snps,dis-del-phy-power-chg-quirk"))
-		reg |= DWC3_GUSB3PIPECTL0_DELAYP1TRANS;
-	if (OF_hasprop(sc->node, "snps,dis_rxdet_inp3_quirk"))
+	if (device_has_property(sc->dev, "snps,dis-del-phy-power-chg-quirk"))
+		reg &= ~DWC3_GUSB3PIPECTL0_DELAYP1TRANS;
+	if (device_has_property(sc->dev, "snps,dis_rxdet_inp3_quirk"))
 		reg |= DWC3_GUSB3PIPECTL0_DISRXDETINP3;
+	if (device_has_property(sc->dev, "snps,dis_u3_susphy_quirk"))
+		reg &= ~DWC3_GUSB3PIPECTL0_SUSPENDUSB3;
+	else if ((ghwp0 & DWC3_GHWPARAMS0_MODE_MASK) ==
+	    DWC3_GHWPARAMS0_MODE_DUALROLEDEVICE)
+		reg |= DWC3_GUSB3PIPECTL0_SUSPENDUSB3;
 	DWC3_WRITE(sc, DWC3_GUSB3PIPECTL0, reg);
 
+	/* Port Disable does not work on <= 3.00a. Disable PORT_PED. */
+	if ((sc->snpsid & 0xffff) <= 0x300a) {
+		xsc = &sc->sc;
+		xsc->sc_quirks |= XHCI_QUIRK_DISABLE_PORT_PED;
+	}
 }
 
 static int
 snps_dwc3_probe(device_t dev)
 {
-	struct snps_dwc3_softc *sc;
+	char dr_mode[16];
+	ssize_t s;
 
 	if (!ofw_bus_status_okay(dev))
 		return (ENXIO);
@@ -284,11 +344,16 @@ snps_dwc3_probe(device_t dev)
 	if (ofw_bus_search_compatible(dev, compat_data)->ocd_data == 0)
 		return (ENXIO);
 
-	sc = device_get_softc(dev);
-	sc->node = ofw_bus_get_node(dev);
-	OF_getprop(sc->node, "dr_mode", sc->dr_mode, sizeof(sc->dr_mode));
-	if (strcmp(sc->dr_mode, "host") != 0) {
-		device_printf(dev, "Only host mode is supported\n");
+	s = device_get_property(dev, "dr_mode", dr_mode, sizeof(dr_mode),
+	    DEVICE_PROP_BUFFER);
+	if (s == -1) {
+		device_printf(dev, "Cannot determine dr_mode\n");
+		return (ENXIO);
+	}
+	if (strcmp(dr_mode, "host") != 0) {
+		device_printf(dev,
+		    "Found dr_mode '%s' but only 'host' supported. s=%zd\n",
+		    dr_mode, s);
 		return (ENXIO);
 	}
 
@@ -314,10 +379,15 @@ snps_dwc3_attach(device_t dev)
 	sc->bst = rman_get_bustag(sc->mem_res);
 	sc->bsh = rman_get_bushandle(sc->mem_res);
 
+	sc->snpsid = DWC3_READ(sc, DWC3_GSNPSID);
 	if (bootverbose)
-		device_printf(dev, "snps id: %x\n", DWC3_READ(sc, DWC3_GSNPSID));
+		device_printf(sc->dev, "snps id: %#012x\n", sc->snpsid);
+#ifdef DWC3_DEBUG
+	snps_dwc3_dump_ctrlparams(sc);
+#endif
 
 	/* Get the phys */
+	sc->node = ofw_bus_get_node(dev);
 	phy_get_by_ofw_name(dev, sc->node, "usb2-phy", &sc->usb2_phy);
 	phy_get_by_ofw_name(dev, sc->node, "usb3-phy", &sc->usb3_phy);
 
@@ -325,10 +395,14 @@ snps_dwc3_attach(device_t dev)
 	snps_dwc3_configure_host(sc);
 	snps_dwc3_configure_phy(sc);
 	snps_dwc3_do_quirks(sc);
-#if 0
-	snsp_dwc3_dump_regs(sc);
+
+#ifdef DWC3_DEBUG
+	snsp_dwc3_dump_regs(sc, "Pre XHCI init");
 #endif
 	snps_dwc3_attach_xhci(dev);
+#ifdef DWC3_DEBUG
+	snsp_dwc3_dump_regs(sc, "Post XHCI init");
+#endif
 
 	return (0);
 }

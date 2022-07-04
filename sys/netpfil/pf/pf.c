@@ -3860,7 +3860,7 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 	struct pf_keth_ruleset *ruleset = NULL;
 	struct pf_mtag *mtag;
 	struct pf_keth_ruleq *rules;
-	struct pf_addr *src, *dst;
+	struct pf_addr *src = NULL, *dst = NULL;
 	sa_family_t af = 0;
 	uint16_t proto;
 	int asd = 0, match = 0;
@@ -3899,6 +3899,10 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 	switch (proto) {
 #ifdef INET
 	case ETHERTYPE_IP: {
+		if (m_length(m, NULL) < (sizeof(struct ether_header) +
+		    sizeof(ip)))
+			return (PF_DROP);
+
 		af = AF_INET;
 		m_copydata(m, sizeof(struct ether_header), sizeof(ip),
 		    (caddr_t)&ip);
@@ -3909,6 +3913,10 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 #endif /* INET */
 #ifdef INET6
 	case ETHERTYPE_IPV6: {
+		if (m_length(m, NULL) < (sizeof(struct ether_header) +
+		    sizeof(ip6)))
+			return (PF_DROP);
+
 		af = AF_INET6;
 		m_copydata(m, sizeof(struct ether_header), sizeof(ip6),
 		    (caddr_t)&ip6);
@@ -3950,13 +3958,13 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 			    "dst");
 			r = TAILQ_NEXT(r, entries);
 		}
-		else if (af != 0 && PF_MISMATCHAW(&r->ipsrc.addr, src, af,
+		else if (src != NULL && PF_MISMATCHAW(&r->ipsrc.addr, src, af,
 		    r->ipsrc.neg, kif, M_GETFIB(m))) {
 			SDT_PROBE3(pf, eth, test_rule, mismatch, r->nr, r,
 			    "ip_src");
 			r = TAILQ_NEXT(r, entries);
 		}
-		else if (af != 0 && PF_MISMATCHAW(&r->ipdst.addr, dst, af,
+		else if (dst != NULL && PF_MISMATCHAW(&r->ipdst.addr, dst, af,
 		    r->ipdst.neg, kif, M_GETFIB(m))) {
 			SDT_PROBE3(pf, eth, test_rule, mismatch, r->nr, r,
 			    "ip_dst");
@@ -4086,8 +4094,6 @@ pf_test_eth_rule(int dir, struct pfi_kkif *kif, struct mbuf **m0)
 			dnflow.f_id.src_ip6 = src->v6;
 			dnflow.f_id.dst_ip6 = dst->v6;
 			break;
-		default:
-			panic("Unknown address family");
 		}
 
 		mtag->flags |= PF_TAG_DUMMYNET;

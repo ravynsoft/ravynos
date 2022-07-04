@@ -1372,6 +1372,11 @@ crp_sanity(struct cryptop *crp)
 	if (out == NULL) {
 		KASSERT(crp->crp_payload_output_start == 0,
 		    ("payload output start non-zero without output buffer"));
+	} else if (csp->csp_mode == CSP_MODE_DIGEST) {
+		KASSERT(!(crp->crp_op & CRYPTO_OP_VERIFY_DIGEST),
+		    ("digest verify with separate output buffer"));
+		KASSERT(crp->crp_payload_output_start == 0,
+		    ("digest operation with non-zero payload output start"));
 	} else {
 		KASSERT(crp->crp_payload_output_start == 0 ||
 		    crp->crp_payload_output_start < olen,
@@ -1522,6 +1527,7 @@ crypto_task_invoke(void *ctx, int pending)
 static int
 crypto_invoke(struct cryptocap *cap, struct cryptop *crp, int hint)
 {
+	int error;
 
 	KASSERT(crp != NULL, ("%s: crp == NULL", __func__));
 	KASSERT(crp->crp_callback != NULL,
@@ -1570,13 +1576,19 @@ crypto_invoke(struct cryptocap *cap, struct cryptop *crp, int hint)
 
 		crp->crp_etype = EAGAIN;
 		crypto_done(crp);
-		return 0;
+		error = 0;
 	} else {
 		/*
-		 * Invoke the driver to process the request.
+		 * Invoke the driver to process the request.  Errors are
+		 * signaled by setting crp_etype before invoking the completion
+		 * callback.
 		 */
-		return CRYPTODEV_PROCESS(cap->cc_dev, crp, hint);
+		error = CRYPTODEV_PROCESS(cap->cc_dev, crp, hint);
+		KASSERT(error == 0 || error == ERESTART,
+		    ("%s: invalid error %d from CRYPTODEV_PROCESS",
+		    __func__, error));
 	}
+	return (error);
 }
 
 void
