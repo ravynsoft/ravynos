@@ -97,4 +97,7 @@ typedef enum DockItemFlags DockItemFlags;
 -(void)setResident:(BOOL)value;
 -(void)setNeedsAttention:(BOOL)value;
 
+-(void)activateWindow:(id)sender;
+-(void)openApp:(id)sender;
+
 @end

@@ -56,10 +56,6 @@
     return self;
 }
 
--(void)platformWindow:(CGWindow *)window frameChanged:(NSRect)frame didSize:(BOOL)didSize {
-    NSLog(@"%@ platformWindow %@ frameChanged %@ didSize %d", self, window, NSStringFromRect(frame), didSize);
-}
-
 - (void)updateBackground {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
     NSDictionary *dict = [prefs objectForKey:INFOKEY_WALLPAPER];

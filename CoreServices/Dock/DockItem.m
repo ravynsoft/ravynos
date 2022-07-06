@@ -25,9 +25,6 @@
 #import "Dock.h"
 #import "DockItem.h"
 
-#define BadgeOffset 4
-#define BadgeScale 0.6
-
 @implementation DockItem
 
 +dockItemWithPath:(NSString *)path {
@@ -131,6 +128,9 @@
     _flags = DIF_NORMAL;
     _pids = [NSMutableArray new];
     _windows = [NSMutableArray new];
+
+    [_icon setTarget:self];
+    [_icon setAction:@selector(openApp:)];
     return self;
 }
 
@@ -156,7 +156,8 @@
     self = [super initWithFrame:NSMakeRect(0,0,size,size)];
 
     NSString *windowPNG = [[NSBundle mainBundle] pathForResource:@"window" ofType:@"png"];
-    _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,0,size,size)];
+    float scale = size * 0.1;
+    _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(2*scale, scale, size-2*scale, size-scale)];
     [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
     [_icon setImage:[[NSImage alloc] initWithContentsOfFile:windowPNG]];
     [[_icon image] setScalesWhenResized:YES];
@@ -167,7 +168,7 @@
 
     if(appItem != nil) {
         _badge = [[NSImageView alloc] initWithFrame:
-            NSMakeRect(BadgeOffset,BadgeOffset,size*BadgeScale,size*BadgeScale)];
+            NSMakeRect(0,0,size*0.55,size*0.55)];
         [_badge setImageScaling:NSImageScaleProportionallyUpOrDown];
         [_badge setImage:[appItem icon]];
         [[_badge image] setScalesWhenResized:YES];
@@ -179,6 +180,9 @@
     _pids = [NSMutableArray new];
     _windows = [NSMutableArray new];
     [_windows addObject:[NSNumber numberWithInteger:window]];
+
+    [_icon setTarget:self];
+    [_icon setAction:@selector(activateWindow:)];
     return self;
 }
 
@@ -387,6 +391,19 @@ view does not need to draw the application or custom string badges.
     [_icon removeFromSuperview];
     _icon = contentView;
     [self addSubview:_icon];
+}
+
+-(void)activateWindow:(id)sender {
+    NSNumber *windowNumber = [_windows firstObject];
+    NSLog(@"activating window %@", windowNumber);
+    // FIXME: how do we tell the owning app or compositor to activate the window?
+    // does the number map at all?
+    // - just send mach_msg to SystemUIServer and it can pass along to the app?
+}
+
+-(void)openApp:(id)sender {
+    NSURL *url = [NSURL fileURLWithPath:_path];
+    LSOpenCFURLRef((__bridge_retained CFURLRef)url, NULL);
 }
 
 -(NSString *)description {
