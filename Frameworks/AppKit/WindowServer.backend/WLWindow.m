@@ -741,6 +741,11 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
     return (int)wl_surface;
 }
 
+-(void)setStyleMask:(unsigned)mask {
+    _styleMask = mask;
+    // FIXME: do we need to do anything else?
+}
+
 @end
 
 CGRect CGInsetRectForNativeWindowBorder(CGRect frame,unsigned styleMask)

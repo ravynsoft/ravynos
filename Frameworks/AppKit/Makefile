@@ -630,6 +630,10 @@ _install-hook:
 	mv AppKit.framework/Resources/NSKeyboardBinding/StandardKeyBindings.keyBindings \
 		AppKit.framework/Resources/
 	rmdir AppKit.framework/Resources/NSKeyboardBinding
+.for lproj in en.lproj fr.lproj de.lproj
+	cp -av ${.CURDIR}/NSSystemInfoPanel/${lproj}/NSSystemInfoPanel.nib \
+                ${.CURDIR}/${FRAMEWORK}.framework/Versions/Current/Resources/${lproj}/
+.endfor
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
 	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
 
