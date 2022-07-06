@@ -164,6 +164,7 @@ mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
 	*address = addr;
 
 #if EXPERIMENTAL_MACH_ENFORCE_PROT
+#if 0
         /* The caller may optionally free the allocated range if either of
          * these errors occurs. The memory is valid but may not behave as
          * desired. Caveat emptor.
@@ -173,6 +174,7 @@ mach_vm_map(vm_map_t map, mach_vm_address_t *address, mach_vm_size_t _size,
                 /* Memory was alloc'd but not protected properly */
 		error = EACCES;
         }
+#endif // 0
 
         if(vm_map_inherit(map, addr, addr + size, inh) != KERN_SUCCESS) {
             /* Memory was alloc'd but set inheritance failed */
