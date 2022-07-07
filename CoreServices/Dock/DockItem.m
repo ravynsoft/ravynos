@@ -35,12 +35,9 @@
     return [[DockItem alloc] initWithMinimizedWindow:window forApp:appItem];
 }
 
-/* We can't rely on g_dock->iconSize because DockItems are constructed
- * from within the Dock constructor. Boooo.
- */
 +(int)iconSize {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    NSString *s = [prefs stringForKey:INFOKEY_CUR_SIZE];
+    NSString *s = [prefs stringForKey:INFOKEY_TILESIZE];
     if(s) {
         NSSize sz = NSSizeFromString(s);
         return ((sz.width < sz.height) ? sz.width : sz.height) - 16;
@@ -123,6 +120,7 @@
     }
 
     _origIcon = [_icon copy];
+    [self setAutoresizesSubviews:YES];
     [self addSubview:_icon];
 
     _flags = DIF_NORMAL;
@@ -161,9 +159,9 @@
     [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
     [_icon setImage:[[NSImage alloc] initWithContentsOfFile:windowPNG]];
     [[_icon image] setScalesWhenResized:YES];
-    NSDebugLog(@"default _icon created %@", _icon);
 
     _origIcon = [_icon copy];
+    [self setAutoresizesSubviews:YES];
     [self addSubview:_icon];
 
     if(appItem != nil) {

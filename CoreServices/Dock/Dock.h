@@ -32,12 +32,10 @@
 
 #define RADIUS 10      // rounded corner radius
 #define CELL_SPACER 4  // pixels between grid cells
-#define ICON_MIN 24
-#define DOCK_HEIGHT_MAX 136
-#define DOCK_HEIGHT_MIN 32
-#define DOCK_LENGTH_MIN 128
+#define END_CAP 8
+#define TILESIZE_MIN 24
+#define TILESIZE_MAX 256
 
-#define INFOKEY_CUR_SIZE @"CurrentSize"
 #define INFOKEY_LOCATION @"Location"
 #define INFOKEY_OPACITY @"Opacity"
 #define INFOKEY_WALLPAPER @"Wallpaper"
@@ -86,15 +84,13 @@ typedef enum Location Location;
 @interface Dock: NSObject {
     NSUserDefaults *_prefs;
     NSMutableArray *_items;
-    int _itemSlots;
-    DockItem *_emptyItem;
     Location _location;
-    int _maxLength;
     NSImage *_iconRun;
     NSScreen *_screen;
     NSWindow *_window;
     NSMutableDictionary *_desktops;
     NSSize _currentSize;
+    int _tileSize;
     float _alpha;
 }
 
@@ -102,5 +98,9 @@ typedef enum Location Location;
 -(NSImage *)runningIndicator;
 -(void)screenDidResize:(NSNotification *)note;
 -(void)updateBackground;
+-(int)fitWindowToItems;
+-(void)placeItemsInWindow:(int)maxItems;
+-(void)loadItems;
+-(void)relocate;
 
 @end
