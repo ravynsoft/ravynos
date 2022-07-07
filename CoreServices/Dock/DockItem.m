@@ -37,12 +37,8 @@
 
 +(int)iconSize {
     NSUserDefaults *prefs = [NSUserDefaults standardUserDefaults];
-    NSString *s = [prefs stringForKey:INFOKEY_TILESIZE];
-    if(s) {
-        NSSize sz = NSSizeFromString(s);
-        return ((sz.width < sz.height) ? sz.width : sz.height) - 16;
-    }
-    return 64;
+    int size = [prefs integerForKey:INFOKEY_TILESIZE];
+    return size ? size : 64;
 }
 
 /* Application Dock Tiles
@@ -120,7 +116,6 @@
     }
 
     _origIcon = [_icon copy];
-    [self setAutoresizesSubviews:YES];
     [self addSubview:_icon];
 
     _flags = DIF_NORMAL;
@@ -161,7 +156,6 @@
     [[_icon image] setScalesWhenResized:YES];
 
     _origIcon = [_icon copy];
-    [self setAutoresizesSubviews:YES];
     [self addSubview:_icon];
 
     if(appItem != nil) {
@@ -182,6 +176,12 @@
     [_icon setTarget:self];
     [_icon setAction:@selector(activateWindow:)];
     return self;
+}
+
+-(void)setTileSize:(NSSize)size {
+    [self setFrameSize:size];
+    [_icon setFrameSize:size];
+    [self setNeedsDisplay:YES];
 }
 
 -(NSString *)path {

@@ -68,6 +68,7 @@ typedef enum DockItemFlags DockItemFlags;
 
 -(DockItem *)initWithPath:(NSString *)path;
 -(DockItem *)initWithMinimizedWindow:(unsigned int)window forApp:(DockItem *)item;
+-(void)setTileSize:(NSSize)size;
 
 -(NSString *)path;
 -(NSString *)execPath;
