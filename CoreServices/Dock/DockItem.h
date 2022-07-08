@@ -48,6 +48,7 @@ typedef enum DockItemFlags DockItemFlags;
 
 @interface DockItem : NSView {
     DockItemType _type;
+    DockItem *_app;         // owning app if this is a window, else nil
     unsigned int _flags;
     NSString *_path;        // path of the item represented
     NSString *_execPath;    // actual executable for _path

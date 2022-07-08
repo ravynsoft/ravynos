@@ -25,12 +25,17 @@
 #import "desktop.h"
 #import <servers/bootstrap.h>
 
+// FIXME: refactor this to a .defs file and use mig
+// I suspect this should really be implemented as remote notifications
+// or something
 #define MSG_ID_PORT 90210
 #define MSG_ID_INLINE 90211
 #define CODE_ADD_RECENT_ITEM 1
 #define CODE_ITEM_CLICKED 2
 #define CODE_APP_BECAME_ACTIVE 3
 #define CODE_APP_BECAME_INACTIVE 4
+#define CODE_APP_ACTIVATE 5
+#define CODE_APP_HIDE 6
 
 typedef struct {
     mach_msg_header_t header;
@@ -115,6 +120,47 @@ typedef union {
                         //NSLog(@"CODE_APP_BECAME_INACTIVE: pid = %d", pid);
                         break;
                     }
+                    case CODE_APP_ACTIVATE:
+                    {
+                        pid_t pid;
+                        memcpy(&pid, msg.msg.data, sizeof(int));
+                        NSLog(@"CODE_APP_ACTIVATE: pid = %d", pid);
+                        mach_port_t port = [menuBar portForPID:pid];
+                        if(port != MACH_PORT_NULL) {
+                            Message activate = {0};
+                            activate.header.msgh_remote_port = port;
+                            activate.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+                            activate.header.msgh_id = MSG_ID_INLINE;
+                            activate.header.msgh_size = sizeof(activate) - sizeof(mach_msg_trailer_t);
+                            activate.code = msg.msg.code;
+                            memcpy(activate.data, msg.msg.data+sizeof(int), sizeof(int)); // window ID
+                            activate.len = sizeof(int);
+                            mach_msg((mach_msg_header_t *)&activate, MACH_SEND_MSG,
+                                sizeof(activate) - sizeof(mach_msg_trailer_t),
+                                0, MACH_PORT_NULL, 2000 /* ms timeout */, MACH_PORT_NULL);
+                        }
+                        break;
+                    }
+                    case CODE_APP_HIDE:
+                    {
+                        pid_t pid;
+                        memcpy(&pid, msg.msg.data, sizeof(int));
+                        NSLog(@"CODE_APP_HIDE: pid = %d", pid);
+                        mach_port_t port = [menuBar portForPID:pid];
+                        if(port != MACH_PORT_NULL) {
+                            Message activate = {0};
+                            activate.header.msgh_remote_port = port;
+                            activate.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+                            activate.header.msgh_id = MSG_ID_INLINE;
+                            activate.header.msgh_size = sizeof(activate) - sizeof(mach_msg_trailer_t);
+                            activate.code = msg.msg.code;
+                            activate.len = 0;
+                            mach_msg((mach_msg_header_t *)&activate, MACH_SEND_MSG,
+                                sizeof(activate) - sizeof(mach_msg_trailer_t),
+                                0, MACH_PORT_NULL, 2000 /* ms timeout */, MACH_PORT_NULL);
+                        }
+                        break;
+                    }
                 }
                 break;
         }
@@ -183,7 +229,6 @@ typedef union {
 
 - (void)dump:(NSMenuItem *)object {
     int itemID = [object tag];
-    //NSLog(@"DUMP clicked: %@ ID: %d", object, itemID);
 
     Message clicked = {0};
     clicked.header.msgh_remote_port = [menuBar activePort];

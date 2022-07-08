@@ -68,6 +68,8 @@ NSString * const NSApplicationDidChangeScreenParametersNotification=@"NSApplicat
 #define CODE_ITEM_CLICKED 2
 #define CODE_APP_BECAME_ACTIVE 3
 #define CODE_APP_BECAME_INACTIVE 4
+#define CODE_APP_ACTIVATE 5
+#define CODE_APP_HIDE 6
 
 typedef struct {
     mach_msg_header_t header;
@@ -197,6 +199,26 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
                             else
                                 NSLog(@"Error: cannot find menu item with tag %d!", itemID);
                         }
+                        case CODE_APP_ACTIVATE:
+                        {
+                            int windowID;
+                            if(msg.len != sizeof(windowID)) {
+                                NSLog(@"weirdness detected! expected size %d, got %d", sizeof(windowID), msg.len);
+                                break;
+                            }
+                            memcpy(&windowID, msg.data, sizeof(windowID));
+                            NSWindow *win = [self windowWithWindowNumber:windowID];
+                            if(win)
+                                [win showForActivation]; 
+                            [self _checkForAppActivation];
+                            break;
+                        }
+                        case CODE_APP_HIDE:
+                        {
+                            [self hide:nil];
+                            break;
+                        }
+
                     }
                     break;
             }
@@ -1578,6 +1600,11 @@ standardAboutPanel] retain];
         return;
     if(_isHidden)
         [self unhide:nil];
+}
+
+// private method used by Dock
+-(mach_port_t)_wsServicePort {
+    return _wsSvcPort;
 }
 
 @end

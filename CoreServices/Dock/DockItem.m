@@ -25,6 +25,18 @@
 #import "Dock.h"
 #import "DockItem.h"
 
+#define MSG_ID_INLINE 90211
+#define CODE_APP_ACTIVATE 5
+#define CODE_APP_HIDE 6
+
+typedef struct {
+    mach_msg_header_t header;
+    unsigned int code;
+    unsigned char data[64*1024];
+    unsigned int len;
+    mach_msg_trailer_t trailer;
+} Message;
+
 @implementation DockItem
 
 +dockItemWithPath:(NSString *)path {
@@ -58,6 +70,7 @@
     _type = DIT_INVALID;
     _icon = nil;
     _bundleID = nil;
+    _app = nil;
     int size = [DockItem iconSize];
 
     self = [super initWithFrame:NSMakeRect(0,0,size,size)];
@@ -144,6 +157,7 @@
     _path = nil;
     _execPath = nil;
     _label = nil;
+    _app = appItem;
     _type = DIT_WINDOW;
     int size = [DockItem iconSize];
     self = [super initWithFrame:NSMakeRect(0,0,size,size)];
@@ -392,11 +406,20 @@ view does not need to draw the application or custom string badges.
 }
 
 -(void)activateWindow:(id)sender {
-    NSNumber *windowNumber = [_windows firstObject];
-    NSLog(@"activating window %@", windowNumber);
-    // FIXME: how do we tell the owning app or compositor to activate the window?
-    // does the number map at all?
-    // - just send mach_msg to SystemUIServer and it can pass along to the app?
+    int windowNumber = [[_windows firstObject] intValue];
+    int processID = [[[_app pids] firstObject] intValue];
+    Message activate = {0};
+    activate.header.msgh_remote_port = [NSApp _wsServicePort];
+    activate.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+    activate.header.msgh_id = MSG_ID_INLINE;
+    activate.header.msgh_size = sizeof(activate) - sizeof(mach_msg_trailer_t);
+    activate.code = CODE_APP_ACTIVATE;
+    memcpy(activate.data, &processID, sizeof(int));
+    memcpy(activate.data+sizeof(int), &windowNumber, sizeof(int));
+    activate.len = sizeof(int)*2;
+    mach_msg((mach_msg_header_t *)&activate, MACH_SEND_MSG,
+        sizeof(activate) - sizeof(mach_msg_trailer_t),
+        0, MACH_PORT_NULL, 2000 /* ms timeout */, MACH_PORT_NULL);
 }
 
 -(void)openApp:(id)sender {
