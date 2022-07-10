@@ -52,7 +52,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 			size = [[self graphicsStyle] menuItemTextSize:[item _keyEquivalentDescription]];
 			ITEM_MAX(size);
 		}
-		if ([item hasSubmenu])
+		if ([item hasSubmenu] && [[item submenu] numberOfItems] > 0)
 		{
 			size = [[self graphicsStyle] menuItemBranchArrowSize];
 			ITEM_MAX(size);
@@ -258,7 +258,7 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
 			}
 			
 			// Draw the submenu arrow
-			if([item hasSubmenu])
+			if([item hasSubmenu] && [[item submenu] numberOfItems] > 0)
 			{
 				NSSize branchArrowSize = [[self graphicsStyle] menuItemBranchArrowSize];
 				partRect.origin.x = origin.x + NSWidth(itemArea) - branchArrowSize.width;
@@ -359,7 +359,7 @@ static NSRect boundsToTitleAreaRect(NSRect rect){
    if(_selectedItemIndex<[items count]){
     NSMenuItem *item=[items objectAtIndex:_selectedItemIndex];
 
-    if([item hasSubmenu]){
+    if([item hasSubmenu] && [[item submenu] numberOfItems] > 0){
      NSMenuWindow *branch=[[NSMenuWindow alloc] initWithMenu:[item submenu]];
 
      [self positionBranchForSelectedItem:branch window:[self window] screen:screen];

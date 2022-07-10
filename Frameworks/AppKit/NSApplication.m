@@ -682,6 +682,7 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     NSWindow *w = [[[NSWindow alloc] initWithContentRect:NSMakeRect(0,0,1,1)
         styleMask:NSBorderlessWindowMask|WLWindowLayerBackground
         backing:NSBackingStoreBuffered defer:NO] autorelease];
+    [w setBackgroundColor:[NSColor colorWithDeviceRed:1. green:1. blue:1. alpha:1.]];
     [w makeKeyAndOrderFront:nil];
 
    NS_DURING
