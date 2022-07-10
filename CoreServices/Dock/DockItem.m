@@ -71,6 +71,7 @@ typedef struct {
     _icon = nil;
     _bundleID = nil;
     _app = nil;
+    _isRunning = NO;
     int size = [DockItem iconSize];
 
     self = [super initWithFrame:NSMakeRect(0,0,size,size)];
@@ -135,6 +136,11 @@ typedef struct {
     _pids = [NSMutableArray new];
     _windows = [NSMutableArray new];
 
+    NSString *marker = [[NSBundle mainBundle] pathForResource:@"running" ofType:@"png"];
+    _runMarker = [[NSImageView alloc] initWithFrame:NSMakeRect(size/2 - 4, 4, 8, 8)];
+    [_runMarker setImage:[[NSImage alloc] initWithContentsOfFile:marker]];
+    [[_runMarker image] setScalesWhenResized:YES];
+
     [_icon setTarget:self];
     [_icon setAction:@selector(openApp:)];
     return self;
@@ -159,6 +165,7 @@ typedef struct {
     _label = nil;
     _app = appItem;
     _type = DIT_WINDOW;
+    _isRunning = NO;
     int size = [DockItem iconSize];
     self = [super initWithFrame:NSMakeRect(0,0,size,size)];
 
@@ -308,6 +315,17 @@ typedef struct {
         _flags &= ~DIF_LOCKED;
 }
 
+-(BOOL)_checkIsRunning {
+    BOOL _currentlyRunning = _isRunning;
+    _isRunning = ([_pids count] == 0) ? NO : YES;
+    if(_currentlyRunning && !_isRunning) {
+        [self replaceSubview:_runMarker with:nil];
+    } else if(!_currentlyRunning && _isRunning) {
+        [self addSubview:_runMarker];
+    }
+    [self setNeedsDisplay:YES];
+}
+
 -(void)addPID:(pid_t)pid {
     if(pid == 0)
         NSLog(@"addPID: pid of 0 is invalid");
@@ -324,6 +342,7 @@ typedef struct {
         // wake up kqueue to insert the event
 //        write(piper(1), e, sizeof(struct kevent));
     }
+    [self _checkIsRunning];
 }
 
 -(void)removePID:(pid_t)pid {
@@ -344,6 +363,8 @@ typedef struct {
         }
         NSDebugLog(@"removePID: pid %d not found", pid);
     }
+
+    [self _checkIsRunning];
 }
 
 -(void)addWindow:(unsigned int)window {

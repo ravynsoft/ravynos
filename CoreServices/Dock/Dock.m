@@ -162,16 +162,15 @@ static const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotifi
     NSSize size = NSMakeSize(_tileSize, _tileSize);
     [[_window contentView] setSubviews:nil];
 
-    NSLog(@"placeItems: window %@ subviews: %@", _window, [[_window contentView] subviews]);
     for(int i = 0; i < maxItems; ++i) {
         DockItem *item = [_items objectAtIndex:i];
         [item setFrameOrigin:itemPos];
         [item setTileSize:size];
         [[_window contentView] addSubview:item];
         if(_location == LOCATION_BOTTOM)
-            itemPos.x += 8 + _tileSize + CELL_SPACER / 2;
+            itemPos.x += _tileSize + CELL_SPACER / 2;
         else
-            itemPos.y += 8 + _tileSize + CELL_SPACER / 2;
+            itemPos.y += _tileSize + CELL_SPACER / 2;
     }
     [[_window contentView] setNeedsDisplay:YES];
 }
