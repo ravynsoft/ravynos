@@ -746,7 +746,7 @@ _vproc_send_signal_by_label(const char *label, int sig)
 vproc_err_t
 _vprocmgr_log_forward(mach_port_t mp, void *data, size_t len)
 {
-	if (vproc_mig_log_forward(mp, (vm_offset_t)data, len) == 0) {
+	if (vproc_mig_log_forward(mp, (vm_offset_t)data, len, 1600) == 0) {
 		return NULL;
 	}
 

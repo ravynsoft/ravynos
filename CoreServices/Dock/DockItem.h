@@ -24,17 +24,14 @@
 
 #pragma once
 
-#import <Foundation/Foundation.h>
-#import <QIcon>
-#import <QLabel>
+#import <AppKit/AppKit.h>
 
 enum DockItemType : unsigned int {
     DIT_INVALID,
     DIT_APP_BUNDLE,     // item is NSBundle
-    DIT_APP_DESKTOP,    // item is XDG desktop file
     DIT_APP_APPDIR,     // item is AppDir
-    DIT_APP_X11,        // item is unknown app found by window event
-    DIT_WINDOW,         // item is X11 window
+    DIT_APP_FOREIGN,    // item is unknown app found by window event
+    DIT_WINDOW,         // item is minimized window
     DIT_FOLDER,         // item is a folder shortcut
     DIT_MAX = DIT_FOLDER
 };
@@ -46,42 +43,34 @@ enum DockItemFlags : unsigned int {
     DIF_ATTENTION = 0x4     // app wants attention
 };
 
-class DIWidget : public QLabel
-{
-public:
-    DIWidget(NSObject *owner);
-    ~DIWidget();
+typedef enum DockItemType DockItemType;
+typedef enum DockItemFlags DockItemFlags;
 
-    void mousePressEvent(QMouseEvent *e);
-    void mouseReleaseEvent(QMouseEvent *e);
-    void mouseDoubleClickEvent(QMouseEvent *e);
-    void mouseMoveEvent(QMouseEvent *e);
-
-private:
-    NSObject *_owner;
-};
-
-@interface DockItem : NSObject {
+@interface DockItem : NSView {
+    DockItemType _type;
+    DockItem *_app;         // owning app if this is a window, else nil
+    unsigned int _flags;
     NSString *_path;        // path of the item represented
     NSString *_execPath;    // actual executable for _path
     NSString *_bundleID;    // CFBundleIdentifier if one exists
-    DockItemType _type;
-    unsigned int _flags;
     NSMutableArray *_pids;  // PIDs, if running
     NSMutableArray *_windows; // Window IDs
     NSString *_label;       // displayed on hover
-    QIcon *_icon;
-    QLabel *_runMarker;
-    DIWidget *_widget;
+    NSString *_badgeText;
+    NSImageView *_badge;    // small app icon badge for window items
+    NSImageView *_icon;
+    NSImageView *_origIcon; // original icon we found, to revert custom icons
+    NSImageView *_runMarker;
+    BOOL _isRunning;
 }
 
 +(DockItem *)dockItemWithPath:(NSString *)path;
-+(DockItem *)dockItemWithWindow:(unsigned int)window path:(const char *)path;
-+(DockItem *)dockItemWithMinimizedWindow:(unsigned int)window;
++(DockItem *)dockItemWithMinimizedWindow:(unsigned int)window forApp:(DockItem *)item;
++(int)iconSize;
 
 -(DockItem *)initWithPath:(NSString *)path;
--(DockItem *)initWithWindow:(unsigned int)window path:(const char *)path;
--(DockItem *)initWithMinimizedWindow:(unsigned int)window;
+-(DockItem *)initWithMinimizedWindow:(unsigned int)window forApp:(DockItem *)item;
+-(void)setTileSize:(NSSize)size;
 
 -(NSString *)path;
 -(NSString *)execPath;
@@ -98,11 +87,8 @@ private:
 -(NSArray *)pids;
 -(unsigned int)window;
 -(NSArray *)windows;
--(QIcon *)icon;
+-(NSImage *)icon;
 -(BOOL)hasPath:(NSString *)path;
-
--(QLabel *)widget;
--(QLabel *)_getRunMarker;
 
 -(void)setFlags:(DockItemFlags)flags;
 -(void)setNormal; // clears all flags
@@ -113,9 +99,8 @@ private:
 -(void)removeWindow:(unsigned int)window;
 -(void)setResident:(BOOL)value;
 -(void)setNeedsAttention:(BOOL)value;
--(void)setRunningMarker:(QLabel *)label;
--(void)setLabel:(const char *)label;
--(void)setIcon:(QIcon)icon;
--(void)resize:(int)size;
+
+-(void)activateWindow:(id)sender;
+-(void)openApp:(id)sender;
 
 @end

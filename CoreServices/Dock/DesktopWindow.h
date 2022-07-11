@@ -1,8 +1,6 @@
 /*
- * ravynOS Application Launcher & Status Bar
- *
- * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
- *
+ * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -22,6 +20,19 @@
  * THE SOFTWARE.
  */
 
-unsigned long eventID();
-int piper(int n);
+#pragma once
+
+@interface DesktopWindow: NSWindow {
+    NSScreen *_output;
+    NSDictionary *_outputDict; // properties of output
+    NSImageView *view;
+    NSString *_wallpaperPath;
+}
+
+- (DesktopWindow *)initWithFrame:(NSRect)frame forOutput:(NSDictionary *)outputDict;
+- (void)updateBackground;
+- (NSString *)wallpaperPath;
+- (NSScreen *)screen;
+- (NSDictionary *)properties;
+@end
 

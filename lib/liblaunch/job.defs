@@ -193,7 +193,8 @@ out				outval		: pointer_t, dealloc
 routine
 log_forward(
 				j			: job_t;
-				inval		: pointer_t
+				inval		: pointer_t;
+                                WaitTime timeout: natural_t
 );
 
 routine

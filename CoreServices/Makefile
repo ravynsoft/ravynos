@@ -21,7 +21,7 @@ DMIHelper: ${.CURDIR}/DMIHelper.c
 	${SUDO} chown 0:0 ${BUILDROOT}/System/Library/CoreServices/DMIHelper
 	${SUDO} chmod 4755 ${BUILDROOT}/System/Library/CoreServices/DMIHelper
 
-build: buildWindowServer DMIHelper buildInstaller #buildDock buildFiler 
+build: buildWindowServer DMIHelper buildInstaller buildDock #buildFiler 
 	mkdir -p ${BUILDROOT}/System/Library/CoreServices/
 	mkdir -p ${BUILDROOT}/Applications/Utilities/
 	sed -e 's/RAVYNOS_VERSION/${RAVYNOS_VERSION}/' \
@@ -29,7 +29,7 @@ build: buildWindowServer DMIHelper buildInstaller #buildDock buildFiler
             -e 's/BUILD_STAMP/${SHA}/' < ${.CURDIR}/SystemVersion.plist.in \
             >${BUILDROOT}/System/Library/CoreServices/SystemVersion.plist
 	cp -av ${.CURDIR}/WindowServer/WindowServer.app ${BUILDROOT}/System/Library/CoreServices
-	#cp -av ${.CURDIR}/Dock/Dock.app ${BUILDROOT}/System/Library/CoreServices
+	cp -av ${.CURDIR}/Dock/Dock.app ${BUILDROOT}/System/Library/CoreServices
 	#cp -av ${.CURDIR}/Filer/Filer.app ${BUILDROOT}/System/Library/CoreServices
 	cp -av ${.CURDIR}/Installer/"Install ravynOS.app" ${BUILDROOT}/Applications/Utilities/
 .for f in ${.CURDIR}/askpass 
@@ -38,7 +38,7 @@ build: buildWindowServer DMIHelper buildInstaller #buildDock buildFiler
 .endfor
 
 buildDock:
-	#${MAKE} -C ${.CURDIR}/Dock
+	${MAKE} -C ${.CURDIR}/Dock
 
 buildInstaller:
 	${MAKE} -C ${.CURDIR}/Installer build

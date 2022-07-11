@@ -24,16 +24,7 @@
 
 #pragma once
 
-#import <Foundation/Foundation.h>
-
-#import <QWidget>
-#import <QScreen>
-#import <QApplication>
-#import <QGridLayout>
-#import <QBoxLayout>
-#import <QPixmap>
-#import <QThread>
-
+#import <AppKit/AppKit.h>
 #import <unistd.h>
 #import <sys/event.h>
 
@@ -41,15 +32,35 @@
 
 #define RADIUS 10      // rounded corner radius
 #define CELL_SPACER 4  // pixels between grid cells
-#define ICON_MIN 24
-#define DOCK_HEIGHT_MAX 136
-#define DOCK_HEIGHT_MIN 32
-#define DOCK_LENGTH_MIN 128
+#define END_CAP 8
+#define TILESIZE_MIN 24
+#define TILESIZE_MAX 256
 
-#define INFOKEY_CUR_SIZE @"CurrentSize"
 #define INFOKEY_LOCATION @"Location"
-#define INFOKEY_CUR_ITEMS @"CurrentItems"
-#define INFOKEY_FILER_DEF_FOLDER @"FilerDefaultFolder"
+#define INFOKEY_OPACITY @"Opacity"
+#define INFOKEY_WALLPAPER @"Wallpaper"
+
+// These properties are for compatibility with com.apple.Dock.plist
+// Source: https://gist.github.com/brandonb927/3195465/
+#define INFOKEY_PERSISTENT_APPS @"persistent-apps" // array
+#define INFOKEY_PERSISTENT_OTHERS @"persistent-others" // array (of tile data?)
+#define INFOKEY_TILESIZE @"tilesize" // int
+#define INFOKEY_AUTOHIDE @"autohide" // BOOL
+#define INFOKEY_AUTOHIDE_DELAY @"autohide-delay" // float
+#define INFOKEY_AUTOHIDE_TIME_MODIFIER @"autohide-time-modifier" // float
+
+// others found at https://real-world-systems.com/docs/defaults.1.html
+/*
+com.apple.dock persistent-others -array-add '{ "tile-data" = { "list-type" = 1; }; "tile-type" = "recents-tile"; }'; killall Dock
+com.apple.dock largesize -int 512; killall Dock
+com.apple.dock show-exposemenus -boolean no; killall Dock
+com.apple.dock showhidden -bool YES; killall Dock
+com.apple.dock no-glass -boolean YES; killall Dock
+com.apple.dock mouse-over-hilitestack -boolean YES; killall Dock
+com.apple.dock use-new-liststack -boolean YES; killall Dock 
+defaults write com.apple.dock no-bouncing -bool TRUE
+
+*/
 
 #define DIVIDER_MARGIN 10
 
@@ -63,77 +74,31 @@
 
 extern int kqPIDs;
 
-class Dock : public QWidget {
-    Q_OBJECT
-
-public:
-    Dock();
-    virtual ~Dock();
-
-    enum Location : int {
-        LOCATION_BOTTOM = 0,
-        LOCATION_LEFT = 1,
-        LOCATION_RIGHT = 2
-    };
-
-    void relocate();    // Move self to preferred location & size
-    void loadItems();   // Load the pinned items we should display
-
-    void mousePressEvent(QMouseEvent *e);
-    void mouseReleaseEvent(QMouseEvent *e);
-
-    DockItem *findDockItemForPath(char *path);
-    DockItem *findDockItemForMinimizedWindow(unsigned int window);
-    void removeWindowFromAll(unsigned int window);
-    int iconSize(void);
-    bool adjustSize(void);
-
-    // thread safety helpers for the kq loop
-    void emitStarted(void *di);
-    void emitStopped(void *di);
-    void emitAddNonResident(unsigned int pid, const char *path);
-
-    void _addNonResident(DockItem *di);
-
-public slots:
-    void clearRunningLabel(void *di);
-    void setRunningLabel(void *di);
-    void addNonResident(unsigned int pid, const char *path);
-
-
-signals:
-    void itemShouldClearIndicator(void *di);
-    void itemShouldSetIndicator(void *di);
-    void dockShouldAddNonResident(unsigned int pid, const char *path);
-
-private:
-    void setLength(int length);
-    int currentLength(void);
-    void savePrefs(void);
-    void swapWH(void);  // swap current width and height
-    bool capLength(void); // cap size at max for screen. Ret true if capped
-    int itemFromPos(int x, int y);
-    void loadProcessTable();
-    QFrame *makeDivider();
-
-    NSUserDefaults *m_prefs;
-    NSMutableArray *m_itemsPinned;  // Filer & resident icons go first
-    NSMutableArray *m_items;        // then temporary icons & windows
-    NSMutableArray *m_itemsSpecial; // then Downloads & Trash at the end
-    int m_itemSlots;
-    DockItem *m_emptyItem;
-    Location m_location;
-    int m_maxLength;
-    QScreen *m_screen;
-    QSize m_currentSize;
-    QBoxLayout *m_box;
-    QGridLayout *m_cellsPinned;
-    QGridLayout *m_cells;
-    QGridLayout *m_cellsSpecial;
-    QFrame *m_divider;
-    QFrame *m_divider2;
-    QPixmap *m_iconRun;
+enum Location : int {
+    LOCATION_BOTTOM = 0,
+    LOCATION_LEFT = 1,
+    LOCATION_RIGHT = 2
 };
+typedef enum Location Location;
 
-extern Dock *g_dock;
+@interface Dock: NSObject {
+    NSUserDefaults *_prefs;
+    NSMutableArray *_items;
+    Location _location;
+    NSScreen *_screen;
+    NSWindow *_window;
+    NSMutableDictionary *_desktops;
+    NSSize _currentSize;
+    int _tileSize;
+    float _alpha;
+}
 
+-(id)init;
+-(void)screenDidResize:(NSNotification *)note;
+-(void)updateBackground;
+-(int)fitWindowToItems;
+-(void)placeItemsInWindow:(int)maxItems;
+-(void)loadItems;
+-(void)relocate;
+
+@end

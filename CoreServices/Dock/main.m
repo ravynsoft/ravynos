@@ -1,8 +1,6 @@
 /*
- * ravynOS Application Launcher & Status Bar
- *
- * Copyright (C) 2021-2022 Zoe Knox <zoe@pixin.net>
- *
+ * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -22,23 +20,21 @@
  * THE SOFTWARE.
  */
 
-#pragma once
+#import <AppKit/AppKit.h>
+#import "Dock.h"
 
-#import <Foundation/Foundation.h>
-#include <QObject>
-#include <KWindowSystem>
+int main(int argc, const char *argv[]) {
+    __NSInitializeProcess(argc, argv);
 
-class WindowTracker : public QObject
-{
-public:
-    static void activateWindow(WId window);
+    NSAutoreleasePool *pool = [NSAutoreleasePool new];
+    [NSApplication sharedApplication];
 
-    WindowTracker();
+    Dock *dock = [Dock new];
+    if(!dock)
+        exit(-1);
+    [pool drain];
 
-public slots:
-    void windowWasAdded(WId window);
-    void windowWasRemoved(WId window);
-    void windowWasChanged(WId window, NET::Properties props,
-                          NET::Properties2 props2);
+    [NSApp run];
+    return 0;
+}
 
-};
