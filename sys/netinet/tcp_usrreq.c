@@ -272,23 +272,15 @@ tcp_usr_detach(struct socket *so)
 		}
 	} else {
 		/*
-		 * If the connection is not in timewait, we consider two
-		 * two conditions: one in which no further processing is
-		 * necessary (dropped || embryonic), and one in which TCP is
-		 * not yet done, but no longer requires the socket, so the
-		 * pcb will persist for the time being.
-		 *
-		 * XXXRW: Does the second case still occur?
+		 * If the connection is not in timewait, it must be either
+		 * dropped or embryonic.
 		 */
-		if (inp->inp_flags & INP_DROPPED ||
-		    tp->t_state < TCPS_SYN_SENT) {
-			tcp_discardcb(tp);
-			in_pcbdetach(inp);
-			in_pcbfree(inp);
-		} else {
-			in_pcbdetach(inp);
-			INP_WUNLOCK(inp);
-		}
+		KASSERT(inp->inp_flags & INP_DROPPED ||
+		    tp->t_state < TCPS_SYN_SENT,
+		    ("%s: inp %p not dropped or embryonic", __func__, inp));
+		tcp_discardcb(tp);
+		in_pcbdetach(inp);
+		in_pcbfree(inp);
 	}
 }
 
@@ -1370,9 +1362,7 @@ tcp_usr_abort(struct socket *so)
 		TCP_PROBE2(debug__user, tp, PRU_ABORT);
 	}
 	if (!(inp->inp_flags & INP_DROPPED)) {
-		SOCK_LOCK(so);
-		so->so_state |= SS_PROTOREF;
-		SOCK_UNLOCK(so);
+		soref(so);
 		inp->inp_flags |= INP_SOCKREF;
 	}
 	INP_WUNLOCK(inp);
@@ -1406,15 +1396,14 @@ tcp_usr_close(struct socket *so)
 	if (!(inp->inp_flags & INP_TIMEWAIT) &&
 	    !(inp->inp_flags & INP_DROPPED)) {
 		tp = intotcpcb(inp);
+		tp->t_flags |= TF_CLOSED;
 		TCPDEBUG1();
 		tcp_disconnect(tp);
 		TCPDEBUG2(PRU_CLOSE);
 		TCP_PROBE2(debug__user, tp, PRU_CLOSE);
 	}
 	if (!(inp->inp_flags & INP_DROPPED)) {
-		SOCK_LOCK(so);
-		so->so_state |= SS_PROTOREF;
-		SOCK_UNLOCK(so);
+		soref(so);
 		inp->inp_flags |= INP_SOCKREF;
 	}
 	INP_WUNLOCK(inp);

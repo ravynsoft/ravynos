@@ -1412,18 +1412,8 @@ relock:
 	     (tvp != NULL && (seqc_in_modify(tvp_s) ||
 	     !vn_seqc_consistent(tvp, tvp_s))))) {
 		error = softdep_prerename(fdvp, fvp, tdvp, tvp);
-		if (error != 0) {
-			if (error == ERELOOKUP) {
-				fdvp_s = vn_seqc_read_any(fdvp);
-				fvp_s = vn_seqc_read_any(fvp);
-				tdvp_s = vn_seqc_read_any(tdvp);
-				if (tvp != NULL)
-					tvp_s = vn_seqc_read_any(tvp);
-				atomic_add_int(&rename_restarts, 1);
-				goto relock;
-			}
+		if (error != 0)
 			goto releout;
-		}
 	}
 
 	fdp = VTOI(fdvp);
@@ -1467,11 +1457,6 @@ relock:
 			vref(tvp);
 		VOP_VPUT_PAIR(tdvp, &tvp, true);
 		error = ufs_sync_nlink1(mp);
-		if (error == ERELOOKUP) {
-			error = 0;
-			atomic_add_int(&rename_restarts, 1);
-			goto relock;
-		}
 		vrele(fdvp);
 		vrele(fvp);
 		vrele(tdvp);
@@ -1591,17 +1576,17 @@ relock:
 			 * .. is rewritten below.
 			 */
 			if (tdp->i_nlink >= UFS_LINK_MAX) {
-				if (!DOINGSOFTDEP(tdvp) ||
-				    tdp->i_effnlink >= UFS_LINK_MAX) {
-					error = EMLINK;
-					goto unlockout;
-				}
 				fip->i_effnlink--;
 				fip->i_nlink--;
 				DIP_SET(fip, i_nlink, fip->i_nlink);
 				UFS_INODE_SET_FLAG(fip, IN_CHANGE);
 				if (DOINGSOFTDEP(fvp))
 					softdep_revert_link(tdp, fip);
+				if (!DOINGSOFTDEP(tdvp) ||
+				    tdp->i_effnlink >= UFS_LINK_MAX) {
+					error = EMLINK;
+					goto unlockout;
+				}
 				MPASS(want_seqc_end);
 				if (tvp != NULL)
 					vn_seqc_write_end(tvp);
@@ -1620,11 +1605,6 @@ relock:
 					vref(tvp);
 				VOP_VPUT_PAIR(tdvp, &tvp, true);
 				error = ufs_sync_nlink1(mp);
-				if (error == ERELOOKUP) {
-					error = 0;
-					atomic_add_int(&rename_restarts, 1);
-					goto relock;
-				}
 				vrele(fdvp);
 				vrele(fvp);
 				vrele(tdvp);

@@ -74,7 +74,8 @@ static boolean_t blake3_is_sse2_supported(void)
 {
 #if defined(__x86_64)
 	return (kfpu_allowed() && zfs_sse2_available());
-#elif defined(__PPC64__)
+#elif defined(__PPC64__) && defined(__linux__)
+	/* TODO: implement vsx handler or FreeBSD */
 	return (kfpu_allowed() && zfs_vsx_available());
 #else
 	return (kfpu_allowed());
@@ -140,7 +141,8 @@ static boolean_t blake3_is_sse41_supported(void)
 {
 #if defined(__x86_64)
 	return (kfpu_allowed() && zfs_sse4_1_available());
-#elif defined(__PPC64__)
+#elif defined(__PPC64__) && defined(__linux__)
+	/* TODO: implement vsx handler or FreeBSD */
 	return (kfpu_allowed() && zfs_vsx_available());
 #else
 	return (kfpu_allowed());
