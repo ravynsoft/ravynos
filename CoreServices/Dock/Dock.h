@@ -85,7 +85,6 @@ typedef enum Location Location;
     NSUserDefaults *_prefs;
     NSMutableArray *_items;
     Location _location;
-    NSImage *_iconRun;
     NSScreen *_screen;
     NSWindow *_window;
     NSMutableDictionary *_desktops;
@@ -95,7 +94,6 @@ typedef enum Location Location;
 }
 
 -(id)init;
--(NSImage *)runningIndicator;
 -(void)screenDidResize:(NSNotification *)note;
 -(void)updateBackground;
 -(int)fitWindowToItems;

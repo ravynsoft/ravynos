@@ -29,6 +29,9 @@
 #define CODE_APP_ACTIVATE 5
 #define CODE_APP_HIDE 6
 
+#define RUNMK_DIAMETER 8
+#define RUNMK_SPACER 2
+
 typedef struct {
     mach_msg_header_t header;
     unsigned int code;
@@ -74,7 +77,7 @@ typedef struct {
     _isRunning = NO;
     int size = [DockItem iconSize];
 
-    self = [super initWithFrame:NSMakeRect(0,0,size,size)];
+    self = [super initWithFrame:NSMakeRect(0,0,size,size + 16)];
     // first, walk the path for .app or .AppDir in case this is the
     // path to the actual executable inside
     NSArray *comps = [path pathComponents];
@@ -102,7 +105,8 @@ typedef struct {
             iconFile = [b objectForInfoDictionaryKey:@"NSIcon"];
         NSString *iconPath = [NSString stringWithFormat:@"%@/Resources/%@",path,iconFile];
 
-        _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,0,size,size)];
+        _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(
+            0,RUNMK_DIAMETER+2*RUNMK_SPACER,size,size)];
         [_icon setImage:[[NSImage alloc] initWithContentsOfFile:iconPath]];
         [[_icon image] setScalesWhenResized:YES];
         [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
@@ -114,7 +118,8 @@ typedef struct {
         _label = [[path lastPathComponent] stringByDeletingPathExtension];
         NSString *iconFile = [NSString stringWithFormat:@"%@/.DirIcon", path];
         if([[NSFileManager defaultManager] fileExistsAtPath:iconFile]) {
-            _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,0,size,size)];
+            _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(
+                0,RUNMK_DIAMETER+2*RUNMK_SPACER,size,size)];
             [_icon setImage:[[NSImage alloc] initWithContentsOfFile:iconFile]];
             [[_icon image] setScalesWhenResized:YES];
             [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
@@ -123,7 +128,8 @@ typedef struct {
 
     if(_icon == nil) {
         NSString *windowPNG = [[NSBundle mainBundle] pathForResource:@"window" ofType:@"png"];
-        _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(0,0,size,size)];
+        _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(
+            0,RUNMK_DIAMETER+2*RUNMK_SPACER,size,size)];
         [_icon setImage:[[NSImage alloc] initWithContentsOfFile:windowPNG]];
         [[_icon image] setScalesWhenResized:YES];
         [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
@@ -137,7 +143,8 @@ typedef struct {
     _windows = [NSMutableArray new];
 
     NSString *marker = [[NSBundle mainBundle] pathForResource:@"running" ofType:@"png"];
-    _runMarker = [[NSImageView alloc] initWithFrame:NSMakeRect(size/2 - 4, 4, 8, 8)];
+    _runMarker = [[NSImageView alloc] initWithFrame:NSMakeRect(
+        size/2 - RUNMK_DIAMETER/2, RUNMK_SPACER, RUNMK_DIAMETER, RUNMK_DIAMETER)];
     [_runMarker setImage:[[NSImage alloc] initWithContentsOfFile:marker]];
     [[_runMarker image] setScalesWhenResized:YES];
 
@@ -167,11 +174,12 @@ typedef struct {
     _type = DIT_WINDOW;
     _isRunning = NO;
     int size = [DockItem iconSize];
-    self = [super initWithFrame:NSMakeRect(0,0,size,size)];
+    self = [super initWithFrame:NSMakeRect(0,0,size,size+16)];
 
     NSString *windowPNG = [[NSBundle mainBundle] pathForResource:@"window" ofType:@"png"];
     float scale = size * 0.1;
-    _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(2*scale, scale, size-2*scale, size-scale)];
+    _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(
+        2*scale, scale+RUNMK_DIAMETER+2*RUNMK_SPACER, size-2*scale, size-scale)];
     [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
     [_icon setImage:[[NSImage alloc] initWithContentsOfFile:windowPNG]];
     [[_icon image] setScalesWhenResized:YES];
@@ -181,7 +189,7 @@ typedef struct {
 
     if(appItem != nil) {
         _badge = [[NSImageView alloc] initWithFrame:
-            NSMakeRect(0,0,size*0.55,size*0.55)];
+            NSMakeRect(0,10+[_icon frame].origin.y,size*0.55,size*0.55)];
         [_badge setImageScaling:NSImageScaleProportionallyUpOrDown];
         [_badge setImage:[appItem icon]];
         [[_badge image] setScalesWhenResized:YES];
@@ -200,7 +208,9 @@ typedef struct {
 }
 
 -(void)setTileSize:(NSSize)size {
-    [self setFrameSize:size];
+    NSSize framesize = size;
+    framesize.height += 16;
+    [self setFrameSize:framesize];
     [_icon setFrameSize:size];
     [self setNeedsDisplay:YES];
 }

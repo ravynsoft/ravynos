@@ -39,9 +39,6 @@ static const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotifi
     if(_tileSize < TILESIZE_MIN)
         _tileSize = 64;
 
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"running" ofType:@"png"];
-    _iconRun = [[NSImage alloc] initWithContentsOfFile:path];
-
     int pos = [_prefs integerForKey:INFOKEY_LOCATION];
     _location = (Location)pos;
 
@@ -83,10 +80,6 @@ static const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotifi
         blue:0.666 alpha:_alpha]];
     
     return _window;
-}
-
--(NSImage *)runningIndicator {
-    return _iconRun;
 }
 
 -(void)screenDidResize:(NSNotification *)note {
@@ -158,7 +151,7 @@ static const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotifi
 -(void)placeItemsInWindow:(int)maxItems {
     if(maxItems < [_items count])
         NSLog(@"Warning: truncating some items to fit the screen");
-    NSPoint itemPos = NSMakePoint(8, 8);
+    NSPoint itemPos = NSMakePoint(8, 0);
     NSSize size = NSMakeSize(_tileSize, _tileSize);
     [[_window contentView] setSubviews:nil];
 
@@ -187,6 +180,7 @@ static const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotifi
 
     di = [DockItem dockItemWithPath:@"/Applications/Utilities/Install ravynOS.app"];
     [di setResident:YES];
+    [di addPID:1];
     [_items addObject:di];
 
     NSString *specials[] = {@"Downloads",@"Trash"};
