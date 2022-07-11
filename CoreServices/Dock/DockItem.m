@@ -177,9 +177,8 @@ typedef struct {
     self = [super initWithFrame:NSMakeRect(0,0,size,size+16)];
 
     NSString *windowPNG = [[NSBundle mainBundle] pathForResource:@"window" ofType:@"png"];
-    float scale = size * 0.1;
     _icon = [[NSImageView alloc] initWithFrame:NSMakeRect(
-        2*scale, scale+RUNMK_DIAMETER+2*RUNMK_SPACER, size-2*scale, size-scale)];
+        size*0.2, RUNMK_DIAMETER+2*RUNMK_SPACER, size-(size*0.2), size-RUNMK_DIAMETER-RUNMK_SPACER)];
     [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
     [_icon setImage:[[NSImage alloc] initWithContentsOfFile:windowPNG]];
     [[_icon image] setScalesWhenResized:YES];
@@ -189,7 +188,7 @@ typedef struct {
 
     if(appItem != nil) {
         _badge = [[NSImageView alloc] initWithFrame:
-            NSMakeRect(0,10+[_icon frame].origin.y,size*0.55,size*0.55)];
+            NSMakeRect(0,RUNMK_DIAMETER+2*RUNMK_SPACER,size*0.55,size*0.55)];
         [_badge setImageScaling:NSImageScaleProportionallyUpOrDown];
         [_badge setImage:[appItem icon]];
         [[_badge image] setScalesWhenResized:YES];

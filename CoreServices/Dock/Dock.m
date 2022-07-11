@@ -180,7 +180,9 @@ static const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotifi
 
     di = [DockItem dockItemWithPath:@"/Applications/Utilities/Install ravynOS.app"];
     [di setResident:YES];
-    [di addPID:1];
+    [_items addObject:di];
+
+    di = [DockItem dockItemWithMinimizedWindow:1 forApp:di];
     [_items addObject:di];
 
     NSString *specials[] = {@"Downloads",@"Trash"};
