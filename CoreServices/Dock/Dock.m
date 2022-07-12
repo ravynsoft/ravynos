@@ -54,7 +54,6 @@ static void kqSvcLoop(void *arg) {
         _alpha = 0.85;
 
     [self loadItems];
-    [self savePrefs];
 
     int max = [self fitWindowToItems];
     NSRect frame = NSMakeRect(0,0,_currentSize.width,_currentSize.height);
@@ -107,7 +106,6 @@ static void kqSvcLoop(void *arg) {
 
                 if((out[i].fflags & NOTE_EXIT)) {
                     DockItem *item = (__bridge DockItem *)(out[i].udata);
-                    NSLog(@"item exited %@ pid %u",item,out[i].ident);
                     [item removePID:out[i].ident];
                 }
                 break;
@@ -118,13 +116,10 @@ static void kqSvcLoop(void *arg) {
 }
 
 -(DockItem *)dockItemForPath:(NSString *)path {
-    NSLog(@"dockItemForPath %@",path);
     for(int i = 0; i < [_items count]; ++i) {
         DockItem *item = [_items objectAtIndex:i];
-        if([item hasPath:path]) {
-            NSLog(@"found item %@", item);
+        if([item hasPath:path])
             return item;
-        }
     }
     return nil;
 }
