@@ -27,6 +27,8 @@
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
 
-    Downloads *dl = [Downloads new];
-    return [dl run];
+    @autoreleasepool {
+        Downloads *dl = [Downloads new];
+        return [dl run];
+    }
 }

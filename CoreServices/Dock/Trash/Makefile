@@ -1,13 +1,12 @@
 APP=	Trash
-SRCS=	main.mm Trash.mm
+SRCS=	main.m Trash.m
 RESOURCES=	${.CURDIR}/Trash.png ${.CURDIR}/Trash_full.png
 
-Trash.o: Trash.mm Trash.h
+Trash.o: Trash.m Trash.h
 
 MK_WERROR=	no
-CXXFLAGS+=	-g -fPIC
-LDFLAGS+=	-lc++ -framework Foundation \
-		-framework LaunchServices -lobjc -lX11
+CXXFLAGS+=	-g -fPIC -fobjc-arc
+LDFLAGS+=	-framework Foundation -framework LaunchServices -lobjc
 
 
 .include <rvn.app.mk>

@@ -28,9 +28,16 @@
 
 static const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
 
+static void kqSvcLoop(void *arg) {
+    Dock *dock = (__bridge Dock *)arg;
+    while(1)
+        [dock processKernelQueue];
+} 
+
 @implementation Dock
 
 -(id)init {
+    _PID = getpid();
     _prefs = [NSUserDefaults standardUserDefaults];
     _desktops = [NSMutableDictionary new];
     _currentSize = NSZeroSize;
@@ -58,7 +65,68 @@ static const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotifi
         name:WLOutputDidResizeNotification object:nil];
 
     [_window orderFront:nil];
+    pthread_create(&kqThread, NULL, kqSvcLoop, (__bridge void *)self);
+
+    struct kevent e[2];
+    EV_SET(&e[0], getpid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, (__bridge void *)nil);
+    EV_SET(&e[1], getppid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, (__bridge void *)nil);
+    kevent(_kq, e, 2, NULL, 0, NULL);
+
     return self;
+}
+
+// called from our kq watcher thread
+-(void)processKernelQueue {
+    struct kevent out[128];
+    int count = kevent(_kq, NULL, 0, out, 128, NULL);
+    char buf[PATH_MAX];
+
+    for(int i = 0; i < count; ++i) {
+        switch(out[i].filter) {
+            case EVFILT_PROC:
+                // ignore FORK notices for this PID - we only care about children
+                if(_PID == out[i].ident)
+                    break;
+
+                if(out[i].fflags & (NOTE_FORK|NOTE_EXEC|NOTE_CHILD)) {
+                    NSString *path = [NSString
+                        stringWithFormat:@"/proc/%lu/file", out[i].ident];
+                    int len = readlink([path UTF8String], buf, PATH_MAX-1);
+                    if(len <= 0)
+                        break;
+                    buf[len] = 0;
+
+                    NSString *p = [NSString stringWithUTF8String:buf];
+                    DockItem *item = [self dockItemForPath:p];
+                    if(item == nil) {
+                        //NSLog(@"non-persistent item %@", item);
+                        break;
+                    }
+                    [item addPID:out[i].ident];
+                }
+
+                if((out[i].fflags & NOTE_EXIT)) {
+                    DockItem *item = (__bridge DockItem *)(out[i].udata);
+                    NSLog(@"item exited %@ pid %u",item,out[i].ident);
+                    [item removePID:out[i].ident];
+                }
+                break;
+            default:
+                NSLog(@"unknown filter");
+        }
+    }
+}
+
+-(DockItem *)dockItemForPath:(NSString *)path {
+    NSLog(@"dockItemForPath %@",path);
+    for(int i = 0; i < [_items count]; ++i) {
+        DockItem *item = [_items objectAtIndex:i];
+        if([item hasPath:path]) {
+            NSLog(@"found item %@", item);
+            return item;
+        }
+    }
+    return nil;
 }
 
 -(NSWindow *)createWindowWithFrame:(NSRect)frame {

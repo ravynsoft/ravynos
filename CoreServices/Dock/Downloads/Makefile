@@ -1,13 +1,12 @@
 APP=	Downloads
-SRCS=	main.mm Downloads.mm
+SRCS=	main.m Downloads.m
 RESOURCES=	${.CURDIR}/Downloads.png
 
-Downloads.o: Downloads.mm Downloads.h
+Downloads.o: Downloads.m Downloads.h
 
 MK_WERROR=	no
-CXXFLAGS+=	-g -fPIC
-LDFLAGS+=	-lc++ -framework Foundation \
-		-framework LaunchServices -lobjc -lX11
+CFLAGS+=	-g -fPIC -fobjc-arc
+LDFLAGS+=	-framework Foundation -framework LaunchServices -lobjc
 
 
 .include <rvn.app.mk>

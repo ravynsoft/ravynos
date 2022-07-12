@@ -328,7 +328,7 @@ typedef struct {
     BOOL _currentlyRunning = _isRunning;
     _isRunning = ([_pids count] == 0) ? NO : YES;
     if(_currentlyRunning && !_isRunning) {
-        [self replaceSubview:_runMarker with:nil];
+        [_runMarker removeFromSuperview];
     } else if(!_currentlyRunning && _isRunning) {
         [self addSubview:_runMarker];
     }
@@ -336,43 +336,40 @@ typedef struct {
 }
 
 -(void)addPID:(pid_t)pid {
+    struct kevent e[1];
+
     if(pid == 0)
         NSLog(@"addPID: pid of 0 is invalid");
     else {
-//        struct kevent e[1];
 
         for(int i = 0; i < [_pids count]; ++i) {
             if([[_pids objectAtIndex:i] intValue] == pid)
                 return; // already have this PID
         }
         [_pids addObject:[NSNumber numberWithInteger:pid]];
-//        EV_SET(e, pid, EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK|NOTE_EXIT, 0, (__bridge void *)self);
-
-        // wake up kqueue to insert the event
-//        write(piper(1), e, sizeof(struct kevent));
+        EV_SET(e, pid, EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK|NOTE_EXIT, 0, (__bridge void *)self);
+        kevent(_kq, e, 1, NULL, 0, NULL);
     }
     [self _checkIsRunning];
 }
 
 -(void)removePID:(pid_t)pid {
+    struct kevent e[1];
+
     if(pid == 0)
         NSLog(@"removePID: pid of 0 is invalid");
     else {
-//        struct kevent e[1];
 
         for(int i = 0; i < [_pids count]; ++i) {
             if([[_pids objectAtIndex:i] intValue] == pid) {
                 [_pids removeObjectAtIndex:i];
-//                EV_SET(e, pid, EVFILT_PROC, EV_DELETE, 0, 0, (__bridge void *)self);
-
-                // wake up kqueue to insert the event
-//                write(piper(1), e, sizeof(struct kevent));
-                return;
+                break;
             }
         }
-        NSDebugLog(@"removePID: pid %d not found", pid);
-    }
 
+        EV_SET(e, pid, EVFILT_PROC, EV_DELETE, 0, 0, (__bridge void *)self);
+        kevent(_kq, e, 1, NULL, 0, NULL);
+    }
     [self _checkIsRunning];
 }
 

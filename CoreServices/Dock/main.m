@@ -23,8 +23,16 @@
 #import <AppKit/AppKit.h>
 #import "Dock.h"
 
+int _kq;
+
 int main(int argc, const char *argv[]) {
     __NSInitializeProcess(argc, argv);
+
+    _kq = kqueue();
+    if(_kq < 0) {
+        perror("kqueue");
+        exit(-1);
+    }
 
     NSAutoreleasePool *pool = [NSAutoreleasePool new];
     [NSApplication sharedApplication];

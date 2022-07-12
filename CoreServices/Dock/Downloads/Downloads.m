@@ -38,8 +38,8 @@
         @"/System/Library/CoreServices/Filer.app"];
 
     LSLaunchURLSpec spec = { 0 };
-    spec.appURL = (CFURLRef)app;
-    spec.itemURLs = (CFArrayRef)urls;
+    spec.appURL = (__bridge_retained CFURLRef)app;
+    spec.itemURLs = (__bridge_retained CFArrayRef)urls;
     LSOpenFromURLSpec(&spec, NULL);
     return 0;
 }
