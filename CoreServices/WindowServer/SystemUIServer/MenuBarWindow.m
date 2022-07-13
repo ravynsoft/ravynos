@@ -20,8 +20,11 @@
  * THE SOFTWARE.
  */
 
+#include <pthread.h>
 #import <AppKit/AppKit.h>
 #import "desktop.h"
+
+extern pthread_mutex_t mtx;
 
 @implementation MenuBarWindow
 - initWithFrame:(NSRect)frame forOutput:(NSScreen *)output {
@@ -58,9 +61,12 @@
 
 - (void)notifyTick:(id)arg {
     NSString *value = [clockView currentDateValue];
+    pthread_mutex_lock(&mtx);
     [clockView setStringValue:value];
     [clockView setNeedsDisplay:YES];
-    NSEvent *event =[[NSEvent alloc] initWithType:NSAppKitSystem location:NSMakePoint(0,0) modifierFlags:0 window:nil];
+    pthread_mutex_unlock(&mtx);
+    NSEvent *event =[[NSEvent alloc]
+        initWithType:NSAppKitSystem location:NSMakePoint(0,0) modifierFlags:0 window:nil];
     [NSApp postEvent:event atStart:YES];
 }
 

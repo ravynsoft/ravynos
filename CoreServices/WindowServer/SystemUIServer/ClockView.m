@@ -20,11 +20,15 @@
  * THE SOFTWARE.
  */
 
+#include <pthread.h>
+#include <unistd.h>
 #import <AppKit/AppKit.h>
 #import "desktop.h"
 
 const NSString *PrefsDateFormatStringKey = @"DateFormatString";
 const NSString *defaultFormatEN = @"%a %b %d  %I:%M %p";
+
+pthread_mutex_t mtx;
 
 @implementation ClockView
 - initWithFrame:(NSRect)frame {
@@ -53,6 +57,7 @@ const NSString *defaultFormatEN = @"%a %b %d  %I:%M %p";
         withMaxWidth:300];
     [self setFont:font];
 
+    pthread_mutex_init(&mtx, NULL);
     [NSThread detachNewThreadSelector:@selector(notifyTick:) toTarget:self withObject:nil];
 
     return self;
@@ -67,6 +72,13 @@ const NSString *defaultFormatEN = @"%a %b %d  %I:%M %p";
         [[NSNotificationCenter defaultCenter] postNotificationName:@"ClockTick" object:nil userInfo:NULL];
         usleep(400000);
     }
+}
+
+// override default method to ensure thread safety
+- (void)drawRect:(NSRect)rect {
+    pthread_mutex_lock(&mtx);
+    [super drawRect:rect];
+    pthread_mutex_unlock(&mtx);
 }
 
 @end
