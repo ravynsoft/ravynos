@@ -9,8 +9,8 @@ DockItem.o: DockItem.m DockItem.h
 
 MK_WERROR=	no
 CFLAGS+=	-g -fobjc-arc
-LDFLAGS+=	-framework AppKit -framework LaunchServices \
-		-framework Foundation -lobjc -lSystem
+LDFLAGS+=	-framework LaunchServices -framework AppKit \
+                -framework Foundation -lobjc -lSystem
 
 Trash.app::
 	rm -rf ${.TARGET}

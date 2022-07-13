@@ -22,8 +22,10 @@
  * THE SOFTWARE.
  */
 
+#include <mach/message.h>
 #import "Dock.h"
 #import "DockItem.h"
+#import <LaunchServices/LaunchServices.h>
 
 #define MSG_ID_INLINE 90211
 #define CODE_APP_ACTIVATE 5
@@ -39,6 +41,7 @@ typedef struct {
     unsigned int len;
     mach_msg_trailer_t trailer;
 } Message;
+
 
 @implementation DockItem
 
@@ -135,7 +138,7 @@ typedef struct {
         [_icon setImageScaling:NSImageScaleProportionallyUpOrDown];
     }
 
-    _origIcon = [_icon copy];
+    _origIcon = _icon;
     [self addSubview:_icon];
 
     _flags = DIF_NORMAL;
@@ -183,7 +186,7 @@ typedef struct {
     [_icon setImage:[[NSImage alloc] initWithContentsOfFile:windowPNG]];
     [[_icon image] setScalesWhenResized:YES];
 
-    _origIcon = [_icon copy];
+    _origIcon = _icon;
     [self addSubview:_icon];
 
     if(appItem != nil) {
@@ -296,7 +299,7 @@ typedef struct {
 
     NSArray *comps = [path pathComponents];
     // FIXME: should this be reverse order to find sub bundles?
-    for(int i = 0; i < [comps count]; ++i) {
+    for(int i = [comps count] - 1; i >= 0; --i) {
         if([[comps objectAtIndex:i] hasSuffix:@"app"] == YES) {
             NSString *newpath = [NSString stringWithFormat:@"/%@",
             [NSString pathWithComponents:
@@ -333,6 +336,7 @@ typedef struct {
         [self addSubview:_runMarker];
     }
     [self setNeedsDisplay:YES];
+    return _isRunning;
 }
 
 -(void)addPID:(pid_t)pid {
@@ -347,7 +351,7 @@ typedef struct {
                 return; // already have this PID
         }
         [_pids addObject:[NSNumber numberWithInteger:pid]];
-        EV_SET(e, pid, EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK|NOTE_EXIT, 0, (__bridge void *)self);
+        EV_SET(e, pid, EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK|NOTE_EXIT, 0, (__bridge_retained void *)self);
         kevent(_kq, e, 1, NULL, 0, NULL);
     }
     [self _checkIsRunning];
@@ -367,7 +371,7 @@ typedef struct {
             }
         }
 
-        EV_SET(e, pid, EVFILT_PROC, EV_DELETE, 0, 0, (__bridge void *)self);
+        EV_SET(e, pid, EVFILT_PROC, EV_DELETE, 0, 0, (__bridge_retained void *)self);
         kevent(_kq, e, 1, NULL, 0, NULL);
     }
     [self _checkIsRunning];
@@ -407,7 +411,7 @@ typedef struct {
 -(void)setApplicationIconImage:(NSImage *)image {
     if(image == nil) { // user wants to remove customization
         [_icon removeFromSuperview];
-        _icon = [_origIcon copy];
+        _icon = _origIcon;
         [self addSubview:_icon];
         return;
     }

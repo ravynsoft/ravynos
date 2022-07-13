@@ -29,7 +29,7 @@
 static const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
 
 static void kqSvcLoop(void *arg) {
-    Dock *dock = (__bridge Dock *)arg;
+    Dock *dock = (__bridge_transfer Dock *)arg;
     while(1)
         [dock processKernelQueue];
 } 
@@ -64,11 +64,11 @@ static void kqSvcLoop(void *arg) {
         name:WLOutputDidResizeNotification object:nil];
 
     [_window orderFront:nil];
-    pthread_create(&kqThread, NULL, kqSvcLoop, (__bridge void *)self);
+    pthread_create(&kqThread, NULL, kqSvcLoop, (__bridge_retained void *)self);
 
     struct kevent e[2];
-    EV_SET(&e[0], getpid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, (__bridge void *)nil);
-    EV_SET(&e[1], getppid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, (__bridge void *)nil);
+    EV_SET(&e[0], getpid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, (__bridge_retained void *)nil);
+    EV_SET(&e[1], getppid(), EVFILT_PROC, EV_ADD, NOTE_FORK|NOTE_EXEC|NOTE_TRACK, 0, (__bridge_retained void *)nil);
     kevent(_kq, e, 2, NULL, 0, NULL);
 
     return self;
@@ -98,15 +98,26 @@ static void kqSvcLoop(void *arg) {
                     NSString *p = [NSString stringWithUTF8String:buf];
                     DockItem *item = [self dockItemForPath:p];
                     if(item == nil) {
-                        //NSLog(@"non-persistent item %@", item);
-                        break;
+                        item = [DockItem dockItemWithPath:p];
+                        if([item type] == DIT_INVALID)
+                            break;
+                        if([[item bundleIdentifier] isEqualToString:@"com.ravynos.Dock"])
+                            break; // can't add Dock to itself
+                        [_items addObject:item];
+                        int maxItems = [self fitWindowToItems];
+                        [self placeItemsInWindow:maxItems];
                     }
                     [item addPID:out[i].ident];
                 }
 
                 if((out[i].fflags & NOTE_EXIT)) {
-                    DockItem *item = (__bridge DockItem *)(out[i].udata);
+                    DockItem *item = (__bridge_transfer DockItem *)(out[i].udata);
                     [item removePID:out[i].ident];
+                    if(![item isRunning] && ![item isResident]) {
+                        [_items removeObjectIdenticalTo:item];
+                        int maxItems = [self fitWindowToItems];
+                        [self placeItemsInWindow:maxItems];
+                    }
                 }
                 break;
             default:

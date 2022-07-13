@@ -5,7 +5,7 @@ RESOURCES=	${.CURDIR}/Trash.png ${.CURDIR}/Trash_full.png
 Trash.o: Trash.m Trash.h
 
 MK_WERROR=	no
-CXXFLAGS+=	-g -fPIC -fobjc-arc
+CFLAGS+=	-g -fPIC -fobjc-arc
 LDFLAGS+=	-framework Foundation -framework LaunchServices -lobjc
 
 
