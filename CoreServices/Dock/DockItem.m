@@ -25,6 +25,7 @@
 #include <mach/message.h>
 #import "Dock.h"
 #import "DockItem.h"
+#import "DockTileData.h"
 #import <LaunchServices/LaunchServices.h>
 
 #define MSG_ID_INLINE 90211
@@ -142,6 +143,9 @@ typedef struct {
     [self addSubview:_icon];
 
     _flags = DIF_NORMAL;
+    if([_bundleID isEqualToString:@"com.ravynos.Filer"] || [_bundleID hasPrefix:@"com.ravynos.Dock"])
+        [self setLocked:YES];
+
     _pids = [NSMutableArray new];
     _windows = [NSMutableArray new];
 
@@ -255,8 +259,8 @@ typedef struct {
     return NO;
 }
 
--(BOOL)isResident {
-    return (_flags & DIF_RESIDENT) ? YES : NO;
+-(BOOL)isPersistent {
+    return (_flags & DIF_PERSISTENT) ? YES : NO;
 }
 
 -(BOOL)needsAttention {
@@ -394,11 +398,11 @@ typedef struct {
     }
 }
 
--(void)setResident:(BOOL)value {
+-(void)setPersistent:(BOOL)value {
     if(value == YES)
-        _flags |= DIF_RESIDENT;
+        _flags |= DIF_PERSISTENT;
     else
-        _flags &= ~DIF_RESIDENT;
+        _flags &= ~DIF_PERSISTENT;
 }
 
 -(void)setNeedsAttention:(BOOL)value {
@@ -456,6 +460,10 @@ view does not need to draw the application or custom string badges.
 -(void)openApp:(id)sender {
     NSURL *url = [NSURL fileURLWithPath:_path];
     LSOpenCFURLRef((__bridge_retained CFURLRef)url, NULL);
+}
+
+-(NSDictionary *)tileData {
+    return dockTileData(_path);
 }
 
 -(NSString *)description {

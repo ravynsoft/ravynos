@@ -24,6 +24,7 @@
 
 #import <AppKit/AppKit.h>
 #import "Dock.h"
+#import "DockTileData.h"
 #import "DesktopWindow.h"
 
 static const NSString *WLOutputDidResizeNotification = @"WLOutputDidResizeNotification";
@@ -113,7 +114,7 @@ static void kqSvcLoop(void *arg) {
                 if((out[i].fflags & NOTE_EXIT)) {
                     DockItem *item = (__bridge_transfer DockItem *)(out[i].udata);
                     [item removePID:out[i].ident];
-                    if(![item isRunning] && ![item isResident]) {
+                    if(![item isRunning] && ![item isPersistent]) {
                         [_items removeObjectIdenticalTo:item];
                         int maxItems = [self fitWindowToItems];
                         [self placeItemsInWindow:maxItems];
@@ -171,6 +172,21 @@ static void kqSvcLoop(void *arg) {
     [self savePrefs];
 }
 
+-(NSArray *)tileDataForAppItems {
+    NSMutableArray *a = [NSMutableArray new];
+    for(int i = 0; i < [_items count]; ++i) {
+        DockItem *di = [_items objectAtIndex:i];
+        if(![di isPersistent] || [[di bundleIdentifier] hasPrefix:@"com.ravynos.Dock"])
+            continue;
+        [a addObject:[di tileData]];
+    }
+    return [NSArray arrayWithArray:a];
+}
+
+-(NSArray *)tileDataForOtherItems {
+    return [NSArray new];
+}
+
 -(void)savePrefs {
     [_prefs setInteger:_tileSize forKey:INFOKEY_TILESIZE];
     [_prefs setInteger:_location forKey:INFOKEY_LOCATION];
@@ -185,6 +201,8 @@ static void kqSvcLoop(void *arg) {
         [_wallpaper setObject:[dw wallpaperPath] forKey:[props objectForKey:@"WLOutputModel"]];
     }
     [_prefs setObject:_wallpaper forKey:INFOKEY_WALLPAPER];
+    [_prefs setObject:[self tileDataForAppItems] forKey:INFOKEY_PERSISTENT_APPS];
+    //[_prefs setObject:[self tileDataForOtherItems] forKey:INFOKEY_PERSISTENT_OTHERS];
 
     [_prefs synchronize];
 }
@@ -246,25 +264,30 @@ static void kqSvcLoop(void *arg) {
     if(_items == nil)
         _items = [NSMutableArray arrayWithCapacity:10];
 
-    // FIXME: load from persistent-apps key
-    DockItem *di =[DockItem dockItemWithPath:@"/System/Library/CoreServices/Filer.app"]; 
-    [di setLocked:YES];
-    [di setResident:YES];
-    [_items addObject:di];
+    NSMutableArray *pa = [NSMutableArray arrayWithCapacity:10];
+    [pa addObjectsFromArray:[_prefs objectForKey:INFOKEY_PERSISTENT_APPS]];
 
-    di = [DockItem dockItemWithPath:@"/Applications/Utilities/Install ravynOS.app"];
-    [di setResident:YES];
-    [_items addObject:di];
+    if(!pa || [pa count] == 0) {
+        // populate default apps
+        [pa addObject:dockTileData(@"/System/Library/CoreServices/Filer.app")];
+        [pa addObject:dockTileData(@"/Applications/Utilities/Install ravynOS.app")];
+    }
 
-    di = [DockItem dockItemWithMinimizedWindow:1 forApp:di];
-    [_items addObject:di];
+    for(int i = 0; i < [pa count]; ++i) {
+        NSDictionary *dict = [pa objectAtIndex:i];
+        NSLog(@"%@", dict);
+        DockItem *di = [DockItem dockItemWithPath:CFURLString(dict)];
+        [di setPersistent:YES];
+        [_items addObject:di];
+    }
+
+    // FIXME: load persistent-other items
 
     NSString *specials[] = {@"Downloads",@"Trash"};
     for(int x = 0; x < 2; ++x) {
         NSString *bundle = [[NSBundle mainBundle] pathForResource:specials[x] ofType:@"app"];
-        di = [DockItem dockItemWithPath:bundle];
-        [di setResident:YES];
-        [di setLocked:YES];
+        DockItem *di = [DockItem dockItemWithPath:bundle];
+        [di setPersistent:YES];
         [_items addObject:di];
     }
 }

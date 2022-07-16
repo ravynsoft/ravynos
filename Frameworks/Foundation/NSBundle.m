@@ -517,15 +517,15 @@ static NSMapTable *pathToObject=NULL;
     }
 
     _path = [[path stringByStandardizingPath] retain];
-    _resourcePath = [_path stringByAppendingPathComponent:@"Resources"];
+    _resourcePath = [[_path stringByAppendingPathComponent:@"Contents"] stringByAppendingPathComponent:@"Resources"];
     if (![[NSFileManager defaultManager] fileExistsAtPath:_resourcePath]) {
-        _resourcePath = [[_path stringByAppendingPathComponent:@"Contents"] stringByAppendingPathComponent:@"Resources"];
+        _resourcePath = [_path stringByAppendingPathComponent:@"Resources"]; 
     }
     [_resourcePath retain];
 
-    _pluginPath = [_path stringByAppendingPathComponent:@"PlugIns"];
+    _pluginPath = [[_path stringByAppendingPathComponent:@"Contents"] stringByAppendingPathComponent:@"PlugIns"];
     if (![[NSFileManager defaultManager] fileExistsAtPath:_pluginPath]) {
-        _pluginPath = [[_path stringByAppendingPathComponent:@"Contents"] stringByAppendingPathComponent:@"PlugIns"];
+        _pluginPath = [_path stringByAppendingPathComponent:@"PlugIns"];
     }
     [_pluginPath retain];
 

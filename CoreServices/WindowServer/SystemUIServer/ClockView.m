@@ -69,17 +69,20 @@ pthread_mutex_t mtx;
 
 - (void)notifyTick:(id)arg {
     while(1) {
+        pthread_mutex_lock(&mtx);
         [[NSNotificationCenter defaultCenter] postNotificationName:@"ClockTick" object:nil userInfo:NULL];
+        pthread_mutex_unlock(&mtx);
         usleep(400000);
     }
 }
 
+#if 0
 // override default method to ensure thread safety
 - (void)drawRect:(NSRect)rect {
     pthread_mutex_lock(&mtx);
     [super drawRect:rect];
     pthread_mutex_unlock(&mtx);
 }
-
+#endif
 @end
 

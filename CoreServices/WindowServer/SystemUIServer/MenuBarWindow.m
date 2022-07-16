@@ -65,9 +65,9 @@ extern pthread_mutex_t mtx;
     [clockView setStringValue:value];
     [clockView setNeedsDisplay:YES];
     pthread_mutex_unlock(&mtx);
-    NSEvent *event =[[NSEvent alloc]
+    void *event = (__bridge_retained void *)[[NSEvent alloc]
         initWithType:NSAppKitSystem location:NSMakePoint(0,0) modifierFlags:0 window:nil];
-    [NSApp postEvent:event atStart:YES];
+    [NSApp postEvent:(__bridge NSEvent *)event atStart:YES];
 }
 
 - (mach_port_t)activePort {

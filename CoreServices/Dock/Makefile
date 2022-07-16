@@ -1,5 +1,5 @@
 APP=	Dock
-SRCS=	main.m Dock.m DockItem.m DesktopWindow.m
+SRCS=	main.m Dock.m DockItem.m DesktopWindow.m DockTileData.m
 RESOURCES=	${.CURDIR}/Dock.png ${.CURDIR}/running.png \
 		${.CURDIR}/window.png Trash.app \
 		Downloads.app

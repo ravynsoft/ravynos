@@ -39,7 +39,7 @@ enum DockItemType : unsigned int {
 enum DockItemFlags : unsigned int {
     DIF_NORMAL = 0x0,
     DIF_LOCKED = 0x1,       // can't modify or remove
-    DIF_RESIDENT = 0x2,     // app is resident in dock
+    DIF_PERSISTENT = 0x2,   // app is persistent in dock
     DIF_ATTENTION = 0x4     // app wants attention
 };
 
@@ -81,7 +81,7 @@ typedef enum DockItemFlags DockItemFlags;
 -(BOOL)isNormal;
 -(BOOL)isLocked;
 -(BOOL)isRunning;
--(BOOL)isResident;
+-(BOOL)isPersistent;
 -(BOOL)needsAttention;
 -(pid_t)pid;
 -(NSArray *)pids;
@@ -97,10 +97,11 @@ typedef enum DockItemFlags DockItemFlags;
 -(void)removePID:(pid_t)pid;
 -(void)addWindow:(unsigned int)window;
 -(void)removeWindow:(unsigned int)window;
--(void)setResident:(BOOL)value;
+-(void)setPersistent:(BOOL)value;
 -(void)setNeedsAttention:(BOOL)value;
 
 -(void)activateWindow:(id)sender;
 -(void)openApp:(id)sender;
+-(NSDictionary *)tileData;
 
 @end
