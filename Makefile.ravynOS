@@ -11,6 +11,7 @@ WARNS=          1
 WITHOUT_LIBRARY?=       0
 WITHOUT_FRAMEWORKS?=    0
 WITHOUT_CORESERVICES?=  0
+WITHOUT_APPS?=          0
 
 SUBDIR=
 .if ${WITHOUT_LIBRARY} == 0
@@ -22,6 +23,9 @@ SUBDIR+=	Frameworks .WAIT installravynos
 .endif
 .if ${WITHOUT_CORESERVICES} == 0
 SUBDIR+=        CoreServices
+.endif
+.if ${WITHOUT_APPS} == 0
+SUBDIR+=        SysApps
 .endif
 SUBDIR+=        bin/open
 
