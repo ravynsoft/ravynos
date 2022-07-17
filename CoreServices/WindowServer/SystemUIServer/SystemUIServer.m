@@ -143,9 +143,8 @@ int main(int argc, const char *argv[]) {
     // this starts Filer and Dock to establish the desktop session
     NSString *kickerPath = [[NSBundle mainBundle] pathForResource:@"kickSession" ofType:@""];
     if(kickerPath) {
-        NSLog(@"kicking off session %@", kickerPath);
-        int rc = system([kickerPath UTF8String]);
-        NSLog(@"system rc=%d", rc);
+        NSLog(@"kicking off session");
+        system([kickerPath UTF8String]);
     }
 
     [pool drain];
