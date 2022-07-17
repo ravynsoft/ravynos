@@ -8,7 +8,7 @@ SRCS=           SystemUIServer.m \
                 Label.m \
                 AboutWindow.m
 RESOURCES=	${.CURDIR}/../Icon.png ${.CURDIR}/ravynos-mark-64.png \
-                ${.CURDIR}/ReleaseLogo.tiff ${.CURDIR}/shutdown
+                ${.CURDIR}/ReleaseLogo.tiff ${.CURDIR}/shutdown ${.CURDIR}/kickSession
 
 MK_WERROR=	no
 WARNS=	        1
@@ -19,5 +19,8 @@ LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' ${LDFLAGS_PKGS} \
 
 ${.CURDIR}/shutdown: shutdown.c
 	${CC} -o ${.TARGET} ${.ALLSRC}
+
+${.CURDIR}/kickSession: kickSession.m
+	${CC} -O0 -g -o ${.TARGET} ${.ALLSRC} -framework AppKit -lSystem
 
 .include <rvn.app.mk>

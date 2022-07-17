@@ -119,6 +119,10 @@ void launchShell(void *arg) {
     enum ShellType shell = *(enum ShellType *)arg;
     int status;
     NSString *lwPath = nil;
+    BOOL stopOnErr = NO;
+    NSString *s_stopOnErr = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"DebugExitOnError"];
+    if(s_stopOnErr && [s_stopOnErr isEqualToString:@"YES"])
+        stopOnErr = YES;
 
     while(shell != NONE) {
         if(ready == NO) {
@@ -257,7 +261,9 @@ void launchShell(void *arg) {
                 freeEnviron(envp);
                 waitpid(pid, &status, 0);
                 shell = LOGINWINDOW;
-                execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
+                // safety valve for debugging
+                if(stopOnErr)
+                    execl("/bin/launchctl", "launchctl", "remove", "com.ravynos.WindowServer", NULL);
                 break;
             }
         }
