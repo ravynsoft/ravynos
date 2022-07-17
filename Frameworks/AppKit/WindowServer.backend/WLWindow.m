@@ -567,6 +567,14 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 -(void) setLevel:(int)value
 {
     _level = value;
+    if(!layer_surface)
+        return;
+    unsigned int layer;
+    switch(value) {
+        case NSSubmenuWindowLevel: layer = WLWindowLayerOverlay;
+        default: layer = WLWindowLayerTop;
+    }
+    [self setLayer:layer];
 }
 
 -(void) showWindowForAppActivation:(O2Rect)frame

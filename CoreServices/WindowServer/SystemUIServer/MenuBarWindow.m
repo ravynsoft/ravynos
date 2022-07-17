@@ -33,7 +33,7 @@ extern pthread_mutex_t mtx;
     frame.size.height = menuBarHeight;
     self = [self initWithContentRect:frame
         styleMask:NSBorderlessWindowMask|WLWindowLayerAnchorTop
-            |WLWindowLayerAnchorLeft|WLWindowLayerAnchorRight
+            |WLWindowLayerAnchorLeft|WLWindowLayerAnchorRight|WLWindowLayerOverlay
         backing:NSBackingStoreBuffered defer:NO screen:output];
 
     [self setMovableByWindowBackground:NO];
