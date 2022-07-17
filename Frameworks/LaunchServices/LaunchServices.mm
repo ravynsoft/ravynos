@@ -498,6 +498,16 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
         launch_data_dict_insert(job, args, LAUNCH_JOBKEY_PROGRAMARGUMENTS);
         launch_data_dict_insert(job, launch_data_new_bool(true), LAUNCH_JOBKEY_RUNATLOAD);
 
+        NSDictionary *env = [task environment];
+        NSArray *keys = [env allKeys];
+        NSArray *vals = [env allValues];
+        launch_data_t envDict = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
+        for(int i = 0; i < [keys count]; ++i)
+            launch_data_dict_insert(envDict,
+                launch_data_new_string([[vals objectAtIndex:i] UTF8String]),
+                [[keys objectAtIndex:i] UTF8String]);
+        launch_data_dict_insert(job, envDict, LAUNCH_JOBKEY_ENVIRONMENTVARIABLES);
+
         char *label = 0;
         asprintf(&label, "task.%lx.%s", hash, [[[task launchPath] lastPathComponent] UTF8String]);
         launch_data_dict_insert(job, launch_data_new_string(label), LAUNCH_JOBKEY_LABEL);
