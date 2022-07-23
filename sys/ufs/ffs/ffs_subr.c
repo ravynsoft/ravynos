@@ -256,6 +256,16 @@ readsuper(void *devfd, struct fs **fsp, off_t sblockloc, int isaltsblk,
 	fs = *fsp;
 	if (fs->fs_magic == FS_BAD_MAGIC)
 		return (EINVAL);
+	/*
+	 * For UFS1 with a 65536 block size, the first backup superblock
+	 * is at the same location as the UFS2 superblock. Since SBLOCK_UFS2
+	 * is the first location checked, the first backup is the superblock
+	 * that will be accessed. Here we fail the lookup so that we can
+	 * retry with the correct location for the UFS1 superblock.
+	 */
+	if (fs->fs_magic == FS_UFS1_MAGIC && !isaltsblk &&
+	    fs->fs_bsize == SBLOCK_UFS2 && sblockloc == SBLOCK_UFS2)
+		return (ENOENT);
 	if ((error = validate_sblock(fs, isaltsblk)) != 0)
 		return (error);
 	/*
@@ -349,20 +359,7 @@ validate_sblock(struct fs *fs, int isaltsblk)
 	} else if (fs->fs_magic == FS_UFS1_MAGIC) {
 		if (!isaltsblk) {
 			CHK(fs->fs_sblockloc, >, SBLOCK_UFS1, %jd);
-			/*
-			 * For UFS1 the with a 65536 block size, the first
-			 * backup superblock is at the same location as the
-			 * UFS2 superblock. Since SBLOCK_UFS2 is the first
-			 * location checked, the first backup is the
-			 * superblock that will be accessed.
-			 */
-			if (fs->fs_bsize == SBLOCK_UFS2) {
-				CHK(fs->fs_sblockactualloc, >, SBLOCK_UFS2,
-				    %jd);
-			} else {
-				CHK2(fs->fs_sblockactualloc, !=, SBLOCK_UFS1,
-				    fs->fs_sblockactualloc, !=, 0, %jd);
-			}
+			CHK(fs->fs_sblockactualloc, >, SBLOCK_UFS1, %jd);
 		}
 		CHK(fs->fs_nindir, !=, fs->fs_bsize / sizeof(ufs1_daddr_t),
 		    %jd);
@@ -458,6 +455,7 @@ validate_sblock(struct fs *fs, int isaltsblk)
 	CHK(fs->fs_size, >, fs->fs_ncg * fs->fs_fpg, %jd);
 	CHK(fs->fs_cssize, !=,
 	    fragroundup(fs, fs->fs_ncg * sizeof(struct csum)), %jd);
+	CHK(dtog(fs, fs->fs_csaddr), >, fs->fs_ncg, %jd);
 	cgnum = dtog(fs, fs->fs_csaddr);
 	CHK(fs->fs_csaddr, <, cgdmin(fs, cgnum), %jd);
 	CHK(dtog(fs, fs->fs_csaddr + howmany(fs->fs_cssize, fs->fs_fsize)), >,

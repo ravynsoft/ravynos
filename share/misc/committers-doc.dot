@@ -15,7 +15,7 @@ digraph doc {
 #   foo [label="Foo Bar\nfoo@FreeBSD.org\n????/??/??"]
 #
 # ????/??/?? is the date when the commit bit was obtained, usually the one you
-# can find looking at svn logs for the svnadmin/conf/access file.
+# can find in git logs for the access file in the internal/admin branch.
 # Use YYYY/MM/DD format.
 #
 # For returned commit bits, the node definition will follow this example:
@@ -23,7 +23,7 @@ digraph doc {
 #   foo [label="Foo Bar\nfoo@FreeBSD.org\n????/??/??\n????/??/??"]
 #
 # The first date is the same as for an active committer, the second date is
-# the date when the commit bit has been returned. Again, check svn logs.
+# the date when the commit bit has been returned. Again, check git logs.
 
 node [color=grey62, style=filled, bgcolor=black];
 
@@ -75,6 +75,7 @@ ganbold [label="Ganbold Tsagaankhuu\nganbold@FreeBSD.org\n2008/02/26"]
 gavin [label="Gavin Atkinson\ngavin@FreeBSD.org\n2011/07/18"]
 gbe [label="Gordon Bergling\ngbe@FreeBSD.org\n2020/06/08"]
 gjb [label="Glen Barber\ngjb@FreeBSD.org\n2010/09/01"]
+grahamperrin [label="Graham Perrin\ngrahamperrin@FreeBSD.org\n2022/06/01"]
 hrs [label="Hiroki Sato\nhrs@FreeBSD.org\n2000/07/06"]
 issyl0 [label="Isabell Long\nissyl0@FreeBSD.org\n2012/04/25"]
 jgh [label="Jason Helfman\njgh@FreeBSD.org\n2014/01/20"]
@@ -88,6 +89,7 @@ manolis [label="Manolis Kiagias\nmanolis@FreeBSD.org\n2008/05/24"]
 marck [label="Dmitry Morozovsky\nmarck@FreeBSD.org\n2004/08/10"]
 maxim [label="Maxim Konovalov\nmaxim@FreeBSD.org\n2002/02/07"]
 miwi [label="Martin Wilke\nmiwi@FreeBSD.org\n2007/10/26"]
+pauamma [label="Pau Amma\npauamma@FreeBSD.org\n2022/06/03"]
 pav [label="Pav Lucistnik\npav@FreeBSD.org\n2005/08/12"]
 philip [label="Philip Paeps\nphilip@FreeBSD.org\n2021/07/13"]
 pluknet [label="Sergey Kandaurov\npluknet@FreeBSD.org\n2012/02/14"]
@@ -135,7 +137,9 @@ blackend -> ceri
 brueffer -> joel
 
 carlavilla -> emaste
+carlavilla -> grahamperrin
 carlavilla -> lwhsu
+carlavilla -> pauamma
 
 ceri -> brd
 ceri -> brueffer
@@ -163,7 +167,9 @@ gjb -> wblock
 gjb -> rene
 gjb -> dru
 gjb -> crees
+gjb -> grahamperrin
 gjb -> philip
+gjb -> pauamma
 
 hrs -> ryusuke
 hrs -> dru

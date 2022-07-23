@@ -1004,7 +1004,7 @@ db_print_pgrp_one(struct pgrp *pgrp, struct proc *p)
 	    p->p_pptr == NULL ? 0 : isjobproc(p->p_pptr, pgrp));
 }
 
-DB_SHOW_COMMAND(pgrpdump, pgrpdump)
+DB_SHOW_COMMAND_FLAGS(pgrpdump, pgrpdump, DB_CMD_MEMSAFE)
 {
 	struct pgrp *pgrp;
 	struct proc *p;
@@ -3103,9 +3103,9 @@ sysctl_kern_proc_sigtramp(SYSCTL_HANDLER_ARGS)
 	if ((req->flags & SCTL_MASK32) != 0) {
 		bzero(&kst32, sizeof(kst32));
 		if (SV_PROC_FLAG(p, SV_ILP32)) {
-			if (sv->sv_sigcode_base != 0) {
-				kst32.ksigtramp_start = sv->sv_sigcode_base;
-				kst32.ksigtramp_end = sv->sv_sigcode_base +
+			if (PROC_HAS_SHP(p)) {
+				kst32.ksigtramp_start = PROC_SIGCODE(p);
+				kst32.ksigtramp_end = kst32.ksigtramp_start +
 				    ((sv->sv_flags & SV_DSO_SIG) == 0 ?
 				    *sv->sv_szsigcode :
 				    (uintptr_t)sv->sv_szsigcode);
@@ -3121,9 +3121,9 @@ sysctl_kern_proc_sigtramp(SYSCTL_HANDLER_ARGS)
 	}
 #endif
 	bzero(&kst, sizeof(kst));
-	if (sv->sv_sigcode_base != 0) {
-		kst.ksigtramp_start = (char *)sv->sv_sigcode_base;
-		kst.ksigtramp_end = (char *)sv->sv_sigcode_base +
+	if (PROC_HAS_SHP(p)) {
+		kst.ksigtramp_start = (char *)PROC_SIGCODE(p);
+		kst.ksigtramp_end = (char *)kst.ksigtramp_start +
 		    ((sv->sv_flags & SV_DSO_SIG) == 0 ? *sv->sv_szsigcode :
 		    (uintptr_t)sv->sv_szsigcode);
 	} else {
@@ -3242,6 +3242,8 @@ sysctl_kern_proc_vm_layout(SYSCTL_HANDLER_ARGS)
 	kvm.kvm_data_size = vmspace->vm_dsize;
 	kvm.kvm_stack_addr = (uintptr_t)vmspace->vm_maxsaddr;
 	kvm.kvm_stack_size = vmspace->vm_ssize;
+	kvm.kvm_shp_addr = vmspace->vm_shp_base;
+	kvm.kvm_shp_size = p->p_sysent->sv_shared_page_len;
 	if ((vmspace->vm_map.flags & MAP_WIREFUTURE) != 0)
 		kvm.kvm_map_flags |= KMAP_FLAG_WIREFUTURE;
 	if ((vmspace->vm_map.flags & MAP_ASLR) != 0)
@@ -3252,6 +3254,9 @@ sysctl_kern_proc_vm_layout(SYSCTL_HANDLER_ARGS)
 		kvm.kvm_map_flags |= KMAP_FLAG_WXORX;
 	if ((vmspace->vm_map.flags & MAP_ASLR_STACK) != 0)
 		kvm.kvm_map_flags |= KMAP_FLAG_ASLR_STACK;
+	if (vmspace->vm_shp_base != p->p_sysent->sv_shared_page_base &&
+	    PROC_HAS_SHP(p))
+		kvm.kvm_map_flags |= KMAP_FLAG_ASLR_SHARED_PAGE;
 
 #ifdef COMPAT_FREEBSD32
 	if (SV_CURPROC_FLAG(SV_ILP32)) {
@@ -3266,6 +3271,8 @@ sysctl_kern_proc_vm_layout(SYSCTL_HANDLER_ARGS)
 		kvm32.kvm_data_size = (uint32_t)kvm.kvm_data_size;
 		kvm32.kvm_stack_addr = (uint32_t)kvm.kvm_stack_addr;
 		kvm32.kvm_stack_size = (uint32_t)kvm.kvm_stack_size;
+		kvm32.kvm_shp_addr = (uint32_t)kvm.kvm_shp_addr;
+		kvm32.kvm_shp_size = (uint32_t)kvm.kvm_shp_size;
 		kvm32.kvm_map_flags = kvm.kvm_map_flags;
 		vmspace_free(vmspace);
 		error = SYSCTL_OUT(req, &kvm32, sizeof(kvm32));

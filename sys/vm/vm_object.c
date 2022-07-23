@@ -204,6 +204,9 @@ vm_object_zdtor(void *mem, int size, void *arg)
 	KASSERT(object->type == OBJT_DEAD,
 	    ("object %p has non-dead type %d",
 	    object, object->type));
+	KASSERT(object->charge == 0 && object->cred == NULL,
+	    ("object %p has non-zero charge %ju (%p)",
+	    object, (uintmax_t)object->charge, object->cred));
 }
 #endif
 
@@ -241,8 +244,10 @@ _vm_object_allocate(objtype_t type, vm_pindex_t size, u_short flags,
 
 	object->type = type;
 	object->flags = flags;
-	if ((flags & OBJ_SWAP) != 0)
+	if ((flags & OBJ_SWAP) != 0) {
 		pctrie_init(&object->un_pager.swp.swp_blks);
+		object->un_pager.swp.writemappings = 0;
+	}
 
 	/*
 	 * Ensure that swap_pager_swapoff() iteration over object_list
@@ -409,9 +414,6 @@ vm_object_allocate(objtype_t type, vm_pindex_t size)
 	switch (type) {
 	case OBJT_DEAD:
 		panic("vm_object_allocate: can't create OBJT_DEAD");
-	case OBJT_DEFAULT:
-		flags = OBJ_COLORED;
-		break;
 	case OBJT_SWAP:
 		flags = OBJ_COLORED | OBJ_SWAP;
 		break;
@@ -470,8 +472,8 @@ vm_object_allocate_anon(vm_pindex_t size, vm_object_t backing_object,
 	else
 		handle = backing_object;
 	object = uma_zalloc(obj_zone, M_WAITOK);
-	_vm_object_allocate(OBJT_DEFAULT, size, OBJ_ANON | OBJ_ONEMAPPING,
-	    object, handle);
+	_vm_object_allocate(OBJT_SWAP, size,
+	    OBJ_ANON | OBJ_ONEMAPPING | OBJ_SWAP, object, handle);
 	object->cred = cred;
 	object->charge = cred != NULL ? charge : 0;
 	return (object);
@@ -683,8 +685,7 @@ vm_object_deallocate(vm_object_t object)
 		umtx_shm_object_terminated(object);
 		temp = object->backing_object;
 		if (temp != NULL) {
-			KASSERT(object->type == OBJT_DEFAULT ||
-			    object->type == OBJT_SWAP,
+			KASSERT(object->type == OBJT_SWAP,
 			    ("shadowed tmpfs v_object 2 %p", object));
 			vm_object_backing_remove(object);
 		}
@@ -697,27 +698,9 @@ vm_object_deallocate(vm_object_t object)
 	}
 }
 
-/*
- *	vm_object_destroy removes the object from the global object list
- *      and frees the space for the object.
- */
 void
 vm_object_destroy(vm_object_t object)
 {
-
-	/*
-	 * Release the allocation charge.
-	 */
-	if (object->cred != NULL) {
-		swap_release_by_cred(object->charge, object->cred);
-		object->charge = 0;
-		crfree(object->cred);
-		object->cred = NULL;
-	}
-
-	/*
-	 * Free the space for the object.
-	 */
 	uma_zfree(obj_zone, object);
 }
 
@@ -982,8 +965,7 @@ vm_object_terminate(vm_object_t object)
 		vm_reserv_break_all(object);
 #endif
 
-	KASSERT(object->cred == NULL || object->type == OBJT_DEFAULT ||
-	    (object->flags & OBJ_SWAP) != 0,
+	KASSERT(object->cred == NULL || (object->flags & OBJ_SWAP) != 0,
 	    ("%s: non-swap obj %p has cred", __func__, object));
 
 	/*
@@ -1319,8 +1301,7 @@ vm_object_madvise_freespace(vm_object_t object, int advice, vm_pindex_t pindex,
  *
  *	    Deactivate the specified pages if they are resident.
  *
- *	MADV_FREE	(OBJT_DEFAULT/OBJT_SWAP objects,
- *			 OBJ_ONEMAPPING only)
+ *	MADV_FREE	(OBJT_SWAP objects, OBJ_ONEMAPPING only)
  *
  *	    Deactivate and clean the specified pages if they are
  *	    resident.  This permits the process to reuse the pages
@@ -1525,7 +1506,7 @@ vm_object_shadow(vm_object_t *object, vm_ooffset_t *offset, vm_size_t length,
 void
 vm_object_split(vm_map_entry_t entry)
 {
-	vm_page_t m, m_busy, m_next;
+	vm_page_t m, m_next;
 	vm_object_t orig_object, new_object, backing_object;
 	vm_pindex_t idx, offidxstart;
 	vm_size_t size;
@@ -1542,10 +1523,6 @@ vm_object_split(vm_map_entry_t entry)
 	offidxstart = OFF_TO_IDX(entry->offset);
 	size = atop(entry->end - entry->start);
 
-	/*
-	 * If swap_pager_copy() is later called, it will convert new_object
-	 * into a swap object.
-	 */
 	new_object = vm_object_allocate_anon(size, orig_object,
 	    orig_object->cred, ptoa(size));
 
@@ -1582,7 +1559,6 @@ vm_object_split(vm_map_entry_t entry)
 	 * that the object is in transition.
 	 */
 	vm_object_set_flag(orig_object, OBJ_SPLIT);
-	m_busy = NULL;
 #ifdef INVARIANTS
 	idx = 0;
 #endif
@@ -1645,26 +1621,17 @@ retry:
 		 */
 		vm_reserv_rename(m, new_object, orig_object, offidxstart);
 #endif
+	}
 
-		/*
-		 * orig_object's type may change while sleeping, so keep track
-		 * of the beginning of the busied range.
-		 */
-		if (orig_object->type != OBJT_SWAP)
-			vm_page_xunbusy(m);
-		else if (m_busy == NULL)
-			m_busy = m;
-	}
-	if ((orig_object->flags & OBJ_SWAP) != 0) {
-		/*
-		 * swap_pager_copy() can sleep, in which case the orig_object's
-		 * and new_object's locks are released and reacquired. 
-		 */
-		swap_pager_copy(orig_object, new_object, offidxstart, 0);
-		if (m_busy != NULL)
-			TAILQ_FOREACH_FROM(m_busy, &new_object->memq, listq)
-				vm_page_xunbusy(m_busy);
-	}
+	/*
+	 * swap_pager_copy() can sleep, in which case the orig_object's
+	 * and new_object's locks are released and reacquired.
+	 */
+	swap_pager_copy(orig_object, new_object, offidxstart, 0);
+
+	TAILQ_FOREACH(m, &new_object->memq, listq)
+		vm_page_xunbusy(m);
+
 	vm_object_clear_flag(orig_object, OBJ_SPLIT);
 	VM_OBJECT_WUNLOCK(orig_object);
 	VM_OBJECT_WUNLOCK(new_object);
@@ -1986,21 +1953,13 @@ vm_object_collapse(vm_object_t object)
 
 			/*
 			 * Move the pager from backing_object to object.
+			 *
+			 * swap_pager_copy() can sleep, in which case the
+			 * backing_object's and object's locks are released and
+			 * reacquired.
 			 */
-			if ((backing_object->flags & OBJ_SWAP) != 0) {
-				/*
-				 * swap_pager_copy() can sleep, in which case
-				 * the backing_object's and object's locks are
-				 * released and reacquired.
-				 * Since swap_pager_copy() is being asked to
-				 * destroy backing_object, it will change the
-				 * type to OBJT_DEFAULT.
-				 */
-				swap_pager_copy(
-				    backing_object,
-				    object,
-				    OFF_TO_IDX(object->backing_object_offset), TRUE);
-			}
+			swap_pager_copy(backing_object, object,
+			    OFF_TO_IDX(object->backing_object_offset), TRUE);
 
 			/*
 			 * Object now shadows whatever backing_object did.
@@ -2619,8 +2578,7 @@ vm_object_list_handler(struct sysctl_req *req, bool swap_only)
 		if (vp != NULL) {
 			vref(vp);
 		} else if ((obj->flags & OBJ_ANON) != 0) {
-			MPASS(kvo->kvo_type == KVME_TYPE_DEFAULT ||
-			    kvo->kvo_type == KVME_TYPE_SWAP);
+			MPASS(kvo->kvo_type == KVME_TYPE_SWAP);
 			kvo->kvo_me = (uintptr_t)obj;
 			/* tmpfs objs are reported as vnodes */
 			kvo->kvo_backing_obj = (uintptr_t)obj->backing_object;
@@ -2748,7 +2706,7 @@ vm_object_in_map(vm_object_t object)
 	return 0;
 }
 
-DB_SHOW_COMMAND(vmochk, vm_object_check)
+DB_SHOW_COMMAND_FLAGS(vmochk, vm_object_check, DB_CMD_MEMSAFE)
 {
 	vm_object_t object;
 
@@ -2846,7 +2804,7 @@ vm_object_print(
 	vm_object_print_static(addr, have_addr, count, modif);
 }
 
-DB_SHOW_COMMAND(vmopag, vm_object_print_pages)
+DB_SHOW_COMMAND_FLAGS(vmopag, vm_object_print_pages, DB_CMD_MEMSAFE)
 {
 	vm_object_t object;
 	vm_pindex_t fidx;

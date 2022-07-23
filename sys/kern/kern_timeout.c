@@ -174,7 +174,6 @@ struct callout_cpu {
 	sbintime_t		cc_lastscan;
 	struct thread		*cc_thread;
 	u_int			cc_bucket;
-	u_int			cc_inited;
 #ifdef KTR
 	char			cc_ktr_event_name[20];
 #endif
@@ -323,7 +322,6 @@ callout_cpu_init(struct callout_cpu *cc, int cpu)
 	int i;
 
 	mtx_init(&cc->cc_lock, "callout", NULL, MTX_SPIN);
-	cc->cc_inited = 1;
 	cc->cc_callwheel = malloc_domainset(sizeof(struct callout_list) *
 	    callwheelsize, M_CALLOUT,
 	    DOMAINSET_PREF(pcpu_find(cpu)->pc_domain), M_WAITOK);
@@ -393,7 +391,7 @@ start_softclock(void *dummy)
 		cc->cc_thread = td;
 		thread_lock(td);
 		sched_class(td, PRI_ITHD);
-		sched_prio(td, PI_SOFTCLOCK);
+		sched_ithread_prio(td, PI_SOFTCLOCK);
 		TD_SET_IWAIT(td);
 		thread_lock_set(td, (struct mtx *)&cc->cc_lock);
 		thread_unlock(td);
@@ -436,7 +434,7 @@ callout_process(sbintime_t now)
 		struct thread *td;
 		sbintime_t now;
 	} entropy;
-	struct callout *tmp, *tmpn;
+	struct callout *c, *next;
 	struct callout_cpu *cc;
 	struct callout_list *sc;
 	struct thread *td;
@@ -481,58 +479,55 @@ callout_process(sbintime_t now)
 	/* Iterate callwheel from firstb to nowb and then up to lastb. */
 	do {
 		sc = &cc->cc_callwheel[firstb & callwheelmask];
-		tmp = LIST_FIRST(sc);
-		while (tmp != NULL) {
+		LIST_FOREACH_SAFE(c, sc, c_links.le, next) {
 			/* Run the callout if present time within allowed. */
-			if (tmp->c_time <= now) {
+			if (c->c_time <= now) {
 				/*
 				 * Consumer told us the callout may be run
 				 * directly from hardware interrupt context.
 				 */
-				if (tmp->c_iflags & CALLOUT_DIRECT) {
+				if (c->c_iflags & CALLOUT_DIRECT) {
 #ifdef CALLOUT_PROFILING
 					++depth_dir;
 #endif
-					cc_exec_next(cc) =
-					    LIST_NEXT(tmp, c_links.le);
+					cc_exec_next(cc) = next;
 					cc->cc_bucket = firstb & callwheelmask;
-					LIST_REMOVE(tmp, c_links.le);
-					softclock_call_cc(tmp, cc,
+					LIST_REMOVE(c, c_links.le);
+					softclock_call_cc(c, cc,
 #ifdef CALLOUT_PROFILING
 					    &mpcalls_dir, &lockcalls_dir, NULL,
 #endif
 					    1);
-					tmp = cc_exec_next(cc);
+					next = cc_exec_next(cc);
 					cc_exec_next(cc) = NULL;
 				} else {
-					tmpn = LIST_NEXT(tmp, c_links.le);
-					LIST_REMOVE(tmp, c_links.le);
+					LIST_REMOVE(c, c_links.le);
 					TAILQ_INSERT_TAIL(&cc->cc_expireq,
-					    tmp, c_links.tqe);
-					tmp->c_iflags |= CALLOUT_PROCESSED;
-					tmp = tmpn;
+					    c, c_links.tqe);
+					c->c_iflags |= CALLOUT_PROCESSED;
 				}
-				continue;
-			}
-			/* Skip events from distant future. */
-			if (tmp->c_time >= max)
-				goto next;
-			/*
-			 * Event minimal time is bigger than present maximal
-			 * time, so it cannot be aggregated.
-			 */
-			if (tmp->c_time > last) {
+			} else if (c->c_time >= max) {
+				/*
+				 * Skip events in the distant future.
+				 */
+				;
+			} else if (c->c_time > last) {
+				/*
+				 * Event minimal time is bigger than present
+				 * maximal time, so it cannot be aggregated.
+				 */
 				lastb = nowb;
-				goto next;
+			} else {
+				/*
+				 * Update first and last time, respecting this
+				 * event.
+				 */
+				if (c->c_time < first)
+					first = c->c_time;
+				tmp_max = c->c_time + c->c_precision;
+				if (tmp_max < last)
+					last = tmp_max;
 			}
-			/* Update first and last time, respecting this event. */
-			if (tmp->c_time < first)
-				first = tmp->c_time;
-			tmp_max = tmp->c_time + tmp->c_precision;
-			if (tmp_max < last)
-				last = tmp_max;
-next:
-			tmp = LIST_NEXT(tmp, c_links.le);
 		}
 		/* Proceed with the next bucket. */
 		firstb++;
@@ -561,7 +556,7 @@ next:
 			thread_lock_block_wait(td);
 			THREAD_LOCK_ASSERT(td, MA_OWNED);
 			TD_CLR_IWAIT(td);
-			sched_add(td, SRQ_INTR);
+			sched_wakeup(td, SRQ_INTR);
 		} else
 			mtx_unlock_spin_flags(&cc->cc_lock, MTX_QUIET);
 	} else
@@ -595,7 +590,7 @@ callout_lock(struct callout *c)
 static void
 callout_cc_add(struct callout *c, struct callout_cpu *cc,
     sbintime_t sbt, sbintime_t precision, void (*func)(void *),
-    void *arg, int cpu, int flags)
+    void *arg, int flags)
 {
 	int bucket;
 
@@ -628,7 +623,7 @@ callout_cc_add(struct callout *c, struct callout_cpu *cc,
 	sbt = c->c_time + c->c_precision;
 	if (sbt < cc->cc_firstevent) {
 		cc->cc_firstevent = sbt;
-		cpu_new_callout(cpu, sbt, c->c_time);
+		cpu_new_callout(c->c_cpu, sbt, c->c_time);
 	}
 }
 
@@ -805,7 +800,7 @@ skip:
 		new_cc = callout_cpu_switch(c, cc, new_cpu);
 		flags = (direct) ? C_DIRECT_EXEC : 0;
 		callout_cc_add(c, new_cc, new_time, new_prec, new_func,
-		    new_arg, new_cpu, flags);
+		    new_arg, flags);
 		CC_UNLOCK(new_cc);
 		CC_LOCK(cc);
 #else
@@ -946,16 +941,8 @@ callout_reset_sbt_on(struct callout *c, sbintime_t sbt, sbintime_t prec,
 	sbintime_t to_sbt, precision;
 	struct callout_cpu *cc;
 	int cancelled, direct;
-	int ignore_cpu=0;
 
 	cancelled = 0;
-	if (cpu == -1) {
-		ignore_cpu = 1;
-	} else if ((cpu >= MAXCPU) ||
-		   ((CC_CPU(cpu))->cc_inited == 0)) {
-		/* Invalid CPU spec */
-		panic("Invalid CPU in callout %d", cpu);
-	}
 	callout_when(sbt, prec, flags, &to_sbt, &precision);
 
 	/* 
@@ -971,13 +958,12 @@ callout_reset_sbt_on(struct callout *c, sbintime_t sbt, sbintime_t prec,
 	KASSERT(!direct || c->c_lock == NULL ||
 	    (LOCK_CLASS(c->c_lock)->lc_flags & LC_SPINLOCK),
 	    ("%s: direct callout %p has non-spin lock", __func__, c));
+
 	cc = callout_lock(c);
-	/*
-	 * Don't allow migration if the user does not care.
-	 */
-	if (ignore_cpu) {
+	if (cpu == -1)
 		cpu = c->c_cpu;
-	}
+	KASSERT(cpu >= 0 && cpu <= mp_maxid && !CPU_ABSENT(cpu),
+	    ("%s: invalid cpu %d", __func__, cpu));
 
 	if (cc_exec_curr(cc, direct) == c) {
 		/*
@@ -1073,7 +1059,7 @@ callout_reset_sbt_on(struct callout *c, sbintime_t sbt, sbintime_t prec,
 	}
 #endif
 
-	callout_cc_add(c, cc, to_sbt, precision, ftn, arg, cpu, flags);
+	callout_cc_add(c, cc, to_sbt, precision, ftn, arg, flags);
 	CTR6(KTR_CALLOUT, "%sscheduled %p func %p arg %p in %d.%08x",
 	    cancelled ? "re" : "", c, c->c_func, c->c_arg, (int)(to_sbt >> 32),
 	    (u_int)(to_sbt & 0xffffffff));
@@ -1542,7 +1528,7 @@ _show_last_callout(int cpu, int direct, const char *dirstr)
 	db_printf("\ncpu %d last%s callout argument: %p\n", cpu, dirstr, arg);
 }
 
-DB_SHOW_COMMAND(callout_last, db_show_callout_last)
+DB_SHOW_COMMAND_FLAGS(callout_last, db_show_callout_last, DB_CMD_MEMSAFE)
 {
 	int cpu, last;
 

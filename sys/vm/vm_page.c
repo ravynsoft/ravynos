@@ -2693,8 +2693,7 @@ retry:
 				goto retry;
 			}
 			/* Don't care: PG_NODUMP, PG_ZERO. */
-			if (object->type != OBJT_DEFAULT &&
-			    (object->flags & OBJ_SWAP) == 0 &&
+			if ((object->flags & OBJ_SWAP) == 0 &&
 			    object->type != OBJT_VNODE) {
 				run_ext = 0;
 #if VM_NRESERVLEVEL > 0
@@ -2831,8 +2830,7 @@ vm_page_reclaim_run(int req_class, int domain, u_long npages, vm_page_t m_run,
 			VM_OBJECT_WLOCK(object);
 			/* Don't care: PG_NODUMP, PG_ZERO. */
 			if (m->object != object ||
-			    (object->type != OBJT_DEFAULT &&
-			    (object->flags & OBJ_SWAP) == 0 &&
+			    ((object->flags & OBJ_SWAP) == 0 &&
 			    object->type != OBJT_VNODE))
 				error = EINVAL;
 			else if (object->memattr != VM_MEMATTR_DEFAULT)
@@ -5535,7 +5533,7 @@ vm_page_assert_pga_writeable(vm_page_t m, uint16_t bits)
 
 #include <ddb/ddb.h>
 
-DB_SHOW_COMMAND(page, vm_page_print_page_info)
+DB_SHOW_COMMAND_FLAGS(page, vm_page_print_page_info, DB_CMD_MEMSAFE)
 {
 
 	db_printf("vm_cnt.v_free_count: %d\n", vm_free_count());
@@ -5549,7 +5547,7 @@ DB_SHOW_COMMAND(page, vm_page_print_page_info)
 	db_printf("vm_cnt.v_inactive_target: %d\n", vm_cnt.v_inactive_target);
 }
 
-DB_SHOW_COMMAND(pageq, vm_page_print_pageq_info)
+DB_SHOW_COMMAND_FLAGS(pageq, vm_page_print_pageq_info, DB_CMD_MEMSAFE)
 {
 	int dom;
 

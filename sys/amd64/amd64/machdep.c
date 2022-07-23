@@ -202,6 +202,7 @@ int cold = 1;
 
 long Maxmem = 0;
 long realmem = 0;
+int late_console = 1;
 
 struct kva_md_info kmi;
 
@@ -520,7 +521,7 @@ extern inthand_t
  * Display the index and function name of any IDT entries that don't use
  * the default 'rsvd' entry point.
  */
-DB_SHOW_COMMAND(idt, db_show_idt)
+DB_SHOW_COMMAND_FLAGS(idt, db_show_idt, DB_CMD_MEMSAFE)
 {
 	struct gate_descriptor *ip;
 	int idx;
@@ -539,7 +540,7 @@ DB_SHOW_COMMAND(idt, db_show_idt)
 }
 
 /* Show privileged registers. */
-DB_SHOW_COMMAND(sysregs, db_show_sysregs)
+DB_SHOW_COMMAND_FLAGS(sysregs, db_show_sysregs, DB_CMD_MEMSAFE)
 {
 	struct {
 		uint16_t limit;
@@ -572,7 +573,7 @@ DB_SHOW_COMMAND(sysregs, db_show_sysregs)
 	db_printf("GSBASE\t0x%016lx\n", rdmsr(MSR_GSBASE));
 }
 
-DB_SHOW_COMMAND(dbregs, db_show_dbregs)
+DB_SHOW_COMMAND_FLAGS(dbregs, db_show_dbregs, DB_CMD_MEMSAFE)
 {
 
 	db_printf("dr0\t0x%016lx\n", rdr0());
@@ -580,7 +581,7 @@ DB_SHOW_COMMAND(dbregs, db_show_dbregs)
 	db_printf("dr2\t0x%016lx\n", rdr2());
 	db_printf("dr3\t0x%016lx\n", rdr3());
 	db_printf("dr6\t0x%016lx\n", rdr6());
-	db_printf("dr7\t0x%016lx\n", rdr7());	
+	db_printf("dr7\t0x%016lx\n", rdr7());
 }
 #endif
 
@@ -1301,7 +1302,6 @@ hammer_time(u_int64_t modulep, u_int64_t physfree)
 	struct user_segment_descriptor *gdt;
 	struct region_descriptor r_gdt;
 	size_t kstack0_sz;
-	int late_console;
 
 	TSRAW(&thread0, TS_ENTER, __func__, NULL);
 
@@ -1521,7 +1521,6 @@ hammer_time(u_int64_t modulep, u_int64_t physfree)
 	 * Default to late console initialization to support these drivers.
 	 * This loses mainly printf()s in getmemsize() and early debugging.
 	 */
-	late_console = 1;
 	TUNABLE_INT_FETCH("debug.late_console", &late_console);
 	if (!late_console) {
 		cninit();

@@ -464,7 +464,7 @@ vlan_remhash(struct ifvlantrunk *trunk, struct ifvlan *ifv)
 	VLAN_XLOCK_ASSERT();
 	KASSERT(trunk->hwidth > 0, ("%s: hwidth not positive", __func__));
 
-	b = 1 << trunk->hwidth;
+	b = 1 << (trunk->hwidth - 1);
 	i = HASH(ifv->ifv_vid, trunk->hmask);
 	CK_SLIST_FOREACH(ifv2, &trunk->hash[i], ifv_list)
 		if (ifv2 == ifv) {
@@ -1538,8 +1538,24 @@ vlan_config(struct ifvlan *ifv, struct ifnet *p, uint16_t vid,
 	 */
 	if (vid == 0 || vid == 0xFFF || (vid & ~EVL_VLID_MASK))
 		return (EINVAL);
-	if (ifv->ifv_trunk)
-		return (EBUSY);
+	if (ifv->ifv_trunk) {
+		trunk = ifv->ifv_trunk;
+		if (trunk->parent != p)
+			return (EBUSY);
+
+		VLAN_XLOCK();
+
+		ifv->ifv_proto = proto;
+
+		if (ifv->ifv_vid != vid) {
+			/* Re-hash */
+			vlan_remhash(trunk, ifv);
+			ifv->ifv_vid = vid;
+			error = vlan_inshash(trunk, ifv);
+		}
+		/* Will unlock */
+		goto done;
+	}
 
 	VLAN_XLOCK();
 	if (p->if_vlantrunk == NULL) {

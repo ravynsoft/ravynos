@@ -1114,23 +1114,20 @@ void
 exec_free_abi_mappings(struct proc *p)
 {
 	struct vmspace *vmspace;
-	struct sysentvec *sv;
 
 	vmspace = p->p_vmspace;
 	if (refcount_load(&vmspace->vm_refcnt) != 1)
 		return;
 
-	sv = p->p_sysent;
-	if (sv->sv_shared_page_obj == NULL)
+	if (!PROC_HAS_SHP(p))
 		return;
 
-	pmap_remove(vmspace_pmap(vmspace), sv->sv_shared_page_base,
-	    sv->sv_shared_page_base + sv->sv_shared_page_len);
+	pmap_remove(vmspace_pmap(vmspace), vmspace->vm_shp_base,
+	    vmspace->vm_shp_base + p->p_sysent->sv_shared_page_len);
 }
 
 /*
- * Run down the current address space and install a new one.  Map the shared
- * page.
+ * Run down the current address space and install a new one.
  */
 int
 exec_new_vmspace(struct image_params *imgp, struct sysentvec *sv)
@@ -1139,7 +1136,6 @@ exec_new_vmspace(struct image_params *imgp, struct sysentvec *sv)
 	struct proc *p = imgp->proc;
 	struct vmspace *vmspace = p->p_vmspace;
 	struct thread *td = curthread;
-	vm_object_t obj;
 	vm_offset_t sv_minuser;
 	vm_map_t map;
 
@@ -1187,26 +1183,12 @@ exec_new_vmspace(struct image_params *imgp, struct sysentvec *sv)
 	}
 	map->flags |= imgp->map_flags;
 
-	/* Map a shared page */
-	obj = sv->sv_shared_page_obj;
-	if (obj != NULL) {
-		vm_object_reference(obj);
-		error = vm_map_fixed(map, obj, 0,
-		    sv->sv_shared_page_base, sv->sv_shared_page_len,
-		    VM_PROT_READ | VM_PROT_EXECUTE,
-		    VM_PROT_READ | VM_PROT_EXECUTE,
-		    MAP_INHERIT_SHARE | MAP_ACC_NO_CHARGE);
-		if (error != KERN_SUCCESS) {
-			vm_object_deallocate(obj);
-			return (vm_mmap_to_errno(error));
-		}
-	}
-
 	return (sv->sv_onexec != NULL ? sv->sv_onexec(p, imgp) : 0);
 }
 
 /*
  * Compute the stack size limit and map the main process stack.
+ * Map the shared page.
  */
 int
 exec_map_stack(struct image_params *imgp)
@@ -1217,9 +1199,11 @@ exec_map_stack(struct image_params *imgp)
 	vm_map_t map;
 	struct vmspace *vmspace;
 	vm_offset_t stack_addr, stack_top;
+	vm_offset_t sharedpage_addr;
 	u_long ssiz;
 	int error, find_space, stack_off;
 	vm_prot_t stack_prot;
+	vm_object_t obj;
 
 	p = imgp->proc;
 	sv = p->p_sysent;
@@ -1271,6 +1255,61 @@ exec_map_stack(struct image_params *imgp)
 		stack_top -= rounddown2(stack_off & PAGE_MASK, sizeof(void *));
 	}
 
+	/* Map a shared page */
+	obj = sv->sv_shared_page_obj;
+	if (obj == NULL) {
+		sharedpage_addr = 0;
+		goto out;
+	}
+
+	/*
+	 * If randomization is disabled then the shared page will
+	 * be mapped at address specified in sysentvec.
+	 * Otherwise any address above .data section can be selected.
+	 * Same logic is used for stack address randomization.
+	 * If the address randomization is applied map a guard page
+	 * at the top of UVA.
+	 */
+	vm_object_reference(obj);
+	if ((imgp->imgp_flags & IMGP_ASLR_SHARED_PAGE) != 0) {
+		sharedpage_addr = round_page((vm_offset_t)p->p_vmspace->vm_daddr +
+		    lim_max(curthread, RLIMIT_DATA));
+
+		error = vm_map_fixed(map, NULL, 0,
+		    sv->sv_maxuser - PAGE_SIZE, PAGE_SIZE,
+		    VM_PROT_NONE, VM_PROT_NONE, MAP_CREATE_GUARD);
+		if (error != KERN_SUCCESS) {
+			/*
+			 * This is not fatal, so let's just print a warning
+			 * and continue.
+			 */
+			uprintf("%s: Mapping guard page at the top of UVA failed"
+			    " mach error %d errno %d",
+			    __func__, error, vm_mmap_to_errno(error));
+		}
+
+		error = vm_map_find(map, obj, 0,
+		    &sharedpage_addr, sv->sv_shared_page_len,
+		    sv->sv_maxuser, VMFS_ANY_SPACE,
+		    VM_PROT_READ | VM_PROT_EXECUTE,
+		    VM_PROT_READ | VM_PROT_EXECUTE,
+		    MAP_INHERIT_SHARE | MAP_ACC_NO_CHARGE);
+	} else {
+		sharedpage_addr = sv->sv_shared_page_base;
+		vm_map_fixed(map, obj, 0,
+		    sharedpage_addr, sv->sv_shared_page_len,
+		    VM_PROT_READ | VM_PROT_EXECUTE,
+		    VM_PROT_READ | VM_PROT_EXECUTE,
+		    MAP_INHERIT_SHARE | MAP_ACC_NO_CHARGE);
+	}
+	if (error != KERN_SUCCESS) {
+		uprintf("%s: mapping shared page at addr: %p"
+		    "failed, mach error %d errno %d\n", __func__,
+		    (void *)sharedpage_addr, error, vm_mmap_to_errno(error));
+		vm_object_deallocate(obj);
+		return (vm_mmap_to_errno(error));
+	}
+out:
 	/*
 	 * vm_ssize and vm_maxsaddr are somewhat antiquated concepts, but they
 	 * are still used to enforce the stack rlimit on the process stack.
@@ -1278,6 +1317,7 @@ exec_map_stack(struct image_params *imgp)
 	vmspace->vm_maxsaddr = (char *)stack_addr;
 	vmspace->vm_stacktop = stack_top;
 	vmspace->vm_ssize = sgrowsiz >> PAGE_SHIFT;
+	vmspace->vm_shp_base = sharedpage_addr;
 
 	return (0);
 }
@@ -1641,7 +1681,7 @@ exec_copyout_strings(struct image_params *imgp, uintptr_t *stack_base)
 	/*
 	 * Install sigcode.
 	 */
-	if (sysent->sv_sigcode_base == 0 && sysent->sv_szsigcode != NULL) {
+	if (sysent->sv_shared_page_base == 0 && sysent->sv_szsigcode != NULL) {
 		szsigcode = *(sysent->sv_szsigcode);
 		destp -= szsigcode;
 		destp = rounddown2(destp, sizeof(void *));

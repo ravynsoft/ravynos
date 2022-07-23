@@ -209,6 +209,12 @@ SYSCTL_INT(ASLR_NODE_OID, OID_AUTO, stack, CTLFLAG_RWTUN,
     __XSTRING(__CONCAT(ELF, __ELF_WORD_SIZE))
     ": enable stack address randomization");
 
+static int __elfN(aslr_shared_page) = __ELF_WORD_SIZE == 64;
+SYSCTL_INT(ASLR_NODE_OID, OID_AUTO, shared_page, CTLFLAG_RWTUN,
+    &__elfN(aslr_shared_page), 0,
+    __XSTRING(__CONCAT(ELF, __ELF_WORD_SIZE))
+    ": enable shared page address randomization");
+
 static int __elfN(sigfastblock) = 1;
 SYSCTL_INT(__CONCAT(_kern_elf, __ELF_WORD_SIZE), OID_AUTO, sigfastblock,
     CTLFLAG_RWTUN, &__elfN(sigfastblock), 0,
@@ -1305,6 +1311,8 @@ __CONCAT(exec_, __elfN(imgact))(struct image_params *imgp)
 			imgp->map_flags |= MAP_ASLR_IGNSTART;
 		if (__elfN(aslr_stack))
 			imgp->map_flags |= MAP_ASLR_STACK;
+		if (__elfN(aslr_shared_page))
+			imgp->imgp_flags |= IMGP_ASLR_SHARED_PAGE;
 	}
 
 	if ((!__elfN(allow_wx) && (fctl0 & NT_FREEBSD_FCTL_WXNEEDED) == 0 &&
@@ -1433,10 +1441,13 @@ __elfN(freebsd_copyout_auxargs)(struct image_params *imgp, uintptr_t base)
 {
 	Elf_Auxargs *args = (Elf_Auxargs *)imgp->auxargs;
 	Elf_Auxinfo *argarray, *pos;
+	struct vmspace *vmspace;
 	int error;
 
 	argarray = pos = malloc(AT_COUNT * sizeof(*pos), M_TEMP,
 	    M_WAITOK | M_ZERO);
+
+	vmspace = imgp->proc->p_vmspace;
 
 	if (args->execfd != -1)
 		AUXARGS_ENTRY(pos, AT_EXECFD, args->execfd);
@@ -1461,9 +1472,9 @@ __elfN(freebsd_copyout_auxargs)(struct image_params *imgp, uintptr_t base)
 		AUXARGS_ENTRY_PTR(pos, AT_PAGESIZES, imgp->pagesizes);
 		AUXARGS_ENTRY(pos, AT_PAGESIZESLEN, imgp->pagesizeslen);
 	}
-	if (imgp->sysent->sv_timekeep_base != 0) {
+	if ((imgp->sysent->sv_flags & SV_TIMEKEEP) != 0) {
 		AUXARGS_ENTRY(pos, AT_TIMEKEEP,
-		    imgp->sysent->sv_timekeep_base);
+		    vmspace->vm_shp_base + imgp->sysent->sv_timekeep_offset);
 	}
 	AUXARGS_ENTRY(pos, AT_STACKPROT, imgp->sysent->sv_shared_page_obj
 	    != NULL && imgp->stack_prot != 0 ? imgp->stack_prot :
@@ -1479,10 +1490,16 @@ __elfN(freebsd_copyout_auxargs)(struct image_params *imgp, uintptr_t base)
 	AUXARGS_ENTRY(pos, AT_ENVC, imgp->args->envc);
 	AUXARGS_ENTRY_PTR(pos, AT_ENVV, imgp->envv);
 	AUXARGS_ENTRY_PTR(pos, AT_PS_STRINGS, imgp->ps_strings);
-	if (imgp->sysent->sv_fxrng_gen_base != 0)
-		AUXARGS_ENTRY(pos, AT_FXRNG, imgp->sysent->sv_fxrng_gen_base);
-	if (imgp->sysent->sv_vdso_base != 0 && __elfN(vdso) != 0)
-		AUXARGS_ENTRY(pos, AT_KPRELOAD, imgp->sysent->sv_vdso_base);
+#ifdef RANDOM_FENESTRASX
+	if ((imgp->sysent->sv_flags & SV_RNG_SEED_VER) != 0) {
+		AUXARGS_ENTRY(pos, AT_FXRNG,
+		    vmspace->vm_shp_base + imgp->sysent->sv_fxrng_gen_offset);
+	}
+#endif
+	if ((imgp->sysent->sv_flags & SV_DSO_SIG) != 0 && __elfN(vdso) != 0) {
+		AUXARGS_ENTRY(pos, AT_KPRELOAD,
+		    vmspace->vm_shp_base + imgp->sysent->sv_vdso_offset);
+	}
 	AUXARGS_ENTRY(pos, AT_NULL, 0);
 
 	free(imgp->auxargs, M_TEMP);

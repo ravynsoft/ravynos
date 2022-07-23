@@ -948,10 +948,12 @@ IMAKE_INSTALL=	INSTALL="${INSTALL_CMD} ${INSTALLFLAGS}"
 IMAKE_MTREE=	MTREE_CMD="${MTREE_CMD} ${MTREEFLAGS}"
 .endif
 .if make(distributeworld)
-CERTCTLDESTDIR=	${DESTDIR}/${DISTDIR}/base
+CERTCTLDESTDIR=	${DESTDIR}/${DISTDIR}
+CERTCTLFLAGS+=	-d /base
 .else
 CERTCTLDESTDIR=	${DESTDIR}
 .endif
+CERTCTLFLAGS+=	-D "${CERTCTLDESTDIR}"
 
 DESTDIR_MTREEFLAGS=	-deU
 # When creating worldtmp we don't need to set the directories as owned by root
@@ -962,12 +964,18 @@ WORLDTMP_MTREEFLAGS=	-deUW
 # that are created by mtree to be owned by root/wheel.
 DESTDIR_MTREEFLAGS+=	-W
 .endif
-DISTR_MTREE=	${MTREE_CMD}
-.if ${BUILD_WITH_STRICT_TMPPATH} != 0
-DISTR_MTREE=	${WORLDTMP}/legacy/usr/sbin/mtree
+.if defined(DB_FROM_SRC)
+DISTR_MTREEFLAGS=	-N ${.CURDIR}/etc
 .endif
-WORLDTMP_MTREE=	${DISTR_MTREE} ${WORLDTMP_MTREEFLAGS}
-DESTDIR_MTREE=	${DISTR_MTREE} ${DESTDIR_MTREEFLAGS}
+DISTR_MTREECMD=	${MTREE_CMD}
+.if ${BUILD_WITH_STRICT_TMPPATH} != 0
+DISTR_MTREECMD=	${WORLDTMP}/legacy/usr/sbin/mtree
+.endif
+DISTR_MTREE=	${DISTR_MTREECMD} ${DISTR_MTREEFLAGS}
+WORLDTMP_MTREE=	${DISTR_MTREECMD} ${WORLDTMP_MTREEFLAGS}
+DESTDIR_MTREE=	${DISTR_MTREECMD} ${DESTDIR_MTREEFLAGS}
+
+METALOG_SORT_CMD=	env -i LC_COLLATE=C sort
 
 # kernel stage
 KMAKEENV=	${WMAKEENV:NSYSROOT=*}
@@ -1395,7 +1403,7 @@ distributeworld installworld stageworld: _installcheck_world .PHONY
 	${DESTDIR_MTREE} -f ${.CURDIR}/etc/mtree/BSD.include.dist \
 	    -p ${DESTDIR}/${DISTDIR}/${dist}/usr/include >/dev/null
 .if ${TARGET_ARCH} == "amd64"
-	-mkdir  ${DESTDIR}/${DISTDIR}/usr/include/i386
+	-mkdir ${DESTDIR}/${DISTDIR}/${dist}/usr/include/i386
 .endif
 .if ${MK_DEBUG_FILES} != "no"
 	${DESTDIR_MTREE} -f ${.CURDIR}/etc/mtree/BSD.debug.dist \
@@ -1443,6 +1451,14 @@ distributeworld installworld stageworld: _installcheck_world .PHONY
 .endif # make(distributeworld)
 	${_+_}cd ${.CURDIR}; ${IMAKE} re${.TARGET:S/world$//}; \
 	    ${IMAKEENV} rm -rf ${INSTALLTMP}
+.if !make(packageworld) && ${MK_CAROOT} != "no"
+	@if which openssl>/dev/null; then \
+		PATH=${TMPPATH}:${PATH} \
+		    sh ${SRCTOP}/usr.sbin/certctl/certctl.sh ${CERTCTLFLAGS} rehash; \
+	else \
+		echo "No openssl on the host, not rehashing certificates target -- /etc/ssl may not be populated."; \
+	fi
+.endif
 .if make(distributeworld)
 .for dist in ${EXTRA_DISTRIBUTIONS}
 	find ${DESTDIR}/${DISTDIR}/${dist} -mindepth 1 -type d -empty -delete
@@ -1454,7 +1470,7 @@ distributeworld installworld stageworld: _installcheck_world .PHONY
 	@# a line containing only the filename will sort immediately before
 	@# the relevant mtree line.
 	cd ${DESTDIR}/${DISTDIR}; \
-	find ./${dist} | sort -u ${METALOG} - | \
+	find ./${dist} | ${METALOG_SORT_CMD} -u ${METALOG} - | \
 	awk 'BEGIN { print "#${MTREE_MAGIC}" } !/ type=/ { file = $$1 } / type=/ { if ($$1 == file) { sub(/^\.\/${dist}\//, "./"); print } }' > \
 	${DESTDIR}/${DISTDIR}/${dist}.meta
 .endfor
@@ -1464,31 +1480,23 @@ distributeworld installworld stageworld: _installcheck_world .PHONY
 	@# a line containing only the filename will sort immediately before
 	@# the relevant mtree line.
 	cd ${DESTDIR}/${DISTDIR}; \
-	find ./${dist}/usr/lib/debug | sort -u ${METALOG} - | \
+	find ./${dist}/usr/lib/debug | ${METALOG_SORT_CMD} -u ${METALOG} - | \
 	awk 'BEGIN { print "#${MTREE_MAGIC}" } !/ type=/ { file = $$1 } / type=/ { if ($$1 == file) { sub(/^\.\/${dist}\//, "./"); print } }' > \
 	${DESTDIR}/${DISTDIR}/${dist}.debug.meta
 .endfor
 .endif
 .endif # make(distributeworld)
-.if !make(packageworld) && ${MK_CAROOT} != "no"
-	@if which openssl>/dev/null; then \
-		DESTDIR=${CERTCTLDESTDIR} PATH=${TMPPATH}:${PATH} \
-		    sh ${SRCTOP}/usr.sbin/certctl/certctl.sh ${CERTCTLFLAGS} rehash \
-	else \
-		echo "No openssl on the host, not rehashing certificates target -- /etc/ssl may not be populated."; \
-	fi
-.endif
 
 packageworld: .PHONY
 .for dist in base ${EXTRA_DISTRIBUTIONS}
 .if defined(NO_ROOT)
 	${_+_}cd ${DESTDIR}/${DISTDIR}/${dist}; \
-	    tar cvf - --exclude usr/lib/debug \
+	    ${TAR_CMD} cvf - --exclude usr/lib/debug \
 	    @${DESTDIR}/${DISTDIR}/${dist}.meta | \
 	    ${XZ_CMD} > ${PACKAGEDIR}/${dist}.txz
 .else
 	${_+_}cd ${DESTDIR}/${DISTDIR}/${dist}; \
-	    tar cvf - --exclude usr/lib/debug . | \
+	    ${TAR_CMD} cvf - --exclude usr/lib/debug . | \
 	    ${XZ_CMD} > ${PACKAGEDIR}/${dist}.txz
 .endif
 .endfor
@@ -1496,11 +1504,11 @@ packageworld: .PHONY
 .for dist in ${DEBUG_DISTRIBUTIONS}
 . if defined(NO_ROOT)
 	${_+_}cd ${DESTDIR}/${DISTDIR}/${dist}; \
-	    tar cvf - @${DESTDIR}/${DISTDIR}/${dist}.debug.meta | \
+	    ${TAR_CMD} cvf - @${DESTDIR}/${DISTDIR}/${dist}.debug.meta | \
 	    ${XZ_CMD} > ${PACKAGEDIR}/${dist}-dbg.txz
 . else
 	${_+_}cd ${DESTDIR}/${DISTDIR}/${dist}; \
-	    tar cvLf - usr/lib/debug | \
+	    ${TAR_CMD} cvLf - usr/lib/debug | \
 	    ${XZ_CMD} > ${PACKAGEDIR}/${dist}-dbg.txz
 . endif
 .endfor
@@ -1819,25 +1827,25 @@ packagekernel: .PHONY
 .if defined(NO_ROOT)
 .if !defined(NO_INSTALLKERNEL)
 	cd ${DESTDIR}/${DISTDIR}/kernel; \
-	    tar cvf - --exclude '*.debug' \
+	    ${TAR_CMD} cvf - --exclude '*.debug' \
 	    @${DESTDIR}/${DISTDIR}/kernel.meta | \
 	    ${XZ_CMD} > ${PACKAGEDIR}/kernel.txz
 .endif
 .if ${MK_DEBUG_FILES} != "no"
 	cd ${DESTDIR}/${DISTDIR}/kernel; \
-	    tar cvf - --include '*/*/*.debug' \
+	    ${TAR_CMD} cvf - --include '*/*/*.debug' \
 	    @${DESTDIR}/${DISTDIR}/kernel.meta | \
 	    ${XZ_CMD} > ${DESTDIR}/${DISTDIR}/kernel-dbg.txz
 .endif
 .if ${BUILDKERNELS:[#]} > 1 && ${NO_INSTALLEXTRAKERNELS} != "yes"
 .for _kernel in ${BUILDKERNELS:[2..-1]}
 	cd ${DESTDIR}/${DISTDIR}/kernel.${_kernel}; \
-	    tar cvf - --exclude '*.debug' \
+	    ${TAR_CMD} cvf - --exclude '*.debug' \
 	    @${DESTDIR}/${DISTDIR}/kernel.${_kernel}.meta | \
 	    ${XZ_CMD} > ${PACKAGEDIR}/kernel.${_kernel}.txz
 .if ${MK_DEBUG_FILES} != "no"
 	cd ${DESTDIR}/${DISTDIR}/kernel.${_kernel}; \
-	    tar cvf - --include '*/*/*.debug' \
+	    ${TAR_CMD} cvf - --include '*/*/*.debug' \
 	    @${DESTDIR}/${DISTDIR}/kernel.${_kernel}.meta | \
 	    ${XZ_CMD} > ${DESTDIR}/${DISTDIR}/kernel.${_kernel}-dbg.txz
 .endif
@@ -1846,22 +1854,22 @@ packagekernel: .PHONY
 .else
 .if !defined(NO_INSTALLKERNEL)
 	cd ${DESTDIR}/${DISTDIR}/kernel; \
-	    tar cvf - --exclude '*.debug' . | \
+	    ${TAR_CMD} cvf - --exclude '*.debug' . | \
 	    ${XZ_CMD} > ${PACKAGEDIR}/kernel.txz
 .endif
 .if ${MK_DEBUG_FILES} != "no"
 	cd ${DESTDIR}/${DISTDIR}/kernel; \
-	    tar cvf - --include '*/*/*.debug' $$(eval find .) | \
+	    ${TAR_CMD} cvf - --include '*/*/*.debug' $$(eval find .) | \
 	    ${XZ_CMD} > ${DESTDIR}/${DISTDIR}/kernel-dbg.txz
 .endif
 .if ${BUILDKERNELS:[#]} > 1 && ${NO_INSTALLEXTRAKERNELS} != "yes"
 .for _kernel in ${BUILDKERNELS:[2..-1]}
 	cd ${DESTDIR}/${DISTDIR}/kernel.${_kernel}; \
-	    tar cvf - --exclude '*.debug' . | \
+	    ${TAR_CMD} cvf - --exclude '*.debug' . | \
 	    ${XZ_CMD} > ${PACKAGEDIR}/kernel.${_kernel}.txz
 .if ${MK_DEBUG_FILES} != "no"
 	cd ${DESTDIR}/${DISTDIR}/kernel.${_kernel}; \
-	    tar cvf - --include '*/*/*.debug' $$(eval find .) | \
+	    ${TAR_CMD} cvf - --include '*/*/*.debug' $$(eval find .) | \
 	    ${XZ_CMD} > ${DESTDIR}/${DISTDIR}/kernel.${_kernel}-dbg.txz
 .endif
 .endfor
@@ -1993,7 +2001,7 @@ create-packages: .PHONY create-packages-world create-packages-kernel
 create-world-packages:	_pkgbootstrap .PHONY
 	@rm -f ${WSTAGEDIR}/*.plist 2>/dev/null || :
 	@cd ${WSTAGEDIR} ; \
-		env -i LC_COLLATE=C sort ${WSTAGEDIR}/${DISTDIR}/METALOG | \
+		${METALOG_SORT_CMD} ${WSTAGEDIR}/${DISTDIR}/METALOG | \
 		awk -f ${SRCDIR}/release/scripts/mtree-to-plist.awk
 	@for plist in ${WSTAGEDIR}/*.plist; do \
 	  plist=$${plist##*/} ; \
@@ -2039,7 +2047,7 @@ create-kernel-packages:	.PHONY
 create-kernel-packages: create-kernel-packages-flavor${flavor:C,^""$,${_default_flavor},}
 create-kernel-packages-flavor${flavor:C,^""$,${_default_flavor},}: _pkgbootstrap .PHONY
 	@cd ${KSTAGEDIR}/${DISTDIR} ; \
-	env -i LC_COLLATE=C sort ${KSTAGEDIR}/kernel.meta | \
+	${METALOG_SORT_CMD} ${KSTAGEDIR}/kernel.meta | \
 	awk -f ${SRCDIR}/release/scripts/mtree-to-plist.awk \
 		-v kernel=yes -v _kernconf=${INSTALLKERNEL} ; \
 	sed -e "s/%VERSION%/${PKG_VERSION}/" \
@@ -2075,7 +2083,7 @@ _debug=-dbg
 create-kernel-packages: create-kernel-packages-extra-flavor${flavor:C,^""$,${_default_flavor},}-${_kernel}
 create-kernel-packages-extra-flavor${flavor:C,^""$,${_default_flavor},}-${_kernel}: _pkgbootstrap .PHONY
 	@cd ${KSTAGEDIR}/kernel.${_kernel} ; \
-	env -i LC_COLLATE=C sort ${KSTAGEDIR}/kernel.${_kernel}.meta | \
+	${METALOG_SORT_CMD} ${KSTAGEDIR}/kernel.${_kernel}.meta | \
 	awk -f ${SRCDIR}/release/scripts/mtree-to-plist.awk \
 		-v kernel=yes -v _kernconf=${_kernel} ; \
 	sed -e "s/%VERSION%/${PKG_VERSION}/" \
@@ -2305,9 +2313,10 @@ _crunchide=	usr.sbin/crunch/crunchide
 _bootstrap_tools_links+=crunchide
 .endif
 
-# 1300115: Higher WARNS fixes
-.if ${BOOTSTRAPPING} < 1202502 || \
-	(${BOOTSTRAPPING} > 1300000 && ${BOOTSTRAPPING} < 1300131)
+# 1400052, 1300526, 1203507: Removed -dc from linker invocation
+.if ${BOOTSTRAPPING} < 1203507 || \
+	(${BOOTSTRAPPING} > 1300000 && ${BOOTSTRAPPING} < 1300526) || \
+	(${BOOTSTRAPPING} > 1400000 && ${BOOTSTRAPPING} < 1400052)
 _crunchgen=	usr.sbin/crunch/crunchgen
 .else
 _bootstrap_tools_links+=crunchgen

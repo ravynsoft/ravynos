@@ -180,8 +180,8 @@ usage(void)
 {
 
 	(void)fprintf(stderr, "usage: vtfontcvt "
-	    "[-n] [-f font|source|compressed-source] [-w width] "
-	    "[-h height]\n\t[-v] normal.bdf [bold.bdf] out.fnt\n");
+	    "[-nv] [-f format] [-h height] [-w width]\n"
+	    "\t-o output_file normal_font [bold_font]\n");
 	exit(1);
 }
 
@@ -565,7 +565,7 @@ parse_hex(FILE *fp, unsigned int map_idx)
 			if (bytes != NULL)
 				errx(1, "malformed input: Width tag after font data");
 			set_width(atoi(ln + 9));
-		} else if (sscanf(ln, "%6x:", &curchar)) {
+		} else if (sscanf(ln, "%6x:", &curchar) == 1) {
 			if (bytes == NULL) {
 				bytes = xmalloc(wbytes * height);
 				bytes_r = xmalloc(wbytes * height);

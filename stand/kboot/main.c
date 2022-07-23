@@ -212,11 +212,17 @@ kboot_get_kernel_machine_bits(void)
 int
 kboot_getdev(void **vdev, const char *devspec, const char **path)
 {
-	int i;
+	int i, rv;
 	const char *devpath, *filepath;
 	struct devsw *dv;
 	struct devdesc *desc;
 
+	if (devspec == NULL) {
+		rv = kboot_getdev(vdev, getenv("currdev"), NULL);
+		if (rv == 0 && path != NULL)
+			*path = devspec;
+		return (rv);
+	}
 	if (strchr(devspec, ':') != NULL) {
 		devpath = devspec;
 		filepath = strchr(devspec, ':') + 1;
@@ -334,22 +340,17 @@ time(time_t *tloc)
 	return (rv);
 }
 
-struct kexec_segment {
-	void *buf;
-	int bufsz;
-	void *mem;
-	int memsz;
-};
-
-struct kexec_segment loaded_segments[128];
+struct host_kexec_segment loaded_segments[HOST_KEXEC_SEGMENT_MAX];
 int nkexec_segments = 0;
 
 static ssize_t
 get_phys_buffer(vm_offset_t dest, const size_t len, void **buf)
 {
 	int i = 0;
-	const size_t segsize = 4*1024*1024;
+	const size_t segsize = 8*1024*1024;
 
+	if (nkexec_segments == HOST_KEXEC_SEGMENT_MAX)
+		panic("Tried to load too many kexec segments");
 	for (i = 0; i < nkexec_segments; i++) {
 		if (dest >= (vm_offset_t)loaded_segments[i].mem &&
 		    dest < (vm_offset_t)loaded_segments[i].mem +
@@ -477,12 +478,6 @@ kboot_kseg_get(int *nseg, void **ptr)
 
 	*nseg = nkexec_segments;
 	*ptr = &loaded_segments[0];
-}
-
-void
-_start(int argc, const char **argv, char **env)
-{
-	main(argc, argv);
 }
 
 /*

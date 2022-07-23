@@ -77,6 +77,7 @@ __FBSDID("$FreeBSD$");
 #include <vm/vm_param.h>
 #include <vm/vm_extern.h>
 #include <vm/pmap.h>
+#include <vm/vm_map.h>
 
 #ifdef DDB
 #ifndef KDB
@@ -203,7 +204,7 @@ sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 
 	fpstate_drop(td);
 	regs->tf_rsp = (long)sfp;
-	regs->tf_rip = p->p_sysent->sv_sigcode_base;
+	regs->tf_rip = PROC_SIGCODE(p);
 	regs->tf_rflags &= ~(PSL_T | PSL_D);
 	regs->tf_cs = _ucodesel;
 	regs->tf_ds = _udatasel;

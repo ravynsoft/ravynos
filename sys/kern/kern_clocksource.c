@@ -65,8 +65,9 @@ static int		doconfigtimer(void);
 static void		configtimer(int start);
 static int		round_freq(struct eventtimer *et, int freq);
 
-static sbintime_t	getnextcpuevent(int idle);
-static sbintime_t	getnextevent(void);
+struct pcpu_state;
+static sbintime_t	getnextcpuevent(struct pcpu_state *state, int idle);
+static sbintime_t	getnextevent(struct pcpu_state *state);
 static int		handleevents(sbintime_t now, int fake);
 
 static struct mtx	et_hw_mtx;
@@ -143,8 +144,8 @@ hardclockintr(void)
 		return (FILTER_HANDLED);
 	state = DPCPU_PTR(timerstate);
 	now = state->now;
-	CTR3(KTR_SPARE2, "ipi  at %d:    now  %d.%08x",
-	    curcpu, (int)(now >> 32), (u_int)(now & 0xffffffff));
+	CTR2(KTR_SPARE2, "ipi:    now  %d.%08x",
+	    (int)(now >> 32), (u_int)(now & 0xffffffff));
 	done = handleevents(now, 0);
 	return (done ? FILTER_HANDLED : FILTER_STRAY);
 }
@@ -161,8 +162,8 @@ handleevents(sbintime_t now, int fake)
 	int usermode;
 	int done, runs;
 
-	CTR3(KTR_SPARE2, "handle at %d:  now  %d.%08x",
-	    curcpu, (int)(now >> 32), (u_int)(now & 0xffffffff));
+	CTR2(KTR_SPARE2, "handle:  now  %d.%08x",
+	    (int)(now >> 32), (u_int)(now & 0xffffffff));
 	done = 0;
 	if (fake) {
 		frame = NULL;
@@ -213,8 +214,8 @@ handleevents(sbintime_t now, int fake)
 		callout_process(now);
 	}
 
-	t = getnextcpuevent(0);
 	ET_HW_LOCK(state);
+	t = getnextcpuevent(state, 0);
 	if (!busy) {
 		state->idle = 0;
 		state->nextevent = t;
@@ -229,13 +230,11 @@ handleevents(sbintime_t now, int fake)
  * Schedule binuptime of the next event on current CPU.
  */
 static sbintime_t
-getnextcpuevent(int idle)
+getnextcpuevent(struct pcpu_state *state, int idle)
 {
 	sbintime_t event;
-	struct pcpu_state *state;
 	u_int hardfreq;
 
-	state = DPCPU_PTR(timerstate);
 	/* Handle hardclock() events, skipping some if CPU is idle. */
 	event = state->nexthard;
 	if (idle) {
@@ -266,9 +265,8 @@ getnextcpuevent(int idle)
  * Schedule binuptime of the next event on all CPUs.
  */
 static sbintime_t
-getnextevent(void)
+getnextevent(struct pcpu_state *state)
 {
-	struct pcpu_state *state;
 	sbintime_t event;
 #ifdef SMP
 	int	cpu;
@@ -278,7 +276,6 @@ getnextevent(void)
 
 	c = -1;
 #endif
-	state = DPCPU_PTR(timerstate);
 	event = state->nextevent;
 #ifdef SMP
 	if ((timer->et_flags & ET_FLAGS_PERCPU) == 0) {
@@ -293,8 +290,8 @@ getnextevent(void)
 		}
 	}
 #endif
-	CTR4(KTR_SPARE2, "next at %d:    next %d.%08x by %d",
-	    curcpu, (int)(event >> 32), (u_int)(event & 0xffffffff), c);
+	CTR3(KTR_SPARE2, "next:    next %d.%08x by %d",
+	    (int)(event >> 32), (u_int)(event & 0xffffffff), c);
 	return (event);
 }
 
@@ -324,8 +321,8 @@ timercb(struct eventtimer *et, void *arg)
 	else
 		*next = -1;	/* Next tick is not scheduled yet. */
 	state->now = now;
-	CTR3(KTR_SPARE2, "intr at %d:    now  %d.%08x",
-	    curcpu, (int)(now >> 32), (u_int)(now & 0xffffffff));
+	CTR2(KTR_SPARE2, "intr:    now  %d.%08x",
+	    (int)(now >> 32), (u_int)(now & 0xffffffff));
 
 #ifdef SMP
 #ifdef EARLY_AP_STARTUP
@@ -385,10 +382,10 @@ loadtimer(sbintime_t now, int start)
 	uint64_t tmp;
 	int eq;
 
-	if (timer->et_flags & ET_FLAGS_PERCPU) {
-		state = DPCPU_PTR(timerstate);
+	state = DPCPU_PTR(timerstate);
+	if (timer->et_flags & ET_FLAGS_PERCPU)
 		next = &state->nexttick;
-	} else
+	else
 		next = &nexttick;
 	if (periodic) {
 		if (start) {
@@ -400,17 +397,17 @@ loadtimer(sbintime_t now, int start)
 			new = timerperiod - tmp;
 			if (new < tmp)		/* Left less then passed. */
 				new += timerperiod;
-			CTR5(KTR_SPARE2, "load p at %d:   now %d.%08x first in %d.%08x",
-			    curcpu, (int)(now >> 32), (u_int)(now & 0xffffffff),
+			CTR4(KTR_SPARE2, "load p:   now %d.%08x first in %d.%08x",
+			    (int)(now >> 32), (u_int)(now & 0xffffffff),
 			    (int)(new >> 32), (u_int)(new & 0xffffffff));
 			*next = new + now;
 			et_start(timer, new, timerperiod);
 		}
 	} else {
-		new = getnextevent();
+		new = getnextevent(state);
 		eq = (new == *next);
-		CTR4(KTR_SPARE2, "load at %d:    next %d.%08x eq %d",
-		    curcpu, (int)(new >> 32), (u_int)(new & 0xffffffff), eq);
+		CTR3(KTR_SPARE2, "load:    next %d.%08x eq %d",
+		    (int)(new >> 32), (u_int)(new & 0xffffffff), eq);
 		if (!eq) {
 			*next = new;
 			et_start(timer, new - now, 0);
@@ -681,14 +678,12 @@ cpu_initclocks_bsp(void)
 void
 cpu_initclocks_ap(void)
 {
-	sbintime_t now;
 	struct pcpu_state *state;
 	struct thread *td;
 
 	state = DPCPU_PTR(timerstate);
-	now = sbinuptime();
 	ET_HW_LOCK(state);
-	state->now = now;
+	state->now = sbinuptime();
 	hardclock_sync(curcpu);
 	spinlock_enter();
 	ET_HW_UNLOCK(state);
@@ -772,14 +767,14 @@ cpu_idleclock(void)
 	    )
 		return (-1);
 	state = DPCPU_PTR(timerstate);
+	ET_HW_LOCK(state);
 	if (periodic)
 		now = state->now;
 	else
 		now = sbinuptime();
-	CTR3(KTR_SPARE2, "idle at %d:    now  %d.%08x",
-	    curcpu, (int)(now >> 32), (u_int)(now & 0xffffffff));
-	t = getnextcpuevent(1);
-	ET_HW_LOCK(state);
+	CTR2(KTR_SPARE2, "idle:    now  %d.%08x",
+	    (int)(now >> 32), (u_int)(now & 0xffffffff));
+	t = getnextcpuevent(state, 1);
 	state->idle = 1;
 	state->nextevent = t;
 	if (!periodic)
@@ -799,15 +794,15 @@ cpu_activeclock(void)
 	struct thread *td;
 
 	state = DPCPU_PTR(timerstate);
-	if (state->idle == 0 || busy)
+	if (atomic_load_int(&state->idle) == 0 || busy)
 		return;
+	spinlock_enter();
 	if (periodic)
 		now = state->now;
 	else
 		now = sbinuptime();
-	CTR3(KTR_SPARE2, "active at %d:  now  %d.%08x",
-	    curcpu, (int)(now >> 32), (u_int)(now & 0xffffffff));
-	spinlock_enter();
+	CTR2(KTR_SPARE2, "active:  now  %d.%08x",
+	    (int)(now >> 32), (u_int)(now & 0xffffffff));
 	td = curthread;
 	td->td_intr_nesting_level++;
 	handleevents(now, 1);
@@ -842,8 +837,9 @@ cpu_new_callout(int cpu, sbintime_t bt, sbintime_t bt_opt)
 	/* Do not touch anything if somebody reconfiguring timers. */
 	if (busy)
 		return;
-	CTR6(KTR_SPARE2, "new co at %d:    on %d at %d.%08x - %d.%08x",
-	    curcpu, cpu, (int)(bt_opt >> 32), (u_int)(bt_opt & 0xffffffff),
+
+	CTR5(KTR_SPARE2, "new co:  on %d at %d.%08x - %d.%08x",
+	    cpu, (int)(bt_opt >> 32), (u_int)(bt_opt & 0xffffffff),
 	    (int)(bt >> 32), (u_int)(bt & 0xffffffff));
 
 	KASSERT(!CPU_ABSENT(cpu), ("Absent CPU %d", cpu));

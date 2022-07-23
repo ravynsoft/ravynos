@@ -28,7 +28,7 @@
 .\"	@(#)kdump.1	8.1 (Berkeley) 6/6/93
 .\" $FreeBSD$
 .\"
-.Dd March 28, 2014
+.Dd July 16, 2022
 .Dt KDUMP 1
 .Os
 .Sh NAME
@@ -53,6 +53,10 @@ in the current directory is displayed.
 .Pp
 The options are as follows:
 .Bl -tag -width Fl
+.It Fl A
+Display the ABI of the traced process.
+.It Fl c
+Display the CPU number with each trace entry.
 .It Fl d
 Display all numbers in decimal.
 .It Fl E
@@ -101,8 +105,6 @@ Display system call numbers.
 Suppress display of I/O data.
 .It Fl T
 Display absolute timestamps for each entry (seconds since epoch).
-.It Fl A
-Display description of the ABI of traced process.
 .It Fl t Ar trstr
 See the
 .Fl t

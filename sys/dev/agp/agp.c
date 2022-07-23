@@ -514,7 +514,7 @@ agp_generic_alloc_memory(device_t dev, int type, vm_size_t size)
 	mem->am_id = sc->as_nextid++;
 	mem->am_size = size;
 	mem->am_type = 0;
-	mem->am_obj = vm_object_allocate(OBJT_DEFAULT, atop(round_page(size)));
+	mem->am_obj = vm_object_allocate(OBJT_SWAP, atop(round_page(size)));
 	mem->am_physical = 0;
 	mem->am_offset = 0;
 	mem->am_is_bound = 0;
@@ -907,7 +907,7 @@ agp_mmap(struct cdev *kdev, vm_ooffset_t offset, vm_paddr_t *paddr,
 /* Implementation of the kernel api */
 
 device_t
-agp_find_device()
+agp_find_device(void)
 {
 	device_t *children, child;
 	int i, count;

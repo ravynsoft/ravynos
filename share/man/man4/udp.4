@@ -28,7 +28,7 @@
 .\"     @(#)udp.4	8.1 (Berkeley) 6/5/93
 .\" $FreeBSD$
 .\"
-.Dd February 6, 2017
+.Dd July 20, 2022
 .Dt UDP 4
 .Os
 .Sh NAME
@@ -114,29 +114,26 @@ from RFC 3948, defined in
 The
 .Nm
 protocol implements a number of variables in the
-.Li net.inet
+.Va net.inet.udp
 branch of the
 .Xr sysctl 3
-MIB.
-.Bl -tag -width UDPCTL_RECVSPACEX
-.It UDPCTL_CHECKSUM
-.Pq udp.checksum
-Enable udp checksums (enabled by default).
-.It UDPCTL_MAXDGRAM
-.Pq udp.maxdgram
-Maximum outgoing UDP datagram size
-.It UDPCTL_RECVSPACE
-.Pq udp.recvspace
-Maximum space for incoming UDP datagrams
-.It udp.log_in_vain
-For all udp datagrams, to ports on which there is no socket
-listening, log the connection attempt (disabled by default).
-.It udp.blackhole
+MIB:
+.Bl -tag -width ".Va log_in_vain"
+.It Va blackhole
 When a datagram is received on a port where there is no socket
 listening, do not return an ICMP port unreachable message.
 (Disabled by default.
 See
 .Xr blackhole 4 . )
+.It Va checksum
+Enable UDP checksums (enabled by default).
+.It Va log_in_vain
+For all UDP datagrams, to ports on which there is no socket
+listening, log the connection attempt (disabled by default).
+.It Va maxdgram
+Maximum outgoing UDP datagram size
+.It Va recvspace
+Maximum space for incoming UDP datagrams
 .El
 .Sh ERRORS
 A socket operation may fail with one of the following errors returned:

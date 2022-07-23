@@ -245,7 +245,7 @@ domain_init_rmrr(struct dmar_domain *domain, device_t dev, int bus,
 	TAILQ_INIT(&rmrr_entries);
 	dmar_dev_parse_rmrr(domain, dev_domain, dev_busno, dev_path,
 	    dev_path_len, &rmrr_entries);
-	TAILQ_FOREACH_SAFE(entry, &rmrr_entries, unroll_link, entry1) {
+	TAILQ_FOREACH_SAFE(entry, &rmrr_entries, dmamap_link, entry1) {
 		/*
 		 * VT-d specification requires that the start of an
 		 * RMRR entry is 4k-aligned.  Buggy BIOSes put
@@ -306,7 +306,7 @@ domain_init_rmrr(struct dmar_domain *domain, device_t dev, int bus,
 				    error1);
 				error = error1;
 			}
-			TAILQ_REMOVE(&rmrr_entries, entry, unroll_link);
+			TAILQ_REMOVE(&rmrr_entries, entry, dmamap_link);
 			iommu_gas_free_entry(DOM2IODOM(domain), entry);
 		}
 		for (i = 0; i < size; i++)
@@ -868,7 +868,7 @@ dmar_domain_free_entry(struct iommu_map_entry *entry, bool free)
 }
 
 void
-dmar_domain_unload_entry(struct iommu_map_entry *entry, bool free)
+iommu_domain_unload_entry(struct iommu_map_entry *entry, bool free)
 {
 	struct dmar_domain *domain;
 	struct dmar_unit *unit;
@@ -902,15 +902,15 @@ dmar_domain_unload_emit_wait(struct dmar_domain *domain,
 }
 
 void
-dmar_domain_unload(struct dmar_domain *domain,
+iommu_domain_unload(struct iommu_domain *iodom,
     struct iommu_map_entries_tailq *entries, bool cansleep)
 {
+	struct dmar_domain *domain;
 	struct dmar_unit *unit;
-	struct iommu_domain *iodom;
 	struct iommu_map_entry *entry, *entry1;
 	int error __diagused;
 
-	iodom = DOM2IODOM(domain);
+	domain = IODOM2DOM(iodom);
 	unit = DOM2DMAR(domain);
 
 	TAILQ_FOREACH_SAFE(entry, entries, dmamap_link, entry1) {
@@ -974,22 +974,4 @@ iommu_free_ctx(struct iommu_ctx *context)
 	ctx = IOCTX2CTX(context);
 
 	dmar_free_ctx(ctx);
-}
-
-void
-iommu_domain_unload_entry(struct iommu_map_entry *entry, bool free)
-{
-
-	dmar_domain_unload_entry(entry, free);
-}
-
-void
-iommu_domain_unload(struct iommu_domain *iodom,
-    struct iommu_map_entries_tailq *entries, bool cansleep)
-{
-	struct dmar_domain *domain;
-
-	domain = IODOM2DOM(iodom);
-
-	dmar_domain_unload(domain, entries, cansleep);
 }

@@ -984,7 +984,7 @@ nfsrpc_setclient(struct nfsmount *nmp, struct nfsclclient *clp, int reclaim,
 			dsp->nfsclds_sess.nfsess_clientid =
 			    odsp->nfsclds_sess.nfsess_clientid;
 			dsp->nfsclds_sess.nfsess_sequenceid =
-			    odsp->nfsclds_sess.nfsess_sequenceid;
+			    odsp->nfsclds_sess.nfsess_sequenceid + 1;
 			dsp->nfsclds_flags = odsp->nfsclds_flags;
 			if (dsp->nfsclds_servownlen > 0)
 				memcpy(dsp->nfsclds_serverown,
@@ -4779,7 +4779,7 @@ nfsrpc_fsinfo(vnode_t vp, struct nfsfsinfo *fsp, struct ucred *cred,
 	int error;
 
 	*attrflagp = 0;
-	NFSCL_REQSTART(nd, NFSPROC_FSINFO, vp, cred);
+	NFSCL_REQSTART(nd, NFSPROC_FSINFO, vp, NULL);
 	error = nfscl_request(nd, vp, p, cred);
 	if (error)
 		return (error);

@@ -14,9 +14,27 @@ host_close(int fd)
 }
 
 int
+host_dup(int fd)
+{
+	return host_syscall(SYS_dup, fd);
+}
+
+int
+host_fstat(int fd, struct host_kstat *sb)
+{
+	return host_syscall(SYS_newfstat, fd, (uintptr_t)sb);
+}
+
+int
 host_getdents(int fd, void *dirp, int count)
 {
 	return host_syscall(SYS_getdents, fd, (uintptr_t)dirp, count);
+}
+
+int
+host_getpid(void)
+{
+	return host_syscall(SYS_getpid);
 }
 
 int
@@ -26,9 +44,9 @@ host_gettimeofday(struct host_timeval *a, void *b)
 }
 
 int
-host_kexec_load(uint32_t start, int nsegs, uint32_t segs, uint32_t flags)
+host_kexec_load(unsigned long entry, unsigned long nsegs, struct host_kexec_segment *segs, unsigned long flags)
 {
-	return host_syscall(SYS_kexec_load, start, nsegs, segs, flags);
+	return host_syscall(SYS_kexec_load, entry, nsegs, segs, flags);
 }
 
 ssize_t
@@ -45,6 +63,12 @@ host_llseek(int fd, int32_t offset_high, int32_t offset_lo, uint64_t *result, in
 #endif
 }
 
+int
+host_mkdir(const char *path, host_mode_t mode)
+{
+	return host_syscall(SYS_mkdirat, HOST_AT_FDCWD, (uintptr_t)path, mode);
+}
+
 void *
 host_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off)
 {
@@ -52,9 +76,22 @@ host_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off)
 }
 
 int
+host_mount(const char *src, const char *target, const char *type, unsigned long flags,
+    void *data)
+{
+	return host_syscall(SYS_mount, src, target, type, flags, data);
+}
+
+int
+host_munmap(void *addr, size_t len)
+{
+	return host_syscall(SYS_munmap, (uintptr_t)addr, len);
+}
+
+int
 host_open(const char *path, int flags, int mode)
 {
-	return host_syscall(SYS_open, (uintptr_t)path, flags, mode);
+	return host_syscall(SYS_openat, HOST_AT_FDCWD, (uintptr_t)path, flags, mode);
 	/* XXX original overrode errors */
 }
 
@@ -75,7 +112,27 @@ int
 host_select(int nfds, long *readfds, long *writefds, long *exceptfds,
     struct host_timeval *timeout)
 {
-	return host_syscall(SYS_select, nfds, (uintptr_t)readfds, (uintptr_t)writefds, (uintptr_t)exceptfds, (uintptr_t)timeout, 0);
+	struct timespec ts = { .tv_sec = timeout->tv_sec, .tv_nsec = timeout->tv_usec * 1000 };
+
+	/*
+	 * Note, final arg is a sigset_argpack since most arch can only have 6
+	 * syscall args. Since we're not masking signals, though, we can just
+	 * pass a NULL.
+	 */
+	return host_syscall(SYS_pselect6, nfds, (uintptr_t)readfds, (uintptr_t)writefds,
+	    (uintptr_t)exceptfds, (uintptr_t)&ts, (uintptr_t)NULL);
+}
+
+int
+host_stat(const char *path, struct host_kstat *sb)
+{
+	return host_syscall(SYS_newfstatat, HOST_AT_FDCWD, (uintptr_t)path, (uintptr_t)sb, 0);
+}
+
+int
+host_symlink(const char *path1, const char *path2)
+{
+	return host_syscall(SYS_symlinkat, HOST_AT_FDCWD, path1, path2);
 }
 
 int

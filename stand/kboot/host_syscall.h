@@ -33,6 +33,44 @@
 long host_syscall(int number, ...);
 
 /*
+ * Sizes taken from musl's include/alltypes.h.in and expanded for LP64 hosts
+ */
+typedef uint64_t host_dev_t;
+typedef uint64_t host_ino_t;
+typedef int64_t host_nlink_t;
+typedef unsigned int host_mode_t;
+typedef unsigned int host_uid_t;
+typedef unsigned int host_gid_t;
+typedef int64_t host_off_t;
+typedef long host_blksize_t;
+typedef int64_t host_blkcnt_t;
+
+#include "stat_arch.h"
+
+/*
+ * Constants for open, fcntl, etc
+ *
+ * Note: Some of these are arch dependent on Linux, but are the same for
+ * powerpc, x86, arm*, and riscv. We should be futureproof, though, since these
+ * are the 'generic' values and only older architectures (no longer supported by
+ * FreeBSD) vary.
+ *
+ * These are from tools/include/uapi/asm-generic/fcntl.h and use the octal
+ * notation. Beware, hex is used in other places creating potential confsion.
+ */
+#define HOST_O_RDONLY		    0
+#define HOST_O_WRONLY		    1
+#define HOST_O_RDWR		    2
+#define HOST_O_CREAT		00100
+#define HOST_O_EXCL		00200
+#define HOST_O_NOCTTY		00400
+#define HOST_O_TRUNC		01000
+#define HOST_O_APPEND		02000
+#define HOST_O_NONBLOCK		04000
+
+#define HOST_AT_FDCWD		-100            /* Relative to current directory */
+
+/*
  * Data types
  */
 struct old_utsname {
@@ -49,25 +87,81 @@ struct host_timeval {
 };
 
 /*
+ * Must match Linux's values see linux/tools/include/uapi/asm-generic/mman-common.h
+ * and linux/tools/include/linux/mman.h
+ *
+ * And pre-pend HOST_ here.
+ */
+#define HOST_PROT_READ	0x1
+#define HOST_PROT_WRITE	0x2
+#define HOST_PROT_EXEC	0x4
+
+#define HOST_MAP_SHARED		0x01
+#define	HOST_MAP_PRIVATE	0x02
+#define HOST_MAP_FIXED		0x10
+#define HOST_MAP_ANONYMOUS	0x20
+
+/* Mount flags from uapi */
+#define MS_RELATIME (1 << 21)
+
+#define HOST_REBOOT_MAGIC1	0xfee1dead
+#define HOST_REBOOT_MAGIC2	672274793
+#define HOST_REBOOT_CMD_KEXEC	0x45584543
+
+/*
+ * Values from linux/tools/include/uapi/linux/kexec.h
+ */
+
+/*
+ * Values match ELF architecture types.
+ */
+#define HOST_KEXEC_ARCH_X86_64  (62 << 16)
+#define HOST_KEXEC_ARCH_PPC64   (21 << 16)
+#define HOST_KEXEC_ARCH_ARM     (40 << 16)
+#define HOST_KEXEC_ARCH_AARCH64 (183 << 16)
+#define HOST_KEXEC_ARCH_RISCV   (243 << 16)
+
+/* Arbitrary cap on segments */
+#define HOST_KEXEC_SEGMENT_MAX 16
+
+struct host_kexec_segment {
+	void *buf;
+	int bufsz;
+	void *mem;
+	int memsz;
+};
+
+/*
  * System Calls
  */
 int host_close(int fd);
+int host_dup(int fd);
+int host_fstat(int fd, struct host_kstat *sb);
 int host_getdents(int fd, void *dirp, int count);
+int host_getpid(void);
 int host_gettimeofday(struct host_timeval *a, void *b);
-int host_kexec_load(uint32_t start, int nsegs, uint32_t segs, uint32_t flags);
+int host_kexec_load(unsigned long entry, unsigned long nsegs, struct host_kexec_segment *segs, unsigned long flags);
 ssize_t host_llseek(int fd, int32_t offset_high, int32_t offset_lo, uint64_t *result, int whence);
+int host_mkdir(const char *, host_mode_t);
 void *host_mmap(void *addr, size_t len, int prot, int flags, int fd, off_t off);
+int host_mount(const char *src, const char *target, const char *type,
+    unsigned long flags, void *data);
+int host_munmap(void *addr, size_t len);
 int host_open(const char *path, int flags, int mode);
 ssize_t host_read(int fd, void *buf, size_t nbyte);
 int host_reboot(int, int, int, uintptr_t);
 int host_select(int nfds, long *readfds, long *writefds, long *exceptfds,
     struct host_timeval *timeout);
+int host_stat(const char *path, struct host_kstat *sb);
+int host_symlink(const char *path1, const char *path2);
 int host_uname(struct old_utsname *);
 ssize_t host_write(int fd, const void *buf, size_t nbyte);
 
 /*
  * Wrappers / one-liners
  */
-#define host_getmem(size) host_mmap(0, size, 3 /* RW */, 0x22 /* ANON */, -1, 0);
+#define host_getmem(size) \
+	host_mmap(0, size, HOST_PROT_READ | HOST_PROT_WRITE, \
+	    HOST_MAP_PRIVATE | HOST_MAP_ANONYMOUS, -1, 0);
 
 #endif
