@@ -246,11 +246,15 @@ FBSD_1.7 {
 		FreeBSD_nvpair_unpack_string;
 		FreeBSD_nvpair_unpack_string_array;
 
-	local:
-		buf_recv;
-		buf_send;
+        local:
 		cred_recv;
 		cred_send;
+};
+
+ravynOS_1.0 {
+        global:
+		buf_recv;
+		buf_send;
 		fd_recv;
 		fd_send;
 };
