@@ -9,7 +9,8 @@ BASE_INCLUDE= -I${.CURDIR}/../../include/apple -I${.CURDIR}/../libdispatch
 BASE_INCLUDE+= -I${.CURDIR}/../libnv
 BASE_INCLUDE+= -I${.CURDIR} -I${.CURDIR}/../../sbin/launchd -I.
 BASE_INCLUDE+= -I${.CURDIR}/../../include -I${.CURDIR}/../../sys
-CFLAGS+= ${BASE_INCLUDE} -fblocks -g -O0
+CFLAGS+= ${BASE_INCLUDE} -fblocks -g -O2
+LDFLAGS+= -lnv
 
 SRCS=	xpc_dictionary.c \
 	xpc_misc.c \

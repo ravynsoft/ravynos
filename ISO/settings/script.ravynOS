@@ -42,9 +42,9 @@ curl -Lo - https://github.com/mszoek/airyx/releases/download/jdk-17.0.1/openjdk-
 # Install our standard app bundles
 mkdir -p "${uzip}/Applications/Utilities"
 
-#declare -A apps utils
+declare -A apps utils
 #apps=(Kate 21.08.1 Firefox 97.0)
-#utils=(Terminal 0.17.0)
+utils=(Terminal 0.9.0)
 
 #for app in ${!apps[@]}; do
 #    tag="v${apps[$app]}"
@@ -53,13 +53,12 @@ mkdir -p "${uzip}/Applications/Utilities"
 #    curl -Lo - https://github.com/airyxos/${app}_app/releases/download/${tag}/${app}.txz | \
 #        tar -xf - -C "${uzip}/Applications/"
 #done
-#for app in ${!utils[@]}; do
-#    tag="v${utils[$app]}"
-#    echo Fetching $app $tag
-#    #curl -Lo - https://api.cirrus-ci.com/v1/artifact/github/airyxos/${app}_app/build/app/${app}.app.txz | \
-#    curl -Lo - https://github.com/airyxos/${app}_app/releases/download/${tag}/${app}.txz | \
-#        tar -xf - -C "${uzip}/Applications/Utilities/"
-#done
+for app in ${!utils[@]}; do
+    tag="v${utils[$app]}"
+    echo Fetching $app $tag
+    curl -Lo - https://github.com/ravynsoft/${app}_app/releases/download/${tag}/${app}.txz | \
+        tar -xf - -C "${uzip}/Applications/Utilities/"
+done
 
 # Fonts
 fetch https://github.com/ArtifexSoftware/urw-base35-fonts/archive/20200910.zip

@@ -270,12 +270,12 @@ static void kqSvcLoop(void *arg) {
     if(!pa || [pa count] == 0) {
         // populate default apps
         [pa addObject:dockTileData(@"/System/Library/CoreServices/Filer.app")];
+        [pa addObject:dockTileData(@"/Applications/Utilities/Terminal.app")];
         [pa addObject:dockTileData(@"/Applications/Utilities/Install ravynOS.app")];
     }
 
     for(int i = 0; i < [pa count]; ++i) {
         NSDictionary *dict = [pa objectAtIndex:i];
-        NSLog(@"%@", dict);
         DockItem *di = [DockItem dockItemWithPath:CFURLString(dict)];
         [di setPersistent:YES];
         [_items addObject:di];

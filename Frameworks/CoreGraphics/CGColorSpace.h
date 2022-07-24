@@ -32,9 +32,9 @@ typedef enum {
 COREGRAPHICS_EXPORT CGColorSpaceRef CGColorSpaceRetain(CGColorSpaceRef colorSpace);
 COREGRAPHICS_EXPORT void CGColorSpaceRelease(CGColorSpaceRef colorSpace);
 
-COREGRAPHICS_EXPORT CGColorSpaceRef CGColorSpaceCreateDeviceRGB();
-COREGRAPHICS_EXPORT CGColorSpaceRef CGColorSpaceCreateDeviceGray();
-COREGRAPHICS_EXPORT CGColorSpaceRef CGColorSpaceCreateDeviceCMYK();
+COREGRAPHICS_EXPORT CGColorSpaceRef CGColorSpaceCreateDeviceRGB(void);
+COREGRAPHICS_EXPORT CGColorSpaceRef CGColorSpaceCreateDeviceGray(void);
+COREGRAPHICS_EXPORT CGColorSpaceRef CGColorSpaceCreateDeviceCMYK(void);
 COREGRAPHICS_EXPORT CGColorSpaceRef CGColorSpaceCreatePattern(CGColorSpaceRef baseSpace);
 
 COREGRAPHICS_EXPORT CGColorSpaceModel CGColorSpaceGetModel(CGColorSpaceRef self);
