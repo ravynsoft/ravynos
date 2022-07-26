@@ -30,7 +30,7 @@ The skills we need immediately are: C/C++, Objective-C, x86-64 assembly, linker/
 
 ### Join the community
 
-Join us on Discord, Matrix or IRC (see [README.md](README.md)) to meet other users and developers. We're also [ravynOS](https://twitter.com/ravynOS) on Twitter.
+Join us on Discord, Matrix or IRC (see [README.md](README.md)) to meet other users and developers. We're also [ravynsoft](https://twitter.com/ravynsoft) on Twitter.
 
 ### Reporting Issues
 
