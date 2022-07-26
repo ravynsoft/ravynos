@@ -19,12 +19,8 @@ Please visit [ravynos.com](https://ravynos.com/) for more info: [Release Notes](
 
 * Can you help build the dream? See the current projects/needs in [CONTRIBUTING.md](CONTRIBUTING.md)!
 * Our [Discord](https://discord.com/invite/8caJbAGNwY) server.
-* `#airyx:matrix.org` - join via [Element.io](https://app.element.io/#/room/#airyx:matrix.org)
+* `#ravynOS-general:matrix.org` - join via [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
 * `#airyx` on [Libera IRC](https://web.libera.chat/?channel=#airyx)
-
-_(note: `#airyx` on matrix.org and IRC are bridged with `#general` on Discord)_
-
-New logo designs & artwork by [nayaabkhan](https://nayaabkhan.me). Hat tip for the palm tree concept to [llui85](https://github.com/llui85).
 
 [![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
