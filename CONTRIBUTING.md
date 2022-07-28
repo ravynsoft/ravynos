@@ -12,20 +12,15 @@ We expect everyone interacting with this project to adhere to the [Contributor C
 
 As an open-source project, we love receiving contributions from our community - you! There are so many ways to help out, from writing documentation or tutorials, testing and submitting bug reports, creating art assets, answering user questions, editing wiki pages, and writing code in the project itself.
 
-As of 2022-02-18, our short-term roadmap is these projects:
-
-- **WindowServer**: a wayland compositor based on tinywl and wlroots, running on DRM/KMS and libinput backends. This is intended to replace Xorg and KDE.
-- **GLWindow**: a new implementation of CGWindow to replace the X11Window currently used in AppKit, rendering to wayland and EGL with shared memory buffers.
-
-These are substantial projects. GLWindow needs to draw its own decorations, including during resize and move. WindowServer needs to implement the full desktop shell including window management of regular and "special" windows (like Dock), wallpaper, and the system menu bar.
-
-- **MachO world**: converting all system components to MachO dylibs and executables. This involves rewriting parts of libc to remove ELF assumptions, building a proper dyld, and writing a better kernel image activator.
-
-**Other projects**: CoreAudio based on JACK. Fix all the stubs in AppKit and write or port UIKit. Fix stubs and missing methods in CoreFoundation and others. Debug the Mach instability with *auditd* and *asld*. 
+As of July 2022, these are the top priorities:
+* Ongoing work on the desktop shell: WindowServer, LoginWindow, SystemUIServer (implementing MenuExtras, StatusItems), Dock, Filer
+* Continue updating the Cocoa frameworks to add missing features and update existing ones
+* Help convert everything to Mach-O: remove ELF assumptions, port Apple's dyld, write a better kernel image activator
+* Replace CoreFoundation with the one from Swift 
 
 Some other ideas for code contributions can be found on our [Project Ideas](https://wiki.ravynos.com/wiki/Project_Ideas) page or by looking through the [open issues](https://github.com/ravynsoft/ravynos/issues).
 
-The skills we need immediately are: C/C++, Objective-C, x86-64 assembly, linker/toolchain, kernel programming, OpenGL graphics programming, Wayland development.
+The skills we need immediately are: *C/C++, Objective-C, x86-64 assembly, linker/toolchain, kernel programming, OpenGL graphics programming, Wayland development*.
 
 
 ### Join the community
