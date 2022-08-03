@@ -1,11 +1,10 @@
+# SPDX-License-Identifier: BSD-3-Clause
+# Copyright(c) 2007-2022 Intel Corporation
 # $FreeBSD$
-
 .PATH: ${SRCTOP}/sys/contrib/dev/qat
 
-KMOD=	qat_c3xxxfw
-IMG1=	qat_c3xxx
-IMG2=	qat_c3xxx_mmp
+KMOD= qat_c3xxx_fw
 
-FIRMWS=	${IMG1}.bin:${KMOD}:111 ${IMG2}.bin:${IMG2}:111
+FIRMWS= ${SRCTOP}/sys/contrib/dev/qat/qat_c3xxx.bin:qat_c3xxx_fw:111 ${SRCTOP}/sys/contrib/dev/qat/qat_c3xxx_mmp.bin:qat_c3xxx_mmp_fw:111
 
 .include <bsd.kmod.mk>

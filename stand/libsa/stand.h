@@ -139,9 +139,10 @@ extern struct fs_ops efihttp_fsops;
 /* 
  * Device switch
  */
+#define DEV_NAMLEN	8		/* Length of name of device class */
 struct devsw {
-    const char	dv_name[8];
-    int		dv_type;		/* opaque type constant, arch-dependant */
+    const char	dv_name[DEV_NAMLEN];
+    int		dv_type;		/* opaque type constant */
 #define DEVT_NONE	0
 #define DEVT_DISK	1
 #define DEVT_NET	2

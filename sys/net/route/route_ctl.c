@@ -80,8 +80,7 @@ struct rib_subscription {
 static int add_route(struct rib_head *rnh, struct rt_addrinfo *info,
     struct rib_cmd_info *rc);
 static int add_route_nhop(struct rib_head *rnh, struct rtentry *rt,
-    struct rt_addrinfo *info, struct route_nhop_data *rnd,
-    struct rib_cmd_info *rc);
+    struct route_nhop_data *rnd, struct rib_cmd_info *rc);
 static int del_route(struct rib_head *rnh, struct rt_addrinfo *info,
     struct rib_cmd_info *rc);
 static int change_route(struct rib_head *rnh, struct rt_addrinfo *info,
@@ -127,7 +126,7 @@ VNET_DEFINE_STATIC(uma_zone_t, rtzone);
 SYSCTL_NODE(_net_route, OID_AUTO, debug, CTLFLAG_RD | CTLFLAG_MPSAFE, 0, "");
 
 void
-vnet_rtzone_init()
+vnet_rtzone_init(void)
 {
 
 	V_rtzone = uma_zcreate("rtentry", sizeof(struct rtentry),
@@ -136,7 +135,7 @@ vnet_rtzone_init()
 
 #ifdef VIMAGE
 void
-vnet_rtzone_destroy()
+vnet_rtzone_destroy(void)
 {
 
 	uma_zdestroy(V_rtzone);
@@ -156,7 +155,7 @@ destroy_rtentry(struct rtentry *rt)
 	 */
 #ifdef ROUTE_MPATH
 	if (NH_IS_NHGRP(nh)) {
-		struct weightened_nhop *wn;
+		const struct weightened_nhop *wn;
 		uint32_t num_nhops;
 		wn = nhgrp_get_nhops((struct nhgrp_object *)nh, &num_nhops);
 		nh = wn[0].nh;
@@ -416,16 +415,6 @@ rt_get_inet6_prefix_pmask(const struct rtentry *rt, struct in6_addr *paddr,
 }
 #endif
 
-static void
-rt_set_expire_info(struct rtentry *rt, const struct rt_addrinfo *info)
-{
-
-	/* Kernel -> userland timebase conversion. */
-	if (info->rti_mflags & RTV_EXPIRE)
-		rt->rt_expire = info->rti_rmx->rmx_expire ?
-		    info->rti_rmx->rmx_expire - time_second + time_uptime : 0;
-}
-
 /*
  * Check if specified @gw matches gw data in the nexthop @nh.
  *
@@ -628,6 +617,8 @@ check_gateway(struct rib_head *rnh, struct sockaddr *dst,
 /*
  * Creates rtentry and nexthop based on @info data.
  * Return 0 and fills in rtentry into @prt on success,
+ * Note: rtentry mask will be set to RTAX_NETMASK, thus its pointer is required
+ *  to be stable till the end of the operation (radix rt insertion/change/removal).
  * return errno otherwise.
  */
 static int
@@ -695,6 +686,8 @@ create_rtentry(struct rib_head *rnh, struct rt_addrinfo *info,
 		rt_maskedcopy(dst, ndst, netmask);
 	} else
 		bcopy(dst, ndst, dst->sa_len);
+	/* Set netmask to the storage from info. It will be updated upon insertion */
+	rt_mask(rt) = netmask;
 
 	/*
 	 * We use the ifa reference returned by rt_getifa_fib().
@@ -702,7 +695,6 @@ create_rtentry(struct rib_head *rnh, struct rt_addrinfo *info,
 	 * examine the ifa and  ifa->ifa_ifp if it so desires.
 	 */
 	rt->rt_weight = get_info_weight(info, RT_DEFAULT_WEIGHT);
-	rt_set_expire_info(rt, info);
 
 	*prt = rt;
 	return (0);
@@ -727,7 +719,7 @@ add_route(struct rib_head *rnh, struct rt_addrinfo *info,
 	nh = rt->rt_nhop;
 
 	RIB_WLOCK(rnh);
-	error = add_route_nhop(rnh, rt, info, &rnd_add, rc);
+	error = add_route_nhop(rnh, rt, &rnd_add, rc);
 	if (error == 0) {
 		RIB_WUNLOCK(rnh);
 		return (0);
@@ -748,7 +740,7 @@ add_route(struct rib_head *rnh, struct rt_addrinfo *info,
 	/* Check if new route has higher preference */
 	if (can_override_nhop(info, nh_orig) > 0) {
 		/* Update nexthop to the new route */
-		change_route_nhop(rnh, rt_orig, info, &rnd_add, rc);
+		change_route_nhop(rnh, rt_orig, &rnd_add, rc);
 		RIB_WUNLOCK(rnh);
 		uma_zfree(V_rtzone, rt);
 		nhop_free(nh_orig);
@@ -862,8 +854,7 @@ rt_unlinkrte(struct rib_head *rnh, struct rt_addrinfo *info, struct rib_cmd_info
 	 * Remove the item from the tree and return it.
 	 * Complain if it is not there and do no more processing.
 	 */
-	rn = rnh->rnh_deladdr(info->rti_info[RTAX_DST],
-	    info->rti_info[RTAX_NETMASK], &rnh->head);
+	rn = rnh->rnh_deladdr(rt_key_const(rt), rt_mask_const(rt), &rnh->head);
 	if (rn == NULL)
 		return (ESRCH);
 
@@ -1019,8 +1010,9 @@ change_mpath_route(struct rib_head *rnh, struct rt_addrinfo *info,
 {
 	int error = 0, found_idx = 0;
 	struct nhop_object *nh_orig = NULL, *nh_new;
-	struct route_nhop_data rnd_new;
-	struct weightened_nhop *wn = NULL, *wn_new;
+	struct route_nhop_data rnd_new = {};
+	const struct weightened_nhop *wn = NULL;
+	struct weightened_nhop *wn_new;
 	uint32_t num_nhops;
 
 	wn = nhgrp_get_nhops(rnd_orig->rnd_nhgrp, &num_nhops);
@@ -1050,7 +1042,7 @@ change_mpath_route(struct rib_head *rnh, struct rt_addrinfo *info,
 	wn_new[found_idx].nh = nh_new;
 	wn_new[found_idx].weight = get_info_weight(info, wn[found_idx].weight);
 
-	error = nhgrp_get_group(rnh, wn_new, num_nhops, &rnd_new);
+	error = nhgrp_get_group(rnh, wn_new, num_nhops, &rnd_new.rnd_nhgrp);
 	nhop_free(nh_new);
 	free(wn_new, M_TEMP);
 
@@ -1095,25 +1087,20 @@ change_route(struct rib_head *rnh, struct rt_addrinfo *info,
  */
 static int
 add_route_nhop(struct rib_head *rnh, struct rtentry *rt,
-    struct rt_addrinfo *info, struct route_nhop_data *rnd,
-    struct rib_cmd_info *rc)
+    struct route_nhop_data *rnd, struct rib_cmd_info *rc)
 {
-	struct sockaddr *ndst, *netmask;
 	struct radix_node *rn;
 	int error = 0;
 
 	RIB_WLOCK_ASSERT(rnh);
 
-	ndst = (struct sockaddr *)rt_key(rt);
-	netmask = info->rti_info[RTAX_NETMASK];
-
 	rt->rt_nhop = rnd->rnd_nhop;
 	rt->rt_weight = rnd->rnd_weight;
-	rn = rnh->rnh_addaddr(ndst, netmask, &rnh->head, rt->rt_nodes);
+	rn = rnh->rnh_addaddr(rt_key(rt), rt_mask_const(rt), &rnh->head, rt->rt_nodes);
 
 	if (rn != NULL) {
-		if (rt->rt_expire > 0)
-			tmproutes_update(rnh, rt);
+		if (!NH_IS_NHGRP(rnd->rnd_nhop) && nhop_get_expire(rnd->rnd_nhop))
+			tmproutes_update(rnh, rt, rnd->rnd_nhop);
 
 		/* Finalize notification */
 		rib_bump_gen(rnh);
@@ -1136,13 +1123,11 @@ add_route_nhop(struct rib_head *rnh, struct rtentry *rt,
 
 /*
  * Switch @rt nhop/weigh to the ones specified in @rnd.
- *  Conditionally set rt_expire if set in @info.
  * Returns 0 on success.
  */
 int
 change_route_nhop(struct rib_head *rnh, struct rtentry *rt,
-    struct rt_addrinfo *info, struct route_nhop_data *rnd,
-    struct rib_cmd_info *rc)
+    struct route_nhop_data *rnd, struct rib_cmd_info *rc)
 {
 	struct nhop_object *nh_orig;
 
@@ -1151,20 +1136,16 @@ change_route_nhop(struct rib_head *rnh, struct rtentry *rt,
 	nh_orig = rt->rt_nhop;
 
 	if (rnd->rnd_nhop != NULL) {
-		/* Changing expiration & nexthop & weight to a new one */
-		rt_set_expire_info(rt, info);
+		/* Changing nexthop & weight to a new one */
 		rt->rt_nhop = rnd->rnd_nhop;
 		rt->rt_weight = rnd->rnd_weight;
-		if (rt->rt_expire > 0)
-			tmproutes_update(rnh, rt);
+		if (!NH_IS_NHGRP(rnd->rnd_nhop) && nhop_get_expire(rnd->rnd_nhop))
+			tmproutes_update(rnh, rt, rnd->rnd_nhop);
 	} else {
 		/* Route deletion requested. */
-		struct sockaddr *ndst, *netmask;
 		struct radix_node *rn;
 
-		ndst = (struct sockaddr *)rt_key(rt);
-		netmask = info->rti_info[RTAX_NETMASK];
-		rn = rnh->rnh_deladdr(ndst, netmask, &rnh->head);
+		rn = rnh->rnh_deladdr(rt_key_const(rt), rt_mask_const(rt), &rnh->head);
 		if (rn == NULL)
 			return (ESRCH);
 		rt = RNTORT(rn);
@@ -1216,7 +1197,7 @@ change_route_conditional(struct rib_head *rnh, struct rtentry *rt,
 
 	if (rt_new == NULL) {
 		if (rnd_orig->rnd_nhop == NULL)
-			error = add_route_nhop(rnh, rt, info, rnd_new, rc);
+			error = add_route_nhop(rnh, rt, rnd_new, rc);
 		else {
 			/*
 			 * Prefix does not exist, which was not our assumption.
@@ -1233,7 +1214,7 @@ change_route_conditional(struct rib_head *rnh, struct rtentry *rt,
 			 * Nhop/mpath group hasn't changed. Flip
 			 * to the new precalculated one and return
 			 */
-			error = change_route_nhop(rnh, rt_new, info, rnd_new, rc);
+			error = change_route_nhop(rnh, rt_new, rnd_new, rc);
 		} else {
 			/* Update and retry */
 			rnd_orig->rnd_nhop = rt_new->rt_nhop;
@@ -1395,7 +1376,7 @@ rib_walk_del(u_int fibnum, int family, rib_filter_f_t *filter_f, void *arg, bool
 		if (report) {
 #ifdef ROUTE_MPATH
 			struct nhgrp_object *nhg;
-			struct weightened_nhop *wn;
+			const struct weightened_nhop *wn;
 			uint32_t num_nhops;
 			if (NH_IS_NHGRP(nh)) {
 				nhg = (struct nhgrp_object *)nh;

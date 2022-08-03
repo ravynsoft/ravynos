@@ -1806,8 +1806,8 @@ kqueue_release(struct kqueue *kq, int locked)
 		KQ_UNLOCK(kq);
 }
 
-void
-kqueue_drain_schedtask(void)
+static void
+ast_kqueue(struct thread *td, int tda __unused)
 {
 	taskqueue_quiesce(taskqueue_kqueue_ctx);
 }
@@ -1815,8 +1815,6 @@ kqueue_drain_schedtask(void)
 static void
 kqueue_schedtask(struct kqueue *kq)
 {
-	struct thread *td;
-
 	KQ_OWNED(kq);
 	KASSERT(((kq->kq_state & KQ_TASKDRAIN) != KQ_TASKDRAIN),
 	    ("scheduling kqueue task while draining"));
@@ -1824,10 +1822,7 @@ kqueue_schedtask(struct kqueue *kq)
 	if ((kq->kq_state & KQ_TASKSCHED) != KQ_TASKSCHED) {
 		taskqueue_enqueue(taskqueue_kqueue_ctx, &kq->kq_task);
 		kq->kq_state |= KQ_TASKSCHED;
-		td = curthread;
-		thread_lock(td);
-		td->td_flags |= TDF_ASTPENDING | TDF_KQTICKLED;
-		thread_unlock(td);
+		ast_sched(curthread, TDA_KQUEUE);
 	}
 }
 
@@ -2837,6 +2832,7 @@ knote_init(void)
 
 	knote_zone = uma_zcreate("KNOTE", sizeof(struct knote), NULL, NULL,
 	    NULL, NULL, UMA_ALIGN_PTR, 0);
+	ast_register(TDA_KQUEUE, ASTR_ASTF_REQUIRED, 0, ast_kqueue);
 }
 SYSINIT(knote, SI_SUB_PSEUDO, SI_ORDER_ANY, knote_init, NULL);
 

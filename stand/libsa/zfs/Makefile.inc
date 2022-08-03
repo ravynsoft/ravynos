@@ -20,12 +20,7 @@ ZSTD_SRC+=	zstd_ddict.c zstd_decompress.c zstd_decompress_block.c
 ZSTD_SRC+=	zstd_double_fast.c zstd_fast.c zstd_lazy.c zstd_ldm.c
 ZSTD_SRC+=	zstd_opt.c
 
-CFLAGS+=	-DHAS_ZSTD_ZFS
 SRCS+=		${ZFS_SRC} ${ZSTD_SRC}
-
-CFLAGS+=	-I${LDRSRC}
-CFLAGS+=	-I${SYSDIR}/cddl/boot/zfs
-CFLAGS+=	-I${SYSDIR}/crypto/skein
 
 #
 # Any file that needs the FreeBSD overrides that are in
@@ -59,14 +54,19 @@ CFLAGS_EARLY.blake3_impl_hack.c+= ${ZFS_EARLY}
 CFLAGS_EARLY.list.c+= ${ZFS_EARLY}
 CFLAGS_EARLY.zfs_zstd.c+= ${ZFS_EARLY}
 CFLAGS_EARLY.nvlist.c+= ${ZFS_EARLY}
+CFLAGS_EARLY.zfs.c += ${ZFS_EARLY}
 
-# Can't use the early flags because there's two conflicting definitions of boolean_t in
-# the zfs code that need to be unified, as well as a number of other hacks for pre-openzfs
-# code still in the tree that needs to be fixed.
-CFLAGS.zfs.c+=	-I${ZFSOSINC}/spl				\
-		-I${SRCTOP}/sys/cddl/contrib/opensolaris/common/lz4 \
-		-I${ZFSOSINC}/zfs				\
-		-I${OZFS}/include
+#
+# zfs.c is special: we need to define HAS_ZSTD_ZFS to get zfssubr.c to initialize zstd
+# properly. We need to have the cddl boot compat directory in the include path for zfssubr.c
+# to be found, and we need a couple of other include paths for skein and lz4. Finally we
+# temporarily need LDRSRC to pick up disk.h until that layering violation is corrected.
+#
+CFLAGS.zfs.c+=	-DHAS_ZSTD_ZFS					\
+		-I${SYSDIR}/cddl/boot/zfs			\
+		-I${LDRSRC}					\
+		-I${SYSDIR}/crypto/skein			\
+		-I${SRCTOP}/sys/cddl/contrib/opensolaris/common/lz4
 
 #
 # ZSTD coding style has some issues, so suppress clang's warnings. Also, zstd's
@@ -81,5 +81,6 @@ CFLAGS.zfs_zstd.c+= -DIN_BASE -DIN_LIBSA
 # Do not unroll skein loops, reduce code size
 CFLAGS.skein_block.c+=	-DSKEIN_LOOP=111
 
-# To puck up blake3_impl.c...
+# To find blake3_impl.c in OpenZFS tree for our somehat ugly blake3_impl_hack.c
+# that's needed until the necessary tweaks can be upstreamed.
 CFLAGS.blake3_impl_hack.c+= -I${OZFS}/module/icp/algs/blake3
