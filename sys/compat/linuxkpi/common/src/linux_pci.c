@@ -819,7 +819,7 @@ pci_request_region(struct pci_dev *pdev, int bar, const char *res_name)
 }
 
 struct resource *
-_lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size __unused)
+_lkpi_pci_iomap_range(struct pci_dev *pdev, int bar, unsigned long offset, int mmio_size __unused)
 {
 	struct pci_mmio_region *mmio, *p;
 	int type;
@@ -842,7 +842,7 @@ _lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size __unused)
 	}
 
 	mmio = malloc(sizeof(*mmio), M_DEVBUF, M_WAITOK | M_ZERO);
-	mmio->rid = PCIR_BAR(bar);
+	mmio->rid = PCIR_BAR(bar) + offset;
 	mmio->type = type;
 	mmio->res = bus_alloc_resource_any(pdev->dev.bsddev, mmio->type,
 	    &mmio->rid, RF_ACTIVE|RF_SHAREABLE);
@@ -856,6 +856,12 @@ _lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size __unused)
 	TAILQ_INSERT_TAIL(&pdev->mmio, mmio, next);
 
 	return (mmio->res);
+}
+
+struct resource *
+_lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size __unused)
+{
+    return _lkpi_pci_iomap_range(pdev, bar, 0, mmio_size);
 }
 
 int

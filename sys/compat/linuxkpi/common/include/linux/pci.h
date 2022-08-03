@@ -324,6 +324,7 @@ int pci_alloc_irq_vectors(struct pci_dev *pdev, int minv, int maxv,
 struct pci_dev *lkpinew_pci_dev(device_t);
 struct pci_devres *lkpi_pci_devres_get_alloc(struct pci_dev *pdev);
 void lkpi_pci_devres_release(struct device *, void *);
+struct resource *_lkpi_pci_iomap_range(struct pci_dev *pdev, int bar, unsigned long offset, int mmio_size);
 struct resource *_lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size);
 struct pcim_iomap_devres *lkpi_pcim_iomap_devres_find(struct pci_dev *pdev);
 void lkpi_pcim_iomap_table_release(struct device *, void *);
