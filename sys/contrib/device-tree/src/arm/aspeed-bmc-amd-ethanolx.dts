@@ -34,7 +34,7 @@
 	};
 	chosen {
 		stdout-path = &uart5;
-		bootargs = "console=ttyS4,115200 earlyprintk";
+		bootargs = "console=ttyS4,115200 earlycon";
 	};
 	leds {
 		compatible = "gpio-leds";
@@ -159,6 +159,11 @@
 //24LC128 EEPROM
 &i2c3 {
 	status = "okay";
+	eeprom@50 {
+		compatible = "atmel,24c256";
+		reg = <0x50>;
+		pagesize = <64>;
+	};
 };
 
 //P0 Power regulators

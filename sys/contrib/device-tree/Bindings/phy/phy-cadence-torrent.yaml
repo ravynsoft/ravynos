@@ -52,28 +52,24 @@ properties:
 
   reg:
     minItems: 1
-    maxItems: 2
     items:
       - description: Offset of the Torrent PHY configuration registers.
       - description: Offset of the DPTX PHY configuration registers.
 
   reg-names:
     minItems: 1
-    maxItems: 2
     items:
       - const: torrent_phy
       - const: dptx_phy
 
   resets:
     minItems: 1
-    maxItems: 2
     items:
       - description: Torrent PHY reset.
       - description: Torrent APB reset. This is optional.
 
   reset-names:
     minItems: 1
-    maxItems: 2
     items:
       - const: torrent_reset
       - const: torrent_apb
@@ -206,7 +202,7 @@ examples:
                 #phy-cells = <0>;
                 cdns,phy-type = <PHY_TYPE_PCIE>;
                 cdns,num-lanes = <2>;
-                cdns,ssc-mode = <TORRENT_SERDES_NO_SSC>;
+                cdns,ssc-mode = <CDNS_SERDES_NO_SSC>;
             };
 
             phy@2 {
@@ -215,7 +211,7 @@ examples:
                 #phy-cells = <0>;
                 cdns,phy-type = <PHY_TYPE_SGMII>;
                 cdns,num-lanes = <1>;
-                cdns,ssc-mode = <TORRENT_SERDES_NO_SSC>;
+                cdns,ssc-mode = <CDNS_SERDES_NO_SSC>;
             };
         };
     };

@@ -31,14 +31,12 @@ properties:
 
   resets:
     minItems: 1
-    maxItems: 2
     items:
       - description: Sierra PHY reset.
       - description: Sierra APB reset. This is optional.
 
   reset-names:
     minItems: 1
-    maxItems: 2
     items:
       - const: sierra_reset
       - const: sierra_apb
@@ -114,6 +112,15 @@ patternProperties:
         $ref: /schemas/types.yaml#/definitions/uint32
         minimum: 1
         maximum: 16
+
+      cdns,ssc-mode:
+        description:
+          Specifies the Spread Spectrum Clocking mode used. It can be NO_SSC,
+          EXTERNAL_SSC or INTERNAL_SSC.
+          Refer include/dt-bindings/phy/phy-cadence.h for the constants to be used.
+        $ref: /schemas/types.yaml#/definitions/uint32
+        enum: [0, 1, 2]
+        default: 1
 
     required:
       - reg

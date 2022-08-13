@@ -63,7 +63,7 @@ enum {
 	CPL_TX_TLS_SFO_TYPE_ALERT,
 	CPL_TX_TLS_SFO_TYPE_HANDSHAKE,
 	CPL_TX_TLS_SFO_TYPE_DATA,
-	CPL_TX_TLS_SFO_TYPE_HEARTBEAT,	/* XXX: Shouldn't this be "CUSTOM"? */
+	CPL_TX_TLS_SFO_TYPE_CUSTOM,
 };
 
 struct tls_scmd {
@@ -76,7 +76,6 @@ struct tls_ofld_info {
 	int key_location;
 	int rx_key_addr;
 	int tx_key_addr;
-	uint64_t tx_seq_no;
 	uint16_t rx_version;
 	unsigned short fcplenmax;
 	unsigned short adjusted_plen;

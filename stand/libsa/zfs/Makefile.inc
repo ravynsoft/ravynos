@@ -12,13 +12,11 @@ ZFS_SRC=	zfs.c nvlist.c skein.c skein_block.c list.c
 ZFS_SRC+=	zfs_zstd.c
 ZFS_SRC+=	blake3.c blake3_generic.c blake3_impl_hack.c
 ZSTD_SRC+=	entropy_common.c error_private.c
-ZSTD_SRC+=	fse_compress.c fse_decompress.c hist.c
-ZSTD_SRC+=	huf_compress.c huf_decompress.c pool.c xxhash.c
-ZSTD_SRC+=	zstd_common.c zstd_compress.c zstd_compress_literals.c
-ZSTD_SRC+=	zstd_compress_sequences.c zstd_compress_superblock.c
+ZSTD_SRC+=	fse_decompress.c hist.c
+ZSTD_SRC+=	huf_decompress.c pool.c xxhash.c
+ZSTD_SRC+=	zstd_common.c
 ZSTD_SRC+=	zstd_ddict.c zstd_decompress.c zstd_decompress_block.c
 ZSTD_SRC+=	zstd_double_fast.c zstd_fast.c zstd_lazy.c zstd_ldm.c
-ZSTD_SRC+=	zstd_opt.c
 
 SRCS+=		${ZFS_SRC} ${ZSTD_SRC}
 
@@ -60,7 +58,8 @@ CFLAGS_EARLY.zfs.c += ${ZFS_EARLY}
 # zfs.c is special: we need to define HAS_ZSTD_ZFS to get zfssubr.c to initialize zstd
 # properly. We need to have the cddl boot compat directory in the include path for zfssubr.c
 # to be found, and we need a couple of other include paths for skein and lz4. Finally we
-# temporarily need LDRSRC to pick up disk.h until that layering violation is corrected.
+# temporarily need LDRSRC to pick up part.h until libsa has a way to look into partitions
+# or enumerate them...
 #
 CFLAGS.zfs.c+=	-DHAS_ZSTD_ZFS					\
 		-I${SYSDIR}/cddl/boot/zfs			\

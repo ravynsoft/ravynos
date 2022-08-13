@@ -523,8 +523,8 @@ get_inet6_parent_prefix(uint32_t fibnum, const struct in6_addr *paddr, int plen)
 	return (NULL);
 }
 
-static void
-ipv6_writemask(struct in6_addr *addr6, uint8_t mask)
+void
+ip6_writemask(struct in6_addr *addr6, uint8_t mask)
 {
 	uint32_t *cp;
 
@@ -547,7 +547,7 @@ rt_get_inet6_parent(uint32_t fibnum, const struct in6_addr *paddr, int plen)
 
 	while (plen-- > 0) {
 		/* Calculate wider mask & new key to lookup */
-		ipv6_writemask(&mask6, plen);
+		ip6_writemask(&mask6, plen);
 		IN6_MASK_ADDR(&addr6, &mask6);
 		if (IN6_ARE_ADDR_EQUAL(&addr6, &lookup_addr)) {
 			/* Skip lookup if the key is the same */
@@ -571,9 +571,11 @@ rt_get_inet6_parent(uint32_t fibnum, const struct in6_addr *paddr, int plen)
 char *
 rt_print_buf(const struct rtentry *rt, char *buf, size_t bufsize)
 {
+#if defined(INET) || defined(INET6)
 	char abuf[INET6_ADDRSTRLEN];
 	uint32_t scopeid;
 	int plen;
+#endif
 
 	switch (rt_get_family(rt)) {
 #ifdef INET

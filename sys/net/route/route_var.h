@@ -78,7 +78,7 @@ struct rib_head {
 };
 
 #define	RIB_RLOCK_TRACKER	struct rm_priotracker _rib_tracker
-#define	RIB_LOCK_INIT(rh)	rm_init(&(rh)->rib_lock, "rib head lock")
+#define	RIB_LOCK_INIT(rh)	rm_init_flags(&(rh)->rib_lock, "rib head lock", RM_DUPOK)
 #define	RIB_LOCK_DESTROY(rh)	rm_destroy(&(rh)->rib_lock)
 #define	RIB_RLOCK(rh)		rm_rlock(&(rh)->rib_lock, &_rib_tracker)
 #define	RIB_RUNLOCK(rh)		rm_runlock(&(rh)->rib_lock, &_rib_tracker)
@@ -212,27 +212,37 @@ void tmproutes_destroy(struct rib_head *rh);
 
 /* route_ctl.c */
 struct route_nhop_data;
-int change_route_nhop(struct rib_head *rnh, struct rtentry *rt,
+int change_route(struct rib_head *rnh, struct rtentry *rt,
     struct route_nhop_data *rnd, struct rib_cmd_info *rc);
 int change_route_conditional(struct rib_head *rnh, struct rtentry *rt,
-    struct rt_addrinfo *info, struct route_nhop_data *nhd_orig,
-    struct route_nhop_data *nhd_new, struct rib_cmd_info *rc);
+    struct route_nhop_data *nhd_orig, struct route_nhop_data *nhd_new,
+    struct rib_cmd_info *rc);
 struct rtentry *lookup_prefix(struct rib_head *rnh,
     const struct rt_addrinfo *info, struct route_nhop_data *rnd);
+struct rtentry *lookup_prefix_rt(struct rib_head *rnh, const struct rtentry *rt,
+    struct route_nhop_data *rnd);
+int rib_copy_route(struct rtentry *rt, const struct route_nhop_data *rnd_src,
+    struct rib_head *rh_dst, struct rib_cmd_info *rc);
 
 bool nhop_can_multipath(const struct nhop_object *nh);
 bool match_nhop_gw(const struct nhop_object *nh, const struct sockaddr *gw);
 int check_info_match_nhop(const struct rt_addrinfo *info,
     const struct rtentry *rt, const struct nhop_object *nh);
-int can_override_nhop(const struct rt_addrinfo *info,
-    const struct nhop_object *nh);
 
+/* route_rtentry.c */
 void vnet_rtzone_init(void);
 void vnet_rtzone_destroy(void);
+void rt_free(struct rtentry *rt);
+void rt_free_immediate(struct rtentry *rt);
+struct rtentry *rt_alloc(struct rib_head *rnh, const struct sockaddr *dst,
+    struct sockaddr *netmask);
 
 /* subscriptions */
 void rib_init_subscriptions(struct rib_head *rnh);
 void rib_destroy_subscriptions(struct rib_head *rnh);
+
+/* route_ifaddrs.c */
+void rib_copy_kernel_routes(struct rib_head *rh_src, struct rib_head *rh_dst);
 
 /* Nexhops */
 void nhops_init(void);
@@ -242,6 +252,8 @@ void nhop_ref_object(struct nhop_object *nh);
 int nhop_try_ref_object(struct nhop_object *nh);
 void nhop_ref_any(struct nhop_object *nh);
 void nhop_free_any(struct nhop_object *nh);
+struct nhop_object *nhop_get_nhop_internal(struct rib_head *rnh,
+    struct nhop_object *nh, int *perror);
 
 
 int nhop_create_from_info(struct rib_head *rnh, struct rt_addrinfo *info,
@@ -282,8 +294,6 @@ struct weightened_nhop;
 int add_route_mpath(struct rib_head *rnh, struct rt_addrinfo *info,
     struct rtentry *rt, struct route_nhop_data *rnd_add,
     struct route_nhop_data *rnd_orig, struct rib_cmd_info *rc);
-int del_route_mpath(struct rib_head *rh, struct rt_addrinfo *info,
-    struct rtentry *rt, struct nhgrp_object *nhg, struct rib_cmd_info *rc);
 
 /* nhgrp.c */
 int nhgrp_ctl_init(struct nh_control *ctl);
@@ -296,9 +306,9 @@ int nhgrp_dump_sysctl(struct rib_head *rh, struct sysctl_req *w);
 
 int nhgrp_get_group(struct rib_head *rh, struct weightened_nhop *wn,
     int num_nhops, struct nhgrp_object **pnhg);
-typedef bool nhgrp_filter_cb_t(const struct nhop_object *nh, void *data);
-int nhgrp_get_filtered_group(struct rib_head *rh, const struct nhgrp_object *src,
-    nhgrp_filter_cb_t flt_func, void *flt_data, struct route_nhop_data *rnd);
+int nhgrp_get_filtered_group(struct rib_head *rh, const struct rtentry *rt,
+    const struct nhgrp_object *src, rib_filter_f_t flt_func, void *flt_data,
+    struct route_nhop_data *rnd);
 int nhgrp_get_addition_group(struct rib_head *rnh,
     struct route_nhop_data *rnd_orig, struct route_nhop_data *rnd_add,
     struct route_nhop_data *rnd_new);

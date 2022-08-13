@@ -16,8 +16,12 @@ properties:
       - kionix,kxcj91008
       - kionix,kxtj21009
       - kionix,kxtf9
+      - kionix,kx023-1025
 
   reg:
+    maxItems: 1
+
+  interrupts:
     maxItems: 1
 
   vdd-supply: true

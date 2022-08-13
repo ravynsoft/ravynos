@@ -24,6 +24,11 @@ properties:
           - const: hisilicon,hi3670-reset
           - const: hisilicon,hi3660-reset
 
+  hisi,rst-syscon:
+    deprecated: true
+    description: phandle of the reset's syscon, use hisilicon,rst-syscon instead
+    $ref: /schemas/types.yaml#/definitions/phandle
+
   hisilicon,rst-syscon:
     description: phandle of the reset's syscon.
     $ref: /schemas/types.yaml#/definitions/phandle
@@ -72,6 +77,5 @@ examples:
         resets = <&iomcu_rst 0x20 3>;
         pinctrl-names = "default";
         pinctrl-0 = <&i2c0_pmx_func &i2c0_cfg_func>;
-        status = "disabled";
     };
 ...

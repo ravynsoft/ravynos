@@ -20,12 +20,15 @@ properties:
     items:
       - enum:
           - apple,s5l-uart
+          - axis,artpec8-uart
           - samsung,s3c2410-uart
           - samsung,s3c2412-uart
           - samsung,s3c2440-uart
           - samsung,s3c6400-uart
           - samsung,s5pv210-uart
           - samsung,exynos4210-uart
+          - samsung,exynos5433-uart
+          - samsung,exynos850-uart
 
   reg:
     maxItems: 1
@@ -44,7 +47,6 @@ properties:
   clock-names:
     description: N = 0 is allowed for SoCs without internal baud clock mux.
     minItems: 2
-    maxItems: 5
     items:
       - const: uart
       - pattern: '^clk_uart_baud[0-3]$'
@@ -82,7 +84,7 @@ required:
 unevaluatedProperties: false
 
 allOf:
-  - $ref: /schemas/serial.yaml#
+  - $ref: serial.yaml#
 
   - if:
       properties:
@@ -98,7 +100,6 @@ allOf:
           maxItems: 3
         clock-names:
           minItems: 2
-          maxItems: 3
           items:
             - const: uart
             - pattern: '^clk_uart_baud[0-1]$'
@@ -110,15 +111,14 @@ allOf:
           contains:
             enum:
               - apple,s5l-uart
+              - axis,artpec8-uart
               - samsung,exynos4210-uart
+              - samsung,exynos5433-uart
     then:
       properties:
         clocks:
-          minItems: 2
           maxItems: 2
         clock-names:
-          minItems: 2
-          maxItems: 2
           items:
             - const: uart
             - const: clk_uart_baud0

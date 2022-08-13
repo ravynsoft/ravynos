@@ -9,6 +9,10 @@ title: SPI NOR flash ST M25Pxx (and similar) serial flash chips
 maintainers:
   - Rob Herring <robh@kernel.org>
 
+allOf:
+  - $ref: "mtd.yaml#"
+  - $ref: /schemas/spi/spi-peripheral-props.yaml#
+
 properties:
   compatible:
     oneOf:
@@ -43,7 +47,8 @@ properties:
       identified by the JEDEC READ ID opcode (0x9F).
 
   reg:
-    maxItems: 1
+    minItems: 1
+    maxItems: 2
 
   spi-max-frequency: true
   spi-rx-bus-width: true
@@ -82,7 +87,10 @@ patternProperties:
   '^partition@':
     type: object
 
-additionalProperties: false
+  "^otp(-[0-9]+)?$":
+    type: object
+
+unevaluatedProperties: false
 
 examples:
   - |

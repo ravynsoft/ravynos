@@ -9,7 +9,6 @@
 	panel: panel {
 		compatible = "auo,b116xw03";
 		power-supply = <&pp3300_panel>;
-		ddc-i2c-bus = <&i2c4>;
 		backlight = <&backlight_lcd0>;
 
 		port {
@@ -89,6 +88,14 @@
 
 			gpios = <&pio 5 GPIO_ACTIVE_LOW>;
 		};
+	};
+};
+
+&cros_ec {
+	cros_ec_pwm: ec-pwm {
+		compatible = "google,cros-ec-pwm";
+		#pwm-cells = <1>;
+		status = "disabled";
 	};
 };
 

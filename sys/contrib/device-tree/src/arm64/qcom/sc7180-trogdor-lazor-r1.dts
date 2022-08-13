@@ -7,20 +7,13 @@
 
 /dts-v1/;
 
+#include "sc7180.dtsi"
+#include "sc7180-trogdor-ti-sn65dsi86.dtsi"
 #include "sc7180-trogdor-lazor.dtsi"
 
 / {
 	model = "Google Lazor (rev1 - 2)";
 	compatible = "google,lazor-rev1", "google,lazor-rev2", "qcom,sc7180";
-};
-
-/*
- * Lazor is stuffed with a 47k NTC as charger thermistor which currently is
- * not supported by the PM6150 ADC driver. Disable the charger thermal zone
- * to avoid using bogus temperature values.
- */
-&charger_thermal {
-	status = "disabled";
 };
 
 &pp3300_hub {

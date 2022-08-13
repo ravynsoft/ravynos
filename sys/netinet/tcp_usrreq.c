@@ -172,11 +172,9 @@ tcp_usr_attach(struct socket *so, int proto, struct thread *td)
 	KASSERT(inp == NULL, ("tcp_usr_attach: inp != NULL"));
 	TCPDEBUG1();
 
-	if (so->so_snd.sb_hiwat == 0 || so->so_rcv.sb_hiwat == 0) {
-		error = soreserve(so, V_tcp_sendspace, V_tcp_recvspace);
-		if (error)
-			goto out;
-	}
+	error = soreserve(so, V_tcp_sendspace, V_tcp_recvspace);
+	if (error)
+		goto out;
 
 	so->so_rcv.sb_flags |= SB_AUTOSIZE;
 	so->so_snd.sb_flags |= SB_AUTOSIZE;
@@ -184,16 +182,6 @@ tcp_usr_attach(struct socket *so, int proto, struct thread *td)
 	if (error)
 		goto out;
 	inp = sotoinpcb(so);
-#ifdef INET6
-	if (inp->inp_vflag & INP_IPV6PROTO) {
-		inp->inp_vflag |= INP_IPV6;
-		if ((inp->inp_flags & IN6P_IPV6_V6ONLY) == 0)
-			inp->inp_vflag |= INP_IPV4;
-		inp->in6p_hops = -1;	/* use kernel default */
-	}
-	else
-#endif
-		inp->inp_vflag |= INP_IPV4;
 	tp = tcp_newtcpcb(inp);
 	if (tp == NULL) {
 		error = ENOBUFS;

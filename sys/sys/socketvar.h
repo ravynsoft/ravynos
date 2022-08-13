@@ -474,7 +474,10 @@ int	solisten(struct socket *so, int backlog, struct thread *td);
 void	solisten_proto(struct socket *so, int backlog);
 void	solisten_proto_abort(struct socket *so);
 int	solisten_proto_check(struct socket *so);
+void	solisten_enqueue(struct socket *, int);
 int	solisten_dequeue(struct socket *, struct socket **, int);
+struct socket *
+	solisten_clone(struct socket *);
 struct socket *
 	sonewconn(struct socket *head, int connstatus);
 struct socket *
@@ -495,6 +498,7 @@ int	soreceive_generic(struct socket *so, struct sockaddr **paddr,
 	    struct uio *uio, struct mbuf **mp0, struct mbuf **controlp,
 	    int *flagsp);
 void	sorele_locked(struct socket *so);
+void	sodealloc(struct socket *);
 int	soreserve(struct socket *so, u_long sndcc, u_long rcvcc);
 void	sorflush(struct socket *so);
 int	sosend(struct socket *so, struct sockaddr *addr, struct uio *uio,

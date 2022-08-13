@@ -10,7 +10,7 @@ maintainers:
   - devicetree@vger.kernel.org
 
 allOf:
-  - $ref: /schemas/serial.yaml#
+  - $ref: serial.yaml#
   - if:
       anyOf:
         - required:
@@ -66,6 +66,12 @@ properties:
       - const: nxp,lpc3220-uart
       - items:
           - enum:
+              - exar,xr16l2552
+              - exar,xr16l2551
+              - exar,xr16l2550
+          - const: ns8250
+      - items:
+          - enum:
               - altr,16550-FIFO32
               - altr,16550-FIFO64
               - altr,16550-FIFO128
@@ -107,9 +113,10 @@ properties:
               - nvidia,tegra30-uart
               - nvidia,tegra114-uart
               - nvidia,tegra124-uart
+              - nvidia,tegra210-uart
               - nvidia,tegra186-uart
               - nvidia,tegra194-uart
-              - nvidia,tegra210-uart
+              - nvidia,tegra234-uart
           - const: nvidia,tegra20-uart
 
   reg:

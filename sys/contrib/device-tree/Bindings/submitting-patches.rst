@@ -7,8 +7,8 @@ Submitting Devicetree (DT) binding patches
 I. For patch submitters
 =======================
 
-  0) Normal patch submission rules from Documentation/process/submitting-patches.rst
-     applies.
+  0) Normal patch submission rules from
+     Documentation/process/submitting-patches.rst applies.
 
   1) The Documentation/ and include/dt-bindings/ portion of the patch should
      be a separate patch. The preferred subject prefix for binding patches is::
@@ -25,8 +25,8 @@ I. For patch submitters
 
        make dt_binding_check
 
-     See Documentation/devicetree/bindings/writing-schema.rst for more details about
-     schema and tools setup.
+     See Documentation/devicetree/bindings/writing-schema.rst for more details
+     about schema and tools setup.
 
   3) DT binding files should be dual licensed. The preferred license tag is
      (GPL-2.0-only OR BSD-2-Clause).
@@ -63,6 +63,9 @@ I. For patch submitters
      string that is matched by the driver (as in the "nvidia,tegra20-pcie"
      example above).
 
+  9) Bindings are actively used by multiple projects other than the Linux
+     Kernel, extra care and consideration may need to be taken when making changes
+     to existing bindings.
 
 II. For kernel maintainers
 ==========================
@@ -84,7 +87,8 @@ II. For kernel maintainers
 III. Notes
 ==========
 
-  0) Please see :doc:`ABI` for details regarding devicetree ABI.
+  0) Please see Documentation/devicetree/bindings/ABI.rst for details
+     regarding devicetree ABI.
 
   1) This document is intended as a general familiarization with the process as
      decided at the 2013 Kernel Summit.  When in doubt, the current word of the

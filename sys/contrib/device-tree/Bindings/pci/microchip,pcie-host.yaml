@@ -11,6 +11,7 @@ maintainers:
 
 allOf:
   - $ref: /schemas/pci/pci-bus.yaml#
+  - $ref: /schemas/interrupt-controller/msi-controller.yaml#
 
 properties:
   compatible:
@@ -26,14 +27,12 @@ properties:
 
   interrupts:
     minItems: 1
-    maxItems: 2
     items:
       - description: PCIe host controller
       - description: builtin MSI controller
 
   interrupt-names:
     minItems: 1
-    maxItems: 2
     items:
       - const: pcie
       - const: msi
@@ -46,6 +45,24 @@ properties:
 
   msi-parent:
     description: MSI controller the device is capable of using.
+
+  interrupt-controller:
+    type: object
+    properties:
+      '#address-cells':
+        const: 0
+
+      '#interrupt-cells':
+        const: 1
+
+      interrupt-controller: true
+
+    required:
+      - '#address-cells'
+      - '#interrupt-cells'
+      - interrupt-controller
+
+    additionalProperties: false
 
 required:
   - reg

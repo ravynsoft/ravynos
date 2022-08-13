@@ -523,10 +523,25 @@ The
 and
 .Fn RB_NFIND
 macros can be used to find a particular element in the tree.
+.Pp
+The
+.Fn RB_FIND
+macro returns the element in the tree equal to the provided
+key, or
+.Dv NULL
+if there is no such element.
+.Pp
+The
+.Fn RB_NFIND
+macro returns the least element greater than or equal to the provided
+key, or
+.Dv NULL
+if there is no such element.
 .Bd -literal -offset indent
-struct TYPE find, *res;
+struct TYPE find, *res, *resn;
 find.key = 30;
 res = RB_FIND(NAME, head, &find);
+resn = RB_NFIND(NAME, head, &find);
 .Ed
 .Pp
 The
@@ -609,7 +624,9 @@ The
 macro updates augmentation data of the element
 .Fa elm
 and its ancestors in the tree.
-If RB_AUGMENT is defined by the RB user, then when an element in the
+If
+.Fn RB_AUGMENT
+is defined by the RB user, then when an element in the
 tree is changed, without changing the order of items in the tree,
 invoking this function on that element restores consistency of the
 augmentation state of the tree as if the element had been removed and
