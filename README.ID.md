@@ -1,28 +1,28 @@
-# What is ravynOS? [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-### Don't speak English? Read this in: [Italiano](README.IT.md), [Türkçe](README_TR.md), [German](README.DE.md)
+# Apa itu ravynOS? [![Status Pembuatan](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [ ![Perjanjian Kontributor](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+### Don't speak Indonesian? Read this in: [English](README.md), [Italiano](README.IT.md), [Türkçe](README.TR.md)
 
-ravynOS is a new open source OS project that aims to provide a similar experience and some compatibility with macOS on x86-64 (and eventually ARM) systems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps.
+ravynOS adalah proyek OS open source baru yang bertujuan untuk memberikan pengalaman serupa dan beberapa kompatibilitas dengan macOS pada sistem x86-64 (dan akhirnya ARM). Itu dibangun di atas dasar FreeBSD yang kokoh, paket open source yang ada di ruang yang sama, dan kode baru untuk mengisi kekosongan.
 
-The main design goals are:
-- Source compatibility with macOS applications (i.e. you could compile a Mac application on ravynOS and run it)
-- Similar GUI metaphors and familiar UX (file manager, application launcher, top menu bar that reflects the open application, etc)
-- Compatible with macOS folder layouts (/Library, /System, /Users, /Volumes, etc) and perhaps filesystems (HFS+, APFS) as well as fully supporting ZFS
-- Self-contained applications in [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), and [AppImage](https://github.com/AppImage) files - an installer-less experience for /Applications
-- Mostly maintain compatibility with the FreeBSD base system and X11 - a standard Unix environment under the hood
-- Compatible with Linux binaries via FreeBSD's Linux support
-- Eventual compatibility with x86-64/arm64 macOS binaries (Mach-O) and libraries
-- Pleasant to use, secure, stable, and performant
+Tujuan utama desain adalah:
+- Kompatibilitas sumber dengan aplikasi macOS (yaitu Anda dapat mengkompilasi aplikasi Mac di ravynOS dan menjalankannya)
+- Metafora GUI serupa dan UX yang sudah dikenal (manajer file, peluncur aplikasi, bilah menu atas yang mencerminkan aplikasi terbuka, dll)
+- Kompatibel dengan tata letak folder macOS (/ Perpustakaan, / Sistem, / Pengguna, / Volume, dll) dan mungkin sistem file (HFS +, APFS) serta sepenuhnya mendukung ZFS
+- Aplikasi mandiri di [App Bundle](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), dan file [AppImage](https://github.com/AppImage) - pengalaman tanpa penginstal untuk /Applications
+- Sebagian besar mempertahankan kompatibilitas dengan sistem dasar FreeBSD dan X11 - lingkungan Unix standar di bawah tenda
+- Kompatibel dengan binari Linux melalui dukungan Linux FreeBSD
+- Kompatibilitas akhirnya dengan binari macOS x86-64/arm64 (Mach-O) dan library
+- Menyenangkan untuk digunakan, aman, stabil, dan berkinerja
 
-Please visit [ravynos.com](https://ravynos.com/) for more info: [Release Notes](https://ravynos.com/releases.html) | [Screenshots](https://ravynos.com/screenshots.html) | [FAQ](https://ravynos.com/faq.html)
+Kunjungi [ravynos.com](https://ravynos.com/) untuk info selengkapnya: [Catatan Rilis](https://ravynos.com/releases.html) | [Screenshot](https://ravynos.com/screenshots.html) | [FAQ](https://ravynos.com/faq.html)
 
-### Join us!
+### Bergabunglah dengan kami!
 
-* Can you help build the dream? See the current projects/needs in [CONTRIBUTING.md](CONTRIBUTING.md)!
-* Our [Discord](https://discord.com/invite/8caJbAGNwY) server.
-* `#ravynOS-general:matrix.org` - join via [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
-* `#airyx` on [Libera IRC](https://web.libera.chat/?channel=#airyx)
+* Dapatkah Anda membantu membangun mimpi? Lihat proyek/kebutuhan saat ini di [CONTRIBUTING.md](CONTRIBUTING.md)!
+* Server [Discord](https://discord.com/invite/8caJbAGNwY) kami.
+* `#ravynOS-general:matrix.org` - bergabung melalui [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
+* `#airyx` di [Libera IRC](https://web.libera.chat/?channel=#airyx)
 
-[![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
+[![Paket dihosting oleh: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
 ---
 
