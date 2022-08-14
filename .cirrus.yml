@@ -94,9 +94,9 @@ kernel_task:
   kernel_build_script:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
     - make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN COMPILER_TYPE=clang buildkernel
-    - CFLAGS=--sysroot=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/tmp make -C drm-kmod 
+    - CFLAGS=--sysroot=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/tmp COMPILER_TYPE=clang make -C drm-kmod 
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/kernel/boot/modules
-    - CFLAGS=--sysroot=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/tmp make -C drm-kmod DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/kernel/
+    - CFLAGS=--sysroot=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/tmp COMPILER_TYPE=clang make -C drm-kmod DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/kernel/
     - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang kernel.txz
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/kernel.txz
   upload_caches:
