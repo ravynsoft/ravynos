@@ -152,6 +152,8 @@ system_task:
     - make COMPILER_TYPE=clang -f Makefile.ravynOS prep
     - cp -fv share/mk/* /usr/share/mk/
     - make COMPILER_TYPE=clang -f Makefile.ravynOS
+    - git clone git@github.com:ravynsoft/neofetch.git
+    - make -C neofetch DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM} install
     - rm -f dist/ravynOS.txz
     - tar cvJ -C /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS --gid 0 --uid 0 -f $(pwd)/dist/ravynOS.txz .
   iso_script:
