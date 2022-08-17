@@ -153,7 +153,7 @@ system_task:
     - cp -fv share/mk/* /usr/share/mk/
     - make COMPILER_TYPE=clang -f Makefile.ravynOS
     - git clone https://github.com/ravynsoft/neofetch.git
-    - make -C neofetch DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS install
+    - cd neofetch && make DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS install
     - git clone https://github.com/ravynsoft/plutil.git
     - cd plutil && git submodule update --init --recursive
     - cd plutil && gmake && gmake DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS install
