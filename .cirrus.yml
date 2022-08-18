@@ -154,9 +154,12 @@ system_task:
     - make COMPILER_TYPE=clang -f Makefile.ravynOS
     - git clone https://github.com/ravynsoft/neofetch.git
     - cd neofetch && gmake DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS install
+    - cd ${CIRRUS_WORKING_DIR}
     - git clone https://github.com/ravynsoft/plutil.git
-    - cd plutil && git submodule update --init --recursive
-    - cd plutil && gmake && gmake DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS install
+    - cd plutil
+    - git submodule update --init --recursive
+    - gmake && gmake DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS install
+    - cd ${CIRRUS_WORKING_DIR}
     - rm -f dist/ravynOS.txz
     - tar cvJ -C /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS --gid 0 --uid 0 -f $(pwd)/dist/ravynOS.txz .
   iso_script:
