@@ -1,5 +1,5 @@
 TOPDIR= ${.CURDIR}
-BUILDROOT= /usr/obj${TOPDIR}/${MACHINE}.${MACHINE}/release/dist/ravynOS
+BUILDROOT= /usr/obj${TOPDIR}/${MACHINE}.${MACHINE_CPUARCH}/release/dist/ravynOS
 RAVYNOS_VERSION!= sed -e '1q;d' ${TOPDIR}/version.txt
 RAVYNOS_CODENAME!= sed -e '2q;d' ${TOPDIR}/version.txt
 CORES!= sysctl -n hw.ncpu

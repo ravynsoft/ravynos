@@ -1,7 +1,7 @@
 CIRRUS_BUILD_ID?= local
 MK_WERROR= no
 WARN?= 1
-WORLDTMP= /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE}
+WORLDTMP= /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE_CPUARCH}
 CFLAGS+= -I ${WORLDTMP}/tmp/usr/include
 #CFLAGS+=	-B ${WORLDTMP}/usr/bin
 LDFLAGS+= -B ${WORLDTMP}/usr/bin \

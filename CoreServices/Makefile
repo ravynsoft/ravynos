@@ -9,9 +9,9 @@ all: clean build
 clean:
 	rm -rf ${BUILDROOT}/System/Library/CoreServices
 	rm -rf Filer/build Filer/Filer.app
-	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE}/CoreServices/Dock
-	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE}/CoreServices/Filer
-	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE}/CoreServices/WindowServer
+	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE_CPUARCH}/CoreServices/Dock
+	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE_CPUARCH}/CoreServices/Filer
+	rm -rf /usr/obj/${TOPDIR}/${MACHINE}.${MACHINE_CPUARCH}/CoreServices/WindowServer
 
 DMIHelper: ${.CURDIR}/DMIHelper.c
 	mkdir -p ${BUILDROOT}/System/Library/CoreServices

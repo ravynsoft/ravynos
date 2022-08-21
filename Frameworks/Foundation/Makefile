@@ -279,7 +279,6 @@ SRCS= \
 ./NSObject/objc_size_alignment.m \
 ./NSObject/NSZombieObject.m \
 ./NSObject/forwarding.m \
-./NSObject/platform_linux/msgSendv-x64.s \
 ./NSDistributedLock.m \
 ./NSMetadata/NSMetadataQuery.m \
 ./NSMetadata/NSMetadataQueryResultGroup.m \
@@ -689,6 +688,13 @@ LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -L${BUILDROOT}/System/Library/Frameworks/CFNetwork.framework/Versions/Current \
 	  -lCFNetwork \
 	  -lobjc -lexecinfo -lpthread
+
+.if ${MACHINE_CPUARCH} == "aarch64"
+CFLAGS += -DCOCOTRON_DISALLOW_FORWARDING=1
+SRCS += ./NSObject/objc_msg_sendv-Disabled.m
+.elif ${MACHINE_CPUARCH} == "i386" || ${MACHINE_CPUARCH} == "amd64"
+SRCS += ./NSObject/platform_linux/msgSendv-x64.s
+.endif
 
 marshalheaders: .PHONY
 	mkdir -p Headers/Foundation
