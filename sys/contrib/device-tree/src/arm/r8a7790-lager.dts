@@ -81,6 +81,9 @@
 	keyboard {
 		compatible = "gpio-keys";
 
+		pinctrl-0 = <&keyboard_pins>;
+		pinctrl-names = "default";
+
 		one {
 			linux,code = <KEY_1>;
 			label = "SW2-1";
@@ -659,6 +662,11 @@
 		groups = "audio_clk_a";
 		function = "audio_clk";
 	};
+
+	keyboard_pins: keyboard {
+		pins = "GP_1_14", "GP_1_24", "GP_1_26", "GP_1_28";
+		bias-pull-up;
+	};
 };
 
 &ether {
@@ -670,6 +678,8 @@
 	status = "okay";
 
 	phy1: ethernet-phy@1 {
+		compatible = "ethernet-phy-id0022.1537",
+			     "ethernet-phy-ieee802.3-c22";
 		reg = <1>;
 		interrupt-parent = <&irqc0>;
 		interrupts = <0 IRQ_TYPE_LEVEL_LOW>;

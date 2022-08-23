@@ -290,7 +290,7 @@ decompose_change_notification(struct rib_cmd_info *rc, route_notification_t *cb,
     void *cbdata)
 {
 	uint32_t num_old, num_new;
-	struct weightened_nhop *wn_old, *wn_new;
+	const struct weightened_nhop *wn_old, *wn_new;
 	struct weightened_nhop tmp = { NULL, 0 };
 	uint32_t idx_old = 0, idx_new = 0;
 
@@ -378,13 +378,11 @@ void
 rib_decompose_notification(struct rib_cmd_info *rc, route_notification_t *cb,
     void *cbdata)
 {
-	struct weightened_nhop *wn;
+	const struct weightened_nhop *wn;
 	uint32_t num_nhops;
 	struct rib_cmd_info rc_new;
 
 	rc_new = *rc;
-	DPRINTF("cb=%p cmd=%d nh_old=%p nh_new=%p",
-	    cb, rc->cmd, rc->nh_old, rc->nh_new);
 	switch (rc->rc_cmd) {
 	case RTM_ADD:
 		if (!NH_IS_NHGRP(rc->rc_nh_new))
@@ -525,8 +523,8 @@ get_inet6_parent_prefix(uint32_t fibnum, const struct in6_addr *paddr, int plen)
 	return (NULL);
 }
 
-static void
-ipv6_writemask(struct in6_addr *addr6, uint8_t mask)
+void
+ip6_writemask(struct in6_addr *addr6, uint8_t mask)
 {
 	uint32_t *cp;
 
@@ -549,7 +547,7 @@ rt_get_inet6_parent(uint32_t fibnum, const struct in6_addr *paddr, int plen)
 
 	while (plen-- > 0) {
 		/* Calculate wider mask & new key to lookup */
-		ipv6_writemask(&mask6, plen);
+		ip6_writemask(&mask6, plen);
 		IN6_MASK_ADDR(&addr6, &mask6);
 		if (IN6_ARE_ADDR_EQUAL(&addr6, &lookup_addr)) {
 			/* Skip lookup if the key is the same */
@@ -565,3 +563,62 @@ rt_get_inet6_parent(uint32_t fibnum, const struct in6_addr *paddr, int plen)
 	return (NULL);
 }
 #endif
+
+/*
+ * Prints rtentry @rt data in the provided @buf.
+ * Example: rt/192.168.0.0/24
+ */
+char *
+rt_print_buf(const struct rtentry *rt, char *buf, size_t bufsize)
+{
+#if defined(INET) || defined(INET6)
+	char abuf[INET6_ADDRSTRLEN];
+	uint32_t scopeid;
+	int plen;
+#endif
+
+	switch (rt_get_family(rt)) {
+#ifdef INET
+	case AF_INET:
+		{
+			struct in_addr addr4;
+			rt_get_inet_prefix_plen(rt, &addr4, &plen, &scopeid);
+			inet_ntop(AF_INET, &addr4, abuf, sizeof(abuf));
+			snprintf(buf, bufsize, "rt/%s/%d", abuf, plen);
+		}
+		break;
+#endif
+#ifdef INET6
+	case AF_INET6:
+		{
+			struct in6_addr addr6;
+			rt_get_inet6_prefix_plen(rt, &addr6, &plen, &scopeid);
+			inet_ntop(AF_INET6, &addr6, abuf, sizeof(abuf));
+			snprintf(buf, bufsize, "rt/%s/%d", abuf, plen);
+		}
+		break;
+#endif
+	default:
+		snprintf(buf, bufsize, "rt/unknown_af#%d", rt_get_family(rt));
+		break;
+	}
+
+	return (buf);
+}
+
+const char *
+rib_print_cmd(int rib_cmd)
+{
+	switch (rib_cmd) {
+	case RTM_ADD:
+		return ("RTM_ADD");
+	case RTM_CHANGE:
+		return ("RTM_CHANGE");
+	case RTM_DELETE:
+		return ("RTM_DELETE");
+	case RTM_GET:
+		return ("RTM_GET");
+	}
+
+	return ("UNKNOWN");
+}

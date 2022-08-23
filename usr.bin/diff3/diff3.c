@@ -144,6 +144,7 @@ static char *f1mark, *f2mark, *f3mark;
 static const char *oldmark = "<<<<<<<";
 static const char *orgmark = "|||||||";
 static const char *newmark = ">>>>>>>";
+static const char *divider = "=======";
 
 static bool duplicate(struct range *, struct range *);
 static int edit(struct diff *, bool, int, int);
@@ -570,7 +571,7 @@ printrange(FILE *p, struct range *r)
 		return;
 
 	if (r->from > r->to)
-			errx(EXIT_FAILURE, "invalid print range");
+		errx(EXIT_FAILURE, "invalid print range");
 
 	/*
 	 * XXX-THJ: We read through all of the file for each range printed.
@@ -592,22 +593,26 @@ static void
 edscript(int n)
 {
 	bool delete;
+	struct range *new, *old;
 
 	for (; n > 0; n--) {
-		delete = (de[n].new.from == de[n].new.to);
+		new = &de[n].new;
+		old = &de[n].old;
+
+		delete = (new->from == new->to);
 		if (!oflag || !overlap[n]) {
-			prange(&de[n].old, delete);
+			prange(old, delete);
 		} else {
-			printf("%da\n", de[n].old.to - 1);
-			printf("=======\n");
+			printf("%da\n", old->to - 1);
+			printf("%s\n", divider);
 		}
-		printrange(fp[2], &de[n].new);
+		printrange(fp[2], new);
 		if (!oflag || !overlap[n]) {
 			if (!delete)
 				printf(".\n");
 		} else {
 			printf("%s %s\n.\n", newmark, f3mark);
-			printf("%da\n%s %s\n.\n", de[n].old.from - 1,
+			printf("%da\n%s %s\n.\n", old->from - 1,
 				oldmark, f1mark);
 		}
 	}
@@ -630,19 +635,20 @@ Ascript(int n)
 	bool deletenew;
 	bool deleteold;
 
-	for (; n > 0; n--) {
+	struct range *new, *old;
 
-		deletenew = (de[n].new.from == de[n].new.to);
-		deleteold = (de[n].old.from == de[n].old.to);
-		startmark = de[n].old.from + (de[n].old.to - de[n].old.from) - 1;
+	for (; n > 0; n--) {
+		new = &de[n].new;
+		old = &de[n].old;
+		deletenew = (new->from == new->to);
+		deleteold = (old->from == old->to);
 
 		if (de[n].type == DIFF_TYPE2) {
 			if (!oflag || !overlap[n]) {
-				prange(&de[n].old, deletenew);
-				printrange(fp[2], &de[n].new);
+				prange(old, deletenew);
+				printrange(fp[2], new);
 			} else {
-				startmark = de[n].new.from +
-					(de[n].new.to - de[n].new.from);
+				startmark = new->to;
 
 				if (!deletenew)
 					startmark--;
@@ -653,31 +659,33 @@ Ascript(int n)
 				printf(".\n");
 
 				printf("%da\n", startmark -
-					(de[n].new.to - de[n].new.from));
+					(new->to - new->from));
 				printf("%s %s\n", oldmark, f2mark);
 				if (!deleteold)
-					printrange(fp[1], &de[n].old);
-				printf("=======\n.\n");
+					printrange(fp[1], old);
+				printf("%s\n.\n", divider);
 			}
 
 		} else if (de[n].type == DIFF_TYPE3) {
+			startmark = old->to - 1;
+
 			if (!oflag || !overlap[n]) {
-				prange(&de[n].old, deletenew);
-				printrange(fp[2], &de[n].new);
+				prange(old, deletenew);
+				printrange(fp[2], new);
 			} else {
 				printf("%da\n", startmark);
 				printf("%s %s\n", orgmark, f2mark);
 
 				if (deleteold) {
 					struct range r;
-					r.from = de[n].old.from-1;
-					r.to = de[n].new.to;
+					r.from = old->from-1;
+					r.to = new->to;
 					printrange(fp[1], &r);
 				} else
-					printrange(fp[1], &de[n].old);
+					printrange(fp[1], old);
 
-				printf("=======\n");
-				printrange(fp[2], &de[n].new);
+				printf("%s\n", divider);
+				printrange(fp[2], new);
 			}
 
 			if (!oflag || !overlap[n]) {
@@ -691,7 +699,7 @@ Ascript(int n)
 				 * file and append lines
 				 */
 				printf("%da\n%s %s\n.\n",
-					startmark - (de[n].old.to - de[n].old.from),
+					startmark - (old->to - old->from),
 					oldmark, f1mark);
 			}
 		}
@@ -710,51 +718,54 @@ Ascript(int n)
 static void
 mergescript(int i)
 {
-	struct range r;
+	struct range r, *new, *old;
 	int n;
 
 	r.from = 1;
 	r.to = 1;
 
 	for (n = 1; n < i+1; n++) {
+		new = &de[n].new;
+		old = &de[n].old;
+
 		/* print any lines leading up to here */
-		r.to = de[n].old.from;
+		r.to = old->from;
 		printrange(fp[0], &r);
 
 		if (de[n].type == DIFF_TYPE2) {
 			printf("%s %s\n", oldmark, f2mark);
-			printrange(fp[1], &de[n].old);
-			printf("=======\n");
-			printrange(fp[2], &de[n].new);
+			printrange(fp[1], old);
+			printf("%s\n", divider);
+			printrange(fp[2], new);
 			printf("%s %s\n", newmark, f3mark);
 		} else if (de[n].type == DIFF_TYPE3) {
 			if (!oflag || !overlap[n]) {
-				printrange(fp[2], &de[n].new);
+				printrange(fp[2], new);
 			} else {
 
 				printf("%s %s\n", oldmark, f1mark);
-				printrange(fp[0], &de[n].old);
+				printrange(fp[0], old);
 
 				printf("%s %s\n", orgmark, f2mark);
-				if (de[n].old.from == de[n].old.to) {
+				if (old->from == old->to) {
 					struct range or;
-					or.from = de[n].old.from -1;
-					or.to = de[n].new.to;
+					or.from = old->from - 1;
+					or.to = new->to;
 					printrange(fp[1], &or);
 				} else
-					printrange(fp[1], &de[n].old);
+					printrange(fp[1], old);
 
-				printf("=======\n");
+				printf("%s\n", divider);
 
-				printrange(fp[2], &de[n].new);
+				printrange(fp[2], new);
 				printf("%s %s\n", newmark, f3mark);
 			}
 		}
 
-		if (de[n].old.from == de[n].old.to)
-			r.from = de[n].new.to;
+		if (old->from == old->to)
+			r.from = new->to;
 		else
-			r.from = de[n].old.to;
+			r.from = old->to;
 	}
 	/*
 	 * Print from the final range to the end of 'myfile'. Any deletions or
@@ -764,11 +775,13 @@ mergescript(int i)
 	 * If the new range is 0 length (from == to), we need to use the old
 	 * range.
 	 */
-	if ((de[n-1].old.from == de[n-1].new.from) &&
-		(de[n-1].old.to == de[n-1].new.to))
+	new = &de[n-1].new;
+	old = &de[n-1].old;
+	if ((old->from == new->from) &&
+		(old->to == new->to))
 		r.from--;
-	else if (de[n-1].new.from == de[n-1].new.to)
-		r.from = de[n-1].old.from;
+	else if (new->from == new->to)
+		r.from = old->from;
 
 	/*
 	 * If the range is a 3 way merge then we need to skip a line in the

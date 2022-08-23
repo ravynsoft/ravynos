@@ -10,6 +10,22 @@ newline.  Entries should be separated by a newline.
 
 Changes to this file should not be MFCed.
 
+240afd8c1fcc:
+	makefs(8) has ZFS support; it can create a ZFS pool, backed by a
+	single disk vdev, containing one or more datasets populated from
+	the staging directory.
+
+78ee8d1c4cda,f4f56ff43dbd:
+	The in-tree qat(4) driver has been replaced with Intel's QAT driver.
+	The new version provides additional interfaces to the chipset's
+	cryptographic and compression offload functionality.
+
+	This will have no visible change for most users; however, the new
+	driver does not support Atom C2000 chipsets.  To preserve support for
+	those chipsets, the old driver has been renamed to qat_c2xxx and kept
+	in the tree.  Users of qat(4) on C2000 hardware will thus need to
+	ensure that qat_c2xxx(4) is loaded instead of qat(4).
+
 da5b7e90e740,5a8fceb3bd9f,7b0a665d72c0,13ec1e3155c7,318d0db5fe8a,1ae2c59bcf21:
 	Boottrace is a new kernel-userspace interface for capturing trace
 	events during system boot and shutdown. Event annotations are
@@ -19,12 +35,12 @@ da5b7e90e740,5a8fceb3bd9f,7b0a665d72c0,13ec1e3155c7,318d0db5fe8a,1ae2c59bcf21:
 	- Some key system utilities (init(8), shutdown(8), reboot(8))
 	- rc(8) scripts (via boottrace(8))
 
-        In contrast to other existing boot-time tracing facilities like TSLOG,
-        Boottrace focuses on the ease of use and is aimed primarily at system
-        administrators.
+	In contrast to other existing boot-time tracing facilities like TSLOG,
+	Boottrace focuses on the ease of use and is aimed primarily at system
+	administrators.
 
-        It is available in the default GENERIC kernel and can be enabled by
-        toggling a single sysctl(8) variable.
+	It is available in the default GENERIC kernel and can be enabled by
+	toggling a single sysctl(8) variable.
 
 	See boottrace(4) for more details.
 

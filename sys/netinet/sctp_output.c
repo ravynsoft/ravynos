@@ -6342,6 +6342,18 @@ sctp_msg_append(struct sctp_tcb *stcb,
 		error = EINVAL;
 		goto out_now;
 	}
+	if ((stcb->asoc.strmout[srcv->sinfo_stream].state != SCTP_STREAM_OPEN) &&
+	    (stcb->asoc.strmout[srcv->sinfo_stream].state != SCTP_STREAM_OPENING)) {
+		/*
+		 * Can't queue any data while stream reset is underway.
+		 */
+		if (stcb->asoc.strmout[srcv->sinfo_stream].state > SCTP_STREAM_OPEN) {
+			error = EAGAIN;
+		} else {
+			error = EINVAL;
+		}
+		goto out_now;
+	}
 	/* Now can we send this? */
 	if ((SCTP_GET_STATE(stcb) == SCTP_STATE_SHUTDOWN_SENT) ||
 	    (SCTP_GET_STATE(stcb) == SCTP_STATE_SHUTDOWN_ACK_SENT) ||
@@ -9364,7 +9376,7 @@ sctp_chunk_retransmission(struct sctp_inpcb *inp,
 	struct mbuf *m, *endofchain;
 	struct sctp_nets *net = NULL;
 	uint32_t tsns_sent = 0;
-	int no_fragmentflg, bundle_at, cnt_thru;
+	int no_fragmentflg, bundle_at;
 	unsigned int mtu;
 	int error, i, one_chunk, fwd_tsn, ctl_cnt, tmr_started;
 	struct sctp_auth_chunk *auth = NULL;
@@ -9433,7 +9445,6 @@ sctp_chunk_retransmission(struct sctp_inpcb *inp,
 		}
 	}
 	one_chunk = 0;
-	cnt_thru = 0;
 	/* do we have control chunks to retransmit? */
 	if (m != NULL) {
 		/* Start a timer no matter if we succeed or fail */
@@ -9749,7 +9760,6 @@ one_chunk_around:
 			/* (void)SCTP_GETTIME_TIMEVAL(&net->last_sent_time); */
 
 			/* For auto-close */
-			cnt_thru++;
 			if (*now_filled == 0) {
 				(void)SCTP_GETTIME_TIMEVAL(&asoc->time_last_sent);
 				*now = asoc->time_last_sent;
@@ -12726,83 +12736,6 @@ sctp_lower_sosend(struct socket *so,
 			sinfo_flags |= SCTP_EOF;
 		}
 	}
-	if (sinfo_flags & SCTP_ADDR_OVER) {
-		if (addr != NULL) {
-			net = sctp_findnet(stcb, addr);
-		} else {
-			net = NULL;
-		}
-		if ((net == NULL) ||
-		    ((port != 0) && (port != stcb->rport))) {
-			error = EINVAL;
-			goto out_unlocked;
-		}
-	} else {
-		if (asoc->alternate != NULL) {
-			net = asoc->alternate;
-		} else {
-			net = asoc->primary_destination;
-		}
-	}
-	sinfo_stream = sndrcvninfo->sinfo_stream;
-	/* Is the stream no. valid? */
-	if (sinfo_stream >= asoc->streamoutcnt) {
-		/* Invalid stream number */
-		error = EINVAL;
-		goto out_unlocked;
-	}
-	if ((asoc->strmout[sinfo_stream].state != SCTP_STREAM_OPEN) &&
-	    (asoc->strmout[sinfo_stream].state != SCTP_STREAM_OPENING)) {
-		/*
-		 * Can't queue any data while stream reset is underway.
-		 */
-		if (asoc->strmout[sinfo_stream].state > SCTP_STREAM_OPEN) {
-			error = EAGAIN;
-		} else {
-			error = EINVAL;
-		}
-		goto out_unlocked;
-	}
-	if (sctp_is_feature_on(inp, SCTP_PCB_FLAGS_NO_FRAGMENT)) {
-		if (sndlen > (ssize_t)asoc->smallest_mtu) {
-			error = EMSGSIZE;
-			goto out_unlocked;
-		}
-	}
-	atomic_add_int(&stcb->total_sends, 1);
-	if (SCTP_SO_IS_NBIO(so) || (flags & (MSG_NBIO | MSG_DONTWAIT)) != 0) {
-		non_blocking = true;
-	}
-	if (non_blocking) {
-		ssize_t amount;
-
-		inqueue_bytes = asoc->total_output_queue_size - (asoc->chunks_on_out_queue * SCTP_DATA_CHUNK_OVERHEAD(stcb));
-		if (user_marks_eor == 0) {
-			amount = sndlen;
-		} else {
-			amount = 1;
-		}
-		if ((SCTP_SB_LIMIT_SND(so) < (amount + inqueue_bytes + asoc->sb_send_resv)) ||
-		    (asoc->chunks_on_out_queue >= SCTP_BASE_SYSCTL(sctp_max_chunks_on_queue))) {
-			if ((sndlen > (ssize_t)SCTP_SB_LIMIT_SND(so)) &&
-			    (user_marks_eor == 0)) {
-				error = EMSGSIZE;
-			} else {
-				error = EWOULDBLOCK;
-			}
-			goto out_unlocked;
-		}
-	}
-	atomic_add_int(&asoc->sb_send_resv, (int)sndlen);
-	local_soresv = sndlen;
-
-	KASSERT(stcb != NULL, ("stcb is NULL"));
-	SCTP_TCB_LOCK_ASSERT(stcb);
-	KASSERT((asoc->state & SCTP_STATE_ABOUT_TO_BE_FREED) == 0,
-	    ("Association about to be freed"));
-	KASSERT((asoc->state & SCTP_STATE_WAS_ABORTED) == 0,
-	    ("Association was aborted"));
-
 	/* Are we aborting? */
 	if (sinfo_flags & SCTP_ABORT) {
 		struct mbuf *mm;
@@ -12908,11 +12841,96 @@ sctp_lower_sosend(struct socket *so,
 	KASSERT((asoc->state & SCTP_STATE_WAS_ABORTED) == 0,
 	    ("Association was aborted"));
 
+	if (sinfo_flags & SCTP_ADDR_OVER) {
+		if (addr != NULL) {
+			net = sctp_findnet(stcb, addr);
+		} else {
+			net = NULL;
+		}
+		if ((net == NULL) ||
+		    ((port != 0) && (port != stcb->rport))) {
+			error = EINVAL;
+			goto out_unlocked;
+		}
+	} else {
+		if (asoc->alternate != NULL) {
+			net = asoc->alternate;
+		} else {
+			net = asoc->primary_destination;
+		}
+	}
+	if (sndlen == 0) {
+		if (sinfo_flags & SCTP_EOF) {
+			got_all_of_the_send = true;
+			goto dataless_eof;
+		} else {
+			error = EINVAL;
+			goto out_unlocked;
+		}
+	}
+	if (sctp_is_feature_on(inp, SCTP_PCB_FLAGS_NO_FRAGMENT)) {
+		if (sndlen > (ssize_t)asoc->smallest_mtu) {
+			error = EMSGSIZE;
+			goto out_unlocked;
+		}
+	}
+	sinfo_stream = sndrcvninfo->sinfo_stream;
+	/* Is the stream no. valid? */
+	if (sinfo_stream >= asoc->streamoutcnt) {
+		/* Invalid stream number */
+		error = EINVAL;
+		goto out_unlocked;
+	}
+	if ((asoc->strmout[sinfo_stream].state != SCTP_STREAM_OPEN) &&
+	    (asoc->strmout[sinfo_stream].state != SCTP_STREAM_OPENING)) {
+		/*
+		 * Can't queue any data while stream reset is underway.
+		 */
+		if (asoc->strmout[sinfo_stream].state > SCTP_STREAM_OPEN) {
+			error = EAGAIN;
+		} else {
+			error = EINVAL;
+		}
+		goto out_unlocked;
+	}
+	atomic_add_int(&stcb->total_sends, 1);
+	if (SCTP_SO_IS_NBIO(so) || (flags & (MSG_NBIO | MSG_DONTWAIT)) != 0) {
+		non_blocking = true;
+	}
+	if (non_blocking) {
+		ssize_t amount;
+
+		inqueue_bytes = asoc->total_output_queue_size - (asoc->chunks_on_out_queue * SCTP_DATA_CHUNK_OVERHEAD(stcb));
+		if (user_marks_eor == 0) {
+			amount = sndlen;
+		} else {
+			amount = 1;
+		}
+		if ((SCTP_SB_LIMIT_SND(so) < (amount + inqueue_bytes + asoc->sb_send_resv)) ||
+		    (asoc->chunks_on_out_queue >= SCTP_BASE_SYSCTL(sctp_max_chunks_on_queue))) {
+			if ((sndlen > (ssize_t)SCTP_SB_LIMIT_SND(so)) &&
+			    (user_marks_eor == 0)) {
+				error = EMSGSIZE;
+			} else {
+				error = EWOULDBLOCK;
+			}
+			goto out_unlocked;
+		}
+	}
+	atomic_add_int(&asoc->sb_send_resv, (int)sndlen);
+	local_soresv = sndlen;
+
+	KASSERT(stcb != NULL, ("stcb is NULL"));
+	SCTP_TCB_LOCK_ASSERT(stcb);
+	KASSERT((asoc->state & SCTP_STATE_ABOUT_TO_BE_FREED) == 0,
+	    ("Association about to be freed"));
+	KASSERT((asoc->state & SCTP_STATE_WAS_ABORTED) == 0,
+	    ("Association was aborted"));
+
 	/* Ok, we will attempt a msgsnd :> */
 	if (p != NULL) {
 		p->td_ru.ru_msgsnd++;
 	}
-
 	/* Calculate the maximum we can send */
 	inqueue_bytes = asoc->total_output_queue_size - (asoc->chunks_on_out_queue * SCTP_DATA_CHUNK_OVERHEAD(stcb));
 	if (SCTP_SB_LIMIT_SND(so) > inqueue_bytes) {
@@ -13015,16 +13033,6 @@ skip_preblock:
 	 * sndlen covers for mbuf case uio_resid covers for the non-mbuf
 	 * case NOTE: uio will be null when top/mbuf is passed
 	 */
-	if (sndlen == 0) {
-		if (sinfo_flags & SCTP_EOF) {
-			got_all_of_the_send = true;
-			goto dataless_eof;
-		} else {
-			error = EINVAL;
-			goto out;
-		}
-	}
-
 	if (top == NULL) {
 		struct sctp_stream_queue_pending *sp;
 		struct sctp_stream_out *strm;

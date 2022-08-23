@@ -25,7 +25,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd April 20, 2021
+.Dd August 9, 2022
 .Dt ETCUPDATE 8
 .Os
 .Sh NAME
@@ -33,7 +33,7 @@
 .Nd "manage updates to system files not updated by installworld"
 .Sh SYNOPSIS
 .Nm
-.Op Fl npBF
+.Op Fl npBFN
 .Op Fl d Ar workdir
 .Op Fl r | Fl s Ar source | Fl t Ar tarball
 .Op Fl A Ar patterns
@@ -41,13 +41,15 @@
 .Op Fl I Ar patterns
 .Op Fl L Ar logfile
 .Op Fl M Ar options
+.Op Fl m Ar make
 .Nm
 .Cm build
-.Op Fl B
+.Op Fl BN
 .Op Fl d Ar workdir
 .Op Fl s Ar source
 .Op Fl L Ar logfile
 .Op Fl M Ar options
+.Op Fl m Ar make
 .Ar tarball
 .Nm
 .Cm diff
@@ -57,12 +59,13 @@
 .Op Fl L Ar logfile
 .Nm
 .Cm extract
-.Op Fl B
+.Op Fl BN
 .Op Fl d Ar workdir
 .Op Fl s Ar source | Fl t Ar tarball
 .Op Fl D Ar destdir
 .Op Fl L Ar logfile
 .Op Fl M Ar options
+.Op Fl m Ar make
 .Nm
 .Cm resolve
 .Op Fl p
@@ -489,6 +492,14 @@ This can be used for to set the
 or
 .Dv TARGET_ARCH
 variables for a cross-build.
+.It Fl m Ar make
+Use
+.Ar make
+as the
+.Xr make 1
+binary when building a
+.Dq current
+tree.
 .It Fl n
 Enable
 .Dq dry-run
@@ -507,6 +518,15 @@ option is not specified,
 then a temporary
 .Dq current
 tree will be extracted to perform the comparison.
+.It Fl N
+Perform a
+.Dv NO_ROOT
+build when building a
+.Dq current
+tree.
+The resulting tree will include a corresponding
+.Pa METALOG
+file at its root.
 .It Fl p
 Enable
 .Dq pre-world
@@ -592,6 +612,14 @@ option.
 .It Ev LOGFILE
 Specify an alternate path for the log file similar to the
 .Fl L
+option.
+.It Ev MAKE_CMD
+Specify the
+.Xr make 1
+binary when building a
+.Dq current
+tree similar to the
+.Fl m
 option.
 .It Ev MAKE_OPTIONS
 Pass additional options to

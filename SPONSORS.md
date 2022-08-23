@@ -3,6 +3,8 @@
 Thank you to the following people and organizations for their generous
 financial support of ravynOS!
 
+- Eric Maland
+- Connor Needling (bigc0127)
 - Иван Морозов
 - Trevor Rudolph
 - Alistair Lundy
@@ -12,7 +14,7 @@ financial support of ravynOS!
 - Joseph D. Marhee (jmarhee)
 - Arnaud Lefort
 - srdjan
-- Kenneth Endfinger (kendfinger)
+- Alex Endfinger (kendfinger)
 
 ---
 

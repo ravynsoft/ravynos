@@ -96,6 +96,8 @@
 #define FIB_NH_LOG(_l, _nh, _fmt, ...)  FIB_LOG_##_l(_l, nhop_get_fibnum(_nh), nhop_get_upper_family(_nh), _fmt, ## __VA_ARGS__)
 /* Same as FIB_LOG, but uses rib_head to get fib and family */
 #define FIB_RH_LOG(_l, _rh, _fmt, ...)  FIB_LOG_##_l(_l, (_rh)->rib_fibnum, (_rh)->rib_family, _fmt, ## __VA_ARGS__)
+/* Same as FIB_LOG, but uses nh_control to get fib and family from linked rib */
+#define FIB_CTL_LOG(_l, _ctl, _fmt, ...)  FIB_LOG_##_l(_l, (_ctl)->ctl_rh->rib_fibnum, (_ctl)->ctl_rh->rib_family, _fmt, ## __VA_ARGS__)
 
 /*
  * Generic logging for routing subsystem
@@ -152,6 +154,7 @@ struct nhop_object;
 struct nhgrp_object;
 struct llentry;
 struct nhop_neigh;
+struct rtentry;
 
 #define	NHOP_PRINT_BUFSIZE	48
 char *nhop_print_buf(const struct nhop_object *nh, char *buf, size_t bufsize);
@@ -161,5 +164,7 @@ char *llentry_print_buf(const struct llentry *lle, struct ifnet *ifp, int family
     size_t bufsize);
 char *llentry_print_buf_lltable(const struct llentry *lle, char *buf, size_t bufsize);
 char *neigh_print_buf(const struct nhop_neigh *nn, char *buf, size_t bufsize);
+char *rt_print_buf(const struct rtentry *rt, char *buf, size_t bufsize);
+const char *rib_print_cmd(int rib_cmd);
 
 #endif

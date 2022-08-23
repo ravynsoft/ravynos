@@ -84,7 +84,7 @@ devmap_dump_table(int (*prfunc)(const char *, ...))
  * Print the contents of the static mapping table.  Used for bootverbose.
  */
 void
-devmap_print_table()
+devmap_print_table(void)
 {
 	devmap_dump_table(printf);
 }
@@ -95,7 +95,7 @@ devmap_print_table()
  * the first unusable byte of KVA.
  */
 vm_offset_t
-devmap_lastaddr()
+devmap_lastaddr(void)
 {
 	const struct devmap_entry *pd;
 	vm_offset_t lowaddr;
@@ -260,7 +260,7 @@ devmap_vtop(void * vpva, vm_size_t size)
  * pmap_kenter_device().
  */
 void *
-pmap_mapdev(vm_offset_t pa, vm_size_t size)
+pmap_mapdev(vm_paddr_t pa, vm_size_t size)
 {
 	vm_offset_t va, offset;
 	void * rva;
@@ -292,7 +292,7 @@ pmap_mapdev(vm_offset_t pa, vm_size_t size)
 
 #if defined(__aarch64__) || defined(__riscv)
 void *
-pmap_mapdev_attr(vm_offset_t pa, vm_size_t size, vm_memattr_t ma)
+pmap_mapdev_attr(vm_paddr_t pa, vm_size_t size, vm_memattr_t ma)
 {
 	vm_offset_t va, offset;
 	void * rva;

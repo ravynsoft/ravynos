@@ -173,10 +173,9 @@ SYSCTL_NODE(__CONCAT(_kern_elf, __ELF_WORD_SIZE), OID_AUTO, aslr,
 #define	ASLR_NODE_OID	__CONCAT(__CONCAT(_kern_elf, __ELF_WORD_SIZE), _aslr)
 
 /*
- * While for 64-bit machines ASLR works properly, there are
- * still some problems when using 32-bit architectures. For this
- * reason ASLR is only enabled by default when running native
- * 64-bit non-PIE executables.
+ * Enable ASLR by default for 64-bit non-PIE binaries.  32-bit architectures
+ * have limited address space (which can cause issues for applications with
+ * high memory use) so we leave it off there.
  */
 static int __elfN(aslr_enabled) = __ELF_WORD_SIZE == 64;
 SYSCTL_INT(ASLR_NODE_OID, OID_AUTO, enable, CTLFLAG_RWTUN,
@@ -185,7 +184,7 @@ SYSCTL_INT(ASLR_NODE_OID, OID_AUTO, enable, CTLFLAG_RWTUN,
     ": enable address map randomization");
 
 /*
- * Enable ASLR only for 64-bit PIE binaries by default.
+ * Enable ASLR by default for 64-bit PIE binaries.
  */
 static int __elfN(pie_aslr_enabled) = __ELF_WORD_SIZE == 64;
 SYSCTL_INT(ASLR_NODE_OID, OID_AUTO, pie_enable, CTLFLAG_RWTUN,
@@ -194,9 +193,9 @@ SYSCTL_INT(ASLR_NODE_OID, OID_AUTO, pie_enable, CTLFLAG_RWTUN,
     ": enable address map randomization for PIE binaries");
 
 /*
- * Sbrk is now deprecated and it can be assumed, that in most
- * cases it will not be used anyway. This setting is valid only
- * for the ASLR enabled and allows for utilizing the bss grow region.
+ * Sbrk is deprecated and it can be assumed that in most cases it will not be
+ * used anyway. This setting is valid only with ASLR enabled, and allows ASLR
+ * to use the bss grow region.
  */
 static int __elfN(aslr_honor_sbrk) = 0;
 SYSCTL_INT(ASLR_NODE_OID, OID_AUTO, honor_sbrk, CTLFLAG_RW,
@@ -2206,13 +2205,16 @@ __elfN(note_prpsinfo)(void *arg, struct sbuf *sb, size_t *sizep)
 			    sizeof(psinfo->pr_psargs), SBUF_FIXEDLEN);
 			error = proc_getargv(curthread, p, &sbarg);
 			PRELE(p);
-			if (sbuf_finish(&sbarg) == 0)
-				len = sbuf_len(&sbarg) - 1;
-			else
+			if (sbuf_finish(&sbarg) == 0) {
+				len = sbuf_len(&sbarg);
+				if (len > 0)
+					len--;
+			} else {
 				len = sizeof(psinfo->pr_psargs) - 1;
+			}
 			sbuf_delete(&sbarg);
 		}
-		if (error || len == 0)
+		if (error != 0 || len == 0 || (ssize_t)len == -1)
 			strlcpy(psinfo->pr_psargs, p->p_comm,
 			    sizeof(psinfo->pr_psargs));
 		else {

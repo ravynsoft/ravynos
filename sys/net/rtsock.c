@@ -39,6 +39,7 @@
 #include <sys/param.h>
 #include <sys/jail.h>
 #include <sys/kernel.h>
+#include <sys/eventhandler.h>
 #include <sys/domain.h>
 #include <sys/lock.h>
 #include <sys/malloc.h>
@@ -60,7 +61,6 @@
 #include <net/if_llatbl.h>
 #include <net/if_types.h>
 #include <net/netisr.h>
-#include <net/raw_cb.h>
 #include <net/route.h>
 #include <net/route/route_ctl.h>
 #include <net/route/route_var.h>
@@ -150,12 +150,23 @@ static struct	sockaddr sa_zero   = { sizeof(sa_zero), AF_INET, };
 int	(*carp_get_vhid_p)(struct ifaddr *);
 
 /*
- * Used by rtsock/raw_input callback code to decide whether to filter the update
+ * Used by rtsock callback code to decide whether to filter the update
  * notification to a socket bound to a particular FIB.
  */
 #define	RTS_FILTER_FIB	M_PROTO8
+/*
+ * Used to store address family of the notification.
+ */
+#define	m_rtsock_family	m_pkthdr.PH_loc.eight[0]
+
+struct rcb {
+	LIST_ENTRY(rcb) list;
+	struct socket	*rcb_socket;
+	sa_family_t	rcb_family;
+};
 
 typedef struct {
+	LIST_HEAD(, rcb)	cblist;
 	int	ip_count;	/* attached w/ AF_INET */
 	int	ip6_count;	/* attached w/ AF_INET6 */
 	int	any_count;	/* total attached */
@@ -194,10 +205,10 @@ static int	sysctl_dumpnhop(struct rtentry *rt, struct nhop_object *nh,
 			uint32_t weight, struct walkarg *w);
 static int	sysctl_iflist(int af, struct walkarg *w);
 static int	sysctl_ifmalist(int af, struct walkarg *w);
-static int	route_output(struct mbuf *m, struct socket *so, ...);
 static void	rt_getmetrics(const struct rtentry *rt,
 			const struct nhop_object *nh, struct rt_metrics *out);
 static void	rt_dispatch(struct mbuf *, sa_family_t);
+static void	rt_ifannouncemsg(struct ifnet *ifp, int what);
 static int	handle_rtm_get(struct rt_addrinfo *info, u_int fibnum,
 			struct rt_msghdr *rtm, struct rib_cmd_info *rc);
 static int	update_rtm_from_rc(struct rt_addrinfo *info,
@@ -263,92 +274,99 @@ VNET_SYSUNINIT(vnet_rts_uninit, SI_SUB_PROTO_DOMAIN, SI_ORDER_THIRD,
     vnet_rts_uninit, 0);
 #endif
 
-static int
-raw_input_rts_cb(struct mbuf *m, struct sockproto *proto, struct sockaddr *src,
-    struct rawcb *rp)
+static void
+rts_handle_ifnet_arrival(void *arg __unused, struct ifnet *ifp)
 {
-	int fibnum;
+	rt_ifannouncemsg(ifp, IFAN_ARRIVAL);
+}
+EVENTHANDLER_DEFINE(ifnet_arrival_event, rts_handle_ifnet_arrival, NULL, 0);
 
-	KASSERT(m != NULL, ("%s: m is NULL", __func__));
-	KASSERT(proto != NULL, ("%s: proto is NULL", __func__));
-	KASSERT(rp != NULL, ("%s: rp is NULL", __func__));
+static void
+rts_handle_ifnet_departure(void *arg __unused, struct ifnet *ifp)
+{
+	rt_ifannouncemsg(ifp, IFAN_DEPARTURE);
+}
+EVENTHANDLER_DEFINE(ifnet_departure_event, rts_handle_ifnet_departure, NULL, 0);
 
-	/* No filtering requested. */
-	if ((m->m_flags & RTS_FILTER_FIB) == 0)
-		return (0);
+static void
+rts_append_data(struct socket *so, struct mbuf *m)
+{
 
-	/* Check if it is a rts and the fib matches the one of the socket. */
-	fibnum = M_GETFIB(m);
-	if (proto->sp_family != PF_ROUTE ||
-	    rp->rcb_socket == NULL ||
-	    rp->rcb_socket->so_fibnum == fibnum)
-		return (0);
-
-	/* Filtering requested and no match, the socket shall be skipped. */
-	return (1);
+	if (sbappendaddr(&so->so_rcv, &route_src, m, NULL) == 0) {
+		soroverflow(so);
+		m_freem(m);
+	} else
+		sorwakeup(so);
 }
 
 static void
 rts_input(struct mbuf *m)
 {
-	struct sockproto route_proto;
-	unsigned short *family;
-	struct m_tag *tag;
+	struct rcb *rcb;
+	struct socket *last;
 
-	route_proto.sp_family = PF_ROUTE;
-	tag = m_tag_find(m, PACKET_TAG_RTSOCKFAM, NULL);
-	if (tag != NULL) {
-		family = (unsigned short *)(tag + 1);
-		route_proto.sp_protocol = *family;
-		m_tag_delete(m, tag);
-	} else
-		route_proto.sp_protocol = 0;
+	last = NULL;
+	RTSOCK_LOCK();
+	LIST_FOREACH(rcb, &V_route_cb.cblist, list) {
+		if (rcb->rcb_family != AF_UNSPEC &&
+		    rcb->rcb_family != m->m_rtsock_family)
+			continue;
+		if ((m->m_flags & RTS_FILTER_FIB) &&
+		    M_GETFIB(m) != rcb->rcb_socket->so_fibnum)
+			continue;
+		if (last != NULL) {
+			struct mbuf *n;
 
-	raw_input_ext(m, &route_proto, &route_src, raw_input_rts_cb);
-}
-
-/*
- * It really doesn't make any sense at all for this code to share much
- * with raw_usrreq.c, since its functionality is so restricted.  XXX
- */
-static void
-rts_abort(struct socket *so)
-{
-
-	raw_usrreqs.pru_abort(so);
+			n = m_copym(m, 0, M_COPYALL, M_NOWAIT);
+			if (n != NULL)
+				rts_append_data(last, n);
+		}
+		last = rcb->rcb_socket;
+	}
+	if (last != NULL)
+		rts_append_data(last, m);
+	else
+		m_freem(m);
+	RTSOCK_UNLOCK();
 }
 
 static void
 rts_close(struct socket *so)
 {
 
-	raw_usrreqs.pru_close(so);
+	soisdisconnected(so);
 }
 
-/* pru_accept is EOPNOTSUPP */
+static SYSCTL_NODE(_net, OID_AUTO, rtsock, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
+    "Routing socket infrastructure");
+static u_long rts_sendspace = 8192;
+SYSCTL_ULONG(_net_rtsock, OID_AUTO, sendspace, CTLFLAG_RW, &rts_sendspace, 0,
+    "Default routing socket send space");
+static u_long rts_recvspace = 8192;
+SYSCTL_ULONG(_net_rtsock, OID_AUTO, recvspace, CTLFLAG_RW, &rts_recvspace, 0,
+    "Default routing socket receive space");
 
 static int
 rts_attach(struct socket *so, int proto, struct thread *td)
 {
-	struct rawcb *rp;
+	struct rcb *rcb;
 	int error;
 
-	KASSERT(so->so_pcb == NULL, ("rts_attach: so_pcb != NULL"));
+	error = soreserve(so, rts_sendspace, rts_recvspace);
+	if (error)
+		return (error);
 
-	/* XXX */
-	rp = malloc(sizeof *rp, M_PCB, M_WAITOK | M_ZERO);
+	rcb = malloc(sizeof(*rcb), M_PCB, M_WAITOK);
+	rcb->rcb_socket = so;
+	rcb->rcb_family = proto;
 
-	so->so_pcb = (caddr_t)rp;
+	so->so_pcb = rcb;
 	so->so_fibnum = td->td_proc->p_fibnum;
-	error = raw_attach(so, proto);
-	rp = sotorawcb(so);
-	if (error) {
-		so->so_pcb = NULL;
-		free(rp, M_PCB);
-		return error;
-	}
+	so->so_options |= SO_USELOOPBACK;
+
 	RTSOCK_LOCK();
-	switch(rp->rcb_proto.sp_protocol) {
+	LIST_INSERT_HEAD(&V_route_cb.cblist, rcb, list);
+	switch (proto) {
 	case AF_INET:
 		V_route_cb.ip_count++;
 		break;
@@ -359,36 +377,18 @@ rts_attach(struct socket *so, int proto, struct thread *td)
 	V_route_cb.any_count++;
 	RTSOCK_UNLOCK();
 	soisconnected(so);
-	so->so_options |= SO_USELOOPBACK;
-	return 0;
+
+	return (0);
 }
-
-static int
-rts_bind(struct socket *so, struct sockaddr *nam, struct thread *td)
-{
-
-	return (raw_usrreqs.pru_bind(so, nam, td)); /* xxx just EINVAL */
-}
-
-static int
-rts_connect(struct socket *so, struct sockaddr *nam, struct thread *td)
-{
-
-	return (raw_usrreqs.pru_connect(so, nam, td)); /* XXX just EINVAL */
-}
-
-/* pru_connect2 is EOPNOTSUPP */
-/* pru_control is EOPNOTSUPP */
 
 static void
 rts_detach(struct socket *so)
 {
-	struct rawcb *rp = sotorawcb(so);
-
-	KASSERT(rp != NULL, ("rts_detach: rp == NULL"));
+	struct rcb *rcb = so->so_pcb;
 
 	RTSOCK_LOCK();
-	switch(rp->rcb_proto.sp_protocol) {
+	LIST_REMOVE(rcb, list);
+	switch(rcb->rcb_family) {
 	case AF_INET:
 		V_route_cb.ip_count--;
 		break;
@@ -398,65 +398,17 @@ rts_detach(struct socket *so)
 	}
 	V_route_cb.any_count--;
 	RTSOCK_UNLOCK();
-	raw_usrreqs.pru_detach(so);
+	free(rcb, M_PCB);
+	so->so_pcb = NULL;
 }
-
-static int
-rts_disconnect(struct socket *so)
-{
-
-	return (raw_usrreqs.pru_disconnect(so));
-}
-
-/* pru_listen is EOPNOTSUPP */
-
-static int
-rts_peeraddr(struct socket *so, struct sockaddr **nam)
-{
-
-	return (raw_usrreqs.pru_peeraddr(so, nam));
-}
-
-/* pru_rcvd is EOPNOTSUPP */
-/* pru_rcvoob is EOPNOTSUPP */
-
-static int
-rts_send(struct socket *so, int flags, struct mbuf *m, struct sockaddr *nam,
-	 struct mbuf *control, struct thread *td)
-{
-
-	return (raw_usrreqs.pru_send(so, flags, m, nam, control, td));
-}
-
-/* pru_sense is null */
 
 static int
 rts_shutdown(struct socket *so)
 {
 
-	return (raw_usrreqs.pru_shutdown(so));
+	socantsendmore(so);
+	return (0);
 }
-
-static int
-rts_sockaddr(struct socket *so, struct sockaddr **nam)
-{
-
-	return (raw_usrreqs.pru_sockaddr(so, nam));
-}
-
-static struct pr_usrreqs route_usrreqs = {
-	.pru_abort =		rts_abort,
-	.pru_attach =		rts_attach,
-	.pru_bind =		rts_bind,
-	.pru_connect =		rts_connect,
-	.pru_detach =		rts_detach,
-	.pru_disconnect =	rts_disconnect,
-	.pru_peeraddr =		rts_peeraddr,
-	.pru_send =		rts_send,
-	.pru_shutdown =		rts_shutdown,
-	.pru_sockaddr =		rts_sockaddr,
-	.pru_close =		rts_close,
-};
 
 #ifndef _SOCKADDR_UNION_DEFINED
 #define	_SOCKADDR_UNION_DEFINED
@@ -718,7 +670,7 @@ select_nhop(struct nhop_object *nh, const struct sockaddr *gw)
 	if (!NH_IS_NHGRP(nh))
 		return (nh);
 #ifdef ROUTE_MPATH
-	struct weightened_nhop *wn;
+	const struct weightened_nhop *wn;
 	uint32_t num_nhops;
 	wn = nhgrp_get_nhops((struct nhgrp_object *)nh, &num_nhops);
 	if (gw == NULL)
@@ -1025,9 +977,9 @@ alloc_sockaddr_aligned(struct linear_buffer *lb, int len)
 }
 #endif
 
-/*ARGSUSED*/
 static int
-route_output(struct mbuf *m, struct socket *so, ...)
+rts_send(struct socket *so, int flags, struct mbuf *m,
+    struct sockaddr *nam, struct mbuf *control, struct thread *td)
 {
 	struct rt_msghdr *rtm = NULL;
 	struct rt_addrinfo info;
@@ -1041,6 +993,13 @@ route_output(struct mbuf *m, struct socket *so, ...)
 	sa_family_t saf = AF_UNSPEC;
 	struct rib_cmd_info rc;
 	struct nhop_object *nh;
+
+	if ((flags & PRUS_OOB) || control != NULL) {
+		m_freem(m);
+		if (control != NULL)
+			m_freem(control);
+		return (EOPNOTSUPP);
+	}
 
 	fibnum = so->so_fibnum;
 #define senderr(e) { error = e; goto flush;}
@@ -1235,7 +1194,7 @@ static void
 send_rtm_reply(struct socket *so, struct rt_msghdr *rtm, struct mbuf *m,
     sa_family_t saf, u_int fibnum, int rtm_errno)
 {
-	struct rawcb *rp = NULL;
+	struct rcb *rcb = NULL;
 
 	/*
 	 * Check to see if we don't want our own messages.
@@ -1248,7 +1207,7 @@ send_rtm_reply(struct socket *so, struct rt_msghdr *rtm, struct mbuf *m,
 			return;
 		}
 		/* There is another listener, so construct message */
-		rp = sotorawcb(so);
+		rcb = so->so_pcb;
 	}
 
 	if (rtm != NULL) {
@@ -1269,15 +1228,15 @@ send_rtm_reply(struct socket *so, struct rt_msghdr *rtm, struct mbuf *m,
 	if (m != NULL) {
 		M_SETFIB(m, fibnum);
 		m->m_flags |= RTS_FILTER_FIB;
-		if (rp) {
+		if (rcb) {
 			/*
 			 * XXX insure we don't get a copy by
 			 * invalidating our protocol
 			 */
-			unsigned short family = rp->rcb_proto.sp_family;
-			rp->rcb_proto.sp_family = 0;
+			sa_family_t family = rcb->rcb_family;
+			rcb->rcb_family = AF_UNSPEC;
 			rt_dispatch(m, saf);
-			rp->rcb_proto.sp_family = family;
+			rcb->rcb_family = family;
 		} else
 			rt_dispatch(m, saf);
 	}
@@ -1293,8 +1252,8 @@ rt_getmetrics(const struct rtentry *rt, const struct nhop_object *nh,
 	out->rmx_weight = rt->rt_weight;
 	out->rmx_nhidx = nhop_get_idx(nh);
 	/* Kernel -> userland timebase conversion. */
-	out->rmx_expire = rt->rt_expire ?
-	    rt->rt_expire - time_uptime + time_second : 0;
+	out->rmx_expire = nhop_get_expire(nh) ?
+	    nhop_get_expire(nh) - time_uptime + time_second : 0;
 }
 
 /*
@@ -2169,7 +2128,7 @@ rt_ieee80211msg(struct ifnet *ifp, int what, void *data, size_t data_len)
  * This is called to generate routing socket messages indicating
  * network interface arrival and departure.
  */
-void
+static void
 rt_ifannouncemsg(struct ifnet *ifp, int what)
 {
 	struct mbuf *m;
@@ -2183,23 +2142,10 @@ rt_ifannouncemsg(struct ifnet *ifp, int what)
 static void
 rt_dispatch(struct mbuf *m, sa_family_t saf)
 {
-	struct m_tag *tag;
 
-	/*
-	 * Preserve the family from the sockaddr, if any, in an m_tag for
-	 * use when injecting the mbuf into the routing socket buffer from
-	 * the netisr.
-	 */
-	if (saf != AF_UNSPEC) {
-		tag = m_tag_get(PACKET_TAG_RTSOCKFAM, sizeof(unsigned short),
-		    M_NOWAIT);
-		if (tag == NULL) {
-			m_freem(m);
-			return;
-		}
-		*(unsigned short *)(tag + 1) = saf;
-		m_tag_prepend(m, tag);
-	}
+	M_ASSERTPKTHDR(m);
+
+	m->m_rtsock_family = saf;
 	if (V_loif)
 		m->m_pkthdr.rcvif = V_loif;
 	else {
@@ -2243,7 +2189,7 @@ sysctl_dumpentry(struct rtentry *rt, void *vw)
 	nh = rt_get_raw_nhop(rt);
 #ifdef ROUTE_MPATH
 	if (NH_IS_NHGRP(nh)) {
-		struct weightened_nhop *wn;
+		const struct weightened_nhop *wn;
 		uint32_t num_nhops;
 		int error;
 		wn = nhgrp_get_nhops((struct nhgrp_object *)nh, &num_nhops);
@@ -2713,13 +2659,20 @@ static SYSCTL_NODE(_net, PF_ROUTE, routetable, CTLFLAG_RD | CTLFLAG_MPSAFE,
 
 static struct domain routedomain;		/* or at least forward */
 
+static struct pr_usrreqs route_usrreqs = {
+	.pru_abort =		rts_close,
+	.pru_attach =		rts_attach,
+	.pru_detach =		rts_detach,
+	.pru_send =		rts_send,
+	.pru_shutdown =		rts_shutdown,
+	.pru_close =		rts_close,
+};
+
 static struct protosw routesw[] = {
 {
 	.pr_type =		SOCK_RAW,
 	.pr_domain =		&routedomain,
 	.pr_flags =		PR_ATOMIC|PR_ADDR,
-	.pr_output =		route_output,
-	.pr_ctlinput =		raw_ctlinput,
 	.pr_usrreqs =		&route_usrreqs
 }
 };

@@ -19,9 +19,9 @@ properties:
       - const: ti,am654-sdhci-5.1
       - const: ti,j721e-sdhci-8bit
       - const: ti,j721e-sdhci-4bit
-      - const: ti,j721e-sdhci-4bit
       - const: ti,am64-sdhci-8bit
       - const: ti,am64-sdhci-4bit
+      - const: ti,am62-sdhci
       - items:
           - const: ti,j7200-sdhci-8bit
           - const: ti,j721e-sdhci-8bit
@@ -45,10 +45,11 @@ properties:
 
   clock-names:
     minItems: 1
-    maxItems: 2
     items:
       - const: clk_ahb
       - const: clk_xin
+
+  sdhci-caps-mask: true
 
   # PHY output tap delays:
   # Used to delay the data valid window and align it to the sampling clock.

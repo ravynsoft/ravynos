@@ -3306,7 +3306,6 @@ sctp_strike_gap_ack_chunks(struct sctp_tcb *stcb, struct sctp_association *asoc,
 	struct sctp_tmit_chunk *tp1;
 	int strike_flag = 0;
 	struct timeval now;
-	int tot_retrans = 0;
 	uint32_t sending_seq;
 	struct sctp_nets *net;
 	int num_dests_sacked = 0;
@@ -3694,7 +3693,6 @@ sctp_strike_gap_ack_chunks(struct sctp_tcb *stcb, struct sctp_association *asoc,
 			}
 
 			tp1->rec.data.doing_fast_retransmit = 1;
-			tot_retrans++;
 			/* mark the sending seq for possible subsequent FR's */
 			/*
 			 * SCTP_PRINTF("Marking TSN for FR new value %x\n",
@@ -3873,11 +3871,11 @@ sctp_fs_audit(struct sctp_association *asoc)
 
 	if ((inflight > 0) || (inbetween > 0)) {
 #ifdef INVARIANTS
-		panic("Flight size-express incorrect? \n");
+		panic("Flight size-express incorrect F: %d I: %d R: %d Ab: %d ACK: %d",
+		    inflight, inbetween, resend, above, acked);
 #else
 		SCTP_PRINTF("asoc->total_flight: %d cnt: %d\n",
 		    entry_flight, entry_cnt);
-
 		SCTP_PRINTF("Flight size-express incorrect F: %d I: %d R: %d Ab: %d ACK: %d\n",
 		    inflight, inbetween, resend, above, acked);
 		ret = 1;

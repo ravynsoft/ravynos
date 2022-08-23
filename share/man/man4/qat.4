@@ -1,110 +1,127 @@
-.\"-
-.\" Copyright (c) 2020 Rubicon Communications, LLC (Netgate)
-.\"
-.\" Redistribution and use in source and binary forms, with or without
-.\" modification, are permitted provided that the following conditions
-.\" are met:
-.\" 1. Redistributions of source code must retain the above copyright
-.\"    notice, this list of conditions and the following disclaimer.
-.\" 2. Redistributions in binary form must reproduce the above copyright
-.\"    notice, this list of conditions and the following disclaimer in the
-.\"    documentation and/or other materials provided with the distribution.
-.\"
-.\" THIS SOFTWARE IS PROVIDED BY THE AUTHOR AND CONTRIBUTORS ``AS IS'' AND
-.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
-.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE AUTHOR OR CONTRIBUTORS BE LIABLE
-.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
-.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
-.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
-.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
-.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
-.\" SUCH DAMAGE.
-.\"
+.\" SPDX-License-Identifier: BSD-3-Clause
+.\" Copyright(c) 2007-2022 Intel Corporation
 .\" $FreeBSD$
-.\"
-.Dd May 7, 2021
+.Dd June 30, 2022
 .Dt QAT 4
 .Os
 .Sh NAME
 .Nm qat
-.Nd Intel QuickAssist Technology (QAT) driver
+.Nd Intel (R) QuickAssist Technology (QAT) driver
 .Sh SYNOPSIS
-To compile this driver into the kernel,
-place the following lines in your
-kernel configuration file:
-.Bd -ragged -offset indent
-.Cd "device crypto"
-.Cd "device cryptodev"
-.Cd "device qat"
-.Ed
+To load the driver call:
 .Pp
-Alternatively, to load the driver as a
-module at boot time, place the following lines in
-.Xr loader.conf 5 :
-.Bd -literal -offset indent
+.Bl -item -compact
+.It
+kldload qat
+.El
+.Pp
+In order to load the driver on boot add these lines to
+.Xr loader.conf 5 selecting firmware(s) suitable for installed device(s)
+.Pp
+.Bl -item -compact
+.It
+qat_200xx_fw_load="YES"
+.It
+qat_c3xxx_fw_load="YES"
+.It
+qat_c4xxx_fw_load="YES"
+.It
+qat_c62x_fw_load="YES"
+.It
+qat_dh895xcc_fw_load="YES"
+.It
 qat_load="YES"
-qat_c2xxxfw_load="YES"
-qat_c3xxxfw_load="YES"
-qat_c62xfw_load="YES"
-qat_d15xxfw_load="YES"
-qat_dh895xccfw_load="YES"
-.Ed
+.El
 .Sh DESCRIPTION
 The
 .Nm
-driver implements
-.Xr crypto 4
-support for some of the cryptographic acceleration functions of the Intel
-QuickAssist (QAT) device.
-The
-.Nm
-driver supports the QAT devices integrated with Atom C2000 and C3000 and Xeon
-C620 and D-1500 platforms, and the Intel QAT Adapter 8950.
-Other platforms and adapters not listed here may also be supported.
-QAT devices are enumerated through PCIe and are thus visible in
-.Xr pciconf 8
-output.
+driver supports cryptography and compression acceleration of the
+Intel (R) QuickAssist Technology (QAT) devices.
 .Pp
 The
 .Nm
-driver can accelerate AES in CBC, CTR, XTS (except for the C2000) and GCM modes,
-and can perform authenticated encryption combining the CBC, CTR and XTS modes
-with SHA1-HMAC and SHA2-HMAC.
+driver is intended for platforms that contain:
+.Bl -bullet -compact
+.It
+Intel (R) C62x Chipset
+.It
+Intel (R) Atom C3000 processor product family
+.It
+Intel (R) QuickAssist Adapter 8960/Intel (R) QuickAssist Adapter 8970
+(formerly known as "Lewis Hill")
+.It
+Intel (R) Communications Chipset 8925 to 8955 Series
+.It
+Intel (R) Atom P5300 processor product family
+.El
+.Pp
 The
 .Nm
-driver can also compute SHA1 and SHA2 digests.
-The implementation of AES-GCM has a firmware-imposed constraint that the length
-of any additional authenticated data (AAD) must not exceed 240 bytes.
-The driver thus rejects
-.Xr crypto 9
-requests that do not satisfy this constraint.
+driver supports cryptography and compression acceleration.
+A complete API for offloading these operations is exposed in the kernel and may
+be used by any other entity directly.
+For details of usage and supported operations and algorithms refer to the
+following documentation available from
+.Lk 01.org :
+.Bl -bullet -compact
+.It
+.Rs
+.%A Intel (R)
+.%T QuickAssist Technology API Programmer's Guide
+.Re
+.It
+.Rs
+.%A Intel (R)
+.%T QuickAssist Technology Cryptographic API Reference Manual
+.Re
+.It
+.Rs
+.%A Intel (R)
+.%T QuickAssist Technology Data Compression API Reference Manual
+.Re
+.It
+.Rs
+.%A Intel (R)
+.%T QuickAssist Technology Performance Optimization Guide
+.Re
+.El
+.Pp
+In addition to exposing complete kernel API for offloading cryptography and
+compression operations, the
+.Nm
+driver also integrates with
+.Xr crypto 4 ,
+allowing offloading supported cryptography operations to Intel (R) QuickAssist
+Technology (QAT) devices.
+For details of usage and supported operations and algorithms refer to the
+documentation mentioned above and
+.Sx SEE ALSO
+section.
+.Sh COMPATIBILITY
+The
+.Nm
+driver replaced previous implementation introduced in
+.Fx 13.0 .
+Current version, in addition to
+.Xr crypto 4
+integration, supports also data compression and exposes a complete API for
+offloading data compression and cryptography operations.
 .Sh SEE ALSO
 .Xr crypto 4 ,
 .Xr ipsec 4 ,
 .Xr pci 4 ,
-.Xr random 4 ,
 .Xr crypto 7 ,
 .Xr crypto 9
 .Sh HISTORY
-The
+This
 .Nm
-driver first appeared in
-.Fx 13.0 .
+driver was introduced in
+.Fx 14.0 .
+.Fx 13.0 included a different version of
+.Nm
+driver.
 .Sh AUTHORS
 The
 .Nm
-driver was written for
-.Nx
-by
-.An Hikaru Abe Aq Mt hikaru@iij.ad.jp .
-.An Mark Johnston Aq Mt markj@FreeBSD.org
-ported the driver to
-.Fx .
-.Sh BUGS
-Some Atom C2000 QAT devices have two acceleration engines instead of one.
-The
-.Nm
-driver currently misbehaves when both are enabled and thus does not enable
-the second acceleration engine if one is present.
+driver was written by
+.An Intel (R) Corporation .

@@ -873,7 +873,7 @@ twq_addnewthread(struct thrworkq *wq)
 	 */
 	newtd->td_flags |= TDF_WORKQ;
 	if (P_SHOULDSTOP(p))
-		newtd->td_flags |= TDF_ASTPENDING | TDF_NEEDSUSPCHK;
+		ast_sched(newtd, TDA_SUSPEND);
 	PROC_UNLOCK(p);
 
 	tidhash_add(newtd);

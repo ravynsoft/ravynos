@@ -1583,7 +1583,7 @@ zfs_dev_open(struct open_file *f, ...)
 	rv = 0;
 	/* This device is not set as currdev, mount us private copy. */
 	if (mount == NULL)
-		rv = zfs_mount(zfs_fmtdev(dev), NULL, (void **)&mount);
+		rv = zfs_mount(devformat(&dev->dd), NULL, (void **)&mount);
 
 	if (rv == 0) {
 		f->f_devdata = mount;
@@ -1633,7 +1633,8 @@ struct devsw zfs_dev = {
 	.dv_close = zfs_dev_close,
 	.dv_ioctl = noioctl,
 	.dv_print = zfs_dev_print,
-	.dv_cleanup = NULL
+	.dv_cleanup = nullsys,
+	.dv_fmtdev = zfs_fmtdev,
 };
 
 int
@@ -1681,7 +1682,7 @@ zfs_parsedev(struct zfs_devdesc *dev, const char *devspec, const char **path)
 }
 
 char *
-zfs_fmtdev(void *vdev)
+zfs_fmtdev(struct devdesc *vdev)
 {
 	static char		rootname[ZFS_MAXNAMELEN];
 	static char		buf[2 * ZFS_MAXNAMELEN + 8];
@@ -1689,7 +1690,7 @@ zfs_fmtdev(void *vdev)
 	spa_t			*spa;
 
 	buf[0] = '\0';
-	if (dev->dd.d_dev->dv_type != DEVT_ZFS)
+	if (vdev->d_dev->dv_type != DEVT_ZFS)
 		return (buf);
 
 	/* Do we have any pools? */

@@ -635,12 +635,23 @@ in_pcballoc(struct socket *so, struct inpcbinfo *pcbinfo)
 #endif /*IPSEC*/
 #ifdef INET6
 	if (INP_SOCKAF(so) == AF_INET6) {
-		inp->inp_vflag |= INP_IPV6PROTO;
+		inp->inp_vflag |= INP_IPV6PROTO | INP_IPV6;
 		if (V_ip6_v6only)
 			inp->inp_flags |= IN6P_IPV6_V6ONLY;
+#ifdef INET
+		else
+			inp->inp_vflag |= INP_IPV4;
+#endif
+		if (V_ip6_auto_flowlabel)
+			inp->inp_flags |= IN6P_AUTOFLOWLABEL;
+		inp->in6p_hops = -1;	/* use kernel default */
 	}
-	if (V_ip6_auto_flowlabel)
-		inp->inp_flags |= IN6P_AUTOFLOWLABEL;
+#endif
+#if defined(INET) && defined(INET6)
+	else
+#endif
+#ifdef INET
+		inp->inp_vflag |= INP_IPV4;
 #endif
 	/*
 	 * Routes in inpcb's can cache L2 as well; they are guaranteed
@@ -784,7 +795,7 @@ in_pcb_lport_dest(struct inpcb *inp, struct sockaddr *lsa, u_short *lportp,
 	}
 
 #ifdef INET
-	laddr.s_addr = INADDR_ANY;
+	laddr.s_addr = INADDR_ANY;	/* used by INET6+INET below too */
 	if ((inp->inp_vflag & (INP_IPV4|INP_IPV6)) == INP_IPV4) {
 		if (lsa != NULL)
 			laddr = ((struct sockaddr_in *)lsa)->sin_addr;
@@ -835,9 +846,16 @@ in_pcb_lport_dest(struct inpcb *inp, struct sockaddr *lsa, u_short *lportp,
 #endif
 		} else {
 #ifdef INET6
-			if ((inp->inp_vflag & INP_IPV6) != 0)
+			if ((inp->inp_vflag & INP_IPV6) != 0) {
 				tmpinp = in6_pcblookup_local(pcbinfo,
 				    &inp->in6p_laddr, lport, lookupflags, cred);
+#ifdef INET
+				if (tmpinp == NULL &&
+				    (inp->inp_vflag & INP_IPV4))
+					tmpinp = in_pcblookup_local(pcbinfo,
+					    laddr, lport, lookupflags, cred);
+#endif
+			}
 #endif
 #if defined(INET) && defined(INET6)
 			else

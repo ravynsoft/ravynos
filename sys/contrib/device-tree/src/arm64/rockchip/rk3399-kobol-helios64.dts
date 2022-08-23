@@ -21,6 +21,19 @@
 	aliases {
 		mmc0 = &sdmmc;
 		mmc1 = &sdhci;
+		spi1 = &spi1;
+		spi2 = &spi2;
+		spi5 = &spi5;
+	};
+
+	avdd_0v9_s0: avdd-0v9-s0 {
+		compatible = "regulator-fixed";
+		regulator-name = "avdd_0v9_s0";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-min-microvolt = <900000>;
+		regulator-max-microvolt = <900000>;
+		vin-supply = <&vcc1v8_sys_s3>;
 	};
 
 	avdd_1v8_s0: avdd-1v8-s0 {
@@ -33,11 +46,29 @@
 		vin-supply = <&vcc3v3_sys_s3>;
 	};
 
+	chosen {
+		stdout-path = "serial2:1500000n8";
+	};
+
 	clkin_gmac: external-gmac-clock {
 		compatible = "fixed-clock";
 		clock-frequency = <125000000>;
 		clock-output-names = "clkin_gmac";
 		#clock-cells = <0>;
+	};
+
+	fan1 {
+		/* fan connected to P7 */
+		compatible = "pwm-fan";
+		pwms = <&pwm0 0 40000 0>;
+		cooling-levels = <0 80 170 255>;
+	};
+
+	fan2 {
+		/* fan connected to P6 */
+		compatible = "pwm-fan";
+		pwms = <&pwm1 0 40000 0>;
+		cooling-levels = <0 80 170 255>;
 	};
 
 	leds {
@@ -56,6 +87,54 @@
 			gpios = <&gpio0 RK_PB5 GPIO_ACTIVE_HIGH>;
 			default-state = "keep";
 		};
+	};
+
+	hdd_a_power: hdd-a-power {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		gpio = <&gpio1 RK_PA0 GPIO_ACTIVE_HIGH>;
+		pinctrl-0 = <&hdd_a_power_en>;
+		pinctrl-names = "default";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-name = "hdd_a_power";
+		startup-delay-us = <2000000>;
+	};
+
+	hdd_b_power: hdd-b-power {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		gpio = <&gpio1 RK_PA1 GPIO_ACTIVE_HIGH>;
+		pinctrl-0 = <&hdd_b_power_en>;
+		pinctrl-names = "default";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-name = "hdd_b_power";
+		startup-delay-us = <2000000>;
+	};
+
+	pcie_power: pcie-power {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		gpio = <&gpio1 RK_PD0 GPIO_ACTIVE_HIGH>;
+		pinctrl-0 = <&pcie_pwr>;
+		pinctrl-names = "default";
+		regulator-boot-on;
+		regulator-name = "pcie_power";
+		startup-delay-us = <10000>;
+		vin-supply = <&vcc5v0_perdev>;
+	};
+
+	usblan_power: usblan-power {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		gpio = <&gpio1 RK_PC7 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&usb_lan_en>;
+		regulator-name = "usblan_power";
+		regulator-always-on;
+		regulator-boot-on;
+		vin-supply = <&vcc5v0_usb>;
 	};
 
 	vcc1v8_sys_s0: vcc1v8-sys-s0 {
@@ -95,6 +174,16 @@
 		};
 	};
 
+	vcc5v0_perdev: vcc5v0-perdev {
+		compatible = "regulator-fixed";
+		regulator-name = "vcc5v0_perdev";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		vin-supply = <&vcc12v_dcin_bkup>;
+	};
+
 	vcc5v0_sys: vcc5v0-sys {
 		compatible = "regulator-fixed";
 		regulator-name = "vcc5v0_sys";
@@ -107,6 +196,20 @@
 		regulator-state-mem {
 			regulator-on-in-suspend;
 		};
+	};
+
+	vcc5v0_usb: vcc5v0-usb {
+		compatible = "regulator-fixed";
+		enable-active-high;
+		gpio = <&gpio1 RK_PC6 GPIO_ACTIVE_HIGH>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&vcc5v0_usb_en>;
+		regulator-name = "vcc5v0_usb";
+		regulator-always-on;
+		regulator-boot-on;
+		regulator-min-microvolt = <5000000>;
+		regulator-max-microvolt = <5000000>;
+		vin-supply = <&vcc5v0_perdev>;
 	};
 
 	vcc12v_dcin: vcc12v-dcin {
@@ -209,6 +312,7 @@
 		clock-output-names = "xin32k", "rk808-clkout2";
 		pinctrl-names = "default";
 		pinctrl-0 = <&pmic_int_l>;
+		rockchip,system-power-controller;
 		vcc1-supply = <&vcc5v0_sys>;
 		vcc2-supply = <&vcc5v0_sys>;
 		vcc3-supply = <&vcc5v0_sys>;
@@ -317,6 +421,23 @@
 	status = "okay";
 };
 
+&pcie_phy {
+	status = "okay";
+};
+
+&pcie0 {
+	ep-gpios = <&gpio2 RK_PD4 GPIO_ACTIVE_HIGH>;
+	max-link-speed = <2>;
+	num-lanes = <2>;
+	pinctrl-names = "default";
+	status = "okay";
+
+	vpcie12v-supply = <&vcc12v_dcin>;
+	vpcie3v3-supply = <&pcie_power>;
+	vpcie1v8-supply = <&avdd_1v8_s0>;
+	vpcie0v9-supply = <&avdd_0v9_s0>;
+};
+
 &pinctrl {
 	gmac {
 		gphy_reset: gphy-reset {
@@ -334,9 +455,34 @@
 		};
 	};
 
+	pcie {
+		pcie_pwr: pcie-pwr {
+			rockchip,pins =
+				<1 RK_PD0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
 	pmic {
 		pmic_int_l: pmic-int-l {
 			rockchip,pins = <0 RK_PB2 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+	};
+
+	power {
+		hdd_a_power_en: hdd-a-power-en {
+			rockchip,pins = <1 RK_PA0 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		hdd_b_power_en: hdd-b-power-en {
+			rockchip,pins = <1 RK_PA1 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		vcc5v0_usb_en: vcc5v0-usb-en {
+			rockchip,pins = <1 RK_PC6 RK_FUNC_GPIO &pcfg_pull_none>;
+		};
+
+		usb_lan_en: usb-lan-en {
+			rockchip,pins = <1 RK_PC7 RK_FUNC_GPIO &pcfg_pull_none>;
 		};
 	};
 
@@ -349,6 +495,16 @@
 
 &pmu_io_domains {
 	pmu1830-supply = <&vcc3v0_s3>;
+	status = "okay";
+};
+
+&pwm0 {
+	/* pwm-fan on P7 */
+	status = "okay";
+};
+
+&pwm1 {
+	/* pwm-fan on P6 */
 	status = "okay";
 };
 
@@ -372,6 +528,95 @@
 	status = "okay";
 };
 
+&spi1 {
+	status = "okay";
+
+	spiflash: flash@0 {
+		compatible = "jedec,spi-nor";
+		reg = <0x0>;
+		spi-max-frequency = <25000000>;
+		status = "okay";
+		m25p,fast-read;
+	};
+};
+
+/* UEXT connector */
+&spi2 {
+	status = "okay";
+};
+
+&spi5 {
+	status = "okay";
+};
+
+&tcphy1 {
+	/* phy for &usbdrd_dwc3_1 */
+	status = "okay";
+};
+
+&tsadc {
+	/* tshut mode 0:CRU 1:GPIO */
+	rockchip,hw-tshut-mode = <1>;
+	/* tshut polarity 0:LOW 1:HIGH */
+	rockchip,hw-tshut-polarity = <1>;
+	status = "okay";
+};
+
+&u2phy1 {
+	status = "okay";
+
+	otg-port {
+		/* phy for &usbdrd_dwc3_1 */
+		phy-supply = <&vcc5v0_usb>;
+		status = "okay";
+	};
+};
+
 &uart2 {
 	status = "okay";
+};
+
+&usbdrd3_1 {
+	status = "okay";
+
+	usb@fe900000 {
+		dr_mode = "host";
+		status = "okay";
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		hub@1 {
+			compatible = "usb2109,0815";
+			reg = <1>;
+			#address-cells = <1>;
+			#size-cells = <0>;
+
+			port@1 {
+				reg = <1>;
+				#trigger-source-cells = <0>;
+			};
+
+			port@2 {
+				reg = <2>;
+				#trigger-source-cells = <0>;
+			};
+
+			port@3 {
+				reg = <3>;
+				#trigger-source-cells = <0>;
+			};
+
+			device@4 {
+				compatible = "usbbda,8156";
+				reg = <4>;
+				#address-cells = <2>;
+				#size-cells = <0>;
+
+				interface@0 {	/* interface 0 of configuration 1 */
+					compatible = "usbbda,8156.config1.0";
+					reg = <0 1>;
+				};
+			};
+		};
+	};
 };

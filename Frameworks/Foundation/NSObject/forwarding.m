@@ -52,7 +52,12 @@ void NSObjCForwardInvocation(void *returnValue,id object,SEL selector,va_list ar
    if(signature==nil)
     [object doesNotRecognizeSelector:selector];
    else {
+#if COCOTRON_DISALLOW_FORWARDING
+    Class class = object_getClass(object);
+    OBJCRaiseException("ForwardingDisallowed", "%c[%s %s(%d)]", class_isMetaClass(class) ? '+' : '-', class_getName(class) , sel_getName(selector), selector);
+#else
     NSInvocation *invocation=[NSInvocation invocationWithMethodSignature:signature arguments:arguments];
+#endif
 
     [object forwardInvocation:invocation];
     [invocation getReturnValue:returnValue];

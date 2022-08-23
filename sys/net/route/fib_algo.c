@@ -1135,7 +1135,9 @@ destroy_fd_instance_epoch(epoch_context_t ctx)
 
 	fd = __containerof(ctx, struct fib_data, fd_epoch_ctx);
 
+	CURVNET_SET(fd->fd_vnet);
 	destroy_fd_instance(fd);
+	CURVNET_RESTORE();
 }
 
 /*
@@ -1509,7 +1511,7 @@ set_fib_algo(uint32_t fibnum, int family, struct sysctl_oid *oidp, struct sysctl
 	fib_cleanup_algo(rh, true, false);
 
 	/* Drain cb so user can unload the module after userret if so desired */
-	epoch_drain_callbacks(net_epoch_preempt);
+	NET_EPOCH_DRAIN_CALLBACKS();
 
 	return (0);
 }

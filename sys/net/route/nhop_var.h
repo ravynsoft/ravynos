@@ -78,12 +78,14 @@ struct nhop_priv {
 	uint8_t			nh_neigh_family;/* neighbor address family */
 	uint16_t		nh_type;	/* nexthop type */
 	uint32_t		rt_flags;	/* routing flags for the control plane */
+	uint32_t		nh_expire;	/* path expiration time */
 	/* nhop lookup comparison end */
 	uint32_t		nh_idx;		/* nexthop index */
 	uint32_t		nh_fibnum;	/* nexthop fib */
 	void			*cb_func;	/* function handling additional rewrite caps */
 	u_int			nh_refcnt;	/* number of references, refcount(9)  */
 	u_int			nh_linked;	/* refcount(9), == 2 if linked to the list */
+	int			nh_finalized;	/* non-zero if finalized() was called */
 	struct nhop_object	*nh;		/* backreference to the dataplane nhop */
 	struct nh_control	*nh_control;	/* backreference to the rnh */
 	struct nhop_priv	*nh_next;	/* hash table membership */
@@ -95,6 +97,7 @@ struct nhop_priv {
 
 #define	NH_IS_PINNED(_nh)	((!NH_IS_NHGRP(_nh)) && \
 				((_nh)->nh_priv->rt_flags & RTF_PINNED))
+#define	NH_IS_LINKED(_nh)	((_nh)->nh_priv->nh_idx != 0)
 
 /* nhop.c */
 struct nhop_priv *find_nhop(struct nh_control *ctl,

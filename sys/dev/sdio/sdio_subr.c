@@ -121,6 +121,9 @@ sdio_set_block_size(struct sdio_func *f, uint16_t bs)
 	uint32_t addr;
 	uint16_t v;
 
+	if (bs > f->max_blksize)
+		return (EOPNOTSUPP);
+
 	if (!sdio_get_support_multiblk(f->dev))
 		return (EOPNOTSUPP);
 
@@ -139,7 +142,7 @@ sdio_set_block_size(struct sdio_func *f, uint16_t bs)
 }
 
 uint8_t
-sdio_readb(struct sdio_func *f, uint32_t addr, int *err)
+sdio_read_1(struct sdio_func *f, uint32_t addr, int *err)
 {
 	int error;
 	uint8_t v;
@@ -157,7 +160,7 @@ sdio_readb(struct sdio_func *f, uint32_t addr, int *err)
 }
 
 void
-sdio_writeb(struct sdio_func *f, uint8_t val, uint32_t addr, int *err)
+sdio_write_1(struct sdio_func *f, uint32_t addr, uint8_t val, int *err)
 {
 	int error;
 
@@ -167,13 +170,13 @@ sdio_writeb(struct sdio_func *f, uint8_t val, uint32_t addr, int *err)
 }
 
 uint32_t
-sdio_readl(struct sdio_func *f, uint32_t addr, int *err)
+sdio_read_4(struct sdio_func *f, uint32_t addr, int *err)
 {
 	int error;
 	uint32_t v;
 
 	error = SDIO_READ_EXTENDED(device_get_parent(f->dev), f->fn, addr,
-	    sizeof(v), (uint8_t *)&v, false);
+	    sizeof(v), (uint8_t *)&v, true);
 	if (error) {
 		if (err != NULL)
 			*err = error;
@@ -186,18 +189,18 @@ sdio_readl(struct sdio_func *f, uint32_t addr, int *err)
 }
 
 void
-sdio_writel(struct sdio_func *f, uint32_t val, uint32_t addr, int *err)
+sdio_write_4(struct sdio_func *f, uint32_t addr, uint32_t val, int *err)
 {
 	int error;
 
 	error = SDIO_WRITE_EXTENDED(device_get_parent(f->dev), f->fn, addr,
-	    sizeof(val), (uint8_t *)&val, false);
+	    sizeof(val), (uint8_t *)&val, true);
 	if (err != NULL)
 		*err = error;
 }
 
 uint8_t
-sdio_f0_readb(struct sdio_func *f, uint32_t addr, int *err)
+sdio_f0_read_1(struct sdio_func *f, uint32_t addr, int *err)
 {
 	int error;
 	uint8_t v;
@@ -215,7 +218,7 @@ sdio_f0_readb(struct sdio_func *f, uint32_t addr, int *err)
 }
 
 void
-sdio_f0_writeb(struct sdio_func *f, uint8_t val, uint32_t addr, int *err)
+sdio_f0_write_1(struct sdio_func *f, uint32_t addr, uint8_t val, int *err)
 {
 	int error;
 

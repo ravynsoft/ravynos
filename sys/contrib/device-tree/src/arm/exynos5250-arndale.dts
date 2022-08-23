@@ -218,6 +218,7 @@
 		interrupts = <2 IRQ_TYPE_LEVEL_LOW>;
 		pinctrl-names = "default";
 		pinctrl-0 = <&s5m8767_irq>;
+		wakeup-source;
 
 		vinb1-supply = <&main_dc_reg>;
 		vinb2-supply = <&main_dc_reg>;
@@ -239,9 +240,6 @@
 		vinl8-supply = <&buck8_reg>;
 		vinl9-supply = <&buck8_reg>;
 
-		s5m8767,pmic-buck2-dvs-voltage = <1300000>;
-		s5m8767,pmic-buck3-dvs-voltage = <1100000>;
-		s5m8767,pmic-buck4-dvs-voltage = <1200000>;
 		s5m8767,pmic-buck-dvs-gpios = <&gpd1 0 GPIO_ACTIVE_HIGH>,
 					      <&gpd1 1 GPIO_ACTIVE_HIGH>,
 					      <&gpd1 2 GPIO_ACTIVE_HIGH>;
@@ -592,7 +590,7 @@
 };
 
 &pinctrl_0 {
-	s5m8767_irq: s5m8767-irq {
+	s5m8767_irq: s5m8767-irq-pins {
 		samsung,pins = "gpx3-2";
 		samsung,pin-pud = <EXYNOS_PIN_PULL_NONE>;
 	};
@@ -633,4 +631,9 @@
 		#address-cells = <1>;
 		#size-cells = <0>;
 	};
+};
+
+&usbdrd {
+	vdd10-supply = <&ldo15_reg>;
+	vdd33-supply = <&ldo12_reg>;
 };

@@ -21,6 +21,7 @@ properties:
     enum:
       - qcom,sdm845-gpi-dma
       - qcom,sm8150-gpi-dma
+      - qcom,sm8250-gpi-dma
 
   reg:
     maxItems: 1
@@ -28,6 +29,7 @@ properties:
   interrupts:
     description:
       Interrupt lines for each GPI instance
+    minItems: 1
     maxItems: 13
 
   "#dma-cells":

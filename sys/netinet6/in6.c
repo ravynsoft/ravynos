@@ -246,7 +246,7 @@ struct in6_ndifreq32 {
 #endif
 
 int
-in6_control(struct socket *so, u_long cmd, caddr_t data,
+in6_control(struct socket *so, u_long cmd, void *data,
     struct ifnet *ifp, struct thread *td)
 {
 	struct	in6_ifreq *ifr = (struct in6_ifreq *)data;
@@ -1295,6 +1295,7 @@ in6_handle_dstaddr_rtrequest(int cmd, struct in6_ifaddr *ia)
 
 	struct rt_addrinfo info = {
 		.rti_ifa = ifa,
+		.rti_ifp = ifa->ifa_ifp,
 		.rti_flags = RTF_PINNED | RTF_HOST,
 		.rti_info = {
 			[RTAX_DST] = (struct sockaddr *)&dst,
