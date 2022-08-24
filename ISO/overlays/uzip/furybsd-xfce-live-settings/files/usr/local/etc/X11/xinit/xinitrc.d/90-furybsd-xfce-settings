@@ -1,9 +1,0 @@
-# -*- sh -*-
-# Make Qt applications use native Gtk widgets on desktops that use Gtk
-#
-# This file is sourced by Xsession(5), not executed.
-
-if [ "${XDG_CURRENT_DESKTOP}" = "XFCE" ] ; then
-  export QT_QPA_PLATFORMTHEME=gtk2
-  export QT_PLATFORM_PLUGIN=gtk2
-fi

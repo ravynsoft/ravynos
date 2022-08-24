@@ -1,8 +1,0 @@
-#!/bin/sh
-
-# Export ("unmount") all ZFS pools "mounted" to /media/zfs-altroot-...
-
-NUMERICS=$(zpool list | grep "/media/zfs-altroot-" | grep ONLINE |  awk '{print $1}' | xargs)
-for NUMERIC in $NUMERICS ; do
-  sudo zpool export -f "${NUMERIC}" && rm -r "/media/${NUMERIC}"
-done
