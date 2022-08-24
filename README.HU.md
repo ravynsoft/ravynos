@@ -20,7 +20,7 @@ Látogasd meg a [ravynos.com](https://ravynos.com/)-ot több informaciókrt: [Re
 * Tudsz segíteni hogy megépitjük az álmot? Nézd meg a jelenlegi projektek/szükségeket a[CONTRIBUTING.md](CONTRIBUTING.md)-ben!
 * A [Discord](https://discord.com/invite/8caJbAGNwY) serverünkhez.
 * `#ravynOS-general:matrix.org` - csatlakozz az Element segitségével: [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
-* `#airyx` a [Libera IRC](https://web.libera.chat/?channel=#airyx)-en
+* `#airyx` a [Libera IRC](https://web.libera.chat/?channel=#airyx)-n
 
 [![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
