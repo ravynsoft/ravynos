@@ -93,7 +93,6 @@ SUBDIR=	alias \
 	mandoc \
 	mesg \
 	migcom \
-	minigzip \
 	ministat \
 	mkdep \
 	mkfifo \
