@@ -25,6 +25,8 @@
 #import "desktop.h"
 #import "AboutWindow.h"
 
+extern const char **environ;
+
 @interface NSMenu(private)
 -(NSString *)_name;
 @end
@@ -63,6 +65,8 @@
     [sysMenu addItem:[NSMenuItem separatorItem]];
     [[sysMenu addItemWithTitle:@"Force Quit..." action:@selector(forceQuit:)
         keyEquivalent:@""] setTarget:self];
+    [sysMenu addItem:[NSMenuItem separatorItem]];
+	[[sysMenu addItemWithTitle:@"Top Secret Terminal" action:@selector(launchTerminal:) keyEquivalent:@""] setTarget:self];
     [sysMenu addItem:[NSMenuItem separatorItem]];
     [[sysMenu addItemWithTitle:@"Sleep" action:@selector(performSleep:) keyEquivalent:@""] setTarget:self];
     [[sysMenu addItemWithTitle:@"Restart..." action:@selector(performRestart:) keyEquivalent:@""] setTarget:self];
@@ -134,6 +138,12 @@
     aboutWindow = [AboutWindow new];
     [aboutWindow setDelegate:self];
     [aboutWindow makeKeyAndOrderFront:nil];
+}
+
+- (void)launchTerminal:(id)sender {
+	pid_t child = 0;
+	char *argv[] = {"-L", "-W80x25", NULL};
+	posix_spawn(&child, "/usr/bin/foot", NULL, NULL, argv, environ);
 }
 
 static void _performShutDown(int mode) {

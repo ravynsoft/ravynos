@@ -1366,7 +1366,6 @@ MLINKS+=kqueue.9 knlist_add.9 \
 	kqueue.9 knlist_empty.9 \
 	kqueue.9 knlist_init.9 \
 	kqueue.9 knlist_init_mtx.9 \
-	kqueue.9 knlist_init_rw_reader.9 \
 	kqueue.9 knlist_remove.9 \
 	kqueue.9 knlist_remove_inevent.9 \
 	kqueue.9 knote_fdclose.9 \
@@ -1463,6 +1462,7 @@ MLINKS+=\
 	mbuf.9 MGET.9 \
 	mbuf.9 m_get.9 \
 	mbuf.9 m_get2.9 \
+	mbuf.9 m_get3.9 \
 	mbuf.9 m_getjcl.9 \
 	mbuf.9 m_getcl.9 \
 	mbuf.9 MGETHDR.9 \

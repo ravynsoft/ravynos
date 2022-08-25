@@ -49,6 +49,7 @@ struct	rib_head;
 
 struct domain {
 	int	dom_family;		/* AF_xxx */
+	u_int	dom_nprotosw;		/* length of dom_protosw[] */
 	char	*dom_name;
 	int	dom_flags;
 	int	(*dom_probe)(void);	/* check for support (optional) */
@@ -56,7 +57,6 @@ struct domain {
 		(struct mbuf *, struct mbuf **, int);
 	void	(*dom_dispose)		/* dispose of internalized rights */
 		(struct socket *);
-	struct	protosw *dom_protosw, *dom_protoswNPROTOSW;
 	struct	domain *dom_next;
 	struct rib_head *(*dom_rtattach)	/* initialize routing table */
 		(uint32_t);
@@ -66,16 +66,19 @@ struct domain {
 	void	(*dom_ifdetach)(struct ifnet *, void *);
 	int	(*dom_ifmtu)(struct ifnet *);
 					/* af-dependent data on ifnet */
+	struct	protosw *dom_protosw[];
 };
 
 /* dom_flags */
 #define	DOMF_SUPPORTED	0x0001	/* System supports this domain. */
 #define	DOMF_INITED	0x0002	/* Initialized in the default vnet. */
+#define	DOMF_UNLOADABLE	0x0004	/* Can be unloaded */
 
 #ifdef _KERNEL
 extern int	domain_init_status;
 extern struct	domain *domains;
 void		domain_add(void *);
+void		domain_remove(void *);
 void		domain_init(void *);
 #ifdef VIMAGE
 void		vnet_domain_init(void *);
@@ -85,6 +88,8 @@ void		vnet_domain_uninit(void *);
 #define	DOMAIN_SET(name)						\
 	SYSINIT(domain_add_ ## name, SI_SUB_PROTO_DOMAIN,		\
 	    SI_ORDER_FIRST, domain_add, & name ## domain);		\
+	SYSUNINIT(domain_remove_ ## name, SI_SUB_PROTO_DOMAIN,		\
+	    SI_ORDER_FIRST, domain_remove, & name ## domain);		\
 	SYSINIT(domain_init_ ## name, SI_SUB_PROTO_DOMAIN,		\
 	    SI_ORDER_SECOND, domain_init, & name ## domain);
 #endif /* _KERNEL */

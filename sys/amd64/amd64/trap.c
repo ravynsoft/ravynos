@@ -277,8 +277,10 @@ trap(struct trapframe *frame)
 		 */
 		if (TRAPF_USERMODE(frame)) {
 			uprintf(
-			    "pid %ld (%s): trap %d with interrupts disabled\n",
-			    (long)curproc->p_pid, curthread->td_name, type);
+			    "pid %ld (%s): trap %d (%s) "
+			    "with interrupts disabled\n",
+			    (long)curproc->p_pid, curthread->td_name, type,
+			    trap_msg[type]);
 		} else {
 			switch (type) {
 			case T_NMI:
@@ -626,11 +628,11 @@ trap(struct trapframe *frame)
 	ksi.ksi_trapno = type;
 	ksi.ksi_addr = (void *)addr;
 	if (uprintf_signal) {
-		uprintf("pid %d comm %s: signal %d err %lx code %d type %d "
-		    "addr 0x%lx rsp 0x%lx rip 0x%lx "
+		uprintf("pid %d comm %s: signal %d err %#lx code %d type %d "
+		    "addr %#lx rsp %#lx rip %#lx rax %#lx"
 		    "<%02x %02x %02x %02x %02x %02x %02x %02x>\n",
 		    p->p_pid, p->p_comm, signo, frame->tf_err, ucode, type,
-		    addr, frame->tf_rsp, frame->tf_rip,
+		    addr, frame->tf_rsp, frame->tf_rip, frame->tf_rax,
 		    fubyte((void *)(frame->tf_rip + 0)),
 		    fubyte((void *)(frame->tf_rip + 1)),
 		    fubyte((void *)(frame->tf_rip + 2)),

@@ -62,9 +62,6 @@ __FBSDID("$FreeBSD$");
 #include <sys/malloc.h>
 #include <sys/refcount.h>
 #include <sys/mbuf.h>
-#ifdef INET6
-#include <sys/domain.h>
-#endif
 #include <sys/priv.h>
 #include <sys/proc.h>
 #include <sys/sdt.h>
@@ -1406,6 +1403,56 @@ deregister_tcp_functions(struct tcp_function_block *blk, bool quiesce,
 }
 
 static void
+tcp_drain(void)
+{
+	struct epoch_tracker et;
+	VNET_ITERATOR_DECL(vnet_iter);
+
+	if (!do_tcpdrain)
+		return;
+
+	NET_EPOCH_ENTER(et);
+	VNET_LIST_RLOCK_NOSLEEP();
+	VNET_FOREACH(vnet_iter) {
+		CURVNET_SET(vnet_iter);
+		struct inpcb_iterator inpi = INP_ALL_ITERATOR(&V_tcbinfo,
+		    INPLOOKUP_WLOCKPCB);
+		struct inpcb *inpb;
+		struct tcpcb *tcpb;
+
+	/*
+	 * Walk the tcpbs, if existing, and flush the reassembly queue,
+	 * if there is one...
+	 * XXX: The "Net/3" implementation doesn't imply that the TCP
+	 *      reassembly queue should be flushed, but in a situation
+	 *	where we're really low on mbufs, this is potentially
+	 *	useful.
+	 */
+		while ((inpb = inp_next(&inpi)) != NULL) {
+			if (inpb->inp_flags & INP_TIMEWAIT)
+				continue;
+			if ((tcpb = intotcpcb(inpb)) != NULL) {
+				tcp_reass_flush(tcpb);
+				tcp_clean_sackreport(tcpb);
+#ifdef TCP_BLACKBOX
+				tcp_log_drain(tcpb);
+#endif
+#ifdef TCPPCAP
+				if (tcp_pcap_aggressive_free) {
+					/* Free the TCP PCAP queues. */
+					tcp_pcap_drain(&(tcpb->t_inpkts));
+					tcp_pcap_drain(&(tcpb->t_outpkts));
+				}
+#endif
+			}
+		}
+		CURVNET_RESTORE();
+	}
+	VNET_LIST_RUNLOCK_NOSLEEP();
+	NET_EPOCH_EXIT(et);
+}
+
+static void
 tcp_vnet_init(void *arg __unused)
 {
 
@@ -1488,10 +1535,10 @@ tcp_init(void *arg __unused)
 
 	if (tcp_soreceive_stream) {
 #ifdef INET
-		tcp_usrreqs.pru_soreceive = soreceive_stream;
+		tcp_protosw.pr_soreceive = soreceive_stream;
 #endif
 #ifdef INET6
-		tcp6_usrreqs.pru_soreceive = soreceive_stream;
+		tcp6_protosw.pr_soreceive = soreceive_stream;
 #endif /* INET6 */
 	}
 
@@ -1509,6 +1556,8 @@ tcp_init(void *arg __unused)
 	ISN_LOCK_INIT();
 	EVENTHANDLER_REGISTER(shutdown_pre_sync, tcp_fini, NULL,
 		SHUTDOWN_PRI_DEFAULT);
+	EVENTHANDLER_REGISTER(vm_lowmem, tcp_drain, NULL, LOWMEM_PRI_DEFAULT);
+	EVENTHANDLER_REGISTER(mbuf_lowmem, tcp_drain, NULL, LOWMEM_PRI_DEFAULT);
 
 	tcp_inp_lro_direct_queue = counter_u64_alloc(M_WAITOK);
 	tcp_inp_lro_wokeup_queue = counter_u64_alloc(M_WAITOK);
@@ -1564,6 +1613,13 @@ tcp_init(void *arg __unused)
 		    hashsize);
 	}
 	tcp_tcbhashsize = hashsize;
+
+#ifdef INET
+	IPPROTO_REGISTER(IPPROTO_TCP, tcp_input, tcp_ctlinput);
+#endif
+#ifdef INET6
+	IP6PROTO_REGISTER(IPPROTO_TCP, tcp6_input, tcp6_ctlinput);
+#endif
 }
 SYSINIT(tcp_init, SI_SUB_PROTO_DOMAIN, SI_ORDER_THIRD, tcp_init, NULL);
 
@@ -2507,53 +2563,6 @@ tcp_close(struct tcpcb *tp)
 		return (NULL);
 	}
 	return (tp);
-}
-
-void
-tcp_drain(void)
-{
-	VNET_ITERATOR_DECL(vnet_iter);
-
-	if (!do_tcpdrain)
-		return;
-
-	VNET_LIST_RLOCK_NOSLEEP();
-	VNET_FOREACH(vnet_iter) {
-		CURVNET_SET(vnet_iter);
-		struct inpcb_iterator inpi = INP_ALL_ITERATOR(&V_tcbinfo,
-		    INPLOOKUP_WLOCKPCB);
-		struct inpcb *inpb;
-		struct tcpcb *tcpb;
-
-	/*
-	 * Walk the tcpbs, if existing, and flush the reassembly queue,
-	 * if there is one...
-	 * XXX: The "Net/3" implementation doesn't imply that the TCP
-	 *      reassembly queue should be flushed, but in a situation
-	 *	where we're really low on mbufs, this is potentially
-	 *	useful.
-	 */
-		while ((inpb = inp_next(&inpi)) != NULL) {
-			if (inpb->inp_flags & INP_TIMEWAIT)
-				continue;
-			if ((tcpb = intotcpcb(inpb)) != NULL) {
-				tcp_reass_flush(tcpb);
-				tcp_clean_sackreport(tcpb);
-#ifdef TCP_BLACKBOX
-				tcp_log_drain(tcpb);
-#endif
-#ifdef TCPPCAP
-				if (tcp_pcap_aggressive_free) {
-					/* Free the TCP PCAP queues. */
-					tcp_pcap_drain(&(tcpb->t_inpkts));
-					tcp_pcap_drain(&(tcpb->t_outpkts));
-				}
-#endif
-			}
-		}
-		CURVNET_RESTORE();
-	}
-	VNET_LIST_RUNLOCK_NOSLEEP();
 }
 
 /*

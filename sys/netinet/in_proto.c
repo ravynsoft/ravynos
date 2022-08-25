@@ -86,8 +86,6 @@ __FBSDID("$FreeBSD$");
  * TCP/IP protocol family: IP, ICMP, UDP, TCP.
  */
 
-static struct pr_usrreqs nousrreqs;
-
 #ifdef SCTP
 #include <netinet/in_pcb.h>
 #include <netinet/sctp_pcb.h>
@@ -95,211 +93,59 @@ static struct pr_usrreqs nousrreqs;
 #include <netinet/sctp_var.h>
 #endif
 
+/* netinet/raw_ip.c */
+extern struct protosw rip_protosw, rsvp_protosw, rawipv4_protosw,
+    rawipv6_protosw, mobile_protosw, etherip_protosw, icmp_protosw,
+    igmp_protosw, gre_protosw, pim_protosw, ripwild_protosw;
+/* netinet/udp_usrreq.c */
+extern struct protosw udp_protosw, udplite_protosw;
+
 FEATURE(inet, "Internet Protocol version 4");
-
-extern	struct domain inetdomain;
-
-/* Spacer for loadable protocols. */
-#define IPPROTOSPACER   			\
-{						\
-	.pr_domain =		&inetdomain,	\
-	.pr_protocol =		PROTO_SPACER,	\
-	.pr_usrreqs =		&nousrreqs	\
-}
-
-struct protosw inetsw[] = {
-{
-	.pr_type =		0,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_IP,
-	.pr_flags =		PR_CAPATTACH,
-	.pr_slowtimo =		ip_slowtimo,
-	.pr_drain =		ip_drain,
-	.pr_usrreqs =		&nousrreqs
-},
-{
-	.pr_type =		SOCK_DGRAM,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_UDP,
-	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_CAPATTACH,
-	.pr_input =		udp_input,
-	.pr_ctlinput =		udp_ctlinput,
-	.pr_ctloutput =		udp_ctloutput,
-	.pr_usrreqs =		&udp_usrreqs
-},
-{
-	.pr_type =		SOCK_STREAM,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_TCP,
-	.pr_flags =		PR_CONNREQUIRED|PR_IMPLOPCL|PR_WANTRCVD|
-				    PR_CAPATTACH,
-	.pr_input =		tcp_input,
-	.pr_ctlinput =		tcp_ctlinput,
-	.pr_ctloutput =		tcp_ctloutput,
-	.pr_slowtimo =		tcp_slowtimo,
-	.pr_drain =		tcp_drain,
-	.pr_usrreqs =		&tcp_usrreqs
-},
-#ifdef SCTP
-{
-	.pr_type =		SOCK_SEQPACKET,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_SCTP,
-	.pr_flags =		PR_WANTRCVD|PR_LASTHDR,
-	.pr_input =		sctp_input,
-	.pr_ctlinput =		sctp_ctlinput,
-	.pr_ctloutput =		sctp_ctloutput,
-	.pr_drain =		sctp_drain,
-	.pr_usrreqs =		&sctp_usrreqs
-},
-{
-	.pr_type =		SOCK_STREAM,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_SCTP,
-	.pr_flags =		PR_CONNREQUIRED|PR_WANTRCVD|PR_LASTHDR,
-	.pr_input =		sctp_input,
-	.pr_ctlinput =		sctp_ctlinput,
-	.pr_ctloutput =		sctp_ctloutput,
-	.pr_drain =		NULL, /* Covered by the SOCK_SEQPACKET entry. */
-	.pr_usrreqs =		&sctp_usrreqs
-},
-#endif /* SCTP */
-{
-	.pr_type =		SOCK_DGRAM,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_UDPLITE,
-	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_CAPATTACH,
-	.pr_input =		udp_input,
-	.pr_ctlinput =		udplite_ctlinput,
-	.pr_ctloutput =		udp_ctloutput,
-	.pr_usrreqs =		&udp_usrreqs
-},
-{
-	.pr_type =		SOCK_RAW,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_RAW,
-	.pr_flags =		PR_ATOMIC|PR_ADDR,
-	.pr_input =		rip_input,
-	.pr_ctlinput =		rip_ctlinput,
-	.pr_ctloutput =		rip_ctloutput,
-	.pr_usrreqs =		&rip_usrreqs
-},
-{
-	.pr_type =		SOCK_RAW,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_ICMP,
-	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_LASTHDR,
-	.pr_input =		icmp_input,
-	.pr_ctloutput =		rip_ctloutput,
-	.pr_usrreqs =		&rip_usrreqs
-},
-{
-	.pr_type =		SOCK_RAW,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_IGMP,
-	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_LASTHDR,
-	.pr_input =		igmp_input,
-	.pr_ctloutput =		rip_ctloutput,
-	.pr_fasttimo =		igmp_fasttimo,
-	.pr_slowtimo =		igmp_slowtimo,
-	.pr_usrreqs =		&rip_usrreqs
-},
-{
-	.pr_type =		SOCK_RAW,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_RSVP,
-	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_LASTHDR,
-	.pr_input =		rsvp_input,
-	.pr_ctloutput =		rip_ctloutput,
-	.pr_usrreqs =		&rip_usrreqs
-},
-{
-	.pr_type =		SOCK_RAW,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_IPV4,
-	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_LASTHDR,
-	.pr_input =		encap4_input,
-	.pr_ctloutput =		rip_ctloutput,
-	.pr_usrreqs =		&rip_usrreqs
-},
-{
-	.pr_type =		SOCK_RAW,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_MOBILE,
-	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_LASTHDR,
-	.pr_input =		encap4_input,
-	.pr_ctloutput =		rip_ctloutput,
-	.pr_usrreqs =		&rip_usrreqs
-},
-{
-	.pr_type =		SOCK_RAW,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_ETHERIP,
-	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_LASTHDR,
-	.pr_input =		encap4_input,
-	.pr_ctloutput =		rip_ctloutput,
-	.pr_usrreqs =		&rip_usrreqs
-},
-{
-	.pr_type =		SOCK_RAW,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_GRE,
-	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_LASTHDR,
-	.pr_input =		encap4_input,
-	.pr_ctloutput =		rip_ctloutput,
-	.pr_usrreqs =		&rip_usrreqs
-},
-# ifdef INET6
-{
-	.pr_type =		SOCK_RAW,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_IPV6,
-	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_LASTHDR,
-	.pr_input =		encap4_input,
-	.pr_ctloutput =		rip_ctloutput,
-	.pr_usrreqs =		&rip_usrreqs
-},
-#endif
-{
-	.pr_type =		SOCK_RAW,
-	.pr_domain =		&inetdomain,
-	.pr_protocol =		IPPROTO_PIM,
-	.pr_flags =		PR_ATOMIC|PR_ADDR|PR_LASTHDR,
-	.pr_input =		encap4_input,
-	.pr_ctloutput =		rip_ctloutput,
-	.pr_usrreqs =		&rip_usrreqs
-},
-/* Spacer n-times for loadable protocols. */
-IPPROTOSPACER,
-IPPROTOSPACER,
-IPPROTOSPACER,
-IPPROTOSPACER,
-IPPROTOSPACER,
-IPPROTOSPACER,
-IPPROTOSPACER,
-IPPROTOSPACER,
-/* raw wildcard */
-{
-	.pr_type =		SOCK_RAW,
-	.pr_domain =		&inetdomain,
-	.pr_flags =		PR_ATOMIC|PR_ADDR,
-	.pr_input =		rip_input,
-	.pr_ctloutput =		rip_ctloutput,
-	.pr_usrreqs =		&rip_usrreqs
-},
-};
 
 struct domain inetdomain = {
 	.dom_family =		AF_INET,
 	.dom_name =		"internet",
-	.dom_protosw =		inetsw,
-	.dom_protoswNPROTOSW =	&inetsw[nitems(inetsw)],
 	.dom_rtattach =		in_inithead,
 #ifdef VIMAGE
 	.dom_rtdetach =		in_detachhead,
 #endif
 	.dom_ifattach =		in_domifattach,
-	.dom_ifdetach =		in_domifdetach
+	.dom_ifdetach =		in_domifdetach,
+	.dom_nprotosw =		24,
+	.dom_protosw = {
+		&tcp_protosw,
+		&udp_protosw,
+#ifdef SCTP
+		&sctp_seqpacket_protosw,
+		&sctp_stream_protosw,
+#else
+		NULL, NULL,
+#endif
+		&udplite_protosw,
+		&rip_protosw,
+		/*
+		 * XXXGL: it is entirely possible that all below raw-based
+		 * protosw definitions are not needed.  They could have existed
+		 * just to define pr_input, pr_drain, pr_*timo or PR_LASTHDR
+		 * flag, and were never supposed to create a special socket.
+		 */
+		&icmp_protosw,
+		&igmp_protosw,
+		&rsvp_protosw,
+		&rawipv4_protosw,
+		&mobile_protosw,
+		&etherip_protosw,
+		&gre_protosw,
+#ifdef INET6
+		&rawipv6_protosw,
+#else
+		NULL,
+#endif
+		&pim_protosw,
+		/* Spacer 8 times for loadable protocols. XXXGL: why 8? */
+		NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
+		&ripwild_protosw,
+	},
 };
 
 DOMAIN_SET(inet);

@@ -147,20 +147,6 @@ div_destroy(void *unused __unused)
 }
 VNET_SYSUNINIT(divert, SI_SUB_PROTO_DOMAIN, SI_ORDER_THIRD, div_destroy, NULL);
 
-/*
- * IPPROTO_DIVERT is not in the real IP protocol number space; this
- * function should never be called.  Just in case, drop any packets.
- */
-static int
-div_input(struct mbuf **mp, int *offp, int proto)
-{
-	struct mbuf *m = *mp;
-
-	KMOD_IPSTAT_INC(ips_noproto);
-	m_freem(m);
-	return (IPPROTO_DONE);
-}
-
 static bool
 div_port_match(const struct inpcb *inp, void *v)
 {
@@ -171,9 +157,6 @@ div_port_match(const struct inpcb *inp, void *v)
 
 /*
  * Divert a packet by passing it up to the divert socket at port 'port'.
- *
- * Setup generic address and protocol structures for div_input routine,
- * then pass them along with mbuf chain.
  */
 static void
 divert_packet(struct mbuf *m, bool incoming)
@@ -743,24 +726,19 @@ SYSCTL_PROC(_net_inet_divert, OID_AUTO, pcblist,
     "List of active divert sockets");
 #endif
 
-struct pr_usrreqs div_usrreqs = {
-	.pru_attach =		div_attach,
-	.pru_bind =		div_bind,
-	.pru_control =		in_control,
-	.pru_detach =		div_detach,
-	.pru_peeraddr =		in_getpeeraddr,
-	.pru_send =		div_send,
-	.pru_shutdown =		div_shutdown,
-	.pru_sockaddr =		in_getsockaddr,
-	.pru_sosetlabel =	in_pcbsosetlabel
-};
-
-struct protosw div_protosw = {
+static struct protosw div_protosw = {
 	.pr_type =		SOCK_RAW,
 	.pr_protocol =		IPPROTO_DIVERT,
 	.pr_flags =		PR_ATOMIC|PR_ADDR,
-	.pr_input =		div_input,
-	.pr_usrreqs =		&div_usrreqs
+	.pr_attach =		div_attach,
+	.pr_bind =		div_bind,
+	.pr_control =		in_control,
+	.pr_detach =		div_detach,
+	.pr_peeraddr =		in_getpeeraddr,
+	.pr_send =		div_send,
+	.pr_shutdown =		div_shutdown,
+	.pr_sockaddr =		in_getsockaddr,
+	.pr_sosetlabel =	in_pcbsosetlabel
 };
 
 static int
@@ -772,10 +750,8 @@ div_modevent(module_t mod, int type, void *unused)
 	case MOD_LOAD:
 		/*
 		 * Protocol will be initialized by pf_proto_register().
-		 * We don't have to register ip_protox because we are not
-		 * a true IP protocol that goes over the wire.
 		 */
-		err = pf_proto_register(PF_INET, &div_protosw);
+		err = protosw_register(&inetdomain, &div_protosw);
 		if (err != 0)
 			return (err);
 		ip_divert_ptr = divert_packet;
@@ -807,7 +783,7 @@ div_modevent(module_t mod, int type, void *unused)
 			break;
 		}
 		ip_divert_ptr = NULL;
-		err = pf_proto_unregister(PF_INET, IPPROTO_DIVERT, SOCK_RAW);
+		err = protosw_unregister(&div_protosw);
 		INP_INFO_WUNLOCK(&V_divcbinfo);
 #ifndef VIMAGE
 		div_destroy(NULL);

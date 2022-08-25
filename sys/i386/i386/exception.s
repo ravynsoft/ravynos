@@ -130,17 +130,41 @@ IDTVEC(prot)
 	jmp	irettraps
 IDTVEC(page)
 	testl	$PSL_VM, TF_EFLAGS-TF_ERR(%esp)
-	jnz	1f
+	jnz	4f
 	testb	$SEL_RPL_MASK, TF_CS-TF_ERR(%esp)
-	jnz	1f
+	jnz	4f
 	cmpl	$PMAP_TRM_MIN_ADDRESS, TF_EIP-TF_ERR(%esp)
-	jb	1f
+	jb	4f
+	pushl	%eax
+	movl	TF_EIP-TF_ERR+4(%esp), %eax
+	addl	$1f, %eax
+	call	5f
+1:	cmpl	$pf_x1, %eax
+	je	2f
+	cmpl	$pf_x2, %eax
+	je	2f
+	cmpl	$pf_x3, %eax
+	je	2f
+	cmpl	$pf_x4, %eax
+	je	2f
+	cmpl	$pf_x5, %eax
+	je	2f
+	cmpl	$pf_x6, %eax
+	je	2f
+	cmpl	$pf_x7, %eax
+	je	2f
+	cmpl	$pf_x8, %eax
+	jne	3f
+2:	popl	%eax
 	movl	%ebx, %cr3
 	movl	%edx, TF_EIP-TF_ERR(%esp)
 	addl	$4, %esp
 	iret
-1:	pushl	$T_PAGEFLT
+3:	popl	%eax
+4:	pushl	$T_PAGEFLT
 	jmp	alltraps
+5:	subl	(%esp), %eax
+	retl
 IDTVEC(rsvd_pti)
 IDTVEC(rsvd)
 	pushl $0; TRAP(T_RESERVED)
@@ -205,27 +229,25 @@ irettraps:
 	leal	(doreti_iret - 1b)(%ebx), %edx
 	cmpl	%edx, TF_EIP(%esp)
 	jne	2f
-	movl	$(2 * TF_SZ - TF_EIP), %ecx
-	jmp	6f
+	/* -8 because exception did not switch ring */
+	movl	$(2 * TF_SZ - TF_EIP - 8), %ecx
+	jmp	5f
 2:	leal	(doreti_popl_ds - 1b)(%ebx), %edx
 	cmpl	%edx, TF_EIP(%esp)
 	jne	3f
-	movl	$(2 * TF_SZ - TF_DS), %ecx
-	jmp	6f
+	movl	$(2 * TF_SZ - TF_DS - 8), %ecx
+	jmp	5f
 3:	leal	(doreti_popl_es - 1b)(%ebx), %edx
 	cmpl	%edx, TF_EIP(%esp)
 	jne	4f
-	movl	$(2 * TF_SZ - TF_ES), %ecx
-	jmp	6f
+	movl	$(2 * TF_SZ - TF_ES - 8), %ecx
+	jmp	5f
 4:	leal	(doreti_popl_fs - 1b)(%ebx), %edx
 	cmpl	%edx, TF_EIP(%esp)
-	jne	5f
-	movl	$(2 * TF_SZ - TF_FS), %ecx
-	jmp	6f
-	/* kernel mode, normal */
-5:	jmp	calltrap
-6:	cmpl	$PMAP_TRM_MIN_ADDRESS, %esp	/* trampoline stack ? */
-	jb	5b	/* if not, no need to change stacks */
+	jne	calltrap
+	movl	$(2 * TF_SZ - TF_FS - 8), %ecx
+5:	cmpl	$PMAP_TRM_MIN_ADDRESS, %esp	/* trampoline stack ? */
+	jb	calltrap	  /* if not, no need to change stacks */
 	movl	(tramp_idleptd - 1b)(%ebx), %eax
 	movl	%eax, %cr3
 	movl	PCPU(KESP0), %edx
@@ -234,6 +256,7 @@ irettraps:
 	movl	%esp, %esi
 	rep; movsb
 	movl	%edx, %esp
+	/* kernel mode, normal */
 	jmp	calltrap
 
 /*
@@ -493,22 +516,21 @@ doreti_exit:
 	je	doreti_iret_nmi
 	cmpl	$T_TRCTRAP, TF_TRAPNO(%esp)
 	je	doreti_iret_nmi
-	movl	$TF_SZ, %ecx
 	testl	$PSL_VM,TF_EFLAGS(%esp)
-	jz	1f			/* PCB_VM86CALL is not set */
-	addl	$VM86_STACK_SPACE, %ecx
-	jmp	2f
-1:	testl	$SEL_RPL_MASK, TF_CS(%esp)
+	jnz	1f			/* PCB_VM86CALL is not set */
+	testl	$SEL_RPL_MASK, TF_CS(%esp)
 	jz	doreti_popl_fs
-2:	movl	$handle_ibrs_exit,%eax
-	pushl	%ecx			/* preserve enough call-used regs */
+1:	movl	$handle_ibrs_exit,%eax
 	call	*%eax
 	movl	mds_handler,%eax
 	call	*%eax
-	popl	%ecx
 	movl	%esp, %esi
 	movl	PCPU(TRAMPSTK), %edx
-	subl	%ecx, %edx
+	movl	$TF_SZ, %ecx
+	testl	$PSL_VM,TF_EFLAGS(%esp)
+	jz	2f			/* PCB_VM86CALL is not set */
+	addl	$VM86_STACK_SPACE, %ecx
+2:	subl	$TF_SZ, %edx
 	movl	%edx, %edi
 	rep; movsb
 	movl	%edx, %esp

@@ -94,7 +94,7 @@ struct hda_bdle_desc {
 };
 
 struct hda_codec_cmd_ctl {
-	char *name;
+	const char *name;
 	void *dma_vaddr;
 	uint8_t run;
 	uint16_t rp;
@@ -270,13 +270,12 @@ static struct hda_ops hops = {
 	.transfer	= hda_transfer,
 };
 
-struct pci_devemu pci_de_hda = {
+static const struct pci_devemu pci_de_hda = {
 	.pe_emu		= "hda",
 	.pe_init	= pci_hda_init,
 	.pe_barwrite	= pci_hda_write,
 	.pe_barread	= pci_hda_read
 };
-
 PCI_EMUL_SET(pci_de_hda);
 
 SET_DECLARE(hda_codec_class_set, struct hda_codec_class);
@@ -730,7 +729,7 @@ static inline void
 hda_print_cmd_ctl_data(struct hda_codec_cmd_ctl *p)
 {
 #if DEBUG_HDA == 1
-	char *name = p->name;
+	const char *name = p->name;
 #endif
 	DPRINTF("%s size: %d", name, p->size);
 	DPRINTF("%s dma_vaddr: %p", name, p->dma_vaddr);

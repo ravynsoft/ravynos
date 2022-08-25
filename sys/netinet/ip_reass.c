@@ -92,8 +92,7 @@ VNET_DEFINE_STATIC(int, ipreass_maxbucketsize);
 #define	V_ipreass_maxbucketsize	VNET(ipreass_maxbucketsize)
 
 void		ipreass_init(void);
-void		ipreass_drain(void);
-void		ipreass_slowtimo(void);
+void		ipreass_vnet_init(void);
 #ifdef VIMAGE
 void		ipreass_destroy(void);
 #endif
@@ -167,6 +166,10 @@ SYSCTL_PROC(_net_inet_ip, OID_AUTO, maxfragbucketsize,
     CTLFLAG_VNET | CTLTYPE_INT | CTLFLAG_MPSAFE | CTLFLAG_RW, NULL, 0,
     sysctl_maxfragbucketsize, "I",
     "Maximum number of IPv4 fragment reassembly queue entries per bucket");
+
+static u_int ipfragttl = IPFRAGTTL / 2;
+SYSCTL_UINT(_net_inet_ip, OID_AUTO, fragttl, CTLFLAG_RD, &ipfragttl,
+    IPFRAGTTL / 2, "IP fragment life time on reassembly queue");
 
 /*
  * Take incoming datagram fragment and try to reassemble it into
@@ -557,10 +560,83 @@ done:
 }
 
 /*
+ * If a timer expires on a reassembly queue, discard it.
+ */
+static struct callout ipreass_callout;
+static void
+ipreass_slowtimo(void *arg __unused)
+{
+	VNET_ITERATOR_DECL(vnet_iter);
+	struct ipq *fp, *tmp;
+
+	if (atomic_load_int(&nfrags) == 0)
+		return;
+
+	VNET_FOREACH(vnet_iter) {
+		CURVNET_SET(vnet_iter);
+		for (int i = 0; i < IPREASS_NHASH; i++) {
+			if (TAILQ_EMPTY(&V_ipq[i].head))
+				continue;
+			IPQ_LOCK(i);
+			TAILQ_FOREACH_SAFE(fp, &V_ipq[i].head, ipq_list, tmp)
+			if (--fp->ipq_ttl == 0)
+				ipq_timeout(&V_ipq[i], fp);
+			IPQ_UNLOCK(i);
+		}
+		CURVNET_RESTORE();
+	}
+	VNET_LIST_RUNLOCK_NOSLEEP();
+
+	callout_reset_sbt(&ipreass_callout, SBT_1MS * 500, SBT_1MS * 10,
+	    ipreass_slowtimo, NULL, 0);
+}
+
+static void
+ipreass_timer_init(void *arg __unused)
+{
+
+	callout_init(&ipreass_callout, 1);
+	callout_reset_sbt(&ipreass_callout, SBT_1MS * 500, SBT_1MS * 10,
+	    ipreass_slowtimo, NULL, 0);
+}
+
+static void
+ipreass_drain_vnet(void)
+{
+
+	for (int i = 0; i < IPREASS_NHASH; i++) {
+		IPQ_LOCK(i);
+		while(!TAILQ_EMPTY(&V_ipq[i].head))
+			ipq_drop(&V_ipq[i], TAILQ_FIRST(&V_ipq[i].head));
+		KASSERT(V_ipq[i].count == 0,
+		    ("%s: V_ipq[%d] count %d (V_ipq=%p)", __func__, i,
+		    V_ipq[i].count, V_ipq));
+		IPQ_UNLOCK(i);
+	}
+}
+SYSINIT(ipreass, SI_SUB_VNET_DONE, SI_ORDER_ANY, ipreass_timer_init, NULL);
+
+/*
+ * Drain off all datagram fragments.
+ */
+static void
+ipreass_drain(void)
+{
+	VNET_ITERATOR_DECL(vnet_iter);
+
+	VNET_FOREACH(vnet_iter) {
+		CURVNET_SET(vnet_iter);
+		ipreass_drain_vnet();
+		CURVNET_RESTORE();
+	}
+}
+
+
+/*
  * Initialize IP reassembly structures.
  */
 void
-ipreass_init(void)
+ipreass_vnet_init(void)
 {
 	int max;
 
@@ -577,52 +653,19 @@ ipreass_init(void)
 	max = IP_MAXFRAGPACKETS;
 	max = uma_zone_set_max(V_ipq_zone, max);
 	V_ipreass_maxbucketsize = imax(max / (IPREASS_NHASH / 2), 1);
-
-	if (IS_DEFAULT_VNET(curvnet)) {
-		maxfrags = IP_MAXFRAGS;
-		EVENTHANDLER_REGISTER(nmbclusters_change, ipreass_zone_change,
-		    NULL, EVENTHANDLER_PRI_ANY);
-	}
 }
 
-/*
- * If a timer expires on a reassembly queue, discard it.
- */
 void
-ipreass_slowtimo(void)
-{
-	struct ipq *fp, *tmp;
-
-	if (atomic_load_int(&nfrags) == 0)
-		return;
-
-	for (int i = 0; i < IPREASS_NHASH; i++) {
-		if (TAILQ_EMPTY(&V_ipq[i].head))
-			continue;
-		IPQ_LOCK(i);
-		TAILQ_FOREACH_SAFE(fp, &V_ipq[i].head, ipq_list, tmp)
-		if (--fp->ipq_ttl == 0)
-			ipq_timeout(&V_ipq[i], fp);
-		IPQ_UNLOCK(i);
-	}
-}
-
-/*
- * Drain off all datagram fragments.
- */
-void
-ipreass_drain(void)
+ipreass_init(void)
 {
 
-	for (int i = 0; i < IPREASS_NHASH; i++) {
-		IPQ_LOCK(i);
-		while(!TAILQ_EMPTY(&V_ipq[i].head))
-			ipq_drop(&V_ipq[i], TAILQ_FIRST(&V_ipq[i].head));
-		KASSERT(V_ipq[i].count == 0,
-		    ("%s: V_ipq[%d] count %d (V_ipq=%p)", __func__, i,
-		    V_ipq[i].count, V_ipq));
-		IPQ_UNLOCK(i);
-	}
+	maxfrags = IP_MAXFRAGS;
+	EVENTHANDLER_REGISTER(nmbclusters_change, ipreass_zone_change,
+	    NULL, EVENTHANDLER_PRI_ANY);
+	EVENTHANDLER_REGISTER(vm_lowmem, ipreass_drain, NULL,
+	    LOWMEM_PRI_DEFAULT);
+	EVENTHANDLER_REGISTER(mbuf_lowmem, ipreass_drain, NULL,
+		LOWMEM_PRI_DEFAULT);
 }
 
 /*
@@ -673,7 +716,7 @@ void
 ipreass_destroy(void)
 {
 
-	ipreass_drain();
+	ipreass_drain_vnet();
 	uma_zdestroy(V_ipq_zone);
 	V_ipq_zone = NULL;
 	for (int i = 0; i < IPREASS_NHASH; i++)

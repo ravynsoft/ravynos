@@ -32,9 +32,11 @@
 #define	_MAKEFS_ZFS_H_
 
 #include <sys/types.h>
+#include <sys/endian.h>
 #include <sys/queue.h>
 
 #include <bitstring.h>
+#include <stdalign.h>
 #include <stdbool.h>
 
 #include "makefs.h"
@@ -65,10 +67,13 @@ struct dataset_desc {
 };
 
 typedef struct {
-	bool		nowarn;
+	/*
+	 * Block buffer, needs to be aligned for various on-disk structures,
+	 * ZAPs, etc..
+	 */
+	char		filebuf[MAXBLOCKSIZE] __aligned(alignof(uint64_t));
 
-	/* I/O buffer, just for convenience. */
-	char		filebuf[MAXBLOCKSIZE];
+	bool		nowarn;
 
 	/* Pool parameters. */
 	const char	*poolname;
@@ -119,7 +124,7 @@ char *dsl_dir_get_mountpoint(zfs_opt_t *, zfs_dsl_dir_t *);
 bool dsl_dir_has_dataset(zfs_dsl_dir_t *);
 bool dsl_dir_dataset_has_objset(zfs_dsl_dir_t *);
 void dsl_dir_dataset_write(zfs_opt_t *, zfs_objset_t *, zfs_dsl_dir_t *);
-void dsl_dir_size_set(zfs_dsl_dir_t *, uint64_t);
+void dsl_dir_size_add(zfs_dsl_dir_t *, uint64_t);
 void dsl_write(zfs_opt_t *);
 
 /* fs.c */

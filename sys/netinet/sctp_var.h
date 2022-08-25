@@ -42,7 +42,7 @@ __FBSDID("$FreeBSD$");
 
 #if defined(_KERNEL) || defined(__Userspace__)
 
-extern struct pr_usrreqs sctp_usrreqs;
+extern struct protosw sctp_seqpacket_protosw, sctp_stream_protosw;
 
 #define sctp_feature_on(inp, feature)  (inp->sctp_features |= feature)
 #define sctp_feature_off(inp, feature) (inp->sctp_features &= ~feature)
@@ -324,12 +324,9 @@ void sctp_close(struct socket *so);
 int sctp_disconnect(struct socket *so);
 void sctp_ctlinput(int, struct sockaddr *, void *);
 int sctp_ctloutput(struct socket *, struct sockopt *);
-#ifdef INET
 void sctp_input_with_port(struct mbuf *, int, uint16_t);
 int sctp_input(struct mbuf **, int *, int);
-#endif
 void sctp_pathmtu_adjustment(struct sctp_tcb *, uint32_t, bool);
-void sctp_drain(void);
 void
 sctp_notify(struct sctp_inpcb *, struct sctp_tcb *, struct sctp_nets *,
     uint8_t, uint8_t, uint16_t, uint32_t);

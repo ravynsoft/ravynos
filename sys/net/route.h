@@ -95,11 +95,8 @@ struct rt_metrics {
 
 /*
  * rmx_rtt and rmx_rttvar are stored as microseconds;
- * RTTTOPRHZ(rtt) converts to a value suitable for use
- * by a protocol slowtimo counter.
  */
 #define	RTM_RTTUNIT	1000000	/* units for rtt, rttvar, as units per sec */
-#define	RTTTOPRHZ(r)	((r) / (RTM_RTTUNIT / PR_SLOWHZ))
 
 /* lle state is exported in rmx_state rt_metrics field */
 #define	rmx_state	rmx_weight
@@ -440,9 +437,6 @@ void	rt_flushifroutes(struct ifnet *ifp);
  * but this will change.. 
  */
 int	rtioctl_fib(u_long, caddr_t, u_int);
-int	rib_lookup_info(uint32_t, const struct sockaddr *, uint32_t, uint32_t,
-	    struct rt_addrinfo *);
-void	rib_free_info(struct rt_addrinfo *info);
 
 /* New API */
 void rib_flush_routes_family(int family);

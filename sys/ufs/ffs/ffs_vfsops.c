@@ -913,8 +913,7 @@ ffs_mountfs(struct vnode *odevvp, struct mount *mp, struct thread *td)
 	struct g_consumer *cp;
 	struct mount *nmp;
 	struct vnode *devvp;
-	int candelete, canspeedup, flags;
-	off_t loc;
+	int candelete, canspeedup;
 
 	fs = NULL;
 	ump = NULL;
@@ -958,12 +957,12 @@ ffs_mountfs(struct vnode *odevvp, struct mount *mp, struct thread *td)
 		goto out;
 	}
 	/* fetch the superblock and summary information */
-	loc = UFS_STDSB;
-	flags = 0;
 	if ((mp->mnt_flag & (MNT_ROOTFS | MNT_FORCE)) != 0)
-		flags = UFS_NOHASHFAIL;
-	if ((error = ffs_sbget(devvp, &fs, loc, flags, M_UFSMNT, ffs_use_bread))
-	    != 0)
+		error = ffs_sbsearch(devvp, &fs, 0, M_UFSMNT, ffs_use_bread);
+	else
+		error = ffs_sbget(devvp, &fs, UFS_STDSB, 0, M_UFSMNT,
+		    ffs_use_bread);
+	if (error != 0)
 		goto out;
 	fs->fs_flags &= ~FS_UNCLEAN;
 	if (fs->fs_clean == 0) {
@@ -1929,40 +1928,48 @@ ffs_vgetf(struct mount *mp,
 		MPASS((ffs_flags & FFSV_REPLACE) == 0);
 		return (0);
 	}
-
-	/* Read in the disk contents for the inode, copy into the inode. */
-	dbn = fsbtodb(fs, ino_to_fsba(fs, ino));
-	error = ffs_breadz(ump, ump->um_devvp, dbn, dbn, (int)fs->fs_bsize,
-	    NULL, NULL, 0, NOCRED, 0, NULL, &bp);
-	if (error != 0) {
-		/*
-		 * The inode does not contain anything useful, so it would
-		 * be misleading to leave it on its hash chain. With mode
-		 * still zero, it will be unlinked and returned to the free
-		 * list by vput().
-		 */
-		vgone(vp);
-		vput(vp);
-		*vpp = NULL;
-		return (error);
-	}
 	if (I_IS_UFS1(ip))
 		ip->i_din1 = uma_zalloc(uma_ufs1, M_WAITOK);
 	else
 		ip->i_din2 = uma_zalloc(uma_ufs2, M_WAITOK);
-	if ((error = ffs_load_inode(bp, ip, fs, ino)) != 0) {
+
+	if ((ffs_flags & FFSV_NEWINODE) != 0) {
+		/* New inode, just zero out its contents. */
+		if (I_IS_UFS1(ip))
+			memset(ip->i_din1, 0, sizeof(struct ufs1_dinode));
+		else
+			memset(ip->i_din2, 0, sizeof(struct ufs2_dinode));
+	} else {
+		/* Read the disk contents for the inode, copy into the inode. */
+		dbn = fsbtodb(fs, ino_to_fsba(fs, ino));
+		error = ffs_breadz(ump, ump->um_devvp, dbn, dbn,
+		    (int)fs->fs_bsize, NULL, NULL, 0, NOCRED, 0, NULL, &bp);
+		if (error != 0) {
+			/*
+			 * The inode does not contain anything useful, so it
+			 * would be misleading to leave it on its hash chain.
+			 * With mode still zero, it will be unlinked and
+			 * returned to the free list by vput().
+			 */
+			vgone(vp);
+			vput(vp);
+			*vpp = NULL;
+			return (error);
+		}
+		if ((error = ffs_load_inode(bp, ip, fs, ino)) != 0) {
+			bqrelse(bp);
+			vgone(vp);
+			vput(vp);
+			*vpp = NULL;
+			return (error);
+		}
 		bqrelse(bp);
-		vgone(vp);
-		vput(vp);
-		*vpp = NULL;
-		return (error);
 	}
 	if (DOINGSOFTDEP(vp) && (!fs->fs_ronly ||
 	    (ffs_flags & FFSV_FORCEINODEDEP) != 0))
 		softdep_load_inodeblock(ip);
 	else
 		ip->i_effnlink = ip->i_nlink;
-	bqrelse(bp);
 
 	/*
 	 * Initialize the vnode from the inode, check for aliases.
