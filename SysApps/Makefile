@@ -13,6 +13,7 @@ clean:
 build: buildInstaller
 	mkdir -p ${BUILDROOT}/Applications/Utilities/
 	cp -av ${.CURDIR}/Installer/"Install ravynOS.app" ${BUILDROOT}/Applications/Utilities/
+	cp -av ${.CURDIR}/foot.app ${BUILDROOT}/Applications/Utilities/
 
 buildInstaller:
 	${MAKE} -C ${.CURDIR}/Installer build

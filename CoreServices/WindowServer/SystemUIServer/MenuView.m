@@ -66,8 +66,6 @@ extern const char **environ;
     [[sysMenu addItemWithTitle:@"Force Quit..." action:@selector(forceQuit:)
         keyEquivalent:@""] setTarget:self];
     [sysMenu addItem:[NSMenuItem separatorItem]];
-	[[sysMenu addItemWithTitle:@"Top Secret Terminal" action:@selector(launchTerminal:) keyEquivalent:@""] setTarget:self];
-    [sysMenu addItem:[NSMenuItem separatorItem]];
     [[sysMenu addItemWithTitle:@"Sleep" action:@selector(performSleep:) keyEquivalent:@""] setTarget:self];
     [[sysMenu addItemWithTitle:@"Restart..." action:@selector(performRestart:) keyEquivalent:@""] setTarget:self];
     [[sysMenu addItemWithTitle:@"Shut Down..." action:@selector(performShutDown:) keyEquivalent:@""] setTarget:self];
@@ -138,12 +136,6 @@ extern const char **environ;
     aboutWindow = [AboutWindow new];
     [aboutWindow setDelegate:self];
     [aboutWindow makeKeyAndOrderFront:nil];
-}
-
-- (void)launchTerminal:(id)sender {
-	pid_t child = 0;
-	char *argv[] = {"-L", "-W80x25", NULL};
-	posix_spawn(&child, "/usr/bin/foot", NULL, NULL, argv, environ);
 }
 
 static void _performShutDown(int mode) {
