@@ -1,26 +1,26 @@
-# What is ravynOS? [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-### Don't speak English? Read this in: [Italiano](README.IT.md), [Türkçe](README_TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md)
+# Mi az a ravynOS? [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+### Don't speak Hungarian? Read this in: [Italiano](README.IT.md), [Türkçe](README_TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md)
 
-ravynOS is a new open source OS project that aims to provide a similar experience and some compatibility with macOS on x86-64 (and eventually ARM) systems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps.
+A ravynOS egy új nyilt forrásu operációs rendszer projekt ami arra célzik hogy hasonló élményt és valamenyi kompatibilitást adjon a macOS-el x86-64 (és egyszer majd ARM) rendszereken is. A megbízható FreeBSD alapján épűl, létező nyilt forrású csomagokkal ugyanazon a helyen és új kódot hogy a hibákat befedjük.
 
-The main design goals are:
-- Source compatibility with macOS applications (i.e. you could compile a Mac application on ravynOS and run it)
-- Similar GUI metaphors and familiar UX (file manager, application launcher, top menu bar that reflects the open application, etc)
-- Compatible with macOS folder layouts (/Library, /System, /Users, /Volumes, etc) and perhaps filesystems (HFS+, APFS) as well as fully supporting ZFS
-- Self-contained applications in [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), and [AppImage](https://github.com/AppImage) files - an installer-less experience for /Applications
-- Mostly maintain compatibility with the FreeBSD base system and X11 - a standard Unix environment under the hood
-- Compatible with Linux binaries via FreeBSD's Linux support
-- Eventual compatibility with x86-64/arm64 macOS binaries (Mach-O) and libraries
-- Pleasant to use, secure, stable, and performant
+Az alap tervezési célpontjaink:
+- Fórráskód kompatibilitás a macOS programokkal (példáúl létre tudnál hozni egy Mac programot a ravynOS-en és futtatni lehetne)
+- Hasonló felület (fáljkezelő, programinditó, menü a képernyő tetején ami mutatja a kinyitott programot, stb)
+- Kompatibilis a macOS mappa felosztásokkal (/Library, /System, /Users, /Volumes, stb) és esetleg fáljrendszerekkel (HFS+, APFS) úgy ahogy még a ZFS-t is támogatja
+- Öntárolt alkalmazások [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), és [AppImage](https://github.com/AppImage) fáljok - telepitő-nélküli élmény az /Applications-ben
+- Nagyjából megtartja a kompatibilitást a FreeBSD rendszerrel és az X11-el - a standard Unix környezettel amivel működik
+- Kompatibilis a Linux alkalmazásokkal a FreeBSD Linuxulator segitségével
+- Talán kompatibilitás x86-64/arm64 macOS alkalmazásokkal (Mach-O) és könyvtárakkal 
+- Jó élmény használni, biztonságos, stabil, és performáns
 
-Please visit [ravynos.com](https://ravynos.com/) for more info: [Release Notes](https://ravynos.com/releases.html) | [Screenshots](https://ravynos.com/screenshots.html) | [FAQ](https://ravynos.com/faq.html)
+Látogasd meg a [ravynos.com](https://ravynos.com/)-ot több informaciókrt: [Release Notes](https://ravynos.com/releases.html) | [Screenshots](https://ravynos.com/screenshots.html) | [FAQ](https://ravynos.com/faq.html)
 
-### Join us!
+### Csatlakozz!
 
-* Can you help build the dream? See the current projects/needs in [CONTRIBUTING.md](CONTRIBUTING.md)!
-* Our [Discord](https://discord.com/invite/8caJbAGNwY) server.
-* `#ravynOS-general:matrix.org` - join via [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
-* `#airyx` on [Libera IRC](https://web.libera.chat/?channel=#airyx)
+* Tudsz segíteni hogy megépitjük az álmot? Nézd meg a jelenlegi projektek/szükségeket a[CONTRIBUTING.md](CONTRIBUTING.md)-ben!
+* A [Discord](https://discord.com/invite/8caJbAGNwY) serverünkhez.
+* `#ravynOS-general:matrix.org` - csatlakozz az Element segitségével: [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
+* `#airyx` a [Libera IRC](https://web.libera.chat/?channel=#airyx)-n
 
 [![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
