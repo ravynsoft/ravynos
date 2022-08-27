@@ -783,7 +783,7 @@ mmu_radix_tlbiel_flush(int scope)
 }
 
 static void
-mmu_radix_tlbie_all()
+mmu_radix_tlbie_all(void)
 {
 	if (powernv_enabled)
 		mmu_radix_tlbiel_flush(TLB_INVAL_SCOPE_GLOBAL);
@@ -1169,7 +1169,7 @@ pv_to_chunk(pv_entry_t pv)
 #define PV_PMAP(pv) (pv_to_chunk(pv)->pc_pmap)
 
 #define	PC_FREE0	0xfffffffffffffffful
-#define	PC_FREE1	0x3ffffffffffffffful
+#define	PC_FREE1	((1ul << (_NPCPV % 64)) - 1)
 
 static const uint64_t pc_freemask[_NPCM] = { PC_FREE0, PC_FREE1 };
 
@@ -3612,7 +3612,7 @@ radix_pgd_release(void *arg __unused, void **store, int count)
 }
 
 static void
-mmu_radix_init()
+mmu_radix_init(void)
 {
 	vm_page_t mpte;
 	vm_size_t s;
@@ -5406,7 +5406,10 @@ mmu_radix_remove_pages(pmap_t pmap)
 	struct rwlock *lock;
 	int64_t bit;
 	uint64_t inuse, bitmask;
-	int allfree, field, freed, idx;
+	int allfree, field, idx;
+#ifdef PV_STATS
+	int freed;
+#endif
 	boolean_t superpage;
 	vm_paddr_t pa;
 
@@ -5425,7 +5428,9 @@ mmu_radix_remove_pages(pmap_t pmap)
 	PMAP_LOCK(pmap);
 	TAILQ_FOREACH_SAFE(pc, &pmap->pm_pvchunk, pc_list, npc) {
 		allfree = 1;
+#ifdef PV_STATS
 		freed = 0;
+#endif
 		for (field = 0; field < _NPCM; field++) {
 			inuse = ~pc->pc_map[field] & pc_freemask[field];
 			while (inuse != 0) {
@@ -5542,7 +5547,9 @@ mmu_radix_remove_pages(pmap_t pmap)
 					}
 				}
 				pmap_unuse_pt(pmap, pv->pv_va, ptel3e, &free);
+#ifdef PV_STATS
 				freed++;
+#endif
 			}
 		}
 		PV_STAT(atomic_add_long(&pv_entry_frees, freed));
@@ -6078,7 +6085,7 @@ mmu_radix_dev_direct_mapped(vm_paddr_t pa, vm_size_t size)
 }
 
 static void
-mmu_radix_scan_init()
+mmu_radix_scan_init(void)
 {
 
 	CTR1(KTR_PMAP, "%s()", __func__);

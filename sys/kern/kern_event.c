@@ -46,7 +46,6 @@ __FBSDID("$FreeBSD$");
 #include <sys/limits.h>
 #include <sys/lock.h>
 #include <sys/mutex.h>
-#include <sys/rwlock.h>
 #include <sys/proc.h>
 #include <sys/malloc.h>
 #include <sys/unistd.h>
@@ -2530,30 +2529,6 @@ knlist_mtx_assert_lock(void *arg, int what)
 		mtx_assert((struct mtx *)arg, MA_NOTOWNED);
 }
 
-static void
-knlist_rw_rlock(void *arg)
-{
-
-	rw_rlock((struct rwlock *)arg);
-}
-
-static void
-knlist_rw_runlock(void *arg)
-{
-
-	rw_runlock((struct rwlock *)arg);
-}
-
-static void
-knlist_rw_assert_lock(void *arg, int what)
-{
-
-	if (what == LA_LOCKED)
-		rw_assert((struct rwlock *)arg, RA_LOCKED);
-	else
-		rw_assert((struct rwlock *)arg, RA_UNLOCKED);
-}
-
 void
 knlist_init(struct knlist *knl, void *lock, void (*kl_lock)(void *),
     void (*kl_unlock)(void *),
@@ -2597,14 +2572,6 @@ knlist_alloc(struct mtx *lock)
 	knl = malloc(sizeof(struct knlist), M_KQUEUE, M_WAITOK);
 	knlist_init_mtx(knl, lock);
 	return (knl);
-}
-
-void
-knlist_init_rw_reader(struct knlist *knl, struct rwlock *lock)
-{
-
-	knlist_init(knl, lock, knlist_rw_rlock, knlist_rw_runlock,
-	    knlist_rw_assert_lock);
 }
 
 void

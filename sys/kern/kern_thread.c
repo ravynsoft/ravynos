@@ -99,7 +99,7 @@ _Static_assert(offsetof(struct proc, p_pid) == 0xc4,
     "struct proc KBI p_pid");
 _Static_assert(offsetof(struct proc, p_filemon) == 0x3c8,
     "struct proc KBI p_filemon");
-_Static_assert(offsetof(struct proc, p_comm) == 0x3e4,
+_Static_assert(offsetof(struct proc, p_comm) == 0x3e0,
     "struct proc KBI p_comm");
 _Static_assert(offsetof(struct proc, p_emuldata) == 0x4c8,
     "struct proc KBI p_emuldata");
@@ -119,9 +119,9 @@ _Static_assert(offsetof(struct proc, p_pid) == 0x78,
     "struct proc KBI p_pid");
 _Static_assert(offsetof(struct proc, p_filemon) == 0x270,
     "struct proc KBI p_filemon");
-_Static_assert(offsetof(struct proc, p_comm) == 0x288,
+_Static_assert(offsetof(struct proc, p_comm) == 0x284,
     "struct proc KBI p_comm");
-_Static_assert(offsetof(struct proc, p_emuldata) == 0x314,
+_Static_assert(offsetof(struct proc, p_emuldata) == 0x310,
     "struct proc KBI p_emuldata");
 #endif
 
@@ -472,7 +472,7 @@ proc_linkup(struct proc *p, struct thread *td)
 {
 
 	sigqueue_init(&p->p_sigqueue, p);
-	p->p_ksi = ksiginfo_alloc(1);
+	p->p_ksi = ksiginfo_alloc(M_WAITOK);
 	if (p->p_ksi != NULL) {
 		/* XXX p_ksi may be null if ksiginfo zone is not ready */
 		p->p_ksi->ksi_flags = KSI_EXT | KSI_INS;
@@ -1247,12 +1247,8 @@ thread_single(struct proc *p, int mode)
 		else
 			p->p_flag &= ~P_SINGLE_BOUNDARY;
 	}
-	if (mode == SINGLE_ALLPROC) {
+	if (mode == SINGLE_ALLPROC)
 		p->p_flag |= P_TOTAL_STOP;
-		thread_lock(td);
-		td->td_flags |= TDF_DOING_SA;
-		thread_unlock(td);
-	}
 	p->p_flag |= P_STOPPED_SINGLE;
 	PROC_SLOCK(p);
 	p->p_singlethread = td;
@@ -1345,11 +1341,6 @@ stopme:
 		}
 	}
 	PROC_SUNLOCK(p);
-	if (mode == SINGLE_ALLPROC) {
-		thread_lock(td);
-		td->td_flags &= ~TDF_DOING_SA;
-		thread_unlock(td);
-	}
 	return (0);
 }
 
@@ -1636,11 +1627,10 @@ thread_unsuspend(struct proc *p)
 	if (!P_SHOULDSTOP(p)) {
                 FOREACH_THREAD_IN_PROC(p, td) {
 			thread_lock(td);
-			if (TD_IS_SUSPENDED(td) && (td->td_flags &
-			    TDF_DOING_SA) == 0) {
+			if (TD_IS_SUSPENDED(td))
 				wakeup_swapper |= thread_unsuspend_one(td, p,
 				    true);
-			} else
+			else
 				thread_unlock(td);
 		}
 	} else if (P_SHOULDSTOP(p) == P_STOPPED_SINGLE &&

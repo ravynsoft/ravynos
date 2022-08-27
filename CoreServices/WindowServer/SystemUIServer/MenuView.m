@@ -25,6 +25,8 @@
 #import "desktop.h"
 #import "AboutWindow.h"
 
+extern const char **environ;
+
 @interface NSMenu(private)
 -(NSString *)_name;
 @end

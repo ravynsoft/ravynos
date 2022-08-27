@@ -52,6 +52,39 @@
 #   xargs -n1 | sort | uniq -d;
 # done
 
+# 20220825: awk tests moved to subdirs
+OLD_FILES+=usr/tests/usr.bin/awk/awk_test
+OLD_FILES+=usr/tests/usr.bin/awk/d_assign_NF.awk
+OLD_FILES+=usr/tests/usr.bin/awk/d_assign_NF.in
+OLD_FILES+=usr/tests/usr.bin/awk/d_assign_NF.out
+OLD_FILES+=usr/tests/usr.bin/awk/d_big_regexp.awk
+OLD_FILES+=usr/tests/usr.bin/awk/d_big_regexp.in
+OLD_FILES+=usr/tests/usr.bin/awk/d_big_regexp.out
+OLD_FILES+=usr/tests/usr.bin/awk/d_end1.awk
+OLD_FILES+=usr/tests/usr.bin/awk/d_end1.in
+OLD_FILES+=usr/tests/usr.bin/awk/d_end1.out
+OLD_FILES+=usr/tests/usr.bin/awk/d_end2.awk
+OLD_FILES+=usr/tests/usr.bin/awk/d_end2.in
+OLD_FILES+=usr/tests/usr.bin/awk/d_end2.out
+OLD_FILES+=usr/tests/usr.bin/awk/d_period.awk
+OLD_FILES+=usr/tests/usr.bin/awk/d_period.in
+OLD_FILES+=usr/tests/usr.bin/awk/d_period.out
+OLD_FILES+=usr/tests/usr.bin/awk/d_string1.awk
+OLD_FILES+=usr/tests/usr.bin/awk/d_string1.out
+OLD_FILES+=usr/tests/usr.bin/awk/d_tolower.awk
+OLD_FILES+=usr/tests/usr.bin/awk/d_tolower.in
+OLD_FILES+=usr/tests/usr.bin/awk/d_tolower.out
+OLD_FILES+=usr/tests/usr.bin/awk/d_toupper.awk
+OLD_FILES+=usr/tests/usr.bin/awk/d_toupper.in
+OLD_FILES+=usr/tests/usr.bin/awk/d_toupper.out
+
+# 20220820: remove knlist_init_rw_reader()
+OLD_FILES+=usr/share/man/man9/knlist_init_rw_reader.9.gz
+
+# 20220813: minigzip(1) removed in favor of gzip(1)
+OLD_FILES+=usr/bin/minigzip
+OLD_FILES+=usr/share/man/man1/minigzip.1.gz
+
 # 20220811: new iconv encoder trait added
 OLD_LIBS+=usr/lib/i18n/libBIG5.so.4
 OLD_LIBS+=usr/lib/i18n/libDECHanyu.so.4
@@ -1062,8 +1095,8 @@ OLD_FILES+=usr/include/c++/v1/unwind-itanium.h
 OLD_FILES+=usr/include/c++/v1/unwind.h
 
 # 20220128: mips pmc events removed
-OLD_FILES+=usr/share/man/man3/pmc.mips24k.3
-OLD_FILES+=usr/share/man/man3/pmc.octeon.3
+OLD_FILES+=usr/share/man/man3/pmc.mips24k.3.gz
+OLD_FILES+=usr/share/man/man3/pmc.octeon.3.gz
 
 # 20220127: terasic_mtl.4 removed
 OLD_FILES+=usr/share/man/man4/terasic_mtl.4.gz
@@ -13606,8 +13639,6 @@ OLD_FILES+=etc/rc.firewall6
 OLD_FILES+=usr/share/examples/etc/rc.firewall6
 # 20091117: removal of rc.early(8) link
 OLD_FILES+=usr/share/man/man8/rc.early.8.gz
-# 20091117: usr/share/zoneinfo/GMT link removed
-OLD_FILES+=usr/share/zoneinfo/GMT
 # 20091027: pselect.3 implemented as syscall
 OLD_FILES+=usr/share/man/man3/pselect.3.gz
 # 20091005: fusword.9 and susword.9 removed

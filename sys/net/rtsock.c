@@ -630,16 +630,7 @@ fill_addrinfo(struct rt_msghdr *rtm, int len, struct linear_buffer *lb, u_int fi
 	 */
 	if (info->rti_info[RTAX_GATEWAY] != NULL &&
 	    info->rti_info[RTAX_GATEWAY]->sa_family != AF_LINK) {
-		struct rt_addrinfo ginfo;
-		struct sockaddr *gdst;
-		struct sockaddr_storage ss;
-
-		bzero(&ginfo, sizeof(ginfo));
-		bzero(&ss, sizeof(ss));
-		ss.ss_len = sizeof(ss);
-
-		ginfo.rti_info[RTAX_GATEWAY] = (struct sockaddr *)&ss;
-		gdst = info->rti_info[RTAX_GATEWAY];
+		struct nhop_object *nh;
 
 		/* 
 		 * A host route through the loopback interface is 
@@ -651,13 +642,11 @@ fill_addrinfo(struct rt_msghdr *rtm, int len, struct linear_buffer *lb, u_int fi
 		 * AF_LINK sa_family type of the gateway, and the
 		 * rt_ifp has the IFF_LOOPBACK flag set.
 		 */
-		if (rib_lookup_info(fibnum, gdst, NHR_REF, 0, &ginfo) == 0) {
-			if (ss.ss_family == AF_LINK &&
-			    ginfo.rti_ifp->if_flags & IFF_LOOPBACK) {
+		nh = rib_lookup(fibnum, info->rti_info[RTAX_GATEWAY], NHR_NONE, 0);
+		if (nh != NULL && nh->gw_sa.sa_family == AF_LINK &&
+		    nh->nh_ifp->if_flags & IFF_LOOPBACK) {
 				info->rti_flags &= ~RTF_GATEWAY;
 				info->rti_flags |= RTF_GWFLAG_COMPAT;
-			}
-			rib_free_info(&ginfo);
 		}
 	}
 
@@ -2659,29 +2648,22 @@ static SYSCTL_NODE(_net, PF_ROUTE, routetable, CTLFLAG_RD | CTLFLAG_MPSAFE,
 
 static struct domain routedomain;		/* or at least forward */
 
-static struct pr_usrreqs route_usrreqs = {
-	.pru_abort =		rts_close,
-	.pru_attach =		rts_attach,
-	.pru_detach =		rts_detach,
-	.pru_send =		rts_send,
-	.pru_shutdown =		rts_shutdown,
-	.pru_close =		rts_close,
-};
-
-static struct protosw routesw[] = {
-{
+static struct protosw routesw = {
 	.pr_type =		SOCK_RAW,
-	.pr_domain =		&routedomain,
 	.pr_flags =		PR_ATOMIC|PR_ADDR,
-	.pr_usrreqs =		&route_usrreqs
-}
+	.pr_abort =		rts_close,
+	.pr_attach =		rts_attach,
+	.pr_detach =		rts_detach,
+	.pr_send =		rts_send,
+	.pr_shutdown =		rts_shutdown,
+	.pr_close =		rts_close,
 };
 
 static struct domain routedomain = {
 	.dom_family =		PF_ROUTE,
 	.dom_name =		"route",
-	.dom_protosw =		routesw,
-	.dom_protoswNPROTOSW =	&routesw[nitems(routesw)]
+	.dom_nprotosw =		1,
+	.dom_protosw =		{ &routesw },
 };
 
 DOMAIN_SET(route);

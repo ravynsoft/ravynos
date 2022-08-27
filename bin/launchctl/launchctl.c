@@ -60,6 +60,10 @@
 
 #define STALL_TIMEOUT	30	// Sleep N seconds after problem
 
+#define _SYS_ENV_FILE "/etc/launchd_user.env"
+#define _USER_ENV_FILE ".launchd.env"
+extern char **environ;
+
 static launch_data_t to_launchd(json_t *json);
 static launch_data_t to_launchd_sockets(json_t *json);
 static launch_data_t create_socket(json_t *json);
@@ -70,6 +74,9 @@ static int load_job(const char *filename);
 
 static int cmd_start_stop(int argc, char * const argv[]);
 static int cmd_bslist(int argc, char * const argv[]);
+static int cmd_getenv(int argc, char * const argv[]);
+static int cmd_setenv(int argc, char * const argv[]);
+static int cmd_unsetenv(int argc, char * const argv[]);
 static int cmd_bootstrap(int argc, char * const argv[]);
 static int cmd_load(int argc, char * const argv[]);
 static int cmd_remove(int argc, char * const argv[]);
@@ -92,8 +99,11 @@ static const struct {
 	{ "load",	cmd_load,	"Load a plist" },
 	{ "remove",	cmd_remove, 	"Remove specified job" },
 	{ "bootstrap",	cmd_bootstrap,	"Bootstrap launchd" },
-        { "bslist",     cmd_bslist,     "List registered Mach services" },
+	{ "bslist",     cmd_bslist,     "List registered Mach services" },
 	{ "list",	cmd_list,	"List jobs and information about jobs" },
+	{ "getenv", cmd_getenv, "Get value of an environment variable" },
+	{ "setenv", cmd_setenv, "Set value of an environment variable" },
+	{ "unsetenv", cmd_unsetenv, "Clear an environment variable" },
 	{ "dump",	cmd_dump,       "Dumps job(s) plist(s)"},
 	{ "log",	cmd_log,	"Adjust logging level of launchd"},
 	{ "help",	cmd_help,	"This help output" },
@@ -777,6 +787,111 @@ cmd_bslist(int argc, char * const argv[])
     }
     printf("\n");
     return 0;
+}
+
+/* Read _USER_ENV_FILE into the environment. Returns number of entries read */
+static int
+_read_env_file(void)
+{
+	unsigned count = 0;
+	char template[1024];
+
+	uid_t uid = getuid();
+	if(uid == 0) {
+		strncpy(template, _SYS_ENV_FILE, sizeof(template) - 9);
+	} else {
+		struct passwd *pwent = getpwuid(uid);
+		strncpy(template, pwent->pw_dir, sizeof(template) - strlen(_USER_ENV_FILE) - 10);
+		strcat(template, "/");
+		strcat(template, _USER_ENV_FILE);
+	}
+	FILE *fp = fopen(template, "r");
+	if (fp) {
+		char line[1024];
+		while(fgets(line, sizeof(line), fp) != NULL) {
+			char *p = line;
+			while(*p && *p != '=')
+				++p;
+			if (!(*p)) // hit EOL without = ?
+				continue;
+			line[strlen(line)-1] = 0; // chop \n
+			count++;
+			putenv(line);
+		}
+		fclose(fp);
+	}
+	return count;
+}
+
+/* Atomically write the environment into _USER_ENV_FILE by writing a temp file
+ * and doing a rename */
+static void
+_write_atomic_env_file(void)
+{
+	char template[1024];
+	uid_t uid = getuid();
+	if(uid == 0) {
+		strncpy(template, _SYS_ENV_FILE, sizeof(template) - 9);
+	} else {
+		struct passwd *pwent = getpwuid(uid);
+		strncpy(template, pwent->pw_dir, sizeof(template) - strlen(_USER_ENV_FILE) - 10);
+		strcat(template, "/");
+		strcat(template, _USER_ENV_FILE);
+	}
+	char *final_name = strdup(template);
+	strcat(template, ".XXXXXXXX");
+
+	int fd = mkstemp(template);
+	if(fd >= 0) {
+		int i = 0;
+		while(environ[i]) {
+			char *p = environ[i];
+			write(fd, p, strlen(p));
+			write(fd, "\n", 1);
+			++i;
+		}
+		close(fd);
+		rename(template, final_name);
+		free(final_name);
+	}
+}
+
+static int
+cmd_getenv(int argc, char * const argv[])
+{
+	if(argc < 2)
+		errx(EX_USAGE, "Usage: launchctl getenv <variable>");
+	_read_env_file();
+	char *s = getenv(argv[1]);
+	if(s)
+		printf("%s\n", getenv(argv[1])); 
+	return 0;
+}
+
+static int
+cmd_setenv(int argc, char * const argv[])
+{
+	if(argc < 3)
+		errx(EX_USAGE, "Usage: launchctl setenv <variable> <value>");
+
+	clearenv();
+	_read_env_file();
+	setenv(argv[1], argv[2], 1);
+	_write_atomic_env_file();
+	return 0;
+}
+
+
+static int
+cmd_unsetenv(int argc, char * const argv[])
+{
+	if(argc < 2)
+		errx(EX_USAGE, "Usage: launchctl unsetenv <variable>");
+	clearenv();
+	_read_env_file();
+	unsetenv(argv[1]);
+	_write_atomic_env_file();
+	return 0;
 }
 
 static int

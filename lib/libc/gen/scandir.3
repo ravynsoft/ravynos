@@ -28,23 +28,46 @@
 .\"     @(#)scandir.3	8.1 (Berkeley) 6/4/93
 .\" $FreeBSD$
 .\"
-.Dd January 3, 2010
+.Dd August 23, 2022
 .Dt SCANDIR 3
 .Os
 .Sh NAME
 .Nm scandir ,
-.Nm alphasort
+.Nm scandirat ,
+.Nm scandir_b ,
+.Nm alphasort ,
+.Nm versionsort
 .Nd scan a directory
 .Sh LIBRARY
 .Lb libc
 .Sh SYNOPSIS
 .In dirent.h
 .Ft int
-.Fn scandir "const char *dirname" "struct dirent ***namelist" "int \*(lp*select\*(rp\*(lpconst struct dirent *\*(rp" "int \*(lp*compar\*(rp\*(lpconst struct dirent **, const struct dirent **\*(rp"
+.Fo scandir
+.Fa "const char *dirname"
+.Fa "struct dirent ***namelist"
+.Fa "int \*(lp*select\*(rp\*(lpconst struct dirent *\*(rp"
+.Fa "int \*(lp*compar\*(rp\*(lpconst struct dirent **, const struct dirent **\*(rp"
+.Fc
+.Ft
+.Fo scandirat
+.Fa int dirfd
+.Fa "const char *dirname"
+.Fa "struct dirent ***namelist"
+.Fa "int \*(lp*select\*(rp\*(lpconst struct dirent *\*(rp"
+.Fa "int \*(lp*compar\*(rp\*(lpconst struct dirent **, const struct dirent **\*(rp"
+.Fc
 .Ft int
-.Fn scandir_b "const char *dirname" "struct dirent ***namelist" "int \*(lp*select\^(rp\*(lpconst struct dirent *\*(rp" "int \*(lp^compar\*(rp\*(lpconst struct dirent **, const struct dirent **\*(rp"
+.Fo scandir_b
+.Fa "const char *dirname"
+.Fa "struct dirent ***namelist"
+.Fa "int \*(lp*select\^(rp\*(lpconst struct dirent *\*(rp"
+.Fa "int \*(lp^compar\*(rp\*(lpconst struct dirent **, const struct dirent **\*(rp"
+.Fc
 .Ft int
 .Fn alphasort "const struct dirent **d1" "const struct dirent **d2"
+.Ft int
+.Fn versionsort "const struct dirent **d1" "const struct dirent **d2"
 .Sh DESCRIPTION
 The
 .Fn scandir
@@ -86,9 +109,49 @@ is a routine which can be used for the
 argument to sort the array alphabetically using
 .Xr strcoll 3 .
 .Pp
+The
+.Fn versionsort
+function is a routine which can be used for the
+.Fa compar
+argument to sort the array naturally using
+.Xr strverscmp 3 .
+.Pp
 The memory allocated for the array can be deallocated with
 .Xr free 3 ,
 by freeing each pointer in the array and then the array itself.
+.Pp
+The
+.Fn scandirat
+function is similar to
+.Fn scandir ,
+but takes an additional
+.Fa dirfd
+argument.
+If the supplied
+.Fa dirname
+is absolute, the function's behavior is identical to that of
+.Fn scandir ,
+the
+.Fa dirfd
+argument is unused.
+If
+.Fa dirname
+is relative,
+.Fa dirfd
+must be a valid file descriptor referencing a directory, in
+which case the
+.Fa dirname
+lookup is performed relative to the directory referenced by
+.Fa dirfd .
+If
+.Fa dirfd
+has the special value
+.Va AT_FDCWD ,
+then the current process directory is used as the base for
+relative lookups.
+See
+.Xr openat 2
+for additional details.
 .Pp
 The
 .Fn scandir_b
@@ -103,11 +166,17 @@ Returns \-1 if the directory cannot be opened for reading or if
 .Xr malloc 3
 cannot allocate enough memory to hold all the data structures.
 .Sh SEE ALSO
+.Xr openat 2 ,
 .Xr directory 3 ,
 .Xr malloc 3 ,
 .Xr qsort 3 ,
 .Xr strcoll 3 ,
+.Xr strverscmp 3 ,
 .Xr dir 5
+.Sh STANDARDS
+The
+.Fn versionsort
+function is a GNU extension and conforms to no standard.
 .Sh HISTORY
 The
 .Fn scandir
@@ -115,3 +184,10 @@ and
 .Fn alphasort
 functions appeared in
 .Bx 4.2 .
+The
+.Fn scandirat
+and
+.Fn
+versionsort
+functions were added in
+.Fx 14.0 .

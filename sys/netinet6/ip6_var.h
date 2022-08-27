@@ -346,10 +346,6 @@ struct inpcb;
 
 int	icmp6_ctloutput(struct socket *, struct sockopt *sopt);
 
-struct in6_ifaddr;
-int	ip6proto_register(short);
-int	ip6proto_unregister(short);
-
 void	ip6_input(struct mbuf *);
 void	ip6_direct_input(struct mbuf *);
 void	ip6_freepcbopts(struct ip6_pktopts *);
@@ -395,7 +391,6 @@ int	route6_input(struct mbuf **, int *, int);
 void	frag6_init(void);
 void	frag6_destroy(void);
 int	frag6_input(struct mbuf **, int *, int);
-void	frag6_slowtimo(void);
 void	frag6_drain(void);
 
 void	rip6_init(void);

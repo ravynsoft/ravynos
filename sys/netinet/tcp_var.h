@@ -1085,7 +1085,6 @@ void	 tcp_twclose(struct tcptw *, int);
 void	 tcp_ctlinput(int, struct sockaddr *, void *);
 int	 tcp_ctloutput(struct socket *, struct sockopt *);
 void 	 tcp_ctlinput_viaudp(int, struct sockaddr *, void *, void *);
-void	 tcp_drain(void);
 void	 tcp_fini(void *);
 char	*tcp_log_addrs(struct in_conninfo *, struct tcphdr *, const void *,
 	    const void *);
@@ -1187,7 +1186,6 @@ void	 tcp_tw_zone_change(void);
 int	 tcp_twcheck(struct inpcb *, struct tcpopt *, struct tcphdr *,
 	    struct mbuf *, int);
 void	 tcp_setpersist(struct tcpcb *);
-void	 tcp_slowtimo(void);
 void	 tcp_record_dsack(struct tcpcb *tp, tcp_seq start, tcp_seq end, int tlp);
 struct tcptemp *
 	 tcpip_maketemplate(struct inpcb *);
@@ -1211,7 +1209,8 @@ uint32_t tcp_hc_getmtu(struct in_conninfo *);
 void	 tcp_hc_updatemtu(struct in_conninfo *, uint32_t);
 void	 tcp_hc_update(struct in_conninfo *, struct hc_metrics_lite *);
 
-extern	struct pr_usrreqs tcp_usrreqs;
+extern	struct protosw tcp_protosw;		/* shared for TOE */
+extern	struct protosw tcp6_protosw;		/* shared for TOE */
 
 uint32_t tcp_new_ts_offset(struct in_conninfo *);
 tcp_seq	 tcp_new_isn(struct in_conninfo *);

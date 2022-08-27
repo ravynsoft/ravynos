@@ -175,7 +175,7 @@ INPCBSTORAGE_DEFINE(udplitecbstor, "udpliteinp", "udplite_inpcb", "udplite",
     "udplitehash");
 
 static void
-udp_init(void *arg __unused)
+udp_vnet_init(void *arg __unused)
 {
 
 	/*
@@ -195,7 +195,8 @@ udp_init(void *arg __unused)
 	in_pcbinfo_init(&V_ulitecbinfo, &udplitecbstor, UDBHASHSIZE,
 	    UDBHASHSIZE);
 }
-VNET_SYSINIT(udp_init, SI_SUB_PROTO_DOMAIN, SI_ORDER_THIRD, udp_init, NULL);
+VNET_SYSINIT(udp_vnet_init, SI_SUB_PROTO_DOMAIN, SI_ORDER_FOURTH,
+    udp_vnet_init, NULL);
 
 /*
  * Kernel module interface for updating udpstat.  The argument is an index
@@ -482,7 +483,7 @@ udp_multi_input(struct mbuf *m, int proto, struct sockaddr_in *udp_in)
 	return (IPPROTO_DONE);
 }
 
-int
+static int
 udp_input(struct mbuf **mp, int *offp, int proto)
 {
 	struct ip *ip;
@@ -798,14 +799,15 @@ udp_common_ctlinput(int cmd, struct sockaddr *sa, void *vip,
 		in_pcbnotifyall(pcbinfo, faddr, inetctlerrmap[cmd],
 		    udp_notify);
 }
-void
+
+static void
 udp_ctlinput(int cmd, struct sockaddr *sa, void *vip)
 {
 
 	return (udp_common_ctlinput(cmd, sa, vip, &V_udbinfo));
 }
 
-void
+static void
 udplite_ctlinput(int cmd, struct sockaddr *sa, void *vip)
 {
 
@@ -1490,7 +1492,8 @@ release:
 	return (error);
 }
 
-static void
+pr_abort_t udp_abort;			/* shared with udp6_usrreq.c */
+void
 udp_abort(struct socket *so)
 {
 	struct inpcb *inp;
@@ -1683,7 +1686,8 @@ udp_detach(struct socket *so)
 	udp_discardcb(up);
 }
 
-static int
+pr_disconnect_t udp_disconnect;		/* shared with udp6_usrreq.c */
+int
 udp_disconnect(struct socket *so)
 {
 	struct inpcb *inp;
@@ -1708,7 +1712,8 @@ udp_disconnect(struct socket *so)
 	return (0);
 }
 
-static int
+pr_send_t udp_send;			/* shared with udp6_usrreq.c */
+int
 udp_send(struct socket *so, int flags, struct mbuf *m, struct sockaddr *addr,
     struct mbuf *control, struct thread *td)
 {
@@ -1748,21 +1753,42 @@ udp_shutdown(struct socket *so)
 }
 
 #ifdef INET
-struct pr_usrreqs udp_usrreqs = {
-	.pru_abort =		udp_abort,
-	.pru_attach =		udp_attach,
-	.pru_bind =		udp_bind,
-	.pru_connect =		udp_connect,
-	.pru_control =		in_control,
-	.pru_detach =		udp_detach,
-	.pru_disconnect =	udp_disconnect,
-	.pru_peeraddr =		in_getpeeraddr,
-	.pru_send =		udp_send,
-	.pru_soreceive =	soreceive_dgram,
-	.pru_sosend =		sosend_dgram,
-	.pru_shutdown =		udp_shutdown,
-	.pru_sockaddr =		in_getsockaddr,
-	.pru_sosetlabel =	in_pcbsosetlabel,
-	.pru_close =		udp_close,
+#define	UDP_PROTOSW							\
+	.pr_type =		SOCK_DGRAM,				\
+	.pr_flags =		PR_ATOMIC | PR_ADDR | PR_CAPATTACH,	\
+	.pr_ctloutput =		udp_ctloutput,				\
+	.pr_abort =		udp_abort,				\
+	.pr_attach =		udp_attach,				\
+	.pr_bind =		udp_bind,				\
+	.pr_connect =		udp_connect,				\
+	.pr_control =		in_control,				\
+	.pr_detach =		udp_detach,				\
+	.pr_disconnect =	udp_disconnect,				\
+	.pr_peeraddr =		in_getpeeraddr,				\
+	.pr_send =		udp_send,				\
+	.pr_soreceive =		soreceive_dgram,			\
+	.pr_sosend =		sosend_dgram,				\
+	.pr_shutdown =		udp_shutdown,				\
+	.pr_sockaddr =		in_getsockaddr,				\
+	.pr_sosetlabel =	in_pcbsosetlabel,			\
+	.pr_close =		udp_close
+
+struct protosw udp_protosw = {
+	.pr_protocol =		IPPROTO_UDP,
+	UDP_PROTOSW
 };
+
+struct protosw udplite_protosw = {
+	.pr_protocol =		IPPROTO_UDPLITE,
+	UDP_PROTOSW
+};
+
+static void
+udp_init(void *arg __unused)
+{
+
+	IPPROTO_REGISTER(IPPROTO_UDP, udp_input, udp_ctlinput);
+	IPPROTO_REGISTER(IPPROTO_UDPLITE, udp_input, udplite_ctlinput);
+}
+SYSINIT(udp_init, SI_SUB_PROTO_DOMAIN, SI_ORDER_THIRD, udp_init, NULL);
 #endif /* INET */

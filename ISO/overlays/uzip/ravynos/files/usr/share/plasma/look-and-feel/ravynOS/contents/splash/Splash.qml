@@ -64,7 +64,7 @@ Image {
 	Text {
 	    id: verstext
 	    color: "#eff0f1"
-	    text: "Pygmy Marmoset v0.4.0pre4"
+	    text: "Pygmy Marmoset v0.4.0pre5"
 	    font.pointSize: 20
 	    font { family: "Nimbus Sans"; weight: Font.Regular }
 	    x: (PlasmaCore.Units.gridUnit * 2)

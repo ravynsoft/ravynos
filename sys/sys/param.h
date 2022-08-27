@@ -76,7 +76,7 @@
  * cannot include sys/param.h and should only be updated here.
  */
 #undef __FreeBSD_version
-#define __FreeBSD_version 1400065
+#define __FreeBSD_version 1400066
 
 /*
  * __FreeBSD_kernel__ indicates that this system uses the kernel of FreeBSD,
@@ -200,9 +200,7 @@
 
 #define MCLBYTES	(1 << MCLSHIFT)	/* size of an mbuf cluster */
 
-#if PAGE_SIZE < 2048
-#define	MJUMPAGESIZE	MCLBYTES
-#elif PAGE_SIZE <= 8192
+#if PAGE_SIZE <= 8192
 #define	MJUMPAGESIZE	PAGE_SIZE
 #else
 #define	MJUMPAGESIZE	(8 * 1024)

@@ -107,16 +107,15 @@ typedef struct pv_entry {
  * need to track per-pmap assignments.
  */
 #if PAGE_SIZE == PAGE_SIZE_4K
-#define	_NPCM	3
 #define	_NPCPV	168
 #define	_NPAD	0
 #elif PAGE_SIZE == PAGE_SIZE_16K
-#define	_NPCM	11
 #define	_NPCPV	677
 #define	_NPAD	1
 #else
 #error Unsupported page size
 #endif
+#define	_NPCM	howmany(_NPCPV, 64)
 
 #define	PV_CHUNK_HEADER							\
 	pmap_t			pc_pmap;				\
@@ -189,6 +188,7 @@ bool	pmap_page_is_mapped(vm_page_t m);
 int	pmap_pinit_stage(pmap_t, enum pmap_stage, int);
 bool	pmap_ps_enabled(pmap_t pmap);
 uint64_t pmap_to_ttbr0(pmap_t pmap);
+void	pmap_disable_promotion(vm_offset_t sva, vm_size_t size);
 
 void	*pmap_mapdev(vm_paddr_t, vm_size_t);
 void	*pmap_mapbios(vm_paddr_t, vm_size_t);

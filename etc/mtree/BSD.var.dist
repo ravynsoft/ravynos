@@ -42,9 +42,9 @@
         ..
         freebsd-update  mode=0700
         ..
-        hyperv          mode=0700
+        hyperv          mode=0700 tags=package=hyperv-tools
         ..
-        ipf             mode=0700
+        ipf             mode=0700 tags=package=ipf
         ..
         ntp             uname=ntpd gname=ntpd
         ..
@@ -54,7 +54,7 @@
         ..
         portsnap
         ..
-        zfsd
+        zfsd tags=package=zfs
             cases
             ..
         ..
@@ -74,13 +74,13 @@
     preserve
     ..
     run
-        bhyve
+        bhyve tags=package=bhyve
         ..
-        dhclient
+        dhclient tags=package=dhclient
         ..
-        ppp             gname=network mode=0770
+        ppp             gname=network mode=0770 tags=package=ppp
         ..
-        wpa_supplicant
+        wpa_supplicant tags=package=wpa
         ..
     ..
     rwho            gname=daemon mode=0775

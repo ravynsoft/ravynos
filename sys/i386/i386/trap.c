@@ -283,8 +283,10 @@ trap(struct trapframe *frame)
 	 */
 	if ((frame->tf_eflags & PSL_I) == 0 && TRAPF_USERMODE(frame) &&
 	    (curpcb->pcb_flags & PCB_VM86CALL) == 0)
-		uprintf("pid %ld (%s): trap %d with interrupts disabled\n",
-		    (long)curproc->p_pid, curthread->td_name, type);
+		uprintf("pid %ld (%s): usermode trap %d (%s) with "
+		    "interrupts disabled\n",
+		    (long)curproc->p_pid, curthread->td_name, type,
+		    trap_data[type].msg);
 
 	/*
 	 * Conditionally reenable interrupts.  If we hold a spin lock,
@@ -691,12 +693,12 @@ kernel_trctrap:
 	ksi.ksi_addr = (void *)addr;
 	ksi.ksi_trapno = type;
 	if (uprintf_signal) {
-		uprintf("pid %d comm %s: signal %d err %x code %d type %d "
-		    "addr 0x%x ss 0x%04x esp 0x%08x cs 0x%04x eip 0x%08x "
+		uprintf("pid %d comm %s: signal %d err %#x code %d type %d "
+		    "addr %#x ss %#04x esp %#08x cs %#04x eip %#08x eax %#08x"
 		    "<%02x %02x %02x %02x %02x %02x %02x %02x>\n",
 		    p->p_pid, p->p_comm, signo, frame->tf_err, ucode, type,
 		    addr, frame->tf_ss, frame->tf_esp, frame->tf_cs,
-		    frame->tf_eip,
+		    frame->tf_eip, frame->tf_eax,
 		    fubyte((void *)(frame->tf_eip + 0)),
 		    fubyte((void *)(frame->tf_eip + 1)),
 		    fubyte((void *)(frame->tf_eip + 2)),
@@ -988,18 +990,26 @@ trap_user_dtrace(struct trapframe *frame, int (**hookp)(struct trapframe *))
 void
 dblfault_handler(void)
 {
+	struct i386tss *t;
+
 #ifdef KDTRACE_HOOKS
 	if (dtrace_doubletrap_func != NULL)
 		(*dtrace_doubletrap_func)();
 #endif
 	printf("\nFatal double fault:\n");
-	printf("eip = 0x%x\n", PCPU_GET(common_tssp)->tss_eip);
-	printf("esp = 0x%x\n", PCPU_GET(common_tssp)->tss_esp);
-	printf("ebp = 0x%x\n", PCPU_GET(common_tssp)->tss_ebp);
+	t = PCPU_GET(common_tssp);
+	printf(
+	    "eip = %#08x esp = %#08x ebp = %#08x eax = %#08x\n"
+	    "edx = %#08x ecx = %#08x edi = %#08x esi = %#08x\n"
+	    "psl = %#08x cs  = %#08x ss  = %#08x ds  = %#08x\n"
+	    "es  = %#08x fs  = %#08x gs  = %#08x cr3 = %#08x\n",
+	    t->tss_eip, t->tss_esp, t->tss_ebp, t->tss_eax,
+	    t->tss_edx, t->tss_ecx, t->tss_edi, t->tss_esi,
+	    t->tss_eflags, t->tss_cs, t->tss_ss, t->tss_ds,
+	    t->tss_es, t->tss_fs, t->tss_gs, t->tss_cr3);
 #ifdef SMP
-	/* two separate prints in case of a trap on an unmapped page */
-	printf("cpuid = %d; ", PCPU_GET(cpuid));
-	printf("apic id = %02x\n", PCPU_GET(apic_id));
+	printf("cpuid = %d; apic id = %02x\n", PCPU_GET(cpuid),
+	    PCPU_GET(apic_id));
 #endif
 	panic("double fault");
 }
