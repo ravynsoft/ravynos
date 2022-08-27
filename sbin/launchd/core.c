@@ -148,7 +148,8 @@ extern int gL1CacheEnabled;
 
 #include "shim.h"
 
-#define _USER_ENV_FILE "/etc/launchd_user.env"
+#define _SYS_ENV_FILE "/etc/launchd_user.env"
+#define _USER_ENV_FILE ".launchd.env"
 #define RETURN_NO_MEMORY()										\
 	do {														\
 		if (uflag)												\
@@ -5084,6 +5085,49 @@ out_bad:
 #endif
 }
 
+/* Read and parse a flat file of NAME=VALUE pairs which are set
+ * into the environment. Values are interpreted verbatim, just
+ * like in the plist. However, the pattern "~/" will be expanded
+ * to `homedir` as a special case here to allow for per-user paths.
+ */
+
+static void
+_read_env_file(const char *filename, const char *homedir)
+{
+	FILE *fp = fopen(filename, "r");
+	if (fp) {
+		char line[1024];
+		char value[4096];
+		while(fgets(line, sizeof(line), fp) != NULL) {
+			char *p = line;
+			while(*p && *p != '=')
+				++p;
+			if (!(*p)) // hit EOL without = ?
+				continue;
+
+			*p++ = 0;
+			memset(value, 0, sizeof(value));
+			char *q = value;
+
+			while(*p && q < (value + sizeof(value))) {
+				if (*p == '~' && *(p+1) == '/') {
+					strncpy(q, homedir, sizeof(value) - (q - value));
+					q += strlen(homedir);
+					++p;
+				} else if (*p == '\n') {
+					++p;
+				} else {
+					*q = *p;
+					q++;
+					p++;
+				}
+			}
+			setenv(line, value, 0);
+		}
+		fclose(fp);
+	}
+}
+
 void
 job_postfork_become_user(job_t j)
 {
@@ -5206,43 +5250,13 @@ job_postfork_become_user(job_t j)
 	}
 
 	/* If the admin has supplied a list of standard env vars for a user
-	 * session, parse and apply them. Values are interpreted verbatim,
-	 * just like in the plist. However, the pattern "~/" will be expanded
-	 * to `homedir` as a special case here to allow for per-user paths.
+	 * session, parse and apply them. Then do the same for any values the
+	 * user has provided via launchctl.
 	 */
-	FILE *fp = fopen(_USER_ENV_FILE, "r");
-	if (fp) {
-		char line[1024];
-		char value[4096];
-		while(fgets(line, sizeof(line), fp) != NULL) {
-			char *p = line;
-			while(*p && *p != '=')
-				++p;
-			if (!(*p)) // hit EOL without = ?
-				continue;
-
-			*p++ = 0;
-			memset(value, 0, sizeof(value));
-			char *q = value;
-			int homelen = strlen(homedir) + 1;
-
-			while(*p && q < (value + sizeof(value))) {
-				if (*p == '~' && *(p+1) == '/') {
-					strncpy(q, homedir, sizeof(value) - (q - value));
-					q += strlen(homedir);
-					++p;
-				} else if (*p == '\n') {
-					++p;
-				} else {
-					*q = *p;
-					q++;
-					p++;
-				}
-			}
-			setenv(line, value, 0);
-		}
-		fclose(fp);
-	}
+	_read_env_file(_SYS_ENV_FILE, homedir);
+	char template[1024];
+	snprintf(template, sizeof(template), "%s/%s", homedir, _USER_ENV_FILE);
+	_read_env_file(template, homedir);
 
 	setenv("SHELL", shellpath, 0);
 	setenv("HOME", homedir, 0);
