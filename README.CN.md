@@ -1,26 +1,26 @@
-# What is ravynOS? [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-### Don't speak English? Read this in: [Italiano](README.IT.md), [Türkçe](README.TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md), [简体中文](README.CN.md)
+# 什么是 ravynOS？ [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+### Don't speak Chinese? Read this in: [English](README.md), [Italiano](README.IT.md), [Türkçe](README.TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md)
 
-ravynOS is a new open source OS project that aims to provide a similar experience and some compatibility with macOS on x86-64 (and eventually ARM) systems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps.
+ravynOS是一个崭新的开源操作系统项目，旨在x86-64(终将支持ARM)系统上提供类似macOS的体验与其兼容性。它建立于FreeBSD坚实的基础、相同空间中现有开源软件包以及填补空白的新代码之上。
 
-The main design goals are:
-- Source compatibility with macOS applications (i.e. you could compile a Mac application on ravynOS and run it)
-- Similar GUI metaphors and familiar UX (file manager, application launcher, top menu bar that reflects the open application, etc)
-- Compatible with macOS folder layouts (/Library, /System, /Users, /Volumes, etc) and perhaps filesystems (HFS+, APFS) as well as fully supporting ZFS
-- Self-contained applications in [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), and [AppImage](https://github.com/AppImage) files - an installer-less experience for /Applications
-- Mostly maintain compatibility with the FreeBSD base system and X11 - a standard Unix environment under the hood
-- Compatible with Linux binaries via FreeBSD's Linux support
-- Eventual compatibility with x86-64/arm64 macOS binaries (Mach-O) and libraries
-- Pleasant to use, secure, stable, and performant
+主要设计目标为：
+- 与macOS应用程序兼容的资源(即您可以在ravynOS上编译Mac应用程序并运行)
+- 类似的图形用户界面与熟悉的用户体验(文件管理、应用启动、顶部菜单栏体现打开的应用等等)
+- 兼容macOS文件夹布局(/Library、/System、/Users、/Volumes等等) 与可能还有完全支持ZFS的文件系统(HFS+、APFS)
+- [App Bundles](https://developer.apple.com/documentation/foundation/bundle)、[AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir) 和 [AppImage](https://github.com/AppImage) 文件中独立完备的应用程序 - 无安装程序体验的 /Applications
+- 主要保持与FreeBSD基本系统和X11的兼容性 --- 一个标准的Unix环境
+- 通过FreeBSD对Linux的支持与Linux二进制文件兼容
+- 最终兼容x86-64/arm64 macOS二进制文件(Mach-O)和库
+- 使用愉快、安全、稳定与高性能
 
-Please visit [ravynos.com](https://ravynos.com/) for more info: [Release Notes](https://ravynos.com/releases.html) | [Screenshots](https://ravynos.com/screenshots.html) | [FAQ](https://ravynos.com/faq.html)
+请访问[ravynos.com](https://ravynos.com/)获取更多信息：[发行说明](https://ravynos.com/releases.html) | [界面截图](https://ravynos.com/screenshots.html) | [常见问题](https://ravynos.com/faq.html)
 
-### Join us!
+### 请加入我们！
 
-* Can you help build the dream? See the current projects/needs in [CONTRIBUTING.md](CONTRIBUTING.md)!
-* Our [Discord](https://discord.com/invite/8caJbAGNwY) server.
-* `#ravynOS-general:matrix.org` - join via [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
-* `#airyx` on [Libera IRC](https://web.libera.chat/?channel=#airyx)
+* 你能帮助共建梦想吗？ 查看当前项目/需求于[CONTRIBUTING.md](CONTRIBUTING.md)!
+* 我们的[Discord](https://discord.com/invite/8caJbAGNwY)社区
+* `#ravynOS-general:matrix.org` - 通过[Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)加入
+* `#airyx`于[Libera IRC](https://web.libera.chat/?channel=#airyx)
 
 [![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
