@@ -85,6 +85,9 @@ static int cmd_dump(int argc, char * const argv[]);
 static int cmd_log(int argc, char * const argv[]);
 static int cmd_help(int argc, char * const argv[]);
 
+static void _write_atomic_env_file(void);
+static int _read_env_file(void);
+
 kern_return_t vproc_mig_get_root_bootstrap(mach_port_t bp, mach_port_t *rootbp);
 
 mach_port_t bootstrap_port;
@@ -183,7 +186,63 @@ create_socket(json_t *json)
 	if ((val = json_object_get(json, LAUNCH_JOBSOCKETKEY_PASSIVE)))
 		passive = json_is_true(val);
 
-	if ((val = json_object_get(json, LAUNCH_JOBSOCKETKEY_PATHNAME))) {
+	if ((val = json_object_get(json, LAUNCH_JOBSOCKETKEY_SECUREWITHKEY))) {
+		struct sockaddr_un sun;
+		char envkey[128];
+		mode_t sun_mode = 0;
+		mode_t oldmask;
+		bool setm = false;
+
+		memset(&sun, 0, sizeof(sun));
+		sun.sun_family = AF_UNIX;
+		strncpy(envkey, "/tmp/launchd_XXXXXXXXXX", sizeof(envkey));
+		char *path = mktemp(envkey);
+		strncpy(sun.sun_path, path, sizeof(sun.sun_path));
+
+		strncpy(envkey, json_string_value(val), sizeof(envkey));
+
+		if ((sfd = socket(AF_UNIX, st, 0)) == -1)
+			errx(EX_OSERR, "socket(): %s", strerror(errno));
+
+		if ((val = json_object_get(json, LAUNCH_JOBSOCKETKEY_PATHMODE))) {
+			sun_mode = (mode_t)json_integer_value(val);
+			setm = true;
+		}
+
+		if (passive) {
+			if (unlink(sun.sun_path) == -1 && errno != ENOENT) {
+				saved_errno = errno;
+				close(sfd);
+				errx(EX_OSERR, "unlink(): %s", strerror(saved_errno));
+			}
+			oldmask = umask(S_IRWXG|S_IRWXO);
+			if (bind(sfd, (struct sockaddr *)&sun, (socklen_t) sizeof sun) == -1) {
+				saved_errno = errno;
+				close(sfd);
+				umask(oldmask);
+				errx(EX_OSERR, "bind(): %s", strerror(saved_errno));
+			}
+			umask(oldmask);
+			if (setm)
+				chmod(sun.sun_path, sun_mode);
+
+			if ((st == SOCK_STREAM || st == SOCK_SEQPACKET) && listen(sfd, -1) == -1) {
+				saved_errno = errno;
+				close(sfd);
+				errx(EX_OSERR, "listen(): %s", strerror(saved_errno));
+			}
+		} else if (connect(sfd, (struct sockaddr *)&sun, (socklen_t) sizeof sun) == -1) {
+			saved_errno = errno;
+			close(sfd);
+			errx(EX_OSERR, "connect(): %s", strerror(saved_errno));
+		}
+
+		// We can't just do setenv - we need to get the key into launchd
+		// This is just a placeholder until I figure out how.
+		setenv(envkey, sun.sun_path, 1);
+
+		return launch_data_new_fd(sfd);
+	} else if ((val = json_object_get(json, LAUNCH_JOBSOCKETKEY_PATHNAME))) {
 		struct sockaddr_un sun;
 		mode_t sun_mode = 0;
 		mode_t oldmask;
