@@ -4,9 +4,9 @@
 ravynOS adalah proyek OS open source baru yang bertujuan untuk memberikan pengalaman serupa dan beberapa kompatibilitas dengan macOS pada sistem x86-64 (dan akhirnya ARM). Itu dibangun di atas dasar FreeBSD yang kokoh, paket open source yang ada di ruang yang sama, dan kode baru untuk mengisi kekosongan.
 
 Tujuan utama desain adalah:
-- Kompatibilitas sumber dengan aplikasi macOS (yaitu Anda dapat mengkompilasi aplikasi Mac di ravynOS dan menjalankannya)
-- Metafora GUI serupa dan UX yang sudah dikenal (manajer file, peluncur aplikasi, bilah menu atas yang mencerminkan aplikasi terbuka, dll)
-- Kompatibel dengan tata letak folder macOS (/ Perpustakaan, / Sistem, / Pengguna, / Volume, dll) dan mungkin sistem file (HFS +, APFS) serta sepenuhnya mendukung ZFS
+- Kompatibilitas sumber dengan aplikasi macOS (yaitu anda dapat mengkompilasi aplikasi Mac di ravynOS dan menjalankannya)
+- Metafora GUI serupa dan UX yang sudah dikenal (file manager, launcher aplikasi, bilah menu atas yang mencerminkan aplikasi terbuka, dll)
+- Kompatibel dengan tata letak folder macOS ( /Library, /System, /Users, /Volume, dll) dan mungkin sistem file (HFS+, APFS) serta sepenuhnya mendukung ZFS
 - Aplikasi mandiri di [App Bundle](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), dan file [AppImage](https://github.com/AppImage) - pengalaman tanpa penginstal untuk /Applications
 - Sebagian besar mempertahankan kompatibilitas dengan sistem dasar FreeBSD dan X11 - lingkungan Unix standar di bawah tenda
 - Kompatibel dengan binari Linux melalui dukungan Linux FreeBSD
@@ -17,7 +17,7 @@ Kunjungi [ravynos.com](https://ravynos.com/) untuk info selengkapnya: [Catatan R
 
 ### Bergabunglah dengan kami!
 
-* Dapatkah Anda membantu membangun mimpi? Lihat proyek/kebutuhan saat ini di [CONTRIBUTING.md](CONTRIBUTING.md)!
+* Dapatkah anda membantu membangun mimpi? Lihat proyek/kebutuhan saat ini di [CONTRIBUTING.md](CONTRIBUTING.md)!
 * Server [Discord](https://discord.com/invite/8caJbAGNwY) kami.
 * `#ravynOS-general:matrix.org` - bergabung melalui [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
 * `#airyx` di [Libera IRC](https://web.libera.chat/?channel=#airyx)
