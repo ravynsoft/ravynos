@@ -819,7 +819,7 @@ pci_request_region(struct pci_dev *pdev, int bar, const char *res_name)
 }
 
 struct resource *
-_lkpi_pci_iomap_range(struct pci_dev *pdev, int bar, unsigned long offset, int mmio_size __unused)
+_lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size __unused)
 {
 	struct pci_mmio_region *mmio, *p;
 	int type;
@@ -842,7 +842,7 @@ _lkpi_pci_iomap_range(struct pci_dev *pdev, int bar, unsigned long offset, int m
 	}
 
 	mmio = malloc(sizeof(*mmio), M_DEVBUF, M_WAITOK | M_ZERO);
-	mmio->rid = PCIR_BAR(bar) + offset;
+	mmio->rid = PCIR_BAR(bar);
 	mmio->type = type;
 	mmio->res = bus_alloc_resource_any(pdev->dev.bsddev, mmio->type,
 	    &mmio->rid, RF_ACTIVE|RF_SHAREABLE);
@@ -858,10 +858,42 @@ _lkpi_pci_iomap_range(struct pci_dev *pdev, int bar, unsigned long offset, int m
 	return (mmio->res);
 }
 
-struct resource *
-_lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size __unused)
+/**
+ * pci_iomap_range - create a virtual mapping cookie for a PCI BAR
+ * @dev: PCI device that owns the BAR
+ * @bar: BAR number
+ * @offset: map memory at the given offset in BAR
+ * @maxlen: max length of the memory to map
+ *
+ * Using this function you will get a __iomem address to your device BAR.
+ * You can access it using ioread*() and iowrite*(). These functions hide
+ * the details if this is a MMIO or PIO address space and will just do what
+ * you expect from them in the correct way.
+ *
+ * @maxlen specifies the maximum length to map. If you want to get access to
+ * the complete BAR from offset to the end, pass %0 here.
+ * */
+void __iomem *pci_iomap_range(struct pci_dev *dev,
+			      int bar,
+			      unsigned long offset,
+			      unsigned long maxlen)
 {
-    return _lkpi_pci_iomap_range(pdev, bar, 0, mmio_size);
+	resource_size_t start = pci_resource_start(dev, bar);
+	resource_size_t len = pci_resource_len(dev, bar);
+	unsigned long flags = pci_resource_flags(dev, bar);
+
+	if (len <= offset || !start)
+		return NULL;
+	len -= offset;
+	start += offset;
+	if (maxlen && len > maxlen)
+		len = maxlen;
+//	if (flags & IORESOURCE_IO)
+//		return __pci_ioport_map(dev, start, len);
+	if (flags & IORESOURCE_MEM)
+		return ioremap(start, len);
+	/* What? */
+	return NULL;
 }
 
 int
