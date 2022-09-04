@@ -232,9 +232,14 @@ create_socket(json_t *json)
 			errx(EX_OSERR, "connect(): %s", strerror(saved_errno));
 		}
 
-		// We can't just do setenv - we need to get the key into launchd
-		// This is just a placeholder until I figure out how.
-		setenv(envkey, sun.sun_path, 1);
+		/* Set it into the launchd environment */
+		json_t *msg, *plist = json_object();
+		json_object_set_new(plist, envkey, json_string(sun.sun_path));
+		msg = json_object();
+		json_object_set_new(msg, "SetUserEnvironment", plist);
+
+		if(launch_msg_json(msg) == NULL)
+			return NULL; 
 
 		return launch_data_new_fd(sfd);
 	} else if ((val = json_object_get(json, LAUNCH_JOBSOCKETKEY_PATHNAME))) {
