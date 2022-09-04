@@ -267,6 +267,7 @@ set_user_env(launch_data_t obj, const char *key, void *context __attribute__((un
 	}
 }
 
+
 void
 ipc_close_all_with_job(job_t j)
 {
@@ -437,6 +438,10 @@ ipc_readmsg2(launch_data_t data, const char *cmd, void *context)
 			} else if (!strcmp(cmd, LAUNCH_KEY_SETUSERENVIRONMENT)) {
 				launch_data_dict_iterate(data, set_user_env, NULL);
 				resp = launch_data_new_errno(0);
+			} else if (!strcmp(cmd, LAUNCH_KEY_GETUSERENVIRONMENT)) {
+				char *v = getenv(launch_data_get_string(data));
+				if(v)
+					resp = launch_data_new_string(v);
 			} else if (!strcmp(cmd, LAUNCH_KEY_SETRESOURCELIMITS)) {
 				resp = adjust_rlimits(data);
 			} else if (!strcmp(cmd, LAUNCH_KEY_GETJOB)) {
@@ -562,6 +567,10 @@ ipc_process_command(launch_data_t data, const char *cmd, void *context)
 			} else if (!strcmp(cmd, LAUNCH_KEY_SETUSERENVIRONMENT)) {
 				launch_data_dict_iterate(data, set_user_env, NULL);
 				resp = launch_data_new_errno(0);
+			} else if (!strcmp(cmd, LAUNCH_KEY_GETUSERENVIRONMENT)) {
+				char *v = getenv(launch_data_get_string(data));
+				if(v)
+					resp = launch_data_new_string(v);
 			} else if (!strcmp(cmd, LAUNCH_KEY_SETRESOURCELIMITS)) {
 				resp = adjust_rlimits(data);
 			} else if (!strcmp(cmd, LAUNCH_KEY_GETJOB)) {
