@@ -57,6 +57,8 @@ pthread_mutex_t mtx;
         withMaxWidth:300];
     [self setFont:font];
 
+	[self setSelectable:NO];
+
     pthread_mutex_init(&mtx, NULL);
     [NSThread detachNewThreadSelector:@selector(notifyTick:) toTarget:self withObject:nil];
 
@@ -74,6 +76,10 @@ pthread_mutex_t mtx;
         pthread_mutex_unlock(&mtx);
         usleep(400000);
     }
+}
+
+- (BOOL)refusesFirstResponder {
+	return YES;
 }
 
 #if 0
