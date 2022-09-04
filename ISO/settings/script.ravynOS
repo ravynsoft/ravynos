@@ -141,6 +141,9 @@ mv elfsize "${uzip}/usr/bin/"
 # including those in many AppImages
 chroot ${uzip} ln -s /usr/bin/bash /bin/bash
 
+# Make sure zsh exists in /bin too
+chroot ${uzip} ln -s /usr/bin/zsh /bin/zsh
+
 # Remove unwanted UDisks2VolumeMonitor D-Bus service
 # TODO: Find a proper way to do this. The correct thing to do would probably to split up the FreeBSD package
 # FIXME: This is guaranteed to break as soon as the user updates/upgrades the package
