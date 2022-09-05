@@ -425,7 +425,6 @@ void
 ginode(ino_t inumber, struct inode *ip)
 {
 	ufs2_daddr_t iblk;
-	ino_t numinodes;
 
 	if (inumber < UFS_ROOTINO || inumber > maxino)
 		errx(EEXIT, "bad inode number %ju to ginode",
@@ -436,14 +435,12 @@ ginode(ino_t inumber, struct inode *ip)
 		ip->i_bp = &inobuf;
 		inobuf.b_refcnt++;
 		inobuf.b_index = firstinum;
-		numinodes = lastinum - firstinum;
 	} else if (icachebp != NULL &&
 	    inumber >= icachebp->b_index &&
 	    inumber < icachebp->b_index + INOPB(&sblock)) {
 		/* take an additional reference for the returned inode */
 		icachebp->b_refcnt++;
 		ip->i_bp = icachebp;
-		numinodes = INOPB(&sblock);
 	} else {
 		iblk = ino_to_fsba(&sblock, inumber);
 		/* release our cache-hold reference on old icachebp */
@@ -460,15 +457,14 @@ ginode(ino_t inumber, struct inode *ip)
 		icachebp->b_refcnt++;
 		icachebp->b_index = rounddown(inumber, INOPB(&sblock));
 		ip->i_bp = icachebp;
-		numinodes = INOPB(&sblock);
 	}
 	if (sblock.fs_magic == FS_UFS1_MAGIC) {
 		ip->i_dp = (union dinode *)
-		    &ip->i_bp->b_un.b_dinode1[inumber % numinodes];
+		    &ip->i_bp->b_un.b_dinode1[inumber - ip->i_bp->b_index];
 		return;
 	}
 	ip->i_dp = (union dinode *)
-	    &ip->i_bp->b_un.b_dinode2[inumber % numinodes];
+	    &ip->i_bp->b_un.b_dinode2[inumber - ip->i_bp->b_index];
 	if (ffs_verify_dinode_ckhash(&sblock, (struct ufs2_dinode *)ip->i_dp)) {
 		pwarn("INODE CHECK-HASH FAILED");
 		prtinode(ip);
@@ -702,12 +698,15 @@ freeinodebuf(void)
  *
  * Enter inodes into the cache.
  */
-void
+struct inoinfo *
 cacheino(union dinode *dp, ino_t inumber)
 {
 	struct inoinfo *inp, **inpp;
 	int i, blks;
 
+	if (getinoinfo(inumber) != NULL)
+		pfatal("cacheino: duplicate entry for ino %jd\n",
+		    (intmax_t)inumber);
 	if (howmany(DIP(dp, di_size), sblock.fs_bsize) > UFS_NDADDR)
 		blks = UFS_NDADDR + UFS_NIADDR;
 	else if (DIP(dp, di_size) > 0)
@@ -739,6 +738,7 @@ cacheino(union dinode *dp, ino_t inumber)
 			errx(EEXIT, "cannot increase directory list");
 	}
 	inpsort[inplast++] = inp;
+	return (inp);
 }
 
 /*
@@ -754,7 +754,6 @@ getinoinfo(ino_t inumber)
 			continue;
 		return (inp);
 	}
-	errx(EEXIT, "cannot find inode %ju", (uintmax_t)inumber);
 	return ((struct inoinfo *)0);
 }
 

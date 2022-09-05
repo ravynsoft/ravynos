@@ -261,32 +261,38 @@ rib_lookup(uint32_t fibnum, const struct sockaddr *dst, uint32_t flags,
 #ifdef ROUTE_MPATH
 static void
 notify_add(struct rib_cmd_info *rc, const struct weightened_nhop *wn_src,
-    route_notification_t *cb, void *cbdata) {
+    route_notification_t *cb, void *cbdata)
+{
 	rc->rc_nh_new = wn_src->nh;
 	rc->rc_nh_weight = wn_src->weight;
-#if DEBUG_MAX_LEVEL >= LOG_DEBUG2
-	char nhbuf[NHOP_PRINT_BUFSIZE];
-	FIB_NH_LOG(LOG_DEBUG2, wn_src->nh, "RTM_ADD for %s @ w=%u",
-	    nhop_print_buf(wn_src->nh, nhbuf, sizeof(nhbuf)), wn_src->weight);
-#endif
+
+	IF_DEBUG_LEVEL(LOG_DEBUG2) {
+		char nhbuf[NHOP_PRINT_BUFSIZE] __unused;
+		FIB_NH_LOG(LOG_DEBUG2, wn_src->nh, "RTM_ADD for %s @ w=%u",
+		    nhop_print_buf(wn_src->nh, nhbuf, sizeof(nhbuf)),
+		    wn_src->weight);
+	}
 	cb(rc, cbdata);
 }
 
 static void
 notify_del(struct rib_cmd_info *rc, const struct weightened_nhop *wn_src,
-    route_notification_t *cb, void *cbdata) {
+    route_notification_t *cb, void *cbdata)
+{
 	rc->rc_nh_old = wn_src->nh;
 	rc->rc_nh_weight = wn_src->weight;
-#if DEBUG_MAX_LEVEL >= LOG_DEBUG2
-	char nhbuf[NHOP_PRINT_BUFSIZE];
-	FIB_NH_LOG(LOG_DEBUG2, wn_src->nh, "RTM_DEL for %s @ w=%u",
-	    nhop_print_buf(wn_src->nh, nhbuf, sizeof(nhbuf)), wn_src->weight);
-#endif
+
+	IF_DEBUG_LEVEL(LOG_DEBUG2) {
+		char nhbuf[NHOP_PRINT_BUFSIZE] __unused;
+		FIB_NH_LOG(LOG_DEBUG2, wn_src->nh, "RTM_DEL for %s @ w=%u",
+		    nhop_print_buf(wn_src->nh, nhbuf, sizeof(nhbuf)),
+		    wn_src->weight);
+	}
 	cb(rc, cbdata);
 }
 
 static void
-decompose_change_notification(struct rib_cmd_info *rc, route_notification_t *cb,
+decompose_change_notification(const struct rib_cmd_info *rc, route_notification_t *cb,
     void *cbdata)
 {
 	uint32_t num_old, num_new;
@@ -313,14 +319,12 @@ decompose_change_notification(struct rib_cmd_info *rc, route_notification_t *cb,
 		wn_new = &tmp;
 		num_new = 1;
 	}
-#if DEBUG_MAX_LEVEL >= LOG_DEBUG
-	{
+	IF_DEBUG_LEVEL(LOG_DEBUG) {
 		char buf_old[NHOP_PRINT_BUFSIZE], buf_new[NHOP_PRINT_BUFSIZE];
 		nhop_print_buf_any(rc->rc_nh_old, buf_old, NHOP_PRINT_BUFSIZE);
 		nhop_print_buf_any(rc->rc_nh_new, buf_new, NHOP_PRINT_BUFSIZE);
 		FIB_NH_LOG(LOG_DEBUG, wn_old[0].nh, "change %s -> %s", buf_old, buf_new);
 	}
-#endif
 
 	/* Use the fact that each @wn array is sorted */
 	/*
@@ -375,7 +379,7 @@ decompose_change_notification(struct rib_cmd_info *rc, route_notification_t *cb,
  * Assumes at least one of the nexthops in @rc is multipath.
  */
 void
-rib_decompose_notification(struct rib_cmd_info *rc, route_notification_t *cb,
+rib_decompose_notification(const struct rib_cmd_info *rc, route_notification_t *cb,
     void *cbdata)
 {
 	const struct weightened_nhop *wn;
@@ -408,6 +412,62 @@ rib_decompose_notification(struct rib_cmd_info *rc, route_notification_t *cb,
 	}
 }
 #endif
+
+union sockaddr_union {
+	struct sockaddr		sa;
+	struct sockaddr_in	sin;
+	struct sockaddr_in6	sin6;
+	char			_buf[32];
+};
+
+/*
+ * Creates nexhops suitable for using as a default route nhop.
+ * Helper for the various kernel subsystems adding/changing default route.
+ */
+int
+rib_add_default_route(uint32_t fibnum, int family, struct ifnet *ifp,
+    struct sockaddr *gw, struct rib_cmd_info *rc)
+{
+	struct route_nhop_data rnd = { .rnd_weight = RT_DEFAULT_WEIGHT };
+	union sockaddr_union saun = {};
+	struct sockaddr *dst = &saun.sa;
+	int error;
+
+	switch (family) {
+#ifdef INET
+	case AF_INET:
+		saun.sin.sin_family = AF_INET;
+		saun.sin.sin_len = sizeof(struct sockaddr_in);
+		break;
+#endif
+#ifdef INET6
+	case AF_INET6:
+		saun.sin6.sin6_family = AF_INET6;
+		saun.sin6.sin6_len = sizeof(struct sockaddr_in6);
+		break;
+#endif
+	default:
+		return (EAFNOSUPPORT);
+	}
+
+	struct ifaddr *ifa = ifaof_ifpforaddr(gw, ifp);
+	if (ifa == NULL)
+		return (ENOENT);
+
+	struct nhop_object *nh = nhop_alloc(fibnum, family);
+	if (nh == NULL)
+		return (ENOMEM);
+
+	nhop_set_gw(nh, gw, true);
+	nhop_set_transmit_ifp(nh, ifp);
+	nhop_set_src(nh, ifa);
+	nhop_set_pxtype_flag(nh, NHF_DEFAULT);
+	rnd.rnd_nhop = nhop_get_nhop(nh, &error);
+
+	if (error == 0)
+		error = rib_add_route_px(fibnum, dst, 0, &rnd, RTM_F_CREATE, rc);
+	return (error);
+}
 
 #ifdef INET
 /*

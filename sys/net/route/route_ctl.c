@@ -134,7 +134,7 @@ uint8_t mpath_entropy_key[MPATH_ENTROPY_KEY_LEN] = {
 #if defined(INET) && defined(INET6)
 FEATURE(ipv4_rfc5549_support, "Route IPv4 packets via IPv6 nexthops");
 #define V_rib_route_ipv6_nexthop VNET(rib_route_ipv6_nexthop)
-VNET_DEFINE(u_int, rib_route_ipv6_nexthop) = 1;
+VNET_DEFINE_STATIC(u_int, rib_route_ipv6_nexthop) = 1;
 SYSCTL_UINT(_net_route, OID_AUTO, ipv6_nexthop, CTLFLAG_RW | CTLFLAG_VNET,
     &VNET_NAME(rib_route_ipv6_nexthop), 0, "Enable IPv4 route via IPv6 Next Hop address");
 #endif
@@ -157,16 +157,10 @@ get_rnh(uint32_t fibnum, const struct rt_addrinfo *info)
 }
 
 #if defined(INET) && defined(INET6)
-static bool
-rib_can_ipv6_nexthop_address(struct rib_head *rh)
+bool
+rib_can_4o6_nhop(void)
 {
-	int result;
-
-	CURVNET_SET(rh->rib_vnet);
-	result = !!V_rib_route_ipv6_nexthop;
-	CURVNET_RESTORE();
-
-	return (result);
+	return (!!V_rib_route_ipv6_nexthop);
 }
 #endif
 
@@ -474,7 +468,7 @@ rib_add_route_px(uint32_t fibnum, struct sockaddr *dst, int plen,
 {
 	union sockaddr_union mask_storage;
 	struct sockaddr *netmask = &mask_storage.sa;
-	struct rtentry *rt;
+	struct rtentry *rt = NULL;
 
 	NET_EPOCH_ASSERT();
 
@@ -495,22 +489,8 @@ rib_add_route_px(uint32_t fibnum, struct sockaddr *dst, int plen,
 			FIB_RH_LOG(LOG_INFO, rnh, "rtentry allocation failed");
 			return (ENOMEM);
 		}
-	} else {
-		struct route_nhop_data rnd_tmp;
-
-		rt = lookup_prefix_bysa(rnh, dst, netmask, &rnd_tmp);
-		if (rt == NULL)
-			return (ESRCH);
 	}
 
-#if DEBUG_MAX_LEVEL >= LOG_DEBUG2
-	{
-		char nhbuf[NHOP_PRINT_BUFSIZE], rtbuf[NHOP_PRINT_BUFSIZE];
-		nhop_print_buf_any(rnd->rnd_nhop, nhbuf, sizeof(nhbuf));
-		rt_print_buf(rt, rtbuf, sizeof(rtbuf));
-		FIB_RH_LOG(LOG_DEBUG2, rnh, "request %s -> %s", rtbuf, nhbuf);
-	}
-#endif
 	return (add_route_flags(rnh, rt, rnd, op_flags, rc));
 }
 
@@ -629,13 +609,13 @@ rib_copy_route(struct rtentry *rt, const struct route_nhop_data *rnd_src,
 
 	MPASS((nh_src->nh_flags & NHF_MULTIPATH) == 0);
 
-#if DEBUG_MAX_LEVEL >= LOG_DEBUG2
+	IF_DEBUG_LEVEL(LOG_DEBUG2) {
 		char nhbuf[NHOP_PRINT_BUFSIZE], rtbuf[NHOP_PRINT_BUFSIZE];
 		nhop_print_buf_any(nh_src, nhbuf, sizeof(nhbuf));
 		rt_print_buf(rt, rtbuf, sizeof(rtbuf));
 		FIB_RH_LOG(LOG_DEBUG2, rh_dst, "copying %s -> %s from fib %u",
 		    rtbuf, nhbuf, nhop_get_fibnum(nh_src));
-#endif
+	}
 	struct nhop_object *nh = nhop_alloc(rh_dst->rib_fibnum, rh_dst->rib_family);
 	if (nh == NULL) {
 		FIB_RH_LOG(LOG_INFO, rh_dst, "unable to allocate new nexthop");
@@ -665,11 +645,12 @@ rib_copy_route(struct rtentry *rt, const struct route_nhop_data *rnd_src,
 	error = add_route_flags(rh_dst, rt_new, &rnd, op_flags, rc);
 
 	if (error != 0) {
-#if DEBUG_MAX_LEVEL >= LOG_DEBUG
-		char buf[NHOP_PRINT_BUFSIZE];
-		rt_print_buf(rt_new, buf, sizeof(buf));
-		FIB_RH_LOG(LOG_DEBUG, rh_dst, "Unable to add route %s: error %d", buf, error);
-#endif
+		IF_DEBUG_LEVEL(LOG_DEBUG2) {
+			char buf[NHOP_PRINT_BUFSIZE];
+			rt_print_buf(rt_new, buf, sizeof(buf));
+			FIB_RH_LOG(LOG_DEBUG, rh_dst,
+			    "Unable to add route %s: error %d", buf, error);
+		}
 		nhop_free(nh);
 		rt_free_immediate(rt_new);
 	}
@@ -716,30 +697,6 @@ rib_add_route(uint32_t fibnum, struct rt_addrinfo *info,
 	return (error);
 }
 
-/*
- * Checks if @dst and @gateway is valid combination.
- *
- * Returns true if is valid, false otherwise.
- */
-static bool
-check_gateway(struct rib_head *rnh, struct sockaddr *dst,
-    struct sockaddr *gateway)
-{
-	if (dst->sa_family == gateway->sa_family)
-		return (true);
-	else if (gateway->sa_family == AF_UNSPEC)
-		return (true);
-	else if (gateway->sa_family == AF_LINK)
-		return (true);
-#if defined(INET) && defined(INET6)
-	else if (dst->sa_family == AF_INET && gateway->sa_family == AF_INET6 &&
-		rib_can_ipv6_nexthop_address(rnh))
-		return (true);
-#endif
-	else
-		return (false);
-}
-
 static int
 add_route_byinfo(struct rib_head *rnh, struct rt_addrinfo *info,
     struct rib_cmd_info *rc)
@@ -758,7 +715,7 @@ add_route_byinfo(struct rib_head *rnh, struct rt_addrinfo *info,
 		FIB_RH_LOG(LOG_DEBUG, rnh, "error: RTF_GATEWAY set with empty gw");
 		return (EINVAL);
 	}
-	if (dst && gateway && !check_gateway(rnh, dst, gateway)) {
+	if (dst && gateway && !nhop_check_gateway(dst->sa_family, gateway->sa_family)) {
 		FIB_RH_LOG(LOG_DEBUG, rnh,
 		    "error: invalid dst/gateway family combination (%d, %d)",
 		    dst->sa_family, gateway->sa_family);
@@ -817,7 +774,7 @@ add_route_flags(struct rib_head *rnh, struct rtentry *rt, struct route_nhop_data
 		if (op_flags & RTM_F_CREATE)
 			error = add_route(rnh, rt, rnd_add, rc);
 		else
-			error = ENOENT; // no entry but creation was not required
+			error = ESRCH; /* no entry but creation was not required */
 		RIB_WUNLOCK(rnh);
 		if (error != 0)
 			goto out;
@@ -852,7 +809,7 @@ add_route_flags(struct rib_head *rnh, struct rtentry *rt, struct route_nhop_data
 	    nhop_can_multipath(rnd_orig.rnd_nhop)) {
 
 		for (int i = 0; i < RIB_MAX_RETRIES; i++) {
-			error = add_route_flags_mpath(rnh, rt, rnd_add, &rnd_orig,
+			error = add_route_flags_mpath(rnh, rt_orig, rnd_add, &rnd_orig,
 			    op_flags, rc);
 			if (error != EAGAIN)
 				break;
@@ -1181,7 +1138,7 @@ change_mpath_route(struct rib_head *rnh, struct rtentry *rt,
 	wn_new[found_idx].nh = nh_new;
 	wn_new[found_idx].weight = get_info_weight(info, wn[found_idx].weight);
 
-	error = nhgrp_get_group(rnh, wn_new, num_nhops, &rnd_new.rnd_nhgrp);
+	error = nhgrp_get_group(rnh, wn_new, num_nhops, 0, &rnd_new.rnd_nhgrp);
 	nhop_free(nh_new);
 	free(wn_new, M_TEMP);
 
@@ -1339,15 +1296,13 @@ change_route_conditional(struct rib_head *rnh, struct rtentry *rt,
 	struct rtentry *rt_new;
 	int error = 0;
 
-#if DEBUG_MAX_LEVEL >= LOG_DEBUG2
-	{
+	IF_DEBUG_LEVEL(LOG_DEBUG2) {
 		char buf_old[NHOP_PRINT_BUFSIZE], buf_new[NHOP_PRINT_BUFSIZE];
 		nhop_print_buf_any(rnd_orig->rnd_nhop, buf_old, NHOP_PRINT_BUFSIZE);
 		nhop_print_buf_any(rnd_new->rnd_nhop, buf_new, NHOP_PRINT_BUFSIZE);
 		FIB_LOG(LOG_DEBUG2, rnh->rib_fibnum, rnh->rib_family,
 		    "trying change %s -> %s", buf_old, buf_new);
 	}
-#endif
 	RIB_WLOCK(rnh);
 
 	struct route_nhop_data rnd;
@@ -1592,3 +1547,4 @@ rib_print_family(int family)
 	}
 	return ("unknown");
 }
+

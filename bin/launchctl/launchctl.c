@@ -60,8 +60,6 @@
 
 #define STALL_TIMEOUT	30	// Sleep N seconds after problem
 
-#define _SYS_ENV_FILE "/etc/launchd_user.env"
-#define _USER_ENV_FILE ".launchd.env"
 extern char **environ;
 
 static launch_data_t to_launchd(json_t *json);
@@ -183,7 +181,68 @@ create_socket(json_t *json)
 	if ((val = json_object_get(json, LAUNCH_JOBSOCKETKEY_PASSIVE)))
 		passive = json_is_true(val);
 
-	if ((val = json_object_get(json, LAUNCH_JOBSOCKETKEY_PATHNAME))) {
+	if ((val = json_object_get(json, LAUNCH_JOBSOCKETKEY_SECUREWITHKEY))) {
+		struct sockaddr_un sun;
+		char envkey[128];
+		mode_t sun_mode = 0;
+		mode_t oldmask;
+		bool setm = false;
+
+		memset(&sun, 0, sizeof(sun));
+		sun.sun_family = AF_UNIX;
+		strncpy(envkey, "/tmp/launchd_XXXXXXXXXX", sizeof(envkey));
+		char *path = mktemp(envkey);
+		strncpy(sun.sun_path, path, sizeof(sun.sun_path));
+
+		strncpy(envkey, json_string_value(val), sizeof(envkey));
+
+		if ((sfd = socket(AF_UNIX, st, 0)) == -1)
+			errx(EX_OSERR, "socket(): %s", strerror(errno));
+
+		if ((val = json_object_get(json, LAUNCH_JOBSOCKETKEY_PATHMODE))) {
+			sun_mode = (mode_t)json_integer_value(val);
+			setm = true;
+		}
+
+		if (passive) {
+			if (unlink(sun.sun_path) == -1 && errno != ENOENT) {
+				saved_errno = errno;
+				close(sfd);
+				errx(EX_OSERR, "unlink(): %s", strerror(saved_errno));
+			}
+			oldmask = umask(S_IRWXG|S_IRWXO);
+			if (bind(sfd, (struct sockaddr *)&sun, (socklen_t) sizeof sun) == -1) {
+				saved_errno = errno;
+				close(sfd);
+				umask(oldmask);
+				errx(EX_OSERR, "bind(): %s", strerror(saved_errno));
+			}
+			umask(oldmask);
+			if (setm)
+				chmod(sun.sun_path, sun_mode);
+
+			if ((st == SOCK_STREAM || st == SOCK_SEQPACKET) && listen(sfd, -1) == -1) {
+				saved_errno = errno;
+				close(sfd);
+				errx(EX_OSERR, "listen(): %s", strerror(saved_errno));
+			}
+		} else if (connect(sfd, (struct sockaddr *)&sun, (socklen_t) sizeof sun) == -1) {
+			saved_errno = errno;
+			close(sfd);
+			errx(EX_OSERR, "connect(): %s", strerror(saved_errno));
+		}
+
+		/* Set it into the launchd environment */
+		json_t *msg, *plist = json_object();
+		json_object_set_new(plist, envkey, json_string(sun.sun_path));
+		msg = json_object();
+		json_object_set_new(msg, "SetUserEnvironment", plist);
+
+		if(launch_msg_json(msg) == NULL)
+			return NULL; 
+
+		return launch_data_new_fd(sfd);
+	} else if ((val = json_object_get(json, LAUNCH_JOBSOCKETKEY_PATHNAME))) {
 		struct sockaddr_un sun;
 		mode_t sun_mode = 0;
 		mode_t oldmask;
@@ -789,109 +848,51 @@ cmd_bslist(int argc, char * const argv[])
     return 0;
 }
 
-/* Read _USER_ENV_FILE into the environment. Returns number of entries read */
-static int
-_read_env_file(void)
-{
-	unsigned count = 0;
-	char template[1024];
-
-	uid_t uid = getuid();
-	if(uid == 0) {
-		strncpy(template, _SYS_ENV_FILE, sizeof(template) - 9);
-	} else {
-		struct passwd *pwent = getpwuid(uid);
-		strncpy(template, pwent->pw_dir, sizeof(template) - strlen(_USER_ENV_FILE) - 10);
-		strcat(template, "/");
-		strcat(template, _USER_ENV_FILE);
-	}
-	FILE *fp = fopen(template, "r");
-	if (fp) {
-		char line[1024];
-		while(fgets(line, sizeof(line), fp) != NULL) {
-			char *p = line;
-			while(*p && *p != '=')
-				++p;
-			if (!(*p)) // hit EOL without = ?
-				continue;
-			line[strlen(line)-1] = 0; // chop \n
-			count++;
-			putenv(line);
-		}
-		fclose(fp);
-	}
-	return count;
-}
-
-/* Atomically write the environment into _USER_ENV_FILE by writing a temp file
- * and doing a rename */
-static void
-_write_atomic_env_file(void)
-{
-	char template[1024];
-	uid_t uid = getuid();
-	if(uid == 0) {
-		strncpy(template, _SYS_ENV_FILE, sizeof(template) - 9);
-	} else {
-		struct passwd *pwent = getpwuid(uid);
-		strncpy(template, pwent->pw_dir, sizeof(template) - strlen(_USER_ENV_FILE) - 10);
-		strcat(template, "/");
-		strcat(template, _USER_ENV_FILE);
-	}
-	char *final_name = strdup(template);
-	strcat(template, ".XXXXXXXX");
-
-	int fd = mkstemp(template);
-	if(fd >= 0) {
-		int i = 0;
-		while(environ[i]) {
-			char *p = environ[i];
-			write(fd, p, strlen(p));
-			write(fd, "\n", 1);
-			++i;
-		}
-		close(fd);
-		rename(template, final_name);
-		free(final_name);
-	}
-}
-
 static int
 cmd_getenv(int argc, char * const argv[])
 {
+	json_t *msg, *result;
+
 	if(argc < 2)
 		errx(EX_USAGE, "Usage: launchctl getenv <variable>");
-	_read_env_file();
-	char *s = getenv(argv[1]);
-	if(s)
-		printf("%s\n", getenv(argv[1])); 
+
+	msg = json_object();
+	json_object_set_new(msg, "GetUserEnvironment", json_string(argv[1]));
+
+	result = launch_msg_json(msg);
+	if(result)
+		printf("%s\n", json_string_value(result));
 	return 0;
 }
 
 static int
 cmd_setenv(int argc, char * const argv[])
 {
+	json_t *msg, *plist;
+
 	if(argc < 3)
 		errx(EX_USAGE, "Usage: launchctl setenv <variable> <value>");
 
-	clearenv();
-	_read_env_file();
-	setenv(argv[1], argv[2], 1);
-	_write_atomic_env_file();
-	return 0;
+	plist = json_object();
+	json_object_set_new(plist, argv[1], json_string(argv[2]));
+	msg = json_object();
+	json_object_set_new(msg, "SetUserEnvironment", plist);
+
+	return (launch_msg_json(msg) == NULL ? -1 : 0); 
 }
 
 
 static int
 cmd_unsetenv(int argc, char * const argv[])
 {
+	json_t *msg;
+
 	if(argc < 2)
 		errx(EX_USAGE, "Usage: launchctl unsetenv <variable>");
-	clearenv();
-	_read_env_file();
-	unsetenv(argv[1]);
-	_write_atomic_env_file();
-	return 0;
+
+	msg = json_object();
+	json_object_set_new(msg, "UnsetUserEnvironment", json_string(argv[1]));
+	return (launch_msg_json(msg) == NULL ? -1 : 0); 
 }
 
 static int

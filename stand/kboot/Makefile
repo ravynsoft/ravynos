@@ -18,13 +18,26 @@ NEWVERSWHAT=	"kboot loader" ${MACHINE_ARCH}
 INSTALLFLAGS=	-b
 
 # Architecture-specific loader code
-SRCS=		crt1.c conf.c vers.c main.c host_syscalls.c hostcons.c hostdisk.c kbootfdt.c gfx_fb_stub.c
-SRCS+=		termios.c
+SRCS=	\
+		conf.c \
+		crt1.c \
+		gfx_fb_stub.c \
+		host_syscalls.c \
+		hostcons.c \
+		hostdisk.c \
+		init.c \
+		kbootfdt.c \
+		main.c \
+		termios.c \
+		vers.c \
 
 CFLAGS.gfx_fb_stub.c += -I${SRCTOP}/contrib/pnglite -I${SRCTOP}/sys/teken
 
 .include	"${BOOTSRC}/fdt.mk"
 
+# Note: Since we're producing a userland binary, we key off of MACHINE_ARCH
+# instead of the more normal MACHINE since the changes between different flavors
+# of MACHINE_ARCH are large enough in Linux that it's easier that way.
 .PATH:	${.CURDIR}/arch/${MACHINE_ARCH}
 .include "${.CURDIR}/arch/${MACHINE_ARCH}/Makefile.inc"
 

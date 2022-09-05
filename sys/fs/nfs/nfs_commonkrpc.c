@@ -1080,12 +1080,12 @@ tryagain:
 						    }
 						    slot = nd->nd_slotid;
 						}
+						freeslot = slot;
 					} else if (slot != 0) {
 						printf("newnfs_request: Bad "
 						    "session slot=%d\n", slot);
 						slot = 0;
 					}
-					freeslot = slot;
 					if (retseq != sep->nfsess_slotseq[slot])
 						printf("retseq diff 0x%x\n",
 						    retseq);
@@ -1131,6 +1131,10 @@ tryagain:
 				sep = NFSMNT_MDSSESSION(nmp);
 				if (bcmp(sep->nfsess_sessionid, nd->nd_sequence,
 				    NFSX_V4SESSIONID) == 0) {
+					printf("Initiate recovery. If server "
+					    "has not rebooted, "
+					    "check NFS clients for unique "
+					    "/etc/hostid's\n");
 					/* Initiate recovery. */
 					sep->nfsess_defunct = 1;
 					NFSCL_DEBUG(1, "Marked defunct\n");
@@ -1169,6 +1173,8 @@ tryagain:
 						*tl++ = txdr_unsigned(slotseq);
 						*tl++ = txdr_unsigned(slotpos);
 						*tl = txdr_unsigned(maxslot);
+						nd->nd_slotid = slotpos;
+						nd->nd_flag |= ND_HASSLOTID;
 					}
 					if (reterr == NFSERR_BADSESSION ||
 					    reterr == 0) {

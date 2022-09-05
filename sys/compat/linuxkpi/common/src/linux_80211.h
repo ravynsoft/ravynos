@@ -144,6 +144,11 @@ struct lkpi_hw {	/* name it mac80211_sc? */
 
 	struct mtx			mtx;
 
+	/* Scan functions we overload to handle depending on scan mode. */
+	void                    (*ic_scan_curchan)(struct ieee80211_scan_state *,
+				    unsigned long);
+	void                    (*ic_scan_mindwell)(struct ieee80211_scan_state *);
+
 	/* Node functions we overload to sync state. */
 	struct ieee80211_node *	(*ic_node_alloc)(struct ieee80211vap *,
 				    const uint8_t [IEEE80211_ADDR_LEN]);
@@ -153,7 +158,8 @@ struct lkpi_hw {	/* name it mac80211_sc? */
 
 #define	LKPI_MAC80211_DRV_STARTED	0x00000001
 	uint32_t			sc_flags;
-#define	LKPI_SCAN_RUNNING		0x00000001
+#define	LKPI_LHW_SCAN_RUNNING		0x00000001
+#define	LKPI_LHW_SCAN_HW		0x00000002
 	uint32_t			scan_flags;
 
 	int				supbands;	/* Number of supported bands. */
@@ -197,6 +203,7 @@ struct lkpi_wiphy {
 
 int lkpi_80211_mo_start(struct ieee80211_hw *);
 void lkpi_80211_mo_stop(struct ieee80211_hw *);
+int lkpi_80211_mo_get_antenna(struct ieee80211_hw *, u32 *, u32 *);
 int lkpi_80211_mo_set_frag_threshold(struct ieee80211_hw *, uint32_t);
 int lkpi_80211_mo_set_rts_threshold(struct ieee80211_hw *, uint32_t);
 int lkpi_80211_mo_add_interface(struct ieee80211_hw *, struct ieee80211_vif *);

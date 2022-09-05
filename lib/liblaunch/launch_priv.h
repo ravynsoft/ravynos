@@ -36,6 +36,7 @@ __BEGIN_DECLS
 
 #define LAUNCH_KEY_SETUSERENVIRONMENT "SetUserEnvironment"
 #define LAUNCH_KEY_UNSETUSERENVIRONMENT "UnsetUserEnvironment"
+#define LAUNCH_KEY_GETUSERENVIRONMENT "GetUserEnvironment"
 #define LAUNCH_KEY_SHUTDOWN "Shutdown"
 #define LAUNCH_KEY_SINGLEUSER "SingleUser"
 #define LAUNCH_KEY_GETRESOURCELIMITS "GetResourceLimits"

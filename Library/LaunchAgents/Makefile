@@ -2,7 +2,8 @@ SYSLIB= /System/Library/LaunchAgents
 LIBLIB= /Library/LaunchAgents
 
 SYSAGENTS=	com.ravynos.Dock.json \
-		com.ravynos.Filer.json
+		com.ravynos.Filer.json \
+		org.freedesktop.dbus-session.json
 AGENTS=
 
 all: clean build

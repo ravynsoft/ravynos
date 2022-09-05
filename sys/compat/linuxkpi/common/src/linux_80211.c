@@ -53,6 +53,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/sysctl.h>
 #include <sys/queue.h>
 #include <sys/taskqueue.h>
+#include <sys/libkern.h>
 
 #include <net/if.h>
 #include <net/if_var.h>
@@ -69,6 +70,8 @@ __FBSDID("$FreeBSD$");
 
 #include <linux/workqueue.h>
 #include "linux_80211.h"
+
+/* #define	LKPI_80211_HW_CRYPTO */
 
 static MALLOC_DEFINE(M_LKPI80211, "lkpi80211", "LinuxKPI 80211 compat");
 
@@ -114,6 +117,9 @@ SYSCTL_INT(_compat_linuxkpi_80211, OID_AUTO, debug, CTLFLAG_RWTUN,
 #ifndef PREP_TX_INFO_DURATION
 #define	PREP_TX_INFO_DURATION	0 /* Let the driver do its thing. */
 #endif
+
+/* c.f. ieee80211_ioctl.c */
+static const uint8_t zerobssid[IEEE80211_ADDR_LEN];
 
 /* This is DSAP | SSAP | CTRL | ProtoID/OrgCode{3}. */
 const uint8_t rfc1042_header[6] = { 0xaa, 0xaa, 0x03, 0x00, 0x00, 0x00 };
@@ -361,7 +367,7 @@ lkpi_opmode_to_vif_type(enum ieee80211_opmode opmode)
 	return (NL80211_IFTYPE_UNSPECIFIED);
 }
 
-#ifdef __notyet__
+#ifdef LKPI_80211_HW_CRYPTO
 static uint32_t
 lkpi_l80211_to_net80211_cyphers(uint32_t wlan_cipher_suite)
 {
@@ -392,9 +398,7 @@ lkpi_l80211_to_net80211_cyphers(uint32_t wlan_cipher_suite)
 
 	return (0);
 }
-#endif
 
-#ifdef TRY_HW_CRYPTO
 static uint32_t
 lkpi_net80211_to_l80211_cipher_suite(uint32_t cipher, uint8_t keylen)
 {
@@ -555,7 +559,7 @@ linuxkpi_cfg80211_bss_flush(struct wiphy *wiphy)
 	IEEE80211_UNLOCK(ic);
 }
 
-#ifdef TRY_HW_CRYPTO
+#ifdef LKPI_80211_HW_CRYPTO
 static int
 _lkpi_iv_key_set_delete(struct ieee80211vap *vap, const struct ieee80211_key *k,
     enum set_key_cmd cmd)
@@ -793,7 +797,7 @@ lkpi_stop_hw_scan(struct lkpi_hw *lhw, struct ieee80211_vif *vif)
 	struct ieee80211_hw *hw;
 	int error;
 
-	if ((lhw->scan_flags & LKPI_SCAN_RUNNING) == 0)
+	if ((lhw->scan_flags & LKPI_LHW_SCAN_RUNNING) == 0)
 		return;
 
 	hw = LHW_TO_HW(lhw);
@@ -808,7 +812,7 @@ lkpi_stop_hw_scan(struct lkpi_hw *lhw, struct ieee80211_vif *vif)
 	LKPI_80211_LHW_UNLOCK(lhw);
 	IEEE80211_LOCK(lhw->ic);
 
-	if ((lhw->scan_flags & LKPI_SCAN_RUNNING) != 0)
+	if ((lhw->scan_flags & LKPI_LHW_SCAN_RUNNING) != 0)
 		ic_printf(lhw->ic, "%s: failed to cancel scan: %d (%p, %p)\n",
 		    __func__, error, lhw, vif);
 }
@@ -996,7 +1000,7 @@ lkpi_sta_scan_to_auth(struct ieee80211vap *vap, enum ieee80211_state nstate, int
 
 	/* Set bss info (bss_info_changed). */
 	bss_changed = 0;
-	IEEE80211_ADDR_COPY(vif->bss_conf.bssid, ni->ni_bssid);
+	vif->bss_conf.bssid = ni->ni_bssid;
 	bss_changed |= BSS_CHANGED_BSSID;
 	vif->bss_conf.txpower = ni->ni_txpower;
 	bss_changed |= BSS_CHANGED_TXPOWER;
@@ -2230,6 +2234,15 @@ lkpi_ic_vap_create(struct ieee80211com *ic, const char name[IFNAMSIZ],
 	vif->bss_conf.ht_operation_mode = IEEE80211_HT_OP_MODE_PROTECTION_NONE;
 	vif->bss_conf.assoc = false;
 	vif->bss_conf.aid = 0;
+	/*
+	 * We need to initialize it to something as the bss_info_changed call
+	 * will try to copy from it in iwlwifi and NULL is a panic.
+	 * We will set the proper one in scan_to_auth() before being assoc.
+	 * NB: the logic there with using an array as bssid_override and checking
+	 * for non-NULL later is flawed but in their workflow does not seem to
+	 * matter.
+	 */
+	vif->bss_conf.bssid = zerobssid;
 #endif
 #if 0
 	vif->bss_conf.dtim_period = 0; /* IEEE80211_DTIM_DEFAULT ; must stay 0. */
@@ -2283,7 +2296,7 @@ lkpi_ic_vap_create(struct ieee80211com *ic, const char name[IFNAMSIZ],
 
 	/* Key management. */
 	if (lhw->ops->set_key != NULL) {
-#ifdef TRY_HW_CRYPTO
+#ifdef LKPI_80211_HW_CRYPTO
 		vap->iv_key_set = lkpi_iv_key_set;
 		vap->iv_key_delete = lkpi_iv_key_delete;
 #endif
@@ -2501,7 +2514,7 @@ lkpi_ic_scan_start(struct ieee80211com *ic)
 	int error;
 
 	lhw = ic->ic_softc;
-	if ((lhw->scan_flags & LKPI_SCAN_RUNNING) != 0) {
+	if ((lhw->scan_flags & LKPI_LHW_SCAN_RUNNING) != 0) {
 		/* A scan is still running. */
 		return;
 	}
@@ -2514,7 +2527,9 @@ lkpi_ic_scan_start(struct ieee80211com *ic)
 	}
 
 	hw = LHW_TO_HW(lhw);
-	if ((vap->iv_flags_ext & IEEE80211_FEXT_SCAN_OFFLOAD) == 0) {
+	if ((lhw->scan_flags & LKPI_LHW_SCAN_HW) == 0) {
+		/* If hw_scan is cleared clear FEXT_SCAN_OFFLOAD too. */
+		vap->iv_flags_ext &= ~IEEE80211_FEXT_SCAN_OFFLOAD;
 sw_scan:
 		lvif = VAP_TO_LVIF(vap);
 		vif = LVIF_TO_VIF(lvif);
@@ -2657,7 +2672,7 @@ sw_scan:
 			 * not possible.  Fall back to sw scan in that case.
 			 */
 			if (error == 1) {
-				vap->iv_flags_ext &= ~IEEE80211_FEXT_SCAN_OFFLOAD;
+				lhw->scan_flags &= ~LKPI_LHW_SCAN_HW;
 				ieee80211_start_scan(vap,
 				    IEEE80211_SCAN_ACTIVE |
 				    IEEE80211_SCAN_NOPICK |
@@ -2679,26 +2694,25 @@ static void
 lkpi_ic_scan_end(struct ieee80211com *ic)
 {
 	struct lkpi_hw *lhw;
-	struct ieee80211_scan_state *ss;
-	struct ieee80211vap *vap;
 
 	lhw = ic->ic_softc;
-	if ((lhw->scan_flags & LKPI_SCAN_RUNNING) == 0) {
+	if ((lhw->scan_flags & LKPI_LHW_SCAN_RUNNING) == 0) {
 		return;
 	}
 
-	ss = ic->ic_scan;
-	vap = ss->ss_vap;
-	if (vap->iv_flags_ext & IEEE80211_FEXT_SCAN_OFFLOAD) {
-		/* Nothing to do. */
-	} else {
+	if ((lhw->scan_flags & LKPI_LHW_SCAN_HW) == 0) {
+		struct ieee80211_scan_state *ss;
+		struct ieee80211vap *vap;
 		struct ieee80211_hw *hw;
 		struct lkpi_vif *lvif;
 		struct ieee80211_vif *vif;
 
+		ss = ic->ic_scan;
+		vap = ss->ss_vap;
 		hw = LHW_TO_HW(lhw);
 		lvif = VAP_TO_LVIF(vap);
 		vif = LVIF_TO_VIF(lvif);
+
 		lkpi_80211_mo_sw_scan_complete(hw, vif);
 
 		/* Send PS to stop buffering if n80211 does not for us? */
@@ -2706,6 +2720,27 @@ lkpi_ic_scan_end(struct ieee80211com *ic)
 		if (vap->iv_state == IEEE80211_S_SCAN)
 			lkpi_hw_conf_idle(hw, true);
 	}
+}
+
+static void
+lkpi_ic_scan_curchan(struct ieee80211_scan_state *ss,
+    unsigned long maxdwell)
+{
+	struct lkpi_hw *lhw;
+
+	lhw = ss->ss_ic->ic_softc;
+	if ((lhw->scan_flags & LKPI_LHW_SCAN_HW) == 0)
+		lhw->ic_scan_curchan(ss, maxdwell);
+}
+
+static void
+lkpi_ic_scan_mindwell(struct ieee80211_scan_state *ss)
+{
+	struct lkpi_hw *lhw;
+
+	lhw = ss->ss_ic->ic_softc;
+	if ((lhw->scan_flags & LKPI_LHW_SCAN_HW) == 0)
+		lhw->ic_scan_mindwell(ss);
 }
 
 static void
@@ -2721,6 +2756,11 @@ lkpi_ic_set_channel(struct ieee80211com *ic)
 
 	/* If we do not support (*config)() save us the work. */
 	if (lhw->ops->config == NULL)
+		return;
+
+	/* If we have a hw_scan running do not switch channels. */
+	if ((lhw->scan_flags & (LKPI_LHW_SCAN_RUNNING|LKPI_LHW_SCAN_HW)) ==
+	    (LKPI_LHW_SCAN_RUNNING|LKPI_LHW_SCAN_HW))
 		return;
 
 	c = ic->ic_curchan;
@@ -2913,7 +2953,9 @@ static void
 lkpi_80211_txq_tx_one(struct lkpi_sta *lsta, struct mbuf *m)
 {
 	struct ieee80211_node *ni;
+#ifndef LKPI_80211_HW_CRYPTO
 	struct ieee80211_frame *wh;
+#endif
 	struct ieee80211_key *k;
 	struct sk_buff *skb;
 	struct ieee80211com *ic;
@@ -2935,7 +2977,8 @@ lkpi_80211_txq_tx_one(struct lkpi_sta *lsta, struct mbuf *m)
 #endif
 
 	ni = lsta->ni;
-#ifndef TRY_HW_CRYPTO
+	k = NULL;
+#ifndef LKPI_80211_HW_CRYPTO
 	/* Encrypt the frame if need be; XXX-BZ info->control.hw_key. */
 	wh = mtod(m, struct ieee80211_frame *);
 	if (wh->i_fc[1] & IEEE80211_FC1_PROTECTED) {
@@ -3025,7 +3068,7 @@ lkpi_80211_txq_tx_one(struct lkpi_sta *lsta, struct mbuf *m)
 	lsta = lkpi_find_lsta_by_ni(lvif, ni);
 	if (lsta != NULL) {
 		sta = LSTA_TO_STA(lsta);
-#ifdef TRY_HW_CRYPTO
+#ifdef LKPI_80211_HW_CRYPTO
 		info->control.hw_key = lsta->kc;
 #endif
 	} else {
@@ -3466,6 +3509,7 @@ linuxkpi_ieee80211_ifattach(struct ieee80211_hw *hw)
 		 * the flag.
 		 */
 		ic->ic_flags_ext |= IEEE80211_FEXT_SCAN_OFFLOAD;
+		lhw->scan_flags |= LKPI_LHW_SCAN_HW;
 	}
 
 #ifdef __notyet__
@@ -3480,8 +3524,24 @@ linuxkpi_ieee80211_ifattach(struct ieee80211_hw *hw)
 	ic->ic_htcaps |= IEEE80211_HTCAP_TXSTBC;
 #endif
 
+	/*
+	 * The wiphy variables report bitmasks of avail antennas.
+	 * (*get_antenna) get the current bitmask sets which can be
+	 * altered by (*set_antenna) for some drivers.
+	 * XXX-BZ will the count alone do us much good long-term in net80211?
+	 */
+	if (hw->wiphy->available_antennas_rx ||
+	    hw->wiphy->available_antennas_tx) {
+		uint32_t rxs, txs;
+
+		if (lkpi_80211_mo_get_antenna(hw, &txs, &rxs) == 0) {
+			ic->ic_rxstream = bitcount32(rxs);
+			ic->ic_txstream = bitcount32(txs);
+		}
+	}
+
 	ic->ic_cryptocaps = 0;
-#ifdef TRY_HW_CRYPTO
+#ifdef LKPI_80211_HW_CRYPTO
 	if (hw->wiphy->n_cipher_suites > 0) {
 		for (i = 0; i < hw->wiphy->n_cipher_suites; i++)
 			ic->ic_cryptocaps |= lkpi_l80211_to_net80211_cyphers(
@@ -3507,6 +3567,11 @@ linuxkpi_ieee80211_ifattach(struct ieee80211_hw *hw)
 	ic->ic_vap_delete = lkpi_ic_vap_delete;
 	ic->ic_getradiocaps = lkpi_ic_getradiocaps;
 	ic->ic_wme.wme_update = lkpi_ic_wme_update;
+
+	lhw->ic_scan_curchan = ic->ic_scan_curchan;
+	ic->ic_scan_curchan = lkpi_ic_scan_curchan;
+	lhw->ic_scan_mindwell = ic->ic_scan_mindwell;
+	ic->ic_scan_mindwell = lkpi_ic_scan_mindwell;
 
 	lhw->ic_node_alloc = ic->ic_node_alloc;
 	ic->ic_node_alloc = lkpi_ic_node_alloc;
@@ -3749,7 +3814,7 @@ linuxkpi_ieee80211_scan_completed(struct ieee80211_hw *hw,
 	LKPI_80211_LHW_LOCK(lhw);
 	free(lhw->hw_req, M_LKPI80211);
 	lhw->hw_req = NULL;
-	lhw->scan_flags &= ~LKPI_SCAN_RUNNING;
+	lhw->scan_flags &= ~LKPI_LHW_SCAN_RUNNING;
 	wakeup(lhw);
 	LKPI_80211_LHW_UNLOCK(lhw);
 
