@@ -1,5 +1,5 @@
 # 什麼是 ravynOS? [![目前狀態](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![貢獻者](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-### Don't speak Chinese(Taiwan)? Read this in: [Italiano](README.IT.md), [Türkçe](README_TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md), [Hungarian](README.HU.md)
+### Don't speak Chinese（Taiwan）? Read this in: [Italiano](README.IT.md), [Türkçe](README_TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md), [Hungarian](README.HU.md)
 
 ravynOS 可說是 macOS＋BSD 的精神。自由又好用，而且開源。
 
@@ -32,37 +32,36 @@ FreeBSD 資源：
 FreeBSD 是一個為個人電腦以及伺服器所設計的作業系統
 這個古老的作業系統有著超過三十年的歷史，以及陪伴我們三十年的夥伴。
 
-For copyright information, please see [the file COPYRIGHT](COPYRIGHT) in this directory.
-Additional copyright information also exists for some sources in this tree - please see the specific source directories for more information.
-
-The Makefile in this directory supports a number of targets for building components (or all) of the FreeBSD source tree.
-See build(7), config(8), [FreeBSD handbook on building userland](https://docs.freebsd.org/en/books/handbook/cutting-edge/#makeworld), and [Handbook for kernels](https://docs.freebsd.org/en/books/handbook/kernelconfig/) for more information, including setting make(1) variables.
+著作權資訊請詳閱 [在這個資料夾內的檔案](COPYRIGHT)
+其他著作權資訊也遍佈各個資料夾
+這個 Makefile 支援編譯數曾獲所有資料夾
+請詳閱 build(7)，config(8)，[FreeBSD 編譯指南](https://docs.freebsd.org/en/books/handbook/cutting-edge/#makeworld)，以及[核心手冊](https://docs.freebsd.org/en/books/handbook/kernelconfig/)來取得更多資訊以及查詢 make(1) 變數。
 
 Source Roadmap:
 ---------------
-| Directory | Description |
+| 資料夾 | 資訊 |
 | --------- | ----------- |
-| bin | System/user commands. |
-| cddl | Various commands and libraries under the Common Development and Distribution License. |
-| contrib | Packages contributed by 3rd parties. |
-| crypto | Cryptography stuff (see [crypto/README](crypto/README)). |
-| etc | Template files for /etc. |
-| gnu | Commands and libraries under the GNU General Public License (GPL) or Lesser General Public License (LGPL). Please see [gnu/COPYING](gnu/COPYING) and [gnu/COPYING.LIB](gnu/COPYING.LIB) for more information. |
-| include | System include files. |
-| kerberos5 | Kerberos5 (Heimdal) package. |
-| lib | System libraries. |
-| libexec | System daemons. |
-| release | Release building Makefile & associated tools. |
-| rescue | Build system for statically linked /rescue utilities. |
-| sbin | System commands. |
-| secure | Cryptographic libraries and commands. |
-| share | Shared resources. |
-| stand | Boot loader sources. |
-| sys | Kernel sources. |
-| sys/`arch`/conf | Kernel configuration files. GENERIC is the configuration used in release builds. NOTES contains documentation of all possible entries. |
-| tests | Regression tests which can be run by Kyua.  See [tests/README](tests/README) for additional information. |
+| bin | 基本指令 |
+| cddl | 其他指令以及資料庫 |
+| contrib | 第三方套件 |
+| crypto | 翻譯器（請詳閱[crypto/README](crypto/README)) |
+| etc | 範本檔案 |
+| gnu | 符合 GPL 或 LGPL 的指令。請詳閱 [gnu/COPYING](gnu/COPYING) 和 [gnu/COPYING.LIB](gnu/COPYING.LIB)  |
+| include | 系統檔案 |
+| kerberos5 | Kerberos5 (Heimdal) 套件 |
+| lib | 資料庫 |
+| libexec | 系統守護進程 |
+| release | 釋出 Makefile 和工具 |
+| rescue | 系統工具 |
+| sbin | 系統指令 |
+| secure | 翻譯器指令 |
+| share | 分享的資料 |
+| stand | 開機管理器資料 |
+| sys | 核心資料 |
+| sys/`arch`/conf | 核心設定檔案。GENERIC 是最主要的。 NOTES 提供設定指南 |
+| tests | 回歸測試的軟體例如 Kyua。請詳閱 [tests/README](tests/README) 取得更多資訊 |
 | tools | Utilities for regression testing and miscellaneous tasks. |
-| usr.bin | User commands. |
-| usr.sbin | System administration commands. |
+| usr.bin | 使用者指令 |
+| usr.sbin | 系統權限指令 |
 
-For information on synchronizing your source tree with one or more of the FreeBSD Project's development branches, please see [FreeBSD Handbook](https://docs.freebsd.org/en/books/handbook/cutting-edge/#current-stable).
+更多資訊 [FreeBSD 手冊](https://docs.freebsd.org/zh-tw/books/handbook/cutting-edge/#current-stable).
