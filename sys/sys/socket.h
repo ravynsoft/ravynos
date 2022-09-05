@@ -395,11 +395,8 @@ struct sockproto {
 #define	PF_NETLINK	AF_NETLINK
 #define	PF_INET_SDP	AF_INET_SDP
 #define	PF_INET6_SDP	AF_INET6_SDP
-<<<<<<< HEAD
 #define PF_SYSTEM	AF_SYSTEM
-=======
 #define	PF_DIVERT	AF_DIVERT
->>>>>>> upstream/main
 
 #define	PF_MAX		AF_MAX
 
