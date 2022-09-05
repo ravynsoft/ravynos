@@ -530,7 +530,7 @@ doreti_exit:
 	testl	$PSL_VM,TF_EFLAGS(%esp)
 	jz	2f			/* PCB_VM86CALL is not set */
 	addl	$VM86_STACK_SPACE, %ecx
-2:	subl	$TF_SZ, %edx
+2:	subl	%ecx, %edx
 	movl	%edx, %edi
 	rep; movsb
 	movl	%edx, %esp
@@ -565,7 +565,7 @@ doreti_iret_nmi:
 	 * case, and continues in the corresponding place in the code
 	 * below.
 	 *
-	 * If the fault occured during return to usermode, we recreate
+	 * If the fault occurred during return to usermode, we recreate
 	 * the trap frame and call trap() to send a signal.  Otherwise
 	 * the kernel was tricked into fault by attempt to restore invalid
 	 * usermode segment selectors on return from nested fault or

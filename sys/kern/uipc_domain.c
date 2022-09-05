@@ -47,33 +47,13 @@ __FBSDID("$FreeBSD$");
 #include <sys/rmlock.h>
 #include <sys/socketvar.h>
 #include <sys/systm.h>
-#include <sys/stat.h>		/* XXXGL: remove */
 
 #include <machine/atomic.h>
 
 #include <net/vnet.h>
 
-/*
- * System initialization
- *
- * Note: domain initialization takes place on a per domain basis
- * as a result of traversing a SYSINIT linker set.  Most likely,
- * each domain would want to call DOMAIN_SET(9) itself, which
- * would cause the domain to be added just after domaininit()
- * is called during startup.
- *
- * See DOMAIN_SET(9) for details on its use.
- */
-
-static void domaininit(void *);
-SYSINIT(domain, SI_SUB_PROTO_DOMAININIT, SI_ORDER_ANY, domaininit, NULL);
-
-static void domainfinalize(void *);
-SYSINIT(domainfin, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_FIRST, domainfinalize,
-    NULL);
-
-struct domain *domains;		/* registered protocol domains */
-int domain_init_status = 0;
+struct domainhead domains = SLIST_HEAD_INITIALIZER(&domains);
+int domain_init_status = 1;
 static struct mtx dom_mtx;		/* domain list lock */
 MTX_SYSINIT(domain, &dom_mtx, "domain list", MTX_DEF);
 
@@ -175,17 +155,6 @@ pr_ready_notsupp(struct socket *so, struct mbuf *m, int count)
 	return (EOPNOTSUPP);
 }
 
-/*
- * This isn't really a ``null'' operation, but it's the default one and
- * doesn't do anything destructive.
- */
-static int
-pr_sense_notsupp(struct socket *so, struct stat *sb)
-{
-	sb->st_blksize = so->so_snd.sb_hiwat;
-	return (0);
-}
-
 static int
 pr_shutdown_notsupp(struct socket *so)
 {
@@ -220,11 +189,13 @@ pr_sopoll_notsupp(struct socket *so, int events, struct ucred *cred,
 }
 
 static void
-pr_init(struct protosw *pr)
+pr_init(struct domain *dom, struct protosw *pr)
 {
 
 	KASSERT(pr->pr_attach != NULL,
 	    ("%s: protocol doesn't have pr_attach", __func__));
+
+	pr->pr_domain = dom;
 
 #define	DEFAULT(foo, bar)	if (pr->foo == NULL) pr->foo = bar
 	DEFAULT(pr_sosend, sosend_generic);
@@ -246,7 +217,6 @@ pr_init(struct protosw *pr)
 	NOTSUPP(pr_rcvd);
 	NOTSUPP(pr_rcvoob);
 	NOTSUPP(pr_send);
-	NOTSUPP(pr_sense);
 	NOTSUPP(pr_shutdown);
 	NOTSUPP(pr_sockaddr);
 	NOTSUPP(pr_sosend);
@@ -261,102 +231,41 @@ pr_init(struct protosw *pr)
  * XXX can't fail at this time.
  */
 void
-domain_init(void *arg)
+domain_add(struct domain *dp)
 {
-	struct domain *dp = arg;
 	struct protosw *pr;
-	int flags;
 
 	MPASS(IS_DEFAULT_VNET(curvnet));
 
-	flags = atomic_load_acq_int(&dp->dom_flags);
-	if ((flags & DOMF_SUPPORTED) == 0)
-		return;
-	MPASS((flags & DOMF_INITED) == 0);
-
-	for (int i = 0; i < dp->dom_nprotosw; i++)
-		if ((pr = dp->dom_protosw[i]) != NULL) {
-			pr->pr_domain = dp;
-			pr_init(pr);
-		}
-
-	/*
-	 * update global information about maximums
-	 */
-	max_hdr = max_linkhdr + max_protohdr;
-	max_datalen = MHLEN - max_hdr;
-	if (max_datalen < 1)
-		panic("%s: max_datalen < 1", __func__);
-	atomic_set_rel_int(&dp->dom_flags, DOMF_INITED);
-}
-
-/*
- * Add a new protocol domain to the list of supported domains
- * Note: you cant unload it again because a socket may be using it.
- * XXX can't fail at this time.
- */
-void
-domain_add(void *data)
-{
-	struct domain *dp;
-
-	dp = (struct domain *)data;
 	if (dp->dom_probe != NULL && (*dp->dom_probe)() != 0)
 		return;
-	atomic_set_rel_int(&dp->dom_flags, DOMF_SUPPORTED);
-	mtx_lock(&dom_mtx);
-	dp->dom_next = domains;
-	domains = dp;
 
-	KASSERT(domain_init_status >= 1,
-	    ("attempt to domain_add(%s) before domaininit()",
-	    dp->dom_name));
-#ifndef INVARIANTS
-	if (domain_init_status < 1)
-		printf("WARNING: attempt to domain_add(%s) before "
-		    "domaininit()\n", dp->dom_name);
+	for (int i = 0; i < dp->dom_nprotosw; i++)
+		if ((pr = dp->dom_protosw[i]) != NULL)
+			pr_init(dp, pr);
+
+	mtx_lock(&dom_mtx);
+#ifdef INVARIANTS
+	struct domain *tmp;
+	SLIST_FOREACH(tmp, &domains, dom_next)
+		MPASS(tmp->dom_family != dp->dom_family);
 #endif
+	SLIST_INSERT_HEAD(&domains, dp, dom_next);
 	mtx_unlock(&dom_mtx);
 }
 
 void
-domain_remove(void *data)
+domain_remove(struct domain *dp)
 {
-	struct domain *dp = (struct domain *)data;
 
 	if ((dp->dom_flags & DOMF_UNLOADABLE) == 0)
 		return;
 
 	mtx_lock(&dom_mtx);
-	if (domains == dp) {
-		domains = dp->dom_next;
-	} else {
-		struct domain *curr;
-		for (curr = domains; curr != NULL; curr = curr->dom_next) {
-			if (curr->dom_next == dp) {
-				curr->dom_next = dp->dom_next;
-				break;
-			}
-		}
-	}
+	SLIST_REMOVE(&domains, dp, domain, dom_next);
 	mtx_unlock(&dom_mtx);
 }
 
-/* ARGSUSED*/
-static void
-domaininit(void *dummy)
-{
-
-	if (max_linkhdr < 16)		/* XXX */
-		max_linkhdr = 16;
-
-	mtx_lock(&dom_mtx);
-	KASSERT(domain_init_status == 0, ("domaininit called too late!"));
-	domain_init_status = 1;
-	mtx_unlock(&dom_mtx);
-}
-
-/* ARGSUSED*/
 static void
 domainfinalize(void *dummy)
 {
@@ -366,20 +275,22 @@ domainfinalize(void *dummy)
 	domain_init_status = 2;
 	mtx_unlock(&dom_mtx);	
 }
+SYSINIT(domainfin, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_FIRST, domainfinalize,
+    NULL);
 
 struct domain *
 pffinddomain(int family)
 {
 	struct domain *dp;
 
-	for (dp = domains; dp != NULL; dp = dp->dom_next)
+	SLIST_FOREACH(dp, &domains, dom_next)
 		if (dp->dom_family == family)
 			return (dp);
 	return (NULL);
 }
 
 struct protosw *
-pffindtype(int family, int type)
+pffindproto(int family, int type, int proto)
 {
 	struct domain *dp;
 	struct protosw *pr;
@@ -389,36 +300,12 @@ pffindtype(int family, int type)
 		return (NULL);
 
 	for (int i = 0; i < dp->dom_nprotosw; i++)
-		if ((pr = dp->dom_protosw[i]) != NULL && pr->pr_type == type)
+		if ((pr = dp->dom_protosw[i]) != NULL && pr->pr_type == type &&
+		    (pr->pr_protocol == 0 || proto == 0 ||
+		     pr->pr_protocol == proto))
 			return (pr);
 
 	return (NULL);
-}
-
-struct protosw *
-pffindproto(int family, int protocol, int type)
-{
-	struct domain *dp;
-	struct protosw *pr;
-	struct protosw *maybe;
-
-	dp = pffinddomain(family);
-	if (dp == NULL)
-		return (NULL);
-
-	maybe = NULL;
-	for (int i = 0; i < dp->dom_nprotosw; i++) {
-		if ((pr = dp->dom_protosw[i]) == NULL)
-			continue;
-		if ((pr->pr_protocol == protocol) && (pr->pr_type == type))
-			return (pr);
-
-		/* XXX: raw catches all. Why? */
-		if (type == SOCK_RAW && pr->pr_type == SOCK_RAW &&
-		    pr->pr_protocol == 0 && maybe == NULL)
-			maybe = pr;
-	}
-	return (maybe);
 }
 
 /*
@@ -466,8 +353,7 @@ protosw_register(struct domain *dp, struct protosw *npr)
 		return (ENOMEM);
 	}
 
-	npr->pr_domain = dp;
-	pr_init(npr);
+	pr_init(dp, npr);
 	*prp = npr;
 	mtx_unlock(&dom_mtx);
 

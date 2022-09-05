@@ -80,7 +80,7 @@ static int wn_cmp_idx(const void *a, const void *b);
 static void sort_weightened_nhops(struct weightened_nhop *wn, int num_nhops);
 
 static struct nhgrp_priv *get_nhgrp(struct nh_control *ctl,
-    struct weightened_nhop *wn, int num_nhops, int *perror);
+    struct weightened_nhop *wn, int num_nhops, uint32_t uidx, int *perror);
 static void destroy_nhgrp(struct nhgrp_priv *nhg_priv);
 static void destroy_nhgrp_epoch(epoch_context_t ctx);
 static void free_nhgrp_nhops(struct nhgrp_priv *nhg_priv);
@@ -406,12 +406,12 @@ destroy_nhgrp(struct nhgrp_priv *nhg_priv)
 	KASSERT((nhg_priv->nhg_refcount == 0), ("nhg_refcount != 0"));
 	KASSERT((nhg_priv->nhg_idx == 0), ("gr_idx != 0"));
 
-#if DEBUG_MAX_LEVEL >= LOG_DEBUG
-	char nhgbuf[NHOP_PRINT_BUFSIZE];
-	FIB_NH_LOG(LOG_DEBUG, nhg_priv->nhg_nh_weights[0].nh,
-	    "destroying %s", nhgrp_print_buf(nhg_priv->nhg,
-	    nhgbuf, sizeof(nhgbuf)));
-#endif
+	IF_DEBUG_LEVEL(LOG_DEBUG2) {
+		char nhgbuf[NHOP_PRINT_BUFSIZE] __unused;
+		FIB_NH_LOG(LOG_DEBUG2, nhg_priv->nhg_nh_weights[0].nh,
+		    "destroying %s", nhgrp_print_buf(nhg_priv->nhg,
+		    nhgbuf, sizeof(nhgbuf)));
+	}
 
 	free_nhgrp_nhops(nhg_priv);
 	destroy_nhgrp_int(nhg_priv);
@@ -465,7 +465,7 @@ free_nhgrp_nhops(struct nhgrp_priv *nhg_priv)
  */
 struct nhgrp_priv *
 get_nhgrp(struct nh_control *ctl, struct weightened_nhop *wn, int num_nhops,
-    int *perror)
+    uint32_t uidx, int *perror)
 {
 	struct nhgrp_priv *key, *nhg_priv;
 
@@ -497,6 +497,7 @@ get_nhgrp(struct nh_control *ctl, struct weightened_nhop *wn, int num_nhops,
 		*perror = ENOMEM;
 		return (NULL);
 	}
+	key->nhg_uidx = uidx;
 
 	nhg_priv = find_nhgrp(ctl, key);
 	if (nhg_priv != NULL) {
@@ -577,7 +578,7 @@ append_nhops(struct nh_control *ctl, const struct nhgrp_object *gr_orig,
 	memcpy(&pnhops[curr_nhops], wn, num_nhops * sizeof(struct weightened_nhop));
 	curr_nhops += num_nhops;
 
-	nhg_priv = get_nhgrp(ctl, pnhops, curr_nhops, perror);
+	nhg_priv = get_nhgrp(ctl, pnhops, curr_nhops, 0, perror);
 
 	if (pnhops != (struct weightened_nhop *)&storage[0])
 		free(pnhops, M_TEMP);
@@ -598,13 +599,13 @@ append_nhops(struct nh_control *ctl, const struct nhgrp_object *gr_orig,
  */
 int
 nhgrp_get_group(struct rib_head *rh, struct weightened_nhop *wn, int num_nhops,
-    struct nhgrp_object **pnhg)
+    uint32_t uidx, struct nhgrp_object **pnhg)
 {
 	struct nh_control *ctl = rh->nh_control;
 	struct nhgrp_priv *nhg_priv;
 	int error;
 
-	nhg_priv = get_nhgrp(ctl, wn, num_nhops, &error);
+	nhg_priv = get_nhgrp(ctl, wn, num_nhops, uidx, &error);
 	if (nhg_priv != NULL)
 		*pnhg = nhg_priv->nhg;
 
@@ -658,7 +659,7 @@ nhgrp_get_filtered_group(struct rib_head *rh, const struct rtentry *rt,
 		if (nhop_try_ref_object(rnd->rnd_nhop) == 0)
 			error = EAGAIN;
 	} else {
-		mp_priv = get_nhgrp(ctl, pnhops, num_nhops, &error);
+		mp_priv = get_nhgrp(ctl, pnhops, num_nhops, 0, &error);
 		if (mp_priv != NULL)
 			rnd->rnd_nhgrp = mp_priv->nhg;
 		rnd->rnd_weight = 0;
@@ -699,7 +700,7 @@ nhgrp_get_addition_group(struct rib_head *rh, struct route_nhop_data *rnd_orig,
 		/* Simple merge of 2 non-multipath nexthops */
 		wn[1].nh = rnd_orig->rnd_nhop;
 		wn[1].weight = rnd_orig->rnd_weight;
-		nhg_priv = get_nhgrp(ctl, wn, 2, &error);
+		nhg_priv = get_nhgrp(ctl, wn, 2, 0, &error);
 	} else {
 		/* Get new nhop group with @rt->rt_nhop as an additional nhop */
 		nhg_priv = append_nhops(ctl, rnd_orig->rnd_nhgrp, &wn[0], 1,
@@ -729,6 +730,17 @@ nhgrp_get_nhops(const struct nhgrp_object *nhg, uint32_t *pnum_nhops)
 	*pnum_nhops = nhg_priv->nhg_nh_count;
 
 	return (nhg_priv->nhg_nh_weights);
+}
+
+uint32_t
+nhgrp_get_uidx(const struct nhgrp_object *nhg)
+{
+	const struct nhgrp_priv *nhg_priv;
+
+	KASSERT(((nhg->nhg_flags & MPF_MULTIPATH) != 0), ("nhop is not mpath"));
+
+	nhg_priv = NHGRP_PRIV_CONST(nhg);
+	return (nhg_priv->nhg_uidx);
 }
 
 /*

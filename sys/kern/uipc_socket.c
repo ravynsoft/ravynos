@@ -509,11 +509,18 @@ socreate(int dom, struct socket **aso, int type, int proto,
 	struct socket *so;
 	int error;
 
-	if (proto)
-		prp = pffindproto(dom, proto, type);
-	else
-		prp = pffindtype(dom, type);
+	/*
+	 * XXX: divert(4) historically abused PF_INET.  Keep this compatibility
+	 * shim until all applications have been updated.
+	 */
+	if (__predict_false(dom == PF_INET && type == SOCK_RAW &&
+	    proto == IPPROTO_DIVERT)) {
+		dom = PF_DIVERT;
+		printf("%s uses obsolete way to create divert(4) socket\n",
+		    td->td_proc->p_comm);
+	}
 
+	prp = pffindproto(dom, type, proto);
 	if (prp == NULL) {
 		/* No support for domain. */
 		if (pffinddomain(dom) == NULL)
@@ -532,8 +539,6 @@ socreate(int dom, struct socket **aso, int type, int proto,
 	if (prison_check_af(cred, prp->pr_domain->dom_family) != 0)
 		return (EPROTONOSUPPORT);
 
-	if (prp->pr_type != type)
-		return (EPROTOTYPE);
 	so = soalloc(CRED_TO_VNET(cred));
 	if (so == NULL)
 		return (ENOBUFS);

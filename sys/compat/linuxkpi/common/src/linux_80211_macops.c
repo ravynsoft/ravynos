@@ -78,6 +78,24 @@ lkpi_80211_mo_stop(struct ieee80211_hw *hw)
 }
 
 int
+lkpi_80211_mo_get_antenna(struct ieee80211_hw *hw, u32 *txs, u32 *rxs)
+{
+	struct lkpi_hw *lhw;
+	int error;
+
+	lhw = HW_TO_LHW(hw);
+	if (lhw->ops->get_antenna == NULL) {
+		error = EOPNOTSUPP;
+		goto out;
+	}
+
+	error = lhw->ops->get_antenna(hw, txs, rxs);
+
+out:
+	return (error);
+}
+
+int
 lkpi_80211_mo_set_frag_threshold(struct ieee80211_hw *hw, uint32_t frag_th)
 {
 	struct lkpi_hw *lhw;
@@ -187,10 +205,10 @@ lkpi_80211_mo_hw_scan(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
 		goto out;
 	}
 
-	lhw->scan_flags |= LKPI_SCAN_RUNNING;
+	lhw->scan_flags |= LKPI_LHW_SCAN_RUNNING;
 	error = lhw->ops->hw_scan(hw, vif, sr);
 	if (error != 0)
-		lhw->scan_flags &= ~LKPI_SCAN_RUNNING;
+		lhw->scan_flags &= ~LKPI_LHW_SCAN_RUNNING;
 
 out:
 	return (error);
@@ -218,7 +236,7 @@ lkpi_80211_mo_sw_scan_complete(struct ieee80211_hw *hw, struct ieee80211_vif *vi
 		return;
 
 	lhw->ops->sw_scan_complete(hw, vif);
-	lhw->scan_flags &= ~LKPI_SCAN_RUNNING;
+	lhw->scan_flags &= ~LKPI_LHW_SCAN_RUNNING;
 }
 
 void

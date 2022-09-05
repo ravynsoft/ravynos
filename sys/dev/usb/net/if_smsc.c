@@ -1545,7 +1545,7 @@ smsc_ioctl(struct ifnet *ifp, u_long cmd, caddr_t data)
  *	@ue: the USB ethernet device
  *
  *	This is where the chip is intialised for the first time.  This is different
- *	from the smsc_init() function in that that one is designed to setup the
+ *	from the smsc_init() function in that one is designed to setup the
  *	H/W to match the UE settings and can be called after a reset.
  *
  *
@@ -1604,7 +1604,7 @@ smsc_attach_post(struct usb_ether *ue)
  *	@ue: the USB ethernet device
  *
  *	Most of this is boilerplate code and copied from the base USB ethernet
- *	driver.  It has been overriden so that we can indicate to the system that
+ *	driver.  It has been overridden so that we can indicate to the system that
  *	the chip supports H/W checksumming.
  *
  *	RETURNS:
