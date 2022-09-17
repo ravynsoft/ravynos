@@ -501,11 +501,21 @@ static void _LSCheckAndHandleLaunchFlags(NSTask *task, LSLaunchFlags launchFlags
         NSDictionary *env = [task environment];
         NSArray *keys = [env allKeys];
         NSArray *vals = [env allValues];
+        BOOL hasXDGRuntime = NO;
         launch_data_t envDict = launch_data_alloc(LAUNCH_DATA_DICTIONARY);
-        for(int i = 0; i < [keys count]; ++i)
+        for(int i = 0; i < [keys count]; ++i) {
+            if([[keys objectAtIndex:i] isEqualToString:@"XDG_RUNTIME_DIR"])
+                hasXDGRuntime = YES;
             launch_data_dict_insert(envDict,
                 launch_data_new_string([[vals objectAtIndex:i] UTF8String]),
                 [[keys objectAtIndex:i] UTF8String]);
+	}
+        if(!hasXDGRuntime) {
+            char *xdgdir;
+            asprintf(&xdgdir, "/tmp/runtime.%d", getuid());
+            launch_data_dict_insert(envDict, launch_data_new_string("XDG_RUNTIME_DIR"), xdgdir);
+            free(xdgdir);
+        }
         launch_data_dict_insert(job, envDict, LAUNCH_JOBKEY_ENVIRONMENTVARIABLES);
 
         char *label = 0;
