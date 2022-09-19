@@ -184,6 +184,34 @@ SYSCTL_INT(_machdep, OID_AUTO, uprintf_signal, CTLFLAG_RW,
     &uprintf_signal, 0,
     "Print debugging information on trap signal to ctty");
 
+
+#ifdef INVARIANTS
+static __inline register_t
+read_esp(void)
+{
+	register_t res;
+
+	__asm __volatile("movl\t%%esp,%0" : "=r" (res));
+	return (res);
+}
+
+void
+trap_check_kstack(void)
+{
+	struct thread *td;
+	vm_offset_t stk;
+
+	td = curthread;
+	stk = read_esp();
+	if (stk >= PMAP_TRM_MIN_ADDRESS)
+		panic("td %p stack %#x in trampoline", td, stk);
+	if (stk < td->td_kstack || stk >= td->td_kstack +
+	    ptoa(td->td_kstack_pages))
+		panic("td %p stack %#x not in kstack VA %#x %d",
+		    td, stk, td->td_kstack, td->td_kstack_pages);
+}
+#endif
+
 /*
  * Exception, fault, and trap interface to the FreeBSD kernel.
  * This common code is called from assembly language IDT gate entry
@@ -227,6 +255,7 @@ trap(struct trapframe *frame)
 		return;
 	}
 #endif
+	trap_check_kstack();
 
 	if (type == T_RESERVED) {
 		trap_fatal(frame, 0);
@@ -1001,10 +1030,12 @@ dblfault_handler(void)
 	printf(
 	    "eip = %#08x esp = %#08x ebp = %#08x eax = %#08x\n"
 	    "edx = %#08x ecx = %#08x edi = %#08x esi = %#08x\n"
+	    "ebx = %#08x\n"
 	    "psl = %#08x cs  = %#08x ss  = %#08x ds  = %#08x\n"
 	    "es  = %#08x fs  = %#08x gs  = %#08x cr3 = %#08x\n",
 	    t->tss_eip, t->tss_esp, t->tss_ebp, t->tss_eax,
 	    t->tss_edx, t->tss_ecx, t->tss_edi, t->tss_esi,
+	    t->tss_ebx,
 	    t->tss_eflags, t->tss_cs, t->tss_ss, t->tss_ds,
 	    t->tss_es, t->tss_fs, t->tss_gs, t->tss_cr3);
 #ifdef SMP
@@ -1124,6 +1155,7 @@ syscall(struct trapframe *frame)
 		/* NOT REACHED */
 	}
 #endif
+	trap_check_kstack();
 	orig_tf_eflags = frame->tf_eflags;
 
 	td = curthread;

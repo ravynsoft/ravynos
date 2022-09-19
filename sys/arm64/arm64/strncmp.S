@@ -1,16 +1,19 @@
 /*
  * strncmp - compare two strings
  *
- * Copyright (c) 2013-2021, Arm Limited.
+ * Copyright (c) 2013-2022, Arm Limited.
  * SPDX-License-Identifier: MIT
  */
 
 /* Assumptions:
  *
- * ARMv8-a, AArch64
+ * ARMv8-a, AArch64.
+ * MTE compatible.
  */
 
-#include "../asmdefs.h"
+#include <machine/asm.h>
+
+#define L(l) .L ## l
 
 #define REP8_01 0x0101010101010101
 #define REP8_7f 0x7f7f7f7f7f7f7f7f
@@ -53,10 +56,7 @@
 #define LS_BK lsl
 #endif
 
-ENTRY (__strncmp_aarch64_mte)
-	PTR_ARG (0)
-	PTR_ARG (1)
-	SIZE_ARG (2)
+ENTRY (strncmp)
 	cbz	limit, L(ret0)
 	eor	tmp1, src1, src2
 	mov	zeroones, #REP8_01
@@ -303,5 +303,5 @@ L(syndrome_check):
 L(ret0):
 	mov	result, #0
 	ret
-END(__strncmp_aarch64_mte)
+END(strncmp)
 

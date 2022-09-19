@@ -1,7 +1,7 @@
 /*
  * strcmp - compare two strings
  *
- * Copyright (c) 2012-2020, Arm Limited.
+ * Copyright (c) 2012-2022, Arm Limited.
  * SPDX-License-Identifier: MIT
  */
 
@@ -12,7 +12,9 @@
  * MTE compatible.
  */
 
-#include "../asmdefs.h"
+#include <machine/asm.h>
+
+#define L(l) .L ## l
 
 #define REP8_01 0x0101010101010101
 #define REP8_7f 0x7f7f7f7f7f7f7f7f
@@ -50,9 +52,7 @@
    NUL too in big-endian, byte-reverse the data before the NUL check.  */
 
 
-ENTRY (__strcmp_aarch64_mte)
-	PTR_ARG (0)
-	PTR_ARG (1)
+ENTRY (strcmp)
 	sub	off2, src2, src1
 	mov	zeroones, REP8_01
 	and	tmp, src1, 7
@@ -185,5 +185,5 @@ L(done):
 	sub	result, data1, data2
 	ret
 
-END (__strcmp_aarch64_mte)
+END (strcmp)
 

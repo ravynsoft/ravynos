@@ -130,11 +130,21 @@ IDTVEC(prot)
 	jmp	irettraps
 IDTVEC(page)
 	testl	$PSL_VM, TF_EFLAGS-TF_ERR(%esp)
-	jnz	4f
+	jnz	upf
 	testb	$SEL_RPL_MASK, TF_CS-TF_ERR(%esp)
-	jnz	4f
+	jnz	upf
 	cmpl	$PMAP_TRM_MIN_ADDRESS, TF_EIP-TF_ERR(%esp)
-	jb	4f
+	jb	upf
+
+	/*
+	 * This is a handshake between copyout_fast.s and page fault
+	 * handler.  We check for page fault occuring at the special
+	 * places in the copyout fast path, where page fault can
+	 * legitimately happen while accessing either user space or
+	 * kernel pageable memory, and return control to *%edx.
+	 * We switch to the idleptd page table from a user page table,
+	 * if needed.
+	 */
 	pushl	%eax
 	movl	TF_EIP-TF_ERR+4(%esp), %eax
 	addl	$1f, %eax
@@ -154,17 +164,29 @@ IDTVEC(page)
 	cmpl	$pf_x7, %eax
 	je	2f
 	cmpl	$pf_x8, %eax
-	jne	3f
-2:	popl	%eax
-	movl	%ebx, %cr3
+	je	2f
+	cmpl	$pf_y1, %eax
+	je	4f
+	cmpl	$pf_y2, %eax
+	je	4f
+	jmp	upf_eax
+2:	movl	$tramp_idleptd, %eax
+	subl	$3f, %eax
+	call	6f
+3:	movl	(%eax), %eax
+	movl	%eax, %cr3
+4:	popl	%eax
 	movl	%edx, TF_EIP-TF_ERR(%esp)
 	addl	$4, %esp
 	iret
-3:	popl	%eax
-4:	pushl	$T_PAGEFLT
-	jmp	alltraps
 5:	subl	(%esp), %eax
 	retl
+6:	addl	(%esp), %eax
+	retl
+
+upf_eax:popl	%eax
+upf:	pushl	$T_PAGEFLT
+	jmp	alltraps
 IDTVEC(rsvd_pti)
 IDTVEC(rsvd)
 	pushl $0; TRAP(T_RESERVED)

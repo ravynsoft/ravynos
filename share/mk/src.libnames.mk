@@ -100,6 +100,7 @@ _LIBRARIES=	\
 		asl \
 		asn1 \
 		avl \
+		BlocksRuntime \
 		be \
 		begemot \
 		bluetooth \

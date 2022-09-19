@@ -532,12 +532,6 @@ ip_input(struct mbuf *m)
 		goto bad;
 	}
 
-#ifdef ALTQ
-	if (altq_input != NULL && (*altq_input)(m, AF_INET) == 0)
-		/* packet is dropped by traffic conditioner */
-		return;
-#endif
-
 	ip_len = ntohs(ip->ip_len);
 	if (__predict_false(ip_len < hlen)) {
 		IPSTAT_INC(ips_badlen);
@@ -615,7 +609,7 @@ tooshort:
 		goto passin;
 
 	odst = ip->ip_dst;
-	if (pfil_run_hooks(V_inet_pfil_head, &m, ifp, PFIL_IN, NULL) !=
+	if (pfil_mbuf_in(V_inet_pfil_head, &m, ifp, NULL) !=
 	    PFIL_PASS)
 		return;
 	if (m == NULL)			/* consumed by filter */

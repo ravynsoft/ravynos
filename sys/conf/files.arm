@@ -99,7 +99,10 @@ dev/psci/psci.c			optional	psci
 dev/psci/smccc_arm.S		optional	psci
 dev/syscons/scgfbrndr.c		optional	sc
 dev/uart/uart_cpu_fdt.c		optional	uart fdt
-dev/usb/controller/dwc3.c	optional	fdt dwc3
+
+dev/usb/controller/dwc3.c		optional	fdt dwc3
+dev/usb/controller/generic_xhci.c	optional	xhci
+dev/usb/controller/generic_xhci_fdt.c	optional	xhci fdt
 
 kern/msi_if.m			optional	intrng
 kern/pic_if.m			optional	intrng
@@ -127,7 +130,9 @@ libkern/flsll.c			optional	!armv7 !armv6
 libkern/lshrdi3.c		standard
 libkern/moddi3.c		standard
 libkern/qdivrem.c		standard
+libkern/strcmp.c		standard
 libkern/strlen.c		standard
+libkern/strncmp.c		standard
 libkern/ucmpdi2.c		standard
 libkern/udivdi3.c		standard
 libkern/umoddi3.c		standard

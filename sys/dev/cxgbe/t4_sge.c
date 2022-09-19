@@ -124,10 +124,16 @@ SYSCTL_INT(_hw_cxgbe, OID_AUTO, spg_len, CTLFLAG_RDTUN, &spg_len, 0,
  * -1: no congestion feedback (not recommended).
  *  0: backpressure the channel instead of dropping packets right away.
  *  1: no backpressure, drop packets for the congested queue immediately.
+ *  2: both backpressure and drop.
  */
 static int cong_drop = 0;
 SYSCTL_INT(_hw_cxgbe, OID_AUTO, cong_drop, CTLFLAG_RDTUN, &cong_drop, 0,
-    "Congestion control for RX queues (0 = backpressure, 1 = drop");
+    "Congestion control for NIC RX queues (0 = backpressure, 1 = drop, 2 = both");
+#ifdef TCP_OFFLOAD
+static int ofld_cong_drop = 0;
+SYSCTL_INT(_hw_cxgbe, OID_AUTO, ofld_cong_drop, CTLFLAG_RDTUN, &ofld_cong_drop, 0,
+    "Congestion control for TOE RX queues (0 = backpressure, 1 = drop, 2 = both");
+#endif
 
 /*
  * Deliver multiple frames in the same free list buffer if they fit.
@@ -236,7 +242,7 @@ static struct mbuf *get_fl_payload(struct adapter *, struct sge_fl *, uint32_t);
 static int eth_rx(struct adapter *, struct sge_rxq *, const struct iq_desc *,
     u_int);
 static inline void init_iq(struct sge_iq *, struct adapter *, int, int, int,
-    int, int);
+    int, int, int);
 static inline void init_fl(struct adapter *, struct sge_fl *, int, int, char *);
 static inline void init_eq(struct adapter *, struct sge_eq *, int, int, uint8_t,
     struct sge_iq *, char *);
@@ -554,11 +560,18 @@ t4_sge_modload(void)
 		spg_len = len;
 	}
 
-	if (cong_drop < -1 || cong_drop > 1) {
+	if (cong_drop < -1 || cong_drop > 2) {
 		printf("Invalid hw.cxgbe.cong_drop value (%d),"
 		    " using 0 instead.\n", cong_drop);
 		cong_drop = 0;
 	}
+#ifdef TCP_OFFLOAD
+	if (ofld_cong_drop < -1 || ofld_cong_drop > 2) {
+		printf("Invalid hw.cxgbe.ofld_cong_drop value (%d),"
+		    " using 0 instead.\n", ofld_cong_drop);
+		ofld_cong_drop = 0;
+	}
+#endif
 
 	if (tscale != 1 && (tscale < 3 || tscale > 17)) {
 		printf("Invalid hw.cxgbe.tscale value (%d),"
@@ -1003,6 +1016,10 @@ t4_sge_sysctls(struct adapter *sc, struct sysctl_ctx_list *ctx,
 
 	SYSCTL_ADD_INT(ctx, children, OID_AUTO, "cong_drop", CTLFLAG_RD,
 	    NULL, cong_drop, "congestion drop setting");
+#ifdef TCP_OFFLOAD
+	SYSCTL_ADD_INT(ctx, children, OID_AUTO, "ofld_cong_drop", CTLFLAG_RD,
+	    NULL, ofld_cong_drop, "congestion drop setting");
+#endif
 
 	SYSCTL_ADD_INT(ctx, children, OID_AUTO, "fl_pack", CTLFLAG_RD,
 	    NULL, sp->pack_boundary, "payload pack boundary (bytes)");
@@ -3357,7 +3374,7 @@ send_txpkts:
 
 static inline void
 init_iq(struct sge_iq *iq, struct adapter *sc, int tmr_idx, int pktc_idx,
-    int qsize, int intr_idx, int cong)
+    int qsize, int intr_idx, int cong, int qtype)
 {
 
 	KASSERT(tmr_idx >= 0 && tmr_idx < SGE_NTIMERS,
@@ -3366,10 +3383,13 @@ init_iq(struct sge_iq *iq, struct adapter *sc, int tmr_idx, int pktc_idx,
 	    ("%s: bad pktc_idx %d", __func__, pktc_idx));
 	KASSERT(intr_idx >= -1 && intr_idx < sc->intr_count,
 	    ("%s: bad intr_idx %d", __func__, intr_idx));
+	KASSERT(qtype == FW_IQ_IQTYPE_OTHER || qtype == FW_IQ_IQTYPE_NIC ||
+	    qtype == FW_IQ_IQTYPE_OFLD, ("%s: bad qtype %d", __func__, qtype));
 
 	iq->flags = 0;
 	iq->state = IQS_DISABLED;
 	iq->adapter = sc;
+	iq->qtype = qtype;
 	iq->intr_params = V_QINTR_TIMER_IDX(tmr_idx);
 	iq->intr_pktc_idx = SGE_NCOUNTERS - 1;
 	if (pktc_idx >= 0) {
@@ -3379,7 +3399,7 @@ init_iq(struct sge_iq *iq, struct adapter *sc, int tmr_idx, int pktc_idx,
 	iq->qsize = roundup2(qsize, 16);	/* See FW_IQ_CMD/iqsize */
 	iq->sidx = iq->qsize - sc->params.sge.spg_len / IQ_ESIZE;
 	iq->intr_idx = intr_idx;
-	iq->cong = cong;
+	iq->cong_drop = cong;
 }
 
 static inline void
@@ -3545,9 +3565,10 @@ free_iq_fl(struct adapter *sc, struct sge_iq *iq, struct sge_fl *fl)
 static int
 alloc_iq_fl_hwq(struct vi_info *vi, struct sge_iq *iq, struct sge_fl *fl)
 {
-	int rc, i, cntxt_id;
+	int rc, cntxt_id, cong_map;
 	struct fw_iq_cmd c;
 	struct adapter *sc = vi->adapter;
+	struct port_info *pi = vi->pi;
 	__be32 v = 0;
 
 	MPASS (!(iq->flags & IQ_HW_ALLOCATED));
@@ -3579,14 +3600,17 @@ alloc_iq_fl_hwq(struct vi_info *vi, struct sge_iq *iq, struct sge_fl *fl)
 	    V_FW_IQ_CMD_TYPE(FW_IQ_TYPE_FL_INT_CAP) |
 	    V_FW_IQ_CMD_VIID(vi->viid) |
 	    V_FW_IQ_CMD_IQANUD(X_UPDATEDELIVERY_INTERRUPT));
-	c.iqdroprss_to_iqesize = htobe16(V_FW_IQ_CMD_IQPCIECH(vi->pi->tx_chan) |
+	c.iqdroprss_to_iqesize = htobe16(V_FW_IQ_CMD_IQPCIECH(pi->tx_chan) |
 	    F_FW_IQ_CMD_IQGTSMODE |
 	    V_FW_IQ_CMD_IQINTCNTTHRESH(iq->intr_pktc_idx) |
 	    V_FW_IQ_CMD_IQESIZE(ilog2(IQ_ESIZE) - 4));
 	c.iqsize = htobe16(iq->qsize);
 	c.iqaddr = htobe64(iq->ba);
-	if (iq->cong >= 0)
-		c.iqns_to_fl0congen = htobe32(F_FW_IQ_CMD_IQFLINTCONGEN);
+	c.iqns_to_fl0congen = htobe32(V_FW_IQ_CMD_IQTYPE(iq->qtype));
+	if (iq->cong_drop != -1) {
+		cong_map = iq->qtype == IQ_ETH ? pi->rx_e_chan_map : 0;
+		c.iqns_to_fl0congen |= htobe32(F_FW_IQ_CMD_IQFLINTCONGEN);
+	}
 
 	if (fl) {
 		bzero(fl->desc, fl->sidx * EQ_ESIZE + sc->params.sge.spg_len);
@@ -3596,9 +3620,9 @@ alloc_iq_fl_hwq(struct vi_info *vi, struct sge_iq *iq, struct sge_fl *fl)
 			(fl_pad ? F_FW_IQ_CMD_FL0PADEN : 0) |
 			(fl->flags & FL_BUF_PACKING ? F_FW_IQ_CMD_FL0PACKEN :
 			    0));
-		if (iq->cong >= 0) {
+		if (iq->cong_drop != -1) {
 			c.iqns_to_fl0congen |=
-				htobe32(V_FW_IQ_CMD_FL0CNGCHMAP(iq->cong) |
+				htobe32(V_FW_IQ_CMD_FL0CNGCHMAP(cong_map) |
 				    F_FW_IQ_CMD_FL0CONGCIF |
 				    F_FW_IQ_CMD_FL0CONGEN);
 		}
@@ -3632,6 +3656,8 @@ alloc_iq_fl_hwq(struct vi_info *vi, struct sge_iq *iq, struct sge_fl *fl)
 	if (fl) {
 		u_int qid;
 #ifdef INVARIANTS
+		int i;
+
 		MPASS(!(fl->flags & FL_BUF_RESUME));
 		for (i = 0; i < fl->sidx * 8; i++)
 			MPASS(fl->sdesc[i].cl == NULL);
@@ -3671,28 +3697,10 @@ alloc_iq_fl_hwq(struct vi_info *vi, struct sge_iq *iq, struct sge_fl *fl)
 		FL_UNLOCK(fl);
 	}
 
-	if (chip_id(sc) >= CHELSIO_T5 && !(sc->flags & IS_VF) && iq->cong >= 0) {
-		uint32_t param, val;
-
-		param = V_FW_PARAMS_MNEM(FW_PARAMS_MNEM_DMAQ) |
-		    V_FW_PARAMS_PARAM_X(FW_PARAMS_PARAM_DMAQ_CONM_CTXT) |
-		    V_FW_PARAMS_PARAM_YZ(iq->cntxt_id);
-		if (iq->cong == 0)
-			val = 1 << 19;
-		else {
-			val = 2 << 19;
-			for (i = 0; i < 4; i++) {
-				if (iq->cong & (1 << i))
-					val |= 1 << (i << 2);
-			}
-		}
-
-		rc = -t4_set_params(sc, sc->mbox, sc->pf, 0, 1, &param, &val);
-		if (rc != 0) {
-			/* report error but carry on */
-			CH_ERR(sc, "failed to set congestion manager context "
-			    "for ingress queue %d: %d\n", iq->cntxt_id, rc);
-		}
+	if (chip_id(sc) >= CHELSIO_T5 && !(sc->flags & IS_VF) &&
+	    iq->cong_drop != -1) {
+		t4_sge_set_conm_context(sc, iq->cntxt_id, iq->cong_drop,
+		    cong_map);
 	}
 
 	/* Enable IQ interrupts */
@@ -3802,7 +3810,7 @@ alloc_fwq(struct adapter *sc)
 			intr_idx = 0;
 		else
 			intr_idx = sc->intr_count > 1 ? 1 : 0;
-		init_iq(fwq, sc, 0, 0, FW_IQ_QSIZE, intr_idx, -1);
+		init_iq(fwq, sc, 0, 0, FW_IQ_QSIZE, intr_idx, -1, IQ_OTHER);
 		rc = alloc_iq_fl(vi, fwq, NULL, &sc->ctx, sc->fwq_oid);
 		if (rc != 0) {
 			CH_ERR(sc, "failed to allocate fwq: %d\n", rc);
@@ -3916,15 +3924,57 @@ free_ctrlq(struct adapter *sc, int idx)
 }
 
 int
-tnl_cong(struct port_info *pi, int drop)
+t4_sge_set_conm_context(struct adapter *sc, int cntxt_id, int cong_drop,
+    int cong_map)
 {
+	const int cng_ch_bits_log = sc->chip_params->cng_ch_bits_log;
+	uint32_t param, val;
+	uint16_t ch_map;
+	int cong_mode, rc, i;
 
-	if (drop == -1)
-		return (-1);
-	else if (drop == 1)
-		return (0);
-	else
-		return (pi->rx_e_chan_map);
+	if (chip_id(sc) < CHELSIO_T5)
+		return (ENOTSUP);
+
+	/* Convert the driver knob to the mode understood by the firmware. */
+	switch (cong_drop) {
+	case -1:
+		cong_mode = X_CONMCTXT_CNGTPMODE_DISABLE;
+		break;
+	case 0:
+		cong_mode = X_CONMCTXT_CNGTPMODE_CHANNEL;
+		break;
+	case 1:
+		cong_mode = X_CONMCTXT_CNGTPMODE_QUEUE;
+		break;
+	case 2:
+		cong_mode = X_CONMCTXT_CNGTPMODE_BOTH;
+		break;
+	default:
+		MPASS(0);
+		CH_ERR(sc, "cong_drop = %d is invalid (ingress queue %d).\n",
+		    cong_drop, cntxt_id);
+		return (EINVAL);
+	}
+
+	param = V_FW_PARAMS_MNEM(FW_PARAMS_MNEM_DMAQ) |
+	    V_FW_PARAMS_PARAM_X(FW_PARAMS_PARAM_DMAQ_CONM_CTXT) |
+	    V_FW_PARAMS_PARAM_YZ(cntxt_id);
+	val = V_CONMCTXT_CNGTPMODE(cong_mode);
+	if (cong_mode == X_CONMCTXT_CNGTPMODE_CHANNEL ||
+	    cong_mode == X_CONMCTXT_CNGTPMODE_BOTH) {
+		for (i = 0, ch_map = 0; i < 4; i++) {
+			if (cong_map & (1 << i))
+				ch_map |= 1 << (i << cng_ch_bits_log);
+		}
+		val |= V_CONMCTXT_CNGCHMAP(ch_map);
+	}
+	rc = -t4_set_params(sc, sc->mbox, sc->pf, 0, 1, &param, &val);
+	if (rc != 0) {
+		CH_ERR(sc, "failed to set congestion manager context "
+		    "for ingress queue %d: %d\n", cntxt_id, rc);
+	}
+
+	return (rc);
 }
 
 /*
@@ -3956,7 +4006,7 @@ alloc_rxq(struct vi_info *vi, struct sge_rxq *rxq, int idx, int intr_idx,
 		    "rx queue");
 
 		init_iq(&rxq->iq, sc, vi->tmr_idx, vi->pktc_idx, vi->qsize_rxq,
-		    intr_idx, tnl_cong(vi->pi, cong_drop));
+		    intr_idx, cong_drop, IQ_ETH);
 #if defined(INET) || defined(INET6)
 		if (ifp->if_capenable & IFCAP_LRO)
 			rxq->iq.flags |= IQ_LRO_ENABLED;
@@ -4079,7 +4129,7 @@ alloc_ofld_rxq(struct vi_info *vi, struct sge_ofld_rxq *ofld_rxq, int idx,
 		    CTLFLAG_RD | CTLFLAG_MPSAFE, NULL, "offload rx queue");
 
 		init_iq(&ofld_rxq->iq, sc, vi->ofld_tmr_idx, vi->ofld_pktc_idx,
-		    vi->qsize_rxq, intr_idx, 0);
+		    vi->qsize_rxq, intr_idx, ofld_cong_drop, IQ_OFLD);
 		snprintf(name, sizeof(name), "%s ofld_rxq%d-fl",
 		    device_get_nameunit(vi->dev), idx);
 		init_fl(sc, &ofld_rxq->fl, vi->qsize_rxq / 8, maxp, name);

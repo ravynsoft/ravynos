@@ -1586,6 +1586,9 @@ dev/dc/pnphy.c			optional dc pci
 dev/dcons/dcons.c		optional dcons
 dev/dcons/dcons_crom.c		optional dcons_crom
 dev/dcons/dcons_os.c		optional dcons
+dev/dialog/da9063/da9063_if.m	optional da9063_pmic
+dev/dialog/da9063/da9063_iic.c	optional da9063_pmic iicbus fdt
+dev/dialog/da9063/da9063_rtc.c	optional da9063_rtc fdt
 dev/dme/if_dme.c		optional dme
 dev/drm2/drm_agpsupport.c	optional drm2
 dev/drm2/drm_auth.c		optional drm2
@@ -3100,7 +3103,6 @@ dev/smc/if_smc_fdt.c		optional smc fdt
 dev/snp/snp.c			optional snp
 dev/sound/clone.c		optional sound
 dev/sound/unit.c		optional sound
-dev/sound/isa/sndbuf_dma.c	optional sound isa
 dev/sound/pci/als4000.c		optional snd_als4000 pci
 dev/sound/pci/atiixp.c		optional snd_atiixp pci
 dev/sound/pci/cmi.c		optional snd_cmi pci
@@ -4061,7 +4063,6 @@ libkern/strcasestr.c		standard
 libkern/strcat.c		standard
 libkern/strchr.c		standard
 libkern/strchrnul.c		optional gdb
-libkern/strcmp.c		standard
 libkern/strcpy.c		standard
 libkern/strcspn.c		standard
 libkern/strdup.c		standard
@@ -4069,7 +4070,6 @@ libkern/strndup.c		standard
 libkern/strlcat.c		standard
 libkern/strlcpy.c		standard
 libkern/strncat.c		standard
-libkern/strncmp.c		standard
 libkern/strncpy.c		standard
 libkern/strnlen.c		standard
 libkern/strnstr.c		standard
@@ -4334,7 +4334,7 @@ netinet/in_prot.c		optional inet | inet6
 netinet/in_proto.c		optional inet | inet6
 netinet/in_rmx.c		optional inet
 netinet/in_rss.c		optional inet rss
-netinet/ip_divert.c		optional ipdivert ipfirewall
+netinet/ip_divert.c		optional ipdivert inet | ipdivert inet6
 netinet/ip_ecn.c		optional inet | inet6
 netinet/ip_encap.c		optional inet | inet6
 netinet/ip_fastfwd.c		optional inet

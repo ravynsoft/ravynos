@@ -372,6 +372,11 @@ struct iq_desc {
 CTASSERT(sizeof(struct iq_desc) == IQ_ESIZE);
 
 enum {
+	/* iq type */
+	IQ_OTHER	= FW_IQ_IQTYPE_OTHER,
+	IQ_ETH		= FW_IQ_IQTYPE_NIC,
+	IQ_OFLD		= FW_IQ_IQTYPE_OFLD,
+
 	/* iq flags */
 	IQ_SW_ALLOCATED	= (1 << 0),	/* sw resources allocated */
 	IQ_HAS_FL	= (1 << 1),	/* iq associated with a freelist */
@@ -415,14 +420,15 @@ typedef int (*fw_msg_handler_t)(struct adapter *, const __be64 *);
  * Ingress Queue: T4 is producer, driver is consumer.
  */
 struct sge_iq {
-	uint32_t flags;
+	uint16_t flags;
+	uint8_t qtype;
 	volatile int state;
 	struct adapter *adapter;
 	struct iq_desc  *desc;	/* KVA of descriptor ring */
 	int8_t   intr_pktc_idx;	/* packet count threshold index */
 	uint8_t  gen;		/* generation bit */
 	uint8_t  intr_params;	/* interrupt holdoff parameters */
-	int8_t   cong;		/* congestion settings */
+	int8_t   cong_drop;	/* congestion drop settings for the queue */
 	uint16_t qsize;		/* size (# of entries) of the queue */
 	uint16_t sidx;		/* index of the entry with the status page */
 	uint16_t cidx;		/* consumer index */
@@ -1378,7 +1384,7 @@ struct mbuf *alloc_wr_mbuf(int, int);
 int parse_pkt(struct mbuf **, bool);
 void *start_wrq_wr(struct sge_wrq *, int, struct wrq_cookie *);
 void commit_wrq_wr(struct sge_wrq *, void *, struct wrq_cookie *);
-int tnl_cong(struct port_info *, int);
+int t4_sge_set_conm_context(struct adapter *, int, int, int);
 void t4_register_an_handler(an_handler_t);
 void t4_register_fw_msg_handler(int, fw_msg_handler_t);
 void t4_register_cpl_handler(int, cpl_handler_t);

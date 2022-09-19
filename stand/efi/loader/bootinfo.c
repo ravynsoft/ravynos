@@ -44,6 +44,7 @@ __FBSDID("$FreeBSD$");
 #include <efilib.h>
 
 #include "bootstrap.h"
+#include "modinfo.h"
 #include "loader_efi.h"
 
 #if defined(__amd64__)
@@ -123,134 +124,6 @@ bi_getboothowto(char *kargs)
 	}
 
 	return (howto);
-}
-
-/*
- * Copy the environment into the load area starting at (addr).
- * Each variable is formatted as <name>=<value>, with a single nul
- * separating each variable, and a double nul terminating the environment.
- */
-static vm_offset_t
-bi_copyenv(vm_offset_t start)
-{
-	struct env_var *ep;
-	vm_offset_t addr, last;
-	size_t len;
-
-	addr = last = start;
-
-	/* Traverse the environment. */
-	for (ep = environ; ep != NULL; ep = ep->ev_next) {
-		len = strlen(ep->ev_name);
-		if ((size_t)archsw.arch_copyin(ep->ev_name, addr, len) != len)
-			break;
-		addr += len;
-		if (archsw.arch_copyin("=", addr, 1) != 1)
-			break;
-		addr++;
-		if (ep->ev_value != NULL) {
-			len = strlen(ep->ev_value);
-			if ((size_t)archsw.arch_copyin(ep->ev_value, addr, len) != len)
-				break;
-			addr += len;
-		}
-		if (archsw.arch_copyin("", addr, 1) != 1)
-			break;
-		last = ++addr;
-	}
-
-	if (archsw.arch_copyin("", last++, 1) != 1)
-		last = start;
-	return(last);
-}
-
-/*
- * Copy module-related data into the load area, where it can be
- * used as a directory for loaded modules.
- *
- * Module data is presented in a self-describing format.  Each datum
- * is preceded by a 32-bit identifier and a 32-bit size field.
- *
- * Currently, the following data are saved:
- *
- * MOD_NAME	(variable)		module name (string)
- * MOD_TYPE	(variable)		module type (string)
- * MOD_ARGS	(variable)		module parameters (string)
- * MOD_ADDR	sizeof(vm_offset_t)	module load address
- * MOD_SIZE	sizeof(size_t)		module size
- * MOD_METADATA	(variable)		type-specific metadata
- */
-#define	COPY32(v, a, c) {					\
-	uint32_t x = (v);					\
-	if (c)							\
-		archsw.arch_copyin(&x, a, sizeof(x));		\
-	a += sizeof(x);						\
-}
-
-#define	MOD_STR(t, a, s, c) {					\
-	COPY32(t, a, c);					\
-	COPY32(strlen(s) + 1, a, c);				\
-	if (c)							\
-		archsw.arch_copyin(s, a, strlen(s) + 1);	\
-	a += roundup(strlen(s) + 1, sizeof(u_long));		\
-}
-
-#define	MOD_NAME(a, s, c)	MOD_STR(MODINFO_NAME, a, s, c)
-#define	MOD_TYPE(a, s, c)	MOD_STR(MODINFO_TYPE, a, s, c)
-#define	MOD_ARGS(a, s, c)	MOD_STR(MODINFO_ARGS, a, s, c)
-
-#define	MOD_VAR(t, a, s, c) {					\
-	COPY32(t, a, c);					\
-	COPY32(sizeof(s), a, c);				\
-	if (c)							\
-		archsw.arch_copyin(&s, a, sizeof(s));		\
-	a += roundup(sizeof(s), sizeof(u_long));		\
-}
-
-#define	MOD_ADDR(a, s, c)	MOD_VAR(MODINFO_ADDR, a, s, c)
-#define	MOD_SIZE(a, s, c)	MOD_VAR(MODINFO_SIZE, a, s, c)
-
-#define	MOD_METADATA(a, mm, c) {				\
-	COPY32(MODINFO_METADATA | mm->md_type, a, c);		\
-	COPY32(mm->md_size, a, c);				\
-	if (c)							\
-		archsw.arch_copyin(mm->md_data, a, mm->md_size);	\
-	a += roundup(mm->md_size, sizeof(u_long));		\
-}
-
-#define	MOD_END(a, c) {						\
-	COPY32(MODINFO_END, a, c);				\
-	COPY32(0, a, c);					\
-}
-
-static vm_offset_t
-bi_copymodules(vm_offset_t addr)
-{
-	struct preloaded_file *fp;
-	struct file_metadata *md;
-	int c;
-	uint64_t v;
-
-	c = addr != 0;
-	/* Start with the first module on the list, should be the kernel. */
-	for (fp = file_findfile(NULL, NULL); fp != NULL; fp = fp->f_next) {
-		MOD_NAME(addr, fp->f_name, c); /* This must come first. */
-		MOD_TYPE(addr, fp->f_type, c);
-		if (fp->f_args)
-			MOD_ARGS(addr, fp->f_args, c);
-		v = fp->f_addr;
-#if defined(__arm__)
-		v -= __elfN(relocation_offset);
-#endif
-		MOD_ADDR(addr, v, c);
-		v = fp->f_size;
-		MOD_SIZE(addr, v, c);
-		for (md = fp->f_metadata; md != NULL; md = md->md_next)
-			if (!(md->md_type & MODINFOMD_NOCOPY))
-				MOD_METADATA(addr, md, c);
-	}
-	MOD_END(addr, c);
-	return(addr);
 }
 
 static EFI_STATUS
@@ -496,7 +369,7 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 
 	/* Copy our environment. */
 	envp = addr;
-	addr = bi_copyenv(addr);
+	addr = md_copyenv(addr);
 
 	/* Pad to a page boundary. */
 	addr = roundup(addr, PAGE_SIZE);
@@ -540,7 +413,7 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 #endif
 	bi_load_efi_data(kfp, exit_bs);
 
-	size = bi_copymodules(0);
+	size = md_copymodules(0, true);
 	kernend = roundup(addr + size, PAGE_SIZE);
 	*kernendp = kernend;
 
@@ -565,7 +438,7 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 #endif
 
 	/* Copy module list and metadata. */
-	(void)bi_copymodules(addr);
+	(void)md_copymodules(addr, true);
 
 	return (0);
 }

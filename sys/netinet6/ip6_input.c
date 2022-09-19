@@ -655,12 +655,6 @@ ip6_input(struct mbuf *m)
 		in6_ifstat_inc(rcvif, ifs6_in_addrerr);
 		goto bad;
 	}
-#ifdef ALTQ
-	if (altq_input != NULL && (*altq_input)(m, AF_INET6) == 0) {
-		/* packet is dropped by traffic conditioner */
-		return;
-	}
-#endif
 	/*
 	 * The following check is not documented in specs.  A malicious
 	 * party may be able to use IPv4 mapped addr to confuse tcp/udp stack
@@ -737,7 +731,7 @@ ip6_input(struct mbuf *m)
 		goto passin;
 
 	odst = ip6->ip6_dst;
-	if (pfil_run_hooks(V_inet6_pfil_head, &m, m->m_pkthdr.rcvif, PFIL_IN,
+	if (pfil_mbuf_in(V_inet6_pfil_head, &m, m->m_pkthdr.rcvif,
 	    NULL) != PFIL_PASS)
 		return;
 	ip6 = mtod(m, struct ip6_hdr *);

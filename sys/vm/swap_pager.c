@@ -169,8 +169,8 @@ SYSCTL_PROC(_vm, OID_AUTO, swap_total, CTLTYPE_U64 | CTLFLAG_RD | CTLFLAG_MPSAFE
     &swap_total, 0, sysctl_page_shift, "QU",
     "Total amount of available swap storage.");
 
-static int overcommit = 0;
-SYSCTL_INT(_vm, VM_OVERCOMMIT, overcommit, CTLFLAG_RW, &overcommit, 0,
+int vm_overcommit __read_mostly = 0;
+SYSCTL_INT(_vm, VM_OVERCOMMIT, overcommit, CTLFLAG_RW, &vm_overcommit, 0,
     "Configure virtual memory overcommit behavior. See tuning(7) "
     "for details.");
 static unsigned long swzone;
@@ -189,11 +189,6 @@ static COUNTER_U64_DEFINE_EARLY(swap_free_completed);
 SYSCTL_COUNTER_U64(_vm_stats_swap, OID_AUTO, free_completed,
     CTLFLAG_RD, &swap_free_completed,
     "Number of deferred frees completed");
-
-/* bits from overcommit */
-#define	SWAP_RESERVE_FORCE_ON		(1 << 0)
-#define	SWAP_RESERVE_RLIMIT_ON		(1 << 1)
-#define	SWAP_RESERVE_ALLOW_NONWIRED	(1 << 2)
 
 static int
 sysctl_page_shift(SYSCTL_HANDLER_ARGS)
@@ -218,7 +213,8 @@ swap_reserve_by_cred_rlimit(u_long pincr, struct ucred *cred, int oc)
 	    prev + pincr > lim_cur(curthread, RLIMIT_SWAP) &&
 	    priv_check(curthread, PRIV_VM_SWAP_NORLIMIT) != 0) {
 		prev = atomic_fetchadd_long(&uip->ui_vmsize, -pincr);
-		KASSERT(prev >= pincr, ("negative vmsize for uid = %d\n", uip->ui_uid));
+		KASSERT(prev >= pincr,
+		    ("negative vmsize for uid %d\n", uip->ui_uid));
 		return (false);
 	}
 	return (true);
@@ -236,7 +232,8 @@ swap_release_by_cred_rlimit(u_long pdecr, struct ucred *cred)
 
 #ifdef INVARIANTS
 	prev = atomic_fetchadd_long(&uip->ui_vmsize, -pdecr);
-	KASSERT(prev >= pdecr, ("negative vmsize for uid = %d\n", uip->ui_uid));
+	KASSERT(prev >= pdecr,
+	    ("negative vmsize for uid %d\n", uip->ui_uid));
 #else
 	atomic_subtract_long(&uip->ui_vmsize, pdecr);
 #endif
@@ -269,8 +266,8 @@ swap_reserve_by_cred(vm_ooffset_t incr, struct ucred *cred)
 	static int curfail;
 	static struct timeval lastfail;
 
-	KASSERT((incr & PAGE_MASK) == 0, ("%s: incr: %ju & PAGE_MASK", __func__,
-	    (uintmax_t)incr));
+	KASSERT((incr & PAGE_MASK) == 0, ("%s: incr: %ju & PAGE_MASK",
+	    __func__, (uintmax_t)incr));
 
 #ifdef RACCT
 	if (RACCT_ENABLED()) {
@@ -286,7 +283,7 @@ swap_reserve_by_cred(vm_ooffset_t incr, struct ucred *cred)
 	prev = atomic_fetchadd_long(&swap_reserved, pincr);
 	r = prev + pincr;
 	s = swap_total;
-	oc = atomic_load_int(&overcommit);
+	oc = atomic_load_int(&vm_overcommit);
 	if (r > s && (oc & SWAP_RESERVE_ALLOW_NONWIRED) != 0) {
 		s += vm_cnt.v_page_count - vm_cnt.v_free_reserved -
 		    vm_wire_count();
@@ -294,13 +291,15 @@ swap_reserve_by_cred(vm_ooffset_t incr, struct ucred *cred)
 	if ((oc & SWAP_RESERVE_FORCE_ON) != 0 && r > s &&
 	    priv_check(curthread, PRIV_VM_SWAP_NOQUOTA) != 0) {
 		prev = atomic_fetchadd_long(&swap_reserved, -pincr);
-		KASSERT(prev >= pincr, ("swap_reserved < incr on overcommit fail"));
+		KASSERT(prev >= pincr,
+		    ("swap_reserved < incr on overcommit fail"));
 		goto out_error;
 	}
 
 	if (!swap_reserve_by_cred_rlimit(pincr, cred, oc)) {
 		prev = atomic_fetchadd_long(&swap_reserved, -pincr);
-		KASSERT(prev >= pincr, ("swap_reserved < incr on overcommit fail"));
+		KASSERT(prev >= pincr,
+		    ("swap_reserved < incr on overcommit fail"));
 		goto out_error;
 	}
 
@@ -308,7 +307,8 @@ swap_reserve_by_cred(vm_ooffset_t incr, struct ucred *cred)
 
 out_error:
 	if (ppsratecheck(&lastfail, &curfail, 1)) {
-		printf("uid %d, pid %d: swap reservation for %jd bytes failed\n",
+		printf("uid %d, pid %d: swap reservation "
+		    "for %jd bytes failed\n",
 		    cred->cr_ruidinfo->ui_uid, curproc->p_pid, incr);
 	}
 #ifdef RACCT
@@ -327,8 +327,8 @@ swap_reserve_force(vm_ooffset_t incr)
 {
 	u_long pincr;
 
-	KASSERT((incr & PAGE_MASK) == 0, ("%s: incr: %ju & PAGE_MASK", __func__,
-	    (uintmax_t)incr));
+	KASSERT((incr & PAGE_MASK) == 0, ("%s: incr: %ju & PAGE_MASK",
+	    __func__, (uintmax_t)incr));
 
 #ifdef RACCT
 	if (RACCT_ENABLED()) {
@@ -361,8 +361,8 @@ swap_release_by_cred(vm_ooffset_t decr, struct ucred *cred)
 	u_long prev;
 #endif
 
-	KASSERT((decr & PAGE_MASK) == 0, ("%s: decr: %ju & PAGE_MASK", __func__,
-	    (uintmax_t)decr));
+	KASSERT((decr & PAGE_MASK) == 0, ("%s: decr: %ju & PAGE_MASK",
+	    __func__, (uintmax_t)decr));
 
 	pdecr = atop(decr);
 #ifdef INVARIANTS

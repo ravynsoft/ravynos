@@ -190,6 +190,11 @@ ufs_itimes_locked(struct vnode *vp)
 void
 ufs_itimes(struct vnode *vp)
 {
+	struct inode *ip;
+
+	ip = VTOI(vp);
+	if ((ip->i_flag & (IN_ACCESS | IN_CHANGE | IN_UPDATE)) == 0)
+		return;
 
 	VI_LOCK(vp);
 	ufs_itimes_locked(vp);
@@ -354,13 +359,8 @@ ufs_close(
 	} */ *ap)
 {
 	struct vnode *vp = ap->a_vp;
-	int usecount;
 
-	VI_LOCK(vp);
-	usecount = vp->v_usecount;
-	if (usecount > 1)
-		ufs_itimes_locked(vp);
-	VI_UNLOCK(vp);
+	ufs_itimes(vp);
 	return (0);
 }
 
@@ -1099,11 +1099,6 @@ ufs_link(
 	struct direct newdir;
 	int error;
 
-#ifdef INVARIANTS
-	if ((cnp->cn_flags & HASBUF) == 0)
-		panic("ufs_link: no name");
-#endif
-
 	if (DOINGSUJ(tdvp)) {
 		error = softdep_prelink(tdvp, vp, cnp);
 		if (error != 0) {
@@ -1194,8 +1189,6 @@ ufs_whiteout(
 	case CREATE:
 		/* create a new directory whiteout */
 #ifdef INVARIANTS
-		if ((cnp->cn_flags & SAVENAME) == 0)
-			panic("ufs_whiteout: missing name");
 		if (OFSFMT(dvp))
 			panic("ufs_whiteout: old format filesystem");
 #endif
@@ -1283,11 +1276,6 @@ ufs_rename(
 
 	checkpath_locked = want_seqc_end = false;
 
-#ifdef INVARIANTS
-	if ((tcnp->cn_flags & HASBUF) == 0 ||
-	    (fcnp->cn_flags & HASBUF) == 0)
-		panic("ufs_rename: no name");
-#endif
 	endoff = 0;
 	mp = tdvp->v_mount;
 	VOP_UNLOCK(tdvp);
@@ -2020,10 +2008,6 @@ ufs_mkdir(
 	int error, dmode;
 	long blkoff;
 
-#ifdef INVARIANTS
-	if ((cnp->cn_flags & HASBUF) == 0)
-		panic("ufs_mkdir: no name");
-#endif
 	dp = VTOI(dvp);
 	error = ufs_sync_nlink(dvp, NULL);
 	if (error != 0)
@@ -2640,14 +2624,8 @@ ufsfifo_close(
 		struct thread *a_td;
 	} */ *ap)
 {
-	struct vnode *vp = ap->a_vp;
-	int usecount;
 
-	VI_LOCK(vp);
-	usecount = vp->v_usecount;
-	if (usecount > 1)
-		ufs_itimes_locked(vp);
-	VI_UNLOCK(vp);
+	ufs_close(ap);
 	return (fifo_specops.vop_close(ap));
 }
 
@@ -2795,10 +2773,6 @@ ufs_makeinode(int mode, struct vnode *dvp, struct vnode **vpp,
 	int error;
 
 	pdir = VTOI(dvp);
-#ifdef INVARIANTS
-	if ((cnp->cn_flags & HASBUF) == 0)
-		panic("%s: no name", callfunc);
-#endif
 	*vpp = NULL;
 	if ((mode & IFMT) == 0)
 		mode |= IFREG;

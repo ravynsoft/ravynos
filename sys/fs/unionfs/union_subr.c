@@ -666,7 +666,7 @@ unionfs_relookup(struct vnode *dvp, struct vnode **vpp,
 	cn->cn_namelen = pathlen;
 	cn->cn_pnbuf = path;
 	cn->cn_nameiop = nameiop;
-	cn->cn_flags = (LOCKPARENT | LOCKLEAF | HASBUF | SAVENAME | ISLASTCN);
+	cn->cn_flags = (LOCKPARENT | LOCKLEAF | ISLASTCN);
 	cn->cn_lkflags = LK_EXCLUSIVE;
 	cn->cn_cred = cnp->cn_cred;
 	cn->cn_nameptr = cn->cn_pnbuf;
@@ -686,10 +686,6 @@ unionfs_relookup(struct vnode *dvp, struct vnode **vpp,
 	} else
 		vrele(dvp);
 
-	KASSERT((cn->cn_flags & HASBUF) != 0,
-	    ("%s: HASBUF cleared", __func__));
-	KASSERT((cn->cn_flags & SAVENAME) != 0,
-	    ("%s: SAVENAME cleared", __func__));
 	KASSERT(cn->cn_pnbuf == path, ("%s: cn_pnbuf changed", __func__));
 
 	return (error);
@@ -716,8 +712,6 @@ unionfs_relookup_for_create(struct vnode *dvp, struct componentname *cnp,
 	udvp = UNIONFSVPTOUPPERVP(dvp);
 	vp = NULLVP;
 
-	KASSERT((cnp->cn_flags & HASBUF) != 0,
-	    ("%s called without HASBUF", __func__));
 	error = unionfs_relookup(udvp, &vp, cnp, &cn, td, cnp->cn_nameptr,
 	    cnp->cn_namelen, CREATE);
 	if (error)
@@ -752,8 +746,6 @@ unionfs_relookup_for_delete(struct vnode *dvp, struct componentname *cnp,
 	udvp = UNIONFSVPTOUPPERVP(dvp);
 	vp = NULLVP;
 
-	KASSERT((cnp->cn_flags & HASBUF) != 0,
-	    ("%s called without HASBUF", __func__));
 	error = unionfs_relookup(udvp, &vp, cnp, &cn, td, cnp->cn_nameptr,
 	    cnp->cn_namelen, DELETE);
 	if (error)
@@ -788,8 +780,6 @@ unionfs_relookup_for_rename(struct vnode *dvp, struct componentname *cnp,
 	udvp = UNIONFSVPTOUPPERVP(dvp);
 	vp = NULLVP;
 
-	KASSERT((cnp->cn_flags & HASBUF) != 0,
-	    ("%s called without HASBUF", __func__));
 	error = unionfs_relookup(udvp, &vp, cnp, &cn, td, cnp->cn_nameptr,
 	    cnp->cn_namelen, RENAME);
 	if (error)
@@ -917,7 +907,7 @@ unionfs_mkshadowdir(struct unionfs_mount *ump, struct vnode *udvp,
 		goto unionfs_mkshadowdir_abort;
 	}
 
-	if ((error = vn_start_write(udvp, &mp, V_WAIT | PCATCH)))
+	if ((error = vn_start_write(udvp, &mp, V_WAIT | V_PCATCH)))
 		goto unionfs_mkshadowdir_abort;
 	unionfs_create_uppervattr_core(ump, &lva, &va, td);
 
@@ -972,7 +962,7 @@ unionfs_mkwhiteout(struct vnode *dvp, struct componentname *cnp,
 		return (EEXIST);
 	}
 
-	if ((error = vn_start_write(dvp, &mp, V_WAIT | PCATCH)))
+	if ((error = vn_start_write(dvp, &mp, V_WAIT | V_PCATCH)))
 		goto unionfs_mkwhiteout_free_out;
 	error = VOP_WHITEOUT(dvp, &nd.ni_cnd, CREATE);
 
@@ -1020,8 +1010,7 @@ unionfs_vn_create_on_upper(struct vnode **vpp, struct vnode *udvp,
 	nd.ni_cnd.cn_namelen = unp->un_pathlen;
 	nd.ni_cnd.cn_pnbuf = unp->un_path;
 	nd.ni_cnd.cn_nameiop = CREATE;
-	nd.ni_cnd.cn_flags = LOCKPARENT | LOCKLEAF | HASBUF | SAVENAME |
-	    ISLASTCN;
+	nd.ni_cnd.cn_flags = LOCKPARENT | LOCKLEAF | ISLASTCN;
 	nd.ni_cnd.cn_lkflags = LK_EXCLUSIVE;
 	nd.ni_cnd.cn_cred = cred;
 	nd.ni_cnd.cn_nameptr = nd.ni_cnd.cn_pnbuf;
@@ -1061,10 +1050,6 @@ unionfs_vn_create_on_upper_free_out1:
 	VOP_UNLOCK(udvp);
 
 unionfs_vn_create_on_upper_free_out2:
-	KASSERT((nd.ni_cnd.cn_flags & HASBUF) != 0,
-	    ("%s: HASBUF cleared", __func__));
-	KASSERT((nd.ni_cnd.cn_flags & SAVENAME) != 0,
-	    ("%s: SAVENAME cleared", __func__));
 	KASSERT(nd.ni_cnd.cn_pnbuf == unp->un_path,
 	    ("%s: cn_pnbuf changed", __func__));
 
@@ -1175,7 +1160,7 @@ unionfs_copyfile(struct unionfs_node *unp, int docopy, struct ucred *cred,
 	if (error != 0)
 		return (error);
 
-	if ((error = vn_start_write(udvp, &mp, V_WAIT | PCATCH)) != 0)
+	if ((error = vn_start_write(udvp, &mp, V_WAIT | V_PCATCH)) != 0)
 		return (error);
 	error = unionfs_vn_create_on_upper(&uvp, udvp, unp, &uva, td);
 	if (error != 0) {
@@ -1290,8 +1275,7 @@ unionfs_check_rmdir(struct vnode *vp, struct ucred *cred, struct thread *td)
 			cn.cn_pnbuf = NULL;
 			cn.cn_nameptr = dp->d_name;
 			cn.cn_nameiop = LOOKUP;
-			cn.cn_flags = LOCKPARENT | LOCKLEAF | SAVENAME |
-			    RDONLY | ISLASTCN;
+			cn.cn_flags = LOCKPARENT | LOCKLEAF | RDONLY | ISLASTCN;
 			cn.cn_lkflags = LK_EXCLUSIVE;
 			cn.cn_cred = cred;
 
@@ -1312,8 +1296,7 @@ unionfs_check_rmdir(struct vnode *vp, struct ucred *cred, struct thread *td)
 			 * If it has no exist/whiteout entry in upper,
 			 * directory is not empty.
 			 */
-			cn.cn_flags = LOCKPARENT | LOCKLEAF | SAVENAME |
-			    RDONLY | ISLASTCN;
+			cn.cn_flags = LOCKPARENT | LOCKLEAF | RDONLY | ISLASTCN;
 			lookuperr = VOP_LOOKUP(uvp, &tvp, &cn);
 
 			if (!lookuperr)
