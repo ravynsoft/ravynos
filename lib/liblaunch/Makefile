@@ -6,7 +6,7 @@ LIB=	launch
 .PATH: ../../sbin/launchd
 
 BASE_INCLUDE= -I${.CURDIR}/../../include/apple -I${MACHINE_INCLUDES} -I${.CURDIR}/../libxpc/
-BASE_INCLUDE+= -I${.CURDIR} -I${.CURDIR}/../../sbin/launchd -I${.CURDIR}
+BASE_INCLUDE+= -I${.CURDIR} -I${.CURDIR}/../../sbin/launchd -I../../sbin/launchd -I${.CURDIR}
 BASE_INCLUDE+= -I${.CURDIR}/../../include -I${.CURDIR}/../../sys
 BASE_INCLUDE+= -I${.OBJDIR}
 
