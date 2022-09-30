@@ -7,9 +7,9 @@ ravynOS 是一个新型的操作系统项目，致力于在 x86-64（终极目�
 - 与 macOS 应用程序的源码级兼容（比如你可以在本系统上编译和运行 macOS 应用）
 - 相似的 GUI 和 UX（文件管理器、程序启动器、顶部菜单之类）
 - 与 macOS 兼容的目录层次（/Library、/System、/Users、/Volumes 之类），可能计划支持 HFS+ 和 APFS 文件系统，计划完全支持 ZFS 文件系统
-- 支持 [App Bundles](https://developer.apple.com/documentation/foundation/bundle)、[AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir) 以及 [AppImage](https://github.com/AppImage) 自封装格式的应用 —— 拜托使用安装器的烦恼
+- 支持 [App Bundles](https://developer.apple.com/documentation/foundation/bundle)、[AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir) 以及 [AppImage](https://github.com/AppImage) 自封装格式的应用 —— 摆脱使用安装器的烦恼
 - 保持与 FreeBSD 基本系统和 X11 主要的兼容性 —— 深层标准 Unix 环境
-- 藉着 FreeBSD 的 Linux 支持实现与 Linux 应用程序的二进制兼容
+- 借着 FreeBSD 的 Linux 支持实现与 Linux 应用程序的二进制兼容
 - 终极目标是实现与 x86-64/arm64 macOS 应用程序（Mach-O）和库的兼容
 - 易用、稳定、安全、高效
 
