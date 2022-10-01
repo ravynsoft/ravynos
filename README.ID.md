@@ -1,5 +1,5 @@
 # Apa itu ravynOS? [![Status Pembuatan](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [ ![Perjanjian Kontributor](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-### Don't speak Indonesian? Read this in: [English](README.md), [Italiano](README.IT.md), [Türkçe](README.TR.md)
+### Don't speak Indonesian? Read this in: [English](README.md), [Italiano](README.IT.md), [Türkçe](README.TR.md), [Deutsch](README.DE.md), [简体中文](README.zh_CN.md), [繁體中文](README.zh_TW.md)
 
 ravynOS adalah proyek OS open source baru yang bertujuan untuk memberikan pengalaman serupa dan beberapa kompatibilitas dengan macOS pada sistem x86-64 (dan akhirnya ARM). Itu dibangun di atas dasar FreeBSD yang kokoh, paket open source yang ada di ruang yang sama, dan kode baru untuk mengisi kekosongan.
 
