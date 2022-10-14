@@ -1,5 +1,5 @@
 # 什麼是 ravynOS? [![目前狀態](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![貢獻者](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-### Don't speak Chinese（Taiwan）? Read this in: [Italiano](README.IT.md), [Türkçe](README_TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md), [Hungarian](README.HU.md)
+### Don't speak Chinese（Taiwan）? Read this in: [Italiano](README.IT.md), [Türkçe](README.TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md), [Hungarian](README.HU.md)
 
 ravynOS 可說是 macOS＋BSD 的精神。自由又好用，而且開源。
 
