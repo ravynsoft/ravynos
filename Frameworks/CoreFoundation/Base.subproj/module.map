@@ -1,0 +1,4 @@
+module CoreFoundation [extern_c] [system] {
+    umbrella header "CoreFoundation.h"
+    explicit module CFPlugInCOM { header "CFPlugInCOM.h" }
+}

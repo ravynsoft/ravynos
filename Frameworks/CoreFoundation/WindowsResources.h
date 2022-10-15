@@ -1,0 +1,4 @@
+
+#define IDR_WINDOWS_OLSON_MAPPING       101
+#define IDR_OLSON_WINDOWS_MAPPING       102
+
