@@ -215,6 +215,8 @@ RESOURCES=Info.plist English.lproj \
 	NSCharacterSet/whitespaceAndNewlineCharacterSet.bitmap \
 	NSCharacterSet/whitespaceCharacterSet.bitmap
 
+MK_WERROR:=no
+
 CFLAGS+= ${FMWK_CFLAGS_C} -I${.CURDIR}/Headers \
 	 -I${.CURDIR}/.. \
 	 -I./Headers \
