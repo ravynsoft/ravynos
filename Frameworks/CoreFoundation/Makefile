@@ -1,0 +1,243 @@
+.include "../framework.common.mk"
+
+FRAMEWORK=CoreFoundation
+SRCS= \
+./Stream.subproj/CFStream.c \
+./Stream.subproj/CFConcreteStreams.c \
+./Stream.subproj/CFSocketStream.c \
+./NumberDate.subproj/CFDate.c \
+./NumberDate.subproj/CFNumber.c \
+./NumberDate.subproj/CFBigNumber.c \
+./NumberDate.subproj/CFTimeZone.c \
+./PlugIn.subproj/CFBundle.c \
+./PlugIn.subproj/CFBundle_Grok.c \
+./PlugIn.subproj/CFBundle_Main.c \
+./PlugIn.subproj/CFBundle_Tables.c \
+./PlugIn.subproj/CFBundle_SplitFileName.c \
+./PlugIn.subproj/CFPlugIn.c \
+./PlugIn.subproj/CFBundle_Executable.c \
+./PlugIn.subproj/CFBundle_InfoPlist.c \
+./PlugIn.subproj/CFBundle_Locale.c \
+./PlugIn.subproj/CFBundle_Strings.c \
+./PlugIn.subproj/CFBundle_ResourceFork.c \
+./PlugIn.subproj/CFBundle_Binary.c \
+./PlugIn.subproj/CFBundle_DebugStrings.c \
+./PlugIn.subproj/CFBundle_Resources.c \
+./Error.subproj/CFError.c \
+./StringEncodings.subproj/CFStringEncodingConverter.c \
+./StringEncodings.subproj/CFPlatformConverters.c \
+./StringEncodings.subproj/CFICUConverters.c \
+./StringEncodings.subproj/CFStringEncodingDatabase.c \
+./StringEncodings.subproj/CFUniChar.c \
+./StringEncodings.subproj/CFUnicodePrecomposition.c \
+./StringEncodings.subproj/CFBuiltinConverters.c \
+./StringEncodings.subproj/CFUnicodeDecomposition.c \
+./Preferences.subproj/CFPreferences.c \
+./Preferences.subproj/CFXMLPreferencesDomain.c \
+./Preferences.subproj/CFApplicationPreferences.c \
+./RunLoop.subproj/CFSocket.c \
+./RunLoop.subproj/CFMachPort_Lifetime.c \
+./RunLoop.subproj/CFRunLoop.c \
+./RunLoop.subproj/CFMessagePort.c \
+./RunLoop.subproj/CFMachPort.c \
+./String.subproj/CFAttributedString.c \
+./String.subproj/CFStringTransform.c \
+./String.subproj/CFRunArray.c \
+./String.subproj/CFCharacterSet.c \
+./String.subproj/CFStringEncodings.c \
+./String.subproj/CFStringScanner.c \
+./String.subproj/CFString.c \
+./String.subproj/CFBurstTrie.c \
+./String.subproj/CFStringUtilities.c \
+./String.subproj/CFRegularExpression.c \
+./Locale.subproj/CFCalendar_Enumerate.c \
+./Locale.subproj/CFLocale.c \
+./Locale.subproj/CFLocaleKeys.c \
+./Locale.subproj/CFListFormatter.c \
+./Locale.subproj/CFNumberFormatter.c \
+./Locale.subproj/CFDateIntervalFormatter.c \
+./Locale.subproj/CFDateFormatter.c \
+./Locale.subproj/CFRelativeDateTimeFormatter.c \
+./Locale.subproj/CFDateInterval.c \
+./Locale.subproj/CFCalendar.c \
+./Locale.subproj/CFDateComponents.c \
+./Locale.subproj/CFLocaleIdentifier.c \
+./Collections.subproj/CFBasicHash.c \
+./Collections.subproj/CFData.c \
+./Collections.subproj/CFBitVector.c \
+./Collections.subproj/CFArray.c \
+./Collections.subproj/CFSet.c \
+./Collections.subproj/CFBag.c \
+./Collections.subproj/CFBinaryHeap.c \
+./Collections.subproj/CFDictionary.c \
+./Collections.subproj/CFStorage.c \
+./Collections.subproj/CFTree.c \
+./Parsing.subproj/CFOldStylePList.c \
+./Parsing.subproj/CFBinaryPList.c \
+./Parsing.subproj/CFPropertyList.c \
+./Parsing.subproj/CFXMLInterface.c \
+./Base.subproj/CFWindowsUtilities.c \
+./Base.subproj/CFFileUtilities.c \
+./Base.subproj/CFKnownLocations.c \
+./Base.subproj/CFSystemDirectories.c \
+./Base.subproj/CFUtilities.c \
+./Base.subproj/CFUUID.c \
+./Base.subproj/CFSortFunctions.c \
+./Base.subproj/CFPlatform.c \
+./Base.subproj/CFRuntime.c \
+./Base.subproj/CFBase.c \
+./AppServices.subproj/CFUserNotification.c \
+./URL.subproj/CFURL.c \
+./URL.subproj/CFURLComponents.c \
+./URL.subproj/CFURLAccess.c \
+./URL.subproj/CFURLComponents_URIParser.c \
+./URL.subproj/CFURLSessionInterface.c
+
+INCS= \
+./WindowsResources.h \
+./Stream.subproj/CFStreamPriv.h \
+./Stream.subproj/CFStreamInternal.h \
+./Stream.subproj/CFStream.h \
+./Stream.subproj/CFStreamAbstract.h \
+./NumberDate.subproj/CFTimeZone.h \
+./NumberDate.subproj/CFBigNumber.h \
+./NumberDate.subproj/CFNumber_Private.h \
+./NumberDate.subproj/CFNumber.h \
+./NumberDate.subproj/CFDate.h \
+./PlugIn.subproj/CFPlugIn_Factory.h \
+./PlugIn.subproj/CFBundle_Internal.h \
+./PlugIn.subproj/CFBundlePriv.h \
+./PlugIn.subproj/CFPlugInCOM.h \
+./PlugIn.subproj/CFBundle.h \
+./PlugIn.subproj/CFBundle_BinaryTypes.h \
+./PlugIn.subproj/CFBundle_SplitFileName.h \
+./PlugIn.subproj/CFPlugIn.h \
+./Error.subproj/CFError.h \
+./Error.subproj/CFError_Private.h \
+./StringEncodings.subproj/CFUniChar.h \
+./StringEncodings.subproj/CFStringEncodingDatabase.h \
+./StringEncodings.subproj/CFStringEncodingConverterPriv.h \
+./StringEncodings.subproj/CFStringEncodingConverterExt.h \
+./StringEncodings.subproj/CFUnicodeDecomposition.h \
+./StringEncodings.subproj/CFUnicodePrecomposition.h \
+./StringEncodings.subproj/CFStringEncodingConverter.h \
+./StringEncodings.subproj/CFICUConverters.h \
+./StringEncodings.subproj/CFUniCharPriv.h \
+./Preferences.subproj/CFPreferences.h \
+./RunLoop.subproj/CFRunLoop.h \
+./RunLoop.subproj/CFMachPort_Internal.h \
+./RunLoop.subproj/CFMachPort.h \
+./RunLoop.subproj/CFMessagePort.h \
+./RunLoop.subproj/CFMachPort_Lifetime.h \
+./RunLoop.subproj/CFSocket.h \
+./String.subproj/CFString.h \
+./String.subproj/CFCharacterSetPriv.h \
+./String.subproj/CFRegularExpression.h \
+./String.subproj/CFBurstTrie.h \
+./String.subproj/CFString_Internal.h \
+./String.subproj/CFStringDefaultEncoding.h \
+./String.subproj/CFStringLocalizedFormattingInternal.h \
+./String.subproj/CFAttributedStringPriv.h \
+./String.subproj/CFString_Private.h \
+./String.subproj/CFAttributedString.h \
+./String.subproj/CFCharacterSet.h \
+./String.subproj/CFStringEncodingExt.h \
+./String.subproj/CFRunArray.h \
+./Locale.subproj/CFDateFormatter_Private.h \
+./Locale.subproj/CFLocaleInternal.h \
+./Locale.subproj/CFNumberFormatter.h \
+./Locale.subproj/CFICULogging.h \
+./Locale.subproj/CFCalendar.h \
+./Locale.subproj/CFDateComponents.h \
+./Locale.subproj/CFDateIntervalFormatter.h \
+./Locale.subproj/CFDateFormatter.h \
+./Locale.subproj/CFRelativeDateTimeFormatter.h \
+./Locale.subproj/CFDateInterval.h \
+./Locale.subproj/CFLocale.h \
+./Locale.subproj/CFStringLocalizedFormattingInternal.h \
+./Locale.subproj/CFLocale_Private.h \
+./Locale.subproj/CFListFormatter.h \
+./Locale.subproj/CFCalendar_Internal.h \
+./Collections.subproj/CFDictionary.h \
+./Collections.subproj/CFBag.h \
+./Collections.subproj/CFBinaryHeap.h \
+./Collections.subproj/CFArray.h \
+./Collections.subproj/CFSet.h \
+./Collections.subproj/CFTree.h \
+./Collections.subproj/CFStorage.h \
+./Collections.subproj/CFCollections_Internal.h \
+./Collections.subproj/CFBitVector.h \
+./Collections.subproj/CFData.h \
+./Collections.subproj/CFBasicHash.h \
+./Parsing.subproj/CFXMLInterface.h \
+./Parsing.subproj/CFPropertyList_Internal.h \
+./Parsing.subproj/CFPropertyList.h \
+./Parsing.subproj/CFPropertyList_Private.h \
+./Base.subproj/CFLocking.h \
+./Base.subproj/CFAsmMacros.h \
+./Base.subproj/CFRuntime_Internal.h \
+./Base.subproj/CFUUID.h \
+./Base.subproj/ForFoundationOnly.h \
+./Base.subproj/CFLogUtilities.h \
+./Base.subproj/CFUtilities.h \
+./Base.subproj/CFBase.h \
+./Base.subproj/CFInternal.h \
+./Base.subproj/CFRuntime.h \
+./Base.subproj/CFByteOrder.h \
+./Base.subproj/CFOverflow.h \
+./Base.subproj/CFPriv.h \
+./Base.subproj/CoreFoundation_Prefix.h \
+./Base.subproj/ForSwiftFoundationOnly.h \
+./Base.subproj/CoreFoundation.h \
+./Base.subproj/SwiftRuntime/CoreFoundation.h \
+./Base.subproj/SwiftRuntime/TargetConditionals.h \
+./Base.subproj/CFKnownLocations.h \
+./Base.subproj/CFAvailability.h \
+./AppServices.subproj/CFNotificationCenter.h \
+./AppServices.subproj/CFUserNotification.h \
+./URL.subproj/CFURL.inc.h \
+./URL.subproj/CFURLSessionInterface.h \
+./URL.subproj/CFURL.h \
+./URL.subproj/CFURLComponents_Internal.h \
+./URL.subproj/CFURLPriv.h \
+./URL.subproj/CFURLAccess.h \
+./URL.subproj/CFURLComponents.h
+
+RESOURCES=Info.plist English.lproj \
+	NSCharacterSet/alphanumericCharacterSet.bitmap \
+	NSCharacterSet/controlCharacterSet.bitmap \
+	NSCharacterSet/decimalDigitCharacterSet.bitmap \
+	NSCharacterSet/illegalCharacterSet.bitmap \
+	NSCharacterSet/letterCharacterSet.bitmap \
+	NSCharacterSet/lowercaseLetterCharacterSet.bitmap \
+	NSCharacterSet/punctuationCharacterSet.bitmap \
+	NSCharacterSet/uppercaseLetterCharacterSet.bitmap \
+	NSCharacterSet/whitespaceAndNewlineCharacterSet.bitmap \
+	NSCharacterSet/whitespaceCharacterSet.bitmap
+
+CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/Headers \
+	 -I${.CURDIR}/.. \
+	 -I./Headers \
+	 -I./Headers/CoreFoundation \
+	 -I$(.CURDIR)/../../include/apple \
+	 -I$(.CURDIR)/../../include \
+	 -I$(.CURDIR)/../../sys \
+	 -include CoreFoundation/CoreFoundation_Prefix.h \
+	 -D__APPLE__ -DUSE_OBJC=0 -D__BLOCKS__=1 \
+	 -DCF_BUILDING_CF \
+	 -fblocks -fPIC -objc
+LDFLAGS+= ${FMWK_LDFLAGS} \
+	  -lexecinfo -lpthread
+
+marshalheaders: .PHONY
+	mkdir -p Headers/CoreFoundation
+	find ${.CURDIR} -name \*.h -exec cp -f {} Headers/CoreFoundation \;
+
+_install-hook:
+	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework
+	cp -av ${.CURDIR}/${FRAMEWORK}.framework ${BUILDROOT}/System/Library/Frameworks/
+
+.include <rvn.framework.mk>
+
+all: marshalheaders
+post-resources: _install-hook
