@@ -60,7 +60,7 @@ CF_IMPLICIT_BRIDGING_DISABLED
 #endif
 
 #if (INCLUDE_OBJC || TARGET_OS_MAC || TARGET_OS_WIN32) && !DEPLOYMENT_RUNTIME_SWIFT
-#include <objc/message.h>
+// #include <objc/message.h>
 #endif
 
 #if __BLOCKS__
