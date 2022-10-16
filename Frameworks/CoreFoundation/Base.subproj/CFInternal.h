@@ -1192,7 +1192,7 @@ enum {
 };
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_WIN32 || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_WIN32 || TARGET_OS_BSD || __RAVYNOS__
 #define QOS_CLASS_USER_INITIATED DISPATCH_QUEUE_PRIORITY_HIGH
 #define QOS_CLASS_DEFAULT DISPATCH_QUEUE_PRIORITY_DEFAULT
 #define QOS_CLASS_UTILITY DISPATCH_QUEUE_PRIORITY_LOW
@@ -1292,7 +1292,7 @@ CF_EXTERN_C_END
 // access.
 
 CF_INLINE uint32_t _CFUnalignedLoad32(const void *ptr) {
-    uint8_t *bytes = (uint8_t *)ptr;
+    const uint8_t *bytes = (const uint8_t *)ptr;
 #if __LITTLE_ENDIAN__
     uint32_t result = (uint32_t)bytes[0];
     result |= ((uint32_t)bytes[1] << 8);
@@ -1326,7 +1326,7 @@ CF_INLINE void _CFUnalignedStore32(void *ptr, uint32_t value) {
 
 // Load values stored in Big Endian order in memory.
 CF_INLINE uint16_t _CFUnalignedLoad16BE(const void *ptr) {
-    uint8_t *bytes = (uint8_t *)ptr;
+    const uint8_t *bytes = (const uint8_t *)ptr;
     uint16_t result = (uint16_t)bytes[0] << 8;
     result |= (uint16_t)bytes[1];
 
@@ -1335,7 +1335,7 @@ CF_INLINE uint16_t _CFUnalignedLoad16BE(const void *ptr) {
 
 
 CF_INLINE uint32_t _CFUnalignedLoad32BE(const void *ptr) {
-    uint8_t *bytes = (uint8_t *)ptr;
+    const uint8_t *bytes = (const uint8_t *)ptr;
     uint32_t result = (uint32_t)bytes[0] << 24;
     result |= ((uint32_t)bytes[1] << 16);
     result |= ((uint32_t)bytes[2] << 8);
@@ -1346,7 +1346,7 @@ CF_INLINE uint32_t _CFUnalignedLoad32BE(const void *ptr) {
 
 
 CF_INLINE uint64_t _CFUnalignedLoad64BE(const void *ptr) {
-    uint8_t *bytes = (uint8_t *)ptr;
+    const uint8_t *bytes = (const uint8_t *)ptr;
     uint64_t result = (uint64_t)bytes[0] << 56;
     result |= ((uint64_t)bytes[1] << 48);
     result |= ((uint64_t)bytes[2] << 40);
