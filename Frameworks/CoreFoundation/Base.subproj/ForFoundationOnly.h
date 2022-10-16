@@ -55,7 +55,7 @@ CF_IMPLICIT_BRIDGING_DISABLED
 #elif TARGET_OS_BSD
 #include <stdlib.h> // malloc()
 #elif TARGET_OS_MAC
-#include <malloc/malloc.h>
+#include <malloc.h>
 #include <mach/mach_time.h>
 #endif
 

@@ -74,7 +74,7 @@
 #endif
 
   #if (TARGET_OS_OSX || TARGET_OS_IPHONE) && !DEPLOYMENT_RUNTIME_SWIFT
-    #include <libkern/OSTypes.h>
+    // #include <libkern/OSTypes.h>
   #endif
 
 #if !defined(__MACTYPES__)
