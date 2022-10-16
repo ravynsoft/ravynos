@@ -215,7 +215,7 @@ RESOURCES=Info.plist English.lproj \
 	NSCharacterSet/whitespaceAndNewlineCharacterSet.bitmap \
 	NSCharacterSet/whitespaceCharacterSet.bitmap
 
-CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/Headers \
+CFLAGS+= ${FMWK_CFLAGS_C} -I${.CURDIR}/Headers \
 	 -I${.CURDIR}/.. \
 	 -I./Headers \
 	 -I./Headers/CoreFoundation \
@@ -225,7 +225,7 @@ CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/Headers \
 	 -include CoreFoundation/CoreFoundation_Prefix.h \
 	 -D__APPLE__ -DUSE_OBJC=0 -D__BLOCKS__=1 \
 	 -DCF_BUILDING_CF \
-	 -fblocks -fPIC -objc
+	 -fblocks -std=c11
 LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -lexecinfo -lpthread
 
