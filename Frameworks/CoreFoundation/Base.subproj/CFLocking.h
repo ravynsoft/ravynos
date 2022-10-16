@@ -20,7 +20,7 @@
 #include <TargetConditionals.h>
 #endif
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 
 #include <pthread.h>
 
@@ -68,7 +68,7 @@ CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
 // SPI to permit initialization of values in Swift
 static inline CFLock_t __CFLockInit(void) { return CFLockInit; }
 
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || __RAVYNOS__
 
 #include <stdint.h>
 #include <unistd.h>
@@ -95,7 +95,8 @@ CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
 // SPI to permit initialization of values in Swift
 static inline CFLock_t __CFLockInit(void) { return CFLockInit; }
 
-typedef CFLock_t OSSpinLock;
+// FIXME(deleanor) We got this from libkern/OSAtomic.h. Find an appropriate guard.
+// typedef CFLock_t OSSpinLock;
 #define OS_SPINLOCK_INIT CFLockInit
 #define OSSpinLockLock(lock) __CFLock(lock)
 #define OSSpinLockUnlock(lock) __CFUnlock(lock)
