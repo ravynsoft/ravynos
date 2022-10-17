@@ -876,5 +876,14 @@ CF_INLINE void _scoped_id_array_cleanup(id _Nonnull * _Nullable * _Nonnull mallo
     #endif
 #endif
 
+// Taken from ForSwiftFoundationOnly
+#if __RAVYNOS__
+typedef pthread_t _CFThreadRef;
+typedef pthread_attr_t _CFThreadAttributes;
+typedef pthread_key_t _CFThreadSpecificKey;
+CF_CROSS_PLATFORM_EXPORT int _CFThreadSetName(_CFThreadRef _Nonnull thread, const char *_Nonnull name);
+CF_CROSS_PLATFORM_EXPORT int _CFThreadGetName(char *_Nonnull buf, int length);
+#endif
+
 #endif /* ! __COREFOUNDATION_FORFOUNDATIONONLY__ */
 

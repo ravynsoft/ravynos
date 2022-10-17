@@ -92,8 +92,11 @@
 #include <CoreFoundation/CFUserNotification.h>
 
 #if !DEPLOYMENT_RUNTIME_SWIFT
-#include <CoreFoundation/CFXMLNode.h>
-#include <CoreFoundation/CFXMLParser.h>
+// FIXME(deleanor) These files don't exist in the Swift CF implementation.
+// They do, however exist at github:apple-opensource/CF. Maybe pull the
+// files in from there? But why don't they exist here?
+//#include <CoreFoundation/CFXMLNode.h>
+//#include <CoreFoundation/CFXMLParser.h>
 #endif
 
 #endif /* ! __COREFOUNDATION_COREFOUNDATION__ */

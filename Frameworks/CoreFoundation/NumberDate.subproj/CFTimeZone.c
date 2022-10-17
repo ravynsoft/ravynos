@@ -45,11 +45,11 @@
 #include "Windows.h"
 #endif
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 #include <tzfile.h>
 #define MACOS_TZDIR1 "/usr/share/zoneinfo/"          // 10.12 and earlier
 #define MACOS_TZDIR2 "/var/db/timezone/zoneinfo/"    // 10.13 onwards
-#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI || __RAVYNOS__
 #ifndef TZDIR
 #define TZDIR	"/usr/share/zoneinfo/" /* Time zone object file directory */
 #endif /* !defined TZDIR */
@@ -59,7 +59,7 @@
 #endif /* !defined TZDEFAULT */
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32 || TARGET_OS_WASI
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32 || TARGET_OS_WASI || __RAVYNOS__
 struct tzhead {
     char	tzh_magic[4];		/* TZ_MAGIC */
     char	tzh_reserved[16];	/* reserved for future use */
@@ -775,7 +775,7 @@ CFTimeZoneRef CFTimeZoneCreateWithWindowsName(CFAllocatorRef allocator, CFString
     CFRelease(winToOlson);
     return retval;
 }
-#elif TARGET_OS_MAC
+#elif TARGET_OS_MAC && !__RAVYNOS__
 static void __InitTZStrings(void) {
     static dispatch_once_t initOnce = 0;
 
@@ -812,7 +812,7 @@ static void __InitTZStrings(void) {
 
 #elif TARGET_OS_ANDROID
 // Nothing
-#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI || __RAVYNOS__
 static void __InitTZStrings(void) {
     __tzZoneInfo = CFSTR(TZDIR);
     __tzDir = TZDIR "zone.tab";
@@ -1189,7 +1189,9 @@ static CFTimeZoneRef __CFTimeZoneInitFixed(CFTimeZoneRef result, int32_t seconds
     dataBytes[48] = isDST ? 1 : 0;
     CFStringGetCString(name, (char *)dataBytes + 50, nameLen + 1, kCFStringEncodingASCII);
     data = CFDataCreate(kCFAllocatorSystemDefault, dataBytes, 52 + nameLen + 1);
-    result = _CFTimeZoneInit(result, name, data);
+	// FIXME(deleanor) Returns a boolean, original code assigned it to the result? Seems like a
+	// pretty obvious bug?
+    _CFTimeZoneInit(result, name, data);
     CFRelease(data);
     return result;
 }
@@ -1343,7 +1345,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
 
     return FALSE;
 #else
-#if !TARGET_OS_ANDROID && !TARGET_OS_WASI
+#if !TARGET_OS_ANDROID && !TARGET_OS_WASI && !__RAVYNOS__
 
     if (!__tzZoneInfo) __InitTZStrings();
     if (!__tzZoneInfo) return NULL;
@@ -1363,7 +1365,7 @@ Boolean _CFTimeZoneInit(CFTimeZoneRef timeZone, CFStringRef name, CFDataRef data
         if (mapping) {
             name = mapping;
         }
-#if !TARGET_OS_ANDROID && !TARGET_OS_WASI
+#if !TARGET_OS_ANDROID && !TARGET_OS_WASI && !__RAVYNOS__
         else if (CFStringHasPrefix(name, __tzZoneInfo)) {
             CFMutableStringRef unprefixed = CFStringCreateMutableCopy(kCFAllocatorSystemDefault, CFStringGetLength(name), name);
             CFStringDelete(unprefixed, CFRangeMake(0, CFStringGetLength(__tzZoneInfo)));

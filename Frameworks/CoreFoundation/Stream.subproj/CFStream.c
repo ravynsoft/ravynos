@@ -1657,7 +1657,7 @@ void CFWriteStreamUnscheduleFromRunLoop(CFWriteStreamRef stream, CFRunLoopRef ru
 
 #if __HAS_DISPATCH__
 
-#if !DEPLOYMENT_RUNTIME_OBJC
+#if !DEPLOYMENT_RUNTIME_OBJC || __RAVYNOS__
 typedef _Atomic(int64_t) _OSAtomic_int64_t;
 
 #if __has_extension(c_alignof) && __has_attribute(aligned)
@@ -1765,7 +1765,7 @@ static CFRunLoopRef _legacyStreamRunLoop()
             pthread_attr_t attr;
             pthread_attr_init(&attr);
             pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
             pthread_attr_set_qos_class_np(&attr, qos_class_main(), 0);
 #endif
             _CFThreadRef workThread;

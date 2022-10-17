@@ -32,7 +32,7 @@ CF_EXTERN_C_BEGIN
 // FHS bundles are supported on the Swift and C runtimes, except on Windows.
 #if !DEPLOYMENT_RUNTIME_OBJC && !TARGET_OS_WIN32
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_ANDROID
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_ANDROID || __RAVYNOS__
 #define _CFBundleFHSSharedLibraryFilenamePrefix CFSTR("lib")
 #define _CFBundleFHSSharedLibraryFilenameSuffix CFSTR(".so")
 #elif TARGET_OS_MAC
@@ -429,10 +429,24 @@ CF_PRIVATE const CFStringRef _kCFBundleUseAppleLocalizationsKey;
 // The buffer must be PATH_MAX long or more.
 static bool _CFGetPathFromFileDescriptor(int fd, char *path);
 
-#if TARGET_OS_MAC || (TARGET_OS_BSD && !defined(__OpenBSD__))
+#if TARGET_OS_MAC && !__RAVYNOS__
 
 static bool _CFGetPathFromFileDescriptor(int fd, char *path) {
     return fcntl(fd, F_GETPATH, path) != -1;
+}
+
+#elif TARGET_OS_BSD || __RAVYNOS__
+
+#include <sys/user.h>
+
+static bool _CFGetPathFromFileDescriptor(int fd, char *path) {
+	struct kinfo_file info;
+	info.kf_structsize = sizeof(struct kinfo_file);
+	if (fcntl(fd, F_KINFO, &info) == -1) {
+		return false;
+	}
+	strncpy(path, info.kf_path, PATH_MAX);
+	return true;
 }
 
 #elif TARGET_OS_LINUX

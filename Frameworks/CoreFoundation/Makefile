@@ -215,7 +215,7 @@ RESOURCES=Info.plist English.lproj \
 	NSCharacterSet/whitespaceAndNewlineCharacterSet.bitmap \
 	NSCharacterSet/whitespaceCharacterSet.bitmap
 
-MK_WERROR:=no
+WARNS:=2
 
 CFLAGS+= ${FMWK_CFLAGS_C} -I${.CURDIR}/Headers \
 	 -I${.CURDIR}/.. \
@@ -226,6 +226,8 @@ CFLAGS+= ${FMWK_CFLAGS_C} -I${.CURDIR}/Headers \
 	 -I$(.CURDIR)/../../sys \
 	 -include CoreFoundation/CoreFoundation_Prefix.h \
 	 -D__APPLE__ -DUSE_OBJC=0 -D__BLOCKS__=1 \
+	 -D_POSIX_THREADS \
+	 -DDEPLOYMENT_RUNTIME_C \
 	 -DCF_BUILDING_CF \
 	 -fblocks -std=c11
 LDFLAGS+= ${FMWK_LDFLAGS} \
@@ -233,7 +235,10 @@ LDFLAGS+= ${FMWK_LDFLAGS} \
 
 marshalheaders: .PHONY
 	mkdir -p Headers/CoreFoundation
-	find ${.CURDIR} -name \*.h -exec cp -f {} Headers/CoreFoundation \;
+	find ${.CURDIR} -name \*.h \
+		-not -path "$(.CURDIR)/Base.subproj/SwiftRuntime/*" \
+		-not -path "$(.CURDIR)/Base.subproj/SwiftRuntime" \
+		-exec cp -f {} Headers/CoreFoundation \;
 
 _install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework

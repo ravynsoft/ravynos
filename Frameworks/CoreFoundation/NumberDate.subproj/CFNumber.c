@@ -537,7 +537,7 @@ static Boolean __CFNumberGetValue(CFNumberRef number, CFNumberType type, void *v
     case kCFNumberSInt32Type:
 	if (floatBit) {
 	    if (!storageBit) {
-                CVT(Float32, int32_t, INT32_MIN, INT32_MAX);
+                CVT(Float32, int32_t, INT32_MIN, (float)INT32_MAX);
 	    } else {
                 CVT(Float64, int32_t, INT32_MIN, INT32_MAX);
 	    }
@@ -552,9 +552,9 @@ static Boolean __CFNumberGetValue(CFNumberRef number, CFNumberType type, void *v
     case kCFNumberSInt64Type:
 	if (floatBit) {
 	    if (!storageBit) {
-                CVT(Float32, int64_t, INT64_MIN, INT64_MAX);
+                CVT(Float32, int64_t, INT64_MIN, (float)INT64_MAX);
 	    } else {
-                CVT(Float64, int64_t, INT64_MIN, INT64_MAX);
+                CVT(Float64, int64_t, INT64_MIN, (double)INT64_MAX);
 	    }
 	} else {
 	    if (!storageBit) {
