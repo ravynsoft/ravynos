@@ -279,7 +279,7 @@ static bool __CFToMacRoman(uint32_t flags, UniChar character, uint8_t *byte) {
     }
 }
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 static bool __CFFromMacRoman(uint32_t flags, uint8_t byte, UniChar *character) {
     *character = __CFMacRomanCharToUnicharTable[byte];
     return true;
