@@ -12,7 +12,7 @@
 #include <sys/types.h>
 #include <math.h>
 #include <limits.h>
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 #include <sys/sysctl.h>
 #include <sys/un.h>
 #include <libc.h>
@@ -21,7 +21,7 @@
 #include <sys/socket.h>
 #endif
 #endif
-#if TARGET_OS_CYGWIN || TARGET_OS_BSD
+#if TARGET_OS_CYGWIN || TARGET_OS_BSD || __RAVYNOS__
 #include <sys/socket.h>
 #endif
 #if TARGET_OS_WIN32
@@ -1255,7 +1255,7 @@ static void *__CFSocketManager(void * arg)
 {
 #if TARGET_OS_LINUX && !TARGET_OS_CYGWIN
     pthread_setname_np(pthread_self(), "com.apple.CFSocket.private");
-#elif !TARGET_OS_CYGWIN && !TARGET_OS_BSD
+#elif !TARGET_OS_CYGWIN && !TARGET_OS_BSD && !__RAVYNOS__
     pthread_setname_np("com.apple.CFSocket.private");
 #endif
     SInt32 nrfds, maxnrfds, fdentries = 1;
@@ -1525,7 +1525,7 @@ static CFStringRef __CFSocketCopyDescription(CFTypeRef cf) {
     result = CFStringCreateMutable(CFGetAllocator(s), 0);
     __CFSocketLock(s);
     void *addr = s->_callout;
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     Dl_info info;
     const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";
 #else
@@ -1586,7 +1586,9 @@ const CFRuntimeClass __CFSocketClass = {
 CFTypeID CFSocketGetTypeID(void) {
     static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
-#if TARGET_OS_MAC
+// FIXME(deleanor) sys/resource.h has the definition of struct rlimit.
+// Should we bring that in on RavynOS?
+#if TARGET_OS_MAC && !__RAVYNOS__
         struct rlimit lim1;
         int ret1 = getrlimit(RLIMIT_NOFILE, &lim1);
         int mib[] = {CTL_KERN, KERN_MAXFILESPERPROC};
@@ -1676,7 +1678,7 @@ static CFSocketRef _CFSocketCreateWithNative(CFAllocatorRef allocator, CFSocketN
         pthread_attr_init(&attr);
         pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
         pthread_attr_set_qos_class_np(&attr, qos_class_main(), 0);
 #endif
         pthread_create(&tid, &attr, __CFSocketManager, 0);
@@ -2294,7 +2296,7 @@ CFSocketError CFSocketSetAddress(CFSocketRef s, CFDataRef address) {
     if (!name || namelen <= 0) return kCFSocketError;
     
     CFSocketNativeHandle sock = CFSocketGetNative(s);
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     // Verify that the namelen is correct. If not, we have to fix it up. Developers will often incorrectly use 0 or strlen(path). See 9217961 and the second half of 9098274.
     // Max size is a size byte, plus family byte, plus path of 255, plus a null byte.
     char newName[255];
