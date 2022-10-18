@@ -776,8 +776,8 @@ static CFMutableArrayRef _CFBundleCreateMutableArrayOfFallbackLanguages(CFArrayR
     if (availableStringsBuffer && preferredStringsBuffer) {
         // proceed to call ICU API
         const char *localizationsToUse[512];
-        UErrorCode status = U_ZERO_ERROR;
 #if __HAS_APPLE_ICU__
+        UErrorCode status = U_ZERO_ERROR;
         int32_t numberOfResults = ualoc_localizationsToUse((const char * const *)preferredCStrings, preferredCount,
                                                            (const char * const *)availableCStrings, availableCount,
                                                            localizationsToUse, 512,

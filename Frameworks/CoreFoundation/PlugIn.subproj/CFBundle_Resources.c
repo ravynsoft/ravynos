@@ -507,6 +507,8 @@ CF_EXPORT CFStringRef _CFBundleGetCurrentPlatform(void) {
 #endif
 #elif TARGET_OS_BSD
     return CFSTR("FreeBSD");
+#elif __RAVYNOS__
+	return CFSTR("RavynOS");
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif

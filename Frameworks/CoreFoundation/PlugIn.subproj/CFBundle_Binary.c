@@ -504,7 +504,7 @@ CF_EXPORT Boolean _CFBundleDlfcnPreflight(CFBundleRef bundle, CFErrorRef *error)
         
         retval = false;
         if (executableURL && CFURLGetFileSystemRepresentation(executableURL, true, (uint8_t *)buff, CFMaxPathSize)) {
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
             retval = dlopen_preflight(buff);
 #endif
             if (!retval && error) {

@@ -951,7 +951,7 @@ CF_EXPORT CFDictionaryRef _CFBundleCopyInfoDictionaryForExecutableFileData(CFDat
     UInt32 machtype = 0;
     (void)_CFBundleGrokFileType(NULL, data, NULL, &machtype, NULL, &result, NULL, NULL, NULL);
     if (canContainInfoPlist) {
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
         if (machtype == MH_EXECUTE || machtype == MH_DYLIB) {
             *canContainInfoPlist = true;
         } else {

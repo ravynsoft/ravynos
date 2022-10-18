@@ -107,7 +107,7 @@ static CFBundleRef _CFBundleGetMainBundleAlreadyLocked(void) {
                 // get cookie for already-loaded main bundle
 #if defined(BINARY_SUPPORT_DLFCN)
                 if (!_mainBundle->_handleCookie) {
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
                     _mainBundle->_handleCookie = RTLD_MAIN_ONLY;
 #else
                     _mainBundle->_handleCookie = dlopen(NULL, 0);

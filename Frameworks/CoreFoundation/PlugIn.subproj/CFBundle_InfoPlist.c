@@ -142,6 +142,8 @@ CF_PRIVATE CFStringRef _CFBundleGetPlatformNameSuffix(void) {
     return _CFBundleLinuxPlatformNameSuffix;
 #elif TARGET_OS_BSD
     return _CFBundleFreeBSDPlatformNameSuffix;
+#elif __RAVYNOS__
+	return _CFBundleRavynOSPlatformNameSuffix;
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
@@ -174,6 +176,8 @@ CF_EXPORT CFStringRef _CFGetPlatformName(void) {
 #endif
 #elif TARGET_OS_BSD
     return _CFBundleFreeBSDPlatformName;
+#elif __RAVYNOS__
+	return _CFBundleRavynOSPlatformName;
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
@@ -194,6 +198,8 @@ CF_EXPORT CFStringRef _CFGetAlternatePlatformName(void) {
 #endif
 #elif TARGET_OS_BSD
     return CFSTR("FreeBSD");
+#elif __RAVYNOS__
+	return CFSTR("RavynOS");
 #else
 #error Unknown or unspecified DEPLOYMENT_TARGET
 #endif
