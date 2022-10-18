@@ -21,7 +21,7 @@
 #include <CoreFoundation/CFPriv.h>
 #include "CFInternal.h"
 #include <sys/stat.h>
-#if TARGET_OS_OSX
+#if TARGET_OS_OSX || __RAVYNOS__
 #include <unistd.h>
 #include <CoreFoundation/CFUUID.h>
 #endif
@@ -93,6 +93,7 @@ CF_EXPORT void CFPreferencesDumpMem(void) {
 #pragma mark -
 #pragma mark Determining host UUID
 #endif
+
 
 #if TARGET_OS_MAC
 // The entry point is in libSystem.B.dylib, but not actually declared
@@ -223,6 +224,10 @@ CFTypeRef  CFPreferencesCopyValue(CFStringRef  key, CFStringRef  appName, CFStri
     }
 }
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wnonnull"
+#endif
 CFDictionaryRef CFPreferencesCopyMultiple(CFArrayRef keysToFetch, CFStringRef appName, CFStringRef user, CFStringRef host) {
     CFPreferencesDomainRef domain;
     CFMutableDictionaryRef result;
@@ -255,6 +260,9 @@ CFDictionaryRef CFPreferencesCopyMultiple(CFArrayRef keysToFetch, CFStringRef ap
     }
     return result;
 }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 void CFPreferencesSetValue(CFStringRef  key, CFTypeRef  value, CFStringRef  appName, CFStringRef  user, CFStringRef  host) {
     CFPreferencesDomainRef domain;
@@ -420,7 +428,7 @@ static CFStringRef  _CFPreferencesStandardDomainCacheKey(CFStringRef  domainName
 static CFURLRef _CFPreferencesURLForStandardDomainWithSafetyLevel(CFStringRef domainName, CFStringRef userName, CFStringRef hostName, unsigned long safeLevel) {
     CFURLRef theURL = NULL;
     CFAllocatorRef prefAlloc = __CFPreferencesAllocator();
-#if TARGET_OS_OSX || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_OSX || TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD || __RAVYNOS__
     CFURLRef prefDir = _preferencesCreateDirectoryForUserHostSafetyLevel(userName, hostName, safeLevel);
     CFStringRef  appName;
     CFStringRef  fileName;
