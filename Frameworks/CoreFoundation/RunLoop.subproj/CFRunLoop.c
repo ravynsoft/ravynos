@@ -124,12 +124,15 @@ DISPATCH_EXPORT void _dispatch_main_queue_callback_4CF(void * _Null_unspecified)
 dispatch_runloop_handle_t _dispatch_get_main_queue_port_4CF(void);
 extern void _dispatch_main_queue_callback_4CF(void *_Null_unspecified msg);
 
+#elif __RAVYNOS__
+dispatch_runloop_handle_t _dispatch_get_main_queue_port_4CF(void);
+extern void _dispatch_main_queue_callback_4CF(mach_msg_header_t *msg);
 #else
 dispatch_runloop_handle_t _dispatch_get_main_queue_port_4CF(void);
 extern void _dispatch_main_queue_callback_4CF(void *_Null_unspecified msg);
 #endif
 
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD || __RAVYNOS__
 CF_EXPORT _CFThreadRef _CF_pthread_main_thread_np(void);
 #define pthread_main_thread_np() _CF_pthread_main_thread_np()
 #endif
@@ -172,6 +175,12 @@ static _CFThreadRef const kNilPthreadT = (_CFThreadRef)0;
 typedef int kern_return_t;
 #define KERN_SUCCESS 0
 
+#elif __RAVYNOS__
+
+static _CFThreadRef const kNilPthreadT = (_CFThreadRef)0;
+#define KERN_SUCCESS 0
+#define pthreadPointer(a) a
+#define lockCount(a) a
 #else
 
 static _CFThreadRef const kNilPthreadT = (_CFThreadRef)0;
@@ -238,7 +247,7 @@ typedef int kern_return_t;
 
 // In order to reuse most of the code across Mach and Windows v1 RunLoopSources, we define a
 // simple abstraction layer spanning Mach ports and Windows HANDLES
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 typedef mach_port_t __CFPort;
 #define CFPORT_NULL MACH_PORT_NULL
 typedef mach_port_t __CFPortSet;
@@ -460,7 +469,7 @@ CF_INLINE kern_return_t __CFPortSetRemove(__CFPort port, __CFPortSet portSet) {
 CF_INLINE void __CFPortSetFree(__CFPortSet portSet) {
     close(portSet);
 }
-#elif TARGET_OS_BSD
+#elif TARGET_OS_BSD || __RAVYNOS__
 
 #include <sys/types.h>
 #include <sys/event.h>
@@ -560,7 +569,7 @@ static kern_return_t mk_timer_arm(__CFPort timer, int64_t expire_tsr) {
         (void *)timer);
 
     int kq = __CFPORT_TIMER_UNPACK_KQ(timer);
-    int r = kevent(kq, &tev, 1, NULL, 0, NULL);
+    kevent(kq, &tev, 1, NULL, 0, NULL);
 
     return KERN_SUCCESS;
 }
@@ -578,7 +587,7 @@ static kern_return_t mk_timer_cancel(__CFPort timer, const void *unused) {
         (void *)timer);
 
     int kq = __CFPORT_TIMER_UNPACK_KQ(timer);
-    int r = kevent(kq, &tev, 1, NULL, 0, NULL);
+    kevent(kq, &tev, 1, NULL, 0, NULL);
 
     return KERN_SUCCESS;
 }
@@ -596,7 +605,7 @@ static kern_return_t mk_timer_destroy(__CFPort timer) {
         (void *)timer);
 
     int kq = __CFPORT_TIMER_UNPACK_KQ(timer);
-    int r = kevent(kq, &tev, 1, NULL, 0, NULL);
+    kevent(kq, &tev, 1, NULL, 0, NULL);
 
     ident--;
     return KERN_SUCCESS;
@@ -622,7 +631,7 @@ CF_INLINE kern_return_t __CFPortSetInsert(__CFPort port, __CFPortSet set) {
         0,
         (void *)port);
     struct timespec timeout = {0, 0};
-    int r = kevent(set->kq, &change, 1, NULL, 0, &timeout);
+    kevent(set->kq, &change, 1, NULL, 0, &timeout);
 
     return 0;
 }
@@ -641,7 +650,7 @@ CF_INLINE kern_return_t __CFPortSetRemove(__CFPort port, __CFPortSet set) {
         0,
         (void *)port);
     struct timespec timeout = {0, 0};
-    int r = kevent(set->kq, &change, 1, NULL, 0, &timeout);
+    kevent(set->kq, &change, 1, NULL, 0, &timeout);
 
     return 0;
 }
@@ -740,7 +749,7 @@ typedef	struct UnsignedWide {
 typedef UnsignedWide		AbsoluteTime;
 #endif
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 extern mach_port_name_t mk_timer_create(void);
 extern kern_return_t mk_timer_destroy(mach_port_name_t name);
 extern kern_return_t mk_timer_cancel(mach_port_name_t name, AbsoluteTime *result_time);
@@ -832,7 +841,7 @@ static kern_return_t mk_timer_cancel(HANDLE name, AbsoluteTime *result_time) {
     }
     return (int)res;
 }
-#elif TARGET_OS_BSD
+#elif TARGET_OS_BSD || __RAVYNOS__
 /*
  * This implementation of the mk_timer_* stubs is defined with the
  * implementation of the CFPort* stubs.
@@ -1145,13 +1154,13 @@ static CFRunLoopModeRef __CFRunLoopCopyMode(CFRunLoopRef rl, CFStringRef modeNam
     if (KERN_SUCCESS != ret) CRASH("*** Unable to insert timer port into port set. (%d) ***", ret);
 #endif
     rlm->_timerPort = CFPORT_NULL;
-#if TARGET_OS_BSD
+#if TARGET_OS_BSD || __RAVYNOS__
     rlm->_timerPort = mk_timer_create(rlm->_portSet);
 #else
     rlm->_timerPort = mk_timer_create();
 #endif
     if (rlm->_timerPort == CFPORT_NULL) {
-        CRASH("*** Unable to create timer Port (%d) ***", rlm->_timerPort);
+        CRASH("*** Unable to create timer Port (%lu) ***", rlm->_timerPort);
     }
     ret = __CFPortSetInsert(rlm->_timerPort, rlm->_portSet);
     if (KERN_SUCCESS != ret) CRASH("*** Unable to insert timer port into port set. (%d) ***", ret);
@@ -1522,7 +1531,14 @@ static void __CFRunLoopDeallocateSources(const void *value, void *context) {
                 rls->_context.version0.cancel(rls->_context.version0.info, rl, rlm->_name);	/* CALLOUT */
             }
         } else if (1 == rls->_context.version0.version) {
-            __CFPort port = rls->_context.version1.getPort(rls->_context.version1.info);	/* CALLOUT */
+		// FIXME(deleanor) REVISIT_CFPort_CASTS
+		// In the Kevent branch, a __CFPort is a unsigned long (which itself
+		// consists of two packed 32 bit integers for the pipe2 system call
+		// file descriptors), but getPort returns a void*.  So this is probably
+		// invalid and maybe we need another #elif in CFRunLoop.h in
+		// CFRunLoopSourceContext1 for the type of the getPort and perform
+		// fields.
+            __CFPort port = (__CFPort)rls->_context.version1.getPort(rls->_context.version1.info);	/* CALLOUT */
             if (CFPORT_NULL != port) {
                 __CFPortSetRemove(port, rlm->_portSet);
             }
@@ -2702,7 +2718,7 @@ CF_EXPORT Boolean _CFRunLoopFinished(CFRunLoopRef rl, CFStringRef modeName) {
 
 static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInterval seconds, Boolean stopAfterHandle, CFRunLoopModeRef previousMode) __attribute__((noinline));
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 
 #define TIMEOUT_INFINITY (~(mach_msg_timeout_t)0)
 
@@ -2991,12 +3007,12 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
     Boolean didDispatchPortLastTime = true;
     int32_t retVal = 0;
     do {
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
         voucher_mach_msg_state_t voucherState = VOUCHER_MACH_MSG_STATE_UNCHANGED;
         voucher_t voucherCopy = NULL;
-#endif
         uint8_t msg_buffer[3 * 1024];
-#if TARGET_OS_MAC
+#endif
+#if TARGET_OS_MAC && !__RAVYNOS__
         mach_msg_header_t *msg = NULL;
         mach_port_t livePort = MACH_PORT_NULL;
 #elif TARGET_OS_WIN32 || TARGET_OS_CYGWIN
@@ -3030,7 +3046,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 
 #if __HAS_DISPATCH__
         if (CFPORT_NULL != dispatchPort && !didDispatchPortLastTime) {
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
             msg = (mach_msg_header_t *)msg_buffer;
             if (__CFRunLoopServiceMachPort(dispatchPort, &msg, sizeof(msg_buffer), &livePort, 0, &voucherState, NULL, rl, rlm)) {
                 goto handle_msg;
@@ -3043,7 +3059,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             if (__CFRunLoopWaitForMultipleObjects(NULL, &dispatchPort, 0, 0, &livePort, NULL)) {
                 goto handle_msg;
             }
-#elif TARGET_OS_BSD
+#elif TARGET_OS_BSD || __RAVYNOS__
             if (__CFRunLoopServiceFileDescriptors(CFPORTSET_NULL, dispatchPort, 0, &livePort)) {
                 goto handle_msg;
             }
@@ -3071,7 +3087,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
 
         CFAbsoluteTime sleepStart = poll ? 0.0 : CFAbsoluteTimeGetCurrent();
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 #if USE_DISPATCH_SOURCE_FOR_TIMERS
         do {
             msg = (mach_msg_header_t *)msg_buffer;
@@ -3104,7 +3120,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         __CFRunLoopWaitForMultipleObjects(waitSet, NULL, poll ? 0 : TIMEOUT_INFINITY, rlm->_msgQMask, &livePort, &windowsMessageReceived);
 #elif TARGET_OS_LINUX
         __CFRunLoopServiceFileDescriptors(waitSet, CFPORT_NULL, poll ? 0 : TIMEOUT_INFINITY, &livePort);
-#elif TARGET_OS_BSD
+#elif TARGET_OS_BSD || __RAVYNOS__
         __CFRunLoopServiceFileDescriptors(waitSet, CFPORT_NULL, poll ? 0 : TIMEOUT_INFINITY, &livePort);
 #else
 #error "invoking the port set select implementation is required"
@@ -3219,7 +3235,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             __CFRunLoopUnlock(rl);
             _CFSetTSD(__CFTSDKeyIsInGCDMainQ, (void *)6, NULL);
 
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD || __RAVYNOS__
             void *msg = 0;
 #endif
             CFRUNLOOP_ARP_BEGIN(NULL)
@@ -3244,7 +3260,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
             // Despite the name, this works for windows handles as well
             CFRunLoopSourceRef rls = __CFRunLoopModeFindSourceForMachPort(rl, rlm, livePort);
             if (rls) {
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 		mach_msg_header_t *reply = NULL;
 		sourceHandledThisLoop = __CFRunLoopDoSource1(rl, rlm, rls, msg, msg->msgh_size, &reply) || sourceHandledThisLoop;
 		if (NULL != reply) {
@@ -3262,7 +3278,7 @@ static int32_t __CFRunLoopRun(CFRunLoopRef rl, CFRunLoopModeRef rlm, CFTimeInter
         
         /* --- BLOCKS --- */
         
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
         if (msg && msg != (mach_msg_header_t *)msg_buffer) free(msg);
 #endif
         
@@ -3399,7 +3415,7 @@ void CFRunLoopWakeUp(CFRunLoopRef rl) {
     
     cf_trace(KDEBUG_EVENT_CFRL_WAKEUP | DBG_FUNC_START, rl, 0, 0, 0);
     
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     kern_return_t ret;
     /* We unconditionally try to send the message, since we don't want
      * to lose a wakeup, but the send may fail if there is already a
@@ -3415,7 +3431,7 @@ void CFRunLoopWakeUp(CFRunLoopRef rl) {
     CFAssert1(0 == ret, __kCFLogAssertion, "%s(): Unable to send wake message to eventfd", __PRETTY_FUNCTION__);
 #elif TARGET_OS_WIN32
     SetEvent(rl->_wakeUpPort);
-#elif TARGET_OS_BSD
+#elif TARGET_OS_BSD || __RAVYNOS__
     __CFPortTrigger(rl->_wakeUpPort);
 #else
 #error "required"
@@ -3585,7 +3601,7 @@ void CFRunLoopAddSource(CFRunLoopRef rl, CFRunLoopSourceRef rls, CFStringRef mod
     CF_ASSERT_TYPE(_kCFRuntimeIDCFRunLoop, rl);
 
     
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     // Preflight Version-1 ports to make sure their mach port has a RECV right. 
     if (rls->_context.version0.version == 1) {
         mach_port_t const mp = rls->_context.version1.getPort(rls->_context.version1.info);
@@ -3631,7 +3647,8 @@ void CFRunLoopAddSource(CFRunLoopRef rl, CFRunLoopSourceRef rls, CFStringRef mod
 	        CFSetAddValue(rlm->_sources0, rls);
 	    } else if (1 == rls->_context.version0.version) {
 	        CFSetAddValue(rlm->_sources1, rls);
-		__CFPort src_port = rls->_context.version1.getPort(rls->_context.version1.info);
+		// FIXME(deleanor) REVISIT_CFPort_CASTS
+		__CFPort src_port = (__CFPort)rls->_context.version1.getPort(rls->_context.version1.info);
 		if (CFPORT_NULL != src_port) {
 		    CFDictionarySetValue(rlm->_portToV1SourceMap, (const void *)(uintptr_t)src_port, rls);
 		    __CFPortSetInsert(src_port, rlm->_portSet);
@@ -3689,7 +3706,8 @@ void CFRunLoopRemoveSource(CFRunLoopRef rl, CFRunLoopSourceRef rls, CFStringRef 
 	if (NULL != rlm && ((NULL != rlm->_sources0 && CFSetContainsValue(rlm->_sources0, rls)) || (NULL != rlm->_sources1 && CFSetContainsValue(rlm->_sources1, rls)))) {
 	    CFRetain(rls);
 	    if (1 == rls->_context.version0.version) {
-		__CFPort src_port = rls->_context.version1.getPort(rls->_context.version1.info);
+		// FIXME(deleanor) REVISIT_CFPort_CASTS
+		__CFPort src_port = (__CFPort)rls->_context.version1.getPort(rls->_context.version1.info);
                 if (CFPORT_NULL != src_port) {
 		    CFDictionaryRemoveValue(rlm->_portToV1SourceMap, (const void *)(uintptr_t)src_port);
                     __CFPortSetRemove(src_port, rlm->_portSet);
@@ -4078,7 +4096,7 @@ static CFStringRef __CFRunLoopSourceCopyDescription(CFTypeRef cf) {	/* DOES CALL
 	void *addr = rls->_context.version0.version == 0 ? (void *)rls->_context.version0.perform : (rls->_context.version0.version == 1 ? (void *)rls->_context.version1.perform : NULL);
 #if TARGET_OS_WIN32
 	contextDesc = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopSource context>{version = %ld, info = %p, callout = %p}"), rls->_context.version0.version, rls->_context.version0.info, addr);
-#elif TARGET_OS_MAC || (TARGET_OS_LINUX && !TARGET_OS_CYGWIN)
+#elif (TARGET_OS_MAC && !__RAVYNOS__) || (TARGET_OS_LINUX && !TARGET_OS_CYGWIN)
 	Dl_info info;
 	const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";
 	contextDesc = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopSource context>{version = %ld, info = %p, callout = %s (%p)}"), rls->_context.version0.version, rls->_context.version0.info, name, addr);
@@ -4284,7 +4302,7 @@ static CFStringRef __CFRunLoopObserverCopyDescription(CFTypeRef cf) {	/* DOES CA
     }
 #if TARGET_OS_WIN32
     result = CFStringCreateWithFormat(kCFAllocatorSystemDefault, NULL, CFSTR("<CFRunLoopObserver %p [%p]>{valid = %s, activities = 0x%x, repeats = %s, order = %d, callout = %p, context = %@}"), cf, CFGetAllocator(rlo), __CFIsValid(rlo) ? "Yes" : "No", rlo->_activities, __CFRunLoopObserverRepeats(rlo) ? "Yes" : "No", rlo->_order, rlo->_callout, contextDesc);    
-#elif TARGET_OS_MAC || (TARGET_OS_LINUX && !TARGET_OS_CYGWIN)
+#elif (TARGET_OS_MAC && !__RAVYNOS__) || (TARGET_OS_LINUX && !TARGET_OS_CYGWIN)
     void *addr = rlo->_callout;
     Dl_info info;
     const char *name = (dladdr(addr, &info) && info.dli_saddr == addr && info.dli_sname) ? info.dli_sname : "???";
