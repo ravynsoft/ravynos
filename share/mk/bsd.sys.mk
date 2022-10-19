@@ -89,6 +89,7 @@ CWARNFLAGS.clang+=	-Wno-tautological-compare -Wno-unused-value\
 		-Wno-parentheses-equality -Wno-unused-function -Wno-enum-conversion
 CWARNFLAGS.clang+=	-Wno-unused-local-typedef
 CWARNFLAGS.clang+=	-Wno-address-of-packed-member
+CWARNFLAGS.clang+= -Wno-unused-variable
 .if ${COMPILER_TYPE} == "gcc" && ${COMPILER_VERSION} >= 90100
 CWARNFLAGS.gcc+=	-Wno-address-of-packed-member
 .endif
