@@ -74,7 +74,7 @@ typedef int dispatch_runloop_handle_t;
 typedef HANDLE dispatch_runloop_handle_t;
 #endif
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 #include <sys/param.h>
 #include <CoreFoundation/CFUserNotification.h>
 #include <mach/mach.h>

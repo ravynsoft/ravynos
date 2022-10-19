@@ -65,6 +65,10 @@ CF_INLINE void _cfmp_mod_refs(mach_port_t const port, const Boolean doSend, cons
 }
 
 #pragma mark - Logging
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wunused-variable"
+#endif
 CF_BREAKPOINT_FUNCTION(void _CFMachPortDeallocationFailure(void));
 static void _cfmp_log_failure(char const *const msg, _cfmp_deallocation_record *const pr, _CFMPLifetimeClient const client, mach_port_t const port) {
     if (pr) {
@@ -75,6 +79,9 @@ static void _cfmp_log_failure(char const *const msg, _cfmp_deallocation_record *
     }
     _CFMachPortDeallocationFailure();
 }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 
 

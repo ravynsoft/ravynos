@@ -14,7 +14,9 @@
 CF_EXTERN_C_BEGIN
 
 #include <mach/mach_port.h>
+#if !__RAVYNOS__
 #include <os/lock.h>
+#endif
 
 typedef CF_ENUM(uint8_t, _CFMPLifetimeClient) {
     _CFMPLifetimeClientCFMachPort = 0,
