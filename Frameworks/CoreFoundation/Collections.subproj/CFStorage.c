@@ -998,6 +998,9 @@ static bool __CFStorageEnumerateNodesInByteRangeWithBlock(CFStorageRef storage, 
 	    CFStorageNode ** childrenPtr = children;
 #if __HAS_DISPATCH__
 	    __block bool blockStop = false;
+#ifdef __RAVYNOS__
+#define DISPATCH_APPLY_AUTO DISPATCH_APPLY_CURRENT_ROOT_QUEUE
+#endif
 	    dispatch_apply(numChildren, DISPATCH_APPLY_AUTO, ^(size_t ind) {
 		if (! blockStop && overlapsPtr[ind].length > 0) {
 		    if (__CFStorageEnumerateNodesInByteRangeWithBlock(storage, childrenPtr[ind], globalOffsetOfNode + offsetsPtr[ind], CFRangeMake(overlapsPtr[ind].location - offsetsPtr[ind], overlapsPtr[ind].length), concurrencyToken, applier)) {

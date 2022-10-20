@@ -17,7 +17,7 @@
 #if _POSIX_THREADS
 #include <pthread.h>
 #endif
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 #include <malloc/malloc.h>
 #include <mach/mach.h>
 #include <dlfcn.h>
@@ -29,7 +29,7 @@
 
 struct __CFAllocator {
     CFRuntimeBase _base;
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     // CFAllocator structure must match struct _malloc_zone_t!
     // The first two reserved fields in struct _malloc_zone_t are for us with CFRuntimeBase
     size_t 	(*size)(struct _malloc_zone_t *zone, const void *ptr); /* returns the size of a block or 0 if not in this zone; must be fast, especially for negative answers */
@@ -106,7 +106,7 @@ CF_INLINE CFAllocatorPreferredSizeCallBack __CFAllocatorGetPreferredSizeFunction
 
 static const void * const __MallocDefaultZoneInfoPlaceholder = NULL;
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 
 CF_PRIVATE void __CFAllocatorDeallocate(CFTypeRef cf);
 
@@ -301,7 +301,7 @@ DECLARE_STATIC_CLASS_REF(__NSCFType);
 
 static _CF_CONSTANT_OBJECT_BACKING struct __CFAllocator __kCFAllocatorMalloc = {
     INIT_CFRUNTIME_BASE_WITH_CLASS(__NSCFType, _kCFRuntimeIDCFAllocator),
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     __CFAllocatorCustomSize,
     __CFAllocatorCustomMalloc,
     __CFAllocatorCustomCalloc,
@@ -330,7 +330,7 @@ static _CF_CONSTANT_OBJECT_BACKING struct __CFAllocator __kCFAllocatorMalloc = {
 
 static _CF_CONSTANT_OBJECT_BACKING struct __CFAllocator __kCFAllocatorMallocZone = {
     INIT_CFRUNTIME_BASE_WITH_CLASS(__NSCFType, _kCFRuntimeIDCFAllocator),
-#if TARGET_OS_MAC 
+#if TARGET_OS_MAC && !__RAVYNOS__
     __CFAllocatorCustomSize,
     __CFAllocatorCustomMalloc,
     __CFAllocatorCustomCalloc,
@@ -352,7 +352,7 @@ static _CF_CONSTANT_OBJECT_BACKING struct __CFAllocator __kCFAllocatorMallocZone
 
 static _CF_CONSTANT_OBJECT_BACKING struct __CFAllocator __kCFAllocatorSystemDefault = {
     INIT_CFRUNTIME_BASE_WITH_CLASS(__NSCFType, _kCFRuntimeIDCFAllocator),
-#if TARGET_OS_MAC 
+#if TARGET_OS_MAC && !__RAVYNOS__
     __CFAllocatorCustomSize,
     __CFAllocatorCustomMalloc,
     __CFAllocatorCustomCalloc,
@@ -374,7 +374,7 @@ static _CF_CONSTANT_OBJECT_BACKING struct __CFAllocator __kCFAllocatorSystemDefa
 
 static _CF_CONSTANT_OBJECT_BACKING struct __CFAllocator __kCFAllocatorNull = {
     INIT_CFRUNTIME_BASE_WITH_CLASS(__NSCFType, _kCFRuntimeIDCFAllocator),
-#if TARGET_OS_MAC 
+#if TARGET_OS_MAC && !__RAVYNOS__
     __CFAllocatorNullSize,
     __CFAllocatorNullMalloc,
     __CFAllocatorNullCalloc,
@@ -538,7 +538,7 @@ static CFAllocatorRef __CFAllocatorCreate(CFAllocatorRef allocator, CFAllocatorC
     memset(memory, 0, sizeof(CFRuntimeBase));
     __CFRuntimeSetRC(memory, 1);
     _CFAllocatorSetInstanceTypeIDAndIsa(memory);
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     memory->size = __CFAllocatorCustomSize;
     memory->malloc = __CFAllocatorCustomMalloc;
     memory->calloc = __CFAllocatorCustomCalloc;
@@ -595,7 +595,7 @@ void *CFAllocatorAllocate(CFAllocatorRef allocator, CFIndex size, CFOptionFlags 
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
     if (0 == size) return NULL;
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_zone_malloc((malloc_zone_t *)allocator, size);
     }
@@ -626,7 +626,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
     if (NULL == ptr && 0 < newsize) {
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 	if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	    return malloc_zone_malloc((malloc_zone_t *)allocator, newsize);
 	}
@@ -639,7 +639,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
 	return newptr;
     }
     if (NULL != ptr && 0 == newsize) {
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 	if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 #if defined(DEBUG)
 	    size_t size = malloc_size(ptr);
@@ -656,7 +656,7 @@ void *CFAllocatorReallocate(CFAllocatorRef allocator, void *ptr, CFIndex newsize
 	return NULL;
     }
     if (NULL == ptr && 0 == newsize) return NULL;
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_zone_realloc((malloc_zone_t *)allocator, ptr, newsize);
     }
@@ -681,7 +681,7 @@ void CFAllocatorDeallocate(CFAllocatorRef allocator, void *ptr) {
 #else
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 #if defined(DEBUG)
 	size_t size = malloc_size(ptr);
@@ -704,14 +704,14 @@ CFIndex CFAllocatorGetPreferredSizeForSize(CFAllocatorRef allocator, CFIndex siz
         allocator = __CFGetDefaultAllocator();
     }
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     if (_CFTypeGetClass(allocator) == __CFISAForCFAllocator()) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
 #else
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return malloc_good_size(size);
     }
@@ -729,7 +729,7 @@ void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context
         allocator = __CFGetDefaultAllocator();
     }
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     if (_CFTypeGetClass(allocator) == __CFISAForCFAllocator()) {
 	__CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
     }
@@ -737,7 +737,7 @@ void CFAllocatorGetContext(CFAllocatorRef allocator, CFAllocatorContext *context
     __CFGenericValidateType(allocator, _kCFRuntimeIDCFAllocator);
 #endif
     CFAssert1(0 == context->version, __kCFLogAssertion, "%s(): context version not initialized to 0", __PRETTY_FUNCTION__);
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     if (_CFTypeGetClass(allocator) != __CFISAForCFAllocator()) {	// malloc_zone_t *
 	return;
     }

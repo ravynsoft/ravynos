@@ -1589,7 +1589,11 @@ static Boolean parseDictTag(_CFXMLPlistParseInfo * _Nonnull pInfo, CFTypeRef * _
 
 static Boolean parseDataTag(_CFXMLPlistParseInfo *pInfo, CFTypeRef *out) {
     const char *base = pInfo->curr;
+#if __clang__
+#define dataDecodeTableSize 128
+#else
     static const unsigned char dataDecodeTableSize = 128;
+#endif
     static const signed char dataDecodeTable[dataDecodeTableSize] = {
         /* 000 */ -1, -1, -1, -1, -1, -1, -1, -1,
         /* 010 */ -1, -1, -1, -1, -1, -1, -1, -1,

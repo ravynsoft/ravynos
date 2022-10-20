@@ -36,10 +36,7 @@ SRCS= \
 ./Preferences.subproj/CFXMLPreferencesDomain.c \
 ./Preferences.subproj/CFApplicationPreferences.c \
 ./RunLoop.subproj/CFSocket.c \
-./RunLoop.subproj/CFMachPort_Lifetime.c \
 ./RunLoop.subproj/CFRunLoop.c \
-./RunLoop.subproj/CFMessagePort.c \
-./RunLoop.subproj/CFMachPort.c \
 ./String.subproj/CFAttributedString.c \
 ./String.subproj/CFStringTransform.c \
 ./String.subproj/CFRunArray.c \
@@ -75,7 +72,6 @@ SRCS= \
 ./Parsing.subproj/CFOldStylePList.c \
 ./Parsing.subproj/CFBinaryPList.c \
 ./Parsing.subproj/CFPropertyList.c \
-./Parsing.subproj/CFXMLInterface.c \
 ./Base.subproj/CFWindowsUtilities.c \
 ./Base.subproj/CFFileUtilities.c \
 ./Base.subproj/CFKnownLocations.c \
@@ -169,7 +165,6 @@ INCS= \
 ./Collections.subproj/CFBitVector.h \
 ./Collections.subproj/CFData.h \
 ./Collections.subproj/CFBasicHash.h \
-./Parsing.subproj/CFXMLInterface.h \
 ./Parsing.subproj/CFPropertyList_Internal.h \
 ./Parsing.subproj/CFPropertyList.h \
 ./Parsing.subproj/CFPropertyList_Private.h \

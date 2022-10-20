@@ -17,6 +17,9 @@
 #else
 #define DISPATCH_APPLY_CURRENT_ROOT_QUEUE ((dispatch_queue_t _Nonnull)0)
 #endif // TARGET_OS_MAC && __has_include(<dispatch/private.h>)
+#if __RAVYNOS__
+#define DISPATCH_APPLY_AUTO DISPATCH_APPLY_CURRENT_ROOT_QUEUE
+#endif
 #endif // __HAS_DISPATCH__
 #include "CFLogUtilities.h"
 #include "CFInternal.h"

@@ -9,6 +9,7 @@
 
 #include <CoreFoundation/CFDateIntervalFormatter.h>
 #include <CoreFoundation/CFRuntime.h>
+#include "CFCalendar_Internal.h"
 #include "CFInternal.h"
 #include "CFRuntime_Internal.h"
 
@@ -166,7 +167,7 @@ static void updateFormatter(CFDateIntervalFormatterRef dif) {
             CFLog(kCFLogLevelError, CFSTR("udtitvfmt_open failed!  Formatter is NULL! -- locale: %s, template: %@, timezone: %@, status: %s"), localeBuffer, unretainedTemplate, unretainedTimeZoneName, u_errorName(status));
         }
         
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
         UDateIntervalFormatAttributeValue uDateIntervalMinimizationStyle = UDTITVFMT_MINIMIZE_NONE;
         const _CFDateIntervalFormatterBoundaryStyle type = dif->_boundaryStyle;
         switch (type) {

@@ -54,7 +54,7 @@ __kCFReleaseEvent = 29
 
 #if TARGET_OS_WIN32 || TARGET_OS_LINUX
 #include <malloc.h>
-#elif TARGET_OS_BSD
+#elif TARGET_OS_BSD || __RAVYNOS__
 #include <stdlib.h> // malloc()
 #else
 #include <malloc/malloc.h>
@@ -410,7 +410,7 @@ CF_INLINE uint32_t __CFHighRCFromInfo(__CFInfoType info) {
 CF_INLINE CFRuntimeBase *_cf_aligned_calloc(size_t align, CFIndex size, const char *className) {
     CFRuntimeBase *memory;
     
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     memory = malloc_zone_memalign(malloc_default_zone(), align, size);
 #elif TARGET_OS_LINUX
     int result = posix_memalign((void **)&memory, /*alignment*/ align, size);
@@ -1017,7 +1017,7 @@ extern CFTypeID CFTreeGetTypeID(void);
 extern CFTypeID CFPlugInInstanceGetTypeID(void);
 extern CFTypeID CFStringTokenizerGetTypeID(void);
 extern CFTypeID CFStorageGetTypeID(void);
-#if TARGET_OS_LINUX || TARGET_OS_BSD || (TARGET_OS_OSX && !DEPLOYMENT_RUNTIME_OBJC)
+#if TARGET_OS_LINUX || TARGET_OS_BSD || (TARGET_OS_OSX && !DEPLOYMENT_RUNTIME_OBJC) || __RAVYNOS__
 CF_PRIVATE void __CFTSDInitialize(void);
 #endif
 #if TARGET_OS_WIN32
@@ -1025,7 +1025,7 @@ CF_PRIVATE void __CFTSDInitialize(void);
 CF_PRIVATE void __CFTSDWindowsCleanup(void);
 #endif
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 _Atomic(uint8_t) __CF_FORK_STATE = 0;
 char * __crashreporter_info__ = NULL; // Keep this symbol, since it was exported and other things may be linking against it, like GraphicsServices.framework on iOS
 __asm(".desc ___crashreporter_info__, 0x10");
@@ -1206,7 +1206,7 @@ void __CFInitialize(void) {
             }
         }
         
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 	UInt32 s, r;
 	__CFStringGetUserDefaultEncoding(&s, &r); // force the potential setenv to occur early
 	pthread_atfork(__cf_atfork_prepare, NULL, __cf_atfork_child);

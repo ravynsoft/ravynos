@@ -401,6 +401,11 @@ enum {
 
 };
 
+#ifdef __RAVYNOS__
+// From github.com/apple-opensource/CF/blob/1152.14/CFInternal.h#L226
+#define __kCFAllocatorTypeID_CONST 2
+#endif
+
 CF_INLINE CFAllocatorRef __CFGetDefaultAllocator(void) {
     CFAllocatorRef allocator = (CFAllocatorRef)_CFGetTSD(__CFTSDKeyAllocator);
     if (NULL == allocator) {

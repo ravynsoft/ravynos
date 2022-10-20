@@ -47,7 +47,7 @@
 #endif
 
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 #include <unistd.h>
 #include <sys/uio.h>
 #include <mach/mach.h>
@@ -69,7 +69,7 @@
 #include <os/lock.h>
 #endif
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI || __RAVYNOS__
 #include <string.h>
 #include <sys/mman.h>
 #endif
@@ -197,7 +197,7 @@ CFHashCode CFHashBytes(uint8_t *bytes, CFIndex length) {
 #undef ELF_STEP
 
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 CF_PRIVATE uintptr_t __CFFindPointer(uintptr_t ptr, uintptr_t start) {
     vm_map_t task = mach_task_self();
     mach_vm_address_t address = start;
@@ -510,7 +510,7 @@ CF_PRIVATE void *__CFLookupCarbonCoreFunction(const char *name) {
 }
 #endif
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 CF_PRIVATE void *__CFLookupCoreServicesInternalFunction(const char *name) {
     static void *image = NULL;
     static dispatch_once_t onceToken;
@@ -561,14 +561,14 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount(void) {
     v = (v & 0x3333333333333333ULL) + ((v >> 2) & 0x3333333333333333ULL);
     v = (v + (v >> 4)) & 0xf0f0f0f0f0f0f0fULL;
     pcnt = (v * 0x0101010101010101ULL) >> ((sizeof(v) - 1) * 8);
-#elif TARGET_OS_MAC
+#elif TARGET_OS_MAC && !__RAVYNOS__
     int32_t mib[] = {CTL_HW, HW_AVAILCPU};
     size_t len = sizeof(pcnt);
     int32_t result = sysctl(mib, sizeof(mib) / sizeof(int32_t), &pcnt, &len, NULL, 0);
     if (result != 0) {
         pcnt = 0;
     }
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || __RAVYNOS__
 
 #ifdef HAVE_SCHED_GETAFFINITY
     cpu_set_t set;
@@ -588,14 +588,14 @@ CF_PRIVATE CFIndex __CFActiveProcessorCount(void) {
 
 CF_PRIVATE CFIndex __CFProcessorCount() {
     int32_t pcnt;
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     int32_t mib[] = {CTL_HW, HW_NCPU};
     size_t len = sizeof(pcnt);
     int32_t result = sysctl(mib, sizeof(mib) / sizeof(int32_t), &pcnt, &len, NULL, 0);
     if (result != 0) {
         pcnt = 0;
     }
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || __RAVYNOS__
     pcnt = sysconf(_SC_NPROCESSORS_CONF);
 #else
     // Assume the worst
@@ -606,21 +606,21 @@ CF_PRIVATE CFIndex __CFProcessorCount() {
 
 CF_PRIVATE uint64_t __CFMemorySize() {
     uint64_t memsize = 0;
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     int32_t mib[] = {CTL_HW, HW_MEMSIZE};
     size_t len = sizeof(memsize);
     int32_t result = sysctl(mib, sizeof(mib) / sizeof(int32_t), &memsize, &len, NULL, 0);
     if (result != 0) {
         memsize = 0;
     }
-#elif TARGET_OS_LINUX || TARGET_OS_BSD
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || __RAVYNOS__
     memsize = sysconf(_SC_PHYS_PAGES);
     memsize *= sysconf(_SC_PAGESIZE);
 #endif
     return memsize;
 }
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 static uid_t _CFGetSVUID(BOOL *successful) {
     uid_t uid = -1;
     struct kinfo_proc kinfo;
@@ -646,7 +646,7 @@ static uid_t _CFGetSVUID(BOOL *successful) {
 #endif
 
 CF_INLINE BOOL _CFCanChangeEUIDs(void) {
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     static BOOL canChangeEUIDs;
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
@@ -675,7 +675,7 @@ static dispatch_once_t __CFGetUGIDs_onceToken;
 CF_PRIVATE void __CFGetUGIDs(uid_t *euid, gid_t *egid) {
     ugids(^lookup)(void) = ^{
         ugids ids;
-#if 1 && TARGET_OS_MAC
+#if 1 && TARGET_OS_MAC && !__RAVYNOS__
         if (0 != pthread_getugid_np(&ids._euid, &ids._egid))
 #endif
         {
@@ -816,7 +816,7 @@ void CFShow(const void *obj) {
 // message must be a UTF8-encoded, null-terminated, byte buffer with at least length bytes
 typedef void (*CFLogFunc)(int32_t lev, const char *message, size_t length, char withBanner);
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 static Boolean debugger_attached() {
     BOOL debuggerAttached = NO;
     struct proc_bsdshortinfo info;
@@ -839,7 +839,7 @@ static bool also_do_stderr(const _cf_logging_style style) {
 #if TARGET_OS_LINUX || TARGET_OS_WIN32
     // just log to stderr, other logging facilities are out
     result = true;
-#elif TARGET_OS_MAC
+#elif TARGET_OS_MAC && !__RAVYNOS__
     if (style == _cf_logging_style_os_log) {
         //
         // This might seem a bit odd, so an explanation is in order:
@@ -918,7 +918,7 @@ static void _populateBanner(char **banner, char **time, char **thread, int *bann
     int32_t minute = mine.tm_min;
     int32_t second = mine.tm_sec;
     int32_t ms = (int32_t)floor(1000.0 * modf(at, &dummy));
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     uint64_t tid = 0;
     if (0 != pthread_threadid_np(NULL, &tid)) tid = pthread_mach_thread_np(pthread_self());
     asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%llu] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), tid);
@@ -930,8 +930,17 @@ static void _populateBanner(char **banner, char **time, char **thread, int *bann
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d [%x] ", year, month, day, hour, minute, second, ms, (unsigned int)pthread_self());
     asprintf(thread, "%lx", pthread_self());
 #else
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat"
+#pragma clang diagnostic ignored "-Wpointer-to-int-cast"
+#pragma clang diagnostic ignored "-Wint-conversion"
+#endif
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%x] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), (unsigned int)pthread_self());
     asprintf(thread, "%lx", pthread_self());
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 #endif
     asprintf(time, "%04d-%02d-%02d %02d:%02d:%02d.%03d", year, month, day, hour, minute, second, ms);
 }
@@ -1172,7 +1181,7 @@ void CFLog1(CFLogLevel lev, CFStringRef message) {
 
 
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 
 kern_return_t _CFDiscorporateMemoryAllocate(CFDiscorporateMemory *hm, size_t size, bool purgeable) {
     kern_return_t ret = KERN_SUCCESS;
@@ -1336,7 +1345,7 @@ CF_PRIVATE Boolean _CFReadMappedFromFile(CFStringRef path, Boolean map, Boolean 
         if (errorPtr) *errorPtr = _CFErrorWithFilePathCodeDomain(kCFErrorDomainPOSIX, errno, path);
         return false;
     }
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     if (uncached) (void)fcntl(fd, F_NOCACHE, 1);  // Non-zero arg turns off caching; we ignore error as uncached is just a hint
 #endif
     if (fstat(fd, &statBuf) < 0) {
