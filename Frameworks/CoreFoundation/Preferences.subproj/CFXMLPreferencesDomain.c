@@ -16,7 +16,7 @@
 #include <CoreFoundation/CFDate.h>
 #include "CFInternal.h"
 #include <time.h>
-#if TARGET_OS_OSX
+#if TARGET_OS_OSX && !__RAVYNOS__
 #include <unistd.h>
 #include <stdio.h>
 #include <sys/stat.h>
@@ -105,7 +105,7 @@ static Boolean _createDirectory(CFURLRef dirURL, Boolean worldReadable) {
     if (parentURL) CFRelease(parentURL);
     if (!parentExists) return false;
 
-#if TARGET_OS_OSX || TARGET_OS_LINUX
+#if (TARGET_OS_OSX || TARGET_OS_LINUX) && !__RAVYNOS__
     mode = worldReadable ? S_IRWXU|S_IRWXG|S_IROTH|S_IXOTH : S_IRWXU;
 #else
     mode = 0666;
@@ -213,7 +213,7 @@ static CFTypeRef fetchXMLValue(CFTypeRef context, void *xmlDomain, CFStringRef k
 }
 
 
-#if TARGET_OS_OSX
+#if TARGET_OS_OSX && !__RAVYNOS__
 #include <sys/fcntl.h>
 
 /* __CFWriteBytesToFileWithAtomicity is a "safe save" facility. Write the bytes using the specified mode on the file to the provided URL. If the atomic flag is true, try to do it in a fashion that will enable a safe save.
@@ -309,12 +309,12 @@ static Boolean _writeXMLFile(CFURLRef url, CFMutableDictionaryRef dict, Boolean 
         CFDataRef data = CFPropertyListCreateData(alloc, dict, desiredFormat, 0, NULL);
         if (data) {
             SInt32 mode;
-#if TARGET_OS_OSX || TARGET_OS_LINUX
+#if (TARGET_OS_OSX || TARGET_OS_LINUX) && !__RAVYNOS__
             mode = isWorldReadable ? S_IRUSR|S_IWUSR|S_IRGRP|S_IROTH : S_IRUSR|S_IWUSR;
 #else
 	    mode = 0666;
 #endif
-#if TARGET_OS_OSX
+#if TARGET_OS_OSX && !__RAVYNOS__
             {	// Try quick atomic way first, then fallback to slower ways and error cases
                 CFStringRef scheme = CFURLCopyScheme(url);
                 if (!scheme) {

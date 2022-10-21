@@ -67,6 +67,8 @@
 #include <mach/mach_time.h>
 #include <Block.h>
 #include <os/lock.h>
+#elif __RAVYNOS__
+#include <dlfcn.h>
 #endif
 
 #if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI || __RAVYNOS__
