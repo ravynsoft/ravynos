@@ -198,18 +198,6 @@ INCS= \
 ./URL.subproj/CFURLAccess.h \
 ./URL.subproj/CFURLComponents.h
 
-RESOURCES=Info.plist English.lproj \
-	NSCharacterSet/alphanumericCharacterSet.bitmap \
-	NSCharacterSet/controlCharacterSet.bitmap \
-	NSCharacterSet/decimalDigitCharacterSet.bitmap \
-	NSCharacterSet/illegalCharacterSet.bitmap \
-	NSCharacterSet/letterCharacterSet.bitmap \
-	NSCharacterSet/lowercaseLetterCharacterSet.bitmap \
-	NSCharacterSet/punctuationCharacterSet.bitmap \
-	NSCharacterSet/uppercaseLetterCharacterSet.bitmap \
-	NSCharacterSet/whitespaceAndNewlineCharacterSet.bitmap \
-	NSCharacterSet/whitespaceCharacterSet.bitmap
-
 WARNS:=2
 
 CFLAGS+= ${FMWK_CFLAGS_C} -I${.CURDIR}/Headers \
