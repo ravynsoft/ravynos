@@ -19,7 +19,7 @@ CF_PRIVATE  const CFStringEncodingConverter __CFConverterWinLatin1;
 CF_PRIVATE  const CFStringEncodingConverter __CFConverterNextStepLatin;
 CF_PRIVATE  const CFStringEncodingConverter __CFConverterUTF8;
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 CF_PRIVATE  const CFStringEncodingConverter __CFConverterMacRoman;
 #endif
 

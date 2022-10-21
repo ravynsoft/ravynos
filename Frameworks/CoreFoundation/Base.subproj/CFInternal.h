@@ -770,7 +770,7 @@ CF_PRIVATE void _CF_dispatch_once(dispatch_once_t *, void (^)(void));
 
 #endif
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 #define __CF_FORK_STATE_FORKED_FLAG         (1 << 0)
 #define __CF_FORK_STATE_CF_USED_FLAG        (1 << 1)
 #define __CF_FORK_STATE_MULTITHREADED_FLAG  (1 << 2)

@@ -557,7 +557,7 @@ CF_INLINE const CFStringEncodingConverter *__CFStringEncodingConverterGetDefinit
         case kCFStringEncodingUTF8:
             return &__CFConverterUTF8;
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
         case kCFStringEncodingMacRoman:
             return &__CFConverterMacRoman;
 #endif
