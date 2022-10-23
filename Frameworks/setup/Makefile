@@ -2,6 +2,7 @@
 
 all:
 	mkdir -p ${BUILDROOT}/System/Library/Frameworks
+	${MAKE} -C ${.CURDIR}/../CoreFoundation marshalheaders
 	${MAKE} -C ${.CURDIR}/../Foundation marshalheaders
 	mkdir -p ${.CURDIR}/../AppKit/Headers/AppKit
 	ln -f ${.CURDIR}/../Foundation/NSException/NSRaise.h \

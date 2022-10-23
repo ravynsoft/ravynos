@@ -200,19 +200,21 @@ INCS= \
 
 WARNS:=2
 
-CFLAGS+= ${FMWK_CFLAGS_C} -I${.CURDIR}/Headers \
-	 -I${.CURDIR}/.. \
-	 -I./Headers \
-	 -I./Headers/CoreFoundation \
-	 -I$(.CURDIR)/../../include/apple \
-	 -I$(.CURDIR)/../../include \
-	 -I$(.CURDIR)/../../sys \
-	 -include CoreFoundation/CoreFoundation_Prefix.h \
-	 -D__APPLE__ -DUSE_OBJC=0 -D__BLOCKS__=1 \
-	 -D_POSIX_THREADS \
-	 -DDEPLOYMENT_RUNTIME_C \
-	 -DCF_BUILDING_CF \
-	 -fblocks -std=c11
+# FIXME(deleanor) Should probably use the ${BUILDROOT}/usr versions of the
+# system includes below, but I think I need buildworld at least once to get
+# them.
+CFLAGS+= ${FMWK_CFLAGS_C} \
+	-I${.CURDIR}/Headers \
+	-I${.CURDIR}/Headers/CoreFoundation \
+	-I${TOPDIR}/include \
+	-I${TOPDIR}/include/apple \
+	-I${TOPDIR}/sys \
+	-include ${.CURDIR}/Base.subproj/CoreFoundation_Prefix.h \
+	-D__APPLE__ -DUSE_OBJC=0 -D__BLOCKS__=1 \
+	-D_POSIX_THREADS \
+	-DDEPLOYMENT_RUNTIME_C \
+	-DCF_BUILDING_CF \
+	-fblocks -std=c11
 LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -lexecinfo -lpthread
 
