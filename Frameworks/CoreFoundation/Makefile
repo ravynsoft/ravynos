@@ -182,10 +182,7 @@ INCS= \
 ./Base.subproj/CFOverflow.h \
 ./Base.subproj/CFPriv.h \
 ./Base.subproj/CoreFoundation_Prefix.h \
-./Base.subproj/ForSwiftFoundationOnly.h \
 ./Base.subproj/CoreFoundation.h \
-./Base.subproj/SwiftRuntime/CoreFoundation.h \
-./Base.subproj/SwiftRuntime/TargetConditionals.h \
 ./Base.subproj/CFKnownLocations.h \
 ./Base.subproj/CFAvailability.h \
 ./AppServices.subproj/CFNotificationCenter.h \
@@ -206,9 +203,9 @@ WARNS:=2
 CFLAGS+= ${FMWK_CFLAGS_C} \
 	-I${.CURDIR}/Headers \
 	-I${.CURDIR}/Headers/CoreFoundation \
-	-I${TOPDIR}/include \
-	-I${TOPDIR}/include/apple \
-	-I${TOPDIR}/sys \
+	-I${.CURDIR}/../../include \
+	-I${.CURDIR}/../../include/apple \
+	-I${.CURDIR}/../../sys \
 	-include ${.CURDIR}/Base.subproj/CoreFoundation_Prefix.h \
 	-D__APPLE__ -DUSE_OBJC=0 -D__BLOCKS__=1 \
 	-D_POSIX_THREADS \
