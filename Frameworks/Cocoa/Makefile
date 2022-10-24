@@ -1,3 +1,5 @@
+.include "../framework.common.mk"
+
 FRAMEWORK=Cocoa
 SRCS=Cocoa.m
 INCS=Cocoa.h

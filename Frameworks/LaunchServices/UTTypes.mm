@@ -22,6 +22,7 @@
  * THE SOFTWARE.
  */
 
+#import <CoreFoundation/CFArray.h>
 #import <Foundation/Foundation.h>
 #import "LaunchServices.h"
 #import "UTTypes.h"
@@ -32,8 +33,8 @@ Boolean UTTypeEqual(CFStringRef inUTI1, CFStringRef inUTI2)
 {
     // Dynamic Type. Equal if all tags in UTI1 exist in UTI2
     if(CFStringHasPrefix(inUTI1, CFSTR("dyn."))) {
-	CFArrayRef allTags1 = CFArrayCreateMutable(NULL, 10, NULL);
-	CFArrayRef allTags2 = CFArrayCreateMutable(NULL, 10, NULL);
+	CFMutableArrayRef allTags1 = CFArrayCreateMutable(NULL, 10, NULL);
+	CFMutableArrayRef allTags2 = CFArrayCreateMutable(NULL, 10, NULL);
 
 	CFArrayRef tags = UTTypeCopyAllTagsWithClass(inUTI1, kUTTagClassFilenameExtension);
 	if(tags != (CFArrayRef)0) {
@@ -104,7 +105,7 @@ CFArrayRef UTTypeCopyConformsTo(CFStringRef inUTI)
     }
 
     int rc = sqlite3_step(stmt);
-    CFArrayRef result = CFArrayCreateMutable(NULL, 5, NULL);
+    CFMutableArrayRef result = CFArrayCreateMutable(NULL, 5, NULL);
     while(rc == SQLITE_ROW) {
         CFArrayRef conforms = (__bridge_retained CFArrayRef)[[NSString
 	    stringWithCString:(const char *)sqlite3_column_text(stmt, 0)]
@@ -136,7 +137,7 @@ Boolean UTTypeConformsTo(CFStringRef inUTI1, CFStringRef inUTI2)
 
     // if UTI2 is not a direct ancestor of UTI1, we need to traverse the ancestors
     // of UTI1 until we either find UTI2 or exhaust the list
-    CFArrayRef transits = CFArrayCreateMutable(NULL, 10, NULL);
+    CFMutableArrayRef transits = CFArrayCreateMutable(NULL, 10, NULL);
     CFArrayAppendArray(transits, conformsUTI1, CFRangeMake(0, CFArrayGetCount(conformsUTI1)));
     CFRelease(conformsUTI1);
 
@@ -230,7 +231,7 @@ CFArrayRef UTTypeCreateAllIdentifiersForTag(CFStringRef inTagClass,
 
     int rc = sqlite3_step(stmt);
     NSString *uti = nil;
-    CFArrayRef result = CFArrayCreateMutable(NULL, 5, NULL);
+    CFMutableArrayRef result = CFArrayCreateMutable(NULL, 5, NULL);
     while(rc == SQLITE_ROW) {
     	uti = [NSString stringWithCString:(const char *)sqlite3_column_text(stmt, 0)];
         CFArrayAppendValue(result, (__bridge_retained void *)uti);

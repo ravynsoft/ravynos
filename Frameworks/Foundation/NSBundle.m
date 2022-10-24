@@ -24,7 +24,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSUserDefaults.h>
 #import <objc/runtime.h>
 #import <Foundation/NSRaiseException.h>
-#if defined(__APPLE__)
+#if defined(__APPLE__) && !__RAVYNOS__
 #import"OBJCRegisterModule_Darwin.h"
 #endif
 

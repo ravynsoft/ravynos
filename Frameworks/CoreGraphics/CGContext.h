@@ -20,6 +20,7 @@ typedef void *CGContextRef;
 #import <CoreGraphics/CGShading.h>
 #import <CoreGraphics/CGPDFPage.h>
 #import <CoreGraphics/CGLayer.h>
+#import <CoreFoundation/CFDictionary.h>
 
 typedef enum {
     kCGEncodingFontSpecific,

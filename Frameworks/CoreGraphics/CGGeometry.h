@@ -9,6 +9,34 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <CoreGraphics/CoreGraphicsExport.h>
 #import <CoreFoundation/CFBase.h>
 #include <stdbool.h>
+#include <stddef.h>
+#include <limits.h>
+
+typedef float CGFloat;
+#define CGFLOAT_MIN FLT_MIN
+#define CGFLOAT_MAX FLT_MAX
+#define CGFLOAT_SCAN "%g"
+
+typedef struct CGPoint {
+    CGFloat x;
+    CGFloat y;
+} CGPoint;
+
+typedef struct CGSize {
+    CGFloat width;
+    CGFloat height;
+} CGSize;
+
+typedef struct CGRect {
+    CGPoint origin;
+    CGSize size;
+} CGRect;
+
+typedef unsigned short UniChar;
+typedef unsigned int UTF32Char;
+typedef float Float32;
+typedef double Float64;
+
 
 COREGRAPHICS_EXPORT const CGRect CGRectZero;
 COREGRAPHICS_EXPORT const CGRect CGRectNull;

@@ -1,6 +1,7 @@
 #import <CoreGraphics/CoreGraphicsExport.h>
 #import <CoreGraphics/CGGeometry.h>
 #import <CoreGraphics/CGColorSpace.h>
+#import <CoreFoundation/CFArray.h>
 
 typedef struct CGGradient *CGGradientRef;
 

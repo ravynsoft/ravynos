@@ -10,6 +10,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <AppKit/AppKitExport.h>
 #import <AppKit/NSGraphics.h>
 
+#include <servers/bootstrap.h>
+
 @class NSWindow, NSImage, NSMenu, NSPasteboard, NSDisplay, NSDockTile, DKConnection, DKMenu;
 
 APPKIT_EXPORT NSString *const NSModalPanelRunLoopMode;

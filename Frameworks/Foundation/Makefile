@@ -682,7 +682,10 @@ RESOURCES=Info.plist English.lproj \
 	NSCharacterSet/whitespaceCharacterSet.bitmap
 
 CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/Headers \
-	 -I${.CURDIR}/.. -I${BUILDROOT}/usr/include 
+	-I${.CURDIR}/.. -I${BUILDROOT}/usr/include \
+	-F${BUILDROOT}/System/Library/Frameworks \
+	-framework CoreFoundation \
+	-framework CoreGraphics
 LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -Wl,-R/System/Library/Frameworks/CFNetwork.framework/Versions/A \
 	  -L${BUILDROOT}/System/Library/Frameworks/CFNetwork.framework/Versions/Current \

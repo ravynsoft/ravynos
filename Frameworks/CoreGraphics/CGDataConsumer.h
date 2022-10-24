@@ -10,6 +10,8 @@
 #import <CoreFoundation/CFData.h>
 #import <CoreFoundation/CFURL.h>
 
+#include <stddef.h>
+
 typedef struct O2DataConsumer *CGDataConsumerRef;
 
 typedef size_t (*CGDataConsumerPutBytesCallback)(void *info, const void *buffer, size_t count);
