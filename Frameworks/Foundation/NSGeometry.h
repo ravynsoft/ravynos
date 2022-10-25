@@ -7,7 +7,40 @@ The above copyright notice and this permission notice shall be included in all c
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE. */
 
 #import <Foundation/NSObject.h>
-#import <CoreGraphics/CGGeometry.h>
+
+/*
+Apple's Foundation relies on CoreGraphics solely for the CG{Point,Size,Rect}
+typedefs. However, CoreGraphics depends on OpenGL and Onyx2D, imparting the
+same dependencies on Foundation.  Placing those typedefs here enables
+Foundation to depend only on CoreFoundation, which is more in line with the
+Swift Foundation version.
+*/
+
+typedef float CGFloat;
+#define CGFLOAT_MIN FLT_MIN
+#define CGFLOAT_MAX FLT_MAX
+#define CGFLOAT_SCAN "%g"
+
+typedef struct CGPoint {
+    CGFloat x;
+    CGFloat y;
+} CGPoint;
+
+typedef struct CGSize {
+    CGFloat width;
+    CGFloat height;
+} CGSize;
+
+typedef struct CGRect {
+    CGPoint origin;
+    CGSize size;
+} CGRect;
+
+typedef unsigned short UniChar;
+typedef unsigned int UTF32Char;
+typedef float Float32;
+typedef double Float64;
+
 
 typedef CGPoint NSPoint;
 typedef CGSize NSSize;
