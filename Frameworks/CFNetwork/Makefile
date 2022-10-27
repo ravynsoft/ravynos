@@ -16,8 +16,6 @@ INCS= \
 RESOURCES=Info.plist English.lproj
 CFLAGS+= ${FMWK_CFLAGS} -I.. -I../Foundation/Headers \
 	-I${.CURDIR}/../../include/apple \
-	-DOS_OBJECT_USE_OBJC=0 -fblocks \
-	-D__APPLE__ \
 	-F${BUILDROOT}/System/Library/Frameworks -framework CoreFoundation
 LDFLAGS+=-L${BUILDROOT}/System/Library/Frameworks/CoreFoundation.framework/Versions/Current -lCoreFoundation -Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A
 

@@ -21,6 +21,6 @@ ${.CURDIR}/shutdown: shutdown.c
 	${CC} -o ${.TARGET} ${.ALLSRC}
 
 ${.CURDIR}/kickSession: kickSession.m
-	${CC} -O0 -g -o ${.TARGET} ${.ALLSRC} -framework AppKit -lSystem
+	${CC} -O0 -g -o ${.TARGET} ${.ALLSRC} -D__APPLE__ -DOS_OBJECT_USE_OBJC=0 -fblocks -framework AppKit -lSystem
 
 .include <rvn.app.mk>

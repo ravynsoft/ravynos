@@ -197,9 +197,6 @@ INCS= \
 
 WARNS:=2
 
-# FIXME(deleanor) Should probably use the ${BUILDROOT}/usr versions of the
-# system includes below, but I think I need buildworld at least once to get
-# them.
 CFLAGS+= ${FMWK_CFLAGS_C} \
 	-I${.CURDIR}/Headers \
 	-I${.CURDIR}/Headers/CoreFoundation \
@@ -207,11 +204,11 @@ CFLAGS+= ${FMWK_CFLAGS_C} \
 	-I${.CURDIR}/../../include/apple \
 	-I${.CURDIR}/../../sys \
 	-include ${.CURDIR}/Base.subproj/CoreFoundation_Prefix.h \
-	-D__APPLE__ -DUSE_OBJC=0 -D__BLOCKS__=1 \
+	-DUSE_OBJC=0 -D__BLOCKS__=1 \
 	-D_POSIX_THREADS \
 	-DDEPLOYMENT_RUNTIME_C \
 	-DCF_BUILDING_CF \
-	-fblocks -std=c11
+	-std=c11
 LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -lexecinfo -lpthread
 

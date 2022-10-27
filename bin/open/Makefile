@@ -5,6 +5,7 @@ open: open.m
 		-I${TOPDIR}/Frameworks/Foundation/Headers \
 		-I${TOPDIR}/Frameworks/LaunchServices \
 		-I${TOPDIR}/Frameworks \
+		-DOS_OBJECT_USE_OBJC=0 -fblocks -D__APPLE__ \
 		-framework LaunchServices -framework Foundation
 	mkdir -p ${BUILDROOT}/usr/bin
 	${SUDO} install -m755 -o root -g wheel open ${BUILDROOT}/usr/bin
