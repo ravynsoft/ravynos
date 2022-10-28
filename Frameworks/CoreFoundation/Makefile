@@ -197,7 +197,7 @@ INCS= \
 
 WARNS:=2
 
-CFLAGS+= ${FMWK_CFLAGS_C} \
+CFLAGS+= ${FMWK_CFLAGS} \
 	-I${.CURDIR}/Headers \
 	-I${.CURDIR}/Headers/CoreFoundation \
 	-I${.CURDIR}/../../include \
@@ -210,7 +210,9 @@ CFLAGS+= ${FMWK_CFLAGS_C} \
 	-DCF_BUILDING_CF \
 	-std=c11
 LDFLAGS+= ${FMWK_LDFLAGS} \
-	  -lexecinfo -lpthread
+	  -lexecinfo -lpthread -ldispatch -licuuc -licui18n -licudata -lm -lcurl
+
+# LDFLAGS+= -alias_list Base.subproj/SymbolAliases
 
 marshalheaders: .PHONY
 	mkdir -p Headers/CoreFoundation

@@ -3,7 +3,7 @@ OBJC_FLAG+= -fobjc-nonfragile-abi -fobjc-runtime=gnustep-2.0
 
 # Required flags for RavynOS's libdispatch, which all frameworks and apps rely
 # on via CoreFoundation.
-CFLAGS+= -DOS_OBJECT_USE_OBJC=0 -fblocks -D__APPLE__ -D__RAVYNOS__
+CFLAGS+= -fblocks -D__APPLE__ -D__RAVYNOS__
 
 .m.o:
 	${CC} ${OBJC_FLAG} ${FMWK_FLAG} ${PO_FLAG} ${STATIC_CFLAGS} ${PO_CFLAGS} -c ${.IMPSRC} -o ${.TARGET}

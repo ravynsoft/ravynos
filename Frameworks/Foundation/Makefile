@@ -686,9 +686,11 @@ CFLAGS+= ${FMWK_CFLAGS} -I${.CURDIR}/Headers \
 	-F${BUILDROOT}/System/Library/Frameworks \
 	-framework CoreFoundation
 LDFLAGS+= ${FMWK_LDFLAGS} \
+	  -Wl,-R/System/Library/Frameworks/CoreFoundation.framework/Versions/A \
 	  -Wl,-R/System/Library/Frameworks/CFNetwork.framework/Versions/A \
+	  -L${BUILDROOT}/System/Library/Frameworks/CoreFoundation.framework/Versions/Current \
 	  -L${BUILDROOT}/System/Library/Frameworks/CFNetwork.framework/Versions/Current \
-	  -lCFNetwork \
+	  -lCFNetwork -lCoreFoundation \
 	  -lobjc -lexecinfo -lpthread
 
 .if ${MACHINE_CPUARCH} == "aarch64"
