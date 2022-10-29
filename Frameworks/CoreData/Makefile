@@ -53,7 +53,7 @@ NSRelationshipDescription.h \
 NSXMLPersistentStore.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers
+CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../CoreFoundation/Headers -I../Foundation/Headers
 
 _install-hook:
 	rm -rf ${BUILDROOT}/System/Library/Frameworks/${FRAMEWORK}.framework

@@ -192,7 +192,7 @@ INCS= \
 	gif_lib.h
 
 RESOURCES=Info.plist English.lproj
-CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../Foundation/Headers
+CFLAGS+= ${FMWK_CFLAGS} -I.. -I../libobjc2 -I../CoreFoundation/Headers -I../Foundation/Headers
 LDFLAGS+= ${FMWK_LDFLAGS} -ljpeg -lpng -ltiff
 
 _install-hook:

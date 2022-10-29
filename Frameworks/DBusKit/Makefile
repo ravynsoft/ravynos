@@ -11,7 +11,7 @@ RESOURCES=
 DBUS_CFLAGS!= pkg-config --cflags dbus-1
 DBUS_LDFLAGS!= pkg-config --libs dbus-1
 DBUS_LDFLAGS+=-Wl,-R\$$ORIGIN/./
-CFLAGS+= -g ${FMWK_CFLAGS} -I. -I.. -I../Foundation/Headers -I../AppKit/Headers \
+CFLAGS+= -g ${FMWK_CFLAGS} -I. -I.. -I../CoreFoundation/Headers -I../Foundation/Headers -I../AppKit/Headers \
 	-I${BUILDROOT}/usr/include ${DBUS_CFLAGS} -fblocks
 LDFLAGS+= -g ${FMWK_LDFLAGS} ${DBUS_LDFLAGS} \
 	  -Wl,-R/System/Library/Frameworks/Foundation.framework/Versions/A \
