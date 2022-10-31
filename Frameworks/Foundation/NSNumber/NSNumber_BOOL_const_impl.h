@@ -29,6 +29,3 @@ static const NSNumber_BOOL_Def kFalseDef =
      &NS_CLASS_SYMBOL(NSNumber_BOOL),
      kCFNumberCharType,
      NO};
-
-const CFBooleanRef kCFBooleanTrue = (CFBooleanRef)&kTrueDef;
-const CFBooleanRef kCFBooleanFalse = (CFBooleanRef)&kFalseDef;

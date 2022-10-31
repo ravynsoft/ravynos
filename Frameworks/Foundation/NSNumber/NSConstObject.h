@@ -32,14 +32,14 @@
 #define NS_CLASS_SYMBOL(className) _OBJC_CLASS_##className
 #endif
 
-#if __APPLE__
+#if __APPLE__ && !defined(__RAVYNOS__)
 #ifdef __LP64__
 #define NS_DECLARE_CLASS_SYMBOL(className) extern const struct objc_class NS_CLASS_SYMBOL(className) __asm__("_OBJC_CLASS_$_" #className)
 #else
 #define NS_DECLARE_CLASS_SYMBOL(className) extern const struct objc_class NS_CLASS_SYMBOL(className) __asm__(".objc_class_name_" #className)
 #endif // __LP64__
 #else
-#if defined(__FreeBSD__)
+#if defined(__FreeBSD__) || defined(__RAVYNOS__)
 #define NS_DECLARE_CLASS_SYMBOL(className) extern const struct objc_class NS_CLASS_SYMBOL(className) __asm__("._OBJC_CLASS_" #className)
 #else
 #define NS_DECLARE_CLASS_SYMBOL(className) extern const struct objc_class NS_CLASS_SYMBOL(className)
@@ -52,7 +52,7 @@
    Constant objects must be defined in a separate linkage unit in Darwin, but
    in the same linkage unit as the class they're used by on other platforms.
 */
-#if __APPLE__
+#if __APPLE__ && !defined(__RAVYNOS__)
 #define NS_CONSTOBJ_DECL extern __attribute__((visibility("hidden")))
 #define NS_CONSTOBJ_DEF
 #else
