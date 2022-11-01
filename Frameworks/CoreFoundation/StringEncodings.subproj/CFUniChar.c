@@ -25,7 +25,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #endif
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 #include <mach/mach.h>
 #endif
 
@@ -41,9 +41,9 @@ extern void _CFGetFrameworkPath(wchar_t *path, int maxLength);
 #define __kCFCharacterSetDir "\\Windows\\CoreFoundation"
 #endif
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 #define USE_MACHO_SEGMENT 1
-#elif DEPLOYMENT_RUNTIME_SWIFT && (TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32 || TARGET_OS_WASI)
+#elif DEPLOYMENT_RUNTIME_SWIFT && (TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WIN32 || TARGET_OS_WASI || __RAVYNOS__)
 #define USE_RAW_SYMBOL 1
 #endif
 
