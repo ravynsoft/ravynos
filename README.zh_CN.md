@@ -1,5 +1,5 @@
 # ravynOS 是什么？ [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-### Don't speak Chinese (China)? Read this in: [English](README.md), [Italiano](README.IT.md), [Türkçe](README_TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md), [繁體中文](README.zh_TW.md)
+### Don't speak Chinese (China)? Read this in: [English](README.md), [Italiano](README.IT.md), [Türkçe](README.TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md), [繁體中文](README.zh_TW.md)
 
 ravynOS 是一个新型的操作系统项目，致力于在 x86-64（终极目标是同时实现 ARM）平台上提供与 macOS 类似的体验和兼容性。它基于坚若磐石的 FreeBSD、现有的开源代码和锦上添花的新代码构建。
 

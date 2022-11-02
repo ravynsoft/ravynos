@@ -1,5 +1,5 @@
 # Mi az a ravynOS? [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-### Don't speak Hungarian? Read this in: [Italiano](README.IT.md), [Türkçe](README_TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md)
+### Don't speak Hungarian? Read this in: [Italiano](README.IT.md), [Türkçe](README.TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md)
 
 A ravynOS egy új nyilt forrásu operációs rendszer projekt ami arra célzik hogy hasonló élményt és valamenyi kompatibilitást adjon a macOS-el x86-64 (és egyszer majd ARM) rendszereken is. A megbízható FreeBSD alapján épűl, létező nyilt forrású csomagokkal ugyanazon a helyen és új kódot hogy a hibákat befedjük.
 
