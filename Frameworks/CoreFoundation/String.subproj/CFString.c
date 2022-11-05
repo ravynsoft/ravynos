@@ -111,7 +111,7 @@ static void __CFRecordStringAllocationEvent(const char *encoding, const char *by
 }
 #endif //INSTRUMENT_SHARED_STRINGS
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 extern size_t malloc_good_size(size_t size);
 #endif
 extern void __CFStrConvertBytesToUnicode(const uint8_t *bytes, UniChar *buffer, CFIndex numChars);
@@ -685,7 +685,7 @@ CF_INLINE CFIndex __CFStrNewCapacity(CFMutableStringRef str, unsigned long reqCa
             }
 	    if (__CFStrHasContentsAllocator(str)) {	/* Also apply any preferred size from the allocator  */
                 newCapacity = CFAllocatorGetPreferredSizeForSize(__CFStrContentsAllocator(str), newCapacity, 0);
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
             } else {
                 newCapacity = malloc_good_size(newCapacity);
 #endif
