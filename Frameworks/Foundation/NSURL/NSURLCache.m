@@ -20,6 +20,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSMutableSet.h>
 #import <Foundation/NSSortDescriptor.h>
 #import <Foundation/NSURL.h>
+#import <Foundation/CFBaseShim.h>
 #import <CoreFoundation/CFUUID.h>
 
 @interface NSHTTPURLResponse(private)
@@ -132,7 +133,7 @@ static NSURLCache *shared=nil;
    CFUUIDRef uuid=CFUUIDCreate(NULL);
    NSString *result=[(NSString *)CFUUIDCreateString(NULL,uuid) autorelease];
    
-   CFRelease(uuid);
+   CFReleaseShim(uuid);
 
    return result;
 }

@@ -669,6 +669,11 @@ INCS= \
 ./NSCFTypeID.h \
 ./NSSpellServer.h
 
+# Cocotron CF shims to replace CFBase functions
+#TODO: These should be replaced with a bridging-aware Foundation implementation.
+SRCS+= CFBaseShim.m
+INCS+= CFBaseShim.h
+
 RESOURCES=Info.plist English.lproj \
 	NSCharacterSet/alphanumericCharacterSet.bitmap \
 	NSCharacterSet/controlCharacterSet.bitmap \

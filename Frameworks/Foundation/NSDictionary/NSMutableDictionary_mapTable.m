@@ -15,6 +15,8 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <Foundation/NSRaise.h>
 #import <Foundation/NSRaiseException.h>
 
+#import <Foundation/CFBaseShim.h>
+
 typedef struct _NSDictNode {
    struct _NSDictNode *next;
    void *key;
@@ -75,7 +77,7 @@ BOOL NSNextDictionaryEnumeratorPair(CFDictionaryEnumerator *state,void **key,voi
 @implementation NSMutableDictionary_CF
 
 const void *objectRetainCallBack(CFAllocatorRef allocator,const void *value) {
-   return CFRetain(value);
+   return CFRetainShim(value);
 }
 
 const void *objectCopyCallBack(CFAllocatorRef allocator,const void *value) {
@@ -83,15 +85,15 @@ const void *objectCopyCallBack(CFAllocatorRef allocator,const void *value) {
 }
 
 static void objectReleaseCallBack(CFAllocatorRef allocator,const void *value) {
-   CFRelease(value);
+   CFReleaseShim(value);
 }
 
 static CFDictionaryKeyCallBacks objectKeyCallBacks={
- 0,objectCopyCallBack,objectReleaseCallBack,CFCopyDescription,CFEqual,CFHash,
+ 0,objectCopyCallBack,objectReleaseCallBack,CFCopyDescriptionShim,CFEqualShim,CFHashShim,
 };
 
 static CFDictionaryValueCallBacks objectValueCallbacks={
- 0,objectRetainCallBack,objectReleaseCallBack,CFCopyDescription,CFEqual
+ 0,objectRetainCallBack,objectReleaseCallBack,CFCopyDescriptionShim,CFEqualShim
 };
 
 const void *defaultRetainCallBack(CFAllocatorRef allocator,const void *value) {
