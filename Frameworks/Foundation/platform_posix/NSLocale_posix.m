@@ -30,6 +30,8 @@
 #import <langinfo.h>
 #import <xlocale.h>
 
+#include <stdlib.h>
+
 @implementation NSLocale(posix)
 
 BOOL NSCurrentLocaleIsMetric(NSString *locale){
