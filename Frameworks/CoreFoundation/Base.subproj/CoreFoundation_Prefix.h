@@ -81,7 +81,9 @@ extern "C" {
 #define pthread_override_qos_class_end_np(A) do {} while (0)
 #elif TARGET_OS_MAC
 #include <pthread.h>
-// #include <pthread/qos.h>
+#if !__RAVYNOS__
+#include <pthread/qos.h>
+#endif
 #endif
 
 #define SystemIntegrityCheck(A, B)	do {} while (0)

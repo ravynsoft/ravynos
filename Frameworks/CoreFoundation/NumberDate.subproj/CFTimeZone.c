@@ -1189,8 +1189,8 @@ static CFTimeZoneRef __CFTimeZoneInitFixed(CFTimeZoneRef result, int32_t seconds
     dataBytes[48] = isDST ? 1 : 0;
     CFStringGetCString(name, (char *)dataBytes + 50, nameLen + 1, kCFStringEncodingASCII);
     data = CFDataCreate(kCFAllocatorSystemDefault, dataBytes, 52 + nameLen + 1);
-	// FIXME(deleanor) Returns a boolean, original code assigned it to the result? Seems like a
-	// pretty obvious bug?
+	// Function eturns a boolean, original code assigned it to the result. Seems like a
+	// pretty obvious bug.
     _CFTimeZoneInit(result, name, data);
     CFRelease(data);
     return result;

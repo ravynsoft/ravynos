@@ -94,7 +94,6 @@ CF_EXPORT void CFPreferencesDumpMem(void) {
 #pragma mark Determining host UUID
 #endif
 
-
 #if TARGET_OS_MAC
 // The entry point is in libSystem.B.dylib, but not actually declared
 // If this becomes available in a header (<rdar://problem/4943036>), I need to pull this out
@@ -224,10 +223,6 @@ CFTypeRef  CFPreferencesCopyValue(CFStringRef  key, CFStringRef  appName, CFStri
     }
 }
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wnonnull"
-#endif
 CFDictionaryRef CFPreferencesCopyMultiple(CFArrayRef keysToFetch, CFStringRef appName, CFStringRef user, CFStringRef host) {
     CFPreferencesDomainRef domain;
     CFMutableDictionaryRef result;
@@ -260,9 +255,6 @@ CFDictionaryRef CFPreferencesCopyMultiple(CFArrayRef keysToFetch, CFStringRef ap
     }
     return result;
 }
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 
 void CFPreferencesSetValue(CFStringRef  key, CFTypeRef  value, CFStringRef  appName, CFStringRef  user, CFStringRef  host) {
     CFPreferencesDomainRef domain;

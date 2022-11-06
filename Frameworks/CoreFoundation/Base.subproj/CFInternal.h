@@ -301,7 +301,7 @@ typedef uint32_t __CFInfoType;
 ///  n1 == 6, n2 == 4 will result in using the mask 0x0070. The value must fit inside 3 bits (6 - 4 + 1).
 ///  n1 == 0, n2 == 0 will result in using the mask 0x0001. The value must be 1 bit (0 - 0 + 1).
 static inline uint8_t __CFRuntimeGetValue(CFTypeRef cf, uint8_t n1, uint8_t n2) {
-    __CFInfoType info = atomic_load(&(((const CFRuntimeBase *)cf)->_cfinfoa));
+    __CFInfoType info = atomic_load(&(((CFRuntimeBase *)cf)->_cfinfoa));
     return (info & __CFInfoMask(n1, n2)) >> n2;
 }
 
@@ -319,7 +319,7 @@ static inline Boolean __CFRuntimeGetFlag(CFTypeRef cf, uint8_t n) {
 ///  n1 == 6, n2 == 4 will result in using the mask 0x0070. The value must fit inside 3 bits (6 - 4 + 1).
 ///  n1 == 0, n2 == 0 will result in using the mask 0x0001. The value must be 1 bit (0 - 0 + 1).
 static inline void __CFRuntimeSetValue(CFTypeRef cf, uint8_t n1, uint8_t n2, uint8_t x) {
-    __CFInfoType info = atomic_load(&(((const CFRuntimeBase *)cf)->_cfinfoa));
+    __CFInfoType info = atomic_load(&(((CFRuntimeBase *)cf)->_cfinfoa));
     __CFInfoType newInfo;
     __CFInfoType mask = __CFInfoMask(n1, n2);
 	
@@ -330,16 +330,7 @@ static inline void __CFRuntimeSetValue(CFTypeRef cf, uint8_t n1, uint8_t n2, uin
         newInfo = (info & ~mask) | ((x << n2) & mask);
     // Atomics are not supported on WASI, see https://bugs.swift.org/browse/SR-12097 for more details	
     #if !TARGET_OS_WASI
-	// FIXME(deleanor) atomic_compare_exchange_weak requires a non-const pointer,
-	// so simply casing here is not possible.
-	#if __clang__
-	#pragma clang diagnostic push
-	#pragma clang diagnostic ignored "-Wcast-qual"
-	#endif
     } while (!atomic_compare_exchange_weak(&(((CFRuntimeBase *)cf)->_cfinfoa), &info, newInfo));
-	#if __clang__
-	#pragma clang diagnostic pop
-	#endif
     #else
     ((CFRuntimeBase *)cf)->_cfinfoa = newInfo;
     #endif
@@ -603,23 +594,12 @@ CF_INLINE int _CFMutexCreate(_CFMutex *lock) {
 CF_INLINE int _CFMutexDestroy(_CFMutex *lock) {
   return pthread_mutex_destroy(lock);
 }
-// FIXME(deleanor) There may need to be an assertion in here somewhere
-// to make these warning disables valid? Clang is flagging a real
-// assumption these functions are making about how they are to
-// be called and the ownership of their input lock.
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wthread-safety-analysis"
-#endif
 CF_INLINE int _CFMutexLock(_CFMutex *lock) {
   return pthread_mutex_lock(lock);
 }
 CF_INLINE int _CFMutexUnlock(_CFMutex *lock) {
   return pthread_mutex_unlock(lock);
 }
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 
 typedef pthread_mutex_t _CFRecursiveMutex;
 CF_INLINE int _CFRecursiveMutexCreate(_CFRecursiveMutex *mutex) {
@@ -633,14 +613,6 @@ CF_INLINE int _CFRecursiveMutexCreate(_CFRecursiveMutex *mutex) {
 
   return result;
 }
-// FIXME(deleanor) There may need to be an assertion in here somewhere
-// to make these warning disables valid? Clang is flagging a real
-// assumption these functions are making about how they are to
-// be called and the ownership of their input lock.
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wthread-safety-analysis"
-#endif
 CF_INLINE int _CFRecursiveMutexDestroy(_CFRecursiveMutex *mutex) {
   return pthread_mutex_destroy(mutex);
 }
@@ -650,9 +622,6 @@ CF_INLINE int _CFRecursiveMutexLock(_CFRecursiveMutex *mutex) {
 CF_INLINE int _CFRecursiveMutexUnlock(_CFRecursiveMutex *mutex) {
   return pthread_mutex_unlock(mutex);
 }
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 #elif defined(_WIN32)
 typedef SRWLOCK _CFMutex;
 #define _CF_MUTEX_STATIC_INITIALIZER SRWLOCK_INIT
@@ -710,36 +679,10 @@ typedef pthread_mutex_t os_unfair_lock;
 typedef pthread_mutex_t * os_unfair_lock_t;
 typedef uint32_t os_unfair_lock_options_t;
 #define OS_UNFAIR_LOCK_DATA_SYNCHRONIZATION (0)
-// FIXME(deleanor) There may need to be an assertion in here somewhere
-// to make these warning disables valid? Clang is flagging a real
-// assumption these functions are making about how they are to
-// be called and the ownership of their input lock.
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wthread-safety-analysis"
-#endif
 static void os_unfair_lock_lock(os_unfair_lock_t lock) { pthread_mutex_lock(lock); }
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#pragma clang diagnostic ignored "-Wthread-safety-analysis"
-#endif
 static void os_unfair_lock_lock_with_options(os_unfair_lock_t lock, os_unfair_lock_options_t options) { pthread_mutex_lock(lock); }
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wthread-safety-analysis"
-#endif
 static void os_unfair_lock_unlock(os_unfair_lock_t lock) { pthread_mutex_unlock(lock); }
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 #elif defined(_WIN32)
 #define OS_UNFAIR_LOCK_INIT CFLockInit
 #define os_unfair_lock CFLock_t
@@ -1093,7 +1036,7 @@ CF_INLINE CFAllocatorRef __CFGetAllocator(CFTypeRef cf) {	// !!! Use with CF typ
 	return kCFAllocatorSystemDefault;
     }
     // To preserve 16 byte alignment when using custom allocators, we always place the CFAllocatorRef 16 bytes before the CFType
-    return *(const CFAllocatorRef *)((const char *)cf - 16);
+    return *(CFAllocatorRef *)((char *)cf - 16);
 }
 
 /* !!! Avoid #importing objc.h; e.g. converting this to a .m file */
@@ -1297,7 +1240,7 @@ CF_EXTERN_C_END
 // access.
 
 CF_INLINE uint32_t _CFUnalignedLoad32(const void *ptr) {
-    const uint8_t *bytes = (const uint8_t *)ptr;
+    uint8_t *bytes = (uint8_t *)ptr;
 #if __LITTLE_ENDIAN__
     uint32_t result = (uint32_t)bytes[0];
     result |= ((uint32_t)bytes[1] << 8);
@@ -1331,7 +1274,7 @@ CF_INLINE void _CFUnalignedStore32(void *ptr, uint32_t value) {
 
 // Load values stored in Big Endian order in memory.
 CF_INLINE uint16_t _CFUnalignedLoad16BE(const void *ptr) {
-    const uint8_t *bytes = (const uint8_t *)ptr;
+    uint8_t *bytes = (uint8_t *)ptr;
     uint16_t result = (uint16_t)bytes[0] << 8;
     result |= (uint16_t)bytes[1];
 
@@ -1351,7 +1294,7 @@ CF_INLINE uint32_t _CFUnalignedLoad32BE(const void *ptr) {
 
 
 CF_INLINE uint64_t _CFUnalignedLoad64BE(const void *ptr) {
-    const uint8_t *bytes = (const uint8_t *)ptr;
+    uint8_t *bytes = (uint8_t *)ptr;
     uint64_t result = (uint64_t)bytes[0] << 56;
     result |= ((uint64_t)bytes[1] << 48);
     result |= ((uint64_t)bytes[2] << 40);

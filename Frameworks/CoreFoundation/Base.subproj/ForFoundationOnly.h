@@ -52,15 +52,15 @@ CF_IMPLICIT_BRIDGING_DISABLED
 
 #if TARGET_OS_LINUX
 #include <malloc.h>
-#elif TARGET_OS_BSD
+#elif TARGET_OS_BSD || __RAVYNOS__
 #include <stdlib.h> // malloc()
 #elif TARGET_OS_MAC
-#include <malloc.h>
+#include <malloc/malloc.h>
 #include <mach/mach_time.h>
 #endif
 
-#if (INCLUDE_OBJC || TARGET_OS_MAC || TARGET_OS_WIN32) && !DEPLOYMENT_RUNTIME_SWIFT
-// #include <objc/message.h>
+#if (INCLUDE_OBJC || TARGET_OS_MAC || TARGET_OS_WIN32) && !DEPLOYMENT_RUNTIME_SWIFT && !__RAVYNOS__
+#include <objc/message.h>
 #endif
 
 #if __BLOCKS__

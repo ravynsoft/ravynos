@@ -59,19 +59,12 @@ CF_PRIVATE CFStreamStatus _CFStreamGetStatus(struct _CFStream *stream);
 static Boolean _CFStreamRemoveRunLoopAndModeFromArray(CFMutableArrayRef runLoopsAndModes, CFRunLoopRef rl, CFStringRef mode);
 static void _wakeUpRunLoop(struct _CFStream *stream);
 
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wunused-parameter"
-#endif
 CF_INLINE void checkRLMArray(CFArrayRef arr)
 {
 #if defined(DEBUG)
     assert(arr == NULL || (CFArrayGetCount(arr) % 2) == 0);
 #endif
 }
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 
 CF_INLINE void _CFStreamLock(struct _CFStream* stream) {
 	__CFLock(&stream->streamLock);

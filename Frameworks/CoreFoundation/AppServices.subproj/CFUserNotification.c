@@ -201,8 +201,8 @@ static SInt32 _CFUserNotificationSendRequest(CFAllocatorRef allocator, CFStringR
         CFIndex len = MAX_PORT_NAME_LENGTH - nameLen - sizeof(NOTIFICATION_PORT_NAME_SUFFIX);
         CFStringGetBytes(sessionID, CFRangeMake(0, CFStringGetLength(sessionID)), kCFStringEncodingUTF8, 0, false, (uint8_t *)sessionid, len, &size);
         sessionid[len - 1] = '\0';
-        strlcat((char*)namebuffer, NOTIFICATION_PORT_NAME_SUFFIX, sizeof(namebuffer));
-        strlcat((char*)namebuffer, sessionid, sizeof(namebuffer));
+        strlcat(namebuffer, NOTIFICATION_PORT_NAME_SUFFIX, sizeof(namebuffer));
+        strlcat(namebuffer, sessionid, sizeof(namebuffer));
     }
 
     retval = task_get_bootstrap_port(mach_task_self(), &bootstrapPort);

@@ -95,8 +95,10 @@ CF_INLINE Boolean __CFLockTry(volatile CFLock_t *lock) {
 // SPI to permit initialization of values in Swift
 static inline CFLock_t __CFLockInit(void) { return CFLockInit; }
 
-// FIXME(deleanor) We got this from libkern/OSAtomic.h. Find an appropriate guard.
-// typedef CFLock_t OSSpinLock;
+// We got this from libkern/OSAtomic.h.
+#if !__RAVYNOS__
+typedef CFLock_t OSSpinLock;
+#endif
 #define OS_SPINLOCK_INIT CFLockInit
 #define OSSpinLockLock(lock) __CFLock(lock)
 #define OSSpinLockUnlock(lock) __CFUnlock(lock)

@@ -73,9 +73,8 @@
 #include <Block.h>
 #endif
 
-  #if (TARGET_OS_OSX || TARGET_OS_IPHONE) && !DEPLOYMENT_RUNTIME_SWIFT
-  	// FIXME(deleanor) This may cause downstream failures to find libkern stuff.
-    // #include <libkern/OSTypes.h>
+  #if (TARGET_OS_OSX || TARGET_OS_IPHONE) && !DEPLOYMENT_RUNTIME_SWIFT && !__RAVYNOS__
+    #include <libkern/OSTypes.h>
   #endif
 
 #if !defined(__MACTYPES__)

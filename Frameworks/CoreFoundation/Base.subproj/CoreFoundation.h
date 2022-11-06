@@ -91,8 +91,8 @@
 
 #include <CoreFoundation/CFUserNotification.h>
 
-#if !DEPLOYMENT_RUNTIME_SWIFT
-// FIXME(deleanor) These files don't exist in the Swift CF implementation.
+#if !DEPLOYMENT_RUNTIME_SWIFT || !__RAVYNOS__
+// These files don't exist in the Swift CF implementation.
 // They do, however exist at github:apple-opensource/CF. Maybe pull the
 // files in from there? But why don't they exist here?
 //#include <CoreFoundation/CFXMLNode.h>

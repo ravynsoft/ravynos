@@ -1586,8 +1586,6 @@ const CFRuntimeClass __CFSocketClass = {
 CFTypeID CFSocketGetTypeID(void) {
     static dispatch_once_t initOnce;
     dispatch_once(&initOnce, ^{
-// FIXME(deleanor) sys/resource.h has the definition of struct rlimit.
-// Should we bring that in on RavynOS?
 #if TARGET_OS_MAC && !__RAVYNOS__
         struct rlimit lim1;
         int ret1 = getrlimit(RLIMIT_NOFILE, &lim1);
@@ -1678,7 +1676,7 @@ static CFSocketRef _CFSocketCreateWithNative(CFAllocatorRef allocator, CFSocketN
         pthread_attr_init(&attr);
         pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
         pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-#if TARGET_OS_MAC && !__RAVYNOS__
+#if TARGET_OS_MAC && !_POSIX_THREADS
         pthread_attr_set_qos_class_np(&attr, qos_class_main(), 0);
 #endif
         pthread_create(&tid, &attr, __CFSocketManager, 0);

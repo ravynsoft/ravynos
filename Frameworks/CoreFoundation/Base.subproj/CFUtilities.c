@@ -47,7 +47,7 @@
 #endif
 
 
-#if TARGET_OS_MAC && !__RAVYNOS__
+#if TARGET_OS_MAC && !RAVYNOS_WITHOUT_MACH
 #include <unistd.h>
 #include <sys/uio.h>
 #include <mach/mach.h>
@@ -67,7 +67,8 @@
 #include <mach/mach_time.h>
 #include <Block.h>
 #include <os/lock.h>
-#elif __RAVYNOS__
+#endif
+#if __RAVYNOS__
 #include <dlfcn.h>
 #endif
 
@@ -199,7 +200,7 @@ CFHashCode CFHashBytes(uint8_t *bytes, CFIndex length) {
 #undef ELF_STEP
 
 
-#if TARGET_OS_MAC && !__RAVYNOS__
+#if TARGET_OS_MAC && !RAVYNOS_WITHOUT_MACH
 CF_PRIVATE uintptr_t __CFFindPointer(uintptr_t ptr, uintptr_t start) {
     vm_map_t task = mach_task_self();
     mach_vm_address_t address = start;
@@ -932,17 +933,8 @@ static void _populateBanner(char **banner, char **time, char **thread, int *bann
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d [%x] ", year, month, day, hour, minute, second, ms, (unsigned int)pthread_self());
     asprintf(thread, "%lx", pthread_self());
 #else
-#ifdef __clang__
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wformat"
-#pragma clang diagnostic ignored "-Wpointer-to-int-cast"
-#pragma clang diagnostic ignored "-Wint-conversion"
-#endif
     bannerLen = asprintf(banner, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s[%d:%x] ", year, month, day, hour, minute, second, ms, *_CFGetProgname(), getpid(), (unsigned int)pthread_self());
     asprintf(thread, "%lx", pthread_self());
-#ifdef __clang__
-#pragma clang diagnostic pop
-#endif
 #endif
     asprintf(time, "%04d-%02d-%02d %02d:%02d:%02d.%03d", year, month, day, hour, minute, second, ms);
 }
