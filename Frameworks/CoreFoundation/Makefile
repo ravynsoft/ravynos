@@ -219,6 +219,13 @@ CFLAGS+= ${FMWK_CFLAGS} \
 	-DDEPLOYMENT_RUNTIME_C \
 	-DCF_BUILDING_CF \
 	-std=c11
+
+CFLAGS+= \
+	"-Xassembler -defsym CF_CHARACTERSET_BITMAP=\"CharacterSets/CFCharacterSetBitmaps.bitmap\"" \
+	"-Xassembler -defsym CF_CHARACTERSET_UNICHAR_DB=\"CharacterSets/CFUniCharPropertyDatabase.data\"" \
+	"-Xassembler -defsym CF_CHARACTERSET_UNICODE_DATA_B=\"CharacterSets/CFUnicodeData-B.mapping\"" \
+	"-Xassembler -defsym CF_CHARACTERSET_UNICODE_DATA_L=\"CharacterSets/CFUnicodeData-L.mapping\""
+
 LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -lexecinfo -lpthread -ldispatch -licuuc -licui18n -licudata -lm -lcurl -lmach -lBlocksRuntime
 
