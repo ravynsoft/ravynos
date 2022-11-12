@@ -222,11 +222,6 @@ CFLAGS+= ${FMWK_CFLAGS} \
 LDFLAGS+= ${FMWK_LDFLAGS} \
 	  -lexecinfo -lpthread -ldispatch -licuuc -licui18n -licudata -lm -lcurl -lmach -lBlocksRuntime
 
-# LDFLAGS+= -alias_list Base.subproj/SymbolAliases
-
-# Compatibility defines to guard specific features that may change.
-CFLAGS+= -DRAVYNOS_WITHOUT_MACH=1
-
 marshalheaders: .PHONY
 	mkdir -p Headers/CoreFoundation
 	find ${.CURDIR} -name \*.h \

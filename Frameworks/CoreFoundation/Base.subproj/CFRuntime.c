@@ -233,7 +233,7 @@ _CFClassTables __CFRuntimeClassTables __attribute__((aligned)) = {
 
     [_kCFRuntimeIDCFPreferencesDomain] = &__CFPreferencesDomainClass,
 
-#if TARGET_OS_MAC && !RAVYNOS_WITHOUT_MACH
+#if TARGET_OS_MAC && !__RAVYNOS__
     [_kCFRuntimeIDCFMachPort] = &__CFMachPortClass,
 #endif
 

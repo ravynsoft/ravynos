@@ -47,7 +47,7 @@
 #endif
 
 
-#if TARGET_OS_MAC && !RAVYNOS_WITHOUT_MACH
+#if TARGET_OS_MAC && !__RAVYNOS__
 #include <unistd.h>
 #include <sys/uio.h>
 #include <mach/mach.h>
@@ -200,7 +200,7 @@ CFHashCode CFHashBytes(uint8_t *bytes, CFIndex length) {
 #undef ELF_STEP
 
 
-#if TARGET_OS_MAC && !RAVYNOS_WITHOUT_MACH
+#if TARGET_OS_MAC && !__RAVYNOS__
 CF_PRIVATE uintptr_t __CFFindPointer(uintptr_t ptr, uintptr_t start) {
     vm_map_t task = mach_task_self();
     mach_vm_address_t address = start;
