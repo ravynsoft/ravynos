@@ -94,7 +94,7 @@ CF_EXPORT void CFPreferencesDumpMem(void) {
 #pragma mark Determining host UUID
 #endif
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 // The entry point is in libSystem.B.dylib, but not actually declared
 // If this becomes available in a header (<rdar://problem/4943036>), I need to pull this out
 int gethostuuid(unsigned char *uuid_buf, const struct timespec *timeoutp);
