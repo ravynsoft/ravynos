@@ -73,7 +73,7 @@
 #include <CoreFoundation/CFUtilities.h>
 #include <CoreFoundation/CFBundle.h>
 
-#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_WIN32
+#if TARGET_OS_OSX || TARGET_OS_IPHONE || TARGET_OS_WIN32 || __RAVYNOS__
 #include <CoreFoundation/CFMessagePort.h>
 #include <CoreFoundation/CFPlugIn.h>
 #include <CoreFoundation/CFRunLoop.h>
@@ -91,12 +91,13 @@
 
 #include <CoreFoundation/CFUserNotification.h>
 
-#if !DEPLOYMENT_RUNTIME_SWIFT || !__RAVYNOS__
-// These files don't exist in the Swift CF implementation.
-// They do, however exist at github:apple-opensource/CF. Maybe pull the
-// files in from there? But why don't they exist here?
-//#include <CoreFoundation/CFXMLNode.h>
-//#include <CoreFoundation/CFXMLParser.h>
+#if !DEPLOYMENT_RUNTIME_SWIFT && !__RAVYNOS__
+// These files don't exist in the Swift CF implementation and I don't see
+// anywhere they get generated.  They do, however exist at
+// github:apple-opensource/CF. Maybe pull the files in from there? But why
+// don't they exist here?
+#include <CoreFoundation/CFXMLNode.h>
+#include <CoreFoundation/CFXMLParser.h>
 #endif
 
 #endif /* ! __COREFOUNDATION_COREFOUNDATION__ */
