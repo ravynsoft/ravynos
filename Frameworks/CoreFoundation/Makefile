@@ -195,6 +195,16 @@ INCS= \
 ./URL.subproj/CFURLAccess.h \
 ./URL.subproj/CFURLComponents.h
 
+# Mach headers and sources currently disabled:
+# ./RunLoop.subproj/CFMachPort_Lifetime.c
+# ./RunLoop.subproj/CFMessagePort.c
+# ./RunLoop.subproj/CFMachPort.c
+
+# XML interface headers and sources currently disabled:
+# ./Parsing.subproj/CFXMLInterface.c
+# ./Parsing.subproj/CFXMLInterface.h
+
+
 WARNS:=2
 
 CFLAGS+= ${FMWK_CFLAGS} \
