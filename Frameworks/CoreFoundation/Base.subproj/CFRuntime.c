@@ -1150,7 +1150,7 @@ Boolean __CFInitialized = 0;
 // move the next 2 lines down into the #if below, and make it static, after Foundation gets off this symbol on other platforms. 
 CF_EXPORT _CFThreadRef _CFMainPThread;
 _CFThreadRef _CFMainPThread = kNilPthreadT;
-#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_WIN32 || TARGET_OS_LINUX || TARGET_OS_BSD || __RAVYNOS__
 
 CF_EXPORT _CFThreadRef _CF_pthread_main_thread_np(void);
 _CFThreadRef _CF_pthread_main_thread_np(void) {
@@ -1162,7 +1162,7 @@ _CFThreadRef _CF_pthread_main_thread_np(void) {
 
 
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD
+#if TARGET_OS_LINUX || TARGET_OS_BSD || __RAVYNOS__
 static void __CFInitialize(void) __attribute__ ((constructor));
 #endif
 #if TARGET_OS_WIN32
@@ -1192,7 +1192,7 @@ void __CFInitialize(void) {
 #if TARGET_OS_WIN32
         // Must not call any CF functions
         __CFTSDWindowsInitialize();
-#elif TARGET_OS_LINUX || TARGET_OS_BSD || (TARGET_OS_MAC && !DEPLOYMENT_RUNTIME_OBJC)
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || (TARGET_OS_MAC && !DEPLOYMENT_RUNTIME_OBJC) || __RAVYNOS__
         __CFTSDInitialize();
 #endif
         __CFProphylacticAutofsAccess = true;
@@ -1223,7 +1223,7 @@ void __CFInitialize(void) {
 #endif
         
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
         {
             CFIndex idx, cnt;
             char **args = *_NSGetArgv();
@@ -1266,7 +1266,7 @@ void __CFInitialize(void) {
         {
             CFIndex idx, cnt = 0;
             char **args = NULL;
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
             args = *_NSGetArgv();
             cnt = *_NSGetArgc();
 #elif TARGET_OS_WIN32

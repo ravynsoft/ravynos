@@ -109,7 +109,7 @@ typedef char * Class;
 #define CRSetCrashLogMessage(A) do {} while (0)
 #define CRSetCrashLogMessage2(A) do {} while (0)
 
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
 #include <libkern/OSAtomic.h>
 #include <pthread.h>
 #endif

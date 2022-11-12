@@ -1531,14 +1531,13 @@ static void __CFRunLoopDeallocateSources(const void *value, void *context) {
                 rls->_context.version0.cancel(rls->_context.version0.info, rl, rlm->_name);	/* CALLOUT */
             }
         } else if (1 == rls->_context.version0.version) {
-		// FIXME(deleanor) REVISIT_CFPort_CASTS
-		// In the Kevent branch, a __CFPort is a unsigned long (which itself
-		// consists of two packed 32 bit integers for the pipe2 system call
-		// file descriptors), but getPort returns a void*.  So this is probably
-		// invalid and maybe we need another #elif in CFRunLoop.h in
-		// CFRunLoopSourceContext1 for the type of the getPort and perform
-		// fields.
-            __CFPort port = (__CFPort)rls->_context.version1.getPort(rls->_context.version1.info);	/* CALLOUT */
+			// CFPort_CASTS In the Kevent branch, a __CFPort is a unsigned long
+			// (which itself consists of two packed 32 bit integers for the
+			// pipe2 system call file descriptors), but getPort returns a
+			// void*. So I'm a little concerned about this cast. Maybe we need
+			// another #elif in CFRunLoop.h in CFRunLoopSourceContext1 for the
+			// type of the getPort and perform fields.
+            __CFPort port = *((__CFPort*)rls->_context.version1.getPort(rls->_context.version1.info));	/* CALLOUT */
             if (CFPORT_NULL != port) {
                 __CFPortSetRemove(port, rlm->_portSet);
             }
@@ -3647,8 +3646,8 @@ void CFRunLoopAddSource(CFRunLoopRef rl, CFRunLoopSourceRef rls, CFStringRef mod
 	        CFSetAddValue(rlm->_sources0, rls);
 	    } else if (1 == rls->_context.version0.version) {
 	        CFSetAddValue(rlm->_sources1, rls);
-		// FIXME(deleanor) REVISIT_CFPort_CASTS
-		__CFPort src_port = (__CFPort)rls->_context.version1.getPort(rls->_context.version1.info);
+		// CFPort_CASTS
+		__CFPort src_port = *((__CFPort*)rls->_context.version1.getPort(rls->_context.version1.info));
 		if (CFPORT_NULL != src_port) {
 		    CFDictionarySetValue(rlm->_portToV1SourceMap, (const void *)(uintptr_t)src_port, rls);
 		    __CFPortSetInsert(src_port, rlm->_portSet);
@@ -3706,8 +3705,8 @@ void CFRunLoopRemoveSource(CFRunLoopRef rl, CFRunLoopSourceRef rls, CFStringRef 
 	if (NULL != rlm && ((NULL != rlm->_sources0 && CFSetContainsValue(rlm->_sources0, rls)) || (NULL != rlm->_sources1 && CFSetContainsValue(rlm->_sources1, rls)))) {
 	    CFRetain(rls);
 	    if (1 == rls->_context.version0.version) {
-		// FIXME(deleanor) REVISIT_CFPort_CASTS
-		__CFPort src_port = (__CFPort)rls->_context.version1.getPort(rls->_context.version1.info);
+		// CFPort_CASTS
+		__CFPort src_port = *((__CFPort*)rls->_context.version1.getPort(rls->_context.version1.info));
                 if (CFPORT_NULL != src_port) {
 		    CFDictionaryRemoveValue(rlm->_portToV1SourceMap, (const void *)(uintptr_t)src_port);
                     __CFPortSetRemove(src_port, rlm->_portSet);

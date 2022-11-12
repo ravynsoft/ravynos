@@ -220,7 +220,7 @@ CFLAGS+= ${FMWK_CFLAGS} \
 	-DCF_BUILDING_CF \
 	-std=c11
 LDFLAGS+= ${FMWK_LDFLAGS} \
-	  -lexecinfo -lpthread -ldispatch -licuuc -licui18n -licudata -lm -lcurl
+	  -lexecinfo -lpthread -ldispatch -licuuc -licui18n -licudata -lm -lcurl -lmach -lBlocksRuntime
 
 # LDFLAGS+= -alias_list Base.subproj/SymbolAliases
 

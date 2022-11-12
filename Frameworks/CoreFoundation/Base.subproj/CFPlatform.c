@@ -1328,7 +1328,7 @@ CF_PRIVATE int _NS_gettimeofday(struct timeval *tv, struct timezone *tz) {
 #pragma mark -
 #pragma mark Linux, BSD, and WASI OSAtomic
 
-#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
+#if TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI || __RAVYNOS__
 
 bool OSAtomicCompareAndSwapPtr(void *oldp, void *newp, void *volatile *dst) 
 { 
@@ -1387,7 +1387,7 @@ void OSMemoryBarrier() {
     __sync_synchronize();
 }
 
-#endif // TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
+#endif // TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI || __RAVYNOS__
 
 #pragma mark -
 #pragma mark Dispatch Replacements

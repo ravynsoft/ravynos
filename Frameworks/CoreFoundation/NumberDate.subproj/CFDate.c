@@ -165,7 +165,7 @@ const CFRuntimeClass __CFDateClass = {
 };
 
 CF_PRIVATE void __CFDateInitialize(void) {
-#if TARGET_OS_MAC
+#if TARGET_OS_MAC && !__RAVYNOS__
     struct mach_timebase_info info;
     mach_timebase_info(&info);
     __CFTSRRate = (1.0E9 / (double)info.numer) * (double)info.denom;
@@ -176,7 +176,7 @@ CF_PRIVATE void __CFDateInitialize(void) {
     // To get seconds we need to divide the value by 1e7 (10000000).
     __CFTSRRate = 1.0e7;
     __CF1_TSRRate = 1.0 / __CFTSRRate;
-#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI
+#elif TARGET_OS_LINUX || TARGET_OS_BSD || TARGET_OS_WASI || __RAVYNOS__
     struct timespec res;
     if (clock_getres(CLOCK_MONOTONIC, &res) != 0) {
         HALT;
