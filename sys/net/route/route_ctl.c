@@ -44,6 +44,7 @@ __FBSDID("$FreeBSD$");
 
 #include <net/if.h>
 #include <net/if_var.h>
+#include <net/if_private.h>
 #include <net/if_dl.h>
 #include <net/vnet.h>
 #include <net/route.h>
@@ -793,6 +794,7 @@ add_route_flags(struct rib_head *rnh, struct rtentry *rt, struct route_nhop_data
 	if (op_flags & RTM_F_REPLACE) {
 		if (nhop_get_prio(rnd_orig.rnd_nhop) > nhop_get_prio(rnd_add->rnd_nhop)) {
 			/* Old path is "better" (e.g. has PINNED flag set) */
+			RIB_WUNLOCK(rnh);
 			error = EEXIST;
 			goto out;
 		}

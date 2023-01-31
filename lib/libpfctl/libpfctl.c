@@ -224,6 +224,7 @@ pfctl_get_status(int dev)
 	status->hostid = ntohl(nvlist_get_number(nvl, "hostid"));
 	status->states = nvlist_get_number(nvl, "states");
 	status->src_nodes = nvlist_get_number(nvl, "src_nodes");
+	status->syncookies_active = nvlist_get_bool(nvl, "syncookies_active");
 
 	strlcpy(status->ifname, nvlist_get_string(nvl, "ifname"),
 	    IFNAMSIZ);
@@ -664,6 +665,9 @@ pfctl_nveth_rule_to_eth_rule(const nvlist_t *nvl, struct pfctl_eth_rule *rule)
 	rule->anchor_relative = nvlist_get_number(nvl, "anchor_relative");
 	rule->anchor_wildcard = nvlist_get_number(nvl, "anchor_wildcard");
 
+	strlcpy(rule->bridge_to, nvlist_get_string(nvl, "bridge_to"),
+	    IFNAMSIZ);
+
 	rule->action = nvlist_get_number(nvl, "action");
 }
 
@@ -810,6 +814,8 @@ pfctl_add_eth_rule(int dev, const struct pfctl_eth_rule *r, const char *anchor,
 	nvlist_add_string(nvl, "tagname", r->tagname);
 	nvlist_add_number(nvl, "dnpipe", r->dnpipe);
 	nvlist_add_number(nvl, "dnflags", r->dnflags);
+
+	nvlist_add_string(nvl, "bridge_to", r->bridge_to);
 
 	nvlist_add_number(nvl, "action", r->action);
 

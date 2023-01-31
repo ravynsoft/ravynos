@@ -117,6 +117,10 @@ static device_method_t pci_methods[] = {
 	DEVMETHOD_END
 };
 
+const char *pci_power_names[] = {
+	"UNKNOWN", "D0", "D1", "D2", "D3hot", "D3cold"
+};
+
 struct linux_dma_priv {
 	uint64_t	dma_mask;
 	bus_dma_tag_t	dmat;
@@ -267,6 +271,23 @@ linux_pci_find(device_t dev, const struct pci_device_id **idp)
 	return (NULL);
 }
 
+struct pci_dev *
+lkpi_pci_get_device(uint16_t vendor, uint16_t device, struct pci_dev *odev)
+{
+	struct pci_dev *pdev;
+
+	KASSERT(odev == NULL, ("%s: odev argument not yet supported\n", __func__));
+
+	spin_lock(&pci_lock);
+	list_for_each_entry(pdev, &pci_devices, links) {
+		if (pdev->vendor == vendor && pdev->device == device)
+			break;
+	}
+	spin_unlock(&pci_lock);
+
+	return (pdev);
+}
+
 static void
 lkpi_pci_dev_release(struct device *dev)
 {
@@ -318,6 +339,8 @@ lkpinew_pci_dev_release(struct device *dev)
 	if (pdev->bus->self != pdev)
 		pci_dev_put(pdev->bus->self);
 	free(pdev->bus, M_DEVBUF);
+	if (pdev->msi_desc != NULL)
+		free(pdev->msi_desc, M_DEVBUF);
 	free(pdev, M_DEVBUF);
 }
 
@@ -965,6 +988,11 @@ out:
 			return (pdev->dev.irq_end - pdev->dev.irq_start);
 	}
 	if (flags & PCI_IRQ_MSI) {
+		if (pci_msi_count(pdev->dev.bsddev) < minv)
+			return (-ENOSPC);
+		/* We only support 1 vector in pci_enable_msi() */
+		if (minv != 1)
+			return (-ENOSPC);
 		error = pci_enable_msi(pdev);
 		if (error == 0 && pdev->msi_enabled)
 			return (pdev->dev.irq_end - pdev->dev.irq_start);
@@ -975,6 +1003,45 @@ out:
 	}
 
 	return (-EINVAL);
+}
+
+struct msi_desc *
+lkpi_pci_msi_desc_alloc(int irq)
+{
+	struct device *dev;
+	struct pci_dev *pdev;
+	struct msi_desc *desc;
+	struct pci_devinfo *dinfo;
+	struct pcicfg_msi *msi;
+
+	dev = linux_pci_find_irq_dev(irq);
+	if (dev == NULL)
+		return (NULL);
+
+	pdev = to_pci_dev(dev);
+	if (pdev->msi_desc != NULL)
+		return (pdev->msi_desc);
+
+	dinfo = device_get_ivars(dev->bsddev);
+	msi = &dinfo->cfg.msi;
+
+	desc = malloc(sizeof(*desc), M_DEVBUF, M_WAITOK | M_ZERO);
+
+	desc->msi_attrib.is_64 =
+	   (msi->msi_ctrl & PCIM_MSICTRL_64BIT) ? true : false;
+	desc->msg.data = msi->msi_data;
+
+	return (desc);
+}
+
+bool
+pci_device_is_present(struct pci_dev *pdev)
+{
+	device_t dev;
+
+	dev = pdev->dev.bsddev;
+
+	return (bus_child_present(dev));
 }
 
 CTASSERT(sizeof(dma_addr_t) <= sizeof(uint64_t));
@@ -1162,19 +1229,58 @@ linux_dma_alloc_coherent(struct device *dev, size_t size,
 	align = PAGE_SIZE << get_order(size);
 	/* Always zero the allocation. */
 	flag |= M_ZERO;
-	mem = (void *)kmem_alloc_contig(size, flag & GFP_NATIVE_MASK, 0, high,
+	mem = kmem_alloc_contig(size, flag & GFP_NATIVE_MASK, 0, high,
 	    align, 0, VM_MEMATTR_DEFAULT);
 	if (mem != NULL) {
 		*dma_handle = linux_dma_map_phys_common(dev, vtophys(mem), size,
 		    priv->dmat_coherent);
 		if (*dma_handle == 0) {
-			kmem_free((vm_offset_t)mem, size);
+			kmem_free(mem, size);
 			mem = NULL;
 		}
 	} else {
 		*dma_handle = 0;
 	}
 	return (mem);
+}
+
+struct lkpi_devres_dmam_coherent {
+	size_t size;
+	dma_addr_t *handle;
+	void *mem;
+};
+
+static void
+lkpi_dmam_free_coherent(struct device *dev, void *p)
+{
+	struct lkpi_devres_dmam_coherent *dr;
+
+	dr = p;
+	dma_free_coherent(dev, dr->size, dr->mem, *dr->handle);
+}
+
+void *
+linuxkpi_dmam_alloc_coherent(struct device *dev, size_t size, dma_addr_t *dma_handle,
+    gfp_t flag)
+{
+	struct lkpi_devres_dmam_coherent *dr;
+
+	dr = lkpi_devres_alloc(lkpi_dmam_free_coherent,
+	    sizeof(*dr), GFP_KERNEL | __GFP_ZERO);
+
+	if (dr == NULL)
+		return (NULL);
+
+	dr->size = size;
+	dr->mem = linux_dma_alloc_coherent(dev, size, dma_handle, flag);
+	dr->handle = dma_handle;
+	if (dr->mem == NULL) {
+		lkpi_devres_free(dr);
+		return (NULL);
+	}
+
+	lkpi_devres_add(dev, dr);
+	return (dr->mem);
 }
 
 void

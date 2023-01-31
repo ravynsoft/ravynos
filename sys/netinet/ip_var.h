@@ -228,8 +228,6 @@ void	ip_savecontrol(struct inpcb *, struct mbuf **, struct ip *,
 	    struct mbuf *);
 void	ip_fillid(struct ip *);
 int	rip_ctloutput(struct socket *, struct sockopt *);
-void	rip_ctlinput(int, struct sockaddr *, void *);
-int	rip_input(struct mbuf **, int *, int);
 int	ipip_input(struct mbuf **, int *, int);
 int	rsvp_input(struct mbuf **, int *, int);
 
@@ -238,6 +236,20 @@ int	ip_rsvp_done(void);
 extern int	(*ip_rsvp_vif)(struct socket *, struct sockopt *);
 extern void	(*ip_rsvp_force_done)(struct socket *);
 extern int	(*rsvp_input_p)(struct mbuf **, int *, int);
+
+typedef int	ipproto_input_t(struct mbuf **, int *, int);
+struct icmp;
+typedef void	ipproto_ctlinput_t(struct icmp *);
+int	ipproto_register(uint8_t, ipproto_input_t, ipproto_ctlinput_t);
+int	ipproto_unregister(uint8_t);
+#define	IPPROTO_REGISTER(prot, input, ctl)	do {			\
+	int error __diagused;						\
+	error = ipproto_register(prot, input, ctl);			\
+	MPASS(error == 0);						\
+} while (0)
+
+ipproto_input_t		rip_input;
+ipproto_ctlinput_t	rip_ctlinput;
 
 VNET_DECLARE(struct pfil_head *, inet_pfil_head);
 #define	V_inet_pfil_head	VNET(inet_pfil_head)

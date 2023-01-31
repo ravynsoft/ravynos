@@ -127,8 +127,7 @@ static vop_vptofh_t	msdosfs_vptofh;
 /*
  * Create a regular file. On entry the directory to contain the file being
  * created is locked.  We must release before we return. We must also free
- * the pathname buffer pointed at by cnp->cn_pnbuf, always on error, or
- * only if the SAVESTART bit in cn_flags is clear on success.
+ * the pathname buffer pointed at by cnp->cn_pnbuf, always on error.
  */
 static int
 msdosfs_create(struct vop_create_args *ap)
@@ -456,6 +455,9 @@ msdosfs_setattr(struct vop_setattr_args *ap)
 			 */
 			break;
 		}
+		error = vn_rlimit_trunc(vap->va_size, td);
+		if (error != 0)
+			return (error);
 		error = detrunc(dep, vap->va_size, 0, cred);
 		if (error)
 			return error;
@@ -611,7 +613,7 @@ msdosfs_write(struct vop_write_args *ap)
 {
 	int n;
 	int croffset;
-	ssize_t resid;
+	ssize_t resid, r;
 	u_long osize;
 	int error = 0;
 	u_long count;
@@ -656,15 +658,15 @@ msdosfs_write(struct vop_write_args *ap)
 	/*
 	 * The caller is supposed to ensure that
 	 * uio->uio_offset >= 0 and uio->uio_resid >= 0.
-	 */
-	if ((uoff_t)uio->uio_offset + uio->uio_resid > MSDOSFS_FILESIZE_MAX)
-		return (EFBIG);
-
-	/*
+	 *
 	 * If they've exceeded their filesize limit, tell them about it.
 	 */
-	if (vn_rlimit_fsize(vp, uio, uio->uio_td))
-		return (EFBIG);
+	error = vn_rlimit_fsizex(vp, uio, MSDOSFS_FILESIZE_MAX, &r,
+	    uio->uio_td);
+	if (error != 0) {
+		vn_rlimit_fsizex_res(uio, r);
+		return (error);
+	}
 
 	/*
 	 * If the offset we are starting the write at is beyond the end of
@@ -674,8 +676,10 @@ msdosfs_write(struct vop_write_args *ap)
 	 */
 	if (uio->uio_offset > dep->de_FileSize) {
 		error = deextend(dep, uio->uio_offset, cred);
-		if (error)
+		if (error != 0) {
+			vn_rlimit_fsizex_res(uio, r);
 			return (error);
+		}
 	}
 
 	/*
@@ -818,6 +822,7 @@ errexit:
 		}
 	} else if (ioflag & IO_SYNC)
 		error = deupdat(dep, 1);
+	vn_rlimit_fsizex_res(uio, r);
 	return (error);
 }
 
@@ -1121,8 +1126,6 @@ relock:
 		}
 		if (error != 0)
 			goto unlock;
-		if ((tcnp->cn_flags & SAVESTART) == 0)
-			panic("msdosfs_rename: lost to startdir");
 	}
 
 	if (tip != NULL) {

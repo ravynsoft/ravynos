@@ -205,9 +205,8 @@ struct in_conninfo {
  * to a field, a write lock must generally be held.
  *
  * netinet/netinet6-layer code should not assume that the inp_socket pointer
- * is safe to dereference without inp_lock being held, even for protocols
- * other than TCP (where the inpcb persists during TIMEWAIT even after the
- * socket has been freed), or there may be close(2)-related races.
+ * is safe to dereference without inp_lock being held, there may be
+ * close(2)-related races.
  *
  * The inp_vflag field is overloaded, and would otherwise ideally be (c).
  */
@@ -465,13 +464,14 @@ struct inpcbstorage {
 	uma_zone_t	ips_zone;
 	uma_zone_t	ips_portzone;
 	uma_init	ips_pcbinit;
+	size_t		ips_size;
 	const char *	ips_zone_name;
 	const char *	ips_portzone_name;
 	const char *	ips_infolock_name;
 	const char *	ips_hashlock_name;
 };
 
-#define INPCBSTORAGE_DEFINE(prot, lname, zname, iname, hname)		\
+#define INPCBSTORAGE_DEFINE(prot, ppcb, lname, zname, iname, hname)	\
 static int								\
 prot##_inpcb_init(void *mem, int size __unused, int flags __unused)	\
 {									\
@@ -481,6 +481,7 @@ prot##_inpcb_init(void *mem, int size __unused, int flags __unused)	\
 	return (0);							\
 }									\
 static struct inpcbstorage prot = {					\
+	.ips_size = sizeof(struct ppcb),				\
 	.ips_pcbinit = prot##_inpcb_init,				\
 	.ips_zone_name = zname,						\
 	.ips_portzone_name = zname " ports",				\
@@ -501,9 +502,10 @@ SYSUNINIT(prot##_inpcbstorage_uninit, SI_SUB_PROTO_DOMAIN,		\
 struct inpcblbgroup {
 	CK_LIST_ENTRY(inpcblbgroup) il_list;
 	struct epoch_context il_epoch_ctx;
+	struct ucred	*il_cred;
 	uint16_t	il_lport;			/* (c) */
 	u_char		il_vflag;			/* (c) */
-	u_int8_t		il_numa_domain;
+	uint8_t		il_numa_domain;
 	uint32_t	il_pad2;
 	union in_dependaddr il_dependladdr;		/* (c) */
 #define	il_laddr	il_dependladdr.id46_addr.ia46_addr4
@@ -547,7 +549,8 @@ void inp_unlock_assert(struct inpcb *);
 #define	inp_unlock_assert(inp)	do {} while (0)
 #endif
 
-void	inp_apply_all(void (*func)(struct inpcb *, void *), void *arg);
+void	inp_apply_all(struct inpcbinfo *, void (*func)(struct inpcb *, void *),
+	    void *arg);
 int 	inp_ip_tos_get(const struct inpcb *inp);
 void 	inp_ip_tos_set(struct inpcb *inp, int val);
 struct socket *
@@ -641,7 +644,7 @@ int	inp_so_options(const struct inpcb *inp);
 #define	IN6P_RTHDRDSTOPTS	0x00200000 /* receive dstoptions before rthdr */
 #define	IN6P_TCLASS		0x00400000 /* receive traffic class value */
 #define	IN6P_AUTOFLOWLABEL	0x00800000 /* attach flowlabel automatically */
-#define	INP_TIMEWAIT		0x01000000 /* in TIMEWAIT, ppcb is tcptw */
+/* was	INP_TIMEWAIT		0x01000000 */
 #define	INP_ONESBCAST		0x02000000 /* send all-ones broadcast */
 #define	INP_DROPPED		0x04000000 /* protocol drop flag */
 #define	INP_SOCKREF		0x08000000 /* strong socket reference */
@@ -714,10 +717,6 @@ VNET_DECLARE(int, ipport_lastauto);
 VNET_DECLARE(int, ipport_hifirstauto);
 VNET_DECLARE(int, ipport_hilastauto);
 VNET_DECLARE(int, ipport_randomized);
-VNET_DECLARE(int, ipport_randomcps);
-VNET_DECLARE(int, ipport_randomtime);
-VNET_DECLARE(int, ipport_stoprandom);
-VNET_DECLARE(int, ipport_tcpallocs);
 
 #define	V_ipport_reservedhigh	VNET(ipport_reservedhigh)
 #define	V_ipport_reservedlow	VNET(ipport_reservedlow)
@@ -728,10 +727,6 @@ VNET_DECLARE(int, ipport_tcpallocs);
 #define	V_ipport_hifirstauto	VNET(ipport_hifirstauto)
 #define	V_ipport_hilastauto	VNET(ipport_hilastauto)
 #define	V_ipport_randomized	VNET(ipport_randomized)
-#define	V_ipport_randomcps	VNET(ipport_randomcps)
-#define	V_ipport_randomtime	VNET(ipport_randomtime)
-#define	V_ipport_stoprandom	VNET(ipport_stoprandom)
-#define	V_ipport_tcpallocs	VNET(ipport_tcpallocs)
 
 void	in_pcbinfo_init(struct inpcbinfo *, struct inpcbstorage *,
 	    u_int, u_int);

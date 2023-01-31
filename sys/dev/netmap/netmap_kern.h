@@ -110,23 +110,12 @@
 #define NM_ATOMIC_TEST_AND_SET(p)       (!atomic_cmpset_acq_int((p), 0, 1))
 #define NM_ATOMIC_CLEAR(p)              atomic_store_rel_int((p), 0)
 
-#if __FreeBSD_version >= 1100030
 #define	WNA(_ifp)	(_ifp)->if_netmap
-#else /* older FreeBSD */
-#define	WNA(_ifp)	(_ifp)->if_pspare[0]
-#endif /* older FreeBSD */
 
-#if __FreeBSD_version >= 1100005
 struct netmap_adapter *netmap_getna(if_t ifp);
-#endif
 
-#if __FreeBSD_version >= 1100027
 #define MBUF_REFCNT(m)		((m)->m_ext.ext_count)
 #define SET_MBUF_REFCNT(m, x)   (m)->m_ext.ext_count = x
-#else
-#define MBUF_REFCNT(m)		((m)->m_ext.ref_cnt ? *((m)->m_ext.ref_cnt) : -1)
-#define SET_MBUF_REFCNT(m, x)   *((m)->m_ext.ref_cnt) = x
-#endif
 
 #define MBUF_QUEUED(m)		1
 
@@ -1155,6 +1144,7 @@ struct netmap_bwrap_adapter {
 	struct netmap_vp_adapter *saved_na_vp;
 	int (*nm_intr_notify)(struct netmap_kring *kring, int flags);
 };
+int nm_is_bwrap(struct netmap_adapter *na);
 int nm_bdg_polling(struct nmreq_header *hdr);
 
 int netmap_bdg_attach(struct nmreq_header *hdr, void *auth_token);
@@ -1566,6 +1556,7 @@ extern unsigned int vale_max_bridges;
 #define	netmap_get_vale_na(_1, _2, _3, _4)	0
 #define netmap_bdg_create(_1, _2)	NULL
 #define netmap_bdg_destroy(_1, _2)	0
+#define vale_max_bridges		1
 #endif /* !WITH_VALE */
 
 #ifdef WITH_PIPES
@@ -1637,8 +1628,8 @@ void __netmap_adapter_get(struct netmap_adapter *na);
 #define netmap_adapter_get(na) 				\
 	do {						\
 		struct netmap_adapter *__na = na;	\
-		nm_prinf("getting %p:%s (%d)", __na, (__na)->name, (__na)->na_refcount);	\
 		__netmap_adapter_get(__na);		\
+		nm_prinf("getting %p:%s -> %d", __na, (__na)->name, (__na)->na_refcount);	\
 	} while (0)
 
 int __netmap_adapter_put(struct netmap_adapter *na);
@@ -1646,8 +1637,11 @@ int __netmap_adapter_put(struct netmap_adapter *na);
 #define netmap_adapter_put(na)				\
 	({						\
 		struct netmap_adapter *__na = na;	\
-		nm_prinf("putting %p:%s (%d)", __na, (__na)->name, (__na)->na_refcount);	\
-		__netmap_adapter_put(__na);		\
+		if (__na == NULL)			\
+			nm_prinf("putting NULL");	\
+		else					\
+			nm_prinf("putting %p:%s -> %d", __na, (__na)->name, (__na)->na_refcount - 1);	\
+		__netmap_adapter_put(__na);	\
 	})
 
 #else /* !NM_DEBUG_PUTGET */
@@ -2128,7 +2122,7 @@ struct netmap_monitor_adapter {
  * native netmap support.
  */
 int generic_netmap_attach(struct ifnet *ifp);
-int generic_rx_handler(struct ifnet *ifp, struct mbuf *m);;
+int generic_rx_handler(struct ifnet *ifp, struct mbuf *m);
 
 int nm_os_catch_rx(struct netmap_generic_adapter *gna, int intercept);
 int nm_os_catch_tx(struct netmap_generic_adapter *gna, int intercept);
@@ -2151,7 +2145,7 @@ struct nm_os_gen_arg {
 	void *head, *tail; /* tailq, if the OS-specific routine needs to build one */
 	void *addr;	/* payload of current packet */
 	u_int len;	/* packet length */
-	u_int ring_nr;	/* packet length */
+	u_int ring_nr;	/* transmit ring index */
 	u_int qevent;   /* in txqdisc mode, place an event on this mbuf */
 };
 
@@ -2388,69 +2382,6 @@ ptnet_sync_tail(struct nm_csb_ktoa *ktoa, struct netmap_kring *kring)
 #ifdef __FreeBSD__
 /*
  * FreeBSD mbuf allocator/deallocator in emulation mode:
- */
-#if __FreeBSD_version < 1100000
-
-/*
- * For older versions of FreeBSD:
- *
- * We allocate EXT_PACKET mbuf+clusters, but need to set M_NOFREE
- * so that the destructor, if invoked, will not free the packet.
- * In principle we should set the destructor only on demand,
- * but since there might be a race we better do it on allocation.
- * As a consequence, we also need to set the destructor or we
- * would leak buffers.
- */
-
-/* mbuf destructor, also need to change the type to EXT_EXTREF,
- * add an M_NOFREE flag, and then clear the flag and
- * chain into uma_zfree(zone_pack, mf)
- * (or reinstall the buffer ?)
- */
-#define SET_MBUF_DESTRUCTOR(m, fn)	do {		\
-	(m)->m_ext.ext_free = (void *)fn;	\
-	(m)->m_ext.ext_type = EXT_EXTREF;	\
-} while (0)
-
-static int
-void_mbuf_dtor(struct mbuf *m, void *arg1, void *arg2)
-{
-	/* restore original mbuf */
-	m->m_ext.ext_buf = m->m_data = m->m_ext.ext_arg1;
-	m->m_ext.ext_arg1 = NULL;
-	m->m_ext.ext_type = EXT_PACKET;
-	m->m_ext.ext_free = NULL;
-	if (MBUF_REFCNT(m) == 0)
-		SET_MBUF_REFCNT(m, 1);
-	uma_zfree(zone_pack, m);
-
-	return 0;
-}
-
-static inline struct mbuf *
-nm_os_get_mbuf(struct ifnet *ifp, int len)
-{
-	struct mbuf *m;
-
-	(void)ifp;
-	m = m_getcl(M_NOWAIT, MT_DATA, M_PKTHDR);
-	if (m) {
-		/* m_getcl() (mb_ctor_mbuf) has an assert that checks that
-		 * M_NOFREE flag is not specified as third argument,
-		 * so we have to set M_NOFREE after m_getcl(). */
-		m->m_flags |= M_NOFREE;
-		m->m_ext.ext_arg1 = m->m_ext.ext_buf; // XXX save
-		m->m_ext.ext_free = (void *)void_mbuf_dtor;
-		m->m_ext.ext_type = EXT_EXTREF;
-		nm_prdis(5, "create m %p refcnt %d", m, MBUF_REFCNT(m));
-	}
-	return m;
-}
-
-#else /* __FreeBSD_version >= 1100000 */
-
-/*
- * Newer versions of FreeBSD, using a straightforward scheme.
  *
  * We allocate mbufs with m_gethdr(), since the mbuf header is needed
  * by the driver. We also attach a customly-provided external storage,
@@ -2463,13 +2394,7 @@ nm_os_get_mbuf(struct ifnet *ifp, int len)
  * has a KASSERT(), checking that the mbuf dtor function is not NULL.
  */
 
-#if __FreeBSD_version <= 1200050
-static void void_mbuf_dtor(struct mbuf *m, void *arg1, void *arg2) { }
-#else  /* __FreeBSD_version >= 1200051 */
-/* The arg1 and arg2 pointers argument were removed by r324446, which
- * in included since version 1200051. */
 static void void_mbuf_dtor(struct mbuf *m) { }
-#endif /* __FreeBSD_version >= 1200051 */
 
 #define SET_MBUF_DESTRUCTOR(m, fn)	do {		\
 	(m)->m_ext.ext_free = (fn != NULL) ?		\
@@ -2495,7 +2420,6 @@ nm_os_get_mbuf(struct ifnet *ifp, int len)
 	return m;
 }
 
-#endif /* __FreeBSD_version >= 1100000 */
 #endif /* __FreeBSD__ */
 
 struct nmreq_option * nmreq_getoption(struct nmreq_header *, uint16_t);

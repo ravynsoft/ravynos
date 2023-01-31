@@ -110,6 +110,7 @@ __FBSDID("$FreeBSD$");
 #include <net/if_dl.h>
 #include <net/if_types.h>
 #include <net/if_var.h>
+#include <net/if_private.h>
 #include <net/pfil.h>
 #include <net/vnet.h>
 
@@ -286,8 +287,9 @@ int	bridge_rtable_prune_period = BRIDGE_RTABLE_PRUNE_PERIOD;
 VNET_DEFINE_STATIC(uma_zone_t, bridge_rtnode_zone);
 #define	V_bridge_rtnode_zone	VNET(bridge_rtnode_zone)
 
-static int	bridge_clone_create(struct if_clone *, int, caddr_t);
-static void	bridge_clone_destroy(struct ifnet *);
+static int	bridge_clone_create(struct if_clone *, char *, size_t,
+		    struct ifc_data *, struct ifnet **);
+static int	bridge_clone_destroy(struct if_clone *, struct ifnet *, uint32_t);
 
 static int	bridge_ioctl(struct ifnet *, u_long, caddr_t);
 static void	bridge_mutecaps(struct bridge_softc *);
@@ -414,7 +416,7 @@ SYSCTL_INT(_net_link_bridge, OID_AUTO, pfil_onlyip,
     "Only pass IP packets when pfil is enabled");
 
 /* run pfil hooks on the bridge interface */
-VNET_DEFINE_STATIC(int, pfil_bridge) = 1;
+VNET_DEFINE_STATIC(int, pfil_bridge) = 0;
 #define	V_pfil_bridge	VNET(pfil_bridge)
 SYSCTL_INT(_net_link_bridge, OID_AUTO, pfil_bridge,
     CTLFLAG_RWTUN | CTLFLAG_VNET, &VNET_NAME(pfil_bridge), 0,
@@ -432,7 +434,7 @@ SYSCTL_INT(_net_link_bridge, OID_AUTO, ipfw_arp,
     "Filter ARP packets through IPFW layer2");
 
 /* run pfil hooks on the member interface */
-VNET_DEFINE_STATIC(int, pfil_member) = 1;
+VNET_DEFINE_STATIC(int, pfil_member) = 0;
 #define	V_pfil_member	VNET(pfil_member)
 SYSCTL_INT(_net_link_bridge, OID_AUTO, pfil_member,
     CTLFLAG_RWTUN | CTLFLAG_VNET, &VNET_NAME(pfil_member), 0,
@@ -585,8 +587,13 @@ vnet_bridge_init(const void *unused __unused)
 	    UMA_ALIGN_PTR, 0);
 	BRIDGE_LIST_LOCK_INIT();
 	LIST_INIT(&V_bridge_list);
-	V_bridge_cloner = if_clone_simple(bridge_name,
-	    bridge_clone_create, bridge_clone_destroy, 0);
+
+	struct if_clone_addreq req = {
+		.create_f = bridge_clone_create,
+		.destroy_f = bridge_clone_destroy,
+		.flags = IFC_F_AUTOUNIT,
+	};
+	V_bridge_cloner = ifc_attach_cloner(bridge_name, &req);
 }
 VNET_SYSINIT(vnet_bridge_init, SI_SUB_PROTO_IFATTACHDOMAIN, SI_ORDER_ANY,
     vnet_bridge_init, NULL);
@@ -595,7 +602,7 @@ static void
 vnet_bridge_uninit(const void *unused __unused)
 {
 
-	if_clone_detach(V_bridge_cloner);
+	ifc_detach_cloner(V_bridge_cloner);
 	V_bridge_cloner = NULL;
 	BRIDGE_LIST_LOCK_DESTROY();
 
@@ -702,7 +709,8 @@ bridge_reassign(struct ifnet *ifp, struct vnet *newvnet, char *arg)
  *	Create a new bridge instance.
  */
 static int
-bridge_clone_create(struct if_clone *ifc, int unit, caddr_t params)
+bridge_clone_create(struct if_clone *ifc, char *name, size_t len,
+    struct ifc_data *ifd, struct ifnet **ifpp)
 {
 	struct bridge_softc *sc;
 	struct ifnet *ifp;
@@ -727,7 +735,7 @@ bridge_clone_create(struct if_clone *ifc, int unit, caddr_t params)
 	CK_LIST_INIT(&sc->sc_spanlist);
 
 	ifp->if_softc = sc;
-	if_initname(ifp, bridge_name, unit);
+	if_initname(ifp, bridge_name, ifd->unit);
 	ifp->if_flags = IFF_BROADCAST | IFF_SIMPLEX | IFF_MULTICAST;
 	ifp->if_ioctl = bridge_ioctl;
 #ifdef ALTQ
@@ -757,6 +765,7 @@ bridge_clone_create(struct if_clone *ifc, int unit, caddr_t params)
 	BRIDGE_LIST_LOCK();
 	LIST_INSERT_HEAD(&V_bridge_list, sc, sc_list);
 	BRIDGE_LIST_UNLOCK();
+	*ifpp = ifp;
 
 	return (0);
 }
@@ -777,8 +786,8 @@ bridge_clone_destroy_cb(struct epoch_context *ctx)
  *
  *	Destroy a bridge instance.
  */
-static void
-bridge_clone_destroy(struct ifnet *ifp)
+static int
+bridge_clone_destroy(struct if_clone *ifc, struct ifnet *ifp, uint32_t flags)
 {
 	struct bridge_softc *sc = ifp->if_softc;
 	struct bridge_iflist *bif;
@@ -819,6 +828,8 @@ bridge_clone_destroy(struct ifnet *ifp)
 	if_free(ifp);
 
 	NET_EPOCH_CALL(bridge_clone_destroy_cb, &sc->sc_epoch_ctx);
+
+	return (0);
 }
 
 /*
@@ -2052,8 +2063,13 @@ bridge_enqueue(struct bridge_softc *sc, struct ifnet *dst_ifp, struct mbuf *m)
 
 		M_ASSERTPKTHDR(m); /* We shouldn't transmit mbuf without pkthdr */
 		if ((err = dst_ifp->if_transmit(dst_ifp, m))) {
-			m_freem(m0);
-			if_inc_counter(sc->sc_ifp, IFCOUNTER_OERRORS, 1);
+			int n;
+
+			for (m = m0, n = 1; m != NULL; m = m0, n++) {
+				m0 = m->m_nextpkt;
+				m_freem(m);
+			}
+			if_inc_counter(sc->sc_ifp, IFCOUNTER_OERRORS, n);
 			break;
 		}
 

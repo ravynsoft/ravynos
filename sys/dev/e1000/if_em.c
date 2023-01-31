@@ -901,7 +901,7 @@ em_if_attach_pre(if_ctx_t ctx)
 		 * that it shall give MSI at least a try with other devices.
 		 */
 		if (hw->mac.type == e1000_82574) {
-			scctx->isc_msix_bar = pci_msix_table_bar(dev);;
+			scctx->isc_msix_bar = pci_msix_table_bar(dev);
 		} else {
 			scctx->isc_msix_bar = -1;
 			scctx->isc_disable_msix = 1;
@@ -1292,7 +1292,7 @@ em_if_init(if_ctx_t ctx)
 {
 	struct e1000_softc *sc = iflib_get_softc(ctx);
 	if_softc_ctx_t scctx = sc->shared;
-	struct ifnet *ifp = iflib_get_ifp(ctx);
+	if_t ifp = iflib_get_ifp(ctx);
 	struct em_tx_queue *tx_que;
 	int i;
 
@@ -1626,24 +1626,20 @@ em_if_media_change(if_ctx_t ctx)
 		sc->hw.phy.autoneg_advertised = ADVERTISE_1000_FULL;
 		break;
 	case IFM_100_TX:
-		sc->hw.mac.autoneg = DO_AUTO_NEG;
-		if ((ifm->ifm_media & IFM_GMASK) == IFM_FDX) {
-			sc->hw.phy.autoneg_advertised = ADVERTISE_100_FULL;
+		sc->hw.mac.autoneg = false;
+		sc->hw.phy.autoneg_advertised = 0;
+		if ((ifm->ifm_media & IFM_GMASK) == IFM_FDX)
 			sc->hw.mac.forced_speed_duplex = ADVERTISE_100_FULL;
-		} else {
-			sc->hw.phy.autoneg_advertised = ADVERTISE_100_HALF;
+		else
 			sc->hw.mac.forced_speed_duplex = ADVERTISE_100_HALF;
-		}
 		break;
 	case IFM_10_T:
-		sc->hw.mac.autoneg = DO_AUTO_NEG;
-		if ((ifm->ifm_media & IFM_GMASK) == IFM_FDX) {
-			sc->hw.phy.autoneg_advertised = ADVERTISE_10_FULL;
+		sc->hw.mac.autoneg = false;
+		sc->hw.phy.autoneg_advertised = 0;
+		if ((ifm->ifm_media & IFM_GMASK) == IFM_FDX)
 			sc->hw.mac.forced_speed_duplex = ADVERTISE_10_FULL;
-		} else {
-			sc->hw.phy.autoneg_advertised = ADVERTISE_10_HALF;
+		else
 			sc->hw.mac.forced_speed_duplex = ADVERTISE_10_HALF;
-		}
 		break;
 	default:
 		device_printf(sc->dev, "Unsupported media type\n");
@@ -1658,7 +1654,7 @@ static int
 em_if_set_promisc(if_ctx_t ctx, int flags)
 {
 	struct e1000_softc *sc = iflib_get_softc(ctx);
-	struct ifnet *ifp = iflib_get_ifp(ctx);
+	if_t ifp = iflib_get_ifp(ctx);
 	u32 reg_rctl;
 	int mcnt = 0;
 
@@ -1715,7 +1711,7 @@ static void
 em_if_multi_set(if_ctx_t ctx)
 {
 	struct e1000_softc *sc = iflib_get_softc(ctx);
-	struct ifnet *ifp = iflib_get_ifp(ctx);
+	if_t ifp = iflib_get_ifp(ctx);
 	u8  *mta; /* Multicast array memory */
 	u32 reg_rctl = 0;
 	int mcnt = 0;
@@ -2475,7 +2471,7 @@ em_reset(if_ctx_t ctx)
 {
 	device_t dev = iflib_get_dev(ctx);
 	struct e1000_softc *sc = iflib_get_softc(ctx);
-	struct ifnet *ifp = iflib_get_ifp(ctx);
+	if_t ifp = iflib_get_ifp(ctx);
 	struct e1000_hw *hw = &sc->hw;
 	u32 rx_buffer_size;
 	u32 pba;
@@ -2572,7 +2568,7 @@ em_reset(if_ctx_t ctx)
 	}
 
 	/* Special needs in case of Jumbo frames */
-	if ((hw->mac.type == e1000_82575) && (ifp->if_mtu > ETHERMTU)) {
+	if ((hw->mac.type == e1000_82575) && (if_getmtu(ifp) > ETHERMTU)) {
 		u32 tx_space, min_tx, min_rx;
 		pba = E1000_READ_REG(hw, E1000_PBA);
 		tx_space = pba >> 16;
@@ -2870,7 +2866,7 @@ igb_initialize_rss_mapping(struct e1000_softc *sc)
 static int
 em_setup_interface(if_ctx_t ctx)
 {
-	struct ifnet *ifp = iflib_get_ifp(ctx);
+	if_t ifp = iflib_get_ifp(ctx);
 	struct e1000_softc *sc = iflib_get_softc(ctx);
 	if_softc_ctx_t scctx = sc->shared;
 
@@ -3175,7 +3171,7 @@ em_initialize_receive_unit(if_ctx_t ctx)
 {
 	struct e1000_softc *sc = iflib_get_softc(ctx);
 	if_softc_ctx_t scctx = sc->shared;
-	struct ifnet *ifp = iflib_get_ifp(ctx);
+	if_t ifp = iflib_get_ifp(ctx);
 	struct e1000_hw	*hw = &sc->hw;
 	struct em_rx_queue *que;
 	int i;
@@ -3324,7 +3320,7 @@ em_initialize_receive_unit(if_ctx_t ctx)
 		if (if_getmtu(ifp) > ETHERMTU) {
 			psize = scctx->isc_max_frame_size;
 			/* are we on a vlan? */
-			if (ifp->if_vlantrunk != NULL)
+			if (if_vlantrunkinuse(ifp))
 				psize += VLAN_TAG_SIZE;
 
 			if (sc->vf_ifp)
@@ -3524,7 +3520,7 @@ em_setup_vlan_hw_support(if_ctx_t ctx)
 {
 	struct e1000_softc *sc = iflib_get_softc(ctx);
 	struct e1000_hw *hw = &sc->hw;
-	struct ifnet *ifp = iflib_get_ifp(ctx);
+	if_t ifp = iflib_get_ifp(ctx);
 	u32 reg;
 
 	/* XXXKB: Return early if we are a VF until VF decap and filter management
@@ -4159,7 +4155,7 @@ static uint64_t
 em_if_get_counter(if_ctx_t ctx, ift_counter cnt)
 {
 	struct e1000_softc *sc = iflib_get_softc(ctx);
-	struct ifnet *ifp = iflib_get_ifp(ctx);
+	if_t ifp = iflib_get_ifp(ctx);
 
 	switch (cnt) {
 	case IFCOUNTER_COLLISIONS:
@@ -4834,7 +4830,7 @@ static void
 em_print_debug_info(struct e1000_softc *sc)
 {
 	device_t dev = iflib_get_dev(sc->ctx);
-	struct ifnet *ifp = iflib_get_ifp(sc->ctx);
+	if_t ifp = iflib_get_ifp(sc->ctx);
 	struct tx_ring *txr = &sc->tx_queues->txr;
 	struct rx_ring *rxr = &sc->rx_queues->rxr;
 

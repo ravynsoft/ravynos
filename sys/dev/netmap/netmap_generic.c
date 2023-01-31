@@ -482,11 +482,7 @@ generic_mbuf_destructor(struct mbuf *m)
 	 * txsync. */
 	netmap_generic_irq(na, r, NULL);
 #ifdef __FreeBSD__
-#if __FreeBSD_version <= 1200050
-	void_mbuf_dtor(m, NULL, NULL);
-#else  /* __FreeBSD_version >= 1200051 */
 	void_mbuf_dtor(m);
-#endif /* __FreeBSD_version >= 1200051 */
 #endif
 }
 
@@ -841,8 +837,10 @@ generic_rx_handler(struct ifnet *ifp, struct mbuf *m)
 		 * support RX scatter-gather. */
 		nm_prlim(2, "Warning: driver pushed up big packet "
 				"(size=%d)", (int)MBUF_LEN(m));
+		if_inc_counter(ifp, IFCOUNTER_IQDROPS, 1);
 		m_freem(m);
-	} else if (unlikely(mbq_len(&kring->rx_queue) > 1024)) {
+	} else if (unlikely(mbq_len(&kring->rx_queue) > na->num_rx_desc)) {
+		if_inc_counter(ifp, IFCOUNTER_IQDROPS, 1);
 		m_freem(m);
 	} else {
 		mbq_safe_enqueue(&kring->rx_queue, m);

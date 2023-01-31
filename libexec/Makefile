@@ -29,7 +29,6 @@ SUBDIR=	${_atf} \
 	${_rtld-elf} \
 	save-entropy \
 	${_smrsh} \
-	${_telnetd} \
 	${_tests} \
 	${_tftp-proxy} \
 	ulog-helper \
@@ -104,10 +103,6 @@ SUBDIR+=	talkd
 
 .if ${MK_TCP_WRAPPERS} != "no"
 SUBDIR+=	tcpd
-.endif
-
-.if ${MK_TELNET} != "no"
-_telnetd=	telnetd
 .endif
 
 .if ${MK_TFTP} != "no"

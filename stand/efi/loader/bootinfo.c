@@ -40,18 +40,22 @@ __FBSDID("$FreeBSD$");
 #include <machine/metadata.h>
 #include <machine/psl.h>
 
+#ifdef EFI
 #include <efi.h>
 #include <efilib.h>
+#endif
 
 #include "bootstrap.h"
 #include "modinfo.h"
-#include "loader_efi.h"
 
 #if defined(__amd64__)
 #include <machine/specialreg.h>
 #endif
 
+#ifdef EFI
+#include "loader_efi.h"
 #include "gfx_fb.h"
+#endif
 
 #if defined(LOADER_FDT_SUPPORT)
 #include <fdt_platform.h>
@@ -67,11 +71,14 @@ int bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp,
 static int
 bi_getboothowto(char *kargs)
 {
+#ifdef EFI
 	const char *sw, *tmp;
 	char *opts;
-	char *console;
-	int howto, speed, port;
+	int speed, port;
 	char buf[50];
+#endif
+	char *console;
+	int howto;
 
 	howto = boot_parse_cmdline(kargs);
 	howto |= boot_env_to_howto();
@@ -82,6 +89,7 @@ bi_getboothowto(char *kargs)
 			howto |= RB_SERIAL;
 		if (strcmp(console, "nullconsole") == 0)
 			howto |= RB_MUTE;
+#ifdef EFI
 #if defined(__i386__) || defined(__amd64__)
 		if (strcmp(console, "efi") == 0 &&
 		    getenv("efi_8250_uid") != NULL &&
@@ -121,11 +129,13 @@ bi_getboothowto(char *kargs)
 			}
 		}
 #endif
+#endif
 	}
 
 	return (howto);
 }
 
+#ifdef EFI
 static EFI_STATUS
 efi_do_vmap(EFI_MEMORY_DESCRIPTOR *mm, UINTN sz, UINTN mmsz, UINT32 mmver)
 {
@@ -294,6 +304,7 @@ bi_load_efi_data(struct preloaded_file *kfp, bool exit_bs)
 
 	return (0);
 }
+#endif
 
 /*
  * Load the information expected by an amd64 kernel.
@@ -316,6 +327,7 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 	vm_offset_t size;
 	char *rootdevname;
 	int howto;
+	bool is64 = sizeof(long) == 8;
 #if defined(LOADER_FDT_SUPPORT)
 	vm_offset_t dtbp;
 	int dtb_size;
@@ -335,7 +347,6 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 #endif
 	};
 #endif
-
 	howto = bi_getboothowto(args);
 
 	/*
@@ -350,12 +361,14 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 		return(EINVAL);
 	}
 
+#ifdef EFI
 	/* Try reading the /etc/fstab file to select the root device */
 	getrootmount(devformat(rootdev));
+#endif
 
 	addr = 0;
 	for (xp = file_findfile(NULL, NULL); xp != NULL; xp = xp->f_next) {
-		if (addr < (xp->f_addr + xp->f_size))
+		if (addr < xp->f_addr + xp->f_size)
 			addr = xp->f_addr + xp->f_size;
 	}
 
@@ -407,13 +420,17 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 #ifdef MODINFOMD_MODULEP
 	file_addmetadata(kfp, MODINFOMD_MODULEP, sizeof(module), &module);
 #endif
+#ifdef EFI
 	file_addmetadata(kfp, MODINFOMD_FW_HANDLE, sizeof(ST), &ST);
+#endif
 #ifdef LOADER_GELI_SUPPORT
 	geli_export_key_metadata(kfp);
 #endif
+#ifdef EFI
 	bi_load_efi_data(kfp, exit_bs);
+#endif
 
-	size = md_copymodules(0, true);
+	size = md_copymodules(0, is64);	/* Find the size of the modules */
 	kernend = roundup(addr + size, PAGE_SIZE);
 	*kernendp = kernend;
 
@@ -438,7 +455,7 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 #endif
 
 	/* Copy module list and metadata. */
-	(void)md_copymodules(addr, true);
+	(void)md_copymodules(addr, is64);
 
 	return (0);
 }

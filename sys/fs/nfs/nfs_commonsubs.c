@@ -744,7 +744,7 @@ nfsm_dissct(struct nfsrv_descript *nd, int siz, int how)
 	} else if (siz > ncl_mbuf_mhlen) {
 		panic("nfs S too big");
 	} else {
-		MGET(mp2, MT_DATA, how);
+		MGET(mp2, how, MT_DATA);
 		if (mp2 == NULL)
 			return (NULL);
 		mp2->m_next = nd->nd_md->m_next;
@@ -2247,7 +2247,7 @@ nfsv4_loadattr(struct nfsrv_descript *nd, vnode_t vp,
 				*retcmpp = NFSERR_ATTRNOTSUPP;
 			/*
 			 * and get out of the loop, since we can't parse
-			 * the unknown attrbute data.
+			 * the unknown attribute data.
 			 */
 			bitpos = NFSATTRBIT_MAX;
 			break;

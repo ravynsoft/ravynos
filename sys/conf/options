@@ -110,7 +110,7 @@ FILEMON		opt_dontuse.h
 FFCLOCK
 FULL_PREEMPTION	opt_sched.h
 GZIO		opt_gzio.h
-IMAGACT_BINMISC		opt_dontuse.h
+IMGACT_BINMISC		opt_dontuse.h
 IPI_PREEMPTION	opt_sched.h
 GEOM_BDE	opt_geom.h
 GEOM_CACHE	opt_geom.h
@@ -462,17 +462,17 @@ MBUF_PROFILING
 MBUF_STRESS_TEST
 MROUTING		opt_mrouting.h
 NFSLOCKD
+NETLINK
 PF_DEFAULT_TO_DROP	opt_pf.h
 ROUTE_MPATH		opt_route.h
 ROUTETABLES		opt_route.h
 FIB_ALGO		opt_route.h
 RSS			opt_rss.h
 SLIP_IFF_OPTS		opt_slip.h
-TCPDEBUG
 TCPPCAP		opt_global.h
 SIFTR
 TCP_BLACKBOX		opt_global.h
-TCP_HHOOK		opt_inet.h
+TCP_HHOOK		opt_global.h
 TCP_OFFLOAD		opt_inet.h # Enable code to dispatch TCP offloading
 TCP_RFC7413		opt_inet.h
 TCP_RFC7413_MAX_KEYS	opt_inet.h
@@ -615,7 +615,6 @@ MAXPHYS			opt_maxphys.h
 MCLSHIFT		opt_global.h
 MUTEX_NOINLINE		opt_global.h
 LOCK_PROFILING		opt_global.h
-LOCK_PROFILING_FAST	opt_global.h
 MSIZE			opt_global.h
 REGRESSION		opt_global.h
 RWLOCK_NOINLINE		opt_global.h
@@ -721,7 +720,7 @@ IOMMU			opt_iommu.h
 
 # ISA support
 DEV_ISA			opt_isa.h
-ISAPNP			opt_isa.h
+ISAPNP			opt_dontuse.h
 
 # various 'device presence' options.
 DEV_BPF			opt_bpf.h

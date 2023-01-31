@@ -282,6 +282,9 @@ struct ieee80211_ht_cap {
 };
 
 #define	IEEE80211_HT_MAX_AMPDU_FACTOR		13
+#define	IEEE80211_HE_HT_MAX_AMPDU_FACTOR	16
+#define	IEEE80211_HE_VHT_MAX_AMPDU_FACTOR	20
+#define	IEEE80211_HE_6GHZ_MAX_AMPDU_FACTOR	13
 
 enum ieee80211_ht_max_ampdu_len {
 	IEEE80211_HT_MAX_AMPDU_64K
@@ -347,11 +350,11 @@ enum ieee80211_smps_mode {
 /* net80211::IEEE80211_S_* different but represents the state machine. */
 /* Note: order here is important! */
 enum ieee80211_sta_state {
-	IEEE80211_STA_NOTEXIST,
-	IEEE80211_STA_NONE,
-	IEEE80211_STA_AUTH,
-	IEEE80211_STA_ASSOC,
-	IEEE80211_STA_AUTHORIZED,		/* 802.1x */
+	IEEE80211_STA_NOTEXIST		= 0,
+	IEEE80211_STA_NONE		= 1,
+	IEEE80211_STA_AUTH		= 2,
+	IEEE80211_STA_ASSOC		= 3,
+	IEEE80211_STA_AUTHORIZED	= 4,	/* 802.1x */
 };
 
 enum ieee80211_sta_rx_bw {
@@ -422,6 +425,16 @@ struct ieee80211_hdr_3addr {	/* net80211::ieee80211_frame */
 	uint8_t		addr2[ETH_ALEN];
 	uint8_t		addr3[ETH_ALEN];
 	__le16		seq_ctrl;
+};
+
+struct ieee80211_qos_hdr {	/* net80211:ieee80211_qosframe */
+        __le16		frame_control;
+        __le16		duration_id;
+	uint8_t		addr1[ETH_ALEN];
+	uint8_t		addr2[ETH_ALEN];
+	uint8_t		addr3[ETH_ALEN];
+	__le16		seq_ctrl;
+	__le16		qos_ctrl;
 };
 
 struct ieee80211_vendor_ie {
@@ -540,7 +553,7 @@ enum ieee80211_eid {
 	WLAN_EID_MULTI_BSSID_IDX		= 85,
 	WLAN_EID_EXT_CAPABILITY			= 127,
 	WLAN_EID_VHT_CAPABILITY			= 191,	/* IEEE80211_ELEMID_VHT_CAP */
-	WLAN_EID_VENDOR_SPECIFIC		= 221,
+	WLAN_EID_VENDOR_SPECIFIC		= 221,	/* IEEE80211_ELEMID_VENDOR */
 };
 
 enum ieee80211_eid_ext {

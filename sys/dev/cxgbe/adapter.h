@@ -41,6 +41,7 @@
 #include <sys/lock.h>
 #include <sys/malloc.h>
 #include <sys/rwlock.h>
+#include <sys/seqc.h>
 #include <sys/sx.h>
 #include <sys/vmem.h>
 #include <vm/uma.h>
@@ -124,7 +125,7 @@ enum {
 enum {
 	/* adapter intr_type */
 	INTR_INTX	= (1 << 0),
-	INTR_MSI 	= (1 << 1),
+	INTR_MSI	= (1 << 1),
 	INTR_MSIX	= (1 << 2)
 };
 
@@ -161,10 +162,10 @@ enum {
 	CXGBE_BUSY	= (1 << 9),
 
 	/* adapter error_flags.  reg_lock for HW_OFF_LIMITS, atomics for the rest. */
-	ADAP_STOPPED 	= (1 << 0),	/* Adapter has been stopped. */
-	ADAP_FATAL_ERR 	= (1 << 1),	/* Encountered a fatal error. */
-	HW_OFF_LIMITS 	= (1 << 2),	/* off limits to all except reset_thread */
-	ADAP_CIM_ERR 	= (1 << 3),	/* Error was related to FW/CIM. */
+	ADAP_STOPPED	= (1 << 0),	/* Adapter has been stopped. */
+	ADAP_FATAL_ERR	= (1 << 1),	/* Encountered a fatal error. */
+	HW_OFF_LIMITS	= (1 << 2),	/* off limits to all except reset_thread */
+	ADAP_CIM_ERR	= (1 << 3),	/* Error was related to FW/CIM. */
 
 	/* port flags */
 	HAS_TRACEQ	= (1 << 3),
@@ -174,8 +175,8 @@ enum {
 	DOOMED		= (1 << 0),
 	VI_INIT_DONE	= (1 << 1),
 	/* 1 << 2 is unused, was VI_SYSCTL_CTX */
-	TX_USES_VM_WR 	= (1 << 3),
-	VI_SKIP_STATS 	= (1 << 4),
+	TX_USES_VM_WR	= (1 << 3),
+	VI_SKIP_STATS	= (1 << 4),
 
 	/* adapter debug_flags */
 	DF_DUMP_MBOX		= (1 << 0),	/* Log all mbox cmd/rpl. */
@@ -218,7 +219,7 @@ struct vi_info {
 	/* These need to be int as they are used in sysctl */
 	int ntxq;		/* # of tx queues */
 	int first_txq;		/* index of first tx queue */
-	int rsrv_noflowq; 	/* Reserve queue 0 for non-flowid packets */
+	int rsrv_noflowq;	/* Reserve queue 0 for non-flowid packets */
 	int nrxq;		/* # of rx queues */
 	int first_rxq;		/* index of first rx queue */
 	int nofldtxq;		/* # of offload tx queues */
@@ -328,7 +329,7 @@ struct port_info {
 	struct link_config link_cfg;
 	struct ifmedia media;
 
- 	struct port_stats stats;
+	struct port_stats stats;
 	u_int tnl_cong_drops;
 	u_int tx_parse_error;
 	int fcs_reg;
@@ -865,6 +866,15 @@ struct devnames {
 
 struct clip_entry;
 
+#define CNT_CAL_INFO 3
+struct clock_sync {
+	uint64_t hw_cur;
+	uint64_t hw_prev;
+	sbintime_t sbt_cur;
+	sbintime_t sbt_prev;
+	seqc_t gen;
+};
+
 struct adapter {
 	SLIST_ENTRY(adapter) link;
 	device_t dev;
@@ -930,7 +940,6 @@ struct adapter {
 	void *iwarp_softc;	/* (struct c4iw_dev *) */
 	struct iw_tunables iwt;
 	void *iscsi_ulp_softc;	/* (struct cxgbei_data *) */
-	void *ccr_softc;	/* (struct ccr_softc *) */
 	struct l2t_data *l2t;	/* L2 table */
 	struct smt_data *smt;	/* Source MAC Table */
 	struct tid_info tids;
@@ -984,6 +993,11 @@ struct adapter {
 	struct mtx sfl_lock;	/* same cache-line as sc_lock? but that's ok */
 	TAILQ_HEAD(, sge_fl) sfl;
 	struct callout sfl_callout;
+	struct callout cal_callout;
+	struct clock_sync cal_info[CNT_CAL_INFO];
+	int cal_current;
+	int cal_count;
+	uint32_t cal_gen;
 
 	/*
 	 * Driver code that can run when the adapter is suspended must use this

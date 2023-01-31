@@ -87,9 +87,11 @@ log2(u_int x)
 }
 
 int
-x86_emulate_cpuid(struct vm *vm, int vcpu_id, uint64_t *rax, uint64_t *rbx,
+x86_emulate_cpuid(struct vcpu *vcpu, uint64_t *rax, uint64_t *rbx,
     uint64_t *rcx, uint64_t *rdx)
 {
+	struct vm *vm = vcpu_vm(vcpu);
+	int vcpu_id = vcpu_vcpuid(vcpu);
 	const struct xsave_limits *limits;
 	uint64_t cr4;
 	int error, enable_invpcid, enable_rdpid, enable_rdtscp, level,
@@ -202,7 +204,7 @@ x86_emulate_cpuid(struct vm *vm, int vcpu_id, uint64_t *rax, uint64_t *rbx,
 			regs[2] &= ~AMDID2_MWAITX;
 
 			/* Advertise RDTSCP if it is enabled. */
-			error = vm_get_capability(vm, vcpu_id,
+			error = vm_get_capability(vcpu,
 			    VM_CAP_RDTSCP, &enable_rdtscp);
 			if (error == 0 && enable_rdtscp)
 				regs[3] |= AMDID_RDTSCP;
@@ -309,7 +311,7 @@ x86_emulate_cpuid(struct vm *vm, int vcpu_id, uint64_t *rax, uint64_t *rbx,
 		case CPUID_0000_0001:
 			do_cpuid(1, regs);
 
-			error = vm_get_x2apic_state(vm, vcpu_id, &x2apic_state);
+			error = vm_get_x2apic_state(vcpu, &x2apic_state);
 			if (error) {
 				panic("x86_emulate_cpuid: error %d "
 				      "fetching x2apic state", error);
@@ -349,7 +351,7 @@ x86_emulate_cpuid(struct vm *vm, int vcpu_id, uint64_t *rax, uint64_t *rbx,
 			 */
 			regs[2] &= ~CPUID2_OSXSAVE;
 			if (regs[2] & CPUID2_XSAVE) {
-				error = vm_get_register(vm, vcpu_id,
+				error = vm_get_register(vcpu,
 				    VM_REG_GUEST_CR4, &cr4);
 				if (error)
 					panic("x86_emulate_cpuid: error %d "
@@ -454,13 +456,13 @@ x86_emulate_cpuid(struct vm *vm, int vcpu_id, uint64_t *rax, uint64_t *rbx,
 				regs[3] &= CPUID_STDEXT3_MD_CLEAR;
 
 				/* Advertise RDPID if it is enabled. */
-				error = vm_get_capability(vm, vcpu_id,
-				    VM_CAP_RDPID, &enable_rdpid);
+				error = vm_get_capability(vcpu, VM_CAP_RDPID,
+				    &enable_rdpid);
 				if (error == 0 && enable_rdpid)
 					regs[2] |= CPUID_STDEXT2_RDPID;
 
 				/* Advertise INVPCID if it is enabled. */
-				error = vm_get_capability(vm, vcpu_id,
+				error = vm_get_capability(vcpu,
 				    VM_CAP_ENABLE_INVPCID, &enable_invpcid);
 				if (error == 0 && enable_invpcid)
 					regs[1] |= CPUID_STDEXT_INVPCID;
@@ -637,7 +639,7 @@ default_leaf:
 }
 
 bool
-vm_cpuid_capability(struct vm *vm, int vcpuid, enum vm_cpuid_capability cap)
+vm_cpuid_capability(struct vcpu *vcpu, enum vm_cpuid_capability cap)
 {
 	bool rv;
 

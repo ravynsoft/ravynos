@@ -3,7 +3,7 @@
 .include <src.opts.mk>
 
 WARNS?= 3
-PACKAGE=runtime
+PACKAGE=devd
 CONFGROUPS=	CONFS DEVD
 CONFS=	devd.conf
 DEVD=	devmatch.conf
@@ -34,8 +34,6 @@ DEVD+=	zfs.conf
 PROG_CXX=devd
 SRCS=	devd.cc token.l parse.y y.tab.h
 MAN=	devd.8 devd.conf.5
-
-NO_SHARED?=YES
 
 LIBADD=	util
 

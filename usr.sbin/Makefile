@@ -95,7 +95,6 @@ SUBDIR=	adduser \
 	tcpsso \
 	traceroute \
 	trim \
-	trpt \
 	tzsetup \
 	ugidfw \
 	valectl \
@@ -104,6 +103,7 @@ SUBDIR=	adduser \
 	wake \
 	watch \
 	watchdogd \
+	zdump \
 	zic \
 	zonectl
 

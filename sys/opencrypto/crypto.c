@@ -149,8 +149,8 @@ SYSCTL_NODE(_kern, OID_AUTO, crypto, CTLFLAG_RW, 0,
     "In-kernel cryptography");
 
 /*
- * Taskqueue used to dispatch the crypto requests
- * that have the CRYPTO_F_ASYNC flag
+ * Taskqueue used to dispatch the crypto requests submitted with
+ * crypto_dispatch_async .
  */
 static struct taskqueue *crypto_tq;
 
@@ -1633,17 +1633,11 @@ crypto_freereq(struct cryptop *crp)
 	uma_zfree(cryptop_zone, crp);
 }
 
-static void
-_crypto_initreq(struct cryptop *crp, crypto_session_t cses)
-{
-	crp->crp_session = cses;
-}
-
 void
 crypto_initreq(struct cryptop *crp, crypto_session_t cses)
 {
 	memset(crp, 0, sizeof(*crp));
-	_crypto_initreq(crp, cses);
+	crp->crp_session = cses;
 }
 
 struct cryptop *
@@ -1652,9 +1646,9 @@ crypto_getreq(crypto_session_t cses, int how)
 	struct cryptop *crp;
 
 	MPASS(how == M_WAITOK || how == M_NOWAIT);
-	crp = uma_zalloc(cryptop_zone, how | M_ZERO);
+	crp = uma_zalloc(cryptop_zone, how);
 	if (crp != NULL)
-		_crypto_initreq(crp, cses);
+		crypto_initreq(crp, cses);
 	return (crp);
 }
 

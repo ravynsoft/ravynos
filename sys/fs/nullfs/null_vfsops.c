@@ -156,6 +156,17 @@ nullfs_mount(struct mount *mp)
 		}
 	}
 
+	/*
+	 * Lower vnode must be the same type as the covered vnode - we
+	 * don't allow mounting directories to files or vice versa.
+	 */
+	if ((lowerrootvp->v_type != VDIR && lowerrootvp->v_type != VREG) ||
+	    lowerrootvp->v_type != mp->mnt_vnodecovered->v_type) {
+		NULLFSDEBUG("nullfs_mount: target must be same type as fspath");
+		vput(lowerrootvp);
+		return (EINVAL);
+	}
+
 	xmp = (struct null_mount *) malloc(sizeof(struct null_mount),
 	    M_NULLFSMNT, M_WAITOK | M_ZERO);
 
@@ -199,6 +210,12 @@ nullfs_mount(struct mount *mp)
 	if ((xmp->nullm_flags & NULLM_CACHE) != 0) {
 		vfs_register_for_notification(xmp->nullm_vfs, mp,
 		    &xmp->notify_node);
+	}
+
+	if (lowerrootvp == mp->mnt_vnodecovered) {
+		vn_lock(lowerrootvp, LK_EXCLUSIVE | LK_RETRY | LK_CANRECURSE);
+		lowerrootvp->v_vflag |= VV_CROSSLOCK;
+		VOP_UNLOCK(lowerrootvp);
 	}
 
 	MNT_ILOCK(mp);
@@ -260,6 +277,11 @@ nullfs_unmount(mp, mntflags)
 	if ((mntdata->nullm_flags & NULLM_CACHE) != 0) {
 		vfs_unregister_for_notification(mntdata->nullm_vfs,
 		    &mntdata->notify_node);
+	}
+	if (mntdata->nullm_lowerrootvp == mp->mnt_vnodecovered) {
+		vn_lock(mp->mnt_vnodecovered, LK_EXCLUSIVE | LK_RETRY | LK_CANRECURSE);
+		mp->mnt_vnodecovered->v_vflag &= ~VV_CROSSLOCK;
+		VOP_UNLOCK(mp->mnt_vnodecovered);
 	}
 	vfs_unregister_upper(mntdata->nullm_vfs, &mntdata->upper_node);
 	vrele(mntdata->nullm_lowerrootvp);
@@ -492,4 +514,4 @@ static struct vfsops null_vfsops = {
 	.vfs_unlink_lowervp =	nullfs_unlink_lowervp,
 };
 
-VFS_SET(null_vfsops, nullfs, VFCF_LOOPBACK | VFCF_JAIL);
+VFS_SET(null_vfsops, nullfs, VFCF_LOOPBACK | VFCF_JAIL | VFCF_FILEMOUNT);

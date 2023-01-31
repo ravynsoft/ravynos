@@ -37,7 +37,6 @@ long host_syscall(int number, ...);
  */
 typedef uint64_t host_dev_t;
 typedef uint64_t host_ino_t;
-typedef int64_t host_nlink_t;
 typedef unsigned int host_mode_t;
 typedef unsigned int host_uid_t;
 typedef unsigned int host_gid_t;
@@ -46,6 +45,28 @@ typedef long host_blksize_t;
 typedef int64_t host_blkcnt_t;
 
 #include "stat_arch.h"
+
+/*
+ * stat flags
+ * These are arch independent and match the values in nolib and uapi headers
+ * with HOST_ prepended.
+ */
+#define	HOST_S_IFMT	0170000
+#define	HOST_S_IFIFO	0010000
+#define	HOST_S_IFCHR	0020000
+#define	HOST_S_IFDIR	0040000
+#define	HOST_S_IFBLK	0060000
+#define	HOST_S_IFREG	0100000
+#define	HOST_S_IFLNK	0120000
+#define	HOST_S_IFSOCK	0140000
+
+#define	HOST_S_ISBLK(mode)	(((mode) & HOST_S_IFMT) == HOST_S_IFBLK)
+#define	HOST_S_ISCHR(mode)	(((mode) & HOST_S_IFMT) == HOST_S_IFCHR)
+#define	HOST_S_ISDIR(mode)	(((mode) & HOST_S_IFMT) == HOST_S_IFDIR)
+#define	HOST_S_ISFIFO(mode)	(((mode) & HOST_S_IFMT) == HOST_S_IFIFO)
+#define	HOST_S_ISLNK(mode)	(((mode) & HOST_S_IFMT) == HOST_S_IFLNK)
+#define	HOST_S_ISREG(mode)	(((mode) & HOST_S_IFMT) == HOST_S_IFREG)
+#define	HOST_S_ISSOCK(mode)	(((mode) & HOST_S_IFMT) == HOST_S_IFSOCK)
 
 /*
  * Constants for open, fcntl, etc

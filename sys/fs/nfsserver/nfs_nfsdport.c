@@ -101,6 +101,7 @@ struct callout nfsd_callout;
 
 static int nfssvc_srvcall(struct thread *, struct nfssvc_args *,
     struct ucred *);
+static void nfsvno_updateds(struct vnode *, struct ucred *, struct thread *);
 
 int nfsrv_enable_crossmntpt = 1;
 static int nfs_commit_blks;
@@ -1171,7 +1172,6 @@ nfsvno_createsub(struct nfsrv_descript *nd, struct nameidata *ndp,
 	error = nd->nd_repstat;
 	if (!error && ndp->ni_vp == NULL) {
 		if (nvap->na_type == VREG || nvap->na_type == VSOCK) {
-			vrele(ndp->ni_startdir);
 			error = VOP_CREATE(ndp->ni_dvp,
 			    &ndp->ni_vp, &ndp->ni_cnd, &nvap->na_vattr);
 			/* For a pNFS server, create the data file on a DS. */
@@ -1212,7 +1212,6 @@ nfsvno_createsub(struct nfsrv_descript *nd, struct nameidata *ndp,
 				nvap->na_type = VFIFO;
                         if (nvap->na_type != VFIFO &&
 			    (error = priv_check_cred(nd->nd_cred, PRIV_VFS_MKNOD_DEV))) {
-				vrele(ndp->ni_startdir);
 				nfsvno_relpathbuf(ndp);
 				vput(ndp->ni_dvp);
 				goto out;
@@ -1223,11 +1222,9 @@ nfsvno_createsub(struct nfsrv_descript *nd, struct nameidata *ndp,
 			VOP_VPUT_PAIR(ndp->ni_dvp, error == 0 ? &ndp->ni_vp :
 			    NULL, false);
 			nfsvno_relpathbuf(ndp);
-			vrele(ndp->ni_startdir);
 			if (error)
 				goto out;
 		} else {
-			vrele(ndp->ni_startdir);
 			nfsvno_relpathbuf(ndp);
 			vput(ndp->ni_dvp);
 			error = ENXIO;
@@ -1241,7 +1238,6 @@ nfsvno_createsub(struct nfsrv_descript *nd, struct nameidata *ndp,
 		 * 1 - clean up the lookup
 		 * 2 - iff !error and na_size set, truncate it
 		 */
-		vrele(ndp->ni_startdir);
 		nfsvno_relpathbuf(ndp);
 		*vpp = ndp->ni_vp;
 		if (ndp->ni_dvp == *vpp)
@@ -1284,7 +1280,6 @@ nfsvno_mknod(struct nameidata *ndp, struct nfsvattr *nvap, struct ucred *cred,
 	 * Iff doesn't exist, create it.
 	 */
 	if (ndp->ni_vp) {
-		vrele(ndp->ni_startdir);
 		nfsvno_relpathbuf(ndp);
 		vput(ndp->ni_dvp);
 		vrele(ndp->ni_vp);
@@ -1292,14 +1287,12 @@ nfsvno_mknod(struct nameidata *ndp, struct nfsvattr *nvap, struct ucred *cred,
 		goto out;
 	}
 	if (vtyp != VCHR && vtyp != VBLK && vtyp != VSOCK && vtyp != VFIFO) {
-		vrele(ndp->ni_startdir);
 		nfsvno_relpathbuf(ndp);
 		vput(ndp->ni_dvp);
 		error = NFSERR_BADTYPE;
 		goto out;
 	}
 	if (vtyp == VSOCK) {
-		vrele(ndp->ni_startdir);
 		error = VOP_CREATE(ndp->ni_dvp, &ndp->ni_vp,
 		    &ndp->ni_cnd, &nvap->na_vattr);
 		VOP_VPUT_PAIR(ndp->ni_dvp, error == 0 ? &ndp->ni_vp : NULL,
@@ -1308,7 +1301,6 @@ nfsvno_mknod(struct nameidata *ndp, struct nfsvattr *nvap, struct ucred *cred,
 	} else {
 		if (nvap->na_type != VFIFO &&
 		    (error = priv_check_cred(cred, PRIV_VFS_MKNOD_DEV))) {
-			vrele(ndp->ni_startdir);
 			nfsvno_relpathbuf(ndp);
 			vput(ndp->ni_dvp);
 			goto out;
@@ -1318,7 +1310,6 @@ nfsvno_mknod(struct nameidata *ndp, struct nfsvattr *nvap, struct ucred *cred,
 		VOP_VPUT_PAIR(ndp->ni_dvp, error == 0 ? &ndp->ni_vp : NULL,
 		    false);
 		nfsvno_relpathbuf(ndp);
-		vrele(ndp->ni_startdir);
 		/*
 		 * Since VOP_MKNOD returns the ni_vp, I can't
 		 * see any reason to do the lookup.
@@ -1370,7 +1361,6 @@ nfsvno_symlink(struct nameidata *ndp, struct nfsvattr *nvap, char *pathcp,
 	int error = 0;
 
 	if (ndp->ni_vp) {
-		vrele(ndp->ni_startdir);
 		nfsvno_relpathbuf(ndp);
 		if (ndp->ni_dvp == ndp->ni_vp)
 			vrele(ndp->ni_dvp);
@@ -1390,7 +1380,6 @@ nfsvno_symlink(struct nameidata *ndp, struct nfsvattr *nvap, char *pathcp,
 	 * Just vput it for v2.
 	 */
 	VOP_VPUT_PAIR(ndp->ni_dvp, &ndp->ni_vp, !not_v2 && error == 0);
-	vrele(ndp->ni_startdir);
 	nfsvno_relpathbuf(ndp);
 
 out:
@@ -1641,10 +1630,8 @@ out:
 		NFSD_DEBUG(4, "nfsvno_rename: pnfsremove\n");
 	}
 
-	vrele(tondp->ni_startdir);
 	nfsvno_relpathbuf(tondp);
 out1:
-	vrele(fromndp->ni_startdir);
 	nfsvno_relpathbuf(fromndp);
 	NFSEXITCODE(error);
 	return (error);
@@ -1848,7 +1835,7 @@ void
 nfsvno_open(struct nfsrv_descript *nd, struct nameidata *ndp,
     nfsquad_t clientid, nfsv4stateid_t *stateidp, struct nfsstate *stp,
     int *exclusive_flagp, struct nfsvattr *nvap, int32_t *cverf, int create,
-    NFSACL_T *aclp, nfsattrbit_t *attrbitp, struct ucred *cred,
+    NFSACL_T *aclp, nfsattrbit_t *attrbitp, struct ucred *cred, bool done_namei,
     struct nfsexstuff *exp, struct vnode **vpp)
 {
 	struct vnode *vp = NULL;
@@ -1861,7 +1848,6 @@ nfsvno_open(struct nfsrv_descript *nd, struct nameidata *ndp,
 		    stateidp, stp, NULL, nd, p, nd->nd_repstat);
 	if (!nd->nd_repstat) {
 		if (ndp->ni_vp == NULL) {
-			vrele(ndp->ni_startdir);
 			nd->nd_repstat = VOP_CREATE(ndp->ni_dvp,
 			    &ndp->ni_vp, &ndp->ni_cnd, &nvap->na_vattr);
 			/* For a pNFS server, create the data file on a DS. */
@@ -1899,8 +1885,6 @@ nfsvno_open(struct nfsrv_descript *nd, struct nameidata *ndp,
 			}
 			vp = ndp->ni_vp;
 		} else {
-			if (ndp->ni_startdir)
-				vrele(ndp->ni_startdir);
 			nfsvno_relpathbuf(ndp);
 			vp = ndp->ni_vp;
 			if (create == NFSV4OPEN_CREATE) {
@@ -1934,8 +1918,7 @@ nfsvno_open(struct nfsrv_descript *nd, struct nameidata *ndp,
 		}
 	} else {
 		nfsvno_relpathbuf(ndp);
-		if (ndp->ni_startdir && create == NFSV4OPEN_CREATE) {
-			vrele(ndp->ni_startdir);
+		if (done_namei && create == NFSV4OPEN_CREATE) {
 			if (ndp->ni_dvp == ndp->ni_vp)
 				vrele(ndp->ni_dvp);
 			else
@@ -2716,15 +2699,22 @@ again:
 				 * For NFSv4 the behavior is controlled by
 				 * RDATTRERROR: we either ignore the error or
 				 * fail the request.
+				 * The exception is EOPNOTSUPP, which can be
+				 * returned by nfsvno_getfh() for certain
+				 * file systems, such as devfs.  This indicates
+				 * that the file system cannot be exported,
+				 * so just skip over the entry.
 				 * Note that RDATTRERROR is never set for NFSv3.
 				 */
 				if (r != 0) {
 					if (!NFSISSET_ATTRBIT(&attrbits,
-					    NFSATTRBIT_RDATTRERROR)) {
+					    NFSATTRBIT_RDATTRERROR) ||
+					    r == EOPNOTSUPP) {
 						vput(nvp);
 						if (needs_unbusy != 0)
 							vfs_unbusy(new_mp);
-						if ((nd->nd_flag & ND_NFSV3))
+						if ((nd->nd_flag & ND_NFSV3) ||
+						    r == EOPNOTSUPP)
 							goto invalid;
 						nd->nd_repstat = r;
 						break;
@@ -4185,7 +4175,7 @@ nfsrv_dscreate(struct vnode *dvp, struct vattr *vap, struct vattr *nvap,
 	int error;
 
 	NFSNAMEICNDSET(&named.ni_cnd, tcred, CREATE,
-	    LOCKPARENT | LOCKLEAF | SAVESTART | NOCACHE);
+	    LOCKPARENT | LOCKLEAF | NOCACHE);
 	nfsvno_setpathbuf(&named, &bufp, &hashp);
 	named.ni_cnd.cn_lkflags = LK_EXCLUSIVE;
 	named.ni_cnd.cn_nameptr = bufp;
@@ -6776,12 +6766,55 @@ nfsvno_setxattr(struct vnode *vp, char *name, int len, struct mbuf *m,
 	if (error == 0) {
 		error = VOP_SETEXTATTR(vp, EXTATTR_NAMESPACE_USER, name, uiop,
 		    cred, p);
+		if (error == 0) {
+			if (vp->v_type == VREG && nfsrv_devidcnt != 0)
+				nfsvno_updateds(vp, cred, p);
+			error = VOP_FSYNC(vp, MNT_WAIT, p);
+		}
 		free(iv, M_TEMP);
 	}
 
 out:
 	NFSEXITCODE(error);
 	return (error);
+}
+
+/*
+ * For a pNFS server, the DS file's ctime and
+ * va_filerev (TimeMetadata and Change) needs to
+ * be updated.  This is a hack, but works by
+ * flipping the S_ISGID bit in va_mode and then
+ * flipping it back.
+ * It does result in two MDS->DS RPCs, but creating
+ * a custom RPC just to do this seems overkill, since
+ * Setxattr/Rmxattr will not be done that frequently.
+ * If it fails part way through, that is not too
+ * serious, since the DS file is never executed.
+ */
+static void
+nfsvno_updateds(struct vnode *vp, struct ucred *cred, NFSPROC_T *p)
+{
+	struct nfsvattr nva;
+	int ret;
+	u_short tmode;
+
+	ret = VOP_GETATTR(vp, &nva.na_vattr, cred);
+	if (ret == 0) {
+		tmode = nva.na_mode;
+		NFSVNO_ATTRINIT(&nva);
+		tmode ^= S_ISGID;
+		NFSVNO_SETATTRVAL(&nva, mode, tmode);
+		ret = nfsrv_proxyds(vp, 0, 0, cred, p,
+		    NFSPROC_SETATTR, NULL, NULL, NULL, &nva,
+		    NULL, NULL, 0, NULL);
+		if (ret == 0) {
+			tmode ^= S_ISGID;
+			NFSVNO_SETATTRVAL(&nva, mode, tmode);
+			ret = nfsrv_proxyds(vp, 0, 0, cred, p,
+			    NFSPROC_SETATTR, NULL, NULL, NULL,
+			    &nva, NULL, NULL, 0, NULL);
+		}
+	}
 }
 
 /*
@@ -6811,6 +6844,11 @@ nfsvno_rmxattr(struct nfsrv_descript *nd, struct vnode *vp, char *name,
 	if (error == EOPNOTSUPP)
 		error = VOP_SETEXTATTR(vp, EXTATTR_NAMESPACE_USER, name, NULL,
 		    cred, p);
+	if (error == 0) {
+		if (vp->v_type == VREG && nfsrv_devidcnt != 0)
+			nfsvno_updateds(vp, cred, p);
+		error = VOP_FSYNC(vp, MNT_WAIT, p);
+	}
 out:
 	NFSEXITCODE(error);
 	return (error);

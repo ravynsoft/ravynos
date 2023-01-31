@@ -22,10 +22,7 @@ CONFS=	DAEMON \
 	ctld \
 	ddb \
 	defaultroute \
-	devd \
 	devfs \
-	devmatch \
-	dhclient \
 	dmesg \
 	dumpon \
 	fdescfs \
@@ -33,9 +30,9 @@ CONFS=	DAEMON \
 	gbde \
 	geli \
 	geli2 \
-	ggated \
 	gptboot \
 	growfs \
+	growfs_fstab \
 	hostid \
 	hostid_save \
 	hostname \
@@ -53,6 +50,7 @@ CONFS=	DAEMON \
 	local \
 	localpkg \
 	lockd \
+	machine_id \
 	mixer \
 	motd \
 	mountcritlocal \
@@ -88,7 +86,6 @@ CONFS=	DAEMON \
 	random \
 	rarpd \
 	rctl \
-	resolv \
 	root \
 	route6d \
 	routing \
@@ -116,6 +113,26 @@ CONFS=	DAEMON \
 	var_run \
 	watchdogd \
 	windowserver
+
+CONFGROUPS+=		DEVD
+DEVD=			devd
+DEVDPACKAGE=		devd
+
+CONFGROUPS+=		DEVMATCH
+DEVMATCH=		devmatch
+DEVMATCHPACKAGE=	devmatch
+
+CONFGROUPS+=		DHCLIENT
+DHCLIENT=		dhclient
+DHCLIENTPACKAGE=	dhclient
+
+CONFGROUPS+=		GGATED
+GGATED=			ggated
+GGATEDPACKAGE=		ggate
+
+CONFGROUPS+=		RESOLVCONF
+RESOLVCONF=		resolv
+RESOLVCONFPACKAGE=	resolvconf
 
 .if ${MK_NIS} != "no"
 CONFS+=	ypbind \
@@ -219,7 +236,8 @@ CONFS+=	ipfilter \
 .endif
 
 .if ${MK_IPFW} != "no"
-CONFS+=		ipfw
+CONFS+=		ipfw \
+		dnctl
 .if ${MK_NETGRAPH} != "no"
 CONFS+=		ipfw_netflow
 .endif
@@ -256,10 +274,6 @@ _kpasswdd=	kpasswdd
 DIRS+=	VAR_HEMIDAL
 VAR_HEMIDAL=	/var/heimdal
 VAR_HEMIDAL_MODE=	700
-.endif
-
-.if ${MK_MAIL} != "no"
-CONFS+=		othermta
 .endif
 
 .if ${MK_NS_CACHING} != "no"
@@ -331,6 +345,7 @@ ZFS+=		zfsd
 ZFS+=		zfskeys
 ZFS+=		zpool
 ZFS+=		zpoolreguid
+ZFS+=		zpoolupgrade
 ZFS+=		zvol
 ZFSPACKAGE=	rc
 .endif

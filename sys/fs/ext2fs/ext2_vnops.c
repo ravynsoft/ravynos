@@ -910,7 +910,7 @@ abortit:
 		if (error)
 			goto out;
 		VREF(tdvp);
-		error = vfs_relookup(tdvp, &tvp, tcnp);
+		error = vfs_relookup(tdvp, &tvp, tcnp, true);
 		if (error)
 			goto out;
 		vrele(tdvp);
@@ -1036,7 +1036,7 @@ abortit:
 	fcnp->cn_flags &= ~MODMASK;
 	fcnp->cn_flags |= LOCKPARENT | LOCKLEAF;
 	VREF(fdvp);
-	error = vfs_relookup(fdvp, &fvp, fcnp);
+	error = vfs_relookup(fdvp, &fvp, fcnp, true);
 	if (error == 0)
 		vrele(fdvp);
 	if (fvp != NULL) {
@@ -2207,8 +2207,9 @@ ext2_write(struct vop_write_args *ap)
 	 * Maybe this should be above the vnode op call, but so long as
 	 * file servers have no limits, I don't think it matters.
 	 */
-	if (vn_rlimit_fsize(vp, uio, uio->uio_td))
-		return (EFBIG);
+	error = vn_rlimit_fsize(vp, uio, uio->uio_td);
+	if (error != 0)
+		return (error);
 
 	resid = uio->uio_resid;
 	osize = ip->i_size;

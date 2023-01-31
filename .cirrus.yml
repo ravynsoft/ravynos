@@ -6,7 +6,29 @@ compute_engine_instance:
   memory: 16G
   disk: 80
 
+<<<<<<< HEAD
 base_task:
+=======
+task:
+  matrix:
+  - name: World and kernel amd64 build and boot smoke test
+    env:
+      TARGET: amd64
+      TARGET_ARCH: amd64
+      TOOLCHAIN_PKG: llvm14
+  - name: World and kernel arm64 build and boot smoke test
+    trigger_type: manual
+    env:
+      TARGET: arm64
+      TARGET_ARCH: aarch64
+      TOOLCHAIN_PKG: llvm14
+  - name: World and kernel gcc12 amd64 build and boot smoke test
+    trigger_type: manual
+    env:
+      TARGET: amd64
+      TARGET_ARCH: amd64
+      TOOLCHAIN_PKG: amd64-gcc12
+>>>>>>> upstream/main
   timeout_in: 120m
   environment:
     PKG_CONFIG_PATH: /usr/libdata/pkgconfig:/usr/local/libdata/pkgconfig
@@ -22,6 +44,7 @@ base_task:
       git reset --hard $CIRRUS_CHANGE_IN_REPO
     fi
   setup_script:
+<<<<<<< HEAD
     - rm -fv /etc/pkg/FreeBSD.conf /etc/pkg/Airyx.conf
     - cp -fv etc/pkg/ravynOS.conf /etc/pkg/
     - pkg install -fy libarchive 
@@ -182,3 +205,22 @@ system_task:
     - kernel
   ravynOS_artifacts:
     path: dist/ravynOS.txz
+=======
+  - uname -a
+  - gpart show
+  - df -m
+  - pkg --version
+  - pw useradd user
+  - mkdir -p /usr/obj/$(pwd -P)
+  - chown user:user /usr/obj/$(pwd -P)
+  script:
+  - su user -c "make -j$(sysctl -n hw.ncpu) CROSS_TOOLCHAIN=${TOOLCHAIN_PKG} WITHOUT_TOOLCHAIN=yes buildworld buildkernel"
+  package_script:
+  - su user -c "make CROSS_TOOLCHAIN=${TOOLCHAIN_PKG} WITHOUT_TOOLCHAIN=yes PKG_FORMAT=tar packages"
+  test_script:
+  - sh .cirrus-ci/pkg-install.sh qemu-nox11
+  - sh tools/boot/ci-qemu-test.sh
+  post_script:
+  - df -m
+  - du -m -s /usr/obj
+>>>>>>> upstream/main

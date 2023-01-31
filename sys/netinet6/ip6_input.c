@@ -129,11 +129,9 @@ __FBSDID("$FreeBSD$");
 
 #include <netipsec/ipsec_support.h>
 
-#include <netinet6/ip6protosw.h>
-
-ipproto_input_t		*ip6_protox[IPPROTO_MAX] = {
+ip6proto_input_t	*ip6_protox[IPPROTO_MAX] = {
 			    [0 ... IPPROTO_MAX - 1] = rip6_input };
-ipproto_ctlinput_t	*ip6_ctlprotox[IPPROTO_MAX] = {
+ip6proto_ctlinput_t	*ip6_ctlprotox[IPPROTO_MAX] = {
 			    [0 ... IPPROTO_MAX - 1] = rip6_ctlinput };
 
 VNET_DEFINE(struct in6_ifaddrhead, in6_ifaddrhead);
@@ -308,7 +306,8 @@ ip6_init(void *arg __unused)
 SYSINIT(ip6_init, SI_SUB_PROTO_DOMAIN, SI_ORDER_THIRD, ip6_init, NULL);
 
 int
-ip6proto_register(uint8_t proto, ipproto_input_t input, ipproto_ctlinput_t ctl)
+ip6proto_register(uint8_t proto, ip6proto_input_t input,
+    ip6proto_ctlinput_t ctl)
 {
 
 	MPASS(proto > 0);
@@ -1708,16 +1707,3 @@ ip6_lasthdr(const struct mbuf *m, int off, int proto, int *nxtp)
 		proto = *nxtp;
 	}
 }
-
-/*
- * System control for IP6
- */
-
-u_char	inet6ctlerrmap[PRC_NCMDS] = {
-	0,		0,		0,		0,
-	0,		EMSGSIZE,	EHOSTDOWN,	EHOSTUNREACH,
-	EHOSTUNREACH,	EHOSTUNREACH,	ECONNREFUSED,	ECONNREFUSED,
-	EMSGSIZE,	EHOSTUNREACH,	0,		0,
-	0,		0,		EHOSTUNREACH,	0,
-	ENOPROTOOPT,	ECONNREFUSED
-};

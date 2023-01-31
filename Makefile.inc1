@@ -132,15 +132,15 @@ _TARGET_CPUTYPE=dummy
 .endif
 .if ${TARGET} == "arm"
 .if ${TARGET_ARCH:Marmv[67]*} != "" && ${TARGET_CPUTYPE:M*soft*} == ""
-TARGET_ABI=	gnueabihf
+TARGET_TRIPLE_ABI=	gnueabihf
 .else
-TARGET_ABI=	gnueabi
+TARGET_TRIPLE_ABI=	gnueabi
 .endif
 .endif
-MACHINE_ABI?=	unknown
-MACHINE_TRIPLE?=${MACHINE_ARCH:S/amd64/x86_64/:C/sf$//}-${MACHINE_ABI}-freebsd${OS_REVISION}
-TARGET_ABI?=	unknown
-TARGET_TRIPLE?=	${TARGET_ARCH:S/amd64/x86_64/:C/sf$//}-${TARGET_ABI}-freebsd${OS_REVISION}
+MACHINE_TRIPLE_ABI?=	unknown
+MACHINE_TRIPLE?=${MACHINE_ARCH:S/amd64/x86_64/:C/sf$//}-${MACHINE_TRIPLE_ABI}-freebsd${OS_REVISION}
+TARGET_TRIPLE_ABI?=	unknown
+TARGET_TRIPLE?=	${TARGET_ARCH:S/amd64/x86_64/:C/sf$//}-${TARGET_TRIPLE_ABI}-freebsd${OS_REVISION}
 KNOWN_ARCHES?=	aarch64/arm64 \
 		amd64 \
 		armv6/arm \
@@ -697,7 +697,7 @@ BOOTSTRAPPING_OSRELDATE?=${OSRELDATE}
 # bootstrap-tools stage
 BMAKEENV=	INSTALL="sh ${.CURDIR}/tools/install.sh" \
 		TOOLS_PREFIX=${TOOLS_PREFIX_UNDEF:U${WORLDTMP}} \
-		PATH=${BPATH}:${PATH} \
+		PATH=${BPATH:Q}:${PATH:Q} \
 		WORLDTMP=${WORLDTMP} \
 		MAKEFLAGS="-m ${.CURDIR}/tools/build/mk ${.MAKEFLAGS}"
 # need to keep this in sync with targets/pseudo/bootstrap-tools/Makefile
@@ -759,14 +759,13 @@ TMAKE=		\
 # TOOLS_PREFIX set in BMAKE
 XMAKE=		${BMAKE} \
 		TARGET=${TARGET} TARGET_ARCH=${TARGET_ARCH} \
-		MK_CLANG_IS_CC=${MK_CLANG_BOOTSTRAP} \
 		MK_LLDB=no \
 		MK_LLVM_BINUTILS=no \
 		MK_TESTS=no
 
 # kernel-tools stage
 KTMAKEENV=	INSTALL="sh ${.CURDIR}/tools/install.sh" \
-		PATH=${BPATH}:${PATH} \
+		PATH=${BPATH:Q}:${PATH:Q} \
 		WORLDTMP=${WORLDTMP} \
 		MAKEFLAGS="-m ${.CURDIR}/tools/build/mk ${.MAKEFLAGS}"
 
@@ -793,13 +792,13 @@ KTMAKE=		${TIME_ENV} \
 # world stage
 WMAKEENV=	${CROSSENV} \
 		INSTALL="${INSTALL_CMD} -U" \
-		PATH=${TMPPATH} \
+		PATH=${TMPPATH:Q} \
 		SYSROOT=${WORLDTMP}
 
 # make hierarchy
-HMAKE=		PATH=${TMPPATH} ${MAKE} LOCAL_MTREE=${LOCAL_MTREE:Q}
+HMAKE=		PATH=${TMPPATH:Q} ${MAKE} LOCAL_MTREE=${LOCAL_MTREE:Q}
 .if defined(NO_ROOT)
-HMAKE+=		PATH=${TMPPATH} METALOG=${METALOG} -DNO_ROOT
+HMAKE+=		PATH=${TMPPATH:Q} METALOG=${METALOG} -DNO_ROOT
 .endif
 
 CROSSENV+=	CC="${XCC} ${XCFLAGS}" CXX="${XCXX} ${XCXXFLAGS} ${XCFLAGS}" \
@@ -910,12 +909,12 @@ IMAKEENV=	${CROSSENV}
 IMAKE=		${TIME_ENV} ${IMAKEENV} ${MAKE} -f Makefile.inc1 \
 		${IMAKE_INSTALL} ${IMAKE_MTREE}
 .if empty(.MAKEFLAGS:M-n)
-IMAKEENV+=	PATH=${STRICTTMPPATH}:${INSTALLTMP} \
-		LD_LIBRARY_PATH=${INSTALLTMP} \
+IMAKEENV+=	PATH=${STRICTTMPPATH:Q}:${INSTALLTMP:Q} \
+		LD_LIBRARY_PATH=${INSTALLTMP:Q} \
 		PATH_LOCALE=${INSTALLTMP}/locale
 IMAKE+=		__MAKE_SHELL=${INSTALLTMP}/sh
 .else
-IMAKEENV+=	PATH=${TMPPATH}:${INSTALLTMP}
+IMAKEENV+=	PATH=${TMPPATH:Q}:${INSTALLTMP:Q}
 .endif
 
 # When generating install media, do not allow user and group information from
@@ -1024,7 +1023,7 @@ _worldtmp: .PHONY
 # so we remove that assingnment from $WMAKE and prepend the new $PATH
 	${_+_}@if [ -e "${WORLDTMP}" ]; then \
 		echo ">>> Deleting stale files in build tree..."; \
-		cd ${.CURDIR}; env PATH=${TMPPATH}:${PATH} ${WMAKE:NPATH=*} \
+		cd ${.CURDIR}; env PATH=${TMPPATH:Q}:${PATH:Q} ${WMAKE:NPATH=*} \
 		    _NO_INCLUDE_COMPILERMK=t -DBATCH_DELETE_OLD_FILES delete-old \
 		    delete-old-libs >/dev/null; \
 	fi
@@ -1320,10 +1319,6 @@ __installcheck_sh_check: .PHONY
 #
 # Required install tools to be saved in a scratch dir for safety.
 #
-.if ${MK_ZONEINFO} != "no"
-_zoneinfo=	zic tzsetup
-.endif
-
 .if !defined(CROSSBUILD_HOST)
 _sysctl=sysctl
 .endif
@@ -1331,13 +1326,18 @@ _sysctl=sysctl
 ITOOLS=	[ awk cap_mkdb cat chflags chmod chown cmp cp \
 	date echo egrep find grep id install ${_install-info} \
 	ln make mkdir mtree mv pwd_mkdb \
-	rm sed services_mkdb sh sort strip ${_sysctl} test time true uname wc \
-	${_zoneinfo} ${LOCAL_ITOOLS}
+	rm sed services_mkdb sh sort strip ${_sysctl} test time true uname wc
+
+.if ${MK_ZONEINFO} != "no"
+ITOOLS+=tzsetup
+.endif
 
 # Needed for share/man
 .if ${MK_MAN_UTILS} != "no"
 ITOOLS+=makewhatis
 .endif
+
+ITOOLS+=${LOCAL_ITOOLS}
 
 #
 # distributeworld
@@ -1368,10 +1368,10 @@ MTREE_MAGIC?=	mtree 2.0
 distributeworld installworld stageworld: _installcheck_world .PHONY
 	mkdir -p ${INSTALLTMP}
 	progs=$$(for prog in ${ITOOLS}; do \
-		if progpath=`env PATH=${TMPPATH} which $$prog`; then \
+		if progpath=`env PATH=${TMPPATH:Q} which $$prog`; then \
 			echo $$progpath; \
 		else \
-			echo "Required tool $$prog not found in PATH ($$PATH)." >&2; \
+			echo "Required tool $$prog not found in PATH ("${TMPPATH:Q}")." >&2; \
 			exit 1; \
 		fi; \
 	    done); \
@@ -1443,7 +1443,7 @@ distributeworld installworld stageworld: _installcheck_world .PHONY
 .endif
 .endfor
 	-mkdir ${DESTDIR}/${DISTDIR}/base
-	${_+_}cd ${.CURDIR}/etc; ${CROSSENV} PATH=${TMPPATH} ${MAKE} \
+	${_+_}cd ${.CURDIR}/etc; ${CROSSENV} PATH=${TMPPATH:Q} ${MAKE} \
 	    METALOG=${METALOG} ${IMAKE_INSTALL} ${IMAKE_MTREE} \
 	    DISTBASE=/base DESTDIR=${DESTDIR}/${DISTDIR}/base \
 	    LOCAL_MTREE=${LOCAL_MTREE:Q} distrib-dirs
@@ -1453,7 +1453,7 @@ distributeworld installworld stageworld: _installcheck_world .PHONY
 	    ${IMAKEENV} rm -rf ${INSTALLTMP}
 .if !make(packageworld) && ${MK_CAROOT} != "no"
 	@if which openssl>/dev/null; then \
-		PATH=${TMPPATH}:${PATH} \
+		PATH=${TMPPATH:Q}:${PATH:Q} \
 		    sh ${SRCTOP}/usr.sbin/certctl/certctl.sh ${CERTCTLFLAGS} rehash; \
 	else \
 		echo "No openssl on the host, not rehashing certificates target -- /etc/ssl may not be populated."; \
@@ -1538,7 +1538,7 @@ sysent: .PHONY
 .for _dir in ${_sysent_dirs}
 sysent-${_dir}: .PHONY
 	@echo "${MAKE} -C ${.CURDIR}/${_dir} sysent"
-	${_+_}@env PATH=${_sysent_PATH} ${MAKE} -C ${.CURDIR}/${_dir} sysent
+	${_+_}@env PATH=${_sysent_PATH:Q} ${MAKE} -C ${.CURDIR}/${_dir} sysent
 
 sysent: sysent-${_dir}
 .endfor
@@ -1586,10 +1586,10 @@ redistribute: .MAKE .PHONY
 .endif
 
 distrib-dirs distribution: .MAKE .PHONY
-	${_+_}cd ${.CURDIR}/etc; ${CROSSENV} PATH=${TMPPATH} ${MAKE} \
+	${_+_}cd ${.CURDIR}/etc; ${CROSSENV} PATH=${TMPPATH:Q} ${MAKE} \
 	    ${IMAKE_INSTALL} ${IMAKE_MTREE} METALOG=${METALOG} ${.TARGET}
 .if make(distribution)
-	${_+_}cd ${.CURDIR}; ${CROSSENV} PATH=${TMPPATH} \
+	${_+_}cd ${.CURDIR}; ${CROSSENV} PATH=${TMPPATH:Q} \
 		${MAKE} -f Makefile.inc1 ${IMAKE_INSTALL} \
 		METALOG=${METALOG} MK_TESTS=no \
 		MK_TESTS_SUPPORT=${MK_TESTS_SUPPORT} installconfig
@@ -1697,7 +1697,7 @@ buildkernel: .MAKE .PHONY
 	@echo ">>> stage 1: configuring the kernel"
 	@echo "--------------------------------------------------------------"
 	cd ${KRNLCONFDIR}; \
-		PATH=${TMPPATH} \
+		PATH=${TMPPATH:Q} \
 		    config ${CONFIGARGS} -d ${KRNLOBJDIR}/${_kernel} \
 			-I '${KERNCONFDIR}' -I '${KRNLCONFDIR}' \
 			'${KERNCONFDIR}/${_kernel}'
@@ -1764,7 +1764,7 @@ reinstallkernel reinstallkernel.debug: _installcheck_kernel .PHONY
 	@echo ">>> Installing kernel ${INSTALLKERNEL} on $$(LC_ALL=C date)"
 	@echo "--------------------------------------------------------------"
 	${_+_}cd ${KRNLOBJDIR}/${INSTALLKERNEL}; \
-	    ${CROSSENV} PATH=${TMPPATH} \
+	    ${CROSSENV} PATH=${TMPPATH:Q} \
 	    ${MAKE} ${IMAKE_INSTALL} KERNEL=${INSTKERNNAME} ${.TARGET:S/kernel//}
 	@echo "--------------------------------------------------------------"
 	@echo ">>> Installing kernel ${INSTALLKERNEL} completed on $$(LC_ALL=C date)"
@@ -1776,7 +1776,7 @@ reinstallkernel reinstallkernel.debug: _installcheck_kernel .PHONY
 	@echo ">>> Installing kernel ${_kernel} $$(LC_ALL=C date)"
 	@echo "--------------------------------------------------------------"
 	${_+_}cd ${KRNLOBJDIR}/${_kernel}; \
-	    ${CROSSENV} PATH=${TMPPATH} \
+	    ${CROSSENV} PATH=${TMPPATH:Q} \
 	    ${MAKE} ${IMAKE_INSTALL} KERNEL=${INSTKERNNAME}.${_kernel} ${.TARGET:S/kernel//}
 	@echo "--------------------------------------------------------------"
 	@echo ">>> Installing kernel ${_kernel} completed on $$(LC_ALL=C date)"
@@ -1796,7 +1796,7 @@ distributekernel distributekernel.debug: .PHONY
 .endif
 	${_+_}cd ${KRNLOBJDIR}/${INSTALLKERNEL}; \
 	    ${IMAKEENV} ${IMAKE_INSTALL:S/METALOG/kernel.premeta/} \
-	    ${IMAKE_MTREE} PATH=${TMPPATH} ${MAKE} KERNEL=${INSTKERNNAME} \
+	    ${IMAKE_MTREE} PATH=${TMPPATH:Q} ${MAKE} KERNEL=${INSTKERNNAME} \
 	    DESTDIR=${INSTALL_DDIR}/kernel \
 	    ${.TARGET:S/distributekernel/install/}
 .if defined(NO_ROOT)
@@ -1811,7 +1811,7 @@ distributekernel distributekernel.debug: .PHONY
 .endif
 	${_+_}cd ${KRNLOBJDIR}/${_kernel}; \
 	    ${IMAKEENV} ${IMAKE_INSTALL:S/METALOG/kernel.${_kernel}.premeta/} \
-	    ${IMAKE_MTREE} PATH=${TMPPATH} ${MAKE} \
+	    ${IMAKE_MTREE} PATH=${TMPPATH:Q} ${MAKE} \
 	    KERNEL=${INSTKERNNAME}.${_kernel} \
 	    DESTDIR=${INSTALL_DDIR}/kernel.${_kernel} \
 	    ${.TARGET:S/distributekernel/install/}
@@ -2239,6 +2239,11 @@ _strfile=	usr.bin/fortune/strfile
 # C source for loader built in font (8x16.c).
 _vtfontcvt=	usr.bin/vtfontcvt
 
+# zic is used to compile timezone data
+.if ${MK_ZONEINFO} != "no"
+_zic=		usr.sbin/zic
+.endif
+
 # If we are not building the bootstrap because BOOTSTRAPPING is sufficient
 # we symlink the host version to $WORLDTMP instead. By doing this we can also
 # detect when a bootstrap tool is being used without the required MK_FOO.
@@ -2443,8 +2448,9 @@ _basic_bootstrap_tools+=usr.bin/jot
 _basic_bootstrap_tools+=sbin/md5
 .endif
 
+# tzsetup is needed as an install tool
 .if ${MK_ZONEINFO} != "no"
-_basic_bootstrap_tools+=usr.sbin/zic usr.sbin/tzsetup
+_basic_bootstrap_tools+=usr.sbin/tzsetup
 .endif
 
 .if defined(BOOTSTRAP_ALL_TOOLS)
@@ -2531,7 +2537,11 @@ bootstrap-tools: ${_bt}-links .PHONY
     ${_localedef} \
     ${_mkcsmapper} \
     ${_mkesdb} \
+<<<<<<< HEAD
     ${_migcom} \
+=======
+    ${_zic} \
+>>>>>>> upstream/main
     ${LOCAL_BSTOOL_DIRS}
 ${_bt}-${_tool}: ${_bt}-links .PHONY .MAKE
 	${_+_}@${ECHODIR} "===> ${_tool} (obj,all,install)"; \
@@ -2923,18 +2933,14 @@ _prereq_libs+=	lib/libclang_rt/ubsan_standalone_cxx
 _startup_libs=	lib/csu
 _startup_libs+=	lib/libc
 _startup_libs+=	lib/libc_nonshared
-.if ${MK_CXX} != "no"
 _startup_libs+=	lib/libcxxrt
-.endif
 
 _prereq_libs+=	lib/libgcc_eh lib/libgcc_s
 _startup_libs+=	lib/libgcc_eh lib/libgcc_s
 
 lib/libgcc_s__L: lib/libc__L
 lib/libgcc_s__L: lib/libc_nonshared__L
-.if ${MK_CXX} != "no"
 lib/libcxxrt__L: lib/libgcc_s__L
-.endif
 
 _prebuild_libs=	${_kerberos5_lib_libasn1} \
 		${_kerberos5_lib_libhdb} \
@@ -2946,6 +2952,7 @@ _prebuild_libs=	${_kerberos5_lib_libasn1} \
 		${_kerberos5_lib_libroken} \
 		${_kerberos5_lib_libwind} \
 		lib/libbz2 ${_libcom_err} lib/libcrypt \
+		lib/libc++ \
 		lib/libelf lib/libexpat \
 		lib/libfigpar \
 		${_lib_libgssapi} \
@@ -2956,7 +2963,7 @@ _prebuild_libs=	${_kerberos5_lib_libasn1} \
 		lib/ncurses/tinfo \
 		lib/ncurses/ncurses \
 		lib/ncurses/form \
-		lib/libopie lib/libpam/libpam lib/libthr \
+		lib/libpam/libpam lib/libthr \
 		${_lib_libradius} lib/libsbuf lib/libtacplus \
 		lib/libgeom \
 		${_cddl_lib_libumem} ${_cddl_lib_libnvpair} \
@@ -2981,10 +2988,6 @@ gnu/lib/libdialog__L: lib/msun__L lib/ncurses/tinfo__L lib/ncurses/ncurses__L
 
 .if ${MK_GOOGLETEST} != "no"
 _prebuild_libs+= lib/libregex
-.endif
-
-.if ${MK_CXX} != "no"
-_prebuild_libs+= lib/libc++
 .endif
 
 lib/libgeom__L: lib/libexpat__L lib/libsbuf__L
@@ -3029,7 +3032,7 @@ _generic_libs+= ${_DIR}
 .endif
 .endfor
 
-lib/libopie__L lib/libtacplus__L: lib/libmd__L
+lib/libtacplus__L: lib/libmd__L
 
 .if ${MK_CDDL} != "no"
 _cddl_lib_libumem= cddl/lib/libumem
@@ -3151,10 +3154,8 @@ lib/libradius__L: lib/libmd__L
 .endif
 
 lib/libproc__L: \
-    ${_cddl_lib_libctf:D${_cddl_lib_libctf}__L} lib/libelf__L lib/librtld_db__L lib/libutil__L
-.if ${MK_CXX} != "no"
-lib/libproc__L: lib/libcxxrt__L
-.endif
+    ${_cddl_lib_libctf:D${_cddl_lib_libctf}__L} \
+    lib/libelf__L lib/librtld_db__L lib/libutil__L lib/libcxxrt__L
 
 .for _lib in ${_prereq_libs}
 ${_lib}__PL: .PHONY .MAKE
@@ -3219,7 +3220,7 @@ specific library."
 .if !defined(BATCH_DELETE_OLD_FILES)
 RM_I=-i
 .else
-RM_I=-v
+RM_I=-fv
 .endif
 
 list-old-files: .PHONY
@@ -3409,7 +3410,7 @@ DTBOUTPUTPATH= ${.CURDIR}
 # Build 'standalone' Device Tree Blob
 #
 builddtb: .PHONY
-	@PATH=${TMPPATH} MACHINE=${TARGET} \
+	@PATH=${TMPPATH:Q} MACHINE=${TARGET} \
 	sh ${.CURDIR}/sys/tools/fdt/make_dtb.sh ${.CURDIR}/sys \
 	    "${FDT_DTS_FILE}" ${DTBOUTPUTPATH}
 
@@ -3506,8 +3507,8 @@ CD2ENV=${CDENV} CC="${CC} ${CD2CFLAGS}" CXX="${CXX} ${CD2CXXFLAGS} ${CD2CFLAGS}"
 	MACHINE=${TARGET} MACHINE_ARCH=${TARGET_ARCH}
 
 CDTMP=	${OBJTOP}/${XDDIR}/tmp
-CDMAKE=${CDENV} PATH=${CDTMP}/usr/bin:${PATH} ${MAKE} ${CDMAKEARGS} ${NOFUN}
-CD2MAKE=${CD2ENV} PATH=${CDTMP}/usr/bin:${XDDESTDIR}/usr/bin:${PATH} \
+CDMAKE=${CDENV} PATH=${CDTMP:Q}/usr/bin:${PATH:Q} ${MAKE} ${CDMAKEARGS} ${NOFUN}
+CD2MAKE=${CD2ENV} PATH=${CDTMP:Q}/usr/bin:${XDDESTDIR:Q}/usr/bin:${PATH:Q} \
 	${MAKE} ${CD2MAKEARGS} ${NOFUN}
 .if ${MK_META_MODE} != "no"
 # Don't rebuild build-tools targets during normal build.

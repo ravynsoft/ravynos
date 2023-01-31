@@ -60,6 +60,7 @@
 #include <net/ieee_oui.h>
 #include <net/if.h>
 #include <net/if_var.h>
+#include <net/if_private.h>
 #include <net/if_arp.h>
 #include <net/netisr.h>
 #include <net/route.h>
@@ -890,11 +891,9 @@ ether_demux(struct ifnet *ifp, struct mbuf *m)
 
 	/*
 	 * Reset layer specific mbuf flags to avoid confusing upper layers.
-	 * Strip off Ethernet header.
 	 */
 	m->m_flags &= ~M_VLANTAG;
 	m_clrprotoflags(m);
-	m_adj(m, ETHER_HDR_LEN);
 
 	/*
 	 * Dispatch frame to upper layer.
@@ -922,6 +921,10 @@ ether_demux(struct ifnet *ifp, struct mbuf *m)
 	default:
 		goto discard;
 	}
+
+	/* Strip off Ethernet header. */
+	m_adj(m, ETHER_HDR_LEN);
+
 	netisr_dispatch(isr, m);
 	return;
 
@@ -934,11 +937,6 @@ discard:
 	if (ifp->if_l2com != NULL) {
 		KASSERT(ng_ether_input_orphan_p != NULL,
 		    ("ng_ether_input_orphan_p is NULL"));
-		/*
-		 * Put back the ethernet header so netgraph has a
-		 * consistent view of inbound packets.
-		 */
-		M_PREPEND(m, ETHER_HDR_LEN, M_NOWAIT);
 		(*ng_ether_input_orphan_p)(ifp, m);
 		return;
 	}

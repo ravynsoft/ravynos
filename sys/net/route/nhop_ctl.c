@@ -43,6 +43,7 @@ __FBSDID("$FreeBSD$");
 
 #include <net/if.h>
 #include <net/if_var.h>
+#include <net/if_private.h>
 #include <net/if_dl.h>
 #include <net/route.h>
 #include <net/route/route_ctl.h>
@@ -638,8 +639,7 @@ nhop_free(struct nhop_object *nh)
 	}
 	NET_EPOCH_EXIT(et);
 
-	epoch_call(net_epoch_preempt, destroy_nhop_epoch,
-	    &nh_priv->nh_epoch_ctx);
+	NET_EPOCH_CALL(destroy_nhop_epoch, &nh_priv->nh_epoch_ctx);
 }
 
 void
@@ -715,6 +715,7 @@ nhop_copy(struct nhop_object *nh, const struct nhop_object *nh_orig)
 	nh_priv->nh_type = nh_orig->nh_priv->nh_type;
 	nh_priv->rt_flags = nh_orig->nh_priv->rt_flags;
 	nh_priv->nh_fibnum = nh_orig->nh_priv->nh_fibnum;
+	nh_priv->nh_origin = nh_orig->nh_priv->nh_origin;
 }
 
 void

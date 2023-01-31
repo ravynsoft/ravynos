@@ -1012,7 +1012,7 @@ gen_start_locked(struct gen_softc *sc)
 {
 	struct mbuf *m;
 	if_t ifp;
-	int cnt, err;
+	int err;
 
 	GEN_ASSERT_LOCKED(sc);
 
@@ -1025,7 +1025,7 @@ gen_start_locked(struct gen_softc *sc)
 	    IFF_DRV_RUNNING)
 		return;
 
-	for (cnt = 0; ; cnt++) {
+	while (true) {
 		m = if_dequeue(ifp);
 		if (m == NULL)
 			break;
@@ -1302,9 +1302,12 @@ gen_parse_tx(struct mbuf *m, int csum_flags)
 		offset += sizeof(struct ip6_hdr);
 	} else {
 		/*
-		 * Unknown whether other cases require moving a header;
-		 * ARP works without.
+		 * Unknown whether most other cases require moving a header;
+		 * ARP works without.  However, Wake On LAN packets sent
+		 * by wake(8) via BPF need something like this.
 		 */
+		COPY(MIN(gen_tx_hdr_min, m->m_len));
+		offset += MIN(gen_tx_hdr_min, m->m_len);
 	}
 	return (offset);
 #undef COPY

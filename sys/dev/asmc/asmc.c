@@ -223,7 +223,13 @@ static const struct asmc_model asmc_models[] = {
 	{
 	  "MacBookPro5,1", "Apple SMC MacBook Pro Core 2 Duo (2008/2009)",
 	  ASMC_SMS_FUNCS, ASMC_FAN_FUNCS, ASMC_LIGHT_FUNCS,
-	  ASMC_MBP5_TEMPS, ASMC_MBP5_TEMPNAMES, ASMC_MBP5_TEMPDESCS
+	  ASMC_MBP51_TEMPS, ASMC_MBP51_TEMPNAMES, ASMC_MBP51_TEMPDESCS
+	},
+
+	{
+	  "MacBookPro5,5", "Apple SMC MacBook Pro Core 2 Duo (Mid 2009)",
+	  ASMC_SMS_FUNCS, ASMC_FAN_FUNCS2, ASMC_LIGHT_FUNCS,
+	  ASMC_MBP55_TEMPS, ASMC_MBP55_TEMPNAMES, ASMC_MBP55_TEMPDESCS
 	},
 
 	{
@@ -421,7 +427,13 @@ static const struct asmc_model asmc_models[] = {
 	  ASMC_LIGHT_FUNCS,
 	  ASMC_MBA5_TEMPS, ASMC_MBA5_TEMPNAMES, ASMC_MBA5_TEMPDESCS
 	},
-
+	{
+	  "MacBookAir6,2", "Apple SMC MacBook Air 13-inch (Early 2013)",
+	  ASMC_SMS_FUNCS_DISABLED,
+	  ASMC_FAN_FUNCS2,
+	  ASMC_LIGHT_FUNCS,
+	  ASMC_MBA6_TEMPS, ASMC_MBA6_TEMPNAMES, ASMC_MBA6_TEMPDESCS
+	},
 	{
 	  "MacBookAir7,1", "Apple SMC MacBook Air 11-inch (Early 2015)",
 	  ASMC_SMS_FUNCS_DISABLED,
@@ -429,7 +441,6 @@ static const struct asmc_model asmc_models[] = {
 	  ASMC_LIGHT_FUNCS,
 	  ASMC_MBA7_TEMPS, ASMC_MBA7_TEMPNAMES, ASMC_MBA7_TEMPDESCS
 	},
-
 	{
 	  "MacBookAir7,2", "Apple SMC MacBook Air 13-inch (Early 2015)",
 	  ASMC_SMS_FUNCS_DISABLED,
@@ -1397,10 +1408,10 @@ asmc_sms_printintr(device_t dev, uint8_t type)
 	case ASMC_ALSL_INT2A:
 		/*
 		 * This suppresses console and log messages for the ambient
-		 * light sensor for the only model known to generate this
-		 * interrupt.
+		 * light sensor for models known to generate this interrupt.
 		 */
-		if (strcmp(sc->sc_model->smc_model, "MacBookPro6,2") == 0)
+		if (strcmp(sc->sc_model->smc_model, "MacBookPro5,5") == 0 ||
+		    strcmp(sc->sc_model->smc_model, "MacBookPro6,2") == 0)
 			break;
 		/* FALLTHROUGH */
 	default:

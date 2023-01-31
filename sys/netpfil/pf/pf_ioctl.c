@@ -260,9 +260,9 @@ static struct cdevsw pf_cdevsw = {
 	.d_version =	D_VERSION,
 };
 
-volatile VNET_DEFINE_STATIC(int, pf_pfil_hooked);
+VNET_DEFINE_STATIC(bool, pf_pfil_hooked);
 #define V_pf_pfil_hooked	VNET(pf_pfil_hooked)
-volatile VNET_DEFINE_STATIC(int, pf_pfil_eth_hooked);
+VNET_DEFINE_STATIC(bool, pf_pfil_eth_hooked);
 #define V_pf_pfil_eth_hooked	VNET(pf_pfil_eth_hooked)
 
 /*
@@ -311,6 +311,8 @@ pfattach_vnet(void)
 {
 	u_int32_t *my_timeout = V_pf_default_rule.timeout;
 
+	bzero(&V_pf_status, sizeof(V_pf_status));
+
 	pf_initialize();
 	pfr_initialize();
 	pfi_initialize_vnet();
@@ -344,7 +346,8 @@ pfattach_vnet(void)
 	V_pf_default_rule.states_tot = counter_u64_alloc(M_WAITOK);
 	V_pf_default_rule.src_nodes = counter_u64_alloc(M_WAITOK);
 
-	V_pf_default_rule.timestamp = uma_zalloc_pcpu(pcpu_zone_4, M_WAITOK | M_ZERO);
+	V_pf_default_rule.timestamp = uma_zalloc_pcpu(pf_timestamp_pcpu_zone,
+	    M_WAITOK | M_ZERO);
 
 #ifdef PF_WANT_32_TO_64_COUNTER
 	V_pf_kifmarker = malloc(sizeof(*V_pf_kifmarker), PFI_MTYPE, M_WAITOK | M_ZERO);
@@ -379,11 +382,10 @@ pfattach_vnet(void)
 	my_timeout[PFTM_ADAPTIVE_START] = PFSTATE_ADAPT_START;
 	my_timeout[PFTM_ADAPTIVE_END] = PFSTATE_ADAPT_END;
 
-	bzero(&V_pf_status, sizeof(V_pf_status));
 	V_pf_status.debug = PF_DEBUG_URGENT;
 
-	V_pf_pfil_hooked = 0;
-	V_pf_pfil_eth_hooked = 0;
+	V_pf_pfil_hooked = false;
+	V_pf_pfil_eth_hooked = false;
 
 	/* XXX do our best to avoid a conflict */
 	V_pf_status.hostid = arc4random();
@@ -521,6 +523,8 @@ pf_free_eth_rule(struct pf_keth_rule *rule)
 	pf_qid_unref(rule->qid);
 #endif
 
+	if (rule->bridge_to)
+		pfi_kkif_unref(rule->bridge_to);
 	if (rule->kif)
 		pfi_kkif_unref(rule->kif);
 
@@ -534,7 +538,7 @@ pf_free_eth_rule(struct pf_keth_rule *rule)
 		counter_u64_free(rule->packets[i]);
 		counter_u64_free(rule->bytes[i]);
 	}
-	uma_zfree_pcpu(pcpu_zone_4, rule->timestamp);
+	uma_zfree_pcpu(pf_timestamp_pcpu_zone, rule->timestamp);
 	pf_keth_anchor_remove(rule);
 
 	free(rule, M_PFRULE);
@@ -1786,7 +1790,8 @@ pf_krule_alloc(void)
 
 	rule = malloc(sizeof(struct pf_krule), M_PFRULE, M_WAITOK | M_ZERO);
 	mtx_init(&rule->rpool.mtx, "pf_krule_pool", NULL, MTX_DEF);
-	rule->timestamp = uma_zalloc_pcpu(pcpu_zone_4, M_WAITOK | M_ZERO);
+	rule->timestamp = uma_zalloc_pcpu(pf_timestamp_pcpu_zone,
+	    M_WAITOK | M_ZERO);
 	return (rule);
 }
 
@@ -1820,7 +1825,7 @@ pf_krule_free(struct pf_krule *rule)
 	counter_u64_free(rule->states_cur);
 	counter_u64_free(rule->states_tot);
 	counter_u64_free(rule->src_nodes);
-	uma_zfree_pcpu(pcpu_zone_4, rule->timestamp);
+	uma_zfree_pcpu(pf_timestamp_pcpu_zone, rule->timestamp);
 
 	mtx_destroy(&rule->rpool.mtx);
 	free(rule, M_PFRULE);
@@ -2593,16 +2598,12 @@ pfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags, struct thread *td
 		if (V_pf_status.running)
 			error = EEXIST;
 		else {
-			int cpu;
-
 			hook_pf();
 			if (! TAILQ_EMPTY(V_pf_keth->active.rules))
 				hook_pf_eth();
 			V_pf_status.running = 1;
 			V_pf_status.since = time_second;
-
-			CPU_FOREACH(cpu)
-				V_pf_stateid[cpu] = time_second;
+			new_unrhdr64(&V_pf_stateid, time_second);
 
 			DPFPRINTF(PF_DEBUG_MISC, ("pf: started\n"));
 		}
@@ -2811,7 +2812,7 @@ DIOCGETETHRULE_error:
 		void			*nvlpacked = NULL;
 		struct pf_keth_rule	*rule = NULL, *tail = NULL;
 		struct pf_keth_ruleset	*ruleset = NULL;
-		struct pfi_kkif		*kif = NULL;
+		struct pfi_kkif		*kif = NULL, *bridge_to_kif = NULL;
 		const char		*anchor = "", *anchor_call = "";
 
 #define ERROUT(x)	ERROUT_IOCTL(DIOCADDETHRULE_error, x)
@@ -2863,12 +2864,14 @@ DIOCGETETHRULE_error:
 
 		if (rule->ifname[0])
 			kif = pf_kkif_create(M_WAITOK);
+		if (rule->bridge_to_name[0])
+			bridge_to_kif = pf_kkif_create(M_WAITOK);
 		rule->evaluations = counter_u64_alloc(M_WAITOK);
 		for (int i = 0; i < 2; i++) {
 			rule->packets[i] = counter_u64_alloc(M_WAITOK);
 			rule->bytes[i] = counter_u64_alloc(M_WAITOK);
 		}
-		rule->timestamp = uma_zalloc_pcpu(pcpu_zone_4,
+		rule->timestamp = uma_zalloc_pcpu(pf_timestamp_pcpu_zone,
 		    M_WAITOK | M_ZERO);
 
 		PF_RULES_WLOCK();
@@ -2878,6 +2881,12 @@ DIOCGETETHRULE_error:
 			pfi_kkif_ref(rule->kif);
 		} else
 			rule->kif = NULL;
+		if (rule->bridge_to_name[0]) {
+			rule->bridge_to = pfi_kkif_attach(bridge_to_kif,
+			    rule->bridge_to_name);
+			pfi_kkif_ref(rule->bridge_to);
+		} else
+			rule->bridge_to = NULL;
 
 #ifdef ALTQ
 		/* set queue IDs */
@@ -5818,6 +5827,8 @@ pf_getstatus(struct pfioc_nv *nv)
 	nvlist_add_number(nvl, "hostid", V_pf_status.hostid);
 	nvlist_add_number(nvl, "states", V_pf_status.states);
 	nvlist_add_number(nvl, "src_nodes", V_pf_status.src_nodes);
+	nvlist_add_bool(nvl, "syncookies_active",
+	    V_pf_status.syncookies_active);
 
 	/* counters */
 	error = pf_add_status_counters(nvl, "counters", V_pf_status.counters,
@@ -5897,7 +5908,7 @@ done:
 }
 
 /*
- * XXX - Check for version missmatch!!!
+ * XXX - Check for version mismatch!!!
  */
 static void
 pf_clear_all_states(void)
@@ -6325,7 +6336,7 @@ errout:
 }
 
 /*
- * XXX - Check for version missmatch!!!
+ * XXX - Check for version mismatch!!!
  */
 
 /*
@@ -6524,7 +6535,7 @@ hook_pf_eth(void)
 	struct pfil_link_args pla;
 	int ret __diagused;
 
-	if (V_pf_pfil_eth_hooked)
+	if (atomic_load_bool(&V_pf_pfil_eth_hooked))
 		return;
 
 	pha.pa_version = PFIL_VERSION;
@@ -6553,7 +6564,7 @@ hook_pf_eth(void)
 	ret = pfil_link(&pla);
 	MPASS(ret == 0);
 
-	V_pf_pfil_eth_hooked = 1;
+	atomic_store_bool(&V_pf_pfil_eth_hooked, true);
 }
 
 static void
@@ -6563,7 +6574,7 @@ hook_pf(void)
 	struct pfil_link_args pla;
 	int ret __diagused;
 
-	if (V_pf_pfil_hooked)
+	if (atomic_load_bool(&V_pf_pfil_hooked))
 		return;
 
 	pha.pa_version = PFIL_VERSION;
@@ -6615,27 +6626,27 @@ hook_pf(void)
 	MPASS(ret == 0);
 #endif
 
-	V_pf_pfil_hooked = 1;
+	atomic_store_bool(&V_pf_pfil_hooked, true);
 }
 
 static void
 dehook_pf_eth(void)
 {
 
-	if (V_pf_pfil_eth_hooked == 0)
+	if (!atomic_load_bool(&V_pf_pfil_eth_hooked))
 		return;
 
 	pfil_remove_hook(V_pf_eth_in_hook);
 	pfil_remove_hook(V_pf_eth_out_hook);
 
-	V_pf_pfil_eth_hooked = 0;
+	atomic_store_bool(&V_pf_pfil_eth_hooked, false);
 }
 
 static void
 dehook_pf(void)
 {
 
-	if (V_pf_pfil_hooked == 0)
+	if (!atomic_load_bool(&V_pf_pfil_hooked))
 		return;
 
 #ifdef INET
@@ -6647,7 +6658,7 @@ dehook_pf(void)
 	pfil_remove_hook(V_pf_ip6_out_hook);
 #endif
 
-	V_pf_pfil_hooked = 0;
+	atomic_store_bool(&V_pf_pfil_hooked, false);
 }
 
 static void
@@ -6769,7 +6780,7 @@ pf_unload_vnet(void)
 	counter_u64_free(V_pf_default_rule.states_cur);
 	counter_u64_free(V_pf_default_rule.states_tot);
 	counter_u64_free(V_pf_default_rule.src_nodes);
-	uma_zfree_pcpu(pcpu_zone_4, V_pf_default_rule.timestamp);
+	uma_zfree_pcpu(pf_timestamp_pcpu_zone, V_pf_default_rule.timestamp);
 
 	for (int i = 0; i < PFRES_MAX; i++)
 		counter_u64_free(V_pf_status.counters[i]);

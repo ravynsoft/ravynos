@@ -182,7 +182,7 @@ rip_delhash(struct inpcb *inp)
 }
 #endif /* INET */
 
-INPCBSTORAGE_DEFINE(ripcbstor, "rawinp", "ripcb", "rip", "riphash");
+INPCBSTORAGE_DEFINE(ripcbstor, inpcb, "rawinp", "ripcb", "rip", "riphash");
 
 static void
 rip_init(void *arg __unused)
@@ -804,17 +804,12 @@ rip_ctloutput(struct socket *so, struct sockopt *sopt)
 }
 
 void
-rip_ctlinput(int cmd, struct sockaddr *sa, void *vip)
+rip_ctlinput(struct icmp *icmp)
 {
-
-	switch (cmd) {
 #if defined(IPSEC) || defined(IPSEC_SUPPORT)
-	case PRC_MSGSIZE:
-		if (IPSEC_ENABLED(ipv4))
-			IPSEC_CTLINPUT(ipv4, cmd, sa, vip);
-		break;
+	if (IPSEC_ENABLED(ipv4))
+		IPSEC_CTLINPUT(ipv4, icmp);
 #endif
-	}
 }
 
 static int

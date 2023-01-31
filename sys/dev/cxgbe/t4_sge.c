@@ -1520,15 +1520,43 @@ sort_before_lro(struct lro_ctrl *lro)
 }
 #endif
 
-static inline uint64_t
-last_flit_to_ns(struct adapter *sc, uint64_t lf)
-{
-	uint64_t n = be64toh(lf) & 0xfffffffffffffff;	/* 60b, not 64b. */
+#define CGBE_SHIFT_SCALE 10
 
-	if (n > UINT64_MAX / 1000000)
-		return (n / sc->params.vpd.cclk * 1000000);
-	else
-		return (n * 1000000 / sc->params.vpd.cclk);
+static inline uint64_t
+t4_tstmp_to_ns(struct adapter *sc, uint64_t lf)
+{
+	struct clock_sync *cur, dcur;
+	uint64_t hw_clocks;
+	uint64_t hw_clk_div;
+	sbintime_t sbt_cur_to_prev, sbt;
+	uint64_t hw_tstmp = lf & 0xfffffffffffffffULL;	/* 60b, not 64b. */
+	seqc_t gen;
+
+	for (;;) {
+		cur = &sc->cal_info[sc->cal_current];
+		gen = seqc_read(&cur->gen);
+		if (gen == 0)
+			return (0);
+		dcur = *cur;
+		if (seqc_consistent(&cur->gen, gen))
+			break;
+	}
+
+	/*
+	 * Our goal here is to have a result that is:
+	 *
+	 * (                             (cur_time - prev_time)   )
+	 * ((hw_tstmp - hw_prev) *  ----------------------------- ) + prev_time
+	 * (                             (hw_cur - hw_prev)       )
+	 *
+	 * With the constraints that we cannot use float and we
+	 * don't want to overflow the uint64_t numbers we are using.
+	 */
+	hw_clocks = hw_tstmp - dcur.hw_prev;
+	sbt_cur_to_prev = (dcur.sbt_cur - dcur.sbt_prev);
+	hw_clk_div = dcur.hw_cur - dcur.hw_prev;
+	sbt = hw_clocks * sbt_cur_to_prev / hw_clk_div + dcur.sbt_prev;
+	return (sbttons(sbt));
 }
 
 static inline void
@@ -2018,7 +2046,7 @@ have_mbuf:
 		    (cpl->l2info & htobe32(F_RXF_IP6)));
 		m0->m_pkthdr.csum_data = be16toh(cpl->csum);
 		if (tnl_type == 0) {
-	    		if (!ipv6 && ifp->if_capenable & IFCAP_RXCSUM) {
+			if (!ipv6 && ifp->if_capenable & IFCAP_RXCSUM) {
 				m0->m_pkthdr.csum_flags = CSUM_L3_CALC |
 				    CSUM_L3_VALID | CSUM_L4_CALC |
 				    CSUM_L4_VALID;
@@ -2077,17 +2105,13 @@ have_mbuf:
 
 	if (rxq->iq.flags & IQ_RX_TIMESTAMP) {
 		/*
-		 * Fill up rcv_tstmp but do not set M_TSTMP.
-		 * rcv_tstmp is not in the format that the
-		 * kernel expects and we don't want to mislead
-		 * it.  For now this is only for custom code
-		 * that knows how to interpret cxgbe's stamp.
+		 * Fill up rcv_tstmp but do not set M_TSTMP as
+		 * long as we get a non-zero back from t4_tstmp_to_ns().
 		 */
-		m0->m_pkthdr.rcv_tstmp =
-		    last_flit_to_ns(sc, d->rsp.u.last_flit);
-#ifdef notyet
-		m0->m_flags |= M_TSTMP;
-#endif
+		m0->m_pkthdr.rcv_tstmp = t4_tstmp_to_ns(sc,
+		    be64toh(d->rsp.u.last_flit));
+		if (m0->m_pkthdr.rcv_tstmp != 0)
+			m0->m_flags |= M_TSTMP;
 	}
 
 #ifdef NUMA
@@ -2789,7 +2813,7 @@ restart:
 
 	if (!needs_hwcsum(m0)
 #ifdef RATELIMIT
-   		 && !needs_eo(mst)
+		 && !needs_eo(mst)
 #endif
 	)
 		return (0);
@@ -4496,7 +4520,7 @@ alloc_eq_hwq(struct adapter *sc, struct vi_info *vi, struct sge_eq *eq)
 		udb += (eq->cntxt_id >> s_qpp) << PAGE_SHIFT;	/* pg offset */
 		eq->udb_qid = eq->cntxt_id & mask;		/* id in page */
 		if (eq->udb_qid >= PAGE_SIZE / UDBS_SEG_SIZE)
-	    		clrbit(&eq->doorbells, DOORBELL_WCWR);
+			clrbit(&eq->doorbells, DOORBELL_WCWR);
 		else {
 			udb += eq->udb_qid << UDBS_SEG_SHIFT;	/* seg offset */
 			eq->udb_qid = 0;
