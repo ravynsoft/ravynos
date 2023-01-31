@@ -61,7 +61,8 @@ distribution:
 	${_+_}cd ${SRCTOP}/usr.sbin/rmt; ${MAKE} etc-rmt
 	${INSTALL_SYMLINK} -T "package=runtime" ../var/run/os-release \
 		${DESTDIR}/etc/os-release
-<<<<<<< HEAD
+	${INSTALL_SYMLINK} -T "package=runtime" ../var/db/machine-id \
+		${DESTDIR}/etc/machine-id
 .for f in adduser.conf launchd_user.env motd.template shells zprofile
 	${INSTALL} -m 0444 -o root -g wheel ${.CURDIR}/$f ${DESTDIR}/etc/
 .endfor
@@ -73,10 +74,6 @@ distribution:
 	${INSTALL} -d -m 0755 -o ${BINOWN} -g ${BINGRP} ${DESTDIR}/etc/$d
 	${INSTALL} -m 0444 -o ${BINOWN} -g ${BINGRP} ${.CURDIR}/$d/* ${DESTDIR}/etc/$d/
 .endfor
-=======
-	${INSTALL_SYMLINK} -T "package=runtime" ../var/db/machine-id \
-		${DESTDIR}/etc/machine-id
->>>>>>> upstream/main
 .if ${MK_UNBOUND} != "no"
 	if [ ! -e ${DESTDIR}/etc/unbound ]; then \
 		${INSTALL_SYMLINK} -T "package=unbound" \
