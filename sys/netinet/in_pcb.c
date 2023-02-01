@@ -5,6 +5,7 @@
  *	The Regents of the University of California.
  * Copyright (c) 2007-2009 Robert N. M. Watson
  * Copyright (c) 2010-2011 Juniper Networks, Inc.
+ * Copyright (c) 2021-2022 Gleb Smirnoff <glebius@FreeBSD.org>
  * All rights reserved.
  *
  * Portions of this software were developed by Robert N. M. Watson under
@@ -78,6 +79,7 @@ __FBSDID("$FreeBSD$");
 
 #include <net/if.h>
 #include <net/if_var.h>
+#include <net/if_private.h>
 #include <net/if_types.h>
 #include <net/if_llatbl.h>
 #include <net/route.h>
