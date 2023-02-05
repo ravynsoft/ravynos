@@ -40,7 +40,7 @@ Dodaktowe informacje dotyczące praw autorskich można znaleźć w drzewie źr�
 Plik Makefile w tym katalogu umożliwia kompilację wielu (lub wszystkich) komponentów znajdujących się w drzewie źródłowym FreeBSD.
 Sprawdź build(7), config(8), [rodział podręcznika FreeBSD o kompilacji narzędzi użytkowych](https://docs.freebsd.org/en/books/handbook/cutting-edge/#makeworld) i [rozdział o kompilacji jądra systemu](https://docs.freebsd.org/en/books/handbook/kernelconfig/), aby dowiedzieć się więcej, w tym o ustawianiu zmiennych make(1).
 
-Informacje o architekturach CPU i platformach wspieranych przez FreeBSD, zajrzyj na [stronę
+Informacje o architekturach CPU i platformach wspieranych przez FreeBSD znajdują się na [stronę
 FreeBSD](https://www.freebsd.org/platforms/).
 
 Drzewo źródłowe:
