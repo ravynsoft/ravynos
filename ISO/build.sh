@@ -432,7 +432,8 @@ repos
 pkg
 base
 packages
-initgfx
+# skip nvidia driver package for now
+#initgfx
 rc
 user
 dm
