@@ -41,6 +41,7 @@
 #include <linux/list.h>
 #include <linux/mmap_lock.h>
 #include <linux/shrinker.h>
+#include <linux/page.h>
 
 #include <asm/pgtable.h>
 
@@ -150,6 +151,13 @@ struct sysinfo {
 	uint64_t freehigh;	/* Available high memory size */
 	uint32_t mem_unit;	/* Memory unit size in bytes */
 };
+
+static inline struct page *
+virt_to_head_page(const void *p)
+{
+
+	return (virt_to_page(p));
+}
 
 /*
  * Compute log2 of the power of two rounded up count of pages
@@ -339,6 +347,12 @@ unlock_page(struct page *page)
 
 extern int is_vmalloc_addr(const void *addr);
 void si_meminfo(struct sysinfo *si);
+
+static inline unsigned long
+totalram_pages(void)
+{
+	return ((unsigned long)physmem);
+}
 
 #define	unmap_mapping_range(...)	lkpi_unmap_mapping_range(__VA_ARGS__)
 void lkpi_unmap_mapping_range(void *obj, loff_t const holebegin __unused,

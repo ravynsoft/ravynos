@@ -29,24 +29,17 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
-#include "opt_compat.h"
-
 #include <sys/param.h>
 #include <sys/capsicum.h>
 #include <sys/dirent.h>
-#include <sys/file.h>
-#include <sys/filedesc.h>
-#include <sys/proc.h>
+#include <sys/lock.h>
 #include <sys/malloc.h>
-#include <sys/mount.h>
-#include <sys/namei.h>
+#include <sys/mutex.h>
+#include <sys/proc.h>
 #include <sys/stat.h>
 #include <sys/syscallsubr.h>
-#include <sys/systm.h>
 #include <sys/tty.h>
 #include <sys/vnode.h>
-#include <sys/conf.h>
-#include <sys/fcntl.h>
 
 #ifdef COMPAT_LINUX32
 #include <machine/../linux32/linux.h>

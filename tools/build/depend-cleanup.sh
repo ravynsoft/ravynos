@@ -28,18 +28,8 @@ fi
 # $3 source extension
 clean_dep()
 {
-	if [ -e "$OBJTOP"/$1/.depend.$2.pico ] && \
-	    egrep -qw "$2\.$3" "$OBJTOP"/$1/.depend.$2.pico; then \
-		echo "Removing stale dependencies and objects for $2.$3"; \
-		rm -f \
-		    "$OBJTOP"/$1/.depend.$2.* \
-		    "$OBJTOP"/$1/$2.*o \
-		    "$OBJTOP"/obj-lib32/$1/.depend.$2.* \
-		    "$OBJTOP"/obj-lib32/$1/$2.*o
-	fi
-	if [ -e "$OBJTOP"/$1/.depend.$2.o ] && \
-	    egrep -qw "$2\.$3" "$OBJTOP"/$1/.depend.$2.o; then \
-		echo "Removing stale dependencies and objects for $2.$3"; \
+	if egrep -qw "$2\.$3" "$OBJTOP"/$1/.depend.$2.*o 2>/dev/null; then
+		echo "Removing stale dependencies and objects for $2.$3"
 		rm -f \
 		    "$OBJTOP"/$1/.depend.$2.* \
 		    "$OBJTOP"/$1/$2.*o \
@@ -116,3 +106,9 @@ if [ -d "$OBJTOP"/usr.sbin/zic/zic ] ; then
 	echo "Removing old zic directory"
 	rm -rf "$OBJTOP"/usr.sbin/zic/zic
 fi
+
+# 20230208  29c5f8bf9a01    move from mkmakefile.c to mkmakefile.cc
+clean_dep   usr.sbin/config  mkmakefile c
+# 20230209  83d7ed8af3d9    convert to main.cc and mkoptions.cc
+clean_dep   usr.sbin/config  main c
+clean_dep   usr.sbin/config  mkoptions c

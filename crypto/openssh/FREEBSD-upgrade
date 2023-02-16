@@ -66,8 +66,8 @@
     (leaving them deleted).
 
 10) Resolve conflicts.  Remember to bump the version addendum in
-    version.h, and update the default value in ssh{,d}_config and
-    ssh{,d}_config.5.
+    version.h, and update the default value in sshd_config and
+    sshd_config.5.
 
 11) Diff against the vendor branch:
 
@@ -113,7 +113,6 @@
 
       - UsePAM defaults to "yes".
       - PermitRootLogin defaults to "no".
-      - X11Forwarding defaults to "yes".
       - PasswordAuthentication defaults to "no".
       - VersionAddendum defaults to "FreeBSD-YYYYMMDD".
       - UseDNS defaults to "yes".
@@ -130,6 +129,10 @@
    We've added code to ssh.c to canonicize the target host name after
    reading options but before trying to connect.  This eliminates the
    usual problem with duplicate known_hosts entries.
+
+   We added this support in 2002 (r99054 / bf2e2524a2ce).  In 2014
+   upstream introduced CanonicalDomains and related options to serve a
+   similar purpose but they require environment-specific configuration.
 
 4) setusercontext() environment
 

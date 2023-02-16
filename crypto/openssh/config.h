@@ -1941,10 +1941,17 @@
 #define SIZEOF_SHORT_INT 2
 
 /* The size of `time_t', as computed by sizeof. */
+#ifdef __i386__
+#define SIZEOF_TIME_T 4
+#else
 #define SIZEOF_TIME_T 8
+#endif
 
 /* Define as const if snprintf() can declare const char *fmt */
 #define SNPRINTF_CONST const
+
+/* sockaddr_in has sin_len */
+#define SOCK_HAS_LEN 1
 
 /* Define to a Set Process Title type if your system is supported by
    bsd-setproctitle.c */

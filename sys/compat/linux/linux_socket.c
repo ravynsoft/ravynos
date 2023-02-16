@@ -29,29 +29,19 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
-/* XXX we use functions that might not exist. */
-#include "opt_compat.h"
 #include "opt_inet6.h"
 
 #include <sys/param.h>
-#include <sys/proc.h>
-#include <sys/systm.h>
-#include <sys/sysproto.h>
 #include <sys/capsicum.h>
-#include <sys/fcntl.h>
-#include <sys/file.h>
 #include <sys/filedesc.h>
 #include <sys/limits.h>
-#include <sys/lock.h>
 #include <sys/malloc.h>
-#include <sys/mutex.h>
 #include <sys/mbuf.h>
+#include <sys/proc.h>
 #include <sys/socket.h>
 #include <sys/socketvar.h>
 #include <sys/syscallsubr.h>
-#include <sys/uio.h>
-#include <sys/stat.h>
-#include <sys/syslog.h>
+#include <sys/sysproto.h>
 #include <sys/un.h>
 #include <sys/unistd.h>
 
@@ -60,7 +50,6 @@ __FBSDID("$FreeBSD$");
 #include <net/if.h>
 #include <net/vnet.h>
 #include <netinet/in.h>
-#include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #ifdef INET6
@@ -80,7 +69,7 @@ __FBSDID("$FreeBSD$");
 #include <compat/linux/linux_file.h>
 #include <compat/linux/linux_mib.h>
 #include <compat/linux/linux_socket.h>
-#include <compat/linux/linux_timer.h>
+#include <compat/linux/linux_time.h>
 #include <compat/linux/linux_util.h>
 
 #define	SECURITY_CONTEXT_STRING	"unconfined"

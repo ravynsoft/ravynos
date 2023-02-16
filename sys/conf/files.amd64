@@ -13,13 +13,13 @@ include 	"conf/files.x86"
 #
 #
 elf-vdso.so.o			standard				\
-	dependency	"$S/amd64/amd64/sigtramp.S assym.inc $S/tools/amd64_vdso.sh" \
+	dependency	"$S/amd64/amd64/sigtramp.S assym.inc $S/conf/vdso_amd64.ldscript $S/tools/amd64_vdso.sh" \
 	compile-with	"env AWK='${AWK}' NM='${NM}' LD='${LD}' CC='${CC}' DEBUG='${DEBUG}' OBJCOPY='${OBJCOPY}' ELFDUMP='${ELFDUMP}' S='${S}' sh $S/tools/amd64_vdso.sh" \
 	no-implicit-rule before-depend	\
 	clean		"elf-vdso.so.o elf-vdso.so.1 vdso_offsets.h sigtramp.pico"
 #
 elf-vdso32.so.o			optional	compat_freebsd32		\
-	dependency	"$S/amd64/ia32/ia32_sigtramp.S ia32_assym.h $S/tools/amd64_ia32_vdso.sh" \
+	dependency	"$S/amd64/ia32/ia32_sigtramp.S ia32_assym.h $S/conf/vdso_amd64_ia32.ldscript $S/tools/amd64_ia32_vdso.sh" \
 	compile-with	"env AWK='${AWK}' NM='${NM}' LD='${LD}' CC='${CC}' DEBUG='${DEBUG}' OBJCOPY='${OBJCOPY}' ELFDUMP='${ELFDUMP}' S='${S}' sh $S/tools/amd64_ia32_vdso.sh" \
 	no-implicit-rule before-depend	\
 	clean		"elf-vdso32.so.o elf-vdso32.so.1 vdso_ia32_offsets.h ia32_sigtramp.pico"
@@ -119,6 +119,14 @@ dev/axgbe/xgbe-txrx.c		optional	axp
 dev/axgbe/xgbe_osdep.c		optional	axp
 dev/axgbe/xgbe-i2c.c		optional	axp
 dev/axgbe/xgbe-phy-v2.c		optional	axp
+dev/enic/enic_res.c		optional	enic
+dev/enic/enic_txrx.c		optional	enic
+dev/enic/if_enic.c		optional	enic
+dev/enic/vnic_cq.c		optional	enic
+dev/enic/vnic_dev.c		optional	enic
+dev/enic/vnic_intr.c		optional	enic
+dev/enic/vnic_rq.c		optional	enic
+dev/enic/vnic_wq.c		optional	enic
 dev/hyperv/vmbus/amd64/hyperv_machdep.c			optional	hyperv
 dev/hyperv/vmbus/amd64/vmbus_vector.S			optional	hyperv
 dev/iavf/if_iavf_iflib.c	optional	iavf pci \
@@ -179,6 +187,8 @@ dev/ice/irdma_if.m		optional	ice pci \
 	compile-with "${NORMAL_M} -I$S/dev/ice"
 dev/ice/irdma_di_if.m		optional	ice pci \
 	compile-with "${NORMAL_M} -I$S/dev/ice"
+dev/ice/ice_ddp_common.c	optional	ice pci \
+	compile-with "${NORMAL_C} -I$S/dev/ice"
 ice_ddp.c			optional ice_ddp	\
 	compile-with	"${AWK} -f $S/tools/fw_stub.awk ice_ddp.fw:ice_ddp:0x01031e00 -mice_ddp -c${.TARGET}"	\
 	no-ctfconvert no-implicit-rule before-depend local	\

@@ -12,6 +12,7 @@ CFLAGS+=-DCOMPAT_FREEBSD32 -DCOMPAT_LINUX32
 
 KMOD=	linux
 SRCS=	linux${SFX}_dummy_machdep.c \
+	linux_elf32.c \
 	linux_event.c \
 	linux_file.c \
 	linux_fork.c \
@@ -33,11 +34,9 @@ SRCS=	linux${SFX}_dummy_machdep.c \
 	linux_timer.c \
 	linux_uid16.c \
 	linux_vdso.c \
-	opt_compat.h \
 	opt_inet6.h \
 	opt_ktrace.h \
 	opt_posix.h \
-	opt_usb.h \
 	bus_if.h \
 	device_if.h \
 	vnode_if.h
@@ -47,9 +46,9 @@ VDSODEPS=linux_vdso_gettc_x86.inc
 .endif
 .if ${MACHINE_CPUARCH} == "amd64"
 SRCS+=	linux${SFX}_support.S
-SRCS+=	linux_elf32.c
 .else
 SRCS+=	linux_copyout.c
+SRCS+=	linux_netlink.c
 .endif
 DPSRCS=	assym.inc linux${SFX}_genassym.c
 

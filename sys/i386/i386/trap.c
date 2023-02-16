@@ -47,7 +47,6 @@ __FBSDID("$FreeBSD$");
  */
 
 #include "opt_clock.h"
-#include "opt_compat.h"
 #include "opt_cpu.h"
 #include "opt_hwpmc_hooks.h"
 #include "opt_isa.h"
@@ -205,8 +204,7 @@ trap_check_kstack(void)
 	stk = read_esp();
 	if (stk >= PMAP_TRM_MIN_ADDRESS)
 		panic("td %p stack %#x in trampoline", td, stk);
-	if (stk < td->td_kstack || stk >= td->td_kstack +
-	    ptoa(td->td_kstack_pages))
+	if (!kstack_contains(td, stk, 0))
 		panic("td %p stack %#x not in kstack VA %#x %d",
 		    td, stk, td->td_kstack, td->td_kstack_pages);
 }

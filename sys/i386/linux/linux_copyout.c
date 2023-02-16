@@ -31,13 +31,11 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
-#include "opt_compat.h"
-
 #include <sys/param.h>
-#include <sys/systm.h>
 #include <sys/imgact.h>
 #include <sys/lock.h>
 #include <sys/sx.h>
+
 #include <vm/vm.h>
 #include <vm/vm_param.h>
 #include <vm/vm_extern.h>

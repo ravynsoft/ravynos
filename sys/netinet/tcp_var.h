@@ -139,7 +139,7 @@ typedef enum {
  * Tcp control block, one per tcp connection.
  */
 struct tcpcb {
-	struct inpcb t_inpcb;		/* embedded protocol indepenent cb */
+	struct inpcb t_inpcb;		/* embedded protocol independent cb */
 #define	t_start_zero	t_fb
 #define	t_zero_size	(sizeof(struct tcpcb) - \
 			    offsetof(struct tcpcb, t_start_zero))
@@ -209,6 +209,9 @@ struct tcpcb {
 	tcp_seq	snd_recover;		/* for use in NewReno Fast Recovery */
 	char	t_oobflags;		/* have some */
 	char	t_iobc;			/* input character */
+	uint8_t t_nic_ktls_xmit:1,	/* active nic ktls xmit sessions */
+		t_nic_ktls_xmit_dis:1,	/* disabled nic xmit ktls? */
+		t_nic_ktls_spare:6;	/* spare nic ktls */
 	int	t_rxtcur;		/* current retransmit value (ticks) */
 
 	int	t_rxtshift;		/* log(2) of rexmt exp. backoff */

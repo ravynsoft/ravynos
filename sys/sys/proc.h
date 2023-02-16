@@ -261,7 +261,7 @@ struct thread {
 	u_char		td_base_ithread_pri; /* (t) Base ithread pri */
 	struct kmsan_td	*td_kmsan;	/* (k) KMSAN state */
 
-/* Cleared during fork1() */
+/* Cleared during fork1(), thread_create(), or kthread_add(). */
 #define	td_startzero td_flags
 	int		td_flags;	/* (t) TDF_* flags. */
 	int		td_ast;		/* (t) TDA_* indicators */
@@ -327,7 +327,7 @@ struct thread {
 	u_int		td_ucredref;	/* (k) references on td_realucred */
 #define	td_endzero td_sigmask
 
-/* Copied during fork1() or create_thread(). */
+/* Copied during fork1(), thread_create(), or kthread_add(). */
 #define	td_startcopy td_endzero
 	sigset_t	td_sigmask;	/* (c) Current signal mask. */
 	u_char		td_rqindex;	/* (t) Run queue index. */
@@ -347,7 +347,7 @@ struct thread {
 #define	td_endcopy td_pcb
 
 /*
- * Fields that must be manually set in fork1() or create_thread()
+ * Fields that must be manually set in fork1(), thread_create(), kthread_add(),
  * or already have been set in the allocator, constructor, etc.
  */
 	struct pcb	*td_pcb;	/* (k) Kernel VA of pcb and kstack. */
@@ -916,22 +916,20 @@ struct proc {
 
 #ifdef _KERNEL
 
-/* Types and flags for mi_switch(). */
+/* Types and flags for mi_switch(9). */
 #define	SW_TYPE_MASK		0xff	/* First 8 bits are switch type */
-#define	SWT_NONE		0	/* Unspecified switch. */
-#define	SWT_PREEMPT		1	/* Switching due to preemption. */
-#define	SWT_OWEPREEMPT		2	/* Switching due to owepreempt. */
-#define	SWT_TURNSTILE		3	/* Turnstile contention. */
-#define	SWT_SLEEPQ		4	/* Sleepq wait. */
-#define	SWT_SLEEPQTIMO		5	/* Sleepq timeout wait. */
-#define	SWT_RELINQUISH		6	/* yield call. */
-#define	SWT_NEEDRESCHED		7	/* NEEDRESCHED was set. */
-#define	SWT_IDLE		8	/* Switching from the idle thread. */
-#define	SWT_IWAIT		9	/* Waiting for interrupts. */
-#define	SWT_SUSPEND		10	/* Thread suspended. */
-#define	SWT_REMOTEPREEMPT	11	/* Remote processor preempted. */
-#define	SWT_REMOTEWAKEIDLE	12	/* Remote processor preempted idle. */
-#define	SWT_COUNT		13	/* Number of switch types. */
+#define	SWT_OWEPREEMPT		1	/* Switching due to owepreempt. */
+#define	SWT_TURNSTILE		2	/* Turnstile contention. */
+#define	SWT_SLEEPQ		3	/* Sleepq wait. */
+#define	SWT_RELINQUISH		4	/* yield call. */
+#define	SWT_NEEDRESCHED		5	/* NEEDRESCHED was set. */
+#define	SWT_IDLE		6	/* Switching from the idle thread. */
+#define	SWT_IWAIT		7	/* Waiting for interrupts. */
+#define	SWT_SUSPEND		8	/* Thread suspended. */
+#define	SWT_REMOTEPREEMPT	9	/* Remote processor preempted. */
+#define	SWT_REMOTEWAKEIDLE	10	/* Remote processor preempted idle. */
+#define	SWT_BIND		11	/* Thread bound to a new CPU. */
+#define	SWT_COUNT		12	/* Number of switch types. */
 /* Flags */
 #define	SW_VOL		0x0100		/* Voluntary switch. */
 #define	SW_INVOL	0x0200		/* Involuntary switch. */
@@ -1233,7 +1231,7 @@ void	sess_hold(struct session *);
 void	sess_release(struct session *);
 int	setrunnable(struct thread *, int);
 void	setsugid(struct proc *p);
-int	should_yield(void);
+bool	should_yield(void);
 int	sigonstack(size_t sp);
 void	stopevent(struct proc *, u_int, u_int);
 struct	thread *tdfind(lwpid_t, pid_t);
@@ -1338,13 +1336,6 @@ curthread_pflags2_restore(int save)
 {
 
 	curthread->td_pflags2 &= save;
-}
-
-static __inline bool
-kstack_contains(struct thread *td, vm_offset_t va, size_t len)
-{
-	return (va >= td->td_kstack && va + len >= va &&
-	    va + len <= td->td_kstack + td->td_kstack_pages * PAGE_SIZE);
 }
 
 static __inline __pure2 struct td_sched *

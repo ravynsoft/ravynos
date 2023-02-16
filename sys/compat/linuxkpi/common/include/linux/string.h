@@ -39,6 +39,7 @@
 #include <linux/uaccess.h>
 #include <linux/err.h>
 #include <linux/bitops.h> /* for BITS_PER_LONG */
+#include <linux/stdarg.h>
 
 #include <sys/libkern.h>
 
@@ -204,6 +205,15 @@ strscpy(char* dst, const char* src, size_t len)
 	}
 
 	return (-E2BIG);
+}
+
+static inline ssize_t
+strscpy_pad(char* dst, const char* src, size_t len)
+{
+
+	bzero(dst, len);
+
+	return (strscpy(dst, src, len));
 }
 
 static inline void *

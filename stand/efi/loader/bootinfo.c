@@ -43,6 +43,8 @@ __FBSDID("$FreeBSD$");
 #ifdef EFI
 #include <efi.h>
 #include <efilib.h>
+#else
+#include "kboot.h"
 #endif
 
 #include "bootstrap.h"
@@ -192,16 +194,19 @@ bi_load_efi_data(struct preloaded_file *kfp, bool exit_bs)
 	efifb.fb_mask_blue = gfx_state.tg_fb.fb_mask_blue;
 	efifb.fb_mask_reserved = gfx_state.tg_fb.fb_mask_reserved;
 
-	printf("EFI framebuffer information:\n");
-	printf("addr, size     0x%jx, 0x%jx\n", efifb.fb_addr, efifb.fb_size);
-	printf("dimensions     %d x %d\n", efifb.fb_width, efifb.fb_height);
-	printf("stride         %d\n", efifb.fb_stride);
-	printf("masks          0x%08x, 0x%08x, 0x%08x, 0x%08x\n",
-	    efifb.fb_mask_red, efifb.fb_mask_green, efifb.fb_mask_blue,
-	    efifb.fb_mask_reserved);
+	if (efifb.fb_addr != 0) {
+		printf("EFI framebuffer information:\n");
+		printf("addr, size     0x%jx, 0x%jx\n",
+		    efifb.fb_addr, efifb.fb_size);
+		printf("dimensions     %d x %d\n",
+		    efifb.fb_width, efifb.fb_height);
+		printf("stride         %d\n", efifb.fb_stride);
+		printf("masks          0x%08x, 0x%08x, 0x%08x, 0x%08x\n",
+		    efifb.fb_mask_red, efifb.fb_mask_green, efifb.fb_mask_blue,
+		    efifb.fb_mask_reserved);
 
-	if (efifb.fb_addr != 0)
 		file_addmetadata(kfp, MODINFOMD_EFI_FB, sizeof(efifb), &efifb);
+	}
 #endif
 
 	do_vmap = true;
@@ -361,10 +366,8 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 		return(EINVAL);
 	}
 
-#ifdef EFI
 	/* Try reading the /etc/fstab file to select the root device */
 	getrootmount(devformat(rootdev));
-#endif
 
 	addr = 0;
 	for (xp = file_findfile(NULL, NULL); xp != NULL; xp = xp->f_next) {
@@ -428,6 +431,8 @@ bi_load(char *args, vm_offset_t *modulep, vm_offset_t *kernendp, bool exit_bs)
 #endif
 #ifdef EFI
 	bi_load_efi_data(kfp, exit_bs);
+#else
+	bi_loadsmap(kfp);
 #endif
 
 	size = md_copymodules(0, is64);	/* Find the size of the modules */

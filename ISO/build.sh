@@ -434,6 +434,9 @@ base
 packages
 # skip nvidia driver package for now
 #initgfx
+  rm ${uzip}/etc/resolv.conf
+  umount ${uzip}/var/cache/pkg
+  umount ${uzip}/dev
 rc
 user
 dm

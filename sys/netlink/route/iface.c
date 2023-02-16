@@ -174,9 +174,11 @@ get_operstate(struct ifnet *ifp, struct if_state *pstate)
 
 	switch (ifp->if_type) {
 	case IFT_ETHER:
+	case IFT_L2VLAN:
 		get_operstate_ether(ifp, pstate);
 		break;
-	case IFT_LOOP:
+	default:
+		/* Map admin state to the operstate */
 		if (ifp->if_flags & IFF_UP) {
 			pstate->ifla_operstate = IF_OPER_UP;
 			pstate->ifla_carrier = 1;
@@ -447,24 +449,23 @@ rtnl_handle_getlink(struct nlmsghdr *hdr, struct nlpcb *nlp, struct nl_pstate *n
         CK_STAILQ_FOREACH(ifp, &V_ifnet, if_link) {
 		wa.count++;
 		if (match_iface(&attrs, ifp)) {
-			if (offset < base_count) {
-				if (!if_try_ref(ifp))
-					continue;
+			if (offset >= base_count) {
+				/* Too many matches, need to reallocate */
+				struct ifnet **new_array;
+				int sz = base_count * sizeof(void *);
+				base_count *= 2;
+				new_array = malloc(sz * 2, M_TEMP, M_NOWAIT);
+				if (new_array == NULL) {
+					error = ENOMEM;
+					break;
+				}
+				memcpy(new_array, match_array, sz);
+				free(match_array, M_TEMP);
+				match_array = new_array;
+			}
+
+			if (if_try_ref(ifp))
 				match_array[offset++] = ifp;
-				continue;
-			}
-			/* Too many matches, need to reallocate */
-			struct ifnet **new_array;
-			int sz = base_count * sizeof(void *);
-			base_count *= 2;
-			new_array = malloc(sz * 2, M_TEMP, M_NOWAIT);
-			if (new_array == NULL) {
-				error = ENOMEM;
-				break;
-			}
-			memcpy(new_array, match_array, sz);
-			free(match_array, M_TEMP);
-			match_array = new_array;
                 }
         }
 	NET_EPOCH_EXIT(et);

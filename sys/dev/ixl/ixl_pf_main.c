@@ -1396,6 +1396,11 @@ ixl_add_hw_filters(struct ixl_vsi *vsi, struct ixl_ftl_head *to_add, int cnt)
 			b->flags = 0;
 		}
 		b->flags |= I40E_AQC_MACVLAN_ADD_PERFECT_MATCH;
+		/* Some FW versions do not set match method
+		 * when adding filters fails. Initialize it with
+		 * expected error value to allow detection which
+		 * filters were not added */
+		b->match_method = I40E_AQC_MM_ERR_NO_RES;
 		ixl_dbg_filter(pf, "ADD: " MAC_FORMAT "\n",
 		    MAC_FORMAT_ARGS(f->macaddr));
 
@@ -2275,16 +2280,7 @@ ixl_stat_update48(struct i40e_hw *hw, u32 hireg, u32 loreg,
 {
 	u64 new_data;
 
-#if defined(__FreeBSD__) && (__FreeBSD_version >= 1000000) && defined(__amd64__)
 	new_data = rd64(hw, loreg);
-#else
-	/*
-	 * Use two rd32's instead of one rd64; FreeBSD versions before
-	 * 10 don't support 64-bit bus reads/writes.
-	 */
-	new_data = rd32(hw, loreg);
-	new_data |= ((u64)(rd32(hw, hireg) & 0xFFFF)) << 32;
-#endif
 
 	if (!offset_loaded)
 		*offset = new_data;

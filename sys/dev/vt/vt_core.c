@@ -2404,6 +2404,10 @@ skip_thunk:
 	case PIO_KEYMAP:
 	case GIO_DEADKEYMAP:
 	case PIO_DEADKEYMAP:
+#ifdef COMPAT_FREEBSD13
+	case OGIO_DEADKEYMAP:
+	case OPIO_DEADKEYMAP:
+#endif /* COMPAT_FREEBSD13 */
 	case GETFKEY:
 	case SETFKEY:
 	case KDGKBINFO:

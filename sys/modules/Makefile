@@ -107,6 +107,7 @@ SUBDIR=	\
 	${_efirt} \
 	${_em} \
 	${_ena} \
+	${_enic} \
 	${_enetc} \
 	${_et} \
 	evdev \
@@ -371,6 +372,7 @@ SUBDIR=	\
 	sym \
 	${_syscons} \
 	sysvipc \
+	tarfs \
 	tcp \
 	${_ti} \
 	tmpfs \
@@ -783,6 +785,7 @@ _x86bios=	x86bios
 .if ${MACHINE_CPUARCH} == "amd64"
 _amdgpio=	amdgpio
 _ccp=		ccp
+_enic=		enic
 _iavf=		iavf
 _ioat=		ioat
 _ixl=		ixl

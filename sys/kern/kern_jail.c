@@ -771,7 +771,7 @@ prison_ip_set(struct prison *pr, const pr_family_t af, struct prison_ip *new)
 	mem = &pr->pr_addrs[af];
 
 	old = *mem;
-	ck_pr_store_ptr(mem, new);
+	atomic_store_ptr(mem, new);
 	prison_ip_free(old);
 }
 
@@ -897,7 +897,7 @@ prison_ip_check(const struct prison *pr, const pr_family_t af,
 	    in_epoch(net_epoch_preempt) ||
 	    sx_xlocked(&allprison_lock));
 
-	pip = ck_pr_load_ptr(&pr->pr_addrs[af]);
+	pip = atomic_load_ptr(&pr->pr_addrs[af]);
 	if (__predict_false(pip == NULL))
 		return (EAFNOSUPPORT);
 
@@ -3491,6 +3491,8 @@ prison_check(struct ucred *cred1, struct ucred *cred2)
  * - The root directory (pr_root) of the prison must be
  *   a file system mount point, so the mountd can hang
  *   export information on it.
+ * - The prison's enforce_statfs cannot be 0, so that
+ *   mountd(8) can do exports.
  */
 bool
 prison_check_nfsd(struct ucred *cred)
@@ -3501,6 +3503,8 @@ prison_check_nfsd(struct ucred *cred)
 	if (!prison_allow(cred, PR_ALLOW_NFSD))
 		return (false);
 	if ((cred->cr_prison->pr_root->v_vflag & VV_ROOT) == 0)
+		return (false);
+	if (cred->cr_prison->pr_enforce_statfs == 0)
 		return (false);
 	return (true);
 }

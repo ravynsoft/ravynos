@@ -49,7 +49,7 @@
  *********************************************************************/
 #define IXL_DRIVER_VERSION_MAJOR	2
 #define IXL_DRIVER_VERSION_MINOR	3
-#define IXL_DRIVER_VERSION_BUILD	2
+#define IXL_DRIVER_VERSION_BUILD	3
 
 #define IXL_DRIVER_VERSION_STRING			\
     __XSTRING(IXL_DRIVER_VERSION_MAJOR) "."		\
@@ -314,11 +314,7 @@ TUNABLE_INT("hw.ixl.enable_iwarp", &ixl_enable_iwarp);
 SYSCTL_INT(_hw_ixl, OID_AUTO, enable_iwarp, CTLFLAG_RDTUN,
     &ixl_enable_iwarp, 0, "iWARP enabled");
 
-#if __FreeBSD_version < 1100000
-int ixl_limit_iwarp_msix = 1;
-#else
 int ixl_limit_iwarp_msix = IXL_IW_MAX_MSIX;
-#endif
 TUNABLE_INT("hw.ixl.limit_iwarp_msix", &ixl_limit_iwarp_msix);
 SYSCTL_INT(_hw_ixl, OID_AUTO, limit_iwarp_msix, CTLFLAG_RDTUN,
     &ixl_limit_iwarp_msix, 0, "Limit MSI-X vectors assigned to iWARP");
@@ -1724,9 +1720,10 @@ ixl_if_vlan_unregister(if_ctx_t ctx, u16 vtag)
 	if ((if_getcapenable(ifp) & IFCAP_VLAN_HWFILTER) == 0)
 		return;
 
-	if (vsi->num_vlans < IXL_MAX_VLAN_FILTERS)
+	/* One filter is used for untagged frames */
+	if (vsi->num_vlans < IXL_MAX_VLAN_FILTERS - 1)
 		ixl_del_filter(vsi, hw->mac.addr, vtag);
-	else if (vsi->num_vlans == IXL_MAX_VLAN_FILTERS) {
+	else if (vsi->num_vlans == IXL_MAX_VLAN_FILTERS - 1) {
 		ixl_del_filter(vsi, hw->mac.addr, IXL_VLAN_ANY);
 		ixl_add_vlan_filters(vsi, hw->mac.addr);
 	}

@@ -48,13 +48,13 @@
 #include <linux/pm.h>
 #include <linux/idr.h>
 #include <linux/ratelimit.h>	/* via linux/dev_printk.h */
+#include <linux/fwnode.h>
 #include <asm/atomic.h>
 
 #include <sys/bus.h>
 #include <sys/backlight.h>
 
 struct device;
-struct fwnode_handle;
 
 struct class {
 	const char	*name;
@@ -543,6 +543,24 @@ device_reprobe(struct device *dev)
 	bus_topo_unlock();
 
 	return (-error);
+}
+
+static inline void
+device_set_wakeup_enable(struct device *dev __unused, bool enable __unused)
+{
+
+	/*
+	 * XXX-BZ TODO This is used by wireless drivers supporting WoWLAN which
+	 * we currently do not support.
+	 */
+}
+
+static inline int
+device_wakeup_enable(struct device *dev)
+{
+
+	device_set_wakeup_enable(dev, true);
+	return (0);
 }
 
 #define	dev_pm_set_driver_flags(dev, flags) do { \

@@ -218,11 +218,18 @@ tmpfs_lookup1(struct vnode *dvp, struct vnode **vpp, struct componentname *cnp)
 		cache_enter(dvp, *vpp, cnp);
 
 out:
+#ifdef INVARIANTS
 	/*
 	 * If there were no errors, *vpp cannot be null and it must be
 	 * locked.
 	 */
-	MPASS(IFF(error == 0, *vpp != NULLVP && VOP_ISLOCKED(*vpp)));
+	if (error == 0) {
+		MPASS(*vpp != NULLVP);
+		ASSERT_VOP_LOCKED(*vpp, __func__);
+	} else {
+		MPASS(*vpp == NULL);
+	}
+#endif
 
 	return (error);
 }
@@ -375,24 +382,37 @@ tmpfs_fplookup_vexec(struct vop_fplookup_vexec_args *v)
 	return (vaccess_vexec_smr(mode, node->tn_uid, node->tn_gid, cred));
 }
 
+static int
+tmpfs_access_locked(struct vnode *vp, struct tmpfs_node *node,
+    accmode_t accmode, struct ucred *cred)
+{
+#ifdef DEBUG_VFS_LOCKS
+	if (!mtx_owned(TMPFS_NODE_MTX(node))) {
+		ASSERT_VOP_LOCKED(vp,
+		    "tmpfs_access_locked needs locked vnode or node");
+	}
+#endif
+
+	if ((accmode & VWRITE) != 0 && (node->tn_flags & IMMUTABLE) != 0)
+		return (EPERM);
+	return (vaccess(vp->v_type, node->tn_mode, node->tn_uid, node->tn_gid,
+	    accmode, cred));
+}
+
 int
 tmpfs_access(struct vop_access_args *v)
 {
 	struct vnode *vp = v->a_vp;
-	accmode_t accmode = v->a_accmode;
 	struct ucred *cred = v->a_cred;
+	struct tmpfs_node *node = VP_TO_TMPFS_NODE(vp);
 	mode_t all_x = S_IXUSR | S_IXGRP | S_IXOTH;
-	int error;
-	struct tmpfs_node *node;
-
-	MPASS(VOP_ISLOCKED(vp));
-
-	node = VP_TO_TMPFS_NODE(vp);
+	accmode_t accmode = v->a_accmode;
 
 	/*
 	 * Common case path lookup.
 	 */
-	if (__predict_true(accmode == VEXEC && (node->tn_mode & all_x) == all_x))
+	if (__predict_true(accmode == VEXEC &&
+	    (node->tn_mode & all_x) == all_x))
 		return (0);
 
 	switch (vp->v_type) {
@@ -401,10 +421,9 @@ tmpfs_access(struct vop_access_args *v)
 	case VLNK:
 		/* FALLTHROUGH */
 	case VREG:
-		if (accmode & VWRITE && vp->v_mount->mnt_flag & MNT_RDONLY) {
-			error = EROFS;
-			goto out;
-		}
+		if ((accmode & VWRITE) != 0 &&
+		    (vp->v_mount->mnt_flag & MNT_RDONLY) != 0)
+			return (EROFS);
 		break;
 
 	case VBLK:
@@ -417,22 +436,10 @@ tmpfs_access(struct vop_access_args *v)
 		break;
 
 	default:
-		error = EINVAL;
-		goto out;
+		return (EINVAL);
 	}
 
-	if (accmode & VWRITE && node->tn_flags & IMMUTABLE) {
-		error = EPERM;
-		goto out;
-	}
-
-	error = vaccess(vp->v_type, node->tn_mode, node->tn_uid, node->tn_gid,
-	    accmode, cred);
-
-out:
-	MPASS(VOP_ISLOCKED(vp));
-
-	return (error);
+	return (tmpfs_access_locked(vp, node, accmode, cred));
 }
 
 int
@@ -545,7 +552,6 @@ tmpfs_setattr(struct vop_setattr_args *v)
 
 	int error;
 
-	MPASS(VOP_ISLOCKED(vp));
 	ASSERT_VOP_IN_SEQC(vp);
 
 	error = 0;
@@ -587,8 +593,6 @@ tmpfs_setattr(struct vop_setattr_args *v)
 	 * from tmpfs_update.
 	 */
 	tmpfs_update(vp);
-
-	MPASS(VOP_ISLOCKED(vp));
 
 	return (error);
 }
@@ -725,8 +729,6 @@ tmpfs_fsync(struct vop_fsync_args *v)
 {
 	struct vnode *vp = v->a_vp;
 
-	MPASS(VOP_ISLOCKED(vp));
-
 	tmpfs_check_mtime(vp);
 	tmpfs_update(vp);
 
@@ -744,9 +746,6 @@ tmpfs_remove(struct vop_remove_args *v)
 	struct tmpfs_mount *tmp;
 	struct tmpfs_node *dnode;
 	struct tmpfs_node *node;
-
-	MPASS(VOP_ISLOCKED(dvp));
-	MPASS(VOP_ISLOCKED(vp));
 
 	if (vp->v_type == VDIR) {
 		error = EISDIR;
@@ -796,7 +795,6 @@ tmpfs_link(struct vop_link_args *v)
 	struct tmpfs_dirent *de;
 	struct tmpfs_node *node;
 
-	MPASS(VOP_ISLOCKED(dvp));
 	MPASS(dvp != vp); /* XXX When can this be false? */
 	node = VP_TO_TMPFS_NODE(vp);
 
@@ -987,9 +985,6 @@ tmpfs_rename(struct vop_rename_args *v)
 	int error;
 	bool want_seqc_end;
 
-	MPASS(VOP_ISLOCKED(tdvp));
-	MPASS(IMPLIES(tvp != NULL, VOP_ISLOCKED(tvp)));
-
 	want_seqc_end = false;
 
 	/*
@@ -1129,6 +1124,16 @@ tmpfs_rename(struct vop_rename_args *v)
 		if (de->td_node->tn_type == VDIR) {
 			struct tmpfs_node *n;
 
+			TMPFS_NODE_LOCK(fnode);
+			error = tmpfs_access_locked(fvp, fnode, VWRITE,
+			    tcnp->cn_cred);
+			TMPFS_NODE_UNLOCK(fnode);
+			if (error) {
+				if (newname != NULL)
+					free(newname, M_TMPFSNAME);
+				goto out_locked;
+			}
+
 			/*
 			 * Ensure the target directory is not a child of the
 			 * directory being moved.  Otherwise, we'd end up
@@ -1150,7 +1155,7 @@ tmpfs_rename(struct vop_rename_args *v)
 					TMPFS_UNLOCK(tmp);
 					error = EINVAL;
 					if (newname != NULL)
-						    free(newname, M_TMPFSNAME);
+						free(newname, M_TMPFSNAME);
 					goto out_locked;
 				}
 				parent = n->tn_dir.tn_parent;
@@ -1312,9 +1317,6 @@ tmpfs_rmdir(struct vop_rmdir_args *v)
 	struct tmpfs_mount *tmp;
 	struct tmpfs_node *dnode;
 	struct tmpfs_node *node;
-
-	MPASS(VOP_ISLOCKED(dvp));
-	MPASS(VOP_ISLOCKED(vp));
 
 	tmp = VFS_TO_TMPFS(dvp->v_mount);
 	dnode = VP_TO_TMPFS_DIR(dvp);

@@ -37,7 +37,8 @@
 /*********************************************************************
  *  Driver version:
  *********************************************************************/
-char em_driver_version[] = "7.6.1-k";
+char em_driver_version[] = "7.7.8-fbsd";
+char igb_driver_version[] = "2.5.19-fbsd";
 
 /*********************************************************************
  *  PCI Device ID Table
@@ -194,6 +195,22 @@ static pci_vendor_info_t em_vendor_info_array[] =
 	PVID(0x8086, E1000_DEV_ID_PCH_MTP_I219_V18, "Intel(R) I219-V MTP(18)"),
 	PVID(0x8086, E1000_DEV_ID_PCH_MTP_I219_LM19, "Intel(R) I219-LM MTP(19)"),
 	PVID(0x8086, E1000_DEV_ID_PCH_MTP_I219_V19, "Intel(R) I219-V MTP(19)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_LNL_I219_LM20, "Intel(R) I219-LM LNL(20)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_LNL_I219_V20, "Intel(R) I219-V LNL(20)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_LNL_I219_LM21, "Intel(R) I219-LM LNL(21)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_LNL_I219_V21, "Intel(R) I219-V LNL(21)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_RPL_I219_LM22, "Intel(R) I219-LM RPL(22)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_RPL_I219_V22, "Intel(R) I219-V RPL(22)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_RPL_I219_LM23, "Intel(R) I219-LM RPL(23)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_RPL_I219_V23, "Intel(R) I219-V RPL(23)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_ARL_I219_LM24, "Intel(R) I219-LM ARL(24)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_ARL_I219_V24, "Intel(R) I219-V ARL(24)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_PTP_I219_LM25, "Intel(R) I219-LM PTP(25)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_PTP_I219_V25, "Intel(R) I219-V PTP(25)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_PTP_I219_LM26, "Intel(R) I219-LM PTP(26)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_PTP_I219_V26, "Intel(R) I219-V PTP(26)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_PTP_I219_LM27, "Intel(R) I219-LM PTP(27)"),
+	PVID(0x8086, E1000_DEV_ID_PCH_PTP_I219_V27, "Intel(R) I219-V PTP(27)"),
 	/* required last entry */
 	PVID_END
 };
@@ -343,6 +360,7 @@ static int	em_get_regs(SYSCTL_HANDLER_ARGS);
 
 static void	lem_smartspeed(struct e1000_softc *);
 static void	igb_configure_queues(struct e1000_softc *);
+static void	em_flush_desc_rings(struct e1000_softc *);
 
 
 /*********************************************************************
@@ -590,7 +608,7 @@ static struct if_shared_ctx igb_sctx_init = {
 	.isc_ntxqs = 1,
 	.isc_admin_intrcnt = 1,
 	.isc_vendor_info = igb_vendor_info_array,
-	.isc_driver_version = em_driver_version,
+	.isc_driver_version = igb_driver_version,
 	.isc_driver = &igb_if_driver,
 	.isc_flags = IFLIB_NEED_SCRATCH | IFLIB_TSO_INIT_IP | IFLIB_NEED_ZERO_CSUM,
 
@@ -1101,9 +1119,6 @@ em_if_attach_pre(if_ctx_t ctx)
 
 	em_print_fw_version(sc);
 
-	/* Disable ULP support */
-	e1000_disable_ulp_lpt_lp(hw, true);
-
 	/*
 	 * Get Wake-on-Lan and Management info for later use
 	 */
@@ -1249,6 +1264,7 @@ em_if_mtu_set(if_ctx_t ctx, uint32_t mtu)
 	case e1000_pch_tgp:
 	case e1000_pch_adp:
 	case e1000_pch_mtp:
+	case e1000_pch_ptp:
 	case e1000_82574:
 	case e1000_82583:
 	case e1000_80003es2lan:
@@ -1905,6 +1921,10 @@ em_if_stop(if_ctx_t ctx)
 
 	INIT_DEBUGOUT("em_if_stop: begin");
 
+	/* I219 needs special flushing to avoid hangs */
+	if (sc->hw.mac.type >= e1000_pch_spt && sc->hw.mac.type < igb_mac_min)
+		em_flush_desc_rings(sc);
+
 	e1000_reset_hw(&sc->hw);
 	if (sc->hw.mac.type >= e1000_82544)
 		E1000_WRITE_REG(&sc->hw, E1000_WUFC, 0);
@@ -1970,8 +1990,7 @@ em_allocate_pci_resources(if_ctx_t ctx)
 	sc->hw.hw_addr = (u8 *)&sc->osdep.mem_bus_space_handle;
 
 	/* Only older adapters use IO mapping */
-	if (sc->hw.mac.type < em_mac_min &&
-	    sc->hw.mac.type > e1000_82543) {
+	if (sc->hw.mac.type < em_mac_min && sc->hw.mac.type > e1000_82543) {
 		/* Figure our where our IO BAR is ? */
 		for (rid = PCIR_BAR(0); rid < PCIR_CIS;) {
 			val = pci_read_config(dev, rid, 4);
@@ -2459,6 +2478,113 @@ igb_init_dmac(struct e1000_softc *sc, u32 pba)
 		E1000_WRITE_REG(hw, E1000_DMACR, 0);
 	}
 }
+/*********************************************************************
+ * The 3 following flush routines are used as a workaround in the
+ * I219 client parts and only for them.
+ *
+ * em_flush_tx_ring - remove all descriptors from the tx_ring
+ *
+ * We want to clear all pending descriptors from the TX ring.
+ * zeroing happens when the HW reads the regs. We assign the ring itself as
+ * the data of the next descriptor. We don't care about the data we are about
+ * to reset the HW.
+ **********************************************************************/
+static void
+em_flush_tx_ring(struct e1000_softc *sc)
+{
+	struct e1000_hw		*hw = &sc->hw;
+	struct tx_ring		*txr = &sc->tx_queues->txr;
+	struct e1000_tx_desc	*txd;
+	u32			tctl, txd_lower = E1000_TXD_CMD_IFCS;
+	u16			size = 512;
+
+	tctl = E1000_READ_REG(hw, E1000_TCTL);
+	E1000_WRITE_REG(hw, E1000_TCTL, tctl | E1000_TCTL_EN);
+
+	txd = &txr->tx_base[txr->tx_cidx_processed];
+
+	/* Just use the ring as a dummy buffer addr */
+	txd->buffer_addr = txr->tx_paddr;
+	txd->lower.data = htole32(txd_lower | size);
+	txd->upper.data = 0;
+
+	/* flush descriptors to memory before notifying the HW */
+	wmb();
+
+	E1000_WRITE_REG(hw, E1000_TDT(0), txr->tx_cidx_processed);
+	mb();
+	usec_delay(250);
+}
+
+/*********************************************************************
+ * em_flush_rx_ring - remove all descriptors from the rx_ring
+ *
+ * Mark all descriptors in the RX ring as consumed and disable the rx ring
+ **********************************************************************/
+static void
+em_flush_rx_ring(struct e1000_softc *sc)
+{
+	struct e1000_hw	*hw = &sc->hw;
+	u32		rctl, rxdctl;
+
+	rctl = E1000_READ_REG(hw, E1000_RCTL);
+	E1000_WRITE_REG(hw, E1000_RCTL, rctl & ~E1000_RCTL_EN);
+	E1000_WRITE_FLUSH(hw);
+	usec_delay(150);
+
+	rxdctl = E1000_READ_REG(hw, E1000_RXDCTL(0));
+	/* zero the lower 14 bits (prefetch and host thresholds) */
+	rxdctl &= 0xffffc000;
+	/*
+	 * update thresholds: prefetch threshold to 31, host threshold to 1
+	 * and make sure the granularity is "descriptors" and not "cache lines"
+	 */
+	rxdctl |= (0x1F | (1 << 8) | E1000_RXDCTL_THRESH_UNIT_DESC);
+	E1000_WRITE_REG(hw, E1000_RXDCTL(0), rxdctl);
+
+	/* momentarily enable the RX ring for the changes to take effect */
+	E1000_WRITE_REG(hw, E1000_RCTL, rctl | E1000_RCTL_EN);
+	E1000_WRITE_FLUSH(hw);
+	usec_delay(150);
+	E1000_WRITE_REG(hw, E1000_RCTL, rctl & ~E1000_RCTL_EN);
+}
+
+/*********************************************************************
+ * em_flush_desc_rings - remove all descriptors from the descriptor rings
+ *
+ * In I219, the descriptor rings must be emptied before resetting the HW
+ * or before changing the device state to D3 during runtime (runtime PM).
+ *
+ * Failure to do this will cause the HW to enter a unit hang state which can
+ * only be released by PCI reset on the device
+ *
+ **********************************************************************/
+static void
+em_flush_desc_rings(struct e1000_softc *sc)
+{
+	struct e1000_hw	*hw = &sc->hw;
+	device_t dev = sc->dev;
+	u16		hang_state;
+	u32		fext_nvm11, tdlen;
+
+	/* First, disable MULR fix in FEXTNVM11 */
+	fext_nvm11 = E1000_READ_REG(hw, E1000_FEXTNVM11);
+	fext_nvm11 |= E1000_FEXTNVM11_DISABLE_MULR_FIX;
+	E1000_WRITE_REG(hw, E1000_FEXTNVM11, fext_nvm11);
+
+	/* do nothing if we're not in faulty state, or if the queue is empty */
+	tdlen = E1000_READ_REG(hw, E1000_TDLEN(0));
+	hang_state = pci_read_config(dev, PCICFG_DESC_RING_STATUS, 2);
+	if (!(hang_state & FLUSH_DESC_REQUIRED) || !tdlen)
+		return;
+	em_flush_tx_ring(sc);
+
+	/* recheck, maybe the fault is caused by the rx ring */
+	hang_state = pci_read_config(dev, PCICFG_DESC_RING_STATUS, 2);
+	if (hang_state & FLUSH_DESC_REQUIRED)
+		em_flush_rx_ring(sc);
+}
+
 
 /*********************************************************************
  *
@@ -2538,6 +2664,7 @@ em_reset(if_ctx_t ctx)
 	case e1000_pch_tgp:
 	case e1000_pch_adp:
 	case e1000_pch_mtp:
+	case e1000_pch_ptp:
 		pba = E1000_PBA_26K;
 		break;
 	case e1000_82575:
@@ -2651,6 +2778,7 @@ em_reset(if_ctx_t ctx)
 	case e1000_pch_tgp:
 	case e1000_pch_adp:
 	case e1000_pch_mtp:
+	case e1000_pch_ptp:
 		hw->fc.high_water = 0x5C20;
 		hw->fc.low_water = 0x5048;
 		hw->fc.pause_time = 0x0650;
@@ -2689,6 +2817,10 @@ em_reset(if_ctx_t ctx)
 			hw->fc.pause_time = 0xFFFF;
 		break;
 	}
+
+	/* I219 needs some special flushing to avoid hangs */
+	if (sc->hw.mac.type >= e1000_pch_spt && sc->hw.mac.type < igb_mac_min)
+		em_flush_desc_rings(sc);
 
 	/* Issue a global reset */
 	e1000_reset_hw(hw);

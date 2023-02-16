@@ -3527,7 +3527,7 @@ dev/xen/efi/pvefi.c		optional xenhvm efirt
 dev/xen/grant_table/grant_table.c	optional xenhvm
 dev/xen/netback/netback.c	optional xenhvm
 dev/xen/netfront/netfront.c	optional xenhvm
-dev/xen/timer/timer.c		optional xenhvm xentimer
+dev/xen/timer/xen_timer.c	optional xenhvm xentimer
 dev/xen/xenpci/xenpci.c		optional xenpci
 dev/xen/xenstore/xenstore.c	optional xenhvm
 dev/xen/xenstore/xenstore_dev.c	optional xenhvm
@@ -3615,6 +3615,10 @@ fs/smbfs/smbfs_smb.c		optional smbfs
 fs/smbfs/smbfs_subr.c		optional smbfs
 fs/smbfs/smbfs_vfsops.c		optional smbfs
 fs/smbfs/smbfs_vnops.c		optional smbfs
+fs/tarfs/tarfs_io.c		optional tarfs compile-with "${NORMAL_C} -I$S/contrib/zstd/lib/freebsd"
+fs/tarfs/tarfs_subr.c		optional tarfs
+fs/tarfs/tarfs_vfsops.c		optional tarfs
+fs/tarfs/tarfs_vnops.c		optional tarfs
 fs/udf/osta.c			optional udf
 fs/udf/udf_iconv.c		optional udf_iconv
 fs/udf/udf_vfsops.c		optional udf
@@ -4096,31 +4100,35 @@ libkern/strtouq.c		standard
 libkern/strvalid.c		standard
 libkern/timingsafe_bcmp.c	standard
 contrib/zlib/adler32.c		optional crypto | geom_uzip | \
-	mxge | ddb_ctf | gzio | zfs | zlib
+	mxge | ddb_ctf | gzio | zfs | zlib \
+	compile-with "${ZLIB_C}"
 contrib/zlib/compress.c		optional crypto | geom_uzip | \
 	mxge | ddb_ctf | gzio | zfs | zlib \
-	compile-with "${NORMAL_C} -Wno-cast-qual"
+	compile-with "${ZLIB_C}"
 contrib/zlib/crc32.c		optional crypto | geom_uzip | \
 	mxge | ddb_ctf | gzio | zfs | zlib \
-	compile-with "${NORMAL_C} ${NO_WSTRICT_PROTOTYPES}"
+	compile-with "${ZLIB_C}"
 contrib/zlib/deflate.c		optional crypto | geom_uzip | \
 	mxge | ddb_ctf | gzio | zfs | zlib \
-	compile-with "${NORMAL_C} -Wno-cast-qual"
+	compile-with "${ZLIB_C}"
 contrib/zlib/inffast.c		optional crypto | geom_uzip | \
-	mxge | ddb_ctf | gzio | zfs | zlib
+	mxge | ddb_ctf | gzio | zfs | zlib \
+	compile-with "${ZLIB_C}"
 contrib/zlib/inflate.c		optional crypto | geom_uzip | \
-	mxge | ddb_ctf | gzio | zfs | zlib
+	mxge | ddb_ctf | gzio | zfs | zlib \
+	compile-with "${ZLIB_C}"
 contrib/zlib/inftrees.c		optional crypto | geom_uzip | \
-	mxge | ddb_ctf | gzio | zfs | zlib
+	mxge | ddb_ctf | gzio | zfs | zlib \
+	compile-with "${ZLIB_C}"
 contrib/zlib/trees.c		optional crypto | geom_uzip | \
 	mxge | ddb_ctf | gzio | zfs | zlib \
-	compile-with "${NORMAL_C} ${NO_WSTRICT_PROTOTYPES}"
+	compile-with "${ZLIB_C}"
 contrib/zlib/uncompr.c		optional crypto | geom_uzip | \
 	mxge | ddb_ctf | gzio | zfs | zlib \
-	compile-with "${NORMAL_C} -Wno-cast-qual"
+	compile-with "${ZLIB_C}"
 contrib/zlib/zutil.c		optional crypto | geom_uzip | \
 	mxge | ddb_ctf | gzio | zfs | zlib \
-	compile-with "${NORMAL_C} ${NO_WSTRICT_PROTOTYPES}"
+	compile-with "${ZLIB_C}"
 dev/zlib/zlib_mod.c		optional crypto | geom_uzip | \
 	mxge | ddb_ctf | gzio | zfs | zlib
 dev/zlib/zcalloc.c		optional crypto | geom_uzip | \

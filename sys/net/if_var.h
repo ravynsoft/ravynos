@@ -576,8 +576,16 @@ int if_togglecapenable(if_t ifp, int togglecap);
 int if_setcapenable(if_t ifp, int capenable);
 int if_setcapenablebit(if_t ifp, int setcap, int clearcap);
 int if_getcapenable(const if_t ifp);
+int if_setcapabilities2(if_t ifp, int capabilities);
+int if_setcapabilities2bit(if_t ifp, int setbit, int clearbit);
+int if_getcapabilities2(const if_t ifp);
+int if_togglecapenable2(if_t ifp, int togglecap);
+int if_setcapenable2(if_t ifp, int capenable);
+int if_setcapenable2bit(if_t ifp, int setcap, int clearcap);
+int if_getcapenable2(const if_t ifp);
 int if_getdunit(const if_t ifp);
 int if_getindex(const if_t ifp);
+int if_getidxgen(const if_t ifp);
 const char *if_getdname(const if_t ifp);
 void if_setdname(if_t ifp, const char *name);
 const char *if_name(if_t ifp);
@@ -603,8 +611,10 @@ int if_setflags(if_t ifp, int flags);
 void if_setllsoftc(if_t ifp, void *softc);
 void *if_getllsoftc(if_t ifp);
 u_int if_getfib(if_t ifp);
+uint8_t if_getaddrlen(if_t ifp);
 int if_gethwaddr(const if_t ifp, struct ifreq *);
 const uint8_t *if_getbroadcastaddr(const if_t ifp);
+void if_setbroadcastaddr(if_t ifp, const uint8_t *);
 int if_setmtu(if_t ifp, int mtu);
 int if_getmtu(const if_t ifp);
 int if_getmtu_family(const if_t ifp, int family);
@@ -623,7 +633,7 @@ u_int if_gethwtsomaxsegcount(const if_t ifp);
 u_int if_gethwtsomaxsegsize(const if_t ifp);
 void if_setnetmapadapter(if_t ifp, struct netmap_adapter *na);
 struct netmap_adapter *if_getnetmapadapter(if_t ifp);
-int if_input(if_t ifp, struct mbuf* sendmp);
+void if_input(if_t ifp, struct mbuf* sendmp);
 int if_sendq_prepend(if_t ifp, struct mbuf *m);
 struct mbuf *if_dequeue(if_t ifp);
 int if_setifheaderlen(if_t ifp, int len);
@@ -638,7 +648,8 @@ void if_bpfmtap(if_t ifp, struct mbuf *m);
 void if_etherbpfmtap(if_t ifp, struct mbuf *m);
 void if_vlancap(if_t ifp);
 int if_transmit(if_t ifp, struct mbuf *m);
-int if_init(if_t ifp, void *ctx);
+void if_init(if_t ifp, void *ctx);
+int if_resolvemulti(if_t ifp, struct sockaddr **, struct sockaddr *);
 uint64_t if_getcounter(if_t ifp, ift_counter counter);
 struct label *if_getmaclabel(if_t ifp);
 void if_setmaclabel(if_t ifp, struct label *label);
@@ -650,6 +661,8 @@ bool if_altq_is_enabled(if_t ifp);
 
 void *if_getafdata(if_t ifp, int);
 
+int if_snd_tag_alloc(struct ifnet *ifp, union if_snd_tag_alloc_params *params,
+    struct m_snd_tag **mstp);
 /*
  * Traversing through interface address lists.
  */
@@ -664,6 +677,9 @@ int if_getamcount(const if_t ifp);
 struct ifaddr * if_getifaddr(const if_t ifp);
 typedef u_int if_addr_cb_t(void *, struct ifaddr *, u_int);
 u_int if_foreach_addr_type(if_t ifp, int type, if_addr_cb_t cb, void *cb_arg);
+
+typedef int (*if_foreach_cb_t)(if_t, void *);
+int	if_foreach(if_foreach_cb_t, void *);
 
 /* Functions */
 void if_setinitfn(if_t ifp, if_init_fn_t);
