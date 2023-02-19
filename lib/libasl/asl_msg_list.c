@@ -445,12 +445,12 @@ asl_msg_list_match(asl_msg_list_t *list, asl_msg_list_t *qlist, size_t *last, si
 			n++;
 		}
 
-		if (n >= count) return n;
+		if (n >= count) return NULL; //n;
 
 		/* check the timer */
 		if ((finish.tv_sec != 0) && (gettimeofday(&now, NULL) == 0))
 		{
-			if ((now.tv_sec > finish.tv_sec) || ((now.tv_sec == finish.tv_sec) && (now.tv_usec > finish.tv_usec))) return n;
+			if ((now.tv_sec > finish.tv_sec) || ((now.tv_sec == finish.tv_sec) && (now.tv_usec > finish.tv_usec))) return NULL; //n;
 		}
 
 		i += direction;

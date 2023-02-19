@@ -76,7 +76,7 @@ mig_init(void * arg __unused)
  ********************************************************/
 
 mach_port_t
-mig_get_reply_port()
+mig_get_reply_port(void)
 {
 	if (mig_reply_port == MACH_PORT_NULL)
 		mig_reply_port = mach_reply_port();

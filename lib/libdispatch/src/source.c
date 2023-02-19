@@ -136,7 +136,7 @@ dispatch_source_create(dispatch_source_type_t type,
 	dk->dk_kevent.ident = handle;
 	dk->dk_kevent.flags |= EV_ADD|EV_ENABLE;
 	dk->dk_kevent.fflags |= (uint32_t)mask;
-	dk->dk_kevent.udata = (uintptr_t)dk;
+	dk->dk_kevent.udata = (void *)dk;
 	TAILQ_INIT(&dk->dk_sources);
 
 	ds->ds_dkev = dk;
@@ -1960,7 +1960,7 @@ _dispatch_select_register(struct kevent64_s *kev)
 						sizeof(*_dispatch_rfd_ptrs));
 			}
 			if (!_dispatch_rfd_ptrs[kev->ident]) {
-				_dispatch_rfd_ptrs[kev->ident] = kev->udata;
+				_dispatch_rfd_ptrs[kev->ident] = (uintptr_t)kev->udata;
 				_dispatch_select_workaround++;
 				_dispatch_debug("select workaround used to read fd %d: 0x%lx",
 						(int)kev->ident, (long)kev->data);
@@ -1976,7 +1976,7 @@ _dispatch_select_register(struct kevent64_s *kev)
 						sizeof(*_dispatch_wfd_ptrs));
 			}
 			if (!_dispatch_wfd_ptrs[kev->ident]) {
-				_dispatch_wfd_ptrs[kev->ident] = kev->udata;
+				_dispatch_wfd_ptrs[kev->ident] = (uintptr_t)kev->udata;
 				_dispatch_select_workaround++;
 				_dispatch_debug("select workaround used to write fd %d: 0x%lx",
 						(int)kev->ident, (long)kev->data);
@@ -2075,14 +2075,14 @@ _dispatch_mgr_select(bool poll)
 				FD_CLR(i, &_dispatch_rfds); // emulate EV_DISPATCH
 				EV_SET64(&kev, i, EVFILT_READ,
 						EV_ADD|EV_ENABLE|EV_DISPATCH, 0, 1,
-						_dispatch_rfd_ptrs[i], 0, 0);
+						(void *)_dispatch_rfd_ptrs[i], 0, 0);
 				_dispatch_kevent_drain(&kev);
 			}
 			if (FD_ISSET(i, &tmp_wfds)) {
 				FD_CLR(i, &_dispatch_wfds); // emulate EV_DISPATCH
 				EV_SET64(&kev, i, EVFILT_WRITE,
 						EV_ADD|EV_ENABLE|EV_DISPATCH, 0, 1,
-						_dispatch_wfd_ptrs[i], 0, 0);
+						(void *)_dispatch_wfd_ptrs[i], 0, 0);
 				_dispatch_kevent_drain(&kev);
 			}
 		}
@@ -2663,7 +2663,7 @@ _dispatch_kevent_machport_drain(struct kevent64_s *ke)
 	_dispatch_mach_portset_update(dk, MACH_PORT_NULL); // emulate EV_DISPATCH
 
 	EV_SET64(&kev, name, EVFILT_MACHPORT, EV_ADD|EV_ENABLE|EV_DISPATCH,
-			DISPATCH_MACH_RECV_MESSAGE, 0, (uintptr_t)dk, 0, 0);
+			DISPATCH_MACH_RECV_MESSAGE, 0, dk, 0, 0);
 	_dispatch_kevent_debug(&kev, __func__);
 	_dispatch_kevent_merge(&kev);
 }
@@ -2839,7 +2839,7 @@ _dispatch_mach_notify_merge(mach_port_t name, uint32_t flag, bool final)
 	// Update notification registration state.
 	dk->dk_kevent.data &= ~_DISPATCH_MACH_SP_FLAGS;
 	EV_SET64(&kev, name, DISPATCH_EVFILT_MACH_NOTIFICATION, EV_ADD|EV_ENABLE,
-			flag, 0, (uintptr_t)dk, 0, 0);
+			flag, 0, dk, 0, 0);
 	if (final) {
 		// This can never happen again
 		unreg = true;
@@ -3129,7 +3129,7 @@ dispatch_mach_connect(dispatch_mach_t dm, mach_port_t receive,
 		dk->dk_kevent = _dispatch_source_type_mach_recv_direct.ke;
 		dk->dk_kevent.ident = receive;
 		dk->dk_kevent.flags |= EV_ADD|EV_ENABLE;
-		dk->dk_kevent.udata = (uintptr_t)dk;
+		dk->dk_kevent.udata = (void *)dk;
 		TAILQ_INIT(&dk->dk_sources);
 		dm->ds_dkev = dk;
 		dm->ds_pending_data_mask = dk->dk_kevent.fflags;
@@ -3186,7 +3186,7 @@ _dispatch_mach_reply_kevent_register(dispatch_mach_t dm, mach_port_t reply,
 	dk->dk_kevent.ident = reply;
 	dk->dk_kevent.flags |= EV_ADD|EV_ENABLE;
 	dk->dk_kevent.fflags = DISPATCH_MACH_RECV_MESSAGE_DIRECT_ONCE;
-	dk->dk_kevent.udata = (uintptr_t)dk;
+	dk->dk_kevent.udata = (void *)dk;
 	TAILQ_INIT(&dk->dk_sources);
 
 	dmr = _dispatch_calloc(1ul, sizeof(struct dispatch_mach_reply_refs_s));
@@ -3236,7 +3236,7 @@ _dispatch_mach_kevent_register(dispatch_mach_t dm, mach_port_t send)
 	dk->dk_kevent.ident = send;
 	dk->dk_kevent.flags |= EV_ADD|EV_ENABLE;
 	dk->dk_kevent.fflags = DISPATCH_MACH_SEND_POSSIBLE|DISPATCH_MACH_SEND_DEAD;
-	dk->dk_kevent.udata = (uintptr_t)dk;
+	dk->dk_kevent.udata = (void *)dk;
 	TAILQ_INIT(&dk->dk_sources);
 
 	dm->ds_pending_data_mask |= dk->dk_kevent.fflags;
@@ -3553,13 +3553,13 @@ _dispatch_mach_send_drain(dispatch_mach_t dm)
 	dispatch_mach_send_refs_t dr = dm->dm_refs;
 	struct dispatch_object_s *dc = NULL, *next_dc = NULL;
 	while (dr->dm_tail) {
-		_dispatch_wait_until(dc = fastpath(dr->dm_head));
+		_dispatch_wait_until((dc = (struct dispatch_object_s *)fastpath(dr->dm_head)) != 0);
 		do {
-			next_dc = fastpath(dc->do_next);
+			next_dc = (struct dispatch_object_s *)fastpath(dc->do_next);
 			dr->dm_head = next_dc;
 			if (!next_dc && !dispatch_atomic_cmpxchg2o(dr, dm_tail, dc, NULL,
 					relaxed)) {
-				_dispatch_wait_until(next_dc = fastpath(dc->do_next));
+				_dispatch_wait_until(next_dc = (struct dispatch_object_s *)fastpath(dc->do_next));
 				dr->dm_head = next_dc;
 			}
 			if (!DISPATCH_OBJ_IS_VTABLE(dc)) {
@@ -3598,7 +3598,7 @@ out:
 		if (!next_dc &&
 				!dispatch_atomic_cmpxchg2o(dr, dm_tail, NULL, dc, relaxed)) {
 			// wait for enqueue slow path to finish
-			_dispatch_wait_until(next_dc = fastpath(dr->dm_head));
+			_dispatch_wait_until(next_dc = (struct dispatch_object_s *)fastpath(dr->dm_head));
 			dc->do_next = next_dc;
 		}
 		dr->dm_head = dc;

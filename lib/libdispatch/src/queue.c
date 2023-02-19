@@ -3288,7 +3288,7 @@ _dispatch_wakeup(dispatch_object_t dou)
 static inline void
 _dispatch_runloop_queue_wakeup_thread(dispatch_queue_t dq)
 {
-	mach_port_t mp = (mach_port_t)dq->do_ctxt;
+	mach_port_t mp = (mach_port_t)(dq->do_ctxt);
 	if (!mp) {
 		return;
 	}
@@ -3496,7 +3496,7 @@ _dispatch_queue_next(dispatch_queue_t dq, struct dispatch_object_s *dc)
 	dq->dq_items_head = next_dc;
 	if (!next_dc && !dispatch_atomic_cmpxchg2o(dq, dq_items_tail, dc, NULL,
 			relaxed)) {
-		_dispatch_wait_until(next_dc = fastpath(dc->do_next));
+		_dispatch_wait_until(next_dc = (struct dispatch_object_s *)fastpath(dc->do_next));
 		dq->dq_items_head = next_dc;
 	}
 	return next_dc;
