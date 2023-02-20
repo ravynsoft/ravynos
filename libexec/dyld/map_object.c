@@ -29,6 +29,7 @@
  * $FreeBSD$
  */
 
+#define _WANT_P_OSREL
 #include <sys/param.h>
 #include <sys/mman.h>
 #include <sys/stat.h>
