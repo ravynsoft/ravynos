@@ -552,7 +552,7 @@ fbsdrun_start_thread(void *param)
 }
 
 static void
-fbsdrun_addcpu(struct vmctx *ctx, int newcpu, bool suspend)
+fbsdrun_addcpu(struct vmctx *ctx, int newcpu)
 {
 	int error;
 
@@ -562,8 +562,7 @@ fbsdrun_addcpu(struct vmctx *ctx, int newcpu, bool suspend)
 
 	CPU_SET_ATOMIC(newcpu, &cpumask);
 
-	if (suspend)
-		vm_suspend_cpu(ctx, newcpu);
+	vm_suspend_cpu(ctx, newcpu);
 
 	mt_vmm_info[newcpu].mt_ctx = ctx;
 	mt_vmm_info[newcpu].mt_vcpu = newcpu;
@@ -1138,7 +1137,7 @@ do_open(const char *vmname)
 }
 
 static void
-spinup_vcpu(struct vmctx *ctx, int vcpu, bool suspend)
+spinup_vcpu(struct vmctx *ctx, int vcpu)
 {
 	int error;
 
@@ -1154,7 +1153,7 @@ spinup_vcpu(struct vmctx *ctx, int vcpu, bool suspend)
 		assert(error == 0);
 	}
 
-	fbsdrun_addcpu(ctx, vcpu, suspend);
+	fbsdrun_addcpu(ctx, vcpu);
 }
 
 static bool
@@ -1237,7 +1236,7 @@ set_defaults(void)
 int
 main(int argc, char *argv[])
 {
-	int c, error, err;
+	int c, error;
 	int max_vcpus, memflags;
 	struct vmctx *ctx;
 	uint64_t rip;
@@ -1438,8 +1437,8 @@ main(int argc, char *argv[])
 	if (get_config_bool_default("memory.guest_in_core", false))
 		memflags |= VM_MEM_F_INCORE;
 	vm_set_memflags(ctx, memflags);
-	err = vm_setup_memory(ctx, memsize, VM_MMAP_ALL);
-	if (err) {
+	error = vm_setup_memory(ctx, memsize, VM_MMAP_ALL);
+	if (error) {
 		fprintf(stderr, "Unable to setup memory (%d)\n", errno);
 		exit(4);
 	}
@@ -1486,6 +1485,16 @@ main(int argc, char *argv[])
 		}
 		error = vcpu_reset(ctx, BSP);
 		assert(error == 0);
+	}
+
+	/* Allocate per-VCPU resources. */
+	mt_vmm_info = calloc(guest_ncpus, sizeof(*mt_vmm_info));
+
+	/*
+	 * Add all vCPUs.
+	 */
+	for (int vcpu = 0; vcpu < guest_ncpus; vcpu++) {
+		spinup_vcpu(ctx, vcpu);
 	}
 
 #ifdef BHYVE_SNAPSHOT
@@ -1564,9 +1573,6 @@ main(int argc, char *argv[])
 #endif
 
 #ifdef BHYVE_SNAPSHOT
-	if (restore_file != NULL)
-		destroy_restore_state(&rstate);
-
 	/* initialize mutex/cond variables */
 	init_snapshot();
 
@@ -1576,24 +1582,18 @@ main(int argc, char *argv[])
 	if (init_checkpoint_thread(ctx) < 0)
 		printf("Failed to start checkpoint thread!\r\n");
 
-	if (restore_file != NULL)
+	if (restore_file != NULL) {
+		destroy_restore_state(&rstate);
 		vm_restore_time(ctx);
-#endif
 
-	/* Allocate per-VCPU resources. */
-	mt_vmm_info = calloc(guest_ncpus, sizeof(*mt_vmm_info));
-
-	/*
-	 * Add all vCPUs.
-	 */
-	for (int vcpu = 0; vcpu < guest_ncpus; vcpu++) {
-		bool suspend = (vcpu != BSP);
-#ifdef BHYVE_SNAPSHOT
-		if (restore_file != NULL)
-			suspend = false;
-#endif
-		spinup_vcpu(ctx, vcpu, suspend);
+		for (int i = 0; i < guest_ncpus; i++) {
+			if (i == BSP)
+				continue;
+			vm_resume_cpu(ctx, i);
+		}
 	}
+#endif
+	vm_resume_cpu(ctx, BSP);
 
 	/*
 	 * Head off to the main event dispatch loop

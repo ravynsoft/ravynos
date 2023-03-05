@@ -1752,10 +1752,6 @@ ip6_ctloutput(struct socket *so, struct sockopt *sopt)
 			case IPV6_AUTOFLOWLABEL:
 			case IPV6_ORIGDSTADDR:
 			case IPV6_BINDANY:
-			case IPV6_BINDMULTI:
-#ifdef	RSS
-			case IPV6_RSS_LISTEN_BUCKET:
-#endif
 			case IPV6_VLAN_PCP:
 				if (optname == IPV6_BINDANY && td != NULL) {
 					error = priv_check(td,
@@ -1933,23 +1929,6 @@ do {									\
 				case IPV6_BINDANY:
 					OPTSET(INP_BINDANY);
 					break;
-
-				case IPV6_BINDMULTI:
-					OPTSET2(INP_BINDMULTI, optval);
-					break;
-#ifdef	RSS
-				case IPV6_RSS_LISTEN_BUCKET:
-					if ((optval >= 0) &&
-					    (optval < rss_getnumbuckets())) {
-						INP_WLOCK(inp);
-						inp->inp_rss_listen_bucket = optval;
-						OPTSET2_N(INP_RSS_BUCKET_SET, 1);
-						INP_WUNLOCK(inp);
-					} else {
-						error = EINVAL;
-					}
-					break;
-#endif
 				case IPV6_VLAN_PCP:
 					if ((optval >= -1) && (optval <=
 					    (INP_2PCP_MASK >> INP_2PCP_SHIFT))) {
@@ -2195,7 +2174,6 @@ do {									\
 			case IPV6_RSSBUCKETID:
 			case IPV6_RECVRSSBUCKETID:
 #endif
-			case IPV6_BINDMULTI:
 			case IPV6_VLAN_PCP:
 				switch (optname) {
 				case IPV6_RECVHOPOPTS:
@@ -2290,9 +2268,6 @@ do {									\
 					break;
 #endif
 
-				case IPV6_BINDMULTI:
-					optval = OPTBIT2(INP_BINDMULTI);
-					break;
 
 				case IPV6_VLAN_PCP:
 					if (OPTBIT2(INP_2PCP_SET)) {

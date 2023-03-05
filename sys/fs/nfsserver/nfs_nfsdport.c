@@ -108,8 +108,6 @@ NFSD_VNET_DEFINE_STATIC(struct vfsoptlist, nfsv4root_newopt);
 NFSD_VNET_DEFINE_STATIC(bool, nfsrv_suspend_nfsd) = false;
 NFSD_VNET_DEFINE_STATIC(bool, nfsrv_mntinited) = false;
 
-static void nfsrv_cleanup(struct prison *);
-
 static int nfssvc_srvcall(struct thread *, struct nfssvc_args *,
     struct ucred *);
 static void nfsvno_updateds(struct vnode *, struct ucred *, struct thread *);
@@ -3261,8 +3259,16 @@ nfsvno_checkexp(struct mount *mp, struct sockaddr *nam, struct nfsexstuff *exp,
 {
 	int error;
 
-	error = VFS_CHECKEXP(mp, nam, &exp->nes_exflag, credp,
-	    &exp->nes_numsecflavor, exp->nes_secflavors);
+	error = 0;
+	*credp = NULL;
+	MNT_ILOCK(mp);
+	if (mp->mnt_exjail == NULL ||
+	    mp->mnt_exjail->cr_prison != curthread->td_ucred->cr_prison)
+		error = EACCES;
+	MNT_IUNLOCK(mp);
+	if (error == 0)
+		error = VFS_CHECKEXP(mp, nam, &exp->nes_exflag, credp,
+		    &exp->nes_numsecflavor, exp->nes_secflavors);
 	if (error) {
 		if (NFSD_VNET(nfs_rootfhset)) {
 			exp->nes_exflag = 0;
@@ -3296,8 +3302,14 @@ nfsvno_fhtovp(struct mount *mp, fhandle_t *fhp, struct sockaddr *nam,
 		/* Make sure the server replies ESTALE to the client. */
 		error = ESTALE;
 	if (nam && !error) {
-		error = VFS_CHECKEXP(mp, nam, &exp->nes_exflag, credp,
-		    &exp->nes_numsecflavor, exp->nes_secflavors);
+		MNT_ILOCK(mp);
+		if (mp->mnt_exjail == NULL ||
+		    mp->mnt_exjail->cr_prison != curthread->td_ucred->cr_prison)
+			error = EACCES;
+		MNT_IUNLOCK(mp);
+		if (error == 0)
+			error = VFS_CHECKEXP(mp, nam, &exp->nes_exflag, credp,
+			    &exp->nes_numsecflavor, exp->nes_secflavors);
 		if (error) {
 			if (NFSD_VNET(nfs_rootfhset)) {
 				exp->nes_exflag = 0;
@@ -3467,7 +3479,7 @@ nfsrv_v4rootexport(void *argp, struct ucred *cred, struct thread *p)
 	struct nameidata nd;
 	fhandle_t fh;
 
-	error = vfs_export(NFSD_VNET(nfsv4root_mnt), &nfsexargp->export);
+	error = vfs_export(NFSD_VNET(nfsv4root_mnt), &nfsexargp->export, false);
 	if ((nfsexargp->export.ex_flags & MNT_DELEXPORT) != 0)
 		NFSD_VNET(nfs_rootfhset) = 0;
 	else if (error == 0) {
@@ -3995,7 +4007,7 @@ nfssvc_srvcall(struct thread *p, struct nfssvc_args *uap, struct ucred *cred)
 		if (!error && (NFSFPFLAG(fp) & (FREAD | FWRITE)) != (FREAD | FWRITE))
 			error = EBADF;
 		if (!error && NFSD_VNET(nfsrv_numnfsd) != 0)
-			error = EPERM;
+			error = ENXIO;
 		if (!error) {
 			NFSD_VNET(nfsrv_stablefirst).nsf_fp = fp;
 			nfsrv_setupstable(p);
@@ -7111,15 +7123,13 @@ VNET_SYSINIT(nfsrv_vnetinit, SI_SUB_VNET_DONE, SI_ORDER_ANY,
  * done when the jail is destroyed or the module unloaded.
  */
 static void
-nfsrv_cleanup(struct prison *pr)
+nfsrv_cleanup(const void *unused __unused)
 {
 	int i;
 
-	NFSD_CURVNET_SET(pr->pr_vnet);
 	NFSD_LOCK();
 	if (!NFSD_VNET(nfsrv_mntinited)) {
 		NFSD_UNLOCK();
-		NFSD_CURVNET_RESTORE();
 		return;
 	}
 	NFSD_VNET(nfsrv_mntinited) = false;
@@ -7159,8 +7169,9 @@ nfsrv_cleanup(struct prison *pr)
 	free(NFSD_VNET(nfssessionhash), M_NFSDSESSION);
 	free(NFSD_VNET(nfsv4root_mnt), M_TEMP);
 	NFSD_VNET(nfsv4root_mnt) = NULL;
-	NFSD_CURVNET_RESTORE();
 }
+VNET_SYSUNINIT(nfsrv_cleanup, SI_SUB_VNET_DONE, SI_ORDER_ANY,
+    nfsrv_cleanup, NULL);
 
 extern int (*nfsd_call_nfsd)(struct thread *, struct nfssvc_args *);
 
@@ -7201,7 +7212,6 @@ nfsd_modevent(module_t mod, int type, void *data)
 		vn_deleg_ops.vndeleg_disable = NULL;
 #endif
 		nfsd_call_nfsd = NULL;
-		nfsrv_cleanup(&prison0);
 		mtx_destroy(&nfsrc_udpmtx);
 		mtx_destroy(&nfs_v4root_mutex);
 		mtx_destroy(&nfsrv_dontlistlock_mtx);

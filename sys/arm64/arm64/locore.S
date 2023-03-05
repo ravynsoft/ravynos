@@ -146,6 +146,7 @@ virtdone:
 	str	x25, [x0, #BP_KERN_STACK]
 	str	x27, [x0, #BP_KERN_TTBR0]
 	str	x23, [x0, #BP_BOOT_EL]
+	str	x4,  [x0, #BP_HCR_EL2]
 
 	/* trace back starts here */
 	mov	fp, #0
@@ -263,6 +264,10 @@ LENTRY(drop_to_el1)
 	ldr	x2, =(HCR_RW | HCR_APK | HCR_API)
 	msr	hcr_el2, x2
 
+	/* Stash value of HCR_EL2 for later */
+	isb
+	mrs	x4, hcr_el2
+
 	/* Load the Virtualization Process ID Register */
 	mrs	x2, midr_el1
 	msr	vpidr_el2, x2
@@ -275,8 +280,15 @@ LENTRY(drop_to_el1)
 	ldr	x2, .Lsctlr_res1
 	msr	sctlr_el1, x2
 
-	/* Don't trap to EL2 for exceptions */
-	mov	x2, #CPTR_RES1
+	/*
+	 * On some hardware, e.g., Apple M1, we can't clear E2H, so make sure we
+	 * don't trap to EL2 for SIMD register usage to have at least a
+	 * minimally usable system.
+	 */
+	tst	x4, #HCR_E2H
+	mov	x3, #CPTR_RES1	/* HCR_E2H == 0 */
+	mov	x5, #CPTR_FPEN	/* HCR_E2H == 1 */
+	csel	x2, x3, x5, eq
 	msr	cptr_el2, x2
 
 	/* Don't trap to EL2 for CP15 traps */

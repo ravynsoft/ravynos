@@ -41,6 +41,7 @@ __FBSDID("$FreeBSD$");
 #include <net/route/nhop.h>
 #include <net/route/route_ctl.h>
 #include <net/route/route_var.h>
+#include <netinet6/scope6_var.h>
 #include <netlink/netlink.h>
 #include <netlink/netlink_ctl.h>
 #include <netlink/netlink_route.h>
@@ -123,7 +124,9 @@ rc_get_nhop(const struct rib_cmd_info *rc)
 static void
 dump_rc_nhop_gw(struct nl_writer *nw, const struct nhop_object *nh)
 {
+#ifdef INET6
 	int upper_family;
+#endif
 
 	switch (nhop_get_neigh_family(nh)) {
 	case AF_LINK:
@@ -132,19 +135,27 @@ dump_rc_nhop_gw(struct nl_writer *nw, const struct nhop_object *nh)
 	case AF_INET:
 		nlattr_add(nw, NL_RTA_GATEWAY, 4, &nh->gw4_sa.sin_addr);
 		break;
+#ifdef INET6
 	case AF_INET6:
 		upper_family = nhop_get_upper_family(nh);
 		if (upper_family == AF_INET6) {
-			nlattr_add(nw, NL_RTA_GATEWAY, 16, &nh->gw6_sa.sin6_addr);
+			struct in6_addr gw6 = nh->gw6_sa.sin6_addr;
+			in6_clearscope(&gw6);
+
+			nlattr_add(nw, NL_RTA_GATEWAY, 16, &gw6);
 		} else if (upper_family == AF_INET) {
 			/* IPv4 over IPv6 */
+			struct in6_addr gw6 = nh->gw6_sa.sin6_addr;
+			in6_clearscope(&gw6);
+
 			char buf[20];
 			struct rtvia *via = (struct rtvia *)&buf[0];
 			via->rtvia_family = AF_INET6;
-			memcpy(via->rtvia_addr, &nh->gw6_sa.sin6_addr, 16);
+			memcpy(via->rtvia_addr, &gw6, 16);
 			nlattr_add(nw, NL_RTA_VIA, 17, via);
 		}
 		break;
+#endif
 	}
 }
 
@@ -447,6 +458,7 @@ struct nl_parsed_route {
 	uint8_t			rtm_family;
 	uint8_t			rtm_dst_len;
 	uint8_t			rtm_protocol;
+	uint8_t			rtm_type;
 };
 
 #define	_IN(_field)	offsetof(struct rtmsg, _field)
@@ -470,9 +482,10 @@ static const struct nlattr_parser nla_p_rtmsg[] = {
 };
 
 static const struct nlfield_parser nlf_p_rtmsg[] = {
-	{.off_in = _IN(rtm_family), .off_out = _OUT(rtm_family), .cb = nlf_get_u8 },
-	{.off_in = _IN(rtm_dst_len), .off_out = _OUT(rtm_dst_len), .cb = nlf_get_u8 },
-	{.off_in = _IN(rtm_protocol), .off_out = _OUT(rtm_protocol), .cb = nlf_get_u8 },
+	{ .off_in = _IN(rtm_family), .off_out = _OUT(rtm_family), .cb = nlf_get_u8 },
+	{ .off_in = _IN(rtm_dst_len), .off_out = _OUT(rtm_dst_len), .cb = nlf_get_u8 },
+	{ .off_in = _IN(rtm_protocol), .off_out = _OUT(rtm_protocol), .cb = nlf_get_u8 },
+	{ .off_in = _IN(rtm_type), .off_out = _OUT(rtm_type), .cb = nlf_get_u8 },
 };
 #undef _IN
 #undef _OUT
@@ -736,7 +749,11 @@ create_nexthop_one(struct nl_parsed_route *attrs, struct rta_mpath_nh *mpnh,
 	if (nh == NULL)
 		return (ENOMEM);
 
-	nhop_set_gw(nh, mpnh->gw, true);
+	error = nl_set_nexthop_gw(nh, mpnh->gw, mpnh->ifp, npt);
+	if (error != 0) {
+		nhop_free(nh);
+		return (error);
+	}
 	if (mpnh->ifp != NULL)
 		nhop_set_transmit_ifp(nh, mpnh->ifp);
 	nhop_set_rtflags(nh, attrs->rta_rtflags);
@@ -800,21 +817,36 @@ create_nexthop_from_attrs(struct nl_parsed_route *attrs,
 			*perror = ENOMEM;
 			return (NULL);
 		}
-		if (attrs->rta_gw != NULL)
-			nhop_set_gw(nh, attrs->rta_gw, true);
+		if (attrs->rta_gw != NULL) {
+			*perror = nl_set_nexthop_gw(nh, attrs->rta_gw, attrs->rta_oif, npt);
+			if (*perror != 0) {
+				nhop_free(nh);
+				return (NULL);
+			}
+		}
 		if (attrs->rta_oif != NULL)
 			nhop_set_transmit_ifp(nh, attrs->rta_oif);
 		if (attrs->rtax_mtu != 0)
 			nhop_set_mtu(nh, attrs->rtax_mtu, true);
 		if (attrs->rta_rtflags & RTF_BROADCAST)
 			nhop_set_broadcast(nh, true);
-		if (attrs->rta_rtflags & RTF_BLACKHOLE)
-			nhop_set_blackhole(nh, NHF_BLACKHOLE);
-		if (attrs->rta_rtflags & RTF_REJECT)
-			nhop_set_blackhole(nh, NHF_REJECT);
-		nhop_set_rtflags(nh, attrs->rta_rtflags);
 		if (attrs->rtm_protocol > RTPROT_STATIC)
 			nhop_set_origin(nh, attrs->rtm_protocol);
+		nhop_set_rtflags(nh, attrs->rta_rtflags);
+
+		switch (attrs->rtm_type) {
+		case RTN_UNICAST:
+			break;
+		case RTN_BLACKHOLE:
+			nhop_set_blackhole(nh, RTF_BLACKHOLE);
+			break;
+		case RTN_PROHIBIT:
+		case RTN_UNREACHABLE:
+			nhop_set_blackhole(nh, RTF_REJECT);
+			break;
+		/* TODO: return ENOTSUP for other types if strict option is set */
+		}
+
 		nh = finalize_nhop(nh, perror);
 	}
 

@@ -59,7 +59,6 @@ __DEFAULT_YES_OPTIONS = \
     ACPI \
     APM \
     AT \
-    ATM \
     AUDIT \
     AUTHPF \
     AUTOFS \
@@ -195,6 +194,7 @@ __DEFAULT_YES_OPTIONS = \
     ZONEINFO
 
 __DEFAULT_NO_OPTIONS = \
+    ATM \
     BEARSSL \
     BHYVE_SNAPSHOT \
     CLANG_EXTRAS \
@@ -318,8 +318,8 @@ BROKEN_OPTIONS+=LOADER_UBOOT
 BROKEN_OPTIONS+=LOADER_GELI LOADER_LUA
 .endif
 
-# Kernel TLS is enabled by default on amd64 and aarch64
-.if ${__T} == "aarch64" || ${__T} == "amd64"
+# Kernel TLS is enabled by default on amd64, aarch64 and powerpc64*
+.if ${__T} == "aarch64" || ${__T} == "amd64" || ${__T:Mpowerpc64*} != ""
 __DEFAULT_YES_OPTIONS+=OPENSSL_KTLS
 .else
 __DEFAULT_NO_OPTIONS+=OPENSSL_KTLS

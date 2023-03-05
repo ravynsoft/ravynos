@@ -86,6 +86,11 @@ memory_limits(void)
 				committed_as <<= 10; /* Units are kB */
 			}
 		}
+	} else {
+		/* Otherwise, on FreeBSD host, for testing 32GB host: */
+		mem_avail = 31ul << 30;			/* 31GB free */
+		commit_limit = mem_avail * 9 / 10;	/* 90% comittable */
+		committed_as = 20ul << 20;		/* 20MB used */
 	}
 	printf("Commit limit: %lld Committed bytes %lld Available %lld\n",
 	    (long long)commit_limit, (long long)committed_as,
@@ -227,23 +232,22 @@ main(int argc, const char **argv)
 	bootdev = getenv("bootdev");
 	if (bootdev == NULL)
 		bootdev = hostdisk_gen_probe();
-	if (bootdev == NULL)
-		bootdev="zfs:";
 	hostfs_root = getenv("hostfs_root");
 	if (hostfs_root == NULL)
 		hostfs_root = "/";
 #if defined(LOADER_ZFS_SUPPORT)
-	if (strcmp(bootdev, "zfs:") == 0) {
+	if (bootdev == NULL || strcmp(bootdev, "zfs:") == 0) {
 		/*
 		 * Pseudo device that says go find the right ZFS pool. This will be
 		 * the first pool that we find that passes the sanity checks (eg looks
 		 * like it might be vbootable) and sets currdev to the right thing based
 		 * on active BEs, etc
 		 */
-		hostdisk_zfs_find_default();
-	} else
+		if (hostdisk_zfs_find_default())
+			bootdev = getenv("currdev");
+	}
 #endif
-	{
+	if (bootdev != NULL) {
 		/*
 		 * Otherwise, honor what's on the command line. If we've been
 		 * given a specific ZFS partition, then we'll honor it w/o BE
@@ -251,6 +255,8 @@ main(int argc, const char **argv)
 		 * boot than the default one in the pool.
 		 */
 		set_currdev(bootdev);
+	} else {
+		panic("Bootdev is still NULL");
 	}
 
 	printf("Boot device: %s with hostfs_root %s\n", bootdev, hostfs_root);
@@ -338,10 +344,11 @@ get_phys_buffer(vm_offset_t dest, const size_t len, void **buf)
 		/* how much space does this segment have */
 		sz = space_avail(dest);
 		/* Clip to 45% of available memory (need 2 copies) */
-		sz = min(sz, rounddown2(mem_avail * 45 / 100, SEGALIGN));
+		sz = MIN(sz, rounddown2(mem_avail * 45 / 100, SEGALIGN));
+		printf("limit to 45%% of mem_avail %zd\n", sz);
 		/* And only use 95% of what we can allocate */
-		sz = min(sz, rounddown2(
-		    (commit_limit - committed_as) * 95 / 100, SEGALIGN));
+		sz = MIN(sz,
+		    rounddown2((commit_limit - committed_as) * 95 / 100, SEGALIGN));
 		printf("Allocating %zd MB for first segment\n", sz >> 20);
 	}
 
