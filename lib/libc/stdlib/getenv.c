@@ -39,7 +39,7 @@ __FBSDID("$FreeBSD$");
 #include <string.h>
 #include <unistd.h>
 #include "un-namespace.h"
-
+#include "libc_private.h"
 
 static const char CorruptEnvFindMsg[] = "environment corrupt; unable to find ";
 static const char CorruptEnvValueMsg[] =
@@ -56,7 +56,6 @@ static const char CorruptEnvValueMsg[] =
  *	intEnviron:	Internally-built environ.  Exposed via environ during
  *			(re)builds of the environment.
  */
-extern char **environ;
 static char **origEnviron;
 static char **intEnviron = NULL;
 static int environSize = 0;
@@ -447,6 +446,18 @@ getenv(const char *name)
 	}
 }
 
+
+/*
+ * Runs getenv() unless the current process is tainted by uid or gid changes, in
+ * which case it will return NULL.
+ */
+char *
+secure_getenv(const char *name)
+{
+	if (issetugid())
+		return NULL;
+	return getenv(name);
+}
 
 /*
  * Set the value of a variable.  Older settings are labeled as inactive.  If an

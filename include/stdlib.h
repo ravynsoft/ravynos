@@ -319,6 +319,7 @@ void	*reallocarray(void *, size_t, size_t) __result_use_check
 	    __alloc_size2(2, 3);
 void	*reallocf(void *, size_t) __result_use_check __alloc_size(2);
 int	 rpmatch(const char *);
+char	*secure_getenv(const char *);
 void	 setprogname(const char *);
 int	 sradixsort(const unsigned char **, int, const unsigned char *,
 	    unsigned);

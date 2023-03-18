@@ -52,6 +52,7 @@ __FBSDID("$FreeBSD$");
 #include <netinet/ip.h>
 #include <netinet/ip_var.h>
 #include <netinet6/ip6_var.h>
+#include <netinet6/scope6_var.h>
 #include <netinet/tcp.h>
 #include <netinet/tcp_fsm.h>
 #include <netinet/tcp_seq.h>
@@ -942,9 +943,11 @@ fail:
 
 #ifdef INET6
 int
-pf_refragment6(struct ifnet *ifp, struct mbuf **m0, struct m_tag *mtag)
+pf_refragment6(struct ifnet *ifp, struct mbuf **m0, struct m_tag *mtag,
+    bool forward)
 {
 	struct mbuf		*m = *m0, *t;
+	struct ip6_hdr		*hdr;
 	struct pf_fragment_tag	*ftag = (struct pf_fragment_tag *)(mtag + 1);
 	struct pf_pdesc		 pd;
 	uint32_t		 frag_id;
@@ -971,12 +974,16 @@ pf_refragment6(struct ifnet *ifp, struct mbuf **m0, struct m_tag *mtag)
 		*(mtod(m, char *) + off) = IPPROTO_FRAGMENT;
 		m = *m0;
 	} else {
-		struct ip6_hdr *hdr;
-
 		hdr = mtod(m, struct ip6_hdr *);
 		proto = hdr->ip6_nxt;
 		hdr->ip6_nxt = IPPROTO_FRAGMENT;
 	}
+
+	/* In case of link-local traffic we'll need a scope set. */
+	hdr = mtod(m, struct ip6_hdr *);
+
+	in6_setscope(&hdr->ip6_src, ifp, NULL);
+	in6_setscope(&hdr->ip6_dst, ifp, NULL);
 
 	/* The MTU must be a multiple of 8 bytes, or we risk doing the
 	 * fragmentation wrong. */
@@ -1009,7 +1016,12 @@ pf_refragment6(struct ifnet *ifp, struct mbuf **m0, struct m_tag *mtag)
 		memset(&pd, 0, sizeof(pd));
 		pd.pf_mtag = pf_find_mtag(m);
 		if (error == 0)
-			ip6_forward(m, 0);
+			if (forward) {
+				MPASS(m->m_pkthdr.rcvif != NULL);
+				ip6_forward(m, 0);
+			} else {
+				ip6_output(m, NULL, NULL, 0, NULL, NULL, NULL);
+			}
 		else
 			m_freem(m);
 	}

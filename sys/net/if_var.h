@@ -618,6 +618,7 @@ void if_setbroadcastaddr(if_t ifp, const uint8_t *);
 int if_setmtu(if_t ifp, int mtu);
 int if_getmtu(const if_t ifp);
 int if_getmtu_family(const if_t ifp, int family);
+void if_notifymtu(if_t ifp);
 int if_setflagbits(if_t ifp, int set, int clear);
 int if_setflags(if_t ifp, int flags);
 int if_getflags(const if_t ifp);
@@ -679,7 +680,9 @@ typedef u_int if_addr_cb_t(void *, struct ifaddr *, u_int);
 u_int if_foreach_addr_type(if_t ifp, int type, if_addr_cb_t cb, void *cb_arg);
 
 typedef int (*if_foreach_cb_t)(if_t, void *);
+typedef bool (*if_foreach_match_t)(if_t, void *);
 int	if_foreach(if_foreach_cb_t, void *);
+int	if_foreach_sleep(if_foreach_match_t, void *, if_foreach_cb_t, void *);
 
 /* Functions */
 void if_setinitfn(if_t ifp, if_init_fn_t);

@@ -32,6 +32,7 @@
 #include <sys/types.h>
 #include <dev/psci/smccc.h>
 
+#ifdef _KERNEL
 typedef int (*psci_initfn_t)(device_t dev, int default_version);
 typedef int (*psci_callfn_t)(register_t, register_t, register_t, register_t,
 	register_t, register_t, register_t, register_t,
@@ -52,6 +53,7 @@ psci_call(register_t a, register_t b, register_t c, register_t d)
 
 	return (psci_callfn(a, b, c, d, 0, 0, 0, 0, NULL));
 }
+#endif
 
 /*
  * PSCI return codes.
@@ -101,7 +103,13 @@ psci_call(register_t a, register_t b, register_t c, register_t d)
 
 #define	PSCI_VER_MAJOR(v)		(((v) >> 16) & 0xFF)
 #define	PSCI_VER_MINOR(v)		((v) & 0xFF)
+#define	PSCI_VER(maj, min)		(((maj) << 16) | (min))
 
+#define	PSCI_AFFINITY_INFO_ON		0
+#define	PSCI_AFFINITY_INFO_OFF		1
+#define	PSCI_AFFINITY_INFO_ON_PENDING	2
+
+#ifdef _KERNEL
 enum psci_fn {
 	PSCI_FN_VERSION,
 	PSCI_FN_CPU_SUSPEND,
@@ -115,5 +123,6 @@ enum psci_fn {
 	PSCI_FN_SYSTEM_RESET,
 	PSCI_FN_MAX
 };
+#endif
 
 #endif /* _MACHINE_PSCI_H_ */

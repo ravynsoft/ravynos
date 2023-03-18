@@ -41,13 +41,13 @@
 #define PROGNAME	"mktar"
 
 #define SUBDIRNAME	"directory"
-#define EMPTYDIRNAME	"empty"
 #define NORMALFILENAME	"file"
 #define SPARSEFILENAME	"sparse_file"
 #define HARDLINKNAME	"hard_link"
 #define SHORTLINKNAME	"short_link"
 #define LONGLINKNAME	"long_link"
 
+static bool opt_g;
 static bool opt_v;
 
 static void verbose(const char *fmt, ...)
@@ -127,11 +127,6 @@ mktar(void)
 	if (mkdir(SUBDIRNAME, 0755) != 0)
 		err(1, "%s", SUBDIRNAME);
 
-	/* create a second subdirectory which will remain empty */
-	verbose("mkdir %s", EMPTYDIRNAME);
-	if (mkdir(EMPTYDIRNAME, 0755) != 0)
-		err(1, "%s", EMPTYDIRNAME);
-
 	/* create a normal file */
 	verbose("creating %s", NORMALFILENAME);
 	mknormalfile(NORMALFILENAME, 0644);
@@ -163,7 +158,7 @@ static void
 usage(void)
 {
 
-	fprintf(stderr, "usage: %s [-v] tarfile\n", PROGNAME);
+	fprintf(stderr, "usage: %s [-gv] tarfile\n", PROGNAME);
 	exit(EXIT_FAILURE);
 }
 
@@ -175,8 +170,10 @@ main(int argc, char *argv[])
 	int opt, wstatus;
 	pid_t pid;
 
-	while ((opt = getopt(argc, argv, "v")) != -1)
+	while ((opt = getopt(argc, argv, "gv")) != -1)
 		switch (opt) {
+		case 'g':
+			opt_g = true;
 		case 'v':
 			opt_v = true;
 			break;
@@ -220,15 +217,17 @@ main(int argc, char *argv[])
 		err(1, "fork()");
 	if (pid == 0) {
 		verbose("creating tarball");
-		execlp("tar", "tar",
+		execlp(opt_g ? "gtar" : "tar",
+		    "tar",
 		    "-c",
 		    "-f", tarfilename,
 		    "-C", dirname,
+		    "--posix",
 		    "--zstd",
 #if 0
 		    "--options", "zstd:frame-per-file",
 #endif
-		    "./" EMPTYDIRNAME "/../" NORMALFILENAME,
+		    "./" SUBDIRNAME "/../" NORMALFILENAME,
 		    "./" SPARSEFILENAME,
 		    "./" HARDLINKNAME,
 		    "./" SHORTLINKNAME,
@@ -257,8 +256,6 @@ main(int argc, char *argv[])
 		(void)unlink(HARDLINKNAME);
 		verbose("rm %s", SPARSEFILENAME);
 		(void)unlink(SPARSEFILENAME);
-		verbose("rmdir %s", EMPTYDIRNAME);
-		(void)rmdir(EMPTYDIRNAME);
 		verbose("rmdir %s", SUBDIRNAME);
 		(void)rmdir(SUBDIRNAME);
 		verbose("cd -");

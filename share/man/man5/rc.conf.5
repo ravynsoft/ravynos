@@ -24,7 +24,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd February 28, 2023
+.Dd March 11, 2023
 .Dt RC.CONF 5
 .Os
 .Sh NAME
@@ -83,7 +83,7 @@ directory or
 directories (where
 .Ao Ar dir Ac
 is each entry specified in
- .Va local_startup ,
+.Va local_startup ,
 but with any trailing
 .Pa /rc.d
 stripped),
@@ -106,7 +106,7 @@ will be loaded.
 If
 .Ao Ar dir Ac Ns Pa /rc.conf.d/ Ns Ao Ar name Ac
 is a directory,
-all of files in the directory will be loaded.
+all of the files in the directory will be loaded.
 Also see the
 .Va rc_conf_files
 variable below.
@@ -472,7 +472,7 @@ directory.
 .Pq Vt bool
 Set to "YES" to enable saving of the
 .Pa /var/run
-directory strcucture into an mtree file at shutdown and the reload of the
+directory structure into an mtree file at shutdown and the reload of the
 .Pa /var/run
 directory structure at boot.
 .It Va var_run_autosave
@@ -484,13 +484,10 @@ When set to "NO"
 .Pa /var/run
 is loaded at reboot but not saved at shutdown.
 Typically in this scenario
-a
-.Pa service
-.Pa var_run
-.Pa save
+.Ql service var_run save
 would be performed to save a copy of the
 .Pa /var/run
-directory structure once, to be reload during all subsequent reboots.
+directory structure once, to be reloaded during all subsequent reboots.
 .It Va var_run_mtree
 .Pq Vt str
 Where to save the
@@ -535,20 +532,44 @@ your console login will display the default hostname of
 The NIS domain name of this host, or
 .Dq Li NO
 if NIS is not used.
+.It Va hostid_enable
+.Pq Vt bool
+If set to
+.Dq Li NO ,
+disable the generation or saving of the
+.Pa hostid
+and
+.Pa machine-id
+files at system boot and shutdown.
+.It Va hostid_file
+.Pq Vt str
+Path to the
+.Pa hostid
+file, default
+.Pa /etc/hostid .
+.It Va hostid_uuidgen_flags
+.Pq Vt str
+Flags passed to
+.Xr uuidgen 1
+when generating a software host UUID.
+This is used only if the system cannot determine a hardware UUID.
+Set to
+.Dq Li -r
+by default.
+.It Va machine_id_file
+.Pq Vt str
+Path to the
+.Pa machine-id
+file, default
+.Pa /etc/machine-id .
 .It Va dhclient_program
 .Pq Vt str
-Path to the DHCP client program
-.Pa ( /sbin/dhclient ,
-the
-.Ox
-DHCP client,
-is the default).
+Path to the DHCP client program, defaulting to
+.Pa /sbin/dhclient .
 .It Va dhclient_flags
 .Pq Vt str
 Additional flags to pass to the DHCP client program.
-For the
-.Ox
-DHCP client, see the
+See the
 .Xr dhclient 8
 manpage for a description of the command line options available.
 .It Va dhclient_flags_ Ns Aq Ar iface
@@ -743,7 +764,7 @@ is also set to
 Setting this to
 .Dq Li YES
 will enable netflow logging via
-.Xr ng_netflow 4
+.Xr ng_netflow 4 .
 .Pp
 By default a ipfw rule is inserted and all packets are duplicated with
 the ngtee command and netflow packets are sent to 127.0.0.1 on the netflow
@@ -1320,7 +1341,7 @@ Set to
 by default.
 This setting will be identical to
 .Dq Li YES ,
-if a dynamicrouting daemon is enabled, because redirect processing may
+if a dynamic routing daemon is enabled, because redirect processing may
 cause performance issues for large routing tables.
 If no such service is enabled, this setting behaves like a
 .Dq Li NO .
@@ -1494,7 +1515,7 @@ there is
 .Va ifconfig_ Ns Ao Ar interface Ac Ns Va _aliases
 variable, which has the same functionality as
 .Va ifconfig_ Ns Ao Ar interface Ac Ns Va _alias Ns Aq Ar n
-and can have all of entries in a variable like the following:
+and can have all of the entries in a variable like the following:
 .Bd -literal
 ifconfig_em0_aliases="\\
 	inet 127.0.0.251 netmask 0xffffffff \\
@@ -1540,7 +1561,7 @@ To create a vlan device named
 .Li em0.101
 on
 .Li em0
-with the vlan tag 101 and the optional the IPv4 address 192.0.2.1/24:
+with the vlan tag 101 and the optional IPv4 address 192.0.2.1/24:
 .Bd -literal
 vlans_em0="101"
 ifconfig_em0_101="inet 192.0.2.1/24"
@@ -1573,7 +1594,7 @@ command by setting the
 variable.
 One or more
 .Xr wlan 4
-devices must be created for each wireless devices as of
+devices must be created for each wireless device as of
 .Fx 8.0 .
 Debugging flags for
 .Xr wlan 4
@@ -1652,9 +1673,6 @@ may be configured.
 It will be used for all interfaces with no
 .Va ifconfig_ Ns Aq Ar interface
 variable.
-This is intended to replace the no longer supported
-.Va pccard_ifconfig
-variable.
 .Pp
 It is also possible to rename an interface by doing:
 .Bd -literal
@@ -1718,7 +1736,7 @@ all interfaces which do not have a corresponding
 variable will be marked as
 .Dq Li IFDISABLED
 at creation.
-This means that all of IPv6 functionality on that interface
+This means that all IPv6 functionality on that interface
 is completely disabled to enforce a security policy.
 If the variable is set to
 .Dq YES ,
@@ -1820,7 +1838,7 @@ IPv6 functionality on an interface should be configured by
 .Va ifconfig_ Ns Ao Ar interface Ac Ns _ipv6 ,
 instead of setting ifconfig parameters in
 .Va ifconfig_ Ns Aq Ar interface .
-If this variable is empty, all of IPv6 configurations on the
+If this variable is empty, all IPv6 configurations on the
 specified interface by other variables such as
 .Va ipv6_prefix_ Ns Ao Ar interface Ac
 will be ignored.
@@ -2103,7 +2121,7 @@ include the full path to the file.
 By default, the files specified are
 .Pa /etc/rc.conf
 and
-.Pa /etc/rc.conf.local
+.Pa /etc/rc.conf.local .
 .It Va zfs_enable
 .Pq Vt bool
 If set to
@@ -2119,8 +2137,8 @@ This is useful when using a ZFS pool copied from a template, such as a virtual
 machine image.
 .It Va zpool_upgrade
 .Pq Vt str
-A space-separated list of ZFS pool names for which version should be upgraded
-upon first boot.
+A space-separated list of ZFS pool names for which the version should be
+upgraded upon first boot.
 This is useful when using a ZFS pool generated by the
 .Xr makefs 8
 utility.
@@ -2140,7 +2158,7 @@ utility.
 If set to
 .Dq Li YES ,
 .Pa /etc/rc.d/gbde
-will attempt to automatically initialize your .bde devices in
+will attempt to automatically initialize the .bde devices specified in
 .Pa /etc/fstab .
 .It Va gbde_devices
 .Pq Vt str
@@ -2450,12 +2468,12 @@ these are the flags to pass to it.
 .Pq Vt bool
 If set to
 .Dq Li YES ,
-.Pa /etc/motd
+.Pa /var/run/motd
 will be updated at boot time to reflect the kernel release
 being run.
 If set to
 .Dq Li NO ,
-.Pa /etc/motd
+.Pa /var/run/motd
 will not be updated.
 .It Va nfs_client_enable
 .Pq Vt bool
@@ -2913,7 +2931,7 @@ If set to
 run the
 .Xr bsnmpd 1
 daemon at system boot time.
-Be sure to understand the security implications of running SNMP daemon
+Be sure to understand the security implications of running an SNMP daemon
 on your host.
 .It Va bsnmpd_flags
 .Pq Vt str
@@ -3055,10 +3073,14 @@ If
 is set to
 .Dq Li YES ,
 this is the name of the routing daemon to use.
+The default is
+.Xr routed 8 .
 .It Va route6d_program
 .Pq Vt str
 The IPv6 equivalent of
 .Va routed_program .
+The default is
+.Xr route6d 8 .
 .It Va routed_flags
 .Pq Vt str
 If
@@ -3337,15 +3359,15 @@ This is the protocol type of the mouse connected to this host.
 This variable must be set if
 .Va moused_enable
 is set to
-.Dq Li YES .
-The
+.Dq Li YES ,
+but defaults to
+.Dq Li auto
+as the
 .Xr moused 8
 daemon
 is able to detect the appropriate mouse type automatically in many cases.
 Set this variable to
-.Dq Li auto
-to let the daemon detect it, or
-select one from the following list if the automatic detection fails.
+one from the following list if the automatic detection fails.
 .Pp
 If the mouse is attached to the PS/2 mouse port, choose
 .Dq Li auto
@@ -4252,7 +4274,7 @@ is also increased.
 Set to
 .Dq Li NO
 to prevent the system from trying to
-recover pre-maturely terminated
+recover prematurely terminated
 .Xr vi 1
 sessions.
 .It Va ugidfw_enable
@@ -4906,6 +4928,7 @@ these are the flags to pass to the
 .Xr protect 1 ,
 .Xr sh 1 ,
 .Xr umask 1 ,
+.Xr uuidgen 1 ,
 .Xr vi 1 ,
 .Xr vidcontrol 1 ,
 .Xr bridge 4 ,
@@ -4978,6 +5001,7 @@ these are the flags to pass to the
 .Xr rcorder 8 ,
 .Xr rfcomm_pppd 8 ,
 .Xr route 8 ,
+.Xr route6d 8 ,
 .Xr routed 8 ,
 .Xr rpc.lockd 8 ,
 .Xr rpc.statd 8 ,

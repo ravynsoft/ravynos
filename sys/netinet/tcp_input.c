@@ -104,10 +104,10 @@ __FBSDID("$FreeBSD$");
 #include <netinet6/nd6.h>
 #include <netinet/tcp.h>
 #include <netinet/tcp_fsm.h>
-#include <netinet/tcp_log_buf.h>
 #include <netinet/tcp_seq.h>
 #include <netinet/tcp_timer.h>
 #include <netinet/tcp_var.h>
+#include <netinet/tcp_log_buf.h>
 #include <netinet6/tcp6_var.h>
 #include <netinet/tcpip.h>
 #include <netinet/cc/cc.h>
@@ -672,6 +672,8 @@ tcp_input_with_port(struct mbuf **mp, int *offp, int proto, uint16_t port)
 		 * Note that packets with unspecified IPv6 destination is
 		 * already dropped in ip6_input.
 		 */
+		KASSERT(!IN6_IS_ADDR_UNSPECIFIED(&ip6->ip6_dst),
+		    ("%s: unspecified destination v6 address", __func__));
 		if (IN6_IS_ADDR_UNSPECIFIED(&ip6->ip6_src)) {
 			/* XXX stat */
 			goto drop;
@@ -738,6 +740,12 @@ tcp_input_with_port(struct mbuf **mp, int *offp, int proto, uint16_t port)
 	skip_csum:
 		if (th->th_sum && (port == 0)) {
 			TCPSTAT_INC(tcps_rcvbadsum);
+			goto drop;
+		}
+		KASSERT(ip->ip_dst.s_addr != INADDR_ANY,
+		    ("%s: unspecified destination v4 address", __func__));
+		if (__predict_false(ip->ip_src.s_addr == INADDR_ANY)) {
+			/* XXX stat */
 			goto drop;
 		}
 	}

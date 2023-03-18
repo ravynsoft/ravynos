@@ -32,42 +32,19 @@
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 
-#include <stdlib.h>
-
 #include "libc_private.h"
-#include "ignore_init.c"
+#include "csu_common.h"
 
-#ifdef GCRT
-extern void _mcleanup(void);
-extern void monstartup(void *, void *);
-extern int eprol;
-extern int etext;
-#endif
-
-extern long * _end;
-
-void __start(int, char **, char **, void (*)(void));
+void __start(int, char **, char **, void (*)(void)) __dead2;
 
 /* The entry function. */
 void
 __start(int argc, char *argv[], char *env[], void (*cleanup)(void))
 {
-
-	handle_argv(argc, argv, env);
-
-	if (&_DYNAMIC != NULL)
-		atexit(cleanup);
-	else {
-		process_irelocs();
-		_init_tls();
-	}
-
 #ifdef GCRT
-	atexit(_mcleanup);
-	monstartup(&eprol, &etext);
+	__libc_start1_gcrt(argc, argv, env, cleanup, main, &eprol, &etext);
 __asm__("eprol:");
+#else
+	__libc_start1(argc, argv, env, cleanup, main);
 #endif
-
-	handle_static_init(argc, argv, env);
-	exit(main(argc, argv, env));
 }

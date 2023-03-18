@@ -95,7 +95,6 @@ __DEFAULT_YES_OPTIONS = \
     EFI \
     ELFTOOLCHAIN_BOOTSTRAP \
     EXAMPLES \
-    FDT \
     FILE \
     FINGER \
     FLOPPY \
@@ -144,7 +143,6 @@ __DEFAULT_YES_OPTIONS = \
     MAILWRAPPER \
     MAKE \
     MLX5TOOL \
-    NDIS \
     NETCAT \
     NETGRAPH \
     NLS_CATALOGS \
@@ -194,12 +192,12 @@ __DEFAULT_YES_OPTIONS = \
     ZONEINFO
 
 __DEFAULT_NO_OPTIONS = \
-    ATM \
     BEARSSL \
     BHYVE_SNAPSHOT \
     CLANG_EXTRAS \
     CLANG_FORMAT \
     DETECT_TZ_CHANGES \
+    DISK_IMAGE_TOOLS_BOOTSTRAP \
     DTRACE_TESTS \
     EXPERIMENTAL \
     HESIOD \
@@ -283,6 +281,12 @@ __DEFAULT_NO_OPTIONS+=LLVM_TARGET_BPF LLVM_TARGET_MIPS
 
 .include <bsd.compiler.mk>
 
+.if ${__T} == "i386" || ${__T} == "amd64"
+__DEFAULT_NO_OPTIONS += FDT
+.else
+__DEFAULT_YES_OPTIONS += FDT
+.endif
+
 .if ${__T:Marm*} == "" && ${__T:Mriscv64*} == ""
 __DEFAULT_YES_OPTIONS+=LLDB
 .else
@@ -348,6 +352,11 @@ __DEFAULT_YES_OPTIONS+=OPENMP
 __DEFAULT_NO_OPTIONS+=OPENMP
 .endif
 
+# Broken on 32-bit arm, kernel module compile errors
+.if ${__T:Marm*} != ""
+BROKEN_OPTIONS+= OFED
+.endif
+
 .include <bsd.mkopt.mk>
 
 #
@@ -392,7 +401,6 @@ MK_DMAGENT:=	no
 .endif
 
 .if ${MK_NETGRAPH} == "no"
-MK_ATM:=	no
 MK_BLUETOOTH:=	no
 .endif
 
@@ -408,6 +416,7 @@ MK_KERBEROS:=	no
 MK_KERBEROS_SUPPORT:=	no
 MK_LDNS:=	no
 MK_PKGBOOTSTRAP:=	no
+MK_LOADER_ZFS:=	no
 MK_ZFS:=	no
 .endif
 

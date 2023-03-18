@@ -78,14 +78,8 @@ __DEFAULT_NO_OPTIONS = \
 BROKEN_OPTIONS+= INIT_ALL_ZERO
 .endif
 
-.if ${MACHINE_CPUARCH} == "powerpc" && ${MACHINE_ARCH} == "powerpc"
-BROKEN_OPTIONS+= ZFS
-.endif
-
-# Things that don't work because the kernel doesn't have the support
-# for them.
-.if ${MACHINE} != "i386" && ${MACHINE} != "amd64" && \
-    ${MACHINE_ARCH:Mpowerpc64*} == ""
+# Broken on 32-bit arm, kernel module compile errors
+.if ${MACHINE_CPUARCH} == "arm"
 BROKEN_OPTIONS+= OFED
 .endif
 

@@ -1189,12 +1189,8 @@ pr_pack(char *buf, ssize_t cc, struct sockaddr_in *from, struct timespec *tv)
 		return;
 	}
 
-#ifndef icmp_data
-	icmp_data_raw = buf + hlen + offsetof(struct icmp, icmp_ip);
-#else
 	icmp_data_raw_len = cc - (hlen + offsetof(struct icmp, icmp_data));
 	icmp_data_raw = buf + hlen + offsetof(struct icmp, icmp_data);
-#endif
 
 	/* Now the ICMP part */
 	cc -= hlen;
@@ -1674,15 +1670,15 @@ pr_iph(struct ip *ip)
 	int hlen;
 
 	hlen = ip->ip_hl << 2;
-	cp = (u_char *)ip + 20;		/* point to options */
+	cp = (u_char *)ip + sizeof(struct ip);		/* point to options */
 
 	(void)printf("Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src      Dst\n");
 	(void)printf(" %1x  %1x  %02x %04x %04x",
 	    ip->ip_v, ip->ip_hl, ip->ip_tos, ntohs(ip->ip_len),
 	    ntohs(ip->ip_id));
-	(void)printf("   %1lx %04lx",
-	    (u_long) (ntohl(ip->ip_off) & 0xe000) >> 13,
-	    (u_long) ntohl(ip->ip_off) & 0x1fff);
+	(void)printf("   %1x %04x",
+	    (ntohs(ip->ip_off) & 0xe000) >> 13,
+	    ntohs(ip->ip_off) & 0x1fff);
 	(void)printf("  %02x  %02x %04x", ip->ip_ttl, ip->ip_p,
 							    ntohs(ip->ip_sum));
 	memcpy(&ina, &ip->ip_src.s_addr, sizeof ina);
@@ -1690,7 +1686,7 @@ pr_iph(struct ip *ip)
 	memcpy(&ina, &ip->ip_dst.s_addr, sizeof ina);
 	(void)printf(" %s ", inet_ntoa(ina));
 	/* dump any option bytes */
-	while (hlen-- > 20) {
+	while (hlen-- > (int)sizeof(struct ip)) {
 		(void)printf("%02x", *cp++);
 	}
 	(void)putchar('\n');
@@ -1710,7 +1706,7 @@ pr_addr(struct in_addr ina)
 	if (options & F_NUMERIC)
 		return inet_ntoa(ina);
 
-	hp = cap_gethostbyaddr(capdns, (char *)&ina, 4, AF_INET);
+	hp = cap_gethostbyaddr(capdns, (char *)&ina, sizeof(ina), AF_INET);
 
 	if (hp == NULL)
 		return inet_ntoa(ina);

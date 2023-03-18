@@ -793,7 +793,6 @@ options 	NETGRAPH_DEBUG		# enable extra debugging, this
 					# affects netgraph(4) and nodes
 # Node types
 options 	NETGRAPH_ASYNC
-options 	NETGRAPH_ATMLLC
 options 	NETGRAPH_BLUETOOTH		# ng_bluetooth(4)
 options 	NETGRAPH_BLUETOOTH_HCI		# ng_hci(4)
 options 	NETGRAPH_BLUETOOTH_L2CAP	# ng_l2cap(4)
@@ -840,13 +839,6 @@ options 	NETGRAPH_TEE
 options 	NETGRAPH_UI
 options 	NETGRAPH_VJC
 options 	NETGRAPH_VLAN
-
-# NgATM - Netgraph ATM
-options 	NGATM_ATMBASE
-options 	NGATM_SSCOP
-options 	NGATM_SSCFU
-options 	NGATM_UNI
-options 	NGATM_CCATM
 
 # Network stack virtualization.
 options 	VIMAGE

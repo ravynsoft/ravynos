@@ -56,6 +56,7 @@ __FBSDID("$FreeBSD$");
 
 #include "dns_utils.h"
 #include "config.h"
+#include "hash.h"
 
 struct sig_cert {
 	char *name;
@@ -402,83 +403,6 @@ load_fingerprints(const char *path, int *count)
 	return (fingerprints);
 }
 
-static void
-sha256_hash(unsigned char hash[SHA256_DIGEST_LENGTH],
-    char out[SHA256_DIGEST_LENGTH * 2 + 1])
-{
-	int i;
-
-	for (i = 0; i < SHA256_DIGEST_LENGTH; i++)
-		sprintf(out + (i * 2), "%02x", hash[i]);
-
-	out[SHA256_DIGEST_LENGTH * 2] = '\0';
-}
-
-static void
-sha256_buf(char *buf, size_t len, char out[SHA256_DIGEST_LENGTH * 2 + 1])
-{
-	unsigned char hash[SHA256_DIGEST_LENGTH];
-	SHA256_CTX sha256;
-
-	out[0] = '\0';
-
-	SHA256_Init(&sha256);
-	SHA256_Update(&sha256, buf, len);
-	SHA256_Final(hash, &sha256);
-	sha256_hash(hash, out);
-}
-
-static int
-sha256_fd(int fd, char out[SHA256_DIGEST_LENGTH * 2 + 1])
-{
-	int my_fd;
-	FILE *fp;
-	char buffer[BUFSIZ];
-	unsigned char hash[SHA256_DIGEST_LENGTH];
-	size_t r;
-	int ret;
-	SHA256_CTX sha256;
-
-	fp = NULL;
-	ret = 1;
-
-	out[0] = '\0';
-
-	/* Duplicate the fd so that fclose(3) does not close it. */
-	if ((my_fd = dup(fd)) == -1) {
-		warnx("dup");
-		goto cleanup;
-	}
-
-	if ((fp = fdopen(my_fd, "rb")) == NULL) {
-		warnx("fdopen");
-		goto cleanup;
-	}
-
-	SHA256_Init(&sha256);
-
-	while ((r = fread(buffer, 1, BUFSIZ, fp)) > 0)
-		SHA256_Update(&sha256, buffer, r);
-
-	if (ferror(fp) != 0) {
-		warnx("fread");
-		goto cleanup;
-	}
-
-	SHA256_Final(hash, &sha256);
-	sha256_hash(hash, out);
-	ret = 0;
-
-cleanup:
-	if (fp != NULL)
-		fclose(fp);
-	else if (my_fd != -1)
-		close(my_fd);
-	(void)lseek(fd, 0, SEEK_SET);
-
-	return (ret);
-}
-
 static EVP_PKEY *
 load_public_key_file(const char *file)
 {
@@ -521,10 +445,11 @@ rsa_verify_cert(int fd, const char *sigfile, const unsigned char *key,
 {
 	EVP_MD_CTX *mdctx;
 	EVP_PKEY *pkey;
-	char sha256[(SHA256_DIGEST_LENGTH * 2) + 2];
+	char *sha256;
 	char errbuf[1024];
 	bool ret;
 
+	sha256 = NULL;
 	pkey = NULL;
 	mdctx = NULL;
 	ret = false;
@@ -536,7 +461,7 @@ rsa_verify_cert(int fd, const char *sigfile, const unsigned char *key,
 		warn("lseek");
 		goto cleanup;
 	}
-	if ((sha256_fd(fd, sha256)) == -1) {
+	if ((sha256 = sha256_fd(fd)) == NULL) {
 		warnx("Error creating SHA256 hash for package");
 		goto cleanup;
 	}
@@ -581,6 +506,7 @@ error:
 	printf("failed\n");
 
 cleanup:
+	free(sha256);
 	if (pkey)
 		EVP_PKEY_free(pkey);
 	if (mdctx)
@@ -743,8 +669,9 @@ verify_signature(int fd_pkg, int fd_sig)
 	int trusted_count, revoked_count;
 	const char *fingerprints;
 	char path[MAXPATHLEN];
-	char hash[SHA256_DIGEST_LENGTH * 2 + 1];
+	char *hash;
 
+	hash = NULL;
 	sc = NULL;
 	trusted = revoked = NULL;
 	ret = false;
@@ -781,7 +708,7 @@ verify_signature(int fd_pkg, int fd_sig)
 	sc->trusted = false;
 
 	/* Parse signature and pubkey out of the certificate */
-	sha256_buf(sc->cert, sc->certlen, hash);
+	hash = sha256_buf(sc->cert, sc->certlen);
 
 	/* Check if this hash is revoked */
 	if (revoked != NULL) {
@@ -820,6 +747,7 @@ verify_signature(int fd_pkg, int fd_sig)
 	ret = true;
 
 cleanup:
+	free(hash);
 	if (trusted)
 		free_fingerprint_list(trusted);
 	if (revoked)

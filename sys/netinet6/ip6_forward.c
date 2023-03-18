@@ -114,8 +114,7 @@ ip6_forward(struct mbuf *m, int srcrt)
 	    IN6_IS_ADDR_UNSPECIFIED(&ip6->ip6_src)) {
 		IP6STAT_INC(ip6s_cantforward);
 		/* XXX in6_ifstat_inc(rt->rt_ifp, ifs6_in_discard) */
-		if (V_ip6_log_time + V_ip6_log_interval < time_uptime) {
-			V_ip6_log_time = time_uptime;
+		if (V_ip6_log_cannot_forward && ip6_log_ratelimit()) {
 			log(LOG_DEBUG,
 			    "cannot forward "
 			    "from %s to %s nxt %d received on %s\n",
@@ -221,8 +220,7 @@ again:
 		IP6STAT_INC(ip6s_badscope);
 		in6_ifstat_inc(nh->nh_ifp, ifs6_in_discard);
 
-		if (V_ip6_log_time + V_ip6_log_interval < time_uptime) {
-			V_ip6_log_time = time_uptime;
+		if (V_ip6_log_cannot_forward && ip6_log_ratelimit()) {
 			log(LOG_DEBUG,
 			    "cannot forward "
 			    "src %s, dst %s, nxt %d, rcvif %s, outif %s\n",
@@ -323,7 +321,7 @@ again:
 
 	odst = ip6->ip6_dst;
 	/* Run through list of hooks for forwarded packets. */
-	if (pfil_mbuf_out(V_inet6_pfil_head, &m, nh->nh_ifp,
+	if (pfil_mbuf_fwd(V_inet6_pfil_head, &m, nh->nh_ifp,
 	    NULL) != PFIL_PASS)
 		goto freecopy;
 	ip6 = mtod(m, struct ip6_hdr *);

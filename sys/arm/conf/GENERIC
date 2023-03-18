@@ -244,8 +244,15 @@ device		vt
 device		kbdmux
 device		ums
 device		videomode
-device		hdmi
 device		vchiq
+
+# IMX6 HDMI Controller
+device		dwc_hdmi
+device		imx6_hdmi
+device		imx6_ipu
+
+# TDA19988 HDMI Encoder
+device		tda19988
 
 # Pinmux
 device		fdt_pinctrl

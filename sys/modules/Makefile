@@ -524,19 +524,19 @@ SUBDIR+=	linux64
 SUBDIR+=	linux_common
 .endif
 
-.if ${MACHINE_CPUARCH} == "aarch64" || ${MACHINE_CPUARCH} == "amd64" || \
-    ${MACHINE_CPUARCH} == "i386"
-_ena=		ena
+.if ${MACHINE_CPUARCH} != "arm"
 .if ${MK_OFED} != "no" || defined(ALL_MODULES)
 _ibcore=	ibcore
 _ipoib=		ipoib
 _iser=		iser
+_mthca=		mthca
+_rdma=		rdma
 .endif
+.endif
+
+.if ${MACHINE_CPUARCH} == "aarch64" || ${MACHINE_CPUARCH} == "amd64" || \
+    ${MACHINE_CPUARCH} == "i386" || ${MACHINE_ARCH:Mpowerpc64*} != ""
 _ipmi=		ipmi
-_iwlwifi=	iwlwifi
-.if ${MK_SOURCELESS_UCODE} != "no"
-_iwlwififw=	iwlwififw
-.endif
 _mlx4=		mlx4
 _mlx5=		mlx5
 .if (${MK_INET_SUPPORT} != "no" && ${MK_INET6_SUPPORT} != "no") || \
@@ -545,9 +545,17 @@ _mlx4en=	mlx4en
 _mlx5en=	mlx5en
 .endif
 .if ${MK_OFED} != "no" || defined(ALL_MODULES)
-_mthca=		mthca
 _mlx4ib=	mlx4ib
 _mlx5ib=	mlx5ib
+.endif
+.endif
+
+.if ${MACHINE_CPUARCH} == "aarch64" || ${MACHINE_CPUARCH} == "amd64" || \
+    ${MACHINE_CPUARCH} == "i386"
+_ena=		ena
+_iwlwifi=	iwlwifi
+.if ${MK_SOURCELESS_UCODE} != "no"
+_iwlwififw=	iwlwififw
 .endif
 _ossl=		ossl
 _rtw88=		rtw88
@@ -637,7 +645,7 @@ _mpr=		mpr
 SUBDIR+=	tests
 .endif
 
-.if ${MK_ZFS} != "no" || (defined(ALL_MODULES)  && ${MACHINE_CPUARCH} != "powerpc")
+.if ${MK_ZFS} != "no" || defined(ALL_MODULES)
 SUBDIR+=	zfs
 .endif
 
@@ -705,9 +713,6 @@ _qat=		qat
 _qatfw=		qatfw
 _qat_c2xxx=	qat_c2xxx
 _qat_c2xxxfw=	qat_c2xxxfw
-.if ${MK_OFED} != "no" || defined(ALL_MODULES)
-_rdma=		rdma
-.endif
 _safe=		safe
 _speaker=	speaker
 _splash=	splash
@@ -845,21 +850,8 @@ _nvme=		nvme
 .endif
 
 .if ${MACHINE_ARCH:Mpowerpc64*} != ""
-_ipmi=		ipmi
 _ixl=		ixl
-_mlx5=		mlx5
 _nvram=		opal_nvram
-.if ${MK_OFED} != "no" || defined(ALL_MODULES)
-_ibcore=	ibcore
-_ipoib=		ipoib
-_iser=		iser
-_mlx5ib=	mlx5ib
-_rdma=		rdma
-.endif
-.if (${MK_INET_SUPPORT} != "no" && ${MK_INET6_SUPPORT} != "no") || \
-       defined(ALL_MODULES)
-_mlx5en=	mlx5en
-.endif
 .endif
 
 .if ${MACHINE_CPUARCH} == "powerpc" && ${MACHINE_ARCH} != "powerpcspe"

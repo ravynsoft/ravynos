@@ -70,10 +70,30 @@
 #define	NL_ARRAY_LEN(_a)	(sizeof(_a) / sizeof((_a)[0]))
 
 struct linear_buffer {
-	char		*base;	/* Base allocated memory pointer */
-	uint32_t	offset;	/* Currently used offset */
-	uint32_t	size;	/* Total buffer size */
+	char			*base;	/* Base allocated memory pointer */
+	uint32_t		offset;	/* Currently used offset */
+	uint32_t		size;	/* Total buffer size */
+	struct linear_buffer	*next;	/* Buffer chaining */
 };
+
+static inline struct linear_buffer *
+lb_init(uint32_t size)
+{
+	struct linear_buffer *lb = calloc(1, size);
+
+	if (lb != NULL) {
+		lb->base = (char *)(lb + 1);
+		lb->size = size - sizeof(*lb);
+	}
+
+	return (lb);
+}
+
+static inline void
+lb_free(struct linear_buffer *lb)
+{
+	free(lb);
+}
 
 static inline char *
 lb_allocz(struct linear_buffer *lb, int len)
@@ -101,9 +121,10 @@ struct snl_state {
 	size_t datalen;
 	uint32_t seq;
 	bool init_done;
-	struct linear_buffer lb;
+	struct linear_buffer *lb;
 };
 #define	SCRATCH_BUFFER_SIZE	1024
+#define	SNL_WRITER_BUFFER_SIZE	256
 
 typedef void snl_parse_field_f(struct snl_state *ss, void *hdr, void *target);
 struct snl_field_parser {
@@ -145,6 +166,45 @@ static const struct snl_hdr_parser _name = {		\
 }
 
 
+static inline void *
+snl_allocz(struct snl_state *ss, int len)
+{
+	void *data = lb_allocz(ss->lb, len);
+
+	if (data == NULL) {
+		uint32_t size = ss->lb->size * 2;
+
+		while (size < len + sizeof(struct linear_buffer))
+			size *= 2;
+
+		struct linear_buffer *lb = lb_init(size);
+
+		if (lb != NULL) {
+			lb->next = ss->lb;
+			ss->lb = lb;
+			data = lb_allocz(ss->lb, len);
+		}
+	}
+
+	return (data);
+}
+
+static inline void
+snl_clear_lb(struct snl_state *ss)
+{
+	struct linear_buffer *lb = ss->lb;
+
+	lb_clear(lb);
+	lb = lb->next;
+	ss->lb->next = NULL;
+	/* Remove all linear bufs except the largest one */
+	while (lb != NULL) {
+		struct linear_buffer *lb_next = lb->next;
+		lb_free(lb);
+		lb = lb_next;
+	}
+}
+
 static void
 snl_free(struct snl_state *ss)
 {
@@ -152,8 +212,10 @@ snl_free(struct snl_state *ss)
 		close(ss->fd);
 		if (ss->buf != NULL)
 			free(ss->buf);
-		if (ss->lb.base != NULL)
-			free(ss->lb.base);
+		if (ss->lb != NULL) {
+			snl_clear_lb(ss);
+			lb_free(ss->lb);
+		}
 	}
 }
 
@@ -181,9 +243,8 @@ snl_init(struct snl_state *ss, int netlink_family)
 		return (false);
 	}
 
-	ss->lb.size = SCRATCH_BUFFER_SIZE;
-	ss->lb.base = calloc(1, ss->lb.size);
-	if (ss->lb.base == NULL) {
+	ss->lb = lb_init(SCRATCH_BUFFER_SIZE);
+	if (ss->lb == NULL) {
 		snl_free(ss);
 		return (false);
 	}
@@ -191,22 +252,18 @@ snl_init(struct snl_state *ss, int netlink_family)
 	return (true);
 }
 
-static inline void *
-snl_allocz(struct snl_state *ss, int len)
-{
-	return (lb_allocz(&ss->lb, len));
-}
-
-static inline void
-snl_clear_lb(struct snl_state *ss)
-{
-	lb_clear(&ss->lb);
-}
-
 static inline bool
 snl_send(struct snl_state *ss, void *data, int sz)
 {
 	return (send(ss->fd, data, sz, 0) == sz);
+}
+
+static inline bool
+snl_send_message(struct snl_state *ss, struct nlmsghdr *hdr)
+{
+	ssize_t sz = NLMSG_ALIGN(hdr->nlmsg_len);
+
+	return (send(ss->fd, hdr, sz, 0) == sz);
 }
 
 static inline uint32_t
@@ -244,6 +301,19 @@ snl_read_message(struct snl_state *ss)
 	struct nlmsghdr *hdr = (struct nlmsghdr *)(void *)&ss->buf[ss->off];
 	ss->off += NLMSG_ALIGN(hdr->nlmsg_len);
 	return (hdr);
+}
+
+static inline struct nlmsghdr *
+snl_read_reply(struct snl_state *ss, uint32_t nlmsg_seq)
+{
+	struct nlmsghdr *hdr;
+
+	while ((hdr = snl_read_message(ss)) != NULL) {
+		if (hdr->nlmsg_seq == nlmsg_seq)
+			return (hdr);
+	}
+
+	return (NULL);
 }
 
 /*
@@ -318,18 +388,25 @@ snl_parse_attrs(struct snl_state *ss, struct nlmsghdr *hdr, int hdrlen,
 	return (snl_parse_attrs_raw(ss, nla_head, len, ps, pslen, target));
 }
 
-static inline bool
-snl_parse_header(struct snl_state *ss, void *hdr, int len,
-    const struct snl_hdr_parser *parser, void *target)
+static inline void
+snl_parse_fields(struct snl_state *ss, struct nlmsghdr *hdr, int hdrlen __unused,
+    const struct snl_field_parser *ps, int pslen, void *target)
 {
-	/* Extract fields first (if any) */
-	for (int i = 0; i < parser->fp_size; i++) {
-		const struct snl_field_parser *fp = &parser->fp[i];
+	for (int i = 0; i < pslen; i++) {
+		const struct snl_field_parser *fp = &ps[i];
 		void *src = (char *)hdr + fp->off_in;
 		void *dst = (char *)target + fp->off_out;
 
 		fp->cb(ss, src, dst);
 	}
+}
+
+static inline bool
+snl_parse_header(struct snl_state *ss, void *hdr, int len,
+    const struct snl_hdr_parser *parser, void *target)
+{
+	/* Extract fields first (if any) */
+	snl_parse_fields(ss, hdr, parser->hdr_off, parser->fp, parser->fp_size, target);
 
 	struct nlattr *nla_head = (struct nlattr *)(void *)((char *)hdr + parser->hdr_off);
 	bool result = snl_parse_attrs_raw(ss, nla_head, len - parser->hdr_off,
@@ -400,6 +477,34 @@ snl_attr_get_uint64(struct snl_state *ss __unused, struct nlattr *nla,
 }
 
 static inline bool
+snl_attr_get_int8(struct snl_state *ss, struct nlattr *nla, const void *arg,
+    void *target)
+{
+	return (snl_attr_get_uint8(ss, nla, arg, target));
+}
+
+static inline bool
+snl_attr_get_int16(struct snl_state *ss, struct nlattr *nla, const void *arg,
+    void *target)
+{
+	return (snl_attr_get_uint16(ss, nla, arg, target));
+}
+
+static inline bool
+snl_attr_get_int32(struct snl_state *ss, struct nlattr *nla, const void *arg,
+    void *target)
+{
+	return (snl_attr_get_uint32(ss, nla, arg, target));
+}
+
+static inline bool
+snl_attr_get_int64(struct snl_state *ss, struct nlattr *nla, const void *arg,
+    void *target)
+{
+	return (snl_attr_get_uint64(ss, nla, arg, target));
+}
+
+static inline bool
 snl_attr_get_string(struct snl_state *ss __unused, struct nlattr *nla,
     const void *arg __unused, void *target)
 {
@@ -445,6 +550,20 @@ snl_attr_get_nla(struct snl_state *ss __unused, struct nlattr *nla,
 	return (true);
 }
 
+static inline bool
+snl_attr_copy_struct(struct snl_state *ss, struct nlattr *nla,
+    const void *arg __unused, void *target)
+{
+	void *ptr = snl_allocz(ss, NLA_DATA_LEN(nla));
+
+	if (ptr != NULL) {
+		memcpy(ptr, NLA_DATA(nla), NLA_DATA_LEN(nla));
+		*((void **)target) = ptr;
+		return (true);
+	}
+	return (false);
+}
+
 static inline void
 snl_field_get_uint8(struct snl_state *ss __unused, void *src, void *target)
 {
@@ -462,5 +581,372 @@ snl_field_get_uint32(struct snl_state *ss __unused, void *src, void *target)
 {
 	*((uint32_t *)target) = *((uint32_t *)src);
 }
+
+static inline void
+snl_field_get_ptr(struct snl_state *ss __unused, void *src, void *target)
+{
+	*((void **)target) = src;
+}
+
+struct snl_errmsg_data {
+	struct nlmsghdr	*orig_hdr;
+	int		error;
+	uint32_t	error_offs;
+	char		*error_str;
+	struct nlattr	*cookie;
+};
+
+#define	_IN(_field)	offsetof(struct nlmsgerr, _field)
+#define	_OUT(_field)	offsetof(struct snl_errmsg_data, _field)
+static const struct snl_attr_parser nla_p_errmsg[] = {
+	{ .type = NLMSGERR_ATTR_MSG, .off = _OUT(error_str), .cb = snl_attr_get_string },
+	{ .type = NLMSGERR_ATTR_OFFS, .off = _OUT(error_offs), .cb = snl_attr_get_uint32 },
+	{ .type = NLMSGERR_ATTR_COOKIE, .off = _OUT(cookie), .cb = snl_attr_get_nla },
+};
+
+static const struct snl_field_parser nlf_p_errmsg[] = {
+	{ .off_in = _IN(error), .off_out = _OUT(error), .cb = snl_field_get_uint32 },
+	{ .off_in = _IN(msg), .off_out = _OUT(orig_hdr), .cb = snl_field_get_ptr },
+};
+#undef _IN
+#undef _OUT
+SNL_DECLARE_PARSER(snl_errmsg_parser, struct nlmsgerr, nlf_p_errmsg, nla_p_errmsg);
+
+#define	_IN(_field)	offsetof(struct nlmsgerr, _field)
+#define	_OUT(_field)	offsetof(struct snl_errmsg_data, _field)
+static const struct snl_attr_parser nla_p_donemsg[] = {};
+
+static const struct snl_field_parser nlf_p_donemsg[] = {
+	{ .off_in = _IN(error), .off_out = _OUT(error), .cb = snl_field_get_uint32 },
+};
+#undef _IN
+#undef _OUT
+SNL_DECLARE_PARSER(snl_donemsg_parser, struct nlmsgerr, nlf_p_donemsg, nla_p_donemsg);
+
+static inline bool
+snl_parse_errmsg(struct snl_state *ss, struct nlmsghdr *hdr, struct snl_errmsg_data *e)
+{
+	if ((hdr->nlmsg_flags & NLM_F_CAPPED) != 0)
+		return (snl_parse_nlmsg(ss, hdr, &snl_errmsg_parser, e));
+
+	const struct snl_hdr_parser *ps = &snl_errmsg_parser;
+	struct nlmsgerr *errmsg = (struct nlmsgerr *)(hdr + 1);
+	int hdrlen = sizeof(int) + NLMSG_ALIGN(errmsg->msg.nlmsg_len);
+	struct nlattr *attr_head = (struct nlattr *)(void *)((char *)errmsg + hdrlen);
+	int attr_len = hdr->nlmsg_len - sizeof(struct nlmsghdr) - hdrlen;
+
+	snl_parse_fields(ss, (struct nlmsghdr *)errmsg, hdrlen, ps->fp, ps->fp_size, e);
+	return (snl_parse_attrs_raw(ss, attr_head, attr_len, ps->np, ps->np_size, e));
+}
+
+static inline bool
+snl_read_reply_code(struct snl_state *ss, uint32_t nlmsg_seq, struct snl_errmsg_data *e)
+{
+	struct nlmsghdr *hdr = snl_read_reply(ss, nlmsg_seq);
+
+	if (hdr == NULL) {
+		e->error = EINVAL;
+	} else if (hdr->nlmsg_type == NLMSG_ERROR) {
+		if (!snl_parse_errmsg(ss, hdr, e))
+			e->error = EINVAL;
+		return (e->error == 0);
+	}
+
+	return (false);
+}
+
+/*
+ * Assumes e is zeroed
+ */
+static inline struct nlmsghdr *
+snl_read_reply_multi(struct snl_state *ss, uint32_t nlmsg_seq, struct snl_errmsg_data *e)
+{
+	struct nlmsghdr *hdr = snl_read_reply(ss, nlmsg_seq);
+
+	if (hdr == NULL) {
+		e->error = EINVAL;
+	} else if (hdr->nlmsg_type == NLMSG_ERROR) {
+		if (!snl_parse_errmsg(ss, hdr, e))
+			e->error = EINVAL;
+	} if (hdr->nlmsg_type == NLMSG_DONE) {
+		snl_parse_nlmsg(ss, hdr, &snl_donemsg_parser, e);
+	} else
+		return (hdr);
+
+	return (NULL);
+}
+
+
+/* writer logic */
+struct snl_writer {
+	char			*base;
+	uint32_t		offset;
+	uint32_t		size;
+	struct nlmsghdr		*hdr;
+	struct snl_state	*ss;
+	bool			error;
+};
+
+static inline void
+snl_init_writer(struct snl_state *ss, struct snl_writer *nw)
+{
+	nw->size = SNL_WRITER_BUFFER_SIZE;
+	nw->base = snl_allocz(ss, nw->size);
+	if (nw->base == NULL) {
+		nw->error = true;
+		nw->size = 0;
+	}
+
+	nw->offset = 0;
+	nw->hdr = NULL;
+	nw->error = false;
+	nw->ss = ss;
+}
+
+static inline bool
+snl_realloc_msg_buffer(struct snl_writer *nw, size_t sz)
+{
+	uint32_t new_size = nw->size * 2;
+
+	while (new_size < nw->size + sz)
+		new_size *= 2;
+
+	if (nw->error)
+		return (false);
+
+	void *new_base = snl_allocz(nw->ss, new_size);
+	if (new_base == NULL) {
+		nw->error = true;
+		return (false);
+	}
+
+	memcpy(new_base, nw->base, nw->offset);
+	if (nw->hdr != NULL) {
+		int hdr_off = (char *)(nw->hdr) - nw->base;
+		nw->hdr = (struct nlmsghdr *)(void *)((char *)new_base + hdr_off);
+	}
+	nw->base = new_base;
+
+	return (true);
+}
+
+static inline void *
+snl_reserve_msg_data_raw(struct snl_writer *nw, size_t sz)
+{
+	sz = NETLINK_ALIGN(sz);
+
+        if (__predict_false(nw->offset + sz > nw->size)) {
+		if (!snl_realloc_msg_buffer(nw, sz))
+			return (NULL);
+        }
+
+        void *data_ptr = &nw->base[nw->offset];
+        nw->offset += sz;
+
+        return (data_ptr);
+}
+#define snl_reserve_msg_object(_ns, _t)	((_t *)snl_reserve_msg_data_raw(_ns, sizeof(_t)))
+#define snl_reserve_msg_data(_ns, _sz, _t)	((_t *)snl_reserve_msg_data_raw(_ns, _sz))
+
+static inline void *
+_snl_reserve_msg_attr(struct snl_writer *nw, uint16_t nla_type, uint16_t sz)
+{
+	sz += sizeof(struct nlattr);
+
+	struct nlattr *nla = snl_reserve_msg_data(nw, sz, struct nlattr);
+	if (__predict_false(nla == NULL))
+		return (NULL);
+	nla->nla_type = nla_type;
+	nla->nla_len = sz;
+
+	return ((void *)(nla + 1));
+}
+#define	snl_reserve_msg_attr(_ns, _at, _t)	((_t *)_snl_reserve_msg_attr(_ns, _at, sizeof(_t)))
+
+static inline bool
+snl_add_msg_attr(struct snl_writer *nw, int attr_type, int attr_len, const void *data)
+{
+	int required_len = NLA_ALIGN(attr_len + sizeof(struct nlattr));
+
+        if (__predict_false(nw->offset + required_len > nw->size)) {
+		if (!snl_realloc_msg_buffer(nw, required_len))
+			return (false);
+	}
+
+        struct nlattr *nla = (struct nlattr *)(void *)(&nw->base[nw->offset]);
+
+        nla->nla_len = attr_len + sizeof(struct nlattr);
+        nla->nla_type = attr_type;
+        if (attr_len > 0) {
+		if ((attr_len % 4) != 0) {
+			/* clear padding bytes */
+			bzero((char *)nla + required_len - 4, 4);
+		}
+                memcpy((nla + 1), data, attr_len);
+	}
+        nw->offset += required_len;
+        return (true);
+}
+
+static inline bool
+snl_add_msg_attr_raw(struct snl_writer *nw, const struct nlattr *nla_src)
+{
+	int attr_len = nla_src->nla_len - sizeof(struct nlattr);
+
+	assert(attr_len >= 0);
+
+	return (snl_add_msg_attr(nw, nla_src->nla_type, attr_len, (const void *)(nla_src + 1)));
+}
+
+static inline bool
+snl_add_msg_attr_u8(struct snl_writer *nw, int attrtype, uint8_t value)
+{
+	return (snl_add_msg_attr(nw, attrtype, sizeof(uint8_t), &value));
+}
+
+static inline bool
+snl_add_msg_attr_u16(struct snl_writer *nw, int attrtype, uint16_t value)
+{
+	return (snl_add_msg_attr(nw, attrtype, sizeof(uint16_t), &value));
+}
+
+static inline bool
+snl_add_msg_attr_u32(struct snl_writer *nw, int attrtype, uint32_t value)
+{
+	return (snl_add_msg_attr(nw, attrtype, sizeof(uint32_t), &value));
+}
+
+static inline bool
+snl_add_msg_attr_u64(struct snl_writer *nw, int attrtype, uint64_t value)
+{
+	return (snl_add_msg_attr(nw, attrtype, sizeof(uint64_t), &value));
+}
+
+static inline bool
+snl_add_msg_attr_s8(struct snl_writer *nw, int attrtype, int8_t value)
+{
+	return (snl_add_msg_attr(nw, attrtype, sizeof(int8_t), &value));
+}
+
+static inline bool
+snl_add_msg_attr_s16(struct snl_writer *nw, int attrtype, int16_t value)
+{
+	return (snl_add_msg_attr(nw, attrtype, sizeof(int16_t), &value));
+}
+
+static inline bool
+snl_add_msg_attr_s32(struct snl_writer *nw, int attrtype, int32_t value)
+{
+	return (snl_add_msg_attr(nw, attrtype, sizeof(int32_t), &value));
+}
+
+static inline bool
+snl_add_msg_attr_s64(struct snl_writer *nw, int attrtype, int64_t value)
+{
+	return (snl_add_msg_attr(nw, attrtype, sizeof(int64_t), &value));
+}
+
+static inline bool
+snl_add_msg_attr_flag(struct snl_writer *nw, int attrtype)
+{
+	return (snl_add_msg_attr(nw, attrtype, 0, NULL));
+}
+
+static inline bool
+snl_add_msg_attr_string(struct snl_writer *nw, int attrtype, const char *str)
+{
+	return (snl_add_msg_attr(nw, attrtype, strlen(str) + 1, str));
+}
+
+
+static inline int
+snl_get_msg_offset(const struct snl_writer *nw)
+{
+        return (nw->offset - ((char *)nw->hdr - nw->base));
+}
+
+static inline void *
+_snl_restore_msg_offset(const struct snl_writer *nw, int off)
+{
+	return ((void *)((char *)nw->hdr + off));
+}
+#define	snl_restore_msg_offset(_ns, _off, _t)	((_t *)_snl_restore_msg_offset(_ns, _off))
+
+static inline int
+snl_add_msg_attr_nested(struct snl_writer *nw, int attrtype)
+{
+	int off = snl_get_msg_offset(nw);
+	struct nlattr *nla = snl_reserve_msg_data(nw, sizeof(struct nlattr), struct nlattr);
+	if (__predict_false(nla == NULL))
+		return (0);
+	nla->nla_type = attrtype;
+	return (off);
+}
+
+static inline void
+snl_end_attr_nested(const struct snl_writer *nw, int off)
+{
+	if (!nw->error) {
+		struct nlattr *nla = snl_restore_msg_offset(nw, off, struct nlattr);
+		nla->nla_len = NETLINK_ALIGN(snl_get_msg_offset(nw) - off);
+	}
+}
+
+static inline struct nlmsghdr *
+snl_create_msg_request(struct snl_writer *nw, int nlmsg_type)
+{
+	assert(nw->hdr == NULL);
+
+	struct nlmsghdr *hdr = snl_reserve_msg_object(nw, struct nlmsghdr);
+	hdr->nlmsg_type = nlmsg_type;
+	hdr->nlmsg_flags = NLM_F_REQUEST | NLM_F_ACK;
+	nw->hdr = hdr;
+
+	return (hdr);
+}
+
+static void
+snl_abort_msg(struct snl_writer *nw)
+{
+	if (nw->hdr != NULL) {
+		int offset = (char *)(&nw->base[nw->offset]) - (char *)(nw->hdr);
+
+		nw->offset -= offset;
+		nw->hdr = NULL;
+	}
+}
+
+static inline struct nlmsghdr *
+snl_finalize_msg(struct snl_writer *nw)
+{
+	if (nw->error)
+		snl_abort_msg(nw);
+	if (nw->hdr != NULL) {
+		struct nlmsghdr *hdr = nw->hdr;
+
+		int offset = (char *)(&nw->base[nw->offset]) - (char *)(nw->hdr);
+		hdr->nlmsg_len = offset;
+		hdr->nlmsg_seq = snl_get_seq(nw->ss);
+		nw->hdr = NULL;
+
+		return (hdr);
+	}
+	return (NULL);
+}
+
+static inline bool
+snl_send_msgs(struct snl_writer *nw)
+{
+	int offset = nw->offset;
+
+	assert(nw->hdr == NULL);
+	nw->offset = 0;
+
+	return (snl_send(nw->ss, nw->base, offset));
+}
+
+static const struct snl_hdr_parser *snl_all_core_parsers[] = {
+	&snl_errmsg_parser, &snl_donemsg_parser,
+};
 
 #endif

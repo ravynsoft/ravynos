@@ -17,6 +17,7 @@
 
 #include "acpi_device.h"
 #include "inout.h"
+#include "pci_lpc.h"
 #include "qemu_fwcfg.h"
 
 #define QEMU_FWCFG_ACPI_DEVICE_NAME "FWCF"
@@ -42,6 +43,8 @@
 #define QEMU_FWCFG_INDEX_SIGNATURE 0x00
 #define QEMU_FWCFG_INDEX_ID 0x01
 #define QEMU_FWCFG_INDEX_FILE_DIR 0x19
+
+#define QEMU_FWCFG_FIRST_FILE_INDEX 0x20
 
 #define QEMU_FWCFG_MIN_FILES 10
 
@@ -87,6 +90,7 @@ struct qemu_fwcfg_softc {
 	union qemu_fwcfg_selector selector;
 	struct qemu_fwcfg_item items[QEMU_FWCFG_MAX_ARCHS]
 				    [QEMU_FWCFG_MAX_ENTRIES];
+	struct qemu_fwcfg_directory *directory;
 };
 
 static struct qemu_fwcfg_softc fwcfg_sc;
@@ -257,41 +261,140 @@ qemu_fwcfg_register_port(const char *const name, const int port, const int size,
 }
 
 int
+qemu_fwcfg_add_file(const uint8_t name[QEMU_FWCFG_MAX_NAME],
+    const uint32_t size, void *const data)
+{
+	/*
+	 * QEMU specifies count as big endian.
+	 * Convert it to host endian to work with it.
+	 */
+	const uint32_t count = be32toh(fwcfg_sc.directory->be_count) + 1;
+
+	/* add file to items list */
+	const uint32_t index = QEMU_FWCFG_FIRST_FILE_INDEX + count - 1;
+	const int error = qemu_fwcfg_add_item(QEMU_FWCFG_ARCHITECTURE_GENERIC,
+	    index, size, data);
+	if (error != 0) {
+		return (error);
+	}
+
+	/*
+	 * files should be sorted alphabetical, get index for new file
+	 */
+	uint32_t file_index;
+	for (file_index = 0; file_index < count - 1; ++file_index) {
+		if (strcmp(name, fwcfg_sc.directory->files[file_index].name) <
+		    0)
+			break;
+	}
+
+	if (count > QEMU_FWCFG_MIN_FILES) {
+		/* alloc new file directory */
+		const uint64_t new_size = sizeof(struct qemu_fwcfg_directory) +
+		    count * sizeof(struct qemu_fwcfg_file);
+		struct qemu_fwcfg_directory *const new_directory = calloc(1,
+		    new_size);
+		if (new_directory == NULL) {
+			warnx(
+			    "%s: Unable to allocate a new qemu fwcfg files directory (count %d)",
+			    __func__, count);
+			return (-ENOMEM);
+		}
+
+		/* copy files below file_index to new directory */
+		memcpy(new_directory->files, fwcfg_sc.directory->files,
+		    file_index * sizeof(struct qemu_fwcfg_file));
+
+		/* copy files above file_index to directory */
+		memcpy(&new_directory->files[file_index + 1],
+		    &fwcfg_sc.directory->files[file_index],
+		    (count - file_index) * sizeof(struct qemu_fwcfg_file));
+
+		/* free old directory */
+		free(fwcfg_sc.directory);
+
+		/* set directory pointer to new directory */
+		fwcfg_sc.directory = new_directory;
+
+		/* adjust directory pointer */
+		fwcfg_sc.items[0][QEMU_FWCFG_INDEX_FILE_DIR].data =
+		    (uint8_t *)fwcfg_sc.directory;
+	} else {
+		/* shift files behind file_index */
+		for (uint32_t i = QEMU_FWCFG_MIN_FILES - 1; i > file_index;
+		     --i) {
+			memcpy(&fwcfg_sc.directory->files[i],
+			    &fwcfg_sc.directory->files[i - 1],
+			    sizeof(struct qemu_fwcfg_file));
+		}
+	}
+
+	/*
+	 * QEMU specifies count, size and index as big endian.
+	 * Save these values in big endian to simplify guest reads of these
+	 * values.
+	 */
+	fwcfg_sc.directory->be_count = htobe32(count);
+	fwcfg_sc.directory->files[file_index].be_size = htobe32(size);
+	fwcfg_sc.directory->files[file_index].be_selector = htobe16(index);
+	strcpy(fwcfg_sc.directory->files[file_index].name, name);
+
+	/* set new size for the fwcfg_file_directory */
+	fwcfg_sc.items[0][QEMU_FWCFG_INDEX_FILE_DIR].size =
+	    sizeof(struct qemu_fwcfg_directory) +
+	    count * sizeof(struct qemu_fwcfg_file);
+
+	return (0);
+}
+
+int
 qemu_fwcfg_init(struct vmctx *const ctx)
 {
 	int error;
 
-	error = acpi_device_create(&fwcfg_sc.acpi_dev, ctx,
-	    QEMU_FWCFG_ACPI_DEVICE_NAME, QEMU_FWCFG_ACPI_HARDWARE_ID);
-	if (error) {
-		warnx("%s: failed to create ACPI device for QEMU FwCfg",
-		    __func__);
-		goto done;
-	}
+	/*
+	 * Bhyve supports fwctl (bhyve) and fwcfg (qemu) as firmware interfaces.
+	 * Both are using the same ports. So, it's not possible to provide both
+	 * interfaces at the same time to the guest. Therefore, only create acpi
+	 * tables and register io ports for fwcfg, if it's used.
+	 */
+	if (strcmp(lpc_fwcfg(), "qemu") == 0) {
+		error = acpi_device_create(&fwcfg_sc.acpi_dev, ctx,
+		    QEMU_FWCFG_ACPI_DEVICE_NAME, QEMU_FWCFG_ACPI_HARDWARE_ID);
+		if (error) {
+			warnx("%s: failed to create ACPI device for QEMU FwCfg",
+			    __func__);
+			goto done;
+		}
 
-	error = acpi_device_add_res_fixed_ioport(fwcfg_sc.acpi_dev,
-	    QEMU_FWCFG_SELECTOR_PORT_NUMBER, 2);
-	if (error) {
-		warnx("%s: failed to add fixed IO port for QEMU FwCfg",
-		    __func__);
-		goto done;
-	}
+		error = acpi_device_add_res_fixed_ioport(fwcfg_sc.acpi_dev,
+		    QEMU_FWCFG_SELECTOR_PORT_NUMBER, 2);
+		if (error) {
+			warnx("%s: failed to add fixed IO port for QEMU FwCfg",
+			    __func__);
+			goto done;
+		}
 
-	/* add handlers for fwcfg ports */
-	if ((error = qemu_fwcfg_register_port("qemu_fwcfg_selector",
-	    QEMU_FWCFG_SELECTOR_PORT_NUMBER, QEMU_FWCFG_SELECTOR_PORT_SIZE,
-	    QEMU_FWCFG_SELECTOR_PORT_FLAGS,
-	    qemu_fwcfg_selector_port_handler)) != 0) {
-		warnx("%s: Unable to register qemu fwcfg selector port 0x%x",
-		    __func__, QEMU_FWCFG_SELECTOR_PORT_NUMBER);
-		goto done;
-	}
-	if ((error = qemu_fwcfg_register_port("qemu_fwcfg_data",
-	    QEMU_FWCFG_DATA_PORT_NUMBER, QEMU_FWCFG_DATA_PORT_SIZE,
-	    QEMU_FWCFG_DATA_PORT_FLAGS, qemu_fwcfg_data_port_handler)) != 0) {
-		warnx("%s: Unable to register qemu fwcfg data port 0x%x",
-		    __func__, QEMU_FWCFG_DATA_PORT_NUMBER);
-		goto done;
+		/* add handlers for fwcfg ports */
+		if ((error = qemu_fwcfg_register_port("qemu_fwcfg_selector",
+		    QEMU_FWCFG_SELECTOR_PORT_NUMBER,
+		    QEMU_FWCFG_SELECTOR_PORT_SIZE,
+		    QEMU_FWCFG_SELECTOR_PORT_FLAGS,
+		    qemu_fwcfg_selector_port_handler)) != 0) {
+			warnx(
+			    "%s: Unable to register qemu fwcfg selector port 0x%x",
+			    __func__, QEMU_FWCFG_SELECTOR_PORT_NUMBER);
+			goto done;
+		}
+		if ((error = qemu_fwcfg_register_port("qemu_fwcfg_data",
+		    QEMU_FWCFG_DATA_PORT_NUMBER, QEMU_FWCFG_DATA_PORT_SIZE,
+		    QEMU_FWCFG_DATA_PORT_FLAGS,
+		    qemu_fwcfg_data_port_handler)) != 0) {
+			warnx(
+			    "%s: Unable to register qemu fwcfg data port 0x%x",
+			    __func__, QEMU_FWCFG_DATA_PORT_NUMBER);
+			goto done;
+		}
 	}
 
 	/* add common fwcfg items */
