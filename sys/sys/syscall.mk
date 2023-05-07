@@ -481,3 +481,4 @@ MIASM =  \
 	mk_timer_destroy.o \
 	mk_timer_arm.o \
 	mk_timer_cancel.o
+	kqueuex.o

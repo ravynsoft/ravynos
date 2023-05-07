@@ -133,12 +133,18 @@ static struct epair_tasks_t epair_tasks;
 static void
 epair_clear_mbuf(struct mbuf *m)
 {
+	M_ASSERTPKTHDR(m);
+
 	/* Remove any CSUM_SND_TAG as ether_input will barf. */
 	if (m->m_pkthdr.csum_flags & CSUM_SND_TAG) {
 		m_snd_tag_rele(m->m_pkthdr.snd_tag);
 		m->m_pkthdr.snd_tag = NULL;
 		m->m_pkthdr.csum_flags &= ~CSUM_SND_TAG;
 	}
+
+	/* Clear vlan information. */
+	m->m_flags &= ~M_VLANTAG;
+	m->m_pkthdr.ether_vtag = 0;
 
 	m_tag_delete_nonpersistent(m);
 }
@@ -537,7 +543,6 @@ epair_setup_ifp(struct epair_softc *sc, char *name, int unit)
 	ifp->if_dname = epairname;
 	ifp->if_dunit = unit;
 	ifp->if_flags = IFF_BROADCAST | IFF_SIMPLEX | IFF_MULTICAST;
-	ifp->if_flags |= IFF_KNOWSEPOCH;
 	ifp->if_capabilities = IFCAP_VLAN_MTU;
 	ifp->if_capenable = IFCAP_VLAN_MTU;
 	ifp->if_transmit = epair_transmit;

@@ -56,7 +56,7 @@ db_md_list_watchpoints(void)
 	dbg_show_watchpoint();
 }
 
-static void
+static void __nosanitizeaddress
 db_stack_trace_cmd(struct thread *td, struct unwind_state *frame)
 {
 	c_db_sym_t sym;
@@ -102,18 +102,18 @@ db_stack_trace_cmd(struct thread *td, struct unwind_state *frame)
 
 			switch (frame_type) {
 			case FRAME_SYNC:
-				db_printf("--- exception, esr %#x\n",
+				db_printf("--- exception, esr %#lx\n",
 				    tf->tf_esr);
 				break;
 			case FRAME_IRQ:
 				db_printf("--- interrupt\n");
 				break;
 			case FRAME_SERROR:
-				db_printf("--- system error, esr %#x\n",
+				db_printf("--- system error, esr %#lx\n",
 				    tf->tf_esr);
 				break;
 			case FRAME_UNHANDLED:
-				db_printf("--- unhandled exception, esr %#x\n",
+				db_printf("--- unhandled exception, esr %#lx\n",
 				    tf->tf_esr);
 				break;
 			default:
@@ -135,7 +135,7 @@ db_stack_trace_cmd(struct thread *td, struct unwind_state *frame)
 	}
 }
 
-int
+int __nosanitizeaddress
 db_trace_thread(struct thread *thr, int count)
 {
 	struct unwind_state frame;
@@ -144,15 +144,15 @@ db_trace_thread(struct thread *thr, int count)
 	if (thr != curthread) {
 		ctx = kdb_thr_ctx(thr);
 
-		frame.fp = (uintptr_t)ctx->pcb_x[29];
-		frame.pc = (uintptr_t)ctx->pcb_lr;
+		frame.fp = (uintptr_t)ctx->pcb_x[PCB_FP];
+		frame.pc = (uintptr_t)ctx->pcb_x[PCB_LR];
 		db_stack_trace_cmd(thr, &frame);
 	} else
 		db_trace_self();
 	return (0);
 }
 
-void
+void __nosanitizeaddress
 db_trace_self(void)
 {
 	struct unwind_state frame;

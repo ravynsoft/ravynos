@@ -1,4 +1,4 @@
-/*	$NetBSD: cd9660.c,v 1.32 2011/08/23 17:09:11 christos Exp $	*/
+/*	$NetBSD: cd9660.c,v 1.56 2019/10/18 04:09:02 msaitoh Exp $	*/
 
 /*-
  * SPDX-License-Identifier: BSD-2-Clause-NetBSD AND BSD-4-Clause
@@ -115,7 +115,7 @@ __FBSDID("$FreeBSD$");
 static void cd9660_finalize_PVD(iso9660_disk *);
 static cd9660node *cd9660_allocate_cd9660node(void);
 static void cd9660_set_defaults(iso9660_disk *);
-static int cd9660_arguments_set_string(const char *, const char *, int,
+static int cd9660_arguments_set_string(const char *, const char *, size_t,
     char, char *);
 static void cd9660_populate_iso_dir_record(
     struct _iso_directory_record_cd9660 *, u_char, u_char, u_char,
@@ -147,10 +147,6 @@ static int cd9660_level1_convert_filename(iso9660_disk *, const char *, char *,
     int);
 static int cd9660_level2_convert_filename(iso9660_disk *, const char *, char *,
     int);
-#if 0
-static int cd9660_joliet_convert_filename(iso9660_disk *, const char *, char *,
-    int);
-#endif
 static int cd9660_convert_filename(iso9660_disk *, const char *, char *, int);
 static void cd9660_populate_dot_records(iso9660_disk *, cd9660node *);
 static int64_t cd9660_compute_offsets(iso9660_disk *, cd9660node *, int64_t);
@@ -200,7 +196,6 @@ cd9660_set_defaults(iso9660_disk *diskStructure)
 	/* Set up defaults in our own structure */
 	diskStructure->verbose_level = 0;
 	diskStructure->keep_bad_images = 0;
-	diskStructure->follow_sym_links = 0;
 	diskStructure->isoLevel = 2;
 
 	diskStructure->rock_ridge_enabled = 0;
@@ -270,10 +265,6 @@ cd9660_prep_opts(fsinfo_t *fsopts)
 		OPT_NUM('v', "verbose", verbose_level,
 		    0, 2, "Turns on verbose output"),
 
-		OPT_BOOL('h', "help", displayHelp,
-		    "Show help message"),
-		OPT_BOOL('S', "follow-symlinks", follow_sym_links,
-		    "Resolve symlinks in pathnames"),
 		OPT_BOOL('R', "rockridge", rock_ridge_enabled,
 		    "Enable Rock-Ridge extensions"),
 		OPT_BOOL('C', "chrp-boot", chrp_boot,
@@ -328,13 +319,14 @@ cd9660_cleanup_opts(fsinfo_t *fsopts)
 }
 
 static int
-cd9660_arguments_set_string(const char *val, const char *fieldtitle, int length,
-			    char testmode, char * dest)
+cd9660_arguments_set_string(const char *val, const char *fieldtitle,
+    size_t length, char testmode, char *dest)
 {
-	int len, test;
+	size_t len;
+	int test;
 
 	if (val == NULL)
-		warnx("error: The %s requires a string argument", fieldtitle);
+		warnx("error: '%s' requires a string argument", fieldtitle);
 	else if ((len = strlen(val)) <= length) {
 		if (testmode == 'd')
 			test = cd9660_valid_d_chars(val);
@@ -346,10 +338,10 @@ cd9660_arguments_set_string(const char *val, const char *fieldtitle, int length,
 				cd9660_uppercase_characters(dest, len);
 			return 1;
 		} else
-			warnx("error: The %s must be composed of "
-			      "%c-characters", fieldtitle, testmode);
+			warnx("error: '%s' must be composed of %c-characters",
+			    fieldtitle, testmode);
 	} else
-		warnx("error: The %s must be at most 32 characters long",
+		warnx("error: '%s' must be at most 32 characters long",
 		    fieldtitle);
 	return 0;
 }
@@ -493,14 +485,6 @@ cd9660_makefs(const char *image, const char *dir, fsnode *root,
 	assert(image != NULL);
 	assert(dir != NULL);
 	assert(root != NULL);
-
-	if (diskStructure->displayHelp) {
-		/*
-		 * Display help here - probably want to put it in
-		 * a separate function
-		 */
-		return;
-	}
 
 	if (diskStructure->verbose_level > 0)
 		printf("%s: image %s directory %s root %p\n", __func__,
@@ -727,7 +711,10 @@ cd9660_populate_iso_dir_record(struct _iso_directory_record_cd9660 *record,
 			       u_char ext_attr_length, u_char flags,
 			       u_char name_len, const char * name)
 {
+	time_t tstamp = stampst.st_ino ? stampst.st_mtime : time(NULL);
+
 	record->ext_attr_length[0] = ext_attr_length;
+	cd9660_time_915(record->date, tstamp);
 	record->flags[0] = ISO_FLAG_CLEAR | flags;
 	record->file_unit_size[0] = 0;
 	record->interleave[0] = 0;
@@ -814,7 +801,6 @@ cd9660_fill_extended_attribute_record(cd9660node *node)
 static int
 cd9660_translate_node_common(iso9660_disk *diskStructure, cd9660node *newnode)
 {
-	time_t tstamp = stampst.st_ino ? stampst.st_mtime : time(NULL);
 	u_char flag;
 	char temp[ISO_FILENAME_MAXLENGTH_WITH_PADDING];
 
@@ -830,12 +816,6 @@ cd9660_translate_node_common(iso9660_disk *diskStructure, cd9660node *newnode)
 
 	cd9660_populate_iso_dir_record(newnode->isoDirRecord, 0,
 	    flag, strlen(temp), temp);
-
-	/* Set the various dates */
-
-	/* If we want to use the current date and time */
-
-	cd9660_time_915(newnode->isoDirRecord->date, tstamp);
 
 	cd9660_bothendian_dword(newnode->fileDataLength,
 	    newnode->isoDirRecord->size);
@@ -1001,7 +981,7 @@ cd9660_sorted_child_insert(cd9660node *parent, cd9660node *cn_new)
 
 /*
  * Called After cd9660_sorted_child_insert
- * handles file collisions by suffixing each filname with ~n
+ * handles file collisions by suffixing each filename with ~n
  * where n represents the files respective place in the ordering
  */
 static int
@@ -1275,7 +1255,7 @@ cd9660_rrip_move_directory(iso9660_disk *diskStructure, cd9660node *dir)
 		return NULL;
 
 	diskStructure->rock_ridge_move_count++;
-	snprintf(newname, sizeof(newname), "%08i",
+	snprintf(newname, sizeof(newname), "%08u",
 	    diskStructure->rock_ridge_move_count);
 
 	/* Point to old parent */
@@ -1582,17 +1562,12 @@ cd9660_compute_full_filename(cd9660node *node, char *buf)
 {
 	int len;
 
-	len = CD9660MAXPATH + 1;
+	len = PATH_MAX;
 	len = snprintf(buf, len, "%s/%s/%s", node->node->root,
 	    node->node->path, node->node->name);
-	if (len > CD9660MAXPATH)
+	if (len >= PATH_MAX)
 		errx(EXIT_FAILURE, "Pathname too long.");
 }
-
-/* NEW filename conversion method */
-typedef int(*cd9660_filename_conversion_functor)(iso9660_disk *, const char *,
-    char *, int);
-
 
 /*
  * TODO: These two functions are almost identical.
@@ -1726,16 +1701,6 @@ cd9660_level2_convert_filename(iso9660_disk *diskStructure, const char *oldname,
 	return namelen + extlen + found_ext;
 }
 
-#if 0
-static int
-cd9660_joliet_convert_filename(iso9660_disk *diskStructure, const char *oldname,
-    char *newname, int is_file)
-{
-	/* TODO: implement later, move to cd9660_joliet.c ?? */
-}
-#endif
-
-
 /*
  * Convert a file name to ISO compliant file name
  * @param char * oldname The original filename
@@ -1749,13 +1714,13 @@ cd9660_convert_filename(iso9660_disk *diskStructure, const char *oldname,
     char *newname, int is_file)
 {
 	assert(1 <= diskStructure->isoLevel && diskStructure->isoLevel <= 2);
-	/* NEW */
-	cd9660_filename_conversion_functor conversion_function = NULL;
 	if (diskStructure->isoLevel == 1)
-		conversion_function = &cd9660_level1_convert_filename;
+		return(cd9660_level1_convert_filename(diskStructure,
+		    oldname, newname, is_file));
 	else if (diskStructure->isoLevel == 2)
-		conversion_function = &cd9660_level2_convert_filename;
-	return (*conversion_function)(diskStructure, oldname, newname, is_file);
+		return (cd9660_level2_convert_filename(diskStructure,
+		    oldname, newname, is_file));
+	abort();
 }
 
 int

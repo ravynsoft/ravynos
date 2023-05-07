@@ -10,7 +10,8 @@ ATF_TESTS_SH+=	altq \
 		dup \
 		ether \
 		forward \
-		fragmentation \
+		fragmentation_compat \
+		fragmentation_pass \
 		get_state \
 		icmp \
 		killstate \
@@ -29,7 +30,8 @@ ATF_TESTS_SH+=	altq \
 		route_to \
 		rtable \
 		rules_counter \
-		scrub \
+		scrub_compat \
+		scrub_pass \
 		set_skip \
 		set_tos \
 		src_track \
@@ -37,6 +39,9 @@ ATF_TESTS_SH+=	altq \
 		synproxy \
 		table \
 		tos
+
+# Tests reuse jail names and so cannot run in parallel.
+TEST_METADATA+=	is_exclusive=true
 
 ${PACKAGE}FILES+=	CVE-2019-5597.py \
 			CVE-2019-5598.py \

@@ -11,6 +11,11 @@ from typing import Optional
 import pytest
 
 
+def nodeid_to_method_name(nodeid: str) -> str:
+    """file_name.py::ClassName::method_name[parametrize] -> method_name"""
+    return nodeid.split("::")[-1].split("[")[0]
+
+
 class LibCWrapper(object):
     def __init__(self):
         path: Optional[str] = find_library("c")
@@ -20,6 +25,11 @@ class LibCWrapper(object):
 
     def modfind(self, mod_name: str) -> int:
         if self._libc.modfind(bytes(mod_name, encoding="ascii")) == -1:
+            return get_errno()
+        return 0
+
+    def kldload(self, kld_name: str) -> int:
+        if self._libc.kldload(bytes(kld_name, encoding="ascii")) == -1:
             return get_errno()
         return 0
 

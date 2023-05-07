@@ -412,12 +412,15 @@ to use standard input and output of the
 process.
 .El
 .Ss Host Bridge Settings
-.Bl -column "vendor" "integer" "Default"
+.Bl -column "pcireg.*" "integer" "Default"
 .It Sy Name Ta Sy Format Ta Sy Default Ta Sy Description
+.It Va pcireg.* Ta integer Ta Ta
+Values of PCI register.
+.Bl -column "device" "Default"
+.It Sy Name Ta Sy Default
 .It Va vendor Ta integer Ta 0x1275 Ta
-PCI vendor ID.
-.It Va devid Ta integer Ta 0x1275 Ta
-PCI device ID.
+.It Va device Ta integer Ta 0x1275 Ta
+.El
 .El
 .Ss AHCI Controller Settings
 AHCI controller devices contain zero or more ports each of which
@@ -539,6 +542,20 @@ for fwctl and
 for fwcfg.
 .It Va pc-testdev Ta bool Ta false Ta
 Enable the PC debug/test device.
+.It Va pcireg.* Ta integer Ta Ta
+Values of PCI register.
+It also accepts the value
+.Ar host
+to use the pci id of the host system.
+This value is required for the Intel GOP driver to work properly.
+.Bl -column "subvendor" "Default"
+.It Sy Name Ta Sy Default
+.It Va vendor Ta 0x8086
+.It Va device Ta 0x7000
+.It Va revid Ta 0
+.It Va subvendor Ta 0
+.It Va subdevice Ta 0
+.El
 .El
 .Ss NVMe Controller Settings
 Each NVMe controller supports a single storage device.

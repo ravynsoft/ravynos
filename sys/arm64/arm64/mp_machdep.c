@@ -558,8 +558,7 @@ start_cpu(u_int cpuid, uint64_t target_cpu, int domain, vm_paddr_t release_addr)
 	    M_WAITOK | M_ZERO);
 	pmap_disable_promotion((vm_offset_t)pcpup, size);
 	pcpu_init(pcpup, cpuid, sizeof(struct pcpu));
-	pcpup->pc_mpidr_low = target_cpu & CPU_AFF_MASK;
-	pcpup->pc_mpidr_high = (target_cpu & CPU_AFF_MASK) >> 32;
+	pcpup->pc_mpidr = target_cpu & CPU_AFF_MASK;
 
 	dpcpu[cpuid - 1] = (void *)(pcpup + 1);
 	dpcpu_init(dpcpu[cpuid - 1], cpuid);
@@ -688,7 +687,7 @@ populate_release_addr(phandle_t node, vm_paddr_t *release_addr)
 	*release_addr = (((uintptr_t)buf[0] << 32) | buf[1]);
 }
 
-static boolean_t
+static bool
 start_cpu_fdt(u_int id, phandle_t node, u_int addr_size, pcell_t *reg)
 {
 	uint64_t target_cpu;
@@ -717,11 +716,11 @@ start_cpu_fdt(u_int id, phandle_t node, u_int addr_size, pcell_t *reg)
 	if (!psci_present && cpuid != 0) {
 		if (OF_getprop_alloc(node, "enable-method",
 		    (void **)&enable_method) <= 0)
-			return (FALSE);
+			return (false);
 
 		if (strcmp(enable_method, "spin-table") != 0) {
 			OF_prop_free(enable_method);
-			return (FALSE);
+			return (false);
 		}
 
 		OF_prop_free(enable_method);
@@ -729,12 +728,12 @@ start_cpu_fdt(u_int id, phandle_t node, u_int addr_size, pcell_t *reg)
 		if (release_addr == 0) {
 			printf("Failed to fetch release address for CPU %u",
 			    cpuid);
-			return (FALSE);
+			return (false);
 		}
 	}
 
 	if (!start_cpu(cpuid, target_cpu, 0, release_addr))
-		return (FALSE);
+		return (false);
 
 	/*
 	 * Don't increment for the boot CPU, its CPU ID is reserved.
@@ -749,7 +748,7 @@ start_cpu_fdt(u_int id, phandle_t node, u_int addr_size, pcell_t *reg)
 	cpuid_to_pcpu[cpuid]->pc_domain = domain;
 	if (domain < MAXMEMDOM)
 		CPU_SET(cpuid, &cpuset_domain[domain]);
-	return (TRUE);
+	return (true);
 }
 static void
 cpu_init_fdt(void)
@@ -780,8 +779,7 @@ cpu_mp_start(void)
 	/* CPU 0 is always boot CPU. */
 	CPU_SET(0, &all_cpus);
 	mpidr = READ_SPECIALREG(mpidr_el1) & CPU_AFF_MASK;
-	cpuid_to_pcpu[0]->pc_mpidr_low = mpidr;
-	cpuid_to_pcpu[0]->pc_mpidr_high = mpidr >> 32;
+	cpuid_to_pcpu[0]->pc_mpidr = mpidr;
 
 	switch(arm64_bus_method) {
 #ifdef DEV_ACPI
@@ -917,9 +915,8 @@ intr_ipi_lookup(u_int ipi)
  *  source mapped.
  */
 void
-intr_ipi_dispatch(u_int ipi, struct trapframe *tf)
+intr_ipi_dispatch(u_int ipi)
 {
-	void *arg;
 	struct intr_ipi *ii;
 
 	ii = intr_ipi_lookup(ipi);
@@ -928,12 +925,7 @@ intr_ipi_dispatch(u_int ipi, struct trapframe *tf)
 
 	intr_ipi_increment_count(ii->ii_count, PCPU_GET(cpuid));
 
-	/*
-	 * Supply ipi filter with trapframe argument
-	 * if none is registered.
-	 */
-	arg = ii->ii_handler_arg != NULL ? ii->ii_handler_arg : tf;
-	ii->ii_handler(arg);
+	ii->ii_handler(ii->ii_handler_arg);
 }
 
 #ifdef notyet

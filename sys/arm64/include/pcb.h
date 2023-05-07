@@ -36,10 +36,16 @@
 
 struct trapframe;
 
+/* The first register in pcb_x is x19 */
+#define	PCB_X_START	19
+
+#define	PCB_X19		0
+#define	PCB_X20		1
+#define	PCB_FP		10
+#define	PCB_LR		11
+
 struct pcb {
-	uint64_t	pcb_x[30];
-	uint64_t	pcb_lr;
-	uint64_t	_reserved;	/* Was pcb_pc */
+	uint64_t	pcb_x[12];
 	/* These two need to be in order as we access them together */
 	uint64_t	pcb_sp;
 	uint64_t	pcb_tpidr_el0;
@@ -51,6 +57,7 @@ struct pcb {
 	u_int		pcb_flags;
 #define	PCB_SINGLE_STEP_SHIFT	0
 #define	PCB_SINGLE_STEP		(1 << PCB_SINGLE_STEP_SHIFT)
+	uint32_t	pcb_pad1;
 
 	struct vfpstate	*pcb_fpusaved;
 	int		pcb_fpflags;
@@ -60,6 +67,7 @@ struct pcb {
 /* The bits passed to userspace in get_fpcontext */
 #define	PCB_FP_USERMASK	(PCB_FP_STARTED)
 	u_int		pcb_vfpcpu;	/* Last cpu this thread ran VFP code */
+	uint64_t	pcb_reserved[5];
 
 	/*
 	 * The userspace VFP state. The pcb_fpusaved pointer will point to

@@ -61,6 +61,8 @@ struct nlpcb {
         bool			nl_task_pending;
 	bool			nl_tx_blocked; /* No new requests accepted */
 	bool			nl_linux; /* true if running under compat */
+	bool			nl_unconstrained_vnet; /* true if running under VNET jail (or without jail) */
+	bool			nl_need_thread_setup;
 	struct nl_io_queue	rx_queue;
 	struct nl_io_queue	tx_queue;
 	struct taskqueue	*nl_taskqueue;
@@ -87,8 +89,10 @@ struct nlpcb {
 #define NLF_CAP_ACK             0x01 /* Do not send message body with errmsg */
 #define NLF_EXT_ACK             0x02 /* Allow including extended TLVs in ack */
 #define	NLF_STRICT		0x04 /* Perform strict header checks */
+#define	NLF_MSG_INFO		0x08 /* Send caller info along with the notifications */
 
 SYSCTL_DECL(_net_netlink);
+SYSCTL_DECL(_net_netlink_debug);
 
 struct nl_io {
 	struct callout				callout;
@@ -128,6 +132,9 @@ extern struct nl_proto_handler *nl_handlers;
 
 /* netlink_domain.c */
 void nl_send_group(struct mbuf *m, int cnt, int proto, int group_id);
+void nl_osd_register(void);
+void nl_osd_unregister(void);
+void nl_set_thread_nlp(struct thread *td, struct nlpcb *nlp);
 
 /* netlink_io.c */
 #define	NL_IOF_UNTRANSLATED	0x01
@@ -142,6 +149,62 @@ void nl_free_io(struct nlpcb *nlp);
 void nl_taskqueue_handler(void *_arg, int pending);
 int nl_receive_async(struct mbuf *m, struct socket *so);
 void nl_process_receive_locked(struct nlpcb *nlp);
+void nl_set_source_metadata(struct mbuf *m, int num_messages);
+void nl_add_msg_info(struct mbuf *m);
+
+/* netlink_generic.c */
+struct genl_family {
+	const char	*family_name;
+	uint16_t	family_hdrsize;
+	uint16_t	family_id;
+	uint16_t	family_version;
+	uint16_t	family_attr_max;
+	uint16_t	family_cmd_size;
+	uint16_t	family_num_groups;
+	struct genl_cmd	*family_cmds;
+};
+
+struct genl_group {
+	struct genl_family	*group_family;
+	const char		*group_name;
+};
+
+struct genl_family *genl_get_family(uint32_t family_id);
+struct genl_group *genl_get_group(uint32_t group_id);
+
+#define	MAX_FAMILIES	20
+#define	MAX_GROUPS	64
+
+#define	MIN_GROUP_NUM	48
+
+#define	CTRL_FAMILY_NAME	"nlctrl"
+
+struct ifnet;
+struct nl_parsed_link;
+struct nlattr_bmask;
+struct nl_pstate;
+
+/* Function map */
+struct nl_function_wrapper {
+	bool (*nlmsg_add)(struct nl_writer *nw, uint32_t portid, uint32_t seq, uint16_t type,
+	    uint16_t flags, uint32_t len);
+	bool (*nlmsg_refill_buffer)(struct nl_writer *nw, int required_len);
+	bool (*nlmsg_flush)(struct nl_writer *nw);
+	bool (*nlmsg_end)(struct nl_writer *nw);
+	void (*nlmsg_abort)(struct nl_writer *nw);
+	void (*nlmsg_ignore_limit)(struct nl_writer *nw);
+	bool (*nlmsg_get_unicast_writer)(struct nl_writer *nw, int size, struct nlpcb *nlp);
+	bool (*nlmsg_get_group_writer)(struct nl_writer *nw, int size, int protocol, int group_id);
+	bool (*nlmsg_get_chain_writer)(struct nl_writer *nw, int size, struct mbuf **pm);
+	bool (*nlmsg_end_dump)(struct nl_writer *nw, int error, struct nlmsghdr *hdr);
+	int (*nl_modify_ifp_generic)(struct ifnet *ifp, struct nl_parsed_link *lattrs,
+	    const struct nlattr_bmask *bm, struct nl_pstate *npt);
+	void (*nl_store_ifp_cookie)(struct nl_pstate *npt, struct ifnet *ifp);
+	struct nlpcb * (*nl_get_thread_nlp)(struct  thread *td);
+};
+void nl_set_functions(const struct nl_function_wrapper *nl);
+
+
 
 #endif
 #endif

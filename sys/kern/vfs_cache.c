@@ -535,10 +535,10 @@ STATNODE_ULONG(count, numcache, "Number of cache entries");
 STATNODE_COUNTER(heldvnodes, numcachehv, "Number of namecache entries with vnodes held");
 STATNODE_COUNTER(drops, numdrops, "Number of dropped entries due to reaching the limit");
 STATNODE_COUNTER(dothits, dothits, "Number of '.' hits");
-STATNODE_COUNTER(dotdothis, dotdothits, "Number of '..' hits");
+STATNODE_COUNTER(dotdothits, dotdothits, "Number of '..' hits");
 STATNODE_COUNTER(miss, nummiss, "Number of cache misses");
 STATNODE_COUNTER(misszap, nummisszap, "Number of cache misses we do not want to cache");
-STATNODE_COUNTER(posszaps, numposzaps,
+STATNODE_COUNTER(poszaps, numposzaps,
     "Number of cache hits (positive) we do not want to cache");
 STATNODE_COUNTER(poshits, numposhits, "Number of cache hits (positive)");
 STATNODE_COUNTER(negzaps, numnegzaps,
@@ -3956,6 +3956,76 @@ static int cache_fast_lookup = 1;
 
 #define CACHE_FPL_FAILED	-2020
 
+static int
+cache_vop_bad_vexec(struct vop_fplookup_vexec_args *v)
+{
+	vn_printf(v->a_vp, "no proper vop_fplookup_vexec\n");
+	panic("no proper vop_fplookup_vexec");
+}
+
+static int
+cache_vop_bad_symlink(struct vop_fplookup_symlink_args *v)
+{
+	vn_printf(v->a_vp, "no proper vop_fplookup_symlink\n");
+	panic("no proper vop_fplookup_symlink");
+}
+
+void
+cache_vop_vector_register(struct vop_vector *v)
+{
+	size_t ops;
+
+	ops = 0;
+	if (v->vop_fplookup_vexec != NULL) {
+		ops++;
+	}
+	if (v->vop_fplookup_symlink != NULL) {
+		ops++;
+	}
+
+	if (ops == 2) {
+		return;
+	}
+
+	if (ops == 0) {
+		v->vop_fplookup_vexec = cache_vop_bad_vexec;
+		v->vop_fplookup_symlink = cache_vop_bad_symlink;
+		return;
+	}
+
+	printf("%s: invalid vop vector %p -- either all or none fplookup vops "
+	    "need to be provided",  __func__, v);
+	if (v->vop_fplookup_vexec == NULL) {
+		printf("%s: missing vop_fplookup_vexec\n", __func__);
+	}
+	if (v->vop_fplookup_symlink == NULL) {
+		printf("%s: missing vop_fplookup_symlink\n", __func__);
+	}
+	panic("bad vop vector %p", v);
+}
+
+#ifdef INVARIANTS
+void
+cache_validate_vop_vector(struct mount *mp, struct vop_vector *vops)
+{
+	if (mp == NULL)
+		return;
+
+	if ((mp->mnt_kern_flag & MNTK_FPLOOKUP) == 0)
+		return;
+
+	if (vops->vop_fplookup_vexec == NULL ||
+	    vops->vop_fplookup_vexec == cache_vop_bad_vexec)
+		panic("bad vop_fplookup_vexec on vector %p for filesystem %s",
+		    vops, mp->mnt_vfc->vfc_name);
+
+	if (vops->vop_fplookup_symlink == NULL ||
+	    vops->vop_fplookup_symlink == cache_vop_bad_symlink)
+		panic("bad vop_fplookup_symlink on vector %p for filesystem %s",
+		    vops, mp->mnt_vfc->vfc_name);
+}
+#endif
+
 void
 cache_fast_lookup_enabled_recalc(void)
 {
@@ -5065,6 +5135,12 @@ cache_fplookup_dot(struct cache_fpl *fpl)
 	int error;
 
 	MPASS(!seqc_in_modify(fpl->dvp_seqc));
+
+	if (__predict_false(fpl->dvp->v_type != VDIR)) {
+		cache_fpl_smr_exit(fpl);
+		return (cache_fpl_handled_error(fpl, ENOTDIR));
+	}
+
 	/*
 	 * Just re-assign the value. seqc will be checked later for the first
 	 * non-dot path component in line and/or before deciding to return the
@@ -5125,6 +5201,11 @@ cache_fplookup_dotdot(struct cache_fpl *fpl)
 		 * The opposite of climb mount is needed here.
 		 */
 		return (cache_fpl_partial(fpl));
+	}
+
+	if (__predict_false(dvp->v_type != VDIR)) {
+		cache_fpl_smr_exit(fpl);
+		return (cache_fpl_handled_error(fpl, ENOTDIR));
 	}
 
 	ncp = atomic_load_consume_ptr(&dvp->v_cache_dd);
@@ -6137,6 +6218,7 @@ cache_fplookup(struct nameidata *ndp, enum cache_fpl_status *status,
 	    ("%s: internal flags found in cn_flags %" PRIx64, __func__,
 	    cnp->cn_flags));
 	MPASS(cnp->cn_nameptr == cnp->cn_pnbuf);
+	MPASS(ndp->ni_resflags == 0);
 
 	if (__predict_false(!cache_can_fplookup(&fpl))) {
 		*status = fpl.status;
@@ -6161,7 +6243,6 @@ cache_fplookup(struct nameidata *ndp, enum cache_fpl_status *status,
 
 	if (cnp->cn_pnbuf[0] == '/') {
 		dvp = cache_fpl_handle_root(&fpl);
-		MPASS(ndp->ni_resflags == 0);
 		ndp->ni_resflags = NIRES_ABS;
 	} else {
 		if (ndp->ni_dirfd == AT_FDCWD) {

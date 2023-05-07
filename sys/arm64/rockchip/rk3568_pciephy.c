@@ -54,12 +54,14 @@
 
 #define	GRF_PCIE30PHY_CON1		0x04
 #define	GRF_PCIE30PHY_CON4		0x10
+#define	GRF_PCIE30PHY_CON5		0x14
 #define	GRF_PCIE30PHY_CON6		0x18
-#define	 GRF_BIFURCATION_LANE_0_1	(1 << 0)
-#define	 GRF_BIFURCATION_LANE_2_3	(1 << 1)
+#define	 GRF_BIFURCATION_LANE_1		0
+#define	 GRF_BIFURCATION_LANE_2		1
 #define	 GRF_PCIE30PHY_WR_EN		(0xf << 16)
 #define	GRF_PCIE30PHY_CON9		0x24
-#define	 GRF_PCIE30PHY_DA_OCM		((1 << 15) | (1 << (15 + 16)))
+#define	 GRF_PCIE30PHY_DA_OCM_MASK	(1 << (15 + 16))
+#define	 GRF_PCIE30PHY_DA_OCM		((1 << 15) | GRF_PCIE30PHY_DA_OCM_MASK)
 #define	GRF_PCIE30PHY_STATUS0		0x80
 #define	 SRAM_INIT_DONE			(1 << 14)
 
@@ -81,6 +83,32 @@ struct rk3568_pciephy_softc {
 };
 
 
+static void
+rk3568_pciephy_bifurcate(device_t dev, int control, uint32_t lane)
+{
+	struct rk3568_pciephy_softc *sc = device_get_softc(dev);
+
+	switch (lane) {
+	case 0:
+		SYSCON_WRITE_4(sc->phy_grf, control, GRF_PCIE30PHY_WR_EN);
+		return;
+	case 1:
+		SYSCON_WRITE_4(sc->phy_grf, control,
+		    GRF_PCIE30PHY_WR_EN | GRF_BIFURCATION_LANE_1);
+		break;
+	case 2:
+		SYSCON_WRITE_4(sc->phy_grf, control,
+		    GRF_PCIE30PHY_WR_EN | GRF_BIFURCATION_LANE_2);
+		break;
+	default:
+		device_printf(dev, "Illegal lane %d\n", lane);
+		return;
+	}
+	if (bootverbose)
+		device_printf(dev, "lane %d @ pcie3x%d\n", lane,
+		    (control == GRF_PCIE30PHY_CON5) ? 1 : 2);
+}
+
 /* PHY class and methods */
 static int
 rk3568_pciephy_enable(struct phynode *phynode, bool enable)
@@ -90,21 +118,7 @@ rk3568_pciephy_enable(struct phynode *phynode, bool enable)
 	int count;
 
 	if (enable) {
-		/* Deassert PCIe PMA output clamp mode */
-		SYSCON_WRITE_4(sc->phy_grf, GRF_PCIE30PHY_CON9,
-		    GRF_PCIE30PHY_DA_OCM);
-
-		/* Set bifurcation according to DT entry */
-		if (OF_hasprop(sc->node, "rockchip,bifurcation")) {
-			SYSCON_WRITE_4(sc->phy_grf, GRF_PCIE30PHY_CON6,
-			    GRF_PCIE30PHY_WR_EN | GRF_BIFURCATION_LANE_0_1);
-			SYSCON_WRITE_4(sc->phy_grf, GRF_PCIE30PHY_CON1,
-			    GRF_PCIE30PHY_DA_OCM);
-			device_printf(dev, "setup 2 x PCIeX1\n");
-		}
-		else
-			device_printf(dev, "setup 1 x PCIeX2\n");
-
+		/* Pull PHY out of reset */
 		hwreset_deassert(sc->phy_reset);
 
 		/* Poll for SRAM loaded and ready */
@@ -150,6 +164,7 @@ rk3568_pciephy_attach(device_t dev)
 	struct rk3568_pciephy_softc *sc = device_get_softc(dev);
 	struct phynode_init_def phy_init;
 	struct phynode *phynode;
+	uint32_t data_lanes[2] = { 0, 0 };
 	int rid = 0;
 
 	sc->dev = dev;
@@ -191,11 +206,32 @@ rk3568_pciephy_attach(device_t dev)
 	/* Get & assert reset */
 	if (hwreset_get_by_ofw_idx(dev, sc->node, 0, &sc->phy_reset)) {
 		device_printf(dev, "Cannot get reset\n");
-	}
-	else
+	} else
 		hwreset_assert(sc->phy_reset);
 
 	/* Set RC/EP mode not implemented yet (RC mode only) */
+
+	/* Set bifurcation according to "data-lanes" entry */
+	if (OF_hasprop(sc->node, "data-lanes")) {
+		OF_getencprop(sc->node, "data-lanes", data_lanes,
+		    sizeof(data_lanes));
+	} else
+		if (bootverbose)
+			device_printf(dev, "lane 1 & 2 @pcie3x2\n");
+
+	/* Deassert PCIe PMA output clamp mode */
+	SYSCON_WRITE_4(sc->phy_grf, GRF_PCIE30PHY_CON9, GRF_PCIE30PHY_DA_OCM);
+
+	/* Configure PHY HW accordingly */
+	rk3568_pciephy_bifurcate(dev, GRF_PCIE30PHY_CON5, data_lanes[0]);
+	rk3568_pciephy_bifurcate(dev, GRF_PCIE30PHY_CON6, data_lanes[1]);
+
+	if (data_lanes[0] || data_lanes[1])
+		SYSCON_WRITE_4(sc->phy_grf, GRF_PCIE30PHY_CON1,
+		    GRF_PCIE30PHY_DA_OCM);
+	else
+		SYSCON_WRITE_4(sc->phy_grf, GRF_PCIE30PHY_CON1,
+		    GRF_PCIE30PHY_DA_OCM_MASK);
 
 	bzero(&phy_init, sizeof(phy_init));
 	phy_init.id = PHY_NONE;

@@ -99,7 +99,7 @@ int nfsrv_setclient(struct nfsrv_descript *, struct nfsclient **,
     nfsquad_t *, nfsquad_t *, NFSPROC_T *);
 int nfsrv_getclient(nfsquad_t, int, struct nfsclient **, struct nfsdsession *,
     nfsquad_t, uint32_t, struct nfsrv_descript *, NFSPROC_T *);
-int nfsrv_destroyclient(nfsquad_t, NFSPROC_T *);
+int nfsrv_destroyclient(struct nfsrv_descript *, nfsquad_t, NFSPROC_T *);
 int nfsrv_destroysession(struct nfsrv_descript *, uint8_t *);
 int nfsrv_bindconnsess(struct nfsrv_descript *, uint8_t *, int *);
 int nfsrv_freestateid(struct nfsrv_descript *, nfsv4stateid_t *, NFSPROC_T *);
@@ -337,6 +337,7 @@ int nfsrv_dissectacl(struct nfsrv_descript *, NFSACL_T *, bool, int *,
     int *, NFSPROC_T *);
 int nfsrv_getattrbits(struct nfsrv_descript *, nfsattrbit_t *, int *,
     int *);
+int nfsrv_getopbits(struct nfsrv_descript *, nfsopbit_t *, int *);
 int nfsv4_loadattr(struct nfsrv_descript *, vnode_t,
     struct nfsvattr *, struct nfsfh **, fhandle_t *, int,
     struct nfsv3_pathconf *, struct statfs *, struct nfsstatfs *,
@@ -391,6 +392,7 @@ int nfsd_excred(struct nfsrv_descript *, struct nfsexstuff *, struct ucred *,
     bool);
 int nfsrv_mtofh(struct nfsrv_descript *, struct nfsrvfh *);
 int nfsrv_putattrbit(struct nfsrv_descript *, nfsattrbit_t *);
+int nfsrv_putopbit(struct nfsrv_descript *, nfsopbit_t *);
 void nfsrv_wcc(struct nfsrv_descript *, int, struct nfsvattr *, int,
     struct nfsvattr *);
 int nfsv4_fillattr(struct nfsrv_descript *, struct mount *, vnode_t, NFSACL_T *,

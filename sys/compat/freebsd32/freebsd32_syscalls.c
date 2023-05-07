@@ -145,7 +145,7 @@ const char *freebsd32_syscallnames[] = {
 	"mkdir",			/* 136 = mkdir */
 	"rmdir",			/* 137 = rmdir */
 	"freebsd32_utimes",			/* 138 = freebsd32_utimes */
-	"obs_4.2",			/* 139 = obsolete 4.2 sigreturn */
+	"obs_freebsd32_sigreturn",			/* 139 = obsolete sigreturn */
 	"freebsd32_adjtime",			/* 140 = freebsd32_adjtime */
 	"compat.getpeername",		/* 141 = old getpeername */
 	"compat.gethostid",		/* 142 = old gethostid */
@@ -589,6 +589,7 @@ const char *freebsd32_syscallnames[] = {
 	"fspacectl",			/* 580 = fspacectl */
 	"sched_getcpu",			/* 581 = sched_getcpu */
 	"swapoff",			/* 582 = swapoff */
+<<<<<<< HEAD
 	"#583",			/* 583 = nosys */
 	"#584",			/* 584 = nosys */
 	"#585",			/* 585 = nosys */
@@ -727,4 +728,7 @@ const char *freebsd32_syscallnames[] = {
 	"#718",			/* 718 = nosys */
 	"#719",			/* 719 = nosys */
 	"#720",			/* 720 = nosys */
+=======
+	"kqueuex",			/* 583 = kqueuex */
+>>>>>>> upstream/main
 };

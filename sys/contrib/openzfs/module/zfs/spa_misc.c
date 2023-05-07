@@ -57,6 +57,7 @@
 #include <sys/fs/zfs.h>
 #include <sys/metaslab_impl.h>
 #include <sys/arc.h>
+#include <sys/brt.h>
 #include <sys/ddt.h>
 #include <sys/kstat.h>
 #include "zfs_prop.h"
@@ -492,8 +493,9 @@ spa_config_tryenter(spa_t *spa, int locks, const void *tag, krw_t rw)
 	return (1);
 }
 
-void
-spa_config_enter(spa_t *spa, int locks, const void *tag, krw_t rw)
+static void
+spa_config_enter_impl(spa_t *spa, int locks, const void *tag, krw_t rw,
+    int mmp_flag)
 {
 	(void) tag;
 	int wlocks_held = 0;
@@ -508,7 +510,8 @@ spa_config_enter(spa_t *spa, int locks, const void *tag, krw_t rw)
 			continue;
 		mutex_enter(&scl->scl_lock);
 		if (rw == RW_READER) {
-			while (scl->scl_writer || scl->scl_write_wanted) {
+			while (scl->scl_writer ||
+			    (!mmp_flag && scl->scl_write_wanted)) {
 				cv_wait(&scl->scl_cv, &scl->scl_lock);
 			}
 		} else {
@@ -524,6 +527,27 @@ spa_config_enter(spa_t *spa, int locks, const void *tag, krw_t rw)
 		mutex_exit(&scl->scl_lock);
 	}
 	ASSERT3U(wlocks_held, <=, locks);
+}
+
+void
+spa_config_enter(spa_t *spa, int locks, const void *tag, krw_t rw)
+{
+	spa_config_enter_impl(spa, locks, tag, rw, 0);
+}
+
+/*
+ * The spa_config_enter_mmp() allows the mmp thread to cut in front of
+ * outstanding write lock requests. This is needed since the mmp updates are
+ * time sensitive and failure to service them promptly will result in a
+ * suspended pool. This pool suspension has been seen in practice when there is
+ * a single disk in a pool that is responding slowly and presumably about to
+ * fail.
+ */
+
+void
+spa_config_enter_mmp(spa_t *spa, int locks, const void *tag, krw_t rw)
+{
+	spa_config_enter_impl(spa, locks, tag, rw, 1);
 }
 
 void
@@ -1834,7 +1858,7 @@ void
 spa_update_dspace(spa_t *spa)
 {
 	spa->spa_dspace = metaslab_class_get_dspace(spa_normal_class(spa)) +
-	    ddt_get_dedup_dspace(spa);
+	    ddt_get_dedup_dspace(spa) + brt_get_dspace(spa);
 	if (spa->spa_nonallocating_dspace > 0) {
 		/*
 		 * Subtract the space provided by all non-allocating vdevs that
@@ -2306,7 +2330,7 @@ spa_import_progress_add(spa_t *spa)
 {
 	spa_history_list_t *shl = spa_import_progress_list;
 	spa_import_progress_t *sip;
-	char *poolname = NULL;
+	const char *poolname = NULL;
 
 	sip = kmem_zalloc(sizeof (spa_import_progress_t), KM_SLEEP);
 	sip->pool_guid = spa_guid(spa);
@@ -2410,6 +2434,7 @@ spa_init(spa_mode_t mode)
 	unique_init();
 	zfs_btree_init();
 	metaslab_stat_init();
+	brt_init();
 	ddt_init();
 	zio_init();
 	dmu_init();
@@ -2446,6 +2471,7 @@ spa_fini(void)
 	dmu_fini();
 	zio_fini();
 	ddt_fini();
+	brt_fini();
 	metaslab_stat_fini();
 	zfs_btree_fini();
 	unique_fini();

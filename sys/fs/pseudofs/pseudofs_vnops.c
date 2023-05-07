@@ -90,21 +90,17 @@ pn_fileno(struct pfs_node *pn, pid_t pid)
 static int
 pfs_visible_proc(struct thread *td, struct pfs_node *pn, struct proc *proc)
 {
-	int visible;
 
 	if (proc == NULL)
 		return (0);
 
 	PROC_LOCK_ASSERT(proc, MA_OWNED);
 
-	visible = ((proc->p_flag & P_WEXIT) == 0);
-	if (visible)
-		visible = (p_cansee(td, proc) == 0);
-	if (visible && pn->pn_vis != NULL)
-		visible = pn_vis(td, proc, pn);
-	if (!visible)
+	if ((proc->p_flag & P_WEXIT) != 0)
 		return (0);
-	return (1);
+	if (p_cansee(td, proc) != 0)
+		return (0);
+	return (pn_vis(td, proc, pn));
 }
 
 static int
@@ -119,7 +115,7 @@ pfs_visible(struct thread *td, struct pfs_node *pn, pid_t pid,
 	if (p)
 		*p = NULL;
 	if (pid == NO_PID)
-		PFS_RETURN (1);
+		PFS_RETURN (pn_vis(td, NULL, pn));
 	proc = pfind(pid);
 	if (proc == NULL)
 		PFS_RETURN (0);
@@ -826,7 +822,7 @@ pfs_iterate(struct thread *td, struct proc *proc, struct pfs_node *pd,
 	} else if (proc != NULL) {
 		visible = pfs_visible_proc(td, *pn, proc);
 	} else {
-		visible = 1;
+		visible = pn_vis(td, NULL, *pn);
 	}
 	if (!visible)
 		goto again;

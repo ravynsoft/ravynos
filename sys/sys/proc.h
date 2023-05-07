@@ -324,7 +324,7 @@ struct thread {
 	int		td_errno;	/* (k) Error from last syscall. */
 	size_t		td_vslock_sz;	/* (k) amount of vslock-ed space */
 	struct kcov_info *td_kcov_info;	/* (*) Kernel code coverage data */
-	u_int		td_ucredref;	/* (k) references on td_realucred */
+	long		td_ucredref;	/* (k) references on td_realucred */
 #define	td_endzero td_sigmask
 
 /* Copied during fork1(), thread_create(), or kthread_add(). */
@@ -748,6 +748,7 @@ struct proc {
 	uint64_t	p_elf_flags;	/* (x) ELF flags */
 	void		*p_elf_brandinfo; /* (x) Elf_Brandinfo, NULL for
 						 non ELF binaries. */
+	sbintime_t	p_umtx_min_timeout;
 /* End area that is copied on creation. */
 #define	p_endcopy	p_xexit
 

@@ -144,7 +144,7 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 	case 18: {
 		struct linux_stat_args *p = params;
 		uarg[a++] = (intptr_t)p->path; /* char * */
-		uarg[a++] = (intptr_t)p->up; /* struct linux_stat * */
+		uarg[a++] = (intptr_t)p->up; /* struct l_old_stat * */
 		*n_args = 2;
 		break;
 	}
@@ -212,14 +212,6 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		struct linux_alarm_args *p = params;
 		iarg[a++] = p->secs; /* l_uint */
 		*n_args = 1;
-		break;
-	}
-	/* linux_fstat */
-	case 28: {
-		struct linux_fstat_args *p = params;
-		iarg[a++] = p->fd; /* l_uint */
-		uarg[a++] = (intptr_t)p->up; /* struct linux_stat * */
-		*n_args = 2;
 		break;
 	}
 	/* linux_pause */
@@ -571,7 +563,7 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 	case 84: {
 		struct linux_lstat_args *p = params;
 		uarg[a++] = (intptr_t)p->path; /* char * */
-		uarg[a++] = (intptr_t)p->up; /* struct l_stat * */
+		uarg[a++] = (intptr_t)p->up; /* struct l_old_stat * */
 		*n_args = 2;
 		break;
 	}
@@ -2111,7 +2103,7 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		iarg[a++] = p->dfd; /* l_int */
 		uarg[a++] = (intptr_t)p->filename; /* const char * */
 		iarg[a++] = p->mode; /* l_int */
-		iarg[a++] = p->dev; /* l_uint */
+		iarg[a++] = p->dev; /* l_dev_t */
 		*n_args = 4;
 		break;
 	}
@@ -3249,7 +3241,11 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 	}
 	/* linux_close_range */
 	case 436: {
-		*n_args = 0;
+		struct linux_close_range_args *p = params;
+		iarg[a++] = p->first; /* l_uint */
+		iarg[a++] = p->last; /* l_uint */
+		iarg[a++] = p->flags; /* l_uint */
+		*n_args = 3;
 		break;
 	}
 	/* linux_openat2 */
@@ -3516,7 +3512,7 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			p = "userland char *";
 			break;
 		case 1:
-			p = "userland struct linux_stat *";
+			p = "userland struct l_old_stat *";
 			break;
 		default:
 			break;
@@ -3613,19 +3609,6 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		switch (ndx) {
 		case 0:
 			p = "l_uint";
-			break;
-		default:
-			break;
-		};
-		break;
-	/* linux_fstat */
-	case 28:
-		switch (ndx) {
-		case 0:
-			p = "l_uint";
-			break;
-		case 1:
-			p = "userland struct linux_stat *";
 			break;
 		default:
 			break;
@@ -4135,7 +4118,7 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			p = "userland char *";
 			break;
 		case 1:
-			p = "userland struct l_stat *";
+			p = "userland struct l_old_stat *";
 			break;
 		default:
 			break;
@@ -6598,7 +6581,7 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			p = "l_int";
 			break;
 		case 3:
-			p = "l_uint";
+			p = "l_dev_t";
 			break;
 		default:
 			break;
@@ -8534,6 +8517,19 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		break;
 	/* linux_close_range */
 	case 436:
+		switch (ndx) {
+		case 0:
+			p = "l_uint";
+			break;
+		case 1:
+			p = "l_uint";
+			break;
+		case 2:
+			p = "l_uint";
+			break;
+		default:
+			break;
+		};
 		break;
 	/* linux_openat2 */
 	case 437:
@@ -8718,11 +8714,6 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		break;
 	/* linux_alarm */
 	case 27:
-		if (ndx == 0 || ndx == 1)
-			p = "int";
-		break;
-	/* linux_fstat */
-	case 28:
 		if (ndx == 0 || ndx == 1)
 			p = "int";
 		break;
@@ -10380,6 +10371,9 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		break;
 	/* linux_close_range */
 	case 436:
+		if (ndx == 0 || ndx == 1)
+			p = "int";
+		break;
 	/* linux_openat2 */
 	case 437:
 	/* linux_pidfd_getfd */

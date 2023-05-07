@@ -19,8 +19,6 @@ ${INCFILE}: ${TDFILE}
 	    -o ${.TARGET} ${TDFILE}
 TGHDRS+=	${INCFILE}
 
-${TGHDRS}: ${LLVM_TBLGEN_BIN}
-
 DEPENDFILES+=	${TGHDRS:C/$/.d/}
 DPSRCS+=	${TGHDRS}
 CLEANFILES+=	${TGHDRS} ${TGHDRS:C/$/.d/}
@@ -28,8 +26,8 @@ CLEANFILES+=	${TGHDRS} ${TGHDRS:C/$/.d/}
 LIBADD+=	z
 
 .if ${MK_LLVM_BINUTILS} != "no"
-LINKS=		${BINDIR}/llvm-nm ${BINDIR}/nm
-MLINKS=		llvm-nm.1 nm.1
+LINKS+=		${BINDIR}/llvm-nm ${BINDIR}/nm
+MLINKS+=	llvm-nm.1 nm.1
 .endif
 
 .include "../llvm.prog.mk"

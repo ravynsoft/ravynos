@@ -32,7 +32,11 @@ SRCS+=	log.c
 SRCS+=	pin.c
 SRCS+=	random.c
 SRCS+=	reset.c
+SRCS+=	rs1.c
 SRCS+=	rs256.c
+SRCS+=	time.c
+SRCS+=	tpm.c
+SRCS+=	types.c
 SRCS+=	u2f.c
 
 SRCS+=	openbsd-compat/freezero.c
@@ -62,7 +66,7 @@ CFLAGS+= -DHAVE_TIMINGSAFE_BCMP
 CFLAGS+= -DHAVE_UNISTD_H
 CFLAGS+= -DTLS=__thread
 CFLAGS+= -D_FIDO_MAJOR=1
-CFLAGS+= -D_FIDO_MINOR=9
+CFLAGS+= -D_FIDO_MINOR=10
 CFLAGS+= -D_FIDO_PATCH=0
 
 LIBADD=	crypto z

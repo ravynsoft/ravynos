@@ -148,6 +148,17 @@ virtdone:
 	str	x23, [x0, #BP_BOOT_EL]
 	str	x4,  [x0, #BP_HCR_EL2]
 
+#ifdef KASAN
+	/* Save bootparams */
+	mov	x19, x0
+
+	/* Bootstrap an early shadow map for the boot stack. */
+	bl	pmap_san_bootstrap
+
+	/* Restore bootparams */
+	mov	x0, x19
+#endif
+
 	/* trace back starts here */
 	mov	fp, #0
 	/* Branch to C code */
@@ -866,6 +877,12 @@ ENTRY(abort)
 	b abort
 END(abort)
 
+.bss
+	.align	PAGE_SHIFT
+initstack:
+	.space	(PAGE_SIZE * KSTACK_PAGES)
+initstack_end:
+
 	.section .init_pagetable, "aw", %nobits
 	.align PAGE_SHIFT
 	/*
@@ -896,17 +913,10 @@ pagetable_l0_ttbr0_boostrap:
 	.space	PAGE_SIZE
 pagetable_l0_ttbr0:
 	.space	PAGE_SIZE
-
 pagetable_end:
 
 el2_pagetable:
 	.space	PAGE_SIZE
-
-	.align	4
-initstack:
-	.space	(PAGE_SIZE * KSTACK_PAGES)
-initstack_end:
-
 
 .text
 EENTRY(aarch32_sigcode)

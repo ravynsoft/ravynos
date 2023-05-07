@@ -338,7 +338,7 @@ static vm_paddr_t	mmu_booke_kextract(vm_offset_t);
 static void		mmu_booke_kenter(vm_offset_t, vm_paddr_t);
 static void		mmu_booke_kenter_attr(vm_offset_t, vm_paddr_t, vm_memattr_t);
 static void		mmu_booke_kremove(vm_offset_t);
-static boolean_t	mmu_booke_dev_direct_mapped(vm_paddr_t, vm_size_t);
+static int		mmu_booke_dev_direct_mapped(vm_paddr_t, vm_size_t);
 static void		mmu_booke_sync_icache(pmap_t, vm_offset_t,
     vm_size_t);
 static void		mmu_booke_dumpsys_map(vm_paddr_t pa, size_t,
@@ -1054,7 +1054,7 @@ mmu_booke_kextract(vm_offset_t va)
  * system needs to map virtual memory.
  */
 static void
-mmu_booke_init()
+mmu_booke_init(void)
 {
 	int shpgperproc = PMAP_SHPGPERPROC;
 
@@ -2119,7 +2119,7 @@ mmu_booke_dumpsys_unmap(vm_paddr_t pa, size_t sz, void *va)
 extern struct dump_pa dump_map[PHYS_AVAIL_SZ + 1];
 
 void
-mmu_booke_scan_init()
+mmu_booke_scan_init(void)
 {
 	vm_offset_t va;
 	pte_t *pte;
@@ -2822,7 +2822,7 @@ tlb1_mapin_region(vm_offset_t va, vm_paddr_t pa, vm_size_t size, int wimge)
  * assembler level setup done in locore.S.
  */
 void
-tlb1_init()
+tlb1_init(void)
 {
 	vm_offset_t mas2;
 	uint32_t mas0, mas1, mas3, mas7;

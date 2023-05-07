@@ -25,6 +25,7 @@
 
 #include "opt_inet.h"
 #include "opt_inet6.h"
+#include "opt_kbd.h"
 
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
@@ -38,6 +39,9 @@ __FBSDID("$FreeBSD$");
 #include <sys/module.h>
 #include <sys/socket.h>
 #include <sys/sysctl.h>
+#ifdef KDB
+#include <sys/kdb.h>
+#endif
 
 #include <net/bpf.h>
 #include <net/ethernet.h>
@@ -131,6 +135,7 @@ infiniband_bpf_mtap(struct ifnet *ifp, struct mbuf *mb)
 	if (!bpf_peers_present(ifp->if_bpf))
 		return;
 
+	M_ASSERTVALID(mb);
 	if (mb->m_len < sizeof(*ibh))
 		return;
 
@@ -414,8 +419,33 @@ infiniband_input(struct ifnet *ifp, struct mbuf *m)
 	struct infiniband_header *ibh;
 	struct epoch_tracker et;
 	int isr;
+	bool needs_epoch;
+
+	needs_epoch = (ifp->if_flags & IFF_NEEDSEPOCH);
+#ifdef INVARIANTS
+	/*
+	 * This temporary code is here to prevent epoch unaware and unmarked
+	 * drivers to panic the system.  Once all drivers are taken care of,
+	 * the whole INVARIANTS block should go away.
+	 */
+	if (!needs_epoch && !in_epoch(net_epoch_preempt)) {
+		static bool printedonce;
+
+		needs_epoch = true;
+		if (!printedonce) {
+			printedonce = true;
+			if_printf(ifp, "called %s w/o net epoch! "
+			    "PLEASE file a bug report.", __func__);
+#ifdef KDB
+			kdb_backtrace();
+#endif
+		}
+	}
+#endif
 
 	CURVNET_SET_QUIET(ifp->if_vnet);
+	if (__predict_false(needs_epoch))
+		NET_EPOCH_ENTER(et);
 
 	if ((ifp->if_flags & IFF_UP) == 0) {
 		if_inc_counter(ifp, IFCOUNTER_IERRORS, 1);
@@ -503,10 +533,10 @@ infiniband_input(struct ifnet *ifp, struct mbuf *m)
 	mac_ifnet_create_mbuf(ifp, m);
 #endif
 	/* Allow monitor mode to claim this frame, after stats are updated. */
-	NET_EPOCH_ENTER(et);
 	netisr_dispatch(isr, m);
-	NET_EPOCH_EXIT(et);
 done:
+	if (__predict_false(needs_epoch))
+		NET_EPOCH_EXIT(et);
 	CURVNET_RESTORE();
 }
 

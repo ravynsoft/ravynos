@@ -56,6 +56,9 @@
 #include <sys/sockio.h>
 #include <sys/sysctl.h>
 #include <sys/uuid.h>
+#ifdef KDB
+#include <sys/kdb.h>
+#endif
 
 #include <net/ieee_oui.h>
 #include <net/if.h>
@@ -667,10 +670,15 @@ ether_input_internal(struct ifnet *ifp, struct mbuf *m)
 
 	/*
 	 * Allow if_bridge(4) to claim this frame.
+	 *
 	 * The BRIDGE_INPUT() macro will update ifp if the bridge changed it
 	 * and the frame should be delivered locally.
+	 *
+	 * If M_BRIDGE_INJECT is set, the packet was received directly by the
+	 * bridge via netmap, so "ifp" is the bridge itself and the packet
+	 * should be re-examined.
 	 */
-	if (ifp->if_bridge != NULL) {
+	if (ifp->if_bridge != NULL || (m->m_flags & M_BRIDGE_INJECT) != 0) {
 		m->m_flags &= ~M_PROMISC;
 		BRIDGE_INPUT(ifp, m);
 		if (m == NULL) {
@@ -808,7 +816,27 @@ ether_input(struct ifnet *ifp, struct mbuf *m)
 	struct mbuf *mn;
 	bool needs_epoch;
 
-	needs_epoch = !(ifp->if_flags & IFF_KNOWSEPOCH);
+	needs_epoch = (ifp->if_flags & IFF_NEEDSEPOCH);
+#ifdef INVARIANTS
+	/*
+	 * This temporary code is here to prevent epoch unaware and unmarked
+	 * drivers to panic the system.  Once all drivers are taken care of,
+	 * the whole INVARIANTS block should go away.
+	 */
+	if (!needs_epoch && !in_epoch(net_epoch_preempt)) {
+		static bool printedonce;
+
+		needs_epoch = true;
+		if (!printedonce) {
+			printedonce = true;
+			if_printf(ifp, "called %s w/o net epoch! "
+			    "PLEASE file a bug report.", __func__);
+#ifdef KDB
+			kdb_backtrace();
+#endif
+		}
+	}
+#endif
 
 	/*
 	 * The drivers are allowed to pass in a chain of packets linked with

@@ -736,7 +736,7 @@ sctp_disconnect(struct socket *so)
 					    stcb->sctp_ep, stcb, netp);
 					sctp_timer_start(SCTP_TIMER_TYPE_SHUTDOWNGUARD,
 					    stcb->sctp_ep, stcb, NULL);
-					sctp_chunk_output(stcb->sctp_ep, stcb, SCTP_OUTPUT_FROM_T3, SCTP_SO_LOCKED);
+					sctp_chunk_output(stcb->sctp_ep, stcb, SCTP_OUTPUT_FROM_CLOSING, SCTP_SO_LOCKED);
 				}
 			} else {
 				/*
@@ -750,7 +750,6 @@ sctp_disconnect(struct socket *so)
 				 * and move to SHUTDOWN-PENDING
 				 */
 				SCTP_ADD_SUBSTATE(stcb, SCTP_STATE_SHUTDOWN_PENDING);
-				sctp_timer_start(SCTP_TIMER_TYPE_SHUTDOWNGUARD, stcb->sctp_ep, stcb, NULL);
 				if ((*asoc->ss_functions.sctp_ss_is_user_msgs_incomplete) (stcb, asoc)) {
 					SCTP_ADD_SUBSTATE(stcb, SCTP_STATE_PARTIAL_MSG_LEFT);
 				}
@@ -933,6 +932,8 @@ sctp_shutdown(struct socket *so)
 			sctp_send_shutdown(stcb, netp);
 			sctp_timer_start(SCTP_TIMER_TYPE_SHUTDOWN,
 			    stcb->sctp_ep, stcb, netp);
+			sctp_timer_start(SCTP_TIMER_TYPE_SHUTDOWNGUARD,
+			    stcb->sctp_ep, stcb, NULL);
 		} else {
 			/*
 			 * We still got (or just got) data to send, so set
@@ -957,7 +958,6 @@ sctp_shutdown(struct socket *so)
 				return (0);
 			}
 		}
-		sctp_timer_start(SCTP_TIMER_TYPE_SHUTDOWNGUARD, stcb->sctp_ep, stcb, NULL);
 		/*
 		 * XXX: Why do this in the case where we have still data
 		 * queued?
@@ -1738,7 +1738,7 @@ flags_out:
 			}
 			break;
 		}
-	case SCTP_PLUGGABLE_SS:
+	case SCTP_STREAM_SCHEDULER:
 		{
 			struct sctp_assoc_value *av;
 
@@ -1765,7 +1765,7 @@ flags_out:
 			}
 			break;
 		}
-	case SCTP_SS_VALUE:
+	case SCTP_STREAM_SCHEDULER_VALUE:
 		{
 			struct sctp_stream_value *av;
 
@@ -4033,17 +4033,17 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 			}
 			break;
 		}
-	case SCTP_PLUGGABLE_SS:
+	case SCTP_STREAM_SCHEDULER:
 		{
 			struct sctp_assoc_value *av;
 
 			SCTP_CHECK_AND_CAST(av, optval, struct sctp_assoc_value, optsize);
 			if ((av->assoc_value != SCTP_SS_DEFAULT) &&
-			    (av->assoc_value != SCTP_SS_ROUND_ROBIN) &&
-			    (av->assoc_value != SCTP_SS_ROUND_ROBIN_PACKET) &&
-			    (av->assoc_value != SCTP_SS_PRIORITY) &&
-			    (av->assoc_value != SCTP_SS_FAIR_BANDWITH) &&
-			    (av->assoc_value != SCTP_SS_FIRST_COME)) {
+			    (av->assoc_value != SCTP_SS_RR) &&
+			    (av->assoc_value != SCTP_SS_RR_PKT) &&
+			    (av->assoc_value != SCTP_SS_PRIO) &&
+			    (av->assoc_value != SCTP_SS_FB) &&
+			    (av->assoc_value != SCTP_SS_FCFS)) {
 				SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP_USRREQ, EINVAL);
 				error = EINVAL;
 				break;
@@ -4082,7 +4082,7 @@ sctp_setopt(struct socket *so, int optname, void *optval, size_t optsize,
 			}
 			break;
 		}
-	case SCTP_SS_VALUE:
+	case SCTP_STREAM_SCHEDULER_VALUE:
 		{
 			struct sctp_stream_value *av;
 

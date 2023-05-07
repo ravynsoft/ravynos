@@ -392,20 +392,6 @@ typedef void (*group_change_event_handler_t)(void *, const char *);
 EVENTHANDLER_DECLARE(group_change_event, group_change_event_handler_t);
 #endif /* _SYS_EVENTHANDLER_H_ */
 
-#define	IF_AFDATA_LOCK_INIT(ifp)	\
-	mtx_init(&(ifp)->if_afdata_lock, "if_afdata", NULL, MTX_DEF)
-
-#define	IF_AFDATA_WLOCK(ifp)	mtx_lock(&(ifp)->if_afdata_lock)
-#define	IF_AFDATA_WUNLOCK(ifp)	mtx_unlock(&(ifp)->if_afdata_lock)
-#define	IF_AFDATA_LOCK(ifp)	IF_AFDATA_WLOCK(ifp)
-#define	IF_AFDATA_UNLOCK(ifp)	IF_AFDATA_WUNLOCK(ifp)
-#define	IF_AFDATA_TRYLOCK(ifp)	mtx_trylock(&(ifp)->if_afdata_lock)
-#define	IF_AFDATA_DESTROY(ifp)	mtx_destroy(&(ifp)->if_afdata_lock)
-
-#define	IF_AFDATA_LOCK_ASSERT(ifp)	MPASS(in_epoch(net_epoch_preempt) || mtx_owned(&(ifp)->if_afdata_lock))
-#define	IF_AFDATA_WLOCK_ASSERT(ifp)	mtx_assert(&(ifp)->if_afdata_lock, MA_OWNED)
-#define	IF_AFDATA_UNLOCK_ASSERT(ifp)	mtx_assert(&(ifp)->if_afdata_lock, MA_NOTOWNED)
-
 /*
  * 72 was chosen below because it is the size of a TCP/IP
  * header (40) + the minimum mss (32).
@@ -564,9 +550,6 @@ void	if_data_copy(struct ifnet *, struct if_data *);
 uint64_t if_get_counter_default(struct ifnet *, ift_counter);
 void	if_inc_counter(struct ifnet *, ift_counter, int64_t);
 
-#define IF_LLADDR(ifp)							\
-    LLADDR((struct sockaddr_dl *)((ifp)->if_addr->ifa_addr))
-
 uint64_t if_setbaudrate(if_t ifp, uint64_t baudrate);
 uint64_t if_getbaudrate(const if_t ifp);
 int if_setcapabilities(if_t ifp, int capabilities);
@@ -590,6 +573,7 @@ const char *if_getdname(const if_t ifp);
 void if_setdname(if_t ifp, const char *name);
 const char *if_name(if_t ifp);
 int if_setname(if_t ifp, const char *name);
+int if_rename(struct ifnet *ifp, char *new_name);
 void if_setdescr(if_t ifp, char *descrbuf);
 char *if_allocdescr(size_t sz, int malloc_flag);
 void if_freedescr(char *descrbuf);
@@ -673,6 +657,7 @@ u_int if_foreach_lladdr(if_t, iflladdr_cb_t, void *);
 u_int if_foreach_llmaddr(if_t, iflladdr_cb_t, void *);
 u_int if_lladdr_count(if_t);
 u_int if_llmaddr_count(if_t);
+bool if_maddr_empty(if_t);
 
 int if_getamcount(const if_t ifp);
 struct ifaddr * if_getifaddr(const if_t ifp);
@@ -683,6 +668,15 @@ typedef int (*if_foreach_cb_t)(if_t, void *);
 typedef bool (*if_foreach_match_t)(if_t, void *);
 int	if_foreach(if_foreach_cb_t, void *);
 int	if_foreach_sleep(if_foreach_match_t, void *, if_foreach_cb_t, void *);
+
+/* Opaque iterator structure for iterating over interfaces. */
+struct if_iter {
+	void *context[4];
+};
+
+if_t	if_iter_start(struct if_iter *);
+if_t	if_iter_next(struct if_iter *);
+void	if_iter_finish(struct if_iter *);
 
 /* Functions */
 void if_setinitfn(if_t ifp, if_init_fn_t);

@@ -99,17 +99,17 @@ def pytest_configure(config):
         handler.setup_configure()
 
 
+def pytest_pycollect_makeitem(collector, name, obj):
+    if PLUGIN_ENABLED:
+        handler = get_handler()
+        return handler.expand_tests(collector, name, obj)
+
+
 def pytest_collection_modifyitems(session, config, items):
     """If cleanup is requested, replace collected tests with their cleanups (if any)"""
-    if PLUGIN_ENABLED and config.option.atf_cleanup:
-        new_items = []
+    if PLUGIN_ENABLED:
         handler = get_handler()
-        for obj in items:
-            if handler.has_object_cleanup(obj):
-                handler.override_runtest(obj)
-                new_items.append(obj)
-        items.clear()
-        items.extend(new_items)
+        handler.modify_tests(items, config)
 
 
 def pytest_collection_finish(session):

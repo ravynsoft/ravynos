@@ -61,6 +61,15 @@
 #define TCP_EI_STATUS_2MSL		0xb
 #define TCP_EI_STATUS_MAX_VALUE		0xb
 
+#define TCP_HTTP_REQ_LOG_NEW		0x01
+#define TCP_HTTP_REQ_LOG_COMPLETE	0x02
+#define TCP_HTTP_REQ_LOG_FREED		0x03
+#define TCP_HTTP_REQ_LOG_ALLOCFAIL	0x04
+#define TCP_HTTP_REQ_LOG_MOREYET	0x05
+#define TCP_HTTP_REQ_LOG_FORCEFREE	0x06
+#define TCP_HTTP_REQ_LOG_STALE		0x07
+#define TCP_HTTP_REQ_LOG_SEARCH		0x08
+
 /************************************************/
 /* Status bits we track to assure no duplicates,
  * the bits here are not used by the code but
@@ -126,6 +135,154 @@ struct sackhint {
 
 STAILQ_HEAD(tcp_log_stailq, tcp_log_mem);
 
+#define TCP_HTTP_TRACK_FLG_EMPTY 0x00	/* Available */
+#define TCP_HTTP_TRACK_FLG_USED  0x01	/* In use */
+#define TCP_HTTP_TRACK_FLG_OPEN  0x02	/* End is not valid (open range request) */
+#define TCP_HTTP_TRACK_FLG_SEQV  0x04	/* We had a sendfile that touched it  */
+#define TCP_HTTP_TRACK_FLG_COMP  0x08	/* Sendfile as placed the last bits (range req only) */
+#define TCP_HTTP_TRACK_FLG_FSND	 0x10	/* First send has been done into the seq space */
+#define MAX_TCP_HTTP_REQ 5		/* Max we will have at once */
+
+#ifdef TCP_REQUEST_TRK
+struct http_sendfile_track {
+	uint64_t timestamp;	/* User sent timestamp */
+	uint64_t start;		/* Start of sendfile offset */
+	uint64_t end;		/* End if not open-range req */
+	uint64_t localtime;	/* Time we actually got the req */
+	uint64_t deadline;	/* If in CU mode, deadline to delivery */
+	uint64_t first_send;	/* Time of first send in the range */
+	uint64_t cspr;		/* Client suggested pace rate */
+	uint64_t sent_at_fs;	/* What was t_sndbytes as we begun sending */
+	uint64_t rxt_at_fs;	/* What was t_snd_rxt_bytes as we begun sending */
+	tcp_seq start_seq;	/* First TCP Seq assigned */
+	tcp_seq end_seq;	/* If range req last seq */
+	uint32_t flags;		/* Type of request open etc */
+	uint32_t sbcc_at_s;	/* When we allocate what is the sb_cc */
+	uint32_t hint_maxseg;	/* Client hinted maxseg */
+	uint32_t hybrid_flags;	/* Hybrid flags on this request */
+};
+
+#endif
+
+/*
+ * Change Query responses for a stack switch we create a structure
+ * that allows query response from the new stack to the old, if
+ * supported.
+ *
+ * There are three queries currently defined.
+ *  - sendmap
+ *  - timers
+ *  - rack_times
+ *
+ * For the sendmap query the caller fills in the
+ * req and the req_param as the first seq (usually
+ * snd_una). When the response comes back indicating
+ * that there was data (return value 1), then the caller
+ * can build a sendmap entry based on the range and the
+ * times. The next query would then be done at the 
+ * newly created sendmap_end. Repeated until sendmap_end == snd_max.
+ *
+ * Flags in sendmap_flags are defined below as well.
+ *
+ * For timers the standard PACE_TMR_XXXX flags are returned indicating
+ * a pacing timer (possibly) and one other timer. If pacing timer then
+ * the expiration timeout time in microseconds is in timer_pacing_to.
+ * And the value used with whatever timer (if a flag is set) is in
+ * timer_rxt. If no timers are running a 0 is returned and of
+ * course no flags are set in timer_hpts_flags.
+ *
+ * The rack_times are a misc collection of information that
+ * the old stack might possibly fill in. Of course its possible
+ * that an old stack may not have a piece of information. If so
+ * then setting that value to zero is advised. Setting any 
+ * timestamp passed should only place a zero in it when it
+ * is unfilled. This may mean that a time is off by a micro-second
+ * but this is ok in the grand scheme of things.
+ *
+ * When switching stacks it is desireable to get as much information
+ * from the old stack to the new stack as possible. Though not always
+ * will the stack be compatible in the types of information. The
+ * init() function needs to take care when it begins changing 
+ * things such as inp_flags2 and the timer units to position these
+ * changes at a point where it is unlikely they will fail after
+ * making such changes. A stack optionally can have an "undo"
+ * function  
+ *
+ * To transfer information to the old stack from the new in 
+ * respect to LRO and the inp_flags2, the new stack should set
+ * the inp_flags2 to what it supports. The old stack in its
+ * fini() function should call the tcp_handle_orphaned_packets()
+ * to clean up any packets. Note that a new stack should attempt
+ */
+
+/* Query types */
+#define TCP_QUERY_SENDMAP	1
+#define TCP_QUERY_TIMERS_UP	2
+#define TCP_QUERY_RACK_TIMES	3
+
+/* Flags returned in sendmap_flags */
+#define SNDMAP_ACKED		0x000001/* The remote endpoint acked this */
+#define SNDMAP_OVERMAX		0x000008/* We have more retran's then we can fit */
+#define SNDMAP_SACK_PASSED	0x000010/* A sack was done above this block */
+#define SNDMAP_HAS_FIN		0x000040/* segment is sent with fin */
+#define SNDMAP_TLP		0x000080/* segment sent as tail-loss-probe */
+#define SNDMAP_HAS_SYN		0x000800/* SYN is on this guy */
+#define SNDMAP_HAD_PUSH		0x008000/* Push was sent on original send */
+#define SNDMAP_MASK  (SNDMAP_ACKED|SNDMAP_OVERMAX|SNDMAP_SACK_PASSED|SNDMAP_HAS_FIN\
+		      |SNDMAP_TLP|SNDMAP_HAS_SYN|SNDMAP_HAD_PUSH)
+#define SNDMAP_NRTX 3
+
+struct tcp_query_resp {
+	int req;
+	uint32_t req_param;
+	union {
+		struct {
+			tcp_seq sendmap_start;
+			tcp_seq sendmap_end;
+			int sendmap_send_cnt;
+			uint64_t sendmap_time[SNDMAP_NRTX];
+			uint64_t sendmap_ack_arrival;
+			int sendmap_flags;
+			uint32_t sendmap_r_rtr_bytes;
+			/* If FAS is available if not 0 */
+			uint32_t sendmap_fas;
+			uint8_t sendmap_dupacks;
+		};
+		struct {
+			uint32_t timer_hpts_flags;
+			uint32_t timer_pacing_to;
+			uint32_t timer_timer_exp;
+		};
+		struct {
+			/* Timestamps and rtt's */
+			uint32_t rack_reorder_ts;	/* Last uscts that reordering was seen */
+			uint32_t rack_num_dsacks;	/* Num of dsacks seen */
+			uint32_t rack_rxt_last_time; 	/* Last time a RXT/TLP or rack tmr  went off */
+			uint32_t rack_min_rtt;		/* never 0 smallest rtt seen */
+			uint32_t rack_rtt;		/* Last rtt used by rack */
+			uint32_t rack_tmit_time;	/* The time the rtt seg was tmited */
+			uint32_t rack_time_went_idle;	/* If in persist the time we went idle */
+			/* Prr data  */
+			uint32_t rack_sacked;
+			uint32_t rack_holes_rxt;
+			uint32_t rack_prr_delivered;
+			uint32_t rack_prr_recovery_fs;
+			uint32_t rack_prr_out;
+			uint32_t rack_prr_sndcnt;
+			/* TLP data */
+			uint16_t rack_tlp_cnt_out;	/* How many tlp's have been sent */
+			/* Various bits */
+			uint8_t  rack_tlp_out;		/* Is a TLP outstanding */
+			uint8_t  rack_srtt_measured;	/* The previous stack has measured srtt */
+			uint8_t  rack_in_persist;	/* Is the old stack in persists? */
+			uint8_t	 rack_wanted_output;	/* Did the prevous stack have a want output set */
+		};
+	};
+};
+
+#define TCP_TMR_GRANULARITY_TICKS	1	/* TCP timers are in ticks (msec if hz=1000)  */
+#define TCP_TMR_GRANULARITY_USEC	2	/* TCP timers are in microseconds */
+
 typedef enum {
 	TT_REXMT = 0,
 	TT_PERSIST,
@@ -157,6 +314,23 @@ struct tcpcb {
 	sbintime_t t_timers[TT_N];
 	sbintime_t t_precisions[TT_N];
 
+	/* HPTS. Used by BBR and Rack stacks. See tcp_hpts.c for more info. */
+	TAILQ_ENTRY(tcpcb)	t_hpts;		/* linkage to HPTS ring */
+	STAILQ_HEAD(, mbuf)	t_inqueue;	/* HPTS input packets queue */
+	uint32_t t_hpts_request;	/* Current hpts request, zero if
+					 * fits in the pacing window. */
+	uint32_t t_hpts_slot;		/* HPTS wheel slot this tcb is. */
+	uint32_t t_hpts_drop_reas;	/* Reason we are dropping the pcb. */
+	uint32_t t_hpts_gencnt;
+	uint16_t t_hpts_cpu;		/* CPU chosen by hpts_cpuid(). */
+	uint16_t t_lro_cpu;		/* CPU derived from LRO. */
+#define	HPTS_CPU_NONE	((uint16_t)-1)
+	enum {
+		IHPTS_NONE = 0,
+		IHPTS_ONQUEUE,
+		IHPTS_MOVING,
+	} t_in_hpts;			/* Is it linked into HPTS? */
+
 	uint32_t t_maxseg:24,		/* maximum segment size */
 		_t_logstate:8;		/* State of "black box" logging */
 	uint32_t t_port:16,		/* Tunneling (over udp) port */
@@ -175,7 +349,6 @@ struct tcpcb {
 	tcp_seq snd_up;			/* send urgent pointer */
 	uint32_t snd_wnd;		/* send window */
 	uint32_t snd_cwnd;		/* congestion-controlled window */
-	uint32_t t_peakrate_thr; 	/* pre-calculated peak rate threshold */
 	uint32_t ts_offset;		/* our timestamp offset */
 	uint32_t rfbuf_ts;		/* recv buffer autoscaling timestamp */
 	int	rcv_numsacks;		/* # distinct sack blks present */
@@ -199,8 +372,6 @@ struct tcpcb {
 	int	t_segqlen;		/* segment reassembly queue length */
 	uint32_t t_segqmbuflen;		/* total reassembly queue byte length */
 	struct	tsegqe_head t_segq;	/* segment reassembly queue */
-	struct mbuf *t_in_pkt;
-	struct mbuf *t_tail_pkt;
 	uint32_t snd_ssthresh;		/* snd_cwnd size threshold for
 					 * for slow start exponential to
 					 * linear switch
@@ -277,6 +448,11 @@ struct tcpcb {
 	uint64_t tcp_cnt_counters[TCP_NUM_CNT_COUNTERS];
 	uint64_t tcp_proc_time[TCP_NUM_CNT_COUNTERS];
 #endif
+#ifdef TCP_REQUEST_TRK
+	uint32_t tcp_hybrid_start;	/* Num of times we started hybrid pacing */
+	uint32_t tcp_hybrid_stop;	/* Num of times we stopped hybrid pacing */
+	uint32_t tcp_hybrid_error;	/* Num of times we failed to start hybrid pacing */
+#endif
 	uint32_t t_logsn;		/* Log "serial number" */
 	uint32_t gput_ts;		/* Time goodput measurement started */
 	tcp_seq gput_seq;		/* Outbound measurement seq */
@@ -290,6 +466,7 @@ struct tcpcb {
 	uint32_t t_dsack_bytes;		/* dsack bytes received */
 	uint32_t t_dsack_tlp_bytes;	/* dsack bytes received for TLPs sent */
 	uint32_t t_dsack_pack;		/* dsack packets we have eceived */
+	uint8_t t_tmr_granularity;	/* Granularity of all timers srtt etc */
 	uint8_t t_rttupdated;		/* number of times rtt sampled */
 	/* TCP Fast Open */
 	uint8_t t_tfo_client_cookie_len; /* TFO client cookie length */
@@ -311,6 +488,13 @@ struct tcpcb {
 	struct osd	t_osd;		/* storage for Khelp module data */
 #endif
 	uint8_t _t_logpoint;	/* Used when a BB log points is enabled */
+#ifdef TCP_REQUEST_TRK
+	/* Response tracking addons. */
+	uint8_t t_http_req;	/* Request count */
+	uint8_t t_http_open;	/* Number of open range requests */
+	uint8_t t_http_closed;	/* Number of closed range requests */
+	struct http_sendfile_track t_http_info[MAX_TCP_HTTP_REQ];
+#endif
 };
 #endif	/* _KERNEL || _WANT_TCPCB */
 
@@ -346,7 +530,7 @@ struct tcptemp {
 #define	TCP_FUNC_BEING_REMOVED	0x01   	/* Can no longer be referenced */
 #define	TCP_FUNC_OUTPUT_CANDROP	0x02   	/* tfb_tcp_output may ask tcp_drop */
 
-/*
+/**
  * If defining the optional tcp_timers, in the
  * tfb_tcp_timer_stop call you must use the
  * callout_async_drain() function with the
@@ -356,6 +540,7 @@ struct tcptemp {
  * does not know your callbacks you must provide a
  * stop_all function that loops through and calls
  * tcp_timer_stop() with each of your defined timers.
+ *
  * Adding a tfb_tcp_handoff_ok function allows the socket
  * option to change stacks to query you even if the
  * connection is in a later stage. You return 0 to
@@ -363,39 +548,86 @@ struct tcptemp {
  * non-zero (an error number) to say no you can't.
  * If the function is undefined you can only change
  * in the early states (before connect or listen).
+ *
+ * tfb_tcp_fb_init is used to allow the new stack to
+ * setup its control block. Among the things it must
+ * do is:
+ * a) Make sure that the inp_flags2 is setup correctly
+ *    for LRO. There are two flags that the previous
+ *    stack may have set INP_MBUF_ACKCMP and 
+ *    INP_SUPPORTS_MBUFQ. If the new stack does not
+ *    support these it *should* clear the flags.
+ * b) Make sure that the timers are in the proper
+ *    granularity that the stack wants. The stack
+ *    should check the t_tmr_granularity field. Currently
+ *    there are two values that it may hold 
+ *    TCP_TMR_GRANULARITY_TICKS and TCP_TMR_GRANULARITY_USEC.
+ *    Use the functions tcp_timer_convert(tp, granularity);
+ *    to move the timers to the correct format for your stack.
+ *
+ * The new stack may also optionally query the tfb_chg_query
+ * function if the old stack has one. The new stack may ask
+ * for one of three entries and can also state to the old
+ * stack its support for the INP_MBUF_ACKCMP and 
+ * INP_SUPPORTS_MBUFQ. This is important since if there are
+ * queued ack's without that statement the old stack will
+ * be forced to discard the queued acks. The requests that
+ * can be made for information by the new stacks are:
+ *
+ * Note also that the tfb_tcp_fb_init() when called can
+ * determine if a query is needed by looking at the 
+ * value passed in the ptr. The ptr is designed to be
+ * set in with any allocated memory, but the address
+ * of the condtion (ptr == &tp->t_fb_ptr) will be
+ * true if this is not a stack switch but the initial
+ * setup of a tcb (which means no query would be needed).
+ * If, however, the value is not t_fb_ptr, then the caller
+ * is in the middle of a stack switch and is the new stack.
+ * A query would be appropriate (if the new stack support 
+ * the query mechanism).
+ *
+ * TCP_QUERY_SENDMAP - Query of outstanding data.
+ * TCP_QUERY_TIMERS_UP	- Query about running timers.
+ * TCP_SUPPORTED_LRO - Declaration in req_param of 
+ *                     the inp_flags2 supported by 
+ *                     the new stack.
+ * TCP_QUERY_RACK_TIMES	- Enquire about various timestamps
+ *                        and states the old stack may be in.
+ * 
  * tfb_tcp_fb_fini is changed to add a flag to tell
  * the old stack if the tcb is being destroyed or
  * not. A one in the flag means the TCB is being
  * destroyed, a zero indicates its transitioning to
- * another stack (via socket option).
+ * another stack (via socket option). The
+ * tfb_tcp_fb_fini() function itself should not change timers
+ * or inp_flags2 (the tfb_tcp_fb_init() must do that). However
+ * if the old stack supports the LRO mbuf queuing, and the new
+ * stack does not communicate via chg messages that it too does,
+ * it must assume it does not and free any queued mbufs.
+ *
  */
 struct tcp_function_block {
 	char tfb_tcp_block_name[TCP_FUNCTION_NAME_LEN_MAX];
 	int	(*tfb_tcp_output)(struct tcpcb *);
-	int	(*tfb_tcp_output_wtime)(struct tcpcb *, const struct timeval *);
-	void	(*tfb_tcp_do_segment)(struct mbuf *, struct tcphdr *,
-			    struct socket *, struct tcpcb *,
-		        int, int, uint8_t);
-	int     (*tfb_do_queued_segments)(struct socket *, struct tcpcb *, int);
-	int      (*tfb_do_segment_nounlock)(struct mbuf *, struct tcphdr *,
-			    struct socket *, struct tcpcb *,
-			    int, int, uint8_t,
-			    int, struct timeval *);
-	void	(*tfb_tcp_hpts_do_segment)(struct mbuf *, struct tcphdr *,
-			    struct socket *, struct tcpcb *,
-			    int, int, uint8_t,
-			    int, struct timeval *);
-	int     (*tfb_tcp_ctloutput)(struct inpcb *inp, struct sockopt *sopt);
+	void	(*tfb_tcp_do_segment)(struct tcpcb *, struct mbuf *,
+		    struct tcphdr *, int, int, uint8_t);
+	int      (*tfb_do_segment_nounlock)(struct tcpcb *, struct mbuf *,
+		    struct tcphdr *, int, int, uint8_t, int, struct timeval *);
+	int     (*tfb_do_queued_segments)(struct tcpcb *, int);
+	int     (*tfb_tcp_ctloutput)(struct tcpcb *, struct sockopt *);
 	/* Optional memory allocation/free routine */
-	int	(*tfb_tcp_fb_init)(struct tcpcb *);
+	int	(*tfb_tcp_fb_init)(struct tcpcb *, void **);
 	void	(*tfb_tcp_fb_fini)(struct tcpcb *, int);
 	/* Optional timers, must define all if you define one */
 	int	(*tfb_tcp_timer_stop_all)(struct tcpcb *);
 	void	(*tfb_tcp_rexmit_tmr)(struct tcpcb *);
 	int	(*tfb_tcp_handoff_ok)(struct tcpcb *);
-	void	(*tfb_tcp_mtu_chg)(struct tcpcb *);
+	void	(*tfb_tcp_mtu_chg)(struct tcpcb *tp);
 	int	(*tfb_pru_options)(struct tcpcb *, int);
 	void	(*tfb_hwtls_change)(struct tcpcb *, int);
+	int	(*tfb_chg_query)(struct tcpcb *, struct tcp_query_resp *);
+	void	(*tfb_switch_failed)(struct tcpcb *);
+	bool	(*tfb_early_wake_check)(struct tcpcb *);
 	int     (*tfb_compute_pipe)(struct tcpcb *tp);
 	volatile uint32_t tfb_refcnt;
 	uint32_t  tfb_flags;
@@ -606,9 +838,17 @@ tcp_packets_this_ack(struct tcpcb *tp, tcp_seq ack)
 #define	TF2_ECN_SND_CWR		0x00000040 /* ECN CWR in queue */
 #define	TF2_ECN_SND_ECE		0x00000080 /* ECN ECE in queue */
 #define	TF2_ACE_PERMIT		0x00000100 /* Accurate ECN mode */
+#define	TF2_HPTS_CPU_SET	0x00000200 /* t_hpts_cpu is not random */
 #define	TF2_FBYTES_COMPLETE	0x00000400 /* We have first bytes in and out */
 #define	TF2_ECN_USE_ECT1	0x00000800 /* Use ECT(1) marking on session */
-#define TF2_TCP_ACCOUNTING	0x00010000 /* Do TCP accounting */
+#define TF2_TCP_ACCOUNTING	0x00001000 /* Do TCP accounting */
+#define	TF2_HPTS_CALLS		0x00002000 /* tcp_output() called via HPTS */
+#define	TF2_MBUF_L_ACKS		0x00004000 /* large mbufs for ack compression */
+#define	TF2_MBUF_ACKCMP		0x00008000 /* mbuf ack compression ok */
+#define	TF2_SUPPORTS_MBUFQ	0x00010000 /* Supports the mbuf queue method */
+#define	TF2_MBUF_QUEUE_READY	0x00020000 /* Inputs can be queued */
+#define	TF2_DONT_SACK_QUEUE	0x00040000 /* Don't wake on sack */
+#define	TF2_CANNOT_DO_ECN	0x00080000 /* The stack does not do ECN */
 
 /*
  * Structure to hold TCP options that are only used during segment
@@ -850,6 +1090,16 @@ struct	tcpstat {
 	/* ECN related stats */
 	uint64_t tcps_ecn_sndect0;		/* ECN Capable Transport */
 	uint64_t tcps_ecn_sndect1;		/* ECN Capable Transport */
+
+	/*
+	 * BBR and Rack implement TLP's these values count TLP bytes in
+	 * two catagories, bytes that were retransmitted and bytes that
+	 * were newly transmited. Both types can serve as TLP's but they
+	 * are accounted differently.
+	 */
+	uint64_t tcps_tlpresends;	/* number of tlp resends */
+	uint64_t tcps_tlpresend_bytes;	/* number of bytes resent by tlp */
+
 
 	uint64_t _pad[4];		/* 4 TBD placeholder for STABLE */
 };
@@ -1138,8 +1388,8 @@ int	 tcp_input(struct mbuf **, int *, int);
 int	 tcp_autorcvbuf(struct mbuf *, struct tcphdr *, struct socket *,
 	    struct tcpcb *, int);
 int	 tcp_input_with_port(struct mbuf **, int *, int, uint16_t);
-void	 tcp_do_segment(struct mbuf *, struct tcphdr *,
-			struct socket *, struct tcpcb *, int, int, uint8_t);
+void	tcp_do_segment(struct tcpcb *, struct mbuf *, struct tcphdr *, int,
+    int, uint8_t);
 
 int register_tcp_functions(struct tcp_function_block *blk, int wait);
 int register_tcp_functions_as_names(struct tcp_function_block *blk,
@@ -1153,8 +1403,11 @@ int find_tcp_function_alias(struct tcp_function_block *blk, struct tcp_function_
 void tcp_switch_back_to_default(struct tcpcb *tp);
 struct tcp_function_block *
 find_and_ref_tcp_fb(struct tcp_function_block *fs);
-int tcp_default_ctloutput(struct inpcb *inp, struct sockopt *sopt);
+int tcp_default_ctloutput(struct tcpcb *tp, struct sockopt *sopt);
 int tcp_ctloutput_set(struct inpcb *inp, struct sockopt *sopt);
+void tcp_log_socket_option(struct tcpcb *tp, uint32_t option_num,
+    uint32_t option_val, int err);
+
 
 extern counter_u64_t tcp_inp_lro_direct_queue;
 extern counter_u64_t tcp_inp_lro_wokeup_queue;
@@ -1166,9 +1419,10 @@ extern counter_u64_t tcp_comp_total;
 extern counter_u64_t tcp_uncomp_total;
 extern counter_u64_t tcp_bad_csums;
 
-#ifdef NETFLIX_EXP_DETECTION
+#ifdef TCP_SAD_DETECTION
 /* Various SACK attack thresholds */
 extern int32_t tcp_force_detection;
+extern int32_t tcp_sad_limit;
 extern int32_t tcp_sack_to_ack_thresh;
 extern int32_t tcp_sack_to_move_thresh;
 extern int32_t tcp_restoral_thresh;
@@ -1176,6 +1430,7 @@ extern int32_t tcp_sad_decay_val;
 extern int32_t tcp_sad_pacing_interval;
 extern int32_t tcp_sad_low_pps;
 extern int32_t tcp_map_minimum;
+extern int32_t tcp_attack_on_turns_on_logging;
 #endif
 extern uint32_t tcp_ack_war_time_window;
 extern uint32_t tcp_ack_war_cnt;
@@ -1246,6 +1501,8 @@ int	 tcp_stats_sample_rollthedice(struct tcpcb *tp, void *seed_bytes,
     size_t seed_len);
 int tcp_can_enable_pacing(void);
 void tcp_decrement_paced_conn(void);
+void tcp_change_time_units(struct tcpcb *, int);
+void tcp_handle_orphaned_packets(struct tcpcb *);
 
 struct mbuf *
 	 tcp_m_copym(struct mbuf *m, int32_t off0, int32_t *plen,
@@ -1253,10 +1510,44 @@ struct mbuf *
 
 int	tcp_stats_init(void);
 void tcp_log_end_status(struct tcpcb *tp, uint8_t status);
+#ifdef TCP_REQUEST_TRK
+void tcp_http_free_a_slot(struct tcpcb *tp, struct http_sendfile_track *ent);
+struct http_sendfile_track *
+tcp_http_find_a_req_that_is_completed_by(struct tcpcb *tp, tcp_seq th_ack, int *ip);
+int tcp_http_check_for_comp(struct tcpcb *tp, tcp_seq ack_point);
+int
+tcp_http_is_entry_comp(struct tcpcb *tp, struct http_sendfile_track *ent, tcp_seq ack_point);
+struct http_sendfile_track *
+tcp_http_find_req_for_seq(struct tcpcb *tp, tcp_seq seq);
+void
+tcp_http_log_req_info(struct tcpcb *tp,
+    struct http_sendfile_track *http, uint16_t slot,
+    uint8_t val, uint64_t offset, uint64_t nbytes);
+
+uint32_t
+tcp_estimate_tls_overhead(struct socket *so, uint64_t tls_usr_bytes);
+void
+tcp_http_alloc_req(struct tcpcb *tp, union tcp_log_userdata *user,
+    uint64_t ts);
+
+struct http_sendfile_track *
+tcp_http_alloc_req_full(struct tcpcb *tp, struct http_req *req, uint64_t ts, int rec_dups);
+
+
+#endif
 #ifdef TCP_ACCOUNTING
 int tcp_do_ack_accounting(struct tcpcb *tp, struct tcphdr *th, struct tcpopt *to, uint32_t tiwin, int mss);
 #endif
 
+static inline void
+tcp_lro_features_off(struct tcpcb *tp)
+{
+	tp->t_flags2 &= ~(TF2_SUPPORTS_MBUFQ|
+	    TF2_MBUF_QUEUE_READY|
+	    TF2_DONT_SACK_QUEUE|
+	    TF2_MBUF_ACKCMP|
+	    TF2_MBUF_L_ACKS);
+}
 
 static inline void
 tcp_fields_to_host(struct tcphdr *th)

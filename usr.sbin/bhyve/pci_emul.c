@@ -61,6 +61,7 @@ __FBSDID("$FreeBSD$");
 #include "pci_emul.h"
 #include "pci_irq.h"
 #include "pci_lpc.h"
+#include "pci_passthru.h"
 
 #define CONF1_ADDR_PORT	   0x0cf8
 #define CONF1_DATA_PORT	   0x0cfc
@@ -332,6 +333,49 @@ pci_print_supported_devices(void)
 	}
 }
 
+uint32_t
+pci_config_read_reg(const struct pcisel *const host_sel, nvlist_t *nvl,
+    const uint32_t reg, const uint8_t size, const uint32_t def)
+{
+	const char *config;
+	const nvlist_t *pci_regs;
+
+	assert(size == 1 || size == 2 || size == 4);
+
+	pci_regs = find_relative_config_node(nvl, "pcireg");
+	if (pci_regs == NULL) {
+		return def;
+	}
+
+	switch (reg) {
+	case PCIR_DEVICE:
+		config = get_config_value_node(pci_regs, "device");
+		break;
+	case PCIR_VENDOR:
+		config = get_config_value_node(pci_regs, "vendor");
+		break;
+	case PCIR_REVID:
+		config = get_config_value_node(pci_regs, "revid");
+		break;
+	case PCIR_SUBVEND_0:
+		config = get_config_value_node(pci_regs, "subvendor");
+		break;
+	case PCIR_SUBDEV_0:
+		config = get_config_value_node(pci_regs, "subdevice");
+		break;
+	default:
+		return (-1);
+	}
+
+	if (config == NULL) {
+		return def;
+	} else if (host_sel != NULL && strcmp(config, "host") == 0) {
+		return read_config(host_sel, reg, size);
+	} else {
+		return strtol(config, NULL, 16);
+	}
+}
+
 static int
 pci_valid_pba_offset(struct pci_devinst *pi, uint64_t offset)
 {
@@ -476,7 +520,7 @@ pci_emul_io_handler(struct vmctx *ctx __unused, int in, int port,
 }
 
 static int
-pci_emul_mem_handler(struct vmctx *ctx __unused, int vcpu __unused, int dir,
+pci_emul_mem_handler(struct vcpu *vcpu __unused, int dir,
     uint64_t addr, int size, uint64_t *val, void *arg1, long arg2)
 {
 	struct pci_devinst *pdi = arg1;
@@ -1278,8 +1322,8 @@ pci_emul_iscap(struct pci_devinst *pi, int offset)
 }
 
 static int
-pci_emul_fallback_handler(struct vmctx *ctx __unused, int vcpu __unused,
-    int dir, uint64_t addr __unused, int size __unused, uint64_t *val,
+pci_emul_fallback_handler(struct vcpu *vcpu __unused, int dir,
+    uint64_t addr __unused, int size __unused, uint64_t *val,
     void *arg1 __unused, long arg2 __unused)
 {
 	/*
@@ -1294,9 +1338,8 @@ pci_emul_fallback_handler(struct vmctx *ctx __unused, int vcpu __unused,
 }
 
 static int
-pci_emul_ecfg_handler(struct vmctx *ctx __unused, int vcpu __unused, int dir,
-    uint64_t addr, int bytes, uint64_t *val, void *arg1 __unused,
-    long arg2 __unused)
+pci_emul_ecfg_handler(struct vcpu *vcpu __unused, int dir, uint64_t addr,
+    int bytes, uint64_t *val, void *arg1 __unused, long arg2 __unused)
 {
 	int bus, slot, func, coff, in;
 

@@ -65,6 +65,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/mutex.h>
 #include <sys/namei.h>
 #include <sys/vnode.h>
+#include <sys/dirent.h>
 #include <sys/bio.h>
 #include <sys/buf.h>
 #include <sys/filio.h>
@@ -483,8 +484,8 @@ vn_open_vnode(struct vnode *vp, int fmode, struct ucred *cred,
 			 * If there is no fp, due to kernel-mode open,
 			 * we can call VOP_CLOSE() now.
 			 */
-			if (vp->v_type != VFIFO && (fmode & FWRITE) != 0 &&
-			    !MNT_EXTENDED_SHARED(vp->v_mount) &&
+			if ((vp->v_type == VFIFO ||
+			    !MNT_EXTENDED_SHARED(vp->v_mount)) &&
 			    VOP_ISLOCKED(vp) != LK_EXCLUSIVE)
 				vn_lock(vp, LK_UPGRADE | LK_RETRY);
 			(void)VOP_CLOSE(vp, fmode & (FREAD | FWRITE | FEXEC),
@@ -528,11 +529,8 @@ vn_close1(struct vnode *vp, int flags, struct ucred *file_cred,
 	struct mount *mp;
 	int error, lock_flags;
 
-	if (vp->v_type != VFIFO && (flags & FWRITE) == 0 &&
-	    MNT_EXTENDED_SHARED(vp->v_mount))
-		lock_flags = LK_SHARED;
-	else
-		lock_flags = LK_EXCLUSIVE;
+	lock_flags = vp->v_type != VFIFO && MNT_EXTENDED_SHARED(vp->v_mount) ?
+	    LK_SHARED : LK_EXCLUSIVE;
 
 	vn_start_write(vp, &mp, V_WAIT);
 	vn_lock(vp, lock_flags | LK_RETRY);
@@ -1880,17 +1878,17 @@ vn_start_write_refed(struct mount *mp, int flags, bool mplocked)
 		}
 		mflags |= (PUSER - 1);
 		while ((mp->mnt_kern_flag & MNTK_SUSPEND) != 0) {
-			if (flags & V_NOWAIT) {
+			if ((flags & V_NOWAIT) != 0) {
 				error = EWOULDBLOCK;
 				goto unlock;
 			}
 			error = msleep(&mp->mnt_flag, MNT_MTX(mp), mflags,
 			    "suspfs", 0);
-			if (error)
+			if (error != 0)
 				goto unlock;
 		}
 	}
-	if (flags & V_XSLEEP)
+	if ((flags & V_XSLEEP) != 0)
 		goto unlock;
 	mp->mnt_writeopcount++;
 unlock:
@@ -1935,7 +1933,10 @@ vn_start_write(struct vnode *vp, struct mount **mpp, int flags)
 	if (vp == NULL)
 		vfs_ref(mp);
 
-	return (vn_start_write_refed(mp, flags, false));
+	error = vn_start_write_refed(mp, flags, false);
+	if (error != 0 && (flags & V_NOWAIT) == 0)
+		*mpp = NULL;
+	return (error);
 }
 
 /*
@@ -1951,7 +1952,7 @@ vn_start_secondary_write(struct vnode *vp, struct mount **mpp, int flags)
 	struct mount *mp;
 	int error, mflags;
 
-	KASSERT((flags & ~V_VALID_FLAGS) == 0,
+	KASSERT((flags & (~V_VALID_FLAGS | V_XSLEEP)) == 0,
 	    ("%s: invalid flags passed %d\n", __func__, flags));
 
  retry:
@@ -1986,9 +1987,10 @@ vn_start_secondary_write(struct vnode *vp, struct mount **mpp, int flags)
 		MNT_IUNLOCK(mp);
 		return (0);
 	}
-	if (flags & V_NOWAIT) {
+	if ((flags & V_NOWAIT) != 0) {
 		MNT_REL(mp);
 		MNT_IUNLOCK(mp);
+		*mpp = NULL;
 		return (EWOULDBLOCK);
 	}
 	/*
@@ -1996,7 +1998,7 @@ vn_start_secondary_write(struct vnode *vp, struct mount **mpp, int flags)
 	 */
 	mflags = 0;
 	if ((mp->mnt_vfc->vfc_flags & VFCF_SBDRY) != 0) {
-		if (flags & V_PCATCH)
+		if ((flags & V_PCATCH) != 0)
 			mflags |= PCATCH;
 	}
 	mflags |= (PUSER - 1) | PDROP;
@@ -2004,6 +2006,7 @@ vn_start_secondary_write(struct vnode *vp, struct mount **mpp, int flags)
 	vfs_rel(mp);
 	if (error == 0)
 		goto retry;
+	*mpp = NULL;
 	return (error);
 }
 
@@ -3734,6 +3737,258 @@ vn_fspacectl(struct file *fp, int cmd, off_t *offset, off_t *length, int flags,
 	return (error);
 }
 
+/*
+ * Keep this assert as long as sizeof(struct dirent) is used as the maximum
+ * entry size.
+ */
+_Static_assert(_GENERIC_MAXDIRSIZ == sizeof(struct dirent),
+    "'struct dirent' size must be a multiple of its alignment "
+    "(see _GENERIC_DIRLEN())");
+
+/*
+ * Returns successive directory entries through some caller's provided buffer.
+ *
+ * This function automatically refills the provided buffer with calls to
+ * VOP_READDIR() (after MAC permission checks).
+ *
+ * 'td' is used for credentials and passed to uiomove().  'dirbuf' is the
+ * caller's buffer to fill and 'dirbuflen' its allocated size.  'dirbuf' must
+ * be properly aligned to access 'struct dirent' structures and 'dirbuflen'
+ * must be greater than GENERIC_MAXDIRSIZ to avoid VOP_READDIR() returning
+ * EINVAL (the latter is not a strong guarantee (yet); but EINVAL will always
+ * be returned if this requirement is not verified).  '*dpp' points to the
+ * current directory entry in the buffer and '*len' contains the remaining
+ * valid bytes in 'dirbuf' after 'dpp' (including the pointed entry).
+ *
+ * At first call (or when restarting the read), '*len' must have been set to 0,
+ * '*off' to 0 (or any valid start offset) and '*eofflag' to 0.  There are no
+ * more entries as soon as '*len' is 0 after a call that returned 0.  Calling
+ * again this function after such a condition is considered an error and EINVAL
+ * will be returned.  Other possible error codes are those of VOP_READDIR(),
+ * EINTEGRITY if the returned entries do not pass coherency tests, or EINVAL
+ * (bad call).  All errors are unrecoverable, i.e., the state ('*len', '*off'
+ * and '*eofflag') must be re-initialized before a subsequent call.  On error
+ * or at end of directory, '*dpp' is reset to NULL.
+ *
+ * '*len', '*off' and '*eofflag' are internal state the caller should not
+ * tamper with except as explained above.  '*off' is the next directory offset
+ * to read from to refill the buffer.  '*eofflag' is set to 0 or 1 by the last
+ * internal call to VOP_READDIR() that returned without error, indicating
+ * whether it reached the end of the directory, and to 2 by this function after
+ * all entries have been read.
+ */
+int
+vn_dir_next_dirent(struct vnode *vp, struct thread *td,
+    char *dirbuf, size_t dirbuflen,
+    struct dirent **dpp, size_t *len, off_t *off, int *eofflag)
+{
+	struct dirent *dp = NULL;
+	int reclen;
+	int error;
+	struct uio uio;
+	struct iovec iov;
+
+	ASSERT_VOP_LOCKED(vp, "vnode not locked");
+	VNASSERT(vp->v_type == VDIR, vp, ("vnode is not a directory"));
+	MPASS2((uintptr_t)dirbuf < (uintptr_t)dirbuf + dirbuflen,
+	    "Address space overflow");
+
+	if (__predict_false(dirbuflen < GENERIC_MAXDIRSIZ)) {
+		/* Don't take any chances in this case */
+		error = EINVAL;
+		goto out;
+	}
+
+	if (*len != 0) {
+		dp = *dpp;
+
+		/*
+		 * The caller continued to call us after an error (we set dp to
+		 * NULL in a previous iteration).  Bail out right now.
+		 */
+		if (__predict_false(dp == NULL))
+			return (EINVAL);
+
+		MPASS(*len <= dirbuflen);
+		MPASS2((uintptr_t)dirbuf <= (uintptr_t)dp &&
+		    (uintptr_t)dp + *len <= (uintptr_t)dirbuf + dirbuflen,
+		    "Filled range not inside buffer");
+
+		reclen = dp->d_reclen;
+		if (reclen >= *len) {
+			/* End of buffer reached */
+			*len = 0;
+		} else {
+			dp = (struct dirent *)((char *)dp + reclen);
+			*len -= reclen;
+		}
+	}
+
+	if (*len == 0) {
+		dp = NULL;
+
+		/* Have to refill. */
+		switch (*eofflag) {
+		case 0:
+			break;
+
+		case 1:
+			/* Nothing more to read. */
+			*eofflag = 2; /* Remember the caller reached EOF. */
+			goto success;
+
+		default:
+			/* The caller didn't test for EOF. */
+			error = EINVAL;
+			goto out;
+		}
+
+		iov.iov_base = dirbuf;
+		iov.iov_len = dirbuflen;
+
+		uio.uio_iov = &iov;
+		uio.uio_iovcnt = 1;
+		uio.uio_offset = *off;
+		uio.uio_resid = dirbuflen;
+		uio.uio_segflg = UIO_SYSSPACE;
+		uio.uio_rw = UIO_READ;
+		uio.uio_td = td;
+
+#ifdef MAC
+		error = mac_vnode_check_readdir(td->td_ucred, vp);
+		if (error == 0)
+#endif
+			error = VOP_READDIR(vp, &uio, td->td_ucred, eofflag,
+			    NULL, NULL);
+		if (error != 0)
+			goto out;
+
+		*len = dirbuflen - uio.uio_resid;
+		*off = uio.uio_offset;
+
+		if (*len == 0) {
+			/* Sanity check on INVARIANTS. */
+			MPASS(*eofflag != 0);
+			*eofflag = 1;
+			goto success;
+		}
+
+		/*
+		 * Normalize the flag returned by VOP_READDIR(), since we use 2
+		 * as a sentinel value.
+		 */
+		if (*eofflag != 0)
+			*eofflag = 1;
+
+		dp = (struct dirent *)dirbuf;
+	}
+
+	if (__predict_false(*len < GENERIC_MINDIRSIZ ||
+	    dp->d_reclen < GENERIC_MINDIRSIZ)) {
+		error = EINTEGRITY;
+		dp = NULL;
+		goto out;
+	}
+
+success:
+	error = 0;
+out:
+	*dpp = dp;
+	return (error);
+}
+
+/*
+ * Checks whether a directory is empty or not.
+ *
+ * If the directory is empty, returns 0, and if it is not, ENOTEMPTY.  Other
+ * values are genuine errors preventing the check.
+ */
+int
+vn_dir_check_empty(struct vnode *vp)
+{
+	struct thread *const td = curthread;
+	char *dirbuf;
+	size_t dirbuflen, len;
+	off_t off;
+	int eofflag, error;
+	struct dirent *dp;
+	struct vattr va;
+
+	ASSERT_VOP_LOCKED(vp, "vfs_emptydir");
+	VNPASS(vp->v_type == VDIR, vp);
+
+	error = VOP_GETATTR(vp, &va, td->td_ucred);
+	if (error != 0)
+		return (error);
+
+	dirbuflen = max(DEV_BSIZE, GENERIC_MAXDIRSIZ);
+	if (dirbuflen < va.va_blocksize)
+		dirbuflen = va.va_blocksize;
+	dirbuf = malloc(dirbuflen, M_TEMP, M_WAITOK);
+
+	len = 0;
+	off = 0;
+	eofflag = 0;
+
+	for (;;) {
+		error = vn_dir_next_dirent(vp, td, dirbuf, dirbuflen,
+		    &dp, &len, &off, &eofflag);
+		if (error != 0)
+			goto end;
+
+		if (len == 0) {
+			/* EOF */
+			error = 0;
+			goto end;
+		}
+
+		/*
+		 * Skip whiteouts.  Unionfs operates on filesystems only and
+		 * not on hierarchies, so these whiteouts would be shadowed on
+		 * the system hierarchy but not for a union using the
+		 * filesystem of their directories as the upper layer.
+		 * Additionally, unionfs currently transparently exposes
+		 * union-specific metadata of its upper layer, meaning that
+		 * whiteouts can be seen through the union view in empty
+		 * directories.  Taking into account these whiteouts would then
+		 * prevent mounting another filesystem on such effectively
+		 * empty directories.
+		 */
+		if (dp->d_type == DT_WHT)
+			continue;
+
+		/*
+		 * Any file in the directory which is not '.' or '..' indicates
+		 * the directory is not empty.
+		 */
+		switch (dp->d_namlen) {
+		case 2:
+			if (dp->d_name[1] != '.') {
+				/* Can't be '..' (nor '.') */
+				error = ENOTEMPTY;
+				goto end;
+			}
+			/* FALLTHROUGH */
+		case 1:
+			if (dp->d_name[0] != '.') {
+				/* Can't be '..' nor '.' */
+				error = ENOTEMPTY;
+				goto end;
+			}
+			break;
+
+		default:
+			error = ENOTEMPTY;
+			goto end;
+		}
+	}
+
+end:
+	free(dirbuf, M_TEMP);
+	return (error);
+}
+
+
 static u_long vn_lock_pair_pause_cnt;
 SYSCTL_ULONG(_debug, OID_AUTO, vn_lock_pair_pause, CTLFLAG_RD,
     &vn_lock_pair_pause_cnt, 0,
@@ -3753,50 +4008,74 @@ vn_lock_pair_pause(const char *wmesg)
 
 /*
  * Lock pair of vnodes vp1, vp2, avoiding lock order reversal.
- * vp1_locked indicates whether vp1 is exclusively locked; if not, vp1
- * must be unlocked.  Same for vp2 and vp2_locked.  One of the vnodes
- * can be NULL.
+ * vp1_locked indicates whether vp1 is locked; if not, vp1 must be
+ * unlocked.  Same for vp2 and vp2_locked.  One of the vnodes can be
+ * NULL.
  *
- * The function returns with both vnodes exclusively locked, and
- * guarantees that it does not create lock order reversal with other
- * threads during its execution.  Both vnodes could be unlocked
- * temporary (and reclaimed).
+ * The function returns with both vnodes exclusively or shared locked,
+ * according to corresponding lkflags, and guarantees that it does not
+ * create lock order reversal with other threads during its execution.
+ * Both vnodes could be unlocked temporary (and reclaimed).
+ *
+ * If requesting shared locking, locked vnode lock must not be recursed.
  */
 void
-vn_lock_pair(struct vnode *vp1, bool vp1_locked, struct vnode *vp2,
-    bool vp2_locked)
+vn_lock_pair(struct vnode *vp1, bool vp1_locked, int lkflags1,
+    struct vnode *vp2, bool vp2_locked, int lkflags2)
 {
 	int error;
 
+	MPASS(lkflags1 == LK_SHARED || lkflags1 == LK_EXCLUSIVE);
+	MPASS(lkflags2 == LK_SHARED || lkflags2 == LK_EXCLUSIVE);
+
 	if (vp1 == NULL && vp2 == NULL)
 		return;
+
 	if (vp1 != NULL) {
-		if (vp1_locked)
-			ASSERT_VOP_ELOCKED(vp1, "vp1");
-		else
+		if (lkflags1 == LK_SHARED &&
+		    (vp1->v_vnlock->lock_object.lo_flags & LK_NOSHARE) != 0)
+			lkflags1 = LK_EXCLUSIVE;
+		if (vp1_locked && VOP_ISLOCKED(vp1) != LK_EXCLUSIVE) {
+			ASSERT_VOP_LOCKED(vp1, "vp1");
+			if (lkflags1 == LK_EXCLUSIVE) {
+				VOP_UNLOCK(vp1);
+				ASSERT_VOP_UNLOCKED(vp1,
+				    "vp1 shared recursed");
+				vp1_locked = false;
+			}
+		} else if (!vp1_locked)
 			ASSERT_VOP_UNLOCKED(vp1, "vp1");
 	} else {
 		vp1_locked = true;
 	}
+
 	if (vp2 != NULL) {
-		if (vp2_locked)
-			ASSERT_VOP_ELOCKED(vp2, "vp2");
-		else
+		if (lkflags2 == LK_SHARED &&
+		    (vp2->v_vnlock->lock_object.lo_flags & LK_NOSHARE) != 0)
+			lkflags2 = LK_EXCLUSIVE;
+		if (vp2_locked && VOP_ISLOCKED(vp2) != LK_EXCLUSIVE) {
+			ASSERT_VOP_LOCKED(vp2, "vp2");
+			if (lkflags2 == LK_EXCLUSIVE) {
+				VOP_UNLOCK(vp2);
+				ASSERT_VOP_UNLOCKED(vp2,
+				    "vp2 shared recursed");
+				vp2_locked = false;
+			}
+		} else if (!vp2_locked)
 			ASSERT_VOP_UNLOCKED(vp2, "vp2");
 	} else {
 		vp2_locked = true;
 	}
+
 	if (!vp1_locked && !vp2_locked) {
-		vn_lock(vp1, LK_EXCLUSIVE | LK_RETRY);
+		vn_lock(vp1, lkflags1 | LK_RETRY);
 		vp1_locked = true;
 	}
 
-	for (;;) {
-		if (vp1_locked && vp2_locked)
-			break;
+	while (!vp1_locked || !vp2_locked) {
 		if (vp1_locked && vp2 != NULL) {
 			if (vp1 != NULL) {
-				error = VOP_LOCK1(vp2, LK_EXCLUSIVE | LK_NOWAIT,
+				error = VOP_LOCK1(vp2, lkflags2 | LK_NOWAIT,
 				    __FILE__, __LINE__);
 				if (error == 0)
 					break;
@@ -3804,12 +4083,12 @@ vn_lock_pair(struct vnode *vp1, bool vp1_locked, struct vnode *vp2,
 				vp1_locked = false;
 				vn_lock_pair_pause("vlp1");
 			}
-			vn_lock(vp2, LK_EXCLUSIVE | LK_RETRY);
+			vn_lock(vp2, lkflags2 | LK_RETRY);
 			vp2_locked = true;
 		}
 		if (vp2_locked && vp1 != NULL) {
 			if (vp2 != NULL) {
-				error = VOP_LOCK1(vp1, LK_EXCLUSIVE | LK_NOWAIT,
+				error = VOP_LOCK1(vp1, lkflags1 | LK_NOWAIT,
 				    __FILE__, __LINE__);
 				if (error == 0)
 					break;
@@ -3817,14 +4096,22 @@ vn_lock_pair(struct vnode *vp1, bool vp1_locked, struct vnode *vp2,
 				vp2_locked = false;
 				vn_lock_pair_pause("vlp2");
 			}
-			vn_lock(vp1, LK_EXCLUSIVE | LK_RETRY);
+			vn_lock(vp1, lkflags1 | LK_RETRY);
 			vp1_locked = true;
 		}
 	}
-	if (vp1 != NULL)
-		ASSERT_VOP_ELOCKED(vp1, "vp1 ret");
-	if (vp2 != NULL)
-		ASSERT_VOP_ELOCKED(vp2, "vp2 ret");
+	if (vp1 != NULL) {
+		if (lkflags1 == LK_EXCLUSIVE)
+			ASSERT_VOP_ELOCKED(vp1, "vp1 ret");
+		else
+			ASSERT_VOP_LOCKED(vp1, "vp1 ret");
+	}
+	if (vp2 != NULL) {
+		if (lkflags2 == LK_EXCLUSIVE)
+			ASSERT_VOP_ELOCKED(vp2, "vp2 ret");
+		else
+			ASSERT_VOP_LOCKED(vp2, "vp2 ret");
+	}
 }
 
 int

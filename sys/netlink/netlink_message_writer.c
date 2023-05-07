@@ -25,6 +25,8 @@
  * SUCH DAMAGE.
  */
 
+#include "opt_netlink.h"
+
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
 #include <sys/param.h>
@@ -114,7 +116,7 @@ nlmsg_get_ns_buf(struct nl_writer *nw, int size, bool waitok)
 static bool
 nlmsg_write_socket_buf(struct nl_writer *nw, void *buf, int datalen, int cnt)
 {
-	NL_LOG(LOG_DEBUG2, "IN: ptr: %p len: %d arg: %p", buf, datalen, nw);
+	NL_LOG(LOG_DEBUG2, "IN: ptr: %p len: %d arg: %p", buf, datalen, nw->arg.ptr);
 	if (__predict_false(datalen == 0)) {
 		free(buf, M_NETLINK);
 		return (true);
@@ -130,13 +132,14 @@ nlmsg_write_socket_buf(struct nl_writer *nw, void *buf, int datalen, int cnt)
 	free(buf, M_NETLINK);
 
 	int io_flags = (nw->ignore_limit) ? NL_IOF_IGNORE_LIMIT : 0;
-	return (nl_send_one(m, (struct nlpcb *)(nw->arg_ptr), cnt, io_flags));
+	return (nl_send_one(m, (struct nlpcb *)(nw->arg.ptr), cnt, io_flags));
 }
 
 static bool
 nlmsg_write_group_buf(struct nl_writer *nw, void *buf, int datalen, int cnt)
 {
-	NL_LOG(LOG_DEBUG2, "IN: ptr: %p len: %d arg: %p", buf, datalen, nw->arg_ptr);
+	NL_LOG(LOG_DEBUG2, "IN: ptr: %p len: %d proto: %d id: %d", buf, datalen,
+	    nw->arg.group.proto, nw->arg.group.id);
 	if (__predict_false(datalen == 0)) {
 		free(buf, M_NETLINK);
 		return (true);
@@ -153,15 +156,15 @@ nlmsg_write_group_buf(struct nl_writer *nw, void *buf, int datalen, int cnt)
 	if (!success)
 		return (false);
 
-	nl_send_group(m, cnt, nw->arg_uint >> 16, nw->arg_uint & 0xFFFF);
+	nl_send_group(m, cnt, nw->arg.group.proto, nw->arg.group.id);
 	return (true);
 }
 
 static bool
 nlmsg_write_chain_buf(struct nl_writer *nw, void *buf, int datalen, int cnt)
 {
-	struct mbuf **m0 = (struct mbuf **)(nw->arg_ptr);
-	NL_LOG(LOG_DEBUG2, "IN: ptr: %p len: %d arg: %p", buf, datalen, nw->arg_ptr);
+	struct mbuf **m0 = (struct mbuf **)(nw->arg.ptr);
+	NL_LOG(LOG_DEBUG2, "IN: ptr: %p len: %d arg: %p", buf, datalen, nw->arg.ptr);
 
 	if (__predict_false(datalen == 0)) {
 		free(buf, M_NETLINK);
@@ -225,7 +228,7 @@ static bool
 nlmsg_write_socket_mbuf(struct nl_writer *nw, void *buf, int datalen, int cnt)
 {
 	struct mbuf *m = (struct mbuf *)buf;
-	NL_LOG(LOG_DEBUG2, "IN: ptr: %p len: %d arg: %p", buf, datalen, nw->arg_ptr);
+	NL_LOG(LOG_DEBUG2, "IN: ptr: %p len: %d arg: %p", buf, datalen, nw->arg.ptr);
 
 	if (__predict_false(datalen == 0)) {
 		m_freem(m);
@@ -235,14 +238,15 @@ nlmsg_write_socket_mbuf(struct nl_writer *nw, void *buf, int datalen, int cnt)
 	m->m_pkthdr.len = datalen;
 	m->m_len = datalen;
 	int io_flags = (nw->ignore_limit) ? NL_IOF_IGNORE_LIMIT : 0;
-	return (nl_send_one(m, (struct nlpcb *)(nw->arg_ptr), cnt, io_flags));
+	return (nl_send_one(m, (struct nlpcb *)(nw->arg.ptr), cnt, io_flags));
 }
 
 static bool
 nlmsg_write_group_mbuf(struct nl_writer *nw, void *buf, int datalen, int cnt)
 {
 	struct mbuf *m = (struct mbuf *)buf;
-	NL_LOG(LOG_DEBUG2, "IN: ptr: %p len: %d arg: %p", buf, datalen, nw->arg_ptr);
+	NL_LOG(LOG_DEBUG2, "IN: ptr: %p len: %d proto: %d id: %d", buf, datalen,
+	    nw->arg.group.proto, nw->arg.group.id);
 
 	if (__predict_false(datalen == 0)) {
 		m_freem(m);
@@ -251,7 +255,7 @@ nlmsg_write_group_mbuf(struct nl_writer *nw, void *buf, int datalen, int cnt)
 
 	m->m_pkthdr.len = datalen;
 	m->m_len = datalen;
-	nl_send_group(m, cnt, nw->arg_uint >> 16, nw->arg_uint & 0xFFFF);
+	nl_send_group(m, cnt, nw->arg.group.proto, nw->arg.group.id);
 	return (true);
 }
 
@@ -259,9 +263,9 @@ static bool
 nlmsg_write_chain_mbuf(struct nl_writer *nw, void *buf, int datalen, int cnt)
 {
 	struct mbuf *m_new = (struct mbuf *)buf;
-	struct mbuf **m0 = (struct mbuf **)(nw->arg_ptr);
+	struct mbuf **m0 = (struct mbuf **)(nw->arg.ptr);
 
-	NL_LOG(LOG_DEBUG2, "IN: ptr: %p len: %d arg: %p", buf, datalen, nw->arg_ptr);
+	NL_LOG(LOG_DEBUG2, "IN: ptr: %p len: %d arg: %p", buf, datalen, nw->arg.ptr);
 
 	if (__predict_false(datalen == 0)) {
 		m_freem(m_new);
@@ -322,7 +326,7 @@ nlmsg_write_socket_lbuf(struct nl_writer *nw, void *buf, int datalen, int cnt)
 {
 	struct linear_buffer *lb = (struct linear_buffer *)buf;
 	char *data = (char *)(lb + 1);
-	struct nlpcb *nlp = (struct nlpcb *)(nw->arg_ptr);
+	struct nlpcb *nlp = (struct nlpcb *)(nw->arg.ptr);
 
 	if (__predict_false(datalen == 0)) {
 		free(buf, M_NETLINK);
@@ -363,7 +367,7 @@ nlmsg_write_group_lbuf(struct nl_writer *nw, void *buf, int datalen, int cnt)
 	m_append(m, datalen, data);
 	free(buf, M_NETLINK);
 
-	nl_send_group(m, cnt, nw->arg_uint >> 16, nw->arg_uint & 0xFFFF);
+	nl_send_group(m, cnt, nw->arg.group.proto, nw->arg.group.id);
 	return (true);
 }
 
@@ -434,34 +438,35 @@ nlmsg_get_buf(struct nl_writer *nw, int size, bool waitok, bool is_linux)
 }
 
 bool
-nlmsg_get_unicast_writer(struct nl_writer *nw, int size, struct nlpcb *nlp)
+_nlmsg_get_unicast_writer(struct nl_writer *nw, int size, struct nlpcb *nlp)
 {
 	if (!nlmsg_get_buf(nw, size, false, nlp->nl_linux))
 		return (false);
-	nw->arg_ptr = (void *)nlp;
+	nw->arg.ptr = (void *)nlp;
 	nw->writer_target = NS_WRITER_TARGET_SOCKET;
 	nlmsg_set_callback(nw);
 	return (true);
 }
 
 bool
-nlmsg_get_group_writer(struct nl_writer *nw, int size, int protocol, int group_id)
+_nlmsg_get_group_writer(struct nl_writer *nw, int size, int protocol, int group_id)
 {
 	if (!nlmsg_get_buf(nw, size, false, false))
 		return (false);
-	nw->arg_uint = (uint64_t)protocol << 16 | (uint64_t)group_id;
+	nw->arg.group.proto = protocol;
+	nw->arg.group.id = group_id;
 	nw->writer_target = NS_WRITER_TARGET_GROUP;
 	nlmsg_set_callback(nw);
 	return (true);
 }
 
 bool
-nlmsg_get_chain_writer(struct nl_writer *nw, int size, struct mbuf **pm)
+_nlmsg_get_chain_writer(struct nl_writer *nw, int size, struct mbuf **pm)
 {
 	if (!nlmsg_get_buf(nw, size, false, false))
 		return (false);
 	*pm = NULL;
-	nw->arg_ptr = (void *)pm;
+	nw->arg.ptr = (void *)pm;
 	nw->writer_target = NS_WRITER_TARGET_CHAIN;
 	nlmsg_set_callback(nw);
 	NL_LOG(LOG_DEBUG3, "setup cb %p (need %p)", nw->cb, &nlmsg_write_chain_mbuf);
@@ -469,13 +474,13 @@ nlmsg_get_chain_writer(struct nl_writer *nw, int size, struct mbuf **pm)
 }
 
 void
-nlmsg_ignore_limit(struct nl_writer *nw)
+_nlmsg_ignore_limit(struct nl_writer *nw)
 {
 	nw->ignore_limit = true;
 }
 
 bool
-nlmsg_flush(struct nl_writer *nw)
+_nlmsg_flush(struct nl_writer *nw)
 {
 
 	if (__predict_false(nw->hdr != NULL)) {
@@ -503,7 +508,7 @@ nlmsg_flush(struct nl_writer *nw)
  * Return true on success.
  */
 bool
-nlmsg_refill_buffer(struct nl_writer *nw, int required_len)
+_nlmsg_refill_buffer(struct nl_writer *nw, int required_len)
 {
 	struct nl_writer ns_new = {};
 	int completed_len, new_len;
@@ -540,7 +545,7 @@ nlmsg_refill_buffer(struct nl_writer *nw, int required_len)
 	/* Update callback data */
 	ns_new.writer_target = nw->writer_target;
 	nlmsg_set_callback(&ns_new);
-	ns_new.arg_uint = nw->arg_uint;
+	ns_new.arg = nw->arg;
 
 	/* Copy last (unfinished) header to the new storage */
 	int last_len = nw->offset - completed_len;
@@ -561,7 +566,7 @@ nlmsg_refill_buffer(struct nl_writer *nw, int required_len)
 }
 
 bool
-nlmsg_add(struct nl_writer *nw, uint32_t portid, uint32_t seq, uint16_t type,
+_nlmsg_add(struct nl_writer *nw, uint32_t portid, uint32_t seq, uint16_t type,
     uint16_t flags, uint32_t len)
 {
 	struct nlmsghdr *hdr;
@@ -589,7 +594,7 @@ nlmsg_add(struct nl_writer *nw, uint32_t portid, uint32_t seq, uint16_t type,
 }
 
 bool
-nlmsg_end(struct nl_writer *nw)
+_nlmsg_end(struct nl_writer *nw)
 {
 	MPASS(nw->hdr != NULL);
 
@@ -609,7 +614,7 @@ nlmsg_end(struct nl_writer *nw)
 }
 
 void
-nlmsg_abort(struct nl_writer *nw)
+_nlmsg_abort(struct nl_writer *nw)
 {
 	if (nw->hdr != NULL) {
 		nw->offset = (uint32_t)((char *)nw->hdr - nw->data);
@@ -670,7 +675,7 @@ enomem:
 }
 
 bool
-nlmsg_end_dump(struct nl_writer *nw, int error, struct nlmsghdr *hdr)
+_nlmsg_end_dump(struct nl_writer *nw, int error, struct nlmsghdr *hdr)
 {
 	if (!nlmsg_add(nw, hdr->nlmsg_pid, hdr->nlmsg_seq, NLMSG_DONE, 0, sizeof(int))) {
 		NL_LOG(LOG_DEBUG, "Error finalizing table dump");

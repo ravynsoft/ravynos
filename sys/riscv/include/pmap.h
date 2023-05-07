@@ -57,6 +57,7 @@
 #define	pmap_page_get_memattr(m)	((m)->md.pv_memattr)
 #define	pmap_page_is_write_mapped(m)	(((m)->a.flags & PGA_WRITEABLE) != 0)
 void pmap_page_set_memattr(vm_page_t m, vm_memattr_t ma);
+#define	pmap_map_delete(pmap, sva, eva)	pmap_remove(pmap, sva, eva)
 
 /*
  * Pmap stuff
@@ -153,8 +154,8 @@ void	*pmap_mapbios(vm_paddr_t, vm_size_t);
 void	pmap_unmapdev(void *, vm_size_t);
 void	pmap_unmapbios(void *, vm_size_t);
 
-boolean_t pmap_map_io_transient(vm_page_t *, vm_offset_t *, int, boolean_t);
-void	pmap_unmap_io_transient(vm_page_t *, vm_offset_t *, int, boolean_t);
+bool	pmap_map_io_transient(vm_page_t *, vm_offset_t *, int, bool);
+void	pmap_unmap_io_transient(vm_page_t *, vm_offset_t *, int, bool);
 
 bool	pmap_get_tables(pmap_t, vm_offset_t, pd_entry_t **, pd_entry_t **,
     pt_entry_t **);

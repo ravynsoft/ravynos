@@ -119,7 +119,7 @@ dump_record(dmu_replay_record_t *drr, void *payload, size_t payload_len,
 typedef struct fsavl_node {
 	avl_node_t fn_node;
 	nvlist_t *fn_nvfs;
-	char *fn_snapname;
+	const char *fn_snapname;
 	uint64_t fn_guid;
 } fsavl_node_t;
 
@@ -137,7 +137,7 @@ fsavl_compare(const void *arg1, const void *arg2)
  * (optionally) name.
  */
 static nvlist_t *
-fsavl_find(avl_tree_t *avl, uint64_t snapguid, char **snapname)
+fsavl_find(avl_tree_t *avl, uint64_t snapguid, const char **snapname)
 {
 	fsavl_node_t fn_find;
 	fsavl_node_t *fn;
@@ -288,7 +288,7 @@ send_iterate_prop(zfs_handle_t *zhp, boolean_t received_only, nvlist_t *nv);
 
 /*
  * Collect guid, valid props, optionally holds, etc. of a snapshot.
- * This interface is intended for use as a zfs_iter_snapshots_sorted visitor.
+ * This interface is intended for use as a zfs_iter_snapshots_v2_sorted visitor.
  */
 static int
 send_iterate_snap(zfs_handle_t *zhp, void *arg)
@@ -384,7 +384,7 @@ send_iterate_prop(zfs_handle_t *zhp, boolean_t received_only, nvlist_t *nv)
 
 	nvpair_t *elem = NULL;
 	while ((elem = nvlist_next_nvpair(props, elem)) != NULL) {
-		char *propname = nvpair_name(elem);
+		const char *propname = nvpair_name(elem);
 		zfs_prop_t prop = zfs_name_to_prop(propname);
 
 		if (!zfs_prop_user(propname)) {
@@ -412,7 +412,7 @@ send_iterate_prop(zfs_handle_t *zhp, boolean_t received_only, nvlist_t *nv)
 		if (isspacelimit && zhp->zfs_type == ZFS_TYPE_SNAPSHOT)
 			continue;
 
-		char *source;
+		const char *source;
 		if (nvlist_lookup_string(propnv, ZPROP_SOURCE, &source) == 0) {
 			if (strcmp(source, zhp->zfs_name) != 0 &&
 			    strcmp(source, ZPROP_SOURCE_VAL_RECVD) != 0)
@@ -428,7 +428,7 @@ send_iterate_prop(zfs_handle_t *zhp, boolean_t received_only, nvlist_t *nv)
 
 		if (zfs_prop_user(propname) ||
 		    zfs_prop_get_type(prop) == PROP_TYPE_STRING) {
-			char *value;
+			const char *value;
 			value = fnvlist_lookup_string(propnv, ZPROP_VALUE);
 			fnvlist_add_string(nv, propname, value);
 		} else {
@@ -619,8 +619,8 @@ send_iterate_fs(zfs_handle_t *zhp, void *arg)
 			min_txg = fromsnap_txg;
 		if (!sd->replicate && tosnap_txg != 0)
 			max_txg = tosnap_txg;
-		(void) zfs_iter_snapshots_sorted(zhp, 0, send_iterate_snap, sd,
-		    min_txg, max_txg);
+		(void) zfs_iter_snapshots_sorted_v2(zhp, 0, send_iterate_snap,
+		    sd, min_txg, max_txg);
 	} else {
 		char snapname[MAXPATHLEN] = { 0 };
 		zfs_handle_t *snap;
@@ -662,7 +662,7 @@ send_iterate_fs(zfs_handle_t *zhp, void *arg)
 
 	/* Iterate over children. */
 	if (sd->recursive)
-		rv = zfs_iter_filesystems(zhp, 0, send_iterate_fs, sd);
+		rv = zfs_iter_filesystems_v2(zhp, 0, send_iterate_fs, sd);
 
 out:
 	/* Restore saved fields. */
@@ -1083,7 +1083,7 @@ send_print_verbose(FILE *fout, const char *tosnap, const char *fromsnap,
 
 /*
  * Send a single filesystem snapshot, updating the send dump data.
- * This interface is intended for use as a zfs_iter_snapshots_sorted visitor.
+ * This interface is intended for use as a zfs_iter_snapshots_v2_sorted visitor.
  */
 static int
 dump_snapshot(zfs_handle_t *zhp, void *arg)
@@ -1132,7 +1132,7 @@ dump_snapshot(zfs_handle_t *zhp, void *arg)
 
 	if (!sdd->doall && !isfromsnap && !istosnap) {
 		if (sdd->replicate) {
-			char *snapname;
+			const char *snapname;
 			nvlist_t *snapprops;
 			/*
 			 * Filter out all intermediate snapshots except origin
@@ -1293,7 +1293,7 @@ dump_filesystem(zfs_handle_t *zhp, send_dump_data_t *sdd)
 				    zhp->zfs_name, sdd->tosnap);
 			}
 		}
-		rv = zfs_iter_snapshots_sorted(zhp, 0, dump_snapshot, sdd,
+		rv = zfs_iter_snapshots_sorted_v2(zhp, 0, dump_snapshot, sdd,
 		    min_txg, max_txg);
 	} else {
 		char snapname[MAXPATHLEN] = { 0 };
@@ -1372,7 +1372,7 @@ dump_filesystems(zfs_handle_t *rzhp, send_dump_data_t *sdd)
 		nvfs = fnvpair_value_nvlist(fspair);
 		(void) nvlist_lookup_uint64(nvfs, "origin", &origin_guid);
 		if (origin_guid != 0) {
-			char *snapname;
+			const char *snapname;
 			nvlist_t *origin_nv = fsavl_find(sdd->fsavl,
 			    origin_guid, &snapname);
 			if (origin_nv != NULL) {
@@ -1391,7 +1391,7 @@ again:
 	for (fspair = nvlist_next_nvpair(sdd->fss, NULL); fspair;
 	    fspair = nvlist_next_nvpair(sdd->fss, fspair)) {
 		nvlist_t *fslist, *parent_nv;
-		char *fsname;
+		const char *fsname;
 		zfs_handle_t *zhp;
 		int err;
 		uint64_t origin_guid = 0;
@@ -1757,8 +1757,8 @@ zfs_send_resume_impl_cb_impl(libzfs_handle_t *hdl, sendflags_t *flags,
     int outfd, nvlist_t *resume_nvl)
 {
 	char errbuf[ERRBUFLEN];
-	char *toname;
-	char *fromname = NULL;
+	const char *toname;
+	const char *fromname = NULL;
 	uint64_t resumeobj, resumeoff, toguid, fromguid, bytes;
 	zfs_handle_t *zhp;
 	int error = 0;
@@ -3162,9 +3162,9 @@ guid_to_name_cb(zfs_handle_t *zhp, void *arg)
 		return (EEXIST);
 	}
 
-	err = zfs_iter_children(zhp, 0, guid_to_name_cb, gtnd);
+	err = zfs_iter_children_v2(zhp, 0, guid_to_name_cb, gtnd);
 	if (err != EEXIST && gtnd->bookmark_ok)
-		err = zfs_iter_bookmarks(zhp, 0, guid_to_name_cb, gtnd);
+		err = zfs_iter_bookmarks_v2(zhp, 0, guid_to_name_cb, gtnd);
 	zfs_close(zhp);
 	return (err);
 }
@@ -3218,9 +3218,10 @@ guid_to_name_redact_snaps(libzfs_handle_t *hdl, const char *parent,
 			continue;
 		int err = guid_to_name_cb(zfs_handle_dup(zhp), &gtnd);
 		if (err != EEXIST)
-			err = zfs_iter_children(zhp, 0, guid_to_name_cb, &gtnd);
+			err = zfs_iter_children_v2(zhp, 0, guid_to_name_cb,
+			    &gtnd);
 		if (err != EEXIST && bookmark_ok)
-			err = zfs_iter_bookmarks(zhp, 0, guid_to_name_cb,
+			err = zfs_iter_bookmarks_v2(zhp, 0, guid_to_name_cb,
 			    &gtnd);
 		zfs_close(zhp);
 		if (err == EEXIST)
@@ -3254,7 +3255,7 @@ created_before(libzfs_handle_t *hdl, avl_tree_t *avl,
     uint64_t guid1, uint64_t guid2)
 {
 	nvlist_t *nvfs;
-	char *fsname = NULL, *snapname = NULL;
+	const char *fsname = NULL, *snapname = NULL;
 	char buf[ZFS_MAX_DATASET_NAME_LEN];
 	int rv;
 	zfs_handle_t *guid1hdl, *guid2hdl;
@@ -3320,7 +3321,7 @@ recv_fix_encryption_hierarchy(libzfs_handle_t *hdl, const char *top_zfs,
 		nvpair_t *snapel = NULL;
 		boolean_t is_encroot, is_clone, stream_encroot;
 		char *cp;
-		char *stream_keylocation = NULL;
+		const char *stream_keylocation = NULL;
 		char keylocation[MAXNAMELEN];
 		char fsname[ZFS_MAX_DATASET_NAME_LEN];
 
@@ -3440,12 +3441,12 @@ recv_incremental_replication(libzfs_handle_t *hdl, const char *tofs,
 	nvlist_t *local_nv, *deleted = NULL;
 	avl_tree_t *local_avl;
 	nvpair_t *fselem, *nextfselem;
-	char *fromsnap;
+	const char *fromsnap;
 	char newname[ZFS_MAX_DATASET_NAME_LEN];
 	char guidname[32];
 	int error;
 	boolean_t needagain, progress, recursive;
-	char *s1, *s2;
+	const char *s1, *s2;
 
 	fromsnap = fnvlist_lookup_string(stream_nv, "fromsnap");
 
@@ -3477,7 +3478,7 @@ again:
 		uint64_t originguid = 0;
 		uint64_t stream_originguid = 0;
 		uint64_t parent_fromsnap_guid, stream_parent_fromsnap_guid;
-		char *fsname, *stream_fsname;
+		const char *fsname, *stream_fsname;
 
 		nextfselem = nvlist_next_nvpair(local_nv, fselem);
 
@@ -3512,7 +3513,7 @@ again:
 			case 1: {
 				/* promote it! */
 				nvlist_t *origin_nvfs;
-				char *origin_fsname;
+				const char *origin_fsname;
 
 				origin_nvfs = fsavl_find(local_avl, originguid,
 				    NULL);
@@ -3543,7 +3544,7 @@ again:
 		for (snapelem = nvlist_next_nvpair(snaps, NULL);
 		    snapelem; snapelem = nextsnapelem) {
 			uint64_t thisguid;
-			char *stream_snapname;
+			const char *stream_snapname;
 			nvlist_t *found, *props;
 
 			nextsnapelem = nvlist_next_nvpair(snaps, snapelem);
@@ -3689,7 +3690,7 @@ again:
 			 * new fs.
 			 */
 			if (parent != NULL) {
-				char *pname;
+				const char *pname;
 
 				pname = fnvlist_lookup_string(parent, "name");
 				(void) snprintf(tryname, sizeof (tryname),
@@ -3740,8 +3741,8 @@ zfs_receive_package(libzfs_handle_t *hdl, int fd, const char *destname,
 {
 	nvlist_t *stream_nv = NULL;
 	avl_tree_t *stream_avl = NULL;
-	char *fromsnap = NULL;
-	char *sendsnap = NULL;
+	const char *fromsnap = NULL;
+	const char *sendsnap = NULL;
 	char *cp;
 	char tofs[ZFS_MAX_DATASET_NAME_LEN];
 	char sendfs[ZFS_MAX_DATASET_NAME_LEN];
@@ -4230,7 +4231,7 @@ zfs_setup_cmdline_props(libzfs_handle_t *hdl, zfs_type_t type,
 			 */
 			if (nvlist_exists(origprops, newname)) {
 				nvlist_t *attrs;
-				char *source = NULL;
+				const char *source = NULL;
 
 				attrs = fnvlist_lookup_nvlist(origprops,
 				    newname);
@@ -4354,7 +4355,7 @@ zfs_receive_one(libzfs_handle_t *hdl, int infd, const char *tosnap,
 	zprop_errflags_t prop_errflags;
 	nvlist_t *prop_errors = NULL;
 	boolean_t recursive;
-	char *snapname = NULL;
+	const char *snapname = NULL;
 	char destsnap[MAXPATHLEN * 2];
 	char origin[MAXNAMELEN] = {0};
 	char name[MAXPATHLEN];
@@ -4385,7 +4386,7 @@ zfs_receive_one(libzfs_handle_t *hdl, int infd, const char *tosnap,
 	boolean_t holds = flags->holds && !flags->skipholds;
 
 	if (stream_avl != NULL) {
-		char *keylocation = NULL;
+		const char *keylocation = NULL;
 		nvlist_t *lookup = NULL;
 		nvlist_t *fs = fsavl_find(stream_avl, drrb->drr_toguid,
 		    &snapname);
@@ -5161,6 +5162,12 @@ zfs_receive_one(libzfs_handle_t *hdl, int infd, const char *tosnap,
 				    "stream."));
 			(void) zfs_error(hdl, EZFS_BADVERSION, errbuf);
 			break;
+		case ZFS_ERR_CRYPTO_NOTSUP:
+			zfs_error_aux(hdl, dgettext(TEXT_DOMAIN,
+			    "stream uses crypto parameters not compatible with "
+			    "this pool"));
+			(void) zfs_error(hdl, EZFS_BADSTREAM, errbuf);
+			break;
 		case EDQUOT:
 			zfs_error_aux(hdl, dgettext(TEXT_DOMAIN,
 			    "destination %s space quota exceeded."), name);
@@ -5497,7 +5504,7 @@ zfs_receive(libzfs_handle_t *hdl, const char *tosnap, nvlist_t *props,
 	char *top_zfs = NULL;
 	int err;
 	struct stat sb;
-	char *originsnap = NULL;
+	const char *originsnap = NULL;
 
 	/*
 	 * The only way fstat can fail is if we do not have a valid file

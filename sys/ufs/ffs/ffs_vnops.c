@@ -153,6 +153,8 @@ struct vop_vector ffs_vnodeops1 = {
 	.vop_write =		ffs_write,
 	.vop_vptofh =		ffs_vptofh,
 	.vop_vput_pair =	ffs_vput_pair,
+	.vop_fplookup_vexec =	VOP_EAGAIN,
+	.vop_fplookup_symlink =	VOP_EAGAIN,
 };
 VFS_VOP_VECTOR_REGISTER(ffs_vnodeops1);
 
@@ -165,6 +167,8 @@ struct vop_vector ffs_fifoops1 = {
 	.vop_unlock =		ffs_unlock_debug,
 #endif
 	.vop_vptofh =		ffs_vptofh,
+	.vop_fplookup_vexec =   VOP_EAGAIN,
+	.vop_fplookup_symlink = VOP_EAGAIN,
 };
 VFS_VOP_VECTOR_REGISTER(ffs_fifoops1);
 
@@ -190,6 +194,8 @@ struct vop_vector ffs_vnodeops2 = {
 	.vop_setextattr =	ffs_setextattr,
 	.vop_vptofh =		ffs_vptofh,
 	.vop_vput_pair =	ffs_vput_pair,
+	.vop_fplookup_vexec =	VOP_EAGAIN,
+	.vop_fplookup_symlink =	VOP_EAGAIN,
 };
 VFS_VOP_VECTOR_REGISTER(ffs_vnodeops2);
 
@@ -210,6 +216,8 @@ struct vop_vector ffs_fifoops2 = {
 	.vop_openextattr =	ffs_openextattr,
 	.vop_setextattr =	ffs_setextattr,
 	.vop_vptofh =		ffs_vptofh,
+	.vop_fplookup_vexec =   VOP_EAGAIN,
+	.vop_fplookup_symlink = VOP_EAGAIN,
 };
 VFS_VOP_VECTOR_REGISTER(ffs_fifoops2);
 

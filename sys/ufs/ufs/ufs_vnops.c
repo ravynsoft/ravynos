@@ -235,7 +235,7 @@ ufs_sync_nlink(struct vnode *vp, struct vnode *vp1)
 	if (vp1 != NULL)
 		VOP_UNLOCK(vp1);
 	error = ufs_sync_nlink1(mp);
-	vn_lock_pair(vp, false, vp1, false);
+	vn_lock_pair(vp, false, LK_EXCLUSIVE, vp1, false, LK_EXCLUSIVE);
 	return (error);
 }
 
@@ -1711,6 +1711,10 @@ relock:
 	 */
 	if (doingdirectory && newparent) {
 		/*
+		 * Set the directory depth based on its new parent.
+		 */
+		DIP_SET(fip, i_dirdepth, DIP(tdp, i_dirdepth) + 1);
+		/*
 		 * If tip exists we simply use its link, otherwise we must
 		 * add a new one.
 		 */
@@ -1730,7 +1734,9 @@ relock:
 			/* Journal must account for each new link. */
 			softdep_setup_dotdot_link(tdp, fip);
 		SET_I_OFFSET(fip, mastertemplate.dot_reclen);
-		ufs_dirrewrite(fip, fdp, newparent, DT_DIR, 0);
+		if (ufs_dirrewrite(fip, fdp, newparent, DT_DIR, 0) != 0)
+			ufs_dirbad(fip, mastertemplate.dot_reclen,
+			    "rename: missing .. entry");
 		cache_purge(fdvp);
 	}
 	error = ufs_dirremove(fdvp, fip, fcnp->cn_flags, 0);
@@ -2071,7 +2077,7 @@ ufs_mkdir(
 				 * XXX This seems to never be accessed out of
 				 * our context so a stack variable is ok.
 				 */
-				refcount_init(&ucred.cr_ref, 1);
+				ucred.cr_ref = 1;
 				ucred.cr_uid = ip->i_uid;
 				ucred.cr_ngroups = 1;
 				ucred.cr_groups = &ucred_group;
@@ -2119,6 +2125,7 @@ ufs_mkdir(
 	ip->i_effnlink = 2;
 	ip->i_nlink = 2;
 	DIP_SET(ip, i_nlink, 2);
+	DIP_SET(ip, i_dirdepth, DIP(dp,i_dirdepth) + 1);
 
 	if (cnp->cn_flags & ISWHITEOUT) {
 		ip->i_flags |= UF_OPAQUE;
@@ -2823,7 +2830,7 @@ ufs_makeinode(int mode, struct vnode *dvp, struct vnode **vpp,
 			 * XXX This seems to never be accessed out of our
 			 * context so a stack variable is ok.
 			 */
-			refcount_init(&ucred.cr_ref, 1);
+			ucred.cr_ref = 1;
 			ucred.cr_uid = ip->i_uid;
 			ucred.cr_ngroups = 1;
 			ucred.cr_groups = &ucred_group;
@@ -3056,5 +3063,7 @@ struct vop_vector ufs_fifoops = {
 	.vop_setacl =		ufs_setacl,
 	.vop_aclcheck =		ufs_aclcheck,
 #endif
+	.vop_fplookup_vexec =	VOP_EAGAIN,
+	.vop_fplookup_symlink =	VOP_EAGAIN,
 };
 VFS_VOP_VECTOR_REGISTER(ufs_fifoops);

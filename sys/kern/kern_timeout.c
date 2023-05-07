@@ -195,9 +195,9 @@ struct callout_cpu {
 #define	cc_migration_time(cc, dir)	cc->cc_exec_entity[dir].ce_migration_time
 #define	cc_migration_prec(cc, dir)	cc->cc_exec_entity[dir].ce_migration_prec
 
-static struct callout_cpu cc_cpu[MAXCPU];
+DPCPU_DEFINE_STATIC(struct callout_cpu, cc_cpu);
 #define	CPUBLOCK	MAXCPU
-#define	CC_CPU(cpu)	(&cc_cpu[(cpu)])
+#define	CC_CPU(cpu)	DPCPU_ID_PTR(cpu, cc_cpu)
 #define	CC_SELF()	CC_CPU(PCPU_GET(cpuid))
 #else
 static struct callout_cpu cc_cpu;
@@ -728,7 +728,7 @@ softclock_call_cc(struct callout *c, struct callout_cpu *cc,
 		if (lastfunc != c_func || sbt2 > maxdt * 2) {
 			ts2 = sbttots(sbt2);
 			printf(
-		"Expensive timeout(9) function: %p(%p) %jd.%09ld s\n",
+		"Expensive callout(9) function: %p(%p) %jd.%09ld s\n",
 			    c_func, c_arg, (intmax_t)ts2.tv_sec, ts2.tv_nsec);
 		}
 		maxdt = sbt2;

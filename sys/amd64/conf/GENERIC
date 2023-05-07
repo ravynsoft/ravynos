@@ -31,7 +31,6 @@ options 	VIMAGE			# Subsystem virtualization, e.g. VNET
 options 	INET			# InterNETworking
 options 	INET6			# IPv6 communications protocols
 options 	IPSEC_SUPPORT		# Allow kldload of ipsec and tcpmd5
-options 	NETLINK			# netlink(4) support
 options 	ROUTE_MPATH		# Multipath routing support
 options 	FIB_ALGO		# Modular fib lookups
 options 	TCP_OFFLOAD		# TCP offload
@@ -194,7 +193,6 @@ device		ida			# Compaq Smart RAID
 device		mfi			# LSI MegaRAID SAS
 device		mlx			# Mylex DAC960 family
 device		mrsas			# LSI/Avago MegaRAID SAS/SATA, 6Gb/s and 12Gb/s
-device		pmspcv			# PMC-Sierra SAS/SATA Controller driver
 #XXX pointer/int warnings
 #device		pst			# Promise Supertrak SX6000
 device		twe			# 3ware ATA RAID
@@ -365,7 +363,6 @@ device		snd_via8233		# VIA VT8233x Audio
 device		mmc			# MMC/SD bus
 device		mmcsd			# MMC/SD memory card
 device		sdhci			# Generic PCI SD Host Controller
-device		rtsx			# Realtek SD card reader
 
 # VirtIO support
 device		virtio			# Generic VirtIO bus (required)
@@ -385,6 +382,7 @@ device		hyperv			# HyperV drivers
 # NOTE: XENHVM depends on xenpci and xentimer.
 # They must be added or removed together.
 options 	XENHVM			# Xen HVM kernel infrastructure
+device		xenefi			# Xen EFI timer device
 device		xenpci			# Xen HVM Hypervisor services driver
 device		xentimer		# Xen x86 PV timer device
 

@@ -34,6 +34,7 @@ __FBSDID("$FreeBSD$");
 
 #include <sys/param.h>
 #include <sys/systm.h>
+#include <sys/asan.h>
 #include <sys/buf.h>
 #include <sys/bus.h>
 #include <sys/cons.h>
@@ -102,6 +103,12 @@ __FBSDID("$FreeBSD$");
 #endif
 
 #include <dev/smbios/smbios.h>
+
+_Static_assert(sizeof(struct pcb) == 1248, "struct pcb is incorrect size");
+_Static_assert(offsetof(struct pcb, pcb_fpusaved) == 136,
+    "pcb_fpusaved changed offset");
+_Static_assert(offsetof(struct pcb, pcb_fpustate) == 192,
+    "pcb_fpustate changed offset");
 
 enum arm64_bus arm64_bus_method = ARM64_BUS_NONE;
 
@@ -308,8 +315,7 @@ cpu_pcpu_init(struct pcpu *pcpu, int cpuid, size_t size)
 {
 
 	pcpu->pc_acpi_id = 0xffffffff;
-	pcpu->pc_mpidr_low = 0xffffffff;
-	pcpu->pc_mpidr_high = 0xffffffff;
+	pcpu->pc_mpidr = UINT64_MAX;
 }
 
 void
@@ -356,10 +362,10 @@ makectx(struct trapframe *tf, struct pcb *pcb)
 	int i;
 
 	for (i = 0; i < nitems(pcb->pcb_x); i++)
-		pcb->pcb_x[i] = tf->tf_x[i];
+		pcb->pcb_x[i] = tf->tf_x[i + PCB_X_START];
 
-	/* NB: pcb_lr is the PC, see PC_REGS() in db_machdep.h */
-	pcb->pcb_lr = tf->tf_elr;
+	/* NB: pcb_x[PCB_LR] is the PC, see PC_REGS() in db_machdep.h */
+	pcb->pcb_x[PCB_LR] = tf->tf_elr;
 	pcb->pcb_sp = tf->tf_sp;
 }
 
@@ -379,6 +385,7 @@ init_proc0(vm_offset_t kstack)
 #endif
 	thread0.td_pcb = (struct pcb *)(thread0.td_kstack +
 	    thread0.td_kstack_pages * PAGE_SIZE) - 1;
+	thread0.td_pcb->pcb_flags = 0;
 	thread0.td_pcb->pcb_fpflags = 0;
 	thread0.td_pcb->pcb_fpusaved = &thread0.td_pcb->pcb_fpustate;
 	thread0.td_pcb->pcb_vfpcpu = UINT_MAX;
@@ -955,6 +962,18 @@ initarm(struct arm64_bootparams *abp)
 	/*  Do the same for reserve entries in the EFI MEMRESERVE table */
 	if (efi_systbl_phys != 0)
 		exclude_efi_memreserve(efi_systbl_phys);
+
+	/*
+	 * We carefully bootstrap the sanitizer map after we've excluded
+	 * absolutely everything else that could impact phys_avail.  There's not
+	 * always enough room for the initial shadow map after the kernel, so
+	 * we'll end up searching for segments that we can safely use.  Those
+	 * segments also get excluded from phys_avail.
+	 */
+#if defined(KASAN)
+	pmap_bootstrap_san(KERNBASE - abp->kern_delta);
+#endif
+
 	physmem_init_kernel_globals();
 
 	devmap_bootstrap(0, NULL);
@@ -998,6 +1017,7 @@ initarm(struct arm64_bootparams *abp)
 	pan_enable();
 
 	kcsan_cpu_init(0);
+	kasan_init();
 
 	env = kern_getenv("kernelname");
 	if (env != NULL)

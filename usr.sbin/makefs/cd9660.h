@@ -1,4 +1,4 @@
-/*	$NetBSD: cd9660.h,v 1.17 2011/06/23 02:35:56 enami Exp $	*/
+/*	$NetBSD: cd9660.h,v 1.21 2015/12/24 15:52:37 christos Exp $	*/
 
 /*-
  * SPDX-License-Identifier: BSD-2-Clause-NetBSD
@@ -65,32 +65,7 @@
 #define	INODE_WARNX(__x)
 #endif /* DEBUG */
 
-#define CD9660MAXPATH 4096
-
-#define ISO_STRING_FILTER_NONE = 0x00
-#define ISO_STRING_FILTER_DCHARS = 0x01
-#define ISO_STRING_FILTER_ACHARS = 0x02
-
-/*
-Extended preferences type, in the spirit of what makefs gives us (only ints)
-*/
-typedef struct {
-	const char  *shortName;		/* Short option */
-	const char	*name;		/* option name */
-	char		*value;		/* where to stuff the value */
-	int		minLength;	/* minimum for value */
-	int		maxLength;	/* maximum for value */
-	const char	*desc;		/* option description */
-	int		filterFlags;
-} string_option_t;
-
 /******** STRUCTURES **********/
-
-/*Defaults*/
-#define ISO_DEFAULT_VOLUMEID "MAKEFS_CD9660_IMAGE"
-#define ISO_DEFAULT_APPID "MAKEFS"
-#define ISO_DEFAULT_PUBLISHER "MAKEFS"
-#define ISO_DEFAULT_PREPARER "MAKEFS"
 
 #define ISO_VOLUME_DESCRIPTOR_STANDARD_ID "CD001"
 #define ISO_VOLUME_DESCRIPTOR_BOOT 0
@@ -263,9 +238,7 @@ typedef struct _iso9660_disk {
 
 	int include_padding_areas;
 
-	int follow_sym_links;
 	int verbose_level;
-	int displayHelp;
 	int keep_bad_images;
 
 	/* SUSP options and variables */
@@ -276,7 +249,7 @@ typedef struct _iso9660_disk {
 	int rock_ridge_enabled;
 	/* Other Rock Ridge Variables */
 	char *rock_ridge_renamed_dir_name;
-	int rock_ridge_move_count;
+	unsigned rock_ridge_move_count;
 	cd9660node *rr_moved_dir;
 
 	int archimedes_enabled;
@@ -309,7 +282,7 @@ typedef struct _iso9660_disk {
 /************ FUNCTIONS **************/
 int			cd9660_valid_a_chars(const char *);
 int			cd9660_valid_d_chars(const char *);
-void			cd9660_uppercase_characters(char *, int);
+void			cd9660_uppercase_characters(char *, size_t);
 
 /* ISO Data Types */
 void			cd9660_721(uint16_t, unsigned char *);

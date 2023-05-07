@@ -80,7 +80,8 @@ arm64/arm64/trap.c				standard
 arm64/arm64/uio_machdep.c			standard
 arm64/arm64/uma_machdep.c			standard
 arm64/arm64/undefined.c				standard
-arm64/arm64/unwind.c				optional ddb | kdtrace_hooks | stack
+arm64/arm64/unwind.c				optional ddb | kdtrace_hooks | stack \
+	compile-with "${NORMAL_C:N-fsanitize*}"
 arm64/arm64/vfp.c				standard
 arm64/arm64/vm_machdep.c			standard
 
@@ -158,8 +159,23 @@ cddl/dev/dtrace/aarch64/dtrace_asm.S		optional dtrace compile-with "${DTRACE_S}"
 cddl/dev/dtrace/aarch64/dtrace_subr.c		optional dtrace compile-with "${DTRACE_C}"
 cddl/dev/fbt/aarch64/fbt_isa.c			optional dtrace_fbt | dtraceall compile-with "${FBT_C}"
 
+# zfs blake3 hash support
 contrib/openzfs/module/icp/asm-aarch64/blake3/b3_aarch64_sse2.S		optional zfs compile-with "${ZFS_S:N-mgeneral-regs-only}"
 contrib/openzfs/module/icp/asm-aarch64/blake3/b3_aarch64_sse41.S	optional zfs compile-with "${ZFS_S:N-mgeneral-regs-only}"
+
+# zfs sha2 hash support
+
+zfs-sha256-armv8.o	optional zfs \
+	dependency "$S/contrib/openzfs/module/icp/asm-aarch64/sha2/sha256-armv8.S" \
+	compile-with "${CC} -c ${ZFS_ASM_CFLAGS:N-mgeneral-regs-only} -o ${.TARGET} ${WERROR} $S/contrib/openzfs/module/icp/asm-aarch64/sha2/sha256-armv8.S" \
+	no-implicit-rule \
+	clean "zfs-sha256-armv8.o"
+
+zfs-sha512-armv8.o	optional zfs \
+	dependency "$S/contrib/openzfs/module/icp/asm-aarch64/sha2/sha512-armv8.S" \
+	compile-with "${CC} -c ${ZFS_ASM_CFLAGS:N-mgeneral-regs-only} -o ${.TARGET} ${WERROR} $S/contrib/openzfs/module/icp/asm-aarch64/sha2/sha512-armv8.S" \
+	no-implicit-rule \
+	clean "zfs-sha512-armv8.o"
 
 ##
 ## ASoC support
@@ -188,6 +204,7 @@ dev/cpufreq/cpufreq_dt.c			optional cpufreq fdt
 dev/dpaa2/dpaa2_bp.c				optional soc_nxp_ls dpaa2
 dev/dpaa2/dpaa2_cmd_if.m			optional soc_nxp_ls dpaa2
 dev/dpaa2/dpaa2_con.c				optional soc_nxp_ls dpaa2
+dev/dpaa2/dpaa2_console.c			optional soc_nxp_ls dpaa2 fdt
 dev/dpaa2/dpaa2_io.c				optional soc_nxp_ls dpaa2
 dev/dpaa2/dpaa2_mac.c				optional soc_nxp_ls dpaa2
 dev/dpaa2/dpaa2_mc.c				optional soc_nxp_ls dpaa2
@@ -342,6 +359,7 @@ dev/ofw/ofw_pcib.c				optional fdt pci
 dev/pci/controller/pci_n1sdp.c			optional pci_n1sdp acpi
 dev/pci/pci_host_generic.c			optional pci
 dev/pci/pci_host_generic_acpi.c			optional pci acpi
+dev/pci/pci_host_generic_den0115.c		optional pci acpi
 dev/pci/pci_host_generic_fdt.c			optional pci fdt
 dev/pci/pci_dw_mv.c				optional pci fdt
 dev/pci/pci_dw.c				optional pci fdt

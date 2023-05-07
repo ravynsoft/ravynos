@@ -90,6 +90,9 @@ __FBSDID("$FreeBSD$");
 #include <netinet/tcp_var.h>
 #include <netinet/tcp_syncache.h>
 #include <netinet/tcp_ecn.h>
+#ifdef TCP_BLACKBOX
+#include <netinet/tcp_log_buf.h>
+#endif
 #ifdef TCP_OFFLOAD
 #include <netinet/toecore.h>
 #endif
@@ -932,22 +935,27 @@ syncache_socket(struct syncache *sc, struct socket *lso, struct mbuf *m)
 		 * pickup one on the new entry.
 		 */
 		struct tcp_function_block *rblk;
+		void *ptr = NULL;
 
 		rblk = find_and_ref_tcp_fb(blk);
 		KASSERT(rblk != NULL,
 		    ("cannot find blk %p out of syncache?", blk));
-		if (tp->t_fb->tfb_tcp_fb_fini)
-			(*tp->t_fb->tfb_tcp_fb_fini)(tp, 0);
-		refcount_release(&tp->t_fb->tfb_refcnt);
-		tp->t_fb = rblk;
-		/*
-		 * XXXrrs this is quite dangerous, it is possible
-		 * for the new function to fail to init. We also
-		 * are not asking if the handoff_is_ok though at
-		 * the very start thats probalbly ok.
-		 */
-		if (tp->t_fb->tfb_tcp_fb_init) {
-			(*tp->t_fb->tfb_tcp_fb_init)(tp);
+
+		if (rblk->tfb_tcp_fb_init == NULL ||
+		    (*rblk->tfb_tcp_fb_init)(tp, &ptr) == 0) {
+			/* Release the old stack */
+			if (tp->t_fb->tfb_tcp_fb_fini != NULL)
+				(*tp->t_fb->tfb_tcp_fb_fini)(tp, 0);
+			refcount_release(&tp->t_fb->tfb_refcnt);
+			/* Now set in all the pointers */
+			tp->t_fb = rblk;
+			tp->t_fb_ptr = ptr;
+		} else {
+			/*
+			 * Initialization failed. Release the reference count on
+			 * the looked up default stack.
+			 */
+			refcount_release(&rblk->tfb_refcnt);
 		}
 	}
 	tp->snd_wl1 = sc->sc_irs;
@@ -1007,6 +1015,20 @@ syncache_socket(struct syncache *sc, struct socket *lso, struct mbuf *m)
 		struct toedev *tod = sc->sc_tod;
 
 		tod->tod_offload_socket(tod, sc->sc_todctx, so);
+	}
+#endif
+#ifdef TCP_BLACKBOX
+	/*
+	 * Inherit the log state from the listening socket, if
+	 * - the log state of the listening socket is not off and
+	 * - the listening socket was not auto selected from all sessions and
+	 * - a log id is not set on the listening socket.
+	 * This avoids inheriting a log state which was automatically set.
+	 */
+	if ((tcp_get_bblog_state(sototcpcb(lso)) != TCP_LOG_STATE_OFF) &&
+	    ((sototcpcb(lso)->t_flags2 & TF2_LOG_AUTO) == 0) &&
+	    (sototcpcb(lso)->t_lib == NULL)) {
+		tcp_log_state_change(tp, tcp_get_bblog_state(sototcpcb(lso)));
 	}
 #endif
 	/*
@@ -1719,7 +1741,7 @@ skip_alloc:
 	if (ltflags & TF_NOOPT)
 		sc->sc_flags |= SCF_NOOPT;
 	/* ECN Handshake */
-	if (V_tcp_do_ecn)
+	if (V_tcp_do_ecn && (tp->t_flags2 & TF2_CANNOT_DO_ECN) == 0)
 		sc->sc_flags |= tcp_ecn_syncache_add(tcp_get_flags(th), iptos);
 
 	if (V_tcp_syncookies)
@@ -1861,7 +1883,7 @@ syncache_respond(struct syncache *sc, const struct mbuf *m0, int flags)
 			ip6->ip6_nxt = IPPROTO_TCP;
 			th = (struct tcphdr *)(ip6 + 1);
 		}
-		ip6->ip6_flow |= htonl(sc->sc_ip_tos << 20);
+		ip6->ip6_flow |= htonl(sc->sc_ip_tos << IPV6_FLOWLABEL_LEN);
 	}
 #endif
 #if defined(INET6) && defined(INET)

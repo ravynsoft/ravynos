@@ -1389,6 +1389,7 @@ unionfs_mkdir(struct vop_mkdir_args *ap)
 {
 	struct unionfs_node *dunp;
 	struct componentname *cnp;
+	struct vnode   *dvp;
 	struct vnode   *udvp;
 	struct vnode   *uvp;
 	struct vattr	va;
@@ -1400,17 +1401,19 @@ unionfs_mkdir(struct vop_mkdir_args *ap)
 	KASSERT_UNIONFS_VNODE(ap->a_dvp);
 
 	error = EROFS;
-	dunp = VTOUNIONFS(ap->a_dvp);
+	dvp = ap->a_dvp;
+	dunp = VTOUNIONFS(dvp);
 	cnp = ap->a_cnp;
 	lkflags = cnp->cn_lkflags;
 	udvp = dunp->un_uppervp;
 
 	if (udvp != NULLVP) {
+		vref(udvp);
 		/* check opaque */
 		if (!(cnp->cn_flags & ISWHITEOUT)) {
 			error = VOP_GETATTR(udvp, &va, cnp->cn_cred);
 			if (error != 0)
-				return (error);
+				goto unionfs_mkdir_cleanup;
 			if ((va.va_flags & OPAQUE) != 0)
 				cnp->cn_flags |= ISWHITEOUT;
 		}
@@ -1418,12 +1421,34 @@ unionfs_mkdir(struct vop_mkdir_args *ap)
 		if ((error = VOP_MKDIR(udvp, &uvp, cnp, ap->a_vap)) == 0) {
 			VOP_UNLOCK(uvp);
 			cnp->cn_lkflags = LK_EXCLUSIVE;
-			error = unionfs_nodeget(ap->a_dvp->v_mount, uvp, NULLVP,
-			    ap->a_dvp, ap->a_vpp, cnp);
+			/*
+			 * The underlying VOP_MKDIR() implementation may have
+			 * temporarily dropped the parent directory vnode lock.
+			 * Because the unionfs vnode ordinarily shares that
+			 * lock, this may allow the unionfs vnode to be reclaimed
+			 * and its lock field reset.  In that case, the unionfs
+			 * vnode is effectively no longer locked, and we must
+			 * explicitly lock it before returning in order to meet
+			 * the locking requirements of VOP_MKDIR().
+			 */
+			if (__predict_false(VTOUNIONFS(dvp) == NULL)) {
+				error = ENOENT;
+				goto unionfs_mkdir_cleanup;
+			}
+			error = unionfs_nodeget(dvp->v_mount, uvp, NULLVP,
+			    dvp, ap->a_vpp, cnp);
 			cnp->cn_lkflags = lkflags;
 			vrele(uvp);
 		}
 	}
+
+unionfs_mkdir_cleanup:
+
+	if (__predict_false(VTOUNIONFS(dvp) == NULL)) {
+		vput(udvp);
+		vn_lock(dvp, LK_EXCLUSIVE | LK_RETRY);
+	} else if (udvp != NULLVP)
+		vrele(udvp);
 
 	UNIONFS_INTERNAL_DEBUG("unionfs_mkdir: leave (%d)\n", error);
 
@@ -1853,24 +1878,6 @@ unionfs_print(struct vop_print_args *ap)
 }
 
 static int
-unionfs_islocked(struct vop_islocked_args *ap)
-{
-	struct unionfs_node *unp;
-
-	KASSERT_UNIONFS_VNODE(ap->a_vp);
-
-	unp = VTOUNIONFS(ap->a_vp);
-	if (unp == NULL)
-		return (vop_stdislocked(ap));
-
-	if (unp->un_uppervp != NULLVP)
-		return (VOP_ISLOCKED(unp->un_uppervp));
-	if (unp->un_lowervp != NULLVP)
-		return (VOP_ISLOCKED(unp->un_lowervp));
-	return (vop_stdislocked(ap));
-}
-
-static int
 unionfs_get_llt_revlock(struct vnode *vp, int flags)
 {
 	int revlock;
@@ -1982,14 +1989,6 @@ unionfs_lock(struct vop_lock1_args *ap)
 			vholdnz(uvp);
 			uhold = 1;
 			VOP_UNLOCK(uvp);
-			unp = VTOUNIONFS(vp);
-			if (unp == NULL) {
-				/* vnode is released. */
-				VI_UNLOCK(vp);
-				VOP_UNLOCK(lvp);
-				vdrop(uvp);
-				return (EBUSY);
-			}
 		}
 		VI_LOCK_FLAGS(lvp, MTX_DUPOK);
 		flags |= LK_INTERLOCK;
@@ -2010,7 +2009,7 @@ unionfs_lock(struct vop_lock1_args *ap)
 			vdrop(lvp);
 			if (uhold != 0)
 				vdrop(uvp);
-			return (vop_stdlock(ap));
+			goto unionfs_lock_fallback;
 		}
 	}
 
@@ -2043,7 +2042,7 @@ unionfs_lock(struct vop_lock1_args *ap)
 				VOP_UNLOCK(lvp);
 				vdrop(lvp);
 			}
-			return (vop_stdlock(ap));
+			goto unionfs_lock_fallback;
 		}
 		if (error != 0 && lvp != NULLVP) {
 			/* rollback */
@@ -2064,6 +2063,22 @@ unionfs_lock(struct vop_lock1_args *ap)
 
 unionfs_lock_null_vnode:
 	ap->a_flags |= LK_INTERLOCK;
+	return (vop_stdlock(ap));
+
+unionfs_lock_fallback:
+	/*
+	 * If we reach this point, we've discovered the unionfs vnode
+	 * has been reclaimed while the upper/lower vnode locks were
+	 * temporarily dropped.  Such temporary droppage may happen
+	 * during the course of an LK_UPGRADE operation itself, and in
+	 * that case LK_UPGRADE must be cleared as the unionfs vnode's
+	 * lock has been reset to point to the standard v_lock field,
+	 * which has not previously been held.
+	 */
+	if (flags & LK_UPGRADE) {
+		ap->a_flags &= ~LK_TYPE_MASK;
+		ap->a_flags |= LK_EXCLUSIVE;
+	}
 	return (vop_stdlock(ap));
 }
 
@@ -2782,7 +2797,7 @@ struct vop_vector unionfs_vnodeops = {
 	.vop_getwritemount =	unionfs_getwritemount,
 	.vop_inactive =		unionfs_inactive,
 	.vop_need_inactive =	vop_stdneed_inactive,
-	.vop_islocked =		unionfs_islocked,
+	.vop_islocked =		vop_stdislocked,
 	.vop_ioctl =		unionfs_ioctl,
 	.vop_link =		unionfs_link,
 	.vop_listextattr =	unionfs_listextattr,

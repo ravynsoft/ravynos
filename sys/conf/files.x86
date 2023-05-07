@@ -145,6 +145,8 @@ dev/imcsmb/imcsmb.c		optional	imcsmb
 dev/imcsmb/imcsmb_pci.c		optional	imcsmb pci
 dev/intel/pchtherm.c		optional	pchtherm
 dev/intel/spi.c			optional	intelspi
+dev/intel/spi_pci.c			optional	intelspi pci
+dev/intel/spi_acpi.c			optional	intelspi acpi
 dev/io/iodev.c			optional	io
 dev/iommu/busdma_iommu.c	optional	acpi iommu pci
 dev/iommu/iommu_gas.c		optional	acpi iommu pci
@@ -345,5 +347,5 @@ x86/x86/tsc.c			standard
 x86/x86/ucode.c			standard
 x86/x86/delay.c			standard
 x86/xen/hvm.c			optional	xenhvm
-x86/xen/xen_intr.c		optional	xenhvm
 x86/xen/xen_apic.c		optional	xenhvm smp
+x86/xen/xen_arch_intr.c		optional	xenhvm

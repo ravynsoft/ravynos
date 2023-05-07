@@ -1,5 +1,5 @@
-/*
- * $FreeBSD$
+/*-
+ * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2011, 2012, 2013, 2015, 2016, 2019, Juniper Networks, Inc.
  * All rights reserved.
@@ -41,6 +41,9 @@
 #include <sys/mutex.h>
 #include <sys/proc.h>
 #include <sys/sbuf.h>
+#ifdef MAC_VERIEXEC_DEBUG
+#include <sys/syslog.h>
+#endif
 #include <sys/vnode.h>
 
 #include "mac_veriexec.h"
@@ -231,7 +234,7 @@ mac_veriexec_metadata_has_file(dev_t fsid, long fileid, unsigned long gen)
 {
 
 	return (mac_veriexec_metadata_get_file_info(fsid, fileid, gen, NULL,
-	    VERIEXEC_FILES_FIRST) != NULL);
+	    NULL, VERIEXEC_FILES_FIRST) == 0);
 }
 
 /**
@@ -438,12 +441,12 @@ mac_veriexec_metadata_get_file_flags(dev_t fsid, long fileid, unsigned long gen,
     int *flags, int check_files)
 {
 	struct mac_veriexec_file_info *ip;
-	int found_dev;
+	int error;
 
-	ip = mac_veriexec_metadata_get_file_info(fsid, fileid, gen, &found_dev,
-	    check_files);
-	if (ip == NULL)
-		return (ENOENT);
+	error = mac_veriexec_metadata_get_file_info(fsid, fileid, gen, NULL,
+	    &ip, check_files);
+	if (error != 0)
+		return (error);
 
 	*flags = ip->flags;
 	return (0);
@@ -513,9 +516,9 @@ mac_veriexec_metadata_fetch_fingerprint_status(struct vnode *vp,
 	status = mac_veriexec_get_fingerprint_status(vp);
 	if (status == FINGERPRINT_INVALID || status == FINGERPRINT_NODEV) {
 		found_dev = 0;
-		ip = mac_veriexec_metadata_get_file_info(vap->va_fsid,
-		    vap->va_fileid, vap->va_gen, &found_dev, check_files);
-		if (ip == NULL) {
+		error = mac_veriexec_metadata_get_file_info(vap->va_fsid,
+		    vap->va_fileid, vap->va_gen, &found_dev, &ip, check_files);
+		if (error != 0) {
 			status = (found_dev) ? FINGERPRINT_NOENTRY :
 			    FINGERPRINT_NODEV;
 			VERIEXEC_DEBUG(3,
@@ -548,7 +551,7 @@ mac_veriexec_metadata_fetch_fingerprint_status(struct vnode *vp,
 				break;
 
 			case EAUTH:
-#ifdef VERIFIED_EXEC_DEBUG_VERBOSE
+#ifdef MAC_VERIEXEC_DEBUG
 				{
 					char have[MAXFINGERPRINTLEN * 2 + 1];
 					char want[MAXFINGERPRINTLEN * 2 + 1];
@@ -581,6 +584,31 @@ mac_veriexec_metadata_fetch_fingerprint_status(struct vnode *vp,
 		mac_veriexec_set_fingerprint_status(vp, status);
 	}
 	return (error);
+}
+
+/**
+ * Return label if we have one
+ *
+ * @param fsid         file system identifier to look for
+ * @param fileid       file to look for
+ * @param gen          generation of file
+ * @param check_files  look at non-executable files?
+ *
+ * @return A pointer to the label or @c NULL
+ */
+const char *
+mac_veriexec_metadata_get_file_label(dev_t fsid, long fileid,
+    unsigned long gen, int check_files)
+{
+	struct mac_veriexec_file_info *ip;
+	int error;
+
+	error = mac_veriexec_metadata_get_file_info(fsid, fileid, gen, NULL,
+	    &ip, check_files);
+	if (error)
+		return (NULL);
+
+	return ((ip->flags & VERIEXEC_LABEL) != 0 ? ip->label : NULL);
 }
 
 /**
@@ -735,19 +763,20 @@ search:
 /**
  * @brief Search the meta-data store for information on the specified file.
  *
- * @param fsid		file system identifier to look for
- * @param fileid	file to look for
- * @param gen		generation of file
+ * @param fsid          file system identifier to look for
+ * @param fileid        file to look for
+ * @param gen           generation of file
  * @param found_dev	indicator that an entry for the file system was found
- * @param check_files	if 1, check the files list first, otherwise check the
- * 			exectuables list first
+ * @param ipp           pointer to location to store the info pointer
+ * @param check_files   if 1, check the files list first, otherwise check the
+ *                      exectuables list first
  *
  * @return A pointer to the meta-data inforation if meta-data exists for
  *     the specified file identifier, otherwise @c NULL
  */
-struct mac_veriexec_file_info *
+int
 mac_veriexec_metadata_get_file_info(dev_t fsid, long fileid, unsigned long gen,
-    int *found_dev, int check_files)
+    int *found_dev, struct mac_veriexec_file_info **ipp, int check_files)
 {
 	struct veriexec_devhead *search[3];
 	struct mac_veriexec_file_info *ip;
@@ -763,14 +792,18 @@ mac_veriexec_metadata_get_file_info(dev_t fsid, long fileid, unsigned long gen,
 	}
 	search[2] = NULL;
 
-	VERIEXEC_DEBUG(3, ("%s: searching for dev %ju, file %lu\n",
-	    __func__, (uintmax_t)fsid, fileid));
+	VERIEXEC_DEBUG(3, ("%s: searching for dev %#jx, file %lu.%lu\n",
+	    __func__, (uintmax_t)fsid, fileid, gen));
 
 	/* Search for the specified file */
 	for (ip = NULL, x = 0; ip == NULL && search[x]; x++)
 		ip = get_veriexec_file(search[x], fsid, fileid, gen, found_dev);
 
-	return (ip);
+	if (ipp != NULL)
+		*ipp = ip;
+	if (ip == NULL)
+		return (ENOENT);
+	return (0);
 }
 
 /**

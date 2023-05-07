@@ -28,7 +28,7 @@
 .\" ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 .\" POSSIBILITY OF SUCH DAMAGE.
 .\"
-.Dd November 24, 2022
+.Dd April 26, 2023
 .Dt PF.CONF 5
 .Os
 .Sh NAME
@@ -670,7 +670,7 @@ The last matching rule decides what action is taken.
 If no rule matches the packet, the default action is to pass
 the packet.
 .Pp
-The folliwing actions can be used in the filter:
+The following actions can be used in the filter:
 .Bl -tag -width xxxx
 .It Ar block
 The packet is blocked.
@@ -702,7 +702,7 @@ If a packet matches a rule which has the
 option set, this rule
 is considered the last matching rule, and evaluation of subsequent rules
 is skipped.
-.It Ar on Aq Ar interface
+.It Ar on Aq Ar ifspec
 This rule applies only to packets coming in on, or going out through, this
 particular interface or interface group.
 For more information on interface groups,
@@ -712,7 +712,7 @@ keyword in
 .Xr ifconfig 8 .
 .It Ar bridge-to Aq interface
 Packets matching this rule will be sent out of the specified interface without
-futher processing.
+further processing.
 .It Ar proto Aq Ar protocol
 This rule applies only to packets of this protocol.
 Note that Ethernet protocol numbers are different from those used in
@@ -1418,7 +1418,7 @@ and
 , the last matching rule decides what action is taken.
 For
 .Ar match
-, rules are evaulated every time they match; the pass/block state of a packet
+, rules are evaluated every time they match; the pass/block state of a packet
 remains unchanged.
 If no rule matches the packet, the default action is to pass
 the packet.
@@ -1489,6 +1489,15 @@ The packet is passed;
 state is created unless the
 .Ar no state
 option is specified.
+.It Ar match
+Action is unaltered, the previously matched rule's action still matters.
+Match rules apply queue and rtable assignments for every matched packet,
+subsequent matching pass or match rules can overwrite the assignment,
+if they don't specify a queue or an rtable, respectively, the previously
+set value remains.
+Additionally, match rules can contain log statements; the is logging done
+for each and every matching match rule, so it is possible to log a single
+packet multiple times.
 .El
 .Pp
 By default
@@ -3099,7 +3108,8 @@ logopts        = logopt [ "," logopts ]
 logopt         = "all" | "user" | "to" interface-name
 
 etherfilteropt-list = etherfilteropt-list etherfilteropt | etherfilteropt
-etherfilteropt = "tag" string | "tagged" string | "queue" ( string )
+etherfilteropt = "tag" string | "tagged" string | "queue" ( string ) |
+                 "ridentifier" number | "label" string
 
 filteropt-list = filteropt-list filteropt | filteropt
 filteropt      = user | group | flags | icmp-type | icmp6-type | "tos" tos |
@@ -3172,7 +3182,7 @@ schedulers     = ( cbq-def | priq-def | hfsc-def )
 bandwidth-spec = "number" ( "b" | "Kb" | "Mb" | "Gb" | "%" )
 
 etheraction    = "pass" | "block"
-action         = "pass" | "block" [ return ] | [ "no" ] "scrub"
+action         = "pass" | "match" | "block" [ return ] | [ "no" ] "scrub"
 return         = "drop" | "return" | "return-rst" [ "( ttl" number ")" ] |
                  "return-icmp" [ "(" icmpcode [ [ "," ] icmp6code ] ")" ] |
                  "return-icmp6" [ "(" icmp6code ")" ]
@@ -3188,7 +3198,8 @@ route          = ( "route-to" | "reply-to" | "dup-to" )
                  [ pooltype ]
 af             = "inet" | "inet6"
 
-etherprotospec = "proto" ( proto-number | "{" proto-list "}" )
+etherprotospec = "proto" ( proto-number | "{" etherproto-list "}" )
+etherproto-list	= proto-number [ [ "," ] etherproto-list ]
 protospec      = "proto" ( proto-name | proto-number |
                  "{" proto-list "}" )
 proto-list     = ( proto-name | proto-number ) [ [ "," ] proto-list ]

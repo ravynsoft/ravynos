@@ -17,6 +17,7 @@
 
 #include "acpi.h"
 #include "acpi_device.h"
+#include "basl.h"
 
 /**
  * List entry to enumerate all resources used by an ACPI device.
@@ -35,24 +36,25 @@ struct acpi_resource_list_entry {
  * Holds information about an ACPI device.
  *
  * @param vm_ctx VM context the ACPI device was created in.
- * @param name   Name of the ACPI device.
- * @param hid    Hardware ID of the ACPI device.
+ * @param softc  A pointer to the software context of the ACPI device.
+ * @param emul   Device emulation struct. It contains some information like the
+                 name of the ACPI device and some device specific functions.
  * @param crs    Current resources used by the ACPI device.
  */
 struct acpi_device {
 	struct vmctx *vm_ctx;
-	const char *name;
-	const char *hid;
+	void *softc;
+	const struct acpi_device_emul *emul;
 	SLIST_HEAD(acpi_resource_list, acpi_resource_list_entry) crs;
 };
 
 int
-acpi_device_create(struct acpi_device **const new_dev,
-    struct vmctx *const vm_ctx, const char *const name, const char *const hid)
+acpi_device_create(struct acpi_device **const new_dev, void *const softc,
+    struct vmctx *const vm_ctx, const struct acpi_device_emul *const emul)
 {
-	if (new_dev == NULL || vm_ctx == NULL || name == NULL || hid == NULL) {
-		return (EINVAL);
-	}
+	assert(new_dev != NULL);
+	assert(vm_ctx != NULL);
+	assert(emul != NULL);
 
 	struct acpi_device *const dev = calloc(1, sizeof(*dev));
 	if (dev == NULL) {
@@ -60,13 +62,9 @@ acpi_device_create(struct acpi_device **const new_dev,
 	}
 
 	dev->vm_ctx = vm_ctx;
-	dev->name = strdup(name);
-	dev->hid = strdup(hid);
+	dev->softc = softc;
+	dev->emul = emul;
 	SLIST_INIT(&dev->crs);
-	if (dev->name == NULL || dev->hid == NULL) {
-		acpi_device_destroy(dev);
-		return (ENOMEM);
-	}
 
 	const int error = acpi_tables_add_device(dev);
 	if (error) {
@@ -92,9 +90,7 @@ acpi_device_destroy(struct acpi_device *const dev)
 		SLIST_REMOVE_HEAD(&dev->crs, chain);
 		free(res);
 	}
-	
-	free(__DECONST(void *, dev->hid));
-	free(__DECONST(void *, dev->name));
+
 	free(dev);
 }
 
@@ -143,7 +139,28 @@ acpi_device_add_res_fixed_memory32(struct acpi_device *const dev,
 	return (0);
 }
 
-static void
+void *
+acpi_device_get_softc(const struct acpi_device *const dev)
+{
+	assert(dev != NULL);
+
+	return (dev->softc);
+}
+
+int
+acpi_device_build_table(const struct acpi_device *const dev)
+{
+	assert(dev != NULL);
+	assert(dev->emul != NULL);
+
+	if (dev->emul->build_table != NULL) {
+		return (dev->emul->build_table(dev));
+	}
+
+	return (0);
+}
+
+static int
 acpi_device_write_dsdt_crs(const struct acpi_device *const dev)
 {
 	const struct acpi_resource_list_entry *res;
@@ -162,28 +179,35 @@ acpi_device_write_dsdt_crs(const struct acpi_device *const dev)
 			break;
 		}
 	}
+
+	return (0);
 }
 
-void
+int
 acpi_device_write_dsdt(const struct acpi_device *const dev)
 {
-	if (dev == NULL) {
-		return;
-	}
+	assert(dev != NULL);
 
 	dsdt_line("");
 	dsdt_line("  Scope (\\_SB)");
 	dsdt_line("  {");
-	dsdt_line("    Device (%s)", dev->name);
+	dsdt_line("    Device (%s)", dev->emul->name);
 	dsdt_line("    {");
-	dsdt_line("      Name (_HID, \"%s\")", dev->hid);
+	dsdt_line("      Name (_HID, \"%s\")", dev->emul->hid);
 	dsdt_line("      Name (_STA, 0x0F)");
 	dsdt_line("      Name (_CRS, ResourceTemplate ()");
 	dsdt_line("      {");
 	dsdt_indent(4);
-	acpi_device_write_dsdt_crs(dev);
+	BASL_EXEC(acpi_device_write_dsdt_crs(dev));
 	dsdt_unindent(4);
 	dsdt_line("      })");
+	if (dev->emul->write_dsdt != NULL) {
+		dsdt_indent(3);
+		BASL_EXEC(dev->emul->write_dsdt(dev));
+		dsdt_unindent(3);
+	}
 	dsdt_line("    }");
 	dsdt_line("  }");
+
+	return (0);
 }

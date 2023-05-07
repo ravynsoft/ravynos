@@ -37,7 +37,6 @@ __FBSDID("$FreeBSD$");
 #include "opt_inet6.h"
 #include "opt_ipsec.h"
 #include "opt_ratelimit.h"
-#include "opt_kern_tls.h"
 #include <sys/param.h>
 #include <sys/arb.h>
 #include <sys/module.h>
@@ -51,9 +50,6 @@ __FBSDID("$FreeBSD$");
 #include <sys/qmath.h>
 #include <sys/socket.h>
 #include <sys/socketvar.h>
-#ifdef KERN_TLS
-#include <sys/ktls.h>
-#endif
 #include <sys/sysctl.h>
 #include <sys/systm.h>
 #include <sys/tree.h>
@@ -130,36 +126,6 @@ __FBSDID("$FreeBSD$");
  * Common TCP Functions - These are shared by borth
  * rack and BBR.
  */
-#ifdef KERN_TLS
-uint32_t
-ctf_get_opt_tls_size(struct socket *so, uint32_t rwnd)
-{
-	struct ktls_session *tls;
-	uint32_t len;
-
-again:
-	tls = so->so_snd.sb_tls_info;
-	len = tls->params.max_frame_len;         /* max tls payload */
-	len += tls->params.tls_hlen;      /* tls header len  */
-	len += tls->params.tls_tlen;      /* tls trailer len */
-	if ((len * 4) > rwnd) {
-		/*
-		 * Stroke this will suck counter and what
-		 * else should we do Drew? From the
-		 * TCP perspective I am not sure
-		 * what should be done...
-		 */
-		if (tls->params.max_frame_len > 4096) {
-			tls->params.max_frame_len -= 4096;
-			if (tls->params.max_frame_len < 4096)
-				tls->params.max_frame_len = 4096;
-			goto again;
-		}
-	}
-	return (len);
-}
-#endif
-
 static int
 ctf_get_enet_type(struct ifnet *ifp, struct mbuf *m)
 {
@@ -357,8 +323,8 @@ ctf_get_enet_type(struct ifnet *ifp, struct mbuf *m)
  *     c) The push bit has been set by the peer
  */
 
-int
-ctf_process_inbound_raw(struct tcpcb *tp, struct socket *so, struct mbuf *m, int has_pkt)
+static int
+ctf_process_inbound_raw(struct tcpcb *tp, struct mbuf *m, int has_pkt)
 {
 	/*
 	 * We are passed a raw change of mbuf packets
@@ -368,13 +334,12 @@ ctf_process_inbound_raw(struct tcpcb *tp, struct socket *so, struct mbuf *m, int
 	 * We process each one by:
 	 * a) saving off the next
 	 * b) stripping off the ether-header
-	 * c) formulating the arguments for
-	 *    the tfb_tcp_hpts_do_segment
-	 * d) calling each mbuf to tfb_tcp_hpts_do_segment
+	 * c) formulating the arguments for tfb_do_segment_nounlock()
+	 * d) calling each mbuf to tfb_do_segment_nounlock()
 	 *    after adjusting the time to match the arrival time.
 	 * Note that the LRO code assures no IP options are present.
 	 *
-	 * The symantics for calling tfb_tcp_hpts_do_segment are the
+	 * The symantics for calling tfb_do_segment_nounlock() are the
 	 * following:
 	 * 1) It returns 0 if all went well and you (the caller) need
 	 *    to release the lock.
@@ -480,8 +445,8 @@ skip_vnet:
 			 * been compressed. We assert the inp has
 			 * the flag set to enable this!
 			 */
-			KASSERT((inp->inp_flags2 & INP_MBUF_ACKCMP),
-			    ("tp:%p inp:%p no INP_MBUF_ACKCMP flags?", tp, inp));
+			KASSERT((tp->t_flags2 & TF2_MBUF_ACKCMP),
+			    ("tp:%p no TF2_MBUF_ACKCMP flags?", tp));
 			tlen = 0;
 			drop_hdrlen = 0;
 			th = NULL;
@@ -496,8 +461,8 @@ skip_vnet:
 			KMOD_TCPSTAT_INC(tcps_rcvtotal);
 		else
 			KMOD_TCPSTAT_ADD(tcps_rcvtotal, (m->m_len / sizeof(struct tcp_ackent)));
-		retval = (*tp->t_fb->tfb_do_segment_nounlock)(m, th, so, tp, drop_hdrlen, tlen,
-							      iptos, nxt_pkt, &tv);
+		retval = (*tp->t_fb->tfb_do_segment_nounlock)(tp, m, th,
+		    drop_hdrlen, tlen, iptos, nxt_pkt, &tv);
 		if (retval) {
 			/* We lost the lock and tcb probably */
 			m = m_save;
@@ -523,16 +488,14 @@ skipped_pkt:
 }
 
 int
-ctf_do_queued_segments(struct socket *so, struct tcpcb *tp, int have_pkt)
+ctf_do_queued_segments(struct tcpcb *tp, int have_pkt)
 {
 	struct mbuf *m;
 
 	/* First lets see if we have old packets */
-	if (tp->t_in_pkt) {
-		m = tp->t_in_pkt;
-		tp->t_in_pkt = NULL;
-		tp->t_tail_pkt = NULL;
-		if (ctf_process_inbound_raw(tp, so, m, have_pkt)) {
+	if ((m = STAILQ_FIRST(&tp->t_inqueue)) != NULL) {
+		STAILQ_INIT(&tp->t_inqueue);
+		if (ctf_process_inbound_raw(tp, m, have_pkt)) {
 			/* We lost the tcpcb (maybe a RST came in)? */
 			return(1);
 		}

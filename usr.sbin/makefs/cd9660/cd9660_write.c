@@ -273,7 +273,7 @@ cd9660_write_file(iso9660_disk *diskStructure, FILE *fd, cd9660node *writenode)
 
 	/* Todo : clean up variables */
 
-	temp_file_name = ecalloc(CD9660MAXPATH + 1, 1);
+	temp_file_name = ecalloc(PATH_MAX, 1);
 	buf = emalloc(diskStructure->sectorSize);
 	if ((writenode->level != 0) &&
 	    !(writenode->node->type & S_IFDIR)) {
@@ -429,7 +429,6 @@ cd9660_copy_file(iso9660_disk *diskStructure, FILE *fd, off_t start_sector,
 {
 	FILE *rf;
 	int bytes_read;
-	off_t sector = start_sector;
 	int buf_size = diskStructure->sectorSize;
 	char *buf;
 
@@ -462,7 +461,6 @@ cd9660_copy_file(iso9660_disk *diskStructure, FILE *fd, off_t start_sector,
 			(void)fclose(rf);
 			return 0;
 		}
-		sector++;
 	}
 
 	fclose(rf);

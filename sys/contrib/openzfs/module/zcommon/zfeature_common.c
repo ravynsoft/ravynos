@@ -725,6 +725,18 @@ zpool_feature_init(void)
 		    blake3_deps, sfeatures);
 	}
 
+	zfeature_register(SPA_FEATURE_BLOCK_CLONING,
+	    "com.fudosecurity:block_cloning", "block_cloning",
+	    "Support for block cloning via Block Reference Table.",
+	    ZFEATURE_FLAG_READONLY_COMPAT, ZFEATURE_TYPE_BOOLEAN, NULL,
+	    sfeatures);
+
+	zfeature_register(SPA_FEATURE_AVZ_V2,
+	    "com.klarasystems:vdev_zaps_v2", "vdev_zaps_v2",
+	    "Support for root vdev ZAP.",
+	    ZFEATURE_FLAG_MOS, ZFEATURE_TYPE_BOOLEAN, NULL,
+	    sfeatures);
+
 	zfs_mod_list_supported_free(sfeatures);
 }
 

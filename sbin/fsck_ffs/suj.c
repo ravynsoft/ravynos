@@ -183,7 +183,7 @@ cg_lookup(int cgx)
 	if (lastcg && lastcg->sc_cgx == cgx)
 		return (lastcg);
 	cgbp = cglookup(cgx);
-	if (!check_cgmagic(cgx, cgbp, 0))
+	if (!check_cgmagic(cgx, cgbp))
 		err_suj("UNABLE TO REBUILD CYLINDER GROUP %d", cgx);
 	hd = &cghash[HASH(cgx)];
 	LIST_FOREACH(sc, hd, sc_next)
@@ -384,9 +384,7 @@ blk_isindir(ufs2_daddr_t blk, ino_t ino, ufs_lbn_t lbn)
  * they will only have usable blocks in them.
  */
 ufs2_daddr_t
-suj_checkblkavail(blkno, frags)
-	ufs2_daddr_t blkno;
-	long frags;
+suj_checkblkavail(ufs2_daddr_t blkno, long frags)
 {
 	struct bufarea *cgbp;
 	struct cg *cgp;
@@ -398,7 +396,7 @@ suj_checkblkavail(blkno, frags)
 	cg = dtog(&sblock, blkno);
 	cgbp = cglookup(cg);
 	cgp = cgbp->b_un.b_cg;
-	if (!check_cgmagic(cg, cgbp, 0))
+	if (!check_cgmagic(cg, cgbp))
 		return (-((cg + 1) * sblock.fs_fpg - sblock.fs_frag));
 	baseblk = dtogd(&sblock, blkno);
 	for (j = 0; j <= sblock.fs_frag - frags; j++) {

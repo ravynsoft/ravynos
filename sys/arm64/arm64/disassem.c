@@ -28,11 +28,13 @@
 
 #include <sys/cdefs.h>
 __FBSDID("$FreeBSD$");
-#include <sys/param.h>
 
+#include <sys/param.h>
 #include <sys/systm.h>
-#include <machine/disassem.h>
+
 #include <machine/armreg.h>
+#include <machine/disassem.h>
+
 #include <ddb/ddb.h>
 
 #define	ARM64_MAX_TOKEN_LEN	8
@@ -82,12 +84,21 @@ struct arm64_insn_token {
  * Define generic types for instruction printing.
  */
 enum arm64_format_type {
-	TYPE_01,	/* OP <RD>, <RN>, <RM>{, <shift [LSL, LSR, ASR]> #<imm>} SF32/64
-			   OP <RD>, <RN>, #<imm>{, <shift [0, 12]>} SF32/64 */
-	TYPE_02,	/* OP <RT>, [<RN>, #<imm>]{!}] SF32/64
-			   OP <RT>, [<RN>], #<imm>{!} SF32/64
-			   OP <RT>, <RN>, <RM> {, EXTEND AMOUNT } */
-	TYPE_03,	/* OP <RT>, #imm SF32/64 */
+	/*
+	 * OP <RD>, <RN>, <RM>{, <shift [LSL, LSR, ASR]> #imm} SF32/64
+	 * OP <RD>, <RN>, #<imm>{, <shift [0, 12]>} SF32/64
+	 */
+	TYPE_01,
+
+	/*
+	 * OP <RT>, [<RN>, #<imm>]{!} SF32/64
+	 * OP <RT>, [<RN>], #<imm>{!} SF32/64
+	 * OP <RT>, <RN>, <RM> {, EXTEND AMOUNT }
+	 */
+	TYPE_02,
+
+	/* OP <RT>, #imm SF32/64 */
+	TYPE_03,
 };
 
 /*
@@ -101,8 +112,8 @@ enum arm64_format_type {
  * tokens - array of tokens (operands) inside instruction
  */
 struct arm64_insn {
-	char* name;
-	char* format;
+	char *name;
+	char *format;
 	enum arm64_format_type type;
 	uint64_t special_ops;
 	uint32_t mask;
@@ -176,6 +187,24 @@ static struct arm64_insn arm64_i[] = {
 	    TYPE_02, 0 },			/* ldrsw register */
 	{ "ldrsw", "10011000|IMM(19)|RT(5)",
 	    TYPE_03, OP_SIGN_EXT | OP_LITERAL | OP_MULT_4 },	/* ldr literal */
+        { "str", "1|SF(1)|111000000|IMM(9)|OPTION(2)|RN(5)|RT(5)",
+            TYPE_02, OP_SIGN_EXT }, 		/* str immediate post/pre index */
+        { "str", "1|SF(1)|11100100|IMM(12)|RN(5)|RT(5)",
+            TYPE_02, 0 }, 		        /* str immediate unsigned */
+        { "str", "1|SF(1)|111000001|RM(5)|OPTION(3)|SCALE(1)|10|RN(5)|RT(5)",
+            TYPE_02, 0 }, 			/* str register */
+        { "strb", "00111000000|IMM(9)|OPTION(2)|RN(5)|RT(5)",
+            TYPE_02, OP_SIGN_EXT | OP_SF32 },   /* strb immediate post/pre index */
+        { "strb", "0011100100|IMM(12)|RN(5)|RT(5)",
+            TYPE_02, OP_SF32 },                 /* strb immediate unsigned */
+        { "strb", "00111000001|RM(5)|OPTION(3)|SCALE(1)|10|RN(5)|RT(5)",
+            TYPE_02, OP_SF32 }, 		/* strb register */
+        { "strh", "01111000000|IMM(9)|OPTION(2)|RN(5)|RT(5)",
+	    TYPE_02, OP_SF32 | OP_SIGN_EXT }, 	/* strh immediate post/pre index */
+        { "strh", "0111100100|IMM(12)|RN(5)|RT(5)",
+	    TYPE_02, OP_SF32 }, 		/* immediate unsigned */
+        { "strh", "01111000001|RM(5)|OPTION(3)|SCALE(1)|10|RN(5)|RT(5)",
+            TYPE_02, OP_SF32 }, 		/* strh register */
 	{ NULL, NULL }
 };
 
@@ -202,7 +231,7 @@ arm64_disasm_generate_masks(struct arm64_insn *tab)
 		 */
 		a = (INSN_SIZE * NBBY) - 1;
 		while (*format != '\0' && (a >= 0)) {
-			switch(*format) {
+			switch (*format) {
 			case '0':
 				/* Bit is 0, add to mask and pattern */
 				mask |= (1 << a);
@@ -230,7 +259,8 @@ arm64_disasm_generate_masks(struct arm64_insn *tab)
 					i++;
 					format++;
 					if (i >= ARM64_MAX_TOKEN_LEN) {
-						printf("ERROR: token too long in op %s\n",
+						printf("ERROR: "
+						    "token too long in op %s\n",
 						    tab->name);
 						error = 1;
 						break;
@@ -243,7 +273,8 @@ arm64_disasm_generate_masks(struct arm64_insn *tab)
 				ret = sscanf(format, "(%d)", &len);
 				if (ret == 1) {
 					if (token >= ARM64_MAX_TOKEN_CNT) {
-						printf("ERROR: to many tokens in op %s\n",
+						printf("ERROR: "
+						    "too many tokens in op %s\n",
 						    tab->name);
 						error = 1;
 						break;
@@ -357,7 +388,7 @@ disasm(const struct disasm_interface *di, vm_offset_t loc, int altfmt)
 	while (i_ptr->name) {
 		/* If mask is 0 then the parser was not initialized yet */
 		if ((i_ptr->mask != 0) &&
-		    ((insn & i_ptr->mask) ==  i_ptr->pattern)) {
+		    ((insn & i_ptr->mask) == i_ptr->pattern)) {
 			matchp = 1;
 			break;
 		}
@@ -388,14 +419,17 @@ disasm(const struct disasm_interface *di, vm_offset_t loc, int altfmt)
 	/* Print opcode by type */
 	switch (i_ptr->type) {
 	case TYPE_01:
-		/* OP <RD>, <RN>, <RM>{, <shift [LSL, LSR, ASR]> #<imm>} SF32/64
-		   OP <RD>, <RN>, #<imm>{, <shift [0, 12]>} SF32/64 */
+		/*
+		 * OP <RD>, <RN>, <RM>{, <shift [LSL, LSR, ASR]> #<imm>} SF32/64
+		 * OP <RD>, <RN>, #<imm>{, <shift [0, 12]>} SF32/64
+		 */
 
 		/* Mandatory tokens */
 		ret = arm64_disasm_read_token(i_ptr, insn, "RD", &rd);
 		ret |= arm64_disasm_read_token(i_ptr, insn, "RN", &rn);
 		if (ret != 0) {
-			printf("ERROR: Missing mandatory token for op %s type %d\n",
+			printf("ERROR: "
+			    "Missing mandatory token for op %s type %d\n",
 			    i_ptr->name, i_ptr->type);
 			goto undefined;
 		}
@@ -420,15 +454,18 @@ disasm(const struct disasm_interface *di, vm_offset_t loc, int altfmt)
 		}
 		break;
 	case TYPE_02:
-		/* OP <RT>, [<RN>, #<imm>]{!}] SF32/64
-		   OP <RT>, [<RN>], #<imm>{!} SF32/64
-		   OP <RT>, <RN>, <RM> {, EXTEND AMOUNT } */
+		/*
+		 * OP <RT>, [<RN>, #<imm>]{!}] SF32/64
+		 * OP <RT>, [<RN>], #<imm>{!} SF32/64
+		 * OP <RT>, <RN>, <RM> {, EXTEND AMOUNT }
+		 */
 
 		/* Mandatory tokens */
 		ret = arm64_disasm_read_token(i_ptr, insn, "RT", &rt);
 		ret |= arm64_disasm_read_token(i_ptr, insn, "RN", &rn);
 		if (ret != 0) {
-			printf("ERROR: Missing mandatory token for op %s type %d\n",
+			printf("ERROR: "
+			    "Missing mandatory token for op %s type %d\n",
 			    i_ptr->name, i_ptr->type);
 			goto undefined;
 		}
@@ -464,7 +501,8 @@ disasm(const struct disasm_interface *di, vm_offset_t loc, int altfmt)
 				break;
 			}
 
-			di->di_printf("%s\t%s, ", i_ptr->name, arm64_reg(sf, rt));
+			di->di_printf("%s\t%s, ", i_ptr->name,
+			    arm64_reg(sf, rt));
 			if (inside != 0) {
 				di->di_printf("[%s", arm64_reg(1, rn));
 				if (imm != 0)
@@ -483,9 +521,13 @@ disasm(const struct disasm_interface *di, vm_offset_t loc, int altfmt)
 			    arm64_reg(sf, rt), arm64_reg(1, rn),
 			    arm64_reg(option & 1, rm));
 
-			/* Calculate amount, it's op(31:30) */
-			amount = (insn >> ARM_INSN_SIZE_OFFSET) &
-			    ARM_INSN_SIZE_MASK;
+			if (scale == 0)
+				amount = 0;
+			else {
+				/* Calculate amount, it's op(31:30) */
+				amount = (insn >> ARM_INSN_SIZE_OFFSET) &
+			            ARM_INSN_SIZE_MASK;
+			}
 
 			switch (option) {
 			case 0x2:
@@ -499,7 +541,7 @@ disasm(const struct disasm_interface *di, vm_offset_t loc, int altfmt)
 				di->di_printf(", sxtw #%d", amount);
 				break;
 			case 0x7:
-				di->di_printf(", sxts #%d", amount);
+				di->di_printf(", sxtx #%d", amount);
 				break;
 			default:
 				di->di_printf(", RSVD");
@@ -516,7 +558,8 @@ disasm(const struct disasm_interface *di, vm_offset_t loc, int altfmt)
 		/* Mandatory tokens */
 		ret = arm64_disasm_read_token(i_ptr, insn, "RT", &rt);
 		if (ret != 0) {
-			printf("ERROR: Missing mandatory token for op %s type %d\n",
+			printf("ERROR: "
+			    "Missing mandatory token for op %s type %d\n",
 			    i_ptr->name, i_ptr->type);
 			goto undefined;
 		}
@@ -533,13 +576,13 @@ disasm(const struct disasm_interface *di, vm_offset_t loc, int altfmt)
 	}
 
 	di->di_printf("\n");
-	return(loc + INSN_SIZE);
+	return (loc + INSN_SIZE);
 
 undefined:
 	di->di_printf("undefined\t%08x\n", insn);
-	return(loc + INSN_SIZE);
+	return (loc + INSN_SIZE);
 }
 
 /* Parse format strings at the very beginning */
-SYSINIT(arm64_disasm_generate_masks, SI_SUB_DDB_SERVICES,
-    SI_ORDER_FIRST, arm64_disasm_generate_masks, arm64_i);
+SYSINIT(arm64_disasm_generate_masks, SI_SUB_DDB_SERVICES, SI_ORDER_FIRST,
+    arm64_disasm_generate_masks, arm64_i);

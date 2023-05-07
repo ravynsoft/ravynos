@@ -375,6 +375,10 @@ nfscl_reqstart(struct nfsrv_descript *nd, int procnum, struct nfsmount *nmp,
 	nd->nd_mreq = nd->nd_mb = mb;
 	nd->nd_bpos = mtod(mb, char *);
 
+	/* For NFSPROC_NULL, there are no arguments. */
+	if (procnum == NFSPROC_NULL)
+		goto out;
+
 	/*
 	 * And fill the first file handle into the request.
 	 */
@@ -437,7 +441,7 @@ nfscl_reqstart(struct nfsrv_descript *nd, int procnum, struct nfsmount *nmp,
 		if (nfsv4_opflag[nfsv4_opmap[procnum].op].needscfh > 0) {
 			NFSM_BUILD(tl, u_int32_t *, NFSX_UNSIGNED);
 			*tl = txdr_unsigned(NFSV4OP_PUTFH);
-			nfsm_fhtom(nmp, nd, nfhp, fhlen, 0);
+			(void)nfsm_fhtom(nmp, nd, nfhp, fhlen, 0);
 			if (nfsv4_opflag[nfsv4_opmap[procnum].op].needscfh
 			    == 2 && procnum != NFSPROC_WRITEDS &&
 			    procnum != NFSPROC_COMMITDS) {
@@ -468,8 +472,9 @@ nfscl_reqstart(struct nfsrv_descript *nd, int procnum, struct nfsmount *nmp,
 			*tl = txdr_unsigned(nfsv4_opmap[procnum].op);
 		}
 	} else {
-		nfsm_fhtom(NULL, nd, nfhp, fhlen, 0);
+		(void)nfsm_fhtom(NULL, nd, nfhp, fhlen, 0);
 	}
+out:
 	if (procnum < NFSV42_NPROCS)
 		NFSINCRGLOBAL(nfsstatsv1.rpccnt[procnum]);
 }
@@ -1216,6 +1221,47 @@ nfsrv_getattrbits(struct nfsrv_descript *nd, nfsattrbit_t *attrbitp, int *cntp,
 			*retnotsupp = NFSERR_ATTRNOTSUPP;
 	}
 	if (cntp)
+		*cntp = NFSX_UNSIGNED + (cnt * NFSX_UNSIGNED);
+nfsmout:
+	NFSEXITCODE2(error, nd);
+	return (error);
+}
+
+/*
+ * Get operation bits from an mbuf list.
+ * Returns EBADRPC for a parsing error, 0 otherwise.
+ */
+int
+nfsrv_getopbits(struct nfsrv_descript *nd, nfsopbit_t *opbitp, int *cntp)
+{
+	uint32_t *tl;
+	int cnt, i, outcnt;
+	int error = 0;
+
+	NFSM_DISSECT(tl, uint32_t *, NFSX_UNSIGNED);
+	cnt = fxdr_unsigned(int, *tl);
+	if (cnt < 0) {
+		error = NFSERR_BADXDR;
+		goto nfsmout;
+	}
+	if (cnt > NFSOPBIT_MAXWORDS)
+		outcnt = NFSOPBIT_MAXWORDS;
+	else
+		outcnt = cnt;
+	NFSZERO_OPBIT(opbitp);
+	if (outcnt > 0) {
+		NFSM_DISSECT(tl, uint32_t *, outcnt * NFSX_UNSIGNED);
+		for (i = 0; i < outcnt; i++)
+			opbitp->bits[i] = fxdr_unsigned(uint32_t, *tl++);
+	}
+	for (i = 0; i < (cnt - outcnt); i++) {
+		NFSM_DISSECT(tl, uint32_t *, NFSX_UNSIGNED);
+		if (*tl != 0) {
+			error = NFSERR_BADXDR;
+			goto nfsmout;
+		}
+	}
+	if (cntp != NULL)
 		*cntp = NFSX_UNSIGNED + (cnt * NFSX_UNSIGNED);
 nfsmout:
 	NFSEXITCODE2(error, nd);
@@ -3139,6 +3185,27 @@ nfsrv_putattrbit(struct nfsrv_descript *nd, nfsattrbit_t *attrbitp)
 	*tl++ = txdr_unsigned(cnt);
 	for (i = 0; i < cnt; i++)
 		*tl++ = txdr_unsigned(attrbitp->bits[i]);
+	return (bytesize);
+}
+
+/*
+ * Put the operation bits onto an mbuf list.
+ * Return the number of bytes of output generated.
+ */
+int
+nfsrv_putopbit(struct nfsrv_descript *nd, nfsopbit_t *opbitp)
+{
+	uint32_t *tl;
+	int cnt, i, bytesize;
+
+	for (cnt = NFSOPBIT_MAXWORDS; cnt > 0; cnt--)
+		if (opbitp->bits[cnt - 1])
+			break;
+	bytesize = (cnt + 1) * NFSX_UNSIGNED;
+	NFSM_BUILD(tl, uint32_t *, bytesize);
+	*tl++ = txdr_unsigned(cnt);
+	for (i = 0; i < cnt; i++)
+		*tl++ = txdr_unsigned(opbitp->bits[i]);
 	return (bytesize);
 }
 

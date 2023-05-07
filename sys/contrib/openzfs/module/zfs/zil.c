@@ -43,6 +43,7 @@
 #include <sys/metaslab.h>
 #include <sys/trace_zfs.h>
 #include <sys/abd.h>
+#include <sys/brt.h>
 #include <sys/wmsum.h>
 
 /*
@@ -578,14 +579,12 @@ zil_claim_log_block(zilog_t *zilog, const blkptr_t *bp, void *tx,
 }
 
 static int
-zil_claim_log_record(zilog_t *zilog, const lr_t *lrc, void *tx,
-    uint64_t first_txg)
+zil_claim_write(zilog_t *zilog, const lr_t *lrc, void *tx, uint64_t first_txg)
 {
 	lr_write_t *lr = (lr_write_t *)lrc;
 	int error;
 
-	if (lrc->lrc_txtype != TX_WRITE)
-		return (0);
+	ASSERT(lrc->lrc_txtype == TX_WRITE);
 
 	/*
 	 * If the block is not readable, don't claim it.  This can happen
@@ -605,6 +604,57 @@ zil_claim_log_record(zilog_t *zilog, const lr_t *lrc, void *tx,
 }
 
 static int
+zil_claim_clone_range(zilog_t *zilog, const lr_t *lrc, void *tx)
+{
+	const lr_clone_range_t *lr = (const lr_clone_range_t *)lrc;
+	const blkptr_t *bp;
+	spa_t *spa;
+	uint_t ii;
+
+	ASSERT(lrc->lrc_txtype == TX_CLONE_RANGE);
+
+	if (tx == NULL) {
+		return (0);
+	}
+
+	/*
+	 * XXX: Do we need to byteswap lr?
+	 */
+
+	spa = zilog->zl_spa;
+
+	for (ii = 0; ii < lr->lr_nbps; ii++) {
+		bp = &lr->lr_bps[ii];
+
+		/*
+		 * When data in embedded into BP there is no need to create
+		 * BRT entry as there is no data block. Just copy the BP as
+		 * it contains the data.
+		 */
+		if (!BP_IS_HOLE(bp) && !BP_IS_EMBEDDED(bp)) {
+			brt_pending_add(spa, bp, tx);
+		}
+	}
+
+	return (0);
+}
+
+static int
+zil_claim_log_record(zilog_t *zilog, const lr_t *lrc, void *tx,
+    uint64_t first_txg)
+{
+
+	switch (lrc->lrc_txtype) {
+	case TX_WRITE:
+		return (zil_claim_write(zilog, lrc, tx, first_txg));
+	case TX_CLONE_RANGE:
+		return (zil_claim_clone_range(zilog, lrc, tx));
+	default:
+		return (0);
+	}
+}
+
+static int
 zil_free_log_block(zilog_t *zilog, const blkptr_t *bp, void *tx,
     uint64_t claim_txg)
 {
@@ -616,21 +666,68 @@ zil_free_log_block(zilog_t *zilog, const blkptr_t *bp, void *tx,
 }
 
 static int
-zil_free_log_record(zilog_t *zilog, const lr_t *lrc, void *tx,
-    uint64_t claim_txg)
+zil_free_write(zilog_t *zilog, const lr_t *lrc, void *tx, uint64_t claim_txg)
 {
 	lr_write_t *lr = (lr_write_t *)lrc;
 	blkptr_t *bp = &lr->lr_blkptr;
 
+	ASSERT(lrc->lrc_txtype == TX_WRITE);
+
 	/*
 	 * If we previously claimed it, we need to free it.
 	 */
-	if (claim_txg != 0 && lrc->lrc_txtype == TX_WRITE &&
-	    bp->blk_birth >= claim_txg && zil_bp_tree_add(zilog, bp) == 0 &&
-	    !BP_IS_HOLE(bp))
+	if (bp->blk_birth >= claim_txg && zil_bp_tree_add(zilog, bp) == 0 &&
+	    !BP_IS_HOLE(bp)) {
 		zio_free(zilog->zl_spa, dmu_tx_get_txg(tx), bp);
+	}
 
 	return (0);
+}
+
+static int
+zil_free_clone_range(zilog_t *zilog, const lr_t *lrc, void *tx)
+{
+	const lr_clone_range_t *lr = (const lr_clone_range_t *)lrc;
+	const blkptr_t *bp;
+	spa_t *spa;
+	uint_t ii;
+
+	ASSERT(lrc->lrc_txtype == TX_CLONE_RANGE);
+
+	if (tx == NULL) {
+		return (0);
+	}
+
+	spa = zilog->zl_spa;
+
+	for (ii = 0; ii < lr->lr_nbps; ii++) {
+		bp = &lr->lr_bps[ii];
+
+		if (!BP_IS_HOLE(bp)) {
+			zio_free(spa, dmu_tx_get_txg(tx), bp);
+		}
+	}
+
+	return (0);
+}
+
+static int
+zil_free_log_record(zilog_t *zilog, const lr_t *lrc, void *tx,
+    uint64_t claim_txg)
+{
+
+	if (claim_txg == 0) {
+		return (0);
+	}
+
+	switch (lrc->lrc_txtype) {
+	case TX_WRITE:
+		return (zil_free_write(zilog, lrc, tx, claim_txg));
+	case TX_CLONE_RANGE:
+		return (zil_free_clone_range(zilog, lrc, tx));
+	default:
+		return (0);
+	}
 }
 
 static int
@@ -1802,13 +1899,12 @@ zil_lwb_write_issue(zilog_t *zilog, lwb_t *lwb)
 }
 
 /*
- * Maximum amount of write data that can be put into single log block.
+ * Maximum amount of data that can be put into single log block.
  */
 uint64_t
-zil_max_log_data(zilog_t *zilog)
+zil_max_log_data(zilog_t *zilog, size_t hdrsize)
 {
-	return (zilog->zl_max_block_size -
-	    sizeof (zil_chain_t) - sizeof (lr_write_t));
+	return (zilog->zl_max_block_size - sizeof (zil_chain_t) - hdrsize);
 }
 
 /*
@@ -1818,7 +1914,7 @@ zil_max_log_data(zilog_t *zilog)
 static inline uint64_t
 zil_max_waste_space(zilog_t *zilog)
 {
-	return (zil_max_log_data(zilog) / 8);
+	return (zil_max_log_data(zilog, sizeof (lr_write_t)) / 8);
 }
 
 /*
@@ -1891,7 +1987,7 @@ cont:
 	 * For WR_NEED_COPY optimize layout for minimal number of chunks.
 	 */
 	lwb_sp = lwb->lwb_sz - lwb->lwb_nused;
-	max_log_data = zil_max_log_data(zilog);
+	max_log_data = zil_max_log_data(zilog, sizeof (lr_write_t));
 	if (reclen > lwb_sp || (reclen + dlen > lwb_sp &&
 	    lwb_sp < zil_max_waste_space(zilog) &&
 	    (dlen % max_log_data == 0 ||
@@ -1977,13 +2073,39 @@ cont:
 				/* Zero any padding bytes in the last block. */
 				memset((char *)dbuf + lrwb->lr_length, 0, dpad);
 
-			if (error == EIO) {
+			/*
+			 * Typically, the only return values we should see from
+			 * ->zl_get_data() are 0, EIO, ENOENT, EEXIST or
+			 *  EALREADY. However, it is also possible to see other
+			 *  error values such as ENOSPC or EINVAL from
+			 *  dmu_read() -> dnode_hold() -> dnode_hold_impl() or
+			 *  ENXIO as well as a multitude of others from the
+			 *  block layer through dmu_buf_hold() -> dbuf_read()
+			 *  -> zio_wait(), as well as through dmu_read() ->
+			 *  dnode_hold() -> dnode_hold_impl() -> dbuf_read() ->
+			 *  zio_wait(). When these errors happen, we can assume
+			 *  that neither an immediate write nor an indirect
+			 *  write occurred, so we need to fall back to
+			 *  txg_wait_synced(). This is unusual, so we print to
+			 *  dmesg whenever one of these errors occurs.
+			 */
+			switch (error) {
+			case 0:
+				break;
+			default:
+				cmn_err(CE_WARN, "zil_lwb_commit() received "
+				    "unexpected error %d from ->zl_get_data()"
+				    ". Falling back to txg_wait_synced().",
+				    error);
+				zfs_fallthrough;
+			case EIO:
 				txg_wait_synced(zilog->zl_dmu_pool, txg);
-				return (lwb);
-			}
-			if (error != 0) {
-				ASSERT(error == ENOENT || error == EEXIST ||
-				    error == EALREADY);
+				zfs_fallthrough;
+			case ENOENT:
+				zfs_fallthrough;
+			case EEXIST:
+				zfs_fallthrough;
+			case EALREADY:
 				return (lwb);
 			}
 		}
@@ -3033,7 +3155,14 @@ static void
 zil_commit_itx_assign(zilog_t *zilog, zil_commit_waiter_t *zcw)
 {
 	dmu_tx_t *tx = dmu_tx_create(zilog->zl_os);
-	VERIFY0(dmu_tx_assign(tx, TXG_WAIT));
+
+	/*
+	 * Since we are not going to create any new dirty data, and we
+	 * can even help with clearing the existing dirty data, we
+	 * should not be subject to the dirty data based delays. We
+	 * use TXG_NOTHROTTLE to bypass the delay mechanism.
+	 */
+	VERIFY0(dmu_tx_assign(tx, TXG_WAIT | TXG_NOTHROTTLE));
 
 	itx_t *itx = zil_itx_create(TX_COMMIT, sizeof (lr_t));
 	itx->itx_sync = B_TRUE;

@@ -1,5 +1,4 @@
-# $FreeBSD$
-# $Id: meta.sys.mk,v 1.42 2021/12/13 05:50:55 sjg Exp $
+# $Id: meta.sys.mk,v 1.48 2023/05/04 16:41:10 sjg Exp $
 
 #
 #	@(#) Copyright (c) 2010-2021, Simon J. Gerraty
@@ -21,7 +20,44 @@
 .if ${MAKE_VERSION:U0} > 20100901
 .if !target(.ERROR)
 
-.-include <local.meta.sys.mk>
+.-include <local.meta.sys.env.mk>
+
+# If TARGET_SPEC_VARS is other than just MACHINE
+# it should be set by now.
+# TARGET_SPEC must not contain any '.'s.
+TARGET_SPEC_VARS ?= MACHINE
+
+.if !target(_meta_tspec_env_done_)
+_meta_tspec_env_done_: .NOTMAIN
+# Allow for local.meta.sys.env.mk to have done this
+
+.if ${TARGET_SPEC:Uno:M*,*} != ""
+# deal with TARGET_SPEC from env
+_tspec := ${TARGET_SPEC:S/,/ /g}
+.for i in ${TARGET_SPEC_VARS:${M_RANGE:Urange}}
+${TARGET_SPEC_VARS:[$i]} := ${_tspec:[$i]}
+.endfor
+# We need to stop that TARGET_SPEC affecting any submakes
+TARGET_SPEC=
+# so export but do not track
+.export-env TARGET_SPEC
+.export ${TARGET_SPEC_VARS}
+.for v in ${TARGET_SPEC_VARS:O:u}
+.if empty($v)
+.undef $v
+.endif
+.endfor
+.endif
+.endif
+
+# Now make sure we know what TARGET_SPEC is
+# as we may need it to find Makefile.depend*
+.if ${MACHINE:Mhost*} != ""
+# host is special
+TARGET_SPEC = ${MACHINE}
+.else
+TARGET_SPEC = ${TARGET_SPEC_VARS:@v@${$v:U}@:ts,}
+.endif
 
 # absolute path to what we are reading.
 _PARSEDIR = ${.PARSEDIR:tA}
@@ -170,6 +206,15 @@ dirdeps:
 .endif
 .endif
 
+.else	# level > 0
+
+# Makefile.depend* get read at level 1+
+# and often refer to DEP_MACHINE etc,
+# so ensure DEP_* (for TARGET_SPEC_VARS anyway) are set
+.for V in ${TARGET_SPEC_VARS}
+DEP_$V = ${$V}
+.endfor
+
 .endif
 .else
 META_COOKIE_TOUCH=
@@ -178,3 +223,5 @@ META_NOPHONY= .PHONY
 META_NOECHO= echo
 .endif
 .endif
+
+.-include <local.meta.sys.mk>

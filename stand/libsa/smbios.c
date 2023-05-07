@@ -43,16 +43,51 @@ __FBSDID("$FreeBSD$");
  *
  * System Management BIOS Reference Specification, v2.6 Final
  * http://www.dmtf.org/standards/published_documents/DSP0134_2.6.0.pdf
+ *
+ * System Management BIOS (SMBIOS) Reference Specification, 3.6.0
+ * https://www.dmtf.org/sites/default/files/standards/documents/DSP0134_3.6.0.pdf
  */
 
 /*
- * 2.1.1 SMBIOS Structure Table Entry Point
+ * The first quoted paragraph below can also be found in section 2.1.1 SMBIOS
+ * Structure Table Entry Point of System Management BIOS Reference
+ * Specification, v2.6 Final
  *
- * "On non-EFI systems, the SMBIOS Entry Point structure, described below, can
- * be located by application software by searching for the anchor-string on
- * paragraph (16-byte) boundaries within the physical memory address range
- * 000F0000h to 000FFFFFh. This entry point encapsulates an intermediate anchor
- * string that is used by some existing DMI browsers."
+ * (From System Management BIOS (SMBIOS) Reference Specification, 3.6.0)
+ * 5.2.1 SMBIOS 2.1 (32-bit) Entry Point
+ *
+ * "On non-UEFI systems, the 32-bit SMBIOS Entry Point structure, can be
+ * located by application software by searching for the anchor-string on
+ * paragraph (16-byte) boundaries within the physical memory address
+ * range 000F0000h to 000FFFFFh. This entry point encapsulates an intermediate
+ * anchor string that is used by some existing DMI browsers.
+ *
+ * On UEFI-based systems, the SMBIOS Entry Point structure can be located by
+ * looking in the EFI Configuration Table for the SMBIOS GUID
+ * (SMBIOS_TABLE_GUID, {EB9D2D31-2D88-11D3-9A16-0090273FC14D}) and using the
+ * associated pointer. See section 4.6 of the UEFI Specification for details.
+ * See section 2.3 of the UEFI Specification for how to report the containing
+ * memory type.
+ *
+ * NOTE While the SMBIOS Major and Minor Versions (offsets 06h and 07h)
+ * currently duplicate the information that is present in the SMBIOS BCD
+ * Revision (offset 1Eh), they provide a path for future growth in this
+ * specification. The BCD Revision, for example, provides only a single digit
+ * for each of the major and minor version numbers."
+ *
+ * 5.2.2 SMBIOS 860 3.0 (64-bit) Entry Point
+ *
+ * "On non-UEFI systems, the 64-bit SMBIOS Entry Point structure can be located
+ * by application software by searching for the anchor-string on paragraph
+ * (16-byte) boundaries within the physical memory address range 000F0000h to
+ * 000FFFFFh.
+ *
+ * On UEFI-based systems, the SMBIOS Entry Point structure can be located by
+ * looking in the EFI Configuration Table for the SMBIOS 3.x GUID
+ * (SMBIOS3_TABLE_GUID, {F2FD1544-9794-4A2C-992E-E5BBCF20E394}) and using the
+ * associated pointer. See section 4.6 of the UEFI Specification for details.
+ * See section 2.3 of the UEFI Specification for how to report the containing
+ * memory type."
  */
 #define	SMBIOS_START		0xf0000
 #define	SMBIOS_LENGTH		0x10000
@@ -61,10 +96,47 @@ __FBSDID("$FreeBSD$");
 #define	SMBIOS3_SIG		"_SM3_"
 #define	SMBIOS_DMI_SIG		"_DMI_"
 
-#define	SMBIOS_GET8(base, off)	(*(uint8_t *)((base) + (off)))
-#define	SMBIOS_GET16(base, off)	(*(uint16_t *)((base) + (off)))
-#define	SMBIOS_GET32(base, off)	(*(uint32_t *)((base) + (off)))
-#define	SMBIOS_GET64(base, off)	(*(uint64_t *)((base) + (off)))
+/*
+ * 5.1 General
+ *...
+ * NOTE The Entry Point Structure and all SMBIOS structures assume a
+ * little-endian ordering convention...
+ * ...
+ *
+ * We use memcpy to avoid unaligned access to memory. To normal memory, this is
+ * fine, but the memory we are using might be mmap'd /dev/mem which under Linux
+ * on aarch64 doesn't allow unaligned access. leXdec and friends can't be used
+ * because those can optimize to an unaligned load (which often is fine, but not
+ * for mmap'd /dev/mem which has special memory attributes).
+ */
+static inline uint8_t SMBIOS_GET8(const caddr_t base, int off) { return (base[off]); }
+
+static inline uint16_t
+SMBIOS_GET16(const caddr_t base, int off)
+{
+	uint16_t v;
+
+	memcpy(&v, base + off, sizeof(v));
+	return (le16toh(v));
+}
+
+static inline uint32_t
+SMBIOS_GET32(const caddr_t base, int off)
+{
+	uint32_t v;
+
+	memcpy(&v, base + off, sizeof(v));
+	return (le32toh(v));
+}
+
+static inline uint64_t
+SMBIOS_GET64(const caddr_t base, int off)
+{
+	uint64_t v;
+
+	memcpy(&v, base + off, sizeof(v));
+	return (le64toh(v));
+}
 
 #define	SMBIOS_GETLEN(base)	SMBIOS_GET8(base, 0x01)
 #define	SMBIOS_GETSTR(base)	((base) + SMBIOS_GETLEN(base))
@@ -160,10 +232,10 @@ smbios_setenv(const char *name, caddr_t addr, const int offset)
 #define	UUID_TYPE		uint32_t
 #define	UUID_STEP		sizeof(UUID_TYPE)
 #define	UUID_ALL_BITS		(UUID_SIZE / UUID_STEP)
-#define	UUID_GET(base, off)	(*(UUID_TYPE *)((base) + (off)))
+#define	UUID_GET(base, off)	SMBIOS_GET32(base, off)
 
 static void
-smbios_setuuid(const char *name, const caddr_t addr, const int ver)
+smbios_setuuid(const char *name, const caddr_t addr, const int ver __unused)
 {
 	char		uuid[37];
 	int		byteorder, i, ones, zeros;
@@ -448,19 +520,23 @@ smbios_find_struct(int type)
 {
 	caddr_t		dmi;
 	size_t		i;
+	caddr_t		ep;
 
 	if (smbios.addr == NULL)
 		return (NULL);
 
+	ep = smbios.addr + smbios.length;
 	for (dmi = smbios.addr, i = 0;
-	     dmi < smbios.addr + smbios.length && i < smbios.count; i++) {
-		if (SMBIOS_GET8(dmi, 0) == type)
+	     dmi < ep && i < smbios.count; i++) {
+		if (SMBIOS_GET8(dmi, 0) == type) {
 			return dmi;
+		}
 		/* Find structure terminator. */
 		dmi = SMBIOS_GETSTR(dmi);
-		while (SMBIOS_GET16(dmi, 0) != 0)
+		while (SMBIOS_GET16(dmi, 0) != 0 && dmi < ep) {
 			dmi++;
-		dmi += 2;
+		}
+		dmi += 2;	/* For checksum */
 	}
 
 	return (NULL);

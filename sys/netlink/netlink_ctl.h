@@ -33,6 +33,7 @@
  * This file provides headers for the public KPI of the netlink
  * subsystem
  */
+#include <sys/_eventhandler.h>
 
 MALLOC_DECLARE(M_NETLINK);
 
@@ -81,6 +82,8 @@ bool netlink_unregister_proto(int proto);
 bool nl_has_listeners(int netlink_family, uint32_t groups_mask);
 bool nlp_has_priv(struct nlpcb *nlp, int priv);
 struct ucred *nlp_get_cred(struct nlpcb *nlp);
+uint32_t nlp_get_pid(const struct nlpcb *nlp);
+bool nlp_unconstrained_vnet(const struct nlpcb *nlp);
 
 /* netlink_generic.c */
 struct genl_cmd {
@@ -98,8 +101,29 @@ bool genl_register_cmds(const char *family_name, const struct genl_cmd *cmds,
     int count);
 uint32_t genl_register_group(const char *family_name, const char *group_name);
 
-/* Debug */
-uint32_t nlp_get_pid(const struct nlpcb *nlp);
+struct genl_family;
+const char *genl_get_family_name(const struct genl_family *gf);
+uint32_t genl_get_family_id(const struct genl_family *gf);
+
+typedef void (*genl_family_event_handler_t)(void *arg, const struct genl_family *gf, int action);
+EVENTHANDLER_DECLARE(genl_family_event, genl_family_event_handler_t);
+
+struct thread;
+#if defined(NETLINK) || defined(NETLINK_MODULE)
+/* Provide optimized calls to the functions inside the same linking unit */
+struct nlpcb *_nl_get_thread_nlp(struct thread *td);
+
+static inline struct nlpcb *
+nl_get_thread_nlp(struct thread *td)
+{
+	return (_nl_get_thread_nlp(td));
+}
+
+#else
+/* Provide access to the functions via netlink_glue.c */
+struct nlpcb *nl_get_thread_nlp(struct thread *td);
+
+#endif /* defined(NETLINK) || defined(NETLINK_MODULE) */
 
 #endif
 #endif

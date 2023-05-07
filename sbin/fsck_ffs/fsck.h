@@ -309,6 +309,7 @@ struct inoinfo {
 	ino_t	i_parent;		/* inode number of parent */
 	ino_t	i_dotdot;		/* inode number of `..' */
 	size_t	i_isize;		/* size of inode */
+	u_int	i_depth;		/* depth of directory from root */
 	u_int	i_flags;		/* flags, see below */
 	u_int	i_numblks;		/* size of block array in bytes */
 	ufs2_daddr_t i_blks[1];		/* actually longer */
@@ -345,6 +346,7 @@ extern off_t bflag;		/* location of alternate super block */
 extern int bkgrdflag;		/* use a snapshot to run on an active system */
 extern char *blockmap;		/* ptr to primary blk allocation map */
 extern char *cdevname;		/* name of device being checked */
+extern int cgheader_corrupt;	/* one or more CG headers are corrupt */
 extern char ckclean;		/* only do work if not cleanly unmounted */
 extern int ckhashadd;		/* check hashes to be added */
 extern char *copybuf;		/* buffer to copy snapshot blocks */
@@ -462,9 +464,11 @@ void		catch(int);
 void		catchquit(int);
 void		cgdirty(struct bufarea *);
 struct bufarea *cglookup(int cg);
-int		changeino(ino_t dir, const char *name, ino_t newnum);
+int		changeino(ino_t dir, const char *name, ino_t newnum, int depth);
 void		check_blkcnt(struct inode *ip);
-int		check_cgmagic(int cg, struct bufarea *cgbp, int requestrebuild);
+int		check_cgmagic(int cg, struct bufarea *cgbp);
+void		rebuild_cg(int cg, struct bufarea *cgbp);
+void		check_dirdepth(struct inoinfo *inp);
 int		chkrange(ufs2_daddr_t blk, int cnt);
 void		ckfini(int markclean);
 int		ckinode(union dinode *dp, struct inodesc *);
@@ -491,7 +495,7 @@ int		ftypeok(union dinode *dp);
 void		getblk(struct bufarea *bp, ufs2_daddr_t blk, long size);
 struct bufarea *getdatablk(ufs2_daddr_t blkno, long size, int type);
 struct inoinfo *getinoinfo(ino_t inumber);
-union dinode   *getnextinode(ino_t inumber, int rebuildcg);
+union dinode   *getnextinode(ino_t inumber, int rebuiltcg);
 void		getpathname(char *namebuf, ino_t curdir, ino_t ino);
 void		ginode(ino_t, struct inode *);
 void		gjournal_check(const char *filesys);

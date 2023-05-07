@@ -212,8 +212,7 @@ i386_clock_source_init(void)
 }
 
 static void
-cpu_startup(dummy)
-	void *dummy;
+cpu_startup(void *dummy)
 {
 	uintmax_t memsize;
 	char *sysenv;
@@ -739,9 +738,7 @@ DB_SHOW_COMMAND(frame, db_show_frame)
 #endif
 
 void
-sdtossd(sd, ssd)
-	struct segment_descriptor *sd;
-	struct soft_segment_descriptor *ssd;
+sdtossd(struct segment_descriptor *sd, struct soft_segment_descriptor *ssd)
 {
 	ssd->ssd_base  = (sd->sd_hibase << 24) | sd->sd_lobase;
 	ssd->ssd_limit = (sd->sd_hilimit << 16) | sd->sd_lolimit;
@@ -1548,6 +1545,11 @@ init386(int first)
 		i386_kdb_init();
 	}
 
+	if (cpu_fxsr && (cpu_feature2 & CPUID2_XSAVE) != 0) {
+		use_xsave = 1;
+		TUNABLE_INT_FETCH("hw.use_xsave", &use_xsave);
+	}
+
 	kmdp = preload_search_by_type("elf kernel");
 	link_elf_ireloc(kmdp);
 
@@ -1568,6 +1570,7 @@ init386(int first)
 
 	msgbufinit(msgbufp, msgbufsize);
 	npxinit(true);
+
 	/*
 	 * Set up thread0 pcb after npxinit calculated pcb + fpu save
 	 * area size.  Zero out the extended state header in fpu save

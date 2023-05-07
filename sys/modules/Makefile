@@ -216,6 +216,7 @@ SUBDIR=	\
 	libmchain \
 	lindebugfs \
 	linuxkpi \
+	linuxkpi_hdmi \
 	linuxkpi_wlan \
 	${_lio} \
 	lpt \
@@ -234,8 +235,16 @@ SUBDIR=	\
 	${_mac_seeotheruids} \
 	${_mac_stub} \
 	${_mac_test} \
+<<<<<<< HEAD
 	mach \
 	macho \
+=======
+	${_mac_veriexec} \
+	${_mac_veriexec_sha1} \
+	${_mac_veriexec_sha256} \
+	${_mac_veriexec_sha384} \
+	${_mac_veriexec_sha512} \
+>>>>>>> upstream/main
 	${_malo} \
 	${_mana} \
 	md \
@@ -584,6 +593,13 @@ _mac_priority=	mac_priority
 _mac_seeotheruids= mac_seeotheruids
 _mac_stub=	mac_stub
 _mac_test=	mac_test
+.if ${MK_VERIEXEC} != "no" || defined(ALL_MODULES)
+_mac_veriexec=	mac_veriexec
+_mac_veriexec_sha1= mac_veriexec_sha1
+_mac_veriexec_sha256= mac_veriexec_sha256
+_mac_veriexec_sha384= mac_veriexec_sha384
+_mac_veriexec_sha512= mac_veriexec_sha512
+.endif
 .endif
 
 .if ${MK_NETGRAPH} != "no" || defined(ALL_MODULES)
@@ -642,6 +658,7 @@ _mpr=		mpr
 .endif
 
 .if ${MK_TESTS} != "no" || defined(ALL_MODULES)
+SUBDIR+=	ktest
 SUBDIR+=	tests
 .endif
 

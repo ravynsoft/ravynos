@@ -41,6 +41,7 @@ __FBSDID("$FreeBSD$");
 #include <net/route/nhop.h>
 
 #include <net/route/route_ctl.h>
+#include <netinet/in.h>
 #include <netlink/netlink.h>
 #include <netlink/netlink_ctl.h>
 #include <netlink/netlink_var.h>
@@ -314,10 +315,22 @@ nlattr_get_ipvia(struct nlattr *nla, struct nl_pstate *npt, const void *arg, voi
 
 
 int
+nlattr_get_uint8(struct nlattr *nla, struct nl_pstate *npt, const void *arg, void *target)
+{
+	if (__predict_false(NLA_DATA_LEN(nla) != sizeof(uint8_t))) {
+		NLMSG_REPORT_ERR_MSG(npt, "nla type %d size(%u) is not uint8",
+		    nla->nla_type, NLA_DATA_LEN(nla));
+		return (EINVAL);
+	}
+	*((uint16_t *)target) = *((const uint16_t *)NL_RTA_DATA_CONST(nla));
+	return (0);
+}
+
+int
 nlattr_get_uint16(struct nlattr *nla, struct nl_pstate *npt, const void *arg, void *target)
 {
 	if (__predict_false(NLA_DATA_LEN(nla) != sizeof(uint16_t))) {
-		NLMSG_REPORT_ERR_MSG(npt, "nla type %d size(%u) is not uint32",
+		NLMSG_REPORT_ERR_MSG(npt, "nla type %d size(%u) is not uint16",
 		    nla->nla_type, NLA_DATA_LEN(nla));
 		return (EINVAL);
 	}
@@ -346,6 +359,30 @@ nlattr_get_uint64(struct nlattr *nla, struct nl_pstate *npt, const void *arg, vo
 		return (EINVAL);
 	}
 	memcpy(target, NL_RTA_DATA_CONST(nla), sizeof(uint64_t));
+	return (0);
+}
+
+int
+nlattr_get_in_addr(struct nlattr *nla, struct nl_pstate *npt, const void *arg, void *target)
+{
+	if (__predict_false(NLA_DATA_LEN(nla) != sizeof(in_addr_t))) {
+		NLMSG_REPORT_ERR_MSG(npt, "nla type %d size(%u) is not in_addr_t",
+		    nla->nla_type, NLA_DATA_LEN(nla));
+		return (EINVAL);
+	}
+	memcpy(target, NLA_DATA_CONST(nla), sizeof(in_addr_t));
+	return (0);
+}
+
+int
+nlattr_get_in6_addr(struct nlattr *nla, struct nl_pstate *npt, const void *arg, void *target)
+{
+	if (__predict_false(NLA_DATA_LEN(nla) != sizeof(struct in6_addr))) {
+		NLMSG_REPORT_ERR_MSG(npt, "nla type %d size(%u) is not struct in6_addr",
+		    nla->nla_type, NLA_DATA_LEN(nla));
+		return (EINVAL);
+	}
+	memcpy(target, NLA_DATA_CONST(nla), sizeof(struct in6_addr));
 	return (0);
 }
 

@@ -169,13 +169,20 @@ struct zfs_cmd;
 /*
  * List of colors to use
  */
+#define	ANSI_BLACK	"\033[0;30m"
 #define	ANSI_RED	"\033[0;31m"
 #define	ANSI_GREEN	"\033[0;32m"
 #define	ANSI_YELLOW	"\033[0;33m"
 #define	ANSI_BLUE	"\033[0;34m"
+#define	ANSI_BOLD_BLUE	"\033[1;34m" /* light blue */
+#define	ANSI_MAGENTA	"\033[0;35m"
+#define	ANSI_CYAN	"\033[0;36m"
+#define	ANSI_GRAY	"\033[0;37m"
+
 #define	ANSI_RESET	"\033[0m"
 #define	ANSI_BOLD	"\033[1m"
 
+_LIBZUTIL_H int use_color(void);
 _LIBZUTIL_H void color_start(const char *color);
 _LIBZUTIL_H void color_end(void);
 _LIBZUTIL_H int printf_color(const char *color, const char *format, ...);

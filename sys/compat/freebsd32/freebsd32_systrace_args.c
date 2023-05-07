@@ -3390,6 +3390,7 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
+<<<<<<< HEAD
 	/* _kernelrpc_mach_vm_allocate_trap */
 	case 610: {
 		struct _kernelrpc_mach_vm_allocate_trap_args *p = params;
@@ -3789,6 +3790,15 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 2;
 		break;
 	}
+=======
+	/* kqueuex */
+	case 583: {
+		struct kqueuex_args *p = params;
+		uarg[a++] = p->flags; /* u_int */
+		*n_args = 1;
+		break;
+	}
+>>>>>>> upstream/main
 	default:
 		*n_args = 0;
 		break;
@@ -10224,6 +10234,16 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 			break;
 		};
 		break;
+	/* kqueuex */
+	case 583:
+		switch (ndx) {
+		case 0:
+			p = "u_int";
+			break;
+		default:
+			break;
+		};
+		break;
 	default:
 		break;
 	};
@@ -12119,6 +12139,7 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		if (ndx == 0 || ndx == 1)
 			p = "int";
 		break;
+<<<<<<< HEAD
 	/* _kernelrpc_mach_vm_allocate_trap */
 	case 610:
 		if (ndx == 0 || ndx == 1)
@@ -12333,6 +12354,10 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		break;
 	/* mk_timer_cancel */
 	case 694:
+=======
+	/* kqueuex */
+	case 583:
+>>>>>>> upstream/main
 		if (ndx == 0 || ndx == 1)
 			p = "int";
 		break;

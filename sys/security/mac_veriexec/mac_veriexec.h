@@ -1,5 +1,5 @@
-/*
- * $FreeBSD$
+/*-
+ * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2011, 2012, 2013, 2015, 2016, 2019, Juniper Networks, Inc.
  * All rights reserved.
@@ -29,6 +29,8 @@
 #ifndef	_SECURITY_MAC_VERIEXEC_H
 #define	_SECURITY_MAC_VERIEXEC_H
 
+#include <sys/param.h>
+
 #ifdef _KERNEL
 #include <sys/types.h>
 #include <sys/kernel.h>
@@ -42,8 +44,12 @@
 #define	MAC_VERIEXEC_NAME	"mac_veriexec"
 
 /* MAC/veriexec syscalls */
-#define	MAC_VERIEXEC_CHECK_FD_SYSCALL	1
-#define	MAC_VERIEXEC_CHECK_PATH_SYSCALL	2
+#define	MAC_VERIEXEC_CHECK_FD_SYSCALL		1
+#define	MAC_VERIEXEC_CHECK_PATH_SYSCALL		2
+#define	MAC_VERIEXEC_GET_PARAMS_PID_SYSCALL	3
+#define	MAC_VERIEXEC_GET_PARAMS_PATH_SYSCALL	4
+
+#define	VERIEXEC_FPTYPELEN	16	/* hash name */
 
 /**
  * Enough room for the largest signature...
@@ -67,6 +73,23 @@
 #define VERIEXEC_STATE_ENFORCE	(1<<2)	/**< Fail execs for files that do not
 					     match signature */
 #define VERIEXEC_STATE_LOCKED	(1<<3)	/**< Do not allow further changes */
+
+/* for MAC_VERIEXEC_GET_PARAMS_*_SYSCALL */
+struct mac_veriexec_syscall_params  {
+	char fp_type[VERIEXEC_FPTYPELEN];
+	unsigned char fingerprint[MAXFINGERPRINTLEN];
+	char label[MAXLABELLEN];
+	size_t labellen;
+	unsigned char flags;
+};
+
+struct mac_veriexec_syscall_params_args {
+	union {
+		pid_t pid;
+		const char *filename;
+	} u;				/* input only */
+	struct mac_veriexec_syscall_params *params; /* result */
+};
 
 #ifdef _KERNEL
 /**
@@ -155,6 +178,8 @@ int	mac_veriexec_metadata_add_file(int file_dev, dev_t fsid, long fileid,
 	    unsigned long gen, unsigned char fingerprint[MAXFINGERPRINTLEN], 
 	    char *label, size_t labellen, int flags, const char *fp_type,
 	    int override);
+const char *mac_veriexec_metadata_get_file_label(dev_t fsid, long fileid,
+	    unsigned long gen, int check_files);
 int	mac_veriexec_metadata_has_file(dev_t fsid, long fileid, 
 	    unsigned long gen);
 int	mac_veriexec_proc_is_trusted(struct ucred *cred, struct proc *p);

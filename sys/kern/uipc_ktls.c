@@ -66,10 +66,8 @@ __FBSDID("$FreeBSD$");
 #endif
 #include <net/route.h>
 #include <net/route/nhop.h>
-#if defined(INET) || defined(INET6)
 #include <netinet/in.h>
 #include <netinet/in_pcb.h>
-#endif
 #include <netinet/tcp_var.h>
 #ifdef TCP_OFFLOAD
 #include <netinet/tcp_offload.h>
@@ -302,14 +300,11 @@ SYSCTL_COUNTER_U64(_kern_ipc_tls_toe, OID_AUTO, chacha20, CTLFLAG_RD,
 
 static MALLOC_DEFINE(M_KTLS, "ktls", "Kernel TLS");
 
-#if defined(INET) || defined(INET6)
 static void ktls_reset_receive_tag(void *context, int pending);
 static void ktls_reset_send_tag(void *context, int pending);
-#endif
 static void ktls_work_thread(void *ctx);
 static void ktls_alloc_thread(void *ctx);
 
-#if defined(INET) || defined(INET6)
 static u_int
 ktls_get_cpu(struct socket *so)
 {
@@ -340,7 +335,6 @@ ktls_get_cpu(struct socket *so)
 		cpuid = ktls_cpuid_lookup[inp->inp_flowid % ktls_number_threads];
 	return (cpuid);
 }
-#endif
 
 static int
 ktls_buffer_import(void *arg, void **store, int count, int domain, int flags)
@@ -505,7 +499,6 @@ start:
 	return (error);
 }
 
-#if defined(INET) || defined(INET6)
 static int
 ktls_create_session(struct socket *so, struct tls_enable *en,
     struct ktls_session **tlsp, int direction)
@@ -1223,8 +1216,6 @@ ktls_enable_rx(struct socket *so, struct tls_enable *en)
 
 	if (!ktls_offload_enable)
 		return (ENOTSUP);
-	if (SOLISTENING(so))
-		return (EINVAL);
 
 	counter_u64_add(ktls_offload_enable_calls, 1);
 
@@ -1256,7 +1247,12 @@ ktls_enable_rx(struct socket *so, struct tls_enable *en)
 	}
 
 	/* Mark the socket as using TLS offload. */
-	SOCKBUF_LOCK(&so->so_rcv);
+	SOCK_RECVBUF_LOCK(so);
+	if (SOLISTENING(so)) {
+		SOCK_RECVBUF_UNLOCK(so);
+		ktls_free(tls);
+		return (EINVAL);
+	}
 	so->so_rcv.sb_tls_seqno = be64dec(en->rec_seq);
 	so->so_rcv.sb_tls_info = tls;
 	so->so_rcv.sb_flags |= SB_TLS_RX;
@@ -1264,7 +1260,7 @@ ktls_enable_rx(struct socket *so, struct tls_enable *en)
 	/* Mark existing data as not ready until it can be decrypted. */
 	sb_mark_notready(&so->so_rcv);
 	ktls_check_rx(&so->so_rcv);
-	SOCKBUF_UNLOCK(&so->so_rcv);
+	SOCK_RECVBUF_UNLOCK(so);
 
 	/* Prefer TOE -> ifnet TLS -> software TLS. */
 #ifdef TCP_OFFLOAD
@@ -1290,8 +1286,6 @@ ktls_enable_tx(struct socket *so, struct tls_enable *en)
 
 	if (!ktls_offload_enable)
 		return (ENOTSUP);
-	if (SOLISTENING(so))
-		return (EINVAL);
 
 	counter_u64_add(ktls_offload_enable_calls, 1);
 
@@ -1334,6 +1328,10 @@ ktls_enable_tx(struct socket *so, struct tls_enable *en)
 		return (error);
 	}
 
+	/*
+	 * Serialize with sosend_generic() and make sure that we're not
+	 * operating on a listening socket.
+	 */
 	error = SOCK_IO_SEND_LOCK(so, SBL_WAIT);
 	if (error) {
 		ktls_free(tls);
@@ -1347,7 +1345,7 @@ ktls_enable_tx(struct socket *so, struct tls_enable *en)
 	 */
 	inp = so->so_pcb;
 	INP_WLOCK(inp);
-	SOCKBUF_LOCK(&so->so_snd);
+	SOCK_SENDBUF_LOCK(so);
 	so->so_snd.sb_tls_seqno = be64dec(en->rec_seq);
 	so->so_snd.sb_tls_info = tls;
 	if (tls->mode != TCP_TLS_MODE_SW) {
@@ -1357,7 +1355,7 @@ ktls_enable_tx(struct socket *so, struct tls_enable *en)
 		if (tp->t_fb->tfb_hwtls_change != NULL)
 			(*tp->t_fb->tfb_hwtls_change)(tp, 1);
 	}
-	SOCKBUF_UNLOCK(&so->so_snd);
+	SOCK_SENDBUF_UNLOCK(so);
 	INP_WUNLOCK(inp);
 	SOCK_IO_SEND_UNLOCK(so);
 
@@ -1820,7 +1818,6 @@ ktls_modify_txrtlmt(struct ktls_session *tls, uint64_t max_pacing_rate)
 
 	return (mst->sw->snd_tag_modify(mst, &params));
 }
-#endif
 #endif
 
 static void
@@ -3260,7 +3257,6 @@ ktls_work_thread(void *ctx)
 	}
 }
 
-#if defined(INET) || defined(INET6)
 static void
 ktls_disable_ifnet_help(void *context, int pending __unused)
 {
@@ -3349,4 +3345,3 @@ ktls_disable_ifnet(void *arg)
 	TASK_INIT(&tls->disable_ifnet_task, 0, ktls_disable_ifnet_help, tls);
 	(void)taskqueue_enqueue(taskqueue_thread, &tls->disable_ifnet_task);
 }
-#endif

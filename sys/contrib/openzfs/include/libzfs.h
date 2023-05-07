@@ -333,6 +333,8 @@ _LIBZFS_H const char *zpool_get_state_str(zpool_handle_t *);
 _LIBZFS_H int zpool_set_prop(zpool_handle_t *, const char *, const char *);
 _LIBZFS_H int zpool_get_prop(zpool_handle_t *, zpool_prop_t, char *,
     size_t proplen, zprop_source_t *, boolean_t literal);
+_LIBZFS_H int zpool_get_userprop(zpool_handle_t *, const char *, char *,
+    size_t proplen, zprop_source_t *);
 _LIBZFS_H uint64_t zpool_get_prop_int(zpool_handle_t *, zpool_prop_t,
     zprop_source_t *);
 _LIBZFS_H int zpool_props_refresh(zpool_handle_t *);
@@ -533,7 +535,7 @@ _LIBZFS_H int zfs_prop_get_written(zfs_handle_t *zhp, const char *propname,
     char *propbuf, int proplen, boolean_t literal);
 _LIBZFS_H int zfs_prop_get_feature(zfs_handle_t *zhp, const char *propname,
     char *buf, size_t len);
-_LIBZFS_H uint64_t getprop_uint64(zfs_handle_t *, zfs_prop_t, char **);
+_LIBZFS_H uint64_t getprop_uint64(zfs_handle_t *, zfs_prop_t, const char **);
 _LIBZFS_H uint64_t zfs_prop_get_int(zfs_handle_t *, zfs_prop_t);
 _LIBZFS_H int zfs_prop_inherit(zfs_handle_t *, const char *, boolean_t);
 _LIBZFS_H const char *zfs_prop_values(zfs_prop_t);
@@ -656,17 +658,29 @@ _LIBZFS_H void zprop_print_one_property(const char *, zprop_get_cbdata_t *,
 
 typedef int (*zfs_iter_f)(zfs_handle_t *, void *);
 _LIBZFS_H int zfs_iter_root(libzfs_handle_t *, zfs_iter_f, void *);
-_LIBZFS_H int zfs_iter_children(zfs_handle_t *, int, zfs_iter_f, void *);
-_LIBZFS_H int zfs_iter_dependents(zfs_handle_t *, int, boolean_t, zfs_iter_f,
+_LIBZFS_H int zfs_iter_children(zfs_handle_t *, zfs_iter_f, void *);
+_LIBZFS_H int zfs_iter_dependents(zfs_handle_t *, boolean_t, zfs_iter_f,
     void *);
-_LIBZFS_H int zfs_iter_filesystems(zfs_handle_t *, int, zfs_iter_f, void *);
-_LIBZFS_H int zfs_iter_snapshots(zfs_handle_t *, int, zfs_iter_f, void *,
+_LIBZFS_H int zfs_iter_filesystems(zfs_handle_t *, zfs_iter_f, void *);
+_LIBZFS_H int zfs_iter_snapshots(zfs_handle_t *, boolean_t, zfs_iter_f, void *,
     uint64_t, uint64_t);
-_LIBZFS_H int zfs_iter_snapshots_sorted(zfs_handle_t *, int, zfs_iter_f, void *,
+_LIBZFS_H int zfs_iter_snapshots_sorted(zfs_handle_t *, zfs_iter_f, void *,
     uint64_t, uint64_t);
-_LIBZFS_H int zfs_iter_snapspec(zfs_handle_t *, int, const char *, zfs_iter_f,
+_LIBZFS_H int zfs_iter_snapspec(zfs_handle_t *, const char *, zfs_iter_f,
     void *);
-_LIBZFS_H int zfs_iter_bookmarks(zfs_handle_t *, int, zfs_iter_f, void *);
+_LIBZFS_H int zfs_iter_bookmarks(zfs_handle_t *, zfs_iter_f, void *);
+
+_LIBZFS_H int zfs_iter_children_v2(zfs_handle_t *, int, zfs_iter_f, void *);
+_LIBZFS_H int zfs_iter_dependents_v2(zfs_handle_t *, int, boolean_t, zfs_iter_f,
+    void *);
+_LIBZFS_H int zfs_iter_filesystems_v2(zfs_handle_t *, int, zfs_iter_f, void *);
+_LIBZFS_H int zfs_iter_snapshots_v2(zfs_handle_t *, int, zfs_iter_f, void *,
+    uint64_t, uint64_t);
+_LIBZFS_H int zfs_iter_snapshots_sorted_v2(zfs_handle_t *, int, zfs_iter_f,
+    void *, uint64_t, uint64_t);
+_LIBZFS_H int zfs_iter_snapspec_v2(zfs_handle_t *, int, const char *,
+    zfs_iter_f, void *);
+_LIBZFS_H int zfs_iter_bookmarks_v2(zfs_handle_t *, int, zfs_iter_f, void *);
 _LIBZFS_H int zfs_iter_mounted(zfs_handle_t *, zfs_iter_f, void *);
 
 typedef struct get_all_cb {

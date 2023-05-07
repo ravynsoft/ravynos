@@ -162,6 +162,7 @@ nameiinit(void *dummy __unused)
 	vfs_vector_op_register(&crossmp_vnodeops);
 	getnewvnode("crossmp", NULL, &crossmp_vnodeops, &vp_crossmp);
 	vp_crossmp->v_state = VSTATE_CONSTRUCTED;
+	vp_crossmp->v_irflag |= VIRF_CROSSMP;
 }
 SYSINIT(vfs, SI_SUB_VFS, SI_ORDER_SECOND, nameiinit, NULL);
 
@@ -371,10 +372,12 @@ namei_setup(struct nameidata *ndp, struct vnode **dpp, struct pwd **pwdp)
 	/*
 	 * If we are auditing the kernel pathname, save the user pathname.
 	 */
-	if (cnp->cn_flags & AUDITVNODE1)
-		AUDIT_ARG_UPATH1_VP(td, ndp->ni_rootdir, *dpp, cnp->cn_pnbuf);
-	if (cnp->cn_flags & AUDITVNODE2)
-		AUDIT_ARG_UPATH2_VP(td, ndp->ni_rootdir, *dpp, cnp->cn_pnbuf);
+	if (AUDITING_TD(td)) {
+		if (cnp->cn_flags & AUDITVNODE1)
+			AUDIT_ARG_UPATH1_VP(td, ndp->ni_rootdir, *dpp, cnp->cn_pnbuf);
+		if (cnp->cn_flags & AUDITVNODE2)
+			AUDIT_ARG_UPATH2_VP(td, ndp->ni_rootdir, *dpp, cnp->cn_pnbuf);
+	}
 	if (ndp->ni_startdir != NULL && !startdir_used)
 		vrele(ndp->ni_startdir);
 	if (error != 0) {
@@ -1082,12 +1085,16 @@ dirloop:
 			     pr = pr->pr_parent)
 				if (dp == pr->pr_root)
 					break;
-			if (dp == ndp->ni_rootdir || 
-			    dp == ndp->ni_topdir || 
-			    dp == rootvnode ||
-			    pr != NULL ||
-			    ((dp->v_vflag & VV_ROOT) != 0 &&
-			     (cnp->cn_flags & NOCROSSMOUNT) != 0)) {
+			bool isroot = dp == ndp->ni_rootdir ||
+			    dp == ndp->ni_topdir || dp == rootvnode ||
+			    pr != NULL;
+			if (isroot && (ndp->ni_lcf &
+			    NI_LCF_STRICTRELATIVE) != 0) {
+				error = ENOTCAPABLE;
+				goto capdotdot;
+			}
+			if (isroot || ((dp->v_vflag & VV_ROOT) != 0 &&
+			    (cnp->cn_flags & NOCROSSMOUNT) != 0)) {
 				ndp->ni_dvp = dp;
 				ndp->ni_vp = dp;
 				VREF(dp);
@@ -1108,6 +1115,7 @@ dirloop:
 			    LK_RETRY, ISDOTDOT));
 			error = nameicap_check_dotdot(ndp, dp);
 			if (error != 0) {
+capdotdot:
 #ifdef KTRACE
 				if (KTRPOINT(curthread, KTR_CAPFAIL))
 					ktrcapfail(CAPFAIL_LOOKUP, NULL, NULL);
@@ -1278,6 +1286,9 @@ good:
 				if (VN_IS_DOOMED(dp)) {
 					error = ENOENT;
 					goto bad2;
+				}
+				if (dp->v_mountedhere != mp) {
+					continue;
 				}
 			} else
 				crosslkflags &= ~LK_NODDLKTREAT;

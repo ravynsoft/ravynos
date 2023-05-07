@@ -1,5 +1,8 @@
 # $FreeBSD$
 
+.if !target(_${_this}_)
+_${_this}_: .NOTMAIN
+
 .if ${MK_DIRDEPS_BUILD} == "yes" || ${MK_META_MODE} == "yes"
 
 # Not in the below list as it may make sense for non-meta mode
@@ -21,10 +24,12 @@ MAKE_PRINT_VAR_ON_ERROR+= \
 	.MAKE \
 	.OBJDIR \
 	.TARGETS \
+	CPUTYPE \
 	DESTDIR \
 	LD_LIBRARY_PATH \
 	MACHINE \
 	MACHINE_ARCH \
+	MACHINE_CPUARCH \
 	MAKEOBJDIRPREFIX \
 	MAKESYSPATH \
 	MAKE_VERSION \
@@ -53,6 +58,29 @@ _PREMK_LIBDIR:=	${LIBDIR}
 
 .include "src.sys.mk"
 .-include <site.sys.mk>
+
+.if make(*-jobs) && empty(JOB_MAX)
+# provide a reasonable? default for JOB_MAX based on ncpu
+JOB_MAX_FACTOR?= 1.33
+NPROC?= ${(type nproc || true) 2> /dev/null:L:sh:M/*:[1]}
+NPROC:= ${NPROC}
+.if !empty(NPROC)
+ncpu!= ${NPROC}
+.elif ${.MAKE.OS:NDarwin:NFreeBSD} == ""
+ncpu!= sysctl -n hw.ncpu
+.endif
+.if ${ncpu:U0} > 1
+.if ${JOB_MAX_FACTOR} == 1
+JOB_MAX:= ${ncpu}
+.else
+jm!= echo ${ncpu} \* ${JOB_MAX_FACTOR} | bc
+JOB_MAX:= ${jm:R}
+.endif
+.endif
+.endif
+
+# this will be set via local.meta.sys.env.mk if appropriate
+MK_host_egacy?= no
 
 .if ${.MAKE.MODE:Mmeta*} != ""
 # we can afford to use cookies to prevent some targets
@@ -87,3 +115,5 @@ META_NOPHONY?=
 META_COOKIE_RM?=
 META_COOKIE_TOUCH?=
 META_DEPS+=	${META_NOPHONY}
+
+.endif

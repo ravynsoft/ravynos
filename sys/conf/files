@@ -147,15 +147,16 @@ contrib/openzfs/module/os/freebsd/spl/spl_acl.c		optional zfs compile-with "${ZF
 contrib/openzfs/module/os/freebsd/spl/spl_dtrace.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/os/freebsd/spl/spl_kstat.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/os/freebsd/spl/spl_policy.c		optional zfs compile-with "${ZFS_C}"
+contrib/openzfs/module/os/freebsd/spl/spl_procfs_list.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/os/freebsd/spl/spl_string.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/os/freebsd/spl/spl_sunddi.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/os/freebsd/spl/spl_sysevent.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/os/freebsd/spl/spl_uio.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/os/freebsd/spl/spl_vfs.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/os/freebsd/spl/spl_vm.c		optional zfs compile-with "${ZFS_C}"
-contrib/openzfs/module/os/freebsd/spl/spl_zone.c		optional zfs compile-with "${ZFS_C}"
-contrib/openzfs/module/os/freebsd/spl/spl_procfs_list.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/os/freebsd/spl/spl_zlib.c		optional zfs compile-with "${ZFS_C}"
+contrib/openzfs/module/os/freebsd/spl/spl_zone.c		optional zfs compile-with "${ZFS_C}"
+
 
 
 # zfs specific
@@ -246,7 +247,11 @@ contrib/openzfs/module/icp/algs/edonr/edonr.c		optional zfs compile-with "${ZFS_
 contrib/openzfs/module/icp/algs/blake3/blake3.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/icp/algs/blake3/blake3_generic.c	optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/icp/algs/blake3/blake3_impl.c	optional zfs compile-with "${ZFS_C}"
-contrib/openzfs/module/icp/algs/blake3/blake3_x86-64.c	optional zfs compile-with "${ZFS_C}"
+
+# zfs sha2 hash support
+contrib/openzfs/module/icp/algs/sha2/sha2_generic.c	optional zfs compile-with "${ZFS_C}"
+contrib/openzfs/module/icp/algs/sha2/sha256_impl.c	optional zfs compile-with "${ZFS_C}"
+contrib/openzfs/module/icp/algs/sha2/sha512_impl.c	optional zfs compile-with "${ZFS_C}"
 
 #zfs core common code
 contrib/openzfs/module/zfs/abd.c		optional zfs compile-with "${ZFS_C}"
@@ -257,6 +262,7 @@ contrib/openzfs/module/zfs/blkptr.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/bplist.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/bpobj.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/bptree.c		optional zfs compile-with "${ZFS_C}"
+contrib/openzfs/module/zfs/brt.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/btree.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/bqueue.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/dbuf.c		optional zfs compile-with "${ZFS_C}"
@@ -304,7 +310,7 @@ contrib/openzfs/module/zfs/range_tree.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/refcount.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/rrwlock.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/sa.c		optional zfs compile-with "${ZFS_C}"
-contrib/openzfs/module/zfs/sha256.c		optional zfs compile-with "${ZFS_C}"
+contrib/openzfs/module/zfs/sha2_zfs.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/skein_zfs.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/spa.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/spa_checkpoint.c		optional zfs compile-with "${ZFS_C}"
@@ -352,6 +358,7 @@ contrib/openzfs/module/zfs/zfs_byteswap.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/zfs_chksum.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/zfs_fm.c		optional zfs compile-with "${ZFS_C} ${NO_WUNUSED_BUT_SET_VARIABLE}"
 contrib/openzfs/module/zfs/zfs_fuid.c		optional zfs compile-with "${ZFS_C}"
+contrib/openzfs/module/zfs/zfs_impl.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/zfs_ioctl.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/zfs_log.c		optional zfs compile-with "${ZFS_C}"
 contrib/openzfs/module/zfs/zfs_onexit.c		optional zfs compile-with "${ZFS_C}"
@@ -1464,7 +1471,7 @@ t4fw.fwo		optional cxgbe					\
 	no-implicit-rule						\
 	clean		"t4fw.fwo"
 t4fw.fw			optional cxgbe					\
-	dependency	"$S/dev/cxgbe/firmware/t4fw-1.27.0.0.bin"	\
+	dependency	"$S/dev/cxgbe/firmware/t4fw-1.27.3.0.bin"	\
 	compile-with	"${CP} ${.ALLSRC} ${.TARGET}"			\
 	no-obj no-implicit-rule						\
 	clean		"t4fw.fw"
@@ -1498,7 +1505,7 @@ t5fw.fwo		optional cxgbe					\
 	no-implicit-rule						\
 	clean		"t5fw.fwo"
 t5fw.fw			optional cxgbe					\
-	dependency	"$S/dev/cxgbe/firmware/t5fw-1.27.0.0.bin"	\
+	dependency	"$S/dev/cxgbe/firmware/t5fw-1.27.3.0.bin"	\
 	compile-with	"${CP} ${.ALLSRC} ${.TARGET}"			\
 	no-obj no-implicit-rule						\
 	clean		"t5fw.fw"
@@ -1532,7 +1539,7 @@ t6fw.fwo		optional cxgbe					\
 	no-implicit-rule						\
 	clean		"t6fw.fwo"
 t6fw.fw			optional cxgbe					\
-	dependency	"$S/dev/cxgbe/firmware/t6fw-1.27.0.0.bin"	\
+	dependency	"$S/dev/cxgbe/firmware/t6fw-1.27.3.0.bin"	\
 	compile-with	"${CP} ${.ALLSRC} ${.TARGET}"			\
 	no-obj no-implicit-rule						\
 	clean		"t6fw.fw"
@@ -3425,6 +3432,7 @@ dev/vt/colors/vt_termcolors.c	optional vt
 dev/vt/font/vt_font_default.c	optional vt
 dev/vt/font/vt_mouse_cursor.c	optional vt
 dev/vt/hw/efifb/efifb.c		optional vt_efifb
+dev/vt/hw/simplefb/simplefb.c	optional vt_simplefb fdt
 dev/vt/hw/vbefb/vbefb.c		optional vt_vbefb
 dev/vt/hw/fb/vt_fb.c		optional vt
 dev/vt/hw/vga/vt_vga.c		optional vt vt_vga
@@ -3475,11 +3483,12 @@ dev/xdma/xdma_sglist.c		optional xdma
 dev/xen/balloon/balloon.c	optional xenhvm
 dev/xen/blkfront/blkfront.c	optional xenhvm
 dev/xen/blkback/blkback.c	optional xenhvm
+dev/xen/bus/xen_intr.c		optional xenhvm
 dev/xen/bus/xenpv.c		optional xenhvm
 dev/xen/console/xen_console.c	optional xenhvm
 dev/xen/control/control.c	optional xenhvm
 dev/xen/cpu/xen_acpi_cpu.c	optional xenhvm
-dev/xen/efi/pvefi.c		optional xenhvm efirt
+dev/xen/efi/pvefi.c		optional xenhvm xenefi efirt
 dev/xen/grant_table/grant_table.c	optional xenhvm
 dev/xen/netback/netback.c	optional xenhvm
 dev/xen/netfront/netfront.c	optional xenhvm
@@ -4009,6 +4018,7 @@ libkern/arc4random_uniform.c	standard
 libkern/asprintf.c		standard
 libkern/bcd.c			standard
 libkern/bsearch.c		standard
+libkern/crc16.c			standard
 libkern/explicit_bzero.c	standard
 libkern/fnmatch.c		standard
 libkern/gsb_crc32.c		standard
@@ -4425,10 +4435,12 @@ netipsec/xform_ipcomp.c		optional ipsec inet | ipsec inet6
 netipsec/xform_tcp.c		optional ipsec inet tcp_signature | \
 	 ipsec inet6 tcp_signature | ipsec_support inet tcp_signature | \
 	 ipsec_support inet6 tcp_signature
+netlink/netlink_generic_kpi.c	standard
+netlink/netlink_glue.c		standard
+netlink/netlink_message_parser.c	standard
 netlink/netlink_domain.c	optional netlink
 netlink/netlink_generic.c	optional netlink
 netlink/netlink_io.c		optional netlink
-netlink/netlink_message_parser.c	optional netlink
 netlink/netlink_message_writer.c	optional netlink
 netlink/netlink_module.c	optional netlink
 netlink/netlink_route.c		optional netlink
@@ -4554,6 +4566,8 @@ compat/linuxkpi/common/src/linux_interrupt.c	optional compat_linuxkpi \
 compat/linuxkpi/common/src/linux_kthread.c	optional compat_linuxkpi \
 	compile-with "${LINUXKPI_C}"
 compat/linuxkpi/common/src/linux_lock.c		optional compat_linuxkpi \
+	compile-with "${LINUXKPI_C}"
+compat/linuxkpi/common/src/linux_mhi.c		optional compat_linuxkpi wlan \
 	compile-with "${LINUXKPI_C}"
 compat/linuxkpi/common/src/linux_netdev.c	optional compat_linuxkpi \
 	compile-with "${LINUXKPI_C}"
@@ -4887,6 +4901,8 @@ dev/mlx5/mlx5_core/mlx5_cmd.c			optional mlx5 pci	\
 	compile-with "${OFED_C}"
 dev/mlx5/mlx5_core/mlx5_cq.c			optional mlx5 pci	\
 	compile-with "${OFED_C}"
+dev/mlx5/mlx5_core/mlx5_diag_cnt.c		optional mlx5 pci	\
+	compile-with "${OFED_C}"
 dev/mlx5/mlx5_core/mlx5_diagnostics.c		optional mlx5 pci	\
 	compile-with "${OFED_C}"
 dev/mlx5/mlx5_core/mlx5_eq.c			optional mlx5 pci	\
@@ -5196,6 +5212,7 @@ vm/vm_swapout_dummy.c		optional NO_SWAPPING
 vm/vm_unix.c			standard
 vm/vnode_pager.c		standard
 xen/features.c			optional xenhvm
+xen/xen_common.c		optional xenhvm
 xen/xenbus/xenbus_if.m		optional xenhvm
 xen/xenbus/xenbus.c		optional xenhvm
 xen/xenbus/xenbusb_if.m		optional xenhvm

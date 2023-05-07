@@ -6,9 +6,6 @@ SHLIBDIR?= /lib
 
 .include <src.opts.mk>
 
-# Force building of libc_pic.a
-MK_TOOLCHAIN=	yes
-
 LIBC_SRCTOP?= ${.CURDIR}
 
 # Pick the current architecture directory for libc. In general, this is
@@ -126,8 +123,7 @@ NOASM=
 .include "${LIBC_SRCTOP}/rpc/Makefile.inc"
 .include "${LIBC_SRCTOP}/uuid/Makefile.inc"
 .include "${LIBC_SRCTOP}/xdr/Makefile.inc"
-.if (${LIBC_ARCH} == "arm" && (defined(CPUTYPE) && ${CPUTYPE:M*soft*})) || \
-    (${LIBC_ARCH} == "riscv" && ${MACHINE_ARCH:Mriscv*sf} != "")
+.if (${LIBC_ARCH} == "arm" && (defined(CPUTYPE) && ${CPUTYPE:M*soft*}))
 .include "${LIBC_SRCTOP}/softfloat/Makefile.inc"
 .endif
 .if ${LIBC_ARCH} == "i386" || ${LIBC_ARCH} == "amd64"

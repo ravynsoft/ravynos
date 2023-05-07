@@ -426,7 +426,7 @@ static inline void
 bio_set_flush(struct bio *bio)
 {
 #if defined(HAVE_REQ_PREFLUSH)	/* >= 4.10 */
-	bio_set_op_attrs(bio, 0, REQ_PREFLUSH);
+	bio_set_op_attrs(bio, 0, REQ_PREFLUSH | REQ_OP_WRITE);
 #elif defined(WRITE_FLUSH_FUA)	/* >= 2.6.37 and <= 4.9 */
 	bio_set_op_attrs(bio, 0, WRITE_FLUSH_FUA);
 #else
@@ -592,7 +592,10 @@ blk_generic_start_io_acct(struct request_queue *q __attribute__((unused)),
     struct gendisk *disk __attribute__((unused)),
     int rw __attribute__((unused)), struct bio *bio)
 {
-#if defined(HAVE_BDEV_IO_ACCT)
+#if defined(HAVE_BDEV_IO_ACCT_63)
+	return (bdev_start_io_acct(bio->bi_bdev, bio_op(bio),
+	    jiffies));
+#elif defined(HAVE_BDEV_IO_ACCT_OLD)
 	return (bdev_start_io_acct(bio->bi_bdev, bio_sectors(bio),
 	    bio_op(bio), jiffies));
 #elif defined(HAVE_DISK_IO_ACCT)
@@ -618,7 +621,10 @@ blk_generic_end_io_acct(struct request_queue *q __attribute__((unused)),
     struct gendisk *disk __attribute__((unused)),
     int rw __attribute__((unused)), struct bio *bio, unsigned long start_time)
 {
-#if defined(HAVE_BDEV_IO_ACCT)
+#if defined(HAVE_BDEV_IO_ACCT_63)
+	bdev_end_io_acct(bio->bi_bdev, bio_op(bio), bio_sectors(bio),
+	    start_time);
+#elif defined(HAVE_BDEV_IO_ACCT_OLD)
 	bdev_end_io_acct(bio->bi_bdev, bio_op(bio), start_time);
 #elif defined(HAVE_DISK_IO_ACCT)
 	disk_end_io_acct(disk, bio_op(bio), start_time);

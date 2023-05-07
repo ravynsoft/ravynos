@@ -1,5 +1,5 @@
-/*
- * $FreeBSD$
+/*-
+ * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2011, 2012, 2013, 2015, 2016, 2019, Juniper Networks, Inc.
  * All rights reserved.
@@ -41,7 +41,7 @@
 
 #define VERIEXEC_FILES_FIRST	1
 
-#if defined(VERIFIED_EXEC_DEBUG) || defined(VERIFIED_EXEC_DEBUG_VERBOSE)
+#ifdef MAC_VERIEXEC_DEBUG
 # define VERIEXEC_DEBUG(n, x) if (mac_veriexec_debug > (n)) printf x
 #else
 # define VERIEXEC_DEBUG(n, x)
@@ -78,9 +78,9 @@ int	mac_veriexec_metadata_get_executable_flags(struct ucred *cred,
 	    struct proc *p, int *flags, int check_files);
 int	mac_veriexec_metadata_get_file_flags(dev_t fsid, long fileid,
 	    unsigned long gen, int *flags, int check_files);
-struct mac_veriexec_file_info *
-	mac_veriexec_metadata_get_file_info(dev_t fsid, long fileid,
-	    unsigned long gen, int *found_dev, int check_files);
+int	mac_veriexec_metadata_get_file_info(dev_t fsid, long fileid,
+	    unsigned long gen, int *found_dev,
+	    struct mac_veriexec_file_info **ipp, int check_files);
 void	mac_veriexec_metadata_init(void);
 void	mac_veriexec_metadata_print_db(struct sbuf *sbp);
 int	mac_veriexec_metadata_unmounted(dev_t fsid, struct thread *td);

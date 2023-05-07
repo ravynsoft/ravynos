@@ -255,7 +255,7 @@ enum tcp_log_events {
 	TCP_LOG_CONNEND,	/* End of connection                54 */
 	TCP_LOG_LRO,		/* LRO entry                        55 */
 	TCP_SACK_FILTER_RES,	/* Results of SACK Filter           56 */
-	TCP_SAD_DETECTION,	/* Sack Attack Detection            57 */
+	TCP_SAD_DETECT,		/* Sack Attack Detection            57 */
 	TCP_TIMELY_WORK,	/* Logs regarding Timely CC tweaks  58 */
 	TCP_LOG_USER_EVENT,	/* User space event data            59 */
 	TCP_LOG_SENDFILE,	/* sendfile() logging for TCP connections 60 */
@@ -447,6 +447,7 @@ tcp_get_bblog_state(struct tcpcb *tp)
 static inline void
 tcp_trace_point(struct tcpcb *tp, int num)
 {
+#ifdef TCP_BLACKBOX
 	if (((tcp_trace_point_config == num)  ||
 	     (tcp_trace_point_config == 0xffffffff)) &&
 	    (tcp_trace_point_bb_mode != 0) &&
@@ -461,6 +462,7 @@ tcp_trace_point(struct tcpcb *tp, int num)
 			tcp_trace_point_count = 0;
 		}
 	}
+#endif
 }
 
 #define	TCP_LOG_BUF_DEFAULT_SESSION_LIMIT	5000

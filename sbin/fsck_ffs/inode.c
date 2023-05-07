@@ -510,7 +510,7 @@ static ino_t nextinum, lastvalidinum;
 static long readcount, readpercg, fullcnt, inobufsize, partialcnt, partialsize;
 
 union dinode *
-getnextinode(ino_t inumber, int rebuildcg)
+getnextinode(ino_t inumber, int rebuiltcg)
 {
 	int j;
 	long size;
@@ -569,7 +569,7 @@ getnextinode(ino_t inumber, int rebuildcg)
 			dirty(&inobuf);
 		}
 	}
-	if (rebuildcg && (char *)dp == inobuf.b_un.b_buf) {
+	if (rebuiltcg && (char *)dp == inobuf.b_un.b_buf) {
 		/*
 		 * Try to determine if we have reached the end of the
 		 * allocated inodes.
@@ -747,6 +747,7 @@ snapremove(ino_t inum)
 		bzero(&snaplist[i - 1], sizeof(struct inode));
 		snapcnt--;
 	}
+	memset(&idesc, 0, sizeof(struct inodesc));
 	idesc.id_type = SNAP;
 	idesc.id_func = snapclean;
 	idesc.id_number = inum;
@@ -767,14 +768,15 @@ snapclean(struct inodesc *idesc)
 	if (blkno == 0)
 		return (KEEPON);
 
-	bp = idesc->id_bp;
 	dp = idesc->id_dp;
 	if (blkno == BLK_NOCOPY || blkno == BLK_SNAP) {
-		if (idesc->id_lbn < UFS_NDADDR)
+		if (idesc->id_lbn < UFS_NDADDR) {
 			DIP_SET(dp, di_db[idesc->id_lbn], 0);
-		else
+		} else {
+			bp = idesc->id_bp;
 			IBLK_SET(bp, bp->b_index, 0);
-		dirty(bp);
+			dirty(bp);
+		}
 	}
 	return (KEEPON);
 }
@@ -798,12 +800,8 @@ snapclean(struct inodesc *idesc)
  * must always have been allocated from a BLK_NOCOPY location.
  */
 int
-snapblkfree(fs, bno, size, inum, checkblkavail)
-	struct fs *fs;
-	ufs2_daddr_t bno;
-	long size;
-	ino_t inum;
-	ufs2_daddr_t (*checkblkavail)(ufs2_daddr_t blkno, long frags);
+snapblkfree(struct fs *fs, ufs2_daddr_t bno, long size, ino_t inum,
+	ufs2_daddr_t (*checkblkavail)(ufs2_daddr_t blkno, long frags))
 {
 	union dinode *dp;
 	struct inode ip;
@@ -930,10 +928,8 @@ snapblkfree(fs, bno, size, inum, checkblkavail)
  * block. Here we need to check each block in the buffer.
  */
 void
-copyonwrite(fs, bp, checkblkavail)
-	struct fs *fs;
-	struct bufarea *bp;
-	ufs2_daddr_t (*checkblkavail)(ufs2_daddr_t blkno, long frags);
+copyonwrite(struct fs *fs, struct bufarea *bp,
+	ufs2_daddr_t (*checkblkavail)(ufs2_daddr_t blkno, long frags))
 {
 	ufs2_daddr_t copyblkno;
 	long i, numblks;
@@ -953,10 +949,8 @@ copyonwrite(fs, bp, checkblkavail)
 }
 
 static void
-chkcopyonwrite(fs, copyblkno, checkblkavail)
-	struct fs *fs;
-	ufs2_daddr_t copyblkno;
-	ufs2_daddr_t (*checkblkavail)(ufs2_daddr_t blkno, long frags);
+chkcopyonwrite(struct fs *fs, ufs2_daddr_t copyblkno,
+	ufs2_daddr_t (*checkblkavail)(ufs2_daddr_t blkno, long frags))
 {
 	struct inode ip;
 	union dinode *dp;
@@ -1143,6 +1137,7 @@ cacheino(union dinode *dp, ino_t inumber)
 	inp->i_dotdot = (ino_t)0;
 	inp->i_number = inumber;
 	inp->i_isize = DIP(dp, di_size);
+	inp->i_depth = DIP(dp, di_dirdepth);
 	inp->i_numblks = blks;
 	for (i = 0; i < MIN(blks, UFS_NDADDR); i++)
 		inp->i_blks[i] = DIP(dp, di_db[i]);
@@ -1399,7 +1394,7 @@ retry:
 	cg = ino_to_cg(&sblock, ino);
 	cgbp = cglookup(cg);
 	cgp = cgbp->b_un.b_cg;
-	if (!check_cgmagic(cg, cgbp, 0)) {
+	if (!check_cgmagic(cg, cgbp)) {
 		if (anyino == 0)
 			return (0);
 		request = (cg + 1) * sblock.fs_ipg;

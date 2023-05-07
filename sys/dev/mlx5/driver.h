@@ -1,5 +1,6 @@
 /*-
  * Copyright (c) 2013-2019, Mellanox Technologies, Ltd.  All rights reserved.
+ * Copyright (c) 2022 NVIDIA corporation & affiliates.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -176,7 +177,6 @@ enum {
 };
 
 struct mlx5_field_desc {
-	struct dentry	       *dent;
 	int			i;
 };
 
@@ -184,7 +184,6 @@ struct mlx5_rsc_debug {
 	struct mlx5_core_dev   *dev;
 	void		       *object;
 	enum dbg_rsc_type	type;
-	struct dentry	       *root;
 	struct mlx5_field_desc	fields[0];
 };
 
@@ -247,12 +246,6 @@ struct mlx5_fw_page {
 #define	mlx5_cmd_msg mlx5_fw_page
 
 struct mlx5_cmd_debug {
-	struct dentry	       *dbg_root;
-	struct dentry	       *dbg_in;
-	struct dentry	       *dbg_out;
-	struct dentry	       *dbg_outlen;
-	struct dentry	       *dbg_status;
-	struct dentry	       *dbg_run;
 	void		       *in_msg;
 	void		       *out_msg;
 	u8			status;
@@ -286,9 +279,6 @@ enum mlx5_cmd_mode {
 struct mlx5_cmd_stats {
 	u64		sum;
 	u64		n;
-	struct dentry  *root;
-	struct dentry  *avg;
-	struct dentry  *count;
 	/* protect command average calculations */
 	spinlock_t	lock;
 };
@@ -584,10 +574,7 @@ struct mlx5_priv {
 
 	/* start: qp staff */
 	struct mlx5_qp_table	qp_table;
-	struct dentry	       *qp_debugfs;
-	struct dentry	       *eq_debugfs;
-	struct dentry	       *cq_debugfs;
-	struct dentry	       *cmdif_debugfs;
+
 	/* end: qp staff */
 
 	/* start: cq staff */
@@ -604,7 +591,6 @@ struct mlx5_priv {
 	struct mutex   pgdir_mutex;
 	struct list_head        pgdir_list;
 	/* end: alloc staff */
-	struct dentry	       *dbg_root;
 
 	/* protect mkey key part */
 	spinlock_t		mkey_lock;
@@ -652,6 +638,26 @@ struct mlx5_special_contexts {
 	int resd_lkey;
 };
 
+struct mlx5_diag_cnt_id {
+	u16	id;
+	bool	enabled;
+};
+
+struct mlx5_diag_cnt {
+#define	DIAG_LOCK(dc) mutex_lock(&(dc)->lock)
+#define	DIAG_UNLOCK(dc) mutex_unlock(&(dc)->lock)
+	struct mutex lock;
+	struct sysctl_ctx_list sysctl_ctx;
+	struct mlx5_diag_cnt_id *cnt_id;
+	u16	num_of_samples;
+	u16	sample_index;
+	u8	num_cnt_id;
+	u8	log_num_of_samples;
+	u8	log_sample_period;
+	u8	flag;
+	u8	ready;
+};
+
 struct mlx5_flow_root_namespace;
 struct mlx5_core_dev {
 	struct pci_dev	       *pdev;
@@ -681,6 +687,7 @@ struct mlx5_core_dev {
 	struct mlx5_priv	priv;
 	struct mlx5_profile	*profile;
 	atomic_t		num_qps;
+	struct mlx5_diag_cnt	diag_cnt;
 	u32			vsc_addr;
 	u32			issi;
 	struct mlx5_special_contexts special_contexts;
@@ -806,10 +813,6 @@ struct mlx5_core_dct {
 };
 
 enum {
-	MLX5_COMP_EQ_SIZE = 1024,
-};
-
-enum {
 	MLX5_PTYS_IB = 1 << 0,
 	MLX5_PTYS_EN = 1 << 2,
 };
@@ -878,8 +881,6 @@ static inline struct mlx5_core_dev *pci2mlx5_core_dev(struct pci_dev *pdev)
 {
 	return pci_get_drvdata(pdev);
 }
-
-extern struct dentry *mlx5_debugfs_root;
 
 static inline u16 fw_rev_maj(struct mlx5_core_dev *dev)
 {

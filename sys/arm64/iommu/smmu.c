@@ -840,7 +840,7 @@ smmu_init_cd(struct smmu_softc *sc, struct smmu_domain *domain)
 	uint64_t val;
 	vm_size_t size;
 	struct smmu_cd *cd;
-	pmap_t p;
+	struct smmu_pmap *p;
 
 	size = 1 * (CD_DWORDS << 3);
 
@@ -875,8 +875,8 @@ smmu_init_cd(struct smmu_softc *sc, struct smmu_domain *domain)
 	val |= ((64 - sc->ias) << CD0_T0SZ_S);
 	val |= CD0_IPS_48BITS;
 
-	paddr = p->pm_l0_paddr & CD1_TTB0_M;
-	KASSERT(paddr == p->pm_l0_paddr, ("bad allocation 1"));
+	paddr = p->sp_l0_paddr & CD1_TTB0_M;
+	KASSERT(paddr == p->sp_l0_paddr, ("bad allocation 1"));
 
 	ptr[1] = paddr;
 	ptr[2] = 0;
@@ -1729,7 +1729,6 @@ smmu_domain_alloc(device_t dev, struct iommu_unit *iommu)
 	domain->asid = (uint16_t)new_asid;
 
 	smmu_pmap_pinit(&domain->p);
-	PMAP_LOCK_INIT(&domain->p);
 
 	error = smmu_init_cd(sc, domain);
 	if (error) {
@@ -1799,57 +1798,22 @@ smmu_set_buswide(device_t dev, struct smmu_domain *domain,
 	return (0);
 }
 
-#ifdef DEV_ACPI
 static int
-smmu_pci_get_sid_acpi(device_t child, u_int *xref0, u_int *sid0)
-{
-	uint16_t rid;
-	u_int xref;
-	int seg;
-	int err;
-	int sid;
-
-	seg = pci_get_domain(child);
-	rid = pci_get_rid(child);
-
-	err = acpi_iort_map_pci_smmuv3(seg, rid, &xref, &sid);
-	if (err == 0) {
-		if (sid0)
-			*sid0 = sid;
-		if (xref0)
-			*xref0 = xref;
-	}
-
-	return (err);
-}
-#endif
-
-#ifdef FDT
-static int
-smmu_pci_get_sid_fdt(device_t child, u_int *xref0, u_int *sid0)
+smmu_pci_get_sid(device_t child, u_int *xref0, u_int *sid0)
 {
 	struct pci_id_ofw_iommu pi;
-	uint64_t base, size;
-	phandle_t node;
-	u_int xref;
 	int err;
 
 	err = pci_get_id(child, PCI_ID_OFW_IOMMU, (uintptr_t *)&pi);
 	if (err == 0) {
-		/* Our xref is memory base address. */
-		node = OF_node_from_xref(pi.xref);
-		fdt_regsize(node, &base, &size);
-		xref = base;
-
 		if (sid0)
 			*sid0 = pi.id;
 		if (xref0)
-			*xref0 = xref;
+			*xref0 = pi.xref;
 	}
 
 	return (err);
 }
-#endif
 
 static struct iommu_ctx *
 smmu_ctx_alloc(device_t dev, struct iommu_domain *iodom, device_t child,
@@ -1893,11 +1857,7 @@ smmu_ctx_init(device_t dev, struct iommu_ctx *ioctx)
 
 	pci_class = devclass_find("pci");
 	if (device_get_devclass(device_get_parent(ctx->dev)) == pci_class) {
-#ifdef DEV_ACPI
-		err = smmu_pci_get_sid_acpi(ctx->dev, NULL, &sid);
-#else
-		err = smmu_pci_get_sid_fdt(ctx->dev, NULL, &sid);
-#endif
+		err = smmu_pci_get_sid(ctx->dev, NULL, &sid);
 		if (err)
 			return (err);
 
@@ -2008,11 +1968,7 @@ smmu_find(device_t dev, device_t child)
 
 	sc = device_get_softc(dev);
 
-#ifdef DEV_ACPI
-	err = smmu_pci_get_sid_acpi(child, &xref, NULL);
-#else
-	err = smmu_pci_get_sid_fdt(child, &xref, NULL);
-#endif
+	err = smmu_pci_get_sid(child, &xref, NULL);
 	if (err)
 		return (ENOENT);
 

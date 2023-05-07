@@ -1,6 +1,8 @@
-# $Id: dirdeps.mk,v 1.151 2022/01/28 01:13:14 sjg Exp $
+# $Id: dirdeps.mk,v 1.158 2023/05/04 18:26:17 sjg Exp $
 
-# Copyright (c) 2010-2022, Simon J. Gerraty
+# SPDX-License-Identifier: BSD-2-Clause
+#
+# Copyright (c) 2010-2023, Simon J. Gerraty
 # Copyright (c) 2010-2018, Juniper Networks, Inc.
 # All rights reserved.
 #
@@ -179,7 +181,7 @@ _DIRDEP_USE_LEVEL?= 0
 _CURDIR ?= ${.CURDIR}
 _OBJDIR ?= ${.OBJDIR}
 
-.if ${MAKEFILE:T} == ${.PARSEFILE} && empty(DIRDEPS) && ${.TARGETS:Uall:M*/*} != ""
+.if ${MAKEFILE:T} == ${.PARSEFILE} && empty(DIRDEPS) && ${.TARGETS:Uall:M*[/.]*} != ""
 # This little trick let's us do
 #
 # mk -f dirdeps.mk some/dir.${TARGET_SPEC}
@@ -331,6 +333,14 @@ DEP_${TARGET_SPEC_VARS:[$i]} := ${_tspec:[$i]}
 DEP_MACHINE := ${_DEP_TARGET_SPEC}
 .endif
 
+# host is special
+.if ${DEP_MACHINE:Mhost*} != ""
+DEP_TARGET_SPEC = ${DEP_MACHINE}
+.for v in ${TARGET_SPEC_VARS:O:u:NMACHINE}
+.undef DEP_$v
+.endfor
+.endif
+
 # reset each time through
 _build_all_dirs =
 _build_xtra_dirs =
@@ -347,6 +357,10 @@ BUILD_DIRDEPS ?= yes
 DIRDEPS_CACHE ?= ${_OBJDIR:tA}/dirdeps.cache${_TARGETS:U${.TARGETS}:Nall:O:u:ts-:S,/,_,g:S,^,.,:N.}
 .endif
 
+# sanity check: Makefile.depend.options should *not* include us
+.if ${.INCLUDEDFROMFILE:U:M${.MAKE.DEPENDFILE_PREFIX}.options} != ""
+.error ${DEP_RELDIR}/${.MAKE.DEPENDFILE_PREFIX}.options: should include dirdeps-options.mk
+.endif
 
 # pickup customizations
 # as below you can use !target(_DIRDEP_USE) to protect things
@@ -401,7 +415,7 @@ DIRDEP_LOADAVG_LAST = 0
 # Note: expr(1) will exit 1 if the expression evaluates to 0
 # hence the  || true
 DIRDEP_LOADAVG_REPORT = \
-	test -z "${"${expr ${now_utc} - ${DIRDEP_LOADAVG_INTEVAL:U60} - ${DIRDEP_LOADAVG_LAST} || true:L:sh:N-*}":?yes${DIRDEP_LOADAVG_LAST::=${now_utc}}:}" || \
+	test -z "${"${expr ${now_utc} - ${DIRDEP_LOADAVG_INTERVAL:U60} - ${DIRDEP_LOADAVG_LAST} || true:L:sh:N-*}":?yes${DIRDEP_LOADAVG_LAST::=${now_utc}}:}" || \
 	echo "${TRACER}`${DIRDEP_LOADAVG_CMD}`"
 
 # we suppress SUBDIR when visiting the leaves
@@ -577,7 +591,7 @@ ${DIRDEPS_CACHE}:	.META .NOMETA_CMP
 	${"${DEBUG_DIRDEPS:Nno}":?DEBUG_DIRDEPS='${DEBUG_DIRDEPS}':} \
 	${.MAKEFLAGS:tW:S,-D ,-D,g:tw:M*WITH*} \
 	${.MAKEFLAGS:tW:S,-d ,-d,g:tw:M-d*} \
-	3>&1 1>&2 | sed 's,${SRCTOP},_{SRCTOP},g;s,_{,$${,g' >> ${.TARGET}.new && \
+	3>&1 1>&2 | sed 's,${SRCTOP},_{SRCTOP},g;s,_{SRCTOP}/_{SRCTOP},_{SRCTOP},g;s,_{,$${,g' >> ${.TARGET}.new && \
 	mv ${.TARGET}.new ${.TARGET}
 
 .endif
@@ -639,9 +653,9 @@ _dm := ${DEP_MACHINE}
 # apply the same filtering that we do when qualifying DIRDEPS.
 # M_dep_qual_fixes expects .${MACHINE}* so add (and remove) '.'
 # Again we expect that any already qualified machines are fully qualified.
-_machines := ${_machines:M*,*} ${_machines:N*,*:@DEP_MACHINE@${DEP_TARGET_SPEC}@:S,^,.,:${M_dep_qual_fixes:ts:}:O:u:S,^.,,}
+_machines := ${_machines:M*,*} ${_machines:N*,*:@DEP_MACHINE@${DEP_TARGET_SPEC}@:S,^,.,:S,^.,,}
 DEP_MACHINE := ${_dm}
-_machines := ${_machines:O:u}
+_machines := ${_machines:${M_dep_qual_fixes:ts:}:O:u}
 .endif
 
 # reset each time through
@@ -788,8 +802,9 @@ ${_this_dir}.$m: ${_build_dirs:M*.$m:N${_this_dir}.$m}
 .if !target(_dirdeps_checked.$d)
 # once only
 _dirdeps_checked.$d:
+_dr := ${d:S,^${SRCTOP}/,,}
 .if ${_debug_search}
-.info checking ${d:S,^${SRCTOP}/,,}
+.info checking ${_dr}
 .endif
 # Note: _build_all_dirs is fully qualifed so d:R is always the directory
 .if exists(${d:R})
@@ -822,10 +837,16 @@ DEP_RELDIR := ${_m:H:S,^${SRCTOP}/,,}
 # and reset this
 DIRDEPS =
 .if ${_debug_reldir} && ${_qm} != ${_m}
-.info loading ${_m} for ${d:E}
+.info loading ${_m:S,${SRCTOP}/,,} for ${_dr}
 .endif
 .include <${_m}>
 .else
+# set these as if we found Makefile.depend*
+DEP_RELDIR := ${_dr:R}
+DIRDEPS =
+.if ${_debug_reldir}
+.info loading local.dirdeps-missing.mk for ${_dr}
+.endif
 .-include <local.dirdeps-missing.mk>
 .endif
 .endif

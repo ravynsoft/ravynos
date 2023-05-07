@@ -58,6 +58,7 @@ __FBSDID("$FreeBSD$");
 #include <netinet/in_var.h>
 #include <netinet/tcp_var.h>
 #include <netinet/tcp_log_buf.h>
+#include <netinet/tcp_seq.h>
 #include <netinet/tcp_hpts.h>
 
 /* Default expiry time */
@@ -553,7 +554,10 @@ tcp_log_apply_ratio(struct tcpcb *tp, int ratio)
 		INP_WUNLOCK(inp);
 		return (EOPNOTSUPP);
 	}
-	ratio_hash_thresh = max(1, UINT32_MAX / ratio);
+	if (ratio)
+		ratio_hash_thresh = max(1, UINT32_MAX / ratio);
+	else
+		ratio_hash_thresh = 0;
 	TCPID_BUCKET_REF(tlb);
 	INP_WUNLOCK(inp);
 	TCPID_BUCKET_LOCK(tlb);
@@ -1428,48 +1432,51 @@ tcp_log_tcpcbfini(struct tcpcb *tp)
 
 
 	INP_WLOCK_ASSERT(tptoinpcb(tp));
-#ifdef TCP_ACCOUNTING
 	if (tp->_t_logstate) {
-		struct tcp_log_buffer *lgb;
 		union tcp_log_stackspecific log;
 		struct timeval tv;
+#ifdef TCP_ACCOUNTING
+		struct tcp_log_buffer *lgb;
 		int i;
 
 		memset(&log, 0, sizeof(log));
 		if (tp->t_flags2 & TF2_TCP_ACCOUNTING) {
-			for (i = 0; i<TCP_NUM_CNT_COUNTERS; i++) {
+			for (i = 0; i < TCP_NUM_CNT_COUNTERS; i++) {
 				log.u_raw.u64_flex[i] = tp->tcp_cnt_counters[i];
 			}
 			lgb = tcp_log_event(tp, NULL,
-					     NULL,
-					     NULL,
-					     TCP_LOG_ACCOUNTING, 0,
-					     0, &log, false, NULL, NULL, 0, &tv);
-			lgb->tlb_flex1 = TCP_NUM_CNT_COUNTERS;
-			lgb->tlb_flex2 = 1;
+				  NULL,
+				  NULL,
+				  TCP_LOG_ACCOUNTING, 0,
+				  0, &log, false, NULL, NULL, 0, &tv);
+			if (lgb != NULL) {
+				lgb->tlb_flex1 = TCP_NUM_CNT_COUNTERS;
+				lgb->tlb_flex2 = 1;
+			} else
+				goto skip_out;
 			for (i = 0; i<TCP_NUM_CNT_COUNTERS; i++) {
 				log.u_raw.u64_flex[i] = tp->tcp_proc_time[i];
 			}
 			lgb = tcp_log_event(tp, NULL,
-					     NULL,
-					     NULL,
-					     TCP_LOG_ACCOUNTING, 0,
-					     0, &log, false, NULL, NULL, 0, &tv);
-			if (tptoinpcb(tp)->inp_flags2 & INP_MBUF_ACKCMP)
+				 NULL,
+				 NULL,
+				 TCP_LOG_ACCOUNTING, 0,
+				 0, &log, false, NULL, NULL, 0, &tv);
+			if (lgb != NULL) {
 				lgb->tlb_flex1 = TCP_NUM_CNT_COUNTERS;
-			else
-				lgb->tlb_flex1 = TCP_NUM_PROC_COUNTERS;
-			lgb->tlb_flex2 = 2;
+				lgb->tlb_flex2 = 2;
+			}
 		}
+skip_out:
+#endif
 		log.u_bbr.timeStamp = tcp_get_usecs(&tv);
 		log.u_bbr.cur_del_rate = tp->t_end_info;
-		TCP_LOG_EVENTP(tp, NULL,
-			       NULL,
-			       NULL,
-			       TCP_LOG_CONNEND, 0,
-			       0, &log, false, &tv);
+		(void)tcp_log_event(tp, NULL,
+	                 NULL,
+			 NULL,
+		         TCP_LOG_CONNEND, 0,
+		         0, &log, false, NULL, NULL, 0,  &tv);
 	}
-#endif
 	/*
 	 * If we were gathering packets to be automatically dumped, try to do
 	 * it now. If this succeeds, the log information in the TCPCB will be
@@ -2844,6 +2851,10 @@ tcp_log_sendfile(struct socket *so, off_t offset, size_t nbytes, int flags)
 {
 	struct inpcb *inp;
 	struct tcpcb *tp;
+#ifdef TCP_REQUEST_TRK
+	struct http_sendfile_track *ent;
+	int i, fnd;
+#endif
 
 	inp = sotoinpcb(so);
 	KASSERT(inp != NULL, ("tcp_log_sendfile: inp == NULL"));
@@ -2873,6 +2884,90 @@ tcp_log_sendfile(struct socket *so, off_t offset, size_t nbytes, int flags)
 		    &tptosocket(tp)->so_snd,
 		    TCP_LOG_SENDFILE, 0, 0, &log, false, &tv);
 	}
+#ifdef TCP_REQUEST_TRK
+	if (tp->t_http_req == 0) {
+		/* No http requests to track */
+		goto done;
+	}
+	fnd = 0;
+	if (tp->t_http_closed == 0) {
+		/* No closed end req to track */
+		goto skip_closed_req;
+	}
+	for(i = 0; i < MAX_TCP_HTTP_REQ; i++) {
+		/* Lets see if this one can be found */
+		ent = &tp->t_http_info[i];
+		if (ent->flags == TCP_HTTP_TRACK_FLG_EMPTY) {
+			/* Not used */
+			continue;
+		}
+		if (ent->flags & TCP_HTTP_TRACK_FLG_OPEN) {
+			/* This pass does not consider open requests */
+			continue;
+		}
+		if (ent->flags & TCP_HTTP_TRACK_FLG_COMP) {
+			/* Don't look at what we have completed */
+			continue;
+		}
+		/* If we reach here its a allocated closed end request */
+		if ((ent->start == offset) ||
+		    ((offset > ent->start) && (offset < ent->end))){
+			/* Its within this request?? */
+			fnd = 1;
+		}
+		if (fnd) {
+			/*
+			 * It is at or past the end, its complete.
+			 */
+			ent->flags |= TCP_HTTP_TRACK_FLG_SEQV;
+			/*
+			 * When an entry completes we can take (snd_una + sb_cc) and know where
+			 * the end of the range really is. Note that this works since two
+			 * requests must be sequential and sendfile now is complete for *this* request.
+			 * we must use sb_ccc since the data may still be in-flight in TLS.
+			 *
+			 * We always cautiously move the end_seq only if our calculations
+			 * show it happened (just in case sf has the call to here at the wrong
+			 * place). When we go COMP we will stop coming here and hopefully be
+			 * left with the correct end_seq.
+			 */
+			if (SEQ_GT((tp->snd_una + so->so_snd.sb_ccc), ent->end_seq))
+				ent->end_seq = tp->snd_una + so->so_snd.sb_ccc;
+			if ((offset + nbytes) >= ent->end) {
+				ent->flags |= TCP_HTTP_TRACK_FLG_COMP;
+				tcp_http_log_req_info(tp, ent, i, TCP_HTTP_REQ_LOG_COMPLETE, offset, nbytes);
+			} else {
+				tcp_http_log_req_info(tp, ent, i, TCP_HTTP_REQ_LOG_MOREYET, offset, nbytes);
+			}
+			/* We assume that sendfile never sends overlapping requests */
+			goto done;
+		}
+	}
+skip_closed_req:
+	if (!fnd) {
+		/* Ok now lets look for open requests */
+		for(i = 0; i < MAX_TCP_HTTP_REQ; i++) {
+			ent = &tp->t_http_info[i];
+			if (ent->flags == TCP_HTTP_TRACK_FLG_EMPTY) {
+				/* Not used */
+				continue;
+			}
+			if ((ent->flags & TCP_HTTP_TRACK_FLG_OPEN) == 0)
+				continue;
+			/* If we reach here its an allocated open request */
+			if (ent->start == offset) {
+				/* It begins this request */
+				ent->start_seq = tp->snd_una +
+				    tptosocket(tp)->so_snd.sb_ccc;
+				ent->flags |= TCP_HTTP_TRACK_FLG_SEQV;
+				break;
+			} else if (offset > ent->start) {
+				ent->flags |= TCP_HTTP_TRACK_FLG_SEQV;
+				break;
+			}
+		}
+	}
+#endif
 done:
 	INP_WUNLOCK(inp);
 }

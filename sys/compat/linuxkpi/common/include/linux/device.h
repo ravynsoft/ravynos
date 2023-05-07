@@ -199,6 +199,20 @@ show_class_attr_string(struct class *class,
 #define	dev_printk(lvl, dev, fmt, ...)					\
 	    device_printf((dev)->bsddev, fmt, ##__VA_ARGS__)
 
+#define	dev_WARN(dev, fmt, ...)	\
+    device_printf((dev)->bsddev, "%s:%d: " fmt, __func__, __LINE__, ##__VA_ARGS__)
+
+#define	dev_WARN_ONCE(dev, condition, fmt, ...) do {		\
+	static bool __dev_WARN_ONCE;				\
+	bool __ret_warn_on = (condition);			\
+	if (unlikely(__ret_warn_on)) {				\
+		if (!__dev_WARN_ONCE) {				\
+			__dev_WARN_ONCE = true;			\
+			device_printf((dev)->bsddev, "%s:%d: " fmt, __func__, __LINE__, ##__VA_ARGS__); \
+		}						\
+	}							\
+} while (0)
+
 #define dev_info_once(dev, ...) do {		\
 	static bool __dev_info_once;		\
 	if (!__dev_info_once) {			\
@@ -563,6 +577,12 @@ device_wakeup_enable(struct device *dev)
 	return (0);
 }
 
+static inline bool
+device_iommu_mapped(struct device *dev __unused)
+{
+	return (false);
+}
+
 #define	dev_pm_set_driver_flags(dev, flags) do { \
 } while (0)
 
@@ -659,5 +679,12 @@ devm_kmemdup(struct device *dev, const void *src, size_t len, gfp_t gfp)
 
 #define	devm_kcalloc(_dev, _sizen, _size, _gfp)			\
     devm_kmalloc((_dev), ((_sizen) * (_size)), (_gfp) | __GFP_ZERO)
+
+int lkpi_devm_add_action(struct device *dev, void (*action)(void *), void *data);
+#define	devm_add_action(dev, action, data)	\
+	lkpi_devm_add_action(dev, action, data);
+int lkpi_devm_add_action_or_reset(struct device *dev, void (*action)(void *), void *data);
+#define	devm_add_action_or_reset(dev, action, data)	\
+	lkpi_devm_add_action_or_reset(dev, action, data)
 
 #endif	/* _LINUXKPI_LINUX_DEVICE_H_ */

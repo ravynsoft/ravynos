@@ -45,13 +45,13 @@
 #include <sys/_lock.h>
 #include <sys/_mutex.h>
 #include <sys/_rwlock.h>
+#include <sys/_smr.h>
 #include <net/route.h>
 
 #ifdef _KERNEL
 #include <sys/lock.h>
 #include <sys/proc.h>
 #include <sys/rwlock.h>
-#include <sys/smr.h>
 #include <sys/sysctl.h>
 #include <net/vnet.h>
 #include <vm/uma.h>
@@ -145,7 +145,6 @@ struct in_conninfo {
  * lock is to be obtained and SMR section exited.
  *
  * Key:
- * (b) - Protected by the hpts lock.
  * (c) - Constant after initialization
  * (e) - Protected by the SMR section
  * (i) - Protected by the inpcb lock
@@ -153,51 +152,6 @@ struct in_conninfo {
  * (h) - Protected by the pcbhash lock for the inpcb
  * (s) - Protected by another subsystem's locks
  * (x) - Undefined locking
- *
- * Notes on the tcp_hpts:
- *
- * First Hpts lock order is
- * 1) INP_WLOCK()
- * 2) HPTS_LOCK() i.e. hpts->pmtx
- *
- * To insert a TCB on the hpts you *must* be holding the INP_WLOCK().
- * You may check the inp->inp_in_hpts flag without the hpts lock.
- * The hpts is the only one that will clear this flag holding
- * only the hpts lock. This means that in your tcp_output()
- * routine when you test for the inp_in_hpts flag to be 1
- * it may be transitioning to 0 (by the hpts).
- * That's ok since that will just mean an extra call to tcp_output
- * that most likely will find the call you executed
- * (when the mis-match occurred) will have put the TCB back
- * on the hpts and it will return. If your
- * call did not add the inp back to the hpts then you will either
- * over-send or the cwnd will block you from sending more.
- *
- * Note you should also be holding the INP_WLOCK() when you
- * call the remove from the hpts as well. Though usually
- * you are either doing this from a timer, where you need and have
- * the INP_WLOCK() or from destroying your TCB where again
- * you should already have the INP_WLOCK().
- *
- * The inp_hpts_cpu, inp_hpts_cpu_set, inp_input_cpu and
- * inp_input_cpu_set fields are controlled completely by
- * the hpts. Do not ever set these. The inp_hpts_cpu_set
- * and inp_input_cpu_set fields indicate if the hpts has
- * setup the respective cpu field. It is advised if this
- * field is 0, to enqueue the packet with the appropriate
- * hpts_immediate() call. If the _set field is 1, then
- * you may compare the inp_*_cpu field to the curcpu and
- * may want to again insert onto the hpts if these fields
- * are not equal (i.e. you are not on the expected CPU).
- *
- * A note on inp_hpts_calls and inp_input_calls, these
- * flags are set when the hpts calls either the output
- * or do_segment routines respectively. If the routine
- * being called wants to use this, then it needs to
- * clear the flag before returning. The hpts will not
- * clear the flag. The flags can be used to tell if
- * the hpts is the function calling the respective
- * routine.
  *
  * A few other notes:
  *
@@ -215,44 +169,19 @@ struct inpcbpolicy;
 struct m_snd_tag;
 struct inpcb {
 	/* Cache line #1 (amd64) */
-	CK_LIST_ENTRY(inpcb) inp_hash;	/* (w:h/r:e)  hash list */
+	CK_LIST_ENTRY(inpcb) inp_hash_exact;	/* hash table linkage */
+	CK_LIST_ENTRY(inpcb) inp_hash_wild;	/* hash table linkage */
 	struct rwlock	inp_lock;
 	/* Cache line #2 (amd64) */
-#define	inp_start_zero	inp_hpts
+#define	inp_start_zero	inp_refcount
 #define	inp_zero_size	(sizeof(struct inpcb) - \
 			    offsetof(struct inpcb, inp_start_zero))
-	TAILQ_ENTRY(inpcb) inp_hpts;	/* pacing out queue next lock(b) */
-	uint32_t inp_hpts_gencnt;	/* XXXGL */
-	uint32_t inp_hpts_request;	/* Current hpts request, zero if
-					 * fits in the pacing window (i&b). */
-	/*
-	 * Note the next fields are protected by a
-	 * different lock (hpts-lock). This means that
-	 * they must correspond in size to the smallest
-	 * protectable bit field (uint8_t on x86, and
-	 * other platfomrs potentially uint32_t?). Also
-	 * since CPU switches can occur at different times the two
-	 * fields can *not* be collapsed into a signal bit field.
-	 */
-#if defined(__amd64__) || defined(__i386__)
-	uint8_t inp_in_hpts; /* on output hpts (lock b) */
-#else
-	uint32_t inp_in_hpts; /* on output hpts (lock b) */
-#endif
-	volatile uint16_t  inp_hpts_cpu; /* Lock (i) */
-	volatile uint16_t  inp_irq_cpu;	/* Set by LRO in behalf of or the driver */
 	u_int	inp_refcount;		/* (i) refcount */
 	int	inp_flags;		/* (i) generic IP/datagram flags */
 	int	inp_flags2;		/* (i) generic IP/datagram flags #2*/
-	uint8_t inp_hpts_cpu_set :1,  /* on output hpts (i) */
-			 inp_hpts_calls :1,	/* (i) from output hpts */
-			 inp_irq_cpu_set :1,	/* (i) from LRO/Driver */
-			 inp_spare_bits2 : 3;
 	uint8_t inp_numa_domain;	/* numa domain */
 	void	*inp_ppcb;		/* (i) pointer to per-protocol pcb */
 	struct	socket *inp_socket;	/* (i) back pointer to socket */
-	int32_t 	 inp_hptsslot;	/* Hpts wheel slot this tcb is Lock(i&b) */
-	uint32_t         inp_hpts_drop_reas;	/* reason we are dropping the PCB (lock i&b) */
 	struct	inpcbinfo *inp_pcbinfo;	/* (c) PCB list info */
 	struct	ucred	*inp_cred;	/* (c) cache of socket cred */
 	u_int32_t inp_flow;		/* (i) IPv6 flow information */
@@ -261,11 +190,12 @@ struct inpcb {
 	u_char	inp_ip_p;		/* (c) protocol proto */
 	u_char	inp_ip_minttl;		/* (i) minimum TTL or drop */
 	uint32_t inp_flowid;		/* (x) flow id / queue id */
+	smr_seq_t inp_smr;		/* (i) sequence number at disconnect */
 	struct m_snd_tag *inp_snd_tag;	/* (i) send tag for outgoing mbufs */
 	uint32_t inp_flowtype;		/* (x) M_HASHTYPE value */
 
 	/* Local and foreign ports, local and foreign addr. */
-	struct	in_conninfo inp_inc;	/* (i) list for PCB's local port */
+	struct	in_conninfo inp_inc;	/* (i,h) list for PCB's local port */
 
 	/* MAC and IPSEC policy information. */
 	struct	label *inp_label;	/* (i) MAC label */
@@ -430,10 +360,12 @@ struct inpcbinfo {
 
 	/*
 	 * Global hash of inpcbs, hashed by local and foreign addresses and
-	 * port numbers.
+	 * port numbers.  The "exact" hash holds PCBs connected to a foreign
+	 * address, and "wild" holds the rest.
 	 */
 	struct mtx		 ipi_hash_lock;
-	struct inpcbhead 	*ipi_hashbase;		/* (r:e/w:h) */
+	struct inpcbhead 	*ipi_hash_exact;	/* (r:e/w:h) */
+	struct inpcbhead 	*ipi_hash_wild;		/* (r:e/w:h) */
 	u_long			 ipi_hashmask;		/* (c) */
 
 	/*
@@ -643,7 +575,6 @@ int	inp_so_options(const struct inpcb *inp);
 #define	IN6P_RTHDRDSTOPTS	0x00200000 /* receive dstoptions before rthdr */
 #define	IN6P_TCLASS		0x00400000 /* receive traffic class value */
 #define	IN6P_AUTOFLOWLABEL	0x00800000 /* attach flowlabel automatically */
-/* was	INP_TIMEWAIT		0x01000000 */
 #define	INP_ONESBCAST		0x02000000 /* send all-ones broadcast */
 #define	INP_DROPPED		0x04000000 /* protocol drop flag */
 #define	INP_SOCKREF		0x08000000 /* strong socket reference */
@@ -662,8 +593,8 @@ int	inp_so_options(const struct inpcb *inp);
 /*
  * Flags for inp_flags2.
  */
-#define	INP_MBUF_L_ACKS		0x00000001 /* We need large mbufs for ack compression */
-#define	INP_MBUF_ACKCMP		0x00000002 /* TCP mbuf ack compression ok */
+/*				0x00000001 */
+/*				0x00000002 */
 /*				0x00000004 */
 #define	INP_REUSEPORT		0x00000008 /* SO_REUSEPORT option is set */
 /*				0x00000010 */
@@ -674,11 +605,11 @@ int	inp_so_options(const struct inpcb *inp);
 #define	INP_RECVRSSBUCKETID	0x00000200 /* populate recv datagram with bucket id */
 #define	INP_RATE_LIMIT_CHANGED	0x00000400 /* rate limit needs attention */
 #define	INP_ORIGDSTADDR		0x00000800 /* receive IP dst address/port */
-#define INP_CANNOT_DO_ECN	0x00001000 /* The stack does not do ECN */
+/*				0x00001000 */
 #define	INP_REUSEPORT_LB	0x00002000 /* SO_REUSEPORT_LB option is set */
-#define INP_SUPPORTS_MBUFQ	0x00004000 /* Supports the mbuf queue method of LRO */
-#define INP_MBUF_QUEUE_READY	0x00008000 /* The transport is pacing, inputs can be queued */
-#define INP_DONT_SACK_QUEUE	0x00010000 /* If a sack arrives do not wake me */
+/*				0x00004000 */
+/*				0x00008000 */
+/*				0x00010000 */
 #define INP_2PCP_SET		0x00020000 /* If the Eth PCP should be set explicitly */
 #define INP_2PCP_BIT0		0x00040000 /* Eth PCP Bit 0 */
 #define INP_2PCP_BIT1		0x00080000 /* Eth PCP Bit 1 */
@@ -760,6 +691,8 @@ void	in_pcbnotifyall(struct inpcbinfo *pcbinfo, struct in_addr,
 	    int, struct inpcb *(*)(struct inpcb *, int));
 void	in_pcbref(struct inpcb *);
 void	in_pcbrehash(struct inpcb *);
+void	in_pcbremhash_locked(struct inpcb *);
+bool	in_pcbrele(struct inpcb *, inp_lookup_t);
 bool	in_pcbrele_rlocked(struct inpcb *);
 bool	in_pcbrele_wlocked(struct inpcb *);
 

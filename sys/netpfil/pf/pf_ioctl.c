@@ -277,8 +277,9 @@ VNET_DEFINE(int, pf_vnet_active);
 int pf_end_threads;
 struct proc *pf_purge_proc;
 
-struct rmlock			pf_rules_lock;
-struct sx			pf_ioctl_lock;
+VNET_DEFINE(struct rmlock, pf_rules_lock);
+VNET_DEFINE_STATIC(struct sx, pf_ioctl_lock);
+#define	V_pf_ioctl_lock		VNET(pf_ioctl_lock)
 struct sx			pf_end_lock;
 
 /* pfsync */
@@ -384,6 +385,14 @@ pfattach_vnet(void)
 	my_timeout[PFTM_ADAPTIVE_END] = PFSTATE_ADAPT_END;
 
 	V_pf_status.debug = PF_DEBUG_URGENT;
+	/*
+	 * XXX This is different than in OpenBSD where reassembly is enabled by
+	 * defult. In FreeBSD we expect people to still use scrub rules and
+	 * switch to the new syntax later. Only when they switch they must
+	 * explicitly enable reassemle. We could change the default once the
+	 * scrub rule functionality is hopefully removed some day in future.
+	 */
+	V_pf_status.reass = 0;
 
 	V_pf_pfil_hooked = false;
 	V_pf_pfil_eth_hooked = false;
@@ -1305,6 +1314,9 @@ pf_hash_rule_rolling(MD5_CTX *ctx, struct pf_krule *rule)
 	PF_MD5_UPD(rule, allow_opts);
 	PF_MD5_UPD(rule, rt);
 	PF_MD5_UPD(rule, tos);
+	PF_MD5_UPD(rule, scrub_flags);
+	PF_MD5_UPD(rule, min_ttl);
+	PF_MD5_UPD(rule, set_tos);
 	if (rule->anchor != NULL)
 		PF_MD5_UPD_STR(rule, anchor->path);
 }
@@ -2038,7 +2050,7 @@ pf_rule_to_krule(const struct pf_rule *rule, struct pf_krule *krule)
 
 	pf_pool_to_kpool(&rule->rpool, &krule->rpool);
 
-	/* Don't allow userspace to set evaulations, packets or bytes. */
+	/* Don't allow userspace to set evaluations, packets or bytes. */
 	/* kif, anchor, overload_tbl are not copied over. */
 
 	krule->os_fingerprint = rule->os_fingerprint;
@@ -2595,7 +2607,7 @@ pfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags, struct thread *td
 
 	switch (cmd) {
 	case DIOCSTART:
-		sx_xlock(&pf_ioctl_lock);
+		sx_xlock(&V_pf_ioctl_lock);
 		if (V_pf_status.running)
 			error = EEXIST;
 		else {
@@ -2611,7 +2623,7 @@ pfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags, struct thread *td
 		break;
 
 	case DIOCSTOP:
-		sx_xlock(&pf_ioctl_lock);
+		sx_xlock(&V_pf_ioctl_lock);
 		if (!V_pf_status.running)
 			error = ENOENT;
 		else {
@@ -5625,13 +5637,24 @@ DIOCCHANGEADDR_error:
 		break;
 	}
 
+	case DIOCSETREASS: {
+		u_int32_t	*reass = (u_int32_t *)addr;
+
+		V_pf_status.reass = *reass & (PF_REASS_ENABLED|PF_REASS_NODF);
+		/* Removal of DF flag without reassembly enabled is not a
+		 * valid combination. Disable reassembly in such case. */
+		if (!(V_pf_status.reass & PF_REASS_ENABLED))
+			V_pf_status.reass = 0;
+		break;
+	}
+
 	default:
 		error = ENODEV;
 		break;
 	}
 fail:
-	if (sx_xlocked(&pf_ioctl_lock))
-		sx_xunlock(&pf_ioctl_lock);
+	if (sx_xlocked(&V_pf_ioctl_lock))
+		sx_xunlock(&V_pf_ioctl_lock);
 	CURVNET_RESTORE();
 
 #undef ERROUT_IOCTL
@@ -5669,7 +5692,8 @@ pfsync_state_export(struct pfsync_state *sp, struct pf_kstate *st)
 	sp->direction = st->direction;
 	sp->log = st->log;
 	sp->timeout = st->timeout;
-	sp->state_flags = st->state_flags;
+	sp->state_flags_compat = st->state_flags;
+	sp->state_flags = htons(st->state_flags);
 	if (st->src_node)
 		sp->sync_flags |= PFSYNC_FLAG_SRCNODE;
 	if (st->nat_src_node)
@@ -5733,6 +5757,8 @@ pf_state_export(struct pf_state_export *sp, struct pf_kstate *st)
 	sp->direction = st->direction;
 	sp->log = st->log;
 	sp->timeout = st->timeout;
+	/* 8 bits for old peers, 16 bits for new peers */
+	sp->state_flags_compat = st->state_flags;
 	sp->state_flags = st->state_flags;
 	if (st->src_node)
 		sp->sync_flags |= PFSYNC_FLAG_SRCNODE;
@@ -5828,6 +5854,7 @@ pf_getstatus(struct pfioc_nv *nv)
 	nvlist_add_number(nvl, "hostid", V_pf_status.hostid);
 	nvlist_add_number(nvl, "states", V_pf_status.states);
 	nvlist_add_number(nvl, "src_nodes", V_pf_status.src_nodes);
+	nvlist_add_number(nvl, "reass", V_pf_status.reass);
 	nvlist_add_bool(nvl, "syncookies_active",
 	    V_pf_status.syncookies_active);
 
@@ -6666,6 +6693,9 @@ pf_load_vnet(void)
 	V_pf_tag_z = uma_zcreate("pf tags", sizeof(struct pf_tagname),
 	    NULL, NULL, NULL, NULL, UMA_ALIGN_PTR, 0);
 
+	rm_init_flags(&V_pf_rules_lock, "pf rulesets", RM_RECURSE);
+	sx_init(&V_pf_ioctl_lock, "pf ioctl");
+
 	pf_init_tagset(&V_pf_tags, &pf_rule_tag_hashsize,
 	    PF_RULE_TAG_HASH_SIZE_DEFAULT);
 #ifdef ALTQ
@@ -6684,8 +6714,6 @@ pf_load(void)
 {
 	int error;
 
-	rm_init_flags(&pf_rules_lock, "pf rulesets", RM_RECURSE);
-	sx_init(&pf_ioctl_lock, "pf ioctl");
 	sx_init(&pf_end_lock, "pf end thread");
 
 	pf_mtag_initialize();
@@ -6789,6 +6817,9 @@ pf_unload_vnet(void)
 		pf_counter_u64_deinit(&V_pf_status.fcounters[i]);
 	for (int i = 0; i < SCNT_MAX; i++)
 		counter_u64_free(V_pf_status.scounters[i]);
+
+	rm_destroy(&V_pf_rules_lock);
+	sx_destroy(&V_pf_ioctl_lock);
 }
 
 static void
@@ -6808,8 +6839,6 @@ pf_unload(void)
 
 	pfi_cleanup();
 
-	rm_destroy(&pf_rules_lock);
-	sx_destroy(&pf_ioctl_lock);
 	sx_destroy(&pf_end_lock);
 }
 

@@ -85,7 +85,7 @@ AvailabilityInternal.h: ${SRCTOP}/include/AvailabilityInternal.h
 CLEANFILES+=	Availability.h AvailabilityInternal.h
 INCS+=		Availability.h AvailabilityInternal.h
 
-_WITH_EXPLICIT_BZERO!= grep -c explicit_bzero ${HOST_INCLUDE_ROOT}/strings.h || true
+_WITH_EXPLICIT_BZERO!= cat ${HOST_INCLUDE_ROOT}/strings.h ${HOST_INCLUDE_ROOT}/string.h | grep -c explicit_bzero || true
 .if ${_WITH_EXPLICIT_BZERO} == 0
 # .PATH: ${SRCTOP}/sys/libkern
 # Adding sys/libkern to .PATH breaks building the cross-build compat library
@@ -132,7 +132,11 @@ CHACHA20INCSDIR=	${INCLUDEDIR}/crypto/chacha20
 CHACHA20INCS+=	${SRCTOP}/sys/crypto/chacha20/_chacha.h \
 	${SRCTOP}/sys/crypto/chacha20/chacha.h
 
+.if ${MACHINE} == "host"
+_host_arch= ${_HOST_ARCH}
+.else
 _host_arch=${MACHINE}
+.endif
 .if ${_host_arch} == "x86_64"
 # bmake on Linux/mac often prints that instead of amd64
 _host_arch=amd64
@@ -211,7 +215,14 @@ CFLAGS.closefrom.c+=	-DSTDC_HEADERS -DHAVE_SYS_DIR_H -DHAVE_DIRENT_H \
 SRCS+=	progname.c
 # Stub implementations of fflagstostr/strtofflags
 SRCS+=	fflags.c
-.endif
+
+.endif # ${MAKE.OS} == "Linux"
+
+.if ${.MAKE.OS} == "Darwin"
+# Standalone implementation of secure_getenv(), not available on MacOS.
+SRCS+=	secure_getenv.c
+.endif # ${MAKE.OS} == "Darwin"
+
 # Provide the same arc4random implementation on Linux/macOS
 CFLAGS.arc4random.c+=	-I${SRCTOP}/sys/crypto/chacha20 -D__isthreaded=1
 SRCS+=	arc4random.c arc4random_uniform.c
@@ -234,7 +245,7 @@ subr_capability.c: ${SRCTOP}/sys/kern/subr_capability.c
 	cp ${.ALLSRC} ${.TARGET}
 SRCS+=	subr_capability.c
 CLEANFILES+=	subr_capability.c
-.endif
+.endif # ${MAKE.OS} != "FreeBSD"
 
 CASPERINC+=	${SRCTOP}/lib/libcasper/services/cap_fileargs/cap_fileargs.h
 CASPERINC+=	${SRCTOP}/lib/libcasper/services/cap_net/cap_net.h
@@ -361,7 +372,6 @@ host-symlinks:
 # yet (this happens if we are crossbuilding from Linux/Mac).
 INSTALLDIR_LIST= \
 	bin \
-	lib/casper \
 	lib/geom \
 	usr/include/casper \
 	usr/include/private/ucl \

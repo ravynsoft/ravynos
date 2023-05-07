@@ -5,7 +5,7 @@
 .include <src.opts.mk>
 CFLAGS+=-I${.CURDIR}/../../contrib/lib9p
 CFLAGS+=-I${SRCTOP}/sys
-.PATH:  ${SRCTOP}/sys/cam/ctl
+.PATH:  ${SRCTOP}/sys/libkern ${SRCTOP}/sys/cam/ctl
 
 PROG=	bhyve
 PACKAGE=	bhyve
@@ -26,8 +26,10 @@ SRCS=	\
 	bootrom.c		\
 	config.c		\
 	console.c		\
+	crc16.c			\
 	ctl_util.c		\
 	ctl_scsi_all.c		\
+	e820.c			\
 	fwctl.c			\
 	gdb.c			\
 	hda_codec.c		\
@@ -64,6 +66,7 @@ SRCS=	\
 	ps2kbd.c		\
 	ps2mouse.c		\
 	qemu_fwcfg.c		\
+	qemu_loader.c		\
 	rfb.c			\
 	rtc.c			\
 	smbiostbl.c		\
@@ -115,10 +118,6 @@ CFLAGS+= -I${BHYVE_SYSDIR}/sys/dev/mii
 CFLAGS+= -I${BHYVE_SYSDIR}/sys/dev/usb/controller
 .if ${MK_BHYVE_SNAPSHOT} != "no"
 CFLAGS+= -I${SRCTOP}/contrib/libucl/include
-
-# Temporary disable capsicum, until we integrate checkpoint code with it.
-CFLAGS+= -DWITHOUT_CAPSICUM
-
 CFLAGS+= -DBHYVE_SNAPSHOT
 .endif
 

@@ -8,8 +8,6 @@
 # Exceptions:
 # o While UFS is buildable as a module, the current module lacks
 #   some features (ACL, GJOURNAL) that GENERIC includes.
-# o acpi as a module has been reported flakey and not well tested, so
-#   is included in the kernel.
 # o (non-loaded) random is included due to uncertainty...
 # o Many networking things are included
 #
@@ -147,6 +145,7 @@ device		kvm_clock		# KVM paravirtual clock driver
 # NOTE: XENHVM depends on xenpci and xentimer.
 # They must be added or removed together.
 options 	XENHVM			# Xen HVM kernel infrastructure
+device		xenefi			# Xen EFI timer device
 device		xenpci			# Xen HVM Hypervisor services driver
 device		xentimer		# Xen x86 PV timer device
 

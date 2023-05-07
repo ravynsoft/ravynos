@@ -185,7 +185,6 @@ struct pfsync_upd_req_item {
 struct pfsync_deferral {
 	struct pfsync_softc		*pd_sc;
 	TAILQ_ENTRY(pfsync_deferral)	pd_entry;
-	u_int				pd_refs;
 	struct callout			pd_tmo;
 
 	struct pf_kstate		*pd_st;
@@ -297,6 +296,7 @@ static int	pfsyncioctl(struct ifnet *, u_long, caddr_t);
 
 static int	pfsync_defer(struct pf_kstate *, struct mbuf *);
 static void	pfsync_undefer(struct pfsync_deferral *, int);
+static void	pfsync_undefer_state_locked(struct pf_kstate *, int);
 static void	pfsync_undefer_state(struct pf_kstate *, int);
 static void	pfsync_defer_tmo(void *);
 
@@ -401,7 +401,7 @@ pfsync_clone_destroy(struct ifnet *ifp)
 {
 	struct pfsync_softc *sc = ifp->if_softc;
 	struct pfsync_bucket *b;
-	int c;
+	int c, ret;
 
 	for (c = 0; c < pfsync_buckets; c++) {
 		b = &sc->sc_buckets[c];
@@ -410,22 +410,23 @@ pfsync_clone_destroy(struct ifnet *ifp)
 		 * cleared by pfsync_uninit(), and we have only to
 		 * drain callouts.
 		 */
+		PFSYNC_BUCKET_LOCK(b);
 		while (b->b_deferred > 0) {
 			struct pfsync_deferral *pd =
 			    TAILQ_FIRST(&b->b_deferrals);
 
-			TAILQ_REMOVE(&b->b_deferrals, pd, pd_entry);
-			b->b_deferred--;
-			if (callout_stop(&pd->pd_tmo) > 0) {
-				pf_release_state(pd->pd_st);
-				m_freem(pd->pd_m);
-				free(pd, M_PFSYNC);
+			ret = callout_stop(&pd->pd_tmo);
+			PFSYNC_BUCKET_UNLOCK(b);
+			if (ret > 0) {
+				pfsync_undefer(pd, 1);
 			} else {
-				pd->pd_refs++;
 				callout_drain(&pd->pd_tmo);
-				free(pd, M_PFSYNC);
 			}
+			PFSYNC_BUCKET_LOCK(b);
 		}
+		MPASS(b->b_deferred == 0);
+		MPASS(TAILQ_EMPTY(&b->b_deferrals));
+		PFSYNC_BUCKET_UNLOCK(b);
 
 		callout_drain(&b->b_tmo);
 	}
@@ -580,7 +581,30 @@ pfsync_state_import(struct pfsync_state *sp, int flags)
 	st->direction = sp->direction;
 	st->log = sp->log;
 	st->timeout = sp->timeout;
-	st->state_flags = sp->state_flags;
+	/* 8 from old peers, 16 bits from new peers */
+	st->state_flags = sp->state_flags_compat | ntohs(sp->state_flags);
+
+	if (r == &V_pf_default_rule) {
+		/* ToS and Prio are not sent over struct pfsync_state */
+		st->state_flags &= ~PFSTATE_SETMASK;
+	} else {
+		/* Most actions are applied form state, not from rule. Until
+		 * pfsync can forward all those actions and their parameters we
+		 * must relay on restoring them from the found rule.
+		 * It's a copy of pf_rule_to_actions() */
+		st->qid = r->qid;
+		st->pqid = r->pqid;
+		st->rtableid = r->rtableid;
+		if (r->scrub_flags & PFSTATE_SETTOS)
+			st->set_tos = r->set_tos;
+		st->min_ttl = r->min_ttl;
+		st->max_mss = r->max_mss;
+		st->state_flags |= (r->scrub_flags & (PFSTATE_NODF|PFSTATE_RANDOMID|
+		    PFSTATE_SETTOS|PFSTATE_SCRUB_TCP|PFSTATE_SETPRIO));
+		st->dnpipe = r->dnpipe;
+		st->dnrpipe = r->dnrpipe;
+		/* FIXME: dnflags are not part of state, can't update them */
+	}
 
 	st->id = sp->id;
 	st->creatorid = sp->creatorid;
@@ -625,10 +649,8 @@ cleanup:
 	error = ENOMEM;
 	if (skw == sks)
 		sks = NULL;
-	if (skw != NULL)
-		uma_zfree(V_pf_state_key_z, skw);
-	if (sks != NULL)
-		uma_zfree(V_pf_state_key_z, sks);
+	uma_zfree(V_pf_state_key_z, skw);
+	uma_zfree(V_pf_state_key_z, sks);
 
 cleanup_state:	/* pf_state_insert() frees the state keys. */
 	if (st) {
@@ -1776,7 +1798,6 @@ pfsync_defer(struct pf_kstate *st, struct mbuf *m)
 	st->state_flags |= PFSTATE_ACK;
 
 	pd->pd_sc = sc;
-	pd->pd_refs = 0;
 	pd->pd_st = st;
 	pf_ref_state(st);
 	pd->pd_m = m;
@@ -1827,18 +1848,20 @@ pfsync_defer_tmo(void *arg)
 
 	PFSYNC_BUCKET_LOCK_ASSERT(b);
 
-	if (sc->sc_sync_if == NULL)
-		return;
-
-	NET_EPOCH_ENTER(et);
-	CURVNET_SET(sc->sc_sync_if->if_vnet);
-
 	TAILQ_REMOVE(&b->b_deferrals, pd, pd_entry);
 	b->b_deferred--;
 	pd->pd_st->state_flags &= ~PFSTATE_ACK;	/* XXX: locking! */
-	if (pd->pd_refs == 0)
-		free(pd, M_PFSYNC);
 	PFSYNC_BUCKET_UNLOCK(b);
+	free(pd, M_PFSYNC);
+
+	if (sc->sc_sync_if == NULL) {
+		pf_release_state(st);
+		m_freem(m);
+		return;
+	}
+
+	NET_EPOCH_ENTER(et);
+	CURVNET_SET(sc->sc_sync_if->if_vnet);
 
 	pfsync_tx(sc, m);
 
@@ -1849,26 +1872,35 @@ pfsync_defer_tmo(void *arg)
 }
 
 static void
-pfsync_undefer_state(struct pf_kstate *st, int drop)
+pfsync_undefer_state_locked(struct pf_kstate *st, int drop)
 {
 	struct pfsync_softc *sc = V_pfsyncif;
 	struct pfsync_deferral *pd;
 	struct pfsync_bucket *b = pfsync_get_bucket(sc, st);
 
-	PFSYNC_BUCKET_LOCK(b);
+	PFSYNC_BUCKET_LOCK_ASSERT(b);
 
 	TAILQ_FOREACH(pd, &b->b_deferrals, pd_entry) {
 		 if (pd->pd_st == st) {
 			if (callout_stop(&pd->pd_tmo) > 0)
 				pfsync_undefer(pd, drop);
 
-			PFSYNC_BUCKET_UNLOCK(b);
 			return;
 		}
 	}
-	PFSYNC_BUCKET_UNLOCK(b);
 
 	panic("%s: unable to find deferred state", __func__);
+}
+
+static void
+pfsync_undefer_state(struct pf_kstate *st, int drop)
+{
+	struct pfsync_softc *sc = V_pfsyncif;
+	struct pfsync_bucket *b = pfsync_get_bucket(sc, st);
+
+	PFSYNC_BUCKET_LOCK(b);
+	pfsync_undefer_state_locked(st, drop);
+	PFSYNC_BUCKET_UNLOCK(b);
 }
 
 static struct pfsync_bucket*
@@ -1889,7 +1921,7 @@ pfsync_update_state(struct pf_kstate *st)
 	PFSYNC_BUCKET_LOCK(b);
 
 	if (st->state_flags & PFSTATE_ACK)
-		pfsync_undefer_state(st, 0);
+		pfsync_undefer_state_locked(st, 0);
 	if (st->state_flags & PFSTATE_NOSYNC) {
 		if (st->sync_state != PFSYNC_S_NONE)
 			pfsync_q_del(st, true, b);
@@ -2032,7 +2064,7 @@ pfsync_delete_state(struct pf_kstate *st)
 
 	PFSYNC_BUCKET_LOCK(b);
 	if (st->state_flags & PFSTATE_ACK)
-		pfsync_undefer_state(st, 1);
+		pfsync_undefer_state_locked(st, 1);
 	if (st->state_flags & PFSTATE_NOSYNC) {
 		if (st->sync_state != PFSYNC_S_NONE)
 			pfsync_q_del(st, true, b);
