@@ -589,8 +589,7 @@ const char *freebsd32_syscallnames[] = {
 	"fspacectl",			/* 580 = fspacectl */
 	"sched_getcpu",			/* 581 = sched_getcpu */
 	"swapoff",			/* 582 = swapoff */
-<<<<<<< HEAD
-	"#583",			/* 583 = nosys */
+	"kqueuex",			/* 583 = kqueuex */
 	"#584",			/* 584 = nosys */
 	"#585",			/* 585 = nosys */
 	"#586",			/* 586 = nosys */
@@ -728,7 +727,4 @@ const char *freebsd32_syscallnames[] = {
 	"#718",			/* 718 = nosys */
 	"#719",			/* 719 = nosys */
 	"#720",			/* 720 = nosys */
-=======
-	"kqueuex",			/* 583 = kqueuex */
->>>>>>> upstream/main
 };

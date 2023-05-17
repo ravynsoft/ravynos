@@ -1896,7 +1896,9 @@ struct swapoff_args {
 	char name_l_[PADL_(const char *)]; const char * name; char name_r_[PADR_(const char *)];
 	char flags_l_[PADL_(u_int)]; u_int flags; char flags_r_[PADR_(u_int)];
 };
-<<<<<<< HEAD
+struct kqueuex_args {
+	char flags_l_[PADL_(u_int)]; u_int flags; char flags_r_[PADR_(u_int)];
+};
 struct _kernelrpc_mach_vm_allocate_trap_args {
 	char target_l_[PADL_(mach_port_name_t)]; mach_port_name_t target; char target_r_[PADR_(mach_port_name_t)];
 	char address_l_[PADL_(mach_vm_offset_t *)]; mach_vm_offset_t * address; char address_r_[PADR_(mach_vm_offset_t *)];
@@ -2119,10 +2121,6 @@ struct mk_timer_arm_args {
 struct mk_timer_cancel_args {
 	char name_l_[PADL_(mach_port_name_t)]; mach_port_name_t name; char name_r_[PADR_(mach_port_name_t)];
 	char result_time_l_[PADL_(mach_absolute_time_t *)]; mach_absolute_time_t * result_time; char result_time_r_[PADR_(mach_absolute_time_t *)];
-=======
-struct kqueuex_args {
-	char flags_l_[PADL_(u_int)]; u_int flags; char flags_r_[PADR_(u_int)];
->>>>>>> upstream/main
 };
 int	sys_exit(struct thread *, struct exit_args *);
 int	sys_fork(struct thread *, struct fork_args *);
@@ -2527,7 +2525,7 @@ int	sys_aio_readv(struct thread *, struct aio_readv_args *);
 int	sys_fspacectl(struct thread *, struct fspacectl_args *);
 int	sys_sched_getcpu(struct thread *, struct sched_getcpu_args *);
 int	sys_swapoff(struct thread *, struct swapoff_args *);
-<<<<<<< HEAD
+int	sys_kqueuex(struct thread *, struct kqueuex_args *);
 int	sys__kernelrpc_mach_vm_allocate_trap(struct thread *, struct _kernelrpc_mach_vm_allocate_trap_args *);
 int	sys__kernelrpc_mach_vm_deallocate_trap(struct thread *, struct _kernelrpc_mach_vm_deallocate_trap_args *);
 int	sys__kernelrpc_mach_vm_protect_trap(struct thread *, struct _kernelrpc_mach_vm_protect_trap_args *);
@@ -2575,9 +2573,6 @@ int	sys_mk_timer_create(struct thread *, struct mk_timer_create_args *);
 int	sys_mk_timer_destroy(struct thread *, struct mk_timer_destroy_args *);
 int	sys_mk_timer_arm(struct thread *, struct mk_timer_arm_args *);
 int	sys_mk_timer_cancel(struct thread *, struct mk_timer_cancel_args *);
-=======
-int	sys_kqueuex(struct thread *, struct kqueuex_args *);
->>>>>>> upstream/main
 
 #ifdef COMPAT_43
 
@@ -3555,7 +3550,7 @@ int	freebsd13_swapoff(struct thread *, struct freebsd13_swapoff_args *);
 #define	SYS_AUE_fspacectl	AUE_FSPACECTL
 #define	SYS_AUE_sched_getcpu	AUE_NULL
 #define	SYS_AUE_swapoff	AUE_SWAPOFF
-<<<<<<< HEAD
+#define	SYS_AUE_kqueuex	AUE_KQUEUE
 #define	SYS_AUE__kernelrpc_mach_vm_allocate_trap	AUE_NULL
 #define	SYS_AUE__kernelrpc_mach_vm_deallocate_trap	AUE_NULL
 #define	SYS_AUE__kernelrpc_mach_vm_protect_trap	AUE_NULL
@@ -3603,9 +3598,6 @@ int	freebsd13_swapoff(struct thread *, struct freebsd13_swapoff_args *);
 #define	SYS_AUE_mk_timer_destroy	AUE_NULL
 #define	SYS_AUE_mk_timer_arm	AUE_NULL
 #define	SYS_AUE_mk_timer_cancel	AUE_NULL
-=======
-#define	SYS_AUE_kqueuex	AUE_KQUEUE
->>>>>>> upstream/main
 
 #undef PAD_
 #undef PADL_

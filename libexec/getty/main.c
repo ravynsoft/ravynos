@@ -70,6 +70,8 @@ __FBSDID("$FreeBSD$");
 #include "extern.h"
 #include "pathnames.h"
 
+extern char **environ;
+
 /*
  * Set the amount of running time that getty should accumulate
  * before deciding that something is wrong and exit.

@@ -528,7 +528,7 @@
 #define	SYS_fspacectl	580
 #define	SYS_sched_getcpu	581
 #define	SYS_swapoff	582
-<<<<<<< HEAD
+#define	SYS_kqueuex	583
 #define	SYS__kernelrpc_mach_vm_allocate_trap	610
 #define	SYS__kernelrpc_mach_vm_deallocate_trap	612
 #define	SYS__kernelrpc_mach_vm_protect_trap	614
@@ -578,7 +578,3 @@
 #define	SYS_mk_timer_arm	693
 #define	SYS_mk_timer_cancel	694
 #define	SYS_MAXSYSCALL	721
-=======
-#define	SYS_kqueuex	583
-#define	SYS_MAXSYSCALL	584
->>>>>>> upstream/main

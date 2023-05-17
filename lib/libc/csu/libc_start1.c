@@ -78,8 +78,6 @@ process_irelocs(void)
 
 extern int *__argc;
 extern char ***__argv;
-char **environ;
-const char *__progname = "";
 
 static void
 finalizer(void)

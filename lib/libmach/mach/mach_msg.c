@@ -64,14 +64,14 @@
 #define LIBMACH_OPTIONS	(MACH_SEND_INTERRUPT|MACH_RCV_INTERRUPT)
 
 mach_msg_return_t
-mach_msg(msg, option, send_size, rcv_size, rcv_name, timeout, notify)
-	mach_msg_header_t *msg;
-	mach_msg_option_t option;
-	mach_msg_size_t send_size;
-	mach_msg_size_t rcv_size;
-	mach_port_t rcv_name;
-	mach_msg_timeout_t timeout;
-	mach_port_t notify;
+mach_msg(
+	mach_msg_header_t *msg,
+	mach_msg_option_t option,
+	mach_msg_size_t send_size,
+	mach_msg_size_t rcv_size,
+	mach_port_t rcv_name,
+	mach_msg_timeout_t timeout,
+	mach_port_t notify)
 {
 	mach_msg_return_t mr;
 
@@ -111,17 +111,16 @@ mach_msg(msg, option, send_size, rcv_size, rcv_name, timeout, notify)
 }
 
 mach_msg_return_t
-mach_msg_overwrite(msg, option, send_size, rcv_limit, rcv_name, timeout, 
-		   notify, rcv_msg, rcv_msg_size)
-	mach_msg_header_t *msg;
-	mach_msg_option_t option;
-	mach_msg_size_t send_size;
-	mach_msg_size_t rcv_limit;
-	mach_port_t rcv_name;
-	mach_msg_timeout_t timeout;
-	mach_port_t notify;
-	mach_msg_header_t *rcv_msg;
-	mach_msg_size_t rcv_msg_size;
+mach_msg_overwrite(
+	mach_msg_header_t *msg,
+	mach_msg_option_t option,
+	mach_msg_size_t send_size,
+	mach_msg_size_t rcv_limit,
+	mach_port_t rcv_name,
+	mach_msg_timeout_t timeout,
+	mach_port_t notify,
+	mach_msg_header_t *rcv_msg,
+	mach_msg_size_t rcv_msg_size)
 {
 	mach_msg_return_t mr;
 

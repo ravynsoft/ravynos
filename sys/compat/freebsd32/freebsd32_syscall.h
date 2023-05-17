@@ -509,7 +509,7 @@
 #define	FREEBSD32_SYS_fspacectl	580
 #define	FREEBSD32_SYS_sched_getcpu	581
 #define	FREEBSD32_SYS_swapoff	582
-<<<<<<< HEAD
+#define	FREEBSD32_SYS_kqueuex	583
 #define	FREEBSD32_SYS__kernelrpc_mach_vm_allocate_trap	610
 #define	FREEBSD32_SYS__kernelrpc_mach_vm_deallocate_trap	612
 #define	FREEBSD32_SYS__kernelrpc_mach_vm_protect_trap	614
@@ -559,7 +559,3 @@
 #define	FREEBSD32_SYS_mk_timer_arm	693
 #define	FREEBSD32_SYS_mk_timer_cancel	694
 #define	FREEBSD32_SYS_MAXSYSCALL	721
-=======
-#define	FREEBSD32_SYS_kqueuex	583
-#define	FREEBSD32_SYS_MAXSYSCALL	584
->>>>>>> upstream/main

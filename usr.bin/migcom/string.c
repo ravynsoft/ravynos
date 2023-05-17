@@ -110,8 +110,7 @@ strmake(const char *string){
 }
 
 string_t
-strconcat(left, right)
-string_t left, right;
+strconcat(string_t left, string_t right)
 {
     register char  *saved;
 
@@ -123,8 +122,7 @@ string_t left, right;
 }
 
 string_t
-strphrase(left, right)
-string_t left, right;
+strphrase(string_t left, string_t right)
 {
     char           *saved;
     char           *current;
@@ -150,8 +148,7 @@ strfree(string_t string)
 }
 
 const char *
-strbool(bool)
-    boolean_t bool;
+strbool(boolean_t bool)
 {
     if (bool)
         return "TRUE";
@@ -160,8 +157,7 @@ strbool(bool)
 }
 
 const char *
-strstring(string)
-string_t string;
+strstring(string_t string)
 {
     if (string == strNULL)
         return "NULL";

@@ -434,6 +434,7 @@ MIASM =  \
 	fspacectl.o \
 	sched_getcpu.o \
 	swapoff.o \
+	kqueuex.o \
 	_kernelrpc_mach_vm_allocate_trap.o \
 	_kernelrpc_mach_vm_deallocate_trap.o \
 	_kernelrpc_mach_vm_protect_trap.o \
@@ -481,4 +482,3 @@ MIASM =  \
 	mk_timer_destroy.o \
 	mk_timer_arm.o \
 	mk_timer_cancel.o
-	kqueuex.o

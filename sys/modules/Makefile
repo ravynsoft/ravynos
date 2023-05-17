@@ -235,16 +235,13 @@ SUBDIR=	\
 	${_mac_seeotheruids} \
 	${_mac_stub} \
 	${_mac_test} \
-<<<<<<< HEAD
 	mach \
 	macho \
-=======
 	${_mac_veriexec} \
 	${_mac_veriexec_sha1} \
 	${_mac_veriexec_sha256} \
 	${_mac_veriexec_sha384} \
 	${_mac_veriexec_sha512} \
->>>>>>> upstream/main
 	${_malo} \
 	${_mana} \
 	md \
