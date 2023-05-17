@@ -1,5 +1,5 @@
 /*-
- * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+ * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2001 Michael Shalayeff
  * All rights reserved.
@@ -274,7 +274,7 @@ struct pfsyncioc_nv {
 #define	PFSYNC_S_IACK	0x01
 #define	PFSYNC_S_UPD	0x02
 #define	PFSYNC_S_UPD_C	0x03
-#define	PFSYNC_S_DEL	0x04
+#define	PFSYNC_S_DEL_C	0x04
 #define	PFSYNC_S_COUNT	0x05
 
 #define	PFSYNC_S_DEFER	0xfe

@@ -385,7 +385,6 @@ SUBDIR=	\
 	tmpfs \
 	${_toecore} \
 	${_tpm} \
-	twe \
 	tws \
 	uart \
 	udf \

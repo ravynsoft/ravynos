@@ -1,5 +1,5 @@
 /*-
- * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+ * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2011 NetApp, Inc.
  * All rights reserved.
@@ -497,6 +497,7 @@ enum vm_cap_type {
 	VM_CAP_RDPID,
 	VM_CAP_RDTSCP,
 	VM_CAP_IPI_EXIT,
+	VM_CAP_MASK_HWINTR,
 	VM_CAP_MAX
 };
 

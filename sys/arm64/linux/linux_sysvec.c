@@ -1,5 +1,5 @@
 /*-
- * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+ * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 1994-1996 Søren Schmidt
  * Copyright (c) 2018 Turing Robotic Industries Inc.
@@ -118,7 +118,7 @@ LIN_SDT_PROBE_DEFINE0(sysvec, linux_exec_setregs, todo);
 
 LINUX_VDSO_SYM_CHAR(linux_platform);
 LINUX_VDSO_SYM_INTPTR(kern_timekeep_base);
-LINUX_VDSO_SYM_INTPTR(linux_vdso_sigcode);
+LINUX_VDSO_SYM_INTPTR(__user_rt_sigreturn);
 
 static int
 linux_fetch_syscall_args(struct thread *td)
@@ -295,13 +295,13 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 	memcpy(&frame->sf.sf_uc.uc_sc.regs, tf->tf_x, sizeof(tf->tf_x));
 	frame->sf.sf_uc.uc_sc.regs[30] = tf->tf_lr;
 	frame->sf.sf_uc.uc_sc.sp = tf->tf_sp;
-	frame->sf.sf_uc.uc_sc.pc = tf->tf_lr;
+	frame->sf.sf_uc.uc_sc.pc = tf->tf_elr;
 	frame->sf.sf_uc.uc_sc.pstate = tf->tf_spsr;
 	frame->sf.sf_uc.uc_sc.fault_address = (register_t)ksi->ksi_addr;
 
 	/* Stack frame for unwinding */
 	frame->fp = tf->tf_x[29];
-	frame->lr = tf->tf_lr;
+	frame->lr = tf->tf_elr;
 
 	/* Translate the signal. */
 	sig = bsd_to_linux_signal(sig);
@@ -352,9 +352,10 @@ linux_rt_sendsig(sig_t catcher, ksiginfo_t *ksi, sigset_t *mask)
 		tf->tf_x[1] = 0;
 		tf->tf_x[2] = 0;
 	}
-	tf->tf_x[8] = (register_t)catcher;
+	tf->tf_x[29] = (register_t)&fp->fp;
+	tf->tf_elr = (register_t)catcher;
 	tf->tf_sp = (register_t)fp;
-	tf->tf_elr = (register_t)linux_vdso_sigcode;
+	tf->tf_lr = (register_t)__user_rt_sigreturn;
 
 	CTR3(KTR_SIG, "sendsig: return td=%p pc=%#x sp=%#x", td, tf->tf_elr,
 	    tf->tf_sp);

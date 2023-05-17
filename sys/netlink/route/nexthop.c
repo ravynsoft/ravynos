@@ -1,5 +1,5 @@
 /*-
- * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+ * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2022 Alexander V. Chernikov <melifaro@FreeBSD.org>
  *
@@ -56,7 +56,7 @@ __FBSDID("$FreeBSD$");
 #define	DEBUG_MOD_NAME	nl_nhop
 #define	DEBUG_MAX_LEVEL	LOG_DEBUG3
 #include <netlink/netlink_debug.h>
-_DECLARE_DEBUG(LOG_DEBUG);
+_DECLARE_DEBUG(LOG_INFO);
 
 /*
  * This file contains the logic to maintain kernel nexthops and
@@ -678,6 +678,19 @@ nlattr_get_nhg(struct nlattr *nla, struct nl_pstate *npt, const void *arg, void 
 	return (error);
 }
 
+static void
+set_scope6(struct sockaddr *sa, struct ifnet *ifp)
+{
+#ifdef INET6
+	if (sa != NULL && sa->sa_family == AF_INET6 && ifp != NULL) {
+		struct sockaddr_in6 *sa6 = (struct sockaddr_in6 *)sa;
+
+		if (IN6_IS_ADDR_LINKLOCAL(&sa6->sin6_addr))
+			in6_set_unicast_scopeid(&sa6->sin6_addr, if_getindex(ifp));
+	}
+#endif
+}
+
 struct nl_parsed_nhop {
 	uint32_t	nha_id;
 	uint8_t		nha_blackhole;
@@ -721,7 +734,16 @@ static const struct nlattr_parser nla_p_nh[] = {
 };
 #undef _IN
 #undef _OUT
-NL_DECLARE_PARSER(nhmsg_parser, struct nhmsg, nlf_p_nh, nla_p_nh);
+
+static bool
+post_p_nh(void *_attrs, struct nl_pstate *npt)
+{
+	struct nl_parsed_nhop *attrs = (struct nl_parsed_nhop *)_attrs;
+
+	set_scope6(attrs->nha_gw, attrs->nha_oif);
+	return (true);
+}
+NL_DECLARE_PARSER_EXT(nhmsg_parser, struct nhmsg, NULL, nlf_p_nh, nla_p_nh, post_p_nh);
 
 static bool
 eligible_nhg(const struct nhop_object *nh)

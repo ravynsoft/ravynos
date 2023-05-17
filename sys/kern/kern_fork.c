@@ -1168,7 +1168,7 @@ fork_return(struct thread *td, struct trapframe *frame)
 
 #ifdef KTRACE
 	if (KTRPOINT(td, KTR_SYSRET))
-		ktrsysret(SYS_fork, 0, 0);
+		ktrsysret(td->td_sa.code, 0, 0);
 #endif
 }
 

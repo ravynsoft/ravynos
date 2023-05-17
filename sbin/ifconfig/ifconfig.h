@@ -39,6 +39,7 @@
 #pragma once
 
 #include <libifconfig.h>
+#include <stdbool.h>
 
 #define	__constructor	__attribute__((constructor))
 
@@ -149,6 +150,20 @@ enum {
 	DSTADDR,
 };
 
+struct snl_state;
+struct snl_parsed_addr;
+struct snl_parsed_link;
+typedef struct snl_parsed_link if_link_t;
+typedef struct snl_parsed_addr if_addr_t;
+struct ifconfig_args;
+struct io_handler {
+	int			s;	/* socket to use for ioctls */
+	struct snl_state	*ss;	/* NETLINK_ROUTE snl(3) socket */
+};
+
+typedef	void af_status_nl_f(struct ifconfig_args *args, struct io_handler *h,
+    if_link_t *link, if_addr_t *ifa);
+
 struct afswtch {
 	const char	*af_name;	/* as given on cmd line, e.g. "inet" */
 	short		af_af;		/* AF_* */
@@ -161,7 +176,11 @@ struct afswtch {
 	 * is defined then it is invoked after all address status
 	 * is presented.
 	 */
+#ifndef WITHOUT_NETLINK
+	af_status_nl_f	*af_status_nl;
+#else
 	void		(*af_status)(int, const struct ifaddrs *);
+#endif
 	void		(*af_other_status)(int);
 					/* parse address method */
 	void		(*af_getaddr)(const char *, int);
@@ -182,6 +201,24 @@ struct afswtch {
 };
 void	af_register(struct afswtch *);
 
+struct ifconfig_args {
+	bool all;		/* Match everything */
+	bool downonly;		/* Down-only items */
+	bool uponly;		/* Up-only items */
+	bool namesonly;		/* Output only names */
+	bool noload;		/* Do not load relevant kernel modules */
+	bool supmedia;		/* Supported media */
+	bool printkeys;		/* Print security keys */
+	bool allfamilies;	/* Print all families */
+	int verbose;		/* verbosity level */
+	int argc;
+	char **argv;
+	const char *ifname;	/* Requested interface name */
+	const char *matchgroup;		/* Group name to match */
+	const char *nogroup;		/* Group name to exclude */
+	const struct afswtch *afp;	/* AF we're operating on */
+};
+
 struct option {
 	const char *opt;
 	const char *opt_usage;
@@ -194,12 +231,12 @@ extern	ifconfig_handle_t *lifh;
 extern	struct ifreq ifr;
 extern	char name[IFNAMSIZ];	/* name of interface */
 extern	int allmedia;
-extern	int supmedia;
 extern	int printkeys;
 extern	int newaddr;
 extern	int verbose;
 extern	int printifname;
 extern	int exit_code;
+extern struct ifconfig_args args;
 
 void	setifcap(const char *, int value, int s, const struct afswtch *);
 void	setifcapnv(const char *vname, const char *arg, int s,
@@ -208,7 +245,7 @@ void	setifcapnv(const char *vname, const char *arg, int s,
 void	Perror(const char *cmd);
 void	printb(const char *s, unsigned value, const char *bits);
 
-void	ifmaybeload(const char *name);
+void	ifmaybeload(struct ifconfig_args *args, const char *name);
 
 typedef int  clone_match_func(const char *);
 typedef void clone_callback_func(int, struct ifreq *);
@@ -216,6 +253,21 @@ void	clone_setdefcallback_prefix(const char *, clone_callback_func *);
 void	clone_setdefcallback_filter(clone_match_func *, clone_callback_func *);
 
 void	sfp_status(int s, struct ifreq *ifr, int verbose);
+
+struct sockaddr_dl;
+bool	match_ether(const struct sockaddr_dl *sdl);
+bool	match_if_flags(struct ifconfig_args *args, int if_flags);
+int	ifconfig(int argc, char *const *argv, int iscreate, const struct afswtch *uafp);
+bool	group_member(const char *ifname, const char *match, const char *nomatch);
+void	print_ifcap(struct ifconfig_args *args, int s);
+void	tunnel_status(int s);
+struct afswtch	*af_getbyfamily(int af);
+void	af_other_status(int s);
+void	print_ifstatus(int s);
+void	print_metric(int s);
+
+/* Netlink-related functions */
+void	list_interfaces_nl(struct ifconfig_args *args);
 
 /*
  * XXX expose this so modules that neeed to know of any pending

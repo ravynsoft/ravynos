@@ -1,5 +1,5 @@
 /*-
- * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+ * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2023 Alexander V. Chernikov <melifaro@FreeBSD.org>
  *
@@ -33,6 +33,17 @@
 
 /* TODO: this file should be generated automatically */
 
+static inline void
+finalize_sockaddr(struct sockaddr *sa, uint32_t ifindex)
+{
+	if (sa != NULL && sa->sa_family == AF_INET6) {
+		struct sockaddr_in6 *sin6 = (struct sockaddr_in6 *)(void *)sa;
+
+		if (IN6_IS_ADDR_LINKLOCAL(&sin6->sin6_addr))
+			sin6->sin6_scope_id = ifindex;
+	}
+}
+
 /* RTM_<NEW|DEL|GET>ROUTE message parser */
 
 struct rta_mpath_nh {
@@ -63,9 +74,18 @@ static const struct snl_field_parser _fp_p_mp_nh[] = {
 	{ .off_in = _IN(rtnh_hops), .off_out = _OUT(rtnh_weight), .cb = snl_field_get_uint8 },
 	{ .off_in = _IN(rtnh_ifindex), .off_out = _OUT(ifindex), .cb = snl_field_get_uint32 },
 };
+
+static inline bool
+_cb_p_mp_nh(struct snl_state *ss __unused, void *_target)
+{
+	struct rta_mpath_nh *target = _target;
+
+	finalize_sockaddr(target->gw, target->ifindex);
+	return (true);
+}
 #undef _IN
 #undef _OUT
-SNL_DECLARE_PARSER(_mpath_nh_parser, struct rtnexthop, _fp_p_mp_nh, _nla_p_mp_nh);
+SNL_DECLARE_PARSER_EXT(_mpath_nh_parser, struct rtnexthop, _fp_p_mp_nh, _nla_p_mp_nh, _cb_p_mp_nh);
 
 struct rta_mpath {
 	int num_nhops;
@@ -153,9 +173,19 @@ static const struct snl_field_parser _fp_p_route[] = {
 	{.off_in = _IN(rtm_protocol), .off_out = _OUT(rtm_protocol), .cb = snl_field_get_uint8 },
 	{.off_in = _IN(rtm_dst_len), .off_out = _OUT(rtm_dst_len), .cb = snl_field_get_uint8 },
 };
+
+static inline bool
+_cb_p_route(struct snl_state *ss __unused, void *_target)
+{
+	struct snl_parsed_route *target = _target;
+
+	finalize_sockaddr(target->rta_dst, target->rta_oif);
+	finalize_sockaddr(target->rta_gw, target->rta_oif);
+	return (true);
+}
 #undef _IN
 #undef _OUT
-SNL_DECLARE_PARSER(snl_rtm_route_parser, struct rtmsg, _fp_p_route, _nla_p_route);
+SNL_DECLARE_PARSER_EXT(snl_rtm_route_parser, struct rtmsg, _fp_p_route, _nla_p_route, _cb_p_route);
 
 /* RTM_<NEW|DEL|GET>LINK message parser */
 struct snl_parsed_link {
@@ -172,20 +202,27 @@ struct snl_parsed_link {
 	char				*ifla_ifalias;
 	uint32_t			ifla_promiscuity;
 	struct rtnl_link_stats64	*ifla_stats64;
+	struct nlattr			*iflaf_orig_hwaddr;
 };
 
 #define	_IN(_field)	offsetof(struct ifinfomsg, _field)
 #define	_OUT(_field)	offsetof(struct snl_parsed_link, _field)
+static const struct snl_attr_parser _nla_p_link_fbsd[] = {
+	{ .type = IFLAF_ORIG_HWADDR, .off = _OUT(iflaf_orig_hwaddr), .cb = snl_attr_dup_nla },
+};
+SNL_DECLARE_ATTR_PARSER(_link_fbsd_parser, _nla_p_link_fbsd);
+
 static const struct snl_attr_parser _nla_p_link[] = {
-	{ .type = IFLA_ADDRESS, .off = _OUT(ifla_address), .cb = snl_attr_get_nla },
-	{ .type = IFLA_BROADCAST, .off = _OUT(ifla_broadcast), .cb = snl_attr_get_nla },
-	{ .type = IFLA_IFNAME, .off = _OUT(ifla_ifname), .cb = snl_attr_get_string },
+	{ .type = IFLA_ADDRESS, .off = _OUT(ifla_address), .cb = snl_attr_dup_nla },
+	{ .type = IFLA_BROADCAST, .off = _OUT(ifla_broadcast), .cb = snl_attr_dup_nla },
+	{ .type = IFLA_IFNAME, .off = _OUT(ifla_ifname), .cb = snl_attr_dup_string },
 	{ .type = IFLA_MTU, .off = _OUT(ifla_mtu), .cb = snl_attr_get_uint32 },
 	{ .type = IFLA_OPERSTATE, .off = _OUT(ifla_operstate), .cb = snl_attr_get_uint8 },
-	{ .type = IFLA_IFALIAS, .off = _OUT(ifla_ifalias), .cb = snl_attr_get_string },
-	{ .type = IFLA_STATS64, .off = _OUT(ifla_stats64), .cb = snl_attr_copy_struct },
+	{ .type = IFLA_IFALIAS, .off = _OUT(ifla_ifalias), .cb = snl_attr_dup_string },
+	{ .type = IFLA_STATS64, .off = _OUT(ifla_stats64), .cb = snl_attr_dup_struct },
 	{ .type = IFLA_PROMISCUITY, .off = _OUT(ifla_promiscuity), .cb = snl_attr_get_uint32 },
 	{ .type = IFLA_CARRIER, .off = _OUT(ifla_carrier), .cb = snl_attr_get_uint8 },
+	{ .type = IFLA_FREEBSD, .arg = &_link_fbsd_parser, .cb = snl_attr_get_nested },
 };
 static const struct snl_field_parser _fp_p_link[] = {
 	{.off_in = _IN(ifi_index), .off_out = _OUT(ifi_index), .cb = snl_field_get_uint32 },
@@ -208,7 +245,7 @@ struct snl_parsed_link_simple {
 #define	_IN(_field)	offsetof(struct ifinfomsg, _field)
 #define	_OUT(_field)	offsetof(struct snl_parsed_link_simple, _field)
 static struct snl_attr_parser _nla_p_link_s[] = {
-	{ .type = IFLA_IFNAME, .off = _OUT(ifla_ifname), .cb = snl_attr_get_string },
+	{ .type = IFLA_IFNAME, .off = _OUT(ifla_ifname), .cb = snl_attr_dup_string },
 	{ .type = IFLA_MTU, .off = _OUT(ifla_mtu), .cb = snl_attr_get_uint32 },
 };
 static struct snl_field_parser _fp_p_link_s[] = {
@@ -240,7 +277,7 @@ SNL_DECLARE_ATTR_PARSER(_neigh_fbsd_parser, _nla_p_neigh_fbsd);
 
 static struct snl_attr_parser _nla_p_neigh_s[] = {
 	{ .type = NDA_DST, .off = _OUT(nda_dst), .cb = snl_attr_get_ip },
-	{ .type = NDA_LLADDR , .off = _OUT(nda_lladdr), .cb = snl_attr_get_nla },
+	{ .type = NDA_LLADDR , .off = _OUT(nda_lladdr), .cb = snl_attr_dup_nla },
 	{ .type = NDA_PROBES, .off = _OUT(nda_probes), .cb = snl_attr_get_uint32 },
 	{ .type = NDA_IFINDEX, .off = _OUT(nda_ifindex), .cb = snl_attr_get_uint32 },
 	{ .type = NDA_FREEBSD, .arg = &_neigh_fbsd_parser, .cb = snl_attr_get_nested },
@@ -251,9 +288,18 @@ static struct snl_field_parser _fp_p_neigh_s[] = {
 	{.off_in = _IN(ndm_state), .off_out = _OUT(ndm_state), .cb = snl_field_get_uint16 },
 	{.off_in = _IN(ndm_ifindex), .off_out = _OUT(nda_ifindex), .cb = snl_field_get_uint32 },
 };
+
+static inline bool
+_cb_p_neigh(struct snl_state *ss __unused, void *_target)
+{
+	struct snl_parsed_neigh *target = _target;
+
+	finalize_sockaddr(target->nda_dst, target->nda_ifindex);
+	return (true);
+}
 #undef _IN
 #undef _OUT
-SNL_DECLARE_PARSER(snl_rtm_neigh_parser, struct ndmsg, _fp_p_neigh_s, _nla_p_neigh_s);
+SNL_DECLARE_PARSER_EXT(snl_rtm_neigh_parser, struct ndmsg, _fp_p_neigh_s, _nla_p_neigh_s, _cb_p_neigh);
 
 struct snl_parsed_addr {
 	uint8_t		ifa_family;
@@ -263,25 +309,45 @@ struct snl_parsed_addr {
 	struct sockaddr	*ifa_address;
 	struct sockaddr	*ifa_broadcast;
 	char		*ifa_label;
+	struct ifa_cacheinfo	*ifa_cacheinfo;
+	uint32_t	ifaf_vhid;
+	uint32_t	ifaf_flags;
 };
 
 #define	_IN(_field)	offsetof(struct ifaddrmsg, _field)
 #define	_OUT(_field)	offsetof(struct snl_parsed_addr, _field)
-static struct snl_attr_parser _nla_p_addr_s[] = {
+static const struct snl_attr_parser _nla_p_addr_fbsd[] = {
+	{ .type = IFAF_VHID, .off = _OUT(ifaf_vhid), .cb = snl_attr_get_uint32 },
+	{ .type = IFAF_FLAGS, .off = _OUT(ifaf_flags), .cb = snl_attr_get_uint32 },
+};
+SNL_DECLARE_ATTR_PARSER(_addr_fbsd_parser, _nla_p_addr_fbsd);
+
+static const struct snl_attr_parser _nla_p_addr_s[] = {
 	{ .type = IFA_ADDRESS, .off = _OUT(ifa_address), .cb = snl_attr_get_ip },
 	{ .type = IFA_LOCAL, .off = _OUT(ifa_local), .cb = snl_attr_get_ip },
-	{ .type = IFA_LABEL, .off = _OUT(ifa_label), .cb = snl_attr_get_string },
+	{ .type = IFA_LABEL, .off = _OUT(ifa_label), .cb = snl_attr_dup_string },
 	{ .type = IFA_BROADCAST, .off = _OUT(ifa_broadcast), .cb = snl_attr_get_ip },
+	{ .type = IFA_CACHEINFO, .off = _OUT(ifa_cacheinfo), .cb = snl_attr_dup_struct },
+	{ .type = IFA_FREEBSD, .arg = &_addr_fbsd_parser, .cb = snl_attr_get_nested },
 };
-static struct snl_field_parser _fp_p_addr_s[] = {
+static const struct snl_field_parser _fp_p_addr_s[] = {
 	{.off_in = _IN(ifa_family), .off_out = _OUT(ifa_family), .cb = snl_field_get_uint8 },
 	{.off_in = _IN(ifa_prefixlen), .off_out = _OUT(ifa_prefixlen), .cb = snl_field_get_uint8 },
 	{.off_in = _IN(ifa_index), .off_out = _OUT(ifa_index), .cb = snl_field_get_uint32 },
 };
+
+static inline bool
+_cb_p_addr(struct snl_state *ss __unused, void *_target)
+{
+	struct snl_parsed_addr *target = _target;
+
+	finalize_sockaddr(target->ifa_address, target->ifa_index);
+	finalize_sockaddr(target->ifa_local, target->ifa_index);
+	return (true);
+}
 #undef _IN
 #undef _OUT
-SNL_DECLARE_PARSER(snl_rtm_addr_parser, struct ifaddrmsg, _fp_p_addr_s, _nla_p_addr_s);
-
+SNL_DECLARE_PARSER_EXT(snl_rtm_addr_parser, struct ifaddrmsg, _fp_p_addr_s, _nla_p_addr_s, _cb_p_addr);
 
 struct snl_parsed_nhop {
 	uint32_t	nha_id;
@@ -320,15 +386,24 @@ static const struct snl_attr_parser _nla_p_nh[] = {
 	{ .type = NHA_GATEWAY, .off = _OUT(nha_gw), .cb = snl_attr_get_ip },
 	{ .type = NHA_FREEBSD, .arg = &_nh_fbsd_parser, .cb = snl_attr_get_nested },
 };
+
+static inline bool
+_cb_p_nh(struct snl_state *ss __unused, void *_target)
+{
+	struct snl_parsed_nhop *target = _target;
+
+	finalize_sockaddr(target->nha_gw, target->nha_oif);
+	return (true);
+}
 #undef _IN
 #undef _OUT
-SNL_DECLARE_PARSER(snl_nhmsg_parser, struct nhmsg, _fp_p_nh, _nla_p_nh);
+SNL_DECLARE_PARSER_EXT(snl_nhmsg_parser, struct nhmsg, _fp_p_nh, _nla_p_nh, _cb_p_nh);
 
 static const struct snl_hdr_parser *snl_all_route_parsers[] = {
 	&_metrics_mp_nh_parser, &_mpath_nh_parser, &_metrics_parser, &snl_rtm_route_parser,
-	&snl_rtm_link_parser, &snl_rtm_link_parser_simple,
+	&_link_fbsd_parser, &snl_rtm_link_parser, &snl_rtm_link_parser_simple,
 	&_neigh_fbsd_parser, &snl_rtm_neigh_parser,
-	&snl_rtm_addr_parser, &_nh_fbsd_parser, &snl_nhmsg_parser,
+	&_addr_fbsd_parser, &snl_rtm_addr_parser, &_nh_fbsd_parser, &snl_nhmsg_parser,
 };
 
 #endif

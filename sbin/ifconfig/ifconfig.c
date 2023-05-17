@@ -98,30 +98,24 @@ int	doalias;
 int	clearaddr;
 int	newaddr = 1;
 int	verbose;
-int	noload;
 int	printifname = 0;
 
-int	supmedia = 0;
+struct ifconfig_args args;
+
 int	printkeys = 0;		/* Print keying material for interfaces. */
 int	exit_code = 0;
 
 /* Formatter Strings */
 char	*f_inet, *f_inet6, *f_ether, *f_addr;
 
-static	bool group_member(const char *ifname, const char *match,
-		const char *nomatch);
-static	int ifconfig(int argc, char *const *argv, int iscreate,
-		const struct afswtch *afp);
-static	void status(const struct afswtch *afp, const struct sockaddr_dl *sdl,
+static void list_interfaces_ioctl(struct ifconfig_args *args);
+static	void status(struct ifconfig_args *args, const struct sockaddr_dl *sdl,
 		struct ifaddrs *ifa);
-static	void tunnel_status(int s);
 static _Noreturn void usage(void);
 
 static int getifflags(const char *ifname, int us, bool err_ok);
 
 static struct afswtch *af_getbyname(const char *name);
-static struct afswtch *af_getbyfamily(int af);
-static void af_other_status(int);
 
 void printifnamemaybe(void);
 
@@ -403,26 +397,28 @@ void printifnamemaybe()
 		printf("%s\n", name);
 }
 
+static void
+list_interfaces(struct ifconfig_args *args)
+{
+#ifdef WITHOUT_NETLINK
+	list_interfaces_ioctl(args);
+#else
+	list_interfaces_nl(args);
+#endif
+}
+
 int
 main(int argc, char *argv[])
 {
-	int c, all, namesonly, downonly, uponly;
+	int c;
 	const struct afswtch *afp = NULL;
 	int ifindex;
-	struct ifaddrs *ifap, *sifap, *ifa;
-	struct ifreq paifr;
-	const struct sockaddr_dl *sdl;
-	char options[1024], *cp, *envformat, *namecp = NULL;
-	struct ifa_queue q = TAILQ_HEAD_INITIALIZER(q);
-	struct ifa_order_elt *cur, *tmp;
-	const char *ifname, *matchgroup, *nogroup;
+	char options[1024], *envformat;
 	struct option *p;
 	size_t iflen;
 	int flags;
 
-	all = downonly = uponly = namesonly = noload = verbose = 0;
 	f_inet = f_inet6 = f_ether = f_addr = NULL;
-	matchgroup = nogroup = NULL;
 
 	lifh = ifconfig_open();
 	if (lifh == NULL)
@@ -445,10 +441,10 @@ main(int argc, char *argv[])
 	while ((c = getopt(argc, argv, options)) != -1) {
 		switch (c) {
 		case 'a':	/* scan all interfaces */
-			all++;
+			args.all = true;
 			break;
 		case 'd':	/* restrict scan to "down" interfaces */
-			downonly++;
+			args.downonly = true;
 			break;
 		case 'f':
 			if (optarg == NULL)
@@ -456,33 +452,33 @@ main(int argc, char *argv[])
 			setformat(optarg);
 			break;
 		case 'G':
-			if (optarg == NULL || all == 0)
+			if (optarg == NULL || args.all == 0)
 				usage();
-			nogroup = optarg;
+			args.nogroup = optarg;
 			break;
 		case 'k':
-			printkeys++;
+			args.printkeys = true;
 			break;
 		case 'l':	/* scan interface names only */
-			namesonly++;
+			args.namesonly++;
 			break;
 		case 'm':	/* show media choices in status */
-			supmedia = 1;
+			args.supmedia = true;
 			break;
 		case 'n':	/* suppress module loading */
-			noload++;
+			args.noload = true;
 			break;
 		case 'u':	/* restrict scan to "up" interfaces */
-			uponly++;
+			args.uponly = true;
 			break;
 		case 'v':
-			verbose++;
+			args.verbose++;
 			break;
 		case 'g':
-			if (all) {
+			if (args.all) {
 				if (optarg == NULL)
 					usage();
-				matchgroup = optarg;
+				args.matchgroup = optarg;
 				break;
 			}
 			/* FALLTHROUGH */
@@ -500,24 +496,27 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
+	/* Sync global variables */
+	printkeys = args.printkeys;
+	verbose = args.verbose;
+
 	/* -l cannot be used with -a or -m */
-	if (namesonly && (all || supmedia))
+	if (args.namesonly && (args.all || args.supmedia))
 		usage();
 
 	/* nonsense.. */
-	if (uponly && downonly)
+	if (args.uponly && args.downonly)
 		usage();
 
 	/* no arguments is equivalent to '-a' */
-	if (!namesonly && argc < 1)
-		all = 1;
+	if (!args.namesonly && argc < 1)
+		args.all = 1;
 
 	/* -a and -l allow an address family arg to limit the output */
-	if (all || namesonly) {
+	if (args.all || args.namesonly) {
 		if (argc > 1)
 			usage();
 
-		ifname = NULL;
 		ifindex = 0;
 		if (argc == 1) {
 			afp = af_getbyname(*argv);
@@ -534,13 +533,13 @@ main(int argc, char *argv[])
 		if (argc < 1)
 			usage();
 
-		ifname = *argv;
+		args.ifname = *argv;
 		argc--, argv++;
 
 		/* check and maybe load support for this interface */
-		ifmaybeload(ifname);
+		ifmaybeload(&args, args.ifname);
 
-		ifindex = if_nametoindex(ifname);
+		ifindex = if_nametoindex(args.ifname);
 		if (ifindex == 0) {
 			/*
 			 * NOTE:  We must special-case the `create' command
@@ -549,10 +548,10 @@ main(int argc, char *argv[])
 			 */
 			if (argc > 0 && (strcmp(argv[0], "create") == 0 ||
 			    strcmp(argv[0], "plumb") == 0)) {
-				iflen = strlcpy(name, ifname, sizeof(name));
+				iflen = strlcpy(name, args.ifname, sizeof(name));
 				if (iflen >= sizeof(name))
 					errx(1, "%s: cloning name too long",
-					    ifname);
+					    args.ifname);
 				ifconfig(argc, argv, 1, NULL);
 				exit(exit_code);
 			}
@@ -563,15 +562,15 @@ main(int argc, char *argv[])
 			 * to find the interface as it lives in another vnet.
 			 */
 			if (argc > 0 && (strcmp(argv[0], "-vnet") == 0)) {
-				iflen = strlcpy(name, ifname, sizeof(name));
+				iflen = strlcpy(name, args.ifname, sizeof(name));
 				if (iflen >= sizeof(name))
 					errx(1, "%s: interface name too long",
-					    ifname);
+					    args.ifname);
 				ifconfig(argc, argv, 0, NULL);
 				exit(exit_code);
 			}
 #endif
-			errx(1, "interface %s does not exist", ifname);
+			errx(1, "interface %s does not exist", args.ifname);
 		} else {
 			/*
 			 * Do not allow use `create` command as hostname if
@@ -581,7 +580,7 @@ main(int argc, char *argv[])
 			    strcmp(argv[0], "plumb") == 0)) {
 				if (argc == 1)
 					errx(1, "interface %s already exists",
-					    ifname);
+					    args.ifname);
 				argc--, argv++;
 			}
 		}
@@ -599,24 +598,88 @@ main(int argc, char *argv[])
 	 * which doesn't require building, sorting, and searching the entire
 	 * system address list
 	 */
-	if ((argc > 0) && (ifname != NULL)) {
-		iflen = strlcpy(name, ifname, sizeof(name));
+	if ((argc > 0) && (args.ifname != NULL)) {
+		iflen = strlcpy(name, args.ifname, sizeof(name));
 		if (iflen >= sizeof(name)) {
-			warnx("%s: interface name too long, skipping", ifname);
+			warnx("%s: interface name too long, skipping", args.ifname);
 		} else {
 			flags = getifflags(name, -1, false);
 			if (!(((flags & IFF_CANTCONFIG) != 0) ||
-				(downonly && (flags & IFF_UP) != 0) ||
-				(uponly && (flags & IFF_UP) == 0)))
+				(args.downonly && (flags & IFF_UP) != 0) ||
+				(args.uponly && (flags & IFF_UP) == 0)))
 				ifconfig(argc, argv, 0, afp);
 		}
 		goto done;
 	}
 
+	args.afp = afp;
+	args.allfamilies = afp == NULL;
+	args.argc = argc;
+	args.argv = argv;
+
+	list_interfaces(&args);
+
+done:
+	freeformat();
+	ifconfig_close(lifh);
+	exit(exit_code);
+}
+
+bool
+match_ether(const struct sockaddr_dl *sdl)
+{
+	switch (sdl->sdl_type) {
+		case IFT_ETHER:
+		case IFT_L2VLAN:
+		case IFT_BRIDGE:
+			if (sdl->sdl_alen == ETHER_ADDR_LEN)
+				return (true);
+		default:
+			return (false);
+	}
+}
+
+static bool
+match_afp(const struct afswtch *afp, int sa_family, const struct sockaddr_dl *sdl)
+{
+	if (afp == NULL)
+		return (true);
+	/* special case for "ether" address family */
+	if (!strcmp(afp->af_name, "ether")) {
+		if (sdl == NULL && !match_ether(sdl))
+			return (false);
+		return (true);
+	}
+	return (afp->af_af == sa_family);
+}
+
+bool
+match_if_flags(struct ifconfig_args *args, int if_flags)
+{
+	if ((if_flags & IFF_CANTCONFIG) != 0)
+		return (false);
+	if (args->downonly && (if_flags & IFF_UP) != 0)
+		return (false);
+	if (args->uponly && (if_flags & IFF_UP) == 0)
+		return (false);
+	return (true);
+}
+
+#ifdef WITHOUT_NETLINK
+static void
+list_interfaces_ioctl(struct ifconfig_args *args)
+{
+	struct ifa_queue q = TAILQ_HEAD_INITIALIZER(q);
+	struct ifaddrs *ifap, *sifap, *ifa;
+	struct ifa_order_elt *cur, *tmp;
+	char *namecp = NULL;
+	int ifindex;
+	size_t iflen;
+
 	if (getifaddrs(&ifap) != 0)
 		err(EXIT_FAILURE, "getifaddrs");
 
-	cp = NULL;
+	char *cp = NULL;
 	
 	if (calcorders(ifap, &q) != 0)
 		err(EXIT_FAILURE, "calcorders");
@@ -628,20 +691,22 @@ main(int argc, char *argv[])
 
 	ifindex = 0;
 	for (ifa = sifap; ifa; ifa = ifa->ifa_next) {
-		memset(&paifr, 0, sizeof(paifr));
+		struct ifreq paifr = {};
+		const struct sockaddr_dl *sdl;
+
 		strlcpy(paifr.ifr_name, ifa->ifa_name, sizeof(paifr.ifr_name));
 		if (sizeof(paifr.ifr_addr) >= ifa->ifa_addr->sa_len) {
 			memcpy(&paifr.ifr_addr, ifa->ifa_addr,
 			    ifa->ifa_addr->sa_len);
 		}
 
-		if (ifname != NULL && strcmp(ifname, ifa->ifa_name) != 0)
+		if (args->ifname != NULL && strcmp(args->ifname, ifa->ifa_name) != 0)
 			continue;
 		if (ifa->ifa_addr->sa_family == AF_LINK)
 			sdl = (const struct sockaddr_dl *) ifa->ifa_addr;
 		else
 			sdl = NULL;
-		if (cp != NULL && strcmp(cp, ifa->ifa_name) == 0 && !namesonly)
+		if (cp != NULL && strcmp(cp, ifa->ifa_name) == 0 && !args->namesonly)
 			continue;
 		iflen = strlcpy(name, ifa->ifa_name, sizeof(name));
 		if (iflen >= sizeof(name)) {
@@ -651,35 +716,18 @@ main(int argc, char *argv[])
 		}
 		cp = ifa->ifa_name;
 
-		if ((ifa->ifa_flags & IFF_CANTCONFIG) != 0)
+		if (!match_if_flags(args, ifa->ifa_flags))
 			continue;
-		if (downonly && (ifa->ifa_flags & IFF_UP) != 0)
-			continue;
-		if (uponly && (ifa->ifa_flags & IFF_UP) == 0)
-			continue;
-		if (!group_member(ifa->ifa_name, matchgroup, nogroup))
+		if (!group_member(ifa->ifa_name, args->matchgroup, args->nogroup))
 			continue;
 		/*
 		 * Are we just listing the interfaces?
 		 */
-		if (namesonly) {
+		if (args->namesonly) {
 			if (namecp == cp)
 				continue;
-			if (afp != NULL) {
-				/* special case for "ether" address family */
-				if (!strcmp(afp->af_name, "ether")) {
-					if (sdl == NULL ||
-					    (sdl->sdl_type != IFT_ETHER &&
-					    sdl->sdl_type != IFT_L2VLAN &&
-					    sdl->sdl_type != IFT_BRIDGE) ||
-					    sdl->sdl_alen != ETHER_ADDR_LEN)
-						continue;
-				} else {
-					if (ifa->ifa_addr->sa_family 
-					    != afp->af_af)
-						continue;
-				}
-			}
+			if (!match_afp(args->afp, ifa->ifa_addr->sa_family, sdl))
+				continue;
 			namecp = cp;
 			ifindex++;
 			if (ifindex > 1)
@@ -689,27 +737,23 @@ main(int argc, char *argv[])
 		}
 		ifindex++;
 
-		if (argc > 0)
-			ifconfig(argc, argv, 0, afp);
+		if (args->argc > 0)
+			ifconfig(args->argc, args->argv, 0, args->afp);
 		else
-			status(afp, sdl, ifa);
+			status(args, sdl, ifa);
 	}
-	if (namesonly)
+	if (args->namesonly)
 		printf("\n");
 	freeifaddrs(ifap);
-
-done:
-	freeformat();
-	ifconfig_close(lifh);
-	exit(exit_code);
 }
+#endif
 
 /*
  * Returns true if an interface should be listed because any its groups
  * matches shell pattern "match" and none of groups matches pattern "nomatch".
  * If any pattern is NULL, corresponding condition is skipped.
  */
-static bool
+bool
 group_member(const char *ifname, const char *match, const char *nomatch)
 {
 	static int		 sock = -1;
@@ -792,7 +836,7 @@ af_getbyname(const char *name)
 	return NULL;
 }
 
-static struct afswtch *
+struct afswtch *
 af_getbyfamily(int af)
 {
 	struct afswtch *afp;
@@ -803,7 +847,7 @@ af_getbyfamily(int af)
 	return NULL;
 }
 
-static void
+void
 af_other_status(int s)
 {
 	struct afswtch *afp;
@@ -893,7 +937,7 @@ static void setifdstaddr(const char *, int, int, const struct afswtch *);
 static const struct cmd setifdstaddr_cmd =
 	DEF_CMD("ifdstaddr", 0, setifdstaddr);
 
-static int
+int
 ifconfig(int argc, char *const *argv, int iscreate, const struct afswtch *uafp)
 {
 	const struct afswtch *afp, *nafp;
@@ -1416,44 +1460,111 @@ unsetifdescr(const char *val, int value, int s, const struct afswtch *afp)
 "\26RXCSUM_IPV6\27TXCSUM_IPV6\31TXRTLMT\32HWRXTSTMP\33NOMAP\34TXTLS4\35TXTLS6" \
 "\36VXLAN_HWCSUM\37VXLAN_HWTSO\40TXTLS_RTLMT"
 
-/*
- * Print the status of the interface.  If an address family was
- * specified, show only it; otherwise, show them all.
- */
 static void
-status(const struct afswtch *afp, const struct sockaddr_dl *sdl,
-	struct ifaddrs *ifa)
+print_ifcap_nv(struct ifconfig_args *args, int s)
 {
-	struct ifaddrs *ift;
-	struct ifstat ifs;
 	nvlist_t *nvcap;
 	const char *nvname;
 	void *buf, *cookie;
-	int allfamilies, s, type;
 	bool first, val;
+	int type;
 
-	if (afp == NULL) {
-		allfamilies = 1;
-		ifr.ifr_addr.sa_family = AF_LOCAL;
-	} else {
-		allfamilies = 0;
-		ifr.ifr_addr.sa_family =
-		    afp->af_af == AF_LINK ? AF_LOCAL : afp->af_af;
+	buf = malloc(IFR_CAP_NV_MAXBUFSIZE);
+	if (buf == NULL)
+		Perror("malloc");
+	ifr.ifr_cap_nv.buffer = buf;
+	ifr.ifr_cap_nv.buf_length = IFR_CAP_NV_MAXBUFSIZE;
+	if (ioctl(s, SIOCGIFCAPNV, (caddr_t)&ifr) != 0)
+		Perror("ioctl (SIOCGIFCAPNV)");
+	nvcap = nvlist_unpack(ifr.ifr_cap_nv.buffer,
+	    ifr.ifr_cap_nv.length, 0);
+	if (nvcap == NULL)
+		Perror("nvlist_unpack");
+	printf("\toptions");
+	cookie = NULL;
+	for (first = true;; first = false) {
+		nvname = nvlist_next(nvcap, &type, &cookie);
+		if (nvname == NULL) {
+			printf("\n");
+			break;
+		}
+		if (type == NV_TYPE_BOOL) {
+			val = nvlist_get_bool(nvcap, nvname);
+			if (val) {
+				printf("%c%s",
+				    first ? ' ' : ',', nvname);
+			}
+		}
 	}
-	strlcpy(ifr.ifr_name, name, sizeof(ifr.ifr_name));
+	if (args->supmedia) {
+		printf("\tcapabilities");
+		cookie = NULL;
+		for (first = true;; first = false) {
+			nvname = nvlist_next(nvcap, &type,
+			    &cookie);
+			if (nvname == NULL) {
+				printf("\n");
+				break;
+			}
+			if (type == NV_TYPE_BOOL)
+				printf("%c%s", first ? ' ' :
+				    ',', nvname);
+		}
+	}
+	nvlist_destroy(nvcap);
+	free(buf);
 
-	s = socket(ifr.ifr_addr.sa_family, SOCK_DGRAM, 0);
-	if (s < 0)
-		err(1, "socket(family %u,SOCK_DGRAM)", ifr.ifr_addr.sa_family);
+	if (ioctl(s, SIOCGIFCAP, (caddr_t)&ifr) != 0)
+		Perror("ioctl (SIOCGIFCAP)");
+}
 
-	printf("%s: ", name);
-	printb("flags", ifa->ifa_flags, IFFBITS);
+void
+print_ifcap(struct ifconfig_args *args, int s)
+{
+	if (ioctl(s, SIOCGIFCAP, (caddr_t)&ifr) != 0)
+		return;
+
+	if ((ifr.ifr_curcap & IFCAP_NV) != 0)
+		print_ifcap_nv(args, s);
+	else {
+		printb("\toptions", ifr.ifr_curcap, IFCAPBITS);
+		putchar('\n');
+		if (args->supmedia && ifr.ifr_reqcap != 0) {
+			printb("\tcapabilities", ifr.ifr_reqcap,
+			    IFCAPBITS);
+			putchar('\n');
+		}
+	}
+}
+
+void
+print_ifstatus(int s)
+{
+	struct ifstat ifs;
+
+	strlcpy(ifs.ifs_name, name, sizeof ifs.ifs_name);
+	if (ioctl(s, SIOCGIFSTATUS, &ifs) == 0)
+		printf("%s", ifs.ascii);
+}
+
+void
+print_metric(int s)
+{
 	if (ioctl(s, SIOCGIFMETRIC, &ifr) != -1)
 		printf(" metric %d", ifr.ifr_metric);
+}
+
+#ifdef WITHOUT_NETLINK
+static void
+print_mtu(int s)
+{
 	if (ioctl(s, SIOCGIFMTU, &ifr) != -1)
 		printf(" mtu %d", ifr.ifr_mtu);
-	putchar('\n');
+}
 
+static void
+print_description(int s)
+{
 	for (;;) {
 		if ((descr = reallocf(descr, descrlen)) != NULL) {
 			ifr.ifr_buffer.buffer = descr;
@@ -1473,66 +1584,40 @@ status(const struct afswtch *afp, const struct sockaddr_dl *sdl,
 			    "description");
 		break;
 	}
+}
 
-	if (ioctl(s, SIOCGIFCAP, (caddr_t)&ifr) == 0) {
-		if ((ifr.ifr_curcap & IFCAP_NV) != 0) {
-			buf = malloc(IFR_CAP_NV_MAXBUFSIZE);
-			if (buf == NULL)
-				Perror("malloc");
-			ifr.ifr_cap_nv.buffer = buf;
-			ifr.ifr_cap_nv.buf_length = IFR_CAP_NV_MAXBUFSIZE;
-			if (ioctl(s, SIOCGIFCAPNV, (caddr_t)&ifr) != 0)
-				Perror("ioctl (SIOCGIFCAPNV)");
-			nvcap = nvlist_unpack(ifr.ifr_cap_nv.buffer,
-			    ifr.ifr_cap_nv.length, 0);
-			if (nvcap == NULL)
-				Perror("nvlist_unpack");
-			printf("\toptions");
-			cookie = NULL;
-			for (first = true;; first = false) {
-				nvname = nvlist_next(nvcap, &type, &cookie);
-				if (nvname == NULL) {
-					printf("\n");
-					break;
-				}
-				if (type == NV_TYPE_BOOL) {
-					val = nvlist_get_bool(nvcap, nvname);
-					if (val) {
-						printf("%c%s",
-						    first ? ' ' : ',', nvname);
-					}
-				}
-			}
-			if (supmedia) {
-				printf("\tcapabilities");
-				cookie = NULL;
-				for (first = true;; first = false) {
-					nvname = nvlist_next(nvcap, &type,
-					    &cookie);
-					if (nvname == NULL) {
-						printf("\n");
-						break;
-					}
-					if (type == NV_TYPE_BOOL)
-						printf("%c%s", first ? ' ' :
-						    ',', nvname);
-				}
-			}
-			nvlist_destroy(nvcap);
-			free(buf);
+/*
+ * Print the status of the interface.  If an address family was
+ * specified, show only it; otherwise, show them all.
+ */
+static void
+status(struct ifconfig_args *args, const struct sockaddr_dl *sdl,
+	struct ifaddrs *ifa)
+{
+	struct ifaddrs *ift;
+	int s;
+	bool allfamilies = args->afp == NULL;
 
-			if (ioctl(s, SIOCGIFCAP, (caddr_t)&ifr) != 0)
-				Perror("ioctl (SIOCGIFCAP)");
-		} else if (ifr.ifr_curcap != 0) {
-			printb("\toptions", ifr.ifr_curcap, IFCAPBITS);
-			putchar('\n');
-			if (supmedia && ifr.ifr_reqcap != 0) {
-				printb("\tcapabilities", ifr.ifr_reqcap,
-				    IFCAPBITS);
-				putchar('\n');
-			}
-		}
-	}
+	if (args->afp == NULL)
+		ifr.ifr_addr.sa_family = AF_LOCAL;
+	else
+		ifr.ifr_addr.sa_family =
+		   args->afp->af_af == AF_LINK ? AF_LOCAL : args->afp->af_af;
+	strlcpy(ifr.ifr_name, name, sizeof(ifr.ifr_name));
+
+	s = socket(ifr.ifr_addr.sa_family, SOCK_DGRAM, 0);
+	if (s < 0)
+		err(1, "socket(family %u,SOCK_DGRAM)", ifr.ifr_addr.sa_family);
+
+	printf("%s: ", name);
+	printb("flags", ifa->ifa_flags, IFFBITS);
+	print_metric(s);
+	print_mtu(s);
+	putchar('\n');
+
+	print_description(s);
+
+	print_ifcap(args, s);
 
 	tunnel_status(s);
 
@@ -1546,8 +1631,8 @@ status(const struct afswtch *afp, const struct sockaddr_dl *sdl,
 			p = af_getbyfamily(ift->ifa_addr->sa_family);
 			if (p != NULL && p->af_status != NULL)
 				p->af_status(s, ift);
-		} else if (afp->af_af == ift->ifa_addr->sa_family)
-			afp->af_status(s, ift);
+		} else if (args->afp->af_af == ift->ifa_addr->sa_family)
+			args->afp->af_status(s, ift);
 	}
 #if 0
 	if (allfamilies || afp->af_af == AF_LINK) {
@@ -1568,21 +1653,19 @@ status(const struct afswtch *afp, const struct sockaddr_dl *sdl,
 #endif
 	if (allfamilies)
 		af_other_status(s);
-	else if (afp->af_other_status != NULL)
-		afp->af_other_status(s);
+	else if (args->afp->af_other_status != NULL)
+		args->afp->af_other_status(s);
 
-	strlcpy(ifs.ifs_name, name, sizeof ifs.ifs_name);
-	if (ioctl(s, SIOCGIFSTATUS, &ifs) == 0) 
-		printf("%s", ifs.ascii);
-
-	if (verbose > 0)
-		sfp_status(s, &ifr, verbose);
+	print_ifstatus(s);
+	if (args->verbose > 0)
+		sfp_status(s, &ifr, args->verbose);
 
 	close(s);
 	return;
 }
+#endif
 
-static void
+void
 tunnel_status(int s)
 {
 	af_all_tunnel_status(s);
@@ -1653,7 +1736,7 @@ print_vhid(const struct ifaddrs *ifa, const char *s)
 }
 
 void
-ifmaybeload(const char *name)
+ifmaybeload(struct ifconfig_args *args, const char *name)
 {
 #define MOD_PREFIX_LEN		3	/* "if_" */
 	struct module_stat mstat;
@@ -1664,7 +1747,7 @@ ifmaybeload(const char *name)
 	bool found;
 
 	/* loading suppressed by the user */
-	if (noload)
+	if (args->noload)
 		return;
 
 	/* trim the interface number off the end */

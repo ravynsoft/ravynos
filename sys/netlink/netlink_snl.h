@@ -1,5 +1,5 @@
 /*-
- * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+ * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2022 Alexander V. Chernikov <melifaro@FreeBSD.org>
  *
@@ -146,22 +146,29 @@ struct snl_attr_parser {
 	};
 };
 
+typedef bool snl_parse_post_f(struct snl_state *ss, void *target);
+
 struct snl_hdr_parser {
 	int			hdr_off; /* aligned header size */
 	int			fp_size;
 	int			np_size;
 	const struct snl_field_parser	*fp; /* array of header field parsers */
 	const struct snl_attr_parser	*np; /* array of attribute parsers */
+	snl_parse_post_f		*cb_post; /* post-parse callback */
 };
 
-#define	SNL_DECLARE_PARSER(_name, _t, _fp, _np)		\
+#define	SNL_DECLARE_PARSER_EXT(_name, _t, _fp, _np, _cb)	\
 static const struct snl_hdr_parser _name = {		\
 	.hdr_off = sizeof(_t),				\
 	.fp = &((_fp)[0]),				\
 	.np = &((_np)[0]),				\
 	.fp_size = NL_ARRAY_LEN(_fp),			\
 	.np_size = NL_ARRAY_LEN(_np),			\
+	.cb_post = _cb,					\
 }
+
+#define	SNL_DECLARE_PARSER(_name, _t, _fp, _np)		\
+	SNL_DECLARE_PARSER_EXT(_name, _t, _fp, _np, NULL)
 
 #define	SNL_DECLARE_ATTR_PARSER(_name, _np)		\
 static const struct snl_hdr_parser _name = {		\
@@ -471,6 +478,9 @@ snl_parse_header(struct snl_state *ss, void *hdr, int len,
 	bool result = snl_parse_attrs_raw(ss, nla_head, len - parser->hdr_off,
 	    parser->np, parser->np_size, target);
 
+	if (result && parser->cb_post != NULL)
+		result = parser->cb_post(ss, target);
+
 	return (result);
 }
 
@@ -607,6 +617,23 @@ snl_attr_copy_string(struct snl_state *ss, struct nlattr *nla,
 }
 
 static inline bool
+snl_attr_dup_string(struct snl_state *ss __unused, struct nlattr *nla,
+    const void *arg __unused, void *target)
+{
+	size_t maxlen = NLA_DATA_LEN(nla);
+
+	if (strnlen((char *)NLA_DATA(nla), maxlen) < maxlen) {
+		char *buf = snl_allocz(ss, maxlen);
+		if (buf == NULL)
+			return (false);
+		memcpy(buf, NLA_DATA(nla), maxlen);
+		*((char **)target) = buf;
+		return (true);
+	}
+	return (false);
+}
+
+static inline bool
 snl_attr_get_nested(struct snl_state *ss, struct nlattr *nla, const void *arg, void *target)
 {
 	const struct snl_hdr_parser *p = (const struct snl_hdr_parser *)arg;
@@ -624,7 +651,35 @@ snl_attr_get_nla(struct snl_state *ss __unused, struct nlattr *nla,
 }
 
 static inline bool
+snl_attr_dup_nla(struct snl_state *ss __unused, struct nlattr *nla,
+    const void *arg __unused, void *target)
+{
+	void *ptr = snl_allocz(ss, nla->nla_len);
+
+	if (ptr != NULL) {
+		memcpy(ptr, nla, nla->nla_len);
+		*((void **)target) = ptr;
+		return (true);
+	}
+	return (false);
+}
+
+static inline bool
 snl_attr_copy_struct(struct snl_state *ss, struct nlattr *nla,
+    const void *arg __unused, void *target)
+{
+	void *ptr = snl_allocz(ss, NLA_DATA_LEN(nla));
+
+	if (ptr != NULL) {
+		memcpy(ptr, NLA_DATA(nla), NLA_DATA_LEN(nla));
+		*((void **)target) = ptr;
+		return (true);
+	}
+	return (false);
+}
+
+static inline bool
+snl_attr_dup_struct(struct snl_state *ss, struct nlattr *nla,
     const void *arg __unused, void *target)
 {
 	void *ptr = snl_allocz(ss, NLA_DATA_LEN(nla));
