@@ -63,7 +63,7 @@ static BOOL NSViewLayersEnabled=NO;
 
 +(NSFocusRingType)defaultFocusRingType {
    NSUnimplementedMethod();
-   return nil;
+   return 0;
 }
 
 -(void)encodeWithCoder:(NSCoder *)coder {

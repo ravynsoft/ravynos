@@ -285,11 +285,11 @@ CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLContextObj s
 
     if(window) {
         NSRect frame = CGOutsetRectForNativeWindowBorder([w frame], [w styleMask]);
-        context->egl_window = wl_egl_window_create([w wl_surface], frame.size.width,
+        context->egl_window = (EGLNativeWindowType)wl_egl_window_create([w wl_surface], frame.size.width,
             frame.size.height);
 
         context->egl_surface = eglCreatePlatformWindowSurfaceEXT(context->egl_display,
-            context->egl_config, (EGLNativeWindowType)context->egl_window, NULL);
+            context->egl_config, (void *)context->egl_window, NULL);
         if(context->egl_surface == EGL_BAD_PARAMETER) {
             NSLog(@"ERROR: bad EGL parameter");
             return kCGLBadMatch;
@@ -367,7 +367,7 @@ void CGLReleaseContext(CGLContextObj context) {
     if(context->egl_surface)
        eglDestroySurface(context->egl_display, context->egl_surface);
     if(context->egl_window)
-        wl_egl_window_destroy(context->egl_window);
+        wl_egl_window_destroy((struct egl_window *)context->egl_window);
 
     pthread_mutex_destroy(&(context->lock));
     eglDestroyContext(context->egl_display, context->egl_context);
@@ -580,7 +580,7 @@ void CGLBindBuffer(GLenum target,GLuint buffer) {
 }
 
 void *CGLMapBuffer(GLenum target,GLenum access) {
-    return glMapBuffer(target,access);
+    return (void *)glMapBuffer(target,access);
 }
 
 CGL_EXPORT GLboolean CGLUnmapBuffer(GLenum target) {
@@ -592,7 +592,7 @@ void CGLBufferSubData(GLenum target,GLintptr offset,GLsizeiptr size,const GLvoid
 }
 
 void CGLSurfaceResize(CGLContextObj context, int width, int height) {
-    wl_egl_window_resize(context->egl_window, width, height, 0, 0);
+    wl_egl_window_resize((struct wl_egl_window *)context->egl_window, width, height, 0, 0);
 }
 
 void CGLUseShaders(CGLContextObj context) {

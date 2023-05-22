@@ -737,7 +737,7 @@ static void renderCallback(void *data, struct wl_callback *cb, uint32_t time) {
 {
     [[self delegate] platformWindowWillMove:self];
     if(xdg_toplevel)
-        xdg_toplevel_move(xdg_toplevel, [_display seat], [event serialNumber]);
+        xdg_toplevel_move(xdg_toplevel, [_display seat], (uint32_t)[event serialNumber]);
 }
 
 - (void)requestResize:(NSEvent *)event

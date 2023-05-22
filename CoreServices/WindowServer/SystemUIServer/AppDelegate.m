@@ -205,7 +205,7 @@ typedef union {
         if([item isSeparatorItem] || [item isHidden] || ![item isEnabled])
             continue;
         [item setTarget:self];
-        [item setAction:@selector(dump:)];
+        [item setAction:@selector(clicked:)];
         if([item hasSubmenu])
             [self _menuEnumerateAndChange:[item submenu]];
     }
@@ -227,7 +227,7 @@ typedef union {
     kevent(_kq, kev, 1, NULL, 0, NULL);
 }
 
-- (void)dump:(NSMenuItem *)object {
+- (void)clicked:(NSMenuItem *)object {
     int itemID = [object tag];
 
     Message clicked = {0};

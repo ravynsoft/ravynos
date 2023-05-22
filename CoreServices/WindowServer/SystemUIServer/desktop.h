@@ -80,6 +80,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 
 // menu extras container
 @interface ExtrasView: NSView {
+    NSMutableArray *statusItems;
 }
 @end
 

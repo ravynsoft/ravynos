@@ -55,7 +55,7 @@ void enumerateMenuLayout(DKMessageIterator *iterator, NSMenu *menu, int rootID, 
 
         NSMenuItem *item = [items objectAtIndex:i];
         [item _setMenu:menu]; // make sure we can link back to parent. Nib files don't do this.
-        int itemID = [item DBusItemID];
+        int itemID = (uint32_t)[item DBusItemID];
         [innerStruct appendBasic:DBUS_TYPE_INT32 value:&itemID];
         properties = [innerStruct openArray:"{sv}"];
         s = [[item title] UTF8String];
@@ -272,7 +272,7 @@ int recursivelyPopulateItemMap(NSMutableDictionary *itemMap, NSMenu *submenu, in
 
             uint32_t val = layoutVersion;
             [update appendArg:&val type:DBUS_TYPE_UINT32];
-            val = [item DBusItemID];
+            val = (uint32_t)[item DBusItemID];
             [update appendArg:&val type:DBUS_TYPE_UINT32];
 
             [connection send:update];

@@ -2,7 +2,7 @@
 
 #include <wlr/config.h>
 
-#include <linux/input-event-codes.h>
+#include <dev/evdev/input-event-codes.h>
 
 #include <wayland-server-protocol.h>
 

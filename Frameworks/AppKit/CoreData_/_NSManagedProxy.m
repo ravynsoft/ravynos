@@ -120,7 +120,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 - (NSUInteger) count {
     NSUInteger result;
     if(!_context || !_fetchRequest) result = 0;
-    else result = [_fetchRequest _countInContext: _context];
+    else result = (NSUInteger)[_fetchRequest _countInContext: _context];
     NSLog(@"%@ being asked about its count and saying %lu; %@ %@\n", self, result,
 	  _context, _fetchRequest);
     return result;
