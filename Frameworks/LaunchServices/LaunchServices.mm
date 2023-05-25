@@ -33,6 +33,7 @@
 #include <sqlite3.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <cstddef>
 #include <QDBusConnection>
 #include <QDBusInterface>
 #include <QMimeDatabase>
