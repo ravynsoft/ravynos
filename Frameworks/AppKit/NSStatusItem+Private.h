@@ -4,6 +4,7 @@
 //
 //  Created by Rhys Cox on 17/02/2012.
 //  Copyright (c) 2012 BP Software. All rights reserved.
+//  ravynOS integration Copyright (C) 2023 Zoe Knox
 //
 #import <Foundation/Foundation.h>
 #import <CoreFoundation/CFBase.h>

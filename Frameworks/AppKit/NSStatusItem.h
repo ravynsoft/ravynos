@@ -35,6 +35,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     HICON _trayIcon;
     HMENU _win32Menu;
 #endif
+    uint32_t _handle; // reference to this item in our global status bar
 }
 - (NSStatusBar *)statusBar;
 

@@ -244,6 +244,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         _trayIconID = -1;
         _win32Menu = NULL;
 #endif
+	_handle = 0xf00fbabe; // ZMK FIXME: mach msg
     }
     return self;
 }
@@ -284,6 +285,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
         [self _createTrayIcon];
     }
 #endif
+    [self _update];
 }
 - (NSImage *)alternateImage{
     return _alternateImage;
@@ -293,6 +295,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     [_alternateImage release];
     _alternateImage = nil;
     _alternateImage = [image copy];
+    [self _update];
 #endif
 }
 

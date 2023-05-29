@@ -60,12 +60,14 @@ static NSStatusBar *_statusBar=nil;
     return NO;
 }
 - (void)removeStatusItem:(NSStatusItem *)item{
-    
+    // ZMK FIXME: send Mach msg to remove from menubar    
 }
+
 - (NSStatusItem *)statusItemWithLength:(CGFloat)length{
     NSStatusItem *item = [[NSStatusItem alloc] init];
     [item setLength:length];
     [_statusItems addObject:item];
+    // ZMK FIXME: send Mach msg to add to menubar
     return [item autorelease];
 }
 - (CGFloat)thickness{

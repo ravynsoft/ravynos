@@ -29,6 +29,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <CoreGraphics/CGWindow.h>
 #import <AppKit/NSRaise.h>
 #import <AppKit/NSSpellChecker.h>
+#import <AppKit/NSStatusItem.h>
 #import <objc/message.h>
 #import <pthread.h>
 
@@ -64,12 +65,17 @@ NSString * const NSApplicationDidChangeScreenParametersNotification=@"NSApplicat
 #define WINDOWSERVER_SVC_NAME "com.ravynos.WindowServer"
 #define MSG_ID_PORT     90210
 #define MSG_ID_INLINE   90211
+// Recent Items
 #define CODE_ADD_RECENT_ITEM 1
 #define CODE_ITEM_CLICKED 2
+// Activation
 #define CODE_APP_BECAME_ACTIVE 3
 #define CODE_APP_BECAME_INACTIVE 4
 #define CODE_APP_ACTIVATE 5
 #define CODE_APP_HIDE 6
+// Status Items
+#define CODE_STATUS_ITEM_ADDED 7
+#define CODE_ADD_STATUS_ITEM 8
 
 typedef struct {
     mach_msg_header_t header;
@@ -185,6 +191,16 @@ static NSMenuItem *itemWithTag(NSMenu *root, int tag) {
             switch(msg.header.msgh_id) {
                 case MSG_ID_INLINE:
                     switch(msg.code) {
+			case CODE_STATUS_ITEM_ADDED:
+			{
+			    uint32_t handle;
+			    if(msg.len != sizeof(handle)) {
+				NSLog(@"weirdness detected! expected size %d, got %d", sizeof(handle), msg.len);
+				break;
+			    }
+			    memcpy(&handle, msg.data, sizeof(handle));
+			    NSLog(@"ZMK DEBUG: status item added with handle %u", handle);
+			}
                         case CODE_ITEM_CLICKED:
                         {
                             int itemID;
@@ -578,6 +594,34 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
         2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
         NSLog(@"Failed to send recent item to WS");
+}
+
+- (void)_addStatusItem:(NSStatusItem *)item {
+    Message msg = {0};
+    msg.header.msgh_remote_port = _wsSvcPort;
+    msg.header.msgh_bits = MACH_MSGH_BITS_SET(MACH_MSG_TYPE_COPY_SEND, 0, 0, 0);
+    msg.header.msgh_id = MSG_ID_INLINE;
+    msg.header.msgh_size = sizeof(msg);
+    msg.code = CODE_ADD_STATUS_ITEM;
+
+    NSDictionary *dict = [NSDictionary
+        dictionaryWithObjects:@[item]
+        forKeys:@[@"StatusItem"]];
+    NSData *d = [NSKeyedArchiver archivedDataWithRootObject:dict];
+
+    if([d length] > sizeof(msg.data)) {
+	NSLog(@"Failed to send NSStatusItem to WS: overflow");
+	return;
+    }
+
+    memcpy(msg.data, [d bytes], [d length]);
+    msg.len = [d length];
+    [d release];
+    [dict release];
+
+    if(mach_msg((mach_msg_header_t *)&msg, MACH_SEND_MSG, sizeof(msg), 0, MACH_PORT_NULL,
+        2000 /* ms timeout */, MACH_PORT_NULL) != MACH_MSG_SUCCESS)
+        NSLog(@"Failed to send NSStatusItem to WS");
 }
 
 -(void)setMenu:(NSMenu *)menu {
