@@ -13,6 +13,7 @@ RESOURCES=	${.CURDIR}/../Icon.png ${.CURDIR}/ravynos-mark-64.png \
 MK_WERROR=	no
 WARNS=	        1
 CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${MAKEOBJDIR} -I${TOPDIR}/Frameworks/AppKit \
+		-I${TOPDIR}/CoreServices \
                 -framework Foundation -framework AppKit -framework LaunchServices
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' ${LDFLAGS_PKGS} \
                 -lobjc -lwayland-client -lSystem -lm
