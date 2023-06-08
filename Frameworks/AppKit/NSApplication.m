@@ -571,10 +571,18 @@ static int _tagAllMenus(NSMenu *menu, int tag) {
     msg.header.msgh_size = sizeof(msg);
     msg.code = CODE_ADD_STATUS_ITEM;
 
+    NSNumber *pid = [NSNumber numberWithUnsignedInt:getpid()];
     NSDictionary *dict = [NSDictionary
-        dictionaryWithObjects:@[item]
-        forKeys:@[@"StatusItem"]];
+        dictionaryWithObjects:@[item,pid]
+        forKeys:@[@"StatusItem",@"ProcessID"]];
     NSData *d = [NSKeyedArchiver archivedDataWithRootObject:dict];
+    NSObject *o = nil;
+    @try {
+	o = [NSKeyedUnarchiver unarchiveObjectWithData:d];
+    }
+    @catch(NSException *localException) {
+	NSLog(@"%@",localException);
+    }
 
     if([d length] > sizeof(msg.data)) {
 	NSLog(@"Failed to send NSStatusItem to WS: overflow");

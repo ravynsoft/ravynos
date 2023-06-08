@@ -132,6 +132,34 @@
                         }
                         break;
                     }
+		    case CODE_ADD_STATUS_ITEM:
+		    {
+			NSData *data = [NSData
+			    dataWithBytes:msg.msg.data length:msg.msg.len];
+			NSLog(@"data is %@", data);
+			NSObject *o = nil;
+			@try {
+			    o = [NSKeyedUnarchiver unarchiveObjectWithData:data];
+			}
+			@catch(NSException *localException) {
+			    NSLog(@"%@",localException);
+			}
+
+			if(o == nil || [o isKindOfClass:[NSDictionary class]] == NO ||
+			    [(NSDictionary *)o objectForKey:@"StatusItem"] == nil ||
+			    [(NSDictionary *)o objectForKey:@"ProcessID"] == nil ||
+			    ![[(NSDictionary *)o objectForKey:@"StatusItem"] isKindOfClass:[NSStatusItem class]]) {
+			    fprintf(stderr, "archiver: bad input\n");
+			    break;
+			}
+
+			NSDictionary *dict = (NSDictionary *)o;
+			unsigned int pid = [[dict objectForKey:@"ProcessID"] unsignedIntValue];
+			[menuBar
+			    addStatusItem:[dict objectForKey:@"StatusItem"]
+			    pid:pid];
+			break;
+		    }
                 }
                 break;
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2023 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -131,6 +131,11 @@ extern pthread_mutex_t mtx;
 - (void)addRecentItem:(NSURL *)itemURL {
     [menuView addRecentItem:itemURL];
 }
+
+- (void)addStatusItem:(NSStatusItem *)item pid:(unsigned int)pid {
+    [extrasView addStatusItem:item pid:pid];
+}
+
 
 // intercept these - we don't want this app to become activated or deactivated
 -(void)platformWindowActivated:(CGWindow *)window displayIfNeeded:(BOOL)displayIfNeeded {

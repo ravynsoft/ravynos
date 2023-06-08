@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2022 Zoe Knox <zoe@pixin.net>
+ * Copyright (C) 2022-2023 Zoe Knox <zoe@pixin.net>
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,5 +24,9 @@
 #import "desktop.h"
 
 @implementation ExtrasView
+- (void)addStatusItem:(NSStatusItem *)item pid:(unsigned int)pid {
+    NSLog(@"addStatusItem %@ for %u", item, pid);
+}
+
 @end
 
