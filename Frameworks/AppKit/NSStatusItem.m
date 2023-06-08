@@ -1,4 +1,5 @@
 /* Copyright (c) 2006-2007 Christopher J. W. Lloyd
+   Copyright (C) 2023 Zoe Knox <zoe@ravynsoft.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -414,6 +415,52 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (void)drawStatusBarBackgroundInRect:(NSRect)rect withHighlight:(BOOL)highlight{
     NSUnimplementedMethod();
+}
+
+// Coder support
+- (void)encodeWithCoder:(NSCoder *)coder {
+    [coder encodeObject:NSStringFromSelector(_action) forKey:@"NSAction"];
+    [coder encodeObject:NSStringFromSelector(_doubleAction) forKey:@"NSDoubleAction"];
+    [coder encodeObject:_target forKey:@"NSTarget"];
+    [coder encodeObject:_image forKey:@"NSImage"];
+    [coder encodeObject:_alternateImage forKey:@"NSAlternateImage"];
+    [coder encodeObject:_atrTitle forKey:@"NSAttributedTitle"];
+    [coder encodeObject:_title forKey:@"NSTitle"];
+    [coder encodeObject:_view forKey:@"NSView"];
+    [coder encodeBool:_highlightMode forKey:@"NSHighlightMode"];
+    [coder encodeBool:_enabled forKey:@"NSEnabled"];
+    [coder encodeFloat:_length forKey:@"NSLength"];
+    [coder encodeObject:_menu forKey:@"NSMenu"];
+    [coder encodeInteger:_actionMask forKey:@"NSActionMask"];
+    [coder encodeInt:_handle forKey:@"NSHandle"];
+}
+
+-(id)initWithCoder:(NSCoder *)coder {
+    if([coder allowsKeyedCoding]){
+	NSKeyedUnarchiver *keyed = (NSKeyedUnarchiver *)coder;
+	NSString *actionString = [keyed decodeObjectForKey:@"NSAction"];
+	if (actionString)
+	    _action = NSSelectorFromString(actionString);
+	actionString = [keyed decodeObjectForKey:@"NSDoubleAction"];
+	if (actionString)
+	    _doubleAction = NSSelectorFromString(actionString);
+	_target = [keyed decodeObjectForKey:@"NSTarget"];
+	_image = [keyed decodeObjectForKey:@"NSImage"];
+	_alternateImage = [keyed decodeObjectForKey:@"NSAlternateImage"];
+	_atrTitle = [keyed decodeObjectForKey:@"NSAttributedTitle"];
+	_title = [keyed decodeObjectForKey:@"NSTitle"];
+	_view = [keyed decodeObjectForKey:@"NSView"];
+	_highlightMode = [keyed decodeBoolForKey:@"NSHighlightMode"];
+	_enabled = [keyed decodeBoolForKey:@"NSEnabled"];
+	_length = [keyed decodeFloatForKey:@"NSLength"];
+	_menu = [keyed decodeObjectForKey:@"NSMenu"];
+	_actionMask = [keyed decodeIntegerForKey:@"NSActionMask"];
+	_handle = [keyed decodeIntForKey:@"NSHandle"];
+    } else {
+	[NSException raise:NSInvalidArgumentException
+	    format:@"%@ can not initWithCoder:%@", isa, [coder class]];
+    }
+    return self;
 }
 
 @end
