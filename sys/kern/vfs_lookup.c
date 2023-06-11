@@ -81,6 +81,13 @@ static void NDVALIDATE_impl(struct nameidata *, int);
 #define NDVALIDATE(ndp)
 #endif
 
+#define	NDRESTART(ndp) do {						\
+	NDREINIT_DBG(ndp);						\
+	ndp->ni_resflags = 0;						\
+	ndp->ni_cnd.cn_flags &= ~NAMEI_INTERNAL_FLAGS;			\
+	ndp->ni_cnd.cn_flags |= ISRESTARTED;				\
+} while (0)
+
 SDT_PROVIDER_DEFINE(vfs);
 SDT_PROBE_DEFINE4(vfs, namei, lookup, entry, "struct vnode *", "char *",
     "unsigned long", "bool");
@@ -334,7 +341,7 @@ namei_setup(struct nameidata *ndp, struct vnode **dpp, struct pwd **pwdp)
 	 * The reference on ni_rootdir is acquired in the block below to avoid
 	 * back-to-back atomics for absolute lookups.
 	 */
-	ndp->ni_rootdir = pwd->pwd_rdir;
+	namei_setup_rootdir(ndp, cnp, pwd);
 	ndp->ni_topdir = pwd->pwd_jdir;
 
 	if (cnp->cn_pnbuf[0] == '/') {
@@ -594,6 +601,7 @@ namei(struct nameidata *ndp)
 	MPASS(ndp->ni_startdir == NULL || ndp->ni_startdir->v_type == VDIR ||
 	    ndp->ni_startdir->v_type == VBAD);
 
+restart:
 	ndp->ni_lcf = 0;
 	ndp->ni_loopcnt = 0;
 	ndp->ni_vp = NULL;
@@ -628,6 +636,12 @@ namei(struct nameidata *ndp)
 	case CACHE_FPL_STATUS_HANDLED:
 		if (error == 0)
 			NDVALIDATE(ndp);
+		else if (__predict_false(pwd->pwd_adir != pwd->pwd_rdir &&
+		    (cnp->cn_flags & ISRESTARTED) == 0)) {
+			namei_cleanup_cnp(cnp);
+			NDRESTART(ndp);
+			goto restart;
+		}
 		return (error);
 	case CACHE_FPL_STATUS_PARTIAL:
 		TAILQ_INIT(&ndp->ni_cap_tracker);
@@ -668,8 +682,18 @@ namei(struct nameidata *ndp)
 	for (;;) {
 		ndp->ni_startdir = dp;
 		error = vfs_lookup(ndp);
-		if (error != 0)
-			goto out;
+		if (error != 0) {
+			if (__predict_false(pwd->pwd_adir != pwd->pwd_rdir &&
+			    error == ENOENT &&
+			    (cnp->cn_flags & ISRESTARTED) == 0)) {
+				nameicap_cleanup(ndp);
+				pwd_drop(pwd);
+				namei_cleanup_cnp(cnp);
+				NDRESTART(ndp);
+				goto restart;
+			} else
+				goto out;
+		}
 
 		/*
 		 * If not a symbolic link, we're done.
@@ -1573,117 +1597,3 @@ NDVALIDATE_impl(struct nameidata *ndp, int line)
 }
 
 #endif
-
-/*
- * Determine if there is a suitable alternate filename under the specified
- * prefix for the specified path.  If the create flag is set, then the
- * alternate prefix will be used so long as the parent directory exists.
- * This is used by the various compatibility ABIs so that Linux binaries prefer
- * files under /compat/linux for example.  The chosen path (whether under
- * the prefix or under /) is returned in a kernel malloc'd buffer pointed
- * to by pathbuf.  The caller is responsible for free'ing the buffer from
- * the M_TEMP bucket if one is returned.
- */
-int
-kern_alternate_path(const char *prefix, const char *path, enum uio_seg pathseg,
-    char **pathbuf, int create, int dirfd)
-{
-	struct nameidata nd, ndroot;
-	char *ptr, *buf, *cp;
-	size_t len, sz;
-	int error;
-
-	buf = (char *) malloc(MAXPATHLEN, M_TEMP, M_WAITOK);
-	*pathbuf = buf;
-
-	/* Copy the prefix into the new pathname as a starting point. */
-	len = strlcpy(buf, prefix, MAXPATHLEN);
-	if (len >= MAXPATHLEN) {
-		*pathbuf = NULL;
-		free(buf, M_TEMP);
-		return (EINVAL);
-	}
-	sz = MAXPATHLEN - len;
-	ptr = buf + len;
-
-	/* Append the filename to the prefix. */
-	if (pathseg == UIO_SYSSPACE)
-		error = copystr(path, ptr, sz, &len);
-	else
-		error = copyinstr(path, ptr, sz, &len);
-
-	if (error) {
-		*pathbuf = NULL;
-		free(buf, M_TEMP);
-		return (error);
-	}
-
-	/* Only use a prefix with absolute pathnames. */
-	if (*ptr != '/') {
-		error = EINVAL;
-		goto keeporig;
-	}
-
-	if (dirfd != AT_FDCWD) {
-		/*
-		 * We want the original because the "prefix" is
-		 * included in the already opened dirfd.
-		 */
-		bcopy(ptr, buf, len);
-		return (0);
-	}
-
-	/*
-	 * We know that there is a / somewhere in this pathname.
-	 * Search backwards for it, to find the file's parent dir
-	 * to see if it exists in the alternate tree. If it does,
-	 * and we want to create a file (cflag is set). We don't
-	 * need to worry about the root comparison in this case.
-	 */
-
-	if (create) {
-		for (cp = &ptr[len] - 1; *cp != '/'; cp--);
-		*cp = '\0';
-
-		NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, buf);
-		error = namei(&nd);
-		*cp = '/';
-		if (error != 0)
-			goto keeporig;
-	} else {
-		NDINIT(&nd, LOOKUP, NOFOLLOW, UIO_SYSSPACE, buf);
-
-		error = namei(&nd);
-		if (error != 0)
-			goto keeporig;
-
-		/*
-		 * We now compare the vnode of the prefix to the one
-		 * vnode asked. If they resolve to be the same, then we
-		 * ignore the match so that the real root gets used.
-		 * This avoids the problem of traversing "../.." to find the
-		 * root directory and never finding it, because "/" resolves
-		 * to the emulation root directory. This is expensive :-(
-		 */
-		NDINIT(&ndroot, LOOKUP, FOLLOW, UIO_SYSSPACE, prefix);
-
-		/* We shouldn't ever get an error from this namei(). */
-		error = namei(&ndroot);
-		if (error == 0) {
-			if (nd.ni_vp == ndroot.ni_vp)
-				error = ENOENT;
-
-			NDFREE_PNBUF(&ndroot);
-			vrele(ndroot.ni_vp);
-		}
-	}
-
-	NDFREE_PNBUF(&nd);
-	vrele(nd.ni_vp);
-
-keeporig:
-	/* If there was an error, use the original path name. */
-	if (error)
-		bcopy(ptr, buf, len);
-	return (error);
-}

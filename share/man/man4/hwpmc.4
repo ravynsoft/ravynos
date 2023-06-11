@@ -28,7 +28,7 @@
 .\"
 .\" $FreeBSD$
 .\"
-.Dd April 3, 2021
+.Dd May 31, 2023
 .Dt HWPMC 4
 .Os
 .Sh NAME
@@ -597,6 +597,12 @@ An invalid PMC handle was specified.
 An invalid CPU number was passed in for a
 .Dv PMC_OP_GETPMCINFO
 operation.
+.It Bq Er EINVAL
+The
+.Ar pm_flags
+argument to a
+.Dv PMC_OP_CONFIGURELOG
+request contained unknown flags.
 .It Bq Er EINVAL
 A
 .Dv PMC_OP_CONFIGURELOG

@@ -264,7 +264,7 @@ getregdata(void)
  * 11b > 11g.
  */
 static int
-canpromote(int i, int from, int to)
+canpromote(unsigned int i, uint32_t from, uint32_t to)
 {
 	const struct ieee80211_channel *fc = &chaninfo->ic_chans[i];
 	u_int j;
@@ -301,7 +301,7 @@ canpromote(int i, int from, int to)
  * XXX VHT
  */
 static int
-promote(int i)
+promote(unsigned int i)
 {
 	/*
 	 * Query the current mode of the interface in case it's
@@ -347,7 +347,7 @@ promote(int i)
 }
 
 static void
-mapfreq(struct ieee80211_channel *chan, int freq, int flags)
+mapfreq(struct ieee80211_channel *chan, uint16_t freq, unsigned int flags)
 {
 	u_int i;
 
@@ -367,7 +367,7 @@ mapfreq(struct ieee80211_channel *chan, int freq, int flags)
 }
 
 static void
-mapchan(struct ieee80211_channel *chan, int ieee, int flags)
+mapchan(struct ieee80211_channel *chan, uint8_t ieee, unsigned int flags)
 {
 	u_int i;
 
@@ -602,7 +602,7 @@ isanyarg(const char *arg)
 }
 
 static void
-set80211ssid(const char *val, int d, int s, const struct afswtch *rafp)
+set80211ssid(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int		ssid;
 	int		len;
@@ -620,11 +620,11 @@ set80211ssid(const char *val, int d, int s, const struct afswtch *rafp)
 	if (get_string(val, NULL, data, &len) == NULL)
 		exit(1);
 
-	set80211(s, IEEE80211_IOC_SSID, ssid, len, data);
+	set80211(ctx->io_s, IEEE80211_IOC_SSID, ssid, len, data);
 }
 
 static void
-set80211meshid(const char *val, int d, int s, const struct afswtch *rafp)
+set80211meshid(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int		len;
 	u_int8_t	data[IEEE80211_NWID_LEN];
@@ -634,11 +634,11 @@ set80211meshid(const char *val, int d, int s, const struct afswtch *rafp)
 	if (get_string(val, NULL, data, &len) == NULL)
 		exit(1);
 
-	set80211(s, IEEE80211_IOC_MESH_ID, 0, len, data);
+	set80211(ctx->io_s, IEEE80211_IOC_MESH_ID, 0, len, data);
 }	
 
 static void
-set80211stationname(const char *val, int d, int s, const struct afswtch *rafp)
+set80211stationname(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int			len;
 	u_int8_t		data[33];
@@ -647,7 +647,7 @@ set80211stationname(const char *val, int d, int s, const struct afswtch *rafp)
 	len = sizeof(data);
 	get_string(val, NULL, data, &len);
 
-	set80211(s, IEEE80211_IOC_STATIONNAME, 0, len, data);
+	set80211(ctx->io_s, IEEE80211_IOC_STATIONNAME, 0, len, data);
 }
 
 /*
@@ -662,7 +662,7 @@ set80211stationname(const char *val, int d, int s, const struct afswtch *rafp)
  * The result is not validated here; it's assumed to be
  * checked against the channel table fetched from the kernel.
  */ 
-static int
+static unsigned int
 getchannelflags(const char *val, int freq)
 {
 #define	_CHAN_HT	0x80000000
@@ -808,7 +808,7 @@ getchannelflags(const char *val, int freq)
 static void
 getchannel(int s, struct ieee80211_channel *chan, const char *val)
 {
-	int v, flags;
+	unsigned int v, flags;
 	char *eptr;
 
 	memset(chan, 0, sizeof(*chan));
@@ -833,18 +833,20 @@ getchannel(int s, struct ieee80211_channel *chan, const char *val)
 }
 
 static void
-set80211channel(const char *val, int d, int s, const struct afswtch *rafp)
+set80211channel(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	struct ieee80211_channel chan;
+	int s = ctx->io_s;
 
 	getchannel(s, &chan, val);
 	set80211(s, IEEE80211_IOC_CURCHAN, 0, sizeof(chan), &chan);
 }
 
 static void
-set80211chanswitch(const char *val, int d, int s, const struct afswtch *rafp)
+set80211chanswitch(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	struct ieee80211_chanswitch_req csr;
+	int s = ctx->io_s;
 
 	getchannel(s, &csr.csa_chan, val);
 	csr.csa_mode = 1;
@@ -853,7 +855,7 @@ set80211chanswitch(const char *val, int d, int s, const struct afswtch *rafp)
 }
 
 static void
-set80211authmode(const char *val, int d, int s, const struct afswtch *rafp)
+set80211authmode(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int	mode;
 
@@ -871,11 +873,11 @@ set80211authmode(const char *val, int d, int s, const struct afswtch *rafp)
 		errx(1, "unknown authmode");
 	}
 
-	set80211(s, IEEE80211_IOC_AUTHMODE, mode, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_AUTHMODE, mode, 0, NULL);
 }
 
 static void
-set80211powersavemode(const char *val, int d, int s, const struct afswtch *rafp)
+set80211powersavemode(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int	mode;
 
@@ -893,12 +895,14 @@ set80211powersavemode(const char *val, int d, int s, const struct afswtch *rafp)
 		errx(1, "unknown powersavemode");
 	}
 
-	set80211(s, IEEE80211_IOC_POWERSAVE, mode, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_POWERSAVE, mode, 0, NULL);
 }
 
 static void
-set80211powersave(const char *val, int d, int s, const struct afswtch *rafp)
+set80211powersave(if_ctx *ctx, const char *val __unused, int d)
 {
+	int s = ctx->io_s;
+
 	if (d == 0)
 		set80211(s, IEEE80211_IOC_POWERSAVE, IEEE80211_POWERSAVE_OFF,
 		    0, NULL);
@@ -908,13 +912,13 @@ set80211powersave(const char *val, int d, int s, const struct afswtch *rafp)
 }
 
 static void
-set80211powersavesleep(const char *val, int d, int s, const struct afswtch *rafp)
+set80211powersavesleep(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_POWERSAVESLEEP, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_POWERSAVESLEEP, atoi(val), 0, NULL);
 }
 
 static void
-set80211wepmode(const char *val, int d, int s, const struct afswtch *rafp)
+set80211wepmode(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int	mode;
 
@@ -928,13 +932,13 @@ set80211wepmode(const char *val, int d, int s, const struct afswtch *rafp)
 		errx(1, "unknown wep mode");
 	}
 
-	set80211(s, IEEE80211_IOC_WEP, mode, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_WEP, mode, 0, NULL);
 }
 
 static void
-set80211wep(const char *val, int d, int s, const struct afswtch *rafp)
+set80211wep(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_WEP, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_WEP, d, 0, NULL);
 }
 
 static int
@@ -944,8 +948,10 @@ isundefarg(const char *arg)
 }
 
 static void
-set80211weptxkey(const char *val, int d, int s, const struct afswtch *rafp)
+set80211weptxkey(if_ctx *ctx, const char *val, int dummy __unused)
 {
+	int		s = ctx->io_s;
+
 	if (isundefarg(val))
 		set80211(s, IEEE80211_IOC_WEPTXKEY, IEEE80211_KEYIX_NONE, 0, NULL);
 	else
@@ -953,11 +959,12 @@ set80211weptxkey(const char *val, int d, int s, const struct afswtch *rafp)
 }
 
 static void
-set80211wepkey(const char *val, int d, int s, const struct afswtch *rafp)
+set80211wepkey(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int		key = 0;
 	int		len;
 	u_int8_t	data[IEEE80211_KEYBUF_SIZE];
+	int		s = ctx->io_s;
 
 	if (isdigit((int)val[0]) && val[1] == ':') {
 		key = atoi(val)-1;
@@ -977,11 +984,12 @@ set80211wepkey(const char *val, int d, int s, const struct afswtch *rafp)
  * it's not all that hard.
  */
 static void
-set80211nwkey(const char *val, int d, int s, const struct afswtch *rafp)
+set80211nwkey(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int		txkey;
 	int		i, len;
 	u_int8_t	data[IEEE80211_KEYBUF_SIZE];
+	int		s = ctx->io_s;
 
 	set80211(s, IEEE80211_IOC_WEP, IEEE80211_WEP_ON, 0, NULL);
 
@@ -1015,14 +1023,14 @@ set80211nwkey(const char *val, int d, int s, const struct afswtch *rafp)
 }
 
 static void
-set80211rtsthreshold(const char *val, int d, int s, const struct afswtch *rafp)
+set80211rtsthreshold(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_RTSTHRESHOLD,
+	set80211(ctx->io_s, IEEE80211_IOC_RTSTHRESHOLD,
 		isundefarg(val) ? IEEE80211_RTS_MAX : atoi(val), 0, NULL);
 }
 
 static void
-set80211protmode(const char *val, int d, int s, const struct afswtch *rafp)
+set80211protmode(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int	mode;
 
@@ -1036,11 +1044,11 @@ set80211protmode(const char *val, int d, int s, const struct afswtch *rafp)
 		errx(1, "unknown protection mode");
 	}
 
-	set80211(s, IEEE80211_IOC_PROTMODE, mode, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_PROTMODE, mode, 0, NULL);
 }
 
 static void
-set80211htprotmode(const char *val, int d, int s, const struct afswtch *rafp)
+set80211htprotmode(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int	mode;
 
@@ -1052,11 +1060,11 @@ set80211htprotmode(const char *val, int d, int s, const struct afswtch *rafp)
 		errx(1, "unknown protection mode");
 	}
 
-	set80211(s, IEEE80211_IOC_HTPROTMODE, mode, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_HTPROTMODE, mode, 0, NULL);
 }
 
 static void
-set80211txpower(const char *val, int d, int s, const struct afswtch *rafp)
+set80211txpower(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	double v = atof(val);
 	int txpow;
@@ -1064,7 +1072,7 @@ set80211txpower(const char *val, int d, int s, const struct afswtch *rafp)
 	txpow = (int) (2*v);
 	if (txpow != 2*v)
 		errx(-1, "invalid tx power (must be .5 dBm units)");
-	set80211(s, IEEE80211_IOC_TXPOWER, txpow, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_TXPOWER, txpow, 0, NULL);
 }
 
 #define	IEEE80211_ROAMING_DEVICE	0
@@ -1072,7 +1080,7 @@ set80211txpower(const char *val, int d, int s, const struct afswtch *rafp)
 #define	IEEE80211_ROAMING_MANUAL	2
 
 static void
-set80211roaming(const char *val, int d, int s, const struct afswtch *rafp)
+set80211roaming(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int mode;
 
@@ -1085,44 +1093,45 @@ set80211roaming(const char *val, int d, int s, const struct afswtch *rafp)
 	} else {
 		errx(1, "unknown roaming mode");
 	}
-	set80211(s, IEEE80211_IOC_ROAMING, mode, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_ROAMING, mode, 0, NULL);
 }
 
 static void
-set80211wme(const char *val, int d, int s, const struct afswtch *rafp)
+set80211wme(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_WME, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_WME, d, 0, NULL);
 }
 
 static void
-set80211hidessid(const char *val, int d, int s, const struct afswtch *rafp)
+set80211hidessid(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_HIDESSID, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_HIDESSID, d, 0, NULL);
 }
 
 static void
-set80211apbridge(const char *val, int d, int s, const struct afswtch *rafp)
+set80211apbridge(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_APBRIDGE, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_APBRIDGE, d, 0, NULL);
 }
 
 static void
-set80211fastframes(const char *val, int d, int s, const struct afswtch *rafp)
+set80211fastframes(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_FF, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_FF, d, 0, NULL);
 }
 
 static void
-set80211dturbo(const char *val, int d, int s, const struct afswtch *rafp)
+set80211dturbo(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_TURBOP, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_TURBOP, d, 0, NULL);
 }
 
 static void
-set80211chanlist(const char *val, int d, int s, const struct afswtch *rafp)
+set80211chanlist(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	struct ieee80211req_chanlist chanlist;
 	char *temp, *cp, *tp;
+	int s = ctx->io_s;
 
 	temp = malloc(strlen(val) + 1);
 	if (temp == NULL)
@@ -1171,8 +1180,10 @@ set80211chanlist(const char *val, int d, int s, const struct afswtch *rafp)
 }
 
 static void
-set80211bssid(const char *val, int d, int s, const struct afswtch *rafp)
+set80211bssid(if_ctx *ctx, const char *val, int dummy __unused)
 {
+	int s = ctx->io_s;
+
 
 	if (!isanyarg(val)) {
 		char *temp;
@@ -1212,90 +1223,91 @@ getac(const char *ac)
 	errx(1, "unknown wme access class %s", ac);
 }
 
-static
-DECL_CMD_FUNC2(set80211cwmin, ac, val)
+static void
+set80211cwmin(if_ctx *ctx, const char *ac, const char *val)
 {
-	set80211(s, IEEE80211_IOC_WME_CWMIN, atoi(val), getac(ac), NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_WME_CWMIN, atoi(val), getac(ac), NULL);
 }
 
-static
-DECL_CMD_FUNC2(set80211cwmax, ac, val)
+static void
+set80211cwmax(if_ctx *ctx, const char *ac, const char *val)
 {
-	set80211(s, IEEE80211_IOC_WME_CWMAX, atoi(val), getac(ac), NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_WME_CWMAX, atoi(val), getac(ac), NULL);
 }
 
-static
-DECL_CMD_FUNC2(set80211aifs, ac, val)
+static void
+set80211aifs(if_ctx *ctx, const char *ac, const char *val)
 {
-	set80211(s, IEEE80211_IOC_WME_AIFS, atoi(val), getac(ac), NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_WME_AIFS, atoi(val), getac(ac), NULL);
 }
 
-static
-DECL_CMD_FUNC2(set80211txoplimit, ac, val)
+static void
+set80211txoplimit(if_ctx *ctx, const char *ac, const char *val)
 {
-	set80211(s, IEEE80211_IOC_WME_TXOPLIMIT, atoi(val), getac(ac), NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_WME_TXOPLIMIT, atoi(val), getac(ac), NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211acm, ac, d)
+static void
+set80211acm(if_ctx *ctx, const char *ac, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_WME_ACM, 1, getac(ac), NULL);
-}
-static
-DECL_CMD_FUNC(set80211noacm, ac, d)
-{
-	set80211(s, IEEE80211_IOC_WME_ACM, 0, getac(ac), NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_WME_ACM, 1, getac(ac), NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211ackpolicy, ac, d)
+static void
+set80211noacm(if_ctx *ctx, const char *ac, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_WME_ACKPOLICY, 1, getac(ac), NULL);
-}
-static
-DECL_CMD_FUNC(set80211noackpolicy, ac, d)
-{
-	set80211(s, IEEE80211_IOC_WME_ACKPOLICY, 0, getac(ac), NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_WME_ACM, 0, getac(ac), NULL);
 }
 
-static
-DECL_CMD_FUNC2(set80211bsscwmin, ac, val)
+static void
+set80211ackpolicy(if_ctx *ctx, const char *ac, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_WME_CWMIN, atoi(val),
+	set80211(ctx->io_s, IEEE80211_IOC_WME_ACKPOLICY, 1, getac(ac), NULL);
+}
+static void
+set80211noackpolicy(if_ctx *ctx, const char *ac, int dummy __unused)
+{
+	set80211(ctx->io_s, IEEE80211_IOC_WME_ACKPOLICY, 0, getac(ac), NULL);
+}
+
+static void
+set80211bsscwmin(if_ctx *ctx, const char *ac, const char *val)
+{
+	set80211(ctx->io_s, IEEE80211_IOC_WME_CWMIN, atoi(val),
 		getac(ac)|IEEE80211_WMEPARAM_BSS, NULL);
 }
 
-static
-DECL_CMD_FUNC2(set80211bsscwmax, ac, val)
+static void
+set80211bsscwmax(if_ctx *ctx, const char *ac, const char *val)
 {
-	set80211(s, IEEE80211_IOC_WME_CWMAX, atoi(val),
+	set80211(ctx->io_s, IEEE80211_IOC_WME_CWMAX, atoi(val),
 		getac(ac)|IEEE80211_WMEPARAM_BSS, NULL);
 }
 
-static
-DECL_CMD_FUNC2(set80211bssaifs, ac, val)
+static void
+set80211bssaifs(if_ctx *ctx, const char *ac, const char *val)
 {
-	set80211(s, IEEE80211_IOC_WME_AIFS, atoi(val),
+	set80211(ctx->io_s, IEEE80211_IOC_WME_AIFS, atoi(val),
 		getac(ac)|IEEE80211_WMEPARAM_BSS, NULL);
 }
 
-static
-DECL_CMD_FUNC2(set80211bsstxoplimit, ac, val)
+static void
+set80211bsstxoplimit(if_ctx *ctx, const char *ac, const char *val)
 {
-	set80211(s, IEEE80211_IOC_WME_TXOPLIMIT, atoi(val),
+	set80211(ctx->io_s, IEEE80211_IOC_WME_TXOPLIMIT, atoi(val),
 		getac(ac)|IEEE80211_WMEPARAM_BSS, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211dtimperiod, val, d)
+static void
+set80211dtimperiod(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_DTIM_PERIOD, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_DTIM_PERIOD, atoi(val), 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211bintval, val, d)
+static void
+set80211bintval(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_BEACON_INTERVAL, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_BEACON_INTERVAL, atoi(val), 0, NULL);
 }
 
 static void
@@ -1317,20 +1329,20 @@ set80211macmac(int s, int op, const char *val)
 	set80211(s, op, 0, IEEE80211_ADDR_LEN, LLADDR(&sdl));
 }
 
-static
-DECL_CMD_FUNC(set80211addmac, val, d)
+static void
+set80211addmac(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211macmac(s, IEEE80211_IOC_ADDMAC, val);
+	set80211macmac(ctx->io_s, IEEE80211_IOC_ADDMAC, val);
 }
 
-static
-DECL_CMD_FUNC(set80211delmac, val, d)
+static void
+set80211delmac(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211macmac(s, IEEE80211_IOC_DELMAC, val);
+	set80211macmac(ctx->io_s, IEEE80211_IOC_DELMAC, val);
 }
 
-static
-DECL_CMD_FUNC(set80211kickmac, val, d)
+static void
+set80211kickmac(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	char *temp;
 	struct sockaddr_dl sdl;
@@ -1350,13 +1362,13 @@ DECL_CMD_FUNC(set80211kickmac, val, d)
 	mlme.im_op = IEEE80211_MLME_DEAUTH;
 	mlme.im_reason = IEEE80211_REASON_AUTH_EXPIRE;
 	memcpy(mlme.im_macaddr, LLADDR(&sdl), IEEE80211_ADDR_LEN);
-	set80211(s, IEEE80211_IOC_MLME, 0, sizeof(mlme), &mlme);
+	set80211(ctx->io_s, IEEE80211_IOC_MLME, 0, sizeof(mlme), &mlme);
 }
 
-static
-DECL_CMD_FUNC(set80211maccmd, val, d)
+static void
+set80211maccmd(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_MACCMD, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_MACCMD, d, 0, NULL);
 }
 
 static void
@@ -1379,26 +1391,26 @@ set80211meshrtmac(int s, int req, const char *val)
 	    IEEE80211_ADDR_LEN, LLADDR(&sdl));
 }
 
-static
-DECL_CMD_FUNC(set80211addmeshrt, val, d)
+static void
+set80211addmeshrt(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211meshrtmac(s, IEEE80211_MESH_RTCMD_ADD, val);
+	set80211meshrtmac(ctx->io_s, IEEE80211_MESH_RTCMD_ADD, val);
 }
 
-static
-DECL_CMD_FUNC(set80211delmeshrt, val, d)
+static void
+set80211delmeshrt(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211meshrtmac(s, IEEE80211_MESH_RTCMD_DELETE, val);
+	set80211meshrtmac(ctx->io_s, IEEE80211_MESH_RTCMD_DELETE, val);
 }
 
-static
-DECL_CMD_FUNC(set80211meshrtcmd, val, d)
+static void
+set80211meshrtcmd(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_MESH_RTCMD, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_MESH_RTCMD, d, 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211hwmprootmode, val, d)
+static void
+set80211hwmprootmode(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int mode;
 
@@ -1410,73 +1422,73 @@ DECL_CMD_FUNC(set80211hwmprootmode, val, d)
 		mode = IEEE80211_HWMP_ROOTMODE_RANN;
 	else
 		mode = IEEE80211_HWMP_ROOTMODE_DISABLED;
-	set80211(s, IEEE80211_IOC_HWMP_ROOTMODE, mode, 0, NULL);
-}
-
-static
-DECL_CMD_FUNC(set80211hwmpmaxhops, val, d)
-{
-	set80211(s, IEEE80211_IOC_HWMP_MAXHOPS, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_HWMP_ROOTMODE, mode, 0, NULL);
 }
 
 static void
-set80211pureg(const char *val, int d, int s, const struct afswtch *rafp)
+set80211hwmpmaxhops(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_PUREG, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_HWMP_MAXHOPS, atoi(val), 0, NULL);
 }
 
 static void
-set80211quiet(const char *val, int d, int s, const struct afswtch *rafp)
+set80211pureg(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_QUIET, d, 0, NULL);
-}
-
-static
-DECL_CMD_FUNC(set80211quietperiod, val, d)
-{
-	set80211(s, IEEE80211_IOC_QUIET_PERIOD, atoi(val), 0, NULL);
-}
-
-static
-DECL_CMD_FUNC(set80211quietcount, val, d)
-{
-	set80211(s, IEEE80211_IOC_QUIET_COUNT, atoi(val), 0, NULL);
-}
-
-static
-DECL_CMD_FUNC(set80211quietduration, val, d)
-{
-	set80211(s, IEEE80211_IOC_QUIET_DUR, atoi(val), 0, NULL);
-}
-
-static
-DECL_CMD_FUNC(set80211quietoffset, val, d)
-{
-	set80211(s, IEEE80211_IOC_QUIET_OFFSET, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_PUREG, d, 0, NULL);
 }
 
 static void
-set80211bgscan(const char *val, int d, int s, const struct afswtch *rafp)
+set80211quiet(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_BGSCAN, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_QUIET, d, 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211bgscanidle, val, d)
+static void
+set80211quietperiod(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_BGSCAN_IDLE, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_QUIET_PERIOD, atoi(val), 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211bgscanintvl, val, d)
+static void
+set80211quietcount(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_BGSCAN_INTERVAL, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_QUIET_COUNT, atoi(val), 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211scanvalid, val, d)
+static void
+set80211quietduration(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_SCANVALID, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_QUIET_DUR, atoi(val), 0, NULL);
+}
+
+static void
+set80211quietoffset(if_ctx *ctx, const char *val, int dummy __unused)
+{
+	set80211(ctx->io_s, IEEE80211_IOC_QUIET_OFFSET, atoi(val), 0, NULL);
+}
+
+static void
+set80211bgscan(if_ctx *ctx, const char *val __unused, int d)
+{
+	set80211(ctx->io_s, IEEE80211_IOC_BGSCAN, d, 0, NULL);
+}
+
+static void
+set80211bgscanidle(if_ctx *ctx, const char *val, int dummy __unused)
+{
+	set80211(ctx->io_s, IEEE80211_IOC_BGSCAN_IDLE, atoi(val), 0, NULL);
+}
+
+static void
+set80211bgscanintvl(if_ctx *ctx, const char *val, int dummy __unused)
+{
+	set80211(ctx->io_s, IEEE80211_IOC_BGSCAN_INTERVAL, atoi(val), 0, NULL);
+}
+
+static void
+set80211scanvalid(if_ctx *ctx, const char *val, int dummy __unused)
+{
+	set80211(ctx->io_s, IEEE80211_IOC_SCANVALID, atoi(val), 0, NULL);
 }
 
 /*
@@ -1615,11 +1627,12 @@ getmodeflags(const char *val)
     _APPLY1(_flags, _base, _param, _v);					\
 } while (0)
 
-static
-DECL_CMD_FUNC(set80211roamrssi, val, d)
+static void
+set80211roamrssi(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	double v = atof(val);
 	int rssi, flags;
+	int s = ctx->io_s;
 
 	rssi = (int) (2*v);
 	if (rssi != 2*v)
@@ -1646,10 +1659,11 @@ getrate(const char *val, const char *tag)
 	return rate;		/* NB: returns 2x the specified value */
 }
 
-static
-DECL_CMD_FUNC(set80211roamrate, val, d)
+static void
+set80211roamrate(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int rate, flags;
+	int s = ctx->io_s;
 
 	rate = getrate(val, "roam");
 	flags = getmodeflags(val);
@@ -1662,10 +1676,11 @@ DECL_CMD_FUNC(set80211roamrate, val, d)
 	callback_register(setroam_cb, &roamparams);
 }
 
-static
-DECL_CMD_FUNC(set80211mcastrate, val, d)
+static void
+set80211mcastrate(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int rate, flags;
+	int s = ctx->io_s;
 
 	rate = getrate(val, "mcast");
 	flags = getmodeflags(val);
@@ -1678,10 +1693,11 @@ DECL_CMD_FUNC(set80211mcastrate, val, d)
 	callback_register(settxparams_cb, &txparams);
 }
 
-static
-DECL_CMD_FUNC(set80211mgtrate, val, d)
+static void
+set80211mgtrate(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int rate, flags;
+	int s = ctx->io_s;
 
 	rate = getrate(val, "mgmt");
 	flags = getmodeflags(val);
@@ -1694,10 +1710,11 @@ DECL_CMD_FUNC(set80211mgtrate, val, d)
 	callback_register(settxparams_cb, &txparams);
 }
 
-static
-DECL_CMD_FUNC(set80211ucastrate, val, d)
+static void
+set80211ucastrate(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int flags;
+	int s = ctx->io_s;
 
 	gettxparams(s);
 	flags = getmodeflags(val);
@@ -1720,10 +1737,11 @@ DECL_CMD_FUNC(set80211ucastrate, val, d)
 	callback_register(settxparams_cb, &txparams);
 }
 
-static
-DECL_CMD_FUNC(set80211maxretry, val, d)
+static void
+set80211maxretry(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int v = atoi(val), flags;
+	int s = ctx->io_s;
 
 	flags = getmodeflags(val);
 	gettxparams(s);
@@ -1737,51 +1755,52 @@ DECL_CMD_FUNC(set80211maxretry, val, d)
 #undef _APPLY_RATE
 #undef _APPLY
 
-static
-DECL_CMD_FUNC(set80211fragthreshold, val, d)
+static void
+set80211fragthreshold(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_FRAGTHRESHOLD,
+	set80211(ctx->io_s, IEEE80211_IOC_FRAGTHRESHOLD,
 		isundefarg(val) ? IEEE80211_FRAG_MAX : atoi(val), 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211bmissthreshold, val, d)
+static void
+set80211bmissthreshold(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_BMISSTHRESHOLD,
+	set80211(ctx->io_s, IEEE80211_IOC_BMISSTHRESHOLD,
 		isundefarg(val) ? IEEE80211_HWBMISS_MAX : atoi(val), 0, NULL);
 }
 
 static void
-set80211burst(const char *val, int d, int s, const struct afswtch *rafp)
+set80211burst(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_BURST, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_BURST, d, 0, NULL);
 }
 
 static void
-set80211doth(const char *val, int d, int s, const struct afswtch *rafp)
+set80211doth(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_DOTH, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_DOTH, d, 0, NULL);
 }
 
 static void
-set80211dfs(const char *val, int d, int s, const struct afswtch *rafp)
+set80211dfs(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_DFS, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_DFS, d, 0, NULL);
 }
 
 static void
-set80211shortgi(const char *val, int d, int s, const struct afswtch *rafp)
+set80211shortgi(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_SHORTGI,
+	set80211(ctx->io_s, IEEE80211_IOC_SHORTGI,
 		d ? (IEEE80211_HTCAP_SHORTGI20 | IEEE80211_HTCAP_SHORTGI40) : 0,
 		0, NULL);
 }
 
 /* XXX 11ac density/size is different */
 static void
-set80211ampdu(const char *val, int d, int s, const struct afswtch *rafp)
+set80211ampdu(if_ctx *ctx, const char *val __unused, int d)
 {
 	int ampdu;
+	int s = ctx->io_s;
 
 	if (get80211val(s, IEEE80211_IOC_AMPDU, &ampdu) < 0)
 		errx(-1, "cannot set AMPDU setting");
@@ -1794,9 +1813,10 @@ set80211ampdu(const char *val, int d, int s, const struct afswtch *rafp)
 }
 
 static void
-set80211stbc(const char *val, int d, int s, const struct afswtch *rafp)
+set80211stbc(if_ctx *ctx, const char *val __unused, int d)
 {
 	int stbc;
+	int s = ctx->io_s;
 
 	if (get80211val(s, IEEE80211_IOC_STBC, &stbc) < 0)
 		errx(-1, "cannot set STBC setting");
@@ -1809,8 +1829,9 @@ set80211stbc(const char *val, int d, int s, const struct afswtch *rafp)
 }
 
 static void
-set80211ldpc(const char *val, int d, int s, const struct afswtch *rafp)
+set80211ldpc(if_ctx *ctx, const char *val __unused, int d)
 {
+	int s = ctx->io_s;
         int ldpc;
  
         if (get80211val(s, IEEE80211_IOC_LDPC, &ldpc) < 0)
@@ -1824,13 +1845,13 @@ set80211ldpc(const char *val, int d, int s, const struct afswtch *rafp)
 }
 
 static void
-set80211uapsd(const char *val, int d, int s, const struct afswtch *rafp)
+set80211uapsd(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_UAPSD, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_UAPSD, d, 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211ampdulimit, val, d)
+static void
+set80211ampdulimit(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int v;
 
@@ -1854,12 +1875,12 @@ DECL_CMD_FUNC(set80211ampdulimit, val, d)
 	default:
 		errx(-1, "invalid A-MPDU limit %s", val);
 	}
-	set80211(s, IEEE80211_IOC_AMPDU_LIMIT, v, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_AMPDU_LIMIT, v, 0, NULL);
 }
 
 /* XXX 11ac density/size is different */
-static
-DECL_CMD_FUNC(set80211ampdudensity, val, d)
+static void
+set80211ampdudensity(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	int v;
 
@@ -1893,88 +1914,90 @@ DECL_CMD_FUNC(set80211ampdudensity, val, d)
 	default:
 		errx(-1, "invalid A-MPDU density %s", val);
 	}
-	set80211(s, IEEE80211_IOC_AMPDU_DENSITY, v, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_AMPDU_DENSITY, v, 0, NULL);
 }
 
 static void
-set80211amsdu(const char *val, int d, int s, const struct afswtch *rafp)
+set80211amsdu(if_ctx *ctx, const char *val __unused, int d)
 {
 	int amsdu;
 
-	if (get80211val(s, IEEE80211_IOC_AMSDU, &amsdu) < 0)
+	if (get80211val(ctx->io_s, IEEE80211_IOC_AMSDU, &amsdu) < 0)
 		err(-1, "cannot get AMSDU setting");
 	if (d < 0) {
 		d = -d;
 		amsdu &= ~d;
 	} else
 		amsdu |= d;
-	set80211(s, IEEE80211_IOC_AMSDU, amsdu, 0, NULL);
-}
-
-static
-DECL_CMD_FUNC(set80211amsdulimit, val, d)
-{
-	set80211(s, IEEE80211_IOC_AMSDU_LIMIT, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_AMSDU, amsdu, 0, NULL);
 }
 
 static void
-set80211puren(const char *val, int d, int s, const struct afswtch *rafp)
+set80211amsdulimit(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_PUREN, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_AMSDU_LIMIT, atoi(val), 0, NULL);
 }
 
 static void
-set80211htcompat(const char *val, int d, int s, const struct afswtch *rafp)
+set80211puren(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_HTCOMPAT, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_PUREN, d, 0, NULL);
 }
 
 static void
-set80211htconf(const char *val, int d, int s, const struct afswtch *rafp)
+set80211htcompat(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_HTCONF, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_HTCOMPAT, d, 0, NULL);
+}
+
+static void
+set80211htconf(if_ctx *ctx, const char *val __unused, int d)
+{
+	set80211(ctx->io_s, IEEE80211_IOC_HTCONF, d, 0, NULL);
 	htconf = d;
 }
 
 static void
-set80211dwds(const char *val, int d, int s, const struct afswtch *rafp)
+set80211dwds(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_DWDS, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_DWDS, d, 0, NULL);
 }
 
 static void
-set80211inact(const char *val, int d, int s, const struct afswtch *rafp)
+set80211inact(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_INACTIVITY, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_INACTIVITY, d, 0, NULL);
 }
 
 static void
-set80211tsn(const char *val, int d, int s, const struct afswtch *rafp)
+set80211tsn(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_TSN, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_TSN, d, 0, NULL);
 }
 
 static void
-set80211dotd(const char *val, int d, int s, const struct afswtch *rafp)
+set80211dotd(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_DOTD, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_DOTD, d, 0, NULL);
 }
 
 static void
-set80211smps(const char *val, int d, int s, const struct afswtch *rafp)
+set80211smps(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_SMPS, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_SMPS, d, 0, NULL);
 }
 
 static void
-set80211rifs(const char *val, int d, int s, const struct afswtch *rafp)
+set80211rifs(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_RIFS, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_RIFS, d, 0, NULL);
 }
 
 static void
-set80211vhtconf(const char *val, int d, int s, const struct afswtch *rafp)
+set80211vhtconf(if_ctx *ctx, const char *val __unused, int d)
 {
+	int s = ctx->io_s;
+
 	if (get80211val(s, IEEE80211_IOC_VHTCONF, &vhtconf) < 0)
 		errx(-1, "cannot set VHT setting");
 	printf("%s: vhtconf=0x%08x, d=%d\n", __func__, vhtconf, d);
@@ -1984,73 +2007,73 @@ set80211vhtconf(const char *val, int d, int s, const struct afswtch *rafp)
 	} else
 		vhtconf |= d;
 	printf("%s: vhtconf is now 0x%08x\n", __func__, vhtconf);
-	set80211(s, IEEE80211_IOC_VHTCONF, vhtconf, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_VHTCONF, vhtconf, 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211tdmaslot, val, d)
+static void
+set80211tdmaslot(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_TDMA_SLOT, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_TDMA_SLOT, atoi(val), 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211tdmaslotcnt, val, d)
+static void
+set80211tdmaslotcnt(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_TDMA_SLOTCNT, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_TDMA_SLOTCNT, atoi(val), 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211tdmaslotlen, val, d)
+static void
+set80211tdmaslotlen(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_TDMA_SLOTLEN, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_TDMA_SLOTLEN, atoi(val), 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211tdmabintval, val, d)
+static void
+set80211tdmabintval(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_TDMA_BINTERVAL, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_TDMA_BINTERVAL, atoi(val), 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211meshttl, val, d)
+static void
+set80211meshttl(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	set80211(s, IEEE80211_IOC_MESH_TTL, atoi(val), 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_MESH_TTL, atoi(val), 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211meshforward, val, d)
+static void
+set80211meshforward(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_MESH_FWRD, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_MESH_FWRD, d, 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211meshgate, val, d)
+static void
+set80211meshgate(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_MESH_GATE, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_MESH_GATE, d, 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211meshpeering, val, d)
+static void
+set80211meshpeering(if_ctx *ctx, const char *val __unused, int d)
 {
-	set80211(s, IEEE80211_IOC_MESH_AP, d, 0, NULL);
+	set80211(ctx->io_s, IEEE80211_IOC_MESH_AP, d, 0, NULL);
 }
 
-static
-DECL_CMD_FUNC(set80211meshmetric, val, d)
-{
-	char v[12];
-	
-	memcpy(v, val, sizeof(v));
-	set80211(s, IEEE80211_IOC_MESH_PR_METRIC, 0, 0, v);
-}
-
-static
-DECL_CMD_FUNC(set80211meshpath, val, d)
+static void
+set80211meshmetric(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	char v[12];
 	
 	memcpy(v, val, sizeof(v));
-	set80211(s, IEEE80211_IOC_MESH_PR_PATH, 0, 0, v);
+	set80211(ctx->io_s, IEEE80211_IOC_MESH_PR_METRIC, 0, 0, v);
+}
+
+static void
+set80211meshpath(if_ctx *ctx, const char *val, int dummy __unused)
+{
+	char v[12];
+	
+	memcpy(v, val, sizeof(v));
+	set80211(ctx->io_s, IEEE80211_IOC_MESH_PR_PATH, 0, 0, v);
 }
 
 static int
@@ -2084,11 +2107,9 @@ chanlookup(const struct ieee80211_channel chans[], int nchans,
 }
 
 static int
-chanfind(const struct ieee80211_channel chans[], int nchans, int flags)
+chanfind(const struct ieee80211_channel chans[], int nchans, unsigned int flags)
 {
-	int i;
-
-	for (i = 0; i < nchans; i++) {
+	for (int i = 0; i < nchans; i++) {
 		const struct ieee80211_channel *c = &chans[i];
 		if ((c->ic_flags & flags) == flags)
 			return 1;
@@ -2491,8 +2512,8 @@ defaultcountry(const struct regdomain *rd)
 	regdomain.isocc[1] = cc->isoname[1];
 }
 
-static
-DECL_CMD_FUNC(set80211regdomain, val, d)
+static void
+set80211regdomain(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	struct regdata *rdp = getregdata();
 	const struct regdomain *rd;
@@ -2507,7 +2528,7 @@ DECL_CMD_FUNC(set80211regdomain, val, d)
 		if (eptr == val || rd == NULL)
 			errx(1, "unknown regdomain %s", val);
 	}
-	getregdomain(s);
+	getregdomain(ctx->io_s);
 	regdomain.regdomain = rd->sku;
 	if (regdomain.country == 0 && rd->cc != NULL) {
 		/*
@@ -2519,8 +2540,8 @@ DECL_CMD_FUNC(set80211regdomain, val, d)
 	callback_register(setregdomain_cb, &regdomain);
 }
 
-static
-DECL_CMD_FUNC(set80211country, val, d)
+static void
+set80211country(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	struct regdata *rdp = getregdata();
 	const struct country *cc;
@@ -2535,7 +2556,7 @@ DECL_CMD_FUNC(set80211country, val, d)
 		if (eptr == val || cc == NULL)
 			errx(1, "unknown ISO country code %s", val);
 	}
-	getregdomain(s);
+	getregdomain(ctx->io_s);
 	regdomain.regdomain = cc->rd->sku;
 	regdomain.country = cc->code;
 	regdomain.isocc[0] = cc->isoname[0];
@@ -2544,17 +2565,17 @@ DECL_CMD_FUNC(set80211country, val, d)
 }
 
 static void
-set80211location(const char *val, int d, int s, const struct afswtch *rafp)
+set80211location(if_ctx *ctx, const char *val __unused, int d)
 {
-	getregdomain(s);
+	getregdomain(ctx->io_s);
 	regdomain.location = d;
 	callback_register(setregdomain_cb, &regdomain);
 }
 
 static void
-set80211ecm(const char *val, int d, int s, const struct afswtch *rafp)
+set80211ecm(if_ctx *ctx, const char *val __unused, int d)
 {
-	getregdomain(s);
+	getregdomain(ctx->io_s);
 	regdomain.ecm = d;
 	callback_register(setregdomain_cb, &regdomain);
 }
@@ -2699,7 +2720,7 @@ getflags(int flags)
 }
 
 static void
-printie(const char* tag, const uint8_t *ie, size_t ielen, int maxlen)
+printie(const char* tag, const uint8_t *ie, size_t ielen, unsigned int maxlen)
 {
 	printf("%s", tag);
 	if (verbose) {
@@ -2736,7 +2757,7 @@ printie(const char* tag, const uint8_t *ie, size_t ielen, int maxlen)
  */
 
 static void
-printwmeparam(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printwmeparam(const char *tag, const u_int8_t *ie)
 {
 	static const char *acnames[] = { "BE", "BK", "VO", "VI" };
 	const struct ieee80211_wme_param *wme =
@@ -2766,7 +2787,7 @@ printwmeparam(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 }
 
 static void
-printwmeinfo(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printwmeinfo(const char *tag, const u_int8_t *ie)
 {
 	printf("%s", tag);
 	if (verbose) {
@@ -2778,7 +2799,7 @@ printwmeinfo(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 }
 
 static void
-printvhtcap(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printvhtcap(const char *tag, const u_int8_t *ie)
 {
 	printf("%s", tag);
 	if (verbose) {
@@ -2801,7 +2822,7 @@ printvhtcap(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 }
 
 static void
-printvhtinfo(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printvhtinfo(const char *tag, const u_int8_t *ie)
 {
 	printf("%s", tag);
 	if (verbose) {
@@ -2817,7 +2838,7 @@ printvhtinfo(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 }
 
 static void
-printvhtpwrenv(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printvhtpwrenv(const char *tag, const u_int8_t *ie, size_t ielen)
 {
 	printf("%s", tag);
 	static const char *txpwrmap[] = {
@@ -2829,14 +2850,14 @@ printvhtpwrenv(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 	if (verbose) {
 		const struct ieee80211_ie_vht_txpwrenv *vhtpwr =
 		    (const struct ieee80211_ie_vht_txpwrenv *) ie;
-		int i, n;
+		size_t i, n;
 		const char *sep = "";
 
 		/* Get count; trim at ielen */
 		n = (vhtpwr->tx_info &
 		    IEEE80211_VHT_TXPWRENV_INFO_COUNT_MASK) + 1;
 		/* Trim at ielen */
-		if (n > ielen - 3)
+		if (n + 3 > ielen)
 			n = ielen - 3;
 		printf("<tx_info 0x%02x pwr:[", vhtpwr->tx_info);
 		for (i = 0; i < n; i++) {
@@ -2850,7 +2871,7 @@ printvhtpwrenv(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 }
 
 static void
-printhtcap(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printhtcap(const char *tag, const u_int8_t *ie)
 {
 	printf("%s", tag);
 	if (verbose) {
@@ -2884,7 +2905,7 @@ printhtcap(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 }
 
 static void
-printhtinfo(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printhtinfo(const char *tag, const u_int8_t *ie)
 {
 	printf("%s", tag);
 	if (verbose) {
@@ -2916,7 +2937,7 @@ printhtinfo(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 }
 
 static void
-printathie(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printathie(const char *tag, const u_int8_t *ie)
 {
 
 	printf("%s", tag);
@@ -2947,7 +2968,7 @@ printathie(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 
 
 static void
-printmeshconf(const char *tag, const uint8_t *ie, size_t ielen, int maxlen)
+printmeshconf(const char *tag, const uint8_t *ie)
 {
 
 	printf("%s", tag);
@@ -2985,7 +3006,7 @@ printmeshconf(const char *tag, const uint8_t *ie, size_t ielen, int maxlen)
 }
 
 static void
-printbssload(const char *tag, const uint8_t *ie, size_t ielen, int maxlen)
+printbssload(const char *tag, const uint8_t *ie)
 {
 	printf("%s", tag);
 	if (verbose) {
@@ -2999,18 +3020,17 @@ printbssload(const char *tag, const uint8_t *ie, size_t ielen, int maxlen)
 }
 
 static void
-printapchanrep(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printapchanrep(const char *tag, const u_int8_t *ie, size_t ielen)
 {
 	printf("%s", tag);
 	if (verbose) {
 		const struct ieee80211_ap_chan_report_ie *ap =
 		    (const struct ieee80211_ap_chan_report_ie *) ie;
 		const char *sep = "";
-		int i;
 
 		printf("<class %u, chan:[", ap->i_class);
 
-		for (i = 3; i < ielen; i++) {
+		for (size_t i = 3; i < ielen; i++) {
 			printf("%s%u", sep, ie[i]);
 			sep = ",";
 		}
@@ -3059,7 +3079,7 @@ wpa_keymgmt(const u_int8_t *sel)
 }
 
 static void
-printwpaie(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printwpaie(const char *tag, const u_int8_t *ie)
 {
 	u_int8_t len = ie[1];
 
@@ -3145,7 +3165,7 @@ rsn_keymgmt(const u_int8_t *sel)
 }
 
 static void
-printrsnie(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printrsnie(const char *tag, const u_int8_t *ie, size_t ielen)
 {
 	printf("%s", tag);
 	if (verbose) {
@@ -3193,7 +3213,7 @@ printrsnie(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 	  (((const u_int8_t *)(p))[0] <<  8)))
 
 static void
-printwpsie(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printwpsie(const char *tag, const u_int8_t *ie)
 {
 	u_int8_t len = ie[1];
 
@@ -3331,7 +3351,7 @@ printwpsie(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 				break;
 			case IEEE80211_WPS_ATTR_DEV_PASSWORD_ID:
 				n = LE_READ_2(ie);
-				if (n < nitems(dev_pass_id))
+				if (n < (int)nitems(dev_pass_id))
 					printf(" dpi:%s", dev_pass_id[n]);
 				break;
 			case IEEE80211_WPS_ATTR_MANUFACTURER:
@@ -3423,7 +3443,7 @@ printwpsie(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 }
 
 static void
-printtdmaie(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printtdmaie(const char *tag, const u_int8_t *ie, size_t ielen)
 {
 	printf("%s", tag);
 	if (verbose && ielen >= sizeof(struct ieee80211_tdma_param)) {
@@ -3481,7 +3501,7 @@ copy_essid(char buf[], size_t bufsize, const u_int8_t *essid, size_t essid_len)
 }
 
 static void
-printssid(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printssid(const char *tag, const u_int8_t *ie, int maxlen)
 {
 	char ssid[2*IEEE80211_NWID_LEN+1];
 
@@ -3489,14 +3509,13 @@ printssid(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 }
 
 static void
-printrates(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printrates(const char *tag, const u_int8_t *ie, size_t ielen)
 {
 	const char *sep;
-	int i;
 
 	printf("%s", tag);
 	sep = "<";
-	for (i = 2; i < ielen; i++) {
+	for (size_t i = 2; i < ielen; i++) {
 		printf("%s%s%d", sep,
 		    ie[i] & IEEE80211_RATE_BASIC ? "B" : "",
 		    ie[i] & IEEE80211_RATE_VAL);
@@ -3506,7 +3525,7 @@ printrates(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
 }
 
 static void
-printcountry(const char *tag, const u_int8_t *ie, size_t ielen, int maxlen)
+printcountry(const char *tag, const u_int8_t *ie)
 {
 	const struct ieee80211_country_ie *cie =
 	   (const struct ieee80211_country_ie *) ie;
@@ -3603,19 +3622,19 @@ iename(int elemid)
 }
 
 static void
-printies(const u_int8_t *vp, int ielen, int maxcols)
+printies(const u_int8_t *vp, int ielen, unsigned int maxcols)
 {
 	while (ielen > 0) {
 		switch (vp[0]) {
 		case IEEE80211_ELEMID_SSID:
 			if (verbose)
-				printssid(" SSID", vp, 2+vp[1], maxcols);
+				printssid(" SSID", vp, maxcols);
 			break;
 		case IEEE80211_ELEMID_RATES:
 		case IEEE80211_ELEMID_XRATES:
 			if (verbose)
 				printrates(vp[0] == IEEE80211_ELEMID_RATES ?
-				    " RATES" : " XRATES", vp, 2+vp[1], maxcols);
+				    " RATES" : " XRATES", vp, 2+vp[1]);
 			break;
 		case IEEE80211_ELEMID_DSPARMS:
 			if (verbose)
@@ -3623,7 +3642,7 @@ printies(const u_int8_t *vp, int ielen, int maxcols)
 			break;
 		case IEEE80211_ELEMID_COUNTRY:
 			if (verbose)
-				printcountry(" COUNTRY", vp, 2+vp[1], maxcols);
+				printcountry(" COUNTRY", vp);
 			break;
 		case IEEE80211_ELEMID_ERP:
 			if (verbose)
@@ -3631,51 +3650,51 @@ printies(const u_int8_t *vp, int ielen, int maxcols)
 			break;
 		case IEEE80211_ELEMID_VENDOR:
 			if (iswpaoui(vp))
-				printwpaie(" WPA", vp, 2+vp[1], maxcols);
+				printwpaie(" WPA", vp);
 			else if (iswmeinfo(vp))
-				printwmeinfo(" WME", vp, 2+vp[1], maxcols);
+				printwmeinfo(" WME", vp);
 			else if (iswmeparam(vp))
-				printwmeparam(" WME", vp, 2+vp[1], maxcols);
+				printwmeparam(" WME", vp);
 			else if (isatherosoui(vp))
-				printathie(" ATH", vp, 2+vp[1], maxcols);
+				printathie(" ATH", vp);
 			else if (iswpsoui(vp))
-				printwpsie(" WPS", vp, 2+vp[1], maxcols);
+				printwpsie(" WPS", vp);
 			else if (istdmaoui(vp))
-				printtdmaie(" TDMA", vp, 2+vp[1], maxcols);
+				printtdmaie(" TDMA", vp, 2+vp[1]);
 			else if (verbose)
 				printie(" VEN", vp, 2+vp[1], maxcols);
 			break;
 		case IEEE80211_ELEMID_RSN:
-			printrsnie(" RSN", vp, 2+vp[1], maxcols);
+			printrsnie(" RSN", vp, 2+vp[1]);
 			break;
 		case IEEE80211_ELEMID_HTCAP:
-			printhtcap(" HTCAP", vp, 2+vp[1], maxcols);
+			printhtcap(" HTCAP", vp);
 			break;
 		case IEEE80211_ELEMID_HTINFO:
 			if (verbose)
-				printhtinfo(" HTINFO", vp, 2+vp[1], maxcols);
+				printhtinfo(" HTINFO", vp);
 			break;
 		case IEEE80211_ELEMID_MESHID:
 			if (verbose)
-				printssid(" MESHID", vp, 2+vp[1], maxcols);
+				printssid(" MESHID", vp, maxcols);
 			break;
 		case IEEE80211_ELEMID_MESHCONF:
-			printmeshconf(" MESHCONF", vp, 2+vp[1], maxcols);
+			printmeshconf(" MESHCONF", vp);
 			break;
 		case IEEE80211_ELEMID_VHT_CAP:
-			printvhtcap(" VHTCAP", vp, 2+vp[1], maxcols);
+			printvhtcap(" VHTCAP", vp);
 			break;
 		case IEEE80211_ELEMID_VHT_OPMODE:
-			printvhtinfo(" VHTOPMODE", vp, 2+vp[1], maxcols);
+			printvhtinfo(" VHTOPMODE", vp);
 			break;
 		case IEEE80211_ELEMID_VHT_PWR_ENV:
-			printvhtpwrenv(" VHTPWRENV", vp, 2+vp[1], maxcols);
+			printvhtpwrenv(" VHTPWRENV", vp, 2+vp[1]);
 			break;
 		case IEEE80211_ELEMID_BSSLOAD:
-			printbssload(" BSSLOAD", vp, 2+vp[1], maxcols);
+			printbssload(" BSSLOAD", vp);
 			break;
 		case IEEE80211_ELEMID_APCHANREP:
-			printapchanrep(" APCHANREP", vp, 2+vp[1], maxcols);
+			printapchanrep(" APCHANREP", vp, 2+vp[1]);
 			break;
 		default:
 			if (verbose)
@@ -3737,7 +3756,7 @@ list_scan(int s)
 
 	if (get80211len(s, IEEE80211_IOC_SCAN_RESULTS, buf, sizeof(buf), &len) < 0)
 		errx(1, "unable to get scan results");
-	if (len < sizeof(struct ieee80211req_scan_result))
+	if (len < (int)sizeof(struct ieee80211req_scan_result))
 		return;
 
 	getchaninfo(s);
@@ -3756,7 +3775,7 @@ list_scan(int s)
 		const struct ieee80211req_scan_result *sr;
 		const uint8_t *vp, *idp;
 
-		sr = (const struct ieee80211req_scan_result *) cp;
+		sr = (const struct ieee80211req_scan_result *)(const void *) cp;
 		vp = cp + sr->isr_ie_off;
 		if (sr->isr_meshid_len) {
 			idp = vp + sr->isr_ssid_len;
@@ -3781,7 +3800,7 @@ list_scan(int s)
 		printbssidname((const struct ether_addr *)sr->isr_bssid);
 		printf("\n");
 		cp += sr->isr_len, len -= sr->isr_len;
-	} while (len >= sizeof(struct ieee80211req_scan_result));
+	} while (len >= (int)sizeof(struct ieee80211req_scan_result));
 }
 
 static void
@@ -3835,11 +3854,11 @@ scan_and_wait(int s)
 	close(sroute);
 }
 
-static
-DECL_CMD_FUNC(set80211scan, val, d)
+static void
+set80211scan(if_ctx *ctx, const char *val __unused, int dummy __unused)
 {
-	scan_and_wait(s);
-	list_scan(s);
+	scan_and_wait(ctx->io_s);
+	list_scan(ctx->io_s);
 }
 
 static enum ieee80211_opmode get80211opmode(int s);
@@ -3862,13 +3881,13 @@ gettxseq(const struct ieee80211req_sta_info *si)
 static int
 getrxseq(const struct ieee80211req_sta_info *si)
 {
-	int i, rxseq;
+	int rxseq;
 
 	if ((si->isi_state & IEEE80211_NODE_QOS) == 0)
 		return si->isi_rxseqs[0];
 	/* XXX not right but usually what folks want */
 	rxseq = 0;
-	for (i = 0; i < IEEE80211_TID_SIZE; i++)
+	for (unsigned int i = 0; i < IEEE80211_TID_SIZE; i++)
 		if (si->isi_rxseqs[i] > rxseq)
 			rxseq = si->isi_rxseqs[i];
 	return rxseq;
@@ -3896,7 +3915,7 @@ list_stations(int s)
 	}
 	if (get80211len(s, IEEE80211_IOC_STA_INFO, &u, sizeof(u), &len) < 0)
 		errx(1, "unable to get station information");
-	if (len < sizeof(struct ieee80211req_sta_info))
+	if (len < (int)sizeof(struct ieee80211req_sta_info))
 		return;
 
 	getchaninfo(s);
@@ -3931,7 +3950,7 @@ list_stations(int s)
 	do {
 		const struct ieee80211req_sta_info *si;
 
-		si = (const struct ieee80211req_sta_info *) cp;
+		si = (const struct ieee80211req_sta_info *)(const void *)cp;
 		if (si->isi_len < sizeof(*si))
 			break;
 		if (opmode == IEEE80211_M_MBSS)
@@ -3968,7 +3987,7 @@ list_stations(int s)
 		printmimo(&si->isi_mimo);
 		printf("\n");
 		cp += si->isi_len, len -= si->isi_len;
-	} while (len >= sizeof(struct ieee80211req_sta_info));
+	} while (len >= (int)sizeof(struct ieee80211req_sta_info));
 }
 
 static const char *
@@ -4108,7 +4127,7 @@ print_channels(int s, const struct ieee80211req_chaninfo *chans,
 	struct ieee80211req_chaninfo *achans;
 	uint8_t reported[IEEE80211_CHAN_BYTES];
 	const struct ieee80211_channel *c;
-	int i, half;
+	unsigned int i, half;
 
 	achans = malloc(IEEE80211_CHANINFO_SPACE(chans));
 	if (achans == NULL)
@@ -4202,7 +4221,7 @@ list_txpow(int s)
 	struct ieee80211req_chaninfo *achans;
 	uint8_t reported[IEEE80211_CHAN_BYTES];
 	struct ieee80211_channel *c, *prev;
-	int i, half;
+	unsigned int i, half;
 
 	getchaninfo(s);
 	achans = malloc(IEEE80211_CHANINFO_SPACE(chaninfo));
@@ -4249,7 +4268,7 @@ list_txpow(int s)
 }
 
 static void
-list_keys(int s)
+list_keys(int s __unused)
 {
 }
 
@@ -4623,7 +4642,8 @@ list_mesh(int s)
 		, "MSEQ"
 		, "FLAGS");
 
-	for (rt = &routes[0]; rt - &routes[0] < ireq.i_len / sizeof(*rt); rt++){
+	for (unsigned int i = 0; i < ireq.i_len / sizeof(*rt); i++) {
+		rt = &routes[i];
 		printf("%s ",
 		    ether_ntoa((const struct ether_addr *)rt->imr_dest));
 		printf("%s %4u   %4u   %6u %6u    %c%c\n",
@@ -4641,9 +4661,10 @@ list_mesh(int s)
 	}
 }
 
-static
-DECL_CMD_FUNC(set80211list, arg, d)
+static void
+set80211list(if_ctx *ctx, const char *arg, int dummy __unused)
 {
+	int s = ctx->io_s;
 #define	iseq(a,b)	(strncasecmp(a,b,sizeof(b)-1) == 0)
 
 	LINE_INIT('\t');
@@ -4863,8 +4884,9 @@ getdevicename(int s, void *data, size_t len, int *plen)
 }
 
 static void
-ieee80211_status(int s)
+ieee80211_status(if_ctx *ctx)
 {
+	int s = ctx->io_s;
 	static const uint8_t zerobssid[IEEE80211_ADDR_LEN];
 	enum ieee80211_opmode opmode = get80211opmode(s);
 	int i, num, wpa, wme, bgscan, bgscaninterval, val, len, wepmode;
@@ -5785,14 +5807,14 @@ wlan_create(int s, struct ifreq *ifr)
 	strlcpy(name, orig_name, sizeof(name));
 }
 
-static
-DECL_CMD_FUNC(set80211clone_wlandev, arg, d)
+static void
+set80211clone_wlandev(if_ctx *ctx __unused, const char *arg, int dummy __unused)
 {
 	strlcpy(params.icp_parent, arg, IFNAMSIZ);
 }
 
-static
-DECL_CMD_FUNC(set80211clone_wlanbssid, arg, d)
+static void
+set80211clone_wlanbssid(if_ctx *ctx __unused, const char *arg, int dummy __unused)
 {
 	const struct ether_addr *ea;
 
@@ -5802,8 +5824,8 @@ DECL_CMD_FUNC(set80211clone_wlanbssid, arg, d)
 	memcpy(params.icp_bssid, ea->octet, IEEE80211_ADDR_LEN);
 }
 
-static
-DECL_CMD_FUNC(set80211clone_wlanaddr, arg, d)
+static void
+set80211clone_wlanaddr(if_ctx *ctx __unused, const char *arg, int dummy __unused)
 {
 	const struct ether_addr *ea;
 
@@ -5814,8 +5836,8 @@ DECL_CMD_FUNC(set80211clone_wlanaddr, arg, d)
 	params.icp_flags |= IEEE80211_CLONE_MACADDR;
 }
 
-static
-DECL_CMD_FUNC(set80211clone_wlanmode, arg, d)
+static void
+set80211clone_wlanmode(if_ctx *ctx __unused, const char *arg, int dummy __unused)
 {
 #define	iseq(a,b)	(strncasecmp(a,b,sizeof(b)-1) == 0)
 	if (iseq(arg, "sta"))
@@ -5841,7 +5863,7 @@ DECL_CMD_FUNC(set80211clone_wlanmode, arg, d)
 }
 
 static void
-set80211clone_beacons(const char *val, int d, int s, const struct afswtch *rafp)
+set80211clone_beacons(if_ctx *ctx __unused, const char *val __unused, int d)
 {
 	/* NB: inverted sense */
 	if (d)
@@ -5851,7 +5873,7 @@ set80211clone_beacons(const char *val, int d, int s, const struct afswtch *rafp)
 }
 
 static void
-set80211clone_bssid(const char *val, int d, int s, const struct afswtch *rafp)
+set80211clone_bssid(if_ctx *ctx __unused, const char *val __unused, int d)
 {
 	if (d)
 		params.icp_flags |= IEEE80211_CLONE_BSSID;
@@ -5860,7 +5882,7 @@ set80211clone_bssid(const char *val, int d, int s, const struct afswtch *rafp)
 }
 
 static void
-set80211clone_wdslegacy(const char *val, int d, int s, const struct afswtch *rafp)
+set80211clone_wdslegacy(if_ctx *ctx __unused, const char *val __unused, int d)
 {
 	if (d)
 		params.icp_flags |= IEEE80211_CLONE_WDSLEGACY;
@@ -6079,9 +6101,7 @@ static struct afswtch af_ieee80211 = {
 static __constructor void
 ieee80211_ctor(void)
 {
-	int i;
-
-	for (i = 0; i < nitems(ieee80211_cmds);  i++)
+	for (size_t i = 0; i < nitems(ieee80211_cmds);  i++)
 		cmd_register(&ieee80211_cmds[i]);
 	af_register(&af_ieee80211);
 	clone_setdefcallback_prefix("wlan", wlan_create);

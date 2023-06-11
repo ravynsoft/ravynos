@@ -122,9 +122,28 @@ nl_init_socket(struct snl_state *ss)
 	err(1, "unable to open netlink socket");
 }
 
+int
+ifconfig_wrapper_nl(struct ifconfig_args *args, int iscreate,
+    const struct afswtch *uafp)
+{
+	struct snl_state ss = {};
+	struct ifconfig_context ctx = {
+		.args = args,
+		.io_s = -1,
+		.io_ss = &ss,
+	};
+
+	nl_init_socket(&ss);
+
+	int error = ifconfig(&ctx, iscreate, uafp);
+
+	snl_free(&ss);
+
+	return (error);
+}
+
 struct ifa {
 	struct ifa		*next;
-	uint32_t		count;
 	uint32_t		idx;
 	struct snl_parsed_addr	addr;
 };
@@ -186,6 +205,29 @@ prepare_ifmap(struct snl_state *ss)
 	return (ifmap);
 }
 
+uint32_t
+if_nametoindex_nl(struct snl_state *ss, const char *ifname)
+{
+	struct snl_writer nw = {};
+	struct snl_parsed_link_simple link = {};
+
+	snl_init_writer(ss, &nw);
+	struct nlmsghdr *hdr = snl_create_msg_request(&nw, RTM_GETLINK);
+	snl_reserve_msg_object(&nw, struct ifinfomsg);
+	snl_add_msg_attr_string(&nw, IFLA_IFNAME, ifname);
+
+	if (!snl_finalize_msg(&nw) || !snl_send_message(ss, hdr))
+		return (0);
+
+	hdr = snl_read_reply(ss, hdr->nlmsg_seq);
+	if (hdr->nlmsg_type != NL_RTM_NEWLINK)
+		return (0);
+	if (!snl_parse_nlmsg(ss, hdr, &snl_rtm_link_parser_simple, &link))
+		return (0);
+
+	return (link.ifi_index);
+}
+
 static void
 prepare_ifaddrs(struct snl_state *ss, struct ifmap *ifmap)
 {
@@ -214,7 +256,7 @@ prepare_ifaddrs(struct snl_state *ss, struct ifmap *ifmap)
 			continue;
 		struct iface *iface = ifmap->ifaces[ifindex];
 		ifa->next = iface->ifa;
-		ifa->count = ++count;
+		ifa->idx = ++count;
 		iface->ifa = ifa;
 		iface->ifa_count++;
 	}
@@ -288,7 +330,7 @@ sort_iface_ifaddrs(struct snl_state *ss, struct iface *iface)
 	struct ifa **sorted_ifaddrs = snl_allocz(ss, iface->ifa_count * sizeof(void *));
 	struct ifa *ifa = iface->ifa;
 
-	for (int i = 0; i < iface->ifa_count; i++) {
+	for (uint32_t i = 0; i < iface->ifa_count; i++) {
 		struct ifa *ifa_next = ifa->next;
 
 		sorted_ifaddrs[i] = ifa;
@@ -298,23 +340,24 @@ sort_iface_ifaddrs(struct snl_state *ss, struct iface *iface)
 	qsort(sorted_ifaddrs, iface->ifa_count, sizeof(void *), cmp_ifaddr);
 	ifa = sorted_ifaddrs[0];
 	iface->ifa = ifa;
-	for (int i = 1; i < iface->ifa_count; i++) {
+	for (uint32_t i = 1; i < iface->ifa_count; i++) {
 		ifa->next = sorted_ifaddrs[i];
 		ifa = sorted_ifaddrs[i];
 	}
 }
 
 static void
-status_nl(struct ifconfig_args *args, struct io_handler *h, struct iface *iface)
+status_nl(if_ctx *ctx, struct iface *iface)
 {
 	if_link_t *link = &iface->link;
+	struct ifconfig_args *args = ctx->args;
 
 	printf("%s: ", link->ifla_ifname);
 
 	printf("flags=%x", link->ifi_flags);
 	print_bits("IFF", &link->ifi_flags, 1, IFFBITS, nitems(IFFBITS));
 
-	print_metric(h->s);
+	print_metric(ctx->io_s);
 	printf(" mtu %d\n", link->ifla_mtu);
 
 	if (link->ifla_ifalias != NULL)
@@ -322,40 +365,40 @@ status_nl(struct ifconfig_args *args, struct io_handler *h, struct iface *iface)
 
 	/* TODO: convert to netlink */
 	strlcpy(ifr.ifr_name, link->ifla_ifname, sizeof(ifr.ifr_name));
-	print_ifcap(args, h->s);
-	tunnel_status(h->s);
+	print_ifcap(args, ctx->io_s);
+	tunnel_status(ctx->io_s);
 
 	if (args->allfamilies | (args->afp != NULL && args->afp->af_af == AF_LINK)) {
 		/* Start with link-level */
 		const struct afswtch *p = af_getbyfamily(AF_LINK);
 		if (p != NULL && link->ifla_address != NULL)
-			p->af_status_nl(args, h, link, NULL);
+			p->af_status(ctx, link, NULL);
 	}
 
-	sort_iface_ifaddrs(h->ss, iface);
+	sort_iface_ifaddrs(ctx->io_ss, iface);
 
 	for (struct ifa *ifa = iface->ifa; ifa != NULL; ifa = ifa->next) {
 		if (args->allfamilies) {
 			const struct afswtch *p = af_getbyfamily(ifa->addr.ifa_family);
 
 			if (p != NULL)
-				p->af_status_nl(args, h, link, &ifa->addr);
+				p->af_status(ctx, link, &ifa->addr);
 		} else if (args->afp->af_af == ifa->addr.ifa_family) {
 			const struct afswtch *p = args->afp;
 
-			p->af_status_nl(args, h, link, &ifa->addr);
+			p->af_status(ctx, link, &ifa->addr);
 		}
 	}
 
 	/* TODO: convert to netlink */
 	if (args->allfamilies)
-		af_other_status(h->s);
+		af_other_status(ctx);
 	else if (args->afp->af_other_status != NULL)
-		args->afp->af_other_status(h->s);
+		args->afp->af_other_status(ctx);
 
-	print_ifstatus(h->s);
+	print_ifstatus(ctx->io_s);
 	if (args->verbose > 0)
-		sfp_status(h->s, &ifr, args->verbose);
+		sfp_status(ctx);
 }
 
 static int
@@ -371,7 +414,8 @@ get_local_socket(void)
 static void
 set_global_ifname(if_link_t *link)
 {
-	int iflen = strlcpy(name, link->ifla_ifname, sizeof(name));
+	size_t iflen = strlcpy(name, link->ifla_ifname, sizeof(name));
+
 	if (iflen >= sizeof(name))
 		errx(1, "%s: cloning name too long", link->ifla_ifname);
 	strlcpy(ifr.ifr_name, link->ifla_ifname, sizeof(ifr.ifr_name));
@@ -381,12 +425,18 @@ void
 list_interfaces_nl(struct ifconfig_args *args)
 {
 	struct snl_state ss = {};
+	struct ifconfig_context _ctx = {
+		.args = args,
+		.io_s = get_local_socket(),
+		.io_ss = &ss,
+	};
+	struct ifconfig_context *ctx = &_ctx;
 
 	nl_init_socket(&ss);
 
 	struct ifmap *ifmap = prepare_ifmap(&ss);
 	struct iface **sorted_ifaces = snl_allocz(&ss, ifmap->count * sizeof(void *));
-	for (int i = 0, num = 0; i < ifmap->size; i++) {
+	for (uint32_t i = 0, num = 0; i < ifmap->size; i++) {
 		if (ifmap->ifaces[i] != NULL) {
 			sorted_ifaces[num++] = ifmap->ifaces[i];
 			if (num == ifmap->count)
@@ -396,12 +446,7 @@ list_interfaces_nl(struct ifconfig_args *args)
 	qsort(sorted_ifaces, ifmap->count, sizeof(void *), cmp_iface);
 	prepare_ifaddrs(&ss, ifmap);
 
-	struct io_handler h = {
-		.s = get_local_socket(),
-		.ss = &ss,
-	};
-
-	for (int i = 0, num = 0; i < ifmap->count; i++) {
+	for (uint32_t i = 0, num = 0; i < ifmap->count; i++) {
 		struct iface *iface = sorted_ifaces[i];
 
 		if (!match_iface(args, iface))
@@ -414,14 +459,14 @@ list_interfaces_nl(struct ifconfig_args *args)
 				printf(" ");
 			fputs(iface->link.ifla_ifname, stdout);
 		} else if (args->argc == 0)
-			status_nl(args, &h, iface);
+			status_nl(ctx, iface);
 		else
-			ifconfig(args->argc, args->argv, 0, args->afp);
+			ifconfig(ctx, 0, args->afp);
 	}
 	if (args->namesonly)
 		printf("\n");
 
-	close(h.s);
+	close(ctx->io_s);
 	snl_free(&ss);
 }
 

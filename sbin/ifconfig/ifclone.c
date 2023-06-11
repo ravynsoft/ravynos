@@ -118,7 +118,7 @@ clone_setdefcallback_filter(clone_match_func *filter, clone_callback_func *p)
  * no parameters.
  */
 static void
-ifclonecreate(int s, void *arg)
+ifclonecreate(int s, void *arg __unused)
 {
 	struct ifreq ifr;
 	struct clone_defcb *dcp;
@@ -160,17 +160,17 @@ ifclonecreate(int s, void *arg)
 	}
 }
 
-static
-DECL_CMD_FUNC(clone_create, arg, d)
+static void
+clone_create(if_ctx *ctx __unused, const char *cmd __unused, int d __unused)
 {
 	callback_register(ifclonecreate, NULL);
 }
 
-static
-DECL_CMD_FUNC(clone_destroy, arg, d)
+static void
+clone_destroy(if_ctx *ctx, const char *cmd __unused, int d __unused)
 {
-	(void) strlcpy(ifr.ifr_name, name, sizeof(ifr.ifr_name));
-	if (ioctl(s, SIOCIFDESTROY, &ifr) < 0)
+	strlcpy(ifr.ifr_name, name, sizeof(ifr.ifr_name));
+	if (ioctl(ctx->io_s, SIOCIFDESTROY, &ifr) < 0)
 		err(1, "SIOCIFDESTROY");
 }
 
@@ -182,7 +182,7 @@ static struct cmd clone_cmds[] = {
 };
 
 static void
-clone_Copt_cb(const char *optarg __unused)
+clone_Copt_cb(const char *arg __unused)
 {
 	list_cloners();
 	exit(exit_code);

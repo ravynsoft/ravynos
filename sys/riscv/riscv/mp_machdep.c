@@ -88,8 +88,6 @@ static device_attach_t riscv64_cpu_attach;
 
 static int ipi_handler(void *);
 
-struct pcb stoppcbs[MAXCPU];
-
 extern uint32_t boot_hart;
 extern cpuset_t all_harts;
 
@@ -249,13 +247,6 @@ init_secondary(uint64_t hart)
 	pcpup->pc_curthread = pcpup->pc_idlethread;
 	schedinit_ap();
 
-	/*
-	 * Identify current CPU. This is necessary to setup
-	 * affinity registers and to provide support for
-	 * runtime chip identification.
-	 */
-	identify_cpu();
-
 	/* Enable software interrupts */
 	riscv_unmask_ipi();
 
@@ -283,6 +274,9 @@ init_secondary(uint64_t hart)
 	}
 
 	mtx_unlock_spin(&ap_boot_mtx);
+
+	if (bootverbose)
+		printf("Secondary CPU %u fully online\n", cpuid);
 
 	/* Enter the scheduler */
 	sched_ap_entry();
@@ -493,7 +487,8 @@ cpu_init_fdt(u_int id, phandle_t node, u_int addr_size, pcell_t *reg)
 	naps = atomic_load_int(&aps_started);
 	bootstack = (char *)bootstacks[cpuid] + MP_BOOTSTACK_SIZE;
 
-	printf("Starting CPU %u (hart %lx)\n", cpuid, hart);
+	if (bootverbose)
+		printf("Starting CPU %u (hart %lx)\n", cpuid, hart);
 	atomic_store_32(&__riscv_boot_ap[hart], 1);
 
 	/* Wait for the AP to switch to its boot stack. */
@@ -511,6 +506,7 @@ cpu_init_fdt(u_int id, phandle_t node, u_int addr_size, pcell_t *reg)
 void
 cpu_mp_start(void)
 {
+	u_int cpu;
 
 	mtx_init(&ap_boot_mtx, "ap boot", NULL, MTX_SPIN);
 
@@ -526,12 +522,29 @@ cpu_mp_start(void)
 	case CPUS_UNKNOWN:
 		break;
 	}
+
+	CPU_FOREACH(cpu) {
+		/* Already identified. */
+		if (cpu == 0)
+			continue;
+
+		identify_cpu(cpu);
+	}
 }
 
 /* Introduce rest of cores to the world */
 void
 cpu_mp_announce(void)
 {
+	u_int cpu;
+
+	CPU_FOREACH(cpu) {
+		/* Already announced. */
+		if (cpu == 0)
+			continue;
+
+		printcpuinfo(cpu);
+	}
 }
 
 void

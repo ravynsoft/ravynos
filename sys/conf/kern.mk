@@ -46,13 +46,6 @@ CWARNEXTRA?=	-Wno-error=tautological-compare -Wno-error=empty-body \
 		-Wno-error=pointer-sign
 CWARNEXTRA+=	-Wno-error=shift-negative-value
 CWARNEXTRA+=	-Wno-address-of-packed-member
-.if ${COMPILER_VERSION} >= 150000
-# Clang 15 has much more aggressive diagnostics about
-# mismatched prototypes and unused-but-set variables. Make these
-# non-fatal for the time being.
-CWARNEXTRA+=	-Wno-error=strict-prototypes
-CWARNEXTRA+=	-Wno-error=unused-but-set-variable
-.endif
 .endif	# clang
 
 .if ${COMPILER_TYPE} == "gcc"
@@ -252,10 +245,12 @@ CFLAGS+=	-mretpoline
 #
 .if ${MK_INIT_ALL_ZERO} == "yes"
 .if ${COMPILER_FEATURES:Minit-all}
-CFLAGS+= -ftrivial-auto-var-init=zero \
-    -enable-trivial-auto-var-init-zero-knowing-it-will-be-removed-from-clang
+CFLAGS+= -ftrivial-auto-var-init=zero
+.if ${COMPILER_TYPE} == "clang" && ${COMPILER_VERSION} < 160000
+CFLAGS+= -enable-trivial-auto-var-init-zero-knowing-it-will-be-removed-from-clang
+.endif
 .else
-.warning InitAll (zeros) requested but not support by compiler
+.warning InitAll (zeros) requested but not supported by compiler
 .endif
 .elif ${MK_INIT_ALL_PATTERN} == "yes"
 .if ${COMPILER_FEATURES:Minit-all}

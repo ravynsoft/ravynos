@@ -2126,7 +2126,8 @@ pmc_hook_handler(struct thread *td, int function, void *arg)
 		CK_LIST_FOREACH(po, &pmc_ss_owners, po_ssnext)
 		    if (po->po_flags & PMC_PO_OWNS_LOGFILE)
 			    pmclog_process_procexec(po, PMC_ID_INVALID,
-				p->p_pid, pk->pm_entryaddr, fullpath);
+				p->p_pid, pk->pm_baseaddr, pk->pm_dynaddr,
+				fullpath);
 		PMC_EPOCH_EXIT();
 
 		PROC_LOCK(p);
@@ -2170,8 +2171,8 @@ pmc_hook_handler(struct thread *td, int function, void *arg)
 				if (po->po_sscount == 0 &&
 				    po->po_flags & PMC_PO_OWNS_LOGFILE)
 					pmclog_process_procexec(po, pm->pm_id,
-					    p->p_pid, pk->pm_entryaddr,
-					    fullpath);
+					    p->p_pid, pk->pm_baseaddr,
+					    pk->pm_dynaddr, fullpath);
 			}
 
 		if (freepath)
@@ -3435,6 +3436,12 @@ pmc_syscall_handler(struct thread *td, void *syscall_args)
 
 		if ((error = copyin(arg, &cl, sizeof(cl))) != 0) {
 			pmclog_proc_ignite(pmclog_proc_handle, NULL);
+			break;
+		}
+
+		/* No flags currently implemented */
+		if (cl.pm_flags != 0) {
+			error = EINVAL;
 			break;
 		}
 
@@ -5396,7 +5403,7 @@ pmc_kld_load(void *arg __unused, linker_file_t lf)
 	CK_LIST_FOREACH(po, &pmc_ss_owners, po_ssnext)
 		if (po->po_flags & PMC_PO_OWNS_LOGFILE)
 			pmclog_process_map_in(po, (pid_t) -1,
-			    (uintfptr_t) lf->address, lf->filename);
+			    (uintfptr_t) lf->address, lf->pathname);
 	PMC_EPOCH_EXIT();
 
 	/*

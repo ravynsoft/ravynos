@@ -254,6 +254,11 @@ comc_get_con_serial_handle(const char *name)
 	return (NULL);
 }
 
+/*
+ * Called from cons_probe() to see if this device is available.
+ * Return immediately on x86, except for hyperv, since it interferes with
+ * common configurations otherwise (yes, this is just firewalling the bug).
+ */
 static void
 comc_probe(struct console *sc)
 {
@@ -264,6 +269,18 @@ comc_probe(struct console *sc)
 	unsigned val;
 	char *env, *buf, *ep;
 	size_t sz;
+
+#ifdef __amd64__
+	/*
+	 * This driver tickles issues on a number of different firmware loads.
+	 * It is only required for HyperV, and is only known to work on HyperV,
+	 * so only allow it on HyperV.
+	 */
+	env = getenv("smbios.bios.version");
+	if (env == NULL || strncmp(env, "Hyper-V", 7) != 0) {
+		return;
+	}
+#endif
 
 	if (comc_port == NULL) {
 		comc_port = calloc(1, sizeof (struct serial));
@@ -312,6 +329,16 @@ comc_probe(struct console *sc)
 		}
 	}
 
+	/*
+	 * If there's no sio, then the device isn't there, so just return since
+	 * the present flags aren't yet set.
+	 */
+	if (comc_port->sio == NULL) {
+		free(comc_port);
+		comc_port = NULL;
+		return;
+	}
+
 	if (env != NULL) 
 		unsetenv("efi_com_port");
 	snprintf(value, sizeof (value), "%u", comc_port->ioaddr);
@@ -332,9 +359,12 @@ comc_probe(struct console *sc)
 	env_setenv("efi_com_speed", EV_VOLATILE, value,
 	    comc_speed_set, env_nounset);
 
-	eficom.c_flags = 0;
 	if (comc_setup()) {
 		sc->c_flags = C_PRESENTIN | C_PRESENTOUT;
+	} else {
+		sc->c_flags &= ~(C_PRESENTIN | C_PRESENTOUT);
+		free(comc_port);
+		comc_port = NULL;
 	}
 }
 
@@ -342,21 +372,30 @@ comc_probe(struct console *sc)
 static void
 comc_probe_compat(struct console *sc)
 {
-	comc_probe(sc);
-	if (sc->c_flags & (C_PRESENTIN | C_PRESENTOUT)) {
+	comc_probe(&eficom);
+	if (eficom.c_flags & (C_PRESENTIN | C_PRESENTOUT)) {
 		printf("comconsole: comconsole device name is deprecated, switch to eficom\n");
 	}
+	/*
+	 * Note: We leave the present bits unset in sc to avoid ghosting.
+	 */
 }
 #endif
 
+/*
+ * Called when the console is selected in cons_change. If we didn't detect the
+ * device, comc_port will be NULL, and comc_setup will fail. It may be called
+ * even when the device isn't present as a 'fallback' console or when listed
+ * specifically in console env, so we have to reset the c_flags in those case to
+ * say it's not present.
+ */
 static int
 comc_init(int arg __unused)
 {
-
 	if (comc_setup())
 		return (CMD_OK);
 
-	eficom.c_flags = 0;
+	eficom.c_flags &= ~(C_ACTIVEIN | C_ACTIVEOUT);
 	return (CMD_ERROR);
 }
 
@@ -458,7 +497,7 @@ comc_port_set(struct env_var *ev, int flags, const void *value)
 	EFI_HANDLE handle;
 	EFI_STATUS status;
 
-	if (value == NULL)
+	if (value == NULL || comc_port == NULL)
 		return (CMD_ERROR);
 
 	if (comc_parse_intval(value, &port) != CMD_OK) 
@@ -493,7 +532,7 @@ comc_speed_set(struct env_var *ev, int flags, const void *value)
 {
 	unsigned speed;
 
-	if (value == NULL)
+	if (value == NULL || comc_port == NULL)
 		return (CMD_ERROR);
 
 	if (comc_parse_intval(value, &speed) != CMD_OK) 
@@ -516,8 +555,10 @@ comc_setup(void)
 	EFI_STATUS status;
 	char *ev;
 
-	/* port is not usable */
-	if (comc_port->sio == NULL)
+	/*
+	 * If the device isn't active, or there's no port present.
+	 */
+	if ((eficom.c_flags & (C_ACTIVEIN | C_ACTIVEOUT)) == 0 || comc_port == NULL)
 		return (false);
 
 	if (comc_port->sio->Reset != NULL) {

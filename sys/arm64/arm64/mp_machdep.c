@@ -126,8 +126,6 @@ static void ipi_preempt(void *);
 static void ipi_rendezvous(void *);
 static void ipi_stop(void *);
 
-struct pcb stoppcbs[MAXCPU];
-
 #ifdef FDT
 static u_int fdt_cpuid;
 #endif
@@ -780,6 +778,8 @@ cpu_mp_start(void)
 	CPU_SET(0, &all_cpus);
 	mpidr = READ_SPECIALREG(mpidr_el1) & CPU_AFF_MASK;
 	cpuid_to_pcpu[0]->pc_mpidr = mpidr;
+
+	cpu_desc_init();
 
 	switch(arm64_bus_method) {
 #ifdef DEV_ACPI

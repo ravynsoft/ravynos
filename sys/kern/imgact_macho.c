@@ -96,7 +96,6 @@ struct sysentvec macho_sysvec = {
 	.sv_szsigcode	= &macho_szsigcode,
 	.sv_name	= "FreeBSD MachO64",
 	.sv_coredump	= NULL,
-	.sv_imgact_try	= NULL,
 	.sv_minsigstksz	= MINSIGSTKSZ,
 	.sv_minuser	= VM_MIN_ADDRESS,
 	.sv_maxuser	= __MAXUSER,

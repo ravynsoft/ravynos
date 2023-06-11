@@ -170,7 +170,7 @@ inoinfo(ino_t inum)
 	struct inostatlist *ilp;
 	int iloff;
 
-	if (inum > maxino)
+	if (inum >= maxino)
 		errx(EEXIT, "inoinfo: inumber %ju out of range",
 		    (uintmax_t)inum);
 	ilp = &inostathead[inum / sblock.fs_ipg];
@@ -1205,6 +1205,31 @@ std_checkblkavail(ufs2_daddr_t blkno, long frags)
 		return (blkno + j);
 	}
 	return (0);
+}
+
+/*
+ * Check whether a file size is within the limits for the filesystem.
+ * Return 1 when valid and 0 when too big.
+ *
+ * This should match the file size limit in ffs_mountfs().
+ */
+int
+chkfilesize(mode_t mode, u_int64_t filesize)
+{
+	u_int64_t kernmaxfilesize;
+
+	if (sblock.fs_magic == FS_UFS1_MAGIC)
+		kernmaxfilesize = (off_t)0x40000000 * sblock.fs_bsize - 1;
+	else
+		kernmaxfilesize = sblock.fs_maxfilesize;
+	if (filesize > kernmaxfilesize ||
+	    filesize > sblock.fs_maxfilesize ||
+	    (mode == IFDIR && filesize > MAXDIRSIZE)) {
+		if (debug)
+			printf("bad file size %ju:", (uintmax_t)filesize);
+		return (0);
+	}
+	return (1);
 }
 
 /*

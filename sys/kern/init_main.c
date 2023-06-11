@@ -255,6 +255,7 @@ restart:
 	 * Perform a bubble sort of the system initialization objects by
 	 * their subsystem (primary key) and order (secondary key).
 	 */
+	TSENTER2("bubblesort");
 	for (sipp = sysinit; sipp < sysinit_end; sipp++) {
 		for (xipp = sipp + 1; xipp < sysinit_end; xipp++) {
 			if ((*sipp)->subsystem < (*xipp)->subsystem ||
@@ -266,6 +267,7 @@ restart:
 			*xipp = save;
 		}
 	}
+	TSEXIT2("bubblesort");
 
 	last = SI_SUB_COPYRIGHT;
 #if defined(VERBOSE_SYSINIT)
@@ -422,7 +424,6 @@ struct sysentvec null_sysvec = {
 	.sv_szsigcode	= NULL,
 	.sv_name	= "null",
 	.sv_coredump	= NULL,
-	.sv_imgact_try	= NULL,
 	.sv_minsigstksz	= 0,
 	.sv_minuser	= VM_MIN_ADDRESS,
 	.sv_maxuser	= VM_MAXUSER_ADDRESS,

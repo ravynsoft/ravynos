@@ -184,7 +184,7 @@ static const char * const vmx_exit_reason_desc[] = {
 	[EXIT_REASON_XRSTORS] = "XRSTORS"
 };
 
-typedef int (*vmexit_handler_t)(struct vmctx *, struct vcpu *, struct vm_exit *);
+typedef int (*vmexit_handler_t)(struct vmctx *, struct vcpu *, struct vm_run *);
 
 int guest_ncpus;
 uint16_t cpu_cores, cpu_sockets, cpu_threads;
@@ -197,17 +197,6 @@ static const int BSP = 0;
 static cpuset_t cpumask;
 
 static void vm_loop(struct vmctx *ctx, struct vcpu *vcpu);
-
-static struct bhyvestats {
-	uint64_t	vmexit_bogus;
-	uint64_t	vmexit_reqidle;
-	uint64_t	vmexit_hlt;
-	uint64_t	vmexit_pause;
-	uint64_t	vmexit_mtrap;
-	uint64_t	vmexit_inst_emul;
-	uint64_t	cpu_switch_rotate;
-	uint64_t	cpu_switch_direct;
-} stats;
 
 static struct vcpu_info {
 	struct vmctx	*ctx;
@@ -592,11 +581,13 @@ vmexit_handle_notify(struct vmctx *ctx __unused, struct vcpu *vcpu __unused,
 }
 
 static int
-vmexit_inout(struct vmctx *ctx, struct vcpu *vcpu, struct vm_exit *vme)
+vmexit_inout(struct vmctx *ctx, struct vcpu *vcpu, struct vm_run *vmrun)
 {
+	struct vm_exit *vme;
 	int error;
 	int bytes, port, in, out;
 
+	vme = vmrun->vm_exit;
 	port = vme->u.inout.port;
 	bytes = vme->u.inout.bytes;
 	in = vme->u.inout.in;
@@ -621,11 +612,15 @@ vmexit_inout(struct vmctx *ctx, struct vcpu *vcpu, struct vm_exit *vme)
 }
 
 static int
-vmexit_rdmsr(struct vmctx *ctx __unused, struct vcpu *vcpu, struct vm_exit *vme)
+vmexit_rdmsr(struct vmctx *ctx __unused, struct vcpu *vcpu,
+    struct vm_run *vmrun)
 {
+	struct vm_exit *vme;
 	uint64_t val;
 	uint32_t eax, edx;
 	int error;
+
+	vme = vmrun->vm_exit;
 
 	val = 0;
 	error = emulate_rdmsr(vcpu, vme->u.msr.code, &val);
@@ -650,9 +645,13 @@ vmexit_rdmsr(struct vmctx *ctx __unused, struct vcpu *vcpu, struct vm_exit *vme)
 }
 
 static int
-vmexit_wrmsr(struct vmctx *ctx __unused, struct vcpu *vcpu, struct vm_exit *vme)
+vmexit_wrmsr(struct vmctx *ctx __unused, struct vcpu *vcpu,
+    struct vm_run *vmrun)
 {
+	struct vm_exit *vme;
 	int error;
+
+	vme = vmrun->vm_exit;
 
 	error = emulate_wrmsr(vcpu, vme->u.msr.code, vme->u.msr.wval);
 	if (error != 0) {
@@ -685,8 +684,11 @@ vmexit_vmx_desc(uint32_t exit_reason)
 }
 
 static int
-vmexit_vmx(struct vmctx *ctx, struct vcpu *vcpu, struct vm_exit *vme)
+vmexit_vmx(struct vmctx *ctx, struct vcpu *vcpu, struct vm_run *vmrun)
 {
+	struct vm_exit *vme;
+
+	vme = vmrun->vm_exit;
 
 	fprintf(stderr, "vm exit[%d]\n", vcpu_id(vcpu));
 	fprintf(stderr, "\treason\t\tVMX\n");
@@ -718,8 +720,11 @@ vmexit_vmx(struct vmctx *ctx, struct vcpu *vcpu, struct vm_exit *vme)
 }
 
 static int
-vmexit_svm(struct vmctx *ctx __unused, struct vcpu *vcpu, struct vm_exit *vme)
+vmexit_svm(struct vmctx *ctx __unused, struct vcpu *vcpu, struct vm_run *vmrun)
 {
+	struct vm_exit *vme;
+
+	vme = vmrun->vm_exit;
 
 	fprintf(stderr, "vm exit[%d]\n", vcpu_id(vcpu));
 	fprintf(stderr, "\treason\t\tSVM\n");
@@ -733,35 +738,26 @@ vmexit_svm(struct vmctx *ctx __unused, struct vcpu *vcpu, struct vm_exit *vme)
 
 static int
 vmexit_bogus(struct vmctx *ctx __unused, struct vcpu *vcpu __unused,
-    struct vm_exit *vme)
+    struct vm_run *vmrun)
 {
-
-	assert(vme->inst_length == 0);
-
-	stats.vmexit_bogus++;
+	assert(vmrun->vm_exit->inst_length == 0);
 
 	return (VMEXIT_CONTINUE);
 }
 
 static int
 vmexit_reqidle(struct vmctx *ctx __unused, struct vcpu *vcpu __unused,
-    struct vm_exit *vme)
+    struct vm_run *vmrun)
 {
-
-	assert(vme->inst_length == 0);
-
-	stats.vmexit_reqidle++;
+	assert(vmrun->vm_exit->inst_length == 0);
 
 	return (VMEXIT_CONTINUE);
 }
 
 static int
 vmexit_hlt(struct vmctx *ctx __unused, struct vcpu *vcpu __unused,
-    struct vm_exit *vme __unused)
+    struct vm_run *vmrun __unused)
 {
-
-	stats.vmexit_hlt++;
-
 	/*
 	 * Just continue execution with the next instruction. We use
 	 * the HLT VM exit as a way to be friendly with the host
@@ -772,22 +768,16 @@ vmexit_hlt(struct vmctx *ctx __unused, struct vcpu *vcpu __unused,
 
 static int
 vmexit_pause(struct vmctx *ctx __unused, struct vcpu *vcpu __unused,
-    struct vm_exit *vme __unused)
+    struct vm_run *vmrun __unused)
 {
-
-	stats.vmexit_pause++;
-
 	return (VMEXIT_CONTINUE);
 }
 
 static int
 vmexit_mtrap(struct vmctx *ctx __unused, struct vcpu *vcpu,
-    struct vm_exit *vme)
+    struct vm_run *vmrun)
 {
-
-	assert(vme->inst_length == 0);
-
-	stats.vmexit_mtrap++;
+	assert(vmrun->vm_exit->inst_length == 0);
 
 #ifdef BHYVE_SNAPSHOT
 	checkpoint_cpu_suspend(vcpu_id(vcpu));
@@ -802,13 +792,14 @@ vmexit_mtrap(struct vmctx *ctx __unused, struct vcpu *vcpu,
 
 static int
 vmexit_inst_emul(struct vmctx *ctx __unused, struct vcpu *vcpu,
-    struct vm_exit *vme)
+    struct vm_run *vmrun)
 {
-	int err, i, cs_d;
+	struct vm_exit *vme;
 	struct vie *vie;
+	int err, i, cs_d;
 	enum vm_cpu_mode mode;
 
-	stats.vmexit_inst_emul++;
+	vme = vmrun->vm_exit;
 
 	vie = &vme->u.inst_emul.vie;
 	if (!vie->decoded) {
@@ -852,10 +843,13 @@ static pthread_mutex_t resetcpu_mtx = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t resetcpu_cond = PTHREAD_COND_INITIALIZER;
 
 static int
-vmexit_suspend(struct vmctx *ctx, struct vcpu *vcpu, struct vm_exit *vme)
+vmexit_suspend(struct vmctx *ctx, struct vcpu *vcpu, struct vm_run *vmrun)
 {
+	struct vm_exit *vme;
 	enum vm_suspend_how how;
 	int vcpuid = vcpu_id(vcpu);
+
+	vme = vmrun->vm_exit;
 
 	how = vme->u.suspended.how;
 
@@ -894,7 +888,7 @@ vmexit_suspend(struct vmctx *ctx, struct vcpu *vcpu, struct vm_exit *vme)
 
 static int
 vmexit_debug(struct vmctx *ctx __unused, struct vcpu *vcpu,
-    struct vm_exit *vme __unused)
+    struct vm_run *vmrun __unused)
 {
 
 #ifdef BHYVE_SNAPSHOT
@@ -914,22 +908,27 @@ vmexit_debug(struct vmctx *ctx __unused, struct vcpu *vcpu,
 
 static int
 vmexit_breakpoint(struct vmctx *ctx __unused, struct vcpu *vcpu,
-    struct vm_exit *vme)
+    struct vm_run *vmrun)
 {
-
-	gdb_cpu_breakpoint(vcpu, vme);
+	gdb_cpu_breakpoint(vcpu, vmrun->vm_exit);
 	return (VMEXIT_CONTINUE);
 }
 
 static int
 vmexit_ipi(struct vmctx *ctx __unused, struct vcpu *vcpu __unused,
-    struct vm_exit *vme)
+    struct vm_run *vmrun)
 {
+	struct vm_exit *vme;
+	cpuset_t *dmask;
 	int error = -1;
 	int i;
+
+	dmask = vmrun->cpuset;
+	vme = vmrun->vm_exit;
+
 	switch (vme->u.ipi.mode) {
 	case APIC_DELMODE_INIT:
-		CPU_FOREACH_ISSET(i, &vme->u.ipi.dmask) {
+		CPU_FOREACH_ISSET(i, dmask) {
 			error = vm_suspend_cpu(vcpu_info[i].vcpu);
 			if (error) {
 				warnx("%s: failed to suspend cpu %d\n",
@@ -939,7 +938,7 @@ vmexit_ipi(struct vmctx *ctx __unused, struct vcpu *vcpu __unused,
 		}
 		break;
 	case APIC_DELMODE_STARTUP:
-		CPU_FOREACH_ISSET(i, &vme->u.ipi.dmask) {
+		CPU_FOREACH_ISSET(i, dmask) {
 			spinup_ap(vcpu_info[i].vcpu,
 			    vme->u.ipi.vector << PAGE_SHIFT);
 		}
@@ -974,15 +973,20 @@ static void
 vm_loop(struct vmctx *ctx, struct vcpu *vcpu)
 {
 	struct vm_exit vme;
+	struct vm_run vmrun;
 	int error, rc;
 	enum vm_exitcode exitcode;
-	cpuset_t active_cpus;
+	cpuset_t active_cpus, dmask;
 
 	error = vm_active_cpus(ctx, &active_cpus);
 	assert(CPU_ISSET(vcpu_id(vcpu), &active_cpus));
 
+	vmrun.vm_exit = &vme;
+	vmrun.cpuset = &dmask;
+	vmrun.cpusetsize = sizeof(dmask);
+
 	while (1) {
-		error = vm_run(vcpu, &vme);
+		error = vm_run(vcpu, &vmrun);
 		if (error != 0)
 			break;
 
@@ -993,7 +997,7 @@ vm_loop(struct vmctx *ctx, struct vcpu *vcpu)
 			exit(4);
 		}
 
-		rc = (*handler[exitcode])(ctx, vcpu, &vme);
+		rc = (*handler[exitcode])(ctx, vcpu, &vmrun);
 
 		switch (rc) {
 		case VMEXIT_CONTINUE:

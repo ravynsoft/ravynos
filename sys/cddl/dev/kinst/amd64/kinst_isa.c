@@ -107,10 +107,10 @@ kinst_trampoline_populate(struct kinst_probe *kp, uint8_t *tramp)
 
 	ilen = kp->kp_md.tinstlen;
 
-	memcpy(tramp, kp->kp_md.template, ilen);
+	kinst_memcpy(tramp, kp->kp_md.template, ilen);
 	if ((kp->kp_md.flags & KINST_F_RIPREL) != 0) {
 		disp = kinst_riprel_disp(kp, tramp);
-		memcpy(&tramp[kp->kp_md.dispoff], &disp, sizeof(uint32_t));
+		kinst_memcpy(&tramp[kp->kp_md.dispoff], &disp, sizeof(uint32_t));
 	}
 
 	/*
@@ -126,7 +126,7 @@ kinst_trampoline_populate(struct kinst_probe *kp, uint8_t *tramp)
 	tramp[ilen + 4] = 0x00;
 	tramp[ilen + 5] = 0x00;
 	instr = kp->kp_patchpoint + kp->kp_md.instlen;
-	memcpy(&tramp[ilen + 6], &instr, sizeof(uintptr_t));
+	kinst_memcpy(&tramp[ilen + 6], &instr, sizeof(uintptr_t));
 }
 
 int
@@ -246,18 +246,6 @@ kinst_set_disp32(struct kinst_probe *kp, uint8_t *bytes)
 	kp->kp_md.disp = (int64_t)disp32;
 }
 
-static int
-kinst_dis_get_byte(void *p)
-{
-	int ret;
-	uint8_t **instr = p;
-
-	ret = **instr;
-	(*instr)++;
-
-	return (ret);
-}
-
 /*
  * Set up all of the state needed to faithfully execute a probed instruction.
  *
@@ -294,7 +282,7 @@ kinst_instr_dissect(struct kinst_probe *kp, uint8_t **instr)
 	kpmd = &kp->kp_md;
 
 	d86.d86_data = instr;
-	d86.d86_get_byte = kinst_dis_get_byte;
+	d86.d86_get_byte = dtrace_dis_get_byte;
 	d86.d86_check_func = NULL;
 	if (dtrace_disx86(&d86, SIZE64) != 0) {
 		KINST_LOG("failed to disassemble instruction at: %p", *instr);
@@ -512,7 +500,9 @@ kinst_make_probe(linker_file_t lf, int symindx, linker_symval_t *symval,
 
 	pd = opaque;
 	func = symval->name;
-	if (strcmp(func, pd->kpd_func) != 0 || strcmp(func, "trap_check") == 0)
+	if (kinst_excluded(func))
+		return (0);
+	if (strcmp(func, pd->kpd_func) != 0)
 		return (0);
 
 	instr = (uint8_t *)symval->value;
@@ -616,4 +606,13 @@ kinst_md_deinit(void)
 			DPCPU_ID_SET(cpu, intr_tramp, NULL);
 		}
 	}
+}
+
+/*
+ * Exclude machine-dependent functions that are not safe-to-trace.
+ */
+bool
+kinst_md_excluded(const char *name)
+{
+	return (false);
 }

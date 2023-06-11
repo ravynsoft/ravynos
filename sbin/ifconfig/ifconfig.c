@@ -42,6 +42,9 @@ static const char rcsid[] =
 
 #include <sys/param.h>
 #include <sys/ioctl.h>
+#ifdef JAIL
+#include <sys/jail.h>
+#endif
 #include <sys/module.h>
 #include <sys/linker.h>
 #include <sys/nv.h>
@@ -90,17 +93,19 @@ ifconfig_handle_t *lifh;
 struct	ifreq ifr;
 
 char	name[IFNAMSIZ];
-char	*descr = NULL;
-size_t	descrlen = 64;
-int	setaddr;
-int	setmask;
-int	doalias;
-int	clearaddr;
+#ifdef WITHOUT_NETLINK
+static char	*descr = NULL;
+static size_t	descrlen = 64;
+#endif
+static int	setaddr;
+static int	setmask;
+static int	doalias;
+static int	clearaddr;
 int	newaddr = 1;
 int	verbose;
 int	printifname = 0;
 
-struct ifconfig_args args;
+struct ifconfig_args global_args;
 
 int	printkeys = 0;		/* Print keying material for interfaces. */
 int	exit_code = 0;
@@ -108,16 +113,17 @@ int	exit_code = 0;
 /* Formatter Strings */
 char	*f_inet, *f_inet6, *f_ether, *f_addr;
 
+#ifdef WITHOUT_NETLINK
 static void list_interfaces_ioctl(struct ifconfig_args *args);
 static	void status(struct ifconfig_args *args, const struct sockaddr_dl *sdl,
 		struct ifaddrs *ifa);
+#endif
 static _Noreturn void usage(void);
+static void Perrorc(const char *cmd, int error);
 
 static int getifflags(const char *ifname, int us, bool err_ok);
 
 static struct afswtch *af_getbyname(const char *name);
-
-void printifnamemaybe(void);
 
 static struct option *opts = NULL;
 
@@ -184,12 +190,12 @@ usage(void)
 	}
 
 	fprintf(stderr,
-	"usage: ifconfig [-f type:format] %sinterface address_family\n"
+	"usage: ifconfig [-j jail] [-f type:format] %sinterface address_family\n"
 	"                [address [dest_address]] [parameters]\n"
-	"       ifconfig interface create\n"
-	"       ifconfig -a %s[-d] [-m] [-u] [-v] [address_family]\n"
-	"       ifconfig -l [-d] [-u] [address_family]\n"
-	"       ifconfig %s[-d] [-m] [-u] [-v]\n",
+	"       ifconfig [-j jail] interface create\n"
+	"       ifconfig [-j jail] -a %s[-d] [-m] [-u] [-v] [address_family]\n"
+	"       ifconfig [-j jail] -l [-d] [-u] [address_family]\n"
+	"       ifconfig [-j jail] %s[-d] [-m] [-u] [-v]\n",
 		options, options, options);
 	exit(1);
 }
@@ -207,6 +213,7 @@ ioctl_ifcreate(int s, struct ifreq *ifr)
 	}
 }
 
+#ifdef WITHOUT_NETLINK
 static int
 calcorders(struct ifaddrs *ifa, struct ifa_queue *q)
 {
@@ -293,6 +300,7 @@ cmpifaddrs(struct ifaddrs *a, struct ifaddrs *b, struct ifa_queue *q)
 
 	return (0);
 }
+#endif
 
 static void freeformat(void)
 {
@@ -336,6 +344,7 @@ static void setformat(char *input)
 	free(formatstr);
 }
 
+#ifdef WITHOUT_NETLINK
 static struct ifaddrs *
 sortifaddrs(struct ifaddrs *list,
     int (*compare)(struct ifaddrs *, struct ifaddrs *, struct ifa_queue *),
@@ -390,8 +399,10 @@ sortifaddrs(struct ifaddrs *list,
 
 	return (result);
 }
+#endif
 
-void printifnamemaybe()
+static void
+printifnamemaybe(void)
 {
 	if (printifname)
 		printf("%s\n", name);
@@ -407,44 +418,46 @@ list_interfaces(struct ifconfig_args *args)
 #endif
 }
 
-int
-main(int argc, char *argv[])
+static char *
+args_peek(struct ifconfig_args *args)
 {
-	int c;
-	const struct afswtch *afp = NULL;
-	int ifindex;
-	char options[1024], *envformat;
+	if (args->argc > 0)
+		return (args->argv[0]);
+	return (NULL);
+}
+
+static char *
+args_pop(struct ifconfig_args *args)
+{
+	if (args->argc == 0)
+		return (NULL);
+
+	char *arg = args->argv[0];
+
+	args->argc--;
+	args->argv++;
+
+	return (arg);
+}
+
+static void
+args_parse(struct ifconfig_args *args, int argc, char *argv[])
+{
+	char options[1024];
 	struct option *p;
-	size_t iflen;
-	int flags;
-
-	f_inet = f_inet6 = f_ether = f_addr = NULL;
-
-	lifh = ifconfig_open();
-	if (lifh == NULL)
-		err(EXIT_FAILURE, "ifconfig_open");
-
-	envformat = getenv("IFCONFIG_FORMAT");
-	if (envformat != NULL)
-		setformat(envformat);
-
-	/*
-	 * Ensure we print interface name when expected to,
-	 * even if we terminate early due to error.
-	 */
-	atexit(printifnamemaybe);
+	int c;
 
 	/* Parse leading line options */
-	strlcpy(options, "G:adf:klmnuv", sizeof(options));
+	strlcpy(options, "G:adf:j:klmnuv", sizeof(options));
 	for (p = opts; p != NULL; p = p->next)
 		strlcat(options, p->opt, sizeof(options));
 	while ((c = getopt(argc, argv, options)) != -1) {
 		switch (c) {
 		case 'a':	/* scan all interfaces */
-			args.all = true;
+			args->all = true;
 			break;
 		case 'd':	/* restrict scan to "down" interfaces */
-			args.downonly = true;
+			args->downonly = true;
 			break;
 		case 'f':
 			if (optarg == NULL)
@@ -452,33 +465,42 @@ main(int argc, char *argv[])
 			setformat(optarg);
 			break;
 		case 'G':
-			if (optarg == NULL || args.all == 0)
+			if (optarg == NULL || args->all == 0)
 				usage();
-			args.nogroup = optarg;
+			args->nogroup = optarg;
+			break;
+		case 'j':
+#ifdef JAIL
+			if (optarg == NULL)
+				usage();
+			args->jail_name = optarg;
+#else
+			Perror("not built with jail support");
+#endif
 			break;
 		case 'k':
-			args.printkeys = true;
+			args->printkeys = true;
 			break;
 		case 'l':	/* scan interface names only */
-			args.namesonly++;
+			args->namesonly++;
 			break;
 		case 'm':	/* show media choices in status */
-			args.supmedia = true;
+			args->supmedia = true;
 			break;
 		case 'n':	/* suppress module loading */
-			args.noload = true;
+			args->noload = true;
 			break;
 		case 'u':	/* restrict scan to "up" interfaces */
-			args.uponly = true;
+			args->uponly = true;
 			break;
 		case 'v':
-			args.verbose++;
+			args->verbose++;
 			break;
 		case 'g':
-			if (args.all) {
+			if (args->all) {
 				if (optarg == NULL)
 					usage();
-				args.matchgroup = optarg;
+				args->matchgroup = optarg;
 				break;
 			}
 			/* FALLTHROUGH */
@@ -496,30 +518,26 @@ main(int argc, char *argv[])
 	argc -= optind;
 	argv += optind;
 
-	/* Sync global variables */
-	printkeys = args.printkeys;
-	verbose = args.verbose;
-
 	/* -l cannot be used with -a or -m */
-	if (args.namesonly && (args.all || args.supmedia))
+	if (args->namesonly && (args->all || args->supmedia))
 		usage();
 
 	/* nonsense.. */
-	if (args.uponly && args.downonly)
+	if (args->uponly && args->downonly)
 		usage();
 
 	/* no arguments is equivalent to '-a' */
-	if (!args.namesonly && argc < 1)
-		args.all = 1;
+	if (!args->namesonly && argc < 1)
+		args->all = 1;
 
 	/* -a and -l allow an address family arg to limit the output */
-	if (args.all || args.namesonly) {
+	if (args->all || args->namesonly) {
 		if (argc > 1)
 			usage();
 
-		ifindex = 0;
 		if (argc == 1) {
-			afp = af_getbyname(*argv);
+			const struct afswtch *afp = af_getbyname(*argv);
+
 			if (afp == NULL) {
 				warnx("Address family '%s' unknown.", *argv);
 				usage();
@@ -527,32 +545,109 @@ main(int argc, char *argv[])
 			if (afp->af_name != NULL)
 				argc--, argv++;
 			/* leave with afp non-zero */
+			args->afp = afp;
 		}
 	} else {
 		/* not listing, need an argument */
 		if (argc < 1)
 			usage();
+	}
 
-		args.ifname = *argv;
-		argc--, argv++;
+	args->argc = argc;
+	args->argv = argv;
+
+	/* Sync global variables */
+	printkeys = args->printkeys;
+	verbose = args->verbose;
+}
+
+static int
+ifconfig_wrapper(struct ifconfig_args *args, int iscreate,
+    const struct afswtch *uafp)
+{
+#ifdef WITHOUT_NETLINK
+	struct ifconfig_context ctx = {
+		.args = args,
+		.io_s = -1,
+	};
+
+	return (ifconfig(&ctx, iscreate, uafp));
+#else
+	return (ifconfig_wrapper_nl(args, iscreate, uafp));
+#endif
+}
+
+static bool
+isargcreate(const char *arg)
+{
+	if (arg == NULL)
+		return (false);
+
+	if (strcmp(arg, "create") == 0 || strcmp(arg, "plumb") == 0)
+		return (true);
+
+	return (false);
+}
+
+int
+main(int ac, char *av[])
+{
+	char *envformat;
+	size_t iflen;
+	int flags;
+#ifdef JAIL
+	int jid;
+#endif
+	struct ifconfig_args *args = &global_args;
+
+	f_inet = f_inet6 = f_ether = f_addr = NULL;
+
+	lifh = ifconfig_open();
+	if (lifh == NULL)
+		err(EXIT_FAILURE, "ifconfig_open");
+
+	envformat = getenv("IFCONFIG_FORMAT");
+	if (envformat != NULL)
+		setformat(envformat);
+
+	/*
+	 * Ensure we print interface name when expected to,
+	 * even if we terminate early due to error.
+	 */
+	atexit(printifnamemaybe);
+
+	args_parse(args, ac, av);
+
+#ifdef JAIL
+	if (args->jail_name) {
+		jid = jail_getid(args->jail_name);
+		if (jid == -1)
+			Perror("jail not found");
+		if (jail_attach(jid) != 0)
+			Perror("cannot attach to jail");
+	}
+#endif
+
+	if (!args->all && !args->namesonly) {
+		/* not listing, need an argument */
+		args->ifname = args_pop(args);
 
 		/* check and maybe load support for this interface */
-		ifmaybeload(&args, args.ifname);
+		ifmaybeload(args, args->ifname);
 
-		ifindex = if_nametoindex(args.ifname);
-		if (ifindex == 0) {
+		char *arg = args_peek(args);
+		if (if_nametoindex(args->ifname) == 0) {
 			/*
 			 * NOTE:  We must special-case the `create' command
 			 * right here as we would otherwise fail when trying
 			 * to find the interface.
 			 */
-			if (argc > 0 && (strcmp(argv[0], "create") == 0 ||
-			    strcmp(argv[0], "plumb") == 0)) {
-				iflen = strlcpy(name, args.ifname, sizeof(name));
+			if (isargcreate(arg)) {
+				iflen = strlcpy(name, args->ifname, sizeof(name));
 				if (iflen >= sizeof(name))
 					errx(1, "%s: cloning name too long",
-					    args.ifname);
-				ifconfig(argc, argv, 1, NULL);
+					    args->ifname);
+				ifconfig_wrapper(args, 1, NULL);
 				exit(exit_code);
 			}
 #ifdef JAIL
@@ -561,36 +656,35 @@ main(int argc, char *argv[])
 			 * right here as we would otherwise fail when trying
 			 * to find the interface as it lives in another vnet.
 			 */
-			if (argc > 0 && (strcmp(argv[0], "-vnet") == 0)) {
-				iflen = strlcpy(name, args.ifname, sizeof(name));
+			if (arg != NULL && (strcmp(arg, "-vnet") == 0)) {
+				iflen = strlcpy(name, args->ifname, sizeof(name));
 				if (iflen >= sizeof(name))
 					errx(1, "%s: interface name too long",
-					    args.ifname);
-				ifconfig(argc, argv, 0, NULL);
+					    args->ifname);
+				ifconfig_wrapper(args, 0, NULL);
 				exit(exit_code);
 			}
 #endif
-			errx(1, "interface %s does not exist", args.ifname);
+			errx(1, "interface %s does not exist", args->ifname);
 		} else {
 			/*
 			 * Do not allow use `create` command as hostname if
 			 * address family is not specified.
 			 */
-			if (argc > 0 && (strcmp(argv[0], "create") == 0 ||
-			    strcmp(argv[0], "plumb") == 0)) {
-				if (argc == 1)
+			if (isargcreate(arg)) {
+				if (args->argc == 1)
 					errx(1, "interface %s already exists",
-					    args.ifname);
-				argc--, argv++;
+					    args->ifname);
+				args_pop(args);
 			}
 		}
 	}
 
 	/* Check for address family */
-	if (argc > 0) {
-		afp = af_getbyname(*argv);
-		if (afp != NULL)
-			argc--, argv++;
+	if (args->argc > 0) {
+		args->afp = af_getbyname(args_peek(args));
+		if (args->afp != NULL)
+			args_pop(args);
 	}
 
 	/*
@@ -598,26 +692,23 @@ main(int argc, char *argv[])
 	 * which doesn't require building, sorting, and searching the entire
 	 * system address list
 	 */
-	if ((argc > 0) && (args.ifname != NULL)) {
-		iflen = strlcpy(name, args.ifname, sizeof(name));
+	if ((args->argc > 0) && (args->ifname != NULL)) {
+		iflen = strlcpy(name, args->ifname, sizeof(name));
 		if (iflen >= sizeof(name)) {
-			warnx("%s: interface name too long, skipping", args.ifname);
+			warnx("%s: interface name too long, skipping", args->ifname);
 		} else {
 			flags = getifflags(name, -1, false);
 			if (!(((flags & IFF_CANTCONFIG) != 0) ||
-				(args.downonly && (flags & IFF_UP) != 0) ||
-				(args.uponly && (flags & IFF_UP) == 0)))
-				ifconfig(argc, argv, 0, afp);
+				(args->downonly && (flags & IFF_UP) != 0) ||
+				(args->uponly && (flags & IFF_UP) == 0)))
+				ifconfig_wrapper(args, 0, args->afp);
 		}
 		goto done;
 	}
 
-	args.afp = afp;
-	args.allfamilies = afp == NULL;
-	args.argc = argc;
-	args.argv = argv;
+	args->allfamilies = args->afp == NULL;
 
-	list_interfaces(&args);
+	list_interfaces(args);
 
 done:
 	freeformat();
@@ -639,6 +730,19 @@ match_ether(const struct sockaddr_dl *sdl)
 	}
 }
 
+bool
+match_if_flags(struct ifconfig_args *args, int if_flags)
+{
+	if ((if_flags & IFF_CANTCONFIG) != 0)
+		return (false);
+	if (args->downonly && (if_flags & IFF_UP) != 0)
+		return (false);
+	if (args->uponly && (if_flags & IFF_UP) == 0)
+		return (false);
+	return (true);
+}
+
+#ifdef WITHOUT_NETLINK
 static bool
 match_afp(const struct afswtch *afp, int sa_family, const struct sockaddr_dl *sdl)
 {
@@ -653,19 +757,6 @@ match_afp(const struct afswtch *afp, int sa_family, const struct sockaddr_dl *sd
 	return (afp->af_af == sa_family);
 }
 
-bool
-match_if_flags(struct ifconfig_args *args, int if_flags)
-{
-	if ((if_flags & IFF_CANTCONFIG) != 0)
-		return (false);
-	if (args->downonly && (if_flags & IFF_UP) != 0)
-		return (false);
-	if (args->uponly && (if_flags & IFF_UP) == 0)
-		return (false);
-	return (true);
-}
-
-#ifdef WITHOUT_NETLINK
 static void
 list_interfaces_ioctl(struct ifconfig_args *args)
 {
@@ -738,7 +829,7 @@ list_interfaces_ioctl(struct ifconfig_args *args)
 		ifindex++;
 
 		if (args->argc > 0)
-			ifconfig(args->argc, args->argv, 0, args->afp);
+			ifconfig_wrapper(args, 0, args->afp);
 		else
 			status(args, sdl, ifa);
 	}
@@ -760,7 +851,7 @@ group_member(const char *ifname, const char *match, const char *nomatch)
 
 	struct ifgroupreq	 ifgr;
 	struct ifg_req		*ifg;
-	int			 len;
+	unsigned int		 len;
 	bool			 matched, nomatched;
 
 	/* Sanity checks. */
@@ -848,7 +939,7 @@ af_getbyfamily(int af)
 }
 
 void
-af_other_status(int s)
+af_other_status(if_ctx *ctx)
 {
 	struct afswtch *afp;
 	uint8_t afmask[howmany(AF_MAX, NBBY)];
@@ -859,7 +950,7 @@ af_other_status(int s)
 			continue;
 		if (afp->af_af != AF_UNSPEC && isset(afmask, afp->af_af))
 			continue;
-		afp->af_other_status(s);
+		afp->af_other_status(ctx);
 		setbit(afmask, afp->af_af);
 	}
 }
@@ -930,20 +1021,76 @@ callback_register(callback_func *func, void *arg)
 }
 
 /* specially-handled commands */
-static void setifaddr(const char *, int, int, const struct afswtch *);
+static void setifaddr(if_ctx *ctx, const char *addr, int param);
 static const struct cmd setifaddr_cmd = DEF_CMD("ifaddr", 0, setifaddr);
 
-static void setifdstaddr(const char *, int, int, const struct afswtch *);
+static void setifdstaddr(if_ctx *ctx, const char *addr, int param __unused);
 static const struct cmd setifdstaddr_cmd =
 	DEF_CMD("ifdstaddr", 0, setifdstaddr);
 
 int
-ifconfig(int argc, char *const *argv, int iscreate, const struct afswtch *uafp)
+af_exec_ioctl(if_ctx *ctx, unsigned long action, void *data)
+{
+	struct ifreq *req = (struct ifreq *)data;
+
+	strlcpy(req->ifr_name, name, sizeof(req->ifr_name));
+	if (ioctl_ctx(ctx, action, req) == 0)
+		return (0);
+	return (errno);
+}
+
+static void
+delifaddr(if_ctx *ctx, const struct afswtch *afp)
+{
+	int error;
+
+	if (afp->af_exec == NULL) {
+		warnx("interface %s cannot change %s addresses!",
+		    name, afp->af_name);
+		clearaddr = 0;
+		return;
+	}
+
+	error = afp->af_exec(ctx, afp->af_difaddr, afp->af_ridreq);
+	if (error != 0) {
+		if (error == EADDRNOTAVAIL && (doalias >= 0)) {
+			/* means no previous address for interface */
+		} else
+			Perrorc("ioctl (SIOCDIFADDR)", error);
+	}
+}
+
+static void
+addifaddr(if_ctx *ctx, const struct afswtch *afp)
+{
+	if (afp->af_exec == NULL) {
+		warnx("interface %s cannot change %s addresses!",
+		      name, afp->af_name);
+		newaddr = 0;
+		return;
+	}
+
+	if (setaddr || setmask) {
+		int error = afp->af_exec(ctx, afp->af_aifaddr, afp->af_addreq);
+		if (error != 0)
+			Perrorc("ioctl (SIOCAIFADDR)", error);
+	}
+}
+
+int
+ifconfig(if_ctx *orig_ctx, int iscreate, const struct afswtch *uafp)
 {
 	const struct afswtch *afp, *nafp;
 	const struct cmd *p;
 	struct callback *cb;
 	int s;
+	int argc = orig_ctx->args->argc;
+	char *const *argv = orig_ctx->args->argv;
+	struct ifconfig_context _ctx = {
+		.args = orig_ctx->args,
+		.io_ss = orig_ctx->io_ss,
+	};
+	struct ifconfig_context *ctx = &_ctx;
 
 	strlcpy(ifr.ifr_name, name, sizeof ifr.ifr_name);
 	afp = NULL;
@@ -970,6 +1117,7 @@ ifconfig(int argc, char *const *argv, int iscreate, const struct afswtch *uafp)
 		warnx("Please specify an address_family.");
 		usage();
 	}
+
 top:
 	ifr.ifr_addr.sa_family =
 		afp->af_af == AF_LINK || afp->af_af == AF_UNSPEC ?
@@ -979,6 +1127,9 @@ top:
 	    (uafp != NULL || errno != EAFNOSUPPORT ||
 	     (s = socket(AF_LOCAL, SOCK_DGRAM, 0)) < 0))
 		err(1, "socket(family %u,SOCK_DGRAM)", ifr.ifr_addr.sa_family);
+
+	ctx->io_s = s;
+	ctx->afp = afp;
 
 	while (argc > 0) {
 		p = cmd_lookup(*argv, iscreate);
@@ -1024,22 +1175,22 @@ top:
 			if (argv[1] == NULL)
 				errx(1, "'%s' requires argument",
 				    p->c_name);
-			p->c_u.c_func(argv[1], 0, s, afp);
+			p->c_u.c_func(ctx, argv[1], 0);
 			argc--, argv++;
 		} else if (p->c_parameter == OPTARG && p->c_u.c_func) {
-			p->c_u.c_func(argv[1], 0, s, afp);
+			p->c_u.c_func(ctx, argv[1], 0);
 			if (argv[1] != NULL)
 				argc--, argv++;
 		} else if (p->c_parameter == NEXTARG2 && p->c_u.c_func2) {
 			if (argc < 3)
 				errx(1, "'%s' requires 2 arguments",
 				    p->c_name);
-			p->c_u.c_func2(argv[1], argv[2], s, afp);
+			p->c_u.c_func2(ctx, argv[1], argv[2]);
 			argc -= 2, argv += 2;
 		} else if (p->c_parameter == SPARAM && p->c_u.c_func3) {
-			p->c_u.c_func3(*argv, p->c_sparameter, s, afp);
+			p->c_u.c_func3(ctx, *argv, p->c_sparameter);
 		} else if (p->c_u.c_func)
-			p->c_u.c_func(*argv, p->c_parameter, s, afp);
+			p->c_u.c_func(ctx, *argv, p->c_parameter);
 		argc--, argv++;
 	}
 
@@ -1047,7 +1198,7 @@ top:
 	 * Do any post argument processing required by the address family.
 	 */
 	if (afp->af_postproc != NULL)
-		afp->af_postproc(s, afp, newaddr, getifflags(name, s, true));
+		afp->af_postproc(ctx, newaddr, getifflags(name, s, true));
 	/*
 	 * Do deferred callbacks registered while processing
 	 * command-line arguments.
@@ -1057,47 +1208,20 @@ top:
 	/*
 	 * Do deferred operations.
 	 */
-	if (clearaddr) {
-		if (afp->af_ridreq == NULL || afp->af_difaddr == 0) {
-			warnx("interface %s cannot change %s addresses!",
-			      name, afp->af_name);
-			clearaddr = 0;
-		}
-	}
-	if (clearaddr) {
-		int ret;
-		strlcpy(((struct ifreq *)afp->af_ridreq)->ifr_name, name,
-			sizeof ifr.ifr_name);
-		ret = ioctl(s, afp->af_difaddr, afp->af_ridreq);
-		if (ret < 0) {
-			if (errno == EADDRNOTAVAIL && (doalias >= 0)) {
-				/* means no previous address for interface */
-			} else
-				Perror("ioctl (SIOCDIFADDR)");
-		}
-	}
-	if (newaddr) {
-		if (afp->af_addreq == NULL || afp->af_aifaddr == 0) {
-			warnx("interface %s cannot change %s addresses!",
-			      name, afp->af_name);
-			newaddr = 0;
-		}
-	}
-	if (newaddr && (setaddr || setmask)) {
-		strlcpy(((struct ifreq *)afp->af_addreq)->ifr_name, name,
-			sizeof ifr.ifr_name);
-		if (ioctl(s, afp->af_aifaddr, afp->af_addreq) < 0)
-			Perror("ioctl (SIOCAIFADDR)");
-	}
+	if (clearaddr)
+		delifaddr(ctx, afp);
+	if (newaddr)
+		addifaddr(ctx, afp);
 
 	close(s);
 	return(0);
 }
 
-/*ARGSUSED*/
 static void
-setifaddr(const char *addr, int param, int s, const struct afswtch *afp)
+setifaddr(if_ctx *ctx, const char *addr, int param)
 {
+	const struct afswtch *afp = ctx->afp;
+
 	if (afp->af_getaddr == NULL)
 		return;
 	/*
@@ -1112,8 +1236,9 @@ setifaddr(const char *addr, int param, int s, const struct afswtch *afp)
 }
 
 static void
-settunnel(const char *src, const char *dst, int s, const struct afswtch *afp)
+settunnel(if_ctx *ctx, const char *src, const char *dst)
 {
+	const struct afswtch *afp = ctx->afp;
 	struct addrinfo *srcres, *dstres;
 	int ecode;
 
@@ -1135,25 +1260,23 @@ settunnel(const char *src, const char *dst, int s, const struct afswtch *afp)
 		errx(1,
 		    "source and destination address families do not match");
 
-	afp->af_settunnel(s, srcres, dstres);
+	afp->af_settunnel(ctx->io_s, srcres, dstres);
 
 	freeaddrinfo(srcres);
 	freeaddrinfo(dstres);
 }
 
-/* ARGSUSED */
 static void
-deletetunnel(const char *vname, int param, int s, const struct afswtch *afp)
+deletetunnel(if_ctx *ctx, const char *vname, int param)
 {
 
-	if (ioctl(s, SIOCDIFPHYADDR, &ifr) < 0)
+	if (ioctl(ctx->io_s, SIOCDIFPHYADDR, &ifr) < 0)
 		err(1, "SIOCDIFPHYADDR");
 }
 
 #ifdef JAIL
 static void
-setifvnet(const char *jname, int dummy __unused, int s,
-    const struct afswtch *afp)
+setifvnet(if_ctx *ctx, const char *jname, int dummy __unused)
 {
 	struct ifreq my_ifr;
 
@@ -1161,13 +1284,12 @@ setifvnet(const char *jname, int dummy __unused, int s,
 	my_ifr.ifr_jid = jail_getid(jname);
 	if (my_ifr.ifr_jid < 0)
 		errx(1, "%s", jail_errmsg);
-	if (ioctl(s, SIOCSIFVNET, &my_ifr) < 0)
+	if (ioctl(ctx->io_s, SIOCSIFVNET, &my_ifr) < 0)
 		err(1, "SIOCSIFVNET");
 }
 
 static void
-setifrvnet(const char *jname, int dummy __unused, int s,
-    const struct afswtch *afp)
+setifrvnet(if_ctx *ctx, const char *jname, int dummy __unused)
 {
 	struct ifreq my_ifr;
 
@@ -1175,15 +1297,16 @@ setifrvnet(const char *jname, int dummy __unused, int s,
 	my_ifr.ifr_jid = jail_getid(jname);
 	if (my_ifr.ifr_jid < 0)
 		errx(1, "%s", jail_errmsg);
-	if (ioctl(s, SIOCSIFRVNET, &my_ifr) < 0)
+	if (ioctl(ctx->io_s, SIOCSIFRVNET, &my_ifr) < 0)
 		err(1, "SIOCSIFRVNET(%d, %s)", my_ifr.ifr_jid, my_ifr.ifr_name);
 }
 #endif
 
 static void
-setifnetmask(const char *addr, int dummy __unused, int s,
-    const struct afswtch *afp)
+setifnetmask(if_ctx *ctx, const char *addr, int dummy __unused)
 {
+	const struct afswtch *afp = ctx->afp;
+
 	if (afp->af_getaddr != NULL) {
 		setmask++;
 		afp->af_getaddr(addr, MASK);
@@ -1191,36 +1314,36 @@ setifnetmask(const char *addr, int dummy __unused, int s,
 }
 
 static void
-setifbroadaddr(const char *addr, int dummy __unused, int s,
-    const struct afswtch *afp)
+setifbroadaddr(if_ctx *ctx, const char *addr, int dummy __unused)
 {
+	const struct afswtch *afp = ctx->afp;
+
 	if (afp->af_getaddr != NULL)
-		afp->af_getaddr(addr, DSTADDR);
+		afp->af_getaddr(addr, BRDADDR);
 }
 
 static void
-notealias(const char *addr, int param, int s, const struct afswtch *afp)
+notealias(if_ctx *ctx, const char *addr, int param)
 {
-#define rqtosa(x) (&(((struct ifreq *)(afp->x))->ifr_addr))
-	if (setaddr && doalias == 0 && param < 0)
-		if (afp->af_addreq != NULL && afp->af_ridreq != NULL)
-			bcopy((caddr_t)rqtosa(af_addreq),
-			      (caddr_t)rqtosa(af_ridreq),
-			      rqtosa(af_addreq)->sa_len);
+	const struct afswtch *afp = ctx->afp;
+
+	if (setaddr && doalias == 0 && param < 0) {
+		if (afp->af_copyaddr != NULL)
+			afp->af_copyaddr(ctx, RIDADDR, ADDR);
+	}
 	doalias = param;
 	if (param < 0) {
 		clearaddr = 1;
 		newaddr = 0;
 	} else
 		clearaddr = 0;
-#undef rqtosa
 }
 
-/*ARGSUSED*/
 static void
-setifdstaddr(const char *addr, int param __unused, int s, 
-    const struct afswtch *afp)
+setifdstaddr(if_ctx *ctx, const char *addr, int param __unused)
 {
+	const struct afswtch *afp = ctx->afp;
+
 	if (afp->af_getaddr != NULL)
 		afp->af_getaddr(addr, DSTADDR);
 }
@@ -1255,12 +1378,12 @@ getifflags(const char *ifname, int us, bool err_ok)
  * Make a private copy so we can avoid that.
  */
 static void
-setifflags(const char *vname, int value, int s, const struct afswtch *afp)
+setifflags(if_ctx *ctx, const char *vname, int value)
 {
 	struct ifreq		my_ifr;
 	int flags;
 
-	flags = getifflags(name, s, false);
+	flags = getifflags(name, ctx->io_s, false);
 	if (value < 0) {
 		value = -value;
 		flags &= ~value;
@@ -1270,16 +1393,16 @@ setifflags(const char *vname, int value, int s, const struct afswtch *afp)
 	(void) strlcpy(my_ifr.ifr_name, name, sizeof(my_ifr.ifr_name));
 	my_ifr.ifr_flags = flags & 0xffff;
 	my_ifr.ifr_flagshigh = flags >> 16;
-	if (ioctl(s, SIOCSIFFLAGS, (caddr_t)&my_ifr) < 0)
+	if (ioctl(ctx->io_s, SIOCSIFFLAGS, (caddr_t)&my_ifr) < 0)
 		Perror(vname);
 }
 
 void
-setifcap(const char *vname, int value, int s, const struct afswtch *afp)
+setifcap(if_ctx *ctx, const char *vname, int value)
 {
 	int flags;
 
- 	if (ioctl(s, SIOCGIFCAP, (caddr_t)&ifr) < 0) {
+	if (ioctl(ctx->io_s, SIOCGIFCAP, (caddr_t)&ifr) < 0) {
  		Perror("ioctl (SIOCGIFCAP)");
  		exit(1);
  	}
@@ -1294,12 +1417,12 @@ setifcap(const char *vname, int value, int s, const struct afswtch *afp)
 	if (ifr.ifr_curcap == flags)
 		return;
 	ifr.ifr_reqcap = flags;
-	if (ioctl(s, SIOCSIFCAP, (caddr_t)&ifr) < 0)
+	if (ioctl(ctx->io_s, SIOCSIFCAP, (caddr_t)&ifr) < 0)
 		Perror(vname);
 }
 
 void
-setifcapnv(const char *vname, const char *arg, int s, const struct afswtch *afp)
+setifcapnv(if_ctx *ctx, const char *vname, const char *arg)
 {
 	nvlist_t *nvcap;
 	void *buf;
@@ -1307,7 +1430,7 @@ setifcapnv(const char *vname, const char *arg, int s, const struct afswtch *afp)
 	size_t nvbuflen;
 	bool neg;
 
-	if (ioctl(s, SIOCGIFCAP, (caddr_t)&ifr) < 0)
+	if (ioctl(ctx->io_s, SIOCGIFCAP, (caddr_t)&ifr) < 0)
 		Perror("ioctl (SIOCGIFCAP)");
 	if ((ifr.ifr_curcap & IFCAP_NV) == 0) {
 		warnx("IFCAP_NV not supported");
@@ -1338,7 +1461,7 @@ setifcapnv(const char *vname, const char *arg, int s, const struct afswtch *afp)
 	}
 	ifr.ifr_cap_nv.buf_length = ifr.ifr_cap_nv.length = nvbuflen;
 	ifr.ifr_cap_nv.buffer = buf;
-	if (ioctl(s, SIOCSIFCAPNV, (caddr_t)&ifr) < 0)
+	if (ioctl(ctx->io_s, SIOCSIFCAPNV, (caddr_t)&ifr) < 0)
 		Perror(vname);
 	free(buf);
 	nvlist_destroy(nvcap);
@@ -1346,27 +1469,25 @@ setifcapnv(const char *vname, const char *arg, int s, const struct afswtch *afp)
 }
 
 static void
-setifmetric(const char *val, int dummy __unused, int s, 
-    const struct afswtch *afp)
+setifmetric(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	strlcpy(ifr.ifr_name, name, sizeof (ifr.ifr_name));
 	ifr.ifr_metric = atoi(val);
-	if (ioctl(s, SIOCSIFMETRIC, (caddr_t)&ifr) < 0)
+	if (ioctl(ctx->io_s, SIOCSIFMETRIC, (caddr_t)&ifr) < 0)
 		err(1, "ioctl SIOCSIFMETRIC (set metric)");
 }
 
 static void
-setifmtu(const char *val, int dummy __unused, int s, 
-    const struct afswtch *afp)
+setifmtu(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	strlcpy(ifr.ifr_name, name, sizeof (ifr.ifr_name));
 	ifr.ifr_mtu = atoi(val);
-	if (ioctl(s, SIOCSIFMTU, (caddr_t)&ifr) < 0)
+	if (ioctl(ctx->io_s, SIOCSIFMTU, (caddr_t)&ifr) < 0)
 		err(1, "ioctl SIOCSIFMTU (set mtu)");
 }
 
 static void
-setifpcp(const char *val, int arg __unused, int s, const struct afswtch *afp)
+setifpcp(if_ctx *ctx, const char *val, int arg __unused)
 {
 	u_long ul;
 	char *endp;
@@ -1377,23 +1498,21 @@ setifpcp(const char *val, int arg __unused, int s, const struct afswtch *afp)
 	if (ul > 7)
 		errx(1, "value for pcp out of range");
 	ifr.ifr_lan_pcp = ul;
-	if (ioctl(s, SIOCSLANPCP, (caddr_t)&ifr) == -1)
+	if (ioctl(ctx->io_s, SIOCSLANPCP, (caddr_t)&ifr) == -1)
 		err(1, "SIOCSLANPCP");
 }
 
 static void
-disableifpcp(const char *val, int arg __unused, int s,
-    const struct afswtch *afp)
+disableifpcp(if_ctx *ctx, const char *val, int arg __unused)
 {
 
 	ifr.ifr_lan_pcp = IFNET_PCP_NONE;
-	if (ioctl(s, SIOCSLANPCP, (caddr_t)&ifr) == -1)
+	if (ioctl(ctx->io_s, SIOCSLANPCP, (caddr_t)&ifr) == -1)
 		err(1, "SIOCSLANPCP");
 }
 
 static void
-setifname(const char *val, int dummy __unused, int s, 
-    const struct afswtch *afp)
+setifname(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	char *newname;
 	
@@ -1403,7 +1522,7 @@ setifname(const char *val, int dummy __unused, int s,
 	if (newname == NULL)
 		err(1, "no memory to set ifname");
 	ifr.ifr_data = newname;
-	if (ioctl(s, SIOCSIFNAME, (caddr_t)&ifr) < 0) {
+	if (ioctl(ctx->io_s, SIOCSIFNAME, (caddr_t)&ifr) < 0) {
 		free(newname);
 		err(1, "ioctl SIOCSIFNAME (set name)");
 	}
@@ -1412,10 +1531,8 @@ setifname(const char *val, int dummy __unused, int s,
 	free(newname);
 }
 
-/* ARGSUSED */
 static void
-setifdescr(const char *val, int dummy __unused, int s, 
-    const struct afswtch *afp)
+setifdescr(if_ctx *ctx, const char *val, int dummy __unused)
 {
 	char *newdescr;
 
@@ -1434,18 +1551,16 @@ setifdescr(const char *val, int dummy __unused, int s,
 		}
 	}
 
-	if (ioctl(s, SIOCSIFDESCR, (caddr_t)&ifr) < 0)
+	if (ioctl(ctx->io_s, SIOCSIFDESCR, (caddr_t)&ifr) < 0)
 		err(1, "ioctl SIOCSIFDESCR (set descr)");
 
 	free(newdescr);
 }
 
-/* ARGSUSED */
 static void
-unsetifdescr(const char *val, int value, int s, const struct afswtch *afp)
+unsetifdescr(if_ctx *ctx, const char *val, int value)
 {
-
-	setifdescr("", 0, s, 0);
+	setifdescr(ctx, "", 0);
 }
 
 #define	IFFBITS \
@@ -1609,6 +1724,9 @@ status(struct ifconfig_args *args, const struct sockaddr_dl *sdl,
 	if (s < 0)
 		err(1, "socket(family %u,SOCK_DGRAM)", ifr.ifr_addr.sa_family);
 
+	struct ifconfig_context _ctx = { .io_s = s }, *ctx;
+	ctx = &_ctx;
+
 	printf("%s: ", name);
 	printb("flags", ifa->ifa_flags, IFFBITS);
 	print_metric(s);
@@ -1630,9 +1748,9 @@ status(struct ifconfig_args *args, const struct sockaddr_dl *sdl,
 			const struct afswtch *p;
 			p = af_getbyfamily(ift->ifa_addr->sa_family);
 			if (p != NULL && p->af_status != NULL)
-				p->af_status(s, ift);
+				p->af_status(ctx, ift);
 		} else if (args->afp->af_af == ift->ifa_addr->sa_family)
-			args->afp->af_status(s, ift);
+			args->afp->af_status(ctx, ift);
 	}
 #if 0
 	if (allfamilies || afp->af_af == AF_LINK) {
@@ -1652,13 +1770,13 @@ status(struct ifconfig_args *args, const struct sockaddr_dl *sdl,
 	}
 #endif
 	if (allfamilies)
-		af_other_status(s);
+		af_other_status(ctx);
 	else if (args->afp->af_other_status != NULL)
-		args->afp->af_other_status(s);
+		args->afp->af_other_status(ctx);
 
 	print_ifstatus(s);
 	if (args->verbose > 0)
-		sfp_status(s, &ifr, args->verbose);
+		sfp_status(ctx);
 
 	close(s);
 	return;
@@ -1671,8 +1789,8 @@ tunnel_status(int s)
 	af_all_tunnel_status(s);
 }
 
-void
-Perror(const char *cmd)
+static void
+Perrorc(const char *cmd, int error)
 {
 	switch (errno) {
 
@@ -1685,8 +1803,14 @@ Perror(const char *cmd)
 		break;
 
 	default:
-		err(1, "%s", cmd);
+		errc(1, error, "%s", cmd);
 	}
+}
+
+void
+Perror(const char *cmd)
+{
+	Perrorc(cmd, errno);
 }
 
 /*
@@ -1740,7 +1864,7 @@ ifmaybeload(struct ifconfig_args *args, const char *name)
 {
 #define MOD_PREFIX_LEN		3	/* "if_" */
 	struct module_stat mstat;
-	int i, fileid, modid;
+	int fileid, modid;
 	char ifkind[IFNAMSIZ + MOD_PREFIX_LEN], ifname[IFNAMSIZ], *dp;
 	const char *cp;
 	struct module_map_entry *mme;
@@ -1752,16 +1876,18 @@ ifmaybeload(struct ifconfig_args *args, const char *name)
 
 	/* trim the interface number off the end */
 	strlcpy(ifname, name, sizeof(ifname));
-	for (dp = ifname; *dp != 0; dp++)
-		if (isdigit(*dp)) {
-			*dp = 0;
+	dp = ifname + strlen(ifname) - 1;
+	for (; dp > ifname; dp--) {
+		if (isdigit(*dp))
+			*dp = '\0';
+		else
 			break;
-		}
+	}
 
 	/* Either derive it from the map or guess otherwise */
 	*ifkind = '\0';
 	found = false;
-	for (i = 0; i < nitems(module_map); ++i) {
+	for (unsigned i = 0; i < nitems(module_map); ++i) {
 		mme = &module_map[i];
 		if (strcmp(mme->ifname, ifname) == 0) {
 			strlcpy(ifkind, mme->kldname, sizeof(ifkind));

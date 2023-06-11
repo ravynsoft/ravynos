@@ -85,51 +85,32 @@ _cb_p_mp_nh(struct snl_state *ss __unused, void *_target)
 }
 #undef _IN
 #undef _OUT
-SNL_DECLARE_PARSER_EXT(_mpath_nh_parser, struct rtnexthop, _fp_p_mp_nh, _nla_p_mp_nh, _cb_p_mp_nh);
+SNL_DECLARE_PARSER_EXT(_mpath_nh_parser, sizeof(struct rtnexthop),
+		sizeof(struct rta_mpath_nh), _fp_p_mp_nh, _nla_p_mp_nh,
+		_cb_p_mp_nh);
 
 struct rta_mpath {
-	int num_nhops;
-	struct rta_mpath_nh nhops[0];
+	uint32_t num_nhops;
+	struct rta_mpath_nh **nhops;
 };
 
 static bool
-nlattr_get_multipath(struct snl_state *ss, struct nlattr *nla, const void *arg __unused,
-    void *target)
+nlattr_get_multipath(struct snl_state *ss, struct nlattr *nla,
+    const void *arg __unused, void *target)
 {
-	int data_len = nla->nla_len - sizeof(struct nlattr);
-	struct rtnexthop *rtnh;
+	uint32_t start_size = 4;
 
-	int max_nhops = data_len / sizeof(struct rtnexthop);
-	size_t sz = (max_nhops + 2) * sizeof(struct rta_mpath_nh);
+	while (start_size < NLA_DATA_LEN(nla) / sizeof(struct rtnexthop))
+		start_size *= 2;
 
-	struct rta_mpath *mp = snl_allocz(ss, sz);
-	if (mp == NULL)
-		return (false);
-	mp->num_nhops = 0;
-
-	for (rtnh = (struct rtnexthop *)(void *)(nla + 1); data_len > 0; ) {
-		struct rta_mpath_nh *mpnh = &mp->nhops[mp->num_nhops++];
-
-		if (!snl_parse_header(ss, rtnh, rtnh->rtnh_len, &_mpath_nh_parser, mpnh))
-			return (false);
-
-		int len = NL_ITEM_ALIGN(rtnh->rtnh_len);
-		data_len -= len;
-		rtnh = (struct rtnexthop *)(void *)((char *)rtnh + len);
-	}
-	if (data_len != 0 || mp->num_nhops == 0) {
-		return (false);
-	}
-
-	*((struct rta_mpath **)target) = mp;
-	return (true);
+	return (snl_attr_get_parray_sz(ss, nla, start_size, &_mpath_nh_parser, target));
 }
 
 struct snl_parsed_route {
 	struct sockaddr		*rta_dst;
 	struct sockaddr		*rta_gw;
 	struct nlattr		*rta_metrics;
-	struct rta_mpath	*rta_multipath;
+	struct rta_mpath	rta_multipath;
 	uint32_t		rta_expires;
 	uint32_t		rta_oif;
 	uint32_t		rta_expire;
@@ -185,7 +166,9 @@ _cb_p_route(struct snl_state *ss __unused, void *_target)
 }
 #undef _IN
 #undef _OUT
-SNL_DECLARE_PARSER_EXT(snl_rtm_route_parser, struct rtmsg, _fp_p_route, _nla_p_route, _cb_p_route);
+SNL_DECLARE_PARSER_EXT(snl_rtm_route_parser, sizeof(struct rtmsg),
+		sizeof(struct snl_parsed_route), _fp_p_route, _nla_p_route,
+		_cb_p_route);
 
 /* RTM_<NEW|DEL|GET>LINK message parser */
 struct snl_parsed_link {
@@ -299,7 +282,9 @@ _cb_p_neigh(struct snl_state *ss __unused, void *_target)
 }
 #undef _IN
 #undef _OUT
-SNL_DECLARE_PARSER_EXT(snl_rtm_neigh_parser, struct ndmsg, _fp_p_neigh_s, _nla_p_neigh_s, _cb_p_neigh);
+SNL_DECLARE_PARSER_EXT(snl_rtm_neigh_parser, sizeof(struct ndmsg),
+		sizeof(struct snl_parsed_neigh), _fp_p_neigh_s, _nla_p_neigh_s,
+		_cb_p_neigh);
 
 struct snl_parsed_addr {
 	uint8_t		ifa_family;
@@ -347,7 +332,9 @@ _cb_p_addr(struct snl_state *ss __unused, void *_target)
 }
 #undef _IN
 #undef _OUT
-SNL_DECLARE_PARSER_EXT(snl_rtm_addr_parser, struct ifaddrmsg, _fp_p_addr_s, _nla_p_addr_s, _cb_p_addr);
+SNL_DECLARE_PARSER_EXT(snl_rtm_addr_parser, sizeof(struct ifaddrmsg),
+		sizeof(struct snl_parsed_addr), _fp_p_addr_s, _nla_p_addr_s,
+		_cb_p_addr);
 
 struct snl_parsed_nhop {
 	uint32_t	nha_id;
@@ -397,7 +384,8 @@ _cb_p_nh(struct snl_state *ss __unused, void *_target)
 }
 #undef _IN
 #undef _OUT
-SNL_DECLARE_PARSER_EXT(snl_nhmsg_parser, struct nhmsg, _fp_p_nh, _nla_p_nh, _cb_p_nh);
+SNL_DECLARE_PARSER_EXT(snl_nhmsg_parser, sizeof(struct nhmsg),
+		sizeof(struct snl_parsed_nhop), _fp_p_nh, _nla_p_nh, _cb_p_nh);
 
 static const struct snl_hdr_parser *snl_all_route_parsers[] = {
 	&_metrics_mp_nh_parser, &_mpath_nh_parser, &_metrics_parser, &snl_rtm_route_parser,

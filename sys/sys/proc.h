@@ -274,11 +274,11 @@ struct thread {
 	const char	*td_wmesg;	/* (t) Reason for sleep. */
 	volatile u_char td_owepreempt;  /* (k*) Preempt on last critical_exit */
 	u_char		td_tsqueue;	/* (t) Turnstile queue blocked on. */
-	short		td_locks;	/* (k) Debug: count of non-spin locks */
-	short		td_rw_rlocks;	/* (k) Count of rwlock read locks. */
-	short		td_sx_slocks;	/* (k) Count of sx shared locks. */
-	short		td_lk_slocks;	/* (k) Count of lockmgr shared locks. */
-	short		td_stopsched;	/* (k) Scheduler stopped. */
+	u_char		td_stopsched;	/* (k) Scheduler stopped. */
+	int		td_locks;	/* (k) Debug: count of non-spin locks */
+	int		td_rw_rlocks;	/* (k) Count of rwlock read locks. */
+	int		td_sx_slocks;	/* (k) Count of sx shared locks. */
+	int		td_lk_slocks;	/* (k) Count of lockmgr shared locks. */
 	struct turnstile *td_blocked;	/* (t) Lock thread is blocked on. */
 	const char	*td_lockname;	/* (t) Name of lock blocked on. */
 	LIST_HEAD(, turnstile) td_contested;	/* (q) Contested locks. */
@@ -893,6 +893,7 @@ struct proc {
 #define	P2_WEXIT		0x00040000	/* exit just started, no
 						   external thread_single() is
 						   permitted */
+#define	P2_REAPKILLED		0x00080000
 
 /* Flags protected by proctree_lock, kept in p_treeflags. */
 #define	P_TREE_ORPHANED		0x00000001	/* Reparented, on orphan list */
