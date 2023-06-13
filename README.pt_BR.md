@@ -6,7 +6,7 @@ Os objetivos principais são:
 
 - Compatibilidade com código de programas do macOS (ex. você poderia compilar um programa do Mac no ravynOS e o executar)
 - Filosofia de interface gráfica parecida e experiência de usuário familiar (gerenciador de arquivos, launcher de aplicativos, barra de menu no topo que reflita a aplicação aberta, etc)
-- Compatível com planos de pastas parecidos do macOS (/Library, /System, /Users, /Volumes, etc) e talves sistemas de arquivos (HFS+, APFS) além de total suporte para ZFS.
+- Compatível com planos de pastas parecidos do macOS (/Library, /System, /Users, /Volumes, etc) e talves sistemas de arquivos (HFS+, APFS) além de total suporte para ZFS
 - Aplicações independentes em arquivos [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), e [AppImage](https://github.com/AppImage) - uma experiência livre de instaladores para /Applications
 - Na maior parte manter compatibilidade com o sistema-base FreeBSD e X11 - um espaço Unix padrão no seu fundo
 - Compatibilidade com binários do Linux com o suporte para Linux de FreeBSD
@@ -21,7 +21,7 @@ Visite [ravynos.com](https://ravynos.com/) para mais informações (em inglês):
 * `#airyx:matrix.org` - entre pelo [Element.io](https://app.element.io/#/room/#airyx:matrix.org)
 * `#airyx` em [Libera IRC](https://web.libera.chat/?channel=#airyx)
 
-_(nota: `#airyx` em matrix.org e IRC são conectados `#general` su Discord, apenas em inglês)_
+_(nota: `#airyx` em matrix.org e IRC são conectados `#general` no Discord, apenas em inglês)_
 
 [![Sediamento de pacotes OSS: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
