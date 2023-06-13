@@ -9,21 +9,19 @@ Os objetivos principais são:
 - Compatível com planos de pastas parecidos do macOS (/Library, /System, /Users, /Volumes, etc) e talves sistemas de arquivos (HFS+, APFS) além de total suporte para ZFS.
 - Aplicações independentes em arquivos [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), e [AppImage](https://github.com/AppImage) - uma experiência livre de instaladores para /Applications
 - Na maior parte manter compatibilidade com o sistema-base FreeBSD e X11 - um espaço Unix padrão no seu fundo
-- Compatibilidade com binários do Linux com o suporte para Linux de FreeBSD.
+- Compatibilidade com binários do Linux com o suporte para Linux de FreeBSD
 - Eventual compatibilidade com binários x86_64/arm64 do macOS (Mach-O) e suas bibliotecas
 - Prazeroso de usar, seguro, estável e performante
 
 Visite [ravynos.com](https://ravynos.com/) para mais informações (em inglês): [Notas de Lançamento](https://ravynos.com/releases.html) | [Prints](https://ravynos.com/screenshots.html) | [Perguntas Frequentes](https://ravynos.com/faq.html)
-### Junte a nos!
+### Junte-se a nós!
 
 * Consegue ajudar a construir o sonho? Veja os projetos/necessidades em [CONTRIBUTING.md](CONTRIBUTING.md)!
 * Nosso servidor [Discord](https://discord.com/invite/8caJbAGNwY)
 * `#airyx:matrix.org` - entre pelo [Element.io](https://app.element.io/#/room/#airyx:matrix.org)
 * `#airyx` em [Libera IRC](https://web.libera.chat/?channel=#airyx)
 
-_(nota: `#airyx` em matrix.org e IRC são conectados `#general` su Discord, solo in lingua inglese)_
-
-Logo e design sono stati creati da [nayaabkhan](https://nayaabkhan.me). Si ringrazia [llui85](https://github.com/llui85) per l'albero di palme.
+_(nota: `#airyx` em matrix.org e IRC são conectados `#general` su Discord, apenas em inglês)_
 
 [![Sediamento de pacotes OSS: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
