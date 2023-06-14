@@ -587,6 +587,13 @@ stringnum_cmp(const char *a, const char *b)
 	return (strcmp(a, b));
 }
 
+struct debug_header {
+	uint16_t cmd_type;
+	uint16_t spare1;
+	uint32_t opt_name;
+	uint32_t total_len;
+	uint32_t spare2;
+};
 
 /*
  * conditionally runs the command.
@@ -597,8 +604,18 @@ do_cmd(int optname, void *optval, uintptr_t optlen)
 {
 	int i;
 
+	if (g_co.debug_only) {
+		struct debug_header dbg = {
+			.cmd_type = 1,
+			.opt_name = optname,
+			.total_len = optlen + sizeof(struct debug_header),
+		};
+		write(1, &dbg, sizeof(dbg));
+		write(1, optval, optlen);
+	}
+
 	if (g_co.test_only)
-		return 0;
+		return (0);
 
 	if (ipfw_socket == -1)
 		ipfw_socket = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
@@ -617,7 +634,7 @@ do_cmd(int optname, void *optval, uintptr_t optlen)
 	} else {
 		i = setsockopt(ipfw_socket, IPPROTO_IP, optname, optval, optlen);
 	}
-	return i;
+	return (i);
 }
 
 /*
@@ -634,6 +651,18 @@ int
 do_set3(int optname, ip_fw3_opheader *op3, size_t optlen)
 {
 
+	op3->opcode = optname;
+
+	if (g_co.debug_only) {
+		struct debug_header dbg = {
+			.cmd_type = 2,
+			.opt_name = optname,
+			.total_len = optlen, sizeof(struct debug_header),
+		};
+		write(1, &dbg, sizeof(dbg));
+		write(1, op3, optlen);
+	}
+
 	if (g_co.test_only)
 		return (0);
 
@@ -642,7 +671,6 @@ do_set3(int optname, ip_fw3_opheader *op3, size_t optlen)
 	if (ipfw_socket < 0)
 		err(EX_UNAVAILABLE, "socket");
 
-	op3->opcode = optname;
 
 	return (setsockopt(ipfw_socket, IPPROTO_IP, IP_FW3, op3, optlen));
 }
@@ -663,6 +691,18 @@ do_get3(int optname, ip_fw3_opheader *op3, size_t *optlen)
 	int error;
 	socklen_t len;
 
+	op3->opcode = optname;
+
+	if (g_co.debug_only) {
+		struct debug_header dbg = {
+			.cmd_type = 3,
+			.opt_name = optname,
+			.total_len = *optlen + sizeof(struct debug_header),
+		};
+		write(1, &dbg, sizeof(dbg));
+		write(1, op3, *optlen);
+	}
+
 	if (g_co.test_only)
 		return (0);
 
@@ -671,7 +711,6 @@ do_get3(int optname, ip_fw3_opheader *op3, size_t *optlen)
 	if (ipfw_socket < 0)
 		err(EX_UNAVAILABLE, "socket");
 
-	op3->opcode = optname;
 
 	len = *optlen;
 	error = getsockopt(ipfw_socket, IPPROTO_IP, IP_FW3, op3, &len);
@@ -3898,6 +3937,53 @@ add_dst(ipfw_insn *cmd, char *av, u_char proto, int cblen, struct tidx *tstate)
 	return ret;
 }
 
+static inline int
+arg_or_targ_relaxed(const char *arg, const char *action)
+{
+	uint32_t arg1 = (uint32_t)(-1);
+
+	if (arg == NULL)
+		errx(EX_USAGE, "missing argument for %s", action);
+	if (isdigit(arg[0])) {
+		arg1 = strtoul(arg, NULL, 10);
+		if (arg1 <= 0 || arg1 >= IP_FW_TABLEARG)
+			errx(EX_DATAERR, "illegal argument %s(%u) for %s",
+			    arg, arg1, action);
+	} else if (_substrcmp(arg, "tablearg") == 0)
+		arg1 = IP_FW_TARG;
+	return (arg1);
+}
+
+static inline uint16_t
+arg_or_targ(const char *arg, const char *action)
+{
+	uint32_t arg1 = arg_or_targ_relaxed(arg, action);
+
+	if (arg1 == (uint32_t)(-1))
+		errx(EX_DATAERR, "illegal argument %s(%u) for %s",
+		    arg, arg1, action);
+	return (arg1);
+}
+
+static void
+fill_divert_port(ipfw_insn *cmd, char *arg, const char *action)
+{
+	uint32_t arg1 = arg_or_targ_relaxed(arg, action);
+
+	if (arg1 != (uint32_t)(-1)) {
+		cmd->arg1 = arg1;
+		return;
+	}
+
+	struct servent *s;
+	setservent(1);
+	s = getservbyname(arg, "divert");
+	if (s != NULL)
+		cmd->arg1 = ntohs(s->s_port);
+	else
+		errx(EX_DATAERR, "illegal divert/tee port");
+}
+
 /*
  * Parse arguments and assemble the microinstructions which make up a rule.
  * Rules are added into the 'rulebuf' and then copied in the correct order
@@ -4087,55 +4173,50 @@ compile_rule(char *av[], uint32_t *rbuf, int *rbufsize, struct tidx *tstate)
 		action->opcode = O_NAT;
 		action->len = F_INSN_SIZE(ipfw_insn_nat);
 		CHECK_ACTLEN;
-		if (*av != NULL && _substrcmp(*av, "global") == 0) {
+		if (*av != NULL && _substrcmp(*av, "global") == 0)
 			action->arg1 = IP_FW_NAT44_GLOBAL;
-			av++;
-			break;
-		} else
-			goto chkarg;
+		else
+			action->arg1 = arg_or_targ(av[0], *(av - 1));
+		av++;
+		break;
 	case TOK_QUEUE:
 		action->opcode = O_QUEUE;
-		goto chkarg;
+		action->arg1 = arg_or_targ(av[0], *(av - 1));
+		av++;
+		break;
 	case TOK_PIPE:
 		action->opcode = O_PIPE;
-		goto chkarg;
+		action->arg1 = arg_or_targ(av[0], *(av - 1));
+		av++;
+		break;
 	case TOK_SKIPTO:
 		action->opcode = O_SKIPTO;
-		goto chkarg;
+		action->arg1 = arg_or_targ(av[0], *(av - 1));
+		av++;
+		break;
 	case TOK_NETGRAPH:
 		action->opcode = O_NETGRAPH;
-		goto chkarg;
+		action->arg1 = arg_or_targ(av[0], *(av - 1));
+		av++;
+		break;
 	case TOK_NGTEE:
 		action->opcode = O_NGTEE;
-		goto chkarg;
+		action->arg1 = arg_or_targ(av[0], *(av - 1));
+		av++;
+		break;
 	case TOK_DIVERT:
 		action->opcode = O_DIVERT;
-		goto chkarg;
+		fill_divert_port(action, av[0], *(av - 1));
+		av++;
+		break;
 	case TOK_TEE:
 		action->opcode = O_TEE;
-		goto chkarg;
+		fill_divert_port(action, av[0], *(av - 1));
+		av++;
+		break;
 	case TOK_CALL:
 		action->opcode = O_CALLRETURN;
-chkarg:
-		if (!av[0])
-			errx(EX_USAGE, "missing argument for %s", *(av - 1));
-		if (isdigit(**av)) {
-			action->arg1 = strtoul(*av, NULL, 10);
-			if (action->arg1 <= 0 || action->arg1 >= IP_FW_TABLEARG)
-				errx(EX_DATAERR, "illegal argument for %s",
-				    *(av - 1));
-		} else if (_substrcmp(*av, "tablearg") == 0) {
-			action->arg1 = IP_FW_TARG;
-		} else if (i == TOK_DIVERT || i == TOK_TEE) {
-			struct servent *s;
-			setservent(1);
-			s = getservbyname(av[0], "divert");
-			if (s != NULL)
-				action->arg1 = ntohs(s->s_port);
-			else
-				errx(EX_DATAERR, "illegal divert/tee port");
-		} else
-			errx(EX_DATAERR, "illegal argument for %s", *(av - 1));
+		action->arg1 = arg_or_targ(av[0], *(av - 1));
 		av++;
 		break;
 

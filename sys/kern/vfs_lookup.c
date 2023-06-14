@@ -81,6 +81,11 @@ static void NDVALIDATE_impl(struct nameidata *, int);
 #define NDVALIDATE(ndp)
 #endif
 
+/*
+ * Prepare namei() to restart. Reset components to its original state and set
+ * ISRESTARTED flag which signals the underlying lookup code to change the root
+ * from ABI root to actual root and prevents a further restarts.
+ */
 #define	NDRESTART(ndp) do {						\
 	NDREINIT_DBG(ndp);						\
 	ndp->ni_resflags = 0;						\
@@ -716,6 +721,14 @@ restart:
 		 */
 		cnp->cn_nameptr = cnp->cn_pnbuf;
 		if (*(cnp->cn_nameptr) == '/') {
+			/*
+			 * Reset the lookup to start from the real root without
+			 * origin path name reloading.
+			 */
+			if (__predict_false(ndp->ni_rootdir != pwd->pwd_rdir)) {
+				cnp->cn_flags |= ISRESTARTED;
+				ndp->ni_rootdir = pwd->pwd_rdir;
+			}
 			vrele(dp);
 			error = namei_handle_root(ndp, &dp);
 			if (error != 0)

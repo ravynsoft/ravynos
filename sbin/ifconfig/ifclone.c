@@ -118,13 +118,12 @@ clone_setdefcallback_filter(clone_match_func *filter, clone_callback_func *p)
  * no parameters.
  */
 static void
-ifclonecreate(int s, void *arg __unused)
+ifclonecreate(if_ctx *ctx, void *arg __unused)
 {
-	struct ifreq ifr;
+	struct ifreq ifr = {};
 	struct clone_defcb *dcp;
 
-	memset(&ifr, 0, sizeof(ifr));
-	(void) strlcpy(ifr.ifr_name, name, sizeof(ifr.ifr_name));
+	strlcpy(ifr.ifr_name, ctx->ifname, sizeof(ifr.ifr_name));
 
 	/* Try to find a default callback by filter */
 	SLIST_FOREACH(dcp, &clone_defcbh, next) {
@@ -145,18 +144,9 @@ ifclonecreate(int s, void *arg __unused)
 
 	if (dcp == NULL || dcp->clone_cb == NULL) {
 		/* NB: no parameters */
-	  	ioctl_ifcreate(s, &ifr);
+		ifcreate_ioctl(ctx, &ifr);
 	} else {
-		dcp->clone_cb(s, &ifr);
-	}
-
-	/*
-	 * If we get a different name back than we put in, update record and
-	 * indicate it should be printed later.
-	 */
-	if (strncmp(name, ifr.ifr_name, sizeof(name)) != 0) {
-		strlcpy(name, ifr.ifr_name, sizeof(name));
-		printifname = 1;
+		dcp->clone_cb(ctx, &ifr);
 	}
 }
 
@@ -169,7 +159,7 @@ clone_create(if_ctx *ctx __unused, const char *cmd __unused, int d __unused)
 static void
 clone_destroy(if_ctx *ctx, const char *cmd __unused, int d __unused)
 {
-	strlcpy(ifr.ifr_name, name, sizeof(ifr.ifr_name));
+	strlcpy(ifr.ifr_name, ctx->ifname, sizeof(ifr.ifr_name));
 	if (ioctl(ctx->io_s, SIOCIFDESTROY, &ifr) < 0)
 		err(1, "SIOCIFDESTROY");
 }

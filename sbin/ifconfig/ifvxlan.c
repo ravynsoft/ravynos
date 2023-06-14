@@ -141,7 +141,7 @@ vxlan_status(if_ctx *ctx)
 	printf(" %s %s%s%s:%s", mc ? "group" : "remote", ipv6 ? "[" : "",
 	    dst, ipv6 ? "]" : "", dstport);
 
-	if (verbose) {
+	if (ctx->args->verbose) {
 		printf("\n\t\tconfig: ");
 		printf("%slearning portrange %d-%d ttl %d",
 		    cfg.vxlc_learn ? "" : "no", cfg.vxlc_port_min,
@@ -179,19 +179,13 @@ vxlan_check_params(void)
 #undef _REMOTE_ADDR46
 
 static void
-vxlan_cb(int s __unused, void *arg __unused)
-{
-
-}
-
-static void
-vxlan_create(int s, struct ifreq *ifr)
+vxlan_create(if_ctx *ctx, struct ifreq *ifr)
 {
 
 	vxlan_check_params();
 
 	ifr->ifr_data = (caddr_t) &params;
-	ioctl_ifcreate(s, ifr);
+	ifcreate_ioctl(ctx, ifr);
 }
 
 static void
@@ -640,6 +634,5 @@ vxlan_ctor(void)
 	for (i = 0; i < nitems(vxlan_cmds); i++)
 		cmd_register(&vxlan_cmds[i]);
 	af_register(&af_vxlan);
-	callback_register(vxlan_cb, NULL);
 	clone_setdefcallback_prefix("vxlan", vxlan_create);
 }

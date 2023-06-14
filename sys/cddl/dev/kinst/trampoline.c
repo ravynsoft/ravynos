@@ -31,6 +31,7 @@
 #define KINST_TRAMP_FILL_PATTERN	((kinst_patchval_t []){KINST_PATCHVAL})
 #define KINST_TRAMP_FILL_SIZE		sizeof(kinst_patchval_t)
 
+#define KINST_TRAMPCHUNK_SIZE		PAGE_SIZE
 #define KINST_TRAMPS_PER_CHUNK		(KINST_TRAMPCHUNK_SIZE / KINST_TRAMP_SIZE)
 
 struct trampchunk {
@@ -218,7 +219,7 @@ kinst_trampoline_dealloc(uint8_t *tramp)
 static void
 kinst_thread_ctor(void *arg __unused, struct thread *td)
 {
-	td->t_kinst = kinst_trampoline_alloc(M_WAITOK);
+	td->t_kinst_tramp = kinst_trampoline_alloc(M_WAITOK);
 }
 
 static void
@@ -226,8 +227,8 @@ kinst_thread_dtor(void *arg __unused, struct thread *td)
 {
 	void *tramp;
 
-	tramp = td->t_kinst;
-	td->t_kinst = NULL;
+	tramp = td->t_kinst_tramp;
+	td->t_kinst_tramp = NULL;
 
 	/*
 	 * This assumes that the thread_dtor event permits sleeping, which
@@ -258,7 +259,7 @@ kinst_trampoline_init(void)
 retry:
 		PROC_LOCK(p);
 		FOREACH_THREAD_IN_PROC(p, td) {
-			if (td->t_kinst != NULL)
+			if (td->t_kinst_tramp != NULL)
 				continue;
 			if (tramp == NULL) {
 				/*
@@ -283,7 +284,7 @@ retry:
 						goto retry;
 				}
 			}
-			td->t_kinst = tramp;
+			td->t_kinst_tramp = tramp;
 			tramp = NULL;
 		}
 		PROC_UNLOCK(p);
@@ -309,8 +310,9 @@ kinst_trampoline_deinit(void)
 	FOREACH_PROC_IN_SYSTEM(p) {
 		PROC_LOCK(p);
 		FOREACH_THREAD_IN_PROC(p, td) {
-			kinst_trampoline_dealloc_locked(td->t_kinst, false);
-			td->t_kinst = NULL;
+			kinst_trampoline_dealloc_locked(td->t_kinst_tramp,
+			    false);
+			td->t_kinst_tramp = NULL;
 		}
 		PROC_UNLOCK(p);
 	}

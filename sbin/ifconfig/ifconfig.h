@@ -53,13 +53,21 @@
 
 struct afswtch;
 struct cmd;
-struct ifconfig_context;
+struct snl_state;
+struct ifconfig_args;
+struct ifconfig_context {
+	struct ifconfig_args	*args;
+	const struct afswtch	*afp;
+	int			io_s;		/* fd to use for ioctl() */
+	struct snl_state	*io_ss;		/* NETLINK_ROUTE socket */
+	const char		*ifname;	/* Current interface name */
+	char			_ifname_storage_ioctl[IFNAMSIZ];
+};
+typedef struct ifconfig_context if_ctx;
 
-typedef	void c_func(const struct ifconfig_context *ctx, const char *cmd, int arg);
-typedef	void c_func2(const struct ifconfig_context *ctx, const char *arg1,
-    const char *arg2);
-typedef	void c_func3(const struct ifconfig_context *ctx, const char *cmd,
-    const char *arg);
+typedef	void c_func(if_ctx *ctx, const char *cmd, int arg);
+typedef	void c_func2(if_ctx *ctx, const char *arg1, const char *arg2);
+typedef	void c_func3(if_ctx *ctx, const char *cmd, const char *arg);
 
 struct cmd {
 	const char *c_name;
@@ -79,7 +87,7 @@ struct cmd {
 };
 void	cmd_register(struct cmd *);
 
-typedef	void callback_func(int s, void *);
+typedef	void callback_func(if_ctx *, void *);
 void	callback_register(callback_func *, void *);
 
 /*
@@ -144,16 +152,6 @@ void	callback_register(callback_func *, void *);
     .c_next = NULL,				\
 }
 
-struct snl_state;
-struct ifconfig_args;
-struct ifconfig_context {
-	struct ifconfig_args	*args;
-	const struct afswtch	*afp;
-	int			io_s;	/* fd to use for ioctl() */
-	struct snl_state	*io_ss;	/* NETLINK_ROUTE socket */
-};
-typedef const struct ifconfig_context if_ctx;
-
 #define	ioctl_ctx(ctx, _req, ...)	ioctl((ctx)->io_s, _req, ## __VA_ARGS__)
 
 struct ifaddrs;
@@ -183,6 +181,8 @@ typedef void af_other_status_f(if_ctx *ctx);
 typedef void af_postproc_f(if_ctx *ctx, int newaddr, int ifflags);
 typedef	int af_exec_f(if_ctx *ctx, unsigned long action, void *data);
 typedef void af_copyaddr_f(if_ctx *ctx, int to, int from);
+typedef void af_status_tunnel_f(if_ctx *ctx);
+typedef void af_settunnel_f(if_ctx *ctx, struct addrinfo *srcres, struct addrinfo *dstres);
 
 struct afswtch {
 	const char	*af_name;	/* as given on cmd line, e.g. "inet" */
@@ -216,9 +216,8 @@ struct afswtch {
 	struct afswtch	*af_next;
 
 	/* XXX doesn't fit model */
-	void		(*af_status_tunnel)(int);
-	void		(*af_settunnel)(int s, struct addrinfo *srcres,
-				struct addrinfo *dstres);
+	af_status_tunnel_f	*af_status_tunnel;
+	af_settunnel_f	*af_settunnel;
 };
 void	af_register(struct afswtch *);
 int	af_exec_ioctl(if_ctx *ctx, unsigned long action, void *data);
@@ -252,14 +251,8 @@ void	opt_register(struct option *);
 
 extern	ifconfig_handle_t *lifh;
 extern	struct ifreq ifr;
-extern	char name[IFNAMSIZ];	/* name of interface */
 extern	int allmedia;
-extern	int printkeys;
-extern	int newaddr;
-extern	int verbose;
-extern	int printifname;
 extern	int exit_code;
-extern struct ifconfig_args global_args;
 extern	char *f_inet, *f_inet6, *f_ether, *f_addr;
 
 void	setifcap(if_ctx *ctx, const char *, int value);
@@ -271,7 +264,7 @@ void	printb(const char *s, unsigned value, const char *bits);
 void	ifmaybeload(struct ifconfig_args *args, const char *name);
 
 typedef int  clone_match_func(const char *);
-typedef void clone_callback_func(int, struct ifreq *);
+typedef void clone_callback_func(if_ctx *, struct ifreq *);
 void	clone_setdefcallback_prefix(const char *, clone_callback_func *);
 void	clone_setdefcallback_filter(clone_match_func *, clone_callback_func *);
 
@@ -280,18 +273,18 @@ void	sfp_status(if_ctx *ctx);
 struct sockaddr_dl;
 bool	match_ether(const struct sockaddr_dl *sdl);
 bool	match_if_flags(struct ifconfig_args *args, int if_flags);
-int	ifconfig(if_ctx *ctx, int iscreate, const struct afswtch *uafp);
+int	ifconfig_ioctl(if_ctx *ctx, int iscreate, const struct afswtch *uafp);
 bool	group_member(const char *ifname, const char *match, const char *nomatch);
 void	print_ifcap(struct ifconfig_args *args, int s);
-void	tunnel_status(int s);
+void	tunnel_status(if_ctx *ctx);
 struct afswtch	*af_getbyfamily(int af);
 void	af_other_status(if_ctx *ctx);
-void	print_ifstatus(int s);
+void	print_ifstatus(if_ctx *ctx);
 void	print_metric(int s);
 
 /* Netlink-related functions */
 void	list_interfaces_nl(struct ifconfig_args *args);
-int	ifconfig_wrapper_nl(struct ifconfig_args *args, int iscreate,
+int	ifconfig_nl(if_ctx *ctx, int iscreate,
 		const struct afswtch *uafp);
 uint32_t if_nametoindex_nl(struct snl_state *ss, const char *ifname);
 
@@ -299,11 +292,11 @@ uint32_t if_nametoindex_nl(struct snl_state *ss, const char *ifname);
  * XXX expose this so modules that need to know of any pending
  * operations on ifmedia can avoid cmd line ordering confusion.
  */
-struct ifmediareq *ifmedia_getstate(void);
+struct ifmediareq *ifmedia_getstate(if_ctx *ctx);
 
-void print_vhid(const struct ifaddrs *, const char *);
+void print_vhid(const struct ifaddrs *);
 
-void ioctl_ifcreate(int s, struct ifreq *);
+void ifcreate_ioctl(if_ctx *ctx, struct ifreq *ifr);
 
 /* Helpers */
 struct sockaddr_in;
