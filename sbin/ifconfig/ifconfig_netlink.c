@@ -48,6 +48,7 @@
 #include <net/ethernet.h>
 #include <net/if.h>
 #include <net/if_dl.h>
+#include <net/if_strings.h>
 #include <net/if_types.h>
 #include "ifconfig.h"
 #include "ifconfig_netlink.h"
@@ -344,6 +345,28 @@ sort_iface_ifaddrs(struct snl_state *ss, struct iface *iface)
 }
 
 static void
+print_ifcaps(if_ctx *ctx, if_link_t *link)
+{
+	uint32_t sz_u32 = roundup2(link->iflaf_caps.nla_bitset_size, 32) / 32;
+
+	if (sz_u32 > 0) {
+		uint32_t *caps = link->iflaf_caps.nla_bitset_value;
+
+		printf("\toptions=%x", caps[0]);
+		print_bits("IFCAPS", caps, sz_u32, ifcap_bit_names, nitems(ifcap_bit_names));
+		putchar('\n');
+	}
+
+	if (ctx->args->supmedia && sz_u32 > 0) {
+		uint32_t *caps = link->iflaf_caps.nla_bitset_mask;
+
+		printf("\tcapabilities=%x", caps[0]);
+		print_bits("IFCAPS", caps, sz_u32, ifcap_bit_names, nitems(ifcap_bit_names));
+		putchar('\n');
+	}
+}
+
+static void
 status_nl(if_ctx *ctx, struct iface *iface)
 {
 	if_link_t *link = &iface->link;
@@ -354,15 +377,13 @@ status_nl(if_ctx *ctx, struct iface *iface)
 	printf("flags=%x", link->ifi_flags);
 	print_bits("IFF", &link->ifi_flags, 1, IFFBITS, nitems(IFFBITS));
 
-	print_metric(ctx->io_s);
+	print_metric(ctx);
 	printf(" mtu %d\n", link->ifla_mtu);
 
 	if (link->ifla_ifalias != NULL)
 		printf("\tdescription: %s\n", link->ifla_ifalias);
 
-	/* TODO: convert to netlink */
-	strlcpy(ifr.ifr_name, link->ifla_ifname, sizeof(ifr.ifr_name));
-	print_ifcap(args, ctx->io_s);
+	print_ifcaps(ctx, link);
 	tunnel_status(ctx);
 
 	if (args->allfamilies | (args->afp != NULL && args->afp->af_af == AF_LINK)) {

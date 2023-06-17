@@ -57,7 +57,7 @@ def differ(w_obj, g_obj, w_stack=[], g_stack=[]):
         return True
     num_objects = 0
     for i, w_child in enumerate(w_obj.obj_list):
-        if i > len(g_obj.obj_list):
+        if i >= len(g_obj.obj_list):
             print("MISSING object from chain {}".format(" / ".join(w_stack)))
             w_child.print_obj()
             print("==========================")
@@ -172,6 +172,99 @@ class TestAddRule(BaseTest):
                     },
                 },
                 id="test_comment",
+            ),
+            pytest.param(
+                {
+                    "in": "add tcp-setmss 123 ip from any to 1.2.3.4",
+                    "out": {
+                        "objs": [
+                            NTlv(IpFwTlvType.IPFW_TLV_EACTION, idx=1, name="tcp-setmss"),
+                        ],
+                        "insns": [
+                            InsnIp(IpFwOpcode.O_IP_DST, ip="1.2.3.4"),
+                            Insn(IpFwOpcode.O_EXTERNAL_ACTION, arg1=1),
+                            Insn(IpFwOpcode.O_EXTERNAL_DATA, arg1=123),
+                        ],
+                    },
+                },
+                id="test_eaction_tcp-setmss",
+            ),
+            pytest.param(
+                {
+                    "in": "add eaction ntpv6 AAA ip from any to 1.2.3.4",
+                    "out": {
+                        "objs": [
+                            NTlv(IpFwTlvType.IPFW_TLV_EACTION, idx=1, name="ntpv6"),
+                            NTlv(0, idx=2, name="AAA"),
+                        ],
+                        "insns": [
+                            InsnIp(IpFwOpcode.O_IP_DST, ip="1.2.3.4"),
+                            Insn(IpFwOpcode.O_EXTERNAL_ACTION, arg1=1),
+                            Insn(IpFwOpcode.O_EXTERNAL_INSTANCE, arg1=2),
+                        ],
+                    },
+                },
+                id="test_eaction_ntp",
+            ),
+            pytest.param(
+                {
+                    "in": "add // test comment",
+                    "out": {
+                        "insns": [
+                            InsnComment(comment="test comment"),
+                            Insn(IpFwOpcode.O_COUNT),
+                        ],
+                    },
+                },
+                id="test_action_comment",
+            ),
+            pytest.param(
+                {
+                    "in": "add check-state :OUT // test comment",
+                    "out": {
+                        "objs": [
+                            NTlv(IpFwTlvType.IPFW_TLV_STATE_NAME, idx=1, name="OUT"),
+                        ],
+                        "insns": [
+                            InsnComment(comment="test comment"),
+                            Insn(IpFwOpcode.O_CHECK_STATE, arg1=1),
+                        ],
+                    },
+                },
+                id="test_check_state",
+            ),
+            pytest.param(
+                {
+                    "in": "add allow tcp from any to any keep-state :OUT",
+                    "out": {
+                        "objs": [
+                            NTlv(IpFwTlvType.IPFW_TLV_STATE_NAME, idx=1, name="OUT"),
+                        ],
+                        "insns": [
+                            Insn(IpFwOpcode.O_PROBE_STATE, arg1=1),
+                            Insn(IpFwOpcode.O_PROTO, arg1=6),
+                            Insn(IpFwOpcode.O_KEEP_STATE, arg1=1),
+                            InsnEmpty(IpFwOpcode.O_ACCEPT),
+                        ],
+                    },
+                },
+                id="test_keep_state",
+            ),
+            pytest.param(
+                {
+                    "in": "add allow tcp from any to any record-state",
+                    "out": {
+                        "objs": [
+                            NTlv(IpFwTlvType.IPFW_TLV_STATE_NAME, idx=1, name="default"),
+                        ],
+                        "insns": [
+                            Insn(IpFwOpcode.O_PROTO, arg1=6),
+                            Insn(IpFwOpcode.O_KEEP_STATE, arg1=1),
+                            InsnEmpty(IpFwOpcode.O_ACCEPT),
+                        ],
+                    },
+                },
+                id="test_record_state",
             ),
         ],
     )
@@ -296,7 +389,6 @@ class TestAddRule(BaseTest):
                 ("call 420", Insn(IpFwOpcode.O_CALLRETURN, arg1=420)), id="call_420"
             ),
             # TOK_FORWARD
-            # TOK_COMMENT
             pytest.param(
                 ("setfib 1", Insn(IpFwOpcode.O_SETFIB, arg1=1 | 0x8000)),
                 id="setfib_1",

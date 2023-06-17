@@ -55,6 +55,7 @@ static const char rcsid[] =
 #include <net/ethernet.h>
 #include <net/if.h>
 #include <net/if_dl.h>
+#include <net/if_strings.h>
 #include <net/if_types.h>
 #include <net/route.h>
 
@@ -85,14 +86,6 @@ static const char rcsid[] =
 
 ifconfig_handle_t *lifh;
 
-/*
- * Since "struct ifreq" is composed of various union members, callers
- * should pay special attention to interpret the value.
- * (.e.g. little/big endian difference in the structure.)
- */
-struct	ifreq ifr;
-
-//char	name[IFNAMSIZ];
 #ifdef WITHOUT_NETLINK
 static char	*descr = NULL;
 static size_t	descrlen = 64;
@@ -204,6 +197,19 @@ ifname_update(if_ctx *ctx, const char *name)
 	ctx->ifname = ctx->_ifname_storage_ioctl;
 
 	strlcpy(ifname_to_print, name, sizeof(ifname_to_print));
+}
+
+static void
+ifr_set_name(struct ifreq *ifr, const char *name)
+{
+	strlcpy(ifr->ifr_name, name, sizeof(ifr->ifr_name));
+}
+
+int
+ioctl_ctx_ifr(if_ctx *ctx, unsigned long cmd, struct ifreq *ifr)
+{
+	ifr_set_name(ifr, ctx->ifname);
+	return (ioctl_ctx(ctx, cmd, ifr));
 }
 
 void
@@ -806,7 +812,7 @@ list_interfaces_ioctl(if_ctx *ctx)
 		if (args->ifname != NULL && strcmp(args->ifname, ifa->ifa_name) != 0)
 			continue;
 		if (ifa->ifa_addr->sa_family == AF_LINK)
-			sdl = (const struct sockaddr_dl *) ifa->ifa_addr;
+			sdl = satosdl_c(ifa->ifa_addr);
 		else
 			sdl = NULL;
 		if (cp != NULL && strcmp(cp, ifa->ifa_name) == 0 && !args->namesonly)
@@ -1105,6 +1111,7 @@ ifconfig_ioctl(if_ctx *orig_ctx, int iscreate, const struct afswtch *uafp)
 	};
 	struct ifconfig_context *ctx = &_ctx;
 
+	struct ifreq ifr = {};
 	strlcpy(ifr.ifr_name, ctx->ifname, sizeof ifr.ifr_name);
 	afp = NULL;
 	if (uafp != NULL)
@@ -1282,8 +1289,9 @@ settunnel(if_ctx *ctx, const char *src, const char *dst)
 static void
 deletetunnel(if_ctx *ctx, const char *vname __unused, int param __unused)
 {
+	struct ifreq ifr = {};
 
-	if (ioctl_ctx(ctx, SIOCDIFPHYADDR, &ifr) < 0)
+	if (ioctl_ctx_ifr(ctx, SIOCDIFPHYADDR, &ifr) < 0)
 		err(1, "SIOCDIFPHYADDR");
 }
 
@@ -1291,27 +1299,25 @@ deletetunnel(if_ctx *ctx, const char *vname __unused, int param __unused)
 static void
 setifvnet(if_ctx *ctx, const char *jname, int dummy __unused)
 {
-	struct ifreq my_ifr;
+	struct ifreq ifr = {};
 
-	memcpy(&my_ifr, &ifr, sizeof(my_ifr));
-	my_ifr.ifr_jid = jail_getid(jname);
-	if (my_ifr.ifr_jid < 0)
+	ifr.ifr_jid = jail_getid(jname);
+	if (ifr.ifr_jid < 0)
 		errx(1, "%s", jail_errmsg);
-	if (ioctl(ctx->io_s, SIOCSIFVNET, &my_ifr) < 0)
+	if (ioctl_ctx_ifr(ctx, SIOCSIFVNET, &ifr) < 0)
 		err(1, "SIOCSIFVNET");
 }
 
 static void
 setifrvnet(if_ctx *ctx, const char *jname, int dummy __unused)
 {
-	struct ifreq my_ifr;
+	struct ifreq ifr = {};
 
-	memcpy(&my_ifr, &ifr, sizeof(my_ifr));
-	my_ifr.ifr_jid = jail_getid(jname);
-	if (my_ifr.ifr_jid < 0)
+	ifr.ifr_jid = jail_getid(jname);
+	if (ifr.ifr_jid < 0)
 		errx(1, "%s", jail_errmsg);
-	if (ioctl(ctx->io_s, SIOCSIFRVNET, &my_ifr) < 0)
-		err(1, "SIOCSIFRVNET(%d, %s)", my_ifr.ifr_jid, my_ifr.ifr_name);
+	if (ioctl_ctx_ifr(ctx, SIOCSIFRVNET, &ifr) < 0)
+		err(1, "SIOCSIFRVNET(%d, %s)", ifr.ifr_jid, ifr.ifr_name);
 }
 #endif
 
@@ -1413,9 +1419,10 @@ setifflags(if_ctx *ctx, const char *vname, int value)
 void
 setifcap(if_ctx *ctx, const char *vname, int value)
 {
+	struct ifreq ifr = {};
 	int flags;
 
-	if (ioctl(ctx->io_s, SIOCGIFCAP, (caddr_t)&ifr) < 0) {
+	if (ioctl_ctx_ifr(ctx, SIOCGIFCAP, &ifr) < 0) {
  		Perror("ioctl (SIOCGIFCAP)");
  		exit(1);
  	}
@@ -1430,7 +1437,7 @@ setifcap(if_ctx *ctx, const char *vname, int value)
 	if (ifr.ifr_curcap == flags)
 		return;
 	ifr.ifr_reqcap = flags;
-	if (ioctl(ctx->io_s, SIOCSIFCAP, (caddr_t)&ifr) < 0)
+	if (ioctl_ctx(ctx, SIOCSIFCAP, &ifr) < 0)
 		Perror(vname);
 }
 
@@ -1442,8 +1449,9 @@ setifcapnv(if_ctx *ctx, const char *vname, const char *arg)
 	char *marg, *mopt;
 	size_t nvbuflen;
 	bool neg;
+	struct ifreq ifr = {};
 
-	if (ioctl(ctx->io_s, SIOCGIFCAP, (caddr_t)&ifr) < 0)
+	if (ioctl_ctx_ifr(ctx, SIOCGIFCAP, &ifr) < 0)
 		Perror("ioctl (SIOCGIFCAP)");
 	if ((ifr.ifr_curcap & IFCAP_NV) == 0) {
 		warnx("IFCAP_NV not supported");
@@ -1474,7 +1482,7 @@ setifcapnv(if_ctx *ctx, const char *vname, const char *arg)
 	}
 	ifr.ifr_cap_nv.buf_length = ifr.ifr_cap_nv.length = nvbuflen;
 	ifr.ifr_cap_nv.buffer = buf;
-	if (ioctl(ctx->io_s, SIOCSIFCAPNV, (caddr_t)&ifr) < 0)
+	if (ioctl_ctx(ctx, SIOCSIFCAPNV, (caddr_t)&ifr) < 0)
 		Perror(vname);
 	free(buf);
 	nvlist_destroy(nvcap);
@@ -1484,24 +1492,27 @@ setifcapnv(if_ctx *ctx, const char *vname, const char *arg)
 static void
 setifmetric(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	strlcpy(ifr.ifr_name, ctx->ifname, sizeof (ifr.ifr_name));
+	struct ifreq ifr = {};
+
 	ifr.ifr_metric = atoi(val);
-	if (ioctl(ctx->io_s, SIOCSIFMETRIC, (caddr_t)&ifr) < 0)
+	if (ioctl_ctx_ifr(ctx, SIOCSIFMETRIC, &ifr) < 0)
 		err(1, "ioctl SIOCSIFMETRIC (set metric)");
 }
 
 static void
 setifmtu(if_ctx *ctx, const char *val, int dummy __unused)
 {
-	strlcpy(ifr.ifr_name, ctx->ifname, sizeof (ifr.ifr_name));
+	struct ifreq ifr = {};
+
 	ifr.ifr_mtu = atoi(val);
-	if (ioctl(ctx->io_s, SIOCSIFMTU, (caddr_t)&ifr) < 0)
+	if (ioctl_ctx_ifr(ctx, SIOCSIFMTU, &ifr) < 0)
 		err(1, "ioctl SIOCSIFMTU (set mtu)");
 }
 
 static void
 setifpcp(if_ctx *ctx, const char *val, int arg __unused)
 {
+	struct ifreq ifr = {};
 	u_long ul;
 	char *endp;
 
@@ -1511,31 +1522,32 @@ setifpcp(if_ctx *ctx, const char *val, int arg __unused)
 	if (ul > 7)
 		errx(1, "value for pcp out of range");
 	ifr.ifr_lan_pcp = ul;
-	if (ioctl(ctx->io_s, SIOCSLANPCP, (caddr_t)&ifr) == -1)
+	if (ioctl_ctx_ifr(ctx, SIOCSLANPCP, &ifr) == -1)
 		err(1, "SIOCSLANPCP");
 }
 
 static void
 disableifpcp(if_ctx *ctx, const char *val __unused, int arg __unused)
 {
+	struct ifreq ifr = {};
 
 	ifr.ifr_lan_pcp = IFNET_PCP_NONE;
-	if (ioctl_ctx(ctx, SIOCSLANPCP, (caddr_t)&ifr) == -1)
+	if (ioctl_ctx_ifr(ctx, SIOCSLANPCP, &ifr) == -1)
 		err(1, "SIOCSLANPCP");
 }
 
 static void
 setifname(if_ctx *ctx, const char *val, int dummy __unused)
 {
+	struct ifreq ifr = {};
 	char *newname;
-	
-	strlcpy(ifr.ifr_name, ctx->ifname, sizeof(ifr.ifr_name));
 
+	ifr_set_name(&ifr, ctx->ifname);
 	newname = strdup(val);
 	if (newname == NULL)
 		err(1, "no memory to set ifname");
 	ifr.ifr_data = newname;
-	if (ioctl(ctx->io_s, SIOCSIFNAME, (caddr_t)&ifr) < 0) {
+	if (ioctl_ctx(ctx, SIOCSIFNAME, (caddr_t)&ifr) < 0) {
 		free(newname);
 		err(1, "ioctl SIOCSIFNAME (set name)");
 	}
@@ -1546,10 +1558,9 @@ setifname(if_ctx *ctx, const char *val, int dummy __unused)
 static void
 setifdescr(if_ctx *ctx, const char *val, int dummy __unused)
 {
+	struct ifreq ifr = {};
 	char *newdescr;
 
-	strlcpy(ifr.ifr_name, ctx->ifname, sizeof(ifr.ifr_name));
-	
 	ifr.ifr_buffer.length = strlen(val) + 1;
 	if (ifr.ifr_buffer.length == 1) {
 		ifr.ifr_buffer.buffer = newdescr = NULL;
@@ -1563,7 +1574,7 @@ setifdescr(if_ctx *ctx, const char *val, int dummy __unused)
 		}
 	}
 
-	if (ioctl(ctx->io_s, SIOCSIFDESCR, (caddr_t)&ifr) < 0)
+	if (ioctl_ctx_ifr(ctx, SIOCSIFDESCR, &ifr) < 0)
 		err(1, "ioctl SIOCSIFDESCR (set descr)");
 
 	free(newdescr);
@@ -1574,6 +1585,8 @@ unsetifdescr(if_ctx *ctx, const char *val __unused, int value __unused)
 {
 	setifdescr(ctx, "", 0);
 }
+
+#ifdef WITHOUT_NETLINK
 
 #define	IFFBITS \
 "\020\1UP\2BROADCAST\3DEBUG\4LOOPBACK\5POINTOPOINT\7RUNNING" \
@@ -1588,8 +1601,9 @@ unsetifdescr(if_ctx *ctx, const char *val __unused, int value __unused)
 "\36VXLAN_HWCSUM\37VXLAN_HWTSO\40TXTLS_RTLMT"
 
 static void
-print_ifcap_nv(struct ifconfig_args *args, int s)
+print_ifcap_nv(if_ctx *ctx)
 {
+	struct ifreq ifr = {};
 	nvlist_t *nvcap;
 	const char *nvname;
 	void *buf, *cookie;
@@ -1601,7 +1615,7 @@ print_ifcap_nv(struct ifconfig_args *args, int s)
 		Perror("malloc");
 	ifr.ifr_cap_nv.buffer = buf;
 	ifr.ifr_cap_nv.buf_length = IFR_CAP_NV_MAXBUFSIZE;
-	if (ioctl(s, SIOCGIFCAPNV, (caddr_t)&ifr) != 0)
+	if (ioctl_ctx_ifr(ctx, SIOCGIFCAPNV, &ifr) != 0)
 		Perror("ioctl (SIOCGIFCAPNV)");
 	nvcap = nvlist_unpack(ifr.ifr_cap_nv.buffer,
 	    ifr.ifr_cap_nv.length, 0);
@@ -1623,7 +1637,7 @@ print_ifcap_nv(struct ifconfig_args *args, int s)
 			}
 		}
 	}
-	if (args->supmedia) {
+	if (ctx->args->supmedia) {
 		printf("\tcapabilities");
 		cookie = NULL;
 		for (first = true;; first = false) {
@@ -1641,28 +1655,30 @@ print_ifcap_nv(struct ifconfig_args *args, int s)
 	nvlist_destroy(nvcap);
 	free(buf);
 
-	if (ioctl(s, SIOCGIFCAP, (caddr_t)&ifr) != 0)
+	if (ioctl_ctx(ctx, SIOCGIFCAP, (caddr_t)&ifr) != 0)
 		Perror("ioctl (SIOCGIFCAP)");
 }
 
-void
-print_ifcap(struct ifconfig_args *args, int s)
+static void
+print_ifcap(if_ctx *ctx)
 {
-	if (ioctl(s, SIOCGIFCAP, (caddr_t)&ifr) != 0)
+	struct ifreq ifr = {};
+
+	if (ioctl_ctx_ifr(ctx, SIOCGIFCAP, &ifr) != 0)
 		return;
 
 	if ((ifr.ifr_curcap & IFCAP_NV) != 0)
-		print_ifcap_nv(args, s);
+		print_ifcap_nv(ctx);
 	else {
 		printb("\toptions", ifr.ifr_curcap, IFCAPBITS);
 		putchar('\n');
-		if (args->supmedia && ifr.ifr_reqcap != 0) {
-			printb("\tcapabilities", ifr.ifr_reqcap,
-			    IFCAPBITS);
+		if (ctx->args->supmedia && ifr.ifr_reqcap != 0) {
+			printb("\tcapabilities", ifr.ifr_reqcap, IFCAPBITS);
 			putchar('\n');
 		}
 	}
 }
+#endif
 
 void
 print_ifstatus(if_ctx *ctx)
@@ -1675,28 +1691,35 @@ print_ifstatus(if_ctx *ctx)
 }
 
 void
-print_metric(int s)
+print_metric(if_ctx *ctx)
 {
-	if (ioctl(s, SIOCGIFMETRIC, &ifr) != -1)
+	struct ifreq ifr = {};
+
+	if (ioctl_ctx_ifr(ctx, SIOCGIFMETRIC, &ifr) != -1)
 		printf(" metric %d", ifr.ifr_metric);
 }
 
 #ifdef WITHOUT_NETLINK
 static void
-print_mtu(int s)
+print_mtu(if_ctx *ctx)
 {
-	if (ioctl(s, SIOCGIFMTU, &ifr) != -1)
+	struct ifreq ifr = {};
+
+	if (ioctl_ctx_ifr(ctx, SIOCGIFMTU, &ifr) != -1)
 		printf(" mtu %d", ifr.ifr_mtu);
 }
 
 static void
-print_description(int s)
+print_description(if_ctx *ctx)
 {
+	struct ifreq ifr = {};
+
+	ifr_set_name(&ifr, ctx->ifname);
 	for (;;) {
 		if ((descr = reallocf(descr, descrlen)) != NULL) {
 			ifr.ifr_buffer.buffer = descr;
 			ifr.ifr_buffer.length = descrlen;
-			if (ioctl(s, SIOCGIFDESCR, &ifr) == 0) {
+			if (ioctl_ctx(ctx, SIOCGIFDESCR, &ifr) == 0) {
 				if (ifr.ifr_buffer.buffer == descr) {
 					if (strlen(descr) > 0)
 						printf("\tdescription: %s\n",
@@ -1718,21 +1741,19 @@ print_description(int s)
  * specified, show only it; otherwise, show them all.
  */
 static void
-status(if_ctx *ctx, const struct sockaddr_dl *sdl,
-	struct ifaddrs *ifa)
+status(if_ctx *ctx, const struct sockaddr_dl *sdl __unused, struct ifaddrs *ifa)
 {
 	struct ifaddrs *ift;
 	int s, old_s;
 	struct ifconfig_args *args = ctx->args;
 	bool allfamilies = args->afp == NULL;
-	char *ifname = ifa->ifa_name;
+	struct ifreq ifr = {};
 
 	if (args->afp == NULL)
 		ifr.ifr_addr.sa_family = AF_LOCAL;
 	else
 		ifr.ifr_addr.sa_family =
 		   args->afp->af_af == AF_LINK ? AF_LOCAL : args->afp->af_af;
-	strlcpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
 
 	s = socket(ifr.ifr_addr.sa_family, SOCK_DGRAM, 0);
 	if (s < 0)
@@ -1740,15 +1761,15 @@ status(if_ctx *ctx, const struct sockaddr_dl *sdl,
 	old_s = ctx->io_s;
 	ctx->io_s = s;
 
-	printf("%s: ", ifname);
+	printf("%s: ", ctx->ifname);
 	printb("flags", ifa->ifa_flags, IFFBITS);
-	print_metric(s);
-	print_mtu(s);
+	print_metric(ctx);
+	print_mtu(ctx);
 	putchar('\n');
 
-	print_description(s);
+	print_description(ctx);
 
-	print_ifcap(args, s);
+	print_ifcap(ctx);
 
 	tunnel_status(ctx);
 
