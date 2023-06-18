@@ -1,4 +1,4 @@
-# O que é o ravynOS? [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+# O que é o ravynOS? [![Status de Construção](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Pacto de Contribuinte](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
 ### Don't you speak portuguese? Read this in: [English](README.md)
 ravynOS é um projeto de um novo sistema operacional de código aberto que procura dar uma experiência parecida e alguma compatibilidade com macOS em sistemas de arquitetura x86_64 (e eventualmente ARM). O sistema se baseia nas fundações sólidas do FreeBSD, na existência de pacotes de código aberto no mesmo espaço, e código novo para preencher o que falta.
 
