@@ -50,7 +50,7 @@
 typedef struct {
     mach_msg_header_t header;
     unsigned int code;
-    unsigned char data[64*1024];
+    unsigned char data[128*1024]; // 128 KB
     unsigned int len;
 #ifdef WINDOWSERVER
     mach_msg_trailer_t trailer;

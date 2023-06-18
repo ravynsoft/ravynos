@@ -24,8 +24,21 @@
 #import "desktop.h"
 
 @implementation ExtrasView
+- initWithFrame:(NSRect)frame {
+    self = [super initWithFrame:frame];
+    [self setNeedsDisplay:YES];
+    return self;
+}
+
 - (void)addStatusItem:(NSStatusItem *)item pid:(unsigned int)pid {
-    NSLog(@"addStatusItem %@ for %u", item, pid);
+    NSImageView *icon = [[NSImageView alloc]
+	initWithFrame:NSMakeRect(0, 0, menuBarHeight - 2, menuBarHeight - 2)];
+    [icon setImageScaling:NSImageScaleProportionallyUpOrDown];
+    [icon setImage:[item image]];
+    [[icon image] setScalesWhenResized:YES];
+
+    [self addSubview:icon];
+    [self setNeedsDisplay:YES];
 }
 
 @end

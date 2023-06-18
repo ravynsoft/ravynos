@@ -54,6 +54,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 - (ClockView *)initWithFrame:(NSRect)frame;
 - (NSString *)currentDateValue;
 - (void)notifyTick:(id)arg;
+- (NSSize)size;
 @end
 
 // system and application menu titles view

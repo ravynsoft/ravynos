@@ -37,7 +37,7 @@ extern const char **environ;
 
 @implementation MenuView
 - initWithFrame:(NSRect)frame {
-    self = [super initWithFrame:NSMakeRect(0, 0, frame.size.width/2, menuBarHeight)];
+    self = [super initWithFrame:frame];
 
     aboutWindow = nil;
     _maxRecentItems = 12; // FIXME: read from preferences
