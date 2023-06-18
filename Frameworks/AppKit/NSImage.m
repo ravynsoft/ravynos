@@ -121,7 +121,17 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 }
 
 -(void)encodeWithCoder:(NSCoder *)coder {
-   NSUnimplementedMethod();
+   if([coder isKindOfClass:[NSKeyedArchiver class]]) {
+	NSKeyedArchiver *keyed = (NSKeyedArchiver *)coder;
+	NSData *data = [self TIFFRepresentation];
+
+	[keyed encodeBytes:[data bytes] length:[data length] 
+	    forKey:@"NSTIFFRepresentation"];
+    } else {
+	[NSException raise:NSInvalidArgumentException
+	    format:@"-[%@ %s] is not implemented for coder %@",
+	    isa, sel_getName(_cmd), coder];
+    }
 }
 
 -initWithCoder:(NSCoder *)coder {
@@ -147,6 +157,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     _representations=[NSMutableArray new];
 
     [_representations addObject:rep];
+    return self;
    }
    else {
     [NSException raise:NSInvalidArgumentException format:@"-[%@ %s] is not implemented for coder %@",isa,sel_getName(_cmd),coder];
