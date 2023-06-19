@@ -85,6 +85,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 }
 
 - (void)addStatusItem:(NSStatusItem *)item pid:(unsigned int)pid;
+- (void)removeStatusItemsForPID:(unsigned int)pid;
 - (void)renderItems;
 @end
 
@@ -112,6 +113,7 @@ extern const NSString *WLMenuDidUpdateNotification;
 - (mach_port_t)activePort;
 - (int)activeProcessID;
 - (void)addStatusItem:(NSStatusItem *)item pid:(unsigned int)pid;
+- (void)removeStatusItemsForPID:(unsigned int)pid;
 @end
 
 // desktop interface controller

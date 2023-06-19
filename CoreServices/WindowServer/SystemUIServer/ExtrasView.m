@@ -41,9 +41,12 @@
     NSMutableDictionary *props = [NSMutableDictionary
 	dictionaryWithObjects:@[item, [NSNumber numberWithInt:pid], icon]
 		      forKeys:@[@"NSStatusItem", @"ProcessID", @"NSView"]];
+
+    if(kill(pid, 0) != 0 && errno == ESRCH)
+        return; // pid has already exited
+
     [statusItems addObject:props];
     [self renderItems];
-
 }
 
 // render the array from right to left, so element 0 is closest
@@ -61,6 +64,16 @@
 	itemPos.x -= (menuBarHeight + 12);
     }
     [self setNeedsDisplay:YES];
+}
+
+- (void)removeStatusItemsForPID:(unsigned int)pid {
+    for(int i = 0; i < [statusItems count]; ++i) {
+	NSMutableDictionary *d = [statusItems objectAtIndex:i];
+	if([[d objectForKey:@"ProcessID"] intValue] == pid) {
+	    [statusItems removeObjectAtIndex:i];
+	}
+    }
+    [self renderItems];
 }
 
 @end

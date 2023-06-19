@@ -136,7 +136,6 @@
 		    {
 			NSData *data = [NSData
 			    dataWithBytes:msg.msg.data length:msg.msg.len];
-			NSLog(@"data is %@", data);
 			NSObject *o = nil;
 			@try {
 			    o = [NSKeyedUnarchiver unarchiveObjectWithData:data];
@@ -155,6 +154,12 @@
 
 			NSDictionary *dict = (NSDictionary *)o;
 			unsigned int pid = [[dict objectForKey:@"ProcessID"] unsignedIntValue];
+		    	// watch for this PID to exit
+			struct kevent kev[1];
+			EV_SET(kev, pid, EVFILT_PROC, EV_ADD|EV_ONESHOT,
+				NOTE_EXIT, 0, NULL);
+			kevent(_kq, kev, 1, NULL, 0, NULL);
+
 			[menuBar
 			    addStatusItem:[dict objectForKey:@"StatusItem"]
 			    pid:pid];
@@ -178,6 +183,7 @@
                     //NSLog(@"PID %lu exited", out[i].ident);
                     [menuBar removePortForPID:out[i].ident];
                     [menuBar removeMenuForPID:out[i].ident];
+		    [menuBar removeStatusItemsForPID:out[i].ident];
                 }
                 break;
             default:

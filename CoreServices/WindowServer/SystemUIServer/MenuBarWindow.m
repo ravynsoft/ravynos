@@ -146,6 +146,10 @@ extern pthread_mutex_t mtx;
     [extrasView addStatusItem:item pid:pid];
 }
 
+- (void)removeStatusItemsForPID:(unsigned int)pid {
+    [extrasView removeStatusItemsForPID:pid];
+}
+
 
 // intercept these - we don't want this app to become activated or deactivated
 -(void)platformWindowActivated:(CGWindow *)window displayIfNeeded:(BOOL)displayIfNeeded {
