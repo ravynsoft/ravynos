@@ -52,9 +52,13 @@ pthread_mutex_t mtx;
         attributes:attributes];
 
     NSSize sz = [dateString size];
+    sz.width += menuBarHPad;
     self = [super initWithText:dateString
-        atPoint:NSMakePoint(frame.size.width - sz.width - menuBarHPad, menuBarVPad)
+        atPoint:NSMakePoint(frame.size.width - sz.width, menuBarVPad)
         withMaxWidth:300];
+
+    sz.width += menuBarHPad;
+    [self setFrameSize:sz];
     [self setFont:font];
 
     [self setSelectable:NO];
