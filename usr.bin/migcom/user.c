@@ -881,18 +881,24 @@ WriteKPD_port(FILE * file, register argument_t * arg)
     char            firststring[MAX_STR_LEN];
     char            string[MAX_STR_LEN];
     const char     *ref = arg->argByReferenceUser ? "*" : "";
+#ifdef MIG_KERNEL_PORT_CONVERSION
     ipc_type_t     *real_it;
+#endif
 
     if (IS_MULTIPLE_KPD(it)) {
         WriteKPD_Iterator(file, TRUE, FALSE, it->itVarArray, arg, TRUE);
         (void)sprintf(firststring, "\t*ptr");
         (void)sprintf(string, "\tptr->");
         subindex = "[i]";
+#ifdef MIG_KERNEL_PORT_CONVERSION
         real_it = it->itElement;
+#endif
     } else {
         (void)sprintf(firststring, "InP->%s", arg->argMsgField);
         (void)sprintf(string, "InP->%s.", arg->argMsgField);
+#ifdef MIG_KERNEL_PORT_CONVERSION
         real_it = it;
+#endif
     }
 
 #ifdef MIG_KERNEL_PORT_CONVERSION
@@ -1785,10 +1791,10 @@ WriteExtractKPD_port(FILE * file, register argument_t * arg)
     const char     *ref = arg->argByReferenceUser ? "*" : "";
     const char     *subindex;
     const char     *recast = "";
+#ifdef MIG_KERNEL_PORT_CONVERSION
     ipc_type_t     *real_it;
 
     real_it = (IS_MULTIPLE_KPD(it)) ? it->itElement : it;
-#ifdef MIG_KERNEL_PORT_CONVERSION
     if (IsKernelUser && streql(real_it->itUserType, "ipc_port_t"))
         recast = "(mach_port_t)";
 #endif
@@ -2432,9 +2438,7 @@ static int
 CheckRPCCall(register routine_t * rt)
 {
     register argument_t * arg;
-    register int    i;
 
-    i = 0;
     for (arg = rt->rtArgs; arg != argNULL; arg = arg->argNext) {
         if (akCheck(arg->argKind, akbUserArg) &&
             ((arg->argType->itOutName == (u_int) - 1) || (arg->argType->itInName == (u_int) - 1))) {

@@ -63,7 +63,7 @@ static inline bool _dispatch_queue_prepare_override(dispatch_queue_t dq,
 static inline void _dispatch_queue_push_override(dispatch_queue_t dq,
 		dispatch_queue_t tq, pthread_priority_t p);
 #if HAVE_PTHREAD_WORKQUEUES
-static void _dispatch_worker_thread4(void *context);
+static void *_dispatch_worker_thread4(void *context);
 #if HAVE_PTHREAD_WORKQUEUE_QOS
 static void _dispatch_worker_thread3(pthread_priority_t priority);
 #endif
@@ -4044,7 +4044,7 @@ _dispatch_root_queue_drain(dispatch_queue_t dq)
 #pragma mark dispatch_worker_thread
 
 #if HAVE_PTHREAD_WORKQUEUES
-static void
+static void*
 _dispatch_worker_thread4(void *context)
 {
 	dispatch_queue_t dq = context;

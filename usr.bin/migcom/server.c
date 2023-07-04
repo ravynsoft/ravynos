@@ -1601,7 +1601,6 @@ static void
 WriteInitKPD_port(FILE *file, register argument_t *arg)
 {
         register ipc_type_t *it = arg->argType;
-    const char *subindex = "";
         boolean_t close = FALSE;
         char firststring[MAX_STR_LEN];
         char string[MAX_STR_LEN];
@@ -1610,7 +1609,6 @@ WriteInitKPD_port(FILE *file, register argument_t *arg)
                 WriteKPD_Iterator(file, FALSE, FALSE, arg, TRUE);
                 (void)sprintf(firststring, "\t*ptr");
                 (void)sprintf(string, "\tptr->");
-                subindex = "[i]";
                 close = TRUE;
     } else {
                 (void)sprintf(firststring, "OutP->%s", arg->argMsgField);
@@ -1790,7 +1788,9 @@ WriteKPD_port(FILE *file, register argument_t *arg)
     const char *recast = "";
         boolean_t close = FALSE;
         char string[MAX_STR_LEN];
+#ifdef MIG_KERNEL_PORT_CONVERSIONS
         ipc_type_t *real_it;
+#endif
 
         if (akCheck(arg->argKind, akbVarNeeded)) {
                 if (IS_MULTIPLE_KPD(it)) {
@@ -1798,10 +1798,14 @@ WriteKPD_port(FILE *file, register argument_t *arg)
                         (void)sprintf(string, "\tptr->");
                         subindex = "[i]";
                         close = TRUE;
+#ifdef MIG_KERNEL_PORT_CONVERSIONS
                         real_it = it->itElement;
+#endif
                 } else {
                         (void)sprintf(string, "OutP->%s.", arg->argMsgField);
+#ifdef MIG_KERNEL_PORT_CONVERSIONS
                         real_it = it;
+#endif
                 }
 #ifdef MIG_KERNEL_PORT_CONVERSIONS
                 if (IsKernelServer && streql(real_it->itTransType, "ipc_port_t"))

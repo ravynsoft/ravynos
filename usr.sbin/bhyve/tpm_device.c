@@ -35,9 +35,22 @@ struct tpm_device {
 	void *intf_sc;
 };
 
+static int
+tpm_build_acpi_table(const struct acpi_device *const dev)
+{
+	const struct tpm_device *const tpm = acpi_device_get_softc(dev);
+
+	if (tpm->intf->build_acpi_table == NULL) {
+		return (0);
+	}
+
+	return (tpm->intf->build_acpi_table(tpm->intf_sc, tpm->vm_ctx));
+}
+
 static const struct acpi_device_emul tpm_acpi_device_emul = {
 	.name = TPM_ACPI_DEVICE_NAME,
 	.hid = TPM_ACPI_HARDWARE_ID,
+	.build_table = tpm_build_acpi_table,
 };
 
 void
@@ -128,7 +141,7 @@ tpm_device_create(struct tpm_device **const new_dev, struct vmctx *const vm_ctx,
 	}
 
 	if (dev->intf->init) {
-		error = dev->intf->init(&dev->intf_sc);
+		error = dev->intf->init(&dev->intf_sc, dev->emul, dev->emul_sc);
 		if (error)
 			goto err_out;
 	}

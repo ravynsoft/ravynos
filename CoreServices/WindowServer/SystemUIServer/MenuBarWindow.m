@@ -65,6 +65,8 @@ extern pthread_mutex_t mtx;
     [menuView setWindow:self];
 
     [_contentView setAutoresizingMask:0];
+
+    [self setAllowsToolTipsWhenApplicationIsInactive:YES];
     
     return self;
 }

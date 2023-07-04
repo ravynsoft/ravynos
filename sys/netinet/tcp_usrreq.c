@@ -1464,7 +1464,8 @@ tcp_connect(struct tcpcb *tp, struct sockaddr_in *sin, struct thread *td)
 	INP_WLOCK_ASSERT(inp);
 
 	if (__predict_false((so->so_state &
-	    (SS_ISCONNECTING | SS_ISCONNECTED)) != 0))
+	    (SS_ISCONNECTING | SS_ISCONNECTED | SS_ISDISCONNECTING |
+	    SS_ISDISCONNECTED)) != 0))
 		return (EISCONN);
 
 	INP_HASH_WLOCK(&V_tcbinfo);
@@ -1556,8 +1557,20 @@ tcp_fill_info(struct tcpcb *tp, struct tcp_info *ti)
 		ti->tcpi_snd_wscale = tp->snd_scale;
 		ti->tcpi_rcv_wscale = tp->rcv_scale;
 	}
-	if (tp->t_flags2 & (TF2_ECN_PERMIT | TF2_ACE_PERMIT))
-		ti->tcpi_options |= TCPI_OPT_ECN;
+	switch (tp->t_flags2 & (TF2_ECN_PERMIT | TF2_ACE_PERMIT)) {
+		case TF2_ECN_PERMIT:
+			ti->tcpi_options |= TCPI_OPT_ECN;
+			break;
+		case TF2_ACE_PERMIT:
+			/* FALLTHROUGH */
+		case TF2_ECN_PERMIT | TF2_ACE_PERMIT:
+			ti->tcpi_options |= TCPI_OPT_ACE;
+			break;
+		default:
+			break;
+	}
+	if (IS_FASTOPEN(tp->t_flags))
+		ti->tcpi_options |= TCPI_OPT_TFO;
 
 	ti->tcpi_rto = tp->t_rxtcur * tick;
 	ti->tcpi_last_data_recv = ((uint32_t)ticks - tp->t_rcvtime) * tick;

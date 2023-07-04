@@ -3159,6 +3159,14 @@ pci_nvme_parse_config(struct pci_nvme_softc *sc, nvlist_t *nvl)
 			sc->dataset_management = NVME_DATASET_MANAGEMENT_DISABLE;
 	}
 
+	value = get_config_value_node(nvl, "bootindex");
+	if (value != NULL) {
+		if (pci_emul_add_boot_device(sc->nsc_pi, atoi(value))) {
+			EPRINTLN("Invalid bootindex %d", atoi(value));
+			return (-1);
+		}
+	}
+
 	value = get_config_value_node(nvl, "ram");
 	if (value != NULL) {
 		uint64_t sz = strtoull(value, NULL, 10);
@@ -3303,8 +3311,6 @@ pci_nvme_init(struct pci_devinst *pi, nvlist_t *nvl)
 	pci_nvme_aen_init(sc);
 
 	pci_nvme_reset(sc);
-
-	pci_lintr_request(pi);
 
 done:
 	return (error);

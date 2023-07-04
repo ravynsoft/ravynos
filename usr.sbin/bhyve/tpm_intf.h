@@ -1,5 +1,5 @@
 /*-
- * SPDX-License-Identifier: BSD-2-Clause-FreeBSD
+ * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2022 Beckhoff Automation GmbH & Co. KG
  * Author: Corvin Köhne <c.koehne@beckhoff.com>
@@ -7,8 +7,11 @@
 
 #pragma once
 
+#include <vmmapi.h>
+
 #include "config.h"
 #include "tpm_device.h"
+#include "tpm_emul.h"
 
 #define TPM_INTF_TYPE_FIFO_PTP 0x0
 #define TPM_INTF_TYPE_CRB 0x1
@@ -28,8 +31,8 @@
 struct tpm_intf {
 	const char *name;
 
-	int (*init)(void **sc);
+	int (*init)(void **sc, struct tpm_emul *emul, void *emul_sc);
 	void (*deinit)(void *sc);
-	int (*build_acpi_table)(void *sc);
+	int (*build_acpi_table)(void *sc, struct vmctx *vm_ctx);
 };
 #define TPM_INTF_SET(x) DATA_SET(tpm_intf_set, x)

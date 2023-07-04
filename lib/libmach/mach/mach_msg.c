@@ -396,7 +396,7 @@ mach_msg_server_once(
 
         allocatedTemp = allocatedRequest;
         allocatedRequest = allocatedReply;
-        allocatedReply = allocatedRequest;
+        allocatedReply = allocatedTemp; // zmk BUG? was: allocatedRequest;
         
 	/*
 	 *	We don't want to block indefinitely because the client

@@ -310,9 +310,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     _title = [title copy];
 #endif
 }
-- (void)setToolTip:(NSString *)toolTip{
-    
-}
 - (NSAttributedString *)attributedTitle{
     return _atrTitle;
 }
@@ -433,6 +430,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     [coder encodeObject:_menu forKey:@"NSMenu"];
     [coder encodeInteger:_actionMask forKey:@"NSActionMask"];
     [coder encodeInt:_handle forKey:@"NSHandle"];
+    [coder encodeObject:_toolTip forKey:@"NSToolTip"];
+    [coder encodeBool:_visible forKey:@"NSVisible"];
+    [coder encodeInt:_behavior forKey:@"NSBehavior"];
+    [coder encodeObject:_autosaveName forKey:@"NSAutosaveName"];
 }
 
 -(id)initWithCoder:(NSCoder *)coder {
@@ -456,6 +457,10 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 	_menu = [keyed decodeObjectForKey:@"NSMenu"];
 	_actionMask = [keyed decodeIntegerForKey:@"NSActionMask"];
 	_handle = [keyed decodeIntForKey:@"NSHandle"];
+        _toolTip = [keyed decodeObjectForKey:@"NSToolTip"];
+        _visible = [keyed decodeBoolForKey:@"NSVisible"];
+        _behavior = [keyed decodeIntForKey:@"NSBehavior"];
+        _autosaveName = [keyed decodeObjectForKey:@"NSAutosaveName"];
     } else {
 	[NSException raise:NSInvalidArgumentException
 	    format:@"%@ can not initWithCoder:%@", isa, [coder class]];

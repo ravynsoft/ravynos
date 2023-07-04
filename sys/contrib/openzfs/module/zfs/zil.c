@@ -522,12 +522,16 @@ zil_parse(zilog_t *zilog, zil_parse_blk_func_t *parse_blk_func,
 			lr_t *lr = (lr_t *)lrp;
 			reclen = lr->lrc_reclen;
 			ASSERT3U(reclen, >=, sizeof (lr_t));
-			if (lr->lrc_seq > claim_lr_seq)
+			if (lr->lrc_seq > claim_lr_seq) {
+				arc_buf_destroy(abuf, &abuf);
 				goto done;
+			}
 
 			error = parse_lr_func(zilog, lr, arg, txg);
-			if (error != 0)
+			if (error != 0) {
+				arc_buf_destroy(abuf, &abuf);
 				goto done;
+			}
 			ASSERT3U(max_lr_seq, <, lr->lrc_seq);
 			max_lr_seq = lr->lrc_seq;
 			lr_count++;
@@ -1421,6 +1425,7 @@ zil_lwb_flush_vdevs_done(zio_t *zio)
 
 	list_move_tail(&itxs, &lwb->lwb_itxs);
 	list_move_tail(&waiters, &lwb->lwb_waiters);
+	txg = lwb->lwb_issued_txg;
 
 	ASSERT3S(lwb->lwb_state, ==, LWB_STATE_WRITE_DONE);
 	lwb->lwb_state = LWB_STATE_FLUSH_DONE;
@@ -1461,7 +1466,6 @@ zil_lwb_flush_vdevs_done(zio_t *zio)
 	list_destroy(&waiters);
 
 	mutex_enter(&zilog->zl_lwb_io_lock);
-	txg = lwb->lwb_issued_txg;
 	ASSERT3U(zilog->zl_lwb_inflight[txg & TXG_MASK], >, 0);
 	zilog->zl_lwb_inflight[txg & TXG_MASK]--;
 	if (zilog->zl_lwb_inflight[txg & TXG_MASK] == 0)

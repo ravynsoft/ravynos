@@ -37,6 +37,7 @@
     [icon setImageScaling:NSImageScaleProportionallyUpOrDown];
     [icon setImage:[item image]];
     [[icon image] setScalesWhenResized:YES];
+    [icon setToolTip:item.toolTip];
 
     NSMutableDictionary *props = [NSMutableDictionary
 	dictionaryWithObjects:@[item, [NSNumber numberWithInt:pid], icon]
@@ -59,6 +60,7 @@
     for(int i = 0; i < [statusItems count]; ++i) {
 	NSMutableDictionary *props = [statusItems objectAtIndex:i];
 	NSView *icon = [props objectForKey:@"NSView"];
+        NSStatusItem *item = [props objectForKey:@"NSStatusItem"];
 	[icon setFrameOrigin:itemPos];
 	[self addSubview:icon];
 	itemPos.x -= (menuBarHeight + 12);

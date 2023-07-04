@@ -12,8 +12,22 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #ifdef WIN32
 #import <windows.h>
 #endif
+
+typedef NSString *NSStatusItemAutosaveName; // 10.13+
+typedef enum NSStatusItemBehavior : NSUInteger {
+    NSStatusItemBehaviorRemovalAllowed = (1 << 1),
+    NSStatusItemBehaviorTerminationOnRemoval = (1 << 2)
+} NSStatusItemBehavior;
+
 @class NSStatusBar, NSImage, NSAttributedString, NSMenu, NSView, NSWindow;
 @interface NSStatusItem : NSObject <NSCopying> {
+    CGFloat _length;
+    NSMenu *_menu;
+
+    // ravynOS internal: reference to this item in our global status bar 
+    uint32_t _handle; 
+
+    // These were deprecated in macOS 10.15
     SEL _action;
     SEL _doubleAction;
     id _target;
@@ -28,16 +42,19 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
     //Other Vars
     BOOL _highlightMode;
     BOOL _enabled;
-    CGFloat _length;
-    NSMenu *_menu;
     NSInteger _actionMask;
 #ifdef WIN32
     int _trayIconID;
     HICON _trayIcon;
     HMENU _win32Menu;
 #endif
-    uint32_t _handle; // reference to this item in our global status bar
 }
+
+@property(assign, getter=isVisible) BOOL visible;
+@property(copy) NSStatusItemAutosaveName autosaveName;
+@property(assign) enum NSStatusItemBehavior behavior;
+@property(copy) NSString *toolTip;
+
 - (NSStatusBar *)statusBar;
 
 - (SEL)action;
@@ -54,7 +71,6 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 - (NSString *)title;
 - (void)setTitle:(NSString *)title;
-- (void)setToolTip:(NSString *)toolTip;
 - (NSAttributedString *)attributedTitle;
 - (void)setAttributedTitle:(NSAttributedString *)title;
 
