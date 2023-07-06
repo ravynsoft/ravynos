@@ -176,6 +176,7 @@ kern_syscall_module_handler(struct sysent *sysents, struct module *mod,
 	modspecific_t ms;
 	int error;
 
+	bzero(&ms, sizeof(ms));
 	switch (what) {
 	case MOD_LOAD:
 		error = kern_syscall_register(sysents, data->offset,

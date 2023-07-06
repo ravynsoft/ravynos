@@ -239,6 +239,7 @@ dev/ixl/i40e_adminq.c		optional	ixl pci \
 dev/ixl/i40e_dcb.c		optional	ixl pci \
 	compile-with "${NORMAL_C} -I$S/dev/ixl"
 dev/nctgpio/nctgpio.c		optional	nctgpio
+dev/ncthwm/ncthwm.c		optional	ncthwm superio
 dev/nfe/if_nfe.c		optional	nfe pci
 dev/ntb/if_ntb/if_ntb.c		optional	if_ntb
 dev/ntb/ntb_transport.c		optional	ntb_transport | if_ntb
@@ -296,6 +297,22 @@ dev/qlnx/qlnxe/ecore_mcp.c	optional	qlnxe pci \
 dev/qlnx/qlnxe/ecore_sp_commands.c optional	qlnxe pci \
 	compile-with "${LINUXKPI_C}"
 dev/qlnx/qlnxe/ecore_spq.c	optional	qlnxe pci \
+	compile-with "${LINUXKPI_C}"
+dev/qlnx/qlnxe/ecore_sriov.c	optional	qlnxe pci \
+	compile-with "${LINUXKPI_C}"
+dev/qlnx/qlnxe/ecore_vf.c	optional	qlnxe pci \
+	compile-with "${LINUXKPI_C}"
+dev/qlnx/qlnxe/ecore_ll2.c	optional	qlnxe pci \
+	compile-with "${LINUXKPI_C}"
+dev/qlnx/qlnxe/ecore_iwarp.c	optional	qlnxe pci \
+	compile-with "${LINUXKPI_C}"
+dev/qlnx/qlnxe/ecore_rdma.c	optional	qlnxe pci \
+	compile-with "${LINUXKPI_C}"
+dev/qlnx/qlnxe/ecore_roce.c	optional	qlnxe pci \
+	compile-with "${LINUXKPI_C}"
+dev/qlnx/qlnxe/ecore_ooo.c	optional	qlnxe pci \
+	compile-with "${LINUXKPI_C}"
+dev/qlnx/qlnxe/qlnx_rdma.c	optional	qlnxe pci \
 	compile-with "${LINUXKPI_C}"
 dev/qlnx/qlnxe/qlnx_ioctl.c	optional	qlnxe pci \
 	compile-with "${LINUXKPI_C}"
