@@ -19,7 +19,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 #import <stddef.h>
 #import <string.h>
 
-unsigned O2PDFHashCString(NSMapTable *table,const void *data){
+unsigned long O2PDFHashCString(NSMapTable *table,const void *data){
    const char *s=data;
 
    if(s!=NULL){

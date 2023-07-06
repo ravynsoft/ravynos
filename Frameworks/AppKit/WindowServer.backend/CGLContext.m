@@ -242,14 +242,14 @@ CGLError CGLCreateContextForWindow(CGLPixelFormatObj pixelFormat,CGLContextObj s
     context->opacity=1;
     context->windowNumber=0;
 
-    eglGetPlatformDisplayEXT = eglGetProcAddress("eglGetPlatformDisplayEXT");
+    eglGetPlatformDisplayEXT = (PFNEGLGETPLATFORMDISPLAYEXTPROC)eglGetProcAddress("eglGetPlatformDisplayEXT");
     if(eglGetPlatformDisplayEXT  == NULL)
         context->egl_display = eglGetDisplay(context->display);
     else
         context->egl_display = eglGetPlatformDisplayEXT(
                 EGL_PLATFORM_WAYLAND_EXT, context->display, NULL);
 
-    eglCreatePlatformWindowSurfaceEXT = eglGetProcAddress("eglCreatePlatformWindowSurfaceEXT");
+    eglCreatePlatformWindowSurfaceEXT = (PFNEGLCREATEPLATFORMWINDOWSURFACEEXTPROC)eglGetProcAddress("eglCreatePlatformWindowSurfaceEXT");
 
     if(context->egl_display == EGL_NO_DISPLAY) {
         NSLog(@"failed to create EGL display");

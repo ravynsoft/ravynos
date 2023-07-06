@@ -39,7 +39,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 @end
 
-unsigned O2PDFHashCString(NSMapTable *table, const void *data);
+unsigned long O2PDFHashCString(NSMapTable *table, const void *data);
 BOOL O2PDFIsEqualCString(NSMapTable *table, const void *data1, const void *data2);
 void O2PDFFreeCString(NSMapTable *table, void *data);
 extern NSMapTableKeyCallBacks O2PDFOwnedCStringKeyCallBacks;
