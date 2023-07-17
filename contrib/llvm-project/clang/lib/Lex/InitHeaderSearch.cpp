@@ -409,7 +409,7 @@ bool InitHeaderSearch::ShouldAddDefaultIncludePaths(
   switch (triple.getOS()) {
   case llvm::Triple::AIX:
   case llvm::Triple::Emscripten:
-  case llvm::Triple::FreeBSD:
+  //case llvm::Triple::FreeBSD:
   case llvm::Triple::NetBSD:
   case llvm::Triple::OpenBSD:
   case llvm::Triple::Fuchsia:
