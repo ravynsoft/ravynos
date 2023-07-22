@@ -115,7 +115,7 @@ static void freeEnviron(char **envp) {
         free(*envp++);
 }
 
-void launchShell(void *arg) {
+void *launchShell(void *arg) {
     enum ShellType shell = *(enum ShellType *)arg;
     int status;
     NSString *lwPath = nil;
