@@ -1,5 +1,5 @@
 # ravynOS란? [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-### Don't speak Korean? Read this in: [Italiano](README.IT.md), [Türkçe](README.TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md), [简体中文](README.zh_CN.md), [繁體中文](README.zh_TW.md), [Português do Brasil](README.pt_BR.md)
+### Don't speak Korean? Read this in: [Italiano](README.IT.md), [Türkçe](README.TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md), [简体中文](README.zh_CN.md), [繁體中文](README.zh_TW.md), [Português do Brasil](README.pt_BR.md), [English](README.md)
 
 ravynOS 는 새로운 오픈소스 운영체제 프로젝트로써 macOS와 유사한 사용환경과 일부 호환되는 x86-64 (추후 ARM도 목표)환경을 제공하고자 합니다. FreeBSD를 기반으로 작성되었으며 이미 존재하는 오픈소스 패키지와 더불어 부족한 부분은 새로 작성되고 있습니다.
 
