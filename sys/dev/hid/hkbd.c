@@ -1,6 +1,4 @@
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
@@ -435,7 +433,7 @@ hkbd_do_poll(struct hkbd_softc *sc, uint8_t wait)
 	}
 
 	while (sc->sc_inputhead == sc->sc_inputtail) {
-		hidbus_intr_poll(sc->sc_dev);
+		hid_intr_poll(sc->sc_dev);
 
 		/* Delay-optimised support for repetition of keys */
 		if (hkbd_any_key_pressed(sc)) {
@@ -1004,7 +1002,7 @@ hkbd_attach(device_t dev)
 	}
 
 	/* start the keyboard */
-	hidbus_intr_start(dev);
+	hid_intr_start(dev);
 
 	return (0);			/* success */
 
@@ -1035,7 +1033,7 @@ hkbd_detach(device_t dev)
 	/* kill any stuck keys */
 	if (sc->sc_flags & HKBD_FLAG_ATTACHED) {
 		/* stop receiving events from the USB keyboard */
-		hidbus_intr_stop(dev);
+		hid_intr_stop(dev);
 
 		/* release all leftover keys, if any */
 		memset(&sc->sc_ndata, 0, bitstr_size(HKBD_NKEYCODE));
@@ -1832,17 +1830,11 @@ hkbd_set_typematic(keyboard_t *kbd, int code)
 #ifdef EVDEV_SUPPORT
 	struct hkbd_softc *sc = kbd->kb_data;
 #endif
-	static const int delays[] = {250, 500, 750, 1000};
-	static const int rates[] = {34, 38, 42, 46, 50, 55, 59, 63,
-		68, 76, 84, 92, 100, 110, 118, 126,
-		136, 152, 168, 184, 200, 220, 236, 252,
-	272, 304, 336, 368, 400, 440, 472, 504};
-
 	if (code & ~0x7f) {
 		return (EINVAL);
 	}
-	kbd->kb_delay1 = delays[(code >> 5) & 3];
-	kbd->kb_delay2 = rates[code & 0x1f];
+	kbd->kb_delay1 = kbdelays[(code >> 5) & 3];
+	kbd->kb_delay2 = kbrates[code & 0x1f];
 #ifdef EVDEV_SUPPORT
 	if (sc->sc_evdev != NULL)
 		evdev_push_repeats(sc->sc_evdev, kbd);

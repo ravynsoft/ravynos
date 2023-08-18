@@ -1,11 +1,10 @@
 /*	$NetBSD: grep.h,v 1.5 2011/02/27 17:33:37 joerg Exp $	*/
 /*	$OpenBSD: grep.h,v 1.15 2010/04/05 03:03:55 tedu Exp $	*/
-/*	$FreeBSD$	*/
 
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
- * Copyright (c) 1999 James Howard and Dag-Erling Coïdan Smørgrav
+ * Copyright (c) 1999 James Howard and Dag-Erling Smørgrav
  * Copyright (c) 2008-2009 Gabor Kovesdan <gabor@FreeBSD.org>
  * All rights reserved.
  *

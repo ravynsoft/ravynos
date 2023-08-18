@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 .include <src.opts.mk>
 
@@ -9,8 +8,6 @@ SRCDIR=		llvm/tools/llvm-ar
 SRCS+=		llvm-ar.cpp
 
 CFLAGS.llvm-ar.cpp+=	-Dllvm_ar_main=main
-
-LIBADD+=	z
 
 LINKS+=		${BINDIR}/llvm-ar ${BINDIR}/llvm-ranlib
 

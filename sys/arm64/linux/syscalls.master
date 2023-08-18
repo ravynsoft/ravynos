@@ -1,4 +1,3 @@
- $FreeBSD$
 
 ; Linux ABI system call generic name/number map, based on Linux file
 ; include/uapi/asm-generic/unistd.h
@@ -26,7 +25,7 @@
 		int linux_setxattr(
 		    const char *path,
 		    const char *name,
-		    const char *value,
+		    void *value,
 		    l_size_t size,
 		    l_int flags
 		);
@@ -35,7 +34,7 @@
 		int linux_lsetxattr(
 		    const char *path,
 		    const char *name,
-		    const char *value,
+		    void *value,
 		    l_size_t size,
 		    l_int flags
 		);
@@ -44,7 +43,7 @@
 		int linux_fsetxattr(
 		    l_int fd,
 		    const char *name,
-		    const char *value,
+		    void *value,
 		    l_size_t size,
 		    l_int flags
 		);
@@ -53,7 +52,7 @@
 		int linux_getxattr(
 		    const char *path,
 		    const char *name,
-		    char *value,
+		    void *value,
 		    l_size_t size
 		);
 	}
@@ -61,7 +60,7 @@
 		int linux_lgetxattr(
 		    const char *path,
 		    const char *name,
-		    char *value,
+		    void *value,
 		    l_size_t size
 		);
 	}
@@ -69,28 +68,28 @@
 		int linux_fgetxattr(
 		    l_int fd,
 		    const char *name,
-		    char *value,
+		    void *value,
 		    l_size_t size
 		);
 	}
 11	AUE_NULL	STD	{
 		int linux_listxattr(
 		    const char *path,
-		    const char *list,
+		    char *list,
 		    l_size_t size
 		);
 	}
 12	AUE_NULL	STD	{
 		int linux_llistxattr(
 		    const char *path,
-		    const char *list,
+		    char *list,
 		    l_size_t size
 		);
 	}
 13	AUE_NULL	STD	{
 		int linux_flistxattr(
 		    l_int fd,
-		    const char *list,
+		    char *list,
 		    l_size_t size
 		);
 	}
@@ -187,11 +186,18 @@
 		    l_ulong arg
 		);
 	}
-30	AUE_NULL	STD	{
-		int linux_ioprio_set(void);
+30	AUE_SETPRIORITY	STD	{
+		int linux_ioprio_set(
+		    l_int which,
+		    l_int who,
+		    l_int ioprio
+		);
 	}
-31	AUE_NULL	STD	{
-		int linux_ioprio_get(void);
+31	AUE_GETPRIORITY	STD	{
+		int linux_ioprio_get(
+		    l_int which,
+		    l_int who
+		);
 	}
 32	AUE_FLOCK	NOPROTO	{
 		int flock(

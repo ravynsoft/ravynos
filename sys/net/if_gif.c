@@ -33,8 +33,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_inet.h"
 #include "opt_inet6.h"
 
@@ -407,8 +405,11 @@ gif_output(struct ifnet *ifp, struct mbuf *m, const struct sockaddr *dst,
 {
 	uint32_t af;
 
+	KASSERT(ifp->if_bridge == NULL,
+	    ("%s: unexpectedly called with bridge attached", __func__));
+
 	if (dst->sa_family == AF_UNSPEC)
-		bcopy(dst->sa_data, &af, sizeof(af));
+		memcpy(&af, dst->sa_data, sizeof(af));
 	else
 		af = RO_GET_FAMILY(ro, dst);
 	/*

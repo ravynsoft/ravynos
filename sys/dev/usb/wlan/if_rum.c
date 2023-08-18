@@ -1,4 +1,3 @@
-/*	$FreeBSD$	*/
 
 /*-
  * Copyright (c) 2005-2007 Damien Bergamini <damien.bergamini@free.fr>
@@ -20,8 +19,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*-
  * Ralink Technology RT2501USB/RT2601USB chipset driver
  * http://www.ralinktech.com.tw/

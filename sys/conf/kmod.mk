@@ -1,5 +1,4 @@
 #	From: @(#)bsd.prog.mk	5.26 (Berkeley) 6/25/91
-# $FreeBSD$
 #
 # The include file <bsd.kmod.mk> handles building and installing loadable
 # kernel modules.
@@ -166,8 +165,15 @@ CFLAGS+=	-fno-omit-frame-pointer -mno-omit-leaf-frame-pointer
 .endif
 
 .if ${MACHINE_CPUARCH} == "aarch64" || ${MACHINE_CPUARCH} == "riscv" || \
-    ${MACHINE_CPUARCH} == "powerpc"
+    ${MACHINE_CPUARCH} == "powerpc" || ${MACHINE_CPUARCH} == "i386"
 CFLAGS+=	-fPIC
+.endif
+
+.if ${MACHINE_CPUARCH} == "aarch64"
+# https://bugs.freebsd.org/264094
+# lld >= 14 and recent GNU ld can relax adrp+add and adrp+ldr instructions,
+# which breaks VNET.
+LDFLAGS+=	--no-relax
 .endif
 
 # Temporary workaround for PR 196407, which contains the fascinating details.
@@ -203,7 +209,7 @@ ${_firmw:C/\:.*$/.fwo/:T}:	${_firmw:C/\:.*$//} ${SYSDIR}/kern/firmw.S
 	@${ECHO} ${_firmw:C/\:.*$//} ${.ALLSRC:M*${_firmw:C/\:.*$//}}
 	${CC:N${CCACHE_BIN}} -c -x assembler-with-cpp -DLOCORE 	\
 	    ${CFLAGS} ${WERROR} 				\
-	    -DFIRMW_FILE="${.ALLSRC:M*${_firmw:C/\:.*$//}}" 	\
+	    -DFIRMW_FILE=\""${.ALLSRC:M*${_firmw:C/\:.*$//}}"\"	\
 	    -DFIRMW_SYMBOL="${_firmw:C/\:.*$//:C/[-.\/@]/_/g}"	\
 	    ${SYSDIR}/kern/firmw.S -o ${.TARGET}
 
@@ -266,7 +272,7 @@ ${FULLPROG}: ${OBJS} ${BLOB_OBJS}
 .if ${EXPORT_SYMS} == NO
 	:> export_syms
 .elif !exists(${.CURDIR}/${EXPORT_SYMS})
-	echo -n "${EXPORT_SYMS:@s@$s${.newline}@}" > export_syms
+	printf '%s' "${EXPORT_SYMS:@s@$s${.newline}@}" > export_syms
 .else
 	grep -v '^#' < ${EXPORT_SYMS} > export_syms
 .endif

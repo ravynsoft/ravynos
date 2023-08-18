@@ -28,17 +28,13 @@
  */
 
 #include <machine/asm.h>
-__FBSDID("$FreeBSD$");
-
 	.section .init,"ax",@progbits
-	ldr	lr, [sp]
-	add	sp, sp, #16
+	ldp	x29, x30, [sp], #16
 	ret
 
 
 	.section .fini,"ax",@progbits
-	ldr	lr, [sp]
-	add	sp, sp, #16
+	ldp	x29, x30, [sp], #16
 	ret
 
 	.section .note.GNU-stack,"",%progbits

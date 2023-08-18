@@ -1,9 +1,8 @@
-# $FreeBSD$
 
 .if !targets(__<${_this:T}>__)
 __<${_this:T}>__:
 
-_ALL_LIBCOMPATS:=	32
+.include <bsd.compat.pre.mk>
 
 .if defined(_LIBCOMPATS)
 COMPAT_ARCH?=	${TARGET_ARCH}
@@ -63,14 +62,31 @@ LIB32_MACHINE=	powerpc
 LIB32_MACHINE_ARCH=	powerpc
 LIB32WMAKEFLAGS=	\
 		LD="${XLD} -m elf32ppc_fbsd"
+
+.elif ${COMPAT_ARCH} == "aarch64"
+HAS_COMPAT+=	32
+.if empty(LIB32CPUTYPE)
+LIB32CPUFLAGS=	-march=armv7
+.else
+LIB32CPUFLAGS=	-mcpu=${LIB32CPUTYPE}
+.endif
+
+LIB32CPUFLAGS+=	-m32
+.if ${COMPAT_COMPILER_TYPE} == "gcc"
+.else
+LIB32CPUFLAGS+=	-target armv7-unknown-freebsd${OS_REVISION}-gnueabihf
+.endif
+
+LIB32_MACHINE=	arm
+LIB32_MACHINE_ARCH=	armv7
+LIB32WMAKEFLAGS=	\
+		LD="${XLD} -m armelf_fbsd"
 .endif
 
 LIB32WMAKEFLAGS+= NM="${XNM}"
 LIB32WMAKEFLAGS+= OBJCOPY="${XOBJCOPY}"
 
-LIB32CFLAGS=	-DCOMPAT_32BIT
 LIB32DTRACE=	${DTRACE} -32
-LIB32WMAKEFLAGS+=	-DCOMPAT_32BIT
 LIB32_MACHINE_ABI=	${MACHINE_ABI:N*64} long32 ptr32
 .if ${COMPAT_ARCH} == "amd64"
 LIB32_MACHINE_ABI+=	time32
@@ -115,10 +131,16 @@ WORLDTMP?=		${SYSROOT}
 LIB${_LIBCOMPAT}_OBJTOP?=	${OBJTOP}/obj-lib${_libcompat}
 
 LIB${_LIBCOMPAT}CFLAGS+=	${LIB${_LIBCOMPAT}CPUFLAGS} \
-			--sysroot=${WORLDTMP} \
-			${BFLAGS}
+				-DCOMPAT_LIBCOMPAT=\"${_LIBCOMPAT}\" \
+				-DCOMPAT_libcompat=\"${_libcompat}\" \
+				-DCOMPAT_LIB${_LIBCOMPAT} \
+				--sysroot=${WORLDTMP} \
+				${BFLAGS}
 
 LIB${_LIBCOMPAT}LDFLAGS+=	-L${WORLDTMP}/usr/lib${_libcompat}
+
+LIB${_LIBCOMPAT}WMAKEFLAGS+=	COMPAT_LIBCOMPAT=${_LIBCOMPAT} \
+				COMPAT_libcompat=${_libcompat}
 
 LIB${_LIBCOMPAT}WMAKEENV+=	MACHINE=${LIB${_LIBCOMPAT}_MACHINE}
 LIB${_LIBCOMPAT}WMAKEENV+=	MACHINE_ARCH=${LIB${_LIBCOMPAT}_MACHINE_ARCH}

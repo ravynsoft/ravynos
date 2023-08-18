@@ -25,8 +25,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 #ifndef	_LINUXKPI_LINUX_DMA_MAPPING_H_
 #define _LINUXKPI_LINUX_DMA_MAPPING_H_
@@ -183,7 +181,7 @@ dma_map_page_attrs(struct device *dev, struct page *page, size_t offset,
     size_t size, enum dma_data_direction dir, unsigned long attrs)
 {
 
-	return (linux_dma_map_phys(dev, VM_PAGE_TO_PHYS(page) + offset, size));
+	return (linux_dma_map_phys(dev, page_to_phys(page) + offset, size));
 }
 
 /* linux_dma_(un)map_sg_attrs does not support attrs yet */
@@ -198,7 +196,7 @@ dma_map_page(struct device *dev, struct page *page,
     unsigned long offset, size_t size, enum dma_data_direction direction)
 {
 
-	return (linux_dma_map_phys(dev, VM_PAGE_TO_PHYS(page) + offset, size));
+	return (linux_dma_map_phys(dev, page_to_phys(page) + offset, size));
 }
 
 static inline void

@@ -1,5 +1,4 @@
 #
-# $FreeBSD$
 #
 # Make command line options:
 #	-DNO_CLEANDIR run ${MAKE} clean, instead of ${MAKE} cleandir
@@ -73,6 +72,12 @@ TIME_ENV ?= time env
 .error CROSS_TOOLCHAIN ${CROSS_TOOLCHAIN} not found
 .endif
 CROSSENV+=CROSS_TOOLCHAIN="${CROSS_TOOLCHAIN}"
+.elif defined(UNIVERSE_TOOLCHAIN)
+UNIVERSE_TOOLCHAIN_PATH?=${HOST_OBJTOP}/tmp/usr/bin
+XCC?="${UNIVERSE_TOOLCHAIN_PATH}/cc"
+XCXX?="${UNIVERSE_TOOLCHAIN_PATH}/c++"
+XCPP?="${UNIVERSE_TOOLCHAIN_PATH}/cpp"
+XLD?="${UNIVERSE_TOOLCHAIN_PATH}/ld"
 .endif
 .if defined(CROSS_TOOLCHAIN_PREFIX)
 CROSS_COMPILER_PREFIX?=${CROSS_TOOLCHAIN_PREFIX}
@@ -129,7 +134,7 @@ _TARGET_CPUTYPE=${TARGET_CPUTYPE}
 _TARGET_CPUTYPE=dummy
 .endif
 .if ${TARGET} == "arm"
-.if ${TARGET_ARCH:Marmv[67]*} != "" && ${TARGET_CPUTYPE:M*soft*} == ""
+.if ${TARGET_CPUTYPE:M*soft*} == ""
 TARGET_TRIPLE_ABI=	gnueabihf
 .else
 TARGET_TRIPLE_ABI=	gnueabi
@@ -160,6 +165,12 @@ _t=		${TARGET_ARCH}/${TARGET}
 .error Unknown target ${TARGET_ARCH}:${TARGET}.
 .endif
 .endfor
+
+.if ${TARGET_ARCH} == "amd64"
+LIBCOMPAT_INCLUDE_DIRS+= i386
+.elif ${TARGET_ARCH} == "aarch64"
+LIBCOMPAT_INCLUDE_DIRS+= arm
+.endif
 
 .if ${.MAKE.OS} != "FreeBSD"
 CROSSBUILD_HOST=${.MAKE.OS}
@@ -596,9 +607,8 @@ STRICTTMPPATH=	${XPATH}:${BPATH}:${UNIVERSE_TOOLCHAIN_PATH}
 # still allow using the old behaviour (inheriting $PATH) if
 # BUILD_WITH_STRICT_TMPPATH is set to 0 but this will eventually be removed.
 
-# Currently strict $PATH can cause build failures and does not work yet with
-# USING_SYSTEM_LINKER/USING_SYSTEM_COMPILER. Once these issues have been
-# resolved it will be turned on by default.
+# Currently strict $PATH can cause build failures. Once the remaining issues
+# have been resolved it will be turned on by default.
 BUILD_WITH_STRICT_TMPPATH?=0
 .if defined(CROSSBUILD_HOST)
 # When building on non-FreeBSD we can't rely on the tools in /usr/bin being compatible
@@ -713,6 +723,7 @@ BMAKEENV=	INSTALL="sh ${.CURDIR}/tools/install.sh" \
 BSARGS= 	DESTDIR= \
 		OBJTOP='${WORLDTMP}/obj-tools' \
 		OBJROOT='$${OBJTOP}/' \
+		UNIVERSE_TOOLCHAIN_PATH=${UNIVERSE_TOOLCHAIN_PATH} \
 		MAKEOBJDIRPREFIX= \
 		BOOTSTRAPPING=${BOOTSTRAPPING_OSRELDATE} \
 		BWPHASE=${.TARGET:C,^_,,} \
@@ -784,6 +795,7 @@ KTMAKE=		${TIME_ENV} \
 		DESTDIR= \
 		OBJTOP='${WORLDTMP}/obj-kernel-tools' \
 		OBJROOT='$${OBJTOP}/' \
+		UNIVERSE_TOOLCHAIN_PATH=${UNIVERSE_TOOLCHAIN_PATH} \
 		MAKEOBJDIRPREFIX= \
 		BOOTSTRAPPING=${BOOTSTRAPPING_OSRELDATE} \
 		-DNO_CPU_CFLAGS \
@@ -851,9 +863,12 @@ XCFLAGS+=	--sysroot=${WORLDTMP}
 XCFLAGS+=	${BFLAGS}
 .endif
 
-.if ${MK_LIB32} == "yes"
-_LIBCOMPATS+=	32
+.include "share/mk/bsd.compat.pre.mk"
+.for LIBCOMPAT in ${_ALL_LIBCOMPATS}
+.if ${MK_LIB${LIBCOMPAT}} == "yes"
+_LIBCOMPATS+=	${LIBCOMPAT}
 .endif
+.endfor
 .include "Makefile.libcompat"
 
 # META_MODE normally ignores host file changes since every build updates
@@ -1016,14 +1031,16 @@ _sanity_check: .PHONY .MAKE
 # replacing generated files.  Handle these cases here in an ad-hoc fashion.
 _cleanobj_fast_depend_hack: .PHONY
 	@echo ">>> Deleting stale dependencies...";
-	sh ${.CURDIR}/tools/build/depend-cleanup.sh ${OBJTOP}
+	MACHINE=${MACHINE} MACHINE_ARCH=${MACHINE_ARCH} \
+	    ALL_libcompats=${_ALL_libcompats:Q} \
+	    sh ${.CURDIR}/tools/build/depend-cleanup.sh ${OBJTOP}
 
-_worldtmp: .PHONY
+_cleanworldtmp: .PHONY
+.if ${MK_CLEAN} == "yes"
 	@echo
 	@echo "--------------------------------------------------------------"
-	@echo ">>> Rebuilding the temporary build tree"
+	@echo ">>> Cleaning up the temporary build tree"
 	@echo "--------------------------------------------------------------"
-.if ${MK_CLEAN} == "yes"
 	rm -rf ${WORLDTMP}
 .else
 # Note: for delete-old we need to set $PATH to also include the host $PATH
@@ -1049,6 +1066,11 @@ _worldtmp: .PHONY
 	@rm -f ${WORLDTMP}/usr/bin/ld ${WORLDTMP}/usr/bin/ld.lld
 .endif	# ${USING_SYSTEM_LINKER} == "yes"
 .endif	# ${MK_CLEAN} == "yes"
+_worldtmp: .PHONY
+	@echo
+	@echo "--------------------------------------------------------------"
+	@echo ">>> Rebuilding the temporary build tree"
+	@echo "--------------------------------------------------------------"
 	@mkdir -p ${WORLDTMP}
 	@touch ${WORLDTMP}/${.TARGET}
 # We can't use mtree to create the worldtmp directories since it may not be
@@ -1080,9 +1102,9 @@ _bootstrap-tools:
 	    -p ${WORLDTMP}/usr >/dev/null
 	${WORLDTMP_MTREE} -f ${.CURDIR}/etc/mtree/BSD.include.dist \
 	    -p ${WORLDTMP}/usr/include >/dev/null
-.if ${TARGET_ARCH} == "amd64"
-	mkdir -p ${WORLDTMP}/usr/include/i386
-.endif
+.for d in ${LIBCOMPAT_INCLUDE_DIRS}
+	mkdir -p ${WORLDTMP}/usr/include/${d}
+.endfor
 	ln -sf ${.CURDIR}/sys ${WORLDTMP}
 .if ${MK_DEBUG_FILES} != "no"
 	${WORLDTMP_MTREE} -f ${.CURDIR}/etc/mtree/BSD.debug.dist \
@@ -1164,7 +1186,7 @@ everything: .PHONY
 
 WMAKE_TGTS=
 .if !defined(WORLDFAST)
-WMAKE_TGTS+=	_sanity_check _worldtmp _legacy
+WMAKE_TGTS+=	_sanity_check _cleanworldtmp _worldtmp _legacy
 .if empty(SUBDIR_OVERRIDE)
 WMAKE_TGTS+=	_bootstrap-tools
 .endif
@@ -1415,9 +1437,9 @@ distributeworld installworld stageworld: _installcheck_world .PHONY
 	    -p ${DESTDIR}/${DISTDIR}/${dist}/usr >/dev/null
 	${DESTDIR_MTREE} -f ${.CURDIR}/etc/mtree/BSD.include.dist \
 	    -p ${DESTDIR}/${DISTDIR}/${dist}/usr/include >/dev/null
-.if ${TARGET_ARCH} == "amd64"
-	-mkdir ${DESTDIR}/${DISTDIR}/${dist}/usr/include/i386
-.endif
+.for d in ${LIBCOMPAT_INCLUDE_DIRS}
+	-mkdir ${DESTDIR}/${DISTDIR}/${dist}/usr/include/${d}
+.endfor
 .if ${MK_DEBUG_FILES} != "no"
 	${DESTDIR_MTREE} -f ${.CURDIR}/etc/mtree/BSD.debug.dist \
 	    -p ${DESTDIR}/${DISTDIR}/${dist}/usr/lib >/dev/null
@@ -1446,9 +1468,9 @@ distributeworld installworld stageworld: _installcheck_world .PHONY
 	    sed -e 's#^\./#./${dist}/usr/#' >> ${METALOG}
 	${IMAKEENV} ${DISTR_MTREE} -C -f ${.CURDIR}/etc/mtree/BSD.include.dist | \
 	    sed -e 's#^\./#./${dist}/usr/include/#' >> ${METALOG}
-.if ${TARGET_ARCH} == "amd64"
-	echo "./${dist}/usr/include/i386 type=dir uname=root gname=wheel mode=0755" >> ${METALOG}
-.endif
+.for d in ${LIBCOMPAT_INCLUDE_DIRS}
+	echo "./${dist}/usr/include/${d} type=dir uname=root gname=wheel mode=0755" >> ${METALOG}
+.endfor
 .for libcompat in ${libcompats}
 	${IMAKEENV} ${DISTR_MTREE} -C -f ${.CURDIR}/etc/mtree/BSD.lib${libcompat}.dist | \
 	    sed -e 's#^\./#./${dist}/usr/#' >> ${METALOG}
@@ -1609,6 +1631,29 @@ distrib-dirs distribution: .MAKE .PHONY
 .endif
 
 #
+# buildetc and installetc
+#
+buildetc: .MAKE .PHONY
+	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 _worldtmp
+	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 _legacy
+	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 _bootstrap-tools \
+	    MK_CROSS_COMPILER=no MK_TOOLCHAIN=no
+	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 _obj \
+	    SUBDIR_OVERRIDE=etc
+	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 everything \
+	    SUBDIR_OVERRIDE=etc
+
+installetc: .MAKE .PHONY
+	@echo "--------------------------------------------------------------"
+	@echo ">>> Making hierarchy"
+	@echo "--------------------------------------------------------------"
+	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 distrib-dirs
+	@echo "--------------------------------------------------------------"
+	@echo ">>> Making distribution"
+	@echo "--------------------------------------------------------------"
+	${_+_}cd ${.CURDIR}; ${MAKE} -f Makefile.inc1 distribution
+
+#
 # buildkernel and installkernel
 #
 # Which kernels to build and/or install is specified by setting
@@ -1680,7 +1725,8 @@ _cleankernobj_fast_depend_hack: .PHONY
 .endfor
 .endif
 
-${WMAKE_TGTS:N_worldtmp:${libcompats:@v@Nbuild${v}@:ts:}} ${.ALLTARGETS:M_*:N_worldtmp}: .MAKE .PHONY
+${WMAKE_TGTS:N_cleanworldtmp:N_worldtmp:${libcompats:@v@Nbuild${v}@:ts:}}: .MAKE .PHONY
+${.ALLTARGETS:M_*:N_cleanworldtmp:N_worldtmp}: .MAKE .PHONY
 
 # record kernel(s) build time in seconds
 .if make(buildkernel)
@@ -2335,6 +2381,19 @@ _crunchgen=	usr.sbin/crunch/crunchgen
 _bootstrap_tools_links+=crunchgen
 .endif
 
+# The ATKBD_DFLT_KEYMAP, UKBD_DFLT_KEYMAP and KBDMUX_DFLT_KEYMAP kernel options
+# require kbdcontrol. Note that, even on FreeBSD, the host will lack kbdcontrol
+# if built with WITHOUT_LEGACY_CONSOLE.
+#
+# XXX: kbdcontrol cannot currently be bootstrapped on non-FreeBSD systems
+.if !defined(CROSSBUILD_HOST)
+.if defined(BOOTSTRAP_ALL_TOOLS) || !exists(/usr/sbin/kbdcontrol)
+_kbdcontrol=	usr.sbin/kbdcontrol
+.else
+_bootstrap_tools_links+=kbdcontrol
+.endif
+.endif
+
 .if ${MK_DISK_IMAGE_TOOLS_BOOTSTRAP} != "no"
 _etdump=	usr.bin/etdump
 _makefs=	usr.sbin/makefs
@@ -2903,9 +2962,9 @@ native-xtools-install: .PHONY
 	    -p ${NXBDESTDIR}/usr >/dev/null
 	${DESTDIR_MTREE} -f ${.CURDIR}/etc/mtree/BSD.include.dist \
 	    -p ${NXBDESTDIR}/usr/include >/dev/null
-.if ${TARGET_ARCH} == "amd64"
-	mkdir -p ${NXBDESTDIR}/usr/include/i386
-.endif
+.for d in ${LIBCOMPAT_INCLUDE_DIRS}
+	mkdir -p ${NXBDESTDIR}/usr/include/${d}
+.endfor
 	${_+_}cd ${.CURDIR}; ${NXBMAKE} \
 	    DESTDIR=${NXBDESTDIR} \
 	    -DNO_ROOT \
@@ -3251,8 +3310,9 @@ list-old-files: .PHONY
 	@cd ${.CURDIR}; \
 	${MAKE} -f ${.CURDIR}/Makefile.inc1 ${.MAKEFLAGS} ${.TARGET} \
 	    -V "OLD_FILES:ts\n" -V "OLD_FILES:Musr/share/*.gz:R:ts\n" \
-	    -V "OLD_FILES:Mlib/*.so.*:S,^lib,usr/lib32,:ts\n" \
-	    -V "OLD_FILES:Musr/lib/*:S,^usr/lib,usr/lib32,:ts\n" | sort
+	    ${_ALL_libcompats:@v@-V "OLD_FILES:Mlib/*.so.*:S,^lib,usr/lib$v,:ts\n"@} \
+	    ${_ALL_libcompats:@v@-V "OLD_FILES:Musr/lib/*:S,^usr/lib,usr/lib$v,:ts\n"@} | \
+	sort
 
 delete-old-files: .PHONY
 	@echo ">>> Removing old files (only deletes safe to delete libs)"
@@ -3317,9 +3377,10 @@ list-old-libs: .PHONY
 	@cd ${.CURDIR}; \
 	${MAKE} -f ${.CURDIR}/Makefile.inc1 ${.MAKEFLAGS} ${.TARGET} \
 	    -V "OLD_LIBS:ts\n" -V "MOVED_LIBS:ts\n" \
-	    -V "OLD_LIBS:Mlib/*:S,^lib,usr/lib32,:ts\n" \
-	    -V "OLD_LIBS:Musr/lib/*:S,^usr/lib,usr/lib32,:ts\n" \
-	    -V "OLD_LIBS:Mlib/casper/*:S,^lib/casper,usr/lib32,:ts\n" | sort
+	    ${_ALL_libcompats:@v@-V "OLD_LIBS:Mlib/*:S,^lib,usr/lib$v,:ts\n"@} \
+	    ${_ALL_libcompats:@v@-V "OLD_LIBS:Musr/lib/*:S,^usr/lib,usr/lib$v,:ts\n"@} \
+	    ${_ALL_libcompats:@v@-V "OLD_LIBS:Mlib/casper/*:S,^lib/casper,usr/lib$v,:ts\n"@} | \
+	sort
 
 delete-old-libs: .PHONY
 	@echo ">>> Removing old libraries"
@@ -3591,9 +3652,9 @@ _xi-mtree: .PHONY
 	    -p ${XDDESTDIR}/usr >/dev/null
 	${DESTDIR_MTREE} -f ${.CURDIR}/etc/mtree/BSD.include.dist \
 	    -p ${XDDESTDIR}/usr/include >/dev/null
-.if ${TARGET_ARCH} == "amd64"
-	mkdir -p ${XDDESTDIR}/usr/include/i386
-.endif
+.for d in ${LIBCOMPAT_INCLUDE_DIRS}
+	mkdir -p ${XDDESTDIR}/usr/include/${d}
+.endfor
 .for libcompat in ${libcompats}
 	${DESTDIR_MTREE} -f ${.CURDIR}/etc/mtree/BSD.lib${libcompat}.dist \
 	    -p ${XDDESTDIR}/usr >/dev/null

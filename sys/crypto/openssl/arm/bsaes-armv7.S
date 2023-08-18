@@ -1,4 +1,3 @@
-/* $FreeBSD$ */
 /* Do not modify. This file is auto-generated from bsaes-armv7.pl. */
 @ Copyright 2012-2020 The OpenSSL Project Authors. All Rights Reserved.
 @
@@ -1130,7 +1129,7 @@ bsaes_cbc_encrypt:
 	vstmia	r4, {q7}
 
 .align	2
-
+0:
 #endif
 
 	vld1.8	{q15}, [r8]		@ load IV
@@ -1390,7 +1389,7 @@ bsaes_ctr32_encrypt_blocks:
 	vstmia	r12, {q7}			@ save last round key
 
 .align	2
-	add	r12, r3, #248
+0:	add	r12, r3, #248
 	vld1.8	{q0}, [r8]		@ load counter
 	add	r8, r6, #.LREVM0SR-.LM0	@ borrow r8
 	vldmia	r12, {q4}			@ load round0 key
@@ -1625,7 +1624,7 @@ bsaes_xts_encrypt:
 	vstmia	r12, {q7}
 
 .align	2
-	sub	sp, #0x90			@ place for tweak[9]
+0:	sub	sp, #0x90			@ place for tweak[9]
 #endif
 
 	vld1.8	{q8}, [r0]			@ initial tweak
@@ -2111,7 +2110,7 @@ bsaes_xts_decrypt:
 	vstmia	r4, {q7}
 
 .align	2
-	sub	sp, #0x90			@ place for tweak[9]
+0:	sub	sp, #0x90			@ place for tweak[9]
 #endif
 	vld1.8	{q8}, [r0]			@ initial tweak
 	adr	r2, .Lxts_magic

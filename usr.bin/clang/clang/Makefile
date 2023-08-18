@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 .include <src.opts.mk>
 
@@ -11,11 +10,6 @@ SRCS+=		cc1gen_reproducer_main.cpp
 SRCS+=		driver.cpp
 
 CFLAGS.driver.cpp+=	-Dclang_main=main
-
-.if ${MK_SHARED_TOOLCHAIN} == "no"
-NO_SHARED?= yes
-
-.endif
 
 LINKS=	${BINDIR}/clang ${BINDIR}/clang++ \
 	${BINDIR}/clang ${BINDIR}/clang-cpp
@@ -32,9 +26,6 @@ MLINKS+= clang.1 cc.1 \
 	clang.1 c++.1 \
 	clang.1 CC.1 \
 	clang.1 cpp.1
-
-LIBADD+=	z
-LIBADD+=	zstd
 
 # Ensure we don't add CFLAGS.clang when using GCC
 NO_TARGET_FLAGS=

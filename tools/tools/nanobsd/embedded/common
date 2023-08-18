@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 #-
 # Copyright (c) 2015 M. Warner Losh <imp@FreeBSD.org>
@@ -528,10 +527,6 @@ std_powerpc ( ) {
 
 std_powerpc64 ( ) {
 	NANO_LAYOUT=powerpc64-ibm
-	NANO_ENDIAN=big
-}
-
-std_sparc64 ( ) {
 	NANO_ENDIAN=big
 }
 

@@ -1,4 +1,3 @@
-# $FreeBSD$
 cddl/dev/dtrace/riscv/dtrace_asm.S			optional dtrace compile-with "${DTRACE_S}"
 cddl/dev/dtrace/riscv/dtrace_subr.c			optional dtrace compile-with "${DTRACE_C}"
 cddl/dev/dtrace/riscv/instr_size.c			optional dtrace compile-with "${DTRACE_C}"
@@ -23,12 +22,6 @@ kern/subr_dummy_vdso_tc.c	standard
 kern/subr_intr.c		standard
 kern/subr_physmem.c		standard
 libkern/bcopy.c			standard
-libkern/ffs.c			standard
-libkern/ffsl.c			standard
-libkern/ffsll.c			standard
-libkern/fls.c			standard
-libkern/flsl.c			standard
-libkern/flsll.c			standard
 libkern/memcmp.c		standard
 libkern/memset.c		standard
 libkern/strcmp.c		standard

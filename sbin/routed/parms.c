@@ -27,16 +27,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #include "defs.h"
 #include "pathnames.h"
 #include <sys/stat.h>
-
-__RCSID("$FreeBSD$");
-
 
 static struct parm *parms;
 struct intnet *intnets;

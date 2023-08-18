@@ -16,8 +16,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/dirent.h>
 #include <sys/endian.h>
@@ -58,7 +56,7 @@ static void exit(int) __dead2;
 static void load(const char *);
 static int dskread(void *, uint64_t, int);
 
-static void usage(void);
+static void usage(void) __dead2;
 
 static void bcopy(const void *src, void *dst, size_t len);
 static void bzero(void *b, size_t len);

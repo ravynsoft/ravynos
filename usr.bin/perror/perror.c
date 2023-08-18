@@ -28,8 +28,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -37,7 +35,7 @@ __FBSDID("$FreeBSD$");
 #include <locale.h>
 #include <sys/errno.h>
 
-static void usage(void);
+static void usage(void) __dead2;
 
 int 
 main(int argc, char **argv)

@@ -35,8 +35,6 @@ static const char sccsid[] = "@(#)pass1.c	8.6 (Berkeley) 4/28/95";
 #endif /* not lint */
 #endif
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/stat.h>
 #include <sys/sysctl.h>
@@ -104,7 +102,7 @@ pass1(void)
 			if (!reply("REBUILD CYLINDER GROUP")) {
 				cgheader_corrupt = 1;
 				if (!nflag) {
-					printf("YOU WILL NEED TO RERUN FSCK.\n");
+					pwarn("YOU WILL NEED TO RERUN FSCK.\n");
 					rerun = 1;
 				}
 			} else {

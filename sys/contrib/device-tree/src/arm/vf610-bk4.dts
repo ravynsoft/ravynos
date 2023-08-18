@@ -38,7 +38,7 @@
 		pinctrl-0 = <&pinctrl_gpio_leds>;
 
 		/* LED D5 */
-		led0: heartbeat {
+		led0: led-heartbeat {
 			label = "heartbeat";
 			gpios = <&gpio3 21 GPIO_ACTIVE_HIGH>;
 			default-state = "on";
@@ -61,7 +61,7 @@
 		regulator-max-microvolt = <3300000>;
 	};
 
-	spi-gpio {
+	spi {
 		compatible = "spi-gpio";
 		pinctrl-0 = <&pinctrl_gpio_spi>;
 		pinctrl-names = "default";

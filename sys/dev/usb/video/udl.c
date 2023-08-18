@@ -1,5 +1,4 @@
 /*	$OpenBSD: udl.c,v 1.81 2014/12/09 07:05:06 doug Exp $ */
-/*	$FreeBSD$ */
 
 /*-
  * Copyright (c) 2015 Hans Petter Selasky <hselasky@freebsd.org>
@@ -786,7 +785,7 @@ udl_select_chip(struct udl_softc *sc, struct usb_attach_arg *uaa)
 		/*
 		 * WS Tech DVI is DL120 or DL160. All deviced uses the
 		 * same revision (0.04) so iSerialNumber must be used
-		 * to determin which chip it is.
+		 * to determine which chip it is.
 		 */
 
 		if (strlen(pserial) > 7) {

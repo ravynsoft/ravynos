@@ -14,8 +14,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "math.h"
 #include "math_private.h"
 
@@ -33,7 +31,7 @@ static const float zero   =  0.0;
 static volatile float vzero = 0.0;
 
 float
-__ieee754_logf(float x)
+logf(float x)
 {
 	float hfsq,f,s,z,R,w,t1,t2,dk;
 	int32_t k,ix,i,j;

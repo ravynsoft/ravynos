@@ -45,8 +45,6 @@ static const char sccsid[] = "from: @(#)wall.c	5.14 (Berkeley) 3/2/91";
 #endif
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * This program is not related to David Wall, whose Stanford Ph.D. thesis
  * is entitled "Mechanisms for Broadcast and Selective Broadcast".
@@ -71,7 +69,7 @@ static char *mbuf;
 static char notty[] = "no tty";
 
 static void	makemsg(const char *);
-static void usage(void);
+static void usage(void) __dead2;
 
 /* ARGSUSED */
 int

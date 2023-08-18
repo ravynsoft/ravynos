@@ -137,7 +137,7 @@
 		};
 	};
 
-	spi_gpio: spi-gpio {
+	spi_gpio: spi {
 		compatible = "spi-gpio";
 		#address-cells = <1>;
 		#size-cells = <0>;
@@ -556,7 +556,7 @@
 	pinctrl-0 = <&pinctrl_uart3>;
 	status = "okay";
 
-	rave-sp {
+	mcu {
 		compatible = "zii,rave-sp-rdu1";
 		current-speed = <38400>;
 		#address-cells = <1>;

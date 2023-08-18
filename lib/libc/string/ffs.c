@@ -37,8 +37,6 @@
 static char sccsid[] = "@(#)ffs.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <strings.h>
 
 /*
@@ -47,5 +45,5 @@ __FBSDID("$FreeBSD$");
 int
 ffs(int mask)
 {
-	return (__builtin_ffs(mask));
+	return (mask == 0 ? 0 : __builtin_ctz(mask) + 1);
 }

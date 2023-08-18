@@ -378,8 +378,7 @@ pw_gidpolicy(struct userconf *cnf, char *grname, char *nam, gid_t prefer, bool d
 			grp = GETGRGID(gid);
 		}
 		gid = grp->gr_gid;
-	} else if ((grp = GETGRNAM(nam)) != NULL &&
-	    (grp->gr_mem == NULL || grp->gr_mem[0] == NULL)) {
+	} else if ((grp = GETGRNAM(nam)) != NULL) {
 		gid = grp->gr_gid;  /* Already created? Use it anyway... */
 	} else {
 		intmax_t		grid = -1;
@@ -1408,6 +1407,9 @@ pw_user_add(int argc, char **argv, char *arg1)
 	if (cmdcnf->groups != NULL) {
 		for (i = 0; i < cmdcnf->groups->sl_cur; i++) {
 			grp = GETGRNAM(cmdcnf->groups->sl_str[i]);
+			/* gr_add doesn't check if new member is already in group */
+			if (grp_has_member(grp, pwd->pw_name))
+				continue;
 			grp = gr_add(grp, pwd->pw_name);
 			/*
 			 * grp can only be NULL in 2 cases:

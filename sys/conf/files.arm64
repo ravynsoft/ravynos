@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 ##
 ## Kernel
@@ -64,6 +63,7 @@ arm64/arm64/minidump_machdep.c			standard
 arm64/arm64/mp_machdep.c			optional smp
 arm64/arm64/nexus.c				standard
 arm64/arm64/ofw_machdep.c			optional fdt
+arm64/arm64/pl031_rtc.c				optional fdt pl031
 arm64/arm64/ptrauth.c				standard \
 	compile-with	"${NORMAL_C:N-mbranch-protection*}"
 arm64/arm64/pmap.c				standard
@@ -468,7 +468,6 @@ arm/allwinner/h6/h6_r_padconf.c			optional soc_allwinner_h6 fdt
 
 # Altera/Intel
 dev/altera/dwc/if_dwc_socfpga.c			optional fdt dwc_socfpga
-arm64/intel/firmware.c				optional soc_intel_stratix10 fdt
 arm64/intel/stratix10-soc-fpga-mgr.c		optional soc_intel_stratix10 fdt
 arm64/intel/stratix10-svc.c			optional soc_intel_stratix10 fdt
 
@@ -644,6 +643,7 @@ dev/flash/flexspi/flex_spi.c    		optional clk flex_spi soc_nxp_ls fdt
 
 # Qualcomm
 arm64/qualcomm/qcom_gcc.c			optional qcom_gcc fdt
+dev/qcom_mdio/qcom_mdio_ipq4018.c		optional qcom_mdio fdt mdio mii
 
 # RockChip Drivers
 arm64/rockchip/rk3328_codec.c			optional fdt rk3328codec soc_rockchip_rk3328
@@ -693,3 +693,4 @@ arm64/rockchip/clk/rk3568_pmucru.c		optional fdt soc_rockchip_rk3568
 
 # Xilinx
 arm/xilinx/uart_dev_cdnc.c			optional uart soc_xilinx_zynq fdt
+arm/xilinx/zy7_gpio.c				optional gpio soc_xilinx_zynq fdt

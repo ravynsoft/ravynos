@@ -30,8 +30,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <err.h>
 #include <pwd.h>
 #include <signal.h>
@@ -56,7 +54,7 @@ __FBSDID("$FreeBSD$");
 void wallprog_1(struct svc_req *rqstp, SVCXPRT *transp);
 void possess(void);
 void killkids(int sig);
-static void usage(void);
+static void usage(void) __dead2;
 
 int nodaemon = 0;
 int from_inetd = 1;

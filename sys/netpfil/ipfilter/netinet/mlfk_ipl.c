@@ -1,9 +1,6 @@
-/*	$FreeBSD$	*/
 
 /*
  * Copyright (C) 2012 by Darren Reed.
- *
- * $FreeBSD$
  * See the IPFILTER.LICENCE file for details on licencing.
  */
 

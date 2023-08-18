@@ -23,8 +23,6 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING 
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER 
  * DEALINGS IN THE SOFTWARE.
- *
- * $FreeBSD$
  */
 
 #ifndef _XEN_XEN_OS_H_
@@ -43,6 +41,11 @@
 #ifndef __ASSEMBLY__
 #include <xen/hvm.h>
 #include <contrib/xen/event_channel.h>
+
+/*
+ * Setup function which needs to be called on each processor by architecture
+ */
+extern void xen_setup_vcpu_info(void);
 
 static inline vm_paddr_t
 xen_get_xenstore_mfn(void)

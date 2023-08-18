@@ -24,8 +24,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/ioccom.h>
 #include <sys/endian.h>
@@ -591,7 +589,7 @@ print_hgst_info_background_scan(void *buf, uint16_t subtype __unused, uint8_t re
 		return;
 	}
 	if (code != 0) {
-		printf("Expceted code 0, found code %#x\n", code);
+		printf("Expected code 0, found code %#x\n", code);
 		return;
 	}
 	pom = le32dec(walker);

@@ -58,8 +58,6 @@
  *
  * any improvements or extensions that they make and grant Carnegie the
  * rights to redistribute these changes.
- *
- * $FreeBSD$
  */
 
 /*
@@ -97,6 +95,10 @@ union vm_map_object {
  *	a VM object (or sharing map) and offset into that object,
  *	and user-exported inheritance and protection information.
  *	Also included is control information for virtual copy operations.
+ *
+ *	For stack gap map entries (MAP_ENTRY_GUARD | MAP_ENTRY_GROWS_DOWN
+ *	or UP), the next_read member is reused as the stack_guard_page
+ *	storage, and offset is the stack protection.
  */
 struct vm_map_entry {
 	struct vm_map_entry *left;	/* left child or previous entry */
@@ -150,8 +152,10 @@ struct vm_map_entry {
 #define	MAP_ENTRY_HEADER		0x00080000
 
 #define	MAP_ENTRY_SPLIT_BOUNDARY_MASK	0x00300000
-
 #define	MAP_ENTRY_SPLIT_BOUNDARY_SHIFT	20
+#define	MAP_ENTRY_SPLIT_BOUNDARY_INDEX(entry)			\
+	(((entry)->eflags & MAP_ENTRY_SPLIT_BOUNDARY_MASK) >>	\
+	    MAP_ENTRY_SPLIT_BOUNDARY_SHIFT)
 
 #ifdef	_KERNEL
 static __inline u_char
@@ -183,12 +187,11 @@ vm_map_clip_end(vm_map_t map, vm_map_entry_t entry, vm_offset_t endaddr);
 
 /*
  *	A map is a set of map entries.  These map entries are
- *	organized as a threaded binary search tree.  Both structures
- *	are ordered based upon the start and end addresses contained
+ *	organized as a threaded binary search tree.  The tree is
+ *	ordered based upon the start and end addresses contained
  *	within each map entry.  The largest gap between an entry in a
  *	subtree and one of its neighbors is saved in the max_free
- *	field, and that field is updated when the tree is
- *	restructured.
+ *	field, and that field is updated when the tree is restructured.
  *
  *	Sleator and Tarjan's top-down splay algorithm is employed to
  *	control height imbalance in the binary search tree.
@@ -525,11 +528,12 @@ vm_map_entry_succ(vm_map_entry_t entry)
 
 #define	VM_MAP_PROTECT_SET_PROT		0x0001
 #define	VM_MAP_PROTECT_SET_MAXPROT	0x0002
+#define	VM_MAP_PROTECT_GROWSDOWN	0x0004
 
 int vm_map_protect(vm_map_t map, vm_offset_t start, vm_offset_t end,
     vm_prot_t new_prot, vm_prot_t new_maxprot, int flags);
 int vm_map_remove (vm_map_t, vm_offset_t, vm_offset_t);
-void vm_map_try_merge_entries(vm_map_t map, vm_map_entry_t prev,
+vm_map_entry_t vm_map_try_merge_entries(vm_map_t map, vm_map_entry_t prev,
     vm_map_entry_t entry);
 void vm_map_startup (void);
 int vm_map_submap (vm_map_t, vm_offset_t, vm_offset_t, vm_map_t);

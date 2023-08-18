@@ -27,8 +27,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
  * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #include <sys/cdefs.h>
@@ -68,6 +66,8 @@ pfctl_do_ioctl(int dev, uint cmd, size_t size, nvlist_t **nvl)
 	int ret;
 
 	data = nvlist_pack(*nvl, &nvlen);
+	if (nvlen > size)
+		size = nvlen;
 
 retry:
 	nv.data = malloc(size);

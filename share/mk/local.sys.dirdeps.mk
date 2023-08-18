@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 # local configuration specific to meta mode
 # we assume that MK_DIRDEPS_BUILD=yes
@@ -64,9 +63,6 @@ WITH_META_STATS= t
 .endif
 
 # toolchains can be a pain - especially bootstrappping them
-.if ${MACHINE} == "host"
-MK_SHARED_TOOLCHAIN= no
-.endif
 TOOLCHAIN_VARS=	AS AR CC CLANG_TBLGEN CXX CPP LD NM OBJCOPY RANLIB \
 		STRINGS SIZE LLVM_TBLGEN
 _toolchain_bin_CLANG_TBLGEN=	/usr/bin/clang-tblgen
@@ -125,7 +121,7 @@ ${var}=		${HOST_${var}}
 FREEBSD_REVISION!= sed -n '/^REVISION=/{s,.*=,,;s,",,g;p; }' ${SRCTOP}/sys/conf/newvers.sh
 .export FREEBSD_REVISION
 .endif
-#CROSS_TARGET_FLAGS= -target ${MACHINE_ARCH}-unknown-freebsd${FREEBSD_REVISION}
+#CROSS_TARGET_FLAGS?= -target ${MACHINE_ARCH}-unknown-freebsd${FREEBSD_REVISION}
 #CROSS_TARGET_FLAGS= -target ${MACHINE_ARCH}-ravynsoft-ravynos-macho
 CFLAGS+= ${CROSS_TARGET_FLAGS}
 ACFLAGS+= ${CROSS_TARGET_FLAGS}

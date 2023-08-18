@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 .include <src.opts.mk>
 
@@ -24,8 +23,6 @@ TGHDRS+=	${INCFILE}
 DEPENDFILES+=	${TGHDRS:C/$/.d/}
 DPSRCS+=	${TGHDRS}
 CLEANFILES+=	${TGHDRS} ${TGHDRS:C/$/.d/}
-
-LIBADD+=	z
 
 .if ${MK_LLVM_BINUTILS} != "no"
 LINKS+=		${BINDIR}/llvm-nm ${BINDIR}/nm

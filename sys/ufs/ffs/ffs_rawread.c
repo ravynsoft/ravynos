@@ -27,8 +27,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/fcntl.h>
@@ -192,7 +190,7 @@ ffs_rawread_readahead(struct vnode *vp,
 		      struct buf *bp)
 {
 	int error;
-	u_int iolen;
+	uint64_t iolen;
 	off_t blockno;
 	int blockoff;
 	int bsize;
@@ -264,7 +262,7 @@ ffs_rawread_main(struct vnode *vp,
 {
 	int error, nerror;
 	struct buf *bp, *nbp, *tbp;
-	u_int iolen;
+	uint64_t iolen;
 	caddr_t udata;
 	long resid;
 	off_t offset;

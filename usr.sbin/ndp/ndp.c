@@ -1,4 +1,3 @@
-/*	$FreeBSD$	*/
 /*	$KAME: ndp.c,v 1.104 2003/06/27 07:48:39 itojun Exp $	*/
 
 /*-
@@ -138,7 +137,7 @@ static int delete(char *);
 static int dump(struct sockaddr_in6 *, int);
 static struct in6_nbrinfo *getnbrinfo(struct in6_addr *, int, int);
 static int ndp_ether_aton(char *, u_char *);
-static void usage(void);
+static void usage(void) __dead2;
 static void ifinfo(char *, int, char **);
 static void rtrlist(void);
 static void plist(void);

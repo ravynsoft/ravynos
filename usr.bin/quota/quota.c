@@ -46,8 +46,6 @@ static const char sccsid[] = "from: @(#)quota.c	8.1 (Berkeley) 6/6/93";
  * Disk quota reporting program.
  */
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/types.h>
 #include <sys/file.h>
@@ -86,7 +84,7 @@ struct quotause {
 
 static char *timeprt(int64_t seconds);
 static struct quotause *getprivs(long id, int quotatype);
-static void usage(void);
+static void usage(void) __dead2;
 static int showuid(u_long uid);
 static int showgid(u_long gid);
 static int showusrname(char *name);

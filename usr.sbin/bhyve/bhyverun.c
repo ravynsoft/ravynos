@@ -24,13 +24,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/types.h>
 #ifndef WITHOUT_CAPSICUM
 #include <sys/capsicum.h>
@@ -107,6 +103,7 @@ __FBSDID("$FreeBSD$");
 #ifdef BHYVE_SNAPSHOT
 #include "snapshot.h"
 #endif
+#include "tpm_device.h"
 #include "xmsr.h"
 #include "spinup_ap.h"
 #include "rtc.h"
@@ -208,7 +205,7 @@ static void
 usage(int code)
 {
 
-        fprintf(stderr,
+	fprintf(stderr,
 		"Usage: %s [-AaCDeHhPSuWwxY]\n"
 		"       %*s [-c [[cpus=]numcpus][,sockets=n][,cores=n][,threads=n]]\n"
 		"       %*s [-G port] [-k config_file] [-l lpc] [-m mem] [-o var=value]\n"
@@ -1032,7 +1029,7 @@ fbsdrun_set_capabilities(struct vcpu *vcpu)
 			exit(4);
 		}
 		vm_set_capability(vcpu, VM_CAP_PAUSE_EXIT, 1);
-        }
+	}
 
 	if (get_config_bool_default("x86.x2apic", false))
 		err = vm_set_x2apic_state(vcpu, X2APIC_ENABLED);
@@ -1218,7 +1215,6 @@ main(int argc, char *argv[])
 	struct vcpu *bsp;
 	struct vmctx *ctx;
 	struct qemu_fwcfg_item *e820_fwcfg_item;
-	uint64_t rip;
 	size_t memsize;
 	const char *optstr, *value, *vmname;
 #ifdef BHYVE_SNAPSHOT
@@ -1249,12 +1245,12 @@ main(int argc, char *argv[])
 			set_config_bool("destroy_on_poweroff", true);
 			break;
 		case 'p':
-                        if (pincpu_parse(optarg) != 0) {
-                            errx(EX_USAGE, "invalid vcpu pinning "
-                                 "configuration '%s'", optarg);
-                        }
+			if (pincpu_parse(optarg) != 0) {
+				errx(EX_USAGE, "invalid vcpu pinning "
+				    "configuration '%s'", optarg);
+			}
 			break;
-                case 'c':
+		case 'c':
 			if (topology_parse(optarg) != 0) {
 			    errx(EX_USAGE, "invalid cpu topology "
 				"'%s'", optarg);
@@ -1302,7 +1298,7 @@ main(int argc, char *argv[])
 		case 'S':
 			set_config_bool("memory.wired", true);
 			break;
-                case 'm':
+		case 'm':
 			set_config_value("memory.size", optarg);
 			break;
 		case 'o':
@@ -1479,6 +1475,10 @@ main(int argc, char *argv[])
 		perror("device emulation initialization error");
 		exit(4);
 	}
+	if (init_tpm(ctx) != 0) {
+		fprintf(stderr, "Failed to init TPM device");
+		exit(4);
+	}
 
 	/*
 	 * Initialize after PCI, to allow a bootrom file to reserve the high
@@ -1538,9 +1538,6 @@ main(int argc, char *argv[])
 		}
 	}
 #endif
-
-	error = vm_get_register(bsp, VM_REG_GUEST_RIP, &rip);
-	assert(error == 0);
 
 	/*
 	 * build the guest tables, MP etc.

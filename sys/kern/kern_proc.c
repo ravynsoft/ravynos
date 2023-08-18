@@ -32,8 +32,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_ddb.h"
 #include "opt_ktrace.h"
 #include "opt_kstack_pages.h"
@@ -592,8 +590,12 @@ enterpgrp(struct proc *p, pid_t pgid, struct pgrp *pgrp, struct session *sess)
 	    ("enterpgrp: session leader attempted setpgrp"));
 
 	old_pgrp = p->p_pgrp;
-	if (!sx_try_xlock(&old_pgrp->pg_killsx))
+	if (!sx_try_xlock(&old_pgrp->pg_killsx)) {
+		sx_xunlock(&proctree_lock);
+		sx_xlock(&old_pgrp->pg_killsx);
+		sx_xunlock(&old_pgrp->pg_killsx);
 		return (ERESTART);
+	}
 	MPASS(old_pgrp == p->p_pgrp);
 
 	if (sess != NULL) {
@@ -661,11 +663,18 @@ enterthispgrp(struct proc *p, struct pgrp *pgrp)
 	    ("%s: p %p belongs to pgrp %p", __func__, p, pgrp));
 
 	old_pgrp = p->p_pgrp;
-	if (!sx_try_xlock(&old_pgrp->pg_killsx))
+	if (!sx_try_xlock(&old_pgrp->pg_killsx)) {
+		sx_xunlock(&proctree_lock);
+		sx_xlock(&old_pgrp->pg_killsx);
+		sx_xunlock(&old_pgrp->pg_killsx);
 		return (ERESTART);
+	}
 	MPASS(old_pgrp == p->p_pgrp);
 	if (!sx_try_xlock(&pgrp->pg_killsx)) {
 		sx_xunlock(&old_pgrp->pg_killsx);
+		sx_xunlock(&proctree_lock);
+		sx_xlock(&pgrp->pg_killsx);
+		sx_xunlock(&pgrp->pg_killsx);
 		return (ERESTART);
 	}
 
@@ -3292,7 +3301,6 @@ sysctl_kern_proc_vm_layout(SYSCTL_HANDLER_ARGS)
 		kvm32.kvm_shp_addr = (uint32_t)kvm.kvm_shp_addr;
 		kvm32.kvm_shp_size = (uint32_t)kvm.kvm_shp_size;
 		kvm32.kvm_map_flags = kvm.kvm_map_flags;
-		vmspace_free(vmspace);
 		error = SYSCTL_OUT(req, &kvm32, sizeof(kvm32));
 		goto out;
 	}

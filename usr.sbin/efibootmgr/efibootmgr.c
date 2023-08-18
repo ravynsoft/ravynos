@@ -24,10 +24,7 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/stat.h>
-#include <sys/vtoc.h>
 #include <sys/param.h>
 #include <assert.h>
 #include <ctype.h>

@@ -27,8 +27,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/errno.h>
 #include <sys/limits.h>
@@ -41,7 +39,7 @@ __FBSDID("$FreeBSD$");
 #define GRND_VALIDFLAGS	(GRND_NONBLOCK | GRND_RANDOM | GRND_INSECURE)
 
 /*
- * random_read_uio(9) returns EWOULDBLOCK if a nonblocking request would block,
+ * read_random_uio(9) returns EWOULDBLOCK if a nonblocking request would block,
  * but the Linux API name is EAGAIN.  On FreeBSD, they have the same numeric
  * value for now.
  */

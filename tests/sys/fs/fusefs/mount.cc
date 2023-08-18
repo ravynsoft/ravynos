@@ -26,8 +26,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 extern "C" {
@@ -192,11 +190,11 @@ TEST_P(UpdateErr, update)
 	EXPECT_TRUE((newflags ^ statbuf.f_flags) & flag);
 }
 
-INSTANTIATE_TEST_CASE_P(Mount, UpdateOk,
+INSTANTIATE_TEST_SUITE_P(Mount, UpdateOk,
 		::testing::Values("MNT_RDONLY", "MNT_NOEXEC", "MNT_NOSUID", "MNT_NOATIME",
 		"MNT_SUIDDIR")
 );
 
-INSTANTIATE_TEST_CASE_P(Mount, UpdateErr,
-		::testing::Values( "MNT_USER");
+INSTANTIATE_TEST_SUITE_P(Mount, UpdateErr,
+		::testing::Values( "MNT_USER")
 );

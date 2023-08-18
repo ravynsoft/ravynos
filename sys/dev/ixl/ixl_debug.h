@@ -30,7 +30,6 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************/
-/*$FreeBSD$*/
 
 #ifndef _IXL_DEBUG_H_
 #define _IXL_DEBUG_H_
@@ -100,6 +99,8 @@ enum ixl_dbg_mask {
 
 	IXL_DBG_SWITCH_INFO		= 0x00010000,
 	IXL_DBG_I2C			= 0x00020000,
+
+	IXL_DBG_LINK			= 0x00100000,
 
 	IXL_DBG_ALL			= 0xFFFFFFFF
 };

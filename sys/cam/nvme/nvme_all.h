@@ -23,8 +23,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #ifndef CAM_NVME_NVME_ALL_H
@@ -42,6 +40,8 @@ int	nvme_identify_match(caddr_t identbuffer, caddr_t table_entry);
 
 struct sbuf;
 void	nvme_print_ident(const struct nvme_controller_data *, const struct nvme_namespace_data *, struct sbuf *);
+void	nvme_print_ident_short(const struct nvme_controller_data *,
+    const struct nvme_namespace_data *, struct sbuf *);
 const char *nvme_op_string(const struct nvme_command *, int admin);
 const char *nvme_cmd_string(const struct nvme_command *, char *, size_t);
 void nvme_cmd_sbuf(const struct nvme_command *, struct sbuf *sb);

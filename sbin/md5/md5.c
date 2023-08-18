@@ -18,8 +18,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/resource.h>
 #include <sys/stat.h>
@@ -621,7 +619,7 @@ main(int argc, char *argv[])
 			 */
 			if (*(argv + 1) == NULL) {
 #ifdef HAVE_CAPSICUM
-				cap_rights_init(&rights, CAP_READ);
+				cap_rights_init(&rights, CAP_READ, CAP_FSTAT);
 				if (caph_rights_limit(fileno(f), &rights) < 0 ||
 				    caph_enter() < 0)
 					err(1, "capsicum");

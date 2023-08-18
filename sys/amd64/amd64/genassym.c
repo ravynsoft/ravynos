@@ -35,8 +35,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_hwpmc_hooks.h"
 #include "opt_kstack_pages.h"
 
@@ -116,6 +114,7 @@ ASSYM(KERNBASE, KERNBASE);
 ASSYM(KERNLOAD, KERNLOAD);
 ASSYM(DMAP_MIN_ADDRESS, DMAP_MIN_ADDRESS);
 ASSYM(DMAP_MAX_ADDRESS, DMAP_MAX_ADDRESS);
+ASSYM(KSTACK_PAGES, KSTACK_PAGES);
 
 ASSYM(PCB_R15, offsetof(struct pcb, pcb_r15));
 ASSYM(PCB_R14, offsetof(struct pcb, pcb_r14));

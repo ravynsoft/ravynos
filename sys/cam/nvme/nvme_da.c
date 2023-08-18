@@ -29,8 +29,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 
 #ifdef _KERNEL
@@ -149,7 +147,7 @@ static	disk_ioctl_t	ndaioctl;
 static	disk_strategy_t	ndastrategy;
 static	dumper_t	ndadump;
 static	periph_init_t	ndainit;
-static	void		ndaasync(void *callback_arg, u_int32_t code,
+static	void		ndaasync(void *callback_arg, uint32_t code,
 				struct cam_path *path, void *arg);
 static	void		ndasysctlinit(void *context, int pending);
 static	int		ndaflagssysctl(SYSCTL_HANDLER_ARGS);
@@ -159,8 +157,8 @@ static	periph_start_t	ndastart;
 static	periph_oninv_t	ndaoninvalidate;
 static	void		ndadone(struct cam_periph *periph,
 			       union ccb *done_ccb);
-static  int		ndaerror(union ccb *ccb, u_int32_t cam_flags,
-				u_int32_t sense_flags);
+static  int		ndaerror(union ccb *ccb, uint32_t cam_flags,
+				uint32_t sense_flags);
 static void		ndashutdown(void *arg, int howto);
 static void		ndasuspend(void *arg);
 
@@ -646,7 +644,7 @@ ndacleanup(struct cam_periph *periph)
 }
 
 static void
-ndaasync(void *callback_arg, u_int32_t code,
+ndaasync(void *callback_arg, uint32_t code,
 	struct cam_path *path, void *arg)
 {
 	struct cam_periph *periph;
@@ -1268,7 +1266,7 @@ ndadone(struct cam_periph *periph, union ccb *done_ccb)
 }
 
 static int
-ndaerror(union ccb *ccb, u_int32_t cam_flags, u_int32_t sense_flags)
+ndaerror(union ccb *ccb, uint32_t cam_flags, uint32_t sense_flags)
 {
 #ifdef CAM_IO_STATS
 	struct nda_softc *softc;
@@ -1284,12 +1282,8 @@ ndaerror(union ccb *ccb, u_int32_t cam_flags, u_int32_t sense_flags)
 		softc->timeouts++;
 #endif
 		break;
-	case CAM_REQ_ABORTED:
 	case CAM_REQ_CMP_ERR:
-	case CAM_REQ_TERMIO:
-	case CAM_UNREC_HBA_ERROR:
-	case CAM_DATA_RUN_ERR:
-	case CAM_ATA_STATUS_ERROR:
+	case CAM_NVME_STATUS_ERROR:
 #ifdef CAM_IO_STATS
 		softc->errors++;
 #endif

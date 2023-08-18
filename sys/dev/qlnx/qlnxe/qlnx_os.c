@@ -31,8 +31,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "qlnx_os.h"
 #include "bcm_osal.h"
 #include "reg_addr.h"
@@ -55,7 +53,6 @@ __FBSDID("$FreeBSD$");
 #include "mcp_public.h"
 #include "ecore_iro.h"
 #include "nvm_cfg.h"
-#include "ecore_dev_api.h"
 #include "ecore_dbg_fw_funcs.h"
 #include "ecore_iov_api.h"
 #include "ecore_vf_api.h"
@@ -452,17 +449,12 @@ qlnx_num_tx_compl(qlnx_host_t *ha, struct qlnx_fastpath *fp,
 {
 	u16 hw_bd_cons;
 	u16 ecore_cons_idx;
-	uint16_t diff;
 
 	hw_bd_cons = le16toh(*txq->hw_cons_ptr);
 
 	ecore_cons_idx = ecore_chain_get_cons_idx(&txq->tx_pbl);
-	if (hw_bd_cons < ecore_cons_idx) {
-		diff = (1 << 16) - (ecore_cons_idx - hw_bd_cons);
-	} else {
-		diff = hw_bd_cons - ecore_cons_idx;
-	}
-	return diff;
+
+	return (hw_bd_cons - ecore_cons_idx);
 }
 
 static void
@@ -2640,7 +2632,9 @@ qlnx_ioctl(if_t ifp, u_long cmd, caddr_t data)
 {
 	int		ret = 0, mask;
 	struct ifreq	*ifr = (struct ifreq *)data;
+#ifdef INET
 	struct ifaddr	*ifa = (struct ifaddr *)data;
+#endif
 	qlnx_host_t	*ha;
 
 	ha = (qlnx_host_t *)if_getsoftc(ifp);
@@ -2649,6 +2643,7 @@ qlnx_ioctl(if_t ifp, u_long cmd, caddr_t data)
 	case SIOCSIFADDR:
 		QL_DPRINT4(ha, "SIOCSIFADDR (0x%lx)\n", cmd);
 
+#ifdef INET
 		if (ifa->ifa_addr->sa_family == AF_INET) {
 			if_setflagbits(ifp, IFF_UP, 0);
 			if (!(if_getdrvflags(ifp) & IFF_DRV_RUNNING)) {
@@ -2660,9 +2655,10 @@ qlnx_ioctl(if_t ifp, u_long cmd, caddr_t data)
 				   cmd, ntohl(IA_SIN(ifa)->sin_addr.s_addr));
 
 			arp_ifinit(ifp, ifa);
-		} else {
-			ether_ioctl(ifp, cmd, data);
+			break;
 		}
+#endif
+		ether_ioctl(ifp, cmd, data);
 		break;
 
 	case SIOCSIFMTU:
@@ -2953,11 +2949,7 @@ qlnx_tx_int(qlnx_host_t *ha, struct qlnx_fastpath *fp,
 
 	while (hw_bd_cons !=
 		(ecore_cons_idx = ecore_chain_get_cons_idx(&txq->tx_pbl))) {
-		if (hw_bd_cons < ecore_cons_idx) {
-			diff = (1 << 16) - (ecore_cons_idx - hw_bd_cons);
-		} else {
-			diff = hw_bd_cons - ecore_cons_idx;
-		}
+		diff = hw_bd_cons - ecore_cons_idx;
 		if ((diff > TX_RING_SIZE) ||
 			QL_ERR_INJECT(ha, QL_ERR_INJCT_TX_INT_DIFF)){
 			QL_RESET_ERR_INJECT(ha, QL_ERR_INJCT_TX_INT_DIFF);

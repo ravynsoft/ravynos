@@ -22,7 +22,6 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD$
 #
 
 #include <sys/param.h>
@@ -49,6 +48,7 @@ INTERFACE hid;
 #
 METHOD void intr_setup {
 	device_t dev;
+	device_t child;
 	hid_intr_t intr;
 	void *context;
 	struct hid_rdesc_info *rdesc;
@@ -59,6 +59,7 @@ METHOD void intr_setup {
 #
 METHOD void intr_unsetup {
 	device_t dev;
+	device_t child;
 };
 
 #
@@ -66,6 +67,7 @@ METHOD void intr_unsetup {
 #
 METHOD int intr_start {
 	device_t dev;
+	device_t child;
 };
 
 #
@@ -73,6 +75,7 @@ METHOD int intr_start {
 #
 METHOD int intr_stop {
 	device_t dev;
+	device_t child;
 };
 
 #
@@ -82,6 +85,7 @@ METHOD int intr_stop {
 #
 METHOD void intr_poll {
 	device_t dev;
+	device_t child;
 };
 
 # HID interface
@@ -91,6 +95,7 @@ METHOD void intr_poll {
 #
 METHOD int get_rdesc {
 	device_t dev;
+	device_t child;
 	void *data;
 	hid_size_t len;
 };
@@ -102,6 +107,7 @@ METHOD int get_rdesc {
 #
 METHOD int read {
 	device_t dev;
+	device_t child;
 	void *data;
 	hid_size_t maxlen;
 	hid_size_t *actlen;
@@ -113,6 +119,7 @@ METHOD int read {
 #
 METHOD int write {
 	device_t dev;
+	device_t child;
 	const void *data;
 	hid_size_t len;
 };
@@ -127,6 +134,7 @@ METHOD int write {
 #
 METHOD int get_report {
 	device_t dev;
+	device_t child;
 	void *data;
 	hid_size_t maxlen;
 	hid_size_t *actlen;
@@ -142,6 +150,7 @@ METHOD int get_report {
 #
 METHOD int set_report {
 	device_t dev;
+	device_t child;
 	const void *data;
 	hid_size_t len;
 	uint8_t type;
@@ -153,6 +162,7 @@ METHOD int set_report {
 #
 METHOD int set_idle {
 	device_t dev;
+	device_t child;
 	uint16_t duration;
 	uint8_t id;
 };
@@ -162,6 +172,7 @@ METHOD int set_idle {
 #
 METHOD int set_protocol {
 	device_t dev;
+	device_t child;
 	uint16_t protocol;
 };
 
@@ -171,6 +182,7 @@ METHOD int set_protocol {
 #
 METHOD int ioctl {
 	device_t dev;
+	device_t child;
 	unsigned long cmd;
 	uintptr_t data;
 };

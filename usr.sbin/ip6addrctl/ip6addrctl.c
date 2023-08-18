@@ -29,8 +29,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #include <sys/types.h>
@@ -62,7 +60,7 @@ struct policyqueue {
 TAILQ_HEAD(policyhead, policyqueue);
 static struct policyhead policyhead;
 
-static void usage(void);
+static void usage(void) __dead2;
 static void get_policy(void);
 static void dump_policy(void);
 static int mask2plen(struct sockaddr_in6 *);

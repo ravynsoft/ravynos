@@ -57,7 +57,7 @@
 static SYSCTL_NODE(_hw, OID_AUTO, enic, CTLFLAG_RW | CTLFLAG_MPSAFE, 0,
     "ENIC");
 
-static pci_vendor_info_t enic_vendor_info_array[] =
+static const pci_vendor_info_t enic_vendor_info_array[] =
 {
 	PVID(CISCO_VENDOR_ID, PCI_DEVICE_ID_CISCO_VIC_ENET,
 	     DRV_DESCRIPTION),
@@ -1028,8 +1028,6 @@ enic_update_admin_status(if_ctx_t ctx)
 
 	enic_link_status(softc);
 }
-
-uint32_t	iflib_get_flags(if_ctx_t ctx);
 
 static void
 enic_txq_timer(if_ctx_t ctx, uint16_t qid)

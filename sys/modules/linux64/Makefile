@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 .PATH: ${SRCTOP}/sys/compat/linux ${SRCTOP}/sys/${MACHINE}/linux
 .if ${MACHINE_CPUARCH} == "amd64"
@@ -29,6 +28,7 @@ SRCS=	linux_dummy_machdep.c \
 	linux_time.c \
 	linux_vdso.c \
 	linux_timer.c \
+	linux_xattr.c \
 	opt_ktrace.h \
 	opt_inet6.h \
 	opt_posix.h \

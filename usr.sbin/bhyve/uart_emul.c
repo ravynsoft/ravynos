@@ -25,13 +25,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/types.h>
 #include <dev/ic/ns16550.h>
 #ifndef WITHOUT_CAPSICUM
@@ -68,7 +64,7 @@ __FBSDID("$FreeBSD$");
 #define	COM4_IRQ	3
 
 #define	DEFAULT_RCLK	1843200
-#define	DEFAULT_BAUD	9600
+#define	DEFAULT_BAUD	115200
 
 #define	FCR_RX_MASK	0xC0
 

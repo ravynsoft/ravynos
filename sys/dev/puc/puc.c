@@ -27,8 +27,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/kernel.h>
@@ -74,7 +72,7 @@ const char puc_driver_name[] = "puc";
 static MALLOC_DEFINE(M_PUC, "PUC", "PUC driver");
 
 SYSCTL_NODE(_hw, OID_AUTO, puc, CTLFLAG_RD | CTLFLAG_MPSAFE, 0,
-    "puc(9) driver configuration");
+    "puc(4) driver configuration");
 
 struct puc_bar *
 puc_get_bar(struct puc_softc *sc, int rid)

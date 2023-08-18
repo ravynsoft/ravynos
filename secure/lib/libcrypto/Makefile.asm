@@ -1,4 +1,3 @@
-# $FreeBSD$
 # Use this to help generate the asm *.S files after an import.  It is not
 # perfect by any means, but does what is needed.
 # Do a 'make -f Makefile.asm all' and it will generate *.S.  Move them
@@ -312,7 +311,7 @@ PERLPATH=	-I${LCRYPTO_SRC}/crypto/perlasm
 SRCS=	ppccpuid.pl
 
 #bn
-SRCS+=	ppc-mont.pl
+SRCS+=	ppc.pl ppc-mont.pl
 
 #aes
 SRCS+=	aes-ppc.pl vpaes-ppc.pl aesp8-ppc.pl
@@ -377,7 +376,7 @@ PERLPATH=	-I${LCRYPTO_SRC}/crypto/perlasm
 SRCS=	ppccpuid.pl
 
 #bn
-SRCS+=	ppc-mont.pl
+SRCS+=	ppc.pl ppc-mont.pl
 
 #aes
 SRCS+=	aes-ppc.pl vpaes-ppc.pl aesp8-ppc.pl
@@ -448,7 +447,7 @@ PERLPATH=	-I${LCRYPTO_SRC}/crypto/perlasm
 SRCS=	ppccpuid.pl
 
 #bn
-SRCS+=	ppc-mont.pl
+SRCS+=	ppc.pl ppc-mont.pl
 
 #aes
 SRCS+=	aes-ppc.pl vpaes-ppc.pl aesp8-ppc.pl

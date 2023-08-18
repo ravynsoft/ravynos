@@ -35,7 +35,6 @@
 #define	SAN_RUNTIME
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 #if 0
 __KERNEL_RCSID(0, "$NetBSD: subr_msan.c,v 1.14 2020/09/09 16:29:59 maxv Exp $");
 #endif
@@ -56,9 +55,6 @@ __KERNEL_RCSID(0, "$NetBSD: subr_msan.c,v 1.14 2020/09/09 16:29:59 maxv Exp $");
 #include <sys/stack.h>
 #include <sys/sysctl.h>
 #include <sys/uio.h>
-
-#include <cam/cam.h>
-#include <cam/cam_ccb.h>
 
 #include <vm/vm.h>
 #include <vm/pmap.h>
@@ -168,9 +164,9 @@ kmsan_orig_name(int type)
 }
 
 static void
-kmsan_report_hook(const void *addr, size_t size, size_t off, const char *hook)
+kmsan_report_hook(const void *addr, msan_orig_t *orig, size_t size, size_t off,
+    const char *hook)
 {
-	msan_orig_t *orig;
 	const char *typename;
 	char *var, *fn;
 	uintptr_t ptr;
@@ -183,9 +179,6 @@ kmsan_report_hook(const void *addr, size_t size, size_t off, const char *hook)
 
 	kmsan_reporting = true;
 	__compiler_membar();
-
-	orig = (msan_orig_t *)kmsan_md_addr_to_orig((vm_offset_t)addr);
-	orig = (msan_orig_t *)((uintptr_t)orig & MSAN_ORIG_MASK);
 
 	if (*orig == 0) {
 		REPORT("MSan: Uninitialized memory in %s, offset %zu",
@@ -366,6 +359,7 @@ kmsan_meta_copy(void *dst, const void *src, size_t size)
 static inline void
 kmsan_shadow_check(uintptr_t addr, size_t size, const char *hook)
 {
+	msan_orig_t *orig;
 	uint8_t *shad;
 	size_t i;
 
@@ -378,7 +372,9 @@ kmsan_shadow_check(uintptr_t addr, size_t size, const char *hook)
 	for (i = 0; i < size; i++) {
 		if (__predict_true(shad[i] == 0))
 			continue;
-		kmsan_report_hook((const char *)addr + i, size, i, hook);
+		orig = (msan_orig_t *)kmsan_md_addr_to_orig((vm_offset_t)&shad[i]);
+		orig = (msan_orig_t *)((uintptr_t)orig & MSAN_ORIG_MASK);
+		kmsan_report_hook((const char *)addr + i, orig, size, i, hook);
 		break;
 	}
 }
@@ -416,21 +412,24 @@ kmsan_init_ret(size_t n)
 static void
 kmsan_check_arg(size_t size, const char *hook)
 {
+	msan_orig_t *orig;
 	msan_td_t *mtd;
 	uint8_t *arg;
-	size_t i;
+	size_t ctx, i;
 
 	if (__predict_false(!kmsan_enabled))
 		return;
 	if (__predict_false(curthread == NULL))
 		return;
 	mtd = curthread->td_kmsan;
-	arg = mtd->tls[mtd->ctx].param_shadow;
+	ctx = mtd->ctx;
+	arg = mtd->tls[ctx].param_shadow;
 
 	for (i = 0; i < size; i++) {
 		if (__predict_true(arg[i] == 0))
 			continue;
-		kmsan_report_hook((const char *)arg + i, size, i, hook);
+		orig = &mtd->tls[ctx].param_origin[i / sizeof(msan_orig_t)];
+		kmsan_report_hook((const char *)arg + i, orig, size, i, hook);
 		break;
 	}
 }
@@ -555,42 +554,6 @@ kmsan_mark_bio(const struct bio *bp, uint8_t c)
 	kmsan_mark(bp->bio_data, bp->bio_length, c);
 }
 
-static void
-kmsan_mark_ccb(const union ccb *ccb, uint8_t c)
-{
-	if ((ccb->ccb_h.flags & CAM_DIR_MASK) != CAM_DIR_IN)
-		return;
-	if ((ccb->ccb_h.flags & CAM_DATA_MASK) != CAM_DATA_VADDR)
-		return;
-
-	switch (ccb->ccb_h.func_code) {
-	case XPT_SCSI_IO: {
-		const struct ccb_scsiio *scsiio;
-
-		scsiio = &ccb->ctio;
-		kmsan_mark(scsiio->data_ptr, scsiio->dxfer_len, c);
-		break;
-	}
-	case XPT_ATA_IO: {
-		const struct ccb_ataio *ataio;
-
-		ataio = &ccb->ataio;
-		kmsan_mark(ataio->data_ptr, ataio->dxfer_len, c);
-		break;
-	}
-	case XPT_NVME_IO: {
-		const struct ccb_nvmeio *nvmeio;
-
-		nvmeio = &ccb->nvmeio;
-		kmsan_mark(nvmeio->data_ptr, nvmeio->dxfer_len, c);
-		break;
-	}
-	default:
-		kmsan_panic("%s: unhandled CCB type %d", __func__,
-		    ccb->ccb_h.func_code);
-	}
-}
-
 void
 kmsan_mark_mbuf(const struct mbuf *m, uint8_t c)
 {
@@ -611,39 +574,6 @@ void
 kmsan_check_bio(const struct bio *bp, const char *descr)
 {
 	kmsan_shadow_check((uintptr_t)bp->bio_data, bp->bio_length, descr);
-}
-
-void
-kmsan_check_ccb(const union ccb *ccb, const char *descr)
-{
-	if ((ccb->ccb_h.flags & CAM_DIR_MASK) != CAM_DIR_OUT)
-		return;
-	switch (ccb->ccb_h.func_code) {
-	case XPT_SCSI_IO: {
-		const struct ccb_scsiio *scsiio;
-
-		scsiio = &ccb->ctio;
-		kmsan_check(scsiio->data_ptr, scsiio->dxfer_len, descr);
-		break;
-	}
-	case XPT_ATA_IO: {
-		const struct ccb_ataio *ataio;
-
-		ataio = &ccb->ataio;
-		kmsan_check(ataio->data_ptr, ataio->dxfer_len, descr);
-		break;
-	}
-	case XPT_NVME_IO: {
-		const struct ccb_nvmeio *nvmeio;
-
-		nvmeio = &ccb->nvmeio;
-		kmsan_check(nvmeio->data_ptr, nvmeio->dxfer_len, descr);
-		break;
-	}
-	default:
-		kmsan_panic("%s: unhandled CCB type %d", __func__,
-		    ccb->ccb_h.func_code);
-	}
 }
 
 void
@@ -1577,17 +1507,11 @@ kmsan_bus_dmamap_sync(struct memdesc *desc, bus_dmasync_op_t op)
 	    BUS_DMASYNC_PREWRITE) {
 		switch (desc->md_type) {
 		case MEMDESC_VADDR:
-			kmsan_check(desc->u.md_vaddr, desc->md_opaque,
+			kmsan_check(desc->u.md_vaddr, desc->md_len,
 			    "dmasync");
-			break;
-		case MEMDESC_BIO:
-			kmsan_check_bio(desc->u.md_bio, "dmasync");
 			break;
 		case MEMDESC_MBUF:
 			kmsan_check_mbuf(desc->u.md_mbuf, "dmasync");
-			break;
-		case MEMDESC_CCB:
-			kmsan_check_ccb(desc->u.md_ccb, "dmasync");
 			break;
 		case 0:
 			break;
@@ -1599,17 +1523,11 @@ kmsan_bus_dmamap_sync(struct memdesc *desc, bus_dmasync_op_t op)
 	if ((op & BUS_DMASYNC_POSTREAD) != 0) {
 		switch (desc->md_type) {
 		case MEMDESC_VADDR:
-			kmsan_mark(desc->u.md_vaddr, desc->md_opaque,
+			kmsan_mark(desc->u.md_vaddr, desc->md_len,
 			    KMSAN_STATE_INITED);
-			break;
-		case MEMDESC_BIO:
-			kmsan_mark_bio(desc->u.md_bio, KMSAN_STATE_INITED);
 			break;
 		case MEMDESC_MBUF:
 			kmsan_mark_mbuf(desc->u.md_mbuf, KMSAN_STATE_INITED);
-			break;
-		case MEMDESC_CCB:
-			kmsan_mark_ccb(desc->u.md_ccb, KMSAN_STATE_INITED);
 			break;
 		case 0:
 			break;

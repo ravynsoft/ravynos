@@ -1,5 +1,4 @@
 # $NetBSD: rc.subr,v 1.67 2006/10/07 11:25:15 elad Exp $
-# $FreeBSD$
 #
 # Copyright (c) 1997-2004 The NetBSD Foundation, Inc.
 # All rights reserved.
@@ -52,7 +51,7 @@ ID="/usr/bin/id"
 IDCMD="if [ -x $ID ]; then $ID -un; fi"
 PS="/bin/ps -ww"
 JID=0
-CPUSET="/usr/bin/cpuset"
+CPUSET="/bin/cpuset"
 
 # rc_service provides the path to the service script that we are executing.
 # This is not being set here in an execution context, necessarily, so it's
@@ -981,7 +980,7 @@ run_rc_command()
 	esac
 
 	_cpusetcmd=
-	if [ -n "$_cpuset" -a -x $CPUSET ]; then
+	if [ -n "$_cpuset" ]; then
 		_cpusetcmd="$CPUSET -l $_cpuset"
 	fi
 
@@ -1970,6 +1969,9 @@ load_kld()
 			return 1
 		else
 			info "$1 kernel module loaded."
+			if [ -f "/etc/sysctl.kld.d/$1.conf" ]; then
+				sysctl -f "/etc/sysctl.kld.d/$1.conf"
+			fi
 		fi
 	else
 		debug "load_kld: $1 kernel module already loaded."

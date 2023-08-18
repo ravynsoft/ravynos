@@ -26,8 +26,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/syscall.h>
 #include <sys/time.h>
 #include <sys/vdso.h>
@@ -48,7 +46,11 @@ __clock_gettime(clockid_t clock_id, struct timespec *ts)
 		error = __vdso_clock_gettime(clock_id, ts);
 	else
 		error = ENOSYS;
-	if (error == ENOSYS)
+	if (error == ENOSYS) {
 		error = __sys_clock_gettime(clock_id, ts);
+	} else if (error != 0) {
+		errno = error;
+		error = -1;
+	}
 	return (error);
 }

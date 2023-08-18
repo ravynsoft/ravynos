@@ -14,13 +14,11 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "math.h"
 #include "math_private.h"
 
 float
 significandf(float x)
 {
-	return __ieee754_scalbf(x,(float) -ilogbf(x));
+	return scalbf(x,(float) -ilogbf(x));
 }

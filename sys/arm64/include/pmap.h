@@ -29,9 +29,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/pmap.h>
+#else /* !__arm__ */
 
 #ifndef _MACHINE_PMAP_H_
 #define	_MACHINE_PMAP_H_
@@ -198,3 +200,5 @@ void	pmap_san_bootstrap(struct arm64_bootparams *);
 #endif	/* !LOCORE */
 
 #endif	/* !_MACHINE_PMAP_H_ */
+
+#endif /* !__arm__ */

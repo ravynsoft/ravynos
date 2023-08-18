@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 PACKAGE=	tests
 
@@ -14,7 +13,10 @@ STRIP=
 # so that doesn't seem useful.
 NETBSD_ATF_TESTS_C+=	backtrace_test
 
+ATF_TESTS_C+=		sigtramp_test
+
 LIBADD.backtrace_test+=	execinfo
+LIBADD.sigtramp_test+=	execinfo
 
 .include <netbsd-tests.test.mk>
 

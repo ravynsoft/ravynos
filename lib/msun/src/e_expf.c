@@ -14,8 +14,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <float.h>
 
 #include "math.h"
@@ -43,7 +41,7 @@ huge	= 1.0e+30,
 twom100 = 7.8886090522e-31;      /* 2**-100=0x0d800000 */
 
 float
-__ieee754_expf(float x)
+expf(float x)
 {
 	float y,hi=0.0,lo=0.0,c,t,twopk;
 	int32_t k=0,xsb;

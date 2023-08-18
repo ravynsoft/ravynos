@@ -24,13 +24,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/linker_set.h>
 #include <sys/mman.h>
@@ -615,9 +611,6 @@ modify_bar_registration(struct pci_devinst *pi, int idx, int registration)
 			error = register_inout(&iop);
 		} else
 			error = unregister_inout(&iop);
-		if (pe->pe_baraddr != NULL)
-			(*pe->pe_baraddr)(pi, idx, registration,
-					  pi->pi_bar[idx].addr);
 		break;
 	case PCIBAR_MEM32:
 	case PCIBAR_MEM64:
@@ -633,21 +626,18 @@ modify_bar_registration(struct pci_devinst *pi, int idx, int registration)
 			error = register_mem(&mr);
 		} else
 			error = unregister_mem(&mr);
-		if (pe->pe_baraddr != NULL)
-			(*pe->pe_baraddr)(pi, idx, registration,
-					  pi->pi_bar[idx].addr);
 		break;
 	case PCIBAR_ROM:
 		error = 0;
-		if (pe->pe_baraddr != NULL)
-			(*pe->pe_baraddr)(pi, idx, registration,
-			    pi->pi_bar[idx].addr);
 		break;
 	default:
 		error = EINVAL;
 		break;
 	}
 	assert(error == 0);
+
+	if (pe->pe_baraddr != NULL)
+		(*pe->pe_baraddr)(pi, idx, registration, pi->pi_bar[idx].addr);
 }
 
 static void

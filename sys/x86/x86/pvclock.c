@@ -27,8 +27,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/bus.h>
@@ -253,7 +251,7 @@ pvclock_tc_vdso_timehands32(struct vdso_timehands32 *vdso_th,
 	vdso_th->th_algo = VDSO_TH_ALGO_X86_PVCLK;
 	vdso_th->th_x86_shift = 0;
 	vdso_th->th_x86_hpet_idx = 0;
-	vdso_th->th_x86_pvc_last_systime =
+	*(uint64_t *)&vdso_th->th_x86_pvc_last_systime[0] =
 	    atomic_load_acq_64(&pvclock_last_systime);
 	vdso_th->th_x86_pvc_stable_mask = !pvc->vdso_force_unstable &&
 	    pvc->stable_flag_supported ? PVCLOCK_FLAG_TSC_STABLE : 0;

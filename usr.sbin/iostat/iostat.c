@@ -26,8 +26,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 /*
  * Parts of this program are derived from the original FreeBSD iostat
@@ -149,7 +147,7 @@ static int dflag = 0, Iflag = 0, Cflag = 0, Tflag = 0, oflag = 0, Kflag = 0;
 static int xflag = 0, zflag = 0;
 
 /* local function declarations */
-static void usage(void);
+static void usage(void) __dead2;
 static void needhdr(int signo);
 static void needresize(int signo);
 static void needreturn(int signo);
@@ -173,6 +171,7 @@ usage(void)
 	fprintf(stderr, "usage: iostat [-CdhIKoTxz?] [-c count] [-M core]"
 		" [-n devs] [-N system]\n"
 		"\t      [-t type,if,pass] [-w wait] [drives]\n");
+	exit(1);
 }
 
 int
@@ -261,8 +260,6 @@ main(int argc, char **argv)
 				break;
 			default:
 				usage();
-				exit(1);
-				break;
 		}
 	}
 

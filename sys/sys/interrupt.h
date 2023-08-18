@@ -24,8 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #ifndef _SYS_INTERRUPT_H_
@@ -149,6 +147,9 @@ struct intr_event {
 #define	SWI_TQ_FAST	5
 #define	SWI_TQ		6
 #define	SWI_TQ_GIANT	6
+
+/* Maximum number of stray interrupts to log */
+#define	INTR_STRAY_LOG_MAX	5
 
 struct proc;
 

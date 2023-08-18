@@ -1,5 +1,4 @@
 #
-# $FreeBSD$
 #
 # This file lists old files (OLD_FILES), libraries (OLD_LIBS, MOVED_LIBS)
 # and directories (OLD_DIRS) which should get removed after an update.
@@ -52,16 +51,62 @@
 #   xargs -n1 | sort | uniq -d;
 # done
 
+# 20230807: GoogleTest 1.14.0 upgrade.
+OLD_FILES+=usr/include/private/gmock/gmock-generated-actions.h
+OLD_FILES+=usr/include/private/gmock/gmock-generated-function-mockers.h
+OLD_FILES+=usr/include/private/gmock/gmock-generated-matchers.h
+OLD_FILES+=usr/include/private/gmock/gmock-generated-nice-strict.h
+OLD_FILES+=usr/include/private/gmock/internal/gmock-generated-internal-utils.h
+OLD_FILES+=usr/include/private/gtest/internal/gtest-linked_ptr.h
+OLD_FILES+=usr/include/private/gtest/internal/gtest-param-util-generated.h
+OLD_FILES+=usr/include/private/gtest/internal/gtest-tuple.h
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-generated-actions_test
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-generated-function-mockers_test
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-generated-internal-utils_test
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-generated-matchers_test
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-matchers_test
+OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-linked-ptr-test
+
+# 20230807: Removal of the ath(4) AHB bus-frontend for MIPS
+OLD_FILES+=usr/share/man/man4/ath_ahb.4
+OLD_FILES+=usr/share/man/man4/ath_pci.4
+OLD_FILES+=usr/share/man/man4/if_ath_pci.4
+
+# 20230803: Removal of support for cloning pseudo interfaces from iflib(9)
+OLD_FILES+=usr/include/net/iflib_private.h
+
+# 20230802: Remove a copy of libdtrace.so installed to the wrong path
+MOVED_LIBS+=usr/lib/libdtrace.so.2
+
+# 20230726: Removal of support for the VTOC8 partitioning scheme
+OLD_FILES+=usr/include/sys/disk/vtoc.h
+OLD_FILES+=usr/include/sys/vtoc.h
+
+# 20230724: Remove unneeded arm headers
+.if ${TARGET_ARCH} == "arm"
+OLD_FILES+=usr/include/machine/atomic-v6.h
+OLD_FILES+=usr/include/machine/cpu-v6.h
+OLD_FILES+=usr/include/machine/pmap-v6.h
+OLD_FILES+=usr/include/machine/pte-v6.h
+OLD_FILES+=usr/include/machine/swi.h
+.endif
+
+# 20230714: gsignal
+OLD_FILES+=usr/share/man/man9/gsignal.9.gz
+
 # 20230626: Only install sys/dev/nvme/nvme.h to /usr/include
 OLD_FILES+=usr/include/dev/nvme/nvme_private.h
 
 # 20230623: OpenSSL 3.0.9
 OLD_LIBS+=lib/libcrypto.so.111
 OLD_FILES+=usr/include/openssl/rand_drbg.h
-OLD_FILES+=usr/lib/engines/capi.so
-OLD_FILES+=usr/lib/engines/padlock.so
+OLD_LIBS+=usr/lib/engines/capi.so
+OLD_LIBS+=usr/lib/engines/padlock.so
 OLD_LIBS+=usr/lib/libssl.so.111
 OLD_DIRS+=usr/lib/engines
+.for libcompat in ${_ALL_libcompats}
+OLD_DIRS+=usr/lib${libcompat}/engines
+.endfor
 OLD_FILES+=usr/share/man/man1/list.1
 OLD_FILES+=usr/share/man/man1/openssl-tsget.1
 OLD_FILES+=usr/share/man/man3/ECDH_get_ex_data.3
@@ -8427,6 +8472,8 @@ OLD_DIRS+=usr/include/c++/4.2/debug
 OLD_DIRS+=usr/include/c++/4.2/bits
 OLD_DIRS+=usr/include/c++/4.2/backward
 OLD_DIRS+=usr/include/c++/4.2
+OLD_DIRS+=usr/include/gcc/4.2
+OLD_DIRS+=usr/include/gcc
 
 # 20200220: Upgrade of ncurses, shlib bumped to version 9
 OLD_LIBS+=lib/libncurses.so.8

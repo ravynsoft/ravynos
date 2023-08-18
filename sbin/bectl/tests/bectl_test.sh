@@ -24,7 +24,6 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD$
 
 ZPOOL_NAME_FILE=zpool_name
 get_zpool_name()
@@ -525,6 +524,59 @@ bectl_jail_cleanup()
 	bectl_cleanup ${zpool}
 }
 
+atf_test_case bectl_promotion cleanup
+bectl_promotion_head()
+{
+	atf_set "descr" "Check bectl promotion upon activation"
+	atf_set "require.user" root
+}
+bectl_promotion_body()
+{
+	if [ "$(atf_config_get ci false)" = "true" ] && \
+		[ "$(uname -p)" = "i386" ]; then
+		atf_skip "https://bugs.freebsd.org/249055"
+	fi
+
+	if [ "$(atf_config_get ci false)" = "true" ] && \
+		[ "$(uname -p)" = "armv7" ]; then
+		atf_skip "https://bugs.freebsd.org/249229"
+	fi
+
+	cwd=$(realpath .)
+	zpool=$(make_zpool_name)
+	disk=${cwd}/disk.img
+	mount=${cwd}/mnt
+	root=${mount}/root
+
+	bectl_create_deep_setup ${zpool} ${disk} ${mount}
+	atf_check mkdir -p ${root}
+
+	# Sleeps interspersed to workaround some naming quirks; notably,
+	# bectl will append a serial if two snapshots were created within
+	# the same second, but it can only do that for the one root it's
+	# operating on.  It won't check that other roots don't have a snapshot
+	# with the same name, and the promotion will fail.
+	atf_check bectl -r ${zpool}/ROOT rename default A
+	sleep 1
+	atf_check bectl -r ${zpool}/ROOT create -r -e A B
+	sleep 1
+	atf_check bectl -r ${zpool}/ROOT create -r -e B C
+
+	# C should be a clone of B to start with
+	atf_check -o not-inline:"-" zfs list -Hr -o origin ${zpool}/ROOT/C
+
+	# Activating it should then promote it all the way out of clone-hood.
+	# This entails two promotes internally, as the first would promote it to
+	# a snapshot of A before finally promoting it the second time out of
+	# clone status.
+	atf_check -o not-empty bectl -r ${zpool}/ROOT activate C
+	atf_check -o inline:"-\n-\n" zfs list -Hr -o origin ${zpool}/ROOT/C
+}
+bectl_promotion_cleanup()
+{
+	bectl_cleanup $(get_zpool_name)
+}
+
 atf_init_test_cases()
 {
 	atf_add_test_case bectl_create
@@ -534,4 +586,5 @@ atf_init_test_cases()
 	atf_add_test_case bectl_mount
 	atf_add_test_case bectl_rename
 	atf_add_test_case bectl_jail
+	atf_add_test_case bectl_promotion
 }

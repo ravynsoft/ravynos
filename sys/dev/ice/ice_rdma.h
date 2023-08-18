@@ -28,7 +28,6 @@
  *  ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *  POSSIBILITY OF SUCH DAMAGE.
  */
-/*$FreeBSD$*/
 
 /**
  * @file ice_rdma.h
@@ -65,7 +64,7 @@
  * considered stable.
  */
 #define ICE_RDMA_MAJOR_VERSION 1
-#define ICE_RDMA_MINOR_VERSION 0
+#define ICE_RDMA_MINOR_VERSION 1
 #define ICE_RDMA_PATCH_VERSION 0
 
 /**
@@ -274,18 +273,19 @@ struct ice_rdma_event {
 			uint64_t baudrate;
 		};
 		/* MTU change event */
-		struct {
-			int mtu;
-		};
+		int mtu;
 		/*
 		 * TC/QoS/DCB change event
-		 * RESET event use prep variable only
 		 * prep: if true, this is a pre-event, post-event otherwise
 		 */
 		struct {
 			struct ice_qos_params port_qos;
 			bool prep;
 		};
+		/*
+		 * CRIT_ERR event
+		 */
+		uint32_t oicr_reg;
 	};
 };
 

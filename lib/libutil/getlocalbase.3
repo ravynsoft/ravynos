@@ -25,9 +25,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\" $FreeBSD$
-.\"
-.Dd November 25, 2020
+.Dd July 11, 2023
 .Dt GETLOCALBASE 3
 .Os
 .Sh NAME
@@ -53,10 +51,10 @@ If that does not exist then the
 .Va user.localbase
 sysctl is checked.
 If that also does not exist then the value of the
-.Dv _PATH_LOCALBASE
+.Dv LOCALBASE_PATH
 compile-time variable is used.
-If that is undefined then the default of
-.Pa /usr/local
+If that is undefined then the system default,
+.Pa _PATH_LOCALBASE
 is used.
 .Pp
 The contents of the string returned by the
@@ -115,6 +113,9 @@ The
 library function first appeared in
 .Fx 13.0 .
 .Sh AUTHORS
+.An -nosplit
 This
 manual page was written by
-.An Scott Long Aq Mt scottl@FreeBSD.org and Stefan Eßer Aq Mt se@FreeBSD.org .
+.An Scott Long Aq Mt scottl@FreeBSD.org
+and
+.An Stefan Eßer Aq Mt se@FreeBSD.org .

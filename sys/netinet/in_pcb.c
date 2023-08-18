@@ -39,8 +39,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_ddb.h"
 #include "opt_ipsec.h"
 #include "opt_inet.h"
@@ -113,7 +111,9 @@ __FBSDID("$FreeBSD$");
 
 #define	INPCBLBGROUP_SIZMIN	8
 #define	INPCBLBGROUP_SIZMAX	256
-#define	INP_FREED	0x00000200	/* See in_pcb.h. */
+
+#define	INP_FREED	0x00000200	/* Went through in_pcbfree(). */
+#define	INP_INLBGROUP	0x01000000	/* Inserted into inpcblbgroup. */
 
 /*
  * These configure the range of local port addresses assigned to
@@ -403,6 +403,7 @@ in_pcbinslbgrouphash(struct inpcb *inp, uint8_t numa_domain)
 
 	grp->il_inp[grp->il_inpcnt] = inp;
 	grp->il_inpcnt++;
+	inp->inp_flags |= INP_INLBGROUP;
 	return (0);
 }
 
@@ -420,6 +421,7 @@ in_pcbremlbgrouphash(struct inpcb *inp)
 	pcbinfo = inp->inp_pcbinfo;
 
 	INP_WLOCK_ASSERT(inp);
+	MPASS(inp->inp_flags & INP_INLBGROUP);
 	INP_HASH_WLOCK_ASSERT(pcbinfo);
 
 	hdr = &pcbinfo->ipi_lbgrouphashbase[
@@ -436,9 +438,11 @@ in_pcbremlbgrouphash(struct inpcb *inp)
 				/* Pull up inpcbs, shrink group if possible. */
 				in_pcblbgroup_reorder(hdr, &grp, i);
 			}
+			inp->inp_flags &= ~INP_INLBGROUP;
 			return;
 		}
 	}
+	KASSERT(0, ("%s: did not find %p", __func__, inp));
 }
 
 int
@@ -844,25 +848,6 @@ in_pcb_lport(struct inpcb *inp, struct in_addr *laddrp, u_short *lportp,
 	return (in_pcb_lport_dest(inp, laddrp ? (struct sockaddr *) &laddr :
 	    NULL, lportp, NULL, 0, cred, lookupflags));
 }
-
-/*
- * Return cached socket options.
- */
-int
-inp_so_options(const struct inpcb *inp)
-{
-	int so_options;
-
-	so_options = 0;
-
-	if ((inp->inp_flags2 & INP_REUSEPORT_LB) != 0)
-		so_options |= SO_REUSEPORT_LB;
-	if ((inp->inp_flags2 & INP_REUSEPORT) != 0)
-		so_options |= SO_REUSEPORT;
-	if ((inp->inp_flags2 & INP_REUSEADDR) != 0)
-		so_options |= SO_REUSEADDR;
-	return (so_options);
-}
 #endif /* INET || INET6 */
 
 #ifdef INET
@@ -973,16 +958,16 @@ in_pcbbind_setup(struct inpcb *inp, struct sockaddr_in *sin, in_addr_t *laddrp,
 				     ntohl(t->inp_faddr.s_addr) == INADDR_ANY) &&
 				    (ntohl(sin->sin_addr.s_addr) != INADDR_ANY ||
 				     ntohl(t->inp_laddr.s_addr) != INADDR_ANY ||
-				     (t->inp_flags2 & INP_REUSEPORT) ||
-				     (t->inp_flags2 & INP_REUSEPORT_LB) == 0) &&
+				     (t->inp_socket->so_options & SO_REUSEPORT) ||
+				     (t->inp_socket->so_options & SO_REUSEPORT_LB) == 0) &&
 				    (inp->inp_cred->cr_uid !=
 				     t->inp_cred->cr_uid))
 					return (EADDRINUSE);
 			}
 			t = in_pcblookup_local(pcbinfo, sin->sin_addr,
 			    lport, lookupflags, cred);
-			if (t != NULL && (reuseport & inp_so_options(t)) == 0 &&
-			    (reuseport_lb & inp_so_options(t)) == 0) {
+			if (t != NULL && (reuseport & t->inp_socket->so_options) == 0 &&
+			    (reuseport_lb & t->inp_socket->so_options) == 0) {
 #ifdef INET6
 				if (ntohl(sin->sin_addr.s_addr) !=
 				    INADDR_ANY ||
@@ -2652,7 +2637,7 @@ in_pcbinshash(struct inpcb *inp)
 	 * Add entry to load balance group.
 	 * Only do this if SO_REUSEPORT_LB is set.
 	 */
-	if ((inp->inp_flags2 & INP_REUSEPORT_LB) != 0) {
+	if ((inp->inp_socket->so_options & SO_REUSEPORT_LB) != 0) {
 		int error = in_pcbinslbgrouphash(inp, M_NODOM);
 		if (error != 0)
 			return (error);
@@ -2672,7 +2657,7 @@ in_pcbinshash(struct inpcb *inp)
 	if (phd == NULL) {
 		phd = uma_zalloc_smr(pcbinfo->ipi_portzone, M_NOWAIT);
 		if (phd == NULL) {
-			if ((inp->inp_flags2 & INP_REUSEPORT_LB) != 0)
+			if ((inp->inp_flags & INP_INLBGROUP) != 0)
 				in_pcbremlbgrouphash(inp);
 			return (ENOMEM);
 		}
@@ -2717,7 +2702,7 @@ in_pcbremhash_locked(struct inpcb *inp)
 	INP_HASH_WLOCK_ASSERT(inp->inp_pcbinfo);
 	MPASS(inp->inp_flags & INP_INHASHLIST);
 
-	if ((inp->inp_flags2 & INP_REUSEPORT_LB) != 0)
+	if ((inp->inp_flags & INP_INLBGROUP) != 0)
 		in_pcbremlbgrouphash(inp);
 #ifdef INET6
 	if (inp->inp_vflag & INP_IPV6) {

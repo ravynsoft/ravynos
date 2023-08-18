@@ -1,4 +1,3 @@
-# $FreeBSD$
 #
 #        On the handling of kernel options
 #
@@ -133,7 +132,6 @@ GEOM_PART_EBR	opt_geom.h
 GEOM_PART_GPT	opt_geom.h
 GEOM_PART_LDM	opt_geom.h
 GEOM_PART_MBR	opt_geom.h
-GEOM_PART_VTOC8	opt_geom.h
 GEOM_RAID	opt_geom.h
 GEOM_RAID3	opt_geom.h
 GEOM_SHSEC	opt_geom.h
@@ -158,6 +156,7 @@ MAC_BIBA	opt_dontuse.h
 MAC_BSDEXTENDED	opt_dontuse.h
 MAC_DDB		opt_dontuse.h
 MAC_IFOFF	opt_dontuse.h
+MAC_IPACL	opt_dontuse.h
 MAC_LOMAC	opt_dontuse.h
 MAC_MLS		opt_dontuse.h
 MAC_NONE	opt_dontuse.h
@@ -822,17 +821,6 @@ ATH_EEPROM_FIRMWARE	opt_ath.h
 ATH_ENABLE_RADIOTAP_VENDOR_EXT	opt_ath.h
 ATH_DEBUG_ALQ		opt_ath.h
 ATH_KTR_INTR_DEBUG	opt_ath.h
-
-# options for the Atheros hal
-# XXX For now, this breaks non-AR9130 chipsets, so only use it
-# XXX when actually targeting AR9130.
-AH_SUPPORT_AR9130	opt_ah.h
-
-# This is required for AR933x SoC support
-AH_SUPPORT_AR9330	opt_ah.h
-AH_SUPPORT_AR9340	opt_ah.h
-AH_SUPPORT_QCA9530	opt_ah.h
-AH_SUPPORT_QCA9550	opt_ah.h
 
 AH_DEBUG		opt_ah.h
 AH_ASSERT		opt_ah.h

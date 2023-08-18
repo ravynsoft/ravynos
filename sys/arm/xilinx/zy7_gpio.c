@@ -24,8 +24,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 /*
@@ -46,8 +44,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/conf.h>
@@ -70,16 +66,49 @@ __FBSDID("$FreeBSD$");
 
 #include "gpio_if.h"
 
-#define NUMBANKS	4
-#define MAXPIN		(32*NUMBANKS)
+#define	ZYNQ7_MAX_BANK		4
+#define	ZYNQMP_MAX_BANK		6
 
-#define MIO_PIN		0	/* pins 0-53 go to MIO */
-#define NUM_MIO_PINS	54
-#define EMIO_PIN	64	/* pins 64-127 go to PL */
-#define NUM_EMIO_PINS	64
+/* Zynq 7000 */
+#define	ZYNQ7_BANK0_PIN_MIN	0
+#define	ZYNQ7_BANK0_NPIN	32
+#define	ZYNQ7_BANK1_PIN_MIN	32
+#define	ZYNQ7_BANK1_NPIN	22
+#define	ZYNQ7_BANK2_PIN_MIN	64
+#define	ZYNQ7_BANK2_NPIN	32
+#define	ZYNQ7_BANK3_PIN_MIN	96
+#define	ZYNQ7_BANK3_NPIN	32
+#define	ZYNQ7_PIN_MIO_MIN	0
+#define	ZYNQ7_PIN_MIO_MAX	54
+#define	ZYNQ7_PIN_EMIO_MIN	64
+#define	ZYNQ7_PIN_EMIO_MAX	118
 
-#define VALID_PIN(u)	(((u) >= MIO_PIN && (u) < MIO_PIN + NUM_MIO_PINS) || \
-			 ((u) >= EMIO_PIN && (u) < EMIO_PIN + NUM_EMIO_PINS))
+/* ZynqMP */
+#define	ZYNQMP_BANK0_PIN_MIN	0
+#define	ZYNQMP_BANK0_NPIN	26
+#define	ZYNQMP_BANK1_PIN_MIN	26
+#define	ZYNQMP_BANK1_NPIN	26
+#define	ZYNQMP_BANK2_PIN_MIN	52
+#define	ZYNQMP_BANK2_NPIN	26
+#define	ZYNQMP_BANK3_PIN_MIN	78
+#define	ZYNQMP_BANK3_NPIN	32
+#define	ZYNQMP_BANK4_PIN_MIN	110
+#define	ZYNQMP_BANK4_NPIN	32
+#define	ZYNQMP_BANK5_PIN_MIN	142
+#define	ZYNQMP_BANK5_NPIN	32
+#define	ZYNQMP_PIN_MIO_MIN	0
+#define	ZYNQMP_PIN_MIO_MAX	77
+#define	ZYNQMP_PIN_EMIO_MIN	78
+#define	ZYNQMP_PIN_EMIO_MAX	174
+
+#define	ZYNQ_BANK_NPIN(type, bank)	(ZYNQ##type##_BANK##bank##_NPIN)
+#define	ZYNQ_BANK_PIN_MIN(type, bank)	(ZYNQ##type##_BANK##bank##_PIN_MIN)
+#define	ZYNQ_BANK_PIN_MAX(type, bank)	(ZYNQ##type##_BANK##bank##_PIN_MIN + ZYNQ##type##_BANK##bank##_NPIN - 1)
+
+#define	ZYNQ_PIN_IS_MIO(type, pin)	(pin >= ZYNQ##type##_PIN_MIO_MIN &&	\
+	  pin <= ZYNQ##type##_PIN_MIO_MAX)
+#define	ZYNQ_PIN_IS_EMIO(type, pin)	(pin >= ZYNQ##type##_PIN_EMIO_MIN &&	\
+	  pin <= ZYNQ##type##_PIN_EMIO_MAX)
 
 #define ZGPIO_LOCK(sc)			mtx_lock(&(sc)->sc_mtx)
 #define	ZGPIO_UNLOCK(sc)		mtx_unlock(&(sc)->sc_mtx)
@@ -88,11 +117,66 @@ __FBSDID("$FreeBSD$");
 	    "gpio", MTX_DEF)
 #define ZGPIO_LOCK_DESTROY(_sc)	mtx_destroy(&_sc->sc_mtx);
 
+enum zynq_gpio_type {
+	ZYNQ_7000 = 0,
+	ZYNQMP,
+};
+
+struct zynq_gpio_conf {
+	char			*name;
+	enum zynq_gpio_type	type;
+	uint32_t		nbanks;
+	uint32_t		maxpin;
+	uint32_t		bank_min[ZYNQMP_MAX_BANK];
+	uint32_t		bank_max[ZYNQMP_MAX_BANK];
+};
+
 struct zy7_gpio_softc {
-	device_t	dev;
-	device_t	busdev;
-	struct mtx	sc_mtx;
-	struct resource *mem_res;	/* Memory resource */
+	device_t		dev;
+	device_t		busdev;
+	struct mtx		sc_mtx;
+	struct resource		*mem_res;	/* Memory resource */
+	struct zynq_gpio_conf	*conf;
+};
+
+static struct zynq_gpio_conf z7_gpio_conf = {
+	.name = "Zynq-7000 GPIO Controller",
+	.type = ZYNQ_7000,
+	.nbanks = ZYNQ7_MAX_BANK,
+	.maxpin = ZYNQ7_PIN_EMIO_MAX,
+	.bank_min[0] = ZYNQ_BANK_PIN_MIN(7, 0),
+	.bank_max[0] = ZYNQ_BANK_PIN_MAX(7, 0),
+	.bank_min[1] = ZYNQ_BANK_PIN_MIN(7, 1),
+	.bank_max[1] = ZYNQ_BANK_PIN_MAX(7, 1),
+	.bank_min[2] = ZYNQ_BANK_PIN_MIN(7, 2),
+	.bank_max[2] = ZYNQ_BANK_PIN_MAX(7, 2),
+	.bank_min[3] = ZYNQ_BANK_PIN_MIN(7, 3),
+	.bank_max[3] = ZYNQ_BANK_PIN_MAX(7, 3),
+};
+
+static struct zynq_gpio_conf zynqmp_gpio_conf = {
+	.name = "ZynqMP GPIO Controller",
+	.type = ZYNQMP,
+	.nbanks = ZYNQMP_MAX_BANK,
+	.maxpin = ZYNQMP_PIN_EMIO_MAX,
+	.bank_min[0] = ZYNQ_BANK_PIN_MIN(MP, 0),
+	.bank_max[0] = ZYNQ_BANK_PIN_MAX(MP, 0),
+	.bank_min[1] = ZYNQ_BANK_PIN_MIN(MP, 1),
+	.bank_max[1] = ZYNQ_BANK_PIN_MAX(MP, 1),
+	.bank_min[2] = ZYNQ_BANK_PIN_MIN(MP, 2),
+	.bank_max[2] = ZYNQ_BANK_PIN_MAX(MP, 2),
+	.bank_min[3] = ZYNQ_BANK_PIN_MIN(MP, 3),
+	.bank_max[3] = ZYNQ_BANK_PIN_MAX(MP, 3),
+	.bank_min[4] = ZYNQ_BANK_PIN_MIN(MP, 4),
+	.bank_max[4] = ZYNQ_BANK_PIN_MAX(MP, 4),
+	.bank_min[5] = ZYNQ_BANK_PIN_MIN(MP, 5),
+	.bank_max[5] = ZYNQ_BANK_PIN_MAX(MP, 5),
+};
+
+static struct ofw_compat_data compat_data[] = {
+	{"xlnx,zy7_gpio",		(uintptr_t)&z7_gpio_conf},
+	{"xlnx,zynqmp-gpio-1.0",	(uintptr_t)&zynqmp_gpio_conf},
+	{NULL, 0},
 };
 
 #define WR4(sc, off, val)	bus_write_4((sc)->mem_res, (off), (val))
@@ -128,9 +212,29 @@ zy7_gpio_get_bus(device_t dev)
 static int
 zy7_gpio_pin_max(device_t dev, int *maxpin)
 {
+	struct zy7_gpio_softc *sc;
 
-	*maxpin = MAXPIN;
+	sc = device_get_softc(dev);
+	*maxpin = sc->conf->maxpin;
 	return (0);
+}
+
+static inline bool
+zy7_pin_valid(device_t dev, uint32_t pin)
+{
+	struct zy7_gpio_softc *sc;
+	int i;
+	bool found = false;
+
+	sc = device_get_softc(dev);
+	for (i = 0; i < sc->conf->nbanks; i++) {
+		if (pin >= sc->conf->bank_min[i] && pin <= sc->conf->bank_max[i]) {
+			found = true;
+			break;
+		}
+	}
+
+	return (found);
 }
 
 /* Get a specific pin's capabilities. */
@@ -138,7 +242,7 @@ static int
 zy7_gpio_pin_getcaps(device_t dev, uint32_t pin, uint32_t *caps)
 {
 
-	if (!VALID_PIN(pin))
+	if (!zy7_pin_valid(dev, pin))
 		return (EINVAL);
 
 	*caps = (GPIO_PIN_INPUT | GPIO_PIN_OUTPUT | GPIO_PIN_TRISTATE);
@@ -150,15 +254,31 @@ zy7_gpio_pin_getcaps(device_t dev, uint32_t pin, uint32_t *caps)
 static int
 zy7_gpio_pin_getname(device_t dev, uint32_t pin, char *name)
 {
+	struct zy7_gpio_softc *sc;
+	uint32_t emio_min;
+	bool is_mio;
 
-	if (!VALID_PIN(pin))
+	sc = device_get_softc(dev);
+	if (!zy7_pin_valid(dev, pin))
 		return (EINVAL);
 
-	if (pin < NUM_MIO_PINS) {
+	switch (sc->conf->type) {
+	case ZYNQ_7000:
+		is_mio = ZYNQ_PIN_IS_MIO(7, pin);
+		emio_min = ZYNQ7_PIN_EMIO_MIN;
+		break;
+	case ZYNQMP:
+		is_mio = ZYNQ_PIN_IS_MIO(MP, pin);
+		emio_min = ZYNQMP_PIN_EMIO_MIN;
+		break;
+	default:
+		return (EINVAL);
+	}
+	if (is_mio) {
 		snprintf(name, GPIOMAXNAME, "MIO_%d", pin);
 		name[GPIOMAXNAME - 1] = '\0';
 	} else {
-		snprintf(name, GPIOMAXNAME, "EMIO_%d", pin - EMIO_PIN);
+		snprintf(name, GPIOMAXNAME, "EMIO_%d", pin - emio_min);
 		name[GPIOMAXNAME - 1] = '\0';
 	}
 
@@ -171,7 +291,7 @@ zy7_gpio_pin_getflags(device_t dev, uint32_t pin, uint32_t *flags)
 {
 	struct zy7_gpio_softc *sc = device_get_softc(dev);
 
-	if (!VALID_PIN(pin))
+	if (!zy7_pin_valid(dev, pin))
 		return (EINVAL);
 
 	ZGPIO_LOCK(sc);
@@ -197,7 +317,7 @@ zy7_gpio_pin_setflags(device_t dev, uint32_t pin, uint32_t flags)
 {
 	struct zy7_gpio_softc *sc = device_get_softc(dev);
 
-	if (!VALID_PIN(pin))
+	if (!zy7_pin_valid(dev, pin))
 		return (EINVAL);
 
 	ZGPIO_LOCK(sc);
@@ -234,7 +354,7 @@ zy7_gpio_pin_set(device_t dev, uint32_t pin, unsigned int value)
 {
 	struct zy7_gpio_softc *sc = device_get_softc(dev);
 
-	if (!VALID_PIN(pin) || value > 1)
+	if (!zy7_pin_valid(dev, pin) || value > 1)
 		return (EINVAL);
 
 	/* Fancy register tricks allow atomic set or reset. */
@@ -256,7 +376,7 @@ zy7_gpio_pin_get(device_t dev, uint32_t pin, unsigned int *value)
 {
 	struct zy7_gpio_softc *sc = device_get_softc(dev);
 
-	if (!VALID_PIN(pin))
+	if (!zy7_pin_valid(dev, pin))
 		return (EINVAL);
 
 	*value = (RD4(sc, ZY7_GPIO_DATA_RO(pin >> 5)) >> (pin & 31)) & 1;
@@ -270,7 +390,7 @@ zy7_gpio_pin_toggle(device_t dev, uint32_t pin)
 {
 	struct zy7_gpio_softc *sc = device_get_softc(dev);
 
-	if (!VALID_PIN(pin))
+	if (!zy7_pin_valid(dev, pin))
 		return (EINVAL);
 
 	ZGPIO_LOCK(sc);
@@ -286,14 +406,16 @@ zy7_gpio_pin_toggle(device_t dev, uint32_t pin)
 static int
 zy7_gpio_probe(device_t dev)
 {
+	struct zynq_gpio_conf *conf;
 
 	if (!ofw_bus_status_okay(dev))
 		return (ENXIO);
 
-	if (!ofw_bus_is_compatible(dev, "xlnx,zy7_gpio"))
+	conf = (struct zynq_gpio_conf *)ofw_bus_search_compatible(dev, compat_data)->ocd_data;
+	if (conf == 0)
 		return (ENXIO);
 
-	device_set_desc(dev, "Zynq-7000 GPIO driver");
+	device_set_desc(dev, conf->name);
 	return (0);
 }
 
@@ -306,6 +428,7 @@ zy7_gpio_attach(device_t dev)
 	int rid;
 
 	sc->dev = dev;
+	sc->conf = (struct zynq_gpio_conf *)ofw_bus_search_compatible(dev, compat_data)->ocd_data;
 
 	ZGPIO_LOCK_INIT(sc);
 
@@ -372,4 +495,5 @@ static driver_t zy7_gpio_driver = {
 	sizeof(struct zy7_gpio_softc),
 };
 
-DRIVER_MODULE(zy7_gpio, simplebus, zy7_gpio_driver, NULL, NULL);
+EARLY_DRIVER_MODULE(zy7_gpio, simplebus, zy7_gpio_driver, 0, 0,
+    BUS_PASS_INTERRUPT + BUS_PASS_ORDER_LATE);

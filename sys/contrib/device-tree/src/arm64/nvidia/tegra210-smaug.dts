@@ -17,6 +17,7 @@
 
 	aliases {
 		serial0 = &uarta;
+		serial3 = &uartd;
 	};
 
 	chosen {
@@ -1309,6 +1310,22 @@
 		status = "okay";
 	};
 
+	uartd: serial@70006300 {
+		compatible = "nvidia,tegra30-hsuart";
+		status = "okay";
+
+		bluetooth {
+			compatible = "brcm,bcm43540-bt";
+			max-speed = <4000000>;
+			brcm,bt-pcm-int-params = [01 02 00 01 01];
+			device-wakeup-gpios = <&gpio TEGRA_GPIO(H, 3) GPIO_ACTIVE_HIGH>;
+			shutdown-gpios = <&gpio TEGRA_GPIO(H, 4) GPIO_ACTIVE_HIGH>;
+			interrupt-parent = <&gpio>;
+			interrupts = <TEGRA_GPIO(H, 5) IRQ_TYPE_LEVEL_LOW>;
+			interrupt-names = "host-wakeup";
+		};
+	};
+
 	i2c@7000c400 {
 		status = "okay";
 		clock-frequency = <1000000>;
@@ -1372,6 +1389,23 @@
 			pinctrl-names = "default";
 			pinctrl-0 = <&max77620_default>;
 
+			fps {
+				fps0 {
+					maxim,shutdown-fps-time-period-us = <5120>;
+					maxim,fps-event-source = <MAX77620_FPS_EVENT_SRC_EN0>;
+				};
+
+				fps1 {
+					maxim,shutdown-fps-time-period-us = <5120>;
+					maxim,fps-event-source = <MAX77620_FPS_EVENT_SRC_EN1>;
+					maxim,device-state-on-disabled-event = <MAX77620_FPS_INACTIVE_STATE_SLEEP>;
+				};
+
+				fps2 {
+					maxim,fps-event-source = <MAX77620_FPS_EVENT_SRC_EN0>;
+				};
+			};
+
 			max77620_default: pinmux {
 				gpio0_1_2_7 {
 					pins = "gpio0", "gpio1", "gpio2", "gpio7";
@@ -1392,32 +1426,15 @@
 					maxim,active-fps-power-down-slot = <2>;
 				};
 
-				gpio5_6 {
-					pins = "gpio5", "gpio6";
-					function = "gpio";
-					drive-push-pull = <1>;
-				};
-
 				gpio4 {
 					pins = "gpio4";
 					function = "32k-out1";
 				};
-			};
 
-			fps {
-				fps0 {
-					maxim,shutdown-fps-time-period-us = <5120>;
-					maxim,fps-event-source = <MAX77620_FPS_EVENT_SRC_EN0>;
-				};
-
-				fps1 {
-					maxim,shutdown-fps-time-period-us = <5120>;
-					maxim,fps-event-source = <MAX77620_FPS_EVENT_SRC_EN1>;
-					maxim,device-state-on-disabled-event = <MAX77620_FPS_INACTIVE_STATE_SLEEP>;
-				};
-
-				fps2 {
-					maxim,fps-event-source = <MAX77620_FPS_EVENT_SRC_EN0>;
+				gpio5_6 {
+					pins = "gpio5", "gpio6";
+					function = "gpio";
+					drive-push-pull = <1>;
 				};
 			};
 
@@ -1692,6 +1709,25 @@
 		};
 	};
 
+	mmc@700b0200 {
+		power-gpios = <&gpio TEGRA_GPIO(H, 1) GPIO_ACTIVE_HIGH>;
+		bus-width = <4>;
+		non-removable;
+		vqmmc-supply = <&pp1800>;
+		vmmc-supply = <&pp3300>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+		status = "okay";
+
+		wifi@1 {
+			compatible = "brcm,bcm4354-fmac", "brcm,bcm4329-fmac";
+			reg = <1>;
+			interrupt-parent = <&gpio>;
+			interrupts = <TEGRA_GPIO(H, 2) IRQ_TYPE_LEVEL_HIGH>;
+			interrupt-names = "host-wake";
+		};
+	};
+
 	mmc@700b0600 {
 		bus-width = <8>;
 		non-removable;
@@ -1764,6 +1800,18 @@
 			wakeup-source;
 		};
 
+		key-volume-down {
+			label = "Volume Down";
+			gpios = <&gpio TEGRA_GPIO(X, 7) GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_VOLUMEDOWN>;
+		};
+
+		key-volume-up {
+			label = "Volume Up";
+			gpios = <&gpio TEGRA_GPIO(M, 4) GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_VOLUMEUP>;
+		};
+
 		switch-lid {
 			label = "Lid";
 			gpios = <&gpio TEGRA_GPIO(B, 4) GPIO_ACTIVE_LOW>;
@@ -1778,18 +1826,6 @@
 			linux,input-type = <EV_SW>;
 			linux,code = <SW_TABLET_MODE>;
 			wakeup-source;
-		};
-
-		key-volume-down {
-			label = "Volume Down";
-			gpios = <&gpio TEGRA_GPIO(X, 7) GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_VOLUMEDOWN>;
-		};
-
-		key-volume-up {
-			label = "Volume Up";
-			gpios = <&gpio TEGRA_GPIO(M, 4) GPIO_ACTIVE_LOW>;
-			linux,code = <KEY_VOLUMEUP>;
 		};
 	};
 

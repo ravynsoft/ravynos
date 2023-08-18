@@ -23,8 +23,6 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 #ifndef __IFLIB_H_
 #define __IFLIB_H_
@@ -35,8 +33,6 @@
 #include <machine/bus.h>
 #include <sys/nv.h>
 #include <sys/gtaskqueue.h>
-
-struct if_clone;
 
 /*
  * The value type for indexing, limits max descriptors
@@ -52,8 +48,6 @@ struct if_shared_ctx;
 typedef const struct if_shared_ctx *if_shared_ctx_t;
 struct if_int_delay_info;
 typedef struct if_int_delay_info  *if_int_delay_info_t;
-struct if_pseudo;
-typedef struct if_pseudo *if_pseudo_t;
 
 /*
  * File organization:
@@ -280,7 +274,6 @@ struct if_shared_ctx {
 	int __spare0__;
 	int isc_tx_reclaim_thresh;
 	int isc_flags;
-	const char *isc_name;
 };
 
 typedef struct iflib_dma_info {
@@ -354,35 +347,13 @@ typedef enum {
  * Driver needs frames padded to some minimum length
  */
 #define IFLIB_NEED_ETHER_PAD	0x100
-/*
- * Packets can be freed immediately after encap
- */
-#define IFLIB_TXD_ENCAP_PIO	0x00200
-/*
- * Use RX completion handler
- */
-#define IFLIB_RX_COMPLETION	0x00400
-/*
- * Skip refilling cluster free lists
- */
-#define IFLIB_SKIP_CLREFILL	0x00800
-/*
- * Don't reset on hang
- */
-#define IFLIB_NO_HANG_RESET	0x01000
-/*
- * Don't need/want most of the niceties of
- * queue management
- */
-#define IFLIB_PSEUDO	0x02000
-/*
- * No DMA support needed / wanted
- */
-#define IFLIB_VIRTUAL	0x04000
-/*
- * autogenerate a MAC address
- */
-#define IFLIB_GEN_MAC	0x08000
+#define	IFLIB_SPARE7		0x200
+#define	IFLIB_SPARE6		0x400
+#define	IFLIB_SPARE5		0x800
+#define	IFLIB_SPARE4		0x1000
+#define	IFLIB_SPARE3		0x2000
+#define	IFLIB_SPARE2		0x4000
+#define	IFLIB_SPARE1		0x8000
 /*
  * Interface needs admin task to ignore interface up/down status
  */
@@ -396,11 +367,7 @@ typedef enum {
  * interrupts instead of doing combined RX/TX processing.
  */
 #define	IFLIB_SINGLE_IRQ_RX_ONLY	0x40000
-/*
- * Don't need/want most of the niceties of
- * emulating ethernet
- */
-#define IFLIB_PSEUDO_ETHER	0x80000
+#define	IFLIB_SPARE0		0x80000
 /*
  * Interface has an admin completion queue
  */
@@ -484,11 +451,14 @@ int iflib_device_iov_add_vf(device_t, uint16_t, const nvlist_t *);
 int iflib_device_register(device_t dev, void *softc, if_shared_ctx_t sctx, if_ctx_t *ctxp);
 int iflib_device_deregister(if_ctx_t);
 
-int iflib_irq_alloc(if_ctx_t, if_irq_t, int, driver_filter_t, void *filter_arg, driver_intr_t, void *arg, const char *name);
+int iflib_irq_alloc(if_ctx_t, if_irq_t, int, driver_filter_t, void *filter_arg,
+		    driver_intr_t, void *arg, const char *name);
 int iflib_irq_alloc_generic(if_ctx_t ctx, if_irq_t irq, int rid,
 			    iflib_intr_type_t type, driver_filter_t *filter,
 			    void *filter_arg, int qid, const char *name);
-void iflib_softirq_alloc_generic(if_ctx_t ctx, if_irq_t irq, iflib_intr_type_t type,  void *arg, int qid, const char *name);
+void iflib_softirq_alloc_generic(if_ctx_t ctx, if_irq_t irq,
+				 iflib_intr_type_t type,  void *arg, int qid,
+				 const char *name);
 
 void iflib_irq_free(if_ctx_t ctx, if_irq_t irq);
 
@@ -519,11 +489,5 @@ void iflib_led_create(if_ctx_t ctx);
 
 void iflib_add_int_delay_sysctl(if_ctx_t, const char *, const char *,
 								if_int_delay_info_t, int, int);
-
-/*
- * Pseudo device support
- */
-if_pseudo_t iflib_clone_register(if_shared_ctx_t);
-void iflib_clone_deregister(if_pseudo_t);
 
 #endif /*  __IFLIB_H_ */

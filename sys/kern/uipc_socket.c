@@ -103,8 +103,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_inet.h"
 #include "opt_inet6.h"
 #include "opt_kern_tls.h"
@@ -750,7 +748,19 @@ solisten_clone(struct socket *head)
 	}
 	so->so_listen = head;
 	so->so_type = head->so_type;
-	so->so_options = head->so_options & ~SO_ACCEPTCONN;
+	/*
+	 * POSIX is ambiguous on what options an accept(2)ed socket should
+	 * inherit from the listener.  Words "create a new socket" may be
+	 * interpreted as not inheriting anything.  Best programming practice
+	 * for application developers is to not rely on such inheritance.
+	 * FreeBSD had historically inherited all so_options excluding
+	 * SO_ACCEPTCONN, which virtually means all SOL_SOCKET level options,
+	 * including those completely irrelevant to a new born socket.  For
+	 * compatibility with older versions we will inherit a list of
+	 * meaningful options.
+	 */
+	so->so_options = head->so_options & (SO_KEEPALIVE | SO_DONTROUTE |
+	    SO_LINGER | SO_OOBINLINE | SO_NOSIGPIPE);
 	so->so_linger = head->so_linger;
 	so->so_state = head->so_state;
 	so->so_fibnum = head->so_fibnum;

@@ -22,9 +22,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/runq.h>
+#else /* !__arm__ */
 
 #ifndef	_MACHINE_RUNQ_H_
 #define	_MACHINE_RUNQ_H_
@@ -44,3 +46,5 @@
 typedef	unsigned long	rqb_word_t;
 
 #endif
+
+#endif /* !__arm__ */

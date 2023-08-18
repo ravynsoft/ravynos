@@ -11,8 +11,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * significand(x) computes just
  * 	scalb(x, (double) -ilogb(x)),
@@ -25,5 +23,5 @@ __FBSDID("$FreeBSD$");
 double
 significand(double x)
 {
-	return __ieee754_scalb(x,(double) -ilogb(x));
+	return scalb(x,(double) -ilogb(x));
 }

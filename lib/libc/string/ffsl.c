@@ -34,8 +34,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <strings.h>
 
 /*
@@ -44,5 +42,5 @@ __FBSDID("$FreeBSD$");
 int
 ffsl(long mask)
 {
-	return (__builtin_ffsl(mask));
+	return (mask == 0 ? 0 : __builtin_ctzl(mask) + 1);
 }

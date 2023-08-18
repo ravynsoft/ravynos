@@ -44,8 +44,6 @@ static char sccsid[] = "@(#)quotaon.c	8.1 (Berkeley) 6/6/93";
 #endif /* not lint */
 #endif
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * Turn quota on/off for a filesystem.
  */
@@ -70,7 +68,7 @@ static int	vflag;		/* verbose */
 
 static int oneof(char *, char *[], int);
 static int quotaonoff(struct fstab *fs, int, int);
-static void usage(void);
+static void usage(void) __dead2;
 
 int
 main(int argc, char **argv)

@@ -28,8 +28,6 @@
 #include "opt_platform.h"
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/limits.h>
@@ -223,6 +221,8 @@ cpu_set_upcall(struct thread *td, void (*entry)(void *), void *arg,
 		tf->tf_sp = STACKALIGN((uintptr_t)stack->ss_sp + stack->ss_size);
 	tf->tf_elr = (register_t)entry;
 	tf->tf_x[0] = (register_t)arg;
+	tf->tf_x[29] = 0;
+	tf->tf_lr = 0;
 }
 
 int

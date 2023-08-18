@@ -27,8 +27,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 
@@ -66,7 +64,7 @@ static int flag_I = 1000000;
 			printw(__VA_ARGS__);				\
 	} while(0)
 
-static void usage(void);
+static void usage(void) __dead2;
 
 static const char*
 el_prompt(void)

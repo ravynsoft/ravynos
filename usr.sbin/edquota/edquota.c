@@ -45,8 +45,6 @@ static char sccsid[] = "@(#)edquota.c	8.1 (Berkeley) 6/6/93";
 #endif
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * Disk quota editor.
  */
@@ -110,7 +108,7 @@ struct quotause *getprivs(long, int, char *);
 void putprivs(long, struct quotause *);
 int readprivs(struct quotause *, char *);
 int readtimes(struct quotause *, char *);
-static void usage(void);
+static void usage(void) __dead2;
 int writetimes(struct quotause *, int, int);
 int writeprivs(struct quotause *, int, char *, int);
 

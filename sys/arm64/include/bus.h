@@ -61,9 +61,11 @@
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * From: sys/arm/include/bus.h
- *
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/bus.h>
+#else /* !__arm__ */
 
 #ifndef _MACHINE_BUS_H_
 #define	_MACHINE_BUS_H_
@@ -521,3 +523,5 @@ struct bus_space {
 #include <machine/bus_dma.h>
 
 #endif /* _MACHINE_BUS_H_ */
+
+#endif /* !__arm__ */

@@ -33,8 +33,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * Driver for the Broadcom BCM54xx/57xx 1000baseTX PHY.
  */
@@ -151,6 +149,7 @@ static const struct mii_phydesc brgphys[] = {
 #ifdef notyet	/* better handled by ukphy(4) until WARs are implemented */
 	MII_PHY_DESC(BROADCOM2, BCM5785),
 #endif
+	MII_PHY_DESC(BROADCOM3, BCM54616S),
 	MII_PHY_DESC(BROADCOM3, BCM54618SE),
 	MII_PHY_DESC(BROADCOM3, BCM5717C),
 	MII_PHY_DESC(BROADCOM3, BCM5719C),

@@ -33,8 +33,11 @@
  *
  *	from: @(#)vmparam.h     5.9 (Berkeley) 5/12/91
  *	from: FreeBSD: src/sys/i386/include/vmparam.h,v 1.33 2000/03/30
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/vmparam.h>
+#else /* !__arm__ */
 
 #ifndef	_MACHINE_VMPARAM_H_
 #define	_MACHINE_VMPARAM_H_
@@ -275,3 +278,5 @@ extern vm_offset_t vm_max_kernel_address;
 #define MINIDUMP_PAGE_TRACKING	1
 
 #endif /* !_MACHINE_VMPARAM_H_ */
+
+#endif /* !__arm__ */

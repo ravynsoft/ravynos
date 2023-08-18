@@ -31,8 +31,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * HID spec: https://www.usb.org/sites/default/files/documents/hid1_11.pdf
  */
@@ -333,8 +331,8 @@ usbhid_xfer_check_len(struct usbhid_softc* sc, int xfer_idx, hid_size_t len)
 }
 
 static void
-usbhid_intr_setup(device_t dev, hid_intr_t intr, void *context,
-    struct hid_rdesc_info *rdesc)
+usbhid_intr_setup(device_t dev, device_t child __unused, hid_intr_t intr,
+    void *context, struct hid_rdesc_info *rdesc)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 	uint16_t n;
@@ -406,7 +404,7 @@ usbhid_intr_setup(device_t dev, hid_intr_t intr, void *context,
 }
 
 static void
-usbhid_intr_unsetup(device_t dev)
+usbhid_intr_unsetup(device_t dev, device_t child __unused)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 
@@ -419,7 +417,7 @@ usbhid_intr_unsetup(device_t dev)
 }
 
 static int
-usbhid_intr_start(device_t dev)
+usbhid_intr_start(device_t dev, device_t child __unused)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 
@@ -450,7 +448,7 @@ usbhid_intr_start(device_t dev)
 }
 
 static int
-usbhid_intr_stop(device_t dev)
+usbhid_intr_stop(device_t dev, device_t child __unused)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 
@@ -463,7 +461,7 @@ usbhid_intr_stop(device_t dev)
 }
 
 static void
-usbhid_intr_poll(device_t dev)
+usbhid_intr_poll(device_t dev, device_t child __unused)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 
@@ -538,7 +536,8 @@ usbhid_sync_xfer(struct usbhid_softc* sc, int xfer_idx,
 }
 
 static int
-usbhid_get_rdesc(device_t dev, void *buf, hid_size_t len)
+usbhid_get_rdesc(device_t dev, device_t child __unused, void *buf,
+    hid_size_t len)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 	int error;
@@ -553,8 +552,8 @@ usbhid_get_rdesc(device_t dev, void *buf, hid_size_t len)
 }
 
 static int
-usbhid_get_report(device_t dev, void *buf, hid_size_t maxlen,
-    hid_size_t *actlen, uint8_t type, uint8_t id)
+usbhid_get_report(device_t dev, device_t child __unused, void *buf,
+    hid_size_t maxlen, hid_size_t *actlen, uint8_t type, uint8_t id)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 	union usbhid_device_request req;
@@ -579,8 +578,8 @@ usbhid_get_report(device_t dev, void *buf, hid_size_t maxlen,
 }
 
 static int
-usbhid_set_report(device_t dev, const void *buf, hid_size_t len, uint8_t type,
-    uint8_t id)
+usbhid_set_report(device_t dev, device_t child __unused, const void *buf,
+    hid_size_t len, uint8_t type, uint8_t id)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 	union usbhid_device_request req;
@@ -602,7 +601,8 @@ usbhid_set_report(device_t dev, const void *buf, hid_size_t len, uint8_t type,
 }
 
 static int
-usbhid_read(device_t dev, void *buf, hid_size_t maxlen, hid_size_t *actlen)
+usbhid_read(device_t dev, device_t child __unused, void *buf,
+    hid_size_t maxlen, hid_size_t *actlen)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 	union usbhid_device_request req;
@@ -621,7 +621,8 @@ usbhid_read(device_t dev, void *buf, hid_size_t maxlen, hid_size_t *actlen)
 }
 
 static int
-usbhid_write(device_t dev, const void *buf, hid_size_t len)
+usbhid_write(device_t dev, device_t child __unused, const void *buf,
+    hid_size_t len)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 	union usbhid_device_request req;
@@ -637,7 +638,8 @@ usbhid_write(device_t dev, const void *buf, hid_size_t len)
 }
 
 static int
-usbhid_set_idle(device_t dev, uint16_t duration, uint8_t id)
+usbhid_set_idle(device_t dev, device_t child __unused, uint16_t duration,
+    uint8_t id)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 	union usbhid_device_request req;
@@ -659,7 +661,7 @@ usbhid_set_idle(device_t dev, uint16_t duration, uint8_t id)
 }
 
 static int
-usbhid_set_protocol(device_t dev, uint16_t protocol)
+usbhid_set_protocol(device_t dev, device_t child __unused, uint16_t protocol)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 	union usbhid_device_request req;
@@ -680,7 +682,8 @@ usbhid_set_protocol(device_t dev, uint16_t protocol)
 }
 
 static int
-usbhid_ioctl(device_t dev, unsigned long cmd, uintptr_t data)
+usbhid_ioctl(device_t dev, device_t child __unused, unsigned long cmd,
+    uintptr_t data)
 {
 	struct usbhid_softc* sc = device_get_softc(dev);
 	struct usb_ctl_request *ucr;

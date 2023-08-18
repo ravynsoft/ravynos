@@ -43,8 +43,6 @@ static const char copyright[] =
 #endif
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/chio.h> 
 #include <err.h>
@@ -60,7 +58,7 @@ __FBSDID("$FreeBSD$");
 #include "defs.h"
 #include "pathnames.h"
 
-static	void usage(void);
+static	void usage(void) __dead2;
 static	void cleanup(void);
 static	u_int16_t parse_element_type(char *);
 static	u_int16_t parse_element_unit(char *);

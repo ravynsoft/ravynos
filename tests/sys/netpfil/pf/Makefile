@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 PACKAGE=	tests
 
@@ -31,6 +30,7 @@ ATF_TESTS_SH+=	altq \
 		rules_counter \
 		scrub_compat \
 		scrub_pass \
+		sctp \
 		set_skip \
 		set_tos \
 		src_track \
@@ -38,6 +38,8 @@ ATF_TESTS_SH+=	altq \
 		synproxy \
 		table \
 		tos
+
+ATF_TESTS_PYTEST+=	frag6.py
 
 # Tests reuse jail names and so cannot run in parallel.
 TEST_METADATA+=	is_exclusive=true

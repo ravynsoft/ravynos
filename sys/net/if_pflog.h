@@ -24,8 +24,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #ifndef _NET_IF_PFLOG_H_
@@ -71,9 +69,9 @@ struct pf_ruleset;
 struct pfi_kif;
 struct pf_pdesc;
 
-#define	PFLOG_PACKET(i,a,b,c,d,e,f,g,h,di) do {		\
+#define	PFLOG_PACKET(i,a,b,c,d,e,f,g,di) do {		\
 	if (pflog_packet_ptr != NULL)			\
-		pflog_packet_ptr(i,a,b,c,d,e,f,g,h,di);	\
+		pflog_packet_ptr(i,a,b,c,d,e,f,g,di);	\
 } while (0)
 #endif /* _KERNEL */
 #endif /* _NET_IF_PFLOG_H_ */

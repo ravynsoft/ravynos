@@ -1,5 +1,4 @@
 #
-# $FreeBSD$
 #
 # This file adds support for the WITHOUT_* and WITH_* knobs in src.conf(5) to
 # the check-old* and delete-old* targets.
@@ -419,6 +418,7 @@ OLD_FILES+=usr/libexec/bsdinstall/distextract
 OLD_FILES+=usr/libexec/bsdinstall/distfetch
 OLD_FILES+=usr/libexec/bsdinstall/docsinstall
 OLD_FILES+=usr/libexec/bsdinstall/entropy
+OLD_FILES+=usr/libexec/bsdinstall/fetchmissingdists
 OLD_FILES+=usr/libexec/bsdinstall/hardening
 OLD_FILES+=usr/libexec/bsdinstall/hostname
 OLD_FILES+=usr/libexec/bsdinstall/jail
@@ -1017,7 +1017,9 @@ OLD_FILES+=usr/share/dtrace/tcptrack
 OLD_FILES+=usr/share/dtrace/udptrack
 OLD_FILES+=usr/share/man/man1/dtrace.1.gz
 OLD_DIRS+=usr/lib/dtrace
-OLD_DIRS+=usr/lib32/dtrace
+.  for libcompat in ${_ALL_libcompats}
+OLD_DIRS+=usr/lib${libcompat}/dtrace
+.  endfor
 OLD_DIRS+=usr/libexec/dwatch
 OLD_DIRS+=usr/share/dtrace/toolkit
 OLD_DIRS+=usr/share/dtrace
@@ -1679,7 +1681,9 @@ OLD_DIRS+=etc/dma
 OLD_FILES+=usr/libexec/dma
 OLD_FILES+=usr/libexec/dma-mbox-create
 OLD_FILES+=usr/share/man/man8/dma.8.gz
+OLD_FILES+=usr/share/examples/dma/auth.conf
 OLD_FILES+=usr/share/examples/dma/mailer.conf
+OLD_DIRS+=usr/share/examples/dma
 .endif
 
 .if ${MK_EE} == no
@@ -1743,6 +1747,7 @@ OLD_FILES+=usr/share/examples/etc/wpa_supplicant.conf
 OLD_FILES+=usr/share/examples/find_interface/Makefile
 OLD_FILES+=usr/share/examples/find_interface/README
 OLD_FILES+=usr/share/examples/find_interface/find_interface.c
+OLD_FILES+=usr/share/examples/flua/libjail.lua
 OLD_FILES+=usr/share/examples/hast/ucarp.sh
 OLD_FILES+=usr/share/examples/hast/ucarp_down.sh
 OLD_FILES+=usr/share/examples/hast/ucarp_up.sh
@@ -1822,6 +1827,8 @@ OLD_FILES+=usr/share/examples/kld/syscall/module/Makefile
 OLD_FILES+=usr/share/examples/kld/syscall/module/syscall.c
 OLD_FILES+=usr/share/examples/kld/syscall/test/Makefile
 OLD_FILES+=usr/share/examples/kld/syscall/test/call.c
+OLD_FILES+=usr/share/examples/kyua/Kyuafile.top
+OLD_FILES+=usr/share/examples/kyua/kyua.conf
 OLD_FILES+=usr/share/examples/libusb20/Makefile
 OLD_FILES+=usr/share/examples/libusb20/README
 OLD_FILES+=usr/share/examples/libusb20/bulk.c
@@ -1893,6 +1900,7 @@ OLD_FILES+=usr/share/examples/scsi_target/scsi_cmds.c
 OLD_FILES+=usr/share/examples/scsi_target/scsi_target.8
 OLD_FILES+=usr/share/examples/scsi_target/scsi_target.c
 OLD_FILES+=usr/share/examples/scsi_target/scsi_target.h
+OLD_FILES+=usr/share/examples/sendmail/mailer.conf
 OLD_FILES+=usr/share/examples/ses/Makefile
 OLD_FILES+=usr/share/examples/ses/Makefile.inc
 OLD_FILES+=usr/share/examples/ses/getencstat/Makefile
@@ -1919,6 +1927,11 @@ OLD_FILES+=usr/share/examples/smbfs/print/lj6l
 OLD_FILES+=usr/share/examples/smbfs/print/ljspool
 OLD_FILES+=usr/share/examples/smbfs/print/printcap.sample
 OLD_FILES+=usr/share/examples/smbfs/print/tolj
+OLD_FILES+=usr/share/examples/sound/basic.c
+OLD_FILES+=usr/share/examples/sound/ossmidi.h
+OLD_FILES+=usr/share/examples/sound/ossinit.h
+OLD_FILES+=usr/share/examples/sound/README
+OLD_FILES+=usr/share/examples/sound/midi.c
 OLD_FILES+=usr/share/examples/sunrpc/Makefile
 OLD_FILES+=usr/share/examples/sunrpc/dir/Makefile
 OLD_FILES+=usr/share/examples/sunrpc/dir/dir.x
@@ -1952,6 +1965,7 @@ OLD_DIRS+=usr/share/examples/dwatch
 OLD_DIRS+=usr/share/examples/etc
 OLD_DIRS+=usr/share/examples/etc/defaults
 OLD_DIRS+=usr/share/examples/find_interface
+OLD_DIRS+=usr/share/examples/flua
 OLD_DIRS+=usr/share/examples/hast
 OLD_DIRS+=usr/share/examples/ibcs2
 OLD_DIRS+=usr/share/examples/hostapd
@@ -1971,6 +1985,7 @@ OLD_DIRS+=usr/share/examples/kld/khelp
 OLD_DIRS+=usr/share/examples/kld/syscall
 OLD_DIRS+=usr/share/examples/kld/syscall/module
 OLD_DIRS+=usr/share/examples/kld/syscall/test
+OLD_DIRS+=usr/share/examples/kyua
 OLD_DIRS+=usr/share/examples/libusb20
 OLD_DIRS+=usr/share/examples/libvgl
 OLD_DIRS+=usr/share/examples/mdoc
@@ -1981,6 +1996,7 @@ OLD_DIRS+=usr/share/examples/ppi
 OLD_DIRS+=usr/share/examples/ppp
 OLD_DIRS+=usr/share/examples/printing
 OLD_DIRS+=usr/share/examples/scsi_target
+OLD_DIRS+=usr/share/examples/sendmail
 OLD_DIRS+=usr/share/examples/ses
 OLD_DIRS+=usr/share/examples/ses/getencstat
 OLD_DIRS+=usr/share/examples/ses/sesd
@@ -1989,6 +2005,7 @@ OLD_DIRS+=usr/share/examples/ses/setobjstat
 OLD_DIRS+=usr/share/examples/ses/srcs
 OLD_DIRS+=usr/share/examples/smbfs
 OLD_DIRS+=usr/share/examples/smbfs/print
+OLD_DIRS+=usr/share/examples/sound
 OLD_DIRS+=usr/share/examples/sunrpc
 OLD_DIRS+=usr/share/examples/sunrpc/dir
 OLD_DIRS+=usr/share/examples/sunrpc/msg
@@ -2108,103 +2125,91 @@ OLD_DIRS+=usr/tests/usr.bin/dc
 .endif
 
 .if ${MK_GOOGLETEST} == no
-OLD_FILES+=usr/include/gmock/gmock-actions.h
-OLD_FILES+=usr/include/gmock/gmock-cardinalities.h
-OLD_FILES+=usr/include/gmock/gmock-generated-actions.h
-OLD_FILES+=usr/include/gmock/gmock-generated-function-mockers.h
-OLD_FILES+=usr/include/gmock/gmock-generated-matchers.h
-OLD_FILES+=usr/include/gmock/gmock-generated-nice-strict.h
-OLD_FILES+=usr/include/gmock/gmock-matchers.h
-OLD_FILES+=usr/include/gmock/gmock-more-actions.h
-OLD_FILES+=usr/include/gmock/gmock-more-matchers.h
-OLD_FILES+=usr/include/gmock/gmock-spec-builders.h
-OLD_FILES+=usr/include/gmock/gmock.h
-OLD_FILES+=usr/include/gmock/internal/custom/gmock-generated-actions.h
-OLD_FILES+=usr/include/gmock/internal/custom/gmock-matchers.h
-OLD_FILES+=usr/include/gmock/internal/custom/gmock-port.h
-OLD_FILES+=usr/include/gmock/internal/gmock-generated-internal-utils.h
-OLD_FILES+=usr/include/gmock/internal/gmock-internal-utils.h
-OLD_FILES+=usr/include/gmock/internal/gmock-port.h
-OLD_DIRS+=usr/include/gmock
-OLD_FILES+=usr/include/gtest/gtest_pred_impl.h
-OLD_FILES+=usr/include/gtest/gtest_prod.h
-OLD_FILES+=usr/include/gtest/gtest-death-test.h
-OLD_FILES+=usr/include/gtest/gtest-message.h
-OLD_FILES+=usr/include/gtest/gtest-param-test.h
-OLD_FILES+=usr/include/gtest/gtest-printers.h
-OLD_FILES+=usr/include/gtest/gtest-spi.h
-OLD_FILES+=usr/include/gtest/gtest-test-part.h
-OLD_FILES+=usr/include/gtest/gtest-typed-test.h
-OLD_FILES+=usr/include/gtest/gtest.h
-OLD_FILES+=usr/include/gtest/internal/custom/gtest-port.h
-OLD_FILES+=usr/include/gtest/internal/custom/gtest-printers.h
-OLD_FILES+=usr/include/gtest/internal/custom/gtest.h
-OLD_FILES+=usr/include/gtest/internal/gtest-death-test-internal.h
-OLD_FILES+=usr/include/gtest/internal/gtest-filepath.h
-OLD_FILES+=usr/include/gtest/internal/gtest-internal.h
-OLD_FILES+=usr/include/gtest/internal/gtest-linked_ptr.h
-OLD_FILES+=usr/include/gtest/internal/gtest-param-util-generated.h
-OLD_FILES+=usr/include/gtest/internal/gtest-param-util.h
-OLD_FILES+=usr/include/gtest/internal/gtest-port-arch.h
-OLD_FILES+=usr/include/gtest/internal/gtest-port.h
-OLD_FILES+=usr/include/gtest/internal/gtest-string.h
-OLD_FILES+=usr/include/gtest/internal/gtest-tuple.h
-OLD_FILES+=usr/include/gtest/internal/gtest-type-util.h
-OLD_DIRS+=usr/include/gtest
-OLD_FILES+=usr/lib/libprivategmock_main.a
-OLD_FILES+=usr/lib/libprivategmock_main.so
-OLD_LIBS+=usr/lib/libprivategmock_main.so.0
-OLD_FILES+=usr/lib/libprivategmock_main_p.a
+OLD_FILES+=usr/include/private/gmock/gmock-actions.h
+OLD_FILES+=usr/include/private/gmock/gmock-cardinalities.h
+OLD_FILES+=usr/include/private/gmock/gmock-function-mocker.h
+OLD_FILES+=usr/include/private/gmock/gmock-matchers.h
+OLD_FILES+=usr/include/private/gmock/gmock-more-actions.h
+OLD_FILES+=usr/include/private/gmock/gmock-more-matchers.h
+OLD_FILES+=usr/include/private/gmock/gmock-nice-strict.h
+OLD_FILES+=usr/include/private/gmock/gmock-spec-builders.h
+OLD_FILES+=usr/include/private/gmock/gmock.h
+OLD_FILES+=usr/include/private/gmock/internal/custom/gmock-generated-actions.h
+OLD_FILES+=usr/include/private/gmock/internal/custom/gmock-matchers.h
+OLD_FILES+=usr/include/private/gmock/internal/custom/gmock-port.h
+OLD_FILES+=usr/include/private/gmock/internal/gmock-internal-utils.h
+OLD_FILES+=usr/include/private/gmock/internal/gmock-port.h
+OLD_FILES+=usr/include/private/gmock/internal/gmock-pp.h
+OLD_FILES+=usr/include/private/gtest/gtest-assertion-result.h
+OLD_FILES+=usr/include/private/gtest/gtest-death-test.h
+OLD_FILES+=usr/include/private/gtest/gtest-matchers.h
+OLD_FILES+=usr/include/private/gtest/gtest-message.h
+OLD_FILES+=usr/include/private/gtest/gtest-param-test.h
+OLD_FILES+=usr/include/private/gtest/gtest-printers.h
+OLD_FILES+=usr/include/private/gtest/gtest-spi.h
+OLD_FILES+=usr/include/private/gtest/gtest-test-part.h
+OLD_FILES+=usr/include/private/gtest/gtest-typed-test.h
+OLD_FILES+=usr/include/private/gtest/gtest.h
+OLD_FILES+=usr/include/private/gtest/gtest_pred_impl.h
+OLD_FILES+=usr/include/private/gtest/gtest_prod.h
+OLD_FILES+=usr/include/private/gtest/internal/custom/gtest-port.h
+OLD_FILES+=usr/include/private/gtest/internal/custom/gtest-printers.h
+OLD_FILES+=usr/include/private/gtest/internal/custom/gtest.h
+OLD_FILES+=usr/include/private/gtest/internal/gtest-death-test-internal.h
+OLD_FILES+=usr/include/private/gtest/internal/gtest-filepath.h
+OLD_FILES+=usr/include/private/gtest/internal/gtest-internal.h
+OLD_FILES+=usr/include/private/gtest/internal/gtest-param-util.h
+OLD_FILES+=usr/include/private/gtest/internal/gtest-port-arch.h
+OLD_FILES+=usr/include/private/gtest/internal/gtest-port.h
+OLD_FILES+=usr/include/private/gtest/internal/gtest-string.h
+OLD_FILES+=usr/include/private/gtest/internal/gtest-type-util.h
 OLD_FILES+=usr/lib/libprivategmock.a
-OLD_FILES+=usr/lib/libprivategmock.so
-OLD_LIBS+=usr/lib/libprivategmock.so.0
 OLD_FILES+=usr/lib/libprivategmock_p.a
-OLD_FILES+=usr/lib/libprivategtest_main.a
-OLD_FILES+=usr/lib/libprivategtest_main.so
-OLD_LIBS+=usr/lib/libprivategtest_main.so.0
-OLD_FILES+=usr/lib/libprivategtest_main_p.a
+OLD_LIBS+=usr/lib/libprivategmock.so
+OLD_LIBS+=usr/lib/libprivategmock.so.0
+OLD_FILES+=usr/lib/libprivategmock_main.a
+OLD_FILES+=usr/lib/libprivategmock_main_p.a
+OLD_LIBS+=usr/lib/libprivategmock_main.so
+OLD_LIBS+=usr/lib/libprivategmock_main.so.0
 OLD_FILES+=usr/lib/libprivategtest.a
-OLD_FILES+=usr/lib/libprivategtest.so
-OLD_LIBS+=usr/lib/libprivategtest.so.0
 OLD_FILES+=usr/lib/libprivategtest_p.a
-OLD_FILES+=usr/tests/lib/googletest/gmock/gmock_stress_test
+OLD_LIBS+=usr/lib/libprivategtest.so
+OLD_LIBS+=usr/lib/libprivategtest.so.0
+OLD_FILES+=usr/lib/libprivategtest_main.a
+OLD_FILES+=usr/lib/libprivategtest_main_p.a
+OLD_LIBS+=usr/lib/libprivategtest_main.so
+OLD_LIBS+=usr/lib/libprivategtest_main.so.0
+OLD_FILES+=usr/tests/lib/googletest/Kyuafile
 OLD_FILES+=usr/tests/lib/googletest/gmock/Kyuafile
-OLD_DIRS+=usr/tests/lib/googletest/gmock
-OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock_ex_test
-OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock_link_test
-OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock_test
+OLD_FILES+=usr/tests/lib/googletest/gmock/gmock_stress_test
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/Kyuafile
 OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-actions_test
 OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-cardinalities_test
-OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-ex_test
-OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-generated-actions_test
-OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-generated-function-mockers_test
-OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-generated-internal-utils_test
-OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-generated-matchers_test
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-function-mocker_test
 OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-internal-utils_test
-OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-matchers_test
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-matchers-arithmetic_test
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-matchers-comparisons_test
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-matchers-containers_test
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-matchers-misc_test
 OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-more-actions_test
 OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-nice-strict_test
 OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-port_test
 OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock-spec-builders_test
-OLD_FILES+=usr/tests/lib/googletest/gmock_main/Kyuafile
-OLD_DIRS+=usr/tests/lib/googletest/gmock_main
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock_ex_test
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock_link_test
+OLD_FILES+=usr/tests/lib/googletest/gmock_main/gmock_test
+OLD_FILES+=usr/tests/lib/googletest/gtest/Kyuafile
 OLD_FILES+=usr/tests/lib/googletest/gtest/googletest-param-test-test
-OLD_FILES+=usr/tests/lib/googletest/gtest/gtest_all_test
+OLD_FILES+=usr/tests/lib/googletest/gtest/gtest-unittest-api_test
 OLD_FILES+=usr/tests/lib/googletest/gtest/gtest_environment_test
 OLD_FILES+=usr/tests/lib/googletest/gtest/gtest_no_test_unittest
 OLD_FILES+=usr/tests/lib/googletest/gtest/gtest_premature_exit_test
 OLD_FILES+=usr/tests/lib/googletest/gtest/gtest_repeat_test
 OLD_FILES+=usr/tests/lib/googletest/gtest/gtest_stress_test
 OLD_FILES+=usr/tests/lib/googletest/gtest/gtest_throw_on_failure_ex_test
-OLD_FILES+=usr/tests/lib/googletest/gtest/gtest-death-test_ex_catch_test
-OLD_FILES+=usr/tests/lib/googletest/gtest/gtest-death-test_ex_nocatch_test
-OLD_FILES+=usr/tests/lib/googletest/gtest/gtest-unittest-api_test
-OLD_FILES+=usr/tests/lib/googletest/gtest/Kyuafile
-OLD_DIRS+=usr/tests/lib/googletest/gtest
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/Kyuafile
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-death-test-test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-filepath-test
-OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-linked-ptr-test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-listener-test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-message-test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-options-test
@@ -2212,7 +2217,6 @@ OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-port-test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-printers-test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/googletest-test-part-test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest-typed-test_test
-OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_help_test_
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_main_unittest
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_pred_impl_unittest
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_prod_test
@@ -2220,14 +2224,9 @@ OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_skip_in_environment_setup_t
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_skip_test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_sole_header_test
 OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_unittest
-OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_xml_outfile1_test_
-OLD_FILES+=usr/tests/lib/googletest/gtest_main/gtest_xml_outfile2_test_
-OLD_DIRS+=usr/tests/lib/googletest/gtest_main
-OLD_FILES+=usr/tests/lib/googletest/Kyuafile
-OLD_DIRS+=usr/tests/lib/googletest/
 OLD_FILES+=usr/tests/share/examples/tests/googletest/Kyuafile
-OLD_FILES+=usr/tests/share/examples/tests/googletest/sample1_unittest
 OLD_FILES+=usr/tests/share/examples/tests/googletest/sample10_unittest
+OLD_FILES+=usr/tests/share/examples/tests/googletest/sample1_unittest
 OLD_FILES+=usr/tests/share/examples/tests/googletest/sample2_unittest
 OLD_FILES+=usr/tests/share/examples/tests/googletest/sample3_unittest
 OLD_FILES+=usr/tests/share/examples/tests/googletest/sample4_unittest
@@ -2235,6 +2234,17 @@ OLD_FILES+=usr/tests/share/examples/tests/googletest/sample5_unittest
 OLD_FILES+=usr/tests/share/examples/tests/googletest/sample6_unittest
 OLD_FILES+=usr/tests/share/examples/tests/googletest/sample7_unittest
 OLD_FILES+=usr/tests/share/examples/tests/googletest/sample8_unittest
+OLD_DIRS+=usr/include/private/gmock/
+OLD_DIRS+=usr/include/private/gmock/internal
+OLD_DIRS+=usr/include/private/gmock/internal/custom
+OLD_DIRS+=usr/include/private/gtest/
+OLD_DIRS+=usr/include/private/gtest/internal
+OLD_DIRS+=usr/include/private/gtest/internal/custom
+OLD_DIRS+=usr/tests/lib/googletest
+OLD_DIRS+=usr/tests/lib/googletest/gmock
+OLD_DIRS+=usr/tests/lib/googletest/gmock_main
+OLD_DIRS+=usr/tests/lib/googletest/gtest
+OLD_DIRS+=usr/tests/lib/googletest/gtest_main
 OLD_DIRS+=usr/tests/share/examples/tests/googletest
 .endif
 
@@ -3677,34 +3687,36 @@ OLD_FILES+=usr/share/man/man5/keymap.5.gz
 OLD_FILES+=usr/share/man/man8/moused.8.gz
 .endif
 
-.if ${MK_LIB32} == no
-OLD_FILES+=etc/mtree/BSD.lib32.dist
-OLD_FILES+=libexec/ld-elf32.so.1
-.  if exists(${DESTDIR}/usr/lib32)
-LIB32_DIRS!=find ${DESTDIR}/usr/lib32 -type d \
+.for LIBCOMPAT libcompat in ${_ALL_LIBCOMPATS_libcompats}
+.  if ${MK_LIB${LIBCOMPAT}} == no
+OLD_FILES+=etc/mtree/BSD.lib${libcompat}.dist
+OLD_FILES+=libexec/ld-elf${libcompat}.so.1
+.    if exists(${DESTDIR}/usr/lib${libcompat})
+LIB${LIBCOMPAT}_DIRS!=find ${DESTDIR}/usr/lib${libcompat} -type d \
     | sed -e 's,^${DESTDIR}/,,'; echo
-LIB32_FILES!=find ${DESTDIR}/usr/lib32 \! -type d \
+LIB${LIBCOMPAT}_FILES!=find ${DESTDIR}/usr/lib${libcompat} \! -type d \
     \! -name "lib*.so*" | sed -e 's,^${DESTDIR}/,,'; echo
-LIB32_LIBS!=find ${DESTDIR}/usr/lib32 \! -type d \
+LIB${LIBCOMPAT}_LIBS!=find ${DESTDIR}/usr/lib${libcompat} \! -type d \
     -name "lib*.so*" | sed -e 's,^${DESTDIR}/,,'; echo
-OLD_DIRS+=${LIB32_DIRS}
-OLD_FILES+=${LIB32_FILES}
-OLD_LIBS+=${LIB32_LIBS}
-.  endif
-.  if ${MK_DEBUG_FILES} == no
-.    if exists(${DESTDIR}/usr/lib/debug/usr/lib32)
-DEBUG_LIB32_DIRS!=find ${DESTDIR}/usr/lib/debug/usr/lib32 -type d \
-    | sed -e 's,^${DESTDIR}/,,'; echo
-DEBUG_LIB32_FILES!=find ${DESTDIR}/usr/lib/debug/usr/lib32 \! -type d \
-    \! -name "lib*.so*" | sed -e 's,^${DESTDIR}/,,'; echo
-DEBUG_LIB32_LIBS!=find ${DESTDIR}/usr/lib/debug/usr/lib32 \! -type d \
-    -name "lib*.so*" | sed -e 's,^${DESTDIR}/,,'; echo
-OLD_DIRS+=${DEBUG_LIB32_DIRS}
-OLD_FILES+=${DEBUG_LIB32_FILES}
-OLD_LIBS+=${DEBUG_LIB32_LIBS}
+OLD_DIRS+=${LIB${LIBCOMPAT}_DIRS}
+OLD_FILES+=${LIB${LIBCOMPAT}_FILES}
+OLD_LIBS+=${LIB${LIBCOMPAT}_LIBS}
 .    endif
-.  endif
+.    if ${MK_DEBUG_FILES} == no
+.      if exists(${DESTDIR}/usr/lib/debug/usr/lib${libcompat})
+DEBUG_LIB${LIBCOMPAT}_DIRS!=find ${DESTDIR}/usr/lib/debug/usr/lib${libcompat} -type d \
+    | sed -e 's,^${DESTDIR}/,,'; echo
+DEBUG_LIB${LIBCOMPAT}_FILES!=find ${DESTDIR}/usr/lib/debug/usr/lib${libcompat} \! -type d \
+    \! -name "lib*.so*" | sed -e 's,^${DESTDIR}/,,'; echo
+DEBUG_LIB${LIBCOMPAT}_LIBS!=find ${DESTDIR}/usr/lib/debug/usr/lib${libcompat} \! -type d \
+    -name "lib*.so*" | sed -e 's,^${DESTDIR}/,,'; echo
+OLD_DIRS+=${DEBUG_LIB${LIBCOMPAT}_DIRS}
+OLD_FILES+=${DEBUG_LIB${LIBCOMPAT}_FILES}
+OLD_LIBS+=${DEBUG_LIB${LIBCOMPAT}_LIBS}
+.      endif
+.    endif
 .endif
+.endfor # LIBCOMPAT libcompat
 
 .if ${MK_LLD} == no
 OLD_FILES+=usr/bin/ld.lld
@@ -7164,6 +7176,8 @@ OLD_FILES+=usr/sbin/makemap
 OLD_FILES+=usr/sbin/praliases
 OLD_FILES+=usr/share/doc/smm/08.sendmailop/paper.ascii.gz
 OLD_DIRS+=usr/share/doc/smm/08.sendmailop
+OLD_FILES+=usr/share/examples/sendmail/mailer.conf
+OLD_DIRS+=usr/share/examples/sendmail
 OLD_FILES+=usr/share/man/man1/mailq.1.gz
 OLD_FILES+=usr/share/man/man1/newaliases.1.gz
 OLD_FILES+=usr/share/man/man1/vacation.1.gz
@@ -7237,6 +7251,7 @@ OLD_FILES+=usr/share/sendmail/cf/feature/bitdomain.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/blacklist_recipients.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/block_bad_helo.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/check_cert_altnames.m4
+OLD_FILES+=usr/share/sendmail/cf/feature/check_other.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/compat_check.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/conncontrol.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/delay_checks.m4
@@ -7279,6 +7294,7 @@ OLD_FILES+=usr/share/sendmail/cf/feature/relay_mail_from.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/require_rdns.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/smrsh.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/stickyhost.m4
+OLD_FILES+=usr/share/sendmail/cf/feature/sts.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/tls_failures.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/tls_session_features.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/use_client_ptr.m4
@@ -7476,6 +7492,7 @@ OLD_FILES+=usr/share/syscons/keymaps/by.cp1131.kbd
 OLD_FILES+=usr/share/syscons/keymaps/by.cp1251.kbd
 OLD_FILES+=usr/share/syscons/keymaps/by.iso5.kbd
 OLD_FILES+=usr/share/syscons/keymaps/ce.iso2.kbd
+OLD_FILES+=usr/share/syscons/keymaps/colemak-dh.iso15.acc.kbd
 OLD_FILES+=usr/share/syscons/keymaps/colemak.iso15.acc.kbd
 OLD_FILES+=usr/share/syscons/keymaps/cs.latin2.qwertz.kbd
 OLD_FILES+=usr/share/syscons/keymaps/cz.iso2.kbd
@@ -7560,6 +7577,7 @@ OLD_FILES+=usr/share/syscons/keymaps/us.dvorakx.kbd
 OLD_FILES+=usr/share/syscons/keymaps/us.emacs.kbd
 OLD_FILES+=usr/share/syscons/keymaps/us.iso.acc.kbd
 OLD_FILES+=usr/share/syscons/keymaps/us.iso.kbd
+OLD_FILES+=usr/share/syscons/keymaps/us.iso.macbook.kbd
 OLD_FILES+=usr/share/syscons/keymaps/us.pc-ctrl.kbd
 OLD_FILES+=usr/share/syscons/keymaps/us.unix.kbd
 OLD_FILES+=usr/share/syscons/scrnmaps/armscii8-2haik8.scm

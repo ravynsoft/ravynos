@@ -1,7 +1,6 @@
 # This file tells config what files go into building a kernel,
 # files marked standard are always included.
 #
-# $FreeBSD$
 #
 # The long compile-with and dependency lines are required because of
 # limitations in config: backslash-newline doesn't work in strings, and
@@ -189,10 +188,6 @@ libkern/ashrdi3.c		optional	powerpc | powerpcspe
 libkern/bcopy.c			standard
 libkern/cmpdi2.c		optional	powerpc | powerpcspe
 libkern/divdi3.c		optional	powerpc | powerpcspe
-libkern/ffs.c			standard
-libkern/ffsl.c			standard
-libkern/ffsll.c			standard
-libkern/flsll.c			standard
 libkern/lshrdi3.c		optional	powerpc | powerpcspe
 libkern/memcmp.c		standard
 libkern/memset.c		standard

@@ -37,8 +37,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/endian.h>
@@ -1993,7 +1991,7 @@ et_init_txmac(struct et_softc *sc)
 	 */
 	CSR_WRITE_4(sc, ET_TXMAC_FLOWCTRL, 0 << ET_TXMAC_FLOWCTRL_CFPT_SHIFT);
 
-	/* Enable TX MAC but leave FC(?) diabled */
+	/* Enable TX MAC but leave FC(?) disabled */
 	CSR_WRITE_4(sc, ET_TXMAC_CTRL,
 		    ET_TXMAC_CTRL_ENABLE | ET_TXMAC_CTRL_FC_DISABLE);
 }

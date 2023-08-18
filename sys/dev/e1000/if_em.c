@@ -26,7 +26,6 @@
  * SUCH DAMAGE.
  */
 
-/* $FreeBSD$ */
 #include "if_em.h"
 #include <sys/sbuf.h>
 #include <machine/_inttypes.h>
@@ -37,8 +36,8 @@
 /*********************************************************************
  *  Driver version:
  *********************************************************************/
-char em_driver_version[] = "7.7.8-fbsd";
-char igb_driver_version[] = "2.5.19-fbsd";
+static const char em_driver_version[] = "7.7.8-fbsd";
+static const char igb_driver_version[] = "2.5.19-fbsd";
 
 /*********************************************************************
  *  PCI Device ID Table
@@ -50,7 +49,7 @@ char igb_driver_version[] = "2.5.19-fbsd";
  *  { Vendor ID, Device ID, SubVendor ID, SubDevice ID, String Index }
  *********************************************************************/
 
-static pci_vendor_info_t em_vendor_info_array[] =
+static const pci_vendor_info_t em_vendor_info_array[] =
 {
 	/* Intel(R) - lem-class legacy devices */
 	PVID(0x8086, E1000_DEV_ID_82540EM, "Intel(R) Legacy PRO/1000 MT 82540EM"),
@@ -215,7 +214,7 @@ static pci_vendor_info_t em_vendor_info_array[] =
 	PVID_END
 };
 
-static pci_vendor_info_t igb_vendor_info_array[] =
+static const pci_vendor_info_t igb_vendor_info_array[] =
 {
 	/* Intel(R) - igb-class devices */
 	PVID(0x8086, E1000_DEV_ID_82575EB_COPPER, "Intel(R) PRO/1000 82575EB (Copper)"),
@@ -330,6 +329,7 @@ static int	em_sysctl_debug_info(SYSCTL_HANDLER_ARGS);
 static int	em_get_rs(SYSCTL_HANDLER_ARGS);
 static void	em_print_debug_info(struct e1000_softc *);
 static int 	em_is_valid_ether_addr(u8 *);
+static bool	em_automask_tso(if_ctx_t);
 static int	em_sysctl_int_delay(SYSCTL_HANDLER_ARGS);
 static void	em_add_int_delay_sysctl(struct e1000_softc *, const char *,
 		    const char *, struct em_int_delay_info *, int, int);
@@ -532,6 +532,10 @@ SYSCTL_INT(_hw_em, OID_AUTO, rx_abs_int_delay, CTLFLAG_RDTUN,
 static int em_smart_pwr_down = false;
 SYSCTL_INT(_hw_em, OID_AUTO, smart_pwr_down, CTLFLAG_RDTUN, &em_smart_pwr_down,
     0, "Set to true to leave smart power down enabled on newer adapters");
+
+static bool em_unsupported_tso = false;
+SYSCTL_BOOL(_hw_em, OID_AUTO, unsupported_tso, CTLFLAG_RDTUN,
+    &em_unsupported_tso, 0, "Allow unsupported em(4) TSO configurations");
 
 /* Controls whether promiscuous also shows bad packets */
 static int em_debug_sbp = false;
@@ -781,19 +785,21 @@ em_set_num_queues(if_ctx_t ctx)
 	return (maxqueues);
 }
 
-#define	LEM_CAPS							\
-    IFCAP_HWCSUM | IFCAP_VLAN_MTU | IFCAP_VLAN_HWTAGGING |		\
-    IFCAP_VLAN_HWCSUM | IFCAP_WOL | IFCAP_VLAN_HWFILTER
+#define LEM_CAPS \
+    IFCAP_HWCSUM | IFCAP_VLAN_MTU | IFCAP_VLAN_HWTAGGING | \
+    IFCAP_VLAN_HWCSUM | IFCAP_WOL | IFCAP_VLAN_HWFILTER | IFCAP_TSO4 | \
+    IFCAP_LRO | IFCAP_VLAN_HWTSO | IFCAP_JUMBO_MTU | IFCAP_HWCSUM_IPV6
 
-#define	EM_CAPS								\
-    IFCAP_HWCSUM | IFCAP_VLAN_MTU | IFCAP_VLAN_HWTAGGING |		\
-    IFCAP_VLAN_HWCSUM | IFCAP_WOL | IFCAP_VLAN_HWFILTER | IFCAP_TSO4 |	\
-    IFCAP_LRO | IFCAP_VLAN_HWTSO
+#define EM_CAPS \
+    IFCAP_HWCSUM | IFCAP_VLAN_MTU | IFCAP_VLAN_HWTAGGING | \
+    IFCAP_VLAN_HWCSUM | IFCAP_WOL | IFCAP_VLAN_HWFILTER | IFCAP_TSO4 | \
+    IFCAP_LRO | IFCAP_VLAN_HWTSO | IFCAP_JUMBO_MTU | IFCAP_HWCSUM_IPV6 | \
+    IFCAP_TSO6
 
-#define	IGB_CAPS							\
-    IFCAP_HWCSUM | IFCAP_VLAN_MTU | IFCAP_VLAN_HWTAGGING |		\
-    IFCAP_VLAN_HWCSUM | IFCAP_WOL | IFCAP_VLAN_HWFILTER | IFCAP_TSO4 |	\
-    IFCAP_LRO | IFCAP_VLAN_HWTSO | IFCAP_JUMBO_MTU | IFCAP_HWCSUM_IPV6 |\
+#define IGB_CAPS \
+    IFCAP_HWCSUM | IFCAP_VLAN_MTU | IFCAP_VLAN_HWTAGGING | \
+    IFCAP_VLAN_HWCSUM | IFCAP_WOL | IFCAP_VLAN_HWFILTER | IFCAP_TSO4 | \
+    IFCAP_LRO | IFCAP_VLAN_HWTSO | IFCAP_JUMBO_MTU | IFCAP_HWCSUM_IPV6 | \
     IFCAP_TSO6
 
 /*********************************************************************
@@ -896,24 +902,19 @@ em_if_attach_pre(if_ctx_t ctx)
 		scctx->isc_tx_tso_size_max = EM_TSO_SIZE;
 		scctx->isc_tx_tso_segsize_max = EM_TSO_SEG_SIZE;
 		scctx->isc_capabilities = scctx->isc_capenable = EM_CAPS;
+		scctx->isc_tx_csum_flags = CSUM_TCP | CSUM_UDP | CSUM_IP_TSO |
+		    CSUM_IP6_TCP | CSUM_IP6_UDP;
+
+		/* Disable TSO on all em(4) until ring stalls can be debugged */
+		scctx->isc_capenable &= ~IFCAP_TSO;
+
 		/*
-		 * For EM-class devices, don't enable IFCAP_{TSO4,VLAN_HWTSO}
-		 * by default as we don't have workarounds for all associated
-		 * silicon errata.  E. g., with several MACs such as 82573E,
-		 * TSO only works at Gigabit speed and otherwise can cause the
-		 * hardware to hang (which also would be next to impossible to
-		 * work around given that already queued TSO-using descriptors
-		 * would need to be flushed and vlan(4) reconfigured at runtime
-		 * in case of a link speed change).  Moreover, MACs like 82579
-		 * still can hang at Gigabit even with all publicly documented
-		 * TSO workarounds implemented.  Generally, the penality of
-		 * these workarounds is rather high and may involve copying
-		 * mbuf data around so advantages of TSO lapse.  Still, TSO may
-		 * work for a few MACs of this class - at least when sticking
-		 * with Gigabit - in which case users may enable TSO manually.
+		 * Disable TSO on SPT due to errata that downclocks DMA performance
+		 * i218-i219 Specification Update 1.5.4.5
 		 */
-		scctx->isc_capenable &= ~(IFCAP_TSO4 | IFCAP_VLAN_HWTSO);
-		scctx->isc_tx_csum_flags = CSUM_TCP | CSUM_UDP | CSUM_IP_TSO;
+		if (hw->mac.type == e1000_pch_spt)
+			scctx->isc_capenable &= ~IFCAP_TSO;
+
 		/*
 		 * We support MSI-X with 82574 only, but indicate to iflib(4)
 		 * that it shall give MSI at least a try with other devices.
@@ -929,17 +930,50 @@ em_if_attach_pre(if_ctx_t ctx)
 		scctx->isc_rxqsizes[0] = roundup2((scctx->isc_nrxd[0] + 1) * sizeof(struct e1000_rx_desc), EM_DBA_ALIGN);
 		scctx->isc_txd_size[0] = sizeof(struct e1000_tx_desc);
 		scctx->isc_rxd_size[0] = sizeof(struct e1000_rx_desc);
-		scctx->isc_tx_csum_flags = CSUM_TCP | CSUM_UDP;
 		scctx->isc_txrx = &lem_txrx;
-		scctx->isc_capabilities = LEM_CAPS;
-		if (hw->mac.type < e1000_82543)
-			scctx->isc_capabilities &= ~(IFCAP_HWCSUM|IFCAP_VLAN_HWCSUM);
+		scctx->isc_tx_tso_segments_max = EM_MAX_SCATTER;
+		scctx->isc_tx_tso_size_max = EM_TSO_SIZE;
+		scctx->isc_tx_tso_segsize_max = EM_TSO_SEG_SIZE;
+		scctx->isc_capabilities = scctx->isc_capenable = LEM_CAPS;
+		if (em_unsupported_tso)
+			scctx->isc_capabilities |= IFCAP_TSO6;
+		scctx->isc_tx_csum_flags = CSUM_TCP | CSUM_UDP | CSUM_IP_TSO |
+		    CSUM_IP6_TCP | CSUM_IP6_UDP;
+
+		/* Disable TSO on all lem(4) until ring stalls can be debugged */
+		scctx->isc_capenable &= ~IFCAP_TSO;
+
 		/* 82541ER doesn't do HW tagging */
-		if (hw->device_id == E1000_DEV_ID_82541ER || hw->device_id == E1000_DEV_ID_82541ER_LOM)
+		if (hw->device_id == E1000_DEV_ID_82541ER ||
+		    hw->device_id == E1000_DEV_ID_82541ER_LOM) {
 			scctx->isc_capabilities &= ~IFCAP_VLAN_HWTAGGING;
+			scctx->isc_capenable = scctx->isc_capabilities;
+		}
+		/* This is the first e1000 chip and it does not do offloads */
+		if (hw->mac.type == e1000_82542) {
+			scctx->isc_capabilities &= ~(IFCAP_HWCSUM | IFCAP_VLAN_HWCSUM |
+			    IFCAP_HWCSUM_IPV6 | IFCAP_VLAN_HWTAGGING |
+			    IFCAP_VLAN_HWFILTER | IFCAP_TSO | IFCAP_VLAN_HWTSO);
+			scctx->isc_capenable = scctx->isc_capabilities;
+		}
+		/* These can't do TSO for various reasons */
+		if (hw->mac.type < e1000_82544 || hw->mac.type == e1000_82547 ||
+		    hw->mac.type == e1000_82547_rev_2) {
+			scctx->isc_capabilities &= ~(IFCAP_TSO | IFCAP_VLAN_HWTSO);
+			scctx->isc_capenable = scctx->isc_capabilities;
+		}
+		/* XXXKB: No IPv6 before this? */
+		if (hw->mac.type < e1000_82545){
+			scctx->isc_capabilities &= ~IFCAP_HWCSUM_IPV6;
+			scctx->isc_capenable = scctx->isc_capabilities;
+		}
+		/* "PCI/PCI-X SDM 4.0" page 33 (b) - FDX requirement on these chips */
+		if (hw->mac.type == e1000_82547 || hw->mac.type == e1000_82547_rev_2)
+			scctx->isc_capenable &= ~(IFCAP_HWCSUM | IFCAP_VLAN_HWCSUM |
+			    IFCAP_HWCSUM_IPV6);
+
 		/* INTx only */
 		scctx->isc_msix_bar = 0;
-		scctx->isc_capenable = scctx->isc_capabilities;
 	}
 
 	/* Setup PCI resources */
@@ -1061,6 +1095,9 @@ em_if_attach_pre(if_ctx_t ctx)
 		error = ENOMEM;
 		goto err_late;
 	}
+
+	/* Clear the IFCAP_TSO auto mask */
+	sc->tso_automasked = 0;
 
 	/* Check SOL/IDER usage */
 	if (e1000_check_reset_block(hw))
@@ -1332,7 +1369,6 @@ em_if_init(if_ctx_t ctx)
 		e1000_rar_set(&sc->hw, sc->hw.mac.addr,
 		    E1000_RAR_ENTRIES - 1);
 	}
-
 
 	/* Initialize the hardware */
 	em_reset(ctx);
@@ -1801,6 +1837,7 @@ em_if_update_admin_status(if_ctx_t ctx)
 	struct e1000_hw *hw = &sc->hw;
 	device_t dev = iflib_get_dev(ctx);
 	u32 link_check, thstat, ctrl;
+	bool automasked = false;
 
 	link_check = thstat = ctrl = 0;
 	/* Get the cached link value or read phy for real */
@@ -1878,8 +1915,14 @@ em_if_update_admin_status(if_ctx_t ctx)
 			sc->flags |= IGB_MEDIA_RESET;
 			em_reset(ctx);
 		}
-		iflib_link_state_change(ctx, LINK_STATE_UP,
-		    IF_Mbps(sc->link_speed));
+		/* Only do TSO on gigabit Ethernet for older chips due to errata */
+		if (hw->mac.type < igb_mac_min)
+			automasked = em_automask_tso(ctx);
+
+		/* Automasking resets the interface, so don't mark it up yet */
+		if (!automasked)
+			iflib_link_state_change(ctx, LINK_STATE_UP,
+			    IF_Mbps(sc->link_speed));
 	} else if (!link_check && (sc->link_active == 1)) {
 		sc->link_speed = 0;
 		sc->link_duplex = 0;
@@ -3858,6 +3901,35 @@ em_is_valid_ether_addr(u8 *addr)
 	}
 
 	return (true);
+}
+
+static bool
+em_automask_tso(if_ctx_t ctx)
+{
+	struct e1000_softc *sc = iflib_get_softc(ctx);
+	if_softc_ctx_t scctx = iflib_get_softc_ctx(ctx);
+	if_t ifp = iflib_get_ifp(ctx);
+
+	if (!em_unsupported_tso && sc->link_speed &&
+	    sc->link_speed != SPEED_1000 && scctx->isc_capenable & IFCAP_TSO) {
+		device_printf(sc->dev, "Disabling TSO for 10/100 Ethernet.\n");
+		sc->tso_automasked = scctx->isc_capenable & IFCAP_TSO;
+		scctx->isc_capenable &= ~IFCAP_TSO;
+		if_setcapenablebit(ifp, 0, IFCAP_TSO);
+		/* iflib_init_locked handles ifnet hwassistbits */
+		iflib_request_reset(ctx);
+		return true;
+	} else if (sc->link_speed == SPEED_1000 && sc->tso_automasked) {
+		device_printf(sc->dev, "Re-enabling TSO for GbE.\n");
+		scctx->isc_capenable |= sc->tso_automasked;
+		if_setcapenablebit(ifp, sc->tso_automasked, 0);
+		sc->tso_automasked = 0;
+		/* iflib_init_locked handles ifnet hwassistbits */
+		iflib_request_reset(ctx);
+		return true;
+	}
+
+	return false;
 }
 
 /*

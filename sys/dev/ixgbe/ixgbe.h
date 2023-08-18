@@ -31,7 +31,6 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************/
-/*$FreeBSD$*/
 
 #ifndef _IXGBE_H_
 #define _IXGBE_H_
@@ -529,6 +528,8 @@ ixv_check_ether_addr(u8 *addr)
 
 	return (status);
 }
+
+uint64_t ixgbe_link_speed_to_baudrate(ixgbe_link_speed speed);
 
 /* Shared Prototypes */
 

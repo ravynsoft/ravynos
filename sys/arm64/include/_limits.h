@@ -24,8 +24,11 @@
  * SUCH DAMAGE.
  *
  *	@(#)limits.h	8.3 (Berkeley) 1/4/94
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/_limits.h>
+#else /* !__arm__ */
 
 #ifndef _MACHINE__LIMITS_H_
 #define	_MACHINE__LIMITS_H_
@@ -83,3 +86,5 @@
 #define	__MINSIGSTKSZ	(1024 * 4)
 
 #endif /* !_MACHINE__LIMITS_H_ */
+
+#endif /* !__arm__ */

@@ -41,8 +41,6 @@ static char sccsid[] = "@(#)swapon.c	8.1 (Berkeley) 6/5/93";
 #endif /* not lint */
 #endif
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/disk.h>
 #include <sys/disklabel.h>
@@ -68,7 +66,7 @@ __FBSDID("$FreeBSD$");
 #include <string.h>
 #include <unistd.h>
 
-static void usage(void);
+static void usage(void) __dead2;
 static const char *swap_on_off(const char *, int, char *);
 static const char *swap_on_off_gbde(const char *, int);
 static const char *swap_on_off_geli(const char *, char *, int);

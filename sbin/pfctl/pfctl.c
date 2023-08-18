@@ -34,8 +34,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #define PFIOC_USE_LATEST
 
 #include <sys/types.h>
@@ -3039,6 +3037,8 @@ main(int argc, char *argv[])
 		switch (*showopt) {
 		case 'A':
 			pfctl_show_anchors(dev, opts, anchorname);
+			if (opts & PF_OPT_VERBOSE2)
+				printf("Ethernet:\n");
 			pfctl_show_eth_anchors(dev, opts, anchorname);
 			break;
 		case 'r':

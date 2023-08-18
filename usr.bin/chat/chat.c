@@ -78,8 +78,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <ctype.h>
@@ -145,7 +143,7 @@ static int say_next, hup_next;
 
 void *dup_mem(void *b, size_t c);
 void *copy_of(char *s);
-static void usage(void);
+static void usage(void) __dead2;
 void chat_logf(const char *fmt, ...);
 void fatal(int code, const char *fmt, ...);
 SIGTYPE sigalrm(int signo);

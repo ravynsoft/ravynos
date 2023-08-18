@@ -32,7 +32,6 @@
  * SUCH DAMAGE.
  *
  *	from: @(#)ls.h	8.1 (Berkeley) 5/31/93
- * $FreeBSD$
  */
 
 #define NO_PRINT	1
@@ -56,6 +55,7 @@ extern int f_sectime;		/* print the real time for all files */
 extern int f_size;		/* list size in short listing */
 extern int f_slash;		/* append a '/' if the file is a directory */
 extern int f_sortacross;	/* sort across rows, not down columns */
+extern int f_sowner;		/* disable showing the owner's name */
 extern int f_statustime;	/* use time of last mode change */
 extern int f_thousands;		/* show file sizes with thousands separators */
 extern char *f_timeformat;	/* user-specified time format */

@@ -27,7 +27,7 @@
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-: "${LIBEXEC_PATH:='/usr/libexec/fwget'}"
+: ${LIBEXEC_PATH:="/usr/libexec/fwget"}
 
 usage()
 {
@@ -122,4 +122,4 @@ if [ "${DRY_RUN}" = "y" ]; then
 	exit 0
 fi
 
-pkg install -qy "${packages}"
+pkg install -qy ${packages}

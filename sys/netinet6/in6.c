@@ -63,8 +63,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_inet.h"
 #include "opt_inet6.h"
 
@@ -114,6 +112,10 @@ __FBSDID("$FreeBSD$");
 #include <netinet6/scope6_var.h>
 #include <netinet6/in6_fib.h>
 #include <netinet6/in6_pcb.h>
+
+#ifdef MAC
+#include <security/mac/mac_framework.h>
+#endif
 
 /*
  * struct in6_ifreq and struct ifreq must be type punnable for common members
@@ -567,6 +569,12 @@ in6_control_ioctl(u_long cmd, void *data,
 		break;
 
 	case SIOCAIFADDR_IN6:
+#ifdef MAC
+		/* Check if a MAC policy disallows setting the IPv6 address. */
+		error = mac_inet6_check_add_addr(cred, &sa6->sin6_addr, ifp);
+		if (error != 0)
+			goto out;
+#endif
 		error = in6_addifaddr(ifp, ifra, ia);
 		ia = NULL;
 		break;

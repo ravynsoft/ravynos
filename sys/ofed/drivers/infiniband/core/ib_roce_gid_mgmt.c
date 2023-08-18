@@ -33,8 +33,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "core_priv.h"
 #include <sys/eventhandler.h>
 
@@ -239,7 +237,7 @@ roce_gid_update_addr_callback(struct ib_device *device, u8 port,
 		if (ifp != ndev) {
 			if (if_gettype(ifp) != IFT_L2VLAN)
 				continue;
-			if (ifp != rdma_vlan_dev_real_dev(ifp))
+			if (ndev != rdma_vlan_dev_real_dev(ifp))
 				continue;
 		}
 

@@ -35,8 +35,11 @@
  *
  *	from: @(#)cpu.h 5.4 (Berkeley) 5/9/91
  *	from: FreeBSD: src/sys/i386/include/cpu.h,v 1.62 2001/06/29
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/cpu.h>
+#else /* !__arm__ */
 
 #ifndef _MACHINE_CPU_H_
 #define	_MACHINE_CPU_H_
@@ -253,3 +256,5 @@ ADDRESS_TRANSLATE_FUNC(s1e1w)
 #endif
 
 #endif /* !_MACHINE_CPU_H_ */
+
+#endif /* !__arm__ */

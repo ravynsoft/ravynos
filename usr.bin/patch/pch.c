@@ -24,7 +24,6 @@
  * behaviour
  *
  * $OpenBSD: pch.c,v 1.43 2014/11/18 17:03:35 tobias Exp $
- * $FreeBSD$
  */
 
 #include <sys/types.h>
@@ -1618,7 +1617,8 @@ num_components(const char *path)
 	size_t n;
 	const char *cp;
 
-	for (n = 0, cp = path; (cp = strchr(cp, '/')) != NULL; n++, cp++) {
+	for (n = 0, cp = path; (cp = strchr(cp, '/')) != NULL; n++) {
+		cp++;
 		while (*cp == '/')
 			cp++;		/* skip consecutive slashes */
 	}

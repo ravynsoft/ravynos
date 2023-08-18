@@ -31,8 +31,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_inet.h"
 #include "opt_inet6.h"
 #include "opt_ipsec.h"
@@ -8928,6 +8926,9 @@ bbr_do_syn_recv(struct mbuf *m, struct tcphdr *th, struct socket *so,
 
 	bbr = (struct tcp_bbr *)tp->t_fb_ptr;
 	ctf_calc_rwin(so, tp);
+	if ((thflags & TH_RST) ||
+	    (tp->t_fin_is_rst && (thflags & TH_FIN)))
+		return (ctf_process_rst(m, th, so, tp));
 	if ((thflags & TH_ACK) &&
 	    (SEQ_LEQ(th->th_ack, tp->snd_una) ||
 	     SEQ_GT(th->th_ack, tp->snd_max))) {
@@ -8959,9 +8960,6 @@ bbr_do_syn_recv(struct mbuf *m, struct tcphdr *th, struct socket *so,
 			return (0);
 		}
 	}
-	if ((thflags & TH_RST) ||
-	    (tp->t_fin_is_rst && (thflags & TH_FIN)))
-		return (ctf_process_rst(m, th, so, tp));
 	/*
 	 * RFC 1323 PAWS: If we have a timestamp reply on this segment and
 	 * it's less than ts_recent, drop it.

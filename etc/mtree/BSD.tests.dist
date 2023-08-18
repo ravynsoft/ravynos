@@ -1,4 +1,3 @@
-# $FreeBSD$
 #
 # Please see the file src/etc/mtree/README before making changes to this file.
 #
@@ -135,6 +134,8 @@
                     ..
                     json
                     ..
+                    kinst
+                    ..
                     lexer
                     ..
                     llquantize
@@ -254,8 +255,6 @@
                 ..
                 amd64
                     arrays
-                    ..
-                    kinst
                     ..
                 ..
             ..
@@ -815,6 +814,8 @@
         mac
             bsdextended
             ..
+            ipacl
+            ..
             portacl
             ..
         ..
@@ -895,6 +896,8 @@
         vfs
         ..
         vm
+            stack
+            ..
         ..
         vmm
         ..
@@ -1131,6 +1134,8 @@
         unifdef
         ..
         uniq
+        ..
+        unzip
         ..
         vmstat
         ..

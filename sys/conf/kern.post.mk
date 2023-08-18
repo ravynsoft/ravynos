@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 # Part of a unified Makefile for building kernels.  This part includes all
 # the definitions that need to be after all the % directives except %RULES
@@ -444,11 +443,12 @@ config.o env.o hints.o vers.o vnode_if.o:
 	${NORMAL_C}
 	${NORMAL_CTFCONVERT}
 
+NEWVERS_ENV+= MAKE="${MAKE}"
 .if ${MK_REPRODUCIBLE_BUILD} != "no"
-REPRO_FLAG="-R"
+NEWVERS_ARGS+= -R
 .endif
 vers.c: .NOMETA_CMP $S/conf/newvers.sh $S/sys/param.h ${SYSTEM_DEP:Nvers.*}
-	MAKE="${MAKE}" sh $S/conf/newvers.sh ${REPRO_FLAG} ${KERN_IDENT}
+	${NEWVERS_ENV} sh $S/conf/newvers.sh ${NEWVERS_ARGS} ${KERN_IDENT}
 
 vnode_if.c: $S/tools/vnode_if.awk $S/kern/vnode_if.src
 	${AWK} -f $S/tools/vnode_if.awk $S/kern/vnode_if.src -c
@@ -465,7 +465,7 @@ vnode_if_typedef.h:
 .if ${MFS_IMAGE:Uno} != "no"
 .if empty(MD_ROOT_SIZE_CONFIGURED)
 embedfs_${MFS_IMAGE:T:R}.o: ${MFS_IMAGE} $S/dev/md/embedfs.S
-	${CC} ${CFLAGS} ${ACFLAGS} -DMFS_IMAGE="${MFS_IMAGE}" -c \
+	${CC} ${CFLAGS} ${ACFLAGS} -DMFS_IMAGE=\""${MFS_IMAGE}"\" -c \
 	    $S/dev/md/embedfs.S -o ${.TARGET}
 .endif
 .endif

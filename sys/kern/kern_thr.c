@@ -27,8 +27,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_posix.h"
 #include "opt_thrworkq.h"
 #include "opt_hwpmc_hooks.h"

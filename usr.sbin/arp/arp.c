@@ -44,8 +44,6 @@ static char const sccsid[] = "@(#)from: arp.c	8.2 (Berkeley) 1/2/94";
 #endif /* not lint */
 #endif
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * arp - display, set, and delete arp table entries
  */
@@ -90,7 +88,7 @@ static void nuke_entries(uint32_t ifindex, struct in_addr addr);
 static int print_entries(uint32_t ifindex, struct in_addr addr);
 
 static int delete(char *host);
-static void usage(void);
+static void usage(void) __dead2;
 static int set(int argc, char **argv);
 static int get(char *host);
 static int file(char *name);

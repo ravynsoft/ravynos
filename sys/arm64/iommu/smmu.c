@@ -91,8 +91,6 @@
 #include "opt_acpi.h"
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/bitstring.h>
 #include <sys/bus.h>
@@ -1359,7 +1357,7 @@ smmu_check_features(struct smmu_softc *sc)
 	switch (reg & IDR0_TTENDIAN_M) {
 	case IDR0_TTENDIAN_MIXED:
 		if (bootverbose)
-			device_printf(sc->dev, "Mixed endianess supported.\n");
+			device_printf(sc->dev, "Mixed endianness supported.\n");
 		sc->features |= SMMU_FEATURE_TT_LE;
 		sc->features |= SMMU_FEATURE_TT_BE;
 		break;

@@ -26,8 +26,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 /*
  * Developed by the TrustedBSD Project.
@@ -67,7 +65,7 @@ struct ufs_extattr_fileheader {
 struct ufs_extattr_header {
 	u_int	ueh_flags;	/* flags for attribute */
 	u_int	ueh_len;	/* local defined length; <= uef_size */
-	u_int32_t	ueh_i_gen;	/* generation number for sanity */
+	uint32_t	ueh_i_gen;	/* generation number for sanity */
 	/* data follows the header */
 };
 

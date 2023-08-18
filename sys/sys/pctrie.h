@@ -26,8 +26,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #ifndef _SYS_PCTRIE_H_
@@ -83,7 +81,7 @@ name##_PCTRIE_INSERT(struct pctrie *ptree, struct type *ptr)		\
 	    allocfn);							\
 }									\
 									\
-static __inline struct type *						\
+static __inline __unused struct type *						\
 name##_PCTRIE_LOOKUP(struct pctrie *ptree, uint64_t key)		\
 {									\
 									\
@@ -135,18 +133,24 @@ void		pctrie_remove(struct pctrie *ptree, uint64_t key,
 size_t		pctrie_node_size(void);
 int		pctrie_zone_init(void *mem, int size, int flags);
 
+/*
+ * Each search path in the trie terminates at a leaf, which is a pointer to a
+ * value marked with a set 1-bit.  A leaf may be associated with a null pointer
+ * to indicate no value there.
+ */
+#define	PCTRIE_ISLEAF	0x1
+#define PCTRIE_NULL (struct pctrie_node *)PCTRIE_ISLEAF
+
 static __inline void
 pctrie_init(struct pctrie *ptree)
 {
-
-	ptree->pt_root = 0;
+	ptree->pt_root = PCTRIE_NULL;
 }
 
 static __inline bool
 pctrie_is_empty(struct pctrie *ptree)
 {
-
-	return (ptree->pt_root == 0);
+	return (ptree->pt_root == PCTRIE_NULL);
 }
 
 /*

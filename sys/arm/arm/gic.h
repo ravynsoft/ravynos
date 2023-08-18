@@ -32,12 +32,17 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #ifndef _ARM_GIC_H_
 #define _ARM_GIC_H_
+
+/* The GICv1/2 only supports 8 CPUs */
+#if MAXCPU > 8
+#define	GIC_MAXCPU	8
+#else
+#define	GIC_MAXCPU	MAXCPU
+#endif
 
 struct arm_gic_softc {
 	device_t		gic_dev;
@@ -50,7 +55,7 @@ struct arm_gic_softc {
 	struct mtx		mutex;
 	uint32_t		nirqs;
 	uint32_t		typer;
-	uint32_t		last_irq[MAXCPU];
+	uint32_t		last_irq[GIC_MAXCPU];
 
 	uint32_t		gic_iidr;
 	u_int			gic_bus;

@@ -60,8 +60,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_isa.h"
 
 #include <sys/param.h>
@@ -275,12 +273,7 @@ find_first_bit(uint32_t mask)
 static int
 find_next_bit(uint32_t mask, int bit)
 {
-	bit++;
-	while (bit < 32 && !(mask & (1 << bit)))
-		bit++;
-	if (bit != 32)
-		return (bit);
-	return (-1);
+	return (find_first_bit(mask & (-2 << bit)));
 }
 
 /*

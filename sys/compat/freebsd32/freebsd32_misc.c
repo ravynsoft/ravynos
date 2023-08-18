@@ -27,8 +27,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_ffclock.h"
 #include "opt_inet.h"
 #include "opt_inet6.h"
@@ -512,7 +510,7 @@ freebsd32_mprotect(struct thread *td, struct freebsd32_mprotect_args *uap)
 		prot |= PROT_EXEC;
 #endif
 	return (kern_mprotect(td, (uintptr_t)PTRIN(uap->addr), uap->len,
-	    prot));
+	    prot, 0));
 }
 
 int

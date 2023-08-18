@@ -48,7 +48,6 @@
 #include "aicasm/aicasm_insformat.h"
 #else
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
 #include <dev/aic7xxx/aic7xxx_osm.h>
 #include <dev/aic7xxx/aic7xxx_inline.h>
 #include <dev/aic7xxx/aicasm/aicasm_insformat.h>
@@ -7182,7 +7181,7 @@ bus_reset:
 				 * In the non-paging case, the sequencer will
 				 * never re-reference the in-core SCB.
 				 * To make sure we are notified during
-				 * reslection, set the MK_MESSAGE flag in
+				 * reselection, set the MK_MESSAGE flag in
 				 * the card's copy of the SCB.
 				 */
 				if ((ahc->flags & AHC_PAGESCBS) == 0) {

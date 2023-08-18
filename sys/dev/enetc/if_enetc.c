@@ -26,8 +26,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/bus.h>
 #include <sys/endian.h>
@@ -127,7 +125,7 @@ static int			enetc_ctrl_send(struct enetc_softc*,
 
 static const char enetc_driver_version[] = "1.0.0";
 
-static pci_vendor_info_t enetc_vendor_info_array[] = {
+static const pci_vendor_info_t enetc_vendor_info_array[] = {
 	PVID(PCI_VENDOR_FREESCALE, ENETC_DEV_ID_PF,
 	    "Freescale ENETC PCIe Gigabit Ethernet Controller"),
 	PVID_END

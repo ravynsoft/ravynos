@@ -26,8 +26,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/syscall.h>
 #include <sys/time.h>
 #include <sys/vdso.h>
@@ -44,7 +42,11 @@ __gettimeofday(struct timeval *tv, struct timezone *tz)
 	int error;
 
 	error = __vdso_gettimeofday(tv, tz);
-	if (error == ENOSYS)
+	if (error == ENOSYS) {
 		error = __sys_gettimeofday(tv, tz);
+	} else if (error != 0) {
+		errno = error;
+		error = -1;
+	}
 	return (error);
 }

@@ -142,8 +142,6 @@
 #ifdef LIBWRAP
 #include <tcpd.h>
 #include <syslog.h>
-extern int allow_severity;
-extern int deny_severity;
 #endif /* LIBWRAP */
 
 /* Re-exec fds */
@@ -1299,13 +1297,24 @@ server_accept_loop(int *sock_in, int *sock_out, int *newsock, int *config_s)
 				    SO_LINGER, &l, sizeof(l));
 				(void )close(*newsock);
 				/*
-				 * Mimic message from libwrap's refuse()
-				 * exactly.  sshguard, and supposedly lots
-				 * of custom made scripts rely on it.
+				 * Mimic message from libwrap's refuse() as
+				 * precisely as we can afford.  The authentic
+				 * message prints the IP address and the
+				 * hostname it resolves to in parentheses.  If
+				 * the IP address cannot be resolved to a
+				 * hostname, the IP address will be repeated
+				 * in parentheses.  As name resolution in the
+				 * main server loop could stall, and logging
+				 * resolved names adds little or no value to
+				 * incident investigation, this implementation
+				 * only repeats the IP address in parentheses.
+				 * This should resemble librwap's refuse()
+				 * closely enough not to break auditing
+				 * software like sshguard or custom scripts.
 				 */
-				syslog(deny_severity,
+				syslog(LOG_WARNING,
 				    "refused connect from %s (%s)",
-				    eval_client(&req),
+				    eval_hostaddr(req.client),
 				    eval_hostaddr(req.client));
 				debug("Connection refused by tcp wrapper");
 				continue;
@@ -2112,14 +2121,6 @@ main(int ac, char **av)
 	/* Reinitialize the log (because of the fork above). */
 	log_init(__progname, options.log_level, options.log_facility, log_stderr);
 
-#ifdef LIBWRAP
-	/*
-	 * We log refusals ourselves.  However, libwrap will report
-	 * syntax errors in hosts.allow via syslog(3).
-	 */
-	allow_severity = options.log_facility|LOG_INFO;
-	deny_severity = options.log_facility|LOG_WARNING;
-#endif
 	/* Avoid killing the process in high-pressure swapping environments. */
 	if (!inetd_flag && madvise(NULL, 0, MADV_PROTECT) != 0)
 		debug("madvise(): %.200s", strerror(errno));

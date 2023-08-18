@@ -27,7 +27,6 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD$
 
 # This is a tool to manage updating files that are not updated as part
 # of 'make installworld' such as files in /etc.  Unlike other tools,
@@ -214,15 +213,25 @@ build_tree()
 			mkdir -p $1/etc || return 1
 			cp -p $SRCDIR/$file $1/etc/$name || return 1
 		done
-	elif ! [ -n "$nobuild" ]; then
-		(cd $SRCDIR; $make DESTDIR=$destdir distrib-dirs &&
-    MAKEOBJDIRPREFIX=$destdir/usr/obj $make _obj SUBDIR_OVERRIDE=etc &&
-    MAKEOBJDIRPREFIX=$destdir/usr/obj $make everything SUBDIR_OVERRIDE=etc &&
-    MAKEOBJDIRPREFIX=$destdir/usr/obj $make DESTDIR=$destdir distribution) || \
-		    return 1
 	else
-		(cd $SRCDIR; $make DESTDIR=$destdir distrib-dirs &&
-		    $make DESTDIR=$destdir distribution) || return 1
+		(
+			cd $SRCDIR || exit 1
+			if ! [ -n "$nobuild" ]; then
+				export MAKEOBJDIRPREFIX=$destdir/usr/obj
+				if [ -n "$($make -V.ALLTARGETS:Mbuildetc)" ]; then
+					$make buildetc || exit 1
+				else
+					$make _obj SUBDIR_OVERRIDE=etc || exit 1
+					$make everything SUBDIR_OVERRIDE=etc || exit 1
+				fi
+			fi
+			if [ -n "$($make -V.ALLTARGETS:Minstalletc)" ]; then
+				$make DESTDIR=$destdir installetc || exit 1
+			else
+				$make DESTDIR=$destdir distrib-dirs || exit 1
+				$make DESTDIR=$destdir distribution || exit 1
+			fi
+		) || return 1
 	fi
 	chflags -R noschg $1 || return 1
 	rm -rf $1/usr/obj || return 1

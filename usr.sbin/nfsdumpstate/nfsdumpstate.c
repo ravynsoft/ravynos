@@ -26,8 +26,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/linker.h>
 #include <sys/module.h>
@@ -56,7 +54,7 @@ __FBSDID("$FreeBSD$");
 
 static void dump_lockstate(char *);
 static void dump_openstate(void);
-static void usage(void);
+static void usage(void) __dead2;
 static char *open_flags(uint32_t);
 static char *deleg_flags(uint32_t);
 static char *lock_flags(uint32_t);

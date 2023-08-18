@@ -42,8 +42,6 @@ static char sccsid[] = "@(#)date.c	8.2 (Berkeley) 4/28/95";
 #endif
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/time.h>
 #include <sys/stat.h>
@@ -68,12 +66,12 @@ __FBSDID("$FreeBSD$");
 static time_t tval;
 
 static void badformat(void);
-static void iso8601_usage(const char *);
+static void iso8601_usage(const char *) __dead2;
 static void multipleformats(void);
 static void printdate(const char *);
 static void printisodate(struct tm *);
 static void setthetime(const char *, const char *, int);
-static void usage(void);
+static void usage(void) __dead2;
 
 static const struct iso8601_fmt {
 	const char *refname;

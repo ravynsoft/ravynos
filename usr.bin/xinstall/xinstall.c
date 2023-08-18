@@ -43,8 +43,6 @@ static char sccsid[] = "@(#)xinstall.c	8.1 (Berkeley) 7/21/93";
 #endif
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/mman.h>
 #include <sys/mount.h>
@@ -1300,6 +1298,9 @@ copy(int from_fd, const char *from_name, int to_fd, const char *to_name,
 	static size_t bufsize;
 	int nr, nw;
 	int serrno;
+#ifndef BOOTSTRAP_XINSTALL
+	ssize_t ret;
+#endif
 	char *p;
 	int done_copy;
 	DIGEST_CTX ctx;
@@ -1310,6 +1311,28 @@ copy(int from_fd, const char *from_name, int to_fd, const char *to_name,
 	if (lseek(to_fd, (off_t)0, SEEK_SET) == (off_t)-1)
 		err(EX_OSERR, "lseek: %s", to_name);
 
+#ifndef BOOTSTRAP_XINSTALL
+	/* Try copy_file_range() if no digest is requested */
+	if (digesttype == DIGEST_NONE) {
+		ret = 1;
+		while (ret > 0) {
+			ret = copy_file_range(from_fd, NULL, to_fd, NULL,
+			    SSIZE_MAX, 0);
+		}
+		if (ret == 0) {
+			/* DIGEST_NONE always returns NULL */
+			return (NULL);
+		}
+		if (errno != EINVAL) {
+			serrno = errno;
+			(void)unlink(to_name);
+			errno = serrno;
+			err(EX_OSERR, "%s", to_name);
+		}
+		/* Fall back */
+	}
+
+#endif
 	digest_init(&ctx);
 
 	done_copy = 0;

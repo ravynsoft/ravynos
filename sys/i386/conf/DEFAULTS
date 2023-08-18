@@ -1,9 +1,10 @@
 #
 # DEFAULTS -- Default kernel configuration file for FreeBSD/i386
 #
-# $FreeBSD$
 
 machine		i386
+
+options		EARLY_AP_STARTUP
 
 # Bus support.
 device		isa

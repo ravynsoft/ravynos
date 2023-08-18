@@ -1,6 +1,5 @@
 #include <machine/asm.h>
 
-.ident	"$FreeBSD$"
 ENTRY(_ctx_start)
 	mov	lr, pc
 	mov	pc, r4

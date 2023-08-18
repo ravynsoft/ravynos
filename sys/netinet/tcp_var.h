@@ -29,7 +29,6 @@
  * SUCH DAMAGE.
  *
  *	@(#)tcp_var.h	8.4 (Berkeley) 5/24/95
- * $FreeBSD$
  */
 
 #ifndef _NETINET_TCP_VAR_H_
@@ -442,15 +441,6 @@ struct tcpcb {
 	const char *t_output_caller;	/* Function that called tcp_output */
 	struct statsblob *t_stats;	/* Per-connection stats */
 	/* Should these be a pointer to the arrays or an array? */
-#ifdef TCP_ACCOUNTING
-	uint64_t tcp_cnt_counters[TCP_NUM_CNT_COUNTERS];
-	uint64_t tcp_proc_time[TCP_NUM_CNT_COUNTERS];
-#endif
-#ifdef TCP_REQUEST_TRK
-	uint32_t tcp_hybrid_start;	/* Num of times we started hybrid pacing */
-	uint32_t tcp_hybrid_stop;	/* Num of times we stopped hybrid pacing */
-	uint32_t tcp_hybrid_error;	/* Num of times we failed to start hybrid pacing */
-#endif
 	uint32_t t_logsn;		/* Log "serial number" */
 	uint32_t gput_ts;		/* Time goodput measurement started */
 	tcp_seq gput_seq;		/* Outbound measurement seq */
@@ -478,20 +468,30 @@ struct tcpcb {
 		uint8_t t_end_info_bytes[TCP_END_BYTE_INFO];
 		uint64_t t_end_info;
 	};
-#ifdef TCPPCAP
-	struct mbufq t_inpkts;		/* List of saved input packets. */
-	struct mbufq t_outpkts;		/* List of saved output packets. */
-#endif
-#ifdef TCP_HHOOK
 	struct osd	t_osd;		/* storage for Khelp module data */
-#endif
 	uint8_t _t_logpoint;	/* Used when a BB log points is enabled */
+	/*
+	 * Keep all #ifdef'ed components at the end of the structure!
+	 * This is important to minimize problems when compiling modules
+	 * using this structure from within the modules' directory.
+	 */
 #ifdef TCP_REQUEST_TRK
 	/* Response tracking addons. */
 	uint8_t t_tcpreq_req;	/* Request count */
 	uint8_t t_tcpreq_open;	/* Number of open range requests */
 	uint8_t t_tcpreq_closed;	/* Number of closed range requests */
+	uint32_t tcp_hybrid_start;	/* Num of times we started hybrid pacing */
+	uint32_t tcp_hybrid_stop;	/* Num of times we stopped hybrid pacing */
+	uint32_t tcp_hybrid_error;	/* Num of times we failed to start hybrid pacing */
 	struct tcp_sendfile_track t_tcpreq_info[MAX_TCP_TRK_REQ];
+#endif
+#ifdef TCP_ACCOUNTING
+	uint64_t tcp_cnt_counters[TCP_NUM_CNT_COUNTERS];
+	uint64_t tcp_proc_time[TCP_NUM_CNT_COUNTERS];
+#endif
+#ifdef TCPPCAP
+	struct mbufq t_inpkts;		/* List of saved input packets. */
+	struct mbufq t_outpkts;		/* List of saved output packets. */
 #endif
 };
 #endif	/* _KERNEL || _WANT_TCPCB */

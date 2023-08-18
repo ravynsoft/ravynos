@@ -32,9 +32,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #ifndef _NETINET_SCTP_STRUCTS_H_
 #define _NETINET_SCTP_STRUCTS_H_
 
@@ -1185,11 +1182,9 @@ struct sctp_association {
 	uint8_t pktdrop_supported;
 	uint8_t idata_supported;
 
-	/*
-	 * Zero checksum supported information: 0: disabled 1: enabled for
-	 * rcv 2: enabled for snd/rcv
-	 */
-	uint8_t zero_checksum;
+	/* Zero checksum supported information */
+	uint8_t rcv_edmid;
+	uint8_t snd_edmid;
 
 	/* Did the peer make the stream config (add out) request */
 	uint8_t peer_req_out;

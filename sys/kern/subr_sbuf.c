@@ -2,7 +2,7 @@
  * SPDX-License-Identifier: BSD-2-Clause
  *
  * Copyright (c) 2000-2008 Poul-Henning Kamp
- * Copyright (c) 2000-2008 Dag-Erling Coïdan Smørgrav
+ * Copyright (c) 2000-2008 Dag-Erling Smørgrav
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,8 +29,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 
 #ifdef _KERNEL

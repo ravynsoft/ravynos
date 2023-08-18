@@ -24,20 +24,22 @@
  */
 
 #include <machine/asm.h>
-__FBSDID("$FreeBSD$");
-
 	.section .init,"ax",@progbits
 	.align	4
 	.globl	_init
 	.type	_init,@function
 _init:
-	sub	$12,%esp	/* re-align stack pointer */
+	pushl	%ebp
+	movl	%esp,%ebp
+	subl	$8,%esp		/* re-align stack pointer */
 
 	.section .fini,"ax",@progbits
 	.align	4
 	.globl	_fini
 	.type	_fini,@function
 _fini:
-	sub	$12,%esp	/* re-align stack pointer */
+	pushl	%ebp
+	movl	%esp,%ebp
+	subl	$8,%esp		/* re-align stack pointer */
 
 	.section .note.GNU-stack,"",%progbits

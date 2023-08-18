@@ -32,9 +32,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <netinet/sctp_os.h>
 #include <sys/proc.h>
 #include <netinet/sctp_var.h>
@@ -2433,7 +2430,7 @@ sctp_inpcb_alloc(struct socket *so, uint32_t vrf_id)
 	inp->nrsack_supported = (uint8_t)SCTP_BASE_SYSCTL(sctp_nrsack_enable);
 	inp->pktdrop_supported = (uint8_t)SCTP_BASE_SYSCTL(sctp_pktdrop_enable);
 	inp->idata_supported = 0;
-	inp->zero_checksum = 0;
+	inp->rcv_edmid = SCTP_EDMID_NONE;
 
 	inp->fibnum = so->so_fibnum;
 	/* init the small hash table we use to track asocid <-> tcb */
@@ -2501,7 +2498,7 @@ sctp_inpcb_alloc(struct socket *so, uint32_t vrf_id)
 	SCTP_INP_LOCK_INIT(inp);
 	rw_init_flags(&inp->ip_inp.inp.inp_lock, "sctpinp",
 	    RW_RECURSE | RW_DUPOK);
-	SCTP_INP_READ_INIT(inp);
+	SCTP_INP_READ_LOCK_INIT(inp);
 	SCTP_ASOC_CREATE_LOCK_INIT(inp);
 	/* lock the new ep */
 	SCTP_INP_WLOCK(inp);
@@ -3612,7 +3609,7 @@ sctp_inpcb_free(struct sctp_inpcb *inp, int immediate, int from)
 		TAILQ_REMOVE(&inp->read_queue, sq, next);
 		sctp_free_remote_addr(sq->whoFrom);
 		if (so)
-			so->so_rcv.sb_cc -= sq->length;
+			SCTP_SB_DECR(&so->so_rcv, sq->length);
 		if (sq->data) {
 			sctp_m_freem(sq->data);
 			sq->data = NULL;
@@ -3678,7 +3675,7 @@ sctp_inpcb_free(struct sctp_inpcb *inp, int immediate, int from)
 	crfree(inp->ip_inp.inp.inp_cred);
 	INP_LOCK_DESTROY(&inp->ip_inp.inp);
 	SCTP_INP_LOCK_DESTROY(inp);
-	SCTP_INP_READ_DESTROY(inp);
+	SCTP_INP_READ_LOCK_DESTROY(inp);
 	SCTP_ASOC_CREATE_LOCK_DESTROY(inp);
 	SCTP_ZONE_FREE(SCTP_BASE_INFO(ipi_zone_ep), inp);
 	SCTP_DECR_EP_COUNT();
@@ -4777,20 +4774,15 @@ sctp_free_assoc(struct sctp_inpcb *inp, struct sctp_tcb *stcb, int from_inpcbfre
 						 * added right after this
 						 * msg.
 						 */
-						uint32_t strseq;
-
-						stcb->asoc.control_pdapi = sq;
-						strseq = (sq->sinfo_stream << 16) | (sq->mid & 0x0000ffff);
 						sctp_ulp_notify(SCTP_NOTIFY_PARTIAL_DELVIERY_INDICATION,
 						    stcb,
 						    SCTP_PARTIAL_DELIVERY_ABORTED,
-						    (void *)&strseq,
+						    (void *)sq,
 						    SCTP_SO_LOCKED);
-						stcb->asoc.control_pdapi = NULL;
 					}
+					/* Add an end to wake them */
+					sq->end_added = 1;
 				}
-				/* Add an end to wake them */
-				sq->end_added = 1;
 			}
 		}
 		SCTP_INP_READ_UNLOCK(inp);
@@ -6403,12 +6395,23 @@ sctp_load_addresses_from_init(struct sctp_tcb *stcb, struct mbuf *m,
 			/* Peer supports pr-sctp */
 			peer_supports_prsctp = 1;
 		} else if (ptype == SCTP_ZERO_CHECKSUM_ACCEPTABLE) {
-			/*
-			 * Only send zero checksums if the upper layer has
-			 * also enabled the support for this.
-			 */
-			if (stcb->asoc.zero_checksum == 1) {
-				stcb->asoc.zero_checksum = 2;
+			struct sctp_zero_checksum_acceptable zero_chksum,
+			                             *zero_chksum_p;
+
+			phdr = sctp_get_next_param(m, offset,
+			    (struct sctp_paramhdr *)&zero_chksum,
+			    sizeof(struct sctp_zero_checksum_acceptable));
+			if (phdr != NULL) {
+				/*
+				 * Only send zero checksums if the upper
+				 * layer has enabled the support for the
+				 * same method as allowed by the peer.
+				 */
+				zero_chksum_p = (struct sctp_zero_checksum_acceptable *)phdr;
+				if ((ntohl(zero_chksum_p->edmid) != SCTP_EDMID_NONE) &&
+				    (ntohl(zero_chksum_p->edmid) == stcb->asoc.rcv_edmid)) {
+					stcb->asoc.snd_edmid = stcb->asoc.rcv_edmid;
+				}
 			}
 		} else if (ptype == SCTP_SUPPORTED_CHUNK_EXT) {
 			/* A supported extension chunk */

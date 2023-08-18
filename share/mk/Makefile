@@ -1,4 +1,3 @@
-# $FreeBSD$
 #	@(#)Makefile	8.1 (Berkeley) 6/8/93
 
 # Only parse this if executing make in this directory, not in other places
@@ -23,6 +22,7 @@ FILES=	\
 	bsd.clang-analyze.mk \
 	bsd.compiler.mk \
 	bsd.compat.mk \
+	bsd.compat.pre.mk \
 	bsd.confs.mk \
 	bsd.cpu.mk \
 	bsd.crunchgen.mk \

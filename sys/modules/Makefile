@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 SYSDIR?=${SRCTOP}/sys
 .include "${SYSDIR}/conf/kern.opts.mk"
@@ -54,7 +53,6 @@ SUBDIR=	\
 	ath_hal_ar9300 \
 	ath_main \
 	ath_rate \
-	ath_pci \
 	${_autofs} \
 	axgbe \
 	backlight \
@@ -225,6 +223,7 @@ SUBDIR=	\
 	${_mac_bsdextended} \
 	${_mac_ddb} \
 	${_mac_ifoff} \
+	${_mac_ipacl} \
 	${_mac_lomac} \
 	${_mac_mls} \
 	${_mac_none} \
@@ -358,6 +357,7 @@ SUBDIR=	\
 	${_sdhci_fdt} \
 	sdhci_pci \
 	sdio \
+	${_sff} \
 	sem \
 	send \
 	${_sfxge} \
@@ -583,6 +583,7 @@ _mac_bsdextended= mac_bsdextended
 _mac_ddb=	mac_ddb
 .endif
 _mac_ifoff=	mac_ifoff
+_mac_ipacl=	mac_ipacl
 _mac_lomac=	mac_lomac
 _mac_mls=	mac_mls
 _mac_none=	mac_none
@@ -634,11 +635,12 @@ _cxgbe=		cxgbe
 .endif
 
 # This has only been tested on amd64 and arm64
-.if ${MACHINE_ARCH} == "amd64" || ${MACHINE_ARCH} == "arm64"
+.if ${MACHINE_CPUARCH} == "amd64" || ${MACHINE_CPUARCH} == "aarch64"
 _mpi3mr=mpi3mr
 .endif
 
-.if ${MACHINE_ARCH} == "amd64" || ${MACHINE_ARCH} == "arm64" || ${MACHINE_ARCH:Mpowerpc64*}
+.if ${MACHINE_CPUARCH} == "amd64" || ${MACHINE_CPUARCH} == "aarch64" || \
+	${MACHINE_ARCH:Mpowerpc64*}
 _ice=		ice
 .if ${MK_SOURCELESS_UCODE} != "no"
 _ice_ddp=	ice_ddp
@@ -679,6 +681,7 @@ _cxgb=		cxgb
 .if ${MACHINE_CPUARCH} == "aarch64"
 _armv8crypto=	armv8crypto
 _dpaa2=		dpaa2
+_sff=		sff
 _em=		em
 _hyperv=  hyperv
 
