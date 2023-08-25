@@ -24,8 +24,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #ifndef	_ELF_HINTS_H_
@@ -47,6 +45,8 @@ struct elfhints_hdr {
 
 #define ELFHINTS_MAGIC	0x746e6845
 
+#ifndef _PATH_ELF_HINTS
 #define _PATH_ELF_HINTS	"/var/run/ld-elf.so.hints"
+#endif
 
 #endif /* !_ELF_HINTS_H_ */

@@ -43,8 +43,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_mac.h"
 
 #include <sys/param.h>
@@ -106,6 +104,17 @@ mac_inpcb_init(struct inpcb *inp, int flag)
 	} else
 		inp->inp_label = NULL;
 	return (0);
+}
+
+/* Check with rules in module if the IPv4 address is allowed. */
+int
+mac_inet_check_add_addr(struct ucred *cred, const struct in_addr *ia,
+    struct ifnet *ifp)
+{
+	int error;
+
+	MAC_POLICY_CHECK(ip4_check_jail, cred, ia, ifp);
+	return (error);
 }
 
 static struct label *

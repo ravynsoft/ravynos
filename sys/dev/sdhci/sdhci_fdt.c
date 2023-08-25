@@ -31,8 +31,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/bus.h>
@@ -77,6 +75,7 @@ __FBSDID("$FreeBSD$");
 #define	SDHCI_FDT_QUALCOMM	4
 #define	SDHCI_FDT_RK3399	5
 #define	SDHCI_FDT_RK3568	6
+#define	SDHCI_FDT_XLNX_ZMP	7
 
 #define	RK3399_GRF_EMMCCORE_CON0		0xf000
 #define	 RK3399_CORECFG_BASECLKFREQ		0xff00
@@ -124,6 +123,7 @@ static struct ofw_compat_data compat_data[] = {
 	{ "rockchip,rk3399-sdhci-5.1",	SDHCI_FDT_RK3399 },
 	{ "xlnx,zy7_sdhci",		SDHCI_FDT_XLNX_ZY7 },
 	{ "rockchip,rk3568-dwcmshc",	SDHCI_FDT_RK3568 },
+	{ "xlnx,zynqmp-8.9a",		SDHCI_FDT_XLNX_ZMP },
 	{ NULL, 0 }
 };
 
@@ -141,6 +141,7 @@ struct sdhci_fdt_softc {
 	struct resource	*mem_res[MAX_SLOTS];	/* Memory resource */
 
 	bool		wp_inverted;	/* WP pin is inverted */
+	bool		wp_disabled;	/* WP pin is not supported */
 	bool		no_18v;		/* No 1.8V support */
 
 	clk_t		clk_xin;	/* xin24m fixed clock */
@@ -431,6 +432,8 @@ sdhci_fdt_get_ro(device_t bus, device_t dev)
 {
 	struct sdhci_fdt_softc *sc = device_get_softc(bus);
 
+	if (sc->wp_disabled)
+		return (false);
 	return (sdhci_generic_get_ro(bus, dev) ^ sc->wp_inverted);
 }
 
@@ -532,6 +535,9 @@ sdhci_fdt_probe(device_t dev)
 	case SDHCI_FDT_RK3568:
 		device_set_desc(dev, "Rockchip RK3568 fdt SDHCI controller");
 		break;
+	case SDHCI_FDT_XLNX_ZMP:
+		device_set_desc(dev, "ZynqMP generic fdt SDHCI controller");
+		break;
 	default:
 		return (ENXIO);
 	}
@@ -549,6 +555,8 @@ sdhci_fdt_probe(device_t dev)
 		sc->no_18v = true;
 	if (OF_hasprop(node, "wp-inverted"))
 		sc->wp_inverted = true;
+	if (OF_hasprop(node, "disable-wp"))
+		sc->wp_disabled = true;
 
 	return (0);
 }

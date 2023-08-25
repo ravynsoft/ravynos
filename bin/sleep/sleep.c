@@ -39,8 +39,6 @@ static char sccsid[] = "@(#)sleep.c	8.3 (Berkeley) 4/2/94";
 #endif /* not lint */
 #endif
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <capsicum_helpers.h>
 #include <err.h>
 #include <errno.h>
@@ -50,7 +48,7 @@ __FBSDID("$FreeBSD$");
 #include <stdlib.h>
 #include <time.h>
 
-static void usage(void);
+static void usage(void) __dead2;
 
 static volatile sig_atomic_t report_requested;
 static void

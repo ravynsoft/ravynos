@@ -26,8 +26,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * The FreeBSD IP packet firewall, main file
  */
@@ -69,6 +67,7 @@ __FBSDID("$FreeBSD$");
 #include <net/route/nhop.h>
 #include <net/pfil.h>
 #include <net/vnet.h>
+#include <net/if_pfsync.h>
 
 #include <netpfil/pf/pf_mtag.h>
 
@@ -1716,6 +1715,10 @@ do {								\
 
 			case IPPROTO_IPV4:	/* RFC 2893 */
 				PULLUP_TO(hlen, ulp, struct ip);
+				break;
+
+			case IPPROTO_PFSYNC:
+				PULLUP_TO(hlen, ulp, struct pfsync_header);
 				break;
 
 			default:

@@ -24,8 +24,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #include <sys/param.h>
@@ -107,15 +105,6 @@ arswitch_writereg16(device_t dev, int addr, int data)
 	return (MDIO_WRITEREG(device_get_parent(dev), 0x10 | phy, reg, data));
 }
 
-/*
- * XXX NOTE:
- *
- * This may not work for AR7240 series embedded switches -
- * the per-PHY register space doesn't seem to be exposed.
- *
- * In that instance, it may be required to speak via
- * the internal switch PHY MDIO bus indirection.
- */
 void
 arswitch_writedbg(device_t dev, int phy, uint16_t dbg_addr,
     uint16_t dbg_data)

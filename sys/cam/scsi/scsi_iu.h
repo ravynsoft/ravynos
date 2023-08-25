@@ -1,20 +1,19 @@
 /*-
  * This file is in the public domain.
- * $FreeBSD$
  */
 #ifndef	_SCSI_SCSI_IU_H
 #define _SCSI_SCSI_IU_H 1
 
 struct scsi_status_iu_header
 {
-	u_int8_t reserved[2];
-	u_int8_t flags;
+	uint8_t reserved[2];
+	uint8_t flags;
 #define	SIU_SNSVALID 0x2
 #define	SIU_RSPVALID 0x1
-	u_int8_t status;
-	u_int8_t sense_length[4];
-	u_int8_t pkt_failures_length[4];
-	u_int8_t pkt_failures[1];
+	uint8_t status;
+	uint8_t sense_length[4];
+	uint8_t pkt_failures_length[4];
+	uint8_t pkt_failures[1];
 };
 
 #define SIU_PKTFAIL_OFFSET(siu) 12

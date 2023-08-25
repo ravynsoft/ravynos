@@ -24,8 +24,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #ifndef _MACHINE_CPUFUNC_H_
@@ -256,20 +254,6 @@ get_pcpu(void)
 	__asm __volatile("mfsprg %0, 0" : "=r"(ret));
 
 	return (ret);
-}
-
-#define	HAVE_INLINE_FLS
-static __inline __pure2 int
-fls(int mask)
-{
-	return (mask ? 32 - __builtin_clz(mask) : 0);
-}
-
-#define HAVE_INLINE_FLSL
-static __inline __pure2 int
-flsl(long mask)
-{
-	return (mask ? (8 * sizeof(long) - __builtin_clzl(mask)) : 0);
 }
 
 /* "NOP" operations to signify priorities to the kernel. */

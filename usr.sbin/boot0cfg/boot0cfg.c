@@ -28,8 +28,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/disklabel.h>
 #include <sys/diskmbr.h>
@@ -107,7 +105,7 @@ static int boot0bs(const u_int8_t *);
 static void stropt(const char *, int *, int *);
 static int argtoi(const char *, int, int, int);
 static int set_bell(u_int8_t *, int, int);
-static void usage(void);
+static void usage(void) __dead2;
 
 static unsigned vol_id[5];	/* 4 plus 1 for flag */
 

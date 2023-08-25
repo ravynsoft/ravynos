@@ -36,8 +36,6 @@ static char sccsid[] = "@(#)rpc_main.c 1.30 89/03/30 (C) 1987 SMI";
 #endif
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * rpc_main.c, Top level of the RPC protocol compiler.
  * Copyright (C) 1987, Sun Microsystems, Inc.
@@ -45,6 +43,7 @@ __FBSDID("$FreeBSD$");
 
 #include <err.h>
 #include <ctype.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -64,7 +63,7 @@ static void clnt_output(const char *, const char *, int, const char * );
 static char *generate_guard(const char *);
 static void c_initialize(void);
 
-static void usage(void);
+static void usage(void) __dead2;
 static void options_usage(void);
 static int do_registers(int, const char **);
 static int parseargs(int, const char **, struct commandline *);
@@ -270,20 +269,114 @@ add_warning(void)
 static void
 prepend_cpp(void)
 {
-	int idx = 1;
-	const char *var;
-	char *dupvar, *s, *t;
+	int idx = 0, quoted;
+	const char *var, *s;
+	char *dupvar, *t, *word;
 
 	if (CPP != NULL)
-		insarg(0, CPP);
+		insarg(idx++, CPP);
 	else if ((var = getenv("RPCGEN_CPP")) == NULL)
-		insarg(0, "/usr/bin/cpp");
+		insarg(idx++, "/usr/bin/cpp");
 	else {
-		/* Parse command line in a rudimentary way */
-		dupvar = xstrdup(var);
-		for (s = dupvar, idx = 0; (t = strsep(&s, " \t")) != NULL; ) {
-			if (t[0])
-				insarg(idx++, t);
+		/*
+		 * Parse command line like a shell (but only handle whitespace,
+		 * quotes and backslash).
+		 */
+		dupvar = malloc(strlen(var) + 1);
+		quoted = 0;
+		word = NULL;
+		for (s = var, t = dupvar; *s; ++s) {
+			switch (quoted) {
+			/* Unquoted */
+			case 0:
+				switch (*s) {
+				case ' ':
+				case '\t':
+				case '\n':
+					if (word != NULL) {
+						*t++ = '\0';
+						insarg(idx++, word);
+						word = NULL;
+					}
+					break;
+				case '\'':
+					if (word == NULL)
+						word = t;
+					quoted = 1;
+					break;
+				case '"':
+					if (word == NULL)
+						word = t;
+					quoted = 2;
+					break;
+				case '\\':
+					switch (*(s + 1)) {
+					case '\0':
+						break;
+					case '\n':
+						++s;
+						continue;
+					default:
+						++s;
+						break;
+					}
+					/* FALLTHROUGH */
+				default:
+					if (word == NULL)
+						word = t;
+					*t++ = *s;
+					break;
+				}
+				break;
+
+			/* Single-quoted */
+			case 1:
+				switch (*s) {
+				case '\'':
+					quoted = 0;
+					break;
+				default:
+					*t++ = *s;
+					break;
+				}
+				break;
+
+			/* Double-quoted */
+			case 2:
+				switch (*s) {
+				case '"':
+					quoted = 0;
+					break;
+				case '\\':
+					switch (*(s + 1)) {
+					case '\0':
+						break;
+					case '$':
+					case '`':
+					case '"':
+					case '\\':
+						++s;
+						break;
+					case '\n':
+						++s;
+						continue;
+					default:
+						break;
+					}
+					/* FALLTHROUGH */
+				default:
+					*t++ = *s;
+					break;
+				}
+				break;
+			}
+		}
+		if (quoted)
+			errx(1, "RPCGEN_CPP: unterminated %c",
+			    quoted == 1 ? '\'' : '"');
+		if (word != NULL) {
+			*t++ = '\0';
+			insarg(idx++, word);
 		}
 		free(dupvar);
 	}

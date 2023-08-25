@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 .include <src.opts.mk>
 
@@ -14,10 +13,6 @@ PROG_CXX=	ld.lld
     (defined(TOOLS_PREFIX) && ${MK_LLD_BOOTSTRAP} != "no")
 SYMLINKS=	${PROG_CXX} ${BINDIR}/ld
 MLINKS=		ld.lld.1 ld.1
-.endif
-
-.if ${MK_SHARED_TOOLCHAIN} == "no"
-NO_SHARED?= yes
 .endif
 
 .include "${SRCTOP}/lib/clang/llvm.pre.mk"

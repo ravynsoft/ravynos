@@ -23,8 +23,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 /*
@@ -74,8 +72,6 @@
 
 #include <vm/vm.h>
 
-#define	MAX_STRAY_LOG	5
-
 typedef void (*mask_fn)(void *);
 
 static int intrcnt_index;
@@ -97,6 +93,7 @@ u_int num_io_irqs;
 static int assign_cpu;
 #endif
 
+#define	INTRNAME_LEN	(MAXCOMLEN + 1)
 u_long *intrcnt;
 char *intrnames;
 size_t sintrcnt = sizeof(intrcnt);
@@ -191,10 +188,10 @@ intr_init_sources(void *arg)
 #endif
 	intrcnt = mallocarray(nintrcnt, sizeof(u_long), M_INTR, M_WAITOK |
 	    M_ZERO);
-	intrnames = mallocarray(nintrcnt, MAXCOMLEN + 1, M_INTR, M_WAITOK |
+	intrnames = mallocarray(nintrcnt, INTRNAME_LEN, M_INTR, M_WAITOK |
 	    M_ZERO);
 	sintrcnt = nintrcnt * sizeof(u_long);
-	sintrnames = nintrcnt * (MAXCOMLEN + 1);
+	sintrnames = nintrcnt * INTRNAME_LEN;
 
 	intrcnt_setname("???", 0);
 	intrcnt_index = 1;
@@ -357,9 +354,9 @@ intr_execute_handlers(struct intsrc *isrc, struct trapframe *frame)
 	if (intr_event_handle(ie, frame) != 0) {
 		isrc->is_pic->pic_disable_source(isrc, PIC_EOI);
 		(*isrc->is_straycount)++;
-		if (*isrc->is_straycount < MAX_STRAY_LOG)
+		if (*isrc->is_straycount < INTR_STRAY_LOG_MAX)
 			log(LOG_ERR, "stray irq%d\n", vector);
-		else if (*isrc->is_straycount == MAX_STRAY_LOG)
+		else if (*isrc->is_straycount == INTR_STRAY_LOG_MAX)
 			log(LOG_CRIT,
 			    "too many stray irq %d's: not logging anymore\n",
 			    vector);
@@ -432,8 +429,8 @@ static void
 intrcnt_setname(const char *name, int index)
 {
 
-	snprintf(intrnames + (MAXCOMLEN + 1) * index, MAXCOMLEN + 1, "%-*s",
-	    MAXCOMLEN, name);
+	snprintf(intrnames + INTRNAME_LEN * index, INTRNAME_LEN, "%-*s",
+	    INTRNAME_LEN - 1, name);
 }
 
 static void
@@ -446,14 +443,14 @@ intrcnt_updatename(struct intsrc *is)
 static void
 intrcnt_register(struct intsrc *is)
 {
-	char straystr[MAXCOMLEN + 1];
+	char straystr[INTRNAME_LEN];
 
 	KASSERT(is->is_event != NULL, ("%s: isrc with no event", __func__));
 	mtx_lock_spin(&intrcnt_lock);
 	MPASS(intrcnt_index + 2 <= nintrcnt);
 	is->is_index = intrcnt_index;
 	intrcnt_index += 2;
-	snprintf(straystr, MAXCOMLEN + 1, "stray irq%d",
+	snprintf(straystr, sizeof(straystr), "stray irq%d",
 	    is->is_pic->pic_vector(is));
 	intrcnt_updatename(is);
 	is->is_count = &intrcnt[is->is_index];
@@ -630,18 +627,6 @@ intr_next_cpu(int domain)
 	return (apic_id);
 }
 
-/* Attempt to bind the specified IRQ to the specified CPU. */
-int
-intr_bind(u_int vector, u_char cpu)
-{
-	struct intsrc *isrc;
-
-	isrc = intr_lookup_source(vector);
-	if (isrc == NULL)
-		return (EINVAL);
-	return (intr_event_bind(isrc->is_event, cpu));
-}
-
 /*
  * Add a CPU to our mask of valid CPUs that can be destinations of
  * interrupts.
@@ -651,7 +636,7 @@ intr_add_cpu(u_int cpu)
 {
 
 	if (cpu >= MAXCPU)
-		panic("%s: Invalid CPU ID", __func__);
+		panic("%s: Invalid CPU ID %u", __func__, cpu);
 	if (bootverbose)
 		printf("INTR: Adding local APIC %d as a target\n",
 		    cpu_apic_ids[cpu]);

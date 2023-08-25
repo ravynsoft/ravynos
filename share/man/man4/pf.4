@@ -26,9 +26,7 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.\" $FreeBSD$
-.\"
-.Dd May 7, 2021
+.Dd July 12, 2023
 .Dt PF 4
 .Os
 .Sh NAME
@@ -302,8 +300,10 @@ calls.
 Nested anchors, since they are not directly attached to the given
 anchor, will not be included.
 This ioctl returns
-.Er EINVAL
-if the given anchor does not exist.
+.Er ENOENT
+if the parent anchor given at
+.Va path
+does not exist.
 .It Dv DIOCGETRULESET Fa "struct pfioc_ruleset *pr"
 Get a ruleset (i.e., an anchor)
 .Va name
@@ -315,10 +315,14 @@ the maximum number of which can be obtained from a preceding
 .Dv DIOCGETRULESETS
 call.
 This ioctl returns
-.Er EINVAL
-if the given anchor does not exist or
+.Er ENOENT
+if the parent anchor given by
+.Va path
+does not exist or
 .Er EBUSY
-if another process is concurrently updating a ruleset.
+if the index passed in by
+.Va nr
+is greater than the number of anchors.
 .It Dv DIOCADDSTATE Fa "struct pfioc_state *ps"
 Add a state entry.
 .Bd -literal
@@ -1094,20 +1098,18 @@ The data is returned in the
 structure described below:
 .Bd -literal
 struct pfi_kif {
-	RB_ENTRY(pfi_kif)		 pfik_tree;
 	char				 pfik_name[IFNAMSIZ];
+	union {
+		RB_ENTRY(pfi_kif)	 pfik_tree;
+		LIST_ENTRY(pfi_kif)	 pfik_list;
+	};
 	u_int64_t			 pfik_packets[2][2][2];
 	u_int64_t			 pfik_bytes[2][2][2];
 	u_int32_t			 pfik_tzero;
-	int				 pfik_flags;
-	struct pf_state_tree_lan_ext	 pfik_lan_ext;
-	struct pf_state_tree_ext_gwy	 pfik_ext_gwy;
-	TAILQ_ENTRY(pfi_kif)		 pfik_w_states;
-	void				*pfik_ah_cookie;
+	u_int				 pfik_flags;
 	struct ifnet			*pfik_ifp;
 	struct ifg_group		*pfik_group;
-	int				 pfik_states;
-	int				 pfik_rules;
+	u_int				 pfik_rulerefs;
 	TAILQ_HEAD(, pfi_dynaddr)	 pfik_dynaddrs;
 };
 .Ed

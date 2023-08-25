@@ -4,7 +4,7 @@
 $id: http://devicetree.org/schemas/nvmem/nvmem.yaml#
 $schema: http://devicetree.org/meta-schemas/core.yaml#
 
-title: NVMEM (Non Volatile Memory) Device Tree Bindings
+title: NVMEM (Non Volatile Memory)
 
 maintainers:
   - Srinivas Kandagatla <srinivas.kandagatla@linaro.org>
@@ -39,6 +39,13 @@ properties:
       when it's driven low (logical '0') to allow writing.
     maxItems: 1
 
+  nvmem-layout:
+    $ref: /schemas/nvmem/layouts/nvmem-layout.yaml
+    description:
+      Alternative to the statically defined nvmem cells, this
+      container may reference more advanced (dynamic) layout
+      parsers.
+
 patternProperties:
   "@[0-9a-f]+(,[0-7])?$":
     type: object
@@ -67,6 +74,7 @@ examples:
       #include <dt-bindings/gpio/gpio.h>
 
       qfprom: eeprom@700000 {
+          compatible = "qcom,msm8974-qfprom", "qcom,qfprom";
           #address-cells = <1>;
           #size-cells = <1>;
           reg = <0x00700000 0x100000>;

@@ -60,7 +60,6 @@
  * SUCH DAMAGE.
  *
  *	@(#)ip_var.h	8.1 (Berkeley) 6/10/93
- * $FreeBSD$
  */
 
 #ifndef _NETINET6_IP6_VAR_H_
@@ -346,6 +345,7 @@ extern struct	pr_usrreqs rip6_usrreqs;
 struct sockopt;
 
 struct inpcb;
+struct ucred;
 
 int	icmp6_ctloutput(struct socket *, struct sockopt *sopt);
 

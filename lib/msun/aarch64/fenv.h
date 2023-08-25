@@ -22,9 +22,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/fenv.h>
+#else /* __arm__ */
 
 #ifndef	_FENV_H_
 #define	_FENV_H_
@@ -244,3 +246,5 @@ fegetexcept(void)
 __END_DECLS
 
 #endif	/* !_FENV_H_ */
+
+#endif /* __arm__ */

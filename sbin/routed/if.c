@@ -27,17 +27,12 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #include <stdint.h>
 
 #include "defs.h"
 #include "pathnames.h"
-
-__RCSID("$FreeBSD$");
-
 struct ifhead ifnet = LIST_HEAD_INITIALIZER(ifnet);	/* all interfaces */
 struct ifhead remote_if = LIST_HEAD_INITIALIZER(remote_if);	/* remote interfaces */
 

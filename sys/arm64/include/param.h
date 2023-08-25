@@ -27,8 +27,11 @@
  * SUCH DAMAGE.
  *
  *	from: @(#)param.h	5.8 (Berkeley) 6/28/91
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/param.h>
+#else /* !__arm__ */
 
 #ifndef _MACHINE_PARAM_H_
 #define	_MACHINE_PARAM_H_
@@ -56,7 +59,7 @@
 
 #ifdef SMP
 #ifndef MAXCPU
-#define	MAXCPU		256
+#define	MAXCPU		1024
 #endif
 #else
 #define	MAXCPU		1
@@ -130,3 +133,5 @@
 #define	pgtok(x)		((unsigned long)(x) * (PAGE_SIZE / 1024))
 
 #endif /* !_MACHINE_PARAM_H_ */
+
+#endif /* !__arm__ */

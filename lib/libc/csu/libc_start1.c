@@ -79,6 +79,7 @@ process_irelocs(void)
 extern int *__argc;
 extern char ***__argv;
 
+#ifndef PIC
 static void
 finalizer(void)
 {
@@ -93,6 +94,7 @@ finalizer(void)
 	}
 	_fini();
 }
+#endif
 
 static void
 handle_static_init(int argc, char **argv, char **env)

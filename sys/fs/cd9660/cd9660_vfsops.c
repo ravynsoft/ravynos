@@ -37,8 +37,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/namei.h>
@@ -332,6 +330,13 @@ iso_mountfs(struct vnode *devvp, struct mount *mp)
 
 	if (logical_block_size < DEV_BSIZE || logical_block_size > MAXBSIZE
 	    || (logical_block_size & (logical_block_size - 1)) != 0) {
+		error = EINVAL;
+		goto out;
+	}
+
+	if (logical_block_size < cp->provider->sectorsize) {
+		printf("cd9660: Unsupported logical block size %u\n",
+		    logical_block_size);
 		error = EINVAL;
 		goto out;
 	}

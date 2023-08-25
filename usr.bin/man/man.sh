@@ -26,7 +26,6 @@
 #  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 #  SUCH DAMAGE.
 #
-# $FreeBSD$
 
 # Rendering a manual page is fast. Even a manual page several 100k in size
 # takes less than a CPU second. If it takes much longer, it is very likely
@@ -1000,11 +999,11 @@ do_full_search() {
 	gflags="${gflags} --label"
 
 	set +f
-	for mpath in $(echo "${MANPATH}" | tr : [:blank:]); do
-		for section in $(echo "${MANSECT}" | tr : [:blank:]); do
+	for mpath in $(echo "${MANPATH}" | tr : '[:blank:]'); do
+		for section in $(echo "${MANSECT}" | tr : '[:blank:]'); do
 			for manfile in ${mpath}/man${section}/*.${section}*; do
 				mandoc "${manfile}" 2>/dev/null |
-					grep -E ${gflags} "${manfile}" -e ${re}
+					grep -E ${gflags} "${manfile}" -e "${re}"
 			done
 		done
 	done

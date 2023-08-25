@@ -53,9 +53,12 @@ static char *rcsid = "$FreeBSD$";
 #include <stddef.h>
 #include <string.h>
 #include <unistd.h>
+#ifdef IN_RTLD
 #include "rtld.h"
 #include "rtld_printf.h"
 #include "rtld_paths.h"
+#endif
+#include "rtld_malloc.h"
 
 /*
  * Pre-allocate mmap'ed pages
@@ -68,10 +71,6 @@ static caddr_t		pagepool_start, pagepool_end;
  * contains a pointer to the next free block, and the bottom two bits must
  * be zero.  When in use, the first byte is set to MAGIC, and the second
  * byte is the size index.  The remaining bytes are for alignment.
- * If range checking is enabled then a second word holds the size of the
- * requested block, less 1, rounded up to a multiple of sizeof(RMAGIC).
- * The order of elements is critical: ov_magic must overlay the low order
- * bits of ov_next, and ov_magic can not be a valid ov_next bit pattern.
  */
 union	overhead {
 	union	overhead *ov_next;	/* when free */
@@ -106,6 +105,12 @@ static	int pagesz;			/* page size */
  * must contain at least one page size.  The page sizes must be stored in
  * increasing order.
  */
+
+static union overhead *
+cp2op(void *cp)
+{
+	return ((union overhead *)((caddr_t)cp - sizeof(union overhead)));
+}
 
 void *
 __crt_malloc(size_t nbytes)
@@ -210,7 +215,7 @@ __crt_free(void *cp)
 
   	if (cp == NULL)
   		return;
-	op = (union overhead *)((caddr_t)cp - sizeof (union overhead));
+	op = cp2op(cp);
 	if (op->ov_magic != MAGIC)
 		return;				/* sanity */
   	size = op->ov_index;
@@ -228,7 +233,7 @@ __crt_realloc(void *cp, size_t nbytes)
 
   	if (cp == NULL)
 		return (__crt_malloc(nbytes));
-	op = (union overhead *)((caddr_t)cp - sizeof (union overhead));
+	op = cp2op(cp);
 	if (op->ov_magic != MAGIC)
 		return (NULL);	/* Double-free or bad argument */
 	i = op->ov_index;

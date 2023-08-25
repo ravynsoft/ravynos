@@ -25,8 +25,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY 
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF 
  * SUCH DAMAGE. 
- *
- * $FreeBSD$
  */
 
 /*
@@ -58,10 +56,8 @@
 #define	Prd_agent proc_rdagent
 #define	Prelease proc_detach
 #define	Psetbkpt proc_bkptset
-#define	Psetflags proc_setflags
 #define	Pstate proc_state
 #define	Psymbol_iter_by_addr proc_iter_symbyaddr
-#define	Punsetflags proc_clearflags
 #define	Pupdate_maps proc_rdagent
 #define	Pupdate_syms proc_updatesyms
 #define	Pxecbkpt proc_bkptexec

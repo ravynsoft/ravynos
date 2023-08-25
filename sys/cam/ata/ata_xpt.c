@@ -27,8 +27,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/bus.h>
 #include <sys/endian.h>
@@ -65,7 +63,7 @@ __FBSDID("$FreeBSD$");
 
 struct ata_quirk_entry {
 	struct scsi_inquiry_pattern inq_pat;
-	u_int8_t quirks;
+	uint8_t quirks;
 #define	CAM_QUIRK_MAXTAGS	0x01
 	u_int mintags;
 	u_int maxtags;
@@ -182,22 +180,17 @@ static void	 ata_get_transfer_settings(struct ccb_trans_settings *cts);
 static void	 ata_set_transfer_settings(struct ccb_trans_settings *cts,
 					    struct cam_path *path,
 					    int async_update);
-static void	 ata_dev_async(u_int32_t async_code,
+static void	 ata_dev_async(uint32_t async_code,
 				struct cam_eb *bus,
 				struct cam_et *target,
 				struct cam_ed *device,
 				void *async_arg);
 static void	 ata_action(union ccb *start_ccb);
-static void	 ata_announce_periph(struct cam_periph *periph);
 static void	 ata_announce_periph_sbuf(struct cam_periph *periph, struct sbuf *sb);
-static void	 ata_proto_announce(struct cam_ed *device);
 static void	 ata_proto_announce_sbuf(struct cam_ed *device, struct sbuf *sb);
-static void	 ata_proto_denounce(struct cam_ed *device);
 static void	 ata_proto_denounce_sbuf(struct cam_ed *device, struct sbuf *sb);
 static void	 ata_proto_debug_out(union ccb *ccb);
-static void	 semb_proto_announce(struct cam_ed *device);
 static void	 semb_proto_announce_sbuf(struct cam_ed *device, struct sbuf *sb);
-static void	 semb_proto_denounce(struct cam_ed *device);
 static void	 semb_proto_denounce_sbuf(struct cam_ed *device, struct sbuf *sb);
 
 static int ata_dma = 1;
@@ -210,7 +203,6 @@ static struct xpt_xport_ops ata_xport_ops = {
 	.alloc_device = ata_alloc_device,
 	.action = ata_action,
 	.async = ata_dev_async,
-	.announce = ata_announce_periph,
 	.announce_sbuf = ata_announce_periph_sbuf,
 };
 #define ATA_XPT_XPORT(x, X)			\
@@ -227,9 +219,7 @@ ATA_XPT_XPORT(sata, SATA);
 #undef ATA_XPORT_XPORT
 
 static struct xpt_proto_ops ata_proto_ops_ata = {
-	.announce = ata_proto_announce,
 	.announce_sbuf = ata_proto_announce_sbuf,
-	.denounce = ata_proto_denounce,
 	.denounce_sbuf = ata_proto_denounce_sbuf,
 	.debug_out = ata_proto_debug_out,
 };
@@ -240,9 +230,7 @@ static struct xpt_proto ata_proto_ata = {
 };
 
 static struct xpt_proto_ops ata_proto_ops_satapm = {
-	.announce = ata_proto_announce,
 	.announce_sbuf = ata_proto_announce_sbuf,
-	.denounce = ata_proto_denounce,
 	.denounce_sbuf = ata_proto_denounce_sbuf,
 	.debug_out = ata_proto_debug_out,
 };
@@ -253,9 +241,7 @@ static struct xpt_proto ata_proto_satapm = {
 };
 
 static struct xpt_proto_ops ata_proto_ops_semb = {
-	.announce = semb_proto_announce,
 	.announce_sbuf = semb_proto_announce_sbuf,
-	.denounce = semb_proto_denounce,
 	.denounce_sbuf = semb_proto_denounce_sbuf,
 	.debug_out = ata_proto_debug_out,
 };
@@ -380,7 +366,7 @@ aprobestart(struct cam_periph *periph, union ccb *start_ccb)
 		      aprobedone,
 		      /*flags*/CAM_DIR_IN,
 		      0,
-		      /*data_ptr*/(u_int8_t *)&softc->ident_data,
+		      /*data_ptr*/(uint8_t *)&softc->ident_data,
 		      /*dxfer_len*/sizeof(softc->ident_data),
 		      30 * 1000);
 		if (path->device->protocol == PROTO_ATA)
@@ -660,7 +646,7 @@ negotiate:
 			     /*retries*/1,
 			     aprobedone,
 			     MSG_SIMPLE_Q_TAG,
-			     (u_int8_t *)inq_buf,
+			     (uint8_t *)inq_buf,
 			     inquiry_len,
 			     /*evpd*/FALSE,
 			     /*page_code*/0,
@@ -696,7 +682,7 @@ negotiate:
 		      aprobedone,
 		      /*flags*/CAM_DIR_IN,
 		      0,
-		      /*data_ptr*/(u_int8_t *)&softc->ident_data,
+		      /*data_ptr*/(uint8_t *)&softc->ident_data,
 		      /*dxfer_len*/sizeof(softc->ident_data),
 		      30 * 1000);
 		ata_28bit_cmd(ataio, ATA_SEP_ATTN, 0xEC, 0x02,
@@ -708,7 +694,7 @@ negotiate:
 		      aprobedone,
 		      /*flags*/CAM_DIR_IN,
 		      0,
-		      /*data_ptr*/(u_int8_t *)&softc->ident_data,
+		      /*data_ptr*/(uint8_t *)&softc->ident_data,
 		      /*dxfer_len*/sizeof(softc->ident_data),
 		      30 * 1000);
 		ata_28bit_cmd(ataio, ATA_SEP_ATTN, 0xEC, 0x00,
@@ -748,7 +734,7 @@ aprobedone(struct cam_periph *periph, union ccb *done_ccb)
 	aprobe_softc *softc;
 	struct cam_path *path;
 	cam_status status;
-	u_int32_t  priority;
+	uint32_t  priority;
 	u_int caps, oif;
 	int changed, found = 1;
 	static const uint8_t fake_device_id_hdr[8] =
@@ -965,7 +951,7 @@ noerror:
 				path->device->device_id_len = 0;
 			}
 			path->device->serial_num =
-				(u_int8_t *)malloc((sizeof(ident_buf->serial) + 1),
+				(uint8_t *)malloc((sizeof(ident_buf->serial) + 1),
 					   M_CAMXPT, M_NOWAIT);
 			if (path->device->serial_num != NULL) {
 				bcopy(ident_buf->serial,
@@ -1162,7 +1148,7 @@ notsata:
 	case PROBE_INQUIRY:
 	case PROBE_FULL_INQUIRY:
 	{
-		u_int8_t periph_qual, len;
+		uint8_t periph_qual, len;
 
 		path->device->flags |= CAM_DEV_INQUIRY_DATA_VALID;
 
@@ -2036,7 +2022,7 @@ ata_set_transfer_settings(struct ccb_trans_settings *cts, struct cam_path *path,
  * Handle any per-device event notifications that require action by the XPT.
  */
 static void
-ata_dev_async(u_int32_t async_code, struct cam_eb *bus, struct cam_et *target,
+ata_dev_async(uint32_t async_code, struct cam_eb *bus, struct cam_et *target,
 	      struct cam_ed *device, void *async_arg)
 {
 	/*
@@ -2134,59 +2120,6 @@ _ata_announce_periph(struct cam_periph *periph, struct ccb_trans_settings *cts, 
 }
 
 static void
-ata_announce_periph(struct cam_periph *periph)
-{
-	struct ccb_trans_settings cts;
-	u_int speed, mb;
-
-	bzero(&cts, sizeof(cts));
-	_ata_announce_periph(periph, &cts, &speed);
-	if ((cts.ccb_h.status & CAM_STATUS_MASK) != CAM_REQ_CMP)
-		return;
-
-	mb = speed / 1000;
-	if (mb > 0)
-		printf("%s%d: %d.%03dMB/s transfers",
-		       periph->periph_name, periph->unit_number,
-		       mb, speed % 1000);
-	else
-		printf("%s%d: %dKB/s transfers", periph->periph_name,
-		       periph->unit_number, speed);
-	/* Report additional information about connection */
-	if (cts.transport == XPORT_ATA) {
-		struct ccb_trans_settings_pata *pata =
-		    &cts.xport_specific.ata;
-
-		printf(" (");
-		if (pata->valid & CTS_ATA_VALID_MODE)
-			printf("%s, ", ata_mode2string(pata->mode));
-		if ((pata->valid & CTS_ATA_VALID_ATAPI) && pata->atapi != 0)
-			printf("ATAPI %dbytes, ", pata->atapi);
-		if (pata->valid & CTS_ATA_VALID_BYTECOUNT)
-			printf("PIO %dbytes", pata->bytecount);
-		printf(")");
-	}
-	if (cts.transport == XPORT_SATA) {
-		struct ccb_trans_settings_sata *sata =
-		    &cts.xport_specific.sata;
-
-		printf(" (");
-		if (sata->valid & CTS_SATA_VALID_REVISION)
-			printf("SATA %d.x, ", sata->revision);
-		else
-			printf("SATA, ");
-		if (sata->valid & CTS_SATA_VALID_MODE)
-			printf("%s, ", ata_mode2string(sata->mode));
-		if ((sata->valid & CTS_ATA_VALID_ATAPI) && sata->atapi != 0)
-			printf("ATAPI %dbytes, ", sata->atapi);
-		if (sata->valid & CTS_SATA_VALID_BYTECOUNT)
-			printf("PIO %dbytes", sata->bytecount);
-		printf(")");
-	}
-	printf("\n");
-}
-
-static void
 ata_announce_periph_sbuf(struct cam_periph *periph, struct sbuf *sb)
 {
 	struct ccb_trans_settings cts;
@@ -2246,18 +2179,6 @@ ata_proto_announce_sbuf(struct cam_ed *device, struct sbuf *sb)
 }
 
 static void
-ata_proto_announce(struct cam_ed *device)
-{
-	ata_print_ident(&device->ident_data);
-}
-
-static void
-ata_proto_denounce(struct cam_ed *device)
-{
-	ata_print_ident_short(&device->ident_data);
-}
-
-static void
 ata_proto_denounce_sbuf(struct cam_ed *device, struct sbuf *sb)
 {
 	ata_print_ident_short_sbuf(&device->ident_data, sb);
@@ -2267,18 +2188,6 @@ static void
 semb_proto_announce_sbuf(struct cam_ed *device, struct sbuf *sb)
 {
 	semb_print_ident_sbuf((struct sep_identify_data *)&device->ident_data, sb);
-}
-
-static void
-semb_proto_announce(struct cam_ed *device)
-{
-	semb_print_ident((struct sep_identify_data *)&device->ident_data);
-}
-
-static void
-semb_proto_denounce(struct cam_ed *device)
-{
-	semb_print_ident_short((struct sep_identify_data *)&device->ident_data);
 }
 
 static void

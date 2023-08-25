@@ -38,8 +38,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 /*
  * Kernel interface for MAC policy modules.
@@ -103,6 +101,9 @@ struct thread;
 struct ucred;
 struct vattr;
 struct vnode;
+
+struct in_addr;
+struct in6_addr;
 
 /*
  * Policy module operations.
@@ -247,6 +248,12 @@ typedef void	(*mpo_ip6q_reassemble)(struct ip6q *q6, struct label *q6label,
 		    struct mbuf *m, struct label *mlabel);
 typedef void	(*mpo_ip6q_update_t)(struct mbuf *m, struct label *mlabel,
 		    struct ip6q *q6, struct label *q6label);
+
+/* Policy ops checking IPv4 and IPv6 address for ipacl. */
+typedef int	(*mpo_ip4_check_jail_t)(struct ucred *cred,
+		    const struct in_addr *ia, struct ifnet *ifp);
+typedef int	(*mpo_ip6_check_jail_t)(struct ucred *cred,
+		    const struct in6_addr *ia6, struct ifnet *ifp);
 
 typedef void	(*mpo_ipq_create_t)(struct mbuf *m, struct label *mlabel,
 		    struct ipq *q, struct label *qlabel);
@@ -761,6 +768,9 @@ struct mac_policy_ops {
 	mpo_inpcb_destroy_label_t		mpo_inpcb_destroy_label;
 	mpo_inpcb_init_label_t			mpo_inpcb_init_label;
 	mpo_inpcb_sosetlabel_t			mpo_inpcb_sosetlabel;
+
+	mpo_ip4_check_jail_t			mpo_ip4_check_jail;
+	mpo_ip6_check_jail_t			mpo_ip6_check_jail;
 
 	mpo_ip6q_create_t			mpo_ip6q_create;
 	mpo_ip6q_destroy_label_t		mpo_ip6q_destroy_label;

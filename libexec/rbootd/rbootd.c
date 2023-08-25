@@ -54,8 +54,6 @@ static const char sccsid[] = "@(#)rbootd.c	8.1 (Berkeley) 6/4/93";
 #endif
 #endif /* not lint */
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/time.h>
 #include <ctype.h>
@@ -70,7 +68,7 @@ __FBSDID("$FreeBSD$");
 #include <unistd.h>
 #include "defs.h"
 
-static void usage(void);
+static void usage(void) __dead2;
 
 int
 main(int argc, char *argv[])

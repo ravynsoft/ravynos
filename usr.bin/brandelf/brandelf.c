@@ -30,8 +30,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/capsicum.h>
 #include <sys/elf_common.h>
@@ -52,7 +50,7 @@ __FBSDID("$FreeBSD$");
 static int elftype(const char *);
 static const char *iselftype(int);
 static void printelftypes(void);
-static void usage(void);
+static void usage(void) __dead2;
 
 struct ELFtypes {
 	const char *str;

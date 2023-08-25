@@ -24,8 +24,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 /* udf_vfsops.c */
@@ -413,6 +411,11 @@ udf_mountfs(struct vnode *devvp, struct mount *mp)
 		lvd = (struct logvol_desc *)bp->b_data;
 		if (!udf_checktag(&lvd->tag, TAGID_LOGVOL)) {
 			udfmp->bsize = le32toh(lvd->lb_size);
+			if (udfmp->bsize < 0 || udfmp->bsize > maxbcachebuf) {
+				printf("lvd block size %d\n", udfmp->bsize);
+				error = EINVAL;
+				goto bail;
+			}
 			udfmp->bmask = udfmp->bsize - 1;
 			udfmp->bshift = ffs(udfmp->bsize) - 1;
 			fsd_part = le16toh(lvd->_lvd_use.fsd_loc.loc.part_num);
@@ -477,6 +480,11 @@ udf_mountfs(struct vnode *devvp, struct mount *mp)
 	 */
 	sector = le32toh(udfmp->root_icb.loc.lb_num) + udfmp->part_start;
 	size = le32toh(udfmp->root_icb.len);
+	if (size < UDF_FENTRY_SIZE) {
+		printf("Invalid root directory file entry length %u\n",
+		    size);
+		goto bail;
+	}
 	if ((error = udf_readdevblks(udfmp, sector, size, &bp)) != 0) {
 		printf("Cannot read sector %d\n", sector);
 		goto bail;

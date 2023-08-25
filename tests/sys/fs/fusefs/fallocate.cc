@@ -23,8 +23,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 extern "C" {
@@ -493,8 +491,8 @@ TEST_P(FspacectlCache, clears_cache)
 	leak(fd);
 }
 
-INSTANTIATE_TEST_CASE_P(FspacectlCache, FspacectlCache,
-	Values(Uncached, Writethrough, Writeback),
+INSTANTIATE_TEST_SUITE_P(FspacectlCache, FspacectlCache,
+	Values(Uncached, Writethrough, Writeback)
 );
 
 /*

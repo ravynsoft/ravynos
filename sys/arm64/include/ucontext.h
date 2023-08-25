@@ -26,9 +26,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/ucontext.h>
+#else /* !__arm__ */
 
 #ifndef _MACHINE_UCONTEXT_H_
 #define	_MACHINE_UCONTEXT_H_
@@ -86,3 +88,5 @@ typedef struct __mcontext32_vfp {
 #endif /* COMPAT_FREEBSD32 */
 
 #endif	/* !_MACHINE_UCONTEXT_H_ */
+
+#endif /* !__arm__ */

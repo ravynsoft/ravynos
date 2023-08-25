@@ -1,6 +1,6 @@
 #!/bin/sh
 #-
-# Copyright (c) 2008 Dag-Erling Coïdan Smørgrav
+# Copyright (c) 2008 Dag-Erling Smørgrav
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -25,7 +25,6 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $FreeBSD$
 #
 
 tail -10000 -F "$@" |

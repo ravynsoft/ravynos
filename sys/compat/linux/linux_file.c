@@ -26,9 +26,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/dirent.h>
@@ -413,7 +410,7 @@ linux_getdents(struct thread *td, struct linux_getdents_args *args)
 	size_t retval;
 
 	buflen = min(args->count, MAXBSIZE);
-	buf = malloc(buflen, M_TEMP, M_WAITOK);
+	buf = malloc(buflen, M_LINUX, M_WAITOK);
 
 	error = kern_getdirentries(td, args->fd, buf, buflen,
 	    &base, NULL, UIO_SYSSPACE);
@@ -422,7 +419,7 @@ linux_getdents(struct thread *td, struct linux_getdents_args *args)
 		goto out1;
 	}
 
-	lbuf = malloc(LINUX_RECLEN(LINUX_NAME_MAX), M_TEMP, M_WAITOK | M_ZERO);
+	lbuf = malloc(LINUX_RECLEN(LINUX_NAME_MAX), M_LINUX, M_WAITOK | M_ZERO);
 
 	len = td->td_retval[0];
 	inp = buf;
@@ -468,9 +465,9 @@ linux_getdents(struct thread *td, struct linux_getdents_args *args)
 	td->td_retval[0] = retval;
 
 out:
-	free(lbuf, M_TEMP);
+	free(lbuf, M_LINUX);
 out1:
-	free(buf, M_TEMP);
+	free(buf, M_LINUX);
 	return (error);
 }
 #endif
@@ -483,14 +480,13 @@ linux_getdents64(struct thread *td, struct linux_getdents64_args *args)
 	int len, reclen;		/* BSD-format */
 	caddr_t outp;			/* Linux-format */
 	int resid, linuxreclen;		/* Linux-format */
-	caddr_t lbuf;			/* Linux-format */
 	off_t base;
 	struct l_dirent64 *linux_dirent64;
 	int buflen, error;
 	size_t retval;
 
 	buflen = min(args->count, MAXBSIZE);
-	buf = malloc(buflen, M_TEMP, M_WAITOK);
+	buf = malloc(buflen, M_LINUX, M_WAITOK);
 
 	error = kern_getdirentries(td, args->fd, buf, buflen,
 	    &base, NULL, UIO_SYSSPACE);
@@ -499,7 +495,8 @@ linux_getdents64(struct thread *td, struct linux_getdents64_args *args)
 		goto out1;
 	}
 
-	lbuf = malloc(LINUX_RECLEN64(LINUX_NAME_MAX), M_TEMP, M_WAITOK | M_ZERO);
+	linux_dirent64 = malloc(LINUX_RECLEN64(LINUX_NAME_MAX), M_LINUX,
+	    M_WAITOK | M_ZERO);
 
 	len = td->td_retval[0];
 	inp = buf;
@@ -520,7 +517,6 @@ linux_getdents64(struct thread *td, struct linux_getdents64_args *args)
 			goto out;
 		}
 
-		linux_dirent64 = (struct l_dirent64*)lbuf;
 		linux_dirent64->d_ino = bdp->d_fileno;
 		linux_dirent64->d_off = bdp->d_off;
 		linux_dirent64->d_reclen = linuxreclen;
@@ -542,9 +538,9 @@ linux_getdents64(struct thread *td, struct linux_getdents64_args *args)
 	td->td_retval[0] = retval;
 
 out:
-	free(lbuf, M_TEMP);
+	free(linux_dirent64, M_LINUX);
 out1:
-	free(buf, M_TEMP);
+	free(buf, M_LINUX);
 	return (error);
 }
 
@@ -555,13 +551,12 @@ linux_readdir(struct thread *td, struct linux_readdir_args *args)
 	struct dirent *bdp;
 	caddr_t buf;			/* BSD-format */
 	int linuxreclen;		/* Linux-format */
-	caddr_t lbuf;			/* Linux-format */
 	off_t base;
-	struct l_dirent *linux_dirent;
+	struct l_dirent *linux_dirent;	/* Linux-format */
 	int buflen, error;
 
-	buflen = LINUX_RECLEN(LINUX_NAME_MAX);
-	buf = malloc(buflen, M_TEMP, M_WAITOK);
+	buflen = sizeof(*bdp);
+	buf = malloc(buflen, M_LINUX, M_WAITOK);
 
 	error = kern_getdirentries(td, args->fd, buf, buflen,
 	    &base, NULL, UIO_SYSSPACE);
@@ -572,12 +567,12 @@ linux_readdir(struct thread *td, struct linux_readdir_args *args)
 	if (td->td_retval[0] == 0)
 		goto out;
 
-	lbuf = malloc(LINUX_RECLEN(LINUX_NAME_MAX), M_TEMP, M_WAITOK | M_ZERO);
+	linux_dirent = malloc(LINUX_RECLEN(LINUX_NAME_MAX), M_LINUX,
+	    M_WAITOK | M_ZERO);
 
 	bdp = (struct dirent *) buf;
 	linuxreclen = LINUX_RECLEN(bdp->d_namlen);
 
-	linux_dirent = (struct l_dirent*)lbuf;
 	linux_dirent->d_ino = bdp->d_fileno;
 	linux_dirent->d_off = bdp->d_off;
 	linux_dirent->d_reclen = bdp->d_namlen;
@@ -587,9 +582,9 @@ linux_readdir(struct thread *td, struct linux_readdir_args *args)
 	if (error == 0)
 		td->td_retval[0] = linuxreclen;
 
-	free(lbuf, M_TEMP);
+	free(linux_dirent, M_LINUX);
 out:
-	free(buf, M_TEMP);
+	free(buf, M_LINUX);
 	return (error);
 }
 #endif /* __i386__ || (__amd64__ && COMPAT_LINUX32) */

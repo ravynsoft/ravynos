@@ -45,8 +45,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/asan.h>
@@ -63,10 +61,12 @@ __FBSDID("$FreeBSD$");
 #include <sys/limits.h>
 #include <sys/lock.h>
 #include <sys/malloc.h>
+#include <sys/memdesc.h>
 #include <sys/mount.h>
 #include <sys/mutex.h>
 #include <sys/kernel.h>
 #include <sys/kthread.h>
+#include <sys/pctrie.h>
 #include <sys/proc.h>
 #include <sys/racct.h>
 #include <sys/refcount.h>
@@ -5152,7 +5152,9 @@ bufobj_init(struct bufobj *bo, void *private)
         rw_init(BO_LOCKPTR(bo), "bufobj interlock");
         bo->bo_private = private;
         TAILQ_INIT(&bo->bo_clean.bv_hd);
+	pctrie_init(&bo->bo_clean.bv_root);
         TAILQ_INIT(&bo->bo_dirty.bv_hd);
+	pctrie_init(&bo->bo_dirty.bv_root);
 }
 
 void
@@ -5228,6 +5230,20 @@ bdata2bio(struct buf *bp, struct bio *bip)
 		bip->bio_data = bp->b_data;
 		bip->bio_ma = NULL;
 	}
+}
+
+struct memdesc
+memdesc_bio(struct bio *bio)
+{
+	if ((bio->bio_flags & BIO_VLIST) != 0)
+		return (memdesc_vlist((struct bus_dma_segment *)bio->bio_data,
+		    bio->bio_ma_n));
+
+	if ((bio->bio_flags & BIO_UNMAPPED) != 0)
+		return (memdesc_vmpages(bio->bio_ma, bio->bio_bcount,
+		    bio->bio_ma_offset));
+
+	return (memdesc_vaddr(bio->bio_data, bio->bio_bcount));
 }
 
 static int buf_pager_relbuf;

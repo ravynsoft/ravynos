@@ -25,8 +25,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/malloc.h>
@@ -53,7 +51,7 @@ spibus_probe(device_t dev)
 	return (BUS_PROBE_DEFAULT);
 }
 
-static int
+int
 spibus_attach(device_t dev)
 {
 	struct spibus_softc *sc = SPIBUS_SOFTC(dev);
@@ -67,16 +65,10 @@ spibus_attach(device_t dev)
  * Since this is not a self-enumerating bus, and since we always add
  * children in attach, we have to always delete children here.
  */
-static int
+int
 spibus_detach(device_t dev)
 {
-	int err;
-
-	if ((err = bus_generic_detach(dev)) != 0)
-		return (err);
-	device_delete_children(dev);
-
-	return (0);
+	return (device_delete_children(dev));
 }
 
 static int
@@ -108,7 +100,7 @@ spibus_print_child(device_t dev, device_t child)
 	return (retval);
 }
 
-static void
+void
 spibus_probe_nomatch(device_t bus, device_t child)
 {
 	struct spibus_ivar *devi = SPIBUS_IVAR(child);
@@ -118,7 +110,7 @@ spibus_probe_nomatch(device_t bus, device_t child)
 	return;
 }
 
-static int
+int
 spibus_child_location(device_t bus, device_t child, struct sbuf *sb)
 {
 	struct spibus_ivar *devi = SPIBUS_IVAR(child);
@@ -129,7 +121,7 @@ spibus_child_location(device_t bus, device_t child, struct sbuf *sb)
 	return (0);
 }
 
-static int
+int
 spibus_read_ivar(device_t bus, device_t child, int which, uintptr_t *result)
 {
 	struct spibus_ivar *devi = SPIBUS_IVAR(child);
@@ -153,7 +145,7 @@ spibus_read_ivar(device_t bus, device_t child, int which, uintptr_t *result)
 	return (0);
 }
 
-static int
+int
 spibus_write_ivar(device_t bus, device_t child, int which, uintptr_t value)
 {
 	struct spibus_ivar *devi = SPIBUS_IVAR(child);
@@ -187,8 +179,9 @@ spibus_write_ivar(device_t bus, device_t child, int which, uintptr_t value)
 	return (0);
 }
 
-static device_t
-spibus_add_child(device_t dev, u_int order, const char *name, int unit)
+device_t
+spibus_add_child_common(device_t dev, u_int order, const char *name, int unit,
+    size_t ivars_size)
 {
 	device_t child;
 	struct spibus_ivar *devi;
@@ -196,7 +189,7 @@ spibus_add_child(device_t dev, u_int order, const char *name, int unit)
 	child = device_add_child_ordered(dev, order, name, unit);
 	if (child == NULL) 
 		return (child);
-	devi = malloc(sizeof(struct spibus_ivar), M_DEVBUF, M_NOWAIT | M_ZERO);
+	devi = malloc(ivars_size, M_DEVBUF, M_NOWAIT | M_ZERO);
 	if (devi == NULL) {
 		device_delete_child(dev, child);
 		return (0);
@@ -204,6 +197,13 @@ spibus_add_child(device_t dev, u_int order, const char *name, int unit)
 	resource_list_init(&devi->rl);
 	device_set_ivars(child, devi);
 	return (child);
+}
+
+static device_t
+spibus_add_child(device_t dev, u_int order, const char *name, int unit)
+{
+	return (spibus_add_child_common(
+	    dev, order, name, unit, sizeof(struct spibus_ivar)));
 }
 
 static void
@@ -253,11 +253,11 @@ static device_method_t spibus_methods[] = {
 	/* Bus interface */
 	DEVMETHOD(bus_setup_intr,	bus_generic_setup_intr),
 	DEVMETHOD(bus_teardown_intr,	bus_generic_teardown_intr),
-	DEVMETHOD(bus_release_resource,	bus_generic_release_resource),
 	DEVMETHOD(bus_activate_resource, bus_generic_activate_resource),
 	DEVMETHOD(bus_deactivate_resource, bus_generic_deactivate_resource),
 	DEVMETHOD(bus_adjust_resource,	bus_generic_adjust_resource),
 	DEVMETHOD(bus_alloc_resource,	bus_generic_rl_alloc_resource),
+	DEVMETHOD(bus_release_resource,	bus_generic_rl_release_resource),
 	DEVMETHOD(bus_get_resource,	bus_generic_rl_get_resource),
 	DEVMETHOD(bus_set_resource,	bus_generic_rl_set_resource),
 	DEVMETHOD(bus_get_resource_list, spibus_get_resource_list),

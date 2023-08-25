@@ -30,7 +30,6 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************/
-/*$FreeBSD$*/
 
 #include "ixl.h"
 #include "ixl_pf.h"
@@ -64,7 +63,7 @@
  *  ( Vendor ID, Device ID, Branding String )
  *********************************************************************/
 
-static pci_vendor_info_t ixl_vendor_info_array[] =
+static const pci_vendor_info_t ixl_vendor_info_array[] =
 {
 	PVIDV(I40E_INTEL_VENDOR_ID, I40E_DEV_ID_SFP_XL710, "Intel(R) Ethernet Controller X710 for 10GbE SFP+"),
 	PVIDV(I40E_INTEL_VENDOR_ID, I40E_DEV_ID_KX_B, "Intel(R) Ethernet Controller XL710 for 40GbE backplane"),
@@ -444,6 +443,29 @@ ixl_admin_timer(void *arg)
 {
 	struct ixl_pf *pf = (struct ixl_pf *)arg;
 
+	if (ixl_test_state(&pf->state, IXL_STATE_LINK_POLLING)) {
+		struct i40e_hw *hw = &pf->hw;
+		sbintime_t stime;
+		enum i40e_status_code status;
+
+		hw->phy.get_link_info = TRUE;
+		status = i40e_get_link_status(hw, &pf->link_up);
+		if (status == I40E_SUCCESS) {
+			ixl_clear_state(&pf->state, IXL_STATE_LINK_POLLING);
+			/* OS link info is updated in the admin task */
+		} else {
+			device_printf(pf->dev,
+			    "%s: i40e_get_link_status status %s, aq error %s\n",
+			    __func__, i40e_stat_str(hw, status),
+			    i40e_aq_str(hw, hw->aq.asq_last_status));
+			stime = getsbinuptime();
+			if (stime - pf->link_poll_start > IXL_PF_MAX_LINK_POLL) {
+				device_printf(pf->dev, "Polling link status failed\n");
+				ixl_clear_state(&pf->state, IXL_STATE_LINK_POLLING);
+			}
+		}
+	}
+
 	/* Fire off the admin task */
 	iflib_admin_intr_deferred(pf->vsi.ctx);
 
@@ -597,14 +619,14 @@ ixl_if_attach_pre(if_ctx_t ctx)
 	if (((pf->hw.aq.fw_maj_ver == 4) && (pf->hw.aq.fw_min_ver < 3)) ||
 	    (pf->hw.aq.fw_maj_ver < 4)) {
 		i40e_aq_stop_lldp(hw, true, false, NULL);
-		pf->state |= IXL_PF_STATE_FW_LLDP_DISABLED;
+		ixl_set_state(&pf->state, IXL_STATE_FW_LLDP_DISABLED);
 	}
 
 	/* Try enabling Energy Efficient Ethernet (EEE) mode */
 	if (i40e_enable_eee(hw, true) == I40E_SUCCESS)
-		atomic_set_32(&pf->state, IXL_PF_STATE_EEE_ENABLED);
+		ixl_set_state(&pf->state, IXL_STATE_EEE_ENABLED);
 	else
-		atomic_clear_32(&pf->state, IXL_PF_STATE_EEE_ENABLED);
+		ixl_clear_state(&pf->state, IXL_STATE_EEE_ENABLED);
 
 	/* Get MAC addresses from hardware */
 	i40e_get_mac_addr(hw, hw->mac.addr);
@@ -629,11 +651,11 @@ ixl_if_attach_pre(if_ctx_t ctx)
 	/* Query device FW LLDP status */
 	if (i40e_get_fw_lldp_status(hw, &lldp_status) == I40E_SUCCESS) {
 		if (lldp_status == I40E_GET_FW_LLDP_STATUS_DISABLED) {
-			atomic_set_32(&pf->state,
-			    IXL_PF_STATE_FW_LLDP_DISABLED);
+			ixl_set_state(&pf->state,
+			    IXL_STATE_FW_LLDP_DISABLED);
 		} else {
-			atomic_clear_32(&pf->state,
-			    IXL_PF_STATE_FW_LLDP_DISABLED);
+			ixl_clear_state(&pf->state,
+			    IXL_STATE_FW_LLDP_DISABLED);
 		}
 	}
 
@@ -706,12 +728,6 @@ ixl_if_attach_post(if_ctx_t ctx)
 		return (0);
 	}
 
-	/* Determine link state */
-	if (ixl_attach_get_link_status(pf)) {
-		error = EINVAL;
-		goto err;
-	}
-
 	error = ixl_switch_config(pf);
 	if (error) {
 		device_printf(dev, "Initial ixl_switch_config() failed: %d\n",
@@ -739,6 +755,11 @@ ixl_if_attach_post(if_ctx_t ctx)
 	}
 	device_printf(dev, "Allocating %d queues for PF LAN VSI; %d queues active\n",
 	    pf->qtag.num_allocated, pf->qtag.num_active);
+
+	/* Determine link state */
+	error = ixl_attach_get_link_status(pf);
+	if (error == EINVAL)
+		goto err;
 
 	/* Limit PHY interrupts to link, autoneg, and modules failure */
 	status = i40e_aq_set_phy_int_mask(hw, IXL_DEFAULT_PHY_INT_MASK,
@@ -772,11 +793,23 @@ ixl_if_attach_post(if_ctx_t ctx)
 	 * Driver may have been reloaded. Ensure that the link state
 	 * is consistent with current settings.
 	 */
-	ixl_set_link(pf, (pf->state & IXL_PF_STATE_LINK_ACTIVE_ON_DOWN) != 0);
+	ixl_set_link(pf, ixl_test_state(&pf->state, IXL_STATE_LINK_ACTIVE_ON_DOWN));
 
 	hw->phy.get_link_info = true;
-	i40e_get_link_status(hw, &pf->link_up);
-	ixl_update_link_status(pf);
+	status = i40e_get_link_status(hw, &pf->link_up);
+	if (status != I40E_SUCCESS) {
+		device_printf(dev,
+		    "%s get link status, status: %s aq_err=%s\n",
+		    __func__, i40e_stat_str(hw, status),
+		    i40e_aq_str(hw, hw->aq.asq_last_status));
+		/*
+		 * Most probably FW has not finished configuring PHY.
+		 * Retry periodically in a timer callback.
+		 */
+		ixl_set_state(&pf->state, IXL_STATE_LINK_POLLING);
+		pf->link_poll_start = getsbinuptime();
+	} else
+		ixl_update_link_status(pf);
 
 #ifdef PCI_IOV
 	ixl_initialize_sriov(pf);
@@ -1032,8 +1065,7 @@ ixl_if_stop(if_ctx_t ctx)
 	 * e.g. on MTU change.
 	 */
 	if ((if_getflags(ifp) & IFF_UP) == 0 &&
-	    (atomic_load_acq_32(&pf->state) &
-	    IXL_PF_STATE_LINK_ACTIVE_ON_DOWN) == 0)
+	    !ixl_test_state(&pf->state, IXL_STATE_LINK_ACTIVE_ON_DOWN))
 		ixl_set_link(pf, false);
 }
 
@@ -1417,7 +1449,7 @@ ixl_if_update_admin_status(if_ctx_t ctx)
 	if (!i40e_check_asq_alive(&pf->hw))
 		return;
 
-	if (pf->state & IXL_PF_STATE_MDD_PENDING)
+	if (ixl_test_state(&pf->state, IXL_STATE_MDD_PENDING))
 		ixl_handle_mdd_event(pf);
 
 	ixl_process_adminq(pf, &pending);

@@ -20,6 +20,8 @@ properties:
 
   lab:
     type: object
+    $ref: regulator.yaml#
+    unevaluatedProperties: false
 
     properties:
       qcom,soft-start-us:
@@ -33,11 +35,20 @@ properties:
         description:
           Short-circuit and over-current interrupts for lab.
 
+      interrupt-names:
+        minItems: 1
+        items:
+          - const: sc-err
+          - const: ocp
+
     required:
       - interrupts
+      - interrupt-names
 
   ibb:
     type: object
+    $ref: regulator.yaml#
+    unevaluatedProperties: false
 
     properties:
       qcom,discharge-resistor-kohms:
@@ -52,8 +63,15 @@ properties:
         description:
           Short-circuit and over-current interrupts for ibb.
 
+      interrupt-names:
+        minItems: 1
+        items:
+          - const: sc-err
+          - const: ocp
+
     required:
       - interrupts
+      - interrupt-names
 
 required:
   - compatible

@@ -27,13 +27,9 @@
  * SUCH DAMAGE.
  *
  * based on sys/arm/allwinner/clkng/aw_clk_np.c
- *
- * $FreeBSD$
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/bus.h>

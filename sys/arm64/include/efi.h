@@ -26,9 +26,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/efi.h>
+#else /* !__arm__ */
 
 #ifndef __ARM64_INCLUDE_EFI_H_
 #define __ARM64_INCLUDE_EFI_H_
@@ -58,3 +60,5 @@ struct efirt_callinfo {
 };
 
 #endif /* __ARM64_INCLUDE_EFI_H_ */
+
+#endif /* !__arm__ */

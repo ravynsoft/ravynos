@@ -26,8 +26,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * Simple driver for PCI VGA display devices.  Drivers such as agp(4) and
  * drm(4) should attach as children of this device.
@@ -373,8 +371,7 @@ vga_pci_attach(device_t dev)
 
 	bus_generic_probe(dev);
 
-	/* Always create a drm child for now to make it easier on drm. */
-	device_add_child(dev, "drm", -1);
+	/* Always create a drmn child for now to make it easier on drm. */
 	device_add_child(dev, "drmn", -1);
 	bus_generic_attach(dev);
 

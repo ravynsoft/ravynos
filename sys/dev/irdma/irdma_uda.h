@@ -1,7 +1,7 @@
 /*-
  * SPDX-License-Identifier: GPL-2.0 or Linux-OpenIB
  *
- * Copyright (c) 2016 - 2021 Intel Corporation
+ * Copyright (c) 2016 - 2023 Intel Corporation
  *
  * This software is available to you under a choice of one of two
  * licenses.  You may choose to be licensed under the terms of the GNU
@@ -31,7 +31,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-/*$FreeBSD$*/
 
 #ifndef IRDMA_UDA_H
 #define IRDMA_UDA_H
@@ -54,7 +53,7 @@ struct irdma_ah_info {
 	u8 insert_vlan_tag;
 	u8 tc_tos;
 	u8 hop_ttl;
-	u8 mac_addr[ETH_ALEN];
+	u8 mac_addr[ETHER_ADDR_LEN];
 	bool ah_valid:1;
 	bool ipv4_valid:1;
 	bool do_lpbk:1;

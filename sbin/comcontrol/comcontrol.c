@@ -29,8 +29,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <ctype.h>
 #include <err.h>
 #include <errno.h>
@@ -42,7 +40,7 @@ __FBSDID("$FreeBSD$");
 #include <sys/types.h>
 #include <sys/ioctl.h>
 
-static void usage(void);
+static void usage(void) __dead2;
 
 static void
 usage(void)

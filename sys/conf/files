@@ -1,4 +1,3 @@
-# $FreeBSD$
 #
 # The long compile-with and dependency lines are required because of
 # limitations in config: backslash-newline doesn't work in strings, and
@@ -892,12 +891,6 @@ dev/ata/chipsets/ata-siliconimage.c	optional ata pci | atasiliconimage | ataati
 dev/ata/chipsets/ata-sis.c	optional ata pci | atasis
 dev/ata/chipsets/ata-via.c	optional ata pci | atavia
 #
-dev/ath/if_ath_pci.c		optional ath_pci pci \
-	compile-with "${ATH_C}"
-#
-dev/ath/if_ath_ahb.c		optional ath_ahb \
-	compile-with "${ATH_C}"
-#
 dev/ath/if_ath.c		optional ath \
 	compile-with "${ATH_C}"
 dev/ath/if_ath_alq.c		optional ath \
@@ -919,6 +912,8 @@ dev/ath/if_ath_ioctl.c		optional ath \
 dev/ath/if_ath_led.c		optional ath \
 	compile-with "${ATH_C}"
 dev/ath/if_ath_lna_div.c	optional ath \
+	compile-with "${ATH_C}"
+dev/ath/if_ath_pci.c		optional ath pci \
 	compile-with "${ATH_C}"
 dev/ath/if_ath_tx.c		optional ath \
 	compile-with "${ATH_C}"
@@ -1135,16 +1130,6 @@ dev/ath/ath_hal/ar5416/ar5416_spectral.c \
 dev/ath/ath_hal/ar5416/ar5416_xmit.c \
 	optional ath_hal | ath_ar5416 | ath_ar9160 | ath_ar9280 | ath_ar9285 | \
 	ath_ar9287 \
-	compile-with "${ATH_C} -I$S/dev/ath/ath_hal"
-# ar9130 (depends upon ar5416) - also requires AH_SUPPORT_AR9130
-#
-# Since this is an embedded MAC SoC, there's no need to compile it into the
-# default HAL.
-dev/ath/ath_hal/ar9001/ar9130_attach.c optional ath_ar9130 \
-	compile-with "${ATH_C} -I$S/dev/ath/ath_hal"
-dev/ath/ath_hal/ar9001/ar9130_phy.c optional ath_ar9130 \
-	compile-with "${ATH_C} -I$S/dev/ath/ath_hal"
-dev/ath/ath_hal/ar9001/ar9130_eeprom.c optional ath_ar9130 \
 	compile-with "${ATH_C} -I$S/dev/ath/ath_hal"
 # ar9160 (depends on ar5416)
 dev/ath/ath_hal/ar9001/ar9160_attach.c optional ath_hal | ath_ar9160 \
@@ -1470,7 +1455,7 @@ t4fw.fwo		optional cxgbe					\
 	no-implicit-rule						\
 	clean		"t4fw.fwo"
 t4fw.fw			optional cxgbe					\
-	dependency	"$S/dev/cxgbe/firmware/t4fw-1.27.3.0.bin"	\
+	dependency	"$S/dev/cxgbe/firmware/t4fw-1.27.4.0.bin"	\
 	compile-with	"${CP} ${.ALLSRC} ${.TARGET}"			\
 	no-obj no-implicit-rule						\
 	clean		"t4fw.fw"
@@ -1504,7 +1489,7 @@ t5fw.fwo		optional cxgbe					\
 	no-implicit-rule						\
 	clean		"t5fw.fwo"
 t5fw.fw			optional cxgbe					\
-	dependency	"$S/dev/cxgbe/firmware/t5fw-1.27.3.0.bin"	\
+	dependency	"$S/dev/cxgbe/firmware/t5fw-1.27.4.0.bin"	\
 	compile-with	"${CP} ${.ALLSRC} ${.TARGET}"			\
 	no-obj no-implicit-rule						\
 	clean		"t5fw.fw"
@@ -1538,7 +1523,7 @@ t6fw.fwo		optional cxgbe					\
 	no-implicit-rule						\
 	clean		"t6fw.fwo"
 t6fw.fw			optional cxgbe					\
-	dependency	"$S/dev/cxgbe/firmware/t6fw-1.27.3.0.bin"	\
+	dependency	"$S/dev/cxgbe/firmware/t6fw-1.27.4.0.bin"	\
 	compile-with	"${CP} ${.ALLSRC} ${.TARGET}"			\
 	no-obj no-implicit-rule						\
 	clean		"t6fw.fw"
@@ -1662,8 +1647,6 @@ dev/etherswitch/arswitch/arswitch_8216.c	optional arswitch
 dev/etherswitch/arswitch/arswitch_8226.c	optional arswitch
 dev/etherswitch/arswitch/arswitch_8316.c	optional arswitch
 dev/etherswitch/arswitch/arswitch_8327.c	optional arswitch
-dev/etherswitch/arswitch/arswitch_7240.c	optional arswitch
-dev/etherswitch/arswitch/arswitch_9340.c	optional arswitch
 dev/etherswitch/arswitch/arswitch_vlans.c	optional arswitch
 dev/etherswitch/etherswitch.c		optional etherswitch
 dev/etherswitch/etherswitch_if.m	optional etherswitch
@@ -2579,6 +2562,7 @@ dev/ofw/ofw_bus_if.m		optional fdt
 dev/ofw/ofw_bus_subr.c		optional fdt
 dev/ofw/ofw_cpu.c		optional fdt
 dev/ofw/ofw_fdt.c		optional fdt
+dev/ofw/ofw_firmware.c		optional fdt
 dev/ofw/ofw_if.m		optional fdt
 dev/ofw/ofw_graph.c		optional fdt
 dev/ofw/ofw_subr.c		optional fdt
@@ -3060,6 +3044,8 @@ dev/sdhci/sdhci_pci.c		optional sdhci pci
 dev/sdio/sdio_if.m		optional mmccam
 dev/sdio/sdio_subr.c		optional mmccam
 dev/sdio/sdiob.c		optional mmccam
+dev/sff/sff_if.m		optional sff
+dev/sff/sfp_fdt.c		optional sff fdt
 dev/sge/if_sge.c		optional sge pci
 dev/siis/siis.c			optional siis pci
 dev/sis/if_sis.c		optional sis pci
@@ -3143,6 +3129,7 @@ dev/sound/midi/mpu_if.m		optional sound
 dev/sound/midi/mpufoi_if.m	optional sound
 dev/sound/midi/sequencer.c	optional sound
 dev/sound/midi/synth_if.m	optional sound
+dev/spibus/acpi_spibus.c	optional acpi spibus
 dev/spibus/ofw_spibus.c		optional fdt spibus
 dev/spibus/spibus.c		optional spibus				\
 	dependency	"spibus_if.h"
@@ -3414,6 +3401,7 @@ dev/virtio/mmio/virtio_mmio_if.m	optional	virtio_mmio
 dev/virtio/network/if_vtnet.c		optional	vtnet
 dev/virtio/block/virtio_blk.c		optional	virtio_blk
 dev/virtio/balloon/virtio_balloon.c	optional	virtio_balloon
+dev/virtio/gpu/virtio_gpu.c		optional	virtio_gpu
 dev/virtio/scsi/virtio_scsi.c		optional	virtio_scsi
 dev/virtio/random/virtio_random.c	optional	virtio_random
 dev/virtio/console/virtio_console.c	optional	virtio_console
@@ -3661,7 +3649,6 @@ geom/part/g_part_ebr.c		optional geom_part_ebr
 geom/part/g_part_gpt.c		optional geom_part_gpt
 geom/part/g_part_ldm.c		optional geom_part_ldm
 geom/part/g_part_mbr.c		optional geom_part_mbr
-geom/part/g_part_vtoc8.c	optional geom_part_vtoc8
 geom/raid/g_raid.c		optional geom_raid
 geom/raid/g_raid_ctl.c		optional geom_raid
 geom/raid/g_raid_md_if.m	optional geom_raid
@@ -3881,6 +3868,7 @@ kern/subr_kobj.c		standard
 kern/subr_lock.c		standard
 kern/subr_log.c			standard
 kern/subr_mchain.c		optional libmchain
+kern/subr_memdesc.c		standard
 kern/subr_module.c		standard
 kern/subr_msan.c		optional kmsan \
 	compile-with "${NORMAL_C:N-fsanitize*:N-fstack-protector*}"
@@ -4147,7 +4135,6 @@ net/if_vlan.c			optional vlan
 net/if_vxlan.c			optional vxlan inet | vxlan inet6
 net/ifdi_if.m			optional ether pci iflib
 net/iflib.c			optional ether pci iflib
-net/iflib_clone.c		optional ether pci iflib
 net/mp_ring.c			optional ether iflib
 net/mppcc.c			optional netgraph_mppc_compression
 net/mppcd.c			optional netgraph_mppc_compression
@@ -4347,6 +4334,7 @@ netinet/sctp_crc32.c		optional inet | inet6
 netinet/sctp_indata.c		optional inet sctp | inet6 sctp
 netinet/sctp_input.c		optional inet sctp | inet6 sctp
 netinet/sctp_kdtrace.c		optional inet sctp | inet6 sctp
+netinet/sctp_module.c		optional inet sctp | inet6 sctp
 netinet/sctp_output.c		optional inet sctp | inet6 sctp
 netinet/sctp_pcb.c		optional inet sctp | inet6 sctp
 netinet/sctp_peeloff.c		optional inet sctp | inet6 sctp
@@ -5147,6 +5135,7 @@ security/mac_bsdextended/mac_bsdextended.c	optional mac_bsdextended
 security/mac_bsdextended/ugidfw_system.c	optional mac_bsdextended
 security/mac_bsdextended/ugidfw_vnode.c		optional mac_bsdextended
 security/mac_ifoff/mac_ifoff.c	optional mac_ifoff
+security/mac_ipacl/mac_ipacl.c	optional mac_ipacl
 security/mac_lomac/mac_lomac.c	optional mac_lomac
 security/mac_mls/mac_mls.c	optional mac_mls
 security/mac_none/mac_none.c	optional mac_none

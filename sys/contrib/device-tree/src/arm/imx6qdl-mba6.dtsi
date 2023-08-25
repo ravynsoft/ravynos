@@ -209,6 +209,7 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&pinctrl_pcie>;
 	reset-gpio = <&gpio6 7 GPIO_ACTIVE_LOW>;
+	vpcie-supply = <&reg_pcie>;
 	status = "okay";
 };
 
@@ -243,7 +244,6 @@
 	pinctrl-0 = <&pinctrl_uart2>;
 	status = "okay";
 };
-
 
 &uart3 {
 	pinctrl-names = "default";

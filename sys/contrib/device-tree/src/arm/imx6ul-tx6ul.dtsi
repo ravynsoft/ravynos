@@ -131,7 +131,7 @@
 	leds {
 		compatible = "gpio-leds";
 
-		user_led: user {
+		user_led: led-user {
 			label = "Heartbeat";
 			pinctrl-names = "default";
 			pinctrl-0 = <&pinctrl_led>;
@@ -212,7 +212,7 @@
 		enable-active-high;
 	};
 
-	spi_gpio: spi-gpio {
+	spi_gpio: spi {
 		#address-cells = <1>;
 		#size-cells = <0>;
 		compatible = "spi-gpio";

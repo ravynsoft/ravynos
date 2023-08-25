@@ -4,17 +4,16 @@
 $id: http://devicetree.org/schemas/clock/qcom,gcc-sc7280.yaml#
 $schema: http://devicetree.org/meta-schemas/core.yaml#
 
-title: Qualcomm Global Clock & Reset Controller Binding for SC7280
+title: Qualcomm Global Clock & Reset Controller on SC7280
 
 maintainers:
   - Taniya Das <tdas@codeaurora.org>
 
 description: |
-  Qualcomm global clock control module which supports the clocks, resets and
-  power domains on SC7280.
+  Qualcomm global clock control module provides the clocks, resets and power
+  domains on SC7280.
 
-  See also:
-  - dt-bindings/clock/qcom,gcc-sc7280.h
+  See also:: include/dt-bindings/clock/qcom,gcc-sc7280.h
 
 properties:
   compatible:
@@ -44,28 +43,15 @@ properties:
       - const: ufs_phy_tx_symbol_0_clk
       - const: usb3_phy_wrapper_gcc_usb30_pipe_clk
 
-  '#clock-cells':
-    const: 1
-
-  '#reset-cells':
-    const: 1
-
-  '#power-domain-cells':
-    const: 1
-
-  reg:
-    maxItems: 1
-
 required:
   - compatible
   - clocks
   - clock-names
-  - reg
-  - '#clock-cells'
-  - '#reset-cells'
-  - '#power-domain-cells'
 
-additionalProperties: false
+allOf:
+  - $ref: qcom,gcc.yaml#
+
+unevaluatedProperties: false
 
 examples:
   - |

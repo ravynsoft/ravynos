@@ -1,10 +1,9 @@
-# $FreeBSD$
 
 .if !targets(__<${_this:T}>__)
 __<${_this:T}>__:
 
 # Makefile for the compatibility libraries.
-# - 32-bit compat libraries on PowerPC, and AMD64.
+# - 32-bit compat libraries on some 64-bit architectures
 
 .if defined(_LIBCOMPATS)
 
@@ -20,14 +19,14 @@ LIB${_LIBCOMPAT}WMAKEENV+= \
 		LIBDIR=/usr/lib${libcompat} \
 		SHLIBDIR=/usr/lib${libcompat} \
 		LIBDATADIR=/usr/lib${libcompat} \
-		DTRACE="${LIB$COMPATDTRACE:U${DTRACE}}"
+		DTRACE="${LIB${_LIBCOMPAT}DTRACE:U${DTRACE}}"
 .if ${MK_META_MODE} != "no"
 # Don't rebuild build-tools targets during normal build.
 LIB${_LIBCOMPAT}WMAKEENV+=	BUILD_TOOLS_META=.NOMETA
 .endif
-LIB${_LIBCOMPAT}WMAKEFLAGS+= CC="${XCC} ${LIB${_LIBCOMPAT}CFLAGS}" \
-		CXX="${XCXX} ${LIB${_LIBCOMPAT}CXXFLAGS} ${LIB${_LIBCOMPAT}CFLAGS}" \
-		CPP="${XCPP} ${LIB${_LIBCOMPAT}CFLAGS}" \
+LIB${_LIBCOMPAT}WMAKEFLAGS+= CC=${${XCC} ${LIB${_LIBCOMPAT}CFLAGS}:L:Q} \
+		CXX=${${XCXX} ${LIB${_LIBCOMPAT}CXXFLAGS} ${LIB${_LIBCOMPAT}CFLAGS}:L:Q} \
+		CPP=${${XCPP} ${LIB${_LIBCOMPAT}CFLAGS}:L:Q} \
 		DESTDIR=${WORLDTMP} \
 		-DNO_CPU_CFLAGS \
 		MK_BOOT=no \
@@ -37,11 +36,12 @@ LIB${_LIBCOMPAT}WMAKE+=	${TIME_ENV} ${LIB${_LIBCOMPAT}WMAKEENV} ${MAKE} \
 			${LIB${_LIBCOMPAT}WMAKEFLAGS} \
 			OBJTOP=${LIB${_LIBCOMPAT}_OBJTOP} \
 			OBJROOT='$${OBJTOP}/' \
+			UNIVERSE_TOOLCHAIN_PATH=${UNIVERSE_TOOLCHAIN_PATH} \
 			MAKEOBJDIRPREFIX= \
+			MK_INCLUDES=no \
 			MK_MAN=no MK_HTML=no
 LIB${_LIBCOMPAT}IMAKE+=	${LIB${_LIBCOMPAT}WMAKE:NINSTALL=*:NDESTDIR=*} \
 			${IMAKE_INSTALL} \
-			MK_INCLUDES=no \
 			-DLIBRARIES_ONLY
 
 # Shared logic

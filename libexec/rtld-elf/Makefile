@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 # Use the following command to build local debug version of dynamic
 # linker:
@@ -14,13 +13,17 @@ MK_ASAN=	no
 MK_SSP=		no
 MK_UBSAN=	no
 
+.include <bsd.compat.pre.mk>
+
 .if !defined(NEED_COMPAT)
 CONFS=		libmap.conf
 .endif
 PROG?=		ld-elf.so.1
-.if (${PROG:M*ld-elf32*} != "")
-TAGS+=		lib32
+.for _libcompat in ${_ALL_libcompats}
+.if ${PROG:M*ld-elf${_libcompat}[-.]*} != ""
+TAGS+=		lib${_libcompat}
 .endif
+.endfor
 SRCS= \
 	crtbrand.S \
 	rtld_start.S \

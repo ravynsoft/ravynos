@@ -42,8 +42,6 @@ static char sccsid[] = "@(#)ktrace.c	8.1 (Berkeley) 6/6/93";
 #endif
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/file.h>
 #include <sys/stat.h>
@@ -67,7 +65,7 @@ static int pid;
 
 static void no_ktrace(int);
 static void set_pid_clear(const char *, enum clear);
-static void usage(void);
+static void usage(void) __dead2;
 
 int
 main(int argc, char *argv[])

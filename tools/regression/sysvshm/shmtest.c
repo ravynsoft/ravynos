@@ -28,7 +28,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  * Obtained from: $NetBSD: shmtest.c,v 1.3 2002/07/20 08:36:26 grant Exp $
- * $FreeBSD$
  */
 
 /*
@@ -54,7 +53,7 @@ static void sigsys_handler(int);
 static void sigchld_handler(int);
 static void cleanup(void);
 static void receiver(void);
-static void usage(void);
+static void usage(void) __dead2;
 
 static const char *m_str = "The quick brown fox jumped over the lazy dog.";
 

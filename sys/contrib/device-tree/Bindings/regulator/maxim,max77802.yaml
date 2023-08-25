@@ -77,8 +77,9 @@ patternProperties:
       regulator-initial-mode: false
 
     patternProperties:
-      regulator-state-(standby|mem|disk):
+      "^regulator-state-(standby|mem|disk)$":
         type: object
+        additionalProperties: true
         properties:
           regulator-mode: false
 

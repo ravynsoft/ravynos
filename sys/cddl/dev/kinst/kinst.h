@@ -35,8 +35,36 @@ struct kinst_probe {
 	kinst_patchval_t	kp_patchval;
 	kinst_patchval_t	kp_savedval;
 	kinst_patchval_t	*kp_patchpoint;
+	uint8_t			*kp_tramp;
 
 	struct kinst_probe_md	kp_md;
+};
+
+struct kinst_cpu_state {
+	/*
+	 * kinst uses a breakpoint to return from the trampoline and resume
+	 * execution. To do this safely, kinst implements a per-CPU state
+	 * machine; the state is set to KINST_PROBE_FIRED for the duration of
+	 * the trampoline execution (i.e from the time we transfer execution to
+	 * it, until we return). Upon return, the state is set to
+	 * KINST_PROBE_ARMED to indicate that a probe is not currently firing.
+	 * All CPUs have their state initialized to KINST_PROBE_ARMED when
+	 * kinst is loaded.
+	 */
+	enum {
+		KINST_PROBE_ARMED,
+		KINST_PROBE_FIRED,
+	} state;
+	/*
+	 * Points to the probe whose trampoline we're currently executing.
+	 */
+	const struct kinst_probe *kp;
+	/*
+	 * Because we execute trampolines with interrupts disabled, we have to
+	 * cache the CPU's status in order to restore it when we return from
+	 * the trampoline.
+	 */
+	uint64_t status;
 };
 
 LIST_HEAD(kinst_probe_list, kinst_probe);
@@ -50,22 +78,25 @@ extern struct kinst_probe_list	*kinst_probetab;
 struct linker_file;
 struct linker_symval;
 
+/* kinst.c */
 volatile void	*kinst_memcpy(volatile void *, volatile const void *, size_t);
 bool	kinst_excluded(const char *);
-bool	kinst_md_excluded(const char *);
-int	kinst_invop(uintptr_t, struct trapframe *, uintptr_t);
-int	kinst_make_probe(struct linker_file *, int, struct linker_symval *,
-	    void *);
-void	kinst_patch_tracepoint(struct kinst_probe *, kinst_patchval_t);
 void	kinst_probe_create(struct kinst_probe *, struct linker_file *);
 
+/* arch/kinst_isa.c */
+int	kinst_invop(uintptr_t, struct trapframe *, uintptr_t);
+void	kinst_patch_tracepoint(struct kinst_probe *, kinst_patchval_t);
+int	kinst_make_probe(struct linker_file *, int, struct linker_symval *,
+	    void *);
+int	kinst_md_init(void);
+void	kinst_md_deinit(void);
+bool	kinst_md_excluded(const char *);
+
+/* trampoline.c */
 int	kinst_trampoline_init(void);
 int	kinst_trampoline_deinit(void);
 uint8_t	*kinst_trampoline_alloc(int);
 void	kinst_trampoline_dealloc(uint8_t *);
-
-int	kinst_md_init(void);
-void	kinst_md_deinit(void);
 
 #ifdef MALLOC_DECLARE
 MALLOC_DECLARE(M_KINST);

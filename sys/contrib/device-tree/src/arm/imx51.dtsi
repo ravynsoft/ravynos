@@ -124,6 +124,9 @@
 		iram: sram@1ffe0000 {
 			compatible = "mmio-sram";
 			reg = <0x1ffe0000 0x20000>;
+			ranges = <0 0x1ffe0000 0x20000>;
+			#address-cells = <1>;
+			#size-cells = <1>;
 		};
 
 		gpu: gpu@30000000 {
@@ -504,7 +507,7 @@
 				status = "disabled";
 			};
 
-			sdma: sdma@83fb0000 {
+			sdma: dma-controller@83fb0000 {
 				compatible = "fsl,imx51-sdma", "fsl,imx35-sdma";
 				reg = <0x83fb0000 0x4000>;
 				interrupts = <6>;

@@ -28,8 +28,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #include <machine/asmacros.h>
@@ -48,7 +46,7 @@
 	.set	dmapbase,DMAP_MIN_ADDRESS
 	.set	dmapend,DMAP_MAX_ADDRESS
 
-#define	BOOTSTACK_SIZE	4096
+#define	BOOTSTACK_SIZE	(PAGE_SIZE * KSTACK_PAGES)
 
 	.text
 /**********************************************************************
@@ -148,7 +146,7 @@ ENTRY(la57_trampoline_gdt)
 ENTRY(la57_trampoline_end)
 
 	.bss
-	ALIGN_DATA			/* just to be sure */
+	.p2align PAGE_SHIFT
 	.globl	bootstack
 	.space	BOOTSTACK_SIZE		/* space for bootstack - temporary stack */
 bootstack:

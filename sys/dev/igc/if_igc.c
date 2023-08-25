@@ -28,8 +28,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "if_igc.h"
 #include <sys/sbuf.h>
 #include <machine/_inttypes.h>
@@ -48,7 +46,7 @@ __FBSDID("$FreeBSD$");
  *  { Vendor ID, Device ID, String }
  *********************************************************************/
 
-static pci_vendor_info_t igc_vendor_info_array[] =
+static const pci_vendor_info_t igc_vendor_info_array[] =
 {
 	/* Intel(R) PRO/1000 Network Connection - igc */
 	PVID(0x8086, IGC_DEV_ID_I225_LM, "Intel(R) Ethernet Controller I225-LM"),
@@ -271,7 +269,7 @@ SYSCTL_INT(_hw_igc, OID_AUTO, eee_setting, CTLFLAG_RDTUN, &igc_eee_setting, 0,
 /*
 ** Tuneable Interrupt rate
 */
-static int igc_max_interrupt_rate = 8000;
+static int igc_max_interrupt_rate = 20000;
 SYSCTL_INT(_hw_igc, OID_AUTO, max_interrupt_rate, CTLFLAG_RDTUN,
     &igc_max_interrupt_rate, 0, "Maximum interrupts per second");
 
@@ -1985,6 +1983,7 @@ igc_initialize_transmit_unit(if_ctx_t ctx)
  *  Enable receive unit.
  *
  **********************************************************************/
+#define BSIZEPKT_ROUNDUP	((1<<IGC_SRRCTL_BSIZEPKT_SHIFT)-1)
 
 static void
 igc_initialize_receive_unit(if_ctx_t ctx)
@@ -2050,23 +2049,18 @@ igc_initialize_receive_unit(if_ctx_t ctx)
 		igc_initialize_rss_mapping(adapter);
 
 	if (if_getmtu(ifp) > ETHERMTU) {
-		/* Set maximum packet len */
-		if (adapter->rx_mbuf_sz <= 4096) {
-			srrctl |= 4096 >> IGC_SRRCTL_BSIZEPKT_SHIFT;
-			rctl |= IGC_RCTL_SZ_4096 | IGC_RCTL_BSEX;
-		} else if (adapter->rx_mbuf_sz > 4096) {
-			srrctl |= 8192 >> IGC_SRRCTL_BSIZEPKT_SHIFT;
-			rctl |= IGC_RCTL_SZ_8192 | IGC_RCTL_BSEX;
-		}
 		psize = scctx->isc_max_frame_size;
 		/* are we on a vlan? */
 		if (if_vlantrunkinuse(ifp))
 			psize += VLAN_TAG_SIZE;
 		IGC_WRITE_REG(&adapter->hw, IGC_RLPML, psize);
-	} else {
-		srrctl |= 2048 >> IGC_SRRCTL_BSIZEPKT_SHIFT;
-		rctl |= IGC_RCTL_SZ_2048;
 	}
+
+	/* Set maximum packet buffer len */
+	srrctl |= (adapter->rx_mbuf_sz + BSIZEPKT_ROUNDUP) >>
+	    IGC_SRRCTL_BSIZEPKT_SHIFT;
+	/* srrctl above overrides this but set the register to a sane value */
+	rctl |= IGC_RCTL_SZ_2048;
 
 	/*
 	 * If TX flow control is disabled and there's >1 queue defined,

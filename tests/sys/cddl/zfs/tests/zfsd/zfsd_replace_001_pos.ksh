@@ -30,7 +30,6 @@
 # Portions taken from:
 # ident	"@(#)replacement_001_pos.ksh	1.4	08/02/27 SMI"
 #
-# $FreeBSD$
 
 . $STF_SUITE/tests/hotspare/hotspare.kshlib
 . $STF_SUITE/tests/zfsd/zfsd.kshlib
@@ -58,6 +57,7 @@ for type in "raidz" "mirror"; do
 
 	# Disable the first disk.
 	log_must destroy_gnop $REMOVAL_DISK
+	log_must wait_for_pool_removal 20
 
 	# Write out data to make sure we can do I/O after the disk failure
 	log_must $DD if=/dev/zero of=$TESTDIR/$TESTFILE bs=1m count=1

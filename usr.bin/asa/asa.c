@@ -38,8 +38,6 @@
 __RCSID("$NetBSD: asa.c,v 1.11 1997/09/20 14:55:00 lukem Exp $");
 #endif
 #endif
-__FBSDID("$FreeBSD$");
-
 #include <err.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -47,7 +45,7 @@ __FBSDID("$FreeBSD$");
 #include <unistd.h>
 
 static void asa(FILE *);
-static void usage(void);
+static void usage(void) __dead2;
 
 int
 main(int argc, char *argv[])

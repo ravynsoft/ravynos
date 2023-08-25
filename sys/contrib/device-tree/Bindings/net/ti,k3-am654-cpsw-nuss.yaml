@@ -4,7 +4,7 @@
 $id: http://devicetree.org/schemas/net/ti,k3-am654-cpsw-nuss.yaml#
 $schema: http://devicetree.org/meta-schemas/core.yaml#
 
-title: The TI AM654x/J721E/AM642x SoC Gigabit Ethernet MAC (Media Access Controller) Device Tree Bindings
+title: The TI AM654x/J721E/AM642x SoC Gigabit Ethernet MAC (Media Access Controller)
 
 maintainers:
   - Grygorii Strashko <grygorii.strashko@ti.com>
@@ -54,9 +54,12 @@ properties:
 
   compatible:
     enum:
-      - ti,am654-cpsw-nuss
-      - ti,j721e-cpsw-nuss
       - ti,am642-cpsw-nuss
+      - ti,am654-cpsw-nuss
+      - ti,j7200-cpswxg-nuss
+      - ti,j721e-cpsw-nuss
+      - ti,j721e-cpswxg-nuss
+      - ti,j784s4-cpswxg-nuss
 
   reg:
     maxItems: 1
@@ -110,21 +113,32 @@ properties:
         const: 0
 
     patternProperties:
-      port@[1-2]:
+      "^port@[1-8]$":
         type: object
         description: CPSWxG NUSS external ports
 
         $ref: ethernet-controller.yaml#
+        unevaluatedProperties: false
 
         properties:
           reg:
             minimum: 1
-            maximum: 2
+            maximum: 8
             description: CPSW port number
 
           phys:
-            maxItems: 1
-            description: phandle on phy-gmii-sel PHY
+            minItems: 1
+            items:
+              - description: CPSW MAC's PHY.
+              - description: Serdes PHY. Serdes PHY is required only if
+                             the Serdes has to be configured in the
+                             Single-Link configuration.
+
+          phy-names:
+            minItems: 1
+            items:
+              - const: mac
+              - const: serdes
 
           label:
             description: label associated with this port
@@ -178,11 +192,50 @@ required:
   - '#address-cells'
   - '#size-cells'
 
+allOf:
+  - if:
+      not:
+        properties:
+          compatible:
+            contains:
+              enum:
+                - ti,j721e-cpswxg-nuss
+                - ti,j784s4-cpswxg-nuss
+    then:
+      properties:
+        ethernet-ports:
+          patternProperties:
+            "^port@[5-8]$": false
+            "^port@[1-4]$":
+              properties:
+                reg:
+                  minimum: 1
+                  maximum: 4
+
+  - if:
+      not:
+        properties:
+          compatible:
+            contains:
+              enum:
+                - ti,j7200-cpswxg-nuss
+                - ti,j721e-cpswxg-nuss
+                - ti,j784s4-cpswxg-nuss
+    then:
+      properties:
+        ethernet-ports:
+          patternProperties:
+            "^port@[3-8]$": false
+            "^port@[1-2]$":
+              properties:
+                reg:
+                  minimum: 1
+                  maximum: 2
+
 additionalProperties: false
 
 examples:
   - |
-    #include <dt-bindings/pinctrl/k3.h>
     #include <dt-bindings/soc/ti,sci_pm_domain.h>
     #include <dt-bindings/net/ti-dp83867.h>
     #include <dt-bindings/interrupt-controller/irq.h>

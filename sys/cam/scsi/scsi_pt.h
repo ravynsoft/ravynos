@@ -26,8 +26,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #ifndef	_SCSI_SCSI_PT_H
@@ -35,10 +33,10 @@
 
 struct scsi_send_receive
 {
-	u_int8_t opcode;
-	u_int8_t byte2;
-	u_int8_t xfer_len[3];
-	u_int8_t control;
+	uint8_t opcode;
+	uint8_t byte2;
+	uint8_t xfer_len[3];
+	uint8_t control;
 };
 
 /*

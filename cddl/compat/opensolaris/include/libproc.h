@@ -23,8 +23,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $FreeBSD$
- *
  */
 
 #ifndef _COMPAT_OPENSOLARIS_LIBPROC_H_
@@ -34,9 +32,6 @@
 
 #define ps_prochandle	proc_handle
 #define Lmid_t		int
-
-#define PR_RLC		0x0001
-#define PR_KLC		0x0002
 
 #include_next <libproc.h>
 

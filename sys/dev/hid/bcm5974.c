@@ -28,8 +28,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/bus.h>
 #include <sys/endian.h>
@@ -837,7 +835,7 @@ bcm5974_ev_open(struct evdev_dev *evdev)
 		return (err);
 	}
 
-	return (hidbus_intr_start(sc->sc_dev));
+	return (hid_intr_start(sc->sc_dev));
 }
 
 static int
@@ -846,7 +844,7 @@ bcm5974_ev_close(struct evdev_dev *evdev)
 	struct bcm5974_softc *sc = evdev_get_softc(evdev);
 	int err;
 
-	err = hidbus_intr_stop(sc->sc_dev);
+	err = hid_intr_stop(sc->sc_dev);
 	if (err != 0)
 		return (err);
 

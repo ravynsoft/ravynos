@@ -11,7 +11,7 @@ maintainers:
   - Woojung Huh <Woojung.Huh@microchip.com>
 
 allOf:
-  - $ref: dsa.yaml#
+  - $ref: dsa.yaml#/$defs/ethernet-ports
   - $ref: /schemas/spi/spi-peripheral-props.yaml#
 
 properties:
@@ -67,7 +67,7 @@ examples:
         };
     };
 
-    spi0 {
+    spi {
         #address-cells = <1>;
         #size-cells = <0>;
 
@@ -107,8 +107,9 @@ examples:
                 };
                 port@5 {
                     reg = <5>;
-                    label = "cpu";
                     ethernet = <&eth0>;
+                    phy-mode = "rgmii";
+
                     fixed-link {
                         speed = <1000>;
                         full-duplex;
@@ -144,8 +145,9 @@ examples:
                 };
                 port@6 {
                     reg = <6>;
-                    label = "cpu";
                     ethernet = <&eth0>;
+                    phy-mode = "rgmii";
+
                     fixed-link {
                         speed = <1000>;
                         full-duplex;

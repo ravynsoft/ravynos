@@ -11,7 +11,6 @@
 
 /*
  * from: @(#)fdlibm.h 5.1 93/09/24
- * $FreeBSD$
  */
 
 #ifndef _MATH_PRIVATE_H_
@@ -624,7 +623,7 @@ rnintf(__float_t x)
  * The complications for extra precision are smaller for rnintl() since it
  * can safely assume that the rounding precision has been increased from
  * its default to FP_PE on x86.  We don't exploit that here to get small
- * optimizations from limiting the rangle to double.  We just need it for
+ * optimizations from limiting the range to double.  We just need it for
  * the magic number to work with long doubles.  ld128 callers should use
  * rnint() instead of this if possible.  ld80 callers should prefer
  * rnintl() since for amd64 this avoids swapping the register set, while
@@ -688,6 +687,59 @@ irintl(long double x)
 }
 #endif
 
+/*
+ * The following are fast floor macros for 0 <= |x| < 0x1p(N-1), where
+ * N is the precision of the type of x. These macros are used in the
+ * half-cycle trignometric functions (e.g., sinpi(x)).
+ */
+#define	FFLOORF(x, j0, ix) do {			\
+	(j0) = (((ix) >> 23) & 0xff) - 0x7f;	\
+	(ix) &= ~(0x007fffff >> (j0));		\
+	SET_FLOAT_WORD((x), (ix));		\
+} while (0)
+
+#define	FFLOOR(x, j0, ix, lx) do {				\
+	(j0) = (((ix) >> 20) & 0x7ff) - 0x3ff;			\
+	if ((j0) < 20) {					\
+		(ix) &= ~(0x000fffff >> (j0));			\
+		(lx) = 0;					\
+	} else {						\
+		(lx) &= ~((uint32_t)0xffffffff >> ((j0) - 20));	\
+	}							\
+	INSERT_WORDS((x), (ix), (lx));				\
+} while (0)
+
+#define	FFLOORL80(x, j0, ix, lx) do {			\
+	j0 = ix - 0x3fff + 1;				\
+	if ((j0) < 32) {				\
+		(lx) = ((lx) >> 32) << 32;		\
+		(lx) &= ~((((lx) << 32)-1) >> (j0));	\
+	} else {					\
+		uint64_t _m;				\
+		_m = (uint64_t)-1 >> (j0);		\
+		if ((lx) & _m) (lx) &= ~_m;		\
+	}						\
+	INSERT_LDBL80_WORDS((x), (ix), (lx));		\
+} while (0)
+
+#define FFLOORL128(x, ai, ar) do {			\
+	union IEEEl2bits u;				\
+	uint64_t m;					\
+	int e;						\
+	u.e = (x);					\
+	e = u.bits.exp - 16383;				\
+	if (e < 48) {					\
+		m = ((1llu << 49) - 1) >> (e + 1);	\
+		u.bits.manh &= ~m;			\
+		u.bits.manl = 0;			\
+	} else {					\
+		m = (uint64_t)-1 >> (e - 48);		\
+		u.bits.manl &= ~m;			\
+	}						\
+	(ai) = u.e;					\
+	(ar) = (x) - (ai);				\
+} while (0)
+
 #ifdef DEBUG
 #if defined(__amd64__) || defined(__i386__)
 #define	breakpoint()	asm("int $3")
@@ -698,190 +750,24 @@ irintl(long double x)
 #endif
 #endif
 
-/* Write a pari script to test things externally. */
-#ifdef DOPRINT
-#include <stdio.h>
-
-#ifndef DOPRINT_SWIZZLE
-#define	DOPRINT_SWIZZLE		0
-#endif
-
-#ifdef DOPRINT_LD80
-
-#define	DOPRINT_START(xp) do {						\
-	uint64_t __lx;							\
-	uint16_t __hx;							\
-									\
-	/* Hack to give more-problematic args. */			\
-	EXTRACT_LDBL80_WORDS(__hx, __lx, *xp);				\
-	__lx ^= DOPRINT_SWIZZLE;					\
-	INSERT_LDBL80_WORDS(*xp, __hx, __lx);				\
-	printf("x = %.21Lg; ", (long double)*xp);			\
-} while (0)
-#define	DOPRINT_END1(v)							\
-	printf("y = %.21Lg; z = 0; show(x, y, z);\n", (long double)(v))
-#define	DOPRINT_END2(hi, lo)						\
-	printf("y = %.21Lg; z = %.21Lg; show(x, y, z);\n",		\
-	    (long double)(hi), (long double)(lo))
-
-#elif defined(DOPRINT_D64)
-
-#define	DOPRINT_START(xp) do {						\
-	uint32_t __hx, __lx;						\
-									\
-	EXTRACT_WORDS(__hx, __lx, *xp);					\
-	__lx ^= DOPRINT_SWIZZLE;					\
-	INSERT_WORDS(*xp, __hx, __lx);					\
-	printf("x = %.21Lg; ", (long double)*xp);			\
-} while (0)
-#define	DOPRINT_END1(v)							\
-	printf("y = %.21Lg; z = 0; show(x, y, z);\n", (long double)(v))
-#define	DOPRINT_END2(hi, lo)						\
-	printf("y = %.21Lg; z = %.21Lg; show(x, y, z);\n",		\
-	    (long double)(hi), (long double)(lo))
-
-#elif defined(DOPRINT_F32)
-
-#define	DOPRINT_START(xp) do {						\
-	uint32_t __hx;							\
-									\
-	GET_FLOAT_WORD(__hx, *xp);					\
-	__hx ^= DOPRINT_SWIZZLE;					\
-	SET_FLOAT_WORD(*xp, __hx);					\
-	printf("x = %.21Lg; ", (long double)*xp);			\
-} while (0)
-#define	DOPRINT_END1(v)							\
-	printf("y = %.21Lg; z = 0; show(x, y, z);\n", (long double)(v))
-#define	DOPRINT_END2(hi, lo)						\
-	printf("y = %.21Lg; z = %.21Lg; show(x, y, z);\n",		\
-	    (long double)(hi), (long double)(lo))
-
-#else /* !DOPRINT_LD80 && !DOPRINT_D64 (LD128 only) */
-
-#ifndef DOPRINT_SWIZZLE_HIGH
-#define	DOPRINT_SWIZZLE_HIGH	0
-#endif
-
-#define	DOPRINT_START(xp) do {						\
-	uint64_t __lx, __llx;						\
-	uint16_t __hx;							\
-									\
-	EXTRACT_LDBL128_WORDS(__hx, __lx, __llx, *xp);			\
-	__llx ^= DOPRINT_SWIZZLE;					\
-	__lx ^= DOPRINT_SWIZZLE_HIGH;					\
-	INSERT_LDBL128_WORDS(*xp, __hx, __lx, __llx);			\
-	printf("x = %.36Lg; ", (long double)*xp);					\
-} while (0)
-#define	DOPRINT_END1(v)							\
-	printf("y = %.36Lg; z = 0; show(x, y, z);\n", (long double)(v))
-#define	DOPRINT_END2(hi, lo)						\
-	printf("y = %.36Lg; z = %.36Lg; show(x, y, z);\n",		\
-	    (long double)(hi), (long double)(lo))
-
-#endif /* DOPRINT_LD80 */
-
-#else /* !DOPRINT */
-#define	DOPRINT_START(xp)
-#define	DOPRINT_END1(v)
-#define	DOPRINT_END2(hi, lo)
-#endif /* DOPRINT */
-
-#define	RETURNP(x) do {			\
-	DOPRINT_END1(x);		\
-	RETURNF(x);			\
-} while (0)
-#define	RETURNPI(x) do {		\
-	DOPRINT_END1(x);		\
-	RETURNI(x);			\
-} while (0)
-#define	RETURN2P(x, y) do {		\
-	DOPRINT_END2((x), (y));		\
-	RETURNF((x) + (y));		\
-} while (0)
-#define	RETURN2PI(x, y) do {		\
-	DOPRINT_END2((x), (y));		\
-	RETURNI((x) + (y));		\
-} while (0)
 #ifdef STRUCT_RETURN
 #define	RETURNSP(rp) do {		\
 	if (!(rp)->lo_set)		\
-		RETURNP((rp)->hi);	\
-	RETURN2P((rp)->hi, (rp)->lo);	\
+		RETURNF((rp)->hi);	\
+	RETURNF((rp)->hi + (rp)->lo);	\
 } while (0)
 #define	RETURNSPI(rp) do {		\
 	if (!(rp)->lo_set)		\
-		RETURNPI((rp)->hi);	\
-	RETURN2PI((rp)->hi, (rp)->lo);	\
+		RETURNI((rp)->hi);	\
+	RETURNI((rp)->hi + (rp)->lo);	\
 } while (0)
 #endif
+
 #define	SUM2P(x, y) ({			\
 	const __typeof (x) __x = (x);	\
 	const __typeof (y) __y = (y);	\
-					\
-	DOPRINT_END2(__x, __y);		\
 	__x + __y;			\
 })
-
-/*
- * ieee style elementary functions
- *
- * We rename functions here to improve other sources' diffability
- * against fdlibm.
- */
-#define	__ieee754_sqrt	sqrt
-#define	__ieee754_acos	acos
-#define	__ieee754_acosh	acosh
-#define	__ieee754_log	log
-#define	__ieee754_log2	log2
-#define	__ieee754_atanh	atanh
-#define	__ieee754_asin	asin
-#define	__ieee754_atan2	atan2
-#define	__ieee754_exp	exp
-#define	__ieee754_cosh	cosh
-#define	__ieee754_fmod	fmod
-#define	__ieee754_pow	pow
-#define	__ieee754_lgamma lgamma
-#define	__ieee754_gamma	gamma
-#define	__ieee754_lgamma_r lgamma_r
-#define	__ieee754_gamma_r gamma_r
-#define	__ieee754_log10	log10
-#define	__ieee754_sinh	sinh
-#define	__ieee754_hypot	hypot
-#define	__ieee754_j0	j0
-#define	__ieee754_j1	j1
-#define	__ieee754_y0	y0
-#define	__ieee754_y1	y1
-#define	__ieee754_jn	jn
-#define	__ieee754_yn	yn
-#define	__ieee754_remainder remainder
-#define	__ieee754_scalb	scalb
-#define	__ieee754_sqrtf	sqrtf
-#define	__ieee754_acosf	acosf
-#define	__ieee754_acoshf acoshf
-#define	__ieee754_logf	logf
-#define	__ieee754_atanhf atanhf
-#define	__ieee754_asinf	asinf
-#define	__ieee754_atan2f atan2f
-#define	__ieee754_expf	expf
-#define	__ieee754_coshf	coshf
-#define	__ieee754_fmodf	fmodf
-#define	__ieee754_powf	powf
-#define	__ieee754_lgammaf lgammaf
-#define	__ieee754_gammaf gammaf
-#define	__ieee754_lgammaf_r lgammaf_r
-#define	__ieee754_gammaf_r gammaf_r
-#define	__ieee754_log10f log10f
-#define	__ieee754_log2f log2f
-#define	__ieee754_sinhf	sinhf
-#define	__ieee754_hypotf hypotf
-#define	__ieee754_j0f	j0f
-#define	__ieee754_j1f	j1f
-#define	__ieee754_y0f	y0f
-#define	__ieee754_y1f	y1f
-#define	__ieee754_jnf	jnf
-#define	__ieee754_ynf	ynf
-#define	__ieee754_remainderf remainderf
-#define	__ieee754_scalbf scalbf
 
 /* fdlibm kernel function */
 int	__kernel_rem_pio2(double*,double*,int,int,int);

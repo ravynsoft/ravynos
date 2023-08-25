@@ -26,9 +26,8 @@
 .\" SUCH DAMAGE.
 .\"
 .\"	@(#)netstat.1	8.8 (Berkeley) 4/18/94
-.\" $FreeBSD$
 .\"
-.Dd June 26, 2023
+.Dd August 14, 2023
 .Dt NETSTAT 1
 .Os
 .Sh NAME
@@ -38,16 +37,19 @@
 .Bk -words
 .Bl -tag -width "netstat"
 .It Nm
+.Op Fl j Ar jail
 .Op Fl -libxo
 .Op Fl 46AaCLnPRSTWx
 .Op Fl f Ar protocol_family | Fl p Ar protocol
 .It Nm Fl i | I Ar interface
+.Op Fl j Ar jail
 .Op Fl -libxo
 .Op Fl 46abdhnW
 .Op Fl f Ar address_family
 .Op Fl M Ar core
 .Op Fl N Ar system
 .It Nm Fl w Ar wait
+.Op Fl j Ar jail
 .Op Fl -libxo
 .Op Fl I Ar interface
 .Op Fl 46d
@@ -55,46 +57,55 @@
 .Op Fl N Ar system
 .Op Fl q Ar howmany
 .It Nm Fl s
+.Op Fl j Ar jail
 .Op Fl -libxo
 .Op Fl 46sz
 .Op Fl f Ar protocol_family | Fl p Ar protocol
 .Op Fl M Ar core
 .Op Fl N Ar system
 .It Nm Fl i | I Ar interface Fl s
+.Op Fl j Ar jail
 .Op Fl -libxo
 .Op Fl 46s
 .Op Fl f Ar protocol_family | Fl p Ar protocol
 .Op Fl M Ar core
 .Op Fl N Ar system
 .It Nm Fl m
+.Op Fl j Ar jail
 .Op Fl -libxo
 .Op Fl M Ar core
 .Op Fl N Ar system
 .It Nm Fl B
+.Op Fl j Ar jail
 .Op Fl -libxo
 .Op Fl z
 .Op Fl I Ar interface
 .It Nm Fl r
+.Op Fl j Ar jail
 .Op Fl -libxo
 .Op Fl 46nW
 .Op Fl F Ar fibnum
 .Op Fl f Ar address_family
 .It Nm Fl rs
+.Op Fl j Ar jail
 .Op Fl -libxo
 .Op Fl s
 .Op Fl M Ar core
 .Op Fl N Ar system
 .It Nm Fl g
+.Op Fl j Ar jail
 .Op Fl -libxo
 .Op Fl 46W
 .Op Fl f Ar address_family
 .It Nm Fl gs
+.Op Fl j Ar jail
 .Op Fl -libxo
 .Op Fl 46s
 .Op Fl f Ar address_family
 .Op Fl M Ar core
 .Op Fl N Ar system
 .It Nm Fl Q
+.Op Fl j Ar jail
 .Op Fl -libxo
 .El
 .Ek
@@ -111,6 +122,7 @@ command uses.
 .Nm
 .Op Fl 46AaCLnRSTWx
 .Op Fl f Ar protocol_family | Fl p Ar protocol
+.Op Fl j Ar jail
 .Ek
 .Xc
 Display a list of active sockets
@@ -238,6 +250,10 @@ Filter by
 .Ar protocol .
 See
 .Sx GENERAL OPTIONS .
+.It Fl j Ar jail
+Run inside a jail.
+See
+.Sx GENERAL OPTIONS .
 .El
 .It Xo
 .Bk -words
@@ -247,6 +263,7 @@ See
 .Op Fl f Ar address_family
 .Op Fl M Ar core
 .Op Fl N Ar system
+.Op Fl j Ar jail
 .Ek
 .Xc
 Show the state of all network interfaces or a single
@@ -308,9 +325,16 @@ See
 Avoid truncating addresses even if this causes some fields to overflow.
 See
 .Sx GENERAL OPTIONS .
+However, in most cases field widths are determined automatically with the
+.Fl i
+option, and this option has little effect.
 .It Fl f Ar protocol_family
 Filter by
 .Ar protocol_family .
+See
+.Sx GENERAL OPTIONS .
+.It Fl j Ar jail
+Run inside a jail.
 See
 .Sx GENERAL OPTIONS .
 .El
@@ -323,6 +347,7 @@ See
 .Op Fl M Ar core
 .Op Fl N Ar system
 .Op Fl q Ar howmany
+.Op Fl j Ar jail
 .Ek
 .Xc
 At intervals of
@@ -371,6 +396,10 @@ See
 Exit after
 .Ar howmany
 outputs.
+.It Fl j Ar jail
+Run inside a jail.
+See
+.Sx GENERAL OPTIONS .
 .El
 .It Xo
 .Bk -words
@@ -380,6 +409,7 @@ outputs.
 .Op Fl f Ar protocol_family | Fl p Ar protocol
 .Op Fl M Ar core
 .Op Fl N Ar system
+.Op Fl j Ar jail
 .Ek
 .Xc
 Display system-wide statistics for each network protocol.
@@ -416,6 +446,10 @@ See
 Use an alternative kernel image
 See
 .Sx GENERAL OPTIONS .
+.It Fl j Ar jail
+Run inside a jail.
+See
+.Sx GENERAL OPTIONS .
 .El
 .It Xo
 .Bk -words
@@ -425,6 +459,7 @@ See
 .Op Fl f Ar protocol_family | Fl p Ar protocol
 .Op Fl M Ar core
 .Op Fl N Ar system
+.Op Fl j Ar jail
 .Ek
 .Xc
 Display per-interface statistics for each network protocol.
@@ -467,6 +502,10 @@ See
 Use an alternative kernel image
 See
 .Sx GENERAL OPTIONS .
+.It Fl j Ar jail
+Run inside a jail.
+See
+.Sx GENERAL OPTIONS .
 .El
 .It Xo
 .Bk -words
@@ -474,6 +513,7 @@ See
 .Fl m
 .Op Fl M Ar core
 .Op Fl N Ar system
+.Op Fl j Ar jail
 .Ek
 .Xc
 Show statistics recorded by the memory management routines
@@ -488,6 +528,10 @@ See
 Use an alternative kernel image
 See
 .Sx GENERAL OPTIONS .
+.It Fl j Ar jail
+Run inside a jail.
+See
+.Sx GENERAL OPTIONS .
 .El
 .It Xo
 .Bk -words
@@ -495,6 +539,7 @@ See
 .Fl B
 .Op Fl z
 .Op Fl I Ar interface
+.Op Fl j Ar jail
 .Ek
 .Xc
 Show statistics about
@@ -531,6 +576,10 @@ For more information about these flags, please refer to
 .Bl -tag -width indent
 .It Fl z
 Reset statistic counters after displaying them.
+.It Fl j Ar jail
+Run inside a jail.
+See
+.Sx GENERAL OPTIONS .
 .El
 .It Xo
 .Bk -words
@@ -541,6 +590,7 @@ Reset statistic counters after displaying them.
 .Op Fl f Ar address_family
 .Op Fl M Ar core
 .Op Fl N Ar system
+.Op Fl j Ar jail
 .Ek
 .Xc
 Display the contents of routing tables.
@@ -625,6 +675,10 @@ See
 Use an alternative kernel image
 See
 .Sx GENERAL OPTIONS .
+.It Fl j Ar jail
+Run inside a jail.
+See
+.Sx GENERAL OPTIONS .
 .El
 .It Xo
 .Bk -words
@@ -633,6 +687,7 @@ See
 .Op Fl s
 .Op Fl M Ar core
 .Op Fl N Ar system
+.Op Fl j Ar jail
 .Ek
 .Xc
 Display routing statistics.
@@ -649,6 +704,10 @@ See
 Use an alternative kernel image
 See
 .Sx GENERAL OPTIONS .
+.It Fl j Ar jail
+Run inside a jail.
+See
+.Sx GENERAL OPTIONS .
 .El
 .It Xo
 .Bk -words
@@ -658,6 +717,7 @@ See
 .Op Fl f Ar address_family
 .Op Fl M Ar core
 .Op Fl N Ar system
+.Op Fl j Ar jail
 .Ek
 .Xc
 Display the contents of the multicast virtual interface tables,
@@ -693,6 +753,10 @@ See
 Use an alternative kernel image
 See
 .Sx GENERAL OPTIONS .
+.It Fl j Ar jail
+Run inside a jail.
+See
+.Sx GENERAL OPTIONS .
 .El
 .It Xo
 .Bk -words
@@ -702,6 +766,7 @@ See
 .Op Fl f Ar address_family
 .Op Fl M Ar core
 .Op Fl N Ar system
+.Op Fl j Ar jail
 .Ek
 .Xc
 Show multicast routing statistics.
@@ -731,11 +796,16 @@ See
 Use an alternative kernel image
 See
 .Sx GENERAL OPTIONS .
+.It Fl j Ar jail
+Run inside a jail.
+See
+.Sx GENERAL OPTIONS .
 .El
 .It Xo
 .Bk -words
 .Nm
 .Fl Q
+.Op Fl j Ar jail
 .Ek
 .Xc
 Show
@@ -746,6 +816,10 @@ The flags field shows available ISR handlers:
 .It Li C Ta Dv NETISR_SNP_FLAGS_M2CPUID Ta "Able to map mbuf to cpu id"
 .It Li D Ta Dv NETISR_SNP_FLAGS_DRAINEDCPU  Ta "Has queue drain handler"
 .It Li F Ta Dv NETISR_SNP_FLAGS_M2FLOW Ta "Able to map mbuf to flow id"
+.It Fl j Ar jail
+Run inside a jail.
+See
+.Sx GENERAL OPTIONS .
 .El
 .El
 .Ss GENERAL OPTIONS
@@ -805,6 +879,13 @@ Wider output; expand address fields, etc, to avoid truncation.
 Non-numeric values such as domain names may still be truncated; use the
 .Fl n
 option if necessary to avoid ambiguity.
+.It Fl j Ar jail
+Perform the actions inside the
+.Ar jail .
+This allows network state to be accessed even if the
+.Cm netstat
+binary is not available in the
+.Ar jail .
 .El
 .Sh EXAMPLES
 Show packet traffic information (packets, bytes, errors, packet drops, etc) for

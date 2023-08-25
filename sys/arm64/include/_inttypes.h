@@ -27,8 +27,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  *	From: $NetBSD: int_fmtio.h,v 1.4 2008/04/28 20:23:36 martin Exp $
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/_inttypes.h>
+#else /* !__arm__ */
 
 #ifndef _MACHINE__INTTYPES_H_
 #define	_MACHINE__INTTYPES_H_
@@ -211,3 +214,5 @@
 #define	SCNxPTR		"lx"	/* uintptr_t */
 
 #endif /* !_MACHINE__INTTYPES_H_ */
+
+#endif /* !__arm__ */

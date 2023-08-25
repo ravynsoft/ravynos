@@ -1,9 +1,10 @@
 #
 # DEFAULTS -- Default kernel configuration file for FreeBSD/amd64
 #
-# $FreeBSD$
 
 machine		amd64
+
+options 	EARLY_AP_STARTUP
 
 # Bus support.
 device		isa

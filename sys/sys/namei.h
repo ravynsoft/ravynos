@@ -29,7 +29,6 @@
  * SUCH DAMAGE.
  *
  *	@(#)namei.h	8.5 (Berkeley) 1/9/95
- * $FreeBSD$
  */
 
 #ifndef _SYS_NAMEI_H_
@@ -267,15 +266,6 @@ do {										\
 	(ndp)->ni_dvp_seqc = SEQC_MOD;						\
 	(ndp)->ni_vp_seqc = SEQC_MOD;						\
 } while (0)
-
-#define NDF_NO_DVP_RELE		0x00000001
-#define NDF_NO_DVP_UNLOCK	0x00000002
-#define NDF_NO_DVP_PUT		0x00000003
-#define NDF_NO_VP_RELE		0x00000004
-#define NDF_NO_VP_UNLOCK	0x00000008
-#define NDF_NO_VP_PUT		0x0000000c
-#define NDF_NO_STARTDIR_RELE	0x00000010
-#define NDF_NO_FREE_PNBUF	0x00000020
 
 #define NDFREE_IOCTLCAPS(ndp) do {						\
 	struct nameidata *_ndp = (ndp);						\

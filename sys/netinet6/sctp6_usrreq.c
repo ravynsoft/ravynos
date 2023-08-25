@@ -32,9 +32,6 @@
  * THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <netinet/sctp_os.h>
 #ifdef INET6
 #include <sys/proc.h>
@@ -434,52 +431,6 @@ SYSCTL_PROC(_net_inet6_sctp6, OID_AUTO, getcred,
     0, 0, sctp6_getcred, "S,ucred",
     "Get the ucred of a SCTP6 connection");
 
-/* This is the same as the sctp_abort() could be made common */
-static void
-sctp6_abort(struct socket *so)
-{
-	struct epoch_tracker et;
-	struct sctp_inpcb *inp;
-	uint32_t flags;
-
-	inp = (struct sctp_inpcb *)so->so_pcb;
-	if (inp == NULL) {
-		SCTP_LTRACE_ERR_RET(inp, NULL, NULL, SCTP_FROM_SCTP6_USRREQ, EINVAL);
-		return;
-	}
-	NET_EPOCH_ENTER(et);
-sctp_must_try_again:
-	flags = inp->sctp_flags;
-#ifdef SCTP_LOG_CLOSING
-	sctp_log_closing(inp, NULL, 17);
-#endif
-	if (((flags & SCTP_PCB_FLAGS_SOCKET_GONE) == 0) &&
-	    (atomic_cmpset_int(&inp->sctp_flags, flags, (flags | SCTP_PCB_FLAGS_SOCKET_GONE | SCTP_PCB_FLAGS_CLOSE_IP)))) {
-#ifdef SCTP_LOG_CLOSING
-		sctp_log_closing(inp, NULL, 16);
-#endif
-		sctp_inpcb_free(inp, SCTP_FREE_SHOULD_USE_ABORT,
-		    SCTP_CALLED_AFTER_CMPSET_OFCLOSE);
-		SOCK_LOCK(so);
-		SCTP_SB_CLEAR(so->so_snd);
-		/*
-		 * same for the rcv ones, they are only here for the
-		 * accounting/select.
-		 */
-		SCTP_SB_CLEAR(so->so_rcv);
-		/* Now null out the reference, we are completely detached. */
-		so->so_pcb = NULL;
-		SOCK_UNLOCK(so);
-	} else {
-		flags = inp->sctp_flags;
-		if ((flags & SCTP_PCB_FLAGS_SOCKET_GONE) == 0) {
-			goto sctp_must_try_again;
-		}
-	}
-	NET_EPOCH_EXIT(et);
-	return;
-}
-
 static int
 sctp6_attach(struct socket *so, int proto SCTP_UNUSED, struct thread *p SCTP_UNUSED)
 {
@@ -631,13 +582,6 @@ sctp6_close(struct socket *so)
 }
 
 /* This could be made common with sctp_detach() since they are identical */
-
-static
-int
-sctp6_disconnect(struct socket *so)
-{
-	return (sctp_disconnect(so));
-}
 
 int
 sctp_sendm(struct socket *so, int flags, struct mbuf *m, struct sockaddr *addr,
@@ -1174,7 +1118,7 @@ sctp6_getpeeraddr(struct socket *so, struct sockaddr **nam)
 #define	SCTP6_PROTOSW							\
 	.pr_protocol =	IPPROTO_SCTP,					\
 	.pr_ctloutput =	sctp_ctloutput,					\
-	.pr_abort =	sctp6_abort,					\
+	.pr_abort =	sctp_abort,					\
 	.pr_accept =	sctp_accept,					\
 	.pr_attach =	sctp6_attach,					\
 	.pr_bind =	sctp6_bind,					\
@@ -1184,7 +1128,7 @@ sctp6_getpeeraddr(struct socket *so, struct sockaddr **nam)
 	.pr_detach =	sctp6_close,					\
 	.pr_sopoll =	sopoll_generic,					\
 	.pr_flush =	sctp_flush,					\
-	.pr_disconnect = sctp6_disconnect,				\
+	.pr_disconnect = sctp_disconnect,				\
 	.pr_listen =	sctp_listen,					\
 	.pr_peeraddr =	sctp6_getpeeraddr,				\
 	.pr_send =	sctp6_send,					\

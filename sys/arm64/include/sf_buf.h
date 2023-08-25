@@ -22,9 +22,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/sf_buf.h>
+#else /* !__arm__ */
 
 #ifndef _MACHINE_SF_BUF_H_
 #define	_MACHINE_SF_BUF_H_
@@ -49,3 +51,5 @@ sf_buf_page(struct sf_buf *sf)
 	return ((vm_page_t)sf);
 }
 #endif /* !_MACHINE_SF_BUF_H_ */
+
+#endif /* !__arm__ */

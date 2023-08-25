@@ -42,8 +42,6 @@ static char sccsid[] = "@(#)chflags.c	8.5 (Berkeley) 4/1/94";
 #endif
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/types.h>
 #include <sys/stat.h>
 
@@ -59,7 +57,7 @@ __FBSDID("$FreeBSD$");
 
 static volatile sig_atomic_t siginfo;
 
-static void usage(void);
+static void usage(void) __dead2;
 
 static void
 siginfo_handler(int sig __unused)

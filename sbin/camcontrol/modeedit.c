@@ -29,8 +29,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/queue.h>
 #include <sys/types.h>
 #include <sys/sbuf.h>
@@ -595,8 +593,8 @@ static void
 editlist_populate(struct cam_device *device, int cdb_len, int dbd, int pc,
     int page, int subpage, int task_attr, int retries, int timeout)
 {
-	u_int8_t data[MAX_DATA_SIZE];	/* Buffer to hold mode parameters. */
-	u_int8_t *mode_pars;		/* Pointer to modepage params. */
+	uint8_t data[MAX_DATA_SIZE];	/* Buffer to hold mode parameters. */
+	uint8_t *mode_pars;		/* Pointer to modepage params. */
 	struct scsi_mode_page_header *mph;
 	struct scsi_mode_page_header_sp *mphsp;
 	size_t len;
@@ -700,8 +698,8 @@ static void
 editlist_save(struct cam_device *device, int cdb_len, int dbd, int pc,
     int page, int subpage, int task_attr, int retries, int timeout)
 {
-	u_int8_t data[MAX_DATA_SIZE];	/* Buffer to hold mode parameters. */
-	u_int8_t *mode_pars;		/* Pointer to modepage params. */
+	uint8_t data[MAX_DATA_SIZE];	/* Buffer to hold mode parameters. */
+	uint8_t *mode_pars;		/* Pointer to modepage params. */
 	struct scsi_mode_page_header *mph;
 	struct scsi_mode_page_header_sp *mphsp;
 	size_t len, hlen, mphlen;
@@ -1003,8 +1001,8 @@ static void
 modepage_dump(struct cam_device *device, int cdb_len, int dbd, int pc,
 	      int page, int subpage, int task_attr, int retries, int timeout)
 {
-	u_int8_t data[MAX_DATA_SIZE];	/* Buffer to hold mode parameters. */
-	u_int8_t *mode_pars;		/* Pointer to modepage params. */
+	uint8_t data[MAX_DATA_SIZE];	/* Buffer to hold mode parameters. */
+	uint8_t *mode_pars;		/* Pointer to modepage params. */
 	struct scsi_mode_page_header *mph;
 	struct scsi_mode_page_header_sp *mphsp;
 	size_t indx, len;
@@ -1153,7 +1151,7 @@ void
 mode_list(struct cam_device *device, int cdb_len, int dbd, int pc, int subpages,
 	  int task_attr, int retry_count, int timeout)
 {
-	u_int8_t data[MAX_DATA_SIZE];	/* Buffer to hold mode parameters. */
+	uint8_t data[MAX_DATA_SIZE];	/* Buffer to hold mode parameters. */
 	struct scsi_mode_page_header *mph;
 	struct scsi_mode_page_header_sp *mphsp;
 	struct pagename *nameentry;

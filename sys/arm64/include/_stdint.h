@@ -26,9 +26,11 @@
  * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
- *
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/_stdint.h>
+#else /* !__arm__ */
 
 #ifndef _MACHINE__STDINT_H_
 #define	_MACHINE__STDINT_H_
@@ -156,3 +158,5 @@
 #endif /* !defined(__cplusplus) || defined(__STDC_LIMIT_MACROS) */
 
 #endif /* !_MACHINE__STDINT_H_ */
+
+#endif /* !__arm__ */

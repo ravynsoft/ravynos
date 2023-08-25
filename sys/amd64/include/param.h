@@ -38,7 +38,6 @@
  * SUCH DAMAGE.
  *
  *	@(#)param.h	8.1 (Berkeley) 6/10/93
- * $FreeBSD$
  */
 
 #ifndef _AMD64_INCLUDE_PARAM_H_
@@ -65,7 +64,7 @@
 
 #ifdef SMP
 #ifndef MAXCPU
-#define MAXCPU		256
+#define MAXCPU		1024
 #endif
 #else
 #define MAXCPU		1

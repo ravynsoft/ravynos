@@ -24,7 +24,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- * $FreeBSD$
  */
 
 #ifndef _I386_LINUX_H_
@@ -94,7 +93,7 @@ typedef struct {
 /*
  * Miscellaneous
  */
-#define LINUX_AT_COUNT		21	/* Count of used aux entry types.
+#define LINUX_AT_COUNT		22	/* Count of used aux entry types.
 					 * Keep this synchronized with
 					 * linux_copyout_auxargs() code.
 					 */

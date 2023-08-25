@@ -41,8 +41,6 @@ static char sccsid[] = "@(#)tunefs.c	8.2 (Berkeley) 4/19/94";
 #endif /* not lint */
 #endif
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * tunefs: change layout parameters to an existing file system.
  */
@@ -80,7 +78,7 @@ static char clrbuf[MAXBSIZE];
 static struct uufsd disk;
 #define	sblock disk.d_fs
 
-static void usage(void);
+static void usage(void) __dead2;
 static void printfs(void);
 static int journal_alloc(int64_t size);
 static void journal_clear(void);

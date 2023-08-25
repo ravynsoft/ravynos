@@ -28,8 +28,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #ifndef _CAM_CAM_XPT_PERIPH_H
@@ -41,7 +39,7 @@
 /* Functions accessed by the peripheral drivers */
 #ifdef _KERNEL
 void		xpt_release_ccb(union ccb *released_ccb);
-void		xpt_schedule(struct cam_periph *perph, u_int32_t new_priority);
+void		xpt_schedule(struct cam_periph *perph, uint32_t new_priority);
 int32_t		xpt_add_periph(struct cam_periph *periph);
 void		xpt_remove_periph(struct cam_periph *periph);
 void		xpt_announce_periph(struct cam_periph *periph,

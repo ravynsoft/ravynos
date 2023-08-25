@@ -1,4 +1,3 @@
-/*	$FreeBSD$	*/
 /*	$KAME: if_gif.h,v 1.17 2000/09/11 11:36:41 sumikawa Exp $	*/
 
 /*-
@@ -94,8 +93,6 @@ struct etherip_header {
 } __packed;
 
 #define ETHERIP_VERSION			0x3
-/* mbuf adjust factor to force 32-bit alignment of IP header */
-#define	ETHERIP_ALIGN		2
 
 #define	GIF_WAIT()	epoch_wait_preempt(net_epoch_preempt)
 

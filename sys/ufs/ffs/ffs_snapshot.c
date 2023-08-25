@@ -36,8 +36,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_quota.h"
 
 #include <sys/param.h>
@@ -369,6 +367,15 @@ restart:
 		}
 	}
 	/*
+	 * Change inode to snapshot type file. Before setting its block
+	 * pointers to BLK_SNAP and BLK_NOCOPY in cgaccount, we have to
+	 * set its type to SF_SNAPSHOT so that VOP_REMOVE will know that
+	 * they need to be rolled back before attempting deletion.
+	 */
+	ip->i_flags |= SF_SNAPSHOT;
+	DIP_SET(ip, i_flags, ip->i_flags);
+	UFS_INODE_SET_FLAG(ip, IN_CHANGE | IN_UPDATE);
+	/*
 	 * Copy all the cylinder group maps. Although the
 	 * filesystem is still active, we hope that only a few
 	 * cylinder groups will change between now and when we
@@ -376,7 +383,7 @@ restart:
 	 * touch up the few cylinder groups that changed during
 	 * the suspension period.
 	 */
-	len = roundup2(howmany(fs->fs_ncg, NBBY), sizeof(int));
+	len = roundup2(howmany(fs->fs_ncg, NBBY), sizeof(uint64_t));
 	space = malloc(len, M_DEVBUF, M_WAITOK | M_ZERO);
 	UFS_LOCK(ump);
 	fs->fs_active = space;
@@ -393,12 +400,6 @@ restart:
 		if (error)
 			goto out;
 	}
-	/*
-	 * Change inode to snapshot type file.
-	 */
-	ip->i_flags |= SF_SNAPSHOT;
-	DIP_SET(ip, i_flags, ip->i_flags);
-	UFS_INODE_SET_FLAG(ip, IN_CHANGE | IN_UPDATE);
 	/*
 	 * Ensure that the snapshot is completely on disk.
 	 * Since we have marked it as a snapshot it is safe to
@@ -467,7 +468,7 @@ restart:
 	 * Grab a copy of the superblock and its summary information.
 	 * We delay writing it until the suspension is released below.
 	 */
-	copy_fs = malloc((u_long)fs->fs_bsize, M_UFSMNT, M_WAITOK);
+	copy_fs = malloc((uint64_t)fs->fs_bsize, M_UFSMNT, M_WAITOK);
 	bcopy(fs, copy_fs, fs->fs_sbsize);
 	copy_fs->fs_si = malloc(sizeof(struct fs_summary_info), M_UFSMNT,
 	    M_ZERO | M_WAITOK);
@@ -480,7 +481,7 @@ restart:
 	size = blkroundup(fs, fs->fs_cssize);
 	if (fs->fs_contigsumsize > 0)
 		size += fs->fs_ncg * sizeof(int32_t);
-	space = malloc((u_long)size, M_UFSMNT, M_WAITOK);
+	space = malloc((uint64_t)size, M_UFSMNT, M_WAITOK);
 	copy_fs->fs_csp = space;
 	bcopy(fs->fs_csp, copy_fs->fs_csp, fs->fs_cssize);
 	space = (char *)space + fs->fs_cssize;
@@ -493,7 +494,7 @@ restart:
 			brelse(bp);
 			goto resumefs;
 		}
-		bcopy(bp->b_data, space, (u_int)len);
+		bcopy(bp->b_data, space, (uint64_t)len);
 		space = (char *)space + len;
 		bp->b_flags |= B_INVAL | B_NOCACHE;
 		brelse(bp);
@@ -829,7 +830,7 @@ resumefs:
 		loc = blkoff(fs, fs->fs_sblockloc);
 		copy_fs->fs_fmod = 0;
 		bpfs = (struct fs *)&nbp->b_data[loc];
-		bcopy((caddr_t)copy_fs, (caddr_t)bpfs, (u_int)fs->fs_sbsize);
+		bcopy((caddr_t)copy_fs, (caddr_t)bpfs, (uint64_t)fs->fs_sbsize);
 		ffs_oldfscompat_write(bpfs, ump);
 		bpfs->fs_ckhash = ffs_calc_sbhash(bpfs);
 		bawrite(nbp);
@@ -851,7 +852,6 @@ done:
 	free(copy_fs, M_UFSMNT);
 	copy_fs = NULL;
 out:
-	NDFREE_PNBUF(&nd);
 	if (saved_nice > 0) {
 		struct proc *p;
 
@@ -869,14 +869,30 @@ out:
 	MNT_ILOCK(mp);
 	mp->mnt_flag = (mp->mnt_flag & MNT_QUOTA) | (flag & ~MNT_QUOTA);
 	MNT_IUNLOCK(mp);
-	if (error)
-		(void) ffs_truncate(vp, (off_t)0, 0, NOCRED);
-	(void) ffs_syncvnode(vp, MNT_WAIT, 0);
-	if (error)
-		vput(vp);
-	else
-		VOP_UNLOCK(vp);
+	NDFREE_PNBUF(&nd);
 	vrele(nd.ni_dvp);
+	if (error == 0) {
+		(void) ffs_syncvnode(vp, MNT_WAIT, 0);
+		VOP_UNLOCK(vp);
+	} else if (VN_IS_DOOMED(vp)) {
+		vput(vp);
+	} else {
+		int rmerr;
+
+		/* Remove snapshot as its creation has failed. */
+		vput(vp);
+		NDINIT(&nd, DELETE, LOCKPARENT | LOCKLEAF, UIO_SYSSPACE,
+		    snapfile);
+		if ((rmerr = namei(&nd)) != 0 ||
+		    (rmerr = VOP_REMOVE(nd.ni_dvp, nd.ni_vp, &nd.ni_cnd)) != 0)
+			printf("Delete of %s failed with error %d\n",
+			    nd.ni_dirp, rmerr);
+		NDFREE_PNBUF(&nd);
+		if (nd.ni_dvp != NULL)
+			vput(nd.ni_dvp);
+		if (nd.ni_vp != NULL)
+			vput(nd.ni_vp);
+	}
 	vn_finished_write(wrtmp);
 	process_deferred_inactive(mp);
 	return (error);

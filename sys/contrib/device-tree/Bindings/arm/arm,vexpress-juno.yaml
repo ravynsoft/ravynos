@@ -4,7 +4,7 @@
 $id: http://devicetree.org/schemas/arm/arm,vexpress-juno.yaml#
 $schema: http://devicetree.org/meta-schemas/core.yaml#
 
-title: ARM Versatile Express and Juno Boards Device Tree Bindings
+title: ARM Versatile Express and Juno Boards
 
 maintainers:
   - Sudeep Holla <sudeep.holla@arm.com>
@@ -144,6 +144,7 @@ patternProperties:
       it is stricter and always has two compatibles.
     type: object
     $ref: '/schemas/simple-bus.yaml'
+    unevaluatedProperties: false
 
     properties:
       compatible:

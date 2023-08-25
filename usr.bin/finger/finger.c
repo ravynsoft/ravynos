@@ -55,8 +55,6 @@ static char sccsid[] = "@(#)finger.c	8.5 (Berkeley) 5/4/95";
 #endif
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * Finger prints out information about users.  It is not portable since
  * certain fields (e.g. the full user name, office, and phone numbers) are
@@ -98,7 +96,7 @@ int invoker_root = 0;
 
 static void loginlist(void);
 static int option(int, char **);
-static void usage(void);
+static void usage(void) __dead2;
 static void userlist(int, char **);
 
 static int

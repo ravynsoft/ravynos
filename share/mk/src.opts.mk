@@ -1,4 +1,3 @@
-# $FreeBSD$
 #
 # Option file for FreeBSD /usr/src builds, at least the userland and boot loader
 # portions of the tree. These options generally chose what parts of the tree to
@@ -159,6 +158,7 @@ __DEFAULT_YES_OPTIONS = \
     PKGBOOTSTRAP \
     PMC \
     PPP \
+    PTHREADS_ASSERTIONS \
     QUOTAS \
     RADIUS_SUPPORT \
     RBOOTD \
@@ -167,7 +167,6 @@ __DEFAULT_YES_OPTIONS = \
     SENDMAIL \
     SERVICESDB \
     SETUID_LOGIN \
-    SHARED_TOOLCHAIN \
     SHAREDOCS \
     SOURCELESS \
     SOURCELESS_HOST \
@@ -200,6 +199,7 @@ __DEFAULT_NO_OPTIONS = \
     CLANG_FORMAT \
     DETECT_TZ_CHANGES \
     DISK_IMAGE_TOOLS_BOOTSTRAP \
+    DTRACE_ASAN \
     DTRACE_TESTS \
     EXPERIMENTAL \
     HESIOD \
@@ -296,8 +296,8 @@ __DEFAULT_YES_OPTIONS+=LLDB
 .else
 __DEFAULT_NO_OPTIONS+=LLDB
 .endif
-# LIB32 is supported on amd64 and powerpc64
-.if (${__T} == "amd64" || ${__T} == "powerpc64")
+# LIB32 is not supported on all 64-bit architectures.
+.if (${__T} == "amd64" || ${__T:Maarch64*} != "" || ${__T} == "powerpc64")
 __DEFAULT_YES_OPTIONS+=LIB32
 .else
 BROKEN_OPTIONS+=LIB32

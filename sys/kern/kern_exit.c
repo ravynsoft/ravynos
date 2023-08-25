@@ -37,8 +37,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_ddb.h"
 #include "opt_ktrace.h"
 #include "opt_thrworkq.h"
@@ -225,19 +223,13 @@ proc_set_p2_wexit(struct proc *p)
 	p->p_flag2 |= P2_WEXIT;
 }
 
-void
-exit1(struct thread *td, int rval, int signo)
-{
-	exit2(td, rval, signo, false);
-}
-
 /*
  * Exit: deallocate address space and other resources, change proc state to
  * zombie, and unlink proc from allproc and parent's lists.  Save exit status
  * and rusage for wait().  Check for child processes and orphan them.
  */
 void
-exit2(struct thread *td, int rval, int signo, bool dec_killpg_cnt)
+exit1(struct thread *td, int rval, int signo)
 {
 	struct proc *p, *nq, *q, *t;
 	struct thread *tdt;
@@ -250,10 +242,11 @@ exit2(struct thread *td, int rval, int signo, bool dec_killpg_cnt)
 
 	p = td->td_proc;
 	/*
-	 * XXX in case we're rebooting we just let init die in order to
-	 * work around an unsolved stack overflow seen very late during
-	 * shutdown on sparc64 when the gmirror worker process exists.
-	 * XXX what to do now that sparc64 is gone... remove if?
+	 * In case we're rebooting we just let init die in order to
+	 * work around an issues where pid 1 might get a fatal signal.
+	 * For instance, if network interface serving NFS root is
+	 * going down due to reboot, page-in requests for text are
+	 * failing.
 	 */
 	if (p == initproc && rebooting == 0) {
 		printf("init died (signal %d, exit %d)\n", signo, rval);
@@ -321,11 +314,6 @@ exit2(struct thread *td, int rval, int signo, bool dec_killpg_cnt)
 	KASSERT(p->p_numthreads == 1,
 	    ("exit1: proc %p exiting with %d threads", p, p->p_numthreads));
 	racct_sub(p, RACCT_NTHR, 1);
-
-	if (dec_killpg_cnt) {
-		MPASS(atomic_load_int(&p->p_killpg_cnt) > 0);
-		atomic_add_int(&p->p_killpg_cnt, -1);
-	}
 
 	/* Let event handler change exit status */
 	p->p_xexit = rval;
@@ -714,7 +702,7 @@ exit2(struct thread *td, int rval, int signo, bool dec_killpg_cnt)
 	prison_proc_free(p->p_ucred->cr_prison);
 
 	/*
-	 * The state PRS_ZOMBIE prevents other proesses from sending
+	 * The state PRS_ZOMBIE prevents other processes from sending
 	 * signal to the process, to avoid memory leak, we free memory
 	 * for signal queue at the time when the state is set.
 	 */

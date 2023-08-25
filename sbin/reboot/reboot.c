@@ -41,8 +41,6 @@ static char sccsid[] = "@(#)reboot.c	8.1 (Berkeley) 6/5/93";
 #endif /* not lint */
 #endif
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/types.h>
 #include <sys/boottrace.h>
 #include <sys/reboot.h>
@@ -61,7 +59,7 @@ __FBSDID("$FreeBSD$");
 #include <unistd.h>
 #include <utmpx.h>
 
-static void usage(void);
+static void usage(void) __dead2;
 static u_int get_pageins(void);
 
 static int dohalt;

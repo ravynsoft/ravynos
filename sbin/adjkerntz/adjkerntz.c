@@ -34,8 +34,6 @@ static const char copyright[] =
 #endif /* not lint */
 #endif
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * Andrey A. Chernov   <ache@astral.msk.su>    Dec 20 1993
  *
@@ -67,7 +65,7 @@ __FBSDID("$FreeBSD$");
 #define REPORT_PERIOD (30*60)
 
 static void fake(int);
-static void usage(void);
+static void usage(void) __dead2;
 
 static void
 fake(int unused __unused)

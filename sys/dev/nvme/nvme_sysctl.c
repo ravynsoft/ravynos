@@ -27,8 +27,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_nvme.h"
 
 #include <sys/param.h>
@@ -65,14 +63,14 @@ nvme_dump_queue(struct nvme_qpair *qpair)
 	for (i = 0; i < qpair->num_entries; i++) {
 		cpl = &qpair->cpl[i];
 		printf("%05d: ", i);
-		nvme_dump_completion(cpl);
+		nvme_qpair_print_completion(qpair, cpl);
 	}
 
 	printf("Submission queue:\n");
 	for (i = 0; i < qpair->num_entries; i++) {
 		cmd = &qpair->cmd[i];
 		printf("%05d: ", i);
-		nvme_dump_command(cmd);
+		nvme_qpair_print_command(qpair, cmd);
 	}
 }
 

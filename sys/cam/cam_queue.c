@@ -29,8 +29,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/types.h>
@@ -84,7 +82,7 @@ camq_fini(struct camq *queue)
 	}
 }
 
-u_int32_t
+uint32_t
 camq_resize(struct camq *queue, int new_size)
 {
 	cam_pinfo **new_array;
@@ -166,7 +164,7 @@ camq_remove(struct camq *queue, int index)
  * element index and restore the Heap(0, num_elements) property.
  */
 void
-camq_change_priority(struct camq *queue, int index, u_int32_t new_priority)
+camq_change_priority(struct camq *queue, int index, uint32_t new_priority)
 {
 	if (new_priority > queue->queue_array[index]->priority) {
 		queue->queue_array[index]->priority = new_priority;
@@ -217,10 +215,10 @@ cam_devq_free(struct cam_devq *devq)
 	free(devq, M_CAMDEVQ);
 }
 
-u_int32_t
+uint32_t
 cam_devq_resize(struct cam_devq *camq, int devices)
 {
-	u_int32_t retval;
+	uint32_t retval;
 
 	retval = camq_resize(&camq->send_queue, devices);
 	return (retval);
@@ -253,7 +251,7 @@ cam_ccbq_free(struct cam_ccbq *ccbq)
 	}
 }
 
-u_int32_t
+uint32_t
 cam_ccbq_resize(struct cam_ccbq *ccbq, int new_size)
 {
 	int delta;

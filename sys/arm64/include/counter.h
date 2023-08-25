@@ -22,9 +22,11 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
+
+#ifdef __arm__
+#include <arm/counter.h>
+#else /* !__arm__ */
 
 #ifndef _MACHINE_COUNTER_H_
 #define	_MACHINE_COUNTER_H_
@@ -85,3 +87,5 @@ counter_u64_add(counter_u64_t c, int64_t inc)
 }
 
 #endif	/* ! _MACHINE_COUNTER_H_ */
+
+#endif /* !__arm__ */

@@ -27,8 +27,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #ifndef _X86_VDSO_H
@@ -49,7 +47,12 @@
 #ifdef _KERNEL
 #ifdef COMPAT_FREEBSD32
 
-#define	VDSO_TIMEHANDS_MD32	VDSO_TIMEHANDS_MD
+#define	VDSO_TIMEHANDS_MD32			\
+	uint32_t	th_x86_shift;		\
+	uint32_t	th_x86_hpet_idx;	\
+	uint32_t	th_x86_pvc_last_systime[2];\
+	uint8_t		th_x86_pvc_stable_mask;	\
+	uint8_t		th_res[15];
 
 #endif
 #endif

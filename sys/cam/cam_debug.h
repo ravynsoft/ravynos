@@ -26,8 +26,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 #ifndef	_CAM_CAM_DEBUG_H
 #define _CAM_CAM_DEBUG_H 1
@@ -79,9 +77,9 @@ typedef enum {
 /* Path we want to debug */
 extern struct cam_path *cam_dpath;
 /* Current debug levels set */
-extern u_int32_t cam_dflags;
+extern uint32_t cam_dflags;
 /* Printf delay value (to prevent scrolling) */
-extern u_int32_t cam_debug_delay;
+extern uint32_t cam_debug_delay;
 
 /* Debugging macros. */
 #define	CAM_DEBUGGED(path, flag)			\

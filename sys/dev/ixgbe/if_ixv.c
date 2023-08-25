@@ -30,7 +30,6 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************/
-/*$FreeBSD$*/
 
 
 #include "opt_inet.h"
@@ -46,7 +45,7 @@
 /************************************************************************
  * Driver version
  ************************************************************************/
-char ixv_driver_version[] = "2.0.1-k";
+static const char ixv_driver_version[] = "2.0.1-k";
 
 /************************************************************************
  * PCI Device ID Table
@@ -57,7 +56,7 @@ char ixv_driver_version[] = "2.0.1-k";
  *
  *   { Vendor ID, Device ID, SubVendor ID, SubDevice ID, String Index }
  ************************************************************************/
-static pci_vendor_info_t ixv_vendor_info_array[] =
+static const pci_vendor_info_t ixv_vendor_info_array[] =
 {
 	PVID(IXGBE_INTEL_VENDOR_ID, IXGBE_DEV_ID_82599_VF, "Intel(R) X520 82599 Virtual Function"),
 	PVID(IXGBE_INTEL_VENDOR_ID, IXGBE_DEV_ID_X540_VF, "Intel(R) X540 Virtual Function"),
@@ -197,12 +196,6 @@ TUNABLE_INT("hw.ixv.flow_control", &ixv_flow_control);
 static int ixv_header_split = false;
 TUNABLE_INT("hw.ixv.hdr_split", &ixv_header_split);
 
-/*
- * Shadow VFTA table, this is needed because
- * the real filter table gets cleared during
- * a soft reset and we need to repopulate it.
- */
-static u32 ixv_shadow_vfta[IXGBE_VFTA_SIZE];
 extern struct if_txrx ixgbe_txrx;
 
 static struct if_shared_ctx ixv_sctx_init = {
@@ -937,7 +930,7 @@ ixv_if_update_admin_status(if_ctx_t ctx)
 				    "Full Duplex");
 			sc->link_active = true;
 			iflib_link_state_change(ctx, LINK_STATE_UP,
-			    IF_Gbps(10));
+			    ixgbe_link_speed_to_baudrate(sc->link_speed));
 		}
 	} else { /* Link down */
 		if (sc->link_active == true) {
@@ -1541,9 +1534,9 @@ ixv_setup_vlan_support(if_ctx_t ctx)
 	 * we need to repopulate it now.
 	 */
 	for (int i = 0; i < IXGBE_VFTA_SIZE; i++) {
-		if (ixv_shadow_vfta[i] == 0)
+		if (sc->shadow_vfta[i] == 0)
 			continue;
-		vfta = ixv_shadow_vfta[i];
+		vfta = sc->shadow_vfta[i];
 		/*
 		 * Reconstruct the vlan id's
 		 * based on the bits set in each
@@ -1579,7 +1572,7 @@ ixv_if_register_vlan(if_ctx_t ctx, u16 vtag)
 
 	index = (vtag >> 5) & 0x7F;
 	bit = vtag & 0x1F;
-	ixv_shadow_vfta[index] |= (1 << bit);
+	sc->shadow_vfta[index] |= (1 << bit);
 	++sc->num_vlans;
 } /* ixv_if_register_vlan */
 
@@ -1597,7 +1590,7 @@ ixv_if_unregister_vlan(if_ctx_t ctx, u16 vtag)
 
 	index = (vtag >> 5) & 0x7F;
 	bit = vtag & 0x1F;
-	ixv_shadow_vfta[index] &= ~(1 << bit);
+	sc->shadow_vfta[index] &= ~(1 << bit);
 	--sc->num_vlans;
 } /* ixv_if_unregister_vlan */
 

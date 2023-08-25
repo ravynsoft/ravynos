@@ -30,7 +30,6 @@
   POSSIBILITY OF SUCH DAMAGE.
 
 ******************************************************************************/
-/*$FreeBSD$*/
 
 #ifndef _IXL_H_
 #define _IXL_H_
@@ -285,6 +284,8 @@
 
 /* For stats sysctl naming */
 #define IXL_QUEUE_NAME_LEN 32
+
+#define IXL_PF_MAX_LINK_POLL	SBT_1S * 5
 
 MALLOC_DECLARE(M_IXL);
 

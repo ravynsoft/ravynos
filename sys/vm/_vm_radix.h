@@ -26,18 +26,21 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #ifndef __VM_RADIX_H_
 #define __VM_RADIX_H_
 
 /*
+ * Radix tree node.
+ */
+struct vm_radix_node;
+
+/*
  * Radix tree root.
  */
 struct vm_radix {
-	uintptr_t	rt_root;
+	struct vm_radix_node	*rt_root;
 };
 
 #endif /* !__VM_RADIX_H_ */

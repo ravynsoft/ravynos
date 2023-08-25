@@ -34,9 +34,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-
-__FBSDID("$FreeBSD$");
 
 #ifndef lint
 static const char copyright[] =
@@ -85,7 +82,7 @@ static void native_uservers(void);
 static void native_buildid(void);
 static void print_uname(u_int);
 static void setup_get(void);
-static void usage(void);
+static void usage(void) __dead2;
 
 static char *buildid, *ident, *platform, *hostname, *arch, *release, *sysname,
     *version, *kernvers, *uservers;

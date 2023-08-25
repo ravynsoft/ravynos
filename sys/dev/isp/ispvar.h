@@ -1,4 +1,3 @@
-/* $FreeBSD$ */
 /*-
  * SPDX-License-Identifier: BSD-2-Clause
  *
@@ -369,6 +368,32 @@ typedef struct {
 	int			isp_use_gft_id;		/* Use GFT_ID */
 	int			isp_use_gff_id;		/* Use GFF_ID */
 
+	uint32_t		flash_data_addr;
+	/*
+	 * FLT
+	 */
+	uint16_t		flt_length;
+	uint32_t		flt_region_entries;
+	uint32_t		flt_region_aux_img_status_pri;
+	uint32_t		flt_region_aux_img_status_sec;
+	uint32_t		flt_region_boot;
+	uint32_t		flt_region_fcp_prio;
+	uint32_t		flt_region_fdt;
+	uint32_t		flt_region_flt;
+	uint32_t		flt_region_fw;
+	uint32_t		flt_region_gold_fw;
+	uint32_t		flt_region_img_status_pri;
+	uint32_t		flt_region_img_status_sec;
+	uint32_t		flt_region_fw_sec;
+	uint32_t		flt_region_boot_sec;
+	uint32_t		flt_region_npiv_conf;
+	uint32_t		flt_region_nvram;
+	uint32_t		flt_region_nvram_sec;
+	uint32_t		flt_region_vpd;
+	uint32_t		flt_region_vpd_nvram;
+	uint32_t		flt_region_vpd_nvram_sec;
+	uint32_t		flt_region_vpd_sec;
+
 	/*
 	 * Current active WWNN/WWPN
 	 */
@@ -539,6 +564,7 @@ struct ispsoftc {
 #define	ISP_CFG_8GB		0x4000	/* force 8Gb connection (25XX only) */
 #define	ISP_CFG_16GB		0x8000	/* force 16Gb connection (26XX only) */
 #define	ISP_CFG_32GB		0x10000	/* force 32Gb connection (27XX only) */
+#define	ISP_CFG_64GB		0x20000	/* force 64Gb connection (28XX only) */
 
 /*
  * For each channel, the outer layers should know what role that channel
@@ -607,10 +633,12 @@ struct ispsoftc {
 #define	ISP_HA_FC_2500		0x05
 #define	ISP_HA_FC_2600		0x06
 #define	ISP_HA_FC_2700		0x07
+#define	ISP_HA_FC_2800		0x08
 
 #define	IS_25XX(isp)	((isp)->isp_type >= ISP_HA_FC_2500)
 #define	IS_26XX(isp)	((isp)->isp_type >= ISP_HA_FC_2600)
 #define	IS_27XX(isp)	((isp)->isp_type >= ISP_HA_FC_2700)
+#define	IS_28XX(isp)	((isp)->isp_type >= ISP_HA_FC_2800)
 
 /*
  * DMA related macros

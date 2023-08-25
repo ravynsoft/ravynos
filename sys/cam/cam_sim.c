@@ -29,8 +29,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/bus.h>
 #include <sys/kernel.h>
@@ -44,7 +42,7 @@ __FBSDID("$FreeBSD$");
 #include <cam/cam_sim.h>
 #include <cam/cam_xpt.h>
 
-#define CAM_PATH_ANY (u_int32_t)-1
+#define CAM_PATH_ANY (uint32_t)-1
 
 static MALLOC_DEFINE(M_CAMSIM, "CAM SIM", "CAM SIM buffers");
 
@@ -52,7 +50,7 @@ static struct mtx cam_sim_free_mtx;
 MTX_SYSINIT(cam_sim_free_init, &cam_sim_free_mtx, "CAM SIM free lock", MTX_DEF);
 
 struct cam_devq *
-cam_simq_alloc(u_int32_t max_sim_transactions)
+cam_simq_alloc(uint32_t max_sim_transactions)
 {
 	return (cam_devq_alloc(/*size*/0, max_sim_transactions));
 }
@@ -101,7 +99,7 @@ cam_simq_free(struct cam_devq *devq)
  */
 struct cam_sim *
 cam_sim_alloc(sim_action_func sim_action, sim_poll_func sim_poll,
-	      const char *sim_name, void *softc, u_int32_t unit,
+	      const char *sim_name, void *softc, uint32_t unit,
 	      struct mtx *mtx, int max_dev_transactions,
 	      int max_tagged_dev_transactions, struct cam_devq *queue)
 {
@@ -209,7 +207,7 @@ cam_sim_hold(struct cam_sim *sim)
 }
 
 void
-cam_sim_set_path(struct cam_sim *sim, u_int32_t path_id)
+cam_sim_set_path(struct cam_sim *sim, uint32_t path_id)
 {
 	sim->path_id = path_id;
 }

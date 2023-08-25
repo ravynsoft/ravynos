@@ -42,8 +42,6 @@
 #include "opt_platform.h"
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #define _ARM32_BUS_DMA_PRIVATE
 #include <sys/param.h>
 #include <sys/systm.h>
@@ -62,7 +60,7 @@ __FBSDID("$FreeBSD$");
 #include <machine/machdep.h>
 #include <machine/platform.h>
 #include <machine/platformvar.h>
-#include <machine/pte-v6.h>
+#include <machine/pte.h>
 
 #include <arm/mv/mvreg.h>
 #include <arm/mv/mvvar.h>

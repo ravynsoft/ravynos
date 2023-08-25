@@ -1,5 +1,4 @@
 #	@(#)Makefile	8.1 (Berkeley) 6/4/93
-# $FreeBSD$
 
 .include <src.opts.mk>
 
@@ -167,7 +166,7 @@ SUBDIR_DEPEND_libpcap= ofed
 SUBDIR_DEPEND_libxpc= libdispatch
 SUBDIR_DEPEND_nss_tacplus= libtacplus
 
-.if !defined(COMPAT_32BIT)
+.if !defined(COMPAT_LIBCOMPAT)
 SUBDIR+=	flua
 SUBDIR_DEPEND_flua=	libjail
 .endif
@@ -179,7 +178,7 @@ SUBDIR.${MK_BLACKLIST}+=libblacklist
 SUBDIR.${MK_BLUETOOTH}+=libbluetooth libsdp
 SUBDIR.${MK_BSNMP}+=	libbsnmp
 
-.if !defined(COMPAT_32BIT) && !defined(COMPAT_SOFTFP)
+.if !defined(COMPAT_LIBCOMPAT)
 .if ${MK_CLANG} != "no" || ${MK_LLD} != "no" || \
     ${MK_LLDB} != "no" || ${MK_LLVM_BINUTILS} != "no"
 SUBDIR+=	clang
@@ -222,10 +221,10 @@ SUBDIR.${MK_PMC}+=	libipt
 SUBDIR.${MK_BHYVE}+=	libvmmapi
 .endif
 
-.if ${MACHINE_ARCH} != "powerpc"
+.if ${MACHINE_ARCH} != "powerpc" && ${MACHINE_CPUARCH} != "arm"
 SUBDIR.${MK_OPENMP}+=	libomp
 .endif
-.if !defined(COMPAT_32BIT) && ${MK_USB} != "no"
+.if ${MK_USB} != "no"
 SUBDIR.${MK_OPENSSH}+=	libcbor libfido2
 .endif
 SUBDIR.${MK_OPENSSL}+=	libmp

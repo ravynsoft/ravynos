@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 .include "${SRCTOP}/lib/clang/llvm.pre.mk"
 
@@ -27,5 +26,7 @@ LIBADD+=	execinfo
 LIBADD+=	tinfow
 .endif
 LIBADD+=	pthread
+LIBADD+=	z
+LIBADD+=	zstd
 
 .include <bsd.prog.mk>

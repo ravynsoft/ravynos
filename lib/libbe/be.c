@@ -26,9 +26,8 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
+#include <sys/module.h>
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <sys/ucred.h>
@@ -118,6 +117,16 @@ libbe_init(const char *root)
 
 	lbh = NULL;
 	poolname = pos = NULL;
+
+	/*
+	 * If the zfs kmod's not loaded then the later libzfs_init() will load
+	 * the module for us, but that's not desirable for a couple reasons.  If
+	 * the module's not loaded, there's no pool imported and we're going to
+	 * fail anyways.  We also don't really want libbe consumers to have that
+	 * kind of side-effect (module loading) in the general case.
+	 */
+	if (modfind("zfs") < 0)
+		goto err;
 
 	if ((lbh = calloc(1, sizeof(libbe_handle_t))) == NULL)
 		goto err;
@@ -1255,14 +1264,38 @@ be_deactivate(libbe_handle_t *lbh, const char *ds, bool temporary)
 	return (0);
 }
 
+static int
+be_zfs_promote_cb(zfs_handle_t *zhp, void *data)
+{
+	char origin[BE_MAXPATHLEN];
+	bool *found_origin = (bool *)data;
+	int err;
+
+	if (zfs_prop_get(zhp, ZFS_PROP_ORIGIN, origin, sizeof(origin),
+	    NULL, NULL, 0, true) == 0) {
+		*found_origin = true;
+		err = zfs_promote(zhp);
+		if (err)
+			return (err);
+	}
+
+	return (zfs_iter_filesystems(zhp, be_zfs_promote_cb, data));
+}
+
+static int
+be_zfs_promote(zfs_handle_t *zhp, bool *found_origin)
+{
+	*found_origin = false;
+	return (be_zfs_promote_cb(zhp, (void *)found_origin));
+}
+
 int
 be_activate(libbe_handle_t *lbh, const char *bootenv, bool temporary)
 {
 	char be_path[BE_MAXPATHLEN];
-	nvlist_t *dsprops;
-	const char *origin;
 	zfs_handle_t *zhp;
 	int err;
+	bool found_origin;
 
 	be_root_concat(lbh, bootenv, be_path);
 
@@ -1283,23 +1316,19 @@ be_activate(libbe_handle_t *lbh, const char *bootenv, bool temporary)
 		if (err)
 			return (-1);
 
-		zhp = zfs_open(lbh->lzh, be_path, ZFS_TYPE_FILESYSTEM);
-		if (zhp == NULL)
-			return (-1);
+		for (;;) {
+			zhp = zfs_open(lbh->lzh, be_path, ZFS_TYPE_FILESYSTEM);
+			if (zhp == NULL)
+				return (-1);
 
-		if (be_prop_list_alloc(&dsprops) != 0)
-			return (-1);
+			err = be_zfs_promote(zhp, &found_origin);
 
-		if (be_get_dataset_props(lbh, be_path, dsprops) != 0) {
-			nvlist_free(dsprops);
-			return (-1);
+			zfs_close(zhp);
+			if (!found_origin)
+				break;
+			if (err)
+				return (err);
 		}
-
-		if (nvlist_lookup_string(dsprops, "origin", &origin) == 0)
-			err = zfs_promote(zhp);
-		nvlist_free(dsprops);
-
-		zfs_close(zhp);
 
 		if (err)
 			return (-1);

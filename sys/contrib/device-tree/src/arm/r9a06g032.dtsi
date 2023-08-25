@@ -117,6 +117,18 @@
 			};
 		};
 
+		udc: usb@4001e000 {
+			compatible = "renesas,r9a06g032-usbf", "renesas,rzn1-usbf";
+			reg = <0x4001e000 0x2000>;
+			interrupts = <GIC_SPI 77 IRQ_TYPE_LEVEL_HIGH>,
+				     <GIC_SPI 78 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&sysctrl R9A06G032_HCLK_USBF>,
+				 <&sysctrl R9A06G032_HCLK_USBPM>;
+			clock-names = "hclkf", "hclkpm";
+			power-domains = <&sysctrl>;
+			status = "disabled";
+		};
+
 		pci_usb: pci@40030000 {
 			compatible = "renesas,pci-r9a06g032", "renesas,pci-rzn1";
 			device_type = "pci";
@@ -199,7 +211,7 @@
 			reg-io-width = <4>;
 			clocks = <&sysctrl R9A06G032_CLK_UART3>, <&sysctrl R9A06G032_HCLK_UART3>;
 			clock-names = "baudclk", "apb_pclk";
-			dmas =  <&dmamux 0 0 0 0 0 1>, <&dmamux 1 0 0 0 1 1>;
+			dmas = <&dmamux 0 0 0 0 0 1>, <&dmamux 1 0 0 0 1 1>;
 			dma-names = "rx", "tx";
 			status = "disabled";
 		};
@@ -212,7 +224,7 @@
 			reg-io-width = <4>;
 			clocks = <&sysctrl R9A06G032_CLK_UART4>, <&sysctrl R9A06G032_HCLK_UART4>;
 			clock-names = "baudclk", "apb_pclk";
-			dmas =  <&dmamux 2 0 0 0 2 1>, <&dmamux 3 0 0 0 3 1>;
+			dmas = <&dmamux 2 0 0 0 2 1>, <&dmamux 3 0 0 0 3 1>;
 			dma-names = "rx", "tx";
 			status = "disabled";
 		};
@@ -225,7 +237,7 @@
 			reg-io-width = <4>;
 			clocks = <&sysctrl R9A06G032_CLK_UART5>, <&sysctrl R9A06G032_HCLK_UART5>;
 			clock-names = "baudclk", "apb_pclk";
-			dmas =  <&dmamux 4 0 0 0 4 1>, <&dmamux 5 0 0 0 5 1>;
+			dmas = <&dmamux 4 0 0 0 4 1>, <&dmamux 5 0 0 0 5 1>;
 			dma-names = "rx", "tx";
 			status = "disabled";
 		};
@@ -238,7 +250,7 @@
 			reg-io-width = <4>;
 			clocks = <&sysctrl R9A06G032_CLK_UART6>, <&sysctrl R9A06G032_HCLK_UART6>;
 			clock-names = "baudclk", "apb_pclk";
-			dmas =  <&dmamux 6 0 0 0 6 1>, <&dmamux 7 0 0 0 7 1>;
+			dmas = <&dmamux 6 0 0 0 6 1>, <&dmamux 7 0 0 0 7 1>;
 			dma-names = "rx", "tx";
 			status = "disabled";
 		};
@@ -251,7 +263,7 @@
 			reg-io-width = <4>;
 			clocks = <&sysctrl R9A06G032_CLK_UART7>, <&sysctrl R9A06G032_HCLK_UART7>;
 			clock-names = "baudclk", "apb_pclk";
-			dmas =  <&dmamux 4 0 0 0 20 1>, <&dmamux 5 0 0 0 21 1>;
+			dmas = <&dmamux 4 0 0 0 20 1>, <&dmamux 5 0 0 0 21 1>;
 			dma-names = "rx", "tx";
 			status = "disabled";
 		};
@@ -422,6 +434,26 @@
 			      <0x44106000 0x2000>; /* Virt CPU interface */
 			interrupts =
 				<GIC_PPI 9 (GIC_CPU_MASK_SIMPLE(2) | IRQ_TYPE_LEVEL_HIGH)>;
+		};
+
+		can0: can@52104000 {
+			compatible = "renesas,r9a06g032-sja1000","renesas,rzn1-sja1000";
+			reg = <0x52104000 0x800>;
+			reg-io-width = <4>;
+			interrupts = <GIC_SPI 95 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&sysctrl R9A06G032_HCLK_CAN0>;
+			power-domains = <&sysctrl>;
+			status = "disabled";
+		};
+
+		can1: can@52105000 {
+			compatible = "renesas,r9a06g032-sja1000", "renesas,rzn1-sja1000";
+			reg = <0x52105000 0x800>;
+			reg-io-width = <4>;
+			interrupts = <GIC_SPI 96 IRQ_TYPE_LEVEL_HIGH>;
+			clocks = <&sysctrl R9A06G032_HCLK_CAN1>;
+			power-domains = <&sysctrl>;
+			status = "disabled";
 		};
 	};
 

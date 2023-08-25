@@ -28,8 +28,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #include <sys/param.h>
@@ -60,7 +58,7 @@ static struct md_ioctl mdio;
 static enum {UNSET, ATTACH, DETACH, RESIZE, LIST} action = UNSET;
 static int nflag;
 
-static void usage(void);
+static void usage(void) __dead2;
 static void md_set_file(const char *);
 static int md_find(const char *, const char *);
 static int md_query(const char *, const int, const char *);

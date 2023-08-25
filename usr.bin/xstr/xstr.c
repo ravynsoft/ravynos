@@ -29,9 +29,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
-
-__FBSDID("$FreeBSD$");
 
 #ifndef lint
 static const char copyright[] =
@@ -84,7 +81,7 @@ static int xgetc(FILE *);
 static off_t hashit(char *, int);
 static off_t yankstr(char **);
 
-static void usage(void);
+static void usage(void) __dead2;
 
 static void flushsh(void);
 static void found(int, off_t, char *);

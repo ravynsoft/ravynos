@@ -27,8 +27,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #ifndef _BNXT_H
 #define _BNXT_H
 
@@ -208,7 +206,7 @@ __FBSDID("$FreeBSD$");
 
 #define BNXT_MIN_FRAME_SIZE	52	/* Frames must be padded to this size for some A0 chips */
 
-extern char bnxt_driver_version[];
+extern const char bnxt_driver_version[];
 typedef void (*bnxt_doorbell_tx)(void *, uint16_t idx);
 typedef void (*bnxt_doorbell_rx)(void *, uint16_t idx);
 typedef void (*bnxt_doorbell_rx_cq)(void *, bool);

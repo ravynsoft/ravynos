@@ -41,8 +41,6 @@ static char sccsid[] = "@(#)uuencode.c	8.2 (Berkeley) 4/2/94";
 #endif /* not lint */
 #endif
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * uuencode [input] output
  *
@@ -70,7 +68,7 @@ extern int main_base64_encode(const char *, const char *);
 static void encode(void);
 static void base64_encode(void);
 static int arg_to_col(const char *);
-static void usage(void);
+static void usage(void) __dead2;
 
 static FILE *output;
 static int mode;

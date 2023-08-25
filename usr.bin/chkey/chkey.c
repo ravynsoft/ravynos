@@ -35,8 +35,6 @@ static char sccsid[] = "@(#)chkey.c 1.7 91/03/11 Copyr 1986 Sun Micro";
 #endif
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 /*
  * Copyright (C) 1986, Sun Microsystems, Inc.
  */
@@ -74,7 +72,7 @@ static char PKFILE[] = "/etc/publickey";
 #endif	/* YP */
 static char ROOTKEY[] = "/etc/.rootkey";
 
-static void usage(void);
+static void usage(void) __dead2;
 extern int yp_update(char *, char *, int, char *, size_t, char *, size_t);
 
 int

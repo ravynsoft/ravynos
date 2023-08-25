@@ -1,5 +1,4 @@
 #	from @(#)Makefile.inc	8.3 (Berkeley) 2/4/95
-# $FreeBSD$
 
 # machine-independent stdlib sources
 .PATH: ${LIBC_SRCTOP}/${LIBC_ARCH}/stdlib ${LIBC_SRCTOP}/stdlib
@@ -28,6 +27,8 @@ C99_Exit.c: ${LIBC_SRCTOP}/stdlib/_Exit.c .NOMETA
 	ln -sf ${.ALLSRC} ${.TARGET}
 
 SYM_MAPS+= ${LIBC_SRCTOP}/stdlib/Symbol.map
+
+.include "${LIBC_SRCTOP}/stdlib/malloc/Makefile.inc"
 
 # machine-dependent stdlib sources
 .sinclude "${LIBC_SRCTOP}/${LIBC_ARCH}/stdlib/Makefile.inc"

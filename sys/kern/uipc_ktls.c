@@ -26,8 +26,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_inet.h"
 #include "opt_inet6.h"
 #include "opt_kern_tls.h"
@@ -993,12 +991,12 @@ ktls_alloc_rcv_tag(struct inpcb *inp, struct ktls_session *tls,
 	INP_RUNLOCK(inp);
 
 	if (inp->inp_vflag & INP_IPV6) {
-		if ((if_getcapenable2(ifp) & IFCAP2_RXTLS6) == 0) {
+		if ((if_getcapenable2(ifp) & IFCAP2_BIT(IFCAP2_RXTLS6)) == 0) {
 			error = EOPNOTSUPP;
 			goto out;
 		}
 	} else {
-		if ((if_getcapenable2(ifp) & IFCAP2_RXTLS4) == 0) {
+		if ((if_getcapenable2(ifp) & IFCAP2_BIT(IFCAP2_RXTLS4)) == 0) {
 			error = EOPNOTSUPP;
 			goto out;
 		}

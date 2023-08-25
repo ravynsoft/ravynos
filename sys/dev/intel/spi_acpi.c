@@ -42,9 +42,10 @@
 static const struct intelspi_acpi_device {
 	const char *hid;
 	enum intelspi_vers vers;
+	const char *desc;
 } intelspi_acpi_devices[] = {
-	{ "80860F0E", SPI_BAYTRAIL },
-	{ "8086228E", SPI_BRASWELL },
+	{ "80860F0E", SPI_BAYTRAIL, "Intel Bay Trail SPI Controller" },
+	{ "8086228E", SPI_BRASWELL, "Intel Braswell SPI Controller" },
 };
 
 static char *intelspi_ids[] = { "80860F0E", "8086228E", NULL };
@@ -66,7 +67,7 @@ intelspi_acpi_probe(device_t dev)
 		if (strcmp(intelspi_acpi_devices[i].hid, hid) == 0) {
 			sc->sc_vers = intelspi_acpi_devices[i].vers;
 			sc->sc_handle = acpi_get_handle(dev);
-			device_set_desc(dev, intelspi_infos[sc->sc_vers].desc);
+			device_set_desc(dev, intelspi_acpi_devices[i].desc);
 			return (BUS_PROBE_DEFAULT);
 		}
 	}
@@ -92,6 +93,15 @@ static device_method_t intelspi_acpi_methods[] = {
 	DEVMETHOD(device_detach, intelspi_detach),
 	DEVMETHOD(device_suspend, intelspi_suspend),
 	DEVMETHOD(device_resume, intelspi_resume),
+
+	/* Bus interface */
+	DEVMETHOD(bus_setup_intr, bus_generic_setup_intr),
+	DEVMETHOD(bus_teardown_intr, bus_generic_teardown_intr),
+	DEVMETHOD(bus_alloc_resource, bus_generic_alloc_resource),
+	DEVMETHOD(bus_release_resource, bus_generic_release_resource),
+	DEVMETHOD(bus_activate_resource, bus_generic_activate_resource),
+	DEVMETHOD(bus_deactivate_resource, bus_generic_deactivate_resource),
+	DEVMETHOD(bus_adjust_resource, bus_generic_adjust_resource),
 
 	/* SPI interface */
 	DEVMETHOD(spibus_transfer, intelspi_transfer),

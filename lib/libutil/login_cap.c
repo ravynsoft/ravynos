@@ -27,8 +27,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/types.h>
 #include <sys/time.h>
 #include <sys/resource.h>
@@ -295,7 +293,7 @@ login_getclassbyname(char const *name, const struct passwd *pwd)
 {
     login_cap_t	*lc;
   
-    if ((lc = malloc(sizeof(login_cap_t))) != NULL) {
+    if ((lc = calloc(1, sizeof(login_cap_t))) != NULL) {
 	int         r, me, i = 0;
 	uid_t euid = 0;
 	gid_t egid = 0;
@@ -331,9 +329,6 @@ login_getclassbyname(char const *name, const struct passwd *pwd)
 	if (_secure_path(path_login_conf, 0, 0) != -1)
 	    login_dbarray[i++] = path_login_conf;
 	login_dbarray[i] = NULL;
-
-	memset(lc, 0, sizeof(login_cap_t));
-	lc->lc_cap = lc->lc_class = lc->lc_style = NULL;
 
 	if (name == NULL || *name == '\0')
 	    name = LOGIN_DEFCLASS;

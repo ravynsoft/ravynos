@@ -28,8 +28,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 #ifndef	_LIBPROC_H_
@@ -111,7 +109,7 @@ typedef enum {
 
 typedef struct lwpstatus {
 	int pr_why;
-#define PR_REQUESTED	1
+#define PR_REQUESTED	1	/* not implemented */
 #define PR_FAULTED	2
 #define PR_SYSENTRY	3
 #define PR_SYSEXIT	4

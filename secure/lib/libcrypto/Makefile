@@ -1,4 +1,3 @@
-# $FreeBSD$
 
 SHLIBDIR?=	/lib
 SUBDIR=		engines modules
@@ -6,7 +5,7 @@ SUBDIR=		engines modules
 .include <bsd.own.mk>
 .include <src.opts.mk>
 
-PACKAGE=	openssl
+PACKAGE=	openssl-lib
 LIB=		crypto
 SHLIB_MAJOR=	30
 VERSION_MAP=	${.CURDIR}/Version.map
@@ -69,8 +68,8 @@ SRCS+=	a_int.c a_mbstr.c a_object.c a_octet.c a_print.c a_sign.c a_strex.c
 SRCS+=	a_strnid.c a_time.c a_type.c a_utctm.c a_utf8.c a_verify.c
 SRCS+=	ameth_lib.c asn1_err.c asn1_gen.c asn1_item_list.c asn1_lib.c
 SRCS+=	asn1_parse.c asn_mime.c asn_moid.c asn_mstbl.c asn_pack.c bio_asn1.c
-SRCS+=	bio_ndef.c d2i_pr.c d2i_pu.c evp_asn1.c f_int.c f_string.c i2d_evp.c
-SRCS+=	n_pkey.c nsseq.c p5_pbe.c p5_pbev2.c p5_scrypt.c p8_pkey.c
+SRCS+=	bio_ndef.c d2i_param.c d2i_pr.c d2i_pu.c evp_asn1.c f_int.c f_string.c
+SRCS+=	i2d_evp.c n_pkey.c nsseq.c p5_pbe.c p5_pbev2.c p5_scrypt.c p8_pkey.c
 SRCS+=	t_bitst.c t_pkey.c t_spki.c tasn_dec.c tasn_enc.c tasn_fre.c
 SRCS+=	tasn_new.c tasn_prn.c tasn_scn.c tasn_typ.c tasn_utl.c x_algor.c
 SRCS+=	x_bignum.c x_info.c x_int64.c x_long.c x_pkey.c x_sig.c x_spki.c
@@ -244,7 +243,7 @@ SRCS+=	eng_rdrand.c eng_table.c tb_asnmth.c tb_cipher.c tb_dh.c tb_digest.c
 SRCS+=	tb_dsa.c tb_eckey.c tb_pkmeth.c tb_rand.c tb_rsa.c
 
 # err
-SRCS+=	err.c err_all.c err_blocks.c err_prn.c
+SRCS+=	err.c err_all.c err_all_legacy.c err_blocks.c err_prn.c
 
 # ess
 SRCS+=	ess_asn1.c ess_err.c ess_lib.c
@@ -475,7 +474,7 @@ SRCS+=	rmd-586.S
 .endif
 
 # rsa
-SRCS+=	rsa_ameth.c rsa_asn1.c rsa_backend.c rsa_chk.c rsa_crpt.c
+SRCS+=	rsa_ameth.c rsa_asn1.c rsa_backend.c rsa_chk.c rsa_crpt.c rsa_depr.c
 SRCS+=	rsa_err.c rsa_gen.c rsa_lib.c rsa_meth.c rsa_mp.c rsa_mp_names.c
 SRCS+=	rsa_none.c rsa_oaep.c rsa_ossl.c rsa_pk1.c rsa_pmeth.c rsa_prn.c
 SRCS+=	rsa_pss.c rsa_saos.c rsa_schemes.c rsa_sign.c rsa_sp800_56b_check.c

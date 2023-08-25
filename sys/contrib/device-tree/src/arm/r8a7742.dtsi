@@ -633,7 +633,7 @@
 			status = "disabled";
 		};
 
-		usbphy: usb-phy@e6590100 {
+		usbphy: usb-phy-controller@e6590100 {
 			compatible = "renesas,usb-phy-r8a7742",
 				     "renesas,rcar-gen2-usb-phy";
 			reg = <0 0xe6590100 0 0x100>;
@@ -645,11 +645,11 @@
 			resets = <&cpg 704>;
 			status = "disabled";
 
-			usb0: usb-channel@0 {
+			usb0: usb-phy@0 {
 				reg = <0>;
 				#phy-cells = <1>;
 			};
-			usb2: usb-channel@2 {
+			usb2: usb-phy@2 {
 				reg = <2>;
 				#phy-cells = <1>;
 			};
@@ -1155,7 +1155,7 @@
 
 		rcar_sound: sound@ec500000 {
 			/*
-			 * #sound-dai-cells is required
+			 * #sound-dai-cells is required if simple-card
 			 *
 			 * Single DAI : #sound-dai-cells = <0>;         <&rcar_sound>;
 			 * Multi  DAI : #sound-dai-cells = <1>;         <&rcar_sound N>;
@@ -1298,7 +1298,7 @@
 					dma-names = "rx", "tx", "rxu", "txu";
 				};
 				ssi1: ssi-1 {
-					 interrupts = <GIC_SPI 371 IRQ_TYPE_LEVEL_HIGH>;
+					interrupts = <GIC_SPI 371 IRQ_TYPE_LEVEL_HIGH>;
 					dmas = <&audma0 0x03>, <&audma1 0x04>,
 					       <&audma0 0x49>, <&audma1 0x4a>;
 					dma-names = "rx", "tx", "rxu", "txu";

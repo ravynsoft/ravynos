@@ -37,8 +37,6 @@
  */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include "opt_pf.h"
 #include "opt_inet.h"
 #include "opt_inet6.h"
@@ -59,7 +57,7 @@ __FBSDID("$FreeBSD$");
 static void		 pf_hash(struct pf_addr *, struct pf_addr *,
 			    struct pf_poolhashkey *, sa_family_t);
 static struct pf_krule	*pf_match_translation(struct pf_pdesc *, struct mbuf *,
-			    int, int, struct pfi_kkif *,
+			    int, struct pfi_kkif *,
 			    struct pf_addr *, u_int16_t, struct pf_addr *,
 			    uint16_t, int, struct pf_kanchor_stackframe *);
 static int pf_get_sport(sa_family_t, uint8_t, struct pf_krule *,
@@ -125,7 +123,7 @@ pf_hash(struct pf_addr *inaddr, struct pf_addr *hash,
 
 static struct pf_krule *
 pf_match_translation(struct pf_pdesc *pd, struct mbuf *m, int off,
-    int direction, struct pfi_kkif *kif, struct pf_addr *saddr, u_int16_t sport,
+    struct pfi_kkif *kif, struct pf_addr *saddr, u_int16_t sport,
     struct pf_addr *daddr, uint16_t dport, int rs_num,
     struct pf_kanchor_stackframe *anchor_stack)
 {
@@ -140,7 +138,7 @@ pf_match_translation(struct pf_pdesc *pd, struct mbuf *m, int off,
 		struct pf_rule_addr	*src = NULL, *dst = NULL;
 		struct pf_addr_wrap	*xdst = NULL;
 
-		if (r->action == PF_BINAT && direction == PF_IN) {
+		if (r->action == PF_BINAT && pd->dir == PF_IN) {
 			src = &r->dst;
 			if (r->rpool.cur != NULL)
 				xdst = &r->rpool.cur->addr;
@@ -152,7 +150,7 @@ pf_match_translation(struct pf_pdesc *pd, struct mbuf *m, int off,
 		pf_counter_u64_add(&r->evaluations, 1);
 		if (pfi_kkif_match(r->kif, kif) == r->ifnot)
 			r = r->skip[PF_SKIP_IFP].ptr;
-		else if (r->direction && r->direction != direction)
+		else if (r->direction && r->direction != pd->dir)
 			r = r->skip[PF_SKIP_DIR].ptr;
 		else if (r->af && r->af != pd->af)
 			r = r->skip[PF_SKIP_AF].ptr;
@@ -240,7 +238,15 @@ pf_get_sport(sa_family_t af, u_int8_t proto, struct pf_krule *r,
 		 * port search; start random, step;
 		 * similar 2 portloop in in_pcbbind
 		 */
-		if (!(proto == IPPROTO_TCP || proto == IPPROTO_UDP ||
+		if (proto == IPPROTO_SCTP) {
+			key.port[1] = sport;
+			if (!pf_find_state_all_exists(&key, PF_IN)) {
+				*nport = sport;
+				return (0);
+			} else {
+				return (1); /* Fail mapping. */
+			}
+		} else if (!(proto == IPPROTO_TCP || proto == IPPROTO_UDP ||
 		    proto == IPPROTO_ICMP) || (low == 0 && high == 0)) {
 			/*
 			 * XXX bug: icmp states don't use the id on both sides.
@@ -555,7 +561,7 @@ done:
 }
 
 struct pf_krule *
-pf_get_translation(struct pf_pdesc *pd, struct mbuf *m, int off, int direction,
+pf_get_translation(struct pf_pdesc *pd, struct mbuf *m, int off,
     struct pfi_kkif *kif, struct pf_ksrc_node **sn,
     struct pf_state_key **skp, struct pf_state_key **nkp,
     struct pf_addr *saddr, struct pf_addr *daddr,
@@ -570,18 +576,18 @@ pf_get_translation(struct pf_pdesc *pd, struct mbuf *m, int off, int direction,
 	KASSERT(*skp == NULL, ("*skp not NULL"));
 	KASSERT(*nkp == NULL, ("*nkp not NULL"));
 
-	if (direction == PF_OUT) {
-		r = pf_match_translation(pd, m, off, direction, kif, saddr,
+	if (pd->dir == PF_OUT) {
+		r = pf_match_translation(pd, m, off, kif, saddr,
 		    sport, daddr, dport, PF_RULESET_BINAT, anchor_stack);
 		if (r == NULL)
-			r = pf_match_translation(pd, m, off, direction, kif,
+			r = pf_match_translation(pd, m, off, kif,
 			    saddr, sport, daddr, dport, PF_RULESET_NAT,
 			    anchor_stack);
 	} else {
-		r = pf_match_translation(pd, m, off, direction, kif, saddr,
+		r = pf_match_translation(pd, m, off, kif, saddr,
 		    sport, daddr, dport, PF_RULESET_RDR, anchor_stack);
 		if (r == NULL)
-			r = pf_match_translation(pd, m, off, direction, kif,
+			r = pf_match_translation(pd, m, off, kif,
 			    saddr, sport, daddr, dport, PF_RULESET_BINAT,
 			    anchor_stack);
 	}
@@ -639,7 +645,7 @@ pf_get_translation(struct pf_pdesc *pd, struct mbuf *m, int off, int direction,
 		}
 		break;
 	case PF_BINAT:
-		switch (direction) {
+		switch (pd->dir) {
 		case PF_OUT:
 			if (r->rpool.cur->addr.type == PF_ADDR_DYNIFTL){
 				switch (pd->af) {
@@ -710,6 +716,10 @@ pf_get_translation(struct pf_pdesc *pd, struct mbuf *m, int off, int direction,
 		if ((r->rpool.opts & PF_POOL_TYPEMASK) == PF_POOL_BITMASK)
 			PF_POOLMASK(naddr, naddr, &r->rpool.cur->addr.v.a.mask,
 			    daddr, pd->af);
+
+		/* Do not change SCTP ports. */
+		if (pd->proto == IPPROTO_SCTP)
+			break;
 
 		if (r->rpool.proxy_port[1]) {
 			uint32_t	tmp_nport;

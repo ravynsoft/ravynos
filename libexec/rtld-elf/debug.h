@@ -23,8 +23,6 @@
  * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  * THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * $FreeBSD$
  */
 
 /*
@@ -37,6 +35,7 @@
 #include <sys/cdefs.h>
 
 #include <string.h>
+#include "rtld_paths.h"
 #include "rtld_printf.h"
 
 void debug_printf(const char *, ...) __printflike(1, 2);
@@ -48,17 +47,11 @@ extern int debug;
 #define dbg(...)	((void) 0)
 #endif
 
-#ifndef COMPAT_32BIT
-#define _MYNAME	"ld-elf.so.1"
-#else
-#define _MYNAME	"ld-elf32.so.1"
-#endif
-
-#define assert(cond)	((cond) ? (void) 0 :		\
-    (msg(_MYNAME ": assert failed: " __FILE__ ":"	\
+#define assert(cond)	((cond) ? (void) 0 :			\
+    (msg(_BASENAME_RTLD ": assert failed: " __FILE__ ":"	\
       __XSTRING(__LINE__) "\n"), abort()))
 #define msg(s)		rtld_putstr(s)
-#define trace()		msg(_MYNAME ": " __XSTRING(__LINE__) "\n")
+#define trace()		msg(_BASENAME_RTLD ": " __XSTRING(__LINE__) "\n")
 
 
 #endif /* DEBUG_H */

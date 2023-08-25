@@ -29,8 +29,6 @@
 /* Driver for VirtIO network devices. */
 
 #include <sys/cdefs.h>
-__FBSDID("$FreeBSD$");
-
 #include <sys/param.h>
 #include <sys/eventhandler.h>
 #include <sys/systm.h>
@@ -1299,8 +1297,11 @@ vtnet_ioctl_ifflags(struct vtnet_softc *sc)
 		if (sc->vtnet_flags & VTNET_FLAG_CTRL_RX)
 			vtnet_rx_filter(sc);
 		else {
-			if ((if_getflags(ifp) ^ sc->vtnet_if_flags) & IFF_ALLMULTI)
-				return (ENOTSUP);
+			/*
+			 * We don't support filtering out multicast, so
+			 * ALLMULTI is always set.
+			 */
+			if_setflagbits(ifp, IFF_ALLMULTI, 0);
 			if_setflagbits(ifp, IFF_PROMISC, 0);
 		}
 	}

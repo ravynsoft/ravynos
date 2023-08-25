@@ -45,19 +45,20 @@
 static struct intelspi_pci_device {
 	uint32_t devid;
 	enum intelspi_vers vers;
+	const char *desc;
 } intelspi_pci_devices[] = {
-	{ 0x9c658086, SPI_LYNXPOINT },
-	{ 0x9c668086, SPI_LYNXPOINT },
-	{ 0x9ce58086, SPI_LYNXPOINT },
-	{ 0x9ce68086, SPI_LYNXPOINT },
-	{ 0x9d298086, SPI_SUNRISEPOINT },
-	{ 0x9d2a8086, SPI_SUNRISEPOINT },
-	{ 0xa1298086, SPI_SUNRISEPOINT },
-	{ 0xa12a8086, SPI_SUNRISEPOINT },
-	{ 0xa2a98086, SPI_SUNRISEPOINT },
-	{ 0xa2aa8086, SPI_SUNRISEPOINT },
-	{ 0xa3a98086, SPI_SUNRISEPOINT },
-	{ 0xa3aa8086, SPI_SUNRISEPOINT },
+	{ 0x9c658086, SPI_LYNXPOINT, "Intel Lynx Point-LP SPI Controller-0" },
+	{ 0x9c668086, SPI_LYNXPOINT, "Intel Lynx Point-LP SPI Controller-1" },
+	{ 0x9ce58086, SPI_LYNXPOINT, "Intel Wildcat Point SPI Controller-0" },
+	{ 0x9ce68086, SPI_LYNXPOINT, "Intel Wildcat Point SPI Controller-1" },
+	{ 0x9d298086, SPI_SUNRISEPOINT, "Intel Sunrise Point-LP SPI Controller-0" },
+	{ 0x9d2a8086, SPI_SUNRISEPOINT, "Intel Sunrise Point-LP SPI Controller-1" },
+	{ 0xa1298086, SPI_SUNRISEPOINT, "Intel Sunrise Point-H SPI Controller-0" },
+	{ 0xa12a8086, SPI_SUNRISEPOINT, "Intel Sunrise Point-H SPI Controller-1" },
+	{ 0xa2a98086, SPI_SUNRISEPOINT, "Intel Kaby Lake-H SPI Controller-0" },
+	{ 0xa2aa8086, SPI_SUNRISEPOINT, "Intel Kaby Lake-H SPI Controller-1" },
+	{ 0xa3a98086, SPI_SUNRISEPOINT, "Intel Comet Lake-V SPI Controller-0" },
+	{ 0xa3aa8086, SPI_SUNRISEPOINT, "Intel Comet Lake-V SPI Controller-1" },
 };
 
 static int
@@ -73,7 +74,7 @@ intelspi_pci_probe(device_t dev)
 			/* The PCI device is listed in ACPI too.
 			 * Not that we use the handle for anything... */
 			sc->sc_handle = acpi_get_handle(dev);
-			device_set_desc(dev, intelspi_infos[sc->sc_vers].desc);
+			device_set_desc(dev, intelspi_pci_devices[i].desc);
 			return (BUS_PROBE_DEFAULT);
 		}
 	}
@@ -118,6 +119,15 @@ static device_method_t intelspi_pci_methods[] = {
 	DEVMETHOD(device_detach, intelspi_pci_detach),
 	DEVMETHOD(device_suspend, intelspi_suspend),
 	DEVMETHOD(device_resume, intelspi_resume),
+
+	/* Bus interface */
+	DEVMETHOD(bus_setup_intr, bus_generic_setup_intr),
+	DEVMETHOD(bus_teardown_intr, bus_generic_teardown_intr),
+	DEVMETHOD(bus_alloc_resource, bus_generic_alloc_resource),
+	DEVMETHOD(bus_release_resource, bus_generic_release_resource),
+	DEVMETHOD(bus_activate_resource, bus_generic_activate_resource),
+	DEVMETHOD(bus_deactivate_resource, bus_generic_deactivate_resource),
+	DEVMETHOD(bus_adjust_resource, bus_generic_adjust_resource),
 
 	/* SPI interface */
 	DEVMETHOD(spibus_transfer, intelspi_transfer),
