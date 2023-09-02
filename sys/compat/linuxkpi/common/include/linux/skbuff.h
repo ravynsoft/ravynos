@@ -573,7 +573,7 @@ __skb_queue_tail(struct sk_buff_head *q, struct sk_buff *new)
 static inline void
 skb_queue_tail(struct sk_buff_head *q, struct sk_buff *new)
 {
-	SKB_TRACE2(q, skb);
+	SKB_TRACE2(q, new);
 	return (__skb_queue_tail(q, new));
 }
 
@@ -1048,7 +1048,6 @@ static inline struct sk_buff *
 napi_build_skb(void *data, size_t len)
 {
 
-	SKB_TRACE(skb);
 	SKB_TODO();
 	return (NULL);
 }
@@ -1066,6 +1065,14 @@ skb_mark_for_recycle(struct sk_buff *skb)
 {
 	SKB_TRACE(skb);
 	SKB_TODO();
+}
+
+static inline int
+skb_cow_head(struct sk_buff *skb, unsigned int headroom)
+{
+	SKB_TRACE(skb);
+	SKB_TODO();
+	return (-1);
 }
 
 #define	SKB_WITH_OVERHEAD(_s)						\

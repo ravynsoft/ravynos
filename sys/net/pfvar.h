@@ -873,7 +873,7 @@ struct pf_ksrc_node {
 	struct pf_addr	 raddr;
 	struct pf_krule_slist	 match_rules;
 	union pf_krule_ptr rule;
-	struct pfi_kkif	*kif;
+	struct pfi_kkif	*rkif;
 	counter_u64_t	 bytes[2];
 	counter_u64_t	 packets[2];
 	u_int32_t	 states;
@@ -1921,15 +1921,12 @@ struct pfioc_iface {
 #define DIOCADDRULE	_IOWR('D',  4, struct pfioc_rule)
 #define DIOCADDRULENV	_IOWR('D',  4, struct pfioc_nv)
 #define DIOCGETRULES	_IOWR('D',  6, struct pfioc_rule)
-#define DIOCGETRULE	_IOWR('D',  7, struct pfioc_rule)
 #define DIOCGETRULENV	_IOWR('D',  7, struct pfioc_nv)
 /* XXX cut 8 - 17 */
-#define DIOCCLRSTATES	_IOWR('D', 18, struct pfioc_state_kill)
 #define DIOCCLRSTATESNV	_IOWR('D', 18, struct pfioc_nv)
 #define DIOCGETSTATE	_IOWR('D', 19, struct pfioc_state)
 #define DIOCGETSTATENV	_IOWR('D', 19, struct pfioc_nv)
 #define DIOCSETSTATUSIF _IOWR('D', 20, struct pfioc_if)
-#define DIOCGETSTATUS	_IOWR('D', 21, struct pf_status)
 #define DIOCGETSTATUSNV	_IOWR('D', 21, struct pfioc_nv)
 #define DIOCCLRSTATUS	_IO  ('D', 22)
 #define DIOCNATLOOK	_IOWR('D', 23, struct pfioc_natlook)
@@ -1943,7 +1940,6 @@ struct pfioc_iface {
 #define DIOCCLRRULECTRS	_IO  ('D', 38)
 #define DIOCGETLIMIT	_IOWR('D', 39, struct pfioc_limit)
 #define DIOCSETLIMIT	_IOWR('D', 40, struct pfioc_limit)
-#define DIOCKILLSTATES	_IOWR('D', 41, struct pfioc_state_kill)
 #define DIOCKILLSTATESNV	_IOWR('D', 41, struct pfioc_nv)
 #define DIOCSTARTALTQ	_IO  ('D', 42)
 #define DIOCSTOPALTQ	_IO  ('D', 43)
@@ -2474,7 +2470,8 @@ int			 pf_step_out_of_keth_anchor(struct pf_keth_anchor_stackframe *,
 
 u_short			 pf_map_addr(u_int8_t, struct pf_krule *,
 			    struct pf_addr *, struct pf_addr *,
-			    struct pf_addr *, struct pf_ksrc_node **);
+			    struct pfi_kkif **nkif, struct pf_addr *,
+			    struct pf_ksrc_node **);
 struct pf_krule		*pf_get_translation(struct pf_pdesc *, struct mbuf *,
 			    int, struct pfi_kkif *, struct pf_ksrc_node **,
 			    struct pf_state_key **, struct pf_state_key **,

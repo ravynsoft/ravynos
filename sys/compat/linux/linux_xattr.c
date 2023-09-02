@@ -68,8 +68,34 @@ struct setxattr_args {
 	int		follow;
 };
 
+struct getxattr_args {
+	int		fd;
+	const char	*path;
+	const char	*name;
+	void 		*value;
+	l_size_t	size;
+	int		follow;
+};
+
+struct removexattr_args {
+	int		fd;
+	const char	*path;
+	const char	*name;
+	int		follow;
+};
+
 static char *extattr_namespace_names[] = EXTATTR_NAMESPACE_NAMES;
 
+
+static int
+error_to_xattrerror(int attrnamespace, int error)
+{
+
+	if (attrnamespace == EXTATTR_NAMESPACE_SYSTEM && error == EPERM)
+		return (ENOTSUP);
+	else
+		return (error);
+}
 
 static int
 xatrr_to_extattr(const char *uattrname, int *attrnamespace, char *attrname)
@@ -172,7 +198,7 @@ listxattr(struct thread *td, struct listxattr_args *args)
 	if (error == 0)
 		td->td_retval[0] = cnt;
 	free(data, M_LINUX);
-	return (error);
+	return (error_to_xattrerror(attrnamespace, error));
 }
 
 int
@@ -218,91 +244,123 @@ linux_flistxattr(struct thread *td, struct linux_flistxattr_args *args)
 }
 
 static int
-linux_path_removexattr(struct thread *td, const char *upath, const char *uname,
-    int follow)
+removexattr(struct thread *td, struct removexattr_args *args)
 {
 	char attrname[LINUX_XATTR_NAME_MAX + 1];
 	int attrnamespace, error;
 
-	error = xatrr_to_extattr(uname, &attrnamespace, attrname);
+	error = xatrr_to_extattr(args->name, &attrnamespace, attrname);
 	if (error != 0)
 		return (error);
-
-	return (kern_extattr_delete_path(td, upath, attrnamespace,
-	    attrname, follow, UIO_USERSPACE));
+	if (args->path != NULL)
+		error = kern_extattr_delete_path(td, args->path, attrnamespace,
+		    attrname, args->follow, UIO_USERSPACE);
+	else
+		error = kern_extattr_delete_fd(td, args->fd, attrnamespace,
+		    attrname);
+	return (error_to_xattrerror(attrnamespace, error));
 }
 
 int
 linux_removexattr(struct thread *td, struct linux_removexattr_args *args)
 {
+	struct removexattr_args eargs = {
+		.fd = -1,
+		.path = args->path,
+		.name = args->name,
+		.follow = FOLLOW,
+	};
 
-	return (linux_path_removexattr(td, args->path, args->name,
-	    FOLLOW));
+	return (removexattr(td, &eargs));
 }
 
 int
 linux_lremovexattr(struct thread *td, struct linux_lremovexattr_args *args)
 {
+	struct removexattr_args eargs = {
+		.fd = -1,
+		.path = args->path,
+		.name = args->name,
+		.follow = NOFOLLOW,
+	};
 
-	return (linux_path_removexattr(td, args->path, args->name,
-	    NOFOLLOW));
+	return (removexattr(td, &eargs));
 }
 
 int
 linux_fremovexattr(struct thread *td, struct linux_fremovexattr_args *args)
 {
+	struct removexattr_args eargs = {
+		.fd = args->fd,
+		.path = NULL,
+		.name = args->name,
+		.follow = 0,
+	};
+
+	return (removexattr(td, &eargs));
+}
+
+static int
+getxattr(struct thread *td, struct getxattr_args *args)
+{
 	char attrname[LINUX_XATTR_NAME_MAX + 1];
 	int attrnamespace, error;
 
 	error = xatrr_to_extattr(args->name, &attrnamespace, attrname);
 	if (error != 0)
 		return (error);
-	return (kern_extattr_delete_fd(td, args->fd, attrnamespace,
-	    attrname));
-}
-
-static int
-linux_path_getxattr(struct thread *td, const char *upath, const char *uname,
-    void *value, l_size_t size, int follow)
-{
-	char attrname[LINUX_XATTR_NAME_MAX + 1];
-	int attrnamespace, error;
-
-	error = xatrr_to_extattr(uname, &attrnamespace, attrname);
-	if (error != 0)
-		return (error);
-
-	return (kern_extattr_get_path(td, upath, attrnamespace,
-	    attrname, value, size, follow, UIO_USERSPACE));
+	if (args->path != NULL)
+		error = kern_extattr_get_path(td, args->path, attrnamespace,
+		    attrname, args->value, args->size, args->follow, UIO_USERSPACE);
+	else
+		error = kern_extattr_get_fd(td, args->fd, attrnamespace,
+		    attrname, args->value, args->size);
+	return (error == EPERM ? ENOATTR : error);
 }
 
 int
 linux_getxattr(struct thread *td, struct linux_getxattr_args *args)
 {
+	struct getxattr_args eargs = {
+		.fd = -1,
+		.path = args->path,
+		.name = args->name,
+		.value = args->value,
+		.size = args->size,
+		.follow = FOLLOW,
+	};
 
-	return (linux_path_getxattr(td, args->path, args->name,
-	    args->value, args->size, FOLLOW));
+	return (getxattr(td, &eargs));
 }
 
 int
 linux_lgetxattr(struct thread *td, struct linux_lgetxattr_args *args)
 {
+	struct getxattr_args eargs = {
+		.fd = -1,
+		.path = args->path,
+		.name = args->name,
+		.value = args->value,
+		.size = args->size,
+		.follow = NOFOLLOW,
+	};
 
-	return (linux_path_getxattr(td, args->path, args->name,
-	    args->value, args->size, NOFOLLOW));
+	return (getxattr(td, &eargs));
 }
 
 int
 linux_fgetxattr(struct thread *td, struct linux_fgetxattr_args *args)
 {
-	char attrname[LINUX_XATTR_NAME_MAX + 1];
-	int attrnamespace, error;
+	struct getxattr_args eargs = {
+		.fd = args->fd,
+		.path = NULL,
+		.name = args->name,
+		.value = args->value,
+		.size = args->size,
+		.follow = 0,
+	};
 
-	error = xatrr_to_extattr(args->name, &attrnamespace, attrname);
-	if (error != 0)
-		return (error);
-	return (kern_extattr_get_fd(td, args->fd, attrnamespace,
-	    attrname, args->value, args->size));
+	return (getxattr(td, &eargs));
 }
 
 static int
@@ -344,7 +402,7 @@ setxattr(struct thread *td, struct setxattr_args *args)
 		    attrname, args->value, args->size);
 out:
 	td->td_retval[0] = 0;
-	return (error);
+	return (error_to_xattrerror(attrnamespace, error));
 }
 
 int

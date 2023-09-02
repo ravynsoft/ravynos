@@ -42,6 +42,11 @@ struct linux_exit_args {
 struct linux_fork_args {
 	syscallarg_t dummy;
 };
+struct linux_write_args {
+	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
+	char buf_l_[PADL_(char *)]; char * buf; char buf_r_[PADR_(char *)];
+	char nbyte_l_[PADL_(l_size_t)]; l_size_t nbyte; char nbyte_r_[PADR_(l_size_t)];
+};
 struct linux_open_args {
 	char path_l_[PADL_(char *)]; char * path; char path_r_[PADR_(char *)];
 	char flags_l_[PADL_(l_int)]; l_int flags; char flags_r_[PADR_(l_int)];
@@ -457,6 +462,11 @@ struct linux_msync_args {
 	char addr_l_[PADL_(l_ulong)]; l_ulong addr; char addr_r_[PADR_(l_ulong)];
 	char len_l_[PADL_(l_size_t)]; l_size_t len; char len_r_[PADR_(l_size_t)];
 	char fl_l_[PADL_(l_int)]; l_int fl; char fl_r_[PADR_(l_int)];
+};
+struct linux_writev_args {
+	char fd_l_[PADL_(int)]; int fd; char fd_r_[PADR_(int)];
+	char iovp_l_[PADL_(struct iovec *)]; struct iovec * iovp; char iovp_r_[PADR_(struct iovec *)];
+	char iovcnt_l_[PADL_(u_int)]; u_int iovcnt; char iovcnt_r_[PADR_(u_int)];
 };
 struct linux_getsid_args {
 	char pid_l_[PADL_(l_pid_t)]; l_pid_t pid; char pid_r_[PADR_(l_pid_t)];
@@ -1695,6 +1705,7 @@ struct linux_mount_setattr_args {
 #define	nosys	linux_nosys
 int	linux_exit(struct thread *, struct linux_exit_args *);
 int	linux_fork(struct thread *, struct linux_fork_args *);
+int	linux_write(struct thread *, struct linux_write_args *);
 int	linux_open(struct thread *, struct linux_open_args *);
 int	linux_waitpid(struct thread *, struct linux_waitpid_args *);
 int	linux_creat(struct thread *, struct linux_creat_args *);
@@ -1799,6 +1810,7 @@ int	linux_llseek(struct thread *, struct linux_llseek_args *);
 int	linux_getdents(struct thread *, struct linux_getdents_args *);
 int	linux_select(struct thread *, struct linux_select_args *);
 int	linux_msync(struct thread *, struct linux_msync_args *);
+int	linux_writev(struct thread *, struct linux_writev_args *);
 int	linux_getsid(struct thread *, struct linux_getsid_args *);
 int	linux_fdatasync(struct thread *, struct linux_fdatasync_args *);
 int	linux_sysctl(struct thread *, struct linux_sysctl_args *);
@@ -2059,6 +2071,7 @@ int	linux_epoll_pwait2_64(struct thread *, struct linux_epoll_pwait2_64_args *);
 int	linux_mount_setattr(struct thread *, struct linux_mount_setattr_args *);
 #define	LINUX_SYS_AUE_linux_exit	AUE_EXIT
 #define	LINUX_SYS_AUE_linux_fork	AUE_FORK
+#define	LINUX_SYS_AUE_linux_write	AUE_NULL
 #define	LINUX_SYS_AUE_linux_open	AUE_OPEN_RWTC
 #define	LINUX_SYS_AUE_linux_waitpid	AUE_WAIT4
 #define	LINUX_SYS_AUE_linux_creat	AUE_CREAT
@@ -2163,6 +2176,7 @@ int	linux_mount_setattr(struct thread *, struct linux_mount_setattr_args *);
 #define	LINUX_SYS_AUE_linux_getdents	AUE_GETDIRENTRIES
 #define	LINUX_SYS_AUE_linux_select	AUE_SELECT
 #define	LINUX_SYS_AUE_linux_msync	AUE_MSYNC
+#define	LINUX_SYS_AUE_linux_writev	AUE_WRITEV
 #define	LINUX_SYS_AUE_linux_getsid	AUE_GETSID
 #define	LINUX_SYS_AUE_linux_fdatasync	AUE_NULL
 #define	LINUX_SYS_AUE_linux_sysctl	AUE_SYSCTL

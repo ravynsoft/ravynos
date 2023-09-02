@@ -57,6 +57,7 @@
 #endif
 
 #ifdef COMPAT_LINUX32
+#include <compat/freebsd32/freebsd32_util.h>
 #include <machine/../linux32/linux.h>
 #include <machine/../linux32/linux32_proto.h>
 #else
@@ -1384,7 +1385,7 @@ linux_sendmsg_common(struct thread *td, l_int s, struct l_msghdr *msghdr,
 		return (error);
 
 #ifdef COMPAT_LINUX32
-	error = linux32_copyiniov(PTRIN(msg.msg_iov), msg.msg_iovlen,
+	error = freebsd32_copyiniov(PTRIN(msg.msg_iov), msg.msg_iovlen,
 	    &iov, EMSGSIZE);
 #else
 	error = copyiniov(msg.msg_iov, msg.msg_iovlen, &iov, EMSGSIZE);
@@ -1794,7 +1795,7 @@ linux_recvmsg_common(struct thread *td, l_int s, struct l_msghdr *msghdr,
 		return (error);
 
 #ifdef COMPAT_LINUX32
-	error = linux32_copyiniov(PTRIN(msg->msg_iov), msg->msg_iovlen,
+	error = freebsd32_copyiniov(PTRIN(msg->msg_iov), msg->msg_iovlen,
 	    &iov, EMSGSIZE);
 #else
 	error = copyiniov(msg->msg_iov, msg->msg_iovlen, &iov, EMSGSIZE);
@@ -2381,16 +2382,24 @@ out:
  * with FreeBSD sendfile.
  */
 static bool
-is_stream_socket(struct file *fp)
+is_sendfile(struct file *fp, struct file *ofp)
 {
 	struct socket *so;
 
 	/*
+	 * FreeBSD sendfile() system call sends a regular file or
+	 * shared memory object out a stream socket.
+	 */
+	if ((fp->f_type != DTYPE_SHM && fp->f_type != DTYPE_VNODE) ||
+	    (fp->f_type == DTYPE_VNODE &&
+	    (fp->f_vnode == NULL || fp->f_vnode->v_type != VREG)))
+		return (false);
+	/*
 	 * The socket must be a stream socket and connected.
 	 */
-	if (fp->f_type != DTYPE_SOCKET)
+	if (ofp->f_type != DTYPE_SOCKET)
 		return (false);
-	so = fp->f_data;
+	so = ofp->f_data;
 	if (so->so_type != SOCK_STREAM)
 		return (false);
 	/*
@@ -2556,12 +2565,14 @@ linux_sendfile_common(struct thread *td, l_int out, l_int in,
 		    0);
 	} else {
 		sbytes = 0;
-		if (is_stream_socket(ofp))
+		if (is_sendfile(fp, ofp))
 			error = sendfile_sendfile(td, fp, out, offset, count,
 			    &sbytes);
 		else
 			error = sendfile_fallback(td, fp, out, offset, count,
 			    &sbytes);
+		if (error == ENOBUFS && (ofp->f_flag & FNONBLOCK) != 0)
+			error = EAGAIN;
 		if (error == 0)
 			td->td_retval[0] = sbytes;
 	}

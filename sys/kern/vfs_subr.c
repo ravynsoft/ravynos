@@ -196,6 +196,10 @@ static counter_u64_t recycles_free_count;
 SYSCTL_COUNTER_U64(_vfs, OID_AUTO, recycles_free, CTLFLAG_RD, &recycles_free_count,
     "Number of free vnodes recycled to meet vnode cache targets");
 
+static counter_u64_t vnode_skipped_requeues;
+SYSCTL_COUNTER_U64(_vfs, OID_AUTO, vnode_skipped_requeues, CTLFLAG_RD, &vnode_skipped_requeues,
+    "Number of times LRU requeue was skipped due to lock contention");
+
 static u_long deferred_inact;
 SYSCTL_ULONG(_vfs, OID_AUTO, deferred_inact, CTLFLAG_RD,
     &deferred_inact, 0, "Number of times inactive processing was deferred");
@@ -732,6 +736,7 @@ vntblinit(void *dummy __unused)
 	vnodes_created = counter_u64_alloc(M_WAITOK);
 	recycles_count = counter_u64_alloc(M_WAITOK);
 	recycles_free_count = counter_u64_alloc(M_WAITOK);
+	vnode_skipped_requeues = counter_u64_alloc(M_WAITOK);
 
 	/*
 	 * Initialize the filesystem syncer.
@@ -1280,11 +1285,13 @@ vnlru_free_impl(int count, struct vfsops *mnt_op, struct vnode *mvp)
 	struct vnode *vp;
 	struct mount *mp;
 	int ocount;
+	bool retried;
 
 	mtx_assert(&vnode_list_mtx, MA_OWNED);
 	if (count > max_vnlru_free)
 		count = max_vnlru_free;
 	ocount = count;
+	retried = false;
 	vp = mvp;
 	for (;;) {
 		if (count == 0) {
@@ -1292,6 +1299,24 @@ vnlru_free_impl(int count, struct vfsops *mnt_op, struct vnode *mvp)
 		}
 		vp = TAILQ_NEXT(vp, v_vnodelist);
 		if (__predict_false(vp == NULL)) {
+			/*
+			 * The free vnode marker can be past eligible vnodes:
+			 * 1. if vdbatch_process trylock failed
+			 * 2. if vtryrecycle failed
+			 *
+			 * If so, start the scan from scratch.
+			 */
+			if (!retried && vnlru_read_freevnodes() > 0) {
+				TAILQ_REMOVE(&vnode_list, mvp, v_vnodelist);
+				TAILQ_INSERT_HEAD(&vnode_list, mvp, v_vnodelist);
+				vp = mvp;
+				retried = true;
+				continue;
+			}
+
+			/*
+			 * Give up
+			 */
 			TAILQ_REMOVE(&vnode_list, mvp, v_vnodelist);
 			TAILQ_INSERT_TAIL(&vnode_list, mvp, v_vnodelist);
 			break;
@@ -1712,6 +1737,10 @@ vtryrecycle(struct vnode *vp)
  * vnlru to clear things up, but ultimately always performs a M_WAITOK allocation.
  */
 static u_long vn_alloc_cyclecount;
+static u_long vn_alloc_sleeps;
+
+SYSCTL_ULONG(_vfs, OID_AUTO, vnode_alloc_sleeps, CTLFLAG_RD, &vn_alloc_sleeps, 0,
+    "Number of times vnode allocation blocked waiting on vnlru");
 
 static struct vnode * __noinline
 vn_alloc_hard(struct mount *mp)
@@ -1746,6 +1775,7 @@ vn_alloc_hard(struct mount *mp)
 		 * Wait for space for a new vnode.
 		 */
 		vnlru_kick();
+		vn_alloc_sleeps++;
 		msleep(&vnlruproc_sig, &vnode_list_mtx, PVFS, "vlruwk", hz);
 		if (atomic_load_long(&numvnodes) + 1 > desiredvnodes &&
 		    vnlru_read_freevnodes() > 1)
@@ -3523,6 +3553,17 @@ vdbatch_process(struct vdbatch *vd)
 	MPASS(curthread->td_pinned > 0);
 	MPASS(vd->index == VDBATCH_SIZE);
 
+	/*
+	 * Attempt to requeue the passed batch, but give up easily.
+	 *
+	 * Despite batching the mechanism is prone to transient *significant*
+	 * lock contention, where vnode_list_mtx becomes the primary bottleneck
+	 * if multiple CPUs get here (one real-world example is highly parallel
+	 * do-nothing make , which will stat *tons* of vnodes). Since it is
+	 * quasi-LRU (read: not that great even if fully honoured) just dodge
+	 * the problem. Parties which don't like it are welcome to implement
+	 * something better.
+	 */
 	critical_enter();
 	if (mtx_trylock(&vnode_list_mtx)) {
 		for (i = 0; i < VDBATCH_SIZE; i++) {
@@ -3535,6 +3576,8 @@ vdbatch_process(struct vdbatch *vd)
 		}
 		mtx_unlock(&vnode_list_mtx);
 	} else {
+		counter_u64_add(vnode_skipped_requeues, 1);
+
 		for (i = 0; i < VDBATCH_SIZE; i++) {
 			vp = vd->tab[i];
 			vd->tab[i] = NULL;
