@@ -69,8 +69,9 @@ struct nameidata;
 #define	DTYPE_DEV	11	/* Device specific fd type */
 #define	DTYPE_PROCDESC	12	/* process descriptor */
 #define	DTYPE_EVENTFD	13	/* eventfd */
-#define	DTYPE_LINUXTFD	14	/* emulation timerfd type */
-#define	DTYPE_MACH_IPC	15	/* port or portset */
+#define	DTYPE_TIMERFD	14	/* timerfd */
+/* leave some room for upstream additions */
+#define	DTYPE_MACH_IPC	32	/* port or portset */
 
 #ifdef _KERNEL
 

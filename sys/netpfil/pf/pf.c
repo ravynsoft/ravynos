@@ -4880,15 +4880,14 @@ pf_create_state(struct pf_krule *r, struct pf_krule *nr, struct pf_krule *a,
 
 	if (r->rt) {
 		/* pf_map_addr increases the reason counters */
-		if ((reason = pf_map_addr(pd->af, r, pd->src, &s->rt_addr, NULL,
-		    &sn)) != 0) {
+		if ((reason = pf_map_addr(pd->af, r, pd->src, &s->rt_addr,
+		    &s->rt_kif, NULL, &sn)) != 0) {
 			pf_src_tree_remove_state(s);
 			s->timeout = PFTM_UNLINKED;
 			STATE_DEC_COUNTERS(s);
 			pf_free_state(s);
 			goto csfailed;
 		}
-		s->rt_kif = r->rpool.cur->kif;
 		s->rt = r->rt;
 	}
 
@@ -6700,6 +6699,7 @@ pf_route(struct mbuf **m, struct pf_krule *r, struct ifnet *oifp,
 	struct mbuf		*m0, *m1, *md;
 	struct sockaddr_in	dst;
 	struct ip		*ip;
+	struct pfi_kkif		*nkif = NULL;
 	struct ifnet		*ifp = NULL;
 	struct pf_addr		 naddr;
 	struct pf_ksrc_node	*sn = NULL;
@@ -6784,21 +6784,22 @@ pf_route(struct mbuf **m, struct pf_krule *r, struct ifnet *oifp,
 			goto bad_locked;
 		}
 		pf_map_addr(AF_INET, r, (struct pf_addr *)&ip->ip_src,
-		    &naddr, NULL, &sn);
+		    &naddr, &nkif, NULL, &sn);
 		if (!PF_AZERO(&naddr, AF_INET))
 			dst.sin_addr.s_addr = naddr.v4.s_addr;
-		ifp = r->rpool.cur->kif ?
-		    r->rpool.cur->kif->pfik_ifp : NULL;
+		ifp = nkif ? nkif->pfik_ifp : NULL;
 	} else {
 		if (!PF_AZERO(&s->rt_addr, AF_INET))
 			dst.sin_addr.s_addr =
 			    s->rt_addr.v4.s_addr;
 		ifp = s->rt_kif ? s->rt_kif->pfik_ifp : NULL;
+		/* If pfsync'd */
+		if (ifp == NULL)
+			ifp = r->rpool.cur->kif ?
+			    r->rpool.cur->kif->pfik_ifp : NULL;
 		PF_STATE_UNLOCK(s);
 	}
-	/* If pfsync'd */
-	if (ifp == NULL)
-		ifp = r->rpool.cur->kif ? r->rpool.cur->kif->pfik_ifp : NULL;
+
 	if (ifp == NULL)
 		goto bad;
 
@@ -6913,6 +6914,7 @@ pf_route6(struct mbuf **m, struct pf_krule *r, struct ifnet *oifp,
 	struct mbuf		*m0, *md;
 	struct sockaddr_in6	dst;
 	struct ip6_hdr		*ip6;
+	struct pfi_kkif		*nkif = NULL;
 	struct ifnet		*ifp = NULL;
 	struct pf_addr		 naddr;
 	struct pf_ksrc_node	*sn = NULL;
@@ -6995,24 +6997,25 @@ pf_route6(struct mbuf **m, struct pf_krule *r, struct ifnet *oifp,
 			goto bad_locked;
 		}
 		pf_map_addr(AF_INET6, r, (struct pf_addr *)&ip6->ip6_src,
-		    &naddr, NULL, &sn);
+		    &naddr, &nkif, NULL, &sn);
 		if (!PF_AZERO(&naddr, AF_INET6))
 			PF_ACPY((struct pf_addr *)&dst.sin6_addr,
 			    &naddr, AF_INET6);
-		ifp = r->rpool.cur->kif ? r->rpool.cur->kif->pfik_ifp : NULL;
+		ifp = nkif ? nkif->pfik_ifp : NULL;
 	} else {
 		if (!PF_AZERO(&s->rt_addr, AF_INET6))
 			PF_ACPY((struct pf_addr *)&dst.sin6_addr,
 			    &s->rt_addr, AF_INET6);
 		ifp = s->rt_kif ? s->rt_kif->pfik_ifp : NULL;
+		/* If pfsync'd */
+		if (ifp == NULL)
+			ifp = r->rpool.cur->kif ?
+			    r->rpool.cur->kif->pfik_ifp : NULL;
 	}
 
 	if (s)
 		PF_STATE_UNLOCK(s);
 
-	/* If pfsync'd */
-	if (ifp == NULL)
-		ifp = r->rpool.cur->kif ? r->rpool.cur->kif->pfik_ifp : NULL;
 	if (ifp == NULL)
 		goto bad;
 
@@ -7542,40 +7545,34 @@ pf_test(int dir, int pflags, struct ifnet *ifp, struct mbuf **m0,
 			    pd.dir == PF_IN) {
 				struct mbuf *msyn;
 
-				msyn = pf_syncookie_recreate_syn(h->ip_ttl,
-				    off,&pd);
+				msyn = pf_syncookie_recreate_syn(h->ip_ttl, off,
+				    &pd);
 				if (msyn == NULL) {
 					action = PF_DROP;
 					break;
 				}
 
-				action = pf_test(dir, pflags, ifp, &msyn, inp, &pd.act);
+				action = pf_test(dir, pflags, ifp, &msyn, inp,
+				    &pd.act);
 				m_freem(msyn);
+				if (action != PF_PASS)
+					break;
 
-				if (action == PF_PASS) {
-					action = pf_test_state_tcp(&s, kif, m,
-					    off, h, &pd, &reason);
-					if (action != PF_PASS || s == NULL) {
-						action = PF_DROP;
-						break;
-					}
-
-					s->src.seqhi = ntohl(pd.hdr.tcp.th_ack)
-					    - 1;
-					s->src.seqlo = ntohl(pd.hdr.tcp.th_seq)
-					    - 1;
-					pf_set_protostate(s, PF_PEER_SRC,
-					    PF_TCPS_PROXY_DST);
-
-					action = pf_synproxy(&pd, &s, &reason);
-					if (action != PF_PASS)
-						break;
+				action = pf_test_state_tcp(&s, kif, m, off, h,
+				    &pd, &reason);
+				if (action != PF_PASS || s == NULL) {
+					action = PF_DROP;
+					break;
 				}
+
+				s->src.seqhi = ntohl(pd.hdr.tcp.th_ack) - 1;
+				s->src.seqlo = ntohl(pd.hdr.tcp.th_seq) - 1;
+				pf_set_protostate(s, PF_PEER_SRC, PF_TCPS_PROXY_DST);
+				action = pf_synproxy(&pd, &s, &reason);
 				break;
-			}
-			else {
-				action = pf_test_rule(&r, &s, kif, m, off,
-				    &pd, &a, &ruleset, inp);
+			} else {
+				action = pf_test_rule(&r, &s, kif, m, off, &pd,
+				    &a, &ruleset, inp);
 			}
 		}
 		break;
@@ -8114,6 +8111,15 @@ pf_test6(int dir, int pflags, struct ifnet *ifp, struct mbuf **m0, struct inpcb 
 		pd.p_len = pd.tot_len - off - (pd.hdr.tcp.th_off << 2);
 		pd.sport = &pd.hdr.tcp.th_sport;
 		pd.dport = &pd.hdr.tcp.th_dport;
+
+		/* Respond to SYN with a syncookie. */
+		if ((pd.hdr.tcp.th_flags & (TH_SYN|TH_ACK|TH_RST)) == TH_SYN &&
+		    pd.dir == PF_IN && pf_synflood_check(&pd)) {
+			pf_syncookie_send(m, off, &pd);
+			action = PF_DROP;
+			break;
+		}
+
 		action = pf_normalize_tcp(kif, m, 0, off, h, &pd);
 		if (action == PF_DROP)
 			goto done;
@@ -8123,9 +8129,45 @@ pf_test6(int dir, int pflags, struct ifnet *ifp, struct mbuf **m0, struct inpcb 
 				V_pfsync_update_state_ptr(s);
 			r = s->rule.ptr;
 			a = s->anchor.ptr;
-		} else if (s == NULL)
-			action = pf_test_rule(&r, &s, kif, m, off, &pd,
-			    &a, &ruleset, inp);
+		} else if (s == NULL) {
+			/* Validate remote SYN|ACK, re-create original SYN if
+			 * valid. */
+			if ((pd.hdr.tcp.th_flags & (TH_SYN|TH_ACK|TH_RST)) ==
+			    TH_ACK && pf_syncookie_validate(&pd) &&
+			    pd.dir == PF_IN) {
+				struct mbuf *msyn;
+
+				msyn = pf_syncookie_recreate_syn(h->ip6_hlim,
+				    off, &pd);
+				if (msyn == NULL) {
+					action = PF_DROP;
+					break;
+				}
+
+				action = pf_test6(dir, pflags, ifp, &msyn, inp,
+				    &pd.act);
+				m_freem(msyn);
+				if (action != PF_PASS)
+					break;
+
+				action = pf_test_state_tcp(&s, kif, m, off, h,
+				    &pd, &reason);
+				if (action != PF_PASS || s == NULL) {
+					action = PF_DROP;
+					break;
+				}
+
+				s->src.seqhi = ntohl(pd.hdr.tcp.th_ack) - 1;
+				s->src.seqlo = ntohl(pd.hdr.tcp.th_seq) - 1;
+				pf_set_protostate(s, PF_PEER_SRC, PF_TCPS_PROXY_DST);
+
+				action = pf_synproxy(&pd, &s, &reason);
+				break;
+			} else {
+				action = pf_test_rule(&r, &s, kif, m, off, &pd,
+				    &a, &ruleset, inp);
+			}
+		}
 		break;
 	}
 

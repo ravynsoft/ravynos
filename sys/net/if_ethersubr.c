@@ -446,9 +446,11 @@ ether_set_pcp(struct mbuf **mp, struct ifnet *ifp, uint8_t pcp)
 	struct ether_header *eh;
 
 	eh = mtod(*mp, struct ether_header *);
-	if (ntohs(eh->ether_type) == ETHERTYPE_VLAN ||
-	    ntohs(eh->ether_type) == ETHERTYPE_QINQ)
+	if (eh->ether_type == htons(ETHERTYPE_VLAN) ||
+	    eh->ether_type == htons(ETHERTYPE_QINQ)) {
+		(*mp)->m_flags &= ~M_VLANTAG;
 		return (true);
+	}
 
 	qtag.vid = 0;
 	qtag.pcp = pcp;
@@ -1400,11 +1402,12 @@ SYSCTL_INT(_net_link_vlan, OID_AUTO, mtag_pcp, CTLFLAG_RW | CTLFLAG_VNET,
 
 bool
 ether_8021q_frame(struct mbuf **mp, struct ifnet *ife, struct ifnet *p,
-    struct ether_8021q_tag *qtag)
+    const struct ether_8021q_tag *qtag)
 {
 	struct m_tag *mtag;
 	int n;
 	uint16_t tag;
+	uint8_t pcp = qtag->pcp;
 	static const char pad[8];	/* just zeros */
 
 	/*
@@ -1437,7 +1440,7 @@ ether_8021q_frame(struct mbuf **mp, struct ifnet *ife, struct ifnet *p,
 	 * If PCP is set in mbuf, use it
 	 */
 	if ((*mp)->m_flags & M_VLANTAG) {
-		qtag->pcp = EVL_PRIOFTAG((*mp)->m_pkthdr.ether_vtag);
+		pcp = EVL_PRIOFTAG((*mp)->m_pkthdr.ether_vtag);
 	}
 
 	/*
@@ -1451,7 +1454,7 @@ ether_8021q_frame(struct mbuf **mp, struct ifnet *ife, struct ifnet *p,
 	    MTAG_8021Q_PCP_OUT, NULL)) != NULL)
 		tag = EVL_MAKETAG(qtag->vid, *(uint8_t *)(mtag + 1), 0);
 	else
-		tag = EVL_MAKETAG(qtag->vid, qtag->pcp, 0);
+		tag = EVL_MAKETAG(qtag->vid, pcp, 0);
 	if ((p->if_capenable & IFCAP_VLAN_HWTAGGING) &&
 	    (qtag->proto == ETHERTYPE_VLAN)) {
 		(*mp)->m_pkthdr.ether_vtag = tag;
@@ -1462,6 +1465,7 @@ ether_8021q_frame(struct mbuf **mp, struct ifnet *ife, struct ifnet *p,
 			if_printf(ife, "unable to prepend 802.1Q header");
 			return (false);
 		}
+		(*mp)->m_flags &= ~M_VLANTAG;
 	}
 	return (true);
 }
