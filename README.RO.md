@@ -17,7 +17,7 @@ Pentru mai multe informații, vă rugăm vizitați [ravynos.com](https://ravynos
 
 ### Join us!
 
-* Vrei să ajuți la construirea visului? See proiectele/nevoile curente în [CONTRIBUTING.md](CONTRIBUTING.md)!
+* Vrei să ajuți la construirea visului? Uităte la proiectele/nevoile curente în [CONTRIBUTING.md](CONTRIBUTING.md)!
 * Server-ul nostru de [Discord](https://discord.com/invite/8caJbAGNwY).
 * `#ravynOS-general:matrix.org` - inscrieti-va pe [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
 * `#airyx` pe [Libera IRC](https://web.libera.chat/?channel=#airyx)
