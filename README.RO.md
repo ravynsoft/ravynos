@@ -1,26 +1,26 @@
-# What is ravynOS? [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
-### Don't speak English? Read this in: [Italiano](README.IT.md), [Türkçe](README.TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md), [简体中文](README.zh_CN.md), [繁體中文](README.zh_TW.md), [Português do Brasil](README.pt_BR.md), [Română](README.RO.md)
+# Ce este ravynOS? [![Build Status](https://api.cirrus-ci.com/github/ravynsoft/ravynos.svg?branch=main)](https://cirrus-ci.com/github/ravynsoft/ravynos) [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](CODE_OF_CONDUCT.md)
+### Nu vorbesti Romana? Citeste în: [Italiano](README.IT.md), [Türkçe](README.TR.md), [Deutsch](README.DE.md), [Indonesia](README.ID.md), [简体中文](README.zh_CN.md), [繁體中文](README.zh_TW.md), [Português do Brasil](README.pt_BR.md), [English](README.md)
 
-ravynOS is a new open source OS project that aims to provide a similar experience and some compatibility with macOS on x86-64 (and eventually ARM) systems. It builds on the solid foundations of FreeBSD, existing open source packages in the same space, and new code to fill the gaps.
+ravynOS este un nou Sistem de Operare de tip open source care își propune să ofere o experiență similară și o anumită compatibilitate cu macOS pe sisteme x86-64 (și eventual ARM). Se bazează pe fundația solidă a sistemului de operare FreeBSD, existând deja programe open source alături de cod nou pentru a umple golurile.
 
-The main design goals are:
-- Source compatibility with macOS applications (i.e. you could compile a Mac application on ravynOS and run it)
-- Similar GUI metaphors and familiar UX (file manager, application launcher, top menu bar that reflects the open application, etc)
-- Compatible with macOS folder layouts (/Library, /System, /Users, /Volumes, etc) and perhaps filesystems (HFS+, APFS) as well as fully supporting ZFS
-- Self-contained applications in [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), and [AppImage](https://github.com/AppImage) files - an installer-less experience for /Applications
-- Mostly maintain compatibility with the FreeBSD base system and X11 - a standard Unix environment under the hood
-- Compatible with Linux binaries via FreeBSD's Linux support
-- Eventual compatibility with x86-64/arm64 macOS binaries (Mach-O) and libraries
-- Pleasant to use, secure, stable, and performant
+Obiectivele principale sunt:
+- Compatibilitate la nivel de cod sursă cu aplicațiile de pe macOS(i.e. poți compila o aplicație pentru macOS pe ravynOS si să o poți utiliza)
+- GUI similar si UX familiar(manager de fișiere ,lansator de aplicații, bara de meniu de sus ce reflectă aplicația deschisă etc)
+- Compatibil cu ierarhia folderelor din macOS (/Library, /System, /Users, /Volumes, etc) și poate sistemele de fișiere (HFS+, APFS) precum și suport complet pentru ZFS
+- Aplicații în [App Bundles](https://developer.apple.com/documentation/foundation/bundle), [AppDirs](https://github.com/AppImage/AppImageKit/wiki/AppDir), și fișiere [AppImage](https://github.com/AppImage) - o experienta fara installer pentru /Applications
+- Mentinerea compatibilitatii in mare parte cu sistemul de baza FreeBSD si X11 - un mediu standard Unix sub capota
+- Compatibil cu executabile Linux folosind suportul de Linux din FreeBSD
+- Compatibilitate eventuala cu executabile macOS x86-64/arm64 (Mach-O) si biblioteci
+- Placut de utilizat, secure, stabil si performant
 
-Please visit [ravynos.com](https://ravynos.com/) for more info: [Release Notes](https://ravynos.com/releases.html) | [Screenshots](https://ravynos.com/screenshots.html) | [FAQ](https://ravynos.com/faq.html)
+Pentru mai multe informații, vă rugăm vizitați [ravynos.com](https://ravynos.com/): [Release Notes](https://ravynos.com/releases.html) | [Screenshots](https://ravynos.com/screenshots.html) | [FAQ](https://ravynos.com/faq.html)
 
 ### Join us!
 
-* Can you help build the dream? See the current projects/needs in [CONTRIBUTING.md](CONTRIBUTING.md)!
-* Our [Discord](https://discord.com/invite/8caJbAGNwY) server.
-* `#ravynOS-general:matrix.org` - join via [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
-* `#airyx` on [Libera IRC](https://web.libera.chat/?channel=#airyx)
+* Vrei să ajuți la construirea visului? See proiectele/nevoile curente în [CONTRIBUTING.md](CONTRIBUTING.md)!
+* Server-ul nostru de [Discord](https://discord.com/invite/8caJbAGNwY).
+* `#ravynOS-general:matrix.org` - inscrieti-va pe [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
+* `#airyx` pe [Libera IRC](https://web.libera.chat/?channel=#airyx)
 
 [![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
