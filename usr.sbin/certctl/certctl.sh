@@ -26,32 +26,66 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 
+set -u
+
 ############################################################ CONFIGURATION
 
 : ${DESTDIR:=}
 : ${DISTBASE:=}
-: ${FILEPAT:="\.pem$|\.crt$|\.cer$|\.crl$"}
-: ${VERBOSE:=0}
 
 ############################################################ GLOBALS
 
 SCRIPTNAME="${0##*/}"
 ERRORS=0
-NOOP=0
-UNPRIV=0
+NOOP=false
+UNPRIV=false
+VERBOSE=false
 
 ############################################################ FUNCTIONS
+
+info()
+{
+	echo "${0##*/}: $@" >&2
+}
+
+verbose()
+{
+	if "${VERBOSE}" ; then
+		info "$@"
+	fi
+}
+
+perform()
+{
+	if ! "${NOOP}" ; then
+		"$@"
+	fi
+}
+
+cert_files_in()
+{
+	find -L "$@" -type f \( \
+	     -name '*.pem' -or \
+	     -name '*.crt' -or \
+	     -name '*.cer' \
+	\) 2>/dev/null
+}
+
+eolcvt()
+{
+	cat "$@" | tr -s '\r' '\n'
+}
 
 do_hash()
 {
 	local hash
 
-	if hash=$( openssl x509 -noout -subject_hash -in "$1" ); then
+	if hash=$(openssl x509 -noout -subject_hash -in "$1") ; then
 		echo "$hash"
 		return 0
 	else
-		echo "Error: $1" >&2
-		ERRORS=$(( $ERRORS + 1 ))
+		info "Error: $1"
+		ERRORS=$((ERRORS + 1))
 		return 1
 	fi
 }
@@ -64,7 +98,7 @@ get_decimal()
 	hash=$2
 	decimal=0
 
-	while [ -e "$checkdir/$hash.$decimal" ]; do
+	while [ -e "$checkdir/$hash.$decimal" ] ; do
 		decimal=$((decimal + 1))
 	done
 
@@ -72,24 +106,32 @@ get_decimal()
 	return 0
 }
 
-create_trusted_link()
+create_trusted()
 {
-	local blisthash certhash hash
+	local hash certhash otherfile otherhash
 	local suffix
+	local link=${2:+-lm}
 
-	hash=$( do_hash "$1" ) || return
-	certhash=$( openssl x509 -sha1 -in "$1" -noout -fingerprint )
-	for blistfile in $(find $UNTRUSTDESTDIR -name "$hash.*"); do
-		blisthash=$( openssl x509 -sha1 -in "$blistfile" -noout -fingerprint )
-		if [ "$certhash" = "$blisthash" ]; then
-			echo "Skipping untrusted certificate $1 ($blistfile)"
-			return 1
+	hash=$(do_hash "$1") || return
+	certhash=$(openssl x509 -sha1 -in "$1" -noout -fingerprint)
+	for otherfile in $(find $UNTRUSTDESTDIR -name "$hash.*") ; do
+		otherhash=$(openssl x509 -sha1 -in "$otherfile" -noout -fingerprint)
+		if [ "$certhash" = "$otherhash" ] ; then
+			info "Skipping untrusted certificate $hash ($otherfile)"
+			return 0
+		fi
+	done
+	for otherfile in $(find $CERTDESTDIR -name "$hash.*") ; do
+		otherhash=$(openssl x509 -sha1 -in "$otherfile" -noout -fingerprint)
+		if [ "$certhash" = "$otherhash" ] ; then
+			verbose "Skipping duplicate entry for certificate $hash"
+			return 0
 		fi
 	done
 	suffix=$(get_decimal "$CERTDESTDIR" "$hash")
-	[ $VERBOSE -gt 0 ] && echo "Adding $hash.$suffix to trust store"
-	[ $NOOP -eq 0 ] && \
-		install ${INSTALLFLAGS} -lrs $(realpath "$1") "$CERTDESTDIR/$hash.$suffix"
+	verbose "Adding $hash.$suffix to trust store"
+	perform install ${INSTALLFLAGS} -m 0444 ${link} \
+		"$(realpath "$1")" "$CERTDESTDIR/$hash.$suffix"
 }
 
 # Accepts either dot-hash form from `certctl list` or a path to a valid cert.
@@ -99,13 +141,13 @@ resolve_certname()
 	local suffix
 
 	# If it exists as a file, we'll try that; otherwise, we'll scan
-	if [ -e "$1" ]; then
-		hash=$( do_hash "$1" ) || return
+	if [ -e "$1" ] ; then
+		hash=$(do_hash "$1") || return
 		srcfile=$(realpath "$1")
 		suffix=$(get_decimal "$UNTRUSTDESTDIR" "$hash")
 		filename="$hash.$suffix"
 		echo "$srcfile" "$hash.$suffix"
-	elif [ -e "${CERTDESTDIR}/$1" ];  then
+	elif [ -e "${CERTDESTDIR}/$1" ] ;  then
 		srcfile=$(realpath "${CERTDESTDIR}/$1")
 		hash=$(echo "$1" | sed -Ee 's/\.([0-9])+$//')
 		suffix=$(get_decimal "$UNTRUSTDESTDIR" "$hash")
@@ -117,22 +159,24 @@ resolve_certname()
 create_untrusted()
 {
 	local srcfile filename
+	local link=${2:+-lm}
 
 	set -- $(resolve_certname "$1")
 	srcfile=$1
 	filename=$2
 
-	if [ -z "$srcfile" -o -z "$filename" ]; then
+	if [ -z "$srcfile" -o -z "$filename" ] ; then
 		return
 	fi
 
-	[ $VERBOSE -gt 0 ] && echo "Adding $filename to untrusted list"
-	[ $NOOP -eq 0 ] && install ${INSTALLFLAGS} -lrs "$srcfile" "$UNTRUSTDESTDIR/$filename"
+	verbose "Adding $filename to untrusted list"
+	perform install ${INSTALLFLAGS} -m 0444 ${link} \
+		"$srcfile" "$UNTRUSTDESTDIR/$filename"
 }
 
 do_scan()
 {
-	local CFUNC CSEARCH CPATH CFILE
+	local CFUNC CSEARCH CPATH CFILE CERT SPLITDIR
 	local oldIFS="$IFS"
 	CFUNC="$1"
 	CSEARCH="$2"
@@ -140,14 +184,25 @@ do_scan()
 	IFS=:
 	set -- $CSEARCH
 	IFS="$oldIFS"
-	for CPATH in "$@"; do
-		[ -d "$CPATH" ] || continue
-		echo "Scanning $CPATH for certificates..."
-		for CFILE in $(ls -1 "${CPATH}" | grep -Ee "${FILEPAT}"); do
-			[ -e "$CPATH/$CFILE" ] || continue
-			[ $VERBOSE -gt 0 ] && echo "Reading $CFILE"
-			"$CFUNC" "$CPATH/$CFILE"
-		done
+	for CFILE in $(cert_files_in "$@") ; do
+		verbose "Reading $CFILE"
+		case $(eolcvt "$CFILE" | egrep -c '^-+BEGIN CERTIFICATE-+$') in
+		0)
+			;;
+		1)
+			"$CFUNC" "$CFILE" link
+			;;
+		*)
+			verbose "Multiple certificates found, splitting..."
+			SPLITDIR=$(mktemp -d)
+			eolcvt "$CFILE" | egrep '^(---|[0-9A-Za-z/+=]+$)' | \
+				split -p '^-+BEGIN CERTIFICATE-+$' - "$SPLITDIR/x"
+			for CERT in $(find "$SPLITDIR" -type f) ; do
+				"$CFUNC" "$CERT"
+			done
+			rm -rf "$SPLITDIR"
+			;;
+		esac
 	done
 }
 
@@ -155,94 +210,88 @@ do_list()
 {
 	local CFILE subject
 
-	if [ -e "$1" ]; then
-		cd "$1"
-		for CFILE in *.[0-9]; do
-			if [ ! -s "$CFILE" ]; then
-				echo "Unable to read $CFILE" >&2
-				ERRORS=$(( $ERRORS + 1 ))
-				continue
-			fi
-			subject=
-			if [ $VERBOSE -eq 0 ]; then
-				subject=$( openssl x509 -noout -subject -nameopt multiline -in "$CFILE" |
-				    sed -n '/commonName/s/.*= //p' )
-			fi
-			[ "$subject" ] ||
-			    subject=$( openssl x509 -noout -subject -in "$CFILE" )
-			printf "%s\t%s\n" "$CFILE" "$subject"
-		done
-		cd -
-	fi
+	for CFILE in $(find "$@" \( -type f -or -type l \) -name '*.[0-9]') ; do
+		if [ ! -s "$CFILE" ] ; then
+			info "Unable to read $CFILE"
+			ERRORS=$((ERRORS + 1))
+			continue
+		fi
+		subject=
+		if ! "$VERBOSE" ; then
+			subject=$(openssl x509 -noout -subject -nameopt multiline -in "$CFILE" | sed -n '/commonName/s/.*= //p')
+		fi
+		if [ -z "$subject" ] ; then
+			subject=$(openssl x509 -noout -subject -in "$CFILE")
+		fi
+		printf "%s\t%s\n" "${CFILE##*/}" "$subject"
+	done
 }
 
 cmd_rehash()
 {
 
-	if [ $NOOP -eq 0 ]; then
-		if [ -e "$CERTDESTDIR" ]; then
-			find "$CERTDESTDIR" -type link -delete
-		else
-			mkdir -p "$CERTDESTDIR"
-		fi
-		if [ -e "$UNTRUSTDESTDIR" ]; then
-			find "$UNTRUSTDESTDIR" -type link -delete
-		else
-			mkdir -p "$UNTRUSTDESTDIR"
-		fi
+	if [ -e "$CERTDESTDIR" ] ; then
+		perform find "$CERTDESTDIR" \( -type f -or -type l \) -delete
+	else
+		perform install -d -m 0755 "$CERTDESTDIR"
+	fi
+	if [ -e "$UNTRUSTDESTDIR" ] ; then
+		perform find "$UNTRUSTDESTDIR" \( -type f -or -type l \) -delete
+	else
+		perform install -d -m 0755 "$UNTRUSTDESTDIR"
 	fi
 
 	do_scan create_untrusted "$UNTRUSTPATH"
-	do_scan create_trusted_link "$TRUSTPATH"
+	do_scan create_trusted "$TRUSTPATH"
 }
 
 cmd_list()
 {
-	echo "Listing Trusted Certificates:"
+	info "Listing Trusted Certificates:"
 	do_list "$CERTDESTDIR"
 }
 
 cmd_untrust()
 {
-	local BPATH
+	local UTFILE
 
 	shift # verb
-	[ $NOOP -eq 0 ] && mkdir -p "$UNTRUSTDESTDIR"
-	for BFILE in "$@"; do
-		echo "Adding $BFILE to untrusted list"
-		create_untrusted "$BFILE"
+	perform install -d -m 0755 "$UNTRUSTDESTDIR"
+	for UTFILE in "$@"; do
+		info "Adding $UTFILE to untrusted list"
+		create_untrusted "$UTFILE"
 	done
 }
 
 cmd_trust()
 {
-	local BFILE blisthash certhash hash
+	local UTFILE untrustedhash certhash hash
 
 	shift # verb
-	for BFILE in "$@"; do
-		if [ -s "$BFILE" ]; then
-			hash=$( do_hash "$BFILE" )
-			certhash=$( openssl x509 -sha1 -in "$BFILE" -noout -fingerprint )
-			for BLISTEDFILE in $(find $UNTRUSTDESTDIR -name "$hash.*"); do
-				blisthash=$( openssl x509 -sha1 -in "$BLISTEDFILE" -noout -fingerprint )
-				if [ "$certhash" = "$blisthash" ]; then
-					echo "Removing $(basename "$BLISTEDFILE") from untrusted list"
-					[ $NOOP -eq 0 ] && rm -f $BLISTEDFILE
+	for UTFILE in "$@"; do
+		if [ -s "$UTFILE" ] ; then
+			hash=$(do_hash "$UTFILE")
+			certhash=$(openssl x509 -sha1 -in "$UTFILE" -noout -fingerprint)
+			for UNTRUSTEDFILE in $(find $UNTRUSTDESTDIR -name "$hash.*") ; do
+				untrustedhash=$(openssl x509 -sha1 -in "$UNTRUSTEDFILE" -noout -fingerprint)
+				if [ "$certhash" = "$untrustedhash" ] ; then
+					info "Removing $(basename "$UNTRUSTEDFILE") from untrusted list"
+					perform rm -f $UNTRUSTEDFILE
 				fi
 			done
-		elif [ -e "$UNTRUSTDESTDIR/$BFILE" ]; then
-			echo "Removing $BFILE from untrusted list"
-			[ $NOOP -eq 0 ] && rm -f "$UNTRUSTDESTDIR/$BFILE"
+		elif [ -e "$UNTRUSTDESTDIR/$UTFILE" ] ; then
+			info "Removing $UTFILE from untrusted list"
+			perform rm -f "$UNTRUSTDESTDIR/$UTFILE"
 		else
-			echo "Cannot find $BFILE" >&2
-			ERRORS=$(( $ERRORS + 1 ))
+			info "Cannot find $UTFILE"
+			ERRORS=$((ERRORS + 1))
 		fi
 	done
 }
 
 cmd_untrusted()
 {
-	echo "Listing Untrusted Certificates:"
+	info "Listing Untrusted Certificates:"
 	do_list "$UNTRUSTDESTDIR"
 }
 
@@ -270,18 +319,23 @@ while getopts D:d:M:nUv flag; do
 	D) DESTDIR=${OPTARG} ;;
 	d) DISTBASE=${OPTARG} ;;
 	M) METALOG=${OPTARG} ;;
-	n) NOOP=1 ;;
-	U) UNPRIV=1 ;;
-	v) VERBOSE=$(( $VERBOSE + 1 )) ;;
+	n) NOOP=true ;;
+	U) UNPRIV=true ;;
+	v) VERBOSE=true ;;
 	esac
 done
-shift $(( $OPTIND - 1 ))
+shift $((OPTIND - 1))
 
 DESTDIR=${DESTDIR%/}
 
+if ! [ -z "${CERTCTL_VERBOSE:-}" ] ; then
+	VERBOSE=true
+fi
 : ${METALOG:=${DESTDIR}/METALOG}
 INSTALLFLAGS=
-[ $UNPRIV -eq 1 ] && INSTALLFLAGS="-U -M ${METALOG} -D ${DESTDIR}"
+if "$UNPRIV" ; then
+	INSTALLFLAGS="-U -M ${METALOG} -D ${DESTDIR}"
+fi
 : ${LOCALBASE:=$(sysctl -n user.localbase)}
 : ${TRUSTPATH:=${DESTDIR}${DISTBASE}/usr/share/certs/trusted:${DESTDIR}${LOCALBASE}/share/certs:${DESTDIR}${LOCALBASE}/etc/ssl/certs}
 : ${UNTRUSTPATH:=${DESTDIR}${DISTBASE}/usr/share/certs/untrusted:${DESTDIR}${LOCALBASE}/etc/ssl/untrusted:${DESTDIR}${LOCALBASE}/etc/ssl/blacklisted}
@@ -302,7 +356,9 @@ blacklisted)	cmd_untrusted ;;
 esac
 
 retval=$?
-[ $ERRORS -gt 0 ] && echo "Encountered $ERRORS errors" >&2
+if [ $ERRORS -gt 0 ] ; then
+	info "Encountered $ERRORS errors"
+fi
 exit $retval
 
 ################################################################################

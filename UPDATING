@@ -27,6 +27,55 @@ NOTE TO PEOPLE WHO THINK THAT FreeBSD 15.x IS SLOW:
 	world, or to merely disable the most expensive debugging functionality
 	at runtime, run "ln -s 'abort:false,junk:false' /etc/malloc.conf".)
 
+20231027:
+	Forward compatibility (running the new code on old kernels) for the
+	"ino64" project have been removed. The need for it has passed long ago.
+
+20231018:
+	Commit 57ce37f9dcd0 changed the internal KAPI between the
+	nfscommon and nfscl modules.  Both must be rebuilt from sources.
+
+20231010:
+	dialog(1) has been replaced in base by bsddialog(1), while most of the
+	time replacing a dialog(1) call by a bsddialog(1) call works out of the
+	box, bsddialog(1) is not considered as a drop-in replacement for
+	dialog(1).
+
+	If you do depend on dialog(1) functionality, please install cdialog
+	from ports:
+
+	pkg install cdialog
+
+20230927:
+	The EARLY_AP_STARTUP kernel option is mandatory on x86.  The option
+	has been added to DEFAULTS, so it should automatically be included in
+	custom kernel configurations without any additional change.
+
+20230922:
+	A new loader tunable net.pf.default_to_drop allows pf(4)’s default
+	behaviour to be changed from pass to drop. Previously this required
+	recompiling the kernel with the option PF_DEFAULT_TO_DROP.
+
+20230914:
+	Enable splitting out pkgbase manpages into separate packages by
+	default. To disable this, set WITHOUT_MANSPLITPKG=yes in src.conf.
+
+20230911:
+	Move standard include files to the clibs-dev package and move clang
+	internal libraries and headers to clang and clang-dev. Upgrading systems
+	installed using pkgbase past this change involves extra steps to allow
+	for these file moves:
+
+		pkg upgrade -y FreeBSD-utilities
+		pkg upgrade -y FreeBSD-utilities-dev
+		pkg upgrade -y
+
+20230909:
+	Enable vnet sysctl variables to be loader tunable. SYSCTLs which
+	belongs to VNETs can be initialized during early boot or module
+	loading if they are marked with CTLFLAG_TUN and there are
+	corresponding kernel environment variables.
+
 20230901:
 	The WITH_INIT_ALL_PATTERN and WITH_INIT_ALL_ZERO build options have
 	been replaced by INIT_ALL=pattern and INIT_ALL=zero respectively.
@@ -63,6 +112,9 @@ NOTE TO PEOPLE WHO THINK THAT FreeBSD 15.x IS SLOW:
 	BSD u_intXX_t types. This should be a NOP, but may cause problems
 	for out of tree changes. The SIMs were not updated since most of
 	the old u_intXX_t uses weren't due to CAM interfaces.
+
+20230713:
+	stable/14 branch created.
 
 20230629:
 	The heuristic for detecting old chromebooks with an EC bug that requires
@@ -200,6 +252,12 @@ NOTE TO PEOPLE WHO THINK THAT FreeBSD 15.x IS SLOW:
 
 	after upgrading to restore all the component that were previously
 	installed.
+
+20221002:
+	OPIE has been removed from the base system.  If needed, it can
+	be installed from ports (security/opie) or packages (opie).
+	Otherwise, make sure that your PAM policies do not reference
+	pam_opie or pam_opieaccess.
 
 20220610:
 	LinuxKPI pm.h changes require an update to the latest drm-kmod version
@@ -434,6 +492,9 @@ https://lists.freebsd.org/archives/freebsd-current/2021-June/000153.html
 	Various LinuxKPI functionality was added which conflicts with DRM.
 	Please update your drm-kmod port to after the __FreeBSD_version 1400003
 	update.
+
+20210121:
+	stable/13 branch created.
 
 20210108:
 	PC Card attachments for all devices have been removed. In the case of
@@ -969,6 +1030,9 @@ https://lists.freebsd.org/archives/freebsd-current/2021-June/000153.html
 	this naming convention. You can verify which configuration files are
 	being included using the command:
 		$ newsyslog -Nrv
+
+20181019:
+	Stable/12 was branched created.
 
 20181015:
 	Ports for the DRM modules have been simplified. Now, amd64 users should
@@ -1512,6 +1576,14 @@ https://lists.freebsd.org/archives/freebsd-current/2021-June/000153.html
 20170620:
 	Switch back to the BSDL dtc (Device Tree Compiler). Set WITH_GPL_DTC
 	if you require the GPL compiler.
+
+20170619:
+	Forward compatibility for the "ino64" project have been committed. This
+	will allow most new binaries to run on older kernels in a limited
+	fashion.  This prevents many of the common foot-shooting actions in the
+	upgrade as well as the limited ability to roll back the kernel across
+	the ino64 upgrade. Complicated use cases may not work properly, though
+	enough simpler ones work to allow recovery in most situations.
 
 20170618:
 	The internal ABI used for communication between the NFS kernel modules

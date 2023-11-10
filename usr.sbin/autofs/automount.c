@@ -229,7 +229,7 @@ mount_unmount(struct node *root)
 }
 
 static void
-flush_autofs(const char *fspath)
+flush_autofs(const char *fspath, const fsid_t *fsid)
 {
 	struct iovec *iov = NULL;
 	char errmsg[255];
@@ -242,6 +242,8 @@ flush_autofs(const char *fspath)
 	    __DECONST(void *, "autofs"), (size_t)-1);
 	build_iovec(&iov, &iovlen, "fspath",
 	    __DECONST(void *, fspath), (size_t)-1);
+	build_iovec(&iov, &iovlen, "fsid",
+	    __DECONST(void *, fsid), sizeof(*fsid));
 	build_iovec(&iov, &iovlen, "errmsg",
 	    errmsg, sizeof(errmsg));
 
@@ -260,6 +262,7 @@ static void
 flush_caches(void)
 {
 	struct statfs *mntbuf;
+	struct statfs statbuf;
 	int i, nitems;
 
 	nitems = getmntinfo(&mntbuf, MNT_WAIT);
@@ -274,8 +277,23 @@ flush_caches(void)
 			    mntbuf[i].f_mntonname);
 			continue;
 		}
+		/*
+		 * A direct map mountpoint may have been mounted over, in
+		 * which case we can't MNT_UPDATE it. There's an obvious race
+		 * condition remaining here, but that has to be fixed in the
+		 * kernel.
+		 */
+		if (statfs(mntbuf[i].f_mntonname, &statbuf) != 0) {
+			log_err(1, "cannot statfs %s", mntbuf[i].f_mntonname);
+			continue;
+		}
+		if (strcmp(statbuf.f_fstypename, "autofs") != 0) {
+			log_debugx("skipping %s, filesystem type is not autofs",
+			    mntbuf[i].f_mntonname);
+			continue;
+		}
 
-		flush_autofs(mntbuf[i].f_mntonname);
+		flush_autofs(mntbuf[i].f_mntonname, &statbuf.f_fsid);
 	}
 }
 

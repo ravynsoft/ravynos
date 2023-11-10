@@ -1104,7 +1104,7 @@ ieee80211_send_nulldata(struct ieee80211_node *ni)
 	if (vap->iv_state == IEEE80211_S_CAC) {
 		IEEE80211_NOTE(vap, IEEE80211_MSG_OUTPUT | IEEE80211_MSG_DOTH,
 		    ni, "block %s frame in CAC state", "null data");
-		ieee80211_unref_node(&ni);
+		ieee80211_node_decref(ni);
 		vap->iv_stats.is_tx_badstate++;
 		return EIO;		/* XXX */
 	}
@@ -1122,7 +1122,7 @@ ieee80211_send_nulldata(struct ieee80211_node *ni)
 	m = ieee80211_getmgtframe(&frm, ic->ic_headroom + hdrlen, 0);
 	if (m == NULL) {
 		/* XXX debug msg */
-		ieee80211_unref_node(&ni);
+		ieee80211_node_decref(ni);
 		vap->iv_stats.is_tx_nobuf++;
 		return ENOMEM;
 	}
@@ -2524,12 +2524,12 @@ ieee80211_probereq_ie(struct ieee80211vap *vap, struct ieee80211com *ic,
 	 * VHT channel.
 	 */
 #ifdef notyet
-	if (vap->iv_flags_vht & IEEE80211_FVHT_VHT) {
+	if (vap->iv_vht_flags & IEEE80211_FVHT_VHT) {
 		struct ieee80211_channel *c;
 
 		c = ieee80211_ht_adjust_channel(ic, ic->ic_curchan,
 		    vap->iv_flags_ht);
-		c = ieee80211_vht_adjust_channel(ic, c, vap->iv_flags_vht);
+		c = ieee80211_vht_adjust_channel(ic, c, vap->iv_vht_flags);
 		frm = ieee80211_add_vhtcap_ch(frm, vap, c);
 	}
 #endif
@@ -2887,7 +2887,7 @@ ieee80211_send_mgmt(struct ieee80211_node *ni, int type, int arg)
 			frm = ieee80211_add_htcap(frm, ni);
 		}
 
-		if ((vap->iv_flags_vht & IEEE80211_FVHT_VHT) &&
+		if ((vap->iv_vht_flags & IEEE80211_FVHT_VHT) &&
 		    IEEE80211_IS_CHAN_VHT(ni->ni_chan) &&
 		    ni->ni_ies.vhtcap_ie != NULL &&
 		    ni->ni_ies.vhtcap_ie[0] == IEEE80211_ELEMID_VHT_CAP) {

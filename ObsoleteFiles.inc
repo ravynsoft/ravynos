@@ -51,6 +51,35 @@
 #   xargs -n1 | sort | uniq -d;
 # done
 
+# 20231018: pmc.k7(3) removed
+OLD_FILES+=usr/share/man/man3/pmc.k7.3.gz
+
+# 20231018: Remove misspelled man page link
+OLD_FILES+=usr/share/man/man3/dbm_dirnfo.3.gz
+
+# 20231006: rename tcp6_v4unmapped_bind_test
+OLD_FILES+=usr/tests/sys/netinet/tcp6_v4unmapped_bind_test
+
+# 20231005: Remove man page link for now gone net80211 function.
+OLD_FILES+=usr/share/man/man9/ieee80211_unref_node.9.gz
+
+# 20231005: bsdconfig remove support for floppy and ftp
+OLD_FILES+=usr/share/bsdconfig/media/floppy.subr
+OLD_FILES+=usr/share/bsdconfig/media/ftp.subr
+
+# 20230927: Man pages renamed to match the actual functions
+OLD_FILES+=usr/share/man/man9/cr_seeothergids.9.gz
+OLD_FILES+=usr/share/man/man9/cr_seeotheruids.9.gz
+
+# 20230925
+OLD_FILES+=usr/share/examples/diskless/ME
+OLD_FILES+=usr/share/examples/diskless/README.BOOTP
+OLD_FILES+=usr/share/examples/diskless/README.TEMPLATING
+OLD_FILES+=usr/share/examples/diskless/clone_root
+
+# 20230905
+OLD_FILES+=usr/share/doc/legal/realtek_rtw88_firmware.LICENCE
+
 # 20230828
 MOVED_LIBS+=usr/lib/librt.so.1
 
@@ -385,19 +414,33 @@ OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-armhf.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-armhf.so
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-i386.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-i386.so
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-powerpc64.so
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-powerpc64le.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-powerpc64le.so
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-preinit-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-preinit-arm.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-preinit-armhf.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-preinit-i386.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-preinit-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-preinit-powerpc64le.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-preinit-riscv64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-preinit-x86_64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-riscv64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-riscv64.so
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan-x86_64.so
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan_cxx-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan_cxx-arm.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan_cxx-armhf.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan_cxx-i386.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan_cxx-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan_cxx-powerpc64le.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan_cxx-riscv64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan_cxx-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan_static-i386.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan_static-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan_static-powerpc64le.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.asan_static-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.cfi-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.cfi-arm.a
@@ -417,8 +460,12 @@ OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.fuzzer_interceptors-x86_
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.fuzzer_no_main-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.fuzzer_no_main-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.msan-aarch64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.msan-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.msan-powerpc64le.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.msan-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.msan_cxx-aarch64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.msan_cxx-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.msan_cxx-powerpc64le.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.msan_cxx-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.profile-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.profile-arm.a
@@ -427,6 +474,7 @@ OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.profile-i386.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.profile-powerpc.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.profile-powerpc64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.profile-powerpc64le.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.profile-riscv64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.profile-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.safestack-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.safestack-i386.a
@@ -435,30 +483,49 @@ OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats-arm.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats-armhf.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats-i386.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats-powerpc64le.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats-riscv64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats_client-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats_client-arm.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats_client-armhf.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats_client-i386.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats_client-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats_client-powerpc64le.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats_client-riscv64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.stats_client-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.tsan-aarch64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.tsan-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.tsan-powerpc64le.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.tsan-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.tsan_cxx-aarch64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.tsan_cxx-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.tsan_cxx-powerpc64le.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.tsan_cxx-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_minimal-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_minimal-arm.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_minimal-armhf.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_minimal-i386.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_minimal-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_minimal-powerpc64le.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_minimal-riscv64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_minimal-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone-arm.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone-armhf.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone-i386.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone-powerpc64le.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone-riscv64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone_cxx-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone_cxx-arm.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone_cxx-armhf.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone_cxx-i386.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone_cxx-powerpc64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone_cxx-powerpc64le.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone_cxx-riscv64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.ubsan_standalone_cxx-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-arm.a
@@ -466,14 +533,18 @@ OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-armhf.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-basic-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-basic-arm.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-basic-armhf.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-basic-powerpc64le.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-basic-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-fdr-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-fdr-arm.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-fdr-armhf.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-fdr-powerpc64le.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-fdr-x86_64.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-powerpc64le.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-profiling-aarch64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-profiling-arm.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-profiling-armhf.a
+OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-profiling-powerpc64le.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-profiling-x86_64.a
 OLD_FILES+=usr/lib/clang/15.0.7/lib/freebsd/libclang_rt.xray-x86_64.a
 OLD_DIRS+=usr/lib/clang/15.0.7/lib/freebsd
@@ -893,7 +964,10 @@ OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan-preinit-armhf.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan-preinit-i386.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan-preinit-powerpc64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan-preinit-powerpc64le.a
+OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan-preinit-riscv64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan-preinit-x86_64.a
+OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan-riscv64.a
+OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan-riscv64.so
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan-x86_64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan-x86_64.so
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan_cxx-aarch64.a
@@ -902,6 +976,7 @@ OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan_cxx-armhf.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan_cxx-i386.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan_cxx-powerpc64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan_cxx-powerpc64le.a
+OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan_cxx-riscv64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan_cxx-x86_64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan_static-i386.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.asan_static-powerpc64.a
@@ -939,6 +1014,7 @@ OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.profile-i386.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.profile-powerpc.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.profile-powerpc64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.profile-powerpc64le.a
+OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.profile-riscv64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.profile-x86_64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.safestack-aarch64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.safestack-i386.a
@@ -949,6 +1025,7 @@ OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats-armhf.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats-i386.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats-powerpc64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats-powerpc64le.a
+OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats-riscv64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats-x86_64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats_client-aarch64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats_client-arm.a
@@ -956,6 +1033,7 @@ OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats_client-armhf.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats_client-i386.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats_client-powerpc64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats_client-powerpc64le.a
+OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats_client-riscv64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.stats_client-x86_64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.tsan-aarch64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.tsan-powerpc64.a
@@ -971,6 +1049,7 @@ OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_minimal-armhf.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_minimal-i386.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_minimal-powerpc64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_minimal-powerpc64le.a
+OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_minimal-riscv64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_minimal-x86_64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone-aarch64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone-arm.a
@@ -978,6 +1057,7 @@ OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone-armhf.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone-i386.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone-powerpc64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone-powerpc64le.a
+OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone-riscv64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone-x86_64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone_cxx-aarch64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone_cxx-arm.a
@@ -985,6 +1065,7 @@ OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone_cxx-arm
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone_cxx-i386.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone_cxx-powerpc64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone_cxx-powerpc64le.a
+OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone_cxx-riscv64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.ubsan_standalone_cxx-x86_64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.xray-aarch64.a
 OLD_FILES+=usr/lib/clang/14.0.5/lib/freebsd/libclang_rt.xray-arm.a
@@ -2697,6 +2778,11 @@ OLD_FILES+=usr/share/man/man4/ng_h4.4.gz
 
 # 20210923: rename boot(9) to kern_reboot(9)
 OLD_FILES+=usr/share/man/man9/boot.9.gz
+
+# 20210922: Old mixer(8) tests removed
+OLD_FILES+=usr/tests/usr.sbin/mixer/Kyuafile
+OLD_FILES+=usr/tests/usr.sbin/mixer/mixer_test
+OLD_DIRS+=usr/tests/usr.sbin/mixer
 
 # 20210921: remove cloudabi
 OLD_FILES+=usr/share/man/man4/cloudabi.4.gz
@@ -6651,7 +6737,6 @@ OLD_FILES+=usr/share/man/man4/if_hme.4.gz
 OLD_FILES+=usr/include/net/radix_mpath.h
 
 # 20201124: ping6(8) was merged into ping(8)
-OLD_FILES+=usr/share/man/man8/ping6.8.gz
 OLD_FILES+=usr/tests/sbin/ping6/Kyuafile
 OLD_FILES+=usr/tests/sbin/ping6/ping6_c1_s8_t1.out
 OLD_FILES+=usr/tests/sbin/ping6/ping6_test
@@ -17598,11 +17683,6 @@ OLD_FILES+=usr/share/man/man3/setrunelocale.3.gz
 OLD_FILES+=usr/share/man/man5/usbd.conf.5.gz
 .if ${TARGET_ARCH} != "i386" && ${TARGET_ARCH} != "amd64"
 OLD_FILES+=usr/share/man/man8/boot_i386.8.gz
-.endif
-.if ${TARGET_ARCH} != "aarch64" && ${TARGET} != "arm" && \
-    ${TARGET_ARCH} != "powerpc" && ${TARGET_ARCH} != "powerpc64" && \
-    ${TARGET_ARCH} != "sparc64" && ${TARGET} != "mips"
-OLD_FILES+=usr/share/man/man8/ofwdump.8.gz
 .endif
 OLD_FILES+=usr/share/man/man8/mount_reiserfs.8.gz
 OLD_FILES+=usr/share/man/man9/VFS_START.9.gz

@@ -4,7 +4,7 @@
 
 .include <src.opts.mk>
 
-PACKAGE=runtime
+PACKAGE=clibs
 CLEANFILES= osreldate.h version
 SUBDIR= arpa protocols rpcsvc rpc xlocale
 .if ${MACHINE_CPUARCH} == "amd64"
@@ -30,7 +30,7 @@ INCS=	a.out.h ar.h assert.h bitstring.h byteswap.h \
 	pthread_np.h pwd.h ranlib.h readpassphrase.h regex.h \
 	res_update.h resolv.h runetype.h sched.h \
 	search.h semaphore.h setjmp.h \
-	signal.h spawn.h stab.h stdalign.h stdbool.h stddef.h \
+	signal.h spawn.h stab.h stdalign.h stdbool.h stdckdint.h stddef.h \
 	stdnoreturn.h stdio.h stdlib.h string.h stringlist.h \
 	strings.h sysexits.h tar.h termios.h tgmath.h \
 	time.h timeconv.h timers.h ttyent.h \
@@ -240,7 +240,8 @@ IPFILTERDIR=	${INCLUDEDIR}/netinet
 .PATH: ${SRCTOP}/sys/netpfil/pf
 PF=		pf.h \
 		pf_altq.h \
-		pf_mtag.h
+		pf_mtag.h \
+		pf_nl.h
 PFPACKAGE=	pf
 PFDIR=	${INCLUDEDIR}/netpfil/pf
 

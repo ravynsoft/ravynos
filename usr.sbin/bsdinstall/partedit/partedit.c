@@ -123,7 +123,7 @@ main(int argc, const char **argv)
 
 	/* Show the part editor either immediately, or to confirm wizard */
 	while (prompt != NULL) {
-		bsddialog_clearterminal();
+		bsddialog_clear(0);
 		if (!sade_mode)
 			bsddialog_backtitle(&conf, "FreeBSD Installer");
 
@@ -215,7 +215,7 @@ main(int argc, const char **argv)
 	
 	if (prompt == NULL) {
 		error = geom_gettree(&mesh);
-		if (error != 0) {
+		if (error == 0) {
 			if (validate_setup()) {
 				error = apply_changes(&mesh);
 			} else {
@@ -345,6 +345,7 @@ apply_changes(struct gmesh *mesh)
 	const char **minilabel;
 	const char *fstab_path;
 	FILE *fstab;
+	char *command;
 	struct bsddialog_conf conf;
 
 	nitems = 1; /* Partition table changes */
@@ -360,8 +361,8 @@ apply_changes(struct gmesh *mesh)
 	TAILQ_FOREACH(md, &part_metadata, metadata) {
 		if (md->newfs != NULL) {
 			char *item;
-			item = malloc(255);
-			sprintf(item, "Initializing %s", md->name);
+
+			asprintf(&item, "Initializing %s", md->name);
 			minilabel[i] = item;
 			miniperc[i]  = BSDDIALOG_MG_PENDING;
 			i++;
@@ -387,10 +388,11 @@ apply_changes(struct gmesh *mesh)
 			bsddialog_mixedgauge(&conf,
 			    "Initializing file systems. Please wait.", 0, 0,
 			    i * 100 / nitems, nitems, minilabel, miniperc);
-			sprintf(message, "(echo %s; %s) >>%s 2>>%s",
+			asprintf(&command, "(echo %s; %s) >>%s 2>>%s",
 			    md->newfs, md->newfs, getenv("BSDINSTALL_LOG"),
 			    getenv("BSDINSTALL_LOG"));
-			error = system(message);
+			error = system(command);
+			free(command);
 			miniperc[i] = (error == 0) ?
 			    BSDDIALOG_MG_COMPLETED : BSDDIALOG_MG_FAILED;
 			i++;
@@ -434,7 +436,8 @@ apply_changes(struct gmesh *mesh)
 		fstab_path = "/etc/fstab";
 	fstab = fopen(fstab_path, "w+");
 	if (fstab == NULL) {
-		sprintf(message, "Cannot open fstab file %s for writing (%s)\n",
+		snprintf(message, sizeof(message),
+		    "Cannot open fstab file %s for writing (%s)\n",
 		    getenv("PATH_FSTAB"), strerror(errno));
 		conf.title = "Error";
 		bsddialog_msgbox(&conf, message, 0, 0);

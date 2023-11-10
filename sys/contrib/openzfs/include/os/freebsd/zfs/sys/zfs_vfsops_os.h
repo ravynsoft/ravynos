@@ -93,7 +93,6 @@ struct zfsvfs {
 	zfs_teardown_lock_t z_teardown_lock;
 	zfs_teardown_inactive_lock_t z_teardown_inactive_lock;
 	list_t		z_all_znodes;	/* all vnodes in the fs */
-	uint64_t	z_nr_znodes;	/* number of znodes in the fs */
 	kmutex_t	z_znodes_lock;	/* lock for z_all_znodes */
 	struct zfsctl_root	*z_ctldir;	/* .zfs directory pointer */
 	boolean_t	z_show_ctldir;	/* expose .zfs in the root dir */
@@ -285,7 +284,6 @@ typedef struct zfid_long {
 #define	SHORT_FID_LEN	(sizeof (zfid_short_t) - sizeof (uint16_t))
 #define	LONG_FID_LEN	(sizeof (zfid_long_t) - sizeof (uint16_t))
 
-extern uint_t zfs_fsyncer_key;
 extern int zfs_super_owner;
 extern int zfs_bclone_enabled;
 

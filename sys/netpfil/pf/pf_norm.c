@@ -1043,14 +1043,22 @@ pf_normalize_ip(struct mbuf **m0, struct pfi_kkif *kif, u_short *reason,
 	int			 ip_len;
 	int			 tag = -1;
 	int			 verdict;
-	int			 srs;
+	bool			 scrub_compat;
 
 	PF_RULES_RASSERT();
 
 	r = TAILQ_FIRST(pf_main_ruleset.rules[PF_RULESET_SCRUB].active.ptr);
-	/* Check if there any scrub rules. Lack of scrub rules means enforced
-	 * packet normalization operation just like in OpenBSD. */
-	srs = (r != NULL);
+	/*
+	 * Check if there are any scrub rules, matching or not.
+	 * Lack of scrub rules means:
+	 *  - enforced packet normalization operation just like in OpenBSD
+	 *  - fragment reassembly depends on V_pf_status.reass
+	 * With scrub rules:
+	 *  - packet normalization is performed if there is a matching scrub rule
+	 *  - fragment reassembly is performed if the matching rule has no
+	 *    PFRULE_FRAGMENT_NOREASS flag
+	 */
+	scrub_compat = (r != NULL);
 	while (r != NULL) {
 		pf_counter_u64_add(&r->evaluations, 1);
 		if (pfi_kkif_match(r->kif, kif) == r->ifnot)
@@ -1076,7 +1084,7 @@ pf_normalize_ip(struct mbuf **m0, struct pfi_kkif *kif, u_short *reason,
 			break;
 	}
 
-	if (srs) {
+	if (scrub_compat) {
 		/* With scrub rules present IPv4 normalization happens only
 		 * if one of rules has matched and it's not a "no scrub" rule */
 		if (r == NULL || r->action == PF_NOSCRUB)
@@ -1087,12 +1095,6 @@ pf_normalize_ip(struct mbuf **m0, struct pfi_kkif *kif, u_short *reason,
 		pf_counter_u64_add_protected(&r->bytes[pd->dir == PF_OUT], pd->tot_len);
 		pf_counter_u64_critical_exit();
 		pf_rule_to_actions(r, &pd->act);
-	} else if ((!V_pf_status.reass && (h->ip_off & htons(IP_MF | IP_OFFMASK)))) {
-		/* With no scrub rules IPv4 fragment reassembly depends on the
-		 * global switch. Fragments can be dropped early if reassembly
-		 * is disabled. */
-		REASON_SET(reason, PFRES_NORM);
-		goto drop;
 	}
 
 	/* Check for illegal packets */
@@ -1107,9 +1109,10 @@ pf_normalize_ip(struct mbuf **m0, struct pfi_kkif *kif, u_short *reason,
 	}
 
 	/* Clear IP_DF if the rule uses the no-df option or we're in no-df mode */
-	if ((((r && r->rule_flag & PFRULE_NODF) ||
-	    (V_pf_status.reass & PF_REASS_NODF)) && h->ip_off & htons(IP_DF)
-	)) {
+	if (((!scrub_compat && V_pf_status.reass & PF_REASS_NODF) ||
+	    (r != NULL && r->rule_flag & PFRULE_NODF)) &&
+	    (h->ip_off & htons(IP_DF))
+	) {
 		u_int16_t ip_off = h->ip_off;
 
 		h->ip_off &= htons(~IP_DF);
@@ -1143,7 +1146,9 @@ pf_normalize_ip(struct mbuf **m0, struct pfi_kkif *kif, u_short *reason,
 		goto bad;
 	}
 
-	if (r==NULL || !(r->rule_flag & PFRULE_FRAGMENT_NOREASS)) {
+	if ((!scrub_compat && V_pf_status.reass) ||
+	    (r != NULL && !(r->rule_flag & PFRULE_FRAGMENT_NOREASS))
+	) {
 		max = fragoff + ip_len;
 
 		/* Fully buffer all of the fragments
@@ -1203,14 +1208,20 @@ pf_normalize_ip6(struct mbuf **m0, struct pfi_kkif *kif,
 	int			 ooff;
 	u_int8_t		 proto;
 	int			 terminal;
-	int			 srs;
+	bool			 scrub_compat;
 
 	PF_RULES_RASSERT();
 
 	r = TAILQ_FIRST(pf_main_ruleset.rules[PF_RULESET_SCRUB].active.ptr);
-	/* Check if there any scrub rules. Lack of scrub rules means enforced
-	 * packet normalization operation just like in OpenBSD. */
-	srs = (r != NULL);
+	/*
+	 * Check if there are any scrub rules, matching or not.
+	 * Lack of scrub rules means:
+	 *  - enforced packet normalization operation just like in OpenBSD
+	 * With scrub rules:
+	 *  - packet normalization is performed if there is a matching scrub rule
+	 * XXX: Fragment reassembly always performed for IPv6!
+	 */
+	scrub_compat = (r != NULL);
 	while (r != NULL) {
 		pf_counter_u64_add(&r->evaluations, 1);
 		if (pfi_kkif_match(r->kif, kif) == r->ifnot)
@@ -1235,7 +1246,7 @@ pf_normalize_ip6(struct mbuf **m0, struct pfi_kkif *kif,
 			break;
 	}
 
-	if (srs) {
+	if (scrub_compat) {
 		/* With scrub rules present IPv6 normalization happens only
 		 * if one of rules has matched and it's not a "no scrub" rule */
 		if (r == NULL || r->action == PF_NOSCRUB)
@@ -1565,10 +1576,29 @@ pf_normalize_tcp_init(struct mbuf *m, int off, struct pf_pdesc *pd,
 void
 pf_normalize_tcp_cleanup(struct pf_kstate *state)
 {
+	/* XXX Note: this also cleans up SCTP. */
 	uma_zfree(V_pf_state_scrub_z, state->src.scrub);
 	uma_zfree(V_pf_state_scrub_z, state->dst.scrub);
 
 	/* Someday... flush the TCP segment reassembly descriptors. */
+}
+int
+pf_normalize_sctp_init(struct mbuf *m, int off, struct pf_pdesc *pd,
+	    struct pf_state_peer *src, struct pf_state_peer *dst)
+{
+	src->scrub = uma_zalloc(V_pf_state_scrub_z, M_ZERO | M_NOWAIT);
+	if (src->scrub == NULL)
+		return (1);
+
+	dst->scrub = uma_zalloc(V_pf_state_scrub_z, M_ZERO | M_NOWAIT);
+	if (dst->scrub == NULL) {
+		uma_zfree(V_pf_state_scrub_z, src);
+		return (1);
+	}
+
+	dst->scrub->pfss_v_tag = pd->sctp_initiate_tag;
+
+	return (0);
 }
 
 int
@@ -2021,11 +2051,13 @@ pf_normalize_mss(struct mbuf *m, int off, struct pf_pdesc *pd)
 }
 
 static int
-pf_scan_sctp(struct mbuf *m, int ipoff, int off, struct pf_pdesc *pd)
+pf_scan_sctp(struct mbuf *m, int ipoff, int off, struct pf_pdesc *pd,
+    struct pfi_kkif *kif)
 {
 	struct sctp_chunkhdr ch = { };
 	int chunk_off = sizeof(struct sctphdr);
 	int chunk_start;
+	int ret;
 
 	while (off + chunk_off < pd->tot_len) {
 		if (!pf_pull_hdr(m, off + chunk_off, &ch, sizeof(ch), NULL,
@@ -2040,7 +2072,8 @@ pf_scan_sctp(struct mbuf *m, int ipoff, int off, struct pf_pdesc *pd)
 		chunk_off += roundup(ntohs(ch.chunk_length), 4);
 
 		switch (ch.chunk_type) {
-		case SCTP_INITIATION: {
+		case SCTP_INITIATION:
+		case SCTP_INITIATION_ACK: {
 			struct sctp_init_chunk init;
 
 			if (!pf_pull_hdr(m, off + chunk_start, &init,
@@ -2064,17 +2097,24 @@ pf_scan_sctp(struct mbuf *m, int ipoff, int off, struct pf_pdesc *pd)
 			 * RFC 9260, Section 3.1, INIT chunks MUST have zero
 			 * verification tag.
 			 */
-			if (pd->hdr.sctp.v_tag != 0)
+			if (ch.chunk_type == SCTP_INITIATION &&
+			    pd->hdr.sctp.v_tag != 0)
 				return (PF_DROP);
 
 			pd->sctp_initiate_tag = init.init.initiate_tag;
 
-			pd->sctp_flags |= PFDESC_SCTP_INIT;
+			if (ch.chunk_type == SCTP_INITIATION)
+				pd->sctp_flags |= PFDESC_SCTP_INIT;
+			else
+				pd->sctp_flags |= PFDESC_SCTP_INIT_ACK;
+
+			ret = pf_multihome_scan_init(m, off + chunk_start,
+			    ntohs(init.ch.chunk_length), pd, kif);
+			if (ret != PF_PASS)
+				return (ret);
+
 			break;
 		}
-		case SCTP_INITIATION_ACK:
-			pd->sctp_flags |= PFDESC_SCTP_INIT_ACK;
-			break;
 		case SCTP_ABORT_ASSOCIATION:
 			pd->sctp_flags |= PFDESC_SCTP_ABORT;
 			break;
@@ -2091,6 +2131,14 @@ pf_scan_sctp(struct mbuf *m, int ipoff, int off, struct pf_pdesc *pd)
 			break;
 		case SCTP_DATA:
 			pd->sctp_flags |= PFDESC_SCTP_DATA;
+			break;
+		case SCTP_ASCONF:
+			pd->sctp_flags |= PFDESC_SCTP_ASCONF;
+
+			ret = pf_multihome_scan_asconf(m, off + chunk_start,
+			    ntohs(ch.chunk_length), pd, kif);
+			if (ret != PF_PASS)
+				return (ret);
 			break;
 		default:
 			pd->sctp_flags |= PFDESC_SCTP_OTHER;
@@ -2133,7 +2181,7 @@ pf_normalize_sctp(int dir, struct pfi_kkif *kif, struct mbuf *m, int ipoff,
 
 	/* Unconditionally scan the SCTP packet, because we need to look for
 	 * things like shutdown and asconf chunks. */
-	if (pf_scan_sctp(m, ipoff, off, pd) != PF_PASS)
+	if (pf_scan_sctp(m, ipoff, off, pd, kif) != PF_PASS)
 		goto sctp_drop;
 
 	r = TAILQ_FIRST(pf_main_ruleset.rules[PF_RULESET_SCRUB].active.ptr);

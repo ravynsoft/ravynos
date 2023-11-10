@@ -83,6 +83,7 @@
 #include <netinet/ip_var.h>
 #include <netinet6/ip6_var.h>
 #include <netinet/ip_icmp.h>
+#include <netpfil/pf/pf_nl.h>
 #include <netpfil/pf/pf_nv.h>
 
 #ifdef INET6
@@ -198,6 +199,16 @@ VNET_DEFINE_STATIC(bool, pf_filter_local) = false;
 SYSCTL_BOOL(_net_pf, OID_AUTO, filter_local, CTLFLAG_VNET | CTLFLAG_RW,
     &VNET_NAME(pf_filter_local), false,
     "Enable filtering for packets delivered to local network stack");
+
+#ifdef PF_DEFAULT_TO_DROP
+VNET_DEFINE_STATIC(bool, default_to_drop) = true;
+#else
+VNET_DEFINE_STATIC(bool, default_to_drop);
+#endif
+#define	V_default_to_drop VNET(default_to_drop)
+SYSCTL_BOOL(_net_pf, OID_AUTO, default_to_drop, CTLFLAG_RDTUN | CTLFLAG_VNET,
+    &VNET_NAME(default_to_drop), false,
+    "Make the default rule drop all packets.");
 
 static void		 pf_init_tagset(struct pf_tagset *, unsigned int *,
 			    unsigned int);
@@ -335,11 +346,7 @@ pfattach_vnet(void)
 
 	/* default rule should never be garbage collected */
 	V_pf_default_rule.entries.tqe_prev = &V_pf_default_rule.entries.tqe_next;
-#ifdef PF_DEFAULT_TO_DROP
-	V_pf_default_rule.action = PF_DROP;
-#else
-	V_pf_default_rule.action = PF_PASS;
-#endif
+	V_pf_default_rule.action = V_default_to_drop ? PF_DROP : PF_PASS;
 	V_pf_default_rule.nr = -1;
 	V_pf_default_rule.rtableid = -1;
 
@@ -373,6 +380,11 @@ pfattach_vnet(void)
 	my_timeout[PFTM_TCP_CLOSING] = PFTM_TCP_CLOSING_VAL;
 	my_timeout[PFTM_TCP_FIN_WAIT] = PFTM_TCP_FIN_WAIT_VAL;
 	my_timeout[PFTM_TCP_CLOSED] = PFTM_TCP_CLOSED_VAL;
+	my_timeout[PFTM_SCTP_FIRST_PACKET] = PFTM_TCP_FIRST_PACKET_VAL;
+	my_timeout[PFTM_SCTP_OPENING] = PFTM_TCP_OPENING_VAL;
+	my_timeout[PFTM_SCTP_ESTABLISHED] = PFTM_TCP_ESTABLISHED_VAL;
+	my_timeout[PFTM_SCTP_CLOSING] = PFTM_TCP_CLOSING_VAL;
+	my_timeout[PFTM_SCTP_CLOSED] = PFTM_TCP_CLOSED_VAL;
 	my_timeout[PFTM_UDP_FIRST_PACKET] = PFTM_UDP_FIRST_PACKET_VAL;
 	my_timeout[PFTM_UDP_SINGLE] = PFTM_UDP_SINGLE_VAL;
 	my_timeout[PFTM_UDP_MULTIPLE] = PFTM_UDP_MULTIPLE_VAL;
@@ -2009,10 +2021,10 @@ pf_rule_to_krule(const struct pf_rule *rule, struct pf_krule *krule)
 	return (0);
 }
 
-static int
+int
 pf_ioctl_addrule(struct pf_krule *rule, uint32_t ticket,
     uint32_t pool_ticket, const char *anchor, const char *anchor_call,
-    struct thread *td)
+    uid_t uid, pid_t pid)
 {
 	struct pf_kruleset	*ruleset;
 	struct pf_krule		*tail;
@@ -2038,8 +2050,8 @@ pf_ioctl_addrule(struct pf_krule *rule, uint32_t ticket,
 	rule->states_cur = counter_u64_alloc(M_WAITOK);
 	rule->states_tot = counter_u64_alloc(M_WAITOK);
 	rule->src_nodes = counter_u64_alloc(M_WAITOK);
-	rule->cuid = td->td_ucred->cr_ruid;
-	rule->cpid = td->td_proc ? td->td_proc->p_pid : 0;
+	rule->cuid = uid;
+	rule->cpid = pid;
 	TAILQ_INIT(&rule->rpool.list);
 
 	PF_CONFIG_LOCK();
@@ -2242,7 +2254,7 @@ relock_DIOCKILLSTATES:
 		/* For floating states look at the original kif. */
 		kif = s->kif == V_pfi_all ? s->orig_kif : s->kif;
 
-		sk = s->key[PF_SK_WIRE];
+		sk = s->key[psk->psk_nat ? PF_SK_STACK : PF_SK_WIRE];
 		if (s->direction == PF_OUT) {
 			srcaddr = &sk->addr[1];
 			dstaddr = &sk->addr[0];
@@ -2301,10 +2313,10 @@ relock_DIOCKILLSTATES:
 
 			if (s->direction == PF_OUT) {
 				dir = PF_IN;
-				idx = PF_SK_STACK;
+				idx = psk->psk_nat ? PF_SK_WIRE : PF_SK_STACK;
 			} else {
 				dir = PF_OUT;
-				idx = PF_SK_WIRE;
+				idx = psk->psk_nat ? PF_SK_STACK : PF_SK_WIRE;
 			}
 
 			match_key.af = s->key[idx]->af;
@@ -2328,6 +2340,49 @@ relock_DIOCKILLSTATES:
 	PF_HASHROW_UNLOCK(ih);
 
 	return (killed);
+}
+
+int
+pf_start(void)
+{
+	int error = 0;
+
+	sx_xlock(&V_pf_ioctl_lock);
+	if (V_pf_status.running)
+		error = EEXIST;
+	else {
+		hook_pf();
+		if (! TAILQ_EMPTY(V_pf_keth->active.rules))
+			hook_pf_eth();
+		V_pf_status.running = 1;
+		V_pf_status.since = time_second;
+		new_unrhdr64(&V_pf_stateid, time_second);
+
+		DPFPRINTF(PF_DEBUG_MISC, ("pf: started\n"));
+	}
+	sx_xunlock(&V_pf_ioctl_lock);
+
+	return (error);
+}
+
+int
+pf_stop(void)
+{
+	int error = 0;
+
+	sx_xlock(&V_pf_ioctl_lock);
+	if (!V_pf_status.running)
+		error = ENOENT;
+	else {
+		V_pf_status.running = 0;
+		dehook_pf();
+		dehook_pf_eth();
+		V_pf_status.since = time_second;
+		DPFPRINTF(PF_DEBUG_MISC, ("pf: stopped\n"));
+	}
+	sx_xunlock(&V_pf_ioctl_lock);
+
+	return (error);
 }
 
 static int
@@ -2358,8 +2413,10 @@ pfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags, struct thread *td
 		case DIOCCLRSTATUS:
 		case DIOCNATLOOK:
 		case DIOCSETDEBUG:
+#ifdef COMPAT_FREEBSD14
 		case DIOCGETSTATES:
 		case DIOCGETSTATESV2:
+#endif
 		case DIOCGETTIMEOUT:
 		case DIOCCLRRULECTRS:
 		case DIOCGETLIMIT:
@@ -2416,8 +2473,10 @@ pfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags, struct thread *td
 		case DIOCGETSTATE:
 		case DIOCGETSTATENV:
 		case DIOCGETSTATUSNV:
+#ifdef COMPAT_FREEBSD14
 		case DIOCGETSTATES:
 		case DIOCGETSTATESV2:
+#endif
 		case DIOCGETTIMEOUT:
 		case DIOCGETLIMIT:
 		case DIOCGETALTQSV0:
@@ -2468,34 +2527,15 @@ pfioctl(struct cdev *dev, u_long cmd, caddr_t addr, int flags, struct thread *td
 	CURVNET_SET(TD_TO_VNET(td));
 
 	switch (cmd) {
+#ifdef COMPAT_FREEBSD14
 	case DIOCSTART:
-		sx_xlock(&V_pf_ioctl_lock);
-		if (V_pf_status.running)
-			error = EEXIST;
-		else {
-			hook_pf();
-			if (! TAILQ_EMPTY(V_pf_keth->active.rules))
-				hook_pf_eth();
-			V_pf_status.running = 1;
-			V_pf_status.since = time_second;
-			new_unrhdr64(&V_pf_stateid, time_second);
-
-			DPFPRINTF(PF_DEBUG_MISC, ("pf: started\n"));
-		}
+		error = pf_start();
 		break;
 
 	case DIOCSTOP:
-		sx_xlock(&V_pf_ioctl_lock);
-		if (!V_pf_status.running)
-			error = ENOENT;
-		else {
-			V_pf_status.running = 0;
-			dehook_pf();
-			dehook_pf_eth();
-			V_pf_status.since = time_second;
-			DPFPRINTF(PF_DEBUG_MISC, ("pf: stopped\n"));
-		}
+		error = pf_stop();
 		break;
+#endif
 
 	case DIOCGETETHRULES: {
 		struct pfioc_nv		*nv = (struct pfioc_nv *)addr;
@@ -3041,7 +3081,8 @@ DIOCGETETHRULESET_error:
 
 		/* Frees rule on error */
 		error = pf_ioctl_addrule(rule, ticket, pool_ticket, anchor,
-		    anchor_call, td);
+		    anchor_call, td->td_ucred->cr_ruid,
+		    td->td_proc ? td->td_proc->p_pid : 0);
 
 		nvlist_destroy(nvl);
 		free(nvlpacked, M_NVLIST);
@@ -3069,7 +3110,8 @@ DIOCADDRULENV_error:
 
 		/* Frees rule on error */
 		error = pf_ioctl_addrule(rule, pr->ticket, pr->pool_ticket,
-		    pr->anchor, pr->anchor_call, td);
+		    pr->anchor, pr->anchor_call, td->td_ucred->cr_ruid,
+		    td->td_proc ? td->td_proc->p_pid : 0);
 		break;
 	}
 
@@ -3539,6 +3581,7 @@ DIOCCHANGERULE_error:
 		break;
 	}
 
+#ifdef COMPAT_FREEBSD14
 	case DIOCGETSTATES: {
 		struct pfioc_states	*ps = (struct pfioc_states *)addr;
 		struct pf_kstate	*s;
@@ -3690,7 +3733,7 @@ DIOCGETSTATESV2_full:
 
 		break;
 	}
-
+#endif
 	case DIOCGETSTATUSNV: {
 		error = pf_getstatus((struct pfioc_nv *)addr);
 		break;
@@ -5404,8 +5447,6 @@ DIOCCHANGEADDR_error:
 		break;
 	}
 fail:
-	if (sx_xlocked(&V_pf_ioctl_lock))
-		sx_xunlock(&V_pf_ioctl_lock);
 	CURVNET_RESTORE();
 
 #undef ERROUT_IOCTL
@@ -5650,6 +5691,7 @@ pf_getstatus(struct pfioc_nv *nv)
 	nvlist_add_number(nvl, "reass", V_pf_status.reass);
 	nvlist_add_bool(nvl, "syncookies_active",
 	    V_pf_status.syncookies_active);
+	nvlist_add_number(nvl, "halfopen_states", V_pf_status.states_halfopen);
 
 	/* counters */
 	error = pf_add_status_counters(nvl, "counters", V_pf_status.counters,
@@ -6642,6 +6684,8 @@ pf_unload(void)
 	}
 	sx_xunlock(&pf_end_lock);
 
+	pf_nl_unregister();
+
 	if (pf_dev != NULL)
 		destroy_dev(pf_dev);
 
@@ -6677,6 +6721,7 @@ pf_modevent(module_t mod, int type, void *data)
 	switch(type) {
 	case MOD_LOAD:
 		error = pf_load();
+		pf_nl_register();
 		break;
 	case MOD_UNLOAD:
 		/* Handled in SYSUNINIT(pf_unload) to ensure it's done after
@@ -6697,4 +6742,5 @@ static moduledata_t pf_mod = {
 };
 
 DECLARE_MODULE(pf, pf_mod, SI_SUB_PROTO_FIREWALL, SI_ORDER_SECOND);
+MODULE_DEPEND(pf, netlink, 1, 1, 1);
 MODULE_VERSION(pf, PF_MODVER);

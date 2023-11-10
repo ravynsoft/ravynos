@@ -366,8 +366,8 @@ sysctl_maxsockets(SYSCTL_HANDLER_ARGS)
 	return (error);
 }
 SYSCTL_PROC(_kern_ipc, OID_AUTO, maxsockets,
-    CTLTYPE_INT | CTLFLAG_RW | CTLFLAG_MPSAFE, &maxsockets, 0,
-    sysctl_maxsockets, "IU",
+    CTLTYPE_INT | CTLFLAG_RWTUN | CTLFLAG_NOFETCH | CTLFLAG_MPSAFE,
+    &maxsockets, 0, sysctl_maxsockets, "IU",
     "Maximum number of sockets available");
 
 /*
@@ -2429,6 +2429,10 @@ dontblock:
 				VNET_SO_ASSERT(so);
 				pr->pr_rcvd(so, flags);
 				SOCKBUF_LOCK(&so->so_rcv);
+				if (__predict_false(so->so_rcv.sb_mb == NULL &&
+				    (so->so_error || so->so_rerror ||
+				    so->so_rcv.sb_state & SBS_CANTRCVMORE)))
+					break;
 			}
 			SBLASTRECORDCHK(&so->so_rcv);
 			SBLASTMBUFCHK(&so->so_rcv);

@@ -727,6 +727,10 @@ nvme_qpair_construct(struct nvme_qpair *qpair,
 	mtx_init(&qpair->lock, "nvme qpair lock", NULL, MTX_DEF);
 	mtx_init(&qpair->recovery, "nvme qpair recovery", NULL, MTX_DEF);
 
+	callout_init_mtx(&qpair->timer, &qpair->recovery, 0);
+	qpair->timer_armed = false;
+	qpair->recovery_state = RECOVERY_WAITING;
+
 	/* Note: NVMe PRP format is restricted to 4-byte alignment. */
 	err = bus_dma_tag_create(bus_get_dma_tag(ctrlr->dev),
 	    4, ctrlr->page_size, BUS_SPACE_MAXADDR,
@@ -791,10 +795,6 @@ nvme_qpair_construct(struct nvme_qpair *qpair,
 	qpair->cmd_bus_addr = queuemem_phys;
 	qpair->cpl_bus_addr = queuemem_phys + cmdsz;
 	prpmem_phys = queuemem_phys + cmdsz + cplsz;
-
-	callout_init_mtx(&qpair->timer, &qpair->recovery, 0);
-	qpair->timer_armed = false;
-	qpair->recovery_state = RECOVERY_WAITING;
 
 	/*
 	 * Calcuate the stride of the doorbell register. Many emulators set this
@@ -891,6 +891,9 @@ nvme_qpair_destroy(struct nvme_qpair *qpair)
 {
 	struct nvme_tracker	*tr;
 
+	mtx_lock(&qpair->recovery);
+	qpair->timer_armed = false;
+	mtx_unlock(&qpair->recovery);
 	callout_drain(&qpair->timer);
 
 	if (qpair->tag) {
@@ -945,22 +948,38 @@ nvme_admin_qpair_abort_aers(struct nvme_qpair *qpair)
 {
 	struct nvme_tracker	*tr;
 
+	/*
+	 * nvme_complete_tracker must be called without the qpair lock held. It
+	 * takes the lock to adjust outstanding_tr list, so make sure we don't
+	 * have it yet (since this is a general purpose routine). We take the
+	 * lock to make the list traverse safe, but have to drop the lock to
+	 * complete any AER. We restart the list scan when we do this to make
+	 * this safe. There's interlock with the ISR so we know this tracker
+	 * won't be completed twice.
+	 */
+	mtx_assert(&qpair->lock, MA_NOTOWNED);
+
+	mtx_lock(&qpair->lock);
 	tr = TAILQ_FIRST(&qpair->outstanding_tr);
 	while (tr != NULL) {
 		if (tr->req->cmd.opc == NVME_OPC_ASYNC_EVENT_REQUEST) {
+			mtx_unlock(&qpair->lock);
 			nvme_qpair_manual_complete_tracker(tr,
 			    NVME_SCT_GENERIC, NVME_SC_ABORTED_SQ_DELETION, 0,
 			    ERROR_PRINT_NONE);
+			mtx_lock(&qpair->lock);
 			tr = TAILQ_FIRST(&qpair->outstanding_tr);
 		} else {
 			tr = TAILQ_NEXT(tr, tailq);
 		}
 	}
+	mtx_unlock(&qpair->lock);
 }
 
 void
 nvme_admin_qpair_destroy(struct nvme_qpair *qpair)
 {
+	mtx_assert(&qpair->lock, MA_NOTOWNED);
 
 	nvme_admin_qpair_abort_aers(qpair);
 	nvme_qpair_destroy(qpair);
@@ -1010,6 +1029,31 @@ nvme_qpair_timeout(void *arg)
 	uint8_t			cfs;
 
 	mtx_assert(&qpair->recovery, MA_OWNED);
+
+	/*
+	 * If the controller is failed, then stop polling. This ensures that any
+	 * failure processing that races with the qpair timeout will fail
+	 * safely.
+	 */
+	if (qpair->ctrlr->is_failed) {
+		nvme_printf(qpair->ctrlr,
+		    "Failed controller, stopping watchdog timeout.\n");
+		qpair->timer_armed = false;
+		return;
+	}
+
+	/*
+	 * Shutdown condition: We set qpair->timer_armed to false in
+	 * nvme_qpair_destroy before calling callout_drain. When we call that,
+	 * this routine might get called one last time. Exit w/o setting a
+	 * timeout. None of the watchdog stuff needs to be done since we're
+	 * destroying the qpair.
+	 */
+	if (!qpair->timer_armed) {
+		nvme_printf(qpair->ctrlr,
+		    "Timeout fired during nvme_qpair_destroy\n");
+		return;
+	}
 
 	switch (qpair->recovery_state) {
 	case RECOVERY_NONE:
@@ -1088,14 +1132,21 @@ nvme_qpair_timeout(void *arg)
 		nvme_printf(ctrlr, "Resetting controller due to a timeout%s.\n",
 		    (csts == 0xffffffff) ? " and possible hot unplug" :
 		    (cfs ? " and fatal error status" : ""));
-		nvme_printf(ctrlr, "RECOVERY_WAITING\n");
 		qpair->recovery_state = RECOVERY_WAITING;
 		nvme_ctrlr_reset(ctrlr);
 		idle = false;			/* We want to keep polling */
 		break;
 	case RECOVERY_WAITING:
-		nvme_printf(ctrlr, "waiting for reset to complete\n");
-		idle = false;			/* We want to keep polling */
+		/*
+		 * These messages aren't interesting while we're suspended. We
+		 * put the queues into waiting state while
+		 * suspending. Suspending takes a while, so we'll see these
+		 * during that time and they aren't diagnostic. At other times,
+		 * they indicate a problem that's worth complaining about.
+		 */
+		if (!device_is_suspended(ctrlr->dev))
+			nvme_printf(ctrlr, "Waiting for reset to complete\n");
+		idle = false;		/* We want to keep polling */
 		break;
 	}
 
@@ -1130,6 +1181,8 @@ nvme_qpair_submit_tracker(struct nvme_qpair *qpair, struct nvme_tracker *tr)
 	if (req->timeout) {
 		if (req->cb_fn == nvme_completion_poll_cb)
 			timeout = 1;
+		else if (qpair->id == 0)
+			timeout = ctrlr->admin_timeout_period;
 		else
 			timeout = ctrlr->timeout_period;
 		tr->deadline = getsbinuptime() + timeout * SBT_1S;
@@ -1216,11 +1269,21 @@ _nvme_qpair_submit_request(struct nvme_qpair *qpair, struct nvme_request *req)
 	if (tr == NULL || qpair->recovery_state != RECOVERY_NONE) {
 		/*
 		 * No tracker is available, or the qpair is disabled due to an
-		 * in-progress controller-level reset or controller failure. If
-		 * we lose the race with recovery_state, then we may add an
-		 * extra request to the queue which will be resubmitted later.
-		 * We only set recovery_state to NONE with qpair->lock also
-		 * held.
+		 * in-progress controller-level reset. If we lose the race with
+		 * recovery_state, then we may add an extra request to the queue
+		 * which will be resubmitted later.  We only set recovery_state
+		 * to NONE with qpair->lock also held, so if we observe that the
+		 * state is not NONE, we know it can't transition to NONE below
+		 * when we've submitted the request to hardware.
+		 *
+		 * Also, as part of the failure process, we set recovery_state
+		 * to RECOVERY_WAITING, so we check here to see if we've failed
+		 * the controller. We set it before we call the qpair_fail
+		 * functions, which take out the lock lock before messing with
+		 * queued_req. Since we hold that lock, we know it's safe to
+		 * either fail directly, or queue the failure should is_failed
+		 * be stale. If we lose the race reading is_failed, then
+		 * nvme_qpair_fail will fail the queued request.
 		 */
 
 		if (qpair->ctrlr->is_failed) {
@@ -1286,6 +1349,8 @@ nvme_qpair_enable(struct nvme_qpair *qpair)
 		mtx_assert(&qpair->recovery, MA_OWNED);
 	if (mtx_initialized(&qpair->lock))
 		mtx_assert(&qpair->lock, MA_OWNED);
+	KASSERT(!qpair->ctrlr->is_failed,
+	    ("Enabling a failed qpair\n"));
 
 	qpair->recovery_state = RECOVERY_NONE;
 }
@@ -1410,12 +1475,13 @@ void
 nvme_admin_qpair_disable(struct nvme_qpair *qpair)
 {
 	mtx_lock(&qpair->recovery);
-	mtx_lock(&qpair->lock);
 
+	mtx_lock(&qpair->lock);
 	nvme_qpair_disable(qpair);
+	mtx_unlock(&qpair->lock);
+
 	nvme_admin_qpair_abort_aers(qpair);
 
-	mtx_unlock(&qpair->lock);
 	mtx_unlock(&qpair->recovery);
 }
 
@@ -1442,16 +1508,21 @@ nvme_qpair_fail(struct nvme_qpair *qpair)
 
 	mtx_lock(&qpair->lock);
 
+	if (!STAILQ_EMPTY(&qpair->queued_req)) {
+		nvme_printf(qpair->ctrlr, "failing queued i/o\n");
+	}
 	while (!STAILQ_EMPTY(&qpair->queued_req)) {
 		req = STAILQ_FIRST(&qpair->queued_req);
 		STAILQ_REMOVE_HEAD(&qpair->queued_req, stailq);
-		nvme_printf(qpair->ctrlr, "failing queued i/o\n");
 		mtx_unlock(&qpair->lock);
 		nvme_qpair_manual_complete_request(qpair, req, NVME_SCT_GENERIC,
 		    NVME_SC_ABORTED_BY_REQUEST);
 		mtx_lock(&qpair->lock);
 	}
 
+	if (!TAILQ_EMPTY(&qpair->outstanding_tr)) {
+		nvme_printf(qpair->ctrlr, "failing outstanding i/o\n");
+	}
 	/* Manually abort each outstanding I/O. */
 	while (!TAILQ_EMPTY(&qpair->outstanding_tr)) {
 		tr = TAILQ_FIRST(&qpair->outstanding_tr);
@@ -1459,7 +1530,6 @@ nvme_qpair_fail(struct nvme_qpair *qpair)
 		 * Do not remove the tracker.  The abort_tracker path will
 		 *  do that for us.
 		 */
-		nvme_printf(qpair->ctrlr, "failing outstanding i/o\n");
 		mtx_unlock(&qpair->lock);
 		nvme_qpair_manual_complete_tracker(tr, NVME_SCT_GENERIC,
 		    NVME_SC_ABORTED_BY_REQUEST, DO_NOT_RETRY, ERROR_PRINT_ALL);

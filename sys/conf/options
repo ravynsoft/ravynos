@@ -99,6 +99,7 @@ COMPAT_FREEBSD10	opt_global.h
 COMPAT_FREEBSD11	opt_global.h
 COMPAT_FREEBSD12	opt_global.h
 COMPAT_FREEBSD13	opt_global.h
+COMPAT_FREEBSD14	opt_global.h
 COMPAT_LINUXKPI	opt_dontuse.h
 COMPILING_LINT	opt_global.h
 CY_PCI_FASTINTR
@@ -230,6 +231,8 @@ SW_WATCHDOG	opt_watchdog.h
 TCPHPTS         opt_inet.h
 TCP_REQUEST_TRK opt_global.h
 TCP_ACCOUNTING	opt_global.h
+TCP_BBR		opt_inet.h
+TCP_RACK	opt_inet.h
 #
 # TCP SaD Detection is an experimental Sack attack Detection (SaD)
 # algorithm that uses "normal" behaviour with SACK's to detect
@@ -474,7 +477,7 @@ MBUF_PROFILING
 MBUF_STRESS_TEST
 MROUTING		opt_mrouting.h
 NFSLOCKD
-NETLINK			opt_netlink.h
+NETLINK			opt_global.h
 PF_DEFAULT_TO_DROP	opt_pf.h
 ROUTE_MPATH		opt_route.h
 ROUTETABLES		opt_route.h
@@ -893,7 +896,6 @@ DCONS_FORCE_GDB		opt_dcons.h
 # HWPMC options
 HWPMC_DEBUG		opt_global.h
 HWPMC_HOOKS
-HWPMC_MIPS_BACKTRACE 	opt_hwpmc_hooks.h
 
 # 802.11 support layer
 IEEE80211_DEBUG		opt_wlan.h
@@ -1006,7 +1008,6 @@ EKCD		opt_ekcd.h
 
 # NVME options
 NVME_USE_NVD	opt_nvme.h
-NVME_2X_RESET	opt_nvme.h
 
 # amdsbwd options
 AMDSBWD_DEBUG	opt_amdsbwd.h

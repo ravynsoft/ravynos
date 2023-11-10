@@ -2052,14 +2052,6 @@ nfs_rename(struct vop_rename_args *ap)
 		      tdnp->n_fhp->nfh_len != fnp->n_v4->n4_fhlen ||
 		      NFSBCMP(tdnp->n_fhp->nfh_fh, fnp->n_v4->n4_data,
 			tdnp->n_fhp->nfh_len))) {
-#ifdef notdef
-{ char nnn[100]; int nnnl;
-nnnl = (tcnp->cn_namelen < 100) ? tcnp->cn_namelen : 99;
-bcopy(tcnp->cn_nameptr, nnn, nnnl);
-nnn[nnnl] = '\0';
-printf("ren replace=%s\n",nnn);
-}
-#endif
 			free(fnp->n_v4, M_NFSV4NODE);
 			fnp->n_v4 = newv4;
 			newv4 = NULL;
@@ -2713,14 +2705,6 @@ nfs_lookitup(struct vnode *dvp, char *name, int len, struct ucred *cred,
 			 dnp->n_fhp->nfh_len != np->n_v4->n4_fhlen ||
 			 NFSBCMP(dnp->n_fhp->nfh_fh, np->n_v4->n4_data,
 			 dnp->n_fhp->nfh_len))) {
-#ifdef notdef
-{ char nnn[100]; int nnnl;
-nnnl = (len < 100) ? len : 99;
-bcopy(name, nnn, nnnl);
-nnn[nnnl] = '\0';
-printf("replace=%s\n",nnn);
-}
-#endif
 			    free(np->n_v4, M_NFSV4NODE);
 			    np->n_v4 = malloc(
 				sizeof (struct nfsv4node) +
@@ -3889,7 +3873,7 @@ nfs_copy_file_range(struct vop_copy_file_range_args *ap)
 	struct vnode *outvp = ap->a_outvp;
 	struct mount *mp;
 	struct nfsvattr innfsva, outnfsva;
-	struct vattr *vap;
+	struct vattr va, *vap;
 	struct uio io;
 	struct nfsmount *nmp;
 	size_t len, len2;
@@ -3898,8 +3882,11 @@ nfs_copy_file_range(struct vop_copy_file_range_args *ap)
 	off_t inoff, outoff;
 	bool consecutive, must_commit, tryoutcred;
 
-	/* NFSv4.2 Copy is not permitted for infile == outfile. */
-	if (invp == outvp) {
+	/*
+	 * NFSv4.2 Copy is not permitted for infile == outfile.
+	 * TODO: copy_file_range() between multiple NFS mountpoints
+	 */
+	if (invp == outvp || invp->v_mount != outvp->v_mount) {
 generic_copy:
 		return (vn_generic_copy_file_range(invp, ap->a_inoffp,
 		    outvp, ap->a_outoffp, ap->a_lenp, ap->a_flags,
@@ -3995,10 +3982,25 @@ generic_copy:
 			 * will not reply NFSERR_INVAL.
 			 * Setting "len == 0" for the RPC would be preferred,
 			 * but some Linux servers do not support that.
+			 * If the len is being set to 0, do a Setattr RPC to
+			 * set the server's atime.  This behaviour was the
+			 * preferred one for the FreeBSD "collective".
 			 */
-			if (inoff >= vap->va_size)
+			if (inoff >= vap->va_size) {
 				*ap->a_lenp = len = 0;
-			else if (inoff + len > vap->va_size)
+				VATTR_NULL(&va);
+				va.va_atime.tv_sec = va.va_atime.tv_nsec = 0;
+				va.va_vaflags = VA_UTIMES_NULL;
+				inattrflag = 0;
+				error = nfsrpc_setattr(invp, &va, NULL,
+				    ap->a_incred, curthread, &innfsva,
+				    &inattrflag);
+				if (inattrflag != 0)
+					ret = nfscl_loadattrcache(&invp,
+					    &innfsva, NULL, 0, 1);
+				if (error == 0 && ret != 0)
+					error = ret;
+			} else if (inoff + len > vap->va_size)
 				*ap->a_lenp = len = vap->va_size - inoff;
 		} else
 			error = 0;

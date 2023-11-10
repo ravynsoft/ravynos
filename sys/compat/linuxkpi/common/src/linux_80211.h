@@ -45,23 +45,23 @@
 /* #define	LINUXKPI_DEBUG_80211 */
 
 #ifndef	D80211_TODO
-#define	D80211_TODO		0x1
+#define	D80211_TODO		0x00000001
 #endif
 #ifndef D80211_IMPROVE
-#define	D80211_IMPROVE		0x2
+#define	D80211_IMPROVE		0x00000002
 #endif
-#define	D80211_IMPROVE_TXQ	0x4
-#define	D80211_TRACE		0x10
-#define	D80211_TRACEOK		0x20
-#define	D80211_TRACE_TX		0x100
-#define	D80211_TRACE_TX_DUMP	0x200
-#define	D80211_TRACE_RX		0x1000
-#define	D80211_TRACE_RX_DUMP	0x2000
-#define	D80211_TRACE_RX_BEACONS	0x4000
+#define	D80211_IMPROVE_TXQ	0x00000004
+#define	D80211_TRACE		0x00000010
+#define	D80211_TRACEOK		0x00000020
+#define	D80211_TRACE_TX		0x00000100
+#define	D80211_TRACE_TX_DUMP	0x00000200
+#define	D80211_TRACE_RX		0x00001000
+#define	D80211_TRACE_RX_DUMP	0x00002000
+#define	D80211_TRACE_RX_BEACONS	0x00004000
 #define	D80211_TRACEX		(D80211_TRACE_TX|D80211_TRACE_RX)
 #define	D80211_TRACEX_DUMP	(D80211_TRACE_TX_DUMP|D80211_TRACE_RX_DUMP)
-#define	D80211_TRACE_STA	0x10000
-#define	D80211_TRACE_MO		0x100000
+#define	D80211_TRACE_STA	0x00010000
+#define	D80211_TRACE_MO		0x00100000
 
 #define	IMPROVE_TXQ(...)						\
     if (linuxkpi_debug_80211 & D80211_IMPROVE_TXQ)			\
@@ -210,6 +210,15 @@ struct lkpi_hw {	/* name it mac80211_sc? */
 #define	LHW_TO_HW(_lhw)		(&(_lhw)->hw)
 #define	HW_TO_LHW(_hw)		container_of(_hw, struct lkpi_hw, hw)
 
+struct lkpi_chanctx {
+	bool				added_to_drv;	/* Managed by MO */
+	struct ieee80211_chanctx_conf	conf __aligned(CACHE_LINE_SIZE);
+};
+#define	LCHANCTX_TO_CHANCTX_CONF(_lchanctx)		\
+    (&(_lchanctx)->conf)
+#define	CHANCTX_CONF_TO_LCHANCTX(_conf)			\
+    container_of(_conf, struct lkpi_chanctx, conf)
+
 struct lkpi_wiphy {
 	const struct cfg80211_ops	*ops;
 
@@ -276,9 +285,9 @@ int lkpi_80211_mo_sta_state(struct ieee80211_hw *, struct ieee80211_vif *,
     struct lkpi_sta *, enum ieee80211_sta_state);
 int lkpi_80211_mo_config(struct ieee80211_hw *, uint32_t);
 int lkpi_80211_mo_assign_vif_chanctx(struct ieee80211_hw *, struct ieee80211_vif *,
-    struct ieee80211_chanctx_conf *);
+    struct ieee80211_bss_conf *, struct ieee80211_chanctx_conf *);
 void lkpi_80211_mo_unassign_vif_chanctx(struct ieee80211_hw *, struct ieee80211_vif *,
-    struct ieee80211_chanctx_conf **);
+    struct ieee80211_bss_conf *, struct ieee80211_chanctx_conf **);
 int lkpi_80211_mo_add_chanctx(struct ieee80211_hw *, struct ieee80211_chanctx_conf *);
 void lkpi_80211_mo_change_chanctx(struct ieee80211_hw *,
     struct ieee80211_chanctx_conf *, uint32_t);
@@ -287,7 +296,7 @@ void lkpi_80211_mo_remove_chanctx(struct ieee80211_hw *,
 void lkpi_80211_mo_bss_info_changed(struct ieee80211_hw *, struct ieee80211_vif *,
     struct ieee80211_bss_conf *, uint64_t);
 int lkpi_80211_mo_conf_tx(struct ieee80211_hw *, struct ieee80211_vif *,
-    uint16_t, const struct ieee80211_tx_queue_params *);
+    uint32_t, uint16_t, const struct ieee80211_tx_queue_params *);
 void lkpi_80211_mo_flush(struct ieee80211_hw *, struct ieee80211_vif *,
     uint32_t, bool);
 void lkpi_80211_mo_mgd_prepare_tx(struct ieee80211_hw *, struct ieee80211_vif *,

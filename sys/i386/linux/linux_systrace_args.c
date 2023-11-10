@@ -11,7 +11,6 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 	int64_t *iarg = (int64_t *)uarg;
 	int a = 0;
 	switch (sysnum) {
-#define	nosys	linux_nosys
 	/* linux_exit */
 	case 1: {
 		struct linux_exit_args *p = params;
@@ -3296,6 +3295,56 @@ systrace_args(int sysnum, void *params, uint64_t *uarg, int *n_args)
 		*n_args = 0;
 		break;
 	}
+	/* linux_quotactl_fd */
+	case 443: {
+		*n_args = 0;
+		break;
+	}
+	/* linux_landlock_create_ruleset */
+	case 444: {
+		*n_args = 0;
+		break;
+	}
+	/* linux_landlock_add_rule */
+	case 445: {
+		*n_args = 0;
+		break;
+	}
+	/* linux_landlock_restrict_self */
+	case 446: {
+		*n_args = 0;
+		break;
+	}
+	/* linux_memfd_secret */
+	case 447: {
+		*n_args = 0;
+		break;
+	}
+	/* linux_process_mrelease */
+	case 448: {
+		*n_args = 0;
+		break;
+	}
+	/* linux_futex_waitv */
+	case 449: {
+		*n_args = 0;
+		break;
+	}
+	/* linux_set_mempolicy_home_node */
+	case 450: {
+		*n_args = 0;
+		break;
+	}
+	/* linux_cachestat */
+	case 451: {
+		*n_args = 0;
+		break;
+	}
+	/* linux_fchmodat2 */
+	case 452: {
+		*n_args = 0;
+		break;
+	}
 	default:
 		*n_args = 0;
 		break;
@@ -3306,7 +3355,6 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 {
 	const char *p = NULL;
 	switch (sysnum) {
-#define	nosys	linux_nosys
 	/* linux_exit */
 	case 1:
 		switch (ndx) {
@@ -8616,6 +8664,36 @@ systrace_entry_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 	/* linux_mount_setattr */
 	case 442:
 		break;
+	/* linux_quotactl_fd */
+	case 443:
+		break;
+	/* linux_landlock_create_ruleset */
+	case 444:
+		break;
+	/* linux_landlock_add_rule */
+	case 445:
+		break;
+	/* linux_landlock_restrict_self */
+	case 446:
+		break;
+	/* linux_memfd_secret */
+	case 447:
+		break;
+	/* linux_process_mrelease */
+	case 448:
+		break;
+	/* linux_futex_waitv */
+	case 449:
+		break;
+	/* linux_set_mempolicy_home_node */
+	case 450:
+		break;
+	/* linux_cachestat */
+	case 451:
+		break;
+	/* linux_fchmodat2 */
+	case 452:
+		break;
 	default:
 		break;
 	};
@@ -8627,7 +8705,6 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 {
 	const char *p = NULL;
 	switch (sysnum) {
-#define	nosys	linux_nosys
 	/* linux_exit */
 	case 1:
 		if (ndx == 0 || ndx == 1)
@@ -10427,6 +10504,26 @@ systrace_return_setargdesc(int sysnum, int ndx, char *desc, size_t descsz)
 		break;
 	/* linux_mount_setattr */
 	case 442:
+	/* linux_quotactl_fd */
+	case 443:
+	/* linux_landlock_create_ruleset */
+	case 444:
+	/* linux_landlock_add_rule */
+	case 445:
+	/* linux_landlock_restrict_self */
+	case 446:
+	/* linux_memfd_secret */
+	case 447:
+	/* linux_process_mrelease */
+	case 448:
+	/* linux_futex_waitv */
+	case 449:
+	/* linux_set_mempolicy_home_node */
+	case 450:
+	/* linux_cachestat */
+	case 451:
+	/* linux_fchmodat2 */
+	case 452:
 	default:
 		break;
 	};

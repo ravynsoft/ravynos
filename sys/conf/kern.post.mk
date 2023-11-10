@@ -33,10 +33,6 @@ MKMODULESENV+=	CONF_CFLAGS="${CONF_CFLAGS}"
 MKMODULESENV+=	WITH_CTF="${WITH_CTF}"
 .endif
 
-.if defined(WITH_EXTRA_TCP_STACKS)
-MKMODULESENV+=	WITH_EXTRA_TCP_STACKS="${WITH_EXTRA_TCP_STACKS}"
-.endif
-
 .if !empty(KCSAN_ENABLED)
 MKMODULESENV+=	KCSAN_ENABLED="yes"
 .endif
@@ -143,6 +139,15 @@ ports-${__target}:
 	cd ${PORTSDIR:U/usr/ports}/${__i}; ${PORTSMODULESENV} ${MAKE} -B ${__target:C/(re)?install/deinstall reinstall/}
 .endfor
 .endfor
+.endif
+
+# Generate the .bin (booti images) kernel as an extra build output.
+# The targets and rules to generate these appear in Makefile.$MACHINE
+# if the platform supports it.
+.if ${MK_KERNEL_BIN} != "no"
+KERNEL_EXTRA+= ${KERNEL_KO}.bin
+KERNEL_EXTRA_INSTALL+= ${KERNEL_KO}.bin
+CLEAN+=	${KERNEL_KO}.bin
 .endif
 
 .ORDER: kernel-install modules-install

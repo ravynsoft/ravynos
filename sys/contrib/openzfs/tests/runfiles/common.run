@@ -281,7 +281,7 @@ tests = ['cache_001_pos', 'cache_002_neg', 'canmount_001_pos',
     'user_property_004_pos', 'version_001_neg', 'zfs_set_001_neg',
     'zfs_set_002_neg', 'zfs_set_003_neg', 'property_alias_001_pos',
     'mountpoint_003_pos', 'ro_props_001_pos', 'zfs_set_keylocation',
-    'zfs_set_feature_activation']
+    'zfs_set_feature_activation', 'zfs_set_nomount']
 tags = ['functional', 'cli_root', 'zfs_set']
 
 [tests/functional/cli_root/zfs_share]
@@ -769,8 +769,12 @@ tests = ['redacted_compressed', 'redacted_contents', 'redacted_deleted',
 tags = ['functional', 'redacted_send']
 
 [tests/functional/raidz]
-tests = ['raidz_001_neg', 'raidz_002_pos', 'raidz_003_pos', 'raidz_004_pos']
+tests = ['raidz_001_neg', 'raidz_002_pos', 'raidz_expand_001_pos',
+    'raidz_expand_002_pos', 'raidz_expand_003_neg', 'raidz_expand_003_pos',
+    'raidz_expand_004_pos', 'raidz_expand_005_pos', 'raidz_expand_006_neg',
+    'raidz_expand_007_neg']
 tags = ['functional', 'raidz']
+timeout = 1200
 
 [tests/functional/redundancy]
 tests = ['redundancy_draid', 'redundancy_draid1', 'redundancy_draid2',

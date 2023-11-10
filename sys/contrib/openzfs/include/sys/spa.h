@@ -825,6 +825,11 @@ extern void spa_sync_allpools(void);
 
 extern uint_t zfs_sync_pass_deferred_free;
 
+/* spa sync taskqueues */
+taskq_t *spa_sync_tq_create(spa_t *spa, const char *name);
+void spa_sync_tq_destroy(spa_t *spa);
+void spa_select_allocator(zio_t *zio);
+
 /* spa namespace global mutex */
 extern kmutex_t spa_namespace_lock;
 
@@ -837,7 +842,7 @@ extern kmutex_t spa_namespace_lock;
 
 extern void spa_write_cachefile(spa_t *, boolean_t, boolean_t, boolean_t);
 extern void spa_config_load(void);
-extern nvlist_t *spa_all_configs(uint64_t *);
+extern int spa_all_configs(uint64_t *generation, nvlist_t **pools);
 extern void spa_config_set(spa_t *spa, nvlist_t *config);
 extern nvlist_t *spa_config_generate(spa_t *spa, vdev_t *vd, uint64_t txg,
     int getstats);

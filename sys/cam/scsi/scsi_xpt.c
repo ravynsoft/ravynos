@@ -29,7 +29,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/bus.h>
 #include <sys/systm.h>
@@ -61,7 +60,6 @@
 #include <cam/scsi/scsi_message.h>
 #include <cam/scsi/scsi_pass.h>
 #include <machine/stdarg.h>	/* for xpt_print below */
-#include "opt_cam.h"
 
 struct scsi_quirk_entry {
 	struct scsi_inquiry_pattern inq_pat;
@@ -840,7 +838,7 @@ again:
 		}
 		scsi_report_luns(csio, 5, probedone, MSG_SIMPLE_Q_TAG,
 		    RPL_REPORT_DEFAULT, rp, periph->path->target->rpl_size,
-		    SSD_FULL_SIZE, 60000); break;
+		    SSD_FULL_SIZE, 60000);
 		break;
 	}
 	case PROBE_MODE_SENSE:

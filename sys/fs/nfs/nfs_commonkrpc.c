@@ -599,10 +599,14 @@ nfs_getauth(struct nfssockreq *nrp, int secflavour, char *clnt_principal,
 		else
 			svc = rpc_gss_svc_privacy;
 
-		if (clnt_principal == NULL)
+		if (clnt_principal == NULL) {
+			NFSCL_DEBUG(1, "nfs_getauth: clnt princ=NULL, "
+			    "srv princ=%s\n", srv_principal);
 			auth = rpc_gss_secfind_call(nrp->nr_client, cred,
 			    srv_principal, mech_oid, svc);
-		else {
+		} else {
+			NFSCL_DEBUG(1, "nfs_getauth: clnt princ=%s "
+			    "srv princ=%s\n", clnt_principal, srv_principal);
 			auth = rpc_gss_seccreate_call(nrp->nr_client, cred,
 			    clnt_principal, srv_principal, "kerberosv5",
 			    svc, NULL, NULL, NULL);
@@ -799,7 +803,10 @@ newnfs_request(struct nfsrv_descript *nd, struct nfsmount *nmp,
 			secflavour = RPCSEC_GSS_KRB5P;
 		else
 			secflavour = RPCSEC_GSS_KRB5;
-		srv_principal = NFSMNT_SRVKRBNAME(nmp);
+		if (nrp->nr_srvprinc[0] == '\0')
+			srv_principal = NFSMNT_SRVKRBNAME(nmp);
+		else
+			srv_principal = nrp->nr_srvprinc;
 	} else if (nmp != NULL && (!NFSHASKERB(nmp) || NFSHASSYSKRB5(nmp)) &&
 	    nd->nd_procnum != NFSPROC_NULL &&
 	    (nd->nd_flag & ND_USEGSSNAME) != 0) {
@@ -1208,6 +1215,14 @@ tryagain:
 				NFSCL_DEBUG(1, "Got badsession\n");
 				NFSLOCKCLSTATE();
 				NFSLOCKMNT(nmp);
+				if (TAILQ_EMPTY(&nmp->nm_sess)) {
+					NFSUNLOCKMNT(nmp);
+					NFSUNLOCKCLSTATE();
+					printf("If server has not rebooted, "
+					    "check NFS clients for unique "
+					    "/etc/hostid's\n");
+					goto out;
+				}
 				sep = NFSMNT_MDSSESSION(nmp);
 				if (bcmp(sep->nfsess_sessionid, nd->nd_sequence,
 				    NFSX_V4SESSIONID) == 0) {
@@ -1292,7 +1307,8 @@ tryagain:
 			     nd->nd_procnum != NFSPROC_LOCKU))) ||
 			    (nd->nd_repstat == NFSERR_DELAY &&
 			     (nd->nd_flag & ND_NFSV4) == 0) ||
-			    nd->nd_repstat == NFSERR_RESOURCE) {
+			    nd->nd_repstat == NFSERR_RESOURCE ||
+			    nd->nd_repstat == NFSERR_RETRYUNCACHEDREP) {
 				/* Clip at NFS_TRYLATERDEL. */
 				if (timespeccmp(&trylater_delay,
 				    &nfs_trylater_max, >))
@@ -1388,6 +1404,7 @@ tryagain:
 				nd->nd_repstat = NFSERR_STALEDONTRECOVER;
 		}
 	}
+out:
 
 #ifdef KDTRACE_HOOKS
 	if (nmp != NULL && dtrace_nfscl_nfs234_done_probe != NULL) {

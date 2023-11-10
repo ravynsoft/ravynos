@@ -1330,12 +1330,11 @@ zfsvfs_teardown(zfsvfs_t *zfsvfs, boolean_t unmounting)
 		 * may add the parents of dir-based xattrs to the taskq
 		 * so we want to wait for these.
 		 *
-		 * We can safely read z_nr_znodes without locking because the
-		 * VFS has already blocked operations which add to the
-		 * z_all_znodes list and thus increment z_nr_znodes.
+		 * We can safely check z_all_znodes for being empty because the
+		 * VFS has already blocked operations which add to it.
 		 */
 		int round = 0;
-		while (zfsvfs->z_nr_znodes > 0) {
+		while (!list_is_empty(&zfsvfs->z_all_znodes)) {
 			taskq_wait_outstanding(dsl_pool_zrele_taskq(
 			    dmu_objset_pool(zfsvfs->z_os)), 0);
 			if (++round > 1 && !unmounting)
@@ -1489,7 +1488,7 @@ zfs_domount(struct super_block *sb, zfs_mnt_t *zm, int silent)
 	 * read-only flag, pretend it was set, as done for snapshots.
 	 */
 	if (!canwrite)
-		vfs->vfs_readonly = true;
+		vfs->vfs_readonly = B_TRUE;
 
 	error = zfsvfs_create(osname, vfs->vfs_readonly, &zfsvfs);
 	if (error) {

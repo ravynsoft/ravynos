@@ -239,6 +239,9 @@ iaf_allocate_pmc(int cpu, int ri, struct pmc *pm,
 	if (a->pm_class != PMC_CLASS_IAF)
 		return (EINVAL);
 
+	if ((a->pm_flags & PMC_F_EV_PMU) == 0)
+		return (EINVAL);
+
 	iap = &a->pm_md.pm_iap;
 	config = iap->pm_iap_config;
 	ev = IAP_EVSEL_GET(config);
@@ -719,6 +722,9 @@ iap_allocate_pmc(int cpu, int ri, struct pmc *pm,
 	    ("[core,%d] illegal row-index value %d", __LINE__, ri));
 
 	if (a->pm_class != PMC_CLASS_IAP)
+		return (EINVAL);
+
+	if ((a->pm_flags & PMC_F_EV_PMU) == 0)
 		return (EINVAL);
 
 	iap = &a->pm_md.pm_iap;
@@ -1253,6 +1259,10 @@ void
 pmc_core_finalize(struct pmc_mdep *md)
 {
 	PMCDBG0(MDP,INI,1, "core-finalize");
+
+	for (int i = 0; i < pmc_cpu_max(); i++)
+		KASSERT(core_pcpu[i] == NULL,
+		    ("[core,%d] non-null pcpu cpu %d", __LINE__, i));
 
 	free(core_pcpu, M_PMC);
 	core_pcpu = NULL;

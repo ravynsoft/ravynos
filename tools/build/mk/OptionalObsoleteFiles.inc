@@ -1617,26 +1617,16 @@ OLD_FILES+=usr/bin/dialog
 OLD_FILES+=usr/bin/dpv
 OLD_FILES+=usr/lib/libdialog.a
 OLD_FILES+=usr/lib/libdialog.so
-OLD_FILES+=usr/lib/libdialog.so.10
+OLD_LIBS+=usr/lib/libdialog.so.10
 OLD_FILES+=usr/lib/libdialog_p.a
 OLD_FILES+=usr/lib/libdpv.a
 OLD_FILES+=usr/lib/libdpv.so
-OLD_FILES+=usr/lib/libdpv.so.3
+OLD_LIBS+=usr/lib/libdpv.so.3
 OLD_FILES+=usr/lib/libdpv_p.a
-OLD_FILES+=usr/sbin/bsdconfig
 OLD_FILES+=usr/share/man/man1/dialog.1.gz
 OLD_FILES+=usr/share/man/man1/dpv.1.gz
 OLD_FILES+=usr/share/man/man3/dialog.3.gz
 OLD_FILES+=usr/share/man/man3/dpv.3.gz
-OLD_FILES+=usr/share/man/man8/bsdconfig.8.gz
-OLD_DIRS+=usr/share/bsdconfig
-OLD_DIRS+=usr/share/bsdconfig/media
-OLD_DIRS+=usr/share/bsdconfig/networking
-OLD_DIRS+=usr/share/bsdconfig/packages
-OLD_DIRS+=usr/share/bsdconfig/password
-OLD_DIRS+=usr/share/bsdconfig/startup
-OLD_DIRS+=usr/share/bsdconfig/timezone
-OLD_DIRS+=usr/share/bsdconfig/usermgmt
 .endif
 
 .if ${MK_EFI} == no
@@ -2013,6 +2003,11 @@ OLD_DIRS+=usr/share/examples/sunrpc/sort
 OLD_DIRS+=usr/share/examples/tcsh
 OLD_DIRS+=usr/share/examples/uefisign
 OLD_DIRS+=usr/share/examples/ypldap
+.endif
+
+.if ${MK_FDT} == no
+OLD_FILES+=usr/sbin/ofwdump
+OLD_FILES+=usr/share/man/man8/ofwdump.8.gz
 .endif
 
 .if ${MK_FINGER} == no
@@ -6803,6 +6798,7 @@ OLD_FILES+=usr/sbin/pmcannotate
 OLD_FILES+=usr/sbin/pmccontrol
 OLD_FILES+=usr/sbin/pmcstat
 OLD_FILES+=usr/share/man/man3/pmc.3.gz
+OLD_FILES+=usr/share/man/man3/pmc.amd.3.gz
 OLD_FILES+=usr/share/man/man3/pmc.atom.3.gz
 OLD_FILES+=usr/share/man/man3/pmc.atomsilvermont.3.gz
 OLD_FILES+=usr/share/man/man3/pmc.core.3.gz
@@ -6815,7 +6811,6 @@ OLD_FILES+=usr/share/man/man3/pmc.haswellxeon.3.gz
 OLD_FILES+=usr/share/man/man3/pmc.iaf.3.gz
 OLD_FILES+=usr/share/man/man3/pmc.ivybridge.3.gz
 OLD_FILES+=usr/share/man/man3/pmc.ivybridgexeon.3.gz
-OLD_FILES+=usr/share/man/man3/pmc.k7.3.gz
 OLD_FILES+=usr/share/man/man3/pmc.k8.3.gz
 OLD_FILES+=usr/share/man/man3/pmc.sandybridge.3.gz
 OLD_FILES+=usr/share/man/man3/pmc.sandybridgeuc.3.gz
@@ -7252,6 +7247,7 @@ OLD_FILES+=usr/share/sendmail/cf/feature/bestmx_is_local.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/bitdomain.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/blacklist_recipients.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/block_bad_helo.m4
+OLD_FILES+=usr/share/sendmail/cf/feature/check_other.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/check_cert_altnames.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/check_other.m4
 OLD_FILES+=usr/share/sendmail/cf/feature/compat_check.m4

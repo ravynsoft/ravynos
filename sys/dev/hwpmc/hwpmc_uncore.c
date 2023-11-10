@@ -199,6 +199,9 @@ ucf_allocate_pmc(int cpu, int ri, struct pmc *pm,
 	if (a->pm_class != PMC_CLASS_UCF)
 		return (EINVAL);
 
+	if ((a->pm_flags & PMC_F_EV_PMU) == 0)
+		return (EINVAL);
+
 	flags = UCF_EN;
 
 	pm->pm_md.pm_ucf.pm_ucf_ctrl = (flags << (ri * 4));
@@ -498,6 +501,9 @@ ucp_allocate_pmc(int cpu, int ri, struct pmc *pm,
 	if (a->pm_class != PMC_CLASS_UCP)
 		return (EINVAL);
 
+	if ((a->pm_flags & PMC_F_EV_PMU) == 0)
+		return (EINVAL);
+
 	ucp = &a->pm_md.pm_ucp;
 	ev = UCP_EVSEL(ucp->pm_ucp_config);
 	switch (uncore_cputype) {
@@ -751,6 +757,10 @@ void
 pmc_uncore_finalize(struct pmc_mdep *md)
 {
 	PMCDBG0(MDP,INI,1, "uncore-finalize");
+
+	for (int i = 0; i < pmc_cpu_max(); i++)
+		KASSERT(uncore_pcpu[i] == NULL,
+		    ("[uncore,%d] non-null pcpu cpu %d", __LINE__, i));
 
 	free(uncore_pcpu, M_PMC);
 	uncore_pcpu = NULL;
