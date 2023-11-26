@@ -38,7 +38,6 @@
 #include <netinet/tcp_fsm.h>
 
 #ifdef _KERNEL
-#include "opt_kern_tls.h"
 #include <net/vnet.h>
 #include <sys/mbuf.h>
 #include <sys/ktls.h>
@@ -503,6 +502,13 @@ struct tcptemp {
 	u_char	tt_ipgen[40]; /* the size must be of max ip header, now IPv6 */
 	struct	tcphdr tt_t;
 };
+
+/* SACK scoreboard update status */
+typedef enum {
+	SACK_NOCHANGE = 0,
+	SACK_CHANGE,
+	SACK_NEWLOSS
+} sackstatus_t;
 
 /* Enable TCP/UDP tunneling port */
 #define TCP_TUNNELING_PORT_MIN		0
@@ -1303,7 +1309,6 @@ VNET_DECLARE(struct inpcbinfo, tcbinfo);
 
 #define	V_tcp_do_lrd			VNET(tcp_do_lrd)
 #define	V_tcp_do_prr			VNET(tcp_do_prr)
-#define	V_tcp_do_prr_conservative	VNET(tcp_do_prr_conservative)
 #define	V_tcp_do_newcwv			VNET(tcp_do_newcwv)
 #define	V_drop_synfin			VNET(drop_synfin)
 #define	V_path_mtu_discovery		VNET(path_mtu_discovery)
@@ -1352,6 +1357,7 @@ VNET_DECLARE(struct hhook_head *, tcp_hhh[HHOOK_TCP_LAST + 1]);
 #define	V_tcp_hhh		VNET(tcp_hhh)
 #endif
 
+void	tcp_account_for_send(struct tcpcb *, uint32_t, uint8_t, uint8_t, bool);
 int	 tcp_addoptions(struct tcpopt *, u_char *);
 struct tcpcb *
 	 tcp_close(struct tcpcb *);
@@ -1483,7 +1489,8 @@ extern	struct protosw tcp6_protosw;		/* shared for TOE */
 uint32_t tcp_new_ts_offset(struct in_conninfo *);
 tcp_seq	 tcp_new_isn(struct in_conninfo *);
 
-int	 tcp_sack_doack(struct tcpcb *, struct tcpopt *, tcp_seq);
+sackstatus_t
+	 tcp_sack_doack(struct tcpcb *, struct tcpopt *, tcp_seq);
 int	 tcp_dsack_block_exists(struct tcpcb *);
 void	 tcp_update_dsack_list(struct tcpcb *, tcp_seq, tcp_seq);
 void	 tcp_update_sack_list(struct tcpcb *tp, tcp_seq rcv_laststart, tcp_seq rcv_lastend);
@@ -1491,7 +1498,7 @@ void	 tcp_clean_dsack_blocks(struct tcpcb *tp);
 void	 tcp_clean_sackreport(struct tcpcb *tp);
 void	 tcp_sack_adjust(struct tcpcb *tp);
 struct sackhole *tcp_sack_output(struct tcpcb *tp, int *sack_bytes_rexmt);
-void	 tcp_do_prr_ack(struct tcpcb *, struct tcphdr *, struct tcpopt *);
+void	 tcp_do_prr_ack(struct tcpcb *, struct tcphdr *, struct tcpopt *, sackstatus_t);
 void	 tcp_lost_retransmission(struct tcpcb *, struct tcphdr *);
 void	 tcp_sack_partialack(struct tcpcb *, struct tcphdr *);
 void	 tcp_free_sackholes(struct tcpcb *tp);
@@ -1583,30 +1590,6 @@ tcp_set_flags(struct tcphdr *th, uint16_t flags)
 {
         th->th_x2    = (flags >> 8) & 0x0f;
         th->th_flags = flags & 0xff;
-}
-
-static inline void
-tcp_account_for_send(struct tcpcb *tp, uint32_t len, uint8_t is_rxt,
-    uint8_t is_tlp, bool hw_tls)
-{
-	if (is_tlp) {
-		tp->t_sndtlppack++;
-		tp->t_sndtlpbyte += len;
-	}
-	/* To get total bytes sent you must add t_snd_rxt_bytes to t_sndbytes */
-	if (is_rxt)
-		tp->t_snd_rxt_bytes += len;
-	else
-		tp->t_sndbytes += len;
-
-#ifdef KERN_TLS
-	if (hw_tls && is_rxt && len != 0) {
-		uint64_t rexmit_percent = (1000ULL * tp->t_snd_rxt_bytes) / (10ULL * (tp->t_snd_rxt_bytes + tp->t_sndbytes));
-		if (rexmit_percent > ktls_ifnet_max_rexmit_pct)
-			ktls_disable_ifnet(tp);
-	}
-#endif
-
 }
 #endif /* _KERNEL */
 

@@ -492,9 +492,6 @@ kern_reboot(int howto)
 	rebooting = 1;
 	reboottrace(howto);
 
-	/* We are out of the debugger now. */
-	kdb_active = 0;
-
 	/*
 	 * Do any callouts that should be done BEFORE syncing the filesystems.
 	 */
@@ -1011,7 +1008,7 @@ kproc_shutdown(void *arg, int howto)
 	struct proc *p;
 	int error;
 
-	if (KERNEL_PANICKED())
+	if (SCHEDULER_STOPPED())
 		return;
 
 	p = (struct proc *)arg;
@@ -1031,7 +1028,7 @@ kthread_shutdown(void *arg, int howto)
 	struct thread *td;
 	int error;
 
-	if (KERNEL_PANICKED())
+	if (SCHEDULER_STOPPED())
 		return;
 
 	td = (struct thread *)arg;

@@ -11,7 +11,7 @@ LIBC_SRCTOP?= ${.CURDIR}
 # MACHINE_CPUARCH, but some ABIs are different enough to require their own libc,
 # so allow a directory named MACHINE_ARCH to override this (though treat
 # powerpc64le and powerpc64 the same).
-# Note: This is copeid to msun/Makefile
+# Note: This is copied to msun/Makefile
 M=${MACHINE_ARCH:S/powerpc64le/powerpc64/}
 .if exists(${LIBC_SRCTOP}/${M})
 LIBC_ARCH=${M}
@@ -148,7 +148,6 @@ STATICOBJS+=${LIBC_NONSHARED_SRCS:S/.c$/.o/}
 
 VERSION_DEF=${LIBC_SRCTOP}/Versions.def
 SYMBOL_MAPS=${SYM_MAPS}
-CFLAGS+= -DSYMBOL_VERSIONING
 
 # If there are no machine dependent sources, append all the
 # machine-independent sources:

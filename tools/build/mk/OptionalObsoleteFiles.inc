@@ -3,6 +3,8 @@
 # This file adds support for the WITHOUT_* and WITH_* knobs in src.conf(5) to
 # the check-old* and delete-old* targets.
 #
+# Blocks should be in sort(1) order by primary option.
+#
 
 .if ${MK_ACCT} == no
 OLD_FILES+=etc/rc.d/accounting
@@ -160,11 +162,6 @@ OLD_FILES+=usr/share/examples/bhyve/vmrun.sh
 OLD_FILES+=usr/share/man/man8/bhyve.8.gz
 OLD_FILES+=usr/share/man/man8/bhyveload.8.gz
 OLD_DIRS+=usr/share/examples/bhyve
-.endif
-
-.if ${MK_LLD_IS_LD} == no
-OLD_FILES+=usr/bin/ld
-OLD_FILES+=usr/share/man/man1/ld.1.gz
 .endif
 
 .if ${MK_BLACKLIST} == no
@@ -400,13 +397,6 @@ OLD_FILES+=usr/sbin/bootptest
 OLD_FILES+=usr/share/man/man8/bootptest.8.gz
 .endif
 
-.if ${MK_BSD_CPIO} == no
-OLD_FILES+=usr/bin/bsdcpio
-OLD_FILES+=usr/bin/cpio
-OLD_FILES+=usr/share/man/man1/bsdcpio.1.gz
-OLD_FILES+=usr/share/man/man1/cpio.1.gz
-.endif
-
 .if ${MK_BSDINSTALL} == no
 OLD_FILES+=usr/libexec/bsdinstall/adduser
 OLD_FILES+=usr/libexec/bsdinstall/auto
@@ -443,6 +433,13 @@ OLD_FILES+=usr/sbin/bsdinstall
 OLD_FILES+=usr/share/man/man8/bsdinstall.8.gz
 OLD_FILES+=usr/share/man/man8/sade.8.gz
 OLD_DIRS+=usr/libexec/bsdinstall
+.endif
+
+.if ${MK_BSD_CPIO} == no
+OLD_FILES+=usr/bin/bsdcpio
+OLD_FILES+=usr/bin/cpio
+OLD_FILES+=usr/share/man/man1/bsdcpio.1.gz
+OLD_FILES+=usr/share/man/man1/cpio.1.gz
 .endif
 
 .if ${MK_BSNMP} == no
@@ -872,266 +869,6 @@ OLD_FILES+=rescue/ccdconfig
 OLD_FILES+=sbin/ccdconfig
 OLD_FILES+=usr/share/man/man4/ccd.4.gz
 OLD_FILES+=usr/share/man/man8/ccdconfig.8.gz
-.endif
-
-.if ${MK_DTRACE} == no
-OLD_LIBS+=lib/libctf.so.2
-OLD_LIBS+=lib/libdtrace.so.2
-OLD_FILES+=usr/bin/ctfconvert
-OLD_FILES+=usr/bin/ctfdump
-OLD_FILES+=usr/bin/ctfmerge
-OLD_FILES+=usr/lib/dtrace/drti.o
-OLD_FILES+=usr/lib/dtrace/errno.d
-OLD_FILES+=usr/lib/dtrace/io.d
-OLD_FILES+=usr/lib/dtrace/ip.d
-OLD_FILES+=usr/lib/dtrace/ipfw.d
-OLD_FILES+=usr/lib/dtrace/mbuf.d
-OLD_FILES+=usr/lib/dtrace/psinfo.d
-.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "i386"
-OLD_FILES+=usr/lib/dtrace/regs_x86.d
-.endif
-OLD_FILES+=usr/lib/dtrace/sctp.d
-OLD_FILES+=usr/lib/dtrace/siftr.d
-OLD_FILES+=usr/lib/dtrace/signal.d
-OLD_FILES+=usr/lib/dtrace/socket.d
-OLD_FILES+=usr/lib/dtrace/tcp.d
-OLD_FILES+=usr/lib/dtrace/udp.d
-OLD_FILES+=usr/lib/dtrace/udplite.d
-OLD_FILES+=usr/lib/dtrace/unistd.d
-OLD_FILES+=usr/lib/libctf.a
-OLD_FILES+=usr/lib/libctf.so
-OLD_FILES+=usr/lib/libctf_p.a
-OLD_FILES+=usr/lib/libdtrace.a
-OLD_FILES+=usr/lib/libdtrace.so
-OLD_FILES+=usr/lib/libdtrace_p.a
-OLD_LIBS+=lib/libdtrace.so.2
-OLD_FILES+=usr/libexec/dwatch/chmod
-OLD_FILES+=usr/libexec/dwatch/errno
-OLD_FILES+=usr/libexec/dwatch/fchmodat
-OLD_FILES+=usr/libexec/dwatch/io
-OLD_FILES+=usr/libexec/dwatch/io-done
-OLD_FILES+=usr/libexec/dwatch/io-start
-OLD_FILES+=usr/libexec/dwatch/ip
-OLD_FILES+=usr/libexec/dwatch/ip-receive
-OLD_FILES+=usr/libexec/dwatch/ip-send
-OLD_FILES+=usr/libexec/dwatch/kill
-OLD_FILES+=usr/libexec/dwatch/lchmod
-OLD_FILES+=usr/libexec/dwatch/nanosleep
-OLD_FILES+=usr/libexec/dwatch/open
-OLD_FILES+=usr/libexec/dwatch/openat
-OLD_FILES+=usr/libexec/dwatch/proc
-OLD_FILES+=usr/libexec/dwatch/proc-create
-OLD_FILES+=usr/libexec/dwatch/proc-exec
-OLD_FILES+=usr/libexec/dwatch/proc-exec-failure
-OLD_FILES+=usr/libexec/dwatch/proc-exec-success
-OLD_FILES+=usr/libexec/dwatch/proc-exit
-OLD_FILES+=usr/libexec/dwatch/proc-signal
-OLD_FILES+=usr/libexec/dwatch/proc-signal-clear
-OLD_FILES+=usr/libexec/dwatch/proc-signal-discard
-OLD_FILES+=usr/libexec/dwatch/proc-signal-send
-OLD_FILES+=usr/libexec/dwatch/proc-status
-OLD_FILES+=usr/libexec/dwatch/read
-OLD_FILES+=usr/libexec/dwatch/recv
-OLD_FILES+=usr/libexec/dwatch/recvfrom
-OLD_FILES+=usr/libexec/dwatch/recvmsg
-OLD_FILES+=usr/libexec/dwatch/rw
-OLD_FILES+=usr/libexec/dwatch/sched
-OLD_FILES+=usr/libexec/dwatch/sched-change-pri
-OLD_FILES+=usr/libexec/dwatch/sched-cpu
-OLD_FILES+=usr/libexec/dwatch/sched-dequeue
-OLD_FILES+=usr/libexec/dwatch/sched-enqueue
-OLD_FILES+=usr/libexec/dwatch/sched-exec
-OLD_FILES+=usr/libexec/dwatch/sched-lend-pri
-OLD_FILES+=usr/libexec/dwatch/sched-load-change
-OLD_FILES+=usr/libexec/dwatch/sched-off-cpu
-OLD_FILES+=usr/libexec/dwatch/sched-on-cpu
-OLD_FILES+=usr/libexec/dwatch/sched-preempt
-OLD_FILES+=usr/libexec/dwatch/sched-pri
-OLD_FILES+=usr/libexec/dwatch/sched-queue
-OLD_FILES+=usr/libexec/dwatch/sched-remain-cpu
-OLD_FILES+=usr/libexec/dwatch/sched-sleep
-OLD_FILES+=usr/libexec/dwatch/sched-surrender
-OLD_FILES+=usr/libexec/dwatch/sched-tick
-OLD_FILES+=usr/libexec/dwatch/sched-wakeup
-OLD_FILES+=usr/libexec/dwatch/send
-OLD_FILES+=usr/libexec/dwatch/sendmsg
-OLD_FILES+=usr/libexec/dwatch/sendrecv
-OLD_FILES+=usr/libexec/dwatch/sendto
-OLD_FILES+=usr/libexec/dwatch/systop
-OLD_FILES+=usr/libexec/dwatch/tcp
-OLD_FILES+=usr/libexec/dwatch/tcp-accept
-OLD_FILES+=usr/libexec/dwatch/tcp-accept-established
-OLD_FILES+=usr/libexec/dwatch/tcp-accept-refused
-OLD_FILES+=usr/libexec/dwatch/tcp-connect
-OLD_FILES+=usr/libexec/dwatch/tcp-connect-established
-OLD_FILES+=usr/libexec/dwatch/tcp-connect-refused
-OLD_FILES+=usr/libexec/dwatch/tcp-connect-request
-OLD_FILES+=usr/libexec/dwatch/tcp-established
-OLD_FILES+=usr/libexec/dwatch/tcp-init
-OLD_FILES+=usr/libexec/dwatch/tcp-io
-OLD_FILES+=usr/libexec/dwatch/tcp-receive
-OLD_FILES+=usr/libexec/dwatch/tcp-refused
-OLD_FILES+=usr/libexec/dwatch/tcp-send
-OLD_FILES+=usr/libexec/dwatch/tcp-state-change
-OLD_FILES+=usr/libexec/dwatch/tcp-status
-OLD_FILES+=usr/libexec/dwatch/udp
-OLD_FILES+=usr/libexec/dwatch/udp-receive
-OLD_FILES+=usr/libexec/dwatch/udp-send
-OLD_FILES+=usr/libexec/dwatch/udplite
-OLD_FILES+=usr/libexec/dwatch/udplite-receive
-OLD_FILES+=usr/libexec/dwatch/udplite-send
-OLD_FILES+=usr/libexec/dwatch/vop_create
-OLD_FILES+=usr/libexec/dwatch/vop_lookup
-OLD_FILES+=usr/libexec/dwatch/vop_mkdir
-OLD_FILES+=usr/libexec/dwatch/vop_mknod
-OLD_FILES+=usr/libexec/dwatch/vop_readdir
-OLD_FILES+=usr/libexec/dwatch/vop_remove
-OLD_FILES+=usr/libexec/dwatch/vop_rename
-OLD_FILES+=usr/libexec/dwatch/vop_rmdir
-OLD_FILES+=usr/libexec/dwatch/vop_symlink
-OLD_FILES+=usr/libexec/dwatch/write
-OLD_FILES+=usr/sbin/dtrace
-OLD_FILES+=usr/sbin/dwatch
-OLD_FILES+=usr/sbin/lockstat
-OLD_FILES+=usr/sbin/plockstat
-OLD_FILES+=usr/share/man/man1/dtrace.1.gz
-OLD_FILES+=usr/share/man/man1/dtruss.1.gz
-OLD_FILES+=usr/share/man/man1/lockstat.1.gz
-OLD_FILES+=usr/share/man/man1/plockstat.1.gz
-OLD_FILES+=usr/share/dtrace/blocking
-OLD_FILES+=usr/share/dtrace/disklatency
-OLD_FILES+=usr/share/dtrace/disklatencycmd
-OLD_FILES+=usr/share/dtrace/hotopen
-OLD_FILES+=usr/share/dtrace/nfsattrstats
-OLD_FILES+=usr/share/dtrace/nfsclienttime
-OLD_FILES+=usr/share/dtrace/siftr
-OLD_FILES+=usr/share/dtrace/toolkit/execsnoop
-OLD_FILES+=usr/share/dtrace/toolkit/hotkernel
-OLD_FILES+=usr/share/dtrace/toolkit/hotuser
-OLD_FILES+=usr/share/dtrace/toolkit/opensnoop
-OLD_FILES+=usr/share/dtrace/toolkit/procsystime
-OLD_FILES+=usr/share/dtrace/tcpconn
-OLD_FILES+=usr/share/dtrace/tcpdebug
-OLD_FILES+=usr/share/dtrace/tcpstate
-OLD_FILES+=usr/share/dtrace/tcptrack
-OLD_FILES+=usr/share/dtrace/udptrack
-OLD_FILES+=usr/share/man/man1/dtrace.1.gz
-OLD_DIRS+=usr/lib/dtrace
-.  for libcompat in ${_ALL_libcompats}
-OLD_DIRS+=usr/lib${libcompat}/dtrace
-.  endfor
-OLD_DIRS+=usr/libexec/dwatch
-OLD_DIRS+=usr/share/dtrace/toolkit
-OLD_DIRS+=usr/share/dtrace
-.endif
-
-.if ${MK_ZFS} == no
-OLD_FILES+=boot/gptzfsboot
-OLD_FILES+=boot/zfsboot
-OLD_FILES+=boot/zfsloader
-OLD_FILES+=etc/rc.d/zfs
-OLD_FILES+=etc/rc.d/zfsbe
-OLD_FILES+=etc/rc.d/zfsd
-OLD_FILES+=etc/rc.d/zfskeys
-OLD_FILES+=etc/rc.d/zvol
-OLD_FILES+=etc/devd/zfs.conf
-OLD_FILES+=etc/periodic/daily/404.status-zfs
-OLD_FILES+=etc/periodic/daily/800.scrub-zfs
-OLD_FILES+=etc/zfs/exports
-OLD_DIRS+=etc/zfs
-OLD_LIBS+=lib/libavl.so.2
-OLD_LIBS+=lib/libnvpair.so.2
-OLD_LIBS+=lib/libumem.so.2
-OLD_LIBS+=lib/libuutil.so.2
-OLD_LIBS+=lib/libzfs.so.2
-OLD_LIBS+=lib/libzfs.so.3
-OLD_LIBS+=lib/libzfs_core.so.2
-OLD_LIBS+=lib/libzpool.so.2
-OLD_FILES+=rescue/zdb
-OLD_FILES+=rescue/zfs
-OLD_FILES+=rescue/zpool
-OLD_FILES+=sbin/bectl
-OLD_FILES+=sbin/zfs
-OLD_FILES+=sbin/zpool
-OLD_FILES+=sbin/zfsbootcfg
-OLD_FILES+=usr/bin/zinject
-OLD_FILES+=usr/bin/zstreamdump
-OLD_FILES+=usr/bin/ztest
-OLD_FILES+=usr/lib/libbe.a
-OLD_FILES+=usr/lib/libbe_p.a
-OLD_FILES+=usr/lib/libbe.so
-OLD_LIBS+=lib/libbe.so.1
-OLD_FILES+=usr/lib/libavl.a
-OLD_FILES+=usr/lib/libavl.so
-OLD_FILES+=usr/lib/libavl_p.a
-OLD_FILES+=usr/lib/libnvpair.a
-OLD_FILES+=usr/lib/libnvpair.so
-OLD_FILES+=usr/lib/libnvpair_p.a
-OLD_FILES+=usr/lib/libumem.a
-OLD_FILES+=usr/lib/libumem.so
-OLD_FILES+=usr/lib/libumem_p.a
-OLD_FILES+=usr/lib/libuutil.a
-OLD_FILES+=usr/lib/libuutil.so
-OLD_FILES+=usr/lib/libuutil_p.a
-OLD_FILES+=usr/lib/libzfs.a
-OLD_FILES+=usr/lib/libzfs.so
-OLD_FILES+=usr/lib/libzfs_core.a
-OLD_FILES+=usr/lib/libzfs_core.so
-OLD_FILES+=usr/lib/libzfs_core_p.a
-OLD_FILES+=usr/lib/libzfs_p.a
-OLD_FILES+=usr/lib/libzpool.a
-OLD_FILES+=usr/lib/libzpool.so
-OLD_LIBS+=usr/lib/libzpool.so.2
-OLD_FILES+=usr/sbin/zfsd
-OLD_FILES+=usr/sbin/zhack
-OLD_FILES+=usr/sbin/zdb
-OLD_FILES+=usr/share/man/man3/be_activate.3.gz
-OLD_FILES+=usr/share/man/man3/be_active_name.3.gz
-OLD_FILES+=usr/share/man/man3/be_active_path.3.gz
-OLD_FILES+=usr/share/man/man3/be_create_depth.3.gz
-OLD_FILES+=usr/share/man/man3/be_create_from_existing_snap.3.gz
-OLD_FILES+=usr/share/man/man3/be_create_from_existing.3.gz
-OLD_FILES+=usr/share/man/man3/be_create.3.gz
-OLD_FILES+=usr/share/man/man3/be_deactivate.3.gz
-OLD_FILES+=usr/share/man/man3/be_destroy.3.gz
-OLD_FILES+=usr/share/man/man3/be_exists.3.gz
-OLD_FILES+=usr/share/man/man3/be_export.3.gz
-OLD_FILES+=usr/share/man/man3/be_get_bootenv_props.3.gz
-OLD_FILES+=usr/share/man/man3/be_get_dataset_props.3.gz
-OLD_FILES+=usr/share/man/man3/be_get_dataset_snapshots.3.gz
-OLD_FILES+=usr/share/man/man3/be_import.3.gz
-OLD_FILES+=usr/share/man/man3/be_is_auto_snapshot_name.3.gz
-OLD_FILES+=usr/share/man/man3/be_mount.3.gz
-OLD_FILES+=usr/share/man/man3/be_mounted_at.3.gz
-OLD_FILES+=usr/share/man/man3/be_nextboot_name.3.gz
-OLD_FILES+=usr/share/man/man3/be_nextboot_path.3.gz
-OLD_FILES+=usr/share/man/man3/be_nicenum.3.gz
-OLD_FILES+=usr/share/man/man3/be_prop_list_alloc.3.gz
-OLD_FILES+=usr/share/man/man3/be_prop_list_free.3.gz
-OLD_FILES+=usr/share/man/man3/be_rename.3.gz
-OLD_FILES+=usr/share/man/man3/be_root_concat.3.gz
-OLD_FILES+=usr/share/man/man3/be_root_path.3.gz
-OLD_FILES+=usr/share/man/man3/be_snapshot.3.gz
-OLD_FILES+=usr/share/man/man3/be_unmount.3.gz
-OLD_FILES+=usr/share/man/man3/be_validate_name.3.gz
-OLD_FILES+=usr/share/man/man3/be_validate_snap.3.gz
-OLD_FILES+=usr/share/man/man3/libbe_close.3.gz
-OLD_FILES+=usr/share/man/man3/libbe_errno.3.gz
-OLD_FILES+=usr/share/man/man3/libbe_error_description.3.gz
-OLD_FILES+=usr/share/man/man3/libbe_init.3.gz
-OLD_FILES+=usr/share/man/man3/libbe_print_on_error.3.gz
-OLD_FILES+=usr/share/man/man3/libbe.3.gz
-OLD_FILES+=usr/share/man/man5/zpool-features.5.gz
-OLD_FILES+=usr/share/man/man8/bectl.8.gz
-OLD_FILES+=usr/share/man/man8/gptzfsboot.8.gz
-OLD_FILES+=usr/share/man/man8/zdb.8.gz
-OLD_FILES+=usr/share/man/man8/zfs-program.8.gz
-OLD_FILES+=usr/share/man/man8/zfs.8.gz
-OLD_FILES+=usr/share/man/man8/zfsboot.8.gz
-OLD_FILES+=usr/share/man/man8/zfsbootcfg.8.gz
-OLD_FILES+=usr/share/man/man8/zfsd.8.gz
-OLD_FILES+=usr/share/man/man8/zfsloader.8.gz
-OLD_FILES+=usr/share/man/man8/zpool.8.gz
 .endif
 
 .if ${MK_CLANG} == no && ${MK_LLVM_BINUTILS} == no
@@ -1629,32 +1366,6 @@ OLD_FILES+=usr/share/man/man3/dialog.3.gz
 OLD_FILES+=usr/share/man/man3/dpv.3.gz
 .endif
 
-.if ${MK_EFI} == no
-OLD_FILES+=usr/sbin/efibootmgr
-OLD_FILES+=usr/sbin/efidp
-OLD_FILES+=usr/sbin/efivar
-OLD_FILES+=usr/sbin/uefisign
-OLD_FILES+=usr/share/examples/uefisign/uefikeys
-.endif
-
-.if ${MK_FTP} == no
-OLD_FILES+=etc/ftpusers
-OLD_FILES+=etc/newsyslog.conf.d/ftp.conf
-OLD_FILES+=etc/pam.d/ftp
-OLD_FILES+=etc/pam.d/ftpd
-OLD_FILES+=etc/rc.d/ftpd
-OLD_FILES+=etc/syslog.d/ftp.conf
-OLD_FILES+=usr/bin/ftp
-OLD_FILES+=usr/bin/gate-ftp
-OLD_FILES+=usr/bin/pftp
-OLD_FILES+=usr/libexec/ftpd
-OLD_FILES+=usr/share/man/man1/ftp.1.gz
-OLD_FILES+=usr/share/man/man1/gate-ftp.1.gz
-OLD_FILES+=usr/share/man/man1/pftp.1.gz
-OLD_FILES+=usr/share/man/man5/ftpchroot.5.gz
-OLD_FILES+=usr/share/man/man8/ftpd.8.gz
-.endif
-
 .if ${MK_DICT} == no
 OLD_FILES+=usr/share/dict/README
 OLD_FILES+=usr/share/dict/freebsd
@@ -1676,6 +1387,157 @@ OLD_FILES+=usr/share/examples/dma/mailer.conf
 OLD_DIRS+=usr/share/examples/dma
 .endif
 
+.if ${MK_DTRACE} == no
+OLD_LIBS+=lib/libctf.so.2
+OLD_LIBS+=lib/libdtrace.so.2
+OLD_FILES+=usr/bin/ctfconvert
+OLD_FILES+=usr/bin/ctfdump
+OLD_FILES+=usr/bin/ctfmerge
+OLD_FILES+=usr/lib/dtrace/drti.o
+OLD_FILES+=usr/lib/dtrace/errno.d
+OLD_FILES+=usr/lib/dtrace/io.d
+OLD_FILES+=usr/lib/dtrace/ip.d
+OLD_FILES+=usr/lib/dtrace/ipfw.d
+OLD_FILES+=usr/lib/dtrace/mbuf.d
+OLD_FILES+=usr/lib/dtrace/psinfo.d
+.if ${TARGET_ARCH} == "amd64" || ${TARGET_ARCH} == "i386"
+OLD_FILES+=usr/lib/dtrace/regs_x86.d
+.endif
+OLD_FILES+=usr/lib/dtrace/sctp.d
+OLD_FILES+=usr/lib/dtrace/siftr.d
+OLD_FILES+=usr/lib/dtrace/signal.d
+OLD_FILES+=usr/lib/dtrace/socket.d
+OLD_FILES+=usr/lib/dtrace/tcp.d
+OLD_FILES+=usr/lib/dtrace/udp.d
+OLD_FILES+=usr/lib/dtrace/udplite.d
+OLD_FILES+=usr/lib/dtrace/unistd.d
+OLD_FILES+=usr/lib/libctf.a
+OLD_FILES+=usr/lib/libctf.so
+OLD_FILES+=usr/lib/libctf_p.a
+OLD_FILES+=usr/lib/libdtrace.a
+OLD_FILES+=usr/lib/libdtrace.so
+OLD_FILES+=usr/lib/libdtrace_p.a
+OLD_LIBS+=lib/libdtrace.so.2
+OLD_FILES+=usr/libexec/dwatch/chmod
+OLD_FILES+=usr/libexec/dwatch/errno
+OLD_FILES+=usr/libexec/dwatch/fchmodat
+OLD_FILES+=usr/libexec/dwatch/io
+OLD_FILES+=usr/libexec/dwatch/io-done
+OLD_FILES+=usr/libexec/dwatch/io-start
+OLD_FILES+=usr/libexec/dwatch/ip
+OLD_FILES+=usr/libexec/dwatch/ip-receive
+OLD_FILES+=usr/libexec/dwatch/ip-send
+OLD_FILES+=usr/libexec/dwatch/kill
+OLD_FILES+=usr/libexec/dwatch/lchmod
+OLD_FILES+=usr/libexec/dwatch/nanosleep
+OLD_FILES+=usr/libexec/dwatch/open
+OLD_FILES+=usr/libexec/dwatch/openat
+OLD_FILES+=usr/libexec/dwatch/proc
+OLD_FILES+=usr/libexec/dwatch/proc-create
+OLD_FILES+=usr/libexec/dwatch/proc-exec
+OLD_FILES+=usr/libexec/dwatch/proc-exec-failure
+OLD_FILES+=usr/libexec/dwatch/proc-exec-success
+OLD_FILES+=usr/libexec/dwatch/proc-exit
+OLD_FILES+=usr/libexec/dwatch/proc-signal
+OLD_FILES+=usr/libexec/dwatch/proc-signal-clear
+OLD_FILES+=usr/libexec/dwatch/proc-signal-discard
+OLD_FILES+=usr/libexec/dwatch/proc-signal-send
+OLD_FILES+=usr/libexec/dwatch/proc-status
+OLD_FILES+=usr/libexec/dwatch/read
+OLD_FILES+=usr/libexec/dwatch/recv
+OLD_FILES+=usr/libexec/dwatch/recvfrom
+OLD_FILES+=usr/libexec/dwatch/recvmsg
+OLD_FILES+=usr/libexec/dwatch/rw
+OLD_FILES+=usr/libexec/dwatch/sched
+OLD_FILES+=usr/libexec/dwatch/sched-change-pri
+OLD_FILES+=usr/libexec/dwatch/sched-cpu
+OLD_FILES+=usr/libexec/dwatch/sched-dequeue
+OLD_FILES+=usr/libexec/dwatch/sched-enqueue
+OLD_FILES+=usr/libexec/dwatch/sched-exec
+OLD_FILES+=usr/libexec/dwatch/sched-lend-pri
+OLD_FILES+=usr/libexec/dwatch/sched-load-change
+OLD_FILES+=usr/libexec/dwatch/sched-off-cpu
+OLD_FILES+=usr/libexec/dwatch/sched-on-cpu
+OLD_FILES+=usr/libexec/dwatch/sched-preempt
+OLD_FILES+=usr/libexec/dwatch/sched-pri
+OLD_FILES+=usr/libexec/dwatch/sched-queue
+OLD_FILES+=usr/libexec/dwatch/sched-remain-cpu
+OLD_FILES+=usr/libexec/dwatch/sched-sleep
+OLD_FILES+=usr/libexec/dwatch/sched-surrender
+OLD_FILES+=usr/libexec/dwatch/sched-tick
+OLD_FILES+=usr/libexec/dwatch/sched-wakeup
+OLD_FILES+=usr/libexec/dwatch/send
+OLD_FILES+=usr/libexec/dwatch/sendmsg
+OLD_FILES+=usr/libexec/dwatch/sendrecv
+OLD_FILES+=usr/libexec/dwatch/sendto
+OLD_FILES+=usr/libexec/dwatch/systop
+OLD_FILES+=usr/libexec/dwatch/tcp
+OLD_FILES+=usr/libexec/dwatch/tcp-accept
+OLD_FILES+=usr/libexec/dwatch/tcp-accept-established
+OLD_FILES+=usr/libexec/dwatch/tcp-accept-refused
+OLD_FILES+=usr/libexec/dwatch/tcp-connect
+OLD_FILES+=usr/libexec/dwatch/tcp-connect-established
+OLD_FILES+=usr/libexec/dwatch/tcp-connect-refused
+OLD_FILES+=usr/libexec/dwatch/tcp-connect-request
+OLD_FILES+=usr/libexec/dwatch/tcp-established
+OLD_FILES+=usr/libexec/dwatch/tcp-init
+OLD_FILES+=usr/libexec/dwatch/tcp-io
+OLD_FILES+=usr/libexec/dwatch/tcp-receive
+OLD_FILES+=usr/libexec/dwatch/tcp-refused
+OLD_FILES+=usr/libexec/dwatch/tcp-send
+OLD_FILES+=usr/libexec/dwatch/tcp-state-change
+OLD_FILES+=usr/libexec/dwatch/tcp-status
+OLD_FILES+=usr/libexec/dwatch/udp
+OLD_FILES+=usr/libexec/dwatch/udp-receive
+OLD_FILES+=usr/libexec/dwatch/udp-send
+OLD_FILES+=usr/libexec/dwatch/udplite
+OLD_FILES+=usr/libexec/dwatch/udplite-receive
+OLD_FILES+=usr/libexec/dwatch/udplite-send
+OLD_FILES+=usr/libexec/dwatch/vop_create
+OLD_FILES+=usr/libexec/dwatch/vop_lookup
+OLD_FILES+=usr/libexec/dwatch/vop_mkdir
+OLD_FILES+=usr/libexec/dwatch/vop_mknod
+OLD_FILES+=usr/libexec/dwatch/vop_readdir
+OLD_FILES+=usr/libexec/dwatch/vop_remove
+OLD_FILES+=usr/libexec/dwatch/vop_rename
+OLD_FILES+=usr/libexec/dwatch/vop_rmdir
+OLD_FILES+=usr/libexec/dwatch/vop_symlink
+OLD_FILES+=usr/libexec/dwatch/write
+OLD_FILES+=usr/sbin/dtrace
+OLD_FILES+=usr/sbin/dwatch
+OLD_FILES+=usr/sbin/lockstat
+OLD_FILES+=usr/sbin/plockstat
+OLD_FILES+=usr/share/man/man1/dtrace.1.gz
+OLD_FILES+=usr/share/man/man1/dtruss.1.gz
+OLD_FILES+=usr/share/man/man1/lockstat.1.gz
+OLD_FILES+=usr/share/man/man1/plockstat.1.gz
+OLD_FILES+=usr/share/dtrace/blocking
+OLD_FILES+=usr/share/dtrace/disklatency
+OLD_FILES+=usr/share/dtrace/disklatencycmd
+OLD_FILES+=usr/share/dtrace/hotopen
+OLD_FILES+=usr/share/dtrace/nfsattrstats
+OLD_FILES+=usr/share/dtrace/nfsclienttime
+OLD_FILES+=usr/share/dtrace/siftr
+OLD_FILES+=usr/share/dtrace/toolkit/execsnoop
+OLD_FILES+=usr/share/dtrace/toolkit/hotkernel
+OLD_FILES+=usr/share/dtrace/toolkit/hotuser
+OLD_FILES+=usr/share/dtrace/toolkit/opensnoop
+OLD_FILES+=usr/share/dtrace/toolkit/procsystime
+OLD_FILES+=usr/share/dtrace/tcpconn
+OLD_FILES+=usr/share/dtrace/tcpdebug
+OLD_FILES+=usr/share/dtrace/tcpstate
+OLD_FILES+=usr/share/dtrace/tcptrack
+OLD_FILES+=usr/share/dtrace/udptrack
+OLD_FILES+=usr/share/man/man1/dtrace.1.gz
+OLD_DIRS+=usr/lib/dtrace
+.  for libcompat in ${_ALL_libcompats}
+OLD_DIRS+=usr/lib${libcompat}/dtrace
+.  endfor
+OLD_DIRS+=usr/libexec/dwatch
+OLD_DIRS+=usr/share/dtrace/toolkit
+OLD_DIRS+=usr/share/dtrace
+.endif
+
 .if ${MK_EE} == no
 OLD_FILES+=usr/bin/edit
 OLD_FILES+=usr/bin/ee
@@ -1691,6 +1553,14 @@ OLD_FILES+=usr/share/nls/pl_PL.ISO8859-2/ee.cat
 OLD_FILES+=usr/share/nls/pt_BR.ISO8859-1/ee.cat
 OLD_FILES+=usr/share/nls/ru_RU.KOI8-R/ee.cat
 OLD_FILES+=usr/share/nls/uk_UA.KOI8-U/ee.cat
+.endif
+
+.if ${MK_EFI} == no
+OLD_FILES+=usr/sbin/efibootmgr
+OLD_FILES+=usr/sbin/efidp
+OLD_FILES+=usr/sbin/efivar
+OLD_FILES+=usr/sbin/uefisign
+OLD_FILES+=usr/share/examples/uefisign/uefikeys
 .endif
 
 .if ${MK_EXAMPLES} == no
@@ -2054,6 +1924,24 @@ OLD_FILES+=usr/libexec/phttpget
 OLD_FILES+=usr/share/man/man8/phttpget.8.gz
 .endif
 
+.if ${MK_FTP} == no
+OLD_FILES+=etc/ftpusers
+OLD_FILES+=etc/newsyslog.conf.d/ftp.conf
+OLD_FILES+=etc/pam.d/ftp
+OLD_FILES+=etc/pam.d/ftpd
+OLD_FILES+=etc/rc.d/ftpd
+OLD_FILES+=etc/syslog.d/ftp.conf
+OLD_FILES+=usr/bin/ftp
+OLD_FILES+=usr/bin/gate-ftp
+OLD_FILES+=usr/bin/pftp
+OLD_FILES+=usr/libexec/ftpd
+OLD_FILES+=usr/share/man/man1/ftp.1.gz
+OLD_FILES+=usr/share/man/man1/gate-ftp.1.gz
+OLD_FILES+=usr/share/man/man1/pftp.1.gz
+OLD_FILES+=usr/share/man/man5/ftpchroot.5.gz
+OLD_FILES+=usr/share/man/man8/ftpd.8.gz
+.endif
+
 .if ${MK_GAMES} == no
 OLD_FILES+=usr/bin/caesar
 OLD_FILES+=usr/bin/factor
@@ -2099,24 +1987,17 @@ OLD_FILES+=usr/share/man/man8/strfile.8.gz
 OLD_FILES+=usr/share/man/man8/unstr.8.gz
 .endif
 
-.if ${MK_LLVM_COV} == no
-OLD_FILES+=usr/bin/gcov
-OLD_FILES+=usr/share/man/man1/gcov.1.gz
-.endif
-
-.if ${MK_LLVM_COV} == no
-OLD_FILES+=usr/bin/llvm-cov
-OLD_FILES+=usr/bin/llvm-profdata
-OLD_FILES+=usr/share/man/man1/llvm-cov.1.gz
-OLD_FILES+=usr/share/man/man1/llvm-profdata.1.gz
-.endif
-
 .if ${MK_GH_BC} == no
 OLD_FILES+=usr/share/misc/bc.library
 OLD_FILES+=usr/tests/usr.bin/dc/Kyuafile
 OLD_FILES+=usr/tests/usr.bin/dc/bcode
 OLD_FILES+=usr/tests/usr.bin/dc/inout
 OLD_DIRS+=usr/tests/usr.bin/dc
+.endif
+
+.if ${MK_GNU_DIFF} == no
+OLD_FILES+=usr/bin/diff3
+OLD_FILES+=usr/share/man/man1/diff3.1.gz
 .endif
 
 .if ${MK_GOOGLETEST} == no
@@ -2272,11 +2153,6 @@ OLD_FILES+=usr/share/man/man3/gpio_pin_set.3.gz
 OLD_FILES+=usr/share/man/man3/gpio_pin_set_flags.3.gz
 OLD_FILES+=usr/share/man/man3/gpio_pin_tristate.3.gz
 OLD_FILES+=usr/share/man/man8/gpioctl.8.gz
-.endif
-
-.if ${MK_GNU_DIFF} == no
-OLD_FILES+=usr/bin/diff3
-OLD_FILES+=usr/share/man/man1/diff3.1.gz
 .endif
 
 .if ${MK_GSSAPI} == no
@@ -2451,6 +2327,16 @@ OLD_FILES+=usr/share/doc/ntp/rdebug.html
 OLD_FILES+=usr/share/doc/ntp/refclock.html
 OLD_FILES+=usr/share/doc/ntp/release.html
 OLD_FILES+=usr/share/doc/ntp/tickadj.html
+.endif
+
+.if ${MK_HYPERV} == no
+OLD_FILES+=etc/devd/hyperv.conf
+OLD_FILES+=usr/libexec/hyperv/hv_set_ifconfig
+OLD_FILES+=usr/libexec/hyperv/hv_get_dns_info
+OLD_FILES+=usr/libexec/hyperv/hv_get_dhcp_info
+OLD_FILES+=usr/sbin/hv_kvp_daemon
+OLD_FILES+=usr/sbin/hv_vss_daemon
+OLD_FILES+=usr/share/man/man8/hv_kvp_daemon.8.gz
 .endif
 
 .if ${MK_ICONV} == no
@@ -3722,6 +3608,15 @@ OLD_FILES+=usr/bin/lldb
 OLD_FILES+=usr/bin/lldb-server
 OLD_FILES+=usr/share/man/man1/lldb-server.1.gz
 OLD_FILES+=usr/share/man/man1/lldb.1.gz
+.endif
+
+.if ${MK_LLVM_COV} == no
+OLD_FILES+=usr/bin/gcov
+OLD_FILES+=usr/bin/llvm-cov
+OLD_FILES+=usr/bin/llvm-profdata
+OLD_FILES+=usr/share/man/man1/gcov.1.gz
+OLD_FILES+=usr/share/man/man1/llvm-cov.1.gz
+OLD_FILES+=usr/share/man/man1/llvm-profdata.1.gz
 .endif
 
 .if ${MK_LOCALES} == no
@@ -5594,6 +5489,11 @@ OLD_FILES+=usr/share/snmp/defs/netgraph_tree.def
 OLD_FILES+=usr/share/snmp/mibs/BEGEMOT-NETGRAPH.txt
 .endif
 
+.if ${MK_NETLINK} == no
+OLD_FILES+=usr.bin/genl
+OLD_FILES+=usr/share/man/man1/genl.1.gz
+.endif
+
 .if ${MK_NIS} == no
 OLD_FILES+=etc/rc.d/ypbind
 OLD_FILES+=etc/rc.d/ypldap
@@ -5656,11 +5556,6 @@ OLD_FILES+=usr/share/man/man8/ypxfr.8.gz
 OLD_FILES+=var/yp/Makefile
 OLD_FILES+=var/yp/Makefile.dist
 OLD_DIRS+=var/yp
-.endif
-
-.if ${MK_NETLINK} == no
-OLD_FILES+=usr.bin/genl
-OLD_FILES+=usr/share/man/man1/genl.1.gz
 .endif
 
 .if ${MK_NLS} == no
@@ -9166,14 +9061,113 @@ OLD_FILES+=usr/share/snmp/defs/wlan_tree.def
 OLD_FILES+=usr/share/snmp/mibs/BEGEMOT-WIRELESS-MIB.txt
 .endif
 
-.if ${MK_HYPERV} == no
-OLD_FILES+=etc/devd/hyperv.conf
-OLD_FILES+=usr/libexec/hyperv/hv_set_ifconfig
-OLD_FILES+=usr/libexec/hyperv/hv_get_dns_info
-OLD_FILES+=usr/libexec/hyperv/hv_get_dhcp_info
-OLD_FILES+=usr/sbin/hv_kvp_daemon
-OLD_FILES+=usr/sbin/hv_vss_daemon
-OLD_FILES+=usr/share/man/man8/hv_kvp_daemon.8.gz
+.if ${MK_ZFS} == no
+OLD_FILES+=boot/gptzfsboot
+OLD_FILES+=boot/zfsboot
+OLD_FILES+=boot/zfsloader
+OLD_FILES+=etc/rc.d/zfs
+OLD_FILES+=etc/rc.d/zfsbe
+OLD_FILES+=etc/rc.d/zfsd
+OLD_FILES+=etc/rc.d/zfskeys
+OLD_FILES+=etc/rc.d/zvol
+OLD_FILES+=etc/devd/zfs.conf
+OLD_FILES+=etc/periodic/daily/404.status-zfs
+OLD_FILES+=etc/periodic/daily/800.scrub-zfs
+OLD_FILES+=etc/zfs/exports
+OLD_DIRS+=etc/zfs
+OLD_LIBS+=lib/libavl.so.2
+OLD_LIBS+=lib/libnvpair.so.2
+OLD_LIBS+=lib/libumem.so.2
+OLD_LIBS+=lib/libuutil.so.2
+OLD_LIBS+=lib/libzfs.so.2
+OLD_LIBS+=lib/libzfs.so.3
+OLD_LIBS+=lib/libzfs_core.so.2
+OLD_LIBS+=lib/libzpool.so.2
+OLD_FILES+=rescue/zdb
+OLD_FILES+=rescue/zfs
+OLD_FILES+=rescue/zpool
+OLD_FILES+=sbin/bectl
+OLD_FILES+=sbin/zfs
+OLD_FILES+=sbin/zpool
+OLD_FILES+=sbin/zfsbootcfg
+OLD_FILES+=usr/bin/zinject
+OLD_FILES+=usr/bin/zstreamdump
+OLD_FILES+=usr/bin/ztest
+OLD_FILES+=usr/lib/libbe.a
+OLD_FILES+=usr/lib/libbe_p.a
+OLD_FILES+=usr/lib/libbe.so
+OLD_LIBS+=lib/libbe.so.1
+OLD_FILES+=usr/lib/libavl.a
+OLD_FILES+=usr/lib/libavl.so
+OLD_FILES+=usr/lib/libavl_p.a
+OLD_FILES+=usr/lib/libnvpair.a
+OLD_FILES+=usr/lib/libnvpair.so
+OLD_FILES+=usr/lib/libnvpair_p.a
+OLD_FILES+=usr/lib/libumem.a
+OLD_FILES+=usr/lib/libumem.so
+OLD_FILES+=usr/lib/libumem_p.a
+OLD_FILES+=usr/lib/libuutil.a
+OLD_FILES+=usr/lib/libuutil.so
+OLD_FILES+=usr/lib/libuutil_p.a
+OLD_FILES+=usr/lib/libzfs.a
+OLD_FILES+=usr/lib/libzfs.so
+OLD_FILES+=usr/lib/libzfs_core.a
+OLD_FILES+=usr/lib/libzfs_core.so
+OLD_FILES+=usr/lib/libzfs_core_p.a
+OLD_FILES+=usr/lib/libzfs_p.a
+OLD_FILES+=usr/lib/libzpool.a
+OLD_FILES+=usr/lib/libzpool.so
+OLD_LIBS+=usr/lib/libzpool.so.2
+OLD_FILES+=usr/sbin/zfsd
+OLD_FILES+=usr/sbin/zhack
+OLD_FILES+=usr/sbin/zdb
+OLD_FILES+=usr/share/man/man3/be_activate.3.gz
+OLD_FILES+=usr/share/man/man3/be_active_name.3.gz
+OLD_FILES+=usr/share/man/man3/be_active_path.3.gz
+OLD_FILES+=usr/share/man/man3/be_create_depth.3.gz
+OLD_FILES+=usr/share/man/man3/be_create_from_existing_snap.3.gz
+OLD_FILES+=usr/share/man/man3/be_create_from_existing.3.gz
+OLD_FILES+=usr/share/man/man3/be_create.3.gz
+OLD_FILES+=usr/share/man/man3/be_deactivate.3.gz
+OLD_FILES+=usr/share/man/man3/be_destroy.3.gz
+OLD_FILES+=usr/share/man/man3/be_exists.3.gz
+OLD_FILES+=usr/share/man/man3/be_export.3.gz
+OLD_FILES+=usr/share/man/man3/be_get_bootenv_props.3.gz
+OLD_FILES+=usr/share/man/man3/be_get_dataset_props.3.gz
+OLD_FILES+=usr/share/man/man3/be_get_dataset_snapshots.3.gz
+OLD_FILES+=usr/share/man/man3/be_import.3.gz
+OLD_FILES+=usr/share/man/man3/be_is_auto_snapshot_name.3.gz
+OLD_FILES+=usr/share/man/man3/be_mount.3.gz
+OLD_FILES+=usr/share/man/man3/be_mounted_at.3.gz
+OLD_FILES+=usr/share/man/man3/be_nextboot_name.3.gz
+OLD_FILES+=usr/share/man/man3/be_nextboot_path.3.gz
+OLD_FILES+=usr/share/man/man3/be_nicenum.3.gz
+OLD_FILES+=usr/share/man/man3/be_prop_list_alloc.3.gz
+OLD_FILES+=usr/share/man/man3/be_prop_list_free.3.gz
+OLD_FILES+=usr/share/man/man3/be_rename.3.gz
+OLD_FILES+=usr/share/man/man3/be_root_concat.3.gz
+OLD_FILES+=usr/share/man/man3/be_root_path.3.gz
+OLD_FILES+=usr/share/man/man3/be_snapshot.3.gz
+OLD_FILES+=usr/share/man/man3/be_unmount.3.gz
+OLD_FILES+=usr/share/man/man3/be_validate_name.3.gz
+OLD_FILES+=usr/share/man/man3/be_validate_snap.3.gz
+OLD_FILES+=usr/share/man/man3/libbe_close.3.gz
+OLD_FILES+=usr/share/man/man3/libbe_errno.3.gz
+OLD_FILES+=usr/share/man/man3/libbe_error_description.3.gz
+OLD_FILES+=usr/share/man/man3/libbe_init.3.gz
+OLD_FILES+=usr/share/man/man3/libbe_print_on_error.3.gz
+OLD_FILES+=usr/share/man/man3/libbe.3.gz
+OLD_FILES+=usr/share/man/man5/zpool-features.5.gz
+OLD_FILES+=usr/share/man/man8/bectl.8.gz
+OLD_FILES+=usr/share/man/man8/gptzfsboot.8.gz
+OLD_FILES+=usr/share/man/man8/zdb.8.gz
+OLD_FILES+=usr/share/man/man8/zfs-program.8.gz
+OLD_FILES+=usr/share/man/man8/zfs.8.gz
+OLD_FILES+=usr/share/man/man8/zfsboot.8.gz
+OLD_FILES+=usr/share/man/man8/zfsbootcfg.8.gz
+OLD_FILES+=usr/share/man/man8/zfsd.8.gz
+OLD_FILES+=usr/share/man/man8/zfsloader.8.gz
+OLD_FILES+=usr/share/man/man8/zpool.8.gz
 .endif
 
 .if ${MK_ZONEINFO} == no
