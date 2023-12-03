@@ -76,6 +76,7 @@ CWARNEXTRA+=	-Wno-error=packed-not-aligned
 .endif
 .if ${COMPILER_VERSION} >= 90100
 CWARNEXTRA+=	-Wno-address-of-packed-member			\
+		-Wno-alloc-size-larger-than			\
 		-Wno-error=alloca-larger-than=
 .if ${COMPILER_VERSION} >= 120100
 CWARNEXTRA+=	-Wno-error=nonnull				\
@@ -140,6 +141,8 @@ INLINE_LIMIT?=	8000
 CFLAGS += -mgeneral-regs-only
 # Reserve x18 for pcpu data
 CFLAGS += -ffixed-x18
+# Build with BTI+PAC
+CFLAGS += -mbranch-protection=standard
 INLINE_LIMIT?=	8000
 .endif
 
@@ -271,7 +274,7 @@ PHONY_NOTMAIN = afterdepend afterinstall all beforedepend beforeinstall \
 .PHONY: ${PHONY_NOTMAIN}
 .NOTMAIN: ${PHONY_NOTMAIN}
 
-CSTD=		gnu99
+CSTD?=		gnu99
 
 .if ${CSTD} == "k&r"
 CFLAGS+=        -traditional

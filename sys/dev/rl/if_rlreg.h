@@ -194,6 +194,7 @@
 #define	RL_HWREV_8168EP		0x50000000
 #define	RL_HWREV_8168GU		0x50800000
 #define	RL_HWREV_8168H		0x54000000
+#define	RL_HWREV_8168FP		0x54800000
 #define	RL_HWREV_8411B		0x5C800000
 #define	RL_HWREV_8139		0x60000000
 #define	RL_HWREV_8139A		0x70000000
@@ -991,6 +992,7 @@ struct rl_softc {
 /*
  * RealTek chip device IDs.
  */
+#define	RT_DEVICEID_2600          		0x2600
 #define	RT_DEVICEID_8139D			0x8039
 #define	RT_DEVICEID_8129			0x8129
 #define	RT_DEVICEID_8101E			0x8136

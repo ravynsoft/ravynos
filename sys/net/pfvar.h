@@ -900,7 +900,10 @@ struct pf_state_scrub {
 #define PFSS_DATA_NOTS	0x0080		/* no timestamp on data packets	*/
 	u_int8_t	pfss_ttl;	/* stashed TTL			*/
 	u_int8_t	pad;
-	u_int32_t	pfss_ts_mod;	/* timestamp modulation		*/
+	union {
+		u_int32_t	pfss_ts_mod;	/* timestamp modulation		*/
+		u_int32_t	pfss_v_tag;	/* SCTP verification tag	*/
+	};
 };
 
 struct pf_state_host {
@@ -1531,6 +1534,9 @@ struct pfi_kkif {
 #define PFI_IFLAG_SKIP		0x0100	/* skip filtering on interface */
 
 #ifdef _KERNEL
+struct pf_sctp_multihome_job;
+TAILQ_HEAD(pf_sctp_multihome_jobs, pf_sctp_multihome_job);
+
 struct pf_pdesc {
 	struct {
 		int	 done;
@@ -1574,14 +1580,31 @@ struct pf_pdesc {
 #define PFDESC_SCTP_INIT	0x0001
 #define PFDESC_SCTP_INIT_ACK	0x0002
 #define PFDESC_SCTP_COOKIE	0x0004
-#define PFDESC_SCTP_ABORT	0x0008
-#define PFDESC_SCTP_SHUTDOWN	0x0010
-#define PFDESC_SCTP_SHUTDOWN_COMPLETE	0x0020
-#define PFDESC_SCTP_DATA	0x0040
-#define PFDESC_SCTP_OTHER	0x0080
+#define PFDESC_SCTP_COOKIE_ACK	0x0008
+#define PFDESC_SCTP_ABORT	0x0010
+#define PFDESC_SCTP_SHUTDOWN	0x0020
+#define PFDESC_SCTP_SHUTDOWN_COMPLETE	0x0040
+#define PFDESC_SCTP_DATA	0x0080
+#define PFDESC_SCTP_ASCONF	0x0100
+#define PFDESC_SCTP_HEARTBEAT	0x0200
+#define PFDESC_SCTP_HEARTBEAT_ACK	0x0400
+#define PFDESC_SCTP_OTHER	0x0800
+#define PFDESC_SCTP_ADD_IP	0x1000
 	u_int16_t	 sctp_flags;
 	u_int32_t	 sctp_initiate_tag;
+
+	struct pf_sctp_multihome_jobs	sctp_multihome_jobs;
 };
+
+struct pf_sctp_multihome_job {
+	TAILQ_ENTRY(pf_sctp_multihome_job)	next;
+	struct pf_pdesc				 pd;
+	struct pf_addr				 src;
+	struct pf_addr				 dst;
+	struct mbuf				*m;
+	int					 op;
+};
+
 #endif
 
 /* flags for RDR options */
@@ -1750,6 +1773,7 @@ struct pf_kstate_kill {
 	char			psk_label[PF_RULE_LABEL_SIZE];
 	u_int			psk_killed;
 	bool			psk_kill_match;
+	bool			psk_nat;
 };
 #endif
 
@@ -1931,7 +1955,9 @@ struct pfioc_iface {
 #define DIOCCLRSTATUS	_IO  ('D', 22)
 #define DIOCNATLOOK	_IOWR('D', 23, struct pfioc_natlook)
 #define DIOCSETDEBUG	_IOWR('D', 24, u_int32_t)
+#ifdef COMPAT_FREEBSD14
 #define DIOCGETSTATES	_IOWR('D', 25, struct pfioc_states)
+#endif
 #define DIOCCHANGERULE	_IOWR('D', 26, struct pfioc_rule)
 /* XXX cut 26 - 28 */
 #define DIOCSETTIMEOUT	_IOWR('D', 29, struct pfioc_tm)
@@ -1992,7 +2018,9 @@ struct pfioc_iface {
 #define	DIOCKILLSRCNODES	_IOWR('D', 91, struct pfioc_src_node_kill)
 #define	DIOCGIFSPEEDV0	_IOWR('D', 92, struct pf_ifspeed_v0)
 #define	DIOCGIFSPEEDV1	_IOWR('D', 92, struct pf_ifspeed_v1)
+#ifdef COMPAT_FREEBSD14
 #define DIOCGETSTATESV2	_IOWR('D', 93, struct pfioc_states_v2)
+#endif
 #define	DIOCGETSYNCOOKIES	_IOWR('D', 94, struct pfioc_nv)
 #define	DIOCSETSYNCOOKIES	_IOWR('D', 95, struct pfioc_nv)
 #define	DIOCKEEPCOUNTERS	_IOWR('D', 96, struct pfioc_nv)
@@ -2142,6 +2170,8 @@ VNET_DECLARE(struct pf_krule *, pf_rulemarker);
 #define V_pf_rulemarker     VNET(pf_rulemarker)
 #endif
 
+int				 pf_start(void);
+int				 pf_stop(void);
 void				 pf_initialize(void);
 void				 pf_mtag_initialize(void);
 void				 pf_mtag_cleanup(void);
@@ -2249,6 +2279,11 @@ void	pf_addr_inc(struct pf_addr *, sa_family_t);
 int	pf_refragment6(struct ifnet *, struct mbuf **, struct m_tag *, bool);
 #endif /* INET6 */
 
+int	pf_multihome_scan_init(struct mbuf *, int, int, struct pf_pdesc *,
+	    struct pfi_kkif *);
+int	pf_multihome_scan_asconf(struct mbuf *, int, int, struct pf_pdesc *,
+	    struct pfi_kkif *);
+
 u_int32_t	pf_new_isn(struct pf_kstate *);
 void   *pf_pull_hdr(struct mbuf *, int, void *, int, u_short *, u_short *,
 	    sa_family_t);
@@ -2277,6 +2312,8 @@ int	pf_normalize_tcp_init(struct mbuf *, int, struct pf_pdesc *,
 int	pf_normalize_tcp_stateful(struct mbuf *, int, struct pf_pdesc *,
 	    u_short *, struct tcphdr *, struct pf_kstate *,
 	    struct pf_state_peer *, struct pf_state_peer *, int *);
+int	pf_normalize_sctp_init(struct mbuf *, int, struct pf_pdesc *,
+	    struct pf_state_peer *, struct pf_state_peer *);
 int	pf_normalize_sctp(int, struct pfi_kkif *, struct mbuf *, int,
 	    int, void *, struct pf_pdesc *);
 u_int32_t
@@ -2435,6 +2472,10 @@ int			 pf_keth_anchor_nvcopyout(
 			    const struct pf_keth_rule *, nvlist_t *);
 struct pf_keth_ruleset	*pf_find_or_create_keth_ruleset(const char *);
 void			 pf_keth_anchor_remove(struct pf_keth_rule *);
+
+int			 pf_ioctl_addrule(struct pf_krule *, uint32_t,
+			    uint32_t, const char *, const char *, uid_t uid,
+			    pid_t);
 
 void			 pf_krule_free(struct pf_krule *);
 #endif

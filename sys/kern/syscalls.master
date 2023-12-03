@@ -34,6 +34,7 @@
 ;	COMPAT11 included on COMPAT_FREEBSD11 #ifdef (FreeBSD 11 compat)
 ;	COMPAT12 included on COMPAT_FREEBSD12 #ifdef (FreeBSD 12 compat)
 ;	COMPAT13 included on COMPAT_FREEBSD13 #ifdef (FreeBSD 13 compat)
+;	COMPAT14 included on COMPAT_FREEBSD14 #ifdef (FreeBSD 14 compat)
 ;	OBSOL	obsolete, not included in system, only specifies name
 ;	RESERVED reserved for local or vendor use (not for FreeBSD)
 ;	UNIMPL	not implemented, placeholder only
@@ -1005,7 +1006,7 @@
 		    int fd,
 		    _Out_writes_bytes_(count) char *buf,
 		    u_int count,
-		    _Out_ long *basep
+		    _Out_opt_ long *basep
 		);
 	}
 157	AUE_STATFS	COMPAT4 {
@@ -1191,7 +1192,7 @@
 		    int fd,
 		    _Out_writes_bytes_(count) char *buf,
 		    u_int count,
-		    _Out_ long *basep
+		    _Out_opt_ long *basep
 		);
 	}
 197	AUE_MMAP	COMPAT6|CAPENABLED {
@@ -3139,7 +3140,7 @@
 		    int fd,
 		    _Out_writes_bytes_(count) char *buf,
 		    size_t count,
-		    _Out_ off_t *basep
+		    _Out_opt_ off_t *basep
 		);
 	}
 555	AUE_STATFS	STD {

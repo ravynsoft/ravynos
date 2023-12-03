@@ -60,7 +60,7 @@ static char sccsid[] = "@(#)reboot.c	8.1 (Berkeley) 6/5/93";
 #include <utmpx.h>
 
 static void usage(void) __dead2;
-static u_int get_pageins(void);
+static uint64_t get_pageins(void);
 
 static int dohalt;
 
@@ -70,7 +70,7 @@ main(int argc, char *argv[])
 	struct utmpx utx;
 	const struct passwd *pw;
 	int ch, howto, i, fd, lflag, nflag, qflag, sverrno, Nflag;
-	u_int pageins;
+	uint64_t pageins;
 	const char *user, *kernel = NULL;
 
 	if (strstr(getprogname(), "halt") != NULL) {
@@ -272,17 +272,17 @@ usage(void)
 	exit(1);
 }
 
-static u_int
+static uint64_t
 get_pageins(void)
 {
-	u_int pageins;
+	uint64_t pageins;
 	size_t len;
 
 	len = sizeof(pageins);
 	if (sysctlbyname("vm.stats.vm.v_swappgsin", &pageins, &len, NULL, 0)
 	    != 0) {
-		warnx("v_swappgsin");
+		warn("v_swappgsin");
 		return (0);
 	}
-	return pageins;
+	return (pageins);
 }

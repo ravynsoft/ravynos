@@ -1,7 +1,7 @@
 
 .include <src.opts.mk>
 
-WARNS?= 3
+WARNS?= 6
 PACKAGE=devd
 CONFGROUPS=	CONFS DEVD
 CONFS=	devd.conf
@@ -10,6 +10,11 @@ DEVDDIR=	/etc/devd
 .if ${MK_ACPI} != "no"
 DEVD+=	asus.conf
 .endif
+
+CONFGROUPS+=		AUTOFS
+AUTOFSDIR=		${DEVDDIR}
+AUTOFS+=		autofs.conf
+AUTOFSPACKAGE=		autofs
 
 CONFGROUPS+=		DHCLIENT
 DHCLIENTDIR=		${DEVDDIR}

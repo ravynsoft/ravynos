@@ -1,7 +1,6 @@
 #-
 # Copyright (c) 2015 Luiz Otavio O Souza <loos@FreeBSD.org>
 # Copyright (c) 2014 Ruslan Bukin <br@bsdpad.com>
-# All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -28,19 +27,13 @@
 
 INTERFACE if_dwc;
 
-#include <dev/dwc/if_dwc.h>
+#include <dev/dwc/dwc1000_reg.h>
 
 CODE {
 	static int
 	if_dwc_default_init(device_t dev)
 	{
 		return (0);
-	}
-
-	static int
-	if_dwc_default_mac_type(device_t dev)
-	{
-		return (DWC_GMAC_EXT_DESC);
 	}
 
 	static int
@@ -65,13 +58,6 @@ HEADER {
 METHOD int init {
 	device_t dev;
 } DEFAULT if_dwc_default_init;
-
-#
-# Return the DWC MAC type (descriptor type).
-#
-METHOD int mac_type {
-	device_t dev;
-} DEFAULT if_dwc_default_mac_type;
 
 #
 # Return the DWC MII clock for a specific hardware.

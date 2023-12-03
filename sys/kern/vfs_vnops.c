@@ -828,6 +828,13 @@ foffset_unlock(struct file *fp, off_t val, int flags)
 	sleepq_broadcast(&fp->f_vnread_flags, SLEEPQ_SLEEP, 0, 0);
 	sleepq_release(&fp->f_vnread_flags);
 }
+
+static off_t
+foffset_read(struct file *fp)
+{
+
+	return (atomic_load_long(&fp->f_offset));
+}
 #else
 off_t
 foffset_lock(struct file *fp, int flags)
@@ -875,6 +882,13 @@ foffset_unlock(struct file *fp, off_t val, int flags)
 		fp->f_vnread_flags = 0;
 	}
 	mtx_unlock(mtxp);
+}
+
+static off_t
+foffset_read(struct file *fp)
+{
+
+	return (foffset_lock(fp, FOF_NOLOCK));
 }
 #endif
 
@@ -2647,8 +2661,19 @@ vn_seek(struct file *fp, off_t offset, int whence, struct thread *td)
 
 	cred = td->td_ucred;
 	vp = fp->f_vnode;
-	foffset = foffset_lock(fp, 0);
 	noneg = (vp->v_type != VCHR);
+	/*
+	 * Try to dodge locking for common case of querying the offset.
+	 */
+	if (whence == L_INCR && offset == 0) {
+		foffset = foffset_read(fp);
+		if (__predict_false(foffset < 0 && noneg)) {
+			return (EOVERFLOW);
+		}
+		td->td_uretoff.tdu_off = foffset;
+		return (0);
+	}
+	foffset = foffset_lock(fp, 0);
 	error = 0;
 	switch (whence) {
 	case L_INCR:
@@ -3046,6 +3071,7 @@ vn_copy_file_range(struct vnode *invp, off_t *inoffp, struct vnode *outvp,
     off_t *outoffp, size_t *lenp, unsigned int flags, struct ucred *incred,
     struct ucred *outcred, struct thread *fsize_td)
 {
+	struct mount *inmp, *outmp;
 	int error;
 	size_t len;
 	uint64_t uval;
@@ -3075,18 +3101,48 @@ vn_copy_file_range(struct vnode *invp, off_t *inoffp, struct vnode *outvp,
 	if (len == 0)
 		goto out;
 
+	inmp = invp->v_mount;
+	outmp = outvp->v_mount;
+	if (inmp == NULL || outmp == NULL) {
+		error = EBADF;
+		goto out;
+	}
+
+	for (;;) {
+		error = vfs_busy(inmp, 0);
+		if (error != 0)
+			goto out;
+		if (inmp == outmp)
+			break;
+		error = vfs_busy(outmp, MBF_NOWAIT);
+		if (error != 0) {
+			vfs_unbusy(inmp);
+			error = vfs_busy(outmp, 0);
+			if (error == 0) {
+				vfs_unbusy(outmp);
+				continue;
+			}
+			goto out;
+		}
+		break;
+	}
+
 	/*
-	 * If the two vnode are for the same file system, call
+	 * If the two vnodes are for the same file system type, call
 	 * VOP_COPY_FILE_RANGE(), otherwise call vn_generic_copy_file_range()
-	 * which can handle copies across multiple file systems.
+	 * which can handle copies across multiple file system types.
 	 */
 	*lenp = len;
-	if (invp->v_mount == outvp->v_mount)
+	if (inmp == outmp || strcmp(inmp->mnt_vfc->vfc_name,
+	    outmp->mnt_vfc->vfc_name) == 0)
 		error = VOP_COPY_FILE_RANGE(invp, inoffp, outvp, outoffp,
 		    lenp, flags, incred, outcred, fsize_td);
 	else
 		error = vn_generic_copy_file_range(invp, inoffp, outvp,
 		    outoffp, lenp, flags, incred, outcred, fsize_td);
+	vfs_unbusy(outmp);
+	if (inmp != outmp)
+		vfs_unbusy(inmp);
 out:
 	return (error);
 }
@@ -4011,10 +4067,10 @@ vn_lock_pair_pause(const char *wmesg)
 }
 
 /*
- * Lock pair of vnodes vp1, vp2, avoiding lock order reversal.
- * vp1_locked indicates whether vp1 is locked; if not, vp1 must be
- * unlocked.  Same for vp2 and vp2_locked.  One of the vnodes can be
- * NULL.
+ * Lock pair of (possibly same) vnodes vp1, vp2, avoiding lock order
+ * reversal.  vp1_locked indicates whether vp1 is locked; if not, vp1
+ * must be unlocked.  Same for vp2 and vp2_locked.  One of the vnodes
+ * can be NULL.
  *
  * The function returns with both vnodes exclusively or shared locked,
  * according to corresponding lkflags, and guarantees that it does not
@@ -4025,12 +4081,14 @@ vn_lock_pair_pause(const char *wmesg)
  *
  * Only one of LK_SHARED and LK_EXCLUSIVE must be specified.
  * LK_NODDLKTREAT can be optionally passed.
+ *
+ * If vp1 == vp2, only one, most exclusive, lock is obtained on it.
  */
 void
 vn_lock_pair(struct vnode *vp1, bool vp1_locked, int lkflags1,
     struct vnode *vp2, bool vp2_locked, int lkflags2)
 {
-	int error;
+	int error, locked1;
 
 	MPASS(((lkflags1 & LK_SHARED) != 0) ^ ((lkflags1 & LK_EXCLUSIVE) != 0));
 	MPASS((lkflags1 & ~(LK_SHARED | LK_EXCLUSIVE | LK_NODDLKTREAT)) == 0);
@@ -4039,6 +4097,35 @@ vn_lock_pair(struct vnode *vp1, bool vp1_locked, int lkflags1,
 
 	if (vp1 == NULL && vp2 == NULL)
 		return;
+
+	if (vp1 == vp2) {
+		MPASS(vp1_locked == vp2_locked);
+
+		/* Select the most exclusive mode for lock. */
+		if ((lkflags1 & LK_TYPE_MASK) != (lkflags2 & LK_TYPE_MASK))
+			lkflags1 = (lkflags1 & ~LK_SHARED) | LK_EXCLUSIVE;
+
+		if (vp1_locked) {
+			ASSERT_VOP_LOCKED(vp1, "vp1");
+
+			/* No need to relock if any lock is exclusive. */
+			if ((vp1->v_vnlock->lock_object.lo_flags &
+			    LK_NOSHARE) != 0)
+				return;
+
+			locked1 = VOP_ISLOCKED(vp1);
+			if (((lkflags1 & LK_SHARED) != 0 &&
+			    locked1 != LK_EXCLUSIVE) ||
+			    ((lkflags1 & LK_EXCLUSIVE) != 0 &&
+			    locked1 == LK_EXCLUSIVE))
+				return;
+			VOP_UNLOCK(vp1);
+		}
+
+		ASSERT_VOP_UNLOCKED(vp1, "vp1");
+		vn_lock(vp1, lkflags1 | LK_RETRY);
+		return;
+	}		
 
 	if (vp1 != NULL) {
 		if ((lkflags1 & LK_SHARED) != 0 &&

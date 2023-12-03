@@ -67,6 +67,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <libufs.h>
 
 #include <sys/queue.h>
 
@@ -376,7 +377,6 @@ extern long secsize;		/* actual disk sector size */
 extern char skipclean;		/* skip clean file systems if preening */
 extern int snapcnt;		/* number of active snapshots */
 extern struct inode snaplist[FSMAXSNAP + 1]; /* list of active snapshots */
-extern char snapname[BUFSIZ];	/* when doing snapshots, the name of the file */
 extern int sujrecovery;		/* 1 => doing check using the journal */
 extern int surrender;		/* Give up if reads fail */
 extern char usedsoftdep;	/* just fix soft dependency inconsistencies */
@@ -421,6 +421,20 @@ Malloc(size_t size)
 	void *retval;
 
 	while ((retval = malloc(size)) == NULL)
+		if (flushentry() == 0)
+			break;
+	return (retval);
+}
+/*
+ * Allocate a block of memory to be used as an I/O buffer.
+ * Ensure that the buffer is aligned to the I/O subsystem requirements.
+ */
+static inline void*
+Balloc(size_t size)
+{
+	void *retval;
+
+	while ((retval = aligned_alloc(LIBUFS_BUFALIGN, size)) == NULL)
 		if (flushentry() == 0)
 			break;
 	return (retval);

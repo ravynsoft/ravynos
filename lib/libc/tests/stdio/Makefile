@@ -3,6 +3,7 @@
 
 ATF_TESTS_C+=		eintr_test
 ATF_TESTS_C+=		fdopen_test
+ATF_TESTS_C+=		flushlbuf_test
 ATF_TESTS_C+=		fmemopen2_test
 ATF_TESTS_C+=		fopen2_test
 ATF_TESTS_C+=		freopen_test
@@ -18,6 +19,7 @@ ATF_TESTS_C+=		printfloat_test
 ATF_TESTS_C+=		scanfloat_test
 ATF_TESTS_C+=		snprintf_test
 ATF_TESTS_C+=		sscanf_test
+ATF_TESTS_C+=		swprintf_test
 ATF_TESTS_C+=		swscanf_test
 
 SRCS.fopen2_test=	fopen_test.c
@@ -37,9 +39,15 @@ LIBADD.eintr_test+=	 md
 LIBADD.printfloat_test+= m
 LIBADD.scanfloat_test+=  m
 
+# Older toolchains won't understand C23 %b, %wN, %wfN
+PROG_OVERRIDE_VARS+=	NO_WFORMAT
+NO_WFORMAT.snprintf_test=
+NO_WFORMAT.sscanf_test=
+NO_WFORMAT.swprintf_test=
+NO_WFORMAT.swscanf_test=
+
 .if ${COMPILER_TYPE} == "gcc"
 # 90: use of assignment suppression and length modifier together in scanf format
-PROG_OVERRIDE_VARS+=	NO_WFORMAT
 NO_WFORMAT.scanfloat_test=
 .endif
 

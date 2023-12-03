@@ -504,7 +504,7 @@ vtscsi_alloc_virtqueues(struct vtscsi_softc *sc)
 	    vtscsi_request_vq_intr, sc, &sc->vtscsi_request_vq,
 	    "%s request", device_get_nameunit(dev));
 
-	return (virtio_alloc_virtqueues(dev, 0, nvqs, vq_info));
+	return (virtio_alloc_virtqueues(dev, nvqs, vq_info));
 }
 
 static void
@@ -2336,7 +2336,6 @@ vtscsi_printf_req(struct vtscsi_request *req, const char *func,
 	struct sbuf sb;
 	va_list ap;
 	char str[192];
-	char path_str[64];
 
 	if (req == NULL)
 		return;
@@ -2352,8 +2351,7 @@ vtscsi_printf_req(struct vtscsi_request *req, const char *func,
 		    cam_sim_name(sc->vtscsi_sim), cam_sim_unit(sc->vtscsi_sim),
 		    cam_sim_bus(sc->vtscsi_sim));
 	} else {
-		xpt_path_string(ccb->ccb_h.path, path_str, sizeof(path_str));
-		sbuf_cat(&sb, path_str);
+		xpt_path_sbuf(ccb->ccb_h.path, &sb);
 		if (ccb->ccb_h.func_code == XPT_SCSI_IO) {
 			scsi_command_string(&ccb->csio, &sb);
 			sbuf_printf(&sb, "length %d ", ccb->csio.dxfer_len);

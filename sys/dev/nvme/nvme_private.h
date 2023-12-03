@@ -86,6 +86,7 @@ MALLOC_DECLARE(M_NVME);
 #define NVME_MAX_CONSUMERS	(2)
 #define NVME_MAX_ASYNC_EVENTS	(8)
 
+#define NVME_ADMIN_TIMEOUT_PERIOD	(60)    /* in seconds */
 #define NVME_DEFAULT_TIMEOUT_PERIOD	(30)    /* in seconds */
 #define NVME_MIN_TIMEOUT_PERIOD		(5)
 #define NVME_MAX_TIMEOUT_PERIOD		(120)
@@ -254,7 +255,6 @@ struct nvme_controller {
 	uint32_t		queues_created;
 
 	struct task		reset_task;
-	struct task		fail_req_task;
 	struct taskqueue	*taskqueue;
 
 	/* For shared legacy interrupt. */
@@ -280,6 +280,7 @@ struct nvme_controller {
 	uint32_t		int_coal_threshold;
 
 	/** timeout period in seconds */
+	uint32_t		admin_timeout_period;
 	uint32_t		timeout_period;
 
 	/** doorbell stride */
@@ -409,8 +410,6 @@ void	nvme_ctrlr_submit_admin_request(struct nvme_controller *ctrlr,
 					struct nvme_request *req);
 void	nvme_ctrlr_submit_io_request(struct nvme_controller *ctrlr,
 				     struct nvme_request *req);
-void	nvme_ctrlr_post_failed_request(struct nvme_controller *ctrlr,
-				       struct nvme_request *req);
 
 int	nvme_qpair_construct(struct nvme_qpair *qpair,
 			     uint32_t num_entries, uint32_t num_trackers,

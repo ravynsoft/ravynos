@@ -429,7 +429,7 @@ vtgpu_alloc_virtqueue(struct vtgpu_softc *sc)
 	VQ_ALLOC_INFO_INIT(&vq_info[0], 0, NULL, sc, &sc->vtgpu_ctrl_vq,
 	    "%s control", device_get_nameunit(dev));
 
-	return (virtio_alloc_virtqueues(dev, 0, nvqs, vq_info));
+	return (virtio_alloc_virtqueues(dev, nvqs, vq_info));
 }
 
 static int
@@ -565,7 +565,7 @@ vtgpu_attach_backing(struct vtgpu_softc *sc)
 	s.req.backing.resource_id = htole32(VTGPU_RESOURCE_ID);
 	s.req.backing.nr_entries = htole32(1);
 
-	s.req.mem[0].addr = htole32(sc->vtgpu_fb_info.fb_pbase);
+	s.req.mem[0].addr = htole64(sc->vtgpu_fb_info.fb_pbase);
 	s.req.mem[0].length = htole32(sc->vtgpu_fb_info.fb_size);
 
 	error = vtgpu_req_resp(sc, &s.req, sizeof(s.req), &s.resp,

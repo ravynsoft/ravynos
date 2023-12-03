@@ -91,15 +91,7 @@
  * committed to stable storage. Please refer to the zil_commit_waiter()
  * function (and the comments within it) for more details.
  */
-static uint_t zfs_commit_timeout_pct = 5;
-
-/*
- * Minimal time we care to delay commit waiting for more ZIL records.
- * At least FreeBSD kernel can't sleep for less than 2us at its best.
- * So requests to sleep for less then 5us is a waste of CPU time with
- * a risk of significant log latency increase due to oversleep.
- */
-static uint64_t zil_min_commit_timeout = 5000;
+static uint_t zfs_commit_timeout_pct = 10;
 
 /*
  * See zil.h for more information about these fields.
@@ -145,7 +137,7 @@ static int zil_nocacheflush = 0;
  * Any writes above that will be executed with lower (asynchronous) priority
  * to limit potential SLOG device abuse by single active ZIL writer.
  */
-static uint64_t zil_slog_bulk = 768 * 1024;
+static uint64_t zil_slog_bulk = 64 * 1024 * 1024;
 
 static kmem_cache_t *zil_lwb_cache;
 static kmem_cache_t *zil_zcw_cache;
@@ -1550,7 +1542,16 @@ zil_lwb_write_done(zio_t *zio)
 	lwb->lwb_state = LWB_STATE_WRITE_DONE;
 	lwb->lwb_child_zio = NULL;
 	lwb->lwb_write_zio = NULL;
+
+	/*
+	 * If nlwb is not yet issued, zil_lwb_set_zio_dependency() is not
+	 * called for it yet, and when it will be, it won't be able to make
+	 * its write ZIO a parent this ZIO.  In such case we can not defer
+	 * our flushes or below may be a race between the done callbacks.
+	 */
 	nlwb = list_next(&zilog->zl_lwb_list, lwb);
+	if (nlwb && nlwb->lwb_state != LWB_STATE_ISSUED)
+		nlwb = NULL;
 	mutex_exit(&zilog->zl_lock);
 
 	if (avl_numnodes(t) == 0)
@@ -1598,7 +1599,7 @@ zil_lwb_write_done(zio_t *zio)
 
 	while ((zv = avl_destroy_nodes(t, &cookie)) != NULL) {
 		vdev_t *vd = vdev_lookup_top(spa, zv->zv_vdev);
-		if (vd != NULL && !vd->vdev_nowritecache) {
+		if (vd != NULL) {
 			/*
 			 * The "ZIO_FLAG_DONT_PROPAGATE" is currently
 			 * always used within "zio_flush". This means,
@@ -1949,26 +1950,28 @@ zil_max_log_data(zilog_t *zilog, size_t hdrsize)
 
 /*
  * Maximum amount of log space we agree to waste to reduce number of
- * WR_NEED_COPY chunks to reduce zl_get_data() overhead (~12%).
+ * WR_NEED_COPY chunks to reduce zl_get_data() overhead (~6%).
  */
 static inline uint64_t
 zil_max_waste_space(zilog_t *zilog)
 {
-	return (zil_max_log_data(zilog, sizeof (lr_write_t)) / 8);
+	return (zil_max_log_data(zilog, sizeof (lr_write_t)) / 16);
 }
 
 /*
  * Maximum amount of write data for WR_COPIED.  For correctness, consumers
  * must fall back to WR_NEED_COPY if we can't fit the entire record into one
  * maximum sized log block, because each WR_COPIED record must fit in a
- * single log block.  For space efficiency, we want to fit two records into a
- * max-sized log block.
+ * single log block.  Below that it is a tradeoff of additional memory copy
+ * and possibly worse log space efficiency vs additional range lock/unlock.
  */
+static uint_t zil_maxcopied = 7680;
+
 uint64_t
 zil_max_copied_data(zilog_t *zilog)
 {
-	return ((zilog->zl_max_block_size - sizeof (zil_chain_t)) / 2 -
-	    sizeof (lr_write_t));
+	uint64_t max_data = zil_max_log_data(zilog, sizeof (lr_write_t));
+	return (MIN(max_data, zil_maxcopied));
 }
 
 /*
@@ -2152,8 +2155,8 @@ zil_lwb_commit(zilog_t *zilog, lwb_t *lwb, itx_t *itx)
 				ZIL_STAT_INCR(zilog, zil_itx_indirect_bytes,
 				    lrw->lr_length);
 				if (lwb->lwb_child_zio == NULL) {
-					lwb->lwb_child_zio = zio_root(
-					    zilog->zl_spa, NULL, NULL,
+					lwb->lwb_child_zio = zio_null(NULL,
+					    zilog->zl_spa, NULL, NULL, NULL,
 					    ZIO_FLAG_CANFAIL);
 				}
 			}
@@ -2685,6 +2688,19 @@ zil_commit_writer_stall(zilog_t *zilog)
 	ASSERT(list_is_empty(&zilog->zl_lwb_list));
 }
 
+static void
+zil_burst_done(zilog_t *zilog)
+{
+	if (!list_is_empty(&zilog->zl_itx_commit_list) ||
+	    zilog->zl_cur_used == 0)
+		return;
+
+	if (zilog->zl_parallel)
+		zilog->zl_parallel--;
+
+	zilog->zl_cur_used = 0;
+}
+
 /*
  * This function will traverse the commit list, creating new lwbs as
  * needed, and committing the itxs from the commit list to these newly
@@ -2699,7 +2715,6 @@ zil_process_commit_list(zilog_t *zilog, zil_commit_waiter_t *zcw, list_t *ilwbs)
 	list_t nolwb_waiters;
 	lwb_t *lwb, *plwb;
 	itx_t *itx;
-	boolean_t first = B_TRUE;
 
 	ASSERT(MUTEX_HELD(&zilog->zl_issuer_lock));
 
@@ -2725,9 +2740,22 @@ zil_process_commit_list(zilog_t *zilog, zil_commit_waiter_t *zcw, list_t *ilwbs)
 		zil_commit_activate_saxattr_feature(zilog);
 		ASSERT(lwb->lwb_state == LWB_STATE_NEW ||
 		    lwb->lwb_state == LWB_STATE_OPENED);
-		first = (lwb->lwb_state == LWB_STATE_NEW) &&
-		    ((plwb = list_prev(&zilog->zl_lwb_list, lwb)) == NULL ||
-		    plwb->lwb_state == LWB_STATE_FLUSH_DONE);
+
+		/*
+		 * If the lwb is still opened, it means the workload is really
+		 * multi-threaded and we won the chance of write aggregation.
+		 * If it is not opened yet, but previous lwb is still not
+		 * flushed, it still means the workload is multi-threaded, but
+		 * there was too much time between the commits to aggregate, so
+		 * we try aggregation next times, but without too much hopes.
+		 */
+		if (lwb->lwb_state == LWB_STATE_OPENED) {
+			zilog->zl_parallel = ZIL_BURSTS;
+		} else if ((plwb = list_prev(&zilog->zl_lwb_list, lwb))
+		    != NULL && plwb->lwb_state != LWB_STATE_FLUSH_DONE) {
+			zilog->zl_parallel = MAX(zilog->zl_parallel,
+			    ZIL_BURSTS / 2);
+		}
 	}
 
 	while ((itx = list_remove_head(&zilog->zl_itx_commit_list)) != NULL) {
@@ -2802,7 +2830,7 @@ zil_process_commit_list(zilog_t *zilog, zil_commit_waiter_t *zcw, list_t *ilwbs)
 					 * Our lwb is done, leave the rest of
 					 * itx list to somebody else who care.
 					 */
-					first = B_FALSE;
+					zilog->zl_parallel = ZIL_BURSTS;
 					break;
 				}
 			} else {
@@ -2894,28 +2922,15 @@ zil_process_commit_list(zilog_t *zilog, zil_commit_waiter_t *zcw, list_t *ilwbs)
 		 * try and pack as many itxs into as few lwbs as
 		 * possible, without significantly impacting the latency
 		 * of each individual itx.
-		 *
-		 * If we had no already running or open LWBs, it can be
-		 * the workload is single-threaded.  And if the ZIL write
-		 * latency is very small or if the LWB is almost full, it
-		 * may be cheaper to bypass the delay.
 		 */
-		if (lwb->lwb_state == LWB_STATE_OPENED && first) {
-			hrtime_t sleep = zilog->zl_last_lwb_latency *
-			    zfs_commit_timeout_pct / 100;
-			if (sleep < zil_min_commit_timeout ||
-			    lwb->lwb_nmax - lwb->lwb_nused <
-			    lwb->lwb_nmax / 8) {
-				list_insert_tail(ilwbs, lwb);
-				lwb = zil_lwb_write_close(zilog, lwb,
-				    LWB_STATE_NEW);
-				zilog->zl_cur_used = 0;
-				if (lwb == NULL) {
-					while ((lwb = list_remove_head(ilwbs))
-					    != NULL)
-						zil_lwb_write_issue(zilog, lwb);
-					zil_commit_writer_stall(zilog);
-				}
+		if (lwb->lwb_state == LWB_STATE_OPENED && !zilog->zl_parallel) {
+			list_insert_tail(ilwbs, lwb);
+			lwb = zil_lwb_write_close(zilog, lwb, LWB_STATE_NEW);
+			zil_burst_done(zilog);
+			if (lwb == NULL) {
+				while ((lwb = list_remove_head(ilwbs)) != NULL)
+					zil_lwb_write_issue(zilog, lwb);
+				zil_commit_writer_stall(zilog);
 			}
 		}
 	}
@@ -3073,19 +3088,7 @@ zil_commit_waiter_timeout(zilog_t *zilog, zil_commit_waiter_t *zcw)
 
 	ASSERT3S(lwb->lwb_state, ==, LWB_STATE_CLOSED);
 
-	/*
-	 * Since the lwb's zio hadn't been issued by the time this thread
-	 * reached its timeout, we reset the zilog's "zl_cur_used" field
-	 * to influence the zil block size selection algorithm.
-	 *
-	 * By having to issue the lwb's zio here, it means the size of the
-	 * lwb was too large, given the incoming throughput of itxs.  By
-	 * setting "zl_cur_used" to zero, we communicate this fact to the
-	 * block size selection algorithm, so it can take this information
-	 * into account, and potentially select a smaller size for the
-	 * next lwb block that is allocated.
-	 */
-	zilog->zl_cur_used = 0;
+	zil_burst_done(zilog);
 
 	if (nlwb == NULL) {
 		/*
@@ -4203,9 +4206,6 @@ EXPORT_SYMBOL(zil_kstat_values_update);
 ZFS_MODULE_PARAM(zfs, zfs_, commit_timeout_pct, UINT, ZMOD_RW,
 	"ZIL block open timeout percentage");
 
-ZFS_MODULE_PARAM(zfs_zil, zil_, min_commit_timeout, U64, ZMOD_RW,
-	"Minimum delay we care for ZIL block commit");
-
 ZFS_MODULE_PARAM(zfs_zil, zil_, replay_disable, INT, ZMOD_RW,
 	"Disable intent logging replay");
 
@@ -4217,3 +4217,6 @@ ZFS_MODULE_PARAM(zfs_zil, zil_, slog_bulk, U64, ZMOD_RW,
 
 ZFS_MODULE_PARAM(zfs_zil, zil_, maxblocksize, UINT, ZMOD_RW,
 	"Limit in bytes of ZIL log block size");
+
+ZFS_MODULE_PARAM(zfs_zil, zil_, maxcopied, UINT, ZMOD_RW,
+	"Limit in bytes WR_COPIED size");

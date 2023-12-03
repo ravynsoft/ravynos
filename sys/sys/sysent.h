@@ -149,6 +149,7 @@ struct sysentvec {
 	vm_offset_t	sv_fxrng_gen_offset;
 	void		(*sv_onexec_old)(struct thread *td);
 	int		(*sv_onexec)(struct proc *, struct image_params *);
+	void		(*sv_protect)(struct image_params *, int);
 	void		(*sv_onexit)(struct proc *);
 	void		(*sv_ontdexit)(struct thread *td);
 	int		(*sv_setid_allowed)(struct thread *td,
@@ -164,7 +165,7 @@ struct sysentvec {
 #define	SV_IA32		0x004000	/* Intel 32-bit executable. */
 #define	SV_AOUT		0x008000	/* a.out executable. */
 #define	SV_SHP		0x010000	/* Shared page. */
-#define	SV_AVAIL1	0x020000	/* Unused */
+#define	SV_SIGSYS	0x020000	/* SIGSYS for non-existing syscall */
 #define	SV_TIMEKEEP	0x040000	/* Shared page timehands. */
 #define	SV_ASLR		0x080000	/* ASLR allowed. */
 #define	SV_RNG_SEED_VER	0x100000	/* random(4) reseed generation. */
@@ -187,10 +188,15 @@ struct sysentvec {
 #define	SVC_NOCOMPRESS	0x00000002	/* disable compression. */
 #define	SVC_ALL		0x00000004	/* dump everything */
 
+/* sv_protect flags */
+#define	SVP_IMAGE	0x00000001
+#define	SVP_INTERP	0x00000002
+
 #ifdef _KERNEL
 extern struct sysentvec aout_sysvec;
 extern struct sysent sysent[];
 extern const char *syscallnames[];
+extern struct sysent nosys_sysent;
 
 struct nosys_args {
 	register_t dummy;
@@ -222,7 +228,7 @@ struct syscall_module_data {
 	.sy_return = 0,						\
 	.sy_flags = 0,						\
 	.sy_thrcnt = 0						\
-}							
+}
 
 #define	MAKE_SYSENT(syscallname)				\
 static struct sysent syscallname##_sysent = SYSENT_INIT_VALS(syscallname);
@@ -319,7 +325,7 @@ struct nosys_args;
 int	lkmnosys(struct thread *, struct nosys_args *);
 int	lkmressys(struct thread *, struct nosys_args *);
 
-int	syscall_thread_enter(struct thread *td, struct sysent *se);
+int	syscall_thread_enter(struct thread *td, struct sysent **se);
 void	syscall_thread_exit(struct thread *td, struct sysent *se);
 
 int shared_page_alloc(int size, int align);

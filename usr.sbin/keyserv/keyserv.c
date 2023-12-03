@@ -31,8 +31,6 @@
 #if 0
 static char sccsid[] = "@(#)keyserv.c	1.15	94/04/25 SMI";
 #endif
-static const char rcsid[] =
-  "$FreeBSD$";
 #endif /* not lint */
 
 /*
@@ -706,7 +704,6 @@ keyprogram(struct svc_req *rqstp, SVCXPRT *transp)
 			"unable to free arguments\n");
 		exit(1);
 	}
-	return;
 }
 
 static int

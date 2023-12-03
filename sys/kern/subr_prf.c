@@ -422,8 +422,10 @@ static void
 prf_putchar(int c, int flags, int pri)
 {
 
-	if (flags & TOLOG)
+	if (flags & TOLOG) {
 		msglogchar(c, pri);
+		msgbuftrigger = 1;
+	}
 
 	if (flags & TOCONS) {
 		if ((!KERNEL_PANICKED()) && (constty != NULL))
@@ -438,8 +440,10 @@ static void
 prf_putbuf(char *bufr, int flags, int pri)
 {
 
-	if (flags & TOLOG)
+	if (flags & TOLOG) {
 		msglogstr(bufr, pri, /*filter_cr*/1);
+		msgbuftrigger = 1;
+	}
 
 	if (flags & TOCONS) {
 		if ((!KERNEL_PANICKED()) && (constty != NULL))
@@ -1236,24 +1240,24 @@ sbuf_hexdump(struct sbuf *sb, const void *ptr, int length, const char *hdr,
 				if (k < length)
 					sbuf_printf(sb, "%c%02x", delim, cp[k]);
 				else
-					sbuf_printf(sb, "   ");
+					sbuf_cat(sb, "   ");
 			}
 		}
 
 		if ((flags & HD_OMIT_CHARS) == 0) {
-			sbuf_printf(sb, "  |");
+			sbuf_cat(sb, "  |");
 			for (j = 0; j < cols; j++) {
 				k = i + j;
 				if (k >= length)
-					sbuf_printf(sb, " ");
+					sbuf_putc(sb, ' ');
 				else if (cp[k] >= ' ' && cp[k] <= '~')
-					sbuf_printf(sb, "%c", cp[k]);
+					sbuf_putc(sb, cp[k]);
 				else
-					sbuf_printf(sb, ".");
+					sbuf_putc(sb, '.');
 			}
-			sbuf_printf(sb, "|");
+			sbuf_putc(sb, '|');
 		}
-		sbuf_printf(sb, "\n");
+		sbuf_putc(sb, '\n');
 	}
 }
 

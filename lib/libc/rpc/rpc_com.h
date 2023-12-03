@@ -44,7 +44,6 @@
 #ifndef _RPC_RPCCOM_H
 #define	_RPC_RPCCOM_H
 
-#include <sys/cdefs.h>
 
 /* #pragma ident	"@(#)rpc_com.h	1.11	93/07/05 SMI" */
 
@@ -60,7 +59,6 @@
 
 __BEGIN_DECLS
 extern u_int __rpc_get_a_size(int);
-extern int __rpc_dtbsize(void);
 extern struct netconfig * __rpcgettp(int);
 extern  int  __rpc_get_default_domain(char **);
 

@@ -192,6 +192,11 @@ const struct pf_timeout pf_timeouts[] = {
 	{ "tcp.finwait",	PFTM_TCP_FIN_WAIT },
 	{ "tcp.closed",		PFTM_TCP_CLOSED },
 	{ "tcp.tsdiff",		PFTM_TS_DIFF },
+	{ "sctp.first",		PFTM_SCTP_FIRST_PACKET },
+	{ "sctp.opening",	PFTM_SCTP_OPENING },
+	{ "sctp.established",	PFTM_SCTP_ESTABLISHED },
+	{ "sctp.closing",	PFTM_SCTP_CLOSING },
+	{ "sctp.closed",	PFTM_SCTP_CLOSED },
 	{ "udp.first",		PFTM_UDP_FIRST_PACKET },
 	{ "udp.single",		PFTM_UDP_SINGLE },
 	{ "udp.multiple",	PFTM_UDP_MULTIPLE },
@@ -623,6 +628,11 @@ print_status(struct pfctl_status *s, struct pfctl_syncookies *cookies, int opts)
 		    PFCTL_SYNCOOKIES_MODE_NAMES[cookies->mode]);
 		printf("  %-25s %s\n", "active",
 		    s->syncookies_active ? "active" : "inactive");
+		if (opts & PF_OPT_VERBOSE2) {
+			printf("  %-25s %d %%\n", "highwater", cookies->highwater);
+			printf("  %-25s %d %%\n", "lowwater", cookies->lowwater);
+			printf("  %-25s %d\n", "halfopen states", cookies->halfopen_states);
+		}
 		printf("Reassemble %24s %s\n",
 		    s->reass & PF_REASS_ENABLED ? "yes" : "no",
 		    s->reass & PF_REASS_NODF ? "no-df" : ""
@@ -1306,16 +1316,12 @@ int
 check_netmask(struct node_host *h, sa_family_t af)
 {
 	struct node_host	*n = NULL;
-	struct pf_addr	*m;
+	struct pf_addr		*m;
 
 	for (n = h; n != NULL; n = n->next) {
 		if (h->addr.type == PF_ADDR_TABLE)
 			continue;
 		m = &h->addr.v.a.mask;
-		/* fix up netmask for dynaddr */
-		if (af == AF_INET && h->addr.type == PF_ADDR_DYNIFTL &&
-		    unmask(m, AF_INET6) > 32)
-			set_ipmask(n, 32);
 		/* netmasks > 32 bit are invalid on v4 */
 		if (af == AF_INET &&
 		    (m->addr32[1] || m->addr32[2] || m->addr32[3])) {
@@ -1325,6 +1331,30 @@ check_netmask(struct node_host *h, sa_family_t af)
 		}
 	}
 	return (0);
+}
+
+struct node_host *
+gen_dynnode(struct node_host *h, sa_family_t af)
+{
+	struct node_host	*n;
+	struct pf_addr		*m;
+
+	if (h->addr.type != PF_ADDR_DYNIFTL)
+		return (NULL);
+
+	if ((n = calloc(1, sizeof(*n))) == NULL)
+		return (NULL);
+	bcopy(h, n, sizeof(*n));
+	n->ifname = NULL;
+	n->next = NULL;
+	n->tail = NULL;
+
+	/* fix up netmask */
+	m = &n->addr.v.a.mask;
+	if (af == AF_INET && unmask(m, AF_INET6) > 32)
+		set_ipmask(n, 32);
+
+	return (n);
 }
 
 /* interface lookup routines */

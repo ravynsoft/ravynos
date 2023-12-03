@@ -1792,13 +1792,6 @@ dev/ida/ida.c			optional ida
 dev/ida/ida_disk.c		optional ida
 dev/ida/ida_pci.c		optional ida pci
 dev/iicbus/acpi_iicbus.c	optional acpi iicbus | acpi compat_linuxkpi
-dev/iicbus/ad7418.c		optional ad7418
-dev/iicbus/ads111x.c		optional ads111x
-dev/iicbus/ds1307.c		optional ds1307
-dev/iicbus/ds13rtc.c		optional ds13rtc | ds133x | ds1374
-dev/iicbus/ds1672.c		optional ds1672
-dev/iicbus/ds3231.c		optional ds3231
-dev/iicbus/htu21.c		optional htu21
 dev/iicbus/icee.c		optional icee
 dev/iicbus/if_ic.c		optional ic
 dev/iicbus/iic.c		optional iic
@@ -1811,30 +1804,38 @@ dev/iicbus/iichid.c		optional iichid acpi hid iicbus
 dev/iicbus/iiconf.c		optional iicbus | compat_linuxkpi
 dev/iicbus/iicsmb.c		optional iicsmb				\
 	dependency	"iicbus_if.h"
-dev/iicbus/iicoc.c		optional iicoc
-dev/iicbus/iicoc_fdt.c		optional iicoc fdt
-dev/iicbus/iicoc_pci.c		optional iicoc pci
-dev/iicbus/isl12xx.c		optional isl12xx
-dev/iicbus/lm75.c		optional lm75
-dev/iicbus/max44009.c		optional max44009
+dev/iicbus/adc/ad7418.c		optional ad7418
+dev/iicbus/adc/ads111x.c	optional ads111x
+dev/iicbus/adc/pcf8591.c	optional pcf8591
+dev/iicbus/controller/opencores/iicoc.c	optional iicoc
+dev/iicbus/controller/opencores/iicoc_fdt.c	optional iicoc fdt
+dev/iicbus/controller/opencores/iicoc_pci.c	optional iicoc pci
 dev/iicbus/mux/iicmux.c		optional iicmux
 dev/iicbus/mux/iicmux_if.m	optional iicmux
 dev/iicbus/mux/iic_gpiomux.c	optional iic_gpiomux fdt
 dev/iicbus/mux/ltc430x.c	optional ltc430x
 dev/iicbus/mux/pca954x.c	optional pca954x iicbus iicmux
-dev/iicbus/nxprtc.c		optional nxprtc | pcf8563
 dev/iicbus/ofw_iicbus.c		optional fdt iicbus
 dev/iicbus/ofw_iicbus_if.m	optional fdt iicbus
-dev/iicbus/pcf8574.c		optional pcf8574
-dev/iicbus/pcf8591.c		optional pcf8591
-dev/iicbus/rtc8583.c		optional rtc8583
+dev/iicbus/rtc/ds1307.c		optional ds1307
+dev/iicbus/rtc/ds13rtc.c	optional ds13rtc | ds133x | ds1374
+dev/iicbus/rtc/ds1672.c		optional ds1672
+dev/iicbus/rtc/ds3231.c		optional ds3231
+dev/iicbus/rtc/isl12xx.c	optional isl12xx
+dev/iicbus/rtc/nxprtc.c		optional nxprtc | pcf8563
 dev/iicbus/rtc/pcf85063.c	optional pcf85063 iicbus fdt
+dev/iicbus/rtc/rtc8583.c	optional rtc8583
+dev/iicbus/rtc/rv3032.c		optional rv3032 iicbus fdt
 dev/iicbus/rtc/rx8803.c		optional rx8803 iicbus fdt
-dev/iicbus/s35390a.c		optional s35390a
-dev/iicbus/sy8106a.c		optional sy8106a fdt
-dev/iicbus/syr827.c		optional syr827 fdt
+dev/iicbus/rtc/s35390a.c	optional s35390a
+dev/iicbus/sensor/htu21.c	optional htu21
+dev/iicbus/sensor/lm75.c	optional lm75
+dev/iicbus/sensor/max44009.c	optional max44009
+dev/iicbus/gpio/pcf8574.c	optional pcf8574
 dev/iicbus/gpio/tca64xx.c	optional tca64xx fdt gpio
 dev/iicbus/pmic/fan53555.c	optional fan53555 fdt | tcs4525 fdt
+dev/iicbus/pmic/silergy/sy8106a.c	optional sy8106a fdt
+dev/iicbus/pmic/silergy/syr827.c	optional syr827 fdt
 dev/igc/if_igc.c		optional igc iflib pci
 dev/igc/igc_api.c		optional igc iflib pci
 dev/igc/igc_base.c		optional igc iflib pci
@@ -3794,7 +3795,7 @@ kern/kern_priv.c		standard
 kern/kern_proc.c		standard
 kern/kern_procctl.c		standard
 kern/kern_prot.c		standard
-kern/kern_racct.c		standard
+kern/kern_racct.c		optional racct
 kern/kern_rangelock.c		standard
 kern/kern_rctl.c		standard
 kern/kern_resource.c		standard
@@ -3872,7 +3873,7 @@ kern/subr_mchain.c		optional libmchain
 kern/subr_memdesc.c		standard
 kern/subr_module.c		standard
 kern/subr_msan.c		optional kmsan \
-	compile-with "${NORMAL_C:N-fsanitize*:N-fstack-protector*}"
+	compile-with "${NORMAL_C:N-fsanitize*:N-fno-sanitize*:N-fstack-protector*}"
 kern/subr_msgbuf.c		standard
 kern/subr_param.c		standard
 kern/subr_pcpu.c		standard
@@ -3983,6 +3984,7 @@ kgssapi/gss_get_mic.c		optional kgssapi
 kgssapi/gss_init_sec_context.c	optional kgssapi
 kgssapi/gss_impl.c		optional kgssapi
 kgssapi/gss_import_name.c	optional kgssapi
+kgssapi/gss_ip_to_dns.c		optional kgssapi
 kgssapi/gss_names.c		optional kgssapi
 kgssapi/gss_pname_to_uid.c	optional kgssapi
 kgssapi/gss_release_buffer.c	optional kgssapi
@@ -4038,7 +4040,7 @@ libkern/strcasecmp.c		standard
 libkern/strcasestr.c		standard
 libkern/strcat.c		standard
 libkern/strchr.c		standard
-libkern/strchrnul.c		optional gdb
+libkern/strchrnul.c		standard
 libkern/strcpy.c		standard
 libkern/strcspn.c		standard
 libkern/strdup.c		standard
@@ -4361,6 +4363,13 @@ netinet/tcp_pcap.c		optional inet tcppcap | inet6 tcppcap \
 	compile-with "${NORMAL_C} ${NO_WNONNULL}"
 netinet/tcp_reass.c		optional inet | inet6
 netinet/tcp_sack.c		optional inet | inet6
+netinet/tcp_stacks/bbr.c	optional inet tcp_bbr | inet6 tcp_bbr \
+	compile-with "${NORMAL_C} -DMODNAME=tcp_bbr -DSTACKNAME=bbr"
+netinet/tcp_stacks/rack.c	optional inet tcp_rack | inet6 tcp_rack \
+	compile-with "${NORMAL_C} -DMODNAME=tcp_rack -DSTACKNAME=rack"
+netinet/tcp_stacks/rack_bbr_common.c	optional inet tcp_bbr | inet tcp_rack | inet6 tcp_bbr | inet6 tcp_rack
+netinet/tcp_stacks/sack_filter.c	optional inet tcp_bbr | inet tcp_rack | inet6 tcp_bbr | inet6 tcp_rack
+netinet/tcp_stacks/tailq_hash.c	optional inet tcp_bbr | inet tcp_rack | inet6 tcp_bbr | inet6 tcp_rack
 netinet/tcp_stats.c		optional stats inet | stats inet6
 netinet/tcp_subr.c		optional inet | inet6
 netinet/tcp_syncache.c		optional inet | inet6
@@ -4498,6 +4507,7 @@ netpfil/pf/pf_if.c		optional pf inet
 netpfil/pf/pf_ioctl.c		optional pf inet
 netpfil/pf/pf_lb.c		optional pf inet
 netpfil/pf/pf_norm.c		optional pf inet
+netpfil/pf/pf_nl.c		optional pf inet
 netpfil/pf/pf_nv.c		optional pf inet
 netpfil/pf/pf_osfp.c		optional pf inet
 netpfil/pf/pf_ruleset.c		optional pf inet
@@ -4903,7 +4913,11 @@ dev/mlx5/mlx5_core/mlx5_eq.c			optional mlx5 pci	\
 	compile-with "${OFED_C}"
 dev/mlx5/mlx5_core/mlx5_eswitch.c		optional mlx5 pci	\
 	compile-with "${OFED_C}"
+dev/mlx5/mlx5_core/mlx5_fc_cmd.c		optional mlx5 pci	\
+	compile-with "${OFED_C}"
 dev/mlx5/mlx5_core/mlx5_fs_cmd.c		optional mlx5 pci	\
+	compile-with "${OFED_C}"
+dev/mlx5/mlx5_core/mlx5_fs_counters.c		optional mlx5 pci	\
 	compile-with "${OFED_C}"
 dev/mlx5/mlx5_core/mlx5_fs_tcp.c		optional mlx5 pci	\
 	compile-with "${OFED_C}"

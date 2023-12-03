@@ -34,7 +34,7 @@ extern "C" {
 #endif
 
 /*
- * Default wait time for a device name to be created.
+ * Default wait time in milliseconds for a device name to be created.
  */
 #define	DISK_LABEL_WAIT		(30 * 1000)  /* 30 seconds */
 
@@ -208,6 +208,8 @@ int for_each_vdev_cb(void *zhp, nvlist_t *nv, pool_vdev_iter_f func,
 int for_each_vdev_in_nvlist(nvlist_t *nvroot, pool_vdev_iter_f func,
     void *data);
 void update_vdevs_config_dev_sysfs_path(nvlist_t *config);
+_LIBZUTIL_H void update_vdev_config_dev_sysfs_path(nvlist_t *nv,
+    const char *path, const char *key);
 #ifdef	__cplusplus
 }
 #endif

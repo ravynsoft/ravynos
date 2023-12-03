@@ -97,6 +97,7 @@
 #endif
 #include <netinet/udp.h>
 #include <netinet/tcp.h>
+#include <netinet/tcp_lro.h>
 #include <net/bpf.h>
 #include <net/if_tap.h>
 #include <net/if_tun.h>
@@ -144,6 +145,8 @@ struct tuntap_softc {
 	struct ether_addr	 tun_ether;	/* remote address */
 	int			 tun_busy;	/* busy count */
 	int			 tun_vhdrlen;	/* virtio-net header length */
+	struct lro_ctrl		 tun_lro;	/* for TCP LRO */
+	bool			 tun_lro_ready;	/* TCP LRO initialized */
 };
 #define	TUN2IFP(sc)	((sc)->tun_ifp)
 
@@ -548,6 +551,7 @@ tun_clone_create(struct if_clone *ifc, char *name, size_t len,
 	if (i != 0)
 		i = tun_create_device(drv, unit, NULL, &dev, name);
 	if (i == 0) {
+		dev_ref(dev);
 		tuncreate(dev);
 		struct tuntap_softc *tp = dev->si_drv1;
 		*ifpp = tp->tun_ifp;
@@ -611,8 +615,10 @@ tunclone(void *arg, struct ucred *cred, char *name, int namelen,
 
 		i = tun_create_device(drv, u, cred, dev, name);
 	}
-	if (i == 0)
+	if (i == 0) {
+		dev_ref(*dev);
 		if_clone_create(name, namelen, NULL);
+	}
 out:
 	CURVNET_RESTORE();
 }
@@ -930,6 +936,16 @@ tunstart_l2(struct ifnet *ifp)
 	TUN_UNLOCK(tp);
 } /* tunstart_l2 */
 
+static int
+tap_transmit(struct ifnet *ifp, struct mbuf *m)
+{
+	int error;
+
+	BPF_MTAP(ifp, m);
+	IFQ_HANDOFF(ifp, m, error);
+	return (error);
+}
+
 /* XXX: should return an error code so it can fail. */
 static void
 tuncreate(struct cdev *dev)
@@ -964,11 +980,16 @@ tuncreate(struct cdev *dev)
 	ifp->if_flags = iflags;
 	IFQ_SET_MAXLEN(&ifp->if_snd, ifqmaxlen);
 	ifp->if_capabilities |= IFCAP_LINKSTATE;
+	if ((tp->tun_flags & TUN_L2) != 0)
+		ifp->if_capabilities |=
+		    IFCAP_RXCSUM | IFCAP_RXCSUM_IPV6 | IFCAP_LRO;
 	ifp->if_capenable |= IFCAP_LINKSTATE;
 
 	if ((tp->tun_flags & TUN_L2) != 0) {
 		ifp->if_init = tunifinit;
 		ifp->if_start = tunstart_l2;
+		ifp->if_transmit = tap_transmit;
+		ifp->if_qflush = if_qflush;
 
 		ether_gen_addr(ifp, &eaddr);
 		ether_ifattach(ifp, eaddr.octet);
@@ -1158,6 +1179,12 @@ tundtor(void *data)
 	    (l2tun && (ifp->if_flags & IFF_LINK0) != 0))
 		goto out;
 
+	if (l2tun && tp->tun_lro_ready) {
+		TUNDEBUG (ifp, "LRO disabled\n");
+		tcp_lro_free(&tp->tun_lro);
+		tp->tun_lro_ready = false;
+	}
+
 	if (ifp->if_flags & IFF_UP) {
 		TUN_UNLOCK(tp);
 		if_down(ifp);
@@ -1202,6 +1229,14 @@ tuninit(struct ifnet *ifp)
 		getmicrotime(&ifp->if_lastchange);
 		TUN_UNLOCK(tp);
 	} else {
+		if (tcp_lro_init(&tp->tun_lro) == 0) {
+			TUNDEBUG(ifp, "LRO enabled\n");
+			tp->tun_lro.ifp = ifp;
+			tp->tun_lro_ready = true;
+		} else {
+			TUNDEBUG(ifp, "Could not enable LRO\n");
+			tp->tun_lro_ready = false;
+		}
 		ifp->if_drv_flags &= ~IFF_DRV_OACTIVE;
 		TUN_UNLOCK(tp);
 		/* attempt to start output */
@@ -1410,8 +1445,7 @@ tunoutput(struct ifnet *ifp, struct mbuf *m0, const struct sockaddr *dst,
 	else
 		af = RO_GET_FAMILY(ro, dst);
 
-	if (bpf_peers_present(ifp->if_bpf))
-		bpf_mtap2(ifp->if_bpf, &af, sizeof(af), m0);
+	BPF_MTAP2(ifp, &af, sizeof(af), m0);
 
 	/* prepend sockaddr? this may abort if the mbuf allocation fails */
 	if (cached_tun_flags & TUN_LMODE) {
@@ -1711,9 +1745,6 @@ tunread(struct cdev *dev, struct uio *uio, int flag)
 	}
 	TUN_UNLOCK(tp);
 
-	if ((tp->tun_flags & TUN_L2) != 0)
-		BPF_MTAP(ifp, m);
-
 	len = min(tp->tun_vhdrlen, uio->uio_resid);
 	if (len > 0) {
 		struct virtio_net_hdr_mrg_rxbuf vhdr;
@@ -1752,6 +1783,7 @@ tunwrite_l2(struct tuntap_softc *tp, struct mbuf *m,
 	struct epoch_tracker et;
 	struct ether_header *eh;
 	struct ifnet *ifp;
+	int result;
 
 	ifp = TUN2IFP(tp);
 
@@ -1766,22 +1798,56 @@ tunwrite_l2(struct tuntap_softc *tp, struct mbuf *m,
 
 	eh = mtod(m, struct ether_header *);
 
-	if (eh && (ifp->if_flags & IFF_PROMISC) == 0 &&
+	if ((ifp->if_flags & IFF_PROMISC) == 0 &&
 	    !ETHER_IS_MULTICAST(eh->ether_dhost) &&
 	    bcmp(eh->ether_dhost, IF_LLADDR(ifp), ETHER_ADDR_LEN) != 0) {
 		m_freem(m);
 		return (0);
 	}
 
-	if (vhdr != NULL && virtio_net_rx_csum(m, &vhdr->hdr)) {
-		m_freem(m);
-		return (0);
+	if (vhdr != NULL) {
+		if (virtio_net_rx_csum(m, &vhdr->hdr)) {
+			m_freem(m);
+			return (0);
+		}
+	} else {
+		switch (ntohs(eh->ether_type)) {
+#ifdef INET
+		case ETHERTYPE_IP:
+			if (ifp->if_capenable & IFCAP_RXCSUM) {
+				m->m_pkthdr.csum_flags |=
+				    CSUM_IP_CHECKED | CSUM_IP_VALID |
+				    CSUM_DATA_VALID | CSUM_SCTP_VALID |
+				    CSUM_PSEUDO_HDR;
+				m->m_pkthdr.csum_data = 0xffff;
+			}
+			break;
+#endif
+#ifdef INET6
+		case ETHERTYPE_IPV6:
+			if (ifp->if_capenable & IFCAP_RXCSUM_IPV6) {
+				m->m_pkthdr.csum_flags |=
+				    CSUM_DATA_VALID_IPV6 | CSUM_SCTP_VALID |
+				    CSUM_PSEUDO_HDR;
+				m->m_pkthdr.csum_data = 0xffff;
+			}
+			break;
+#endif
+		}
 	}
 
 	/* Pass packet up to parent. */
 	CURVNET_SET(ifp->if_vnet);
 	NET_EPOCH_ENTER(et);
-	(*ifp->if_input)(ifp, m);
+	if (tp->tun_lro_ready && ifp->if_capenable & IFCAP_LRO) {
+		result = tcp_lro_rx(&tp->tun_lro, m, 0);
+		TUNDEBUG(ifp, "tcp_lro_rx() returned %d\n", result);
+	} else
+		result = TCP_LRO_CANNOT;
+	if (result == 0)
+		tcp_lro_flush_all(&tp->tun_lro);
+	else
+		(*ifp->if_input)(ifp, m);
 	NET_EPOCH_EXIT(et);
 	CURVNET_RESTORE();
 	/* ibytes are counted in parent */

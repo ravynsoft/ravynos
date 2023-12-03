@@ -178,6 +178,8 @@ static const struct rl_type re_devs[] = {
 	    "D-Link DGE-528(T) Gigabit Ethernet Adapter" },
 	{ DLINK_VENDORID, DLINK_DEVICEID_530T_REVC, 0,
 	    "D-Link DGE-530(T) Gigabit Ethernet Adapter" },
+	{ RT_VENDORID, RT_DEVICEID_2600, 0,
+	   "RealTek Killer E2600 Gigabit Ethernet Controller" },
 	{ RT_VENDORID, RT_DEVICEID_8139, 0,
 	    "RealTek 8139C+ 10/100BaseTX" },
 	{ RT_VENDORID, RT_DEVICEID_8101E, 0,
@@ -241,6 +243,7 @@ static const struct rl_hwrev re_hwrevs[] = {
 	{ RL_HWREV_8168E_VL, RL_8169, "8168E/8111E-VL", RL_JUMBO_MTU_6K},
 	{ RL_HWREV_8168EP, RL_8169, "8168EP/8111EP", RL_JUMBO_MTU_9K},
 	{ RL_HWREV_8168F, RL_8169, "8168F/8111F", RL_JUMBO_MTU_9K},
+	{ RL_HWREV_8168FP, RL_8169, "8168FP/8111FP", RL_JUMBO_MTU_9K},
 	{ RL_HWREV_8168G, RL_8169, "8168G/8111G", RL_JUMBO_MTU_9K},
 	{ RL_HWREV_8168GU, RL_8169, "8168GU/8111GU", RL_JUMBO_MTU_9K},
 	{ RL_HWREV_8168H, RL_8169, "8168H/8111H", RL_JUMBO_MTU_9K},
@@ -1493,6 +1496,7 @@ re_attach(device_t dev)
 		    RL_FLAG_CMDSTOP_WAIT_TXQ | RL_FLAG_WOL_MANLINK;
 		break;
 	case RL_HWREV_8168EP:
+	case RL_HWREV_8168FP:
 	case RL_HWREV_8168G:
 	case RL_HWREV_8411B:
 		sc->rl_flags |= RL_FLAG_PHYWAKE | RL_FLAG_PAR |

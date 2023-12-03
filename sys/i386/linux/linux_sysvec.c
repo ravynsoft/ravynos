@@ -518,11 +518,11 @@ linux_fetch_syscall_args(struct thread *td)
 	sa->args[2] = frame->tf_edx;
 	sa->args[3] = frame->tf_esi;
 	sa->args[4] = frame->tf_edi;
-	sa->args[5] = frame->tf_ebp;	/* Unconfirmed */
+	sa->args[5] = frame->tf_ebp;
 
 	if (sa->code >= p->p_sysent->sv_size)
 		/* nosys */
-		sa->callp = &p->p_sysent->sv_table[p->p_sysent->sv_size - 1];
+		sa->callp = &nosys_sysent;
 	else
 		sa->callp = &p->p_sysent->sv_table[sa->code];
 

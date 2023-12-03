@@ -19,7 +19,8 @@ from atf_python.utils import libc
 
 
 def run_cmd(cmd: str, verbose=True) -> str:
-    print("run: '{}'".format(cmd))
+    if verbose:
+        print("run: '{}'".format(cmd))
     return os.popen(cmd).read()
 
 
@@ -81,13 +82,9 @@ class VnetInterface(object):
     def set_jailed(self, jailed: bool):
         self.jailed = jailed
 
-    def run_cmd(
-        self,
-        cmd,
-        verbose=False,
-    ):
+    def run_cmd(self, cmd, verbose=False):
         if self.vnet_name and not self.jailed:
-            cmd = "jexec {} {}".format(self.vnet_name, cmd)
+            cmd = "/usr/sbin/jexec {} {}".format(self.vnet_name, cmd)
         return run_cmd(cmd, verbose)
 
     @classmethod
@@ -180,13 +177,15 @@ class IfaceFactory(object):
 
     @staticmethod
     def is_autodeleted(iface_name: str) -> bool:
+        if iface_name == "lo0":
+            return False
         iface_type = re.split(r"\d+", iface_name)[0]
         return iface_type in IfaceFactory.AUTODELETE_TYPES
 
     def cleanup_vnet_interfaces(self, vnet_name: str) -> List[str]:
         """Destroys"""
         ifaces_lst = ToolsHelper.get_output(
-            "/usr/sbin/jexec {} ifconfig -l".format(vnet_name)
+            "/usr/sbin/jexec {} /sbin/ifconfig -l".format(vnet_name)
         )
         for iface_name in ifaces_lst.split():
             if not self.is_autodeleted(iface_name):
@@ -194,7 +193,7 @@ class IfaceFactory(object):
                     print("Skipping interface {}:{}".format(vnet_name, iface_name))
                     continue
             run_cmd(
-                "/usr/sbin/jexec {} ifconfig {} destroy".format(vnet_name, iface_name)
+                "/usr/sbin/jexec {} /sbin/ifconfig {} destroy".format(vnet_name, iface_name)
             )
 
     def cleanup(self):
@@ -226,10 +225,10 @@ class VnetInstance(object):
         self.pipe = None
         self.subprocess = None
 
-    def run_vnet_cmd(self, cmd):
+    def run_vnet_cmd(self, cmd, verbose=True):
         if not self.attached:
-            cmd = "jexec {} {}".format(self.name, cmd)
-        return run_cmd(cmd)
+            cmd = "/usr/sbin/jexec {} {}".format(self.name, cmd)
+        return run_cmd(cmd, verbose)
 
     def disable_dad(self):
         self.run_vnet_cmd("/sbin/sysctl net.inet6.ip6.dad_count=0")
@@ -266,7 +265,7 @@ class VnetFactory(object):
 
     @staticmethod
     def _wait_interfaces(vnet_name: str, ifaces: List[str]) -> List[str]:
-        cmd = "jexec {} /sbin/ifconfig -l".format(vnet_name)
+        cmd = "/usr/sbin/jexec {} /sbin/ifconfig -l".format(vnet_name)
         not_matched: List[str] = []
         for i in range(50):
             vnet_ifaces = run_cmd(cmd).strip().split(" ")
@@ -490,7 +489,7 @@ class VnetTestTemplate(BaseTest):
         # pytest test id: file::class::test_name
         topology_id = get_topology_id(self.test_id)
 
-        print("==== vnet cleanup ===")
+        print("============= vnet cleanup =============")
         print("# topology_id: '{}'".format(topology_id))
         VnetFactory(topology_id).cleanup()
         IfaceFactory().cleanup()

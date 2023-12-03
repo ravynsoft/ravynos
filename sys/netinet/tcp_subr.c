@@ -305,8 +305,17 @@ static int	tcp_log_debug = 0;
 SYSCTL_INT(_net_inet_tcp, OID_AUTO, log_debug, CTLFLAG_RW,
     &tcp_log_debug, 0, "Log errors caused by incoming TCP segments");
 
-static int	tcp_tcbhashsize;
-SYSCTL_INT(_net_inet_tcp, OID_AUTO, tcbhashsize, CTLFLAG_RDTUN | CTLFLAG_NOFETCH,
+/*
+ * Target size of TCP PCB hash tables. Must be a power of two.
+ *
+ * Note that this can be overridden by the kernel environment
+ * variable net.inet.tcp.tcbhashsize
+ */
+#ifndef TCBHASHSIZE
+#define TCBHASHSIZE	0
+#endif
+static int	tcp_tcbhashsize = TCBHASHSIZE;
+SYSCTL_INT(_net_inet_tcp, OID_AUTO, tcbhashsize, CTLFLAG_RDTUN,
     &tcp_tcbhashsize, 0, "Size of TCP control-block hashtable");
 
 static int	do_tcpdrain = 1;
@@ -1152,16 +1161,6 @@ tcp_default_fb_fini(struct tcpcb *tp, int tcb_is_purged)
 	return;
 }
 
-/*
- * Target size of TCP PCB hash tables. Must be a power of two.
- *
- * Note that this can be overridden by the kernel environment
- * variable net.inet.tcp.tcbhashsize
- */
-#ifndef TCBHASHSIZE
-#define TCBHASHSIZE	0
-#endif
-
 MALLOC_DEFINE(M_TCPLOG, "tcplog", "TCP address and flags print buffers");
 MALLOC_DEFINE(M_TCPFUNCTIONS, "tcpfunc", "TCP function set memory");
 
@@ -1508,7 +1507,6 @@ VNET_SYSINIT(tcp_vnet_init, SI_SUB_PROTO_DOMAIN, SI_ORDER_FOURTH,
 static void
 tcp_init(void *arg __unused)
 {
-	const char *tcbhash_tuneable;
 	int hashsize;
 
 	tcp_reass_global_init();
@@ -1576,9 +1574,7 @@ tcp_init(void *arg __unused)
 	tcp_pcap_init();
 #endif
 
-	hashsize = TCBHASHSIZE;
-	tcbhash_tuneable = "net.inet.tcp.tcbhashsize";
-	TUNABLE_INT_FETCH(tcbhash_tuneable, &hashsize);
+	hashsize = tcp_tcbhashsize;
 	if (hashsize == 0) {
 		/*
 		 * Auto tune the hash size based on maxsockets.
@@ -1595,7 +1591,7 @@ tcp_init(void *arg __unused)
 			hashsize = 512;
 		if (bootverbose)
 			printf("%s: %s auto tuned to %d\n", __func__,
-			    tcbhash_tuneable, hashsize);
+			    "net.inet.tcp.tcbhashsize", hashsize);
 	}
 	/*
 	 * We require a hashsize to be a power of two.
@@ -4681,4 +4677,31 @@ tcp_get_srtt(struct tcpcb *tp, int granularity)
 		srtt = srtt >> TCP_RTT_SHIFT;
 
 	return (srtt);
+}
+
+void
+tcp_account_for_send(struct tcpcb *tp, uint32_t len, uint8_t is_rxt,
+    uint8_t is_tlp, bool hw_tls)
+{
+
+	if (is_tlp) {
+		tp->t_sndtlppack++;
+		tp->t_sndtlpbyte += len;
+	}
+	/* To get total bytes sent you must add t_snd_rxt_bytes to t_sndbytes */
+	if (is_rxt)
+		tp->t_snd_rxt_bytes += len;
+	else
+		tp->t_sndbytes += len;
+
+#ifdef KERN_TLS
+	if (hw_tls && is_rxt && len != 0) {
+		uint64_t rexmit_percent;
+
+		rexmit_percent = (1000ULL * tp->t_snd_rxt_bytes) /
+		    (10ULL * (tp->t_snd_rxt_bytes + tp->t_sndbytes));
+		if (rexmit_percent > ktls_ifnet_max_rexmit_pct)
+			ktls_disable_ifnet(tp);
+	}
+#endif
 }

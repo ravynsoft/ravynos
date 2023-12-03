@@ -291,7 +291,7 @@ _DP_archive=	z bz2 lzma bsdxml zstd
 .endif
 _DP_bsm=	notify
 _DP_avl=	spl
-_DP_bsddialog=	formw ncursesw tinfow
+_DP_bsddialog=	ncursesw tinfow
 _DP_zstd=	pthread
 .if ${MK_BLACKLIST} != "no"
 _DP_blacklist+=	pthread

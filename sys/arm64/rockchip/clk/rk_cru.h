@@ -42,6 +42,10 @@
 #include <arm64/rockchip/clk/rk_clk_pll.h>
 
 /* Macro for defining various types of clocks. */
+
+/* Parent list */
+#define PLIST(_name) static const char *_name[]
+
 /* Pure gate */
 #define	GATE(_idx, _clkname, _pname, _o, _s)				\
 {									\
@@ -211,15 +215,6 @@ struct rk_cru_gate {
 	uint32_t	offset;
 	uint32_t	shift;
 };
-
-#define	CRU_GATE(idx, clkname, pname, o, s)	\
-	{				\
-		.id = idx,			\
-		.name = clkname,		\
-		.parent_name = pname,		\
-		.offset = o,			\
-		.shift = s,			\
-	},
 
 enum rk_clk_type {
 	RK_CLK_UNDEFINED = 0,

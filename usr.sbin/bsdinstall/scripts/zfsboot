@@ -71,7 +71,7 @@ f_include $BSDCFG_SHARE/variable.subr
 #
 # Should we use sysctl(8) vfs.zfs.min_auto_ashift=12 to force 4K sectors?
 #
-: ${ZFSBOOT_FORCE_4K_SECTORS:=1}
+: ${ZFSBOOT_FORCE_4K_SECTORS=1}
 
 #
 # Should we use geli(8) to encrypt the drives?
@@ -396,7 +396,7 @@ dialog_menu_main()
 		--default-item \"\$defaultitem\" \
 		--menu \"\$prompt\"              \
 		$height $width $rows             \
-		$menu_list                       \
+		${USE_DIALOG:+--} $menu_list     \
 		2>&1 >&$DIALOG_TERMINAL_PASSTHRU_FD
 	)
 	local retval=$?

@@ -51,7 +51,7 @@ def build_response_packet(echo, ip, icmp, oip_ihl, special):
         # Build a package with a timestamp of INT_MAX
         # (time-warped package)
         payload_no_timestamp = sc.bytes_hex(load)[16:]
-        load = (b"\xff" * 8) + sc.hex_bytes(payload_no_timestamp)
+        load = b"\x7f" + (b"\xff" * 7) + sc.hex_bytes(payload_no_timestamp)
     if special == "wrong":
         # Build a package with a wrong last byte
         payload_no_last_byte = sc.bytes_hex(load)[:-2]
@@ -275,6 +275,8 @@ def redact(output):
         ("hlim=[0-9]*", "hlim="),
         ("ttl=[0-9]*", "ttl="),
         ("time=[0-9.-]*", "time="),
+        ("cp: .*", "cp: xx xx xx xx xx xx xx xx"),
+        ("dp: .*", "dp: xx xx xx xx xx xx xx xx"),
         ("\(-[0-9\.]+[0-9]+ ms\)", "(- ms)"),
         ("[0-9\.]+/[0-9.]+", "/"),
     ]
@@ -311,12 +313,12 @@ round-trip min/avg/max/stddev = /// ms
                 "args": "ping -6 -c1 -s8 -t1 localhost",
                 "returncode": 0,
                 "stdout": """\
-PING6(56=40+8+8 bytes) ::1 --> ::1
+PING(56=40+8+8 bytes) ::1 --> ::1
 16 bytes from ::1, icmp_seq=0 hlim= time= ms
 
---- localhost ping6 statistics ---
+--- localhost ping statistics ---
 1 packets transmitted, 1 packets received, 0.0% packet loss
-round-trip min/avg/max/std-dev = /// ms
+round-trip min/avg/max/stddev = /// ms
 """,
                 "stderr": "",
             },
@@ -357,12 +359,12 @@ PING 192.0.2.2 (192.0.2.2): 56 data bytes
                 "args": "ping -A -c1 2001:db8::1",
                 "returncode": 0,
                 "stdout": """\
-PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::1
+PING(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::1
 16 bytes from 2001:db8::1, icmp_seq=0 hlim= time= ms
 
---- 2001:db8::1 ping6 statistics ---
+--- 2001:db8::1 ping statistics ---
 1 packets transmitted, 1 packets received, 0.0% packet loss
-round-trip min/avg/max/std-dev = /// ms
+round-trip min/avg/max/stddev = /// ms
 """,
                 "stderr": "",
             },
@@ -373,9 +375,9 @@ round-trip min/avg/max/std-dev = /// ms
                 "args": "ping -A -c1 2001:db8::2",
                 "returncode": 2,
                 "stdout": """\
-PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
+PING(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
 
---- 2001:db8::2 ping6 statistics ---
+--- 2001:db8::2 ping statistics ---
 1 packets transmitted, 0 packets received, 100.0% packet loss
 """,
                 "stderr": "",
@@ -419,14 +421,14 @@ round-trip min/avg/max/stddev = /// ms
                 "args": "ping -A -c3 2001:db8::1",
                 "returncode": 0,
                 "stdout": """\
-PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::1
+PING(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::1
 16 bytes from 2001:db8::1, icmp_seq=0 hlim= time= ms
 16 bytes from 2001:db8::1, icmp_seq=1 hlim= time= ms
 16 bytes from 2001:db8::1, icmp_seq=2 hlim= time= ms
 
---- 2001:db8::1 ping6 statistics ---
+--- 2001:db8::1 ping statistics ---
 3 packets transmitted, 3 packets received, 0.0% packet loss
-round-trip min/avg/max/std-dev = /// ms
+round-trip min/avg/max/stddev = /// ms
 """,
                 "stderr": "",
             },
@@ -437,9 +439,9 @@ round-trip min/avg/max/std-dev = /// ms
                 "args": "ping -A -c3 2001:db8::2",
                 "returncode": 2,
                 "stdout": """\
-\x07\x07PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
+\x07\x07PING(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
 
---- 2001:db8::2 ping6 statistics ---
+--- 2001:db8::2 ping statistics ---
 3 packets transmitted, 0 packets received, 100.0% packet loss
 """,
                 "stderr": "",
@@ -481,12 +483,12 @@ PING 192.0.2.2 (192.0.2.2): 56 data bytes
                 "args": "ping -c1 2001:db8::1",
                 "returncode": 0,
                 "stdout": """\
-PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::1
+PING(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::1
 16 bytes from 2001:db8::1, icmp_seq=0 hlim= time= ms
 
---- 2001:db8::1 ping6 statistics ---
+--- 2001:db8::1 ping statistics ---
 1 packets transmitted, 1 packets received, 0.0% packet loss
-round-trip min/avg/max/std-dev = /// ms
+round-trip min/avg/max/stddev = /// ms
 """,
                 "stderr": "",
             },
@@ -497,9 +499,9 @@ round-trip min/avg/max/std-dev = /// ms
                 "args": "ping -c1 2001:db8::2",
                 "returncode": 2,
                 "stdout": """\
-PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
+PING(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
 
---- 2001:db8::2 ping6 statistics ---
+--- 2001:db8::2 ping statistics ---
 1 packets transmitted, 0 packets received, 100.0% packet loss
 """,
                 "stderr": "",
@@ -527,12 +529,12 @@ round-trip min/avg/max/stddev = /// ms
                 "args": "ping -c1 -S::1 -s8 -t1 localhost",
                 "returncode": 0,
                 "stdout": """\
-PING6(56=40+8+8 bytes) ::1 --> ::1
+PING(56=40+8+8 bytes) ::1 --> ::1
 16 bytes from ::1, icmp_seq=0 hlim= time= ms
 
---- localhost ping6 statistics ---
+--- localhost ping statistics ---
 1 packets transmitted, 1 packets received, 0.0% packet loss
-round-trip min/avg/max/std-dev = /// ms
+round-trip min/avg/max/stddev = /// ms
 """,
                 "stderr": "",
             },
@@ -575,14 +577,14 @@ PING 192.0.2.2 (192.0.2.2): 56 data bytes
                 "args": "ping -c3 2001:db8::1",
                 "returncode": 0,
                 "stdout": """\
-PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::1
+PING(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::1
 16 bytes from 2001:db8::1, icmp_seq=0 hlim= time= ms
 16 bytes from 2001:db8::1, icmp_seq=1 hlim= time= ms
 16 bytes from 2001:db8::1, icmp_seq=2 hlim= time= ms
 
---- 2001:db8::1 ping6 statistics ---
+--- 2001:db8::1 ping statistics ---
 3 packets transmitted, 3 packets received, 0.0% packet loss
-round-trip min/avg/max/std-dev = /// ms
+round-trip min/avg/max/stddev = /// ms
 """,
                 "stderr": "",
             },
@@ -593,9 +595,9 @@ round-trip min/avg/max/std-dev = /// ms
                 "args": "ping -c3 2001:db8::2",
                 "returncode": 2,
                 "stdout": """\
-PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
+PING(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
 
---- 2001:db8::2 ping6 statistics ---
+--- 2001:db8::2 ping statistics ---
 3 packets transmitted, 0 packets received, 100.0% packet loss
 """,
                 "stderr": "",
@@ -636,11 +638,11 @@ PING 192.0.2.2 (192.0.2.2): 56 data bytes
                 "args": "ping -q -c1 2001:db8::1",
                 "returncode": 0,
                 "stdout": """\
-PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::1
+PING(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::1
 
---- 2001:db8::1 ping6 statistics ---
+--- 2001:db8::1 ping statistics ---
 1 packets transmitted, 1 packets received, 0.0% packet loss
-round-trip min/avg/max/std-dev = /// ms
+round-trip min/avg/max/stddev = /// ms
 """,
                 "stderr": "",
             },
@@ -651,9 +653,9 @@ round-trip min/avg/max/std-dev = /// ms
                 "args": "ping -q -c1 2001:db8::2",
                 "returncode": 2,
                 "stdout": """\
-PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
+PING(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
 
---- 2001:db8::2 ping6 statistics ---
+--- 2001:db8::2 ping statistics ---
 1 packets transmitted, 0 packets received, 100.0% packet loss
 """,
                 "stderr": "",
@@ -694,11 +696,11 @@ PING 192.0.2.2 (192.0.2.2): 56 data bytes
                 "args": "ping -q -c3 2001:db8::1",
                 "returncode": 0,
                 "stdout": """\
-PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::1
+PING(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::1
 
---- 2001:db8::1 ping6 statistics ---
+--- 2001:db8::1 ping statistics ---
 3 packets transmitted, 3 packets received, 0.0% packet loss
-round-trip min/avg/max/std-dev = /// ms
+round-trip min/avg/max/stddev = /// ms
 """,
                 "stderr": "",
             },
@@ -709,9 +711,9 @@ round-trip min/avg/max/std-dev = /// ms
                 "args": "ping -q -c3 2001:db8::2",
                 "returncode": 2,
                 "stdout": """\
-PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
+PING(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
 
---- 2001:db8::2 ping6 statistics ---
+--- 2001:db8::2 ping statistics ---
 3 packets transmitted, 0 packets received, 100.0% packet loss
 """,
                 "stderr": "",
@@ -721,6 +723,7 @@ PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
     ]
 
     @pytest.mark.parametrize("expected", testdata)
+    @pytest.mark.require_user("root")
     def test_ping(self, expected):
         """Test ping"""
         ping = subprocess.run(
@@ -749,6 +752,7 @@ PING6(56=40+8+8 bytes) 2001:db8::1 --> 2001:db8::2
     ]
 
     @pytest.mark.parametrize("expected", ping46_testdata)
+    @pytest.mark.require_user("root")
     def test_ping_46(self, expected):
         """Test ping -4/ping -6"""
         for version in [4, 6]:
@@ -859,7 +863,6 @@ PING 192.0.2.2 (192.0.2.2): 56 data bytes
 64 bytes from: icmp_seq=0 ttl= time= ms
 LSRR: 	(truncated route)
 
-
 --- 192.0.2.2 ping statistics ---
 1 packets transmitted, 1 packets received, 0.0% packet loss
 round-trip min/avg/max/stddev = /// ms
@@ -915,7 +918,6 @@ round-trip min/avg/max/stddev = /// ms
 PING 192.0.2.2 (192.0.2.2): 56 data bytes
 64 bytes from: icmp_seq=0 ttl= time= ms
 SSRR: 	(truncated route)
-
 
 --- 192.0.2.2 ping statistics ---
 1 packets transmitted, 1 packets received, 0.0% packet loss
@@ -1034,6 +1036,118 @@ round-trip min/avg/max/stddev = /// ms
             {
                 "src": "192.0.2.1",
                 "dst": "192.0.2.2",
+                "icmp_type": 3,
+                "icmp_code": 1,
+                "ihl": 0x4,
+            },
+            {
+                "returncode": 2,
+                "stdout": """\
+PING 192.0.2.2 (192.0.2.2): 56 data bytes
+
+--- 192.0.2.2 ping statistics ---
+1 packets transmitted, 0 packets received, 100.0% packet loss
+""",
+                "stderr": "",  # "IHL too short" message not shown
+                "redacted": False,
+            },
+            id="_IHL_too_short",
+        ),
+        pytest.param(
+            {
+                "src": "192.0.2.1",
+                "dst": "192.0.2.2",
+                "icmp_type": 3,
+                "icmp_code": 1,
+                "special": "no-payload",
+            },
+            {
+                "returncode": 2,
+                "stdout": """\
+PATTERN: 0x01
+PING 192.0.2.2 (192.0.2.2): 56 data bytes
+
+--- 192.0.2.2 ping statistics ---
+1 packets transmitted, 0 packets received, 100.0% packet loss
+""",
+                "stderr": """\
+ping: quoted data too short (28 bytes) from 192.0.2.2
+""",
+                "redacted": False,
+            },
+            id="_quoted_data_too_short",
+        ),
+        pytest.param(
+            {
+                "src": "192.0.2.1",
+                "dst": "192.0.2.2",
+                "icmp_type": 3,
+                "icmp_code": 1,
+                "oip_ihl": 0x4,
+            },
+            {
+                "returncode": 2,
+                "stdout": """\
+PING 192.0.2.2 (192.0.2.2): 56 data bytes
+
+--- 192.0.2.2 ping statistics ---
+1 packets transmitted, 0 packets received, 100.0% packet loss
+""",
+                "stderr": "",  # "inner IHL too short" message not shown
+                "redacted": False,
+            },
+            id="_inner_IHL_too_short",
+        ),
+        pytest.param(
+            {
+                "src": "192.0.2.1",
+                "dst": "192.0.2.2",
+                "icmp_type": 3,
+                "icmp_code": 1,
+                "oip_ihl": 0xF,
+            },
+            {
+                "returncode": 2,
+                "stdout": """\
+PING 192.0.2.2 (192.0.2.2): 56 data bytes
+
+--- 192.0.2.2 ping statistics ---
+1 packets transmitted, 0 packets received, 100.0% packet loss
+""",
+                "stderr": """\
+ping: inner packet too short (84 bytes) from 192.0.2.2
+""",
+                "redacted": False,
+            },
+            id="_inner_packet_too_short",
+        ),
+        pytest.param(
+            {
+                "src": "192.0.2.1",
+                "dst": "192.0.2.2",
+                "icmp_type": 3,
+                "icmp_code": 1,
+                "oip_ihl": 0xF,
+                "special": "no-payload",
+            },
+            {
+                "returncode": 2,
+                "stdout": """\
+PATTERN: 0x01
+PING 192.0.2.2 (192.0.2.2): 56 data bytes
+
+--- 192.0.2.2 ping statistics ---
+1 packets transmitted, 0 packets received, 100.0% packet loss
+""",
+                "stderr": "",
+                "redacted": False,
+            },
+            id="_max_inner_packet_ihl_without_payload",
+        ),
+        pytest.param(
+            {
+                "src": "192.0.2.1",
+                "dst": "192.0.2.2",
                 "icmp_type": 0,
                 "icmp_code": 0,
                 "opts": "NOP-40",
@@ -1132,8 +1246,8 @@ round-trip min/avg/max/stddev = /// ms
                 "stdout": """\
 PING 192.0.2.2 (192.0.2.2): 56 data bytes
 132 bytes from 192.0.2.2: Destination Host Unreachable
-Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src      Dst
- 4  f  00 007c 0001   0 0000  40  01 d868 192.0.2.1  192.0.2.2 01010101010101010101010101010101010101010101010101010101010101010101010101010101
+Vr HL TOS  Len   ID Flg  off TTL Pro  cks       Src       Dst Opts
+ 4  f  00 007c 0001   0 0000  40  01 d868 192.0.2.1 192.0.2.2 01010101010101010101010101010101010101010101010101010101010101010101010101010101
 
 
 --- 192.0.2.2 ping statistics ---
@@ -1157,8 +1271,8 @@ Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src      Dst
                 "stdout": """\
 PING 192.0.2.2 (192.0.2.2): 56 data bytes
 92 bytes from 192.0.2.2: Destination Host Unreachable
-Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src      Dst
- 4  5  00 0054 0001   2 0000  40  01 b6a4 192.0.2.1  192.0.2.2 
+Vr HL TOS  Len   ID Flg  off TTL Pro  cks       Src       Dst
+ 4  5  00 0054 0001   2 0000  40  01 b6a4 192.0.2.1 192.0.2.2
 
 
 --- 192.0.2.2 ping statistics ---
@@ -1230,8 +1344,8 @@ ping: quoted data too short (28 bytes) from 192.0.2.2
                 "stdout": """\
 PING 192.0.2.2 (192.0.2.2): 56 data bytes
 92 bytes from 192.0.2.2: Destination Host Unreachable
-Vr HL TOS  Len   ID Flg  off TTL Pro  cks      Src      Dst
- 4  5  00 0054 0001   0 0000  40  01 f6a4 192.0.2.1  192.0.2.2 
+Vr HL TOS  Len   ID Flg  off TTL Pro  cks       Src       Dst
+ 4  5  00 0054 0001   0 0000  40  01 f6a4 192.0.2.1 192.0.2.2
 
 
 --- 192.0.2.2 ping statistics ---
@@ -1290,6 +1404,39 @@ ping: time of day goes back (- ms), clamping time to 0
                 "redacted": True,
             },
             id="_0_0_special_warp",
+        ),
+        pytest.param(
+            {
+                "src": "192.0.2.1",
+                "dst": "192.0.2.2",
+                "icmp_type": 0,
+                "icmp_code": 0,
+                "special": "wrong",
+            },
+            {
+                "returncode": 0,
+                "stdout": """\
+PATTERN: 0x01
+PING 192.0.2.2 (192.0.2.2): 56 data bytes
+64 bytes from: icmp_seq=0 ttl= time= ms
+wrong data byte #55 should be 0x1 but was 0x0
+cp: xx xx xx xx xx xx xx xx
+	  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1
+	  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1
+	  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  0
+dp: xx xx xx xx xx xx xx xx
+	  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1
+	  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1
+	  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1  1
+
+--- 192.0.2.2 ping statistics ---
+1 packets transmitted, 1 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = /// ms
+""",
+                "stderr": "",
+                "redacted": True,
+            },
+            id="_0_0_special_wrong",
         ),
     ]
 

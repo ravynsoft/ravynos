@@ -100,7 +100,7 @@
 
 MALLOC_DEFINE(M_BPF, "BPF", "BPF data");
 
-static struct bpf_if_ext dead_bpf_if = {
+static const struct bpf_if_ext dead_bpf_if = {
 	.bif_dlist = CK_LIST_HEAD_INITIALIZER()
 };
 
@@ -2859,7 +2859,7 @@ bpfdetach(struct ifnet *ifp)
 			continue;
 
 		CK_LIST_REMOVE(bp, bif_next);
-		*bp->bif_bpf = (struct bpf_if *)&dead_bpf_if;
+		*bp->bif_bpf = __DECONST(struct bpf_if *, &dead_bpf_if);
 
 		CTR4(KTR_NET,
 		    "%s: sheduling free for encap %d (%p) for if %p",
@@ -2877,6 +2877,14 @@ bpfdetach(struct ifnet *ifp)
 		bpfif_rele(bp);
 	}
 	BPF_UNLOCK();
+}
+
+bool
+bpf_peers_present_if(struct ifnet *ifp)
+{
+	struct bpf_if *bp = ifp->if_bpf;
+
+	return (bpf_peers_present(bp) > 0);
 }
 
 /*
@@ -3154,12 +3162,18 @@ void
 bpfattach2(struct ifnet *ifp, u_int dlt, u_int hdrlen, struct bpf_if **driverp)
 {
 
-	*driverp = (struct bpf_if *)&dead_bpf_if;
+	*driverp = __DECONST(struct bpf_if *, &dead_bpf_if);
 }
 
 void
 bpfdetach(struct ifnet *ifp)
 {
+}
+
+bool
+bpf_peers_present_if(struct ifnet *ifp)
+{
+	return (false);
 }
 
 u_int

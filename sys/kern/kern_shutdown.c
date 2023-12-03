@@ -471,7 +471,7 @@ kern_reboot(int howto)
 	 * deadlock than to lock against code that won't ever
 	 * continue.
 	 */
-	while (mtx_owned(&Giant))
+	while (!SCHEDULER_STOPPED() && mtx_owned(&Giant))
 		mtx_unlock(&Giant);
 
 #if defined(SMP)
@@ -491,9 +491,6 @@ kern_reboot(int howto)
 	/* We're in the process of rebooting. */
 	rebooting = 1;
 	reboottrace(howto);
-
-	/* We are out of the debugger now. */
-	kdb_active = 0;
 
 	/*
 	 * Do any callouts that should be done BEFORE syncing the filesystems.
@@ -1011,7 +1008,7 @@ kproc_shutdown(void *arg, int howto)
 	struct proc *p;
 	int error;
 
-	if (KERNEL_PANICKED())
+	if (SCHEDULER_STOPPED())
 		return;
 
 	p = (struct proc *)arg;
@@ -1031,7 +1028,7 @@ kthread_shutdown(void *arg, int howto)
 	struct thread *td;
 	int error;
 
-	if (KERNEL_PANICKED())
+	if (SCHEDULER_STOPPED())
 		return;
 
 	td = (struct thread *)arg;
