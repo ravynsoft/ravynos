@@ -3,7 +3,8 @@
 .include <src.opts.mk>
 
 SUBDIR= lib .WAIT \
-	usr.bin
+	usr.bin \
+	bin
 
 SUBDIR.${MK_TESTS}+= tests
 
