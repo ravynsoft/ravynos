@@ -1,5 +1,6 @@
 .include <bsd.prog.mk>
 
+.MAKEFLAGS=
 #CONFIGURE_ARGS+=
 GMAKE_ARGS+=    INSTALL=${DESTDIR}/legacy/bin/install
 

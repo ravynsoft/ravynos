@@ -1,0 +1,128 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the --shuffle option.";
+
+$details = "Verify that --shuffle has expected effect on target order and argument order.";
+
+#
+# Test --shuffle=random
+#
+
+# TEST 1: Fixed seed should yield the same order from run to run.
+
+$makefile = &get_tmpfile;
+
+open(MAKEFILE, "> $makefile");
+print MAKEFILE <<'EOF';
+# More target prerequisites lower collision chance in TEST 2
+all: a_ b_ c_ d_ e_ f_ g_ i_ j_ k_ l_
+%: ; echo $@
+EOF
+close(MAKEFILE);
+
+$log1 = &get_logfile;
+$log2 = &get_logfile;
+&run_make_with_options($makefile, "--shuffle=12345", $log1);
+&run_make_with_options($makefile, "--shuffle=12345", $log2);
+
+&compare_output(&read_file_into_string($log1), $log2);
+
+# TEST 2: Sequential runs should produce different orders.
+
+$log3 = &get_logfile;
+$log4 = &get_logfile;
+&run_make_with_options($makefile, "--shuffle", $log3);
+&run_make_with_options($makefile, "--shuffle", $log4);
+
+++$tests_run;
+if (&read_file_into_string($log3) ne &read_file_into_string($log4)) {
+  print "ok\n" if $debug;
+  ++$tests_passed;
+}
+
+#
+# Test --shuffle=reverse
+#
+
+run_make_test('
+%: ; @echo $@
+all: a b c
+',
+              '--shuffle=reverse', "c\nb\na\nall");
+
+run_make_test('
+%: ; @echo $@
+all: a b c
+',
+              '--shuffle=none', "a\nb\nc\nall");
+
+run_make_test('
+%: ; @echo $@
+all: a b c
+',
+              '--shuffle=identity', "a\nb\nc\nall");
+
+# Make sure prerequisites get reverse order and commands don't get affected.
+run_make_test('
+all: foo.o ; @echo $@
+%.o : %.c ; @echo cc -c -o $@ $<
+foo.o : foo.c foo.h bar.h baz.h
+%.h: ; @echo $@
+%.c: ; @echo $@
+',
+              '--shuffle=reverse',
+              "baz.h\nbar.h\nfoo.h\nfoo.c\ncc -c -o foo.o foo.c\nall");
+
+# Make sure pattern prerequisites get reverse order and commands don't get
+# affected.
+run_make_test('
+all: foo_ ; @echo $@
+foo%: arg%1 arg%2 arg%3 arg%4 ; @echo bld $@ $< $(word 3,$^) $(word 2,$^) $(word 4,$^)
+
+arg%: ; @echo $@
+',
+              '--shuffle=reverse',
+              "arg_4\narg_3\narg_2\narg_1\nbld foo_ arg_1 arg_3 arg_2 arg_4\nall");
+
+# Check if make can survive circular dependency.
+run_make_test('
+all: a_ b_ ; @echo $@
+%_: ; @echo $@
+
+a_: b_
+b_: a_
+',
+              '--shuffle=reverse', "#MAKE#: Circular a_ <- b_ dependency dropped.\na_\nb_\nall");
+
+# Check if order-only dependencies get reordered.
+run_make_test('
+all: a_ ; @echo $@
+%_: ; @echo $@
+a_: b_ c_ | d_ e_
+',
+              '--shuffle=reverse', "e_\nd_\nc_\nb_\na_\nall");
+
+# Check if goals are reordered.
+run_make_test('
+%_: ; @echo $@
+',
+              '--shuffle=reverse a_ b_ c_', "c_\nb_\na_");
+
+# .NOTPARALLEL should prevent reordering from happening.
+run_make_test('
+%_: ; @echo $@
+# disable shuffling
+.NOTPARALLEL:
+',
+              '--shuffle=reverse a_ b_ c_', "a_\nb_\nc_");
+
+# Check if SECONDEXPANSION targets also get reshuffled.
+run_make_test('
+.SECONDEXPANSION:
+all: $$(var)
+%_: ; @echo $@
+var = a_ b_ c_
+',
+              '--shuffle=reverse', "c_\nb_\na_");
+
+1;

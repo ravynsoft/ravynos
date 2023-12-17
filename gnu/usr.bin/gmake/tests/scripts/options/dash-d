@@ -1,0 +1,9 @@
+#                                                                    -*-perl-*-
+
+$description = "Test make -d option.\n";
+
+# sv 60777.
+# Test that debug output is printed when both -d and --trace are specified.
+run_make_test('all: ; :', '-d --trace', "/GNU Make/");
+
+1;

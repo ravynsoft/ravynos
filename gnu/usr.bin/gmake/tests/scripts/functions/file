@@ -1,0 +1,232 @@
+#                                                                    -*-perl-*-
+
+$description = 'Test the $(file ...) function.';
+
+# Test > and >>
+run_make_test(q!
+define A
+a
+b
+endef
+B = c d
+$(file >file.out,$(A))
+$(foreach L,$(B),$(file >>     file.out,$L))
+x:;@echo hi; cat file.out
+!,
+              '', "hi\na\nb\nc\nd");
+
+unlink('file.out');
+
+# Test >> to a non-existent file
+run_make_test(q!
+define A
+a
+b
+endef
+$(file     >>     file.out    ,$(A))
+x:;@cat file.out
+!,
+              '', "a\nb");
+
+unlink('file.out');
+
+# Test > with no content
+run_make_test(q!
+$(file >4touch)
+.PHONY:x
+x:;@cat 4touch
+!,
+              '', '');
+
+# Test >> with no content
+run_make_test(q!
+$(file >>4touch)
+.PHONY:x
+x:;@cat 4touch
+!,
+              '', '');
+unlink('4touch');
+
+# Test > to a read-only file
+if (defined $ERR_read_only_file) {
+    touch('file.out');
+    chmod(0444, 'file.out');
+
+    run_make_test(q!
+define A
+a
+b
+endef
+$(file     >     file.out,$(A))
+x:;@cat file.out
+!,
+                  '', "#MAKEFILE#:6: *** open: file.out: $ERR_read_only_file.  Stop.",
+                  512);
+
+    unlink('file.out');
+}
+
+# Use variables for operator and filename
+run_make_test(q!
+define A
+a
+b
+endef
+OP = >
+FN = file.out
+$(file     $(OP)     $(FN),$(A))
+x:;@cat file.out
+!,
+              '', "a\nb");
+
+unlink('file.out');
+
+# Don't add newlines if one already exists
+run_make_test(q!
+define A
+a
+b
+
+endef
+$(file >file.out,$(A))
+x:;@cat file.out
+!,
+              '', "a\nb");
+
+unlink('file.out');
+
+# Empty text
+run_make_test(q!
+$(file >file.out,)
+$(file >>file.out,)
+x:;@cat file.out
+!,
+              '', "\n\n");
+
+unlink('file.out');
+
+# Reading files
+run_make_test(q!
+$(file >file.out,A = foo)
+X1 := $(file <file.out)
+$(file >>file.out,B = bar)
+$(eval $(file <file.out))
+
+x:;@echo '$(X1)'; echo '$(A)'; echo '$(B)'
+!,
+              '', "A = foo\nfoo\nbar\n");
+
+unlink('file.out');
+
+# Read an empty file.
+touch("file.out");
+run_make_test(q!# empty file
+X1 := x$(file <file.out)y
+x:;@echo '$(X1)'
+!,
+              '', "xy\n");
+
+unlink('file.out');
+
+# Read a file whose full contents is a newline.
+create_file('file.out', "\n");
+run_make_test(q!# <nl>
+X1 := x$(file <file.out)y
+x:;@echo '$(X1)'
+!,
+              '', "xy\n");
+
+unlink('file.out');
+
+# Read a file which does not end with a newline.
+create_file('file.out', "hello");
+# echo prints a trailig newline, because run_make_test appends a newline.
+run_make_test(q!# hello
+X1 := x$(file <file.out)y
+x:;@echo $(X1)
+!,
+              '', "xhelloy\n");
+
+unlink('file.out');
+
+# Read a file which ends with a newline.
+create_file('file.out', "hello\n");
+# echo prints a trailig newline, because run_make_test appends a newline.
+run_make_test(q!# hello<nl>
+X1 := x$(file <file.out)y
+x:;@echo '$(X1)'
+!,
+              '', "xhelloy\n");
+
+
+unlink('file.out');
+
+# Read a file which ends with multiple newlines.
+create_file('file.out', "hello\n\n");
+run_make_test(q!# hello<nl><nl>
+X1 := x$(file <file.out)y
+export X1
+x:;@echo "$$X1"
+!,
+              '', "xhello\ny\n");
+
+unlink('file.out');
+
+# Read a file whose contents exceed 200 bytes.
+# 200 is the initial size of variable_buffer.
+# File bigger than 200 bytes causes a realloc.
+# The size of the file in this test not only exceeds 200 bytes, it exceeds 65k.
+# Use $(info ...) here to avoid command line limitations
+
+my $s = "hello world, hello world, hello world, hello world, hello world";
+my $answer = $s x 2000;
+create_file('file.out', $answer);
+run_make_test(q!# <hugestring>
+X1 := x$(file <file.out)y
+x:;@$(info $(X1))
+!,
+              '', "x${answer}y\n#MAKE#: 'x' is up to date.\n");
+
+unlink('file.out');
+
+# Reading from non-existent file
+run_make_test(q!
+X1 := $(file <file.out)
+x:;@echo '$(X1)';
+!,
+              '', "\n");
+
+# Extra arguments in read mode
+run_make_test(q!
+X1 := $(file <file.out,foo)
+x:;@echo '$(X1)';
+!,
+              '', "#MAKEFILE#:2: *** file: too many arguments.  Stop.\n", 512);
+
+
+# Missing filename
+run_make_test('$(file >)', '',
+              "#MAKEFILE#:1: *** file: missing filename.  Stop.\n", 512);
+
+run_make_test('$(file >>)', '',
+              "#MAKEFILE#:1: *** file: missing filename.  Stop.\n", 512);
+
+run_make_test('$(file <)', '',
+              "#MAKEFILE#:1: *** file: missing filename.  Stop.\n", 512);
+
+# Bad call
+
+run_make_test('$(file foo)', '',
+              "#MAKEFILE#:1: *** file: invalid file operation: foo.  Stop.\n", 512);
+
+# SV 17448: check whitespace
+create_file('out1', "1\n");
+
+run_make_test(q!
+all:;$(info $(file <  out1  ))
+!,
+              '', "1\n#MAKE#: 'all' is up to date.");
+
+unlink('out1');
+
+1;

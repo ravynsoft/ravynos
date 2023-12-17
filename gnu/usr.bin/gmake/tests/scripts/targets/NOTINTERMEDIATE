@@ -1,0 +1,116 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the behaviour of the .NOTINTERMEDIATE target.";
+
+$details = "\
+Test the behavior of the .NOTINTERMEDIATE special target.\n";
+
+touch('hello.z');
+unlink('hello.x');
+
+
+# Test 1. A file which matches a .NOTINTERMEDIATE pattern is not intermediate.
+run_make_test(q!
+hello.z:
+%.z: %.x; touch $@
+%.x: ;
+.NOTINTERMEDIATE: %.q %.x
+!, '', "touch hello.z\n");
+
+# Test 2. .NOTINTERMEDIATE: %.q pattern has no effect on hello.x.
+touch('hello.z');
+run_make_test(q!
+hello.z:
+%.z: %.x; touch $@
+%.x: ;
+.NOTINTERMEDIATE: %.q
+!, '', "#MAKE#: 'hello.z' is up to date.\n");
+
+# Test 3. A file which is a prereq of .NOTINTERMEDIATE is not intermediate.
+run_make_test(q!
+hello.z:
+%.z: %.x; touch $@
+%.x: ;
+.NOTINTERMEDIATE: %.q hello.x
+!, '', "touch hello.z\n");
+
+# Test 4. .NOTINTERMEDIATE without prerequisites makes everything
+# notintermediate.
+run_make_test(q!
+hello.z:
+%.z: %.x; touch $@
+%.x: ;
+.NOTINTERMEDIATE:
+!, '', "touch hello.z\n");
+
+# Test 5. Same file cannot be intermediate and notintermediate.
+run_make_test(q!
+.INTERMEDIATE: hello.x
+.NOTINTERMEDIATE: hello.x
+!, '', "#MAKE#: *** hello.x cannot be both .NOTINTERMEDIATE and .INTERMEDIATE.  Stop.\n", 512);
+
+# Test 6. Same file cannot be secondary and notintermediate.
+run_make_test(q!
+.SECONDARY: hello.x
+.NOTINTERMEDIATE: hello.x
+!, '', "#MAKE#: *** hello.x cannot be both .NOTINTERMEDIATE and .SECONDARY.  Stop.\n", 512);
+
+# Test 7. All .SECONDARY and all .NOTINTERMEDIATE are mutually exclusive.
+run_make_test(q!
+.SECONDARY:
+.NOTINTERMEDIATE:
+!, '', "#MAKE#: *** .NOTINTERMEDIATE and .SECONDARY are mutually exclusive.  Stop.\n", 512);
+
+# Test 8. .INTERMEDIATE file takes priority over a .NOTINTERMEDIATE pattern.
+unlink('hello.x');
+run_make_test(q!
+hello.z:
+%.z: %.x; touch $@
+%.x: ;
+.INTERMEDIATE: hello.x
+.NOTINTERMEDIATE: %.q %.x
+!, '', "#MAKE#: 'hello.z' is up to date.\n");
+
+# Test 9. Everything is notintermediate, except hello.x.
+unlink('hello.x');
+run_make_test(q!
+hello.z:
+%.z: %.x; touch $@
+%.x: ;
+.INTERMEDIATE: hello.x
+.NOTINTERMEDIATE:
+!, '', "#MAKE#: 'hello.z' is up to date.\n");
+
+# Test 10. Everything is notintermediate, except hello.x.
+unlink('hello.x');
+run_make_test(q!
+hello.z:
+%.z: %.x; touch $@
+%.x: ;
+.SECONDARY: hello.x
+.NOTINTERMEDIATE:
+!, '', "#MAKE#: 'hello.z' is up to date.\n");
+
+# Test 11. Everything is secondary, except %.q, hello.x.
+unlink('hello.x');
+run_make_test(q!
+hello.z:
+%.z: %.x; touch $@
+%.x: ;
+.NOTINTERMEDIATE: %.q hello.x
+.SECONDARY:
+!, '', "touch hello.z\n");
+
+# Test 12. Everything is secondary, except %.q %.x.
+unlink('hello.x');
+run_make_test(q!
+hello.z:
+%.z: %.x; touch $@
+%.x: ;
+.NOTINTERMEDIATE: %.q %.x
+.SECONDARY:
+!, '', "touch hello.z\n");
+
+unlink('hello.z');
+# This tells the test driver that the perl test script executed properly.
+1;

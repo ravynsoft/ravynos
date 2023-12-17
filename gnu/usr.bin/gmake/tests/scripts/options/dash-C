@@ -1,0 +1,52 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the -C option to GNU Make.";
+
+use File::Spec;
+
+# Pre-set $makefile to be in a subdirectory
+$makefile = 'Makefile';
+
+my $_srcdir = 'src';
+mkdir($_srcdir, 0775);
+
+my $_incdir = 'inc';
+mkdir($_incdir, 0775);
+
+my $_mkpath = File::Spec->catfile($_srcdir, $makefile);
+create_file($_mkpath, "include \$(file)\nall: ;\n");
+
+# TEST #1
+# -------
+run_make_test('', "-C $_srcdir --no-print-directory",
+              "#MAKE#: 'all' is up to date.");
+
+# TEST #2
+# -------
+# Do it again with trailing "/"; this should work the same
+
+run_make_test(undef, "-C $_srcdir/ --no-print-directory",
+              "#MAKE#: 'all' is up to date.");
+
+# Test stringing together multiple -C options
+
+run_make_test(undef, "-C $_incdir -C .. -C $_srcdir --no-print-directory",
+              "#MAKE#: 'all' is up to date.");
+
+# SV 63552 - Ensure -I is considered after -C
+
+my $_incfile = 'test';
+my $_incpath = File::Spec->catfile($_incdir, $_incfile);
+create_file($_incpath, '$(info included)');
+
+my $_incopt = File::Spec->catfile('..', $_incdir);
+
+run_make_test(undef, "-C src -I $_incopt --no-print-directory file=$_incfile",
+              "included\n#MAKE#: 'all' is up to date.");
+
+unlink($_incpath);
+rmdir($_incdir);
+
+unlink($_mkpath);
+rmdir($_srcdir);
+1;

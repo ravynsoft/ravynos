@@ -1,0 +1,72 @@
+#                                                                    -*-perl-*-
+$description = "Test the intcmp function.\n";
+
+$details = "Try various uses of intcmp and ensure they all give the correct
+results.\n";
+
+run_make_test('# Negative
+n = -10
+# Zero
+z = 0
+# Positive
+p = 888
+min = -9223372036854775808
+max = 9223372036854775807
+huge = 8857889956778499040639527525992734031025567913257255490371761260681427
+.RECIPEPREFIX = >
+all:
+> @echo 0_1 $(intcmp $n,$n)
+> @echo 0_2 $(intcmp $z,$z)
+> @echo 0_3 $(intcmp -$z,$z)
+> @echo 0_4 $(intcmp $p,$p)
+> @echo 0_5 $(intcmp $n,$z)
+> @echo 0_6 $(intcmp $z,$n)
+> @echo 1_1 $(intcmp $n,$n,$(shell echo lt))
+> @echo 1_2 $(intcmp $n,$z,$(shell echo lt))
+> @echo 1_3 $(intcmp $z,$n,$(shell echo lt))
+> @echo 2_1 $(intcmp $n,$p,lt,ge)
+> @echo 2_2 $(intcmp $z,$z,lt,ge)
+> @echo 2_3 $(intcmp $p,$n,lt,ge)
+> @echo 3_0 $(intcmp $p,$n,lt,eq,)
+> @echo 3_1 $(intcmp $z,$p,lt,eq,gt)
+> @echo 3_2 $(intcmp $p,$z,lt,eq,gt)
+> @echo 3_3 $(intcmp $p,$p,lt,eq,gt)
+> @echo 4_0 $(intcmp $(min),$(max),lt,eq,gt)
+> @echo 4_1 $(intcmp $(max),$(min),lt,eq,gt)
+> @echo 4_2 $(intcmp $(min),$(min),lt,eq,gt)
+> @echo 4_3 $(intcmp $(max),$(max),lt,eq,gt)
+> @echo 5_0 $(intcmp -$(huge),$(huge),lt,eq,gt)
+> @echo 5_1 $(intcmp $(huge),-$(huge),lt,eq,gt)
+> @echo 5_2 $(intcmp -$(huge),-$(huge),lt,eq,gt)
+> @echo 5_3 $(intcmp +$(huge),$(huge),lt,eq,gt)
+', '', "0_1 -10\n0_2 0\n0_3 0\n0_4 888\n0_5\n0_6\n1_1\n1_2 lt\n1_3\n2_1 lt\n2_2 ge\n2_3 ge\n3_0\n3_1 lt\n3_2 gt\n3_3 eq\n4_0 lt\n4_1 gt\n4_2 eq\n4_3 eq\n5_0 lt\n5_1 gt\n5_2 eq\n5_3 eq\n");
+
+# Test error conditions
+
+run_make_test('
+intcmp-e1: ; @echo $(intcmp 12a,1,foo)
+intcmp-e2: ; @echo $(intcmp 0,,foo)
+intcmp-e3: ; @echo $(intcmp -1,)
+intcmp-e4: ; @echo $(intcmp ,55)',
+              'intcmp-e1',
+              "#MAKEFILE#:2: *** non-numeric first argument to 'intcmp' function: '12a'.  Stop.",
+              512);
+
+run_make_test(undef,
+              'intcmp-e2',
+              "#MAKEFILE#:3: *** non-numeric second argument to 'intcmp' function: empty value.  Stop.",
+              512);
+
+run_make_test(undef,
+              'intcmp-e3',
+              "#MAKEFILE#:4: *** non-numeric second argument to 'intcmp' function: empty value.  Stop.",
+              512);
+
+run_make_test(undef,
+              'intcmp-e4',
+              "#MAKEFILE#:5: *** non-numeric first argument to 'intcmp' function: empty value.  Stop.",
+              512);
+
+
+# This tells the test driver that the perl test script executed properly.
+1;

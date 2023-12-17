@@ -1,0 +1,230 @@
+#                                                                    -*-perl-*-
+$description = "Test handling of double-colon rules.";
+
+$details = "\
+We test these features:
+
+  - Multiple commands for the same (double-colon) target
+  - Different prerequisites for targets: only out-of-date
+    ones are rebuilt.
+  - Double-colon targets that aren't the goal target.
+
+Then we do the same thing for parallel builds: double-colon
+targets should always be built serially.";
+
+# TEST 0: A simple double-colon rule that isn't the goal target.
+
+run_make_test(q!
+all: baz
+
+foo:: f1.h ; @echo foo FIRST
+foo:: f2.h ; @echo foo SECOND
+
+bar:: ; @echo aaa; sleep 1; echo aaa done
+bar:: ; @echo bbb
+
+baz:: ; @echo aaa
+baz:: ; @echo bbb
+
+biz:: ; @echo aaa
+biz:: two ; @echo bbb
+
+two: ; @echo two
+
+f1.h f2.h: ; @echo $@
+
+d :: ; @echo ok
+d :: d ; @echo oops
+!,
+              "all", "aaa\nbbb\n");
+
+# TEST 1: As above, in parallel
+
+if ($parallel_jobs) {
+  run_make_test(undef, "-j10 all", "aaa\nbbb\n");
+}
+
+# TEST 2: A simple double-colon rule that is the goal target
+
+run_make_test(undef, "bar", "aaa\naaa done\nbbb\n");
+
+# TEST 3: As above, in parallel
+
+if ($parallel_jobs) {
+  run_make_test(undef, "-j10 bar", "aaa\naaa done\nbbb\n");
+}
+
+# TEST 4: Each double-colon rule is supposed to be run individually
+
+&utouch(-5, 'f2.h');
+&touch('foo');
+
+run_make_test(undef, "foo", "f1.h\nfoo FIRST\n");
+
+# TEST 5: Again, in parallel.
+
+if ($parallel_jobs) {
+  run_make_test(undef, "-j10 foo", "f1.h\nfoo FIRST\n");
+}
+
+# TEST 6: Each double-colon rule is supposed to be run individually
+
+&utouch(-5, 'f1.h');
+unlink('f2.h');
+&touch('foo');
+
+run_make_test(undef, "foo", "f2.h\nfoo SECOND\n");
+
+# TEST 7: Again, in parallel.
+
+if ($parallel_jobs) {
+  run_make_test(undef, "-j10 foo", "f2.h\nfoo SECOND\n");
+}
+
+# TEST 8: Test circular dependency check; PR/1671
+
+run_make_test(undef, "d", "ok\n$make_name: Circular d <- d dependency dropped.\noops\n");
+
+# TEST 8: I don't grok why this is different than the above, but it is...
+#
+# Hmm... further testing indicates this might be timing-dependent?
+#
+#if ($parallel_jobs) {
+#  run_make_test(undef, "-j10 biz", "aaa\ntwo\nbbb\n");
+#}
+
+unlink('foo','f1.h','f2.h');
+
+
+# TEST 9: make sure all rules in s double colon family get executed
+#         (Savannah bug #14334).
+#
+
+&touch('one');
+&touch('two');
+
+run_make_test('
+.RECIPEPREFIX = >
+.PHONY: all
+all: result
+
+result:: one
+> @echo $^ >>$@
+> @echo $^
+
+result:: two
+> @echo $^ >>$@
+> @echo $^
+
+',
+'',
+'one
+two');
+
+unlink('result','one','two');
+
+# TEST 10: SV 33399 : check for proper backslash handling
+
+run_make_test('
+a\ xb :: ; @echo one
+a\ xb :: ; @echo two
+',
+              '', "one\ntwo\n");
+
+# Test 11: SV 44742 : All double-colon rules should be run in parallel build.
+
+run_make_test('
+.RECIPEPREFIX = >
+result :: 01
+> @echo update
+> @touch $@
+result :: 02
+> @echo update
+> @touch $@
+result :: 03
+> @echo update
+> @touch $@
+result :: 04
+> @echo update
+> @touch $@
+result :: 05
+> @echo update
+> @touch $@
+01 02 03 04 05:
+> @touch 01 02 03 04 05
+',
+              '-j10 result', "update\nupdate\nupdate\nupdate\nupdate\n");
+
+unlink('result', '01', '02', '03', '04', '05');
+
+# Test 12: SV 44742 : Double-colon rules with parallelism
+
+run_make_test('
+root: all ; echo root
+all:: ; echo all_one
+all:: 3 ; echo all_two
+%: ; sleep $*
+',
+              '-rs -j2 1 2 root', "all_one\nall_two\nroot\n");
+
+# SV 47995 : Parallel double-colon rules with FORCE
+
+run_make_test('
+all:: ; @echo one
+
+all:: joe ; @echo four
+
+joe: FORCE ; touch joe-is-forced
+
+FORCE:
+',
+              '-j5', "one\ntouch joe-is-forced\nfour\n");
+
+unlink('joe-is-forced');
+
+# sv 60188.
+# Even though test.x is explicitly mentioned, terminal pattern rules still
+# apply only if the prerequisite exists.
+touch('hello.z');
+
+# subtest 1. test.x is explicitly mentioned.
+run_make_test(q!
+all: hello.z
+%.z:: test.x ; touch $@
+%.x: ;
+!,
+              '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+unlink('hello.z');
+
+# subtest 2. hello.x is derived from the stem.
+touch('hello.z');
+
+run_make_test(q!
+all: hello.z
+%.z:: %.x; touch $@
+%.x: ; touch $@
+!,
+              '', "#MAKE#: Nothing to be done for 'all'.\n");
+
+unlink('hello.z');
+
+# subtest 3
+# hello.x is explicitly mentioned on an unrelated rule and thus is not an
+# intermediate file.
+# Terminal pattern rules do not apply anyway and there is no rule to built
+# 'hello.x'.
+touch('hello.z');
+run_make_test(q!
+all: hello.z
+%.z:: %.x; touch $@
+%.x: ;
+unrelated: hello.x
+!,
+              '', "#MAKE#: *** No rule to make target 'hello.x', needed by 'hello.z'.  Stop.\n", 512);
+
+unlink('hello.z');
+
+
+# This tells the test driver that the perl test script executed properly.
+1;

@@ -1,0 +1,135 @@
+#                                                              -*-mode: perl-*-
+
+$description = "Test handling of temporary file created from stdin.";
+
+# These tests rely on the test_driver checking for leftover temporary content
+
+create_file('input.mk', "world:=1\n");
+create_file('bye.mk', "moon:=2\n");
+
+# sv 62118,62145.
+# Test that makes leaves no temp file when make code is piped to stdin and -v,
+# -h or an invalid option is specified.
+my @opts = ('-v', '-h', '--nosuchopt');
+my @exit_codes = (0, 0, 512);
+for my $i (0 .. $#opts) {
+    close(STDIN);
+    open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+    run_make_test(q!
+all:; $(info hello world)
+!,
+                  "$opts[$i] -f-", "/uilt for /", $exit_codes[$i]);
+}
+
+# sv 62118,62145.
+# Test that a stdin temp file is removed.
+close(STDIN);
+open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+run_make_test(q!
+all:; $(info world=$(world))
+!,
+              '-f-', "world=1\n#MAKE#: 'all' is up to date.\n");
+
+# sv 62118,62145.
+# Test that a stdin temp file is removed, even when make re-execs.
+# Also test that make honors TMPDIR to create the temp file.
+# Ensure touching bye.mk causes re-exec.
+&utouch(-600, 'bye.mk');
+close(STDIN);
+open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+run_make_test(q!
+include bye.mk
+all:; $(info hello)
+$(MAKE_RESTARTS)bye.mk: force; touch $@
+force:
+!,
+              '-R --debug=b -f-', "/Re-executing.+?--temp-stdin=\Q$temppath\E/");
+
+if ($port_type eq 'UNIX') {
+# POSIX doesn't require sh to set PPID so test this
+my $cmd = create_command();
+add_options($cmd, '-f', '/dev/null', '-E', q!all:;@echo $$PPID!);
+my $fout = 'ppidtest.out';
+run_command_with_output($fout, @$cmd);
+$_ = read_file_into_string($fout);
+s/\r?\n//g;
+if (/^[0-9]+$/) {
+use POSIX ();
+
+# sv 63157.
+# Test that make removes the temporary file which holds make code from stdin,
+# even when a signal is received.  include bye.mk and bye.mk: rule is needed
+# to cause make to keep the temporary file for re-exec. Without re-exec make
+# will remove the file before the signal arrives.  sleep is needed to let make
+# write its "... Terminated" message to the log file.  Must use REGEX because
+# some systems (MacOS) add extra text after Terminated.
+&utouch(-600, 'bye.mk');
+close(STDIN);
+open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+
+run_make_test(q!
+include bye.mk
+pid := $(shell echo $$PPID)
+all:;
+bye.mk: force; @#HELPER# -q term $(pid) sleep 10
+force:
+!,
+              '-f-', '/#MAKE#: \*\*\* \[#MAKEFILE#:5: bye.mk] Terminated/', POSIX::SIGTERM);
+}
+unlink($fout);
+
+# sv 62118,62145.
+# Test that a stdin temp file is removed, when execvp fails to re-exec make.
+# In order to cause execvp to fail, copy the tested make binary to the temp
+# directory and take away the 'x' bit.
+use File::Spec;
+use File::Copy;
+
+my $tmakedir = File::Spec->catfile($cwdpath, 'tmakedir');
+mkdir($tmakedir, 0770);
+my $makecopy = File::Spec->catfile($tmakedir, 'make');
+copy("$mkpath", $makecopy);
+# Set file mode bits, because perl copy won't.
+chmod 0700, $makecopy;
+
+my @make_orig = @make_command;
+@make_command = ($makecopy);
+
+# Ensure touching bye.mk causes re-exec.
+&utouch(-600, 'bye.mk');
+close(STDIN);
+open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+run_make_test("
+include bye.mk
+all:; \$(info hello)
+\$(MAKE_RESTARTS)bye.mk: force; touch \$@ && chmod u-x $makecopy
+force:
+",
+              "-f-", "touch bye.mk && chmod u-x $makecopy\nmake: $makecopy: $ERR_nonexe_file\n", 32512);
+
+@make_command = @make_orig;
+unlink($makecopy);
+rmdir($tmakedir);
+
+# SV 63333. Test that make exits with an error message if we cannot store a
+# makefile from stdin to a temporary file.
+# Create a non-writable temporary directory.
+
+my $tdir = 'test_tmp_dir';
+mkdir($tdir, 0500);
+$ENV{'TMPDIR'} = $tdir;
+close(STDIN);
+open(STDIN, "<", 'input.mk') || die "$0: cannot open input.mk for reading: $!";
+
+run_make_test(q!
+all:; $(info hello, world)
+!, '-f-', '/cannot store makefile from stdin to a temporary file.  Stop./', 512);
+rmdir($tdir);
+}
+
+# This close MUST come at the end of the test!!
+close(STDIN);
+unlink('input.mk', 'bye.mk');
+
+# This tells the test driver that the perl test script executed properly.
+1;

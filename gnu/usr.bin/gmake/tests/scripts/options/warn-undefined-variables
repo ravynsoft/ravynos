@@ -1,0 +1,49 @@
+#                                                                    -*-perl-*-
+
+$description = "Test the --warn-undefined-variables option.";
+
+$details = "Verify that warnings are printed for referencing undefined variables.";
+
+# Verify that make's special variables don't warn even if they're not set
+run_make_test(q!
+vars := $(.VARIABLES) $(MAKECMDGOALS) $(MAKE_RESTARTS) $(CURDIR)
+vars += $(GNUMAKEFLAGS) $(MAKEFLAGS) $(MFLAGS) $(MAKE_COMMAND) $(MAKE)
+vars += $(MAKEFILE_LIST) $(MAKEOVERRIDES) $(-*-command-variables-*-)
+vars += $(.RECIPEPREFIX) $(.LOADED) $(.FEATURES)
+vars += $(SHELL) $(.SHELLFLAGS) $(MAKE_TERMOUT) $(MAKE_TERMERR)
+vars += $(.DEFAULT) $(.DEFAULT_GOAL) $(-*-eval-flags-*-) $(SUFFIXES)
+vars += $(VPATH) $(GPATH)
+all:;
+!,
+              '--warn-undefined-variables', "#MAKE#: 'all' is up to date.");
+
+# Without --warn-undefined-variables, nothing should happen
+run_make_test('
+EMPTY =
+EREF = $(EMPTY)
+UREF = $(UNDEFINED)
+
+SEREF := $(EREF)
+SUREF := $(UREF)
+
+all: ; @echo ref $(EREF) $(UREF)',
+              '', 'ref');
+
+# With --warn-undefined-variables, it should warn me
+run_make_test(undef, '--warn-undefined-variables',
+              "#MAKEFILE#:7: warning: undefined variable 'UNDEFINED'
+#MAKEFILE#:9: warning: undefined variable 'UNDEFINED'
+ref");
+
+# sv 63609.
+# Test for buffer overrun in warn_undefined.
+run_make_test(q!
+all:;
+X := $(averyveryverylongvariablename)
+!,
+              '--warn-undefined-variables',
+              "#MAKEFILE#:3: warning: undefined variable 'averyveryverylongvariablename'
+#MAKE#: 'all' is up to date.\n"
+);
+
+1;

@@ -1,0 +1,49 @@
+#                                                                    -*-perl-*-
+
+$description = "Test miscellaneous failures.";
+
+
+# Test that the "did you mean TAB" message is printed properly
+
+run_make_test(q!
+$x.
+!,
+              '', '#MAKEFILE#:2: *** missing separator.  Stop.', 512);
+
+run_make_test(q!
+foo:
+        bar
+!,
+              '', '#MAKEFILE#:3: *** missing separator (did you mean TAB instead of 8 spaces?).  Stop.', 512);
+
+run_make_test(q!
+.RECIPEPREFIX = :
+foo:
+        bar
+!,
+              '', '#MAKEFILE#:4: *** missing separator.  Stop.', 512);
+
+for my $kw ('eq', 'neq') {
+run_make_test(qq!
+if$kw(foo,bar)
+\$(error ouch)
+endif
+!,
+              '', '#MAKEFILE#:2: *** missing separator (ifeq/ifneq must be followed by whitespace).  Stop.', 512);
+
+run_make_test(qq!
+if$kw
+\$(error ouch)
+endif
+!,
+              '', '#MAKEFILE#:2: *** invalid syntax in conditional.  Stop.', 512);
+
+run_make_test(qq!
+if$kw blah
+\$(error ouch)
+endif
+!,
+              '', '#MAKEFILE#:2: *** invalid syntax in conditional.  Stop.', 512);
+}
+
+1;

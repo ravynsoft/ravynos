@@ -1,5 +1,6 @@
 .include <bsd.prog.mk>
 
+.MAKEFLAGS=
 #CONFIGURE_ARGS+=
 
 all: gnu_configure .WAIT gnu_build

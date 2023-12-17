@@ -1,0 +1,216 @@
+#                                                                    -*-perl-*-
+
+$description = 'Test the $(shell ...) function.';
+
+$details = '';
+
+# Test standard shell
+run_make_test('.PHONY: all
+OUT := $(shell echo hi)
+all: ; @echo $(OUT)
+              ','','hi');
+
+# Test shells inside rules.
+run_make_test('.PHONY: all
+all: ; @echo $(shell echo hi)
+              ','','hi');
+
+# Verify .SHELLSTATUS
+run_make_test('.PHONY: all
+PRE := $(.SHELLSTATUS)
+$(shell exit 0)
+OK := $(.SHELLSTATUS)
+$(shell exit 1)
+BAD := $(.SHELLSTATUS)
+all: ; @echo PRE=$(PRE) OK=$(OK) BAD=$(BAD)
+              ','','PRE= OK=0 BAD=1');
+
+# Test unescaped comment characters in shells.  Savannah bug #20513
+run_make_test(q!
+FOO := $(shell echo '#')
+foo: ; echo '$(FOO)'
+!,
+              '', "echo '#'\n#\n");
+
+# Test that exported variables are passed to $(shell ...)
+$ENV{FOO} = 'baz';
+run_make_test(q!
+OUT = $(shell echo $$FOO)
+foo: ; @echo '$(OUT)'
+!,
+              '', 'baz');
+
+$ENV{FOO} = 'baz';
+run_make_test(q!
+FOO = bar
+OUT = $(shell echo $$FOO)
+foo: ; @echo '$(OUT)'
+!,
+              '', 'bar');
+
+run_make_test(q!
+export FOO = bar
+OUT = $(shell echo $$FOO)
+foo: ; @echo '$(OUT)'
+!,
+              '', 'bar');
+
+# Test shells inside exported environment variables, simply expanded.
+run_make_test('
+export HI := $(shell echo hi)
+.PHONY: all
+all: ; @echo $$HI
+',
+              '','hi');
+
+# Test shells inside exported environment variables.  See SV 10593
+run_make_test('
+export HI = $(shell echo hi)
+.PHONY: all
+all: ; @echo $$HI
+',
+              '',"hi");
+
+$ENV{HI} = 'foo';
+run_make_test('
+HI = $(shell echo hi)
+.PHONY: all
+all: ; @echo $$HI
+',
+              '',"hi");
+
+$ENV{HI} = 'foo';
+run_make_test('
+HI = $(shell echo hi)
+bad := $(HI)
+.PHONY: all
+all: ; @echo $$HI $(bad)
+',
+              '',"hi hi");
+
+# SV 63016: Exported variable that contains a variable containing $(shell...)
+
+run_make_test('
+HI = $(shell echo hi)
+export bad = $(HI)
+.PHONY: all
+all:; : $(HI)
+',
+              '',": hi");
+
+$ENV{HI} = 'outer';
+run_make_test('
+export HI = $(shell echo $$HI)
+.PHONY: all
+all:; @echo $$HI
+',
+              '',"outer");
+
+$ENV{HI} = 'outer';
+run_make_test('
+export HI = $(shell echo $$HI)
+.PHONY: all
+all:; : $(HI)
+',
+              '',": outer");
+
+if ($port_type ne 'W32') {
+    # Test shell errors in recipes including offset
+    # This needs to be ported to Windows, or else Windows error messages
+    # need to converted to look like more normal make errors.
+    run_make_test('
+.RECIPEPREFIX = >
+all:
+>@echo hi
+>$(shell ./basdfdfsed there)
+>@echo $(.SHELLSTATUS)
+',
+                  '', "#MAKE#: ./basdfdfsed: $ERR_no_such_file\nhi\n127\n");
+
+    run_make_test('
+$(shell ./basdfdfsed where)
+all: ; @echo $(.SHELLSTATUS)
+',
+                  '', "#MAKE#: ./basdfdfsed: $ERR_no_such_file\n127\n");
+
+    # Test SHELLSTATUS for kill.
+    # This test could be ported to Windows, using taskkill ... ?
+
+    # Figure out the exit code for SIGINT
+    my $pid = fork();
+    if (! $pid) {
+        exec('kill -2 $$') or die "exec: Cannot execute sleep\n";
+    }
+    waitpid($pid, 0);
+    # .SHELLSTATUS for a signal gives 128 + the signal number
+    my $ret = $?;
+    if ($ret > 255) {
+       # Solaris 10 perl 5.8.4 puts signal number + 128 into the high 8 bits.
+       $ret >>= 8;
+    }
+    if ($osname ne 'os390') {
+      $ret |= 128;
+    }
+
+    run_make_test('.PHONY: all
+$(shell kill -2 $$$$)
+STAT := $(.SHELLSTATUS)
+all: ; @echo STAT=$(STAT)
+              ','',"STAT=$ret\n");
+
+    # Test that not-found errors can be redirected
+    if ($ERR_command_not_found) {
+        $_ = $ERR_command_not_found;
+        s/#CMDNAME#/bad-command/g;
+        run_make_test(q!
+out := $(shell bad-command 2>&1)
+all: ; @echo '$(.SHELLSTATUS): $(out)'
+!,
+                      '', "127: $_\n");
+    }
+
+    # If we're using pipes for jobserver, then we will close them and not
+    # allow them to be available to sub-makes invoked via $(shell ...)
+    if (exists $FEATURES{'jobserver'}) {
+        run_make_test(q!
+ifeq ($(ELT),)
+default:; @$(MAKE) -f #MAKEFILE# ELT=1
+else ifeq ($(ELT),1)
+OUTPUT := $(shell $(MAKE) -f #MAKEFILE# ELT=2)
+$(info $(OUTPUT))
+default:;: $(ELT)
+else
+default:;: $(ELT)
+endif
+!,
+                      '--no-print-directory -j2 --jobserver-style=pipe', "#MAKE#[2]: warning: jobserver unavailable: using -j1.  Add '+' to parent make rule.\n: 2\n: 1");
+    }
+
+    # This crashes if we use vfork and don't reset environ properly
+    run_make_test(q!
+export PATH = $(shell echo "tests:$$PATH")
+foo = $(shell echo yes)
+
+all:;echo $(foo)
+!,
+                  '', "echo yes\nyes\n");
+}
+
+# If we're not using pipes for jobserver, then they are available in sub-makes
+# invoked by $(shell ...)
+if ($port_type eq 'W32' || exists $FEATURES{'jobserver-fifo'}) {
+    run_make_test(q!
+ifeq ($(ELT),)
+default:; @$(MAKE) -f #MAKEFILE# ELT=1
+else ifeq ($(ELT),1)
+OUTPUT := $(shell $(MAKE) -f #MAKEFILE# ELT=2)
+$(info $(OUTPUT))
+default:;: $(ELT)
+else
+default:;: $(ELT)
+endif
+!,
+                  '--no-print-directory -j2', ": 2\n: 1");
+}
+
+1;
