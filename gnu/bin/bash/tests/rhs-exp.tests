@@ -1,0 +1,64 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+selvecs='&m68kcoff_vec'
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS='$selvecs'}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS=\'$selvecs\'}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS="$selvecs"}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS=\"$selvecs\"}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS=\\$selvecs\\}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS=$selvecs}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS=\$selvecs}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS="\$selvecs"}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS='$selvecs'"$null"}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS="\\$selvecs"}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS="\'$selvecs\'"}"
+
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS='$selvecs'}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS=\'$selvecs\'}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS="$selvecs"}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS=\"$selvecs\"}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS=\\$selvecs\\}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS=$selvecs}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS=\$selvecs}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS="\$selvecs"}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS='$selvecs'"$null"}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS="\\$selvecs"}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS="\'$selvecs\'"}
+
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS="\p"}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS=\p}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS="\\"}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS=\\}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS=\'}"
+recho "TDEFAULTS = ${selvecs:+-DSELECT_VECS="\'"}"
+
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS="\p"}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS=\p}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS="\\"}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS=\\}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS=\'}
+recho TDEFAULTS = ${selvecs:+-DSELECT_VECS="\'"}
+
+# more tests for bash-3.0 behavior
+
+var="a*b" ; echo "${var//\\*/}"
+var="a*b" ; echo "${var//\*/}"
+
+var="a?b" ; echo "${var//\\?/}"
+var="a?b" ; echo "${var//\?/}"
+
+var="a/b" ; echo "${var//\\//}"
+var="a/b" ; echo "${var//\//}"
+
+${THIS_SH} ./rhs-exp1.sub

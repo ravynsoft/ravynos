@@ -1,0 +1,31 @@
+LANG=en_US.UTF-8
+
+shopt -s extglob
+a="aaaäöü"
+a1=${a:3:3}
+
+[[ "${a}" == "${a1}" ]] || {
+	echo cond ok 1
+}
+
+case "${a//?aa}" in
+"${a1}")	echo ok 1;;
+*)		echo bad 1;;
+esac
+
+case "${a//\aaa}" in
+"${a1}")	echo ok 2;;
+*)		echo bad 2;;
+esac
+
+case "${a//aaa}" in
+"${a1}")	echo ok 3;;
+*)		echo bad 3;;
+esac
+
+case "${a//@(?aa)}" in
+"${a1}")	echo ok 4;;
+*)		echo bad 4;;
+esac
+
+exit 0 

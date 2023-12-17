@@ -1,0 +1,206 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# posix-2.sh - Simple identification tests for POSIX.2 features
+# commonly missing or incorrectly implemented.
+# Time-stamp: <96/04/10 16:43:48 gildea>
+# By Stephen Gildea <gildea@x.org> March 1995
+#
+# Copyright (c) 1995  Stephen Gildea
+# Permission is hereby granted to deal in this Software without restriction.
+# THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND.
+#
+# MODIFIED BY chet@po.cwru.edu to make part of the bash test suite.
+# last change: Wed Jun 19 12:24:24 EDT 1996
+#
+# some of the tests:
+#
+# shell functions (do we care?)
+# var=${var:-val}
+# unset
+# set --
+# IFS parsing
+## not exiting with -e and failed "if", the way Ultrix does (Ultrix 4.2?)
+# "$@" expands to zero arguments if passed zero arguments
+# $SHELL -c 'echo $1' bad good
+# test -x
+# positional parameters greater than 9
+# arithmetic expansion $(( ... ))
+# getopts
+
+# For some tests we must run a sub-shell; $TESTSHELL says what to use.
+# If set, TESTSHELL must be an absolute pathname.
+# For example, on HP-UX 9, /bin/posix/sh is the supposedly-compliant shell.
+TESTSHELL=${THIS_SH:-$PWD/../bash}
+
+# these tests create temp files with names $TMPDIR/conf*
+: ${TMPDIR:=/tmp}
+
+exitval=0
+numtests=0
+
+echo "Testing for POSIX.2 conformance"
+
+newtest()
+{
+    numtests=$(($numtests + 1))
+}
+
+testfail()
+{
+    echo "$1 test failed"
+    exitval=$(($exitval + 1))
+}
+
+newtest
+empty=""
+test "${empty:-ok}" = ok || testfail "empty var colon"
+newtest
+test "${empty-bad}" = "" || testfail "got \"${empty-bad}\": empty var nocolon"
+newtest
+test "${unsetvar-ok}" = ok || testfail "unset var"
+newtest
+unset empty
+test "${empty-ok}" = ok || testfail "unset"
+
+newtest
+set -- -Z
+test "x$1" = x-Z || testfail '\"set -- arg\"'
+# this should empty the argument list
+newtest
+set --
+test $# = 0 || testfail "still $# args: \"set --\""
+
+# IFS parsing:
+newtest
+names=one/good/three
+saved_ifs="$IFS"
+IFS=/
+set $names lose
+test "$2" = good || testfail "got \"$2\": IFS parsing"
+IFS="$saved_ifs"
+
+# "$@" with 0 arguments should expand to 0 arguments
+newtest
+cat > $TMPDIR/conftest1 << EOF
+$TMPDIR/conftest2 "\$@"
+EOF
+cat > $TMPDIR/conftest2 << "EOF"
+#! /bin/sh
+echo $#
+EOF
+chmod +x $TMPDIR/conftest1 $TMPDIR/conftest2
+numargs=$($TESTSHELL $TMPDIR/conftest1)
+if [ "$?" != 0 ]; then
+    testfail 'running $@'
+else
+    test "$numargs" = 0 || testfail '"$@" got '"$numargs args: expansion w 0 args"
+fi
+rm -f $TMPDIR/conftest1 $TMPDIR/conftest2
+
+newtest
+val=$("$TESTSHELL" -c 'echo $1' csh good)
+test "$val" = good || testfail "got \"$val\": sh -c"
+
+newtest
+# do these tests in a sub-shell because failure will exit
+val=$("$TESTSHELL" -c 'echo ${10}' 0  1 2 3 4 5 6 7 8 9 ten 11 2> /dev/null)
+test "$val" = ten || testfail "accessing more than 9 positional params"
+
+a=abc_def_ghi
+export a
+newtest; val=`"$TESTSHELL" -c 'echo "${a%_*}"' 2> /dev/null`
+test "$val" = abc_def || testfail "parameter % op"
+newtest; val=`"$TESTSHELL" -c 'echo "${a%%_*}"' 2> /dev/null`
+test "$val" = abc || testfail "parameter %% op"
+newtest; val=`"$TESTSHELL" -c 'echo "${a#*_}"' 2> /dev/null`
+test "$val" = def_ghi || testfail "parameter # op"
+newtest; val=`"$TESTSHELL" -c 'echo "${a##*_}"' 2> /dev/null`
+test "$val" = ghi || testfail "parameter ## op"
+
+newtest
+"$TESTSHELL" -c 'export a=value' 2> /dev/null || testfail "export with value"
+
+newtest
+a=5; test "$(( ($a+1)/2 ))" = 3 || testfail "arithmetic expansion"
+
+# does "test" support the -x switch?
+newtest
+touch $TMPDIR/conftest
+chmod -x $TMPDIR/conftest
+test -x $TMPDIR/conftest && testfail "negative test -x"
+chmod +x $TMPDIR/conftest
+test -x $TMPDIR/conftest || testfail "positive test -x"
+rm -f $TMPDIR/conftest
+
+newtest
+test "$OPTIND" = 1 || testfail "OPTIND initial value"
+
+newtest
+getopts a: store -a aoptval
+if [ "$OPTIND" != 3 ] || [ "$store" != a ] || [ "$OPTARG" != aoptval ]; then
+    testfail "getopts"
+fi
+
+# if I change the default quoting style for variable values, these
+# next four must change
+
+newtest
+SQUOTE="'"
+val1=$(set | sed -n 's:^SQUOTE=::p')
+if [ "$val1" != "\'" ]; then
+        testfail "variable quoting 1"
+fi
+
+newtest
+VTILDE='~'
+val1=$(set | sed -n 's:^VTILDE=::p')
+if [ "$val1" != "'~'" ]; then
+	testfail "variable quoting 2"
+fi
+
+newtest
+VHASH=ab#cd
+val1=$(set | sed -n 's:^VHASH=::p')
+if [ "$val1" != "ab#cd" ]; then
+	testfail "variable quoting 3"
+fi
+
+newtest
+VHASH2=#abcd
+val1=$(set | sed -n 's:^VHASH2=::p')
+if [ "$val1" != "'#abcd'" ]; then
+	testfail "variable quoting 4"
+fi
+
+# these are Posix.2 shell grammar rule 4, problems through bash-4.3
+newtest
+case esac in (foo|esac) ;; *) testfail "case esac test 1" ;; esac
+newtest
+case esac in foo|esac) ;; *) testfail "case esac test 2" ;; esac
+
+# POSIX.2 grammar rule 4 problem through bash-5.1
+newtest
+eval 'case esac in (esac) ;; *) testfail "case esac test 3" ;; esac'
+
+# these are supposed to be syntax errors
+newtest
+eval 'case esac in esac) ;; *) echo "case esac test 4";; esac' && testfail 'case esac test 4'
+
+if [ $exitval = 0 ]; then
+    echo "All tests passed"
+else
+    echo "$exitval of $numtests tests failed"
+fi
+exit $exitval

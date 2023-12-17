@@ -1,0 +1,11 @@
+touch .file
+set -e
+while set +e ; test -r .file ; do
+	echo -n "stop loop? [yes to quit] "
+	read reply
+	if [ "$reply" = yes ] ; then
+		rm .file non-dash-file
+	fi
+	set -e
+done
+rm -f .file

@@ -1,0 +1,142 @@
+################################################################
+# The general testcase syntax is 
+#    assertionType  expectedValue   functionUnderTest [args ... ]
+#
+# where assertionType is either of:
+#    Code      to indicate the (bash-style) integer return code
+#    String    to indicate the string "printed" as a side effect
+#
+# and functionUnderTest is the function name
+# with the "_shellmath_" prefix removed.
+################################################################
+
+################################
+# Tests for SUPPORTING FUNCTIONS
+################################
+
+# Tests for getReturnCode()
+Code 0   getReturnCode SUCCESS
+Code 1   getReturnCode FAIL
+Code 2   getReturnCode ILLEGAL_NUMBER
+
+## Tests for validateAndParse():
+## Validate a number, determine its type and sign, split it into parts
+
+# Detect Invalid input
+Code    2      validateAndParse NaN
+String    ""   validateAndParse NaN
+# Positive integers
+String  "4 0 0 0 0"    validateAndParse 4
+# Negative integers
+String  "9 0 1 0 0"    validateAndParse -9
+# Decimals
+String  "4 2 0 1 0"  validateAndParse 4.2
+# Negative decimals
+String "4 2 1 1 0"  validateAndParse -4.2
+# Scientific / exponential notation: Check all code branches
+String  "340000 0 0 0 1" validateAndParse 3.4e5
+String  "344 4 0 1 1"    validateAndParse 3.444e2
+String  "34567 0 0 0 1"  validateAndParse 3.4567e4
+String  "0 003456 0 1 1" validateAndParse 3.456e-3
+String  "34 56 0 1 1"    validateAndParse 345.6e-1
+String  "0 23011 0 1 1"  validateAndParse 23.011e-2
+String  "23 011 0 1 1"   validateAndParse 23.011e0
+
+####################
+# Tests for ADDITION
+####################
+String 4     add 4
+String 9     add 4 5
+
+# Same-length decimal tails with no leading zeros, no carry across decimal point
+String 2.214    add 1.105 1.109
+
+# Carry across decimal point
+String 3.8    add 1.9 1.9
+String -3.8    add -1.9 -1.9
+
+# Different-length decimals, one with leading zero
+String 2.195    add 1.105 1.09
+String -2.195    add -1.105 -1.09
+
+# Same-length tails having leading zeros
+String 2.014    add 1.005 1.009
+String -2.014    add -1.005 -1.009
+# Different-length tails with and without leading zeros
+String 3.31462    add 1.905 1.40962
+String 2.01462    add 1.005 1.00962
+
+# Subtraction
+String 2.5   subtract 5.2 2.7
+String -2.5   subtract 2.7 5.2
+String 2.5   add 5.2 -2.7
+
+# Integer part equal to 0
+String 1.5  add 0.6 0.9
+String 1.5  add .6 .9
+String -0.3 add 0.6 -0.9
+String -0.3 add .6 -.9
+
+# Recursive/multiple addition
+String 12     add 2 4 6
+String 6.6    add 1.1 2.2 3.3
+
+##########################
+# Tests for MULTIPLICATION
+##########################
+String 4     multiply 4
+String 20     multiply 4 5
+
+String 21.32   multiply 4.1 5.2
+String -21.32   multiply -4.1 5.2
+
+# Carry-heavy products
+String 98.901  multiply 9.9 9.99
+
+# Leading zeros after decimal point:
+# Track place value with zero-padding
+String 1.0201  multiply 1.01 1.01
+String 0.0001  multiply 0.01 0.01
+String 0.0001  add 0 0.0001
+
+# Staggered decimal precisions
+String 0.000001 multiply 0.01 0.0001
+
+# Interpret in base 10
+String 2.2781  multiply 1.09 2.09
+
+# Recursive multiplication
+String 35.1384  multiply 1.1 2.2 3.3 4.4
+
+####################
+# Tests for DIVISION
+####################
+String 4     divide 4
+String 4     divide 20 5
+
+String 0.5   divide 1 2
+String -0.5   divide -1 2
+
+# Mixed fractions
+String 34.54   divide 3454 100
+
+# Non-terminating decimals
+String 0.166666666666666667   divide  1 6
+
+# Decimal arguments
+String 0.25     divide 0.5 2
+String 0.04165  divide 0.1666 4
+
+###########################
+# Tests for scientific math
+###########################
+String 8.8e4      add  1.1e4  7.7e4
+String 4.239e1    add  1.224e1 3.015e1
+String -6.6e4     add  1.1e4  -7.7e4
+String -66000     add  11000  -77000
+String 1.23123e2  add 1.23e2 1.23e-1
+String 8.1403e7   multiply 2.03e5 4.01e2
+String 1.0e-7     multiply 1.0e-3 1.0e-4
+String 1.0e-7     multiply 1e-3 1e-4
+
+

@@ -1,0 +1,286 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+: ${HOME:=/}
+
+# works right
+echo ab$(echo mnop)yz
+# works right
+echo ab$(echo mnop
+)yz
+#
+# works right
+echo $(echo ab
+   )
+# works right
+echo $(
+)
+echo $()
+echo ab$()cd
+echo ab$(  )cd
+echo mn$(
+)op
+echo qr$(
+
+    )st
+
+echo $(case a in (a) echo sh_352.26ax; esac )
+echo $(case a in (a) echo sh_352.26ay; esac)
+
+echo $((echo sh_352.25a);(echo sh_352.25b))
+
+echo $(echo sh_352.27 ')' ")" \)
+	# ) comment
+	)
+
+echo $(
+echo abc # a comment with )
+)
+
+echo $(#a comment with )
+echo def)
+
+echo $(
+cat <<eof
+here doc with )
+eof
+)
+
+echo $(
+echo ')'
+)
+
+unset x
+x=$(cat <<"EOF"
+bad' syntax
+EOF
+)
+echo "$x"
+unset x
+
+echo $(for f in \); do echo a; done )
+echo $(case a in a) echo sh_352.26a; esac )
+echo $(case a in a) echo sh_352.26a; esac)
+
+echo $(case a in
+            (a) echo sh_352.26
+               ;;
+                 esac
+          )
+
+echo $(case a in
+            a) echo sh_352.26
+               ;;
+                 esac
+          )
+
+
+echo $(case a in
+            a) echo sh_352.26
+               ;;
+
+
+			
+
+    
+                 esac
+
+          )
+
+echo $(( 4<(2+3) ? 1 : 32))
+
+echo $(cat << end
+sh_352.28 )
+end
+)
+
+echo $(cat <<- end  
+sh_352.28 )
+	end
+)
+
+k=$(case x in x) echo k;; esac)
+echo $k
+
+x=$(
+    case $(ls) in
+	example) echo foobix;;
+    esac
+)
+
+echo $( echo ab\
+cd)
+
+echo `echo ab
+cd`
+
+echo `echo ab #xyz
+cd`
+
+echo "$(echo abcde)
+"
+
+recho "$(echo abcde)
+  "
+
+echo $(echo abcde)\
+foo
+
+recho $(echo abcde)\
+   foo
+
+recho "wx$(echo abcde)yz"
+recho "$(echo abcde)"
+
+echo $(cat <<eof
+'
+eof
+)
+
+echo after 1
+
+echo $(cat <<\eof
+'
+eof
+)
+
+echo after 2
+
+echo "$(cat <<\eof
+'
+eof
+)"
+
+echo after 3
+
+echo "$(cat <<\eof
+`
+eof
+)"
+
+echo after 4
+
+echo $(
+cat << ')'
+hello
+)
+)
+
+echo after 5
+
+echo $(cat <<'eof'
+'
+eof
+)
+
+echo after 6
+
+echo $(
+  case x in  x) echo x;; esac
+)
+
+echo $(
+  case x in  x) echo x;; esac # followed by a comment
+)
+
+echo $(
+  case x in (x) echo x;; esac
+)
+
+echo $(
+  echo 'quoted )'
+)
+
+echo $(
+  echo comment # with )
+)
+
+echo $(
+cat <<\eof
+  here-doc with )
+eof
+)
+
+echo $(
+    cat <<\eof
+    here-doc with \()
+eof
+)
+
+echo $(
+cat <<\)
+	here-doc terminated with a parenthesis
+)
+)
+
+echo $(
+cat <<\eof
+	'   # or a single back- or doublequote
+eof
+)
+
+echo $(
+	echo line terminated with a backslash # \
+)
+
+${THIS_SH} ./comsub-posix1.sub
+${THIS_SH} ./comsub-posix2.sub
+${THIS_SH} ./comsub-posix3.sub
+
+#${THIS_SH} ./comsub-posix4.sub
+${THIS_SH} ./comsub-posix5.sub
+${THIS_SH} ./comsub-posix6.sub
+
+# produced a parse error through bash-4.0-beta2
+: $(echo foo)"
+"
+# produced a parse error through bash-4.1
+unset x
+x=$(
+echo yes
+# a comment with " ' \
+)
+echo $x
+unset x
+
+# fixed after bash-4.0 released
+: $(case a in a) echo ;; # comment
+esac)
+
+: $(case a in 
+    a)
+        echo
+    ;;	# comment
+esac)
+
+# fixed after bash-4.3 released
+testing=$(
+    echo test | while read line; do
+        case $line in
+             test)  echo saw test ;;
+             *)     echo other ;;
+        esac
+    done
+)
+
+# sanity check for empty comsubs
+echo $()
+echo $(
+)
+
+echo $(		
+
+   )
+
+# recommended to be parsed as a nested comsub instead of arithsub
+echo $(( echo ab cde ) )

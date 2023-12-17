@@ -1,0 +1,52 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+testmatch() {
+	case $1 in
+	( $2 ) printf ok1 ;;
+	( * ) printf fail1 ;;
+	esac
+	case $1,$2 in
+	( $2,"$2" ) printf ok2 ;;
+	( * ) printf fail2 ;;
+	esac
+	case $1, in
+	( $2, ) printf ok3 ;;
+	( * ) printf fail3 ;;
+	esac
+	case ,$2 in
+	( ,"$2" ) printf ok4 ;;
+	( * ) printf fail4 ;;
+	esac
+	case "$1,$2" in
+	( $2,"$2" ) printf ok5 ;;
+	( * ) printf fail5 ;;
+	esac
+	echo
+}
+
+for c in $'\1' $'\2' $'\177'; do
+	echo -n "--- testing: "
+	echo "$c" | od -t a | awk 'NR==1 { print $2 } '
+	testmatch "${c}" "\\${c}"
+	testmatch "${c}x" "\\${c}\\x"  # bash-git fails case 2 and 5 for $'\1'
+	testmatch "${c}x" "${c}\\x"
+	testmatch "${c}x" "${c}x"
+	testmatch "${c}x" "\\${c}x"
+	testmatch "x${c}" "\\x\\${c}"
+	testmatch "x${c}" "x\\${c}"
+done
+
+match() { case $1 in ( $2 ) ;; ( * ) return 1 ;; esac; } 
+match $'? *x\1y\177z' $'??\\*\\x\\\1\\y\\\177\\z' || echo bad 6

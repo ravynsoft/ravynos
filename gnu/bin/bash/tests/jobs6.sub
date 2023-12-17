@@ -1,0 +1,14 @@
+# framework to test `wait -f' which forces wait until a job exits
+set -o monitor
+sleep 5 &
+child1=$!
+
+( sleep 1; kill -STOP $child1 ; sleep 1 ; kill -CONT $child1 )&
+
+child2=$!
+
+wait -f %1
+echo child1 exit status $?
+
+wait $child2
+exit 0

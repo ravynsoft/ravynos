@@ -1,0 +1,37 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# test the behavior of `execfail' not exiting an interactive shell
+# added tests for changes in 10/2021 for preserving the traps across a failed
+# exec
+
+shopt -s execfail
+
+trap 'echo EXIT' EXIT 
+trap 'echo USR1' USR1
+trap '' TERM
+trap
+
+kill -s USR1 $$		# should run the trap
+
+exec /tmp/bash-notthere
+
+# make sure we're still around
+echo $0: after failed exec: $?
+
+trap
+kill -s USR1 $$		# should run the trap
+kill -s TERM $$		# should still be ignored
+
+# this should run the exit trap
+exit 0

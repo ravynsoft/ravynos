@@ -1,0 +1,83 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+declare -n ref=XXX[0]
+mapfile ref <<< $'1\n2'
+declare -p XXX[0]
+
+unset -n ref
+
+declare -n ref=XXX[0]
+declare -A ref
+ref[foo]=bar
+declare -p XXX[0]
+
+unset -n ref
+unset XXX
+
+typeset -n ref=XXX[0]
+typeset ref=4
+
+typeset -p ref XXX
+
+unset -n ref
+unset XXX
+
+declare -n ref=XXX[0]
+ref+=([2]=x)
+declare -p ref XXX[0]
+unset -n ref
+
+declare -n ref=XXX[0]
+read -a ref <<< "A B C"
+declare -p XXX[0]
+unset -n ref
+
+declare -n ref=XXX[0]
+unset ref
+ref=()
+declare -p ref
+
+coproc ref { :; }; declare -p ${!ref}
+wait
+
+unset -n ref
+
+declare -n ref=var[123]
+unset ref
+declare ref=
+declare -p ref ${!ref} var
+
+unset ref 
+declare ref+=
+declare -p ref ${!ref} var
+
+declare +t ref
+ref=X
+declare -p ref ${!ref} var
+
+unset -n ref
+unset var
+
+arr=(1 2 3)
+
+indir='arr[@]'
+declare -n ref='arr[@]'
+
+recho "${!indir}"
+recho ${!indir}
+
+recho "$ref"
+recho $ref
+
+recho "${!indir}$ref"

@@ -1,0 +1,5 @@
+# make sure we can wait for the last process substitution, since it sets $!
+cat <(exit 123) >/dev/null
+
+wait "$!"
+echo $?

@@ -1,0 +1,60 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# From mksh
+
+set -o posix ; shopt -u xpg_echo
+
+(echo 1 ${IFS+'}'z}) 2>&- || echo failed in 1
+(echo 2 "${IFS+'}'z}") 2>&- || echo failed in 2
+(echo 3 "foo ${IFS+'bar} baz") 2>&- || echo failed in 3
+(echo -n '4 '; printf '%s\n' "foo ${IFS+"b   c"} baz") 2>&- || echo failed in 4
+(echo -n '5 '; printf '%s\n' "foo ${IFS+b   c} baz") 2>&- || echo failed in 5
+(echo 6 ${IFS+"}"z}) 2>&- || echo failed in 6
+(echo 7 "${IFS+"}"z}") 2>&- || echo failed in 7
+(echo 8 "${IFS+\"}\"z}") 2>&- || echo failed in 8
+(echo 9 "${IFS+\"\}\"z}") 2>&- || echo failed in 9
+(echo 10 foo ${IFS+'bar} baz'}) 2>&- || echo failed in 10
+(echo 11 "$(echo "${IFS+'}'z}")") 2>&- || echo failed in 11
+(echo 12 "$(echo ${IFS+'}'z})") 2>&- || echo failed in 12
+(echo 13 ${IFS+\}z}) 2>&- || echo failed in 13
+(echo 14 "${IFS+\}z}") 2>&- || echo failed in 14
+u=x; (echo -n '15 '; printf '<%s> ' "foo ${IFS+a"b$u{ {"{{\}b} c ${IFS+d{}} bar" ${IFS-e{}} baz; echo .) 2>&- || echo failed in 15
+l=t; (echo 16 ${IFS+h`echo -n i ${IFS+$l}h`ere}) 2>&- || echo failed in 16
+l=t; (echo 17 ${IFS+h$(echo -n i ${IFS+$l}h)ere}) 2>&- || echo failed in 17
+l=t; (echo 18 "${IFS+h`echo -n i ${IFS+$l}h`ere}") 2>&- || echo failed in 18
+l=t; (echo 19 "${IFS+h$(echo -n i ${IFS+$l}h)ere}") 2>&- || echo failed in 19
+l=t; (echo 20 ${IFS+h`echo -n i "${IFS+$l}"h`ere}) 2>&- || echo failed in 20
+l=t; (echo 21 ${IFS+h$(echo -n i "${IFS+$l}"h)ere}) 2>&- || echo failed in 21
+l=t; (echo 22 "${IFS+h`echo -n i "${IFS+$l}"h`ere}") 2>&- || echo failed in 22
+l=t; (echo 23 "${IFS+h$(echo -n i "${IFS+$l}"h)ere}") 2>&- || echo failed in 23
+key=value; (echo -n '24 '; printf '%s\n' "${IFS+'$key'}") 2>&- || echo failed in 24
+key=value; (echo -n '25 '; printf '%s\n' "${IFS+"'$key'"}") 2>&- || echo failed in 25	# ksh93: “'$key'”
+key=value; (echo -n '26 '; printf '%s\n' ${IFS+'$key'}) 2>&- || echo failed in 26
+key=value; (echo -n '27 '; printf '%s\n' ${IFS+"'$key'"}) 2>&- || echo failed in 27
+(echo -n '28 '; printf '%s\n' "${IFS+"'"x ~ x'}'x"'}"x}" #') 2>&- || echo failed in 28
+u=x; (echo -n '29 '; printf '<%s> ' foo ${IFS+a"b$u{ {"{ {\}b} c ${IFS+d{}} bar ${IFS-e{}} baz; echo .) 2>&- || echo failed in 29
+(echo -n '30 '; printf '<%s> ' ${IFS+foo 'b\
+ar' baz}; echo .) 2>&- || (echo failed in 30; echo failed in 31)
+(echo -n '32 '; printf '<%s> ' ${IFS+foo "b\
+ar" baz}; echo .) 2>&- || echo failed in 32
+(echo -n '33 '; printf '<%s> ' "${IFS+foo 'b\
+ar' baz}"; echo .) 2>&- || echo failed in 33
+(echo -n '34 '; printf '<%s> ' "${IFS+foo "b\
+ar" baz}"; echo .) 2>&- || echo failed in 34
+(echo -n '35 '; printf '<%s> ' ${v=a\ b} x ${v=c\ d}; echo .) 2>&- || echo failed in 35
+(echo -n '36 '; printf '<%s> ' "${v=a\ b}" x "${v=c\ d}"; echo .) 2>&- || echo failed in 36
+(echo -n '37 '; printf '<%s> ' ${v-a\ b} x ${v-c\ d}; echo .) 2>&- || echo failed in 37
+(echo 38 ${IFS+x'a'y} / "${IFS+x'a'y}" .) 2>&- || echo failed in 38
+foo="x'a'y"; (echo 39 ${foo%*'a'*} / "${foo%*'a'*}" .) 2>&- || echo failed in 39
+foo="a b c"; (echo -n '40 '; printf '<%s> ' "${foo#a}"; echo .) 2>&- || echo failed in 40

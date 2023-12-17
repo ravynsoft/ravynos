@@ -1,0 +1,2 @@
+${THIS_SH} ./ifs-posix.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} ifs-posix.right && rm -f ${BASH_TSTOUT}

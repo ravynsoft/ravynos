@@ -1,0 +1,13 @@
+# make sure fg and bg don't work on jobs started without job control,
+# even if they are executed when job control is active
+set +o monitor
+
+sleep 30 &
+pid=$!
+
+set -m
+fg %1
+echo fg: $?
+
+exec 2>/dev/null
+kill -9 $pid

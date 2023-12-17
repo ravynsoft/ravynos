@@ -1,0 +1,4 @@
+echo "warning: please do not consider output differing only in the amount of" >&2
+echo "warning: white space to be an error." >&2
+${THIS_SH} ./read.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} read.right && rm -f ${BASH_TSTOUT}

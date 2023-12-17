@@ -1,0 +1,117 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+echo " a " | (read x; echo "$x.")
+
+echo " a  b  " | ( read x y ; echo -"$x"-"$y"- )
+echo " a  b\ " | ( read x y ; echo -"$x"-"$y"- )
+echo " a  b  " | ( read x ; echo -"$x"- )
+echo " a  b\ " | ( read x ; echo -"$x"- )
+
+echo " a  b\ " | ( read -r x y ; echo -"$x"-"$y"- )
+echo " a  b\ " | ( read -r x ; echo -"$x"- )
+
+echo "\ a  b\ " | ( read -r x y ; echo -"$x"-"$y"- )
+echo "\ a  b\ " | ( read -r x ; echo -"$x"- )
+echo " \ a  b\ " | ( read -r x y ; echo -"$x"-"$y"- )
+echo " \ a  b\ " | ( read -r x ; echo -"$x"- )
+
+# make sure that CTLESC and CTLNUL are passed through correctly
+echo $'\001' | ( read var ; recho "$var" )
+echo $'\001' | ( read ; recho "$REPLY" )
+
+echo $'\177' | ( read var ; recho "$var" )
+echo $'\177' | ( read ; recho "$REPLY" )
+
+# make sure a backslash-quoted \\n still disappears from the input when
+# we're not reading in `raw' mode, and no stray CTLESC chars are left in
+# the input stream
+echo $'ab\\\ncd' | ( read ; recho "$REPLY" )
+
+echo "A B " > $TMPDIR/IN
+unset x y z
+read x y z < $TMPDIR/IN
+echo 1: "x[$x] y[$y] z[$z]"
+echo 1a: ${z-z not set}
+read x < $TMPDIR/IN
+echo 2: "x[$x]"
+rm $TMPDIR/IN
+
+# this is where the bash `read' behavior with respect to $REPLY differs
+# from ksh93
+echo "A B " > $TMPDIR/IN
+
+read < $TMPDIR/IN
+echo "[$REPLY]"
+
+rm $TMPDIR/IN
+
+echo " A B " > $TMPDIR/IN
+
+read < $TMPDIR/IN
+echo "[$REPLY]"
+
+rm $TMPDIR/IN
+
+# make sure that read with more variables than words sets the extra
+# variables to the empty string
+
+bvar=bvar
+cvar=cvar
+echo aa > $TMPDIR/IN
+read avar bvar cvar < $TMPDIR/IN
+echo =="$avar"==
+echo =="$bvar"==
+echo =="$cvar"==
+
+rm $TMPDIR/IN
+
+# test behavior of read with various settings of IFS
+
+echo " foo" | { IFS= read line; recho "$line"; }
+
+echo " foo" | { IFS= ; read line; recho "$line"; }
+
+echo " foo" | { unset IFS ; read line; recho "$line"; }
+
+echo " foo" | { IFS=$'\n' ; read line; recho "$line"; }
+
+echo " foo" | { IFS=$' \n' ; read line; recho "$line"; }
+
+echo " foo" | { IFS=$' \t\n' ; read line; recho "$line"; }
+
+echo " foo" | { IFS=$':' ; read line; recho "$line"; }
+
+# test read -d delim behavior
+${THIS_SH} ./read1.sub
+
+# test read -t timeout behavior
+${THIS_SH} ./read2.sub
+
+# test read -n nchars behavior
+${THIS_SH} ./read3.sub
+
+# test read -u fd behavior
+${THIS_SH} ./read4.sub
+
+# test behavior when IFS is not the default -- bug through bash-2.05b
+${THIS_SH} ./read5.sub
+
+# test behavior of read -t 0
+${THIS_SH} ./read6.sub
+
+# test behavior of readline timeouts
+${THIS_SH} ./read7.sub
+
+# test behavior of read -n and read -d on regular files
+${THIS_SH} ./read8.sub

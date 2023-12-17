@@ -1,0 +1,100 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# basic cases
+a=1
+a+=4
+echo $a
+
+x=(1 2 3)
+x+=(4 5 6)
+
+echo ${x[@]}
+
+x[4]+=1
+echo ${x[@]}
+
+# trickier cases
+# post-bash-4.2: bash understands += in environment assignments preceding
+# command names
+a+=5 printenv a
+echo $a
+
+# if the integer flag is set, ksh93 appears to do arithmetic += and evaluate
+# old value as an arithmetic expression
+a=
+typeset -i a
+a+=7
+echo $a
+
+b=4+1
+typeset -i b
+b+=37
+
+echo $b
+
+unset x
+x=(1 2 3 4 5)
+
+typeset -i x
+
+x[4]+=7
+
+echo ${x[@]}
+
+unset x
+typeset -i x
+
+x=([0]=7+11)
+echo ${x[@]}
+
+unset x
+x=(1 2 3 4 5)
+
+typeset -i x
+
+#x[4]=7+11
+
+x=(1 2 3 4 [4]=7+11 )
+echo ${x[@]}
+
+x=( 1 2 [2]+=7 4 5 )
+echo ${x[@]}
+
+x+=( [3]+=9 [5]=9 )
+echo ${x[@]}
+
+unset a
+a=1
+export a+=4
+printenv a
+printenv a+
+
+unset x
+typeset -i x=4+5
+echo $x
+
+unset x
+typeset x+=4
+echo $x
+
+typeset -i x+=5
+echo $x
+
+readonly x+=7
+echo $x
+
+x+=5
+
+${THIS_SH} ./appendop1.sub
+${THIS_SH} ./appendop2.sub

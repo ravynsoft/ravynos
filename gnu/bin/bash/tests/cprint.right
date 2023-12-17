@@ -1,0 +1,72 @@
+tf is a function
+tf () 
+{ 
+    echo this is ${0##*/} > /dev/null;
+    echo a | cat - > /dev/null;
+    test -f ${0##*/} && echo ${0##*/} is a regular file;
+    test -d ${0##*/} || echo ${0##*/} is not a directory;
+    echo a;
+    echo b;
+    echo c;
+    echo background > /dev/null & ( exit 1 );
+    echo $?;
+    { 
+        echo a
+    };
+    i=0;
+    while (( i < 3 )); do
+        test -r /dev/fd/$i;
+        i=$(( i + 1 ));
+    done;
+    [[ -r /dev/fd/0 && -w /dev/fd/1 ]] || echo oops > /dev/null;
+    for name in $(echo 1 2 3);
+    do
+        test -r /dev/fd/$name;
+    done;
+    if [[ -r /dev/fd/0 && -w /dev/fd/1 ]]; then
+        echo ok > /dev/null;
+    else
+        if (( 7 > 40 )); then
+            echo oops;
+        else
+            echo done;
+        fi;
+    fi > /dev/null;
+    case $PATH in 
+        *$PWD*)
+            echo \$PWD in \$PATH
+        ;;
+        *)
+            echo \$PWD not in \$PATH
+        ;;
+    esac > /dev/null;
+    while false; do
+        echo z;
+    done > /dev/null;
+    until true; do
+        echo z;
+    done > /dev/null;
+    echo \&\|'()' \{ echo abcde \; \};
+    eval fu\%nc'()' \{ echo abcde \; \};
+    type fu\%nc
+}
+tf2 is a function
+tf2 () 
+{ 
+    ( { 
+        time -p echo a | cat - > /dev/null
+    } ) 2>&1
+}
+cprint.tests is a regular file
+cprint.tests is not a directory
+a
+b
+c
+1
+a
+&|() { echo abcde ; }
+fu%nc is a function
+fu%nc () 
+{ 
+    echo abcde
+}

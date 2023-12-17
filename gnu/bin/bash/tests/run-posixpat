@@ -1,0 +1,2 @@
+${THIS_SH} ./posixpat.tests > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} posixpat.right && rm -f ${BASH_TSTOUT}

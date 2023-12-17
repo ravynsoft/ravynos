@@ -1,0 +1,426 @@
+<table border=1>
+  <tr>
+    <th>Path</th>
+    <th>Description</th>
+    <th>X-Ref</th>
+  </tr>
+  <tr>
+    <td>./obashdb</td>
+    <td>Deprecated sample implementation of a bash debugger</td>
+  </tr>
+  <tr>
+  </tr>
+  <tr>
+    <td>./complete</td>
+    <td>Shell completion code</td>
+  </tr>
+  <tr>
+  </tr>
+  <tr>
+    <td>./functions</td>
+    <td>Example functions</td>
+  </tr>
+  <tr>
+    <td>./functions/array-stuff</td>
+    <td>Various array functions (ashift, array_sort, reverse).</td>
+  </tr>
+  <tr>
+    <td>./functions/array-to-string</td>
+    <td>Convert an array to a string.</td>
+  </tr>
+  <tr>
+    <td>./functions/autoload</td>
+    <td>An almost ksh-compatible 'autoload' (no lazy load).</td>
+    <td>ksh</td>
+  </tr>
+  <tr>
+    <td>./functions/autoload.v2</td>
+    <td>An almost ksh-compatible 'autoload' (no lazy load).</td>
+    <td>ksh</td>
+  </tr>
+  <tr>
+    <td>./functions/autoload.v3</td>
+    <td>A more ksh-compatible 'autoload' (with lazy load).</td>
+    <td>ksh</td>
+  </tr>
+  <tr>
+    <td>./functions/autoload.v3</td>
+    <td>An updated ksh-compatible 'autoload'.</td>
+    <td>ksh</td>
+  </tr>
+  <tr>
+    <td>./functions/basename</td>
+    <td>A replacement for basename(1).</td>
+    <td>basename</td>
+  </tr>
+  <tr>
+    <td>./functions/csh-compat</td>
+    <td>A C-shell compatibility package.</td>
+    <td>csh</td>
+  </tr>
+  <tr>
+    <td>./functions/dirname</td>
+    <td>A replacement for dirname(1).</td>
+    <td>dirname</td>
+  </tr>
+  <tr>
+    <td>./functions/dirstack</td>
+    <td>Directory stack functions.</td>
+  </tr>
+  <tr>
+    <td>./functions/exitstat</td>
+    <td>Display the exit status of processes.</td>
+  </tr>
+  <tr>
+    <td>./functions/external</td>
+    <td>Like 'command' but FORCES use of external command.</td>
+  </tr>
+  <tr>
+    <td>./functions/fact</td>
+    <td>Recursive factorial function.</td>
+  </tr>
+  <tr>
+    <td>./functions/fstty</td>
+    <td>Front end to sync TERM changes to both stty(1) and readline 'bind'.</td>
+    <td>stty.bash</td>
+  </tr>
+  <tr>
+    <td>./functions/inetaddr</td>
+    <td>Internet address conversion (inet2hex & hex2inet).</td>
+  </tr>
+  <tr>
+    <td>./functions/inpath</td>
+    <td>Return zero if the argument is in the path and executable.</td>
+    <td>inpath</td>
+  </tr>
+  <tr>
+    <td>./functions/isnum2</td>
+    <td>Test user input on numeric values, with floating point.</td>
+  </tr>
+  <tr>
+    <td>./functions/isvalidip</td>
+    <td>Test user input for valid IP Addresses.</td>
+  </tr>
+  <tr>
+    <td>./functions/ksh-cd</td>
+    <td>ksh-like 'cd': cd [-LP] [dir [change]].</td>
+    <td>ksh</td>
+  </tr>
+  <tr>
+    <td>./functions/ksh-compat-test</td>
+    <td>ksh-like arithmetic test replacements.</td>
+    <td>ksh</td>
+  </tr>
+  <tr>
+    <td>./functions/kshenv</td>
+    <td>Functions and aliases to provide the beginnings of a ksh environment for bash.</td>
+    <td>ksh</td>
+  </tr>
+  <tr>
+    <td>./functions/login</td>
+    <td>Replace the 'login' and 'newgrp' builtins in old Bourne shells.</td>
+  </tr>
+  <tr>
+    <td>./functions/notify.bash</td>
+    <td>Notify when jobs change status.</td>
+  </tr>
+  <tr>
+    <td>./functions/README</td>
+    <td>README</td>
+  </tr>
+  <tr>
+    <td>./functions/seq</td>
+    <td>Generate a sequence from m to n, m defaults to 1.</td>
+  </tr>
+  <tr>
+    <td>./functions/seq2</td>
+    <td>Generate a sequence from m to n, m defaults to 1.</td>
+  </tr>
+  <tr>
+    <td>./functions/shcat</td>
+    <td>Readline-based pager.</td>
+    <td>cat, readline pager</td>
+  </tr>
+  <tr>
+    <td>./functions/shcat2</td>
+    <td>Readline-based pagers.</td>
+    <td>cat, readline pager</td>
+  </tr>
+  <tr>
+    <td>./functions/sort-pos-params</td>
+    <td>Sort the positional parameters.</td>
+  </tr>
+  <tr>
+    <td>./functions/substr</td>
+    <td>A function to emulate the ancient ksh builtin.</td>
+    <td>ksh</td>
+  </tr>
+  <tr>
+    <td>./functions/substr2</td>
+    <td>A function to emulate the ancient ksh builtin.</td>
+    <td>ksh</td>
+  </tr>
+  <tr>
+    <td>./functions/whatis</td>
+    <td>An implementation of the 10th Edition Unix sh builtin 'whatis(1)' command.</td>
+  </tr>
+  <tr>
+    <td>./functions/whence</td>
+    <td>An almost-ksh compatible 'whence(1)' command.</td>
+  </tr>
+  <tr>
+    <td>./functions/which</td>
+    <td>An emulation of 'which(1)' as it appears in FreeBSD.</td>
+  </tr>
+  <tr>
+    <td>./loadables/</td>
+    <td>Example loadable replacements</td>
+  </tr>
+  <tr>
+    <td>./loadables/basename.c</td>
+    <td>Return non-directory portion of pathname.</td>
+    <td>basename</td>
+  </tr>
+  <tr>
+    <td>./loadables/cat.c</td>
+    <td>cat(1) replacement with no options - the way cat was intended.</td>
+    <td>cat, readline pager</td>
+  </tr>
+  <tr>
+    <td>./loadables/dirname.c</td>
+    <td>Return directory portion of pathname.</td>
+    <td>dirname</td>
+  </tr>
+  <tr>
+    <td>./loadables/fdflags.c</td>
+    <td>Display or modify file descriptor flags</td>
+  </tr>
+  <tr>
+    <td>./loadables/finfo.c</td>
+    <td>Print file info.</td>
+  </tr>
+  <tr>
+    <td>./loadables/head.c</td>
+    <td>Copy first part of files.</td>
+  </tr>
+  <tr>
+    <td>./loadables/hello.c</td>
+    <td>Obligatory "Hello World" / sample loadable.</td>
+  </tr>
+  <tr>
+    <td>./loadables/id.c</td>
+    <td>POSIX.2 user identity.</td>
+  </tr>
+  <tr>
+    <td>./loadables/ln.c</td>
+    <td>Make links.</td>
+  </tr>
+  <tr>
+    <td>./loadables/logname.c</td>
+    <td>Print login name of current user.</td>
+  </tr>
+  <tr>
+    <td>./loadables/Makefile.in</td>
+    <td>Simple makefile for the sample loadable builtins.</td>
+  </tr>
+  <tr>
+    <td>./loadables/Makefile.inc.in</td>
+    <td>Sample makefile to use for loadable builtin development.</td>
+  </tr>
+  <tr>
+    <td>./loadables/mkdir.c</td>
+    <td>Make directories.</td>
+  </tr>
+  <tr>
+    <td>./loadables/mypid.c</td>
+    <td>Demonstrate how a loadable builtin can create and delete shell variables.</td>
+  </tr>
+  <tr>
+    <td>./loadables/necho.c</td>
+    <td>echo without options or argument interpretation.</td>
+  </tr>
+  <tr>
+    <td>./loadables/pathchk.c</td>
+    <td>Check pathnames for validity and portability.</td>
+  </tr>
+  <tr>
+    <td>./loadables/print.c</td>
+    <td>Loadable ksh-93 style print builtin.</td>
+  </tr>
+  <tr>
+    <td>./loadables/printenv.c</td>
+    <td>Minimal builtin clone of BSD printenv(1).</td>
+  </tr>
+  <tr>
+    <td>./loadables/push.c</td>
+    <td>Anyone remember TOPS-20?</td>
+  </tr>
+  <tr>
+    <td>./loadables/README</td>
+    <td>README</td>
+  </tr>
+  <tr>
+    <td>./loadables/realpath.c</td>
+    <td>Canonicalize pathnames, resolving symlinks.</td>
+  </tr>
+  <tr>
+    <td>./loadables/rm.c</td>
+    <td>Remove file.</td>
+  </tr>
+  <tr>
+    <td>./loadables/rmdir.c</td>
+    <td>Remove directory.</td>
+  </tr>
+  <tr>
+    <td>./loadables/setpgid.c</td>
+    <td>Set a child process's process group.
+  </tr>
+  <tr>
+    <td>./loadables/sleep.c</td>
+    <td>sleep for fractions of a second.</td>
+  </tr>
+  <tr>
+    <td>./loadables/stat.c</td>
+    <td>Load an associative array with stat information about a file.</td>
+  </tr>
+  <tr>
+    <td>./loadables/strftime.c</td>
+    <td>Loadable builtin interface to strftime(3).</td>
+  </tr>
+  <tr>
+    <td>./loadables/sync.c</td>
+    <td>Sync the disks by forcing pending filesystem writes to complete.</td>
+  </tr>
+  <tr>
+    <td>./loadables/tee.c</td>
+    <td>Duplicate standard input.</td>
+  </tr>
+  <tr>
+    <td>./loadables/template.c</td>
+    <td>Example template for loadable builtin.</td>
+  </tr>
+  <tr>
+    <td>./loadables/truefalse.c</td>
+    <td>True and false builtins.</td>
+  </tr>
+  <tr>
+    <td>./loadables/tty.c</td>
+    <td>Return terminal name.</td>
+  </tr>
+  <tr>
+    <td>./loadables/uname.c</td>
+    <td>Print system information.</td>
+  </tr>
+  <tr>
+    <td>./loadables/unlink.c</td>
+    <td>Remove a directory entry.</td>
+  </tr>
+  <tr>
+    <td>./loadables/whoami.c</td>
+    <td>Print out username of current user.</td>
+  </tr>
+  <tr>
+  </tr>
+  <tr>
+    <td>./loadables/perl/</td>
+    <td>Illustrate how to build a Perl interpreter into bash.</td>
+  </tr>
+  <tr>
+  </tr>
+  <tr>
+    <td>./misc</td>
+    <td>Miscellaneous</td>
+  </tr>
+  <tr>
+    <td>./misc/aliasconv.bash</td>
+    <td>Convert csh aliases to bash aliases and functions.</td>
+    <td>csh, xalias</td>
+  </tr>
+  <tr>
+    <td>./misc/aliasconv.sh</td>
+    <td>Convert csh aliases to bash aliases and functions.</td>
+    <td>csh, xalias</td>
+  </tr>
+  <tr>
+    <td>./misc/cshtobash</td>
+    <td>Convert csh aliases, environment variables, and variables to bash equivalents.</td>
+    <td>csh, xalias</td>
+  </tr>
+  <tr>
+    <td>./misc/README</td>
+    <td>README</td>
+  </tr>
+  <tr>
+  </tr>
+  <tr>
+    <td>./scripts</td>
+    <td>Example scripts</td>
+  </tr>
+  <tr>
+    <td>./scripts/cat.sh</td>
+    <td>Readline-based pager.</td>
+    <td>cat, readline pager</td>
+  </tr>
+  <tr>
+    <td>./scripts/center</td>
+    <td>Center - center a group of lines.</td>
+  </tr>
+  <tr>
+    <td>./scripts/inpath</td>
+    <td>Search $PATH for a file the same name as $1; return TRUE if found.</td>
+    <td>inpath</td>
+  </tr>
+  <tr>
+    <td>./scripts/README</td>
+    <td>README</td>
+  </tr>
+  <tr>
+    <td>./scripts/shprompt</td>
+    <td>Display a prompt and get an answer satisfying certain criteria.</td>
+    <td>ask</td>
+  </tr>
+  <tr>
+    <td>./scripts/spin.bash</td>
+    <td>Display a 'spinning wheel' to show progress.</td>
+  </tr>
+  <tr>
+    <td>./scripts/xterm_title</td>
+    <td>Print the contents of the xterm title bar.</td>
+  </tr>
+  <tr>
+    <td>./scripts/zprintf</td>
+    <td>Emulate printf (obsolete since it's now a bash builtin).</td>
+  </tr>
+  <tr>
+  </tr>
+  <tr>
+    <td>./startup-files</td>
+    <td>Example Start-up files.</td>
+  </tr>
+  <tr>
+    <td>./startup-files/Bash_aliases</td>
+    <td>Some useful aliases (Fox).</td>
+  </tr>
+  <tr>
+    <td>./startup-files/Bash_profile</td>
+    <td>Sample startup file for bash login shells (Fox).</td>
+  </tr>
+  <tr>
+    <td>./startup-files/bash-profile</td>
+    <td>Sample startup file for bash login shells (Ramey).</td>
+  </tr>
+  <tr>
+    <td>./startup-files/bashrc</td>
+    <td>Sample Bourne Again SHell init file (Ramey).</td>
+  </tr>
+  <tr>
+    <td>./startup-files/Bashrc.bfox</td>
+    <td>Sample Bourne Again SHell init file (Fox).</td>
+  </tr>
+  <tr>
+    <td>./startup-files/README</td>
+    <td>README</td>
+  </tr>
+  <tr>
+  </tr>
+</table>

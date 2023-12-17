@@ -1,0 +1,43 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# if IFS side effects in ${IFS=} assignments take place, how do you cope with
+# later changes to IFS in the same set of expansions?  You've already
+# committed to using the first character of the (old) IFS to expand $* in
+# the previous expansions, and changing it to not include ' ', for instance,
+# results in the first couple of ${*} below not being split at all
+
+set -f -- a b c
+
+unset -v IFS
+printf '<%s> ' ${*}${IFS=}${*}${IFS:=-}"${*}"
+echo
+printf "after 1: IFS "
+echo "${IFS-unset}"
+recho "$*"
+
+set -f -- a 'b c' d
+unset -v IFS
+printf '<%s> ' ${*}${IFS=}${*}${IFS:=-}"${*}"
+echo
+printf "after 2: IFS "
+echo "${IFS-unset}"
+recho "$*"
+
+unset -v IFS
+recho $*
+recho "$*"
+
+IFS=' '
+recho $*
+recho "$*"

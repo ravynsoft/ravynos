@@ -1,0 +1,45 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# compound assignment parsing problems in bash-3.1-release
+func()
+{
+	local -a x=() y=()
+}
+
+a=() b=()
+eval foo=()
+eval foo=() bar=() qux=( "bash" )
+
+foo=( "bash" )
+eval foo=( "bash" )
+eval bar=( "bash" ) bax=( "bash" )
+
+let a=(5 + 3) b=(4 + 7)
+echo $a $b
+
+typeset -i a b
+a=(5+3) b=(4+7)
+echo $a $b
+
+let a=(4*3)/2
+echo $a
+a=(4*3)/2
+echo $a
+
+LNAME=nordholz
+echo ${LNAME}
+echo ${#LNAME}
+
+echo ${#LNAME[$(( 0 ))]}
+echo ${#LNAME[$(( 0+0 ))]}

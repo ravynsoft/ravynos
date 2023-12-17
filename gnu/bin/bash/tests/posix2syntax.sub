@@ -1,0 +1,66 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+: ${THIS_SH:=./bash}
+bashname=bash${BASH_VERSION%%.*}
+
+# tests for Posix grammar special cases
+
+# Posix grammar rule 5
+${THIS_SH} -c 'for invalid-name in a b c; do echo error; done' $bashname
+
+# Posix grammar rule 6: third word in FOR or SELECT
+for i; do echo; done; echo in
+for i; do echo in; done
+for i do echo in; done
+
+select i; do echo; done; echo in
+select i; do echo in; done; echo in
+select i do echo in; done; echo in
+
+# Posix grammar rule 4: when PATTERN == ESAC, return ESAC
+${THIS_SH} -c 'case x in esac) echo done; esac' $bashname
+
+# Posix grammar rule 6: third word in CASE
+${THIS_SH} -c 'case in in in) echo in; esac;' $bashname
+${THIS_SH} -c 'case in do do) echo in; esac' $bashname
+
+# Posix grammar rule 8: function NAME
+${THIS_SH} -o posix -c 'for()
+{
+echo function for;
+}' $bashname
+
+for for in for; do echo in; echo done; done
+
+${THIS_SH} -c 'for (( i = 0; i < 5; i++ )) do : ; done' $bashname
+${THIS_SH} -c 'for (( i = 0; i < 5; i++ )) { : ; }' $bashname
+
+# bug report: IN turning on unwanted alias expansion
+${THIS_SH} -o posix -c '
+alias foo='two words'
+foo_word='foo'
+case "$foo_word"
+in
+	foo) echo "bad 1";;
+esac' $bashname
+
+${THIS_SH} -o posix -c '
+alias foo='oneword'
+foo_word='foo'
+case "$foo_word"
+in
+	foo) echo "ok 1";;
+esac' $bashname
+
+

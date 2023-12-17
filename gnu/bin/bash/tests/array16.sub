@@ -1,0 +1,34 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+foo[0]=a
+foo[1]=b
+
+[[ -v foo[1] ]] && echo foo index 1: ok
+[[ -v foo[2] ]] || echo foo index 2: ok
+
+[[ -v foo ]] && echo foo: implicit reference to element 0: ok
+
+typeset -i foo
+
+[[ -v foo[1] ]] && echo foo: arithmetic evaluation: ok
+
+typeset -a bar
+bar[1]=set
+
+[[ -v bar ]] || echo bar: array with element zero unset: ok
+[[ -v bar[0] ]] || echo bar: element zero: ok
+
+typeset -a qux
+[[ -v qux ]] || echo qux: unset array: ok
+[[ -v qux[0] ]] || echo qux: unset array element 0: ok

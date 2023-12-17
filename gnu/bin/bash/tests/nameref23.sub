@@ -1,0 +1,82 @@
+declare -ai a
+a[0]=4
+declare -n b='a[0]'
+
+b+=1 ; declare -p a
+
+declare b+=1 ; declare -p a
+
+unset a b
+unset -n b
+
+######
+declare -ai a=(1)
+declare -in b="a[0]"
+declare -p a b
+
+b+=1 ; declare -p a b
+b+=1 ; declare -p a b
+b+=0 ; declare -p a b
+
+unset a b
+
+#####
+declare -ai a=(1)
+declare -n b="1"
+declare -p a
+declare -np b
+
+unset a ; unset -n b
+
+#####
+declare -ai a=('4');
+declare -n b='a[0]';
+declare -ni b;		# this should maybe not be allowed, but it is for now
+declare -p a b
+
+b+=2;
+declare -p a b 
+
+unset a ; unset -n b
+
+#####
+f()
+{
+	local -a a=('' 'foo');
+        local -n b=a[1];
+        echo $b;
+        b+=\ bar;
+        echo $b;
+        declare -p a b;
+}
+f
+
+declare -a a=('' 'foo');
+declare -n b=a[1];
+echo $b;
+b+=\ bar;
+echo $b;
+declare -p a b
+
+unset a ; unset -n b
+
+unset -f f
+f()
+{
+        local -ai a=(0 12);
+        local -n b=a[1];
+        echo $b;
+        b+=4;
+        echo $b;
+        declare -p a;
+}
+f
+
+declare -ai a=(0 12);
+declare -n b=a[1];
+echo $b;
+b+=4;
+echo $b;
+declare -p a
+
+unset a ; unset -n b

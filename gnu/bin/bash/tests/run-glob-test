@@ -1,0 +1,7 @@
+PATH=$PATH:`pwd`
+export PATH
+
+( diff -a glob.right glob.right >/dev/null 2>&1 ) && AFLAG=-a
+
+${THIS_SH} ./glob.tests > ${BASH_TSTOUT} 2>&1
+diff ${AFLAG} ${BASH_TSTOUT} glob.right && rm -f ${BASH_TSTOUT}

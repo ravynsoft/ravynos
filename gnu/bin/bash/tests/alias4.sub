@@ -1,0 +1,100 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+shopt -s expand_aliases
+
+# from an austin-group report
+alias foo="echo 'Error:"
+foo bar'
+
+# from some FreeBSD sh tests
+
+v=1
+alias a='unalias -a
+v=2'
+eval a
+[ "$v" = 2 ] && echo ok 1
+v=1
+alias a='unalias a
+v=2'
+eval a
+[ "$v" = 2 ] && echo ok 2
+
+# make sure command doesn't ever reset anything even if it's made a keyword
+unalias -a
+alias command=command
+alias true='echo bad'
+eval 'command true'
+
+unalias -a
+alias alias0=command
+alias true='echo bad'
+eval 'alias0 true'
+
+# make sure null aliases are ok
+unalias -a
+alias nullalias=''
+alias foo='echo '
+foo nullalias text
+unalias foo
+
+# aliases shouldn't be expanded in quoted strings even when the previous word
+# is an alias whose expansion ends in a space
+alias foo="echo 'whoops: "
+foo nullalias'
+
+unalias -a
+
+# recursive alias definitions
+alias echo=echo
+eval echo foo
+
+alias echo='echo a'
+
+echo
+echo b
+eval echo b
+echo $(eval echo b)
+
+unalias -a
+
+# alias expansion when in a command position after redirections
+alias e=echo
+eval '</dev/null e ok 3'
+eval 'a=true e ok 4'
+
+alias comment=#
+comment
+
+alias long_comment='# for x in '
+long_comment text after
+
+# comment
+comment foo bar
+
+# alias ending in a tab
+alias foo="\
+	echo \"bar\" \
+	"
+
+foo
+
+alias foo=$'echo bad \t'
+foo
+
+# this should probably just echo a blank line to stdout
+alias foo='echo 0'
+foo>&2
+
+alias a='printf "<%s>\n" \'
+a|cat

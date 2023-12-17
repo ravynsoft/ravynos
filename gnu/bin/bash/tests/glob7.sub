@@ -1,0 +1,11 @@
+# according to Posix 2.13.3, a slash in a bracket expression renders that
+# bracket expression invalid
+shopt -s nullglob
+
+echo 1: [qwe/qwe]
+echo 2: [qwe/
+echo 3: [qwe/]
+
+echo 4: [qwe\/qwe]
+echo 5: [qwe\/
+echo 6: [qwe\/]

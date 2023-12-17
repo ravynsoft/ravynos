@@ -1,0 +1,277 @@
+3 4
+5 6 7 8 9
+7 8 9
+/usr/chet
+/usr/chet
+/usr/chet
+/a/b/c
+/usr/chet
+/usr/chet 7
+/a/b/c 9 /a/b/c
+/a/b/c 9 /a/b/c
+/a/b/c /a/b/c
+1 2
+1 1
+unset
+toronto airport
+AVAR
+song by rush
+BVAR
+toronto airport
+AVAR
+AVAR
+42
+/bin:/usr/bin:/usr/local/bin:.
+declare -a avar=([0]="/bin:/usr/bin:/usr/local/bin:.")
+declare -- z="yy"
+42
+declare -i ivar="10"
+unset
+declare -x ivar="42"
+hB
+braceexpand:hashall:interactive-comments
+hBP
+braceexpand:hashall:interactive-comments:physical
+declare -r SHELLOPTS="braceexpand:hashall:interactive-comments:physical"
+abcde
+20
+30
+40
+50
+|0|10|
+10
+|0|10|
+10
+|0|10|
+10
+|4|
+4
+|0|11|
+after fff3: x=4
+|0|12|
+|y|
+|y|
+a:b:c:d
+a-b-c-d
+a:b:c:d
+g: , 
+f: , 
+FIN: asdf fdsa, asdf fdsa
+g: v = , w =
+f: v = , w =
+FIN: v = two, w = one
+./varenv4.sub: line 67: bbb: unique: cannot convert indexed to associative array
+./varenv4.sub: line 67: declare: unique: cannot convert indexed to associative array
+after bbb: 1
+declare -Ar FOOBAR=([foo]="bar" )
+declare -Ar FOOBAR=([foo]="bar" )
+declare -ar FOOBAR2=([0]="bar")
+declare -ar FOOBAR2=([0]="bar")
+F OUTSIDE
+F OUTSIDE
+declare -ar outside=()
+declare -ir outside1="1"
+tempenv = foo
+0
+declare -ar myvar=([0]="0")
+1
+declare -ir myvar="1"
+declare -rx tempvar1='foo'
+declare -rx tempvar2='qux'
+./varenv7.sub: line 57: local: var: readonly variable
+inside: outside
+outside: outside
+local: unset1 unset2
+abc
+abc
+:1
+:2
+after: ----
+global:1
+global:2
+after: --global--
+after: ----
+x = :1:2
+in o1 (readonly modifying local scalars):
+declare -r i1="a b c"
+declare -r j1="1 2 3"
+after o1:
+./varenv9.sub: line 28: declare: i1: not found
+./varenv9.sub: line 28: declare: j1: not found
+in o2 (readonly setting global scalars):
+declare -r i2="a b c"
+declare -r j2="1 2 3"
+after o2:
+declare -r i2="a b c"
+declare -r j2="1 2 3"
+./varenv9.sub: line 46: unset: i2: cannot unset: readonly variable
+./varenv9.sub: line 46: unset: j2: cannot unset: readonly variable
+in o3 (readonly modifying locals, converting to arrays):
+declare -ar i3=([0]="a" [1]="b" [2]="c")
+declare -ar j3=([0]="1" [1]="2" [2]="3")
+after o3:
+./varenv9.sub: line 61: declare: i3: not found
+./varenv9.sub: line 61: declare: j3: not found
+in o4 (readonly setting global array variables):
+declare -ar i4=([0]="a" [1]="b" [2]="c")
+declare -ar j4=([0]="1" [1]="2" [2]="3")
+after o4:
+declare -ar i4=([0]="a" [1]="b" [2]="c")
+declare -ar j4=([0]="1" [1]="2" [2]="3")
+./varenv9.sub: line 79: unset: i4: cannot unset: readonly variable
+./varenv9.sub: line 79: unset: j4: cannot unset: readonly variable
+main: unset
+inner: res unset
+outer: res: X Y
+main: after first call: X
+inner: X
+outer: res: X Y
+main: after second call: X
+func: null or unset
+after func: x = outside
+./varenv11.sub: line 17: local: qux: readonly variable
+./varenv11.sub: line 18: qux: readonly variable
+./varenv11.sub: line 18: local: qux: readonly variable
+declare -A foo=([zero]="zero" [one]="one" )
+declare -a bar=([0]="zero" [1]="one")
+declare -A foo=([one]="one" [zero]="zero" )
+declare -a bar=([0]="zero" [1]="one")
+./varenv11.sub: line 42: a: readonly variable
+foo=abc
+func1: var =
+
+func1: var =
+
+inside: declare -- foo
+outside:
+declare -x foo="abc"
+inside: declare -x var="value"
+outside: declare -- var="one"
+inside: declare -x var="value"
+outside: declare -- var="outside"
+inside: declare -x var="inside"
+outside: declare -- var="outside"
+outside 1.0: var=one
+outside 1.1: var=one
+inside func: var=two
+outside 2.0: var=<unset>
+inside func: var=two
+outside 2.1: var=global
+inside func1: var=value
+outside 3.0: var=value
+inside func2: var=global
+outside 4.0: var=outside
+foo: hello world
+after foo: var=global
+bar: hello world
+after bar: var=global
+./varenv13.sub: line 16: `var[0]': not a valid identifier
+./varenv13.sub: line 16: `var[@]': not a valid identifier
+./varenv13.sub: line 14: declare: var: not found
+declare -A var=([0]="X" ["@"]="Y" )
+help
+./varenv13.sub: line 35: `var[0]': not a valid identifier
+1
+declare -A var=([0]="X" )
+declare -A var=([Y]="Y" )
+declare -A var=([Y]="Y" )
+declare -A var=()
+declare -A var=()
+./varenv14.sub: line 31: f: var: cannot convert indexed to associative array
+./varenv14.sub: line 31: declare: var: cannot convert indexed to associative array
+declare -a var=([0]="12")
+declare -a a=([0]="X")
+declare -a s=([0]="X")
+declare -a a=([0]="X" [1]="Y")
+declare -a s=([0]="X" [1]="Y")
+declare -a a=([0]="XY")
+declare -a s=([0]="XY")
+f: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50
+f1: after: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+done: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100
+f3:1
+f3:2
+f3:3
+f3:4
+f3:5
+f3:6
+f3:7
+f3:8
+f3:9
+f3:10
+f3:11
+f3:12
+f3:13
+f3:14
+f3:15
+f3:16
+f3:17
+f3:18
+f3:19
+f3:20
+before source: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+varenv15.in: before set: 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20
+varenv15.in: after set: a b c d e f g h i j k l m n o p q r s t u v w x y z
+after source 1: a b c d e f g h i j k l m n o p q r s t u v w x y z
+varenv15.in: before set: one two three four five six seven eight nine ten
+varenv15.in: after set: a b c d e f g h i j k l m n o p q r s t u v w x y z
+after source 2: a b c d e f g h i j k l m n o p q r s t u v w x y z
+foo=showfoo environment foo=showfoo
+foo=showfoo environment foo=showfoo
+foo=showfoo environment foo=showfoo
+outside: foo=<unset>
+
+posix mode
+foo=showfoo environment foo=showfoo
+outside 1.0: foo=<unset>
+foo=showfoo environment foo=showfoo
+foo=showfoo environment foo=showfoo
+outside 1.1: foo=<unset>
+foo=<unset> environment foo=
+outside 2.0: foo=<unset>
+foo=foo environment foo=foo
+foo=<unset> environment foo=
+outside 2.1: foo=<unset>
+declare -- var="global"
+declare -- var
+declare -- var="local"
+declare -- var="global"
+declare -- var="local"
+declare -- var
+declare -- var="local"
+declare -- var
+declare -- var="local"
+declare -- var
+declare -- var="local"
+declare -- var="f1"
+declare -- var="local"
+declare -a arr=([0]="zero" [1]="one" [2]="two" [3]="three" [4]="four" [5]="five")
+declare -a arr=([0]="zero" [1]="one" [2]="two")
+declare -a arr=([0]="three" [1]="four" [2]="five")
+declare -a arr=([0]="zero" [1]="one" [2]="two")
+ddd 0
+aaa 1 2 3
+bbb 4 5 6
+ccc 7 8 9
+declare -a x=([0]="one" [1]="two" [2]="three")
+./varenv19.sub: line 51: declare: x: not found
+declare -x v="x"
+declare -x v="t"
+declare -- v
+declare -x v
+ignoreeof      	on
+ignoreeof      	off
+ignoreeof      	on
+10
+match 1
+trap -- 'echo trap:$FUNCNAME' EXIT
+trap:f
+trap -- 'echo trap:$FUNCNAME' EXIT
+trap:f
+trap -- 'echo trap:$FUNCNAME' EXIT
+trap:f
+trap -- 'echo trap:$FUNCNAME' EXIT
+trap:f
+a=z
+a=b
+a=z

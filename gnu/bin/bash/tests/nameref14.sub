@@ -1,0 +1,56 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# exporting namerefs and putting namerefs in temp env post bash-4.3
+
+typeset -nx ref=var;
+typeset -p ref
+
+var=foo; str=''
+printenv ref                 # var
+ref+=$str    printenv ref    # var
+ref+="$str"  printenv ref    # var
+ref=$ref$str printenv ref    # var
+
+export ref		# follows nameref and exports var
+
+printenv var                 # foo
+ref+=$str    printenv var    # foo
+ref+="$str"  printenv var    # foo
+ref=$ref$str printenv var    # foo
+
+# none of these should change ref; should follow the nameref and export var
+unset var; unset -n ref; typeset -n ref=var
+
+echo before
+typeset -p ref var
+
+echo first
+ref=xxx typeset -p ref var
+
+echo invalid
+var= ref=5 typeset -p ref var
+
+echo after
+typeset -p ref var
+
+# ref isn't exported, so none of the printenvs should print anything
+unset var ; unset -n ref
+typeset -n ref=var;
+typeset -p ref
+
+var=foo; str=''
+printenv ref
+ref+=$str    printenv ref
+ref+="$str"  printenv ref
+ref=$ref$str printenv ref

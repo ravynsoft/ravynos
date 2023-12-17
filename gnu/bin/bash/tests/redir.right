@@ -1,0 +1,163 @@
+abc
+./redir.tests: line 28: /tmp/redir-test: cannot overwrite existing file
+abc
+def
+def
+./redir.tests: line 44: $z: ambiguous redirect
+Point 1
+Point 2
+to a
+to b
+Point 3
+to a
+to a
+to b
+to b
+Point 4
+to c
+Point 5
+this is redir1.sub
+this is redir2.sub
+read line1 "ab"
+read line2 "root"
+read line3 "cd"
+read line4 "daemon"
+from stdin: aa
+to stdout
+./redir4.sub: line 45: $fd: ambiguous redirect
+./redir4.sub: line 46: $fd: ambiguous redirect
+err-and-out:
+to stdout
+to stderr
+err-and-out:
+to stdout
+to stderr
+0 -- 3 0
+0 -- 4 0
+ab
+cd
+ef
+gh
+ij
+kl
+0
+ab
+cd
+cd
+./redir.tests: line 170: redir1.*: No such file or directory
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# tests of ksh93-like dup-and-close redirection operators
+exec 9<$0
+
+f()
+{
+exec 5<$0
+
+exec 0<&5-
+
+while read line; do
+echo "$line"
+done
+}
+
+f
+
+typeset -f f
+
+# make sure it was closed
+read -u 5 foo 2>&1 | grep -q 'invalid file descriptor'
+echo after read
+
+exec 5<&0
+
+exec <&-
+
+read abcde 2>&1 | grep -q 'read error'
+
+exec 0<&9-
+read line
+echo $line
+f () 
+{ 
+    exec 5< $0;
+    exec 0<&5-;
+    while read line; do
+        echo "$line";
+    done
+}
+after read
+# This program is free software: you can redistribute it and/or modify
+/
+/
+/
+0
+0
+0
+before block
+after block
+c1 is 1
+c2 is 2
+c3 is 3
+c4 is 4
+fd 10
+fd 8
+fd 10
+fd 8
+1
+2
+3
+4
+1
+2
+3
+4
+cat /tmp/foo
+whatsis
+hey
+to stdout
+to stderr
+
+to stdout
+to stderr
+
+to stderr
+to stdout
+
+to stderr
+hey
+to stdout
+logfunc is a function
+logfunc () 
+{ 
+    echo "$@" &>> $TMPDIR/log
+}
+foo
+bix is a function
+bix () 
+{ 
+    echo foo 2>&1 | cat
+}
+foo
+::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+1
+7
+after: 42
+./redir11.sub: line 53: $(ss= declare -i ss): ambiguous redirect
+after: 42
+a+=3
+foo
+foo
+./redir11.sub: line 75: 42: No such file or directory
+42

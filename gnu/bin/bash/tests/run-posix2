@@ -1,0 +1,2 @@
+${THIS_SH} ./posix2.tests 2>&1 | grep -v '^expect' > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} posix2.right && rm -f ${BASH_TSTOUT}

@@ -1,0 +1,37 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+f() { declare -p ${!var*} | grep ^var; declare -p var ; }
+
+var[0]=X var[@]=Y f
+
+unset -f f
+unset -v var
+
+typeset -A var
+
+f() { declare -p ${!var*}; }
+
+# this is no longer an error
+var[0]=X var[@]=Y
+f
+
+: ${THIS_SH:=./bash}
+env 'v[0]=help' ${THIS_SH} -c 'printenv "v[0]"'
+
+unset -v var
+
+f() { test -v 'var[0]'; echo $?; }
+var[0]=X f
+
+unset -v var

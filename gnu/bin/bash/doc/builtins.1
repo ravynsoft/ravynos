@@ -1,0 +1,24 @@
+.\" This is a hack to force bash builtins into the whatis database
+.\" and to get the list of builtins to come up with the man command.
+.\"
+.\" File Name macro.  This used to be `.PN', for Path Name,
+.\" but Sun doesn't seem to like that very much.
+.\"
+.de FN
+\fI\|\\$1\|\fP
+..
+.TH BASH_BUILTINS 1 "2021 November 22" "GNU Bash 5.2"
+.SH NAME
+:, ., [, alias, bg, bind, break, builtin, caller,
+cd, command, compgen, complete, compopt,
+continue, declare, dirs, disown, echo, enable, eval, exec, exit,
+export, false, fc, fg, getopts, hash, help, history, jobs, kill,
+let, local, logout, mapfile, popd, printf, pushd, pwd, read,
+readarray, readonly, return, set,
+shift, shopt, source, suspend, test, times, trap, true, type, typeset,
+ulimit, umask, unalias, unset, wait \- bash built-in commands, see \fBbash\fR(1)
+.SH BASH BUILTIN COMMANDS
+.nr zZ 1
+.so bash.1
+.SH SEE ALSO
+bash(1), sh(1)

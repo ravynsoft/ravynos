@@ -1,0 +1,56 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+: ${TMPDIR:=/var/tmp}
+dir=$PWD
+
+shopt -s globstar
+
+export LANG=C LC_ALL=C LC_COLLATE=C
+
+GDIR=$TMPDIR/globstar-$$
+
+mkdir $GDIR || exit 1
+cd $GDIR || exit 1
+
+mkdir lib builtins
+mkdir lib/glob lib/readline lib/sh
+
+touch builtins/history.o builtins/jobs.o builtins/kill.o builtins/let.o builtins/mapfile.o
+touch lib/glob/glob.o lib/glob/smatch.o lib/glob/strmatch.o
+touch lib/readline/bind.o lib/readline/callback.o lib/readline/compat.o lib/readline/complete.o lib/readline/display.o
+
+touch lib/sh/casemod.o lib/sh/clktck.o lib/sh/clock.o lib/sh/eaccess.o
+touch lib/sh/fdprintf.o lib/sh/fmtullong.o lib/sh/fmtulong.o lib/sh/fmtumax.o
+touch lib/sh/fpurge.o lib/sh/getenv.o lib/sh/input_avail.o lib/sh/itos.o
+
+touch alias.o
+touch pcomplib.o print_cmd.o redir.o shell.o sig.o stringlib.o subst.o syntax.o
+touch test.o trap.o unwind_prot.o variables.o version.o xmalloc.o y.tab.o
+
+ls lib/**
+
+ls lib/**/*.o
+
+echo **/*.o
+
+ls **
+
+echo **
+
+cd $dir
+rm -rf $GDIR
+
+${THIS_SH} ./globstar1.sub
+${THIS_SH} ./globstar2.sub
+${THIS_SH} ./globstar3.sub

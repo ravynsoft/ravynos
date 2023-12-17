@@ -1,0 +1,57 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+fff()
+{
+	typeset i=0 x=10
+	echo "|$i|$x|"
+	export x
+	printenv x
+}
+
+fff2()
+{
+	echo "|$x|"
+	export x
+	printenv x
+}
+
+fff3()
+{
+	typeset i=0 x="${x-10}"
+	echo "|$i|$x|"
+}
+
+fff4()
+{
+	typeset i=0 x
+	x="${x-10}"
+	echo "|$i|$x|"
+}
+
+fff5()
+{
+	z=y typeset z
+	echo "|$z|"
+}
+
+fff
+x=10 fff
+x=1 fff
+x=4 fff2
+x=11 fff3
+echo after fff3: x=$x
+x=12 fff4
+
+fff5
+z=42 fff5

@@ -1,0 +1,352 @@
+Platform-Specific Configuration and Operation Notes [very dated]
+====================================================================
+
+1.  configure --without-gnu-malloc on:
+
+	alpha running OSF/1, Linux, or NetBSD (malloc needs 8-byte alignment;
+	bash malloc has 8-byte alignment now, but I have no alphas to test on)
+
+	next running NeXT/OS; machines running Openstep
+
+	all machines running SunOS YP code: SunOS4, SunOS5, HP/UX, if you
+	have problems with username completion or tilde expansion for
+	usernames found via YP/NIS
+
+	linux (optional, but don't do it if you're using Doug Lea's malloc)
+
+	QNX 4.2
+	other OSF/1 machines (KSR/1, HP, IBM AIX/ESA)
+	AIX
+	sparc SVR4, SVR4.2 (ICL reference port)
+	DG/UX
+	Cray
+	Haiku OS
+
+	NetBSD/sparc (malloc needs 8-byte alignment; bash malloc has 8-byte
+	alignment now, but I have no NetBSD machines to test on)
+
+	BSD/OS 2.1, 3.x if you want to use loadable builtins
+
+	Motorola m68k machines running System V.3.  There is a file descriptor
+	leak caused by using the bash malloc because closedir(3) needs to read
+	freed memory to find the file descriptor to close
+
+2.  Configure using shlicc2 on BSD/OS 2.1 and BSD/OS 3.x to use loadable
+    builtins
+
+3.  Bash cannot be built in a directory separate from the source directory
+    using configure --srcdir=... unless the version of `make' you're using
+    does $VPATH handling right.  The script support/mkclone can be used to
+    create a `build tree' using symlinks to get around this.
+
+4.  I've had reports that username completion (as well as tilde expansion
+    and \u prompt expansion) does not work on IRIX 5.3 when linking with
+    -lnsl.  This is only a problem when you're running NIS, since
+    apparently -lnsl supports only /etc/passwd and not the NIS functions
+    for retrieving usernames and passwords.  Editing the Makefile after
+    configure runs and removing the `-lnsl' from the assignment to `LIBS'
+    fixes the problem.
+
+5.  There is a problem with the `makewhatis' script in older (pre-7.0)
+    versions of Red Hat Linux.  Running `makewhatis' with bash-2.0 or
+    later versions results in error messages like this:
+
+    /usr/sbin/makewhatis: cd: manpath: No such file or directory
+    /usr/sbin/makewhatis: manpath/whatis: No such file or directory
+    chmod: manpath/whatis: No such file or directory
+    /usr/sbin/makewhatis: cd: catpath: No such file or directory
+    /usr/sbin/makewhatis: catpath/whatis: No such file or directory
+    chmod: catpath/whatis: No such file or directory
+
+    The problem is with `makewhatis'.  Red Hat (and possibly other
+    Linux distributors) uses a construct like this in the code:
+
+        eval path=$"$pages"path
+
+    to do indirect variable expansion.  This `happened to work' in
+    bash-1.14 and previous versions, but that was more an accident
+    of implementation than anything else -- it was never supported
+    and certainly is not portable.
+
+    Bash-2.0 has a new feature that gives a new meaning to $"...".
+    This is explained more completely in item 1 in the COMPAT file.
+
+    The three lines in the `makewhatis' script that need to be changed
+    look like this:
+
+             eval $topath=$"$topath":$name
+    [...]
+       eval path=$"$pages"path
+    [...]
+    eval path=$"$pages"path
+
+    The portable way to write this code is
+
+             eval $topath="\$$topath":$name
+       eval path="\$$pages"path
+    eval path="\$$pages"path
+
+    You could also experiment with another new bash feature: ${!var}.
+    This does indirect variable expansion, making the use of eval
+    unnecessary.
+
+6.  There is a problem with syslogd on many Linux distributions (Red Hat
+    and Slackware are two that I have received reports about).  syslogd
+    sends a SIGINT to its parent process, which is waiting for the daemon
+    to finish its initialization.  The parent process then dies due to
+    the SIGINT, and bash reports it, causing unexpected console output
+    while the system is booting that looks something like
+
+	starting daemons: syslogd/etc/rc.d/rc.M: line 29: 38 Interrupt ${NET}/syslogd
+
+    Bash-2.0 reports events such as processes dying in scripts due to
+    signals when the standard output is a tty.  Bash-1.14.x and previous
+    versions did not report such events.
+
+    This should probably be reported as a bug to whatever Linux distributor
+    people see the problem on.  In my opinion, syslogd should be changed to
+    use some other method of communication, or the wrapper function (which
+    appeared to be `daemon' when I looked at it some time ago) or script
+    (which appeared to be `syslog') should catch SIGINT, since it's an
+    expected event, and exit cleanly.
+
+7.  Several people have reported that `dip' (a program for SLIP/PPP
+    on Linux) does not work with bash-2.0 installed as /bin/sh.
+
+    I don't run any Linux boxes myself, and do not have the dip
+    code handy to look at, but the `problem' with bash-2.0, as
+    it has been related to me, is that bash requires the `-p'
+    option to be supplied at invocation if it is to run setuid
+    or setgid. 
+
+    This means, among other things, that setuid or setgid programs
+    which call system(3) (a horrendously bad practice in any case)
+    relinquish their setuid/setgid status in the child that's forked
+    to execute /bin/sh. 
+
+    The following is an *unofficial* patch to bash-2.0 that causes it
+    to not require `-p' to run setuid or setgid if invoked as `sh'.
+    It has been reported to work on Linux.  It will make your system
+    vulnerable to bogus system(3) calls in setuid executables.
+
+--- ../bash-2.0.orig/shell.c    Wed Dec 18 14:16:30 1996
++++ shell.c     Fri Mar  7 13:12:03 1997
+@@ -347,7 +347,7 @@
+   if (posixly_correct)
+     posix_initialize (posixly_correct);
+
+-  if (running_setuid && privileged_mode == 0)
++  if (running_setuid && privileged_mode == 0 && act_like_sh == 0)
+     disable_priv_mode ();
+
+   /* Need to get the argument to a -c option processed in the
+
+8.  Some people have asked about binding all of the keys in a PC-keyboard-
+    style numeric keypad to readline functions.  Here's something I
+    received from the gnu-win32 list that may help.  Insert the following
+    lines into ~/.inputrc:
+
+# home key
+"\e[1~":beginning-of-line
+# insert key
+"\e[2~":kill-whole-line
+# del key
+"\e[3~":delete-char
+# end key
+"\e[4~":end-of-line
+# pgup key
+"\e[5~":history-search-forward
+# pgdn key
+"\e[6~":history-search-backward
+
+9.  Hints for building under Minix 2.0 (Contributed by Terry R. McConnell,
+    <tmc@barnyard.syr.edu>)
+
+   The version of /bin/sh distributed with Minix is not up to the job of
+   running the configure script. The easiest solution is to swap /bin/sh
+   with /usr/bin/ash. Then use chmem(1) to increase the memory allocated
+   to /bin/sh. The following settings are known to work:
+
+   text         data     bss   stack  memory
+   63552  9440          3304   65536  141832  /bin/sh
+
+   If you have problems with make or yacc it may be worthwhile first to
+   install the GNU versions of these utilities before attempting to build
+   bash. (As of this writing, all of these utilities are available for the
+   i386 as pre-built binaries via anonymous ftp at math.syr.edu in the
+   pub/mcconnell/minix directory. Note that the GNU version of yacc is called
+   bison.)
+
+   Unless you want to see lots of warnings about old-style declarations,
+   do LOCAL_CFLAGS=-wo; export LOCAL_CFLAGS before running configure.
+   (These warnings are harmless, but annoying.)
+
+   configure will insist that you supply a host type. For example, do
+   ./configure --host=i386-pc-minix.
+
+   Minix does not support the system calls required for a proper 
+   implementation of ulimit().  The `ulimit' builtin will not be available.
+
+   Configure will fail to notice that many things like uid_t are indeed
+   typedef'd in <sys/types.h>, because it uses egrep for this purpose
+   and minix has no egrep. You could try making a link /usr/bin/egrep -->
+   /usr/bin/grep. Better is to install the GNU version of grep in
+   /usr/local/bin and make the link /usr/local/bin/egrep -->/usr/local/bin/grep.
+   (These must be hard links, of course, since Minix does not support
+   symbolic links.)
+
+   You will see many warnings of the form:
+   warning: unknown s_type: 98
+   I have no idea what this means, but it doesn't seem to matter.
+
+10. If you do not have /usr/ccs/bin in your PATH when building on SunOS 5.x
+    (Solaris 2), the configure script will be unable to find `ar' and
+    `ranlib' (of course, ranlib is unnecessary).  Make sure your $PATH
+    includes /usr/ccs/bin on SunOS 5.x.  This generally manifests itself
+    with libraries not being built and make reporting errors like
+    `cr: not found' when library construction is attempted.
+
+11. Building a statically-linked bash on Solaris 2.5.x, 2.6, 7, or 8 is
+    complicated.
+
+    It's not possible to build a completely statically-linked binary, since
+    part of the C library depends on dynamic linking.  The following recipe
+    assumes that you're using gcc and the Solaris ld (/usr/ccs/bin/ld) on
+    Solaris 2.5.x or 2.6:
+
+	configure --enable-static-link
+	make STATIC_LD= LOCAL_LIBS='-Wl,-B,dynamic -ldl -Wl,-B,static'
+
+    This should result in a bash binary that depends only on libdl.so:
+
+	thor(2)$ ldd bash
+	        libdl.so.1 =>    /usr/lib/libdl.so.1
+
+    If you're using the Sun C Compiler (Sun WorkShop C Compiler version
+    4.2 was what I used), you should be able to get away with using
+
+	configure --enable-static-link
+	make STATIC_LD=  LOCAL_LIBS='-B dynamic -ldl -B static'
+
+    If you want to completely remove any dependence on /usr, perhaps
+    to put a copy of bash in /sbin and have it available when /usr is
+    not mounted, force the build process to use the shared dl.so library
+    in /etc/lib.
+
+    For gcc, this would be something like
+
+	configure --enable-static-link
+	make STATIC_LD= LOCAL_LIBS='-Wl,-B,dynamic -Wl,-R/etc/lib -ldl -Wl,-B,static'
+
+    For Sun's WS4.2 cc
+
+	configure --enable-static-link
+	make STATIC_LD=  LOCAL_LIBS='-B dynamic -R/etc/lib -ldl -B static'
+
+    seems to work, at least on Solaris 2.5.1:
+
+	thor(2)$ ldd bash
+	        libdl.so.1 =>    /etc/lib/libdl.so.1
+
+    On Solaris 7 (Solaris 8, using the version of gcc on the free software
+    CD-ROM), the following recipe appears to work for gcc:
+
+	configure --enable-static-link
+	make STATIC_LD='-Wl,-Bstatic' LOCAL_LIBS='-Wl,-Bdynamic -Wl,-R/etc/lib -ldl -Wl,-Bstatic'
+
+	thor.ins.cwru.edu(2)$ ldd bash
+	        libdl.so.1 =>    /etc/lib/libdl.so.1
+
+    Make the analogous changes if you are running Sun's C Compiler.
+
+    I have received word that adding -L/etc/lib (or the equivalent
+    -Wl,-L/etc/lib) might also be necessary, in addition to the -R/etc/lib.
+
+    On later versions of Solaris, it may be necessary to add -lnsl before
+    -ldl; statically-linked versions of bash using libnsl are not guaranteed
+    to work correctly on future versions of Solaris.
+
+12. Configuring bash to build it in a cross environment.  Currently only
+    two native versions can be compiled this way, cygwin32 and x86 BeOS.
+    For BeOS, you would configure it like this:
+
+	export RANLIB=i586-beos-ranlib
+	export AR=i586-beos-ar
+	export CC=i586-beos-gcc
+	configure i586-beos
+
+    Similarly for cygwin32.
+
+13. Bash-2.05 has reverted to the bash-2.03 behavior of honoring the current
+    locale setting when processing ranges within pattern matching bracket
+    expressions ([A-Z]).  This is what POSIX.2 and SUSv2 specify.
+
+    The behavior of the matcher in bash-2.05 depends on the current LC_COLLATE
+    setting.  Setting this variable to `C' or `POSIX' will result in the
+    traditional behavior ([A-Z] matches all uppercase ASCII characters).
+    Many other locales, including the en_US locale (the default on many US
+    versions of Linux) collate the upper and lower case letters like this:
+
+	AaBb...Zz
+
+    which means that [A-Z] matches every letter except `z'.
+
+    The portable way to specify upper case letters is [:upper:] instead of
+    A-Z; lower case may be specified as [:lower:] instead of a-z.
+
+    Look at the manual pages for setlocale(3), strcoll(3), and, if it is
+    present, locale(1).  If you have locale(1), you can use it to find
+    your current locale information even if you do not have any of the
+    LC_ variables set.
+
+    My advice is to put
+
+        export LC_COLLATE=C
+
+    into /etc/profile and inspect any shell scripts run from cron for
+    constructs like [A-Z].  This will prevent things like
+
+	rm [A-Z]*
+
+    from removing every file in the current directory except those beginning
+    with `z' and still allow individual users to change the collation order.
+    Users may put the above command into their own profiles as well, of course.
+
+14. Building on Interix (nee OpenNT), which Microsoft bought from Softway
+    Systems and has seemingly abandoned (thanks to Kevin Moore for this item).
+
+	1.  cp cross-build/opennt.cache config.cache
+
+	2.  If desired, edit pathnames.h to set the values of SYS_PROFILE and
+	    DEFAULT_HOSTS_FILE appropriately.
+
+	3.  export CONFIG_SHELL=$INTERIX_ROOT/bin/sh
+
+	4.  ./configure --prefix=$INTERIX_ROOT/usr/local (or wherever you
+	    want it).
+
+	5. make; make install; enjoy
+
+15.  Configure with `CC=xlc' if you don't have gcc on AIX 4.2 and later
+     versions.  `xlc' running in `cc' mode has trouble compiling error.c.
+
+16.  Configure --disable-multibyte on NetBSD versions (1.4 through at least
+     1.6.1) that include wctype.h but do not define wctype_t.
+
+17.  Do NOT use bison-1.75.  It builds a non-working parser.  The most
+     obvious effect is that constructs like "for i; do echo $i; done" don't
+     loop over the positional parameters.
+
+18.  I have received reports that using -O2 with the MIPSpro results in a
+     binary that fails in strange ways.  Using -O1 seems to work.
+
+19.  There is special handling to ensure the shell links against static
+     versions of the included readline and history libraries on Mac OS X;
+     Apple ships inadequate dynamic libreadline and libhistory "replacements"
+     as standard libraries.
+
+20.  If you're on a system like SGI Irix, and you get an error about not
+     being able to refer to a dynamic symbol
+     (ld: non-dynamic relocations refer to dynamic symbol PC), add
+     -DNEED_EXTERN_PC to the LOCAL_CFLAGS variable in lib/readline/Makefile.in
+     and rebuild.

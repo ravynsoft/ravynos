@@ -1,0 +1,8 @@
+qpath='\/tmp\/foo\/bar'
+
+echo "$qpath"
+
+# it's crazy that all three of these produce the same result
+printf "%s\n" ${qpath//\\/}
+printf "%s\n" ${qpath//"`printf '%s' \\`"/}
+printf "%s\n" ${qpath//`printf '%s' "\\\\\\\\"`/}

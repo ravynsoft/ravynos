@@ -1,0 +1,11 @@
+PARAM=abcdefg
+
+echo ${PARAM:1 ? 4 : 2}
+echo ${PARAM:1 ? 4 : 2:1}
+
+echo ${PARAM: 4<5 ? 4 : 2}
+echo ${PARAM: 5>4 ? 4 : 2:1}
+
+echo ${PARAM:${OFFSET:-0}}
+OFFSET=4
+echo ${PARAM:${OFFSET:-0}}

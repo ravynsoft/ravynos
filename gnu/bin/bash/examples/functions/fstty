@@ -1,0 +1,77 @@
+#
+# A function that works as a front end for both stty and the `bind'
+# builtin, so the tty driver and readline see the same changes
+#
+#
+#  Chet Ramey <chet.ramey@case.edu>
+#
+#  Copyright 2011 Chester Ramey
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2, or (at your option)
+#   any later version.
+#
+#   TThis program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software Foundation,
+#   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+#
+# Convert between the stty ^H control character form and the readline \C-H
+# form
+#
+cvt()
+{
+	echo "$@" | cat -v | sed 's/\^/\\C-/'
+}
+
+#
+# stty front-end.  Parses the argument list and creates two command strings,
+# one for stty, another for bind.
+#
+fstty()
+{
+	local	cmd="" bargs=""
+	local	e
+
+	while [ $# -gt 0 ]
+	do
+		case "$1" in
+		-a)	cmd="$cmd everything"
+			;;
+		erase)	shift;
+			e=$(cvt "$1")
+			cmd="$cmd erase $1"
+			bargs="$bargs '\"$e\": backward-delete-char'"
+			;;
+		kill)	shift
+			e=$(cvt "$1")
+			cmd="$cmd kill $1"
+			bargs="$bargs '\"$e\": unix-line-discard'"
+			;;
+		werase)	shift;
+			e=$(cvt "$1")
+			cmd="$cmd erase $1"
+			bargs="$bargs '\"$e\": backward-kill-word'"
+			;;
+		lnext)	shift;
+			e=$(cvt "$1")
+			cmd="$cmd erase $1"
+			bargs="$bargs '\"$e\": quoted-insert'"
+			;;
+		*)	cmd="$cmd $1"
+			;;
+		esac
+		shift
+	done
+
+	command stty $cmd
+	if [ -n "$bargs" ]; then
+		builtin bind $bargs
+	fi
+}

@@ -1,0 +1,124 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+if : ; then
+	set -e
+	N=95
+	while :; do
+		# expr returns 1 if expression is null or 0
+		set +e
+		N_MOD_100=`expr $N % 100`
+		set -e
+		echo $N_MOD_100
+		N=`expr $N + 1`
+		if [ $N -eq 110 ]; then
+			break
+		fi
+	done
+	set +e
+fi
+
+(
+set -e
+false
+echo bad
+)
+echo $?
+
+x=$(
+set -e
+false
+echo bad
+)
+echo $? $x
+
+# command subst should not inherit -e
+set -e
+echo $(false; echo ok)
+
+if set +e
+then
+	false
+fi
+echo hi
+
+set -e
+
+# a failing command in the compound list following a while, until, or
+# if should not cause the shell to exit
+
+while false; do
+	echo hi
+done
+echo while succeeded
+
+x=1
+until (( x == 4 )); do
+	x=4
+done
+echo until succeeded: $x
+
+if false; then
+	echo oops
+fi
+echo if succeeded
+
+# failing commands that are part of an AND or OR list should not
+# cause the shell to exit
+false && echo AND list failed
+echo AND list succeeded
+
+false || echo OR list succeeded
+
+! false
+echo ! succeeded
+
+# make sure eval preserves the state of the -e flag and `!' reserved word
+set -e
+if eval false; then
+	echo oops
+fi
+echo eval succeeded
+
+! eval false
+echo ! eval succeeded -- 1
+
+! eval '(exit 5)'
+echo ! eval succeeded -- 2
+
+set -e
+until builtin false; do echo a; break; done
+echo $?
+
+until eval false; do echo b; break; done
+echo $?
+
+: ${TMPDIR:=/tmp}
+FN=$TMPDIR/set-e-$$
+cat > $FN << EOF
+false
+echo after 1
+false
+EOF
+
+set -e
+until . $FN; do echo a; break; done
+echo $?
+
+rm -f $FN
+
+set +e
+
+${THIS_SH} ./set-e1.sub
+${THIS_SH} ./set-e2.sub
+${THIS_SH} ./set-e3.sub

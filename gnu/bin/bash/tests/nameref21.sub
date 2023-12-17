@@ -1,0 +1,69 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# issues with local variables and local namerefs post-bash-4.4
+
+f()
+{
+	local -n ref=var
+	local -A ref=([1]=)
+#	declare -p ref var
+	ref=([2]=)
+	declare -p ref var
+}
+
+unset ref  var
+f
+
+unset ref; var=0
+f
+
+unset var
+unset -f f
+
+f()
+{	
+	local -n ref=var
+	local -a ref=([1]=)
+	ref=([2]=)
+	declare -p ref var
+}
+
+unset ref var
+f
+
+unset ref; var=0
+f
+
+unset var
+unset -f f
+
+f() { local -n ref=var; local -i ref=([1]=); declare -p ref var; }
+
+unset var
+f
+
+var=0
+f
+
+unset var
+unset -f f
+
+f() { local -n ref=var; local ref=1; declare -p ref var; }
+
+var=0
+f
+
+unset var
+unset -f f
+

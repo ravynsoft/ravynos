@@ -1,0 +1,2 @@
+${THIS_SH} ./arith-for.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} arith-for.right && rm -f ${BASH_TSTOUT}

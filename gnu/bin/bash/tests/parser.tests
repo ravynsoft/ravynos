@@ -1,0 +1,6 @@
+# catch-all for parsing problems that don't fit anywhere else
+
+# this has to be in a separate file to get desired EOF behavior
+${THIS_SH} ./parser1.sub
+
+${THIS_SH} ./posix2syntax.sub

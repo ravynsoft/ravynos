@@ -1,0 +1,40 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# make sure indirect expansion for arrays uses the closest-scope instance
+# of the resulting variable name
+
+array_1=("PASS")
+array_2=("1 foo" "2 foo")
+
+unsafe_fn ()
+{
+    local array_1=('HELLO')
+    local a=("${!1}") b=("${!2}")
+    printf '%s;' "${a[@]}" "${b[@]}"
+    printf '\n'
+}
+
+safe_fn ()
+{
+    local a=("${!1}") b=("${!2}")
+    local array_1=('FAIL')
+    printf '%s;' "${a[@]}" "${b[@]}"
+    printf '\n'
+}
+
+unsafe_fn 'array_1[@]' 'array_2[@]'
+safe_fn 'array_1[@]' 'array_2[@]'
+
+echo after: ${array_1[@]}

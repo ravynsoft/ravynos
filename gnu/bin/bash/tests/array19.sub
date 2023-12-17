@@ -1,0 +1,175 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# tests for changes to declare and assignment statement arguments post-bash-4.3
+
+unset foo l a b
+
+l="( zeroind )"
+
+unset foo
+declare -a foo
+foo="$l"
+declare -p foo
+
+unset foo
+declare -a foo="$l"
+declare -p foo
+
+unset foo
+declare -a foo=$l
+declare -p foo
+
+b='[0]=bar'
+
+unset foo
+declare -a foo="$b"
+declare -p foo
+
+unset foo
+declare -a foo=("$b")
+declare -p foo
+
+unset foo
+declare -a foo=($b)
+declare -p foo
+
+unset a
+
+declare a='(1 2 3)'
+declare -p a
+unset a
+
+declare -a a
+declare a='(1 2 3)'
+declare -p a
+unset a
+
+declare a='([0]=a [1]=b)'
+declare -p a
+unset a
+
+declare -a a
+declare a='([0]=a [1]=b)'
+declare -p a
+unset a
+
+declare -A a
+declare a='([0]=a [1]=b)'
+declare -p a
+unset a
+unset var value
+
+value='[$(echo total 0)]=1 [2]=2]'
+
+unset var
+declare -a var
+var=($value)
+declare -p var
+
+unset var
+declare -a var=("$value")
+declare -p var
+
+unset var
+declare -a var=($value)
+declare -p var
+
+unset var
+declare -a var="($value)"
+declare -p var
+unset foo value
+
+value="AbCdE"
+
+declare -a foo
+foo=( one two three )
+
+declare -l foo="$value"
+declare -p foo
+
+unset foo
+value='(AbCdE)'
+
+declare -a foo
+foo=( one two three )
+
+declare -l foo="$value"
+declare -p foo
+unset ar
+declare -a ar=(ONE TWO THREE)
+declare -al ar=(${ar[@]})
+declare -p ar 
+unset a
+
+declare -a a
+a[2]=foo
+declare -p a
+
+unset a
+declare -a a
+declare a[2]=foo
+declare -p a
+
+declare a[1]='(var)'
+declare -p a
+
+unset a
+declare a[1]='(var)'
+declare -p a
+unset a
+
+a=(1 2 3)
+a[2]='(1 2 3)'
+
+declare -p a
+
+unset a
+a=(1 2 3)
+declare a[2]='(1 2 3)'
+
+declare -p a
+
+unset a
+a=(1 2 3)
+declare a='(1 2 3)'
+
+declare -p a
+
+unset a
+a=(1 2 3)
+declare 'a=(1 2 3)'
+
+declare -p a
+
+unset a
+declare -a a='(1 2 3)'
+
+declare -p a
+unset a b c d e x y
+
+HOME=/scratch/bash
+x='a b'
+y='($(echo Darwin))'
+
+declare a=$x b=~ c='(1 2)' d='($a)' e=$y
+
+declare -p a b c d e
+
+unset a b c d e
+declare -a a=$x b=~ c='(1 2)' d='($a)' e=$y
+declare -p a b c d e
+
+unset a b c d e
+declare -A a=$x b=~ c='(1 2)' d='($a)' e=$y
+declare -p a b c d e

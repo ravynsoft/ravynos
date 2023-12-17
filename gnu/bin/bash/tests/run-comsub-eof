@@ -1,0 +1,2 @@
+${THIS_SH} ./comsub-eof.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} comsub-eof.right && rm -f ${BASH_TSTOUT}

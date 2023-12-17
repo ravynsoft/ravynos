@@ -1,0 +1,68 @@
+getopts: usage: getopts optstring name [arg ...]
+2
+getopts: usage: getopts optstring name [arg ...]
+2
+./getopts.tests: line 23: getopts: -a: invalid option
+getopts: usage: getopts optstring name [arg ...]
+-a specified
+-b bval specified
+remaining args: one two three
+-a specified
+-b bval specified
+remaining args: one two three four five six seven eight nine ten eleven twelve
+./getopts1.sub: option requires an argument -- b
+Usage: ./getopts1.sub [-a] [-b value] args
+-a specified
+-c cval specified
+-d specified
+-a specified
+-b 3 specified
+remaining args: one two three four five
+-a specified
+-b bval specified
+remaining args: one two three
+-a specified
+-b bval specified
+remaining args: one two three
+./getopts4.sub: error: option `b' requires an argument
+Usage: ./getopts4.sub [-a] [-b value] args
+./getopts4.sub: error: illegal option character `c'
+Usage: ./getopts4.sub [-a] [-b value] args
+-a specified
+remaining args: -b bval one two three
+OPTERR=0
+a here
+something else here
+OPTIND=3
+getop: OPTERR=1
+a here
+./getopts5.sub: illegal option -- c
+something else here
+./getopts5.sub: illegal option -- d
+something else here
+./getopts5.sub: illegal option -- e
+something else here
+getop: OPTIND=5
+OPTIND=3
+OPTERR=0
+-a specified
+remaining args: 
+-a specified
+remaining args: 
+-a specified
+remaining args: 
+0
+./getopts7.sub: line 17: getopts: `opt-var': not a valid identifier
+remaining args: 
+opt: x
+opt: y
+opt: a
+opt: b
+opt: c
+opt: z
+$1 = a
+./getopts10.sub: line 16: OPTARG: readonly variable
+OPTARG = x = ?
+unset x = ?
+declare -r RO="foo"
+declare -r RO="foo"

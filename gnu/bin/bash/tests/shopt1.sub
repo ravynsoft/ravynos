@@ -1,0 +1,52 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# verify all shopt options are reset properly when the shell is reinitialized
+
+: ${TMPDIR:=/var/tmp} ${THIS_SH:=$PWD/bash}
+
+t1=$(mktemp)
+t2=$(mktemp)
+
+if [ ! -e "$t1" ] ; then
+	S1=$RANDOM
+	S2=$RANDOM
+	t1=$TMPDIR/s-$S1
+	t2=$TMPDIR/s-$S2
+	touch "$t1" "$t2"
+fi
+
+chmod +x "$t1" "$t2"
+
+echo "shopt" > "$t1"
+
+echo "#!${THIS_SH}" > "$t2"
+echo "shopt" >> "$t2"
+
+for o in $(compgen -A shopt)
+do
+	case $o in
+	extdebug)	;;
+	*)		shopt -s $o ;;
+	esac
+done
+diff <("$t1") <("$t2")
+
+for o in $(compgen -A shopt)
+do
+	shopt -u $o;
+done
+diff <("$t1") <("$t2")
+
+rm "$t1" "$t2"

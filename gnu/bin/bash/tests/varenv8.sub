@@ -1,0 +1,14 @@
+FOO=bar cat  < <(echo $FOO:1; echo $FOO:2)
+echo after: --${FOO}--
+
+unset FOO
+FOO=global
+
+FOO=bar cat  < <(echo $FOO:1; echo $FOO:2)
+echo after: --${FOO}--
+
+unset FOO
+FOO=bar read x  < <(echo -n $FOO:1; echo $FOO:2)
+echo after: --${FOO}--
+echo x = $x
+

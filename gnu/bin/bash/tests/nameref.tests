@@ -1,0 +1,133 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# basic nameref tests
+bar=one
+flow=two
+flip=three
+
+foo=bar
+typeset -n foo
+
+typeset -n fee=flow
+
+echo ${foo}
+echo ${fee}
+
+typeset -n fee=flip
+echo ${fee}
+
+typeset -n
+
+echo turning off nameref attribute on foo
+typeset +n foo=other
+echo ${foo}
+echo after +n foo bar = $bar
+
+unset foo bar fee
+
+bar=one
+
+foo=bar
+typeset -n foo
+
+foo=two printf "%s\n" $foo
+foo=two eval 'printf "%s\n" $foo'
+
+foo=two echo $foo
+
+unset foo bar
+# other basic assignment tests
+bar=one
+
+echo "expect <one>"
+recho ${bar}
+typeset -n foo=bar
+foo=two
+
+echo "expect <two>"
+recho ${bar}
+
+# this appears to be a ksh93 bug; it doesn't unset foo here and messes up
+# later
+unset foo bar
+
+# initial tests of working inside shell functions
+echoval()
+{
+	typeset -n ref=$1
+	printf "%s\n" $ref
+}
+
+foo=bar
+bar=one
+echo "expect <$foo>"
+echoval foo
+echo "expect <$bar>"
+echoval bar
+
+unset foo bar
+changevar()
+{
+	typeset -n v=$1
+
+	shift
+	v="$@"
+	echo "changevar: expect <$@>"
+	recho "$v"
+}
+
+bar=one
+
+echo "expect <one>"
+recho ${bar}
+changevar bar two
+echo "expect <two>"
+recho $bar
+
+changevar bar three four five
+echo "expect <three four five>"
+recho "$bar"
+
+unset foo bar
+unset -n foo bar
+readonly foo=one
+typeset -n bar=foo
+bar=4
+foo=4
+
+echo $foo
+echo $bar
+
+assignvar()
+{
+	typeset -n ref=$1
+	shift
+	ref="$@"
+}
+
+readonly foo=one
+
+assignvar foo two three four
+echo $foo
+
+var=abcde
+x=var
+declare -n v=var
+# these two should display the same
+echo ${!x//c/x}
+echo ${v//c/x}
+
+for testfile in ./nameref[0-9].sub ./nameref[1-9][0-9].sub ; do
+	${THIS_SH} "$testfile"
+done

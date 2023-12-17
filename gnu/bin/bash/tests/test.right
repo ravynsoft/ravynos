@@ -1,0 +1,297 @@
+t -a noexist
+1
+t -a run-all
+0
+t -b run-all
+1
+t -b /dev/jb1a
+1
+t -c run-all
+1
+t -c /dev/tty
+0
+t -d run-all
+1
+t -d /etc
+0
+t -d ""
+1
+b -d ""
+1
+t -e noexist
+1
+t -e run-all
+0
+t -f noexist
+1
+t -f /dev/tty
+1
+t -f run-all
+0
+t -g run-all
+1
+t -g /tmp/test.setgid
+0
+t -k run-all
+1
+t -n ""
+1
+t -n "hello"
+0
+t -p run-all
+1
+t -r noexist
+1
+t -r /tmp/test.noread
+1
+t -r run-all
+0
+t -s noexist
+1
+t -s /dev/null
+1
+t -s run-all
+0
+t -t 20
+1
+t -t 0
+0
+t -u noexist
+1
+t -u run-all
+1
+t -u /tmp/test.setuid
+0
+t -w noexist
+1
+t -w /tmp/test.nowrite
+1
+t -w /dev/null
+0
+t -x noexist
+1
+t -x /tmp/test.exec
+0
+t -x /tmp/test.noexec
+1
+t -z ""
+0
+t -z "foo"
+1
+t "foo"
+0
+t ""
+1
+t -O /tmp/test.owner
+0
+t -S /tmp/test.socket
+1
+t -N /tmp/test.newer
+0
+t "hello" = "hello"
+0
+t "hello" = "goodbye"
+1
+t "hello" == "hello"
+0
+t "hello" == "goodbye"
+1
+t "hello" != "hello"
+1
+t "hello" != "goodbye"
+0
+t "hello" < "goodbye"
+1
+t "hello" > "goodbye"
+0
+t ! "hello" > "goodbye"
+1
+t 200 -eq 200
+0
+t 34 -eq 222
+1
+t -32 -eq 32
+1
+t 200 -ne 200
+1
+t 34 -ne 222
+0
+t 200 -gt 200
+1
+t 340 -gt 222
+0
+t 200 -ge 200
+0
+t 34 -ge 222
+1
+t 200 -lt 200
+1
+t 34 -lt 222
+0
+t 200 -le 200
+0
+t 340 -le 222
+1
+t 700 -le 1000 -a -n "1" -a "20" = "20"
+0
+t ! \( 700 -le 1000 -a -n "1" -a "20" = "20" \)
+1
+t /tmp/abc -nt /tmp/def
+1
+t /tmp/abc -ot /tmp/def
+0
+t /tmp/def -nt /tmp/abc
+0
+t /tmp/def -ot /tmp/abc
+1
+t /tmp/abc -ef /tmp/def
+1
+t /tmp/abc -ef /tmp/ghi
+0
+t -r /dev/fd/0
+0
+t -w /dev/fd/1
+0
+t -w /dev/fd/2
+0
+t -r /dev/stdin
+0
+t -w /dev/stdout
+0
+t -w /dev/stderr
+0
+t
+1
+b
+1
+t 12 -eq 34
+1
+t ! 12 -eq 34
+0
+t -n abcd -o aaa
+0
+t -n abcd -o -z aaa
+0
+t -n abcd -a aaa
+0
+t -n abcd -a -z aaa
+1
+t -o allexport
+1
+t ! -o allexport
+0
+t -v unset
+1
+t -v set
+0
+t -v set
+0
+t xx -a yy
+0
+t xx -o ""
+0
+t xx -a ""
+1
+t -X -a -X
+0
+t -X -o -X
+0
+t -X -o ""
+0
+t -X -a ""
+1
+t "" -a -X
+1
+t "" -o -X
+0
+t "" -a ""
+1
+t "" -o ""
+1
+t true -o -X
+0
+t true -a -X
+0
+t ( -E )
+0
+t ( "" )
+1
+t ! -z "$z"
+0
+t ! -n "$z"
+1
+t ! ! "$z"
+0
+t "$zero"
+1
+t ! "$zero"
+0
+b "$zero"
+1
+b ! "$zero"
+0
+t -G /tmp/test.group
+0
+t -h /tmp/test.symlink
+0
+t 4+3 -eq 7
+./test.tests: line 26: test: 4+3: integer expression expected
+2
+b 4-5 -eq 7
+./test.tests: line 20: [: 4+3: integer expression expected
+2
+t 9 -eq 4+5
+./test.tests: line 26: test: 4+5: integer expression expected
+2
+b 9 -eq 4+5
+./test.tests: line 20: [: 4+5: integer expression expected
+2
+t A -eq 7
+./test.tests: line 26: test: A: integer expression expected
+2
+b A -eq 7
+./test.tests: line 20: [: A: integer expression expected
+2
+t 9 -eq B
+./test.tests: line 26: test: B: integer expression expected
+2
+b 9 -eq B
+./test.tests: line 20: [: B: integer expression expected
+2
+t ( 1 = 2
+./test.tests: line 26: test: `)' expected
+2
+b ( 1 = 2
+./test.tests: line 20: [: `)' expected, found ]
+2
+./test.tests: line 26: test: a: unary operator expected
+2
+./test.tests: line 26: test: b: binary operator expected
+2
+./test.tests: line 26: test: -A: unary operator expected
+2
+./test.tests: line 26: test: syntax error: `-ne' unexpected
+2
+./test.tests: line 26: test: too many arguments
+2
+./test.tests: line 434: [: missing `]'
+2
+./test.tests: line 26: test: (: unary operator expected
+2
+t -t a
+1
+t -t addsds
+1
+t -t 42
+1
+t -t /dev/tty
+1
+t -t /dev/tty4
+1
+t -t /dev/tty4444444...
+1
+1
+t -p /dev/fd/6
+1
+t -p /dev/fd/6
+0

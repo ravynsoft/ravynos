@@ -1,0 +1,37 @@
+after f1:declare -ar a=([0]="1")
+./attr.tests: line 17: a: readonly variable
+after f2:declare -ar a=([0]="1")
+./attr.tests: line 18: a: readonly variable
+after f3:declare -ar a=([0]="1")
+./attr.tests: line 19: readonly: a: readonly variable
+after f4:declare -ar a=([0]="1")
+after f2:declare -ar b=([0]="2")
+after f3:declare -ar c=([0]="(3)")
+after f4:declare -ar d=([0]="4")
+declare -r m="4"
+in func:declare -r n="4"
+declare -r n="4"
+./attr1.sub: line 26: p: readonly variable
+declare -r p="1"
+./attr1.sub: line 32: r: readonly variable
+declare -ar r=([0]="1")
+./attr1.sub: line 36: r: readonly variable
+declare -ar r=([0]="1")
+./attr1.sub: line 40: r: readonly variable
+declare -ar r=([0]="1")
+./attr1.sub: line 44: readonly: r: readonly variable
+declare -ar r=([0]="1")
+declare -ar x=([0]="4")
+in func:declare -ar y=([0]="4")
+declare -ar y=([0]="4")
+in func:declare -ar z=([0]="4")
+declare -ar z=([0]="4")
+in func:declare -ar y1=([0]="4")
+declare -ar y1=([0]="4")
+in func:declare -ar z1=([0]="4")
+declare -ar z1=([0]="4")
+declare -x p="4"
+declare -ax r=([0]="4")
+declare -ax r=([0]="(5)")
+declare -ax r=([0]="6")
+declare -ax r=([0]="7")

@@ -1,0 +1,9 @@
+TEST=$(cat <<EOF | sort -u
+abc
+geh
+def
+abc
+EOF
+)
+
+echo $TEST

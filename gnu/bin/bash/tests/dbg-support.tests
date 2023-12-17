@@ -1,0 +1,148 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+#
+# Test correct functioning bash debug support not via the bashdb
+# debugger but merely by printing via print_trap()
+# $Id: dbg-support.tests,v 1.13 2003/02/17 22:02:25 rockyb Exp $
+shopt -s extdebug
+print_debug_trap() {
+   echo "debug lineno: $1 ${FUNCNAME[1]}"
+   return
+}
+
+print_return_trap() {
+   echo "return lineno: $1 ${FUNCNAME[1]}"
+   return
+}
+
+fn1() {
+    echo "LINENO $LINENO"
+    echo "LINENO $LINENO"
+    echo "BASH_SOURCE[0]" ${BASH_SOURCE[0]}
+    echo "FUNCNAME[0]" ${FUNCNAME[0]}
+    echo `caller`
+    echo `caller 0`
+    echo `caller 1`
+    echo `caller foo`
+}    
+
+fn2() {
+    echo "fn2 here. Calling fn1..."
+    fn1
+}    
+
+fn3() {
+    echo "LINENO $LINENO"
+    echo "BASH_SOURCE[0]" ${BASH_SOURCE[0]}
+    
+    # Print a stack trace
+    declare -i n
+    n=${#FUNCNAME[@]}
+    for (( i=0 ; (( i < $n )) ; i++ )) ; do 
+        local -i j=i+1
+	[ $j -eq $n ] && j=i  # main()'s file is the same as the first caller
+	echo "${FUNCNAME[$i]} called from file " \
+	    "\`${BASH_SOURCE[$j]}' at line ${BASH_LINENO[$j]}"
+    done
+    source ./dbg-support.sub
+}    
+
+fn4() {
+    echo "fn4 here. Calling fn3..."
+    fn3
+}    
+
+#
+# Test of support for debugging facilities in bash
+# 
+# Test debugger set option functrace - set on. Not in vanilla Bash 2.05
+#
+set -o functrace
+trap 'print_debug_trap $LINENO' DEBUG
+trap 'print_return_trap $LINENO' RETURN
+
+# Funcname is now an array, but you still can't see it outside a function
+echo "FUNCNAME" ${FUNCNAME[0]:-main}
+
+# We should trace into the below. 
+# Start easy with a simple function.
+fn1
+fn2
+fn3
+source ./dbg-support.sub
+
+# Test debugger set option functrace - set off
+set +T
+
+# We should not trace into this.
+fn1
+fn2
+fn3
+fn4
+source ./dbg-support.sub
+
+# Another way to say: set -o functrace
+set -T
+
+# We should trace into this.
+source ./dbg-support.sub
+set +T
+
+# Test that the line numbers in the presence of conditionals are correct.
+for (( i=0 ; (( i <= 2 )) ; i++ )) ; do 
+    if [ $i -eq 2 ] ; then
+	echo "Hit 2"
+    fi
+    j=4
+done
+
+#
+# Check line numbers in command substitution
+#
+echo $(sourced_fn)
+echo `sourced_fn`
+x=$((sourced_fn))
+x={ sourced_fn }
+
+# Make sure we step into sourced_fn as a command when we request to do so.
+# Vanilla bash 2.0 doesn't do.
+set -o functrace
+x={ sourced_fn }
+
+# Should see line number of xyzzy below. Vanilla bash 2.05b doesn't do
+case xyzzy in
+ a )
+    x=5
+    ;; 
+ xyzz? )
+    case 3 in 
+      2 ) 
+	x=6 ;;
+      3 ) 
+	echo "got it" ;;
+      * ) echo "no good" ;;
+      esac
+    ;;
+ * )
+esac
+
+# Should see line numbers for initial for lines.
+for i in 0 1 ; do
+  for j in 3 4 ; do
+    ((x=i+j))
+  done
+done
+
+${THIS_SH} ./dbg-support3.sub

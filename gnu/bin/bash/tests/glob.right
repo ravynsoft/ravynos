@@ -1,0 +1,261 @@
+foo/bar foobar/bar
+ok 1
+ok 2
+ok 3
+ok 4
+ok 5
+b
+argv[1] = <A£\B>
+argv[1] = <A>
+argv[1] = <B>
+argv[1] = <a£\b>
+0000000 141 243 134 142
+0000004
+ok 6
+ok 7
+invalid bracket expression
+== LANG=C ==
+[[:alpha:]
+ok 1
+[a
+[[:alpha:]
+ok 2
+ok 2.1
+ok 3
+ok 4
+== LANG=en_US.UTF-8 ==
+[[:alpha:]
+ok 1
+[a
+[[:alpha:]
+ok 2
+ok 2.1
+ok 3
+ok 4
+invalid character class
+== LANG=C ==
+p
+p
+ok 1
+ok 2
+ok 3
+ok 4
+ok 5
+ok 6
+== LANG=en_US.UTF-8 ==
+p
+p
+ok 1
+ok 2
+ok 3
+ok 4
+ok 5
+ok 6
+invalid collating symbols
+== LANG=C ==
+ok 1
+ok 2
+ok 3
+ok 4
+ok 5
+== LANG=en_US.UTF-8 ==
+ok 1
+ok 2
+ok 3
+ok 4
+ok 5
+argv[1] = <a\?>
+a\?
+argv[1] = <a\?>
+a\?
+a\a
+<define\/\
+/>
+./tmp/a/b/c ./tmp/a/b/c ./tmp/a/b/c
+./tmp/a/b/c ./tmp/a/b/c ./tmp/a/b/c
+./tmp/a/b/c
+./tmp/a/b/c
+./tmp\/a/b/c
+./tm[p]\/a/b/c
+./tmp/a/b/c
+argv[1] = <./tmp/a/*>
+argv[1] = <./tmp/a/*>
+argv[1] = <./tmp/a/b/c>
+argv[1] = <./tmp/a/*>
+argv[1] = <./tmp/a/b/c>
+argv[1] = <./t\mp/a/*>
+argv[1] = <./tmp/a/b/c>
+argv[1] = <./tmp/a/>
+argv[1] = <./tmp/a/b/>
+argv[1] = <./t\mp/a/>
+argv[1] = <./t\mp/a/b/>
+argv[1] = <./tmp/a/*>
+argv[1] = <./tmp/a/b/c>
+argv[1] = <./tmp/a>
+argv[1] = <./tmp/a/b*>
+argv[1] = <./tmp/a>
+argv[1] = <./tmp/a/b*>
+argv[1] = <./tmp/>
+argv[1] = <\$foo>
+argv[2] = <\$foo>
+argv[1] = <mixed\$foo/>
+<abcdefg>
+<\.>
+*abc.c
+searchable/\.
+searchable/\./.
+readable/\.
+readable/\./.
+searchable/\.
+readable/\.
+searchable/.
+searchable/.
+searchable/.
+1: [qwe/qwe]
+2: [qwe/
+3: [qwe/]
+4:
+5: [qwe/
+6:
+a\*b
+a\*b*
+Ã©/*
+Ã©/*
+a aa b bb
+.a .aa .b .bb a aa b bb
+.a .aa .b .bb
+. .. .a .aa .b .bb
+argv[1] = <a>
+argv[2] = <abc>
+argv[3] = <abd>
+argv[4] = <abe>
+argv[5] = <X*>
+argv[1] = <a>
+argv[2] = <abc>
+argv[3] = <abd>
+argv[4] = <abe>
+argv[1] = <a>
+argv[2] = <abc>
+argv[3] = <abd>
+argv[4] = <abe>
+tmp/l1 tmp/l2 tmp/*4 tmp/l3
+./glob.tests: line 66: no match: tmp/*4
+argv[1] = <bdir/>
+argv[1] = <*>
+argv[1] = <a*>
+argv[1] = <a*>
+argv[1] = <c>
+argv[2] = <ca>
+argv[3] = <cb>
+argv[4] = <a*>
+argv[5] = <*q*>
+argv[1] = <**>
+argv[1] = <**>
+argv[1] = <\.\./*/>
+argv[1] = <s/\..*//>
+argv[1] = </^root:/{s/^[^:]*:[^:]*:\([^:]*\).*$/\1/>
+argv[1] = <abc>
+argv[2] = <abd>
+argv[3] = <abe>
+argv[4] = <bb>
+argv[5] = <cb>
+argv[1] = <abd>
+argv[2] = <abe>
+argv[3] = <bb>
+argv[4] = <bcd>
+argv[5] = <bdir>
+argv[6] = <ca>
+argv[7] = <cb>
+argv[8] = <dd>
+argv[9] = <de>
+argv[1] = <abd>
+argv[2] = <abe>
+argv[1] = <a-b>
+argv[2] = <aXb>
+argv[1] = <Beware>
+argv[2] = <d>
+argv[3] = <dd>
+argv[4] = <de>
+argv[1] = <a*b/ooo>
+argv[1] = <a*b/ooo>
+no match
+not there
+argv[1] = <abc>
+argv[1] = <abc>
+argv[1] = <abc>
+argv[1] = <abc>
+match 1
+match 2
+ok 1
+ok 2
+ok 3
+ok 4
+ok 5
+argv[1] = <man/man1/bash.1>
+argv[1] = <man/man1/bash.1>
+argv[1] = <man/man1/bash.1>
+ok 1
+ok 2
+ok 3
+ok 4
+ok 5
+ok 6
+ok 7
+ok 8
+ok 9
+ok 10
+ok 11
+ok 20
+ok 21
+ok 22
+ok 23
+ok 24
+ok 25
+ok 26
+ok 27
+ok 28
+ok 29
+ok 30
+ok 31
+ok 32
+ok 33
+ok 34
+ok 35
+ok 36
+ok 37
+argv[1] = <b>
+argv[2] = <bb>
+argv[3] = <bcd>
+argv[4] = <bdir>
+argv[1] = <Beware>
+argv[2] = <b>
+argv[3] = <bb>
+argv[4] = <bcd>
+argv[5] = <bdir>
+argv[1] = <Beware>
+argv[2] = <b>
+argv[3] = <bb>
+argv[4] = <bcd>
+argv[5] = <bdir>
+argv[1] = <*>
+argv[1] = <a*b>
+argv[2] = <a-b>
+argv[3] = <aXb>
+argv[4] = <abd>
+argv[5] = <bb>
+argv[6] = <bcd>
+argv[7] = <bdir>
+argv[8] = <ca>
+argv[9] = <cb>
+argv[10] = <dd>
+argv[11] = <man>
+argv[1] = <Beware>
+argv[2] = <abc>
+argv[3] = <abe>
+argv[4] = <bdir>
+argv[5] = <ca>
+argv[6] = <de>
+argv[7] = <man>
+argv[1] = <*>
+argv[1] = <man/man1/bash.1>
+argv[1] = <man/man1/bash.1>

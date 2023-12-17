@@ -1,0 +1,16 @@
+exec 9<>/dev/tcp/129.22.8.162/25
+
+read banner <&9
+echo "$banner"
+
+echo quit >&9
+
+read msg <&9
+echo "$msg"
+
+exec 9<&-
+
+# nifty date command that queries the date/time server
+cat < /dev/tcp/129.22.8.102/13
+
+exit 0

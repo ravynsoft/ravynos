@@ -1,0 +1,234 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# test suite cribbed from ksh93 nameref tests
+typeset -i errors=0
+ckval()
+{
+	typeset -n one=$1
+
+	if [[ $one != $2 ]]; then
+		echo "one=$one != 2=$2"
+		(( errors++ ))
+	fi
+}
+		
+ckref()
+{
+	typeset -n one=$1 two=$2
+
+	if [[ $one != $two ]]; then
+		echo "one=$one != two=$two"
+		(( errors++ ))
+	fi
+}
+
+name=first
+
+ckref name name
+
+func1()
+{
+        typeset -n color=$1
+        func2 color
+}
+
+func2()
+{
+        typeset color=$1
+        set -- ${color[@]}
+        printf "<%s>" "$@"
+	echo
+}
+
+typeset -A color
+color[apple]=red
+color[grape]=purple
+color[banana]=yellow
+
+# XXX
+#func1 color
+
+unset foo bar
+export bar=foo
+typeset -n foo=bar
+ckval foo foo
+
+# XXX - need to see if we can do checks for self-referencing at assignment
+# time
+command typeset -n xx=yy
+command typeset -n yy=xx
+echo $?
+
+unset foo bar
+unset -n foo bar
+set foo
+typeset -n bar=$1
+foo=hello
+ckval bar hello
+
+# XXX -- another self-referencing error?
+# ksh93 makes this another invalid self-reference
+unset foo
+unset -n bar
+
+bar=123
+foobar()
+{
+	typeset -n foo=bar
+	typeset -n foo=bar
+
+	ckval foo 123
+}
+
+typeset -n short=long
+short=( a b )
+echo "expect <a b>"
+echo ${long[@]}
+unset long
+unset -n short
+
+# assignment to a previously-unset variable
+typeset -n short=long
+short=foo
+echo "expect <foo>"
+echo ${long}
+unset long
+unset -n short
+
+unset foo bar
+
+# simple array references and assignments
+typeset -n foo=bar
+bar=( 1 3 5 7 9)
+echo ${foo[@]}
+echo ${foo[4]}
+foo[2]=42
+echo ${bar[@]}
+
+barfunc()
+{
+	typeset -n v=$1
+	echo ${v[@]}
+	echo ${v[4]}
+	v[2]=44
+	echo ${bar[@]}
+}
+barfunc bar
+
+unset -f foobar
+unset bar
+unset -n foo
+
+# should ref at global scope survive call to foobar()?
+unset ref x
+typeset -n ref
+x=42
+foobar()
+{
+	local xxx=3
+	ref=xxx
+	return 0
+}
+echo ${ref-unset}
+ref=x
+foobar
+ckval ref xxx
+ckval x xxx
+
+# assignment in a function to something possibly out of scope
+assignvar()
+{
+	typeset -n v=$1
+	shift
+	v="$@"
+}
+
+assignvar lex a b c d e
+echo "expect <a b c d e>"
+recho "${lex}"
+
+unset foo bar short long
+
+typeset -n foo='x[2]'
+
+x=(zero one two three four)
+foo=seven
+
+echo "expect <zero> <one> <seven> <three> <four>"
+recho "${x[@]}"
+
+unset ref x
+unset -n ref
+
+typeset -n ref
+ref=x
+# make sure nameref to a previously-unset variable creates the variable
+ref=42
+ckval x 42
+
+# make sure they work inside arithmetic expressions
+unset foo bar ref x xxx
+unset -n ref
+
+typeset -i ivar
+typeset -n iref=ivar
+
+ivar=4+3
+ckval ivar 7
+iref+=5
+ckval ivar 12
+echo $(( iref+4 ))
+(( iref=17 ))
+ckval ivar 17
+
+typeset +n iref
+unset iref ivar
+
+typeset +n foo bar
+unset foo bar
+
+# should the reference do immediate evaluation or deferred?
+set -- one two three four
+bar=4
+# XXX - what does foo get set to here?
+typeset -n foo='bar[0]'
+echo "expect <4>"
+echo ${bar[0]}
+echo "expect <4>"
+echo ${foo}
+echo "expect <4>"
+echo $foo
+ckval foo $bar
+
+# Need to add code and tests for nameref to array subscripts
+bar=(one two three four)
+
+typeset -n foo='bar[0]'
+typeset -n qux='bar[3]'
+echo "expect <one>"
+echo ${bar[0]}
+echo "expect <one>"
+echo ${foo}
+echo "expect <one>"
+echo $foo
+ckval foo $bar
+
+echo "expect <four>"
+echo $qux
+ckval qux ${bar[3]}
+
+# Need to add code and tests for `for' loop nameref variables
+
+echo errors = $errors
+exit $errors

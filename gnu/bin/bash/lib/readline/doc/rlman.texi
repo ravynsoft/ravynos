@@ -1,0 +1,84 @@
+\input texinfo    @c -*-texinfo-*-
+@comment %**start of header (This is for running Texinfo on a region.)
+@setfilename readline.info
+@settitle GNU Readline Library
+@include version.texi
+
+@comment %**end of header (This is for running Texinfo on a region.)
+@synindex vr fn
+
+@copying
+This manual describes the GNU Readline Library
+(version @value{VERSION}, @value{UPDATED}), a library which aids in the
+consistency of user interface across discrete programs which provide
+a command line interface.
+
+Copyright @copyright{} 1988--2022 Free Software Foundation, Inc.
+
+@quotation
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3 or
+any later version published by the Free Software Foundation; with no
+Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+A copy of the license is included in the section entitled
+``GNU Free Documentation License''.
+
+@end quotation
+@end copying
+
+@dircategory Libraries
+@direntry
+* Readline: (readline).       The GNU readline library API.
+@end direntry
+
+@titlepage  
+@title GNU Readline Library
+@subtitle Edition @value{EDITION}, for @code{Readline Library} Version @value{VERSION}.
+@subtitle @value{UPDATED-MONTH}
+@author Chet Ramey, Case Western Reserve University
+@author Brian Fox, Free Software Foundation
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+
+@end titlepage
+
+@contents
+
+@ifnottex
+@node Top
+@top GNU Readline Library
+
+This document describes the GNU Readline Library, a utility which aids
+in the consistency of user interface across discrete programs which
+provide a command line interface.
+The Readline home page is @url{http://www.gnu.org/software/readline/}.
+
+@menu
+* Command Line Editing::	   GNU Readline User's Manual.
+* Programming with GNU Readline::  GNU Readline Programmer's Manual.
+* GNU Free Documentation License::	License for copying this manual.
+* Concept Index::		   Index of concepts described in this manual.
+* Function and Variable Index::	   Index of externally visible functions
+				   and variables.
+@end menu
+@end ifnottex
+
+@include rluser.texi
+@include rltech.texi
+
+@node GNU Free Documentation License
+@appendix GNU Free Documentation License
+
+@include fdl.texi
+
+@node Concept Index
+@unnumbered Concept Index
+@printindex cp
+
+@node Function and Variable Index
+@unnumbered Function and Variable Index
+@printindex fn
+
+@bye

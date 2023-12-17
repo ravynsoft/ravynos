@@ -1,0 +1,129 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+pat1='str'
+pat2='[^;]'
+pat3='[[:alnum:]_]'
+pat4='[[:alnum:]][[fu]b'
+pat5='?tr'
+pat6='?tr\'
+pat7='[[:alnum:]]_'
+pat8='*tr'
+
+declare z="start"
+declare NUM=1000
+
+#----------------------------------
+# create a long string with ';'
+#----------------------------------
+for ((i=0; i<$NUM; i++)); do
+    z="$z;string$i"
+done
+
+#z="$z;string;foo"
+
+#------------------------------
+# delete everything except ';'
+#------------------------------
+
+# try different patterns here
+x="${z//$pat1}"
+echo $x
+x="${z//$pat2}"
+echo $x
+x="${z//$pat3}"
+echo $x
+x="${z//$pat4}"
+echo $x
+x="${z//$pat5}"
+echo $x
+x="${z//$pat6}"
+echo $x
+x="${z//$pat7}"
+echo $x
+x="${z//$pat8}"
+echo $x
+
+
+declare z="start"
+declare NUM=1000
+
+#----------------------------------
+# create a long string with ';'
+#----------------------------------
+for ((i=0; i<$NUM; i++)); do
+    z="$z;string$i"
+done
+
+#z="$z;string;foo"
+
+#------------------------------
+# delete everything except ';'
+#------------------------------
+
+# try different patterns here
+x="${z//[^;]}"
+echo $x
+x="${z/#[^;][^;]}"
+echo $x
+x="${z/%[^;][^;]}"
+echo $x
+
+export LANG=C LC_ALL=C LC_CTYPE=C
+
+# try different patterns here
+x="${z//$pat1}"
+echo $x
+x="${z//$pat2}"
+echo $x
+x="${z//$pat3}"
+echo $x
+x="${z//$pat4}"
+echo $x
+x="${z//$pat5}"
+echo $x
+x="${z//$pat6}"
+echo $x
+x="${z//$pat7}"
+echo $x
+x="${z//$pat8}"
+echo $x
+
+# try different patterns here
+x="${z//[^;]}"
+echo $x
+x="${z/#[^;][^;]}"
+echo $x
+x="${z/%[^;][^;]}"
+echo $x
+
+# post-bash-4.3 changes to make pattern replacement honor nocasematch variable
+unset string
+string=abcd
+
+shopt -s nocasematch
+
+echo ${string//A/z}
+echo ${string//BC/x}
+echo ${string//[BC]/x}
+echo ${string//[bC]/x}
+echo ${string//?/z}
+
+LC_ALL=C
+echo ${string//A/z}
+echo ${string//BC/x}
+echo ${string//[BC]/x}
+echo ${string//[bC]/x}
+echo ${string//?/z}
+
+

@@ -1,0 +1,63 @@
+complete -f -X '!*.+(ps|PS)' gs
+complete -e printenv
+complete -f -X '!*.texi*' texi2html
+complete -g groupmod
+complete -v -S '=' typeset
+complete -c nohup
+complete -a unalias
+complete -g groupdel
+complete -A hostname telnet
+complete -v -S '=' local
+complete -v -S '=' readonly
+complete -o bashdefault -o filenames -o nospace -F _comp_cd cd
+complete -c type
+complete -f ln
+complete -f -X '!*.+(gz|tgz)' gunzip
+complete -f -X '!*.texi*' makeinfo
+complete -j -P '%' jobs
+complete -o dirnames -o filenames -o nospace -d pushd
+complete -f -X '!*.pdf' acroread
+complete -v unset
+complete -f -X '!*.+(ps|PS)' ghostview
+complete -A hostname rsh
+complete -c exec
+complete -A signal kill
+complete -c eval
+complete -f chown
+complete -f gzip
+complete -W '"${GROUPS[@]}"' newgrp
+complete -A shopt shopt
+complete -A hostname ftp
+complete -A hostname rlogin
+complete -v getopts
+complete -c nice
+complete -c gdb
+complete -j -P '%' fg
+complete -f -X '!*.dvi' dvips
+complete -f -X '!*.texi*' texi2dvi
+complete -f .
+complete -v -S '=' declare
+complete -v -S '=' export
+complete -f -X '!*.dvi' xdvi
+complete -u su
+complete -o dirnames -o filenames -o nospace -d popd
+complete -A signal trap
+complete -j -W '$(ps -x | tail +2 | cut -c1-5)' -P '%' wait
+complete -f -X '!*.Z' zmore
+complete -j -P '%' disown
+complete -f -X '!*.+(ps|PS)' gs
+complete -f -X '!*.+(ps|PS)' gv
+complete -f source
+complete -c make
+complete -A stopped -P '%' bg
+complete -f cat
+complete -d mkdir
+complete -A helptopic help
+complete -v read
+complete -c -k time
+complete -f -X '!*.Z' zcat
+complete -f -X '!*.Z' uncompress
+complete -d rmdir
+complete -f more
+complete -f -X '!*.+(gz|tgz)' gzcat
+./complete.tests: line 123: complete: notthere: no completion specification

@@ -1,0 +1,133 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+trap 'rm $TMPDIR/newhistory' 0
+
+# bad options
+history -x
+# cannot use -r and -w at the same time
+history -r -w /dev/null
+
+# bad option
+fc -v
+
+unset HISTFILESIZE
+
+# all of these should result in an empty history list
+history -c
+history -r /dev/null
+history -n /dev/null
+history -c
+
+HISTFILE=history.list
+HISTCONTROL=ignoreboth
+HISTIGNORE='&:history*:fc*'
+HISTSIZE=32
+export HISTIGNORE
+
+shopt -s cmdhist
+set -o history
+
+history
+
+fc -l
+fc -nl
+
+fc -lr
+fc -nlr
+
+history -s "echo line for history"
+history
+
+history -p '!!'
+
+fc -nl
+
+HISTFILE=$TMPDIR/newhistory
+history -a
+echo displaying \$HISTFILE after history -a
+cat $HISTFILE
+
+history
+history -w
+cat $HISTFILE
+
+history -s "echo line 2 for history"
+history
+history -p '!e'
+history -p '!!'
+
+# this should show up as one history entry
+for x in one two three
+do
+	:
+done
+history
+
+# just a basic test.  a full test suite for history expansion should be
+# created
+set -H
+!!
+!e
+
+unset HISTSIZE
+unset HISTFILE
+
+fc -l 4
+fc -l 4 8
+
+# now an out-of-range error because of the one=two not found in history
+fc -l one=two three=four 502
+
+history 4
+
+shopt -so history
+shopt -s expand_aliases
+
+alias r="fc -s"
+
+echo aa ab ac
+
+r a=x
+r x=4 b=8
+
+# this had better fail with `no command found'
+r cc
+
+unalias -a
+alias
+
+# these two blocks had better both result in the same output
+echo aa
+echo bb
+echo cc
+fc -e cat
+
+echo aa
+echo bb
+echo cc
+fc -e cat -1
+
+set +o history
+
+shopt -q -o history
+echo $?
+
+${THIS_SH} ./history1.sub
+rm -f $TMPDIR/foohist-*
+
+${THIS_SH} ./history2.sub
+${THIS_SH} ./history3.sub
+${THIS_SH} ./history4.sub
+${THIS_SH} ./history5.sub
+${THIS_SH} ./history6.sub

@@ -1,0 +1,8 @@
+arr=( idx1 idx2 )
+i='arr[1]'
+echo ${!i}
+echo ${!i/x/X}
+
+typeset -n f='arr[1]'
+echo ${f}
+echo ${f/x/X}

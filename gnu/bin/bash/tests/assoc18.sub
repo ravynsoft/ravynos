@@ -1,0 +1,59 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# test behavior of builtins that can take array subscript arguments, make
+# sure they work in the presence of associative arrays and `problematic' keys
+# if assoc_expand_once is set
+#
+# affected builtins: printf, read, wait
+
+declare -A A
+rkey=']'
+lkey='['
+
+shopt -s assoc_expand_once
+
+printf -v A[$rkey] rbracket
+printf -v A[$lkey] lbracket
+declare -p A
+
+unset A[$rkey]
+unset A[$lkey]
+declare -p A
+
+unset A
+declare -A A
+
+read A[$rkey] <<<rbracket
+read A[$lkey] <<<lbracket
+declare -p A
+
+unset A[$rkey]
+unset A[$lkey]
+declare -p A
+
+unset A
+declare -A A
+
+{ sleep 1 ; exit 4; } &
+{ sleep 2 ; exit 5; } & bgpid1=$!
+{ sleep 4 ; exit 6; } &
+
+wait -p A[$rkey] -n %2 %3
+case "${A[$rkey]}" in
+$bgpid1)        echo $?: ok 1;;
+*)              echo bad 1;;
+esac
+
+exit 0

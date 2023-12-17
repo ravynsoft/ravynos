@@ -1,0 +1,44 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+indirarray()
+{
+   local intermediary
+   local sub
+
+   intermediary="${1}[@]"
+   local -a leftValue=("${!intermediary}")
+
+   local -a leftSub
+   eval leftSub=(\"\${!${1}[@]}\")
+
+   echo "$1" Value = ${leftValue[@]}
+   echo "$1" Sub = ${leftSub[@]}
+}
+
+a=(1 2 3 4 5)
+b=(a b c d e)
+
+c=([0]=10 [2]=20 [4]=40 [8]=80)
+
+indirarray a
+indirarray b
+indirarray c
+
+ref=a
+tmp="$ref[@]"
+printf "<%s> " "${!tmp}"; echo    # Iterate whole array.
+
+ref=c
+tmp="$ref[@]"
+printf "<%s> " "${!tmp}"; echo    # Iterate whole array.

@@ -1,0 +1,371 @@
+debug lineno: 74 main
+debug lineno: 77 main
+FUNCNAME main
+debug lineno: 81 main
+debug lineno: 30 fn1
+debug lineno: 31 fn1
+LINENO 31
+debug lineno: 32 fn1
+LINENO 32
+debug lineno: 33 fn1
+BASH_SOURCE[0] ./dbg-support.tests
+debug lineno: 34 fn1
+FUNCNAME[0] fn1
+debug lineno: 35 fn1
+debug lineno: 35 fn1 81 ./dbg-support.tests
+debug lineno: 36 fn1
+debug lineno: 36 fn1 81 main ./dbg-support.tests
+debug lineno: 37 fn1
+debug lineno: 37 fn1
+debug lineno: 38 fn1
+./dbg-support.tests: line 38: caller: foo: invalid number
+caller: usage: caller [expr]
+debug lineno: 38 fn1
+debug lineno: 30 fn1
+debug lineno: 25 print_return_trap
+debug lineno: 26 print_return_trap
+return lineno: 30 fn1
+debug lineno: 27 print_return_trap
+debug lineno: 82 main
+debug lineno: 41 fn2
+debug lineno: 42 fn2
+fn2 here. Calling fn1...
+debug lineno: 43 fn2
+debug lineno: 30 fn1
+debug lineno: 31 fn1
+LINENO 31
+debug lineno: 32 fn1
+LINENO 32
+debug lineno: 33 fn1
+BASH_SOURCE[0] ./dbg-support.tests
+debug lineno: 34 fn1
+FUNCNAME[0] fn1
+debug lineno: 35 fn1
+debug lineno: 35 fn1 43 ./dbg-support.tests
+debug lineno: 36 fn1
+debug lineno: 36 fn1 43 fn2 ./dbg-support.tests
+debug lineno: 37 fn1
+debug lineno: 37 fn1 82 main ./dbg-support.tests
+debug lineno: 38 fn1
+./dbg-support.tests: line 38: caller: foo: invalid number
+caller: usage: caller [expr]
+debug lineno: 38 fn1
+debug lineno: 30 fn1
+debug lineno: 25 print_return_trap
+debug lineno: 26 print_return_trap
+return lineno: 30 fn1
+debug lineno: 27 print_return_trap
+debug lineno: 41 fn2
+debug lineno: 25 print_return_trap
+debug lineno: 26 print_return_trap
+return lineno: 41 fn2
+debug lineno: 27 print_return_trap
+debug lineno: 83 main
+debug lineno: 46 fn3
+debug lineno: 47 fn3
+LINENO 47
+debug lineno: 48 fn3
+BASH_SOURCE[0] ./dbg-support.tests
+debug lineno: 51 fn3
+debug lineno: 52 fn3
+debug lineno: 53 fn3
+debug lineno: 53 fn3
+debug lineno: 54 fn3
+debug lineno: 55 fn3
+debug lineno: 56 fn3
+fn3 called from file  `./dbg-support.tests' at line 0
+debug lineno: 53 fn3
+debug lineno: 53 fn3
+debug lineno: 54 fn3
+debug lineno: 55 fn3
+debug lineno: 55 fn3
+debug lineno: 56 fn3
+main called from file  `./dbg-support.tests' at line 0
+debug lineno: 53 fn3
+debug lineno: 53 fn3
+debug lineno: 59 fn3
+debug lineno: 31 source
+SOURCED LINENO 31
+debug lineno: 32 source
+SOURCED BASH_SOURCE[0] ./dbg-support.sub
+debug lineno: 33 source
+debug lineno: 16 sourced_fn
+debug lineno: 17 sourced_fn
+debug lineno: 18 sourced_fn
+SOURCED FN LINENO 18
+debug lineno: 21 sourced_fn
+debug lineno: 22 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 24 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 26 sourced_fn
+FUNCNAME[0]: sourced_fn called from ./dbg-support.sub at line 33
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 24 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 26 sourced_fn
+FUNCNAME[1]: source called from ./dbg-support.tests at line 59
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 24 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 26 sourced_fn
+FUNCNAME[2]: fn3 called from ./dbg-support.tests at line 83
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 24 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 26 sourced_fn
+FUNCNAME[3]: main called from ./dbg-support.tests at line 0
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 16 sourced_fn
+debug lineno: 25 print_return_trap
+debug lineno: 26 print_return_trap
+return lineno: 16 sourced_fn
+debug lineno: 27 print_return_trap
+debug lineno: 59 fn3
+debug lineno: 25 print_return_trap
+debug lineno: 26 print_return_trap
+return lineno: 59 fn3
+debug lineno: 27 print_return_trap
+debug lineno: 46 fn3
+debug lineno: 25 print_return_trap
+debug lineno: 26 print_return_trap
+return lineno: 46 fn3
+debug lineno: 27 print_return_trap
+debug lineno: 84 main
+debug lineno: 31 source
+SOURCED LINENO 31
+debug lineno: 32 source
+SOURCED BASH_SOURCE[0] ./dbg-support.sub
+debug lineno: 33 source
+debug lineno: 16 sourced_fn
+debug lineno: 17 sourced_fn
+debug lineno: 18 sourced_fn
+SOURCED FN LINENO 18
+debug lineno: 21 sourced_fn
+debug lineno: 22 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 24 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 26 sourced_fn
+FUNCNAME[0]: sourced_fn called from ./dbg-support.sub at line 33
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 24 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 26 sourced_fn
+FUNCNAME[1]: source called from ./dbg-support.tests at line 84
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 24 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 26 sourced_fn
+FUNCNAME[2]: main called from ./dbg-support.tests at line 0
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 16 sourced_fn
+debug lineno: 25 print_return_trap
+debug lineno: 26 print_return_trap
+return lineno: 16 sourced_fn
+debug lineno: 27 print_return_trap
+debug lineno: 84 main
+debug lineno: 25 print_return_trap
+debug lineno: 26 print_return_trap
+return lineno: 84 main
+debug lineno: 27 print_return_trap
+debug lineno: 87 main
+debug lineno: 90 main
+LINENO 31
+LINENO 32
+BASH_SOURCE[0] ./dbg-support.tests
+FUNCNAME[0] fn1
+90 ./dbg-support.tests
+90 main ./dbg-support.tests
+
+./dbg-support.tests: line 38: caller: foo: invalid number
+caller: usage: caller [expr]
+
+debug lineno: 91 main
+fn2 here. Calling fn1...
+LINENO 31
+LINENO 32
+BASH_SOURCE[0] ./dbg-support.tests
+FUNCNAME[0] fn1
+43 ./dbg-support.tests
+43 fn2 ./dbg-support.tests
+91 main ./dbg-support.tests
+./dbg-support.tests: line 38: caller: foo: invalid number
+caller: usage: caller [expr]
+
+debug lineno: 92 main
+LINENO 47
+BASH_SOURCE[0] ./dbg-support.tests
+fn3 called from file  `./dbg-support.tests' at line 0
+main called from file  `./dbg-support.tests' at line 0
+SOURCED LINENO 31
+SOURCED BASH_SOURCE[0] ./dbg-support.sub
+SOURCED FN LINENO 18
+FUNCNAME[0]: sourced_fn called from ./dbg-support.sub at line 33
+FUNCNAME[1]: source called from ./dbg-support.tests at line 59
+FUNCNAME[2]: fn3 called from ./dbg-support.tests at line 92
+FUNCNAME[3]: main called from ./dbg-support.tests at line 0
+debug lineno: 93 main
+fn4 here. Calling fn3...
+LINENO 47
+BASH_SOURCE[0] ./dbg-support.tests
+fn3 called from file  `./dbg-support.tests' at line 93
+fn4 called from file  `./dbg-support.tests' at line 0
+main called from file  `./dbg-support.tests' at line 0
+SOURCED LINENO 31
+SOURCED BASH_SOURCE[0] ./dbg-support.sub
+SOURCED FN LINENO 18
+FUNCNAME[0]: sourced_fn called from ./dbg-support.sub at line 33
+FUNCNAME[1]: source called from ./dbg-support.tests at line 59
+FUNCNAME[2]: fn3 called from ./dbg-support.tests at line 64
+FUNCNAME[3]: fn4 called from ./dbg-support.tests at line 93
+FUNCNAME[4]: main called from ./dbg-support.tests at line 0
+debug lineno: 94 main
+SOURCED LINENO 31
+SOURCED BASH_SOURCE[0] ./dbg-support.sub
+SOURCED FN LINENO 18
+FUNCNAME[0]: sourced_fn called from ./dbg-support.sub at line 33
+FUNCNAME[1]: source called from ./dbg-support.tests at line 94
+FUNCNAME[2]: main called from ./dbg-support.tests at line 0
+return lineno: 94 main
+debug lineno: 97 main
+debug lineno: 100 main
+debug lineno: 31 source
+SOURCED LINENO 31
+debug lineno: 32 source
+SOURCED BASH_SOURCE[0] ./dbg-support.sub
+debug lineno: 33 source
+debug lineno: 16 sourced_fn
+debug lineno: 17 sourced_fn
+debug lineno: 18 sourced_fn
+SOURCED FN LINENO 18
+debug lineno: 21 sourced_fn
+debug lineno: 22 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 24 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 26 sourced_fn
+FUNCNAME[0]: sourced_fn called from ./dbg-support.sub at line 33
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 24 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 26 sourced_fn
+FUNCNAME[1]: source called from ./dbg-support.tests at line 100
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 24 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 26 sourced_fn
+FUNCNAME[2]: main called from ./dbg-support.tests at line 0
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 16 sourced_fn
+debug lineno: 25 print_return_trap
+debug lineno: 26 print_return_trap
+return lineno: 16 sourced_fn
+debug lineno: 27 print_return_trap
+debug lineno: 100 main
+debug lineno: 25 print_return_trap
+debug lineno: 26 print_return_trap
+return lineno: 100 main
+debug lineno: 27 print_return_trap
+debug lineno: 101 main
+debug lineno: 104 main
+debug lineno: 104 main
+debug lineno: 105 main
+debug lineno: 108 main
+debug lineno: 104 main
+debug lineno: 104 main
+debug lineno: 105 main
+debug lineno: 108 main
+debug lineno: 104 main
+debug lineno: 104 main
+debug lineno: 105 main
+debug lineno: 106 main
+Hit 2
+debug lineno: 108 main
+debug lineno: 104 main
+debug lineno: 104 main
+debug lineno: 114 main
+SOURCED FN LINENO 18 FUNCNAME[0]: sourced_fn called from ./dbg-support.tests at line 114 FUNCNAME[1]: main called from ./dbg-support.tests at line 0
+debug lineno: 115 main
+SOURCED FN LINENO 18 FUNCNAME[0]: sourced_fn called from ./dbg-support.tests at line 115 FUNCNAME[1]: main called from ./dbg-support.tests at line 0
+debug lineno: 116 main
+debug lineno: 117 main
+SOURCED FN LINENO 18
+FUNCNAME[0]: sourced_fn called from ./dbg-support.tests at line 117
+FUNCNAME[1]: main called from ./dbg-support.tests at line 0
+debug lineno: 121 main
+debug lineno: 122 main
+debug lineno: 16 sourced_fn
+debug lineno: 17 sourced_fn
+debug lineno: 18 sourced_fn
+SOURCED FN LINENO 18
+debug lineno: 21 sourced_fn
+debug lineno: 22 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 24 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 26 sourced_fn
+FUNCNAME[0]: sourced_fn called from ./dbg-support.tests at line 122
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 24 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 25 sourced_fn
+debug lineno: 26 sourced_fn
+FUNCNAME[1]: main called from ./dbg-support.tests at line 0
+debug lineno: 23 sourced_fn
+debug lineno: 23 sourced_fn
+debug lineno: 16 sourced_fn
+debug lineno: 25 print_return_trap
+debug lineno: 26 print_return_trap
+return lineno: 16 sourced_fn
+debug lineno: 27 print_return_trap
+debug lineno: 125 main
+debug lineno: 130 main
+debug lineno: 134 main
+got it
+debug lineno: 142 main
+debug lineno: 143 main
+debug lineno: 144 main
+debug lineno: 143 main
+debug lineno: 144 main
+debug lineno: 142 main
+debug lineno: 143 main
+debug lineno: 144 main
+debug lineno: 143 main
+debug lineno: 144 main
+debug lineno: 148 main
+main: calling f1
+f1: calling f2
+f2: calling f3
+f3: calling callstack
+deep 6
+0 z
+1 3
+2 y
+3 2
+4 x
+5 1
+FUNCNAME stack: f3 f2 f1 main
+39 f2 ./dbg-support3.sub
+f3: returning
+f2: return from f3
+f1: return from f2
+main: f1 returns

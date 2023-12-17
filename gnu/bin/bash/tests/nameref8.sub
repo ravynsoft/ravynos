@@ -1,0 +1,74 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+function f1
+{
+	typeset -n v=$1
+
+	v=inside
+}
+
+v=global
+f1 v
+echo $v
+
+unset v
+unset -f f1
+
+function foo
+{
+	typeset x=one
+
+	typeset -n y=$1
+	y=two
+	echo inside: $x
+}
+
+foo x
+echo outside: $x
+
+function foo2
+{
+	typeset -n x=$1
+
+	x=foo
+}
+
+foo2 x
+echo $x
+
+unset -f foo
+function foo { typeset -n v=$1; v=local; }
+
+v=global
+foo v
+echo $v
+
+unset v
+
+# invalid self reference at global scope
+typeset -n v=v
+
+# can we catch a circular self-reference?
+typeset -n v=w
+typeset -n w=x
+typeset -n x=v
+
+x=4
+echo x = $x
+
+unset -n v w x
+
+# can we keep local variables invisible when we add nameref attribute?
+function f { typeset x; typeset -n x; x=y; }
+f

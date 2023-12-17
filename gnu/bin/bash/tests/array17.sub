@@ -1,0 +1,91 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# this shows the expansions an array subscript undergoes before being run
+# through the arithmetic evaluator
+
+b=(0 1 2 3)
+
+# array subscripts undergo variable expansion
+a=2
+echo ${b[$a]}
+
+# array subscripts undergo command substitution
+echo ${b[$(echo 2)]}
+
+c='1+1'
+d='1-+1'
+
+# array subscripts are expanded and the expanded value is treated as an
+# expression
+echo ${b[$c]}
+echo ${b[c]}
+
+echo ${b[$d]}
+echo ${b[d]}
+
+# array subscripts undergo parameter expansion
+set -- 1 2 3
+echo ${b[$1]}
+
+# array subscripts undergo tilde expansion
+HOME=2
+echo ${b[~]}
+
+# array subscripts undergo word splitting -- bug in bash versions through 4.3
+
+x='b[$d]'
+IFS=-
+echo $((x))
+IFS=$' \t\n'
+
+set -- 1 + 2
+
+x='d'
+IFS=-
+echo $((x))
+IFS=$' \t\n'
+
+# start of quoting tests; make sure that subscript is treated as double
+# quoted (inhibits word splitting) but that double quotes are silently
+# discarded through quote removal
+
+echo $(( $@ ))
+echo "$(( $@ ))"
+
+echo $(( "$x" ))
+echo $(( "x" ))
+
+unset a foo bar
+a=(zero one two three four five six seven eight nine ten)
+
+echo ${a[0]}
+echo ${a["0"]}
+
+foo=1
+echo ${a[$foo]}
+echo ${a["$foo"]}
+echo ${a[foo]}
+echo ${a["foo"]}
+
+bar=2
+echo ${a[" $bar "]}
+echo ${a[" bar "]}
+
+# tilde expansion is performed by array subscript expansion but not by posix
+# style arithmetic expansion
+
+HOME=2
+echo $(( ~ ))
+
+

@@ -1,0 +1,75 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+LC_ALL=C
+LANG=C
+
+SHELLSTART=$(date +%s)
+SECS=1275250155
+export TZ=EST5EDT
+
+case $SHELLSTART in
+*s*)	SHELLSTART=$EPOCHSECONDS ; DATESECS=false ;;	# take a shot
+*)	DATESECS=true ;;
+esac
+
+printf "%()T\n" $SECS
+printf "%(abde)Z\n" -1
+
+printf "%(%e-%b-%Y %T)T\n" $SECS
+
+printf -v v1 "%(%e-%b-%Y %T)T\n" $( $DATESECS && date +%s || echo $EPOCHSECONDS )
+printf -v v2 "%(%e-%b-%Y %T)T\n" -1
+
+case $v1 in
+$v2)	;;
+*)	echo "current time and -1 possible mismatch|$v1|$v2|" >&2 ;;
+esac
+unset v1 v2
+
+v1=$(date +%s)
+printf -v v2 "%(%s)T" -1
+
+case $v1 in
+$v2)	;;
+*)	echo "current time mismatch:$v1|$v2|" >&2 ;;
+esac
+unset v1 v2
+
+printf "%(%x %X)T\n" $(( $SECS - 3600 ))
+
+printf -v v1 "%(%F %r)T\n" $SHELLSTART
+printf -v v2 "%(%F %r)T\n" -2
+
+case $v1 in
+$v2)	;;
+*)	echo "shell start time and -2 possible mismatch|$v1|$v2|" >&2 ;;
+esac
+unset v1 v2
+
+printf "current time: %(%F %r)T\n" $SECS
+
+printf "epoch time: %(%F %r %z)T\n" 0
+printf "random time: %(%F %r %z)T\n"  $SECS
+
+printf "local time: %(%a %b %e %H:%M:%S %Z %Y)T\n" $SECS
+
+# test fieldwidth, justification, precision
+printf "%-40.50(%a %b %e %H:%M:%S %Z %Y)T date-style time\n" $SECS
+
+# test fieldwidth, justification, precision, embedded parens
+printf "%-40.50(%x (foo) %X)T date-style time\n" $SECS
+
+# problem introduced in bash-4.2 patch 5
+unset TZ
+printf '%(%Y-%m-%d %H:%M:%S %Z)T\n' >/dev/null

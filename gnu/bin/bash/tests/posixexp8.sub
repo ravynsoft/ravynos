@@ -1,0 +1,11 @@
+P=A
+
+cat << EOF
+${P+\"$P\"}
+${P+"$P"}
+EOF
+
+recho "${P+\"$P\"}"
+
+recho "${P+"$P"}"
+recho ${P+"$P"}

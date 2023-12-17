@@ -1,0 +1,43 @@
+: ${THIS_SH:=./bash}
+
+# comsub should not inherit PST_COMPASSIGN
+
+C=($(echo "${A[@]}" | \
+            (while read -d ' ' i; do
+                C=(${C/ ${i%% *} / })
+            done
+            echo ${C[@]})))
+
+# comsub should not inherit PST_CASEPAT
+
+${THIS_SH} -c '
+case foo in
+$( esac ; bar=foo ; echo "$bar")) echo bad 2;;
+*)	echo ok 2;;
+esac
+
+echo we should not see this' case
+
+# comsub should not inherit PST_SUBSHELL
+
+${THIS_SH} -c '( case foo in
+  ( $(echo foo | cat )) echo ok 2;;
+  *) echo bad 2;;
+  esac
+
+  echo $( echo inside ) outside )' subshell
+
+# comsub should not inherit PST_REDIRLIST
+
+${THIS_SH} -c '
+{fd}</dev/null {fd2}<$(foo=/dev/null ; echo $foo) exec
+case $fd2 in
+[0-9]*)	echo ok 3 ;;
+*)	echo bad 3 ;;
+esac' redirlist
+
+# comsub should exit on syntax error while parsing
+${THIS_SH} -c '
+: $(case x in x) ;; x) done ;; esac)
+
+echo after syntax error' syntax-error

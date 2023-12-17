@@ -1,0 +1,51 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# check saving and restoring positional parameters around function calls
+
+f()
+{
+	echo $FUNCNAME: "$@"
+}
+
+f1()
+{
+	f {1..50}
+	echo $FUNCNAME: after: $@
+}
+
+set -- {1..100}
+
+f1 {1..20}
+echo done: $@
+
+f3()
+{
+	echo $FUNCNAME:$1
+	shift
+	if [ $# -le 0 ]; then
+		return
+	fi
+	f3 "$@"
+}
+
+f3 {1..20}
+
+# now let's try source with and without positional parameters
+
+set -- {1..20}
+echo before source: "$@"
+. ./varenv15.in
+echo after source 1: "$@"
+. ./varenv15.in one two three four five six seven eight nine ten
+echo after source 2: "$@"

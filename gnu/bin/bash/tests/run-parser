@@ -1,0 +1,2 @@
+${THIS_SH} ./parser.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} parser.right && rm -f ${BASH_TSTOUT}

@@ -1,0 +1,65 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+function reorder
+{
+	(( x[1] < x && (x=x[1], x[1]=$x) ))
+	echo "${x[@]}"
+}
+
+x=(123 456)
+reorder
+x=(456 123)
+reorder
+
+unset x
+unset -f reorder
+
+function reorder
+{
+	(( x[1] < x[0] && (x=x[1], x[1]=$x) ))
+	echo "${x[@]}"
+}
+
+x=(123 456)
+reorder
+x=(456 123)
+reorder
+
+unset x
+unset -f reorder
+
+function reorder
+{
+	(( x[1] < x[0] && (x[0]=x[1], x[1]=$x) ))
+	echo "${x[@]}"
+}
+
+x=(123 456)
+reorder
+x=(456 123)
+reorder
+
+unset -f reorder
+
+n=0 ; (( (a[n]=++n)<7&&a[0])); echo "${a[@]:1}"
+
+n=0 a="(a[n]=++n)<7&&a[0]"; ((a[0])); echo "${a[@]:1}"
+
+n=0 a="(a[n]=n++)<7&&a"; ((a)); echo "${a[@]:1}"
+
+# bugs with lvalue caching and pointer aliasing through bash-4.2
+echo $(( a=(y[0] + y[1]) & 0xff, b=(y[2] + y[3]) & 0xff, a << 8 | b))
+echo $a, $b
+((a = y[0], b = 1 ))
+echo $a, $b

@@ -1,0 +1,10 @@
+f=" val" e=
+echo "$e"$f
+echo $e$f
+echo "$e""$f"
+
+if [[ "$1"x == x ]] ; then
+   echo "no arg passed"
+   exit 1
+fi
+echo "$1"x | cat -v

@@ -1,0 +1,8 @@
+# See whether or not we can use `diff -a'
+( diff -a ./nquote4.right ./nquote4.right >/dev/null 2>&1 ) && AFLAG=-a
+
+echo warning: some of these tests will fail if you do not have UTF-8 >&2
+echo warning: locales installed on your system >&2
+
+${THIS_SH} ./nquote4.tests > ${BASH_TSTOUT} 2>&1
+diff ${AFLAG} ${BASH_TSTOUT} nquote4.right && rm -f ${BASH_TSTOUT}

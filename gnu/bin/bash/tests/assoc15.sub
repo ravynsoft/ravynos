@@ -1,0 +1,92 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# associative arrays first
+
+v=$'\x01'
+
+declare -A var foo v2
+var=( $'\x01' $'\x01\x01\x01\x01' )
+declare -p var
+v2=( $v $v$v$v$v )
+declare -p v2
+
+recho "${var[@]@k}"
+eval foo=\( "${var[@]@k}" \)
+declare -p foo
+
+var=(   )
+declare -p var
+
+recho "${var[@]@k}"
+eval foo=\( "${var[@]@k}" \)
+declare -p foo
+
+var=( []= )
+declare -p var
+
+recho "${var[@]@k}"
+eval foo=\( "${var[@]@k}" \)
+declare -p foo
+
+# now indexed arrays
+unset -v var foo
+
+declare -a var
+var=( [0]= )
+declare -p var
+
+declare -a foo
+recho "${var[@]@Q}"
+eval foo=\( "${var[@]@Q}" \)
+declare -p foo
+
+var=(  )
+declare -p var
+
+unset foo
+
+declare -a foo
+recho "${var[@]@Q}"
+eval foo=\( "${var[@]@Q}" \)
+declare -p foo
+
+# similar to array29.sub
+unset -v var foo v2
+
+declare -A var
+var=( one $'\x01\x01\x01\x01' two ab$'\001'cd )
+declare -p var
+
+pv()
+{
+	local -A foo
+	eval foo=\( "${var[@]@k}" \)
+	declare -p foo
+}
+pv
+
+pv1()
+{
+	local -A foo=( $'\x01' "${var[two]}" )
+	declare -p foo
+}
+pv1
+
+pv2()
+{
+	local -A foo=( [$'\x01']="${var[one]}" )
+	declare -p foo
+}
+pv2

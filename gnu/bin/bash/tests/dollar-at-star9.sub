@@ -1,0 +1,278 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+IFS=$' \t\n'   # or any other IFS
+set -- ''
+recho ${v= "$*" }
+recho "$v"
+unset -v v
+
+IFS=''
+set -- '' ''
+recho ${v= "$*" }
+recho "$v"
+unset -v v
+
+IFS=$' \t\n'   # or any other IFS
+unset -v v
+
+set -- ''
+recho ${v= "$@" }
+recho "$v"
+unset v
+recho ${v= $@ }
+recho "$v"
+unset v
+recho ${v= $@"" }
+recho "$v"
+unset v
+recho ${v= ${@} }
+recho "$v"
+unset v
+recho ${v= ${@}"" }
+recho "$v"
+unset v
+
+set -- '' ''
+recho ${v= $@ }
+recho "$v"
+unset v
+recho ${v= "$@" }
+recho "$v"
+unset v
+recho "${v= $@}"
+recho "$v"
+unset v
+recho ${v= "$@"}
+recho "$v"
+unset v
+
+IFS=
+
+set -- X
+X=X
+
+recho ${0+ "$@" }
+recho ${0+ $@ }
+recho ${0+ $* }
+
+recho ${0+ "$X" }
+recho ${0+ $X }
+recho ${0+ $X }
+
+recho ${0+ "$@" }
+recho "$Y"
+unset Y
+recho ${0+ $@ }
+recho "$Y"
+unset Y
+recho ${0+ $* }
+recho "$Y"
+unset Y
+
+recho ${Y:= "$X" }
+recho "$Y"
+unset Y
+recho ${Y:= $X }
+recho "$Y"
+unset Y
+recho ${Y:= $X }
+recho "$Y"
+unset Y
+
+IFS=
+
+unset -v X Y
+
+set -- X Y
+X='X Y'
+
+recho ${0+ "$@" }
+recho ${0+ $@ }
+recho ${0+ $* }
+
+recho ${0+ "$X" }
+recho ${0+ $X }
+recho ${0+ $X }
+
+recho ${Y:= "$@" }
+recho "$Y"
+unset Y
+recho ${Y:= $@ }
+recho "$Y"
+unset Y
+recho ${Y:= $* }
+recho "$Y"
+unset Y
+
+recho ${Y:= "$X" }
+recho "$Y"
+unset Y
+recho ${Y:= $X }
+recho "$Y"
+unset Y
+recho ${Y:= $X }
+recho "$Y"
+unset Y
+
+IFS=''
+set -- ' X '
+
+unset x y
+
+x=$*
+y=${*:1}
+
+recho "$x"
+recho "$y"
+
+unset x y
+
+recho ${x=$*}
+recho ${y=${*:1}}
+
+set -- b a
+declare -A A=([b]= [a]=)
+
+x=$*
+y=${!A[*]}
+
+unset A
+
+recho "$x"
+recho "$y"
+
+unset x y
+
+recho ${x=$*}
+recho ${y=${!A[*]}}
+
+unset x y
+
+recho ${x-$*}
+recho ${y-${!A[*]}}	# this isn't right yet
+
+IFS=:
+set -- a b
+ind=*
+
+unset x y
+
+x=$*
+y=${!ind}
+
+recho "$x"
+recho "$y"
+
+unset x y
+
+recho ${x-$*}
+recho ${y-${!ind}}	# this isn't right yet
+
+unset x y
+
+recho ${x=$*}
+recho ${y=${!ind}}
+
+set -- ' X '
+IFS=$' \t\n'
+
+x=$*
+y=${!ind};
+
+recho "$x"
+recho "$y"
+
+IFS=''
+x=$*
+y=${!ind}
+
+recho "$x"
+recho "$y"
+
+IFS=:
+set -- a b
+ind=*
+
+unset x y
+
+recho ${x-$*}
+recho ${y-${!ind}}	# this isn't right yet
+
+unset x y
+
+recho ${x=$*}
+recho ${y=${!ind}}
+
+set -- ' X '
+IFS=$' \t\n'
+
+unset x y
+
+x=$*
+y=${!ind};
+
+recho "$x"
+recho "$y"
+
+IFS=''
+x=$*
+y=${!ind}
+
+recho "$x"
+recho "$y"
+
+IFS=''
+set -- $'\177'
+
+unset -v var
+
+recho "${*:1}"
+var=${*:1}
+recho "$var"
+
+unset var
+recho ${var=${*:1}}
+recho "$var"
+
+declare -a a=($'\177')
+
+unset var
+var=${a[*]:0}
+recho "$var"
+
+unset var
+recho ${var=${a[*]:0}}
+unset var
+
+set -- $'\177'
+ind='*'
+
+recho $*
+var=${!ind}
+recho "$var"
+
+unset var
+recho ${var=${!ind}}
+recho "$var"
+
+declare -A A=([0]=$'\177')
+
+unset var
+var=${A[*]:0}
+recho "$var"
+
+# this isn't really right yet
+unset var
+recho ${var=${A[*]:0}}
+recho "$var"

@@ -1,0 +1,49 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# tests sourcing non-regular files, fixed post-3.2
+
+: ${TMPDIR:=/tmp}
+
+TMPFN=$TMPDIR/foo-$$
+
+rm -f $TMPFN
+echo "echo one - OK" > $TMPFN
+. $TMPFN
+echo $?
+rm -f $TMPFN
+
+# non-regular readable file
+. /dev/null
+echo $?
+
+# FIFO or pipe via /dev/fd
+. <(echo "echo two - OK")
+echo $?
+
+# pipe
+if [ -e /dev/stdin ]; then
+echo "echo three - OK" | . /dev/stdin
+echo $?
+else
+# no /dev/stdin, just fake it
+echo "three - OK" ; echo 0
+fi
+
+# FIFO
+mkfifo $TMPDIR/fifo-$$
+echo "echo four - OK" > $TMPDIR/fifo-$$ &
+sleep 1		# allow the child echo to execute
+. $TMPDIR/fifo-$$
+echo $?
+rm -f $TMPDIR/fifo-$$

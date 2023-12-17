@@ -1,0 +1,198 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# since we look at functions below, remove all functions now 
+funcs=$(compgen -A function)
+if [ -n "$funcs" ]; then
+        unset -f $funcs
+fi
+
+a()
+{
+	x=$((x - 1))
+	return 5
+}
+
+b()
+{
+	x=$((x - 1))
+	a
+	echo a returns $?
+	return 4
+}
+
+c()
+{
+	x=$((x - 1))
+	b
+	echo b returns $?
+	return 3
+}
+
+d()
+{
+	x=$((x - 1))
+	c
+	echo c returns $?
+	return 2
+}
+
+e()
+{
+	d
+	echo d returns $?
+	echo in e
+	x=$((x - 1))
+	return $x
+}
+
+f()
+{
+	e
+	echo e returned $?
+	echo x is $x
+	return 0
+}
+
+x=30
+f
+
+# make sure unsetting a local variable preserves the `local' attribute
+f1()
+{
+	local zz
+	zz=abcde
+	echo $zz
+	unset zz
+	zz=defghi
+	echo $zz
+}
+
+zz=ZZ
+echo $zz
+f1
+echo $zz
+
+unset -f f1
+f1()
+{
+	return 5
+}
+
+( f1 )
+echo $?
+
+unset -f f1
+f1()
+{
+	sleep 5
+	return 5
+}
+
+f1 &
+wait
+echo $?
+
+unset -f f1
+
+f1()
+{
+	echo $AVAR
+	printenv AVAR
+}
+
+AVAR=AVAR
+echo $AVAR
+f1
+AVAR=foo f1
+echo $AVAR
+
+unset -f f1
+# make sure subshells can do a `return' if we're executing in a function
+f1()
+{
+	( return 5 )
+	status=$?
+	echo $status
+	return $status
+}
+
+f1
+echo $?
+
+declare -F f1	# should print just the name
+declare -f f1	# should print the definition, too
+
+# no functions should be exported, right?
+declare -xF
+declare -xf
+
+# FUNCNAME tests
+func2()
+{
+	echo FUNCNAME = $FUNCNAME
+}
+
+func()
+{
+	echo before: FUNCNAME = $FUNCNAME
+	func2
+	echo after: FUNCNAME = $FUNCNAME
+}
+
+echo before: try to assign to FUNCNAME
+FUNCNAME=7
+
+echo outside: FUNCNAME = $FUNCNAME
+func
+echo outside2: FUNCNAME = $FUNCNAME
+
+# test exported functions (and cached exportstr)
+zf()
+{
+	echo this is zf
+}
+export -f zf
+
+${THIS_SH} -c 'type -t zf'
+${THIS_SH} -c 'type zf'
+
+${THIS_SH} ./func1.sub
+
+# tests for functions whose bodies are not group commands, with and without
+# attached redirections
+${THIS_SH} ./func2.sub
+
+# test for some posix-specific function behavior
+${THIS_SH} ./func3.sub
+
+# FUNCNEST testing
+${THIS_SH} ./func4.sub
+
+unset -f myfunction
+myfunction() {
+    echo "bad shell function redirection"
+} >> /dev/null
+
+myfunction
+myfunction | cat
+
+segv()
+{
+	echo foo | return 5
+}
+
+segv
+echo $?
+
+exit 0

@@ -1,0 +1,14 @@
+: ${TMPDIR:=/tmp}
+dir=bashtest-$$
+
+mkdir $TMPDIR/$dir || exit 1
+touch $TMPDIR/$dir/file || exit 2
+cd $TMPDIR/$dir || exit 3
+
+IFS='?*[]'
+recho *
+
+recho "*"
+
+cd $OLDPWD
+rm -rf $TMPDIR/$dir

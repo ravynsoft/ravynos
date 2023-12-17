@@ -1,0 +1,59 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+#
+# various tests of unset when applied to variables at different local scopes
+#
+# function unsetting variable at previous local scope, uncovering global
+
+inner()
+{
+    unset res
+    echo ${FUNCNAME}: ${res-res unset}
+    if [[ $1 == "set" ]]; then
+        res[0]="X"
+        res[1]="Y"
+    fi
+}
+
+outer()
+{
+    local res=
+    inner "$1"
+    echo ${FUNCNAME}: "res: ${res[@]}"
+}
+
+echo main: ${res-unset}
+outer set
+echo main: after first call: ${res-unset}
+outer dontset 
+echo main: after second call: ${res-unset}
+
+unset -f outer inner
+unset res
+
+# local scope, unset variable at the same scope as local declaration
+func()
+{
+	typeset x=4
+
+	unset x
+	echo ${FUNCNAME}: ${x:-null or unset}
+}
+
+x=outside
+func
+echo after func: x = $x
+
+unset -f func
+unset x

@@ -1,0 +1,97 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+declare -n foo=bar
+
+declare foo='a string with spaces'
+echo $foo
+
+unset foo
+declare foo+='many spaces'
+echo $foo
+
+unset foo	# unsets bar
+unset -n foo
+
+declare -a bar
+declare -n foo='bar[0]'
+declare foo+=' still more spaces'
+
+declare -p foo bar
+unset -n foo
+unset bar
+
+declare -a bar
+declare -n foo='bar[0]'
+declare foo=spaces
+declare foo+=' still more spaces'
+
+declare -p foo bar
+
+unset -n foo
+unset bar
+
+ray=ray
+
+declare -a array
+array[0]=zero
+
+declare -n array
+unset array
+
+declare -n array[128]
+unset array
+
+declare -a array='(one two three)'
+declare -p array
+unset array
+
+declare array='(one two three)'
+declare -p array
+unset array
+
+declare -a ar$ray='(one two three)'
+declare -p ar$ray
+unset array
+
+declare -a array=(zero)
+declare -n array='(one two three)'
+declare -n array=three
+declare -p array
+unset array
+
+declare -n array=(one two three)
+declare -p array
+unset array
+
+declare -a array
+declare -n array=one
+declare -p array
+unset array
+
+array=one
+declare -i array[64];
+declare -p array
+unset array
+
+declare -a array=zero
+declare -p array
+unset array
+
+declare -a array
+declare array='(one two three)'
+declare -p array
+unset array
+
+

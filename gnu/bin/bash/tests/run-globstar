@@ -1,0 +1,4 @@
+PATH=$PATH:`pwd`
+export PATH
+${THIS_SH} ./globstar.tests  > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} globstar.right && rm -f ${BASH_TSTOUT}

@@ -1,0 +1,142 @@
+returns: 0
+returns: 0
+returns: 1
+returns: 0
+1
+0
+1
+0
+returns: 0
+returns: 0
+returns: 0
+returns: 0
+returns: 1
+returns: 0
+returns: 0
+returns: 1
+returns: 1
+returns: 1
+returns: 1
+returns: 0
+returns: 0
+returns: 0
+returns: 1
+returns: 0
+returns: 1
+returns: 0
+returns: 1
+returns: 1
+returns: 0
+./cond.tests: line 122: [[: 4+: syntax error: operand expected (error token is "+")
+returns: 1
+returns: 0
+returns: 0
+returns: 0
+returns: 0
+returns: 1
+returns: 0
+returns: 0
+returns: 1
+returns: 0
+ok
+jbig2dec
+
+found 1
+libc
+found 2
+libc
+ok 42
+ok 43
+ok 1
+ok 2
+ok 3
+ok 4
+ok 5
+match 1
+match 2
+match 3
+match 4
+match 5
+match 6
+yes 1
+yes 2
+yes 3
+yes 4
+yes 5
+yes 6
+Dog 01 is Wiggles
+Dog 01 is Wiggles
+rematch 1
+matches 7
+matches 8
+matches 9
+unquoted matches
+match control-a 1
+match control-a 2
+match control-a 3
+match control-a 4
+match control-a 5
+ok 1
+ok 2
+ok 3
+ok 4
+ok 4a
+ok 5
+ok 6
+ok 7 -- d
+ok 8 -- o
+ok 9
+ok 10
+ok 11
+ok 12
+argv[1] = <\^?>
+0
+1
+1
+0
+1
+1
+0
+1
+1
+[[ $'\001' =~ $'\001' ]] -> 0
+[[ $'\001' =~ $'\\\001' ]] -> 0
+[[ $'\001' =~ $'\\[\001]' ]] -> 1
+---
+[[ $'\a' =~ $'\a' ]] -> 0
+[[ $'\a' =~ $'\\\a' ]] -> 0
+[[ $'\a' =~ $'\\[\a]' ]] -> 1
+---
+[[ $'\177' =~ $'\177' ]] -> 0
+[[ $'\177' =~ $'\\\177' ]] -> 0
+[[ $'\177' =~ $'\\[\177]' ]] -> 1
+---
+0
+1
+1
+0
+1
+1
+0
+1
+1
+0
+1
+0
+1
+1
+0
+0
+0
+1
+1
+argv[1] = <^A>
+argv[2] = <^A>
+ok 1
+ok 2
+ok 3
+ok 4
+ok 5
+ok 6
+ok 7
+ok 8

@@ -1,0 +1,6 @@
+This illustrates how to build a perl interpreter into bash.  It's not
+especially useful; more a proof of concept (it provides none of the
+bash internals to the perl interpreter, for example).
+
+This *may* require adding "-rpath /path/to/perl/CORE" and -lperl options
+when compiling bash itself.

@@ -1,0 +1,10 @@
+# test read with a timeout of 0 -- input polling
+# sleep with fractional seconds argument is not universal
+echo abcde | { sleep 0.25 2>/dev/null ; read -t 0; }
+echo $?
+
+read -t 0 < $0
+echo $?
+
+read -t 0
+echo $?

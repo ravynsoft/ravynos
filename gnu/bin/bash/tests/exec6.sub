@@ -1,0 +1,67 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# builtins with exit status inverted
+
+( true )
+echo $?
+( ! true )
+echo $?
+
+( false )
+echo $?
+( ! false )
+echo $?
+
+# inverting shouldn't affect exit
+(exit 42)
+echo $?
+
+( ! exit 42 )
+echo $?
+
+# commands requiring an exec with exit status inverted -- broken in bash-2.04
+
+( ls > /dev/null 2>&1 )
+echo $?
+( ! ls > /dev/null 2>&1 )
+echo $?
+
+touch /tmp/notwrite
+chmod 400 /tmp/notwrite
+
+# make sure redirection failures in commands whose exit status is inverted
+# are handled correctly
+
+( ls > /tmp/notwrite ) 2>/dev/null
+echo $?
+
+( ! ls > /tmp/notwrite ) 2>/dev/null
+echo $?
+
+# now add exit traps, true and false for commands with and without exit
+# status inversion
+
+(trap 'false' 0 ; ! ls > /tmp/notwrite ) 2>/dev/null
+echo $?
+
+(trap 'false' 0 ; ls > /tmp/notwrite ) 2>/dev/null
+echo $?
+
+(trap 'true' 0 ; ! ls > /tmp/notwrite ) 2>/dev/null
+echo $?
+
+(trap 'true' 0 ; ls > /tmp/notwrite ) 2>/dev/null
+echo $?
+
+rm -f /tmp/notwrite

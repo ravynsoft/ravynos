@@ -1,0 +1,57 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+HISTFILE=${TMPDIR}/bashhist-$$
+
+set -o history
+set -o histexpand
+
+echo a
+echo $(echo !!)
+
+echo a
+echo !! $(echo !!)
+
+echo b
+echo '!!' '$(echo !!)'
+
+echo c
+echo "!!" "$(echo !!)"
+
+echo d
+echo "!!" $(echo "!!")
+
+echo e
+echo '!!' $(echo '!!')
+
+echo f
+echo '!!'
+echo f
+eval echo '!!'
+
+echo g
+echo "!!"
+echo g
+eval echo "!!"
+
+echo h
+echo \!\! `echo !!`
+
+echo i
+echo !! `echo !!`
+
+echo j
+echo `echo j` !!
+
+set +o history
+rm -f $HISTFILE		# just in case

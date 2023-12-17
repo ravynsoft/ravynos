@@ -1,0 +1,12 @@
+array[1]=one
+array[2]=two
+
+set -u
+
+( echo ${#array} )
+( echo ${array} )
+( echo ${array[7]} )
+
+set -- 1 2 3
+( echo ${#7} )
+( echo ${7} )

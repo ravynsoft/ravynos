@@ -1,0 +1,2 @@
+${THIS_SH} ./quotearray.tests >${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} quotearray.right && rm -f ${BASH_TSTOUT}

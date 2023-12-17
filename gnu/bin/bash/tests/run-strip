@@ -1,0 +1,2 @@
+${THIS_SH} ./strip.tests > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} strip.right && rm -f ${BASH_TSTOUT}

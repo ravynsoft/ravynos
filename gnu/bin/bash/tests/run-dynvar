@@ -1,0 +1,2 @@
+${THIS_SH} ./dynvar.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} dynvar.right && rm -f ${BASH_TSTOUT}

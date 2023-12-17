@@ -1,0 +1,28 @@
+PATH=~/bin:/bin:/usr/bin:.
+/usr/xyz/bin:~/bin2:/bin:/usr/bin:.
+PATH=~/bin:~/bin2:/bin:/usr/bin:.
+~/bin
+~
+/usr/xyz
+~
+~
+~
+argv[1] = <\a>
+argv[1] = <\a>
+/usr/xyz/bash
+ok
+~
+~
+make -k FOO=/usr/xyz/mumble
+/usr/xyz/mumble
+HOME=~
+HOME=~
+/usr/$x/abc
+HOME=~
+/usr/$x/abc
+HOME=/usr/$x/abc
+/usr/$x/abc
+foo=/home/xyz:/home/xyz
+/home/xyz:/home/xyz
+foo=~:~
+/home/xyz:/home/xyz

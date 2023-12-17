@@ -1,0 +1,9 @@
+touch .file
+while set -e ; test -r .file ; do
+	echo -n "stop loop? "
+	read reply
+	case "$reply" in
+	y*)	rm .file non-dash-file ;;
+	esac
+	set +e
+done

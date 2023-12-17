@@ -1,0 +1,7 @@
+# warnings introduced beginning with bash-4.4-alpha
+
+var=foo; declare -A "arr$var=([x]=y)"
+
+key1=foo key2=bar
+
+declare -A a=([foo]='([bar]=baz)') "b=${a[$key1]}"

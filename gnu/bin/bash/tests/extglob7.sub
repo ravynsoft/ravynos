@@ -1,0 +1,97 @@
+: ${TMPDIR:=/tmp}
+
+TESTDIR=$TMPDIR/glob-test-$$
+mkdir $TESTDIR || {
+	echo "$TESTDIR: cannot create" >&2
+	exit 1
+}
+cd $TESTDIR || {
+	echo "$TESTDIR: cannot cd" >&2
+	exit 1
+}
+
+LC_CTYPE=C LC_COLLATE=C
+shopt -s extglob dotglob
+shopt -u globskipdots		# XXX - backwards compatibility
+touch .foo bar .a
+
+echo dotglob: .a .foo bar
+
+echo '@(.foo)'
+echo @(.foo)
+echo '!(.foo)'
+echo !(.foo)
+
+echo '@(.foo|*)'
+echo @(.foo|*)
+echo '!(.foo|*)'
+echo !(.foo|*)
+
+echo '@(*)'
+echo @(*)
+echo '!(*)'
+echo !(*)
+
+echo '.*'
+echo .*
+echo '@(.*)'
+echo @(.*)
+echo '!(.*)'
+echo !(.*)
+
+shopt -u dotglob
+
+echo no dotglob: .a .foo bar
+
+echo '@(.foo)'
+echo @(.foo)
+echo '!(.foo)'
+echo !(.foo)
+
+echo '@(.foo|*)'
+echo @(.foo|*)
+echo '!(.foo|*)'
+echo !(.foo|*)
+
+echo '!(bar).foo'
+echo !(bar).foo
+echo '*(bar).foo'
+echo *(bar).foo
+echo '?(bar).foo'
+echo ?(bar).foo
+
+echo '.?'
+echo .?
+echo '@(.?)'
+echo @(.?)
+echo '!(.?)'
+echo !(.?)
+
+shopt -s dotglob
+echo dotglob: .a .foo bar
+
+echo '@(?|.?)'
+echo @(?|.?)
+echo '@(?|.*)'
+echo @(?|.*)
+echo '? .*'
+echo ? .*
+echo '*'
+echo *
+
+shopt -u dotglob
+echo no dotglob: .a .foo bar
+
+echo '@(?|.?)'
+echo @(?|.?)
+echo '@(?|.*)'
+echo @(?|.*)
+echo '? .*'
+echo ? .*
+echo '*'
+echo *
+
+rm -f .a bar .foo
+
+cd $OLDPWD
+rm -rf $TESTDIR

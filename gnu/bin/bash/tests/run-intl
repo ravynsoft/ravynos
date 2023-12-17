@@ -1,0 +1,5 @@
+# See whether or not we can use `diff -a'
+( diff -a ./intl.right ./intl.right >/dev/null 2>&1 ) && AFLAG=-a
+
+${THIS_SH} ./intl.tests > ${BASH_TSTOUT}
+diff $AFLAG ${BASH_TSTOUT} intl.right && rm -f ${BASH_TSTOUT}

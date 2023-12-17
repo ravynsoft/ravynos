@@ -1,0 +1,209 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# test out %+, jobs -p, and $! agreement in a subshell first
+${THIS_SH} ./jobs1.sub
+
+# test out fg/bg failure in a subshell
+${THIS_SH} ./jobs2.sub
+
+# test out behavior of waiting for background pids -- bug in versions
+# before 2.03
+${THIS_SH} ./jobs3.sub
+
+# test out behavior of using job control notation when job control is not
+# active
+${THIS_SH} ./jobs4.sub
+
+# test out wait -n framework
+${THIS_SH} ./jobs5.sub
+
+# test out wait -f framework
+${THIS_SH} ./jobs6.sub
+
+${THIS_SH} ./jobs7.sub
+
+jobs
+echo $?
+
+# a no-such-job error, since we can use job control notation without job control
+wait %1
+
+# make sure we can't fg a job started when job control was not active
+sleep 30 &
+pid=$!
+fg %1
+# make sure the killed processes don't cause a message
+exec 5>&2
+exec 2>/dev/null
+kill -n 9 $pid
+wait    # make sure we reap the processes while stderr is still redirected
+exec 2>&5
+
+echo wait-for-pid
+sleep 4 &
+wait $!
+
+echo wait-errors
+wait 1-1
+wait -- -4
+
+echo wait-for-background-pids
+sleep 2 &
+sleep 4 &
+wait
+
+echo async list wait-for-background-pids
+sleep 2 & sleep 4 &
+wait
+
+echo async list wait for child
+sleep 2 & echo forked
+wait
+
+echo wait-when-no-children
+wait
+
+echo posix jobs output
+${THIS_SH} -o posix -c 'sleep 1 & P=$! ; sleep 2; jobs; wait'
+
+set -m
+
+echo wait-for-job
+sleep 3 &
+wait %2		# this should be a no-such-job error
+echo $?
+wait %1
+
+echo async list wait-for-job
+sleep 2 & echo forked
+wait %1
+
+echo fg-bg 1
+sleep 2 &
+%1
+
+echo fg-bg 2
+sleep 2 &
+fg %%
+
+echo fg-bg 3
+sleep 2 &
+fg %s
+
+echo fg-bg 4
+sleep 2 &
+fg %?ee
+
+# these next two are error cases
+echo fg-bg 5
+sleep 2 &
+fg %2		# this should be a no-such-job error
+bg %1		# this should be a `bg background job?' error
+wait
+
+# these may someday mean to start the jobs, but not print the line
+# describing the status, but for now they are errors
+echo fg-bg 6
+sleep 2 &
+fg -s %1
+bg -s %1
+wait
+
+# someday this may mean to disown all stopped jobs, but for now it is
+# an error
+disown -s
+
+# this is an error -- the job with the pid that is the value of $! is
+# retained only until a `wait' is performed
+disown %1
+
+# this, however, is an error
+disown %2
+
+echo wait-for-non-child
+wait 1
+echo $?
+
+exit 1 | exit 2 | exit 3
+echo $? -- ${PIPESTATUS[@]} -- ${PIPESTATUS[0]} - ${PIPESTATUS[1]} - ${PIPESTATUS[2]}
+
+sleep 300 &
+sleep300pid=$!
+sleep 350 &
+sleep 400 &
+
+jobs
+
+echo running jobs:
+jobs -r
+
+# should be an error
+kill -n 1 %4
+# should be an error
+jobs %4
+echo current job:
+jobs %+
+echo previous job:
+jobs %-
+
+kill -STOP %2
+sleep 3	# give time for the shell to get the stop notification
+echo after kill -STOP
+echo running jobs:
+jobs -r
+echo stopped jobs:
+jobs -s
+
+disown %1
+
+echo after disown
+jobs
+echo running jobs:
+jobs -r
+echo stopped jobs:
+jobs -s
+
+kill -s CONT %2
+echo after kill -s CONT
+echo running jobs:
+jobs -r
+echo stopped jobs:
+jobs -s
+
+kill -STOP %3
+sleep 3	# give time for the shell to get the stop notification
+echo after kill -STOP, backgrounding %3:
+bg %3
+
+disown -h %2
+
+# make sure the killed processes don't cause a message
+exec 5>&2
+exec 2>/dev/null
+
+echo killing...
+kill -n 9 $sleep300pid
+kill -n 9 %2 %3
+wait	# make sure we reap the processes while stderr is still redirected
+echo done
+
+exec 2>&5
+
+sleep 4 &
+kill -STOP %1
+sleep 2	# give time for the shell to get the stop notification
+echo after KILL -STOP, foregrounding %1
+fg %1
+
+echo done

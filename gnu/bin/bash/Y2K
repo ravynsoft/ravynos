@@ -1,0 +1,4 @@
+Since Bash does not manipulate date strings, it is Y2K-safe.
+
+The only thing that Bash does with date strings is manipulate the string
+returned by ctime(3) or strftime(3) in the prompt customization code.

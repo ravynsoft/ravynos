@@ -1,0 +1,10 @@
+foo()
+{
+	echo A:
+	. ./set-e3a.sub
+	echo D:
+}
+
+# should run all the way through; foo being called in a context where set -e
+# is ignored means that that condition persists through sourcing the file
+foo && true

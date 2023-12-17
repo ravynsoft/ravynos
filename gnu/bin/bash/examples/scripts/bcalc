@@ -1,0 +1,104 @@
+#! /bin/bash
+#
+# bcalc - a coproc example that uses bc to evaluate floating point expressions
+#
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# If supplied command-line arguments, it uses them as the expression to have
+# bc evaluate, and exits after reading the result. Otherwise, it enters an
+# interactive mode, reading expressions and passing them to bc for evaluation,
+# with line editing and history.
+#
+# You could even use this to write bc programs, but you'd have to rework the
+# single-line REPL a little bit to do that (and get over the annoying timeout
+# on the read)
+#
+# Chet Ramey
+# chet.ramey@case.edu
+
+# we force stderr to avoid synchronization issues on calculation errors, even
+# with the read timeout
+init()
+{
+	coproc BC { bc -q 2>&1; }
+	# set scale
+	printf "scale = 10\n" >&${BC[1]}
+	# bash automatically sets BC_PID to the coproc pid; we store it so we
+	# can be sure to use it even after bash reaps the coproc and unsets
+	# the variables
+	coproc_pid=$BC_PID
+}
+
+# not strictly necessary; the pipes will be closed when the program exits
+# but we can use it in reset() below
+fini()
+{
+	eval exec "${BC[1]}>&- ${BC[0]}<&-"
+}
+
+reset()
+{
+	fini	# close the old pipes
+
+	sleep 1
+	kill -1 $coproc_pid >/dev/null 2>&1	# make sure the coproc is dead
+	unset coproc_pid
+
+	init		
+}
+	
+# set a read timeout of a half second to avoid synchronization problems
+calc()
+{
+	printf "%s\n" "$1" >&${BC[1]}
+	read -t 0.5 ANSWER <&${BC[0]}
+}
+
+init
+
+# if we have command line options, process them as a single expression and
+# print the result. we could just run `bc <<<"scale = 10 ; $*"' and be done
+# with it, but we init the coproc before this and run the calculation through
+# the pipes in case we want to do something else with the answer
+
+if [ $# -gt 0 ] ; then
+	calc "$*"
+	printf "%s\n" "$ANSWER"
+	fini
+	exit 0
+fi
+
+# we don't want to save the history anywhere
+unset HISTFILE
+
+while read -e -p 'equation: ' EQN
+do
+	case "$EQN" in
+	'')		continue ;;
+	exit|quit)	break ;;
+	reset)		reset ; continue ;;
+	esac
+
+	# save to the history list
+	history -s "$EQN"
+
+	# run it through bc
+	calc "$EQN"
+	if [ -n "$ANSWER" ] ; then
+		printf "%s\n" "$ANSWER"
+	fi
+done
+fini
+
+exit 0

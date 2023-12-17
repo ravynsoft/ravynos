@@ -1,0 +1,2 @@
+${THIS_SH} ./coproc.tests > ${BASH_TSTOUT} 2>&1
+diff ${BASH_TSTOUT} coproc.right && rm -f ${BASH_TSTOUT}

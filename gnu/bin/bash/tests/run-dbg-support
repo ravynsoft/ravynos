@@ -1,0 +1,9 @@
+
+TEST_NAME='dbg-support'
+TEST_FILE="/tmp/${TEST_NAME}.check"
+${THIS_SH} ./${TEST_NAME}.tests > $TEST_FILE 2>&1 < /dev/null
+set -f
+diff $TEST_FILE ${TEST_NAME}.right && rm -f $TEST_FILE
+
+# Return code tells testing mechanism whether passed or not.
+exit $?

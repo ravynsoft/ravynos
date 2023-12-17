@@ -1,0 +1,71 @@
+#
+# whatis -- and implementation of the 10th Edition Unix sh builtin `whatis'
+#	    command.
+#
+# usage: whatis arg [...]
+#
+# For each argument, whatis prints the associated value as a parameter,
+# builtin, function, alias, or executable file as appropriate.  In each
+# case, the value is printed in a form which would yield the same value
+# if typed as input to the shell itself.
+#
+#
+#  Chet Ramey <chet.ramey@case.edu>
+#
+#  Copyright 1994 Chester Ramey
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2, or (at your option)
+#   any later version.
+#
+#   TThis program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program; if not, write to the Free Software Foundation,
+#   Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+
+
+whatis()
+{
+	local wusage='usage: whatis arg [arg...]'
+	local fail=0
+
+	if [ $# -eq 0 ] ; then
+		echo "$wusage"
+		return 1
+	fi
+
+	for arg
+	do
+		case $(builtin type -type $arg 2>/dev/null) in
+		"alias")
+			builtin alias "$arg"
+			;;
+		"function")
+			builtin type "$arg" | sed 1d
+			;;
+		"builtin")
+			echo builtin "$arg"
+			;;
+		"file")
+			builtin type -path "$arg"
+			;;
+		*)
+			# OK, we could have a variable, or we could have nada
+			if [ "$(eval echo \${$arg+set})" = "set" ] ; then
+				# It is a variable, and it is set
+				echo -n "$arg="
+				eval echo '\"'\$$arg'\"'
+			else
+				echo whatis: $arg: not found
+				fail=1
+			fi
+			;;
+		esac
+	done
+	return $fail
+}

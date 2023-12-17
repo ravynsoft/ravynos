@@ -1,0 +1,133 @@
+a
+b
+c
+a
+$PS4
+
+
+
+there
+one - alpha
+two - beta
+three - gamma
+hi\
+there$a
+stuff
+hi\
+there
+EO\
+F
+hi
+hi
+tab 1
+tab 2
+tab 3
+abc
+def ghi
+jkl mno
+fff is a function
+fff () 
+{ 
+    ed ${TMPDIR}/foo <<ENDOFINPUT > /dev/null
+/^name/d
+w
+q
+ENDOFINPUT
+
+    aa=1
+}
+fff is a function
+fff () 
+{ 
+    ed ${TMPDIR}/foo <<ENDOFINPUT > /dev/null
+/^name/d
+w
+q
+ENDOFINPUT
+
+    aa=1
+}
+foo is a function
+foo () 
+{ 
+    echo;
+    cat <<END
+bar
+END
+
+    cat <<EOF
+qux
+EOF
+
+}
+
+bar
+qux
+
+bar
+qux
+abc def geh
+./heredoc3.sub: line 20: warning: here-document at line 18 delimited by end-of-file (wanted `EOF')
+= here is the text =
+./heredoc3.sub: line 26: warning: here-document at line 24 delimited by end-of-file (wanted `EOF')
+this paren ) is not a problem
+./heredoc3.sub: line 32: warning: here-document at line 30 delimited by end-of-file (wanted `EOF')
+these balanced parens ( ) are not a problem
+./heredoc3.sub: line 38: warning: here-document at line 36 delimited by end-of-file (wanted `EOF')
+quoted balanced parens \( ) are not a problem either
+more text in a subshell
+some more text in a different subshell
+end
+hello
+hello
+ENDEND
+end ENDEND
+hello
+end hello
+end x*x
+helloEND
+end helloEND
+hello
+\END
+end hello<NL>\END
+./heredoc3.sub: line 98: warning: here-document at line 96 delimited by end-of-file (wanted `EOF')
+./heredoc3.sub: line 99: syntax error: unexpected end of file
+heredoc1
+EOF
+Ok:0
+argv[1] = <onetwo>
+argv[2] = <threefour>
+argv[1] = <two>
+argv[2] = <threefi>
+argv[3] = <ve>
+1: OK
+2: OK
+3: OK
+4: OK
+5: OK
+6: OK
+7: OK
+1: OK
+2: OK
+3: OK
+4: OK
+5: OK
+5: OK
+1: ${x#$'no\t'}
+2: O${x#$'no\t'O}
+3: ${x#n$'o\t'}
+4: ${x#'no	'}
+5: ${x#$pat}
+6: ${y#$'not'}
+7: ${y#'not'}
+./heredoc7.sub: line 17: warning: command substitution: 1 unterminated here-document
+foo bar
+./heredoc7.sub: line 21: after: command not found
+./heredoc7.sub: line 29: warning: here-document at line 29 delimited by end-of-file (wanted `EOF')
+./heredoc7.sub: line 29: foobar: command not found
+./heredoc7.sub: line 30: EOF: command not found
+grep: *.c: No such file or directory
+comsub here-string
+./heredoc.tests: line 156: warning: here-document at line 154 delimited by end-of-file (wanted `EOF')
+hi
+there

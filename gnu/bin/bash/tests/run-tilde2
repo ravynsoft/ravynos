@@ -1,0 +1,2 @@
+${THIS_SH} ./tilde2.tests > ${BASH_TSTOUT}
+diff ${BASH_TSTOUT} tilde2.right && rm -f ${BASH_TSTOUT}

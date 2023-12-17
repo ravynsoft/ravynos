@@ -1,0 +1,8 @@
+. ./test-glue-functions
+
+recho $'\c?'
+
+echo $'\c?' | od -t a | _intl_normalize_spaces
+echo $'\c[\c\\\c]\c^\c_\c?' | od -t a | _intl_normalize_spaces
+
+echo $'\q'

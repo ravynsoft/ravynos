@@ -1,0 +1,56 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+
+# bash versions up to and including bash-5.1 expanded these subscripts more
+# than once
+
+declare -A A
+
+A["Darwin"]=darjeeling
+A['$(echo Darwin ; echo stderr>&2)']=darjeeling
+
+declare -p A
+
+echo ${A[$(echo Darwin ; echo stderr>&2)]//eel/shark}
+echo ${A['$(echo Darwin ; echo stderr>&2)']//eel/shark}
+
+echo ${A[$(echo Darwin ; echo stderr>&2)]:0:4}
+echo ${A['$(echo Darwin ; echo stderr>&2)']:0:4}
+
+echo ${A[$(echo Darwin ; echo stderr>&2)]^^}
+echo ${A['$(echo Darwin ; echo stderr>&2)']^^}
+
+echo ${A[$(echo Darwin ; echo stderr>&2)]@Q}
+echo ${A['$(echo Darwin ; echo stderr>&2)']@Q}
+
+echo ${A[$(echo Darwin ; echo stderr>&2)]%ing}
+echo ${A['$(echo Darwin ; echo stderr>&2)']%ing}
+
+echo ${#A[$(echo Darwin ; echo stderr>&2)]}
+echo ${#A['$(echo Darwin ; echo stderr>&2)']}
+
+echo ${A[$(echo Darwin ; echo stderr>&2)]:-value}
+echo ${A['$(echo Darwin ; echo stderr>&2)']:-value}
+
+echo ${A[$(echo Darwin ; echo stderr>&2)]:+set}
+echo ${A['$(echo Darwin ; echo stderr>&2)']:+set}
+
+echo ${A[$(echo Darwin ; echo stderr>&2)]:+set}
+echo ${A['$(echo Darwin ; echo stderr>&2)']:+set}
+
+darjeeling=7*6
+Darwin=7*4
+
+echo $(( ${A[$(echo Darwin ; echo stderr>&2)]} ))
+echo $(( ${A['$(echo Darwin ; echo stderr>&2)']} ))

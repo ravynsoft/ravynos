@@ -1,0 +1,98 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+SAVEPWD=$PWD
+: ${TMPDIR:=/tmp}
+cd $TMPDIR || echo "heredoc3.sub: cannot cd to $TMPDIR" >&2
+
+text=$(cat <<EOF
+here is the text
+EOF)
+
+echo = $text =
+
+unbalanced=$(cat <<EOF
+this paren ) is not a problem
+EOF)
+
+echo $unbalanced
+
+balanced=$(cat <<EOF
+these balanced parens ( ) are not a problem
+EOF)
+
+echo $balanced
+
+balanced=$(cat <<EOF
+quoted balanced parens \( ) are not a problem either
+EOF)
+
+echo $balanced
+
+(cat <<EOF
+more text in a subshell
+EOF
+)
+
+(cat <<EOF; )
+some more text in a different subshell
+EOF
+echo end
+
+# semi-weird examples posted by Wayne Pollack to austin-group mailing list
+cat <<-'	END'
+	hello
+	END
+
+cat <<END
+hello
+END\
+END
+END
+echo end ENDEND
+
+cat <<'    END    '
+hello
+    END    
+echo end hello
+
+cat <<x*x >/dev/null & touch 'x*x'
+x star x
+x*x
+wait $!
+echo end 'x*x'
+rm 'x*x'
+
+cat <<END
+hello\
+END
+END
+echo end helloEND
+
+cat <<END
+hello
+\END
+END
+echo -E end 'hello<NL>\END'
+
+# gprof
+if [ -n "$GMON_OUT_PREFIX" ]; then
+	mv ${GMON_OUT_PREFIX}.[0-9]* "$SAVEPWD" >/dev/null 2>&1
+fi
+cd "$SAVEPWD"
+
+# this has to be last -- results in a syntax error
+# doesn't currently parse because EOF is not on a line by itself -- should it?
+(cat <<EOF
+still more text in a subshell
+EOF)

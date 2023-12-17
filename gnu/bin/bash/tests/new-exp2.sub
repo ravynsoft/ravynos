@@ -1,0 +1,62 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+export LC_ALL=C
+export LANG=C
+
+# test out the new $(< filename) code
+# it should be exactly equivalent to $(cat filename)
+
+FILENAME=$TMPDIR/bashtmp.x$$
+
+trap 'rm -f $FILENAME' 0
+
+cat >$FILENAME << EOF
+line 1
+line 2
+line 3
+EOF
+
+LINES1=$(cat $FILENAME)
+LINES2=$(< $FILENAME)
+
+if [[ $LINES1 != $LINES2 ]]; then
+	echo 'whoops: $(< filename) failed'
+fi
+
+LINES2=$(< $TMPDIR/bashtmp.x*)
+if [[ $LINES1 != $LINES2 ]]; then
+	echo 'whoops: $(< filename) with glob expansion failed'
+fi
+
+# but the glob expansion in the redirection should fail in posix mode
+set -o posix
+exec 3>&2
+exec 2>/dev/null
+LINES2=$(< $TMPDIR/bashtmp.x*)
+exec 2>&3
+if [[ $LINES2 -gt 0 ]]; then
+	echo "whoops: redirection glob expansion should be disabled in posix mode" >&2
+fi
+set +o posix
+
+# now see what happens when we try it with a non-existent file
+rm -f /tmp/redir-notthere
+LINES3=$(< /tmp/redir-notthere)
+echo $?
+
+# These were bugs through bash-4.2
+{ : "$({xxxxxxxxxxxxxxxxxxxx}</dev/stdin)"; } <<<'hi'
+echo ${xxxxxxxxxxxxxxxxxxxx}
+
+{ echo "$(1111111111111111111111</dev/stdin)"; } <<<'hi'

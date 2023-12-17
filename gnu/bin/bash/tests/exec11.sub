@@ -1,0 +1,14 @@
+trap 'echo USR1 $BASHPID' USR1
+trap 'echo foo $BASH_SUBSHELL' 0
+
+trap | cat
+echo between
+( trap )
+echo between 2
+{ trap; } | cat
+
+( echo in subshell: $BASH_SUBSHELL )
+( echo in subshell pipeline: $BASH_SUBSHELL ) | cat
+
+{ echo group pipeline: $BASH_SUBSHELL;
+  trap 'echo EXIT-group.$BASH_SUBSHELL' EXIT; } | cat

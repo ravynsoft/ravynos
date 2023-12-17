@@ -1,0 +1,25 @@
+#! /bin/bash
+
+i=0
+while [ $i -lt  $1 ]
+do
+    /bin/sh -c "sleep 4; exit 0" &
+    rv=$?
+    pid=$!
+    eval bg_pid_$i=$pid
+    echo $$: Job $i: pid is $pid rv=$rv
+    i=$((i + 1))
+done
+
+
+
+i=0
+while [ $i -lt $1 ]
+do
+    eval wpid=\$bg_pid_$i
+    echo Waiting for job $i '('pid $wpid')'
+    wait $wpid
+    rv=$?
+    echo Return value is $rv
+    i=$((i + 1))
+done

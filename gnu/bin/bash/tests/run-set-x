@@ -1,0 +1,11 @@
+#!../bash
+#$Id: run-set-x,v 1.1 2002/12/09 13:12:37 rockyb Exp $
+
+TEST_NAME='set-x'
+TEST_FILE="/tmp/${TEST_NAME}.check"
+${THIS_SH} ./${TEST_NAME}.tests > $TEST_FILE 2>&1 < /dev/null
+set -f
+diff $TEST_FILE ${TEST_NAME}.right && rm -f $TEST_FILE
+
+# Return code tells testing mechanism whether passed or not.
+exit $?

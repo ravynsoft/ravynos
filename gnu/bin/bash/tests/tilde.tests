@@ -1,0 +1,94 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+wdir=$PWD
+# this is needed because posix mode restricts tilde expansion to assignment
+# statements preceding a command, instead of the default of expanding all
+# assignment statements on the line (e.g., after `export').  Without this,
+# the next-to-last test fails
+set +o posix
+
+HOME=/usr/xyz
+SHELL=~/bash
+echo ~ch\et
+echo ~/"foo"
+echo "~chet"/"foo"
+echo \~chet/"foo"
+echo \~chet/bar
+echo ~\chet/bar
+echo ~chet""/bar
+echo ":~chet/"
+echo abcd~chet
+echo "SHELL=~/bash"
+echo $SHELL
+echo abcd:~chet
+path=/usr/ucb:/bin:~/bin:~/tmp/bin:/usr/bin
+echo $path
+
+cd /usr
+cd /tmp
+echo ~-
+echo ~+
+
+XPATH=/bin:/usr/bin:.
+
+# yes tilde expansion
+PPATH=$XPATH:~/bin
+echo "$PPATH"
+
+# no tilde expansion
+PPATH="$XPATH:~/bin"
+echo "$PPATH"
+
+# yes tilde expansion
+export PPATH=$XPATH:~/bin
+echo "$PPATH"
+declare -x PPATH=$XPATH:~/bin
+echo "$PPATH"
+
+# no tilde expansion
+export PPATH="$XPATH:~/bin"
+echo "$PPATH"
+declare -x PPATH="$XPATH:~/bin"
+echo "$PPATH"
+
+printf "%q\n" '~'
+
+# more tests of tilde expansion when executing case commands
+case ~ in
+$HOME)	echo ok 1;;
+*) echo bad 1 ;;
+esac
+
+case ~ in
+~)	echo ok 2 ;;
+\~)	echo bad 2a ;;
+*)	echo bad 2b ;;
+esac
+
+case $unset in
+"")	echo ok 3 ;;
+*)	echo bad 3 ;;
+esac
+
+USER=root		# should exist just about everywhere
+echo ~$USER
+
+cd "$wdir"
+
+# this test is incomplete; should also test assignment statements (tilde3.sub)
+echo foo=bar:~
+set -o posix
+echo foo=bar:~
+
+exit 0

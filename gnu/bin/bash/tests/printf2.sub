@@ -1,0 +1,13 @@
+unset LC_ALL LC_CTYPE
+
+export LANG=C
+case $(printf %d\\n \'A) in
+65)	;;
+*)	echo "printf2.sub: character conversion failed" >&2  ;;
+esac
+
+export LANG=en_US.UTF-8
+case $(printf %d\\n \'À) in
+192)	exit 0;;
+*)	echo "printf2.sub: multibyte character conversion failed" >&2 ; exit 2 ;;
+esac

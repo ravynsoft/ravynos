@@ -1,0 +1,8 @@
+# Right now, the {varname} mechanism does not honor set -u for compatibility
+unset v
+set -u
+exec {v}>&-
+
+echo after
+
+exit 0

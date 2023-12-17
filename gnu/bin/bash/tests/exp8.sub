@@ -1,0 +1,45 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+var=$'x\001y\177z'
+
+recho "$var"
+recho $var
+
+declare -p var
+recho $(declare -p var)
+
+echo "var=$var" | sed -n l
+echo "declare -- var=\"$var\"" | sed -n l
+
+recho ${var@Q}
+recho ${var@P}
+echo -E ${var@A}
+
+unset array
+array=( [$'x\001y\177z']=foo )	# should be error
+echo -E ${array[@]@A}
+
+unset array
+declare -a array=([0]=$'x\001y\177z')
+declare -p array
+
+unset array
+array=( "$var" )
+recho ${array[@]}
+echo -E ${array[@]@A}
+
+unset array
+declare -A array
+array=( [$'x\001y\177z']=$'a\242b\002c' )
+echo -E ${array[@]@A}

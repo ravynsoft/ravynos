@@ -1,0 +1,95 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+a=$'a\001b'
+
+e=$'uv\001\001wx'
+
+recho $a
+recho $e
+
+recho ${a/$'\001'/A}
+recho "${a/$'\001'/A}"
+recho ${e/$'\001'/A}
+recho "${e/$'\001'/A}"
+
+recho ${a/b/B}
+recho "${a/b/B}"
+recho ${e/w/W}
+recho "${e/w/W}"
+
+recho ${a//$'\001'/A}
+recho "${a//$'\001'/A}"
+recho ${e//$'\001'/A}
+recho "${e//$'\001'/A}"
+
+recho ${a//b/B}
+recho "${a//b/B}"
+recho ${e//w/W}
+recho "${e//w/W}"
+
+# pos params pat subst
+
+set $e $e
+
+recho ${@/$'\001'/A}
+recho "${@/$'\001'/A}"
+recho ${@/w/W}
+recho "${@/w/W}"
+
+recho ${@//$'\001'/A}
+recho "${@//$'\001'/A}"
+recho ${@//w/W}
+recho "${@//w/W}"
+
+arr[0]=$a
+arr[1]=$e
+
+recho ${arr[0]}
+recho ${arr[1]}
+
+recho ${arr[0]/$'\001'/A}
+recho "${arr[0]/$'\001'/A}"
+recho ${arr[1]/$'\001'/A}
+recho "${arr[1]/$'\001'/A}"
+
+recho ${arr[0]/b/B}
+recho "${arr[0]/b/B}"
+recho ${arr[1]/w/W}
+recho "${arr[1]/w/W}"
+
+recho ${arr[0]//$'\001'/A}
+recho "${arr[0]//$'\001'/A}"
+recho ${arr[1]//$'\001'/A}
+recho "${arr[1]//$'\001'/A}"
+
+recho ${arr[0]//b/B}
+recho "${arr[0]//b/B}"
+recho ${arr[1]//w/W}
+recho "${arr[1]//w/W}"
+
+recho ${arr[@]/$'\001'/A}
+recho "${arr[@]/$'\001'/A}"
+
+recho ${arr[@]/b/B}
+recho "${arr[@]/b/B}"
+recho ${arr[@]/w/W}
+recho "${arr[@]/w/W}"
+
+recho ${arr[@]//$'\001'/A}
+recho "${arr[@]//$'\001'/A}"
+
+recho ${arr[@]//b/B}
+recho "${arr[@]//b/B}"
+recho ${arr[@]//w/W}
+recho "${arr[@]//w/W}"

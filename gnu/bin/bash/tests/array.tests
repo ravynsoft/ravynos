@@ -1,0 +1,429 @@
+#   This program is free software: you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation, either version 3 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License
+#   along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#
+# this is needed so that the bad assignments (b[]=bcde, for example) do not
+# cause fatal shell errors when in posix mode
+set +o posix
+
+set +a
+# The calls to egrep -v are to filter out builtin array variables that are
+# automatically set and possibly contain values that vary.
+
+# first make sure we handle the basics
+x=()
+echo ${x[@]}
+unset x
+
+# this should be an error
+test=(first & second)
+echo $?
+unset test
+
+# make sure declare -a converts an existing variable to an array
+unset a
+a=abcde
+declare -a a
+echo ${a[0]}
+if [ "$a" != "${a[0]}" ]; then
+	echo 'array.tests: $a and $a[0] array mismatch'
+fi
+
+unset a
+a=abcde
+a[2]=bdef
+
+unset b
+declare -a b[256]
+
+unset c[2]
+unset c[*]
+
+a[1]=
+
+_ENV=/bin/true
+x=${_ENV[(_$-=0)+(_=1)-_${-%%*i*}]}
+
+declare -r c[100]
+
+echo ${a[0]} ${a[4]}
+echo ${a[@]}
+
+echo ${a[*]}
+
+# this should print out values, too
+declare -a | egrep -v '(BASH_VERSINFO|PIPESTATUS|GROUPS)'
+
+unset a[7]
+echo ${a[*]}
+
+unset a[4]
+echo ${a[*]}
+
+echo ${a}
+echo "${a}"
+echo $a
+
+unset a[0]
+echo ${a}
+
+echo ${a[@]}
+
+a[5]="hello world"
+echo ${a[5]}
+echo ${#a[5]}
+
+echo ${#a[@]}
+
+a[4+5/2]="test expression"
+declare a["7 + 8"]="test 2"
+a[7 + 8]="test 2"
+echo ${a[@]}
+
+readonly a[5]
+readonly a
+# these two lines should output `declare' commands
+readonly -a | egrep -v '(BASH_VERSINFO|PIPESTATUS|GROUPS)'
+declare -ar | egrep -v '(BASH_VERSINFO|PIPESTATUS|GROUPS)'
+# this line should output `readonly' commands, even for arrays
+set -o posix
+readonly -a | egrep -v '(BASH_VERSINFO|PIPESTATUS|GROUPS)'
+set +o posix
+
+declare -a d='([1]="" [2]="bdef" [5]="hello world" "test")'
+d[9]="ninth element"
+
+declare -a e[10]=test	# this works in post-bash-2.05 versions
+declare -a e[10]='(test)'
+
+pass=/etc/passwd
+declare -a f='("${d[@]}")'
+b=([0]=this [1]=is [2]=a [3]=test [4]="$PS1" [5]=$pass)
+
+echo ${b[@]:2:3}
+
+declare -pa | egrep -v '(BASH_VERSINFO|PIPESTATUS|GROUPS)'
+
+a[3]="this is a test"
+
+b[]=bcde
+b[*]=aaa
+echo ${b[   ]}
+
+c[-2]=4
+echo ${c[-4]}
+
+d[7]=(abdedfegeee)
+
+d=([]=abcde [1]="test test" [*]=last [-65]=negative )
+
+unset d[12]
+unset e[*]
+
+declare -a | egrep -v '(BASH_VERSINFO|PIPESTATUS|GROUPS)'
+
+ps1='hello'
+unset ps1[2]
+unset ${ps1[2]}
+
+declare +a ps1
+declare +a c
+
+# the prompt should not print when using a here doc
+read -p "array test: " -a rv <<!
+this is a test of read using arrays
+!
+
+echo ${rv[0]} ${rv[4]}
+echo ${rv[@]}
+
+# the variable should be converted to an array when `read -a' is done
+vv=1
+read -a vv <<!
+this is a test of arrays
+!
+echo ${vv[0]} ${vv[3]}
+echo ${vv[@]}
+unset vv
+
+declare -a | egrep -v '(BASH_VERSINFO|PIPESTATUS|GROUPS)'
+
+export rv
+#set
+
+x[4]=bbb
+x=abde
+echo $x
+echo ${x[0]}
+echo ${x[4]}
+echo efgh | ( read x[1] ; echo ${x[1]} )
+echo wxyz | ( declare -a x ; read x ; echo $x ; echo ${x[0]} )
+
+# Make sure that arrays can be used to save the positional parameters verbatim
+set -- a 'b c' d 'e f g' h
+
+ARGV=( [0]=$0 "$@" )
+
+for z in "${ARGV[@]}"
+do
+	echo "$z"
+done
+
+echo "$0"
+for z in "$@"
+do
+	echo "$z"
+done
+
+# do various pattern removal and length tests
+XPATH=/bin:/usr/bin:/usr/ucb:/usr/local/bin:.:/sbin:/usr/sbin
+
+xpath=( $( IFS=: ; echo $XPATH ) )
+
+echo ${xpath[@]}
+echo ${xpath[@]##*/}
+echo ${xpath[0]##*/}
+echo ${xpath[@]%%[!/]*}
+echo ${xpath[0]%%[!/]*}
+recho ${xpath##*/}
+recho ${xpath%%[!/]*}
+recho ${xpath[5]##*/}
+recho ${xpath[5]%%[!/]*}
+
+# let's try to make it a DOS-style path
+
+zecho "${xpath[@]/\//\\}"
+zecho "${xpath[@]//\//\\}"
+zecho "${xpath[@]//[\/]/\\}"
+
+# length of the first element of the array, since array without subscript
+# is equivalent to referencing first element
+echo ${#xpath} -- ${#xpath[0]}
+
+# number of elements in the array
+nelem=${#xpath[@]}
+echo ${#xpath[@]} -- $nelem
+
+# total length of all elements in the array, including space separators
+xx="${xpath[*]}"
+echo ${#xx}
+
+# total length of all elements in the array
+xx=$( IFS='' ; echo "${xpath[*]}" )
+echo ${#xx}
+
+unset xpath[nelem-1]
+
+nelem=${#xpath[@]}
+echo ${#xpath[@]} -- $nelem
+
+# arrays and things that look like index assignments
+array=(42 [1]=14 [2]=44)
+
+array2=(grep [ 123 ] \*)
+
+echo ${array[@]}
+echo "${array2[@]}"
+
+# arrays and implicit arithmetic evaluation
+declare -i -a iarray
+
+iarray=( 2+4 1+6 7+2 )
+echo ${iarray[@]}
+
+iarray[4]=4+1
+echo ${iarray[@]}
+
+# make sure assignment using the compound assignment syntax removes all
+# of the old elements from the array value
+barray=(old1 old2 old3 old4 old5)
+barray=(new1 new2 new3)
+echo "length = ${#barray[@]}"
+echo "value = ${barray[*]}"
+
+# make sure the array code behaves correctly with respect to unset variables
+set -u
+( echo ${#narray[4]} )
+
+${THIS_SH} ./array1.sub
+${THIS_SH} ./array2.sub
+
+# some old bugs and ksh93 compatibility tests
+${THIS_SH} ./array3.sub
+
+# some compound assignment parsing problems that showed up in bash-3.1-release
+${THIS_SH} ./array4.sub
+
+set +u
+cd ${TMPDIR:=/tmp}
+
+touch 1=bar
+foo=([10]="bar")
+echo ${foo[0]}
+rm 1=bar
+
+cd $OLDPWD
+
+foo=(a b c d e f g)
+echo ${foo[@]}
+
+# quoted reserved words are ok
+foo=(\for \case \if \then \else)
+echo ${foo[@]}
+
+# quoted metacharacters are ok
+foo=( [1]='<>' [2]='<' [3]='>' [4]='!' )
+echo ${foo[@]}
+
+# numbers are just words when not in a redirection context
+foo=( 12 14 16 18 20 )
+echo ${foo[@]}
+
+foo=( 4414758999202 )
+echo ${foo[@]}
+
+# this was a bug in all versions of bash 2.x up to and including bash-2.04
+declare -a ddd=(aaa
+bbb)
+echo ${ddd[@]}
+
+# errors until post-bash-2.05a; now reserved words are OK
+foo=(a b c for case if then else)
+
+foo=(for case if then else)
+
+# errors
+metas=( <> < > ! )
+metas=( [1]=<> [2]=< [3]=> [4]=! )
+
+# various expansions that didn't really work right until post-bash-2.04
+foo='abc'
+echo ${foo[0]} ${#foo[0]}
+echo ${foo[1]} ${#foo[1]}
+echo ${foo[@]} ${#foo[@]}
+echo ${foo[*]} ${#foo[*]}
+
+foo=''
+echo ${foo[0]} ${#foo[0]}
+echo ${foo[1]} ${#foo[1]}
+echo ${foo[@]} ${#foo[@]}
+echo ${foo[*]} ${#foo[*]}
+
+# new expansions added after bash-2.05b
+x[0]=zero
+x[1]=one
+x[4]=four
+x[10]=ten
+
+recho ${!x[@]}
+recho "${!x[@]}"
+recho ${!x[*]}
+recho "${!x[*]}"
+
+# sparse array tests for code fixed in bash-3.0
+unset av
+av[1]='one'
+av[2]=''
+
+av[3]=three
+av[5]=five
+av[7]=seven
+
+echo include null element -- expect one
+echo ${av[@]:1:2}	# what happens when we include a null element?
+echo include unset element -- expect three five
+echo ${av[@]:3:2}	# what happens when we include an unset element?
+echo start at unset element -- expect five seven
+echo ${av[@]:4:2}	# what happens when we start at an unset element?
+
+echo too many elements -- expect three five seven
+echo ${av[@]:3:5}	# how about too many elements?
+
+echo positive offset - expect five seven
+echo ${av[@]:5:2}
+echo negative offset to unset element - expect seven
+echo ${av[@]: -2:2}
+
+echo positive offset 2 - expect seven
+echo ${av[@]: 6:2}
+echo negative offset 2 - expect seven
+echo ${av[@]: -1:2}
+
+echo out-of-range offset
+echo ${av[@]:12}
+
+# parsing problems and other inconsistencies not fixed until post bash-3.0
+unset x
+declare -a x=(')' $$)
+[ ${x[1]} -eq $$ ] || echo bad
+
+unset x
+declare -a x=(a b c d e)
+echo ${x[4]}
+
+z=([1]=one [4]=four [7]=seven [10]=ten)
+
+echo ${#z[@]}
+
+echo ${!z[@]}
+
+unset x
+declare -a x=(a \'b  c\')
+
+echo "${x[1]}"
+
+unset x
+declare -a x=(a 'b  c')
+
+echo "${x[1]}"
+
+unset x
+declare -a x=($0)
+[ "${x[@]}" = $0 ] || echo double expansion of \$0
+declare -a x=(\$0)
+echo "${x[@]}"
+
+unset A Z
+Z='a b'
+A=( X=$Z )
+declare -p A
+
+# tests for bash-3.1 problems
+${THIS_SH} ./array5.sub
+
+# tests for post-bash-3.2 problems, most fixed in bash-3.2 patches
+${THIS_SH} ./array6.sub
+${THIS_SH} ./array7.sub
+
+${THIS_SH} ./array8.sub
+${THIS_SH} ./array9.sub
+${THIS_SH} ./array10.sub
+${THIS_SH} ./array11.sub
+${THIS_SH} ./array12.sub
+${THIS_SH} ./array13.sub
+${THIS_SH} ./array14.sub
+${THIS_SH} ./array15.sub
+${THIS_SH} ./array16.sub
+${THIS_SH} ./array17.sub
+${THIS_SH} ./array18.sub
+${THIS_SH} ./array19.sub
+${THIS_SH} ./array20.sub
+${THIS_SH} ./array21.sub
+${THIS_SH} ./array22.sub
+${THIS_SH} ./array23.sub
+${THIS_SH} ./array24.sub
+${THIS_SH} ./array25.sub
+${THIS_SH} ./array26.sub
+${THIS_SH} ./array27.sub
+${THIS_SH} ./array28.sub
+${THIS_SH} ./array29.sub
+${THIS_SH} ./array30.sub
