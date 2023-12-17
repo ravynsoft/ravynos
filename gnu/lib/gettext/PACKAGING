@@ -1,0 +1,177 @@
+Packaging hints for binary package distributors
+===============================================
+
+Although the source of the gettext package comes as a single package,
+I recommend that in distributions of binary packages the installed files
+be split into three packages:
+
+   gettext-runtime
+        Contents: Runtime libraries and programs.
+        Audience: Anyone who wants to run internationalized programs.
+
+   libtextstyle
+        Contents: Text styling library.
+        Audience: Anyone who wants to run or develop programs that produce
+                  styled text, to be displayed in a terminal emulator.
+
+   gettext-tools
+        Contents: Tools and documentation for developers and translators.
+        Audience: Anyone who wants to develop or localize internationalized
+                  programs, i.e. developers and translators.
+        Dependencies: requires gettext-runtime.
+
+The 'gettext-runtime' binary package is much smaller than the 'gettext-tools'
+binary package (420 KB versus 5.5 MB). I recommend to include it in the default
+installation list, like GNU 'coreutils'; in fact, the runtime programs are
+utilities for sh programs.
+
+The 'gettext-runtime' binary package can be installed by doing
+
+      cd gettext-runtime
+      ./configure
+      make
+      make install
+
+The 'libtextstyle' binary package can be installed by doing
+
+      cd libtextstyle
+      ./configure
+      make
+      make install
+
+The 'gettext-tools' binary package can be installed by building
+'gettext-runtime' first, and then
+
+      cd gettext-tools
+      ./configure --with-installed-libtextstyle --with-installed-csharp-dll
+      make
+      make install
+
+If you want to install all three at the same time, you simply do at the
+top-level directory:
+
+      ./configure
+      make
+      make install
+
+The precise split between gettext-runtime, libtextstyle, and gettext-tools
+is according to the following file list.
+
+   gettext-runtime
+
+      $prefix/share/gettext/ABOUT-NLS
+
+      $prefix/bin/gettext
+      $prefix/bin/ngettext
+      $prefix/bin/envsubst
+      $prefix/bin/gettext.sh
+      $prefix/share/man/man1/gettext.1
+      $prefix/share/man/man1/ngettext.1
+      $prefix/share/man/man1/envsubst.1
+      $prefix/share/doc/gettext/gettext.1.html
+      $prefix/share/doc/gettext/ngettext.1.html
+      $prefix/share/doc/gettext/envsubst.1.html
+      $prefix/share/locale/*/LC_MESSAGES/gettext-runtime.mo
+
+      $prefix/lib/libintl.*               (not installed on glibc and Solaris 11 systems)
+      $prefix/share/locale/locale.alias   (not installed on glibc and Solaris 11 systems)
+      $prefix/include/libintl.h           (not installed on glibc and Solaris 11 systems)
+      $prefix/share/man/man3/*
+      $prefix/share/doc/gettext/*.3.html
+
+      $prefix/share/gettext/libintl.jar
+      $prefix/share/doc/gettext/javadoc2/*
+
+      $prefix/lib/GNU.Gettext.dll
+      $prefix/share/doc/gettext/csharpdoc/*
+
+      $prefix/lib/libasprintf.*
+      $prefix/include/autosprintf.h
+      $prefix/share/doc/libasprintf/autosprintf*.html
+      $prefix/share/info/autosprintf.info
+
+   libtextstyle
+
+      $prefix/lib/libtextstyle.*
+      $prefix/include/textstyle.h
+      $prefix/include/textstyle/*
+      $prefix/share/doc/libtextstyle/libtextstyle*.html
+      $prefix/share/info/libtextstyle.info
+
+   gettext-tools
+
+      Everything else, i.e. currently:
+
+      $prefix/bin/msg*
+      $prefix/bin/xgettext
+      $prefix/bin/gettextize
+      $prefix/bin/autopoint
+      $prefix/bin/recode*
+      $prefix/share/man/man1/msg*.1
+      $prefix/share/man/man1/xgettext.1
+      $prefix/share/man/man1/gettextize.1
+      $prefix/share/man/man1/autopoint.1
+      $prefix/share/man/man1/recode*.1
+      $prefix/share/doc/gettext/msg*.1.html
+      $prefix/share/doc/gettext/xgettext.1.html
+      $prefix/share/doc/gettext/gettextize.1.html
+      $prefix/share/doc/gettext/autopoint.1.html
+      $prefix/share/doc/gettext/recode*.1.html
+      $prefix/share/doc/gettext/gettext_*.html
+      $prefix/share/doc/gettext/FAQ.html
+      $prefix/share/doc/gettext/tutorial.html
+      $prefix/share/doc/gettext/examples/*
+      $prefix/share/info/gettext.info*
+      $prefix/include/gettext-po.h
+      $prefix/lib/libgettextlib*
+      $prefix/lib/libgettextsrc*
+      $prefix/lib/libgettextpo*
+      $prefix/lib/preloadable_libintl.so  (only installed on glibc systems;
+                                           actually installed by gettext-runtime's "make install")
+      $prefix/lib/gettext/*
+      $prefix/share/locale/*/LC_MESSAGES/gettext-tools.mo
+      $prefix/share/gettext/config.rpath
+      $prefix/share/gettext/po/*
+      $prefix/share/gettext/projects/*
+      $prefix/share/gettext/styles/*
+      $prefix/share/gettext/gettext.h
+      $prefix/share/gettext/gettext.jar
+      $prefix/share/gettext/javaversion.class
+      $prefix/share/gettext/msgunfmt.tcl
+      $prefix/share/gettext/archive.git.tar.*
+      $prefix/share/gettext/archive.dir.tar.*   (only installed if --without-git specified)
+      $prefix/share/gettext/archive.cvs.tar.*   (only installed if --with-cvs specified)
+      $prefix/share/gettext-$VERSION/its/*
+      $prefix/share/aclocal/build-to-host.m4
+      $prefix/share/aclocal/gettext.m4
+      $prefix/share/aclocal/host-cpu-c-abi.m4
+      $prefix/share/aclocal/iconv.m4
+      $prefix/share/aclocal/intlmacosx.m4
+      $prefix/share/aclocal/lib-ld.m4
+      $prefix/share/aclocal/lib-link.m4
+      $prefix/share/aclocal/lib-prefix.m4
+      $prefix/share/aclocal/nls.m4
+      $prefix/share/aclocal/po.m4
+      $prefix/share/aclocal/progtest.m4
+      $prefix/share/emacs/site-lisp/po-compat.el
+      $prefix/share/emacs/site-lisp/po-compat.elc
+      $prefix/share/emacs/site-lisp/po-mode.el
+      $prefix/share/emacs/site-lisp/po-mode.elc
+      $prefix/share/emacs/site-lisp/start-po.el
+      $prefix/share/emacs/site-lisp/start-po.elc
+
+
+Java support:
+-------------
+
+If some Java implementation is available, two programs will be compiled to
+Java bytecode:
+      $prefix/share/gettext/gettext.jar
+and the gettext-tools package will therefore have a runtime dependency to
+the Java virtual machine (OpenJDK, Oracle Java, IBM Java, or other).
+
+
+C# support:
+-----------
+
+For C# support, mono must be available at build time and at run time.

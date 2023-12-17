@@ -1,0 +1,1453 @@
+Version 0.22.4 - November 2023
+
+* Bug fixes:
+  - AM_GNU_GETTEXT now recognizes a statically built libintl on macOS and AIX.
+  - Build fixes on AIX.
+
+Version 0.22.3 - October 2023
+
+* Portability:
+  - The libintl library now works on macOS 14.  (Older versions of libintl
+    crash on macOS 14, due to an incompatible change in macOS.)
+
+Version 0.22.2 - September 2023
+
+* Bug fixes:
+  - The libintl shared library now exports again some symbols that were
+    accidentally missing.
+    <https://savannah.gnu.org/bugs/index.php?64323>
+    This bug was introduced in version 0.22.
+
+Version 0.22.1 - September 2023
+
+* Bug fixes:
+  - xgettext's processing of large Perl files may have led to errors
+    <https://savannah.gnu.org/bugs/index.php?64552>
+  - "xgettext --join-existing" could encounter errors.
+    <https://savannah.gnu.org/bugs/index.php?64490>
+  These bugs were introduced in version 0.22.
+
+* Portability:
+  - Building on Android is now supported.
+
+Version 0.22 - June 2023
+
+* PO file format:
+  - When a #: line contains references to file names that contain spaces,
+    these file names are surrounded by Unicode characters U+2068 and U+2069.
+    This makes it possible to parse such references correctly.
+
+* Improvements for maintainers:
+  - The AM_GNU_GETTEXT macro now defines two variables localedir_c and
+    localedir_c_make, that can be used in C code or in Makefiles,
+    respectively, for representing the value of the --localedir configure
+    option.
+
+* Programming languages support:
+  - C, C++:
+    o xgettext now supports gettext-like functions that take wide strings
+      (of type 'const wchar_t *', 'const char16_t *', or 'const char32_t *')
+      as arguments.
+    o xgettext now recognizes numbers with digit separators, as defined by
+      ISO C 23, as tokens.
+    o xgettext and msgfmt now recognize the format string directive %b
+      (for binary integer output, as defined by ISO C 23) in format strings.
+    o xgettext and msgfmt now recognize the argument size specifiers
+      w8, w16, w32, w64, wf8, wf16, wf32, wf64 (as defined by ISO C 23)
+      in format strings.
+    o xgettext and msgfmt now recognize C++ format strings, as defined by
+      ISO C++ 20.  They are marked as 'c++-format' in POT and PO files.
+      A new example has been added, 'hello-c++20', that illustrates how
+      to use these format strings with gettext.
+  - Java:
+    o The build system and tools now also support Java versions newer than
+      Java 11. This is known to work up to Java 20, at least. On the other
+      hand, support for old versions of Java (Java 1.5 and GCJ) has been
+      dropped.
+  - Tcl: xgettext now supports the \x, \u, and \U escapes as defined in
+    Tcl 8.6.
+
+* Portability:
+  - On systems with musl libc, the *gettext() functions in libc now work
+    with MO files generated from PO files with an encoding other than UTF-8.
+    To this effect, the msgfmt program now converts the messages to UTF-8
+    encoding before storing them in a MO file.  You can prevent this by
+    using the msgfmt --no-convert option.
+  - On systems with musl libc, the *gettext() functions in libc now work
+    with MO files generated from PO files with ISO C 99 <inttypes.h> format
+    string directive macros.  To this effect, the msgfmt program pre-expands
+    strings with such macros.  You can prevent this by using the msgfmt
+    --no-redundancy option.
+
+* xgettext:
+  - The xgettext option '--sorted-output' is now deprecated.
+  - xgettext input files of type PO that are not all ASCII and not UTF-8
+    encoded are now handled correctly.
+
+* The base Unicode standard is now updated to 15.0.0.
+
+* Emacs PO mode:
+  Fix an incompatibility with Emacs version 29 or newer.
+
+Version 0.21.1 - October 2022
+
+* Runtime behaviour:
+  - On AIX, locale names with a script or with an uppercase language are now
+    supported.
+    For example, sr_Cyrl_RS.UTF-8 is treated like sr_RS.UTF-8@cyrillic, and
+    EN_US.UTF-8 is treated like en_US.UTF-8.
+
+* The base Unicode standard is now updated to 14.0.0.
+
+* Portability:
+  - Building on macOS 11/arm64 is now supported.
+  - Building on Linux/powerpc64le with glibc ≥ 2.35 is now supported.
+
+Version 0.21 - July 2020
+
+* Programming languages support:
+  - Shell:
+    o xgettext now recognizes and ignores 'env' invocations and environment
+      variable assignments in front of commands.
+  - Java:
+    o xgettext now recognizes format strings in the Formatter syntax.  They
+      are marked as 'java-printf-format' in POT and PO files.
+    o xgettext now recognizes text blocks as string literals.
+  - JavaScript:
+    xgettext parses JSX expressions more reliably.
+  - Ruby:
+    o xgettext now supports Ruby.
+    o 'msgfmt -c' now verifies the syntax of translations of Ruby format
+      strings.
+
+* Runtime behaviour:
+  - On native Windows platforms, the directory that contains the message
+    catalogs may now contain arbitrary Unicode characters. To make use of
+    this feature, use the new function 'wbindtextdomain' instead of
+    'bindtextdomain'. It allows to pass a directory name in wchar_t[] encoding.
+    Note: 'wbindtextdomain' exists only on native Windows platforms.
+
+* Improvements for translators:
+  - When msgfmt writes a MO file, it now does so in such a way that processes
+    that are currently using an older copy of the MO file will not crash.
+
+* Libtextstyle:
+  - Added support for emitting hyperlinks.
+  - New API for doing formatted output.
+  - The example programs support the NO_COLOR environment variable.
+
+Version 0.20.2 - April 2020
+
+* Improvements for maintainers:
+  - A dependency bug in po/Makefile.in.in has been fixed.
+
+* Programming languages support:
+  - Shell:
+    o The programs 'gettext', 'ngettext', when invoked with option -e, now
+      expand '\\' and octal escape sequences, instead of swallowing them.
+      (Bug present since the beginning.)
+    o xgettext now recognizes 'gettext' program invocations with the '-e'
+      option, such as
+        gettext -e 'some\nstring\n'
+  - Python:
+    xgettext now assumes a Python source file is in UTF-8 encoding by default,
+    as stated in PEP 3120.
+  - Desktop Entry:
+    The value of the 'Icon' property is no longer extracted into the POT file
+    by xgettext.  The documentation explains how to localize icons.
+
+* Runtime behaviour:
+  - The interpretation of the language preferences on macOS has been improved,
+    especially in the case where a system locale does not exist for the
+    combination of the selected primary language and the selected territory.
+  - Fixed a multithread-safety bug on Cygwin and native Windows.
+
+* Libtextstyle:
+  - Fixed a number of bugs (by upgrading libcroco to version 0.6.13).
+
+Version 0.20.1 - May 2019
+
+* Important bug fix:
+  - Fixed a wrong shared library versioning of libintl.so.
+
+Version 0.20 - May 2019
+
+* Support for reproducible builds:
+  - msgfmt now eliminates the POT-Creation-Date header field from .mo files.
+
+* Improvements for translators:
+  - update-po target in Makefile.in.in now uses msgmerge --previous.
+
+* Improvements for maintainers:
+  - msgmerge now has an option --for-msgfmt, that produces a PO file meant
+    for use by msgfmt only.  This option saves processing time, in particular
+    by omitting fuzzy matching that is not useful in this situation.
+  - The .pot file in a 'po' directory is now erased by "make maintainer-clean".
+  - It is now possible to override xgettext options from the po/Makefile.in.in
+    through options in XGETTEXT_OPTIONS (declared in po/Makevars).
+  - The --intl option of the gettextize program (deprecated since 2010) is
+    no longer available. Instead of including the intl sources in your package,
+    we suggest making the libintl library an optional prerequisite of your
+    package. This will simplify the build system of your package.
+  - Accordingly, the Autoconf macro AM_GNU_GETTEXT_INTL_SUBDIR is gone as well.
+
+* Programming languages support:
+  - C, C++:
+    xgettext now supports strings in u8"..." syntax, as specified in C11
+    and C++11.
+  - C, C++:
+    xgettext now supports 'p'/'P' exponent markers in number tokens, as
+    specified in C99 and C++17.
+  - C++:
+    xgettext now supports underscores in number tokens.
+  - C++:
+    xgettext now supports single-quotes in number tokens, as specified in
+    C++14.
+  - Shell:
+    o The programs 'gettext', 'ngettext' now support a --context argument.
+    o gettext.sh contains new function eval_pgettext and eval_npgettext
+      for producing translations of messages with context.
+  - Java:
+    o xgettext now supports UTF-8 encoded .properties files (a new feature
+      of Java 9).
+    o The build system and tools now support Java 9, 10, and 11. On the
+      other hand, support for old versions of Java (Java 5 and older,
+      GCJ 4.2.x and older) has been dropped.
+  - Perl:
+    o Native support for context functions (pgettext, dpgettext, dcpgettext,
+      npgettext, dnpgettext, dcnpgettext).
+    o better detection of question mark and slash as operators (as opposed 
+      to regular expression delimiters).
+  - Scheme:
+    xgettext now parses the syntax for specialized byte vectors (#u8(...),
+    #vu8(...), etc.) correctly.
+  - Pascal:
+    xgettext can now extract strings from .rsj files, produced by the
+    Free Pascal compiler version 3.0.0 or newer.
+  - Vala:
+    xgettext now parses escape sequences in strings more accurately.
+  - JavaScript:
+    xgettext now parses template literals correctly.
+
+* Runtime behaviour:
+  - The interpretation of the language preferences on macOS has been fixed.
+  - Per-thread locales are now also supported on Solaris 11.4.
+  - The replacements for the printf()/fprintf()/... functions that are
+    provided through <libintl.h> on native Windows and NetBSD are now POSIX
+    compliant.  There is no conflict any more between these replacements
+    and other possible replacements provided by gnulib or mingw.
+
+* Libtextstyle:
+  - This package installs a new library 'libtextstyle', together with a new
+    header file <textstyle.h>.  It is a library for styling text output sent
+    to a console or terminal emulator.
+    Packagers: please see the suggested packaging hints in the file PACKAGING.
+
+Version 0.19.8 - June 2016
+
+* Support for reproducible builds:
+  - msgfmt now produces little-endian .mo files by default.
+
+* Programming languages support:
+  - XML:
+    xgettext and msgfmt now look for .its files in directories
+    supplied through the GETTEXTDATADIRS or XDG_DATA_DIRS environment
+    variable.
+  - JavaScript:
+    xgettext and msgfmt now recognize numbered arguments in format
+    strings.
+
+* Portability:
+  - Improve OS/2 kLIBC support.
+  - Fix libintl compilation issue with pre-C99 compilers.  It was a
+    regression since 0.19.5.
+  - The AM_GNU_GETTEXT Autoconf macro can now detect musl-libc's
+    gettext as a compatible implementation.
+
+Version 0.19.7 - December 2015
+
+* Programming languages support:
+  - XML:
+    xgettext can now load custom string extraction rules supplied by
+    consumer projects.  The rules are written in XML, utilizing the
+    Internationalization Tag Set (ITS) standard.  All the existing
+    XML-based language scanners (Glade, GSettings, and AppData) are
+    rewritten using ITS.  In addition, msgfmt now has --xml option to
+    merge translations back to the original XML document.
+
+* Portability:
+  - Improve OS/2 kLIBC support (still not complete)
+  - Remove dependency on expat
+
+Version 0.19.6 - September 2015
+
+* Programming languages support:
+  - AppData:
+    xgettext now supports AppData file format, used by software center
+    applications (e.g., GNOME Software) to describe installable
+    applications.
+
+* A new macro AM_GNU_GETTEXT_REQUIRE_VERSION can be used to indicate
+  autopoint to pull the latest available infrastructure, instead of
+  the exact version specified with AM_GNU_GETTEXT_VERSION.  When
+  AM_GNU_GETTEXT_REQUIRE_VERSION is used, AM_GNU_GETTEXT_VERSION is
+  ignored.
+
+* po/Makefile.in.in can now insert the file $(DOMAIN).pot-header to
+  $(DOMAIN).pot, instead of the standard header comments.
+
+* Bug fixes:
+  - Fix mishandling of gettext version numbers for minor releases, in
+    po-mode.el and gettextize.
+  - Fix build with --enable-relocatable.
+
+Version 0.19.5 - July 2015
+
+* xgettext now has a feature to perform syntax checks on msgid, which
+  could enforce common styles of translatable strings, such as to
+  prefer Unicode characters to the corresponding ASCII characters.
+  They can be enabled with --check option or special "xgettext: "
+  comment in the source code.  By default, no syntax checks are
+  enabled.
+
+* msgfilter and msgexec now have an option --newline, which appends a
+  newline character to filter input and trims it from the filter
+  output.  This would allow filter programs to be more POSIX friendly.
+
+* The base Unicode standard is now updated to 8.0.0.  This
+  particularly improves "\N{...}" notation handling of xgettext for
+  Perl and Python.
+
+* msginit is now capable of generating "Plural-Forms:" from Unicode
+  CLDR.  This feature is still experimental, but you can try it by
+  setting the GETTEXTCLDRDIR environment variable pointing to the
+  directory where the CLDR archive is extracted.  The actual
+  conversion is done by a helper program 'cldr-plural', which can be
+  used as a generic converter and evaluator of CLDR plural forms.
+
+* Programming languages support:
+  - C++ with KDE: xgettext and msgfmt can now recognize KUIT (KDE User
+    Interface Text) markup.  See the documentation section "KUIT
+    Format Strings" for more info.
+  - C++ with KDE: xgettext now recognizes all default KDE keywords.
+    This removes the need for a long list of --keyword and --flag
+    options to perform a reasonable extraction.
+
+* Bug fixes:
+  - xgettext C++11 raw string recognition is now stricter and don't
+    accept unbalanced delimiters.
+  - Suppress baseless warnings which msgfmt emits when processing a
+    .desktop file.
+  - xgettext line wrapping behaviour is now consistent between comment
+    lines and non-comment lines.
+  - Fix msgfilter-7 test failure on some platforms.
+  - Fix VPATH build.
+
+Version 0.19.4 - December 2014
+
+* The --keyword option of xgettext now accepts same argument number
+  for both singular and plural forms.
+
+* Programming languages support:
+  - C#: xgettext now properly handles Unicode characters encoded with
+    surrogate pairs.
+  - C/C++: xgettext now recognizes ISO/IEC 9899:2011 string literals
+    prefixed by R, u8, u8R, u, uR, U, UR, L, or LR.
+  - Shell: xgettext now properly recognizes Bash ANSI-C quoting ($'...').
+
+* Bug fixes:
+  - Fix integer overflow when reading certain MO files with msgunfmt.
+  - Avoid invalid memory access in various cases.  In particular, when
+    the same argument number is specified for singular/plural
+    arguments, and when checking Lisp and Scheme format strings.
+
+* Portability:
+  - Building on Mac OS X 10.10 and AIX 7.1 is now supported.
+
+Version 0.19.3 - October 2014
+
+* Bug fixes:
+  - Fix xgettext mishandling of octal character escapes in C.
+  - Fix autopoint infinite recursion with certain configure.ac.
+
+* The po/Makevars file has a new field MSGINIT_OPTIONS, that can be
+  used to adjust msginit's operation.  This is particularly useful for
+  controlling line wrapping behavior together with MSGMERGE_OPTIONS
+  and XGETTEXT_OPTIONS.
+
+* Portability:
+  - Building on Solaris 10 and 11 with Solaris Studio compiler is now
+    fixed.
+
+Version 0.19.2 - July 2014
+
+* Bug fixes:
+  - Fix xgettext crash in parsing empty string literals in C and Vala.
+  - ChangeLog file is added back to the gettext infrastructure.  It was
+    mistakenly removed in 0.19.
+  - Autoconf macro trace in autopoint now works again with Autoconf 2.68
+    or earlier.  It was a regression in 0.19.
+
+Version 0.19.1 - June 2014
+
+* Programming languages support:
+
+  - Desktop Entry:
+    msgfmt now always reads the po/LINGUAS file, regardless of whether
+    the LINGUAS environment variable is set.  The variable can now be
+    used to restrict the languages list read from the po/LINGUAS file.
+
+  - Vala:
+    Bug fix in xgettext handling of "//" in string literals.  This was
+    a regression after the C-99 Unicode escape support.
+
+* The po/Makevars.template file now contains the newly added variables.
+
+* msgfmt now treats errors in the PO file header as non-fatal.  Since
+  0.19 msgfmt started to abort on the fatal errors, but some
+  translation systems are still not ready to supply valid headers.
+
+* Future backward-incompatibilities:
+  - In future Gettext versions, msgfmt will treat header errors as
+    fatal and terminate the command execution.
+
+Version 0.19 - June 2014
+
+* Programming languages support:
+
+  - Desktop Entry:
+    xgettext and msgfmt now support .desktop files, used by desktop
+    applications, as input and output.
+
+  - GSettings:
+    xgettext now supports GSettings schema file format used by GNOME
+    applications.
+
+  - JavaScript:
+    xgettext now recognizes E4X (ECMA-357) constructs.
+
+  - PHP:
+    Single and double quotes around heredoc markers are now recognized.
+
+  - Python:
+    The acceptable format specifiers in the braced-syntax format
+    strings are now limited to the Standard Format Specifiers, to
+    reasonably avoid false-positives.
+
+  - Scheme:
+    The gettext shorthand form _"abc", used by GIMP script-fu, is now
+    recognized by xgettext.
+
+  - C and Vala:
+    xgettext now recognizes C99-style Unicode character escapes.
+
+* The --add-location option of msgattrib, msgcat, msgcomm, msgconv,
+  msgen, msgfilter, msggrep, msgmerge, msguniq, and xgettext commands
+  now takes an optional argument 'never', 'full', or 'file', to
+  control the format of "#: ..." comments.
+
+* msgfmt now has --source option to keep generated .java file when
+  running in Java mode.
+
+* msgattrib now has --empty option that sets msgstr to empty when
+  clearing fuzzy flag.
+
+* msgexec and msgfilter pass the plural information to subprocess
+  through the environment variable MSG{EXEC,FILTER}_MSGID_PLURAL and
+  MSG{EXEC,FILTER}_PLURAL_FORM.
+
+* New built-in filters 'quot' and 'boldquot' have been added to
+  msgfilter.  These filters convert Latin quotation marks ('...',
+  "...") into Unicode quotation marks (for example, U+2018) if
+  possible, similar to the sed commands used in po/Rules-quot and
+  po/Rules-boldquot.
+
+* The po/Makevars file has a couple of new options PO_DEPENDS_ON_POT
+  and DIST_DEPENDS_ON_UPDATE_PO, that can be used to adjust the
+  behavior of updating PO files on demand.
+
+* xgettext now strips prefixed string before the comment tag.  This is
+  useful to support C-style comment like this:
+
+  /*
+   * TRANSLATORS: first line
+   * second line
+   */
+
+  In this example, the extracted comment does not contain "* " at the
+  beginning of each line.
+
+* libgettextpo library:
+  - Memory leak fixes in the PO file parser.
+
+* Documentation:
+  - A complete example showing the use of GNU gettext in a GNOME 3
+    application has been added.
+
+
+Version 0.18.3 - July 2013
+
+* Runtime behaviour:
+  On Mac OS X systems, the setlocale() function now properly
+  invalidates loaded message catalogs when a locale has been set.
+
+* Programming languages support:
+
+  - C++:
+    The gnu::autosprintf class now provides an assignment operator.
+
+  - Glade:
+    xgettext now supports GtkBuider file format used by Glade 3.
+    xgettext now also extracts contexts (msgctxt) from Glade 2 and
+    GtkBuider files.
+
+  - JavaScript:
+    xgettext now partially supports JavaScript.  Since the current
+    JavaScript specification (ECMA-262) does not define the standard
+    set of formatting methods nor translation functions, the
+    implementation supports only a limited set of formatting methods
+    and translation functions commonly used in Gjs and other popular
+    JavaScript implemenations and libraries.
+
+  - Lua:
+    xgettext now supports Lua, using Ľubomír Remák's lua-gettext.
+
+  - Python:
+    xgettext and msgfmt's format string checking now recognize Python
+    format string in braced syntax (PEP 3101).  xgettext now also
+    supports explicit string concatenation with '+' and handles
+    platform dependent line terminators (LF/CR/CRLF) transparently.
+
+  - Tcl:
+    Bug fix in xgettext Unicode escape handling.
+
+  - Vala:
+    xgettext now supports Vala.
+
+* msgattrib now has --previous option to keep previous msgid when
+  making messages fuzzy, similar to msgmerge --previous.
+
+* msgfmt now checks PO file headers more strictly with less
+  false-positives.
+
+* 'gettextize' now checks macro directories specified with
+  AC_CONFIG_MACRO_DIRS in configure.ac.
+
+* Portability:
+  - msginit now does not require GNU sed.
+  - The Makefile rule for generating en@quot and en@boldquot now uses
+    @SED@ variable instead of hard-coded 'sed' command to allow users
+    to supply GNU sed.
+
+* Future backward-incompatibilities:
+  - In future Gettext versions, the files installed by 'gettextize'
+    will require Automake 1.10 or later.  This will improve the
+    compatibility of user projects with newer Automake versions.
+
+Version 0.18.2 - December 2012
+
+* xgettext now understands the block comment syntax of Guile 2.0.
+
+* libgettextpo library:
+  - The initial msgstr of a new message is now "", not NULL.
+  - Bug fixes in the functions po_message_is_range, po_file_check_all,
+    po_message_check_all.
+
+* Installation options:
+  The configure options --with-xz and --with-bzip2 can be used to specify
+  alternate compression methods for the archive used by the 'autopoint'
+  program. These options, together with --with-git, allow to trade
+  dependencies against installed package size. --with-xz has the highest
+  compression rate, followed by --with-git, followed by --with-bzip2.
+
+* Autoconf macros:
+  - The autoconf macros installed by 'gettextize' now work with the
+    forthcoming Automake 1.14 and require Autoconf version 2.60 or
+    newer.
+
+* Portability:
+  - Building on MacOS X 10.7, Cygwin 1.7.10, and newer 64-bit mingw is
+    now supported.
+
+Version 0.18.1 - June 2010
+
+* msggrep: A '$' anchor in a regular expression now also matches the end of
+  the string, even if it does not end in a newline.
+
+* Dependencies:
+  The libraries and programs are now linked with libunistring if this library
+  is already installed.
+
+* Installation options:
+  The configure option --with-cvs is deprecated. The 'autopoint' program will
+  now use the 'git' program by default to compress its archive. If the
+  configure option --without-git is specified, 'autopoint' will not rely on
+  'git', but will instead rely on a locally installed a 3 MB large archive.
+
+Version 0.18 - May 2010
+
+* Runtime behaviour:
+  - On MacOS X and Windows systems, <libintl.h> now extends setlocale() and
+    newlocale() so that their determination of the default locale considers
+    the choice the user has made in the system control panels.
+  - On MacOS X systems, the gettext()/dgettext()/... functions now respect the
+    locale of the current thread, if a thread-specific locale has been set.
+
+* PO file format:
+  There is a new field 'Language' in the header entry.  It denotes the language
+  code (plus optional country code) for the PO file.  This field can be used
+  by automated tools, such as spell checkers.  It is expected to be more
+  reliable than looking at the file name or at the 'Language-Team' field in
+  the header entry.
+  msgmerge, msgcat, msgen have a new option --lang that allows to specify
+  this field.  Additionally, msgmerge fills in this new field by looking at
+  the 'Language-Team' field (if the --lang option is not given).
+
+* xgettext and PO file format:
+  For messages with plural forms, programmers can inform the translators
+  about the range of possible values of the numeric argument, like this:
+    /* xgettext: range: 0..15 */
+  This information 'range: 0..15' is stored in the PO file as a flag attached
+  to the message.  Translators can produce better translations when they know
+  that the numeric argument is small.
+
+* Colorized PO files:
+  msgattrib, msgcomm, msgconv, msgen, msgfilter, msggrep, msginit, msgmerge,
+  msgunfmt, msguniq, xgettext now have options --color and --style, like msgcat
+  has since version 0.17.
+
+* msgmerge is up to 10 times faster when the PO and POT files are large.
+  This speedup was contributed by Ralf Wildenhues.
+
+* msgcmp has a new option -N/--no-fuzzy-matching, like msgmerge has since
+  version 0.12.
+
+* msgfilter now sets environment variables during the invocation of the
+  filter, indicating the msgid and location of the messge being processed.
+
+* xgettext now can extract plural forms from Qt 4 programs. The recommended
+  xgettext command-line options for this case are:
+    --qt --keyword=tr:1,1t --keyword=tr:1,2c,2t --keyword=tr:1,1,2c,3t
+
+* xgettext --language=GCC-source now recognizes also the format strings
+  used in the Fortran front-end of the GCC compiler, and marks them as
+  'gfc-internal-format'.
+
+* autopoint can now be used to update several PO directories all together.
+
+* PO mode changes:
+  - PO files with plural entries are now correctly handled.
+  - Editing a message with previous msgid (in comments) removes these
+    comments.  Contributed by Noritada Kobayashi.
+
+* The po/Makevars file has a new field MSGMERGE_OPTIONS, that can be used
+  to adjust msgmerge's operation.
+
+* The use of the macro AM_GNU_GETTEXT without 'external' argument and the
+  --intl option of the gettextize program are deprecated and will be removed
+  in the next release. Instead of including the intl sources in your package,
+  we suggest making the libintl library an (optional) prerequisite of your
+  package.
+
+* Updated the meaning of 'gcc-internal-format' to match GCC 4.3.
+
+* Installation options:
+  The configure options --without-cvs and --with-git can be used to specify
+  whether 'autopoint' will use the 'cvs' program, or the 'git' program, or
+  none at all. These options allow to trade dependencies against installed
+  package size: If --without-cvs is specified and --with-git is not specified,
+  'autopoint' will not rely on 'cvs' or 'git', but will instead rely on a
+  locally installed a 3 MB large archive.
+
+* Portability:
+  - The msgfilter program now also works on native Woe32 platforms.
+  - Compiled C# message catalogs now also work with 'mono' versions from 2009
+    or newer.
+
+Version 0.17 - November 2007
+
+* License:
+  The gettext related programs and tools are now licensed under the GPL
+  version 3, instead of the GPL version 2. The libintl library continues
+  to be licensed under LGPL.
+
+* PO file format:
+  The Project-Id-Version field in the header entry may now already be filled
+  in the POT file. In this case, the translators don't need to fill it in.
+  xgettext has new options --package-name and --package-version that allow
+  to specify the package name and version from a Makefile.
+
+* Colorized PO files:
+  The msgcat program has new options --color and --style that produce a
+  colorized PO file output, where keywords, strings, comments, or format
+  directives can be highlighted.  See the documentation section
+  "Highlighting parts of PO files" for more info.
+
+* gettextize now has a --po-dir option that allows several PO directories to
+  be updated all together.
+
+* Programming languages support:
+  - Contexts (msgctxt) are now also supported for Java and C#.
+  - C# with Qt: The support for Qt format strings has been updated for Qt 4.
+  - C++ with KDE:
+    xgettext has a new option --kde that triggers the recognition and marking
+    of KDE 4 format strings.
+
+* Autoconf macros:
+  - A new macro AM_XGETTEXT_OPTION can be used as an alternative to modifying
+    po/Makevars.
+
+* libgettextpo library:
+  - New functions are available for querying the list of supported format
+    types.
+  - The functions po_message_comments and po_message_extracted_comments
+    return a multiline string where each line no longer starts with a redundant
+    space. The leading space in every comment line is now stripped while
+    reading the PO file.
+  - Conversely, when you pass a multiline string to the function
+    po_message_set_comments or po_message_set_extracted_comments, you normally
+    don't pass a space at the beginning of each line, because such spaces are
+    no longer trimmed during output.
+
+* Documentation:
+  - The "Users" chapter has been completely rewritten.
+  - New section "Highlighting parts of PO files".
+  - A complete example showing the use of GNU gettext in Java with the Qt/Jambi
+    GUI toolkit has been added.
+
+Version 0.16.1 - November 2006
+
+* Bug fix in the gettext.m4 autoconf macros.
+
+Version 0.16 - October 2006
+
+* Interoperability with automake-1.10.
+
+* msgmerge has a new option --previous that has the effect of saving the
+  previous msgid of message when making them fuzzy. These previous msgids are
+  stored in the resulting PO file, using a pseudo-comment syntax like this:
+
+     #, fuzzy
+     #| msgid "too many arguments"
+     msgid "too few arguments"
+     msgstr "trop d'arguments"
+
+  The translator then only needs to compare the previous and the current
+  msgid ("too many arguments" and "too few arguments"), and infer which
+  parts of the translation she needs to change.
+
+  msgattrib has a new option --clear-previous that removes these #| lines.
+
+* msgmerge is faster now on CPUs with multiple execution units, if compiled
+  with GCC 4.2 or newer.
+
+* msgcmp now ignores fuzzy and untranslated messages in the PO file.
+  Previously it considered fuzzy and untranslated messages the same way as
+  translated messages, which was hardly useful.  The previous behaviour can
+  be obtained through the options --use-fuzzy --use-untranslated.
+
+* gettextize, when invoked without --intl option, now installs only the .m4
+  files that are needed: gettext.m4, iconv.m4, lib-ld.m4, lib-link.m4,
+  lib-prefix.m4, nls.m4, po.m4, progtest.m4.
+
+* gettextize no longer creates symbolic links by default; it makes file copies
+  instead.  The option --copy is removed.  You can get back the flawed
+  symlinking behaviour by specifying the --symlink option.
+
+* Autoconf macros:
+  - The gettext autoconf macros now require autoconf 2.52 or newer and
+    GNU m4 1.4.5 or newer.
+  - A new autoconf macro AM_GNU_GETTEXT_INTL_SUBDIR is added. It allows to
+    specify the presence of an intl/ subdirectory outside the AM_GNU_GETTEXT
+    invocation.
+  - A new autoconf macro AM_GNU_GETTEXT_NEED is added. It allows to specify
+    the requirements relating to the GNU gettext implementation outside the
+    AM_GNU_GETTEXT invocation.
+
+* The libgettextpo library no longer exports symbols that could clash with
+  symbols of the application that uses it.
+
+* Vastly improved French translations. Thanks to Christophe Combelles.
+
+Version 0.15 - July 2006
+
+* GUI program support:
+  - PO files can now contain messages constrained to a certain context.
+    Most often such a context is a menu, dialog or panel identification.
+    The syntax in the PO file is
+      msgctxt "context"
+      msgid "original"
+      msgstr "translation"
+  - The xgettext program can be told through the --keyword flag which
+    function/macro argument has the role of a context.  It also supports
+    the GNOME glib convention to specify the context and original string
+    in the same string literal: "context|original".
+  - The (non-public) include file gettext.h defines macros pgettext, dpgettext
+    etc. that take a context argument.
+  For more information, see the node "Contexts" in the manual.
+
+* msgfmt's format string checking is now stricter in the presence of plural
+  forms.  For example, in German, with  nplurals=2  and  plural=(n != 1),
+  the translation
+
+     #, c-format
+     msgid "%d fatal error"
+     msgid_plural "%d fatal errors"
+     msgstr[0] "ein fataler Fehler"
+     msgstr[1] "fatale Fehler"
+
+  was earlier considered valid and now gives an error when "msgfmt --check"
+  is used:
+    "number of format specifications in 'msgid' and 'msgstr[1]' does not match"
+
+* msggrep has a new option -v/--invert-match that acts like grep's -v option.
+
+* msggrep has a new option -X/--extracted-comment that allows to search for a
+  pattern in the extracted comments.
+
+* xgettext's --keyword option now allows to specify an extracted comment on the
+  command line, rather than in program's source code.
+
+* msgmerge is much faster now, when using a large compendium.
+
+* A new program recode-sr-latin is provided, that converts Serbian text from
+  the Cyrillic script to the Latin script.
+  The command "msgfilter recode-sr-latin" can be used to convert a Serbian
+  Cyrillic PO file (sr.po) to a Serbian Latin PO file (sr@latin.po).
+
+* Programming languages support:
+
+  - C++ with Boost:
+    xgettext has a new option --boost that triggers the recognition and marking
+    of boost::format strings.
+
+  - Python:
+    xgettext now recognizes the source encoding from a "coding:" comment
+    among the first two lines.  The default encoding is now ASCII, no longer
+    ISO-8859-1.
+
+* libgettextpo library:
+  - The error handler type passed to po_file_read(), po_file_write(),
+    po_message_check_format() has changed.
+    This is an incompatible change: Programs using the library *must* update
+    their code.
+    Binary compatibility is guaranteed, however.
+
+* The 'mkinstalldirs' shell script is no longer needed and no longer installed
+  by gettextize.
+
+* Portability:
+  - Building on mingw is now supported.
+  - Building shared libraries (--enable-shared) on Cygwin and mingw is now
+    supported.
+
+* Interoperability with expat version 2.0.0.
+
+* Documentation:
+  A complete example showing the use of GNU gettext with the wxWidgets GUI
+  toolkit has been added.
+
+* The gettext autoconf macros now assume 'aclocal' from automake 1.8 or newer.
+
+Version 0.14.6 - June 2006
+
+* Updated the meaning of 'gcc-internal-format' to match GCC 4.1.
+
+Version 0.14.5 - May 2005
+
+* Updated the meaning of 'gcc-internal-format' to match GCC 4.0.
+
+Version 0.14.4 - April 2005
+
+* The gettext autoconf macros will now work with the forthcoming g++ 4.0.
+* Fix improved detection of the locale on MacOS X.
+
+Version 0.14.3 - March 2005
+
+* Usability improvements in gettextize and autopoint.
+
+* Programming languages support:
+  - Scheme:
+    Use the GNU guile definition of format strings.
+
+Version 0.14.2 - February 2005
+
+* Improved detection of the locale on MacOS X.
+
+* The gettext autoconf macros now require autoconf 2.50 or newer.
+
+* Programming languages support:
+
+  - Scheme:
+    xgettext now also supports Scheme. Best used with guile 1.7 or newer.
+
+* msggrep is much faster now.
+
+* libgettextpo library:
+  - New functions for constructing PO files in memory and writing them to
+    files.
+  - The error handling is now customizable.
+
+* Documentation:
+
+  - New tutorial document, written by Gora Mohanty.
+  - New FAQ document.
+  - New documentation sections: Scheme, Release Management.
+
+* Bug fixes for Turkish and Estonian locales.
+
+* Security fixes.
+
+Version 0.14 - January 2004
+
+* Programming languages support:
+
+  - C#:
+
+    xgettext now also supports C#.
+
+    New library: GNU.Gettext.dll contains the runtime for using GNU gettext
+    message catalogs in C#.
+
+    msgfmt can create (and msgunfmt can dump) message catalogs for C#.
+
+* Special feature for Farsi (Persian): Translators can insert an 'I' flag
+  into numeric format directives in format strings. Its effect is that, on
+  glibc systems, the number is generated with the locale dependent set of
+  special digits instead of the usual ASCII digits.
+
+* Documentation:
+
+  - New documentation section: C#.
+  - Complete examples illustrating the use of gettext in C# (in text mode and
+    in Forms applications) have been added.
+
+  - New documentation section: Preparing Library Sources.
+
+* Special advice for Norwegian users: The language code for Norwegian
+  bokmål changed from 'no' to 'nb' recently (in 2003). During the transition
+  period, while some message catalogs for this language are installed under
+  'nb' and some older ones under 'no', it's recommended for Norwegian users to
+  set the LANGUAGE environment variable to 'nb:no' so that both newer and
+  older translations are used.
+
+Version 0.13.1 - December 2003
+
+* Bug fixes in the testsuite and in the examples.
+
+Version 0.13 - November 2003
+
+* Programming languages support:
+
+  - Shell:
+
+    xgettext now also supports shell scripts. It recognizes invocations of
+    the programs 'gettext', 'ngettext', the functions 'eval_gettext',
+    'eval_ngettext', as well as the deprecated GNU bash builtin syntax $"...".
+    New function library:
+      gettext.sh - shell functions for internationalized shell scripts.
+    New program:
+      envsubst - substitutes environment variables in shell format strings.
+
+  - Perl:
+
+    xgettext now also supports Perl.
+
+  - PHP:
+
+    "xgettext --language=PHP" now supports the plural handling functions
+    ngettext, dngettext, dcngettext (introduced in PHP 4.2.0).
+
+  - ObjectiveC:
+
+    "xgettext --language=ObjectiveC" now supports the @"..." string syntax,
+    the NSLocalizedString function and the ObjectiveC specific format strings.
+
+    All the tools that manipulate PO files can work with .strings files
+    as well, if given the --stringtable-input and/or --stringtable-output
+    option. To create a .strings file from a PO or POT file, use
+    "msgcat --stringtable-output". To create a PO or POT file from a
+    .strings file, use "xgettext".
+
+  - GCC-source:
+
+    xgettext's --language option now supports the value "GCC-source". This
+    is like --language=C, except that in this mode, xgettext recognizes the
+    special kind of format strings used in the GCC sources and marks them
+    as 'gcc-internal-format'.
+
+  - C++ with Qt:
+
+    xgettext has a new option --qt that triggers the recognition and marking
+    of Qt format strings.
+
+    msgfmt has a new option --qt that generates binary message catalogs in
+    Qt's .qm format.
+
+* Data formats support:
+
+  - Glade:
+    xgettext now also supports Glade version 2.
+
+* xgettext has a more reliable detection of format strings.  It now
+  recognizes format strings depending on their position, for example as the
+  second argument of fprintf(), regardless whether the literal string contains
+  format directives.  This behaviour can be customized through the --flag
+  option.
+
+* libgettextpo library:
+
+  - New functions for testing the obsolete/fuzzy/*-format flags of a message.
+  - New convenience functions for extracting and analyzing the header entry.
+
+* Portability:
+
+  - C format strings with positions, as they arise when a translator needs to
+    reorder a sentence, are now supported on all platforms. On those few
+    platforms (NetBSD and Woe32) for which the native printf()/fprintf()/...
+    functions don't support such format strings, replacements are provided
+    through <libintl.h>.
+
+  - A new configuration option --disable-libasprintf allows to build all of
+    gettext except libasprintf; this is necessary on platforms for which
+    libtool cannot create shared libraries with C++ code.
+
+* Documentation:
+
+  - Complete examples illustrating the use of gettext, including program
+    sources, Makefile and autoconf infrastructure, have been added. They
+    cover the following programming languages:
+      C           (text mode, GNOME)
+      C++         (text mode, Qt, KDE, GNOME)
+      ObjectiveC  (text mode, GNUstep, GNOME)
+      Shell       (text mode)
+      Python      (text mode)
+      Lisp        (text mode)
+      librep      (text mode)
+      Smalltalk   (text mode)
+      Java        (text mode, AWT, Swing)
+      awk         (text mode)
+      Pascal      (text mode)
+      YCP         (libyui)
+      Tcl         (text mode, Tk)
+      Perl        (text mode)
+      PHP         (text mode)
+
+Version 0.12.1 - May 2003
+
+* Bug fixes.
+
+Version 0.12 - May 2003
+
+* The gettext package is now separated into two subpackages:
+  - gettext-runtime: Runtime libraries and programs.
+  - gettext-tools: Tools and documentation for developers and translators.
+  The 'gettext-runtime' package is very small and should be installed on every
+  system that has users who desire to use internationalization. Whereas the
+  'gettext-tools' package is only for developers and translators.
+
+* The po/Makevars file has a new field MSGID_BUGS_ADDRESS, which program
+  maintainers should fill in, to help feedback from the translators to the
+  program maintainers.
+  xgettext, accordingly, has a new option --msgid-bugs-address.
+
+* Programming languages support:
+
+  - C++
+
+    A new C++ class, called gnu::autosprintf, makes it possible to use
+    C format strings in C++. This is needed for proper internationalization
+    of C++ programs.
+
+  - Java
+
+    All the tools that manipulate PO files can work with .properties files
+    as well, if given the --properties-input and/or --properties-output
+    option. To create a .properties file from a PO or POT file, use
+    "msgcat --properties-output".
+
+  - Smalltalk
+
+    xgettext now also supports Smalltalk.
+
+  - PHP
+
+    xgettext now also supports PHP.
+
+  - Python
+
+    "xgettext --language=Python" now supports the plural handling functions
+    ngettext, dngettext, ungettext (introduced in Python 2.3).
+
+  - A new autoconf macro AM_PO_SUBDIRS is added. It is like AM_GNU_GETTEXT,
+    for packages written in other languages than C/C++.
+
+* A new library libgettextpo, with public header file "gettext-po.h",
+  provides functions for reading PO files into memory. It is useful for
+  applying PO files to areas not covered by the GNU gettext programs.
+  New documentation section:
+  - Writing your own programs that process PO files.
+
+* New documentation sections:
+  - Prioritizing messages: How to determine which messages to translate first.
+  - Names: Marking Proper Names for Translation.
+
+* xgettext now supports msgid strings in other encodings than ASCII.
+  xgettext has a new option --from-code that specifies the encoding of the
+  source files. The resulting POT files are UTF-8 encoded.
+
+* Tools for translators:
+
+  - msgmerge has a new option -N/--no-fuzzy-matching that inhibits the fuzzy
+    search for untranslated messages.
+
+  - msgattrib has new options --only-file and --ignore-file that cause the
+    specified attribute manipulation to apply to selected messages only.
+
+* Compatibility with automake-1.7.
+
+* In documentation section po/LINGUAS:
+  - Document the optional "languages" en@quot and en@boldquot.
+
+* New configuration option --enable-relocatable.  See the INSTALL file for
+  details.
+
+Version 0.11.5 - August 2002
+
+* Bug fixes in the gettext.m4 autoconf macros.
+
+Version 0.11.4 - July 2002
+
+* The tools now know about the ISO C 99 <inttypes.h> format string directive
+  macros PRId64, PRIxMAX etc.
+
+Version 0.11.3 - July 2002
+
+* New program:
+    autopoint - copies standard gettext infrastructure
+
+* The documentation makes it clear that 'gettextize' is a wizard and
+  migration tool.
+
+* gettextize has a new option --dry-run.
+
+* Improved portability to Solaris, OSF/1 and Linux/libc5.
+
+* Improved interoperability with GCC 3.1.
+
+* New documentation sections:
+  - CVS Issues
+  - mkinstalldirs
+  - config.h.in
+
+Version 0.11.2 - April 2002
+
+* Bug fixes in the gettext.m4 autoconf macros.
+
+* New documentation section:
+  - Preparing Translatable Strings
+
+Version 0.11.1 - March 2002
+
+* xgettext now also supports Python, Tcl, Awk and Glade.
+
+* msgfmt can create (and msgunfmt can dump) Tcl message catalogs.
+
+* msggrep has a new option -C that allows to search for strings in translator
+  comments.
+
+* Bug fixes in the gettext.m4 autoconf macros.
+
+Version 0.11 - January 2002
+
+* New programs:
+    msgattrib - attribute matching and manipulation on message catalog,
+    msgcat - combines several message catalogs,
+    msgconv - character set conversion for message catalog,
+    msgen - create English message catalog,
+    msgexec - process translations of message catalog,
+    msgfilter - edit translations of message catalog,
+    msggrep - pattern matching on message catalog,
+    msginit - initialize a message catalog,
+    msguniq - unify duplicate translations in message catalog.
+
+* msgfmt can create (and msgunfmt can dump) Java ResourceBundles.
+
+* xgettext now also supports Lisp, Emacs Lisp, librep, Java, ObjectPascal,
+  YCP.
+
+* The tools now know about format strings in languages other than C.
+  They recognize new message flags named lisp-format, elisp-format,
+  librep-format, smalltalk-format, java-format, python-format, ycp-format.
+  When such a flag is present, the msgfmt program verifies the consistency
+  of the translated and the untranslated format string.
+
+* The msgfmt command line options have changed.  Option -c now also checks
+  the header entry, a check which was previously activated through -v.
+  Option -C corresponds to the compatibility checks previously activated
+  through -v -v.  Option -v now only increases verbosity and doesn't
+  influence whether msgfmt succeeds or fails.  A new option
+  --check-accelerators is useful for GUI menu item translations.
+
+* msgcomm now writes its results to standard output by default. The options
+  -d/--default-domain and -p/--output-dir have been removed.
+
+* Manual pages for all the programs have been added.
+
+* PO mode changes:
+  - New key bindings for 'po-previous-fuzzy-entry',
+    'po-previous-obsolete-entry', 'po-previous-translated-entry',
+    'po-previous-untranslated', 'po-undo', 'po-other-window', and
+    'po-select-auxiliary'.
+  - Support for merging two message catalogs, based on msgcat and ediff.
+
+* A fuzzy attribute of the header entry of a message catalog is now ignored
+  by the tools, i.e. it is used even if marked fuzzy.
+
+* gettextize has a new option --intl which determines whether a copy of the
+  intl directory is included in the package.
+
+* The Makefile variable @INTLLIBS@ is deprecated. It is replaced with
+  @LIBINTL@ (in projects without libtool) or @LTLIBINTL@ (in projects with
+  libtool).
+
+* New packaging hints for binary package distributors. See file PACKAGING.
+
+* New documentation sections:
+  - Manipulating
+  - po/LINGUAS
+  - po/Makevars
+  - lib/gettext.h
+  - autoconf macros
+  - Other Programming Languages
+
+Version 0.10.40 - September 2001
+
+* The libintl library is now covered by the GNU LGPL.  The tools are still
+  covered by the GNU GPL.
+
+Version 0.10.39 - July 2001
+
+* This is a bug-fix release.
+
+* Now uses libtool-1.4.  Linking with the libintl shared library is easier.
+
+* The autoconf macros now work with both autoconf-2.13 and autoconf-2.50.
+
+Version 0.10.38 - May 2001
+
+* This is a bug-fix release.
+
+* Manual pages for the GNU libintl library functions have been added.
+
+Version 0.10.37 - April 2001
+
+This is a bug-fix release.
+
+Version 0.10.36 - March 2001, by Ulrich Drepper and Bruno Haible
+
+* General plural handling. New functions ngettext, dngettext, dcngettext.
+
+* Locales which differ only in the character encoding, for example ja_JP and
+  ja_JP.UTF-8, can now share the same message catalogs. gettext converts
+  the messages to the appropriate character encoding on the fly.
+
+* The tools now correctly process PO files in CJK encodings.
+
+* Support for non-GNU gettext has been dropped.  Previously, on Solaris, the
+  system's gettext was used (unless --with-included-gettext was specified),
+  which led to problems with PO files that were not 100% translated.
+
+* Support for the catgets wrapper has been dropped.  This means that gettext
+  now always supports the LANGUAGE environment variable, message inheritance,
+  automatic charset conversion etc.
+
+* Support for the old Linux specific .msg catalog format has been dropped.
+
+* When the included GNU libintl is installed (i.e. on GNU platforms, when
+  the configure option --with-included-gettext is given, or on non-GNU
+  platforms, when the configure option --disable-nls is not given), it is
+  also installed as a shared library, unless the configure option
+  --disable-shared is given.
+
+* PO mode changes:
+
+** PO mode does not use recursive edit anymore, many edits may be worked on
+   simultaneously in a single PO file.
+
+** PO mode may handle many translation files at once while correlating related
+   entries, for helping multilingual or cultured translators.
+
+** On recent Emacses, PO mode automatically use proper fonts when available.
+
+** PO mode supports marking of C++ sources.
+
+** highlights original message while editing the translation
+
+** PO mode has commands to mail messages to teams or to the translation
+   coordinator, with automatic inclusion of the current PO file.
+
+Version 0.10.35 - April 1998, by Ulrich Drepper
+
+* by default the emulation of gettext using the catgets() functions of
+  the C library is not selected anymore.  GNU gettext has so many nice
+  extensions that this became unreasonable.  Using --with-catgets the
+  emulation still can be requested.
+
+* extend xgettext program to handle other file formats other than C/C++.
+  For now it also handles PO file.  Using this feature one can concatenate
+  arbitrary PO files.
+
+* Tcl module with gettext interface
+
+* Korean translation by Bang Jun Young
+
+* xgettext writes to stdout when default domain name is set to -
+
+* codeset name normalization
+
+* msgmerge program now has all features tupdate has (and more).
+  tupdate itself will be removed soon
+
+* po/Makefile.in.in now uses msgmerge instead of tupdate
+
+* escape notation in .po files are only used when explicitly selected
+
+* changed interface of msgunfmt to conform to GNU coding standard
+
+* msgmerge now knows how to handle obsolete entries.  If a formerly obsolete
+  entry is used again msgmerge will find it
+
+* better implementation of comment extraction in xgettext.
+
+* better C format string implementation.  The xgettext will classify
+  strings as being a format string, or not, in the .po file.  The
+  programmer can override the decision explicitly for each string
+  by specifying 'xgettext:c-format' and 'xgettext:no-c-format'
+  respectively in a C comment preceding the string.
+
+* msgmerge program now always produces output.  Fuzzy or non-existing
+  translations are no reason for holding back the result.
+
+* reasonable header entry format implemented
+
+* Norwegian translation by Karl Anders �gard
+
+* Configure command line option '--with-gnu-gettext' is renamed to
+  '--with-included-gettext'
+
+* gettextize now can determine whether the aclocal.m4 of the project
+  is sufficient
+
+* use automake for Makefile.in generation
+
+* by default now only c-format is emitted in xgettext.  If using the new
+  --debug option one can enable printing possible-c-format to see who
+  decided about the string: xgettext or the programmer
+
+* the installed libintl.h file no longer depends on HAVE_LOCALE_H being
+  defined.  After running configure we know whether this file exists.
+
+* wrapping of lines in PO file output finally enabled.
+  A new special comment no-wrap prevents wrapping.
+
+* add --statistics option to msgfmt to get information about number of
+  translated, untranslated, and fuzzy messages
+
+* change behaviour of --verbose option to msgfmt.  This no longer
+  causes the check on the messages to be performed.  The check for leading
+  and trailing \n is always performed and the check of the format specifiers
+  is performed when --check is given.
+
+* shared library support based On Gord Matzigkeit's libtool package
+
+* msgcomm program by Peter Miller to extract messages shared by input
+  files
+
+* many more translations.
+
+Version 0.10 - December 1995, by Ulrich Drepper
+
+* implement --shell-script option for gettext program
+
+* implement object-oriented, lazy message handling :-)
+  Consult the manual for more/any information
+
+* implement locale name aliasing, similar to the one used
+  in the X Window System
+
+* support for GNU gettext sources in central place to support
+  use in development environments of other projects
+
+* implement CEN syntax for environment variable values
+
+* msgcmp program to find matches in two .po files
+
+* programs now have exit status != 0 if errors occurred
+
+* libintl.a is now selfcontained and can be used without context in
+  other projects (even on systems missing alloca)
+
+* gettextize now automatically runs config.status
+
+* swedish message catalog
+
+* new options for xgettext: -D/--directory to change in specified directory
+  before processing the input files and -f/--files-from to specify file from
+  which the names of the input files are read.
+  The later option in necessary for large projects such as GNU C Library.
+
+* new programs msgmerge and msgunfmt by Peter Miller.  The code of the other
+  programs is now also much cleaner.
+
+Version 0.9 - August 1995, by Ulrich Drepper
+
+* again many improvements on the manual
+
+* norwegian message catalog
+
+* compilation now works with --disable-nls
+
+* better checks
+
+Version 0.8 - July 1995, by Ulrich Drepper
+
+* much improved manual (although still far from being complete)
+
+* improved PO mode; it now can prepare C sources for use with gettext
+  by marking translatable strings
+
+* better support for sparse System V systems
+
+* check goal (kind of)
+
+* more input tests and warnings
+
+* better support for integration in other packages
+
+* many bugs fixed
+
+Version 0.7 - June 1995, by Ulrich Drepper
+
+* New GNU package providing functionality to internationalize and
+localize other programs.
+
+* Implementation of the Uniforum(*) proposal for internationalization
+on top of X/Open(*) style catgets functions.
+
+* Complete implementation of the Uniforum functions for system
+lacking either of them or those who which to have a different
+implementation with many advantages.
+
+* Implementation of the three tools for message catalog handling
+described in the Uniforum.
+
+* Emacs po-mode for handling portable message object files which are
+the basis of the work of the package.
+
+
+(*) Some history:  The POSIX working groups have so far been unable to
+agree on one set of message catalog handling functions for the C Library.
+For now there are competing proposals, one by the Uniforum group, led by
+Sun, and the other by X/Open.  Although the latter is surely implemented
+on more systems, it is not perceived as the clear leader.

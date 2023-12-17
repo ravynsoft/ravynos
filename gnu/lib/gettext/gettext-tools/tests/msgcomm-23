@@ -1,0 +1,17 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# "msgcomm INPUT INPUT" is equivalent to "msguniq INPUT"
+
+cp "$abs_srcdir"/msguniq-a.in mcomm-23.in1
+cp "$abs_srcdir"/msguniq-a.in mcomm-23.in2
+
+: ${MSGCOMM=msgcomm}
+${MSGCOMM} -w 1000 -o mcomm-23.tmp mcomm-23.in1 mcomm-23.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-23.tmp > mcomm-23.out || Exit 1
+
+: ${DIFF=diff}
+${DIFF} "$abs_srcdir"/msguniq-a.out mcomm-23.out
+result=$?
+
+exit $result

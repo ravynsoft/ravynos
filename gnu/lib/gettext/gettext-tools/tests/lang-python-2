@@ -1,0 +1,136 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of gettext facilities (including plural handling) in the Python
+# language.
+
+# Note: This test fails with Python 2.3 ... 2.7 when an UTF-8 locale is present.
+# It looks like a bug in Python's gettext.py. This here is a quick workaround:
+UTF8_LOCALE_UNSUPPORTED=yes
+
+cat <<\EOF > prog2.py
+import sys
+import gettext
+
+n = int(sys.argv[1])
+
+gettext.textdomain('prog')
+gettext.bindtextdomain('prog', '.')
+
+print(gettext.gettext("'Your command, please?', asked the waiter."))
+print(gettext.ngettext("a piece of cake","%(count)d pieces of cake",n) \
+      % { 'count': n })
+print(gettext.gettext("%(oldCurrency)s is replaced by %(newCurrency)s.") \
+      % { 'oldCurrency': "FF", 'newCurrency' : "EUR" })
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o prog.tmp --omit-header --no-location prog2.py || Exit 1
+LC_ALL=C tr -d '\r' < prog.tmp > prog.pot || Exit 1
+
+cat <<EOF > prog.ok
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#, python-format
+msgid "a piece of cake"
+msgid_plural "%(count)d pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "%(oldCurrency)s is replaced by %(newCurrency)s."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} prog.ok prog.pot || Exit 1
+
+cat <<\EOF > fr.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, python-format
+msgid "a piece of cake"
+msgid_plural "%(count)d pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "%(count)d morceaux de gateau"
+
+# Reverse the arguments.
+#, python-format
+msgid "%(oldCurrency)s is replaced by %(newCurrency)s."
+msgstr "%(newCurrency)s remplace %(oldCurrency)s."
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o fr.po.tmp fr.po prog.pot || Exit 1
+LC_ALL=C tr -d '\r' < fr.po.tmp > fr.po.new || Exit 1
+
+: ${DIFF=diff}
+${DIFF} fr.po fr.po.new || Exit 1
+
+test -d fr || mkdir fr
+test -d fr/LC_MESSAGES || mkdir fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o fr/LC_MESSAGES/prog.mo fr.po
+
+# Test for presence of python version 2.3 or newer.
+(python -V) >/dev/null 2>/dev/null \
+  || { echo "Skipping test: python not found"; Exit 77; }
+case `python -c 'import sys; print(sys.hexversion >= 0x20300F0)'` in
+  1 | True) ;;
+  *) echo "Skipping test: python version too old"; Exit 77;;
+esac
+
+: ${DIFF=diff}
+cat <<\EOF > prog.ok
+«Votre commande, s'il vous plait», dit le garçon.
+2 morceaux de gateau
+EUR remplace FF.
+EOF
+cat <<\EOF > prog.oku
+Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on.
+2 morceaux de gateau
+EUR remplace FF.
+EOF
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  prepare_locale_ fr $LOCALE_FR
+  LANGUAGE= LC_ALL=$LOCALE_FR python prog2.py 2 > prog.out || Exit 1
+  ${DIFF} prog.ok prog.out || Exit 1
+fi
+if test -z "$UTF8_LOCALE_UNSUPPORTED"; then
+  if test $LOCALE_FR_UTF8 != none; then
+    prepare_locale_ fr $LOCALE_FR_UTF8
+    LANGUAGE= LC_ALL=$LOCALE_FR_UTF8 python prog2.py 2 > prog.out || Exit 1
+    ${DIFF} prog.oku prog.out || Exit 1
+  fi
+  if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+    if test -f /usr/bin/localedef; then
+      echo "Skipping test: no french locale is installed"
+    else
+      echo "Skipping test: no french locale is supported"
+    fi
+    Exit 77
+  fi
+else
+  if test $LOCALE_FR = none; then
+    if test -f /usr/bin/localedef; then
+      echo "Skipping test: no traditional french locale is installed"
+    else
+      echo "Skipping test: no traditional french locale is supported"
+    fi
+    Exit 77
+  fi
+fi
+
+Exit 0

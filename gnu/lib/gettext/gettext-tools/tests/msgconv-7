@@ -1,0 +1,43 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --add-location=file option.
+
+cat <<\EOF > mco-test7.po
+# Chinese translation for GNU gettext messages.
+#
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=big5\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/msgcmp.c:155 src/msgmerge.c:273
+msgid "exactly 2 input files required"
+msgstr "¦¹¥\¯à»Ý­n«ê¦n«ü©w¨â­Ó¿é¤JÀÉ"
+EOF
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --add-location=file --to-code=UTF-8 \
+           -o mco-test7.out mco-test7.po || Exit 1
+
+cat <<\EOF > mco-test7.ok
+# Chinese translation for GNU gettext messages.
+#
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: src/msgcmp.c src/msgmerge.c
+msgid "exactly 2 input files required"
+msgstr "æ­¤åŠŸèƒ½éœ€è¦æ°å¥½æŒ‡å®šå…©å€‹è¼¸å…¥æª”"
+EOF
+
+: ${DIFF=diff}
+# Redirect stdout, so as not to fill the user's screen with non-ASCII bytes.
+${DIFF} mco-test7.ok mco-test7.out >/dev/null
+result=$?
+
+exit $result

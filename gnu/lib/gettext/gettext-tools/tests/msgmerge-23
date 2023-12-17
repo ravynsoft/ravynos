@@ -1,0 +1,128 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgmerge when a msgid_plural changed but msgid remained the same,
+# and --previous was specified.
+# Reported by Chusslove Illich (Часлав Илић).
+
+cat <<\EOF > mm-test23.po
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-01-13 16:59+0100\n"
+"PO-Revision-Date: 2007-06-28 16:37+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#, c-format
+msgid "%n lines"
+msgstr ""
+
+#, c-format
+msgid "%n areas"
+msgstr "%n Flächen"
+
+#, c-format
+msgid "One object"
+msgid_plural "%n objects"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format
+msgid "One volume"
+msgid_plural "%n volumes"
+msgstr[0] "Ein Band"
+msgstr[1] "%n Bände"
+EOF
+
+cat <<\EOF > mm-test23.pot
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-01-13 16:59+0100\n"
+"PO-Revision-Date: 2007-06-28 16:37+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#, kde-format
+msgid "%1 lines"
+msgstr ""
+
+#, kde-format
+msgid "%1 areas"
+msgstr ""
+
+#, kde-format
+msgid "One object"
+msgid_plural "%1 objects"
+msgstr[0] ""
+msgstr[1] ""
+
+#, kde-format
+msgid "One volume"
+msgid_plural "%1 volumes"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q --previous -o mm-test23.tmp.po mm-test23.po mm-test23.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-test23.tmp.po > mm-test23.new.po || Exit 1
+
+cat <<\EOF > mm-test23.ok
+msgid ""
+msgstr ""
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2008-01-13 16:59+0100\n"
+"PO-Revision-Date: 2007-06-28 16:37+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#, kde-format
+msgid "%1 lines"
+msgstr ""
+
+#, fuzzy, kde-format
+#| msgid "%n areas"
+msgid "%1 areas"
+msgstr "%n Flächen"
+
+#, kde-format
+msgid "One object"
+msgid_plural "%1 objects"
+msgstr[0] ""
+msgstr[1] ""
+
+#, fuzzy, kde-format
+#| msgid "One volume"
+#| msgid_plural "%n volumes"
+msgid "One volume"
+msgid_plural "%1 volumes"
+msgstr[0] "Ein Band"
+msgstr[1] "%n Bände"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test23.ok mm-test23.new.po || Exit 1
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --check -o mm-test23.mo mm-test23.new.po || Exit 1
+
+Exit 0

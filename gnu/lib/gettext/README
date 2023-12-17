@@ -1,0 +1,65 @@
+This is the GNU gettext package.  It is interesting for authors or
+maintainers of other packages or programs which they want to see
+internationalized.  As one step the handling of messages in different
+languages should be implemented.  For this task GNU gettext provides
+the needed tools and library functions.
+
+It is also interesting for translators, because GNU gettext provides
+the 'msgmerge' program, which prepares a message catalog before a
+translation update.
+
+Users of GNU packages should also install GNU gettext because some
+other GNU packages will use the gettext program included in this
+package to internationalize the messages given by shell scripts.
+
+
+The homepage of this package is at
+
+           https://www.gnu.org/software/gettext/
+
+The primary FTP site for its distribution is
+
+           https://ftp.gnu.org/pub/gnu/gettext/
+
+
+Report bugs
+  - in the bug tracker at <https://savannah.gnu.org/projects/gettext>
+  - or by email to <bug-gettext@gnu.org>.
+
+
+The configure script provides a non-standard option.  It is also
+available in other packages that use the functionality of GNU gettext.
+Use
+
+        --disable-nls
+
+if you absolutely don't want to have messages handling code.  You will
+always get the original messages (mostly English).  You could consider
+using NLS support even when you do not need other tongues.  If you do
+not install any messages catalogs or do not specify to use another but
+the C locale you will not get translations.
+
+The set of languages for which catalogs should be installed can also be
+specified while configuring.  Of course they must be available but the
+intersection of these two sets are computed automatically.  You could
+once and for all define in your profile/cshrc the variable LINGUAS:
+
+(Bourne Shell)          LINGUAS="de fr nl"; export LINGUAS
+
+(C Shell)               setenv LINGUAS "de fr nl"
+
+or specify it directly while configuring
+
+        env LINGUAS="de fr nl" ./configure
+
+Consult the manual for more information on language names.
+
+
+Other files you might look into:
+
+COPYING      - copying conditions
+DEPENDENCIES - list of prerequisite packages, to be installed before this one
+INSTALL      - general compilation and installation rules
+NEWS         - major changes in the current version
+THANKS       - list of contributors
+JOIN-GNU     - invitation to join the GNU project

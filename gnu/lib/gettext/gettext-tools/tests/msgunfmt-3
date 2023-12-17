@@ -1,0 +1,18 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test invalid or incomplete input
+
+: ${MSGUNFMT=msgunfmt}
+
+for f in overflow-1.mo overflow-2.mo overflow-3.mo overflow-4.mo overflow-5.mo overflow-6.mo overflow-7.mo; do
+  LANGUAGE= LC_ALL=C ${MSGUNFMT} "$wabs_srcdir"/$f 2>mu-3.err >/dev/null
+  test $? != 0 || Exit 1
+  grep ' is truncated' mu-3.err >/dev/null || Exit 1
+done
+
+for f in sysdep-without-nul.mo; do
+  LANGUAGE= LC_ALL=C ${MSGUNFMT} "$wabs_srcdir"/$f 2>mu-3.err >/dev/null
+  test $? != 0 || Exit 1
+  grep ' not NUL terminated' mu-3.err >/dev/null || Exit 1
+done

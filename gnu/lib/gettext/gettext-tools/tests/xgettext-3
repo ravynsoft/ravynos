@@ -1,0 +1,63 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# When a header entry is provided by xgettext, it overrides any msgid ""
+# present in the input.
+
+cat <<EOF > xg-test3.in.c
+This is a test of the xgettext functionality.
+/* xgettext:no-c-format */
+_("extract me")
+Sometimes keywords can be spread apart
+xgettext:no-c-format
+_ ( "what about me" )
+And even further on accasion
+_
+(
+"hello"
+)
+
+/* no additional empty strings */
+_("")
+EOF
+
+: ${XGETTEXT=xgettext}
+# delete POT-Creation-Date: line because the date depends on local time.
+${XGETTEXT} --output xg-test3.tmp --no-location -k_ xg-test3.in.c 2>/dev/null || Exit 1
+sed -e '/\"POT-Creation-Date:.*/d' < xg-test3.tmp | LC_ALL=C tr -d '\r' > xg-test3.po
+
+cat <<EOF > xg-test3.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#, no-c-format
+msgid "extract me"
+msgstr ""
+
+msgid "what about me"
+msgstr ""
+
+msgid "hello"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test3.ok xg-test3.po
+result=$?
+
+exit $result

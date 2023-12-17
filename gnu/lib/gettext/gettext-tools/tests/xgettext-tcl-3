@@ -1,0 +1,27 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Tcl support: --add-comments option.
+
+cat <<\EOF > xg-t-3.tcl
+# a
+set string [_ "hello world" # b
+] # c
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --omit-header --no-location --keyword=_ \
+  -d xg-t-3.tmp xg-t-3.tcl || Exit 1
+LC_ALL=C tr -d '\r' < xg-t-3.tmp.po > xg-t-3.po || Exit 1
+
+cat <<EOF > xg-t-3.ok
+#. a
+msgid "hello world"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-t-3.ok xg-t-3.po
+result=$?
+
+exit $result

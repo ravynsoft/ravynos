@@ -1,0 +1,70 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Some tests for C# support
+
+cat <<EOF > xg-cs-1.cs
+using GNU.Gettext;
+class TestCase {
+  public TestCase() {
+    GettextResourceManager rm = new GettextResourceManager("test");
+    // standard usage
+    String test1 = rm.GetString("Test String 1");
+    /* C style comment */
+    String test2 = rm.GetString("Test String 2");
+    // C# "multiline" string
+    String test3 = rm.GetString("Test " +
+    "String " +
+    "3");
+    // empty string
+    String test4 = rm.GetString("");
+#if false
+    // commented out through #if
+    String test5 = rm.GetString("Test String 5");
+#endif
+    // verbatim string
+    String test5 = rm.GetString(@"first line
+second line
+third line");
+  }
+}
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -c -d xg-cs-1.tmp xg-cs-1.cs || Exit 1
+LC_ALL=C tr -d '\r' < xg-cs-1.tmp.po > xg-cs-1.po || Exit 1
+
+cat <<EOF > xg-cs-1.ok
+#. standard usage
+msgid "Test String 1"
+msgstr ""
+
+#. C style comment
+msgid "Test String 2"
+msgstr ""
+
+#. C# "multiline" string
+msgid "Test String 3"
+msgstr ""
+
+#. empty string
+msgid ""
+msgstr ""
+
+#. commented out through #if
+msgid "Test String 5"
+msgstr ""
+
+#. verbatim string
+msgid ""
+"first line\n"
+"second line\n"
+"third line"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-cs-1.ok xg-cs-1.po
+result=$?
+
+exit $result

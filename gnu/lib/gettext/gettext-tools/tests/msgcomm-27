@@ -1,0 +1,90 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test handling of format and 'range:' flag.
+
+cat <<EOF > mcomm-test27.in1
+msgid "one day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 1..6
+msgid "one week and one day"
+msgid_plural "one week and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 1..7
+msgid "two weeks and one day"
+msgid_plural "two weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 0..6
+msgid "three weeks and one day"
+msgid_plural "three weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+cat <<EOF > mcomm-test27.in2
+#, c-format, range: 1..6
+msgid "one day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "one week and one day"
+msgid_plural "one week and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 0..6
+msgid "two weeks and one day"
+msgid_plural "two weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 1..7
+msgid "three weeks and one day"
+msgid_plural "three weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${MSGCOMM=msgcomm}
+${MSGCOMM} -o mcomm-test27.tmp mcomm-test27.in1 mcomm-test27.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test27.tmp > mcomm-test27.out || Exit 1
+
+cat << EOF > mcomm-test27.ok
+#, c-format
+msgid "one day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format
+msgid "one week and one day"
+msgid_plural "one week and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 0..7
+msgid "two weeks and one day"
+msgid_plural "two weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 0..7
+msgid "three weeks and one day"
+msgid_plural "three weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test27.ok mcomm-test27.out
+result=$?
+
+exit $result

@@ -1,0 +1,97 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgfilter on a PO file with plurals.
+
+cat <<\EOF > mf-test6.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ASCII\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+#, c-format
+msgid "'Your command, please?', asked the waiter."
+msgstr "'Votre commande, s'il vous plait', dit le garcon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, c-format
+#| msgid "a piece of bread"
+#| msgid_plural "%d pieces of bread"
+msgid "a piece of cake"
+msgid_plural "%d pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "%d morceaux de gateau"
+
+# Reverse the arguments.
+#, c-format
+msgid "%s is replaced by %s."
+msgstr "%2$s remplace %1$s."
+EOF
+
+: > mf-test6.tmp
+
+cat <<\EOF > mf-test6.sh
+#! /bin/sh
+echo "========================= $MSGFILTER_LOCATION =========================" >> mf-test6.tmp
+if test -n "${MSGFILTER_MSGCTXT+set}"; then
+  echo "context: $MSGFILTER_MSGCTXT" >> mf-test6.tmp
+fi
+cat >> mf-test6.tmp <<MEOF
+$MSGFILTER_MSGID
+$MSGFILTER_MSGID_PLURAL
+$MSGFILTER_PLURAL_FORM
+$MSGFILTER_PREV_MSGID
+$MSGFILTER_PREV_MSGID_PLURAL
+MEOF
+cat
+EOF
+chmod a+x mf-test6.sh
+
+: ${MSGFILTER=msgfilter}
+LC_ALL=C \
+${MSGFILTER} -i mf-test6.po ./mf-test6.sh >/dev/null 2> mf-test6.err
+result=$?
+
+cat mf-test6.err | grep -v 'warning: Locale charset' | grep -v '^ '
+test $result = 0 || { Exit 1; }
+
+LC_ALL=C tr -d '\r' < mf-test6.tmp > mf-test6.out
+
+cat <<\EOF > mf-test6.ok
+========================= mf-test6.po:2 =========================
+
+
+
+
+
+========================= mf-test6.po:8 =========================
+'Your command, please?', asked the waiter.
+
+
+
+
+========================= mf-test6.po:16 =========================
+a piece of cake
+%d pieces of cake
+0
+a piece of bread
+%d pieces of bread
+========================= mf-test6.po:16 =========================
+a piece of cake
+%d pieces of cake
+1
+a piece of bread
+%d pieces of bread
+========================= mf-test6.po:22 =========================
+%s is replaced by %s.
+
+
+
+
+EOF
+
+: ${DIFF=diff}
+${DIFF} mf-test6.ok mf-test6.out
+result=$?
+
+exit $result

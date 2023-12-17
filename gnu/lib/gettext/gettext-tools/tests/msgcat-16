@@ -1,0 +1,79 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgcat on a PO files with previous msgids.
+
+cat <<\EOF > mcat-test16.in1
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, fuzzy, c-format
+#| msgid "too many arguments"
+msgid "too large arguments"
+msgstr "zu viele Argumente"
+
+# Oder besser "fehlende Argumente"?
+#. TRANSLATORS: An error message.
+#: src/args.c:273
+#, c-format
+#| msgid "missing arguments"
+msgid "Missing arguments."
+msgstr "Argumente fehlen."
+EOF
+
+cat <<\EOF > mcat-test16.in2
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, fuzzy, c-format
+#| msgid "too few arguments"
+msgid "too large arguments"
+msgstr "zu wenige Argumente"
+EOF
+
+rm -f mcat-test16.tmp
+: ${MSGCAT=msgcat}
+${MSGCAT} -o mcat-test16.tmp mcat-test16.in1 mcat-test16.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcat-test16.tmp > mcat-test16.out || Exit 1
+
+cat <<\EOF > mcat-test16.ok
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, fuzzy, c-format
+msgid "too large arguments"
+msgstr ""
+"#-#-#-#-#  mcat-test16.in1  #-#-#-#-#\n"
+"zu viele Argumente\n"
+"#-#-#-#-#  mcat-test16.in2  #-#-#-#-#\n"
+"zu wenige Argumente"
+
+# Oder besser "fehlende Argumente"?
+#. TRANSLATORS: An error message.
+#: src/args.c:273
+#, c-format
+#| msgid "missing arguments"
+msgid "Missing arguments."
+msgstr "Argumente fehlen."
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-test16.ok mcat-test16.out
+result=$?
+
+exit $result

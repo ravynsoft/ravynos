@@ -1,0 +1,84 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test compendium option with mixed encodings.
+# 8 combinations total:
+#          POT file           PO file           Compendium
+#       mm-ko.ascii.pot   mm-ko.euc-kr.po   mm-ko-comp.euc-kr.po
+#       mm-ko.utf-8.pot   mm-ko.utf-8.po    mm-ko-comp.utf-8.po
+
+# Note: This test fails on Linux with musl libc versions and on Solaris 11
+# (OpenIndiana, OmniOS) that don't support the EUC-KR encoding in 'iconv'.
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --to-code=UTF-8 -o mm-ko.utf-8.pot "$wabs_srcdir"/mm-ko.ascii.pot
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --to-code=UTF-8 -o mm-ko.utf-8.po "$wabs_srcdir"/mm-ko.euc-kr.po
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --to-code=UTF-8 -o mm-ko-comp.utf-8.po "$wabs_srcdir"/mm-ko-comp.euc-kr.po
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-c-6-AEE.tmp \
+  --compendium "$wabs_srcdir"/mm-ko-comp.euc-kr.po \
+  "$wabs_srcdir"/mm-ko.euc-kr.po "$wabs_srcdir"/mm-ko.ascii.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-6-AEE.tmp > mm-c-6-AEE.out || Exit 1
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-c-6-AEU.tmp \
+  --compendium mm-ko-comp.utf-8.po \
+  "$wabs_srcdir"/mm-ko.euc-kr.po "$wabs_srcdir"/mm-ko.ascii.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-6-AEU.tmp > mm-c-6-AEU.out || Exit 1
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-c-6-AUE.tmp \
+  --compendium "$wabs_srcdir"/mm-ko-comp.euc-kr.po \
+  mm-ko.utf-8.po "$wabs_srcdir"/mm-ko.ascii.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-6-AUE.tmp > mm-c-6-AUE.out || Exit 1
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-c-6-AUU.tmp \
+  --compendium mm-ko-comp.utf-8.po \
+  mm-ko.utf-8.po "$wabs_srcdir"/mm-ko.ascii.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-6-AUU.tmp > mm-c-6-AUU.out || Exit 1
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-c-6-UEE.tmp \
+  --compendium "$wabs_srcdir"/mm-ko-comp.euc-kr.po \
+  "$wabs_srcdir"/mm-ko.euc-kr.po mm-ko.utf-8.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-6-UEE.tmp > mm-c-6-UEE.out || Exit 1
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-c-6-UEU.tmp \
+  --compendium mm-ko-comp.utf-8.po \
+  "$wabs_srcdir"/mm-ko.euc-kr.po mm-ko.utf-8.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-6-UEU.tmp > mm-c-6-UEU.out || Exit 1
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-c-6-UUE.tmp \
+  --compendium "$wabs_srcdir"/mm-ko-comp.euc-kr.po \
+  mm-ko.utf-8.po mm-ko.utf-8.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-6-UUE.tmp > mm-c-6-UUE.out || Exit 1
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-c-6-UUU.tmp \
+  --compendium mm-ko-comp.utf-8.po \
+  mm-ko.utf-8.po mm-ko.utf-8.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-6-UUU.tmp > mm-c-6-UUU.out || Exit 1
+
+: ${MSGCONV=msgconv}
+${MSGCONV} --to-code=UTF-8 mm-c-6-UUU.out | LC_ALL=C tr -d '\r' > mm-c-6-U.ok
+${MSGCONV} --to-code=EUC-KR mm-c-6-UUU.out | LC_ALL=C sed -e 's,EUC-KR,euc-kr,' | LC_ALL=C tr -d '\r' > mm-c-6-E.ok
+
+: ${DIFF=diff}
+${DIFF} mm-c-6-E.ok mm-c-6-AEE.out || { Exit 1; }
+${DIFF} mm-c-6-E.ok mm-c-6-AEU.out || { Exit 1; }
+${DIFF} mm-c-6-U.ok mm-c-6-AUE.out || { Exit 1; }
+${DIFF} mm-c-6-U.ok mm-c-6-AUU.out || { Exit 1; }
+${DIFF} mm-c-6-U.ok mm-c-6-UEE.out || { Exit 1; }
+${DIFF} mm-c-6-U.ok mm-c-6-UEU.out || { Exit 1; }
+${DIFF} mm-c-6-U.ok mm-c-6-UUE.out || { Exit 1; }
+${DIFF} mm-c-6-U.ok mm-c-6-UUU.out || { Exit 1; }
+
+Exit 0

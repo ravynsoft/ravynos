@@ -1,0 +1,135 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test for --check option.
+
+# --check=ellipsis-unicode
+cat <<\EOF > xg-ellipsis-u.c
+gettext ("This is a sentence...");
+
+ngettext ("This is a sentence", "These are sentences...", 2);
+
+/* xgettext: no-ellipsis-unicode-check */
+gettext ("This is another sentence...");
+
+gettext ("This is a multi-sentence example.  This is the first sentence. "
+         "This is the second..., no it's not, this is the second sentence...\n"
+	 "This is the third sentence...? Perhaps.\n");
+EOF
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --omit-header --add-comments --check=ellipsis-unicode -d xg-ellipsis-u.tmp xg-ellipsis-u.c 2>xg-ellipsis-u.err
+
+test `grep -c 'ASCII ellipsis' xg-ellipsis-u.err` = 4 || Exit 1
+
+LANGUAGE= LC_ALL=C ${XGETTEXT} --omit-header --add-comments --check=ellipsis-unicode --sentence-end=double-space -d xg-ellipsis-ud.tmp xg-ellipsis-u.c 2>xg-ellipsis-ud.err
+
+test `grep -c 'ASCII ellipsis' xg-ellipsis-ud.err` = 3 || Exit 1
+
+# --check=space-ellipsis
+cat <<\EOF > xg-space-e.c
+gettext ("This is a sentence ...");
+
+/* xgettext: no-space-ellipsis-check, no-ellipsis-unicode-check */
+gettext ("This is another sentence ...");
+
+gettext ("This is a multi-sentence example.  This is the first sentence. "
+         "This is the second..., no it's not, this is the second sentence ...\n"
+	 "This is the third sentence \u2026? Perhaps.\n");
+EOF
+
+LANGUAGE= LC_ALL=C ${XGETTEXT} --omit-header --add-comments --check=space-ellipsis -d xg-space-e.tmp xg-space-e.c 2>xg-space-e.err
+
+test `grep -c 'space before ellipsis' xg-space-e.err` = 3 || Exit 1
+
+# --check=quote-unicode
+cat <<\EOF > xg-quote-u.c
+gettext ("\"double quoted\"");
+
+/* xgettext: no-quote-unicode-check */
+gettext ("\"double quoted but ignored\"");
+
+gettext ("double quoted but empty \"\"");
+
+gettext ("\"\" double quoted but empty");
+
+gettext ("\"foo\" \"bar\" \"baz\"");
+
+gettext ("'single quoted'");
+
+/* xgettext: no-quote-unicode-check */
+gettext ("'single quoted but ignored'");
+
+gettext ("'foo' 'bar' 'baz'");
+
+gettext ("prefix'single quoted without surrounding spaces'suffix");
+
+gettext ("prefix 'single quoted with surrounding spaces' suffix");
+
+gettext ("single quoted with apostrophe, empty '' ");
+
+gettext ("'single quoted at the beginning of string' ");
+
+gettext (" 'single quoted at the end of string'");
+
+gettext ("line 1\n"
+"'single quoted at the beginning of line' \n"
+"line 3");
+
+gettext ("line 1\n"
+" 'single quoted at the end of line'\n"
+"line 3");
+
+gettext ("`single quoted with grave'");
+
+/* xgettext: no-quote-unicode-check */
+gettext ("`single quoted with grave but ignored'");
+
+gettext ("single quoted with grave, empty `'");
+
+gettext ("`' single quoted with grave, empty");
+
+gettext ("`double grave`");
+EOF
+
+LANGUAGE= LC_ALL=C ${XGETTEXT} --omit-header --add-comments --check=quote-unicode -d xg-quote-u.tmp xg-quote-u.c 2>xg-quote-u.err
+
+test `grep -c 'ASCII double quote' xg-quote-u.err` = 4 || Exit 1
+test `grep -c 'ASCII single quote' xg-quote-u.err` = 12 || Exit 1
+
+# --check=bullet-unicode
+cat <<\EOF > xg-bullet-u1.c
+gettext ("The following is a list of items:\n\
+* item 1\n\
+* item 2\n\
+* item 3\n");
+EOF
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --omit-header --add-comments --check=bullet-unicode -d xg-bullet-u1.tmp xg-bullet-u1.c 2>xg-bullet-u1.err
+
+test `grep -c 'ASCII bullet' xg-bullet-u1.err` = 1 || { cat xg-bullet-u1.err; Exit 1; }
+
+cat <<\EOF > xg-bullet-u2.c
+gettext ("The following is a list of items:\n\
+* item 1\n\
+ - item 2\n\
+* item 3\n");
+EOF
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --omit-header --add-comments --check=bullet-unicode -d xg-bullet-u2.tmp xg-bullet-u2.c 2>xg-bullet-u2.err
+
+test `grep -c 'ASCII bullet' xg-bullet-u2.err` = 1 || { cat xg-bullet-u2.err; Exit 1; }
+
+cat <<\EOF > xg-bullet-u3.c
+gettext ("The following is NOT a list of items:\n\
+* item 1\n\
+- item 2\n\
+* item 3\n");
+EOF
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --omit-header --add-comments --check=bullet-unicode -d xg-bullet-u3.tmp xg-bullet-u3.c 2>xg-bullet-u3.err
+
+test `grep -c 'ASCII bullet' xg-bullet-u3.err` = 0 || { cat xg-bullet-u3.err; Exit 1; }

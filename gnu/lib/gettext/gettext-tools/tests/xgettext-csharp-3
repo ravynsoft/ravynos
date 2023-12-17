@@ -1,0 +1,171 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# More tests for C# support: string syntax
+
+LC_ALL=C tr '%' '\015' <<\EOF > xg-cs-3.cs
+class TestCase {
+  public static void Main (String[] args) {
+    // Test recognition of \u escapes.
+    GetString ("B\u00f6se B\u00fcbchen");
+    // \u escapes with more than one u are invalid.
+    GetString ("Japanese: \uu65e5\uuu672c\u8A9e");
+    GetString ("embedded\nnewline");
+    // Spaces from end of comment are removed.    %GetString("dummy");
+    // Two backslashes (unlike in Java, where this is just one backslash).
+    GetString ("\u005c\u005c");
+    // A 6-character string (unlike in Java, where this is just one backslash).
+    GetString ("\\u005c");
+    // A single backslash.
+    GetString ("\\");
+    // There is only one \u recognition pass.
+    GetString ("\u005cu005c");
+    // Octal escape sequences are not recognized, except for \0.
+    GetString ("\134");
+    // Escape sequences in strings.
+    GetString ("t -> \t, b -> \b, n -> \n, dquote -> \", squote -> \' ...");
+    // Hex escapes are recognized.
+    GetString ("bel: \x07\n");
+    GetString // Recognized despite comments
+       ( /* Even across multiline
+comment! */ "this is a single " /* now comes the concatenation! */ + // after +
+         "long line");
+    // Verbatim string literals are extracted.
+    GetString (@"verbatim 1");
+    // In verbatim string literals, no escape sequences are recognized.
+    GetString (@"verbatim 2 \u005c \\ \t \b \n \'");
+    // In verbatim string literals, only doubled delimiters are recognized.
+    GetString (@"verbatim 3 ""test");
+    // Normal and verbatim string literals can be concatenated.
+    GetString ("left - \"quot" + @"ation"" - right");
+    // Character literals are not extracted.
+    GetString ('x');
+    // Invalid concatenations are not concatenated.
+    GetString ("fooba"+'r');
+    // Verify that a comma inside braces is hidden.
+    MyGetString (new Object[] { "don't", "fool", "me" }, "this is the second argument");
+  }
+}
+EOF
+
+: ${XGETTEXT=xgettext}
+# delete POT-Creation-Date: line because the date depends on local time.
+${XGETTEXT} --output xg-cs-3.tmp --add-location -c -kMyGetString:2 xg-cs-3.cs 2>/dev/null || Exit 1
+sed -e '/\"POT-Creation-Date:.*/d' < xg-cs-3.tmp | LC_ALL=C tr -d '\r' > xg-cs-3.po || Exit 1
+
+cat <<\EOF > xg-cs-3.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Test recognition of \u escapes.
+#: xg-cs-3.cs:4
+msgid "Böse Bübchen"
+msgstr ""
+
+#. \u escapes with more than one u are invalid.
+#: xg-cs-3.cs:6
+msgid "Japanese: \\uu65e5\\uuu672c語"
+msgstr ""
+
+#: xg-cs-3.cs:7
+msgid ""
+"embedded\n"
+"newline"
+msgstr ""
+
+#. Spaces from end of comment are removed.
+#: xg-cs-3.cs:8
+msgid "dummy"
+msgstr ""
+
+#. Two backslashes (unlike in Java, where this is just one backslash).
+#: xg-cs-3.cs:10
+msgid "\\\\"
+msgstr ""
+
+#. A 6-character string (unlike in Java, where this is just one backslash).
+#. There is only one \u recognition pass.
+#: xg-cs-3.cs:12 xg-cs-3.cs:16
+msgid "\\u005c"
+msgstr ""
+
+#. A single backslash.
+#: xg-cs-3.cs:14
+msgid "\\"
+msgstr ""
+
+#. Octal escape sequences are not recognized, except for \0.
+#: xg-cs-3.cs:18
+msgid "\\134"
+msgstr ""
+
+#. Escape sequences in strings.
+#: xg-cs-3.cs:20
+msgid ""
+"t -> \t, b -> \b, n -> \n"
+", dquote -> \", squote -> ' ..."
+msgstr ""
+
+#. Hex escapes are recognized.
+#: xg-cs-3.cs:22
+msgid "bel: \a\n"
+msgstr ""
+
+#. Recognized despite comments
+#. Even across multiline
+#. comment!
+#: xg-cs-3.cs:25
+msgid "this is a single long line"
+msgstr ""
+
+#. Verbatim string literals are extracted.
+#: xg-cs-3.cs:28
+msgid "verbatim 1"
+msgstr ""
+
+#. In verbatim string literals, no escape sequences are recognized.
+#: xg-cs-3.cs:30
+msgid "verbatim 2 \\u005c \\\\ \\t \\b \\n \\'"
+msgstr ""
+
+#. In verbatim string literals, only doubled delimiters are recognized.
+#: xg-cs-3.cs:32
+msgid "verbatim 3 \"test"
+msgstr ""
+
+#. Normal and verbatim string literals can be concatenated.
+#: xg-cs-3.cs:34
+msgid "left - \"quotation\" - right"
+msgstr ""
+
+#. Invalid concatenations are not concatenated.
+#: xg-cs-3.cs:38
+msgid "fooba"
+msgstr ""
+
+#. Verify that a comma inside braces is hidden.
+#: xg-cs-3.cs:40
+msgid "this is the second argument"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-cs-3.ok xg-cs-3.po
+result=$?
+
+exit $result

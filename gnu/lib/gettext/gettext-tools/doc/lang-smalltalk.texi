@@ -1,0 +1,59 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node Smalltalk
+@subsection GNU Smalltalk
+@cindex Smalltalk
+
+@table @asis
+@item RPMs
+smalltalk
+
+@item Ubuntu packages
+gnu-smalltalk
+
+@item File extension
+@code{st}
+
+@item String syntax
+@code{'abc'}
+
+@item gettext shorthand
+@code{NLS ? 'abc'}
+
+@item gettext/ngettext functions
+@code{LcMessagesDomain>>#at:}, @code{LcMessagesDomain>>#at:plural:with:}
+
+@item textdomain
+@code{LcMessages>>#domain:localeDirectory:} (returns a @code{LcMessagesDomain}
+object).@*
+Example: @code{I18N Locale default messages domain: 'gettext' localeDirectory: /usr/local/share/locale'}
+
+@item bindtextdomain
+@code{LcMessages>>#domain:localeDirectory:}, see above.
+
+@item setlocale
+Automatic if you use @code{I18N Locale default}.
+
+@item Prerequisite
+@code{PackageLoader fileInPackage: 'I18N'!}
+
+@item Use or emulate GNU gettext
+emulate
+
+@item Extractor
+@code{xgettext}
+
+@item Formatting with positions
+@code{'%1 %2' bindWith: 'Hello' with: 'world'}
+
+@item Portability
+fully portable
+
+@item po-mode marking
+---
+@end table
+
+An example is available in the @file{examples} directory:
+@code{hello-smalltalk}.

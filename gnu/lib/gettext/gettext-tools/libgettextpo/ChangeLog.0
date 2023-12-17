@@ -1,0 +1,324 @@
+2015-09-11  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.6 released.
+
+2015-07-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.5 released.
+
+2015-03-06  Daiki Ueno  <ueno@gnu.org>
+
+	* Makefile.am (libgettextpo_la_AUXSOURCES): Add
+	../src/format-kde-kuit.c and ../src/libexpat-compat.c.
+	(libgettextpo_la_LDFLAGS): Add @LTLIBEXPAT@.
+
+2014-12-24  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.4 released.
+
+2014-12-24  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext-po.in.h (LIBGETTEXTPO_VERSION): Bump to 0.19.4.
+	* Makefile.am (LTV_CURRENT, LTV_REVISION, LTV_AGE): Bump to 5:3:5.
+
+2014-10-15  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.3 released.
+
+2014-10-15  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext-po.in.h (LIBGETTEXTPO_VERSION): Bump to 0.19.3.
+
+2014-07-14  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.2 released.
+
+2014-06-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.1 released.
+
+2014-06-02  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19 released.
+
+2014-04-22  Roumen Petrov  <bugtrack@roumenpetrov.info>  (tiny change)
+
+	build: Use Automake 'subdir-objects' option
+	* Makefile.am (AUTOMAKE_OPTIONS): Add 'subdir-objects'.
+
+2013-04-26  Daiki Ueno  <ueno@gnu.org>
+
+	Support for Python brace format.
+	* Makefile.am (libgettextpo_la_AUXSOURCES): Add format-python-brace.c.
+
+2013-04-17  Andreas Stricker  <astricker@futurelab.ch>
+
+	Support for JavaScript.
+	* Makefile.am (libgettextpo_la_AUXSOURCES): Add format-javascript.c.
+
+2013-04-11  Ľubomír Remák  <lubomirr@lubomirr.eu>
+
+	* Makefile.am (libgettextpo_la_AUXSOURCES): Add format-lua.c.
+
+2012-12-25  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext-0.18.2 released.
+
+2012-12-08  Daiki Ueno  <ueno@unixuser.org>
+
+	* gettext-po.in.h (LIBGETTEXTPO_VERSION): Bump to 0.18.2.
+	* Makefile.am (LTV_CURRENT): Bump to 5:2:5.
+
+2010-11-07  Bruno Haible  <bruno@clisp.org>
+
+	Rename gettext-po.h.in to gettext-po.in.h.
+	* gettext-po.in.h: New file, renamed from gettext-po.h.in.
+	* Makefile.am (EXTRA_DIST, gettext-po.h): Update.
+
+2011-06-07  Bruno Haible  <bruno@clisp.org>
+
+	Rely more on libtool.
+	* Makefile.am (libgettextpo_la_LDFLAGS): Use -no-undefined always.
+	Don't use @LTNOUNDEF@.
+
+2010-06-06  Bruno Haible  <bruno@clisp.org>
+
+	Bug fixes in libgettextpo.
+	* gettext-po.c (po_message_create): Initialize msgstr with the empty
+	string, not with NULL.
+	(po_message_is_range): Assign to output parameters correctly.
+	(po_file_check_all, po_message_check_all): Have check_message_list
+	ignore untranslated and fuzzy messages.
+
+2010-06-06  Bruno Haible  <bruno@clisp.org>
+
+	Avoid link error in programs that use libgettextpo.
+	* Makefile.am (libgettextpo_la_LIBADD): Add $(LTLIBUNISTRING).
+	Reported by Dmitry V. Levin <ldv@altlinux.org>.
+
+2010-06-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18.1 released.
+
+2010-06-03  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.h.in (LIBGETTEXTPO_VERSION): Bump version number.
+	* Makefile.am (LTV_CURRENT, LTV_REVISION, LTV_AGE): Bump to 5:1:5.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18 released.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.h.in (LIBGETTEXTPO_VERSION): Bump version number.
+	* Makefile.am (LTV_CURRENT, LTV_REVISION, LTV_AGE): Bump to 5:0:5.
+	* libgettextpo.rc: Update year.
+
+2009-12-26  Bruno Haible  <bruno@clisp.org>
+
+	* libgettextpo.rc: Update.
+
+2009-12-12  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.h.in: Untabify.
+	* gettext-po.c: Untabify.
+
+2009-11-30  Guido Flohr <guido@imperia.bg>
+
+	* Makefile.am (MOSTLYCLEANDIRS): New variable.
+
+2009-08-10  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (libgettextpo_la_AUXSOURCES): Add format-gfc-internal.c,
+	format-qt-plural.c.
+
+2009-03-25  Bruno Haible  <bruno@clisp.org>
+
+	Fix the handling of Windows resources in shared libraries.
+	* Makefile.am (WOE32_LIBADD): Renamed from WOE32_LDADD. Use
+	libgettextpo.res.lo instead of libgettextpo.res.
+	(libgettextpo.res.lo): Renamed from libgettextpo.res. Use libtool
+	--tag=RC.
+	(MOSTLYCLEANFILES): Update.
+
+2009-01-18  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.c (po_message_comments, po_message_extracted_comments):
+	Update after string_list_join changed.
+
+2008-10-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.h.in (po_message_is_range, po_message_set_range): New
+	declarations.
+	* gettext-po.c (po_message_is_range, po_message_set_range): New
+	functions.
+	(po_message_check_format): Update.
+
+2008-10-03  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.c (po_message_check_format): Update for signature changes
+	of check_message and check_msgid_msgstr_format.
+
+2008-07-19  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (EXTRA_DIST): Add gnulib-m4/gnulib-cache.m4.
+
+2008-05-26  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.c (po_header_field, po_header_set_field): Recognize a
+	field also if there is no space after the ':'.
+	Reported by Nacho <nacho.resa@gmail.com>.
+
+2007-11-07  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.17 released.
+
+2007-11-01  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.h.in (LIBGETTEXTPO_VERSION): Bump version number.
+	* Makefile.am (LTV_CURRENT, LTV_REVISION, LTV_AGE): Bump to 4:0:4.
+
+2007-10-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.h.in (LIBGETTEXTPO_VERSION): Bump version number.
+	(po_format_list, po_format_pretty_name): New declarations.
+	* gettext-po.c: Include xvasprintf.h.
+	(po_format_list, po_format_pretty_name): New functions.
+	Reported by Dwayne Bailey <dwayne@translate.org.za>.
+
+2007-10-20  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.c (po_message_check_format): Update call to check_message,
+	check_msgid_msgstr_format.
+
+2007-10-07  Bruno Haible  <bruno@clisp.org>
+
+	* libgettextpo.rc (Comments): Update.
+
+2007-10-06  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (EXTRA_DIST): Add libgettextpo.rc.
+
+2007-09-30  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (libgettextpo_la_AUXSOURCES): Add format-kde.c.
+
+2007-06-08  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (LDADD): Remove variable.
+	(libgettextpo_la_LIBADD): Use WOE32_LDADD here.
+
+2007-05-28  Bruno Haible  <bruno@clisp.org>
+
+	* libgettextpo.rc: New file.
+	* Makefile.am (LDADD, WOE32_LDADD): New variables.
+	(libgettextpo.res): New rule.
+	(MOSTLYCLEANFILES): Add libgettextpo.res.
+
+2007-05-13  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.c: Don't include vasprintf.h.
+
+2006-12-13  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (MAINTAINERCLEANFILES): New variable.
+
+2006-11-26  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h): When removing an object file, also remove
+	the corresponding .lo file.
+
+2006-11-26  Bruno Haible  <bruno@clisp.org>
+
+	Support for VPATH builds.
+	* Makefile.am (config.h): Don't prepend "$(srcdir)/" to the source
+	file name if it is present in the build directory.
+
+2006-11-03  Bruno Haible  <bruno@clisp.org>
+
+	Simplify xmalloc expressions. Add overflow check in xmalloc arguments.
+	* gettext-po.c (po_file_create, po_file_read): Use XMALLOC instead of
+	xmalloc.
+	(po_file_domains, po_header_field, po_header_set_field): Use XNMALLOC
+	instead of xmalloc.
+	(po_message_iterator: Use XMALLOC instead of xmalloc.
+
+2006-10-29  Bruno Haible  <bruno@clisp.org>
+
+	Don't name mangle exported symbols in C++ mode.
+	* gettext-po.c (po_file_read_v2, po_file_read, po_file_write,
+	po_message_check_format) [C++]: Declare as extern "C".
+
+2006-11-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16.1 released.
+
+2006-10-29  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.h.in (po_message_prev_msgctxt, po_message_set_prev_msgctxt,
+	po_message_prev_msgid, po_message_set_prev_msgid,
+	po_message_prev_msgid_plural, po_message_set_prev_msgid_plural): New
+	declarations.
+
+2006-10-28  Bruno Haible  <bruno@clisp.org>
+
+	Fix for parallel makes.
+	* Makefile.am (BUILT_SOURCES): Don't add config.h.
+	(all, check, install): Depend on config.h.
+	(config.h): Depend on the BUILT_SOURCES. Don't invoke make recursively.
+	Reported by Ralf Wildenhues.
+
+2006-10-26  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16 released.
+
+2006-10-25  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h): If one of the three steps fails, remove
+	config.h and fail.
+
+2006-10-24  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (AM_CPPFLAGS): Add also $(top_srcdir). Needed so that
+	woe32dll/export.h is found while compiling gettextpo-exports.c in a
+	VPATH build.
+	Reported by Charles Wilson <cygwin@cwilson.fastmail.fm>.
+
+2006-10-24  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.h.in (LIBGETTEXTPO_VERSION): Bump version number.
+
+2006-10-24  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (AM_CPPFLAGS): Remove useless -I options.
+
+2006-10-23  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h): Update obstack_free hack.
+
+2006-10-23  Bruno Haible  <bruno@clisp.org>
+
+	Fix "make dist".
+	* Makefile.am (nodist_noinst_HEADERS): Renamed from noinst_HEADERS.
+	(libgettextpo_la_SOURCES): Remove gettext-po.h.
+
+2006-10-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.h.in (struct po_error_handler): Add format attribute to
+	error, error_at_line fields.
+	* gettext-po.c (po_error_logger): Declare with format attribute.
+
+2006-10-20  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (config.h): Treat .lo files like .o files. Define
+	DLL_VARIABLE to empty. Avoid warning when config.h is included twice.
+	Add special hack for obstack_free.
+
+2006-10-16  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-po.h.in: New file, moved here from ../src/.
+	* gettext-po.c: New file, moved here from ../src/.
+	* Makefile.am: New file, includings parts of ../src/Makefile.am.
+	* exported.sh.in: New file.
+

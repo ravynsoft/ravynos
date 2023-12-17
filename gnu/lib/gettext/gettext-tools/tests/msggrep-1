@@ -1,0 +1,189 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --location option.
+
+cat <<\EOF > mg-test1.po
+# German translations for GNU gettext package.
+# Copyright (C) 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext 0.11-pre1\n"
+"POT-Creation-Date: 2001-12-08 20:33+0100\n"
+"PO-Revision-Date: 2001-11-04 12:25+0100\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: argmatch.c:141
+#, c-format
+msgid "invalid argument `%s' for `%s'"
+msgstr "ungültiges Argument »%s« für »%s«"
+
+#: argmatch.c:142
+#, c-format
+msgid "ambiguous argument `%s' for `%s'"
+msgstr "mehrdeutiges Argument »%s« für »%s«"
+
+#: argmatch.c:162
+msgid "Valid arguments are:"
+msgstr "Gültige Argumente sind:"
+
+#: copy-file.c:60
+#, c-format
+msgid "error while opening \"%s\" for reading"
+msgstr "Öffnen der Datei »%s« zum Lesen fehlgeschlagen"
+
+#: copy-file.c:67
+#, c-format
+msgid "cannot open backup file \"%s\" for writing"
+msgstr "Öffnen der Sicherungsdatei »%s« zum Schreiben fehlgeschlagen"
+
+#: copy-file.c:80
+#, c-format
+msgid "error reading \"%s\""
+msgstr "Fehler beim Lesen von »%s«"
+
+#: copy-file.c:86 copy-file.c:90
+#, c-format
+msgid "error writing \"%s\""
+msgstr "Fehler beim Schreiben von »%s«"
+
+#: copy-file.c:92
+#, c-format
+msgid "error after reading \"%s\""
+msgstr "Fehler nach dem Lesen von »%s«"
+
+#: error.c:115
+msgid "Unknown system error"
+msgstr "Unbekannter Systemfehler"
+
+#: execute.c:170 execute.c:205 pipe-bidi.c:156 pipe-bidi.c:191 pipe-in.c:169
+#: pipe-in.c:205 pipe-out.c:169 pipe-out.c:205 wait-process.c:136
+#, c-format
+msgid "%s subprocess failed"
+msgstr "Subprozess %s fehlgeschlagen"
+
+#: getopt.c:691
+#, c-format
+msgid "%s: option `%s' is ambiguous\n"
+msgstr "%s: Option »%s« ist mehrdeutig\n"
+
+#: getopt.c:716
+#, c-format
+msgid "%s: option `--%s' doesn't allow an argument\n"
+msgstr "%s: Option »--%s« erwartet kein Argument\n"
+
+#: getopt.c:721
+#, c-format
+msgid "%s: option `%c%s' doesn't allow an argument\n"
+msgstr "%s: Option »%c%s« erwartet kein Argument\n"
+
+#: getopt.c:739 getopt.c:912
+#, c-format
+msgid "%s: option `%s' requires an argument\n"
+msgstr "%s: Option »%s« erwartet ein Argument\n"
+
+#: getopt.c:768
+#, c-format
+msgid "%s: unrecognized option `--%s'\n"
+msgstr "%s: unbekannte Option »--%s«\n"
+
+#: getopt.c:772
+#, c-format
+msgid "%s: unrecognized option `%c%s'\n"
+msgstr "%s: unbekannte Option »%c%s«\n"
+
+#: getopt.c:798
+#, c-format
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: unzulässige Option -- %c\n"
+
+#: getopt.c:801
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr "%s: ungültige Option -- %c\n"
+
+#: getopt.c:831 getopt.c:961
+#, c-format
+msgid "%s: option requires an argument -- %c\n"
+msgstr "%s: Option erwartet ein Argument -- %c\n"
+
+#: getopt.c:878
+#, c-format
+msgid "%s: option `-W %s' is ambiguous\n"
+msgstr "%s: Option »-W %s« ist mehrdeutig\n"
+
+#: getopt.c:896
+#, c-format
+msgid "%s: option `-W %s' doesn't allow an argument\n"
+msgstr "%s: Option »-W %s« erwartet kein Argument\n"
+
+#: javacomp.c:465
+msgid "Java compiler not found, try installing gcj or set $JAVAC"
+msgstr ""
+"Java-Compiler nicht gefunden; bitte »gcj« installieren oder $JAVAC setzen"
+
+#: javaexec.c:404
+msgid "Java virtual machine not found, try installing gij or set $JAVA"
+msgstr ""
+"Virtuelle Java-Maschine nicht gefunden; bitte »gcj« installieren oder\n"
+"$JAVA setzen"
+
+#: obstack.c:474 xerror.c:75 xmalloc.c:56
+msgid "memory exhausted"
+msgstr "virtueller Speicher erschöpft"
+
+#: pipe-bidi.c:119 pipe-bidi.c:121 pipe-in.c:136 pipe-out.c:136
+msgid "cannot create pipe"
+msgstr "Es ist nicht möglich, eine Pipe zu erzeugen"
+
+#: wait-process.c:117
+#, c-format
+msgid "%s subprocess"
+msgstr "Subprozess %s"
+
+#: wait-process.c:129
+#, c-format
+msgid "%s subprocess got fatal signal"
+msgstr "Subprozess %s hat ein fatales Signal erhalten"
+EOF
+
+: ${MSGGREP=msggrep}
+${MSGGREP} -N pipe-bidi.c -o mg-test1.tmp mg-test1.po || Exit 1
+LC_ALL=C tr -d '\r' < mg-test1.tmp > mg-test1.out || Exit 1
+
+cat <<\EOF > mg-test1.ok
+# German translations for GNU gettext package.
+# Copyright (C) 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext 0.11-pre1\n"
+"POT-Creation-Date: 2001-12-08 20:33+0100\n"
+"PO-Revision-Date: 2001-11-04 12:25+0100\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: execute.c:170 execute.c:205 pipe-bidi.c:156 pipe-bidi.c:191 pipe-in.c:169
+#: pipe-in.c:205 pipe-out.c:169 pipe-out.c:205 wait-process.c:136
+#, c-format
+msgid "%s subprocess failed"
+msgstr "Subprozess %s fehlgeschlagen"
+
+#: pipe-bidi.c:119 pipe-bidi.c:121 pipe-in.c:136 pipe-out.c:136
+msgid "cannot create pipe"
+msgstr "Es ist nicht möglich, eine Pipe zu erzeugen"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mg-test1.ok mg-test1.out
+result=$?
+
+exit $result

@@ -1,0 +1,28 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C# support: extraction of contexts.
+
+cat <<\EOF > xg-cs-7.cs
+Console.WriteLine(rm.GetString("help"));
+Console.WriteLine(rm.GetParticularString("Help", "about"));
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-cs-7.tmp xg-cs-7.cs || Exit 1
+LC_ALL=C tr -d '\r' < xg-cs-7.tmp.po > xg-cs-7.po || Exit 1
+
+cat <<EOF > xg-cs-7.ok
+msgid "help"
+msgstr ""
+
+msgctxt "Help"
+msgid "about"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-cs-7.ok xg-cs-7.po
+result=$?
+
+exit $result

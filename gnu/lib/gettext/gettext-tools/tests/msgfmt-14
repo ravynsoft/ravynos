@@ -1,0 +1,93 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgfmt and msgunfmt on a PO file with contexts.
+
+cat <<\EOF > mf-14.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr "Ouvrir"
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr "Nouveau"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr "Ouvert"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "Fermé"
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr "voiture"
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr "photocopieur"
+
+#~ msgid "Save As"
+#~ msgstr "Enregistrer l'as"
+
+#. A menu item
+#~ msgctxt "File|"
+#~ msgid "Save As"
+#~ msgstr "Enregistrer sous"
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o mf-14.mo mf-14.po || Exit 1
+
+: ${MSGUNFMT=msgunfmt}
+${MSGUNFMT} -o mf-14.tmp mf-14.mo || Exit 1
+LC_ALL=C tr -d '\r' < mf-14.tmp > mf-14.out || Exit 1
+
+cat <<\EOF > mf-14.ok
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgctxt "Audi"
+msgid "car"
+msgstr "voiture"
+
+msgctxt "File|"
+msgid "New"
+msgstr "Nouveau"
+
+msgctxt "File|"
+msgid "Open"
+msgstr "Ouvrir"
+
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "Fermé"
+
+msgctxt "Lock state"
+msgid "Open"
+msgstr "Ouvert"
+
+msgctxt "Océ"
+msgid "copier"
+msgstr "photocopieur"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mf-14.ok mf-14.out
+result=$?
+
+exit $result

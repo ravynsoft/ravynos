@@ -1,0 +1,38 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --more-than=0; identical message are wanted once only.
+# If the first occurrence is not fuzzy, don't make the result fuzzy.
+
+cat <<EOF > mcomm-test20.in1
+# Sure.
+#: first.c:123
+msgid "1"
+msgstr "1x"
+EOF
+
+cat <<EOF > mcomm-test20.in2
+# Not sure.
+#: hunt.c:759
+#, fuzzy
+msgid "1"
+msgstr "1x"
+EOF
+
+: ${MSGCOMM=msgcomm}
+${MSGCOMM} --more-than=0 -o mcomm-test20.tmp \
+    mcomm-test20.in1 mcomm-test20.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test20.tmp > mcomm-test20.out || Exit 1
+
+cat << EOF > mcomm-test20.ok
+# Sure.
+#: first.c:123 hunt.c:759
+msgid "1"
+msgstr "1x"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test20.ok mcomm-test20.out
+result=$?
+
+exit $result

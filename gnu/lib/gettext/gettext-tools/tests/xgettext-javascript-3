@@ -1,0 +1,54 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of JavaScript support.
+# Playing with concatenation of string literals within the gettext function
+
+cat <<\EOF > xg-js-3.js
+// The usual way to concatenate strings is the plus '+' sign
+var s1 = _("Concatenation #1 " + "- String part added");
+var s2 = _('Concatenation #2 ' + '- String part added');
+var s3 = _("This" + " whole "
+          + "string" +
+         ' should' + " be " + 'extracted');
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments=TRANSLATORS: --no-location -o xg-js-3.tmp xg-js-3.js 2>xg-js-3.err
+test $? = 0 || { cat xg-js-3.err; Exit 1; }
+func_filter_POT_Creation_Date xg-js-3.tmp xg-js-3.pot
+
+cat <<\EOF > xg-js-3.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Concatenation #1 - String part added"
+msgstr ""
+
+msgid "Concatenation #2 - String part added"
+msgstr ""
+
+msgid "This whole string should be extracted"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-js-3.ok xg-js-3.pot
+result=$?
+
+exit $result

@@ -1,0 +1,37 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Scheme support: --add-comments option.
+
+cat <<EOF > xg-sc-1.scm
+; This comment will not be extracted.
+(display (_ "help"))
+;;  TRANSLATORS: This is an extracted comment.
+(display (_ "me"))
+#!  Not extracted either.
+!#
+(display (_ "The Fabulous Four"))
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -k_ --omit-header --no-location --add-comments=TRANSLATORS: \
+  -d xg-sc-1.tmp xg-sc-1.scm || Exit 1
+LC_ALL=C tr -d '\r' < xg-sc-1.tmp.po > xg-sc-1.po || Exit 1
+
+cat <<EOF > xg-sc-1.ok
+msgid "help"
+msgstr ""
+
+#. TRANSLATORS: This is an extracted comment.
+msgid "me"
+msgstr ""
+
+msgid "The Fabulous Four"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-sc-1.ok xg-sc-1.po
+result=$?
+
+exit $result

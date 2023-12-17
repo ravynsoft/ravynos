@@ -1,0 +1,185 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src ../../gettext-runtime/src
+
+# Test of gettext facilities in the sh language.
+# Assumes an fr_FR locale is installed.
+# Assumes the following packages are installed: bash.
+
+# Note: This test fails on BeOS because there all locales use the UTF-8
+# encoding, even the locale fr_FR, thus the output comes out in UTF-8.
+
+# This test fails if the gettext package was configured with --disable-nls,
+# because in this case the gettext-runtime/src/gettext program does not do
+# any message catalog lookups.
+
+cat <<\EOF > prog.sh
+#! /bin/sh
+
+n=$1
+
+. gettext.sh
+
+TEXTDOMAIN=prog
+export TEXTDOMAIN
+TEXTDOMAINDIR=.
+export TEXTDOMAINDIR
+
+$echo "`gettext \"'Your command, please?', asked the waiter.\"`"
+
+$echo "`eval_ngettext \"a piece of cake\" \"\\$n pieces of cake\" $n`"
+
+$echo "`gettext -c File \"Open\"`"
+
+$echo "`gettext --context File \"Close\"`"
+
+$echo "`gettext --context=File \"Save\"`"
+
+$echo "`eval_npgettext File \"\\$n file open\" \"\\$n files open\" $n`"
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o prog.tmp --omit-header --no-location prog.sh || Exit 1
+LC_ALL=C tr -d '\r' < prog.tmp > prog.pot || Exit 1
+
+cat <<\EOF > prog.ok
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#, sh-format
+msgid "a piece of cake"
+msgid_plural "$n pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+msgctxt "File"
+msgid "Open"
+msgstr ""
+
+msgctxt "File"
+msgid "Close"
+msgstr ""
+
+msgctxt "File"
+msgid "Save"
+msgstr ""
+
+#, sh-format
+msgctxt "File"
+msgid "$n file open"
+msgid_plural "$n files open"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} prog.ok prog.pot || Exit 1
+
+cat <<\EOF > fr.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, sh-format
+msgid "a piece of cake"
+msgid_plural "$n pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "$n morceaux de gateau"
+
+msgctxt "File"
+msgid "Open"
+msgstr "Ouvrir"
+
+msgctxt "File"
+msgid "Close"
+msgstr "Fermer"
+
+msgctxt "File"
+msgid "Save"
+msgstr "Sauvegarder"
+
+#, sh-format
+msgctxt "File"
+msgid "$n file open"
+msgid_plural "$n files open"
+msgstr[0] "$n fichier ouvert"
+msgstr[1] "$n fichiers ouverts"
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o fr.po.tmp fr.po prog.pot || Exit 1
+LC_ALL=C tr -d '\r' < fr.po.tmp > fr.po.new || Exit 1
+
+: ${DIFF=diff}
+${DIFF} fr.po fr.po.new || Exit 1
+
+test -d fr || mkdir fr
+test -d fr/LC_MESSAGES || mkdir fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o fr/LC_MESSAGES/prog.mo fr.po
+
+# Test which of the fr_FR locales are installed.
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  LC_ALL=$LOCALE_FR ../testlocale
+  case $? in
+    0) ;;
+    77) LOCALE_FR=none;;
+    *) Exit 1;;
+  esac
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  LC_ALL=$LOCALE_FR_UTF8 ../testlocale
+  case $? in
+    0) ;;
+    77) LOCALE_FR_UTF8=none;;
+    *) Exit 1;;
+  esac
+fi
+if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french locale is installed"
+  else
+    echo "Skipping test: no french locale is supported"
+  fi
+  Exit 77
+fi
+
+: ${DIFF=diff}
+cat <<\EOF > prog.ok
+«Votre commande, s'il vous plait», dit le garçon.
+2 morceaux de gateau
+Ouvrir
+Fermer
+Sauvegarder
+2 fichiers ouverts
+EOF
+cat <<\EOF > prog.oku
+Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on.
+2 morceaux de gateau
+Ouvrir
+Fermer
+Sauvegarder
+2 fichiers ouverts
+EOF
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  prepare_locale_ fr $LOCALE_FR
+  LANGUAGE= LC_ALL=$LOCALE_FR sh ./prog.sh 2 > prog.out || Exit 1
+  ${DIFF} prog.ok prog.out || Exit 1
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ fr $LOCALE_FR_UTF8
+  LANGUAGE= LC_ALL=$LOCALE_FR_UTF8 sh ./prog.sh 2 > prog.out || Exit 1
+  ${DIFF} prog.oku prog.out || Exit 1
+fi
+
+Exit 0

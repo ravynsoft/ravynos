@@ -1,0 +1,353 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Perl support.
+
+cat <<\EOF > xg-pl-1.pl
+use Locale::Messages qw (textdomain bindtextdomain gettext ngettext dngettext);
+
+textdomain "prog";
+bindtextdomain "prog", "./";
+
+s/foo/
+          # stress test for string extraction /xe;
+
+print _"'Your command, please?', asked the waiter.";
+
+printf ngettext ("a piece of cake", "%d pieces of cake", $n), $n;
+
+printf _"%s is replaced by %s.", "FF", "EUR";
+
+# Should be found.
+printf dngettext prog => ("one file deleted", "%d files deleted"), $n, $n;
+
+# Should not be found.
+printf dngettext ("prog"), ("one file created", "%d files created"), $n, $n;
+
+printf dngettext "prog", <<PERL, <<PERL;
+Singular
+PERL
+Plural
+PERL
+
+print <<PERL
+tied hash $__{   Bareword
+}
+tied hash $__->{"quoted string"}
+tied hash $__->{  "weird
+formatting"}
+PERL
+
+print $__  # Welcome
+   ->   # to the
+ { # Republic of
+ 'Welcome to the Republic of Perl!' # 
+# Perl!
+}; 
+
+$! ? ?$__{"pattern match"}? : s  # This is no delimiter.
+{$__{substitution}}<$__-\>{"find me"}>;
+
+# No interpolation!
+m'$__{secret}';
+
+# Multiple here documents invoked from the same line.
+print gettext <<PERL; print gettext <<PERL;
+First here document.
+PERL
+Second here document.
+PERL
+
+# These are not invalid interpolations, because the dollar is backslashed.
+printf "%s\n", gettext "abc\$def";
+printf "%s\n", gettext "abc\\\$def";
+
+# These are not interpolations.
+printf "%s\n", gettext 'abc$defg';
+printf "%s\n", gettext 'abc\$defg';
+printf "%s\n", gettext 'abc\\$defg';
+printf "%s\n", gettext 'abc\\\$defg';
+
+# Two consecutive backslashes count as one inside single-quote strings.
+printf "%s\n", gettext 'ecs\tasy';
+printf "%s\n", gettext 'ecs\\tasy';
+printf "%s\n", gettext 'ecs\\\tasy';
+printf "%s\n", gettext 'ecs\\\\tasy';
+printf "%s\n", gettext 'ecs\\\\\tasy';
+printf "%s\n", gettext q(ecs\tasy);
+printf "%s\n", gettext q(ecs\\tasy);
+printf "%s\n", gettext q(ecs\\\tasy);
+printf "%s\n", gettext q(ecs\\\\tasy);
+printf "%s\n", gettext q(ecs\\\\\tasy);
+
+# Similarly, inside double-quote strings, two consecutive backslashes count
+# as one, but the last backslash of a sequence is combined with the following
+# character if possible.
+printf "%s\n", gettext "ecs\tasy";
+printf "%s\n", gettext "ecs\\tasy";
+printf "%s\n", gettext "ecs\\\tasy";
+printf "%s\n", gettext "ecs\\\\tasy";
+printf "%s\n", gettext "ecs\\\\\tasy";
+printf "%s\n", gettext qq(ecs\tasy);
+printf "%s\n", gettext qq(ecs\\tasy);
+printf "%s\n", gettext qq(ecs\\\tasy);
+printf "%s\n", gettext qq(ecs\\\\tasy);
+printf "%s\n", gettext qq(ecs\\\\\tasy);
+printf "%s\n", gettext "mari\huana";
+printf "%s\n", gettext "mari\\huana";
+printf "%s\n", gettext "mari\\\huana";
+printf "%s\n", gettext "mari\\\\huana";
+printf "%s\n", gettext "mari\\\\\huana";
+printf "%s\n", gettext qq(mari\huana);
+printf "%s\n", gettext qq(mari\\huana);
+printf "%s\n", gettext qq(mari\\\huana);
+printf "%s\n", gettext qq(mari\\\\huana);
+printf "%s\n", gettext qq(mari\\\\\huana);
+
+# Recognition of format strings.
+gettext "This is {only} a brace formatstring.";
+gettext "This is %s {mixed}.";
+gettext "This is only %c.";
+gettext "This is nothing at all.";
+gettext "And this is %l also no format at all.";
+
+# xgettext: no-perl-format, perl-brace-format
+gettext "The function '{func}' expects '%c' here.";
+
+# This is a contradictory case: The same string three times,
+# with different xgettext comments.
+# xgettext: perl-brace-format, no-perl-format
+gettext "Left as an %exercise to {maintainer}.";
+# xgettext: no-perl-brace-format, perl-format
+gettext "Left as an %exercise to {maintainer}.";
+# No xgettext comment this time.
+gettext "Left as an %exercise to {maintainer}.";
+
+# Dollars inside sub argument lists have no effect.
+sub testFunc($) { }
+=item TestBug1
+If you have gettext()'d foo bar test1'...
+=cut
+
+# Dollars inside sub argument lists have no effect.
+testFunc = sub ($) { }
+=item TestBug2
+If you have gettext()'d foo bar test2'...
+=cut
+
+# Dollars inside sub argument lists have no effect.
+sub testFunc($\$;*@) { }
+=item TestBug3
+If you have gettext()'d foo bar test3'...
+=cut
+
+gettext "Before slash-slash";
+print $foo // 'undef';
+gettext "After slash-slash";
+
+pgettext "context", "message",
+dpgettext "my domain", "context", "message";
+dcpgettext "my domain", "context", "message", LC_MESSAGES;
+npgettext "context", "one message", "many messages";
+dnpgettext "my domain", "context", "one message", "many messages";
+dcnpgettext "my domain", "context", "one message", "many messages",
+            LC_MESSAGES;
+
+__END__
+gettext "Discarded!";
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header -n \
+  -k_ --flag=_:1:pass-perl-format --flag=_:1:pass-perl-brace-format \
+  -k%__ --flag=%__:1:pass-perl-format --flag=%__:1:pass-perl-brace-format \
+  -k\$__ --flag=\$__:1:pass-perl-format --flag=\$__:1:pass-perl-brace-format \
+  -d xg-pl-1.tmp xg-pl-1.pl || Exit 1
+LC_ALL=C tr -d '\r' < xg-pl-1.tmp.po > xg-pl-1.po || Exit 1
+
+cat <<\EOF > xg-pl-1.ok
+#: xg-pl-1.pl:9
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#: xg-pl-1.pl:11
+#, perl-format
+msgid "a piece of cake"
+msgid_plural "%d pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+#: xg-pl-1.pl:13
+#, perl-format
+msgid "%s is replaced by %s."
+msgstr ""
+
+#: xg-pl-1.pl:16
+#, perl-format
+msgid "one file deleted"
+msgid_plural "%d files deleted"
+msgstr[0] ""
+msgstr[1] ""
+
+#: xg-pl-1.pl:22
+#, perl-format
+msgid "Singular\n"
+msgid_plural "Plural\n"
+msgstr[0] ""
+msgstr[1] ""
+
+#: xg-pl-1.pl:28
+msgid "Bareword"
+msgstr ""
+
+#: xg-pl-1.pl:30
+msgid "quoted string"
+msgstr ""
+
+#: xg-pl-1.pl:31
+msgid ""
+"weird\n"
+"formatting"
+msgstr ""
+
+#: xg-pl-1.pl:38
+msgid "Welcome to the Republic of Perl!"
+msgstr ""
+
+#: xg-pl-1.pl:42
+msgid "pattern match"
+msgstr ""
+
+#: xg-pl-1.pl:43
+msgid "substitution"
+msgstr ""
+
+#: xg-pl-1.pl:43
+msgid "find me"
+msgstr ""
+
+#: xg-pl-1.pl:50
+msgid "First here document.\n"
+msgstr ""
+
+#: xg-pl-1.pl:52
+msgid "Second here document.\n"
+msgstr ""
+
+#: xg-pl-1.pl:56
+msgid "abc$def"
+msgstr ""
+
+#: xg-pl-1.pl:57
+msgid "abc\\$def"
+msgstr ""
+
+#: xg-pl-1.pl:60
+msgid "abc$defg"
+msgstr ""
+
+#: xg-pl-1.pl:61 xg-pl-1.pl:62
+msgid "abc\\$defg"
+msgstr ""
+
+#: xg-pl-1.pl:63
+msgid "abc\\\\$defg"
+msgstr ""
+
+#: xg-pl-1.pl:66 xg-pl-1.pl:67 xg-pl-1.pl:71 xg-pl-1.pl:72 xg-pl-1.pl:81
+#: xg-pl-1.pl:86
+msgid "ecs\\tasy"
+msgstr ""
+
+#: xg-pl-1.pl:68 xg-pl-1.pl:69 xg-pl-1.pl:73 xg-pl-1.pl:74 xg-pl-1.pl:83
+#: xg-pl-1.pl:88
+msgid "ecs\\\\tasy"
+msgstr ""
+
+#: xg-pl-1.pl:70 xg-pl-1.pl:75
+msgid "ecs\\\\\\tasy"
+msgstr ""
+
+#: xg-pl-1.pl:80 xg-pl-1.pl:85
+msgid "ecs\tasy"
+msgstr ""
+
+#: xg-pl-1.pl:82 xg-pl-1.pl:87
+msgid "ecs\\\tasy"
+msgstr ""
+
+#: xg-pl-1.pl:84 xg-pl-1.pl:89
+msgid "ecs\\\\\tasy"
+msgstr ""
+
+#: xg-pl-1.pl:90 xg-pl-1.pl:95
+msgid "marihuana"
+msgstr ""
+
+#: xg-pl-1.pl:91 xg-pl-1.pl:92 xg-pl-1.pl:96 xg-pl-1.pl:97
+msgid "mari\\huana"
+msgstr ""
+
+#: xg-pl-1.pl:93 xg-pl-1.pl:94 xg-pl-1.pl:98 xg-pl-1.pl:99
+msgid "mari\\\\huana"
+msgstr ""
+
+#: xg-pl-1.pl:102
+#, perl-brace-format
+msgid "This is {only} a brace formatstring."
+msgstr ""
+
+#: xg-pl-1.pl:103
+#, perl-format, perl-brace-format
+msgid "This is %s {mixed}."
+msgstr ""
+
+#: xg-pl-1.pl:104
+#, perl-format
+msgid "This is only %c."
+msgstr ""
+
+#: xg-pl-1.pl:105
+msgid "This is nothing at all."
+msgstr ""
+
+#: xg-pl-1.pl:106
+msgid "And this is %l also no format at all."
+msgstr ""
+
+#: xg-pl-1.pl:109
+#, no-perl-format, perl-brace-format
+msgid "The function '{func}' expects '%c' here."
+msgstr ""
+
+#: xg-pl-1.pl:114 xg-pl-1.pl:116 xg-pl-1.pl:118
+#, perl-format, no-perl-brace-format
+msgid "Left as an %exercise to {maintainer}."
+msgstr ""
+
+#: xg-pl-1.pl:138
+msgid "Before slash-slash"
+msgstr ""
+
+#: xg-pl-1.pl:140
+msgid "After slash-slash"
+msgstr ""
+
+#: xg-pl-1.pl:142 xg-pl-1.pl:143 xg-pl-1.pl:144
+msgctxt "context"
+msgid "message"
+msgstr ""
+
+#: xg-pl-1.pl:145 xg-pl-1.pl:146 xg-pl-1.pl:147
+msgctxt "context"
+msgid "one message"
+msgid_plural "many messages"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-pl-1.ok xg-pl-1.po
+result=$?
+
+exit $result

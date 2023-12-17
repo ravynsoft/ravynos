@@ -1,0 +1,287 @@
+#!/bin/sh
+#
+# Copyright (C) 2019-2022 Free Software Foundation, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+
+# This script checks whether the files in the GNU gettext package
+# have the required copyright headers resp. license notices.
+#
+# Copyright notices have two purposes:
+#
+#  1. They tell the people who obtain the package (as a git checkout,
+#     source tarball, or binary package) what they are allowed to do
+#     with it.
+#
+#  2. They provide the legal basis for suing people who infringe on
+#     the copyright of the package (or part of it).  In particular,
+#     they should prove that the infringer knew what they were doing
+#     when they took a source file (or part of it) and used it in
+#     a way that is not compliant with the license.
+#
+# For the purpose 1, a file COPYING at the top-level of the package
+# and a reference to it in the main README are all that's needed.
+#
+# For the purpose 2, we put copyright notices in each file that we
+# don't want to be abused of. See also the section "Copyright Notices"
+# in the 'Information for maintainers of GNU software',
+# <https://www.gnu.org/prep/maintain/html_node/Copyright-Notices.html>.
+#
+# This script helps with purpose 2.  The input of this script is a
+# source tarball, not a git checkout.  Rationale:
+# - It is convenient to add files to a git repository, without having
+#   to attach a copyright notice to it.
+# - Files that we don't include in the source tarball are not so valuable
+#   that we would like to sue infringers over them.
+#
+# We classify the files in several categories:
+# - Source code that ends up being executed by end users (in source or
+#   compiled form).  This is the most valuable one and needs copyright
+#   notices.
+# - Source of large documentation.  This is valuable too, and needs
+#   copyright notices.
+# - Source code of build infrastructure.
+# - Files that contain convenience information for programmers and
+#   packagers.
+# The latter categories are not valuable enough to warrant sueing
+# infringers.
+#
+# Not all files qualify for a copyright header.  Namely, since copyright
+# applies to the expression of an idea (think roughly of the program as
+# an art work), it makes no sense to attach a copyright header to a file
+# which different programmers would write in the same way.  This includes
+# tiny files, as well as files that contain only machine-generated data.
+
+# Usage: check-copyright-headers UNPACKED-GETTEXT-TARBALL
+
+progname="$0"
+
+if test $# != 1; then
+  echo "Usage: check-copyright-headers UNPACKED-GETTEXT-TARBALL" 1>&2
+  exit 1
+fi
+
+dir="$1"
+test -d "$dir" || {
+  echo "*** $progname: '$dir' is not a directory." 1>&2
+  exit 1
+}
+if test -d "$dir/.git"; then
+  echo "*** $progname: '$dir' is a git checkout, not an unpacked tarball." 1>&2
+  exit 1
+fi
+
+# func_check_file FILE
+# checks FILE, a relative file name.
+# Return code: 0 if OK, 1 if missing a copyright header.
+func_check_file ()
+{
+  case "/$1" in
+
+    */tests/* | *-tests/* )
+      # A test file.
+      # We are not interested in suing infringers of test code.
+      # In fact, anyone can apply our test suites to even prorietary software.
+      # And this is even welcome (regarding the competing implementations of
+      # the libintl functions), because it helps in portability of software
+      # that uses the libintl API.
+      return 0 ;;
+
+    */modules/* )
+      # Gnulib modules are not valuable enough to warrant suing infringers.
+      # Also, they often don't have much programmer expression.
+      return 0 ;;
+
+    /gettext-tools/doc/ISO_3166 | /gettext-tools/doc/ISO_3166_de | \
+    /gettext-tools/doc/ISO_639 | /gettext-tools/doc/ISO_639-2 | \
+    /gettext-tools/examples/hello-*/m4/Makefile.am | \
+    /gettext-tools/examples/hello-objc-gnustep/po/LocaleAliases )
+      # These are a mostly data.  They don't have much programmer expression.
+      return 0 ;;
+
+    */ChangeLog* )
+      # ChangeLog files are convenience information, not worth sueing for.
+      return 0 ;;
+
+    */AUTHORS | */COPYING* | */DEPENDENCIES | */FILES | */HACKING | \
+    */INSTALL* | */JOIN-GNU | */NEWS | */PACKAGING | */README* | */THANKS )
+      # These files contain convenience information, not worth sueing for.
+      return 0 ;;
+
+    /os2/* )
+      # Old stuff, not worth sueing for.
+      return 0 ;;
+
+    */libcroco/* | */libxml/* )
+      # We repackage libcroco and libxml as sources and are not interested
+      # in attaching our own copyright header to each.
+      return 0 ;;
+
+    /gettext-tools/examples/hello-*-gnome/m4/*.m4 | \
+    /gettext-tools/projects/GNOME/teams.html )
+      # These files come from the GNOME project.
+      # We are not interested in attaching our own copyright header to each.
+      return 0 ;;
+
+    /gettext-tools/examples/hello-*-kde/admin/* | \
+    /gettext-tools/projects/KDE/teams.html )
+      # These files come from the KDE project.
+      # We are not interested in attaching our own copyright header to each.
+      return 0 ;;
+
+    /gettext-tools/examples/hello-*-wxwidgets/m4/wxwidgets.m4 )
+      # These files come from the wxwidgets project.
+      # We are not interested in attaching our own copyright header to each.
+      return 0 ;;
+
+    /gettext-tools/projects/TP/teams.html )
+      # These files come from the translationproject.org project.
+      # We are not interested in attaching our own copyright header to each.
+      return 0 ;;
+
+    /gettext-tools/misc/DISCLAIM )
+      # This is a form, used for communication with the FSF.
+      return 0 ;;
+
+    /gettext-tools/misc/archive.dir.tar )
+      # This is an archive of files that were part of earlier gettext releases.
+      # As a binary file, it cannot have a copyright header.
+      return 0 ;;
+
+    *.gmo )
+      # These are binary files. FOO.gmo is generated from FOO.po, which is
+      # also distributed.
+      return 0 ;;
+
+    *.class )
+      # These are binary files. FOO.class is generated from FOO.java, which is
+      # also distributed.
+      return 0 ;;
+
+    /gettext-runtime/intl-csharp/doc/* | \
+    /gettext-runtime/intl-java/javadoc2/* | \
+    /gettext-runtime/doc/matrix.texi | \
+    /gettext-tools/doc/iso-639.texi | /gettext-tools/doc/iso-639-2.texi | \
+    /gettext-tools/doc/iso-3166.texi | \
+    */man/*.[13].html | \
+    */*_[0-9].html | */*_[0-9][0-9].html | \
+    */*_all.html | */*_toc.html | */*_fot.html | */*_abt.html | \
+    *.priv.h | *.vt.h | \
+    /libtextstyle/lib/libtextstyle.sym.in )
+      # These are generated files.  We ship their sources as well.
+      return 0 ;;
+
+    *.diff )
+      # These are patches to existing files.  It is understood that the patch
+      # preserves the copyright status of the file, that is, that the .diff
+      # file delegates its copyright status to the file.
+      return 0 ;;
+
+    */quot.sed | */boldquot.sed | */en@quot.header | */en@boldquot.header )
+      if test -f "$dir"/`dirname "$1"`/Rules-quot; then
+        # These files are covered by the notice in the Rules-quot file in the
+        # same directory.
+        return 0
+      fi
+      ;;
+
+    /gettext-tools/libgrep/kwset.c )
+      # The file has a copyright header, with the Copyright line spread
+      # across two lines.
+      return 0 ;;
+
+    */texinfo.tex )
+      # The file has a copyright header, with the Copyright line spread
+      # across three lines.
+      return 0 ;;
+
+    *.texi )
+      if head -n 100 "$dir/$1" | LC_ALL=C grep 'Copyright ([Cc]) ' >/dev/null; then
+        # The file has a copyright notice, although not exactly at the beginning.
+        return 0
+      fi
+      ;;
+
+    *.rc )
+      if LC_ALL=C grep 'This program is free software[:;] you can redistribute it' "$dir/$1" >/dev/null \
+         || LC_ALL=C grep 'This library is free software[:;] you can redistribute it' "$dir/$1" >/dev/null; then
+        # The file carries a copyright notice in it.
+        return 0
+      fi
+      ;;
+
+  esac
+
+  if head -n 15 "$dir/$1" | LC_ALL=C grep 'Copyright ([Cc]) ' >/dev/null; then
+    # The file has a copyright header.
+    return 0
+  fi
+
+  # <https://www.gnu.org/prep/maintain/html_node/Copyright-Notices.html>
+  # says that the (C) "can be omitted entirely; the word ‘Copyright’ suffices.
+  if head -n 15 "$dir/$1" | LC_ALL=C grep 'Copyright .* Free Software Foundation' >/dev/null; then
+    # The file has a copyright header.
+    return 0
+  fi
+
+  # <https://www.gnu.org/prep/maintain/html_node/Copyright-Notices.html>
+  # says " If a file has been explicitly placed in the public domain, then
+  # instead of a copyright notice, it should have a notice saying explicitly
+  # that it is in the public domain."
+  if head -n 15 "$dir/$1" | LC_ALL=C grep 'This .* is in the public domain\.' >/dev/null \
+     || head -n 15 "$dir/$1" | LC_ALL=C fgrep 'In the public domain.' >/dev/null \
+     || head -n 15 "$dir/$1" | LC_ALL=C fgrep 'Public domain.' >/dev/null \
+     || head -n 15 "$dir/$1" | LC_ALL=C fgrep 'public-domain implementation' >/dev/null; then
+    # The file has a public domain notice.
+    return 0
+  fi
+
+  if head -n 15 "$dir/$1" | LC_ALL=C fgrep 'This file is distributed under the same license as ' >/dev/null; then
+    # The file has a notice that delegates to another copyright notice.
+    return 0
+  fi
+
+  if head -n 1 "$dir/$1" | LC_ALL=C fgrep 'Generated from configure.ac by autoheader.' >/dev/null \
+     || head -n 1 "$dir/$1" | LC_ALL=C fgrep 'code produced by gperf version' >/dev/null \
+     || head -n 1 "$dir/$1" | LC_ALL=C fgrep 'Creator     : groff version' >/dev/null \
+     || head -n 1 "$dir/$1" | LC_ALL=C fgrep 'DO NOT MODIFY THIS FILE!  It was generated by help2man' >/dev/null \
+     || head -n 3 "$dir/$1" | LC_ALL=C fgrep 'Generated automatically by gen-uni-tables.c for Unicode' >/dev/null \
+     || head -n 6 "$dir/$1" | LC_ALL=C fgrep 'Generated automatically by the gen-uninames utility.' >/dev/null; then
+    # These are generated files.  We ship their sources as well.
+    return 0
+  fi
+
+  if test `LC_ALL=C wc -l < "$dir/$1"` -le 8; then
+    # The file has very few lines.
+    # It thus doesn't have much programmer expression.
+    return 0
+  fi
+
+  return 1
+}
+
+fail=false
+for file in `cd "$dir" && find . -type f -print | sed -e 's,^[.]/,,' | LC_ALL=C sort`; do
+  func_check_file "$file" || {
+    echo "*** Missing copyright header in file $file" 1>&2
+    fail=true
+  }
+done
+
+if $fail; then
+  exit 1
+else
+  exit 0
+fi

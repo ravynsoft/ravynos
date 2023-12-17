@@ -1,0 +1,31 @@
+Description:
+Simple XML-like parser
+
+Files:
+lib/markup.h
+lib/markup.c
+
+Depends-on:
+c-ctype
+linked-list
+unistr/u8-mbtouc
+unistr/u8-next
+unictype/ctype-alpha
+xalloc
+xlist
+xvasprintf
+
+configure.ac:
+
+Makefile.am:
+lib_SOURCES += markup.h markup.c
+
+Include:
+"markup.h"
+
+License:
+LGPL
+
+Maintainer:
+Daiki Ueno
+

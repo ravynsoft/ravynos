@@ -1,0 +1,41 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of msgid_plural extraction in the case of duplicated msgids.
+# <https://lists.gnu.org/archive/html/bug-gettext/2014-10/msg00028.html>
+
+cat <<\EOF > xg-test12.c
+ngettext ("abc", "abc", 1);
+ngettext ("abc", "abc", 1);
+
+/* Hypothetical case: plural extraction from a function
+   with a single argument.  */
+xngettext ("def", 1);
+xngettext ("def", 1);
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --add-comments -kngettext:1,1 -kxngettext:1,1 -d xg-test12.tmp xg-test12.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-test12.tmp.po > xg-test12.po || Exit 1
+
+cat <<\EOF > xg-test12.ok
+#: xg-test12.c:1 xg-test12.c:2
+msgid "abc"
+msgid_plural "abc"
+msgstr[0] ""
+msgstr[1] ""
+
+#. Hypothetical case: plural extraction from a function
+#. with a single argument.
+#: xg-test12.c:6 xg-test12.c:7
+msgid "def"
+msgid_plural "def"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test12.ok xg-test12.po
+result=$?
+
+exit $result

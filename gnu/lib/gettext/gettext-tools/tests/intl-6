@@ -1,0 +1,55 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that gettext() does basic translation lookup, even when the directory
+# with the message catalogs contains arbitrary Unicode characters.
+# On native Windows, it uses wbindtextdomain().
+
+test -d in-6 || mkdir in-6
+test -d in-6/fr || mkdir in-6/fr
+test -d in-6/fr/LC_MESSAGES || mkdir in-6/fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o in-6/fr/LC_MESSAGES/tstprog.mo "$wabs_srcdir"/intl-1.po
+
+: ${DIFF=diff}
+cat <<EOF > in-6.ok
+fromage
+EOF
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  case "$host_os" in
+    cygwin*)
+      # On Cygwin, file names are interpreted according to the character
+      # encoding of the current locale, see
+      # <https://cygwin.com/cygwin-ug-net/setup-locale.html>.
+      # Therefore arbitrary Unicode characters are only supported in UTF-8
+      # locales (including "C.UTF-8") and in the "C" locale. In particular,
+      # they are not supported in the fr_FR.ISO-8859-1 locale.
+      ;;
+    *)
+      prepare_locale_ in-6/fr in-6/$LOCALE_FR
+      ../intl-6-prg in-6 $LOCALE_FR > in-6.tmp || Exit 1
+      LC_ALL=C tr -d '\r' < in-6.tmp > in-6.out || Exit 1
+      ${DIFF} in-6.ok in-6.out || Exit 1
+      ;;
+  esac
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ in-6/fr in-6/$LOCALE_FR_UTF8
+  ../intl-6-prg in-6 $LOCALE_FR_UTF8 > in-6.tmp || Exit 1
+  LC_ALL=C tr -d '\r' < in-6.tmp > in-6.out || Exit 1
+  ${DIFF} in-6.ok in-6.out || Exit 1
+fi
+if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french locale is installed"
+  else
+    echo "Skipping test: no french locale is supported"
+  fi
+  Exit 77
+fi
+
+Exit 0

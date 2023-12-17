@@ -1,0 +1,91 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgcat: handling of 'range:' flags.
+
+cat <<\EOF > mcat-test18.in1
+msgid "one day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 1..6
+msgid "one week and one day"
+msgid_plural "one week and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 1..7
+msgid "two weeks and one day"
+msgid_plural "two weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 0..6
+msgid "three weeks and one day"
+msgid_plural "three weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+cat <<\EOF > mcat-test18.in2
+#, c-format, range: 1..6
+msgid "one day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "one week and one day"
+msgid_plural "one week and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 0..6
+msgid "two weeks and one day"
+msgid_plural "two weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 1..7
+msgid "three weeks and one day"
+msgid_plural "three weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+rm -f mcat-test18.tmp
+: ${MSGCAT=msgcat}
+${MSGCAT} -o mcat-test18.tmp mcat-test18.in1 mcat-test18.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcat-test18.tmp > mcat-test18.out || Exit 1
+
+cat <<\EOF > mcat-test18.ok
+#, c-format
+msgid "one day"
+msgid_plural "%d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format
+msgid "one week and one day"
+msgid_plural "one week and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 0..7
+msgid "two weeks and one day"
+msgid_plural "two weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, c-format, range: 0..7
+msgid "three weeks and one day"
+msgid_plural "three weeks and %d days"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-test18.ok mcat-test18.out
+result=$?
+
+exit $result

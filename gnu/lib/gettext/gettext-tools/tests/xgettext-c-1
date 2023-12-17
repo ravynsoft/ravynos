@@ -1,0 +1,17 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# This test often fails during development. It works after "make dist".
+
+# Test C support.
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -d xg-c-1.tmp -k_ --omit-header --no-location \
+ "$wabs_top_srcdir"/src/xgettext.c "$wabs_top_srcdir"/src/msgfmt.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-1.tmp.po > xg-c-1.po || Exit 1
+
+: ${DIFF=diff}
+${DIFF} "$abs_srcdir"/xg-c-1.ok.po xg-c-1.po
+result=$?
+
+exit $result

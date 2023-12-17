@@ -1,0 +1,46 @@
+Description:
+Output stream referring to an stdio FILE.
+
+Files:
+lib/file-ostream.oo.h
+lib/file-ostream.oo.c
+
+Depends-on:
+ostream
+fsync
+xalloc
+
+configure.ac:
+AC_CHECK_FUNCS_ONCE([tcdrain])
+
+Makefile.am:
+lib_SOURCES += file-ostream.c
+# This is a Makefile rule that generates multiple files at once; see the
+# automake documentation, node "Multiple Outputs", for details.
+$(srcdir)/file-ostream.h : $(top_srcdir)/build-aux/moopp file-ostream.oo.h file-ostream.oo.c ostream.oo.h
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/file-ostream.oo.c $(srcdir)/file-ostream.oo.h $(srcdir)/ostream.oo.h
+$(srcdir)/file-ostream.c $(srcdir)/file_ostream.priv.h $(srcdir)/file_ostream.vt.h : file-ostream.h
+	@test -f $@ || { \
+	  trap 'rm -rf file-ostream.lock' 1 2 13 15; \
+	  if mkdir file-ostream.lock 2>/dev/null; then \
+	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/file-ostream.oo.c $(srcdir)/file-ostream.oo.h $(srcdir)/ostream.oo.h"; \
+	    $(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/file-ostream.oo.c $(srcdir)/file-ostream.oo.h $(srcdir)/ostream.oo.h; \
+	    result=$$?; rm -rf file-ostream.lock; exit $$result; \
+	  else \
+	    while test -d file-ostream.lock; do sleep 1; done; \
+	    test -f $(srcdir)/file-ostream.h; \
+	  fi; \
+	}
+BUILT_SOURCES += file-ostream.h file-ostream.c file_ostream.priv.h file_ostream.vt.h
+MAINTAINERCLEANFILES += file-ostream.h file-ostream.c file_ostream.priv.h file_ostream.vt.h
+EXTRA_DIST += file-ostream.h file-ostream.c file_ostream.priv.h file_ostream.vt.h
+
+Include:
+"file-ostream.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

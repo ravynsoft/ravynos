@@ -1,0 +1,1654 @@
+2015-10-06  Daiki Ueno  <ueno@gnu.org>
+
+	doc: Don't expose generated version
+	* Makefile.am ($(srcdir)/stamp-vti): Set ARCHIVE-VERSION, derived
+	from $(ARCHIVE_VERSION) in version.texi.
+	* gettext.texi (Files under Version Control): Refer to
+	ARCHIVE-VERSION, instead of VERSION.
+	* autopoint.texi: Refer to ARCHIVE-VERSION, instead of VERSION.
+
+2015-09-11  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.6 released.
+
+2015-07-28  Daiki Ueno  <ueno@gnu.org>
+
+	* autopoint.texi: Mention AM_GNU_GETTEXT_REQUIRE_VERSION.
+
+2015-07-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.5 released.
+
+2015-06-22  Daiki Ueno  <ueno@gnu.org>
+
+	* msginit.texi: More explanations about "meta information".
+	* gettext.texi (Plural forms): Mention Unicode CLDR support in
+	msginit.
+
+2015-06-01  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext.texi (gawk): Mention new file extensions ".gawk" and
+	".twjr".
+
+2015-06-01  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext.texi (Adjusting Files): Update link to GNU hello
+	distribution.  Suggested by Karl Berry in:
+	<https://lists.gnu.org/archive/html/bug-gettext/2015-05/msg00031.html>.
+
+2015-05-08  Matthew Behrens  <askedrelic@gmail.com>  (tiny change)
+
+	* gettext.texi (python-format): Update link to Python Library
+	Reference.
+
+2015-03-15  Benno Schulenberg <bensberg@justemail.net>  (tiny change)
+
+	* xgettext.texi: Fix a word and a punctuation.
+
+2015-03-06  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext.texi (kde-kuit-format): New subsection.
+
+2015-03-03  Daiki Ueno  <ueno@gnu.org>
+
+	* xgettext.texi: Document options --check and --sentence-end.
+
+2015-02-09  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext.texi (Plural forms): Add Arabic, Bahasa Indonesian, and
+	Thai.
+	Reported by Maryam Aly in:
+	<https://lists.gnu.org/archive/html/bug-gettext/2015-02/msg00012.html>.
+
+2015-02-03  Daiki Ueno  <ueno@gnu.org>
+
+	* msgexec.texi, msgfilter.texi: Fix markup error caused by commit
+	96dde0b8 and a4d132f7.
+
+2015-01-29  Daiki Ueno  <ueno@gnu.org>
+
+	* msgexec.texi: Document --newline option.
+
+2015-01-28  Daiki Ueno  <ueno@gnu.org>
+
+	* msgfilter.texi: Document --newline option.
+
+2015-01-05  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext.texi (Vala): New section.
+
+2014-12-24  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.4 released.
+
+2014-12-01  Daiki Ueno  <ueno@gnu.org>
+
+	doc: Document placement of extracted comment blocks
+	* xgettext.texi: Mention that extracted comment blocks must be
+	adjacent to keyword lines.
+	Reported by Yves-Gwenael Bourhis at:
+	<https://savannah.gnu.org/bugs/index.php?42376>.
+
+2014-10-15  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.3 released.
+
+2014-07-14  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.2 released.
+
+2014-06-12  Daiki Ueno  <ueno@gnu.org>
+
+	* gpl.texi, lgpl.texi, fdl.texi: Update from GNU.
+	* gettext.texi (GNU GPL, GNU LGPL, GNU LGPL): Define nodes here,
+	instead of in those license documents.
+
+2014-06-10  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19.1 released.
+
+2014-06-02  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext 0.19 released.
+
+2014-06-01  Daiki Ueno  <ueno@gnu.org>
+
+	* ISO_639: Remove Moldavian. Update Bihari, Bengali, Catalan,
+	Church Slavic, Divehi, Dzongkha, Ewe, Greek, Spanish, Fijian,
+	Gaelic, Hebrew, Interlingua, Indonesian, Inupiak, Central Khmer,
+	Kirghiz, Luxembourgish, Limburgan, Lao, Latvian, Norwegian Bokmal,
+	North Ndebele, Dutch, Norwegian Nynorsk, South Ndebele, Occitan,
+	Oromo, Pushto, Rundi, Romanian, Sango, Swati, South Sotho, Tswana,
+	Tonga, Uighur, Volapuk, Yiddish, and Zhuang.
+
+2014-05-31  Daiki Ueno  <ueno@gnu.org>
+
+	* msgexec.texi: Document the environment variable
+	MSGEXEC_PREV_MSGCTXT, MSGEXEC_PREV_MSGID, and
+	MSGEXEC_PREV_MSGID_PLURAL.
+
+2014-05-31  Daiki Ueno  <ueno@gnu.org>
+
+	* msgfilter.texi: Document the environment variable
+	MSGFILTER_PREV_MSGCTXT, MSGFILTER_PREV_MSGID, and
+	MSGFILTER_PREV_MSGID_PLURAL.
+
+2014-05-15  Stanislav Brabec  <sbrabec@suse.cz>  (tiny change)
+
+	* msgfilter.texi: Document the environment variable
+	MSGFILTER_MSGID_PLURAL and MSGFILTER_PLURAL_FORM.
+
+2014-05-15  Stanislav Brabec  <sbrabec@suse.cz>  (tiny change)
+
+	* msgexec.texi: Document the environment variable
+	MSGEXEC_MSGID_PLURAL and MSGEXEC_PLURAL_FORM.
+
+2014-05-10  Guido Flohr  <guido@imperia.net>
+
+	msgattrib: Add --empty option to clear msgstr
+	* msgattrib.texi: Document --empty option.
+
+2014-05-05  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext.texi (Translations under Version Control): New section.
+
+2014-05-05  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext.texi (Version Control Issues): Rename from "CVS Issues";
+	talk about generic issues when using version control systems.
+
+2014-04-30  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext.texi (Scheme): Document gettext shorthand form _"abc".
+
+2014-04-22  Daiki Ueno  <ueno@gnu.org>
+
+	build: Use git-version-gen intead of version.sh
+	* Makefile.am: Refer to .version instead of version.sh.
+
+2014-04-15  Daiki Ueno  <ueno@gnu.org>
+
+	* msgfilter.texi: Document 'quot' and 'boldquot' built-in filters.
+
+2014-04-04  Daiki Ueno  <ueno@gnu.org>
+
+	* msgfmt.texi: Document --desktop mode.
+
+2014-04-04  Daiki Ueno  <ueno@gnu.org>
+
+	* xgettext.texi: Document Desktop Entry file.
+
+2014-03-26  Aurélien Gâteau <mail@agateau.com>  (tiny change)
+
+	* msgfmt.texi: Document --source option.
+
+2014-03-25  Daiki Ueno  <ueno@gnu.org>
+
+	* msgattrib.texi: Document the optional argument of
+	--add-location.
+	* msgcat.texi: Likewise.
+	* msgcomm.texi: Likewise.
+	* msgconv.texi: Likewise.
+	* msgen.texi: Likewise.
+	* msgfilter.texi: Likewise.
+	* msggrep.texi: Likewise.
+	* msgmerge.texi: Likewise.
+	* msguniq.texi: Likewise.
+	* xgettext.texi: Likewise.
+
+2014-03-15  Daiki Ueno  <ueno@gnu.org>
+
+	* FAQ.html: Point to bug-gettext@gnu.org rather than
+	bug-gnu-gettext@gnu.org, in the context of mailing list; add a
+	link to the mailing list information page.  Point to the latest
+	URL of the GNOME Translation Project.  Replace the reference of
+	"Free Translation Project" with "Translation Project".
+	Reported by Benno Schulenberg.
+
+2014-02-10  Daiki Ueno  <ueno@gnu.org>
+
+	* ISO_3166: Remove AN, add BL, BQ, CW, MF, SS, and SX.  Update
+	country code for AG, AS, BA, BN, BO, CD, CG, FK, FM, FO, GB, GS,
+	HM, IR, KN, KP, KR, LA, LC, MD, MK, MM, PM, PS, RU, SH, SJ, ST,
+	SY, TC, TF, TT, TW, TZ, UM, VA, VC, VE, VG, VI, VN, WF, and WS.
+	* iso-3166.texi: Regenerate.
+	Reported by Karl Berry in:
+	<https://lists.gnu.org/archive/html/bug-gettext/2014-02/msg00006.html>.
+
+2014-01-12  Benno Schulenberg <bensberg@justemail.net>  (tiny change)
+
+	* gettext.texi (c-format Flag): Wording fixes.
+
+2013-12-17  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext.texi (Installers): Fix wording.
+	Reported by Reuben Thomas in:
+	<https://lists.gnu.org/archive/html/bug-gettext/2013-12/msg00009.html>.
+
+2013-08-06  Daiki Ueno  <ueno@gnu.org>
+
+	xgettext: add support for GSettings schema file
+	* gettext.texi (GSettings): New subsection.
+	* xgettext.texi: Document GSettings source language.
+
+2013-06-10  Daiki Ueno  <ueno@gnu.org>
+
+	* Makefile.am: Use $(MKDIR_P) instead of $(mkdir_p).
+	Suggested by Stefano Lattarini in
+	<https://lists.gnu.org/archive/html/bug-gettext/2013-04/msg00044.html>.
+
+2013-06-04  Daiki Ueno  <ueno@gnu.org>
+
+	Support for Vala.
+	* xgettext.texi: Document Vala source language. Document
+	that it is applicable to --flag.
+
+2013-05-20  Pavel Kharitonov  <ineiev@gnu.org>  (tiny change)
+
+	Add --previous option to msgattrib.
+	* msgattrib.texi: Document --previous.
+
+2013-04-26  Daiki Ueno  <ueno@gnu.org>
+
+	Support for Python brace format.
+	* gettext.texi (PO Files): Mention python-brace-format.
+	(python-format): Mention brace format.
+
+2013-04-17  Andreas Stricker  <astricker@futurelab.ch>
+
+	Support for JavaScript.
+	* gettext.texi (PO Files): Mention javascript-format.
+	(javascript-format): New subsection.
+	(JavaScript): New subsection.
+	* xgettext.texi: Document JavaScript source language. Document
+	that it is applicable to --flag.
+
+2013-04-11  Ľubomír Remák  <lubomirr@lubomirr.eu>
+
+	Support for Lua.
+	* gettext.texi (PO Files): Mention lua-format.
+	(lua-format): New subsection.
+	(Lua): New subsection.
+	* xgettext.texi: Document Lua source language. Document that it is
+	applicable to --flag.
+
+2013-04-02  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext.texi (PO Files): Use '@pxref' instead of '@xref'.
+
+2013-03-12  Andreas Stricker  <astricker@futurelab.ch>  (tiny change)
+
+	* msgfmt.texi (PO Format): A note about the header entry
+
+2013-02-15  Daiki Ueno  <ueno@gnu.org>
+
+	* msgfmt.texi (Input file location): Output file is not PO.
+
+2013-01-30  Miguel Angel Arruga Vivas  <rosen644835@gmail.com>  (tiny change)
+
+	* msgen.texi (Output details): Fix link in '@opindex' pointing to
+	msgcat.
+	Reported at <http://savannah.gnu.org/bugs/?36063>.
+	* msgmerge.texi (Output details): Likewise.
+
+2012-12-27  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext.texi (Plural forms): Fix ngettext arguments.
+	Reported by Reinhard Schaffner <rschaffner@zynga.com>.
+
+2012-12-25  Daiki Ueno  <ueno@gnu.org>
+
+	* gettext-0.18.2 released.
+
+2012-06-03  Jim Meyering  <jim@meyering.net>
+
+	* gettext.texi: Spelling fixes.
+
+2012-05-03  Bruno Haible  <bruno@clisp.org>
+
+	Document msgfmt option --endianness.
+	* msgfmt.texi: Document the option --endianness.
+	Reported by Paul Martin <pm@debian.org> via
+	Santiago Vila <sanvila@unex.es>.
+
+2012-01-26  Bruno Haible  <bruno@clisp.org>
+
+	Modernize quoting.
+	* FAQ.html: Quote 'like this', not `like this', as per the recent
+	change to the GNU coding standards.
+	* ISO_3166: Likewise.
+	* ISO_3166_de: Likewise.
+	* tutorial.html: Process through
+	sed -e "s/\`\`\([^']*\)''/“\1”/g" | sed -e "s/\`\([^']*\)'/‘\1’/g"
+
+2011-07-08  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Recommend the use of aclocal's --install
+	option.
+	Suggested by Stefano Lattarini <stefano.lattarini@gmail.com>.
+
+2011-06-03  Bruno Haible  <bruno@clisp.org>
+
+	Copyright: Use LGPL 2.1 instead of LGPL 2.0.
+	* gettext.texi (Discussions, Licenses): Write "GNU Lesser General
+	Public License".
+
+2011-05-13  Ben Elliston  <bje@gnu.org>
+
+	* gettext.texi (config.guess): Update wget commands.
+
+2011-04-13  Bruno Haible  <bruno@clisp.org>
+
+	* msgcat.texi: Fix description of --use-first.
+	* msgcomm.texi: Fix typo.
+	Reported by Matthijs Kooijman.
+
+2010-12-14  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext.texi: Mention that -L also supports Shell.
+	Reported by Eric Blake <eblake@redhat.com>.
+
+2010-11-13  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural forms): Add Belarusian.
+	Reported by Ihar Hrachyshka <ihar.hrachyshka@gmail.com>.
+
+2010-08-29  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Using Compendia): Correct after 2007-09-09 change.
+
+2010-06-06  Bruno Haible  <bruno@clisp.org>
+
+	xgettext: Recognize language of files ending in .perl.
+	* gettext.texi (Perl): Mention file extension '.perl'.
+	Suggested by Ævar Arnfjörð Bjarmason <avarab@gmail.com>.
+
+2010-06-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18.1 released.
+
+2010-05-20  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (objc-format): Fix typo.
+	Reported by Kalle Olavi Niemitalo <kon@iki.fi>.
+
+2010-05-09  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.18 released.
+
+2010-04-25  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (object-pascal-format): Add reference to Free Pascal
+	documentation.
+	Information provided by Marco van de Voort <marcov@stack.nl>.
+
+2010-04-02  Bruno Haible  <bruno@clisp.org>
+
+	* FAQ.html (building_rpath_check): Remove section.
+
+2010-03-31  Guido Flohr  <guido@imperia.net>
+
+	More explanations about how xgettext handles Perl syntax ambiguities.
+	* gettext.texi (General Problems): Explain how xgettext disambiguates
+	conditional operator vs. regular expression.
+
+2010-03-13  Bruno Haible  <bruno@clisp.org>
+
+	New options --color, --style for many programs.
+	* msgattrib.texi: Document the options --color and --style.
+	* msgcomm.texi: Likewise.
+	* msgconv.texi: Likewise.
+	* msgen.texi: Likewise.
+	* msgfilter.texi: Likewise.
+	* msggrep.texi: Likewise.
+	* msginit.texi: Likewise.
+	* msgmerge.texi: Likewise.
+	* msgunfmt.texi: Likewise.
+	* msguniq.texi: Likewise.
+	* xgettext.texi: Likewise.
+	Reported by Kalle Olavi Niemitalo <kon@iki.fi>
+	via Santiago Vila <sanvila@unex.es>.
+
+2010-02-20  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural forms): Add Bulgarian.
+	Reported by Roumen Petrov <transl@roumenpetrov.info>.
+
+2010-02-20  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural forms): Sort language lists by number of
+	speakers, not alphabetically.
+
+2009-12-25  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Add fcntl-o.m4 instead of fcntl_h.m4 to the
+	file list.
+
+2009-10-18  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Add fcntl_h.m4 to the file list.
+
+2009-09-20  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (src/Makefile): Update recommendations for autoconf
+	versions >= 2.60.
+	Reported by Sylvain Beucler <beuc@gnu.org>
+	at <http://savannah.gnu.org/bugs/?27464>.
+
+2009-08-16  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (dist-html-split): Depend on gettext_toc.html.
+
+2009-06-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Mark Keywords): Add cross-section references.
+	Reported by David Bruce <davidstuartbruce@gmail.com>.
+
+2009-05-31  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am: Use dist-hook instead of old distdir hack.
+
+2009-05-01  Bruno Haible  <bruno@clisp.org>
+
+	Undo 2005-02-23 change.
+	* gettext.texi: Put the table of contents back to the start.
+
+2009-04-08  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (CLEANFILES): Remove variable. Not needed any more 
+
+2009-04-07  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (SUFFIXES): Remove variable. Not needed any more since
+	automake-1.7.
+
+2009-03-29  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files): Mention gfc-internal-format.
+	(gfc-internal-format): New subsection.
+
+2009-02-15  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (MO Files): Update w.r.t. the maximum revision in use.
+	Reported by Dwayne Bailey <dwayne@translate.org.za>.
+
+2009-01-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files): Mention qt-plural-format.
+	(qt-plural-format): New subsection.
+
+2009-01-25  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Translating plural forms): New section.
+	(Header Entry, Plural forms): Refer to it.
+	Reported by Yan Kerb <y.kerb@laposte.net>.
+
+2009-01-18  Bruno Haible  <bruno@clisp.org>
+
+	* msgfmt.texi: Describe the effect of combining --statistics with
+	--verbose.
+
+2008-11-14  Bruno Haible  <bruno@clisp.org>
+
+	* msgfilter.texi: Document the environment variables MSGFILTER_MSGCTXT,
+	MSGFILTER_MSGID, MSGFILTER_LOCATION.
+
+2008-10-10  Noritada Kobayashi  <noritadak@gmail.com>
+
+	* gettext.texi (PO Mode): Update remaining obsolete key bindings used
+	in the version 0.10.x era.
+
+2008-10-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files): Mention the 'range:' flag syntax.
+	(Plural forms): Document how to produce 'range:' flags.
+
+2008-09-27  Bruno Haible  <bruno@clisp.org>
+
+	* ISO_639-2: Update entry about Tamashek.
+
+2008-09-15  Bruno Haible  <bruno@clisp.org>
+
+	* msgcmp.texi: Document option -N/--no-fuzzy-matching.
+
+2008-08-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Add threadlib.m4 to the file list.
+
+2008-08-15  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Python): Recommend format strings with named arguments.
+	Reported by Alexander Dupuy <alex.dupuy@mac.com>
+	in <http://savannah.gnu.org/bugs/?24025>.
+
+2008-06-18  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* msggrep.texi: Drop leading whitespace.
+
+2008-05-18  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Names): Recommend the gnulib module 'propername'.
+	Don't mention the translation project's whoiswho.pot any more. Don't
+	say that Emacs does not support UTF-8 well.
+	Reported by Brian Kemp <brian.kemp@gmail.com>.
+
+2008-05-06  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural forms): Explain why the number argument must be
+	the last.
+	Reported by Benjamin Geer <benjamin.geer@gmail.com>.
+
+2008-04-25  Bruno Haible  <bruno@clisp.org>
+
+	* ISO_639: Remove Adangme. Update Belarusian, Scottish Gaelic,
+	Interlingue, Sichuan Yi, Central Khmer, Pashto, Romansh.
+	* ISO_639-2: Add Adangme, Classical Syriac, Blissymbols. Update
+	Aramaic, Mapudungun, Asturian, Banda, Beja, Bini, Batak, Carib,
+	Chipewyan, Dayak, Swiss German, Ijo, Kachin, Karen, Kru, Miscellaneous,
+	Nahuatl, Pampanga, Rarotongan, Songhai, Sranan Tongo, Zande,
+	No linguistic content.
+	* iso-639.texi: Regenerate.
+	* iso-639-2.texi: Regenerate.
+	* gettext.texi (Header Entry): Update name of Belarusian.
+
+2008-04-20  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext.texi: Clarify single-letter options that take an optional
+	argument: -c, -k, -m, -M.
+
+2008-03-10  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (gettext Invocation): Mention that xgettext does not
+	support the various options.
+	(ngettext Invocation): Likewise.
+	Reported by Aurélio A. Heckert <aurium@gmail.com>.
+
+2008-02-02  Benno Schulenberg <bensberg@justemail.net>
+
+	* gettext.texi (PO Files): Stylistic improvements.
+
+2008-01-12  Bruno Haible  <bruno@clisp.org>
+
+	* msgfilter.texi: Fix last example.
+	Reported by Benno Schulenberg <bensberg@justemail.net>.
+
+2007-12-24  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Header Entry): Document the 'Language' field.
+	* msgcat.texi: Document the --lang option.
+	* msgen.texi: Likewise.
+	* msgmerge.texi: Likewise.
+
+2007-12-02  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural Forms): Put Turkish under nplurals=2.
+	Reported by Sertaç Ö. Yıldız <sertacyildiz@gmail.com>.
+
+2007-11-07  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.17 released.
+
+2007-10-31  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Remove ulonglong.m4 from the file list.
+
+2007-10-28  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (AM_XGETTEXT_OPTION): New section.
+	(po/Makevers): Refer to it.
+
+2007-10-28  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Talk about configure.ac instead of configure.in.
+	(configure.ac): Renamed from configure.in.
+	(Autoconf macros for use in configure.ac): Renamed from "Autoconf
+	macros for use in configure.in".
+	* gettextize.texi: Talk about configure.ac instead of configure.in.
+
+2007-10-28  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (The --style option): Document the predefined styles.
+	(Style rules): Mark .added, .changed, .removed as not yet implemented.
+
+2007-10-20  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Java): Mention the hello-java-qtjambi example.
+
+2007-10-05  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Enforce normal indentation of the first paragraph of each
+	section.
+
+2007-09-30  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext.texi: Document options --package-name, --package-version.
+	* gettext.texi (Header Entry): Mention that the Project-Id-Version may
+	already be filled in.
+
+2007-09-30  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files): Mention kde-format.
+	(kde-format): New subsection.
+	(qt-format): Update for Qt 4.
+	* xgettext.texi: Document --kde option.
+
+2007-09-09  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Compendium): Upgrade node from a subsection to a
+	section.
+
+2007-09-09  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Using Compendia): Use "msgattrib --no-obsolete"
+	instead of "sed -e '/^#~/d'".
+	Suggested by Benno Schulenberg <bensberg@justemail.net>.
+
+2007-09-02  Bruno Haible  <bruno@clisp.org>
+
+	* msggrep.texi: Add some examples.
+	* msgfilter.texi: Likewise.
+	Suggested by Guido at <https://savannah.gnu.org/bugs/?18293>.
+
+2007-09-02  Bruno Haible  <bruno@clisp.org>
+
+	Implement msgctxt for C# ResourceManagers.
+	* gettext.texi (Java): Mention GetParticularString and
+	GetParticularPluralString.
+	* xgettext.texi (--keyword): Update defaults for C#.
+
+2007-09-01  Bruno Haible  <bruno@clisp.org>
+
+	Implement msgctxt for Java ResourceBundles.
+	* gettext.texi (Java): Mention pgettext and npgettext.
+	* xgettext.texi (--keyword): Update defaults for Java.
+	Suggested by Felix Berger.
+
+2007-08-18  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Why): Don't oppose commercial software to free
+	software.
+	Reported by Kaloian Doganov <kaloian@doganov.org>.
+
+2007-06-30  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Fix English typo.
+	Reported by Benno Schulenberg <bensberg@justemail.net>.
+
+2007-06-30  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Installing Localizations, Header Entry, Trans Intro 0,
+	Trans Intro 1, Organization, Mailing Lists, Prerequisites): Update
+	email addresses and URLs after the Translation Project moved.
+	* FAQ.html: Likewise.
+
+2007-06-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Locale Names): Explain the variant syntax.
+	Reported by Karl Berry <karl@freefriends.org>.
+
+2007-06-07  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Mention also intlmacosx.m4.
+
+2007-06-07  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext.texi: Mention some caveats.
+	Reported by Ariel Shkedi <asgettext@dsgml.com>.
+
+2007-06-03  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Users): Chapter completely rewritten.
+	Reported by Karl Berry <karl@freefriends.org>.
+
+2007-06-03  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Triggering): Talk about gnulib instead of the gettext
+	source code.
+	(Loading Catalogs): Update footnote.
+
+2007-06-03  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Aspects): Talk about POSIX:2001 instead of SUSV2.
+
+2007-06-03  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Talk about "locale categories" instead of "locale
+	facets" everwhere, and instead of "locales" where appropriate.
+	(Aspects): Explain the term "locale categories".
+	Reported by Karl Berry <karl@freefriends.org>.
+
+2007-05-05  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (ifmakeinfo): Remove alias.
+	(makeinfo): New variable.
+
+2007-05-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Overview of GNU gettext): Put @ifhtml outside @example,
+	not @inside. Fixes an indentation problem of the first line when
+	"makeinfo --html" is used.
+	Reported by Noah Slater <nslater@gmail.com>.
+
+2007-05-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Make the @documentencoding command unconditional.
+
+2007-05-03  Bruno Haible  <bruno@clisp.org>
+
+	Add support for both "makeinfo --html" and texi2html.
+	* gettext.texi (ifmakeinfo): New alias.
+	(Top): Use it instead of @ifinfo.
+
+2007-05-03  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Bug Report Address): Fix cross references.
+
+2007-04-06  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Remove longdouble.m4 from the file list.
+
+2007-03-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Bug Report Address): New section.
+
+2006-12-19  Bruno Haible  <bruno@clisp.org>
+
+	* gettextize.texi: Document the --po-dir option.
+
+2006-12-03  Bruno Haible  <bruno@clisp.org>
+
+	* msgcat.texi: Document the --color and --style options.
+	* gettext.texi (Colorizing): New section.
+
+2006-11-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16.1 released.
+
+2006-10-26  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.16 released.
+
+2006-10-20  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Mark Keywords): Explain the syntax that xgettext
+	understands. Fix example of a non-translatable string.
+
+2006-10-19  Paul Eggert  <eggert@cs.ucla.edu>
+
+	* gettext.texi (Mark Keywords): keyword are -> keyword is.
+
+2006-10-16  Bruno Haible  <bruno@clisp.org>
+
+	Switch to automake-1.10.
+	* Makefile.am (install-html): Add no-op rule.
+	(install-dvi, install-ps, install-pdf): Remove rules.
+
+2006-10-17  Bruno Haible  <bruno@clisp.org>
+
+	* ISO_639-2: New file.
+	* iso-639-2.sed: New file.
+	* Makefile.am (gettext_TEXINFOS): Add iso-639-2.texi.
+	(EXTRA_DIST): Add iso-639-2.sed, ISO_639-2.
+	(iso-639-2.texi): New rule.
+	* gettext.texi (Language codes): Split into two nodes "Usual Language
+	Codes" and "Rare Language Codes". Include iso-639-2.texi.
+
+2006-10-08  Bruno Haible  <bruno@clisp.org>
+
+	* gettextize.texi: Document the --symlink option instead of the --copy
+	option.
+
+2006-10-05  Bruno Haible  <bruno@clisp.org>
+
+	* ISO_639: Add Adangme. Fix the names of Western Frisian, Galician,
+	Marshallese, Sinhala.
+	* ISO_3166: Add AX, GG, IM, JE, ME, RS. Remove CS.
+	* iso-3166.sed: Also transform Å to Aa.
+
+2006-10-03  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files): Document the "previous msgid" syntax.
+	* msgmerge.texi: Document the --previous option.
+	* msgattrib.texi: Document the --clear-previous option.
+
+2006-10-03  Bruno Haible  <bruno@clisp.org>
+
+	* msgcmp.texi: Document --use-fuzzy and --use-untranslated options.
+
+2006-10-01  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (AM_GNU_GETTEXT): Mention the AM_GNU_GETTEXT_NEED
+	alternative.
+	(AM_GNU_GETTEXT_NEED): New subsection.
+
+2006-10-01  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Mention intldir.m4.
+	(AM_GNU_GETTEXT): Mention the effect of AM_GNU_GETTEXT_INTL_SUBDIR.
+	(AM_GNU_GETTEXT_INTL_SUBDIR): New subsection.
+
+2006-09-18  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Don't mention inttypes-h.m4.
+
+2006-09-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Mention nls.m4, po.m4, mkdirp.m4.
+
+2006-09-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Add intl.m4 to file list.
+
+2006-09-08  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Preparing strings): Also discourage unusual markup.
+	Suggested by Paul Eggert.
+
+2006-08-28  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Update file list.
+
+2006-08-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural Forms): Mention the use of ngettext with a
+	singular format string that doesn't need as many format arguments as
+	the plural string.
+	Suggested by Paul Eggert <eggert@cs.ucla.edu>.
+
+2006-08-16  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural Forms): Document how to deal with bignums,
+	negative numbers and floating-point numbers.
+	Suggested by Paul Eggert <eggert@cs.ucla.edu>.
+
+2006-08-16  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural Forms): Put Hungarian under nplurals=2, and
+	explain why.
+	Reported by Arpad Biro <biro_arpad@yahoo.com> and
+	Gabor Kelemen <kelemeng@gnome.hu>.
+
+2006-08-16  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural Forms): Mention the use of ngettext without
+	cardinal numbers.
+	Reported by Arpad Biro <biro_arpad@yahoo.com>.
+
+2006-08-08  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* gettext.texi: Fix 2 typos.
+
+2006-08-08  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* gettext.texi: Reduce spacing after "i.e." and "e.g.".
+	* msgcat.texi: Likewise.
+	* msgcomm.texi: Likewise.
+	* msgfilter.texi: Likewise.
+
+2006-08-06  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* gettext.texi: Fix 17 typos.
+	* msgattrib.texi: Fix 2 typos.
+	* xgettext.texi: Fix 1 typo.
+
+2006-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.msvc: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove Makefile.msvc.
+
+2006-07-25  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.vms: Remove file.
+	* Makefile.am (EXTRA_DIST): Remove Makefile.vms.
+
+2006-07-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.15 released.
+
+2006-06-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Update file list.
+
+2006-04-14  Bruno Haible  <bruno@clisp.org>
+
+	Assume autoconf >= 2.60.
+	* Makefile.am (docdir, dvidir, psdir, pdfdir, htmldir): Remove
+	variables.
+
+2006-06-18  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (configure.in): Document where to put AC_GNU_SOURCE.
+	* gettextize.texi: Refer to this explanation.
+
+2006-06-15  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (po/Makevars): Mention real purpose of this file.
+	(po/Rules-*): New section.
+	Reported by Karl Berry <karl@freefriends.org>.
+
+2006-06-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Update file list.
+
+2006-04-17  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am: Use $(mkdir_p) instead of $(mkinstalldirs).
+	* gettext.texi (config.guess): Don't mention mkinstalldirs file any
+	more.
+	(mkinstalldirs): Say it's obsolete.
+	* gettextize.texi: Don't mention mkinstalldirs.
+
+2006-04-11  Bruno Haible  <bruno@clisp.org>
+
+	* gpl.texi: New file, from GNU with typesetting modifications.
+	* lgpl.texi: New file, from GNU with typesetting modifications.
+	* fdl.texi: New file, from GNU with typesetting modifications.
+	* gettext.texi: Change license terms to FDL | GPL. Don't reproduce
+	the @direntry statement in the HTML documentation.
+	(Licenses): New appendix chapter.
+
+2006-04-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Comment out @documentencoding, since we are using
+	texi2html, not makeinfo, to produce the HTML documentation.
+
+2006-04-02  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (wxWidgets): Renamed from wxWindows. Clarify formatting
+	with positions.
+
+2006-04-02  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Contexts): Document the macros pgettext_expr,
+	dpgettext_expr, dcpgettext_expr.
+
+2006-04-02  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural Forms): More details about the expression
+	syntax.
+	Reported by Martin von Löwis <martin@v.loewis.de>.
+
+2006-04-01  Bruno Haible  <bruno@clisp.org>
+
+	* texi2html: Add option -expandtex. Expand @ifhtml by default, not
+	@ifinfo. Use Unicode quotation marks instead of grave and acute
+	accents. Emit charset=UTF-8 declaration. Bump version number to 1.52b.
+	* Makefile.am (gettext.html, gettext_toc.html): Remove -expandinfo
+	option.
+	* gettext.texi: If in HTML mode, use Unicode quotation marks and
+	box drawing characters.
+	* msgattrib.texi: Likewise.
+
+2006-04-01  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Introduction): Swap paragraphs.
+
+2006-04-01  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (gettext grok, Temp Programmers, Trans Intro 0,
+	Trans Intro 1, Discussions, Organization, Information Flow,
+	References): Mark as outdated.
+
+2006-04-01  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext.texi (--keyword): Document the default keywords.
+	Suggested by Bjoern Voigt <bjoern@cs.tu-berlin.de>.
+
+2006-03-28  Bruno Haible  <bruno@clisp.org>
+
+	* msgfilter.texi: Explain built-in filters and recode-sr-latin.
+
+2006-03-26  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Java): Recommend a simpler idiom for Java 1.5.
+
+2006-03-25  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (C): Also mention the hello-c++-wxwidgets example.
+
+2006-03-19  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext.texi (--keyword): Document the extracted comments syntax.
+
+2006-03-16  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files): Clarify the terms "automatic comments" and
+	"extracted comments".
+	* msggrep.texi: Document the -X/--extracted-comment option.
+
+2006-03-16  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext.texi (--keyword): Document suffix 'g'.
+
+2006-02-26  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Introduction): Fix typo.
+	Reported by <atras-ch@mail.msiu.ru>.
+
+2006-02-12  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files): Mention boost-format.
+	(boost-format): New subsection.
+	* xgettext.texi: Document --boost option.
+
+2005-11-29  Colin Watson  <cjwatson@ubuntu.com>
+
+	* msggrep.texi: Document --invert-match option.
+
+2005-10-18  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext.texi (--keyword): Document how to specify the total number
+	of arguments.
+
+2005-10-03  Bruno Haible  <bruno@clisp.org>
+
+	Add support for contexts in xgettext.
+	* xgettext.texi (--keyword): Document how to specify context arguments.
+
+2005-10-07  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files, Preparing Strings, Contexts): Small fixes.
+	Patch by Pavel Roskin <proski@gnu.org>.
+
+2005-10-01  Bruno Haible  <bruno@clisp.org>
+
+	Support for context dependent translations in PO files.
+	* gettext.texi (PO Files): Explain syntax of msgctxt.
+	(MO Files): Explain how contexts are stored.
+	(Contexts): New subsection.
+	(GUI program problems): Remove subsection.
+	* msgexec.texi: Mention MSGEXEC_MSGCTXT environment variable.
+	* msggrep.texi: Document option -J.
+
+2005-09-25  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext.texi (--from-code): Python input is no longer always in
+	ISO-8859-1.
+
+2005-09-20  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext.texi (--from-code): Python input is always assumed to be
+	in ISO-8859-1, not UTF-8.
+	Reported by Danilo Segan <dsegan@gmx.net>.
+
+2005-08-26  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural forms): Add info about Romanian.
+	Explanations by Eddy Petrişor <eddy.petrisor@gmail.com>.
+
+2005-07-24  Bruno Haible  <bruno@clisp.org>
+
+	Tidy up exported symbols.
+	* gettext.texi (aclocal): Mention visibility.m4.
+
+2005-05-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Why): Mention libgettextpo.
+	(Overview, PO Files, Header Entry, Prioritizing messages): De-emphasize
+	PO mode. Talk about PO file editors instead.
+	(Sources): New section 'Importing'.
+	(PO Mode): Move introducing paragraph from Overview to here.
+
+2005-07-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Editing): New chapter, including all the PO Mode
+	descriptions.
+	(PO Files): Chapter renamed from Basics.
+
+2005-07-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Users): Move chapter to become the second.
+	(Installers): New chapter, extracted from Users chapter.
+
+2005-07-16  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Add lock.m4 to file list.
+
+2005-07-01  Bruno Haible  <bruno@clisp.org>
+
+	* FAQ.html (windows_howto): Mention the three debugging runtime libs.
+	Reported by Stephane Matamontero <stephane.matamontero@gemodek.de>.
+
+2005-05-02  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (c-format): Write fprintf() instead of fprintf(3).
+	Requested by Richard Stallman.
+
+2006-06-21  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.6 released.
+
+2005-05-23  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.5 released.
+
+2005-04-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.4 released.
+
+2005-03-22  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (stamp-vti): Replace config with build-aux.
+
+2005-03-14  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.3 released.
+
+2005-03-07  Bruno Haible  <bruno@clisp.org>
+
+	* FAQ.html (How do I make use of gettext() in my package?): Add more
+	info.
+	Reported by Alexandre Duret-Lutz <adl@src.lip6.fr>.
+
+2005-03-06  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (src/Makefile): Document the steps that need to be done
+	when automake is used.
+	Reported by Alexandre Duret-Lutz <adl@src.lip6.fr>.
+
+2005-03-06  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (config.h.in): Explain the constraints for this file's
+	name and location.
+
+2005-03-06  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (config.guess): Update the instructions for fetching
+	these files.
+	Reported by Alexandre Duret-Lutz <adl@src.lip6.fr>.
+
+2005-03-06  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (po/Makevars): Change subsection title.
+	Suggested by Alexandre Duret-Lutz <adl@src.lip6.fr>.
+
+2005-03-06  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (src/Makefile): Adjust example 'dist' target.
+	Suggested by Alexandre Duret-Lutz <adl@src.lip6.fr>.
+
+2005-02-24  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.2 released.
+
+2005-02-23  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Put the table of contents at the end in TeX mode,
+	otherwise texi2dvi fails.
+
+2005-02-12  Bruno Haible  <bruno@clisp.org>
+
+	* tutorial.html: New file, from Gora Mohanty with modifications:
+	Remove the navigation panel. Don't use the -s option.
+	* Makefile.am (doc_DATA): Add tutorial.html.
+	* Makefile.msvc (install, uninstall): Also tutorial.html.
+	* Makefile.vms (install, uninstall): Also tutorial.html.
+
+2005-02-06  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Files under CVS): Explain the role of the
+	AM_GNU_GETTEXT_VERSION argument.
+
+2005-02-05  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Release Management): New section.
+	Suggested by Karl Berry.
+
+2005-02-04  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural forms): Add info about Vietnamese.
+	Explanations by Clytie Siddall <clytie@riverland.net.au>.
+
+2005-01-20  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Scheme): Correct information about setlocale.
+
+2005-01-16  Bruno Haible  <bruno@clisp.org>
+
+	Support for Scheme.
+	* gettext.texi (PO Files): Mention scheme-format.
+	(scheme-format): New subsection.
+	(Scheme): New subsection.
+	* xgettext.texi: Document Scheme source language. Document that it is
+	applicable to --flag.
+
+2005-01-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Put the table of contents at the beginning, after the
+	titlepage, not at the end.
+
+2004-11-13  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Preparing Shell Scripts): Document extra backslashing.
+
+2004-09-08  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (EXTRA_DIST): Add FAQ.html.
+
+2004-09-02  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Aspects): Tweak language: ISO-8859-1 is not a font.
+	Reported by Vera Mickael <vera.mickael@free.fr>.
+
+2004-08-30  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural forms): Czech is now like Slovak.
+	Reported by Stepan Kasal <kasal@ucw.cz>.
+
+2004-08-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Aspects): Fix typo in ISO standard number.
+	Patch by <bethor@gmx.li>.
+
+2004-07-13  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Python): Remove mention of a bug that was fixed in
+	Python 2.3.x.
+	Reported by Karl Chen <quarl@hkn.eecs.berkeley.edu>.
+
+2004-02-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural forms): Add info about Serbian.
+	Reported by Danilo Segan <danilo@gnome.org>.
+
+2004-02-24  Bruno Haible  <bruno@clisp.org>
+
+	* FAQ.html (How do I make use of gettext() in my package?): New
+	question. Suggested by Paul Eggert <eggert@cs.ucla.edu>.
+
+2004-02-21  Bruno Haible  <bruno@clisp.org>
+
+	* FAQ.html: New file.
+	* Makefile.am (doc_DATA): New variable.
+	* Makefile.msvc (install): Also install FAQ.html.
+	(uninstall): Also uninstall FAQ.html.
+	* Makefile.vms (install): Also install FAQ.html.
+	(uninstall): Also uninstall FAQ.html.
+
+2004-02-02  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Mention glibc2.m4.
+
+2004-01-29  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14.1 released.
+
+2004-01-28  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.14 released.
+
+2004-01-18  Bruno Haible  <bruno@clisp.org>
+
+	* ISO_639: Update. Add ak, av, bm, cr, dv, ee, ff, ig, kg, kr, lg, lu,
+	oj, ve.
+
+2004-01-10  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Libraries): New section.
+
+2004-01-09  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (c-format): Document the 'I' flag.
+
+2004-01-14  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Add entrypoints for ngettext and envsubst.
+	Reported by Peter Breitenlohner <peb@mppmu.mpg.de>.
+
+2004-01-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Java): Explain how to define the shorthand '_'.
+	(C#): Likewise.
+
+2003-12-28  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (C#): Mention the --csharp-resources option.
+	* msgfmt.texi: Document the --csharp-resources option.
+	* msgunfmt.texi: Likewise.
+
+2003-12-26  Bruno Haible  <bruno@clisp.org>
+
+	Support for C#.
+	* gettext.texi (C#): Add more details.
+	* msgfmt.texi: Document --csharp option and C# mode.
+	* msgunfmt.texi: Document --csharp option and C# mode.
+
+2003-12-14  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files): Mention csharp-format.
+	(Preparing String): Add an example in C# syntax.
+	(csharp-format): New subsection.
+	(C#): New subsection.
+	* xgettext.texi: Document C# source language. Document the languages to
+	which --flag is applicable.
+
+2003-12-12  Bruno Haible  <bruno@clisp.org>
+
+	Assume automake-1.8.
+	* Makefile.am (stamp-vti): Is in $(srcdir).
+	(html-local): Renamed from html.
+	(ps, pdf, .texi.pdf): Remove rules.
+
+2003-12-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.13.1 released.
+
+2003-12-09  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (MAKEINFOFLAGS): Add --no-split.
+
+2003-12-06  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Triggering): Use ANSI C function declaration.
+	(Perl): Update.
+
+2003-11-30  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.13 released.
+
+2003-11-23  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Don't mention ssize_t.m4.
+
+2003-11-16  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (aclocal): Mention size_max.m4, ssize_t.m4, xsize.m4.
+
+2003-11-15  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (C, sh, Python, Common Lisp, librep, Smalltalk, Java,
+	gawk, Pascal, YCP, Tcl, Perl, PHP): Mention the examples.
+
+2003-11-13  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (docdir): Use the value from the configure script.
+
+2003-11-13  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (About gettext): Mention OpenI18N (ex-Li18nux).
+	(History): Acknowledge Paul Eggert's role.
+
+2003-11-04  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (MAKEINFO): Set LC_MESSAGES and LC_ALL to empty as well.
+
+2003-10-19  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files): Mention qt-format.
+	(qt-format): New subsection.
+	* msgfmt.texi: Document --qt option.
+	* xgettext.texi: Likewise.
+
+2003-10-13  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files): Mention objc-format, sh-format, perl-format,
+	perl-brace-format.
+	(objc-format): New subsection.
+
+2003-10-12  Bruno Haible  <bruno@clisp.org>
+
+	* msgattrib.texi: Document --stringtable-input and --stringtable-output
+	options.
+	* msgcat.texi: Likewise.
+	* msgcomm.texi: Likewise.
+	* msgconv.text: Likewise.
+	* msgen.texi: Likewise.
+	* msgfilter.texi: Likewise.
+	* msgrep.texi: Likewise.
+	* msginit.texi: Likewise.
+	* msgmerge.texi: Likewise.
+	* msguniq.texi: Likewise.
+	* msgcmp.texi: Document --stringtable-input option.
+	* msgexec.texi: Likewise.
+	* msgfmt.texi: Likewise.
+	* msgunfmt.texi: Document --stringtable-output option.
+	* xgettext.texi: Likewise. Document --language=NXStringTable.
+
+2003-10-11  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PHP): Drop phplib from list of RPMs.
+
+2003-10-05  Bruno Haible  <bruno@clisp.org>
+
+	* xgettext.texi (Language specific options): Renamed section. Document
+	the languages to which --extract-all, --keyword, --trigraphs are
+	applicable. Document option --flag.
+
+2003-09-13  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Update menus.
+	(sh): Update.
+	(Preparing Shell Scripts, gettext.sh, gettext Invocation,
+	ngettext Invocation, envsubst Invocation, eval_gettext Invocation,
+	eval_ngettext Invocation): New subsubsections.
+	* Makefile.am (TEXINCLUDES): New variable.
+	(gettext_TEXINFOS): Add the files from gettext-runtime/doc/.
+	(MAKEINFOFLAGS, TEXI2DVI): New variables, needed for TEXINCLUDES.
+	(TEXI2PDF): Add TEXINCLUDES.
+	(gettext.html, gettext_toc.html): Use TEXINCLUDES.
+
+2003-09-13  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (sh-format): New subsection.
+
+2003-09-09  Guido Flohr <guido@imperia.net>
+
+	* gettext.texi (Perl, Interpolation I): Tweaks.
+
+2003-08-15  Bruno Haible  <bruno@clisp.org>
+
+	* ISO_639: Update. Add an, ht, ii, li.
+	* ISO_3166: Update. Change reference URL. Add CS, TL. Remove YU, TP.
+	* iso-3166.sed: Handle accented characters as best as texi2html can.
+
+2003-08-15  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Quote-like Expressions): Fix misplaced @group.
+
+2003-08-08  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files): Mention gcc-internal-format.
+	(gcc-internal-format): New subsection.
+	(GCC-source): New subsection.
+	* xgettext.texi: Mention GCC-source language.
+
+2003-07-05  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (perl-format): Use braces, not brackets, in format
+	strings.
+	(Perl pitfalls): Likewise.
+
+2003-07-03  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PHP): Mention plural form functions.
+
+2003-06-22  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Preparing Strings): More explanations.
+
+2003-06-21  Guido Flohr <guido@imperia.net>
+            Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (perl-format): Describe two kinds of format strings.
+	(Perl): Add more info.
+
+2003-06-19  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Sources): Recommend to use <libintl.h> also for printf.
+	(aclocal): Mention also intmax.m4, longdouble.m4, longlong.m4,
+	printf-posix.m4, signed.m4, wchar_t.m4, wint_t.m4.
+	(c-format): Mention the printf(), fprintf() replacements.
+	(C, clisp C): Remove portability note for formatting with positions.
+
+2003-06-15  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (C): Mention that formatting with positions doesn't work
+	on NetBSD and on Woe32.
+
+2003-06-12  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (perl-format): Move subsection.
+	(Perl): Small tweaks. Replace "legal" -> "valid".
+	* xgettext.texi: Tweak.
+
+2003-06-11  Guido Flohr  <guido@imperia.net>
+
+	* gettext.texi (Perl): Extend and update.
+	* xgettext.texi: Mention language Perl.
+
+2003-06-10  Stepan Kasal  <kasal@math.cas.cz>
+
+	* gettext.texi: Fix a few typos.
+
+2003-06-04  Stepan Kasal  <kasal@ucw.cz>
+
+	* gettext.texi (Header Entry): Delete some leading spaces;
+	they got copied verbatim to the info file.
+
+2003-05-27  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural forms): Correct formula for Slovak.
+	Reported by Marcel Telka <marcel@telka.sk>.
+
+2003-05-24  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Glade): Mention support og Glade 2.
+
+2003-05-22  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.12.1 released.
+
+2003-05-19  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (stamp-vti): Add some dependencies.
+
+2003-05-17  Bruno Haible  <bruno@clisp.org>
+
+	* gettext-0.12 released.
+
+2003-05-03  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Use two spaces as sentence separator, as recommended
+	by the texinfo manual.
+	* gettextize.texi: Likewise.
+	* msgen.texi: Likewise.
+	* msgfilter.texi: Likewise.
+
+2003-05-03  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Distinguish between POSIX and POSIX+XSI.
+	Suggested by Paul Eggert.
+
+2003-05-03  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (AM_PO_SUBDIRS): New subsection.
+
+2003-04-25  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Names): New section.
+
+2003-04-22  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Java): Document how to use .properties files.
+	* msgattrib.texi: Document options -P and -p.
+	* msgcat.texi: Likewise.
+	* msgcomm.texi: Likewise.
+	* msgconv.texi: Likewise.
+	* msgen.texi: Likewise.
+	* msgfilter.texi: Likewise.
+	* msggrep.texi: Likewise.
+	* msginit.texi: Likewise.
+	* msgmerge.texi: Likewise.
+	* msguniq.texi: Likewise.
+	* msgcmp.texi: Document option -P.
+	* msgexec.texi: Likewise.
+	* msgfmt.texi: Likewise.
+	* msgunfmt.texi: Document option -p.
+	* xgettext.texi: Document options -L JavaProperties and
+	--properties-output.
+
+2003-04-22  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Plural forms): Add info about Faroese.
+	Reported by Jacob Sparre Andersen <sparre@crs4.it>.
+
+2003-04-12  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.vms: Don't use the force target. Avoid rules with no lines.
+	Suggested by Jouk Jansen <joukj@hrem.stm.tudelft.nl>.
+
+2003-04-12  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (docdir): Use datadir instead of prefix.
+	* Makefile.msvc (datadir): New variable.
+	(docdir): Use it instead of prefix.
+	(install, installdirs): Update.
+	* Makefile.vms (datadir): New variable.
+	(docdir): Use it instead of prefix.
+
+2003-03-30  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.vms: New file.
+	* Makefile.am (EXTRA_DIST): Add Makefile.vms.
+
+2003-03-17  Bruno Haible  <bruno@clisp.org>
+
+	Native Woe32/MSVC support.
+	* Makefile.msvc: New file.
+	* Makefile.am (EXTRA_DIST): Add it.
+
+2003-03-10  Bruno Haible  <bruno@clisp.org>
+
+	* msggrep.texi: Document option -C completely.
+	Reported by Martin Quinson <Martin.Quinson@tuxfamily.org>.
+
+2003-03-03  Bruno Haible  <bruno@clisp.org>
+
+	* msgen.texi: Don't say that the entries are marked fuzzy.
+	Reported by Karl Eichwalder <ke@suse.de>.
+
+2003-02-22  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Python): Mention ngettext.
+
+2003-02-22  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (MOSTLYCLEANFILES): No need to clean the unused indices.
+	(The automake generated rule already cleans them.)
+
+2003-02-22  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (installdirs): Remove dependency, redundant with
+	automake >= 1.6.
+
+2003-02-16  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Header Entry): Document Report-Msgid-Bugs-To.
+	* xgettext.texi: Document --msgid-bugs-address option.
+
+2003-02-16  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (Prioritizing messages): New section.
+
+2003-02-16  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (po/LINGUAS): Document en@quot and en@boldquot.
+
+2003-02-15  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi (PO Files): Mention the other <lang>-format and
+	no-<lang>-format flags.
+
+2003-02-15  Bruno Haible  <bruno@clisp.org>
+
+	* gettext.texi: Use @code instead of @kbd in many places.
+	* xgettext.texi: Likewise.
+
+2003-02-12  Bruno Haible  <bruno@clisp.org>
+
+	* Makefile.am (docdir): Use 'gettext' instead of @PACKAGE@.
+	(EXTRA_DIST): Add ChangeLog.0.
+	* mdate-sh: Move to ../../config/mdate-sh.
+
+
+See ChangeLog.0 for earlier changes.

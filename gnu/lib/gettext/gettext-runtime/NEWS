@@ -1,0 +1,118 @@
+Version 0.22.3 - October 2023
+
+* Portability:
+  - The libintl library now works on macOS 14.  (Older versions of libintl
+    crash on macOS 14, due to an incompatible change in macOS.)
+
+Version 0.22.2 - September 2023
+
+* Bug fix:
+  - The libintl shared library now exports again some symbols that were
+    accidentally missing.
+    <https://savannah.gnu.org/bugs/index.php?64323>
+    This bug was introduced in version 0.22.
+
+Version 0.21.1 - October 2022
+
+* On AIX, locale names with a script or with an uppercase language are now
+  supported.
+  For example, sr_Cyrl_RS.UTF-8 is treated like sr_RS.UTF-8@cyrillic, and
+  EN_US.UTF-8 is treated like en_US.UTF-8.
+
+Version 0.21 - July 2020
+
+* On native Windows platforms, the directory that contains the message
+  catalogs may now contain arbitrary Unicode characters. To make use of
+  this feature, use the new function 'wbindtextdomain' instead of
+  'bindtextdomain'. It allows to pass a directory name in wchar_t[] encoding.
+  Note: 'wbindtextdomain' exists only on native Windows platforms.
+
+Version 0.20.2 - April 2020
+
+* The interpretation of the language preferences on macOS has been improved,
+  especially in the case where a system locale does not exist for the
+  combination of the selected primary language and the selected territory.
+
+* Fixed a multithread-safety bug on Cygwin and native Windows.
+
+Version 0.20 - April 2019
+
+* The interpretation of the language preferences on macOS has been fixed.
+
+* Per-thread locales are now also supported on Solaris 11.4.
+
+* The replacements for the printf()/fprintf()/... functions that are
+  provided through <libintl.h> on native Windows and NetBSD are now POSIX
+  compliant.  There is no conflict any more between these replacements
+  and other possible replacements provided by gnulib or mingw.
+
+Version 0.18.3 - July 2013
+
+* On Mac OS X systems, the setlocale() function now properly
+  invalidates loaded message catalogs when a locale has been set.
+
+
+Version 0.18 - May 2010
+
+* On MacOS X and Windows systems, <libintl.h> now extends setlocale() and
+  newlocale() so that their determination of the default locale considers
+  the choice the user has made in the system control panels.
+
+* On MacOS X systems, the gettext()/dgettext()/... functions now respect the
+  locale of the current thread, if a thread-specific locale has been set.
+
+Version 0.16.1 - November 2006
+
+* Bug fix in the gettext.m4 autoconf macros.
+
+Version 0.16 - October 2006
+
+* Interoperability with automake-1.10.
+
+* Autoconf macros:
+  - The gettext autoconf macros now require autoconf 2.52 or newer.
+  - A new autoconf macro AM_GNU_GETTEXT_INTL_SUBDIR is added. It allows to
+    specify the presence of an intl/ subdirectory outside the AM_GNU_GETTEXT
+    invocation.
+  - A new autoconf macro AM_GNU_GETTEXT_NEED is added. It allows to specify
+    the requirements relating to the GNU gettext implementation outside the
+    AM_GNU_GETTEXT invocation.
+
+Version 0.14.4 - April 2005
+
+* The gettext autoconf macros will now work with the forthcoming g++ 4.0.
+* Fix improved detection of the locale on MacOS X.
+
+Version 0.14.2 - January 2005
+
+* Improved detection of the locale on MacOS X.
+* The gettext autoconf macros now require autoconf 2.50 or newer.
+
+Version 0.14 - January 2004
+
+* New library: GNU.Gettext.dll contains the runtime for using GNU gettext
+  message catalogs in C#.
+
+* Special advice for Norwegian users: The language code for Norwegian
+  bokmål changed from 'no' to 'nb' recently (in 2003). During the transition
+  period, while some message catalogs for this language are installed under
+  'nb' and some older ones under 'no', it's recommended for Norwegian users to
+  set the LANGUAGE environment variable to 'nb:no' so that both newer and
+  older translations are used.
+
+Version 0.13 - November 2003
+
+* On those few platforms (NetBSD and Woe32) for which the native
+  printf()/fprintf()/... functions don't support POSIX/XSI format strings
+  with positions, replacements are provided through <libintl.h>.
+
+* New function library:
+    gettext.sh - shell functions for internationalized shell scripts
+* New program:
+    envsubst - substitutes environment variables in shell format strings
+
+Version 0.12 - May 2003
+
+* A new C++ class, called gnu::autosprintf, makes it possible to use C format
+  strings in C++. This is needed for proper internationalization of C++
+  programs.

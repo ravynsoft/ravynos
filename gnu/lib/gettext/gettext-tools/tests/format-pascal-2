@@ -1,0 +1,130 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test checking of Object Pascal format strings.
+
+cat <<\EOF > f-op-2.data
+# Valid: %% doesn't count
+msgid  "abc%%def"
+msgstr "xyz"
+# Invalid: invalid msgstr
+msgid  "abc%%def"
+msgstr "xyz%"
+# Valid: same arguments
+msgid  "abc%s%gdef"
+msgstr "xyz%s%g"
+# Valid: same arguments, with different widths
+msgid  "abc%2sdef"
+msgstr "xyz%3s"
+# Valid: same arguments but in numbered syntax
+msgid  "abc%s%gdef"
+msgstr "xyz%0:s%1:g"
+# Valid: permutation
+msgid  "abc%s%g%cdef"
+msgstr "xyz%2:c%1:g%0:s"
+# Invalid: too few arguments
+msgid  "abc%1:xdef%0:s"
+msgstr "xyz%0:s"
+# Invalid: too few arguments
+msgid  "abc%sdef%x"
+msgstr "xyz%s"
+# Invalid: too many arguments
+msgid  "abc%xdef"
+msgstr "xyz%xvw%p"
+# Valid: same numbered arguments, with different widths
+msgid  "abc%1:5s%0:4s"
+msgstr "xyz%1:4s%0:5s"
+# Valid: same numbered arguments
+msgid  "abc%:s"
+msgstr "xyz%0:s"
+# Valid: same numbered arguments
+msgid  "abc%0:s"
+msgstr "xyz%:s"
+# Invalid: missing argument
+msgid  "abc%1:sdef%0:x"
+msgstr "xyz%0:x"
+# Invalid: missing argument
+msgid  "abc%0:sdef%1:x"
+msgstr "xyz%1:x"
+# Invalid: added argument
+msgid  "abc%0:xdef"
+msgstr "xyz%0:xvw%1:p"
+# Valid: type compatibility
+msgid  "abc%d"
+msgstr "xyz%u"
+# Valid: type compatibility
+msgid  "abc%d"
+msgstr "xyz%x"
+# Valid: type compatibility
+msgid  "abc%u"
+msgstr "xyz%x"
+# Valid: type compatibility
+msgid  "abc%e"
+msgstr "xyz%f"
+# Valid: type compatibility
+msgid  "abc%e"
+msgstr "xyz%g"
+# Valid: type compatibility
+msgid  "abc%e"
+msgstr "xyz%n"
+# Valid: type compatibility
+msgid  "abc%e"
+msgstr "xyz%m"
+# Invalid: type incompatibility
+msgid  "abc%d"
+msgstr "xyz%e"
+# Invalid: type incompatibility
+msgid  "abc%d"
+msgstr "xyz%s"
+# Invalid: type incompatibility
+msgid  "abc%d"
+msgstr "xyz%p"
+# Invalid: type incompatibility
+msgid  "abc%e"
+msgstr "xyz%s"
+# Invalid: type incompatibility
+msgid  "abc%e"
+msgstr "xyz%p"
+# Invalid: type incompatibility
+msgid  "abc%s"
+msgstr "xyz%p"
+# Invalid: type incompatibility for width
+msgid  "abc%g%*g"
+msgstr "xyz%*g%g"
+EOF
+
+: ${MSGFMT=msgfmt}
+n=0
+while read comment; do
+  read msgid_line
+  read msgstr_line
+  n=`expr $n + 1`
+  cat <<EOF > f-op-2-$n.po
+#, object-pascal-format
+${msgid_line}
+${msgstr_line}
+EOF
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if ${MSGFMT} --check-format -o f-op-2-$n.mo f-op-2-$n.po; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    ${MSGFMT} --check-format -o f-op-2-$n.mo f-op-2-$n.po 2> /dev/null
+    if test $? = 1; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string checking error:" 1>&2
+    cat f-op-2-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-op-2-$n.po f-op-2-$n.mo
+done < f-op-2.data
+
+Exit 0

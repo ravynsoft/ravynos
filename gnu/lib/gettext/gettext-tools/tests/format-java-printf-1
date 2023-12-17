@@ -1,0 +1,337 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Java printf format strings.
+
+cat <<\EOF > f-jp-1.data
+# Valid: no argument
+"abc%%"
+# Valid: one general argument
+"abc%b"
+# Valid: one general argument
+"abc%B"
+# Valid: one general argument
+"abc%h"
+# Valid: one general argument
+"abc%H"
+# Valid: one general argument
+"abc%s"
+# Valid: one general argument
+"abc%S"
+# Valid: one character argument
+"abc%c"
+# Valid: one character argument
+"abc%C"
+# Valid: one integer argument
+"abc%d"
+# Valid: one integer argument
+"abc%o"
+# Valid: one integer argument
+"abc%x"
+# Valid: one integer argument
+"abc%X"
+# Valid: one floating-point argument
+"abc%e"
+# Valid: one floating-point argument
+"abc%E"
+# Valid: one floating-point argument
+"abc%f"
+# Valid: one floating-point argument
+"abc%g"
+# Valid: one floating-point argument
+"abc%G"
+# Valid: one floating-point argument
+"abc%a"
+# Valid: one floating-point argument
+"abc%A"
+# Valid: one argument with flags
+"abc%0#g"
+# Valid: one argument with width
+"abc%2g"
+# Invalid: variable width
+"abc%*g"
+# Valid: one argument with precision
+"abc%.4g"
+# Invalid: missing precision
+"abc%.g"
+# Invalid: variable precision
+"abc%.*g"
+# Valid: one argument with width and precision
+"abc%14.4g"
+# Invalid: unterminated
+"abc%"
+# Invalid: unterminated
+"abc%t"
+# Invalid: unknown format specifier
+"abc%y"
+# Invalid: flags after width
+"abc%2#d"
+# Invalid: twice precision
+"abc%.4.2g"
+# Valid: three arguments
+"abc%d%x%x"
+# Valid: a numbered argument
+"abc%1$d"
+# Invalid: zero
+"abc%0$d"
+# Valid: two-digit numbered arguments
+"abc%11$def%10$dgh%9$dij%8$dkl%7$dmn%6$dop%5$dqr%4$dst%3$duv%2$dwx%1$dyz"
+# Invalid: unterminated number
+"abc%1"
+# Invalid: flags before number
+"abc%#1$g"
+# Valid: three arguments, two with same number
+"abc%1$4x,%2$c,%1$X"
+# Invalid: argument with conflicting types
+"abc%1$4x,%2$c,%1$s"
+# Valid: no conflict
+"abc%1$4x,%2$c,%1$d"
+# Valid: mixing of numbered and unnumbered arguments
+"abc%d%2$x"
+# Valid: mixing of numbered and unnumbered arguments
+"abc%5$d%x"
+# Valid: mixing of numbered and unnumbered arguments, no type conflict
+"abc%2$c%x%c%g"
+# Invalid: mixing of numbered and unnumbered arguments, argument with conflicting types
+"abc%2$c%x%g%c"
+# Valid: numbered argument with width
+"abc%2$#5g"
+# Valid: numbered argument with precision
+"abc%1$.9g"
+# Valid: numbered argument with width and precision
+"abc%3$5.2g"
+# Valid: missing non-final argument
+"abc%2$x%3$s"
+# Valid: permutation
+"abc%2$ddef%1$d"
+# Valid: multiple uses of same argument
+"abc%2$xdef%1$Sghi%2$x"
+# Valid: reference to last argument
+"abc%x%<o"
+# Valid: reference to last argument
+"abc%2$x%<o"
+# Invalid: reference to last argument when there was none
+"abc%%%<d"
+# Invalid: last argument refers to argument 3, conflicting types
+"abc%x%3$g%<d"
+# Invalid: last argument refers to argument 1, conflicting types
+"abc%3$g%x%<g"
+# Invalid: conflicting types
+"abc%s%<c"
+# Invalid: conflicting types
+"abc%s%<d"
+# Invalid: conflicting types
+"abc%s%<f"
+# Invalid: conflicting types
+"abc%s%<tF"
+# Invalid: conflicting types
+"abc%c%<d"
+# Invalid: conflicting types
+"abc%c%<f"
+# Invalid: conflicting types
+"abc%c%<tF"
+# Invalid: conflicting types
+"abc%d%<f"
+# Invalid: conflicting types
+"abc%d%<tF"
+# Invalid: conflicting types
+"abc%f%<tF"
+# Valid: combination of flag and conversion
+"abc%-%"
+# Invalid: combination of flag and conversion
+"abc%#%"
+# Invalid: combination of flag and conversion
+"abc%+%"
+# Invalid: combination of flag and conversion
+"abc% %"
+# Invalid: combination of flag and conversion
+"abc%0%"
+# Invalid: combination of flag and conversion
+"abc%,%"
+# Invalid: combination of flag and conversion
+"abc%(%"
+# Valid: combination of width and conversion
+"abc%5%"
+# Invalid: combination of precision and conversion
+"abc%.2%"
+# Invalid: combination of flag and conversion
+"abc%-n"
+# Invalid: combination of flag and conversion
+"abc%#n"
+# Invalid: combination of flag and conversion
+"abc%+n"
+# Invalid: combination of flag and conversion
+"abc% n"
+# Invalid: combination of flag and conversion
+"abc%0n"
+# Invalid: combination of flag and conversion
+"abc%,n"
+# Invalid: combination of flag and conversion
+"abc%(n"
+# Invalid: combination of width and conversion
+"abc%5n"
+# Invalid: combination of precision and conversion
+"abc%.2n"
+# Valid: combination of flag and conversion
+"abc%-s"
+# Valid: combination of flag and conversion
+"abc%#s"
+# Invalid: combination of flag and conversion
+"abc%+s"
+# Invalid: combination of flag and conversion
+"abc% s"
+# Invalid: combination of flag and conversion
+"abc%0s"
+# Invalid: combination of flag and conversion
+"abc%,s"
+# Invalid: combination of flag and conversion
+"abc%(s"
+# Valid: combination of width and conversion
+"abc%5s"
+# Valid: combination of precision and conversion
+"abc%.2s"
+# Valid: combination of flag and conversion
+"abc%-c"
+# Invalid: combination of flag and conversion
+"abc%#c"
+# Invalid: combination of flag and conversion
+"abc%+c"
+# Invalid: combination of flag and conversion
+"abc% c"
+# Invalid: combination of flag and conversion
+"abc%0c"
+# Invalid: combination of flag and conversion
+"abc%,c"
+# Invalid: combination of flag and conversion
+"abc%(c"
+# Valid: combination of width and conversion
+"abc%5c"
+# Invalid: combination of precision and conversion
+"abc%.2c"
+# Valid: combination of flag and conversion
+"abc%-d"
+# Invalid: combination of flag and conversion
+"abc%#d"
+# Valid: combination of flag and conversion
+"abc%+d"
+# Valid: combination of flag and conversion
+"abc% d"
+# Valid: combination of flag and conversion
+"abc%0d"
+# Valid: combination of flag and conversion
+"abc%,d"
+# Valid: combination of flag and conversion
+"abc%(d"
+# Valid: combination of width and conversion
+"abc%5d"
+# Invalid: combination of precision and conversion
+"abc%.2d"
+# Valid: combination of flag and conversion
+"abc%-o"
+# Valid: combination of flag and conversion
+"abc%#o"
+# Valid: combination of flag and conversion
+"abc%+o"
+# Valid: combination of flag and conversion
+"abc% o"
+# Valid: combination of flag and conversion
+"abc%0o"
+# Invalid: combination of flag and conversion
+"abc%,o"
+# Valid: combination of flag and conversion
+"abc%(o"
+# Valid: combination of width and conversion
+"abc%5o"
+# Invalid: combination of precision and conversion
+"abc%.2o"
+# Valid: combination of flag and conversion
+"abc%-e"
+# Valid: combination of flag and conversion
+"abc%#e"
+# Valid: combination of flag and conversion
+"abc%+e"
+# Valid: combination of flag and conversion
+"abc% e"
+# Valid: combination of flag and conversion
+"abc%0e"
+# Valid: combination of flag and conversion
+"abc%,e"
+# Valid: combination of flag and conversion
+"abc%(e"
+# Valid: combination of width and conversion
+"abc%5e"
+# Valid: combination of precision and conversion
+"abc%.2e"
+# Valid: combination of flag and conversion
+"abc%-a"
+# Valid: combination of flag and conversion
+"abc%#a"
+# Valid: combination of flag and conversion
+"abc%+a"
+# Valid: combination of flag and conversion
+"abc% a"
+# Valid: combination of flag and conversion
+"abc%0a"
+# Invalid: combination of flag and conversion
+"abc%,a"
+# Invalid: combination of flag and conversion
+"abc%(a"
+# Valid: combination of width and conversion
+"abc%5a"
+# Valid: combination of precision and conversion
+"abc%.2a"
+# Valid: combination of flag and conversion
+"abc%-tF"
+# Invalid: combination of flag and conversion
+"abc%#tF"
+# Invalid: combination of flag and conversion
+"abc%+tF"
+# Invalid: combination of flag and conversion
+"abc% tF"
+# Invalid: combination of flag and conversion
+"abc%0tF"
+# Invalid: combination of flag and conversion
+"abc%,tF"
+# Invalid: combination of flag and conversion
+"abc%(tF"
+# Valid: combination of width and conversion
+"abc%5tF"
+# Invalid: combination of precision and conversion
+"abc%.2tF"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-jp-1-$n.in
+gettext(${string});
+EOF
+  ${XGETTEXT} -L Java -o f-jp-1-$n.po f-jp-1-$n.in || Exit 1
+  test -f f-jp-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep java-printf-format f-jp-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep java-printf-format f-jp-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-jp-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-jp-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-jp-1-$n.in f-jp-1-$n.po
+done < f-jp-1.data
+
+Exit 0

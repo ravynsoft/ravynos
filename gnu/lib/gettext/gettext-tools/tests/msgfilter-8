@@ -1,0 +1,167 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --newline option.
+
+if (echo "testing\c"; echo 1,2,3) | grep c >/dev/null; then
+  # Stardent Vistra SVR4 grep lacks -e, says ghazi@caip.rutgers.edu.
+  if (echo -n testing; echo 1,2,3) | sed s/-n/xn/ | grep xn >/dev/null; then
+    ac_n= ac_c='
+' ac_t='        '
+  else
+    ac_n=-n ac_c= ac_t=
+  fi
+else
+  ac_n= ac_c='\c' ac_t=
+fi
+
+cat <<\EOF > mfi-test8.po
+# HEADER.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Bonnie Tyler\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: married-men:4
+#, fuzzy
+msgid "The world is full of married men"
+msgstr "So viele verheiratete Männer"
+
+#: married-men:5
+msgid "with wives who never understand"
+msgstr "und ihre Frauen verstehen sie nicht"
+
+#: married-men:6
+msgid "They're looking for someone to share"
+msgstr ""
+
+# schwer zu übersetzen...
+#: married-men:7
+msgid "the excitement of a love affair"
+msgstr ""
+
+#: married-men:8
+msgid "Just as soon as they find you"
+msgstr ""
+
+#: married-men:9
+msgid "They warn you and darn you"
+msgstr ""
+
+#~ msgid "You fly on the wings of romance"
+#~ msgstr "Die Flügel der frischen Liebe heben dich zum Himmel"
+
+#, fuzzy
+#~ msgid "In the eyes of the world"
+#~ msgstr "Für die anderen"
+
+# Etwas freie Übersetzung.
+#~ msgid "You're just another crazy girl"
+#~ msgstr "bist du bloß ein verrücktes dummes Ding"
+
+#~ msgid "Who loves a married man"
+#~ msgstr "das einen verheirateten Mann liebt"
+EOF
+
+cat <<\EOF > filter.sh
+#!/bin/sh
+cat
+if test "$MSGFILTER_MSGID" = "the excitement of a love affair"; then
+  echo $ac_n "non-terminated line$ac_c"
+else
+  echo terminated line
+fi
+EOF
+
+: ${MSGFILTER=msgfilter}
+case "$host_os" in
+  mingw*) CONFIG_SHELL='sh' ;;
+  *) : ${CONFIG_SHELL=${SHELL-/bin/sh}} ;;
+esac
+LC_ALL=C ${MSGFILTER} --newline -i mfi-test8.po -o mfi-test8.out \
+      ${CONFIG_SHELL} filter.sh >mfi-test8.err 2>&1
+result=$?
+cat mfi-test8.err | grep -v 'warning: Locale charset' | grep -v '^ '
+test $result = 0 || { Exit 1; }
+cat mfi-test8.err | grep 'msgfilter: filter output is not terminated with a newline' >/dev/null
+test $result = 0 || { Exit 1; }
+
+cat <<\EOF > mfi-test8.ok
+# HEADER.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Bonnie Tyler\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"\n"
+"terminated line"
+
+#: married-men:4
+#, fuzzy
+msgid "The world is full of married men"
+msgstr ""
+"So viele verheiratete Männer\n"
+"terminated line"
+
+#: married-men:5
+msgid "with wives who never understand"
+msgstr ""
+"und ihre Frauen verstehen sie nicht\n"
+"terminated line"
+
+#: married-men:6
+msgid "They're looking for someone to share"
+msgstr ""
+"\n"
+"terminated line"
+
+# schwer zu übersetzen...
+#: married-men:7
+msgid "the excitement of a love affair"
+msgstr ""
+"\n"
+"non-terminated line"
+
+#: married-men:8
+msgid "Just as soon as they find you"
+msgstr ""
+"\n"
+"terminated line"
+
+#: married-men:9
+msgid "They warn you and darn you"
+msgstr ""
+"\n"
+"terminated line"
+
+#~ msgid "You fly on the wings of romance"
+#~ msgstr ""
+#~ "Die Flügel der frischen Liebe heben dich zum Himmel\n"
+#~ "terminated line"
+
+#, fuzzy
+#~ msgid "In the eyes of the world"
+#~ msgstr ""
+#~ "Für die anderen\n"
+#~ "terminated line"
+
+# Etwas freie Übersetzung.
+#~ msgid "You're just another crazy girl"
+#~ msgstr ""
+#~ "bist du bloß ein verrücktes dummes Ding\n"
+#~ "terminated line"
+
+#~ msgid "Who loves a married man"
+#~ msgstr ""
+#~ "das einen verheirateten Mann liebt\n"
+#~ "terminated line"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mfi-test8.ok mfi-test8.out
+result=$?
+
+exit $result

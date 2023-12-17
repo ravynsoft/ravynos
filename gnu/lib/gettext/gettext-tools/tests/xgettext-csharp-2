@@ -1,0 +1,83 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# More tests for C# support: UTF-8 encoded source files
+
+cat <<\EOF > xg-cs-2.cs
+class TestCase {
+  public static void Main (String[] args) {
+    Console.WriteLine(GetString("Russian (Русский): Здравствуйте"));
+    Console.WriteLine(GetString("Vietnamese (Tiếng Việt): Chào bạn"));
+    Console.WriteLine(GetString("Japanese (日本語): こんにちは"));
+    Console.WriteLine(GetString("Thai (ภาษาไทย): สวัสดีครับ"));
+    Console.WriteLine(GetString("Script: 𝒞"));
+    Console.WriteLine(GetString("Russian (\u0420\u0443\u0441\u0441\u043a\u0438\u0439): \u0417\u0434\u0440\u0430\u0432\u0441\u0442\u0432\u0443\u0439\u0442\u0435"));
+    Console.WriteLine(GetString("Vietnamese (Ti\u1ebfng Vi\u1ec7t): Ch\u00e0o b\u1ea1n"));
+    Console.WriteLine(GetString("Japanese (\u65e5\u672c\u8a9e): \u3053\u3093\u306b\u3061\u306f"));
+    Console.WriteLine(GetString("Thai (\u0e20\u0e32\u0e29\u0e32\u0e44\u0e17\u0e22): \u0e2a\u0e27\u0e31\u0e2a\u0e14\u0e35\u0e04\u0e23\u0e31\u0e1a"));
+    Console.WriteLine(GetString("Script: \U0001d49e"));
+    // And now a comment with Русский and 日本語 and Unicode escapes: B\u00f6se B\u00fcbchen
+    Console.WriteLine(GetString("This string has a multilingual comment"));
+    // Unicode identifiers.
+    String あ = "";
+    String 𐀀 = "";
+    int \u65e5\u672c\u8a9e = 1;
+  }
+}
+EOF
+
+: ${XGETTEXT=xgettext}
+# delete POT-Creation-Date: line because the date depends on local time.
+${XGETTEXT} --output xg-cs-2.tmp --add-location -c --from-code=UTF-8 xg-cs-2.cs || Exit 1
+sed -e '/\"POT-Creation-Date:.*/d' < xg-cs-2.tmp | LC_ALL=C tr -d '\r' > xg-cs-2.po || Exit 1
+
+cat <<\EOF > xg-cs-2.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: xg-cs-2.cs:3 xg-cs-2.cs:8
+msgid "Russian (Русский): Здравствуйте"
+msgstr ""
+
+#: xg-cs-2.cs:4 xg-cs-2.cs:9
+msgid "Vietnamese (Tiếng Việt): Chào bạn"
+msgstr ""
+
+#: xg-cs-2.cs:5 xg-cs-2.cs:10
+msgid "Japanese (日本語): こんにちは"
+msgstr ""
+
+#: xg-cs-2.cs:6 xg-cs-2.cs:11
+msgid "Thai (ภาษาไทย): สวัสดีครับ"
+msgstr ""
+
+#: xg-cs-2.cs:7 xg-cs-2.cs:12
+msgid "Script: 𝒞"
+msgstr ""
+
+#. And now a comment with Русский and 日本語 and Unicode escapes: B\u00f6se B\u00fcbchen
+#: xg-cs-2.cs:14
+msgid "This string has a multilingual comment"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-cs-2.ok xg-cs-2.po
+result=$?
+
+exit $result

@@ -1,0 +1,30 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test handling of invalid multibyte sequences.
+
+cat <<\EOF > mf-11.po
+msgid ""
+msgstr ""
+"Project-Id-Version: control-center 1.0.6\n"
+"POT-Creation-Date: 2002-06-02 17:13-0700\n"
+"PO-Revision-Date: 2002-05-29 20:11+0200\n"
+"Last-Translator: Yuriy Syrota <yuri@renome.rovno.ua>\n"
+"Language-Team: Ukrainian <uk@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "_Enable keyboard accessibility"
+msgstr "_Ув╕мкнути спец╕альн╕ можливост╕ клав╕атури"
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --check -o mf-11.mo mf-11.po 2>/dev/null
+# Exit code must be 1.
+# If the invalid sequence didn't get noticed, it would be 0.
+# If it produced a core dump, it would be 134 (= 128 + SIGABRT).
+test $? = 1
+result=$?
+
+exit $result

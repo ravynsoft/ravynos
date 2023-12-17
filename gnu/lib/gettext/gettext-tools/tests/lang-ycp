@@ -1,0 +1,67 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of gettext facilities in the YCP language.
+
+cat <<\EOF > prog.ycp
+{
+  textdomain "prog";
+
+  print (_("'Your command, please?', asked the waiter."));
+  print (sformat (_("a piece of cake", "%1 pieces of cake", n), n));
+  print (sformat (_("%1 is replaced by %2."), "FF", "EUR"));
+}
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o prog.tmp --omit-header --no-location prog.ycp || Exit 1
+LC_ALL=C tr -d '\r' < prog.tmp > prog.pot || Exit 1
+
+cat <<EOF > prog.ok
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#, ycp-format
+msgid "a piece of cake"
+msgid_plural "%1 pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+#, ycp-format
+msgid "%1 is replaced by %2."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} prog.ok prog.pot || Exit 1
+
+cat <<\EOF > fr.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, ycp-format
+msgid "a piece of cake"
+msgid_plural "%1 pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "%1 morceaux de gateau"
+
+# Reverse the arguments.
+#, ycp-format
+msgid "%1 is replaced by %2."
+msgstr "%2 remplace %1."
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o fr.po.tmp fr.po prog.pot || Exit 1
+LC_ALL=C tr -d '\r' < fr.po.tmp > fr.po.new || Exit 1
+
+: ${DIFF=diff}
+${DIFF} fr.po fr.po.new || Exit 1
+
+Exit 0

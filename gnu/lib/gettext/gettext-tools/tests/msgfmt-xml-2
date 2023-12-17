@@ -1,0 +1,203 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test 'bulk' mode of msgfmt --xml.
+
+cat <<\EOF > mf.appdata.xml
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>org.gnome.Characters.desktop</id>
+  <name>GNOME Characters</name>
+  <summary>Character map application</summary>
+  <licence>CC0</licence>
+  <description>
+    <p>
+      Characters is a simple utility application to find and insert
+      unusual characters.  It allows you to quickly find the character
+      you are looking for by searching for keywords.
+    </p>
+    <p>
+      You can also browse characters by categories, such as
+      Punctuation, Pictures, etc.
+    </p>
+  </description>
+  <url type="homepage">https://wiki.gnome.org/Design/Apps/CharacterMap</url>
+  <updatecontact>dueno_at_src.gnome.org</updatecontact>
+</component>
+EOF
+
+test -d po || mkdir po
+
+cat <<\EOF > po/fr.po
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-03-17 07:36+0900\n"
+"PO-Revision-Date: 2014-03-17 08:40+0900\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid ""
+"Characters is a simple utility application to find and insert unusual "
+"characters. It allows you to quickly find the character you are looking for "
+"by searching for keywords."
+msgstr ""
+"Caractères est un utilitaire pour chercher et insérer des caractères "
+"inhabituels. Il vous permet de trouver rapidement le caractère que vous "
+"cherchez par le biais de mots-clés."
+
+msgid ""
+"You can also browse characters by categories, such as Punctuation, Pictures, "
+"etc."
+msgstr ""
+"Vous pouvez aussi naviguer dans les caractères par catégories, comme par "
+"Ponctuation, Images, etc."
+EOF
+
+cat <<\EOF > po/de.po
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-03-17 07:36+0900\n"
+"PO-Revision-Date: 2014-03-17 08:40+0900\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid ""
+"Characters is a simple utility application to find and insert unusual "
+"characters. It allows you to quickly find the character you are looking for by "
+"searching for keywords."
+msgstr ""
+"Zeichen ist ein einfaches Hilfsprogramm zum Auffinden und Einsetzen von selten "
+"verwendeten Zeichen. Sie können schnell das gesuchte Zeichen finden, indem Sie "
+"nach Schlüsselwörtern suchen."
+
+msgid ""
+"You can also browse characters by categories, such as Punctuation, Pictures, "
+"etc."
+msgstr ""
+"Sie können ebenfalls nach Kategorie suchen, wie z.B. nach Zeichensetzung oder "
+"Bildern."
+EOF
+
+cat <<\EOF > mf.appdata.xml.ok
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>org.gnome.Characters.desktop</id>
+  <name>GNOME Characters</name>
+  <summary>Character map application</summary>
+  <licence>CC0</licence>
+  <description>
+    <p>
+      Characters is a simple utility application to find and insert
+      unusual characters.  It allows you to quickly find the character
+      you are looking for by searching for keywords.
+    </p>
+    <p xml:lang="fr">Caractères est un utilitaire pour chercher et insérer des caractères inhabituels. Il vous permet de trouver rapidement le caractère que vous cherchez par le biais de mots-clés.</p>
+    <p xml:lang="de">Zeichen ist ein einfaches Hilfsprogramm zum Auffinden und Einsetzen von selten verwendeten Zeichen. Sie können schnell das gesuchte Zeichen finden, indem Sie nach Schlüsselwörtern suchen.</p>
+    <p>
+      You can also browse characters by categories, such as
+      Punctuation, Pictures, etc.
+    </p>
+    <p xml:lang="fr">Vous pouvez aussi naviguer dans les caractères par catégories, comme par Ponctuation, Images, etc.</p>
+    <p xml:lang="de">Sie können ebenfalls nach Kategorie suchen, wie z.B. nach Zeichensetzung oder Bildern.</p>
+  </description>
+  <url type="homepage">https://wiki.gnome.org/Design/Apps/CharacterMap</url>
+  <updatecontact>dueno_at_src.gnome.org</updatecontact>
+</component>
+EOF
+
+cat <<\EOF > mf.appdata.xml.desired.ok
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop">
+  <id>org.gnome.Characters.desktop</id>
+  <name>GNOME Characters</name>
+  <summary>Character map application</summary>
+  <licence>CC0</licence>
+  <description>
+    <p>
+      Characters is a simple utility application to find and insert
+      unusual characters.  It allows you to quickly find the character
+      you are looking for by searching for keywords.
+    </p>
+    <p xml:lang="fr">Caractères est un utilitaire pour chercher et insérer des caractères inhabituels. Il vous permet de trouver rapidement le caractère que vous cherchez par le biais de mots-clés.</p>
+    <p>
+      You can also browse characters by categories, such as
+      Punctuation, Pictures, etc.
+    </p>
+    <p xml:lang="fr">Vous pouvez aussi naviguer dans les caractères par catégories, comme par Ponctuation, Images, etc.</p>
+  </description>
+  <url type="homepage">https://wiki.gnome.org/Design/Apps/CharacterMap</url>
+  <updatecontact>dueno_at_src.gnome.org</updatecontact>
+</component>
+EOF
+
+unset LINGUAS
+
+# Sanity checks for contradicting options.
+
+${MSGFMT} --xml --template=mf.appdata.xml -d po -o mf.appdata.xml.out \
+          >/dev/null 2>/dev/null \
+  Exit 1
+
+test -d po/LINGUAS || mkdir po/LINGUAS
+
+${MSGFMT} --xml --template=mf.appdata.xml -d po -o mf.appdata.xml.out \
+          >/dev/null 2>/dev/null \
+  Exit 1
+
+rm -fr po/LINGUAS
+
+cat <<\EOF > po/LINGUAS
+de
+fr
+EOF
+
+${MSGFMT} --xml --template=mf.appdata.xml -d po \
+          >/dev/null 2>/dev/null \
+  && Exit 1
+
+${MSGFMT} --xml --template=mf.appdata.xml -d po -o mf.appdata.xml.out -l fr \
+          >/dev/null 2>/dev/null \
+  && Exit 1
+
+${MSGFMT} --xml --template=mf.appdata.xml -d po -o mf.appdata.xml.out po/fr.po \
+          >/dev/null 2>/dev/null \
+  && Exit 1
+
+# Proceed to the .desktop file generation.
+
+${MSGFMT} --xml --template=mf.appdata.xml -d po -o mf.appdata.xml.out || Exit 1
+: ${DIFF=diff}
+${DIFF} mf.appdata.xml.ok mf.appdata.xml.out
+test $? = 0 || Exit 1
+
+# Restrict the desired languages with the LINGUAS envvar.
+
+LINGUAS="fr ja" ${MSGFMT} --xml --template=mf.appdata.xml -d po -o mf.appdata.xml.desired.out || Exit 1
+
+: ${DIFF=diff}
+${DIFF} mf.appdata.xml.desired.ok mf.appdata.xml.desired.out
+test $? = 0 || Exit 1

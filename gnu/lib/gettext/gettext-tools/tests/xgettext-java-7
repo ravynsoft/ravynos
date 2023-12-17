@@ -1,0 +1,29 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Java support: extraction of contexts.
+
+cat <<\EOF > xg-j-7.java
+import gnu.gettext.GettextResourceBundle;
+System.out.println(GettextResourceBundle.gettext("help"));
+System.out.println(GettextResourceBundle.pgettext("Help", "about"));
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-j-7.tmp xg-j-7.java || Exit 1
+LC_ALL=C tr -d '\r' < xg-j-7.tmp.po > xg-j-7.po || Exit 1
+
+cat <<EOF > xg-j-7.ok
+msgid "help"
+msgstr ""
+
+msgctxt "Help"
+msgid "about"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-j-7.ok xg-j-7.po
+result=$?
+
+exit $result

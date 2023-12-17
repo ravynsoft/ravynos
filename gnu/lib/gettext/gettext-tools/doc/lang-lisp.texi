@@ -1,0 +1,58 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node Common Lisp
+@subsection GNU clisp - Common Lisp
+@cindex Common Lisp
+@cindex Lisp
+@cindex clisp
+
+@table @asis
+@item RPMs
+clisp 2.28 or newer
+
+@item Ubuntu packages
+clisp
+
+@item File extension
+@code{lisp}
+
+@item String syntax
+@code{"abc"}
+
+@item gettext shorthand
+@code{(_ "abc")}, @code{(ENGLISH "abc")}
+
+@item gettext/ngettext functions
+@code{i18n:gettext}, @code{i18n:ngettext}
+
+@item textdomain
+@code{i18n:textdomain}
+
+@item bindtextdomain
+@code{i18n:textdomaindir}
+
+@item setlocale
+automatic
+
+@item Prerequisite
+---
+
+@item Use or emulate GNU gettext
+use
+
+@item Extractor
+@code{xgettext -k_ -kENGLISH}
+
+@item Formatting with positions
+@code{format "~1@@*~D ~0@@*~D"}
+
+@item Portability
+On platforms without gettext, no translation.
+
+@item po-mode marking
+---
+@end table
+
+An example is available in the @file{examples} directory: @code{hello-clisp}.

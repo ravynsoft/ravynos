@@ -1,0 +1,7 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that libintl_version has the expected value,
+# even when --enable-shared is used on Windows.
+
+../intl-version-prg

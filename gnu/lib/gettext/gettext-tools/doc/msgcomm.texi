@@ -1,0 +1,213 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2019 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex msgcomm
+@cindex @code{msgcomm} program, usage
+@example
+msgcomm [@var{option}] [@var{inputfile}]...
+@end example
+
+@cindex find common messages
+The @code{msgcomm} program finds messages which are common to two or more
+of the specified PO files.
+By using the @code{--more-than} option, greater commonality may be requested
+before messages are printed.  Conversely, the @code{--less-than} option may be
+used to specify less commonality before messages are printed (i.e.@:
+@samp{--less-than=2} will only print the unique messages).  Translations,
+comments and extracted comments will be preserved, but only from the first
+PO file to define them.  File positions from all PO files will be
+cumulated.
+
+@subsection Input file location
+
+@table @samp
+@item @var{inputfile} @dots{}
+Input files.
+
+@item -f @var{file}
+@itemx --files-from=@var{file}
+@opindex -f@r{, @code{msgcomm} option}
+@opindex --files-from@r{, @code{msgcomm} option}
+Read the names of the input files from @var{file} instead of getting
+them from the command line.
+
+@item -D @var{directory}
+@itemx --directory=@var{directory}
+@opindex -D@r{, @code{msgcomm} option}
+@opindex --directory@r{, @code{msgcomm} option}
+Add @var{directory} to the list of directories.  Source files are
+searched relative to this list of directories.  The resulting @file{.po}
+file will be written relative to the current directory, though.
+
+@end table
+
+If @var{inputfile} is @samp{-}, standard input is read.
+
+@subsection Output file location
+
+@table @samp
+@item -o @var{file}
+@itemx --output-file=@var{file}
+@opindex -o@r{, @code{msgcomm} option}
+@opindex --output-file@r{, @code{msgcomm} option}
+Write output to specified file.
+
+@end table
+
+The results are written to standard output if no output file is specified
+or if it is @samp{-}.
+
+@subsection Message selection
+
+@table @samp
+@item -< @var{number}
+@itemx --less-than=@var{number}
+@opindex -<@r{, @code{msgcomm} option}
+@opindex --less-than@r{, @code{msgcomm} option}
+Print messages with less than @var{number} definitions, defaults to infinite
+if not set.
+
+@item -> @var{number}
+@itemx --more-than=@var{number}
+@opindex ->@r{, @code{msgcomm} option}
+@opindex --more-than@r{, @code{msgcomm} option}
+Print messages with more than @var{number} definitions, defaults to 1 if not
+set.
+
+@item -u
+@itemx --unique
+@opindex -u@r{, @code{msgcomm} option}
+@opindex --unique@r{, @code{msgcomm} option}
+Shorthand for @samp{--less-than=2}.  Requests that only unique messages be
+printed.
+
+@end table
+
+@subsection Input file syntax
+
+@table @samp
+@item -P
+@itemx --properties-input
+@opindex -P@r{, @code{msgcomm} option}
+@opindex --properties-input@r{, @code{msgcomm} option}
+Assume the input files are Java ResourceBundles in Java @code{.properties}
+syntax, not in PO file syntax.
+
+@item --stringtable-input
+@opindex --stringtable-input@r{, @code{msgcomm} option}
+Assume the input files are NeXTstep/GNUstep localized resource files in
+@code{.strings} syntax, not in PO file syntax.
+
+@end table
+
+@subsection Output details
+
+@c --no-escape and --escape omitted on purpose.  They are not useful.
+
+@table @samp
+@item --color
+@itemx --color=@var{when}
+@opindex --color@r{, @code{msgcomm} option}
+Specify whether or when to use colors and other text attributes.
+See @ref{The --color option} for details.
+
+@item --style=@var{style_file}
+@opindex --style@r{, @code{msgcomm} option}
+Specify the CSS style rule file to use for @code{--color}.
+See @ref{The --style option} for details.
+
+@item --force-po
+@opindex --force-po@r{, @code{msgcomm} option}
+Always write an output file even if it contains no message.
+
+@item -i
+@itemx --indent
+@opindex -i@r{, @code{msgcomm} option}
+@opindex --indent@r{, @code{msgcomm} option}
+Write the .po file using indented style.
+
+@item --no-location
+@opindex --no-location@r{, @code{msgcomm} option}
+Do not write @samp{#: @var{filename}:@var{line}} lines.
+
+@item -n
+@itemx --add-location=@var{type}
+@opindex -n@r{, @code{msgcomm} option}
+@opindex --add-location@r{, @code{msgcomm} option}
+Generate @samp{#: @var{filename}:@var{line}} lines (default).
+
+The optional @var{type} can be either @samp{full}, @samp{file}, or
+@samp{never}.  If it is not given or @samp{full}, it generates the
+lines with both file name and line number.  If it is @samp{file}, the
+line number part is omitted.  If it is @samp{never}, it completely
+suppresses the lines (same as @code{--no-location}).
+
+@item --strict
+@opindex --strict@r{, @code{msgcomm} option}
+Write out a strict Uniforum conforming PO file.  Note that this
+Uniforum format should be avoided because it doesn't support the
+GNU extensions.
+
+@item -p
+@itemx --properties-output
+@opindex -p@r{, @code{msgcomm} option}
+@opindex --properties-output@r{, @code{msgcomm} option}
+Write out a Java ResourceBundle in Java @code{.properties} syntax.  Note
+that this file format doesn't support plural forms and silently drops
+obsolete messages.
+
+@item --stringtable-output
+@opindex --stringtable-output@r{, @code{msgcomm} option}
+Write out a NeXTstep/GNUstep localized resource file in @code{.strings} syntax.
+Note that this file format doesn't support plural forms.
+
+@item -w @var{number}
+@itemx --width=@var{number}
+@opindex -w@r{, @code{msgcomm} option}
+@opindex --width@r{, @code{msgcomm} option}
+Set the output page width.  Long strings in the output files will be
+split across multiple lines in order to ensure that each line's width
+(= number of screen columns) is less or equal to the given @var{number}.
+
+@item --no-wrap
+@opindex --no-wrap@r{, @code{msgcomm} option}
+Do not break long message lines.  Message lines whose width exceeds the
+output page width will not be split into several lines.  Only file reference
+lines which are wider than the output page width will be split.
+
+@item -s
+@itemx --sort-output
+@opindex -s@r{, @code{msgcomm} option}
+@opindex --sort-output@r{, @code{msgcomm} option}
+Generate sorted output.  Note that using this option makes it much harder
+for the translator to understand each message's context.
+
+@item -F
+@itemx --sort-by-file
+@opindex -F@r{, @code{msgcomm} option}
+@opindex --sort-by-file@r{, @code{msgcomm} option}
+Sort output by file location.
+
+@item --omit-header
+@opindex --omit-header@r{, @code{msgcomm} option}
+Don't write header with @samp{msgid ""} entry.
+
+@end table
+
+@subsection Informative output
+
+@table @samp
+@item -h
+@itemx --help
+@opindex -h@r{, @code{msgcomm} option}
+@opindex --help@r{, @code{msgcomm} option}
+Display this help and exit.
+
+@item -V
+@itemx --version
+@opindex -V@r{, @code{msgcomm} option}
+@opindex --version@r{, @code{msgcomm} option}
+Output version information and exit.
+
+@end table

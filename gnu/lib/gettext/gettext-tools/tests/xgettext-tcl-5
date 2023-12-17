@@ -1,0 +1,76 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Tcl support: escape sequences with unpaired surrogates.
+
+cat <<\EOF > xg-t-5a.tcl
+puts [_ "\uD83D"]
+EOF
+
+cat <<\EOF > xg-t-5b.tcl
+puts [_ "\udc1c"]
+EOF
+
+cat <<\EOF > xg-t-5c.tcl
+puts [_ "\uD83D\n"]
+EOF
+
+cat <<\EOF > xg-t-5d.tcl
+puts [_ "\uD83D\u"]
+EOF
+
+cat <<\EOF > xg-t-5e.tcl
+puts [_ "\uD83D\u9843"]
+EOF
+
+cat <<\EOF > xg-t-5f.tcl
+puts [_ "\uD83D\ud913"]
+EOF
+
+cat <<\EOF > xg-t-5g.tcl
+puts [_ "\udc1c\ud83d"]
+EOF
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -k_ -d xg-t-5.tmp xg-t-5a.tcl 2>xg-t-5.err
+result=$?
+cat xg-t-5.err
+test $result = 0 || Exit 1
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -k_ -d xg-t-5.tmp xg-t-5b.tcl 2>xg-t-5.err
+result=$?
+cat xg-t-5.err
+test $result = 0 || Exit 1
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -k_ -d xg-t-5.tmp xg-t-5c.tcl 2>xg-t-5.err
+result=$?
+cat xg-t-5.err
+test $result = 0 || Exit 1
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -k_ -d xg-t-5.tmp xg-t-5d.tcl 2>xg-t-5.err
+result=$?
+cat xg-t-5.err
+test $result = 0 || Exit 1
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -k_ -d xg-t-5.tmp xg-t-5e.tcl 2>xg-t-5.err
+result=$?
+cat xg-t-5.err
+test $result = 0 || Exit 1
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -k_ -d xg-t-5.tmp xg-t-5f.tcl 2>xg-t-5.err
+result=$?
+cat xg-t-5.err
+test $result = 0 || Exit 1
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location -k_ -d xg-t-5.tmp xg-t-5g.tcl 2>xg-t-5.err
+result=$?
+cat xg-t-5.err
+test $result = 0 || Exit 1
+
+exit 0

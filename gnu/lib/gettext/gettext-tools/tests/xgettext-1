@@ -1,0 +1,20 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# This test often fails during development. It works after "make dist".
+
+# Test -x option.
+
+rm -f zero-domain.po
+: ${XGETTEXT=xgettext}
+LC_MESSAGES=C LC_ALL= \
+${XGETTEXT} -k_ -d zero-domain -x "$wabs_top_srcdir"/po/gettext-tools.pot \
+  "$wabs_top_srcdir"/src/xgettext.c >xg-test1.err 2>&1
+result=$?
+cat xg-test1.err | grep -v 'warning: Charset' | grep -v '^ '
+test $result = 0 || { Exit 1; }
+
+test ! -f zero-domain.po
+result=$?
+
+exit $result

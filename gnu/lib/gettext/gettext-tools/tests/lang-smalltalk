@@ -1,0 +1,144 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of gettext facilities in the GNU smalltalk language.
+# Assumes an fr_FR locale is installed.
+# Assumes the following packages are installed: smalltalk.
+
+cat <<\EOF > prog.st
+PackageLoader fileInPackage: 'I18N' !
+
+Object subclass: #Main
+  instanceVariableNames: ''
+  classVariableNames: 'NLS' 
+  poolDictionaries: ''
+  category: 'Program'
+!
+!Main methodsFor: 'running'!
+run
+  | n |
+  NLS := I18N Locale default messages domain: 'prog' localeDirectory: '.'.
+  n := 2.
+  Transcript showCr:
+    (NLS ? '''Your command, please?'', asked the waiter.').
+  Transcript showCr:
+    ((NLS at: 'a piece of cake' plural: '%1 pieces of cake' with: n) bindWith: n).
+  Transcript showCr:
+    ((NLS ? '%1 is replaced by %2.') bindWith: 'FF' with: 'EUR').!
+!
+
+Main new run!
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o prog.tmp --omit-header --no-location prog.st || Exit 1
+LC_ALL=C tr -d '\r' < prog.tmp > prog.pot || Exit 1
+
+cat <<EOF > prog.ok
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#, smalltalk-format
+msgid "a piece of cake"
+msgid_plural "%1 pieces of cake"
+msgstr[0] ""
+msgstr[1] ""
+
+#, smalltalk-format
+msgid "%1 is replaced by %2."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} prog.ok prog.pot || Exit 1
+
+cat <<\EOF > fr.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, smalltalk-format
+msgid "a piece of cake"
+msgid_plural "%1 pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "%1 morceaux de gateau"
+
+# Reverse the arguments.
+#, smalltalk-format
+msgid "%1 is replaced by %2."
+msgstr "%2 remplace %1."
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o fr.po.tmp fr.po prog.pot || Exit 1
+LC_ALL=C tr -d '\r' < fr.po.tmp > fr.po.new || Exit 1
+
+: ${DIFF=diff}
+${DIFF} fr.po fr.po.new || Exit 1
+
+test -d fr || mkdir fr
+test -d fr/LC_MESSAGES || mkdir fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o fr/LC_MESSAGES/prog.mo fr.po
+
+# Test for presence of gst version 2.0.6 or newer.
+(gst --version) >/dev/null 2>/dev/null \
+  || { echo "Skipping test: gst not found"; Exit 77; }
+case `gst --version | sed -n -e 1p | sed -e 's/^[^0-9]*//'` in
+  0.* | 1.* | 2.0 | 2.0.[0-5] | 2.1 | 2.1.[0-1])
+    echo "Skipping test: gst version too old"; Exit 77;;
+esac
+
+: ${DIFF=diff}
+cat <<\EOF > prog.ok
+«Votre commande, s'il vous plait», dit le garçon.
+2 morceaux de gateau
+EUR remplace FF.
+EOF
+cat <<\EOF > prog.oku
+Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on.
+2 morceaux de gateau
+EUR remplace FF.
+EOF
+# gst versions older than 2.3 also print "Loading package I18N".
+{ echo 'Loading package I18N'; cat prog.ok; } > prog.ok2
+{ echo 'Loading package I18N'; cat prog.oku; } > prog.oku2
+# gst version 3.0.3 also prints "Loading package Iconv" and
+# "Loading package I18N".
+{ echo 'Loading package Iconv'; echo 'Loading package I18N'; cat prog.ok; } > prog.ok3
+{ echo 'Loading package Iconv'; echo 'Loading package I18N'; cat prog.oku; } > prog.oku3
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  prepare_locale_ fr $LOCALE_FR
+  LANGUAGE= LC_ALL=$LOCALE_FR gst -Q prog.st > prog.out || Exit 1
+  ${DIFF} prog.ok prog.out > /dev/null ||
+    ${DIFF} prog.ok2 prog.out > /dev/null ||
+      ${DIFF} prog.ok3 prog.out > /dev/null ||
+        { ${DIFF} prog.ok prog.out; Exit 1; }
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ fr $LOCALE_FR_UTF8
+  LANGUAGE= LC_ALL=$LOCALE_FR_UTF8 gst -Q prog.st > prog.out || Exit 1
+  ${DIFF} prog.oku prog.out > /dev/null ||
+    ${DIFF} prog.oku2 prog.out > /dev/null ||
+      ${DIFF} prog.oku3 prog.out > /dev/null ||
+        { ${DIFF} prog.oku prog.out; Exit 1; }
+fi
+if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french locale is installed"
+  else
+    echo "Skipping test: no french locale is supported"
+  fi
+  Exit 77
+fi
+
+Exit 0

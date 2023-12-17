@@ -1,0 +1,111 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of PHP format strings.
+
+cat <<\EOF > f-ph-1.data
+# Valid: no argument
+"abc%%"
+# Valid: one string argument
+"abc%s"
+# Valid: one integer argument
+"abc%b"
+# Valid: one integer argument
+"abc%d"
+# Valid: one integer argument
+"abc%u"
+# Valid: one integer argument
+"abc%o"
+# Valid: one integer argument
+"abc%x"
+# Valid: one integer argument
+"abc%X"
+# Valid: one floating-point argument
+"abc%e"
+# Valid: one floating-point argument
+"abc%f"
+# Valid: one character argument
+"abc%c"
+# Valid: one argument with flags
+"abc%-f"
+# Valid: one argument with padding flags
+"abc%'=f"
+# Valid: one argument with width
+"abc%2f"
+# Valid: one argument with precision
+"abc%.4f"
+# Valid: one argument with width and precision
+"abc%14.4f"
+# Invalid: unterminated
+"abc%"
+# Invalid: unknown format specifier
+"abc%y"
+# Invalid: unknown format specifier
+"abc%F"
+# Invalid: flags after width
+"abc%5-f"
+# Invalid: twice precision
+"abc%.4.2f"
+# Valid: three arguments
+"abc%d%x%x"
+# Valid: a numbered argument
+"abc%1$d"
+# Invalid: zero
+"abc%0$d"
+# Valid: two-digit numbered arguments
+"abc%11$def%10$dgh%9$dij%8$dkl%7$dmn%6$dop%5$dqr%4$dst%3$duv%2$dwx%1$dyz"
+# Invalid: unterminated number
+"abc%1"
+# Invalid: flags before number
+"abc%-1$d"
+# Valid: three arguments, two with same number
+"abc%1$4x,%2$c,%1$u"
+# Invalid: argument with conflicting types
+"abc%1$4x,%2$c,%1$s"
+# Valid: no conflict
+"abc%1$4x,%2$c,%1$u"
+# Valid: mixing of numbered and unnumbered arguments
+"abc%d%2$x"
+# Valid: numbered argument with constant precision
+"abc%1$.9x"
+# Valid: missing non-final argument
+"abc%2$x%3$s"
+# Valid: permutation
+"abc%2$ddef%1$d"
+# Valid: multiple uses of same argument
+"abc%2$xdef%1$sghi%2$x"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  echo "<?= gettext(${string}) ?>" | sed -e 's/\$/\\\$/g' > f-ph-1-$n.in
+  ${XGETTEXT} -L PHP -o f-ph-1-$n.po f-ph-1-$n.in || Exit 1
+  test -f f-ph-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep php-format f-ph-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep php-format f-ph-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-ph-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-ph-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-ph-1-$n.in f-ph-1-$n.po
+done < f-ph-1.data
+
+Exit 0

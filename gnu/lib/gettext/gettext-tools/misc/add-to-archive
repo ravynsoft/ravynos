@@ -1,0 +1,93 @@
+#! /bin/sh
+#
+# Copyright (C) 2002, 2006, 2009-2010, 2018 Free Software Foundation, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+
+# Usage: add-to-archive /somewhere/gettext-0.xx.yy.tar.gz
+# Adds the infrastructure files for gettext version 0.xx.yy to the repository
+# in the archive.dir.tar file.
+
+if test $# != 1; then
+  echo "Usage: add-to-archive /somewhere/gettext-0.xx.yy.tar.gz"
+  exit 1
+fi
+
+sourcetgz="$1"
+case "$sourcetgz" in
+  *.tar.gz) ;;
+  *) echo "$0: first argument should be a gettext release tar.gz file"; exit 1;;
+esac
+
+pack_ver=`basename "$sourcetgz" | sed -e 's/\.tar\.gz$//'`
+if test -d "$pack_ver"; then
+  echo "$0: directory $pack_ver already exists"; exit 1
+fi
+pack=`echo "$pack_ver" | sed -e 's/^\([^-]*\)-.*/\1/'`
+ver=`echo "$pack_ver" | sed -e 's/^[^-]*-\(.*\)/\1/'`
+
+# Unpack, build and install the source distribution.
+myprefix=`pwd`/${pack_ver}-inst
+gunzip -c < "$sourcetgz" | tar xvf -
+cd $pack_ver
+./configure --prefix="$myprefix"
+make
+make install
+cd ..
+rm -rf $pack_ver
+
+# Copy the relevant files into an empty directory.
+work_dir=tmpwrk$$
+mkdir "$work_dir"
+mkdir "$work_dir/archive"
+work_archive=`pwd`/"$work_dir/archive"
+(cd "$myprefix"/share/gettext
+ for file in *; do
+   case $file in
+     ABOUT-NLS)
+       cp -p $file "$work_archive/$file" ;;
+     config.rpath)
+       cp -p $file "$work_archive/$file" ;;
+   esac
+ done
+ mkdir "$work_archive/po"
+ cd po
+ for file in *; do
+   if test $file != Makevars; then
+     cp -p $file "$work_archive/po/$file"
+   fi
+ done
+ cd ..
+ mkdir "$work_archive/m4"
+ cd "$myprefix"/share/aclocal
+ for file in *; do
+   cp -p $file "$work_archive/m4/$file"
+ done
+)
+
+# Add the contents of this directory to the repository.
+mkdir autopoint-files
+(cd autopoint-files && tar xf ../archive.dir.tar)
+mkdir autopoint-files/$pack_ver
+(cd "$work_archive" && tar cf - .) | (cd autopoint-files/$pack_ver && tar xf -)
+(cd autopoint-files && tar cf ../archive.dir.tar --owner=root --group=root *)
+
+# Clean up.
+rm -rf autopoint-files
+rm -rf "$work_dir"
+rm -f cvsuser.so
+rm -rf "$myprefix"
+
+exit 0

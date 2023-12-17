@@ -1,0 +1,55 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test for a warning when the same msgid is used with and without msgid_plural.
+# <https://savannah.gnu.org/bugs/?35027>
+# <https://savannah.gnu.org/bugs/?56456>
+# <https://savannah.gnu.org/bugs/?56919>
+
+# Case when the message with plural appears first.
+
+cat <<\EOF > xg-test15-1.py
+ngettext("Language", "Languages", n)
+_("Language")
+EOF
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --omit-header --add-comments -d xg-test15-1.tmp xg-test15-1.py 2>xg-test15-1.err || Exit 1
+LC_ALL=C tr -d '\r' < xg-test15-1.tmp.po > xg-test15-1.po || Exit 1
+
+grep "is used without plural and with plural" xg-test15-1.err || Exit 1
+
+cat <<\EOF > xg-test15-1.ok
+#: xg-test15-1.py:1 xg-test15-1.py:2
+msgid "Language"
+msgid_plural "Languages"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test15-1.ok xg-test15-1.po || Exit 1
+
+# Case when the message without plural appears first.
+
+cat <<\EOF > xg-test15-2.py
+_("Language")
+ngettext("Language", "Languages", n)
+EOF
+
+: ${XGETTEXT=xgettext}
+LANGUAGE= LC_ALL=C ${XGETTEXT} --omit-header --add-comments -d xg-test15-2.tmp xg-test15-2.py 2>xg-test15-2.err || Exit 1
+LC_ALL=C tr -d '\r' < xg-test15-2.tmp.po > xg-test15-2.po || Exit 1
+
+grep "is used without plural and with plural" xg-test15-2.err || Exit 1
+
+cat <<\EOF > xg-test15-2.ok
+#: xg-test15-2.py:1 xg-test15-2.py:2
+msgid "Language"
+msgid_plural "Languages"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test15-2.ok xg-test15-2.po || Exit 1

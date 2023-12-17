@@ -1,0 +1,80 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test checking of KDE KUIT format strings.
+
+cat <<\EOF > f-kd-invalid.po
+#, kde-kuit-format
+msgid "foo"
+msgstr "<"
+EOF
+
+: ${MSGFMT=msgfmt}
+
+LC_ALL=C ${MSGFMT} --check-format -o /dev/null f-kd-invalid.po 2>&1 | grep 'not a valid KDE KUIT format' > /dev/null 2>&1
+test $? = 0 || {
+  echo "Skipping test: msgfmt was built without KDE KUIT format support"
+  Exit 77
+}
+
+cat <<\EOF > f-kd-2.data
+# Valid: one argument
+msgid "<filename>%1</filename>"
+msgstr "<filename>%1</filename>"
+# Invalid: missing argument
+msgid "<filename>%1</filename>"
+msgstr "<filename>foo</filename>"
+# Valid: change the text
+msgid "<filename>foo</filename>"
+msgstr "<filename>bar</filename>"
+# Invalid: unbalanced tag
+msgid "<filename>foo</filename>"
+msgstr "<filename>bar"
+# Invalid: unbalanced tag
+msgid "<filename>foo</filename>"
+msgstr "<filename>bar</xfilename>"
+# Valid: replaced tag
+msgid "<filename>foo</filename>"
+msgstr "<foo>foo</foo>"
+# Valid: accelerator
+msgid "<filename>&foo</filename>"
+msgstr "<foo>&foo</foo>"
+# Valid: entity reference
+msgid "<filename>foo</filename>"
+msgstr "<foo>&amp;</foo>"
+EOF
+
+n=0
+while read comment; do
+  read msgid_line
+  read msgstr_line
+  n=`expr $n + 1`
+  cat <<EOF > f-kd-2-$n.po
+#, kde-kuit-format
+${msgid_line}
+${msgstr_line}
+EOF
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if ${MSGFMT} --check-format -o f-kd-2-$n.mo f-kd-2-$n.po; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    ${MSGFMT} --check-format -o f-kd-2-$n.mo f-kd-2-$n.po 2> /dev/null
+    if test $? = 1; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string checking error:" 1>&2
+    cat f-kd-2-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-kd-2-$n.po f-kd-2-$n.mo
+done < f-kd-2.data
+
+Exit 0

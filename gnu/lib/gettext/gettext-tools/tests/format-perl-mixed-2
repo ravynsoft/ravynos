@@ -1,0 +1,72 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test checking of Perl format strings.
+# This test is for the combination of printf and brace format strings.
+
+cat <<\EOF > f-pm-2.data
+# Valid: normal case.
+#, perl-format, perl-brace-format
+msgid  "{foo} %d {bar} %s"
+msgstr "{bar} {foo} %d %s"
+# Invalid: missing argument.
+#, perl-format, perl-brace-format
+msgid  "{foo} %d {bar} %s"
+msgstr "{bar} %d %s"
+# Valid: missing argument but checking disabled.
+#, perl-format, no-perl-brace-format
+msgid  "{foo} %d {bar} %s"
+msgstr "{bar} %d %s"
+# Invalid: printf format reordered without position specifiers %1$, %2$.
+#, perl-format, perl-brace-format
+msgid  "{foo} %d {bar} %s"
+msgstr "{bar} %s {foo} %d"
+# Valid: same thing but checking disabled.
+#, no-perl-format, perl-brace-format
+msgid  "{foo} %d {bar} %s"
+msgstr "{bar} %s {foo} %d"
+# Invalid: unnamed vs. named arguments
+#, perl-format
+msgid  "abc%sdef"
+msgstr "xyz{value}"
+# Invalid: named vs. unnamed arguments
+#, perl-brace-format
+msgid  "abc{value}def"
+msgstr "xyz%s"
+EOF
+
+: ${MSGFMT=msgfmt}
+n=0
+while read comment; do
+  read formats
+  read msgid_line
+  read msgstr_line
+  n=`expr $n + 1`
+  cat <<EOF > f-pm-2-$n.po
+${formats}
+${msgid_line}
+${msgstr_line}
+EOF
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if ${MSGFMT} --check-format -o f-pm-2-$n.mo f-pm-2-$n.po; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    ${MSGFMT} --check-format -o f-pm-2-$n.mo f-pm-2-$n.po 2> /dev/null
+    if test $? = 1; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string checking error:" 1>&2
+    cat f-pm-2-$n.po 1>&2
+    Exit 1
+  fi
+done < f-pm-2.data
+
+Exit 0

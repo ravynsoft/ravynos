@@ -1,0 +1,402 @@
+                Short description of the source files
+                =====================================
+
+The msg* and xgettext programs.
+
+Bottom-up structure:
+
+str-list.h
+str-list.c
+                A list-of-immutable-strings type.
+
+dir-list.h
+dir-list.c
+                Management of the list of directories where PO files are
+                searched.
+
+file-list.h
+file-list.c
+                Reading a file list from a file. Used by those programs which
+                accept multiple file arguments and have a --files-from option.
+
+lang-table.h
+lang-table.c
+                Language names according to ISO 639.
+
+pos.h
+pos.c
+                Source file positions.
+
+message.h
+message.c
+                The message type, with many utility routines.
+                A list-of-messages type.
+                A list-of-lists-of-messages type.
+
+msgl-ascii.h
+msgl-ascii.c
+                Message list test for ASCII character set.
+
+msgl-ofn.h
+msgl-ofn.c
+                Message list test for ordinary file names.
+
+po-error.h
+po-error.c
+po-xerror.h
+po-xerror.c
+                Error handling during writing and reading of PO files.
+
++-------------- Writing PO files
+| write-catalog.h
+| write-catalog.c
+|               Output of a list-of-messages.
+| write-po.h
+| write-po.c
+|               Output of a list-of-messages to a PO file.
+| write-properties.h
+| write-properties.c
+|               Output of a list-of-messages to a Java .properties file.
+| write-stringtable.h
+| write-stringtable.c
+|               Output of a list-of-messages to a NeXTstep/GNUstep .strings
+|               file.
+| write-desktop.h
+| write-desktop.c
+|               Output of a list-of-messages to a .desktop file.
++-------------- Writing PO files
+
++-------------- Reading PO files
+| open-catalog.h
+| open-catalog.c
+|               Opening PO files for reading.
+|
+| po-charset.h
+| po-charset.c
+|               Charset handling while reading PO files.
+|
+| po-lex.h
+| po-lex.c
+|               Lexical analysis of PO files.
+|
+| read-catalog-abstract.h
+| po-gram.h
+| po-gram-gen.y
+| read-po.h
+| read-po.c
+| read-properties.h
+| read-properties.c
+| read-stringtable.h
+| read-stringtable.c
+| read-catalog-abstract.c
+|               Parsing of PO files and Java .properties and NeXTstep/GNUstep
+|              .strings files.
+|         read-catalog-abstract.h
+|                       General parser structure.
+|         po-gram.h
+|         po-gram-gen.y
+|                       Parsing of PO files, based on po-lex.{h,c}.
+|         read-po.h
+|         read-po.c
+|                       Parsing of PO files.
+|         read-properties.h
+|         read-properties.c
+|                       Parsing of Java .properties files.
+|         read-stringtable.h
+|         read-stringtable.c
+|                       Parsing of NeXTstep/GNUstep .strings files.
+|         read-catalog-abstract.c
+|                       Top-level parser functions and callbacks.
+|
+| read-catalog.h
+| read-catalog.c
+|               Reading of a PO file, returning a list-of-messages.
+|
+| read-desktop.h
+| read-desktop.c
+|               Reading of a .desktop file, returning a list-of-messages.
++-------------- Reading PO files
+
+msgl-iconv.h
+msgl-iconv.c
+                Convert a list-of-messages to another character encoding.
+
+msgl-cat.h
+msgl-cat.c
+                Concatenate message lists from several files, with handling
+                of duplicate msgids.
+
+msgcmp.c        Main source for the 'msgcmp' program.
+
++-------------- The 'msgmerge' program
+| msgl-equal.h
+| msgl-equal.c
+|               Comparing two lists-of-messages.
+| plural-count.h
+| plural-count.c
+|               Extracting the plural count of a header of a lists-of-messages.
+| msgmerge.c
+|               Main source for the 'msgmerge' program.
+|
++-------------- The 'msgmerge' program
+
+msgl-header.h
+msgl-header.c
+                Message list header manipulation.
+
+msgcomm.c       Main source for the 'msgcomm' program.
+msgattrib.c     Main source for the 'msgattrib' program.
+msgcat.c        Main source for the 'msgcat' program.
+msgconv.c       Main source for the 'msgconv' program.
+msguniq.c       Main source for the 'msguniq' program.
+
+msgl-charset.h
+msgl-charset.c
+                Compare the encoding of a list-of-messages with the locale
+                encoding.
+
+msgexec.c       Main source for the 'msgexec' program.
+msgfilter.c     Main source for the 'msgfilter' program.
+msggrep.c       Main source for the 'msggrep' program.
+
++-------------- The 'msgen' program
+| msgl-english.h
+| msgl-english.c
+|               English message initialization.
+| msgen.c
+|               Main source for the 'msgen' program.
+|
++-------------- The 'msgen' program
+
+po-time.h
+po-time.c
+                Create time stamps for use in PO/POT files.
+
+plural-table.h
+plural-table.c
+                Table of plural form formulas.
+
++-------------- The 'msginit' program
+| hostname.c
+|               The 'hostname' program.
+| user-email.sh.in
+|               Determine the user's email address.
+| urlget.c
+|               The 'urlget' program.
+| project-id
+|               Determine the package's name.
+| msginit.c
+|               Main source for the 'msginit' program.
+|
++-------------- The 'msginit' program
+
++-------------- The 'msgunfmt' program
+| msgunfmt.h
+|               Declarations.
+| read-mo.h
+| read-mo.c
+|               Reading GNU .mo files.
+| read-java.h
+| read-java.c
+|               Reading Java ResourceBundle files.
+| read-csharp.h
+| read-csharp.c
+| msgunfmt.cs
+|               Reading C# satellite assemblies.
+| read-resources.h
+| read-resources.c
+| msgunfmt.cs
+|               Reading C# .resources files.
+| read-tcl.h
+| read-tcl.c
+| msgunfmt.tcl
+|               Reading Tcl .msg files.
+| msgunfmt.c
+|               Main source for the 'msgunfmt' program.
+|
++-------------- The 'msgunfmt' program
+
+format.h        Declarations of the language dependent format string handlers.
+format-invalid.h  Declarations of some error messages for invalid strings.
+format-c.c             Format string handling for C.
+format-c-parse.h         Format string handling for C, parsing routine.
+format-c++-brace.c     Format string handling for C++.
+format-python.c        Format string handling for Python.
+format-python-brace.c  Format string handling for Python, braced syntax.
+format-java.c          Format string handling for Java.
+format-java-printf.c   Format string handling for Java, printf syntax.
+format-csharp.c        Format string handling for C#.
+format-javascript.c    Format string handling for JavaScript.
+format-scheme.c        Format string handling for Scheme.
+format-lisp.c          Format string handling for Common Lisp.
+format-elisp.c         Format string handling for Emacs Lisp.
+format-librep.c        Format string handling for librep.
+format-ruby.c          Format string handling for Ruby.
+format-sh.c            Format string handling for Shell.
+format-awk.c           Format string handling for awk.
+format-lua.c           Format string handling for Lua.
+format-pascal.c        Format string handling for Object Pascal.
+format-smalltalk.c     Format string handling for Smalltalk and YCP.
+format-qt.c            Format string handling for Qt.
+format-qt-plural.c     Format string handling for Qt plural forms.
+format-kde.c           Format string handling for KDE.
+format-kde-kuit.c      Format string handling for KDE User Interface Text.
+format-boost.c         Format string handling for Boost.
+format-tcl.c           Format string handling for Tcl.
+format-perl.c          Format string handling for Perl.
+format-perl-brace.c    Format string handling for Perl, braced syntax.
+format-php.c           Format string handling for PHP.
+format-gcc-internal.c  Format string handling GCC internal.
+format-gfc-internal.c  Format string handling GFC internal.
+format.c        Table of the language dependent format string handlers.
+
+plural-exp.c
+                Parsing plural expressions.
+plural-eval.h
+plural-eval.c
+                Evaluating plural expressions.
+plural-distrib.h
+                Value distribution of plural expressions.
+msgl-check.h
+msgl-check.c
+                Checking of messages.
+
++-------------- The 'msgfmt' program
+| msgfmt.h
+|               Declarations.
+| write-mo.h
+| write-mo.c
+|               Generating GNU .mo files.
+| write-java.h
+| write-java.c
+|               Generating Java ResourceBundle files.
+| write-csharp.h
+| write-csharp.c
+|               Generating C# satellite assemblies.
+| write-resources.h
+| write-resources.c
+| msgfmt.cs
+|               Generating C# .resources files.
+| write-tcl.h
+| write-tcl.c
+|               Generating Tcl .msg files.
+| write-qt.h
+| write-qt.c
+|               Generating Qt .qm files.
+| msgfmt.c
+|               Main source for the 'msgfmt' program.
+|
++-------------- The 'msgfmt' program
+
++-------------- The 'xgettext' program
+| xgettext.h
+|               Declarations used by the backends.
+| rc-str-list.h
+|               A reference-counted list-of-immutable-strings type.
+| xg-pos.h
+| xg-pos.c
+|               The source file position.
+| xg-encoding.h
+| xg-encoding.c
+|               Keeping track of the encoding of strings to be extracted.
+| xg-mixed-string.h
+| xg-mixed-string.c
+|               Handling strings that are given partially in the source
+|               encoding and partially in Unicode.
+| xg-arglist-context.h
+| xg-arglist-context.c
+|               Keeping track of the flags that apply to a string extracted
+|               in a certain context.
+| xg-arglist-callshape.h
+| xg-arglist-callshape.c
+|               Resolving ambiguity of argument lists: Information given
+|               through command-line options.
+| xg-arglist-parser.h
+| xg-arglist-parser.c
+|               Resolving ambiguity of argument lists: Progressive parsing
+|               of an argument list, keeping track of all possibilities.
+| xg-message.h
+| xg-message.c
+|               Extracting a message.  Accumulating the message list.
+| x-po.h
+| x-properties.h
+| x-stringtable.h
+| x-po.c
+|               String extractor from PO files and Java .properties and
+|               NeXTstep/GNUstep .strings files.
+| x-c.h
+| x-c.c
+|               String extractor for C.
+| x-python.h
+| x-python.c
+|               String extractor for Python.
+| x-java.h
+| x-java.c
+|               String extractor for Java.
+| x-csharp.h
+| x-csharp.c
+|               String extractor for C#.
+| x-javascript.h
+| x-javascript.c
+|               String extractor for JavaScript.
+| x-scheme.h
+| x-scheme.c
+|               String extractor for Scheme.
+| x-lisp.h
+| x-lisp.c
+|               String extractor for Common Lisp.
+| x-elisp.h
+| x-elisp.c
+|               String extractor for Emacs Lisp.
+| x-librep.h
+| x-librep.c
+|               String extractor for librep.
+| x-ruby.h
+| x-ruby.c
+|               String extractor for Ruby.
+| x-sh.h
+| x-sh.c
+|               String extractor for Shell.
+| x-awk.h
+| x-awk.c
+|               String extractor for awk.
+| x-lua.h
+| x-lua.c
+|               String extractor for Lua.
+| x-smalltalk.h
+| x-smalltalk.c
+|               String extractor for Smalltalk.
+| x-vala.h
+| x-vala.c
+|               String extractor for Vala.
+| x-tcl.h
+| x-tcl.c
+|               String extractor for Tcl.
+| x-perl.h
+| x-perl.c
+|               String extractor for Perl.
+| x-php.h
+| x-php.c
+|               String extractor for PHP.
+| x-ycp.h
+| x-ycp.c
+|               String extractor for YCP.
+| x-rst.h
+| x-rst.c
+|               String extractor from .rst files, for Object Pascal.
+| x-desktop.h
+| x-desktop.c
+|               String extractor from Desktop Entry file.
+| x-glade.h
+| x-glade.c
+|               String extractor from .glade files, GNOME GUI descriptions.
+| x-gsettings.h
+| x-gsettings.c
+|               String extractor for GSettings schema file.
+| x-appdata.h
+| x-appdata.c
+|               String extractor for AppData files.
+| xgettext.c
+|               Main source for the 'xgettext' program.
+|
++-------------- The 'xgettext' program

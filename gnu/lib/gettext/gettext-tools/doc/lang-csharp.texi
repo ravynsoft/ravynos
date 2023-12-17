@@ -1,0 +1,269 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node C#
+@subsection C#
+@cindex C#
+
+@table @asis
+@item RPMs
+mono
+
+@item Ubuntu packages
+mono-mcs
+
+@item File extension
+@code{cs}
+
+@item String syntax
+@code{"abc"}, @code{@@"abc"}
+
+@item gettext shorthand
+_("abc")
+
+@item gettext/ngettext functions
+@code{GettextResourceManager.GetString},
+@code{GettextResourceManager.GetPluralString}
+@code{GettextResourceManager.GetParticularString}
+@code{GettextResourceManager.GetParticularPluralString}
+
+@item textdomain
+@code{new GettextResourceManager(domain)}
+
+@item bindtextdomain
+---, compiled message catalogs are located in subdirectories of the directory
+containing the executable
+
+@item setlocale
+automatic
+
+@item Prerequisite
+---
+
+@item Use or emulate GNU gettext
+---, uses a C# specific message catalog format
+
+@item Extractor
+@code{xgettext -k_}
+
+@item Formatting with positions
+@code{String.Format "@{1@} @{0@}"}
+
+@item Portability
+fully portable
+
+@item po-mode marking
+---
+@end table
+
+Before marking strings as internationalizable, uses of the string
+concatenation operator need to be converted to @code{String.Format}
+invocations.  For example, @code{"file "+filename+" not found"} becomes
+@code{String.Format("file @{0@} not found", filename)}.
+Only after this is done, can the strings be marked and extracted.
+
+GNU gettext uses the native C#/.NET internationalization mechanism, namely
+the classes @code{ResourceManager} and @code{ResourceSet}.  Applications
+use the @code{ResourceManager} methods to retrieve the native language
+translation of strings.  An instance of @code{ResourceSet} is the in-memory
+representation of a message catalog file.  The @code{ResourceManager} loads
+and accesses @code{ResourceSet} instances as needed to look up the
+translations.
+
+There are two formats of @code{ResourceSet}s that can be directly loaded by
+the C# runtime: @code{.resources} files and @code{.dll} files.
+
+@itemize @bullet
+@item
+The @code{.resources} format is a binary file usually generated through the
+@code{resgen} or @code{monoresgen} utility, but which doesn't support plural
+forms.  @code{.resources} files can also be embedded in .NET @code{.exe} files.
+This only affects whether a file system access is performed to load the message
+catalog; it doesn't affect the contents of the message catalog.
+
+@item
+On the other hand, the @code{.dll} format is a binary file that is compiled
+from @code{.cs} source code and can support plural forms (provided it is
+accessed through the GNU gettext API, see below).
+@end itemize
+
+Note that these .NET @code{.dll} and @code{.exe} files are not tied to a
+particular platform; their file format and GNU gettext for C# can be used
+on any platform.
+
+To convert a PO file to a @code{.resources} file, the @code{msgfmt} program
+can be used with the option @samp{--csharp-resources}.  To convert a
+@code{.resources} file back to a PO file, the @code{msgunfmt} program can be
+used with the option @samp{--csharp-resources}.  You can also, in some cases,
+use the @code{monoresgen} program (from the @code{mono}/@code{mcs} package).
+This program can also convert a @code{.resources} file back to a PO file.  But
+beware: as of this writing (January 2004), the @code{monoresgen} converter is
+quite buggy.
+
+To convert a PO file to a @code{.dll} file, the @code{msgfmt} program can be
+used with the option @code{--csharp}.  The result will be a @code{.dll} file
+containing a subclass of @code{GettextResourceSet}, which itself is a subclass
+of @code{ResourceSet}.  To convert a @code{.dll} file containing a
+@code{GettextResourceSet} subclass back to a PO file, the @code{msgunfmt}
+program can be used with the option @code{--csharp}.
+
+The advantages of the @code{.dll} format over the @code{.resources} format
+are:
+
+@enumerate
+@item
+Freedom to localize: Users can add their own translations to an application
+after it has been built and distributed.  Whereas when the programmer uses
+a @code{ResourceManager} constructor provided by the system, the set of
+@code{.resources} files for an application must be specified when the
+application is built and cannot be extended afterwards.
+@c If this were the only issue with the @code{.resources} format, one could
+@c use the @code{ResourceManager.CreateFileBasedResourceManager} function.
+
+@item
+Plural handling: A message catalog in @code{.dll} format supports the plural
+handling function @code{GetPluralString}.  Whereas @code{.resources} files can
+only contain data and only support lookups that depend on a single string.
+
+@item
+Context handling: A message catalog in @code{.dll} format supports the
+query-with-context functions @code{GetParticularString} and
+@code{GetParticularPluralString}.  Whereas @code{.resources} files can
+only contain data and only support lookups that depend on a single string.
+
+@item
+The @code{GettextResourceManager} that loads the message catalogs in
+@code{.dll} format also provides for inheritance on a per-message basis.
+For example, in Austrian (@code{de_AT}) locale, translations from the German
+(@code{de}) message catalog will be used for messages not found in the
+Austrian message catalog.  This has the consequence that the Austrian
+translators need only translate those few messages for which the translation
+into Austrian differs from the German one.  Whereas when working with
+@code{.resources} files, each message catalog must provide the translations
+of all messages by itself.
+
+@item
+The @code{GettextResourceManager} that loads the message catalogs in
+@code{.dll} format also provides for a fallback: The English @var{msgid} is
+returned when no translation can be found.  Whereas when working with
+@code{.resources} files, a language-neutral @code{.resources} file must
+explicitly be provided as a fallback.
+@end enumerate
+
+On the side of the programmatic APIs, the programmer can use either the
+standard @code{ResourceManager} API and the GNU @code{GettextResourceManager}
+API.  The latter is an extension of the former, because
+@code{GettextResourceManager} is a subclass of @code{ResourceManager}.
+
+@enumerate
+@item
+The @code{System.Resources.ResourceManager} API.
+
+This API works with resources in @code{.resources} format.
+
+The creation of the @code{ResourceManager} is done through
+@smallexample
+  new ResourceManager(domainname, Assembly.GetExecutingAssembly())
+@end smallexample
+@noindent
+
+The @code{GetString} function returns a string's translation.  Note that this
+function returns null when a translation is missing (i.e.@: not even found in
+the fallback resource file).
+
+@item
+The @code{GNU.Gettext.GettextResourceManager} API.
+
+This API works with resources in @code{.dll} format.
+
+Reference documentation is in the
+@uref{csharpdoc/index.html,csharpdoc directory}.
+
+The creation of the @code{ResourceManager} is done through
+@smallexample
+  new GettextResourceManager(domainname)
+@end smallexample
+
+The @code{GetString} function returns a string's translation.  Note that when
+a translation is missing, the @var{msgid} argument is returned unchanged.
+
+The @code{GetPluralString} function returns a string translation with plural
+handling, like the @code{ngettext} function in C.
+
+The @code{GetParticularString} function returns a string's translation,
+specific to a particular context, like the @code{pgettext} function in C.
+Note that when a translation is missing, the @var{msgid} argument is returned
+unchanged.
+
+The @code{GetParticularPluralString} function returns a string translation,
+specific to a particular context, with plural handling, like the
+@code{npgettext} function in C.
+
+@cindex @code{libintl} for C#
+To use this API, one needs the @code{GNU.Gettext.dll} file which is part of
+the GNU gettext package and distributed under the LGPL.
+@end enumerate
+
+You can also mix both approaches: use the
+@code{GNU.Gettext.GettextResourceManager} constructor, but otherwise use
+only the @code{ResourceManager} type and only the @code{GetString} method.
+This is appropriate when you want to profit from the tools for PO files,
+but don't want to change an existing source code that uses
+@code{ResourceManager} and don't (yet) need the @code{GetPluralString} method.
+
+Two examples, using the second API, are available in the @file{examples}
+directory: @code{hello-csharp}, @code{hello-csharp-forms}.
+
+Now, to make use of the API and define a shorthand for @samp{GetString},
+there are two idioms that you can choose from:
+
+@itemize @bullet
+@item
+In a unique class of your project, say @samp{Util}, define a static variable
+holding the @code{ResourceManager} instance:
+
+@smallexample
+public static GettextResourceManager MyResourceManager =
+  new GettextResourceManager("domain-name");
+@end smallexample
+
+All classes containing internationalized strings then contain
+
+@smallexample
+private static GettextResourceManager Res = Util.MyResourceManager;
+private static String _(String s) @{ return Res.GetString(s); @}
+@end smallexample
+
+@noindent
+and the shorthand is used like this:
+
+@smallexample
+Console.WriteLine(_("Operation completed."));
+@end smallexample
+
+@item
+You add a class with a very short name, say @samp{S}, containing just the
+definition of the resource manager and of the shorthand:
+
+@smallexample
+public class S @{
+  public static GettextResourceManager MyResourceManager =
+    new GettextResourceManager("domain-name");
+  public static String _(String s) @{
+     return MyResourceManager.GetString(s);
+  @}
+@}
+@end smallexample
+
+@noindent
+and the shorthand is used like this:
+
+@smallexample
+Console.WriteLine(S._("Operation completed."));
+@end smallexample
+@end itemize
+
+Which of the two idioms you choose, will depend on whether copying two lines
+of codes into every class is more acceptable in your project than a class
+with a single-letter name.

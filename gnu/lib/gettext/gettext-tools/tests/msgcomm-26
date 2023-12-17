@@ -1,0 +1,104 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgcomm on PO files with previous msgids.
+
+cat <<\EOF > mcomm-test26.in1
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, c-format
+msgid "too many arguments"
+msgstr "zu viele Argumente"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, fuzzy, c-format
+#| msgid "too many arguments"
+msgid "too few arguments"
+msgstr "zu viele Argumente"
+
+# Oder besser "fehlende Argumente"?
+#. TRANSLATORS: An error message.
+#: src/args.c:273
+#, c-format
+msgid "missing arguments"
+msgstr "Argumente fehlen"
+
+#: getopt.c:796 getopt.c:799
+#, fuzzy, c-format
+#| msgid "%s: invalid option -- %c\n"
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: ungültige Option -- %c\n"
+
+#: getopt.c:805 getopt.c:808
+#, c-format
+msgid "%s: invalid option -- %c\n"
+msgstr "%s: ungültige Option -- %c\n"
+EOF
+
+cat <<\EOF > mcomm-test26.in2
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, c-format
+msgid "too few arguments"
+msgstr "zu wenige Argumente"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, fuzzy, c-format
+#| msgid "too few arguments"
+msgid "too many arguments"
+msgstr "zu wenige Argumente"
+
+#: getopt.c:796 getopt.c:799
+#, fuzzy, c-format
+#| msgid "%s: invalid options -- %c\n"
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: ungültige Optionen -- %c\n"
+EOF
+
+: ${MSGCOMM=msgcomm}
+${MSGCOMM} -o mcomm-test26.tmp mcomm-test26.in1 mcomm-test26.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test26.tmp > mcomm-test26.out || Exit 1
+
+cat <<\EOF > mcomm-test26.ok
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:242
+#, c-format
+msgid "too many arguments"
+msgstr "zu viele Argumente"
+
+#. TRANSLATORS: An error message.
+#: src/args.c:247
+#, fuzzy, c-format
+#| msgid "too many arguments"
+msgid "too few arguments"
+msgstr "zu viele Argumente"
+
+#: getopt.c:796 getopt.c:799
+#, fuzzy, c-format
+#| msgid "%s: invalid option -- %c\n"
+msgid "%s: illegal option -- %c\n"
+msgstr "%s: ungültige Option -- %c\n"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test26.ok mcomm-test26.out
+result=$?
+
+exit $result

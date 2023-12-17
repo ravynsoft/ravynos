@@ -1,0 +1,65 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Perl format strings of both kinds (printf and brace).
+# This test is for the combination of both kinds.
+
+
+cat <<\EOF > f-pm-1.data
+# Both formats.
+#, perl-format, perl-brace-format
+"{foo} %c {bar} %d {baz}"
+# printf format only.
+#, perl-format
+"%c %d"
+# printf format only, because '%' is not allowed in identifier.
+#, perl-format
+"{foo%cbar}"
+# Valid bracketed format because there is still one valid identifier.
+#, perl-format, perl-brace-format
+"{foo%cbar} {baz}"
+# Bracketed format only, because %l is not recognized in printf format.
+#, perl-brace-format
+"{foo} %l {bar}"
+# Neither format recognized here.
+
+"{foo bar %l"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read formats
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-pm-1-$n.in
+gettext(${string});
+EOF
+  ${XGETTEXT} -L perl --omit-header --no-location -o f-pm-1-$n.po f-pm-1-$n.in || Exit 1
+  test -f f-pm-1-$n.po || Exit 1
+  fail=
+  if test -n "${formats}"; then
+    # Verify that the first line contains the expected #, comment.
+    if sed 1q < f-pm-1-$n.po | LC_ALL=C tr -d '\r' | grep '^'"${formats}"'$' > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    # Verify that there is no #, comment.
+    if sed 1q < f-pm-1-$n.po | grep '^msgid' > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-pm-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-pm-1-$n.po 1>&2
+    Exit 1
+  fi
+done < f-pm-1.data
+
+Exit 0

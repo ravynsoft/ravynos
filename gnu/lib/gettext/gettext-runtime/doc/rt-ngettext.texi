@@ -1,0 +1,71 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2019 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex ngettext
+@cindex @code{ngettext} program, usage
+@example
+ngettext [@var{option}] [@var{textdomain}] @var{msgid} @var{msgid-plural} @var{count}
+@end example
+
+@cindex lookup plural message translation
+The @code{ngettext} program displays the native language translation of a
+textual message whose grammatical form depends on a number.
+
+@noindent @strong{Arguments}
+
+@table @samp
+@item -c @var{context}
+@itemx --context=@var{context}
+@opindex -c@r{, @code{ngettext} option}
+@opindex --context@r{, @code{ngettext} option}
+Specify the context for the messages to be translated.
+See @ref{Contexts} for details.
+
+@item -d @var{textdomain}
+@itemx --domain=@var{textdomain}
+@opindex -d@r{, @code{ngettext} option}
+@opindex --domain@r{, @code{ngettext} option}
+Retrieve translated messages from @var{textdomain}.  Usually a @var{textdomain}
+corresponds to a package, a program, or a module of a program.
+
+@item -e
+@opindex -e@r{, @code{ngettext} option}
+Enable expansion of some escape sequences.  This option is for compatibility
+with the @samp{gettext} program.  The escape sequences
+@samp{\a}, @samp{\b}, @samp{\f}, @samp{\n}, @samp{\r}, @samp{\t},
+@samp{\v}, @samp{\\}, and @samp{\} followed by one to three octal digits, are
+interpreted like the System V @samp{echo} program did.
+
+@item -E
+@opindex -E@r{, @code{ngettext} option}
+This option is only for compatibility with the @samp{gettext} program.  It has
+no effect.
+
+@item -h
+@itemx --help
+@opindex -h@r{, @code{ngettext} option}
+@opindex --help@r{, @code{ngettext} option}
+Display this help and exit.
+
+@item -V
+@itemx --version
+@opindex -V@r{, @code{ngettext} option}
+@opindex --version@r{, @code{ngettext} option}
+Output version information and exit.
+
+@item @var{textdomain}
+Retrieve translated message from @var{textdomain}.
+
+@item @var{msgid} @var{msgid-plural}
+Translate @var{msgid} (English singular) / @var{msgid-plural} (English plural).
+
+@item @var{count}
+Choose singular/plural form based on this value.
+
+@end table
+
+If the @var{textdomain} parameter is not given, the domain is determined from
+the environment variable @code{TEXTDOMAIN}.  If the message catalog is not
+found in the regular directory, another location can be specified with the
+environment variable @code{TEXTDOMAINDIR}.

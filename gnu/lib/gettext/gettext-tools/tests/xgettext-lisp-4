@@ -1,0 +1,24 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Lisp support: lisp-format string with a complex nested loop.
+
+cat <<EOF > xg-ls-4.lisp
+(gettext "A~0{B~0b~,v*C~:*D~,v*E~,v*F~0{G~0{H~}I~}J~^~}K")
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-ls-4.tmp xg-ls-4.lisp || Exit 1
+LC_ALL=C tr -d '\r' < xg-ls-4.tmp.po > xg-ls-4.po || Exit 1
+
+cat <<EOF > xg-ls-4.ok
+#, lisp-format
+msgid "A~0{B~0b~,v*C~:*D~,v*E~,v*F~0{G~0{H~}I~}J~^~}K"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-ls-4.ok xg-ls-4.po
+result=$?
+
+exit $result

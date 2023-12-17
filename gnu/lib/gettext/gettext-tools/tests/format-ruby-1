@@ -1,0 +1,304 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Ruby format strings.
+
+(rxgettext --version) >/dev/null 2>/dev/null \
+  || { echo "Skipping test: rxgettext not found"; Exit 77; }
+
+cat <<\EOF > f-r-1.data
+# Valid: no argument
+"abc%%"
+# Valid: one string argument (unnumbered)
+"abc%s"
+# Valid: one string argument (numbered)
+"abc%1$s"
+# Valid: one string argument (named)
+"abc%<foo>s"
+# Valid: one string argument (named)
+"abc%{foo}"
+# Valid: one escaped string argument (unnumbered)
+"abc%p"
+# Valid: one escaped string argument (numbered)
+"abc%1$p"
+# Valid: one escaped string argument (named)
+"abc%<foo>p"
+# Valid: one character argument (unnumbered)
+"abc%c"
+# Valid: one character argument (numbered)
+"abc%1$c"
+# Valid: one character argument (named)
+"abc%<foo>c"
+# Valid: one integer argument (unnumbered)
+"abc%d"
+# Valid: one integer argument (numbered)
+"abc%1$d"
+# Valid: one integer argument (named)
+"abc%<foo>d"
+# Valid: one integer argument (unnumbered)
+"abc%i"
+# Valid: one integer argument (numbered)
+"abc%1$i"
+# Valid: one integer argument (named)
+"abc%<foo>i"
+# Valid: one integer argument (unnumbered)
+"abc%u"
+# Valid: one integer argument (numbered)
+"abc%1$u"
+# Valid: one integer argument (named)
+"abc%<foo>u"
+# Valid: one integer argument (unnumbered)
+"abc%o"
+# Valid: one integer argument (numbered)
+"abc%1$o"
+# Valid: one integer argument (named)
+"abc%<foo>o"
+# Valid: one integer argument (unnumbered)
+"abc%x"
+# Valid: one integer argument (numbered)
+"abc%1$x"
+# Valid: one integer argument (named)
+"abc%<foo>x"
+# Valid: one integer argument (unnumbered)
+"abc%X"
+# Valid: one integer argument (numbered)
+"abc%1$X"
+# Valid: one integer argument (named)
+"abc%<foo>X"
+# Valid: one integer argument (unnumbered)
+"abc%b"
+# Valid: one integer argument (numbered)
+"abc%1$b"
+# Valid: one integer argument (named)
+"abc%<foo>b"
+# Valid: one integer argument (unnumbered)
+"abc%B"
+# Valid: one integer argument (numbered)
+"abc%1$B"
+# Valid: one integer argument (named)
+"abc%<foo>B"
+# Valid: one floating-point argument (unnumbered)
+"abc%f"
+# Valid: one floating-point argument (numbered)
+"abc%1$f"
+# Valid: one floating-point argument (named)
+"abc%<foo>f"
+# Valid: one floating-point argument (unnumbered)
+"abc%g"
+# Valid: one floating-point argument (numbered)
+"abc%1$g"
+# Valid: one floating-point argument (named)
+"abc%<foo>g"
+# Valid: one floating-point argument (unnumbered)
+"abc%G"
+# Valid: one floating-point argument (numbered)
+"abc%1$G"
+# Valid: one floating-point argument (named)
+"abc%<foo>G"
+# Valid: one floating-point argument (unnumbered)
+"abc%e"
+# Valid: one floating-point argument (numbered)
+"abc%1$e"
+# Valid: one floating-point argument (named)
+"abc%<foo>e"
+# Valid: one floating-point argument (unnumbered)
+"abc%E"
+# Valid: one floating-point argument (numbered)
+"abc%1$E"
+# Valid: one floating-point argument (named)
+"abc%<foo>E"
+# Valid: one floating-point argument (unnumbered)
+"abc%a"
+# Valid: one floating-point argument (numbered)
+"abc%1$a"
+# Valid: one floating-point argument (named)
+"abc%<foo>a"
+# Valid: one floating-point argument (unnumbered)
+"abc%A"
+# Valid: one floating-point argument (numbered)
+"abc%1$A"
+# Valid: one floating-point argument (named)
+"abc%<foo>A"
+# Valid: one argument with flags (unnumbered)
+"abc%0#g"
+# Valid: one argument with flags (numbered)
+"abc%1$0#g"
+# Valid: one argument with flags (numbered)
+"abc%0#1$g"
+# Valid: one argument with flags (named)
+"abc%<foo>0#g"
+# Valid: one argument with flags (named)
+"abc%0#<foo>g"
+# Valid: one argument with width (unnumbered)
+"abc%2g"
+# Valid: one argument with width (numbered)
+"abc%1$2g"
+# Valid: one argument with width (named)
+"abc%<foo>2g"
+# Valid: one argument with width (named)
+"abc%2<foo>g"
+# Valid: one argument with width (unnumbered)
+"abc%*g"
+# Valid: one argument with width (numbered)
+"abc%2$*1$g"
+# Valid: one argument with precision (unnumbered)
+"abc%.4g"
+# Valid: one argument with precision (numbered)
+"abc%1$.4g"
+# Valid: one argument with precision (named)
+"abc%<foo>.4g"
+# Valid: one argument with precision (named)
+"abc%.4<foo>g"
+# Valid: one argument with precision (unnumbered)
+"abc%.*g"
+# Valid: one argument with precision (numbered)
+"abc%2$.*1$g"
+# Valid: one argument with width and precision (unnumbered)
+"abc%14.4g"
+# Valid: one argument with width and precision (numbered)
+"abc%1$14.4g"
+# Valid: one argument with width and precision (named)
+"abc%<foo>14.4g"
+# Valid: one argument with width and precision (named)
+"abc%14<foo>.4g"
+# Valid: one argument with width and precision (named)
+"abc%14.4<foo>g"
+# Valid: one argument with width and precision (unnumbered)
+"abc%14.*g"
+# Valid: one argument with width and precision (numbered)
+"abc%2$14.*1$g"
+# Valid: one argument with width and precision (unnumbered)
+"abc%*.4g"
+# Valid: one argument with width and precision (numbered)
+"abc%2$*1$.4g"
+# Valid: one argument with width and precision (unnumbered)
+"abc%*.*g"
+# Valid: one argument with width and precision (numbered)
+"abc%3$*1$.*2$g"
+# Invalid: unterminated directive
+"abc%"
+# Invalid: unterminated name
+"abc%<value"
+# Invalid: unterminated name
+"abc%{value"
+# Invalid: unterminated directive
+"abc%<value>"
+# Invalid: unknown format specifier (unnumbered)
+"abc%y"
+# Invalid: mixing unnumbered and numbered in the same directive
+"abc%2$*g"
+# Invalid: mixing unnumbered and numbered in the same directive
+"abc%*1$g"
+# Invalid: mixing unnumbered and numbered in the same directive
+"abc%2$.*g"
+# Invalid: mixing unnumbered and numbered in the same directive
+"abc%.*1$g"
+# Invalid: mixing unnumbered and numbered in different directives
+"abc%d%2$g"
+# Invalid: mixing unnumbered and numbered in different directives
+"abc%1$d%g"
+# Invalid: mixing unnumbered and named in the same directive
+"abc%*<foo>g"
+# Invalid: mixing unnumbered and named in the same directive
+"abc%.*<foo>g"
+# Invalid: mixing unnumbered and named in different directives
+"abc%d%<foo>g"
+# Invalid: mixing unnumbered and named in different directives
+"abc%<foo>d%g"
+# Invalid: mixing numbered and named in the same directive
+"abc%*1$<foo>g"
+# Invalid: mixing numbered and named in the same directive
+"abc%.*1$<foo>g"
+# Invalid: mixing numbered and named in different directives
+"abc%2$d%<foo>g"
+# Invalid: mixing numbered and named in different directives
+"abc%<foo>d%2$g"
+# Invalid: flags after width (unnumbered)
+"abc%*0g"
+# Invalid: flags after width (numbered)
+"abc%2$*1$0g"
+# Invalid: flags after precision (unnumbered)
+"abc%.*0g"
+# Invalid: flags after precision (numbered)
+"abc%2$.*1$0g"
+# Invalid: width after precision (unnumbered)
+"abc%.*14g"
+# Invalid: width after precision (unnumbered)
+"abc%.4*g"
+# Invalid: width after precision (unnumbered)
+"abc%.**g"
+# Invalid: width after precision (numbered)
+"abc%2$.*1$14g"
+# Invalid: width after precision (numbered)
+"abc%2$.4*1$g"
+# Invalid: width after precision (numbered)
+"abc%3$.*1$*2$g"
+# Invalid: twice width (unnumbered)
+"abc%2*g"
+# Invalid: twice width (unnumbered)
+"abc%*2g"
+# Invalid: twice width (numbered)
+"abc%2$2*1$g"
+# Invalid: twice width (numbered)
+"abc%2$*1$2g"
+# Invalid: twice precision (unnumbered)
+"abc%.4.2g"
+# Invalid: twice precision (numbered)
+"abc%1$.4.2g"
+# Valid: three arguments
+"abc%d%u%u"
+# Valid: an unused argument
+"abc%2$d%3$u"
+# Valid: a named argument
+"abc%<value>d"
+# Valid: a named argument
+"abc%{value}"
+# Valid: an empty name
+"abc%<>d"
+# Valid: an empty name
+"abc%{}"
+# Valid: ignored named argument
+"abc%<dummy>%"
+# Valid: three arguments, two with equal names
+"abc%<addr>4x,%<char>c,%<addr>u"
+# Invalid: argument with conflicting types
+"abc%<addr>4x,%<char>c,%<addr>s"
+# Valid: no conflict
+"abc%<addr>s,%{addr}"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-r-1-$n.in
+gettext(${string});
+EOF
+  ${XGETTEXT} -L Ruby -o f-r-1-$n.po f-r-1-$n.in || Exit 1
+  test -f f-r-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep ruby-format f-r-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep ruby-format f-r-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-r-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-r-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-r-1-$n.in f-r-1-$n.po
+done < f-r-1.data
+
+Exit 0

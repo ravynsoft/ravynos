@@ -1,0 +1,27 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+#
+# Plural test for YCP
+#
+
+cat <<EOF > xg-y-1.ycp
+title = sformat (_("%1 package", "%1 packages", num), num);
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -k:1,2 -d xg-y-1.tmp xg-y-1.ycp || Exit 1
+LC_ALL=C tr -d '\r' < xg-y-1.tmp.po > xg-y-1.po || Exit 1
+
+cat <<EOF > xg-y-1.ok
+#, ycp-format
+msgid "%1 package"
+msgid_plural "%1 packages"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-y-1.ok xg-y-1.po
+result=$?
+
+exit $result

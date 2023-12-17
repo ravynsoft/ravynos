@@ -1,0 +1,30 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --add-location=file option.
+
+cat <<\EOF > msguniq-7.in
+#: foo:1
+msgid "foo"
+msgstr ""
+
+#: bar:1
+msgid "foo"
+msgstr ""
+EOF
+
+: ${MSGUNIQ-msguniq}
+${MSGUNIQ} --add-location=file -o msguniq-7.tmp msguniq-7.in || Exit 1
+LC_ALL=C tr -d '\r' < msguniq-7.tmp > msguniq-7.out || Exit 1
+
+cat <<\EOF > msguniq-7.ok
+#: foo bar
+msgid "foo"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} msguniq-7.ok msguniq-7.out
+result=$?
+
+exit $result

@@ -1,0 +1,110 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of JavaScript support.
+# Playing with regex and division operator
+
+cat <<\EOF > xg-js-2.js
+// RegExp literals containing string quotes must not desync the parser
+var d = 1 / 2 / 4;
+var s = " x " + /^\d/.match("0815").replace(/[a-z]/g, '@');
+var s1 = /"/.match(_("RegExp test string #1"));
+var s2 = /'/.match(_("RegExp test string #2"));
+var s3 = /['a-b]/.match(_('RegExp test string #3'));
+var s4 = /["a-b]/.match(_('RegExp test string #4'));
+var s5 = /[a-b']/.match(_('RegExp test string #5'));
+var s6 = /[a-b"]/.match(_('RegExp test string #6'));
+var c = 35 / 2 / 8 + _("RegExp test string #7").length / 32.0;
+var sizestr = Math.round(size/1024*factor)/factor+_("RegExp test string #8");
+var cssClassType = attr.type.replace(/^.*\//, _('RegExp test string #9')).replace(/\./g, '-');
+var lookup = lookuptable[idx]/factor+_("RegExp test string #10");
+function doit() {
+  return /\./.match(_("RegExp test string #11"));
+}
+if (false)
+  /foo/.match(_("RegExp test string #12"));
+else
+  /foo/.match(_("RegExp test string #13"));
+var s7 = /a\/\f\r\n\t\v\0\b\s\S\w\W\d\D\b\Bb/.test(_("RegExp test string #14"));
+var s8 = /(?=(a+))a*b\1/.exec(_("RegExp test string #15"));
+var s9 = /_("a+")/.exec(_("RegExp test string #16"));
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --no-location -o xg-js-2.tmp xg-js-2.js 2>xg-js-2.err
+test $? = 0 || { cat xg-js-2.err; Exit 1; }
+func_filter_POT_Creation_Date xg-js-2.tmp xg-js-2.pot
+
+cat <<\EOF > xg-js-2.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "RegExp test string #1"
+msgstr ""
+
+msgid "RegExp test string #2"
+msgstr ""
+
+msgid "RegExp test string #3"
+msgstr ""
+
+msgid "RegExp test string #4"
+msgstr ""
+
+msgid "RegExp test string #5"
+msgstr ""
+
+msgid "RegExp test string #6"
+msgstr ""
+
+msgid "RegExp test string #7"
+msgstr ""
+
+msgid "RegExp test string #8"
+msgstr ""
+
+msgid "RegExp test string #9"
+msgstr ""
+
+msgid "RegExp test string #10"
+msgstr ""
+
+msgid "RegExp test string #11"
+msgstr ""
+
+msgid "RegExp test string #12"
+msgstr ""
+
+msgid "RegExp test string #13"
+msgstr ""
+
+msgid "RegExp test string #14"
+msgstr ""
+
+msgid "RegExp test string #15"
+msgstr ""
+
+msgid "RegExp test string #16"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-js-2.ok xg-js-2.pot
+result=$?
+
+exit $result

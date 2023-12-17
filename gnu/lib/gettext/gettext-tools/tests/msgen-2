@@ -1,0 +1,30 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test general operation with Java .properties syntax.
+
+cat <<\EOF > men-test2.properties
+!height\ must\ be\ positive=
+
+color\ cannot\ be\ transparent=colour cannot be transparent
+
+width\ must\ be\ positive=
+EOF
+
+: ${MSGEN=msgen}
+${MSGEN} --properties-input --properties-output -o men-test2.tmp men-test2.properties || Exit 1
+LC_ALL=C tr -d '\r' < men-test2.tmp > men-test2.out || Exit 1
+
+cat <<\EOF > men-test2.ok
+height\ must\ be\ positive=height must be positive
+
+color\ cannot\ be\ transparent=colour cannot be transparent
+
+width\ must\ be\ positive=width must be positive
+EOF
+
+: ${DIFF=diff}
+${DIFF} men-test2.ok men-test2.out
+result=$?
+
+exit $result

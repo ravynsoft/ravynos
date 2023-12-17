@@ -1,0 +1,80 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C support: comments meant for xgettext, whitespace, and literals.
+
+cat <<EOF > xg-c-2.in.c
+This is a test of the xgettext functionality.
+/* xgettext:no-c-format */
+_("extract me")
+Sometimes keywords can be spread apart
+xgettext:no-c-format
+_ ( "what about me" )
+And even further on accasion
+_
+(
+"hello"
+)
+static int c = '';
+_("after character")
+static char *s = "";
+_("after string")
+static double d = 10e-1;
+_("after double")
+static int x = 0x2a;
+_("after hex integer")
+static int b = 0b101011;
+_("after binary integer")
+static int i_c23 = 1'000;
+_("after integer with digit separator")
+static int x_c23 = 0xFE23'FFFF'FFFF'4321;
+_("after hex integer with digit separator")
+static double d_c23 = 0.333'333;
+_("after double with digit separator")
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -d xg-c-2.tmp -k_ --omit-header --no-location xg-c-2.in.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-c-2.tmp.po > xg-c-2.po || Exit 1
+
+cat <<EOF > xg-c-2.ok
+#, no-c-format
+msgid "extract me"
+msgstr ""
+
+msgid "what about me"
+msgstr ""
+
+msgid "hello"
+msgstr ""
+
+msgid "after character"
+msgstr ""
+
+msgid "after string"
+msgstr ""
+
+msgid "after double"
+msgstr ""
+
+msgid "after hex integer"
+msgstr ""
+
+msgid "after binary integer"
+msgstr ""
+
+msgid "after integer with digit separator"
+msgstr ""
+
+msgid "after hex integer with digit separator"
+msgstr ""
+
+msgid "after double with digit separator"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-2.ok xg-c-2.po
+result=$?
+
+exit $result

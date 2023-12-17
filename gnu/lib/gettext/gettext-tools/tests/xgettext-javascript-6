@@ -1,0 +1,112 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of JavaScript JSX support.
+
+cat <<\EOF > xg-js-6.js
+class Foo extends React.Component {
+    render() {
+        return (
+            <div className="aClass" />
+        );
+    }
+}
+class Bar extends React.Component {
+    render() {
+        return (
+            <div>
+                <span className="someClass" />
+                { gettext('Expected translation string #0') }
+            </div>
+        );
+    }
+}
+
+var x1 = <x1></x1>;
+var s1 = _("Expected translation string #1");
+var s2 = "foo";
+var x2 = <{s2}>foo {s2} bar</{s2}>;
+var x3 = <x3 a1="/"><x4>{_("Expected translation string #2")}</x4></x3>;
+var x4 = <x5 a2='/'><x{_("Expected translation string #3")}>
+</x{_("Expected translation string #3")}></x5>;
+var x4 = <![CDATA[
+  _("Unexpected translation string #1")
+]]>;
+var x5 = <!-- - _("Unexpected translation string #2") - -->;
+var s6 = _("Expected translation string #4");
+var x6 = <? _("Unexpected translation string #3") ?>;
+var x7 = <!--- this is a comment --> <foo>
+var s7 = "<{x6}>_("Unexpected translation string #4")</{x6}>" +
+         "<!-- _("Unexpected translation string #5") --!>" +
+         _("Expected translation string #5");
+var s8 = _("<x7>Expected translation string #6</x7>");
+var x8 = <x8><x9>{_("<x8>{Expected translation string #7}</x8>")}</x9></x8>
+var x9 = <x10 attr='{_("Unexpected translation string #6")}'><x11>data</x11></x10>;
+var s9 = _("Expected translation string #8");
+</foo>;
+function foo() {
+  return <a>{ 'b' }</a>;
+}
+var s10 = _("Expected translation string #9");
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --no-location -o xg-js-6.tmp xg-js-6.js 2>xg-js-6.err
+test $? = 0 || { cat xg-js-6.err; Exit 1; }
+func_filter_POT_Creation_Date xg-js-6.tmp xg-js-6.pot
+
+cat <<\EOF > xg-js-6.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Expected translation string #0"
+msgstr ""
+
+msgid "Expected translation string #1"
+msgstr ""
+
+msgid "Expected translation string #2"
+msgstr ""
+
+msgid "Expected translation string #3"
+msgstr ""
+
+msgid "Expected translation string #4"
+msgstr ""
+
+msgid "Expected translation string #5"
+msgstr ""
+
+msgid "<x7>Expected translation string #6</x7>"
+msgstr ""
+
+msgid "<x8>{Expected translation string #7}</x8>"
+msgstr ""
+
+msgid "Expected translation string #8"
+msgstr ""
+
+msgid "Expected translation string #9"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-js-6.ok xg-js-6.pot
+result=$?
+
+exit $result

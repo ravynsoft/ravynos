@@ -1,0 +1,78 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C support: invalid NUL termination
+
+: ${XGETTEXT=xgettext}
+
+${XGETTEXT} --no-location --no-wrap \
+            -o xg-c-escape-3.tmp "$wabs_srcdir"/xg-c-escape-3.c || Exit 1
+func_filter_POT_Creation_Date xg-c-escape-3.tmp xg-c-escape-3.po
+
+cat <<\EOF > xg-c-escape-3.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "1abc"
+msgstr ""
+
+msgid "2abc"
+msgstr ""
+
+msgid "3abc"
+msgstr ""
+
+msgid "4abc"
+msgstr ""
+
+msgid "5abc"
+msgstr ""
+
+msgid "6abc"
+msgstr ""
+
+msgid "7abc"
+msgstr ""
+
+msgid "8abc\\x"
+msgstr ""
+
+msgid "9abc\n"
+msgstr ""
+
+msgid "10abc\\u"
+msgstr ""
+
+msgid "11abc\\U"
+msgstr ""
+
+msgid "12abc\\u3"
+msgstr ""
+
+msgid "13abc\\u45"
+msgstr ""
+
+msgid "14abc\\u567"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-escape-3.ok xg-c-escape-3.po
+result=$?
+
+exit $result

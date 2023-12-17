@@ -1,0 +1,4286 @@
+# Template messages for CLISP
+# Copyright (C) 1992-2001 Bruno Haible, Michael Stoll, Marcus Daniels
+# Bruno Haible <haible@clisp.cons.org>, 2001.
+#
+!=Project-Id-Version\: clisp 2.25.1\nPOT-Creation-Date\: 2001-07-21 21\:09\:38 CEST\nPO-Revision-Date\: 2001-07-21 21\:09\:38 CEST\nLast-Translator\: Automatically generated <bruno@linuix>\nLanguage-Team\: Template <xx@li.org>\nMIME-Version\: 1.0\nContent-Type\: text/plain; charset\=UTF-8\nContent-Transfer-Encoding\: 8bit\n
+
+#: constobj.d:376
+!Please\ choose\:=
+
+#: constobj.d:380
+!Please\ choose\ one\ of\ ~\:{~A~\:^,\ ~}\ .=
+
+#: constobj.d:383
+!symbol\ ~A\ from\ \#<PACKAGE\ ~A>\ will\ become\ a\ shadowing\ symbol=
+
+#: constobj.d:385
+!You\ may\ choose\ the\ symbol\ in\ favour\ of\ which\ to\ resolve\ the\ conflict.=
+
+#: constobj.d:387
+!uninterning\ ~S\ from\ ~S\ uncovers\ a\ name\ conflict.=
+
+#: constobj.d:389 constobj.d:403
+!You\ may\ choose\ how\ to\ proceed.=
+
+#: constobj.d:391
+!importing\ ~S\ into\ ~S\ produces\ a\ name\ conflict\ with\ ~S.=
+
+#: constobj.d:393
+!importing\ ~S\ into\ ~S\ produces\ a\ name\ conflict\ with\ ~S\ and\ other\ symbols.=
+
+#: constobj.d:395
+!(("I"\ "import\ it\ and\ unintern\ the\ other\ symbol"\ T)\ ("N"\ "do\ not\ import\ it,\ leave\ undone"\ NIL))=
+
+#: constobj.d:398
+!(("I"\ "import\ it,\ unintern\ one\ other\ symbol\ and\ shadow\ the\ other\ symbols"\ T)\ ("N"\ "do\ not\ import\ it,\ leave\ undone"\ NIL))=
+
+#: constobj.d:401
+!(("I"\ "import\ it\ and\ shadow\ the\ other\ symbol"\ T)\ ("N"\ "do\ nothing"\ NIL))=
+
+#: constobj.d:405
+!symbol\ ~S\ should\ be\ imported\ into\ ~S\ before\ being\ exported.=
+
+#: constobj.d:407
+!(("I"\ "import\ the\ symbol\ first"\ T)\ ("N"\ "do\ nothing,\ don't\ export\ the\ symbol"\ NIL))=
+
+#: constobj.d:410
+!You\ may\ choose\ in\ favour\ of\ which\ symbol\ to\ resolve\ the\ conflict.=
+
+#: constobj.d:412
+!exporting\ ~S\ from\ ~S\ produces\ a\ name\ conflict\ with\ ~S\ from\ ~S.=
+
+#: constobj.d:414
+!Which\ symbol\ should\ be\ accessible\ in\ ~S\ ?=
+
+#: constobj.d:418
+!the\ symbol\ to\ export,\ =
+
+#: constobj.d:420
+!the\ old\ symbol,\ =
+
+#: constobj.d:422
+!You\ may\ choose\ for\ every\ conflict\ in\ favour\ of\ which\ symbol\ to\ resolve\ it.=
+
+#: constobj.d:424
+!~S\ name\ conflicts\ while\ executing\ USE-PACKAGE\ of\ ~S\ into\ package\ ~S.=
+
+#: constobj.d:426
+!which\ symbol\ with\ name\ ~S\ should\ be\ accessible\ in\ ~S\ ?=
+
+#: constobj.d:428
+!You\ can\ input\ another\ name.=
+
+#: constobj.d:430
+!You\ can\ input\ another\ nickname.=
+
+#: constobj.d:432
+!a\ package\ with\ name\ ~S\ already\ exists.=
+
+#: constobj.d:434
+!Please\ input\ new\ package\ name\:=
+
+#: constobj.d:436
+!Please\ input\ new\ package\ nickname\:=
+
+#: constobj.d:438
+!Ignore.=
+
+#: constobj.d:440
+!~S\:\ There\ is\ no\ package\ with\ name\ ~S.=
+
+#: constobj.d:442
+!~*Nevertheless\ delete\ ~S.=
+
+#: constobj.d:444
+!~S\:\ ~S\ is\ used\ by\ ~{~S~^,\ ~}.=
+
+#: constobj.d:472
+!ANSI\ C\ program=
+
+#: constobj.d:476
+!GNU\ C++\ =
+
+#: constobj.d:479
+!GNU\ C\ =
+
+#: constobj.d:486
+!C++\ compiler=
+
+#: constobj.d:489
+!C\ compiler=
+
+#: constobj.d:494
+!ENGLISH=
+
+#: constobj.d:510
+!Continue\ execution=
+
+#: constobj.d:512
+!~S\:\ User\ break=
+
+#: constobj.d:662
+!The\ value\ of\ ~S\ was\ not\ a\ pathname.\ ~\:*~S\ is\ being\ reset.=
+
+#: constobj.d:667
+!Creating\ directory\:\ =
+
+#: constobj.d:824
+!The\ variable\ ~S\ had\ an\ illegal\ value.\n~S\ has\ been\ reset\ to\ ~S.=
+
+#: constobj.d:826
+!Floating\ point\ operation\ combines\ numbers\ of\ different\ precision.\nSee\ ANSI\ CL\ 12.1.4.4\ and\ the\ CLISP\ impnotes\ for\ details.\nThe\ result's\ actual\ precision\ is\ controlled\ by\n~S.\nTo\ shut\ off\ this\ warning,\ set\ ~S\ to\ ~S.=
+
+#: constobj.d:841
+!Bye.=
+
+#: constobj.d:843
+!Press\ a\ key\ to\ terminate...=
+
+#: constobj.d:848
+!\n\ \ Next\ environment\:\ =
+
+#: constobj.d:850
+!\nAPPLY\ frame\ with\ breakpoint\ for\ call\ =
+
+#: constobj.d:852
+!\nAPPLY\ frame\ for\ call\ =
+
+#: constobj.d:854
+!\nEVAL\ frame\ with\ breakpoint\ for\ form\ =
+
+#: constobj.d:856
+!\nEVAL\ frame\ for\ form\ =
+
+#: constobj.d:858
+!\nframe\ binding\ variables\ (~\ \=\ dynamically)\:=
+
+#: constobj.d:861
+!\nCALLBACK\ frame=
+
+#: constobj.d:864
+!\nframe\ binding\ variables\ =
+
+#: constobj.d:866
+!\nframe\ binding\ functions\ =
+
+#: constobj.d:868
+!\ binds\ (~\ \=\ dynamically)\:=
+
+#: constobj.d:871
+!\nblock\ frame\ =
+
+#: constobj.d:873
+!\nnested\ block\ frame\ =
+
+#: constobj.d:875
+!\ for\ =
+
+#: constobj.d:877
+!\ncompiled\ block\ frame\ for\ =
+
+#: constobj.d:879
+!\ntagbody\ frame\ =
+
+#: constobj.d:881
+!\nnested\ tagbody\ frame\ =
+
+#: constobj.d:883
+!\ for=
+
+#: constobj.d:886
+!\ncompiled\ tagbody\ frame\ for\ =
+
+#: constobj.d:888
+!\ncatch\ frame\ for\ tag\ =
+
+#: constobj.d:890
+!\nhandler\ frame\ for\ conditions=
+
+#: constobj.d:892
+!\nunwind-protect\ frame=
+
+#: constobj.d:894
+!\n\ndriver\ frame=
+
+#: constobj.d:896
+!\nframe\ binding\ environments=
+
+#: spvw.d:595
+!could\ not\ make\ symbol\ value\ per-thread=
+
+#: spvw.d:659
+!\n***\ -\ Program\ stack\ overflow.\ RESET=
+
+#: spvw.d:664
+!\n***\ -\ Lisp\ stack\ overflow.\ RESET=
+
+#: spvw.d:801
+!internal\ error\:\ statement\ in\ file\ ~,\ line\ ~\ has\ been\ reached\!\!\nPlease\ send\ the\ authors\ of\ the\ program\ a\ description\ how\ you\ produced\ this\ error\!=
+
+#: spvw.d:863
+!Unknown\ signature\ of\ an\ FSUBR\n=
+
+#: spvw.d:972
+!Unknown\ signature\ of\ a\ SUBR\n=
+
+#: spvw.d:1614
+!module\ `%s'\ requires\ package\ %s.\n=
+
+#: spvw.d:1655
+!GNU\ CLISP\ (http\://clisp.cons.org/)\ is\ an\ ANSI\ Common\ Lisp.\nUsage\:\ \ =
+
+#: spvw.d:1658
+!\ [options]\ [lispfile\ [argument\ ...]]\n\ When\ `lispfile'\ is\ given,\ it\ is\ loaded\ and\ `*ARGS*'\ is\ set\n\ to\ the\ list\ of\ argument\ strings.\ Otherwise,\ an\ interactive\n\ read-eval-print\ loop\ is\ entered.\n=
+
+#: spvw.d:1662
+!Informative\ output\:\n=
+
+#: spvw.d:1663
+!\ -h,\ --help\ \ -\ print\ this\ help\ and\ exit\n=
+
+#: spvw.d:1664
+!\ --version\ \ \ -\ print\ the\ version\ information\n=
+
+#: spvw.d:1665
+!\ --license\ \ \ -\ print\ the\ licensing\ information\n=
+
+#: spvw.d:1666
+!Memory\ image\ selection\:\n=
+
+#: spvw.d:1667
+!\ -B\ lisplibdir\ -\ set\ the\ installation\ directory\n=
+
+#: spvw.d:1669
+!\ -K\ linkingset\ -\ use\ this\ executable\ and\ memory\ image\n=
+
+#: spvw.d:1671
+!\ -M\ memfile\ \ -\ use\ this\ memory\ image\n=
+
+#: spvw.d:1672
+!\ -m\ size\ \ \ \ \ -\ memory\ size\ (size\ \=\ xxxxxxxB\ or\ xxxxKB\ or\ xMB)\n=
+
+#: spvw.d:1674
+!\ -s\ size\ \ \ \ \ -\ stack\ size\ (size\ \=\ xxxxxxxB\ or\ xxxxKB\ or\ xMB)\n=
+
+#: spvw.d:1677
+!\ -t\ tmpdir\ \ \ -\ temporary\ directory\ for\ memmap\n=
+
+#: spvw.d:1679
+!Internationalization\:\n=
+
+#: spvw.d:1680
+!\ -L\ language\ -\ set\ user\ language\n=
+
+#: spvw.d:1681
+!\ -N\ nlsdir\ \ \ -\ NLS\ catalog\ directory\n=
+
+#: spvw.d:1682
+!\ -Edomain\ encoding\ -\ set\ encoding\n=
+
+#: spvw.d:1683
+!Interoperability\:\n=
+
+#: spvw.d:1684
+!\ -q,\ --quiet,\ --silent\ -\ do\ not\ print\ the\ banner\n=
+
+#: spvw.d:1685
+!\ -w\ \ \ \ \ \ \ \ \ \ -\ wait\ for\ keypress\ after\ program\ termination\n=
+
+#: spvw.d:1686
+!\ -I\ \ \ \ \ \ \ \ \ \ -\ be\ ILISP-friendly\n=
+
+#: spvw.d:1687
+!Startup\ actions\:\n=
+
+#: spvw.d:1688
+!\ -a\ \ \ \ \ \ \ \ \ \ -\ more\ ANSI\ CL\ compliance\n=
+
+#: spvw.d:1689
+!\ -p\ package\ \ -\ start\ in\ the\ package\n=
+
+#: spvw.d:1690
+!\ -C\ \ \ \ \ \ \ \ \ \ -\ set\ *LOAD-COMPILING*\ to\ T\n=
+
+#: spvw.d:1691
+!\ -norc\ \ \ \ \ \ \ -\ do\ not\ load\ the\ user\ ~/.clisprc\ file\n=
+
+#: spvw.d:1692
+!\ -i\ file\ \ \ \ \ -\ load\ initfile\ (can\ be\ repeated)\n=
+
+#: spvw.d:1693
+!Actions\:\n=
+
+#: spvw.d:1694
+!\ -c\ [-l]\ lispfile\ [-o\ outputfile]\ -\ compile\ LISPFILE\n=
+
+#: spvw.d:1695
+!\ -x\ expression\ -\ execute\ the\ expression,\ then\ exit\n=
+
+#: spvw.d:1696
+!\ lispfile\ [argument\ ...]\ -\ load\ lispfile,\ then\ exit\n=
+
+#: spvw.d:1697
+!Default\ action\ is\ an\ interactive\ read-eval-print\ loop.\n=
+
+#: spvw.d:1755
+!\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Amiga\ version\:\ Joerg\ Hoehle\n=
+
+#: spvw.d:1759
+!\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ RISCOS\ port\:\ Peter\ Burwood,\ Bruno\ Haible\n=
+
+#: spvw.d:1970
+!Syntax\ for\ %s\:\ nnnnnnn\ or\ nnnnKB\ or\ nMB\n=
+
+#: spvw.d:1974
+!%s\ out\ of\ range\n=
+
+#: spvw.d:1986
+!memory\ size=
+
+#: spvw.d:1996
+!stack\ size=
+
+#: spvw.d:2317
+!Return\ value\ of\ malloc()\ \=\ %x\ is\ not\ compatible\ with\ type\ code\ distribution.\n=
+
+#: spvw.d:2324
+!Only\ %d\ bytes\ available.\n=
+
+#: spvw.d:2558
+!Couldn't\ determine\ the\ end\ of\ the\ SP\ stack\!\n=
+
+#: spvw.d:2779
+!\nWARNING\:\ No\ initialisation\ file\ specified.\n=
+
+#: spvw.d:2783 spvw.d:2798
+!Please\ try\:\ =
+
+#: spvw.d:2797
+!\nWARNING\:\ No\ installation\ directory\ specified.\n=
+
+#: spvw.d:3002
+!Not\ enough\ memory\ for\ Lisp.\n=
+
+#: spvw_alloca.d:49
+!\n***\ -\ Virtual\ memory\ exhausted.\ RESET=
+
+#: spvw_alloca.d:51
+!\n***\ -\ Memory\ exhausted.\ RESET=
+
+#: spvw_mmap.d:67 spvw_mmap.d:219 spvw_mmap.d:396 spvw_multimap.d:174
+!Cannot\ map\ memory\ to\ address\ 0x%x\ .=
+
+#: spvw_mmap.d:188
+!Cannot\ reserve\ address\ range\ at\ 0x%x\ .=
+
+#: spvw_mmap.d:199
+!Cannot\ reserve\ address\ range\ 0x%x-0x%x\ .=
+
+#: spvw_mmap.d:252
+!CreateFileMapping()\ failed.=
+
+#: spvw_mmap.d:259
+!MapViewOfFileEx(addr\=0x%x,off\=0x%x)\ failed.=
+
+#: spvw_mmap.d:266
+!MapViewOfFileEx()\ returned\ 0x%x\ instead\ of\ 0x%x.\n=
+
+#: spvw_mmap.d:283
+!VirtualFree()\ failed.=
+
+#: spvw_mmap.d:299
+!VirtualProtect()\ failed.=
+
+#: spvw_mmap.d:371 spvw_multimap.d:115
+!Cannot\ open\ /dev/zero\ .=
+
+#: spvw_multimap.d:144
+!msync(0x%x,0x%x,MS_INVALIDATE)\ fails.=
+
+#: spvw_multimap.d:209
+!Cannot\ open\ %s\ .=
+
+#: spvw_multimap.d:220
+!Cannot\ delete\ %s\ .=
+
+#: spvw_multimap.d:235
+!**\ WARNING\:\ **\ Too\ few\ free\ disk\ space\ for\ %s\ .\n=
+
+#: spvw_multimap.d:238
+!Please\ restart\ LISP\ with\ fewer\ memory\ (option\ -m).\n=
+
+#: spvw_multimap.d:246
+!Cannot\ make\ %s\ long\ enough.=
+
+#: spvw_multimap.d:265
+!Cannot\ fill\ %s\ .=
+
+#: spvw_multimap.d:282
+!Cannot\ close\ %s\ .=
+
+#: spvw_multimap.d:317
+!Cannot\ close\ /dev/zero\ .=
+
+#: spvw_multimap.d:353
+!Recompile\ your\ operating\ system\ with\ SYSV\ IPC\ support.\n=
+
+#: spvw_multimap.d:367
+!Cannot\ allocate\ private\ shared\ memory\ segment.=
+
+#: spvw_multimap.d:389
+!Cannot\ map\ shared\ memory\ to\ address\ 0x%x.=
+
+#: spvw_multimap.d:412
+!Cannot\ fill\ shared\ memory.=
+
+#: spvw_multimap.d:418
+!Could\ not\ fill\ shared\ memory.=
+
+#: spvw_multimap.d:433
+!Cannot\ remove\ shared\ memory\ segment.=
+
+#: spvw_fault.d:482
+!mprotect()\ fails.=
+
+#: spvw_sigsegv.d:31
+!\nSIGSEGV\ cannot\ be\ cured.\ Fault\ address\ \=\ 0x%x.\n=
+
+#: spvw_sigsegv.d:73
+!Apollo\ 13\ scenario\:\ Stack\ overflow\ handling\ failed.\ On\ the\ next\ stack\ overflow\ we\ will\ crash\!\!\!\n=
+
+#: spvw_sigint.d:76 spvw_sigint.d:157
+!Ctrl-C\:\ User\ break=
+
+#: spvw_garcol.d:2020
+!munmap()\ fails.=
+
+#: spvw_allocate.d:34
+!No\ more\ room\ for\ LISP\ objects=
+
+#: spvw_allocate.d:54
+!\n***\ -\ No\ more\ room\ for\ LISP\ objects\:\ RESET=
+
+#: spvw_allocate.d:272 spvw_allocate.d:337 spvw_allocate.d:418
+!Trying\ to\ make\ room\ through\ a\ GC...\n=
+
+#: spvw_memfile.d:235
+!disk\ full=
+
+#: spvw_memfile.d:763
+!operating\ system\ error\ during\ load\ of\ initialisation\ file\ `%s'\n=
+
+#: spvw_memfile.d:1235
+!Cannot\ map\ the\ initialisation\ file\ into\ memory.=
+
+#: spvw_memfile.d:1514
+!operating\ system\ error\ during\ load\ of\ initialisation\ file\n=
+
+#: spvw_memfile.d:1520
+!initialisation\ file\ was\ not\ created\ by\ this\ version\ of\ LISP\n=
+
+#: spvw_memfile.d:1524
+!not\ enough\ memory\ for\ initialisation\n=
+
+#: eval.d:553
+!~\:\ ~\ is\ a\ constant,\ cannot\ be\ bound\ dynamically=
+
+#: eval.d:1518 control.d:2517
+!Too\ many\ documentation\ strings\ in\ ~=
+
+#: eval.d:1730
+!FUNCTION\:\ lambda-list\ for\ ~\ is\ missing=
+
+#: eval.d:1740
+!FUNCTION\:\ lambda-list\ for\ ~\ should\ be\ a\ list,\ not\ ~=
+
+#: eval.d:1853
+!FUNCTION\:\ illegal\ declaration\ ~=
+
+#: eval.d:1864
+!FUNCTION\:\ ~\ is\ not\ a\ symbol,\ cannot\ be\ declared\ SPECIAL=
+
+#: eval.d:1947
+!FUNCTION\:\ too\ long\ variable\ specification\ after\ &OPTIONAL\:\ ~=
+
+#: eval.d:1988
+!FUNCTION\:\ &REST\ var\ must\ be\ followed\ by\ &KEY\ or\ &AUX\ or\ end\ of\ list\:\ ~=
+
+#: eval.d:1993
+!FUNCTION\:\ &REST\ must\ be\ followed\ by\ a\ variable\:\ ~=
+
+#: eval.d:2044
+!FUNCTION\:\ ~\ in\ ~\ is\ not\ a\ symbol=
+
+#: eval.d:2100
+!FUNCTION\:\ incorrect\ variable\ specification\ after\ &KEY\:\ ~=
+
+#: eval.d:2107
+!FUNCTION\:\ &ALLOW-OTHER-KEYS\ must\ be\ followed\ by\ &AUX\ or\ end\ of\ list\:\ ~=
+
+#: eval.d:2142
+!FUNCTION\:\ too\ long\ variable\ specification\ after\ &AUX\:\ ~=
+
+#: eval.d:2165
+!FUNCTION\:\ badly\ placed\ lambda-list\ keyword\ ~\:\ ~=
+
+#: eval.d:2170
+!FUNCTION\:\ ~\ is\ not\ a\ symbol,\ may\ not\ be\ used\ as\ a\ variable=
+
+#: eval.d:2175
+!FUNCTION\:\ ~\ is\ a\ constant,\ may\ not\ be\ used\ as\ a\ variable=
+
+#: eval.d:2182
+!FUNCTION\:\ too\ many\ parameters\ in\ the\ lambda-list\ ~=
+
+#: eval.d:2189
+!FUNCTION\:\ a\ dot\ in\ a\ lambda-list\ is\ allowed\ only\ for\ macros,\ not\ here\:\ ~=
+
+#: eval.d:2269
+!~\:\ ~\ is\ a\ special\ operator,\ not\ a\ function=
+
+#: eval.d:2286 symbol.d:31
+!~\:\ ~\ is\ a\ macro,\ not\ a\ function=
+
+#: eval.d:2303
+!~\:\ the\ function\ ~\ is\ undefined=
+
+#: eval.d:2350 sequence.d:1244 error.d:953
+!~\:\ ~\ is\ not\ a\ function=
+
+#: eval.d:2411
+!EVAL/APPLY\:\ keyword\ arguments\ for\ ~\ should\ occur\ pairwise=
+
+#: eval.d:2424 eval.d:2741
+!EVAL/APPLY\:\ too\ many\ arguments\ given\ to\ ~=
+
+#: eval.d:2439
+!EVAL/APPLY\:\ ~\ is\ not\ a\ symbol=
+
+#: eval.d:2465
+!EVAL/APPLY\:\ keyword\ ~\ is\ illegal\ for\ ~.\ The\ possible\ keywords\ are\ ~=
+
+#: eval.d:2659
+!EVAL/APPLY\:\ too\ few\ arguments\ given\ to\ ~=
+
+#: eval.d:3153
+!EVAL\:\ variable\ ~\ has\ no\ value=
+
+#: eval.d:3253 eval.d:4282 eval.d:5214 control.d:109
+!~\:\ ~\ is\ not\ a\ function\ name=
+
+#: eval.d:3332
+!EVAL\:\ too\ few\ parameters\ for\ special-form\ ~\:\ ~=
+
+#: eval.d:3346
+!EVAL\:\ too\ many\ parameters\ for\ special-form\ ~\:\ ~=
+
+#: eval.d:3359
+!EVAL\:\ dotted\ parameter\ list\ for\ special\ form\ ~\:\ ~=
+
+#: eval.d:3426
+!EVAL\:\ too\ few\ arguments\ given\ to\ ~\:\ ~=
+
+#: eval.d:3439
+!EVAL\:\ too\ many\ arguments\ given\ to\ ~\:\ ~=
+
+#: eval.d:3452
+!EVAL\:\ argument\ list\ given\ to\ ~\ is\ dotted\:\ ~=
+
+#: eval.d:4295
+!APPLY\:\ argument\ list\ given\ to\ ~\ is\ dotted=
+
+#: eval.d:4307
+!APPLY\:\ too\ many\ arguments\ given\ to\ ~=
+
+#: eval.d:4319
+!APPLY\:\ too\ few\ arguments\ given\ to\ ~=
+
+#: eval.d:6782 eval.d:6798
+!symbol\ ~\ has\ no\ value=
+
+#: eval.d:6813
+!assignment\ to\ constant\ symbol\ ~\ is\ impossible=
+
+#: eval.d:7439 control.d:2415
+!~\:\ too\ many\ arguments\ given\ to\ ~=
+
+#: eval.d:7617 eval.d:7654
+!(~\ ~)\:\ the\ tagbody\ of\ the\ tags\ ~\ has\ already\ been\ left=
+
+#: eval.d:7718 control.d:2108
+!~\:\ there\ is\ no\ CATCHer\ for\ tag\ ~=
+
+#: eval.d:7743
+!STACK\ corrupted=
+
+#: eval.d:8127
+!~\:\ ~\ is\ not\ a\ correct\ index\ into\ ~=
+
+#: eval.d:8739
+!undefined\ bytecode\ in\ ~\ at\ byte\ ~=
+
+#: eval.d:8749
+!too\ many\ return\ values=
+
+#: eval.d:8756
+!Corrupted\ STACK\ in\ ~\ at\ byte\ ~=
+
+#: control.d:63
+!~\:\ function\ name\ ~\ should\ be\ a\ symbol=
+
+#: control.d:91
+!~\:\ undefined\ function\ ~=
+
+#: control.d:129
+!~\:\ ~\ has\ no\ dynamic\ value=
+
+#: control.d:175 symbol.d:23
+!~\:\ ~\ has\ no\ global\ function\ definition=
+
+#: control.d:261
+!~\:\ the\ value\ of\ the\ constant\ ~\ may\ not\ be\ altered=
+
+#: control.d:289
+!~\ called\ with\ odd\ number\ of\ arguments\:\ ~=
+
+#: control.d:299
+!dotted\ list\ given\ to\ ~\ \:\ ~=
+
+#: control.d:399
+!~\:\ the\ value\ of\ the\ constant\ ~\ must\ not\ be\ removed=
+
+#: control.d:424
+!~\:\ the\ special\ operator\ definition\ of\ ~\ must\ not\ be\ removed=
+
+#: control.d:506
+!~\:\ doc-strings\ are\ not\ allowed\ here\:\ ~=
+
+#: control.d:579
+!~\:\ ~\ is\ not\ a\ symbol,\ but\ was\ declared\ SPECIAL=
+
+#: control.d:622 control.d:893
+!~\:\ illegal\ variable\ specification\ ~=
+
+#: control.d:661
+!~\:\ symbol\ ~\ is\ declared\ special\ and\ must\ not\ be\ declared\ a\ macro=
+
+#: control.d:668
+!~\:\ symbol\ ~\ must\ not\ be\ declared\ SPECIAL\ and\ a\ macro\ at\ the\ same\ time=
+
+#: control.d:677 control.d:906
+!~\:\ ~\ is\ a\ constant,\ cannot\ be\ bound=
+
+#: control.d:697
+!~\:\ too\ many\ variables\ and/or\ declarations=
+
+#: control.d:981
+!~\:\ ~\ is\ not\ a\ function\ specification=
+
+#: control.d:1146
+!~\:\ ~\ is\ not\ a\ macro\ specification=
+
+#: control.d:1154
+!~\:\ macro\ name\ ~\ should\ be\ a\ symbol=
+
+#: control.d:1192
+!~\:\ ~\ is\ not\ a\ function\ and\ macro\ specification=
+
+#: control.d:1200
+!~\:\ function\ and\ macro\ name\ ~\ should\ be\ a\ symbol=
+
+#: control.d:1327
+!~\:\ clause\ ~\ should\ be\ a\ list=
+
+#: control.d:1360
+!~\:\ missing\ key\ list\:\ ~=
+
+#: control.d:1370
+!~\:\ the\ ~\ clause\ must\ be\ the\ last\ one=
+
+#: control.d:1434
+!~\:\ the\ block\ named\ ~\ has\ already\ been\ left=
+
+#: control.d:1473
+!~\:\ no\ block\ named\ ~\ is\ currently\ visible=
+
+#: control.d:1722
+!~\:\ ~\ is\ neither\ tag\ nor\ form=
+
+#: control.d:1768
+!~\:\ illegal\ tag\ ~=
+
+#: control.d:1807
+!~\:\ tagbody\ for\ tag\ ~\ has\ already\ been\ left=
+
+#: control.d:1822
+!~\:\ no\ tag\ named\ ~\ is\ currently\ visible=
+
+#: control.d:1841
+!~\:\ too\ many\ values=
+
+#: control.d:1886
+!~\:\ too\ many\ arguments\ to\ ~=
+
+#: control.d:2149
+!Argument\ ~\ is\ not\ a\ macroexpansion\ environment=
+
+#: control.d:2211
+!declarations\ ~\ are\ not\ allowed\ here=
+
+#: control.d:2233
+!~\:\ ~\ evaluated\ to\ the\ values\ ~,\ not\ of\ type\ ~=
+
+#: control.d:2249
+!~\:\ bad\ declaration\ ~=
+
+#: control.d:2362
+!~\:\ ~\ may\ not\ be\ used\ as\ an\ environment=
+
+#: control.d:2510
+!no\ doc-strings\ allowed\ here\:\ ~=
+
+#: control.d:2575
+!keyword\ argument\ list\ ~\ has\ an\ odd\ length=
+
+#: control.d:2611
+!illegal\ keyword/value\ pair\ ~,\ ~\ in\ argument\ list.\ The\ allowed\ keywords\ are\ ~=
+
+#: encoding.d:47
+!Character\ \#\\u$$$$\ cannot\ be\ represented\ in\ the\ character\ set\ ~=
+
+#: encoding.d:226
+!character\ \#x$$$$$$$$\ in\ ~\ conversion,\ not\ a\ Unicode-16,\ sorry=
+
+#: encoding.d:420
+!invalid\ byte\ \#x$$\ in\ ~\ conversion,\ not\ a\ Unicode-16=
+
+#: encoding.d:438
+!invalid\ byte\ sequence\ \#x$$\ \#x$$\ in\ ~\ conversion=
+
+#: encoding.d:459
+!invalid\ byte\ sequence\ \#x$$\ \#x$$\ \#x$$\ in\ ~\ conversion=
+
+#: encoding.d:1064
+!invalid\ byte\ \#x$$\ in\ ~\ conversion=
+
+#: encoding.d:1446
+!~\:\ illegal\ \:CHARSET\ argument\ ~=
+
+#: encoding.d:1459
+!~\:\ illegal\ \:LINE-TERMINATOR\ argument\ ~=
+
+#: encoding.d:1471
+!~\:\ illegal\ \:INPUT-ERROR-ACTION\ argument\ ~=
+
+#: encoding.d:1483
+!~\:\ illegal\ \:OUTPUT-ERROR-ACTION\ argument\ ~=
+
+#: encoding.d:1532
+!~\:\ argument\ ~\ is\ not\ a\ character\ set=
+
+#: encoding.d:2195
+!~\:\ ~\ is\ not\ a\ 1\:1\ encoding=
+
+#: pathname.d:1209 pathname.d:1260
+!~\:\ host\ should\ be\ NIL\ or\ a\ string,\ not\ ~=
+
+#: pathname.d:1231 pathname.d:1280
+!~\:\ illegal\ hostname\ ~=
+
+#: pathname.d:1302
+!~\:\ host\ should\ be\ NIL,\ not\ ~=
+
+#: pathname.d:1421
+!~\:\ argument\ should\ be\ a\ string,\ symbol,\ file\ stream\ or\ pathname,\ not\ ~=
+
+#: pathname.d:1464
+!~\:\ filename\ for\ ~\ is\ unknown=
+
+#: pathname.d:1884
+!~(~\ ~\ ~)\:\ a\ logical\ pathname\ must\ contain\ host=
+
+#: pathname.d:2028 pathname.d:2392
+!~\:\ there\ is\ no\ environment\ variable\ ~=
+
+#: pathname.d:2335
+!~\:\ there\ is\ no\ user\ named\ ~=
+
+#: pathname.d:2642
+!~\:\ syntax\ error\ in\ filename\ ~\ at\ position\ ~=
+
+#: pathname.d:2659 pathname.d:2674
+!~\:\ hosts\ ~\ and\ ~\ of\ ~\ should\ coincide=
+
+#: pathname.d:2916
+!~\:\ argument\ ~\ is\ not\ a\ logical\ pathname,\ string,\ stream\ or\ symbol=
+
+#: pathname.d:2972
+!~\:\ endless\ loop\ while\ resolving\ ~=
+
+#: pathname.d:2994
+!~\:\ unknown\ logical\ host\ ~\ in\ ~=
+
+#: pathname.d:3006
+!~\:\ No\ replacement\ rule\ for\ ~\ is\ known.=
+
+#: pathname.d:3400
+!~\:\ \:VERSION-argument\ should\ be\ NIL\ or\ a\ positive\ fixnum\ or\ \:WILD\ or\ \:NEWEST,\ not\ ~=
+
+#: pathname.d:3427
+!~\:\ \:VERSION-argument\ should\ be\ NIL\ or\ \:WILD\ or\ \:NEWEST,\ not\ ~=
+
+#: pathname.d:4270
+!~\:\ on\ host\ ~,\ device\ ~\ is\ invalid,\ should\ be\ NIL=
+
+#: pathname.d:4520
+!~\:\ illegal\ ~\ argument\ ~=
+
+#: pathname.d:4866
+!wildcards\ are\ not\ allowed\ here\:\ ~=
+
+#: pathname.d:4903
+!~\:\ argument\ ~\ should\ be\ ~,\ ~,\ ~,\ ~,\ ~,\ ~\ or\ ~=
+
+#: pathname.d:6075
+!~\:\ replacement\ pieces\ ~\ do\ not\ fit\ into\ ~=
+
+#: pathname.d:6168
+!~\:\ ~\ is\ not\ a\ specialization\ of\ ~=
+
+#: pathname.d:6219
+!(~\ ~\ ~\ ~)\ is\ ambiguous\:\ ~=
+
+#: pathname.d:6245
+!nonexistent\ directory\:\ ~=
+
+#: pathname.d:6261
+!~\:\ File\ ~\ already\ exists=
+
+#: pathname.d:6539 pathname.d:7395
+!no\ directory\ ~\ above\ ~=
+
+#: pathname.d:6547
+!"..\\\\"\ after\ "...\\\\"\ is\ invalid\:\ ~=
+
+#: pathname.d:6752
+!Couldn't\ access\ current\ directory=
+
+#: pathname.d:6902
+!~\:\ ~\ names\ a\ file,\ not\ a\ directory=
+
+#: pathname.d:6950 pathname.d:7147 pathname.d:7514
+!~\:\ ~\ names\ a\ directory,\ not\ a\ file=
+
+#: pathname.d:6996
+!UNIX\ error\ while\ GETWD\:\ ~=
+
+#: pathname.d:7005
+!UNIX\ GETWD\ returned\ ~=
+
+#: pathname.d:7107
+!UNIX\ REALPATH\ returned\ ~=
+
+#: pathname.d:7329
+!~\:\ If\ a\ device\ is\ specified,\ the\ directory\ must\ begin\ with\ ~\:\ ~=
+
+#: pathname.d:7721
+!no\ file\ name\ given\:\ ~=
+
+#: pathname.d:7735
+!not\ a\ directory\:\ ~=
+
+#: pathname.d:7804
+!~\:\ file\ ~\ does\ not\ exist=
+
+#: pathname.d:7833
+!~\:\ pathname\ with\ type\ but\ without\ name\ makes\ no\ sense\:\ ~=
+
+#: pathname.d:8064
+!cannot\ delete\ file\ ~\ since\ there\ is\ file\ stream\ open\ to\ it=
+
+#: pathname.d:8126
+!cannot\ rename\ file\ ~\ since\ there\ is\ file\ stream\ open\ to\ it=
+
+#: pathname.d:8720
+!file\ ~\ does\ not\ exist=
+
+#: pathname.d:8726
+!a\ file\ named\ ~\ already\ exists=
+
+#: pathname.d:8788
+!~\:\ illegal\ \:DIRECTION\ argument\ ~=
+
+#: pathname.d:8817
+!~\:\ illegal\ \:IF-EXISTS\ argument\ ~=
+
+#: pathname.d:8837
+!~\:\ illegal\ \:IF-DOES-NOT-EXIST\ argument\ ~=
+
+#: pathname.d:10035
+!~\:\ cannot\ change\ default\ directory\ on\ remote\ host\:\ ~=
+
+#: pathname.d:10081
+!root\ directory\ not\ allowed\ here\:\ ~=
+
+#: pathname.d:10753 pathname.d:10800 pathname.d:10860
+!~\:\ the\ command\ should\ be\ a\ string,\ not\ ~=
+
+#: pathname.d:11119
+!~\:\ library\ directory\ is\ not\ known,\ use\ a\ command\ line\ option\ to\ specify\ it=
+
+#: stream.d:223 stream.d:16250
+!~\ on\ ~\ is\ illegal=
+
+#: stream.d:509 stream.d:720
+!Return\ value\ ~\ of\ call\ to\ ~\ should\ be\ an\ integer\ between\ ~\ and\ ~.=
+
+#: stream.d:619
+!~\:\ the\ last\ character\ read\ from\ ~\ was\ not\ ~=
+
+#: stream.d:627
+!~\ from\ ~\ without\ ~\ before\ it=
+
+#: stream.d:897
+!~\:\ cannot\ output\ to\ ~=
+
+#: stream.d:913
+!~\ is\ not\ a\ character,\ cannot\ be\ output\ onto\ ~=
+
+#: stream.d:929
+!~\ is\ not\ an\ integer,\ cannot\ be\ output\ onto\ ~=
+
+#: stream.d:944
+!integer\ ~\ is\ out\ of\ range,\ cannot\ be\ output\ onto\ ~=
+
+#: stream.d:997
+!~\:\ argument\ ~\ should\ be\ an\ input\ stream=
+
+#: stream.d:1015
+!~\:\ argument\ ~\ should\ be\ an\ output\ stream=
+
+#: stream.d:1354
+!~\:\ argument\ should\ be\ a\ symbol,\ not\ ~=
+
+#: stream.d:2397 stream.d:2890
+!~\ is\ beyond\ the\ end\ because\ the\ string\ ~\ has\ been\ adjusted=
+
+#: stream.d:2528
+!~\:\ ~\ is\ not\ a\ string\ input\ stream=
+
+#: stream.d:2621 charstrg.d:3322
+!~\:\ ~\ argument\ must\ be\ a\ subtype\ of\ ~,\ not\ ~=
+
+#: stream.d:2658
+!~\:\ ~\ is\ not\ a\ string\ output\ stream=
+
+#: stream.d:2700
+!~\:\ argument\ ~\ should\ be\ a\ string\ with\ fill\ pointer=
+
+#: stream.d:3002
+!~\:\ ~\ is\ not\ a\ buffered\ input\ stream=
+
+#: stream.d:3329
+!~\:\ stream\ must\ be\ a\ generic-stream,\ not\ ~=
+
+#: stream.d:3421
+!~\:\ illegal\ \:BUFFERED\ argument\ ~=
+
+#: stream.d:3537 stream.d:18402
+!~\:\ illegal\ \:ELEMENT-TYPE\ argument\ ~=
+
+#: stream.d:3611
+!~\:\ illegal\ \:EXTERNAL-FORMAT\ argument\ ~=
+
+#: stream.d:4052
+!~\:\ Ctrl-C\:\ User\ break=
+
+#: stream.d:4104
+!unknown\ character\ set\ ~=
+
+#: stream.d:6397
+!Unbuffered\ streams\ need\ an\ ~\ with\ a\ bit\ size\ being\ a\ multiple\ of\ 8,\ not\ ~=
+
+#: stream.d:6789
+!Closed\ ~\ because\ disk\ is\ full.=
+
+#: stream.d:6977
+!cannot\ position\ ~\ beyond\ EOF=
+
+#: stream.d:8604
+!~\:\ argument\ ~\ ~\ was\ specified,\ but\ ~\ is\ not\ a\ regular\ file.=
+
+#: stream.d:8639
+!~\:\ arguments\ ~\ ~\ and\ ~\ ~\ were\ specified,\ but\ ~\ is\ not\ a\ regular\ file.=
+
+#: stream.d:8701
+!file\ ~\ is\ not\ an\ integer\ file=
+
+#: stream.d:10276 stream.d:17796
+!Return\ value\ ~\ of\ call\ to\ ~\ is\ not\ a\ ~.=
+
+#: stream.d:10299
+!Return\ value\ ~\ of\ call\ to\ ~\ contains\ ~\ which\ is\ not\ a\ ~.=
+
+#: stream.d:10618
+!character\ ~\ contains\ bits,\ cannot\ be\ output\ onto\ ~=
+
+#: stream.d:11357
+!RAW\ mode\ not\ supported\ on\ ~=
+
+#: stream.d:11789
+!~\:\ argument\ ~\ should\ be\ a\ window\ stream=
+
+#: stream.d:12444
+!cannot\ output\ to\ standard\ output=
+
+#: stream.d:13840
+!environment\ has\ no\ TERM\ variable=
+
+#: stream.d:13845
+!terminal\ type\ ~\ unknown\ to\ termcap=
+
+#: stream.d:13870
+!insufficient\ terminal\:\ hardcopy\ terminal=
+
+#: stream.d:13874
+!insufficient\ terminal\:\ overstrikes,\ cannot\ clear\ output=
+
+#: stream.d:13878
+!insufficient\ terminal\:\ cannot\ scroll=
+
+#: stream.d:13883
+!insufficient\ terminal\:\ cannot\ clear\ screen=
+
+#: stream.d:13887
+!insufficient\ terminal\:\ cannot\ position\ cursor\ randomly=
+
+#: stream.d:14399
+!~\:\ package\ SCREEN\ is\ not\ implemented=
+
+#: stream.d:15928
+!host\ should\ be\ string,\ not\ ~=
+
+#: stream.d:15936
+!display\ should\ be\ a\ nonnegative\ fixnum,\ not\ ~=
+
+#: stream.d:16004
+!~\:\ stream\ must\ be\ a\ socket-stream,\ not\ ~=
+
+#: stream.d:16017
+!~\:\ argument\ ~\ should\ be\ a\ vector\ of\ type\ (ARRAY\ (UNSIGNED-BYTE\ 8)\ (*))=
+
+#: stream.d:16041 stream.d:18444 stream.d:18518 stream.d:18736 stream.d:18816
+#: io.d:1042
+!~\:\ input\ stream\ ~\ has\ reached\ its\ end=
+
+#: stream.d:16243
+!~\:\ ~\ is\ not\ a\ SOCKET-SERVER=
+
+#: stream.d:16309
+!~\:\ argument\ ~\ is\ neither\ an\ open\ SOCKET-STREAM\ nor\ a\ positive\ FIXNUM=
+
+#: stream.d:16503
+!~\:\ argument\ ~\ is\ not\ an\ open\ SOCKET-STREAM=
+
+#: stream.d:16516
+!~\:\ argument\ ~\ is\ not\ a\ SOCKET-STREAM=
+
+#: stream.d:16562
+!~\:\ list\ ~\ is\ too\ long\ (~\ maximum)=
+
+#: stream.d:16834
+!The\ value\ of\ ~\ is\ not\ a\ stream\:\ ~=
+
+#: stream.d:16838
+!The\ value\ of\ ~\ is\ not\ an\ appropriate\ stream\:\ ~=
+
+#: stream.d:16852
+!The\ value\ of\ ~\ was\ not\ a\ stream\:\ ~.\ It\ has\ been\ changed\ to\ ~.=
+
+#: stream.d:16871
+!readline\ library\:\ out\ of\ memory.=
+
+#: stream.d:17175
+!~\:\ The\ ~\ of\ ~\ cannot\ be\ changed\ from\ ~\ to\ ~.=
+
+#: stream.d:18342
+!Return\ value\ ~\ of\ call\ to\ ~\ is\ not\ a\ fixnum\ >\=\ 0\ or\ NIL.=
+
+#: stream.d:18361
+!~\ needs\ an\ ~\ with\ a\ bit\ size\ being\ a\ multiple\ of\ 8,\ not\ ~=
+
+#: stream.d:18423
+!~\:\ illegal\ endianness\ argument\ ~=
+
+#: stream.d:19059 stream.d:19071
+!~\ is\ not\ a\ ~,\ cannot\ be\ output\ onto\ ~=
+
+#: stream.d:19158
+!~\:\ argument\ ~\ is\ not\ an\ open\ file\ stream=
+
+#: stream.d:19192
+!~\:\ position\ argument\ should\ be\ ~\ or\ ~\ or\ a\ nonnegative\ integer,\ not\ ~=
+
+#: socket.d:1010
+!~\:\ ~=
+
+#: io.d:484
+!The\ value\ of\ ~\ was\ not\ a\ readtable.\ It\ has\ been\ reset.=
+
+#: io.d:570
+!~\:\ argument\ ~\ is\ not\ a\ readtable=
+
+#: io.d:773
+!~\:\ ~\ is\ a\ dispatch\ macro\ character=
+
+#: io.d:838
+!~\:\ ~\ is\ not\ a\ dispatch\ macro\ character=
+
+#: io.d:867
+!~\:\ digit\ $\ not\ allowed\ as\ sub-char=
+
+#: io.d:917
+!~\:\ new\ value\ ~\ should\ be\ ~,\ ~,\ ~\ or\ ~.=
+
+#: io.d:954
+!The\ value\ of\ ~\ should\ be\ an\ integer\ between\ 2\ and\ 36,\ not\ ~.\nIt\ has\ been\ reset\ to\ 10.=
+
+#: io.d:1005
+!~\ from\ ~\:\ character\ read\ should\ be\ a\ character\:\ ~=
+
+#: io.d:1059
+!~\:\ input\ stream\ ~\ ends\ within\ an\ object.\ Last\ opening\ parenthesis\ probably\ in\ line\ ~.=
+
+#: io.d:1065
+!~\:\ input\ stream\ ~\ ends\ within\ an\ object=
+
+#: io.d:1374
+!~\ from\ ~\:\ illegal\ character\ ~=
+
+#: io.d:1387
+!~\:\ input\ stream\ ~\ ends\ within\ a\ token\ after\ single\ escape\ character=
+
+#: io.d:1435
+!~\:\ input\ stream\ ~\ ends\ within\ a\ token\ after\ multiple\ escape\ character=
+
+#: io.d:2017
+!~\ from\ ~\:\ ~\ has\ no\ macro\ character\ definition=
+
+#: io.d:2031
+!~\ from\ ~\:\ macro\ character\ definition\ for\ ~\ may\ not\ return\ ~\ values,\ only\ one\ value.=
+
+#: io.d:2055
+!~\:\ input\ stream\ ~\ ends\ within\ read\ macro\ beginning\ to\ ~=
+
+#: io.d:2089
+!~\ from\ ~\:\ After\ ~\ is\ ~\ an\ undefined\ dispatch\ macro\ character=
+
+#: io.d:2103
+!~\ from\ ~\:\ dispatch\ macro\ character\ definition\ for\ ~\ after\ ~\ may\ not\ return\ ~\ values,\ only\ one\ value.=
+
+#: io.d:2179
+!~\ from\ ~\:\ a\ token\ consisting\ only\ of\ dots\ cannot\ be\ meaningfully\ read\ in=
+
+#: io.d:2284
+!~\ from\ ~\:\ too\ many\ colons\ in\ token\ ~=
+
+#: io.d:2334
+!~\ from\ ~\:\ there\ is\ no\ package\ with\ name\ ~=
+
+#: io.d:2363
+!~\ from\ ~\:\ ~\ has\ no\ external\ symbol\ with\ name\ ~=
+
+#: io.d:2411
+!~\ from\ ~\:\ token\ "."\ not\ allowed\ here=
+
+#: io.d:2465 io.d:6624
+!~\:\ the\ value\ of\ ~\ has\ been\ arbitrarily\ altered=
+
+#: io.d:2481
+!~\:\ no\ entry\ for\ ~\ from\ ~\ in\ ~\ \=\ ~=
+
+#: io.d:2692
+!~\ from\ ~\:\ illegal\ end\ of\ dotted\ list=
+
+#: io.d:2768
+!~\ from\ ~\:\ an\ object\ cannot\ start\ with\ ~=
+
+#: io.d:2859
+!~\:\ input\ stream\ ~\ ends\ within\ a\ string=
+
+#: io.d:2925
+!~\ from\ ~\:\ no\ number\ allowed\ between\ \#\ and\ $=
+
+#: io.d:3024
+!~\:\ input\ stream\ ~\ ends\ within\ a\ comment\ \#$\ ...\ $\#=
+
+#: io.d:3106
+!~\ from\ ~\:\ font\ number\ ~\ for\ character\ is\ too\ large,\ should\ be\ \=\ 0=
+
+#: io.d:3139
+!~\ from\ ~\:\ there\ is\ no\ character\ bit\ with\ name\ ~=
+
+#: io.d:3206
+!~\ from\ ~\:\ there\ is\ no\ character\ with\ name\ ~=
+
+#: io.d:3269
+!~\ from\ ~\:\ token\ ~\ after\ \#$\ is\ not\ a\ rational\ number\ in\ base\ ~=
+
+#: io.d:3348
+!~\ from\ ~\:\ the\ number\ base\ must\ be\ given\ between\ \#\ and\ R=
+
+#: io.d:3363
+!~\ from\ ~\:\ The\ base\ ~\ given\ between\ \#\ and\ R\ should\ lie\ between\ 2\ and\ 36=
+
+#: io.d:3411
+!~\ from\ ~\:\ bad\ syntax\ for\ complex\ number\:\ \#C~=
+
+#: io.d:3446
+!~\ from\ ~\:\ token\ expected\ after\ \#\:=
+
+#: io.d:3475
+!~\ from\ ~\:\ token\ ~\ after\ \#\:\ should\ contain\ no\ colon=
+
+#: io.d:3528
+!~\ from\ ~\:\ only\ zeroes\ and\ ones\ are\ allowed\ after\ \#*=
+
+#: io.d:3557
+!~\ from\ ~\:\ bit\ vector\ is\ longer\ than\ the\ explicitly\ given\ length\ ~=
+
+#: io.d:3566
+!~\ from\ ~\:\ must\ specify\ element\ of\ bit\ vector\ of\ length\ ~=
+
+#: io.d:3646
+!~\ from\ ~\:\ vector\ is\ longer\ than\ the\ explicitly\ given\ length\ ~=
+
+#: io.d:3655
+!~\ from\ ~\:\ must\ specify\ element\ of\ vector\ of\ length\ ~=
+
+#: io.d:3740
+!~\ from\ ~\:\ bad\ syntax\ for\ array\:\ \#A~=
+
+#: io.d:3806
+!~\ from\ ~\:\ ~\ \=\ ~\ doesn't\ allow\ the\ evaluation\ of\ ~=
+
+#: io.d:3933
+!~\ from\ ~\:\ a\ number\ must\ be\ given\ between\ \#\ and\ $=
+
+#: io.d:3945
+!~\ from\ ~\:\ label\ \#~?\ too\ large=
+
+#: io.d:3967
+!~\ from\ ~\:\ the\ value\ of\ ~\ has\ been\ altered\ arbitrarily,\ it\ is\ not\ an\ alist\:\ ~=
+
+#: io.d:3987
+!~\ from\ ~\:\ label\ \#~\=\ may\ not\ be\ defined\ twice=
+
+#: io.d:4014
+!~\ from\ ~\:\ \#~\=\ \#~\#\ is\ illegal=
+
+#: io.d:4042
+!~\ from\ ~\:\ undefined\ label\ \#~\#=
+
+#: io.d:4059
+!~\ from\ ~\:\ objects\ printed\ as\ \#<...>\ cannot\ be\ read\ back\ in=
+
+#: io.d:4077
+!~\ from\ ~\:\ objects\ printed\ as\ \#\ in\ view\ of\ ~\ cannot\ be\ read\ back\ in=
+
+#: io.d:4159
+!~\ from\ ~\:\ illegal\ feature\ ~=
+
+#: io.d:4295
+!~\ from\ ~\:\ \#S\ must\ be\ followed\ by\ the\ type\ and\ the\ contents\ of\ the\ structure,\ not\ ~=
+
+#: io.d:4308
+!~\ from\ ~\:\ the\ type\ of\ a\ structure\ should\ be\ a\ symbol,\ not\ ~=
+
+#: io.d:4322
+!~\ from\ ~\:\ bad\ HASH-TABLE=
+
+#: io.d:4349
+!~\ from\ ~\:\ bad\ ~=
+
+#: io.d:4381
+!~\ from\ ~\:\ no\ structure\ of\ type\ ~\ has\ been\ defined=
+
+#: io.d:4392
+!~\ from\ ~\:\ bad\ ~\ for\ ~=
+
+#: io.d:4404
+!~\ from\ ~\:\ structures\ of\ type\ ~\ cannot\ be\ read\ in,\ missing\ constructor\ function=
+
+#: io.d:4426
+!~\ from\ ~\:\ a\ structure\ ~\ may\ not\ contain\ a\ component\ "."=
+
+#: io.d:4438
+!~\ from\ ~\:\ ~\ is\ not\ a\ symbol,\ not\ a\ slot\ name\ of\ structure\ ~=
+
+#: io.d:4448
+!~\ from\ ~\:\ missing\ value\ of\ slot\ ~\ in\ structure\ ~=
+
+#: io.d:4470
+!~\ from\ ~\:\ too\ many\ slots\ for\ structure\ ~=
+
+#: io.d:4517
+!~\ from\ ~\:\ illegal\ syntax\ of\ closure\ code\ vector\ after\ \#~Y=
+
+#: io.d:4572
+!~\ from\ ~\:\ object\ \#Y~\ has\ not\ the\ syntax\ of\ a\ compiled\ closure=
+
+#: io.d:4718
+!~\ from\ ~\:\ bad\ syntax\ for\ pathname\:\ \#P~=
+
+#: io.d:4937 io.d:10468
+!~\:\ ~\ is\ not\ a\ character=
+
+#: io.d:4983
+!~\:\ peek\ type\ should\ be\ NIL\ or\ T\ or\ a\ character,\ not\ ~=
+
+#: io.d:5144
+!~\:\ ~\ argument\ should\ be\ an\ integer\ between\ 2\ and\ 36,\ not\ ~=
+
+#: io.d:5245
+!~\:\ string\ ~\ does\ not\ have\ integer\ syntax=
+
+#: io.d:5417
+!~\:\ Despite\ of\ ~,\ ~\ cannot\ be\ printed\ readably.=
+
+#: io.d:5443
+!~\:\ the\ value\ ~\ of\ ~\ is\ neither\ ~\ nor\ ~\ nor\ ~.\nIt\ is\ reset\ to\ ~.=
+
+#: io.d:5886
+!~\:\ must\ be\ a\ positive\ integer\ or\ NIL,\ not\ ~=
+
+#: io.d:6847
+!~\:\ not\ enough\ stack\ space\ for\ carrying\ out\ circularity\ analysis=
+
+#: io.d:8571
+!~\:\ bad\ ~=
+
+#: io.d:8696 record.d:243
+!~\:\ ~\ is\ not\ a\ structure=
+
+#: io.d:9713
+!~\:\ an\ unknown\ record\ type\ has\ been\ generated\!=
+
+#: array.d:228
+!index\ too\ large=
+
+#: array.d:237
+!An\ array\ has\ been\ shortened\ by\ adjusting\ it\ while\ another\ array\ was\ displaced\ to\ it.=
+
+#: array.d:329
+!~\:\ ~\ is\ not\ an\ array=
+
+#: array.d:364 foreign.d:2282
+!~\:\ got\ ~\ subscripts,\ but\ ~\ has\ rank\ ~=
+
+#: array.d:382 foreign.d:2299
+!~\:\ subscripts\ ~\ for\ ~\ are\ not\ of\ type\ `(INTEGER\ 0\ (,ARRAY-DIMENSION-LIMIT))=
+
+#: array.d:411 foreign.d:2310
+!~\:\ subscripts\ ~\ for\ ~\ are\ out\ of\ range=
+
+#: array.d:474
+!~\:\ index\ ~\ for\ ~\ is\ not\ of\ type\ `(INTEGER\ 0\ (,ARRAY-DIMENSION-LIMIT))=
+
+#: array.d:495
+!~\:\ index\ ~\ for\ ~\ is\ out\ of\ range=
+
+#: array.d:598
+!~\:\ ~\ does\ not\ fit\ into\ ~,\ bad\ type=
+
+#: array.d:917
+!~\:\ ~\ is\ not\ an\ nonnegative\ integer\ less\ than\ the\ rank\ of\ ~=
+
+#: array.d:1128
+!~\:\ ~\ is\ not\ an\ array\ of\ bits=
+
+#: array.d:1993
+!~\:\ The\ arguments\ ~\ and\ ~\ should\ be\ arrays\ of\ bits\ with\ the\ same\ dimensions=
+
+#: array.d:2004
+!~\:\ The\ arguments\ ~,\ ~\ and\ ~\ should\ be\ arrays\ of\ bits\ with\ the\ same\ dimensions=
+
+#: array.d:3994
+!~\:\ vector\ ~\ has\ no\ fill\ pointer=
+
+#: array.d:4044
+!~\:\ ~\ has\ length\ zero=
+
+#: array.d:4072
+!~\ works\ only\ on\ adjustable\ arrays,\ not\ on\ ~=
+
+#: array.d:4090
+!~\:\ extension\ ~\ should\ be\ a\ positive\ fixnum=
+
+#: array.d:4114
+!~\:\ extending\ the\ vector\ by\ ~\ elements\ makes\ it\ too\ long=
+
+#: array.d:4186
+!~\:\ cannot\ push\ ~\ into\ array\ ~\ (bad\ type)=
+
+#: array.d:4485
+!~\:\ dimension\ ~\ is\ not\ of\ type\ `(INTEGER\ 0\ (,ARRAY-DIMENSION-LIMIT))=
+
+#: array.d:4528
+!~\:\ dimensions\ ~\ produce\ too\ large\ total-size=
+
+#: array.d:4570
+!~\:\ ambiguous,\ more\ than\ one\ initialisation\ specified=
+
+#: array.d:4582
+!~\:\ ~\ must\ not\ be\ specified\ without\ ~=
+
+#: array.d:4629
+!~\:\ the\ initial-element\ ~\ is\ not\ of\ type\ ~=
+
+#: array.d:4720
+!~\:\ ~\ is\ of\ incorrect\ length=
+
+#: array.d:4751
+!~\:\ ~-argument\ ~\ is\ not\ an\ array=
+
+#: array.d:4794
+!~\:\ ~-argument\ ~\ does\ not\ have\ element\ type\ ~=
+
+#: array.d:4811
+!~\:\ ~-argument\ ~\ is\ not\ of\ type\ `(INTEGER\ 0\ (,ARRAY-TOTAL-SIZE-LIMIT))=
+
+#: array.d:4823
+!~\:\ array-total-size\ +\ displaced-offset\ (\=\ ~)\ exceeds\ total\ size\ ~\ of\ ~-argument=
+
+#: array.d:4849
+!~\:\ fill-pointer\ ~\ should\ be\ a\ nonnegative\ fixnum=
+
+#: array.d:4858
+!~\:\ fill-pointer\ argument\ ~\ is\ larger\ than\ the\ length\ ~=
+
+#: array.d:4928
+!~\:\ attempted\ rank\ ~\ is\ too\ large=
+
+#: array.d:4942
+!~\:\ ~\ may\ not\ be\ specified\ for\ an\ array\ of\ rank\ ~=
+
+#: array.d:5141
+!~\:\ array\ ~\ is\ not\ adjustable=
+
+#: array.d:5164
+!~\:\ rank\ ~\ of\ array\ ~\ cannot\ be\ altered\:\ ~=
+
+#: array.d:5180
+!~\:\ array\ ~\ does\ not\ have\ element-type\ ~=
+
+#: array.d:5234
+!~\:\ cannot\ displace\ array\ ~\ to\ itself=
+
+#: array.d:5258
+!~\:\ array\ ~\ has\ no\ fill-pointer=
+
+#: array.d:5273
+!~\:\ the\ fill-pointer\ of\ array\ ~\ is\ ~,\ greater\ than\ ~=
+
+#: array.d:5424
+!Illegal\ START\ index\ ~\ for\ ~=
+
+#: array.d:5460
+!Illegal\ END\ index\ ~\ for\ ~=
+
+#: array.d:5474
+!~\:\ invalid\ bit-vector\ length\ ~=
+
+#: hashtabl.d:1148
+!Hash\ table\ size\ ~\ too\ large=
+
+#: hashtabl.d:1194
+!internal\ error\ occured\ while\ resizing\ ~=
+
+#: hashtabl.d:1305
+!~\:\ illegal\ \:TEST\ argument\ ~=
+
+#: hashtabl.d:1322
+!~\:\ \:SIZE\ argument\ should\ be\ a\ fixnum\ >\=0,\ not\ ~=
+
+#: hashtabl.d:1345
+!~\:\ \:REHASH-SIZE\ argument\ should\ be\ a\ float\ >\ 1,\ not\ ~=
+
+#: hashtabl.d:1390
+!~\:\ \:REHASH-THRESHOLD\ argument\ should\ be\ a\ float\ between\ 0\ and\ 1,\ not\ ~=
+
+#: hashtabl.d:1465
+!~\:\ internal\ error\ while\ building\ ~=
+
+#: hashtabl.d:1509
+!~\:\ argument\ ~\ is\ not\ a\ hash-table=
+
+#: list.d:642
+!~\:\ ~\ is\ not\ a\ nonnegative\ fixnum\ and\ therefore\ not\ a\ valid\ index=
+
+#: list.d:738
+!~\:\ ~\ is\ not\ a\ nonnegative\ integer\ and\ therefore\ not\ a\ valid\ argument=
+
+#: list.d:865
+!~\:\ ~\ is\ not\ a\ nonnegative\ fixnum\ and\ therefore\ not\ a\ valid\ list\ length=
+
+#: list.d:1174
+!~\:\ ~\ is\ not\ a\ pair=
+
+#: list.d:1921
+!~\:\ lists\ ~\ and\ ~\ are\ not\ of\ same\ length=
+
+#: list.d:2140
+!~\:\ index\ ~\ too\ large\ for\ ~=
+
+#: list.d:2202
+!~\:\ start\ index\ ~\ too\ large\ for\ ~=
+
+#: list.d:2247
+!~\:\ end\ index\ ~\ too\ large\ for\ ~=
+
+#: package.d:386
+!symbol\ ~\ cannot\ be\ deleted\ from\ symbol\ table=
+
+#: package.d:808
+!~\ inconsistent\:\ symbol\ ~\ is\ a\ shadowing\ symbol\ but\ not\ present=
+
+#: package.d:1259
+!UNEXPORT\ in\ ~\ is\ illegal=
+
+#: package.d:1278
+!UNEXPORT\ works\ only\ on\ accessible\ symbols,\ not\ on\ ~\ in\ ~=
+
+#: package.d:1924
+!The\ value\ of\ *PACKAGE*\ was\ not\ a\ package.\ Old\ value\ ~.\ New\ value\ ~.=
+
+#: package.d:1946
+!Package\ ~\ has\ been\ deleted.=
+
+#: package.d:1957
+!There\ is\ no\ package\ with\ name\ ~=
+
+#: package.d:1967
+!~\:\ argument\ should\ be\ a\ package\ or\ a\ package\ name,\ not\ ~=
+
+#: package.d:1979
+!~\:\ argument\ should\ be\ a\ string,\ not\ ~=
+
+#: package.d:2002
+!~\:\ argument\ ~\ should\ be\ a\ string\ or\ a\ symbol=
+
+#: package.d:2112
+!~\:\ there\ is\ already\ a\ package\ named\ ~=
+
+#: package.d:2248 predtype.d:1981
+!~\:\ argument\ ~\ is\ not\ a\ symbol=
+
+#: package.d:2302
+!~\:\ argument\ should\ be\ a\ symbol\ or\ a\ list\ of\ symbols,\ not\ ~=
+
+#: package.d:2537
+!Cannot\ change\ the\ case\ sensitiveness\ of\ ~.=
+
+#: record.d:35
+!~\:\ ~\ is\ not\ a\ valid\ index\ into\ ~=
+
+#: record.d:47
+!~\:\ ~\ is\ not\ a\ record=
+
+#: record.d:113
+!~\:\ length\ ~\ is\ illegal,\ should\ be\ of\ type\ (INTEGER\ (0)\ (65536))=
+
+#: record.d:151
+!~\:\ ~\ is\ not\ a\ structure\ of\ type\ ~=
+
+#: record.d:203
+!~\:\ Slot\ ~\ of\ ~\ has\ no\ value=
+
+#: record.d:313
+!~\:\ ~\ is\ not\ a\ closure=
+
+#: record.d:327
+!~\:\ This\ is\ not\ a\ compiled\ closure\:\ ~=
+
+#: record.d:401
+!~\ is\ not\ a\ valid\ code-vector\ byte=
+
+#: record.d:418
+!~\:\ invalid\ code-vector\ ~=
+
+#: record.d:428
+!~\:\ function\ ~\ is\ too\ big\:\ ~=
+
+#: record.d:459 record.d:502
+!~\:\ This\ is\ not\ a\ generic\ function\:\ ~=
+
+#: record.d:469
+!~\:\ This\ is\ not\ a\ prototype\ of\ a\ generic\ function\:\ ~=
+
+#: record.d:619
+!~\:\ ~\ is\ not\ a\ Macro=
+
+#: record.d:670 record.d:684
+!~\:\ ~\ is\ not\ a\ FunctionMacro=
+
+#: record.d:726
+!~\:\ ~\ is\ not\ a\ weak\ pointer=
+
+#: record.d:794
+!~\:\ ~\ is\ not\ a\ class=
+
+#: record.d:827
+!ALLOCATE-INSTANCE\:\ keyword\ argument\ list\ ~\ has\ an\ odd\ length=
+
+#: record.d:1035
+!~\:\ illegal\ keyword/value\ pair\ ~,\ ~\ in\ argument\ list.\nThe\ allowed\ keywords\ are\ ~=
+
+#: record.d:1071
+!SHARED-INITIALIZE\:\ keyword\ argument\ list\ ~\ has\ an\ odd\ length=
+
+#: record.d:1198
+!REINITIALIZE-INSTANCE\:\ keyword\ argument\ list\ ~\ has\ an\ odd\ length=
+
+#: record.d:1305
+!INITIALIZE-INSTANCE\:\ keyword\ argument\ list\ ~\ has\ an\ odd\ length=
+
+#: record.d:1443
+!MAKE-INSTANCE\:\ keyword\ argument\ list\ ~\ has\ an\ odd\ length=
+
+#: record.d:1509
+!~\ method\ for\ ~\ returned\ ~=
+
+#: sequence.d:219
+!There\ are\ no\ sequences\ of\ type\ ~=
+
+#: sequence.d:285
+!~\ is\ not\ a\ sequence=
+
+#: sequence.d:302
+!sequence\ type\ forces\ length\ ~,\ but\ result\ has\ length\ ~=
+
+#: sequence.d:318
+!~\:\ ~\ should\ be\ an\ integer\ >\=0,\ not\ ~=
+
+#: sequence.d:369 sequence.d:400
+!~\:\ ~\ \=\ ~\ should\ not\ be\ greater\ than\ ~\ \=\ ~=
+
+#: sequence.d:550
+!~\:\ the\ index\ should\ be\ a\ fixnum\ >\=0,\ not\ ~=
+
+#: sequence.d:567
+!~\ ~\:\ the\ index\ should\ be\ a\ fixnum\ >\=0,\ not\ ~=
+
+#: sequence.d:706
+!~\:\ ~\ is\ not\ a\ sequence=
+
+#: sequence.d:829 sequence.d:1127
+!~\:\ bad\ length\ ~=
+
+#: sequence.d:930
+!~\:\ size\ should\ be\ an\ integer\ >\=0,\ not\ ~=
+
+#: sequence.d:938
+!~\:\ \:update\ must\ not\ be\ specified\ without\ \:initial-element=
+
+#: sequence.d:1978
+!~\:\ Must\ not\ specify\ both\ arguments\ to\ \:TEST\ and\ \:TEST-NOT=
+
+#: sequence.d:2107
+!~\:\ sequence\ ~\ is\ too\ long=
+
+#: sequence.d:2569
+!too\ long\ sequence\ ~=
+
+#: charstrg.d:946 charstrg.d:1028 charstrg.d:1060 charstrg.d:1107
+!This\ is\ not\ a\ string\:\ ~=
+
+#: charstrg.d:1760
+!~\:\ the\ radix\ must\ be\ an\ integer\ between\ 2\ and\ 36,\ not\ ~=
+
+#: charstrg.d:2134
+!~\:\ the\ code\ argument\ should\ be\ an\ integer,\ not\ ~=
+
+#: charstrg.d:2156
+!~\:\ cannot\ coerce\ ~\ to\ a\ character=
+
+#: charstrg.d:2197
+!~\:\ the\ weight\ argument\ should\ be\ an\ integer,\ not\ ~=
+
+#: charstrg.d:2239
+!~\:\ argument\ should\ be\ an\ integer,\ not\ ~=
+
+#: charstrg.d:2266
+!~\:\ index\ should\ be\ an\ integer,\ not\ ~=
+
+#: charstrg.d:2271
+!~\:\ ~-index\ should\ be\ an\ integer,\ not\ ~=
+
+#: charstrg.d:2288
+!~\:\ index\ should\ be\ NIL\ or\ an\ integer,\ not\ ~=
+
+#: charstrg.d:2293
+!~\:\ ~-index\ should\ be\ NIL\ or\ an\ integer,\ not\ ~=
+
+#: charstrg.d:2310
+!~\:\ index\ should\ not\ be\ negative\:\ ~=
+
+#: charstrg.d:2315
+!~\:\ ~-index\ should\ not\ be\ negative\:\ ~=
+
+#: charstrg.d:2339
+!~\:\ index\ ~\ should\ not\ be\ greater\ than\ the\ length\ of\ the\ string=
+
+#: charstrg.d:2344
+!~\:\ ~-index\ ~\ should\ not\ be\ greater\ than\ the\ length\ of\ the\ string=
+
+#: charstrg.d:2368
+!~\:\ index\ ~\ should\ be\ less\ than\ the\ length\ of\ the\ string=
+
+#: charstrg.d:2373
+!~\:\ ~-index\ ~\ should\ be\ less\ than\ the\ length\ of\ the\ string=
+
+#: charstrg.d:2478
+!~\:\ argument\ should\ be\ a\ character,\ not\ ~=
+
+#: charstrg.d:2549 charstrg.d:2646 charstrg.d:3651
+!~\:\ \:start-index\ ~\ must\ not\ be\ greater\ than\ \:end-index\ ~=
+
+#: charstrg.d:2604
+!~\:\ argument\ ~\ should\ be\ a\ string,\ a\ symbol\ or\ a\ character=
+
+#: charstrg.d:2704
+!~\:\ \:start1-index\ ~\ must\ not\ be\ greater\ than\ \:end1-index\ ~=
+
+#: charstrg.d:2728
+!~\:\ \:start2-index\ ~\ must\ not\ be\ greater\ than\ \:end2-index\ ~=
+
+#: charstrg.d:3306
+!~\:\ the\ string\ length\ ~\ should\ be\ nonnegative\ fixnum=
+
+#: charstrg.d:3338
+!~\:\ \:initial-element\ ~\ should\ be\ of\ type\ character=
+
+#: debug.d:718
+!~\:\ bad\ frame\ climbing\ mode\ ~=
+
+#: debug.d:738
+!~\:\ ~\ is\ not\ a\ stack\ pointer=
+
+#: debug.d:930
+!~\:\ ~\ is\ not\ a\ pointer\ to\ an\ EVAL/APPLY\ frame=
+
+#: debug.d:1203
+!~\:\ environment\ is\ not\ an\ alist=
+
+#: debug.d:1292
+!~\:\ unknown\ frame\ type=
+
+#: error.d:49
+!Unprintable\ error\ message=
+
+#: error.d:669
+!~\:\ User\ break=
+
+#: error.d:730
+!~\:\ ~\ is\ not\ a\ list=
+
+#: error.d:746
+!~\:\ A\ true\ list\ must\ not\ end\ with\ ~=
+
+#: error.d:764
+!~\:\ ~\ is\ not\ a\ symbol=
+
+#: error.d:795
+!~\:\ ~\ is\ not\ a\ simple-vector=
+
+#: error.d:811
+!~\:\ ~\ is\ not\ a\ vector=
+
+#: error.d:827
+!~\:\ argument\ ~\ should\ be\ a\ nonnegative\ fixnum=
+
+#: error.d:843
+!~\:\ argument\ ~\ is\ not\ a\ character=
+
+#: error.d:858
+!~\:\ argument\ ~\ is\ not\ a\ string=
+
+#: error.d:873
+!~\:\ argument\ ~\ is\ not\ a\ simple\ string=
+
+#: error.d:887
+!Attempt\ to\ modify\ a\ read-only\ string\:\ ~=
+
+#: error.d:903
+!~\:\ argument\ ~\ is\ neither\ a\ string\ nor\ an\ integer=
+
+#: error.d:919
+!~\:\ argument\ ~\ should\ be\ a\ stream=
+
+#: error.d:937
+!~\:\ argument\ ~\ should\ be\ a\ stream\ of\ type\ ~=
+
+#: error.d:969
+!~\:\ argument\ ~\ is\ not\ a\ function.\nTo\ get\ a\ function\ in\ the\ current\ environment,\ write\ (FUNCTION\ ...).\nTo\ get\ a\ function\ in\ the\ global\ environment,\ write\ (COERCE\ '...\ 'FUNCTION).=
+
+#: error.d:985 error.d:1003
+!~\:\ ~\ is\ not\ an\ 8-bit\ number=
+
+#: error.d:1019 error.d:1035
+!~\:\ ~\ is\ not\ a\ 16-bit\ number=
+
+#: error.d:1051 error.d:1067
+!~\:\ ~\ is\ not\ an\ 32-bit\ number=
+
+#: error.d:1083 error.d:1099
+!~\:\ ~\ is\ not\ an\ 64-bit\ number=
+
+#: error.d:1119
+!~\:\ ~\ is\ not\ an\ `unsigned\ int'\ number=
+
+#: error.d:1139
+!~\:\ ~\ is\ not\ an\ `int'\ number=
+
+#: error.d:1159
+!~\:\ ~\ is\ not\ a\ `unsigned\ long'\ number=
+
+#: error.d:1179
+!~\:\ ~\ is\ not\ a\ `long'\ number=
+
+#: error.d:1195
+!~\:\ ~\ is\ not\ a\ single-float=
+
+#: error.d:1211
+!~\:\ ~\ is\ not\ a\ double-float=
+
+#: erramiga.d:11
+!Amiga\ OS\ error\ =
+
+#: erramiga.d:40
+!not\ enough\ memory\ available=
+
+#: erramiga.d:43
+!process\ table\ full=
+
+#: erramiga.d:53
+!bad\ template=
+
+#: erramiga.d:55
+!bad\ number=
+
+#: erramiga.d:57
+!required\ argument\ missing=
+
+#: erramiga.d:59
+!value\ after\ keyword\ missing=
+
+#: erramiga.d:61
+!wrong\ number\ of\ arguments=
+
+#: erramiga.d:63
+!unmatched\ quotes=
+
+#: erramiga.d:65
+!argument\ line\ invalid\ or\ too\ long=
+
+#: erramiga.d:67
+!file\ is\ not\ executable=
+
+#: erramiga.d:69
+!invalid\ resident\ library=
+
+#: erramiga.d:78
+!object\ is\ in\ use=
+
+#: erramiga.d:80
+!object\ already\ exists=
+
+#: erramiga.d:82
+!directory\ not\ found=
+
+#: erramiga.d:84
+!object\ not\ found=
+
+#: erramiga.d:86
+!invalid\ window\ description=
+
+#: erramiga.d:88
+!object\ too\ large=
+
+#: erramiga.d:91
+!packet\ request\ type\ unknown=
+
+#: erramiga.d:93
+!object\ name\ invalid=
+
+#: erramiga.d:95
+!invalid\ object\ lock=
+
+#: erramiga.d:97
+!object\ is\ not\ of\ required\ type=
+
+#: erramiga.d:99
+!disk\ not\ validated=
+
+#: erramiga.d:101
+!disk\ is\ write-protected=
+
+#: erramiga.d:103
+!rename\ across\ devices\ attempted=
+
+#: erramiga.d:105
+!directory\ not\ empty=
+
+#: erramiga.d:107
+!too\ many\ levels=
+
+#: erramiga.d:109
+!device\ (or\ volume)\ is\ not\ mounted=
+
+#: erramiga.d:111
+!seek\ failure=
+
+#: erramiga.d:113
+!comment\ is\ too\ long=
+
+#: erramiga.d:115
+!disk\ is\ full=
+
+#: erramiga.d:117
+!object\ is\ protected\ from\ deletion=
+
+#: erramiga.d:119
+!file\ is\ write\ protected=
+
+#: erramiga.d:121
+!file\ is\ read\ protected=
+
+#: erramiga.d:123
+!not\ a\ valid\ DOS\ disk=
+
+#: erramiga.d:125
+!no\ disk\ in\ drive=
+
+#: erramiga.d:132
+!no\ more\ entries\ in\ directory=
+
+#: erramiga.d:134
+!object\ is\ soft\ link=
+
+#: erramiga.d:136
+!object\ is\ linked=
+
+#: erramiga.d:138
+!bad\ loadfile\ hunk=
+
+#: erramiga.d:140
+!function\ not\ implemented=
+
+#: erramiga.d:145
+!record\ not\ locked=
+
+#: erramiga.d:147
+!record\ lock\ collision=
+
+#: erramiga.d:149
+!record\ lock\ timeout=
+
+#: erramiga.d:151
+!record\ unlock\ error=
+
+#: erramiga.d:158
+!buffer\ overflow=
+
+#: erramiga.d:160
+!break=
+
+#: erramiga.d:162
+!file\ not\ executable=
+
+#: erramiga.d:170
+!Ok,\ No\ error=
+
+#: errunix.d:57
+!Operation\ not\ permitted=
+
+#: errunix.d:63
+!No\ such\ file\ or\ directory=
+
+#: errunix.d:69
+!No\ such\ process=
+
+#: errunix.d:75
+!Interrupted\ system\ call=
+
+#: errunix.d:81
+!I/O\ error=
+
+#: errunix.d:87
+!No\ such\ device\ or\ address=
+
+#: errunix.d:93
+!Arg\ list\ too\ long=
+
+#: errunix.d:99
+!Exec\ format\ error=
+
+#: errunix.d:105
+!Bad\ file\ number=
+
+#: errunix.d:111
+!No\ child\ processes=
+
+#: errunix.d:117
+!No\ more\ processes=
+
+#: errunix.d:123
+!Not\ enough\ memory=
+
+#: errunix.d:129
+!Permission\ denied=
+
+#: errunix.d:135
+!Bad\ address=
+
+#: errunix.d:141
+!Block\ device\ required=
+
+#: errunix.d:147
+!Device\ busy=
+
+#: errunix.d:153
+!File\ exists=
+
+#: errunix.d:159
+!Cross-device\ link=
+
+#: errunix.d:165
+!No\ such\ device=
+
+#: errunix.d:171
+!Not\ a\ directory=
+
+#: errunix.d:177
+!Is\ a\ directory=
+
+#: errunix.d:183
+!Invalid\ argument=
+
+#: errunix.d:189
+!File\ table\ overflow=
+
+#: errunix.d:195
+!Too\ many\ open\ files=
+
+#: errunix.d:201
+!Inappropriate\ ioctl\ for\ device=
+
+#: errunix.d:207
+!Text\ file\ busy=
+
+#: errunix.d:213
+!File\ too\ large=
+
+#: errunix.d:219
+!No\ space\ left\ on\ device=
+
+#: errunix.d:225
+!Illegal\ seek=
+
+#: errunix.d:231
+!Read-only\ file\ system=
+
+#: errunix.d:237
+!Too\ many\ links=
+
+#: errunix.d:243
+!Broken\ pipe,\ child\ process\ terminated\ or\ socket\ closed=
+
+#: errunix.d:253
+!Argument\ out\ of\ domain=
+
+#: errunix.d:259
+!Result\ too\ large=
+
+#: errunix.d:266
+!Invalid\ multibyte\ or\ wide\ character=
+
+#: errunix.d:273
+!Operation\ would\ block=
+
+#: errunix.d:279
+!Operation\ now\ in\ progress=
+
+#: errunix.d:285
+!Operation\ already\ in\ progress=
+
+#: errunix.d:292
+!Too\ many\ levels\ of\ symbolic\ links=
+
+#: errunix.d:298
+!File\ name\ too\ long=
+
+#: errunix.d:304
+!Directory\ not\ empty=
+
+#: errunix.d:311
+!Stale\ NFS\ file\ handle=
+
+#: errunix.d:317
+!Too\ many\ levels\ of\ remote\ in\ path=
+
+#: errunix.d:324
+!Socket\ operation\ on\ non-socket=
+
+#: errunix.d:330
+!Destination\ address\ required=
+
+#: errunix.d:336
+!Message\ too\ long=
+
+#: errunix.d:342
+!Protocol\ wrong\ type\ for\ socket=
+
+#: errunix.d:348
+!Option\ not\ supported\ by\ protocol=
+
+#: errunix.d:354
+!Protocol\ not\ supported=
+
+#: errunix.d:360
+!Socket\ type\ not\ supported=
+
+#: errunix.d:366
+!Operation\ not\ supported\ on\ socket=
+
+#: errunix.d:372
+!Protocol\ family\ not\ supported=
+
+#: errunix.d:378
+!Address\ family\ not\ supported\ by\ protocol\ family=
+
+#: errunix.d:384
+!Address\ already\ in\ use=
+
+#: errunix.d:390
+!Can't\ assign\ requested\ address=
+
+#: errunix.d:396
+!Network\ is\ down=
+
+#: errunix.d:402
+!Network\ is\ unreachable=
+
+#: errunix.d:408
+!Network\ dropped\ connection\ on\ reset=
+
+#: errunix.d:414
+!Software\ caused\ connection\ abort=
+
+#: errunix.d:420
+!Connection\ reset\ by\ peer=
+
+#: errunix.d:426
+!No\ buffer\ space\ available=
+
+#: errunix.d:432
+!Socket\ is\ already\ connected=
+
+#: errunix.d:438
+!Socket\ is\ not\ connected=
+
+#: errunix.d:444
+!Can't\ send\ after\ socket\ shutdown=
+
+#: errunix.d:450
+!Too\ many\ references\:\ can't\ splice=
+
+#: errunix.d:456
+!Connection\ timed\ out=
+
+#: errunix.d:462
+!Connection\ refused=
+
+#: errunix.d:467
+!Remote\ peer\ released\ connection=
+
+#: errunix.d:472
+!Host\ is\ down=
+
+#: errunix.d:478
+!Host\ is\ unreachable=
+
+#: errunix.d:483
+!Networking\ error=
+
+#: errunix.d:489
+!Too\ many\ processes=
+
+#: errunix.d:495
+!Too\ many\ users=
+
+#: errunix.d:501
+!Disk\ quota\ exceeded=
+
+#: errunix.d:508
+!Not\ a\ stream\ device=
+
+#: errunix.d:514
+!Timer\ expired=
+
+#: errunix.d:520
+!Out\ of\ stream\ resources=
+
+#: errunix.d:526
+!No\ message\ of\ desired\ type=
+
+#: errunix.d:532
+!Not\ a\ data\ message=
+
+#: errunix.d:539
+!Identifier\ removed=
+
+#: errunix.d:546
+!Resource\ deadlock\ would\ occur=
+
+#: errunix.d:552
+!No\ record\ locks\ available=
+
+#: errunix.d:559
+!Machine\ is\ not\ on\ the\ network=
+
+#: errunix.d:565 errunix.d:571
+!Object\ is\ remote=
+
+#: errunix.d:577
+!Link\ has\ been\ severed=
+
+#: errunix.d:583
+!Advertise\ error=
+
+#: errunix.d:589
+!Srmount\ error=
+
+#: errunix.d:595
+!Communication\ error\ on\ send=
+
+#: errunix.d:601
+!Protocol\ error=
+
+#: errunix.d:607
+!Multihop\ attempted=
+
+#: errunix.d:619
+!Remote\ address\ changed=
+
+#: errunix.d:626
+!Function\ not\ implemented=
+
+#: errunix.d:633
+!Not\ supported\ under\ MS-DOS=
+
+#: errunix.d:664
+!UNIX\ error\ =
+
+#: errunix.d:666
+!UNIX\ library\ error\ =
+
+#: errwin32.d:3880
+!Win32\ error\ =
+
+#: errwin32.d:3929
+!Winsock\ error\ =
+
+#: misc.d:108
+!This\ file\ was\ produced\ by\ another\ lisp\ version,\ must\ be\ recompiled.=
+
+#: misc.d:325
+!~\:\ type\ of\ attribute\ ~\ is\ unsupported=
+
+#: predtype.d:1736 predtype.d:1940
+!~\:\ unidentifiable\ type\!\!\!=
+
+#: predtype.d:1947
+!~\:\ type\ ~\ does\ not\ correspond\ to\ a\ class=
+
+#: predtype.d:1990
+!~\:\ ~\ does\ not\ name\ a\ class=
+
+#: predtype.d:2301
+!~\:\ bad\ type\ specification\ ~=
+
+#: predtype.d:2309
+!~\:\ ~\ cannot\ be\ coerced\ to\ type\ ~=
+
+#: symbol.d:48
+!~\:\ the\ property\ list\ of\ ~\ has\ an\ odd\ length=
+
+#: symbol.d:104
+!SETF\ SYMBOL-FUNCTION\:\ ~\ is\ not\ a\ function=
+
+#: symbol.d:129
+!~\:\ ~\ is\ not\ a\ system\ function=
+
+#: symbol.d:188 symbol.d:229
+!~\:\ the\ property\ list\ ~\ has\ an\ odd\ length=
+
+#: symbol.d:419 intlog.d:592
+!~\:\ index\ ~\ is\ negative=
+
+#: symbol.d:430
+!~\:\ invalid\ argument\ ~=
+
+#: symbol.d:444
+!The\ value\ of\ *GENSYM-COUNTER*\ was\ not\ a\ nonnegative\ integer.\ Old\ value\ ~.\ New\ value\ ~.=
+
+#: lisparit.d:359
+!argument\ to\ ~\ should\ be\ a\ number\:\ ~=
+
+#: lisparit.d:375
+!argument\ to\ ~\ should\ be\ a\ real\ number\:\ ~=
+
+#: lisparit.d:391
+!argument\ to\ ~\ should\ be\ a\ floating\ point\ number\:\ ~=
+
+#: lisparit.d:407
+!argument\ to\ ~\ should\ be\ a\ rational\ number\:\ ~=
+
+#: lisparit.d:423
+!argument\ to\ ~\ should\ be\ an\ integer\:\ ~=
+
+#: lisparit.d:439
+!~\:\ argument\ should\ be\ a\ positive\ fixnum,\ not\ ~=
+
+#: lisparit.d:1846
+!~\:\ argument\ should\ be\ a\ random-state,\ not\ ~=
+
+#: lisparit.d:1861
+!~\:\ the\ value\ of\ ~\ should\ be\ a\ random-state,\ not\ ~=
+
+#: lisparit.d:1885
+!~\:\ argument\ should\ be\ positive\ and\ an\ integer\ or\ float,\ not\ ~=
+
+#: lisparit.d:1970
+!~\ \:\ argument\ should\ be\ a\ fixnum\ >\=0,\ not\ ~=
+
+#: aridecl.d:338
+!division\ by\ zero=
+
+#: aridecl.d:348
+!floating\ point\ overflow=
+
+#: aridecl.d:358
+!floating\ point\ underflow=
+
+#: intelem.d:211 intelem.d:309
+!not\ a\ 32-bit\ integer\:\ ~=
+
+#: intelem.d:399 intelem.d:545
+!not\ a\ 64-bit\ integer\:\ ~=
+
+#: intelem.d:1443
+!bignum\ overflow=
+
+#: intlog.d:469
+!~\:\ ~\ is\ not\ a\ valid\ boolean\ operation=
+
+#: intlog.d:725
+!~\:\ too\ large\ shift\ amount\ ~=
+
+#: intbyte.d:16
+!The\ arguments\ to\ BYTE\ must\ be\ fixnums\ >\=0\:\ ~,\ ~=
+
+#: intbyte.d:40
+!~\ is\ not\ a\ BYTE\ specifier=
+
+#: intmal.d:8
+!overflow\ during\ multiplication\ of\ large\ numbers=
+
+#: intdiv.d:373
+!quotient\ ~\ /\ ~\ is\ not\ an\ integer=
+
+#: intsqrt.d:426
+!~\ applied\ to\ negative\ number\ ~=
+
+#: lfloat.d:8
+!long\ float\ too\ long=
+
+#: flo_konv.d:465
+!floating\ point\ NaN\ occurred=
+
+#: rexx.d:34
+!Communication\ with\ ARexx\ isn't\ possible.=
+
+#: rexx.d:116
+!~\ must\ be\ a\ string\ for\ commands\ or\ a\ vector\ of\ strings\ for\ a\ function=
+
+#: rexx.d:125
+!~\:\ an\ ARexx\ function\ must\ have\ 0\ to\ ~\ arguments\:\ ~=
+
+#: rexx.d:139
+!~\:\ must\ be\ a\ string\ for\ ARexx\:\ ~=
+
+#: rexx.d:161
+!Only\ NIL,\ T\ and\ strings\ are\ accepted\ for\ ~\ \:\ ~=
+
+#: rexx.d:474
+!~\:\ Not\ a\ Fixnum\:\ ~=
+
+#: rexx.d:484
+!~\:\ Not\ an\ incoming\ Rexx\ message\:\ ~=
+
+#: affi.d:85
+!~\:\ Unsupported\ call\ mechanism\:\ ~=
+
+#: affi.d:96
+!~\:\ Bad\ function\ prototype\:\ ~=
+
+#: affi.d:107
+!~\:\ Wrong\ number\ of\ arguments\ for\ prototype\ ~=
+
+#: affi.d:121
+!~\:\ Bad\ argument\ for\ prototype\ ~\:\ ~=
+
+#: affi.d:132
+!~\:\ Bad\ argument\:\ ~=
+
+#: affi.d:153
+!~\:\ ~\ is\ not\ a\ valid\ address=
+
+#: foreign.d:27
+!~\ comes\ from\ a\ previous\ Lisp\ session\ and\ is\ invalid=
+
+#: foreign.d:100
+!A\ foreign\ variable\ ~\ already\ exists=
+
+#: foreign.d:140
+!A\ foreign\ function\ ~\ already\ exists=
+
+#: foreign.d:182
+!illegal\ foreign\ data\ type\ ~=
+
+#: foreign.d:196
+!~\ cannot\ be\ converted\ to\ the\ foreign\ type\ ~=
+
+#: foreign.d:209
+!64\ bit\ integers\ are\ not\ supported\ on\ this\ platform\ and\ with\ this\ C\ compiler\:\ ~=
+
+#: foreign.d:353 foreign.d:519
+!~\ cannot\ be\ converted\ to\ a\ foreign\ function\ with\ another\ calling\ convention.=
+
+#: foreign.d:564
+!No\ more\ room\ for\ foreign\ language\ interface=
+
+#: foreign.d:573
+!\:MALLOC-FREE\ is\ not\ available\ under\ AMIGAOS.=
+
+#: foreign.d:1101 foreign.d:1162 foreign.d:1317 foreign.d:1363
+!element\ type\ has\ size\ 0\:\ ~=
+
+#: foreign.d:2113
+!~\:\ argument\ is\ not\ a\ foreign\ variable\:\ ~=
+
+#: foreign.d:2123
+!~\:\ foreign\ variable\ with\ unknown\ type,\ missing\ DEF-C-VAR\:\ ~=
+
+#: foreign.d:2137
+!A\ foreign\ variable\ ~\ does\ not\ exist=
+
+#: foreign.d:2149
+!~\:\ foreign\ variable\ ~\ does\ not\ have\ the\ required\ size\ or\ alignment=
+
+#: foreign.d:2163
+!~\:\ type\ specifications\ for\ foreign\ variable\ ~\ conflict\:\ ~\ and\ ~=
+
+#: foreign.d:2212
+!~\:\ foreign\ variable\ ~\ may\ not\ be\ modified=
+
+#: foreign.d:2272
+!~\:\ foreign\ variable\ ~\ of\ type\ ~\ is\ not\ an\ array=
+
+#: foreign.d:2358
+!~\:\ foreign\ variable\ ~\ of\ type\ ~\ is\ not\ a\ pointer=
+
+#: foreign.d:2462
+!~\:\ foreign\ variable\ ~\ of\ type\ ~\ is\ not\ a\ struct\ or\ union=
+
+#: foreign.d:2471
+!~\:\ foreign\ variable\ ~\ of\ type\ ~\ has\ no\ component\ with\ name\ ~=
+
+#: foreign.d:2541 foreign.d:3634
+!~\:\ foreign\ variable\ ~\ does\ not\ have\ the\ required\ alignment=
+
+#: foreign.d:2557
+!~\:\ argument\ is\ not\ a\ foreign\ function\:\ ~=
+
+#: foreign.d:2568
+!~\:\ foreign\ function\ with\ unknown\ calling\ convention,\ missing\ DEF-CALL-OUT\:\ ~=
+
+#: foreign.d:2586 foreign.d:3660
+!~\:\ illegal\ foreign\ function\ type\ ~=
+
+#: foreign.d:2594
+!~\:\ A\ foreign\ function\ ~\ does\ not\ exist=
+
+#: foreign.d:2601
+!~\:\ calling\ conventions\ for\ foreign\ function\ ~\ conflict=
+
+#: foreign.d:2884
+!~\:\ Too\ few\ arguments\ (~\ instead\ of\ at\ least\ ~)\ to\ ~=
+
+#: foreign.d:2896
+!~\:\ \:OUT\ argument\ is\ not\ a\ pointer\:\ ~=
+
+#: foreign.d:2941
+!~\:\ Too\ many\ arguments\ (~\ instead\ of\ ~)\ to\ ~=
+
+#: foreign.d:3510
+!~\:\ Cannot\ open\ library\ ~=
+
+#: foreign.d:3608
+!~\:\ ~\ is\ not\ a\ library=
+
+#: amigaaux.d:212
+!This\ version\ of\ CLISP\ runs\ only\ in\ low\ address\ memory.\n=
+
+#: init.lisp:347
+!~S\ is\ a\ special\ form\ and\ may\ not\ be\ redefined.=
+
+#: init.lisp:353 clos.lisp:205
+!The\ old\ definition\ will\ be\ lost=
+
+#: init.lisp:354
+!Redefining\ the\ COMMON\ LISP\ ~A\ ~S=
+
+#: init.lisp:371
+!DEFUN/DEFMACRO\:\ redefining\ ~S;\ it\ was\ traced\!=
+
+#: init.lisp:391
+!~S\ is\ impossible\ in\ compiled\ code=
+
+#: init.lisp:478
+!~S\ is\ an\ invalid\ function\ environment=
+
+#: init.lisp:525
+!~S\ is\ an\ invalid\ variable\ environment=
+
+#: init.lisp:592
+!~S\:\ ~S\ is\ illegal\ since\ ~S\ is\ a\ local\ macro=
+
+#: init.lisp:596
+!~S\:\ invalid\ function\ environment\ ~S=
+
+#: init.lisp:602
+!~S\:\ ~S\ is\ invalid\ since\ ~S\ is\ not\ a\ symbol=
+
+#: init.lisp:776
+!code\ after\ MACROLET\ contains\ a\ dotted\ list,\ ending\ with\ ~S=
+
+#: init.lisp:792
+!illegal\ syntax\ in\ MACROLET\:\ ~S=
+
+#: init.lisp:813
+!code\ after\ SYMBOL-MACROLET\ contains\ a\ dotted\ list,\ ending\ with\ ~S=
+
+#: init.lisp:822 compiler.lisp:7388
+!~S\:\ symbol\ ~S\ must\ not\ be\ declared\ SPECIAL\ and\ a\ macro\ at\ the\ same\ time=
+
+#: init.lisp:837 compiler.lisp:7383
+!~S\:\ symbol\ ~S\ is\ declared\ special\ and\ must\ not\ be\ declared\ a\ macro=
+
+#: init.lisp:844
+!illegal\ syntax\ in\ SYMBOL-MACROLET\:\ ~S=
+
+#: init.lisp:883
+!bad\ function\ environment\ occurred\ in\ ~S\:\ ~S=
+
+#: init.lisp:892
+!~S\:\ invalid\ form\ ~S=
+
+#: init.lisp:903
+!code\ contains\ a\ dotted\ list,\ ending\ with\ ~S=
+
+#: init.lisp:946
+!~S\:\ ~S\ should\ be\ a\ lambda\ expression=
+
+#: init.lisp:987
+!lambda\ list\ must\ not\ end\ with\ the\ atom\ ~S=
+
+#: init.lisp:1019 init.lisp:1036
+!~S\:\ variable\ list\ ends\ with\ the\ atom\ ~S=
+
+#: init.lisp:1149
+!FLET/LABELS\:\ code\ contains\ a\ dotted\ list,\ ending\ with\ ~S=
+
+#: init.lisp:1158
+!illegal\ syntax\ in\ FLET/LABELS\:\ ~S=
+
+#: init.lisp:1179
+!FUNCTION-MACRO-LET\:\ code\ contains\ a\ dotted\ list,\ ending\ with\ ~S=
+
+#: init.lisp:1193
+!illegal\ syntax\ in\ FUNCTION-MACRO-LET\:\ ~S=
+
+#: init.lisp:1350
+!Loading\ file\ =
+
+#: init.lisp:1352
+!\ ...=
+
+#: init.lisp:1378
+!Loading\ of\ file\ =
+
+#: init.lisp:1380
+!\ is\ finished.=
+
+#: init.lisp:1387
+!A\ file\ with\ name\ ~A\ does\ not\ exist=
+
+#: init.lisp:1401
+!~S\:\ missing\ function\ name\ and/or\ parameter\ list=
+
+#: init.lisp:1409
+!~S\:\ ~S\ is\ not\ a\ symbol.=
+
+#: init.lisp:1414
+!~S\:\ special\ operator\ ~S\ cannot\ be\ redefined.=
+
+#: init.lisp:1459 macros1.lisp:145
+!exit\ clause\ in\ ~S\ must\ be\ a\ list=
+
+#: init.lisp:1610
+!~S\:\ cannot\ define\ a\ function\ from\ that\:\ ~S=
+
+#: init.lisp:1615 clos.lisp:2996 clos.lisp:3053
+!~S\:\ the\ name\ of\ a\ function\ must\ be\ a\ symbol,\ not\ ~S=
+
+#: init.lisp:1620
+!~S\:\ function\ ~S\ is\ missing\ a\ lambda\ list=
+
+#: init.lisp:1843 condition.lisp:1475 reploop.lisp:414
+!If\ you\ continue\ (by\ typing\ 'continue')\:\ =
+
+#: backquote.lisp:39
+!~S\:\ comma\ is\ illegal\ outside\ of\ backquote=
+
+#: backquote.lisp:44
+!~S\:\ more\ commas\ out\ than\ backquotes\ in,\ is\ illegal=
+
+#: backquote.lisp:205
+!The\ syntax\ ,@form\ is\ valid\ only\ in\ lists=
+
+#: backquote.lisp:210
+!The\ syntax\ ,.form\ is\ valid\ only\ in\ lists=
+
+#: defmacro.lisp:44
+!Both\ will\ be\ ignored.=
+
+#: defmacro.lisp:45
+!Invalid\ keyword-value-pair\:\ ~S\ ~S=
+
+#: defmacro.lisp:54
+!The\ macro\ ~S\ may\ not\ be\ called\ with\ ~S\ arguments\:\ ~S=
+
+#: defmacro.lisp:125 defmacro.lisp:150 defmacro.lisp:301
+!The\ rest\ of\ the\ lambda\ list\ will\ be\ ignored.=
+
+#: defmacro.lisp:126
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ a\ dot\ after\ &AUX.=
+
+#: defmacro.lisp:132
+!in\ macro\ ~S\:\ ~S\ may\ not\ be\ used\ as\ &AUX\ variable.=
+
+#: defmacro.lisp:151
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ a\ dot\ after\ &KEY.=
+
+#: defmacro.lisp:160 defmacro.lisp:178 defmacro.lisp:380 defmacro.lisp:396
+#: defmacro.lisp:401
+!It\ will\ be\ ignored.=
+
+#: defmacro.lisp:161
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ a\ badly\ placed\ ~S.=
+
+#: defmacro.lisp:179
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ the\ invalid\ element\ ~S=
+
+#: defmacro.lisp:209
+!~0*It\ will\ be\ ignored.=
+
+#: defmacro.lisp:210
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ an\ invalid\ keyword\ specification\ ~S=
+
+#: defmacro.lisp:281
+!The\ lambda\ list\ of\ macro\ ~S\ is\ missing\ a\ variable\ after\ &REST/&BODY.=
+
+#: defmacro.lisp:292
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ an\ illegal\ variable\ after\ &REST/&BODY\:\ ~S=
+
+#: defmacro.lisp:302
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ a\ misplaced\ dot.=
+
+#: defmacro.lisp:307
+!They\ will\ be\ ignored.=
+
+#: defmacro.lisp:308
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ superfluous\ elements\:\ ~S=
+
+#: defmacro.lisp:361
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ an\ illegal\ &REST\ variable\:\ ~S=
+
+#: defmacro.lisp:375
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ an\ invalid\ &WHOLE\:\ ~S=
+
+#: defmacro.lisp:381
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ a\ superfluous\ ~S.=
+
+#: defmacro.lisp:397
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ ~S\ before\ &KEY.=
+
+#: defmacro.lisp:402
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ ~S\ which\ is\ illegal\ here.=
+
+#: defmacro.lisp:421
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ an\ invalid\ element\ ~S=
+
+#: defmacro.lisp:435
+!The\ lambda\ list\ of\ macro\ ~S\ contains\ an\ invalid\ supplied-variable\ ~S=
+
+#: defmacro.lisp:497
+!In\ the\ lambda\ list\ of\ macro\ ~S,\ &ENVIRONMENT\ must\ be\ followed\ by\ a\ non-NIL\ symbol\:\ ~S=
+
+#: defmacro.lisp:519
+!Cannot\ define\ a\ macro\ from\ that\:\ ~S=
+
+#: defmacro.lisp:524
+!The\ name\ of\ a\ macro\ must\ be\ a\ symbol,\ not\ ~S=
+
+#: defmacro.lisp:529
+!Macro\ ~S\ is\ missing\ a\ lambda\ list.=
+
+#: macros1.lisp:20 macros1.lisp:43
+!~S\:\ non-symbol\ ~S\ can't\ be\ a\ variable=
+
+#: macros1.lisp:25 macros1.lisp:48
+!~S\:\ the\ constant\ ~S\ must\ not\ be\ redefined\ to\ be\ a\ variable=
+
+#: macros1.lisp:62
+!~S\:\ non-symbol\ ~S\ can't\ be\ a\ defined\ constant=
+
+#: macros1.lisp:95
+!~S\ redefines\ the\ constant\ ~S.\ Its\ old\ value\ was\ ~S.=
+
+#: macros1.lisp:150
+!Invalid\ syntax\ in\ ~S\ form\:\ ~S.=
+
+#: macros1.lisp:265 places.lisp:697
+!~S\ called\ with\ an\ odd\ number\ of\ arguments\:\ ~S=
+
+#: macros1.lisp:307
+!~S\:\ missing\ key\ list=
+
+#: macros1.lisp:314
+!~S\:\ the\ ~S\ clause\ must\ be\ the\ last\ one=
+
+#: macros1.lisp:365 macros1.lisp:435
+!Not\ a\ list\ of\ COND\ clauses\:\ ~S=
+
+#: macros1.lisp:370 macros1.lisp:440
+!The\ atom\ ~S\ must\ not\ be\ used\ as\ a\ COND\ clause.=
+
+#: macros1.lisp:405
+!COND\ code\ contains\ a\ dotted\ list,\ ending\ with\ ~S=
+
+#: macros1.lisp:411 compiler.lisp:7439
+!COND\ clause\ without\ test\:\ ~S=
+
+#: macros2.lisp:40
+!Language\ ~S\ is\ not\ defined=
+
+#: macros2.lisp:50
+!Language\ ~S\ inherits\ from\ ~S=
+
+#: macros2.lisp:100
+!~S\:\ Language\ ~S\ is\ not\ defined=
+
+#: macros2.lisp:123
+!~S\ ~S\:\ no\ value\ for\ default\ language\ ~S=
+
+#: macros2.lisp:138
+!Invalid\ clause\ in\ ~S\:\ ~S=
+
+#: macros2.lisp:157
+!~A~%The\ value\ is\:\ ~S=
+
+#: macros2.lisp:161
+!The\ value\ of\ ~S\ should\ be\ ~\:[of\ type\ ~S~;~\:*~A~].=
+
+#: macros2.lisp:165
+!You\ may\ input\ a\ new\ value.=
+
+#: macros2.lisp:168
+!~%New\ ~S\:\ =
+
+#: macros2.lisp:189
+!Retry=
+
+#: macros2.lisp:192
+!You\ may\ input\ new\ values.=
+
+#: macros2.lisp:196
+!~S\ must\ evaluate\ to\ a\ non-NIL\ value.=
+
+#: macros2.lisp:232
+!The\ value\ of\ ~S\ must\ be\ of\ one\ of\ the\ types\ ~{~S~^,\ ~}=
+
+#: macros2.lisp:237
+!The\ value\ of\ ~S\ must\ be\ one\ of\ ~{~S~^,\ ~}=
+
+#: macros2.lisp:253 condition.lisp:1303
+!~S\ used\ as\ a\ key\ in\ ~S,\ it\ would\ be\ better\ to\ use\ parentheses.=
+
+#: macros2.lisp:338
+!type\ name\ should\ be\ a\ symbol,\ not\ ~S=
+
+#: macros2.lisp:343
+!~S\ is\ a\ built-in\ type\ and\ may\ not\ be\ redefined.=
+
+#: macros2.lisp:376
+!The\ deftype\ expander\ for\ ~S\ may\ not\ be\ called\ with\ ~S\ arguments.=
+
+#: macros2.lisp:384
+!~S\:\ the\ name\ of\ a\ symbol\ macro\ must\ be\ a\ symbol,\ not\ ~S=
+
+#: macros2.lisp:399
+!~S\:\ the\ symbol\ ~S\ names\ a\ global\ variable=
+
+#: defs1.lisp:98
+!missing\ symbol\ types\ (~S/~S/~S)\ in\ ~S=
+
+#: defs1.lisp:105
+!~S\:\ flag\ must\ be\ one\ of\ the\ symbols\ ~S,\ ~S,\ ~S,\ not\ ~S=
+
+#: defs1.lisp:418
+!~S\:\ ~S\ does\ not\ name\ a\ logical\ host=
+
+#: defs1.lisp:456
+!No\ translations\ for\ logical\ host\ ~S\ found=
+
+#: defs1.lisp:542
+!~S\:\ argument\ ~S\ should\ be\ a\ nonnegative\ number=
+
+#: defs1.lisp:704
+!incorrect\ date\:\ ~S.~S.~S,\ ~Sh~Sm~Ss,\ time\ zone\ ~S=
+
+#: defs1.lisp:773
+!special\ operator=
+
+#: defs1.lisp:776
+!function=
+
+#: defs1.lisp:778
+!macro=
+
+#: places.lisp:24
+!The\ function\ (~S\ ~S)\ is\ hidden\ by\ a\ SETF\ expander.=
+
+#: places.lisp:85
+!The\ argument\ ~S\ to\ ~S\ should\ be\ a\ keyword.=
+
+#: places.lisp:140
+!Argument\ ~S\ is\ not\ a\ SETF\ place.=
+
+#: places.lisp:153
+!SETF\ place\ ~S\ produces\ more\ than\ one\ store\ variable.=
+
+#: places.lisp:177 places.lisp:185
+!~S\:\ first\ argument\ ~S\ is\ illegal,\ not\ a\ symbol=
+
+#: places.lisp:221
+!The\ name\ of\ the\ access\ function\ must\ be\ a\ symbol,\ not\ ~S=
+
+#: places.lisp:254
+!The\ SETF\ expander\ for\ ~S\ may\ not\ be\ called\ with\ ~S\ arguments.=
+
+#: places.lisp:291
+!Too\ many\ arguments\ to\ DEFSETF\:\ ~S=
+
+#: places.lisp:295
+!The\ doc\ string\ to\ DEFSETF\ must\ be\ a\ string\:\ ~S=
+
+#: places.lisp:305
+!Missing\ store\ variable\ in\ DEFSETF.=
+
+#: places.lisp:346
+!Illegal\ syntax\ in\ DEFSETF\ for\ ~S=
+
+#: places.lisp:359
+!(SETF\ (NTH\ ...)\ ...)\ \:\ index\ ~S\ is\ too\ large\ for\ ~S=
+
+#: places.lisp:459
+!PSETF\ called\ with\ an\ odd\ number\ of\ arguments\:\ ~S=
+
+#: places.lisp:505
+!REMF\:\ property\ list\ with\ an\ odd\ length=
+
+#: places.lisp:555
+!In\ the\ definition\ of\ ~S\:\ &REST\ variable\ ~S\ should\ be\ a\ symbol.=
+
+#: places.lisp:561
+!Only\ one\ variable\ is\ allowed\ after\ &REST,\ not\ ~S=
+
+#: places.lisp:566
+!Illegal\ in\ a\ DEFINE-MODIFY-MACRO\ lambda\ list\:\ ~S=
+
+#: places.lisp:574
+!lambda\ list\ may\ only\ contain\ symbols\ and\ lists,\ not\ ~S=
+
+#: places.lisp:691
+!Illegal\ SETF\ place\:\ ~S=
+
+#: places.lisp:710
+!SHIFTF\ called\ with\ too\ few\ arguments\:\ ~S=
+
+#: places.lisp:750
+!(SETF\ (GETF\ ...)\ ...)\ \:\ property\ list\ with\ an\ odd\ length=
+
+#: places.lisp:785
+!first\ argument\ ~S\ is\ illegal,\ not\ a\ symbol=
+
+#: places.lisp:896
+!SETF\ APPLY\ is\ only\ defined\ for\ functions\ of\ the\ form\ \#'symbol.=
+
+#: places.lisp:902
+!APPLY\ on\ ~S\ is\ not\ a\ SETF\ place.=
+
+#: places.lisp:957
+!SETF\ FUNCALL\ is\ only\ defined\ for\ functions\ of\ the\ form\ \#'symbol.=
+
+#: places.lisp:1004
+!SETF\ place\ ~S\ expects\ different\ numbers\ of\ values\ in\ the\ true\ and\ branches\ (~D\ vs.\ ~D\ values).=
+
+#: floatprint.lisp:341
+!argument\ is\ not\ a\ float\:\ ~S=
+
+#: type.lisp:30
+!~S\:\ invalid\ type\ specification\ ~S=
+
+#: type.lisp:61 compiler.lisp:8580
+!~S\:\ argument\ to\ SATISFIES\ must\ be\ a\ symbol\:\ ~S=
+
+#: type.lisp:331 type.lisp:340 type.lisp:350 type.lisp:360
+!~S\:\ argument\ to\ ~S\ must\ be\ *,\ ~S\ or\ a\ list\ of\ ~S\:\ ~S=
+
+#: type.lisp:447
+!~S\:\ argument\ to\ MOD\ must\ be\ an\ integer\:\ ~S=
+
+#: type.lisp:455
+!~S\:\ argument\ to\ SIGNED-BYTE\ must\ be\ an\ integer\ or\ *\ \:\ ~S=
+
+#: type.lisp:465
+!~S\:\ argument\ to\ UNSIGNED-BYTE\ must\ be\ an\ integer\ or\ *\ \:\ ~S=
+
+#: type.lisp:639
+!Invalid\ type\ specifier\ ~S=
+
+#: defstruct.lisp:63 foreign1.lisp:423
+!~S\:\ this\ is\ not\ a\ symbol\:\ ~S=
+
+#: defstruct.lisp:425
+!~S\:\ invalid\ syntax\ for\ name\ and\ options\:\ ~S=
+
+#: defstruct.lisp:449
+!~S\ ~S\:\ argument\ list\ should\ be\ a\ list\:\ ~S=
+
+#: defstruct.lisp:472
+!~S\ ~S\:\ At\ most\ one\ \:INCLUDE\ argument\ may\ be\ specified\:\ ~S=
+
+#: defstruct.lisp:480
+!~S\:\ Use\ of\ ~S\ implicitly\ applies\ FUNCTION.~@\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Therefore\ using\ ~S\ instead\ of\ ~S.=
+
+#: defstruct.lisp:493 condition.lisp:106
+!~S\ ~S\:\ unknown\ option\ ~S=
+
+#: defstruct.lisp:497 clos.lisp:3131 condition.lisp:112
+!~S\ ~S\:\ invalid\ syntax\ in\ ~S\ option\:\ ~S=
+
+#: defstruct.lisp:501 clos.lisp:3066 condition.lisp:116
+!~S\ ~S\:\ not\ a\ ~S\ option\:\ ~S=
+
+#: defstruct.lisp:525
+!~S\ ~S\:\ There\ is\ no\ \:PREDICATE\ on\ unnamed\ structures.=
+
+#: defstruct.lisp:551
+!~S\ ~S\:\ invalid\ \:TYPE\ option\ ~S=
+
+#: defstruct.lisp:557
+!~S\ ~S\:\ The\ \:INITIAL-OFFSET\ must\ be\ a\ nonnegative\ integer,\ not\ ~S=
+
+#: defstruct.lisp:563
+!~S\ ~S\:\ \:INITIAL-OFFSET\ must\ not\ be\ specified\ without\ \:TYPE\ \:\ ~S=
+
+#: defstruct.lisp:581
+!~S\ ~S\:\ included\ structure\ ~S\ has\ not\ been\ defined.=
+
+#: defstruct.lisp:593
+!~S\ ~S\:\ included\ structure\ ~S\ must\ be\ of\ the\ same\ type\ ~S.=
+
+#: defstruct.lisp:618
+!~S\ ~S\:\ included\ structure\ ~S\ has\ no\ component\ with\ name\ ~S.=
+
+#: defstruct.lisp:647
+!~S\ ~S\:\ The\ READ-ONLY\ slot\ ~S\ of\ the\ included\ structure\ ~S\ must\ remain\ READ-ONLY\ in\ ~S.=
+
+#: defstruct.lisp:657
+!~S\ ~S\:\ The\ type\ ~S\ of\ slot\ ~S\ should\ be\ a\ subtype\ of\ the\ type\ defined\ for\ the\ included\ strucure\ ~S,\ namely\ ~S.=
+
+#: defstruct.lisp:663 defstruct.lisp:761
+!~S\ ~S\:\ ~S\ is\ not\ a\ slot\ option.=
+
+#: defstruct.lisp:695
+!~S\ ~S\:\ structure\ of\ type\ ~S\ can't\ hold\ the\ name.=
+
+#: defstruct.lisp:747
+!~S\ ~S\:\ There\ may\ be\ only\ one\ slot\ with\ the\ name\ ~S.=
+
+#: format.lisp:70
+!The\ control\ string\ terminates\ within\ a\ directive.=
+
+#: format.lisp:137
+!~A\ must\ introduce\ a\ number.=
+
+#: format.lisp:147
+!The\ control\ string\ terminates\ in\ the\ middle\ of\ a\ parameter.=
+
+#: format.lisp:227
+!Non-existent\ directive=
+
+#: format.lisp:235
+!Closing\ '/'\ is\ missing=
+
+#: format.lisp:248
+!There\ is\ no\ package\ with\ name\ ~S=
+
+#: format.lisp:263
+!The\ closing\ directive\ '~A'\ does\ not\ have\ a\ corresponding\ opening\ one.=
+
+#: format.lisp:268
+!The\ closing\ directive\ '~A'\ does\ not\ match\ the\ corresponding\ opening\ one.\ It\ should\ read\ '~A'.=
+
+#: format.lisp:277 format.lisp:1641 format.lisp:2445
+!The\ ~~;\ directive\ is\ not\ allowed\ at\ this\ point.=
+
+#: format.lisp:287
+!The\ ~~newline\ directive\ cannot\ take\ both\ modifiers.=
+
+#: format.lisp:308
+!An\ opening\ directive\ is\ never\ closed;\ expecting\ '~A'.=
+
+#: format.lisp:333
+!~%Current\ point\ in\ control\ string\:=
+
+#: format.lisp:383
+!The\ destination\ string\ ~S\ should\ have\ a\ fill\ pointer.=
+
+#: format.lisp:390
+!The\ destination\ argument\ ~S\ is\ invalid\ (not\ NIL\ or\ T\ or\ a\ stream\ or\ a\ string).=
+
+#: format.lisp:419
+!~S\:\ The\ control-string\ must\ be\ a\ string,\ not\ ~S=
+
+#: format.lisp:430
+!There\ are\ not\ enough\ arguments\ left\ for\ this\ directive.=
+
+#: format.lisp:528
+!The\ ~~\:@R\ directive\ requires\ an\ integer\ in\ the\ range\ 1\ -\ 4999,\ not\ ~S=
+
+#: format.lisp:547
+!The\ ~~@R\ directive\ requires\ an\ integer\ in\ the\ range\ 1\ -\ 3999,\ not\ ~S=
+
+#: format.lisp:611
+!The\ argument\ for\ the\ ~~R\ directive\ is\ too\ large.=
+
+#: format.lisp:1331
+!The\ ~~R\ and\ ~~\:R\ directives\ require\ an\ integer\ argument,\ not\ ~S=
+
+#: format.lisp:1353
+!The\ ~~C\ directive\ requires\ a\ character\ argument,\ not\ ~S=
+
+#: format.lisp:1579
+!The\ control\ string\ argument\ for\ the\ ~~?\ directive\ is\ invalid\:\ ~S=
+
+#: format.lisp:1584
+!The\ argument\ list\ argument\ for\ the\ ~~?\ directive\ is\ invalid\:\ ~S=
+
+#: format.lisp:1646
+!The\ ~~[\ parameter\ must\ be\ an\ integer,\ not\ ~S=
+
+#: format.lisp:1665
+!The\ ~~[\ directive\ cannot\ take\ both\ modifiers.=
+
+#: format.lisp:1691
+!The\ ~~{\ directive\ requires\ a\ list\ argument,\ not\ ~S=
+
+#: format.lisp:2179
+!Too\ many\ arguments\ for\ this\ directive=
+
+#: format.lisp:2718
+!The\ control-string\ must\ be\ a\ string,\ not\ ~S=
+
+#: trace.lisp:85 trace.lisp:253
+!~S\:\ function\ name\ should\ be\ a\ symbol,\ not\ ~S=
+
+#: trace.lisp:95
+!~S\:\ undefined\ function\ ~S=
+
+#: trace.lisp:101
+!~S\:\ cannot\ trace\ special\ operator\ ~S=
+
+#: trace.lisp:112
+!~&;;\ Tracing\ ~\:[function~;macro~]\ ~S.=
+
+#: trace.lisp:266
+!~S\:\ ~S\ was\ traced\ and\ has\ been\ redefined\!=
+
+#: compiler.lisp:226
+!~1{~5@*~D/~4@*~D/~3@*~D\ ~2@*~2,'0D.~1@*~2,'0D.~0@*~2,'0D~\:}=
+
+#: compiler.lisp:387
+!Bad\ length\ of\ closure\ vector\:\ ~S=
+
+#: compiler.lisp:1783
+!Compiler\ bug\!\!\ Occurred\ in\ ~A~@[\ at\ ~A~].=
+
+#: compiler.lisp:2488
+!Bad\ declaration\ syntax\:\ ~S~%Will\ be\ ignored.=
+
+#: compiler.lisp:2508
+!Non-symbol\ ~S\ may\ not\ be\ declared\ SPECIAL.=
+
+#: compiler.lisp:2515
+!Non-symbol\ ~S\ may\ not\ be\ declared\ IGNORE.=
+
+#: compiler.lisp:2522
+!Non-symbol\ ~S\ may\ not\ be\ declared\ IGNORABLE.=
+
+#: compiler.lisp:2529
+!Non-symbol\ ~S\ may\ not\ be\ declared\ READ-ONLY.=
+
+#: compiler.lisp:2534
+!Unknown\ declaration\ ~S.~%The\ whole\ declaration\ will\ be\ ignored.=
+
+#: compiler.lisp:2924
+!\ in\ line\ ~D=
+
+#: compiler.lisp:2925
+!\ in\ lines\ ~D..~D=
+
+#: compiler.lisp:2937
+!~%WARNING~@[\ in\ function\ ~S~]~A\ \:~%=
+
+#: compiler.lisp:2969
+!~%ERROR~@[\ in\ function\ ~S~]~A\ \:~%~?=
+
+#: compiler.lisp:3110
+!Code\ contains\ dotted\ list\ ~S=
+
+#: compiler.lisp:3114
+!Form\ too\ short,\ too\ few\ arguments\:\ ~S=
+
+#: compiler.lisp:3119
+!Form\ too\ long,\ too\ many\ arguments\:\ ~S=
+
+#: compiler.lisp:3301
+!Not\ the\ name\ of\ a\ function\:\ ~S=
+
+#: compiler.lisp:3382 compiler.lisp:3458
+!~S\ is\ neither\ declared\ nor\ bound,~@\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ it\ will\ be\ treated\ as\ if\ it\ were\ declared\ SPECIAL.=
+
+#: compiler.lisp:3475
+!The\ constant\ ~S\ may\ not\ be\ assigned\ to.~@\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ The\ assignment\ will\ be\ ignored.=
+
+#: compiler.lisp:3614
+!argument\ list\ to\ function\ ~S\ is\ dotted\:\ ~S=
+
+#: compiler.lisp:3620
+!~S\ called\ with\ ~S~\:[~;\ or\ more~]\ arguments,\ but\ it\ requires\ ~\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ~\:[~\:[from\ ~S\ to\ ~S~;~S~]~;at\ least\ ~*~S~]\ arguments.=
+
+#: compiler.lisp:3633
+!keyword\ arguments\ to\ function\ ~S\ should\ occur\ pairwise\:\ ~S=
+
+#: compiler.lisp:3644
+!keyword\ ~S\ is\ not\ allowed\ for\ function\ ~S.~\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ~%The\ only\ allowed\ keyword~\:[s\ are\ ~{~S~\#[~;\ and\ ~S~\:;,\ ~]~}~;\ is\ ~{~S~}~].=
+
+#: compiler.lisp:3656
+!argument\ ~S\ to\ function\ ~S\ is\ not\ a\ symbol=
+
+#: compiler.lisp:4325
+!~S\ called\ with\ ~S\ arguments,\ but\ it\ requires\ ~\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ ~\:[~\:[from\ ~S\ to\ ~S~;~S~]~;at\ least\ ~*~S~]\ arguments.=
+
+#: compiler.lisp:4505
+!Illegal\ syntax\ in\ LET/LET*\:\ ~S=
+
+#: compiler.lisp:4542
+!Lambda\ list\ marker\ ~S\ not\ allowed\ here.=
+
+#: compiler.lisp:4548
+!Missing\ &REST\ parameter\ in\ lambda\ list\ ~S=
+
+#: compiler.lisp:4554
+!Lambda\ list\ element\ ~S\ is\ superfluous.=
+
+#: compiler.lisp:4729
+!Lambda\ lists\ with\ dots\ are\ only\ allowed\ in\ macros,\ not\ here\:\ ~S=
+
+#: compiler.lisp:4745
+!Illegal\ lambda\ list\ element\ ~S=
+
+#: compiler.lisp:4841
+!Binding\ variable\ ~S\ can\ cause\ side\ effects\ despite\ of\ IGNORE\ declaration~%since\ it\ is\ declared\ SPECIAL.=
+
+#: compiler.lisp:4845
+!variable\ ~S\ is\ used\ despite\ of\ IGNORE\ declaration.=
+
+#: compiler.lisp:4856
+!variable\ ~S\ is\ not\ used.~%Misspelled\ or\ missing\ IGNORE\ declaration?=
+
+#: compiler.lisp:4862
+!The\ variable\ ~S\ is\ assigned\ to,\ despite\ of\ READ-ONLY\ declaration.=
+
+#: compiler.lisp:4908 compiler.lisp:5044
+!Constant\ ~S\ cannot\ be\ bound.=
+
+#: compiler.lisp:5806
+!Misplaced\ declaration\:\ ~S=
+
+#: compiler.lisp:6018
+!Odd\ number\ of\ arguments\ to\ SETQ\:\ ~S=
+
+#: compiler.lisp:6055 compiler.lisp:6092 compiler.lisp:6190
+!Cannot\ assign\ to\ non-symbol\ ~S.=
+
+#: compiler.lisp:6067
+!Odd\ number\ of\ arguments\ to\ PSETQ\:\ ~S=
+
+#: compiler.lisp:6328
+!Only\ symbols\ may\ be\ used\ as\ variables,\ not\ ~S=
+
+#: compiler.lisp:6433
+!Illegal\ syntax\ in\ COMPILER-LET\:\ ~S=
+
+#: compiler.lisp:6441
+!Block\ name\ must\ be\ a\ symbol,\ not\ ~S=
+
+#: compiler.lisp:6490
+!RETURN-FROM\ block\ ~S\ is\ impossible\ from\ here.=
+
+#: compiler.lisp:6556
+!Only\ numbers\ and\ symbols\ are\ valid\ tags,\ not\ ~S=
+
+#: compiler.lisp:6634
+!Tag\ must\ be\ a\ symbol\ or\ a\ number,\ not\ ~S=
+
+#: compiler.lisp:6639
+!GO\ to\ tag\ ~S\ is\ impossible\ from\ here.=
+
+#: compiler.lisp:6730
+!~S\ is\ not\ a\ function.\ It\ is\ a\ locally\ defined\ macro.=
+
+#: compiler.lisp:6749
+!Only\ symbols\ and\ lambda\ expressions\ are\ function\ names,\ not\ ~S=
+
+#: compiler.lisp:6804
+!Illegal\ function\ definition\ syntax\ in\ ~S\:\ ~S=
+
+#: compiler.lisp:7377
+!Illegal\ syntax\ in\ SYMBOL-MACROLET\:\ ~S=
+
+#: compiler.lisp:7418
+!EVAL-WHEN\ situation\ must\ be\ EVAL\ or\ LOAD\ or\ COMPILE,\ but\ not\ ~S=
+
+#: compiler.lisp:7461
+!CASE\ clause\ without\ objects\:\ ~S=
+
+#: compiler.lisp:7471
+!~S\:\ the\ ~S\ clause\ must\ be\ the\ last\ one\:\ ~S=
+
+#: compiler.lisp:7481
+!Duplicate\ ~S\ label\ ~S\ \:\ ~S=
+
+#: compiler.lisp:7743
+!Too\ many\ arguments\ to\ ~S=
+
+#: compiler.lisp:7758
+!Too\ few\ arguments\ to\ ~S=
+
+#: compiler.lisp:8649
+!The\ ~S\ destination\ is\ invalid\ (not\ NIL\ or\ T\ or\ a\ stream\ or\ a\ string\ with\ fill-pointer)\:\ ~S=
+
+#: compiler.lisp:12137
+!Name\ of\ function\ to\ be\ compiled\ must\ be\ a\ symbol,\ not\ ~S=
+
+#: compiler.lisp:12148
+!~S\:\ redefining\ ~S;\ it\ was\ traced\!=
+
+#: compiler.lisp:12156 compiler.lisp:12189
+!~S\ is\ already\ compiled.=
+
+#: compiler.lisp:12177 compiler.lisp:12819
+!Undefined\ function\ ~S=
+
+#: compiler.lisp:12198
+!Not\ a\ lambda\ expression\ nor\ a\ function\:\ ~S=
+
+#: compiler.lisp:12384
+!~%There\ were\ errors\ in\ the\ following\ functions\:~%~{~<~%~\:;\ ~S~>~^~}=
+
+#: compiler.lisp:12389
+!~%The\ following\ functions\ were\ used\ but\ not\ defined\:~%~{~<~%~\:;\ ~S~>~^~}=
+
+#: compiler.lisp:12396
+!~%The\ following\ special\ variables\ were\ not\ defined\:~%~{~<~%~\:;\ ~S~>~^~}=
+
+#: compiler.lisp:12399
+!~%The\ following\ special\ variables\ were\ defined\ too\ late\:~%~{~<~%~\:;\ ~S~>~^~}=
+
+#: compiler.lisp:12402
+!~%The\ following\ functions\ were\ used\ but\ are\ deprecated\:~%~{~<~%~\:;\ ~S~>~^~}=
+
+#: compiler.lisp:12529
+!~&Listing\ of\ compilation\ of\ file\ ~A~%on\ ~@?\ by\ ~A,\ version\ ~A=
+
+#: compiler.lisp:12561
+!~%Compiling\ file\ ~A\ ...=
+
+#: compiler.lisp:12611
+!~&~%Compilation\ of\ file\ ~A\ is\ finished.=
+
+#: compiler.lisp:12613
+!~%~D\ error~\:P,\ ~D\ warning~\:P=
+
+#: compiler.lisp:12663
+!~%~%Disassembly\ of\ function\ ~S=
+
+#: compiler.lisp:12674
+!~%~S\ required\ arguments=
+
+#: compiler.lisp:12677
+!~%~S\ optional\ arguments=
+
+#: compiler.lisp:12680
+!~%~\:[No\ rest\ parameter~;Rest\ parameter~]=
+
+#: compiler.lisp:12685
+!~%~S\ keyword\ parameter~\:P\:\ ~{~S~^,\ ~}.=
+
+#: compiler.lisp:12689
+!~%Other\ keywords\ are\ allowed.=
+
+#: compiler.lisp:12691
+!~%No\ keyword\ parameters=
+
+#: compiler.lisp:12708
+!Disassembly\ of\ function\ =
+
+#: compiler.lisp:12726
+!\ required\ arguments=
+
+#: compiler.lisp:12731
+!\ optional\ arguments=
+
+#: compiler.lisp:12736
+!Rest\ parameter=
+
+#: compiler.lisp:12739
+!No\ rest\ parameter=
+
+#: compiler.lisp:12746
+!\ keyword\ parameter~P\:\ =
+
+#: compiler.lisp:12756
+!Other\ keywords\ are\ allowed.=
+
+#: compiler.lisp:12761
+!No\ keyword\ parameters=
+
+#: compiler.lisp:12842
+!Cannot\ disassemble\ ~S=
+
+#: defs2.lisp:63
+!~S\:\ ~S\ is\ not\ a\ function=
+
+#: defs2.lisp:77
+!~S\:\ package\ name\ ~S\ should\ be\ a\ string\ or\ a\ symbol=
+
+#: defs2.lisp:84
+!~S\ ~A\:\ symbol\ name\ ~S\ should\ be\ a\ string\ or\ a\ symbol=
+
+#: defs2.lisp:104
+!~S\ ~A\:\ the\ symbol\ ~A\ must\ not\ be\ specified\ more\ than\ once=
+
+#: defs2.lisp:116 defs2.lisp:124
+!~S\ ~A\:\ the\ ~S\ option\ must\ not\ be\ given\ more\ than\ once=
+
+#: defs2.lisp:182
+!~S\ ~A\:\ unknown\ option\ ~S=
+
+#: defs2.lisp:186
+!~S\ ~A\:\ invalid\ syntax\ in\ ~S\ option\:\ ~S=
+
+#: defs2.lisp:190
+!~S\ ~A\:\ not\ a\ ~S\ option\:\ ~S=
+
+#: defs2.lisp:246
+!This\ symbol\ will\ be\ created.=
+
+#: defs2.lisp:247
+!~S\ ~A\:\ There\ is\ no\ symbol\ ~A\:\:~A\ .=
+
+#: defs2.lisp:321
+!The\ object\ to\ be\ destructured\ should\ be\ a\ list\ with\ ~\:[at\ least\ ~*~S~;~\:[from\ ~S\ to\ ~S~;~S~]~]\ elements,\ not\ ~4@*~S.=
+
+#: defs2.lisp:390
+!~S\:\ macro\ name\ should\ be\ a\ symbol,\ not\ ~S=
+
+#: defs2.lisp:425
+!~S\:\ input\ stream\ ~S\ ends\ within\ read\ macro\ beginning\ to\ ~S=
+
+#: defs2.lisp:431
+!~S\ from\ ~S\:\ character\ read\ should\ be\ a\ character\:\ ~S=
+
+#: defs2.lisp:452
+!~S\ from\ ~S\:\ After\ ~S\ is\ ~S\ an\ undefined\ dispatch\ macro\ character=
+
+#: defs2.lisp:518 defs2.lisp:533
+!~S\:\ ~S\ of\ ~S\ is\ ambiguous.\ Please\ use\ ~S\ or\ ~S.=
+
+#: loop.lisp:47
+!~S\:\ syntax\ error\ after\ ~A\ in\ ~S=
+
+#: loop.lisp:254
+!~S\:\ missing\ variable.=
+
+#: loop.lisp:264
+!~S\:\ After\ ~S,\ ~S\ is\ interpreted\ as\ a\ type\ specification=
+
+#: loop.lisp:520
+!~S\:\ ~A\ clauses\ should\ occur\ before\ the\ loop's\ main\ body=
+
+#: loop.lisp:660
+!~S\:\ After\ ~S\ a\ plural\ loop\ keyword\ is\ required,\ not\ ~A=
+
+#: loop.lisp:665
+!~S\:\ After\ ~S\ a\ singular\ loop\ keyword\ is\ required,\ not\ ~A=
+
+#: loop.lisp:807
+!~S\:\ questionable\ iteration\ direction\ after\ ~A=
+
+#: loop.lisp:816
+!~S\:\ specifying\ ~A\ requires\ FROM\ or\ DOWNFROM=
+
+#: loop.lisp:874
+!~S\:\ illegal\ syntax\ near\ ~S\ in\ ~S=
+
+#: loop.lisp:879
+!~S\:\ ambiguous\ result\ of\ loop\ ~S=
+
+#: loop.lisp:1012
+!~S\ is\ possible\ only\ from\ within\ ~S=
+
+#: loop.lisp:1015
+!Use\ of\ ~S\ in\ FINALLY\ clauses\ is\ deprecated\ because\ it\ can\ lead\ to\ infinite\ loops.=
+
+#: loop.lisp:1018
+!~S\ is\ not\ possible\ here=
+
+#: clos.lisp:167 clos.lisp:188
+!~S\:\ argument\ ~S\ is\ not\ a\ symbol=
+
+#: clos.lisp:174
+!~S\:\ ~S\ does\ not\ name\ a\ class=
+
+#: clos.lisp:194
+!~S\:\ ~S\ is\ not\ a\ class=
+
+#: clos.lisp:201
+!~S\:\ cannot\ redefine\ built-in\ class\ ~S=
+
+#: clos.lisp:206
+!~S\:\ Redefining\ the\ COMMON\ LISP\ class\ ~S=
+
+#: clos.lisp:361
+!instance\ ~S\ of\ class\ ~S\ has\ no\ slots\ (wrong\ metaclass)=
+
+#: clos.lisp:382 clos.lisp:427
+!~S\:\ not\ a\ list\ of\ slots\:\ ~S=
+
+#: clos.lisp:390
+!~S\:\ invalid\ slot\ and\ variable\ specification\ ~S=
+
+#: clos.lisp:396 clos.lisp:438
+!~S\:\ variable\ ~S\ should\ be\ a\ symbol=
+
+#: clos.lisp:402
+!~S\:\ slot\ name\ ~S\ should\ be\ a\ symbol=
+
+#: clos.lisp:433
+!~S\:\ invalid\ slot\ and\ accessor\ specification\ ~S=
+
+#: clos.lisp:443
+!~S\:\ accessor\ name\ ~S\ should\ be\ a\ symbol=
+
+#: clos.lisp:534
+!~S\:\ class\ name\ ~S\ should\ be\ a\ symbol=
+
+#: clos.lisp:541
+!~S\ ~S\:\ expecting\ list\ of\ superclasses\ instead\ of\ ~S=
+
+#: clos.lisp:547
+!~S\ ~S\:\ superclass\ name\ ~S\ should\ be\ a\ symbol=
+
+#: clos.lisp:559
+!~S\ ~S\:\ expecting\ list\ of\ slot\ specifications\ instead\ of\ ~S=
+
+#: clos.lisp:569
+!~S\ ~S\:\ slot\ name\ ~S\ should\ be\ a\ symbol=
+
+#: clos.lisp:574
+!~S\ ~S\:\ There\ may\ be\ only\ one\ direct\ slot\ with\ the\ name\ ~S.=
+
+#: clos.lisp:589
+!~S\ ~S\:\ slot\ options\ for\ slot\ ~S\ don't\ come\ in\ pairs=
+
+#: clos.lisp:600
+!~S\ ~S,\ slot\ option\ for\ slot\ ~S\:\ ~S\ is\ not\ a\ function\ name=
+
+#: clos.lisp:610 clos.lisp:632
+!~S\ ~S,\ slot\ option\ for\ slot\ ~S\:\ ~S\ is\ not\ a\ symbol=
+
+#: clos.lisp:620 clos.lisp:640 clos.lisp:649 clos.lisp:657
+!~S\ ~S,\ slot\ option\ ~S\ for\ slot\ ~S\ may\ only\ be\ given\ once=
+
+#: clos.lisp:626
+!~S\ ~S,\ slot\ option\ for\ slot\ ~S\ must\ have\ the\ value\ ~S\ or\ ~S,\ not\ ~S=
+
+#: clos.lisp:662
+!~S\ ~S,\ slot\ option\ for\ slot\ ~S\:\ ~S\ is\ not\ a\ string=
+
+#: clos.lisp:669
+!~S\ ~S,\ slot\ option\ for\ slot\ ~S\:\ ~S\ is\ not\ a\ valid\ slot\ option=
+
+#: clos.lisp:720
+!~S\ ~S,\ option\ ~S\ may\ only\ be\ given\ once=
+
+#: clos.lisp:729 clos.lisp:756
+!~S\ ~S,\ option\ ~S\:\ ~S\ is\ not\ a\ symbol=
+
+#: clos.lisp:740
+!~S\ ~S\:\ option\ ~S\ should\ be\ written\ ~S=
+
+#: clos.lisp:745
+!~S\ ~S,\ option\ ~S\:\ arguments\ don't\ come\ in\ pairs=
+
+#: clos.lisp:761
+!~S\ ~S,\ option\ ~S\:\ ~S\ may\ only\ be\ given\ once=
+
+#: clos.lisp:781
+!~S\ ~S,\ option\ ~S\:\ ~S\ is\ not\ a\ string=
+
+#: clos.lisp:790
+!~S\ ~S\:\ invalid\ option\ ~S=
+
+#: clos.lisp:897
+!~S\:\ Class\ ~S\ is\ being\ redefined,\ instances\ are\ obsolete=
+
+#: clos.lisp:984
+!~S\ ~S\:\ superclass\ ~S\ should\ belong\ to\ class\ STANDARD-CLASS=
+
+#: clos.lisp:1154
+!~S\ ~S\:\ inconsistent\ precedence\ graph,\ cycle\ ~S=
+
+#: clos.lisp:1193
+!(class-precedence-list\ ~S)\ and\ (class-precedence-list\ ~S)\ are\ inconsistent=
+
+#: clos.lisp:1350
+!~S\:\ superclass\ ~S\ should\ belong\ to\ class\ BUILT-IN-CLASS=
+
+#: clos.lisp:1392
+!~S\:\ metaclass\ STRUCTURE-CLASS\ forbids\ more\ than\ one\ direct\ superclass=
+
+#: clos.lisp:1398
+!~S\:\ superclass\ ~S\ should\ belong\ to\ class\ STRUCTURE-CLASS=
+
+#: clos.lisp:1438
+!~S\:\ metaclass\ STRUCTURE-CLASS\ does\ not\ support\ shared\ slots=
+
+#: clos.lisp:1711
+!~S\ ~S\:\ missing\ lambda\ list=
+
+#: clos.lisp:1723
+!STANDARD\ method\ combination\ doesn't\ allow\ the\ method\ qualifiers\ to\ be\ ~S=
+
+#: clos.lisp:1906 clos.lisp:1912
+!~S\ ~S\:\ ~S\ is\ invalid\ within\ ~S\ methods=
+
+#: clos.lisp:2168
+!Too\ few\ arguments\ to\ ~S\:\ ~S=
+
+#: clos.lisp:2297
+!The\ generic\ function\ ~S\ is\ being\ modified,\ but\ has\ already\ been\ called.=
+
+#: clos.lisp:2856
+!~S\ in\ ~S\:\ the\ new\ arguments\ ~S\ have\ a\ different\ effective\ method\ than\ the\ old\ arguments\ ~S=
+
+#: clos.lisp:2881
+!~S\ has\ ~S,\ but\ ~S\ has\ ~S\ required\ parameters=
+
+#: clos.lisp:2886
+!~S\ has\ ~S,\ but\ ~S\ has\ ~S\ optional\ parameters=
+
+#: clos.lisp:2891 clos.lisp:2896
+!~S\ has\ &REST\ or\ &KEY,\ but\ ~S\ hasn't.=
+
+#: clos.lisp:2908
+!~S\ doesn't\ accept\ the\ keywords\ ~S\ of\ ~S=
+
+#: clos.lisp:2938
+!Replacing\ method\ ~S\ in\ ~S=
+
+#: clos.lisp:2956
+!Removing\ method\ ~S\ in\ ~S=
+
+#: clos.lisp:2984
+!~S\ has\ no\ method\ with\ qualifiers\ ~\:S\ and\ specializers\ ~S=
+
+#: clos.lisp:3013 clos.lisp:3320
+!~S\ doesn't\ name\ a\ generic\ function=
+
+#: clos.lisp:3075
+!~S\ ~S\:\ Only\ ~S\ declarations\ are\ permitted\:\ ~S=
+
+#: clos.lisp:3084
+!~S\ ~S\:\ ~S\ may\ only\ be\ specified\ once.=
+
+#: clos.lisp:3092
+!~S\ ~S\:\ A\ string\ must\ be\ specified\ after\ ~S\ \:\ ~S=
+
+#: clos.lisp:3097
+!~S\ ~S\:\ Only\ one\ ~S\ string\ is\ allowed=
+
+#: clos.lisp:3105
+!~S\ ~S\:\ The\ only\ valid\ method\ combination\ is\ ~S\ \:\ ~S=
+
+#: clos.lisp:3113
+!~S\ ~S\:\ The\ only\ valid\ generic\ function\ class\ name\ is\ ~S\ \:\ ~S=
+
+#: clos.lisp:3121
+!~S\ ~S\:\ The\ only\ valid\ method\ class\ name\ is\ ~S\ \:\ ~S=
+
+#: clos.lisp:3140
+!~S\ ~S\:\ ~S\ is\ not\ one\ of\ the\ required\ parameters\:\ ~S=
+
+#: clos.lisp:3152
+!~S\ ~S\:\ some\ variable\ occurs\ twice\ in\ ~S=
+
+#: clos.lisp:3157
+!~S\ ~S\:\ ~S\ is\ missing\ some\ required\ parameter=
+
+#: clos.lisp:3186
+!~S\ ~S\:\ No\ initializations\ are\ allowed\ in\ a\ generic\ function\ lambda-list\:\ ~S=
+
+#: clos.lisp:3192
+!~S\ ~S\:\ variable\ name\ ~S\ should\ be\ a\ symbol=
+
+#: clos.lisp:3197
+!~S\ ~S\:\ duplicate\ variable\ name\ ~S=
+
+#: clos.lisp:3248
+!~S\ ~S\:\ invalid\ lambda\ list\ portion\:\ ~S=
+
+#: clos.lisp:3301
+!Removing\ all\ methods\ of\ ~S=
+
+#: clos.lisp:3309
+!Modifying\ the\ parameter\ profile\ of\ ~S=
+
+#: clos.lisp:3365
+!~S\:\ ~S\ is\ not\ a\ generic\ function\ specification=
+
+#: clos.lisp:3428
+!~S\:\ The\ name\ of\ a\ class\ must\ be\ a\ symbol,\ not\ ~S=
+
+#: clos.lisp:3433
+!~S\:\ The\ name\ of\ the\ built-in\ class\ ~S\ cannot\ be\ modified=
+
+#: clos.lisp:3476 clos.lisp:3480
+!~S\:\ When\ calling\ ~S\ with\ arguments\ ~S,\ no\ method\ is\ applicable.=
+
+#: clos.lisp:3498 clos.lisp:3502
+!~S\:\ When\ calling\ ~S\ with\ arguments\ ~S,\ no\ primary\ method\ is\ applicable.=
+
+#: clos.lisp:3512
+!~S\:\ When\ calling\ ~S\ with\ arguments\ ~S,\ there\ is\ no\ next\ method\ after\ ~S,\ and\ ~S\ was\ called.=
+
+#: clos.lisp:3563
+!~S\:\ The\ class\ ~S\ has\ no\ slot\ named\ ~S=
+
+#: clos.lisp:3573
+!~S\:\ The\ slot\ ~S\ of\ ~S\ has\ no\ value=
+
+#: clos.lisp:4082
+!~S\ method\ for\ ~S\ returned\ ~S=
+
+#: condition.lisp:80
+!~S\:\ the\ name\ of\ a\ condition\ must\ be\ a\ symbol,\ not\ ~S=
+
+#: condition.lisp:85
+!~S\:\ the\ parent-type\ list\ must\ be\ a\ list\ of\ symbols,\ not\ ~S=
+
+#: condition.lisp:90
+!~S\:\ the\ slot\ description\ list\ must\ be\ a\ list,\ not\ ~S=
+
+#: condition.lisp:145
+!~S\:\ type\ ~S\ is\ not\ a\ subtype\ of\ ~S=
+
+#: condition.lisp:161
+!~S\ ~S\:\ superfluous\ arguments\ ~S=
+
+#: condition.lisp:178
+!~S\:\ the\ condition\ argument\ must\ be\ a\ string,\ a\ symbol\ or\ a\ condition,\ not\ ~S=
+
+#: condition.lisp:579
+!~S\:\ illegal\ syntax\ of\ clause\ ~S=
+
+#: condition.lisp:586
+!~S\:\ only\ one\ ~S\ clause\ is\ allowed\:\ ~S=
+
+#: condition.lisp:594
+!~S\:\ too\ many\ variables\ ~S\ in\ clause\ ~S=
+
+#: condition.lisp:807
+!~S\:\ ~S\ is\ not\ a\ valid\ restart\ name\ here.\ Use\ ~S\ instead.=
+
+#: condition.lisp:828
+!~S\:\ invalid\ restart\ name\ ~S=
+
+#: condition.lisp:835
+!~S\:\ No\ restart\ named\ ~S\ is\ visible.=
+
+#: condition.lisp:893 condition.lisp:952
+!~S\:\ not\ a\ list\:\ ~S=
+
+#: condition.lisp:902 condition.lisp:961
+!~S\:\ invalid\ restart\ specification\ ~S=
+
+#: condition.lisp:913 condition.lisp:999
+!~S\:\ unnamed\ restarts\ require\ ~S\ to\ be\ specified\:\ ~S=
+
+#: condition.lisp:984
+!~S\:\ missing\ lambda\ list\ in\ restart\ specification\ ~S=
+
+#: condition.lisp:1007
+!~S\:\ restart\ cannot\ be\ invoked\ interactively\ because\ it\ is\ missing\ a\ ~S\ option\:\ ~S=
+
+#: condition.lisp:1206
+!~%New\ ~S\ [value\ ~D\ of\ ~D]\:\ =
+
+#: condition.lisp:1425 condition.lisp:1541
+!Return\ from\ ~S\ loop=
+
+#: condition.lisp:1509 condition.lisp:1532
+!WARNING\:=
+
+#: condition.lisp:1521
+!~S\:\ This\ is\ more\ serious\ than\ a\ warning\:\ ~A=
+
+#: xcharin.lisp:36
+!~\:\ argument\ ~S\ is\ not\ a\ character=
+
+#: xcharin.lisp:57
+!~S\:\ the\ font\ argument\ should\ be\ an\ integer,\ not\ ~S=
+
+#: xcharin.lisp:66
+!~S\:\ the\ bits\ argument\ should\ be\ an\ integer,\ not\ ~S=
+
+#: xcharin.lisp:88
+!~S\:\ the\ only\ bit\ names\ are\ ~S,\ ~S,\ ~S,\ ~S,\ not\ ~S=
+
+#: screen.lisp:227
+!Got\ bad\ response\ from\ ~S\:\ ~S=
+
+#: amigasock.lisp:30
+!~S\:\ ~S\ is\ not\ a\ SOCKET-SERVER=
+
+#: beossock.lisp:77 beossock.lisp:87
+!service\ does\ not\ exist\:\ ~A/~A=
+
+#: runprog.lisp:162
+!~S\:\ File\ ~S\ already\ exists=
+
+#: query.lisp:12
+!\ (y/n)\ =
+
+#: query.lisp:23
+!Please\ answer\ with\ y\ or\ n\ \:\ =
+
+#: query.lisp:33
+!\ (yes/no)\ =
+
+#: query.lisp:43
+!Please\ answer\ with\ yes\ or\ no\ \:\ =
+
+#: reploop.lisp:60
+![*package*\ invalid]=
+
+#: reploop.lisp:193
+!Values\:\ =
+
+#: reploop.lisp:210
+!\nHelp\ (abbreviated\ \:h)\ \=\ this\ list\nUse\ the\ usual\ editing\ capabilities.\n(quit)\ or\ (exit)\ leaves\ CLISP.=
+
+#: reploop.lisp:220
+!\nCommands\ may\ be\ abbreviated\ as\ shown\ in\ the\ second\ column.\nCOMMAND\ \ \ \ \ \ \ \ ABBR\ \ \ \ \ \ \ \ \ \ \ \ \ DESCRIPTION\nHelp\ \ \ \ \ \ \ \ \ \ \ \:h\ (or\ ?)\ \ \ \ \ \ \ \ this\ command\ list\nError\ \ \ \ \ \ \ \ \ \ \:e\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Print\ the\ recent\ Error\ Message\nAbort\ \ \ \ \ \ \ \ \ \ \:a\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ abort\ to\ the\ next\ recent\ input\ loop\nUnwind\ \ \ \ \ \ \ \ \ \:uw\ \ \ \ \ \ \ \ \ \ \ \ \ \ abort\ to\ the\ next\ recent\ input\ loop\nMode-1\ \ \ \ \ \ \ \ \ \:m1\ \ \ \ \ \ \ \ \ \ \ \ \ \ inspect\ all\ the\ stack\ elements\nMode-2\ \ \ \ \ \ \ \ \ \:m2\ \ \ \ \ \ \ \ \ \ \ \ \ \ inspect\ all\ the\ frames\nMode-3\ \ \ \ \ \ \ \ \ \:m3\ \ \ \ \ \ \ \ \ \ \ \ \ \ inspect\ only\ lexical\ frames\nMode-4\ \ \ \ \ \ \ \ \ \:m4\ \ \ \ \ \ \ \ \ \ \ \ \ \ inspect\ only\ EVAL\ and\ APPLY\ frames\ (default)\nMode-5\ \ \ \ \ \ \ \ \ \:m5\ \ \ \ \ \ \ \ \ \ \ \ \ \ inspect\ only\ APPLY\ frames\nWhere\ \ \ \ \ \ \ \ \ \ \:w\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ inspect\ this\ frame\nUp\ \ \ \ \ \ \ \ \ \ \ \ \ \:u\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ go\ up\ one\ frame,\ inspect\ it\nTop\ \ \ \ \ \ \ \ \ \ \ \ \:t\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ go\ to\ top\ frame,\ inspect\ it\nDown\ \ \ \ \ \ \ \ \ \ \ \:d\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ go\ down\ one\ frame,\ inspect\ it\nBottom\ \ \ \ \ \ \ \ \ \:b\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ go\ to\ bottom\ (most\ recent)\ frame,\ inspect\ it\nBacktrace-1\ \ \ \ \:bt1\ \ \ \ \ \ \ \ \ \ \ \ \ list\ all\ stack\ elements\nBacktrace-2\ \ \ \ \:bt2\ \ \ \ \ \ \ \ \ \ \ \ \ list\ all\ frames\nBacktrace-3\ \ \ \ \:bt3\ \ \ \ \ \ \ \ \ \ \ \ \ list\ all\ lexical\ frames\nBacktrace-4\ \ \ \ \:bt4\ \ \ \ \ \ \ \ \ \ \ \ \ list\ all\ EVAL\ and\ APPLY\ frames\nBacktrace-5\ \ \ \ \:bt5\ \ \ \ \ \ \ \ \ \ \ \ \ list\ all\ APPLY\ frames\nBacktrace\ \ \ \ \ \ \:bt\ \ \ \ \ \ \ \ \ \ \ \ \ \ list\ stack\ in\ current\ mode\nBacktrace-l\ \ \ \ \:bl\ \ \ \ \ \ \ \ \ \ \ \ \ \ list\ stack\ in\ current\ mode.\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ Limit\ of\ frames\ to\ print\ will\ be\ prompted\ for.\nFrame-limit\ \ \ \ \:fl\ \ \ \ \ \ \ \ \ \ \ \ \ \ set\ the\ frame-limit.\ This\ many\ frames\ will\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ be\ printed\ in\ a\ backtrace\ at\ most.\nBreak+\ \ \ \ \ \ \ \ \ \:br+\ \ \ \ \ \ \ \ \ \ \ \ \ set\ breakpoint\ in\ EVAL\ frame\nBreak-\ \ \ \ \ \ \ \ \ \:br-\ \ \ \ \ \ \ \ \ \ \ \ \ disable\ breakpoint\ in\ EVAL\ frame\nRedo\ \ \ \ \ \ \ \ \ \ \ \:rd\ \ \ \ \ \ \ \ \ \ \ \ \ \ re-evaluate\ form\ in\ EVAL\ frame\nReturn\ \ \ \ \ \ \ \ \ \:rt\ \ \ \ \ \ \ \ \ \ \ \ \ \ leave\ EVAL\ frame,\ prescribing\ the\ return\ values=
+
+#: reploop.lisp:310
+!\nContinue\ \ \ \ \ \ \ \:c\ \ \ \ \ \ \ continue\ evaluation=
+
+#: reploop.lisp:317
+!\nContinue\ \ \ \ \ \ \ \:c\ \ \ \ \ \ \ continue\ evaluation\nStep\ \ \ \ \ \ \ \ \ \ \ \:s\ \ \ \ \ \ \ step\ into\ form\:\ evaluate\ this\ form\ in\ single\ step\ mode\nNext\ \ \ \ \ \ \ \ \ \ \ \:n\ \ \ \ \ \ \ step\ over\ form\:\ evaluate\ this\ form\ at\ once\nOver\ \ \ \ \ \ \ \ \ \ \ \:o\ \ \ \ \ \ \ step\ over\ this\ level\:\ evaluate\ at\ once\ up\ to\ the\ next\ return\nContinue\ \ \ \ \ \ \ \:c\ \ \ \ \ \ switch\ off\ single\ step\ mode,\ continue\ evaluation\n--\ Step-until\ \:su,\ Next-until\ \:nu,\ Over-until\ \:ou,\ Continue-until\ \:cu\ --\n\ \ \ \ \ \ \ \ \ \ \ same\ as\ above,\ specify\ a\ condition\ when\ to\ stop=
+
+#: reploop.lisp:398
+!Unprintable\ error\ message.=
+
+#: reploop.lisp:409
+!You\ can\ continue\ (by\ typing\ 'continue').=
+
+#: reploop.lisp:425
+!The\ following\ restarts\ are\ available,\ too\:=
+
+#: reploop.lisp:426
+!The\ following\ restarts\ are\ available\:=
+
+#: reploop.lisp:523 reploop.lisp:562
+!step\ =
+
+#: reploop.lisp:527
+!no\ values=
+
+#: reploop.lisp:528
+!value\:\ =
+
+#: reploop.lisp:531
+!\ values\:\ =
+
+#: reploop.lisp:597
+!condition\ when\ to\ stop\:\ =
+
+#: dribble.lisp:19
+!Already\ dribbling\ to\ ~S=
+
+#: dribble.lisp:105
+!Currently\ not\ dribbling.=
+
+#: describe.lisp:44
+!constant=
+
+#: describe.lisp:46
+!symbol-macro=
+
+#: describe.lisp:47
+!variable=
+
+#: describe.lisp:54
+!type=
+
+#: describe.lisp:60
+!class=
+
+#: describe.lisp:146
+!~%Slots\:=
+
+#: describe.lisp:153
+!unbound=
+
+#: describe.lisp:156
+!~%No\ slots.=
+
+#: describe.lisp:163
+!a\ foreign\ pointer=
+
+#: describe.lisp:166
+!a\ foreign\ address=
+
+#: describe.lisp:169
+!a\ foreign\ variable\ of\ foreign\ type\ ~S.=
+
+#: describe.lisp:173
+!a\ foreign\ function\ taking\ foreign\ types\ ~\:S\ and\ returning\ foreign\ type\ ~S.=
+
+#: describe.lisp:177
+!a\ byte\ specifier,\ denoting\ the\ ~S\ bits\ starting\ at\ bit\ position\ ~S\ of\ an\ integer.=
+
+#: describe.lisp:180
+!a\ special\ form\ handler.=
+
+#: describe.lisp:182
+!a\ load-time\ evaluation\ promise.=
+
+#: describe.lisp:184
+!a\ symbol\ macro\ handler.=
+
+#: describe.lisp:186
+!a\ macro\ expander.=
+
+#: describe.lisp:188
+!a\ function\ with\ alternative\ macro\ expander.=
+
+#: describe.lisp:190
+!an\ encoding.=
+
+#: describe.lisp:195
+!a\ GC-invisible\ pointer\ to\ ~S.=
+
+#: describe.lisp:198
+!a\ GC-invisible\ pointer\ to\ a\ now\ defunct\ object.=
+
+#: describe.lisp:200
+!a\ label\ used\ for\ resolving\ \#~D\#\ references\ during\ READ.=
+
+#: describe.lisp:204
+!a\ pointer\ into\ the\ stack.\ It\ points\ to\:=
+
+#: describe.lisp:207
+!a\ special-purpose\ object.=
+
+#: describe.lisp:209
+!a\ machine\ address.=
+
+#: describe.lisp:211
+!an\ instance\ of\ the\ CLOS\ class\ ~S.=
+
+#: describe.lisp:215
+!a\ structure\ of\ type\ ~S.=
+
+#: describe.lisp:219
+!~%As\ such,\ it\ is\ also\ a\ structure\ of\ type\ ~{~S~^,\ ~}.=
+
+#: describe.lisp:227
+!a\ dotted\ list\ of\ length\ ~S.=
+
+#: describe.lisp:229
+!a\ cons.=
+
+#: describe.lisp:232
+!a\ list\ of\ length\ ~S.=
+
+#: describe.lisp:234
+!a\ cyclic\ list.=
+
+#: describe.lisp:236
+!the\ empty\ list,\ =
+
+#: describe.lisp:239
+!the\ symbol\ ~S,\ =
+
+#: describe.lisp:243
+!lies\ in\ ~S=
+
+#: describe.lisp:246
+!is\ uninterned=
+
+#: describe.lisp:260
+!,\ is\ accessible\ in\ the\ package~\:[~;s~]\ ~{~A~^,\ ~}=
+
+#: describe.lisp:265
+!,\ is\ a\ keyword=
+
+#: describe.lisp:268
+!,\ a\ constant=
+
+#: describe.lisp:270
+!,\ a\ variable\ declared\ SPECIAL=
+
+#: describe.lisp:271
+!,\ a\ variable=
+
+#: describe.lisp:273
+!\ (macro\:\ ~s)=
+
+#: describe.lisp:276
+!,\ value\:\ ~s=
+
+#: describe.lisp:279
+!,\ names\ =
+
+#: describe.lisp:281
+!a\ special\ operator=
+
+#: describe.lisp:283
+!\ with\ macro\ definition=
+
+#: describe.lisp:285
+!a~\:[~;\ deprecated~]\ function=
+
+#: describe.lisp:288
+!a\ macro=
+
+#: describe.lisp:293
+!,\ names\ a\ type=
+
+#: describe.lisp:297
+!,\ names\ a\ class=
+
+#: describe.lisp:303
+!,\ has\ the\ propert~@P\ ~{~S~^,\ ~}=
+
+#: describe.lisp:306 describe.lisp:340 describe.lisp:363 describe.lisp:382
+#: describe.lisp:425
+!.=
+
+#: describe.lisp:310
+!~%Documentation\ as\ a\ ~a\:~%~a=
+
+#: describe.lisp:312 describe.lisp:451
+!~%For\ more\ information,\ evaluate\ ~{~S~^\ or\ ~}.=
+
+#: describe.lisp:316
+!an\ integer,\ uses\ ~S\ bit~\:p,\ is\ represented\ as\ a\ ~(~A~).=
+
+#: describe.lisp:319
+!a\ rational,\ not\ integral\ number.=
+
+#: describe.lisp:321
+!a\ float\ with\ ~S\ bits\ of\ mantissa\ (~(~A~)).=
+
+#: describe.lisp:324
+!a\ complex\ number\ =
+
+#: describe.lisp:329
+!at\ the\ origin=
+
+#: describe.lisp:330
+!on\ the\ ~\:[posi~;nega~]tive\ real\ axis=
+
+#: describe.lisp:333
+!on\ the\ ~\:[posi~;nega~]tive\ imaginary\ axis=
+
+#: describe.lisp:335
+!in\ the\ ~\:[~\:[first~;fourth~]~;~\:[second~;third~]~]\ quadrant=
+
+#: describe.lisp:337
+!\ of\ the\ Gaussian\ number\ plane.=
+
+#: describe.lisp:339
+!a\ character=
+
+#: describe.lisp:344
+!~%Unicode\ name\:\ ~A=
+
+#: describe.lisp:345
+!~%It\ is\ not\ defined\ by\ the\ Unicode\ standard.=
+
+#: describe.lisp:346
+!~%It\ is\ a\ ~\:[non-~;~]printable\ character.=
+
+#: describe.lisp:349
+!~%Its\ use\ is\ non-portable.=
+
+#: describe.lisp:351
+!a~\:[~\:[\ closed\ ~;n\ output-~]~;~\:[n\ input-~;n\ input/output-~]~]stream.=
+
+#: describe.lisp:357
+!the\ package\ named\ ~A=
+
+#: describe.lisp:361
+!.\ It\ has\ the\ nicknames\ ~{~A~^,\ ~}=
+
+#: describe.lisp:366
+!~%It\ =
+
+#: describe.lisp:368
+!imports\ the\ external\ symbols\ of\ the\ package~\:[~;s~]\ ~{~A~^,\ ~}\ and\ =
+
+#: describe.lisp:373
+!exports\ ~\:[no\ symbols~;the\ symbols~\:*~{~<~%~\:;\ ~S~>~^~}~%~]=
+
+#: describe.lisp:375
+!exports\ ~[no\ symbols~\:;~\:*~\:d\ symbols~]=
+
+#: describe.lisp:378
+!\ to\ the\ package~\:[~;s~]\ ~{~A~^,\ ~}=
+
+#: describe.lisp:381
+!,\ but\ no\ package\ uses\ these\ exports=
+
+#: describe.lisp:383
+!a\ deleted\ package.=
+
+#: describe.lisp:385
+!a\ hash\ table\ with\ ~S\ entr~\:@P.=
+
+#: describe.lisp:388
+!~\:[a~;the\ Common\ Lisp~]\ readtable.=
+
+#: describe.lisp:391
+!a\ ~\:[~;portable\ ~]pathname~\:[.~;~\:*,\ with\ the\ following\ components\:~{~A~}~]=
+
+#: describe.lisp:406
+!a\ random-state.=
+
+#: describe.lisp:410
+!a~\:[~;\ simple~]\ ~A\ dimensional\ array=
+
+#: describe.lisp:413
+!\ (vector)=
+
+#: describe.lisp:415
+!\ of\ ~(~A~)s=
+
+#: describe.lisp:418
+!,\ adjustable=
+
+#: describe.lisp:420
+!,\ of\ size\ ~{~S~^\ x\ ~}=
+
+#: describe.lisp:423
+!\ and\ current\ length\ (fill-pointer)\ ~S=
+
+#: describe.lisp:430
+!a\ foreign\ function.=
+
+#: describe.lisp:436
+!a\ built-in\ system\ function.=
+
+#: describe.lisp:444
+!a~\:[n\ interpret~;\ compil~]ed\ function.=
+
+#: describe.lisp:460
+!~%argument\ list\:\ ~\:S=
+
+#: describe.lisp:463
+!~%documentation\:\ ~A=
+
+#: describe.lisp:468
+!~&~%~A\ [see\ above]=
+
+#: describe.lisp:471
+!~&~%~A\ is\ =
+
+#: describe.lisp:535
+!~S\:\ ~S\ is\ not\ a\ function.=
+
+#: describe.lisp:564
+!~%Argument\ list\:\ =
+
+#: room.lisp:17
+!~S\:\ argument\ must\ be\ ~S,\ ~S\ or\ ~S,\ not\ ~S=
+
+#: room.lisp:51 room.lisp:215
+!Total=
+
+#: room.lisp:59
+!~%Bytes\ permanently\ allocated\:\ \ \ ~9D~%Bytes\ currently\ in\ use\:\ \ \ \ \ \ \ \ ~9D~%Bytes\ available\ until\ next\ GC\:\ ~9D~%=
+
+#: edit.lisp:30
+!No\ external\ editor\ installed.=
+
+#: edit.lisp:102
+!~S\ cannot\ be\ edited.=
+
+#: edit.lisp:121
+!~S\:\ source\ code\ for\ ~S\ not\ available.=
+
+#: macros3.lisp:13
+!The\ form\ ~S\ yielded\ ~\:[no\ values~;~\:*~{~S~^\ ;\ ~}~]\ ,~@\n\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ that's\ not\ of\ type\ ~S.=
+
+#: macros3.lisp:64
+!LETF*\ code\ contains\ a\ dotted\ list,\ ending\ with\ ~S=
+
+#: macros3.lisp:83
+!illegal\ syntax\ in\ LETF*\ binding\:\ ~S=
+
+#: macros3.lisp:227
+!LETF\ code\ contains\ a\ dotted\ list,\ ending\ with\ ~S=
+
+#: macros3.lisp:246
+!illegal\ syntax\ in\ LETF\ binding\:\ ~S=
+
+#: foreign1.lisp:86
+!Cannot\ map\ string\ ~S\ to\ C\ since\ it\ contains\ a\ character\ ~S=
+
+#: foreign1.lisp:128
+!Incomplete\ FFI\ type\ ~S\ is\ not\ allowed\ here.=
+
+#: foreign1.lisp:134
+!FFI\ type\ should\ be\ a\ symbol,\ not\ ~S=
+
+#: foreign1.lisp:138
+!Invalid\ FFI\ type\:\ ~S=
+
+#: foreign1.lisp:155 foreign1.lisp:220
+!Invalid\ ~S\ component\:\ ~S=
+
+#: foreign1.lisp:329
+!Invalid\ option\ in\ ~S\:\ ~S=
+
+#: foreign1.lisp:333
+!Only\ one\ ~S\ option\ is\ allowed\:\ ~S=
+
+#: foreign1.lisp:350
+!Invalid\ parameter\ specification\ in\ ~S\:\ ~S=
+
+#: foreign1.lisp:411
+!The\ name\ must\ be\ a\ string,\ not\ ~S=
+
+#: foreign1.lisp:416
+!The\ name\ ~S\ is\ not\ a\ valid\ C\ identifier=
+
+#: foreign1.lisp:671
+!illegal\ foreign\ data\ type\ ~S=
+
+#: foreign1.lisp:801
+!~S\:\ ~S\ option\ missing\ in\ ~S=
+
+#: foreign1.lisp:996
+!~S\:\ \:OUT\ argument\ is\ not\ a\ pointer\:\ ~S=
+
+#: foreign1.lisp:1060
+!~S\ is\ only\ allowed\ after\ ~S\:\ ~S=
+
+#: affi1.lisp:41
+!Basename\ ~S\ not\ a\ keyword\ or\ libraryname\ ~S\ not\ a\ string=
+
+#: affi1.lisp:48
+!Library\ redefinition\:\ old\ ~S,\ new\ ~S=
+
+#: affi1.lisp:58
+!Unknown\ library\:\ ~S=
+
+#: affi1.lisp:85
+!Library\ ~S\ is\ not\ open=
+
+#: affi1.lisp:147
+!Unknown\ function\ of\ library\ ~S\:\ ~S=
+
+#: affi1.lisp:173
+!Offset\ must\ be\ a\ fixnum\:\ ~S=
+
+#: affi1.lisp:184
+!~&;;\ redefining\ foreign\ library\ function\ ~S~%;;\ \ from\ ~S\ to\ ~S~%=
+
+#: affi1.lisp:203
+!Unknown\ register\:\ ~S=
+
+#: affi1.lisp:215
+!Invalid\ parameter\ specification\ ~S\ in\ function\ ~S=
+
+#: affi1.lisp:227
+!Unknown\ library\ function\:\ ~S=
+
+#: affi1.lisp:244
+!Bad\ number\ of\ arguments\ for\ ~S\:\ ~S=
+
+#: rexx1.lisp:146
+!No\ waiting\ for\ ~S\ possible.=
+
+#: defs3.lisp:231
+!~S\:\ argument\ ~S\ should\ be\ a\ string\ or\ a\ symbol=

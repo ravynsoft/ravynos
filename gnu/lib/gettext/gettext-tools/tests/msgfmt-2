@@ -1,0 +1,77 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test basic functionality, duplicate detection, multiple domains.
+
+if (echo "testing\c"; echo 1,2,3) | grep c >/dev/null; then
+  # Stardent Vistra SVR4 grep lacks -e, says ghazi@caip.rutgers.edu.
+  if (echo -n testing; echo 1,2,3) | sed s/-n/xn/ | grep xn >/dev/null; then
+    ac_n= ac_c='
+' ac_t='        '
+  else
+    ac_n=-n ac_c= ac_t=
+  fi
+else
+  ac_n= ac_c='\c' ac_t=
+fi
+
+test -d mf-2 || mkdir mf-2
+test -d mf-2/LC_MESSAGES || mkdir mf-2/LC_MESSAGES
+
+cat <<EOF > mf-2-module1.po
+#default domain "messages.mo"
+msgid	"SYS_(C)\n"
+msgstr "MSGFMT(3) portable message object file compiler\n"
+"Copyright (C) 1995 Free Software Foundation\n"
+"Report bugs to <bug-gnu-utils@gnu.org>\n"
+msgid	"msg 1"
+msgstr	"msg 1 translation"
+#
+domain	"help_dom"
+msgid	"help 2 %d"
+msgstr	"help 2 translation"
+#
+domain	"error_dom"
+msgid	"error 3"
+msgstr	"error 3 translation"
+EOF
+
+cat <<EOF > mf-2-module2.po
+# ---
+#default domain "messages.mo"
+msgid	"mesg 4"
+msgstr	"mesg 4 translation"
+#
+domain	"error_dom"
+msgid	"error 3"
+msgstr	"alternate error 3 translation"
+msgid	"error 5"
+msgstr	"error 5 translation"
+#
+domain	"window_dom"
+msgid	"window 6"
+msgstr	"window 6 translation"
+EOF
+
+# Without use of msgcat, expect a "duplicate message definition" error.
+: ${MSGFMT=msgfmt}
+if ${MSGFMT} -o mf-2/LC_MESSAGES/gen.mo mf-2-module1.po mf-2-module2.po 2> /dev/null; then
+  Exit 1
+fi
+
+# With msgcat, it should work.
+: ${MSGCAT=msgcat} ${MSGFMT=msgfmt}
+${MSGCAT} --use-first -o mf-2-modules.po mf-2-module1.po mf-2-module2.po || Exit 1
+${MSGFMT} -o mf-2/LC_MESSAGES/gen.mo mf-2-modules.po || Exit 1
+
+: ${GETTEXT=gettext}
+TEXTDOMAINDIR=. LANGUAGE=mf-2 \
+${GETTEXT} --env LC_ALL=en gen 'error 3' > mf-test2.out
+
+echo $ac_n "error 3 translation$ac_c" > gtmf-test2.ok
+
+: ${DIFF=diff}
+${DIFF} gtmf-test2.ok mf-test2.out
+result=$?
+
+exit $result

@@ -1,0 +1,178 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test C++ support: C++11 string literals.
+
+: ${XGETTEXT=xgettext}
+
+cat <<\EOF > err0.cc
+gettext ("aaa(
+bbb
+)ccc");
+EOF
+
+(LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location --no-wrap -o - err0.cc 2>&1; exit) | grep 'unterminated string literal' || Exit 1
+
+cat <<\EOF > err1.cc
+gettext (R"aaa(
+bbb
+)ccc");
+EOF
+
+(LANGUAGE= LC_ALL=C ${XGETTEXT} --no-location --no-wrap -o - err1.cc 2>&1; exit) | grep 'unterminated raw string literal' || Exit 1
+
+cat <<\EOF > xg-c-c++-1.cc
+#define X ""
+gettext (X"This is a concatenation of a macro and a string");
+
+#define RR ""
+gettext (RR"This (is NOT a raw string");
+
+#define u8RR ""
+gettext (u8RR"This (is NOT a raw string");
+
+#define uRR ""
+gettext (uRR"This (is NOT a raw string");
+
+#define URR ""
+gettext (URR"This (is NOT a raw string");
+
+#define LRR ""
+gettext (LRR"This (is NOT a raw string");
+
+#define uX ""
+gettext (uX"This (is NOT a raw string");
+
+gettext (u8"This is a UTF-8 string");
+
+wgettext (L"This is a wide string");
+
+c16gettext (u"This is a 16-bit wide char string");
+
+c32gettext (U"This is a 32-bit wide char string");
+
+u88"This is not a UTF-8 string";
+
+u"This is a UTF-16 string";
+
+U"This is a UTF-32 string";
+
+L"This is a wide string";
+
+gettext (R"aaa(
+This is a raw string
+)aaa");
+
+gettext (u8R"aaa(
+This is a raw UTF-8 string
+)aaa");
+
+uR"aaa(
+This is a UTF-16 raw string
+)aaa";
+
+LR"aaa(
+This is a wide raw string
+)aaa";
+
+// 'LR' prefixed raw string should be skipped.
+LR"(
+
+baz
+
+gettext(\"abc\");
+)";
+EOF
+
+${XGETTEXT} --add-comments --no-location --no-wrap \
+            -kgettext -kwgettext -kc16gettext -kc32gettext \
+            -o xg-c-c++-1.tmp xg-c-c++-1.cc || Exit 1
+func_filter_POT_Creation_Date xg-c-c++-1.tmp xg-c-c++-1.po
+
+cat <<\EOF > xg-c-c++-1.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "This is a concatenation of a macro and a string"
+msgstr ""
+
+msgid "This (is NOT a raw string"
+msgstr ""
+
+msgid "This is a UTF-8 string"
+msgstr ""
+
+msgid "This is a wide string"
+msgstr ""
+
+msgid "This is a 16-bit wide char string"
+msgstr ""
+
+msgid "This is a 32-bit wide char string"
+msgstr ""
+
+msgid ""
+"\n"
+"This is a raw string\n"
+msgstr ""
+
+msgid ""
+"\n"
+"This is a raw UTF-8 string\n"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-c-c++-1.ok xg-c-c++-1.po || Exit 1
+
+cat <<\EOF > xg-c-c++-1.c
+gettext (R"aaa(This is NOT a raw string");
+
+gettext (u8R"aaa(This is NOT a raw string");
+
+uR"aaa(This is NOT a raw string";
+EOF
+
+${XGETTEXT} --add-comments --no-location --no-wrap \
+            -o xg-c-c++-1c.tmp xg-c-c++-1.c || Exit 1
+func_filter_POT_Creation_Date xg-c-c++-1c.tmp xg-c-c++-1c.po
+
+cat <<\EOF > xg-c-c++-1c.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "aaa(This is NOT a raw string"
+msgstr ""
+EOF
+
+${DIFF} xg-c-c++-1c.ok xg-c-c++-1c.po || Exit 1

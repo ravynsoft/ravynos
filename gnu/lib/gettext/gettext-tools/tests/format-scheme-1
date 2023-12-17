@@ -1,0 +1,289 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Scheme format strings.
+
+cat <<\EOF > f-sc-1.data
+# Valid: no argument, ( | . *)
+"abc~~def"
+# Valid: one argument, (* | . *)
+"abc~Sdef"
+# Valid: 11 arguments, (* * * * * * * * * * * | . *)
+"abc~10@*~Sdef"
+# Invalid: unterminated
+"abc~~def~"
+# Invalid: unterminated
+"abc~~def~1"
+# Invalid: unterminated
+"abc~~def~:"
+# Invalid: unterminated
+"abc~~def~@"
+# Valid: colon
+"abc~:Sdef"
+# Valid: atsign
+"abc~@Sdef"
+# Valid: colon and atsign
+"abc~:@Sdef"
+# Valid: atsign and colon
+"abc~@:Sdef"
+# Valid: params before atsign and colon
+"abc~3,-4,,'*@:Sdef"
+# Invalid: params after atsign and colon
+"abc~@:3,-4Sdef"
+# Invalid: params after atsign and colon
+"abc~@:-4Sdef"
+# Invalid: params after atsign and colon
+"abc~@:,-4Sdef"
+# Valid: V and # params, (i() * | . *)
+"abc~#,vSdef"
+# Invalid: wrong type params
+"abc~,'*Sdef"
+# Valid: FORMAT-ASCII, (i() i() i() c() * | . *)
+"abc~v,v,v,vA"
+# Invalid: too many params
+"abc~v,v,v,v,5A"
+# Valid: FORMAT-S-EXPRESSION, (i() i() i() c() * | . *)
+"abc~v,v,v,vS"
+# Invalid: too many params
+"abc~v,v,v,v,5S"
+# Valid: FORMAT-PRETTY, (* | . *)
+"abc~Y"
+# Invalid: too many params
+"abc~3Y"
+# Valid: FORMAT-DECIMAL, (i() c() c() i() i | . *)
+"abc~v,v,v,vD"
+# Invalid: too many params
+"abc~v,v,v,v,5D"
+# Valid: FORMAT-BINARY, (i() c() c() i() i | . *)
+"abc~v,v,v,vB"
+# Invalid: too many params
+"abc~v,v,v,v,5B"
+# Valid: FORMAT-OCTAL, (i() c() c() i() i | . *)
+"abc~v,v,v,vO"
+# Invalid: too many params
+"abc~v,v,v,v,5O"
+# Valid: FORMAT-HEXADECIMAL, (i() c() c() i() i | . *)
+"abc~v,v,v,vX"
+# Invalid: too many params
+"abc~v,v,v,v,5X"
+# Valid: FORMAT-RADIX, (i() i() c() c() i() i | . *)
+"abc~v,v,v,v,vR"
+# Invalid: too many params
+"abc~v,v,v,v,v,5R"
+# Valid: FORMAT-PLURAL, (* | . *)
+"abc~P"
+# Valid: FORMAT-PLURAL, (i | . *)
+"abc~R egg~:P"
+# Invalid: too many params
+"abc~2P"
+# Valid: FORMAT-CHARACTER, (c | . *)
+"abc~C"
+# Valid: FORMAT-CHARACTER, ( | . *)
+"abc~4C"
+# Invalid: too many params
+"abc~4,4C"
+# Valid: FORMAT-FIXED-FLOAT, (i() i() i() c() c() r | . *)
+"abc~v,v,v,v,vF"
+# Invalid: too many params
+"abc~v,v,v,v,v,5F"
+# Valid: FORMAT-EXPONENTIAL-FLOAT, (i() i() i() i() c() c() c() r | . *)
+"abc~v,v,v,v,v,v,vE"
+# Invalid: too many params
+"abc~v,v,v,v,v,v,v,5E"
+# Valid: FORMAT-GENERAL-FLOAT, (i() i() i() i() c() c() c() r | . *)
+"abc~v,v,v,v,v,v,vG"
+# Invalid: too many params
+"abc~v,v,v,v,v,v,v,5G"
+# Valid: FORMAT-DOLLARS-FLOAT, (i() i() i() c() r | . *)
+"abc~v,v,v,v$"
+# Invalid: too many params
+"abc~v,v,v,v,5$"
+# Valid: FORMAT-FIXED-FLOAT-COMPLEX, (C | .*)
+"abc~I"
+# Valid: FORMAT-TERPRI, (i() | . *)
+"abc~v%"
+# Invalid: too many params
+"abc~v,5%"
+# Valid: FORMAT-FRESH-LINE, (i() | . *)
+"abc~v&"
+# Invalid: too many params
+"abc~v,5&"
+# Valid: FORMAT-SPACE, (i() | . *)
+"abc~v_"
+# Invalid: too many params
+"abc~v,5_"
+# Valid: FORMAT-TAB, (i() | . *)
+"abc~v/"
+# Invalid: too many params
+"abc~v,5/"
+# Valid: FORMAT-PAGE, (i() | . *)
+"abc~v|"
+# Invalid: too many params
+"abc~v,5|"
+# Valid: FORMAT-TILDE, (i() | . *)
+"abc~v~"
+# Invalid: too many params
+"abc~v,5~"
+# Valid: FORMAT-FORCE-OUTPUT, ( | . *)
+"abc~!"
+# Invalid: too many params
+"abc~5!"
+# Valid: FORMAT-IMPLEMENTATION, ( | . *)
+"abc~Q"
+# Invalid: too many params
+"abc~5Q"
+# Valid: FORMAT-TABULATE, (i() i() c() | . *)
+"abc~v,v,vT"
+# Invalid: too many params
+"abc~v,v,v,5T"
+# Valid: FORMAT-GOTO absolute, (* r c | . *)
+"abc~S~F~S~2@*~C"
+# Invalid: type incompatibility
+"abc~S~F~S~1@*~C"
+# Valid: FORMAT-GOTO backward, (* c r | . *)
+"abc~S~S~F~2:*~C"
+# Invalid: type incompatibility
+"abc~S~S~F~1:*~C"
+# Invalid: too many params
+"abc~v,4*"
+# Valid: FORMAT-GOTO with large number
+"abc~S~F~S~1000000@*~C"
+# Valid: FORMAT-INDIRECTION, (~ ( | . *) | . *)
+"abc~?"
+# Valid: FORMAT-INDIRECTION, (~ | . *)
+"abc~@?"
+# Invalid: too many params
+"abc~4?"
+# Valid: FORMAT-INDIRECTION, (~ ( | . *) | . *)
+"abc~K"
+# Valid: FORMAT-INDIRECTION, (~ | . *)
+"abc~@K"
+# Invalid: too many params
+"abc~4K"
+# Valid: FORMAT-CASE-CONVERSION, (* | . *)
+"abc~(~S~)"
+# Invalid: too many params
+"abc~4(~S~)"
+# Invalid: too many params
+"abc~(~S~4)"
+# Invalid: unterminated
+"abc~(~S"
+# Invalid: separator
+"abc~(~S~;~S~)"
+# Valid: FORMAT-CONDITIONAL, (i() c | . *)
+"abc~@[~D~]~C"
+# Valid: FORMAT-CONDITIONAL, (i() | . *)
+"abc~@[~D~D~]~C"
+# Invalid: separator
+"abc~@[~D~;~D~]~C"
+# Valid: FORMAT-CONDITIONAL, (* i c | . *)
+"abc~:[~X~;~D~]~C"
+# Invalid: missing separator
+"abc~:[~D~]~C"
+# Invalid: too many separators
+"abc~:[~X~;~D~;~E~]~C"
+# Valid: FORMAT-CONDITIONAL, (* | . *)
+"abc~[~D~;~X~]~C"
+# Valid: FORMAT-CONDITIONAL, (* i c | . *)
+"abc~[~D~;~X~:;~R~]~C"
+# Invalid: default clause not last
+"abc~[~D~;~X~:;~R~;~R~]~C"
+# Invalid: too many params
+"abc~4@[~D~]"
+# Invalid: too many params
+"abc~@[~D~4]"
+# Invalid: too many params
+"abc~4:[~D~;~X~]"
+# Invalid: too many params
+"abc~:[~D~4;~X~]"
+# Invalid: too many params
+"abc~:[~D~;~X~4]"
+# Valid: FORMAT-CONDITIONAL, one param, without colon or atsign
+"abc~4[~D~;~X~]"
+# Invalid: too many params
+"abc~4,4[~D~;~X~]"
+# Invalid: too many params
+"abc~[~D~4;~X~]"
+# Invalid: too many params
+"abc~[~D~;~X~4]"
+# Valid: FORMAT-ITERATION, (( | . *) | . *)
+"abc~{~~~}"
+# Valid: FORMAT-ITERATION, (( | . ( | . *)) | . *)
+"abc~:{~~~}"
+# Valid: FORMAT-ITERATION, ( | . *)
+"abc~@{~~~}"
+# Valid: FORMAT-ITERATION, ( | . ( | . *))
+"abc~:@{~~~}"
+# Valid: FORMAT-ITERATION with indirection, (~ ( | . *) | . *)
+"abc~{~}"
+# Valid: FORMAT-ITERATION with indirection, (~ ( | . ( | . *)) | . *)
+"abc~:{~}"
+# Valid: FORMAT-ITERATION with indirection, (~ | . *)
+"abc~@{~}"
+# Valid: FORMAT-ITERATION with indirection, (~ | . ( | . *))
+"abc~:@{~}"
+# Valid: FORMAT-ITERATION with loop, (( | . i c) | . *)
+"abc~{~D ~C~}"
+# Valid: FORMAT-ITERATION with loop, (( | . (i c | . *)) | . *)
+"abc~:{~D ~C~}"
+# Valid: FORMAT-ITERATION with loop, ( | . i c)
+"abc~@{~D ~C~}"
+# Valid: FORMAT-ITERATION with loop, ( | . (i c | . *))
+"abc~:@{~D ~C~}"
+# Valid: FORMAT-ITERATION with variable-advance loop, (( | . *) | . *)
+"abc~{~[~D~]~}"
+# Valid: FORMAT-ITERATION with variable-advance loop, (( | . (* | . *)) | . *)
+"abc~:{~[~D~]~}"
+# Valid: FORMAT-ITERATION with variable-advance loop, ( | . *)
+"abc~@{~[~D~]~}"
+# Valid: FORMAT-ITERATION with variable-advance loop, ( | . (* | . *))
+"abc~:@{~[~D~]~}"
+# Invalid: separator
+"abc~{~D~;~C~}"
+# Invalid: wrongly nested
+"abc~{~(~}~)"
+# Valid: any number of arguments
+"abc~v,v,v,v,v!"
+# Invalid: type incompatibility between integer and list
+"abc~D~:*~{~D~}"
+# Invalid: type incompatibility between real and list
+"abc~{~S~}~:*~F"
+# Valid: list must be empty
+"abc~{~C~}~:*~{~D~}"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-sc-1-$n.in
+(gettext ${string})
+EOF
+  ${XGETTEXT} -L Scheme -o f-sc-1-$n.po f-sc-1-$n.in || Exit 1
+  test -f f-sc-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep scheme-format f-sc-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep scheme-format f-sc-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-sc-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-sc-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-sc-1-$n.in f-sc-1-$n.po
+done < f-sc-1.data
+
+Exit 0

@@ -1,0 +1,14 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test general operation.
+
+: ${MSGUNIQ-msguniq}
+${MSGUNIQ} -w 1000 -o msguniq-1.tmp "$wabs_srcdir"/msguniq-a.in || Exit 1
+LC_ALL=C tr -d '\r' < msguniq-1.tmp > msguniq-1.out || Exit 1
+
+: ${DIFF=diff}
+${DIFF} "$abs_srcdir"/msguniq-a.out msguniq-1.out
+result=$?
+
+exit $result

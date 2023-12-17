@@ -1,0 +1,41 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of multi-line comment extraction.
+
+cat <<\EOF > xg-test11.c
+/* TRANSLATORS: this
+ is the first msgid
+ */
+gettext ("abc");
+
+/*
+ * TRANSLATORS: this
+ * is the second msgid
+ */
+gettext ("def");
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --no-location --omit-header --add-comments=TRANSLATORS: -d xg-test11.tmp xg-test11.c || Exit 1
+LC_ALL=C tr -d '\r' < xg-test11.tmp.po > xg-test11.po || Exit 1
+
+cat <<\EOF > xg-test11.ok
+#. TRANSLATORS: this
+#. is the first msgid
+#.
+msgid "abc"
+msgstr ""
+
+#. TRANSLATORS: this
+#. is the second msgid
+#.
+msgid "def"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-test11.ok xg-test11.po
+result=$?
+
+exit $result

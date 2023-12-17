@@ -1,0 +1,19 @@
+*** lib/regex_internal.h.orig	Mon May 24 12:36:55 2010
+--- lib/regex_internal.h	Mon May 24 12:35:46 2010
+***************
+*** 468,474 ****
+  # define MAX(a,b) ((a) < (b) ? (b) : (a))
+  #endif
+  
+! #define re_malloc(t,n) ((t *) malloc ((n) * sizeof (t)))
+  #define re_realloc(p,t,n) ((t *) realloc (p, (n) * sizeof (t)))
+  #define re_free(p) free (p)
+  
+--- 468,474 ----
+  # define MAX(a,b) ((a) < (b) ? (b) : (a))
+  #endif
+  
+! #define re_malloc(t,n) ((t *) malloc ((n) > 0 ? (n) * sizeof (t) : 1))
+  #define re_realloc(p,t,n) ((t *) realloc (p, (n) * sizeof (t)))
+  #define re_free(p) free (p)
+  

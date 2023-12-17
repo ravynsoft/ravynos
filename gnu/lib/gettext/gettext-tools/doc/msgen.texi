@@ -1,0 +1,181 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2019 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@pindex msgen
+@cindex @code{msgen} program, usage
+@example
+msgen [@var{option}] @var{inputfile}
+@end example
+
+@cindex generate translation catalog in English
+The @code{msgen} program creates an English translation catalog.  The
+input file is the last created English PO file, or a PO Template file
+(generally created by xgettext).  Untranslated entries are assigned a
+translation that is identical to the msgid.
+
+Note: @samp{msginit --no-translator --locale=en} performs a very similar
+task.  The main difference is that @code{msginit} cares specially about
+the header entry, whereas @code{msgen} doesn't.
+
+@subsection Input file location
+
+@table @samp
+@item @var{inputfile}
+Input PO or POT file.
+
+@item -D @var{directory}
+@itemx --directory=@var{directory}
+@opindex -D@r{, @code{msgen} option}
+@opindex --directory@r{, @code{msgen} option}
+Add @var{directory} to the list of directories.  Source files are
+searched relative to this list of directories.  The resulting @file{.po}
+file will be written relative to the current directory, though.
+
+@end table
+
+If @var{inputfile} is @samp{-}, standard input is read.
+
+@subsection Output file location
+
+@table @samp
+@item -o @var{file}
+@itemx --output-file=@var{file}
+@opindex -o@r{, @code{msgen} option}
+@opindex --output-file@r{, @code{msgen} option}
+Write output to specified file.
+
+@end table
+
+The results are written to standard output if no output file is specified
+or if it is @samp{-}.
+
+@subsection Input file syntax
+
+@table @samp
+@item -P
+@itemx --properties-input
+@opindex -P@r{, @code{msgen} option}
+@opindex --properties-input@r{, @code{msgen} option}
+Assume the input file is a Java ResourceBundle in Java @code{.properties}
+syntax, not in PO file syntax.
+
+@item --stringtable-input
+@opindex --stringtable-input@r{, @code{msgen} option}
+Assume the input file is a NeXTstep/GNUstep localized resource file in
+@code{.strings} syntax, not in PO file syntax.
+
+@end table
+
+@subsection Output details
+
+@c --no-escape and --escape omitted on purpose.  They are not useful.
+
+@table @samp
+@item --lang=@var{catalogname}
+@opindex --lang@r{, @code{msgen} option}
+Specify the @samp{Language} field to be used in the header entry.  See
+@ref{Header Entry} for the meaning of this field.  Note: The
+@samp{Language-Team} and @samp{Plural-Forms} fields are not set by this
+option.
+
+@item --color
+@itemx --color=@var{when}
+@opindex --color@r{, @code{msgen} option}
+Specify whether or when to use colors and other text attributes.
+See @ref{The --color option} for details.
+
+@item --style=@var{style_file}
+@opindex --style@r{, @code{msgen} option}
+Specify the CSS style rule file to use for @code{--color}.
+See @ref{The --style option} for details.
+
+@item --force-po
+@opindex --force-po@r{, @code{msgen} option}
+Always write an output file even if it contains no message.
+
+@item -i
+@itemx --indent
+@opindex -i@r{, @code{msgen} option}
+@opindex --indent@r{, @code{msgen} option}
+Write the .po file using indented style.
+
+@item --no-location
+@opindex --no-location@r{, @code{msgen} option}
+Do not write @samp{#: @var{filename}:@var{line}} lines.
+
+@item -n
+@itemx --add-location=@var{type}
+@opindex --add-location@r{, @code{msgen} option}
+Generate @samp{#: @var{filename}:@var{line}} lines (default).
+
+The optional @var{type} can be either @samp{full}, @samp{file}, or
+@samp{never}.  If it is not given or @samp{full}, it generates the
+lines with both file name and line number.  If it is @samp{file}, the
+line number part is omitted.  If it is @samp{never}, it completely
+suppresses the lines (same as @code{--no-location}).
+
+@item --strict
+@opindex --strict@r{, @code{msgen} option}
+Write out a strict Uniforum conforming PO file.  Note that this
+Uniforum format should be avoided because it doesn't support the
+GNU extensions.
+
+@item -p
+@itemx --properties-output
+@opindex -p@r{, @code{msgen} option}
+@opindex --properties-output@r{, @code{msgen} option}
+Write out a Java ResourceBundle in Java @code{.properties} syntax.  Note
+that this file format doesn't support plural forms and silently drops
+obsolete messages.
+
+@item --stringtable-output
+@opindex --stringtable-output@r{, @code{msgen} option}
+Write out a NeXTstep/GNUstep localized resource file in @code{.strings} syntax.
+Note that this file format doesn't support plural forms.
+
+@item -w @var{number}
+@itemx --width=@var{number}
+@opindex -w@r{, @code{msgen} option}
+@opindex --width@r{, @code{msgen} option}
+Set the output page width.  Long strings in the output files will be
+split across multiple lines in order to ensure that each line's width
+(= number of screen columns) is less or equal to the given @var{number}.
+
+@item --no-wrap
+@opindex --no-wrap@r{, @code{msgen} option}
+Do not break long message lines.  Message lines whose width exceeds the
+output page width will not be split into several lines.  Only file reference
+lines which are wider than the output page width will be split.
+
+@item -s
+@itemx --sort-output
+@opindex -s@r{, @code{msgen} option}
+@opindex --sort-output@r{, @code{msgen} option}
+Generate sorted output.  Note that using this option makes it much harder
+for the translator to understand each message's context.
+
+@item -F
+@itemx --sort-by-file
+@opindex -F@r{, @code{msgen} option}
+@opindex --sort-by-file@r{, @code{msgen} option}
+Sort output by file location.
+
+@end table
+
+@subsection Informative output
+
+@table @samp
+@item -h
+@itemx --help
+@opindex -h@r{, @code{msgen} option}
+@opindex --help@r{, @code{msgen} option}
+Display this help and exit.
+
+@item -V
+@itemx --version
+@opindex -V@r{, @code{msgen} option}
+@opindex --version@r{, @code{msgen} option}
+Output version information and exit.
+
+@end table

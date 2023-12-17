@@ -1,0 +1,220 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+#
+# More tests for java support
+#
+
+cat <<\EOF > xg-j-2.java
+class TestCase {
+  public static void main (String[] args) {
+    // Test recognition of \u escapes: B�se B�bchen
+    gettext ("B\u00f6se B\u00fcbchen");
+    // Test recognition of \u escapes with different number of u
+    gettext ("Japanese: \uu65e5\uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu672c\u8A9e");
+    // Test recognition of \u escapes when they form UTF-16 surrogates
+    // Here: U+1D49E MATHEMATICAL SCRIPT CAPITAL C
+    gettext ("script \ud835\udc9e = ...");
+    // Test invalid surrogates.
+    gettext ("invalid surrogate \ud835 first half");
+    gettext ("invalid surrogate \udc9e second half");
+    // Don't let the line numbers be confused by \u newlines.
+    \u000a \u000d \u000d\u000a
+    gettext ("embedded\nnewline");
+    // Spaces from end of comment are removed.    \u000agettext("dummy");
+    // Various ways to write a backslash are equivalent.
+    gettext ("\u005c\u005c");
+    gettext ("\u005c\");
+    gettext ("\\u005c");
+    gettext ("\\");
+    gettext ("\134");
+    // Escape sequences in strings.
+    gettext ("t -> \t, b -> \b, n -> \n, dquote -> \", squote -> \' ...");
+    // Octal escapes have 2 or 3 digits, depending on the initial digit.
+    gettext ("bel: \7\nnewline: \12backslash: \134\ndquote-zero: \420\n");
+    // Hex escapes are not recognized
+    gettext ("no bel: \x07\n");
+    gettext // Recognized despite comments
+       ( /* Even across multiline
+comment! */ "this is a single " /* now comes the concatenation! */ + // after +
+         "long line");
+    // Character literals are not extracted.
+    gettext ('x');
+    // Invalid concatenations are not concatenated.
+    gettext ("fooba"+'r');
+    // Verify that the static function name has priority.
+    GettextResource.gettext("NOT extracted", "this one is extracted");
+    // Verify that a comma inside braces is hidden.
+    GettextResource.gettext(
+        new Object() {
+          public int foo () {
+            return 5, 8;
+          }
+        },
+        "this is the second argument");
+    // Text blocks are extracted.
+    gettext ("""
+        a one-liner block """);
+    gettext ("""
+        ibam forte via sacra sicut meus est mos
+        nescio quid meditans nugarum totus in illis
+            
+        accurrit quidam notus mihi nomine tantum
+        arreptaque manu "quid agis, dulcissime rerum?"
+             """);
+    gettext ("""
+        \"""a text block in a text block\""" """);
+    gettext ("""
+        testing mixed ASCII and Unicode whitespace
+      \u0020 line 2
+       \u0020line 3
+        \u0020line 4
+        and trailing whitespace  
+        as well \u0020
+        also in the last line\u0020"""
+        );
+  }
+}
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --from-code=ISO-8859-1 -c -o xg-j-2.tmp xg-j-2.java 2>/dev/null || Exit 1
+func_filter_POT_Creation_Date xg-j-2.tmp xg-j-2.pot
+
+cat <<\EOF > xg-j-2.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Test recognition of \u escapes: Böse Bübchen
+#: xg-j-2.java:4
+msgid "Böse Bübchen"
+msgstr ""
+
+#. Test recognition of \u escapes with different number of u
+#: xg-j-2.java:6
+msgid "Japanese: 日本語"
+msgstr ""
+
+#. Test recognition of \u escapes when they form UTF-16 surrogates
+#. Here: U+1D49E MATHEMATICAL SCRIPT CAPITAL C
+#: xg-j-2.java:9
+msgid "script 𝒞 = ..."
+msgstr ""
+
+#. Test invalid surrogates.
+#: xg-j-2.java:11
+msgid "invalid surrogate � first half"
+msgstr ""
+
+#: xg-j-2.java:12
+msgid "invalid surrogate � second half"
+msgstr ""
+
+#. Don't let the line numbers be confused by \u newlines.
+#: xg-j-2.java:15
+msgid ""
+"embedded\n"
+"newline"
+msgstr ""
+
+#. Spaces from end of comment are removed.
+#: xg-j-2.java:16
+msgid "dummy"
+msgstr ""
+
+#. Various ways to write a backslash are equivalent.
+#: xg-j-2.java:18 xg-j-2.java:19 xg-j-2.java:20 xg-j-2.java:21 xg-j-2.java:22
+msgid "\\"
+msgstr ""
+
+#. Escape sequences in strings.
+#: xg-j-2.java:24
+msgid ""
+"t -> \t, b -> \b, n -> \n"
+", dquote -> \", squote -> ' ..."
+msgstr ""
+
+#. Octal escapes have 2 or 3 digits, depending on the initial digit.
+#: xg-j-2.java:26
+msgid ""
+"bel: \a\n"
+"newline: \n"
+"backslash: \\\n"
+"dquote-zero: \"0\n"
+msgstr ""
+
+#. Hex escapes are not recognized
+#: xg-j-2.java:28
+msgid "no bel: \\x07\n"
+msgstr ""
+
+#. Recognized despite comments
+#. Even across multiline
+#. comment!
+#: xg-j-2.java:31
+msgid "this is a single long line"
+msgstr ""
+
+#. Invalid concatenations are not concatenated.
+#: xg-j-2.java:36
+msgid "fooba"
+msgstr ""
+
+#. Verify that the static function name has priority.
+#: xg-j-2.java:38
+msgid "this one is extracted"
+msgstr ""
+
+#: xg-j-2.java:46
+msgid "this is the second argument"
+msgstr ""
+
+#. Text blocks are extracted.
+#: xg-j-2.java:48
+msgid "a one-liner block"
+msgstr ""
+
+#: xg-j-2.java:50
+msgid ""
+"ibam forte via sacra sicut meus est mos\n"
+"nescio quid meditans nugarum totus in illis\n"
+"\n"
+"accurrit quidam notus mihi nomine tantum\n"
+"arreptaque manu \"quid agis, dulcissime rerum?\"\n"
+msgstr ""
+
+#: xg-j-2.java:57
+msgid "\"\"\"a text block in a text block\"\"\""
+msgstr ""
+
+#: xg-j-2.java:59
+msgid ""
+"testing mixed ASCII and Unicode whitespace\n"
+"line 2\n"
+"line 3\n"
+" line 4\n"
+"and trailing whitespace\n"
+"as well\n"
+"also in the last line"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-j-2.ok xg-j-2.pot
+result=$?
+
+exit $result

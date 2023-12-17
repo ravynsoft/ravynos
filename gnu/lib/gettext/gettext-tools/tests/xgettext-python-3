@@ -1,0 +1,135 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Python support: --from-code option and encoding recognition.
+
+# Note: This test fails on Linux with musl libc versions that don't support
+# the EUC-JP encoding in 'iconv'.
+
+cat <<\EOF > xg-py-3a.py
+#!/usr/bin/env python
+# TRANSLATORS: Franè´Æois Pinard is a hero.
+print gettext.gettext("∆¸À‹∏Ï");
+EOF
+
+cat <<\EOF > xg-py-3b.py
+#!/usr/bin/env python
+                       # Hey Emacs! -*- coding: euc-jp -*-
+# TRANSLATORS: Franè´Æois Pinard is a hero.
+print gettext.gettext("∆¸À‹∏Ï");
+EOF
+
+cat <<\EOF > xg-py-3u.py
+#!/usr/bin/env python
+# TRANSLATORS: Fran√ßois Pinard is a hero.
+print gettext.gettext("Êó•Êú¨Ë™û");
+EOF
+
+cat <<\EOF > xg-py-3.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. TRANSLATORS: Fran√ßois Pinard is a hero.
+msgid "Êó•Êú¨Ë™û"
+msgstr ""
+EOF
+
+# Verify that if the source file has no magic coding comment, xgettext fails
+# if no --from-code option is given but succeeds if it is given.
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments=TRANSLATORS: --no-location \
+  -d xg-py-3a xg-py-3a.py > /dev/null 2>&1
+test $? = 1 || { Exit 1; }
+${XGETTEXT} --add-comments=TRANSLATORS: --no-location --from-code=euc-jp \
+  -o xg-py-3a.tmp xg-py-3a.py || Exit 1
+func_filter_POT_Creation_Date xg-py-3a.tmp xg-py-3a.pot
+
+: ${DIFF=diff}
+${DIFF} xg-py-3.ok xg-py-3a.pot || Exit 1
+
+# Verify that if the source file has a magic coding comment, xgettext succeeds.
+
+${XGETTEXT} --add-comments=TRANSLATORS: --no-location \
+  -o xg-py-3b.tmp xg-py-3b.py || Exit 1
+func_filter_POT_Creation_Date xg-py-3b.tmp xg-py-3b.pot
+
+${DIFF} xg-py-3.ok xg-py-3b.pot || Exit 1
+
+# Verify that if the source file has no magic coding comment but is UTF-8
+# encoded, xgettext succeeds. (PEP 3120)
+
+${XGETTEXT} --add-comments=TRANSLATORS: --no-location \
+  -o xg-py-3u.tmp xg-py-3u.py || Exit 1
+func_filter_POT_Creation_Date xg-py-3u.tmp xg-py-3u.pot
+
+${DIFF} xg-py-3.ok xg-py-3u.pot || Exit 1
+
+# Verify that if the source file has a magic coding comment and a --from-code
+# option is given, the magic coding comment takes precedence over it.
+
+${XGETTEXT} --add-comments=TRANSLATORS: --no-location --from-code=iso-8859-1 \
+  -o xg-py-3c.tmp xg-py-3b.py || Exit 1
+func_filter_POT_Creation_Date xg-py-3c.tmp xg-py-3c.pot
+
+${DIFF} xg-py-3.ok xg-py-3c.pot || Exit 1
+
+# Verify that backslashes in and second bytes with value 0x5C are correctly
+# distinguished in weird encodings like BIG5.
+
+cat <<\EOF > xg-py-3d.py
+#!/usr/bin/env python
+                       # Hey Emacs! -*- coding: big5 -*-
+print gettext.gettext(u"¨\u0021");
+print gettext.gettext(u"¨\\u0021");
+EOF
+
+${XGETTEXT} --add-comments=TRANSLATORS: \
+  -o xg-py-3d.tmp xg-py-3d.py || Exit 1
+func_filter_POT_Creation_Date xg-py-3d.tmp xg-py-3d.pot
+
+cat <<\EOF > xg-py-3d.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: xg-py-3d.py:3
+msgid "ÊûØu0021"
+msgstr ""
+
+#: xg-py-3d.py:4
+msgid "ÊûØ!"
+msgstr ""
+EOF
+
+${DIFF} xg-py-3d.ok xg-py-3d.pot || Exit 1
+
+Exit 0

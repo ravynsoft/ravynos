@@ -1,0 +1,30 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Vala support: pass-c-format.
+
+: ${XGETTEXT=xgettext}
+
+cat <<\EOF > xg-vala-5.vala
+printf (_("blablaQ %d and %s"), a, b);
+printf (_("blablaQ {0} and {1}"), a, b);
+EOF
+
+${XGETTEXT} --omit-header --no-location -o xg-vala-5.tmp xg-vala-5.vala || Exit 1
+func_filter_POT_Creation_Date xg-vala-5.tmp xg-vala-5.po
+
+cat <<\EOF > xg-vala-5.ok
+#, c-format
+msgid "blablaQ %d and %s"
+msgstr ""
+
+#, c-format
+msgid "blablaQ {0} and {1}"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-vala-5.ok xg-vala-5.po
+result=$?
+
+exit $result

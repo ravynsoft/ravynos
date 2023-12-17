@@ -1,0 +1,102 @@
+            GNU libasprintf - automatic formatted output to strings
+
+This package makes the C formatted output routines (fprintf et al.) usable
+in C++ programs.
+
+
+Sample use
+----------
+
+  char *pathname = autosprintf ("%s/%s", directory, filename);
+  cerr << autosprintf ("syntax error in %s:%d: %s", filename, line, errstring);
+
+
+Benefits
+--------
+
+The benefits of autosprintf over the usual "piecewise meal" idiom
+
+  cerr << "syntax error in " << filename << ":" << line << ": " << errstring;
+
+are:
+
+  - Reuses of the standard POSIX printf facility. Easy migration from C to C++.
+
+  - English sentences are kept together.
+
+  - Internationalization requires format strings, because
+    1. Internationalization requires the ability for the translator to change
+       the order of parts of a sentence. The POSIX printf formatted output
+       functions (and thus also autosprintf) support this through the %m$ and
+       *m$ syntax.
+    2. Translators are used to translate one string per sentence, not
+       multiple strings per sentence, and not C++ code statements.
+
+  - Reduces the risk of programming errors due to forgotten state in the
+    output stream (e.g.  'cout << hex;'  not followed by  'cout << dec;').
+
+The benefits of autosprintf over C sprintf are:
+
+  - Autosprintf avoids buffer overruns and truncated results.
+    The C sprintf() function often leads to buffer overruns. On the other
+    hand, the C snprintf() function requires extra coding for an a priori
+    estimate of the result's size and truncates the result if the estimate
+    was too low.
+
+  - Autosprintf avoids memory leaks.
+    Temporarily allocated memory is cleaned up automatically.
+
+
+Installation
+------------
+
+See INSTALL. Usually "./configure; make; make install" should work.
+
+The installed files are:
+  - An include file "autosprintf.h" which defines the class 'autosprintf',
+    in the namespace 'gnu'.
+  - A library libasprintf containing this class.
+
+
+Use
+---
+
+To use the class autosprintf, use
+
+  #include "autosprintf.h"
+  using gnu::autosprintf;
+
+and link with the linker option
+
+  -lasprintf
+
+
+Misc notes
+----------
+
+An instance of class 'autosprintf' contains the formatted output result;
+this string is freed when the instance's destructor is run.
+
+The class name 'autosprintf' is meant to remind the C function sprintf(),
+the GNU C library function asprintf(), and the C++ autoptr programming idiom.
+
+
+Distribution
+------------
+
+    https://haible.de/bruno/gnu/libasprintf-1.0.tar.gz
+
+Homepage
+--------
+
+    https://haible.de/bruno/packages-libasprintf.html
+
+Bug reports
+-----------
+
+Report bugs
+  - in the bug tracker at <https://savannah.gnu.org/projects/gettext>
+  - or by email to <bug-gettext@gnu.org>.
+
+
+Bruno Haible <brunoe@clisp.org>

@@ -1,0 +1,59 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of Qt plural format strings.
+
+cat <<\EOF > f-qtp-1.data
+# Unrecognized: no argument
+"abcdef"
+# Unrecognized: unterminated
+"abcdef%"
+# Unrecognized: unterminated
+"abcdef%L"
+# Valid: one argument
+"abc%ndef"
+# Valid: unterminated
+"abc%ndef%"
+# Valid: unterminated
+"abc%ndef%L"
+# Valid: multiple uses of same argument
+"abc%ndef%nghi"
+# Valid: an argument with locale-dependency flag
+"abc%Lndef"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-qtp-1-$n.in
+_(${string});
+EOF
+  ${XGETTEXT} -L C++ --qt -k_ -o f-qtp-1-$n.po f-qtp-1-$n.in || Exit 1
+  test -f f-qtp-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep qt-plural-format f-qtp-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep qt-plural-format f-qtp-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-qtp-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-qtp-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-qtp-1-$n.in f-qtp-1-$n.po
+done < f-qtp-1.data
+
+Exit 0

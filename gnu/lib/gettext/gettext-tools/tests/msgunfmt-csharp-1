@@ -1,0 +1,92 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of --csharp option.
+
+# Test whether we can compile and execute C# programs.
+test "${CSHARP_CHOICE}" != no || {
+  echo "Skipping test: configured with --disable-csharp"
+  Exit 77
+}
+test "${BUILDCSHARP}" = yes || {
+  echo "Skipping test: C# compiler not found"
+  Exit 77
+}
+test "${TESTCSHARP}" = yes || {
+  echo "Skipping test: C# engine not found"
+  Exit 77
+}
+
+test -d mu-cs-1 || mkdir mu-cs-1
+
+cat <<\EOF > mu-cs-1/fr.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, csharp-format
+msgid "a piece of cake"
+msgid_plural "{0} pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "{0} morceaux de gateau"
+
+# Reverse the arguments.
+#, csharp-format
+msgid "{0} is replaced by {1}."
+msgstr "{1} remplace {0}."
+
+# A proximity measure.
+msgid "Close"
+msgstr "Proche"
+
+# A menu entry.
+msgctxt "File"
+msgid "Close"
+msgstr "Fermer"
+EOF
+
+: ${MSGFMT=msgfmt}
+GETTEXTCSHARPLIBDIR=../../../gettext-runtime/intl-csharp \
+${MSGFMT} --csharp -d mu-cs-1 -r prog -l fr mu-cs-1/fr.po || Exit 1
+
+: ${MSGUNFMT=msgunfmt}
+GETTEXTCSHARPEXEDIR=../../src \
+GETTEXTCSHARPLIBDIR=../../../gettext-runtime/intl-csharp \
+${MSGUNFMT} --csharp -d mu-cs-1 -r prog -l fr -o mu-cs-1/prog.out || Exit 1
+
+: ${MSGCAT=msgcat}
+${MSGCAT} -s -o mu-cs-1/prog.sort mu-cs-1/prog.out || Exit 1
+
+cat <<\EOF > mu-cs-1/prog.ok
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on."
+
+msgid "Close"
+msgstr "Proche"
+
+msgctxt "File"
+msgid "Close"
+msgstr "Fermer"
+
+msgid "a piece of cake"
+msgid_plural "{0} pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "{0} morceaux de gateau"
+
+msgid "{0} is replaced by {1}."
+msgstr "{1} remplace {0}."
+EOF
+: ${DIFF=diff}
+${DIFF} mu-cs-1/prog.ok mu-cs-1/prog.sort || Exit 1
+
+Exit 0

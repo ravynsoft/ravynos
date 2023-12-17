@@ -1,0 +1,67 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test checking of YCP format strings.
+
+cat <<\EOF > f-y-2.data
+# Valid: %% doesn't count
+msgid  "abc%%def"
+msgstr "xyz"
+# Invalid: invalid msgstr
+msgid  "abc%%def"
+msgstr "xyz%"
+# Valid: same arguments
+msgid  "abc%2def"
+msgstr "xyz%2"
+# Valid: permutation
+msgid  "abc%3%1%2def"
+msgstr "xyz%2%1%3"
+# Invalid: too few arguments
+msgid  "abc%2def%1"
+msgstr "xyz%1"
+# Invalid: too many arguments
+msgid  "abc%1def"
+msgstr "xyz%1uvw%2"
+# Invalid: missing non-final argument
+msgid  "abc%2def%1"
+msgstr "xyz%2"
+# Invalid: added non-final argument
+msgid  "abc%2def"
+msgstr "xyz%1%2"
+EOF
+
+: ${MSGFMT=msgfmt}
+n=0
+while read comment; do
+  read msgid_line
+  read msgstr_line
+  n=`expr $n + 1`
+  cat <<EOF > f-y-2-$n.po
+#, ycp-format
+${msgid_line}
+${msgstr_line}
+EOF
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if ${MSGFMT} --check-format -o f-y-2-$n.mo f-y-2-$n.po; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    ${MSGFMT} --check-format -o f-y-2-$n.mo f-y-2-$n.po 2> /dev/null
+    if test $? = 1; then
+      :
+    else
+      fail=yes
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string checking error:" 1>&2
+    cat f-y-2-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-y-2-$n.po f-y-2-$n.mo
+done < f-y-2.data
+
+Exit 0

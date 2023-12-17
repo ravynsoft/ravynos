@@ -1,0 +1,59 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that gettext() returns the message converted to the locale's encoding.
+
+test -d in-2-1 || mkdir in-2-1
+test -d in-2-1/fr || mkdir in-2-1/fr
+test -d in-2-1/fr/LC_MESSAGES || mkdir in-2-1/fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o in-2-1/fr/LC_MESSAGES/tstprog.mo "$wabs_srcdir"/intl-2-1.po
+
+test -d in-2-2 || mkdir in-2-2
+test -d in-2-2/fr || mkdir in-2-2/fr
+test -d in-2-2/fr/LC_MESSAGES || mkdir in-2-2/fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o in-2-2/fr/LC_MESSAGES/tstprog.mo "$wabs_srcdir"/intl-2-2.po
+
+: ${DIFF=diff}
+cat <<EOF > in-2-1.ok
+Käse
+EOF
+cat <<EOF > in-2-2.ok
+KÃ¤se
+EOF
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  prepare_locale_ in-2-1/fr in-2-1/$LOCALE_FR
+  prepare_locale_ in-2-2/fr in-2-2/$LOCALE_FR
+  ../intl-1-prg in-2-1 $LOCALE_FR > in-2.tmp || Exit 1
+  LC_ALL=C tr -d '\r' < in-2.tmp > in-2.out || Exit 1
+  ${DIFF} in-2-1.ok in-2.out || Exit 1
+  ../intl-1-prg in-2-2 $LOCALE_FR > in-2.tmp || Exit 1
+  LC_ALL=C tr -d '\r' < in-2.tmp > in-2.out || Exit 1
+  ${DIFF} in-2-1.ok in-2.out || Exit 1
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ in-2-1/fr in-2-1/$LOCALE_FR_UTF8
+  prepare_locale_ in-2-2/fr in-2-2/$LOCALE_FR_UTF8
+  ../intl-1-prg in-2-1 $LOCALE_FR_UTF8 > in-2.tmp || Exit 1
+  LC_ALL=C tr -d '\r' < in-2.tmp > in-2.out || Exit 1
+  ${DIFF} in-2-2.ok in-2.out || Exit 1
+  ../intl-1-prg in-2-2 $LOCALE_FR_UTF8 > in-2.tmp || Exit 1
+  LC_ALL=C tr -d '\r' < in-2.tmp > in-2.out || Exit 1
+  ${DIFF} in-2-2.ok in-2.out || Exit 1
+fi
+if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french locale is installed"
+  else
+    echo "Skipping test: no french locale is supported"
+  fi
+  Exit 77
+fi
+
+Exit 0

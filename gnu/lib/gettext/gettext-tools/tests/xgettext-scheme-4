@@ -1,0 +1,46 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Scheme support: GIMP script-fu extension _"..."
+
+cat <<EOF > xg-sc-4.scm
+(script-fu-register "script-fu-paste-as-brush"
+  _"New _Brush..."
+  _"Paste the clipboard contents into a new brush"
+  "Michael Natterer <mitch@gimp.org>"
+  "Michael Natterer"
+  "2005-09-25"
+  ""
+  SF-STRING     _"Brush name" "My Brush"
+  SF-STRING     _"File name"  "mybrush"
+  SF-ADJUSTMENT _"Spacing"    '(25 0 1000 1 1 1 0)
+)
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -k_ --omit-header --no-location --add-comments=TRANSLATORS: \
+  -d xg-sc-4.tmp xg-sc-4.scm || Exit 1
+LC_ALL=C tr -d '\r' < xg-sc-4.tmp.po > xg-sc-4.po || Exit 1
+
+cat <<EOF > xg-sc-4.ok
+msgid "New _Brush..."
+msgstr ""
+
+msgid "Paste the clipboard contents into a new brush"
+msgstr ""
+
+msgid "Brush name"
+msgstr ""
+
+msgid "File name"
+msgstr ""
+
+msgid "Spacing"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-sc-4.ok xg-sc-4.po
+result=$?
+
+exit $result

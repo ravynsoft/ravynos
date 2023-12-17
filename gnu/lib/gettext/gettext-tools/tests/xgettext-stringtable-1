@@ -1,0 +1,65 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test extractor of NeXTstep/GNUstep .strings files.
+
+cat <<\EOF > xg-stbl-1.strings
+/***
+German.lproj/Localizable.strings
+updated by make_strings 2003-10-12 15:31:50 +0200
+add comments above this one
+***/
+
+
+/*** Strings from Hello.m ***/
+/* File: Hello.m:57 */
+/* File: Hello.m:56 */
+"Hello, world!" = "Hallo Welt!";
+/* File: Hello.m:67 */
+"This program is running as process number %d."
+= "Dieses Programm l‰uft mit der Prozess-Nummer %d.";
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o xg-stbl-1.tmp xg-stbl-1.strings || Exit 1
+func_filter_POT_Creation_Date xg-stbl-1.tmp xg-stbl-1.po
+
+cat <<\EOF > xg-stbl-1.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#
+# German.lproj/Localizable.strings
+# updated by make_strings 2003-10-12 15:31:50 +0200
+# add comments above this one
+#
+# Strings from Hello.m
+#: Hello.m:57 Hello.m:56
+msgid "Hello, world!"
+msgstr "Hallo Welt!"
+
+#: Hello.m:67
+msgid "This program is running as process number %d."
+msgstr "Dieses Programm l√§uft mit der Prozess-Nummer %d."
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-stbl-1.ok xg-stbl-1.po
+result=$?
+
+exit $result

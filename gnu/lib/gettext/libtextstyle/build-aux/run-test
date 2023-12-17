@@ -1,0 +1,148 @@
+#!/bin/sh
+#
+# Copyright (C) 2009-2023 Free Software Foundation, Inc.
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <https://www.gnu.org/licenses/>.
+#
+
+# This program is a test driver that supports running a test under valgrind.
+# Usage: run-test CHECKER PROGRAM [ARGUMENT...]
+
+progname=$0
+
+# func_usage
+# outputs to stdout the --help usage message.
+func_usage ()
+{
+  echo "\
+Usage: run-test [OPTION...] CHECKER PROGRAM [ARGUMENT...]
+
+Runs PROGRAM under the control of CHECKER.
+
+CHECKER may be empty or a valgrind command with some options, such as
+'valgrind --tool=memcheck --num-callers=20 --leak-check=yes --leak-resolution=high --show-reachable=yes'.
+
+When CHECKER is not empty, it is recommended that the package has been
+configured with
+  --disable-shared     so that tests are real executables and not libtool
+                       wrapper scripts, and
+  CFLAGS=\"-g\"          so that valgrind shows line numbers.
+
+Report bugs to Bruno Haible."
+}
+
+# func_version
+# outputs to stdout the --version message.
+func_version ()
+{
+  echo "\
+run-test (GNU gnulib)
+Copyright (C) 2019 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+
+Written by" "Bruno Haible"
+}
+
+# func_fatal_error message
+# outputs to stderr a fatal error message, and terminates the program.
+# Input:
+# - progname                 name of this program
+func_fatal_error ()
+{
+  echo "$progname: *** $1" 1>&2
+  echo "$progname: *** Stop." 1>&2
+  func_exit 1
+}
+
+# Command-line option processing.
+# Removes the OPTIONS from the arguments. Sets the variables:
+# - checker        wrapper program for executables
+{
+  while test $# -gt 0; do
+    case "$1" in
+      --help | --hel | --he | --h )
+        func_usage
+        exit $? ;;
+      --version | --versio | --versi | --vers | --ver | --ve | --v )
+        func_version
+        exit $? ;;
+      -- )
+        # Stop option processing
+        shift
+        break ;;
+      -* )
+        echo "run-test: unknown option $1" 1>&2
+        echo "Try 'run-test --help' for more information." 1>&2
+        exit 1 ;;
+      * )
+        break ;;
+    esac
+  done
+
+  if test $# -lt 2; then
+    echo "run-test: too few arguments" 1>&2
+    echo "Try 'run-test --help' for more information." 1>&2
+    exit 1
+  fi
+
+  checker="$1"
+  shift
+}
+
+if test -z "$checker"; then
+  # No checker. Run the test directly.
+  case "$1" in
+    *.sh)
+     # Support environments where sh exists but not /bin/sh.
+     exec sh "$@"
+     ;;
+    *)
+     exec "$@"
+     ;;
+  esac
+else
+  # Using valgrind. We want to apply valgrind only to executables, not to
+  # shell scripts, because
+  # 1. we don't want to look for memory leaks in bash,
+  # 2. on a bi-arch system, we would get an error message such as
+  #    "valgrind: wrong executable class (eg. 32-bit instead of 64-bit)".
+  case "$1" in
+    *.sh)
+      # A shell script. Ignore the checker.
+      # Support environments where sh exists but not /bin/sh.
+      exec sh "$@"
+      ;;
+    *)
+      # The 'file' command is not portable enough. So, look
+      # at the first two bytes of the file. Are they '#!'?
+      if { if od -A x < /dev/null >/dev/null 2>/dev/null; then
+             # Use POSIX od.
+             firstbytes=`od -A n -t o1 -N 2 < "$1" | tr -d ' '`
+           else
+             # Use BSD hexdump.
+             firstbytes=`dd if="$1" bs=1 count=2 2>/dev/null | hexdump -e '1/1 "%03o"'`
+           fi
+           test "$firstbytes" = "043041"
+         }; then
+        # A shell script. Ignore the checker.
+        exec "$@"
+      else
+        # An executable. Use the checker.
+        exec $checker "$@"
+      fi
+      ;;
+  esac
+fi

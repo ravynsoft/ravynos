@@ -1,0 +1,16 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test compendium option with a large compendium.
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o mm-c-5.tmp \
+  --compendium "$wabs_srcdir"/mm-viet.comp.po \
+  /dev/null "$wabs_srcdir"/mm-viet.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-5.tmp > mm-c-5.out || Exit 1
+
+: ${DIFF=diff}
+${DIFF} "$abs_srcdir"/mm-viet.out mm-c-5.out
+result=$?
+
+exit $result

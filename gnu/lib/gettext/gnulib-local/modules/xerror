@@ -1,0 +1,27 @@
+Description:
+Multiline error-reporting functions.
+
+Files:
+lib/xerror.h
+lib/xerror.c
+
+Depends-on:
+error
+progname
+error-progname
+mbswidth
+
+configure.ac:
+
+Makefile.am:
+lib_SOURCES += xerror.h xerror.c
+
+Include:
+"xerror.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

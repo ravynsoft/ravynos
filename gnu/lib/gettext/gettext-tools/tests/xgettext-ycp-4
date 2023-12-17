@@ -1,0 +1,33 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test YCP support: --add-comments option.
+
+cat <<\EOF > xg-y-4.ycp
+/* a */
+/* b */ string = /* c */
+/* d */
+/* e */ _( /* f */ "hello " /* g */ "world" /* h */ );
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --omit-header --no-location --keyword=_ \
+  -d xg-y-4.tmp xg-y-4.ycp || Exit 1
+LC_ALL=C tr -d '\r' < xg-y-4.tmp.po > xg-y-4.po || Exit 1
+
+cat <<EOF > xg-y-4.ok
+#. a
+#. b
+#. c
+#. d
+#. e
+#. f
+msgid "hello world"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-y-4.ok xg-y-4.po
+result=$?
+
+exit $result

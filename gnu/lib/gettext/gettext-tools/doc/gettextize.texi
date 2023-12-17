@@ -1,0 +1,175 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2019 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+The @code{gettextize} program is an interactive tool that helps the
+maintainer of a package internationalized through GNU @code{gettext}.
+It is used for two purposes:
+
+@itemize @bullet
+@item
+As a wizard, when a package is modified to use GNU @code{gettext} for
+the first time.
+
+@item
+As a migration tool, for upgrading the GNU @code{gettext} support in
+a package from a previous to a newer version of GNU @code{gettext}.
+@end itemize
+
+This program performs the following tasks:
+
+@itemize @bullet
+@item
+It copies into the package some files that are consistently and
+identically needed in every package internationalized through
+GNU @code{gettext}.
+
+@item It performs as many of the tasks mentioned in the next section
+@ref{Adjusting Files} as can be performed automatically.
+
+@item It removes obsolete files and idioms used for previous GNU
+@code{gettext} versions to the form recommended for the current GNU
+@code{gettext} version.
+
+@item It prints a summary of the tasks that ought to be done manually
+and could not be done automatically by @code{gettextize}.
+@end itemize
+
+It can be invoked as follows:
+
+@pindex gettextize
+@cindex @code{gettextize} program, usage
+@example
+gettextize [ @var{option}@dots{} ] [ @var{directory} ]
+@end example
+
+@noindent
+and accepts the following options:
+
+@table @samp
+@item -f
+@itemx --force
+@opindex -f@r{, @code{gettextize} option}
+@opindex --force@r{, @code{gettextize} option}
+Force replacement of files which already exist.
+
+@item --po-dir=@var{dir}
+@opindex --po-dir@r{, @code{gettextize} option}
+Specify a directory containing PO files.  Such a directory contains the
+translations into various languages of a particular POT file.  This
+option can be specified multiple times, once for each translation domain.
+If it is not specified, the directory named @file{po/} is updated.
+
+@item --no-changelog
+@opindex --no-changelog@r{, @code{gettextize} option}
+Don't update or create ChangeLog files.  By default, @code{gettextize}
+logs all changes (file additions, modifications and removals) in a
+file called @samp{ChangeLog} in each affected directory.
+
+@item --symlink
+@opindex --symlink@r{, @code{gettextize} option}
+Make symbolic links instead of copying the needed files.  This can be
+useful to save a few kilobytes of disk space, but it requires extra
+effort to create self-contained tarballs, it may disturb some mechanism
+the maintainer applies to the sources, and it is likely to introduce
+bugs when a newer version of @code{gettext} is installed on the system.
+
+@item -n
+@itemx --dry-run
+@opindex -d@r{, @code{gettextize} option}
+@opindex --dry-run@r{, @code{gettextize} option}
+Print modifications but don't perform them.  All actions that
+@code{gettextize} would normally execute are inhibited and instead only
+listed on standard output.
+
+@item --help
+@opindex --help@r{, @code{gettextize} option}
+Display this help and exit.
+
+@item --version
+@opindex --version@r{, @code{gettextize} option}
+Output version information and exit.
+
+@end table
+
+If @var{directory} is given, this is the top level directory of a
+package to prepare for using GNU @code{gettext}.  If not given, it
+is assumed that the current directory is the top level directory of
+such a package.
+
+The program @code{gettextize} provides the following files.  However,
+no existing file will be replaced unless the option @code{--force}
+(@code{-f}) is specified.
+
+@enumerate
+@item
+The @file{ABOUT-NLS} file is copied in the main directory of your package,
+the one being at the top level.  This file contains a reference to the
+GNU gettext documentation.  It also avoids an error from Automake in
+packages that use the Automake option @samp{gnu} or @samp{gnits}:
+``error: required file './ABOUT-NLS' not found''.
+
+@item
+A @file{po/} directory is created for eventually holding
+all translation files, but initially only containing the file
+@file{po/Makefile.in.in} from the GNU @code{gettext} distribution
+(beware the double @samp{.in} in the file name) and a few auxiliary
+files.  If the @file{po/} directory already exists, it will be preserved
+along with the files it contains, and only @file{Makefile.in.in} and
+the auxiliary files will be overwritten.
+
+If @samp{--po-dir} has been specified, this holds for every directory
+specified through @samp{--po-dir}, instead of @file{po/}.
+
+@item
+The file @file{config.rpath} is copied into the directory containing
+configuration support files.  It is needed by the @code{AM_GNU_GETTEXT}
+autoconf macro.
+
+@item
+Only if the project is using GNU @code{automake}:
+A set of @code{autoconf} macro files is copied into the package's
+@code{autoconf} macro repository, usually in a directory called @file{m4/}.
+@end enumerate
+
+If your site support symbolic links, @code{gettextize} will not
+actually copy the files into your package, but establish symbolic
+links instead.  This avoids duplicating the disk space needed in
+all packages.  Merely using the @samp{-h} option while creating the
+@code{tar} archive of your distribution will resolve each link by an
+actual copy in the distribution archive.  So, to insist, you really
+should use @samp{-h} option with @code{tar} within your @code{dist}
+goal of your main @file{Makefile.in}.
+
+Furthermore, @code{gettextize} will update all @file{Makefile.am} files
+in each affected directory, as well as the top level @file{configure.ac}
+or @file{configure.in} file.
+
+It is interesting to understand that most new files for supporting
+GNU @code{gettext} facilities in one package go in @file{po/} and
+@file{m4/} subdirectories.  Still, these directories will mostly
+contain package dependent files.
+
+The @code{gettextize} program makes backup files for all files it
+replaces or changes, and also write ChangeLog entries about these
+changes.  This way, the careful maintainer can check after running
+@code{gettextize} whether its changes are acceptable to him, and
+possibly adjust them.  An exception to this rule is the @file{intl/}
+directory, which is removed as a whole if it still existed.
+
+It is important to understand that @code{gettextize} can not do the
+entire job of adapting a package for using GNU @code{gettext}.  The
+amount of remaining work depends on whether the package uses GNU
+@code{automake} or not.  But in any case, the maintainer should still
+read the section @ref{Adjusting Files} after invoking @code{gettextize}.
+
+In particular, if after using @samp{gettexize}, you get an error
+@samp{AC_COMPILE_IFELSE was called before AC_GNU_SOURCE} or
+@samp{AC_RUN_IFELSE was called before AC_GNU_SOURCE}, you can fix it
+by modifying @file{configure.ac}, as described in @ref{configure.ac}.
+
+It is also important to understand that @code{gettextize} is not part
+of the GNU build system, in the sense that it should not be invoked
+automatically, and not be invoked by someone who doesn't assume the
+responsibilities of a package maintainer.  For the latter purpose, a
+separate tool is provided, see @ref{autopoint Invocation}.

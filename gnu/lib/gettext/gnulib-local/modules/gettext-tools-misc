@@ -1,0 +1,46 @@
+Description:
+
+Files:
+m4/locale-fr.m4
+m4/locale-ja.m4
+
+Depends-on:
+
+configure.ac:
+
+Makefile.am:
+
+if INSTALL_PRIVATE_LIBRARIES
+# Specify that libgettextlib should be installed in $(libdir).
+lib_LTLIBRARIES += libgettextlib.la
+else
+# Specify that libgettextlib should not be installed.
+noinst_LTLIBRARIES += libgettextlib.la
+endif
+
+# Need $(LTLIBUNISTRING) because ulc_width_linebreaks, uc_width, etc. may be
+# taken from libunistring, when the configure option --with-libunistring-prefix
+# was given.
+# Need @LTLIBINTL@ because many source files use gettext().
+# Need @LTLIBICONV@ because linebreak.c and striconv.c use iconv().
+# Need @LIB_ACL@ @QCOPY_ACL_LIB@ because copy-file.c uses acl.h and qcopy_acl.
+# As of 2010-10-04, these are all added by gnulib-tool automatically.
+#lib_LDFLAGS += $(LTLIBUNISTRING) @LTLIBINTL@ @LTLIBICONV@ @LIB_ACL@ @QCOPY_ACL_LIB@
+
+lib_LDFLAGS += -release @VERSION@
+
+# Tell the mingw or Cygwin linker which symbols to export.
+if WOE32DLL
+lib_SOURCES += ../woe32dll/gettextlib-exports.c
+lib_LDFLAGS += -Wl,--export-all-symbols
+AM_CPPFLAGS += @GETTEXTLIB_EXPORTS_FLAGS@
+endif
+
+Include:
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

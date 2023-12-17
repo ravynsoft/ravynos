@@ -1,0 +1,49 @@
+Description:
+Output stream that converts the output to another encoding.
+
+Files:
+lib/iconv-ostream.oo.h
+lib/iconv-ostream.oo.c
+
+Depends-on:
+ostream
+c-strcase
+error
+stdlib
+gettext
+iconv
+xalloc
+
+configure.ac:
+
+Makefile.am:
+lib_SOURCES += iconv-ostream.c
+# This is a Makefile rule that generates multiple files at once; see the
+# automake documentation, node "Multiple Outputs", for details.
+$(srcdir)/iconv-ostream.h : $(top_srcdir)/build-aux/moopp iconv-ostream.oo.h iconv-ostream.oo.c ostream.oo.h
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/iconv-ostream.oo.c $(srcdir)/iconv-ostream.oo.h $(srcdir)/ostream.oo.h
+$(srcdir)/iconv-ostream.c $(srcdir)/iconv_ostream.priv.h $(srcdir)/iconv_ostream.vt.h : iconv-ostream.h
+	@test -f $@ || { \
+	  trap 'rm -rf iconv-ostream.lock' 1 2 13 15; \
+	  if mkdir iconv-ostream.lock 2>/dev/null; then \
+	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/iconv-ostream.oo.c $(srcdir)/iconv-ostream.oo.h $(srcdir)/ostream.oo.h"; \
+	    $(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/iconv-ostream.oo.c $(srcdir)/iconv-ostream.oo.h $(srcdir)/ostream.oo.h; \
+	    result=$$?; rm -rf iconv-ostream.lock; exit $$result; \
+	  else \
+	    while test -d iconv-ostream.lock; do sleep 1; done; \
+	    test -f $(srcdir)/iconv-ostream.h; \
+	  fi; \
+	}
+BUILT_SOURCES += iconv-ostream.h iconv-ostream.c iconv_ostream.priv.h iconv_ostream.vt.h
+MAINTAINERCLEANFILES += iconv-ostream.h iconv-ostream.c iconv_ostream.priv.h iconv_ostream.vt.h
+EXTRA_DIST += iconv-ostream.h iconv-ostream.c iconv_ostream.priv.h iconv_ostream.vt.h
+
+Include:
+"iconv-ostream.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

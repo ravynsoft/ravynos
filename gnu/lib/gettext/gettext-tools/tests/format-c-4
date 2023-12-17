@@ -1,0 +1,95 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test ISO C 99 <inttypes.h> format string directives with plural forms.
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o fc4.tmp --omit-header --no-location "$wabs_srcdir"/format-c-4-prg.c || Exit 1
+LC_ALL=C tr -d '\r' < fc4.tmp > fc4.pot || Exit 1
+
+cat <<EOF > fc4.ok
+msgid "the president"
+msgstr ""
+
+#, c-format
+msgid "father of %<PRId8> child"
+msgid_plural "father of %<PRId8> children"
+msgstr[0] ""
+msgstr[1] ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} fc4.ok fc4.pot || Exit 1
+
+cat <<EOF > fc4-de.po
+msgid "the president"
+msgstr "der Vorsitzende"
+
+#, c-format
+msgid "father of %<PRId8> child"
+msgid_plural "father of %<PRId8> children"
+msgstr[0] "Vater eines Kindes"
+msgstr[1] "Vater von %<PRId8> Kindern"
+EOF
+
+test -d fc4-dir || mkdir fc4-dir
+test -d fc4-dir/fr || mkdir fc4-dir/fr
+test -d fc4-dir/fr/LC_MESSAGES || mkdir fc4-dir/fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o fc4-dir/fr/LC_MESSAGES/fc4.mo fc4-de.po
+
+: ${MSGUNFMT=msgunfmt}
+${MSGUNFMT} -o fc4-de.po.tmp fc4-dir/fr/LC_MESSAGES/fc4.mo || Exit 1
+LC_ALL=C tr -d '\r' < fc4-de.po.tmp > fc4-de.po.un || Exit 1
+
+cat <<EOF > fc4-de.po.red
+msgid "father of %d child"
+msgid_plural "father of %<PRId8> children"
+msgstr[0] "Vater eines Kindes"
+msgstr[1] "Vater von %d Kindern"
+
+msgid "the president"
+msgstr "der Vorsitzende"
+
+#, c-format
+msgid "father of %<PRId8> child"
+msgid_plural "father of %<PRId8> children"
+msgstr[0] "Vater eines Kindes"
+msgstr[1] "Vater von %<PRId8> Kindern"
+EOF
+
+: ${DIFF=diff}
+${DIFF} fc4-de.po.red fc4-de.po.un || Exit 1
+
+if test -z "$USE_SYSTEM_LIBINTL"; then
+  # In the tests/ dir: Rely on a fake setlocale, so that we can exercise
+  # the test on all platforms.
+
+  LANGUAGE= ../fc4 fr_FR || Exit 1
+
+else
+  # In the system-tests/ dir: Don't use a fake setlocale.
+
+  : ${LOCALE_FR=fr_FR}
+  : ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+  if test $LOCALE_FR != none; then
+    prepare_locale_ fc4-dir/fr fc4-dir/$LOCALE_FR
+    LANGUAGE= ../fc4 $LOCALE_FR || Exit 1
+  fi
+  if test $LOCALE_FR_UTF8 != none; then
+    prepare_locale_ fc4-dir/fr fc4-dir/$LOCALE_FR_UTF8
+    LANGUAGE= ../fc4 $LOCALE_FR_UTF8 || Exit 1
+  fi
+  if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+    if test -f /usr/bin/localedef; then
+      echo "Skipping test: no french locale is installed"
+    else
+      echo "Skipping test: no french locale is supported"
+    fi
+    Exit 77
+  fi
+
+fi
+
+Exit 0

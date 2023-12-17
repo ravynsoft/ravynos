@@ -1,0 +1,13 @@
+; These exports are for backward compatibility with older ports
+; of gettext for OS/2 that export everything by ordinals.
+  _$gettext=gettext                   @1 NONAME
+  _$gettext__=gettext__               @2 NONAME
+  _$dgettext=dgettext                 @3 NONAME
+  _$dgettext__=dgettext__             @4 NONAME
+  _$dcgettext=dcgettext               @5 NONAME
+  _$dcgettext__=dcgettext__           @6 NONAME
+  _$textdomain=textdomain             @7 NONAME
+  _$textdomain__=textdomain__         @8 NONAME
+  _$bindtextdomain=bindtextdomain     @9 NONAME
+  _$bindtextdomain__=bindtextdomain__ @10 NONAME
+  _$_nl_msg_cat_cntr=_nl_msg_cat_cntr @11 NONAME

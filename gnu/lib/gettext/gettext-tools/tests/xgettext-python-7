@@ -1,0 +1,31 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Python support: --pass-python-brace-format.
+
+cat <<\EOF > xg-py-7.py
+my_old_format(gettext("blaold %d and %s"));
+my_new_format(gettext("blanew {foo} and {bar}"));
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --flag=my_old_format:1:python-format \
+            --flag=my_new_format:1:python-brace-format \
+            --omit-header --no-location -d xg-py-7.tmp xg-py-7.py || Exit 1
+LC_ALL=C tr -d '\r' < xg-py-7.tmp.po > xg-py-7.po || Exit 1
+
+cat <<EOF > xg-py-7.ok
+#, python-format
+msgid "blaold %d and %s"
+msgstr ""
+
+#, python-brace-format
+msgid "blanew {foo} and {bar}"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-py-7.ok xg-py-7.po
+result=$?
+
+exit $result

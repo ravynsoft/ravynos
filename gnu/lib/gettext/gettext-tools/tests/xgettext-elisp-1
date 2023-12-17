@@ -1,0 +1,44 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test EmacsLisp support: --add-comments option.
+
+cat <<EOF > xg-el-1.el
+; This comment will not be extracted.
+(princ (_ "help"))
+;;  TRANSLATORS: This is an extracted comment.
+(princ (_ "me"))
+; Not extracted either.
+(princ (_ "Hey Jude"))
+;  TRANSLATORS:
+;     Nickname of the Beatles
+(princ (_ "The Fabulous Four"))
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location --add-comments=TRANSLATORS: \
+  -d xg-el-1.tmp xg-el-1.el || Exit 1
+LC_ALL=C tr -d '\r' < xg-el-1.tmp.po > xg-el-1.po || Exit 1
+
+cat <<EOF > xg-el-1.ok
+msgid "help"
+msgstr ""
+
+#. TRANSLATORS: This is an extracted comment.
+msgid "me"
+msgstr ""
+
+msgid "Hey Jude"
+msgstr ""
+
+#. TRANSLATORS:
+#. Nickname of the Beatles
+msgid "The Fabulous Four"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-el-1.ok xg-el-1.po
+result=$?
+
+exit $result

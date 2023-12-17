@@ -1,0 +1,33 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of duplicates.
+
+cat <<EOF > mm-test2.in1
+msgid "2" msgstr "2"
+msgid "3" msgstr "3"
+msgid "2" msgstr "ha ha"
+EOF
+
+cat <<EOF > mm-test2.in2
+msgid "1" msgstr ""
+msgid "2" msgstr ""
+msgid "3" msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+LC_MESSAGES=C LC_ALL= \
+${MSGMERGE} -q -o /dev/stdout mm-test2.in1 mm-test2.in2 \
+  2>&1 | grep -v '^==' | sed -e 's|[^ ]*\\msgmerge\.exe|msgmerge|' -e 's|^msgmerge\.exe|msgmerge|' -e 's|^/cygdrive/[^ ]*/msgmerge|msgmerge|' | LC_ALL=C tr -d '\r' > mm-test2.out
+
+cat << EOF > mm-test2.ok
+mm-test2.in1:3: duplicate message definition...
+mm-test2.in1:1: ...this is the location of the first definition
+msgmerge: found 1 fatal error
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-test2.ok mm-test2.out
+result=$?
+
+exit $result

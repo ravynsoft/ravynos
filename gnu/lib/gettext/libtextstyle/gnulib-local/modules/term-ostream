@@ -1,0 +1,60 @@
+Description:
+Output stream for attributed text, producing ANSI escape sequences.
+
+Files:
+lib/term-ostream.oo.h
+lib/term-ostream.oo.c
+m4/term-ostream.m4
+
+Depends-on:
+ostream
+term-style-control
+error
+stdlib
+full-write
+fsync
+gettext-h
+gettimeofday
+get_ppid_of
+get_progname_of
+stdint
+terminfo-h
+xalloc
+xgethostname
+xsize
+msvc-nothrow
+
+configure.ac:
+gl_TERM_OSTREAM
+
+Makefile.am:
+lib_SOURCES += term-ostream.c
+# This is a Makefile rule that generates multiple files at once; see the
+# automake documentation, node "Multiple Outputs", for details.
+$(srcdir)/term-ostream.h : $(top_srcdir)/build-aux/moopp term-ostream.oo.h term-ostream.oo.c ostream.oo.h
+	$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/term-ostream.oo.c $(srcdir)/term-ostream.oo.h $(srcdir)/ostream.oo.h
+$(srcdir)/term-ostream.c $(srcdir)/term_ostream.priv.h $(srcdir)/term_ostream.vt.h : term-ostream.h
+	@test -f $@ || { \
+	  trap 'rm -rf term-ostream.lock' 1 2 13 15; \
+	  if mkdir term-ostream.lock 2>/dev/null; then \
+	    echo "$(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/term-ostream.oo.c $(srcdir)/term-ostream.oo.h $(srcdir)/ostream.oo.h"; \
+	    $(top_srcdir)/build-aux/moopp $(MOOPPFLAGS) $(srcdir)/term-ostream.oo.c $(srcdir)/term-ostream.oo.h $(srcdir)/ostream.oo.h; \
+	    result=$$?; rm -rf term-ostream.lock; exit $$result; \
+	  else \
+	    while test -d term-ostream.lock; do sleep 1; done; \
+	    test -f $(srcdir)/term-ostream.h; \
+	  fi; \
+	}
+BUILT_SOURCES += term-ostream.h term-ostream.c term_ostream.priv.h term_ostream.vt.h
+MAINTAINERCLEANFILES += term-ostream.h term-ostream.c term_ostream.priv.h term_ostream.vt.h
+EXTRA_DIST += term-ostream.h term-ostream.c term_ostream.priv.h term_ostream.vt.h
+
+Include:
+"term-ostream.h"
+
+License:
+GPL
+
+Maintainer:
+Bruno Haible
+

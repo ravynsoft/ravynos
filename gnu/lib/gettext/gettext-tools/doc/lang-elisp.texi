@@ -1,0 +1,54 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node Emacs Lisp
+@subsection Emacs Lisp
+@cindex Emacs Lisp
+
+@table @asis
+@item RPMs
+emacs, xemacs
+
+@item Ubuntu packages
+emacs, xemacs21
+
+@item File extension
+@code{el}
+
+@item String syntax
+@code{"abc"}
+
+@item gettext shorthand
+@code{(_"abc")}
+
+@item gettext/ngettext functions
+@code{gettext}, @code{dgettext} (xemacs only)
+
+@item textdomain
+@code{domain} special form (xemacs only)
+
+@item bindtextdomain
+@code{bind-text-domain} function (xemacs only)
+
+@item setlocale
+automatic
+
+@item Prerequisite
+---
+
+@item Use or emulate GNU gettext
+use
+
+@item Extractor
+@code{xgettext}
+
+@item Formatting with positions
+@code{format "%2$d %1$d"}
+
+@item Portability
+Only XEmacs.  Without @code{I18N3} defined at build time, no translation.
+
+@item po-mode marking
+---
+@end table

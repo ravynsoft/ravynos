@@ -1,0 +1,59 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of ITS search path.
+
+for d in a b c xa xb xc; do
+  test -d "$d" || mkdir "$d"
+  base="$d"
+  if expr "$d" : x 2>&1 >/dev/null; then
+    test -d "$d/gettext" || mkdir "$d/gettext"
+    base="$d/gettext"
+  fi
+  test -d "$base/its" || mkdir "$base/its"
+  cat <<EOF > "$base/its/$d.loc"
+<?xml version='1.0'?>
+<locatingRules>
+  <locatingRule pattern='*.$d'>
+    <documentRule prefix='' localName='$d' target='empty.its'/>
+  </locatingRule>
+</locatingRules>
+EOF
+  cat <<EOF > "$base/its/empty.its"
+<?xml version='1.0'?>
+<its:rules xmlns:its='http://www.w3.org/2005/11/its' version='1.0'>
+</its:rules>
+EOF
+  cat <<EOF > "input.$d"
+<?xml version='1.0'?>
+<$d>
+</$d>
+EOF
+done
+
+: ${XGETTEXT=xgettext}
+
+unset GETTEXTDATADIR
+unset GETTEXTDATADIRS
+unset XDG_DATA_DIRS
+
+LC_MESSAGES=C ${XGETTEXT} -o /dev/null input.a 2>&1 | grep 'is unknown; will try C' 2>&1 >/dev/null
+result=$?
+test $result = 0 || Exit 1
+
+GETTEXTDATADIR=a \
+LC_MESSAGES=C ${XGETTEXT} -o /dev/null input.a 2>&1 | grep 'is unknown; will try C' 2>&1 >/dev/null
+result=$?
+test $result = 0 && Exit 1
+
+GETTEXTDATADIRS=b:a \
+LC_MESSAGES=C ${XGETTEXT} -o /dev/null input.b 2>&1 | grep 'is unknown; will try C' 2>&1 >/dev/null
+result=$?
+test $result = 0 && Exit 1
+
+XDG_DATA_DIRS=xa \
+LC_MESSAGES=C ${XGETTEXT} -o /dev/null input.xa 2>&1 | grep 'is unknown; will try C' 2>&1 >/dev/null
+result=$?
+test $result = 0 && Exit 1
+
+Exit 0

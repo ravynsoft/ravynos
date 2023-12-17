@@ -1,0 +1,47 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test compendium option with fuzziness.
+
+cat <<EOF > mm-c-2.in1
+#: file.c:123
+msgid "1"
+msgstr "1x"
+EOF
+
+cat <<EOF > mm-c-2.com
+#: file.c:345
+msgid "one, two, three"
+msgstr "1, 2, 3"
+EOF
+
+cat <<EOF > mm-c-2.pot
+#: file.c:123
+msgid "1"
+msgstr ""
+
+#: file.c:345
+msgid "one, two, three..."
+msgstr ""
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -C mm-c-2.com -o mm-c-2.tmp mm-c-2.in1 mm-c-2.pot || Exit 1
+LC_ALL=C tr -d '\r' < mm-c-2.tmp > mm-c-2.out || Exit 1
+
+cat << EOF > mm-c-2.ok
+#: file.c:123
+msgid "1"
+msgstr "1x"
+
+#: file.c:345
+#, fuzzy
+msgid "one, two, three..."
+msgstr "1, 2, 3"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mm-c-2.ok mm-c-2.out
+result=$?
+
+exit $result

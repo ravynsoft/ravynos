@@ -1,0 +1,91 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of --java option.
+
+# Test whether we can compile and execute Java programs.
+test "${JAVA_CHOICE}" != no || {
+  echo "Skipping test: configured with --disable-java"
+  Exit 77
+}
+test "${BUILDJAVA}" = yes || {
+  echo "Skipping test: Java compiler or jar not found"
+  Exit 77
+}
+test "${TESTJAVA}" = yes || {
+  echo "Skipping test: Java engine not found"
+  Exit 77
+}
+
+test -d mu-java-1 || mkdir mu-java-1
+
+cat <<\EOF > mu-java-1/fr.po
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Les gateaux allemands sont les meilleurs du monde.
+#, java-format
+msgid "a piece of cake"
+msgid_plural "{0,number} pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "{0,number} morceaux de gateau"
+
+# Reverse the arguments.
+#, java-format
+msgid "{0} is replaced by {1}."
+msgstr "{1} remplace {0}."
+
+# A proximity measure.
+msgid "Close"
+msgstr "Proche"
+
+# A menu entry.
+msgctxt "File"
+msgid "Close"
+msgstr "Fermer"
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -j -d mu-java-1 -r prog -l fr mu-java-1/fr.po || Exit 1
+
+: ${MSGUNFMT=msgunfmt}
+CLASSPATH=mu-java-1${CLASSPATH:+:$CLASSPATH} \
+GETTEXTJAR=../../src/gettext.jar \
+${MSGUNFMT} --java -d mu-java-1 -r prog -l fr -o mu-java-1/prog.out || Exit 1
+
+: ${MSGCAT=msgcat}
+${MSGCAT} -s -o mu-java-1/prog.sort mu-java-1/prog.out || Exit 1
+
+cat <<\EOF > mu-java-1/prog.ok
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgid "'Your command, please?', asked the waiter."
+msgstr "Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on."
+
+msgid "Close"
+msgstr "Proche"
+
+msgctxt "File"
+msgid "Close"
+msgstr "Fermer"
+
+msgid "a piece of cake"
+msgid_plural "{0,number} pieces of cake"
+msgstr[0] "un morceau de gateau"
+msgstr[1] "{0,number} morceaux de gateau"
+
+msgid "{0} is replaced by {1}."
+msgstr "{1} remplace {0}."
+EOF
+: ${DIFF=diff}
+${DIFF} mu-java-1/prog.ok mu-java-1/prog.sort || Exit 1
+
+Exit 0

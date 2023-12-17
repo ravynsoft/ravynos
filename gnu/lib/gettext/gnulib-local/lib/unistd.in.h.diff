@@ -1,0 +1,15 @@
+--- unistd.in.h	2017-05-15 19:05:30.449063823 +0200
++++ unistd.in.h.new	2017-05-15 19:14:39.145268786 +0200
+@@ -141,7 +141,11 @@
+ 
+ 
+ /* Get getopt(), optarg, optind, opterr, optopt.  */
+-#if @GNULIB_GETOPT_POSIX@ && @GNULIB_UNISTD_H_GETOPT@ && !defined _GL_SYSTEM_GETOPT
++/* Also, don't include <getopt.h> inside libgettextpo, because we use
++   the getopt module only in gettext-tools/gnulib-lib/, not in
++   gettext-tools/libgettextpo/, but there is only a single
++   GNULIB_UNISTD_H_GETOPT variable for both.  */
++#if @GNULIB_GETOPT_POSIX@ && @GNULIB_UNISTD_H_GETOPT@ && !defined GTPO_CONFIG_H && !defined _GL_SYSTEM_GETOPT
+ # include <getopt-cdefs.h>
+ # include <getopt-pfx-core.h>
+ #endif

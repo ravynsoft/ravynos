@@ -1,0 +1,57 @@
+@c This file is part of the GNU gettext manual.
+@c Copyright (C) 1995-2020 Free Software Foundation, Inc.
+@c See the file gettext.texi for copying conditions.
+
+@node YCP
+@subsection YCP - YaST2 scripting language
+@cindex YCP
+@cindex YaST2 scripting language
+
+@table @asis
+@item RPMs
+libycp, libycp-devel, yast2-core, yast2-core-devel
+
+@item Ubuntu packages
+---
+
+@item File extension
+@code{ycp}
+
+@item String syntax
+@code{"abc"}
+
+@item gettext shorthand
+@code{_("abc")}
+
+@item gettext/ngettext functions
+@code{_()} with 1 or 3 arguments
+
+@item textdomain
+@code{textdomain} statement
+
+@item bindtextdomain
+---
+
+@item setlocale
+---
+
+@item Prerequisite
+---
+
+@item Use or emulate GNU gettext
+use
+
+@item Extractor
+@code{xgettext}
+
+@item Formatting with positions
+@code{sformat "%2 %1"}
+
+@item Portability
+fully portable
+
+@item po-mode marking
+---
+@end table
+
+An example is available in the @file{examples} directory: @code{hello-ycp}.

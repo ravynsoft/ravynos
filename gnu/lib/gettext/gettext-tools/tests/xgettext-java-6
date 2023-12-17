@@ -1,0 +1,33 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Java support: --add-comments option.
+
+cat <<\EOF > xg-j-6.java
+/* a */
+/* b */ String string = /* c */
+/* d */
+/* e */ _( /* f */ "hello " /* g */ + /* h */ "world" /* i */ );
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --omit-header --no-location --keyword=_ \
+  -d xg-j-6.tmp xg-j-6.java || Exit 1
+LC_ALL=C tr -d '\r' < xg-j-6.tmp.po > xg-j-6.po || Exit 1
+
+cat <<EOF > xg-j-6.ok
+#. a
+#. b
+#. c
+#. d
+#. e
+#. f
+msgid "hello world"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-j-6.ok xg-j-6.po
+result=$?
+
+exit $result

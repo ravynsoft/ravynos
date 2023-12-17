@@ -1,0 +1,77 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test recognition of KDE format strings.
+
+cat <<\EOF > f-kd-1.data
+# Unrecognized: no argument
+"abc%%def"
+# Valid: one argument
+"abc%1def"
+# Unrecognized: no argument (digit sequence starting with a zero)
+"abc%09def"
+# Valid: one argument, digit sequence starting with a zero
+"abc%1def%0"
+# Valid: one argument, digit sequence starting with a zero
+"abc%1def%00"
+# Valid: 9 arguments
+"abc%1%2%3%4%9%7%8%5%6def"
+# Valid: 9 arguments, missing one of them
+"abc%1%2%3%4%9%7%5%6def"
+# Invalid: one argument but missing arguments %1 ... %8
+"abc%9def"
+# Valid: more than ten arguments, missing one of them
+"abc%1%2%3%4%9%7%5%6%12%10%11def"
+# Invalid: one argument specified by two digits but missing arguments %1 ... %98
+"abc%99def"
+# Valid: unterminated
+"abc%1def%"
+# Valid: unterminated
+"abc%1def%L"
+# Valid: non-digit
+"abc%1def%x"
+# Valid: permutation
+"abc%2def%1"
+# Valid: multiple uses of same argument
+"abc%2def%1ghi%2"
+# Unrecognized: no argument
+"abc%L1def"
+# Unrecognized: no argument
+"abc%L12def"
+EOF
+
+: ${XGETTEXT=xgettext}
+n=0
+while read comment; do
+  read string
+  n=`expr $n + 1`
+  cat <<EOF > f-kd-1-$n.in
+_(${string});
+EOF
+  ${XGETTEXT} -L C++ --kde -k_ -o f-kd-1-$n.po f-kd-1-$n.in || Exit 1
+  test -f f-kd-1-$n.po || Exit 1
+  fail=
+  if echo "$comment" | grep 'Valid:' > /dev/null; then
+    if grep kde-format f-kd-1-$n.po > /dev/null; then
+      :
+    else
+      fail=yes
+    fi
+  else
+    if grep kde-format f-kd-1-$n.po > /dev/null; then
+      fail=yes
+    else
+      :
+    fi
+  fi
+  if test -n "$fail"; then
+    echo "Format string recognition error:" 1>&2
+    cat f-kd-1-$n.in 1>&2
+    echo "Got:" 1>&2
+    cat f-kd-1-$n.po 1>&2
+    Exit 1
+  fi
+  rm -f f-kd-1-$n.in f-kd-1-$n.po
+done < f-kd-1.data
+
+Exit 0

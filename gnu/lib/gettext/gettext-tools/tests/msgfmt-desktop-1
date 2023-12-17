@@ -1,0 +1,90 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test iterative mode of msgfmt --desktop.
+
+cat <<\EOF > mf.desktop
+[Desktop Entry]
+Type=Application
+Name =Foo
+Comment[foo]=Already translated comment
+Comment= \sThis is a \nmultiline comment; for testing
+Keywords=Keyword1;Keyword2;Key\;word3;
+Categories=
+NoDisplay=true
+EOF
+
+cat <<\EOF > fr.po
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2014-03-17 07:36+0900\n"
+"PO-Revision-Date: 2014-03-17 08:40+0900\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: xg.desktop:4
+msgid "Foo"
+msgstr ""
+"French\n"
+"foo"
+
+#: xg.desktop:5
+msgid ""
+" This is a \n"
+"multiline comment; for testing"
+msgstr ""
+"French \n"
+"comment"
+
+#: xg.desktop:7
+msgid "Keyword1;Keyword2;Key\\;word3;"
+msgstr "one;two;thr\\;ee;"
+EOF
+
+cat <<\EOF > mf.desktop.ok
+[Desktop Entry]
+Type=Application
+Name[fr]=French\nfoo
+Name=Foo
+Comment[foo]=Already translated comment
+Comment[fr]=French \ncomment
+Comment=\sThis is a \nmultiline comment; for testing
+Keywords[fr]=one;two;thr\;ee;
+Keywords=Keyword1;Keyword2;Key\;word3;
+Categories=
+NoDisplay=true
+EOF
+
+# Sanity checks for contradicting options.
+
+${MSGFMT} --desktop --template=mf.desktop -l fr fr.po \
+          >/dev/null 2>/dev/null \
+  && Exit 1
+
+${MSGFMT} --desktop --template=mf.desktop fr.po -o mf.desktop.out \
+          >/dev/null 2>/dev/null \
+  && Exit 1
+
+# Proceed to the .desktop file generation.
+
+${MSGFMT} --desktop --template=mf.desktop -l fr fr.po -o mf.desktop.tmp \
+  || Exit 1
+LC_ALL=C tr -d '\r' < mf.desktop.tmp > mf.desktop.out || Exit 1
+
+: ${DIFF=diff}
+${DIFF} mf.desktop.ok mf.desktop.out
+result=$?
+
+exit $result

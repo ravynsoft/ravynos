@@ -1,0 +1,132 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of gettext facilities in the Object Pascal language.
+# Assumes the following packages are installed: fpk.
+
+# Note: This test fails with fpk 1.0.10 ... 3.0.0 when an UTF-8 locale is
+# present, because fpk ignores the locale's encoding. It supports only unibyte
+# locales. This here is a quick workaround:
+UTF8_LOCALE_UNSUPPORTED=yes
+
+cat <<\EOF > pascalprog.pp
+program pascalprog;
+{$mode delphi}
+
+uses gettext, sysutils;
+
+resourcestring
+  question = '''Your command, please?'', asked the waiter.';
+  currencies = '%s is replaced by %s.';
+
+begin
+  translateresourcestrings('%s/LC_MESSAGES/pascalprog.mo');
+  writeln(question);
+  writeln(format(currencies, ['FF', 'EUR']));
+end.
+EOF
+
+(ppc386 pascalprog.pp) >/dev/null 2>&1 ||
+(ppcx64 pascalprog.pp) >/dev/null 2>&1 ||
+{
+  echo "Skipping test: Pascal compiler ppc386 or ppcx64 not found"
+  Exit 77
+}
+
+: ${XGETTEXT=xgettext}
+# fpc 3.0.0 or newer produces a .rsj file instead of a .rst file.
+if test -f pascalprog.rsj; then
+  suffix=rsj
+else
+  suffix=rst
+fi
+${XGETTEXT} -o pascalprog.tmp --omit-header --add-location pascalprog.${suffix} || Exit 1
+LC_ALL=C tr -d '\r' < pascalprog.tmp > pascalprog.pot || Exit 1
+
+cat <<EOF > pascalprog.ok
+#: pascalprog.question
+msgid "'Your command, please?', asked the waiter."
+msgstr ""
+
+#: pascalprog.currencies
+#, object-pascal-format
+msgid "%s is replaced by %s."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} pascalprog.ok pascalprog.pot || Exit 1
+
+cat <<\EOF > fr.po
+msgid ""
+msgstr "Content-Type: text/plain; charset=ISO-8859-1\n"
+
+#: pascalprog.question
+msgid "'Your command, please?', asked the waiter."
+msgstr "«Votre commande, s'il vous plait», dit le garçon."
+
+# Reverse the arguments.
+#: pascalprog.currencies
+#, object-pascal-format
+msgid "%s is replaced by %s."
+msgstr "%1:s remplace %0:s."
+EOF
+
+: ${MSGMERGE=msgmerge}
+${MSGMERGE} -q -o fr.po.tmp fr.po pascalprog.pot || Exit 1
+LC_ALL=C tr -d '\r' < fr.po.tmp > fr.po.new || Exit 1
+
+: ${DIFF=diff}
+${DIFF} fr.po fr.po.new || Exit 1
+
+test -d fr || mkdir fr
+test -d fr/LC_MESSAGES || mkdir fr/LC_MESSAGES
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} --no-convert -o fr/LC_MESSAGES/pascalprog.mo fr.po
+
+: ${DIFF=diff}
+cat <<\EOF > pascalprog.ok
+«Votre commande, s'il vous plait», dit le garçon.
+EUR remplace FF.
+EOF
+cat <<\EOF > pascalprog.oku
+Â«Votre commande, s'il vous plaitÂ», dit le garÃ§on.
+EUR remplace FF.
+EOF
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  prepare_locale_ fr $LOCALE_FR
+  LANGUAGE= LC_ALL= LC_MESSAGES= LC_CTYPE= LANG=$LOCALE_FR ./pascalprog > pascalprog.out || Exit 1
+  : ${DIFF=diff}
+  ${DIFF} pascalprog.ok pascalprog.out || Exit 1
+fi
+if test -z "$UTF8_LOCALE_UNSUPPORTED"; then
+  if test $LOCALE_FR_UTF8 != none; then
+    prepare_locale_ fr $LOCALE_FR_UTF8
+    LANGUAGE= LC_ALL= LC_MESSAGES= LC_CTYPE= LANG=$LOCALE_FR_UTF8 ./pascalprog > pascalprog.out || Exit 1
+    : ${DIFF=diff}
+    ${DIFF} pascalprog.oku pascalprog.out || Exit 1
+  fi
+  if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+    if test -f /usr/bin/localedef; then
+      echo "Skipping test: no french locale is installed"
+    else
+      echo "Skipping test: no french locale is supported"
+    fi
+    Exit 77
+  fi
+else
+  if test $LOCALE_FR = none; then
+    if test -f /usr/bin/localedef; then
+      echo "Skipping test: no traditional french locale is installed"
+    else
+      echo "Skipping test: no traditional french locale is supported"
+    fi
+    Exit 77
+  fi
+fi
+
+Exit 0

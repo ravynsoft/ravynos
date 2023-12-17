@@ -1,0 +1,133 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# The slash (/) and the question mark (?) serve a double-purpose in Perl.
+# Depending on the context they can either be an operator (division
+# or ternary respectively) or they are regex delimiters for pattern
+# matches.  This test case checks the proper recognition.
+
+cat <<\EOF > xg-pl-8.pl
+info(__("using %s."), ($a->b() eq "auto" ? "" : ""));
+
+print __"Question mark after string is an operator!\n";
+# ?; Re-sync.
+
+@times = sort {$a - $b} split /,\s*/, $options
+    if (defined $options && $options);
+
+print __"First slash in a an argument to a function starts a pattern match.";
+# /; Re-sync.
+
+$0 =~ /xyz/ ? 'foo' : 'bar';
+
+print __"Question mark after a regular pattern match is an operator!";
+# ?; Re-sync.
+
+$0 =~ m{xyz} ? 'foo' : 'bar';
+
+print __"Question mark after a nesting pattern match is an operator!";
+# ?; Re-sync.
+
+$0 =~ m|xyz| ? 'foo' : 'bar';
+
+print __"Question mark after a non-nesting pattern match is an operator!";
+# ?; Re-sync.
+
+print __(<<EOS);
+Line number for here documents is not correct.
+EOS
+
+$foo = wantarray ? 1 : 0;
+
+print __"The function wantarray does not take arguments!";
+# ?; Re-sync.
+
+$foo = Something->method ? 1 : 0;
+
+print __"Class method calls without parentheses do not accept arguments!";
+# ?; Re-sync.
+
+$foo = $Something->method ? 1 : 0;
+
+print __"Instance method calls without parentheses do not accept arguments!";
+# ?; Re-sync.
+
+$foo = $Some->thing->method ? 1 : 0;
+
+print __"Chained method calls without parentheses do not accept arguments!";
+# ?; Re-sync.
+
+condition() ? 1 : 0;
+
+print __"Question mark after an explicit function call is always an operator!";
+# ?;
+
+print __"Synching works.";
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header -n \
+  -k__ \
+  -d xg-pl-8.tmp xg-pl-8.pl || Exit 1
+LC_ALL=C tr -d '\r' < xg-pl-8.tmp.po > xg-pl-8.po || Exit 1
+
+cat <<\EOF > xg-pl-8.ok
+#: xg-pl-8.pl:1
+#, perl-format
+msgid "using %s."
+msgstr ""
+
+#: xg-pl-8.pl:3
+msgid "Question mark after string is an operator!\n"
+msgstr ""
+
+#: xg-pl-8.pl:9
+msgid "First slash in a an argument to a function starts a pattern match."
+msgstr ""
+
+#: xg-pl-8.pl:14
+msgid "Question mark after a regular pattern match is an operator!"
+msgstr ""
+
+#: xg-pl-8.pl:19
+msgid "Question mark after a nesting pattern match is an operator!"
+msgstr ""
+
+#: xg-pl-8.pl:24
+msgid "Question mark after a non-nesting pattern match is an operator!"
+msgstr ""
+
+#: xg-pl-8.pl:28
+msgid "Line number for here documents is not correct.\n"
+msgstr ""
+
+#: xg-pl-8.pl:33
+msgid "The function wantarray does not take arguments!"
+msgstr ""
+
+#: xg-pl-8.pl:38
+msgid "Class method calls without parentheses do not accept arguments!"
+msgstr ""
+
+#: xg-pl-8.pl:43
+msgid "Instance method calls without parentheses do not accept arguments!"
+msgstr ""
+
+#: xg-pl-8.pl:48
+msgid "Chained method calls without parentheses do not accept arguments!"
+msgstr ""
+
+#: xg-pl-8.pl:53
+msgid "Question mark after an explicit function call is always an operator!"
+msgstr ""
+
+#: xg-pl-8.pl:56
+msgid "Synching works."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-pl-8.ok xg-pl-8.po
+result=$?
+
+exit $result

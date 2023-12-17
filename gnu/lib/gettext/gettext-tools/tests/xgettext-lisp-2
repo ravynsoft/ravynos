@@ -1,0 +1,33 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test Lisp support: --add-comments option.
+
+cat <<\EOF > xg-ls-2.lisp
+#| a |#
+#| b |# (setq string #| c |#
+#| d |#
+#| e |# (_ #| f |# "hello world" #| g |# ))
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --add-comments --omit-header --no-location --keyword=_ \
+  -d xg-ls-2.tmp xg-ls-2.lisp || Exit 1
+LC_ALL=C tr -d '\r' < xg-ls-2.tmp.po > xg-ls-2.po || Exit 1
+
+cat <<EOF > xg-ls-2.ok
+#. a
+#. b
+#. c
+#. d
+#. e
+#. f
+msgid "hello world"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-ls-2.ok xg-ls-2.po
+result=$?
+
+exit $result

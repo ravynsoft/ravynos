@@ -1,0 +1,137 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that bindtextdomain() and wbindtextdomain(), in the same program,
+# but applied to several different domains, work fine.
+
+# Try to find a writable absolute directory name.
+case "$host_os" in
+  mingw*)
+    # On native Windows, it is important that ${ldir} is an absolute directory,
+    # so that the test exercises a mix between directories specified as 'char *'
+    # and directories specified as 'wchar_t *'. (If we used a relative
+    # directory, the code in dcigettext.c would transform it to a 'wchar_t *'.)
+    if (cygpath --version) >/dev/null 2>/dev/null; then
+      writable=`cygpath -w "$HOME"`
+    else
+      if test -n "${HOMEDRIVE}${HOMEPATH}" && test -w "${HOMEDRIVE}${HOMEPATH}"; then
+        writable="${HOMEDRIVE}${HOMEPATH}"
+      else
+        writable="C:"
+      fi
+    fi
+    ldir="${writable}"'\gettext-intl-7-'$$
+    trap 'rm -fr "${ldir}"' HUP INT QUIT TERM
+    ;;
+  *)
+    ldir="`pwd`/in-7l"
+    ;;
+esac
+
+test -d "${ldir}" || mkdir "${ldir}"
+test -d "${ldir}"/fr || mkdir "${ldir}"/fr
+test -d "${ldir}"/fr/LC_MESSAGES || mkdir "${ldir}"/fr/LC_MESSAGES
+
+test -d in-7 || mkdir in-7
+test -d in-7/fr || mkdir in-7/fr
+test -d in-7/fr/LC_MESSAGES || mkdir in-7/fr/LC_MESSAGES
+test -d in-7/fr_FR || mkdir in-7/fr_FR
+test -d in-7/fr_FR/LC_MESSAGES || mkdir in-7/fr_FR/LC_MESSAGES
+
+cat <<EOF > in-7l.po
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=US-ASCII\n"
+"Content-Transfer-Encoding: 7-bit\n"
+
+msgid "dog"
+msgstr "chien"
+EOF
+
+cat <<EOF > in-7-1.po
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=US-ASCII\n"
+"Content-Transfer-Encoding: 7-bit\n"
+
+msgid "cheese"
+msgstr "fromage"
+EOF
+
+cat <<EOF > in-7-2.po
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=US-ASCII\n"
+"Content-Transfer-Encoding: 7-bit\n"
+
+msgid "cheese"
+msgstr "camembert"
+EOF
+
+cat <<EOF > in-7-3.po
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=US-ASCII\n"
+"Content-Transfer-Encoding: 7-bit\n"
+
+msgid "jam"
+msgstr "confiture"
+EOF
+
+: ${MSGFMT=msgfmt}
+${MSGFMT} -o "${ldir}"/fr/LC_MESSAGES/tstlib.mo in-7l.po
+${MSGFMT} -o in-7/fr/LC_MESSAGES/tstfoo.mo in-7-1.po
+${MSGFMT} -o in-7/fr_FR/LC_MESSAGES/tstfoo.mo in-7-2.po
+${MSGFMT} -o in-7/fr/LC_MESSAGES/tstbar.mo in-7-3.po
+
+: ${DIFF=diff}
+cat <<EOF > in-7.ok
+chien
+confiture
+camembert
+EOF
+
+: ${LOCALE_FR=fr_FR}
+: ${LOCALE_FR_UTF8=fr_FR.UTF-8}
+if test $LOCALE_FR != none; then
+  case "$host_os" in
+    cygwin*)
+      # On Cygwin, file names are interpreted according to the character
+      # encoding of the current locale, see
+      # <https://cygwin.com/cygwin-ug-net/setup-locale.html>.
+      # Therefore arbitrary Unicode characters are only supported in UTF-8
+      # locales (including "C.UTF-8") and in the "C" locale. In particular,
+      # they are not supported in the fr_FR.ISO-8859-1 locale.
+      ;;
+    *)
+      prepare_locale_ in-7/fr in-7/$LOCALE_FR
+      prepare_locale_ in-7/fr_FR in-7/$LOCALE_FR
+      prepare_locale_ "${ldir}"/fr "${ldir}"/$LOCALE_FR
+      ../intl-7-prg "${ldir}" in-7 $LOCALE_FR > in-7.tmp || Exit 1
+      LC_ALL=C tr -d '\r' < in-7.tmp > in-7.out || Exit 1
+      ${DIFF} in-7.ok in-7.out || Exit 1
+      ;;
+  esac
+fi
+if test $LOCALE_FR_UTF8 != none; then
+  prepare_locale_ in-7/fr in-7/$LOCALE_FR_UTF8
+  prepare_locale_ in-7/fr_FR in-7/$LOCALE_FR_UTF8
+  prepare_locale_ "${ldir}"/fr "${ldir}"/$LOCALE_FR_UTF8
+  ../intl-7-prg "${ldir}" in-7 $LOCALE_FR_UTF8 > in-7.tmp || Exit 1
+  LC_ALL=C tr -d '\r' < in-7.tmp > in-7.out || Exit 1
+  ${DIFF} in-7.ok in-7.out || Exit 1
+fi
+if test $LOCALE_FR = none && test $LOCALE_FR_UTF8 = none; then
+  if test -f /usr/bin/localedef; then
+    echo "Skipping test: no french locale is installed"
+  else
+    echo "Skipping test: no french locale is supported"
+  fi
+  Exit 77
+fi
+
+Exit 0

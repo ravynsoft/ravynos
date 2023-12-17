@@ -1,0 +1,99 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Verify msgcat of two files, when the header entries have different comments
+# but the same contents. The resulting header entry is not marked fuzzy,
+# because the #-#-#-#-# are only in comments and do not necessarily require
+# translator attention; in other words, an msgstr which is valid in both input
+# files is also valid in the result.
+
+cat <<\EOF > mcat-test10.in1
+# German message file for xyz.
+# Copyright (C) 1999, 2000, 2001 xyz.
+# Kab Def <ke@zzz.uucp>, 2000.
+# Def Kab <dk@zzz.uucp>, 2001.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xyz\n"
+"POT-Creation-Date: 2001-11-11 12:51:34+0200\n"
+"PO-Revision-Date: 2001-11-11 13:02+02:00\n"
+"Last-Translator: Kab Def <ke@zzz.uucp>\n"
+"Language-Team: German <i18n@zzz.uucp>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Help text (HTML-like) START
+#: clients/inst_ask_config.ycp:119
+msgid ""
+"Congratulations!"
+msgstr ""
+"Glückwunsch!"
+EOF
+
+cat <<\EOF > mcat-test10.in2
+# German message file for xyz.
+# Copyright (C) 1999, 2000, 2001 xyz.
+# Kab Def <ke@zzz.uucp>, 2000.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xyz\n"
+"POT-Creation-Date: 2001-11-11 12:51:34+0200\n"
+"PO-Revision-Date: 2001-11-11 13:02+02:00\n"
+"Last-Translator: Kab Def <ke@zzz.uucp>\n"
+"Language-Team: German <i18n@zzz.uucp>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Help text (HTML-like) START
+#: clients/inst_ask_config.ycp:119
+msgid ""
+"Congratulations!"
+msgstr ""
+"Glückwunsch!"
+EOF
+
+rm -f mcat-test10.tmp
+
+: ${MSGCAT=msgcat}
+${MSGCAT} --more-than=0 -o mcat-test10.tmp \
+    mcat-test10.in1 mcat-test10.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcat-test10.tmp > mcat-test10.out || Exit 1
+
+cat <<\EOF > mcat-test10.ok
+# #-#-#-#-#  mcat-test10.in1 (xyz)  #-#-#-#-#
+# German message file for xyz.
+# Copyright (C) 1999, 2000, 2001 xyz.
+# Kab Def <ke@zzz.uucp>, 2000.
+# Def Kab <dk@zzz.uucp>, 2001.
+#
+# #-#-#-#-#  mcat-test10.in2 (xyz)  #-#-#-#-#
+# German message file for xyz.
+# Copyright (C) 1999, 2000, 2001 xyz.
+# Kab Def <ke@zzz.uucp>, 2000.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: xyz\n"
+"POT-Creation-Date: 2001-11-11 12:51:34+0200\n"
+"PO-Revision-Date: 2001-11-11 13:02+02:00\n"
+"Last-Translator: Kab Def <ke@zzz.uucp>\n"
+"Language-Team: German <i18n@zzz.uucp>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. Help text (HTML-like) START
+#: clients/inst_ask_config.ycp:119
+msgid "Congratulations!"
+msgstr "Glückwunsch!"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcat-test10.ok mcat-test10.out
+result=$?
+
+exit $result

@@ -1,0 +1,53 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test --translated option with Java .properties syntax.
+
+cat <<\EOF > ma-s-1.properties
+# HEADER.
+#
+!=Project-Id-Version\: Bonnie Tyler\n
+
+#: married-men:4
+#, fuzzy
+!The\ world\ is\ full\ of\ married\ men=So viele verheiratete M\u00e4nner
+
+#: married-men:5
+with\ wives\ who\ never\ understand=und ihre Frauen verstehen sie nicht
+
+#: married-men:6
+!They're\ looking\ for\ someone\ to\ share=
+
+# schwer zu \u00fcbersetzen...
+#: married-men:7
+!the\ excitement\ of\ a\ love\ affair=
+
+#: married-men:8
+!Just\ as\ soon\ as\ they\ find\ you=
+
+#: married-men:9
+!They\ warn\ you\ and\ darn\ you=
+EOF
+
+: ${MSGATTRIB=msgattrib}
+${MSGATTRIB} --translated --properties-input --properties-output -o ma-s-1.tmp ma-s-1.properties || Exit 1
+LC_ALL=C tr -d '\r' < ma-s-1.tmp > ma-s-1.out || Exit 1
+
+cat <<\EOF > ma-s-1.ok
+# HEADER.
+#
+!=Project-Id-Version\: Bonnie Tyler\n
+
+#: married-men:4
+#, fuzzy
+!The\ world\ is\ full\ of\ married\ men=So viele verheiratete M\u00e4nner
+
+#: married-men:5
+with\ wives\ who\ never\ understand=und ihre Frauen verstehen sie nicht
+EOF
+
+: ${DIFF=diff}
+${DIFF} ma-s-1.ok ma-s-1.out
+result=$?
+
+exit $result

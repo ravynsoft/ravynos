@@ -1,0 +1,88 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test msgen on a POT file with contexts.
+
+cat <<\EOF > men-test3.pot
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr ""
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr ""
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr ""
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr ""
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr ""
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr ""
+EOF
+
+: ${MSGEN=msgen}
+${MSGEN} -o men-test3.tmp men-test3.pot || Exit 1
+LC_ALL=C tr -d '\r' < men-test3.tmp > men-test3.out || Exit 1
+
+cat <<\EOF > men-test3.ok
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#. A menu item
+msgctxt "File|"
+msgid "Open"
+msgstr "Open"
+
+#. A menu item
+msgctxt "File|"
+msgid "New"
+msgstr "New"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Open"
+msgstr "Open"
+
+#. Denote a lock's state
+msgctxt "Lock state"
+msgid "Closed"
+msgstr "Closed"
+
+#. A product
+msgctxt "Audi"
+msgid "car"
+msgstr "car"
+
+#. A product
+msgctxt "Océ"
+msgid "copier"
+msgstr "copier"
+EOF
+
+: ${DIFF=diff}
+${DIFF} men-test3.ok men-test3.out
+result=$?
+
+exit $result

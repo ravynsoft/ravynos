@@ -1,0 +1,111 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Verify that the header entry is kept, otherwise the encoding is unknown.
+
+cat <<\EOF > mcomm-test22.in1
+# German translations for GNU gettext package.
+# Copyright (C) 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
+# Karl Eichwalder <ke@suse.de>, 2001.
+# Ulrich Drepper <drepper@gnu.org>, 1995-1997.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext 0.10.36\n"
+"POT-Creation-Date: 2001-05-23 23:03+0200\n"
+"PO-Revision-Date: 2001-04-11 06:44+02:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/gettext.c:140 src/msgcmp.c:140 src/msgcomm.c:279 src/msgfmt.c:270
+#: src/msgmerge.c:255 src/msgunfmt.c:170 src/ngettext.c:120 src/xgettext.c:388
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"This is free software; see the source for copying conditions.  There is NO\n"
+"warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+msgstr ""
+"Copyright © %s Free Software Foundation, Inc.\n"
+"Dies ist freie Software; in den Quellen befindet sich die Lizenzbedingung.\n"
+"Es gibt KEINERLEI Garantie; nicht einmal für die TAUGLICHKEIT oder\n"
+"die VERWENDBARKEIT ZU EINEN ANGEGEBENEN ZWECK.\n"
+EOF
+
+cat <<\EOF > mcomm-test22.in2
+# German translations for GNU gettext package.
+# Copyright (C) 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
+# Karl Eichwalder <ke@suse.de>, 2001.
+# Ulrich Drepper <drepper@gnu.org>, 1995-1997.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext 0.10.36\n"
+"POT-Creation-Date: 2001-05-23 23:03+0200\n"
+"PO-Revision-Date: 2001-04-11 06:44+02:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: lib/obstack.c:474 lib/xmalloc.c:86 src/po.c:308 src/po.c:381 src/po.c:389
+#: src/po.c:395 src/po.c:415 src/po.c:422 src/po.c:427 src/po.c:444
+msgid "memory exhausted"
+msgstr "virtueller Speicher erschöpft"
+EOF
+
+rm -f mcomm-test22.tmp
+
+: ${MSGCOMM=msgcomm}
+
+${MSGCOMM} --less-than=2 -o mcomm-test22.tmp \
+    mcomm-test22.in1 mcomm-test22.in2 || Exit 1
+LC_ALL=C tr -d '\r' < mcomm-test22.tmp > mcomm-test22.out || Exit 1
+
+cat << \EOF > mcomm-test22.ok
+# German translations for GNU gettext package.
+# Copyright (C) 1995, 1996, 1997, 2001 Free Software Foundation, Inc.
+# Karl Eichwalder <ke@suse.de>, 2001.
+# Ulrich Drepper <drepper@gnu.org>, 1995-1997.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU gettext 0.10.36\n"
+"POT-Creation-Date: 2001-05-23 23:03+0200\n"
+"PO-Revision-Date: 2001-04-11 06:44+02:00\n"
+"Last-Translator: Karl Eichwalder <ke@suse.de>\n"
+"Language-Team: German <de@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ISO-8859-1\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: src/gettext.c:140 src/msgcmp.c:140 src/msgcomm.c:279 src/msgfmt.c:270
+#: src/msgmerge.c:255 src/msgunfmt.c:170 src/ngettext.c:120 src/xgettext.c:388
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"This is free software; see the source for copying conditions.  There is NO\n"
+"warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n"
+msgstr ""
+"Copyright © %s Free Software Foundation, Inc.\n"
+"Dies ist freie Software; in den Quellen befindet sich die Lizenzbedingung.\n"
+"Es gibt KEINERLEI Garantie; nicht einmal für die TAUGLICHKEIT oder\n"
+"die VERWENDBARKEIT ZU EINEN ANGEGEBENEN ZWECK.\n"
+
+#: lib/obstack.c:474 lib/xmalloc.c:86 src/po.c:308 src/po.c:381 src/po.c:389
+#: src/po.c:395 src/po.c:415 src/po.c:422 src/po.c:427 src/po.c:444
+msgid "memory exhausted"
+msgstr "virtueller Speicher erschöpft"
+EOF
+
+: ${DIFF=diff}
+${DIFF} mcomm-test22.ok mcomm-test22.out
+result=$?
+
+exit $result

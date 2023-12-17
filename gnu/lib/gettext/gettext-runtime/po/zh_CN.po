@@ -1,0 +1,386 @@
+# Simplified Chinese translation for gettext.
+# Copyright (C) 1998, 2001, 2002, 2008, 2010 Free Software Foundation, Inc.
+# This file is distributed under the same license as the gettext package.
+# Yuan-Chung Cheng <platin@ms.ccafps.khc.edu.tw>, 1998.
+# Pofeng Lee <pofeng@linux.org.tw>, 2001-2002.
+# Abel Cheung <maddog@linux.org.hk>, 2002.
+# Liu Songhe <jackliu9999@263.net>, 2003.
+# LI Daobing <lidaobing@gmail.com>, 2008.
+# Aron Xu <happyaron.xu@gmail.com>, 2010.
+# Ji ZhengYu <zhengyuji@gmail.com>, 2015.
+# Boyuan Yang <073plan@gmail.com>, 2017, 2019, 2020.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gettext-runtime 0.20.2\n"
+"Report-Msgid-Bugs-To: bug-gettext@gnu.org\n"
+"POT-Creation-Date: 2023-11-17 22:40+0100\n"
+"PO-Revision-Date: 2020-04-22 12:08-0400\n"
+"Last-Translator: Boyuan Yang <073plan@gmail.com>\n"
+"Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 2.3\n"
+
+#: gnulib-lib/closeout.c:66
+msgid "write error"
+msgstr "写错误"
+
+#: gnulib-lib/error.c:194
+msgid "Unknown system error"
+msgstr "未知的系统错误"
+
+#: gnulib-lib/getopt.c:278
+#, c-format
+msgid "%s: option '%s%s' is ambiguous\n"
+msgstr "%s：选项“%s%s”有歧义\n"
+
+#: gnulib-lib/getopt.c:284
+#, c-format
+msgid "%s: option '%s%s' is ambiguous; possibilities:"
+msgstr "%s：选项“%s%s”有歧义；可能是："
+
+#: gnulib-lib/getopt.c:319
+#, c-format
+msgid "%s: unrecognized option '%s%s'\n"
+msgstr "%s：无法识别的选项“%s%s”\n"
+
+#: gnulib-lib/getopt.c:345
+#, c-format
+msgid "%s: option '%s%s' doesn't allow an argument\n"
+msgstr "%s：选项“%s%s”不允许带参数\n"
+
+#: gnulib-lib/getopt.c:360
+#, c-format
+msgid "%s: option '%s%s' requires an argument\n"
+msgstr "%s：选项“%s%s”需要参数\n"
+
+#: gnulib-lib/getopt.c:621
+#, c-format
+msgid "%s: invalid option -- '%c'\n"
+msgstr "%s：无效选项 ─ %c\n"
+
+#: gnulib-lib/getopt.c:636 gnulib-lib/getopt.c:682
+#, c-format
+msgid "%s: option requires an argument -- '%c'\n"
+msgstr "%s：选项需要一个参数 ─ %c\n"
+
+#: gnulib-lib/xalloc-die.c:34
+msgid "memory exhausted"
+msgstr "内存耗尽"
+
+#: src/envsubst.c:110 src/gettext.c:135 src/ngettext.c:125
+#, c-format, no-wrap
+msgid ""
+"Copyright (C) %s Free Software Foundation, Inc.\n"
+"License GPLv3+: GNU GPL version 3 or later <%s>\n"
+"This is free software: you are free to change and redistribute it.\n"
+"There is NO WARRANTY, to the extent permitted by law.\n"
+msgstr ""
+"版权所有 (C) %s Free Software Foundation, Inc.\n"
+"授权协议 GPLv3+: GNU GPL 版本 3 或之后版本 <%s>\n"
+"这是自由软件: 您有修改和再发布的自由。\n"
+"本软件在法律允许的范围内不提供任何担保。\n"
+
+#: src/envsubst.c:116 src/gettext.c:141 src/ngettext.c:131
+#, c-format
+msgid "Written by %s.\n"
+msgstr "由 %s 编写。\n"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/envsubst.c:116
+msgid "Bruno Haible"
+msgstr "Bruno Haible"
+
+#: src/envsubst.c:125 src/gettext.c:159 src/ngettext.c:143
+#, c-format
+msgid "too many arguments"
+msgstr "参数过多"
+
+#: src/envsubst.c:136 src/gettext.c:169 src/ngettext.c:155
+#, c-format
+msgid "missing arguments"
+msgstr "缺少了参数"
+
+#: src/envsubst.c:174 src/gettext.c:246 src/ngettext.c:212
+#, c-format
+msgid "Try '%s --help' for more information.\n"
+msgstr "试试“%s --help”来获取更多信息。\n"
+
+#: src/envsubst.c:179
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [SHELL-FORMAT]\n"
+msgstr "用法：%s [选项] [SHELL格式]\n"
+
+#: src/envsubst.c:184
+#, c-format, no-wrap
+msgid "Substitutes the values of environment variables.\n"
+msgstr "替换环境变量的值。\n"
+
+#: src/envsubst.c:188
+#, c-format, no-wrap
+msgid "Operation mode:\n"
+msgstr "操作模式：\n"
+
+#: src/envsubst.c:191
+#, c-format, no-wrap
+msgid "  -v, --variables             output the variables occurring in SHELL-FORMAT\n"
+msgstr "  -v, --variables             输出 SHELL格式 中出现的变量\n"
+
+#: src/envsubst.c:195 src/gettext.c:275 src/ngettext.c:242
+#, c-format, no-wrap
+msgid "Informative output:\n"
+msgstr "信息性输出：\n"
+
+#: src/envsubst.c:198
+#, c-format, no-wrap
+msgid "  -h, --help                  display this help and exit\n"
+msgstr "  -h, --help                  显示此帮助并退出\n"
+
+#: src/envsubst.c:201
+#, c-format, no-wrap
+msgid "  -V, --version               output version information and exit\n"
+msgstr "  -V, --version               输出版本信息并退出\n"
+
+#: src/envsubst.c:205
+#, c-format, no-wrap
+msgid ""
+"In normal operation mode, standard input is copied to standard output,\n"
+"with references to environment variables of the form $VARIABLE or ${VARIABLE}\n"
+"being replaced with the corresponding values.  If a SHELL-FORMAT is given,\n"
+"only those environment variables that are referenced in SHELL-FORMAT are\n"
+"substituted; otherwise all environment variables references occurring in\n"
+"standard input are substituted.\n"
+msgstr ""
+"在普通操作模式下，会将标准输入复制到标准输出中，而以 $VARIABLE 或 ${VARIABLE}\n"
+"格式给出的环境变量引用会被替换成相应的值。如果给出了 SHELL格式，则只有在该格式\n"
+"中引用的环境变量会被替换；否则，标准输入中出现的全部环境变量引用都将被替换。\n"
+
+#: src/envsubst.c:214
+#, c-format, no-wrap
+msgid ""
+"When --variables is used, standard input is ignored, and the output consists\n"
+"of the environment variables that are referenced in SHELL-FORMAT, one per line.\n"
+msgstr ""
+"若使用了 --variables，则会忽略标准输入，而输出由 SHELL格式 引用的环境变量组成，\n"
+"每行出现一个环境变量。\n"
+
+#. TRANSLATORS: The first placeholder is the web address of the Savannah
+#. project of this package.  The second placeholder is the bug-reporting
+#. email address for this package.  Please add _another line_ saying
+#. "Report translation bugs to <...>\n" with the address for translation
+#. bugs (typically your translation team's web or email address).
+#: src/envsubst.c:223 src/gettext.c:299 src/ngettext.c:263
+#, c-format
+msgid ""
+"Report bugs in the bug tracker at <%s>\n"
+"or by email to <%s>.\n"
+msgstr ""
+"请将软件错误提交至 bug 跟踪系统 <%s>\n"
+"或发送电子邮件到 <%s>。\n"
+"请将翻译错误报告至简体中文邮件列表 <i18n-zh@googlegroups.com>。\n"
+
+#: src/envsubst.c:451
+#, c-format
+msgid "error while reading \"%s\""
+msgstr "读取“%s”时出错"
+
+#: src/envsubst.c:451
+msgid "standard input"
+msgstr "标准输入"
+
+#. This is a proper name. See the gettext manual, section Names.
+#: src/gettext.c:141 src/ngettext.c:131
+msgid "Ulrich Drepper"
+msgstr "Ulrich Drepper"
+
+#: src/gettext.c:251
+#, c-format, no-wrap
+msgid ""
+"Usage: %s [OPTION] [[TEXTDOMAIN] MSGID]\n"
+"or:    %s [OPTION] -s [MSGID]...\n"
+msgstr ""
+"用法：%s [选项] [[文本域] MSGID]\n"
+"或：  %s [选项] -s [MSGID]...\n"
+
+#: src/gettext.c:257
+#, c-format, no-wrap
+msgid "Display native language translation of a textual message.\n"
+msgstr "显示某原文消息的本地语言翻译。\n"
+
+#: src/gettext.c:261
+#, c-format, no-wrap
+msgid "  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+msgstr "  -d, --domain=文本域       从指定<文本域>获取已翻译消息\n"
+
+#: src/gettext.c:263 src/ngettext.c:229
+#, c-format
+msgid "  -c, --context=CONTEXT     specify context for MSGID\n"
+msgstr "  -c, --context=上下文      指定 MSGID 的上下文\n"
+
+#: src/gettext.c:265 src/ngettext.c:231
+#, c-format
+msgid "  -e                        enable expansion of some escape sequences\n"
+msgstr "  -e                        启用对某些转义序列进行展开\n"
+
+#: src/gettext.c:267
+#, c-format
+msgid "  -n                        suppress trailing newline\n"
+msgstr "  -n                        去除末尾的换行符\n"
+
+#: src/gettext.c:269 src/ngettext.c:233
+#, c-format
+msgid "  -E                        (ignored for compatibility)\n"
+msgstr "  -E                        （为兼容性而忽略）\n"
+
+#: src/gettext.c:271
+#, c-format
+msgid ""
+"  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+"                            to MSGID from TEXTDOMAIN\n"
+msgstr ""
+"  [文本域] MSGID            从指定<文本域>获取对应于 MSGID 的已翻译消息\n"
+
+#: src/gettext.c:277 src/ngettext.c:244
+#, c-format
+msgid "  -h, --help                display this help and exit\n"
+msgstr "  -h, --help                  显示此帮助并退出\n"
+
+#: src/gettext.c:279 src/ngettext.c:246
+#, c-format
+msgid "  -V, --version             display version information and exit\n"
+msgstr "  -V, --version               输出版本信息并退出\n"
+
+#: src/gettext.c:283
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"When used with the -s option the program behaves like the 'echo' command.\n"
+"But it does not simply copy its arguments to stdout.  Instead those messages\n"
+"found in the selected catalog are translated.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"假如没有指定<文本域>参数，程序会根据 TEXTDOMAIN 环境变量来设定<文本域>。\n"
+"假如消息一览表文件不在正常的目录下，可以用环境变量 TEXTDOMAINDIR 指定\n"
+"消息一览表文件所在的位置。\n"
+"使用选项“-s”时此程序和“echo”命令类似。但它不是直接把参数复制至标准\n"
+"输出，而是寻找消息一览表文件里翻译过的消息。\n"
+"标准的搜索目录为：%s\n"
+
+#: src/ngettext.c:217
+#, c-format, no-wrap
+msgid "Usage: %s [OPTION] [TEXTDOMAIN] MSGID MSGID-PLURAL COUNT\n"
+msgstr "用法：%s [选项] [文本域] MSGID 复数-MSGID 数字\n"
+
+#: src/ngettext.c:222
+#, c-format, no-wrap
+msgid ""
+"Display native language translation of a textual message whose grammatical\n"
+"form depends on a number.\n"
+msgstr "显示某原文消息的本地语言翻译，而翻译的语法和数字有关。\n"
+
+#: src/ngettext.c:227
+#, c-format, no-wrap
+msgid "  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+msgstr "  -d, --domain=文本域       从指定<文本域>获取已翻译消息\n"
+
+#: src/ngettext.c:235
+#, c-format
+msgid ""
+"  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+msgstr "  [文本域]                  从指定<文本域>获取已翻译消息\n"
+
+#: src/ngettext.c:237
+#, c-format
+msgid ""
+"  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL "
+"(plural)\n"
+msgstr ""
+"  MSGID MSGID-PLURAL        翻译 MSGID (单数形式) / MSGID-PLURAL (复数形式)\n"
+
+#: src/ngettext.c:239
+#, c-format
+msgid ""
+"  COUNT                     choose singular/plural form based on this value\n"
+msgstr "  COUNT                     基于此值选择单复数形式\n"
+
+#: src/ngettext.c:250
+#, c-format, no-wrap
+msgid ""
+"If the TEXTDOMAIN parameter is not given, the domain is determined from the\n"
+"environment variable TEXTDOMAIN.  If the message catalog is not found in the\n"
+"regular directory, another location can be specified with the environment\n"
+"variable TEXTDOMAINDIR.\n"
+"Standard search directory: %s\n"
+msgstr ""
+"假如没有指定<文本域>参数，程序会根据 TEXTDOMAIN 环境变量来设定文本域。\n"
+"假如消息一览表文件不在正常的目录下，可以用环境变量 TEXTDOMAINDIR 指定\n"
+"消息一览表文件所在的位置。\n"
+"标准的搜索目录为：%s\n"
+
+#~ msgid "Report bugs to <bug-gnu-gettext@gnu.org>.\n"
+#~ msgstr "将错误报告至 <bug-gnu-gettext@gnu.org>。\n"
+
+#~ msgid "%s: option '--%s' doesn't allow an argument\n"
+#~ msgstr "%s：选项“--%s”不允许有参数\n"
+
+#~ msgid "%s: unrecognized option '--%s'\n"
+#~ msgstr "%s：无法识别的选项“--%s”\n"
+
+#~ msgid "%s: option '-W %s' is ambiguous\n"
+#~ msgstr "%s：选项“-W %s”是不明确的\n"
+
+#~ msgid "%s: option '-W %s' doesn't allow an argument\n"
+#~ msgstr "%s：选项“-W %s”不允许有参数\n"
+
+#~ msgid "%s: option '-W %s' requires an argument\n"
+#~ msgstr "%s：选项“%s”需要一个参数\n"
+
+#~ msgid ""
+#~ "  -d, --domain=TEXTDOMAIN   retrieve translated messages from TEXTDOMAIN\n"
+#~ "  -e                        enable expansion of some escape sequences\n"
+#~ "  -E                        (ignored for compatibility)\n"
+#~ "  -h, --help                display this help and exit\n"
+#~ "  -n                        suppress trailing newline\n"
+#~ "  -V, --version             display version information and exit\n"
+#~ "  [TEXTDOMAIN] MSGID        retrieve translated message corresponding\n"
+#~ "                            to MSGID from TEXTDOMAIN\n"
+#~ msgstr ""
+#~ "  -d, --domain=文本域       由<文本域>读取翻译后的消息\n"
+#~ "  -e                        允许展开某些转义字符\n"
+#~ "  -E                        (为了兼容性存在的选项，不会造成任何影响)\n"
+#~ "  -h, --help                显示此段说明消息并退出\n"
+#~ "  -n                        禁用尾随的换行符\n"
+#~ "  -V, --version             显示版本信息并退出\n"
+#~ "  [文本域] MSGID            由<文本域>读取相应于 MSGID 的翻译消息\n"
+
+#~ msgid ""
+#~ "  -d, --domain=TEXTDOMAIN   retrieve translated message from TEXTDOMAIN\n"
+#~ "  -e                        enable expansion of some escape sequences\n"
+#~ "  -E                        (ignored for compatibility)\n"
+#~ "  -h, --help                display this help and exit\n"
+#~ "  -V, --version             display version information and exit\n"
+#~ "  [TEXTDOMAIN]              retrieve translated message from TEXTDOMAIN\n"
+#~ "  MSGID MSGID-PLURAL        translate MSGID (singular) / MSGID-PLURAL "
+#~ "(plural)\n"
+#~ "  COUNT                     choose singular/plural form based on this "
+#~ "value\n"
+#~ msgstr ""
+#~ "  -d, --domain=文本域       由<文本域>读取翻译后的消息。\n"
+#~ "  -e                        允许展开某些转义字符\n"
+#~ "  -E                        (为了兼容性存在的选项，不会造成任何影响)\n"
+#~ "  -h, --help                显示此段说明并退出\n"
+#~ "  -V, --version             显示版本信息并退出\n"
+#~ "  [文本域]                  由<文本域>读取翻译消息\n"
+#~ "  MSGID 复数-MSGID          翻译 MSGID (单数) / 复数-MSGID (复数)\n"
+#~ "  数字                      根据<数字>来选择单数或复数型态\n"
+
+#~ msgid "%s: illegal option -- %c\n"
+#~ msgstr "%s：非法选项 ─ %c\n"

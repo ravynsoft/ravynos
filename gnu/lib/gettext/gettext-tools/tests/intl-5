@@ -1,0 +1,6 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test that gettext() does not crash by stack overflow when msgid is very long.
+
+../intl-5-prg

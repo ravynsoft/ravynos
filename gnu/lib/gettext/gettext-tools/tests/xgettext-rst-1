@@ -1,0 +1,54 @@
+#! /bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test extractor of Free Pascal .rst files.
+
+cat <<\EOF > xg-rst-1.rst
+
+# hash value = 153469889
+hello.hello_world='Hello, world!'
+
+
+# hash value = 1323310
+hello.running_as='This program is running as process number %d.'
+
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} -o xg-rst-1.tmp xg-rst-1.rst || Exit 1
+func_filter_POT_Creation_Date xg-rst-1.tmp xg-rst-1.po
+
+cat <<\EOF > xg-rst-1.ok
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: hello.hello_world
+msgid "Hello, world!"
+msgstr ""
+
+#: hello.running_as
+#, object-pascal-format
+msgid "This program is running as process number %d."
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-rst-1.ok xg-rst-1.po
+result=$?
+
+exit $result

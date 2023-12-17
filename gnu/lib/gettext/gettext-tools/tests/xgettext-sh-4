@@ -1,0 +1,470 @@
+#!/bin/sh
+. "${srcdir=.}/init.sh"; path_prepend_ . ../src
+
+# Test of Shell support: obsolete bash $"..." syntax.
+
+cat <<\EOF > xg-sh-4.sh
+# Test backslash before normal alphabetic character.
+
+echo $"depth_0_bashquote_0_x"
+echo $"depth_0_bashquote_1_\x"
+echo $"depth_0_bashquote_2_\\x"
+
+echo `echo $"depth_1_0_bashquote_0_x"`
+echo `echo $"depth_1_0_bashquote_1_\x"`
+echo `echo $"depth_1_0_bashquote_2_\\x"`
+echo `echo $"depth_1_0_bashquote_3_\\\x"`
+echo `echo $"depth_1_0_bashquote_4_\\\\x"`
+echo "`echo $"depth_1_1_bashquote_0_x"`"
+echo "`echo $"depth_1_1_bashquote_1_\x"`"
+echo "`echo $"depth_1_1_bashquote_2_\\x"`"
+echo "`echo $"depth_1_1_bashquote_3_\\\x"`"
+echo "`echo $"depth_1_1_bashquote_4_\\\\x"`"
+
+echo `echo \`echo $"depth_2_00_bashquote_0_x"\``
+echo `echo \`echo $"depth_2_00_bashquote_1_\x"\``
+echo `echo \`echo $"depth_2_00_bashquote_2_\\x"\``
+echo `echo \`echo $"depth_2_00_bashquote_3_\\\x"\``
+echo `echo \`echo $"depth_2_00_bashquote_4_\\\\x"\``
+echo `echo \`echo $"depth_2_00_bashquote_5_\\\\\x"\``
+echo `echo \`echo $"depth_2_00_bashquote_6_\\\\\\x"\``
+echo `echo \`echo $"depth_2_00_bashquote_7_\\\\\\\x"\``
+echo `echo \`echo $"depth_2_00_bashquote_8_\\\\\\\\x"\``
+echo "`echo \`echo $"depth_2_01_bashquote_0_x"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_1_\x"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_2_\\x"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_3_\\\x"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_4_\\\\x"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_5_\\\\\x"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_6_\\\\\\x"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_7_\\\\\\\x"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_8_\\\\\\\\x"\``"
+echo `echo "\`echo $"depth_2_10_bashquote_0_x"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_1_\x"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_2_\\x"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_3_\\\x"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_4_\\\\x"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_5_\\\\\x"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_6_\\\\\\x"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_7_\\\\\\\x"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_8_\\\\\\\\x"\`"`
+echo "`echo "\`echo $"depth_2_11_bashquote_0_x"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_1_\x"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_2_\\x"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_3_\\\x"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_4_\\\\x"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_5_\\\\\x"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_6_\\\\\\x"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_7_\\\\\\\x"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_8_\\\\\\\\x"\`"`"
+
+# Test backslash before dollar.
+
+echo $"depth_0_bashquote_0_$var"
+echo $"depth_0_bashquote_1_\$var"
+echo $"depth_0_bashquote_2_\\$var"
+
+echo `echo $"depth_1_0_bashquote_0_$var"`
+echo `echo $"depth_1_0_bashquote_1_\$var"`
+echo `echo $"depth_1_0_bashquote_2_\\$var"`
+echo `echo $"depth_1_0_bashquote_3_\\\$var"`
+echo `echo $"depth_1_0_bashquote_4_\\\\$var"`
+echo "`echo $"depth_1_1_bashquote_0_$var"`"
+echo "`echo $"depth_1_1_bashquote_1_\$var"`"
+echo "`echo $"depth_1_1_bashquote_2_\\$var"`"
+echo "`echo $"depth_1_1_bashquote_3_\\\$var"`"
+echo "`echo $"depth_1_1_bashquote_4_\\\\$var"`"
+
+echo `echo \`echo $"depth_2_00_bashquote_0_$var"\``
+echo `echo \`echo $"depth_2_00_bashquote_1_\$var"\``
+echo `echo \`echo $"depth_2_00_bashquote_2_\\$var"\``
+echo `echo \`echo $"depth_2_00_bashquote_3_\\\$var"\``
+echo `echo \`echo $"depth_2_00_bashquote_4_\\\\$var"\``
+echo `echo \`echo $"depth_2_00_bashquote_5_\\\\\$var"\``
+echo `echo \`echo $"depth_2_00_bashquote_6_\\\\\\$var"\``
+echo `echo \`echo $"depth_2_00_bashquote_7_\\\\\\\$var"\``
+echo `echo \`echo $"depth_2_00_bashquote_8_\\\\\\\\$var"\``
+echo "`echo \`echo $"depth_2_01_bashquote_0_$var"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_1_\$var"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_2_\\$var"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_3_\\\$var"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_4_\\\\$var"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_5_\\\\\$var"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_6_\\\\\\$var"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_7_\\\\\\\$var"\``"
+echo "`echo \`echo $"depth_2_01_bashquote_8_\\\\\\\\$var"\``"
+echo `echo "\`echo $"depth_2_10_bashquote_0_$var"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_1_\$var"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_2_\\$var"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_3_\\\$var"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_4_\\\\$var"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_5_\\\\\$var"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_6_\\\\\\$var"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_7_\\\\\\\$var"\`"`
+echo `echo "\`echo $"depth_2_10_bashquote_8_\\\\\\\\$var"\`"`
+echo "`echo "\`echo $"depth_2_11_bashquote_0_$var"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_1_\$var"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_2_\\$var"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_3_\\\$var"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_4_\\\\$var"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_5_\\\\\$var"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_6_\\\\\\$var"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_7_\\\\\\\$var"\`"`"
+echo "`echo "\`echo $"depth_2_11_bashquote_8_\\\\\\\\$var"\`"`"
+EOF
+
+: ${XGETTEXT=xgettext}
+${XGETTEXT} --omit-header --no-location -d xg-sh-4.tmp xg-sh-4.sh 2>xg-sh-4.err
+test $? = 0 || { cat xg-sh-4.err; Exit 1; }
+LC_ALL=C tr -d '\r' < xg-sh-4.tmp.po > xg-sh-4.po || Exit 1
+
+cat <<\EOF > xg-sh-4.ok
+msgid "depth_0_bashquote_0_x"
+msgstr ""
+
+msgid "depth_0_bashquote_1_\\x"
+msgstr ""
+
+msgid "depth_0_bashquote_2_\\\\x"
+msgstr ""
+
+msgid "depth_1_0_bashquote_0_x"
+msgstr ""
+
+msgid "depth_1_0_bashquote_1_\\x"
+msgstr ""
+
+msgid "depth_1_0_bashquote_2_\\x"
+msgstr ""
+
+msgid "depth_1_0_bashquote_3_\\\\x"
+msgstr ""
+
+msgid "depth_1_0_bashquote_4_\\\\x"
+msgstr ""
+
+msgid "depth_1_1_bashquote_0_x"
+msgstr ""
+
+msgid "depth_1_1_bashquote_1_\\x"
+msgstr ""
+
+msgid "depth_1_1_bashquote_2_\\x"
+msgstr ""
+
+msgid "depth_1_1_bashquote_3_\\\\x"
+msgstr ""
+
+msgid "depth_1_1_bashquote_4_\\\\x"
+msgstr ""
+
+msgid "depth_2_00_bashquote_0_x"
+msgstr ""
+
+msgid "depth_2_00_bashquote_1_\\x"
+msgstr ""
+
+msgid "depth_2_00_bashquote_2_\\x"
+msgstr ""
+
+msgid "depth_2_00_bashquote_3_\\x"
+msgstr ""
+
+msgid "depth_2_00_bashquote_4_\\x"
+msgstr ""
+
+msgid "depth_2_00_bashquote_5_\\\\x"
+msgstr ""
+
+msgid "depth_2_00_bashquote_6_\\\\x"
+msgstr ""
+
+msgid "depth_2_00_bashquote_7_\\\\x"
+msgstr ""
+
+msgid "depth_2_00_bashquote_8_\\\\x"
+msgstr ""
+
+msgid "depth_2_01_bashquote_0_x"
+msgstr ""
+
+msgid "depth_2_01_bashquote_1_\\x"
+msgstr ""
+
+msgid "depth_2_01_bashquote_2_\\x"
+msgstr ""
+
+msgid "depth_2_01_bashquote_3_\\x"
+msgstr ""
+
+msgid "depth_2_01_bashquote_4_\\x"
+msgstr ""
+
+msgid "depth_2_01_bashquote_5_\\\\x"
+msgstr ""
+
+msgid "depth_2_01_bashquote_6_\\\\x"
+msgstr ""
+
+msgid "depth_2_01_bashquote_7_\\\\x"
+msgstr ""
+
+msgid "depth_2_01_bashquote_8_\\\\x"
+msgstr ""
+
+msgid "depth_2_10_bashquote_0_x"
+msgstr ""
+
+msgid "depth_2_10_bashquote_1_\\x"
+msgstr ""
+
+msgid "depth_2_10_bashquote_2_\\x"
+msgstr ""
+
+msgid "depth_2_10_bashquote_3_\\x"
+msgstr ""
+
+msgid "depth_2_10_bashquote_4_\\x"
+msgstr ""
+
+msgid "depth_2_10_bashquote_5_\\\\x"
+msgstr ""
+
+msgid "depth_2_10_bashquote_6_\\\\x"
+msgstr ""
+
+msgid "depth_2_10_bashquote_7_\\\\x"
+msgstr ""
+
+msgid "depth_2_10_bashquote_8_\\\\x"
+msgstr ""
+
+msgid "depth_2_11_bashquote_0_x"
+msgstr ""
+
+msgid "depth_2_11_bashquote_1_\\x"
+msgstr ""
+
+msgid "depth_2_11_bashquote_2_\\x"
+msgstr ""
+
+msgid "depth_2_11_bashquote_3_\\x"
+msgstr ""
+
+msgid "depth_2_11_bashquote_4_\\x"
+msgstr ""
+
+msgid "depth_2_11_bashquote_5_\\\\x"
+msgstr ""
+
+msgid "depth_2_11_bashquote_6_\\\\x"
+msgstr ""
+
+msgid "depth_2_11_bashquote_7_\\\\x"
+msgstr ""
+
+msgid "depth_2_11_bashquote_8_\\\\x"
+msgstr ""
+
+#, sh-format
+msgid "depth_0_bashquote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_0_bashquote_1_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_0_bashquote_2_\\\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_bashquote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_bashquote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_bashquote_2_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_bashquote_3_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_0_bashquote_4_\\\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_bashquote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_bashquote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_bashquote_2_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_bashquote_3_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_1_1_bashquote_4_\\\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_bashquote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_bashquote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_bashquote_2_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_bashquote_3_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_bashquote_4_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_bashquote_5_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_bashquote_6_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_bashquote_7_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_00_bashquote_8_\\\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_bashquote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_bashquote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_bashquote_2_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_bashquote_3_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_bashquote_4_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_bashquote_5_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_bashquote_6_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_bashquote_7_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_01_bashquote_8_\\\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_bashquote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_bashquote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_bashquote_2_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_bashquote_3_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_bashquote_4_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_bashquote_5_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_bashquote_6_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_bashquote_7_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_10_bashquote_8_\\\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_bashquote_0_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_bashquote_1_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_bashquote_2_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_bashquote_3_$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_bashquote_4_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_bashquote_5_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_bashquote_6_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_bashquote_7_\\$var"
+msgstr ""
+
+#, sh-format
+msgid "depth_2_11_bashquote_8_\\\\$var"
+msgstr ""
+EOF
+
+: ${DIFF=diff}
+${DIFF} xg-sh-4.ok xg-sh-4.po
+result=$?
+
+exit $result
