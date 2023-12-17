@@ -1,0 +1,390 @@
+# lt_dladvise.at -- test libltdl functionality                -*- Autotest -*-
+#
+#   Copyright (C) 2007-2009, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2007
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+# Try to keep the new interfaces of HEAD separate from those of
+# branch-1-5 to facilitate testing of older releases.
+
+AT_SETUP([lt_dlopenadvise library loading])
+AT_KEYWORDS([libltdl])
+
+AT_DATA([main.c],
+[[#include <ltdl.h>
+#include <stdio.h>
+
+typedef int funcp (int);
+
+static int errors = 0;
+
+static void
+complain (const char *msg)
+{
+  const char *errmsg = lt_dlerror ();
+  fprintf (stderr, "%s", msg);
+  if (errmsg)
+    fprintf (stderr, ": %s\n", errmsg);
+  else
+    fprintf (stderr, ".\n");
+  ++errors;
+}
+
+static lt_dlhandle
+moduleopen (const char *filename, lt_dladvise advise)
+{
+  lt_dlhandle handle;
+
+  handle = lt_dlopenadvise (filename, advise);
+  if (!handle)
+    {
+      fprintf (stderr, "can't open the module %s!\n", filename);
+      complain ("error was");
+    }
+
+  return handle;
+}
+
+static int
+moduletest (lt_dlhandle handle, const char *fname, const char *vname)
+{
+  funcp *f = (funcp *) lt_dlsym (handle, fname);
+  int   *v = (int *)   lt_dlsym (handle, vname);
+
+  if (!f)
+    {
+      fprintf (stderr, "function '%s' not found\n", fname);
+      ++errors;
+      return -1;
+    }
+  if (!v)
+    {
+      fprintf (stderr, "variable '%s' not found\n", vname);
+      ++errors;
+      return -1;
+    }
+  return f (*v);
+}
+
+void
+hint_ext (void)
+{
+  lt_dlhandle handle;
+  lt_dladvise advise;
+
+  if (lt_dladvise_init (&advise) || lt_dladvise_ext (&advise))
+    complain ("error setting advise ext");
+
+  handle = moduleopen ("libdepend", advise);
+
+  if (handle)
+    printf ("depend: %d\n", moduletest (handle, "g", "j"));
+
+  lt_dladvise_destroy (&advise);
+}
+
+void
+hint_resident (void)
+{
+  const lt_dlinfo *info;
+  lt_dlhandle handle;
+  lt_dladvise advise;
+
+  if (lt_dladvise_init (&advise) || lt_dladvise_resident (&advise))
+    complain ("error setting advise resident");
+
+  handle = moduleopen ("libresident.la", advise);
+
+  if (handle)
+    {
+      info = lt_dlgetinfo (handle);
+      if (!info->is_resident)
+	complain ("error taking advise resident");
+
+      /* cannot close resident modules */
+      if (lt_dlclose (handle) == 0)
+	complain ("successfully unloaded resident module");
+
+      printf ("resident: %d\n", moduletest (handle, "func", "numb"));
+    }
+
+  lt_dladvise_destroy (&advise);
+}
+
+void
+hint_local (void)
+{
+  const lt_dlinfo *info;
+  lt_dlhandle handle;
+  lt_dladvise advise;
+
+  if (lt_dladvise_init (&advise) || lt_dladvise_local (&advise))
+    complain ("error setting advise local");
+
+  handle = moduleopen ("liblocal.la", advise);
+
+  if (handle)
+    {
+      info = lt_dlgetinfo (handle);
+      printf ("local: %d\n", moduletest (handle, "f", "i"));
+
+      /* If the symlocal hint was taken, don't unload this module
+         and test that our local symbolnames won't clash with modglobal.  */
+      if (!info->is_symlocal && lt_dlclose (handle))
+	complain ("error unloading modlocal");
+    }
+
+  lt_dladvise_destroy (&advise);
+}
+
+void
+hint_global (void)
+{
+  const lt_dlinfo *info;
+  lt_dlhandle handle;
+  lt_dladvise advise;
+
+  if (lt_dladvise_init (&advise) || lt_dladvise_global (&advise))
+    complain ("error setting advise global");
+
+  handle = moduleopen ("libglobal.la", advise);
+
+  if (handle)
+    {
+      info = lt_dlgetinfo (handle);
+      printf ("global: %d\n", moduletest (handle, "f", "i"));
+
+      /* Don't attempt to load moddepend unless modglobal was successfully
+         loaded and the symglobal hint was taken, and the system allows to
+	 have undefined symbols.  */
+      if (info && info->is_symglobal && HAVE_UNDEFINED_SYMBOLS)
+        {
+          hint_ext ();
+        }
+      else
+        {
+          /* Fake the output so the test won't fail when using a dlloader
+             unable to take symglobal hints.  */
+          printf ("depend: 5\n");
+        }
+    }
+
+  lt_dladvise_destroy (&advise);
+}
+
+void
+hint_preload (void)
+{
+  lt_dlhandle handle;
+  lt_dladvise advise;
+
+  if (lt_dladvise_init (&advise) || lt_dladvise_preload (&advise))
+    complain ("error setting advise preload");
+
+  handle = moduleopen ("libpreload.la", advise);
+
+  if (handle)
+    {
+      printf("preload: %d\n", moduletest (handle, "h", "k"));
+    }
+
+  lt_dladvise_destroy (&advise);
+}
+
+int
+main (void)
+{
+
+  LTDL_SET_PRELOADED_SYMBOLS();
+
+  if (lt_dlinit() != 0)
+    {
+      fprintf (stderr, "error during initialization: %s\n", lt_dlerror());
+      return 1;
+    }
+
+  hint_resident ();
+  hint_local ();
+#ifdef HAVE_SHARED
+  hint_global ();
+#else
+  /* This ugly hack is because we have symbols with the same name in both the
+     global module and the local one, we can't lt_dlopen the local module
+     locally and then later load the global module globally because of this.
+     Instead of skipping the test entirely, we test what we can and
+     have this hack. */
+  printf ("global: 4\n");
+  printf ("depend: 5\n");
+#endif
+  hint_preload ();
+
+  if (lt_dlexit () != 0)
+    complain ("error during exit");
+
+  return (errors != 0);
+}
+]])
+
+AT_DATA([modresident.c],
+[[#ifdef __cplusplus
+extern "C" {
+#endif
+int func (int x) { return x / 3; }
+int numb = 7;
+#ifdef __cplusplus
+}
+#endif
+]])
+
+AT_DATA([modlocal.c],
+[[#ifdef __cplusplus
+extern "C" {
+#endif
+int f (int x) { return (x * x) / 10; }
+int i = 6;
+#ifdef __cplusplus
+}
+#endif
+]])
+
+AT_DATA([modglobal.c],
+[[#ifdef __cplusplus
+extern "C" {
+#endif
+int f (int x) { return x - 1; }
+int i = 5;
+#ifdef __cplusplus
+}
+#endif
+]])
+
+AT_DATA([moddepend.c],
+[[#ifdef __cplusplus
+extern "C" {
+#endif
+extern int f (int), i;
+int g (int x) { return f (i) + x - 3; }
+int j = 4;
+#ifdef __cplusplus
+}
+#endif
+]])
+
+AT_DATA([modpreload.c],
+[[#ifdef __cplusplus
+extern "C" {
+#endif
+int h (int x) { return 2 * x; }
+int k = 3;
+#ifdef __cplusplus
+}
+#endif
+]])
+
+LT_AT_HOST_DATA([expout],
+[[resident: 2
+local: 3
+global: 4
+depend: 5
+preload: 6
+]])
+
+: ${LTDLINCL="-I$abs_top_srcdir/libltdl"}
+: ${LIBLTDL="$abs_builddir/../libltdl/libltdlc.la"}
+
+# Skip this test when called from:
+#    make distcheck DISTCHECK_CONFIGURE_FLAGS=--disable-ltdl-install
+AT_CHECK([case $LIBLTDL in #(
+ */_inst/lib/*) test -f "$LIBLTDL" || (exit 77) ;;
+esac], [], [ignore])
+
+CPPFLAGS="$LTDLINCL $CPPFLAGS"
+
+dlopenable='resident local global'
+dlpreloadable='preload'
+
+# ------------------------------------------------------------------------- #
+# The depend test makes no sense unless compiled without -no-undefined. By  #
+# not building the depend module in that case, when this test passes we can #
+# be sure that hint_global() above, is being correctly informed those hosts #
+# are reporting not able to accept the global hint to lt_dlopenadvise().    #
+# ------------------------------------------------------------------------- #
+
+have_shared=false
+$LIBTOOL --features | $GREP 'enable shared libraries' >/dev/null && have_shared=:
+
+case $host_os,$have_shared in
+cygwin* | mingw* | cegcc* | *,false)
+  # These hosts do not support linking without -no-undefined
+  CPPFLAGS="$CPPFLAGS -DHAVE_UNDEFINED_SYMBOLS=0"
+  ;;
+*)
+  CPPFLAGS="$CPPFLAGS -DHAVE_UNDEFINED_SYMBOLS=1"
+  dlopenable="$dlopen depend"
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c moddepend.c
+  AT_CHECK([$LIBTOOL --mode=link $CC -module $CFLAGS $LDFLAGS -o libdepend.la ]dnl
+           [moddepend.lo -rpath /foo -avoid-version], [], [ignore], [ignore])
+  ;;
+esac
+
+$have_shared && CPPFLAGS="$CPPFLAGS -DHAVE_SHARED"
+
+# ------------------------------------------------------------------------- #
+# Other modules can be tested correctly even when built with -no-undefined. #
+# ------------------------------------------------------------------------- #
+
+LDFLAGS="$LDFLAGS -no-undefined"
+
+$CC $CPPFLAGS $CFLAGS -c main.c
+for name in resident local global preload; do
+  # FIXME: adding -static to libpreload shouldn't be necessary.
+  #        Fix this properly in ltmain, then remove this workaround.
+  if test preload = "$name"; then
+    st=-static
+  else
+    st=
+  fi
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c mod$name.c
+  AT_CHECK([$LIBTOOL --mode=link $CC -module $CFLAGS $LDFLAGS -o lib$name.la ]dnl
+           [mod$name.lo $st -rpath /foo -avoid-version], [], [ignore], [ignore])
+done
+
+preloaded=
+for module in $dlpreloadable; do
+  preloaded="${preloaded+$preloaded }-dlpreopen lib$module.la"
+done
+
+modules=
+for module in $dlopenable; do
+  modules="${modules+$modules }-dlopen lib$module.la"
+done
+
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT $preloaded $modules $LIBLTDL],
+	 [], [ignore], [ignore])
+
+# Remove loadable libpreload module, so we know it is the preloaded module
+# that is being executed by a successful test invocation:
+AT_CHECK([$LIBTOOL --mode=clean rm -f libpreload.la], [], [ignore], [ignore])
+
+LT_AT_NOINST_EXEC_CHECK([./main], [$modules], [], [expout], [])
+
+AT_CLEANUP

@@ -1,0 +1,200 @@
+#! /bin/sh
+
+# Unit tests for funclib.sh
+
+# This is free software.  There is NO warranty; not even for
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#
+# Copyright (C) 2015-2019, 2021 Bootstrap Authors
+#
+# This file is dual licensed under the terms of the MIT license
+# <https://opensource.org/license/MIT>, and GPL version 2 or later
+# <http://www.gnu.org/licenses/gpl-2.0.html>.  You must apply one of
+# these licenses when using or redistributing this software or any of
+# the files within it.  See the URLs above, or the file `LICENSE`
+# included in the Bootstrap distribution for the full license texts.
+
+# Please report bugs or propose patches to:
+# <https://github.com/gnulib-modules/bootstrap/issues>
+
+. "$abs_aux_dir"/funclib.sh || exit 1
+. "$abs_aux_dir"/options-parser || exit 1
+
+set -e
+
+scriptversion='test-version'
+
+func_help ()
+{
+    $ECHO "HELP"
+    exit 0
+}
+
+
+# Make sure that setting <func_name>_result has no effect if we return non-zero
+# return value.
+test_prep_do_nothing ()
+{
+    :
+}
+func_add_hook func_options_prep test_prep_do_nothing
+
+
+test_prep_shortcuts ()
+{
+    debug_on=
+    test x--debug = "x$1" && debug_on=--debug && shift
+
+    case $1 in
+      short|shortc|shortcu|shortcut)
+        shift
+        func_quote eval --test SHORTCUT $debug_on ${1+"$@"}
+        test_prep_shortcuts_result=$func_quote_result
+        ;;
+      *)
+        ;;
+    esac
+}
+func_add_hook func_options_prep test_prep_shortcuts
+
+
+test_parse_split_short ()
+{
+    while test $# -gt 0
+    do
+      _G_opt=$1 ; shift
+      case $_G_opt in
+        -t?*)
+          func_split_short_opt "$_G_opt"
+          set dummy "$func_split_short_opt_name" \
+              "$func_split_short_opt_arg" ${1+"$@"}
+          shift
+          ;;
+        *)
+          set dummy "$_G_opt" ${1+"$@"} ; shift
+          ;;
+      esac
+      break
+    done
+
+    func_quote eval ${1+"$@"}
+    test_parse_split_short_result=$func_quote_result
+}
+func_add_hook func_parse_options test_parse_split_short
+
+
+test_parse_subst_equal_signs ()
+{
+    _G_opt=$1 ; shift
+    case $_G_opt in
+      --*=*)
+        func_split_equals "$_G_opt"
+        set dummy "$func_split_equals_lhs" \
+            "$func_split_equals_rhs" ${1+"$@"}
+        shift
+        func_quote eval ${1+"$@"}
+        test_parse_subst_equal_signs_result=$func_quote_result
+        ;;
+      *)
+        ;;
+    esac
+}
+func_add_hook func_parse_options test_parse_subst_equal_signs
+
+
+test_parse_do_nothing ()
+{
+    :
+}
+func_add_hook func_parse_options test_parse_do_nothing
+
+
+test_parse_eat_test ()
+{
+    _t_parse_match=false
+    _G_opt=$1 ; shift
+    case $_G_opt in
+      --test|-t)
+        _t_parse_match=:
+        if test $# = 0; then
+          func_missing_arg $_G_opt
+        else
+          opt_test=$1
+          shift
+        fi
+        ;;
+    esac
+
+    if $_t_parse_match; then
+      func_quote eval ${1+"$@"}
+      test_parse_eat_test_result=$func_quote_result
+    fi
+}
+func_add_hook func_parse_options test_parse_eat_test
+
+
+test_validate_do_nothing ()
+{
+    :
+}
+func_add_hook func_validate_options test_validate_do_nothing
+
+
+test_validate_eat_sth ()
+{
+    if test validate_out = "$1"; then
+      shift
+      func_quote eval ${1+"$@"}
+      test_validate_eat_sth_result=$func_quote_result
+    fi
+}
+func_add_hook func_validate_options test_validate_eat_sth
+
+
+unset_test_opt ()
+{
+    case $# in
+      0)
+        $ECHO UNSET_TEST
+        ;;
+      1)
+        $ECHO "ONE_ARG $*"
+        ;;
+      2)
+        case $1 in
+          eval)
+            eval "$2"
+            exit $?
+            ;;
+        esac
+        ;;
+      3)
+        $ECHO THREE_ARGS
+        ;;
+      *)
+        $ECHO MORE_ARGS
+        ;;
+    esac
+}
+
+
+func_options ${1+"$@"}
+eval set dummy "$func_options_result"; shift
+
+case ${opt_test-unset} in
+  '')
+    $ECHO "EMPTY_TEST"
+    ;;
+  unset)
+    unset_test_opt ${1+"$@"}
+    ;;
+  false)
+    $ECHO "FALSE_TEST"
+    exit 1
+    ;;
+  *)
+    $ECHO $opt_test
+    ;;
+esac
+
+:

@@ -1,0 +1,127 @@
+# link-order.at -- ensure that library linking order matches  -*- Autotest -*-
+#
+#   Copyright (C) 2005, 2007-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Alexandre Oliva & Ralf Wildenhues, 2005
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_SETUP([Link order test])
+AT_KEYWORDS([libtool])
+eval `$LIBTOOL --config | $EGREP '^(hardcode_direct|hardcode_direct_absolute|shrext_cmds)='`
+LDFLAGS="$LDFLAGS -no-undefined"
+
+module=no
+eval shared_ext=\"$shrext_cmds\"
+
+prefix_old=`pwd`/old
+prefix_new=`pwd`/new
+mkdir src $prefix_old $prefix_new $prefix_old/lib $prefix_new/lib
+
+AT_DATA(src/c.c,
+[[int c = 1;
+]])
+
+$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c src/c.c -o src/c.lo
+$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o src/libcee.la src/c.lo -rpath $prefix_old/lib
+$LIBTOOL --mode=install cp src/libcee.la $prefix_old/lib/libcee.la
+
+for i in old new; do
+  rm -rf src
+  mkdir src
+
+  cat >src/a_$i.c <<EOF
+/* w32 fun, MSVC needs to dllimport when using a shared library, so use
+ * DLL_EXPORT to discriminate as that happens to coinside in this case.
+ * gnu has auto import.
+ */
+#if defined _MSC_VER && defined DLL_EXPORT
+#  define LIBCEE_SCOPE __declspec(dllimport)
+#else
+#  define LIBCEE_SCOPE extern
+#endif
+LIBCEE_SCOPE int c;
+extern int b_$i();
+int a_$i() { return c + b_$i(); }
+EOF
+
+  cat >src/b_$i.c <<EOF
+/* w32 fun, MSVC needs to dllimport when using a shared library, so use
+ * DLL_EXPORT to discriminate as that happens to coinside in this case.
+ * gnu has auto import.
+ */
+#if defined _MSC_VER && defined DLL_EXPORT
+#  define LIBCEE_SCOPE __declspec(dllimport)
+#else
+#  define LIBCEE_SCOPE extern
+#endif
+LIBCEE_SCOPE int c;
+int b_$i() { return 1 + c; }
+EOF
+
+  prefix=`eval echo \\$prefix_$i`
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c src/a_$i.c -o src/a.lo
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c src/b_$i.c -o src/b.lo
+  $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o src/libb.la src/b.lo \
+      -L$prefix_old/lib -lcee -rpath $prefix/lib
+  $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o src/liba.la src/a.lo \
+      src/libb.la -L$prefix_old/lib -lcee -rpath $prefix/lib
+  $LIBTOOL --mode=install cp src/libb.la $prefix/lib/libb.la
+  AT_CHECK([$LIBTOOL --mode=install cp src/liba.la $prefix/lib/liba.la],
+	[0], [stdout], [stderr])
+done
+
+$LIBTOOL --mode=clean rm -f src/libb.la
+$LIBTOOL --mode=clean rm -f src/liba.la
+
+case $host_os in
+aix* | interix*) ;;  # These systems have different path syntax
+*)
+  # Do not error if we do not relink (e.g. static-only systems)
+  case $hardcode_direct$hardcode_direct_absolute in
+  yesno)
+    AT_CHECK([if $EGREP relinking stderr; then
+         $EGREP " .*\/new\/lib/libb$shared_ext .*\/old\/lib/libcee$shared_ext" stdout
+       else :; fi], [0], [ignore], [], [echo "wrong link order"])
+    ;;
+  *)
+    AT_CHECK([if $EGREP relinking stderr; then
+         $EGREP " -L.*\/new\/lib -lb -L.*\/old\/lib -lcee" stdout
+       else :; fi], [0], [ignore], [], [echo "wrong link order"])
+    ;;
+  esac
+  ;;
+esac
+
+for i in old new; do
+  cat >src/main_$i.c <<EOF
+extern int a_$i();
+int main(void) { return a_$i() != 3; }
+EOF
+
+  prefix=`eval echo \\$prefix_$i`
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c src/main_$i.c -o src/main_$i.lo
+  AT_CHECK($LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o src/main_$i$EXEEXT src/main_$i.lo -L$prefix/lib -la,
+	   [0], [ignore], [ignore])
+  LT_AT_EXEC_CHECK([src/main_$i])
+done
+
+AT_CLEANUP

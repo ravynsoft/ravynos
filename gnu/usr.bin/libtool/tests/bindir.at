@@ -1,0 +1,361 @@
+# bindir.at -  Test the -bindir option
+#
+#   Copyright (C) 2009-2019, 2021-2022 Free Software Foundation, Inc.
+#   Written by Dave Korn, 2009
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+####
+#  In this testcase, and in the chunk of code that makes use
+# of $bindir in ltmain.in, we would very much have liked to
+# automatically decide which systems require dynamically-loaded
+# libraries to be installed to a directory in $PATH according
+# to the libtool properties that tell us that "the system provides
+# no way to hard-code library paths into executables, and also
+# has no $shlibpath_var independent of the PATH variable", in
+# Ralf's words.  But it turns out this is not possible, as:-
+#
+#> * Dave Korn wrote on Fri, Aug 14, 2009 at 04:30:27AM CEST:
+#>>> Ralf Wildenhues wrote:
+#>>>
+#>>>>> But in this particular case, I would argue that either you look at
+#>>>>> the libtool variables shlibpath_var and hardcode_action for "PATH"
+#>>>>> and "unsupported".
+#>>>
+#>>> On Cygwin, $hardcode_action = "immediate" in the generated libtool
+#>>> script. Did you perhaps mean $hardcode_shlibpath_var, which is indeed
+#>>> "unsupported"?
+#>
+#> Oh brother, yes, I forgot about those bogus hardcode_libdir_flag_spec
+#> settings.  They fool _LT_LINKER_HARDCODE_LIBPATH.  I don't remember whether
+#> they were needed in order to not break some semantics in ltmain (they
+#> probably were).
+#>
+#> Anyway, $hardcode_action = "immediate" is definitely wrong, but fixing that
+#> now is also way out of scope of this patch.  So I guess we need to stick to
+#> host matching in the code, and work out a separate fix for the setting of
+#> $hardcode_libdir_flag_spec.
+#
+# So alas we punt for now, and just hardcode the relevant OSs that require
+# this functionality.  That's Cygwin, MinGW and CeGCC for now; see the case
+# statement in ltmain.in around where the 'tdlname' variable is set.
+
+####
+# First a simple test that we can build and run an executable with a couple of
+# tiny libraries.
+
+AT_SETUP([bindir basic lib test])
+
+bindirneeded=:
+case $host_os in
+  cygwin*|mingw*|cegcc*)
+    ;;
+  *)
+    bindirneeded=false
+    ;;
+esac
+
+####
+# These routines save the PATH before a test and restore it after,
+# prepending a chosen directory to the path on the platforms where
+# -bindir is needed after saving.
+#
+
+func_save_and_prepend_path ()
+{
+  save_PATH=$PATH
+  if $bindirneeded; then
+    PATH=$1$PATH_SEPARATOR$PATH
+  fi
+  export PATH
+}
+
+func_restore_path ()
+{
+  PATH=$save_PATH
+  export PATH
+}
+
+AT_DATA([foo.c],[[
+int x=11;
+]])
+
+AT_DATA([baz.c],[[
+extern int x;
+int baz (void);
+int baz (void) { return x;}
+]])
+
+AT_DATA([bar.c],[[
+extern int baz (void);
+int y=3;
+int bar (void);
+int bar (void) { return y + baz ();}
+]])
+
+AT_DATA([main.c],[[
+#include <stdlib.h>
+extern int baz (void);
+extern int bar (void);
+int main() {
+if (baz () + bar () - 25) abort ();
+return 0;
+}
+]])
+
+
+curdir=`pwd`
+eval "`$LIBTOOL --config | $GREP '^objdir='`"
+
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC -c -o foo.lo $CPPFLAGS $CFLAGS foo.c],[0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC -c -o baz.lo $CPPFLAGS $CFLAGS baz.c],[0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC -no-undefined -o libfoo.la $CPPFLAGS $CFLAGS $LDFLAGS foo.lo baz.lo -rpath $curdir/$objdir],[0],[ignore],[ignore])
+
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC -c -o bar.lo $CPPFLAGS $CFLAGS bar.c],[0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC -no-undefined -o libbar.la $CPPFLAGS $CFLAGS $LDFLAGS bar.lo libfoo.la -rpath $curdir/$objdir],[0],[ignore],[ignore])
+
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC -c -o main.lo $CPPFLAGS $CFLAGS main.c],[0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC -o main$EXEEXT $CPPFLAGS $CFLAGS $LDFLAGS main.lo libbar.la libfoo.la],[0],[ignore],[ignore])
+
+# Check both static and shared versions run.  We don't install them
+# here, that will be covered by the later tests; we've rpath'd things
+# so that they can all be run in situ.
+
+LT_AT_NOINST_EXEC_CHECK([./main])
+
+# Ensure libraries can be found on PATH, if we are on one
+# of the affected platforms, before testing the shared version.
+
+func_save_and_prepend_path "$curdir/$objdir"
+$bindirneeded && {
+  LT_AT_NOINST_EXEC_CHECK([$objdir/main])
+}
+
+#  In fact, prepending the PATH as above is superfluous on the windows
+# platforms that this feature is primarily aimed at, as the DLL search
+# path always includes the directory from which the app was launched.
+# To make sure it still works even when not side-by-side, we'll install
+# the main executable and execute it from there while the PATH still
+# points to the shared libs in the .libs subdir.  On other platforms,
+# the rpaths we set at link time will guarantee it runs from the bindir.
+
+mkdir $curdir/bin
+AT_CHECK([$LIBTOOL --mode=install $lt_INSTALL main$EXEEXT $curdir/bin/main$EXEEXT], [], [ignore], [ignore])
+LT_AT_EXEC_CHECK([$curdir/bin/main$EXEEXT], [0], [ignore], [ignore], [])
+func_restore_path
+
+AT_CLEANUP
+
+####
+# This is the main testcase.  For a variety of bindir and libdir
+# settings, it verifies that all the files get installed exactly
+# where we want them to go, and that they can be executed once
+# installed.
+#
+
+AT_SETUP([bindir install tests])
+
+bindirneeded=:
+case $host_os in
+  cygwin*|mingw*|cegcc*)
+    ;;
+  *)
+    bindirneeded=false
+    ;;
+esac
+
+eval "`$LIBTOOL --config | $GREP '^build_libtool_libs='`"
+AT_CHECK([test yes = "$build_libtool_libs" || exit 77])
+
+####
+# These routines save the PATH before a test and restore it after,
+# prepending a chosen directory to the path on the platforms where
+# -bindir is needed after saving.
+#
+
+func_save_and_prepend_path ()
+{
+  save_PATH=$PATH
+  if $bindirneeded; then
+    PATH=$1$PATH_SEPARATOR$PATH
+  fi
+  export PATH
+}
+
+func_restore_path ()
+{
+  PATH=$save_PATH
+  export PATH
+}
+
+AT_DATA([foo.c],[[
+int x=11;
+]])
+
+AT_DATA([baz.c],[[
+extern int x;
+int baz (void);
+int baz (void) { return x;}
+]])
+
+AT_DATA([bar.c],[[
+extern int baz (void);
+int y=3;
+int bar (void);
+int bar (void) { return y + baz ();}
+]])
+
+AT_DATA([main.c],[[
+#include <stdlib.h>
+extern int baz (void);
+extern int bar (void);
+int main() {
+if (baz () + bar () - 25) abort ();
+return 0;
+}
+]])
+
+# We only need to compile once, but we'll need to relink for each different value
+# of libdir in order to set the rpath, and we'll install for each combination of
+# libdir and bindir.
+
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC -c -o foo.lo $CPPFLAGS $CFLAGS foo.c],[0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC -c -o baz.lo $CPPFLAGS $CFLAGS baz.c],[0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC -c -o bar.lo $CPPFLAGS $CFLAGS bar.c],[0],[ignore],[ignore])
+AT_CHECK([$LIBTOOL --mode=compile --tag=CC $CC -c -o main.lo $CPPFLAGS $CFLAGS main.c],[0],[ignore],[ignore])
+
+# Now try installing the libs.  There are the following cases:
+# No -bindir
+# -bindir below lib install dir
+# -bindir is lib install dir
+# -bindir beside lib install dir
+# -bindir above lib dir
+# -bindir above and beside lib dir
+# -bindir in entirely unrelated prefix.
+
+curdir=`pwd`
+for libdir in \
+	$curdir/usr/lib/gcc/i686-pc-cygwin/4.5.0 \
+	$curdir/usr/lib/gcc/../gcc/.//i686-pc-cygwin/4.5.0/../../././//. \
+	$curdir/usr/lib/ \
+	$curdir/usr/lib \
+	$curdir/baz \
+	$curdir/baz/lib/;
+do
+
+  # Do a basic install with no -bindir option for reference.  We use the sbin/
+  # dir for the main exe to avoid the potential "this only works because it's
+  # side-by-side with the libs" default DLL search path problem mentioned above.
+  rm -rf $libdir $curdir/bin $curdir/sbin $curdir/baz $curdir/usr
+  AS_MKDIR_P($libdir)
+  AS_MKDIR_P($curdir/sbin)
+  AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC -no-undefined -o libfoo.la $CPPFLAGS $CFLAGS $LDFLAGS foo.lo bar.lo baz.lo -rpath $libdir],[0],[ignore],[ignore])
+  AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC -o main$EXEEXT $CPPFLAGS $CFLAGS $LDFLAGS main.lo libfoo.la -rpath $libdir],[0],[ignore],[ignore])
+  AT_CHECK([$LIBTOOL --mode=install $lt_INSTALL libfoo.la $libdir], [], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --mode=install $lt_INSTALL main$EXEEXT $curdir/sbin/main$EXEEXT], [], [ignore], [ignore])
+
+  # And ensure it went where we expect.  Could be looking for any of
+  # 'cygfoo-0.dll', 'libfoo-0.dll', 'foo-0.dll', or 'libfoo.so.0'.  We'll
+  # simplify this check by taking advantage of the fact that if it's a DLL,
+  # it has to go in bindir, so we'll not check for both forms in libdir.
+  if $bindirneeded; then
+    AT_CHECK([test -f "$libdir"/../bin/???foo-0.dll || ls "$libdir"/../bin/*foo*0*], [], [ignore], [ignore])
+  else
+    AT_CHECK([ls $libdir/*foo*], [], [ignore], [ignore])
+  fi
+
+  # And that it can be executed.
+  func_save_and_prepend_path "$libdir/../bin"
+  LT_AT_EXEC_CHECK([$curdir/sbin/main$EXEEXT], [0], [ignore], [ignore], [])
+  func_restore_path
+
+  for bindir in \
+	$curdir/usr/lib/gcc/i686-pc-cygwin/4.5.0/bin/ \
+	$curdir/usr/lib/gcc/i686-pc-cygwin/4.5.0/bin \
+	$curdir/usr/lib/gcc/i686-pc-cygwin/bin \
+	$curdir/usr/lib/bin \
+	$curdir/usr/bin/ \
+	$curdir/usr/bin \
+	/tmp/foo/bar;
+  do
+
+    # Clear any old stuff out before we install.  Because bindir
+    # may be in /tmp, we have to take care to create it securely
+    # and not to delete and recreate it if we do.
+    rm -rf $libdir $curdir/bin $curdir/sbin $curdir/baz $curdir/usr
+
+    tmp=
+    case $bindir in
+      /tmp*)
+        # Create a temporary directory $tmp in $TMPDIR (default /tmp).
+        # Use mktemp if possible; otherwise fall back on mkdir,
+        # with $RANDOM to make collisions less likely.
+        : ${TMPDIR=/tmp}
+        {
+          tmp=`
+            (umask 077 && mktemp -d "$TMPDIR/fooXXXXXX") 2>/dev/null
+          ` &&
+          test -n "$tmp" && test -d "$tmp"
+        } || {
+          tmp=$TMPDIR/foo$$-$RANDOM
+          (umask 077 && mkdir "$tmp")
+        } || AT_CHECK([exit 77])
+        bindir=$tmp/bar
+      ;;
+      *)
+        # Clear any old stuff out before we install.
+        rm -rf $bindir
+        AS_MKDIR_P($bindir)
+      ;;
+    esac
+
+    # Relink with new rpaths.
+    AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC -no-undefined -bindir $bindir -o libfoo.la $CPPFLAGS $CFLAGS $LDFLAGS foo.lo bar.lo baz.lo -rpath $libdir],[0],[ignore],[ignore])
+    AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC -o main$EXEEXT $CPPFLAGS $CFLAGS $LDFLAGS main.lo libfoo.la],[0],[ignore],[ignore])
+
+    # Recreate directories (bindir already done) and install.
+    AS_MKDIR_P($libdir)
+    AS_MKDIR_P($curdir/sbin)
+    AT_CHECK([$LIBTOOL --mode=install $lt_INSTALL libfoo.la "$libdir"], [], [ignore], [ignore])
+    AT_CHECK([$LIBTOOL --mode=install $lt_INSTALL main$EXEEXT "$curdir/sbin/main$EXEEXT"], [], [ignore], [ignore])
+
+    # Ensure it went to bindir rather than default dir this time.
+    if $bindirneeded; then
+      AT_CHECK([test -f "$bindir"/???foo-0.dll || ls "$bindir"/*foo*0*], [], [ignore], [ignore])
+    else
+      AT_CHECK([ls "$libdir"/*foo*], [], [ignore], [ignore])
+    fi
+
+    # And that it can be executed.
+    func_save_and_prepend_path "$bindir"
+    LT_AT_EXEC_CHECK([$curdir/sbin/main$EXEEXT], [0], [ignore], [ignore], [])
+    func_restore_path
+
+    # Clean up if we made a temp dir.  Subdirs under our testdir get rm'd
+    # and recreated at the top of the loop.  Securely created subdirs under
+    # /tmp get created precisely once and rm'd when we're done with them.
+    if test ! -z "$tmp"; then
+      rm -rf "$tmp"
+    fi
+
+  done
+done
+
+AT_CLEANUP

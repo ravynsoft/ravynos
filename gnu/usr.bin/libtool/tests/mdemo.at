@@ -1,0 +1,855 @@
+# demo.at -- Dynamic ltdl runtime loading -*- Autotest -*-
+#
+#   Copyright (C) 1998, 2002-2004, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Thomas Tanner, 1998
+#   Written by Greg Eisenhauer, 2002
+#   Rewritten by Gary V. Vaughan, 2003
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_BANNER([Dynamic ltdl runtime loading.])
+
+# _LT_SETUP
+# ---------
+m4_define([_LT_SETUP],
+[dnl We can't use AT_DATA here, because we need an unquoted here-
+dnl document to splice in the path to the top level libltdl directory,
+dnl but, we do need to double m4-quote to prevent premature expansion
+dnl of any active m4 symbols in the here-doc content, and to maintain
+dnl the square-bracket symbols as is.
+[cat >configure.ac <<_EOT_
+AC_INIT([mdemo], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIRS([m4])
+LT_CONFIG_LTDL_DIR([libltdl])
+AM_INIT_AUTOMAKE
+AC_PROG_CC
+LT_INIT([dlopen win32-dll])
+LTDL_INIT([nonrecursive convenience])
+AC_SUBST([LIBTOOL_DEPS])
+AC_SUBST([INCLTDL])
+AC_SUBST([LIBLTDL])
+STATIC=
+test yes = "$enable_static" && STATIC=-static
+AC_SUBST([STATIC])
+LT_LIB_M
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_HEADERS([config.h:config.in.h])
+AC_OUTPUT
+_EOT_]
+
+
+[cat >Makefile.am <<_EOT_
+AUTOMAKE_OPTIONS = no-dependencies subdir-objects foreign
+ACLOCAL_AMFLAGS = -I m4
+AM_CPPFLAGS = \$(INCLTDL)
+AM_LDFLAGS =
+
+noinst_LTLIBRARIES =
+EXTRA_LTLIBRARIES =
+
+include_HEADERS =
+
+EXTRA_DIST =
+
+BUILT_SOURCES =
+CLEANFILES =
+MOSTLYCLEANFILES =
+
+lib_LTLIBRARIES = libsub.la foo1.la libfoo2.la libmlib.la
+
+foo1_la_SOURCES = foo1.c
+foo1_la_LIBADD = \$(LIBM) libsub.la
+foo1_la_LDFLAGS = -no-undefined -module -avoid-version
+
+libfoo2_la_SOURCES = foo2.c
+libfoo2_la_LIBADD = \$(LIBM) libsub.la
+libfoo2_la_LDFLAGS = -no-undefined -module -export-symbols-regex "libfoo2.*"
+
+libsub_la_SOURCES = sub.c
+libsub_la_LDFLAGS = -no-undefined
+
+## Use -export-symbols-regex here explicitly because libltdl marks
+## its exported symbols, and we use libltdl as a convenience archive.
+## Thus, on w32, auto-exporting is turned off.
+libmlib_la_SOURCES = mlib.c
+libmlib_la_LIBADD = \$(LIBLTDL) "-dlopen" foo1.la "-dlopen" libfoo2.la
+libmlib_la_LDFLAGS = -no-undefined -export-symbols-regex ".*"
+libmlib_la_DEPENDENCIES = \$(LIBLTDL) libsub.la foo1.la libfoo2.la
+
+noinst_HEADERS = foo.h
+
+bin_PROGRAMS = mdemo mdemo_static
+
+# Create a version of mdemo that does dlopen.
+mdemo_SOURCES = main.c
+mdemo_LDFLAGS = -export-dynamic
+## The quotes around -dlopen below fool automake into accepting it
+mdemo_LDADD = \$(LIBLTDL) libsub.la "-dlopen" self \
+		"-dlopen" foo1.la "-dlopen" libfoo2.la
+mdemo_DEPENDENCIES = \$(LIBLTDL) libsub.la foo1.la libfoo2.la
+
+# Create a statically linked version of mdemo.
+mdemo_static_SOURCES = \$(mdemo_SOURCES)
+mdemo_static_LDFLAGS = \$(STATIC) \$(mdemo_LDFLAGS)
+mdemo_static_LDADD = \$(mdemo_LDADD)
+mdemo_static_DEPENDENCIES = \$(mdemo_DEPENDENCIES)
+
+libtool: \$(LIBTOOL_DEPS)
+	\$(SHELL) ./config.status --recheck
+
+include \$(srcdir)/libltdl/ltdl.mk
+include \$(srcdir)/mdemo.mk
+_EOT_]
+
+AT_DATA([mdemo.mk],
+[[# Don't abort for lack of mdemo.mk
+]])
+
+AT_DATA([foo.h],
+[[#ifndef FOO_H
+#define FOO_H
+
+/* Silly constants that the functions return. */
+#define HELLO_RET 0xe110
+#define FOO_RET 0xf00
+
+int sub (void);
+
+#endif
+]])
+
+AT_DATA([foo1.c],
+[[#include <config.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "foo.h"
+
+#define nothing foo1_LTX_nothing
+#define foo1    foo1_LTX_foo1
+#define hello   foo1_LTX_hello
+
+/* Give a global variable definition. */
+int nothing = FOO_RET;
+
+/* private function */
+int _foo1_helper (void) {
+  sub ();
+  return FOO_RET;
+}
+
+/* export functions */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int foo1 (void) {
+    printf ("cos (0.0) = %g\n", (double) cos ((double) 0.0));
+    return _foo1_helper ();
+}
+
+int hello () {
+    printf ("** This is foolib 1 **\n");
+    return HELLO_RET;
+}
+
+#ifdef __cplusplus
+}
+#endif
+]])
+
+AT_DATA([foo2.c],
+[[#include <config.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "foo.h"
+
+#define nothing libfoo2_LTX_nothing
+#define foo2    libfoo2_LTX_foo2
+#define hello   libfoo2_LTX_hello
+
+/* Give a global variable definition. */
+int nothing;
+
+/* private function */
+int _foo2_helper (void) {
+  sub ();
+  return FOO_RET;
+}
+
+/* export functions */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int foo2 (void) {
+    printf ("sin (0.0) = %g\n", (double) sin ((double) 0.0));
+    return _foo2_helper ();
+}
+
+int hello () {
+    printf ("** This is foolib 2 **\n");
+    return HELLO_RET;
+}
+
+#ifdef __cplusplus
+}
+#endif
+]])
+
+AT_DATA([mlib.c],
+[[#include <config.h>
+#include <stdio.h>
+
+#include "foo.h"
+#include "ltdl.h"
+
+int test_dl (char *filename) {
+  lt_dlhandle handle;
+  const lt_dlinfo *info;
+  int (*pfoo1)() = 0;
+  int (*pfoo2)() = 0;
+  int (*phello)() = 0;
+  int *pnothing = 0;
+  int ret = 0;
+
+  handle = lt_dlopen(filename);
+  if (!handle) {
+    fprintf (stderr, "can't open the module %s!\n", filename);
+    fprintf (stderr, "error was: %s\n", lt_dlerror());
+    return 1;
+  }
+
+  info = lt_dlgetinfo(handle);
+  if (!info) {
+    fprintf (stderr, "can't get module info: %s\n", lt_dlerror());
+    return 1;
+  }
+  if (info->name) {
+    printf ("module name: %s\n", info->name);
+  } else {
+    printf ("module is not a libtool module\n");
+  }
+  printf ("module filename: %s\n", info->filename);
+  printf ("module reference count: %i\n", info->ref_count);
+
+  phello = (int(*)())lt_dlsym(handle, "hello");
+  if (phello)
+    {
+      int value = (*phello) ();
+
+      printf ("hello returned: %i\n", value);
+      if (value == HELLO_RET)
+        printf("hello is ok!\n");
+    }
+  else
+    {
+      fprintf (stderr, "did not find the 'hello' function\n");
+      fprintf (stderr, "error was: %s\n", lt_dlerror());
+      ret = 1;
+    }
+
+  pnothing = (int*)lt_dlsym(handle, "nothing");
+  /* Try assigning to the nothing variable. */
+  if (pnothing)
+    *pnothing = 1;
+  else
+    {
+      fprintf (stderr, "did not find the 'nothing' variable\n");
+      fprintf (stderr, "error was: %s\n", lt_dlerror());
+      ret = 1;
+    }
+
+  pfoo1 = (int(*)())lt_dlsym(handle, "foo1");
+  /* Just call the functions and check return values. */
+  if (pfoo1)
+    {
+      if ((*pfoo1) () == FOO_RET)
+        printf("foo1 is ok!\n");
+      else
+	ret = 1;
+    }
+  else {
+    pfoo2 = (int(*)())lt_dlsym(handle, "foo2");
+    if (pfoo2)
+      {
+        if ((*pfoo2) () == FOO_RET)
+          printf("foo2 is ok!\n");
+        else ret = 1;
+      }
+    else
+      {
+        fprintf (stderr, "did not find any of the 'foo' functions\n");
+        fprintf (stderr, "error was: %s\n", lt_dlerror());
+        ret = 1;
+      }
+  }
+  lt_dlclose(handle);
+  return ret;
+}
+
+int
+mlib_func (int argc, char **argv)
+{
+  int ret = 0;
+  int i;
+  /*
+   * Would be nice if this somehow worked for libraries, not just executables.
+   * LTDL_SET_PRELOADED_SYMBOLS();
+   */
+  if (lt_dlinit() != 0) {
+    fprintf (stderr, "error during initialization: %s\n", lt_dlerror());
+    return 1;
+  }
+
+  for (i = 1; i < argc; i++)
+    if (test_dl(argv[i]))
+       ret = 1;
+
+  lt_dlexit();
+  return ret;
+}
+]])
+
+AT_DATA([sub.c],
+[[#include <config.h>
+#include <stdio.h>
+void sub (void) { printf ("sub() called\n"); }
+]])
+
+AT_DATA([main.c],
+[[#include <config.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "foo.h"
+#include "ltdl.h"
+
+#ifdef __cplusplus
+#  define EXPORT extern "C"
+#else
+#  define EXPORT extern
+#endif
+
+EXPORT int myfunc (void);
+
+int
+test_dl (char *filename, int test_ext)
+{
+  lt_dlhandle handle;
+  const lt_dlinfo *info;
+  int (*pfoo1)() = 0;
+  int (*pfoo2)() = 0;
+  int (*phello)() = 0;
+  int *pnothing = 0;
+  int ret = 0;
+
+  if (test_ext)
+    handle = lt_dlopenext (filename);
+  else
+    handle = lt_dlopen (filename);
+
+  if (!handle) {
+    fprintf (stderr, "can't open the module %s!\n", filename);
+    fprintf (stderr, "error was: %s\n", lt_dlerror());
+    return 1;
+  }
+
+  info = lt_dlgetinfo(handle);
+  if (!info) {
+    fprintf (stderr, "can't get module info: %s\n", lt_dlerror());
+    return 1;
+  }
+  if (info->name) {
+    printf ("module name: %s\n", info->name);
+  } else {
+    printf ("module is not a libtool module\n");
+  }
+  printf ("module filename: %s\n", info->filename);
+  printf ("module reference count: %i\n", info->ref_count);
+
+  phello = (int(*)())lt_dlsym(handle, "hello");
+  if (phello)
+    {
+      int value = (*phello) ();
+
+      printf ("hello returned: %i\n", value);
+      if (value == HELLO_RET)
+        printf("hello is ok!\n");
+    }
+  else
+    {
+      fprintf (stderr, "did not find the 'hello' function\n");
+      fprintf (stderr, "error was: %s\n", lt_dlerror());
+      ret = 1;
+    }
+
+  pnothing = (int*)lt_dlsym(handle, "nothing");
+  /* Try assigning to the nothing variable. */
+  if (pnothing)
+    *pnothing = 1;
+  else
+    {
+      fprintf (stderr, "did not find the 'nothing' variable\n");
+      fprintf (stderr, "error was: %s\n", lt_dlerror());
+      ret = 1;
+    }
+
+  pfoo1 = (int(*)())lt_dlsym(handle, "foo1");
+  /* Just call the functions and check return values. */
+  if (pfoo1)
+    {
+      if ((*pfoo1) () == FOO_RET)
+        printf("foo1 is ok!\n");
+      else
+	ret = 1;
+    }
+  else {
+    pfoo2 = (int(*)())lt_dlsym(handle, "foo2");
+    if (pfoo2)
+      {
+        if ((*pfoo2) () == FOO_RET)
+          printf("foo2 is ok!\n");
+        else ret = 1;
+      }
+    else
+      {
+        fprintf (stderr, "did not find any of the 'foo' functions\n");
+        fprintf (stderr, "error was: %s\n", lt_dlerror());
+        ret = 1;
+      }
+  }
+  lt_dlclose(handle);
+  return ret;
+}
+
+int
+myfunc ()
+{
+  return HELLO_RET;
+}
+
+int myvar;
+
+int
+test_dlself ()
+{
+  lt_dlhandle handle;
+  int (*pmyfunc)() = 0;
+  int *pmyvar = 0;
+  int ret = 0;
+
+  handle = lt_dlopen(0);
+  if (!handle) {
+    fprintf (stderr, "can't dlopen the program!\n");
+    fprintf (stderr, "error was: %s\n", lt_dlerror());
+    return 1;
+  }
+
+  pmyfunc = (int(*)())lt_dlsym(handle, "myfunc");
+  if (pmyfunc)
+    {
+      int value = (*pmyfunc) ();
+
+      printf ("myfunc returned: %i\n", value);
+      if (value == HELLO_RET)
+        printf("myfunc is ok!\n");
+    }
+  else
+    {
+      fprintf (stderr, "did not find the 'myfunc' function\n");
+      fprintf (stderr, "error was: %s\n", lt_dlerror());
+      ret = 1;
+    }
+
+  pmyvar = (int*)lt_dlsym(handle, "myvar");
+  /* Try assigning to the variable. */
+  if (pmyvar)
+    *pmyvar = 1;
+  else
+    {
+      fprintf (stderr, "did not find the 'myvar' variable\n");
+      fprintf (stderr, "error was: %s\n", lt_dlerror());
+      ret = 1;
+    }
+
+  lt_dlclose(handle);
+  return ret;
+}
+
+static int
+callback (const char *filename, void *data)
+{
+  printf ("%s: %s\n", (char *)data, filename);
+  return 0;
+}
+
+static int
+try_iterate (const char *search_path)
+{
+  char *s = "try_iterate";
+  return lt_dlforeachfile (search_path, callback, s);
+}
+
+/* cheap dirname clone.  We require a '/' separator, nonempty and large
+   enough input, not ending with '/', and we will overwrite the input. */
+static char *
+my_dirname (char *path)
+{
+  char *p = strrchr (path, '/');
+  if (p)
+    *p = '\0';
+  else
+    {
+      path[0] = '.';
+      path[1] = '\0';
+    }
+  return path;
+}
+
+int
+main (int argc, char **argv)
+{
+  int i;
+  int ret = 0;
+  char *p;
+
+  printf ("Welcome to GNU libtool mdemo!\n");
+
+  if (argc < 2) {
+    fprintf (stderr, "usage: %s module [module...]\n", argv[0]);
+  }
+
+  LTDL_SET_PRELOADED_SYMBOLS();
+  if (lt_dlinit() != 0) {
+    fprintf (stderr, "error during initialization: %s\n", lt_dlerror());
+    return 1;
+  }
+
+  for (i = 1; i < argc; i++)
+  {
+    if (test_dl(argv[i], 0))
+       ret = 1;
+    p = strrchr(argv[i], '.');
+    if (p)
+      {
+	*p = '\0';
+	if (test_dl(argv[i], 1))
+	  ret = 1;
+	*p = '.';
+      }
+  }
+
+  if (test_dlself())
+    ret = 1;
+
+  for (i = 1; i < argc; i++)
+    if (argv[i][0] != '\0')
+      {
+	my_dirname (argv[i]);
+	if (try_iterate (argv[i]))
+	  ret = 1;
+      }
+
+  lt_dlexit();
+  return ret;
+}
+]])
+
+LT_AT_HOST_DATA([expout],
+[[Welcome to GNU Hell!
+cos (0.0) = 1
+** This is not GNU Hello. There is no built-in mail reader. **
+]])
+
+prefix=`pwd`/_inst
+]) # _LT_SETUP
+
+
+# _LT_CHECK_EXECUTE
+# -----------------
+# Run the listed make rules, and check that the built binaries work.
+m4_define([_LT_CHECK_EXECUTE],
+[LT_AT_MAKE
+LT_AT_EXEC_CHECK([./mdemo_static], 0, [ignore], [],
+    [./foo1.la ./libfoo2.la | $GREP '^try_iterate: '])
+LT_AT_EXEC_CHECK([./mdemo], 0, [ignore], [],
+    [./foo1.la ./libfoo2.la | $GREP '^try_iterate: '])
+LT_AT_EXEC_CHECK([./mdemo_static], 0, [ignore], [],
+    [`pwd`/foo1.la `pwd`/libfoo2.la | $GREP '^try_iterate: '])
+LT_AT_EXEC_CHECK([./mdemo], 0, [ignore], [],
+    [`pwd`/foo1.la `pwd`/libfoo2.la | $GREP '^try_iterate: '])
+])
+
+# _LT_CHECK_INSTALL
+# -----------------
+# Run the make install rule, and check that installed binaries work too.
+m4_define([_LT_CHECK_INSTALL],
+[LT_AT_MAKE([install])
+
+# Windows hosts search for dlls in the command path.
+PATH=$prefix/lib:$PATH
+
+LT_AT_EXEC_CHECK([$prefix/bin/mdemo_static], 0, [ignore], [],
+    [$prefix/lib/foo1.la $prefix/lib/libfoo2.la | $GREP '^try_iterate: '])
+LT_AT_EXEC_CHECK([$prefix/bin/mdemo], 0, [ignore], [],
+    [$prefix/lib/foo1.la $prefix/lib/libfoo2.la | $GREP '^try_iterate: '])
+])
+
+
+## ------------- ##
+## Mdemo static. ##
+## ------------- ##
+
+AT_SETUP([dynamically ltdl preload static modules])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--with-included-ltdl --disable-shared],
+                   [^build_old_libs=yes], [^build_libtool_libs=no])
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+LT_AT_CHECK_UNINSTALL
+
+AT_CLEANUP
+
+
+## ------------- ##
+## Mdemo shared. ##
+## ------------- ##
+
+AT_SETUP([dynamically ltdl load a shared module])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--with-included-ltdl --disable-static],
+                   [^build_old_libs=no], [^build_libtool_libs=yes])
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+LT_AT_CHECK_UNINSTALL
+
+AT_CLEANUP
+
+
+## ----------- ##
+## Mdemo conf. ##
+## ----------- ##
+
+AT_SETUP([ltdl load shared and static modules])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--with-included-ltdl],
+                   [^build_old_libs=yes], [^build_libtool_libs=yes])
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+LT_AT_CHECK_UNINSTALL
+
+AT_CLEANUP
+
+
+## ------------- ##
+## Mdemo dryrun. ##
+## ------------- ##
+
+AT_SETUP([ltdl dryrun])
+
+_LT_SETUP
+
+LT_AT_CHECK_CONFIG([--with-included-ltdl])
+LT_AT_MAKE([all-local libltdl/libltdlc.la])
+
+# create 'before' and 'after' in a directory deep within objdir,
+# so that their creation and removal does not modify even a timestamp
+# in the output of 'ls -l . $objdir'
+$lt_INSTALL -d "$objdir/temp/temp"
+before=$objdir/temp/temp/before
+after=$objdir/temp/temp/after
+
+# Create a new libtool script that will enter dry run if the environment
+# variable force_dry_run is set
+$SED 's|^[[	 ]]*opt_dry_run=.*$|opt_dry_run=$force_dry_run|' libtool > ltnew && mv ltnew libtool
+export force_dry_run
+
+# main.o is not compiled with libtool, but it depends on it, so make
+# sure it is up-to-date.  libfoo2.la is linked with libsub.la, so make
+# sure it exists, otherwise libtool will complain.
+force_dry_run=false
+LT_AT_MAKE([main.$objext])
+
+# Making object files
+# ls -l in MSYS sometimes shows year, not time, for really fresh files.
+sleep 1
+ls -l . "$objdir" | $EGREP -v '(^total|testsuite.log$)' > "$before"
+force_dry_run=:
+LT_AT_MAKE([foo1.lo foo2.lo libsub.la])
+ls -l . "$objdir" | $EGREP -v '(^total|testsuite.log$)' > "$after"
+AT_CHECK([cmp "$before" "$after"], 0, [ignore])
+
+# Now really make them
+force_dry_run=false
+LT_AT_MAKE([foo1.lo foo2.lo libsub.la])
+
+# Making libraries
+sleep 1 # for MSYS
+ls -l . "$objdir" | $EGREP -v '(^total|testsuite.log$)' > "$before"
+force_dry_run=:
+LT_AT_MAKE([foo1.la libfoo2.la])
+ls -l . "$objdir" | $EGREP -v '(^total|testsuite.log$)' > "$after"
+AT_CHECK([cmp "$before" "$after"], 0, [ignore])
+
+# Now really make them
+force_dry_run=false
+LT_AT_MAKE([foo1.la libfoo2.la])
+
+# Making programs
+sleep 1 # for MSYS
+ls -l . "$objdir" | $EGREP -v '(^total|testsuite.log$)' > "$before"
+force_dry_run=:
+LT_AT_MAKE([mdemo$EXEEXT mdemo_static$EXEEXT])
+ls -l . "$objdir" | $EGREP -v '(^total|testsuite.log$)' > "$after"
+AT_CHECK([cmp "$before" "$after"], 0, [ignore])
+
+# Running $MAKE install
+# Libtool does not create these directories
+$lt_INSTALL -d "$prefix/bin"
+$lt_INSTALL -d "$prefix/include"
+$lt_INSTALL -d "$prefix/lib"
+
+sleep 1 # for MSYS
+ls -l . "$objdir" | $EGREP -v '(^total|testsuite.log$)' > "$before"
+ls -lR "$prefix" | $EGREP -v '(^total|testsuite.log$)' >> "$before"
+force_dry_run=:
+LT_AT_MAKE([install])
+
+ls -l . "$objdir" | $EGREP -v '(^total|testsuite.log$)' > "$after"
+ls -lR "$prefix" | $EGREP -v '(^total|testsuite.log$)' >> "$after"
+AT_CHECK([cmp "$before" "$after"], 0, [ignore])
+
+# Now really install
+force_dry_run=false
+LT_AT_MAKE([install])
+
+# Running $MAKE uninstall
+# Libtool does not uninstall the programs, remove them first
+rm -f "$prefix/bin/mdemo$EXEEXT" "$prefix/bin/mdemo_static$EXEEXT"
+
+sleep 1 # for MSYS
+ls -l . "$objdir" | $EGREP -v '(^total|testsuite.log$)' > "$before"
+ls -lR "$prefix" | $EGREP -v '(^total|testsuite.log$)' >> "$before"
+force_dry_run=:
+LT_AT_MAKE([uninstall])
+ls -l . "$objdir" | $EGREP -v '(^total|testsuite.log$)' > "$after"
+ls -lR "$prefix" | $EGREP -v '(^total|testsuite.log$)' >> "$after"
+AT_CHECK([cmp "$before" "$after"], 0, [ignore])
+
+# Now really uninstall
+force_dry_run=false
+LT_AT_CHECK_UNINSTALL
+
+AT_CLEANUP
+
+## ------- ##
+## Mdemo2. ##
+## ------- ##
+
+AT_SETUP([link with library that loads ltdl modules])
+
+_LT_SETUP
+
+AT_DATA([mdemo.mk],
+[[bin_PROGRAMS += mdemo2 mdemo2_static
+
+# Create a version of mdemo2 that links a library that does dlopen.
+mdemo2_LDFLAGS = -export-dynamic "-dlopen" force
+mdemo2_LDADD = libmlib.la
+
+# Create a statically linked version of mdemo.
+mdemo2_static_SOURCES = mdemo2.c
+mdemo2_static_LDFLAGS = $(STATIC) $(mdemo2_LDFLAGS)
+mdemo2_static_LDADD = $(mdemo2_LDADD)
+mdemo2_static_DEPENDENCIES = $(mdemo2_DEPENDENCIES)
+]])
+
+AT_DATA([mdemo2.c],
+[[#include <stdio.h>
+#include "ltdl.h"
+
+extern int mlib_func (int, char **);
+
+int main (int argc, char **argv)
+{
+  int ret = 0;
+
+  printf ("Welcome to GNU libtool mdemo2!\n");
+  if (argc < 2) {
+    fprintf (stderr, "usage: %s module [module...]\n", argv[0]);
+  }
+
+  /* This must be called in the program to get the preloaded symbols */
+  LTDL_SET_PRELOADED_SYMBOLS();
+
+  ret = mlib_func(argc, argv);
+
+  return ret;
+}
+]])
+
+# Normalize line endings after $EGREP instead of using LT_AT_HOST_DATA
+# here, since $EGREP *may* normalize line endings for us.
+AT_DATA([expout],
+[[Welcome to GNU libtool mdemo2!
+module name: foo1
+module reference count: 1
+** This is foolib 1 **
+hello returned: 57616
+hello is ok!
+cos (0.0) = 1
+sub() called
+foo1 is ok!
+module name: libfoo2
+module reference count: 1
+** This is foolib 2 **
+hello returned: 57616
+hello is ok!
+sin (0.0) = 0
+sub() called
+foo2 is ok!
+]])
+
+LT_AT_CHECK_CONFIG([--with-included-ltdl])
+
+LT_AT_MAKE
+
+LT_AT_EXEC_CHECK([./mdemo2_static], 0, [stdout], [],
+    [./foo1.la ./libfoo2.la | $EGREP -v '^module filename: '])
+LT_AT_UNIFY_NL([stdout])
+LT_AT_CHECK([diff expout stdout])
+
+LT_AT_EXEC_CHECK([./mdemo2], 0, [stdout], [],
+    [./foo1.la ./libfoo2.la | $EGREP -v '^module filename: '])
+LT_AT_UNIFY_NL([stdout])
+LT_AT_CHECK([diff expout stdout])
+
+AT_CLEANUP

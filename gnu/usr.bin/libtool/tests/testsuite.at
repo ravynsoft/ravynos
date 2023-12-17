@@ -1,0 +1,535 @@
+# Process with autom4te to create an -*- Autotest -*- test suite.
+#
+#   Copyright (C) 2004-2019, 2021-2022 Free Software Foundation, Inc.
+#   Written by Gary V. Vaughan, 2004
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+m4_divert_push([PREPARE_TESTS])dnl
+: ${tst_dist=dist}
+: ${ACLOCAL=aclocal}
+: ${AUTOHEADER=autoheader}
+: ${AUTOCONF=autoconf}
+: ${AUTOMAKE=automake}
+: ${AUTORECONF=autoreconf}
+test set = "${ECHO+set}" || ECHO=${as_echo-'printf %s\n'}
+: ${ECHO=$as_echo}
+for tool in ACLOCAL AUTOHEADER AUTOCONF AUTOMAKE AUTORECONF; do
+  if eval \$$tool --version >/dev/null 2>&1; then :; else eval $tool=no; fi
+done
+export ACLOCAL AUTOHEADER AUTOCONF AUTOMAKE AUTORECONF
+eval `$LIBTOOL --config | $EGREP '^(objdir|objext)'`
+eval `$LIBTOOL --config | $EGREP '^(host|host_os|host_alias|build|build_alias|to_host_file_cmd|to_tool_file_cmd)='`
+configure_options=--prefix=/nonexistent
+if test -n "$host_alias"; then
+  configure_options="$configure_options --host $host_alias"
+fi
+if test -n "$build_alias"; then
+  configure_options="$configure_options --build $build_alias"
+fi
+if test -n "$to_host_file_cmd"; then
+  configure_options="$configure_options lt_cv_to_host_file_cmd=$to_host_file_cmd"
+fi
+if test -n "$to_tool_file_cmd"; then
+  configure_options="$configure_options lt_cv_to_tool_file_cmd=$to_tool_file_cmd"
+fi
+: ${mkdir_p="$abs_top_srcdir/build-aux/install-sh -d"}
+# Fix relative paths in $lt_INSTALL
+case $lt_INSTALL in
+  *build-aux/install-sh*)
+    lt_INSTALL=$abs_top_srcdir/build-aux/install-sh
+    ;;
+esac
+
+# func_extract_trace support
+. "$abs_top_srcdir/build-aux/funclib.sh"
+. "$abs_top_srcdir/build-aux/extract-trace"
+
+
+# Unset some MAKE... variables that may cause $MAKE to act like a
+# recursively invoked sub-make.  Any $MAKE invocation in a test is
+# conceptually an independent invocation.
+unset MFLAGS MAKEFLAGS MAKELEVEL __MKLVL__ MAKE_JOBS_FIFO
+
+# On AIX, shared libraries remain loaded in memory after use if they
+# are world-readable, until root issues slibclean.  On NFS, this causes
+# a testsuite rerun to fail to clean up test group directories.  Avoid
+# this with a suitable umask.  Do not do this on other systems, for
+# example HP-UX suffers unless shared libraries are mode 555.
+case $host_os in
+aix*) umask o-rwx ;;
+esac
+m4_divert_pop([PREPARE_TESTS])dnl
+
+
+# LT_AT_LIBTOOLIZE([ARGS])
+# ------------------------
+m4_define([LT_AT_LIBTOOLIZE],
+[$LIBTOOLIZE $1
+AT_KEYWORDS([libtoolize])
+])
+
+
+# _LIBTOOLIZE_TRANSFORM(FILE)
+# ---------------------------
+# Fix the expected output of installed libtoolize in presence of --program-*.
+m4_define([_LIBTOOLIZE_TRANSFORM],
+[lt_name=`$ECHO "$LIBTOOLIZE" | $SED "s|^.*/||"`
+$SED "s/libtoolize/$lt_name/g
+s|/usr/local/share/aclocal/|${tst_aclocaldir-$abs_top_srcdir/libltdl/m4}/|" < $1 > $1.t
+mv -f $1.t $1
+])dnl
+
+
+# LT_AT_CHECK_LIBTOOLIZE(ARGS, [EXIT-STATUS = 0], [STDOUT = ''], [STDERR = ''])
+# -----------------------------------------------------------------------------
+m4_define([LT_AT_CHECK_LIBTOOLIZE],
+[m4_if([$3], [expout], [_LIBTOOLIZE_TRANSFORM([$3])])dnl
+m4_if([$4], [experr], [_LIBTOOLIZE_TRANSFORM([$4])])dnl
+AT_CHECK([LT_AT_LIBTOOLIZE([$1])],
+  [$2], [$3], [$4])
+])
+
+
+# LT_AT_ACLOCAL([OPTIONS])
+# --------------------------
+m4_pattern_allow([^(m4_define|m4_defn|m4_ifndef)$])
+m4_define([LT_AT_ACLOCAL],
+[macro_dir=
+func_extract_trace AC_CONFIG_MACRO_DIRS
+test -n "$func_extract_trace_result" \
+    || func_extract_trace AC_CONFIG_MACRO_DIR
+test -n "$func_extract_trace_result" \
+    && macro_dir=" -I $func_extract_trace_result"
+AT_DATA([acinclude.m4],
+[[m4_ifndef([AC_CONFIG_MACRO_DIRS],
+	  [m4_define([AC_CONFIG_MACRO_DIRS], m4_defn([AC_CONFIG_MACRO_DIR]))])
+]])
+LT_AT_CHECK([$ACLOCAL $1$macro_dir], [0], [ignore], [ignore])
+# After the 'aclocal' run sleep 1 second to guarantee that aclocal.m4 is going
+# to have older timestamp than other autotools later-generated files (concretely
+# for libtool case, we speak about config.h.in generated autoheader).
+# Autoreconf does the same (after the first aclocal run).
+sleep 1
+AT_XFAIL_IF([test no = "$ACLOCAL"])
+AT_KEYWORDS([automake])
+])
+
+
+# LT_AT_AUTOCONF([OPTIONS])
+# --------------------------
+m4_define([LT_AT_AUTOCONF],
+[AT_CHECK([$AUTOCONF $1], [0], [ignore], [ignore])
+AT_XFAIL_IF([test no = "$AUTOCONF"])
+AT_KEYWORDS([autoconf])
+])
+
+
+# LT_AT_AUTOMAKE([OPTIONS])
+# --------------------------
+m4_define([LT_AT_AUTOMAKE],
+[AT_CHECK([$AUTOMAKE $1], [0], [ignore], [stderr],
+  [AT_CHECK([$GREP 'require .*but have' stderr && (exit 77)], [1])])
+AT_XFAIL_IF([test no = "$AUTOMAKE"])
+AT_KEYWORDS([automake])
+])
+
+
+# LT_AT_AUTOHEADER([OPTIONS])
+# ---------------------------
+m4_define([LT_AT_AUTOHEADER],
+[AT_CHECK([$AUTOHEADER $1], [0], [ignore], [ignore])
+AT_XFAIL_IF([test no = "$AUTOHEADER"])
+AT_KEYWORDS([autoconf])
+])
+
+
+# LT_AT_AUTORECONF([OPTIONS])
+# --------------------------
+m4_define([LT_AT_AUTORECONF],
+[AT_DATA([acinclude.m4],
+[[m4_ifndef([AC_CONFIG_MACRO_DIRS],
+	  [m4_define([AC_CONFIG_MACRO_DIRS], m4_defn([AC_CONFIG_MACRO_DIR]))])
+]])
+AT_CHECK([$AUTORECONF $1], [0], [ignore], [stderr],
+  [AT_CHECK([$GREP 'require .*but have' stderr && (exit 77)], [1])])
+AT_XFAIL_IF(
+  [case ,$AUTORECONF,$AUTOCONF,$AUTOHEADER,$ACLOCAL,$AUTOMAKE, in *,no,*) :;; *) false;; esac])
+AT_KEYWORDS([autoconf automake])
+])
+
+
+# LT_AT_CONFIGURE([OPTIONS], [CONFIGURE-SCRIPT])
+# ----------------------------------------------
+# Configure CONFIGURE-SCRIPT, defaulting to ./configure, with
+# additional OPTIONS.
+m4_define([LT_AT_CONFIGURE],
+[AT_CHECK([: ${CONFIG_SHELL=/bin/sh}; export CONFIG_SHELL; ]dnl
+	  [$CONFIG_SHELL m4_default([$2], [./configure]) $configure_options ]dnl
+          [--prefix="$prefix" --exec-prefix="$prefix" --bindir="$prefix/bin" --libdir="$prefix/lib" $1],
+	  [0], [ignore], [ignore])
+])
+
+
+# LT_AT_MAKE([TGTS], [VARS])
+# --------------------------
+m4_define([LT_AT_MAKE],
+[for target in m4_default([$1], [all])
+do
+  AT_CHECK([$as_unset LIBTOOL; $as_unset LIBTOOLIZE; $MAKE $target $2], [0], [ignore], [ignore])
+done
+])
+
+
+# LT_AT_BOOTSTRAP([LIBTOOLIZE-ARGS], [ACLOCAL-ARGS], [AUTOHEADER-ARGS],
+#	[AUTOMAKE-ARGS], [AUTOCONF-ARGS], [CONFIGURE-ARGS], [MAKE-ARGS])
+# ----------------------------------------------------------------------
+m4_define([LT_AT_BOOTSTRAP],
+[m4_if([$1], [ignore], [], [LT_AT_LIBTOOLIZE([$1])])
+m4_if([$2], [ignore], [], [LT_AT_ACLOCAL([$2])])
+m4_if([$3], [ignore], [], [LT_AT_AUTOHEADER([$3])])
+m4_if([$4], [ignore], [], [LT_AT_AUTOMAKE([$4])])
+m4_if([$5], [ignore], [], [LT_AT_AUTOCONF([$5])])
+m4_if([$6], [ignore], [], [LT_AT_CONFIGURE([$6])])
+m4_if([$7], [ignore], [], [LT_AT_MAKE([$7])])
+])
+
+
+# LT_ESCAPE(ARG)
+# --------------
+# Escape command for output (expand only parameters).
+m4_define([LT_ESCAPE],
+[m4_bpatsubst([$1],
+	     m4_dquote(m4_default([$2], [\"`])),
+	     [\\\&])])
+
+
+# LT_AT_CHECK
+# -----------
+# Wrapper around AT_CHECK that outputs the command first, with
+# parameters expanded.
+m4_define([LT_AT_CHECK],
+[echo "LT_ESCAPE([$1])"; AT_CHECK($@)])
+
+
+# LT_AT_CHECK_CONFIG (CONFIGURE-ARGS, [GREP-EXPRESSION], ...)
+# -----------------------------------------------------------
+# Bootstrap and configure the project, and check each GREP-EXPRESSION
+# works on the resulting libtool script.
+m4_define([LT_AT_CHECK_CONFIG],
+[LT_AT_BOOTSTRAP([], [-I m4], [], [--add-missing], [], [$1], [ignore])
+m4_if([$#], 0, [],
+      [$#], 1, [], [$0_(m4_shift($@))])
+])
+m4_define([LT_AT_CHECK_CONFIG_],
+[AT_CHECK([$EGREP '$1' libtool], 0, [ignore])
+ m4_if([$#], 1, [], [$0(m4_shift($@))])
+])
+
+
+# LT_AT_CHECK_EXECUTE([TARGETS], [PROGRAM], ...)
+# ----------------------------------------------
+# Run the listed make rules, and check that the following PROGRAMs work.
+m4_define([LT_AT_CHECK_EXECUTE],
+[LT_AT_MAKE([$1])
+m4_if([$#], 0, [],
+      [$#], 1, [], [$0_(m4_shift($@))])
+])
+m4_define([LT_AT_CHECK_EXECUTE_],
+[LT_AT_EXEC_CHECK([$1], 0, [expout])
+m4_if([$#], 1, [], [$0(m4_shift($@))])
+])
+
+
+# LT_AT_CHECK_UNINSTALL
+# ---------------------
+# Make sure uninstallation is complete.
+m4_define([LT_AT_CHECK_UNINSTALL],
+[LT_AT_MAKE([uninstall])
+
+leftovers=`find $prefix ! -type d ! -name '.*' -print`
+AT_CHECK([test -z "$leftovers"])
+])
+
+
+# LT_AT_HOST_DATA(FILE, CONTENTS)
+# -------------------------------
+# Ensure correct line ending for expected output of host executables.
+m4_define([LT_AT_HOST_DATA],
+[AT_DATA([$1], [$2])
+case $host_os in mingw*)
+  awk '{printf ("%s\r\n", [$]0);}' < $1 > $1.t && mv -f $1.t $1 ;;
+esac])
+
+
+# LT_AT_UNIFY_NL(FILE, [RESULT-FILE])
+# -----------------------------------
+# Ensure (text) FILE has predictable line endings.
+# If RESULT-FILE is given, FILE is left untouched. If not, convert in-place.
+m4_define([LT_AT_UNIFY_NL],
+[case $host_os in
+  mingw*)
+    tr -d '\015' < $1 > m4_ifval([$2], [$2], [$1.t
+    mv -f $1.t $1]) ;; m4_ifval([$2], [
+  *)
+    cp $1 $2 ;;])
+esac])
+
+
+# LT_AT_NORMALIZE_COMPILER_OUTPUT(FILE, [RESULT-FILE])
+# ----------------------------------------------------
+# Normalize differences in compiler output stemming from, e.g.,
+# - distcc process numbers,
+# - ccache file location,
+# - newline encoding,
+# - location of the libtool script,
+# - error messages involving unstable temporary file names.
+m4_define([LT_AT_NORMALIZE_COMPILER_OUTPUT],
+[_ltbase=`$ECHO "$LIBTOOL" | $SED 's|^.*/||'`
+[$SED "/^distcc\[[0-9]*\]/d
+      /^$_ltbase: compile/d
+      s/\(tmp\/\{1,\}cc\)\([a-zA-Z0-9_]\{1,\}\)/\1-normalized-tmpname/g" < $1 > $1.t]
+LT_AT_UNIFY_NL([$1.t], [m4_default([$2], [$1])])[]dnl
+])
+
+
+# LT_AT_EXEC_CHECK(EXECUTABLE, [STATUS = 0], [STDOUT], [STDERR],
+#		   [ARGS-OR-STATUS-ADJUST])
+# --------------------------------------------------------------
+# Run EXECUTABLE ARGS-OR-STATUS-ADJUST.  STATUS, STDOUT, and STDERR are
+# handled as in AT_CHECK.
+# However, if we are cross-compiling, then SKIP instead of FAIL.
+# ARGS-OR-STATUS-ADJUST can also contain code like '|| (exit 1)'
+# to unify different possible exit status values.
+m4_define([LT_AT_EXEC_CHECK],
+[lt_exe=$1; if test -f "$1$EXEEXT"; then lt_exe=$lt_exe$EXEEXT; fi
+AT_CHECK([if "$lt_exe" $5; then :; else lt_status=$?; ]dnl
+	 [  m4_ifval([$2], [test "$lt_status" != $2 && ])]dnl
+	 [  test "X$host" != "X$build" && test -x "$lt_exe" && exit 77; ]dnl
+	 [  exit $lt_status; fi],[$2],[$3],[$4])
+])
+
+
+# LT_AT_NOINST_EXEC_CHECK(EXECUTABLE, [NOINST-MODULES],
+#			  [STATUS = 0], [STDOUT], [STDERR],
+#			  [ARGS-OR-STATUS-ADJUST])
+# ---------------------------------------------------------
+# Run EXECUTABLE ARGS-OR-STATUS-ADJUST using 'libtool --mode=execute'
+# with '-dlopen' arguments in NOINST_MODULES.  STATUS, STDOUT, and
+# STDERR are handled as in AT_CHECK.
+# However, if we are cross-compiling, then SKIP instead of FAIL.
+# ARGS-OR-STATUS-ADJUST can also contain code like '|| (exit 1)'
+# to unify different possible exit status values.
+m4_define([LT_AT_NOINST_EXEC_CHECK],
+[lt_exe=$1; if test -f "$1$EXEEXT"; then lt_exe=$lt_exe$EXEEXT; fi
+AT_CHECK([if $LIBTOOL --mode=execute $2 "$lt_exe" $6; then :; else lt_status=$?; ]dnl
+	 [  m4_ifval([$3], [test "$lt_status" != $3 && ])]dnl
+	 [  test "X$host" != "X$build" && test -x "$lt_exe" && exit 77; ]dnl
+	 [  exit $lt_status; fi],[$3],[$4],[$5])
+])
+
+
+# LT_AT_TAG(TAG)
+# --------------
+# Declare that the language TAG will be used in this test.
+# Skips the test if the compiler is apparently not functional.
+m4_define([LT_AT_TAG],
+[AT_KEYWORDS([$1])
+AT_CHECK([{ test -n "[$]$1" && test "X[$]$1" != Xno; } || (exit 77)])
+m4_case([$1],
+  [CXX],
+  [AT_CHECK([test g++ != "$CXX" || (g++ -v >/dev/null 2>&1) || (exit 77)])],
+  [FC],
+  [# Autoconf will accept f77 or similar as a valid FC, but often f77
+   # will not compile fortran90 code; in that case skip the FC checks.
+   AT_DATA([fc_test.f90],
+[[	program main
+
+	end
+]])
+   AT_CHECK([$FC $FCFLAGS fc_test.f90 || exit 77], [], [ignore], [ignore])],
+  [GCJ],
+  [# There are just too many broken gcj installations out there, either missing
+   # libgcj.spec or unable to find it.  Skip the test for them.
+   AT_DATA([gcj_test.java],
+[[public class gcj_test {
+    public static void main(String[] argv) { }
+  }
+]])
+   AT_CHECK([$GCJ $GCJFLAGS -c gcj_test.java || exit 77],
+	    [], [ignore], [ignore])])
+])
+
+
+# LT_AT_EXEC_TAG([TAG])
+# ---------------------
+# Declare that the language TAG will be used and compiled programs may be run.
+# Skips the test if the compiler is apparently not functional.
+m4_define([LT_AT_EXEC_TAG],
+[LT_AT_TAG([$1])
+m4_case([$1],
+  [GCJ],
+  [AT_CHECK([$GCJ $GCJFLAGS --main=gcj_test -o gcj_test$EXEEXT gcj_test.java ]dnl
+	    [|| exit 77], [], [ignore], [ignore])
+   AT_CHECK([./gcj_test$EXEEXT || exit 77], [], [ignore], [ignore])])
+])
+
+
+# LT_AT_MVDIR(SRC, DEST)
+# ----------------------
+# Move contents of a directory recursively.
+# Avoid 'mv DIR ...' due to issues with non-deletable shared libraries
+# on AIX on NFS mounts.  We cannot use slibclean as non-superuser.
+m4_define([LT_AT_MVDIR],
+[$mkdir_p $2
+(cd $1 && find . -type d) | (cd $2 && xargs $mkdir_p)
+for file in `cd $1 && find . -type f -print -o -type l -print`
+do
+  mv $1/$file $2/$file
+done
+rm -rf $1
+])
+
+## ------------------------------- ##
+## Files for a small ltdl project. ##
+## ------------------------------- ##
+
+# _LTDL_PROJECT_FILES([LTDL-DIR])
+# -------------------------------
+# LTDL-DIR is needed to generate a correct Makefile.  If the argument
+# is omitted, then no Makefile is created.
+m4_define([_LTDL_PROJECT_FILES],
+[AT_DATA([module.c],
+[[#ifdef __cplusplus
+extern "C"
+#endif
+const char *
+hello (void)
+{
+  return "Hello!";
+}
+]])
+
+AT_DATA([main.c],
+[[#include <stdio.h>
+#include "ltdl.h"
+
+int
+main ()
+{
+  lt_dlhandle module;
+  const char *(*func) (void) = 0;
+  int status = 1;
+
+  LTDL_SET_PRELOADED_SYMBOLS();
+  if (lt_dlinit() != 0) {
+    fprintf (stderr, "error during initialisation: %s\n", lt_dlerror());
+    return 1;
+  }
+
+  module = lt_dlopen("./module.la");
+  if (!module) {
+    fprintf (stderr, "error dlopening ./module.la: %s\n", lt_dlerror());
+    goto finish;
+  }
+
+  func = (const char *(*)(void)) lt_dlsym (module, "hello");
+  if (!func) {
+    fprintf (stderr, "error fetching func: %s\n", lt_dlerror());
+    goto finish;
+  }
+
+  printf ("%s\n", (*func) ());
+  status = 0;
+
+finish:
+  if (lt_dlexit() != 0) {
+    fprintf (stderr, "error during finalisation: %s\n", lt_dlerror());
+    status = 1;
+  }
+
+  return status;
+}
+]])
+
+m4_pushdef([_ARG_DIR], m4_bpatsubst([$1], [/*$]))
+m4_ifval([$1],
+[AT_DATA([Makefile],
+[[top_builddir	= .
+LIBTOOL		= ./]_ARG_DIR[/libtool
+INCLUDES	= -I./]_ARG_DIR[
+MODFLAGS	= -module -avoid-version -no-undefined
+
+LTCOMPILE = $(LIBTOOL) --tag=CC $(LIBTOOLFLAGS) --mode=compile \
+        $(CC) $(INCLUDES) $(CPPFLAGS) $(CFLAGS)
+LTLINK    = $(LIBTOOL) --tag=CC $(LIBTOOLFLAGS) --mode=link \
+        $(CC) $(CFLAGS) $(LDFLAGS)
+
+TARGETS		= ]_ARG_DIR[/libltdlc.la module.la ltdldemo$(EXEEXT)
+
+all: $(TARGETS)
+
+]_ARG_DIR[/libltdlc.la: $(LIBTOOL) ]_ARG_DIR[/Makefile
+	MAKE='$(MAKE)'; test -n "$$MAKE" || MAKE=make; \
+	cd ]_ARG_DIR[ && $$MAKE CC="$(CC)" LIBTOOLFLAGS="$(LIBTOOLFLAGS)" \
+	  CPPFLAGS="$(CPPFLAGS)" CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
+          CONFIGURE_OPTIONS="$(CONFIGURE_OPTIONS)"
+
+$(LIBTOOL): ]_ARG_DIR[/Makefile
+
+]_ARG_DIR[/Makefile:
+	cd ]_ARG_DIR[ && CONFIG_SHELL="$(SHELL)" $(SHELL) ./configure $(CONFIGURE_OPTIONS)
+
+ltdldemo$(EXEEXT): $(LIBTOOL) module.la ]_ARG_DIR[/libltdlc.la main.lo
+	$(LTLINK) -o ltdldemo$(EXEEXT) main.lo -dlopen module.la ./]_ARG_DIR[/libltdlc.la
+
+main.lo: $(LIBTOOL) main.c
+	$(LTCOMPILE) -c main.c
+
+module.la: $(LIBTOOL) module.lo
+	$(LTLINK) -o module.la module.lo $(MODFLAGS) -rpath /dev/null
+
+module.lo: $(LIBTOOL) module.c
+	$(LTCOMPILE) -c module.c
+]])
+cat >> Makefile <<EOF
+SHELL = $SHELL
+EOF
+])
+m4_popdef([_ARG_DIR])
+])# _LTDL_PROJECT_FILES
+
+
+# We use 'dnl' in zillions of places...
+m4_pattern_allow([^dnl$])
+
+# We exercise these tools.
+dnl AT_TESTED([grep autoreconf autom4te automake])
+
+# Enable colored output if available.
+m4_ifdef([AT_COLOR_TESTS], [AT_COLOR_TESTS])
+
+AT_INIT
+
+## ----------- ##
+## The suite.  ##
+## ----------- ##
+
+# Tests will be appended here by the Makefile rule.

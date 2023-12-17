@@ -1,0 +1,401 @@
+# exception.at -- test C++ exception handling with libtool  -*- Autotest -*-
+#
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([C++ exception handling])
+AT_KEYWORDS([libtool])
+AT_KEYWORDS([libltdl])
+
+: ${LTDLINCL="-I$abs_top_srcdir/libltdl"}
+: ${LIBLTDL="$abs_builddir/../libltdl/libltdlc.la"}
+
+# Skip this test when called from:
+#    make distcheck DISTCHECK_CONFIGURE_FLAGS=--disable-ltdl-install
+AT_CHECK([case $LIBLTDL in #(
+ */_inst/lib/*) test -f "$LIBLTDL" || (exit 77) ;;
+esac], [], [ignore])
+
+CPPFLAGS="$LTDLINCL $CPPFLAGS"
+
+# Win32 (and cygwin) notes
+# ------------------------
+# When using C++ and Win32 DLLs, data types used in the DLL's interface
+# that are other-than-POD, must have vtables, typeinfo, and other
+# elements resolved when the client is linked.  This includes exception
+# classes.  Therefore, the exception class "modexc" thrown by the
+# dynamically-loaded module must be defined in a separate DLL, to which
+# both that module and main must be directly linked; hence, the 'common'
+# library. Not using a 'common' library in this manner represents an
+# ODR violation, unless the platform's runtime loader is capable of
+# rationalizing vague linkage items such as vtables, typeinfo, and
+# typename elements) at runtime.  The Win32 loader is not capable of
+# this, but some ELF loaders appear to be.
+#
+# Similar treatment is not necessary for liba (e.g. the libexc
+# exception class), because that library is not dynamically loaded. As a
+# consequence, vague linkage items for the class libexc are resolved at
+# link time using the vague linkage rules, for both Win32 and other
+# (e.g. ELF) platforms.
+#
+# Also, when linking a C++ DLL with another C++ DLL, some versions of
+# the GNU toolchain on Win32 (or cygwin) mistakenly re-export symbols
+# that were imported from the other DLL, when the client DLL is linked
+# using -export-all-symbols.  Similar issues MAY also arise with those
+# versions of the GNU toolchain if using the libtool link flags
+# -export-symbols LIST or -export-symbols-regex REGEX, if any symbols
+# from the dependency, rather than client, library are listed (or match
+# the regex).  However, in this test, none of these situations apply,
+# so we don't directly address it.  Otherwise, the correct mechanism
+# would be to avoid all of those flags, and instead explicitly decorate
+# all symbols with appropriate __declspec (dllexport) or
+# __declspec (dllimport) flags when building the DLLs and the clients.
+#
+# For more information, see these two threads:
+#   http://lists.gnu.org/archive/html/bug-libtool/2010-06/msg00069.html
+#   http://cygwin.com/ml/cygwin/2010-06/msg00392.html
+# To sum up: C++ is complicated.
+AT_DATA([common.h],
+[[#ifndef LIBTOOL_TEST_COMMON_HEADER
+#define LIBTOOL_TEST_COMMON_HEADER
+
+#include <exception>
+#include <string>
+
+#if defined __CYGWIN__ || defined _WIN32
+# if defined DLL_EXPORT || defined USING_COMMON_DLL
+#  if defined LIBTOOL_TEST_IN_COMMON
+#   define COMMON_IMPEXP __declspec (dllexport)
+#  else
+#   define COMMON_IMPEXP __declspec (dllimport)
+#  endif
+# else
+#  define COMMON_IMPEXP
+# endif
+#else
+# define COMMON_IMPEXP
+#endif
+
+class COMMON_IMPEXP modexc : public std::exception {
+public:
+  modexc (std::string str) : message (str) { }
+  ~modexc () throw () { }
+  virtual const char *what () const throw ()
+  {
+    return message.c_str ();
+  }
+private:
+  std::string message;
+};
+
+extern "C" int COMMON_IMPEXP common_dummy (void);
+#endif
+]])
+
+AT_DATA([common.cpp],
+[[#define LIBTOOL_TEST_IN_COMMON
+#include "common.h"
+
+extern "C"
+int common_dummy (void)
+{
+  return 0;
+}
+]])
+
+AT_DATA([module.h],
+[[#include "common.h"
+
+#if defined __CYGWIN__ || defined _WIN32
+# if defined DLL_EXPORT || defined USING_MODULE_DLL
+#  if defined LIBTOOL_TEST_IN_MODULE
+#   define MODULE_IMPEXP __declspec (dllexport)
+#  else
+#   define MODULE_IMPEXP __declspec (dllimport)
+#  endif
+# else
+#  define MODULE_IMPEXP
+# endif
+#else
+# define MODULE_IMPEXP
+#endif
+
+extern "C" int MODULE_IMPEXP modfoo () throw (modexc);
+]])
+
+AT_DATA([module.cpp],
+[[#include <iostream>
+#define LIBTOOL_TEST_IN_MODULE
+#include "module.h"
+
+int modbar (void) throw (modexc)
+{
+  throw modexc ("exception in module");
+}
+
+extern "C"
+int modfoo (void) throw (modexc)
+{
+  try {
+    modbar ();
+  }
+  catch (modexc e) {
+    std::cerr << "caught inside module: " << e.what () << '\n';
+    throw modexc ("exception from module");
+  }
+  return 0;
+}
+]])
+
+AT_DATA([lib.h],
+[[#include <exception>
+#include <string>
+
+
+#if defined __CYGWIN__ || defined _WIN32
+# if defined DLL_EXPORT || defined USING_LIB_DLL
+#  if defined LIBTOOL_TEST_IN_LIB
+#   define LIB_IMPEXP __declspec (dllexport)
+#  else
+#   define LIB_IMPEXP __declspec (dllimport)
+#  endif
+# else
+#  define LIB_IMPEXP
+# endif
+#else
+# define LIB_IMPEXP
+#endif
+
+class LIB_IMPEXP libexc : public std::exception {
+public:
+  libexc (std::string str) : message (str) { }
+  ~libexc () throw () { }
+  virtual const char *what () const throw ()
+  {
+    return message.c_str ();
+  }
+private:
+  std::string message;
+};
+int LIB_IMPEXP libfoo () throw (libexc);
+]])
+
+AT_DATA([lib.cpp],
+[[#include <iostream>
+#define LIBTOOL_TEST_IN_LIB
+#include "lib.h"
+
+int libbar (void) throw (libexc)
+{
+  throw libexc ("exception in library");
+}
+
+int libfoo (void) throw (libexc)
+{
+  try {
+    libbar ();
+  }
+  catch (libexc e) {
+    std::cerr << "caught inside lib: " << e.what () << '\n';
+    throw libexc ("exception from library");
+  }
+  return 0;
+}
+]])
+
+AT_DATA([main.cpp],
+[[#include <ltdl.h>
+#include <cstdlib>
+#include <iostream>
+#include <exception>
+#include <string>
+#include "common.h"
+#include "lib.h"
+#include "module.h"
+
+class exc : public std::exception {
+public:
+  exc (std::string str) : message (str) { }
+  ~exc () throw () { }
+  virtual const char *what () const throw ()
+  {
+    return message.c_str ();
+  }
+private:
+  std::string message;
+};
+
+int foo (void) throw (exc)
+{
+  throw exc ("exception in program");
+  return 0;
+}
+
+int exceptions_in_prog (void)
+{
+  std::cerr << "exceptions_in_prog\n";
+  try {
+    foo ();
+  }
+  catch (exc e) {
+     std::cerr << "caught: " << e.what () << '\n';
+    return 0;
+  }
+  return 1;
+}
+
+int exceptions_in_lib (void)
+{
+  std::cerr << "exceptions_in_lib\n";
+  try {
+    libfoo ();
+  }
+  catch (libexc e) {
+     std::cerr << "caught: " << e.what () << '\n';
+    return 0;
+  }
+  return 1;
+}
+
+int exceptions_in_module (void)
+{
+  std::cerr << "exceptions_in_module\n";
+
+  if (lt_dlinit ())
+    {
+      std::cerr << "init error: " << lt_dlerror () << '\n';
+      return 1;
+    }
+
+  // Some systems need RTLD_GLOBAL for exceptions to work in modules.
+  lt_dladvise advise;
+  if (lt_dladvise_init (&advise) || lt_dladvise_global (&advise))
+    {
+      std::cerr << "error setting advise global\n";
+      return 1;
+    }
+
+  lt_dlhandle handle = lt_dlopenadvise ("module.la", advise);
+  if (handle == NULL)
+    {
+      std::cerr << "dlopen failed: " << lt_dlerror () << '\n';
+      return 1;
+    }
+  lt_dladvise_destroy (&advise);
+
+  typedef int (*pfun) (void);
+  pfun pf = (pfun) lt_dlsym (handle, "modfoo");
+  if (pf == NULL)
+    {
+      std::cerr << "dlsym failed: " << lt_dlerror () << '\n';
+      return 1;
+    }
+
+  bool exception_caught = false;
+  try {
+    (*pf) ();
+  }
+  catch (modexc e) {
+    std::cerr << "caught: " << e.what () << '\n';
+    exception_caught = true;
+  }
+
+  /* Only close the module after all of its objects have gone out of scope. */
+  if (exception_caught)
+  {
+    if (lt_dlclose (handle))
+      {
+        std::cerr << "dlclose failed: " << lt_dlerror () << '\n';
+	return 1;
+      }
+    if (lt_dlexit ())
+      {
+        std::cerr << "lt_dlexit failed: " << lt_dlerror () << '\n';
+	return 1;
+      }
+    return 0;
+  }
+  return 1;
+}
+
+int main (void)
+{
+
+  LTDL_SET_PRELOADED_SYMBOLS();
+
+  if (exceptions_in_prog ())
+    return 1;
+  if (exceptions_in_lib ())
+    return 1;
+  if (exceptions_in_module ())
+    return 1;
+  return 0;
+}
+]])
+
+inst=`pwd`/inst
+libdir=$inst/lib
+bindir=$inst/bin
+moddir=$inst/mod
+mkdir l m $inst $libdir $bindir $moddir
+
+# If the C++ compiler isn't capable, don't bother.
+AT_CHECK([$CXX $CPPFLAGS $CXXFLAGS -DUSING_COMMON_DLL -DUSING_MODULE_DLL -DUSING_LIB_DLL -c main.cpp || exit 77], [], [ignore], [ignore])
+
+AT_CHECK([$LIBTOOL --mode=compile --tag=CXX $CXX $CPPFLAGS $CXXFLAGS -c common.cpp],
+	   [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=compile --tag=CXX $CXX $CPPFLAGS $CXXFLAGS -c lib.cpp],
+	   [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=compile --tag=CXX $CXX $CPPFLAGS $CXXFLAGS -DUSING_COMMON_DLL -c module.cpp],
+	   [], [ignore], [ignore])
+
+AT_CHECK([$LIBTOOL --mode=link --tag=CXX $CXX $CXXFLAGS $LDFLAGS -o l/libcommon.la ]dnl
+	 [common.lo -no-undefined -version-info 1:0:0 -rpath $libdir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link --tag=CXX $CXX $CXXFLAGS $LDFLAGS -o l/liba.la ]dnl
+	 [lib.lo -no-undefined -version-info 1:0:0 -rpath $libdir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link --tag=CXX $CXX $CXXFLAGS $LDFLAGS -o m/module.la ]dnl
+	 [module.lo l/libcommon.la -module -avoid-version -no-undefined -rpath $moddir],
+	 [], [ignore], [ignore])
+
+# We need -export-dynamic for the exception handling in modules to work.
+AT_CHECK([$LIBTOOL --mode=link --tag=CXX $CXX $CXXFLAGS $LDFLAGS -o main$EXEEXT ]dnl
+	 [main.$OBJEXT l/liba.la l/libcommon.la -dlopen m/module.la $LIBLTDL -export-dynamic],
+	 [], [ignore], [ignore])
+
+LT_AT_NOINST_EXEC_CHECK([./main], [-dlopen m/module.la], [], [ignore], [ignore])
+
+AT_CHECK([$LIBTOOL --mode=install cp l/libcommon.la $libdir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp l/liba.la $libdir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp m/module.la $moddir],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp main$EXEEXT $bindir],
+	 [], [ignore], [ignore])
+rm -rf l m main$EXEEXT
+
+LTDL_LIBRARY_PATH=$moddir
+export LTDL_LIBRARY_PATH
+LT_AT_EXEC_CHECK([$bindir/main], [], [ignore], [ignore])
+
+AT_CLEANUP

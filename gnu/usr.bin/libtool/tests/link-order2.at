@@ -1,0 +1,151 @@
+# link-order2.at -- test link order of deplibs                -*- Autotest -*-
+#
+#   Copyright (C) 2006-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2006
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+# link-order2.test: make sure that depdepls are added right after
+# the libs that pull them in: necessary at least for static linking
+# and on systems where libraries do not link against other libraries.
+#
+# We test by overriding one symbol from a depdepl library.
+# Test both a libtool library and a non-libtool library (simulated
+# by removing the .la file, and setting $shlibpath_var so it is
+# found at runtime).  In order to ensure that the depdepl is
+# actually loaded in each case, we also use an unrelated symbol
+# from it directly in the main program.  We test for failure by
+# reversing the link order.
+# We test both static and shared: it should work in both cases.
+# But for the static case to work, the two symbols in the depdepl
+# need to be in separate object files, otherwise duplicate symbol
+# definitions can happen.
+
+# The shared case fails on AIX without runtimelinking and on Darwin.
+# On Darwin, using shared libs this only works without -no-undefined
+# and only with MACOS_DEPLOYMENT_TARGET 10.2 and earlier
+# (in that case $allow_undefined_flag contains -flat_namespace).
+
+AT_SETUP([Link order of deplibs])
+AT_KEYWORDS([libtool])
+AT_KEYWORDS([interactive])dnl running 'wrong' may cause a popup window.
+
+eval `$LIBTOOL --config | $EGREP '^(shlibpath_var|allow_undefined_flag)='`
+
+undefined_setting=-no-undefined
+shared_fails=no
+case $host_os,$LDFLAGS,$allow_undefined_flag in
+aix*,*-brtl*,*) ;;
+aix*) shared_fails=yes ;;
+darwin*,*,*-flat_namespace*) undefined_setting= ;;
+darwin*,*,*) shared_fails=yes ;;
+esac
+
+deflibdir=`pwd`/lib
+defbindir=`pwd`/lib
+libdir=`pwd`/inst/lib
+bindir=`pwd`/inst/bin
+mkdir bin lib inst inst/bin inst/lib
+LDFLAGS="$LDFLAGS $undefined_setting -L$deflibdir"
+
+cat >a0.c <<\EOF
+int a (void) { return 1; }
+EOF
+
+cat >a1.c <<\EOF
+int a (void) { return 0; }
+EOF
+
+cat >b.c <<\EOF
+int a (void);
+int b (void) { return a (); }
+EOF
+
+cat >main.c <<\EOF
+#include <stdlib.h>
+extern int a (void);
+extern int b (void);
+int main (void)
+{
+  return !(a () + b () == 0);
+}
+EOF
+
+for file in a0 a1 b; do
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c $file.c
+done
+$CC $CPPFLAGS $CFLAGS -c main.c
+
+# Build an old, installed library.
+$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS $static -o liba0.la a0.lo -rpath $deflibdir
+$LIBTOOL --mode=install cp liba0.la $deflibdir/liba0.la
+$LIBTOOL --mode=clean rm -f liba0.la
+
+for type_of_depdepl in libtool non-libtool; do
+  echo "type of depdepl: $type_of_depdepl"
+  if test non-libtool = "$type_of_depdepl"; then
+    # Simulate a non-Libtool system library.
+    rm $deflibdir/liba1.la
+    addpath=$deflibdir
+    if test PATH = "$shlibpath_var"; then
+      addpath=$defbindir
+    fi
+    sep=
+    eval test -n \"\$$shlibpath_var\" && sep=:
+    eval $shlibpath_var='$addpath$sep$'$shlibpath_var
+    export $shlibpath_var
+  fi
+  for static in '' -static-libtool-libs; do
+    case `$LIBTOOL --features` in
+    *disable\ static\ libraries*) test -z "$static" || continue;;
+    esac
+    test non-libtool,-static-libtool-libs = "$type_of_depdepl,$static" &&
+       static=-all-static
+    $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS $static -o liba1.la a1.lo -rpath $libdir
+    $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS $static -o libb.la b.lo liba1.la -rpath $libdir
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS $static -o main$EXEEXT main.$OBJEXT libb.la -la0],
+	     [], [ignore], [ignore])
+    LT_AT_EXEC_CHECK([./main])
+    # Now test that if we reverse the link order, the program fails.
+    AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS $static -o wrong$EXEEXT main.$OBJEXT -la0 libb.la],
+	     [], [ignore], [ignore])
+    if test yes, != "$shared_fails,$static"; then
+      LT_AT_EXEC_CHECK([./wrong], [1], [], [ignore], [|| (exit 1)])
+    fi
+
+    $LIBTOOL --mode=install cp liba1.la $libdir/liba1.la
+    $LIBTOOL --mode=install cp libb.la $libdir/libb.la
+    $LIBTOOL --mode=install cp main$EXEEXT $bindir/main$EXEEXT
+    $LIBTOOL --mode=install cp wrong$EXEEXT $bindir/wrong$EXEEXT
+    $LIBTOOL --mode=clean rm -f liba1.la libb.la
+    LT_AT_EXEC_CHECK([$bindir/main])
+    if test yes, = "$shared_fails,$static"; then
+      LT_AT_EXEC_CHECK([$bindir/wrong], [1], [], [ignore], [|| (exit 1)])
+    fi
+  done
+done
+
+AT_CHECK([test no = "$shared_fails" || (exit 77)])
+
+# Now the converse: if both the program and the library need libm, then
+# it needs to be sorted last.  (TODO)
+
+AT_CLEANUP

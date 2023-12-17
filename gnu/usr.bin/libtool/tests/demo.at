@@ -1,0 +1,986 @@
+# demo.at -- Linking and loading. -*- Autotest -*-
+#
+#   Copyright (C) 2003-2004, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2003
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+
+AT_BANNER([Linking and loading.])
+
+## ------------------------------------------- ##
+## Some functions shared by later tests cases. ##
+## ------------------------------------------- ##
+
+# This function needs to be used, rather than 'exit', when a 'trap' handler is
+# in effect that refers to $?.
+func_exit ()
+{
+  (exit $1); exit $1
+}
+
+func_restore_files ()
+{
+    test -n "$objdir" || exit 1
+    mv -f "$objdir"/temp/libs/* "$objdir"
+    mv -f "$objdir/temp/libhello.la" .
+    rm -rf "$objdir/temp"
+}
+
+func_save_files ()
+{
+    test -n "$objdir" || exit 1
+    $lt_INSTALL -d "$objdir/temp/libs"
+    cp -f libhello.la "$objdir/temp"
+    cp -f "$objdir"/libhello.* "$objdir/lt-hell$EXEEXT" "$objdir/temp/libs"
+}
+
+
+# _LT_DEMO_SETUP
+# --------------
+m4_define([_LT_DEMO_SETUP],
+[AT_DATA([configure.ac],
+[[AC_INIT([demo], ]AT_PACKAGE_VERSION[, ]AT_PACKAGE_BUGREPORT[)
+AC_CONFIG_AUX_DIR([build-aux])
+AC_CONFIG_MACRO_DIRS([m4])
+AM_INIT_AUTOMAKE
+AC_PROG_CC
+
+LT_INIT([dlopen win32-dll])
+AC_SUBST([LIBTOOL_DEPS])
+STATIC=
+test yes = "$enable_static" && STATIC=-static
+AC_SUBST([STATIC])
+
+case $lt_cv_sys_global_symbol_pipe in
+  ?*) binary_helldl=yes ;;
+esac
+AM_CONDITIONAL([BINARY_HELLDL], [test yes = "$binary_helldl"])
+
+LT_LIB_M
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_HEADERS([config.h:config.in.h])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.am],
+[[AUTOMAKE_OPTIONS = no-dependencies foreign
+ACLOCAL_AMFLAGS = -I m4
+
+# Build a libtool library, libhello.la for installation in libdir.
+lib_LTLIBRARIES = libhello.la
+libhello_la_SOURCES = hello.c foo.c
+libhello_la_LIBADD = $(LIBM)
+libhello_la_LDFLAGS = -no-undefined -version-info 3:12:1
+libhello_la_CPPFLAGS = $(AM_CPPFLAGS) -DBUILDING_LIBHELLO
+
+include_HEADERS = foo.h
+
+if BINARY_HELLDL
+BUILD_helldl = helldl
+else
+BUILD_helldl =
+endif
+
+bin_PROGRAMS = hell hell_static $(BUILD_helldl)
+
+# Build hell from main.c and libhello.la
+hell_SOURCES = main.c
+hell_LDADD = libhello.la
+
+# Create a statically linked version of hell.
+hell_static_SOURCES = main.c
+hell_static_LDADD = libhello.la
+hell_static_LDFLAGS = $(STATIC)
+
+if BINARY_HELLDL
+
+# Create a version of hell that does a preloaded dlopen.
+helldl_SOURCES = dlmain.c
+helldl_LDFLAGS = -export-dynamic -dlpreopen libhello.la
+helldl_DEPENDENCIES = libhello.la
+
+else
+
+# Create a script that says that -dlopen is not supported.
+bin_SCRIPTS = helldl
+helldl helldl$(EXEEXT):
+	rm -rf $@
+	echo '#! /bin/sh' > $@
+	echo 'echo sorry, -dlopen is unsupported' >> $@
+	chmod +x $@
+
+endif
+
+libtool: $(LIBTOOL_DEPS)
+	$(SHELL) ./config.status --recheck
+
+include $(srcdir)/demo.mk
+]])
+
+AT_DATA([demo.mk],
+[[## Don't abort for lack of demo.mk
+]])
+
+AT_DATA([foo.h],
+[[#ifndef FOO_H
+#define FOO_H
+
+/* At some point, cygwin will stop defining __CYGWIN32__, but b19 and
+ * earlier do not define __CYGWIN__.  This snippet allows us to check
+ * for __CYGWIN__ reliably for both current, old, and (probable) future
+ * releases.
+ */
+#ifdef __CYGWIN32__
+#  ifndef __CYGWIN__
+#    define __CYGWIN__
+#  endif
+#endif
+
+#if (defined _WIN32 || defined _WIN32_WCE) && !defined __GNUC__
+# ifdef BUILDING_LIBHELLO
+#  ifdef DLL_EXPORT
+#   define LIBHELLO_SCOPE extern __declspec (dllexport)
+#  endif
+# else
+#  define LIBHELLO_SCOPE extern __declspec (dllimport)
+# endif
+#endif
+#ifndef LIBHELLO_SCOPE
+# define LIBHELLO_SCOPE extern
+#endif
+
+/* Keep this code in sync between libtool.m4, ltmain, lt_system.h, and tests.  */
+#if defined _WIN32 || defined __CYGWIN__ || defined _WIN32_WCE
+/* DATA imports from DLLs on WIN32 can't be const, because runtime
+   relocations are performed -- see ld's documentation on pseudo-relocs.  */
+# define LT_DLSYM_CONST
+#elif defined __osf__
+/* This system does not cope well with relocations in const data.  */
+# define LT_DLSYM_CONST
+#else
+# define LT_DLSYM_CONST const
+#endif
+
+/* Silly constants that the functions return. */
+#define HELLO_RET 0xe110
+#define FOO_RET 0xf00
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int foo (void);
+int hello (void);
+LIBHELLO_SCOPE int nothing;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+]])
+
+AT_DATA([foo.c],
+[[#include <config.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "foo.h"
+
+/* Give a global variable definition. */
+int nothing = FOO_RET;
+
+int foo (void) {
+  printf ("cos (0.0) = %g\n", (double) cos ((double) 0.0));
+  return FOO_RET;
+}
+]])
+
+AT_DATA([hell1.c],
+[[#include <config.h>
+int hell1 (void) { return 1; }
+]])
+
+AT_DATA([hell2.c],
+[[#include <config.h>
+int hell2 (void) { return 2; }
+]])
+
+AT_DATA([hello.c],
+[[#include <config.h>
+#include <stdio.h>
+
+#include "foo.h"
+
+int hello (void) {
+  printf ("** This is not GNU Hello. There is no built-in mail reader. **\n");
+  return HELLO_RET;
+}
+]])
+
+AT_DATA([main.c],
+[[#include <config.h>
+#include <stdio.h>
+
+#include "foo.h"
+
+int main ()
+{
+  printf ("Welcome to GNU Hell!\n");
+
+  /* Try assigning to the nothing variable. */
+  nothing = 1;
+
+  /* Just call the functions and check return values. */
+  if (foo () != FOO_RET)
+    return 1;
+
+  if (hello () != HELLO_RET)
+    return 2;
+
+  return 0;
+}
+]])
+
+AT_DATA([dlmain.c],
+[[#include <config.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "foo.h"
+
+#define STREQ !strcmp
+
+#define lt_preloaded_symbols lt__PROGRAM__LTX_preloaded_symbols
+
+typedef struct
+{
+  const char *name;
+  void *address;
+} lt_dlsymlist;
+
+extern LT_DLSYM_CONST lt_dlsymlist lt_preloaded_symbols[];
+
+int main ()
+{
+  const lt_dlsymlist *s;
+  int (*pfoo)() = 0;
+  int (*phello)() = 0;
+  int *pnothing = 0;
+
+  printf ("Welcome to *modular* GNU Hell!\n");
+
+  /* Look up the symbols we require for this demonstration. */
+  s = lt_preloaded_symbols;
+  while (s->name)
+    {
+      if (s->address) {
+        const char *name = s->name;
+        printf ("found symbol: %s\n", name);
+        if (STREQ ("@INIT@", name))
+	  ((void(*)())s->address)();
+        if (STREQ ("hello", name))
+	  phello = (int(*)())s->address;
+        else if (STREQ ("foo", name))
+	  pfoo = (int(*)())s->address;
+        else if (STREQ ("nothing", name))
+#ifndef _WIN32
+	  /* In an ideal world we could do this... */
+	  pnothing = (int*)s->address;
+#else /* !_WIN32 */
+	  /* In an ideal world a shared lib would be able to export data */
+	  pnothing = (int*)&nothing;
+#endif
+      } else
+        printf ("found file: %s\n", s->name);
+      s ++;
+    }
+
+  /* Try assigning to the nothing variable. */
+  if (pnothing)
+    *pnothing = 1;
+  else
+    fprintf (stderr, "did not find the 'nothing' variable\n");
+
+  /* Just call the functions and check return values. */
+  if (pfoo)
+    {
+      if ((*pfoo) () != FOO_RET)
+	return 1;
+    }
+  else
+    fprintf (stderr, "did not find the 'foo' function\n");
+
+  if (phello)
+    {
+      if ((*phello) () != HELLO_RET)
+	return 3;
+    }
+  else
+    fprintf (stderr, "did not find the 'hello' function\n");
+
+  return 0;
+}
+]])
+
+LT_AT_HOST_DATA([expout],
+[[Welcome to GNU Hell!
+cos (0.0) = 1
+** This is not GNU Hello. There is no built-in mail reader. **
+]])
+
+prefix=`pwd`/_inst
+]) # _LT_DEMO_SETUP
+
+
+# _LT_CHECK_EXECUTE([TARGETS])
+# ----------------------------
+# Run the listed make rules, and check that the built binaries work.
+m4_define([_LT_CHECK_EXECUTE],
+[LT_AT_CHECK_EXECUTE([$1],
+        [./hell_static], [./hell])
+AT_CHECK([./helldl$EXEEXT |
+    $EGREP '(Welcome to .*GNU Hell|unsupported)'], 0, [ignore])
+])
+
+
+# _LT_CHECK_INSTALL
+# -----------------
+# Run the make install rule, and check that installed binaries work too.
+m4_define([_LT_CHECK_INSTALL],
+[# Windows hosts search for dlls in the command path.
+PATH=$prefix/lib:$PATH
+
+LT_AT_CHECK_EXECUTE([install],
+        [$prefix/bin/hell_static], [$prefix/bin/hell])
+AT_CHECK([$prefix/bin/helldl$EXEEXT |
+    $EGREP '(Welcome to .*GNU Hell|unsupported)'], 0, [ignore])
+])
+
+
+## ------------ ##
+## Demo static. ##
+## ------------ ##
+
+AT_SETUP([link against a preloaded static library])
+
+_LT_DEMO_SETUP
+
+LT_AT_CHECK_CONFIG([--disable-shared],
+                   [^build_old_libs=yes], [^build_libtool_libs=no])
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+LT_AT_CHECK_UNINSTALL
+
+AT_CLEANUP
+
+
+## ------------ ##
+## Demo shared. ##
+## ------------ ##
+
+AT_SETUP([build and dynamically load a module])
+
+_LT_DEMO_SETUP
+
+LT_AT_CHECK_CONFIG([--disable-static],
+                   [^build_old_libs=no], [^build_libtool_libs=yes])
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+LT_AT_CHECK_UNINSTALL
+
+AT_CLEANUP
+
+
+## ---------- ##
+## Demo conf. ##
+## ---------- ##
+
+AT_SETUP([preload static and dynamic module])
+
+_LT_DEMO_SETUP
+
+LT_AT_CHECK_CONFIG([],
+                   [^build_old_libs=yes], [^build_libtool_libs=yes])
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+LT_AT_CHECK_UNINSTALL
+
+AT_CLEANUP
+
+
+## ------------ ##
+## Demo deplib. ##
+## ------------ ##
+
+# This is one of the essential tests for deplibs_check_method=pass_all.
+# If this one passes with pass_all, it is likely that pass_all works.
+
+AT_SETUP([deplibs_check_method])
+
+_LT_DEMO_SETUP
+
+AT_DATA([demo.mk],
+[[EXTRA_LIBRARIES = libhell0.a
+libhell0_a_SOURCES =
+libhell0_a_LIBADD = hello.$(OBJEXT) foo.$(OBJEXT)
+EXTRA_LTLIBRARIES = libhell1.la libhell2.la
+libhell1_la_SOURCES = hell1.c
+libhell1_la_LIBADD = -L. -lhell0
+libhell1_la_LDFLAGS = -no-undefined -rpath $(libdir)
+libhell1_la_DEPENDENCIES = libhell0.a
+libhell2_la_SOURCES = hell2.c
+libhell2_la_LIBADD = -L. -lhell0
+libhell2_la_LDFLAGS = -no-undefined -rpath $(libdir)
+libhell2_la_DEPENDENCIES = libhell0.a
+EXTRA_PROGRAMS = hell0
+hell0_SOURCES = main.c
+hell0_LDADD = libhell1.la libhell2.la $(LIBM)
+
+# 'hell0' in EXTRA_PROGRAMS gets translated to 'hell0.exe'; but we
+# must explicitly list the wrapper script 'hell0'.  (bin_PROGRAMS
+# are handled seamlessly by automake rules; the extra step is only
+# necessary for EXTRA_PROGRAMS)
+CLEANFILES = $(EXTRA_LIBRARIES) $(EXTRA_LTLIBRARIES) $(EXTRA_PROGRAMS) hell0
+
+deplibs-check: hell0$(EXEEXT)
+]])
+
+LT_AT_CHECK_CONFIG([--disable-static])
+LT_AT_MAKE([deplibs-check])
+LT_AT_EXEC_CHECK([./hell0], 0, [expout])
+
+AT_CLEANUP
+
+
+## ------------ ##
+## Demo nofast. ##
+## ------------ ##
+
+AT_SETUP([disable fast install])
+
+_LT_DEMO_SETUP
+
+LT_AT_CHECK_CONFIG([--enable-fast-install=no])
+AT_CHECK([$EGREP '^hardcode_action=relink' libtool && (exit 77)], 1)
+
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+LT_AT_CHECK_UNINSTALL
+
+AT_CLEANUP
+
+
+## --------- ##
+## Demo pic. ##
+## --------- ##
+
+AT_SETUP([force PIC objects])
+
+_LT_DEMO_SETUP
+
+LT_AT_CHECK_CONFIG([--with-pic])
+_LT_CHECK_EXECUTE
+
+AT_CLEANUP
+
+
+## ----------- ##
+## Demo nopic. ##
+## ----------- ##
+
+AT_SETUP([force non-PIC objects])
+
+AT_CHECK([case $host in
+hppa*|x86_64*|s390*)
+  # These hosts cannot use non-PIC shared libs
+  exit 77 ;;
+*-solaris*|*-sunos*)
+  # Libtool does not build non-PIC shared libs on these hosts
+  exit 77 ;;
+esac
+
+if test "X$build" = "X$host" && test -d "/etc/selinux"; then
+	_selinux=`getenforce 2>/dev/null || echo "Disabled"`
+	case $_selinux in
+	*Enforcing)
+		_sebool_allow_execmod=`getsebool allow_execmod 2>/dev/null`
+		case $_sebool_allow_execmod in
+		*off)
+			# SELinux policy disallows non-PIC
+			exit 77
+			;;
+		esac
+		;;
+	esac
+fi
+])
+
+_LT_DEMO_SETUP
+LT_AT_CHECK_CONFIG([--with-pic=no])
+_LT_CHECK_EXECUTE
+
+AT_CLEANUP
+
+
+## -------------- ##
+## Demo hardcode. ##
+## -------------- ##
+
+AT_SETUP([hardcoding library path])
+
+_LT_DEMO_SETUP
+
+AT_DATA([demo.mk],
+[[hardcode_tests = hc-direct hc-libflag hc-libpath hc-minusL
+CLEANFILES = $(hardcode_tests)
+
+# Unfortunately, in order to test libtool thoroughly, we need access
+# to its private directory.
+objdir = `$(LIBTOOL) --config | $(SED) -n -e 's/^objdir=\(.*\)$$/\1/p'`
+
+# Test programs to see what gets hardcoded.
+.PHONY: hardcode
+hardcode: $(hardcode_tests)
+SET_HARDCODE_FLAGS = \
+  eval `$(LIBTOOL) --config | $(SED) -n -e '/^hardcode_.*=/p; /^wl=/p'`
+hc-direct: $(hell_OBJECTS) $(hell_DEPENDENCIES) $(libdir)/libhello.la
+	@rm -f hc-direct
+	@echo "You may ignore any linking errors from the following command:"
+	@shlib=./$(objdir)/libhello.a; \
+	  eval "`$(GREP) '^library_names' libhello.la`"; \
+	  for lib in $$library_names; do \
+	    shlib="./$(objdir)/$$lib"; \
+	  done; \
+	  $(SET_HARDCODE_FLAGS); \
+	  libdir=$(libdir); \
+	  flag=`eval echo \"$$hardcode_libdir_flag_spec\"`; \
+	  echo "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(hell_OBJECTS) $$shlib $(LIBS) $(LIBM) $$flag || echo unsupported > $@"; \
+	  eval "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(hell_OBJECTS) $$shlib $(LIBS) $(LIBM) $$flag || echo unsupported > $@"
+
+hc-libflag: $(hell_OBJECTS) $(hell_DEPENDENCIES) $(libdir)/libhello.la
+	@$(SET_HARDCODE_FLAGS); \
+	  libdir=`pwd`/$(objdir); \
+	  flag=`eval echo \"$$hardcode_libdir_flag_spec\"`; \
+	  if test -z "$$flag"; then \
+	    echo "echo unsupported > $@"; \
+	    echo unsupported > $@ || status="$$?"; \
+	  else \
+	    echo "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(hell_OBJECTS) $$flag -L$(libdir) -lhello $(LIBS) $(LIBM)"; \
+	    $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(hell_OBJECTS) $$flag -L$(libdir) -lhello $(LIBS) $(LIBM) || status="$$?"; \
+	  fi; \
+	  exit $$status
+
+hc-libpath: $(hell_OBJECTS) $(hell_DEPENDENCIES) $(libdir)/libhello.la
+	@rm -f hc-libpath
+	@echo "You may ignore any linking errors from the following command:"
+	@$(SET_HARDCODE_FLAGS); \
+	  eval `$(LIBTOOL) --config | $(GREP) '^shlibpath_var='`; \
+	  libdir=$(libdir); \
+	  flag=`eval echo \"$$hardcode_libdir_flag_spec\"`; \
+	  echo "$$shlibpath_var=./$(objdir) $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(hell_OBJECTS) -lhello $(LIBS) $(LIBM) $$flag || echo unsupported > $@"; \
+	  eval "$$shlibpath_var=./$(objdir) $(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(hell_OBJECTS) -lhello $(LIBS) $(LIBM) $$flag || echo unsupported > $@"
+
+hc-minusL: $(hell_OBJECTS) $(hell_DEPENDENCIES)
+	@rm -f hc-minusL
+	@$(SET_HARDCODE_FLAGS); \
+	  libdir=$(libdir); \
+	  flag=`eval echo \"$$hardcode_libdir_flag_spec\"`; \
+	  echo "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(hell_OBJECTS) -L./$(objdir) -lhello $(LIBS) $(LIBM) $$flag || echo unsupported > $@"; \
+	  eval "$(CC) $(CFLAGS) $(LDFLAGS) -o $@ $(hell_OBJECTS) -L./$(objdir) -lhello $(LIBS) $(LIBM) $$flag || echo unsupported > $@"
+]])
+
+LT_AT_CHECK_CONFIG([--disable-static])
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+
+eval `$EGREP '^library_names=' libhello.la`
+AT_CHECK([test -n "$library_names" || (exit 77)])
+
+# Extra tools we may need
+: ${DUMPSTABS="dumpstabs"}
+
+LT_AT_MAKE([hardcode])
+
+eval "`$LIBTOOL --config | $EGREP '^hardcode_(direct|minus_L|shlibpath_var|libdir_flag_spec)='`"
+
+AT_CHECK([[exit_status=0
+func_hardcode_filter_fp ()
+{
+  $FGREP -v "LT_OBJDIR \"$objdir/\"" 2>/dev/null
+}
+for file in hc-*; do
+  case $file in
+  hc-direct)  expected="$hardcode_direct" ;;
+  hc-libpath) expected="$hardcode_shlibpath_var" ;;
+  hc-minusL)  expected="$hardcode_minus_L" ;;
+
+  hc-libflag)
+    if test -n "$hardcode_libdir_flag_spec"; then
+      expected=yes
+    else
+      expected=unsupported
+    fi
+    ;;
+
+  *)
+    continue
+    ;;
+  esac
+
+  # Discover whether the objdir really was hardcoded.
+  hardcoded=no
+
+  # Solaris cc may store the command line in a debugging section,
+  # which leads to false positives.  Unfortunately, Solaris strip
+  # is not capable to remove the section (unlike GNU binutils strip).
+  # So we use dumpstabs if it seems to work.
+  if { $DUMPSTABS -d $file; } >/dev/null 2>&1; then
+    if $DUMPSTABS -d $file 2>/dev/null | $FGREP "$objdir" >/dev/null 2>&1; then
+      hardcoded=yes
+    else
+      hardcoded=no
+    fi
+
+  # At least AIX fgrep doesn't work for binary files, and AIX also
+  # doesn't have strings(1), so we need this strange conversion
+  # (which only works on ASCII).
+  # AIX fgrep also has a limited line length, so we turn unprintable
+  # characters into newlines.
+  elif cat $file | (tr '\000-\037\200-\377' '\n' || cat) 2>/dev/null \
+                 | func_hardcode_filter_fp | $FGREP "$objdir" > /dev/null 2>&1; then
+    hardcoded=yes
+
+  elif cat $file | func_hardcode_filter_fp | $FGREP "$objdir" > /dev/null 2>&1; then
+    # We retry fgrep without tr, in case the above lead to a false negative.
+    hardcoded=yes
+  elif ($SED -e '1!d' $file | $GREP 'unsupported') >/dev/null 2>&1; then
+    hardcoded=unsupported
+  fi
+
+  # Check the result.
+  case $hardcoded in
+  yes)
+    if test yes = "$expected"; then
+      echo "$objdir was hardcoded in '$file', as libtool expected"
+    else
+      echo "$objdir was hardcoded in '$file', which fooled libtool" 1>&2
+      exit_status=1
+    fi
+    ;;
+
+  no)
+    if test no = "$expected"; then
+      echo "$objdir was not hardcoded in '$file', as libtool expected"
+    else
+      echo "$objdir was not hardcoded in '$file', which fooled libtool" 1>&2
+      exit_status=1
+    fi
+    ;;
+
+  unsupported)
+    if test unsupported = "$expected"; then
+      echo "'$file' was not linked properly, as libtool expected"
+    else
+      echo "'$file' was not linked properly, which fooled libtool" 1>&2
+      exit_status=1
+    fi
+    ;;
+  esac
+done
+]], 0, [ignore])
+
+AT_CLEANUP
+
+
+## ------------ ##
+## Demo relink. ##
+## ------------ ##
+
+AT_SETUP([binary relinking at install time])
+AT_KEYWORDS([interactive])dnl This test causes a popup on Windows
+
+_LT_DEMO_SETUP
+
+LT_AT_CHECK_CONFIG
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+
+# Check to make sure we have a dynamic library.
+eval `$EGREP '^library_names=' libhello.la`
+AT_CHECK([test -n "$library_names" || (exit 77)])
+
+func_save_files
+# AIX 5.3 '/bin/sh' will invoke the trap for 0 at the end of a
+# function, so we set the trap outside of a function to be portable.
+trap func_restore_files 0 1 2 13 15
+
+eval "`$LIBTOOL --config | $EGREP '^shlibpath_overrides_runpath='`"
+eval "`$LIBTOOL --config | $EGREP '^hardcode_(action|direct|into_libs)='`"
+
+# Allow the binary to link on-demand if need be.
+./hell$EXEEXT >/dev/null || :
+
+# Remove libhello.la from build tree.
+rm -f libhello.la "$objdir"/libhello.*
+
+# Either uninstalled ./hell will run using the just installed libraries
+# when the uninstalled libs are missing, or relinking at install time
+# is necessary, and the uninstalled ./hell has only the uninstalled
+# library paths hardcoded.
+AT_CHECK([./hell$EXEEXT >/dev/null || test relink,yes = "$hardcode_action,$hardcode_direct"])
+
+# Link an incomplete libhello.la.
+LT_AT_MAKE([libhello.la], [libhello_la_OBJECTS=hello.lo])
+AT_CHECK([test -f libhello.la])
+
+# Try running uninstalled ./hell with only broken libhello.la in build tree.
+# If the following has normal exit status, shlibpath_overrides_runpath is
+# wrong, and should be set to 'no' on this host.
+# The unusual '|| (exit 1)' is to normalize all non-zero exit statuses.
+LT_AT_CHECK([./hell || (exit 1)], 1, [ignore], [ignore])
+
+test relink = "$hardcode_action" ||
+test yes = "$shlibpath_overrides_runpath" ||
+{
+    AT_CHECK([rm -f $objdir/lt-hell$EXEEXT])
+    AT_CHECK([cp $objdir/hell$EXEEXT $objdir/lt-hell$EXEEXT])
+
+    # Running demo/hell with installed libhello.la.
+    # If the following check fails, then shlibpath_overrides_runpath is
+    # wrong, and should be set to 'yes' on this host.
+    LT_AT_CHECK([./hell], 0, [expout])
+}
+
+func_restore_files
+
+# Undo the effect of the previous 'trap' command. Some shellology:
+# We cannot use "trap - 0 1 2 3 13 15", because Solaris sh would attempt to
+# execute the command "-". "trap '' ..." is fine only for signal 0 (= normal
+# exit); for the others we need to call 'exit' explicitly. The value of $? is
+# 128 + signal number and is set before the trap-registered command is run.
+trap '' 0
+trap 'func_exit $?' 1 2 3 13 15
+
+AT_CLEANUP
+
+
+## ----------------- ##
+## Demo noinst link. ##
+## ----------------- ##
+
+AT_SETUP([uninstalled libraries have priority])
+
+_LT_DEMO_SETUP
+
+LT_AT_CHECK_CONFIG
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+
+# Remove libhello.la and hell from build tree.
+rm -f libhello.la "hell$EXEEXT"
+
+# If this check fails (i.e. the make succeeds), then the installed library
+# was used, which is wrong.
+AT_CHECK([$as_unset LIBTOOL; $as_unset LIBTOOLIZE; $MAKE hell$EXEEXT libhello_la_OBJECTS=hello.lo || (exit 1)],
+         [1], [ignore], [ignore])
+
+AT_CLEANUP
+
+
+## ----------- ##
+## Pdemo conf. ##
+## ----------- ##
+
+AT_SETUP([linking with long file names])
+
+_LT_DEMO_SETUP
+
+AT_DATA([Makefile.am],
+[[AUTOMAKE_OPTIONS = no-dependencies foreign
+ACLOCAL_AMFLAGS = -I m4
+
+# Build a libtool library, libhello.la for installation in libdir.
+lib_LTLIBRARIES = libhello.la
+libhello_la_SOURCES = longer_file_name_hello.c longer_file_name_foo.c longer_file_name_foo2.c
+libhello_la_LIBADD = $(LIBM)
+libhello_la_LDFLAGS = -no-undefined -version-info 3:12:1
+libhello_la_CPPFLAGS = $(AM_CPPFLAGS) -DBUILDING_LIBHELLO
+
+include_HEADERS = foo.h
+
+if BINARY_HELLDL
+BUILD_helldl = helldl
+else
+BUILD_helldl =
+endif
+
+bin_PROGRAMS = hell hell_static $(BUILD_helldl)
+
+# Build hell from longer_file_name_main.c and libhello.la
+hell_SOURCES = longer_file_name_main.c
+hell_LDADD = libhello.la
+
+# Create a statically linked version of hell.
+hell_static_SOURCES = longer_file_name_main.c
+hell_static_LDADD = libhello.la
+hell_static_LDFLAGS = $(STATIC)
+
+if BINARY_HELLDL
+
+# Create a version of hell that does a preloaded dlopen.
+helldl_SOURCES = longer_file_name_dlmain.c
+helldl_LDFLAGS = -export-dynamic -dlpreopen libhello.la
+helldl_DEPENDENCIES = libhello.la
+
+else
+
+# Create a script that says that -dlopen is not supported.
+bin_SCRIPTS = helldl
+helldl helldl$(EXEEXT):
+	rm -rf $@
+	echo '#! /bin/sh' > $@
+	echo 'echo sorry, -dlopen is unsupported' >> $@
+	chmod +x $@
+
+endif
+
+libtool: $(LIBTOOL_DEPS)
+	$(SHELL) ./config.status --recheck
+]])
+
+AT_DATA([main.c],
+[[#include <config.h>
+#include <stdio.h>
+
+#include "foo.h"
+
+int main ()
+{
+  printf ("Welcome to GNU Hell!\n");
+
+  /* Try assigning to the nothing variable. */
+  nothing = 1;
+
+  /* Just call the functions and check return values. */
+  if (foo () != FOO_RET)
+    return 1;
+
+  if (foo2 () != FOO_RET)
+    return 1;
+
+  if (hello () != HELLO_RET)
+    return 2;
+
+  return 0;
+}
+]])
+
+AT_DATA([foo.h],
+[[#ifndef FOO_H
+#define FOO_H
+
+/* At some point, cygwin will stop defining __CYGWIN32__, but b19 and
+ * earlier do not define __CYGWIN__.  This snippet allows us to check
+ * for __CYGWIN__ reliably for both current, old, and (probable) future
+ * releases.
+ */
+#ifdef __CYGWIN32__
+#  ifndef __CYGWIN__
+#    define __CYGWIN__
+#  endif
+#endif
+
+#if (defined _WIN32 || defined _WIN32_WCE) && !defined __GNUC__
+# ifdef BUILDING_LIBHELLO
+#  ifdef DLL_EXPORT
+#   define LIBHELLO_SCOPE extern __declspec (dllexport)
+#  endif
+# else
+#  define LIBHELLO_SCOPE extern __declspec (dllimport)
+# endif
+#endif
+#ifndef LIBHELLO_SCOPE
+# define LIBHELLO_SCOPE extern
+#endif
+
+/* Keep this code in sync between libtool.m4, ltmain, lt_system.h, and tests.  */
+#if defined _WIN32 || defined __CYGWIN__ || defined _WIN32_WCE
+/* DATA imports from DLLs on WIN32 can't be const, because runtime
+   relocations are performed -- see ld's documentation on pseudo-relocs.  */
+# define LT_DLSYM_CONST
+#elif defined __osf__
+/* This system does not cope well with relocations in const data.  */
+# define LT_DLSYM_CONST
+#else
+# define LT_DLSYM_CONST const
+#endif
+
+/* Silly constants that the functions return. */
+#define HELLO_RET 0xe110
+#define FOO_RET 0xf00
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int foo (void);
+int foo2 (void);
+int hello (void);
+LIBHELLO_SCOPE int nothing;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+]])
+
+AT_DATA([foo2.c],
+[[#include <config.h>
+#include <stdio.h>
+#include <math.h>
+
+#include "foo.h"
+
+int foo2 (void) {
+  printf ("foo2 cos (0.0) = %g\n", (double) cos ((double) 0.0));
+  return FOO_RET;
+}
+]])
+
+LT_AT_HOST_DATA([expout],
+[[Welcome to GNU Hell!
+cos (0.0) = 1
+foo2 cos (0.0) = 1
+** This is not GNU Hello. There is no built-in mail reader. **
+]])
+
+for file in dlmain.c foo.c foo2.c hello.c main.c; do
+  mv $file longer_file_name_$file
+done
+
+LT_AT_CHECK_CONFIG
+_LT_CHECK_EXECUTE
+_LT_CHECK_INSTALL
+
+AT_CLEANUP

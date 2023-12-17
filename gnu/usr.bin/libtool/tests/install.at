@@ -1,0 +1,53 @@
+# install.at -- install mode tests             -*- Autotest -*-
+#
+#   Copyright (C) 2008-2009, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2008
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([Install tests])
+AT_KEYWORDS([libtool])
+
+# Ensure that install_override_mode overrides the mode of the shared
+# library (and only the shared library).
+
+AT_CHECK([$LIBTOOL --features | $GREP 'enable shared libraries' || exit 77],
+	 [], [ignore])
+$SED 's|^\(install_override_mode\)=.*|\1=755|' < $LIBTOOL > ./libtool
+LIBTOOL=./libtool
+chmod a+rx $LIBTOOL
+
+inst=`pwd`/inst
+mkdir inst
+
+echo 'int a () { return 0; }' > a.c
+$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la a.lo ]dnl
+	 [-rpath $inst -no-undefined], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install $lt_INSTALL liba.la $inst],
+	 [], [stdout], [ignore])
+AT_CHECK([$GREP ' -m 755' stdout], [], [ignore])
+AT_CHECK([$LIBTOOL --mode=install $lt_INSTALL -m 644 liba.la $inst],
+	 [], [stdout], [ignore])
+AT_CHECK([$GREP ' -m 755' stdout], [], [ignore])
+AT_CHECK([$GREP ' -m 644.*liba.la' stdout], [], [ignore])
+
+AT_CLEANUP

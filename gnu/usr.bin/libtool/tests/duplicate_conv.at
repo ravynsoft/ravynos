@@ -1,0 +1,92 @@
+# duplicate_conv.at -- duplicate convenience archive names   -*- Autotest -*-
+
+#   Copyright (C) 2006, 2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2006
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([duplicate convenience archive names])
+AT_KEYWORDS([libtool])
+
+eval `$LIBTOOL --config | $SED -n '/^reload_cmds=/,/^$/p'`
+
+# We create two convenience archives with the same name, and _also_
+# containing an object with the same name.  This is necessary to detect
+# the failure with both 1.5.22 and HEAD, since the latter does not (did
+# not?) remove the temporary output directory, thus masking the failure
+# when all objects have distinct names.
+
+mkdir a b c
+
+echo 'int a () { return 0; }' > a/a.c
+echo 'int a2() { return 0; }' > b/a.c
+echo 'int b () { return 0; }' > b/b.c
+echo 'extern int a(), a2(), b(); int c() { return a() + a2() + b(); }' > c.c
+echo 'extern int c(); int main() { return c(); }' > main.c
+
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c a/a.c -o a/a.lo
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c b/a.c -o b/a.lo
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c b/b.c -o b/b.lo
+$LIBTOOL --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS -c c.c
+$CC $CPPFLAGS $CFLAGS -c main.c
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o a/liba.la a/a.lo
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o b/liba.la b/a.lo b/b.lo
+
+# Fold into convenience archive.
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -no-undefined -o libcee.la c.lo a/liba.la b/liba.la],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT ./libcee.la],
+	 [0], [ignore], [ignore])
+LT_AT_EXEC_CHECK([./main],[0],[ignore],[ignore])
+$LIBTOOL --mode=clean rm -f libcee.la
+
+
+# FIXME: For this test, we may want to zero out whole_archive_flag_spec;
+#        OTOH, we'd like to test the other situation, too.
+
+# Fold into static library.
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -no-undefined -rpath /foo -static -o libcee.la c.lo a/liba.la b/liba.la],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT ./libcee.la],
+	 [0], [ignore], [ignore])
+LT_AT_EXEC_CHECK([./main],[0],[ignore],[ignore])
+$LIBTOOL --mode=clean rm -f libcee.la
+
+# Fold into library.
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -no-undefined -rpath /foo -o libcee.la c.lo a/liba.la b/liba.la],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT ./libcee.la],
+	 [0], [ignore], [ignore])
+LT_AT_EXEC_CHECK([./main],[0],[ignore],[ignore])
+$LIBTOOL --mode=clean rm -f libcee.la
+
+AT_CHECK([test false = "$reload_cmds" && exit 77], [1])
+
+# Test whether this works with reloadable objects as well.
+AT_CHECK([$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o cee.$OBJEXT c.lo a/liba.la b/liba.la],
+	 [0], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT cee.$OBJEXT],
+	 [0], [ignore], [ignore])
+LT_AT_EXEC_CHECK([./main],[0],[ignore],[ignore])
+
+# TODO: test dlpreloading of duplicates (when it is implemented)
+
+AT_CLEANUP

@@ -1,0 +1,80 @@
+# no-executables.at -- Libtool usage in GCC        -*- Autotest -*-
+
+#   Copyright (C) 2008, 2010-2019, 2021-2022 Free Software Foundation,
+#   Inc.
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([Libtool usage in GCC])
+AT_SETUP([AC_NO_EXECUTABLES])
+
+mkdir m4
+
+AT_DATA([configure.ac],
+[[AC_INIT([no-exec], [1])
+AC_CONFIG_MACRO_DIRS([m4])
+
+# We punt a bit here, to get the results of AC_PROG_CC
+# (and allow it to do link tests) but still error out on
+# link tests within Libtool macros.
+LDFLAGS=-lnosuchlibrary
+AC_NO_EXECUTABLES
+AC_PROG_CC
+AC_PROG_CXX
+AC_PROG_F77
+AC_PROG_FC
+AM_PROG_GCJ
+
+# Consequently, we have to set cache variables for each link
+# test we may need.  For the purposes of this test, it shouldn't
+# matter much whether these values are actually wrong, the point
+# is that the linker should never be invoked.
+
+lt_cv_shlibpath_overrides_runpath=no
+lt_cv_archive_cmds_need_lc=no
+lt_cv_cc_needs_belf=no
+lt_cv_ld_exported_symbols_list=no
+lt_cv_prog_compiler_static_works=no
+lt_cv_aix_libpath=/usr/lib:/lib
+lt_cv_irix_exported_symbol=yes
+
+# Deal with AC_LIBTOOL_DLOPEN in one of two possible ways:
+# - do not execute it at all in the ac_no_link case
+# - preset the individual Autoconf test variables
+
+if ${test_ac_libtool_dlopen-false}; then
+    ac_cv_func_shl_load=no
+    ac_cv_lib_dld_shl_load=no
+    ac_cv_func_dlopen=no
+    ac_cv_lib_dl_dlopen=no
+    ac_cv_lib_svld_dlopen=no
+    ac_cv_lib_dld_dld_link=no
+  AC_LIBTOOL_DLOPEN
+fi
+AC_PROG_LIBTOOL
+
+AC_OUTPUT
+]])
+
+LT_AT_BOOTSTRAP([--install], [-I m4], [ignore], [ignore], [], [ignore], [ignore])
+LT_AT_CONFIGURE([])
+LT_AT_CONFIGURE([test_ac_libtool_dlopen=:])
+
+AT_CLEANUP

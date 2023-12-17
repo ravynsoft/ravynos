@@ -1,0 +1,77 @@
+# duplicate_deps.at -- preserve duplicate convenience deps    -*- Autotest -*-
+
+#   Copyright (C) 2006-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2006
+$
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([preserve duplicate convenience deps])
+AT_KEYWORDS([libtool])
+
+# --preserve-dup-deps should work for convenience archives.
+
+# Create a circular dependency of liba and libb:
+# a1 pulls in b1, that pulls in a2.
+cat >a1.c <<\EOF
+extern int b1 ();
+int a1 () { return b1 (); }
+EOF
+cat >a2.c <<\EOF
+int a2 () { return 0; }
+EOF
+cat >b1.c <<\EOF
+extern int a2 ();
+int b1 () { return a2 (); }
+EOF
+cat >main.c <<\EOF
+extern int a1 ();
+int main () { return a1 (); }
+EOF
+
+for file in a1.c a2.c b1.c; do
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c $file
+done
+$CC $CPPFLAGS $CFLAGS -c main.c
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o liba.la a1.lo a2.lo
+
+# This could be worked around by adding liba.la to libb.la
+# (in that case all objects from liba would be merged into
+# libb.a as well, possibly renamed.)
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libb.la b1.lo liba.la
+AT_CHECK([$LIBTOOL --mode=link --tag=CC \
+	  $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT liba.la libb.la],
+	  [0], [ignore], [ignore])
+LT_AT_EXEC_CHECK([./main])
+
+# Forgo the workaround and create a true circular dependency.
+$LIBTOOL --mode=link --tag=CC $CC $CFLAGS $LDFLAGS -o libb.la b1.lo
+# Some systems find all symbols anyway; skip this test on such systems.
+AT_CHECK([$LIBTOOL --mode=link --tag=CC \
+	  $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT liba.la libb.la liba.la \
+	  && exit 77],
+	  [1], [ignore], [ignore])
+# Other systems need special treatment, which currently fails.
+AT_XFAIL_IF([:])
+AT_CHECK([$LIBTOOL --mode=link --preserve-dup-deps --tag=CC \
+	  $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT liba.la libb.la liba.la],
+	  [0], [ignore], [ignore])
+
+AT_CLEANUP

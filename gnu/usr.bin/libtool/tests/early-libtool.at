@@ -1,0 +1,230 @@
+# early-libtool.at -- early libtool script generation         -*- Autotest -*-
+
+#   Copyright (C) 2005-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2005
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([libtool script generation.])
+
+
+## --------------------------------------------- ##
+## Building libtool normally from config.status. ##
+## --------------------------------------------- ##
+
+AT_SETUP([config.status])
+
+AT_DATA([configure.ac],
+[[AC_INIT([libtool-demo], ]]AT_PACKAGE_VERSION[[, ]]AT_PACKAGE_BUGREPORT[[)
+AC_CONFIG_MACRO_DIRS([m4])
+LT_INIT
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.in],
+[[prefix = @prefix@
+libdir = @libdir@
+top_builddir = .
+SHELL = @SHELL@
+DEFAULT_INCLUDES = -I. -I@srcdir@
+EXEEXT = @EXEEXT@
+LIBTOOL = @LIBTOOL@
+OBJEXT = @OBJEXT@
+
+CPPFLAGS = @CPPFLAGS@
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@
+
+COMPILE = $(CC) $(CPPFLAGS) $(CFLAGS) $(DEFAULT_INCLUDES)
+LTCOMPILE = $(LIBTOOL) --mode=compile --tag=CC $(CC) $(CPPFLAGS) $(CFLAGS) $(DEFAULT_INCLUDES)
+LINK = $(LIBTOOL) --mode=link --tag=CC $(CC) $(CFLAGS) $(LDFLAGS) -o $@
+
+all: hell$(EXEEXT)
+
+libhello.la: hello.lo
+	$(LINK) -rpath $(libdir) hello.lo
+hell$(EXEEXT): main.$(OBJEXT) libhello.la
+	$(LINK) main.$(OBJEXT) libhello.la
+
+.SUFFIXES:
+.SUFFIXES: .c .$(OBJEXT) .lo
+
+.c.$(OBJEXT):
+	$(COMPILE) -c $<
+.c.lo:
+	$(LTCOMPILE) -c -o $@ $<
+]])
+
+AT_DATA([hello.c],
+[[#include <stdio.h>
+
+void
+hello (void)
+{
+  printf ("** This is not GNU Hello.  There is no built-in mail reader. **\n");
+}
+]])
+
+AT_DATA([main.c],
+[[#include <stdio.h>
+
+extern void hello (void);
+
+int
+main (void)
+{
+  printf ("Welcome to GNU Hell!\n");
+
+  hello ();
+
+  return 0;
+}
+]])
+
+cat > missing <<_EOF
+#! /bin/sh
+exit 0
+_EOF
+chmod a+x missing
+
+LT_AT_LIBTOOLIZE([--copy --verbose --install])
+LT_AT_ACLOCAL([-I m4])
+LT_AT_AUTOCONF([--force])
+LT_AT_CONFIGURE
+LT_AT_MAKE
+
+LT_AT_EXEC_CHECK([./hell], [0], [stdout])
+AT_CHECK([$GREP 'Welcome to GNU Hell' stdout], [], [ignore])
+AT_CHECK([$GREP 'This is not GNU Hello.' stdout],
+	 [], [ignore])
+
+AT_CLEANUP
+
+
+## ------------------------------------------ ##
+## Building and using libtool from config.lt. ##
+## ------------------------------------------ ##
+
+AT_SETUP([config.lt])
+
+AT_DATA([configure.ac],
+[[AC_INIT([libtool-demo], ]]AT_PACKAGE_VERSION[[, ]]AT_PACKAGE_BUGREPORT[[)
+AC_CONFIG_MACRO_DIRS([m4])
+LT_INIT
+LT_OUTPUT
+
+cat >hello.c <<\_EOF
+#include <stdio.h>
+
+void
+hello (void)
+{
+  printf ("** This is not GNU Hello.  There is no built-in mail reader. **\n");
+}
+_EOF
+
+# Prove that we can run libtool from inside configure:
+$SHELL ./libtool --mode=compile --tag=CC $CC $CPPFLAGS $CFLAGS \
+    -I. -I$srcdir -c -o hello.lo hello.c  || exit 1
+$SHELL ./libtool --mode=link --tag=CC $CC $CFLAGS $LDFLAGS \
+    -o libhello.la -rpath /notexist hello.lo || exit 1
+
+AC_CONFIG_FILES([Makefile])
+AC_OUTPUT
+]])
+
+AT_DATA([Makefile.in],
+[[prefix = @prefix@
+libdir = @libdir@
+top_builddir = .
+SHELL = @SHELL@
+DEFAULT_INCLUDES = -I. -I@srcdir@
+EXEEXT = @EXEEXT@
+LIBTOOL = @LIBTOOL@
+OBJEXT = @OBJEXT@
+
+CPPFLAGS = @CPPFLAGS@
+CFLAGS = @CFLAGS@
+LDFLAGS = @LDFLAGS@
+
+COMPILE = $(CC) $(CPPFLAGS) $(CFLAGS) $(DEFAULT_INCLUDES)
+LINK = $(LIBTOOL) --mode=link --tag=CC $(CC) $(CFLAGS) $(LDFLAGS) -o $@
+
+all: hell$(EXEEXT)
+
+hell$(EXEEXT): main.$(OBJEXT) libhello.la
+	$(LINK) main.$(OBJEXT) libhello.la
+
+.SUFFIXES:
+.SUFFIXES: .c .$(OBJEXT)
+
+.c.$(OBJEXT):
+	$(COMPILE) -c $<
+]])
+
+AT_DATA([hello.c],
+[[#include <stdio.h>
+
+void
+hello (void)
+{
+  printf ("** This is not GNU Hello.  There is no built-in mail reader. **\n");
+}
+]])
+
+AT_DATA([main.c],
+[[#include <stdio.h>
+
+extern void hello (void);
+
+int
+main (int argc, char *argv[])
+{
+  printf ("Welcome to GNU Hell!\n");
+
+  hello ();
+
+  return 0;
+}
+]])
+
+cat > missing <<_EOF
+#! /bin/sh
+exit 0
+_EOF
+chmod a+x missing
+
+LT_AT_LIBTOOLIZE([--copy --verbose --install])
+LT_AT_ACLOCAL([-I m4])
+LT_AT_AUTOCONF([--force])
+LT_AT_CONFIGURE
+LT_AT_MAKE
+
+LT_AT_EXEC_CHECK([./hell], [0], [stdout])
+AT_CHECK([$GREP 'Welcome to GNU Hell' stdout], [], [ignore])
+AT_CHECK([$GREP 'This is not GNU Hello.' stdout], [], [ignore])
+
+# Make sure config.status --recheck updates the libtool script
+rm libtool
+AT_CHECK([$SHELL ./config.status --recheck],[0],[ignore],[ignore])
+
+AT_CLEANUP

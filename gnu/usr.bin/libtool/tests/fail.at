@@ -1,0 +1,123 @@
+# fail.at -- test that libtool really fail when it should     -*- Autotest -*-
+#
+#   Copyright (C) 2005, 2008-2009, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2005
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+# TODO: many possible failure cases missing.  (But how to simulate a full disk?)
+
+AT_SETUP([Failure tests])
+AT_KEYWORDS([libtool])
+eval `$LIBTOOL --config | $EGREP '^(pic_mode|pic_flag|build_old_libs|build_libtool_libs)='`
+LDFLAGS="$LDFLAGS -no-undefined"
+
+m4_pushdef([FAIL_CHECK],
+[AT_CHECK([if $1; then (exit 1); else :; fi], [0], [ignore], [ignore])
+])
+
+AT_DATA([script],
+[[#! /bin/sh
+exit 0
+]])
+chmod +x script
+if test -x script >/dev/null 2>&1; then
+  test_x="test -x"
+else
+  test_x=:
+fi
+
+# compile failure
+echo 'choke me' > a.c
+FAIL_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c])
+AT_CHECK([test -f a.lo], [1])
+
+# non-PIC compile failure
+case $pic_mode in default | no)
+  case " $CFLAGS " in
+   *\ -prefer-pic\ *) ;;
+   *)
+    case $build_old_libs,$pic_flag in yes,*-DPIC*)
+      AT_DATA([a.c], [[
+#ifndef PIC
+  choke me
+#endif
+]])
+      FAIL_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -no-suppress -c a.c])
+      AT_CHECK([test -f a.lo], [1])
+      ;;
+    esac
+    ;;
+  esac
+  ;;
+esac
+
+# program creation failure.
+# We can't rely on 'main' not being present: the QNX linker
+# won't error out in that case, although the resulting binary won't work.
+# So we provoke a link failure due to an unresolved symbol, and require
+# libtool to fail only if the link without libtool would have failed, too.
+cat > a.c <<'EOF'
+extern int nonexistent_function (void);
+int main (void)
+{
+  return nonexistent_function ();
+}
+EOF
+$CC $CPPFLAGS $CFLAGS -c a.c
+if $CC $CFLAGS $LDFLAGS -o a$EXEEXT a.$OBJEXT; then :; else
+  rm -f a a$EXEEXT
+  FAIL_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o a$EXEEXT a.$OBJEXT])
+  AT_CHECK([{ test -f a && $test_x a; } || { test -f a$EXEEXT && $test_x a$EXEEXT; }], [1])
+  FAIL_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o a$EXEEXT a.$OBJEXT -static])
+  AT_CHECK([{ test -f a && $test_x a; } || { test -f a$EXEEXT && $test_x a$EXEEXT; }], [1])
+fi
+
+# shared library creation failure
+case $build_libtool_libs in yes)
+  echo 'int duplicate_name(void) { return 0; }' > a.c
+  echo 'double duplicate_name(double x) { return 2.*x; }' > b.c
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c b.c
+  # Unfortunately, this may actually succeed on AIX and IRIX  :(
+  # So, also add a bogus object file to provoke more failure.
+  echo 'int whatever(void) { return 0;}' > c.c
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c c.c
+  (
+    . ./c.lo
+    test none = "$pic_object"     || echo choke me >"$pic_object"
+    test none = "$non_pic_object" || echo choke me >"$non_pic_object"
+  )
+  FAIL_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la a.lo b.lo c.lo -rpath /foo])
+  AT_CHECK([test -f liba.la], [1])
+  ;;
+esac
+
+# Ensure we diagnose '-L path'.
+echo 'int main () { return 0; }' > d.c
+echo 'int foo () { return 0; }' > space-after-L.c
+$CC $CPPFLAGS $CFLAGS -c d.c
+$CC $CPPFLAGS $CFLAGS -c space-after-L.c
+FAIL_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -L space-after-L.$OBJEXT -o d$EXEEXT d.$OBJEXT])
+FAIL_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o d$EXEEXT d.$OBJEXT -L])
+
+m4_popdef([FAIL_CHECK])
+AT_CLEANUP

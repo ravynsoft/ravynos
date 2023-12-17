@@ -1,0 +1,143 @@
+# destdir.at -- test various DESTDIR issues                   -*- Autotest -*-
+
+#   Copyright (C) 2006-2007, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2006
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([DESTDIR tests])
+
+# Common setup for the next few tests.
+m4_pushdef([_LT_DIRSETUP],
+[# DESTDIR installs do not work with relink at install time.
+AT_XFAIL_IF([eval `$LIBTOOL --config | $GREP '^fast_install='`
+           case $fast_install in no) :;; *) false;; esac])
+LDFLAGS="$LDFLAGS -no-undefined"
+if test -n "$we_are_on_a_safe_system"; then # let's read shorter cmdlines.
+  DESTDIR=/tmp/dest
+  prefix=/tmp/inst
+  rm -rf $DESTDIR $prefix
+else
+  DESTDIR=`pwd`/dest
+  prefix=`pwd`/inst
+fi
+libdir=$prefix/lib
+bindir=$prefix/bin
+$mkdir_p src $prefix $DESTDIR $DESTDIR$prefix
+eval `$LIBTOOL --config | $EGREP '^(FGREP|OBJDUMP)='`
+])
+
+
+AT_SETUP([Simple DESTDIR install])
+AT_KEYWORDS([libtool])
+
+# A program that depends upon a library, both in the same package.
+_LT_DIRSETUP
+cd src
+echo 'int a() { return 0; }' > a.c
+$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c
+$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la a.lo -rpath $libdir
+echo 'extern int a(); int main() { return a(); }' > m.c
+$CC $CPPFLAGS $CFLAGS -c m.c
+$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m$EXEEXT m.$OBJEXT liba.la
+mkdir $DESTDIR$libdir $DESTDIR$bindir
+AT_CHECK([$LIBTOOL --mode=install cp liba.la $DESTDIR$libdir/liba.la],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp m$EXEEXT $DESTDIR$bindir/m$EXEEXT],
+	 [], [ignore], [ignore])
+$LIBTOOL --mode=clean rm -f liba.la m
+LT_AT_MVDIR(["$DESTDIR$libdir"], ["$libdir"])
+LT_AT_MVDIR(["$DESTDIR$bindir"], ["$bindir"])
+# We ignore failure on purpose here: we may not be root.
+AT_CHECK([$LIBTOOL --mode=finish $libdir], [ignore], [ignore], [ignore])
+LT_AT_EXEC_CHECK([$bindir/m$EXEEXT])
+
+AT_CLEANUP
+
+
+AT_SETUP([DESTDIR with in-package deplibs])
+AT_KEYWORDS([libtool])
+
+# A program that depends upon a library that depends upon another
+# library, all in the same package.  Use two deplibs, one in $libdir
+# and one in another directory.
+_LT_DIRSETUP
+cd src
+echo 'int a1dep() { return 0; }' > a1dep.c
+$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a1dep.c
+$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba1dep.la a1dep.lo -rpath $libdir
+echo 'int a2dep() { return 0; }' > a2dep.c
+$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a2dep.c
+$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba2dep.la a2dep.lo -rpath ${libdir}2
+echo 'extern int a1dep(), a2dep(); int a() { return a1dep() + a2dep(); }' > a.c
+$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c
+$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la a.lo -rpath $libdir liba1dep.la liba2dep.la
+echo 'extern int a(); int main() { return a(); }' > m.c
+$CC $CPPFLAGS $CFLAGS -c m.c
+$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o m$EXEEXT m.$OBJEXT liba.la
+mkdir $DESTDIR$libdir $DESTDIR${libdir}2 $DESTDIR$bindir
+AT_CHECK([$LIBTOOL --mode=install cp liba1dep.la $DESTDIR$libdir/liba1dep.la],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp liba2dep.la $DESTDIR${libdir}2/liba2dep.la],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp liba.la $DESTDIR$libdir/liba.la],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp m$EXEEXT $DESTDIR$bindir/m$EXEEXT],
+	 [], [ignore], [ignore])
+$LIBTOOL --mode=clean rm -f liba1dep.la liba2dep.la liba.la m
+LT_AT_MVDIR(["$DESTDIR$libdir"], ["$libdir"])
+LT_AT_MVDIR(["$DESTDIR${libdir}2"], ["${libdir}2"])
+LT_AT_MVDIR(["$DESTDIR$bindir"], ["$bindir"])
+# We ignore failure on purpose here: we may not be root.
+AT_CHECK([$LIBTOOL --mode=finish $libdir ${libdir}2], [ignore], [ignore], [ignore])
+
+# put false libraries in the DESTDIR paths: if the installed program
+# refers to them, that is a bug.
+mkdir $DESTDIR$libdir $DESTDIR${libdir}2 $DESTDIR$bindir
+for lib in a1dep a2dep a; do
+  case $lib in
+  a2dep) ldir=${libdir}2;;
+  *)     ldir=$libdir;;
+  esac
+  echo "int this_should_not_be_linked_against () { return 0; }" > $lib.c
+  $LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c $lib.c
+  # Note the rpath argument includes $DESTDIR: the installed false libs
+  # should be functional (i.e., not need 'libtool --mode=finish').
+  $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o lib$lib.la $lib.lo -rpath $DESTDIR$ldir
+  $LIBTOOL --mode=install cp lib$lib.la $DESTDIR$ldir/lib$lib.la
+done
+
+LT_AT_EXEC_CHECK([$bindir/m$EXEEXT])
+
+# TODO: make this more portable:
+if test false != "$OBJDUMP" && ($OBJDUMP -p $bindir/m$EXEEXT) >/dev/null 2>&1; then
+  AT_CHECK([$OBJDUMP -p $bindir/m$EXEEXT | $EGREP -i "R(UN)?PATH.*$DESTDIR"], [1])
+  . $libdir/liba.la
+  set x $library_names
+  lname=$2
+  if test -n "$lname"; then
+    AT_CHECK([$OBJDUMP -p $libdir/$lname | $EGREP -i "R(UN)?PATH.*$DESTDIR"], [1])
+  fi
+fi
+
+AT_CLEANUP
+
+m4_popdef([_LT_DIRSETUP])

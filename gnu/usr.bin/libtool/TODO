@@ -1,0 +1,346 @@
+GNU Libtool
+***********
+
+1. In the near future
+=====================
+
+1.1. libtool
+------------
+
+* Rather than looking up the linker's hardcode characteristics in a
+  table of shell code, use objdump or equivalent to probe a test program
+  at configure time.
+
+* Eliminate the warnings from autoconf -Wobsolete.
+
+* Hook the various language dependencies into the autoconf _AC_LANG
+  framework.
+
+* Work out what to do when the dynamic linker loads needed dependencies.
+
+* We could have an option to hardcode paths into libraries, as well as
+  binaries: '... -Wl,-soname -Wl,/tmp/libtest.so.0 ...'.  This is not
+  possible on all platforms, and is in part obviated by the ability of
+  linking libtool libraries specified with -lname, but it might still
+  be desirable.
+
+* Lists of exported symbols should be stored in the pseudo library
+  so that the size of lt_preloaded_symbols can be reduced.
+
+* Have some option to tell libtool not to include -L flags that point
+  into a certain tree in the dependence list of an installed library.
+  For example: -L-$top_builddir would let one link with libtool
+  libraries in sibling subdirectories within a project, using the -L
+  notation, without getting builddir pathnames ever mentioned in .la
+  files that get installed.
+
+* Eric Lemings <elemings@cyberia.lemings.com> writes:
+  Because of a growing number of config scripts for packages in GNOME 1.2
+  (e.g. glib-config, xml-config, orbit-config. etc), development of GNOME
+  2.0 spawned a separate tool called pkg-config that allows all packages
+  to use one tool rather than several different scripts to query compile
+  flags, link flags, and other configuration data.
+
+  The functionality of pkg-config seems to me to have a lot of overlap
+  with the goals of libtool.  I was wondering if anyone had considered
+  adding an eighth mode to libtool that just queries the installed
+  library for the same information that pkg-config provides.  Since
+  most packages that use pkg-config also use libtool, I think this
+  would be a good way to reduce maintainer and developer dependencies.
+
+* Have libtoolize install 'install-sh' if a newer version is available,
+  and/or Automake is not used.
+
+* Allow to specify linking some dependent libraries statically and some
+  dynamically, where possible.
+
+* Improve support for C++ with templates.
+
+* Audit file listing in libtool.m4.
+
+* Fix deplibs_check_method=pass_all (which is wrong!) on GNU/Linux.
+
+* Fix -dlopen "self" on AIX.  Reported by Gary Kumfert <kumfert@llnl.gov>.
+
+* Fix denial of service if using installed 'libtool' on a different mount point
+  together with a compiler that does not understand '-c -o'.
+  Reported by Marcin Siennicki.
+
+* Look at better -no-undefined support, maybe along the idea of
+  [support #103719] for CC.
+
+
+1.2. libltdl
+------------
+
+* Change libltdl interface: add separate functions for function
+  pointers.  This will allow porting to systems where function pointers
+  are incompatible with data pointer C-wise.
+
+* Fix the following bugs in libltdl:
+ - error reporting of tryall_dlopen():
+   if the file actually doesn't exist (stat() fails or it wasn't dlpreopened)
+   -> report 'file not found'
+   if it cannot be loaded (e.g. due to missing dependencies)
+   -> report dlerror
+    open question: what error should be reported if all dlloaders fail
+    or if a specific module type can only be loaded by one of them, how report its dlerror?
+   Also report dlerror() for dlclose and dlsym if available
+ - Make sure that the dependency_libs of a dlpreopened module won't be loaded.
+
+ - Fix mdemo failures on mingw.
+
+ - Fix the last memleak.  Reported by Jeff Squyres <jsquyres@lam-mpi.org>.
+
+ - Fix LTDL_CONVENIENCE.  Reported by Bob Friesenhahn
+   and Patrick Welche <prlw1@newn.cam.ac.uk>.
+
+
+1.3. libtoolize
+---------------
+
+* Rewrite the func_copy_* functions so that instead of forking 2 tar
+  processes per copied file, a list of files to copy is built and all
+  files copied with a single pair of tar processes.
+
+* Write test case that adds libtool macros to aclocal.m4.
+
+
+2. In the future
+================
+
+2.1. Documentation
+------------------
+
+* Need to finalize the documentation, and give a specification of
+  '.la' files so that people can depend on their format.  This would be
+  a good thing to put before the maintainance notes.
+
+* Document the installed 'libtool' and its limitations clearly (maybe implement
+  --disable-script-install as well).  Or, even better, remove its limitations.
+
+* Platform notes redo.
+
+2.2. test suite
+---------------
+
+* Rewrite the whole thing in Autotest.  This will enable us to remove
+  all the tests/*demo noise, and duplication; and thus speed up bootstrap
+  and make writing new tests a whole lot more pleasant.
+
+* We should include tests with reloadable objects in the testsuite.
+
+* Write a test case for linkage with gnu ld scripts (per 2004-08-25 patch
+  from Paolo Bonzini).
+
+* Test everything:
+    - cross compile
+    - dirs with ~
+    - multiple input files
+
+2.3. libtool
+------------
+
+* Fix cross-compiling.
+
+* Fix threads.
+
+* Support multilibbing.
+
+* If not cross-compiling, have the static flag test run the resulting
+  binary to make sure everything works.
+
+* Another form of convenience library is to have undocumented utility
+  libraries, where only the shared version is installed.
+
+* We could use libtool object convenience libraries that resolve
+  symbols to be included in a libtool archive.  This would require some
+  sort of -whole-archive option, as well.
+
+* Currently, convenience libraries (.al) are built from .lo objects,
+  except when --disable-shared.  When we can build both shared and
+  static libraries, we should probably create a .al out of .lo objects
+  and also a .a out of .o objects.  The .al would only be used to create
+  shared libraries, whereas the .a would be used for creating static
+  libraries and programs.  We could also explicitly support 'empty'
+  convenience libraries, that behave as macros that expand to a set of
+  -Rs, -Ls and -ls switches.
+
+* Audit use of object names so we can allow '$' not only within
+  source file names.  Necessary especially for java.
+
+* We could introduce a mechanism to allow for soname rewriting, to
+  ease multi-libc support.  Installers could specify a prefix, suffix or
+  sed command to modify the soname, and libtool would create the
+  corresponding link.  This would allow for rebuilding a library with
+  the same version number, but depending on different versions of libc,
+  for example.  In the future, we might even have an option to encode
+  the sonames of all dependencies of a library into its soname.
+
+* Look again at a binary C libtool, or byte-compiled libtool to improve
+  speed.
+
+* Generate some "platform specific" shell functions with config.status,
+  for example, there is no need to have the C source code for the
+  wrapper script on non-windows platforms, this will make the generated
+  libtool script smaller and easier to follow, maybe a little faster
+  too?
+
+* Audit the GCJ tag section in libtool.m4.
+
+* Add caching mechanism.  Look at 'libtool-cache' from Robert Ögren.
+
+
+2.4. libtool autoconf macros
+----------------------------
+
+* Sort out the macro mess in libtool.m4.  We've started this already
+  by refactoring chunks into separate files, but I never did completely
+  untangle the mess of macros imported from ltconfig.
+
+* The definitions for LT_SYS_MODULE_EXT, LT_SYS_MODULE_PATH and
+  LT_SYS_DLSEARCH_PATH  should not rely on the _LT_SYS_DYNAMIC_LINKER
+  macro.  This involves moving the code that sets the variables
+  library_names_spec, shlibpath_var and sys_lib_dlsearch_path_spec from
+  into a separate macro, and AC_REQUIRING the newly extracted macro in the
+  respective ltdl.m4 macros.
+
+2.5. libtool automake integration
+---------------------------------
+
+* Unify locks between libtool and compile.
+
+* Fix relinking.
+
+2.6. libltdl
+------------
+
+* Finish the rewrite of the core libltdl.  The loaders are fine, and
+  the outlying code is now good.  Ralf is starting to pick away at a lot
+  of the remaining nasties already, but the code for finding .la/.so files
+  and reading/loading them could use a lot more improvement.
+
+* I think we could factor out a little path management support module
+  from existing libltdl.  This would be useful for M4 at least -- keeping
+  track of FOO_PATH environment contents, searching for files in paths
+  etc.
+
+* Try to find a work-around for -[all-]static and libltdl on platforms
+  that will fail to find dlopening functions in this case.  Maybe
+  creating an alternate libltdl that provides only for dlpreopening, or
+  creating an additional static library to provide dummy implementations
+  of the functions that can't be linked statically.  This could hardly
+  be made completely transparent, though.
+
+* In conjunction with above, fix the failures on *BSD when linked to
+  static libc.  Reported by Guilhem Lavaux <guilhem@kaffe.org>.
+
+* Add i18n strings to libltdl, ensuring that package developers can
+  ignore any i18n when they libtoolize.
+
+2.7. win32 support
+------------------
+
+* Arrange that EXEEXT suffixes are stripped from wrapper script names
+  only when needed, and that a timestamp file or a wrapper program is
+  created with the EXEEXT suffix, so that 'make' doesn't build it every
+  time.
+
+* Figure out how to use data items in dlls with win32.
+  The difficult part is compiling each object that will be linked with an
+  import lib differently than if it will be linked with a static lib.  This
+  will almost definitely require that automake pass some hints about linkage
+  in to each object compilation line.
+
+* jeffdb@goodnet.com writes:
+  all you need to do for mutually dependent .dll's is to create an implib from
+  a .def file so it appears that we might need to detect and handle mutual
+  dependencies specially on win32 =(O|
+
+* QoI for file name and path conversion functions. Currently, these are
+  implemented as MxN different functions; this has quadratic complexity. If
+  possible, it would be preferred to implement then as M+N functions.  However:
+    http://lists.gnu.org/archive/html/libtool-patches/2010-08/msg00224.html
+    The main issue is you don't know what the "native" (e.g. "central")
+    path-type is; e.g. "from-X (to what?)" and "(from what?) to-Y". Right
+    now there are only four "platforms" involved: *nix, mingw, msys, and
+    cygwin.  That's actually the break-even point, given the vagaries and
+    optimizations involved in these particular four platforms.
+
+    We have exactly five basic file name conversion functions (not counting
+    the wrappers that handle paths). For a non-quadratic M+N (from-X|to-Y)
+    solution, we'd need, I think, the same number of conversion functions: brute
+    force suggests nine (four to_*, four from_*, plus the noop), but then many
+    of the from_* and to_* would actually BE noop.
+
+    I'm assuming here that the "central" path-type is implicitly some sort of
+    unixish -- maybe cyg, maybe msys, maybe unix -- path-type.  The issue is
+    that each of the five conversion functions use a different TOOL to perform
+    the conversion, with different syntax.  So, trying to combine, e.g.
+      msys_to_mingw
+      cygwin_to_mingw
+      unix_to_mingw
+    into an all-encompassing "central_unixish_to_mingw" would require additional
+    m4 magic to basically replace the guts depending on whether $build was msys,
+    cygwin, or unix.  Worse, you can't really do a set of
+    {msys|cygwin|unix}_to_central_unixish that isn't simply a no-op -- because
+    (A) they already are all unixish, and (B) what tool would you use? How would
+    the later to_mingw function "know" how to covert this new representation to
+    mingw.  So, {msys|cygwin|unix}_to_central_unixish would simply be a no-op
+    and central_unixish_to_mingw would still do all the work (with its guts
+    customized based on $build).
+
+    For more reasonable cross environments (e.g. linux-gnu->some_embedded) I
+    think you could probably work out a general M+N scheme, since most embedded
+    $hosts aren't as strange as the win32 variants -- even VxWorks and INTEGRITY
+    have basic, unix-like file systems (although INTEGRITY does have multiple
+    roots). Aggressive use of the m4 function_replace machinery WOULD be
+    appropriate for /these/ conversion functions.  OTOH...(a) you can't run the
+    $host apps on $build anyway, in these embedded situations. At best you'd use
+    $TARGETSHELL and "run" them via a remote connection, and (b) they don't use
+    the C wrapper!
+
+    So...I don't think it makes much difference *right now* in the amount of
+    code required, or the number of functions implemented. At some point in the
+    future we might want to generalize to an M+N scheme.  For the existing win32
+    $hosts, all of the funtionality would be on "one side" of the 2-step
+    conversion; the "other side" would be noop.  But we won't worry about the
+    implicit quadratic complexity of the existing scheme for now.
+
+3. Wish List
+============
+
+* Maybe implement full support for other orthogonal library types
+  (libhello_g, libhello_p, 64 vs 32-bit ABI's, etc).  Make these types
+  configurable.
+
+* Perhaps the use of libltdl could be made cleaner by allowing
+  registration of hook functions to call at various points.  This would
+  hopefully free the user from having to maintain a parallel module
+  list with user data.  This would likely involve being able to carry
+  additional per user module data in the lt_dlmodule structure -- perhaps
+  in the form of an associative array keyed by user name?
+
+* Figure out how to make pkg-config aware of the information libtool
+  knows about libraries and their dependencies, and send a patch.
+
+* Generate a libtool.m4 from a bunch of individual files, one per
+  platform, to make the job of a "platform maintainer" easier and make
+  it easier to add new platforms.
+
+-- 
+  Copyright (C) 2004-2005, 2007-2008, 2011-2019, 2021-2022 Free Software
+  Foundation, Inc.
+  Written by Gary V. Vaughan, 2004
+
+  This file is part of GNU Libtool.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.  This file is offered as-is,
+without warranty of any kind.
+
+Local Variables:
+mode: text
+fill-column: 72
+End:

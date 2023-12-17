@@ -1,0 +1,269 @@
+# loadlibrary.at -- test loadlibrary functionality          -*- Autotest -*-
+#
+#   Copyright (C) 2010-2019, 2021-2022 Free Software Foundation, Inc.
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([loadlibrary error messages])
+AT_KEYWORDS([libltdl])
+
+eval "`$LIBTOOL --config | $EGREP '^(objdir)='`"
+
+AT_DATA([main.c],
+[[#include <ltdl.h>
+#include <stdio.h>
+
+static int
+standard_error_message(const char *error)
+{
+  int error_number;
+
+  for (error_number = 0; error_number < LT_ERROR_MAX; ++error_number)
+    {
+      lt_dlseterror (error_number);
+      if (error == lt_dlerror ())
+	{
+	  return 1;
+	}
+    }
+
+  lt_dlseterror (LT_ERROR_UNKNOWN);
+  return 0;
+}
+
+int
+main (int argc, char* argv[])
+{
+  int err = 0;
+  lt_dlhandle module = NULL;
+  const lt_dlvtable *loadlibrary;
+  const lt_dlvtable *preopen;
+  lt_dlloader loader = NULL;
+  lt_dlloader next;
+  const lt_dlvtable *vtable;
+  void *symbol;
+  const char *error;
+
+  if (argc < 2)
+    {
+      fprintf (stderr, "usage: %s plugin [symbol]\n", argv[0]);
+      return 1;
+    }
+
+  lt_dlinit ();
+
+  loadlibrary = lt_dlloader_find ("lt_loadlibrary");
+  if (!loadlibrary)
+    {
+      /* Skip if the loadlibrary loader isn't supported */
+      printf ("loadlibrary loader not found\n");
+      err = 77;
+      goto cleanup;
+    }
+
+  preopen = lt_dlloader_find ("lt_preopen");
+  if (!loadlibrary)
+    {
+      printf ("preopen loader not found\n");
+      err = 2;
+      goto cleanup;
+    }
+
+  /* Remove all loaders except the preopen and loadlibrary loaders. */
+  while (next = lt_dlloader_next (loader))
+    {
+      if (lt_dlloader_get (next) == loadlibrary)
+	{
+	  loader = next;
+	  continue;
+	}
+
+      if (lt_dlloader_get (next) == preopen)
+	{
+	  loader = next;
+	  continue;
+	}
+
+      lt_dlloader_remove (lt_dlloader_get (next)->name);
+    }
+
+  module = lt_dlopen (argv[1]);
+  error = lt_dlerror ();
+
+  if (module)
+    {
+      printf ("lt_dlopen: success!\n");
+
+      if (argc == 2)
+	{
+	  /* But failure was the desired result... */
+	  printf ("expected failure\n");
+	  err = 2;
+	  goto cleanup;
+	}
+    }
+  else if (argc > 2)
+    {
+      /* Didn't expect failure... */
+      printf ("lt_dlopen: failure: %s\n", error);
+      err = 2;
+      goto cleanup;
+    }
+  else if (standard_error_message (error))
+    {
+      /* Expected custom error message... */
+      printf ("lt_dlopen: standard error (bad): %s\n", error);
+      err = 1;
+      goto cleanup;
+    }
+  else
+    {
+      printf ("lt_dlopen: custom error (good): %s\n", error);
+      goto cleanup;
+    }
+
+  symbol = lt_dlsym (module, argv[2]);
+  error = lt_dlerror ();
+
+  if (symbol)
+    {
+      printf ("lt_dlsym: success!\n");
+    }
+  else if (standard_error_message (error))
+    {
+      /* Expected custom failure message... */
+      printf ("lt_dlsym: standard error (bad): %s\n", error);
+      err = 1;
+    }
+  else
+    {
+      printf ("lt_dlsym: custom error (good): %s\n", error);
+    }
+
+cleanup:
+  if (module)
+    {
+      lt_dlclose (module);
+    }
+  lt_dlexit ();
+  return err;
+}
+]])
+
+AT_DATA([foomod.c],
+[[
+#ifdef __cplusplus
+extern "C"
+#endif
+int foosym (void);
+int
+foosym (void)
+{
+  return 0;
+}
+]])
+
+AT_DATA([bardep.c],
+[[
+#ifdef __cplusplus
+extern "C"
+#endif
+int bardep (void);
+int
+bardep (void)
+{
+  return 0;
+}
+]])
+
+AT_DATA([barmod.c],
+[[
+#ifdef __cplusplus
+extern "C" {
+#endif
+int bardep (void);
+int barsym (void);
+#ifdef __cplusplus
+}
+#endif
+int
+barsym (void)
+{
+  return bardep ();
+}
+]])
+
+: ${LTDLINCL="-I$abs_top_srcdir/libltdl"}
+: ${LIBLTDL="$abs_builddir/../libltdl/libltdlc.la"}
+
+# Skip this test when called from:
+#    make distcheck DISTCHECK_CONFIGURE_FLAGS=--disable-ltdl-install
+AT_CHECK([case $LIBLTDL in #(
+ */_inst/lib/*) test -f "$LIBLTDL" || (exit 77) ;;
+esac], [], [ignore])
+
+CPPFLAGS="$LTDLINCL $CPPFLAGS"
+inst=`pwd`/inst
+libdir=$inst/lib
+
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c main.c], [], [ignore], [ignore])
+for file in foomod.c bardep.c barmod.c; do
+  AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c $file],
+	   [], [ignore], [ignore])
+done
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o foomod.la ]dnl
+	 [-rpath $libdir -module -avoid-version -no-undefined ]dnl
+	 [foomod.lo],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o libbardep.la ]dnl
+	 [-rpath $libdir -avoid-version -no-undefined ]dnl
+	 [bardep.lo],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o barmod.la ]dnl
+	 [-rpath $libdir -module -avoid-version -no-undefined ]dnl
+	 [barmod.lo ./libbardep.la],
+	 [], [ignore], [ignore])
+
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT ]dnl
+	 [main.$OBJEXT $LIBLTDL],
+	 [], [ignore], [ignore])
+
+. ./foomod.la
+AT_CHECK([test -n "$dlname" || (exit 77)])
+
+LT_AT_EXEC_CHECK([./main], [], [ignore], [ignore], [./foomod.la no_symbol])
+
+#   chmod -x doesn't appear to work in MSYS, and Wine can load no-exec dlls.
+dnl chmod -x $objdir/$dlname
+dnl LT_AT_EXEC_CHECK([./main], [], [ignore], [ignore], [./foomod.la])
+
+rm -f $objdir/$dlname
+LT_AT_EXEC_CHECK([./main], [], [ignore], [ignore], [./foomod.la])
+
+LT_AT_EXEC_CHECK([./main], [], [ignore], [ignore], [./barmod.la no_symbol])
+
+. ./libbardep.la
+#   chmod -x doesn't appear to work in MSYS, and Wine can load no-exec dlls.
+dnl chmod -x $objdir/$dlname
+dnl LT_AT_EXEC_CHECK([./main], [], [ignore], [ignore], [./barmod.la])
+
+rm -f $objdir/$dlname
+LT_AT_EXEC_CHECK([./main], [], [ignore], [ignore], [./barmod.la])
+
+AT_CLEANUP

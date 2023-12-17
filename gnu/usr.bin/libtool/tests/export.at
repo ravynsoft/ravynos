@@ -1,0 +1,198 @@
+# export.at -- test symbol exports                           -*- Autotest -*-
+
+#   Copyright (C) 2007-2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Ralf Wildenhues, 2007
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([Export test])
+AT_KEYWORDS([libtool])
+
+AT_CHECK([$LIBTOOL --features | $GREP 'disable shared libraries' && (exit 77)],
+	 [1], [ignore])
+AT_CHECK([eval `$LIBTOOL --config | $SED -n '/^archive_expsym_cmds=/,/^$/p'`
+	  test -n "$archive_expsym_cmds" || echo false >can-hide
+	  case $archive_expsym_cmds in
+	  *-retain-symbols-file*) echo false >can-hide ;;
+	  esac])
+can_hide=:
+test -s can-hide && can_hide=false
+
+LDFLAGS="$LDFLAGS -no-undefined"
+libdir=`pwd`/inst/lib
+mkdir inst inst/lib
+
+AT_DATA(a.c,
+[[/* all kinds of data items */
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+int v1;
+static int v2;
+int v3 = 0;
+int v4 = 1;
+extern const int v5, v6;
+extern const char *v7;
+extern const char v8[];
+extern int (*const v12) (void);
+const int v5 = 0;
+const int v6 = 1;
+const char* v7 = "\01foo";
+const char v8[] = "\01bar";
+int v9(void) { return v2 + 1; }
+int (*v10) (void);
+int (*v11) (void) = v9;
+int (*const v12) (void) = v9;
+
+typedef struct { int arr[1000]; } large;
+large v13;
+large v14 = { { 0 } };
+large v15 = { { 1 } };
+
+int w1 (void) { return 0; }
+
+#ifdef __cplusplus
+}
+#endif
+]])
+
+AT_DATA(asyms,
+[[v1
+v3
+v4
+v5
+v6
+v7
+v8
+v9
+v10
+v11
+v12
+v13
+v14
+v15
+]])
+
+AT_DATA(main.c,
+[[
+/* w32 fun.  With GCC, you can have auto-import, which will work for
+ * functions and non-const variables.  With MSVC, you have to explicitly
+ * import all variables.  Depending on the amount of portability, you
+ * need these annotations: LIBA_SCOPE for GCC, and also LIBA_SCOPE_VAR
+ * for MSVC.  Of course you can merge both to one, this test only avoids
+ * that in order to expose the auto-import feature on Cygwin.
+ *
+ * For users, it's best to realize that they should not provide any
+ * non-function API at all.
+ */
+#if defined LIBA_DLL_IMPORT
+#  if defined _WIN32 || defined WIN32 || defined __CYGWIN__
+#    define LIBA_SCOPE extern __declspec(dllimport)
+#    if defined _MSC_VER
+#      define LIBA_SCOPE_VAR LIBA_SCOPE
+#    endif
+#  endif
+#endif
+#if !defined LIBA_SCOPE
+#  define LIBA_SCOPE extern
+#endif
+#if !defined LIBA_SCOPE_VAR
+#  define LIBA_SCOPE_VAR extern
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+LIBA_SCOPE_VAR int v1;
+LIBA_SCOPE_VAR int v3, v4;
+LIBA_SCOPE const int v5, v6;
+LIBA_SCOPE_VAR const char* v7;
+LIBA_SCOPE_VAR const char v8[];
+extern int v9(void);
+LIBA_SCOPE_VAR int (*v10) (void);
+LIBA_SCOPE_VAR int (*v11) (void);
+LIBA_SCOPE int (*const v12) (void);
+#ifdef __cplusplus
+}
+#endif
+
+typedef struct { int arr[1000]; } large;
+LIBA_SCOPE_VAR large v13, v14, v15;
+
+int main (void)
+{
+  char s = v7[0] + v8[0];
+  return s + v1 + v3 + v4 + v5 + v6 + v9() + v11() + v12()
+	   + v13.arr[0] + v14.arr[0] + v15.arr[0]
+           - 8;
+}
+]])
+
+AT_DATA([broken.c],
+[[
+/* these symbols should not be exported */
+#ifdef __cplusplus
+extern "C" {
+#endif
+extern int w1 (void);
+#ifdef __cplusplus
+}
+#endif
+int main (void)
+{
+  return w1 ();
+}
+]])
+
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c a.c],[0],[ignore],[ignore])
+AT_CHECK([$CC $CPPFLAGS -DLIBA_DLL_IMPORT $CFLAGS -c main.c],[0],[ignore],[ignore])
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c broken.c],[0],[ignore],[ignore])
+
+for exportsyms in '' '-export-symbols-regex "v.*"' '-export-symbols asyms'
+do
+  # case 1: shared library built from object.
+  LT_AT_CHECK([eval '$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la a.lo \
+	       -rpath $libdir' $exportsyms], [], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT liba.la],
+	   [], [ignore], [ignore])
+  LT_AT_EXEC_CHECK([./main])
+  if test -n "$exportsyms" && $can_hide; then
+    AT_CHECK([if $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o broken$EXEEXT broken.$OBJEXT liba.la
+	      then (exit 1); else :; fi], [], [ignore], [ignore])
+  fi
+
+  # case 2: shared library built from convenience archive.
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o libconv.la a.lo],
+	   [], [ignore], [ignore])
+  LT_AT_CHECK([eval '$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o liba.la libconv.la \
+	       -rpath $libdir' $exportsyms], [], [ignore], [ignore])
+  AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o main$EXEEXT main.$OBJEXT liba.la],
+	   [], [ignore], [ignore])
+  LT_AT_EXEC_CHECK([./main])
+  if test -n "$exportsyms" && $can_hide; then
+    AT_CHECK([if $LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o broken$EXEEXT broken.$OBJEXT liba.la
+	      then (exit 1); else :; fi], [], [ignore], [ignore])
+  fi
+done
+
+AT_CHECK([$can_hide || (exit 77)])
+
+AT_CLEANUP

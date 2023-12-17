@@ -1,0 +1,251 @@
+# lt_dlopenext.at -- test libltdl functionality             -*- Autotest -*-
+#
+#   Copyright (C) 2009-2019, 2021-2022 Free Software Foundation, Inc.
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_SETUP([lt_dlopenext error messages])
+AT_KEYWORDS([libltdl])
+
+# This test requires shared library support.
+AT_CHECK([$LIBTOOL --features | $GREP 'enable shared libraries' || exit 77],
+	 [], [ignore])
+
+prefix=`pwd`/inst
+libdir=$prefix/lib
+bindir=$prefix/bin
+mkdir $prefix $libdir $bindir
+
+# This code is copied from the Autobook:
+# <http://sources.redhat.com/autobook/autobook/autobook_169.html>
+# so if it needs changes, be sure to notify the Autobook authors
+# about them.
+
+AT_DATA([simple-module.c],
+[[
+#include <stdio.h>
+
+#ifdef __cplusplus
+extern "C"
+#endif
+int
+run (const char *argument)
+{
+  printf ("Hello, %s!\n", argument);
+  return 0;
+}
+]])
+
+AT_DATA([ltdl-loader.c],
+[[
+#include <stdio.h>
+#include <stdlib.h>
+#ifndef EXIT_FAILURE
+#  define EXIT_FAILURE        1
+#  define EXIT_SUCCESS        0
+#endif
+
+#include <limits.h>
+#ifndef PATH_MAX
+#  define PATH_MAX 255
+#endif
+
+#include <string.h>
+#include <ltdl.h>
+
+#ifndef MODULE_PATH_ENV
+#  define MODULE_PATH_ENV        "MODULE_PATH"
+#endif
+
+typedef int entrypoint (const char *argument);
+
+/* Save and return a copy of the dlerror() error  message,
+   since the next API call may overwrite the original. */
+static char *dlerrordup (char *errormsg);
+
+int
+main (int argc, const char *argv[])
+{
+  char *errormsg = NULL;
+  lt_dlhandle module = NULL;
+  entrypoint *run = NULL;
+  int errors = 0;
+
+  if (argc != 3)
+    {
+      fprintf (stderr, "USAGE: main MODULENAME ARGUMENT\n");
+      exit (EXIT_FAILURE);
+    }
+
+  /* Initialise libltdl. */
+  errors = lt_dlinit ();
+
+  /* Set the module search path. */
+  if (!errors)
+    {
+      const char *path = getenv (MODULE_PATH_ENV);
+
+      if (path != NULL)
+        errors = lt_dlsetsearchpath (path);
+    }
+
+  /* Load the module. */
+  if (!errors)
+    module = lt_dlopenext (argv[1]);
+
+  /* Find the entry point. */
+  if (module)
+    {
+      run = (entrypoint *) lt_dlsym (module, "run");
+
+      /* In principle, run might legitimately be NULL, so
+         I don't use run == NULL as an error indicator
+         in general. */
+      errormsg = dlerrordup (errormsg);
+      if (errormsg != NULL)
+        {
+          errors = lt_dlclose (module);
+          module = NULL;
+        }
+    }
+  else
+    errors = 1;
+
+  /* Call the entry point function. */
+  if (!errors)
+    {
+      int result = (*run) (argv[2]);
+      if (result < 0)
+        errormsg = strdup ("module entry point execution failed");
+      else
+        printf ("\t=> %d\n", result);
+    }
+
+  /* Unload the module, now that we are done with it. */
+  if (!errors)
+    errors = lt_dlclose (module);
+
+  if (errors)
+    {
+      /* Diagnose the encountered error. */
+      errormsg = dlerrordup (errormsg);
+
+      if (!errormsg)
+        {
+          fprintf (stderr, "%s: dlerror() failed.\n", argv[0]);
+          return EXIT_FAILURE;
+        }
+    }
+
+  /* Finished with ltdl now. */
+  if (!errors)
+    if (lt_dlexit () != 0)
+      errormsg = dlerrordup (errormsg);
+
+  if (errormsg)
+    {
+      fprintf (stderr, "%s: %s.\n", argv[0], errormsg);
+      free (errormsg);
+      exit (EXIT_FAILURE);
+    }
+
+  return EXIT_SUCCESS;
+}
+
+/* Be careful to save a copy of the error message,
+   since the  next API call may overwrite the original. */
+static char *
+dlerrordup (char *errormsg)
+{
+  char *error = (char *) lt_dlerror ();
+  if (error && !errormsg)
+    errormsg = strdup (error);
+  return errormsg;
+}
+]])
+
+: ${LTDLINCL="-I$abs_top_srcdir/libltdl"}
+: ${LIBLTDL="$abs_builddir/../libltdl/libltdlc.la"}
+
+# Skip this test when called from:
+#    make distcheck DISTCHECK_CONFIGURE_FLAGS=--disable-ltdl-install
+AT_CHECK([case $LIBLTDL in #(
+ */_inst/lib/*) test -f "$LIBLTDL" || (exit 77) ;;
+esac], [], [ignore])
+
+CPPFLAGS="$LTDLINCL $CPPFLAGS"
+LDFLAGS="$LDFLAGS -no-undefined"
+
+AT_CHECK([$LIBTOOL --mode=compile $CC $CPPFLAGS $CFLAGS -c simple-module.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o simple-module.la ]dnl
+	 [simple-module.lo -rpath $libdir -module -avoid-version],
+	 [], [ignore], [ignore])
+AT_CHECK([$CC $CPPFLAGS $CFLAGS -c ltdl-loader.c],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=link $CC $CFLAGS $LDFLAGS -o ltdl-loader$EXEEXT ]dnl
+	 [ltdl-loader.$OBJEXT -dlopen self $LIBLTDL],
+	 [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=install cp simple-module.la $libdir/simple-module.la], [], [ignore], [ignore])
+AT_CHECK([$LIBTOOL --mode=clean rm -f simple-module.la], [], [ignore], [ignore])
+
+# Try finding the module with and without the .la file, with absolute
+# path, relative path, or one of the path variables.  Do not override
+# $PATH for w32, see shlibpath.at for the hacks this requires.
+#
+# Finding the module without the .la file will not work if MODULE_EXT
+# aka. shared_ext is empty.
+
+eval `$LIBTOOL --config | $EGREP '^(shlibpath_var|shrext_cmds)='`
+
+module=no
+eval shared_ext=\"$shrext_cmds\"
+if test -n "$shared_ext"; then
+  have_lafile="with without"
+else
+  have=with
+fi
+
+if test PATH = "$shlibpath_var"; then
+  $unset shlibpath_var || shlibpath_var=
+fi
+
+for lafile in $have_lafile; do
+  if test without = "$lafile"; then
+    rm $libdir/simple-module.la
+  fi
+
+  for dir in inst/lib "$libdir"; do
+    LT_AT_EXEC_CHECK([./ltdl-loader], [], [stdout], [ignore],
+		     [$dir/simple-module World])
+    AT_CHECK([$GREP "Hello, World" stdout], [], [ignore])
+
+    for var in MODULE_PATH LTDL_LIBRARY_PATH $shlibpath_var
+    do
+      eval $var=\$dir
+      export $var
+      LT_AT_EXEC_CHECK([./ltdl-loader], [], [stdout], [ignore],
+		       [simple-module World])
+      AT_CHECK([$GREP "Hello, World" stdout], [], [ignore])
+      $unset $var || eval $var=
+    done
+  done
+done
+
+AT_CLEANUP

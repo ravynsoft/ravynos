@@ -1,0 +1,244 @@
+# libtool.at -- basic libtool operation tests -*- Autotest -*-
+#
+#   Copyright (C) 2003-2005, 2008, 2011-2019, 2021-2022 Free Software
+#   Foundation, Inc.
+#   Written by Gary V. Vaughan, 2003
+#
+#   This file is part of GNU Libtool.
+#
+# GNU Libtool is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License as
+# published by the Free Software Foundation; either version 2 of
+# the License, or (at your option) any later version.
+#
+# GNU Libtool is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with GNU Libtool; see the file COPYING.  If not, a copy
+# can be downloaded from  http://www.gnu.org/licenses/gpl.html,
+# or obtained by writing to the Free Software Foundation, Inc.,
+# 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+####
+
+AT_BANNER([Basic libtool operation.])
+
+
+## ------------------ ##
+## Check help output. ##
+## ------------------ ##
+
+AT_SETUP([check help output])
+
+AT_CHECK([$LIBTOOL --help], [0], [stdout], [stderr])
+AT_CHECK([$GREP '^Usage:' stdout stderr], [0], [ignore])
+
+AT_CHECK([$LIBTOOL --mode=link --help], [0], [stdout], [stderr])
+AT_CHECK([$GREP '^Usage:' stdout stderr], [0], [ignore])
+
+AT_CLEANUP
+
+
+## ------------------- ##
+## No mode diagnostic. ##
+## ------------------- ##
+
+AT_SETUP([diagnose no mode specified])
+
+AT_CHECK([$LIBTOOL], [1], [ignore], [stderr])
+AT_CHECK([$GREP 'you must specify a MODE' stderr], [0], [ignore])
+
+AT_CLEANUP
+
+
+## ----------------------------------- ##
+## Shell meta-characters in filenames. ##
+## ----------------------------------- ##
+
+AT_SETUP([quote shell meta-characters in filenames])
+
+eval `$LIBTOOL --config | $GREP '^wl='`
+
+# Do the torture test.
+for mode in compile link install; do
+
+  # Unfortunately, without an array data type, it is nearly impossible
+  # to protect libtool from metacharacters in filenames.  So, we just
+  # try metacharacters in the options it needs to pass to other programs.
+
+  # preargs and postargs need to go through libtool unmodified.
+  case $mode in
+  compile)
+    preargs="$CC -c"
+    preflag=
+    match_preflag=
+    flag=-DVAR=
+    postargs=foo.c
+    ;;
+
+  link)
+    preargs="$CC -o hell -g -O"
+    preflag=-Wl,
+    match_preflag=$wl
+    flag=-someflag=
+    postargs=foo.o
+    ;;
+
+  install)
+    preargs="install -c"
+    preflag=
+    match_preflag=
+    flag=--something=
+    postargs="hell /usr/local/bin/hell"
+    ;;
+  esac
+
+
+  # Trivial...
+
+  AT_CHECK([$LIBTOOL -n --mode=$mode $preargs $preflag"$flag:test" $postargs],
+	   [0], [stdout])
+  # We must not attempt to match $preargs in the output, because libtool
+  # may modify them.  For example, on Cygwin, 'libtool --mode=link gcc -o
+  # foo foo.o'  becomes 'gcc -o foo.exe foo.o'.
+  AT_CHECK([$GREP "$mode:.*$match_preflag$flag:test " stdout], [0], [ignore])
+
+
+  # Non-trivial...
+
+  # Backslash needs to be double-escaped: one escape is stripped as the shell
+  # collects arguments for grep (\\\\\\\\ => \\\\), and then another escape
+  # is stripped by grep itself (\\\\ => \\) before the resulting expression is
+  # matched (grepping for \\ matches \):
+  AT_CHECK([$LIBTOOL -n --mode=$mode $preargs $preflag"$flag\\:test\\" $postargs],
+	   [0], [stdout])
+  # NOTE: we use "..."'"'"..." to insert a literal quote into the expression
+  #       because "...\"..." is not expanded consistently by all shells.
+  AT_CHECK([$GREP "$mode:.*$match_preflag"'"\{0,1\}'"$flag\\\\\\\\:test\\\\\\\\"'"\{0,1\} ' stdout],
+	      [0], [ignore])
+
+  # Shell metacharacters that should be backslashified by libtool.
+  for mchar in \" \` \$; do
+    AT_CHECK([$LIBTOOL -n --mode=$mode $preargs $preflag"$flag$mchar:test$mchar" $postargs],
+	     [0], [stdout])
+    AT_CHECK([$GREP "$mode:.*$match_preflag"'"'"\{0,1\}$flag\\\\$mchar:test\\\\$mchar"'"'"\{0,1\} " stdout], [0], [ignore])
+  done
+
+  # Shell metacharacters that should be double quoted by libtool, and need
+  # backslash escaping for input to grep.
+  for mchar in "@<:@" "@:>@" "^" "*"; do
+
+    AT_CHECK([$LIBTOOL -n --mode=$mode $preargs $preflag"$flag$mchar:test$mchar" $postargs],
+	     [0], [stdout])
+    AT_CHECK([$GREP "$mode:.*$match_preflag\"$flag\\$mchar:test\\$mchar\" " stdout], [0], [ignore])
+  done
+
+  # Metacharacters that should be double quoted by libtool, but which are
+  # not special to grep (NOTE: Some of these ARE special to $EGREP!!).
+  for mchar in "~" "#" "&" "(" ")" "{" "}" "|" ";" "<" ">" "?" "'" " " "	"; do
+
+    AT_CHECK([$LIBTOOL -n --mode=$mode $preargs $preflag"$flag$mchar:test$mchar" $postargs],
+	     [0], [stdout])
+    AT_CHECK([$GREP "$mode:.*$match_preflag\"$flag$mchar:test$mchar\" " stdout], [0], [ignore])
+  done
+done
+
+AT_CLEANUP
+
+
+## -------------------------- ##
+## Transform source suffices. ##
+## -------------------------- ##
+
+AT_SETUP([transform source suffices])
+
+# Extensions taken from the ones that Automake recognizes, plus Objective C,
+# and GNU Ada.  Also test that multiple dots are handled correctly.
+extensions="C F S ada adb ads asm c c++ cc cpp cxx f f90 F90 f95 F95 f03 F03 for go m s sx ada.ada"
+bad_names=foo.
+
+for ext in $extensions; do
+  # Try a sample compile command.
+  AT_CHECK([$LIBTOOL -n --mode=compile compiler -c foo.$ext],
+           [1], [ignore], [stderr])
+  AT_CHECK([$GREP 'cannot' stderr], [1], [ignore])
+done
+
+# Make sure that invalid suffixes are not recognized.
+for name in $bad_names; do
+  AT_CHECK([$LIBTOOL -n --mode=compile compiler -c $name],
+           [1], [ignore], [stderr])
+  AT_CHECK([$GREP 'cannot' stderr], [0], [ignore])
+done
+
+AT_CLEANUP
+
+
+## --------------------- ##
+## Check link operation. ##
+## --------------------- ##
+
+AT_SETUP([check link mode operation])
+
+AT_CHECK([$LIBTOOL -n --mode=link $CC -o gettext ../lib/libnlsut.a], [0], [stdout])
+AT_CHECK([$EGREP '../lib/libnlsut.a' stdout], [0], [ignore])
+
+
+AT_DATA([hell.lo],
+[[# Generated by libtool
+pic_object=none
+non_pic_object=hell.o
+]])
+
+AT_CHECK([$LIBTOOL -n --mode=link $CC -o something foo.o hell.lo], [0], [stdout], [ignore])
+AT_CHECK([$FGREP '.lo ' stdout], [1], [ignore])
+
+AT_CLEANUP
+
+
+## -------------------------------- ##
+## Check objectlist file operation. ##
+## -------------------------------- ##
+
+AT_SETUP([check objectlist file operation])
+
+AT_CHECK([$LIBTOOL -n --mode=link $CC -objectlist nonexistent], [1], [ignore], [stderr])
+AT_CHECK([$GREP 'nonexistent' stderr], [0], [ignore])
+
+AT_CLEANUP
+
+
+## --------------------------------- ##
+## Check LT_SUPPORTED_TAG interface. ##
+## --------------------------------- ##
+
+AT_SETUP([test LT_SUPPORTED_TAG interface])
+
+AT_CHECK([test no != "$AUTOCONF" || exit 77])
+
+cp $abs_top_srcdir/aclocal.m4 ./aclocal.m4
+cp $abs_top_srcdir/configure.ac ./configure.ac
+cp -r $abs_top_srcdir/build-aux ./build-aux
+cp -r $abs_top_srcdir/m4 ./m4
+
+# Retrieve the list of tags supported by our main libtool script.
+traced_tags=`$AUTOCONF --trace 'LT_SUPPORTED_TAG:$1'`
+AT_CHECK([test -n "$traced_tags"])
+
+# Ensure each of them is accepted by --tag.
+# (We do some useless operation like erasing an empty file, because
+# we are just interested in whether --tag accepts the tag or not.)
+for tag in $traced_tags; do
+  AT_CHECK([$LIBTOOL -n --mode=link --tag=$tag compiler -o liba.la foo.lo],
+           [], [ignore], [stderr])
+  AT_CHECK([$GREP 'ignoring unknown tag' stderr], [1], [ignore])
+done
+
+# Ensure the above command would have failed for unknown tags
+AT_CHECK([$LIBTOOL -n --mode=link --tag=UnKnOwN compiler -o liba.la foo.lo],
+         [], [ignore], [stderr])
+AT_CHECK([$GREP 'ignoring unknown tag' stderr], [0], [ignore])
+
+AT_CLEANUP
