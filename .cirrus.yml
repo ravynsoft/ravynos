@@ -50,9 +50,7 @@ base_task:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
     - cp -afv ${CIRRUS_WORKING_DIR}/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/ /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
-    - make -C gnu/usr.bin/gmake all worldtmp_install DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
-    - make -j$(sysctl -n hw.ncpu) MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang buildworld
-    - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang base.txz
+    - ${CIRRUS_WORKING_DIR}/tools/ravynOS/build.sh base basepkg
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name base_${CIRRUS_BRANCH%/*}.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/base.txz
     - rm -rfv /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/base/usr/share/locale/nn_NO.*
   upload_caches:
@@ -100,12 +98,7 @@ kernel_task:
     reupload_on_changes: true
   kernel_build_script:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}
-    - make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN COMPILER_TYPE=clang buildkernel
-    - make -j$(sysctl -n hw.ncpu) MK_LIB32=no KERNCONF=RAVYN COMPILER_TYPE=clang installkernel
-    - COMPILER_TYPE=clang make -C drm-kmod 
-    - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/kernel/boot/modules
-    - COMPILER_TYPE=clang make -C drm-kmod install DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/kernel/
-    - make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang kernel.txz
+    - ${CIRRUS_WORKING_DIR}/tools/ravynOS/build.sh kernel kernelpkg drm
     - cloudsmith push raw -k $KEY ravynsoft/ravynOS --name kernel_${CIRRUS_BRANCH%/*}.txz /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/kernel.txz
   upload_caches:
     - sys
@@ -160,19 +153,7 @@ system_task:
     - mkdir -p /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
     - cp -afv ${CIRRUS_WORKING_DIR}/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/ /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/
     - ln -sf ../sys /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/tmp/sys
-    - make COMPILER_TYPE=clang -f Makefile.ravynOS prep
-    - cp -fv share/mk/* /usr/share/mk/
-    - make COMPILER_TYPE=clang -f Makefile.ravynOS
-    - git clone https://github.com/ravynsoft/neofetch.git
-    - cd neofetch && gmake DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS install
-    - cd ${CIRRUS_WORKING_DIR}
-    - git clone https://github.com/ravynsoft/plutil.git
-    - cd plutil
-    - git submodule update --init --recursive
-    - gmake && gmake DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS install
-    - cd ${CIRRUS_WORKING_DIR}
-    - rm -f dist/ravynOS.txz
-    - tar cvJ -C /usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}/release/dist/ravynOS --gid 0 --uid 0 -f $(pwd)/dist/ravynOS.txz .
+    - ${CIRRUS_WORKING_DIR}/tools/ravynOS/build.sh system extras systempkg
   iso_script:
     - echo >> /root/.ssh/id_rsa
     - chmod 600 /root/.ssh/id_rsa
