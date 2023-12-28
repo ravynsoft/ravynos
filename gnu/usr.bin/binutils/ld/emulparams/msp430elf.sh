@@ -1,0 +1,18 @@
+#!/bin/sh
+
+# This called by genscripts_extra.sh
+
+SCRIPT_NAME=elf32msp430
+TEMPLATE_NAME=msp430
+EXTRA_EM_FILE=genelf
+OUTPUT_FORMAT="elf32-msp430"
+MACHINE=
+MAXPAGESIZE=1
+EMBEDDED=yes
+
+ARCH=msp:14
+ROM_START=0x8000
+ROM_SIZE=0x7fe0
+RAM_START=0x0500
+RAM_SIZE=1K
+STACK=0x600

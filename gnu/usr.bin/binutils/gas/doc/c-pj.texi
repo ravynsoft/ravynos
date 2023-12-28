@@ -1,0 +1,52 @@
+@c Copyright (C) 1999-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@page
+@node PJ-Dependent
+@chapter picoJava Dependent Features
+
+@cindex PJ support
+@menu
+* PJ Options::              Options
+* PJ Syntax::               PJ Syntax
+@end menu
+
+@node PJ Options
+@section Options
+
+@cindex PJ options
+@cindex options, PJ
+@code{@value{AS}} has two additional command-line options for the picoJava
+architecture.
+@table @code
+@item -ml
+This option selects little endian data output.
+
+@item -mb
+This option selects big endian data output.
+@end table
+
+@node PJ Syntax
+@section PJ Syntax
+@menu
+* PJ-Chars::                Special Characters
+@end menu
+
+@node PJ-Chars
+@subsection Special Characters
+
+@cindex line comment character, PJ
+@cindex PJ line comment character
+The presence of a @samp{!} or @samp{/} on a line indicates the start
+of a comment that extends to the end of the current line.
+
+If a @samp{#} appears as the first character of a line then the whole
+line is treated as a comment, but in this case the line could also be
+a logical line number directive (@pxref{Comments}) or a preprocessor
+control command (@pxref{Preprocessing}).
+
+@cindex line separator, PJ
+@cindex statement separator, PJ
+@cindex PJ line separator
+The @samp{;} character can be used to separate statements on the same
+line.

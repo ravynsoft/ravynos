@@ -1,0 +1,2 @@
+target:
+	fence.tso

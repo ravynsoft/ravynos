@@ -1,0 +1,57 @@
+# Expect script for ld --undefined and --require-defined testing.
+#   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# Some of these tests use --gc-sections.  For now we don't attempt any
+# if --gc-sections is unavailable, as most major targets do support
+# this option.
+if ![check_gc_sections_available] {
+    unsupported "require-defined testing"
+    return
+}
+
+# The following targets all fail these tests for reasons that appear
+# to be unrelated to the test themselves (for example some of these
+# targets require more complex linker scripts).  Given the small
+# number of targets, I'm just skipping the tests in these cases.]
+if { [istarget "powerpcle-*-*"] \
+     || [istarget "cris-axis-elf"] \
+     || [istarget "ns32k-*-*"] \
+     || [istarget "*-*-coff"] \
+     || [istarget "*-*-*aout*"] \
+     || [is_xcoff_format] } {
+    unsupported "require-defined testing"
+    return
+}
+
+set build_tests {
+  {"Build libfoo.a"
+   "" "" ""
+   {entry.s} {} "libfoo.a"}
+}
+
+run_ld_link_tests $build_tests
+
+set test_list [lsort [glob -nocomplain $srcdir/$subdir/require-defined*.d]]
+foreach t $test_list {
+    # We need to strip the ".d", but can leave the dirname.
+    verbose [file rootname $t]
+    run_dump_test [file rootname $t]
+}

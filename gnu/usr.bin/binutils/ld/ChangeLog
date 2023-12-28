@@ -1,0 +1,2263 @@
+2023-07-30  Nick Clifton  <nickc@redhat.com>
+
+	This is the 2.41 release.
+	* configure: Regenerate.
+	* po/ld.pot: Regenerate.
+
+	modified:   opcodes/configure
+	modified:   opcodes/po/opcodes.pot
+	modified:   src-release.sh
+
+2023-07-03  Nick Clifton  <nickc@redhat.com>
+
+	* configure: Regenerate.
+
+2023-07-03  Nick Clifton  <nickc@redhat.com>
+
+	2.41 Branch Point.
+
+2023-06-28  Nikita Popov  <npopov@redhat.com>
+	    Nick Clifton  <nickc@redhat.com>
+
+	PR 30568
+	* ldfile.c (ldfile_try_open_bfd): Do not track lto generated
+	temporary files.
+
+2023-06-21  Nick Clifton  <nickc@redhat.com>
+
+	PR 29072
+	* testsuite/ld-elf/elf.exp (target_defaults_to_execstack): Always
+	return false for linkers configured with the --enable-default-execstack=no
+	option.
+
+2023-06-14  Nick Clifton  <nickc@redhat.com>
+
+	PR 30374
+	* ldfile.c (struct input_remap): New structure.
+	(ldfile_add_remap): New function.
+	(ldfile_remap_input_free): New function.
+	(ldfile_add_remap_file): New function.
+	(ldfile_possibly_remap_input): New function.
+	(ldfile_print_input_remaps): New function.
+	* ldfile.h: Add prototypes for new functions.
+	* ldlang.c (new_afile): Call ldfile_possibly_remap_input.
+	(lang_finish): Call ldfile_remap_input_free.
+	(lang_map): Call ldfile_print_input_remaps.
+	* ldlex.h (OPTION_REMAP_INPUTS, OPTION_REMAP_INPUTS_FILE): Define.
+	* lexsup.c (ld_options): Add --remap-inputs-file and --remap-inputs.
+	(parse_args): Handle new options.
+	* NEWS: Mention the new feature.
+	* ld.texi: Document the new options.
+	* testsuite/ld-misc/input-remap.exp: New test driver.
+	* testsuite/ld-misc/remaps.r: New file: Expected linker output.
+	* testsuite/ld-misc/remaps.txt: New file.  Input remaps file.
+
+2023-06-07  Nick Clifton  <nickc@redhat.com>
+
+	PR 30499
+	* testsuite/ld-elfcomm/elfcomm.exp: Update regexps to match new
+	output from the linker.
+
+2023-05-17  Luca Bacci  <luca.bacci@outlook.com>
+
+	PR 30421
+	* emultempl/pe.em (set_decoration): New function.
+	(pe_fixup_stdcalls): Call the new function.
+	* emultempl/pep.em (set_decoration): New function.
+	(pep_fixup_stdcalls): Call the new function.
+	* pe-dll.c (make_one): Check for decoated symbols.
+
+2023-05-16  Nick Clifton  <nickc@redhat.com>
+
+	PR 30359
+	* ld.texi (WIN32): Document how to create a resource only DLL.
+
+2023-05-16  Nick Clifton  <nickc@redhat.com>
+
+	* ld.texi (-Ur): Clarify the actions of this option.
+
+2023-05-10  Nick Clifton  <nickc@redhat.com>
+
+	PR 16566
+	* ldlang.c (ld_is_local_symbol): New function.
+	(print_input_section): Add code to display local symbols in the
+	section.
+	* ldlex.h (enum option_values): Add OPTION_PRINT_MAP_LOCALS and
+	OPTION_PRINT_MAP_LOCALS.
+	* lexsup.c (ld_options[]): Add entries for --print-map-locals
+	and --no-print-map-locals.
+	* NEWS: Mention the new feature.
+	* ld.h (struct ld_config_type): Add print_map_locals field.
+	* ld.texi: Document the new command line option.
+	* testsuite/ld-scripts/sizeof.s: Add a local symbol.
+	* testsuite/ld-scripts/map-locals.d: New test control file.
+	* testsuite/ld-scripts/map-address.exp: Run the new test.
+
+2023-05-04  Nick Clifton  <nickc@redhat.com>
+
+	PR 30300
+	* emultempl/pep.em (set_entry_point): Add an undefined reference
+	to the entry point if it has been constructed heuristically.
+	* emultempl/pe.em (set_entry_point): Likewise.
+
+2023-05-04  Dimitar Dimitrov  <dimitar@dinux.eu>
+
+	* scripttempl/pru.sc (OUTPUT_SECTION_ALIGN): New helper variable
+	to place at end of DMEM output sections.
+	(.data): Use the helper variable.
+	(.eh_frame): New output section.
+	(.gnu_extab): Ditto.
+	(.gcc_except_table): Ditto.
+	(.resource_table): Use the helper variable.
+
+2023-04-27  Nick Clifton  <nickc@redhat.com>
+
+	* ldmisc.c (vfinfo): Add support for %x and %lx.
+
+2023-04-18  mengqinggang  <mengqinggang@loongson.cn>
+
+	* testsuite/ld-loongarch-elf/macro_op.d: Regenerated.
+
+2023-04-17  Nick Clifton  <nickc@redhat.com>
+
+	PR 30354
+	* emulparams/armelf.sh (OTHER_PLT_SECTIONS): Define in order to
+	handle the .gnu.sgstubs section.
+
+2023-04-13  Claudiu Zissulescu  <claziss@synopsys.com>
+
+	* testsuite/ld-arc/arc.exp: Update execution predicate.
+	* testsuite/ld-arc/nps-1a.d: Add linker script option.
+	* testsuite/ld-arc/nps-1b.d: Likewise.
+	* testsuite/ld-arc/relax-local-pic.d: Update matching patterns.
+
+2023-04-12  Nick Clifton  <nickc@redhat.com>
+
+	* ld.texi (--enable-non-contiguous-regions): Fix typos in script
+	example.
+
+2023-03-15  Nick Clifton  <nickc@redhat.com>
+
+	PR 30187
+	* NEWS: Mention the new feature.
+	* ld.texi: Document the new feature.
+	* ldgram.y: Handle LINKER_VERSION token.
+	* ldlang.c (lang_add_version): New function.
+	(enable_linker_version): New global variable.
+	* ldlang.h (land_add_version): Prototype.
+	(enable_linker_version): Export.
+	* ldlex.h (OPTION_ENABLE_LINKER_VERSION): Define.
+	(OPTION_DISABLE_LINKER_VERSION): Define.
+	* ldlex.l (LINKER_VERSION): Add token.
+	* lexsup.c (ld_options): Add --enable-linker-version and
+	--disable-linker-version.
+	(parse_args): Handle the new options.
+	* scripttempl/arclinux.sc: Remove stabs and comment sections and
+	replace with inclusion of misc-sections.sc
+	* scripttempl/avr.sc: Likewise.
+	* scripttempl/dlx.sc: Likewise.
+	* scripttempl/elf.sc: Likewise.
+	* scripttempl/elf32cr16.sc: Likewise.
+	* scripttempl/elf32crx.sc: Likewise.
+	* scripttempl/elf32msp430.sc: Likewise.
+	* scripttempl/elf64bpf.sc: Likewise.
+	* scripttempl/elf64hppa.sc: Likewise.
+	* scripttempl/elf_chaos.sc: Likewise.
+	* scripttempl/elfarc.sc: Likewise.
+	* scripttempl/elfarcv2.sc: Likewise.
+	* scripttempl/elfd10v.sc: Likewise.
+	* scripttempl/elfd30v.sc: Likewise.
+	* scripttempl/elfm68hc11.sc: Likewise.
+	* scripttempl/elfm68hc12.sc: Likewise.
+	* scripttempl/elfm9s12z.sc: Likewise.
+	* scripttempl/elfmicroblaze.sc: Likewise.
+	* scripttempl/elfxgate.sc: Likewise.
+	* scripttempl/elfxtensa.sc: Likewise.
+	* scripttempl/epiphany_4x4.sc: Likewise.
+	* scripttempl/ft32.sc: Likewise.
+	* scripttempl/ip2k.sc: Likewise.
+	* scripttempl/iq2000.sc: Likewise.
+	* scripttempl/mep.sc: Likewise.
+	* scripttempl/nds32elf.sc: Likewise.
+	* scripttempl/pru.sc: Likewise.
+	* scripttempl/v850.sc: Likewise.
+	* scripttempl/v850_rh850.sc: Likewise.
+	* scripttempl/visium.sc: Likewise.
+	* scripttempl/xstormy16.sc: Likewise.
+	* scripttempl/z80.sc: Likewise.
+	* testsuite/ld-scripts/script.exp: Run new tests.
+	* scripttempl/misc-sections.sc: New file.
+	* testsuite/ld-scripts/ld-version-2.d: New file.
+	* testsuite/ld-scripts/ld-version.d: New file.
+	* testsuite/ld-scripts/ld-version.t: New file.
+
+2023-02-23  Fangrui Song  <i@maskray.me>
+
+	* emultempl/riscvelf.em: Add option parsing.
+	* testsuite/ld-riscv-elf/code-model-relax-medlow-01-norelaxgp.d: New.
+	* testsuite/ld-riscv-elf/pcgp-relax-01-norelaxgp.d: New.
+	* testsuite/ld-riscv-elf/pcgp-relax-02.d: Test --relax --relax-gp can be
+	used together.
+
+2023-02-20  Nick Clifton  <nickc@redhat.com>
+
+	PR 30004
+	* pe-dll.c (pe_dll_build_sections): Do not build an edata section
+	if all symbols are being excluded.
+
+2023-02-15  Nick Clifton  <nickc@redhat.com>
+
+	PR 30078
+	* testsuite/ld-elf/merge4b.s: Use .asciz instead of .string in
+	order to avoid the special behaviour of the .string directive on
+	HPPA architectures.
+
+2023-02-14  Nick Clifton  <nickc@redhat.com>
+
+	* ld.texi (Plugins): Mention that the -plugin command line option
+	is used to load plugins.
+
+2023-01-27  Nick Clifton  <nickc@redhat.com>
+
+	PR 29998
+	* pe-dll.c (build_filler_bfd): Initialise the next field of the
+	filler input statement, so that it does not break the file chain.
+
+2023-01-24  Nick Clifton  <nickc@redhat.com>
+
+	PR 29998
+	* pe-dll.c (generate_reloc): Handle sections with no assigned
+	output section.  Terminate early of there are no relocs to put in
+	the .reloc section.
+	(pe_exe_fill_sections): Do not emit an empty .reloc section.
+
+2023-01-06  Nick Clifton  <nickc@redhat.com>
+
+	* po/bg.po: Updated Bulgarian translation.
+
+2023-01-05  Nick Clifton  <nickc@redhat.com>
+
+	* configure.tgt: Add arm64pe as an extra emulation for aarch64pe.
+	* Makefile.am (ALL_64_EMULATION_SOURCES): Add earm64pe.c
+	* emultempl/pep.em: Add suppport for arm64pe emulation.
+	* Makefile.in: Regenerate.
+	* po/BLD-POTFILES.in: Regenerate.
+	* po/ld.pot: Regenerate.
+
+2023-01-05  Andreas K. Huettel  <dilfridge@gentoo.org>
+
+	* testsuite/ld-elf/shared.exp: un-xfail the PR19710 test for the
+	AArch64 architecture.
+
+2023-01-04  Andreas K. Huettel  <dilfridge@gentoo.org>
+
+	PR 29843
+	* testsuite/ld-aarch64/bti-plt-5.d: Relax regxps slightly to allow
+	for differences in build environments.
+	* testsuite/ld-aarch64/tls-relax-gdesc-le-now.d: Likewise.
+
+2023-01-03  Nick Clifton  <nickc@redhat.com>
+
+	* po/uk.po: Updated Ukrainian translation.
+
+2022-12-31  Nick Clifton  <nickc@redhat.com>
+
+	* 2.40 branch created.
+
+2022-12-21  Nick Clifton  <nickc@redhat.com>
+
+	PR 29900
+	* scripttempl/pe.sc: Keep the .drectve section when performing a
+	relocateable link.
+	* scripttempl/pep.sc: Likewise.
+
+2022-12-08  Nick Clifton  <nickc@redhat.com>
+
+	PR 29861
+	* ld.texi (Output Section Type): Note that setting the output
+	section type only works if the section contains untyped data.
+
+2022-12-05  Nick Clifton  <nickc@redhat.com>
+
+	PR 29849
+	* ldlang.c (spec_match): Check that there is sufficient length in
+	the target name to match the spec's prefix.
+
+2022-11-03  Nick Clifton  <nickc@redhat.com>
+
+	PR 29748
+	* configure.tgt (ac_default_ld_warn_rwx_segments): Set to 0 for
+	the V850.
+
+2022-11-03  Nick Clifton  <nickc@redhat.com>
+
+	PR 29741
+	* scripttempl/avr.sc (__DATA_REGION_ORIGIN__): Define.  If a value
+	has not been provided on the command line then use DATA_ORIGIN.
+	(MEMORY): Use __DATA_REGION_ORIGIN__ as the start of the data region.
+
+2022-10-21  Nick Clifton  <nickc@redhat.com>
+
+	PR 29654
+	* ld.h (struct ld_config_type): Add no_warnings field.
+	* ldlex.h (enum option_values): Add OPTION_NO_WARNINGS.
+	* lexsup.c (ld_options): Add --no-warnings.
+	(parse_args): Add support for -w and --no-warnings.
+	* ldmisc.c (vfinfo): Return early if the message is a warning and
+	-w has been enabled.
+	* ld.texi (options): Document new command line option.
+	* NEWS: Mention the new feature.
+
+2022-08-30  Nick Clifton  <nickc@redhat.com>
+
+	PR 29529
+	* testsuite/ld-x86-64/pr27587.err: Update expected output.
+
+2022-08-18  Ralf Habacker  <ralf.habacker@freenet.de>
+
+	PR 28362
+	* testsuite/ld-pe/pe-run2-def.exp: New file.
+
+2022-08-03  Alan Modra  <amodra@gmail.com>
+
+	PR 29389
+	* ldlang.h (lang_input_statement_struct): Add sort_key field.
+	* emultempl/pe.em (after_open): If multiple import libraries refer
+	to the same bfd, store their names in the sort_key field.
+	* emultempl/pep.em (after_open): Likewise.
+	* ldlang.c (sort_filename): New function.  Returns the filename to
+	be used when sorting input files.
+	(wild_sort): Use the sort_filename function.
+
+2022-07-29  Rainer Orth  <ro@CeBiTec.Uni-Bielefeld.DE>
+
+	PR ld/29411
+	* configure.tgt (ac_default_ld_warn_rwx_segments): Extend to all
+	sparc targets.  Expand comment.
+
+2022-07-26  Nick Clifton  <nickc@redhat.com>
+
+	PR 29411
+	* configure.tgt (ac_default_ld_warn_rwx_segments): Disable for
+	sparc-solaris configurations.
+
+2022-07-08  Nick Clifton  <nickc@redhat.com>
+
+	* 2.39 branch created.
+
+2022-06-27  Nick Clifton  <nickc@redhat.com>
+
+	PR 29263
+	* configure.ac: Move HPPA specific code from here...
+	* configure.tgt: ... to here.  Add similar code for MIPS.
+	Move code for CRIS, MIPS and HPPA to block at start of file.
+	* configure: Regenerate.
+
+2022-06-21  Nick Clifton  <nickc@redhat.com>
+
+	PR 29263
+	* configure.ac (ac_default_ld_warn_execstack): Default to 'no' for
+	HPPA targets.
+	(ac_default_ld_warn_rwx_segments): Likewise.
+	* configure: Regenerate.
+	* testsuite/ld-elf/elf.exp: Add the --warn-execstack command line
+	option to the command line when running execstack tests for the
+	HPPA target.
+
+2022-05-12  Alan Modra  <amodra@gmail.com>
+
+	PR 29006
+	* pe-dll.c (dll_name): Delete, replacing with..
+	(dll_filename): ..this, moved earlier in file.
+	(generate_edata): Delete parameters.  Don't set up dll_name here..
+	(pe_process_import_defs): ..instead set up dll_filename and
+	dll_symname here before returning.
+	(dll_symname_len): Delete write-only variable.
+	(pe_dll_generate_implib): Don't set up dll_symname here.
+
+2022-05-03  Nick Clifton  <nickc@redhat.com>
+
+	PR 29101
+	* libdep_plugin.c (get_libdeps): Check for overflow when computing
+	amount of memory to allocate.
+
+2022-04-27  Nick Clifton  <nickc@redhat.com>
+
+	PR 29006
+	* pe-dll.c (make_head): Use asprintf to allocate and populate a
+	buffer containing the temporary name.
+	(make_tail, make_one, make_singleton_name_thunk): Likewise.
+	(make_import_fixup_mark, make_import_fixup_entry): Likewise.
+	(make_runtime_pseudo_reloc): Likewise.
+	(pe_create_runtime_relocator_reference): Likewise.
+
+2022-04-25  Nick Clifton  <nickc@redhat.com>
+
+	PR 29072
+	* testsuite/ld-elf/pr29072.b.warn: Update to include the note
+	about the linker's behaviour being depreccated.
+
+2022-04-20  Clément Chigot  <clement.chigot@atos.net>
+
+	* emultempl/aix.em (params): New variable.
+	(stub_file): New variable.
+	(xcoff_add_stub_section): New function.
+	(xcoff_layout_sections_again): New function
+	(hook_in_stub): New function.
+	(_after_allocation): Add stub creation.
+	(_create_output_section_statements): Allocate stub file and
+	pass params to backend.
+
+2022-04-20  Clément Chigot  <clement.chigot@atos.net>
+
+	* emultempl/aix.em (_after_allocation): New function.
+
+2022-04-07  Mark Harmstone  <mark@harmstone.com>
+
+	* testsuite/ld-pe/secidx1.s: New test source file.
+	* testsuite/ld-pe/secidx2.s: New test source file.
+	* testsuite/ld-pe/secidx.d: New test driver file.
+	* testsuite/ld-pe/secidx_64.d: New test driver file.
+	* testsuite/ld-pe/pe.exp: Add new tests.
+
+2022-03-01  Nick Clifton  <nickc@redhat.com>
+
+	PR 21964
+	* testsuite/ld-elf/pr21964-1a.c: Fix array comparisons.
+	* testsuite/ld-elf/pr21964-1b.c: Likewise.
+	* testsuite/ld-elf/pr21964-1c.c: Likewise.
+	* testsuite/ld-elf/pr21964-2a.c: Likewise.
+	* testsuite/ld-elf/pr21964-2b.c: Likewise.
+	* testsuite/ld-elf/pr21964-3a.c: Likewise.
+
+2022-02-17  Roland McGrath  <mcgrathr@google.com>
+
+	* ld.texi (Output Section Type): Fix typo in @code syntax.
+
+2022-02-17  Nick Clifton  <nickc@redhat.com>
+
+	* po/sr.po: Updated Serbian translation.
+
+2022-02-16  Fangrui Song  <maskray@google.com>
+	    Nick Clifton  <nickc@redhat.com>
+
+	PR ld/28841
+	* ld.texi: Document new output section type.
+	* ldlex.l: Add new token TYPE.
+	* ldgram.y: Handle TYPE=exp and READONLY (TYPE=exp).
+	* ldlang.h: Add type_section to list of section types.
+	* ldlang.c (lang_add_section): Handle type_section.
+	(map_input_to_output_sections): Handle type_section.
+	* testsuite/ld-scripts/output-section-types.t: Add tests.
+	* testsuite/ld-scripts/output-section-types.d: Update.
+
+2022-02-02  Nick Clifton  <nickc@redhat.com>
+
+	* po/fr.po: Updated French translation.
+
+2022-01-24  Nick Clifton  <nickc@redhat.com>
+
+	* po/bg.po: Updated Bulgarian translation.
+	* po/uk.po: Updated Ukranian translation.
+
+2022-01-22  Alexander von Gluck IV  <kallisti5@unixzen.com>
+
+	* configure.tgt (arm-haiku): Fix typo.
+	* emulparams/armelf_haiku.su (MAXPAGESIZE): Use the default value.
+	(COMMONPAGESIZE): Likewise.
+
+2022-01-22  Nick Clifton  <nickc@redhat.com>
+
+	* configure: Regenerate.
+	* po/ld.pot: Regenerate.
+
+2022-01-22  Nick Clifton  <nickc@redhat.com>
+
+	* 2.38 release branch created.
+
+2022-01-21  Nick Clifton  <nickc@redhat.com>
+
+	* po/sr.po: Updated Serbian translation.
+
+2022-01-17  Nick Clifton  <nickc@redhat.com>
+
+	* Makefile.in: Regenerate.
+	* po/ld.pot: Regenerate.
+
+2022-01-11  Martin Storsjö  <martin@martin.st>
+
+	* pe-dll.c (make_head): Prefix the symbol name with the dll name.
+	(make_tail, make_one, make_singleton_name_thunk): Likewise.
+	(make_import_fixup_entry, make_runtime_pseudo_reloc): Likewise.
+	(pe_create_runtime_relocator_reference): Likewise.
+	(pe_dll_generate_implib): Set dll_symname_len.
+	(pe_process_import_defs): Likewise.
+
+2021-12-16  Nick Clifton  <nickc@redhat.com>
+
+	PR 28686
+	* testsuite/ld-avr/avr-prop-7.d: Adjust expected output.
+	* testsuite/ld-avr/avr-prop-8.d: Likewise.
+	* testsuite/ld-avr/pr13402.d: Likewise.
+
+2021-11-30  Nick Clifton  <nickc@redhat.com>
+
+	* scripttempl/pru.sc (.pru_irq_map): Define output section.
+	* testsuite/ld-pru/pru_irq_map-1.d: New test.
+	* testsuite/ld-pru/pru_irq_map-2.d: New test.
+	* testsuite/ld-pru/pru_irq_map.s: New test.
+
+2021-11-17  Jeremy Drake  <cygwin@jdrake.com>
+
+	* emultempl/pep.em (DEFAULT_DLL_CHARACTERISTICS): Set to 0 for
+	Cygwin targets.
+	* emultempl/pep.em (DEFAULT_DLL_CHARACTERISTICS): Likewise.
+
+2021-11-17  Nick Clifton  <nickc@redhat.com>
+
+	PR 28452
+	* ldgram.y: Add support for PT_GNU_RELRO and PT_GNU_PROPERTY.
+	* ldgram.c: Regenerate.
+
+2021-11-15  Roland McGrath  <mcgrathr@google.com>
+
+	* testsuite/ld-aarch64/dt_textrel.d: Pass explicit -z notext in
+	case ld was configured with --enable-textrel-check=error.
+	* testsuite/ld-aarch64/pr22764.d: Likewise.
+	* testsuite/ld-aarch64/pr20402.d: Likewise.
+
+2021-10-25  Nick Alcock  <nick.alcock@oracle.com>
+
+	* testsuite/ld-ctf/nonrepresentable-member.*: New test.
+
+2021-10-25  Nick Alcock  <nick.alcock@oracle.com>
+
+	* testsuite/ld-ctf/array.d: Change --ctf=.ctf to --ctf.
+	* testsuite/ld-ctf/conflicting-cycle-1.B-1.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-1.B-2.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-1.parent.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-2.A-1.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-2.A-2.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-2.parent.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-3.C-1.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-3.C-2.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-3.parent.d: Likewise.
+	* testsuite/ld-ctf/conflicting-enums.d: Likewise.
+	* testsuite/ld-ctf/conflicting-typedefs.d: Likewise.
+	* testsuite/ld-ctf/cross-tu-cyclic-conflicting.d: Likewise.
+	* testsuite/ld-ctf/cross-tu-cyclic-nonconflicting.d: Likewise.
+	* testsuite/ld-ctf/cross-tu-into-cycle.d: Likewise.
+	* testsuite/ld-ctf/cross-tu-noncyclic.d: Likewise.
+	* testsuite/ld-ctf/cycle-1.d: Likewise.
+	* testsuite/ld-ctf/cycle-2.A.d: Likewise.
+	* testsuite/ld-ctf/cycle-2.B.d: Likewise.
+	* testsuite/ld-ctf/cycle-2.C.d: Likewise.
+	* testsuite/ld-ctf/data-func-conflicted.d: Likewise.
+	* testsuite/ld-ctf/diag-cttname-null.d: Likewise.
+	* testsuite/ld-ctf/diag-cuname.d: Likewise.
+	* testsuite/ld-ctf/diag-parlabel.d: Likewise.
+	* testsuite/ld-ctf/enum-forward.d: Likewise.
+	* testsuite/ld-ctf/enums.d: Likewise.
+	* testsuite/ld-ctf/forward.d: Likewise.
+	* testsuite/ld-ctf/function.d: Likewise.
+	* testsuite/ld-ctf/nonrepresentable.d: Likewise.
+	* testsuite/ld-ctf/slice.d: Likewise.
+	* testsuite/ld-ctf/super-sub-cycles.d: Likewise.
+
+2021-09-30  Dimitar Dimitrov  <dimitar@dinux.eu>
+
+	* scripttempl/pru.sc (.resource_table): Align the output
+	section, not the first symbol.
+
+2021-09-27  Nick Alcock  <nick.alcock@oracle.com>
+
+	* configure: Regenerate.
+
+2021-09-21  Nick Clifton  <nickc@redhat.com>
+
+	* ldlang.c (lang_end): When computing the entry point, only
+	try the start address of the entry section when creating an
+	executable.
+	* ld.texi (Entry point): Update description of heuristic used to
+	choose the entry point.
+	testsuite/ld-alpha/tlspic.rd: Update expected entry point address.
+	testsuite/ld-arm/tls-gdesc-got.d: Likewise.
+	testsuite/ld-i386/tlsnopic.rd: Likewise.
+	testsuite/ld-ia64/tlspic.rd: Likewise.
+	testsuite/ld-sparc/gotop32.rd: Likewise.
+	testsuite/ld-sparc/gotop64.rd: Likewise.
+	testsuite/ld-sparc/tlssunnopic32.rd: Likewise.
+	testsuite/ld-sparc/tlssunnopic64.rd: Likewise.
+	testsuite/ld-sparc/tlssunpic32.rd: Likewise.
+	testsuite/ld-sparc/tlssunpic64.rd: Likewise.
+	testsuite/ld-tic6x/shlib-1.rd: Likewise.
+	testsuite/ld-tic6x/shlib-1b.rd: Likewise.
+	testsuite/ld-tic6x/shlib-1r.rd: Likewise.
+	testsuite/ld-tic6x/shlib-1rb.rd: Likewise.
+	testsuite/ld-tic6x/shlib-noindex.rd: Likewise.
+	testsuite/ld-x86-64/pr14207.d: Likewise.
+	testsuite/ld-x86-64/tlsdesc.rd: Likewise.
+	testsuite/ld-x86-64/tlspic.rd: Likewise.
+	testsuite/ld-x86-64/tlspic2.rd: Likewise.
+
+2021-09-15  Claudiu Zissulescu  <claziss@synopsys.com>
+
+	* testsuite/ld-arc/got-weak.d: Update file.
+
+2021-09-14  Claudiu Zissulescu  <claziss@synopsys.com>
+
+	* ld-arc/got-weak.d: New file.
+	* ld-arc/got-weak.s: Likewise.
+
+2021-07-26  Roland McGrath  <mcgrathr@google.com>
+
+	* testsuite/ld-x86-64/x86-64.exp (Build textrel-1): Use --warn-textrel.
+
+2021-07-06  Michael Matz  <matz@suse.de>
+
+	PR ld/28021
+	* testsuite/ld-riscv-elf/relax-twice.ver: New.
+	* testsuite/ld-riscv-elf/relax-twice-1.s: New.
+	* testsuite/ld-riscv-elf/relax-twice-2.s: New.
+	* testsuite/ld-riscv-elf/ld-riscv-elf.exp
+	(run_relax_twice_test): New, and call it.
+
+2021-07-03  Nick Clifton  <nickc@redhat.com>
+
+	* configure: Regenerate.
+	* po/ld.pot: Regenerate.
+
+2021-07-03  Nick Clifton  <nickc@redhat.com>
+
+	* 2.37 release branch created.
+
+2021-06-22  Nelson Chu  <nelson.chu@sifive.com>
+
+	* testsuite/ld-riscv-elf/ld-riscv-elf.exp: Updated.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend-3a.d: New testcase.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend-3a.s: Likewise.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend-3b.d: New testcase.
+	Should report error since the %pcrel_lo with addend refers to
+	%got_pcrel_hi.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend-3b.s: Likewise.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend-3c.d: New testcase.
+	Should report error since the %got_pcrel_hi with addend.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend-3c.s: Likewise.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend-3.ld: Likewise.
+
+2021-06-19  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27998
+	* testsuite/ld-i386/i386.exp: Run PR ld/27998 tests.
+	* testsuite/ld-i386/pr27998a.d: New file.
+	* testsuite/ld-i386/pr27998a.s: Likewise.
+	* testsuite/ld-i386/pr27998b.d: Likewise.
+	* testsuite/ld-i386/pr27998b.s: Likewise.
+
+2021-06-19  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/ld-x86-64/textrel-1.err: New file.
+	* testsuite/ld-x86-64/textrel-1a.s: Likewise.
+	* testsuite/ld-x86-64/textrel-1b.s: Likewise.
+	* testsuite/ld-x86-64/x86-64.exp: Run textrel-1 tests.
+
+2021-06-18  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/ld-elf/property-and-1.d: Skip am33_2.0, hppa-hpux
+	and mn10300.
+	Pass --generate-missing-build-notes=no to assembler.  Allow
+	other note sections for xtensa.
+	* testsuite/ld-elf/property-and-2.d: Likewise.
+	* testsuite/ld-elf/property-and-3.d: Likewise.
+	* testsuite/ld-elf/property-and-4.d: Likewise.
+	* testsuite/ld-elf/property-or-1.d: Likewise.
+	* testsuite/ld-elf/property-or-2.d: Likewise.
+	* testsuite/ld-elf/property-or-3.d: Likewise.
+	* testsuite/ld-elf/property-or-4.d: Likewise.
+
+2021-06-18  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* ld.texi: Move -z unique-symbol after -z undefs.
+
+2021-06-18  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/ld-elf/property-and-1.d: New file.
+	* testsuite/ld-elf/property-and-1.s: Likewise.
+	* testsuite/ld-elf/property-and-2.d: Likewise.
+	* testsuite/ld-elf/property-and-2.s: Likewise.
+	* testsuite/ld-elf/property-and-3.d: Likewise.
+	* testsuite/ld-elf/property-and-3.s: Likewise.
+	* testsuite/ld-elf/property-and-4.d: Likewise.
+	* testsuite/ld-elf/property-and-empty.s: Likewise.
+	* testsuite/ld-elf/property-or-1.d: Likewise.
+	* testsuite/ld-elf/property-or-1.s: Likewise.
+	* testsuite/ld-elf/property-or-2.d: Likewise.
+	* testsuite/ld-elf/property-or-2.s: Likewise.
+	* testsuite/ld-elf/property-or-3.d: Likewise.
+	* testsuite/ld-elf/property-or-3.s: Likewise.
+	* testsuite/ld-elf/property-or-4.d: Likewise.
+	* testsuite/ld-elf/property-or-empty.s: Likewise.
+
+2021-06-17  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27973
+	* testsuite/ld-x86-64/x86-64.exp: Pass $NOPIE_LDFLAGS and
+	$NOPIE_CFLAGS to protected-func-1 without PIE.
+
+2021-06-17  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27973
+	* testsuite/ld-x86-64/x86-64.exp: Run protected function tests.
+	* testsuite/ld-x86-64/protected-func-1.h: New file.
+	* testsuite/ld-x86-64/protected-func-1a.s: Likewise.
+	* testsuite/ld-x86-64/protected-func-1b.c: Likewise.
+
+2021-06-17  Fangrui Song  <maskray@google.com>
+
+	* ldlex.h (enum option_values): Add OPTION_NO_PIE.
+	* lexsup.c (struct ld_options): Add -no-pie.
+	(parse_args): Handle -no-pie.
+	* ld.texi: Document -no-pie.
+
+2021-06-15  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-pie/vaddr-0.d: Update expected output.
+
+2021-06-11  Alan Modra  <amodra@gmail.com>
+
+	PR 27952
+	* ldelf.c (ldelf_after_open): Error on input PIEs too.
+
+2021-06-09  Nick Clifton  <nickc@redhat.com>
+
+	PR 27666
+	* testsuite/ld-sparc/sparc.exp: Do not run the sparctests or
+	sparc64tests for Solaris2 targets.
+
+2021-06-03  Alan Modra  <amodra@gmail.com>
+
+	PR 2589
+	* ld.texi (link-time runtime library search path): Mention
+	plugin library path.  Correct order of search.
+
+2021-05-31  Nelson Chu  <nelson.chu@sifive.com>
+	    Lifang Xia  <lifang_xia@c-sky.com>
+
+	PR 27566
+	* emultempl/riscvelf.em (after_allocation): Call
+	riscv_set_data_segment_info to set data segment phase before relaxing.
+	* testsuite/ld-riscv-elf/ld-riscv-elf.exp: Updated.
+	* testsuite/ld-riscv-elf/relro-relax-lui.d: New testcase.
+	* testsuite/ld-riscv-elf/relro-relax-lui.s: Likewise.
+	* testsuite/ld-riscv-elf/relro-relax-pcrel.d: Likewise.
+	* testsuite/ld-riscv-elf/relro-relax-pcrel.s: Likewise.
+
+2021-05-28  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27905
+	* testsuite/ld-i386/pcrel16-2.d: xfail.
+	* testsuite/ld-x86-64/pcrel16-2.d: Likewise.
+
+2021-05-26  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27905
+	* testsuite/ld-i386/code16.d: New file.
+	* testsuite/ld-i386/code16.t: Likewise.
+	* testsuite/ld-x86-64/code16.d: Likewise.
+	* testsuite/ld-x86-64/code16.t: Likewise.
+	* testsuite/ld-i386/i386.exp: Run code16.
+	* testsuite/ld-x86-64/x86-64.exp: Likewise.
+
+2021-05-26  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/ld-x86-64/ilp32-12.d: New file.
+	* testsuite/ld-x86-64/ilp32-12.s: Likewise.
+	* testsuite/ld-x86-64/x86-64.exp: Run ilp32-12.
+
+2021-05-14  Nelson Chu  <nelson.chu@sifive.com>
+
+	* testsuite/ld-riscv-elf/ld-riscv-elf.exp: Updated.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend-2a.d: Renamed from
+	pcrel-lo-addend-2.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend-2a.s: Likewise.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend-2b.d: New testcase.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend-2b.s: Likewise.
+
+2021-05-13  Fangrui Song  <maskray@google.com>
+
+	PR 27834
+	* ldlex.h (enum option_values): Add OPTION_NO_SYMBOLIC.
+	* lexsup.c (ld_options): Add -Bno-symbolic.
+	(parse_args): Handle -Bno-symbolic.
+	* ld.texi: Document -Bno-symbolic.
+	* NEWS: Mention -Bno-symbolic.
+	* testsuite/ld-elf/shared.exp: Add a test.
+
+2021-05-12  Richard Earnshaw  <rearnsha@arm.com>
+
+	* testsuite/ld-arm/arm-elf.exp (farcall test for v8-m.mainline):
+	Correct expected output.
+
+2021-05-11  Roland McGrath  <mcgrathr@google.com>
+
+	* testsuite/ld-x86-64/rela.d: Fix regexp not to presume a specific
+	address layout, so it works for e.g. --target=x86-64-elf.
+
+2021-05-11  Nick Clifton  <nickc@redhat.com>
+
+	PR 27113
+	* Makefile.am (install-data-local): Also delete libdep.dll.a if it
+	is present.
+	* Makefile.in: Regenerate.
+
+2021-05-10  Dimitar Dimitrov  <dimitar@dinux.eu>
+
+	* testsuite/ld-elf/group8a.d: Remove pru from XFAIL list.
+	* testsuite/ld-elf/group8b.d: Ditto.
+	* testsuite/ld-elf/group9a.d: Ditto.
+	* testsuite/ld-elf/group9b.d: Ditto.
+	* testsuite/ld-elf/pr12851.d: Ditto.
+	* testsuite/ld-elf/pr22677.d: Ditto.
+	* testsuite/lib/ld-lib.exp (check_gc_sections_available): Remove
+	pru from list.
+
+2021-05-10  Dimitar Dimitrov  <dimitar@dinux.eu>
+
+	* scripttempl/pru.sc (.resource_table): Add ALIGN directive.
+	Use symbols for memory sizes.
+
+2021-05-08  Mike Frysinger  <vapier@gentoo.org>
+
+	* Makefile.am (html-local, doc/ld/index.html): New targets.
+	* Makefile.in: Regenerate.
+
+2021-05-08  Mike Frysinger  <vapier@gentoo.org>
+
+	* Makefile.am (AM_MAKEINFOFLAGS): Add --no-split.
+	* Makefile.in: Regenerate.
+
+2021-05-07  Jan Beulich  <jbeulich@suse.com>
+
+	* testsuite/ld-x86-64/rela.d: New.
+	* testsuite/ld-x86-64/x86-64.exp: Run new test.
+
+2021-05-07  Nick Clifton  <nickc@redhat.com>
+
+	* ldelfgen.c (compare_link_order): Ignore section size when
+	performing a relocateable link.
+
+2021-05-07  Alan Modra  <amodra@gmail.com>
+
+	* ldexp.c (update_definedness): Don't return false for absolute
+	symbols.
+	* ldmain.c (multiple_definition): Print "warning: " in message
+	when not a hard error.
+
+2021-05-07  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-elf/pr27825-1.d: Correct xfail.
+	* testsuite/ld-elf/pr27825-2.d: Likewise.
+
+2021-05-06  Stafford Horne  <shorne@gmail.com>
+
+	PR 27746
+	testsuite/ld-or1k/or1k.exp (or1kplttests): Add tests for linking
+	along with gotha() relocations.
+	testsuite/ld-or1k/gotha1.dd: New file.
+	testsuite/ld-or1k/gotha1.s: New file.
+	testsuite/ld-or1k/gotha2.dd: New file.
+	testsuite/ld-or1k/gotha2.s: New file
+	testsuite/ld-or1k/pltlib.s (x): Define size to avoid link
+	failure.
+
+2021-05-06  Nick Alcock  <nick.alcock@oracle.com>
+
+	* testsuite/ld-ctf/ctf.exp: Use -gctf, not -gt.
+	* testsuite/lib/ld-lib.exp: Likewise.
+	* testsuite/ld-ctf/nonrepresentable-1.c: New test for nonrepresentable types.
+	* testsuite/ld-ctf/nonrepresentable-2.c: Likewise.
+	* testsuite/ld-ctf/nonrepresentable.d: Likewise.
+	* testsuite/ld-ctf/array.d: Larger type section.
+	* testsuite/ld-ctf/data-func-conflicted.d: Likewise.
+	* testsuite/ld-ctf/enums.d: Likewise.
+	* testsuite/ld-ctf/conflicting-enums.d: Don't compare types.
+	* testsuite/ld-ctf/cross-tu-cyclic-conflicting.d: Changed type order.
+	* testsuite/ld-ctf/cross-tu-noncyclic.d: Likewise.
+	* testsuite/ld-ctf/slice.d: Adjust for improved slice emission.
+
+2021-05-05  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27825
+	* testsuite/ld-elf/pr27825-1.d: New file.
+	* testsuite/ld-elf/pr27825-1a.s: Likewise.
+	* testsuite/ld-elf/pr27825-1b.s: Likewise.
+	* testsuite/ld-elf/pr27825-2.d: Likewise.
+	* testsuite/ld-elf/pr27825-2a.s: Likewise.
+	* testsuite/ld-elf/pr27825-2b.s: Likewise.
+
+2021-05-05  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-powerpc/empty.s: New file.
+	* testsuite/ld-powerpc/undefweak.d,
+	* testsuite/ld-powerpc/undefweak.s: New testcase.
+	* testsuite/ld-powerpc/powerpc.exp: Run it.
+
+2021-05-03  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-s390/tlspic_64.rd: Adjust expected output for
+	named section symbols.
+
+2021-04-28  Nick Clifton  <nickc@redhat.com>
+
+	* testsuite/ld-elf/anno-sym.s: New test source file.
+	* testsuite/ld-elf/anno-sym.d: New test driver.
+	* testsuite/ld-elf/anno-sym.l: New test error output.
+
+2021-04-26  Jan Beulich  <jbeulich@suse.com>
+
+	* testsuite/ld-i386/pcrel16-2.s, testsuite/ld-i386/pcrel16-2.d,
+	testsuite/ld-x86-64/pcrel16-2.d: New.
+	* testsuite/ld-i386/i386.exp: Run new test.
+	* testsuite/ld-x86-64/x86-64.exp: Likewise.
+
+2021-04-23  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27771
+	* testsuite/ld-bootstrap/bootstrap.exp: Create a symbolic link
+	to tmpdir/ldscripts only if it doesn't exist.
+
+2021-04-22  Jan Beulich  <jbeulich@suse.com>
+
+	PR ld/26659
+	* testsuite/ld-pe/pr26659-weak-undef-sym.d: Relax for Cygwin.
+
+2021-04-21  Nick Clifton  <nickc@redhat.com>
+
+	* testsuite/ld-aarch64/variant_pcs-now.d: Adjust expected output
+	to allow for named section symbols.
+	* testsuite/ld-aarch64/variant_pcs-r.d: Likewise.
+	* testsuite/ld-aarch64/variant_pcs-shared.d: Likewise.
+	* testsuite/ld-alpha/tlsbin.rd: Likewise.
+	* testsuite/ld-alpha/tlsbinr.rd: Likewise.
+	* testsuite/ld-alpha/tlspic.rd: Likewise.
+	* testsuite/ld-arm/rodata-merge-map.sym: Likewise.
+	* testsuite/ld-arm/script-type.sym: Likewise.
+	* testsuite/ld-cris/libdso-2.d: Likewise.
+	* testsuite/ld-cris/pr16044.d: Likewise.
+	* testsuite/ld-elf/sec64k.exp: Likewise.
+	* testsuite/ld-ia64/tlsbin.rd: Likewise.
+	* testsuite/ld-ia64/tlspic.rd: Likewise.
+	* testsuite/ld-mips-elf/global-local-symtab-sort-n64t.d: Likewise.
+	* testsuite/ld-mips-elf/global-local-symtab-sort-o32t.d: Likewise.
+	* testsuite/ld-mmix/bspec1.d: Likewise.
+	* testsuite/ld-mmix/bspec2.d: Likewise.
+	* testsuite/ld-mmix/local1.d: Likewise.
+	* testsuite/ld-mmix/local3.d: Likewise.
+	* testsuite/ld-mmix/local5.d: Likewise.
+	* testsuite/ld-mmix/local7.d: Likewise.
+	* testsuite/ld-mmix/undef-3.d: Likewise.
+	* testsuite/ld-powerpc/tlsso.r: Likewise.
+	* testsuite/ld-powerpc/tlsso32.r: Likewise.
+	* testsuite/ld-powerpc/tlstocso.r: Likewise.
+	* testsuite/ld-s390/tlsbin.rd: Likewise.
+	* testsuite/ld-s390/tlsbin_64.rd: Likewise.
+	* testsuite/ld-s390/tlspic.rd: Likewise.
+	* testsuite/ld-s390/tlspic_64.rd: Likewise.
+	* testsuite/ld-sparc/gotop32.rd: Likewise.
+	* testsuite/ld-sparc/gotop64.rd: Likewise.
+	* testsuite/ld-sparc/tlssunbin32.rd: Likewise.
+	* testsuite/ld-sparc/tlssunbin64.rd: Likewise.
+	* testsuite/ld-sparc/tlssunnopic32.rd: Likewise.
+	* testsuite/ld-sparc/tlssunnopic64.rd: Likewise.
+	* testsuite/ld-sparc/tlssunpic32.rd: Likewise.
+	* testsuite/ld-sparc/tlssunpic64.rd: Likewise.
+	* testsuite/ld-tic6x/common.d: Likewise.
+	* testsuite/ld-tic6x/shlib-1.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-1b.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-1r.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-1rb.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-app-1.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-app-1b.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-app-1r.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-app-1rb.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-noindex.rd: Likewise.
+	* testsuite/ld-tic6x/static-app-1.rd: Likewise.
+	* testsuite/ld-tic6x/static-app-1b.rd: Likewise.
+	* testsuite/ld-tic6x/static-app-1r.rd: Likewise.
+	* testsuite/ld-tic6x/static-app-1rb.rd: Likewise.
+
+2021-04-20  Clément Chigot  <clement.chigot@atos.net>
+
+	PR binutils/21700
+	* testsuite/ld-powerpc/aix52.exp: Add new test.
+	* testsuite/ld-powerpc/aix-neg-reloc-32.d: New test.
+	* testsuite/ld-powerpc/aix-neg-reloc-64.d: New test.
+	* testsuite/ld-powerpc/aix-neg-reloc.ex: New test.
+	* testsuite/ld-powerpc/aix-neg-reloc.s: New test.
+
+2021-04-13  Nick Clifton  <nickc@redhat.com>
+
+	* ld.texi (Options): Add note about the effect of --as-needed on
+	the --rpath and --rpath-link options on Linux based systems.
+
+2021-04-13  Alan Modra  <amodra@gmail.com>
+
+	PR 27722
+	* libdep_plugin.c (str2vec): Don't pass a potentially signed char
+	to isspace.
+
+2021-04-12  Alan Modra  <amodra@gmail.com>
+
+	* configure.ac (--enable-checking): Add support.
+	* config.in: Regenerate.
+	* configure: Regenerate.
+
+2021-04-12  Alan Modra  <amodra@gmail.com>
+
+	* emultempl/mipself.em (mips_create_output_section_statements):
+	Pass base type of hash table to is_elf_hash_table.
+	* ldelf.c (ldelf_after_open): Likewise.
+
+2021-04-12  Alan Modra  <amodra@gmail.com>
+
+	PR 27719
+	* ldlang.c (lang_mark_undefineds, undef_start_stop): Test that
+	the symbol hash table is the correct type before accessing
+	elf_link_hash_entry symbols.
+	* plugin.c (is_visible_from_outside): Likewise.
+	* emultempl/armelf.em (ld${EMULATION_NAME}_finish): Likewise.
+	* emultempl/solaris2.em (elf_solaris2_before_allocation): Likewise.
+
+2021-04-09  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-powerpc/inlinepcrel-1.d: Update expected output.
+	* testsuite/ld-powerpc/inlinepcrel-2.d: Likewise.
+	* testsuite/ld-powerpc/notoc2.d: Likewise.
+	* testsuite/ld-powerpc/notoc3.d: Likewise.
+	* testsuite/ld-powerpc/pcrelopt.d: Likewise.
+	* testsuite/ld-powerpc/startstop.d: Likewise.
+	* testsuite/ld-powerpc/tlsget.d: Likewise.
+	* testsuite/ld-powerpc/tlsget2.d: Likewise.
+	* testsuite/ld-powerpc/tlsld.d: Likewise.
+	* testsuite/ld-powerpc/weak1.d: Likewise.
+	* testsuite/ld-powerpc/weak1so.d: Likewise.
+
+2021-04-06  Jan Beulich  <jbeulich@suse.com>
+
+	* pe-dll.c (generate_reloc): Bail immediately when .reloc is
+	being discarded. Warn when relocated entry is above .reloc.
+
+2021-04-05  Alan Modra  <amodra@gmail.com>
+
+	* configure.ac: Move initfini-array arg handling earlier.  Don't
+	check for string.h, strings.h, stdlib.h, or locale.h.  Do check
+	for inttypes.h, stdint.h, sys/types.h.  Don't check for
+	setlocale, free, getev or strstr.
+	(AC_ISC_POSIX): Don't invoke.
+	* sysdep.h: Include string.h and stdlib.h unconditionally.  Test
+	HAVE_SYS_TYPE_H and HAVE_SYS_STAT_H.  Remove strstr, free and
+	getenv fallback declarations.
+	* ld.h: Don't test HAVE_LOCALE_H.
+	* ldmain.c: Don't test HAVE_SETLOCALE.
+	* config.in: Regenerate.
+	* configure: Regenerate.
+
+2021-04-01  Tamar Christina  <tamar.christina@arm.com>
+
+	PR ld/26659
+	* testsuite/ld-pe/pe.exp: Add test.
+	* testsuite/ld-pe/pr26659-weak-undef-sym.d: New test.
+	* testsuite/ld-pe/pr26659-weak-undef-sym.s: New test.
+
+2021-04-01  Martin Liska  <mliska@suse.cz>
+
+	* ldbuildid.c (strneq): Remove strneq and use startswith.
+	(validate_build_id_style): Likewise.
+	(compute_build_id_size): Likewise.
+
+2021-03-31  Alan Modra  <amodra@gmail.com>
+
+	* sysdep.h (POISON_BFD_BOOLEAN): Define.
+	* configure.ac (elf_list_options, elf_shlib_list_options=false),
+	(elf_plt_unwind_list_options=false): Replace FALSE with false,
+	and TRUE with true.
+	* emulparams/call_nop.sh, * emulparams/cet.sh,
+	* emulparams/dynamic_undefined_weak.sh,
+	* emulparams/elf32b4300.sh, * emulparams/elf32lm32.sh,
+	* emulparams/elf32lr5900.sh, * emulparams/elf32lr5900n32.sh,
+	* emulparams/elf32visium.sh, * emulparams/elf_x86_64.sh,
+	* emulparams/extern_protected_data.sh, * emulparams/plt_unwind.sh,
+	* emulparams/reloc_overflow.sh, * emulparams/static.sh,
+	* emulparams/x86-64-lam.sh, * emultempl/aarch64elf.em,
+	* emultempl/aix.em, * emultempl/alphaelf.em,
+	* emultempl/armcoff.em, * emultempl/armelf.em,
+	* emultempl/avrelf.em, * emultempl/beos.em, * emultempl/bfin.em,
+	* emultempl/cr16elf.em, * emultempl/crxelf.em,
+	* emultempl/cskyelf.em, * emultempl/elf.em, * emultempl/genelf.em,
+	* emultempl/hppaelf.em, * emultempl/linux.em,
+	* emultempl/m68hc1xelf.em, * emultempl/metagelf.em,
+	* emultempl/mipself.em, * emultempl/mmix-elfnmmo.em,
+	* emultempl/mmixelf.em, * emultempl/mmo.em, * emultempl/msp430.em,
+	* emultempl/nios2elf.em, * emultempl/pdp11.em, * emultempl/pe.em,
+	* emultempl/pep.em, * emultempl/ppc32elf.em,
+	* emultempl/ppc64elf.em, * emultempl/rxelf.em,
+	* emultempl/rxlinux.em, * emultempl/scoreelf.em,
+	* emultempl/solaris2.em, * emultempl/spuelf.em,
+	* emultempl/ticoff.em, * emultempl/v850elf.em, * emultempl/vms.em,
+	* emultempl/xtensaelf.em, * emultempl/z80.em, * ld.h,
+	* ldbuildid.c, * ldbuildid.h, * ldcref.c, * ldctor.c, * ldctor.h,
+	* ldelf.c, * ldelf.h, * ldelfgen.c, * ldelfgen.h, * ldemul.c,
+	* ldemul.h, * ldexp.c, * ldexp.h, * ldfile.c, * ldfile.h,
+	* ldgram.y, * ldlang.c, * ldlang.h, * ldmain.c, * ldmain.h,
+	* ldmisc.c, * ldmisc.h, * ldwrite.c, * lexsup.c, * mri.c,
+	* pe-dll.c, * pe-dll.h, * pep-dll.h, * plugin.c, * plugin.h,
+	* testplug.c, * testplug2.c, * testplug3.c, * testplug4.c: Replace
+	bfd_boolean with bool, FALSE with false, and TRUE with true.
+	* configure: Regenerate.
+
+2021-03-31  Alan Modra  <amodra@gmail.com>
+
+	* elf-hints-local.h: Include stdint.h in place of bfd_stdint.h.
+	* emultempl/nds32elf.em: Likewise.
+	* testsuite/ld-elf/mbind2b.c: Likewise.
+	* testsuite/ld-elf/pr18718.c: Likewise.
+	* testsuite/ld-elf/pr18720a.c: Likewise.
+	* testsuite/ld-elf/pr25749-1.c: Likewise.
+	* testsuite/ld-elf/pr25749-1a.c: Likewise.
+	* testsuite/ld-elf/pr25749-1b.c: Likewise.
+	* testsuite/ld-elf/pr25749-1c.c: Likewise.
+	* testsuite/ld-elf/pr25749-1d.c: Likewise.
+	* testsuite/ld-elf/pr25749-2.c: Likewise.
+	* testsuite/ld-elf/pr25754-1a.c: Likewise.
+	* testsuite/ld-elf/pr25754-2a.c: Likewise.
+	* testsuite/ld-elf/pr25754-3a.c: Likewise.
+	* testsuite/ld-elf/pr25754-4a.c: Likewise.
+	* testsuite/ld-elf/pr25754-5a.c: Likewise.
+	* testsuite/ld-elf/pr25754-6a.c: Likewise.
+
+2021-03-29  Alan Modra  <amodra@gmail.com>
+
+	* emultempl/aix.em (gld${EMULATION_NAME}_before_allocation): Simplify
+	boolean expression.
+	* lexsup.c (parse_args): Likewise.
+	* pe-dll.c (pe_dll_id_target): Likewise.
+
+2021-03-25  Nick Alcock  <nick.alcock@oracle.com>
+
+	* testsuite/ld-ctf/array.d: Only check that the data object
+	section is nonempty: do not check its exact size.
+	* testsuite/ld-ctf/diag-parlabel.d: Likewise.
+	* testsuite/ld-ctf/slice.d: Likewise.
+	* testsuite/ld-ctf/data-func-conflicted.d: Likewise, and for the
+	func info section too.
+	* testsuite/ld-ctf/function.d: Likewise, for the func info section.
+
+2021-03-22  Martin Liska  <mliska@suse.cz>
+
+	* emultempl/aix.em: Replace usage of CONST_STRNEQ with startswith.
+	* emultempl/beos.em: Likewise.
+	* emultempl/elf.em: Likewise.
+	* emultempl/pe.em: Likewise.
+	* emultempl/pep.em: Likewise.
+	* emultempl/xtensaelf.em: Likewise.
+	* ldctor.c (ctor_prio): Likewise.
+	* ldelf.c (ldelf_try_needed): Likewise.
+	(ldelf_parse_ld_so_conf): Likewise.
+	(ldelf_after_open): Likewise.
+	(output_rel_find): Likewise.
+	(ldelf_place_orphan): Likewise.
+	* ldfile.c (ldfile_add_library_path): Likewise.
+	* ldlang.c (lang_add_input_file): Likewise.
+	* ldmain.c (get_sysroot): Likewise.
+	(get_emulation): Likewise.
+	(add_archive_element): Likewise.
+	* ldwrite.c (unsplittable_name): Likewise.
+	(clone_section): Likewise.
+	* lexsup.c (parse_args): Likewise.
+	* pe-dll.c (is_import): Likewise.
+	(pe_implied_import_dll): Likewise.
+
+2021-03-19  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27590
+	* testsuite/ld-x86-64/pr27590.rd: New file.
+	* testsuite/ld-x86-64/pr27590a.obj.bz2: Likewise.
+	* testsuite/ld-x86-64/pr27590b.obj.bz2: Likewise.
+	* testsuite/ld-x86-64/x86-64.exp: Run ld/27590 test.
+
+2021-03-20  Alan Modra  <amodra@gmail.com>
+
+	PR 27590
+	* ldlang.c (lang_gc_sections): Clear SEC_EXCLUDE when relocatable
+	for all sections except .stabstr.
+
+2021-03-19  Alan Modra  <amodra@gmail.com>
+
+	PR 27590
+	* testsuite/ld-elf/pr27590a.d: Match relocs using label, and
+	R_MIPS_NONE.
+	* testsuite/ld-elf/pr27590b.d: Likewise.
+
+2021-03-18  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27590
+	* testsuite/ld-elf/pr27590.s: New file.
+	* testsuite/ld-elf/pr27590a.d: Likewise.
+	* testsuite/ld-elf/pr27590b.d: Likewise.
+	* testsuite/ld-i386/i386.exp: Also run ld/27193 test with
+	--reduce-memory-overheads.
+
+2021-03-18  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27587
+	* testsuite/ld-x86-64/pr27587.err: New file.
+	* testsuite/ld-x86-64/pr27587a.obj.bz2: Likewise.
+	* testsuite/ld-x86-64/pr27587b.obj.bz2: Likewise.
+	* testsuite/ld-x86-64/x86-64.exp: Run PR ld/27587 test.
+
+2021-03-18  Nick Alcock  <nick.alcock@oracle.com>
+
+	* testsuite/ld-ctf/slice.c: Check slices of enums too.
+	* testsuite/ld-ctf/slice.d: Results adjusted.
+
+2021-03-16  Nick Clifton  <nickc@redhat.com>
+
+	* pe-dll.c (pe_find_cdecl_alias_match): Use memmove to overwrite
+	lname string.
+
+2021-03-15  Jan Beulich  <jbeulich@suse.com>
+
+	* pe-dll.c (generate_reloc): Drop padding to reloc_s->size.
+
+2021-03-12  Alan Modra  <amodra@gmail.com>
+
+	* Makefile.am (ALL_EMULATION_SOURCES): Move riscv files to..
+	(ALL_64_EMULATION_SOURCES): ..here.
+	* Makefile.in: Regenerate.
+
+2021-03-12  Clément Chigot  <clement.chigot@atos.net>
+
+	* emultempl/aix.em: Ensure .tdata section is removed
+	if empty, even with -r flag.
+	* scripttempl/aix.sc: Handle TLS sections.
+	* testsuite/ld-powerpc/aix52.exp: Add new tests.
+	* testsuite/ld-powerpc/aix-tls-reloc-32.d: New test.
+	* testsuite/ld-powerpc/aix-tls-reloc-64.d: New test.
+	* testsuite/ld-powerpc/aix-tls-reloc.ex: New test.
+	* testsuite/ld-powerpc/aix-tls-reloc.s: New test.
+	* testsuite/ld-powerpc/aix-tls-section-32.d: New test.
+	* testsuite/ld-powerpc/aix-tls-section-64.d: New test.
+	* testsuite/ld-powerpc/aix-tls-section.ex: New test.
+	* testsuite/ld-powerpc/aix-tls-section.s: New test.
+
+2021-03-12  Clément Chigot  <clement.chigot@atos.net>
+
+	* scripttempl/aix.sc: Add .te to .data section.
+	* testsuite/ld-powerpc/aix52.exp: Add test structure for AIX7+.
+	Add aix-largetoc-1 test.
+	* testsuite/ld-powerpc/aix-largetoc-1-32.d: New test.
+	* testsuite/ld-powerpc/aix-largetoc-1-64.d: New test.
+	* testsuite/ld-powerpc/aix-largetoc-1.ex: New test.
+	* testsuite/ld-powerpc/aix-largetoc-1.s: New test.
+
+2021-03-12  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-gc/gc.exp: Pass "-image-base 0" to ld for PE, and
+	arrange to define __main for some run_dump_test tests.
+	* testsuite/ld-gc/pr13683.d: Accept more symbols.
+	* testsuite/ld-gc/pr14265.d: Likewise, and ordering.
+	* testsuite/ld-scripts/crossref.exp: Pass "-image-base 0" to ld for PE.
+	* testsuite/ld-srec/srec.exp: Likewise.
+	* testsuite/lib/ld-lib.exp (ld_link_defsyms): Use is_pecoff_format.
+
+2021-03-11  Nelson Chu  <nelson.chu@sifive.com>
+
+	* emultempl/riscvelf.em (after_allocation): Run ldelf_map_segments
+	many times if riscv_restart_relax_sections returns TRUE.
+	* testsuite/ld-riscv-elf/restart-relax.d: New testcase.  Before
+	applying this patch, the call won't be relaxed to jal; But now we
+	have more chances to do relaxations.
+	* testsuite/ld-riscv-elf/restart-relax.s: Likewise.
+	* testsuite/ld-riscv-elf/ld-riscv-elf.exp: Updated.
+
+2021-03-10  Jan Beulich  <jbeulich@suse.com>
+
+	* testsuite/ld-scripts/pr22267.t: Avoid symbol value with more
+	than 32 set bits.
+	* testsuite/ld-scripts/pr22267.d: Adjust expectation and drop
+	comment.
+	* scripttempl/mcorepe.sc: Use PROVIDE() for _stack.
+
+2021-03-09  Jan Beulich  <jbeulich@suse.com>
+
+	* testsuite/ld-pe/reloc.s: Add entry point symbols. Increase
+	alignment to 4k.
+	* testsuite/ld-pe/reloc.d: xfail for mcore.
+
+2021-03-09  Jan Beulich  <jbeulich@suse.com>
+
+	* testsuite/ld-scripts/alignof.exp,
+	testsuite/ld-scripts/data.exp,
+	testsuite/ld-scripts/default-script.exp,
+	testsuite/ld-scripts/log2.exp,
+	testsuite/ld-scripts/print-memory-usage.exp,
+	testsuite/ld-scripts/sizeof.exp,
+	testsuite/ld-undefined/weak-undef.exp: Set image base to zero
+	for PE/COFF.
+	* testsuite/ld-scripts/default-script1.d,
+	testsuite/ld-scripts/default-script2.d,
+	testsuite/ld-scripts/default-script3.d,
+	testsuite/ld-scripts/default-script4.d: Drop xfail and comment.
+
+2021-03-05  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27425
+	PR ld/27432
+	* ldelf.c (ldelf_set_output_arch): New function.
+	* ldelf.h (ldelf_set_output_arch): New prototype.
+	* emultempl/elf.em (LDEMUL_SET_OUTPUT_ARCH): Default to
+	ldelf_set_output_arch.
+	* ld-x86-64/pe-x86-64-1.od: Expect __executable_start.
+	* testsuite/ld-x86-64/pe-x86-64-2.od: Likewise.
+	* testsuite/ld-x86-64/pe-x86-64-3.od: Likewise.
+	* testsuite/ld-x86-64/pe-x86-64-4.od: Likewise.
+	* testsuite/ld-x86-64/pe-x86-64-5.od: Likewise.
+	* testsuite/ld-x86-64/pe-x86-64-5.rd: Likewise.
+	* testsuite/ld-x86-64/pe-x86-64-6.obj.bz2: New file.
+	* testsuite/ld-x86-64/pe-x86-64-6.od: Likewise.
+	* testsuite/ld-x86-64/pe-x86-64.exp: Run ld/27425 test.
+
+2021-03-04  Jan Beulich  <jbeulich@suse.com>
+
+	* testsuite/ld-scripts/map-address.exp: Set image base to zero
+	for PE/COFF.
+	* testsuite/ld-scripts/map-address.t: Place .text.
+
+2021-03-04  Jan Beulich  <jbeulich@suse.com>
+
+	* ldexp.c (ldexp_is_final_sym_absolute): New.
+	* ldexp.h (ldexp_is_final_sym_absolute): Declare.
+	* pe-dll.c (generate_reloc): Skip absolute symbols.
+	* testsuite/ld-pe/reloc.s, testsuite/ld-pe/reloc.d: New.
+	* testsuite/ld-pe/pe.exp: Run new test.
+
+2021-03-03  Alan Modra  <amodra@gmail.com>
+
+	PR 27500
+	* ldlang.c (insert_undefined): Don't mark symbols here.
+	(lang_mark_undefineds): Do so here instead, new function.
+	(lang_process): Call lang_mark_undefineds.
+	* testsuite/ld-gc/start3.d,
+	* testsuite/ld-gc/start3.s: New test.
+	* testsuite/ld-gc/start4.d,
+	* testsuite/ld-gc/start4.s: New test.
+	* testsuite/ld-gc/gc.exp: Run them.
+
+2021-03-03  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-gc/gc.exp: Define UNDERSCORE in ASFLAGS.
+	Move tests with ELF section directives to is_elf_format block.
+	* testsuite/ld-gc/abi-note.d: Run on more targets.
+	* testsuite/ld-gc/pr19167.d: Likewise and adjust xfails.
+	* testsuite/ld-gc/start.d: Likewise.
+	* testsuite/ld-gc/start2.d: Likewise.
+	* testsuite/ld-gc/stop.d: Likewise.
+	* testsuite/ld-gc/pr19167a.s: Add support for underscore targets.
+	* testsuite/ld-gc/start.s: Likewise.
+	* testsuite/ld-gc/start2.s: Likewise.
+
+2021-03-02  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ldelfgen.c (ldelf_ctf_strtab_iter_cb): Skip zero-refcount strings.
+
+2021-03-02  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-powerpc/startstop.d,
+	* testsuite/ld-powerpc/startstop.r,
+	* testsuite/ld-powerpc/startstop.s: New test.
+	* testsuite/ld-powerpc/powerpc.exp: Run it.
+
+2021-03-02  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-powerpc/weak1.d,
+	* testsuite/ld-powerpc/weak1.r,
+	* testsuite/ld-powerpc/weak1.s,
+	* testsuite/ld-powerpc/weak1so.d,
+	* testsuite/ld-powerpc/weak1so.r: New tests.
+	* testsuite/ld-powerpc/powerpc.exp: Run them.
+
+2021-03-01  Hannes Domani  <ssbssa@sourceware.org>
+	    Nick Clifton  <nickc@redhat.com>
+
+	PR 27268
+	* scripttempl/pe.sc: Add DWARF-5 section names.
+	* scripttempl/pep.sc: Likewise.
+
+2021-03-01  Alan Modra  <amodra@gmail.com>
+	    Fangrui Song <maskray@google.com>
+
+	* emultempl/elf.em: Handle -z start-stop-gc and -z nostart-stop-gc.
+	* lexsup.c (elf_static_list_options): Display help for them.  Move
+	help for -z stack-size to here from elf_shlib_list_options. Add
+	help for -z start-stop-visibility and -z undefs.
+	* ld.texi: Document -z start-stop-gc and -z nostart-stop-gc.
+	* NEWS: Mention -z start-stop-gc.
+	* testsuite/ld-gc/start2.s,
+	* testsuite/ld-gc/start2.d: New test.
+	* testsuite/ld-gc/gc.exp: Run it.
+
+2021-03-01  Alan Modra  <amodra@gmail.com>
+
+	* ldlang.c (undef_start_stop): For ELF make undefined start/stop
+	symbols undefweak if that was how they were referenced.  Undo
+	dynamic state too.
+
+2021-03-01  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-elf/pr25708.d: Add --with-symbol-versions to nm.
+	* testsuite/ld-elf/pr27128a.d: Likewise.
+	* testsuite/ld-elf/pr27128b.d: Likewise.
+	* testsuite/ld-elf/pr27128c.d: Likewise.
+	* testsuite/ld-elf/pr27128d.d: Likewise.
+	* testsuite/ld-elf/pr27128e.d: Likewise.
+
+2021-02-26  Alan Modra  <amodra@gmail.com>
+
+	PR 27441
+	* testsuite/ld-plugin/pr27441a.c,
+	* testsuite/ld-plugin/pr27441b.c,
+	* testsuite/ld-plugin/pr27441c.c,
+	* testsuite/ld-plugin/pr27441c.d: New test.
+	* testsuite/ld-plugin/lto.exp: Run it.
+
+2021-02-25  Jan Beulich  <jbeulich@suse.com>
+
+	* ld.texi (PROVIDE): Downgrade "error" to "diagnostic".
+
+2021-02-21  Alan Modra  <amodra@gmail.com>
+
+	* ldexp.c (exp_fold_tree_1): Warn on script defining a symbol
+	defined in an object file.
+	* ldmain.c (multiple_definition): Heed info->warn_multiple_definition.
+	* testsuite/ld-scripts/defined5.d: Expect a warning.
+
+2021-02-19  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/lib/ld-lib.exp: Whitespace.
+	(load_common_lib): Expand single use and delete this proc.
+	(run_host_cmd): Use -fno-lto when getting gcc's ld version.
+	Use -B for clang too.
+
+2021-02-18  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* testplugin.c (record_read_length): Remove debug fprintf.
+
+2021-02-14  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-cdtest/cdtest.exp,
+	* testsuite/ld-checks/checks.exp,
+	* testsuite/ld-elf/binutils.exp,
+	* testsuite/ld-elf/compress.exp,
+	* testsuite/ld-elf/dwarf.exp,
+	* testsuite/ld-elf/exclude.exp,
+	* testsuite/ld-elf/frame.exp,
+	* testsuite/ld-elf/indirect.exp,
+	* testsuite/ld-elf/linux-x86.exp,
+	* testsuite/ld-elf/sec-to-seg.exp,
+	* testsuite/ld-elf/tls_common.exp,
+	* testsuite/ld-elfcomm/elfcomm.exp,
+	* testsuite/ld-elfvers/vers.exp,
+	* testsuite/ld-elfvsb/elfvsb.exp,
+	* testsuite/ld-elfweak/elfweak.exp,
+	* testsuite/ld-ifunc/binutils.exp,
+	* testsuite/ld-mips-elf/mips-elf-flags.exp,
+	* testsuite/ld-misc/defsym.exp,
+	* testsuite/ld-mn10300/mn10300.exp,
+	* testsuite/ld-plugin/lto.exp,
+	* testsuite/ld-plugin/plugin.exp,
+	* testsuite/ld-scripts/align.exp,
+	* testsuite/ld-scripts/assert.exp,
+	* testsuite/ld-scripts/crossref.exp,
+	* testsuite/ld-scripts/defined.exp,
+	* testsuite/ld-scripts/extern.exp,
+	* testsuite/ld-scripts/log2.exp,
+	* testsuite/ld-scripts/map-address.exp,
+	* testsuite/ld-scripts/phdrs.exp,
+	* testsuite/ld-scripts/phdrs2.exp,
+	* testsuite/ld-scripts/script.exp,
+	* testsuite/ld-scripts/section-flags.exp,
+	* testsuite/ld-scripts/sizeof.exp,
+	* testsuite/ld-scripts/weak.exp,
+	* testsuite/ld-selective/selective.exp,
+	* testsuite/ld-sh/sh.exp,
+	* testsuite/ld-shared/shared.exp,
+	* testsuite/ld-srec/srec.exp,
+	* testsuite/ld-tic6x/tic6x.exp,
+	* testsuite/ld-undefined/undefined.exp,
+	* testsuite/ld-undefined/weak-undef.exp,
+	* testsuite/lib/ld-lib.exp: Don't use unresolved except after
+	perror.  Instead report "unsupported" or "fail".
+
+2021-02-12  Nick Clifton  <nickc@redhat.com>
+
+	* testsuite/ld-elf/sec64k.exp: Stop readelf from automatically
+	following debug links.
+
+2021-02-11  Alan Modra  <amodra@gmail.com>
+
+	* NEWS: Mention arm-symbianelf removal.
+
+2021-02-09  Alan Modra  <amodra@gmail.com>
+
+	* Makefile.am (ALL_EMULATION_SOURCES): Remove earmsymbian.c.
+	Don't include symbian dep file.
+	* configure.tgt: Remove arm*-*-symbianelf* entry.
+	* emulparams/armsymbian.sh: Delete.
+	* ld.texi: Don't mention symbian.
+	* scripttempl/armbpabi.sc: Delete.
+	* testsuite/ld-arm/symbian-seg1.d: Delete.
+	* testsuite/ld-arm/symbian-seg1.s: Delete.
+	* testsuite/ld-arm/arm-elf.exp: Don't run symbian-seg1.
+	* Makefile.in: Regenerate.
+	* po/BLD-POTFILES.in: Regenerate.
+
+2021-02-07  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27358
+	* testsuite/ld-i386/i386.exp: Remove property 3/4/5 run-time
+	tests.
+	* testsuite/ld-x86-64/x86-64.exp: Likewise.
+
+2021-01-26  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ldlang.c (lang_merge_ctf): Set CTF_LINK_NO_FILTER_REPORTED_SYMS
+	when appropriate.
+
+2021-02-04  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/19609
+	* testsuite/ld-x86-64/pr19609-2a.d: Updated.
+	* testsuite/ld-x86-64/pr19609-2b.d: Likewise.
+	* testsuite/ld-x86-64/pr19609-4a.d: Likewise.
+	* testsuite/ld-x86-64/pr19609-4c.d: Likewise.
+	* testsuite/ld-x86-64/pr19609-5d.d: Likewise.
+	* testsuite/ld-x86-64/pr19609-7a.d: Likewise.
+	* testsuite/ld-x86-64/pr19609-7c.d: Likewise.
+
+2021-02-04  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/15146
+	* testsuite/ld-plugin/lto.exp: Run PR ld/15146 tests.
+	* testsuite/ld-plugin/pr15146.d: Restored.
+	* testsuite/ld-plugin/pr15146a.c: Likewise.
+	* testsuite/ld-plugin/pr15146b.c: Likewise.
+	* testsuite/ld-plugin/pr15146c.c: Likewise.
+	* testsuite/ld-plugin/pr15146d.c: Likewise.
+
+2021-02-04  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-plugin/pr27311d.c: New test.
+	* testsuite/ld-plugin/lto.exp: Rename pr27311 to pr27311-1, compile
+	and link new test as pr27311-2.
+
+2021-02-03  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-ifunc/ifunc.exp (libpr16467b.so, libpr16467bn.so):
+	Link with --as-needed.
+
+2021-02-02  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-plugin/pr27311.d,
+	* testsuite/ld-plugin/pr27311.ver,
+	* testsuite/ld-plugin/pr27311a.c,
+	* testsuite/ld-plugin/pr27311b.c,
+	* testsuite/ld-plugin/pr27311c.c: New testcase.
+	* testsuite/ld-plugin/lto.exp: Run it.  Correct PR14918 and
+	PR12982 entries.
+
+2021-02-01  Emery Hemingway  <ehmry@posteo.net>
+
+	* configure.tgt: Add *-*-genode* as a target for AArch64 and x86.
+
+2021-02-01  Alan Modra  <amodra@gmail.com>
+
+	* ldgram.y (defsym_expr): Use assignment rule.
+	* ldlex.h (ldlex_defsym): Delete.
+	* ldlex.l (DEFSYMEXP, ldlex_defsym): Delete.
+
+2021-02-01  Alan Modra  <amodra@gmail.com>
+
+	* ldgram.y (section): Call ldlex_backup.  Remove empty action.
+	* ldlex.h (ldlex_backup): Declare.
+	* ldlex.l (<EXPRESSION>NAME): Don't use NOCFILENAMECHAR set of
+	chars, use SYMBOLNAMECHAR.
+	(ldlex_backup): New function.
+
+2021-02-01  Alan Modra  <amodra@gmail.com>
+
+	* ldgram.y: Whitespace fixes.
+
+2021-02-01  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-elf/pr27259.d: Correct sh_link match.
+
+2021-01-29  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-tic6x/tic6x.exp: Add pr27271 test.
+
+2021-01-28  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27259
+	* testsuite/ld-elf/pr27259.d: New file.
+	* testsuite/ld-elf/pr27259.s: Likewise.
+
+2021-01-28  Alan Modra  <amodra@gmail.com>
+
+	PR 27259
+	* ldelf.c (ldelf_before_place_orphans): Use linker_mark to
+	prevent endless looping of linked-to sections.
+
+2021-01-26  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/ld-x86-64/bnd-plt-1.d: Fix a typo.
+
+2021-01-26  Alan Modra  <amodra@gmail.com>
+
+	PR 27226
+	* emulparams/alphavms.sh: Don't set COMPILE_IN.
+	* emulparams/elf64_ia64_vms.sh: Likewise.
+	* emulparams/elf64mmix.sh: Likewise.
+	* emulparams/elf_iamcu.sh: Likewise.
+	* emulparams/elf_k1om.sh: Likewise.
+	* emulparams/elf_l1om.sh: Likewise.
+	* emulparams/mmo.sh: Likewise.
+	* emulparams/pdp11.sh: Set DATA_SEG_ADDR.
+	* scripttempl/pdp11.sc: Use it.
+	* emultempl/pdp11.em: Don't edit .xn script for separate_code,
+	instead use .xe script.  Support scripts from file system.
+	* emultempl/beos.em: Support scripts from file system.
+	* emultempl/pe.em: Likewise.
+	* emultempl/pep.em: Likewise.
+	* testsuite/ld-bootstrap/bootstrap.exp: Make tmpdir/ldscripts link.
+
+2021-01-25  Fangrui Song  <maskray@google.com>
+
+	PR ld/27230
+	* scripttempl/DWARF.sc: Add .debug_* sections.
+
+2021-01-25  Nick Clifton  <nickc@redhat.com>
+
+	* scripttempl/DWARF.sc: Add .debug_loclists, .debug_rnglists,
+	.debug_line_str and .debug_str_offsets.  Move .debug_macro and
+	.debug_addr into DWARF-5 section.
+
+2021-01-21  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-elf/pr26936.d: No longer xfail mips.
+
+2021-01-20  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-powerpc/relbrlt.s: Make symbols global.
+	* testsuite/ld-powerpc/relbrlt.d: Adjust to suit.
+	* testsuite/ld-powerpc/tlsget.d: Adjust for reordered stubs.
+	* testsuite/ld-powerpc/tlsget.wf: Likewise.
+	* testsuite/ld-powerpc/tlsget2.d: Likewise.
+	* testsuite/ld-powerpc/tlsget2.wf: Likewise.
+	* testsuite/ld-powerpc/tlsexe.r: Adjust for removed section syms.
+	* testsuite/ld-powerpc/tlsexe32.r: Likewise.
+	* testsuite/ld-powerpc/tlsexe32no.r: Likewise.
+	* testsuite/ld-powerpc/tlsexeno.r: Likewise.
+	* testsuite/ld-powerpc/tlsexenors.r: Likewise.
+	* testsuite/ld-powerpc/tlsexers.r: Likewise.
+	* testsuite/ld-powerpc/tlsexetoc.r: Likewise.
+	* testsuite/ld-powerpc/tlsexetocrs.r: Likewise.
+	* testsuite/ld-powerpc/tlsso.r: Likewise.
+	* testsuite/ld-powerpc/tlsso32.r: Likewise.
+	* testsuite/ld-powerpc/tlstocso.r: Likewise.
+
+2021-01-19  Nick Alcock  <nick.alcock@oracle.com>
+
+	* testsuite/ld-ctf/data-func-2.c: Stop removal of the extern foo_t
+	symbols by the optimizer.
+	* testsuite/ld-ctf/data-func-conflicted.d: Adjust accordingly.
+
+2021-01-19  Nelson Chu  <nelson.chu@sifive.com>
+
+	* testsuite/ld-elf/elf.exp (riscv_little_endian): Added.  Return true
+	if target is riscv little endian.  Otherwise, return false.
+	* testsuite/ld-elf/compressed1d.d: Only xfail the riscv little endian
+	targets by [riscv_little_endian].
+
+2021-01-18  Alan Modra  <amodra@gmail.com>
+
+	PR 26378
+	* ldlang.c (map_input_to_output_sections): Start with a read-only
+	section for data statements.
+	* testsuite/ld-elf/size-2.d: Adjust to suit.
+
+2021-01-17  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27193
+	* testsuite/ld-i386/i386.exp: Run PR ld/27193 test.
+	* testsuite/ld-i386/pr27193.dd: New file.
+	* testsuite/ld-i386/pr27193a.o.bz2: Likewise.
+	* testsuite/ld-i386/pr27193b.s: Likewise.
+
+2021-01-16  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/23460
+	* testsuite/ld-plugin/lto.exp: Increase the max number of open
+	files to 20 for PR binutils/23460 test.
+
+2021-01-16  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/23169
+	* testsuite/ld-ifunc/ifunc.exp: Replace pr23169c.rd with
+	pr23169a.rd for pr23169c and pr23169f.  Remove pr23169e tests.
+	* testsuite/ld-ifunc/pr23169a.c (foo): Don't compare function
+	address.
+
+2021-01-15  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* NEWS: Mention -z report-relative-reloc.
+	* ld.texi: Document -z report-relative-reloc.
+	* emulparams/elf32_x86_64.sh: Source x86-report-relative.sh.
+	* emulparams/elf_i386.sh: Likewse.
+	* emulparams/elf_x86_64.sh: Likewse.
+	* emulparams/x86-report-relative.sh: New file.
+	* testsuite/ld-i386/report-reloc-1.d: Likewse.
+	* testsuite/ld-i386/report-reloc-1.l: Likewse.
+	* testsuite/ld-i386/report-reloc-1.s: Likewse.
+	* testsuite/ld-x86-64/report-reloc-1-x32.d: Likewse.
+	* testsuite/ld-x86-64/report-reloc-1.d: Likewse.
+	* testsuite/ld-x86-64/report-reloc-1.l: Likewse.
+	* testsuite/ld-x86-64/report-reloc-1.s: Likewse.
+	* testsuite/ld-i386/i386.exp: Run report-reloc-1.
+	* testsuite/ld-x86-64/x86-64.exp: Run report-reloc-1 and
+	report-reloc-1-x32.
+
+2021-01-16  Alan Modra  <amodra@gmail.com>
+
+	PR 26002
+	* testsuite/ld-elfvers/vers6.dsym: Expect "Base" for undefined
+	unversioned symbols.
+	* testsuite/ld-elfvers/vers16.dsym: Likewise.
+
+2021-01-15  Nelson Chu  <nelson.chu@sifive.com>
+
+	* testsuite/ld-riscv-elf/attr-merge-priv-spec-failed-01.d: Updated.
+	* testsuite/ld-riscv-elf/attr-merge-priv-spec-failed-02.d: Likewise.
+	* testsuite/ld-riscv-elf/attr-merge-priv-spec-failed-03.d: Likewise.
+	* testsuite/ld-riscv-elf/attr-merge-priv-spec-failed-04.d: Likewise.
+	* testsuite/ld-riscv-elf/attr-merge-priv-spec-failed-05.d: Likewise.
+	* testsuite/ld-riscv-elf/attr-merge-priv-spec-failed-06.d: Likewise.
+
+2021-01-14  Nick Clifton  <nickc@redhat.com>
+
+	* po/fr.po: Updated French translation.
+
+2021-01-14  Mike Frysinger  <vapier@gentoo.org>
+
+	* testsuite/config/default.exp [bfin*-elf*] (gcc_B_opt): Add -msim.
+
+2021-01-14  Alan Modra  <amodra@gmail.com>
+
+	PR 27160
+	* ldelfgen.c (compare_link_order): Protect access of ELF section
+	data.
+	(add_link_order_input_section): Remove redundant NULL check.
+	Use bfd_get_flavour.
+	(ldelf_map_segments): Use bfd_get_flavour.
+
+2021-01-13  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* ldelfgen.c (add_link_order_input_section): Check for ELF input
+	before accessing ELF section data.
+
+2021-01-13  Alan Modra  <amodra@gmail.com>
+
+	* Makefile.in: Regenerate.
+
+2021-01-13  Alan Modra  <amodra@gmail.com>
+
+	PR 27160
+	* ldlang.h (lang_output_section_statement_type): Add data field.
+	(lang_input_section_type, lang_section_bst_type): Add pattern field.
+	(statement_list): Declare.
+	(lang_add_section): Adjust prototype.
+	* emultempl/aarch64elf.em: Adjust lang_add_section calls.
+	* emultempl/armelf.em: Likewise.
+	* emultempl/beos.em: Likewise.
+	* emultempl/cskyelf.em: Likewise.
+	* emultempl/hppaelf.em: Likewise.
+	* emultempl/m68hc1xelf.em: Likewise.
+	* emultempl/metagelf.em: Likewise.
+	* emultempl/mipself.em: Likewise.
+	* emultempl/mmo.em: Likewise.
+	* emultempl/msp430.em: Likewise.
+	* emultempl/nios2elf.em: Likewise.
+	* emultempl/pe.em: Likewise.
+	* emultempl/pep.em: Likewise.
+	* emultempl/ppc64elf.em: Likewise.
+	* emultempl/spuelf.em: Likewise.
+	* emultempl/vms.em: Likewise.
+	* ldelf.c: Likewise.
+	* ldelfgen.c: Include ldctor.h.
+	(struct os_sections): New.
+	(add_link_order_input_section, link_order_scan): New functions.
+	(compare_link_order, fixup_link_order): New functions.
+	(ldelf_map_segments): Call link_order_scan and fixup_link_order.
+	* ldlang.c (statement_list): Make global.
+	(output_section_callback_fast): Save pattern in tree node.
+	(lang_add_section): Add pattern parameter, save in lang_input_section.
+	(output_section_callback_tree_to_list): Adjust lang_add_section calls.
+	(lang_insert_orphan, output_section_callback): Likewise.
+	(ldlang_place_orphan): Likewise.
+	(gc_section_callback): Don't set section->pattern.
+	* testsuite/ld-elf/pr26256-2a.d: Don't xfail generic.
+	* testsuite/ld-elf/pr26256-3b.d: Likewise.
+	* testsuite/ld-elf/pr26256-2b.d: Likewise.  notarget xgate.
+
+2021-01-13  Alan Modra  <amodra@gmail.com>
+
+	* ldlang.h (callback_t): Remove flag_info function parameter.
+	* ldlang.c (walk_wild_consider_section): Adjust to suit.
+	(walk_wild_section_general): Likewise.
+	(output_section_callback_fast, output_section_callback): Likewise.
+	(check_section_callback, gc_section_callback): Likewise.
+	(find_relro_section_callback): Likewise.
+
+2021-01-12  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR binutils/26792
+	* configure.ac: Use GNU_MAKE_JOBSERVER.
+	* aclocal.m4: Regenerated.
+	* configure: Likewise.
+
+2021-01-12  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27171
+	* testsuite/ld-x86-64/pe-x86-64-5.obj.bz2: New file.
+	* testsuite/ld-x86-64/pe-x86-64-5.od: Likewise.
+	* testsuite/ld-x86-64/pe-x86-64-5.rd: Likewise.
+	* testsuite/ld-x86-64/pe-x86-64.exp: Run PR ld/27171 test.
+
+2021-01-11  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27173
+	* configure: Regenerated.
+
+2021-01-11  Matt Jenkins  <matt@majenko.co.uk>
+
+	PR ld/27167
+	* ldmain.c (get_emulation): Add mipsmips32r3, mips32r5, mips64r3
+	and mips64r5 to list of known mips targets.
+
+2021-01-11  Nick Clifton  <nickc@redhat.com>matt@majenko.co.uk
+
+	* po/pt_BR.po: Updated Brazilian Portuguese translation.
+`	* po/uk.po: Updated Ukranian translation.
+
+2021-01-09  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* configure: Regenerated.
+
+2021-01-09  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/27166
+	* testsuite/ld-x86-64/lam-u48.rd: New file.
+	* testsuite/ld-x86-64/lam-u57.rd: Likewise.
+	* testsuite/ld-x86-64/x86-64.exp: Add PR ld/27166 tests.
+
+2021-01-09  Nick Clifton  <nickc@redhat.com>
+
+	* configure: Regenerate.
+	* po/ld.pot: Regenerate.
+
+2021-01-09  Nick Clifton  <nickc@redhat.com>
+
+	* 2.36 release branch crated.
+
+2021-01-08  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* ld-x86-64/property-x86-lam-u48-4.d: Updated.
+	* ld-x86-64/property-x86-lam-u48-5.d: Likewise.
+
+2021-01-09  Alan Modra  <amodra@gmail.com>
+
+	* configure: Regenerate.
+	* Makefile.in: Regenerate.
+
+2021-01-07  Samuel Thibault  <samuel.thibault@gnu.org>
+
+	* configure: Regenerate.
+
+2021-01-07  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR 27109
+	* testsuite/ld-elf/export-class.sd: Adjust the expected output.
+	* testsuite/ld-elf/loadaddr3b.d: Likewise.
+	* testsuite/ld-i386/ibt-plt-1.d: Likewise.
+	* testsuite/ld-i386/ibt-plt-2a.d: Likewise.
+	* testsuite/ld-i386/ibt-plt-2c.d: Likewise.
+	* testsuite/ld-i386/ibt-plt-3a.d: Likewise.
+	* testsuite/ld-i386/ibt-plt-3c.d: Likewise.
+	* testsuite/ld-i386/pr19636-1d.d: Likewise.
+	* testsuite/ld-i386/pr19636-1l.d: Likewise.
+	* testsuite/ld-i386/pr19636-2c.d: Likewise.
+	* testsuite/ld-ifunc/ifunc-2-i386-now.d: Likewise.
+	* testsuite/ld-ifunc/ifunc-2-local-i386-now.d: Likewise.
+	* testsuite/ld-ifunc/ifunc-2-local-x86-64-now.d: Likewise.
+	* testsuite/ld-ifunc/ifunc-2-x86-64-now.d: Likewise.
+	* testsuite/ld-ifunc/ifunc-21-x86-64.d: Likewise.
+	* testsuite/ld-ifunc/ifunc-22-x86-64.d: Likewise.
+	* testsuite/ld-ifunc/pr17154-i386-now.d: Likewise.
+	* testsuite/ld-ifunc/pr17154-i386.d: Likewise.
+	* testsuite/ld-ifunc/pr17154-x86-64-now.d: Likewise.
+	* testsuite/ld-ifunc/pr17154-x86-64.d: Likewise.
+	* testsuite/ld-x86-64/bnd-branch-1-now.d: Likewise.
+	* testsuite/ld-x86-64/bnd-ifunc-1-now.d: Likewise.
+	* testsuite/ld-x86-64/bnd-ifunc-2-now.d: Likewise.
+	* testsuite/ld-x86-64/bnd-ifunc-2.d: Likewise.
+	* testsuite/ld-x86-64/bnd-plt-1-now.d: Likewise.
+	* testsuite/ld-x86-64/bnd-plt-1.d: Likewise.
+	* testsuite/ld-x86-64/ibt-plt-1-x32.d: Likewise.
+	* testsuite/ld-x86-64/ibt-plt-1.d: Likewise.
+	* testsuite/ld-x86-64/ibt-plt-2a-x32.d: Likewise.
+	* testsuite/ld-x86-64/ibt-plt-2a.d: Likewise.
+	* testsuite/ld-x86-64/ibt-plt-2c-x32.d: Likewise.
+	* testsuite/ld-x86-64/ibt-plt-2c.d: Likewise.
+	* testsuite/ld-x86-64/ibt-plt-3a-x32.d: Likewise.
+	* testsuite/ld-x86-64/ibt-plt-3a.d: Likewise.
+	* testsuite/ld-x86-64/ibt-plt-3c-x32.d: Likewise.
+	* testsuite/ld-x86-64/ibt-plt-3c.d: Likewise.
+	* testsuite/ld-x86-64/pr19609-4e.d: Likewise.
+	* testsuite/ld-x86-64/pr19609-6a.d: Likewise.
+	* testsuite/ld-x86-64/pr19609-6b.d: Likewise.
+	* testsuite/ld-x86-64/pr19609-7b.d: Likewise.
+	* testsuite/ld-x86-64/pr19609-7d.d: Likewise.
+	* testsuite/ld-x86-64/pr19636-2l.d: Likewise.
+	* testsuite/ld-x86-64/pr20253-1d.d: Likewise.
+	* testsuite/ld-x86-64/pr20253-1h.d: Likewise.
+	* testsuite/ld-x86-64/pr21038b-now.d: Likewise.
+	* testsuite/ld-x86-64/pr21038b.d: Likewise.
+	* testsuite/ld-x86-64/pr21038c-now.d: Likewise.
+	* testsuite/ld-x86-64/pr21038c.d: Likewise.
+	* testsuite/ld-x86-64/pr23854.d: Likewise.
+	* testsuite/ld-x86-64/pr25416-3.d: Likewise.
+	* testsuite/ld-x86-64/pr25416-4.d: Likewise.
+	* testsuite/ld-i386/plt-pic.pd: Likewise.
+	* testsuite/ld-i386/plt-pic2.dd: Likewise.
+	* testsuite/ld-i386/plt.pd: Likewise.
+	* testsuite/ld-i386/plt2.dd: Likewise.
+	* testsuite/ld-i386/tlsbin.rd: Likewise.
+	* testsuite/ld-i386/tlsbin2.rd: Likewise.
+	* testsuite/ld-i386/tlsbindesc.rd: Likewise.
+	* testsuite/ld-i386/tlsdesc.rd: Likewise.
+	* testsuite/ld-i386/tlsgdesc.rd: Likewise.
+	* testsuite/ld-i386/tlsnopic.rd: Likewise.
+	* testsuite/ld-i386/tlspic.rd: Likewise.
+	* testsuite/ld-i386/tlspic2.rd: Likewise.
+	* testsuite/ld-x86-64/mpx3.dd: Likewise.
+	* testsuite/ld-x86-64/mpx3n.dd: Likewise.
+	* testsuite/ld-x86-64/mpx4.dd: Likewise.
+	* testsuite/ld-x86-64/mpx4n.dd: Likewise.
+	* testsuite/ld-x86-64/pe-x86-64-1.od: Likewise.
+	* testsuite/ld-x86-64/pe-x86-64-2.od: Likewise.
+	* testsuite/ld-x86-64/pe-x86-64-3.od: Likewise.
+	* testsuite/ld-x86-64/pe-x86-64-4.od: Likewise.
+	* testsuite/ld-x86-64/plt.pd: Likewise.
+	* testsuite/ld-x86-64/plt2.dd: Likewise.
+	* testsuite/ld-x86-64/tlsbin.rd: Likewise.
+	* testsuite/ld-x86-64/tlsbin2.rd: Likewise.
+	* testsuite/ld-x86-64/tlsbindesc.rd: Likewise.
+	* testsuite/ld-x86-64/tlsdesc.rd: Likewise.
+	* testsuite/ld-x86-64/tlsgdesc.rd: Likewise.
+	* testsuite/ld-x86-64/tlspic.rd: Likewise.
+	* testsuite/ld-x86-64/tlspic2.rd: Likewise.
+	* testsuite/ld-elf/sec64k.exp: Check
+	is_elf_unused_section_symbols.
+
+2021-01-07  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-scripts/fill.d: Skip sh-*-pe rather than xfail.
+	* testsuite/ld-scripts/fill16.d: Don't xfail sh-*-pe.
+	* testsuite/ld-scripts/segment-start.d: Likewise.
+
+2021-01-07  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-elf/comm-data5.d: xfail targets that complain
+	about dynamic relocations in read-only sections.
+	* testsuite/ld-elf/ehdr_start-shared.d: Likewise.
+	* testsuite/ld-elf/ehdr_start.d: Likewise.
+	* testsuite/ld-scripts/pr22267.d: Likewise.
+	* testsuite/ld-elf/shared.exp: Likewise for DT_TEXTREL tests and
+	pr20995 text.
+	* testsuite/ld-elf/sec64k.exp: Don't run 64ksec on lm32-linux.
+
+2021-01-07  Marcus Comstedt  <marcus@mc.pp.se>
+
+	* testsuite/ld-scripts/empty-address-2a.d: xfail riscv64*-*-*.
+	* testsuite/ld-scripts/empty-address-2b.d: Likewise.
+
+2021-01-07  Alan Modra  <amodra@gmail.com>
+
+	* po/BLD-POTFILES.in: Regenerate.
+
+2021-01-07  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-elf/shared.exp: xfail pr22471 for targets that
+	complain about relocs in read-only sections.  Tidy ASFLAGS append.
+
+2021-01-06  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-sparc/sparc.exp (sparc64tests): Set text-segment
+	base for some tests.
+	* testsuite/ld-sparc/gotop32.dd: Match solaris output.
+	* testsuite/ld-sparc/gotop32.sd: Likewise.
+	* testsuite/ld-sparc/gotop32.td: Likewise.
+	* testsuite/ld-sparc/gotop64.dd: Likewise.
+	* testsuite/ld-sparc/gotop64.sd: Likewise.
+	* testsuite/ld-sparc/gotop64.td: Likewise.
+	* testsuite/ld-sparc/tlsg32.sd: Likewise.
+	* testsuite/ld-sparc/tlsg64.sd: Likewise.
+	* testsuite/ld-sparc/tlspie32.dd: Likewise.
+	* testsuite/ld-sparc/tlspie64.dd: Likewise.
+	* testsuite/ld-sparc/tlssunbin32.dd: Likewise.
+	* testsuite/ld-sparc/tlssunbin32.sd: Likewise.
+	* testsuite/ld-sparc/tlssunbin32.td: Likewise.
+	* testsuite/ld-sparc/tlssunbin64.dd: Likewise.
+	* testsuite/ld-sparc/tlssunbin64.sd: Likewise.
+	* testsuite/ld-sparc/tlssunbin64.td: Likewise.
+	* testsuite/ld-sparc/tlssunnopic32.dd: Likewise.
+	* testsuite/ld-sparc/tlssunnopic32.sd: Likewise.
+	* testsuite/ld-sparc/tlssunnopic64.dd: Likewise.
+	* testsuite/ld-sparc/tlssunnopic64.sd: Likewise.
+	* testsuite/ld-sparc/tlssunpic32.dd: Likewise.
+	* testsuite/ld-sparc/tlssunpic32.sd: Likewise.
+	* testsuite/ld-sparc/tlssunpic32.td: Likewise.
+	* testsuite/ld-sparc/tlssunpic64.dd: Likewise.
+	* testsuite/ld-sparc/tlssunpic64.sd: Likewise.
+	* testsuite/ld-sparc/tlssunpic64.td: Likewise.
+	* testsuite/ld-sparc/wdispcall.dd: Likewise.
+
+2021-01-06  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-scripts/rgn-at10.d: xfail v850.
+	* testsuite/ld-scripts/rgn-at11.d: Likewise.
+
+2021-01-06  Marcus Comstedt  <marcus@mc.pp.se>
+
+	* testsuite/ld-riscv-elf/ld-riscv-elf.exp: Added
+	riscv_choose_[ilp32|lp64]_emul to choose the correct linker script.
+	* testsuite/ld-riscv-elf/attr-merge-arch-01.d: Call
+	riscv_choose_[ilp32|lp64]_emul instead of hardcoding elf[32|64]lriscv.
+	* testsuite/ld-riscv-elf/attr-merge-arch-02.d: Likewise.
+	* testsuite/ld-riscv-elf/attr-merge-arch-03.d: Likewise.
+	* testsuite/ld-riscv-elf/attr-merge-arch-failed-01.d: Likewise.
+	* testsuite/ld-riscv-elf/attr-merge-arch-failed-02.d: Likewise.
+	* testsuite/ld-riscv-elf/c-lui-2.d: Likewise.
+	* testsuite/ld-riscv-elf/c-lui.d: Likewise.
+	* testsuite/ld-riscv-elf/call-relax.d: Likewise.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend-2.d: Likewise.
+	* testsuite/ld-riscv-elf/pcrel-lo-addend.d: Likewise.
+	* testsuite/ld-riscv-elf/weakref32.d: Accept bigriscv in addition
+	to littleriscv.
+	* testsuite/ld-riscv-elf/weakref64.d: Likewise.
+
+2021-01-06  Marcus Comstedt  <marcus@mc.pp.se>
+
+	* configure.tgt: Added riscvbe-*-*, riscv32be*-*-*, riscv64be*-*-*,
+	riscv32be*-*-linux*, and riscv64be*-*-linux*.
+	* Makefile.am: Added eelf32briscv.c, eelf32briscv_ilp32f.c and
+	eelf32briscv_ilp32.c.
+	* Makefile.in: Regenerate.
+	* emulparams/elf32briscv.sh: Added.
+	* emulparams/elf32briscv_ilp32.sh: Likewise.
+	* emulparams/elf32briscv_ilp32f.sh: Likewise.
+	* emulparams/elf64briscv.sh: Likewise.
+	* emulparams/elf64briscv_lp64.sh: Likewise.
+	* emulparams/elf64briscv_lp64f.sh: Likewise.
+
+2021-01-05  Nick Alcock  <nick.alcock@oracle.com>
+
+	* testsuite/ld-ctf/enum-forward.c: New test.
+	* testsuite/ld-ctf/enum-forward.c: New results.
+
+2021-01-05  Nick Alcock  <nick.alcock@oracle.com>
+
+	* testsuite/ld-ctf/array.d: Adjust for dumper changes.
+	* testsuite/ld-ctf/conflicting-cycle-1.B-1.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-1.B-2.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-1.parent.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-2.A-1.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-2.A-2.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-2.parent.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-3.C-1.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-3.C-2.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-3.parent.d: Likewise.
+	* testsuite/ld-ctf/conflicting-enums.d: Likewise.
+	* testsuite/ld-ctf/conflicting-typedefs.d: Likewise.
+	* testsuite/ld-ctf/cross-tu-cyclic-conflicting.d: Likewise.
+	* testsuite/ld-ctf/cross-tu-cyclic-nonconflicting.d: Likewise.
+	* testsuite/ld-ctf/cross-tu-into-cycle.d: Likewise.
+	* testsuite/ld-ctf/cross-tu-noncyclic.d: Likewise.
+	* testsuite/ld-ctf/cycle-1.d: Likewise.
+	* testsuite/ld-ctf/cycle-2.A.d: Likewise.
+	* testsuite/ld-ctf/cycle-2.B.d: Likewise.
+	* testsuite/ld-ctf/cycle-2.C.d: Likewise.
+	* testsuite/ld-ctf/data-func-conflicted.d: Likewise.
+	* testsuite/ld-ctf/diag-cttname-null.d: Likewise.
+	* testsuite/ld-ctf/diag-cuname.d: Likewise.
+	* testsuite/ld-ctf/diag-parlabel.d: Likewise.
+	* testsuite/ld-ctf/diag-wrong-magic-number-mixed.d: Likewise.
+	* testsuite/ld-ctf/forward.d: Likewise.
+	* testsuite/ld-ctf/function.d: Likewise.
+	* testsuite/ld-ctf/slice.d: Likewise.
+	* testsuite/ld-ctf/super-sub-cycles.d: Likewise.
+	* testsuite/ld-ctf/enums.c: New test.
+	* testsuite/ld-ctf/enums.d: New test.
+
+2021-01-05  Nick Alcock  <nick.alcock@oracle.com>
+
+	* testsuite/ld-ctf/conflicting-cycle-1.parent.d: Adjust for dumper
+	changes.
+	* testsuite/ld-ctf/cross-tu-cyclic-conflicting.d: Likewise.
+	* testsuite/ld-ctf/forward.c: New test...
+	* testsuite/ld-ctf/forward.d: ... and results.
+
+2021-01-05  Nick Alcock  <nick.alcock@oracle.com>
+
+	* testsuite/ld-ctf/array.d: Adjust for dumper changes.
+	* testsuite/ld-ctf/data-func-conflicted.d: Likewise.
+	* testsuite/ld-ctf/diag-cttname-null.d: Likewise.
+	* testsuite/ld-ctf/diag-cuname.d: Likewise.
+	* testsuite/ld-ctf/diag-parlabel.d: Likewise.
+	* testsuite/ld-ctf/function.d: Likewise.
+	* testsuite/ld-ctf/slice.d: Likewise.
+
+2021-01-05  Nick Alcock  <nick.alcock@oracle.com>
+
+	* testsuite/ld-ctf/array.d: Adjust for dumper changes.
+	* testsuite/ld-ctf/conflicting-cycle-1.B-1.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-1.B-2.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-1.parent.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-2.A-1.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-2.A-2.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-2.parent.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-3.C-1.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-3.C-2.d: Likewise.
+	* testsuite/ld-ctf/conflicting-cycle-3.parent.d: Likewise.
+	* testsuite/ld-ctf/conflicting-enums.d: Likewise.
+	* testsuite/ld-ctf/conflicting-typedefs.d: Likewise.
+	* testsuite/ld-ctf/cross-tu-cyclic-conflicting.d: Likewise.
+	* testsuite/ld-ctf/cross-tu-cyclic-nonconflicting.d: Likewise.
+	* testsuite/ld-ctf/cross-tu-into-cycle.d: Likewise.
+	* testsuite/ld-ctf/cross-tu-noncyclic.d: Likewise.
+	* testsuite/ld-ctf/cycle-1.d: Likewise.
+	* testsuite/ld-ctf/cycle-2.A.d: Likewise.
+	* testsuite/ld-ctf/cycle-2.B.d: Likewise.
+	* testsuite/ld-ctf/cycle-2.C.d: Likewise.
+	* testsuite/ld-ctf/data-func-conflicted.d: Likewise.
+	* testsuite/ld-ctf/diag-cttname-null.d: Likewise.
+	* testsuite/ld-ctf/diag-cuname.d: Likewise.
+	* testsuite/ld-ctf/diag-parlabel.d: Likewise.
+	* testsuite/ld-ctf/diag-wrong-magic-number-mixed.d: Likewise.
+	* testsuite/ld-ctf/function.d: Likewise.
+	* testsuite/ld-ctf/slice.d: Likewise.
+	* testsuite/ld-ctf/super-sub-cycles.d: Likewise.
+
+2021-01-05  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/ld-scripts/sysroot-prefix.exp: Exclude some targets.
+
+2021-01-05  Alan Modra  <amodra@gmail.com>
+
+	PR ld/26256
+	* testsuite/ld-elf/pr26256-1b.d: xfail s12z.
+	* testsuite/ld-scripts/crossref.exp (cross1): Don't xfail ia64.
+
+2021-01-04  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/26256
+	* ldlang.c (gc_section_callback): Set pattern.
+	* testsuite/ld-elf/pr26256-1.s: New file.
+	* testsuite/ld-elf/pr26256-1.t: Likewise.
+	* testsuite/ld-elf/pr26256-1a.d: Likewise.
+	* testsuite/ld-elf/pr26256-1b.d: Likewise.
+	* testsuite/ld-elf/pr26256-2.s: Likewise.
+	* testsuite/ld-elf/pr26256-2.t: Likewise.
+	* testsuite/ld-elf/pr26256-2a.d: Likewise.
+	* testsuite/ld-elf/pr26256-2b-alt.d: Likewise.
+	* testsuite/ld-elf/pr26256-2b.d: Likewise.
+	* testsuite/ld-elf/pr26256-3.s: Likewise.
+	* testsuite/ld-elf/pr26256-3a.d: Likewise.
+	* testsuite/ld-elf/pr26256-3a.t: Likewise.
+	* testsuite/ld-elf/pr26256-3b.d: Likewise.
+	* testsuite/ld-elf/pr26256-3b.t: Likewise.
+
+2021-01-04  Alan Modra  <amodra@gmail.com>
+
+	PR 26822
+	* testsuite/ld-arm/non-contiguous-arm2.d: Adjust STT_FILE symbol match.
+	* testsuite/ld-arm/non-contiguous-arm3.d: Likewise.
+	* testsuite/ld-arm/non-contiguous-arm5.d: Likewise.
+	* testsuite/ld-arm/non-contiguous-arm6.d: Likewise.
+	* testsuite/ld-i386/tlsbin.rd: Likewise.
+	* testsuite/ld-i386/tlsbin2.rd: Likewise.
+	* testsuite/ld-i386/tlsbindesc.rd: Likewise.
+	* testsuite/ld-i386/tlsdesc.rd: Likewise.
+	* testsuite/ld-i386/tlsnopic.rd: Likewise.
+	* testsuite/ld-i386/tlspic.rd: Likewise.
+	* testsuite/ld-i386/tlspic2.rd: Likewise.
+	* testsuite/ld-mips-elf/global-local-symtab-sort-n64.d: Likewise.
+	* testsuite/ld-mips-elf/global-local-symtab-sort-n64t.d: Likewise.
+	* testsuite/ld-mips-elf/global-local-symtab-sort-o32.d: Likewise.
+	* testsuite/ld-mips-elf/global-local-symtab-sort-o32t.d: Likewise.
+	* testsuite/ld-plugin/pr17973.d: Likewise.
+	* testsuite/ld-tic6x/shlib-1.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-1b.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-1r.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-1rb.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-app-1.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-app-1b.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-app-1r.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-app-1rb.rd: Likewise.
+	* testsuite/ld-tic6x/shlib-noindex.rd: Likewise.
+	* testsuite/ld-tic6x/static-app-1.rd: Likewise.
+	* testsuite/ld-tic6x/static-app-1b.rd: Likewise.
+	* testsuite/ld-tic6x/static-app-1r.rd: Likewise.
+	* testsuite/ld-tic6x/static-app-1rb.rd: Likewise.
+	* testsuite/ld-x86-64/tlsbin.rd: Likewise.
+	* testsuite/ld-x86-64/tlsbin2.rd: Likewise.
+	* testsuite/ld-x86-64/tlsbindesc.rd: Likewise.
+	* testsuite/ld-x86-64/tlsdesc.rd: Likewise.
+	* testsuite/ld-x86-64/tlspic.rd: Likewise.
+	* testsuite/ld-x86-64/tlspic2.rd: Likewise.
+	* testsuite/ld-xtensa/tlsbin.rd: Likewise.
+	* testsuite/ld-xtensa/tlspic.rd: Likewise.
+
+2021-01-01  Nicolas Boulenguez  <nicolas@debian.org>
+
+	* configure.tgt: Correct comment grammar.
+	* emultempl/m68hc1xelf.em: Likewise.
+	* ld.texi: Correct grammar.
+
+2021-01-01  Alan Modra  <amodra@gmail.com>
+
+	Update year range in copyright notice of all files.
+
+For older changes see ChangeLog-2020
+
+Copyright (C) 2021-2023 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

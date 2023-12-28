@@ -1,0 +1,195 @@
+@c Copyright (C) 2010-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@c man end
+@ifset GENERIC
+@page
+@node TIC6X-Dependent
+@chapter TIC6X Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter TIC6X Dependent Features
+@end ifclear
+
+@cindex TIC6X support
+@cindex TMS320C6X support
+@menu
+* TIC6X Options::            Options
+* TIC6X Syntax::             Syntax
+* TIC6X Directives::         Directives
+@end menu
+
+@node TIC6X Options
+@section TIC6X Options
+@cindex TIC6X options
+@cindex options for TIC6X
+
+@c man begin OPTIONS
+@table @gcctabopt
+
+@cindex @code{-march=} command-line option, TIC6X
+@item -march=@var{arch}
+Enable (only) instructions from architecture @var{arch}.  By default,
+all instructions are permitted.
+
+The following values of @var{arch} are accepted: @code{c62x},
+@code{c64x}, @code{c64x+}, @code{c67x}, @code{c67x+}, @code{c674x}.
+
+@cindex @code{-mdsbt} command-line option, TIC6X
+@cindex @code{-mno-dsbt} command-line option, TIC6X
+@item -mdsbt
+@itemx -mno-dsbt
+The @option{-mdsbt} option causes the assembler to generate the
+@code{Tag_ABI_DSBT} attribute with a value of 1, indicating that the
+code is using DSBT addressing.  The @option{-mno-dsbt} option, the
+default, causes the tag to have a value of 0, indicating that the code
+does not use DSBT addressing.  The linker will emit a warning if
+objects of different type (DSBT and non-DSBT) are linked together.
+
+@cindex @code{-mpid=} command-line option, TIC6X
+@item -mpid=no
+@itemx -mpid=near
+@itemx -mpid=far
+The @option{-mpid=} option causes the assembler to generate the
+@code{Tag_ABI_PID} attribute with a value indicating the form of data
+addressing used by the code.  @option{-mpid=no}, the default,
+indicates position-dependent data addressing, @option{-mpid=near}
+indicates position-independent addressing with GOT accesses using near
+DP addressing, and @option{-mpid=far} indicates position-independent
+addressing with GOT accesses using far DP addressing.  The linker will
+emit a warning if objects built with different settings of this option
+are linked together.
+
+@cindex @code{-mpic} command-line option, TIC6X
+@cindex @code{-mno-pic} command-line option, TIC6X
+@item -mpic
+@itemx -mno-pic
+The @option{-mpic} option causes the assembler to generate the
+@code{Tag_ABI_PIC} attribute with a value of 1, indicating that the
+code is using position-independent code addressing,  The
+@code{-mno-pic} option, the default, causes the tag to have a value of
+0, indicating position-dependent code addressing.  The linker will
+emit a warning if objects of different type (position-dependent and
+position-independent) are linked together.
+
+@cindex TIC6X big-endian output
+@cindex TIC6X little-endian output
+@cindex big-endian output, TIC6X
+@cindex little-endian output, TIC6X
+@item -mbig-endian
+@itemx -mlittle-endian
+Generate code for the specified endianness.  The default is
+little-endian.
+
+@end table
+@c man end
+
+@node TIC6X Syntax
+@section TIC6X Syntax
+
+@cindex line comment character, TIC6X
+@cindex TIC6X line comment character
+The presence of a @samp{;} on a line indicates the start of a comment
+that extends to the end of the current line.  If a @samp{#} or
+@samp{*} appears as the first character of a line, the whole line is
+treated as a comment.  Note that if a line starts with a @samp{#}
+character then it can also be a logical line number directive
+(@pxref{Comments}) or a preprocessor control command
+(@pxref{Preprocessing}).
+
+@cindex line separator, TIC6X
+@cindex statement separator, TIC6X
+@cindex TIC6X line separator
+The @samp{@@} character can be used instead of a newline to separate
+statements.
+
+Instruction, register and functional unit names are case-insensitive.
+@command{@value{AS}} requires fully-specified functional unit names,
+such as @samp{.S1}, @samp{.L1X} or @samp{.D1T2}, on all instructions
+using a functional unit.
+
+For some instructions, there may be syntactic ambiguity between
+register or functional unit names and the names of labels or other
+symbols.  To avoid this, enclose the ambiguous symbol name in
+parentheses; register and functional unit names may not be enclosed in
+parentheses.
+
+@node TIC6X Directives
+@section TIC6X Directives
+
+@cindex machine directives, TIC6X
+@cindex TIC6X machine directives
+
+Directives controlling the set of instructions accepted by the
+assembler have effect for instructions between the directive and any
+subsequent directive overriding it.
+
+@table @code
+
+@cindex @code{.arch} directive, TIC6X
+@item .arch @var{arch}
+This has the same effect as @option{-march=@var{arch}}.
+
+@cindex @code{.cantunwind} directive, TIC6X
+@item .cantunwind
+Prevents unwinding through the current function.  No personality routine
+or exception table data is required or permitted.
+
+If this is not specified then frame unwinding information will be
+constructed from CFI directives. @pxref{CFI directives}.
+
+@cindex @code{.c6xabi_attribute} directive, TIC6X
+@item .c6xabi_attribute @var{tag}, @var{value}
+Set the C6000 EABI build attribute @var{tag} to @var{value}.
+
+The @var{tag} is either an attribute number or one of
+@code{Tag_ISA}, @code{Tag_ABI_wchar_t},
+@code{Tag_ABI_stack_align_needed},
+@code{Tag_ABI_stack_align_preserved}, @code{Tag_ABI_DSBT},
+@code{Tag_ABI_PID}, @code{Tag_ABI_PIC},
+@code{TAG_ABI_array_object_alignment},
+@code{TAG_ABI_array_object_align_expected},
+@code{Tag_ABI_compatibility} and @code{Tag_ABI_conformance}.  The
+@var{value} is either a @code{number}, @code{"string"}, or
+@code{number, "string"} depending on the tag.
+
+@cindex @code{.ehtype} directive, TIC6X
+@item .ehtype @var{symbol}
+Output an exception type table reference to @var{symbol}.
+
+@cindex @code{.endp} directive, TIC6X
+@item .endp
+Marks the end of and exception table or function.  If preceded by a
+@code{.handlerdata} directive then this also switched back to the previous
+text section.
+
+@cindex @code{.handlerdata} directive, TIC6X
+@item .handlerdata
+Marks the end of the current function, and the start of the exception table
+entry for that function.  Anything between this directive and the
+@code{.endp} directive will be added to the exception table entry.
+
+Must be preceded by a CFI block containing a @code{.cfi_lsda} directive.
+
+@cindex @code{.nocmp} directive, TIC6X
+@item .nocmp
+Disallow use of C64x+ compact instructions in the current text
+section.
+
+@cindex @code{.personalityindex} directive, TIC6X
+@item .personalityindex @var{index}
+Sets the personality routine for the current function to the ABI specified
+compact routine number @var{index}
+
+@cindex @code{.personality} directive, TIC6X
+@item .personality @var{name}
+Sets the personality routine for the current function to @var{name}.
+
+@cindex @code{.scomm} directive, TIC6X
+@item .scomm @var{symbol}, @var{size}, @var{align}
+Like @code{.comm}, creating a common symbol @var{symbol} with size @var{size}
+and alignment @var{align}, but unlike when using @code{.comm}, this symbol
+will be placed into the small BSS section by the linker.
+
+@end table

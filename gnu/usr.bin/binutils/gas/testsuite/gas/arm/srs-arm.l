@@ -1,0 +1,10 @@
+[^:]*: Assembler messages:
+[^:]*:12: Error: SRS base register must be r13 -- `srsdb r4,#13'
+[^:]*:13: Error: SRS base register must be r13 -- `srsda r4,#13'
+[^:]*:14: Error: SRS base register must be r13 -- `srsia r4,#13'
+[^:]*:15: Error: SRS base register must be r13 -- `srsib r4,#13'
+[^:]*:24: Error: SRS base register must be r13 -- `srsea r4,#13'
+[^:]*:25: Error: SRS base register must be r13 -- `srsfd r4,#13'
+[^:]*:26: Error: SRS base register must be r13 -- `srsfa r4,#13'
+[^:]*:27: Error: SRS base register must be r13 -- `srsed r4,#13'
+[^:]*:30: Error: SRS base register must be r13 -- `srs r4,#13'

@@ -1,0 +1,167 @@
+@c Copyright (C) 2009-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@ifset GENERIC
+@page
+@node SCORE-Dependent
+@chapter SCORE Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter SCORE Dependent Features
+@end ifclear
+
+@cindex SCORE processor
+@menu
+* SCORE-Opts::   	Assembler options
+* SCORE-Pseudo::        SCORE Assembler Directives
+* SCORE-Syntax::        Syntax
+@end menu
+
+@node SCORE-Opts
+@section Options
+
+@cindex options for SCORE
+@cindex SCORE options
+@cindex architectures, SCORE
+@cindex SCORE architectures
+
+The following table lists all available SCORE options.
+
+@table @code
+@item -G @var{num}
+This option sets the largest size of an object that can be referenced
+implicitly with the @code{gp} register. The default value is 8.
+
+@item -EB
+Assemble code for a big-endian cpu
+
+@item -EL
+Assemble code for a little-endian cpu
+
+@item -FIXDD
+Assemble code for fix data dependency
+
+@item -NWARN
+Assemble code for no warning message for fix data dependency
+
+@item -SCORE5
+Assemble code for target is SCORE5
+
+@item -SCORE5U
+Assemble code for target is SCORE5U
+
+@item -SCORE7
+Assemble code for target is SCORE7, this is default setting
+
+@item -SCORE3
+Assemble code for target is SCORE3
+
+@item -march=score7
+Assemble code for target is SCORE7, this is default setting
+
+@item -march=score3
+Assemble code for target is SCORE3
+
+@item -USE_R1
+Assemble code for no warning message when using temp register r1
+
+@item -KPIC
+Generate code for PIC.  This option tells the assembler to generate
+score position-independent macro expansions.  It also tells the
+assembler to mark the output file as PIC.
+
+@item -O0
+Assembler will not perform any optimizations
+
+@item -V
+Sunplus release version
+
+@end table
+
+@node SCORE-Pseudo
+@section SCORE Assembler Directives
+
+@cindex directives for SCORE
+@cindex SCORE directives
+A number of assembler directives are available for SCORE.  The
+following table is far from complete.
+
+@table @code
+@item .set nwarn
+Let the assembler not to generate warnings if the source machine
+language instructions happen data dependency.
+
+@item .set fixdd
+Let the assembler to insert bubbles (32 bit nop instruction /
+16 bit nop! Instruction) if the source machine language instructions
+happen data dependency.
+
+@item .set nofixdd
+Let the assembler to generate warnings if the source machine
+language instructions happen data dependency. (Default)
+
+@item .set r1
+Let the assembler not to generate warnings if the source program
+uses r1. allow user to use r1
+
+@item set nor1
+Let the assembler to generate warnings if the source program uses
+r1. (Default)
+
+@item .sdata
+Tell the assembler to add subsequent data into the sdata section
+
+@item .rdata
+Tell the assembler to add subsequent data into the rdata section
+
+@item .frame "frame-register", "offset", "return-pc-register"
+Describe a stack frame. "frame-register" is the frame register,
+"offset" is the distance from the frame register to the virtual
+frame pointer, "return-pc-register" is the return program register.
+You must use ".ent" before ".frame" and only one ".frame" can be
+used per ".ent".
+
+@item .mask "bitmask", "frameoffset"
+Indicate which of the integer registers are saved in the current
+function's stack frame, this is for the debugger to explain the
+frame chain.
+
+@item .ent "proc-name"
+Set the beginning of the procedure "proc_name". Use this directive
+when you want to generate information for the debugger.
+
+@item .end proc-name
+Set the end of a procedure. Use this directive to generate information
+for the debugger.
+
+@item .bss
+Switch the destination of following statements into the bss section,
+which is used for data that is uninitialized anywhere.
+
+@end table
+
+@node SCORE-Syntax
+@section SCORE Syntax
+@menu
+* SCORE-Chars::                Special Characters
+@end menu
+
+@node SCORE-Chars
+@subsection Special Characters
+
+@cindex line comment character, SCORE
+@cindex SCORE line comment character
+The presence of a @samp{#} appearing anywhere on a line indicates the
+start of a comment that extends to the end of that line.
+
+If a @samp{#} appears as the first character of a line then the whole
+line is treated as a comment, but in this case the line can also be a
+logical line number directive (@pxref{Comments}) or a preprocessor
+control command (@pxref{Preprocessing}).
+
+@cindex line separator, SCORE
+@cindex statement separator, SCORE
+@cindex SCORE line separator
+The @samp{;} character can be used to separate statements on the same
+line.

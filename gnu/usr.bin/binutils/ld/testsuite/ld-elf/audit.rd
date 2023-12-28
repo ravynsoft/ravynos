@@ -1,0 +1,3 @@
+#...
+.*Audit library: \[tmpdir/audit.so\].*
+#pass

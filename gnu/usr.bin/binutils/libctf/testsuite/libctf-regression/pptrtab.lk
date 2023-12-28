@@ -1,0 +1,4 @@
+# source: pptrtab-a.c
+# source: pptrtab-b.c
+# link_flags: -Wl,--ctf-share-types=share-duplicated
+.*/pptrtab-[ab]\.c: .* points to a type of kind 10

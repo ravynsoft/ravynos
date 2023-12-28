@@ -1,0 +1,2 @@
+ bmi x0x42
+ nop

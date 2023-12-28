@@ -1,0 +1,115 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+#
+# Some generic m68k tests
+#
+if [istarget "m68hc11-*-*"] then {
+   return
+}
+if [istarget "m68hc12-*-*"] then {
+   return
+}
+if [istarget "m6811-*-*"] then {
+   return
+}
+if [istarget "m6812-*-*"] then {
+   return
+}
+if { [istarget m68*-*-*] || [istarget fido*-*-*] } then {
+    gas_test "t2.s" "" "" "cross-section branch"
+
+    gas_test "pic1.s" "" "" "PIC generation"
+
+    gas_test "disperr.s" "-m68020" "" "Incorrect Displacement too long error"
+
+    gas_test_error "p2410.s" "" "out-of-range 'bras'"
+
+    run_dump_test pcrel
+
+    # Since fido is basically CPU32, it does not support those
+    # instructions beyond CPU32.  Disable those tests that test them.
+    if ![istarget fido-*-*] then {
+	run_dump_test operands
+	run_dump_test cas
+	run_dump_test bitfield
+    } else {
+	# Test fido-specific instructions.
+	run_dump_test fido
+    }
+
+    run_dump_test link
+
+    # fido does not have a floating point unit.
+    if ![istarget fido-*-*] then {
+	run_dump_test fmoveml
+    }
+
+    run_dump_test mcf-mov3q
+    run_dump_test mcf-movsr
+    run_dump_test mode5
+    run_dump_test mode5 "{name {cf}} {as {-mcpu=5200}}"
+    run_dump_test movem-offset
+    run_dump_test movem-offset "{name {cf}} {as {-mcpu=5485}}"
+    run_dump_test mcf-mac
+    run_dump_test mcf-emac
+    run_dump_test mcf-coproc
+    run_dump_test mcf-fpu
+    run_dump_test mcf-trap
+    run_dump_test mcf-wdebug
+    run_dump_test arch-cpu-1
+    run_dump_test cpu32
+
+    run_dump_test br-isaa
+    run_dump_test br-isab
+    run_dump_test br-isac
+
+    run_dump_test ctrl-1
+    run_dump_test ctrl-2
+
+    gas_test_error "p11673.s" "-march=isab" "movel immediate with offset unsupported on isab"
+
+    gas_test_error "p13050-1.s" "-march=isab" "moveb (d8,An,Xi),(d16,An) unsupported on isab"
+    run_dump_test p13050-2
+
+    set testname "68000 operands"
+    gas_run "operands.s" "-m68000" "2>err.out"
+    if ![string match "child process exited abnormally" $comp_output] then {
+	send_log "$comp_output\n"
+	verbose "$comp_output" 3
+	fail $testname
+    } else {
+	if [regexp_diff "err.out" "$srcdir/$subdir/op68000.d"] then {
+	    fail $testname
+	} else {
+	    pass $testname
+	}
+    }
+
+    if { [istarget m68k-*-linux*] } then {
+      run_dump_test tls-gd-3
+    }
+
+    if { ! [istarget fido-*-*] } then {
+      # The testcase uses an invalid instruction for this architecture.
+      run_dump_test pr11676
+    }
+
+    run_dump_test pmove
+}
+if [info exists errorInfo] then {
+    unset errorInfo
+}

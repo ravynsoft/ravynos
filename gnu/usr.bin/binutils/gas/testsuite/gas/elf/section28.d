@@ -1,0 +1,16 @@
+#readelf: -h -S --wide
+#name: SHF_GNU_RETAIN sections 28
+#notarget: ![supports_gnu_osabi]
+#xfail: h8300-*-*
+
+#...
+ +OS/ABI: +UNIX - (GNU|FreeBSD)
+#...
+  \[..\] \.note\.Linux +NOTE +[0-9a-f]+ [0-9a-f]+ [0-9a-f]+ 00 +A +0.*
+#...
+  \[..\] \.note\.Linux +NOTE +[0-9a-f]+ [0-9a-f]+ [0-9a-f]+ 00 +AR +0.*
+#...
+  \[..\] \.note\.foo +NOTE +[0-9a-f]+ [0-9a-f]+ [0-9a-f]+ 00 +0 +.*
+#...
+  \[..\] \.note\.foo +NOTE +[0-9a-f]+ [0-9a-f]+ [0-9a-f]+ 00 +R +0 +.*
+#pass

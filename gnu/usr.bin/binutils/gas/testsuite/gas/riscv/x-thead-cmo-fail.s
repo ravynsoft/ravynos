@@ -1,0 +1,22 @@
+target:
+	th.dcache.call	x1
+	th.dcache.ciall	x1
+	th.dcache.iall	x1
+	th.dcache.cpa	0(x1)
+	th.dcache.cipa	0(x1)
+	th.dcache.ipa	0(x1)
+	th.dcache.cva	0(x1)
+	th.dcache.civa	0(x1)
+	th.dcache.iva	0(x1)
+	th.dcache.csw	0(x1)
+	th.dcache.cisw	0(x1)
+	th.dcache.isw	0(x1)
+	th.dcache.cpal1	0(x1)
+	th.dcache.cval1	0(x1)
+	th.icache.iall	x1
+	th.icache.ialls	x1
+	th.icache.ipa	0(x1)
+	th.icache.iva	0(x1)
+	th.l2cache.call	x1
+	th.l2cache.ciall	x1
+	th.l2cache.iall	x1

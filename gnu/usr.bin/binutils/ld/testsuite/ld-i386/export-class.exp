@@ -1,0 +1,86 @@
+# Expect script for symbol export classes, i386 variation.
+#
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+#
+# Written by Maciej W. Rozycki <macro@codesourcery.com>
+#
+
+# Exclude non-ELF targets.
+if { ![is_elf_format] } {
+    return
+}
+
+# Exclude some more targets; feel free to include your favorite one
+# if you like.
+if { !([istarget i?86-*-linux*]
+       || [istarget i?86-*-gnu*]) } {
+    return
+}
+
+set testname "i386 symbol export class test"
+
+# Build an auxiliary shared object with conflicting versioned symbol
+# definitions.
+run_ld_link_tests [list \
+    [list \
+	"$testname (auxiliary shared object)" \
+	"-shared -version-script ../ld-elf/export-class-lib.ver" "" \
+	"" \
+	{ ../ld-elf/export-class-lib.s } \
+	{} \
+	"i386-export-class-lib.so" \
+    ] \
+]
+
+# Build a static object that pulls symbol definitions.  It has to come
+# first before the auxiliary shared object and other static objects on
+# the linker's command line and hence we need to build it separately.
+run_ld_link_tests [list \
+    [list \
+	"$testname (initial static object)" \
+	"-r" "" \
+	"" \
+	{ ../ld-elf/export-class-ref.s } \
+	{} \
+	"i386-export-class-ref-r.o" \
+    ] \
+]
+
+# Build static objects that satisfy symbol dependencies and preempt
+# shared-object symbol definitions, and link all the objects built into
+# the final shared object.  The command-line order of objects linked is
+# important to make sure the linker correctly preempts versioned symbols
+# from the auxiliary shared object and is as follows: ref, lib, dep, def.
+# Get a dump to make sure symbol dependencies are resolved internally.
+run_ld_link_tests [list \
+    [list \
+	"$testname (final shared object)" \
+	"-shared $NO_DT_RELR_LDFLAGS -Tdata=0x12340000 tmpdir/i386-export-class-ref-r.o tmpdir/i386-export-class-lib.so" "" \
+	"" \
+	{ ../ld-elf/export-class-dep.s ../ld-elf/export-class-def.s } \
+	{ \
+	    { readelf -r i386-export-class.rd } \
+	    { readelf "-x .data" i386-export-class.xd } \
+	} \
+	"i386-export-class.so" \
+    ] \
+]

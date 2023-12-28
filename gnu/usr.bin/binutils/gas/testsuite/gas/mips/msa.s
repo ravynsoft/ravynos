@@ -1,0 +1,756 @@
+	.text
+	.set	noat
+	.set	noreorder
+	.set	nomacro
+test_msa:
+	sll.b	$w0,$w1,$w2
+	sll.h	$w3,$w4,$w5
+	sll.w	$w6,$w7,$w8
+	sll.d	$w9,$w10,$w11
+	slli.b	$w12,$w13,0
+	slli.b	$w14,$w15,7
+	slli.h	$w16,$w17,0
+	slli.h	$w18,$w19,15
+	slli.w	$w20,$w21,0
+	slli.w	$w22,$w23,31
+	slli.d	$w24,$w25,0
+	slli.d	$w26,$w27,63
+	sra.b	$w28,$w29,$w30
+	sra.h	$w31,$w0,$w1
+	sra.w	$w2,$w3,$w4
+	sra.d	$w5,$w6,$w7
+	srai.b	$w8,$w9,0
+	srai.b	$w10,$w11,7
+	srai.h	$w12,$w13,0
+	srai.h	$w14,$w15,15
+	srai.w	$w16,$w17,0
+	srai.w	$w18,$w19,31
+	srai.d	$w20,$w21,0
+	srai.d	$w22,$w23,63
+	srl.b	$w24,$w25,$w26
+	srl.h	$w27,$w28,$w29
+	srl.w	$w30,$w31,$w0
+	srl.d	$w1,$w2,$w3
+	srli.b	$w4,$w5,0
+	srli.b	$w6,$w7,7
+	srli.h	$w8,$w9,0
+	srli.h	$w10,$w11,15
+	srli.w	$w12,$w13,0
+	srli.w	$w14,$w15,31
+	srli.d	$w16,$w17,0
+	srli.d	$w18,$w19,63
+	bclr.b	$w20,$w21,$w22
+	bclr.h	$w23,$w24,$w25
+	bclr.w	$w26,$w27,$w28
+	bclr.d	$w29,$w30,$w31
+	bclri.b	$w0,$w1,0
+	bclri.b	$w2,$w3,7
+	bclri.h	$w4,$w5,0
+	bclri.h	$w6,$w7,15
+	bclri.w	$w8,$w9,0
+	bclri.w	$w10,$w11,31
+	bclri.d	$w12,$w13,0
+	bclri.d	$w14,$w15,63
+	bset.b	$w16,$w17,$w18
+	bset.h	$w19,$w20,$w21
+	bset.w	$w22,$w23,$w24
+	bset.d	$w25,$w26,$w27
+	bseti.b	$w28,$w29,0
+	bseti.b	$w30,$w31,7
+	bseti.h	$w0,$w1,0
+	bseti.h	$w2,$w3,15
+	bseti.w	$w4,$w5,0
+	bseti.w	$w6,$w7,31
+	bseti.d	$w8,$w9,0
+	bseti.d	$w10,$w11,63
+	bneg.b	$w12,$w13,$w14
+	bneg.h	$w15,$w16,$w17
+	bneg.w	$w18,$w19,$w20
+	bneg.d	$w21,$w22,$w23
+	bnegi.b	$w24,$w25,0
+	bnegi.b	$w26,$w27,7
+	bnegi.h	$w28,$w29,0
+	bnegi.h	$w30,$w31,15
+	bnegi.w	$w0,$w1,0
+	bnegi.w	$w2,$w3,31
+	bnegi.d	$w4,$w5,0
+	bnegi.d	$w6,$w7,63
+	binsl.b	$w8,$w9,$w10
+	binsl.h	$w11,$w12,$w13
+	binsl.w	$w14,$w15,$w16
+	binsl.d	$w17,$w18,$w19
+	binsli.b	$w20,$w21,0
+	binsli.b	$w22,$w23,7
+	binsli.h	$w24,$w25,0
+	binsli.h	$w26,$w27,15
+	binsli.w	$w28,$w29,0
+	binsli.w	$w30,$w31,31
+	binsli.d	$w0,$w1,0
+	binsli.d	$w2,$w3,63
+	binsr.b	$w4,$w5,$w6
+	binsr.h	$w7,$w8,$w9
+	binsr.w	$w10,$w11,$w12
+	binsr.d	$w13,$w14,$w15
+	binsri.b	$w16,$w17,0
+	binsri.b	$w18,$w19,7
+	binsri.h	$w20,$w21,0
+	binsri.h	$w22,$w23,15
+	binsri.w	$w24,$w25,0
+	binsri.w	$w26,$w27,31
+	binsri.d	$w28,$w29,0
+	binsri.d	$w30,$w31,63
+	addv.b	$w0,$w1,$w2
+	addv.h	$w3,$w4,$w5
+	addv.w	$w6,$w7,$w8
+	addv.d	$w9,$w10,$w11
+	addvi.b	$w12,$w13,0
+	addvi.b	$w14,$w15,31
+	addvi.h	$w16,$w17,0
+	addvi.h	$w18,$w19,31
+	addvi.w	$w20,$w21,0
+	addvi.w	$w22,$w23,31
+	addvi.d	$w24,$w25,0
+	addvi.d	$w26,$w27,31
+	subv.b	$w28,$w29,$w30
+	subv.h	$w31,$w0,$w1
+	subv.w	$w2,$w3,$w4
+	subv.d	$w5,$w6,$w7
+	subvi.b	$w8,$w9,0
+	subvi.b	$w10,$w11,31
+	subvi.h	$w12,$w13,0
+	subvi.h	$w14,$w15,31
+	subvi.w	$w16,$w17,0
+	subvi.w	$w18,$w19,31
+	subvi.d	$w20,$w21,0
+	subvi.d	$w22,$w23,31
+	max_s.b	$w24,$w25,$w26
+	max_s.h	$w27,$w28,$w29
+	max_s.w	$w30,$w31,$w0
+	max_s.d	$w1,$w2,$w3
+	maxi_s.b	$w4,$w5,-16
+	maxi_s.b	$w6,$w7,15
+	maxi_s.h	$w8,$w9,-16
+	maxi_s.h	$w10,$w11,15
+	maxi_s.w	$w12,$w13,-16
+	maxi_s.w	$w14,$w15,15
+	maxi_s.d	$w16,$w17,-16
+	maxi_s.d	$w18,$w19,15
+	max_u.b	$w20,$w21,$w22
+	max_u.h	$w23,$w24,$w25
+	max_u.w	$w26,$w27,$w28
+	max_u.d	$w29,$w30,$w31
+	maxi_u.b	$w0,$w1,0
+	maxi_u.b	$w2,$w3,31
+	maxi_u.h	$w4,$w5,0
+	maxi_u.h	$w6,$w7,31
+	maxi_u.w	$w8,$w9,0
+	maxi_u.w	$w10,$w11,31
+	maxi_u.d	$w12,$w13,0
+	maxi_u.d	$w14,$w15,31
+	min_s.b	$w16,$w17,$w18
+	min_s.h	$w19,$w20,$w21
+	min_s.w	$w22,$w23,$w24
+	min_s.d	$w25,$w26,$w27
+	mini_s.b	$w28,$w29,-16
+	mini_s.b	$w30,$w31,15
+	mini_s.h	$w0,$w1,-16
+	mini_s.h	$w2,$w3,15
+	mini_s.w	$w4,$w5,-16
+	mini_s.w	$w6,$w7,15
+	mini_s.d	$w8,$w9,-16
+	mini_s.d	$w10,$w11,15
+	min_u.b	$w12,$w13,$w14
+	min_u.h	$w15,$w16,$w17
+	min_u.w	$w18,$w19,$w20
+	min_u.d	$w21,$w22,$w23
+	mini_u.b	$w24,$w25,0
+	mini_u.b	$w26,$w27,31
+	mini_u.h	$w28,$w29,0
+	mini_u.h	$w30,$w31,31
+	mini_u.w	$w0,$w1,0
+	mini_u.w	$w2,$w3,31
+	mini_u.d	$w4,$w5,0
+	mini_u.d	$w6,$w7,31
+	max_a.b	$w8,$w9,$w10
+	max_a.h	$w11,$w12,$w13
+	max_a.w	$w14,$w15,$w16
+	max_a.d	$w17,$w18,$w19
+	min_a.b	$w20,$w21,$w22
+	min_a.h	$w23,$w24,$w25
+	min_a.w	$w26,$w27,$w28
+	min_a.d	$w29,$w30,$w31
+	ceq.b	$w0,$w1,$w2
+	ceq.h	$w3,$w4,$w5
+	ceq.w	$w6,$w7,$w8
+	ceq.d	$w9,$w10,$w11
+	ceqi.b	$w12,$w13,-16
+	ceqi.b	$w14,$w15,15
+	ceqi.h	$w16,$w17,-16
+	ceqi.h	$w18,$w19,15
+	ceqi.w	$w20,$w21,-16
+	ceqi.w	$w22,$w23,15
+	ceqi.d	$w24,$w25,-16
+	ceqi.d	$w26,$w27,15
+	clt_s.b	$w28,$w29,$w30
+	clt_s.h	$w31,$w0,$w1
+	clt_s.w	$w2,$w3,$w4
+	clt_s.d	$w5,$w6,$w7
+	clti_s.b	$w8,$w9,-16
+	clti_s.b	$w10,$w11,15
+	clti_s.h	$w12,$w13,-16
+	clti_s.h	$w14,$w15,15
+	clti_s.w	$w16,$w17,-16
+	clti_s.w	$w18,$w19,15
+	clti_s.d	$w20,$w21,-16
+	clti_s.d	$w22,$w23,15
+	clt_u.b	$w24,$w25,$w26
+	clt_u.h	$w27,$w28,$w29
+	clt_u.w	$w30,$w31,$w0
+	clt_u.d	$w1,$w2,$w3
+	clti_u.b	$w4,$w5,0
+	clti_u.b	$w6,$w7,31
+	clti_u.h	$w8,$w9,0
+	clti_u.h	$w10,$w11,31
+	clti_u.w	$w12,$w13,0
+	clti_u.w	$w14,$w15,31
+	clti_u.d	$w16,$w17,0
+	clti_u.d	$w18,$w19,31
+	cle_s.b	$w20,$w21,$w22
+	cle_s.h	$w23,$w24,$w25
+	cle_s.w	$w26,$w27,$w28
+	cle_s.d	$w29,$w30,$w31
+	clei_s.b	$w0,$w1,-16
+	clei_s.b	$w2,$w3,15
+	clei_s.h	$w4,$w5,-16
+	clei_s.h	$w6,$w7,15
+	clei_s.w	$w8,$w9,-16
+	clei_s.w	$w10,$w11,15
+	clei_s.d	$w12,$w13,-16
+	clei_s.d	$w14,$w15,15
+	cle_u.b	$w16,$w17,$w18
+	cle_u.h	$w19,$w20,$w21
+	cle_u.w	$w22,$w23,$w24
+	cle_u.d	$w25,$w26,$w27
+	clei_u.b	$w28,$w29,0
+	clei_u.b	$w30,$w31,31
+	clei_u.h	$w0,$w1,0
+	clei_u.h	$w2,$w3,31
+	clei_u.w	$w4,$w5,0
+	clei_u.w	$w6,$w7,31
+	clei_u.d	$w8,$w9,0
+	clei_u.d	$w10,$w11,31
+	ld.b	$w12,-512($13)
+	ld.b	$w14,511($15)
+	ld.h	$w16,-1024($17)
+	ld.h	$w18,1022($19)
+	ld.w	$w20,-2048($21)
+	ld.w	$w22,2044($23)
+	ld.d	$w24,-4096($25)
+	ld.d	$w26,4088($27)
+	st.b	$w28,-512($29)
+	st.b	$w30,511($31)
+	st.h	$w0,-1024($1)
+	st.h	$w2,1022($3)
+	st.w	$w4,-2048($5)
+	st.w	$w6,2044($7)
+	st.d	$w8,-4096($9)
+	st.d	$w10,4088($11)
+	sat_s.b	$w12,$w13,0
+	sat_s.b	$w14,$w15,7
+	sat_s.h	$w16,$w17,0
+	sat_s.h	$w18,$w19,15
+	sat_s.w	$w20,$w21,0
+	sat_s.w	$w22,$w23,31
+	sat_s.d	$w24,$w25,0
+	sat_s.d	$w26,$w27,63
+	sat_u.b	$w28,$w29,0
+	sat_u.b	$w30,$w31,7
+	sat_u.h	$w0,$w1,0
+	sat_u.h	$w2,$w3,15
+	sat_u.w	$w4,$w5,0
+	sat_u.w	$w6,$w7,31
+	sat_u.d	$w8,$w9,0
+	sat_u.d	$w10,$w11,63
+	add_a.b	$w12,$w13,$w14
+	add_a.h	$w15,$w16,$w17
+	add_a.w	$w18,$w19,$w20
+	add_a.d	$w21,$w22,$w23
+	adds_a.b	$w24,$w25,$w26
+	adds_a.h	$w27,$w28,$w29
+	adds_a.w	$w30,$w31,$w0
+	adds_a.d	$w1,$w2,$w3
+	adds_s.b	$w4,$w5,$w6
+	adds_s.h	$w7,$w8,$w9
+	adds_s.w	$w10,$w11,$w12
+	adds_s.d	$w13,$w14,$w15
+	adds_u.b	$w16,$w17,$w18
+	adds_u.h	$w19,$w20,$w21
+	adds_u.w	$w22,$w23,$w24
+	adds_u.d	$w25,$w26,$w27
+	ave_s.b	$w28,$w29,$w30
+	ave_s.h	$w31,$w0,$w1
+	ave_s.w	$w2,$w3,$w4
+	ave_s.d	$w5,$w6,$w7
+	ave_u.b	$w8,$w9,$w10
+	ave_u.h	$w11,$w12,$w13
+	ave_u.w	$w14,$w15,$w16
+	ave_u.d	$w17,$w18,$w19
+	aver_s.b	$w20,$w21,$w22
+	aver_s.h	$w23,$w24,$w25
+	aver_s.w	$w26,$w27,$w28
+	aver_s.d	$w29,$w30,$w31
+	aver_u.b	$w0,$w1,$w2
+	aver_u.h	$w3,$w4,$w5
+	aver_u.w	$w6,$w7,$w8
+	aver_u.d	$w9,$w10,$w11
+	subs_s.b	$w12,$w13,$w14
+	subs_s.h	$w15,$w16,$w17
+	subs_s.w	$w18,$w19,$w20
+	subs_s.d	$w21,$w22,$w23
+	subs_u.b	$w24,$w25,$w26
+	subs_u.h	$w27,$w28,$w29
+	subs_u.w	$w30,$w31,$w0
+	subs_u.d	$w1,$w2,$w3
+	subsus_u.b	$w4,$w5,$w6
+	subsus_u.h	$w7,$w8,$w9
+	subsus_u.w	$w10,$w11,$w12
+	subsus_u.d	$w13,$w14,$w15
+	subsuu_s.b	$w16,$w17,$w18
+	subsuu_s.h	$w19,$w20,$w21
+	subsuu_s.w	$w22,$w23,$w24
+	subsuu_s.d	$w25,$w26,$w27
+	asub_s.b	$w28,$w29,$w30
+	asub_s.h	$w31,$w0,$w1
+	asub_s.w	$w2,$w3,$w4
+	asub_s.d	$w5,$w6,$w7
+	asub_u.b	$w8,$w9,$w10
+	asub_u.h	$w11,$w12,$w13
+	asub_u.w	$w14,$w15,$w16
+	asub_u.d	$w17,$w18,$w19
+	mulv.b	$w20,$w21,$w22
+	mulv.h	$w23,$w24,$w25
+	mulv.w	$w26,$w27,$w28
+	mulv.d	$w29,$w30,$w31
+	maddv.b	$w0,$w1,$w2
+	maddv.h	$w3,$w4,$w5
+	maddv.w	$w6,$w7,$w8
+	maddv.d	$w9,$w10,$w11
+	msubv.b	$w12,$w13,$w14
+	msubv.h	$w15,$w16,$w17
+	msubv.w	$w18,$w19,$w20
+	msubv.d	$w21,$w22,$w23
+	div_s.b	$w24,$w25,$w26
+	div_s.h	$w27,$w28,$w29
+	div_s.w	$w30,$w31,$w0
+	div_s.d	$w1,$w2,$w3
+	div_u.b	$w4,$w5,$w6
+	div_u.h	$w7,$w8,$w9
+	div_u.w	$w10,$w11,$w12
+	div_u.d	$w13,$w14,$w15
+	mod_s.b	$w16,$w17,$w18
+	mod_s.h	$w19,$w20,$w21
+	mod_s.w	$w22,$w23,$w24
+	mod_s.d	$w25,$w26,$w27
+	mod_u.b	$w28,$w29,$w30
+	mod_u.h	$w31,$w0,$w1
+	mod_u.w	$w2,$w3,$w4
+	mod_u.d	$w5,$w6,$w7
+	dotp_s.h	$w8,$w9,$w10
+	dotp_s.w	$w11,$w12,$w13
+	dotp_s.d	$w14,$w15,$w16
+	dotp_u.h	$w17,$w18,$w19
+	dotp_u.w	$w20,$w21,$w22
+	dotp_u.d	$w23,$w24,$w25
+	dpadd_s.h	$w26,$w27,$w28
+	dpadd_s.w	$w29,$w30,$w31
+	dpadd_s.d	$w0,$w1,$w2
+	dpadd_u.h	$w3,$w4,$w5
+	dpadd_u.w	$w6,$w7,$w8
+	dpadd_u.d	$w9,$w10,$w11
+	dpsub_s.h	$w12,$w13,$w14
+	dpsub_s.w	$w15,$w16,$w17
+	dpsub_s.d	$w18,$w19,$w20
+	dpsub_u.h	$w21,$w22,$w23
+	dpsub_u.w	$w24,$w25,$w26
+	dpsub_u.d	$w27,$w28,$w29
+	sld.b	$w30,$w31[$0]
+	sld.h	$w1,$w2[$3]
+	sld.w	$w4,$w5[$6]
+	sld.d	$w7,$w8[$9]
+	sldi.b	$w10,$w11[0]
+	sldi.b	$w12,$w13[15]
+	sldi.h	$w14,$w15[0]
+	sldi.h	$w16,$w17[7]
+	sldi.w	$w18,$w19[0]
+	sldi.w	$w20,$w21[3]
+	sldi.d	$w22,$w23[0]
+	sldi.d	$w24,$w25[1]
+	splat.b	$w26,$w27[$28]
+	splat.h	$w29,$w30[$31]
+	splat.w	$w0,$w1[$2]
+	splat.d	$w3,$w4[$5]
+	splati.b	$w6,$w7[0]
+	splati.b	$w8,$w9[15]
+	splati.h	$w10,$w11[0]
+	splati.h	$w12,$w13[7]
+	splati.w	$w14,$w15[0]
+	splati.w	$w16,$w17[3]
+	splati.d	$w18,$w19[0]
+	splati.d	$w20,$w21[1]
+	pckev.b	$w22,$w23,$w24
+	pckev.h	$w25,$w26,$w27
+	pckev.w	$w28,$w29,$w30
+	pckev.d	$w31,$w0,$w1
+	pckod.b	$w2,$w3,$w4
+	pckod.h	$w5,$w6,$w7
+	pckod.w	$w8,$w9,$w10
+	pckod.d	$w11,$w12,$w13
+	ilvl.b	$w14,$w15,$w16
+	ilvl.h	$w17,$w18,$w19
+	ilvl.w	$w20,$w21,$w22
+	ilvl.d	$w23,$w24,$w25
+	ilvr.b	$w26,$w27,$w28
+	ilvr.h	$w29,$w30,$w31
+	ilvr.w	$w0,$w1,$w2
+	ilvr.d	$w3,$w4,$w5
+	ilvev.b	$w6,$w7,$w8
+	ilvev.h	$w9,$w10,$w11
+	ilvev.w	$w12,$w13,$w14
+	ilvev.d	$w15,$w16,$w17
+	ilvod.b	$w18,$w19,$w20
+	ilvod.h	$w21,$w22,$w23
+	ilvod.w	$w24,$w25,$w26
+	ilvod.d	$w27,$w28,$w29
+	vshf.b	$w30,$w31,$w0
+	vshf.h	$w1,$w2,$w3
+	vshf.w	$w4,$w5,$w6
+	vshf.d	$w7,$w8,$w9
+	srar.b	$w10,$w11,$w12
+	srar.h	$w13,$w14,$w15
+	srar.w	$w16,$w17,$w18
+	srar.d	$w19,$w20,$w21
+	srari.b	$w22,$w23,0
+	srari.b	$w24,$w25,7
+	srari.h	$w26,$w27,0
+	srari.h	$w28,$w29,15
+	srari.w	$w30,$w31,0
+	srari.w	$w0,$w1,31
+	srari.d	$w2,$w3,0
+	srari.d	$w4,$w5,63
+	srlr.b	$w6,$w7,$w8
+	srlr.h	$w9,$w10,$w11
+	srlr.w	$w12,$w13,$w14
+	srlr.d	$w15,$w16,$w17
+	srlri.b	$w18,$w19,0
+	srlri.b	$w20,$w21,7
+	srlri.h	$w22,$w23,0
+	srlri.h	$w24,$w25,15
+	srlri.w	$w26,$w27,0
+	srlri.w	$w28,$w29,31
+	srlri.d	$w30,$w31,0
+	srlri.d	$w0,$w1,63
+	hadd_s.h	$w2,$w3,$w4
+	hadd_s.w	$w5,$w6,$w7
+	hadd_s.d	$w8,$w9,$w10
+	hadd_u.h	$w11,$w12,$w13
+	hadd_u.w	$w14,$w15,$w16
+	hadd_u.d	$w17,$w18,$w19
+	hsub_s.h	$w20,$w21,$w22
+	hsub_s.w	$w23,$w24,$w25
+	hsub_s.d	$w26,$w27,$w28
+	hsub_u.h	$w29,$w30,$w31
+	hsub_u.w	$w0,$w1,$w2
+	hsub_u.d	$w3,$w4,$w5
+	and.v	$w6,$w7,$w8
+	andi.b	$w9,$w10,0
+	andi.b	$w11,$w12,255
+	or.v	$w13,$w14,$w15
+	ori.b	$w16,$w17,0
+	ori.b	$w18,$w19,255
+	nor.v	$w20,$w21,$w22
+	nori.b	$w23,$w24,0
+	nori.b	$w25,$w26,255
+	xor.v	$w27,$w28,$w29
+	xori.b	$w30,$w31,0
+	xori.b	$w0,$w1,255
+	bmnz.v	$w2,$w3,$w4
+	bmnzi.b	$w5,$w6,0
+	bmnzi.b	$w7,$w8,255
+	bmz.v	$w9,$w10,$w11
+	bmzi.b	$w12,$w13,0
+	bmzi.b	$w14,$w15,255
+	bsel.v	$w16,$w17,$w18
+	bseli.b	$w19,$w20,0
+	bseli.b	$w21,$w22,255
+	shf.b	$w23,$w24,0
+	shf.b	$w25,$w26,255
+	shf.h	$w27,$w28,0
+	shf.h	$w29,$w30,255
+	shf.w	$w31,$w0,0
+	shf.w	$w1,$w2,255
+1:
+	bnz.v	$w3,. + 4 + (-32768 << insn_log2)
+	nop
+	bnz.v	$w4,. + 4 + (32767 << insn_log2)
+	nop
+	bnz.v	$w5,1b
+	nop
+	bnz.v	$w6,external_label
+	nop
+1:
+	bz.v	$w7,. + 4 + (-32768 << insn_log2)
+	nop
+	bz.v	$w8,. + 4 + (32767 << insn_log2)
+	nop
+	bz.v	$w9,1b
+	nop
+	bz.v	$w10,external_label
+	nop
+	fill.b	$w11,$12
+	fill.h	$w13,$14
+	fill.w	$w15,$16
+	pcnt.b	$w19,$w20
+	pcnt.h	$w21,$w22
+	pcnt.w	$w23,$w24
+	pcnt.d	$w25,$w26
+	nloc.b	$w27,$w28
+	nloc.h	$w29,$w30
+	nloc.w	$w31,$w0
+	nloc.d	$w1,$w2
+	nlzc.b	$w3,$w4
+	nlzc.h	$w5,$w6
+	nlzc.w	$w7,$w8
+	nlzc.d	$w9,$w10
+	copy_s.b	$11,$w12[0]
+	copy_s.b	$13,$w14[15]
+	copy_s.h	$15,$w16[0]
+	copy_s.h	$17,$w18[7]
+	copy_s.w	$19,$w20[0]
+	copy_s.w	$21,$w22[3]
+	copy_u.b	$27,$w28[0]
+	copy_u.b	$29,$w30[15]
+	copy_u.h	$31,$w0[0]
+	copy_u.h	$1,$w2[7]
+	insert.b	$w11[0],$12
+	insert.b	$w13[15],$14
+	insert.h	$w15[0],$16
+	insert.h	$w17[7],$18
+	insert.w	$w19[0],$20
+	insert.w	$w21[3],$22
+	insve.b	$w27[0],$w28[0]
+	insve.b	$w29[15],$w30[0]
+	insve.h	$w31[0],$w0[0]
+	insve.h	$w1[7],$w2[0]
+	insve.w	$w3[0],$w4[0]
+	insve.w	$w5[3],$w6[0]
+	insve.d	$w7[0],$w8[0]
+	insve.d	$w9[1],$w10[0]
+1:
+	bnz.b	$w11,. + 4 + (-32768 << insn_log2)
+	nop
+	bnz.b	$w12,. + 4 + (32767 << insn_log2)
+	nop
+	bnz.b	$w13,1b
+	nop
+	bnz.b	$w14,external_label
+	nop
+1:
+	bnz.h	$w15,. + 4 + (-32768 << insn_log2)
+	nop
+	bnz.h	$w16,. + 4 + (32767 << insn_log2)
+	nop
+	bnz.h	$w17,1b
+	nop
+	bnz.h	$w18,external_label
+	nop
+1:
+	bnz.w	$w19,. + 4 + (-32768 << insn_log2)
+	nop
+	bnz.w	$w20,. + 4 + (32767 << insn_log2)
+	nop
+	bnz.w	$w21,1b
+	nop
+	bnz.w	$w22,external_label
+	nop
+1:
+	bnz.d	$w23,. + 4 + (-32768 << insn_log2)
+	nop
+	bnz.d	$w24,. + 4 + (32767 << insn_log2)
+	nop
+	bnz.d	$w25,1b
+	nop
+	bnz.d	$w26,external_label
+	nop
+1:
+	bz.b	$w27,. + 4 + (-32768 << insn_log2)
+	nop
+	bz.b	$w28,. + 4 + (32767 << insn_log2)
+	nop
+	bz.b	$w29,1b
+	nop
+	bz.b	$w30,external_label
+	nop
+1:
+	bz.h	$w31,. + 4 + (-32768 << insn_log2)
+	nop
+	bz.h	$w0,. + 4 + (32767 << insn_log2)
+	nop
+	bz.h	$w1,1b
+	nop
+	bz.h	$w2,external_label
+	nop
+1:
+	bz.w	$w3,. + 4 + (-32768 << insn_log2)
+	nop
+	bz.w	$w4,. + 4 + (32767 << insn_log2)
+	nop
+	bz.w	$w5,1b
+	nop
+	bz.w	$w6,external_label
+	nop
+1:
+	bz.d	$w7,. + 4 + (-32768 << insn_log2)
+	nop
+	bz.d	$w8,. + 4 + (32767 << insn_log2)
+	nop
+	bz.d	$w9,1b
+	nop
+	bz.d	$w10,external_label
+	nop
+	ldi.b	$w11,-512
+	ldi.b	$w12,511
+	ldi.h	$w13,-512
+	ldi.h	$w14,511
+	ldi.w	$w15,-512
+	ldi.w	$w16,511
+	ldi.d	$w17,-512
+	ldi.d	$w18,511
+	fcaf.w	$w19,$w20,$w21
+	fcaf.d	$w22,$w23,$w24
+	fcun.w	$w25,$w26,$w27
+	fcun.d	$w28,$w29,$w30
+	fceq.w	$w31,$w0,$w1
+	fceq.d	$w2,$w3,$w4
+	fcueq.w	$w5,$w6,$w7
+	fcueq.d	$w8,$w9,$w10
+	fclt.w	$w11,$w12,$w13
+	fclt.d	$w14,$w15,$w16
+	fcult.w	$w17,$w18,$w19
+	fcult.d	$w20,$w21,$w22
+	fcle.w	$w23,$w24,$w25
+	fcle.d	$w26,$w27,$w28
+	fcule.w	$w29,$w30,$w31
+	fcule.d	$w0,$w1,$w2
+	fsaf.w	$w3,$w4,$w5
+	fsaf.d	$w6,$w7,$w8
+	fsun.w	$w9,$w10,$w11
+	fsun.d	$w12,$w13,$w14
+	fseq.w	$w15,$w16,$w17
+	fseq.d	$w18,$w19,$w20
+	fsueq.w	$w21,$w22,$w23
+	fsueq.d	$w24,$w25,$w26
+	fslt.w	$w27,$w28,$w29
+	fslt.d	$w30,$w31,$w0
+	fsult.w	$w1,$w2,$w3
+	fsult.d	$w4,$w5,$w6
+	fsle.w	$w7,$w8,$w9
+	fsle.d	$w10,$w11,$w12
+	fsule.w	$w13,$w14,$w15
+	fsule.d	$w16,$w17,$w18
+	fadd.w	$w19,$w20,$w21
+	fadd.d	$w22,$w23,$w24
+	fsub.w	$w25,$w26,$w27
+	fsub.d	$w28,$w29,$w30
+	fmul.w	$w31,$w0,$w1
+	fmul.d	$w2,$w3,$w4
+	fdiv.w	$w5,$w6,$w7
+	fdiv.d	$w8,$w9,$w10
+	fmadd.w	$w11,$w12,$w13
+	fmadd.d	$w14,$w15,$w16
+	fmsub.w	$w17,$w18,$w19
+	fmsub.d	$w20,$w21,$w22
+	fexp2.w	$w23,$w24,$w25
+	fexp2.d	$w26,$w27,$w28
+	fexdo.h	$w29,$w30,$w31
+	fexdo.w	$w0,$w1,$w2
+	ftq.h	$w3,$w4,$w5
+	ftq.w	$w6,$w7,$w8
+	fmin.w	$w9,$w10,$w11
+	fmin.d	$w12,$w13,$w14
+	fmin_a.w	$w15,$w16,$w17
+	fmin_a.d	$w18,$w19,$w20
+	fmax.w	$w21,$w22,$w23
+	fmax.d	$w24,$w25,$w26
+	fmax_a.w	$w27,$w28,$w29
+	fmax_a.d	$w30,$w31,$w0
+	fcor.w	$w1,$w2,$w3
+	fcor.d	$w4,$w5,$w6
+	fcune.w	$w7,$w8,$w9
+	fcune.d	$w10,$w11,$w12
+	fcne.w	$w13,$w14,$w15
+	fcne.d	$w16,$w17,$w18
+	mul_q.h	$w19,$w20,$w21
+	mul_q.w	$w22,$w23,$w24
+	madd_q.h	$w25,$w26,$w27
+	madd_q.w	$w28,$w29,$w30
+	msub_q.h	$w31,$w0,$w1
+	msub_q.w	$w2,$w3,$w4
+	fsor.w	$w5,$w6,$w7
+	fsor.d	$w8,$w9,$w10
+	fsune.w	$w11,$w12,$w13
+	fsune.d	$w14,$w15,$w16
+	fsne.w	$w17,$w18,$w19
+	fsne.d	$w20,$w21,$w22
+	mulr_q.h	$w23,$w24,$w25
+	mulr_q.w	$w26,$w27,$w28
+	maddr_q.h	$w29,$w30,$w31
+	maddr_q.w	$w0,$w1,$w2
+	msubr_q.h	$w3,$w4,$w5
+	msubr_q.w	$w6,$w7,$w8
+	fclass.w	$w9,$w10
+	fclass.d	$w11,$w12
+	ftrunc_s.w	$w13,$w14
+	ftrunc_s.d	$w15,$w16
+	ftrunc_u.w	$w17,$w18
+	ftrunc_u.d	$w19,$w20
+	fsqrt.w	$w21,$w22
+	fsqrt.d	$w23,$w24
+	frsqrt.w	$w25,$w26
+	frsqrt.d	$w27,$w28
+	frcp.w	$w29,$w30
+	frcp.d	$w31,$w0
+	frint.w	$w1,$w2
+	frint.d	$w3,$w4
+	flog2.w	$w5,$w6
+	flog2.d	$w7,$w8
+	fexupl.w	$w9,$w10
+	fexupl.d	$w11,$w12
+	fexupr.w	$w13,$w14
+	fexupr.d	$w15,$w16
+	ffql.w	$w17,$w18
+	ffql.d	$w19,$w20
+	ffqr.w	$w21,$w22
+	ffqr.d	$w23,$w24
+	ftint_s.w	$w25,$w26
+	ftint_s.d	$w27,$w28
+	ftint_u.w	$w29,$w30
+	ftint_u.d	$w31,$w0
+	ffint_s.w	$w1,$w2
+	ffint_s.d	$w3,$w4
+	ffint_u.w	$w5,$w6
+	ffint_u.d	$w7,$w8
+	ctcmsa	$0,$9
+	ctcmsa	$1,$10
+	ctcmsa	$2,$11
+	ctcmsa	$3,$12
+	cfcmsa	$13,$0
+	cfcmsa	$14,$1
+	cfcmsa	$15,$2
+	cfcmsa	$16,$3
+	move.v	$w17,$w18
+	lsa	$19,$20,$21,1
+	lsa	$22,$23,$24,4
+
+# Force at least 8 (non-delay-slot) zero bytes, to make 'objdump' print ...
+	.align  2
+	.space  8

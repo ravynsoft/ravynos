@@ -1,0 +1,139 @@
+# Expect script for common symbol override.
+#
+# Copyright (C) 2011-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+#
+# Written by Maciej W. Rozycki <macro@codesourcery.com>
+#
+
+# This test is for ELF shared-library targets.
+if { ![is_elf_format] || ![check_shared_lib_support] } {
+    return
+}
+
+# This target requires extra GAS options when building code for shared
+# libraries.
+set AFLAGS_PIC ""
+if [istarget "tic6x-*-*"] {
+    append AFLAGS_PIC " -mpic -mpid=near"
+}
+# This target requires a non-default emulation for successful shared
+# library/executable builds.
+set LFLAGS ""
+if [istarget "tic6x-*-*"] {
+    append LFLAGS " -melf32_tic6x_le"
+}
+# These targets do not default to linking with shared libraries.
+if { [istarget "mips*vr4100*-*-elf*"] \
+     || [istarget "mips*vr4300*-*-elf*"] \
+     || [istarget "mips*vr5000*-*-elf*"] } {
+    append LFLAGS " -call_shared"
+}
+
+# Define a global symbol.
+set testname "Common symbol override test"
+run_ld_link_tests [list \
+    [list \
+	"$testname (auxiliary shared object build)" \
+	"$LFLAGS -shared" "" \
+	"$AFLAGS_PIC" \
+	{ comm-data1.s } \
+	{ \
+	    { readelf -s comm-data1.sd } \
+	} \
+	"libcomm-data.so" \
+    ] \
+]
+
+# Set the pointer size according to the ELF flavor.
+set AFLAGS ""
+if [is_elf64 "tmpdir/libcomm-data.so"] {
+    append AFLAGS " --defsym ELF64=1"
+}
+# HPUX targets use a different .comm syntax.
+if [istarget "*-*-hpux*"] {
+    append AFLAGS " --defsym HPUX=1"
+}
+
+# bfin-elf does not currently support copy relocs.
+setup_xfail "bfin-*-*"
+clear_xfail "bfin-*-linux-uclibc*"
+
+# Verify that a common symbol has been converted to an undefined
+# reference to the global symbol of the same name defined above
+# and that the debug reference has been dropped.
+run_ld_link_tests [list \
+    [list \
+	"$testname" \
+	"$LFLAGS -T comm-data2.ld -Ltmpdir -lcomm-data" "" \
+	"$AFLAGS" \
+	{ comm-data2.s } \
+	[list \
+	    [list readelf -s comm-data2.sd] \
+	    [list readelf -r comm-data2.rd] \
+	    [list readelf "-x .debug_foo" comm-data2.xd]] \
+	"comm-data" \
+    ] \
+    [list \
+	"$testname 3a" \
+	"-static" "" \
+	"" \
+	{ comm-data3a.s comm-data3b.s } \
+	{ \
+	    { readelf -s comm-data3.sd } \
+	} \
+	"comm-data3a" \
+    ] \
+    [list \
+	"$testname 3b" \
+	"-static" "" \
+	"" \
+	{ comm-data3b.s comm-data3a.s } \
+	{ \
+	    { readelf -s comm-data3.sd } \
+	} \
+	"comm-data3b" \
+    ] \
+    [list \
+	"libpr26580-1.so" \
+	"$LFLAGS -shared" "" \
+	"$AFLAGS_PIC $AFLAGS" \
+	{ pr26580-b.s } \
+	{ } \
+	"libpr26580-1.so" \
+    ] \
+    [list \
+	"pr26580-1" \
+	"$LFLAGS --as-needed -Ltmpdir -lpr26580-1" "" \
+	"$AFLAGS" \
+	{ pr26580-a.s } \
+	{ {readelf -s pr26580-1.sd} } \
+	"pr26580-1" \
+    ] \
+    [list \
+	"pr26580-2" \
+	"$LFLAGS --no-as-needed -Ltmpdir -lpr26580-1" "" \
+	"$AFLAGS" \
+	{ pr26580-a.s } \
+	{ {readelf -s pr26580-2.sd} } \
+	"pr26580-2" \
+    ] \
+]

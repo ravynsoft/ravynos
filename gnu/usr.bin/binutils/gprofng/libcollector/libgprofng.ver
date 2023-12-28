@@ -1,0 +1,145 @@
+/* Copyright (C) 2021-2023 Free Software Foundation, Inc.
+   Contributed by Oracle.
+
+   This file is part of GNU Binutils.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3, or (at your option)
+   any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, 51 Franklin Street - Fifth Floor, Boston,
+   MA 02110-1301, USA.  */
+
+GLIBC_2.0 {
+  global:
+    dlclose;
+    dlopen;
+    fclose;
+    fdopen;
+    fgetpos;
+    fopen;
+    fsetpos;
+    popen;
+    pthread_cond_timedwait;
+    pthread_cond_wait;
+    pthread_create;
+    pthread_join;
+    pthread_sigmask;
+    sem_wait;
+    timer_create;
+};
+
+GLIBC_2.1 {
+  global:
+    dlopen;
+    fclose;
+    fdopen;
+    fgetpos64;
+    fopen;
+    fsetpos64;
+    popen;
+    pthread_create;
+    sem_wait;
+} GLIBC_2.0;
+
+GLIBC_2.2 {
+  global:
+    fgetpos;
+    fgetpos64;
+    fsetpos;
+    fsetpos64;
+    open64;
+    posix_spawn;
+    posix_spawnp;
+    pread;
+    timer_create;
+} GLIBC_2.1;
+
+GLIBC_2.2.5 {
+  global:
+    dlclose;
+    dlopen;
+    fclose;
+    fdopen;
+    fgetpos;
+    fgetpos64;
+    fopen;
+    fsetpos;
+    fsetpos64;
+    popen;
+    posix_spawn;
+    posix_spawnp;
+    pthread_cond_timedwait;
+    pthread_cond_wait;
+    pthread_create;
+    pthread_join;
+    pthread_sigmask;
+    sem_wait;
+    timer_create;
+    timer_create;
+} GLIBC_2.2 ;
+
+GLIBC_2.3.2 {
+  global:
+    pthread_cond_wait;		
+    pthread_cond_timedwait;
+} GLIBC_2.2.5;
+
+GLIBC_2.3.3 {
+  global:
+    timer_create;
+} GLIBC_2.3.2;
+
+GLIBC_2.15 {
+  global:
+    posix_spawn;
+    posix_spawnp;
+} GLIBC_2.3.3;
+
+GLIBC_2.17 {
+  global:
+    dlclose;
+    dlopen;
+    fclose;
+    fdopen;
+    fgetpos;
+    fgetpos64;
+    fopen;
+    fsetpos;
+    fsetpos64;
+    popen;
+    posix_spawn;
+    posix_spawnp;
+    pthread_cond_timedwait;
+    pthread_cond_wait;
+    pthread_create;
+    pthread_join;
+    pthread_sigmask;
+    sem_wait;
+    timer_create;
+    timer_create;
+} GLIBC_2.15;
+
+GLIBC_2.32 {
+  global:
+    pthread_sigmask;
+} GLIBC_2.17;
+
+GLIBC_2.34 {
+  global:
+    dlclose;
+    dlopen;
+    pthread_create;
+    pthread_join;
+    sem_wait;
+    timer_create;
+} GLIBC_2.32;
+

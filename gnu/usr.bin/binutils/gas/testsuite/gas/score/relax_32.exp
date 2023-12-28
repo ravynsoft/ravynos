@@ -1,0 +1,40 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+# tests for instruction relaxation
+
+if [istarget score-*-*] then {
+	run_dump_test "arith_32"
+	run_dump_test "bit_32"
+	run_dump_test "branch_32"
+	run_dump_test "cmp_32"
+	run_dump_test "load_store_32"
+	run_dump_test "logical_32"
+	run_dump_test "mv_32"
+	run_dump_test "shift_32"
+	run_dump_test "syscontrol_32"
+
+	# tests for little endian
+	run_dump_test "arith_32-lt"
+	run_dump_test "bit_32-lt"
+	run_dump_test "branch_32-lt"
+	run_dump_test "cmp_32-lt"
+	run_dump_test "load_store_32-lt"
+	run_dump_test "logical_32-lt"
+	run_dump_test "mv_32-lt"
+	run_dump_test "shift_32-lt"
+	run_dump_test "syscontrol_32-lt"
+}

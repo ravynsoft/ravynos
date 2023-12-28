@@ -1,0 +1,823 @@
+#   Copyright (C) 2010-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+# Test compressed .debug section.
+
+if { [is_remote host] || ![is_elf_format] } then {
+    return
+}
+
+set testfile tmpdir/dw2-1
+set compressedfile tmpdir/dw2-1-compressed
+set copyfile tmpdir/dw2-copy
+set compressedfile2 tmpdir/dw2-2-compressed
+set libfile tmpdir/libdw2
+set compressedcopyfile tmpdir/dw2-copy-compressed
+set testfile3 tmpdir/dw2-3
+set compressedfile3 tmpdir/dw2-3-compressed
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-1.S ${testfile}.o --nocompress-debug-sections] } then {
+    unsupported "compressed debug sections"
+    return
+}
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-1.S ${compressedfile}.o --compress-debug-sections] } then {
+    unsupported "compressed debug sections"
+    return
+}
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-1.S ${compressedfile}gnu.o --compress-debug-sections=zlib-gnu] } then {
+    unsupported "compressed debug sections with zlib-gnu"
+    return
+}
+
+set got [remote_exec host "cmp ${testfile}.o ${compressedfile}gnu.o"]
+# Use it to set up xfail.
+set exec_output [lindex $got 1]
+if [string match "" $exec_output] then {
+    set compression_used ""
+} else {
+    set compression_used "yes"
+}
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-2.S ${compressedfile2}.o --compress-debug-sections] } then {
+    unsupported "compressed debug sections"
+    return
+}
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-3.S ${testfile3}.o --nocompress-debug-sections] } then {
+    unsupported "compressed debug sections"
+    return
+}
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-3.S ${compressedfile3}.o --compress-debug-sections] } then {
+    unsupported "compressed debug sections"
+    return
+}
+
+remote_file host delete ${libfile}.a
+set got [binutils_run $AR "rc ${libfile}.a ${compressedfile}.o ${compressedfile2}.o ${compressedfile3}.o"]
+if ![string match "" $got] then {
+    fail "compressed debug sections"
+    return
+}
+
+set testname "objcopy compress debug sections"
+set got [binutils_run $OBJCOPY "--compress-debug-sections ${testfile}.o ${copyfile}.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+} else {
+    send_log "cmp ${compressedfile}.o ${copyfile}.o\n"
+    verbose "cmp ${compressedfile}.o ${copyfile}.o"
+    set src1 ${compressedfile}.o
+    set src2 ${copyfile}.o
+    set status [remote_exec build cmp "${src1} ${src2}"]
+    set exec_output [lindex $status 1]
+    set exec_output [prune_warnings $exec_output]
+
+    if [string match "" $exec_output] then {
+	pass "objcopy ($testname)"
+    } else {
+	send_log "$exec_output\n"
+	verbose "$exec_output" 1
+	fail "objcopy ($testname)"
+    }
+}
+
+set testname "objcopy decompress compressed debug sections"
+set got [binutils_run $OBJCOPY "--decompress-debug-sections ${compressedfile}.o ${copyfile}.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+} else {
+    send_log "cmp ${testfile}.o ${copyfile}.o\n"
+    verbose "cmp ${testfile}.o ${copyfile}.o"
+    set src1 ${testfile}.o
+    set src2 ${copyfile}.o
+    set status [remote_exec build cmp "${src1} ${src2}"]
+    set exec_output [lindex $status 1]
+    set exec_output [prune_warnings $exec_output]
+
+    if [string match "" $exec_output] then {
+	pass "objcopy ($testname)"
+    } else {
+	send_log "$exec_output\n"
+	verbose "$exec_output" 1
+	fail "objcopy ($testname)"
+    }
+}
+
+set testname "objcopy decompress debug sections in archive"
+set got [binutils_run $OBJCOPY "--decompress-debug-sections ${libfile}.a ${copyfile}.a"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+} else {
+    set got [remote_exec host "$READELF -S --wide ${copyfile}.a" "" "/dev/null" "tmpdir/libdw2.out"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$testname (reason: unexpected output)"
+	send_log $got
+	send_log "\n"
+    }
+
+    if { [regexp_diff tmpdir/libdw2.out $srcdir/$subdir/libdw2.out] } then {
+	fail "$testname"
+    } else {
+	pass "$testname"
+    }
+}
+
+# Xfail this test if there are no compressed sections.
+setup_xfail "$compression_used$target_triplet"
+set testname "objcopy compress debug sections in archive with zlib-gnu"
+set got [binutils_run $OBJCOPY "--compress-debug-sections=zlib-gnu ${copyfile}.a ${compressedcopyfile}.a"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+} else {
+    set got [remote_exec host "$OBJDUMP -s -j .zdebug_line ${compressedcopyfile}.a" "" "/dev/null" "tmpdir/libdw2-compressed.out"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$testname (reason: unexpected output)"
+	send_log $got
+	send_log "\n"
+    }
+
+    setup_xfail "$compression_used$target_triplet"
+    if { [regexp_diff tmpdir/libdw2-compressed.out $srcdir/$subdir/libdw2-compressed.out] } then {
+	fail "$testname"
+    } else {
+	pass "$testname"
+    }
+}
+
+set testname "objdump compress debug sections"
+set got [remote_exec host "$OBJDUMP -W ${compressedfile}.o" "" "/dev/null" "objdump.out"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    fail "$testname"
+    send_log "$got\n"
+}
+if { [regexp_diff objdump.out $srcdir/$subdir/dw2-1.W] } then {
+    fail "$testname"
+} else {
+    pass "$testname"
+}
+
+set testname "objdump compress debug sections 3"
+set got [remote_exec host "$OBJDUMP -W ${compressedfile3}.o" "" "/dev/null" "objdump.out"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    fail "$testname"
+    send_log "$got\n"
+}
+if { [regexp_diff objdump.out $srcdir/$subdir/dw2-3.W] } then {
+    fail "$testname"
+} else {
+    pass "$testname"
+}
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-empty.S ${testfile}empty.o --nocompress-debug-sections] } then {
+    unsupported "compressed debug sections"
+    return
+}
+
+set testname "objcopy compress empty debug sections"
+set got [binutils_run $OBJCOPY "--compress-debug-sections ${testfile}empty.o ${copyfile}empty.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+} else {
+    send_log "cmp ${testfile}empty.o ${copyfile}empty.o\n"
+    verbose "cmp ${testfile}empty.o ${copyfile}empty.o"
+    set src1 ${testfile}empty.o
+    set src2 ${copyfile}empty.o
+    set status [remote_exec build cmp "${src1} ${src2}"]
+    set exec_output [lindex $status 1]
+    set exec_output [prune_warnings $exec_output]
+
+    if [string match "" $exec_output] then {
+	pass "objcopy ($testname)"
+    } else {
+	send_log "$exec_output\n"
+	verbose "$exec_output" 1
+	fail "objcopy ($testname)"
+    }
+}
+
+if ![is_remote host] {
+    set tempfile tmpdir/debug_str.o
+    set copyfile tmpdir/debug_str.copy
+} else {
+    set tempfile [remote_download host tmpdir/debug_str.o]
+    set copyfile debug_str.copy
+}
+
+run_dump_test "debug_str"
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-1.S ${compressedfile}gabi.o --compress-debug-sections=zlib-gabi] } then {
+    fail "compressed debug sections with zlib-gabi"
+    return
+}
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-1.S ${compressedfile}gnu.o --compress-debug-sections=zlib-gnu] } then {
+    fail "compressed debug sections with zlib-gnu"
+    return
+}
+
+set src1 ${compressedfile}gabi.o
+set src2 ${compressedfile}.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    fail "compressed debug sections with zlib-gabi"
+    return
+}
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-2.S ${compressedfile2}gabi.o --compress-debug-sections=zlib-gabi] } then {
+    fail "compressed debug sections with zlib-gabi"
+    return
+}
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-2.S ${compressedfile2}gnu.o --compress-debug-sections=zlib-gnu] } then {
+    fail "compressed debug sections with zlib-gnu"
+    return
+}
+
+set src1 ${compressedfile2}gabi.o
+set src2 ${compressedfile2}.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    fail "compressed debug sections with zlib-gabi"
+    return
+}
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-3.S ${compressedfile3}gabi.o --compress-debug-sections=zlib-gabi] } then {
+    fail "compressed debug sections with zlib-gabi"
+    return
+}
+
+set testname "readelf -t zlib-gabi compress debug sections"
+set got [remote_exec host "$READELF -t --wide ${compressedfile3}gabi.o" "" "/dev/null" "tmpdir/dw2-3.rt"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    fail "$testname (reason: unexpected output)"
+    send_log "$got\n"
+}
+if { [regexp_diff tmpdir/dw2-3.rt $srcdir/$subdir/dw2-3.rt] } then {
+    fail "$testname"
+} else {
+    pass "$testname"
+}
+
+set testname "readelf -S zlib-gabi compress debug sections"
+set got [remote_exec host "$READELF -S --wide ${compressedfile3}gabi.o" "" "/dev/null" "tmpdir/dw2-3.rS"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    fail "$testname (reason: unexpected output)"
+    send_log "$got\n"
+}
+if { [regexp_diff tmpdir/dw2-3.rS $srcdir/$subdir/dw2-3.rS] } then {
+    fail "$testname"
+} else {
+    pass "$testname"
+}
+
+if { ![binutils_assemble_flags $srcdir/$subdir/dw2-3.S ${compressedfile3}gnu.o --compress-debug-sections=zlib-gnu] } then {
+    fail "compressed debug sections with zlib-gnu"
+    return
+}
+
+set src1 ${compressedfile3}gabi.o
+set src2 ${compressedfile3}.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    fail "compressed debug sections with zlib-gabi"
+    return
+}
+
+remote_file host delete ${libfile}gabi.a
+set got [binutils_run $AR "rc ${libfile}gabi.a ${compressedfile}gabi.o ${compressedfile2}gabi.o ${compressedfile3}gabi.o"]
+if ![string match "" $got] then {
+    fail "compressed debug sections"
+    return
+}
+
+set testname "objcopy compress debug sections with zlib-gabi"
+set got [binutils_run $OBJCOPY "--compress-debug-sections=zlib-gabi ${testfile}.o ${copyfile}gabi.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+    return
+}
+send_log "cmp ${compressedfile}gabi.o ${copyfile}gabi.o\n"
+verbose "cmp ${compressedfile}gabi.o ${copyfile}gabi.o"
+set src1 ${compressedfile}gabi.o
+set src2 ${copyfile}gabi.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    send_log "$exec_output\n"
+    verbose "$exec_output" 1
+    fail "objcopy ($testname)"
+} else {
+    pass "objcopy ($testname)"
+}
+
+set testname "objcopy decompress compressed debug sections with zlib-gabi"
+set got [binutils_run $OBJCOPY "--decompress-debug-sections ${compressedfile}gabi.o ${copyfile}gabi.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+    return
+}
+send_log "cmp ${testfile}.o ${copyfile}gabi.o\n"
+verbose "cmp ${testfile}.o ${copyfile}gabi.o"
+set src1 ${testfile}.o
+set src2 ${copyfile}gabi.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    send_log "$exec_output\n"
+    verbose "$exec_output" 1
+    fail "objcopy ($testname)"
+} else {
+    pass "objcopy ($testname)"
+}
+
+set testname "objcopy zlib-gnu compress debug sections with zlib-gabi"
+set got [binutils_run $OBJCOPY "--compress-debug-sections=zlib-gabi ${compressedfile}.o ${copyfile}gabi.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+    return
+}
+send_log "cmp ${compressedfile}gabi.o ${copyfile}gabi.o\n"
+verbose "cmp ${compressedfile}gabi.o ${copyfile}gabi.o"
+set src1 ${compressedfile}gabi.o
+set src2 ${copyfile}gabi.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    send_log "$exec_output\n"
+    verbose "$exec_output" 1
+    fail "objcopy ($testname)"
+} else {
+    pass "objcopy ($testname)"
+}
+
+set testname "objcopy zlib-gabi compress debug sections with zlib-gnu"
+set got [binutils_run $OBJCOPY "--compress-debug-sections=zlib-gnu ${compressedfile}gabi.o ${copyfile}gnu.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+    return
+}
+send_log "cmp ${compressedfile}gnu.o ${copyfile}gnu.o\n"
+verbose "cmp ${compressedfile}gnu.o ${copyfile}gnu.o"
+set src1 ${compressedfile}gnu.o
+set src2 ${copyfile}gnu.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    send_log "$exec_output\n"
+    verbose "$exec_output" 1
+    fail "objcopy ($testname)"
+} else {
+    pass "objcopy ($testname)"
+}
+
+set testname "objcopy compress debug sections 3 with zlib-gabi"
+set got [binutils_run $OBJCOPY "--compress-debug-sections=zlib-gabi ${testfile3}.o ${copyfile}gabi.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+    return
+}
+send_log "cmp ${compressedfile3}gabi.o ${copyfile}gabi.o\n"
+verbose "cmp ${compressedfile3}gabi.o ${copyfile}gabi.o"
+set src1 ${compressedfile3}gabi.o
+set src2 ${copyfile}gabi.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    send_log "$exec_output\n"
+    verbose "$exec_output" 1
+    fail "objcopy ($testname)"
+} else {
+    pass "objcopy ($testname)"
+}
+
+set testname "objcopy decompress compressed debug sections 3 with zlib-gabi"
+set got [binutils_run $OBJCOPY "--decompress-debug-sections ${compressedfile3}gabi.o ${copyfile}gabi.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+    return
+}
+send_log "cmp ${testfile3}.o ${copyfile}gabi.o\n"
+verbose "cmp ${testfile3}.o ${copyfile}gabi.o"
+set src1 ${testfile3}.o
+set src2 ${copyfile}gabi.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    send_log "$exec_output\n"
+    verbose "$exec_output" 1
+    fail "objcopy ($testname)"
+} else {
+    pass "objcopy ($testname)"
+}
+
+set testname "objcopy zlib-gnu compress debug sections 3 with zlib-gabi"
+set got [binutils_run $OBJCOPY "--compress-debug-sections=zlib-gabi ${compressedfile3}.o ${copyfile}gabi.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+    return
+}
+send_log "cmp ${compressedfile3}gabi.o ${copyfile}gabi.o\n"
+verbose "cmp ${compressedfile3}gabi.o ${copyfile}gabi.o"
+set src1 ${compressedfile3}gabi.o
+set src2 ${copyfile}gabi.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    send_log "$exec_output\n"
+    verbose "$exec_output" 1
+    fail "objcopy ($testname)"
+} else {
+    pass "objcopy ($testname)"
+}
+
+set testname "objcopy zlib-gabi compress debug sections 3 with zlib-gnu"
+set got [binutils_run $OBJCOPY "--compress-debug-sections=zlib-gnu ${compressedfile3}gabi.o ${copyfile}gnu.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+    return
+}
+send_log "cmp ${compressedfile3}gnu.o ${copyfile}gnu.o\n"
+verbose "cmp ${compressedfile3}gnu.o ${copyfile}gnu.o"
+set src1 ${compressedfile3}gnu.o
+set src2 ${copyfile}gnu.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    send_log "$exec_output\n"
+    verbose "$exec_output" 1
+    fail "objcopy ($testname)"
+} else {
+    pass "objcopy ($testname)"
+}
+
+set testname "objcopy zlib-gnu compress debug sections 3"
+set got [binutils_run $OBJCOPY "${compressedfile3}gnu.o ${copyfile}gnu.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+    return
+}
+send_log "cmp ${compressedfile3}gnu.o ${copyfile}gnu.o\n"
+verbose "cmp ${compressedfile3}gnu.o ${copyfile}gnu.o"
+set src1 ${compressedfile3}gnu.o
+set src2 ${copyfile}gnu.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    send_log "$exec_output\n"
+    verbose "$exec_output" 1
+    fail "objcopy ($testname)"
+} else {
+    pass "objcopy ($testname)"
+}
+
+set testname "objcopy zlib-gabi compress debug sections 3"
+set got [binutils_run $OBJCOPY "${compressedfile3}gabi.o ${copyfile}gabi.o"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+    return
+}
+send_log "cmp ${compressedfile3}gabi.o ${copyfile}gabi.o\n"
+verbose "cmp ${compressedfile3}gabi.o ${copyfile}gabi.o"
+set src1 ${compressedfile3}gabi.o
+set src2 ${copyfile}gabi.o
+set status [remote_exec build cmp "${src1} ${src2}"]
+set exec_output [lindex $status 1]
+set exec_output [prune_warnings $exec_output]
+if ![string match "" $exec_output] then {
+    send_log "$exec_output\n"
+    verbose "$exec_output" 1
+    fail "objcopy ($testname)"
+} else {
+    pass "objcopy ($testname)"
+}
+
+set testname "objcopy decompress debug sections in archive with zlib-gabi"
+set got [binutils_run $OBJCOPY "--decompress-debug-sections ${libfile}gabi.a ${copyfile}gabi.a"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+} else {
+    set got [remote_exec host "$READELF -S --wide ${copyfile}gabi.a" "" "/dev/null" "tmpdir/libdw2.out"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$testname (reason: unexpected output)"
+	send_log $got
+	send_log "\n"
+    }
+
+    if { [regexp_diff tmpdir/libdw2.out $srcdir/$subdir/libdw2.out] } then {
+	fail "$testname"
+    } else {
+	pass "$testname"
+    }
+}
+
+set testname "objcopy compress debug sections in archive with zlib-gabi"
+set got [binutils_run $OBJCOPY "--compress-debug-sections=zlib-gabi ${copyfile}gabi.a ${compressedcopyfile}gabi.a"]
+if ![string match "" $got] then {
+    fail "objcopy ($testname)"
+} else {
+    set got [remote_exec host "$OBJDUMP -W ${compressedcopyfile}gabi.a" "" "/dev/null" "tmpdir/libdw2-compressedgabi.out"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$testname (reason: unexpected output)"
+	send_log $got
+	send_log "\n"
+    }
+
+    if { [regexp_diff tmpdir/libdw2-compressedgabi.out $srcdir/$subdir/libdw2-compressedgabi.out] } then {
+	fail "$testname"
+    } else {
+	pass "$testname"
+    }
+}
+
+set testname "objdump compress debug sections 3 with zlib-gabi"
+set got [remote_exec host "$OBJDUMP -W ${compressedfile3}gabi.o" "" "/dev/null" "objdump.out"]
+if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+    fail "$testname"
+    send_log "$got\n"
+}
+if { [regexp_diff objdump.out $srcdir/$subdir/dw2-3gabi.W] } then {
+    fail "$testname"
+} else {
+    pass "$testname"
+}
+
+if { [binutils_assemble_flags $srcdir/$subdir/dw2-1.S ${compressedfile}zstd.o --compress-debug-sections=zstd] } then {
+    set testname "objcopy compress debug sections with zstd"
+    set got [binutils_run $OBJCOPY "--compress-debug-sections=zstd ${testfile}.o ${copyfile}zstd.o"]
+    if ![string match "" $got] then {
+	fail "objcopy ($testname)"
+	return
+    }
+    send_log "cmp ${compressedfile}zstd.o ${copyfile}zstd.o\n"
+    verbose "cmp ${compressedfile}zstd.o ${copyfile}zstd.o"
+    set src1 ${compressedfile}zstd.o
+    set src2 ${copyfile}zstd.o
+    set status [remote_exec build cmp "${src1} ${src2}"]
+    set exec_output [lindex $status 1]
+    set exec_output [prune_warnings $exec_output]
+    if ![string match "" $exec_output] then {
+	send_log "$exec_output\n"
+	verbose "$exec_output" 1
+	fail "objcopy ($testname)"
+    } else {
+	pass "objcopy ($testname)"
+    }
+
+    set testname "objcopy decompress compressed debug sections with zstd"
+    set got [binutils_run $OBJCOPY "--decompress-debug-sections ${compressedfile}zstd.o ${copyfile}zstd.o"]
+    if ![string match "" $got] then {
+	fail "objcopy ($testname)"
+	return
+    }
+    send_log "cmp ${testfile}.o ${copyfile}zstd.o\n"
+    verbose "cmp ${testfile}.o ${copyfile}zstd.o"
+    set src1 ${testfile}.o
+    set src2 ${copyfile}zstd.o
+    set status [remote_exec build cmp "${src1} ${src2}"]
+    set exec_output [lindex $status 1]
+    set exec_output [prune_warnings $exec_output]
+    if ![string match "" $exec_output] then {
+	send_log "$exec_output\n"
+	verbose "$exec_output" 1
+	fail "objcopy ($testname)"
+    } else {
+	pass "objcopy ($testname)"
+    }
+}
+
+proc convert_test { testname  as_flags  objcop_flags } {
+    global srcdir
+    global subdir
+    global testfile3
+    global copyfile
+    global OBJCOPY
+    global OBJDUMP
+
+    if { ![binutils_assemble_flags $srcdir/$subdir/dw2-3.S ${testfile3}.o "$as_flags"] } then {
+       unsupported "$testname"
+       return
+    }
+
+    set got [binutils_run $OBJCOPY "$objcop_flags ${testfile3}.o ${copyfile}.o"]
+    if ![string match "" $got] then {
+	fail "objcopy ($testname)"
+	return
+    }
+
+    set got [remote_exec host "$OBJDUMP -W ${copyfile}.o" "" "/dev/null" "objdump.out"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$testname (reason: unexpected output)"
+	send_log $got
+	send_log "\n"
+	return
+    }
+
+    if { [regexp_diff objdump.out $srcdir/$subdir/dw2-3.W] } then {
+	fail "$testname"
+    } else {
+	pass "$testname"
+    }
+}
+
+if { ([istarget "x86_64-*-elf*"]
+       || [istarget "x86_64-*-linux*"]) } {
+    set testname "Convert x86-64 object with zlib-gabi to x32 (1)"
+    convert_test "$testname" "--compress-debug-sections=zlib-gabi --64" "-O elf32-x86-64"
+
+    set testname "Convert x86-64 object with zlib-gabi to x32 (2)"
+    convert_test "$testname" "--compress-debug-sections=zlib-gabi --64" "-O elf32-x86-64 --compress-debug-sections=zlib-gnu"
+
+    set testname "Convert x86-64 object with zlib-gabi to x32 (3)"
+    convert_test "$testname" "--compress-debug-sections=zlib-gabi --64" "-O elf32-x86-64 --decompress-debug-sections"
+
+    set testname "Convert x86-64 object with zlib-gnu to x32 (1)"
+    convert_test "$testname" "--compress-debug-sections=zlib-gnu --64" "-O elf32-x86-64"
+
+    set testname "Convert x86-64 object with zlib-gnu to x32 (2)"
+    convert_test "$testname" "--compress-debug-sections=zlib-gnu --64" "-O elf32-x86-64 --compress-debug-sections=zlib-gabi"
+
+    set testname "Convert x86-64 object with zlib-gnu to x32 (3)"
+    convert_test "$testname" "--compress-debug-sections=zlib-gnu --64" "-O elf32-x86-64 --decompress-debug-sections"
+
+    set testname "Convert x86-64 object to x32 (1)"
+    convert_test "$testname" "--nocompress-debug-sections --64" "-O elf32-x86-64"
+
+    set testname "Convert x86-64 object to x32 (2)"
+    convert_test "$testname" "--nocompress-debug-sections --64" "-O elf32-x86-64 --compress-debug-sections=zlib-gabi"
+
+    set testname "Convert x86-64 object to x32 (3)"
+    convert_test "$testname" "--nocompress-debug-sections --64" "-O elf32-x86-64 --compress-debug-sections=zlib-gnu"
+
+
+    set testname "Convert x32 object with zlib-gabi to x86-64 (1)"
+    convert_test "$testname" "--compress-debug-sections=zlib-gabi --x32" "-O elf64-x86-64"
+
+    set testname "Convert x32 object with zlib-gabi to x86-64 (2)"
+    convert_test "$testname" "--compress-debug-sections=zlib-gabi --x32" "-O elf64-x86-64 --compress-debug-sections=zlib-gnu"
+
+    set testname "Convert x32 object with zlib-gabi to x86-64 (3)"
+    convert_test "$testname" "--compress-debug-sections=zlib-gabi --x32" "-O elf64-x86-64 --decompress-debug-sections"
+
+    set testname "Convert x32 object with zlib-gnu to x86-64 (1)"
+    convert_test "$testname" "--compress-debug-sections=zlib-gnu --x32" "-O elf64-x86-64"
+
+    set testname "Convert x32 object with zlib-gnu to x86-64 (2)"
+    convert_test "$testname" "--compress-debug-sections=zlib-gnu --x32" "-O elf64-x86-64 --compress-debug-sections=zlib-gabi"
+
+    set testname "Convert x32 object with zlib-gnu to x86-64 (3)"
+    convert_test "$testname" "--compress-debug-sections=zlib-gnu --x32" "-O elf64-x86-64 --decompress-debug-sections"
+
+    set testname "Convert x32 object to x86-64 (1)"
+    convert_test "$testname" "--nocompress-debug-sections --x32" "-O elf64-x86-64"
+
+    set testname "Convert x32 object to x86-64 (2)"
+    convert_test "$testname" "--nocompress-debug-sections --x32" "-O elf64-x86-64 --compress-debug-sections=zlib-gabi"
+
+    set testname "Convert x32 object to x86-64 (3)"
+    convert_test "$testname" "--nocompress-debug-sections --x32" "-O elf64-x86-64 --compress-debug-sections=zlib-gnu"
+}
+
+proc test_gnu_debuglink {} {
+    global srcdir
+    global subdir
+    global env
+    global STRIP
+    global OBJCOPY
+    global OBJDUMP
+    global READELF
+    global gcc_gas_flag
+
+    set test "gnu-debuglink"
+
+    # Use the newly built assembler and linker.
+    set flags debug
+    if { [istarget *-*-linux*]
+	 || [istarget *-*-gnu*] } {
+	foreach i $gcc_gas_flag {
+	    set flags "additional_flags=$i $flags"
+	}
+    }
+    if { [target_compile $srcdir/$subdir/testprog.c tmpdir/testprog executable $flags] != "" } {
+	unsupported "$test (build)"
+	return
+    }
+    set got [remote_exec host "$OBJDUMP -d tmpdir/testprog" "" "/dev/null" "tmpdir/testprog.dump"]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$test (objcopy dump)"
+	return
+    }
+    if { [binutils_run $STRIP "--strip-debug --remove-section=.comment --remove-section=.note tmpdir/testprog -o tmpdir/testprog.strip"] != "" } {
+	fail "$test (strip)"
+	return
+    }
+    if { [binutils_run $OBJCOPY "--only-keep-debug --decompress-debug-sections tmpdir/testprog tmpdir/testprog.decompress"] != "" } {
+	fail "$test (objcopy decompress)"
+	return
+    }
+    if { [binutils_run $OBJCOPY "--only-keep-debug --compress-debug-sections tmpdir/testprog tmpdir/testprog.compress"] != "" } {
+	fail "$test (objcopy compress)"
+	return
+    }
+    if { [binutils_run $OBJCOPY "--add-gnu-debuglink=tmpdir/testprog.decompress tmpdir/testprog.strip tmpdir/testprog"] != "" } {
+	fail "$test (objcopy link decompress)"
+	return
+    }
+    set got [remote_exec host "$OBJDUMP -d -WK tmpdir/testprog" "" "/dev/null" "tmpdir/testprog.decompress.dump"]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$test (objcopy dump decompress)"
+	return
+    }
+    if { [binutils_run $OBJCOPY "--add-gnu-debuglink=tmpdir/testprog.compress tmpdir/testprog.strip tmpdir/testprog"] != "" } {
+	fail "$test (objcopy link compress)"
+	return
+    }
+    set got [remote_exec host "$OBJDUMP -d -WK tmpdir/testprog" "" "/dev/null" "tmpdir/testprog.compress.dump"]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$test (objcopy dump compress)"
+	return
+    }
+
+    set src1 tmpdir/testprog.dump
+    set src2 tmpdir/testprog.compress.dump
+    send_log "diff ${src1} ${src2}\n"
+    verbose "diff ${src1} ${src2}"
+    set status [remote_exec build diff "${src1} ${src2}"]
+    set exec_output [lindex $status 1]
+    set exec_output [prune_warnings $exec_output]
+    if ![string match "" $exec_output] then {
+	send_log "$exec_output\n"
+	verbose "$exec_output" 1
+	fail "$test (objdump 1)"
+    } else {
+	pass "$test (objdump 1)"
+    }
+
+    set src1 tmpdir/testprog.decompress.dump
+    set src2 tmpdir/testprog.compress.dump
+    send_log "diff ${src1} ${src2}\n"
+    verbose "diff ${src1} ${src2}"
+    set status [remote_exec build diff "${src1} ${src2}"]
+    set exec_output [lindex $status 1]
+    set exec_output [prune_warnings $exec_output]
+    if ![string match "" $exec_output] then {
+	send_log "$exec_output\n"
+	verbose "$exec_output" 1
+	fail "$test (objdump 2)"
+    } else {
+	pass "$test (objdump 2)"
+    }
+
+    remote_file host delete tmpdir/testprog.compress
+    set got [remote_exec host [concat sh -c [list "$OBJDUMP --syms tmpdir/testprog > /dev/null"]]]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$test (objdump with missing link)"
+    } else {
+	pass "$test (objdump with missing link)"
+    }
+    set got [remote_exec host [concat sh -c [list "$READELF -S tmpdir/testprog > /dev/null"]]]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$test (readelf with missing link)"
+    } else {
+	pass "$test (readelf with missing link)"
+    }
+}
+
+if {[is_elf_format]} then {
+    test_gnu_debuglink
+}

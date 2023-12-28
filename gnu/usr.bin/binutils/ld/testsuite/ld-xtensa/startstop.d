@@ -1,0 +1,6 @@
+#as:
+#ld:
+#objdump: -h
+#...
+.*TEST_SECTION\.literal[ ]*00000008.*
+#...

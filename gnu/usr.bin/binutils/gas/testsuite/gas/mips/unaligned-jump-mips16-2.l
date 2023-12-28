@@ -1,0 +1,13 @@
+.*: Assembler messages:
+.*:30: Error: cannot encode misaligned addend in the relocatable field \(0x1\)
+.*:32: Error: cannot encode misaligned addend in the relocatable field \(0x1\)
+.*:34: Error: cannot encode misaligned addend in the relocatable field \(0x2\)
+.*:36: Error: cannot encode misaligned addend in the relocatable field \(0x2\)
+.*:38: Error: cannot encode misaligned addend in the relocatable field \(0x3\)
+.*:40: Error: cannot encode misaligned addend in the relocatable field \(0x3\)
+.*:58: Error: cannot encode misaligned addend in the relocatable field \(0x1\)
+.*:60: Error: cannot encode misaligned addend in the relocatable field \(0x1\)
+.*:62: Error: cannot encode misaligned addend in the relocatable field \(0x2\)
+.*:64: Error: cannot encode misaligned addend in the relocatable field \(0x2\)
+.*:66: Error: cannot encode misaligned addend in the relocatable field \(0x3\)
+.*:68: Error: cannot encode misaligned addend in the relocatable field \(0x3\)

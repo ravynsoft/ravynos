@@ -1,0 +1,68 @@
+/* Wait For Event with Timeout is a Armv8.7 instruction.  */
+.arch armv8.7-a
+
+    wfet x0
+    wfet x1
+    wfet x2
+    wfet x3
+    wfet x4
+    wfet x5
+    wfet x6
+    wfet x7
+    wfet x8
+    wfet x9
+    wfet x10
+    wfet x11
+    wfet x12
+    wfet x13
+    wfet x14
+    wfet x15
+    wfet x16
+    wfet x17
+    wfet x18
+    wfet x19
+    wfet x20
+    wfet x21
+    wfet x22
+    wfet x23
+    wfet x24
+    wfet x25
+    wfet x26
+    wfet x27
+    wfet x28
+    wfet x29
+    wfet x30
+
+/* Wait For Interrupt with Timeout.  */
+
+    wfit x0
+    wfit x1
+    wfit x2
+    wfit x3
+    wfit x4
+    wfit x5
+    wfit x6
+    wfit x7
+    wfit x8
+    wfit x9
+    wfit x10
+    wfit x11
+    wfit x12
+    wfit x13
+    wfit x14
+    wfit x15
+    wfit x16
+    wfit x17
+    wfit x18
+    wfit x19
+    wfit x20
+    wfit x21
+    wfit x22
+    wfit x23
+    wfit x24
+    wfit x25
+    wfit x26
+    wfit x27
+    wfit x28
+    wfit x29
+    wfit x30

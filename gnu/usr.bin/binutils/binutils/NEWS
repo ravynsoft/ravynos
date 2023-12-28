@@ -1,0 +1,932 @@
+-*- text -*-
+
+Changes in 2.41:
+
+* The MIPS port now supports the Sony Interactive Entertainment Allegrex
+  processor, used with the PlayStation Portable, which implements the MIPS
+  II ISA along with a single-precision FPU and a few implementation-specific
+  integer instructions.
+
+* Objdump's --private option can now be used on PE format files to display the
+  fields in the file header and section headers.
+
+* New versioned release of libsframe: libsframe.so.1.  This release introduces
+  versioned symbols with version node name LIBSFRAME_1.0.  This release also
+  updates the ABI in an incompatible way: this includes removal of
+  sframe_get_funcdesc_with_addr API, change in the behavior of
+  sframe_fre_get_ra_offset and sframe_fre_get_fp_offset APIs.
+
+* SFrame Version 2 is now the default (and only) format version supported by
+  gas, ld, readelf and objdump.
+  
+* Add command-line option, --strip-section-headers, to objcopy and strip to
+  remove ELF section header from ELF file.
+
+* The RISC-V port now supports the following new standard extensions:
+  - Zicond (conditional zero instructions)
+  - Zfa (additional floating-point instructions)
+  - Zvbb, Zvbc, Zvkg, Zvkned, Zvknh[ab], Zvksed, Zvksh, Zvkn, Zvknc, Zvkng,
+    Zvks, Zvksc, Zvkg, Zvkt (vector crypto instructions)
+
+* The RISC-V port now supports the following vendor-defined extensions:
+  - XVentanaCondOps
+
+* The LoongArch port now supports the following extensions:
+  - LSX (Loongson SIMD eXtension; 128-bit vectors)
+  - LASX (Loongson Advanced SIMD eXtension; 256-bit vectors)
+  - LVZ (Loongson Virtualization extension)
+  - LBT (Loongson Binary Translation extension)
+
+* The LoongArch disassembly output received the following tweaks:
+  - Colored output is now supported.
+  - Some pseudo-instructions are now shown in place of the canonical forms,
+    where semantics are equivalent. A disassembler option '-M no-aliases' is
+    added to disable the new behavior.
+  - Signed immediates are no longer printed with their hex representation.
+  - Unrecognized instruction words are now shown with '.word'.
+
+Changes in 2.40:
+
+* Objdump has a new command line option --show-all-symbols which will make it
+  display all symbols that match a given address when disassembling.  (Normally
+  only the first symbol that matches an address is shown).
+
+* Add --enable-colored-disassembly configure time option to enable colored
+  disassembly output by default, if the output device is a terminal.  Note,
+  this configure option is disabled by default.
+  
+* DCO signed contributions are now accepted.
+
+* objcopy --decompress-debug-sections now supports zstd compressed debug
+  sections.  The new option --compress-debug-sections=zstd compresses debug
+  sections with zstd.
+
+* addr2line and objdump --dwarf now support zstd compressed debug sections.
+
+* The dlltool program now accepts --deterministic-libraries and
+  --non-deterministic-libraries as command line options to control whether or
+  not it generates deterministic output libraries.  If neither of these options
+  are used the default is whatever was set when the binutils were configured.
+  
+* readelf and objdump now have a newly added option --sframe which dumps the
+  SFrame section.
+
+Changes in 2.39:
+
+* Add --no-weak/-W option to nm to make it ignore weak symbols.
+
+* Add an option to objdump and readelf to prevent attempts to access debuginfod
+  servers when following links.
+
+* objcopy --weaken, --weaken-symbol, and --weaken-symbols now make ELF
+  STB_GNU_UNIQUE symbols weak.
+
+* objdump now supports syntax highlighting of disassembler output for some
+  architectures.  Use the --disassembler-color=MODE command line flag, with
+  mode being either off, color, or extended-color.
+
+Changes in 2.38:
+
+* elfedit: Add --output-abiversion option to update ABIVERSION.
+
+* Add support for the LoongArch instruction set.
+
+* Tools which display symbols or strings (readelf, strings, nm, objdump)
+  have a new command line option which controls how unicode characters are
+  handled.  By default they are treated as normal for the tool.  Using
+  --unicode=locale will display them according to the current locale.
+  Using --unicode=hex will display them as hex byte values, whilst
+  --unicode=escape will display them as escape sequences.  In addition
+  using --unicode=highlight will display them as unicode escape sequences
+  highlighted in red (if supported by the output device).
+
+* readelf -r dumps RELR relative relocations now.
+
+* Support for efi-app-aarch64, efi-rtdrv-aarch64 and efi-bsdrv-aarch64 has been
+  added to objcopy in order to enable UEFI development using binutils.
+
+* ar: Add --thin for creating thin archives. -T is a deprecated alias without
+  diagnostics. In many ar implementations -T has a different meaning, as
+  specified by X/Open System Interface.
+
+Changes in 2.37:
+
+* The readelf tool has a new command line option which can be used to specify
+  how the numeric values of symbols are reported.  --sym-base=0|8|10|16 tells
+  readelf to display the values in base 8, base 10 or base 16.  A sym base of 0
+  represents the default action of displaying values under 10000 in base 10 and
+  values above that in base 16.
+
+* Binutils now requires a C99 compiler and library to build.
+
+* A new format has been added to the nm program.  Specifying
+  --format=just-symbols (or just using -j) will tell the program to only
+  display symbol names and nothing else.
+
+* A new command line --keep-section-symbols has been added to objcopy and
+  strip.  This stops the removal of unused section symbols when the file is
+  copied.  Removing these symbols saves space, but sometimes they are needed by
+  other tools.
+
+* objcopy --weaken, --weaken-symbol and --weaken-symbols now make undefined
+  symbols weak on targets that support weak symbols.
+
+* Readelf and objdump can now display and use the contents of .debug_sup
+  sections.
+
+* Readelf and objdump will now follow links to separate debug info files by
+  default.  This behaviour can be stopped via the use of the new -wN or
+  --debug-dump=no-follow-links options for readelf and the -WN or
+  --dwarf=no-follow-links options for objdump.  Also the old behaviour can be
+  restored by the use of the --enable-follow-debug-links=no configure time
+  option.
+
+  The semantics of the =follow-links option have also been slightly changed.
+  When enabled, the option allows for the loading of symbol tables and string
+  tables from the separate files which can be used to enhance the information
+  displayed when dumping other sections, but it does not automatically imply
+  that information from the separate files should be displayed.
+
+  If other debug section display options are also enabled (eg
+  --debug-dump=info) then the contents of matching sections in both the main
+  file and the separate debuginfo file *will* be displayed.  This is because in
+  most cases the debug section will only be present in one of the files.
+
+  If however non-debug section display options are enabled (eg --sections) then
+  the contents of matching parts of the separate debuginfo file will *not* be
+  displayed.  This is because in most cases the user probably only wanted to
+  load the symbol information from the separate debuginfo file.  In order to
+  change this behaviour a new command line option --process-links can be used.
+  This will allow di0pslay options to applied to both the main file and any
+  separate debuginfo files.
+
+* Nm has a new command line option: --quiet.  This suppresses "no symbols"
+  diagnostic.
+
+Changes in 2.36:
+
+* Update elfedit and readelf with LAM_U48 and LAM_U57 support.
+
+* Nm has a new command line option: --ifunc-chars=CHARS.  This specifies a
+  string of one or two characters.  The first character is used as the type
+  character when displaying global ifunc symbols.  The second character, if
+  present is used when displaying local ifunc symbols.
+
+  In addition a new configure time option --enable-f-for-ifunc-symbols has been
+  created, which if used will change nm's default characters for ifunc symbols
+  from i (both local and global) to F (global) and f (local).
+
+* The ar tool's previously unused l modifier is now used for specifying
+  dependencies of a static library. The arguments of this option
+  (or --record-libdeps long form option) will be stored verbatim in the
+  __.LIBDEP member of the archive, which the linker may read at link time.
+
+* Readelf can now display the contents of LTO symbol table sections when asked
+  to do so via the --lto-syms command line option.
+
+* Readelf now accepts the -C command line option to enable the demangling of
+  symbol names.  In addition the --demangle=<style>, --no-demangle,
+  --recurse-limit and --no-recurse-limit options are also now availale.
+
+* Add support for the SHF_GNU_RETAIN ELF section flag.
+  This flag specifies that the section should not be garbage collected by the
+  linker.
+
+Changes in 2.35:
+
+* Changed readelf's display of symbol names when wide mode is not enabled.
+  If the name is too long it will be truncated and the last five characters
+  replaced with "[...]".  The old behaviour of displaying 5 more characters but
+  not indicating that truncation has happened can be restored by the use of the
+  -T or --silent-truncation options.
+
+* X86 NaCl target support is removed.
+
+* The readelf tool now has a -L or --lint or --enable-checks option which turns
+  on warning messages about possible problems with the file(s) being examined.
+  These checks include things like zero-sized sections, which are allowed by
+  the ELF standard but which nevertheless might be of concern if the user
+  was expecting them to actually contain something.
+
+Changes in 2.34:
+
+* Binutils now supports debuginfod, an HTTP server for distributing
+  ELF/DWARF debugging information as well as source code. When built with
+  debuginfod, readelf and objdump can automatically query debuginfod
+  servers for separate debug files when they otherwise cannot be found.
+  To build binutils with debuginfod, pass --with-debuginfod to configure.
+  This requires libdebuginfod, the debuginfod client library. debuginfod
+  is distributed with elfutils, starting with version 0.178. For more
+  information see https://sourceware.org/elfutils.
+
+* Add --output option to the "ar" program.  This option can be used to specify
+  the output directory when extracting members from an archive.
+
+* Add --keep-section option to objcopy and strip.  This option keeps the
+  specified section from being removed.
+
+ * Add visualization of jumps inside a function by drawing an ascii character
+   graph between the address and the disassembler column.  Enabled via the
+   --visualize-jumps command line option for objdump.  Currently supported by
+   the x86, x86_64, and ARM targets.  The output looks something like this:
+
+  c6:	|  |     \----------> be 00 00 00 00       	mov    $0x0,%esi
+  cb:	|  |           /----> 48 8b 3d 00 00 00 00 	mov    0x0(%rip),%rdi        # d2 <main+0xd2>
+  d2:	|  |           |      31 c0                	xor    %eax,%eax
+  d4:	|  |           |  /-- e8 00 00 00 00       	callq  d9 <main+0xd9>
+  d9:	|  |           |  \-> bf 02 00 00 00       	mov    $0x2,%edi
+  de:	|  +-----------|----- e8 00 00 00 00       	callq  e3 <main+0xe3>
+  e3:	|  \-----------|----> 48 89 da             	mov    %rbx,%rdx
+  e6:	|              |      be 00 00 00 00       	mov    $0x0,%esi
+  eb:	|              \----- eb de                	jmp    cb <main+0xcb>
+  ed:	\-------------------> 48 8b 16             	mov    (%rsi),%rdx
+
+  Additional arguments to the --visualize-jumps option add colors to the
+  output.
+
+Changes in 2.33:
+
+* Add --source-comment[=<txt>] option to objdump which if present,
+  provides a prefix to source code lines displayed in a disassembly.
+
+* Add --set-section-alignment <section-name>=<align> option to objcopy to allow
+  the changing of section alignments.
+
+* Add --verilog-data-width option to objcopy for verilog targets to control
+  width of data elements in verilog hex format.
+
+* Add support for the Armv8.1-M Mainline and M-profile Vector Extension (MVE)
+  instructions.
+
+* The separate debug info file options of readelf (--debug-dump=links
+  and --debug-dump=follow) and objdump (--dwarf=links and
+  --dwarf=follow-links) will now display and/or follow multiple links if
+  more than one are present in a file.  (This usually happens when gcc's
+  -gsplit-dwarf option is used).
+
+  In addition objdump's --dwarf=follow-links now also affects its other
+  display options, so that for example, when combined with --syms it will
+  cause the symbol tables in any linked debug info files to also be
+  displayed.  In addition when combined with --disassemble the --dwarf=
+  follow-links option will ensure that any symbol tables in the linked
+  files are read and used when disassembling code in the main file.
+
+ * Add support for dumping types encoded in the Compact Type Format
+   to objdump and readelf.
+
+Changes in 2.32:
+
+* The addr2line, c++filt, nm and objdump tools now have a limit on the
+  maximum amount of recursion that is allowed whilst demangling strings.
+  The value for this limit is defined by the DEMANGLE_RECRUSE_LIMIT
+  constant declared in the include/demangle.h header file.  At the time
+  of writing this constant has the value of 2048.
+
+  The --no-recurse-limit option can be used to remove the limit, restoring
+  the behaviour of earlier versions of these tools.  This may be needed in
+  order to dmangle truly complicated names, but it also leaves the tools
+  vulnerable to stack exhaustion from maliciously constructed mangled names.
+
+* Objdump's --disassemble option can now take a parameter, specifying the
+  starting symbol for disassembly.  Disassembly will continue from this
+  symbol up to the next symbol or the end of the function.
+
+* The MIPS port now supports the Loongson 2K1000 processor which implements
+  the MIPS64r2 ISA, the Loongson-mmi ASE, Loongson-cam ASE, Loongson-ext ASE,
+  Loongson-ext2 ASE and MSA ASE instructions. Add -march=gs264e option for
+  Loongson 2K1000 processor.
+
+* The MIPS port now supports the Loongson 3A2000/3A3000 processor which
+  implements the MIPS64r2 ISA, the Loongson-mmi ASE, Loongson-cam ASE,
+  Loongson-ext ASE and Loongson-ext2 ASE instructions. Add -march=gs464e
+  option for Loongson 3A2000/3A3000 processor.
+
+* The MIPS port now supports the Loongson 3A1000 processor, aka Loongson3a,
+  which implements the MIPS64r2 ISA, the Loongson-mmi ASE, Loongson-cam ASE
+  and Loongson-ext ASE instructions. Add -march=gs464 option for Loongson
+  3A1000 processor, The -march=loongson3a is an alias of -march=gs464 for
+  compatibility.
+
+* The size tool now has a new output format '--format=GNU' or '-G'.  The
+  results are displayed in a similar manor to the default berkeley layout,
+  except read-only data is counted in the data column, not the text column.
+  Additionally the total is only included once.
+
+Changes in 2.31:
+
+* Add support for disassembling netronome Flow Processor (NFP) firmware files.
+
+* The AArch64 port now supports showing disassembly notes which are emitted
+  when inconsistencies are found with the instruction that may result in the
+  instruction being invalid.  These can be turned on with the option -M notes
+  to objdump.
+
+* The AArch64 port now emits warnings when a combination of an instruction and
+  a named register could be invalid.
+
+* Added O modifier to ar to display member offsets inside an archive
+
+Changes in 2.30:
+
+* Add --debug-dump=links option to readelf and --dwarf=links option to objdump
+  which displays the contents of any .gnu_debuglink or .gnu_debugaltlink
+  sections.
+
+  Add a --debug-dump=follow-links option to readelf and a --dwarf=follow-links
+  option to objdump which causes indirect links into separate debug info files
+  to be followed when dumping other DWARF sections.
+
+Changes in 2.29:
+
+* The MIPS port now supports microMIPS eXtended Physical Addressing (XPA)
+  instructions for assembly and disassembly.
+
+* The MIPS port now supports the microMIPS Release 5 ISA for assembly and
+  disassembly.
+
+* The MIPS port now supports the Imagination interAptiv MR2 processor,
+  which implements the MIPS32r3 ISA, the MIPS16e2 ASE as well as a couple
+  of implementation-specific regular MIPS and MIPS16e2 ASE instructions.
+
+* The SPARC port now supports the SPARC M8 processor, which implements the
+  Oracle SPARC Architecture 2017.
+
+* The MIPS port now supports the MIPS16e2 ASE for assembly and disassembly.
+
+* Add support for ELF SHF_GNU_MBIND and PT_GNU_MBIND_XXX.
+
+* Add support for the wasm32 ELF conversion of the WebAssembly file format.
+
+* Add --inlines option to objdump, which extends the --line-numbers option
+  so that inlined functions will display their nesting information.
+
+* Add --merge-notes options to objcopy to reduce the size of notes in
+  a binary file by merging and deleting redundant notes.
+
+* Add support for locating separate debug info files using the build-id
+  method, where the separate file has a name based upon the build-id of
+  the original file.
+
+Changes in 2.28:
+
+* This version of binutils fixes a problem with PowerPC VLE 16A and 16D
+  relocations which were functionally swapped, for example,
+  R_PPC_VLE_HA16A performed like R_PPC_VLE_HA16D while R_PPC_VLE_HA16D
+  performed like R_PPC_VLE_HA16A.  This could have been fixed by
+  renumbering relocations, which would keep object files created by an
+  older version of gas compatible with a newer ld.  However, that would
+  require an ABI update, affecting other assemblers and linkers that
+  create and process the relocations correctly.  It is recommended that
+  all VLE object files be recompiled, but ld can modify the relocations
+  if --vle-reloc-fixup is passed to ld.  If the new ld command-line
+  option is not used, ld will ld warn on finding relocations inconsistent
+  with the instructions being relocated.
+
+* The nm program has a new command-line option (--with-version-strings)
+  which will display a symbol's version information, if any, after the
+  symbol's name.
+
+* The ARC port of objdump now accepts a -M option to specify the extra
+  instruction class(es) that should be disassembled.
+
+* The --remove-section option for objcopy and strip now accepts section
+  patterns starting with an exclamation point to indicate a non-matching
+  section.  A non-matching section is removed from the set of sections
+  matched by an earlier --remove-section pattern.
+
+* The --only-section option for objcopy now accepts section patterns
+  starting with an exclamation point to indicate a non-matching section.
+  A non-matching section is removed from the set of sections matched by
+  an earlier --only-section pattern.
+
+* New --remove-relocations=SECTIONPATTERN option for objcopy and strip.
+  This option can be used to remove sections containing relocations.
+  The SECTIONPATTERN is the section to which the relocations apply, not
+  the relocation section itself.
+
+Changes in 2.27:
+
+* Add a configure option, --enable-64-bit-archive, to force use of a
+  64-bit format when creating an archive symbol index.
+
+* Add --elf-stt-common= option to objcopy for ELF targets to control
+  whether to convert common symbols to the STT_COMMON type.
+
+Changes in 2.26:
+
+* Add option to objcopy to insert new symbols into a file:
+  --add-symbol <name>=[<section>:]<value>[,<flags>]
+
+* Add support for the ARC EM/HS, and ARC600/700 architectures.
+
+* Extend objcopy --compress-debug-sections option to support
+  --compress-debug-sections=[none|zlib|zlib-gnu|zlib-gabi] for ELF
+  targets.
+
+* Add --update-section option to objcopy.
+
+* Add --output-separator option to strings.
+
+Changes in 2.25:
+
+* Add --data option to strings to only print strings in loadable, initialized
+  data sections.  Change the default behaviour to be --all, but add a new
+  configure time option of --disable-default-strings-all to restore the old
+  default behaviour.
+
+* Add --include-all-whitespace to strings.
+
+* Add --dump-section option to objcopy.
+
+* Add support for the Andes NDS32.
+
+Changes in 2.24:
+
+* Objcopy now supports wildcard characters in command-line options that take
+  section names.
+
+* Add support for Altera Nios II.
+
+Changes in 2.23:
+
+* Add support for the VLE extension to the PowerPC architecture.
+
+* Add support for x64 Windows target of the delayed-load-library.
+
+* Add support for the Renesas RL78 architecture.
+
+Changes in 2.22:
+
+* Add support for displaying the contents of .debug.macro sections.
+
+* Add --preprocessor-arg option to windres to specify additional options
+  passed to preprocessor.
+
+* Add --dwarf-start and --dwarf-end to readelf and objdump.  These are used by
+  the new Emacs mode, see dwarf-mode.el.
+
+* Add support for the Tilera TILEPro and TILE-Gx architectures.
+
+changes in 2.21:
+
+* Add --interleave-width option to objcopy to allowing copying a range of
+  bytes from the input to the output with the --interleave option.
+
+* Add support for the TMS320C6000 (TI C6X) processor family.
+
+* Readelf can now display ARM unwind tables (.ARM.exidx / .ARM.extab) using
+  the -u / --unwind option.
+
+* Add --dyn-syms to readelf to dump dynamic symbol table.
+
+* A new tool - elfedit - has been added to directly manipulate ELF format
+  binaries.
+
+* Add to dlltool .def file feature of aliasing PE internal symbol name by
+  '== <ID>' option.
+
+* Add a new command-line option -a / --addresses to addr2line to display the
+  address before function name or source filename.
+
+* Add a new command-line option -p / --pretty-print to addr2line to have
+  a more human readable output.
+
+* The hppa/som targets can now be compiled on any host.
+
+Changes in 2.20:
+
+* Add support for delay importing to dlltool.  Use the --output-delaylib <file>
+  switch to create a delay-import library.  The resulting app will load the dll
+  as soon as the first function is called.  It will link to __delayLoadHelper2()
+  from the static delayimp library, which will import LoadLibraryA and
+  GetProcAddress from kernel32.
+
+* Add a new command-line option, --insn-width=WIDTH, to objdump to specify
+  number of bytes to be displayed on a single line when disassembling
+  instructions.
+
+* Readelf can now display the relocated contents of a section as a sequence
+  of bytes via the --relocated-dump=<name|number> command-line option.
+
+* The gprof program has been given a new command-line option:
+  --external-symbols-table=<filename> which reads in symbols from a specified
+  file.
+
+* The plugin target has been added to bfd. It can load the same shared objects
+  used by gold and uses them to provide basic support for new file formats.
+
+* The verilog memory hex dump file format is now supported as an output format
+  for objcopy.
+
+* Add --file-alignment, --heap, --image-base, --section-alignment,
+  --stack and --subsystem command-line options to objcopy, which will
+  set PE optional header.
+
+* Option --dwarf/-W of objdump is now as flexible as readelf --debug-dump/-w.
+
+* --as-needed now links in a dynamic library if it satisfies undefined
+  symbols in regular objects, or in other dynamic libraries.  In the
+  latter case the library is not linked if it is found in a DT_NEEDED
+  entry of one of the libraries already linked.
+
+* Added --prefix=PREFIX and --prefix-strip=LEVEL switches to objdump to
+  add absolute paths for -S.
+
+* Add new option --use-nul-prefixed-import-tables to dlltool to allow fall-
+  back to old import table generation with null element prefix.
+
+* Added --identify-strict switch to cause --identify <implib> to
+  report an error when the import library is associated with
+  multiple DLLs.
+
+* Added --identify <implib> option to dlltool, which determines the
+  name of the DLL associated with the specified <implib>.
+
+* Support for PowerPC booke64 instructions has been removed.  The assembler no
+  longer accepts -mbooke32 or -mbooke64 and the disassembler no longer accepts
+  -Mbooke32 or -Mbooke64.  Instead, -mbooke and -Mbooke should be used.
+
+Changes in 2.19:
+
+* Added -wL switch to dump decoded contents of .debug_line.
+
+* Added support for "thin" archives which contain pathnames pointing to
+  object files rather than the files themselves and which contain a
+  flattened symbol index for all objects, and archives, which have been
+  added to the archive.
+
+* Added -F switch to objdump to include file offsets in the disassembly.
+
+* Added -c switch to readelf to allow string dumps of archive symbol index.
+
+* Support for SSE5 has been added to the i386 port.
+
+* Added -p switch to readelf to allow string dumps of sections.
+
+Changes in 2.18:
+
+* Resolved 37 coding problems in bfd including static array overruns, null
+  pointer dereferences and use of a malloc buffer after it has been freed, as
+  revealed by static analysis donated by Coverity, Inc. (http://scan.coverity.com).
+
+* The binutils sources are now released under version 3 of the GNU General
+  Public License.
+
+* A new tool "windmc" has been added for some targets.  This is a message
+  compiler which attempts to be compatible with the MS version.
+
+* Add codepage support to the windres tool.  It now supports many new
+  resource types (e.g. MANIFEST, TOOLBAR, etc).  The output generation
+  for binary files is done now via bfd itself.  The endianess problems
+  for different hosts are solved.  Dumps of .res files can now be
+  re-compiled by windres without lossing resources or compilation errors.
+  Some problems on dialog resource translations are corrected.
+
+* Add --extract-symbol command-line option to objcopy, which will
+  strip everything out of an ordinary object file or executable except
+  for its symbol table.  Files containing just symbols can be useful
+  to some OSes.
+
+Changes in 2.17:
+
+* Add "-x NAME" to readelf in addition to "-x NUMBER".
+
+* Add -i and -t switches to cxxfilt.  -i disables the display of implementation
+  specific extra demangling information (if any) and -t disables the demangling
+  of types.
+
+* Add support for the "@<file>" syntax to the command lines of all tools, so
+  that extra switches can be read from <file>.
+
+* Add "-W/--dwarf" to objdump to display the contents of the DWARF
+  debug sections.
+
+* Add "-t/--section-details" to readelf to display section details.
+  "-N/--full-section-name" is deprecated.
+
+* powerpc-linux ld now supports a variant form of PLT and GOT for the security
+  conscious.  This form will automatically be chosen when ld detects that all
+  code in regular object files was generated by gcc -msecure-plt.  The old PLT
+  and GOT may be forced by a new ld option, --bss-plt.
+
+* Add "-i/--inlines" to addr2line to print enclosing scope information
+  for inlined function chains, back to first non-inlined function.
+
+* Add "-N/--full-section-name" to readelf to display full section name.
+
+* Add "-M entry:<addr>" switch to objdump to specify a function entry address
+  when disassembling VAX binaries.
+
+* Add "--globalize-symbol <name>" and "--globalize-symbols <filename>" switches
+  to objcopy to convert local symbols into global symbols.
+
+* gprof now allows input files to have histogram records for
+  several memory ranges, provided those ranges are disjoint.
+
+Changes in 2.16:
+
+* Add "-g/--section-groups" to readelf to display section groups.
+
+* objcopy recognizes two new options --strip-unneeded-symbol and
+  --strip-unneeded-symbols, namely for use together with the wildcard
+  matching the original --strip-symbol/--strip-symbols provided, but
+  retaining any symbols matching but needed by relocations.
+
+* readelf can now display address ranges from .debug_range sections.  This
+  happens automatically when a DW_AT_range attribute is encountered.  The
+  command-line switch --debug-dump=Ranges (or -wR) can also be used to display
+  the contents of the .debug_range section.
+
+* nm and objdump now have a switch "--special-syms" to enable the displaying of
+  symbols which the target considers to be special.  By default these symbols
+  are no longer displayed.  Currently the only special symbols are the Mapping
+  symbols used by the ARM port to mark transitions between text and data and
+  between ARM and THUMB code.
+
+* dlltool has a switch "--ext-prefix-alias <prefix>" to generate additional
+  import and export symbols with <preifx> prepended to them.
+
+Changes in 2.15:
+
+* objcopy for MIPS targets now accepts "-M no-aliases" as an option to the
+  disassembler to print the "raw" mips instruction mnemonic instead of some
+  pseudo instruction name.  I.E. print "daddu" or "or" instead of "move",
+  "sll" instead of "nop", etc.
+
+* objcopy and strip can now take wildcard patterns in symbol names specified on
+  the command line provided that the --wildcard switch is used to enable them.
+
+* readelf can now parse archives.
+
+* objdump now accepts --debugging-tags to print the debug information in a
+  format compatible with ctags tool.
+
+* objcopy and strip now accept --only-keep-debug to create a file containing
+  those sections that would be stripped out by --strip-debug.  The idea is that
+  this can be used in conjunction with the --add-gnu-debuglink switch to create
+  a two part program distribution - one a stripped executable and the other the
+  debugging info.
+
+* objcopy now accepts --add-gnu-debuglink=<file> to insert a .gnu_debuglink
+  section into a (presumably stripped) executable.  This allows the debug
+  information for the file to be held in a separate file.
+
+* BFD marks the sections .comment and .note as 'n' in the BSD/POSIX
+  single-character representation.  This can be checked by running nm
+  with the -a switch.
+
+Changes in 2.14:
+
+* Added --info switch to objcopy and strip.
+
+* Support for Vitesse IQ2000 added by Red Hat.
+
+* Added 'S' encoding to strings to allow the display of 8-bit characters.
+
+* Added --prefix-symbols=<text>, --prefix-sections=<text> and
+  --prefix-alloc-sections=<text> to objcopy.
+
+* readelf can handle the extensions to the DWARF2 spec used by the Unified
+  Parallel C compiler.
+
+* BFD no longer declares a "boolean" type, to avoid clashes with other
+  headers that declare the same.  Users of BFD should replace boolean,
+  false and true, with int, 0 and 1, or define their own boolean type.
+
+* Support for IP2K added by Denis Chertykov.
+
+Changes in 2.13:
+
+* Support for the Fujitsu FRV architecture added by Red Hat. Models for FR400
+  and FR500 included.
+
+Changes in version 2.12:
+
+* Support for Don Knuth's MMIX, by Hans-Peter Nilsson.
+
+* size: Add --totals to display summary of sizes (Berkeley format only).
+
+* readelf: Add --wide option to not break section header or segment listing
+  lines to fit into 80 columns.
+
+* strings: Add --encoding to display wide character strings.  By Markus Kuhn.
+
+* objcopy: Add --rename-section to change section names.
+
+* readelf: Support added for DWARF 2.1 extensions.  Support added for
+  displaying the contents of .debug.macinfo sections.
+
+* New command-line switches added to objcopy to allow symbols to be kept as
+  global symbols, and also to specify files containing lists of such symbols.
+  by Honda Hiroki.
+
+* Support for OpenRISC by Johan Rydberg.
+
+* New command-line switch to objcopy --alt-machine-code which creates a binary
+  with an alternate machine code if one is defined in the architecture
+  description.  Only supported for ELF targets.  By Alexandre Oliva.
+
+* New command-line switch to objcopy -B (or --binary-architecture) which sets
+  the architecture of the output file to the given argument.  This option only
+  makes sense, if the input target is binary.  Otherwise it is ignored.
+  By Stefan Geuken.
+
+* Support for PDP-11 by Lars Brinkhoff.
+
+Changes in binutils 2.11:
+
+* Add support for ARM v5t and v5te architectures and Intel's XScale ARM
+  extenstions.
+
+* Add --srec-len and --srec-forceS3 command-line switch to objcopy.
+  By Luciano Gemme.
+
+* Support for the MIPS32, by Anders Norlander.
+
+* Support for the i860, by Jason Eckhardt.
+
+* Support for CRIS (Axis Communications ETRAX series).
+
+Changes in binutils 2.10:
+
+* Support for 64-bit ELF on HPPA.
+
+* New command-line switch to objdump --file-start-context which shows the
+  entire file contents up to the source line first encountered for a given
+  file.
+
+* New command-line switch to objdump -M (or --disassembler-options) which takes
+  a parameter which can then be interpreted on a per-target basis by the
+  disassembler.  Used by ARM targets to select register name sets, ISA, APCS or
+  raw verions.
+
+* objdump support for -mi386:intel which causes disassembly to be displayed
+  with intel syntax.
+
+* New program: readelf.  This displays the contents of ELF format files,
+  regardless of target machine.
+
+* objcopy now takes --change-section-lma, --change-section-vma, and
+  --change-section-address options.  The old --adjust-section-vma option is
+  equivalent to --change-section-address.  The other --adjust-* options are now
+  renamed to --change-*, although --adjust-* continues to work.
+
+* objcopy has a --redefine-sym option that lets you rename symbols.
+
+* objcopy now takes a -j/--only-section option to copy only the specified
+  sections.
+
+* dlltool now supports the IMPORTS command.
+
+* dlltool now takes --export-all-symbols, --no-export-all-symbols,
+  --exclude-symbols, and --no-default-excludes options.
+
+Changes in binutils 2.9:
+
+* Added windres program, which can be used to manipulate resources in WIN32
+  files as used on Windows 95 and Windows NT.
+
+* The objcopy --gap-fill and --pad-to options operate on the LMA rather than
+  the VMA of the sections.
+
+* Added S modifier to ar to not build a symbol table.
+
+Changes in binutils 2.8:
+
+* The objdump disassembly format has been changed, and hopefully improved.  Use
+  the new --prefix-addresses option to get the old format.  There are also new
+  --disassemble-zeroes and --no-show-raw-insn options which affect disassembler
+  output.
+
+* Formats may now be specified as configuration triplets.  For example,
+  objdump -b i386-pc-linux.  The triplets are not passed through config.sub,
+  so they must be in canonical form.
+
+* Added new addr2line program.  This uses the debugging information to convert
+  an address into a file name and line number within a program.
+
+* Added --change-leading-char argument to objcopy.
+
+* Added --weaken argument to objcopy.
+
+* objdump --dynamic-reloc now works on ELF executables and shared libraries.
+
+* Added --adjust-vma option to objdump.
+
+* Added -C/--demangle option to objdump.
+
+* Added -p/--preserve-dates option to strip and objcopy.
+
+Changes in binutils 2.7:
+
+* Added --enable-shared and --enable-commonbfdlib options to configure.
+
+* Added --debugging argument to objdump and objcopy.
+
+* Added --defined-only argument to nm.
+
+* Added --remove-leading-char argument to objcopy.
+
+* The objdump --line-numbers option is now meaningful with --reloc.
+
+* Added --line-numbers option to nm.
+
+* Added --endian/-EB/-EL option to objdump.
+
+* Added support for Alpha OpenVMS/AXP.
+
+Changes in binutils 2.6:
+
+* Added -N/--strip-symbol and -K/--keep-symbol arguments to strip and objcopy.
+
+* Added several arguments to objcopy to provide some control over how the new
+  file is laid out in memory.  Also added binary output format to BFD to permit
+  generating plain binary files.
+
+* Added --start-address and --stop-address options to objdump.
+
+* ar and ranlib now work on AIX.  The tools are now built by default on AIX.
+
+Changes in binutils 2.5:
+
+* Changed objdump -dr to dump the relocs interspersed with the assembly
+  listing, for a more useful listing of relocatable files.
+
+* Changed objdump -d/--disassemble to only disassemble SEC_CODE sections.
+  Added -D/--disassemble-all option to disassemble all sections.
+
+* Added --size-sort option to nm.
+
+* strip and objcopy should now be able to handle dynamically linked ELF
+  executables.
+
+Changes in binutils 2.4:
+
+* Support for HP-PA (by Jeff Law), i386 Mach (by David Mackenzie), RS/6000 and
+  PowerPC (except ar and ranlib; by Ian Taylor).
+
+* Support for Irix 5.
+
+* Programs `strip' and `objcopy' will not attempt to write dynamically linked
+  ELF output files, since BFD currently can't create them properly.
+
+Changes in binutils 2.3:
+
+* A new --stabs argument has been added to objdump to dump stabs sections in
+  ELF and COFF files.
+
+* A new program, nlmconv, has been added.  It can convert object files into
+  Novell NetWare Loadable Modules.
+
+* The strings program has been added.
+
+Changes in binutils 2.2:
+
+* The 'copy' program has been renamed to 'objcopy', for consistency with
+  'objdump', and because 'copy' might more plausibly be used as a synonym for
+  'cp'.
+
+* The new stand-alone program c++filt is a filter that converts encoded
+  (mangled) C++ assembly-level identifiers to user-level names.  (Note: This
+  may get moved to the gcc distribution.)
+
+* nm -o on an archive now prefixes each line with the archive name, matching
+  the output from BSD nm.
+
+* ar (and ld) can now read (but not write) BSD4.4-style archives.
+
+* New support for H8500, Z8000, and the Hitach SH.
+
+* Dis-assembler interface changed to allow sharing with gdb.
+
+* There is new Elf code, but it is not yet ready for general use.
+
+* There is the beginnings of a test suite.
+
+Changes in binutils 2.1:
+
+* There is now support for writing ECOFF files, so ld and the other utilities
+  should work on Risc/Ultrix and Irix.  Please let us know how well this works.
+
+* ar now automatically creates a symbol table (a __.SYMDEF member, in the BSD
+  version), if there are any object files in the archive.  So running ranlib is
+  now redundant (unless the non-standard q command is used).  This is required
+  for Posix.2 conformance.
+
+* The archive-reading code now reads both BSD-style and SYSV-style archives
+  independently of the selected target format.  This is to encourage people to
+  switch to SYSV-format, which has a number of advantages.
+
+* The strip and copy programs now have options to remove debug-symbols only
+  and/or local symbols only.  They now also support long options.
+
+
+Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local variables:
+fill-column: 79
+End:

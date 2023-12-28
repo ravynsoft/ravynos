@@ -1,0 +1,27 @@
+[^:]*: Assembler messages:
+[^:]*:4: Warning: the preceding `cpyfpwtn' should be followed by `cpyfmwtn` rather than `cpyfewtn` -- `cpyfewtn \[x0\]!,\[x1\]!,x2!'
+[^:]*:5: Warning: this `cpyfmwtn' should have an immediately preceding `cpyfpwtn' -- `cpyfmwtn \[x0\]!,\[x1\]!,x2!'
+[^:]*:8: Warning: the preceding `cpyfpwtn' should be followed by `cpyfmwtn` rather than `cpyfmtn` -- `cpyfmtn \[x0\]!,\[x1\]!,x2!'
+[^:]*:12: Warning: the preceding `cpyp' should be followed by `cpym` rather than `setm` -- `setm \[x0\]!,x1!,x2'
+[^:]*:16: Warning: destination register differs from preceding instruction at operand 1 -- `cpyfmwt \[x3\]!,\[x1\]!,x2!'
+[^:]*:17: Warning: destination register differs from preceding instruction at operand 1 -- `cpyfewt \[x4\]!,\[x1\]!,x2!'
+[^:]*:20: Warning: source register differs from preceding instruction at operand 2 -- `cpyfmwt \[x0\]!,\[x3\]!,x2!'
+[^:]*:21: Warning: source register differs from preceding instruction at operand 2 -- `cpyfewt \[x0\]!,\[x4\]!,x2!'
+[^:]*:24: Warning: size register differs from preceding instruction at operand 3 -- `cpyfmwt \[x0\]!,\[x1\]!,x3!'
+[^:]*:25: Warning: size register differs from preceding instruction at operand 3 -- `cpyfewt \[x0\]!,\[x1\]!,x4!'
+[^:]*:28: Warning: the preceding `cpyfpwtn' should be followed by `cpyfmwtn` rather than `add` -- `add x0,x1,x2'
+[^:]*:39: Warning: this `cpyfmwtn' should have an immediately preceding `cpyfpwtn' -- `cpyfmwtn \[x0\]!,\[x1\]!,x2!'
+[^:]*:43: Warning: this `cpyfewtn' should have an immediately preceding `cpyfmwtn' -- `cpyfewtn \[x0\]!,\[x1\]!,x2!'
+[^:]*:51: Warning: the preceding `setp' should be followed by `setm` rather than `sete` -- `sete \[x0\]!,x1!,x2'
+[^:]*:52: Warning: this `setm' should have an immediately preceding `setp' -- `setm \[x0\]!,x1!,x2'
+[^:]*:55: Warning: destination register differs from preceding instruction at operand 1 -- `setm \[x3\]!,x1!,x2'
+[^:]*:56: Warning: destination register differs from preceding instruction at operand 1 -- `sete \[x4\]!,x1!,x2'
+[^:]*:59: Warning: size register differs from preceding instruction at operand 2 -- `setm \[x0\]!,x3!,x2'
+[^:]*:60: Warning: size register differs from preceding instruction at operand 2 -- `sete \[x0\]!,x4!,x2'
+[^:]*:67: Warning: SVE instruction expected after `movprfx' -- `setm \[x0\]!,x1!,x2'
+[^:]*:70: Warning: instruction opens new dependency sequence without ending previous one -- `movprfx z0,z1'
+[^:]*:74: Warning: instruction opens new dependency sequence without ending previous one -- `movprfx z0,z1'
+[^:]*:75: Warning: output register of preceding `movprfx' not used in current instruction at operand 1 -- `fadd z2\.s,p0/m,z2\.s,z4\.s'
+[^:]*:31: Warning: previous `cpyfprtn' sequence has not been closed
+[^:]*:35: Warning: previous `cpyfpwtn' sequence has not been closed
+[^:]*:44: Warning: previous `cpyfpwn' sequence has not been closed

@@ -1,0 +1,809 @@
+#   Copyright (C) 1995-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+# Please email any bugs, comments, and/or additions to this file to:
+# bug-dejagnu@prep.ai.mit.edu
+
+# Written by Ian Lance Taylor <ian@cygnus.com>
+
+if ![is_remote host] {
+    if {[which $AR] == 0} then {
+        perror "$AR does not exist"
+        return
+    }
+}
+
+set obj o
+if { [istarget "*-*-vms"] } then {
+    set obj obj
+}
+
+# send_user "Version [binutil_version $AR]"
+
+# Test long file name support
+
+proc long_filenames { bfdtests } {
+    global AR
+    global host_triplet
+    global base_dir
+
+    set testname "ar long file names"
+
+    set n1 "abcdefghijklmnopqrstuvwxyz1"
+    set n2 "abcdefghijklmnopqrstuvwxyz2"
+    set file1 tmpdir/$n1
+    set file2 tmpdir/$n2
+
+    remote_file build delete $file1
+    remote_file host delete $n1
+
+    # Some file systems truncate file names at 14 characters, which
+    # makes it impossible to run this test.  Check for that now.
+    set status [catch "set f [open tmpdir/$n1 w]" errs]
+    if { $status != 0 } {
+	verbose -log "open tmpdir/$n1 returned $errs"
+	unsupported $testname
+	return
+    }
+    puts $f "first"
+    close $f
+
+    remote_file build delete $file2
+    remote_file host delete $n2
+
+    set status [catch "set f [open tmpdir/$n2 w]" errs]
+    if { $status != 0 } {
+	verbose -log "open tmpdir/$n2 returned $errs"
+	unsupported $testname
+	return
+    }
+    puts $f "second"
+    close $f
+
+    if [is_remote host] {
+	set file1 [remote_download host $file1]
+	set file2 [remote_download host $file2]
+	set dest artest.a
+    } else {
+	set dest tmpdir/artest.a
+    }
+
+    remote_file host delete $dest
+
+    set got [binutils_run $AR "rc $dest $file1 $file2"]
+    if [is_remote host] {
+	remote_upload host $file1 tmpdir/$n1
+    }
+
+    set f [open tmpdir/$n1 r]
+    gets $f string
+    close $f
+    if ![string match "first" $string] {
+	verbose -log "reading tmpdir/$n1 returned $string"
+	unsupported $testname
+	return
+    }
+
+    remote_file host delete $dest
+    set got [binutils_run $AR "rc $dest $file1 $file2"]
+
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    remote_file build delete tmpdir/$n1
+    remote_file build delete tmpdir/$n2
+
+    set got [binutils_run $AR "t $dest"]
+    regsub "\[\r\n \t\]*$" "$got" "" got
+    if ![string match "$n1*$n2" $got] {
+	fail $testname
+	return
+    }
+
+    if [is_remote host] {
+	remote_file host delete $file1
+	remote_file host delete $file2
+    }
+
+    set exec_output [binutils_run $AR "x $dest"]
+    set exec_output [prune_warnings $exec_output]
+    if ![string match "" $exec_output] {
+	verbose -log $exec_output
+	fail $testname
+	return
+    }
+
+    foreach bfdtest $bfdtests {
+	set exec_output [binutils_run "$base_dir/$bfdtest" "$dest"]
+	if ![string match "" $exec_output] {
+	    verbose -log $exec_output
+	    fail "$testname ($bfdtest)"
+	    return
+	}
+    }
+
+    if [is_remote host] {
+	remote_upload host $n1 tmpdir/$n1
+	remote_upload host $n2 tmpdir/$n2
+	set file1 tmpdir/$n1
+	set file2 tmpdir/$n2
+    } else {
+	set file1 $n1
+	set file2 $n2
+    }
+
+    if ![file exists $file1] {
+	verbose -log "$file1 does not exist"
+	fail $testname
+	return
+    }
+    if ![file exists $file2] {
+	verbose -log "$file2 does not exist"
+	fail $testname
+	return
+    }
+
+    set f [open $file1 r]
+    if { [gets $f line] == -1 || $line != "first" } {
+	verbose -log "$file1 contents:"
+	verbose -log "$line"
+	close $f
+	fail $testname
+	return
+    }
+    close $f
+
+    set f [open $file2 r]
+    if { [gets $f line] == -1 || $line != "second" } {
+	verbose -log "$file2 contents:"
+	verbose -log "$line"
+	close $f
+	fail $testname
+	return
+    }
+    close $f
+
+    file delete $file1 $file2
+    pass $testname
+}
+
+# Test building the symbol table.
+
+proc symbol_table { } {
+    global AR
+    global AS
+    global NM
+    global srcdir
+    global subdir
+    global obj
+
+    set testname "ar symbol table"
+
+    if ![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.${obj}] {
+	unsupported $testname
+	return
+    }
+
+    if [is_remote host] {
+	set archive artest.a
+	set objfile [remote_download host tmpdir/bintest.${obj}]
+	remote_file host delete $archive
+    } else {
+	set archive tmpdir/artest.a
+	set objfile tmpdir/bintest.${obj}
+    }
+
+    remote_file build delete tmpdir/artest.a
+
+    set got [binutils_run $AR "rc $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    set got [binutils_run $NM "--print-armap $archive"]
+    if { ![string match "*text_symbol in bintest.${obj}*" $got] \
+	 || ![string match "*data_symbol in bintest.${obj}*" $got] \
+	 || ![string match "*common_symbol in bintest.${obj}*" $got] \
+	 || [string match "*static_text_symbol in bintest.${obj}*" $got] \
+	 || [string match "*static_data_symbol in bintest.${obj}*" $got] \
+	 || [string match "*external_symbol in bintest.${obj}*" $got] } {
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+# Test building a thin archive.
+
+proc thin_archive { bfdtests } {
+    global AR
+    global AS
+    global NM
+    global srcdir
+    global subdir
+    global base_dir
+    global obj
+
+    set testname "ar thin archive"
+
+    if ![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.${obj}] {
+	unsupported $testname
+	return
+    }
+
+    if [is_remote host] {
+	set archive artest.a
+	set objfile [remote_download host tmpdir/bintest.${obj}]
+	remote_file host delete $archive
+    } else {
+	set archive tmpdir/artest.a
+	set objfile tmpdir/bintest.${obj}
+    }
+
+    remote_file build delete tmpdir/artest.a
+
+    set got [binutils_run $AR "rcT $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    foreach bfdtest $bfdtests {
+	set exec_output [binutils_run "$base_dir/$bfdtest" "$archive"]
+	if ![string match "" $exec_output] {
+	    verbose -log $exec_output
+	    fail "$testname ($bfdtest)"
+	    return
+	}
+    }
+
+    set got [binutils_run $NM "--print-armap $archive"]
+    if { ![string match "*text_symbol in *bintest.${obj}*" $got] \
+	 || ![string match "*data_symbol in *bintest.${obj}*" $got] \
+	 || ![string match "*common_symbol in *bintest.${obj}*" $got] \
+	 || [string match "*static_text_symbol in *bintest.${obj}*" $got] \
+	 || [string match "*static_data_symbol in *bintest.${obj}*" $got] \
+	 || [string match "*external_symbol in *bintest.${obj}*" $got] } {
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+# Test building a thin archive with a nested archive.
+
+proc thin_archive_with_nested { bfdtests } {
+    global AR
+    global AS
+    global NM
+    global srcdir
+    global subdir
+    global base_dir
+    global obj
+
+    set testname "ar thin archive with nested archive"
+
+    if ![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.${obj}] {
+	unsupported $testname
+	return
+    }
+
+    if [is_remote host] {
+	set archive artest.a
+	set archive2 artest2.a
+	set archive3 artest3.a
+	set objfile [remote_download host tmpdir/bintest.${obj}]
+	remote_file host delete $archive
+    } else {
+	set archive tmpdir/artest.a
+	set archive2 tmpdir/artest2.a
+	set archive3 tmpdir/artest3.a
+	set objfile tmpdir/bintest.${obj}
+    }
+
+    remote_file build delete tmpdir/artest.a
+
+    set got [binutils_run $AR "rc $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    remote_file build delete tmpdir/artest2.a
+
+    set got [binutils_run $AR "rcT $archive2 ${archive}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    remote_file build delete tmpdir/artest3.a
+
+    set got [binutils_run $AR "rc --thin $archive3 ${archive}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    foreach bfdtest $bfdtests {
+	set exec_output [binutils_run "$base_dir/$bfdtest" "$archive"]
+	if ![string match "" $exec_output] {
+	    verbose -log $exec_output
+	    fail "$testname ($bfdtest)"
+	    return
+	}
+
+	set exec_output [binutils_run "$base_dir/$bfdtest" "$archive2"]
+	if ![string match "" $exec_output] {
+	    verbose -log $exec_output
+	    fail "$testname ($bfdtest)"
+	    return
+	}
+
+	set exec_output [binutils_run "$base_dir/$bfdtest" "$archive3"]
+	if ![string match "" $exec_output] {
+	    verbose -log $exec_output
+	    fail "$testname ($bfdtest)"
+	    return
+	}
+    }
+
+    set got [binutils_run $NM "--print-armap $archive"]
+    if { ![string match "*text_symbol in *bintest.${obj}*" $got] \
+	 || ![string match "*data_symbol in *bintest.${obj}*" $got] \
+	 || ![string match "*common_symbol in *bintest.${obj}*" $got] \
+	 || [string match "*static_text_symbol in *bintest.${obj}*" $got] \
+	 || [string match "*static_data_symbol in *bintest.${obj}*" $got] \
+	 || [string match "*external_symbol in *bintest.${obj}*" $got] } {
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+# Test POSIX-compatible argument parsing.
+
+proc argument_parsing { } {
+    global AR
+    global AS
+    global srcdir
+    global subdir
+    global obj
+
+    set testname "ar argument parsing"
+
+    if ![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.${obj}] {
+	unsupported $testname
+	return
+    }
+
+    if [is_remote host] {
+	set archive artest.a
+	set objfile [remote_download host tmpdir/bintest.${obj}]
+	remote_file host delete $archive
+    } else {
+	set archive tmpdir/artest.a
+	set objfile tmpdir/bintest.${obj}
+    }
+
+    remote_file build delete tmpdir/artest.a
+
+    set got [binutils_run $AR "-r -c $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+# Test building a deterministic archive.
+
+proc deterministic_archive { } {
+    global AR
+    global AS
+    global NM
+    global srcdir
+    global subdir
+    global obj
+
+    set testname "ar deterministic archive"
+
+    if ![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.${obj}] {
+	unsupported $testname
+	return
+    }
+
+    if [is_remote host] {
+	set archive artest.a
+	set objfile [remote_download host tmpdir/bintest.${obj}]
+	remote_file host delete $archive
+    } else {
+	set archive tmpdir/artest.a
+	set objfile tmpdir/bintest.${obj}
+    }
+
+    remote_file build delete tmpdir/artest.a
+
+    set got [binutils_run $AR "rcD $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    set got [binutils_run $AR "tv $archive"]
+    # This only checks the file mode and uid/gid.  We can't easily match
+    # date because it's printed with the user's timezone.
+    if ![string match "rw-r--r-- 0/0 *bintest.${obj}*" $got] {
+	fail $testname
+	return
+    }
+
+    set got [binutils_run $AR "tvO $archive"]
+    if ![string match "rw-r--r-- 0/0 *bintest.${obj} 0x*" $got] {
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+proc unique_symbol { } {
+    global AR
+    global AS
+    global NM
+    global srcdir
+    global subdir
+    global obj
+
+    set testname "ar unique symbol in archive"
+
+    if ![binutils_assemble $srcdir/$subdir/unique.s tmpdir/unique.${obj}] {
+	unsupported $testname
+	return
+    }
+
+    if [is_remote host] {
+	set archive artest.a
+	set objfile [remote_download host tmpdir/unique.${obj}]
+	remote_file host delete $archive
+    } else {
+	set archive tmpdir/artest.a
+	set objfile tmpdir/unique.${obj}
+    }
+
+    remote_file build delete tmpdir/artest.a
+
+    set got [binutils_run $AR "-s -r -c $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    set got [binutils_run $NM "--print-armap $archive"]
+    if ![string match "*foo in *unique.${obj}*" $got] {
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+# Test deleting an element.
+
+proc delete_an_element { } {
+    global AR
+    global AS
+    global srcdir
+    global subdir
+    global obj
+
+    set testname "ar deleting an element"
+
+    if ![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.${obj}] {
+	unsupported $testname
+	return
+    }
+
+    if [is_remote host] {
+	set archive artest.a
+	set objfile [remote_download host tmpdir/bintest.${obj}]
+	remote_file host delete $archive
+    } else {
+	set archive tmpdir/artest.a
+	set objfile tmpdir/bintest.${obj}
+    }
+
+    remote_file build delete tmpdir/artest.a
+
+    set got [binutils_run $AR "-r -c $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    set got [binutils_run $AR "-d $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+# Test moving an element.
+
+proc move_an_element { } {
+    global AR
+    global AS
+    global srcdir
+    global subdir
+    global obj
+
+    set testname "ar moving an element"
+
+    if ![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.${obj}] {
+	unsupported $testname
+	return
+    }
+
+    if [is_remote host] {
+	set archive artest.a
+	set objfile [remote_download host tmpdir/bintest.${obj}]
+	remote_file host delete $archive
+    } else {
+	set archive tmpdir/artest.a
+	set objfile tmpdir/bintest.${obj}
+    }
+
+    remote_file build delete tmpdir/artest.a
+
+    set got [binutils_run $AR "-r -c $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    set got [binutils_run $AR "-m $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+# PR 19775: Test creating and listing archives with an empty element.
+
+proc empty_archive { } {
+    global AR
+    global srcdir
+    global subdir
+
+    set testname "archive with empty element"
+
+    # FIXME: There ought to be a way to dynamically create an empty file.
+    set empty $srcdir/$subdir/empty
+
+    if [is_remote host] {
+	set archive artest.a
+	set objfile [remote_download host $empty]
+	remote_file host delete $archive
+    } else {
+	set archive tmpdir/artest.a
+	set objfile $empty
+    }
+
+    remote_file build delete tmpdir/artest.a
+
+    set got [binutils_run $AR "-r -c $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    # This commmand used to fail with: "Malformed archive".
+    set got [binutils_run $AR "-t $archive"]
+    if ![string match "empty
+" $got] {
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+# Test extracting an element.
+
+proc extract_an_element { } {
+    global AR
+    global AS
+    global srcdir
+    global subdir
+    global obj
+
+    set testname "ar extracting an element"
+
+    if ![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.${obj}] {
+	unsupported $testname
+	return
+    }
+
+    set archive artest.a
+
+    if [is_remote host] {
+	set objfile [remote_download host tmpdir/bintest.${obj}]
+	remote_file host delete $archive
+    } else {
+	set objfile tmpdir/bintest.${obj}
+    }
+
+    remote_file build delete $archive
+
+    set got [binutils_run $AR "-r -c $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    set got [binutils_run $AR "--output=tmpdir -x $archive ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    remote_file build delete $archive
+    remote_file build delete tmpdir/$archive
+
+    pass $testname
+}
+
+proc many_files { } {
+    global AR
+    global AS
+    global srcdir
+    global subdir
+    global obj
+
+    set testname "ar many files"
+
+    set ofiles {}
+    set max_file 150
+    for { set i 0 } { $i < $max_file } { incr i } {
+	set sfile "tmpdir/d-$i.s"
+	if [catch { set ofd [open $sfile w] } x] {
+	    perror "$x"
+	    unresolved $testname
+	    return
+	}
+
+	puts $ofd " .globl data_sym$i"
+	puts $ofd " .data"
+	puts $ofd "data_sym$i:"
+	puts $ofd " .long $i"
+	close $ofd
+
+	set ofile "tmpdir/d-$i.${obj}"
+	if ![binutils_assemble $sfile $ofile] {
+	    unsupported $testname
+	    return
+	}
+
+	set objfile $ofile
+	if [is_remote host] {
+	    remote_file host delete $sfile
+	    set objfile [remote_download host $ofile]
+	    remote_file build delete $ofile
+	}
+	remote_file build delete $sfile
+	lappend ofiles $objfile
+    }
+
+    set archive tmpdir/many.a
+    remote_file host delete $archive
+
+    set got [binutils_run $AR "cr $archive $ofiles"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    remote_file host delete $archive
+    eval remote_file host delete $ofiles
+
+    pass $testname
+}
+
+proc test_add_dependencies { } {
+    global AR
+    global AS
+    global srcdir
+    global subdir
+    global obj
+
+    set testname "ar adding library dependencies"
+
+    if ![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.${obj}] {
+	unsupported $testname
+	return
+    }
+
+    if [is_remote host] {
+	set archive artest.a
+	set objfile [remote_download host tmpdir/bintest.${obj}]
+	remote_file host delete $archive
+    } else {
+	set archive tmpdir/artest.a
+	set objfile tmpdir/bintest.${obj}
+    }
+
+    remote_file build delete tmpdir/artest.a
+
+    set got [binutils_run $AR "-r -c $archive --record-libdeps /foo/bar ${objfile}"]
+    if ![string match "" $got] {
+	fail $testname
+	return
+    }
+
+    set got [binutils_run $AR "-t $archive"]
+    if ![string match "*bintest.${obj}
+__.LIBDEP*" $got] {
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+# Run the tests.
+
+# Only run the bfdtest checks if the programs exist.  Since these
+# programs are built but not installed, running the testsuite on an
+# installed toolchain will produce ERRORs about missing bfdtest1 and
+# bfdtest2 executables.
+if { [file exists $base_dir/bfdtest1] && [file exists $base_dir/bfdtest2] } {
+    set bfdtests [list bfdtest1 bfdtest2]
+
+    long_filenames $bfdtests
+
+    # xcoff, ecoff, and vms archive support doesn't handle thin archives
+    if { ![is_xcoff_format]
+	 && ![istarget "*-*-*ecoff"]
+	 && ![istarget "*-*-vms"] } {
+	thin_archive $bfdtests
+	thin_archive_with_nested $bfdtests
+    }
+}
+
+symbol_table
+argument_parsing
+deterministic_archive
+delete_an_element
+move_an_element
+empty_archive
+extract_an_element
+many_files
+test_add_dependencies
+
+if { [is_elf_format] && [supports_gnu_unique] } {
+    unique_symbol
+}

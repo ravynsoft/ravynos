@@ -1,0 +1,120 @@
+What is gprofng?
+
+   Gprofng is the GNU Next Generation profiler for analyzing the performance 
+   of Linux applications.  Gprofng allows you to:
+     - Profile C / C++ / Java / Scala applications without needing to recompile
+     - Profile multi-threaded applications
+     - Analyze and compare multiple experiments 
+     - Use time-based sampling and / or hardware event counters
+
+Building gprofng
+
+   Gprofng is distributed with binutils.  To build gprofng, you build binutils.
+   Overview:
+      1. Set paths
+      2. Verify prerequisites 
+      3. Git clone 
+      4. Configure, make, and make install
+   Details follow for each of these.
+
+1. Set paths
+
+   If you are configuring binutils for the default location, it will use:
+       /usr/local
+   In your shell initialization procedure, set your paths using commands 
+   similar to these: 
+      export PATH=/usr/local/bin:$PATH
+      export MANPATH=/usr/local/share/man:$MANPATH
+      export INFOPATH=/usr/local/share/info/:$INFOPATH
+
+2. Verify prerequisites
+
+  To build a recent version of binutils, it is useful to have a developer
+  system with the most recent compilers, libraries, and operating system.
+  Development systems will typically already include most of these: 
+
+     bison  bison-devel  bzip2  elfutils-debuginfod-client-devel 
+     expat-devel  flex  gcc  gcc-c++  git-core  git-core-doc  gmp-devel
+     help2man  libbabeltrace-devel  libipt-devel  m4  make  mpfr-devel 
+     ncurses-devel  perl-Data-Dumper  tar  texinfo  xz  zlib-devel
+     java-17-openjdk-devel 
+
+  CAUTION: The list of prerequisites changes depending on your operating system
+  and changes as binutils evolves.  The list above is a snapshot of the useful
+  packages in early 2022 for Red Hat Enterprise Linux and Oracle Linux. 
+
+  Your system may use other packages; for example, you may be able to use a
+  different version of Java than shown above.  If there are failures, you may
+  need to search for other packages as described in the "Hints" section below.
+
+3. Git clone 
+
+   Select a binutils repository and a branch that you would like 
+   to start from.  For example, to clone from the master at 
+   sourceware.org, you could say: 
+     git clone http://sourceware.org/git/binutils-gdb.git CloneDir
+
+4. Configure, make, and install
+
+   There are many options for configure (see: configure --help).  For example,
+   --prefix sets the destination, as described in the "Hints" section below.
+   If the default destination /usr/local is acceptable for your needs, then
+   after the clone operation finishes, you can simply say:
+
+      mkdir build
+      cd build
+      ../CloneDir/configure
+      make
+      sudo make install
+
+Getting started
+
+  To start using gprofng, see the tutorial available by saying:
+      info gprofng
+
+HTML and PDF documentation
+
+   You may want to generate an HTML or PDF version of the manual in addition
+   to the above info pages.  These versions may be easier to read and easier
+   to search.  To generate HTML:
+
+      cd build        # the same build directory you created above
+      cd gprofng/doc
+      make html
+      sudo make install-html
+
+   If you would like PDF documentation, you will need the texi2dvi utility.
+   If it is not already included in the texinfo package mentioned above, try
+   installing package texinfo-tex.  To generate PDF:
+
+      cd build        # the same build directory you created above
+      cd gprofng/doc
+      make pdf
+      sudo make install-pdf
+
+Hints and tips for building binutils
+
+  - Use the script(1) command to write a log of your build.
+
+  - If you run multiple commands at once (for example: make --jobs=10) then you
+    should also use make option:
+          --output-sync
+    Without --output-sync, the log would be difficult to interpret.
+
+  - Search the log for errors and warnings, for example:
+        configure: WARNING: <package> is missing or unusable; some features 
+                   may be unavailable. 
+    The above message suggests that <package> may be needed on your system.
+
+  - Sometimes the above message is not sufficiently specific to guide you to
+    the right package.  In the directory where the failure happens, config.log
+    may identify a specific missing file, and your package manager may allow
+    you to search for it. For example, if build/gprofng/config.log shows that
+    javac is missing, and if your package manager is dnf, you could try:
+       dnf --repo='*' whatprovides '*/javac'
+
+  - You can set a custom destination directory using configure --prefix.
+    This is useful if you prefer not to change /usr/local, or if you are not
+    allowed to do so.  If you set a custom prefix, be sure to change all three
+    paths mentioned in the PATH section above.
+

@@ -1,0 +1,10 @@
+#source: gotop32.s
+#as: --32 -K PIC
+#ld: -shared -melf32_sparc
+#objdump: -sj.got
+#target: sparc*-*-*
+
+.*: +file format elf32-sparc.*
+
+Contents of section .got:
+ 12070 00012000 00000000                    .*

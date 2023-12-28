@@ -1,0 +1,580 @@
+2020-12-19  H.J. Lu  <hjl.tools@gmail.com>
+
+	PR gold/27097
+	* incremental.cc (Sized_relobj_incr::do_add_symbols): Move sym
+	declaration just before use.
+	(Sized_incr_dynobj::do_add_symbols): Likewise.
+	* plugin.cc (Sized_pluginobj::do_add_symbols): Likewise.
+
+2020-12-15  Cary Coutant  <ccoutant@gmail.com>
+
+	* dwp.cc (class Dwo_file): Use new Ehdr::get_ei_osabi and
+	get_ei_abiversion methods.
+	* incremental.cc (make_sized_incremental_binary): Likewise.
+	* object.cc (Sized_relobj_file::Sized_relobj_file): Likewise.
+	(make_elf_sized_object): Likewise.
+	* object.h (class Osabi): Make the class untemplated.
+
+2020-12-15  Vivek Das Mohapatra  <vivek@collabora.com>
+
+	Implement -z unique / -z nounique options.
+	* layout.cc (Layout::finish_dynamic_section): Set DF_GNU_1_UNIQUE.
+	* options.h (class General_options): Handle -z unique, -z nounique.
+
+2020-12-14  H.J. Lu  <hjl.tools@gmail.com>
+	    Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/27039
+	* layout.cc (Layout::layout): Strip SHF_GNU_RETAIN.
+	* object.cc (Sized_relobj_file::Sized_relobj_file): Initialize osabi_.
+	(Sized_relobj_file::do_layout): Keep SHF_GNU_RETAIN sections for
+	GNU/FreBSD ELFOSABIs.
+	* object.h (Osabi) New class.
+	(Sized_relobj_file): Add osabi() and osabi_.
+	* testsuite/Makefile.am (check_SCRIPTS): Add retain.sh.
+	(check_DATA): Add retain_1.out retain_2.out.
+	(MOSTLYCLEANFILES): Add retain_1 retain_2.
+	(retain_1.out): New target.
+	(retain_1): Likewise.
+	(retain_1.o): Likewise.
+	(retain_2.out): Likewise.
+	(retain_2): Likewise.
+	(retain_2.o): Likewise.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/retain.sh: New file.
+	* testsuite/retain_1.s: Likewise.
+	* testsuite/retain_2.s: Likewise.
+
+2020-12-13  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/23539
+	PR gold/24123
+	* testsuite/Makefile.am (incremental_copy_test): Re-enable for GCC 9+.
+	(incremental_comdat_test_1): Likewise.
+	* testsuite/Makefile.in: Regenerate.
+
+2020-12-13  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/23539
+	* object.cc (Sized_relobj_file::layout_gnu_property_section): Ignore
+	Gnu properties during incremental links.
+
+2020-12-13  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/24123
+	* layout.cc (Layout::init_fixed_output_section): Mask out flags that
+	should be ignored when matching sections.
+
+2020-12-07  Alan Modra  <amodra@gmail.com>
+
+	* plugin.cc (Plugin_recorder::init): Replace strncpy with memcpy.
+
+2020-12-03  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/Makefile.am (pr26936a.o): Pass -mx86-used-note=yes.
+	(pr26936b.o, pr26936c.o, pr26936d.o): Likewise.
+	* testsuite/Makefile.in: Regenerate.
+
+2020-11-29  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/26972
+	* x86_64.cc (Output_data_plt_x86_64_ibt::tlsdesc_plt_entry): Add
+	endbr64.
+	(Output_data_plt_x86_64_ibt::do_fill_tlsdesc_entry): Adjusted.
+
+2020-11-29  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/26939
+	* x86_64.cc (Target_x86_64<size>::Scan::local): Check
+	get_r_addend() == -4 for GOTPCRELX conversion.
+	(Target_x86_64<size>::Scan::global): Likewise.
+	(Target_x86_64<size>::Relocate::relocate): Likewise.
+	* testsuite/Makefile.am (check_DATA): Add
+	x86_64_mov_to_lea15.stdout and x86_64_mov_to_lea16.stdout.
+	(MOSTLYCLEANFILES): Add x86_64_mov_to_lea15 and
+	x86_64_mov_to_lea16.
+	(x86_64_mov_to_lea9.o): New target.
+	(x86_64_mov_to_lea10.o): Likewise.
+	(x86_64_mov_to_lea15): Likewise.
+	(x86_64_mov_to_lea16): Likewise.
+	(x86_64_mov_to_lea15.stdout): Likewise.
+	(x86_64_mov_to_lea16.stdout): Likewise.
+	* testsuite/Makefile.in: Regenerated.
+	* testsuite/x86_64_mov_to_lea.sh: Updated.
+	* testsuite/x86_64_mov_to_lea5.s: New file.
+
+2020-11-29  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/26937
+	* object.cc (Sized_relobj_file::map_to_kept_section): Get the
+	section index for linkonce section.  Also check the single
+	comdat section.
+	* testsuite/Makefile.am (check_SCRIPTS): Add pr26936.sh.
+	(check_DATA): Add pr26936a.stdout and pr26936b.stdout.
+	(MOSTLYCLEANFILES): Add pr26936a and pr26936b.
+	(pr26936a.stdout): New target.
+	(pr26936a): Likewise.
+	(pr26936b.stdout): Likewise.
+	(pr26936b): Likewise.
+	(pr26936a.o): Likewise.
+	(pr26936b.o): Likewise.
+	(pr26936c.o): Likewise.
+	(pr26936d.o): Likewise.
+	* testsuite/Makefile.in: Regenerated.
+	* testsuite/pr26936.sh: New file.
+	* testsuite/pr26936a.s: Likewise.
+	* testsuite/pr26936b.s: Likewise.
+	* testsuite/pr26936c.s: Likewise.
+	* testsuite/pr26936d.s: Likewise.
+
+2020-11-17  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (Target_powerpc::no_tprel_opt_): Rename from tprel_opt_.
+	Init to false.
+	(Target_powerpc::tprel_opt): Test parameters->options().tls_optimize().
+	(Target_powerpc::set_tprel_opt): Delete.
+	(Target_powerpc::set_no_tprel_opt): New function.  Update all uses
+	of set_tprel_opt.
+
+2020-11-16  Michael Hudson-Doyle  <michael.hudson@canonical.com>
+
+	PR 26902
+	* powerpc.cc (Relocate::relocate): Do not include local entry
+	offset of target function when computing the address of a stub.
+
+2020-11-08  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/26200
+	* plugin.cc (Plugin_manager::claim_file): Don't share Plugin_list
+	iterator.
+	(Plugin_manager::all_symbols_read): Likewise.
+	(Plugin_manager::cleanup): Likewise.
+
+2020-11-03  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (Target_powerpc::tocsave_loc): Return a pointer.
+	(Target_powerpc::Relocate::relocate): Avoid -Wdangling-gsl error.
+
+2020-11-03  Nick Gasson  <nick.gasson@arm.com>
+
+	PR 26827
+	* fileread.cc (File_read::open): Ensure file_counts_lock is
+	initialized.
+	* testsuite/Makefile.am (check_PROGRAMS): Add a test that passes
+	-Wl,--threads.
+	* testsuite/Makefile.in: Regenerate.
+
+2020-10-30  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/gnu_property_test.sh: Updated.
+
+2020-10-22  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* Makefile.am (bootstrap-test): Skip for LTO build.
+	(bootstrap-test-r): Likewise.
+
+2020-10-13  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/23539
+	* configure.ac: Check for GCC 9 or later and for -fcf-protection.
+	* configure: Regenerated.
+	* testsuite/Makefile.am (check_PROGRAMS): Skip incremental_test_2,
+	incremental_test_3, incremental_test_4, incremental_test_5,
+	incremental_copy_test, incremental_common_test_1 and
+	incremental_comdat_test_1 for -fcf-protection.  Also Skip
+	incremental_copy_test and incremental_comdat_test_1 for GCC 9 or
+	later.
+	* testsuite/Makefile.in: Regenerated.
+
+2020-10-13  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/23503
+	* testsuite/Makefile.am (justsyms_lib): Pass
+	-T $(srcdir)/justsyms_lib.t to gold.
+	* testsuite/Makefile.in: Regenerated.
+	* testsuite/justsyms_lib.t: New file.
+	* testsuite/script_test_10.t: Discard .note.gnu.property section.
+
+2020-10-13  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* x86_64.cc (Target_x86_64::Target_x86_64): Initialize
+	feature_2_used_, feature_2_needed_ and object_feature_2_used_.
+	(Target_x86_64::feature_2_used_): New data member.
+	(Target_x86_64::feature_2_needed_): Likewise.
+	(Target_x86_64::object_isa_1_used_): Likewise.
+	(Target_x86_64::record_gnu_property): Support
+	GNU_PROPERTY_X86_COMPAT_ISA_1_USED,
+	GNU_PROPERTY_X86_COMPAT_ISA_1_NEEDED,
+	GNU_PROPERTY_X86_COMPAT_2_ISA_1_USED,
+	GNU_PROPERTY_X86_COMPAT_2_ISA_1_NEEDED,
+	GNU_PROPERTY_X86_FEATURE_2_USED and
+	GNU_PROPERTY_X86_FEATURE_2_NEEDED.
+	(Target_x86_64::merge_gnu_properties): Merge FEATURE_2_USED bits.
+	Initialize object_feature_2_used_.
+	(Target_x86_64::do_finalize_gnu_properties): Support
+	GNU_PROPERTY_X86_FEATURE_2_USED and
+	GNU_PROPERTY_X86_FEATURE_2_NEEDED.
+	* testsuite/gnu_property_a.S (GNU_PROPERTY_X86_ISA_1_USED): Set
+	to 0xc0010002.
+	(GNU_PROPERTY_X86_ISA_1_NEEDED): Set to 0xc0008002.
+	* testsuite/gnu_property_b.S (GNU_PROPERTY_X86_ISA_1_USED): Set
+	to 0xc0010002.
+	(GNU_PROPERTY_X86_ISA_1_NEEDED): Set to 0xc0008002.
+	* testsuite/gnu_property_c.S (GNU_PROPERTY_X86_ISA_1_USED): Set
+	to 0xc0010002.
+	(GNU_PROPERTY_X86_ISA_1_NEEDED): Set to 0xc0008002.
+	* testsuite/gnu_property_test.sh: Updated.
+
+2020-10-13  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/22914
+	PR gold/23535
+	* layout.cc (Layout::attach_allocated_section_to_segment): Place
+	a note section in a PT_NOTE segment with the same alignment.  Set
+	the alignment of the PT_NOTE segment from the alignment of the
+	note section.
+	(Layout::create_note): Align the NT_GNU_PROPERTY_TYPE_0 note to 8
+	bytes for 64-bit ELF.
+	(Layout::segment_precedes): Place segments with larger alignments
+	first.
+	* output.cc (Output_segment::Output_segment): Initialize align_.
+	* output.h (Output_segment): Add align, set_align and align_.
+	* testsuite/Makefile.am (gnu_property_test.stdout): Pass -lhSWn
+	to $(TEST_READELF).
+	(gnu_property_test): Pass --build-id to ld.
+	* testsuite/Makefile.in: Regenerated.
+	* testsuite/gnu_property_test.sh (check_alignment): New.
+	Use check_alignment to check the NT_GNU_PROPERTY_TYPE_0 note
+	alignment.  Verify that there are 2 PT_NOTE segments.
+
+2020-10-13  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/21452
+	* x86_64.cc (Scan::local_reloc_may_be_function_pointer): Remove
+	check for shared library.
+	(Scan::global_reloc_may_be_function_pointer): Remove check for
+	shared library and symbol visibility.
+	* testsuite/icf_safe_so_test.cc (bar_static): New function.
+	(main): Take function address of bar_static and use it.
+	* testsuite/icf_safe_so_test.sh (arch_specific_safe_fold): Also
+	check fold on x86-64.  Check bar_static isn't folded.
+
+2020-10-13  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* icf.cc (Icf::find_identical_sections): Skip zero-sized sections.
+
+2020-10-09  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (Powerpc_relobj::do_relocate_sections): Don't do
+	local entry offset optimisation for lplt_section.
+	(Target_powerpc::Branch_info::make_stub): Don't add local
+	entry offset to long branch dest passed to
+	add_long_branch_entry.  Do pass st_other bits.
+	(Stub_table::Branch_stub_ent): Add "other_" field.
+	(Stub_table::add_long_branch_entry): Add "other" param, and
+	save.
+	(Stub_table::branch_stub_size): Adjust long branch offset.
+	(Stub_table::do_write): Likewise.
+	(Target_powerpc::Relocate::relocate): Likewise.
+
+2020-10-09  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (is_got_reloc): New function.
+	(Target_powerpc::Relocate::relocate): Use it here, exclude GOT
+	relocs when looking for stubs.
+
+2020-10-08  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/split_i386.sh: Updated for --split-stack-adjust-size
+	default change.
+	* testsuite/split_x86_64.sh: Likewise.
+
+2020-10-08  Alan Modra  <amodra@gmail.com>
+
+	* options.h (split_stack_adjust_size): Default to 0x100000.
+
+2020-09-26  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (Target_powerpc): Rename power10_stubs_ to
+	power10_relocs_.
+	(Target_powerpc::set_power10_relocs): New accessor.
+	(Target_powerpc::set_power10_stubs): Delete.
+	(Target_powerpc::power10_stubs): Adjust.
+	(Target_powerpc::has_localentry0): New accessor.
+	(ld_0_11): New constant.
+	(glink_eh_frame_fde_64v1, glink_eh_frame_fde_64v2): Adjust.
+	(glink_eh_frame_fde_64v2_localentry0): New.
+	(Output_data_glink::pltresolve_size): Update.
+	(Output_data_glink::add_eh_frame): Use localentry0 version eh_frame.
+	(Output_data_glink::do_write): Move r2 save to start of ELFv2 stub
+	and only emit for has_localentry0.  Don't use r2 in the stub.
+	(Target_powerpc::Scan::local, global): Adjust for
+	set_power10_relocs renaming.
+	(Target_powerpc::scan_relocs): Warn and reset plt_localentry0_.
+
+2020-09-24  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (Target_powerpc::Relocate::relocate): Don't skip
+	first insn of __tls_get_addr_opt stub.
+
+2020-08-24  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (Target_powerpc): Add tprel_opt_ and accessors.
+	(Target_powerpc::Scan::local): Sanity check tprel high relocs.
+	(Target_powerpc::Scan::global): Likewise.
+	(Target_powerpc::Relocate::relocate): Control tprel optimisation
+	with tprel_opt_ and enable for 32-bit.
+
+2020-08-12  Nick Clifton  <nickc@redhat.com>
+
+	* po/sr.po: Updated Serbian translation.
+
+2020-07-27  Alan Modra  <amodra@gmail.com>
+
+	* options.h (DEFINE_enum): Add optional_arg__ param, adjust
+	all uses.
+	(General_options): Add --power10-stubs and --no-power10-stubs.
+	* options.cc (General_options::parse_no_power10_stubs): New.
+	(General_options::finalize): Handle --power10-stubs.
+	* powerpc.cc (set_power10_stubs): Don't set when --power10-stubs=no.
+	(power10_stubs_auto): New.
+	(struct Plt_stub_ent): Add toc_ and tocoff_.  Don't use a bitfield
+	for indx_.
+	(struct Branch_stub_ent): Add toc_and tocoff_.  Use bitfields for
+	iter_, notoc_ and save_res_.
+	(add_plt_call_entry): Set toc_.  Adjust resizing conditions for
+	--power10-stubs=auto.
+	(add_long_branch_entry): Set toc_.
+	(add_eh_frame, define_stub_syms): No longer use const_iterators
+	for plt and long branch stub iteration.
+	(build_tls_opt_head, build_tls_opt_tail): Change parameters and
+	return value.  Move tests for __tls_get_addr to callers.
+	(plt_call_size): Handle --power10-stubs=auto.
+	(branch_stub_size): Likewise.
+	(Stub_table::do_write): Likewise.
+	(relocate): Likewise.
+
+2020-07-19  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/bnd_ifunc_1.sh: Updated.
+	* testsuite/bnd_plt_1.sh: Likewise.
+	* testsuite/split_x32.sh: Likewise.
+	* testsuite/split_x86_64.sh: Likewise.
+	* testsuite/x86_64_indirect_call_to_direct.sh: Likewise.
+
+2020-07-08  Nick Clifton  <nickc@redhat.com>
+
+	* testsuite/script_test_7.sh: Adjust expected address of the .bss
+	section.
+	* testsuite/script_test_9.sh: Do not expect the .init section to
+	immediately follow the .text section in the mapping of sections to
+	segments.
+
+2020-07-07  Nick Clifton  <nickc@redhat.com>
+
+	* target-reloc.h: (Default_comdat_behaviour:get): Ignore discarded
+	relocs that refer to the .gnu.build.attributes section.
+
+2020-07-06  Nick Clifton  <nickc@redhat.com>
+
+	* po/fr.po: Updated French translation.
+	* po/uk.po: Updated Ukranian translation.
+
+2020-07-04  Nick Clifton  <nickc@redhat.com>
+
+	Binutils 2.35 branch created.
+
+2020-07-03  Alan Modra  <amodra@gmail.com>
+
+	PR 26028
+	* testsuite/Makefile.am (file_in_many_sections.stdout): Add -W
+	to readelf options.
+	* testsuite/Makefile.in: Regenerate.
+
+2020-06-26  Nick Alcock  <nick.alcock@oracle.com>
+
+	* configure.ac: Check for bswap_16, bswap_32, and bswap_64 decls.
+	* configure: Regenerated.
+	* config.h.in: Likewise.
+
+2020-06-24  Nick Clifton  <nickc@redhat.com>
+
+	* target-reloc.h (issue_discarded_error): Initialise the
+	key_symndx variable.
+
+2020-06-23  Roland McGrath  <mcgrathr@google.com>
+
+	PR 22843
+	* options.h (class General_options): Add --dependency-file option.
+	* fileread.cc (File_read::files_read): New static variable.
+	(File_read::open): Add the file to the files_read list.
+	(File_read::record_file_read): New static member function.
+	(File_read::write_dependency_file): New static member function.
+	* fileread.h (class File_read): Declare them.
+	* layout.cc (Layout::read_layout_from_file): Call record_file_read.
+	(Close_task_runner::run): Call write_dependency_file if
+	--dependency-file was passed.
+
+2020-06-18  Fangrui Song  <i@maskray.me>
+
+	PR gold/26039
+	* layout.cc (Layout::finish_dynamic_section): Set DF_1_PIE.
+
+2020-06-16  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/discard_locals_test.c: Replace uses of asm with __asm__.
+	* testsuite/discard_locals_relocatable_test.c: Likewise.
+
+2020-06-16  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/Makefile.am (export_dynamic_plugin.o): Use CXXCOMPILE.
+	(plugin_test_wrap_symbols_1.o): Likewise.
+	(plugin_test_wrap_symbols_2.o): Likewise.
+	* testsuite/Makefile.in: Regenerate.
+
+2020-06-15  Roland McGrath  <mcgrathr@google.com>
+
+	Implement -z start-stop-visibility=... option.
+	* options.h (class General_options): Handle -z start-stop-visibility=.
+	(General_options::start_stop_visibility_enum): New public method.
+	(General_options::set_start_stop_visibility_enum): New private method.
+	(General_options::start_stop_visibility_enum_): New private member.
+	* options.cc (General_options::General_options): Add initializer.
+	(General_options::finalize): Set this->start_stop_visibility_enum_
+	from string value.
+	* layout.cc (Layout::define_section_symbols): Use option setting.
+
+2020-06-06  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc: Update throughout for reloc renaming.
+
+2020-05-22  Alan Modra  <amodra@gmail.com>
+
+	PR 25882
+	* powerpc.cc (merge_object_attributes): Replace name param with
+	obj param.  Update callers.  Don't init FP attributes from shared
+	libraries, and do not emit an error if they don't match.
+
+2020-05-15  Nikita Ermakov  <coffe92@gmail.com>
+
+	* powerpc.cc (do_gc_mark_symbol): Don't segfault on plugin symbols.
+
+2020-05-14  Nick Clifton  <nickc@redhat.com>
+
+	* po/sr.po: New Serbian translation.
+
+2020-05-11  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc: Rename powerxx to power10 throughout.
+
+2020-05-02  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/25904
+	* testsuite/Makefile.am (COMMON_TEST_C_CFLAGS): New.
+	(common_test_1.o): New rule.
+	(common_test_2.o): Likewise.
+	(common_test_3.o): Likewise.
+	(plugin_common_test_1.o): Likewise.
+	(plugin_common_test_2.o): Likewise.
+	(common_test_1_v1.o): Likewise.
+	(common_test_1_v2.o): Likewise.
+	(common_test_2_pic.o): Compile with $(COMMON_TEST_C_CFLAGS).
+	(common_test_3_pic.o): Likewise.
+	* testsuite/Makefile.in: Regenerated.
+
+2020-05-01  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/25426
+	* x86_64.cc (Target_x86_64<size>::Relocate::tls_desc_gd_to_ie):
+	For x32, relax "rex leal foo@tlsdesc(%rip), %reg" to
+	"rex movl foo@gottpoff(%rip), %eax" and relax ""call *(%eax)"
+	to "nopl (%rax)".
+	(Target_x86_64<size>::Relocate::tls_desc_gd_to_le): For x32,
+	relax "rex leal foo@tlsdesc(%rip), %reg" to
+	"rex movl foo@tpoff, %eax" and relax "call *foo@tlscall(%eax)"
+	to "nopl (%rax)".
+	* testsuite/Makefile.am (tls_test_gnu2.o): Depend on
+	gcctestdir/as.
+	(tls_test_file2_gnu2.o): Likewise.
+	(tls_test_c_gnu2.o): Likewise.
+	* testsuite/Makefile.in: Regenerated.
+
+2020-05-01  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/25473
+	* x86_64.cc (Target_x86_64<size>::Relocate::tls_desc_gd_to_ie):
+	Properly check r8 - r15 in "lea foo@TLSDESC(%rip), %reg".
+	(Target_x86_64<size>::Relocate::tls_desc_gd_to_le): Properly
+	relax r8 - r15 in "lea foo@TLSDESC(%rip), %reg".
+	* testsuite/Makefile.am (check_SCRIPTS): Add x86_64_gd_to_le.sh.
+	(check_DATA): Add x86_64_gd_to_le.stdout.
+	(MOSTLYCLEANFILES): Add x86_64_gd_to_le.
+	(x86_64_gd_to_le.o): New target.
+	(x86_64_gd_to_le): Likewise.
+	(x86_64_gd_to_le.stdout): Likewise.
+	* testsuite/Makefile.in: Regenerated.
+	* testsuite/x86_64_gd_to_le.s: New file.
+	* testsuite/x86_64_gd_to_le.sh: Likewise.
+
+2020-05-01  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/odr_violation2.cc (Ordering::operator()): Make
+	expression even more complex.
+
+2020-05-01  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/ver_test_pr16504.sh: Updated.
+
+2020-05-01  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/25872
+	* x86_64.cc (Output_data_plt_x86_64_bnd::do_write): Increment
+	plt_offset after setting the reserved TLSDESC PLT entry.
+	(Output_data_plt_x86_64_ibt<size>::do_write): Likewise.
+
+2020-05-01  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/25872
+	* x86_64.cc (Output_data_plt_x86_64_bnd::do_address_for_local):
+	Handle local IFUNC symbol.
+	(Output_data_plt_x86_64_ibt::do_address_for_local): Likewise.
+
+2020-03-19  Fangrui Song  <maskray@google.com>
+
+    * options.h (General_options): Add --no-rosegment option.
+
+2020-02-24  Nick Clifton  <nickc@redhat.com>
+
+	* po/fr.po: Update French translation.
+
+2020-01-20  Nick Clifton  <nickc@redhat.com>
+
+	* po/uk.po: Updated Ukranian translation.
+
+2020-01-18  Nick Clifton  <nickc@redhat.com>
+
+	* configure: Regenerate.
+	* po/gold.pot: Regenerate.
+
+2020-01-18  Nick Clifton  <nickc@redhat.com>
+
+	Binutils 2.34 branch created.
+
+2020-01-01  Alan Modra  <amodra@gmail.com>
+
+	Update year range in copyright notice of all files.
+
+For older changes see ChangeLog-2019
+
+Copyright (C) 2020 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

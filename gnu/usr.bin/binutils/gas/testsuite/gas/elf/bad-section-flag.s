@@ -1,0 +1,1 @@
+ .section ".rodata", "z~&q"

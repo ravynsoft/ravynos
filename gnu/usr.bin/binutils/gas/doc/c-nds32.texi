@@ -1,0 +1,299 @@
+@c Copyright (C) 2013-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@c man end
+
+@ifset GENERIC
+@page
+@node NDS32-Dependent
+@chapter NDS32 Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter NDS32 Dependent Features
+@end ifclear
+
+@cindex NDS32 processor
+The NDS32 processors family includes high-performance and low-power 32-bit
+processors for high-end to low-end.  @sc{gnu} @code{@value{AS}} for NDS32
+architectures supports NDS32 ISA version 3.  For detail about NDS32
+instruction set, please see the AndeStar ISA User Manual which is available
+at http://www.andestech.com/en/index/index.htm
+
+@menu
+* NDS32 Options::         Assembler options
+* NDS32 Syntax::          High-level assembly macros
+@end menu
+
+@node NDS32 Options
+@section NDS32 Options
+
+@cindex NDS32 options
+@cindex options for NDS32
+The NDS32 configurations of @sc{gnu} @code{@value{AS}} support these
+special options:
+
+@c man begin OPTIONS
+@table @code
+
+@item -O1
+Optimize for performance.
+
+@item -Os
+Optimize for space.
+
+@item -EL
+Produce little endian data output.
+
+@item -EB
+Produce little endian data output.
+
+@item -mpic
+Generate PIC.
+
+@item -mno-fp-as-gp-relax
+Suppress fp-as-gp relaxation for this file.
+
+@item -mb2bb-relax
+Back-to-back branch optimization.
+
+@item -mno-all-relax
+Suppress all relaxation for this file.
+
+@item -march=<arch name>
+Assemble for architecture <arch name> which could be v3, v3j, v3m, v3f,
+v3s, v2, v2j, v2f, v2s.
+
+@item -mbaseline=<baseline>
+Assemble for baseline <baseline> which could be v2, v3, v3m.
+
+@item -mfpu-freg=@var{FREG}
+Specify a FPU configuration.
+@table @code
+@item 0      8 SP /  4 DP registers
+@item 1     16 SP /  8 DP registers
+@item 2     32 SP / 16 DP registers
+@item 3     32 SP / 32 DP registers
+@end table
+
+@item -mabi=@var{abi}
+Specify a abi version <abi> could be v1, v2, v2fp, v2fpp.
+
+@item -m[no-]mac
+Enable/Disable Multiply instructions support.
+
+@item -m[no-]div
+Enable/Disable Divide instructions support.
+
+@item -m[no-]16bit-ext
+Enable/Disable 16-bit extension
+
+@item -m[no-]dx-regs
+Enable/Disable d0/d1 registers
+
+@item -m[no-]perf-ext
+Enable/Disable Performance extension
+
+@item -m[no-]perf2-ext
+Enable/Disable Performance extension 2
+
+@item -m[no-]string-ext
+Enable/Disable String extension
+
+@item -m[no-]reduced-regs
+Enable/Disable Reduced Register configuration (GPR16) option
+
+@item -m[no-]audio-isa-ext
+Enable/Disable AUDIO ISA extension
+
+@item -m[no-]fpu-sp-ext
+Enable/Disable FPU SP extension
+
+@item -m[no-]fpu-dp-ext
+Enable/Disable FPU DP extension
+
+@item -m[no-]fpu-fma
+Enable/Disable FPU fused-multiply-add instructions
+
+@item -mall-ext
+Turn on all extensions and instructions support
+@end table
+@c man end
+
+@node NDS32 Syntax
+@section Syntax
+
+@menu
+* NDS32-Chars::                Special Characters
+* NDS32-Regs::                 Register Names
+* NDS32-Ops::                  Pseudo Instructions
+@end menu
+
+@node NDS32-Chars
+@subsection Special Characters
+
+Use @samp{#} at column 1 and @samp{!} anywhere in the line except inside
+quotes.
+
+Multiple instructions in a line are allowed though not recommended and
+should be separated by @samp{;}.
+
+Assembler is not case-sensitive in general except user defined label.
+For example, @samp{jral F1} is different from @samp{jral f1} while it is
+the same as @samp{JRAL F1}.
+
+@node NDS32-Regs
+@subsection Register Names
+@table @code
+@item General purpose registers (GPR)
+There are 32 32-bit general purpose registers $r0 to $r31.
+
+@item Accumulators d0 and d1
+64-bit accumulators: $d0.hi, $d0.lo, $d1.hi, and $d1.lo.
+
+@item Assembler reserved register $ta
+Register $ta ($r15) is reserved for assembler using.
+
+@item Operating system reserved registers $p0 and $p1
+Registers $p0 ($r26) and $p1 ($r27) are used by operating system as scratch
+registers.
+
+@item Frame pointer $fp
+Register $r28 is regarded as the frame pointer.
+
+@item Global pointer
+Register $r29 is regarded as the global pointer.
+
+@item Link pointer
+Register $r30 is regarded as the link pointer.
+
+@item Stack pointer
+Register $r31 is regarded as the stack pointer.
+@end table
+
+@node NDS32-Ops
+@subsection Pseudo Instructions
+@table @code
+@item li rt5,imm32
+load 32-bit integer into register rt5.  @samp{sethi rt5,hi20(imm32)} and then
+@samp{ori rt5,reg,lo12(imm32)}.
+
+@item la rt5,var
+Load 32-bit address of var into register rt5.  @samp{sethi rt5,hi20(var)} and
+then @samp{ori reg,rt5,lo12(var)}
+
+@item l.[bhw] rt5,var
+Load value of var into register rt5.  @samp{sethi $ta,hi20(var)} and then
+@samp{l[bhw]i rt5,[$ta+lo12(var)]}
+
+@item l.[bh]s rt5,var
+Load value of var into register rt5.  @samp{sethi $ta,hi20(var)} and then
+@samp{l[bh]si rt5,[$ta+lo12(var)]}
+
+@item  l.[bhw]p rt5,var,inc
+Load value of var into register rt5 and increment $ta by amount inc.
+@samp{la $ta,var} and then @samp{l[bhw]i.bi rt5,[$ta],inc}
+
+@item l.[bhw]pc rt5,inc
+Continue loading value of var into register rt5 and increment $ta by amount inc.
+@samp{l[bhw]i.bi rt5,[$ta],inc.}
+
+@item l.[bh]sp rt5,var,inc
+Load value of var into register rt5 and increment $ta by amount inc.
+@samp{la $ta,var} and then @samp{l[bh]si.bi rt5,[$ta],inc}
+
+@item l.[bh]spc rt5,inc
+Continue loading value of var into register rt5 and increment $ta by amount inc.
+@samp{l[bh]si.bi rt5,[$ta],inc.}
+
+@item s.[bhw] rt5,var
+Store register rt5 to var.
+@samp{sethi $ta,hi20(var)} and then @samp{s[bhw]i rt5,[$ta+lo12(var)]}
+
+@item s.[bhw]p rt5,var,inc
+Store register rt5 to var and increment $ta by amount inc.
+@samp{la $ta,var} and then @samp{s[bhw]i.bi rt5,[$ta],inc}
+
+@item s.[bhw]pc rt5,inc
+Continue storing register rt5 to var and increment $ta by amount inc.
+@samp{s[bhw]i.bi rt5,[$ta],inc.}
+
+@item not rt5,ra5
+Alias of @samp{nor rt5,ra5,ra5}.
+
+@item neg rt5,ra5
+Alias of @samp{subri rt5,ra5,0}.
+
+@item br rb5
+Depending on how it is assembled, it is translated into @samp{r5 rb5}
+or @samp{jr rb5}.
+
+@item b label
+Branch to label depending on how it is assembled, it is translated into
+@samp{j8 label}, @samp{j label}, or "@samp{la $ta,label} @samp{br $ta}".
+
+@item bral rb5
+Alias of jral br5 depending on how it is assembled, it is translated
+into @samp{jral5 rb5} or @samp{jral rb5}.
+
+@item bal fname
+Alias of jal fname depending on how it is assembled, it is translated into
+@samp{jal fname} or "@samp{la $ta,fname} @samp{bral $ta}".
+
+@item call fname
+Call function fname same as @samp{jal fname}.
+
+@item move rt5,ra5
+For 16-bit, this is @samp{mov55 rt5,ra5}.
+For no 16-bit, this is @samp{ori rt5,ra5,0}.
+
+@item move rt5,var
+This is the same as @samp{l.w rt5,var}.
+
+@item move rt5,imm32
+This is the same as @samp{li rt5,imm32}.
+
+@item pushm ra5,rb5
+Push contents of registers from ra5 to rb5 into stack.
+
+@item push ra5
+Push content of register ra5 into stack. (same @samp{pushm ra5,ra5}).
+
+@item push.d var
+Push value of double-word variable var into stack.
+
+@item push.w var
+Push value of word variable var into stack.
+
+@item push.h var
+Push value of half-word variable var into stack.
+
+@item push.b var
+Push value of byte variable var into stack.
+
+@item pusha var
+Push 32-bit address of variable var into stack.
+
+@item pushi imm32
+Push 32-bit immediate value into stack.
+
+@item popm ra5,rb5
+Pop top of stack values into registers ra5 to rb5.
+
+@item pop rt5
+Pop top of stack value into register. (same as @samp{popm rt5,rt5}.)
+
+@item pop.d var,ra5
+Pop value of double-word variable var from stack using register ra5
+as 2nd scratch register. (1st is $ta)
+
+@item pop.w var,ra5
+Pop value of word variable var from stack using register ra5.
+
+@item pop.h var,ra5
+Pop value of half-word variable var from stack using register ra5.
+
+@item pop.b var,ra5
+Pop value of byte variable var from stack using register ra5.
+
+@end table

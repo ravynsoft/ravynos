@@ -1,0 +1,156 @@
+# Test handling of weak undefined symbols
+#   Copyright (C) 2001-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# The linker should accept references to undefined weaks without error,
+# and resolve them to zero in a static executable.  Ought to work for
+# some a.out targets too.
+set testname "weak undefined data symbols"
+
+if { [is_pecoff_format] } then {
+    set IMAGE_BASE "--image-base 0"
+} else {
+    set IMAGE_BASE ""
+}
+
+if { ![is_elf_format] && ![is_pecoff_format] } then {
+    unsupported $testname
+} elseif {![ld_assemble $as $srcdir/$subdir/weak-undef.s \
+	    tmpdir/weak-undef.o]} then {
+    # It's OK if .weak doesn't work on this target.
+    unsupported $testname
+} elseif {![ld_link $ld tmpdir/weak-undef "tmpdir/weak-undef.o \
+		-T $srcdir/$subdir/weak-undef.t $IMAGE_BASE"]} then {
+    # Weak symbols are broken for non-i386 PE targets.
+    if {! [istarget i?86-*-*]} {
+	setup_xfail *-*-pe*
+    }
+    fail $testname
+} else {
+    set exec_output [run_host_cmd "$objdump" "-s tmpdir/weak-undef"]
+    set exec_output [prune_warnings $exec_output]
+    verbose -log $exec_output
+
+    set output_regexp ".*Contents of section .data:.*0000 00000000 11111111.*"
+
+    if {[regexp $output_regexp $exec_output]} then {
+	pass $testname
+    } else {
+	fail $testname
+    }
+}
+
+proc undef_weak_so { testname opts passval } {
+    global ld
+    global nm
+
+    if {![ld_link $ld tmpdir/weak-fundef.so \
+	  "$opts tmpdir/weak-fundef.o"]} then {
+	fail $testname
+    } else {
+	set exec_output [run_host_cmd "$nm" "-D tmpdir/weak-fundef.so"]
+	set exec_output [prune_warnings $exec_output]
+
+	set output_regexp ".*w undef_weak_fun.*"
+	if {[regexp $output_regexp $exec_output] == $passval} then {
+	    pass $testname
+	} else {
+	    fail $testname
+	}
+	return 1
+    }
+    return 0
+}
+
+proc undef_weak_exe { testname opts passval } {
+    global ld
+    global nm
+
+    if {![ld_link $ld tmpdir/weak-fundef \
+	  "$opts tmpdir/weak-fundef.o tmpdir/weak-fundef.so"]} then {
+	fail $testname
+    } else {
+	set exec_output [run_host_cmd "$nm" "-D tmpdir/weak-fundef"]
+	set exec_output [prune_warnings $exec_output]
+
+	set output_regexp ".*w undef_weak_fun.*"
+	if {[regexp $output_regexp $exec_output] == $passval} then {
+	    pass $testname
+	} else {
+	    fail $testname
+	}
+    }
+}
+
+# When linking a shared lib, weak undefined symbols should become dynamic.
+set testname "weak undefined function symbols in shared lib"
+
+set asflags ""
+switch -glob $target_triplet {
+    aarch64* -
+    arm* -
+    powerpc64* { set asflags "--defsym BL=1" }
+    powerpc* { set asflags "--defsym BLPLT=1" }
+    hppa* { set asflags "--defsym HPPA=1" }
+    i\[3-7\]86* -
+    x86_64* { set asflags "--defsym CALLPLT=1" }
+}
+
+if { $asflags == "" || ![is_elf_format] || ![check_shared_lib_support]} then {
+    unsupported $testname
+} elseif {![ld_assemble $as "$asflags $srcdir/$subdir/weak-fundef.s" \
+		tmpdir/weak-fundef.o]} then {
+    fail $testname
+} elseif { [undef_weak_so $testname "--shared" 1] } then {
+
+    # When linking a dynamic executable, weak undefined symbols become dynamic.
+    set testname "weak undefined function symbols in dynamic exe"
+    undef_weak_exe $testname "--no-as-needed" 1
+
+    # Find -z options supported by the default emulation
+    set emul [get_target_emul]
+    set cmd [list "$ld --help 2>&1 | sed -e '1,/^$emul:/d;/^\[^ \]*:/,\$d'"]
+    set status [remote_exec host [concat sh -c $cmd]]
+    if { [lindex $status 0] != 0 } {
+	verbose -log "$cmd exited with status [lindex $status 0]"
+    }
+    set emulopt [lindex $status 1]
+
+    if { [string first "dynamic-undefined-weak" $emulopt] >= 0 } {
+	# -z dynamic-undefined-weak is supported.  Let's see if it works.
+
+	set testname "weak undefined functions in shared lib, no dyn undef weak"
+	undef_weak_so $testname "--shared -z nodynamic-undefined-weak" 0
+
+	set testname "weak undefined functions in shared lib, dyn undef weak"
+	undef_weak_so $testname "--shared -z dynamic-undefined-weak" 1
+
+	set testname "weak undefined functions in dynamic exe, no dyn undef weak"
+	undef_weak_exe $testname "-z nodynamic-undefined-weak" 0
+
+	set testname "weak undefined functions in dynamic exe, dyn undef weak"
+	undef_weak_exe $testname "-z dynamic-undefined-weak" 1
+
+	set testname "weak undefined functions in pie, no dyn undef weak"
+	undef_weak_exe $testname "-pie -z nodynamic-undefined-weak" 0
+
+	set testname "weak undefined functions in pie, dyn undef weak"
+	undef_weak_exe $testname "-pie -z dynamic-undefined-weak" 1
+    }
+}

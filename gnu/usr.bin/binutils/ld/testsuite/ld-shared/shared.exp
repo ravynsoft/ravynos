@@ -1,0 +1,343 @@
+# Expect script for ld-shared tests
+#   Copyright (C) 1994-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by Ian Lance Taylor (ian@cygnus.com)
+#
+
+# Make sure that ld can generate ELF shared libraries.
+# Note that linking against ELF shared libraries is tested by the
+# bootstrap test.
+
+# Check to see if the C compiler works
+if { ![check_compiler_available] } {
+    return
+}
+
+# Skip targets where -shared is not supported
+if { ![check_shared_lib_support] } {
+    return
+}
+
+# This test can only be run on a couple of ELF platforms.
+# Square bracket expressions seem to confuse istarget.
+if { ![istarget hppa*64*-*-hpux*] \
+     && ![istarget hppa*-*-linux*] \
+     && ![istarget i?86-*-elf*] \
+     && ![istarget i?86-*-linux*] \
+     && ![istarget i?86-*-gnu*] \
+     && ![istarget *-*-nacl*] \
+     && ![istarget ia64-*-elf*] \
+     && ![istarget ia64-*-linux*] \
+     && ![istarget m68k-*-linux*] \
+     && ![istarget mips*-*-irix5*] \
+     && ![istarget mips*-*-linux*] \
+     && ![istarget powerpc*-*-elf*] \
+     && ![istarget powerpc*-*-linux*] \
+     && ![istarget powerpc*-*-sysv4*] \
+     && ![istarget sparc*-*-elf] \
+     && ![istarget sparc*-*-solaris2*] \
+     && ![istarget sparc*-*-linux*] \
+     && ![istarget arm*-*-linux*] \
+     && ![istarget alpha*-*-linux*] \
+     && ![is_xcoff_format] \
+     && ![istarget s390*-*-linux*] \
+     && ![istarget aarch64*-*-linux*] \
+     && ![istarget x86_64-*-linux*] } {
+    return
+}
+
+set tmpdir tmpdir
+set SHCFLAG ""
+set shared_needs_pic "no"
+
+# Disable all sanitizers.
+set old_CFLAGS "$CFLAGS_FOR_TARGET"
+append CFLAGS_FOR_TARGET " $NOSANITIZE_CFLAGS"
+
+if { [is_xcoff_format] } {
+    # Not all the useful features are available with AIX shared
+    # libraries by default.
+    # We can manage to simulate some of them with export/import
+    # files but the overriding of shared library functions or
+    # variables by the main program doesn't seem possible.
+    # We avoid testing those features.
+    set SHCFLAG "-DXCOFF_TEST"
+
+    # In order to avoid listing every symbols in an export file,
+    # the export will be done with -bexpall flag.
+    # However for imports, we must create the import file.
+    set file [open $tmpdir/xcoff-shared.imp w]
+    puts $file "#! ."
+    puts $file mainvar
+    puts $file main_called
+    close $file
+}
+
+if [istarget arm*-*-linux*] {
+    # On ARM section anchors can change the symbol pre-emptability for
+    # non-PIC shared libraries, causing these tests to fail.  Turn section
+    # anchors off.
+    set SHCFLAG "-fno-section-anchors"
+
+    # On targets that have MOVW the compiler will emit relocations which
+    # the linker doesn't support when compiling -shared without -fpic.  The
+    # test to find out whether we want to XFAIL the non-PIC tests requires
+    # a compile - so we pre-calculate it here.  We also note that this can
+    # only affect arm*-*-*eabi* targets as the old ABI doesn't support v7.
+    if [istarget arm*-*-*eabi*] {
+	set file [open $tmpdir/movw-detect.c w]
+	puts $file "void foo(void) { __asm (\"movw r0, #0\"); }"
+	close $file
+	if [run_host_cmd_yesno "$CC_FOR_TARGET" "$CFLAGS_FOR_TARGET -c $tmpdir/movw-detect.c -o $tmpdir/movw-detect.o"] {
+	    set shared_needs_pic "yes"
+	}
+    }
+}
+
+# The test procedure.
+proc shared_test { progname testname main sh1 sh2 dat args } {
+    global CC_FOR_TARGET
+    global srcdir
+    global subdir
+    global exec_output
+    global host_triplet
+    global tmpdir
+
+    if [llength $args] { set shldflags [lindex $args 0] } else { set shldflags "" }
+
+    # Build the shared library.
+    set shared -shared
+    if { [is_xcoff_format] } {
+	# On AIX, setup imports and exports.
+	append shared " -Wl,-bexpall -Wl,-bI:$tmpdir/xcoff-shared.imp"
+    }
+    if { [is_elf_format] && [check_shared_lib_support] } {
+	append shared " -Wl,-z,notext"
+    }
+    if {![ld_link $CC_FOR_TARGET $tmpdir/$progname.so "$shared $shldflags $tmpdir/$sh1 $tmpdir/$sh2"]} {
+        fail "$testname"
+    	return
+    }
+
+    # Link against the shared library.  Use -rpath so that the
+    # dynamic linker can locate the shared library at runtime.
+    # On AIX, we must include /lib in -rpath, as otherwise the loader
+    # can not find -lc.
+    set rpath $tmpdir
+    set exportflag ""
+    if { [is_xcoff_format] } {
+	set rpath /lib:$tmpdir
+	set exportflag " -Wl,-bexpall"
+    }
+    if ![ld_link $CC_FOR_TARGET $tmpdir/$progname "-Wl,-rpath,$rpath $tmpdir/$main $tmpdir/$progname.so $exportflag"] {
+    	fail "$testname"
+    	return
+    }
+
+    if ![isnative] {
+	unsupported $testname
+	return
+    }
+
+    # Run the resulting program
+    send_log "$tmpdir/$progname >$tmpdir/$progname.out\n"
+    verbose "$tmpdir/$progname >$tmpdir/$progname.out"
+    catch "exec $tmpdir/$progname >$tmpdir/$progname.out" exec_output
+    if ![string match "" $exec_output] then {
+	send_log "$exec_output\n"
+	verbose "$exec_output"
+	fail "$testname"
+    	return
+    }
+
+    send_log "diff $tmpdir/$progname.out $srcdir/$subdir/$dat.dat\n"
+    verbose "diff $tmpdir/$progname.out $srcdir/$subdir/$dat.dat"
+    catch "exec diff $tmpdir/$progname.out $srcdir/$subdir/$dat.dat" exec_output
+    set exec_output [prune_warnings $exec_output]
+
+    if {![string match "" $exec_output]} then {
+	send_log "$exec_output\n"
+	verbose "$exec_output"
+	fail "$testname"
+        return
+    }
+
+    pass "$testname"
+}
+
+# Old version of GCC for MIPS default to enabling -fpic
+# and get confused if it is used on the command line.
+if { [istarget mips*-*-*] && ! [at_least_gcc_version 4 3] } then {
+    set picflag ""
+} else {
+    # Unfortunately, the gcc argument is -fpic and the cc argument is
+    # -KPIC.  We have to try both.
+    set picflag "-fpic"
+    send_log "$CC_FOR_TARGET $picflag\n"
+    verbose "$CC_FOR_TARGET $picflag"
+    catch "exec $CC_FOR_TARGET $picflag" exec_output
+    send_log "$exec_output\n"
+    verbose "--" "$exec_output"
+    if { [string match "*illegal option*" $exec_output] \
+	 || [string match "*option ignored*" $exec_output] \
+	 || [string match "*unrecognized option*" $exec_output] \
+	 || [string match "*passed to ld*" $exec_output] } {
+	set picflag "-KPIC"
+    }
+}
+verbose "Using $picflag to compile PIC code"
+
+# Compile the main program.
+if ![ld_compile "$CC_FOR_TARGET $SHCFLAG" $srcdir/$subdir/main.c $tmpdir/mainnp.o] {
+    unsupported "shared (non PIC)"
+    unsupported "shared"
+} else {
+    # The shared library is composed of two files.  First compile them
+    # without using -fpic.  That should work on an ELF system,
+    # although it will be less efficient because the dynamic linker
+    # will need to do more relocation work.  However, note that not
+    # using -fpic will cause some of the tests to return different
+    # results.  Make sure that PLT is used since PLT is expected.
+    global PLT_CFLAGS NOPIE_CFLAGS
+    if { ![ld_compile "$CC_FOR_TARGET $PLT_CFLAGS $NOPIE_CFLAGS $SHCFLAG" $srcdir/$subdir/sh1.c $tmpdir/sh1np.o]
+	 || ![ld_compile "$CC_FOR_TARGET $PLT_CFLAGS $SHCFLAG" $srcdir/$subdir/sh2.c $tmpdir/sh2np.o] } {
+	unsupported "shared (non PIC)"
+    } else { if { [is_xcoff_format] } {
+	shared_test shnp "shared (nonPIC)" mainnp.o sh1np.o sh2np.o xcoff
+    } else {
+	# Solaris defaults to -z text.
+	setup_xfail "*-*-solaris2*"
+	setup_xfail "ia64-*-linux*"
+	setup_xfail "alpha*-*-linux*"
+	setup_xfail "powerpc64*-*-*"
+	if { ![istarget hppa*64*-*-linux*] } {
+	    setup_xfail "hppa*-*-linux*"
+	}
+	if { [istarget sparc*-*-linux*] && [is_elf64 $tmpdir/mainnp.o] } {
+	    setup_xfail "sparc*-*-linux*"
+	}
+	if { [is_elf64 $tmpdir/mainnp.o] } {
+	    setup_xfail "x86_64-*-linux*"
+	}
+	setup_xfail "x86_64-*-linux-gnux32"
+	setup_xfail "s390x-*-linux*"
+	if [ string match $shared_needs_pic "yes" ] {
+	    setup_xfail "arm*-*-linux*"
+	}
+	setup_xfail "aarch64*-*-linux*"
+	shared_test shnp "shared (non PIC)" mainnp.o sh1np.o sh2np.o shared
+
+	# Test ELF shared library relocations with a non-zero load
+	# address for the library.  Near as I can tell, the R_*_RELATIVE
+	# relocations for various targets are broken in the case where
+	# the load address is not zero (which is the default).
+	setup_xfail "*-*-linux*libc1"
+	setup_xfail "powerpc*-*-linux*"
+	setup_xfail "ia64-*-linux*"
+	setup_xfail "alpha*-*-linux*"
+	setup_xfail "mips*-*-linux*"
+	if { ![istarget hppa*64*-*-linux*] } {
+	    setup_xfail "hppa*-*-linux*"
+	}
+	if { [istarget sparc*-*-linux*] && [is_elf64 $tmpdir/mainnp.o] } {
+	    setup_xfail "sparc*-*-linux*"
+	}
+	if { [is_elf64 $tmpdir/mainnp.o] } {
+	    setup_xfail "x86_64-*-linux*"
+	}
+	setup_xfail "x86_64-*-linux-gnux32"
+	setup_xfail "s390x-*-linux*"
+	if [ string match $shared_needs_pic "yes" ] {
+	    setup_xfail "arm*-*-linux*"
+	}
+	setup_xfail "aarch64*-*-linux*"
+	# Solaris defaults to -z text.
+	setup_xfail "*-*-solaris2*"
+	shared_test shnp "shared (non PIC, load offset)" \
+		mainnp.o sh1np.o sh2np.o shared \
+		"-Wl,-T,$srcdir/$subdir/elf-offset.ld,--hash-style=sysv"
+    } }
+
+    # Now compile the code using -fpic.
+
+    if { ![ld_compile "$CC_FOR_TARGET $SHCFLAG $picflag" $srcdir/$subdir/sh1.c $tmpdir/sh1p.o]
+	 || ![ld_compile "$CC_FOR_TARGET $SHCFLAG $picflag" $srcdir/$subdir/sh2.c $tmpdir/sh2p.o] } {
+	unsupported "shared"
+    } else {
+	if { [is_xcoff_format] } {
+	    shared_test shp "shared" mainnp.o sh1p.o sh2p.o xcoff
+	} else {
+	    shared_test shp "shared" mainnp.o sh1p.o sh2p.o shared
+	    ld_compile "$CC_FOR_TARGET -DSYMBOLIC_TEST $SHCFLAG" $srcdir/$subdir/main.c $tmpdir/mainnp.o
+	    ld_compile "$CC_FOR_TARGET -DSYMBOLIC_TEST $SHCFLAG $picflag" $srcdir/$subdir/sh1.c $tmpdir/sh1p.o
+	    shared_test shp "shared -Bsymbolic" mainnp.o sh1p.o sh2p.o symbolic "-Bsymbolic"
+	    ld_compile "$CC_FOR_TARGET $SHCFLAG" $srcdir/$subdir/main.c $tmpdir/mainnp.o
+	    ld_compile "$CC_FOR_TARGET $SHCFLAG $picflag" $srcdir/$subdir/sh1.c $tmpdir/sh1p.o
+	}
+    }
+}
+
+# Now do the same tests again, but this time compile main.c PIC.
+if ![ld_compile "$CC_FOR_TARGET $SHCFLAG $picflag" $srcdir/$subdir/main.c $tmpdir/mainp.o] {
+    unsupported "shared (PIC main, non PIC so)"
+    unsupported "shared (PIC main)"
+} else {
+    if { [file exists $tmpdir/sh1np.o ] && [ file exists $tmpdir/sh2np.o ] } {
+        if { [is_xcoff_format] } {
+	    shared_test shmpnp "shared (PIC main, non PIC so)" mainp.o sh1np.o sh2np.o xcoff
+	} else {
+	    # Solaris defaults to -z text.
+	    setup_xfail "*-*-solaris2*"
+	    setup_xfail "ia64-*-linux*"
+	    setup_xfail "alpha*-*-linux*"
+	    setup_xfail "powerpc64*-*-*"
+	    if { ![istarget hppa*64*-*-linux*] } {
+		setup_xfail "hppa*-*-linux*"
+	    }
+	    if { [istarget sparc*-*-linux*] && [is_elf64 $tmpdir/mainp.o] } {
+		setup_xfail "sparc*-*-linux*"
+	    }
+	    if { [is_elf64 $tmpdir/mainp.o] } {
+		setup_xfail "x86_64-*-linux*"
+	    }
+	    setup_xfail "x86_64-*-linux-gnux32"
+	    setup_xfail "s390x-*-linux*"
+	    if [ string match $shared_needs_pic "yes" ] {
+		setup_xfail "arm*-*-linux*"
+	    }
+	    setup_xfail "aarch64*-*-linux*"
+	    shared_test shmpnp "shared (PIC main, non PIC so)" mainp.o sh1np.o sh2np.o shared
+	}
+    } else {
+	unsupported "shared (PIC main, non PIC so)"
+    }
+
+    if { [file exists $tmpdir/sh1p.o ] && [ file exists $tmpdir/sh2p.o ] } {
+        if { [is_xcoff_format] } {
+	    shared_test shmpp "shared (PIC main)" mainp.o sh1p.o sh2p.o xcoff
+	} else {
+	    shared_test shmpp "shared (PIC main)" mainp.o sh1p.o sh2p.o shared
+	}
+    } else {
+	unsupported "shared (PIC main)"
+    }
+}
+
+set CFLAGS_FOR_TARGET "$old_CFLAGS"

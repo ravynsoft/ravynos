@@ -1,0 +1,250 @@
+# Expect script for run_dump_test based ld-m68k GOT tests.
+#   Copyright (C) 2008-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if { ![is_elf_format] || ![istarget m68k-*-*] } {
+    return
+}
+
+# 1 - 1
+# 2 - 8189
+# 3 - 8190
+# 4 - 16382
+# 5 - 16385
+
+proc gen_got_test { testname } {
+    global srcdir
+    global subdir
+
+    if [catch { set ofd [open "tmpdir/$testname.s" w] } msg] {
+	perror "$msg"
+	unresolved $testname
+	return
+    }
+
+    switch --  $testname {
+	"got-12" {
+	    set start 1
+	    set count 8189
+	    set xgot 0
+	}
+	"got-13" {
+	    set start 1
+	    set count 8190
+	    set xgot 0
+	}
+	"got-14" {
+	    set start 1
+	    set count 16382
+	    set xgot 0
+	}
+	"got-15" {
+	    set start 1
+	    set count 16385
+	    set xgot 0
+	}
+	"got-34" {
+	    set start 8190
+	    set count 16382
+	    set xgot 0
+	}
+	"got-35" {
+	    set start 8190
+	    set count 16385
+	    set xgot 0
+	}
+	"xgot-15" {
+	    set start 1
+	    set count 16385
+	    set xgot 1
+	}
+    }
+
+    set func [format "sum_%05d_%05d" $start $count]
+    puts $ofd "\t.text"
+    puts $ofd "\t.align	2"
+    puts $ofd "\t.globl $func"
+    puts $ofd "\t.type $func,@function"
+    puts $ofd "$func:"
+    puts $ofd "\tlink.w %fp,#0"
+    puts $ofd "\tmove.l %a5,-(%sp)"
+    puts $ofd "\tmove.l #_GLOBAL_OFFSET_TABLE_@GOTPC, %a5"
+    puts $ofd "\tlea (-6, %pc, %a5), %a5"
+
+    if { $xgot == 1 } {
+	set symbol [format "a%05d" $start]
+	incr start
+	puts $ofd "\tlea $symbol@GOT,%a0"
+	puts $ofd "\tadd.l %a5,%a0"
+	puts $ofd "\tmove.l (%a0),%a0"
+	puts $ofd "\tmove.l (%a0),%d1"
+	for { set i $start } { $i < $count } { incr i } {
+	    set symbol [format "a%05d" $i]
+	    puts $ofd "\tlea $symbol@GOT,%a0"
+	    puts $ofd "\tadd.l %a5,%a0"
+	    puts $ofd "\tmove.l (%a0),%a0"
+	    puts $ofd "\tmove.l (%a0),%d0"
+	    puts $ofd "\tadd.l %d0,%d1"
+	}
+	set symbol [format "a%05d" $count]
+	puts $ofd "\tlea $symbol@GOT,%a0"
+	puts $ofd "\tadd.l %a5,%a0"
+	puts $ofd "\tmove.l (%a0),%a0"
+	puts $ofd "\tmove.l (%a0),%d0"
+	puts $ofd "\tadd.l %d1,%d0"
+    } else {
+	set symbol [format "a%05d" $start]
+	incr start
+	puts $ofd "\tmove.l $symbol@GOT(%a5),%d0"
+	puts $ofd "\tmove.l %d0,%a0"
+	puts $ofd "\tmove.l (%a0),%d1"
+	for { set i $start } { $i < $count } { incr i } {
+	    set symbol [format "a%05d" $i]
+	    puts $ofd "\tmove.l $symbol@GOT(%a5),%d0"
+	    puts $ofd "\tmove.l %d0,%a0"
+	    puts $ofd "\tmove.l (%a0),%d0"
+	    puts $ofd "\tadd.l %d0,%d1"
+	}
+	set symbol [format "a%05d" $count]
+	puts $ofd "\tmove.l $symbol@GOT(%a5),%d0"
+	puts $ofd "\tmove.l %d0,%a0"
+	puts $ofd "\tmove.l (%a0),%d0"
+	puts $ofd "\tadd.l %d1,%d0"
+    }
+
+    puts $ofd "\tmove.l (%sp)+,%a5"
+    puts $ofd "\tunlk %fp"
+    puts $ofd "\trts"
+    puts $ofd "\t.size	$func, .-$func"
+
+    close $ofd
+}
+
+proc got_test { testname } {
+    global srcdir
+    global subdir
+    global objdir
+
+    if [catch { set ifd [open "$srcdir/$subdir/$testname.d" r] } msg] {
+	perror "$msg"
+	unresolved $testname
+	return
+    }
+    if [catch { set ofd [open "tmpdir/$testname.d" w] } msg] {
+	perror "$msg"
+	unresolved $testname
+	return
+    }
+
+    switch --  $testname {
+	"got-single-12-ok" {
+	    puts $ofd "#source: ./tmpdir/got-12.s"
+	    set count 8189
+	}
+	"got-single-13-er" {
+	    puts $ofd "#source: ./tmpdir/got-13.s"
+	    set count 0
+	}
+	"got-negative-14-ok" {
+	    puts $ofd "#source: ./tmpdir/got-14.s"
+	    set count 16382
+	}
+	"got-negative-15-er" {
+	    puts $ofd "#source: ./tmpdir/got-15.s"
+	    set count 0
+	}
+	"got-negative-12-13-14-34-ok" {
+	    puts $ofd "#source: ./tmpdir/got-12.s"
+	    puts $ofd "#source: ./tmpdir/got-13.s"
+	    puts $ofd "#source: ./tmpdir/got-14.s"
+	    puts $ofd "#source: ./tmpdir/got-34.s"
+	    set count 16382
+	}
+	"got-negative-12-13-14-35-er" {
+	    puts $ofd "#source: ./tmpdir/got-12.s"
+	    puts $ofd "#source: ./tmpdir/got-13.s"
+	    puts $ofd "#source: ./tmpdir/got-14.s"
+	    puts $ofd "#source: ./tmpdir/got-35.s"
+	    set count 0
+	}
+	"got-multigot-14-ok" {
+	    puts $ofd "#source: ./tmpdir/got-14.s"
+	    set count 16382
+	}
+	"got-multigot-15-er" {
+	    puts $ofd "#source: ./tmpdir/got-15.s"
+	    set count 0
+	}
+	"got-multigot-12-13-14-34-35-ok" {
+	    puts $ofd "#source: ./tmpdir/got-12.s"
+	    puts $ofd "#source: ./tmpdir/got-13.s"
+	    puts $ofd "#source: ./tmpdir/got-14.s"
+	    puts $ofd "#source: ./tmpdir/got-34.s"
+	    puts $ofd "#source: ./tmpdir/got-35.s"
+	    set count 24578
+	}
+	"got-xgot-15-ok" {
+	    puts $ofd "#source: ./tmpdir/xgot-15.s"
+	    set count 16385
+	}
+	"got-xgot-12-13-14-15-34-35-ok" {
+	    puts $ofd "#source: ./tmpdir/got-12.s"
+	    puts $ofd "#source: ./tmpdir/got-13.s"
+	    puts $ofd "#source: ./tmpdir/got-14.s"
+	    puts $ofd "#source: ./tmpdir/xgot-15.s"
+	    puts $ofd "#source: ./tmpdir/got-34.s"
+	    puts $ofd "#source: ./tmpdir/got-35.s"
+	    set count 24581
+	}
+    }
+
+    while { [gets $ifd line] != -1 } {
+	puts $ofd $line
+    }
+
+    for { set i 0 } { $i < $count } { incr i } {
+	puts $ofd "^\[0-9a-f\]+  \[0-9a-f\]+ R_68K_GLOB_DAT    00000000   a\[0-9\]+ \\\+ 0"
+    }
+
+    close $ifd
+    close $ofd
+    run_dump_test "tmpdir/$testname"
+}
+
+gen_got_test got-12
+gen_got_test got-13
+gen_got_test got-14
+gen_got_test got-15
+gen_got_test got-34
+gen_got_test got-35
+gen_got_test xgot-15
+
+run_dump_test "got-1"
+got_test "got-single-12-ok"
+got_test "got-single-13-er"
+got_test "got-negative-14-ok"
+got_test "got-negative-15-er"
+got_test "got-negative-12-13-14-34-ok"
+got_test "got-negative-12-13-14-35-er"
+got_test "got-multigot-14-ok"
+got_test "got-multigot-15-er"
+got_test "got-multigot-12-13-14-34-35-ok"
+got_test "got-xgot-15-ok"
+got_test "got-xgot-12-13-14-15-34-35-ok"

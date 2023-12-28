@@ -1,0 +1,104 @@
+# Support routines for display-testing machinery in gprofng testsuite.
+#   Copyright (C) 1994-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# Run the COMMAND on the host and return a list of the form
+# { exit-status OUTPUT }.
+proc run_native_host_cmd { command } {
+    global TEST_TIMEOUT
+
+    verbose -log "$command"
+    set run_output ""
+    try {
+	send_log "% timeout $TEST_TIMEOUT sh -c '$command' 2>&1\n"
+	set run_output [exec "timeout" $TEST_TIMEOUT "sh" "-c" "$command" "2>&1"]
+	set status 0
+    } trap CHILDSTATUS {results options} {
+	set status [lindex [dict get $options -errorcode] 2]
+	set run_output "$results"
+	if { $status == 124 ||  $status == 133 } {
+	    send_log "  ERROR: TIMEOUT($TEST_TIMEOUT sec.)\n"
+	}
+    }
+    regsub "\n$" $run_output "" run_output
+    if { [lindex $status 0] != 0 && [string match "" $run_output] } then {
+	append run_output "child process exited abnormally"
+    }
+    return [list [lindex $status 0] "$run_output"]
+}
+
+# Run a display test in DIR.
+# Unanswered questions: do we want to cycle through compilation flags,
+# display options, collect flags, app options?  Do we want these to be
+# set on a per-app basis? (If so, they should probably be driven by a
+# file in the test dir.)
+proc run_display_test { dir cflags gprofflags tflags } {
+    global srcdir MAKE CC CFLAGS LDFLAGS LIBS BUILDDIR
+    set stripped [string map {" " ""} $dir]
+    set testdir [string map {" " ""} "$dir.$cflags,$gprofflags"]
+    set sdir "$srcdir/gprofng.display/$dir"
+    set tdir "tmpdir/$testdir"
+	send_log "create dir: $tdir\n"
+	set output [run_native_host_cmd "mkdir -p $tdir"]
+	set gprofng $::env(GPROFNG)
+
+	set fd [open "$tdir/rules.txt" "w"]
+	switch -regexp -- $testdir {
+	  {-p,on.*-h,on} {
+         set DISPLAY_FLAGS "-metrics i.totalcpu:i.cycles -func"
+	     puts $fd "Cpu, 2, 0\n"
+	     puts $fd "Cycles, 2, 1\n"
+	  }
+	  {-h,on} {
+         set DISPLAY_FLAGS "-metrics i.cycles -func"
+	     puts $fd "Cycles, 2, 0\n"
+	  }
+	  default {
+         set DISPLAY_FLAGS "-metrics i.totalcpu -func"
+	     puts $fd "Cpu, 2, 0\n"
+	  }
+	}
+	close $fd 
+
+    set make_args "-f $sdir/Makefile srcdir=\"$sdir\" builddir=\"$BUILDDIR\" \
+        VPATH=\"$dir\" CC=\"$CC\" CFLAGS=\"$cflags\" LDFLAGS=\"$LDFLAGS\" \
+        TARGET_FLAGS=\"$tflags\" \
+        DISPLAY_FLAGS=\"$DISPLAY_FLAGS\" \
+        COLLECT_FLAGS=\"$gprofflags\" GPROFNG=\"$gprofng\" MAKE=\"$MAKE\""
+    set output [run_native_host_cmd "cd $tdir && $MAKE $make_args all"]
+#	send_log "run_native_host_cmd output:\n$output\n"    
+    if { [lindex $output 0] != 0 } then {
+      set out [lindex $output 1]
+      if {[file exists "$tdir/diff.out"]} then {
+        send_log "comparison of results in $dir failed:\n$out\n"
+        set pltf [exec uname -i]
+        if { $pltf == "aarch64" } {
+          xfail $dir
+          return 0
+        }
+        perror "comparison of results in $dir failed"
+      } else {
+        send_log "compilation of test program in $dir failed:\n$out\n"
+        perror "compilation of test program in $dir failed"
+      }
+      fail $dir
+      return 0
+    }
+    pass $dir
+}

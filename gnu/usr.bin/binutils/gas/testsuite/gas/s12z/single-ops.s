@@ -1,0 +1,4 @@
+	nop
+	rts
+	bgnd
+	swi

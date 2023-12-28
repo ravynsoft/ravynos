@@ -1,0 +1,257 @@
+/* config.in.  Generated from configure.ac by autoheader.  */
+
+/* Check that config.h is #included before system headers
+   (this works only for glibc, but that should be enough).  */
+#if defined(__GLIBC__) && !defined(__FreeBSD_kernel__) && !defined(__CONFIG_H__)
+#  error config.h must be #included before system headers
+#endif
+#define __CONFIG_H__ 1
+
+/* Default compression algorithm for --enable-compressed-debug-sections. */
+#undef DEFAULT_COMPRESSED_DEBUG_ALGORITHM
+
+/* Define to 1 if you want to emit gnu hash in the ELF linker by default. */
+#undef DEFAULT_EMIT_GNU_HASH
+
+/* Define to 1 if you want to emit sysv hash in the ELF linker by default. */
+#undef DEFAULT_EMIT_SYSV_HASH
+
+/* Define if you want compressed debug sections by default. */
+#undef DEFAULT_FLAG_COMPRESS_DEBUG
+
+/* Define to 0 if you want to disable the generation of an executable stack
+   when a .note-GNU-stack section is missing. */
+#undef DEFAULT_LD_EXECSTACK
+
+/* The default method for DT_TEXTREL check in ELF linker. */
+#undef DEFAULT_LD_TEXTREL_CHECK
+
+/* Define to 1 if DT_TEXTREL check is warning in ELF linker by default. */
+#undef DEFAULT_LD_TEXTREL_CHECK_WARNING
+
+/* Define to 1 if you want to enable --warn-execstack in ELF linker by
+   default. */
+#undef DEFAULT_LD_WARN_EXECSTACK
+
+/* Define to 0 if you want to disable --warn-rwx-segments in ELF linker by
+   default. */
+#undef DEFAULT_LD_WARN_RWX_SEGMENTS
+
+/* Define to 1 if you want to enable -z relro in ELF linker by default. */
+#undef DEFAULT_LD_Z_RELRO
+
+/* Define to 1 if you want to enable -z separate-code in ELF linker by
+   default. */
+#undef DEFAULT_LD_Z_SEPARATE_CODE
+
+/* Define to 1 if you want to set DT_RUNPATH instead of DT_RPATH by default.
+   */
+#undef DEFAULT_NEW_DTAGS
+
+/* Define if you want run-time sanity checks. */
+#undef ENABLE_CHECKING
+
+/* Handle .ctf type-info sections */
+#undef ENABLE_LIBCTF
+
+/* Define to 1 if translation of program messages to the user's native
+   language is requested. */
+#undef ENABLE_NLS
+
+/* Additional extension a shared object might have. */
+#undef EXTRA_SHLIB_EXTENSION
+
+/* Define to choose default GOT handling scheme */
+#undef GOT_HANDLING_DEFAULT
+
+/* Define to 1 if you have the `close' function. */
+#undef HAVE_CLOSE
+
+/* Define to 1 if you have the declaration of `asprintf', and to 0 if you
+   don't. */
+#undef HAVE_DECL_ASPRINTF
+
+/* Define to 1 if you have the declaration of `environ', and to 0 if you
+   don't. */
+#undef HAVE_DECL_ENVIRON
+
+/* Is the prototype for getopt in <unistd.h> in the expected format? */
+#undef HAVE_DECL_GETOPT
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <elf-hints.h> header file. */
+#undef HAVE_ELF_HINTS_H
+
+/* Define to 1 if you have the <fcntl.h> header file. */
+#undef HAVE_FCNTL_H
+
+/* Define to 1 if you have the `getpagesize' function. */
+#undef HAVE_GETPAGESIZE
+
+/* Define to 1 if you have the `glob' function. */
+#undef HAVE_GLOB
+
+/* Define .init_array/.fini_array sections are available and working. */
+#undef HAVE_INITFINI_ARRAY
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* The jansson library is to be used */
+#undef HAVE_JANSSON
+
+/* Define if your <locale.h> file defines LC_MESSAGES. */
+#undef HAVE_LC_MESSAGES
+
+/* Define to 1 if you have the <limits.h> header file. */
+#undef HAVE_LIMITS_H
+
+/* Define to 1 if you have the `lseek' function. */
+#undef HAVE_LSEEK
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `mkstemp' function. */
+#undef HAVE_MKSTEMP
+
+/* Define to 1 if you have a working `mmap' system call. */
+#undef HAVE_MMAP
+
+/* Define to 1 if you have the `open' function. */
+#undef HAVE_OPEN
+
+/* Define to 1 if you have the `realpath' function. */
+#undef HAVE_REALPATH
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the <sys/file.h> header file. */
+#undef HAVE_SYS_FILE_H
+
+/* Define to 1 if you have the <sys/mman.h> header file. */
+#undef HAVE_SYS_MMAN_H
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/time.h> header file. */
+#undef HAVE_SYS_TIME_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `waitpid' function. */
+#undef HAVE_WAITPID
+
+/* Define to 1 if you have the <windows.h> header file. */
+#undef HAVE_WINDOWS_H
+
+/* Define to 1 if zstd is enabled. */
+#undef HAVE_ZSTD
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#undef LT_OBJDIR
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* The size of `void *', as computed by sizeof. */
+#undef SIZEOF_VOID_P
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if you want to support the --error-handling-script command line
+   option. */
+#undef SUPPORT_ERROR_HANDLING_SCRIPT
+
+/* Use b modifier when opening binary files? */
+#undef USE_BINARY_FOPEN
+
+/* Enable extensions on AIX 3, Interix.  */
+#ifndef _ALL_SOURCE
+# undef _ALL_SOURCE
+#endif
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# undef _GNU_SOURCE
+#endif
+/* Enable threading extensions on Solaris.  */
+#ifndef _POSIX_PTHREAD_SEMANTICS
+# undef _POSIX_PTHREAD_SEMANTICS
+#endif
+/* Enable extensions on HP NonStop.  */
+#ifndef _TANDEM_SOURCE
+# undef _TANDEM_SOURCE
+#endif
+/* Enable general extensions on Solaris.  */
+#ifndef __EXTENSIONS__
+# undef __EXTENSIONS__
+#endif
+
+
+/* Version number of package */
+#undef VERSION
+
+/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
+   `char[]'. */
+#undef YYTEXT_POINTER
+
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
+
+/* Define to 1 if on MINIX. */
+#undef _MINIX
+
+/* Define to 2 if the system does not provide POSIX.1 features except with
+   this defined. */
+#undef _POSIX_1_SOURCE
+
+/* Define to 1 if you need to in order for `stat' and other things to work. */
+#undef _POSIX_SOURCE

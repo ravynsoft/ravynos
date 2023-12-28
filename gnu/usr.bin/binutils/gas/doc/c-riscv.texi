@@ -1,0 +1,814 @@
+@c Copyright (C) 2016-2023 Free Software Foundation, Inc.
+@c This is part of the GAS anual.
+@c For copying conditions, see the file as.texinfo
+@c man end
+
+@ifset GENERIC
+@page
+@node RISC-V-Dependent
+@chapter RISC-V Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter RISC-V Dependent Features
+@end ifclear
+
+@cindex RISC-V support
+@menu
+* RISC-V-Options::        RISC-V Options
+* RISC-V-Directives::     RISC-V Directives
+* RISC-V-Modifiers::      RISC-V Assembler Modifiers
+* RISC-V-Floating-Point:: RISC-V Floating Point
+* RISC-V-Formats::        RISC-V Instruction Formats
+* RISC-V-ATTRIBUTE::      RISC-V Object Attribute
+* RISC-V-CustomExts::     RISC-V Custom (Vendor-Defined) Extensions
+@end menu
+
+@node RISC-V-Options
+@section RISC-V Options
+
+The following table lists all available RISC-V specific options.
+
+@c man begin OPTIONS
+@table @gcctabopt
+
+@cindex @samp{-fpic} option, RISC-V
+@item -fpic
+@itemx -fPIC
+Generate position-independent code
+
+@cindex @samp{-fno-pic} option, RISC-V
+@item -fno-pic
+Don't generate position-independent code (default)
+
+@cindex @samp{-march=ISA} option, RISC-V
+@item -march=ISA
+Select the base isa, as specified by ISA.  For example -march=rv32ima.
+If this option and the architecture attributes aren't set, then assembler
+will check the default configure setting --with-arch=ISA.
+
+@cindex @samp{-misa-spec=ISAspec} option, RISC-V
+@item -misa-spec=ISAspec
+Select the default isa spec version.  If the version of ISA isn't set
+by -march, then assembler helps to set the version according to
+the default chosen spec.  If this option isn't set, then assembler will
+check the default configure setting --with-isa-spec=ISAspec.
+
+@cindex @samp{-mpriv-spec=PRIVspec} option, RISC-V
+@item -mpriv-spec=PRIVspec
+Select the privileged spec version.  We can decide whether the CSR is valid or
+not according to the chosen spec.  If this option and the privilege attributes
+aren't set, then assembler will check the default configure setting
+--with-priv-spec=PRIVspec.
+
+@cindex @samp{-mabi=ABI} option, RISC-V
+@item -mabi=ABI
+Selects the ABI, which is either "ilp32" or "lp64", optionally followed
+by "f", "d", or "q" to indicate single-precision, double-precision, or
+quad-precision floating-point calling convention, or none to indicate
+the soft-float calling convention.  Also, "ilp32" can optionally be followed
+by "e" to indicate the RVE ABI, which is always soft-float.
+
+@cindex @samp{-mrelax} option, RISC-V
+@item -mrelax
+Take advantage of linker relaxations to reduce the number of instructions
+required to materialize symbol addresses. (default)
+
+@cindex @samp{-mno-relax} option, RISC-V
+@item -mno-relax
+Don't do linker relaxations.
+
+@cindex @samp{-march-attr} option, RISC-V
+@item -march-attr
+Generate the default contents for the riscv elf attribute section if the
+.attribute directives are not set.  This section is used to record the
+information that a linker or runtime loader needs to check compatibility.
+This information includes ISA string, stack alignment requirement, unaligned
+memory accesses, and the major, minor and revision version of privileged
+specification.
+
+@cindex @samp{-mno-arch-attr} option, RISC-V
+@item -mno-arch-attr
+Don't generate the default riscv elf attribute section if the .attribute
+directives are not set.
+
+@cindex @samp{-mcsr-check} option, RISC-V
+@item -mcsr-check
+Enable the CSR checking for the ISA-dependent CRS and the read-only CSR.
+The ISA-dependent CSR are only valid when the specific ISA is set.  The
+read-only CSR can not be written by the CSR instructions.
+
+@cindex @samp{-mno-csr-check} option, RISC-V
+@item -mno-csr-check
+Don't do CSR checking.
+
+@cindex @samp{-mlittle-endian} option, RISC-V
+@item -mlittle-endian
+Generate code for a little endian machine.
+
+@cindex @samp{-mbig-endian} option, RISC-V
+@item -mbig-endian
+Generate code for a big endian machine.
+@end table
+@c man end
+
+@node RISC-V-Directives
+@section RISC-V Directives
+@cindex machine directives, RISC-V
+@cindex RISC-V machine directives
+
+The following table lists all available RISC-V specific directives.
+
+@table @code
+
+@cindex @code{align} directive
+@item .align @var{size-log-2}
+Align to the given boundary, with the size given as log2 the number of bytes to
+align to.
+
+@cindex Data directives
+@item .half @var{value}
+@itemx .word @var{value}
+@itemx .dword @var{value}
+Emits a half-word, word, or double-word value at the current position.
+
+@cindex DTP-relative data directives
+@item .dtprelword @var{value}
+@itemx .dtpreldword @var{value}
+Emits a DTP-relative word (or double-word) at the current position.  This is
+meant to be used by the compiler in shared libraries for DWARF debug info for
+thread local variables.
+
+@cindex BSS directive
+@item .bss
+Sets the current section to the BSS section.
+
+@cindex LEB128 directives
+@item .uleb128 @var{value}
+@itemx .sleb128 @var{value}
+Emits a signed or unsigned LEB128 value at the current position.  This only
+accepts constant expressions, because symbol addresses can change with
+relaxation, and we don't support relocations to modify LEB128 values at link
+time.
+
+@cindex Option directive
+@cindex @code{option} directive
+@item .option @var{argument}
+Modifies RISC-V specific assembler options inline with the assembly code.
+This is used when particular instruction sequences must be assembled with a
+specific set of options.  For example, since we relax addressing sequences to
+shorter GP-relative sequences when possible the initial load of GP must not be
+relaxed and should be emitted as something like
+
+@smallexample
+	.option push
+	.option norelax
+	la gp, __global_pointer$
+	.option pop
+@end smallexample
+
+in order to produce after linker relaxation the expected
+
+@smallexample
+	auipc gp, %pcrel_hi(__global_pointer$)
+	addi gp, gp, %pcrel_lo(__global_pointer$)
+@end smallexample
+
+instead of just
+
+@smallexample
+	addi gp, gp, 0
+@end smallexample
+
+It's not expected that options are changed in this manner during regular use,
+but there are a handful of esoteric cases like the one above where users need
+to disable particular features of the assembler for particular code sequences.
+The complete list of option arguments is shown below:
+
+@table @code
+@item push
+@itemx pop
+Pushes or pops the current option stack.  These should be used whenever
+changing an option in line with assembly code in order to ensure the user's
+command-line options are respected for the bulk of the file being assembled.
+
+@item rvc
+@itemx norvc
+Enables or disables the generation of compressed instructions.  Instructions
+are opportunistically compressed by the RISC-V assembler when possible, but
+sometimes this behavior is not desirable, especially when handling alignments.
+
+@item pic
+@itemx nopic
+Enables or disables position-independent code generation.  Unless you really
+know what you're doing, this should only be at the top of a file.
+
+@item relax
+@itemx norelax
+Enables or disables relaxation.  The RISC-V assembler and linker
+opportunistically relax some code sequences, but sometimes this behavior is not
+desirable.
+
+@item csr-check
+@itemx no-csr-check
+Enables or disables the CSR checking.
+
+@item arch, @var{+extension[version]} [,...,@var{+extension_n[version_n]}]
+@itemx arch, @var{-extension} [,...,@var{-extension_n}]
+@itemx arch, @var{=ISA}
+Enables or disables the extensions for specific code region.  For example,
+@samp{.option arch, +m2p0} means add m extension with version 2.0, and
+@samp{.option arch, -f, -d} means remove extensions, f and d, from the
+architecture string.  Note that, @samp{.option arch, +c, -c} have the same
+behavior as @samp{.option rvc, norvc}.  However, they are also undesirable
+sometimes.  Besides, @samp{.option arch, -i} is illegal, since we cannot
+remove the base i extension anytime.  If you want to reset the whole ISA
+string, you can also use @samp{.option arch, =rv32imac} to overwrite the
+previous settings.
+@end table
+
+@cindex INSN directives
+@item .insn @var{type}, @var{operand} [,...,@var{operand_n}]
+@itemx .insn @var{insn_length}, @var{value}
+@itemx .insn @var{value}
+This directive permits the numeric representation of an instructions
+and makes the assembler insert the operands according to one of the
+instruction formats for @samp{.insn} (@ref{RISC-V-Formats}).
+For example, the instruction @samp{add a0, a1, a2} could be written as
+@samp{.insn r 0x33, 0, 0, a0, a1, a2}.  But in fact, the instruction
+formats are difficult to use for some users, so most of them are using
+@samp{.word} to encode the instruction directly, rather than using
+@samp{.insn}.  It is fine for now, but will be wrong when the mapping
+symbols are supported, since @samp{.word} will not be shown as an
+instruction, it should be shown as data.  Therefore, we also support
+two more formats of the @samp{.insn}, the instruction @samp{add a0, a1, a2}
+could also be written as @samp{.insn 0x4, 0xc58533} or @samp{.insn 0xc58533}.
+When the @var{insn_length} is set, then assembler will check if the
+@var{value} is a valid @var{insn_length} bytes instruction.
+
+@cindex @code{.attribute} directive, RISC-V
+@item .attribute @var{tag}, @var{value}
+Set the object attribute @var{tag} to @var{value}.
+
+The @var{tag} is either an attribute number, or one of the following:
+@code{Tag_RISCV_arch}, @code{Tag_RISCV_stack_align},
+@code{Tag_RISCV_unaligned_access}, @code{Tag_RISCV_priv_spec},
+@code{Tag_RISCV_priv_spec_minor}, @code{Tag_RISCV_priv_spec_revision}.
+
+@end table
+
+@node RISC-V-Modifiers
+@section RISC-V Assembler Modifiers
+
+The RISC-V assembler supports following modifiers for relocatable addresses
+used in RISC-V instruction operands.  However, we also support some pseudo
+instructions that are easier to use than these modifiers.
+
+@table @code
+@item %lo(@var{symbol})
+The low 12 bits of absolute address for @var{symbol}.
+
+@item %hi(@var{symbol})
+The high 20 bits of absolute address for @var{symbol}.  This is usually
+used with the %lo modifier to represent a 32-bit absolute address.
+
+@smallexample
+	lui        a0, %hi(@var{symbol})     // R_RISCV_HI20
+	addi       a0, a0, %lo(@var{symbol}) // R_RISCV_LO12_I
+
+	lui        a0, %hi(@var{symbol})     // R_RISCV_HI20
+	load/store a0, %lo(@var{symbol})(a0) // R_RISCV_LO12_I/S
+@end smallexample
+
+@item %pcrel_lo(@var{label})
+The low 12 bits of relative address between pc and @var{symbol}.
+The @var{symbol} is related to the high part instruction which is marked
+by @var{label}.
+
+@item %pcrel_hi(@var{symbol})
+The high 20 bits of relative address between pc and @var{symbol}.
+This is usually used with the %pcrel_lo modifier to represent a +/-2GB
+pc-relative range.
+
+@smallexample
+@var{label}:
+	auipc      a0, %pcrel_hi(@var{symbol})    // R_RISCV_PCREL_HI20
+	addi       a0, a0, %pcrel_lo(@var{label}) // R_RISCV_PCREL_LO12_I
+
+@var{label}:
+	auipc      a0, %pcrel_hi(@var{symbol})    // R_RISCV_PCREL_HI20
+	load/store a0, %pcrel_lo(@var{label})(a0) // R_RISCV_PCREL_LO12_I/S
+@end smallexample
+
+Or you can use the pseudo lla/lw/sw/... instruction to do this.
+
+@smallexample
+	lla  a0, @var{symbol}
+@end smallexample
+
+@item %got_pcrel_hi(@var{symbol})
+The high 20 bits of relative address between pc and the GOT entry of
+@var{symbol}.  This is usually used with the %pcrel_lo modifier to access
+the GOT entry.
+
+@smallexample
+@var{label}:
+	auipc      a0, %got_pcrel_hi(@var{symbol}) // R_RISCV_GOT_HI20
+	addi       a0, a0, %pcrel_lo(@var{label})  // R_RISCV_PCREL_LO12_I
+
+@var{label}:
+	auipc      a0, %got_pcrel_hi(@var{symbol}) // R_RISCV_GOT_HI20
+	load/store a0, %pcrel_lo(@var{label})(a0)  // R_RISCV_PCREL_LO12_I/S
+@end smallexample
+
+Also, the pseudo la instruction with PIC has similar behavior.
+
+@item %tprel_add(@var{symbol})
+This is used purely to associate the R_RISCV_TPREL_ADD relocation for
+TLS relaxation.  This one is only valid as the fourth operand to the normally
+3 operand add instruction.
+
+@item %tprel_lo(@var{symbol})
+The low 12 bits of relative address between tp and @var{symbol}.
+
+@item %tprel_hi(@var{symbol})
+The high 20 bits of relative address between tp and @var{symbol}.  This is
+usually used with the %tprel_lo and %tprel_add modifiers to access the thread
+local variable @var{symbol} in TLS Local Exec.
+
+@smallexample
+	lui        a5, %tprel_hi(@var{symbol})          // R_RISCV_TPREL_HI20
+	add        a5, a5, tp, %tprel_add(@var{symbol}) // R_RISCV_TPREL_ADD
+	load/store t0, %tprel_lo(@var{symbol})(a5)      // R_RISCV_TPREL_LO12_I/S
+@end smallexample
+
+@item %tls_ie_pcrel_hi(@var{symbol})
+The high 20 bits of relative address between pc and GOT entry.  It is
+usually used with the %pcrel_lo modifier to access the thread local
+variable @var{symbol} in TLS Initial Exec.
+
+@smallexample
+	la.tls.ie  a5, @var{symbol}
+	add        a5, a5, tp
+	load/store t0, 0(a5)
+@end smallexample
+
+The pseudo la.tls.ie instruction can be expended to
+
+@smallexample
+@var{label}:
+	auipc a5, %tls_ie_pcrel_hi(@var{symbol}) // R_RISCV_TLS_GOT_HI20
+	load  a5, %pcrel_lo(@var{label})(a5)     // R_RISCV_PCREL_LO12_I
+@end smallexample
+
+@item %tls_gd_pcrel_hi(@var{symbol})
+The high 20 bits of relative address between pc and GOT entry.  It is
+usually used with the %pcrel_lo modifier to access the thread local variable
+@var{symbol} in TLS Global Dynamic.
+
+@smallexample
+	la.tls.gd  a0, @var{symbol}
+	call       __tls_get_addr@@plt
+	mv         a5, a0
+	load/store t0, 0(a5)
+@end smallexample
+
+The pseudo la.tls.gd instruction can be expended to
+
+@smallexample
+@var{label}:
+	auipc a0, %tls_gd_pcrel_hi(@var{symbol}) // R_RISCV_TLS_GD_HI20
+	addi  a0, a0, %pcrel_lo(@var{label})     // R_RISCV_PCREL_LO12_I
+@end smallexample
+
+@end table
+
+@node RISC-V-Floating-Point
+@section RISC-V Floating Point
+@cindex floating point, risc-v (@sc{ieee})
+@cindex RISC-V floating point (@sc{ieee})
+
+The RISC-V architecture uses @sc{ieee} floating-point numbers.
+
+The RISC-V Zfa extension includes a load-immediate instruction
+for floating-point registers, which allows specifying the immediate
+(from a pool of 32 predefined values defined in the specification)
+as operand.
+E.g. to load the value @code{0.0625} as single-precision FP value into
+the FP register @code{ft1} one of the following instructions can be used:
+
+	fli.s ft1, 0.0625 # dec floating-point literal
+	fli.s ft1, 0x1p-4 # hex floating-point literal
+	fli.s ft1, 0x0.8p-3
+	fli.s ft1, 0x1.0p-4
+	fli.s ft1, 0x2p-5
+	fli.s ft1, 0x4p-6
+	...
+
+As can be seen, many valid ways exist to express a floating-point value.
+This is realized by parsing the value operand using strtof() and
+comparing the parsed value against built-in float-constants that
+are written as hex floating-point literals.
+
+This approach works on all machines that use IEEE 754.
+However, there is a chance that this fails on other machines
+with the following error message:
+
+	Error: improper fli value operand
+	Error: illegal operands `fli.s ft1,0.0625
+
+The error indicates that parsing @samp{0x1p-4} and @samp{0.0625}
+to single-precision floating point numbers will not result
+in two equal values on that machine.
+
+If you encounter this problem, then please report it.
+
+@node RISC-V-Formats
+@section RISC-V Instruction Formats
+@cindex instruction formats, risc-v
+@cindex RISC-V instruction formats
+
+The RISC-V Instruction Set Manual Volume I: User-Level ISA lists 15
+instruction formats where some of the formats have multiple variants.
+For the @samp{.insn} pseudo directive the assembler recognizes some
+of the formats.
+Typically, the most general variant of the instruction format is used
+by the @samp{.insn} directive.
+
+The following table lists the abbreviations used in the table of
+instruction formats:
+
+@display
+@multitable @columnfractions .15 .40
+@item opcode @tab Unsigned immediate or opcode name for 7-bits opcode.
+@item opcode2 @tab Unsigned immediate or opcode name for 2-bits opcode.
+@item func7 @tab Unsigned immediate for 7-bits function code.
+@item func6 @tab Unsigned immediate for 6-bits function code.
+@item func4 @tab Unsigned immediate for 4-bits function code.
+@item func3 @tab Unsigned immediate for 3-bits function code.
+@item func2 @tab Unsigned immediate for 2-bits function code.
+@item rd @tab Destination register number for operand x, can be GPR or FPR.
+@item rd' @tab Destination register number for operand x,
+only accept s0-s1, a0-a5, fs0-fs1 and fa0-fa5.
+@item rs1 @tab First source register number for operand x, can be GPR or FPR.
+@item rs1' @tab First source register number for operand x,
+only accept s0-s1, a0-a5, fs0-fs1 and fa0-fa5.
+@item rs2 @tab Second source register number for operand x, can be GPR or FPR.
+@item rs2' @tab Second source register number for operand x,
+only accept s0-s1, a0-a5, fs0-fs1 and fa0-fa5.
+@item simm12 @tab Sign-extended 12-bit immediate for operand x.
+@item simm20 @tab Sign-extended 20-bit immediate for operand x.
+@item simm6 @tab Sign-extended 6-bit immediate for operand x.
+@item uimm5 @tab Unsigned 5-bit immediate for operand x.
+@item uimm6 @tab Unsigned 6-bit immediate for operand x.
+@item uimm8 @tab Unsigned 8-bit immediate for operand x.
+@item symbol @tab Symbol or lable reference for operand x.
+@end multitable
+@end display
+
+The following table lists all available opcode name:
+
+@table @code
+@item C0
+@item C1
+@item C2
+Opcode space for compressed instructions.
+
+@item LOAD
+Opcode space for load instructions.
+
+@item LOAD_FP
+Opcode space for floating-point load instructions.
+
+@item STORE
+Opcode space for store instructions.
+
+@item STORE_FP
+Opcode space for floating-point store instructions.
+
+@item AUIPC
+Opcode space for auipc instruction.
+
+@item LUI
+Opcode space for lui instruction.
+
+@item BRANCH
+Opcode space for branch instructions.
+
+@item JAL
+Opcode space for jal instruction.
+
+@item JALR
+Opcode space for jalr instruction.
+
+@item OP
+Opcode space for ALU instructions.
+
+@item OP_32
+Opcode space for 32-bits ALU instructions.
+
+@item OP_IMM
+Opcode space for ALU with immediate instructions.
+
+@item OP_IMM_32
+Opcode space for 32-bits ALU with immediate instructions.
+
+@item OP_FP
+Opcode space for floating-point operation instructions.
+
+@item MADD
+Opcode space for madd instruction.
+
+@item MSUB
+Opcode space for msub instruction.
+
+@item NMADD
+Opcode space for nmadd instruction.
+
+@item NMSUB
+Opcode space for msub instruction.
+
+@item AMO
+Opcode space for atomic memory operation instructions.
+
+@item MISC_MEM
+Opcode space for misc instructions.
+
+@item SYSTEM
+Opcode space for system instructions.
+
+@item CUSTOM_0
+@item CUSTOM_1
+@item CUSTOM_2
+@item CUSTOM_3
+Opcode space for customize instructions.
+
+@end table
+
+An instruction is two or four bytes in length and must be aligned
+on a 2 byte boundary. The first two bits of the instruction specify the
+length of the instruction, 00, 01 and 10 indicates a two byte instruction,
+11 indicates a four byte instruction.
+
+The following table lists the RISC-V instruction formats that are available
+with the @samp{.insn} pseudo directive:
+
+@table @code
+@item R type: .insn r opcode6, func3, func7, rd, rs1, rs2
+@verbatim
++-------+-----+-----+-------+----+---------+
+| func7 | rs2 | rs1 | func3 | rd | opcode6 |
++-------+-----+-----+-------+----+---------+
+31      25    20    15      12   7        0
+@end verbatim
+
+@item R type with 4 register operands: .insn r opcode6, func3, func2, rd, rs1, rs2, rs3
+@itemx R4 type: .insn r4 opcode6, func3, func2, rd, rs1, rs2, rs3
+@verbatim
++-----+-------+-----+-----+-------+----+---------+
+| rs3 | func2 | rs2 | rs1 | func3 | rd | opcode6 |
++-----+-------+-----+-----+-------+----+---------+
+31    27      25    20    15      12   7         0
+@end verbatim
+
+@item I type: .insn i opcode6, func3, rd, rs1, simm12
+@itemx I type: .insn i opcode6, func3, rd, simm12(rs1)
+@verbatim
++--------------+-----+-------+----+---------+
+| simm12[11:0] | rs1 | func3 | rd | opcode6 |
++--------------+-----+-------+----+---------+
+31             20    15      12   7         0
+@end verbatim
+
+@item S type: .insn s opcode6, func3, rs2, simm12(rs1)
+@verbatim
++--------------+-----+-----+-------+-------------+---------+
+| simm12[11:5] | rs2 | rs1 | func3 | simm12[4:0] | opcode6 |
++--------------+-----+-----+-------+-------------+---------+
+31             25    20    15      12            7         0
+@end verbatim
+
+@item B type: .insn s opcode6, func3, rs1, rs2, symbol
+@itemx SB type: .insn sb opcode6, func3, rs1, rs2, symbol
+@verbatim
++-----------------+-----+-----+-------+----------------+---------+
+| simm12[12|10:5] | rs2 | rs1 | func3 | simm12[4:1|11] | opcode6 |
++-----------------+-----+-----+-------+----------------+---------+
+31                25    20    15      12               7         0
+@end verbatim
+
+@item U type: .insn u opcode6, rd, simm20
+@verbatim
++--------------------------+----+---------+
+| simm20[20|10:1|11|19:12] | rd | opcode6 |
++--------------------------+----+---------+
+31                         12   7         0
+@end verbatim
+
+@item J type: .insn j opcode6, rd, symbol
+@itemx UJ type: .insn uj opcode6, rd, symbol
+@verbatim
++------------+--------------+------------+---------------+----+---------+
+| simm20[20] | simm20[10:1] | simm20[11] | simm20[19:12] | rd | opcode6 |
++------------+--------------+------------+---------------+----+---------+
+31           30             21           20              12   7         0
+@end verbatim
+
+@item CR type: .insn cr opcode2, func4, rd, rs2
+@verbatim
++-------+--------+-----+---------+
+| func4 | rd/rs1 | rs2 | opcode2 |
++-------+--------+-----+---------+
+15      12       7     2        0
+@end verbatim
+
+@item CI type: .insn ci opcode2, func3, rd, simm6
+@verbatim
++-------+----------+--------+------------+---------+
+| func3 | simm6[5] | rd/rs1 | simm6[4:0] | opcode2 |
++-------+----------+--------+------------+---------+
+15      13         12       7            2         0
+@end verbatim
+
+@item CIW type: .insn ciw opcode2, func3, rd', uimm8
+@verbatim
++-------+------------+-----+---------+
+| func3 | uimm8[7:0] | rd' | opcode2 |
++-------+-------- ---+-----+---------+
+15      13           5     2         0
+@end verbatim
+
+@item CSS type: .insn css opcode2, func3, rd, uimm6
+@verbatim
++-------+------------+----+---------+
+| func3 | uimm6[5:0] | rd | opcode2 |
++-------+------------+----+---------+
+15      13           7    2         0
+@end verbatim
+
+@item CL type: .insn cl opcode2, func3, rd', uimm5(rs1')
+@verbatim
++-------+------------+------+------------+------+---------+
+| func3 | uimm5[4:2] | rs1' | uimm5[1:0] |  rd' | opcode2 |
++-------+------------+------+------------+------+---------+
+15      13           10     7            5      2         0
+@end verbatim
+
+@item CS type: .insn cs opcode2, func3, rs2', uimm5(rs1')
+@verbatim
++-------+------------+------+------------+------+---------+
+| func3 | uimm5[4:2] | rs1' | uimm5[1:0] | rs2' | opcode2 |
++-------+------------+------+------------+------+---------+
+15      13           10     7            5      2         0
+@end verbatim
+
+@item CA type: .insn ca opcode2, func6, func2, rd', rs2'
+@verbatim
++-- ----+----------+-------+------+---------+
+| func6 | rd'/rs1' | func2 | rs2' | opcode2 |
++-------+----------+-------+------+---------+
+15      10         7       5      2         0
+@end verbatim
+
+@item CB type: .insn cb opcode2, func3, rs1', symbol
+@verbatim
++-------+--------------+------+------------------+---------+
+| func3 | simm8[8|4:3] | rs1' | simm8[7:6|2:1|5] | opcode2 |
++-------+--------------+------+------------------+---------+
+15      13             10     7                  2         0
+@end verbatim
+
+@item CJ type: .insn cj opcode2, symbol
+@verbatim
++-------+-------------------------------+---------+
+| func3 | simm11[11|4|9:8|10|6|7|3:1|5] | opcode2 |
++-------+-------------------------------+---------+
+15      13                              2         0
+@end verbatim
+
+
+@end table
+
+For the complete list of all instruction format variants see
+The RISC-V Instruction Set Manual Volume I: User-Level ISA.
+
+@node RISC-V-ATTRIBUTE
+@section RISC-V Object Attribute
+@cindex Object Attribute, RISC-V
+
+RISC-V attributes have a string value if the tag number is odd and an integer
+value if the tag number is even.
+
+@table @r
+@item Tag_RISCV_stack_align (4)
+Tag_RISCV_strict_align records the N-byte stack alignment for this object.  The
+default value is 16 for RV32I or RV64I, and 4 for RV32E.
+
+The smallest value will be used if object files with different
+Tag_RISCV_stack_align values are merged.
+
+@item Tag_RISCV_arch (5)
+Tag_RISCV_arch contains a string for the target architecture taken from the
+option @option{-march}.  Different architectures will be integrated into a
+superset when object files are merged.
+
+Note that the version information of the target architecture must be presented
+explicitly in the attribute and abbreviations must be expanded.  The version
+information, if not given by @option{-march}, must be in accordance with the
+default specified by the tool.  For example, the architecture @code{RV32I} has
+to be recorded in the attribute as @code{RV32I2P0} in which @code{2P0} stands
+for the default version of its base ISA.  On the other hand, the architecture
+@code{RV32G} has to be presented as @code{RV32I2P0_M2P0_A2P0_F2P0_D2P0} in
+which the abbreviation @code{G} is expanded to the @code{IMAFD} combination
+with default versions of the standard extensions.
+
+@item Tag_RISCV_unaligned_access (6)
+Tag_RISCV_unaligned_access is 0 for files that do not allow any unaligned
+memory accesses, and 1 for files that do allow unaligned memory accesses.
+
+@item Tag_RISCV_priv_spec (8)
+@item Tag_RISCV_priv_spec_minor (10)
+@item Tag_RISCV_priv_spec_revision (12)
+Tag_RISCV_priv_spec contains the major/minor/revision version information of
+the privileged specification.  It will report errors if object files of
+different privileged specification versions are merged.
+
+@end table
+
+@node RISC-V-CustomExts
+@section RISC-V Custom (Vendor-Defined) Extensions
+@cindex custom (vendor-defined) extensions, RISC-V
+@cindex RISC-V custom (vendor-defined) extensions
+
+The following table lists the custom (vendor-defined) RISC-V
+extensions supported and provides the location of their
+publicly-released documentation:
+
+@table @r
+@item XTheadBa
+The XTheadBa extension provides instructions for address calculations.
+
+It is documented in @url{https://github.com/T-head-Semi/thead-extension-spec/releases/download/2.0.0/xthead-2022-09-05-2.0.0.pdf}.
+
+@item XTheadBb
+The XTheadBb extension provides instructions for basic bit-manipulation
+
+It is documented in @url{https://github.com/T-head-Semi/thead-extension-spec/releases/download/2.0.0/xthead-2022-09-05-2.0.0.pdf}.
+
+@item XTheadBs
+The XTheadBs extension provides single-bit instructions.
+
+It is documented in @url{https://github.com/T-head-Semi/thead-extension-spec/releases/download/2.0.0/xthead-2022-09-05-2.0.0.pdf}.
+
+@item XTheadCmo
+The XTheadCmo extension provides instructions for cache management.
+
+It is documented in @url{https://github.com/T-head-Semi/thead-extension-spec/releases/download/2.0.0/xthead-2022-09-05-2.0.0.pdf}.
+
+@item XTheadCondMov
+The XTheadCondMov extension provides instructions for conditional moves.
+
+It is documented in @url{https://github.com/T-head-Semi/thead-extension-spec/releases/download/2.0.0/xthead-2022-09-05-2.0.0.pdf}.
+
+@item XTheadFMemIdx
+The XTheadFMemIdx extension provides floating-point memory operations.
+
+It is documented in @url{https://github.com/T-head-Semi/thead-extension-spec/releases/download/2.0.0/xthead-2022-09-05-2.0.0.pdf}.
+
+@item XTheadFmv
+The XTheadFmv extension provides access to the upper 32 bits of a doulbe-precision floating point register.
+
+It is documented in @url{https://github.com/T-head-Semi/thead-extension-spec/releases/download/2.1.0/xthead-2022-11-07-2.1.0.pdf}.
+
+@item XTheadInt
+The XTheadInt extension provides access to ISR stack management instructions.
+
+It is documented in @url{https://github.com/T-head-Semi/thead-extension-spec/releases/download/2.1.0/xthead-2022-11-07-2.1.0.pdf}.
+
+@item XTheadMac
+The XTheadMac extension provides multiply-accumulate instructions.
+
+It is documented in @url{https://github.com/T-head-Semi/thead-extension-spec/releases/download/2.0.0/xthead-2022-09-05-2.0.0.pdf}.
+
+@item XTheadMemIdx
+The XTheadMemIdx extension provides GPR memory operations.
+
+It is documented in @url{https://github.com/T-head-Semi/thead-extension-spec/releases/download/2.0.0/xthead-2022-09-05-2.0.0.pdf}.
+
+@item XTheadMemPair
+The XTheadMemPair extension provides two-GP-register memory operations.
+
+It is documented in @url{https://github.com/T-head-Semi/thead-extension-spec/releases/download/2.0.0/xthead-2022-09-05-2.0.0.pdf}.
+
+@item XTheadSync
+The XTheadSync extension provides instructions for multi-processor synchronization.
+
+It is documented in @url{https://github.com/T-head-Semi/thead-extension-spec/releases/download/2.0.0/xthead-2022-09-05-2.0.0.pdf}.
+@item XVentanaCondOps
+XVentanaCondOps extension provides instructions for branchless
+sequences that perform conditional arithmetic, conditional
+bitwise-logic, and conditional select operations.
+
+It is documented at @url{https://github.com/ventanamicro/ventana-custom-extensions/releases/download/v1.0.0/ventana-custom-extensions-v1.0.0.pdf}.
+
+@end table

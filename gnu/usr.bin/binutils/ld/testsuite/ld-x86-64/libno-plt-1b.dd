@@ -1,0 +1,15 @@
+#objdump: -dwrj.text
+#target: x86_64-*-*
+
+.*: +file format elf.*-x86-64.*
+
+Disassembly of section .text:
+
+#...
+[0-9a-f]+ <get_func>:
+ +[a-f0-9]+:	48 8b 05 ([0-9a-f]{2} ){4}[ 	]+mov    0x[0-9a-f]+\(%rip\),%rax +# [0-9a-f]+ <.*>
+ +[a-f0-9]+:	c3                   	ret *
+#...
+[0-9a-f]+ <call_func>:
+ +[a-f0-9]+:	ff 25 ([0-9a-f]{2} ){4}[ 	]+jmp    \*0x[0-9a-f]+\(%rip\) +# [0-9a-f]+ <.*>
+#pass

@@ -1,0 +1,27 @@
+
+.*\.x:     file format elf32-or1k
+
+
+Disassembly of section \.plt:
+
+[0-9a-f]+ <\.plt>:
+ +[0-9a-f]+:	19 80 00 00 	l\.movhi r12,0x0
+ +[0-9a-f]+:	85 ec [0-9a-f]+ [0-9a-f]+ 	l\.lwz r15,[0-9]+\(r12\)
+ +[0-9a-f]+:	44 00 78 00 	l\.jr r15
+ +[0-9a-f]+:	85 8c [0-9a-f]+ [0-9a-f]+ 	l\.lwz r12,[0-9]+\(r12\)
+ +[0-9a-f]+:	19 80 00 00 	l\.movhi r12,0x0
+ +[0-9a-f]+:	85 8c [0-9a-f]+ [0-9a-f]+ 	l\.lwz r12,[0-9]+\(r12\)
+ +[0-9a-f]+:	44 00 60 00 	l\.jr r12
+ +[0-9a-f]+:	a9 60 00 00 	l\.ori r11,r0,0x0
+ +[0-9a-f]+:	19 80 00 00 	l\.movhi r12,0x0
+ +[0-9a-f]+:	85 8c [0-9a-f]+ [0-9a-f]+ 	l\.lwz r12,[0-9]+\(r12\)
+ +[0-9a-f]+:	44 00 60 00 	l\.jr r12
+ +[0-9a-f]+:	a9 60 00 0c 	l\.ori r11,r0,0xc
+
+Disassembly of section \.text:
+
+[0-9a-f]+ <_start>:
+ +[0-9a-f]+:	03 ff ff f8 	l\.j [0-9a-f]+ <.plt\+0x10>
+ +[0-9a-f]+:	15 00 00 00 	l\.nop 0x0
+ +[0-9a-f]+:	03 ff ff fa 	l\.j [0-9a-f]+ <.plt\+0x20>
+ +[0-9a-f]+:	15 00 00 00 	l\.nop 0x0

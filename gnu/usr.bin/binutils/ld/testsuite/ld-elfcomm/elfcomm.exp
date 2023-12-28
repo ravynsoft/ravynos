@@ -1,0 +1,287 @@
+# Expect script for common symbol tests
+#   Copyright (C) 2003-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+# Written by H.J. Lu (hjl@gnu.org)
+#
+
+# Make sure that ld correctly handles common symbols in ELF.
+
+# This test can only be run on ELF platforms.
+if ![is_elf_format] {
+    return
+}
+
+# hpux assembly is weird
+if [istarget "hppa*-*-hpux*"] {
+    return
+}
+
+proc test_sort_common {} {
+    global exec_output
+    global objdump
+    global srcdir
+    global subdir
+    global as
+    global ld
+  
+    set test "--sort-common (descending)"
+  
+    verbose "Check to see that --sort-common sorts in descending alignment"
+
+    # We do not run the sort common tests for the DLX target because we know that the linker
+    # will seg-fault.  The built-in DLX linker script requires that there be something in the
+    # .text section and our sort-common.s file does not provide anything.
+    if [istarget dlx-*-*] {
+	untested "$test"
+	return 0
+    }
+    
+    if { ![ld_assemble $as $srcdir/$subdir/sort-common.s tmpdir/sort-common.o] } {
+	unsupported "$test"
+	return 0
+    }
+
+    if { ![ld_link $ld tmpdir/sort-common.dx "--sort-common=descending tmpdir/sort-common.o"] } {
+	fail "$test (could not link)"
+	return 0
+    }
+
+    send_log "$objdump --syms tmpdir/sort-common.dx | grep var | sort\n"
+    set exec_output [run_host_cmd "$objdump" "--syms tmpdir/sort-common.dx | grep var | sort"]
+
+    # Don't know why, but the CR ports fail this test.
+    setup_xfail "cr16-*-*" "crx-*-*"
+
+    # Note: The second regexp is for targets which put small commons in a .sbss
+    #  section and large commons in a .bss section.
+    if {   ![regexp ".*var_16.*var_8.*var_4.*var_2.*var_1.*" $exec_output]
+        && ![regexp ".*sbss.*var_8.*var_4.*var_2.*var_1.*bss.*var_16.*" $exec_output] } {      
+	fail "$test (variables in wrong order)"
+    } else {
+	pass $test
+    }
+
+    set test "--sort-common (ascending)"
+  
+    verbose "Check to see that --sort-common=ascending sorts in ascending alignment"
+
+    if { ![ld_link $ld tmpdir/sort-common.ax "--sort-common=ascending tmpdir/sort-common.o"] } {
+	fail "$test (could not link)"
+	return 0
+    }
+
+    send_log "$objdump --syms tmpdir/sort-common.ax | grep var | sort\n"
+    set exec_output [run_host_cmd "$objdump" "--syms tmpdir/sort-common.ax | grep var | sort"]
+
+    if {![regexp ".*var_1.*var_2.*var_4.*var_8.*var_16.*" $exec_output]} {      
+	fail "$test (variables in wrong order)"
+	return 0
+    }
+
+    pass $test
+    return 1
+}
+
+test_sort_common
+
+set test1	"size/alignment change of common symbols"
+set test1w1	"$test1 (warning 1)"
+set test1w2	"$test1 (warning 2)"
+set test1c1	"$test1 (change 1)"
+set test1c2	"$test1 (change 2)"
+
+if { ![check_compiler_available] } {
+    untested $test1w1
+    untested $test1w2
+    untested $test1c1
+    untested $test1c2
+    return
+}
+if { [istarget score-*-*] } {
+    untested $test1w1
+    untested $test1w2
+    untested $test1c1
+    untested $test1c2
+    return
+}
+
+proc dump_common1 { testname } {
+    global exec_output
+    global READELF
+
+    send_log "$READELF --syms tmpdir/common1.o | grep foo\n"
+    set exec_output [run_host_cmd "$READELF" "--syms tmpdir/common1.o | grep foo"]
+
+    if {   ![regexp "(\[ 	\]*)(\[0-9\]+):(\[ 	\]*)(\[0\]*)80(\[ 	\]+)4(\[ 	\]+)(COMMON|OBJECT)(\[ 	\]+)GLOBAL(\[ 	\]+)DEFAULT(\[ 	\]+)(PRC\\\[0xff03\\\]|COM|SCOM)(\[ 	\]+)_?foo2" $exec_output]
+	|| ![regexp "(\[ 	\]*)(\[0-9\]+):(\[ 	\]*)(\[0-9\]+)(\[ 	\]+)21(\[ 	\]+)OBJECT(\[ 	\]+)GLOBAL(\[ 	\]+)DEFAULT(\[ 	\]+)(\[0-9\]+)(\[ 	\]+)_?foo1" $exec_output] } {
+	verbose $exec_output
+	fail $testname
+	return 0
+    }
+
+    return 1
+}
+
+proc stt_common_test { options testname } {
+    global exec_output
+    global READELF
+    global ld
+
+    set options "$options tmpdir/common1c.o"
+
+    if { ! [ld_link $ld tmpdir/common.exe $options] } {
+      fail $testname
+      return 0
+    }
+
+    send_log "$READELF --syms tmpdir/common.exe | grep foo\n"
+    set exec_output [run_host_cmd "$READELF" "--syms tmpdir/common.exe | grep foo"]
+
+    if {![regexp { +[0-9a-f]+. +[0-9a-f]+ OBJECT + GLOBAL +DEFAULT +[0-9]+ _?foo2} $exec_output] } {
+	fail $testname
+	return 0
+    }
+
+    pass $testname
+    return 1
+}
+
+# Explicitly use "-fcommon" so that even if $CFLAGS includes
+# "-fno-common", these tests are compiled as expected.
+set options "-fcommon $NOSANITIZE_CFLAGS $NOLTO_CFLAGS"
+if [istarget nios2*-*-*] {
+    append options " -G0"
+}
+if {   ![ld_compile "$CC_FOR_TARGET $options" $srcdir/$subdir/common1a.c tmpdir/common1a.o]
+    || ![ld_compile "$CC_FOR_TARGET $options" $srcdir/$subdir/common1b.c tmpdir/common1b.o]
+    || ![ld_compile "$CC_FOR_TARGET $options -Wa,--elf-stt-common=yes" $srcdir/$subdir/common1b.c tmpdir/common1c.o] } {
+    unsupported $test1
+    return
+}
+
+set options "-r tmpdir/common1a.o tmpdir/common1b.o"
+
+if { [ld_link $ld tmpdir/common1.o $options] } {
+    fail $test1w1
+    return
+}
+
+# This test fails on MIPS because the backend sets type_change_ok.
+# The size change warning is suppressed.  Same on hppa64.
+if {[istarget mips*-*-*] || [istarget hppa*64*-*-*]} {
+    if { ![regexp "warning: alignment (\[0-9\]+) of normal symbol \`_?foo1\' in tmpdir/common1b.o is smaller than 64 used by the common definition in tmpdir/common1a.o" $link_output] } {
+        fail $test1w1
+    } else {
+        pass $test1w1
+    }
+} else {
+    if { ![regexp "warning: alignment (\[0-9\]+) of normal symbol \`_?foo1\' in tmpdir/common1b.o is smaller than 64 used by the common definition in tmpdir/common1a.o" $link_output]
+         || ![regexp "warning: size of symbol \`_?foo1\' changed from 2 in tmpdir/common1a.o to 21 in tmpdir/common1b.o" $link_output] } {
+        fail $test1w1
+    } else {
+        pass $test1w1
+    }
+}
+
+if { [dump_common1 $test1c1] } {
+    pass $test1c1
+}
+
+set options "-r tmpdir/common1b.o tmpdir/common1a.o"
+
+if { [ld_link $ld tmpdir/common1.o $options] } {
+    fail $test1w2
+    return
+}
+
+if { ![regexp "warning: alignment (\[0-9\]+) of normal symbol \`_?foo1\' in tmpdir/common1b.o is smaller than 64 used by the common definition in tmpdir/common1a.o" $link_output] } {
+    fail $test1w2
+} else {
+    pass $test1w2
+}
+
+if { [dump_common1 $test1c2] } {
+    pass $test1c2
+}
+
+#
+# The following tests are for when we are generating STT_COMMON symbols only.
+#
+# Handling of -z common and -z nocommon flags is enabled only if
+# $GENERATE_SHLIB_SCRIPT is turned on in emulparams i.e. shared
+# libraries are supported.
+
+if ![check_shared_lib_support]  {
+    return
+}
+
+stt_common_test "-static -e 0" "static link of common symbols"
+stt_common_test "-shared"      "shared link of common symbols"
+stt_common_test "-pie"         "position independent link of common symbols"
+
+run_ld_link_tests [list \
+  [list \
+    "Build common-3x.o" \
+     "-r" "" "--elf-stt-common=no" \
+     {common-1.s} {} "common-3x.o" \
+  ] \
+  [list \
+    "Build common-3y.o" \
+     "-r" "" "--elf-stt-common=yes" \
+     {common-1.s} {} "common-3y.o" \
+  ] \
+  [list \
+    "Build common-3a.o" \
+    "-r tmpdir/common-3x.o tmpdir/common-3y.o" "" "" \
+    {dummy.s} {{readelf {-s -W} common-3a.rd}} "common-3a.o" \
+  ] \
+  [list \
+    "Build common-3b.o" \
+    "-r tmpdir/common-3y.o tmpdir/common-3x.o" "" "" \
+    {dummy.s} {{readelf {-s -W} common-3b.rd}} "common-3b.o" \
+  ] \
+  [list \
+    "Build common-3c.o" \
+    "-r -z nocommon tmpdir/common-3x.o tmpdir/common-3y.o" "" "" \
+    {dummy.s} {{readelf {-s -W} common-3a.rd}} "common-3c.o" \
+  ] \
+  [list \
+    "Build common-3d.o" \
+    "-r -z common tmpdir/common-3x.o tmpdir/common-3y.o" "" "" \
+    {dummy.s} {{readelf {-s -W} common-3b.rd}} "common-3b.o" \
+  ] \
+  [list \
+    "Build common-3e.o" \
+    "-r -z common tmpdir/common-3y.o tmpdir/common-3x.o" "" "" \
+    {dummy.s} {{readelf {-s -W} common-3b.rd}} "common-3e.o" \
+  ] \
+  [list \
+    "Build common-3f.o" \
+    "-r -z nocommon tmpdir/common-3y.o tmpdir/common-3x.o" "" "" \
+    {dummy.s} {{readelf {-s -W} common-3a.rd}} "common-3f.o" \
+  ] \
+]
+
+set test_list [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+foreach t $test_list {
+    # We need to strip the ".d", but can leave the dirname.
+    verbose [file rootname $t]
+    run_dump_test [file rootname $t]
+}

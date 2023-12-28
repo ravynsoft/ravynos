@@ -1,0 +1,18 @@
+#source: wdispcall.s
+#as: --32
+#ld: -static -melf32_sparc -relax
+#objdump: -dj.wdispcall
+#target: sparc*-*-*
+
+.*: +file format elf32-sparc.*
+
+Disassembly of section .wdispcall:
+
+00000000 <foo>:
+ +0:	01 00 00 00 	nop *
+ +4:	10 80 40 ff 	b  10400 <bar>
+ +8:	9e 10 40 00 	mov  %g1, %o7
+ +c:	01 00 00 00 	nop *
+ +10:	40 00 40 fc 	call  10400 <bar>
+ +14:	01 00 00 00 	nop *
+

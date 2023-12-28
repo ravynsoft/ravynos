@@ -1,0 +1,257 @@
+# Expect script for various indirect symbol tests.
+#   Copyright (C) 2012-2023 Free Software Foundation, Inc.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 2 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+#
+
+#
+# Written by H.J. Lu (hongjiu.lu@intel.com)
+#
+
+# Exclude non-ELF targets.
+
+if ![is_elf_format] {
+    return
+}
+
+# Skip target where -shared is not supported
+
+if ![check_shared_lib_support] {
+    return
+}
+
+# Check if compiler works
+if { ![check_compiler_available] } {
+    return
+}
+
+# Some bare-metal targets don't support shared libs or PIC.
+if { ![run_host_cmd_yesno $CC_FOR_TARGET "-shared -fPIC $srcdir/$subdir/dummy.c -o tmpdir/t.so"] } {
+    return
+}
+
+proc check_link_message { cmd string testname } {
+    send_log "$cmd\n"
+    verbose "$cmd"
+    catch "exec $cmd" exec_output
+    send_log "$exec_output\n"
+    verbose "$exec_output"
+
+    foreach str $string {
+	if [string match "*$str*" $exec_output] {
+	    pass "$testname: $str"
+	} else {
+	    fail "$testname: $str"
+	}
+    }
+}
+
+# Disable LTO for these tests.
+set cc_cmd "$CC_FOR_TARGET"
+if {[check_lto_available]} {
+   append cc_cmd " -fno-lto"
+}
+
+# Disable all sanitizers.
+append cc_cmd " $NOSANITIZE_CFLAGS"
+
+if { ![ld_compile $cc_cmd $srcdir/$subdir/indirect1a.c tmpdir/indirect1a.o]
+     || ![ld_compile $cc_cmd $srcdir/$subdir/indirect1b.c tmpdir/indirect1b.o]
+     || ![ld_compile "$cc_cmd -fPIC" $srcdir/$subdir/indirect2.c tmpdir/indirect2.o]
+     || ![ld_compile $cc_cmd $srcdir/$subdir/indirect3a.c tmpdir/indirect3a.o]
+     || ![ld_compile $cc_cmd $srcdir/$subdir/indirect3b.c tmpdir/indirect3b.o]
+     || ![ld_compile $cc_cmd $srcdir/$subdir/indirect4a.c tmpdir/indirect4a.o]
+     || ![ld_compile $cc_cmd $srcdir/$subdir/indirect4b.c tmpdir/indirect4b.o]
+     || ![ld_compile "$cc_cmd -O2 -fPIC -I../bfd" $srcdir/$subdir/pr18720a.c tmpdir/pr18720a.o]
+     || ![ld_compile $cc_cmd $srcdir/$subdir/pr18720b.c tmpdir/pr18720b.o]
+     || ![ld_compile "$cc_cmd -fPIC" $srcdir/$subdir/pr19553d.c tmpdir/pr19553d.o]
+     || ![ld_compile "$cc_cmd -fPIC" $srcdir/$subdir/pr19553c.c tmpdir/pr19553c.o]
+     || ![ld_compile "$cc_cmd -fPIC" $srcdir/$subdir/pr19553b.c tmpdir/pr19553b.o]
+     || ![ld_compile $cc_cmd $srcdir/$subdir/pr19553a.c tmpdir/pr19553a.o] } {
+    unsupported "Indirect symbol tests"
+    return
+}
+
+set build_tests {
+  {"Build libindirect1c.so"
+   "-shared" "-fPIC"
+   {indirect1c.c} {} "libindirect1c.so"}
+  {"Build libindirect3c.so"
+   "-shared" "-fPIC"
+   {indirect3c.c} {} "libindirect3c.so"}
+  {"Build libindirect4c.so"
+   "-shared" "-fPIC"
+   {indirect4c.c} {} "libindirect4c.so"}
+  {"Build libindirect5.so"
+   "-shared -Wl,--version-script=indirect5.map" "-fPIC"
+   {indirect5b.c} {} "libindirect5.so"}
+  {"Build libpr18720c.so"
+   "-shared" "-fPIC"
+   {pr18720c.c} {} "libpr18720c.so"}
+  {"Build pr18720b1.o"
+   "-r -nostdlib tmpdir/pr18720b.o" ""
+   {dummy.c} {} "pr18720b1.o"}
+  {"Build pr18720a"
+   "tmpdir/pr18720a.o tmpdir/pr18720b.o tmpdir/libpr18720c.so" ""
+   {check-ptr-eq.c} {{readelf {--dyn-syms} pr18720.rd}} "pr18720a"}
+  {"Build libpr19553b.so"
+   "-shared -Wl,--version-script=pr19553.map" "-fPIC"
+   {pr19553b.c} {} "libpr19553b.so"}
+  {"Build libpr19553c.so"
+   "-shared -Wl,--version-script=pr19553.map" "-fPIC"
+   {pr19553c.c} {} "libpr19553c.so"}
+  {"Build libpr19553d.so"
+   "-shared tmpdir/libpr19553c.so" "-fPIC"
+   {pr19553d.c} {} "libpr19553d.so"}
+}
+
+run_cc_link_tests $build_tests
+
+set string ": final link failed: bad value"
+set string1 ": local symbol \`foo\' in tmpdir/indirect1b.o is referenced by DSO"
+
+set testname "Indirect symbol 1a"
+set cmd "$ld -e start -o tmpdir/indirect1 tmpdir/indirect1a.o tmpdir/indirect1b.o tmpdir/libindirect1c.so"
+check_link_message "$cmd" [list $string1 $string] "$testname"
+
+set testname "Indirect symbol 1b"
+set cmd "$ld -e start -o tmpdir/indirect1 tmpdir/indirect1a.o tmpdir/libindirect1c.so tmpdir/indirect1b.o"
+check_link_message "$cmd" [list $string1 $string] "$testname"
+
+set string2 ": no symbol version section for versioned symbol \`foo@FOO\'"
+set testname "Indirect symbol 2"
+set cmd "$ld -shared  -o tmpdir/indirect2.so tmpdir/indirect2.o"
+check_link_message "$cmd" [list $string2] "$testname"
+
+set run_tests [list \
+    [list "Run with libindirect3c.so 1" \
+     "-Wl,--no-as-needed tmpdir/indirect3a.o tmpdir/indirect3b.o tmpdir/libindirect3c.so" "" \
+     {dummy.c} "indirect3a" "indirect3.out"] \
+    [list "Run with libindirect3c.so 2" \
+     "-Wl,--no-as-needed tmpdir/indirect3a.o tmpdir/libindirect3c.so tmpdir/indirect3b.o" "" \
+     {dummy.c} "indirect3b" "indirect3.out"] \
+    [list "Run with libindirect3c.so 3" \
+     "-Wl,--no-as-needed tmpdir/indirect3b.o tmpdir/libindirect3c.so tmpdir/indirect3a.o" "" \
+     {dummy.c} "indirect3c" "indirect3.out"] \
+    [list "Run with libindirect3c.so 4" \
+     "-Wl,--no-as-needed tmpdir/libindirect3c.so tmpdir/indirect3b.o tmpdir/indirect3a.o" "" \
+     {dummy.c} "indirect3d" "indirect3.out"] \
+    [list "Run with libindirect4c.so 1" \
+     "-Wl,--no-as-needed tmpdir/indirect4a.o tmpdir/indirect4b.o tmpdir/libindirect4c.so" "" \
+     {dummy.c} "indirect4a" "indirect4.out"] \
+    [list "Run with libindirect4c.so 2" \
+     "-Wl,--no-as-needed tmpdir/indirect4a.o tmpdir/libindirect4c.so tmpdir/indirect4b.o" "" \
+     {dummy.c} "indirect4b" "indirect4.out"] \
+    [list "Run with libindirect4c.so 3" \
+     "-Wl,--no-as-needed tmpdir/indirect4b.o tmpdir/libindirect4c.so tmpdir/indirect4a.o" "" \
+     {dummy.c} "indirect4c" "indirect4.out"] \
+    [list "Run with libindirect4c.so 4" \
+     "-Wl,--no-as-needed tmpdir/libindirect4c.so tmpdir/indirect4b.o tmpdir/indirect4a.o" "" \
+     {dummy.c} "indirect4d" "indirect4.out"] \
+    [list "Run indirect5 1" \
+     "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libindirect5.so" "" \
+     {indirect5a.c} "indirect5a" "indirect5.out" "$NOPIE_CFLAGS"] \
+    [list "Run indirect5 2" \
+     "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/indirect5a.o tmpdir/libindirect5.so" "" \
+     {dummy.c} "indirect5b" "indirect5.out" "$NOPIE_CFLAGS"] \
+    [list "Run indirect6 1" \
+     "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libindirect5.so" "" \
+     {indirect6a.c} "indirect6a" "indirect5.out" "$NOPIE_CFLAGS"] \
+    [list "Run indirect6 2" \
+     "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/indirect6a.o tmpdir/libindirect5.so" "" \
+     {dummy.c} "indirect6b" "indirect5.out" "$NOPIE_CFLAGS"] \
+    [list "Run with libpr18720c.so 1" \
+     "-Wl,--no-as-needed tmpdir/pr18720a.o tmpdir/pr18720b.o tmpdir/libpr18720c.so" "" \
+     {check-ptr-eq.c} "pr18720a" "pr18720.out"] \
+    [list "Run with libpr18720c.so 2" \
+     "-Wl,--no-as-needed tmpdir/pr18720a.o tmpdir/libpr18720c.so tmpdir/pr18720b.o" "" \
+     {check-ptr-eq.c} "pr18720b" "pr18720.out"] \
+    [list "Run with libpr18720c.so 3" \
+     "-Wl,--no-as-needed tmpdir/pr18720b.o tmpdir/libpr18720c.so tmpdir/pr18720a.o" "" \
+     {check-ptr-eq.c} "pr18720c" "pr18720.out"] \
+    [list "Run with libpr18720c.so 4" \
+     "-Wl,--no-as-needed tmpdir/libpr18720c.so tmpdir/pr18720b.o tmpdir/pr18720a.o" "" \
+     {check-ptr-eq.c} "pr18720d" "pr18720.out"] \
+    [list "Run with libpr18720c.so 5" \
+     "-Wl,--no-as-needed tmpdir/libpr18720c.so tmpdir/pr18720b1.o tmpdir/pr18720a.o" "" \
+     {check-ptr-eq.c} "pr18720d" "pr18720.out"] \
+    [list "Run with libpr19553b.so" \
+     "-Wl,--no-as-needed tmpdir/libpr19553b.so tmpdir/libpr19553d.so -Wl,-rpath-link,." "" \
+     {pr19553a.c} "pr19553b" "pr19553b.out"] \
+    [list "Run with libpr19553c.so" \
+     "-Wl,--no-as-needed tmpdir/libpr19553c.so tmpdir/libpr19553b.so tmpdir/libpr19553d.so" "" \
+     {pr19553a.c} "pr19553c" "pr19553c.out"] \
+    [list "Run with libpr19553d.so" \
+     "-Wl,--no-as-needed tmpdir/libpr19553d.so tmpdir/libpr19553b.so -Wl,-rpath-link,." "" \
+     {pr19553a.c} "pr19553d" "pr19553d.out"] \
+]
+
+run_ld_link_exec_tests $run_tests
+
+# Check that "bar" is not dynamic in the executable
+proc check_dynamic_syms { test } {
+    global nm
+    set cmd "$nm -D $test > dump.out"
+    send_log "$cmd\n"
+    catch "exec $cmd" comp_output
+    if ![string match "" $comp_output] then {
+	send_log "$comp_output\n"
+	return 0
+    }
+    if { [string match "* bar\n*" [file_contents "dump.out"]] } then {
+	verbose "output is [file_contents "dump.out"]"
+	return 0
+    }
+    return 1
+}
+
+foreach t [list indirect5a indirect5b indirect6a indirect6b] {
+    set testname [concat $t "dynsym"]
+    if { [check_dynamic_syms tmpdir/$t] } {
+	pass $testname
+    } else {
+	fail $testname
+    }
+}
+
+if { ![run_host_cmd_yesno $CC_FOR_TARGET "-fPIC -pie $srcdir/$subdir/main.c -o tmpdir/pie"] } {
+    return
+}
+
+set pie_tests {
+    {"Run indirect5 3"
+     "-pie -Wl,--no-as-needed tmpdir/libindirect5.so" ""
+     {indirect5a.c} "indirect5c" "indirect5.out" "-fPIE"}
+    {"Run indirect5 4"
+     "-pie -Wl,--no-as-needed tmpdir/indirect5a.o tmpdir/libindirect5.so" ""
+     {dummy.c} "indirect5d" "indirect5.out" "-fPIE"}
+    {"Run indirect6 3"
+     "-pie -Wl,--no-as-needed tmpdir/libindirect5.so" ""
+     {indirect6a.c} "indirect6c" "indirect5.out" "-fPIE"}
+    {"Run indirect6 4"
+     "-pie -Wl,--no-as-needed tmpdir/indirect6a.o tmpdir/libindirect5.so" "-fPIE"
+     {dummy.c} "indirect6d" "indirect5.out" "-fPIE"}
+}
+
+run_ld_link_exec_tests $pie_tests
+
+foreach t [list indirect5c indirect5d indirect6c indirect6d] {
+    set testname [concat $t "dynsym"]
+    if { [check_dynamic_syms tmpdir/$t] } {
+	pass $testname
+    } else {
+	fail $testname
+    }
+}

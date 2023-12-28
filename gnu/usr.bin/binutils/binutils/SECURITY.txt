@@ -1,0 +1,68 @@
+Binutils Security Process
+=========================
+
+What is a binutils security bug?
+================================
+
+    A security bug is one that threatens the security of a system or
+    network, or might compromise the security of data stored on it.
+    In the context of GNU Binutils there are two ways in which such
+    bugs might occur.  In the first, the programs themselves might be
+    tricked into a direct compromise of security.  In the second, the
+    tools might introduce a vulnerability in the generated output that
+    was not already present in the files used as input. 
+
+    Other than that, all other bugs will be treated as non-security
+    issues.  This does not mean that they will be ignored, just that
+    they will not be given the priority that is given to security bugs.
+
+    This stance applies to the creation tools in the GNU Binutils (eg
+    as, ld, gold, objcopy) and the libraries that they use.  Bugs in
+    inspection tools (eg readelf, nm objdump) will not be considered
+    to be security bugs, since they do not create executable output
+    files.
+
+Notes:
+======
+
+    None of the programs in the GNU Binutils suite need elevated
+    privileges to operate and it is recommended that users do not use
+    them from accounts where such privileges are automatically
+    available.
+
+    The inspection tools are intended to be robust but nevertheless
+    they should be appropriately sandboxed if they are used to examine
+    malicious or potentially malicious input files.
+
+Reporting private security bugs
+===============================
+
+   *All bugs reported in the Binutils Bugzilla are public.*
+
+   In order to report a private security bug that is not immediately
+   public, please contact one of the downstream distributions with
+   security teams.  The following teams have volunteered to handle
+   such bugs:
+
+      Debian:  security@debian.org
+      Red Hat: secalert@redhat.com
+      SUSE:    security@suse.de
+
+   Please report the bug to just one of these teams.  It will be shared
+   with other teams as necessary.
+
+   The team contacted will take care of details such as vulnerability
+   rating and CVE assignment (http://cve.mitre.org/about/).  It is likely
+   that the team will ask to file a public bug because the issue is
+   sufficiently minor and does not warrant an embargo.  An embargo is not
+   a requirement for being credited with the discovery of a security
+   vulnerability.
+
+Reporting public security bugs
+==============================
+
+   It is expected that critical security bugs will be rare, and that most
+   security bugs can be reported in Binutils Bugzilla system, thus making
+   them public immediately.  The system can be found here:
+
+      https://sourceware.org/bugzilla/

@@ -1,0 +1,94 @@
+# Test predicates allowed or disallowed depending on the architecture.
+.text
+.globl f
+f:
+	[A0] nop
+	[A1] nop
+	[A2] nop
+	[B0] nop
+	[B1] nop
+	[B2] nop
+	[!A0] nop
+	[!A1] nop
+	[!A2] nop
+	[!B0] nop
+	[!B1] nop
+	[!B2] nop
+.arch c64x
+	[A0] nop
+	[A1] nop
+	[A2] nop
+	[B0] nop
+	[B1] nop
+	[B2] nop
+	[!A0] nop
+	[!A1] nop
+	[!A2] nop
+	[!B0] nop
+	[!B1] nop
+	[!B2] nop
+.arch c64x+
+	[A0] nop
+	[A1] nop
+	[A2] nop
+	[B0] nop
+	[B1] nop
+	[B2] nop
+	[!A0] nop
+	[!A1] nop
+	[!A2] nop
+	[!B0] nop
+	[!B1] nop
+	[!B2] nop
+.arch c67x
+	[A0] nop
+	[A1] nop
+	[A2] nop
+	[B0] nop
+	[B1] nop
+	[B2] nop
+	[!A0] nop
+	[!A1] nop
+	[!A2] nop
+	[!B0] nop
+	[!B1] nop
+	[!B2] nop
+.arch c67x+
+	[A0] nop
+	[A1] nop
+	[A2] nop
+	[B0] nop
+	[B1] nop
+	[B2] nop
+	[!A0] nop
+	[!A1] nop
+	[!A2] nop
+	[!B0] nop
+	[!B1] nop
+	[!B2] nop
+.arch c674x
+	[A0] nop
+	[A1] nop
+	[A2] nop
+	[B0] nop
+	[B1] nop
+	[B2] nop
+	[!A0] nop
+	[!A1] nop
+	[!A2] nop
+	[!B0] nop
+	[!B1] nop
+	[!B2] nop
+.arch c62x
+	[A0] nop
+	[A1] nop
+	[A2] nop
+	[B0] nop
+	[B1] nop
+	[B2] nop
+	[!A0] nop
+	[!A1] nop
+	[!A2] nop
+	[!B0] nop
+	[!B1] nop
+	[!B2] nop

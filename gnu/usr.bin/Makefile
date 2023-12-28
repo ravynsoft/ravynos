@@ -6,6 +6,7 @@ SUBDIR.${MK_GNU_DIFF}+=	diff3
 SUBDIR.${MK_TESTS}+=	tests
 SUBDIR+=                libtool
 SUBDIR+=                gmake
+SUBDIR+=                binutils
 
 SUBDIR_PARALLEL=
 

@@ -1,0 +1,75 @@
+# Test handling of --input-remap
+#   Copyright (C) 2023-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+
+# First make sure that linking without remapping does not work:
+file delete tmpdir/foo.o
+setup_xfail *-*-*
+run_ld_link_tests {
+    { "--remap-inputs (expected fail)"
+      ""
+      "-e 0"
+      "-o tmpdir/barzzz.o"
+      {foo.s}
+      {}
+      "foo" }
+}
+
+global srcdir
+global subdir
+
+# Now use the remap options to allow the linking to succeed.
+# Note: we have to use the [list... format when we need to
+# have $-substitutions.
+run_ld_link_tests [list \
+  { "--remap-inputs (simple)"
+    "--remap-inputs=tmpdir/foo.o=tmpdir/barzzz.o" 
+    "-e 0" 
+    "-o tmpdir/barzzz.o" 
+    {foo.s} 
+    {} 
+    "foo" 
+  } \
+  { "--remap-inputs (wildcard)" 
+    "--remap-inputs=*/foo.o=tmpdir/barzzz.o" 
+    "-e 0" 
+    "-o tmpdir/barzzz.o" 
+    {foo.s} 
+    {} 
+    "foo" 
+  } \
+  [ list "--remap-inputs-file" \
+      "--remap-inputs-file $srcdir/$subdir/remaps.txt" \
+      "-e 0 bazzz.o" \
+      "-o tmpdir/barzzz.o" \
+      {foo.s} \
+      {} \
+      "foo" \
+  ] \
+  [ list "--remap-inputs-file (with map output)" \
+      "--remap-inputs-file $srcdir/$subdir/remaps.txt" \
+      "-e 0 --print-map" \
+      "-o tmpdir/barzzz.o" \
+      {foo.s} \
+      { { ld remaps.r } } \
+      "foo" \
+  ] \
+]

@@ -1,0 +1,164 @@
+# Expect script for ld-mn10300 tests
+#   Copyright (C) 2007-2023 Free Software Foundation, Inc.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if {!([istarget "am3*-*-*"]) && !([istarget "mn10300*-*-*"]) } {
+    return
+}
+
+# Set up a list as described in ld-lib.exp
+
+set mn10300_tests {
+    {
+	"am33 string merging"
+	"-relax -Ttext 0x8000074" ""
+	""
+	{ "i36434.s" "i36434-2.s" }
+	{ {objdump -dz i36434.d} }
+	"i36434.x"
+    }
+    {
+	"difference of two same-section symbols"
+	"-Ttext 0" ""
+	""
+	{ "i112045-1.s" }
+	{ {objdump -d i112045-1.d} }
+	"i112045-1.x"
+    }
+    {
+	"difference of two same-section symbols where the difference is held in another section"
+	"-relax -Ttext 100" ""
+	""
+	{ "i112045-3.s" }
+	{ {objdump -D i112045-3.d} }
+	"i112045-3.x"
+    }
+    {
+	"relaxation and alignment directives"
+	"-relax -Ttext 100 -Tbss 300" ""
+	""
+	{ "i127740.s" }
+	{ {objdump -d i127740.d} }
+	"i127740.x"
+    }
+    {
+	"adjustment of symbols due to relaxation"
+	"-Tdata 1f -Ttext 0 -relax" ""
+	""
+	{ "i135409-1.s" }
+	{ {readelf --syms i135409-1.d} }
+	"i135409-1.x"
+    }
+    {
+	"adjustment of symbols due to relaxation (with alignment directives)"
+	"-Tdata 1f -Ttext 0 -relax" ""
+	""
+	{ "i135409-2.s" }
+	{ {readelf --syms i135409-2.d} }
+	"i135409-2.x"
+    }
+    {
+	"adjustment of symbols due to relaxation (with a symbol in the deleted region)"
+	"-Tdata 1f -Ttext 0 -relax" ""
+	""
+	{ "i135409-3.s" }
+	{ {objdump -d i135409-3.d} }
+	"i135409-3.x"
+    }
+    {
+	"adjusting a 16-bit forward branch"
+	"-Ti135409-4.t -relax" ""
+	""
+	{ "i135409-4.s" }
+	{ {objdump -d i135409-4.d} }
+	"i135409-4.x"
+    }
+    {
+	"adjusting a 16-bit backward branch"
+	"-Ti135409-5.t -relax" ""
+	""
+	{ "i135409-5.s" }
+	{ {objdump -d i135409-5.d} }
+	"i135409-5.x"
+    }
+    {
+	"relaxing offsets into a merged string section"
+	"-Ti143317.t -shared -relax" ""
+	""
+	{ "i143317.s" }
+	{ {objdump -d i143317.d} }
+	"i143317.x"
+    }
+}
+
+run_ld_link_tests $mn10300_tests
+
+if {!([istarget "am3*-*-*"])} {
+    return
+}
+
+set am33_tests {
+    {
+	"difference of two same-section symbols (in a shared library)"
+	"-shared" ""
+	""
+	{ "i112045-2.s" }
+	{ {objdump -R i112045-2.d} }
+	"i112045-2.x"
+    }
+}
+
+run_ld_link_tests $am33_tests
+
+proc i126256-test { } {
+    global CC_FOR_TARGET
+    global ld
+    global srcdir
+    global subdir
+
+    set tmpdir tmpdir
+    set testname "Seg fault whilst linking one shared library into another when relaxation is enabled."
+
+    if { ![check_compiler_available] } then {
+	return
+    }
+
+    if { ![ld_compile "$CC_FOR_TARGET -mrelax -fPIC" $srcdir/$subdir/i126256-1.c $tmpdir/i126256-1.o] } {
+	unsupported $testname
+	return
+    }
+
+    if { ![ld_compile "$CC_FOR_TARGET -mrelax -fPIC" $srcdir/$subdir/i126256-2.c $tmpdir/i126256-2.o] } {
+	unsupported $testname
+	return
+    }
+    
+    if { ![ld_link $ld $tmpdir/i126256-1.so "-shared $tmpdir/i126256-1.o -e 0"]} {
+	fail $testname
+	return
+    }
+
+    if { ![ld_link $ld $tmpdir/i126256-2.so "--relax -shared $tmpdir/i126256-2.o $tmpdir/i126256-1.so -e 0"]} {
+	fail $testname
+	return
+    }
+
+    pass $testname
+}
+
+i126256-test

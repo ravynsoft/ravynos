@@ -1,0 +1,1775 @@
+# Expect script for creating PDB files when linking.
+#   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+if {![istarget i*86-*-mingw*]
+  && ![istarget i*86-*-cygwin*]
+  && ![istarget i*86-*-winnt]
+  && ![istarget i*86-*-pe]
+  && ![istarget x86_64-*-mingw*]
+  && ![istarget x86_64-*-pe*]
+  && ![istarget x86_64-*-cygwin]
+  && ![istarget aarch64-*-mingw*]
+  && ![istarget aarch64-*-pe*]} {
+    return
+}
+
+proc get_pdb_name { pe } {
+    global OBJDUMP
+
+    set exec_output [run_host_cmd "$OBJDUMP" "-p $pe"]
+
+    if ![regexp -line "^\\(format RSDS signature (\[0-9a-fA-F\]{32}) age 1 pdb (.*)\\)$" $exec_output full sig pdb] {
+	return ""
+    }
+
+    return $pdb
+}
+
+proc get_pdb_guid { pe } {
+    global OBJDUMP
+
+    set exec_output [run_host_cmd "$OBJDUMP" "-p $pe"]
+
+    if ![regexp -line "^\\(format RSDS signature (\[0-9a-fA-F\]{32}) age 1 pdb (.*)\\)$" $exec_output full sig pdb] {
+	return ""
+    }
+
+    return $sig
+}
+
+proc check_pdb_info_stream { pdb guid } {
+    global ar
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir $pdb 0001"]
+
+    if ![string match "" $exec_output] {
+	return 0
+    }
+
+    set fi [open tmpdir/0001]
+    fconfigure $fi -translation binary
+
+    # check version
+
+    set data [read $fi 4]
+    binary scan $data i version
+
+    if { $version != 20000404 } {
+	close $fi
+	return 0
+    }
+
+    # skip signature (timestamp)
+    read $fi 4
+
+    # check age
+
+    set data [read $fi 4]
+    binary scan $data i age
+
+    if { $age != 1 } {
+	close $fi
+	return 0
+    }
+
+    # check GUID
+
+    set data [read $fi 16]
+    binary scan $data H2H2H2H2H2H2H2H2H* guid1 guid2 guid3 guid4 guid5 guid6 guid7 guid8 guid9
+
+    set data "$guid4$guid3$guid2$guid1$guid6$guid5$guid8$guid7$guid9"
+
+    if { $data ne $guid } {
+	close $fi
+	return 0
+    }
+
+    # skip names string
+
+    set data [read $fi 4]
+    binary scan $data i names_length
+    read $fi $names_length
+
+    # read number of names entries
+
+    set data [read $fi 4]
+    binary scan $data i num_entries
+
+    # skip number of buckets
+    read $fi 4
+
+    # skip present bitmap
+
+    set data [read $fi 4]
+    binary scan $data i bitmap_length
+    read $fi [expr $bitmap_length * 4]
+
+    # skip deleted bitmap
+
+    set data [read $fi 4]
+    binary scan $data i bitmap_length
+    read $fi [expr $bitmap_length * 4]
+
+    # skip names entries
+    read $fi [expr $num_entries * 8]
+
+    # skip uint32_t
+    read $fi 4
+
+    # read second version
+
+    set data [read $fi 4]
+    binary scan $data i version2
+
+    if { $version2 != 20140508 } {
+	close $fi
+	return 0
+    }
+
+    close $fi
+
+    return 1
+}
+
+proc check_type_stream { pdb stream } {
+    global ar
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir $pdb $stream"]
+
+    if ![string match "" $exec_output] {
+	return 0
+    }
+
+    set fi [open tmpdir/$stream]
+    fconfigure $fi -translation binary
+
+    # check version
+
+    set data [read $fi 4]
+    binary scan $data i version
+
+    if { $version != 20040203 } {
+	close $fi
+	return 0
+    }
+
+    # check header size
+
+    set data [read $fi 4]
+    binary scan $data i header_size
+
+    if { $header_size != 0x38 } {
+	close $fi
+	return 0
+    }
+
+    # skip type_index_begin and type_index_end
+    read $fi 8
+
+    # read type_record_bytes
+
+    set data [read $fi 4]
+    binary scan $data i type_record_bytes
+
+    close $fi
+
+    # check stream length
+
+    set stream_length [file size tmpdir/$stream]
+
+    if { $stream_length != [ expr $header_size + $type_record_bytes ] } {
+	return 0
+    }
+
+    return 1
+}
+
+proc check_dbi_stream { pdb } {
+    global ar
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir $pdb 0003"]
+
+    if ![string match "" $exec_output] {
+	return 0
+    }
+
+    set fi [open tmpdir/0003]
+    fconfigure $fi -translation binary
+
+    # check signature
+
+    set data [read $fi 4]
+    binary scan $data i signature
+
+    if { $signature != -1 } {
+	close $fi
+	return 0
+    }
+
+    # check version
+
+    set data [read $fi 4]
+    binary scan $data i version
+
+    if { $version != 19990903 } {
+	close $fi
+	return 0
+    }
+
+    # check age
+
+    set data [read $fi 4]
+    binary scan $data i age
+
+    if { $age != 1 } {
+	close $fi
+	return 0
+    }
+
+    # skip fields
+    read $fi 12
+
+    # read substream sizes
+
+    set data [read $fi 4]
+    binary scan $data i mod_info_size
+
+    set data [read $fi 4]
+    binary scan $data i section_contribution_size
+
+    set data [read $fi 4]
+    binary scan $data i section_map_size
+
+    set data [read $fi 4]
+    binary scan $data i source_info_size
+
+    set data [read $fi 4]
+    binary scan $data i type_server_map_size
+
+    # skip MFC type server index
+    seek $fi 4 current
+
+    set data [read $fi 4]
+    binary scan $data i optional_dbg_header_size
+
+    set data [read $fi 4]
+    binary scan $data i ec_substream_size
+
+    close $fi
+
+    # check stream length
+
+    set stream_length [file size tmpdir/0003]
+
+    if { $stream_length != [expr 0x40 + $mod_info_size + $section_contribution_size + $section_map_size + $source_info_size + $type_server_map_size + $optional_dbg_header_size + $ec_substream_size] } {
+	return 0
+    }
+
+    return 1
+}
+
+proc get_section_stream_index { pdb } {
+    global ar
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir $pdb 0003"]
+
+    if ![string match "" $exec_output] {
+	return -1
+    }
+
+    set fi [open tmpdir/0003]
+    fconfigure $fi -translation binary
+
+    # skip fields
+    seek $fi 24
+
+    # read substream sizes
+
+    set data [read $fi 4]
+    binary scan $data i mod_info_size
+
+    set data [read $fi 4]
+    binary scan $data i section_contribution_size
+
+    set data [read $fi 4]
+    binary scan $data i section_map_size
+
+    set data [read $fi 4]
+    binary scan $data i source_info_size
+
+    set data [read $fi 4]
+    binary scan $data i type_server_map_size
+
+    # skip type server index
+    seek $fi 4 current
+
+    set data [read $fi 4]
+    binary scan $data i optional_dbg_header_size
+
+    if { $optional_dbg_header_size < 12 } {
+	close $fi
+	return -1
+    }
+
+    # skip data
+    seek $fi [expr 12 + $mod_info_size + $section_contribution_size + $section_map_size + $source_info_size + $type_server_map_size + 10] current
+
+    set data [read $fi 2]
+    binary scan $data s section_stream_index
+
+    close $fi
+
+    return $section_stream_index
+}
+
+proc check_section_stream { img pdb } {
+    global ar
+
+    # read sections stream
+
+    set index [get_section_stream_index $pdb]
+
+    if { $index == -1 } {
+	return 0
+    }
+
+    set index_str [format "%04x" $index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir $pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	return 0
+    }
+
+    set stream_length [file size tmpdir/$index_str]
+
+    set fi [open tmpdir/$index_str]
+    fconfigure $fi -translation binary
+
+    set stream_data [read $fi $stream_length]
+
+    close $fi
+
+    # read sections from PE file
+
+    set fi [open $img]
+    fconfigure $fi -translation binary
+
+    # read PE offset
+    read $fi 0x3c
+    set data [read $fi 4]
+    binary scan $data i pe_offset
+
+    # read number of sections
+    seek $fi [expr $pe_offset + 6]
+    set data [read $fi 2]
+    binary scan $data s num_sections
+
+    # read size of optional header
+    seek $fi 12 current
+    set data [read $fi 2]
+    binary scan $data s opt_header_size
+
+    # read section headers
+    seek $fi [expr $opt_header_size + 2] current
+    set section_data [read $fi [expr $num_sections * 40]]
+
+    close $fi
+
+    # compare
+
+    if { $stream_data ne $section_data} {
+	return 0
+    }
+
+    return 1
+}
+
+proc get_publics_stream_index { pdb } {
+    global ar
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir $pdb 0003"]
+
+    if ![string match "" $exec_output] {
+	return -1
+    }
+
+    set fi [open tmpdir/0003]
+    fconfigure $fi -translation binary
+
+    # skip fields
+    seek $fi 16
+
+    # read substream sizes
+
+    set data [read $fi 2]
+    binary scan $data s index
+
+    close $fi
+
+    return $index
+}
+
+proc get_sym_record_stream_index { pdb } {
+    global ar
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir $pdb 0003"]
+
+    if ![string match "" $exec_output] {
+	return -1
+    }
+
+    set fi [open tmpdir/0003]
+    fconfigure $fi -translation binary
+
+    # skip fields
+    seek $fi 20
+
+    # read substream sizes
+
+    set data [read $fi 2]
+    binary scan $data s index
+
+    close $fi
+
+    return $index
+}
+
+proc check_publics_stream { pdb } {
+    global ar
+    global objdump
+    global srcdir
+    global subdir
+
+    set publics_index [get_publics_stream_index $pdb]
+
+    if { $publics_index == -1 } {
+	return 0
+    }
+
+    set index_str [format "%04x" $publics_index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir $pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	return 0
+    }
+
+    set exp [file_contents "$srcdir/$subdir/pdb1-publics.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/$index_str"]
+    if ![string match $exp $got] {
+	return 0
+    }
+
+    set sym_record_index [get_sym_record_stream_index $pdb]
+
+    if { $sym_record_index == -1 } {
+	return 0
+    }
+
+    set index_str [format "%04x" $sym_record_index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir $pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	return 0
+    }
+
+    set exp [file_contents "$srcdir/$subdir/pdb1-sym-record.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/$index_str"]
+    if ![string match $exp $got] {
+	return 0
+    }
+
+    return 1
+}
+
+proc test1 { } {
+    global as
+    global ld
+    global srcdir
+    global subdir
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb1.s tmpdir/pdb1.o] {
+	unsupported "Build pdb1.o"
+	return
+    }
+
+    if ![ld_link $ld "tmpdir/pdb1.exe" "--pdb=tmpdir/pdb1.pdb --gc-sections -e foo tmpdir/pdb1.o"] {
+	fail "Could not create a PE image with a PDB file"
+	return
+    }
+
+    if ![string equal [get_pdb_name "tmpdir/pdb1.exe"] "pdb1.pdb"] {
+	fail "PDB filename not found in CodeView debug info"
+	return
+    }
+
+    pass "PDB filename present in CodeView debug info"
+
+    if [check_pdb_info_stream tmpdir/pdb1.pdb [get_pdb_guid "tmpdir/pdb1.exe"]] {
+	pass "Valid PDB info stream"
+    } else {
+	fail "Invalid PDB info stream"
+    }
+
+    if [check_type_stream tmpdir/pdb1.pdb "0002"] {
+	pass "Valid TPI stream"
+    } else {
+	fail "Invalid TPI stream"
+    }
+
+    if [check_type_stream tmpdir/pdb1.pdb "0004"] {
+	pass "Valid IPI stream"
+    } else {
+	fail "Invalid IPI stream"
+    }
+
+    if [check_dbi_stream tmpdir/pdb1.pdb] {
+	pass "Valid DBI stream"
+    } else {
+	fail "Invalid DBI stream"
+    }
+
+    if [check_section_stream tmpdir/pdb1.exe tmpdir/pdb1.pdb] {
+	pass "Valid section stream"
+    } else {
+	fail "Invalid section stream"
+    }
+
+    if [check_publics_stream tmpdir/pdb1.pdb] {
+	pass "Valid publics stream"
+    } else {
+	fail "Invalid publics stream"
+    }
+}
+
+proc test_mod_info { mod_info } {
+    # check filenames in mod_info
+
+    set off 64
+
+    set obj1 [string range $mod_info $off [expr [string first \000 $mod_info $off] - 1]]
+    incr off [expr [string length $obj1] + 1]
+
+    set ar1 [string range $mod_info $off [expr [string first \000 $mod_info $off] - 1]]
+    incr off [expr [string length $ar1] + 1]
+
+    if [string match "*pdb2a.o" $obj1] {
+	pass "Correct name for first object file"
+    } else {
+	fail "Incorrect name for first object file"
+    }
+
+    if [string equal $obj1 $ar1] {
+	pass "Correct archive name for first object file"
+    } else {
+	fail "Incorrect archive name for first object file"
+    }
+
+    if { [expr $off % 4] != 0 } {
+	set off [expr $off + 4 - ($off % 4)]
+    }
+
+    incr off 64
+
+    set obj2 [string range $mod_info $off [expr [string first \000 $mod_info $off] - 1]]
+    incr off [expr [string length $obj2] + 1]
+
+    set ar2 [string range $mod_info $off [expr [string first \000 $mod_info $off] - 1]]
+    incr off [expr [string length $ar2] + 1]
+
+    if [string match "*pdb2b.o" $obj2] {
+	pass "Correct name for second object file"
+    } else {
+	fail "Incorrect name for second object file"
+    }
+
+    if [string match "*pdb2b.a" $ar2] {
+	pass "Correct archive name for second object file"
+    } else {
+	fail "Incorrect archive name for second object file"
+    }
+
+    if { [expr $off % 4] != 0 } {
+	set off [expr $off + 4 - ($off % 4)]
+    }
+
+    incr off 64
+
+    set obj3 [string range $mod_info $off [expr [string first \000 $mod_info $off] - 1]]
+    incr off [expr [string length $obj3] + 1]
+
+    set ar3 [string range $mod_info $off [expr [string first \000 $mod_info $off] - 1]]
+    incr off [expr [string length $ar3] + 1]
+
+    if [string equal $obj3 "* Linker *"] {
+	pass "Correct name for dummy object file"
+    } else {
+	fail "Incorrect name for dummy object file"
+    }
+
+    if [string equal $ar3 ""] {
+	pass "Correct archive name for dummy object file"
+    } else {
+	fail "Incorrect archive name for dummy object file"
+    }
+}
+
+proc test_section_contrib { section_contrib } {
+    global objdump
+    global srcdir
+    global subdir
+
+    set fi [open tmpdir/pdb2-sc w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $section_contrib
+    close $fi
+
+    set exp [file_contents "$srcdir/$subdir/pdb2-section-contrib.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb2-sc"]
+
+    if [string equal $exp $got] {
+	pass "Correct section contribution substream"
+    } else {
+	fail "Incorrect section contribution substream"
+    }
+}
+
+proc test2 { } {
+    global as
+    global ar
+    global ld
+    global srcdir
+    global subdir
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb2a.s tmpdir/pdb2a.o] {
+	unsupported "Build pdb2a.o"
+	return
+    }
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb2b.s tmpdir/pdb2b.o] {
+	unsupported "Build pdb2b.o"
+	return
+    }
+
+    set exec_output [run_host_cmd "$ar" "cr tmpdir/pdb2b.a tmpdir/pdb2b.o"]
+
+    if ![string match "" $exec_output] {
+	unsupported "Create pdb2b.a"
+	return
+    }
+
+    if ![ld_link $ld "tmpdir/pdb2.exe" "--pdb=tmpdir/pdb2.pdb --gc-sections -e foo tmpdir/pdb2a.o tmpdir/pdb2b.a"] {
+	unsupported "Create PE image with PDB file"
+	return
+    }
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb2.pdb 0003"]
+
+    if ![string match "" $exec_output] {
+	return 0
+    }
+
+    set fi [open tmpdir/0003]
+    fconfigure $fi -translation binary
+
+    seek $fi 24
+
+    set data [read $fi 4]
+    binary scan $data i mod_info_size
+
+    set data [read $fi 4]
+    binary scan $data i section_contrib_size
+
+    seek $fi 32 current
+
+    set mod_info [read $fi $mod_info_size]
+    set section_contrib [read $fi $section_contrib_size]
+
+    close $fi
+
+    test_mod_info $mod_info
+    test_section_contrib $section_contrib
+}
+
+proc find_named_stream { pdb name } {
+    global ar
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir $pdb 0001"]
+
+    if ![string match "" $exec_output] {
+	return 0
+    }
+
+    set fi [open tmpdir/0001]
+    fconfigure $fi -translation binary
+
+    seek $fi 0x1c
+
+    set data [read $fi 4]
+    binary scan $data i string_len
+
+    set strings [read $fi $string_len]
+
+    set string_off 0
+
+    while {[string first \000 $strings $string_off] != -1 } {
+	set str [string range $strings $string_off [expr [string first \000 $strings $string_off] - 1]]
+
+	if { $str eq $name } {
+	    break
+	}
+
+	incr string_off [expr [string length $str] + 1]
+    }
+
+    if { [string length $strings] == $string_off } { # string not found
+	close $fi
+	return 0
+    }
+
+    set data [read $fi 4]
+    binary scan $data i num_entries
+
+    seek $fi 4 current
+
+    set data [read $fi 4]
+    binary scan $data i present_bitmap_len
+
+    seek $fi [expr $present_bitmap_len * 4] current
+
+    set data [read $fi 4]
+    binary scan $data i deleted_bitmap_len
+
+    seek $fi [expr $deleted_bitmap_len * 4] current
+
+    for {set i 0} {$i < $num_entries} {incr i} {
+	set data [read $fi 4]
+	binary scan $data i offset
+
+	if { $offset == $string_off } {
+	    set data [read $fi 4]
+	    binary scan $data i value
+	    close $fi
+
+	    return $value
+	}
+
+	seek $fi 4 current
+    }
+
+    close $fi
+
+    return 0
+}
+
+proc test3 { } {
+    global as
+    global ar
+    global ld
+    global objdump
+    global srcdir
+    global subdir
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb-strings1.s tmpdir/pdb-strings1.o] {
+	unsupported "Build pdb-strings1.o"
+	return
+    }
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb-strings2.s tmpdir/pdb-strings2.o] {
+	unsupported "Build pdb-strings2.o"
+	return
+    }
+
+    if ![ld_link $ld "tmpdir/pdb-strings.exe" "--pdb=tmpdir/pdb-strings.pdb tmpdir/pdb-strings1.o tmpdir/pdb-strings2.o"] {
+	unsupported "Create PE image with PDB file"
+	return
+    }
+
+    set index [find_named_stream "tmpdir/pdb-strings.pdb" "/names"]
+
+    if { $index == 0 } {
+	fail "Could not find /names stream"
+	return
+    } else {
+	pass "Found /names stream"
+    }
+
+    set index_str [format "%04x" $index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-strings.pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	return 0
+    }
+
+    set exp [file_contents "$srcdir/$subdir/pdb-strings.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/$index_str"]
+
+    if ![string match $exp $got] {
+	fail "Strings table was not as expected"
+    } else {
+	pass "Strings table was as expected"
+    }
+}
+
+proc extract_c13_info { pdb mod_info } {
+    global ar
+
+    binary scan [string range $mod_info 34 35] s module_sym_stream
+    binary scan [string range $mod_info 36 39] i sym_byte_size
+    binary scan [string range $mod_info 40 43] i c11_byte_size
+    binary scan [string range $mod_info 44 47] i c13_byte_size
+
+    set index_str [format "%04x" $module_sym_stream]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir $pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	return ""
+    }
+
+    set fi [open tmpdir/$index_str]
+    fconfigure $fi -translation binary
+
+    seek $fi [expr $sym_byte_size + $c11_byte_size]
+
+    set data [read $fi $c13_byte_size]
+
+    close $fi
+
+    return $data
+}
+
+proc test4 { } {
+    global as
+    global ar
+    global ld
+    global objdump
+    global srcdir
+    global subdir
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb3a.s tmpdir/pdb3a.o] {
+	unsupported "Build pdb3a.o"
+	return
+    }
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb3b.s tmpdir/pdb3b.o] {
+	unsupported "Build pdb3b.o"
+	return
+    }
+
+    if ![ld_link $ld "tmpdir/pdb3.exe" "--pdb=tmpdir/pdb3.pdb --gc-sections -e main tmpdir/pdb3a.o tmpdir/pdb3b.o"] {
+	unsupported "Create PE image with PDB file"
+	return
+    }
+
+    # read relevant bits from DBI stream
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb3.pdb 0003"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract DBI stream"
+	return
+    } else {
+	pass "Extracted DBI stream"
+    }
+
+    set fi [open tmpdir/0003]
+    fconfigure $fi -translation binary
+
+    seek $fi 24
+
+    # read substream sizes
+
+    set data [read $fi 4]
+    binary scan $data i mod_info_size
+
+    set data [read $fi 4]
+    binary scan $data i section_contribution_size
+
+    set data [read $fi 4]
+    binary scan $data i section_map_size
+
+    set data [read $fi 4]
+    binary scan $data i source_info_size
+
+    seek $fi 24 current
+
+    set mod_info [read $fi $mod_info_size]
+
+    seek $fi [expr $section_contribution_size + $section_map_size] current
+
+    set source_info [read $fi $source_info_size]
+
+    close $fi
+
+    # check source info substream
+
+    set fi [open tmpdir/pdb3-source-info w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $source_info
+    close $fi
+
+    set exp [file_contents "$srcdir/$subdir/pdb3-source-info.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb3-source-info"]
+
+    if [string match $exp $got] {
+	pass "Correct source info substream"
+    } else {
+	fail "Incorrect source info substream"
+    }
+
+    # check C13 info in first module
+
+    set c13_info [extract_c13_info "tmpdir/pdb3.pdb" [string range $mod_info 0 63]]
+
+    set fi [open tmpdir/pdb3-c13-info1 w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $c13_info
+    close $fi
+
+    set exp [file_contents "$srcdir/$subdir/pdb3-c13-info1.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb3-c13-info1"]
+
+    if [string match $exp $got] {
+	pass "Correct C13 info for first module"
+    } else {
+	fail "Incorrect C13 info for first module"
+    }
+
+    # check C13 info in second module
+
+    set fn1_end [string first \000 $mod_info 64]
+    set fn2_end [string first \000 $mod_info [expr $fn1_end + 1]]
+
+    set off [expr $fn2_end + 1]
+
+    if { [expr $off % 4] != 0 } {
+	set off [expr $off + 4 - ($off % 4)]
+    }
+
+    set c13_info [extract_c13_info "tmpdir/pdb3.pdb" [string range $mod_info $off [expr $off + 63]]]
+
+    set fi [open tmpdir/pdb3-c13-info2 w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $c13_info
+    close $fi
+
+    set exp [file_contents "$srcdir/$subdir/pdb3-c13-info2.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb3-c13-info2"]
+
+    if [string match $exp $got] {
+	pass "Correct C13 info for second module"
+    } else {
+	fail "Incorrect C13 info for second module"
+    }
+}
+
+proc test5 { } {
+    global as
+    global ar
+    global ld
+    global objdump
+    global srcdir
+    global subdir
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb-types1a.s tmpdir/pdb-types1a.o] {
+	unsupported "Build pdb-types1a.o"
+	return
+    }
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb-types1b.s tmpdir/pdb-types1b.o] {
+	unsupported "Build pdb-types1b.o"
+	return
+    }
+
+    if ![ld_link $ld "tmpdir/pdb-types1.exe" "--pdb=tmpdir/pdb-types1.pdb tmpdir/pdb-types1a.o tmpdir/pdb-types1b.o"] {
+	unsupported "Create PE image with PDB file"
+	return
+    }
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-types1.pdb 0002"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract TPI stream"
+	return
+    } else {
+	pass "Extracted TPI stream"
+    }
+
+    # check values in TPI header, and save anything interesting
+
+    set fi [open tmpdir/0002]
+    fconfigure $fi -translation binary
+
+    seek $fi 8 current
+
+    set data [read $fi 4]
+    binary scan $data i first_type
+
+    if { $first_type != 0x1000 } {
+	fail "Incorrect first type value in TPI stream."
+    } else {
+	pass "Correct first type value in TPI stream."
+    }
+
+    set data [read $fi 4]
+    binary scan $data i end_type
+
+    # end_type is one greater than the last type in the stream
+    if { $end_type != 0x102c } {
+	fail "Incorrect end type value in TPI stream."
+    } else {
+	pass "Correct end type value in TPI stream."
+    }
+
+    set data [read $fi 4]
+    binary scan $data i type_list_size
+
+    set data [read $fi 2]
+    binary scan $data s hash_stream_index
+
+    seek $fi 2 current
+
+    set data [read $fi 4]
+    binary scan $data i hash_size
+
+    if { $hash_size != 4 } {
+	fail "Incorrect hash size in TPI stream."
+    } else {
+	pass "Correct hash size in TPI stream."
+    }
+
+    set data [read $fi 4]
+    binary scan $data i num_buckets
+
+    if { $num_buckets != 0x3ffff } {
+	fail "Incorrect number of buckets in TPI stream."
+    } else {
+	pass "Correct number of buckets in TPI stream."
+    }
+
+    set data [read $fi 4]
+    binary scan $data i hash_list_offset
+
+    set data [read $fi 4]
+    binary scan $data i hash_list_size
+
+    set data [read $fi 4]
+    binary scan $data i skip_list_offset
+
+    set data [read $fi 4]
+    binary scan $data i skip_list_size
+
+    seek $fi 8 current
+
+    set type_list [read $fi $type_list_size]
+
+    close $fi
+
+    set fi [open tmpdir/pdb-types1-typelist w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $type_list
+    close $fi
+
+    # check type list
+
+    set exp [file_contents "$srcdir/$subdir/pdb-types1-typelist.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb-types1-typelist"]
+    if ![string match $exp $got] {
+	fail "Incorrect type list in TPI stream."
+    } else {
+	pass "Correct type list in TPI stream."
+    }
+
+    # extract hash list and skip list
+
+    set index_str [format "%04x" $hash_stream_index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-types1.pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract TPI hash stream."
+    } else {
+	pass "Extracted TPI hash stream."
+    }
+
+    set fi [open tmpdir/$index_str]
+    fconfigure $fi -translation binary
+
+    seek $fi $hash_list_offset
+    set hash_list [read $fi $hash_list_size]
+
+    seek $fi $skip_list_offset
+    set skip_list [read $fi $skip_list_size]
+
+    close $fi
+
+    # check hash list
+
+    set fi [open tmpdir/pdb-types1-hashlist w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $hash_list
+    close $fi
+
+    set exp [file_contents "$srcdir/$subdir/pdb-types1-hashlist.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb-types1-hashlist"]
+    if ![string match $exp $got] {
+	fail "Incorrect hash list in TPI stream."
+    } else {
+	pass "Correct hash list in TPI stream."
+    }
+
+    # check skip list
+
+    set fi [open tmpdir/pdb-types1-skiplist w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $skip_list
+    close $fi
+
+    set exp [file_contents "$srcdir/$subdir/pdb-types1-skiplist.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb-types1-skiplist"]
+    if ![string match $exp $got] {
+	fail "Incorrect skip list in TPI stream."
+    } else {
+	pass "Correct skip list in TPI stream."
+    }
+}
+
+proc test6 { } {
+    global as
+    global ar
+    global ld
+    global objdump
+    global srcdir
+    global subdir
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb-types2a.s tmpdir/pdb-types2a.o] {
+	unsupported "Build pdb-types2a.o"
+	return
+    }
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb-types2b.s tmpdir/pdb-types2b.o] {
+	unsupported "Build pdb-types2b.o"
+	return
+    }
+
+    if ![ld_link $ld "tmpdir/pdb-types2.exe" "--pdb=tmpdir/pdb-types2.pdb tmpdir/pdb-types2a.o tmpdir/pdb-types2b.o"] {
+	unsupported "Create PE image with PDB file"
+	return
+    }
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-types2.pdb 0004"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract IPI stream"
+	return
+    } else {
+	pass "Extracted IPI stream"
+    }
+
+    # check values in IPI header, and save anything interesting
+
+    set fi [open tmpdir/0004]
+    fconfigure $fi -translation binary
+
+    seek $fi 8 current
+
+    set data [read $fi 4]
+    binary scan $data i first_type
+
+    if { $first_type != 0x1000 } {
+	fail "Incorrect first type value in IPI stream."
+    } else {
+	pass "Correct first type value in IPI stream."
+    }
+
+    set data [read $fi 4]
+    binary scan $data i end_type
+
+    # end_type is one greater than the last type in the stream
+    if { $end_type != 0x100f } {
+	fail "Incorrect end type value in IPI stream."
+    } else {
+	pass "Correct end type value in IPI stream."
+    }
+
+    set data [read $fi 4]
+    binary scan $data i type_list_size
+
+    set data [read $fi 2]
+    binary scan $data s hash_stream_index
+
+    seek $fi 2 current
+
+    set data [read $fi 4]
+    binary scan $data i hash_size
+
+    if { $hash_size != 4 } {
+	fail "Incorrect hash size in IPI stream."
+    } else {
+	pass "Correct hash size in IPI stream."
+    }
+
+    set data [read $fi 4]
+    binary scan $data i num_buckets
+
+    if { $num_buckets != 0x3ffff } {
+	fail "Incorrect number of buckets in IPI stream."
+    } else {
+	pass "Correct number of buckets in IPI stream."
+    }
+
+    set data [read $fi 4]
+    binary scan $data i hash_list_offset
+
+    set data [read $fi 4]
+    binary scan $data i hash_list_size
+
+    set data [read $fi 4]
+    binary scan $data i skip_list_offset
+
+    set data [read $fi 4]
+    binary scan $data i skip_list_size
+
+    seek $fi 8 current
+
+    set type_list [read $fi $type_list_size]
+
+    close $fi
+
+    set fi [open tmpdir/pdb-types2-typelist w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $type_list
+    close $fi
+
+    # check type list
+
+    set exp [file_contents "$srcdir/$subdir/pdb-types2-typelist.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb-types2-typelist"]
+    if ![string match $exp $got] {
+	fail "Incorrect type list in IPI stream."
+    } else {
+	pass "Correct type list in IPI stream."
+    }
+
+    # extract hash list and skip list
+
+    set index_str [format "%04x" $hash_stream_index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-types2.pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract IPI hash stream."
+    } else {
+	pass "Extracted IPI hash stream."
+    }
+
+    set fi [open tmpdir/$index_str]
+    fconfigure $fi -translation binary
+
+    seek $fi $hash_list_offset
+    set hash_list [read $fi $hash_list_size]
+
+    seek $fi $skip_list_offset
+    set skip_list [read $fi $skip_list_size]
+
+    close $fi
+
+    # check hash list
+
+    set fi [open tmpdir/pdb-types2-hashlist w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $hash_list
+    close $fi
+
+    set exp [file_contents "$srcdir/$subdir/pdb-types2-hashlist.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb-types2-hashlist"]
+    if ![string match $exp $got] {
+	fail "Incorrect hash list in IPI stream."
+    } else {
+	pass "Correct hash list in IPI stream."
+    }
+
+    # check skip list
+
+    set fi [open tmpdir/pdb-types2-skiplist w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $skip_list
+    close $fi
+
+    set exp [file_contents "$srcdir/$subdir/pdb-types2-skiplist.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb-types2-skiplist"]
+    if ![string match $exp $got] {
+	fail "Incorrect skip list in IPI stream."
+    } else {
+	pass "Correct skip list in IPI stream."
+    }
+}
+
+proc test7 { } {
+    global as
+    global ar
+    global ld
+    global objdump
+    global srcdir
+    global subdir
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb-types3a.s tmpdir/pdb-types3a.o] {
+	unsupported "Build pdb-types3a.o"
+	return
+    }
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb-types3b.s tmpdir/pdb-types3b.o] {
+	unsupported "Build pdb-types3b.o"
+	return
+    }
+
+    if ![ld_link $ld "tmpdir/pdb-types3.exe" "--pdb=tmpdir/pdb-types3.pdb tmpdir/pdb-types3a.o tmpdir/pdb-types3b.o"] {
+	unsupported "Create PE image with PDB file"
+	return
+    }
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-types3.pdb 0004"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract IPI stream"
+	return
+    } else {
+	pass "Extracted IPI stream"
+    }
+
+    set fi [open tmpdir/0004]
+    fconfigure $fi -translation binary
+
+    seek $fi 16 current
+
+    set data [read $fi 4]
+    binary scan $data i type_list_size
+
+    set data [read $fi 2]
+    binary scan $data s hash_stream_index
+
+    seek $fi 10 current
+
+    set data [read $fi 4]
+    binary scan $data i hash_list_offset
+
+    set data [read $fi 4]
+    binary scan $data i hash_list_size
+
+    set data [read $fi 4]
+    binary scan $data i skip_list_offset
+
+    set data [read $fi 4]
+    binary scan $data i skip_list_size
+
+    seek $fi 8 current
+
+    set type_list [read $fi $type_list_size]
+
+    close $fi
+
+    set fi [open tmpdir/pdb-types3-typelist w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $type_list
+    close $fi
+
+    # check type list
+
+    set exp [file_contents "$srcdir/$subdir/pdb-types3-typelist.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb-types3-typelist"]
+    if ![string match $exp $got] {
+	fail "Incorrect type list in IPI stream."
+    } else {
+	pass "Correct type list in IPI stream."
+    }
+
+    # extract hash list and skip list
+
+    set index_str [format "%04x" $hash_stream_index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-types3.pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract IPI hash stream."
+    } else {
+	pass "Extracted IPI hash stream."
+    }
+
+    set fi [open tmpdir/$index_str]
+    fconfigure $fi -translation binary
+
+    seek $fi $hash_list_offset
+    set hash_list [read $fi $hash_list_size]
+
+    seek $fi $skip_list_offset
+    set skip_list [read $fi $skip_list_size]
+
+    close $fi
+
+    # check hash list
+
+    set fi [open tmpdir/pdb-types3-hashlist w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $hash_list
+    close $fi
+
+    set exp [file_contents "$srcdir/$subdir/pdb-types3-hashlist.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb-types3-hashlist"]
+    if ![string match $exp $got] {
+	fail "Incorrect hash list in IPI stream."
+    } else {
+	pass "Correct hash list in IPI stream."
+    }
+
+    # check skip list
+
+    set fi [open tmpdir/pdb-types3-skiplist w]
+    fconfigure $fi -translation binary
+    puts -nonewline $fi $skip_list
+    close $fi
+
+    set exp [file_contents "$srcdir/$subdir/pdb-types3-skiplist.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/pdb-types3-skiplist"]
+    if ![string match $exp $got] {
+	fail "Incorrect skip list in IPI stream."
+    } else {
+	pass "Correct skip list in IPI stream."
+    }
+}
+
+proc test8 { } {
+    global as
+    global ar
+    global ld
+    global objdump
+    global srcdir
+    global subdir
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb-syms1a.s tmpdir/pdb-syms1a.o] {
+	unsupported "Build pdb-syms1a.o"
+	return
+    }
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb-syms1b.s tmpdir/pdb-syms1b.o] {
+	unsupported "Build pdb-syms1b.o"
+	return
+    }
+
+    if ![ld_link $ld "tmpdir/pdb-syms1.exe" "--pdb=tmpdir/pdb-syms1.pdb tmpdir/pdb-syms1a.o tmpdir/pdb-syms1b.o"] {
+	unsupported "Create PE image with PDB file"
+	return
+    }
+
+    # get index of globals stream and records stream
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-syms1.pdb 0003"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract DBI stream"
+	return
+    } else {
+	pass "Extracted DBI stream"
+    }
+
+    set fi [open tmpdir/0003]
+    fconfigure $fi -translation binary
+
+    seek $fi 12
+    set data [read $fi 2]
+    binary scan $data s globals_index
+
+    seek $fi 6 current
+    set data [read $fi 2]
+    binary scan $data s records_index
+
+    seek $fi 2 current
+    set data [read $fi 4]
+    binary scan $data i mod_info_size
+
+    seek $fi 36 current
+    set mod_info [read $fi $mod_info_size]
+
+    close $fi
+
+    # get index of first and second module streams
+
+    binary scan [string range $mod_info 34 35] s mod1_index
+
+    set off 64
+
+    set obj1 [string range $mod_info $off [expr [string first \000 $mod_info $off] - 1]]
+    incr off [expr [string length $obj1] + 1]
+
+    set ar1 [string range $mod_info $off [expr [string first \000 $mod_info $off] - 1]]
+    incr off [expr [string length $ar1] + 1]
+
+    if { [expr $off % 4] != 0 } {
+	set off [expr $off + 4 - ($off % 4)]
+    }
+
+    incr off 34
+
+    binary scan [string range $mod_info $off [expr $off + 1]] s mod2_index
+
+    # check globals stream
+
+    set index_str [format "%04x" $globals_index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-syms1.pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract globals stream"
+	return
+    } else {
+	pass "Extracted globals stream"
+    }
+
+    set exp [file_contents "$srcdir/$subdir/pdb-syms1-globals.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/$index_str"]
+
+    if [string match $exp $got] {
+	pass "Correct globals stream"
+    } else {
+	fail "Incorrect globals stream"
+    }
+
+    # check records stream
+
+    set index_str [format "%04x" $records_index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-syms1.pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract records stream"
+	return
+    } else {
+	pass "Extracted records stream"
+    }
+
+    set exp [file_contents "$srcdir/$subdir/pdb-syms1-records.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/$index_str"]
+
+    if [string match $exp $got] {
+	pass "Correct records stream"
+    } else {
+	fail "Incorrect records stream"
+    }
+
+    # check symbols in first module
+
+    set index_str [format "%04x" $mod1_index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-syms1.pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract first module's symbols"
+	return
+    } else {
+	pass "Extracted first module's symbols"
+    }
+
+    set exp [file_contents "$srcdir/$subdir/pdb-syms1-symbols1.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/$index_str"]
+
+    if [string match $exp $got] {
+	pass "Correct symbols in first module's stream"
+    } else {
+	fail "Incorrect symbols in first module's stream"
+    }
+
+    # check symbols in second module
+
+    set index_str [format "%04x" $mod2_index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-syms1.pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract second module's symbols"
+	return
+    } else {
+	pass "Extracted second module's symbols"
+    }
+
+    set exp [file_contents "$srcdir/$subdir/pdb-syms1-symbols2.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/$index_str"]
+
+    if [string match $exp $got] {
+	pass "Correct symbols in second module's stream"
+    } else {
+	fail "Incorrect symbols in second module's stream"
+    }
+}
+
+proc test9 { } {
+    global as
+    global ar
+    global ld
+    global objdump
+    global srcdir
+    global subdir
+
+    if ![ld_assemble $as $srcdir/$subdir/pdb-syms2.s tmpdir/pdb-syms2.o] {
+	unsupported "Build pdb-syms2.o"
+	return
+    }
+
+    if ![ld_link $ld "tmpdir/pdb-syms2.exe" "--pdb=tmpdir/pdb-syms2.pdb tmpdir/pdb-syms2.o"] {
+	unsupported "Create PE image with PDB file"
+	return
+    }
+
+    # get index of module stream
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-syms2.pdb 0003"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract DBI stream"
+	return
+    } else {
+	pass "Extracted DBI stream"
+    }
+
+    set fi [open tmpdir/0003]
+    fconfigure $fi -translation binary
+
+    seek $fi 24
+    set data [read $fi 4]
+    binary scan $data i mod_info_size
+
+    seek $fi 36 current
+    set mod_info [read $fi $mod_info_size]
+
+    close $fi
+
+    binary scan [string range $mod_info 34 35] s module_index
+
+    # check module records
+
+    set index_str [format "%04x" $module_index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-syms2.pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract module symbols"
+	return
+    } else {
+	pass "Extracted module symbols"
+    }
+
+    set exp [file_contents "$srcdir/$subdir/pdb-syms2-symbols1.d"]
+    set got [run_host_cmd "$objdump" "-s --target=binary tmpdir/$index_str"]
+
+    if [string match $exp $got] {
+	pass "Correct symbols in module stream"
+    } else {
+	fail "Incorrect symbols in module stream"
+    }
+
+    # check linker symbols
+
+    set off 64
+
+    set obj1 [string range $mod_info $off [expr [string first \000 $mod_info $off] - 1]]
+    incr off [expr [string length $obj1] + 1]
+
+    set ar1 [string range $mod_info $off [expr [string first \000 $mod_info $off] - 1]]
+    incr off [expr [string length $ar1] + 1]
+
+    if { [expr $off % 4] != 0 } {
+	set off [expr $off + 4 - ($off % 4)]
+    }
+
+    incr off 34
+
+    binary scan [string range $mod_info $off [expr $off + 1]] s linker_syms_index
+
+    set index_str [format "%04x" $linker_syms_index]
+
+    set exec_output [run_host_cmd "$ar" "x --output tmpdir tmpdir/pdb-syms2.pdb $index_str"]
+
+    if ![string match "" $exec_output] {
+	fail "Could not extract linker symbols"
+	return
+    } else {
+	pass "Extracted linker symbols"
+    }
+
+    set syms [file_contents "tmpdir/$index_str"]
+
+    # check S_OBJNAME
+
+    set off 4
+    binary scan [string range $syms $off [expr $off + 1]] s sym_len
+    binary scan [string range $syms [expr $off + 2] [expr $off + 3]] s sym_type
+
+    if { $sym_type != 0x1101 } {
+	fail "First linker symbol was not S_OBJNAME"
+    } else {
+	pass "First linker symbol was S_OBJNAME"
+
+	set linker_fn [string range $syms [expr $off + 8] [expr [string first \000 $syms [expr $off + 8]] - 1]]
+
+	if ![string equal $linker_fn "* Linker *"] {
+	    fail "Incorrect linker object name"
+	} else {
+	    pass "Correct linker object name"
+	}
+    }
+
+    incr off [expr $sym_len + 2]
+
+    # check S_COMPILE3
+
+    binary scan [string range $syms $off [expr $off + 1]] s sym_len
+    binary scan [string range $syms [expr $off + 2] [expr $off + 3]] s sym_type
+
+    if { $sym_type != 0x113c } {
+	fail "Second linker symbol was not S_COMPILE3"
+    } else {
+	pass "Second linker symbol was S_COMPILE3"
+    }
+
+    incr off [expr $sym_len + 2]
+
+    # check S_ENVBLOCK
+
+    binary scan [string range $syms $off [expr $off + 1]] s sym_len
+    binary scan [string range $syms [expr $off + 2] [expr $off + 3]] s sym_type
+
+    if { $sym_type != 0x113d } {
+	fail "Third linker symbol was not S_ENVBLOCK"
+    } else {
+	pass "Third linker symbol was S_ENVBLOCK"
+    }
+}
+
+test1
+test2
+test3
+test4
+test5
+test6
+test7
+test8
+test9

@@ -1,0 +1,6 @@
+#as: --text-section-literals
+#ld:
+#objdump: -s
+#...
+ 410154 06fa0006 fffa.*
+#...

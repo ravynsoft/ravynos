@@ -1,0 +1,32 @@
+#  generic machinemodel file
+#
+#   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; see the file COPYING3.  If not see
+# <http://www.gnu.org/licenses/>.
+
+mobj_define Memory_page_size       "(EA_PAGESIZE ? EA_PAGESIZE : -1)"
+mobj_define Memory_page            "(((VADDR>255) && EA_PAGESIZE) ? VADDR & (~(EA_PAGESIZE-1)) : -1)"
+mobj_define Memory_64B_cacheline   "((VADDR>255)?(VADDR>>6<<6):-1)"
+mobj_define Memory_address         "((VADDR>255)?(VADDR):-1)"
+
+mobj_define Memory_in_home_lgrp    (EA_LGRP==LWP_LGRP_HOME)
+mobj_define Memory_lgrp            (EA_LGRP)
+
+mobj_define Physical_page          "((PADDR && EA_PAGESIZE) ? PADDR & (~(EA_PAGESIZE-1)) : -1)"
+mobj_define Physical_64B_cacheline "(PADDR?(PADDR>>6<<6):-1)"
+mobj_define Physical_address       "(PADDR?(PADDR):-1)"
+
+#mobj_define Vpage_4K   "(((ea_pagesize==1<<12 || !ea_pagesize) && VADDR>255)?(VADDR>>12<<12):-1)"
+#mobj_define Ppage_4K   "((ea_pagesize==1<<12 && PADDR)?(PADDR>>12<<12):-1)"

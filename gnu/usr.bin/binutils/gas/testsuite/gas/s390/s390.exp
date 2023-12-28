@@ -1,0 +1,46 @@
+#
+# s390/s390x tests
+#
+
+if [expr [istarget "s390-*-*"] ||  [istarget "s390x-*-*"]]  then {
+
+    # s390x-ibm-tpf target does not support a 32-bit target.
+    if { ! [istarget "s390x-*-tpf*"] } then {
+      run_dump_test "esa-g5" "{as -m31}"
+      run_dump_test "esa-z900" "{as -m31} {as -march=z900}"
+      run_dump_test "esa-z990" "{as -m31} {as -march=z990}"
+      run_dump_test "esa-z9-109" "{as -m31} {as -march=z9-109}"
+      run_dump_test "esa-reloc" "{as -m31}"
+      run_dump_test "esa-operands" "{as -m31}"
+    }
+
+#    # PIC is only supported on ELF targets.
+#    if { ([istarget "*-*-elf*"] || [istarget "*-*-linux*"] ) } then {
+#	run_dump_test "s390pic"
+#    }
+
+    run_dump_test "zarch-z900" "{as -m64}"
+    run_list_test "zarch-z900-err" "-march=z900"
+    run_dump_test "zarch-z990" "{as -m64} {as -march=z990}"
+    run_list_test "zarch-z990-symbol-lay" "-m64 -march=z990"
+    run_dump_test "zarch-z9-109" "{as -m64} {as -march=z9-109}"
+    run_list_test "zarch-z9-109-err" "-march=z9-109"
+    run_dump_test "zarch-z9-ec" "{as -m64} {as -march=z9-ec}"
+    run_dump_test "zarch-z10" "{as -m64} {as -march=z10}"
+    run_dump_test "zarch-z196" "{as -m64} {as -march=z196}"
+    run_dump_test "zarch-zEC12" "{as -m64} {as -march=zEC12}"
+    run_dump_test "zarch-z13" "{as -m64} {as -march=z13}"
+    run_dump_test "zarch-arch12" "{as -m64} {as -march=arch12}"
+    run_dump_test "zarch-arch13" "{as -m64} {as -march=arch13}"
+    run_dump_test "zarch-arch14" "{as -m64} {as -march=arch14}"
+    run_dump_test "zarch-reloc" "{as -m64}"
+    run_dump_test "zarch-operands" "{as -m64} {as -march=z9-109}"
+    run_dump_test "zarch-machine" "{as -m64} {as -march=z900}"
+    run_dump_test "zarch-optargs" "{as -m64} {as -march=arch12}"
+    run_list_test "machine-parsing-1" ""
+    run_list_test "machine-parsing-2" ""
+    run_list_test "machine-parsing-3" ""
+    run_list_test "machine-parsing-4" ""
+    run_list_test "machine-parsing-5" ""
+    run_list_test "machine-parsing-6" ""
+}

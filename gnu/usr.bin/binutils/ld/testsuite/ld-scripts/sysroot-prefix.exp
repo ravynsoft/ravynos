@@ -1,0 +1,224 @@
+# Copyright (C) 2014-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# Don't run on alpha-vms which requires linking with other libraries,
+# or on targets that complain about relocations in read-only sections.
+if { [istarget *-*-vms]
+     || [istarget bfin-*-*]
+     || [istarget frv-*-*]
+     || [istarget lm32-*-*] } then {
+    return
+}
+
+# Check that scripts using the "=" sysroot-prefix work, for both
+# toolchains with and without --sysroot support.
+
+# We test this by emitting archives into a subdirectory and expect
+# constructs such as GROUP and AS_NEEDED (the only two constructs
+# actually tested) to find them (or not); both quoted and unquoted
+# paths, with different prefixes on the path and with --sysroot
+# present or not, with different arguments.
+
+# Find out if the linker supports sysroot; if it was configured
+# "--with-sysroot X" where X is a non-empty string.
+set with_sysroot [check_sysroot_available]
+verbose -log "Has (non-empty) sysroot support: $with_sysroot; \"$ld_sysroot\""
+
+# We also need to know if the sysroot is "/" (a common use) as some of
+# the tests prepend sysroot to the current directory and on most
+# common systems "//dir/path" is handled as "/dir/path".
+if {$ld_sysroot == "/"} {
+    # Use a modified test-subset for testing.
+    set with_sysroot 3
+}
+
+# The linker on Windows expects Windows style paths.
+# MSYS2 runtime converts paths in the command line automatically.
+# However, for our test linker scripts, we have to prepare
+# the correct paths manually.
+proc get_base_dir_for_scripts {} {
+    global base_dir
+    global get_base_dir_for_scripts_saved
+
+    if { ![info exists get_base_dir_for_scripts_saved] } {
+	set get_base_dir_for_scripts_saved $base_dir
+	if { ([ishost *-*-cygwin] || [ishost *-*-mingw*] )
+	     && ![catch "exec cygpath -m $base_dir" base_dir_converted] } {
+	    set get_base_dir_for_scripts_saved $base_dir_converted
+	}
+    }
+    return $get_base_dir_for_scripts_saved
+}
+
+# Entries in the array-tables:
+# 0: Testtype; an inclusive bitmask indicating that the test should run on a
+# build configured for: 1: non-sysroot, 2: sysroot != "/", 4: sysroot == "/".
+# 1: Description, forming part of the dejagnu test-name.
+# 2: Replacement for @p@.
+# 3: Option to pass to linker (usually something with --sysroot).
+# 4: Message substring; a substring to match against the error message
+# if an error is expected, or empty if no error is expected.
+#
+# If the replacement or option contains @cwd@, that'll be replaced by
+# "$base_dir/tmpdir", the full path to the location of the script
+# (with the actual files in the "sysroot" subdirectory).  If the
+# description contains @cwd@, that will be replaced by "<CWD>".
+
+set sysroot_prefix_tests {
+    {7 "plain -Lpath" "sysroot/" {} ""}
+    {7 "root-anchored but -Lpath" "/sysroot/" {} "cannot find"}
+    {7 "full-path" "@cwd@/sysroot/" {} ""}
+    {7 "root-anchored =-prefixed -Lpath" "=/sysroot/" {} "cannot find"}
+    {7 "root-anchored $SYSROOT-prefixed -Lpath" "$SYSROOT/sysroot/" {} "cannot find"}
+    {7 "plain =-prefixed with empty" "=sysroot/" "--sysroot=" ""}
+    {7 "plain $SYSROOT-prefixed with empty" "$SYSROOTsysroot/" "--sysroot=" ""}
+    {6 "root-anchored but script outside sysroot" "/" "--sysroot=@cwd@/sysroot" "cannot find"}
+    {6 "root-anchored and script inside sysroot" "/sysroot/" "--sysroot=@cwd@" ""}
+    {6 "root-anchored =-prefixed script outside" "=/" "--sysroot=@cwd@/sysroot" ""}
+    {6 "root-anchored $SYSROOT-prefixed script outside" "$SYSROOT/" "--sysroot=@cwd@/sysroot" ""}
+    {6 "root-anchored =-prefixed script inside" "=/sysroot/" "--sysroot=@cwd@" ""}
+    {6 "root-anchored $SYSROOT-prefixed script inside" "$SYSROOT/sysroot/" "--sysroot=@cwd@" ""}
+    {2 "plain =-prefixed without but -Lpath" "=sysroot/" {} "cannot find"}
+    {2 "plain $SYSROOT-prefixed without but -Lpath" "$SYSROOTsysroot/" {} "cannot find"}
+    {2 "full-path =-prefixed without" "=@cwd@/sysroot/" {} "cannot find"}
+    {2 "full-path $SYSROOT-prefixed without" "$SYSROOT@cwd@/sysroot/" {} "cannot find"}
+    {1 "plain =-prefixed -Lpath" "=sysroot/" {} ""}
+    {1 "plain $SYSROOT-prefixed -Lpath" "$SYSROOTsysroot/" {} ""}
+    {1 "full-path =-prefixed without" "=@cwd@/sysroot/" {} ""}
+    {1 "full-path $SYSROOT-prefixed without" "$SYSROOT@cwd@/sysroot/" {} ""}
+}
+
+# May have to provide a target-specific assembler option for some targets.
+set gasopt ""
+
+# Intentionally similar to the ubiquitous glibc libc.so script.
+set template "GROUP ( @q@@p@tmp/ldtest-xyzzy/libx.a@q@ AS_NEEDED ( @q@@p@tmp/ldtest-xyzzy/liby.a@q@ ) )"
+
+# Set up everything from the variables above.
+proc sysroot_prefix_test_setup { } {
+    global as gasopt srcdir subdir ar
+
+    if {![ld_assemble_flags $as $gasopt $srcdir/$subdir/pr14962a.s tmpdir/main.o]} {
+	perror "Error assembling a trivial file for sysroot-prefix tests framework"
+	return 0
+    }
+
+    # We need somewhere under tmpdir to point the sysroot, a subdirectory
+    # that is benevolent if it escapes into "/".
+    remote_exec host "mkdir -p tmpdir/sysroot/tmp/ldtest-xyzzy"
+
+    # 0: a "main" object that needs a symbol (x) (most portably by
+    # using a pre-existing file).  1: a library with an object that
+    # provides that symbol and needs another one (y).  2: another
+    # library with a third object providing that other symbol.
+    set sysroot_prefix_tests_framework_objects  {
+	{"pr14962a.s" "main" ""}
+	{"sysroot-prefix-x.s" "x" "x"}
+	{"sysroot-prefix-y.s" "y"  "y"}
+    }
+
+    foreach test_object $sysroot_prefix_tests_framework_objects {
+	set sname [lindex $test_object 0]
+	set onamebase [lindex $test_object 1]
+	set oname "tmpdir/$onamebase.o"
+	set libnamebase [lindex $test_object 2]
+
+	if ![ld_assemble_flags $as $gasopt $srcdir/$subdir/$sname $oname] {
+	    perror "Error assembling trivial file $sname for sysroot-prefix tests framework"
+	    return 0
+	}
+
+	if { [string length $libnamebase] != 0 &&
+	     ![ar_simple_create $ar "" tmpdir/sysroot/tmp/ldtest-xyzzy/lib$libnamebase.a $oname] } {
+	    perror "Error creating archive $libnamebase for sysroot-prefix tests framework"
+	    return 0
+	}
+    }
+
+    return 1
+}
+
+# Run a single linker test.
+proc single_sysroot_prefix_test { type xtestname finalscript ldopt errstr } {
+    global ld exec_output with_sysroot
+    set scriptname "tmpdir/libsysroottest.a"
+    set testname "sysroot-prefix $xtestname"
+
+    if { ($type & ($with_sysroot + 1)) == 0 } {
+	unsupported $testname
+	return
+    }
+
+    if [catch { set ofd [open $scriptname w] } x] {
+	perror "$x"
+	unresolved $testname
+	return
+    }
+
+    puts $ofd "$finalscript"
+    close $ofd
+    verbose -log "script $scriptname: $finalscript"
+
+    set res [ld_link $ld tmpdir/output "$ldopt tmpdir/main.o -Ltmpdir -lsysroottest"]
+    set ld_output "$exec_output"
+    set expect_success [expr [string length $errstr] == 0]
+
+    if { $res == $expect_success &&
+         ($expect_success || [regexp "$errstr" $ld_output]) } {
+	pass $testname
+	catch "exec rm -f $scriptname"
+    } {
+	fail $testname
+    }
+}
+
+# Run all interesting variants from an option-and-path combination.
+proc run_sysroot_prefix_test { type name templ p ldopt errstr } {
+    global base_dir
+    set qlist { { "quoted" "\"" } { "unquoted" {} } }
+
+    regsub -all "@p@" $templ $p templ
+    regsub -all "@cwd@" $templ "[get_base_dir_for_scripts]/tmpdir" templ
+    regsub -all "@cwd@" $ldopt "$base_dir/tmpdir" ldopt
+    regsub -all "@cwd@" $name "<CWD>" name
+
+    foreach qitems $qlist {
+	regsub -all "@q@" $templ [lindex $qitems 1] finalscript
+	single_sysroot_prefix_test $type "$name, [lindex $qitems 0]" \
+		$finalscript $ldopt $errstr
+    }
+}
+
+# Run a list of option-and-path test-combinations.
+proc run_sysroot_prefix_tests { descr templ items } {
+    foreach item $items {
+	set type [lindex $item 0]
+	set name [lindex $item 1]
+	set p [lindex $item 2]
+	set ldopt [lindex $item 3]
+	set errstr [lindex $item 4]
+	run_sysroot_prefix_test $type "$descr $name" $templ "$p" "$ldopt" "$errstr"
+    }
+}
+
+if ![sysroot_prefix_test_setup] {
+    return
+}
+
+run_sysroot_prefix_tests "common" $template $sysroot_prefix_tests

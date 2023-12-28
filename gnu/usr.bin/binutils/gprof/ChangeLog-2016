@@ -1,0 +1,107 @@
+2016-12-23  Tristan Gingold  <gingold@adacore.com>
+
+	* configure: Regenerate.
+
+2016-12-23  Tristan Gingold  <gingold@adacore.com>
+
+	* po/gprof.pot: Regenerate.
+
+2016-11-27  Ambrogino Modigliani  <ambrogino.modigliani@gmail.com>
+
+	* basic_blocks.c: Fix spelling in comments.
+	* cg_arcs.c: Fix spelling in comments.
+	* cg_print.c: Fix spelling in comments.
+	* corefile.c: Fix spelling in comments.
+
+2016-11-22  Ambrogino Modigliani  <ambrogino.modigliani@gmail.com>
+
+        * configure: Regenerate.
+
+2016-10-06  Tom Tromey  <tromey@sourceware.org>
+
+	PR gprof/20656
+	* source.c (annotate_source): Delete redundant assignment to
+	new_line.
+
+2016-10-06  Alan Modra  <amodra@gmail.com>
+
+	* gprof.c: Add missing fall through comments.
+
+2016-09-26  Vlad Zakharov  <vzakhar@synopsys.com>
+
+	* Makefile.in: Regenerate.
+	* configure: Likewise.
+
+2016-08-30  Nick Clifton  <nickc@redhat.com>
+
+	PR gprof/20499
+	* corefile.c (num_of_syms_in): Return an unsigned int.
+	Fail if the count exceeds the maximum possible allocatable size.
+	(core_create_syms_from): Exit early if num_of_syms_in returns a
+	failure code.
+
+2016-08-23  Nick Clifton  <nickc@redhat.com>
+
+	PR gprof/20499
+	* corefile.c (BUFSIZE): Define.
+	(STR_BUFSIZE): Define.
+	(read_function_mappings): Use BUFSIZE and STR)BUFSIZE.
+	(num_of_syms_in): Move buf, address and name arrays out of
+	function and declare as static BUFSIZE arrays.
+	Use STR_BUFSIZE when scanning for name and address.
+	(core_create_syms_from): Revert previous delta.  Instead
+	short circuit the parsing of a symbol if all three fields
+	could not be found.
+
+2016-08-22  Nick Clifton  <nickc@redhat.com>
+
+	PR gprof/20499
+	* corefile.c (core_create_syms_from): Avoid walking off the end of
+	the symbol table.
+
+2016-07-21  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* configure: Regenerated.
+
+2016-04-20  Trevor Saunders  <tbsaunde+binutils@tbsaunde.org>
+
+	* basic_blocks.c: Update old style function definitions.
+	* cg_arcs.c: Likewise.
+	* cg_print.c: Likewise.
+	* gen-c-prog.awk: Likewise.
+	* gmon_io.c: Likewise.
+	* hertz.c: Likewise.
+	* hist.c: Likewise.
+	* sym_ids.c: Likewise.
+
+2016-04-15  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* Makefile.in: Regenerated with automake 1.11.6.
+	* aclocal.m4: Likewise.
+
+2016-03-22  Nick Clifton  <nickc@redhat.com>
+
+	* configure: Regenerate.
+
+2016-01-17  Alan Modra  <amodra@gmail.com>
+
+	* configure: Regenerate.
+
+2016-01-01  Alan Modra  <amodra@gmail.com>
+
+	Update year range in copyright notice of all files.
+
+For older changes see ChangeLog-2015
+
+Copyright (C) 2016 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

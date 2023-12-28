@@ -1,0 +1,1020 @@
+2020-12-23  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* elf/common.h (GNU_PROPERTY_X86_FEATURE_1_LAM_U48): New.
+	(GNU_PROPERTY_X86_FEATURE_1_LAM_U57): Likewise.
+
+2020-12-18  Alan Modra  <amodra@gmail.com>
+
+	* xtensa-isa-internal.h (xtisa_errno, xtisa_error_msg): Delete.
+
+2020-12-18  Alan Modra  <amodra@gmail.com>
+
+	* opcode/arc-attrs.h (CONFLICT_LIST): Make const.
+
+2020-12-16  Alan Modra  <amodra@gmail.com>
+
+	* bfdlink.h (struct bfd_link_info): Add maxpagesize and
+	commonpagesize.
+
+2020-12-16  Alan Modra  <amodra@gmail.com>
+
+	* xtensa-isa-internal.h (xtensa_format_internal),
+	(xtensa_slot_internal, xtensa_operand_internal),
+	(xtensa_arg_internal, xtensa_iclass_internal),
+	(xtensa_opcode_internal, xtensa_regfile_internal),
+	(xtensa_interface_internal, xtensa_funcUnit_internal),
+	(xtensa_state_internal, xtensa_sysreg_internal): Constify.
+
+2020-12-15  Vivek Das Mohapatra  <vivek@collabora.com>
+
+	* elf/common.h (DT_GNU_FLAGS_1, DF_GNU_1_UNIQUE): Define.
+	* bfdlink.h (struct bfd_link_info): New field gnu_flags_1.
+
+2020-12-11  Cary Coutant  <ccoutant@gmail.com>
+
+	* elf/common.h: Update list of e_machine values.
+
+2020-12-10  Nelson Chu  <nelson.chu@sifive.com>
+
+	* opcode/riscv.h (M_ZEXTH, M_ZEXTW, M_SEXTB, M_SEXTH.): Added.
+
+2020-12-10  Nelson Chu  <nelson.chu@sifive.com>
+
+	* opcode/riscv.h: Add INSN_CLASS_ZICSR and INSN_CLASS_ZIFENCEI.
+
+2020-12-07  Nick Clifton  <nickc@redhat.com>
+
+	* elf/common.h (SHF_GNU_BUILD_NOTE): Delete.
+
+2020-12-01  Nelson Chu  <nelson.chu@sifive.com>
+
+	* opcode/riscv.h (RISCV_UNKNOWN_VERSION): added.
+
+2020-12-01  Nelson Chu  <nelson.chu@sifive.com>
+
+	* opcode/riscv.h (riscv_ext_version):
+	Change the version type from unsigned to int.
+
+2020-11-23  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h: Style nit: remove () on function names in comments.
+	(ctf_sect_t): Mention endianness concerns.
+	(ctf_symsect_endianness): New declaration.
+	(ctf_arc_symsect_endianness): Likewise.
+
+2020-11-20  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ctf_getsymsect): New.
+	(ctf_getstrsect): Likewise.
+
+2020-11-20  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ctf_arc_lookup_symbol): New.
+	(ctf_arc_flush_caches): Likewise.
+	* ctf.h: Document new auto-ctf_import behaviour.
+
+2020-11-20  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ctf_symbol_next): New.
+	(ctf_add_objt_sym): Likewise.
+	(ctf_add_func_sym): Likewise.
+	* ctf.h: Document new function info section format.
+	(CTF_F_NEWFUNCINFO): New.
+	(CTF_F_IDXSORTED): New.
+	(CTF_F_MAX): Adjust accordingly.
+
+2020-11-20  Nick Alcock  <nick.alcock@oracle.com>
+
+	* bfdlink.h (struct elf_sym_strtab): Replace with...
+	(struct elf_internal_sym): ... this.
+	(struct bfd_link_callbacks) <examine_strtab>: Take only a
+	symstrtab argument.
+	<ctf_new_symbol>: New.
+	<ctf_new_dynsym>: Likewise.
+	* ctf-api.h (struct ctf_link_sym) <st_symidx>: New.
+	<st_nameidx>: Likewise.
+	<st_nameidx_set>: Likewise.
+	(ctf_link_iter_symbol_f): Removed.
+	(ctf_link_shuffle_syms): Remove most parameters, just takes a
+	ctf_dict_t now.
+	(ctf_link_add_linker_symbol): New, split from
+	ctf_link_shuffle_syms.
+	* ctf.h (CTF_F_DYNSTR): New.
+	(CTF_F_MAX): Adjust.
+
+2020-11-20  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ctf_arc_open_by_name): Rename to...
+	(ctf_dict_open): ... this, keeping compatibility function.
+	(ctf_arc_open_by_name_sections): Rename to...
+	(ctf_dict_open_sections): ... this, keeping compatibility function.
+
+2020-11-20  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ctf_file_t): Rename to...
+	(ctf_dict_t): ... this.  Keep ctf_file_t around for compatibility.
+	(struct ctf_file): Likewise rename to...
+	(struct ctf_dict): ... this.
+	(ctf_file_close): Rename to...
+	(ctf_dict_close): ... this, keeping compatibility function.
+	(ctf_parent_file): Rename to...
+	(ctf_parent_dict): ... this, keeping compatibility function.
+	All callers adjusted.
+	* ctf.h: Rename references to ctf_file_t to ctf_dict_t.
+	(struct ctf_archive) <ctfa_nfiles>: Rename to...
+	<ctfa_ndicts>: ... this.
+
+2020-11-18  Jozef Lawrynowicz  <jozef.l@mittosystems.com>
+
+	* elf/common.h (SHF_GNU_RETAIN): Define.
+
+2020-11-16  Przemyslaw Wirkus  <przemyslaw.wirkus@arm.com>
+
+	* opcode/aarch64.h (AARCH64_FEATURE_FLAGM): Add new feature.
+	(AARCH64_FEATURE_FLAGMANIP): Update comment.
+	(AARCH64_ARCH_V8_4): Add back FLAGM to Armv8.4-A.
+
+2020-11-09  Spencer E. Olson  <olsonse@umich.edu>
+
+	* opcode/pru.h: Add LMBD (left-most bit detect) opcode index.
+
+2020-11-09  Przemyslaw Wirkus  <przemyslaw.wirkus@arm.com>
+
+	* opcode/aarch64.h (enum aarch64_opnd): Add new operand AARCH64_OPND_Rt_LS64.
+
+2020-11-06  Przemyslaw Wirkus  <przemyslaw.wirkus@arm.com>
+
+	* opcode/aarch64.h (AARCH64_FEATURE_PAC): Add new feature.
+	(AARCH64_ARCH_V8_3): Add back PAC to Armv8.3-A.
+
+2020-11-04  Przemyslaw Wirkus  <przemyslaw.wirkus@arm.com>
+
+	* opcode/aarch64.h (AARCH64_ARCH_V8): Add RAS to Armv8-A.
+	(AARCH64_ARCH_V8_2): Remove RAS from Armv8.2-A set.
+
+2020-11-03  Przemyslaw Wirkus  <przemyslaw.wirkus@arm.com>
+
+	* opcode/aarch64.h (AARCH64_FEATURE_LS64): New +ls64 feature flag.
+	(AARCH64_ARCH_V8_7): Add LS64 as part of Armv8.7-a.
+
+2020-10-30  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gas/26703
+	* elf/common.h (GNU_PROPERTY_X86_ISA_1_BASELINE): New.
+	(GNU_PROPERTY_X86_ISA_1_V2): Uppdated.
+	(GNU_PROPERTY_X86_ISA_1_V3): Likewise.
+	(GNU_PROPERTY_X86_ISA_1_V4): Likewise.
+
+2020-10-27  Przemyslaw Wirkus  <przemyslaw.wirkus@arm.com>
+
+	* opcode/aarch64.h (AARCH64_FEATURE_CSRE): New -march feature.
+(enum aarch64_opnd): New CSR instruction field AARCH64_OPND_CSRE_CSR.
+
+2020-10-26  Cooper Qu <cooper.qu@linux.alibaba.com>
+
+	* opcode/csky.h (CSKY_VERSION_V1): New, currently used.
+	(CSKY_VERSION_V2): New.
+	(CSKY_VERSION_V3): New.
+
+2020-10-23  Przemyslaw Wirkus  <przemyslaw.wirkus@arm.com>
+
+	* opcode/aarch64.h (enum aarch64_opnd): New operand
+	AARCH64_OPND_BARRIER_DSB_NXS.
+	(aarch64_barrier_dsb_nxs_options): Declare DSB nXS options.
+
+2020-10-21  Tom Tromey  <tromey@adacore.com>
+
+	* ctf-api.h (_CTF_ERRORS): New macro.
+
+2020-10-16  Nelson Chu  <nelson.chu@sifive.com>
+
+	* elf/riscv.h: Add R_RISCV_IRELATIVE to 58.
+
+2020-10-16  Przemyslaw Wirkus  <przemyslaw.wirkus@arm.com>
+
+	* opcode/aarch64.h (AARCH64_FEATURE_V8_7): New feature bitmask.
+	(AARCH64_ARCH_V8_7): New arch feature set.
+
+2020-10-09  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gas/26703
+	* elf/common.h (GNU_PROPERTY_X86_ISA_1_USED): Renamed to ...
+	(GNU_PROPERTY_X86_COMPAT_2_ISA_1_USED): This.
+	(GNU_PROPERTY_X86_ISA_1_NEEDED): Renamed to ...
+	(GNU_PROPERTY_X86_COMPAT_2_ISA_1_NEEDED): This.
+	(GNU_PROPERTY_X86_ISA_1_XXX): Renamed to ...
+	(GNU_PROPERTY_X86_COMPAT_2_ISA_1_XXX): This.
+	(GNU_PROPERTY_X86_ISA_1_NEEDED): New.
+	(GNU_PROPERTY_X86_ISA_1_USED): Likewise.
+	(GNU_PROPERTY_X86_ISA_1_V2): Likewise.
+	(GNU_PROPERTY_X86_ISA_1_V3): Likewise.
+	(GNU_PROPERTY_X86_ISA_1_V4): Likewise.
+	(GNU_PROPERTY_X86_FEATURE_2_MASK): Likewise.
+
+2020-09-23  Mark Wielaard  <mark@klomp.org>
+
+	Sync with GCC
+	* dwarf2.def: Add DWARF5 Unit type header encoding macros
+	DW_UT_FIRST, DW_UT and DW_UT_END.
+	* dwarf2.h (enum dwarf_unit_type): Removed and define using
+	DW_UT_FIRST, DW_UT and DW_UT_END macros.
+	(get_DW_UT_name): New function declaration.
+
+2020-09-12  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/26391
+	* bfdlink.h (bfd_link_info): Add unique_symbol.
+
+2020-09-11  Felix Willgerodt  <felix.willgerodt@intel.com>
+
+	Sync with GCC
+	2020-09-08  Felix Willgerodt  <felix.willgerodt@intel.com>
+
+	* floatformat.h (floatformat_bfloat16_big): New.
+	(floatformat_bfloat16_little): New.
+
+2020-09-12 Cooper Qu <cooper.qu@linux.alibaba.com>
+
+	* opcode/csky.h (CSKYV1_ISA_E1): Convert to bfd_uint64_t type.
+	(CSKYV2_ISA_E1): Likewise.
+	(CSKYV2_ISA_1E2>): Likewise.
+	(CSKYV2_ISA_2E3>): Likewise.
+	(CSKYV2_ISA_3E7>): Likewise.
+	(CSKYV2_ISA_7E10): Likewise.
+	(CSKYV2_ISA_3E3R1): Likewise.
+	(CSKYV2_ISA_3E3R2): Likewise.
+	(CSKYV2_ISA_10E60): Likewise.
+	(CSKYV2_ISA_3E3R3): Likewise.
+	(CSKY_ISA_TRUST): Likewise.
+	(CSKY_ISA_CACHE): Likewise.
+	(CSKY_ISA_NVIC): Likewise.
+	(CSKY_ISA_CP): Likewise.
+	(CSKY_ISA_MP): Likewise.
+	(CSKY_ISA_MP_1E2): Likewise.
+	(CSKY_ISA_JAVA): Likewise.
+	(CSKY_ISA_MAC): Likewise.
+	(CSKY_ISA_MAC_DSP): Likewise.
+	(CSKY_ISA_DSP): Likewise.
+	(CSKY_ISA_DSP_1E2): Likewise.
+	(CSKY_ISA_DSP_ENHANCE): Likewise.
+	(CSKY_ISA_DSPE60): Likewise.
+	(CSKY_ISA_FLOAT_E1): Likewise.
+	(CSKY_ISA_FLOAT_1E2): Likewise.
+	(CSKY_ISA_FLOAT_1E3): Likewise.
+	(CSKY_ISA_FLOAT_3E4): Likewise.
+	(CSKY_ISA_FLOAT_7E60): Likewise.
+	(CSKY_ISA_VDSP): Likewise.
+	(CSKY_ISA_VDSP_2): Likewise.
+	(CSKY_ARCH_804): Define.
+	(CSKY_ARCH_805): Define.
+	(CSKY_ARCH_800): Define.
+
+2020-09-11  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* elf/common.h (NT_X86_CET): New.
+
+2020-09-10  Cooper Qu  <cooper.qu@linux.alibaba.com>
+
+	* opcode/csky.h (CSKY_ARCH_804): Define.
+	(CSKY_ARCH_805): Define.
+	(CSKY_ARCH_800): Define.
+
+2020-09-10  Nick Clifton  <nickc@redhat.com>
+
+	* opcode/csky.h (CSKY_ISA_FLOAT_7E60): Use a long long type for
+	this value.
+
+2020-09-07  Cooper Qu  <cooper.qu@linux.alibaba.com>
+
+	* opcode/csky.h (CSKY_ISA_DSPE60): Define.
+
+2020-09-07  Cooper Qu  <cooper.qu@linux.alibaba.com>
+
+	* opcode/csky.h (CSKY_ISA_FLOAT_7E60): Define.
+
+2020-09-08  Jozef Lawrynowicz  <jozef.l@mittosystems.com>
+	Kuan-Lin Chen  <kuanlinchentw@gmail.com>
+
+	* elf/msp430.h (elf_msp430_reloc_type): Add
+	R_MSP430_GNU_{SET,SUB}_ULEB128.
+	(elf_msp430x_reloc_type): Add R_MSP430X_GNU_{SET,SUB}_ULEB128.
+
+2020-09-08  Alex Coplan  <alex.coplan@arm.com>
+
+	* opcode/aarch64.h (aarch64_sys_ins_reg_supported_p): Also take
+	system register name in order to simplify validation for v8-R.
+	(aarch64_print_operand): Also take CPU feature set, as disassembly for
+	system registers now depends on arch variant.
+
+2020-09-08  Alex Coplan  <alex.coplan@arm.com>
+
+	* opcode/aarch64.h (AARCH64_FEATURE_V8_A): New.
+	(AARCH64_FEATURE_V8_R): New.
+	(AARCH64_ARCH_V8): Include new A-profile feature bit.
+	(AARCH64_ARCH_V8_R): New.
+
+2020-09-02  Alan Modra  <amodra@gmail.com>
+
+	* opcode/v850.h (struct v850_operand <insert>): Make param op an
+	unsigned long.
+
+2020-09-02  Cooper Qu  <cooper.qu@linux.alibaba.com>
+
+	* opcode/csky.h (CSKYV2_ISA_3E3R3): Define.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26493
+	* opcode/riscv.h (OP_MASK_CSR, OP_MASK_CUSTOM_IMM)
+	(OP_MASK_FUNCT7, OP_MASK_RS3): Make unsigned.
+
+2020-08-31  Alan Modra  <amodra@gmail.com>
+
+	PR 26457
+	* som/aout.h (SOM_SUBSPACE_ACCESS_CONTROL_BITS_MASK): Make unsigned.
+	(SOM_SUBSPACE_MEMORY_RESIDENT, SOM_SUBSPACE_DUP_COMMON)
+	(SOM_SUBSPACE_IS_COMMON, SOM_SUBSPACE_IS_LOADABLE)
+	(SOM_SUBSPACE_QUADRANT_MASK, SOM_SUBSPACE_INITIALLY_FROZEN)
+	(SOM_SUBSPACE_IS_FIRST, SOM_SUBSPACE_CODE_ONLY)
+	(SOM_SUBSPACE_SORT_KEY_MASK, SOM_SUBSPACE_REPLICATE_INIT)
+	(SOM_SUBSPACE_CONTINUATION, SOM_SUBSPACE_IS_TSPECIFIC)
+	(SOM_SUBSPACE_IS_COMDAT): Likewise.
+
+2020-08-28  Cooper Qu  <cooper.qu@linux.alibaba.com>
+
+	* elf/csky.h (SHT_CSKY_ATTRIBUTES): Define.
+	(Tag_CSKY_ARCH_NAME): New enum constant.
+	(Tag_CSKY_CPU_NAME): Likewise.
+	(Tag_CSKY_ISA_FLAGS): Likewise.
+	(Tag_CSKY_DSP_VERSION): Likewise.
+	(Tag_CSKY_VDSP_VERSION): Likewise.
+	(Tag_CSKY_FPU_VERSION): Likewise.
+	(Tag_CSKY_FPU_ABI): Likewise.
+	(Tag_CSKY_FPU_ROUNDING): Likewise.
+	(Tag_CSKY_FPU_DENORMAL): Likewise.
+	(Tag_CSKY_FPU_Exception): Likewise.
+	(Tag_CSKY_FPU_NUMBER_MODULE): Likewise.
+	(Tag_CSKY_FPU_HARDFP): Likewise.
+	(Tag_CSKY_MAX): Likewise.
+	(VAL_CSKY_DSP_VERSION_EXTENSION): Likewise.
+	(VAL_CSKY_DSP_VERSION_2): Likewise.
+	(VAL_CSKY_VDSP_VERSION_1): Likewise.
+	(VAL_CSKY_VDSP_VERSION_2): Likewise.
+	(VAL_CSKY_FPU_ABI_SOFT): Likewise.
+	(VAL_CSKY_FPU_ABI_SOFTFP): Likewise.
+	(VAL_CSKY_FPU_ABI_HARD): Likewise.
+	(VAL_CSKY_FPU_HARDFP_HALF): Likewise.
+	(VAL_CSKY_FPU_HARDFP_SINGLE): Likewise.
+	(VAL_CSKY_FPU_HARDFP_DOUBLE): Likewise.
+	* opcode/csky.h (CSKY_ISA_VDSP_V2): Define.
+	CSKYV1_ISA_E1: Change to long constant type.
+	CSKYV2_ISA_E1: Likewise.
+	CSKYV2_ISA_1E2: Likewise.
+	CSKYV2_ISA_2E3: Likewise.
+	CSKYV2_ISA_3E7: Likewise.
+	CSKYV2_ISA_7E10: Likewise.
+	CSKYV2_ISA_3E3R1: Likewise.
+	CSKYV2_ISA_3E3R2: Likewise.
+	CSKYV2_ISA_10E60: Likewise.
+	CSKY_ISA_TRUST: Likewise.
+	CSKY_ISA_CACHE: Likewise.
+	CSKY_ISA_NVIC: Likewise.
+	CSKY_ISA_CP: Likewise.
+	CSKY_ISA_MP: Likewise.
+	CSKY_ISA_MP_1E2: Likewise.
+	CSKY_ISA_JAVA: Likewise.
+	CSKY_ISA_MAC: Likewise.
+	CSKY_ISA_MAC_DSP: Likewise.
+	CSKY_ISA_DSP: Likewise.
+	CSKY_ISA_DSP_1E2: Likewise.
+	CSKY_ISA_DSP_ENHANCE: Likewise.
+	CSKY_ISA_FLOAT_E1: Likewise.
+	CSKY_ISA_FLOAT_1E2: Likewise.
+	CSKY_ISA_FLOAT_1E3: Likewise.
+	CSKY_ISA_FLOAT_3E4: Likewise.
+	CSKY_ISA_VDSP: Likewise.
+
+2020-08-27  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ctf_errwarning_next): New err parameter.
+
+2020-08-26  Nick Clifton  <nickc@redhat.com>
+
+	PR 26405
+	* elf/common.h (PT_OPENBSD_BOOTDATA): Define.
+	(PT_OPENBSD_RANDOMIZE): Define.
+	(PT_OPENBSD_WXNEEDED): Define.
+
+2020-08-26  Alan Modra  <amodra@gmail.com>
+
+	PR 26458
+	* elf/common.h (ELF32_R_INFO): Cast symbol index to unsigned.
+
+2020-08-24  Cooper Qu  <cooper.qu@linux.alibaba.com>
+
+	* opcode/csky.h (CSKYV2_ISA_10E60): New.
+	(CSKY_ARCH_860): New.
+
+2020-08-21  Cooper Qu  <cooper.qu@linux.alibaba.com>
+
+	* csky.h (CSKYV2_ISA_3E3R2): New.
+
+2020-08-21  Mark Wielaard  <mark@klomp.org>
+
+	* diagnostics.h (DIAGNOSTIC_IGNORE_DEPRECATED_REGISTER): Also define
+	for GCC 7.0 or higher.
+
+2020-08-10  Alex Coplan  <alex.coplan@arm.com>
+
+	* opcode/aarch64.h (AARCH64_MAX_SYSREG_NAME_LEN): New.
+
+2020-08-10  Przemyslaw Wirkus  <przemyslaw.wirkus@arm.com>
+
+	* opcode/aarch64.h (aarch64_sys_reg_deprecated_p): Functions
+	paramaters changed.
+	(aarch64_sys_reg_supported_p): Function removed.
+	(aarch64_sys_ins_reg_supported_p): Functions paramaters changed.
+
+2020-07-28  Caroline Tice  <cmtice@google.com>
+
+        * dwarf2.h (enum dwarf_sect_v5): A new enum section for	the
+	sections in a DWARF 5 DWP file (DWP version 5).
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (CTF_LINK_NONDEDUP): New, turn off the
+	deduplicator.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (CTF_LINK_OMIT_VARIABLES_SECTION): New.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (CTF_LINK_SHARE_DUPLICATED): No longer unimplemented.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ctf_link_variable_filter_t): New.
+	(ctf_link_set_variable_filter): Likewise.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (CTF_LINK_EMPTY_CU_MAPPINGS): New.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ECTF_NEEDSBFD): New.
+	(ECTF_NERR): Adjust.
+	(ctf_link): Rename share_mode arg to flags.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ECTF_INTERNAL): Adjust error text.
+	(ctf_errwarning_next): New.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ECTF_FLAGS): New.
+	(ECTF_NERR): Adjust.
+	* ctf.h (CTF_F_MAX): New.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ECTF_NEXT_END): New error.
+	(ECTF_NEXT_WRONGFUN): Likewise.
+	(ECTF_NEXT_WRONGFP): Likewise.
+	(ECTF_NERR): Adjust.
+	(ctf_next_t): New.
+	(ctf_next_create): New prototype.
+	(ctf_next_destroy): Likewise.
+	(ctf_next_copy): Likewise.
+	(ctf_member_next): Likewise.
+	(ctf_enum_next): Likewise.
+	(ctf_type_next): Likewise.
+	(ctf_label_next): Likewise.
+	(ctf_variable_next): Likewise.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ctf_ref): New.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ctf_archive_count): New.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ctf_member_count): New.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ctf_type_kind_forwarded): New.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.c (ctf_type_name_raw): New.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ECTF_*): Improve comments.
+	(ECTF_NERR): New.
+
+2020-07-22  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h: Fix typos in comments.
+
+2020-07-22  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/26262
+	PR ld/26267
+	* bfdlink.h (bfd_link_info): Add lto_all_symbols_read.
+
+2020-07-11  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* elf/common.h (GNU_PROPERTY_X86_FEATURE_2_TMM): New.
+
+2020-07-09  John Baldwin  <jhb@FreeBSD.org>
+
+	* elf/common.h (AT_FREEBSD_ARGC, AT_FREEBSD_ARGV, AT_FREEBSD_ENVC)
+	(AT_FREEBSD_ENVV, AT_FREEBSD_PS_STRINGS): Define.
+
+2020-07-09  Alan Modra  <amodra@gmail.com>
+
+	* coff/powerpc.h: Delete.
+
+2020-07-04  Nick Clifton  <nickc@redhat.com>
+
+	Binutils 2.35 branch created.
+
+2020-06-30  Nelson Chu  <nelson.chu@sifive.com>
+
+	* opcode/riscv-opc.h: Support the unprivileged CSR.  The versions
+	of the unprivileged CSR should be PRIV_SPEC_CLASS_NONE for now.
+	* opcode/riscv.h (enum riscv_csr_class): Add CSR_CLASS_DEBUG.
+
+2020-06-30  Nelson Chu  <nelson.chu@sifive.com>
+
+	* opcode/riscv-opc.h: Cleanup and remove the unused macros.
+
+2020-06-29  Alan Modra  <amodra@gmail.com>
+
+	* coff/internal.h: Use C style comments.
+	* coff/pe.h: Likewise.
+	* elf/ppc64.h: Likewise.
+
+2020-06-26  Nick Alcock  <nick.alcock@oracle.com>
+
+	* ctf-api.h (ctf_arc_bufopen): New.
+
+2020-06-26  Pat Bernardi  <bernardi@adacore.com>
+
+	* elf/m68k.h: Add enum for GNU object attribute with floating point
+	tag name and values.
+
+2020-06-25  Nick Clifton  <nickc@redhat.com>
+
+	* libiberty.h (bsearch_r): Remove use of the register keyword from
+	the prototype.
+
+2020-06-24  H.J. Lu  <hongjiu.lu@intel.com>
+
+	Sync with GCC
+	2020-06-23  Nick Alcock  <nick.alcock@oracle.com>
+
+	* libiberty.h (bsearch_r): New.
+
+	2020-04-17  Martin Liska  <mliska@suse.cz>
+		    Jonathan Yong <10walls@gmail.com>
+
+	PR gcov-profile/94570
+	* filenames.h (defined): Do not define HAVE_DOS_BASED_FILE_SYSTEM
+	for CYGWIN.
+
+2020-06-22  Alex Coplan  <alex.coplan@arm.com>
+
+	* opcode/aarch64.h (AARCH64_FEATURE_SHA2): Normalize.
+	(AARCH64_FEATURE_AES): Likewise.
+	(AARCH64_FEATURE_V8_4): Likewise.
+	(AARCH64_FEATURE_SM4): Likewise.
+	(AARCH64_FEATURE_SHA3): Likewise.
+	(AARCH64_FEATURE_V8): Likewise.
+	(AARCH64_FEATURE_V8_2): Likewise.
+	(AARCH64_FEATURE_V8_3): Likewise.
+	(AARCH64_FEATURE_FP): Likewise.
+	(AARCH64_FEATURE_SIMD): Likewise.
+	(AARCH64_FEATURE_CRC): Likewise.
+	(AARCH64_FEATURE_LSE): Likewise.
+	(AARCH64_FEATURE_PAN): Likewise.
+	(AARCH64_FEATURE_LOR): Likewise.
+	(AARCH64_FEATURE_RDMA): Likewise.
+	(AARCH64_FEATURE_V8_1): Likewise.
+	(AARCH64_FEATURE_F16): Likewise.
+	(AARCH64_FEATURE_RAS): Likewise.
+	(AARCH64_FEATURE_PROFILE): Likewise.
+	(AARCH64_FEATURE_SVE): Likewise.
+	(AARCH64_FEATURE_RCPC): Likewise.
+	(AARCH64_FEATURE_COMPNUM): Likewise.
+	(AARCH64_FEATURE_DOTPROD): Likewise.
+	(AARCH64_FEATURE_F16_FML): Likewise.
+	(AARCH64_FEATURE_V8_5): Likewise.
+	(AARCH64_FEATURE_V8_6): Likewise.
+	(AARCH64_FEATURE_BFLOAT16): Likewise.
+	(AARCH64_FEATURE_FLAGMANIP): Likewise.
+	(AARCH64_FEATURE_FRINTTS): Likewise.
+	(AARCH64_FEATURE_SB): Likewise.
+	(AARCH64_FEATURE_PREDRES): Likewise.
+	(AARCH64_FEATURE_CVADP): Likewise.
+	(AARCH64_FEATURE_RNG): Likewise.
+	(AARCH64_FEATURE_BTI): Likewise.
+	(AARCH64_FEATURE_SCXTNUM): Likewise.
+	(AARCH64_FEATURE_ID_PFR2): Likewise.
+	(AARCH64_FEATURE_SSBS): Likewise.
+	(AARCH64_FEATURE_MEMTAG): Likewise.
+	(AARCH64_FEATURE_TME): Likewise.
+	(AARCH64_FEATURE_I8MM): Likewise.
+	(AARCH64_FEATURE_F32MM): Likewise.
+	(AARCH64_FEATURE_F64MM): Likewise.
+	(AARCH64_FEATURE_SVE2): Likewise.
+	(AARCH64_FEATURE_SVE2_AES): Likewise.
+	(AARCH64_FEATURE_SVE2_BITPERM): Likewise.
+	(AARCH64_FEATURE_SVE2_SM4): Likewise.
+	(AARCH64_FEATURE_SVE2_SHA3): Likewise.
+
+2020-06-22  Saagar Jha  <saagar@saagarjha.com>
+
+	* mach-o/loader.h: Add declarations of two new Mach-O load
+	commands.
+
+2020-06-22  Nelson Chu  <nelson.chu@sifive.com>
+
+	* opcode/riscv.h (riscv_get_priv_spec_class): Move the function
+	forward declarations to bfd/elfxx-riscv.h.
+	(riscv_get_priv_spec_name): Likewise.
+
+2020-06-15  Max Filippov  <jcmvbkbc@gmail.com>
+
+	* elf/xtensa.h (xtensa_abi_choice): New declaration.
+
+2020-06-12  Roland McGrath  <mcgrathr@google.com>
+
+	* bfdlink.h (struct bfd_link_info): New field start_stop_visibility.
+
+2020-06-12  Nelson Chu  <nelson.chu@sifive.com>
+
+	* opcode/riscv-opc.h: Update the defined versions of CSR from
+	PRIV_SPEC_CLASS_1P9 to PRIV_SPEC_CLASS_1P9P1.  Also, drop the
+	MISA DECLARE_CSR_ALIAS since it's aborted version is v1.9.
+	* opcode/riscv.h (enum riscv_priv_spec_class): Remove
+	PRIV_SPEC_CLASS_1P9.
+
+2020-06-11  Alex Coplan  <alex.coplan@arm.com>
+
+	* opcode/aarch64.h (aarch64_sys_reg): Add required features to struct
+	describing system registers.
+
+2020-06-11  Alan Modra  <amodra@gmail.com>
+
+	* elf/mips.h (Elf32_RegInfo): Use fixed width integer types.
+	(Elf64_Internal_RegInfo, Elf_Internal_Options): Likewise.
+
+2020-06-06  Alan Modra  <amodra@gmail.com>
+
+	* elf/ppc64.h (elf_ppc64_reloc_type): Rename
+	R_PPC64_GOT_TLSGD34 to R_PPC64_GOT_TLSGD_PCREL34,
+	R_PPC64_GOT_TLSLD34 to R_PPC64_GOT_TLSLD_PCREL34,
+	R_PPC64_GOT_TPREL34 to R_PPC64_GOT_TPREL_PCREL34, and
+	R_PPC64_GOT_DTPREL34 to R_PPC64_GOT_DTPREL_PCREL34.
+
+2020-06-04  Jose E. Marchesi  <jose.marchesi@oracle.com>
+
+	* opcode/cgen.h: Get an `endian' argument in both
+	cgen_get_insn_value and cgen_put_insn_value.
+
+2020-06-04  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* opcode/cgen.h (enum cgen_cpu_open_arg): New value
+	CGEN_CPU_OPEN_INSN_ENDIAN.
+
+2020-06-03  Nelson Chu  <nelson.chu@sifive.com>
+
+	* opcode/riscv.h: Remove #include "bfd.h".  And change the return
+	types of riscv_get_isa_spec_class and riscv_get_priv_spec_class
+	from bfd_boolean to int.
+
+2020-05-28  Alan Modra  <amodra@gmail.com>
+
+	PR 26044
+	* opcode/tilepro.h (TILEPRO_NUM_PIPELINE_ENCODINGS): Move to
+	tilepro_pipeline enum.
+
+2020-05-27  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/22909
+	* bfdlink.h (textrel_check_method): New enum.
+	(bfd_link_textrel_check): New.
+	(bfd_link_info): Replace warn_shared_textrel and error_textrel
+	with textrel_check.
+
+2020-05-25  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* elf/common.h: Update comments for ET_EXEC and ET_DYN.
+
+2020-05-20  Nelson Chu  <nelson.chu@sifive.com>
+
+	* opcode/riscv.h: Include "bfd.h" to support bfd_boolean.
+	(enum riscv_isa_spec_class): New enum class.  All supported ISA spec
+	belong to one of the class
+	(struct riscv_ext_version): New structure holds version information
+	for the specific ISA.
+	* opcode/riscv-opc.h (DECLARE_CSR): There are two version information,
+	define_version and abort_version.  The define_version means which
+	privilege spec is started to define the CSR, and the abort_version
+	means which privilege spec is started to abort the CSR.  If the CSR is
+	valid for the newest spec, then the abort_version should be
+	PRIV_SPEC_CLASS_DRAFT.
+	(DECLARE_CSR_ALIAS): Same as DECLARE_CSR, but only for the obselete CSR.
+	* opcode/riscv.h (enum riscv_priv_spec_class): New enum class.  Define
+	the current supported privilege spec versions.
+	(struct riscv_csr_extra): Add new fields to store more information
+	about the CSR.  We use these information to find the suitable CSR
+	address when user choosing a specific privilege spec.
+
+2020-05-19  Alexander Fedotov  <alfedotov@gmail.com>
+
+	PR 25992
+	* opcode/arm.h (ARM_EXT2_V8R): Define. Modified ARM_AEXT2_V8R.
+
+2020-05-11  Alan Modra  <amodra@gmail.com>
+
+	* opcode/ppc.h (PPC_OPERAND_ACC): Define.  Renumber following
+	PPC_OPERAND defines.
+
+2020-05-11  Alan Modra  <amodra@gmail.com>
+
+	* elf/ppc64.h: Update comment.
+	* opcode/ppc.h (PPC_OPCODE_POWER10): Rename from PPC_OPCODE_POWERXX.
+
+2020-04-30  Alex Coplan  <alex.coplan@arm.com>
+
+	* opcode/aarch64.h (enum aarch64_opnd): Add
+	AARCH64_OPND_UNDEFINED.
+
+2020-04-23  Anton Kolesov  <anton.kolesov@synopsys.com>
+
+	* elf/common.h (NT_ARC_V2): New macro definitions.
+
+2020-04-22  Max Filippov  <jcmvbkbc@gmail.com>
+
+	PR ld/25861
+	* elf/xtensa.h (elf_xtensa_reloc_type): New entries for
+	R_XTENSA_PDIFF{8,16,32} and R_XTENSA_NDIFF{8,16,32}.
+
+2020-04-21  Alan Modra  <amodra@gmail.com>
+
+	* elf/sh.h (STO_SH5_ISA32, SHF_SH5_ISA32, SHF_SH5_ISA32_MIXED),
+	(SHT_SH5_CR_SORTED, STT_DATALABEL): Delete.
+
+2020-04-10  Fangrui Song <maskray@google.com>
+
+	PR binutils/24613
+	* bfdlink.h (enum report_method): Delete RM_GENERATE_WARNING and
+	RM_GENERATE_ERROR. Add RM_DIAGNOSE.
+	(struct bfd_link_info): Add warn_unresolved_syms.
+
+2020-04-14  Stephen Casner  <casner@acm.org>
+
+	PR ld/25677
+	* aout/aout64.h (N_DATADDR): Add IMAGIC case.
+
+2020-04-02  Jan W. Jagersma  <jwjagersma@gmail.com>
+
+	* coff/go32exe.h: Remove file.
+	* coff/internal.h (struct internal_filehdr): Remove field
+	go32stub.  Remove flag F_GO32STUB.
+
+2020-04-01  Martin Liska  <mliska@suse.cz>
+	    Maciej W. Rozycki <macro@linux-mips.org>
+
+	PR lto/94249
+	* plugin-api.h: Fix a typo.
+
+2020-03-30  Nelson Chu  <nelson.chu@sifive.com>
+
+	* opcode/riscv-opc.h: Update CSR to 1.11.
+
+2020-03-26  John Baldwin  <jhb@FreeBSD.org>
+
+	* elf/common.h (AT_FREEBSD_BSDFLAGS): Define.
+
+2020-03-24  Martin Liska  <mliska@suse.cz>
+
+	PR lto/94249
+	* plugin-api.h: Add more robust endianess detection.
+
+2020-03-21  Martin Liska  <mliska@suse.cz>
+
+	* plugin-api.h (enum ld_plugin_symbol_type): Remove
+	comma after last value of an enum.
+	* lto-symtab.h (enum gcc_plugin_symbol_type): Likewise.
+
+2020-03-19  Martin Liska  <mliska@suse.cz>
+
+	* lto-symtab.h (enum gcc_plugin_symbol_type): New.
+	(enum gcc_plugin_symbol_section_kind): Likewise.
+
+2020-03-19  Martin Liska  <mliska@suse.cz>
+
+	* plugin-api.h (struct ld_plugin_symbol): Split
+	int def into 4 char fields.
+	(enum ld_plugin_symbol_type): New.
+	(enum ld_plugin_symbol_section_kind): New.
+	(enum ld_plugin_tag): Add LDPT_ADD_SYMBOLS_V2.
+
+2020-03-13  Kamil Rytarowski  <n54@gmx.com>
+
+	* elf/common.h (NT_NETBSDCORE_LWPSTATUS): New define.
+
+2020-03-13  Kamil Rytarowski  <n54@gmx.com>
+
+	* elf/common.h (NT_NETBSDCORE_AUXV): New define.
+
+2020-03-13  Christophe Lyon  <christophe.lyon@linaro.org>
+
+	* bfdlink.h (bfd_link_info): Add non_contiguous_regions and
+	non_contiguous_regions_warnings fields.
+
+2020-03-13  Christian Eggers  <ceggers@gmx.de>
+
+	* bfdlink.h (struct bfd_link_order): Add unit (bytes/octets) to
+	offset and size members.
+	* elf/internal.h (struct elf_internal_phdr): Likewise for
+	p_align member.
+	(struct elf_segment_map): Likewise for p_paddr and p_size
+	members
+
+2020-03-13  Christian Eggers  <ceggers@gmx.de>
+
+	* elf/internal.h (struct elf_internal_phdr): Add unit (octets)
+	to several member field comments.
+	(Elf_Internal_Shdr): likewise.
+
+2020-03-10  Alan Modra  <amodra@gmail.com>
+
+	* som/aout.h (SOM_AUX_ID_MANDATORY, SOM_SPACE_IS_LOADABLE),
+	(SOM_SYMBOL_HIDDEN, SOM_SYMBOL_HAS_LONG_RETURN): Use 1u << 31.
+	* som/lst.h (LST_SYMBOL_HIDDEN): Likewise.
+
+2020-03-03  Luis Machado  <luis.machado@linaro.org>
+
+	* elf/common.h (AT_L1I_CACHESIZE, AT_L1I_CACHEGEOMETRY)
+	(AT_L1D_CACHESIZE, AT_L1D_CACHEGEOMETRY, AT_L2_CACHESIZE)
+	(AT_L2_CACHEGEOMETRY, AT_L3_CACHESIZE, AT_L3_CACHEGEOMETRY)
+	(AT_MINSIGSTKSZ): New defines, imported from glibc.
+
+2020-02-25  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	Import from gcc mainline:
+	2020-02-05  Andrew Burgess  <andrew.burgess@embecosm.com>
+
+	* hashtab.h (htab_remove_elt): Make a parameter const.
+	(htab_remove_elt_with_hash): Likewise.
+
+2020-02-20  Nelson Chu  <nelson.chu@sifive.com>
+
+	* opcode/riscv-opc.h: Extend DECLARE_CSR and DECLARE_CSR_ALIAS to
+	record riscv_csr_class.
+
+2020-02-10  Stam Markianos-Wright  <stam.markianos-wright@arm.com>
+	    Matthew Malcomson  <matthew.malcomson@arm.com>
+
+	* opcode/arm.h (ARM_EXT2_CDE): New extension macro.
+	(ARM_EXT2_CDE0): New extension macro.
+	(ARM_EXT2_CDE1): New extension macro.
+	(ARM_EXT2_CDE2): New extension macro.
+	(ARM_EXT2_CDE3): New extension macro.
+	(ARM_EXT2_CDE4): New extension macro.
+	(ARM_EXT2_CDE5): New extension macro.
+	(ARM_EXT2_CDE6): New extension macro.
+	(ARM_EXT2_CDE7): New extension macro.
+
+2020-02-07  Sergey Belyashov  <sergey.belyashov@gmail.com>
+
+	PR 25469
+	* coff/internal.h (R_IMM16BE): Define.
+	* elf/z80.h (EF_Z80_MACH_Z80N): Define.
+	(R_Z80_16_BE): New reloc.
+
+2020-02-04  Alan Modra  <amodra@gmail.com>
+
+	* opcode/d30v.h (struct pd_reg): Make value field unsigned.
+
+2020-01-16  Jon Turney  <jon.turney@dronecode.org.uk>
+
+	* coff/internal.h (PE_IMAGE_DEBUG_TYPE_VC_FEATURE)
+	(PE_IMAGE_DEBUG_TYPE_POGO, PE_IMAGE_DEBUG_TYPE_ILTCG)
+	(PE_IMAGE_DEBUG_TYPE_MPX, PE_IMAGE_DEBUG_TYPE_REPRO): Add.
+
+2020-01-18  Nick Clifton  <nickc@redhat.com>
+
+	Binutils 2.34 branch created.
+
+2020-01-17  Nick Clifton  <nickc@redhat.com>
+
+	* Import from gcc mainline:
+	2019-06-10  Martin Liska  <mliska@suse.cz>
+
+	* ansidecl.h (ATTRIBUTE_WARN_UNUSED_RESULT): New macro.
+	* libiberty.h (xmalloc): Use it.
+	(xrealloc): Likewise.
+	(xcalloc): Likewise.
+	(xstrdup): Likewise.
+	(xstrndup): Likewise.
+	(xmemdup): Likewise.
+
+	2019-06-10  Martin Liska  <mliska@suse.cz>
+
+	* ansidecl.h:
+	(ATTRIBUTE_RESULT_SIZE_1): Define new macro.
+	(ATTRIBUTE_RESULT_SIZE_2): Likewise.
+	(ATTRIBUTE_RESULT_SIZE_1_2): Likewise.
+	* libiberty.h (xmalloc): Add RESULT_SIZE attribute.
+	(xrealloc): Likewise.
+	(xcalloc): Likewise.
+
+	2019-11-16  Tim Ruehsen  <tim.ruehsen@gmx.de>
+
+	* demangle.h (struct demangle_component): Add member
+	d_counting.
+
+	2019-11-16  Eduard-Mihai Burtescu  <eddyb@lyken.rs>
+
+	* demangle.h (rust_demangle_callback): Add.
+
+	2019-07-18  Eduard-Mihai Burtescu  <eddyb@lyken.rs>
+
+	* demangle.h (rust_is_mangled): Move to libiberty/rust-demangle.h.
+	(rust_demangle_sym): Move to libiberty/rust-demangle.h.
+
+2020-01-16  Andre Vieira  <andre.simoesdiasvieira@arm.com>
+
+	PR 25376
+	* opcodes/arm.h (FPU_MVE, FPU_MVE_FPU): Move these features to...
+	(ARM_EXT2_MVE, ARM_EXT2_MVE_FP): ... the CORE_HIGH space.
+	(ARM_ANY): Redefine to not include any MVE bits.
+	(ARM_FEATURE_ALL): Removed.
+
+2020-01-15  Jozef Lawrynowicz  <jozef.l@mittosystems.com>
+
+	* opcode/msp430.h (enum msp430_expp_e): New.
+	(struct msp430_operand_s): Add expp member to struct.
+
+2020-01-13  Claudiu Zissulescu  <claziss@gmail.com>
+
+	* elf/arc-cpu.def: Update ARC cpu list.
+
+2020-01-13  Alan Modra  <amodra@gmail.com>
+
+	* opcode/tic4x.h (EXTR): Delete.
+	(EXTRU, EXTRS, INSERTU, INSERTS): Rewrite without zero/sign
+	extension using shifts.  Do trim INSERTU value to specified bitfield.
+
+2020-01-10  Alan Modra  <amodra@gmail.com>
+
+	* opcode/spu.h: Formatting.
+	(UNSIGNED_EXTRACT): Use 1u.
+	(SIGNED_EXTRACT): Don't sign extend with shifts.
+	(DECODE_INSN_I9a, DECODE_INSN_I9b): Avoid left shift of signed value.
+	Keep result signed.
+	(DECODE_INSN_U9a, DECODE_INSN_U9b): Delete.
+
+2020-01-07  Shahab Vahedi  <shahab@synopsys.com>
+
+	* opcode/arc.h (insn_class_t): Add 'LLOCK' and 'SCOND'.
+
+2020-01-02  Sergey Belyashov  <sergey.belyashov@gmail.com>
+
+	* coff/internal.h: Add defintions of Z80 reloc names.
+
+2020-01-02  Christian Biesinger  <cbiesinger@google.com>
+
+	* opcode/s12z.h: Undef REG_Y.
+
+2020-01-01  Alan Modra  <amodra@gmail.com>
+
+	Update year range in copyright notice of all files.
+
+For older changes see ChangeLog-2019
+
+Copyright (C) 2020 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

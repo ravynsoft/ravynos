@@ -1,0 +1,67 @@
+@c Copyright (C) 1999-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@c man end
+
+@ifset GENERIC
+@page
+@node Epiphany-Dependent
+@chapter Epiphany Dependent Features
+@end ifset
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter Epiphany Dependent Features
+@end ifclear
+
+@cindex Epiphany support
+@menu
+* Epiphany Options::              Options
+* Epiphany Syntax::               Epiphany Syntax
+@end menu
+
+@node Epiphany Options
+@section Options
+
+@cindex Epiphany options
+@cindex options, Epiphany
+@code{@value{AS}} has two additional command-line options for the Epiphany
+architecture.
+
+@c man begin OPTIONS
+@table @gcctabopt
+
+@cindex @code{-mepiphany} command-line option, Epiphany
+@item -mepiphany
+Specifies that the both 32 and 16 bit instructions are allowed.  This is the
+default behavior.
+
+@cindex @code{-mepiphany16} command-line option, Epiphany
+@item -mepiphany16
+Restricts the permitted instructions to just the 16 bit set.
+@end table
+@c man end
+
+@node Epiphany Syntax
+@section Epiphany Syntax
+@menu
+* Epiphany-Chars::                Special Characters
+@end menu
+
+@node Epiphany-Chars
+@subsection Special Characters
+
+@cindex line comment character, Epiphany
+@cindex Epiphany line comment character
+The presence of a @samp{;} on a line indicates the start
+of a comment that extends to the end of the current line.
+
+If a @samp{#} appears as the first character of a line then the whole
+line is treated as a comment, but in this case the line could also be
+a logical line number directive (@pxref{Comments}) or a preprocessor
+control command (@pxref{Preprocessing}).
+
+@cindex line separator, Epiphany
+@cindex statement separator, Epiphany
+@cindex Epiphany line separator
+The @samp{`} character can be used to separate statements on the same
+line.

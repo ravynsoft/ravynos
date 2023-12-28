@@ -1,0 +1,10 @@
+@c This file contains the entry for the --sframe option that is
+@c common to both readelf and objdump.
+
+@item --sframe[=@var{section}]
+@cindex SFrame
+
+Display the contents of the specified SFrame section.
+
+By default, display the name of the section named @var{.sframe}, which is the
+name emitted by @command{ld}.

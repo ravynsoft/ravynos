@@ -1,0 +1,983 @@
+#   Copyright (C) 1993-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+# Please email any bugs, comments, and/or additions to this file to:
+# bug-dejagnu@prep.ai.mit.edu
+
+# This file was written by Rob Savoye <rob@cygnus.com>
+# and rewritten by Ian Lance Taylor <ian@cygnus.com>
+
+if ![is_remote host] {
+    if {[which $OBJDUMP] == 0} then {
+	perror "$OBJDUMP does not exist"
+	return
+    }
+}
+
+send_user "Version [binutil_version $OBJDUMP]"
+
+# Simple test of objdump -i
+
+set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS -i"]
+
+set cpus_expected [list]
+lappend cpus_expected aarch64 alpha am33-2 arc ARC700 ARCv2 arm cris
+lappend cpus_expected d10v d30v fr30 fr500 fr550 h8 hppa i386 iamcu ip2022
+lappend cpus_expected m16c m32c m32r m68hc11 m68hc12 m68k MCore mep c5 h1 MicroBlaze
+lappend cpus_expected mips mn10200 mn10300 ms1 msp MSP430 nds32 n1h_v3 ns32k
+lappend cpus_expected or1k or1knd pj powerpc pyramid riscv romp rs6000 s390 sh sparc
+lappend cpus_expected tic54x tilegx tms320c30 tms320c4x tms320c54x
+lappend cpus_expected v850 vax x86-64 xscale xtensa z8k z8001 z8002
+lappend cpus_expected Loongarch64 Loongarch32
+
+# Make sure the target CPU shows up in the list.
+lappend cpus_expected ${target_cpu}
+
+# Create regexp
+set cpus_regex "([join $cpus_expected | ])"
+
+verbose -log "CPU regex: $cpus_regex"
+
+set want "BFD header file version.*srec\[^\n\]*\n\[^\n\]*header \[^\n\]*endian\[^\n\]*, data \[^\n\]*endian.*$cpus_regex"
+
+if [regexp $want $got] then {
+    pass "objdump -i"
+} else {
+    fail "objdump -i"
+}
+
+set obj o
+if { [istarget "*-*-vms"] } then {
+    set obj obj
+}
+set exe [exeext]
+
+# The remaining tests require a test file.
+
+if {![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.${obj}]} then {
+    fail "objdump (assembling bintest.s)"
+    return
+}
+if {![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest2.${obj}]} then {
+    fail "objdump (assembling)"
+    return
+}
+if [is_remote host] {
+    set testfile [remote_download host tmpdir/bintest.${obj}]
+    set testfile2 [remote_download host tmpdir/bintest2.${obj}]
+} else {
+    set testfile tmpdir/bintest.${obj}
+    set testfile2 tmpdir/bintest2.${obj}
+}
+
+# $testarchive exists only if it is supported.
+set testarchive tmpdir/bintest.a
+remote_file host delete $testarchive
+set got [binutils_run $AR "rc tmpdir/bintest.a $testfile2"]
+if ![string match "" $got] then {
+    fail "bintest.a"
+    remote_file host delete tmpdir/bintest.a
+} elseif [is_remote host] {
+    set testarchive [remote_download host tmpdir/bintest.a]
+}
+remote_file host delete tmpdir/bintest2.${obj}
+
+# Test objdump -f
+
+proc test_objdump_f { testfile dumpfile } {
+    global OBJDUMP
+    global OBJDUMPFLAGS
+    global cpus_regex
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS -f $testfile"]
+
+    set want "${dumpfile}.*:\[ 	\]*file format.*architecture:\[ 	\]*${cpus_regex}.*HAS_RELOC.*HAS_SYMS"
+
+    if ![regexp $want $got] then {
+	fail "objdump -f ($testfile, $dumpfile)"
+    } else {
+	pass "objdump -f ($testfile, $dumpfile)"
+    }
+}
+
+test_objdump_f $testfile $testfile
+if { [ remote_file host exists $testarchive ] } then {
+    test_objdump_f $testarchive bintest2.${obj}
+}
+
+# Test objdump -h
+
+proc test_objdump_h { testfile dumpfile } {
+    global OBJDUMP
+    global OBJDUMPFLAGS
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS -h $testfile"]
+
+    set want "${dumpfile}.*:\[ 	\]*file format.*Sections.*\[0-9\]+\[ 	\]+\[^ 	\]*(text|TEXT|P|\\\$CODE\\\$)\[^ 	\]*\[ 	\]*(\[0-9a-fA-F\]+).*\[0-9\]+\[ 	\]+\[^ 	\]*(\\.data|DATA|D_1)\[^ 	\]*\[ 	\]*(\[0-9a-fA-F\]+)"
+
+    if ![regexp $want $got all text_name text_size data_name data_size] then {
+	fail "objdump -h ($testfile, $dumpfile)"
+    } else {
+	verbose "text name is $text_name size is $text_size"
+	verbose "data name is $data_name size is $data_size"
+	set ets 8
+	set eds 4
+	# The [ti]c4x target has the property sizeof(char)=sizeof(long)=1
+	if [istarget *c4x*-*-*] then {
+            set ets 2
+            set eds 1
+	}
+	# c54x section sizes are in bytes, not octets; adjust accordingly
+	if [istarget *c54x*-*-*] then {
+	    set ets 4
+	    set eds 2
+        }
+	if {[expr "0x$text_size"] < $ets || [expr "0x$data_size"] < $eds} then {
+	    send_log "sizes too small\n"
+	    fail "objdump -h ($testfile, $dumpfile)"
+	} else {
+	    pass "objdump -h ($testfile, $dumpfile)"
+	}
+    }
+}
+
+test_objdump_h $testfile $testfile
+if { [ remote_file host exists $testarchive ] } then {
+    test_objdump_h $testarchive bintest2.${obj}
+}
+
+# Test objdump -t
+
+proc test_objdump_t { testfile} {
+    global OBJDUMP
+    global OBJDUMPFLAGS
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS -t $testfile"]
+
+    if [info exists vars] then { unset vars }
+    while {[regexp "(\[a-z\]*_symbol)(.*)" $got all symbol rest]} {
+	set vars($symbol) 1
+	set got $rest
+    }
+
+    if {![info exists vars(text_symbol)] \
+	 || ![info exists vars(data_symbol)] \
+	 || ![info exists vars(common_symbol)] \
+	 || ![info exists vars(external_symbol)]} then {
+	fail "objdump -t ($testfile)"
+    } else {
+	pass "objdump -t ($testfile)"
+    }
+}
+
+test_objdump_t $testfile
+if { [ remote_file host exists $testarchive ] } then {
+    test_objdump_t $testarchive
+}
+
+# Test objdump -r
+
+proc test_objdump_r { testfile dumpfile } {
+    global OBJDUMP
+    global OBJDUMPFLAGS
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS -r $testfile"]
+
+    set want "${dumpfile}.*:\[ 	\]*file format.*RELOCATION RECORDS FOR \\\[\[^\]\]*(text|TEXT|P|\\\$CODE\\\$)\[^\]\]*\\\].*external_symbol"
+
+    if [regexp $want $got] then {
+	pass "objdump -r ($testfile, $dumpfile)"
+    } else {
+	fail "objdump -r ($testfile, $dumpfile)"
+    }
+}
+
+test_objdump_r $testfile $testfile
+if { [ remote_file host exists $testarchive ] } then {
+    test_objdump_r $testarchive bintest2.${obj}
+}
+
+# Test objdump -d
+proc test_objdump_d { testfile dumpfile } {
+    global OBJDUMP
+    global OBJDUMPFLAGS
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS -d $testfile"]
+
+    set want "${dumpfile}.*:.*Disassembly of section"
+    if ![regexp $want $got] then {
+	fail "objdump -d $testfile: No disassembly title"
+	return
+    }
+
+    set want "${dumpfile}.*:.*00+0 <text_symbol>"
+    if ![regexp $want $got] then {
+	fail "objdump -d $testfile: Missing symbol name and address"
+	return
+    }
+
+    set want "${dumpfile}.*:.*00+. <text_symbol2>"
+    if ![regexp $want $got] then {
+	fail "objdump -d $testfile: Missing second symbol"
+	return
+    }
+
+    set want "${dumpfile}.*:.*00+. <text_symbol3>"
+    if ![regexp $want $got] then {
+	fail "objdump -d $testfile: Missing third symbol"
+	return
+    }
+
+    pass "objdump -d $testfile"
+}
+
+test_objdump_d $testfile $testfile
+if { [ remote_file host exists $testarchive ] } then {
+    test_objdump_d $testarchive bintest2.${obj}
+}
+
+# Test objdump --disassemble=<symbol>
+proc test_objdump_d_sym { testfile dumpfile } {
+    global OBJDUMP
+    global OBJDUMPFLAGS
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS --disassemble=text_symbol2 $testfile"]
+
+    set want "$dumpfile:.*Disassembly of section"
+    if ![regexp $want $got] then {
+	fail "objdump --disassemble=text_symbol2 $testfile: No disassembly title"
+	return
+    }
+
+    set want "$dumpfile:.*00+0 <text_symbol>"
+    if [regexp $want $got] then {
+	fail "objdump --disassemble=text_symbol2 $testfile: First symbol displayed, when it should be absent"
+	return
+    }
+
+    set want "$dumpfile:.*00+. <text_symbol2>"
+    if ![regexp $want $got] then {
+	fail "objdump --disassemble=text_symbol2 $testfile: Missing second symbol"
+	return
+    }
+
+    set want "$dumpfile:.*00+. <text_symbol3>"
+    if [regexp $want $got] then {
+	fail "objdump --disassemble=text_symbol2 $testfile: Third symbol displayed when it should be absent"
+	return
+    }
+
+    pass "objdump --disassemble=text_symbol2 $testfile"
+}
+
+test_objdump_d_sym $testfile $testfile
+
+proc test_objdump_d_func_sym { testfile dumpfile } {
+    global OBJDUMP
+    global OBJDUMPFLAGS
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS --disassemble=func --disassemble-zeroes $testfile"]
+
+    set want "$dumpfile:.*Disassembly of section"
+    if ![regexp $want $got] then {
+	fail "objdump --disassemble=func $testfile: No disassembly title"
+	return
+    }
+
+    set want "$dumpfile:.*00+0 <start_of_text>"
+    if [regexp $want $got] then {
+	fail "objdump --disassemble=func $testfile: First symbol displayed, when it should be absent"
+	return
+    }
+
+    set want "$dumpfile:.*00+. <func>"
+    if ![regexp $want $got] then {
+	fail "objdump --disassemble=func $testfile: Disassembly does not start at function symbol"
+	return
+    }
+
+    set want "$dumpfile:.*00+. <global_non_func_sym>"
+    if ![regexp $want $got] then {
+	fail "objdump --disassemble=func $testfile: Non function symbol not displayed"
+	return
+    }
+
+    set want "$dumpfile:.*00+. <next_func>"
+    if [regexp $want $got] then {
+	fail "objdump --disassemble=func $testfile: Disassembly did not stop at the next function"
+	return
+    }
+
+    pass "objdump --disassemble=func $testfile"
+}
+
+proc test_objdump_d_non_func_sym { testfile dumpfile } {
+    global OBJDUMP
+    global OBJDUMPFLAGS
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS --disassemble=global_non_func_sym $testfile"]
+
+    set want "$dumpfile:.*Disassembly of section"
+    if ![regexp $want $got] then {
+	fail "objdump --disassemble=non_func $testfile: No disassembly title"
+	return
+    }
+
+    set want "$dumpfile:.*00+0 <start_of_text>"
+    if [regexp $want $got] then {
+	fail "objdump --disassemble=non_func $testfile: First symbol displayed, when it should be absent"
+	return
+    }
+
+    set want "$dumpfile:.*00+. <global_non_func_sym>"
+    if ![regexp $want $got] then {
+	fail "objdump --disassemble=non_func $testfile: Non function symbol not displayed"
+	return
+    }
+
+    set want "$dumpfile:.*00+. <local_non_func_sym>"
+    if [regexp $want $got] then {
+	fail "objdump --disassemble=non_func $testfile: Disassembly did not stop at the next symbol"
+	return
+    }
+
+    pass "objdump --disassemble=non_func $testfile"
+}
+
+# Extra test for ELF format - check that --disassemble=func disassembles
+# all of func, and does not stop at the next symbol.
+if { [is_elf_format] } then {
+
+    if {![binutils_assemble $srcdir/$subdir/disasm.s tmpdir/disasm.${obj}]} then {
+	fail "objdump --disassemble=func (assembling disasm.s)"
+    } else {
+	if [is_remote host] {
+	    set elftestfile [remote_download host tmpdir/disasm.${obj}]
+	} else {
+	    set elftestfile tmpdir/disasm.${obj}
+	}
+    
+	test_objdump_d_func_sym $elftestfile $elftestfile
+	test_objdump_d_non_func_sym $elftestfile $elftestfile
+    }
+}
+
+proc test_objdump_d_show_all_symbols { testfile dumpfile } {
+    global OBJDUMP
+    global OBJDUMPFLAGS
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS -d --show-all-symbols $testfile"]
+
+    set want "${dumpfile}.*:.*00+0 <text_symbol>"
+    if ![regexp $want $got] then {
+	fail "objdump -d --show-all-symbols $testfile: Missing 'text_symbol'"
+	return
+    }
+
+    set want "${dumpfile}.*:.*00+0 <static_text_symbol>"
+    if ![regexp $want $got] then {
+	fail "objdump -d --show-all-symbols $testfile: Missing 'static_text_symbol'"
+	return
+    }
+
+    pass "objdump -d --show-all-symbols $testfile"
+}
+
+# The AIX and ECOFF assemblers default to makeing symbols local, not global.
+# So they do not show up in this test.
+setup_xfail "*-*-*aix*"
+setup_xfail "*-*-*ecoff"
+test_objdump_d_show_all_symbols $testfile $testfile
+
+# Test objdump -s
+
+proc test_objdump_s { testfile dumpfile } {
+    global OBJDUMP
+    global OBJDUMPFLAGS
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS -s $testfile"]
+
+    set want "${dumpfile}.*:\[ 	\]*file format.*Contents.*(text|TEXT|P|\\\$CODE\\\$)\[^0-9\]*\[ 	\]*\[0-9a-fA-F\]*\[ 	\]*(00000001|01000000|00000100).*Contents.*(data|DATA|D_1)\[^0-9\]*\[ 	\]*\[0-9a-fA-F\]*\[ 	\]*(00000002|02000000|00000200)"
+
+    if [regexp $want $got] then {
+	pass "objdump -s ($testfile, $dumpfile)"
+    } else {
+	fail "objdump -s ($testfile, $dumpfile)"
+    }
+}
+
+test_objdump_s $testfile $testfile
+if { [ remote_file host exists $testarchive ] } then {
+    test_objdump_s $testarchive bintest2.${obj}
+}
+
+# Test objdump -s on a file that contains a compressed .debug section
+
+if { ![is_elf_format] } then {
+    unsupported "objdump compressed debug"
+} elseif { ![binutils_assemble $srcdir/$subdir/dw2-compressed.S tmpdir/dw2-compressed.${obj}] } then {
+    fail "objdump compressed debug"
+} else {
+    if [is_remote host] {
+	set compressed_testfile [remote_download host tmpdir/dw2-compressed.${obj}]
+    } else {
+	set compressed_testfile tmpdir/dw2-compressed.${obj}
+    }
+
+    set got [remote_exec host "$OBJDUMP $OBJDUMPFLAGS -s -j .zdebug_abbrev $compressed_testfile" "" "/dev/null" "objdump.out"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "objdump -s -j .zdebug_abbrev (reason: unexpected output)"
+	send_log $got
+	send_log "\n"
+    }
+
+    if { [regexp_diff objdump.out $srcdir/$subdir/objdump.s] } then {
+	fail "objdump -s -j .zdebug_abbrev"
+    } else {
+	pass "objdump -s -j .zdebug_abbrev"
+    }
+
+    # Test objdump -W on a file that contains some compressed .debug sections
+
+    set got [remote_exec host "$OBJDUMP $OBJDUMPFLAGS -W $compressed_testfile" "" "/dev/null" "objdump.out"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "objdump -W (reason: unexpected output)"
+	send_log $got
+	send_log "\n"
+    }
+
+    if { [regexp_diff objdump.out $srcdir/$subdir/objdump.W] } then {
+	fail "objdump -W"
+    } else {
+	pass "objdump -W"
+    }
+}
+
+# Test objdump -WL on a file that contains line information for multiple files and search directories.
+# Not supported on mcore and moxie targets because they do not (yet) support the generation
+# of DWARF2 line debug information.
+
+if { ![is_elf_format]
+     || [istarget "hppa64*-*-hpux*"]
+     || [istarget "ia64*-*-*"]
+     || [istarget "mcore-*-*"]
+     || [istarget "moxie-*-*"]
+} then {
+    unsupported "objump decode line"
+} else {
+    if { [istarget "or1k*-*-*"] } then {
+        set decodedline_testsrc $srcdir/$subdir/dw2-decodedline-1.S
+    } else {
+        set decodedline_testsrc $srcdir/$subdir/dw2-decodedline.S
+    }
+    if { ![binutils_assemble $decodedline_testsrc tmpdir/dw2-decodedline.${obj}] } then {
+	fail "objdump decoded line"
+    }
+
+    if [is_remote host] {
+	set decodedline_testfile [remote_download host tmpdir/dw2-decodedline.${obj}]
+    } else {
+	set decodedline_testfile tmpdir/dw2-decodedline.${obj}
+    }
+
+    set got [remote_exec host "$OBJDUMP $OBJDUMPFLAGS -WL $decodedline_testfile" "" "/dev/null" "objdump.out"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "objdump -WL (reason: unexpected output)"
+	send_log $got
+	send_log "\n"
+    }
+
+    if { [regexp_diff objdump.out $srcdir/$subdir/objdump.WL] } then {
+	fail "objdump -WL"
+    } else {
+	pass "objdump -WL"
+    }
+}
+
+# Test objdump -W on a file containing debug_ranges information.
+
+if { ![is_elf_format] } then {
+    unsupported "objdump debug_ranges test"
+} elseif { ![binutils_assemble $srcdir/$subdir/dw2-ranges.S tmpdir/dw2-ranges.${obj}] } then {
+    fail "objdump debug_ranges test"
+} else {
+    if [is_remote host] {
+	set ranges_testfile [remote_download host tmpdir/dw2-ranges.${obj}]
+    } else {
+	set ranges_testfile tmpdir/dw2-ranges.${obj}
+    }
+
+    set got [remote_exec host "$OBJDUMP $OBJDUMPFLAGS --dwarf=Ranges $ranges_testfile" "" "/dev/null" "objdump.out"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "objdump -W for debug_ranges (reason: unexpected output)"
+	send_log $got
+	send_log "\n"
+    }
+
+    setup_xfail "msp430-*-*"
+    if { [regexp_diff objdump.out $srcdir/$subdir/dw2-ranges.W] } then {
+	fail "objdump -W for debug_ranges"
+    } else {
+	pass "objdump -W for debug_ranges"
+    }
+}
+
+# Test objdump -Wi on a file containing dwarf-5 encodings information.
+
+if { ![is_elf_format] } then {
+    unsupported "objdump DW_OP_* test"
+} elseif { ![binutils_assemble $srcdir/$subdir/dw5-op.S tmpdir/dw5-op.${obj}] } then {
+    fail "objdump DW_OP_* test"
+} else {
+    if [is_remote host] {
+       set op_testfile [remote_download host tmpdir/dw5-op.${obj}]
+    } else {
+       set op_testfile tmpdir/dw5-op.${obj}
+    }
+
+    set got [remote_exec host "$OBJDUMP $OBJDUMPFLAGS -Wi $op_testfile" "" "/dev/null" "objdump.out"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+       fail "objdump -Wi (reason: unexpected output)"
+       send_log $got
+       send_log "\n"
+    }
+
+    set got [remote_exec host "tail -n +4 objdump.out" "" "/dev/null" "objdump.out"]
+    set output [remote_upload host objdump.out]
+
+    if ![file size $output] then {
+       # If the output file is empty, then this target does not
+       # generate dwarf2 output.  This is not a failure.
+       verbose "No output from 'objdump -Wi'"
+       untested "objdump -Wi"
+       return
+    }
+
+    if { [regexp_diff objdump.out $srcdir/$subdir/dw5-op.W] } then {
+       fail "objdump -Wi for DW_OP_*"
+    } else {
+       pass "objdump -Wi for DW_OP_*"
+    }
+
+    file_on_host delete $output
+}
+
+proc test_build_id_debuglink {} {
+    global srcdir
+    global subdir
+    global env
+    global STRIP
+    global OBJCOPY
+    global OBJDUMP
+    global CFLAGS_FOR_TARGET
+    global exe
+    
+    set test "build-id-debuglink"
+
+    # Use a fixed build-id.
+    if { [info exists CFLAGS_FOR_TARGET] } {
+	set save_CFLAGS_FOR_TARGET $CFLAGS_FOR_TARGET
+    }
+    set CFLAGS_FOR_TARGET "-g -Wl,--build-id=0x12345678abcdef01"
+
+    if { [target_compile $srcdir/$subdir/testprog.c tmpdir/testprog${exe} executable debug] != "" } {
+	unsupported "$test (build)"
+	return
+    }
+
+    if { [info exists save_CFLAGS_FOR_TARGET] } {
+	set CFLAGS_FOR_TARGET $save_CFLAGS_FOR_TARGET
+    } else {
+	unset CFLAGS_FOR_TARGET
+    }
+
+    if { [binutils_run $STRIP "--strip-debug --remove-section=.comment tmpdir/testprog${exe} -o tmpdir/testprog.strip"] != "" } {
+	fail "$test (strip debug info)"
+	return
+    }
+
+    if { [binutils_run $OBJCOPY "--only-keep-debug tmpdir/testprog${exe} tmpdir/testprog.debug"] != "" } {
+	fail "$test (create separate debug info file)"
+	return
+    }
+
+    set got [remote_exec host "mkdir -p .build-id/12" ]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$test (make debug directory)"
+	return
+    }
+
+    set got [remote_exec host "cp tmpdir/testprog.debug .build-id/12/345678abcdef01.debug"]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$test (copy debug info into debug directory)"
+	return
+    }
+    
+    set got [remote_exec host "$OBJDUMP -Sl tmpdir/testprog.strip" "" "/dev/null" "tmpdir/testprog.strip.dump"]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$test (post strip dump)"
+	return
+    }
+
+    set src2 tmpdir/testprog.strip.dump
+    verbose " grep -e testprog.c ${src2}"
+    set status [remote_exec build grep "-e testprog.c ${src2}"]
+    set exec_output [lindex $status 1]
+    set exec_output [prune_warnings $exec_output]
+    if [string match "" $exec_output] then {
+	send_log "$exec_output\n"
+	verbose "$exec_output" 1
+	fail "$test (grepping for source file name in disassembly output)"
+    } else {
+	pass "$test"
+	# Cleanup...
+	set got [remote_exec host "rm .build-id/12/345678abcdef01.debug"]
+	set got [remote_exec host "rmdir -p .build-id/12" ]
+	set got [remote_exec host "rm tmpdir/testprog.strip.dump"]
+	set got [remote_exec host "rm tmpdir/testprog.debug"]
+	set got [remote_exec host "rm tmpdir/testprog.strip"]
+    }
+}
+
+if {[is_elf_format]} then {
+    test_build_id_debuglink
+}
+
+# Test objdump -Wk on a file containing debug links.
+
+if { [is_elf_format] } then {
+    set testsrc $srcdir/$subdir/debuglink.s
+
+    if { ![binutils_assemble $testsrc tmpdir/debuglink.${obj}] } then {
+	fail "objdump -Wk (reason: could not assemble source)"
+    }
+
+    if [is_remote host] {
+	set testfile [remote_download host tmpdir/debuglink.${obj}]
+    } else {
+	set testfile tmpdir/debuglink.${obj}
+    }
+
+    set got [remote_exec host "$OBJDUMP $OBJDUMPFLAGS -Wk -WN $testfile" "" "/dev/null" "objdump.out"]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "objdump -Wk (reason: unexpected output)"
+	send_log $got
+	send_log "\n"
+    }
+
+    if { [regexp_diff objdump.out $srcdir/$subdir/objdump.Wk] } then {
+	fail "objdump -Wk (reason: output does not match expectations)"
+    } else {
+	pass "objdump -Wk"
+    }
+}
+
+
+# Very similar to proc test_build_id_debuglink except this time we
+# display some of the contents of the separate debug info file.
+
+proc test_follow_debuglink { options dumpfile } {
+    global srcdir
+    global subdir
+    global OBJDUMP
+    global obj
+    
+    set test "follow-debuglink ($options)"
+
+    if {![binutils_assemble $srcdir/$subdir/debuglink.s tmpdir/debuglink.${obj}]} then {
+	fail "$test (reason: assemble first source file)"
+	return
+    }
+
+    if {![binutils_assemble $srcdir/$subdir/linkdebug.s tmpdir/linkdebug.debug]} then {
+	fail "$test (reason: assemble second source file)"
+	return
+    }
+
+    if ![is_remote host] {
+	set tempfile tmpdir/debuglink.${obj}
+    } else {
+	set tempfile [remote_download host tmpdir/linkdebug.debug]
+	set tempfile [remote_download host tmpdir/debuglink.${obj}]
+    }
+    
+    set got [remote_exec host "$OBJDUMP $options $tempfile" "" "/dev/null" "tmpdir/objdump.out"]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	fail "$test (reason: unexpected error output from objdump)"
+	return
+    }
+
+    if { [regexp_diff tmpdir/objdump.out $srcdir/$subdir/$dumpfile] } then {
+	fail $test
+	verbose "output is \n[file_contents objdump.out]" 2
+	return
+    }
+
+    pass $test
+
+    # Tidy up
+    set got [remote_exec host "rm tmpdir/objdump.out"]
+    set got [remote_exec host "rm $tempfile"]
+    set got [remote_exec host "rm tmpdir/linkdebug.debug"]
+}
+
+if {[is_elf_format]} then {
+    test_follow_debuglink "--process-links --dwarf=info --dwarf=str" objdump.WK2
+    test_follow_debuglink "--process-links --headers --wide" objdump.WK3
+}
+
+# Test objdump output with start and stop address limits for the specified
+# dump option
+
+proc test_objdump_limited { testfile dopt want start stop } {
+    global OBJDUMP
+    global OBJDUMPFLAGS
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS $dopt --start-address 0x$start --stop-address 0x$stop $testfile"]
+
+    if [regexp $want $got] then {
+	pass "objdump $dopt --start-address 0x$start --stop-address 0x$stop ($testfile)"
+    } else {
+	fail "objdump $dopt --start-address 0x$start --stop-address 0x$stop ($testfile)"
+    }
+}
+
+# Test objdump -d --start-address M --stop-address N
+
+proc test_objdump_disas_limited { testfile text start stop } {
+    set want "$testfile:\[ 	\]*file format.*Disassembly of section $text:\n.*\[ \]*$start:.*"
+    test_objdump_limited $testfile -d $want $start $stop
+}
+
+# Test objdump -s --start-address M --stop-address N
+
+proc test_objdump_content_limited { testfile text start stop } {
+    set want "$testfile:\[ 	\]*file format.*Contents of section $text:\n\[ \]*$start .*"
+    test_objdump_limited $testfile -s $want $start $stop
+}
+
+# Test objdump with --start-address and --stop-address options for higher
+# address ranges which may be sign-extended on targets that treat addresses
+# as signed.  We only check that objdump produces some dump output at the
+# specified start address as a proxy for correct enforcement of the
+# start/stop limits.
+
+if {[is_elf_format]} then {
+    set sect_names [get_standard_section_names]
+    if { $sect_names != "" } {
+	set text [lindex $sect_names 0]
+    } else {
+	set text ".text"
+    }
+    # generate a copy of the test object with .text repositioned
+    if { [binutils_run $OBJCOPY "--change-section-address $text=0x80000000 tmpdir/bintest.${obj} tmpdir/bintest_signed.${obj}"] != "" } {
+	fail "Failed to reposition $text to 0x80000000 (tmpdir/bintest.${obj} -> tmpdir/bintest_signed.${obj})"
+	return
+    }
+
+    if [is_remote host] {
+	set testfile3 [remote_download host tmpdir/bintest_signed.${obj}]
+    } else {
+	set testfile3 tmpdir/bintest_signed.${obj}
+    }
+
+    test_objdump_content_limited $testfile3 $text "80000004" "80000008"
+    test_objdump_disas_limited $testfile3 $text "80000004" "80000008"
+    remote_file host delete $testfile3
+}
+
+# Test objdump on .NET assemblies (PE files)
+
+proc test_objdump_dotnet_assemblies {} {
+    global OBJDUMP
+    global base_dir
+
+    set test "dotnet-assemblies"
+
+    # If gentestdlls isn't available, skip instead of crashing below.
+    if ![file exists $base_dir/testsuite/gentestdlls] {
+	untested $test
+	return
+    }
+
+    set got [binutils_run "$base_dir/testsuite/gentestdlls" "tmpdir pei-i386 pei-x86-64"]
+    set want "wrote linux-pei-x86-64.dll"
+    # The test program is hardcoded to generate valid dlls on any target
+    if ![regexp $want $got] then {
+        fail "$test"
+    }
+
+    # First test an ordinary x86 PE format DLL.
+    set test "dotnet-assemblies (ordinary x86 DLL)"
+    set want "file format pei-i386"
+    set got [binutils_run $OBJDUMP "-x tmpdir/simple-pei-i386.dll"]
+    if ![regexp $want $got] then {
+	if [regexp "file format not recognized" $got] then {
+	    # If the target does not recognize vanilla x86 PE format files
+	    # then it cannot be expected to recognize .NET assemblies.  But
+	    # this means that these tests are unsupported, rather than failures.
+	    unsupported $test
+	} else {
+	    fail "$test"
+	}
+	# In either case, if cannot pass this test, then
+	# there is no point in running any further tests.
+	return
+    }
+    pass $test
+
+    # Next check a 32-bit .NET DLL.
+    set test "dotnet-assemblies (32-bit .NET)"
+    set got [binutils_run $OBJDUMP "-x tmpdir/linux-pei-i386.dll"]
+    if ![regexp $want $got] then {
+	fail "$test"
+    } else {
+	pass $test
+    }
+
+    # Next check an ordrinary x86_64 PE format DLL.
+    set test "dotnet-assemblies (ordinary x86_64 DLL)"
+    set want "file format pei-x86-64"
+    set got [binutils_run $OBJDUMP "-x tmpdir/simple-pei-x86-64.dll"]
+    if ![regexp $want $got] then {
+	if [regexp "file format not recognized" $got] then {
+	    # If the target does not support 64-bit PE format
+	    # files, then the following tests are unsupported.
+	    unsupported $test
+	} else {
+	    fail "$test"
+	}
+	return
+    }
+    pass $test
+
+    # Finally check a 64-bit .NET DLL.
+    set test "dotnet-assemblies (64-bit)"
+    set got [binutils_run $OBJDUMP "-x tmpdir/linux-pei-x86-64.dll"]
+    if ![regexp $want $got] then {
+	fail "$test"
+    } else {
+	pass $test
+    }
+}
+
+test_objdump_dotnet_assemblies
+
+# Test objdump -S
+
+proc test_objdump_S { } {
+    global srcdir
+    global subdir
+    global OBJDUMP
+    global OBJDUMPFLAGS
+    global exe
+
+    set test "objdump -S"
+
+    if { [target_compile $srcdir/$subdir/testprog.c tmpdir/testprog${exe} executable debug] != "" } {
+	unsupported "$test (build)"
+	return
+    }
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS -D -S tmpdir/testprog${exe}"]
+
+    set want "static int local = 2"
+
+    if [regexp $want $got] then {
+	pass $test
+    } else {
+	fail $test
+    }
+
+    set test "objdump --source-comment"
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS --disassemble-all --source-comment=// tmpdir/testprog${exe}"]
+
+    set want "//static int local = 2"
+
+    if [regexp $want $got] then {
+	pass $test
+    } else {
+	fail $test
+    }
+}
+
+test_objdump_S
+
+# Test objdump --private
+proc test_objdump_P {} {
+    global srcdir
+    global subdir
+    global OBJDUMP
+    global OBJDUMPFLAGS
+    global obj
+    
+    set test "objdump -P"
+    
+    if {![binutils_assemble $srcdir/$subdir/bintest.s tmpdir/bintest.${obj}]} then {
+	unsupported "$test (build)"
+	return
+    }
+
+    if [is_remote host] {
+	set testfile [remote_download host tmpdir/bintest.${obj}]
+    } else {
+	set testfile tmpdir/bintest.${obj}
+    }
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS -P header $testfile"]
+
+    # FIXME: We should probably test the output further than this...
+    set want "Machine Num"
+    
+    if [regexp $want $got] then {
+	pass "$test (dump headers)"
+    } else {
+	fail "$test (dump headers)"
+    }
+
+    set got [binutils_run $OBJDUMP "$OBJDUMPFLAGS --private=sections $testfile"]
+
+    # FIXME: We should probably test the output further than this...
+    set want "EXECUTE,READ"
+
+    if [regexp $want $got] then {
+	pass "$test (dump sections)"
+    } else {
+	fail "$test (dump sections)"
+    }
+
+    # remote_file host delete $testfile
+}
+
+# Test objdump --private of a PE format file.
+if { [istarget "*-*-pe*"]
+     || [istarget "*-*-cygwin*"]
+     || [istarget "*-*-mingw*"]
+} then {
+    test_objdump_P
+}
+
+# Options which are not tested: -a -D -R -T -x -l --stabs
+# I don't see any generic way to test any of these other than -a.
+# Tests could be written for specific targets, and that should be done
+# if specific problems are found.

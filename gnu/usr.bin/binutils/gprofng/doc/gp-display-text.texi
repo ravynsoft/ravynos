@@ -1,0 +1,437 @@
+@c ----------------------------------------------------------------------------
+@c This is the Texinfo source file for the gp-collect-app man page.
+@c
+@c Author: Ruud van der Pas
+@c ----------------------------------------------------------------------------
+@ifset man
+\input texinfo @c -*-texinfo-*-
+@setfilename gprofng display text
+@settitle Display the performance data in plain text format
+@include gp-macros.texi
+@end ifset
+
+@c ----------------------------------------------------------------------------
+@c This is from the man-pages(7) man page
+@c
+@c "The list below shows conventional or suggested sections.  Most manual pages
+@c  should include at least the highlighted sections.  Arrange a new manual
+@c  page so that sections are placed in the order shown in the list."
+@c
+@c              NAME
+@c              SYNOPSIS
+@c              CONFIGURATION    [Normally only in Section 4]
+@c              DESCRIPTION
+@c              OPTIONS          [Normally only in Sections 1, 8]
+@c              EXIT STATUS      [Normally only in Sections 1, 8]
+@c              RETURN VALUE     [Normally only in Sections 2, 3]
+@c              ERRORS           [Typically only in Sections 2, 3]
+@c              ENVIRONMENT
+@c              FILES
+@c              VERSIONS         [Normally only in Sections 2, 3]
+@c              ATTRIBUTES       [Normally only in Sections 2, 3]
+@c              CONFORMING TO
+@c              NOTES
+@c              BUGS
+@c              EXAMPLES
+@c              AUTHORS          [Discouraged]
+@c              REPORTING BUGS   [Not used in man-pages]
+@c              COPYRIGHT        [Not used in man-pages]
+@c              SEE ALSO
+@c
+@c This is what the texi2pod.pl tool recognizes:
+@c
+@c for $sect (qw(NAME SYNOPSIS TARGET DESCRIPTION OPTIONS ENVIRONMENT FILES
+@c               BUGS NOTES FOOTNOTES SEEALSO AUTHOR COPYRIGHT)) {
+@c
+@c What is interesting is that it places "SEE ALSO" before "COPYRIGHT", which
+@c makes sense and adhered to for the other formats.
+@c ----------------------------------------------------------------------------
+
+@c ----------------------------------------------------------------------------
+@c NAME section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{NAME}
+@c man begin NAME
+
+gprofng display text - Display the performance data in plain text format
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c SYNOPSIS section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{SYNOPSIS}
+@c man begin SYNOPSIS
+
+@command{gprofng display text} [@var{option(s)}] [@var{commands}]
+[-script @var{script-file}] @var{experiment(s)}
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c DESCRIPTION section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{DESCRIPTION}
+@c man begin DESCRIPTION
+
+Print a plain text version of the various displays supported by gprofng.
+
+The input consists of one or more experiment directories.  Through commands,
+the user controls the output.
+
+There is a rich set of commands to control the display of the data. The
+@samp{NOTES} section lists the most common ones. The gprofng user guide
+lists all the commands supported.
+
+Commands specified on the command line need to be prepended with the dash ('-')
+symbol.
+
+In this example, a function overview will be shown, followed by the source
+code listing of function @samp{my-func}, annotated with the
+performance metrics that have been recorded during the data collection
+and stored in experiment directory @samp{my-exp.er}:
+
+@smallexample
+$ gprofng display text -functions -source my-func my-exp.er
+@end smallexample
+
+Instead of, or in addition to, specifying these commands on the command line,
+commands may also be included in a file called the @var{script-file}.
+
+Note that the commands are processed and interpreted from left to right,
+@emph{so the order matters}.
+
+If this tool is invoked without options, commands, or a script file, it
+starts in interpreter mode. The user can then issue the commands interactively.
+The session is terminated with the @command{exit} command in the interpreter.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c OPTIONS section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{OPTIONS}
+@c man begin OPTIONS
+
+@table @gcctabopt
+
+@item --version
+@ifclear man
+@IndexSubentry{Options, @code{--version}}
+@end ifclear
+
+Print the version number and exit.
+
+@item --help
+@ifclear man
+@IndexSubentry{Options, @code{--help}}
+@end ifclear
+
+Print usage information and exit.
+
+@c -- @item --verbose @{on|off@}
+@c -- @ifclear man
+@c -- @IndexSubentry{Options, @code{--verbose}}
+@c -- @end ifclear
+
+@c -- Enable (on) or disable (off) verbose mode; the default is @samp{off}.
+
+@item -script @var{script-file}
+@ifclear man
+@IndexSubentry{Options,  @code{-script}}
+@IndexSubentry{Commands, @code{script}}
+@end ifclear
+
+Execute the commands stored in the script file.  This feature may be combined
+with commands specified at the command line.
+
+@end table
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c NOTES section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{NOTES}
+@c man begin NOTES
+
+Many commands are supported. Below, the more common ones are listed in
+mostly alphabetical order, because sometimes it is more logical to
+swap the order of two entries.
+
+@ifset man
+There are many more commands. These are documented in the user guide.
+@end ifset
+
+@table @code
+
+@item callers-callees
+@ifclear man
+@IndexSubentry{Options,  @code{-callers-callees}}
+@IndexSubentry{Commands, @code{callers-callees}}
+@end ifclear
+In a callers-callees panel, it is shown which function(s) call the target
+function (the @emph{callers}) and what functions it is calling (the
+@emph{callees}).
+This command prints the callers-callees panel for each of the functions,
+in the order specified by the function sort metric.
+
+@item calltree
+@ifclear man
+@IndexSubentry{Options,  @code{-calltree}}
+@IndexSubentry{Commands, @code{calltree}}
+@end ifclear
+Display the dynamic call graph from the experiment, showing the hierarchical
+metrics at each level.
+
+@item compare @{on | off | delta | ratio@}
+@ifclear man
+@IndexSubentry{Options,  @code{-compare}}
+@IndexSubentry{Commands, @code{compare}}
+@end ifclear
+By default, the results for multiple experiments are aggregated. This
+command changes this to enable the comparison of experiments for certain
+views (e.g. the function view).  The first experiment specified is defined
+to be the reference.  The following options are supported:
+
+@table @code
+
+@item on
+For each experiment specified on the command line, print the values for
+the metrics that have been activated for the experiment.
+
+@item off
+Disable the comparison of experiments.  This is the default.
+
+@item delta
+Print the values for the reference experiment.  The results for the other
+experiments are shown as a delta relative to the reference (current-reference).
+
+@item ratio
+Print the values for the reference experiment.  The results for the other
+experiments are shown as a ratio relative to the reference (current/reference).
+
+@end table
+
+@item disasm @var{function-name}
+@ifclear man
+@IndexSubentry{Options,  @code{-disasm}}
+@IndexSubentry{Commands, @code{disasm}}
+@end ifclear
+List the source code and instructions for the function specified. The 
+instructions are annotated with the metrics used.
+
+@item fsingle @var{function-name} [@samp{n}]
+@ifclear man
+@IndexSubentry{Options,  @code{-fsingle}}
+@IndexSubentry{Commands, @code{fsingle}}
+@end ifclear
+Write a summary panel for the specified function.  The optional parameter
+@var{n} is needed for those cases where several functions have the same name.
+
+@item fsummary
+@ifclear man
+@IndexSubentry{Options,  @code{-fsummary}}
+@IndexSubentry{Commands, @code{fsummary}}
+@end ifclear
+Write a summary panel for each function in the function list.
+
+@item functions
+@ifclear man
+@IndexSubentry{Options,  @code{-functions}}
+@IndexSubentry{Commands, @code{functions}}
+@end ifclear
+Display a list of all functions executed.  For each function the used metrics
+(e.g. the CPU time) ar shown.
+
+@item header
+@ifclear man
+@IndexSubentry{Options,  @code{-header}}
+@IndexSubentry{Commands, @code{header}}
+@end ifclear
+Shows several operational characteristics of the experiment(s) specified
+on the command line.
+
+@item limit @var{n}
+@ifclear man
+@IndexSubentry{Options,  @code{-limit}}
+@IndexSubentry{Commands, @code{limit}}
+@end ifclear
+Limit the output to @var{n} lines.
+
+@item lines
+@ifclear man
+@IndexSubentry{Options,  @code{-lines}}
+@IndexSubentry{Commands, @code{lines}}
+@end ifclear
+Write a list of source lines and their metrics, ordered by the current
+sort metric. 
+
+@item metric_list
+@ifclear man
+@IndexSubentry{Options,  @code{-metric_list}}
+@IndexSubentry{Commands, @code{metric_list}}
+@end ifclear
+Display the currently selected metrics in the function view and a list
+of all the metrics available for the target experiment(s).
+
+@item metrics @var{metric-spec}
+@ifclear man
+@IndexSubentry{Options,  @code{-metrics}}
+@IndexSubentry{Commands, @code{metrics}}
+@end ifclear
+Define the metrics to be displayed in the function and callers-callees
+overviews.
+
+The @var{metric-spec} can either be the keyword @samp{default}
+to restore the default metrics selection, or a colon separated list
+with metrics.
+
+The gprofng user guide has more details how to define metrics.
+
+@item name @{short | long | mangled@}[:@{soname | nosoname@}]
+@ifclear man
+@IndexSubentry{Options,  @code{-name}}
+@IndexSubentry{Commands, @code{name}}
+@end ifclear
+Specify whether to use the short, long, or mangled form of function names.
+Optionally, the load object that the function is part of can be included in
+the output by adding the @emph{soname} keyword.  It can also be ommitted
+(@emph{nosoname}), which is the default.
+
+Whether there is an actual difference between these types of names depends
+on the language.
+
+Note that there should be no (white)space to the left and right of the 
+colon (@samp{:}).
+
+@item overview
+@ifclear man
+@IndexSubentry{Options,  @code{-overview}}
+@IndexSubentry{Commands, @code{overview}}
+@end ifclear
+Shows a summary of the recorded performance data for the experiment(s)
+specified on the command line.
+
+@item pcs
+@ifclear man
+@IndexSubentry{Options,  @code{-pcs}}
+@IndexSubentry{Commands, @code{pcs}}
+@end ifclear
+Write a list of program counters (PCs) and their metrics, ordered by
+the current sort metric. 
+
+@item sort @var{metric-spec}
+@ifclear man
+@IndexSubentry{Options,  @code{-sort}}
+@IndexSubentry{Commands, @code{sort}}
+@end ifclear
+Sort the function list on the @var{metric-spec} given. 
+
+@IndexSubentry{Sort, Reverse order}
+The data can be sorted in reverse order by prepending the metric definition
+with a minus (@samp{-}) sign.
+
+@noindent
+For example @command{sort -e.totalcpu}.
+
+@IndexSubentry{Sort, Reset to default}
+A default metric for the sort operation has been defined and since this is
+a persistent command, this default can be restored with @code{default} as
+the key (@command{sort default}).
+
+@item source @var{function-name}
+@ifclear man
+@IndexSubentry{Options,  @code{-source}}
+@IndexSubentry{Commands, @code{source}}
+@end ifclear
+List the source code for the function specified, annotated with the metrics
+used.
+
+@item viewmode @{user | expert | machine@}
+@ifclear man
+@IndexSubentry{Options,  @code{-viewmode}}
+@IndexSubentry{Commands, @code{viewmode}}
+@end ifclear
+This command is only relevant for Java programs.  For all other languages
+supported, the viewmode setting has no effect.
+
+The following options are supported:
+
+@table @code
+
+@item user
+Show the Java call stacks for Java threads, but do not show housekeeping
+threads.  The function view includes a function called @samp{<JVM-System>}.
+This represents the aggregated time from non-Java threads.
+In case the JVM software does not report a Java call stack, time is reported
+against the function @samp{<no Java callstack recorded>}.
+
+@item expert
+Show the Java call stacks for Java threads when the user Java code is executed,
+and machine call stacks when JVM code is executed, or when the JVM software
+does not report a Java call stack.  Show the machine call stacks for
+housekeeping threads.
+
+@item machine
+Show the actual native call stacks for all threads.  This is the view mode
+for C, C++, and Fortran.
+
+@end table
+
+@end table
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c SEEALSO section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{SEEALSO}
+@c man begin SEEALSO
+
+gprofng(1), gp-archive(1), gp-collect-app(1), gp-display-html(1), gp-display-src(1)
+
+The user guide for gprofng is maintained as a Texinfo manual.  If the
+@command{info} and @command{gprofng} programs are correctly installed, the
+command @command{info gprofng} should give access to this document.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c COPYRIGHT section
+@c ----------------------------------------------------------------------------
+
+@ManPageStart{COPYRIGHT}
+@c man begin COPYRIGHT
+
+Copyright @copyright{} 2022-2023 Free Software Foundation, Inc.
+
+Permission is granted to copy, distribute and/or modify this document
+under the terms of the GNU Free Documentation License, Version 1.3
+or any later version published by the Free Software Foundation;
+with no Invariant Sections, with no Front-Cover Texts, and with no
+Back-Cover Texts.  A copy of the license is included in the
+section entitled ``GNU Free Documentation License''.
+
+@c man end
+@ManPageEnd{}
+
+@c ----------------------------------------------------------------------------
+@c If this text is used for a man page, exit.  Otherwise we need to continue.
+@c ----------------------------------------------------------------------------
+
+@ifset man
+@bye
+@end ifset

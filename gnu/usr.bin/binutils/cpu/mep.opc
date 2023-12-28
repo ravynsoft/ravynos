@@ -1,0 +1,1682 @@
+/* MeP opcode support.  -*- C -*-
+   Copyright 2011 Free Software Foundation, Inc.
+
+   Contributed by Red Hat Inc;
+
+   This file is part of the GNU Binutils.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+   MA 02110-1301, USA.  */
+
+/* -- opc.h */
+
+#undef  CGEN_DIS_HASH_SIZE
+#define CGEN_DIS_HASH_SIZE 1
+
+#undef  CGEN_DIS_HASH
+#define CGEN_DIS_HASH(buffer, insn) 0
+
+#define CGEN_VERBOSE_ASSEMBLER_ERRORS
+
+typedef struct
+{
+  char * name;
+  int    config_enum;
+  unsigned cpu_flag;
+  int    big_endian;
+  int    vliw_bits;
+  CGEN_ATTR_VALUE_BITSET_TYPE cop16_isa;
+  CGEN_ATTR_VALUE_BITSET_TYPE cop32_isa;
+  CGEN_ATTR_VALUE_BITSET_TYPE cop48_isa;
+  CGEN_ATTR_VALUE_BITSET_TYPE cop64_isa;
+  CGEN_ATTR_VALUE_BITSET_TYPE cop_isa;
+  CGEN_ATTR_VALUE_BITSET_TYPE core_isa;
+  unsigned int option_mask;
+} mep_config_map_struct;
+
+extern mep_config_map_struct mep_config_map[];
+extern int mep_config_index;
+
+extern void init_mep_all_core_isas_mask (void);
+extern void init_mep_all_cop_isas_mask  (void);
+extern CGEN_ATTR_VALUE_BITSET_TYPE mep_cop_isa  (void);
+
+#define MEP_CONFIG     (mep_config_map[mep_config_index].config_enum)
+#define MEP_CPU        (mep_config_map[mep_config_index].cpu_flag)
+#define MEP_OMASK      (mep_config_map[mep_config_index].option_mask)
+#define MEP_VLIW       (mep_config_map[mep_config_index].vliw_bits > 0)
+#define MEP_VLIW32     (mep_config_map[mep_config_index].vliw_bits == 32)
+#define MEP_VLIW64     (mep_config_map[mep_config_index].vliw_bits == 64)
+#define MEP_COP16_ISA  (mep_config_map[mep_config_index].cop16_isa)
+#define MEP_COP32_ISA  (mep_config_map[mep_config_index].cop32_isa)
+#define MEP_COP48_ISA  (mep_config_map[mep_config_index].cop48_isa)
+#define MEP_COP64_ISA  (mep_config_map[mep_config_index].cop64_isa)
+#define MEP_COP_ISA    (mep_config_map[mep_config_index].cop_isa)
+#define MEP_CORE_ISA   (mep_config_map[mep_config_index].core_isa)
+
+/* begin-cop-ip-supported-defines */
+#define MEP_IVC2_SUPPORTED 1
+/* end-cop-ip-supported-defines */
+
+extern int mep_insn_supported_by_isa (const CGEN_INSN *, CGEN_ATTR_VALUE_BITSET_TYPE *);
+
+/* A mask for all ISAs executed by the core.  */
+#define MEP_ALL_CORE_ISAS_MASK mep_all_core_isas_mask
+extern CGEN_ATTR_VALUE_BITSET_TYPE mep_all_core_isas_mask;
+
+#define MEP_INSN_CORE_P(insn) ( \
+  init_mep_all_core_isas_mask (), \
+  mep_insn_supported_by_isa (insn, & MEP_ALL_CORE_ISAS_MASK) \
+)
+
+/* A mask for all ISAs executed by a VLIW coprocessor.  */
+#define MEP_ALL_COP_ISAS_MASK mep_all_cop_isas_mask
+extern CGEN_ATTR_VALUE_BITSET_TYPE mep_all_cop_isas_mask;
+
+#define MEP_INSN_COP_P(insn) ( \
+  init_mep_all_cop_isas_mask (), \
+  mep_insn_supported_by_isa (insn, & MEP_ALL_COP_ISAS_MASK) \
+)
+
+extern int mep_cgen_insn_supported (CGEN_CPU_DESC, const CGEN_INSN *);
+extern int mep_cgen_insn_supported_asm (CGEN_CPU_DESC, const CGEN_INSN *);
+
+/* -- asm.c */
+
+#include "elf/mep.h"
+
+#define CGEN_VALIDATE_INSN_SUPPORTED
+#define mep_cgen_insn_supported mep_cgen_insn_supported_asm
+
+       const char * parse_csrn       (CGEN_CPU_DESC, const char **, CGEN_KEYWORD *, long *);
+       const char * parse_tpreg      (CGEN_CPU_DESC, const char **, CGEN_KEYWORD *, long *);
+       const char * parse_spreg      (CGEN_CPU_DESC, const char **, CGEN_KEYWORD *, long *);
+       const char * parse_mep_align  (CGEN_CPU_DESC, const char **, enum cgen_operand_type, long *);
+       const char * parse_mep_alignu (CGEN_CPU_DESC, const char **, enum cgen_operand_type, unsigned long *);
+static const char * parse_signed16   (CGEN_CPU_DESC, const char **, int, long *);
+static const char * parse_signed16_range   (CGEN_CPU_DESC, const char **, int, long *) ATTRIBUTE_UNUSED;
+static const char * parse_unsigned16 (CGEN_CPU_DESC, const char **, int, unsigned long *);
+static const char * parse_unsigned16_range (CGEN_CPU_DESC, const char **, int, unsigned long *) ATTRIBUTE_UNUSED;
+static const char * parse_lo16       (CGEN_CPU_DESC, const char **, int, long *, long);
+static const char * parse_unsigned7  (CGEN_CPU_DESC, const char **, enum cgen_operand_type, unsigned long *);
+static const char * parse_zero       (CGEN_CPU_DESC, const char **, int, long *);
+
+const char *
+parse_csrn (CGEN_CPU_DESC cd, const char **strp,
+	    CGEN_KEYWORD *keyword_table, long *field)
+{
+  const char *err;
+  unsigned long value;
+
+  err = cgen_parse_keyword (cd, strp, keyword_table, field);
+  if (!err)
+    return NULL;
+
+  err = cgen_parse_unsigned_integer (cd, strp, MEP_OPERAND_CSRN_IDX, & value);
+  if (err)
+    return err;
+  *field = value;
+  return NULL;
+}
+
+/* begin-cop-ip-parse-handlers */
+static const char *
+parse_ivc2_cr (CGEN_CPU_DESC,
+	const char **,
+	CGEN_KEYWORD *,
+	long *) ATTRIBUTE_UNUSED;
+static const char *
+parse_ivc2_cr (CGEN_CPU_DESC cd,
+	const char **strp,
+	CGEN_KEYWORD *keyword_table  ATTRIBUTE_UNUSED,
+	long *field)
+{
+  return cgen_parse_keyword (cd, strp, & mep_cgen_opval_h_cr_ivc2, field);
+}
+static const char *
+parse_ivc2_ccr (CGEN_CPU_DESC,
+	const char **,
+	CGEN_KEYWORD *,
+	long *) ATTRIBUTE_UNUSED;
+static const char *
+parse_ivc2_ccr (CGEN_CPU_DESC cd,
+	const char **strp,
+	CGEN_KEYWORD *keyword_table  ATTRIBUTE_UNUSED,
+	long *field)
+{
+  return cgen_parse_keyword (cd, strp, & mep_cgen_opval_h_ccr_ivc2, field);
+}
+/* end-cop-ip-parse-handlers */
+
+const char *
+parse_tpreg (CGEN_CPU_DESC cd, const char ** strp,
+	     CGEN_KEYWORD *keyword_table, long *field)
+{
+  const char *err;
+
+  err = cgen_parse_keyword (cd, strp, keyword_table, field);
+  if (err)
+    return err;
+  if (*field != 13)
+    return _("Only $tp or $13 allowed for this opcode");
+  return NULL;
+}
+
+const char *
+parse_spreg (CGEN_CPU_DESC cd, const char ** strp,
+	     CGEN_KEYWORD *keyword_table, long *field)
+{
+  const char *err;
+
+  err = cgen_parse_keyword (cd, strp, keyword_table, field);
+  if (err)
+    return err;
+  if (*field != 15)
+    return _("Only $sp or $15 allowed for this opcode");
+  return NULL;
+}
+
+const char *
+parse_mep_align (CGEN_CPU_DESC cd, const char ** strp,
+		 enum cgen_operand_type type, long *field)
+{
+  long lsbs = 0;
+  const char *err;
+
+  switch (type)
+    {
+    case MEP_OPERAND_PCREL8A2:
+    case MEP_OPERAND_PCREL12A2:
+    case MEP_OPERAND_PCREL17A2:
+    case MEP_OPERAND_PCREL24A2:
+      err = cgen_parse_signed_integer   (cd, strp, type, field);
+      break;
+    case MEP_OPERAND_PCABS24A2:
+    case MEP_OPERAND_UDISP7:
+    case MEP_OPERAND_UDISP7A2:
+    case MEP_OPERAND_UDISP7A4:
+    case MEP_OPERAND_UIMM7A4:
+    case MEP_OPERAND_ADDR24A4:
+      err = cgen_parse_unsigned_integer (cd, strp, type, (unsigned long *) field);
+      break;
+    default:
+      abort();
+    }
+  if (err)
+    return err;
+  switch (type)
+    {
+    case MEP_OPERAND_UDISP7:
+      lsbs = 0;
+      break;
+    case MEP_OPERAND_PCREL8A2:
+    case MEP_OPERAND_PCREL12A2:
+    case MEP_OPERAND_PCREL17A2:
+    case MEP_OPERAND_PCREL24A2:
+    case MEP_OPERAND_PCABS24A2:
+    case MEP_OPERAND_UDISP7A2:
+      lsbs = *field & 1;
+      break;
+    case MEP_OPERAND_UDISP7A4:
+    case MEP_OPERAND_UIMM7A4:
+    case MEP_OPERAND_ADDR24A4:
+      lsbs = *field & 3;
+      break;
+      lsbs = *field & 7;
+      break;
+    default:
+      /* Safe assumption?  */
+      abort ();
+    }
+  if (lsbs)
+    return "Value is not aligned enough";
+  return NULL;
+}
+
+const char *
+parse_mep_alignu (CGEN_CPU_DESC cd, const char ** strp,
+		 enum cgen_operand_type type, unsigned long *field)
+{
+  return parse_mep_align (cd, strp, type, (long *) field);
+}
+
+
+/* Handle %lo(), %tpoff(), %sdaoff(), %hi(), and other signed
+   constants in a signed context.  */
+
+static const char *
+parse_signed16 (CGEN_CPU_DESC cd,
+		const char **strp,
+		int opindex,
+		long *valuep)
+{
+  return parse_lo16 (cd, strp, opindex, valuep, 1);
+}
+
+static const char *
+parse_lo16 (CGEN_CPU_DESC cd,
+	    const char **strp,
+	    int opindex,
+	    long *valuep,
+	    long signedp)
+{
+  const char *errmsg;
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+
+  if (strncasecmp (*strp, "%lo(", 4) == 0)
+    {
+      *strp += 4;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_MEP_LOW16,
+				   & result_type, & value);
+      if (**strp != ')')
+	return _("missing `)'");
+      ++*strp;
+      if (errmsg == NULL
+	  && result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+	value &= 0xffff;
+      if (signedp)
+	*valuep = (long)(short) value;
+      else
+	*valuep = value;
+      return errmsg;
+    }
+
+  if (strncasecmp (*strp, "%hi(", 4) == 0)
+    {
+      *strp += 4;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_MEP_HI16S,
+				   & result_type, & value);
+      if (**strp != ')')
+	return _("missing `)'");
+      ++*strp;
+      if (errmsg == NULL
+	  && result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+	value = (value + 0x8000) >> 16;
+      *valuep = value;
+      return errmsg;
+    }
+
+  if (strncasecmp (*strp, "%uhi(", 5) == 0)
+    {
+      *strp += 5;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_MEP_HI16U,
+				   & result_type, & value);
+      if (**strp != ')')
+	return _("missing `)'");
+      ++*strp;
+      if (errmsg == NULL
+	  && result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+	value = value >> 16;
+      *valuep = value;
+      return errmsg;
+    }
+
+  if (strncasecmp (*strp, "%sdaoff(", 8) == 0)
+    {
+      *strp += 8;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_MEP_GPREL,
+				   NULL, & value);
+      if (**strp != ')')
+	return _("missing `)'");
+      ++*strp;
+      *valuep = value;
+      return errmsg;
+    }
+
+  if (strncasecmp (*strp, "%tpoff(", 7) == 0)
+    {
+      *strp += 7;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_MEP_TPREL,
+				   NULL, & value);
+      if (**strp != ')')
+	return _("missing `)'");
+      ++*strp;
+      *valuep = value;
+      return errmsg;
+    }
+
+  if (**strp == '%')
+    return _("invalid %function() here");
+
+  return cgen_parse_signed_integer (cd, strp, opindex, valuep);
+}
+
+static const char *
+parse_unsigned16 (CGEN_CPU_DESC cd,
+		  const char **strp,
+		  int opindex,
+		  unsigned long *valuep)
+{
+  return parse_lo16 (cd, strp, opindex, (long *) valuep, 0);
+}
+
+static const char *
+parse_signed16_range (CGEN_CPU_DESC cd,
+		      const char **strp,
+		      int opindex,
+		      signed long *valuep)
+{
+  const char *errmsg = 0;
+  signed long value;
+
+  errmsg = cgen_parse_signed_integer (cd, strp, opindex, & value);
+  if (errmsg)
+    return errmsg;
+
+  if (value < -32768 || value > 32767)
+    return _("Immediate is out of range -32768 to 32767");
+
+  *valuep = value;
+  return 0;
+}
+
+static const char *
+parse_unsigned16_range (CGEN_CPU_DESC cd,
+			const char **strp,
+			int opindex,
+			unsigned long *valuep)
+{
+  const char *errmsg = 0;
+  unsigned long value;
+
+  errmsg = cgen_parse_unsigned_integer (cd, strp, opindex, & value);
+  if (errmsg)
+    return errmsg;
+
+  if (value > 65535)
+    return _("Immediate is out of range 0 to 65535");
+
+  *valuep = value;
+  return 0;
+}
+
+/* A special case of parse_signed16 which accepts only the value zero.  */
+
+static const char *
+parse_zero (CGEN_CPU_DESC cd, const char **strp, int opindex, long *valuep)
+{
+  const char *errmsg;
+  enum cgen_parse_operand_result result_type;
+  bfd_vma value;
+
+  /*fprintf(stderr, "dj: signed parse opindex `%s'\n", *strp);*/
+
+  /* Prevent ($ry) from being attempted as an expression on 'sw $rx,($ry)'.
+     It will fail and cause ry to be listed as an undefined symbol in the
+     listing.  */
+  if (strncmp (*strp, "($", 2) == 0)
+    return "not zero"; /* any string will do -- will never be seen.  */
+
+  if (strncasecmp (*strp, "%lo(", 4) == 0)
+    {
+      *strp += 4;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_MEP_LOW16,
+				   &result_type, &value);
+      if (**strp != ')')
+	return "missing `)'";
+      ++*strp;
+      if (errmsg == NULL
+	  && (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER || value != 0))
+	return "not zero"; /* any string will do -- will never be seen.  */
+      *valuep = value;
+      return errmsg;
+    }
+
+  if (strncasecmp (*strp, "%hi(", 4) == 0)
+    {
+      *strp += 4;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_MEP_HI16S,
+				   &result_type, &value);
+      if (**strp != ')')
+	return "missing `)'";
+      ++*strp;
+      if (errmsg == NULL
+	  && (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER || value != 0))
+	return "not zero"; /* any string will do -- will never be seen.  */
+      *valuep = value;
+      return errmsg;
+    }
+
+  if (strncasecmp (*strp, "%uhi(", 5) == 0)
+    {
+      *strp += 5;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_MEP_HI16U,
+				   &result_type, &value);
+      if (**strp != ')')
+	return "missing `)'";
+      ++*strp;
+      if (errmsg == NULL
+	  && (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER || value != 0))
+	return "not zero"; /* any string will do -- will never be seen.  */
+      *valuep = value;
+      return errmsg;
+    }
+
+  if (strncasecmp (*strp, "%sdaoff(", 8) == 0)
+    {
+      *strp += 8;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_MEP_GPREL,
+				   &result_type, &value);
+      if (**strp != ')')
+	return "missing `)'";
+      ++*strp;
+      if (errmsg == NULL
+	  && (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER || value != 0))
+	return "not zero"; /* any string will do -- will never be seen.  */
+      *valuep = value;
+      return errmsg;
+    }
+
+  if (strncasecmp (*strp, "%tpoff(", 7) == 0)
+    {
+      *strp += 7;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_MEP_TPREL,
+				   &result_type, &value);
+      if (**strp != ')')
+	return "missing `)'";
+      ++*strp;
+      if (errmsg == NULL
+	  && (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER || value != 0))
+	return "not zero"; /* any string will do -- will never be seen.  */
+      *valuep = value;
+      return errmsg;
+    }
+
+  if (**strp == '%')
+    return "invalid %function() here";
+
+  errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_NONE,
+			       &result_type, &value);
+  if (errmsg == NULL
+      && (result_type != CGEN_PARSE_OPERAND_RESULT_NUMBER || value != 0))
+    return "not zero"; /* any string will do -- will never be seen.  */
+
+  return errmsg;
+}
+
+static const char *
+parse_unsigned7 (CGEN_CPU_DESC cd, const char **strp,
+		 enum cgen_operand_type opindex, unsigned long *valuep)
+{
+  const char *errmsg;
+  bfd_vma value;
+
+  /* fprintf(stderr, "dj: unsigned7 parse `%s'\n", *strp); */
+
+  if (strncasecmp (*strp, "%tpoff(", 7) == 0)
+    {
+      int reloc;
+      *strp += 7;
+      switch (opindex)
+	{
+	case MEP_OPERAND_UDISP7:
+	  reloc = BFD_RELOC_MEP_TPREL7;
+	  break;
+	case MEP_OPERAND_UDISP7A2:
+	  reloc = BFD_RELOC_MEP_TPREL7A2;
+	  break;
+	case MEP_OPERAND_UDISP7A4:
+	  reloc = BFD_RELOC_MEP_TPREL7A4;
+	  break;
+	default:
+	  /* Safe assumption?  */
+	  abort ();
+	}
+      errmsg = cgen_parse_address (cd, strp, opindex, reloc,
+				   NULL, &value);
+      if (**strp != ')')
+	return "missing `)'";
+      ++*strp;
+      *valuep = value;
+      return errmsg;
+    }
+
+  if (**strp == '%')
+    return _("invalid %function() here");
+
+  return parse_mep_alignu (cd, strp, opindex, valuep);
+}
+
+static ATTRIBUTE_UNUSED const char *
+parse_cdisp10 (CGEN_CPU_DESC cd,
+	       const char **strp,
+	       int opindex,
+	       long *valuep)
+{
+  const char *errmsg = 0;
+  signed long value;
+  long have_zero = 0;
+  int wide = 0;
+  int alignment;
+
+  switch (opindex)
+    {
+    case MEP_OPERAND_CDISP10A4:
+      alignment = 2;
+      break;
+    case MEP_OPERAND_CDISP10A2:
+      alignment = 1;
+      break;
+    case MEP_OPERAND_CDISP10:
+    default:
+      alignment = 0;
+      break;
+    }
+
+  if ((MEP_CPU & EF_MEP_CPU_MASK) == EF_MEP_CPU_C5)
+    wide = 1;
+
+  if (strncmp (*strp, "0x0", 3) == 0
+      || (**strp == '0' && *(*strp + 1) != 'x'))
+    have_zero = 1;
+
+  errmsg = cgen_parse_signed_integer (cd, strp, opindex, & value);
+  if (errmsg)
+    return errmsg;
+
+  if (wide)
+    {
+      if (value < -512 || value > 511)
+	return _("Immediate is out of range -512 to 511");
+    }
+  else
+    {
+      if (value < -128 || value > 127)
+	return _("Immediate is out of range -128 to 127");
+    }
+
+  if (value & ((1<<alignment)-1))
+    return _("Value is not aligned enough");
+
+  /* If this field may require a relocation then use larger dsp16.  */
+  if (! have_zero && value == 0)
+    return (wide ? _("Immediate is out of range -512 to 511")
+	    : _("Immediate is out of range -128 to 127"));
+
+  *valuep = value;
+  return 0;
+}
+
+/* BEGIN LIGHTWEIGHT MACRO PROCESSOR.  */
+
+#define MAXARGS 9
+
+typedef struct
+{
+  char *name;
+  char *expansion;
+}  macro;
+
+typedef struct
+{
+  const char *start;
+  int len;
+} arg;
+
+static macro const macros[] =
+{
+  { "sizeof", "(`1.end + (- `1))"},
+  { "startof", "(`1 | 0)" },
+  { "align4", "(`1&(~3))"},
+/*{ "hi", "(((`1+0x8000)>>16) & 0xffff)" },  */
+/*{ "lo", "(`1 & 0xffff)" },  */
+/*{ "sdaoff", "((`1-__sdabase) & 0x7f)"},  */
+/*{ "tpoff", "((`1-__tpbase) & 0x7f)"},  */
+  { 0,0 }
+};
+
+static char  * expand_string    (const char *, int);
+
+static const char *
+mep_cgen_expand_macros_and_parse_operand
+  (CGEN_CPU_DESC, int, const char **, CGEN_FIELDS *);
+
+static char *
+str_append (char *dest, const char *input, int len)
+{
+  char *new_dest;
+  int oldlen;
+
+  if (len == 0)
+    return dest;
+  /* printf("str_append: <<%s>>, <<%s>>, %d\n", dest, input, len); */
+  oldlen = (dest ? strlen(dest) : 0);
+  new_dest = realloc (dest, oldlen + len + 1);
+  memset (new_dest + oldlen, 0, len + 1);
+  return strncat (new_dest, input, len);
+}
+
+static const macro *
+lookup_macro (const char *name)
+{
+  const macro *m;
+
+  for (m = macros; m->name; ++m)
+    if (strncmp (m->name, name, strlen(m->name)) == 0)
+      return m;
+
+  return 0;
+}
+
+static char *
+expand_macro (arg *args, int narg, const macro *mac)
+{
+  char *result = 0, *rescanned_result = 0;
+  char *e = mac->expansion;
+  char *mark = e;
+  int mac_arg = 0;
+
+  /*  printf("expanding macro %s with %d args\n", mac->name, narg + 1); */
+  while (*e)
+    {
+      if (*e == '`'
+	  && (*e+1)
+	  && ((*(e + 1) - '1') <= MAXARGS)
+	  && ((*(e + 1) - '1') <= narg))
+	{
+	  result = str_append (result, mark, e - mark);
+	  mac_arg = (*(e + 1) - '1');
+	  /* printf("replacing `%d with %s\n", mac_arg+1, args[mac_arg].start); */
+	  result = str_append (result, args[mac_arg].start, args[mac_arg].len);
+	  ++e;
+	  mark = e+1;
+	}
+      ++e;
+    }
+
+  if (mark != e)
+    result = str_append (result, mark, e - mark);
+
+  if (result)
+    {
+      rescanned_result = expand_string (result, 0);
+      free (result);
+      return rescanned_result;
+    }
+  else
+    return result;
+}
+
+#define IN_TEXT 0
+#define IN_ARGS 1
+
+static char *
+expand_string (const char *in, int first_only)
+{
+  int num_expansions = 0;
+  int depth = 0;
+  int narg = -1;
+  arg args[MAXARGS];
+  int state = IN_TEXT;
+  const char *mark = in;
+  const macro *pmacro = NULL;
+  char *expansion = 0;
+  char *result = 0;
+
+  while (*in)
+    {
+      switch (state)
+	{
+	case IN_TEXT:
+	  if (*in == '%' && *(in + 1) && (!first_only || num_expansions == 0))
+	    {
+	      pmacro = lookup_macro (in + 1);
+	      if (pmacro)
+		{
+		  /* printf("entering state %d at '%s'...\n", state, in); */
+		  result = str_append (result, mark, in - mark);
+		  mark = in;
+		  in += 1 + strlen (pmacro->name);
+		  while (*in == ' ') ++in;
+		  if (*in != '(')
+		    {
+		      state = IN_TEXT;
+		      pmacro = NULL;
+		    }
+		  else
+		    {
+		      state = IN_ARGS;
+		      narg = 0;
+		      args[narg].start = in + 1;
+		      args[narg].len = 0;
+		      mark = in + 1;
+		    }
+		}
+	    }
+	  break;
+	case IN_ARGS:
+	  if (depth == 0)
+	    {
+	      switch (*in)
+		{
+		case ',':
+		  narg++;
+		  args[narg].start = (in + 1);
+		  args[narg].len = 0;
+		  break;
+		case ')':
+		  state = IN_TEXT;
+		  /* printf("entering state %d at '%s'...\n", state, in); */
+		  if (pmacro)
+		    {
+		      expansion = 0;
+		      expansion = expand_macro (args, narg, pmacro);
+		      num_expansions++;
+		      if (expansion)
+			{
+			  result = str_append (result, expansion, strlen (expansion));
+			  free (expansion);
+			}
+		    }
+		  else
+		    {
+		      result = str_append (result, mark, in - mark);
+		    }
+		  pmacro = NULL;
+		  mark = in + 1;
+		  break;
+		case '(':
+		  depth++;
+		  /* Fall through.  */
+		default:
+		  args[narg].len++;
+		  break;
+		}
+	    }
+	  else
+	    {
+	      if (*in == ')')
+		depth--;
+	      if (narg > -1)
+		args[narg].len++;
+	    }
+	}
+      ++in;
+    }
+
+  if (mark != in)
+    result = str_append (result, mark, in - mark);
+
+  return result;
+}
+
+#undef IN_ARGS
+#undef IN_TEXT
+#undef MAXARGS
+
+
+/* END LIGHTWEIGHT MACRO PROCESSOR.  */
+
+const char * mep_cgen_parse_operand
+  (CGEN_CPU_DESC, int, const char **, CGEN_FIELDS *);
+
+const char *
+mep_cgen_expand_macros_and_parse_operand (CGEN_CPU_DESC cd, int opindex,
+					  const char ** strp_in, CGEN_FIELDS * fields)
+{
+  const char * errmsg = NULL;
+  char *str = 0, *hold = 0;
+  const char **strp = 0;
+
+  /* Set up a new pointer to macro-expanded string.  */
+  str = expand_string (*strp_in, 1);
+  /* fprintf (stderr, " expanded <<%s>> to <<%s>>\n", *strp_in, str); */
+
+  hold = str;
+  strp = (const char **)(&str);
+
+  errmsg = mep_cgen_parse_operand (cd, opindex, strp, fields);
+
+  /* Now work out the advance.  */
+  if (strlen (str) == 0)
+    *strp_in += strlen (*strp_in);
+
+  else
+    {
+      if (strstr (*strp_in, str))
+	/* A macro-expansion was pulled off the front.  */
+	*strp_in = strstr (*strp_in, str);
+      else
+	/* A non-macro-expansion was pulled off the front.  */
+	*strp_in += (str - hold);
+    }
+
+  free (hold);
+
+  return errmsg;
+}
+
+#define CGEN_ASM_INIT_HOOK (cd->parse_operand = mep_cgen_expand_macros_and_parse_operand);
+
+/* -- dis.c */
+
+#include "elf/mep.h"
+#include "elf-bfd.h"
+
+#define CGEN_VALIDATE_INSN_SUPPORTED
+
+static void
+print_tpreg (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, void *dis_info,
+	     CGEN_KEYWORD *table ATTRIBUTE_UNUSED, long val ATTRIBUTE_UNUSED,
+	     unsigned int flags ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = (disassemble_info *) dis_info;
+
+  (*info->fprintf_func) (info->stream, "$tp");
+}
+
+static void
+print_spreg (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, void *dis_info,
+	     CGEN_KEYWORD *table ATTRIBUTE_UNUSED, long val ATTRIBUTE_UNUSED,
+	     unsigned int flags ATTRIBUTE_UNUSED)
+{
+  disassemble_info *info = (disassemble_info *) dis_info;
+
+  (*info->fprintf_func) (info->stream, "$sp");
+}
+
+/* begin-cop-ip-print-handlers */
+static void
+print_ivc2_cr (CGEN_CPU_DESC,
+	void *,
+	CGEN_KEYWORD *,
+	long,
+	unsigned int) ATTRIBUTE_UNUSED;
+static void
+print_ivc2_cr (CGEN_CPU_DESC cd,
+	void *dis_info,
+	CGEN_KEYWORD *keyword_table ATTRIBUTE_UNUSED,
+	long value,
+	unsigned int attrs)
+{
+  print_keyword (cd, dis_info, & mep_cgen_opval_h_cr_ivc2, value, attrs);
+}
+static void
+print_ivc2_ccr (CGEN_CPU_DESC,
+	void *,
+	CGEN_KEYWORD *,
+	long,
+	unsigned int) ATTRIBUTE_UNUSED;
+static void
+print_ivc2_ccr (CGEN_CPU_DESC cd,
+	void *dis_info,
+	CGEN_KEYWORD *keyword_table ATTRIBUTE_UNUSED,
+	long value,
+	unsigned int attrs)
+{
+  print_keyword (cd, dis_info, & mep_cgen_opval_h_ccr_ivc2, value, attrs);
+}
+/* end-cop-ip-print-handlers */
+
+/************************************************************\
+*********************** Experimental *************************
+\************************************************************/
+
+#undef  CGEN_PRINT_INSN
+#define CGEN_PRINT_INSN mep_print_insn
+
+static int
+mep_print_vliw_insns (CGEN_CPU_DESC cd, bfd_vma pc, disassemble_info *info,
+		      bfd_byte *buf, int corelength, int copro1length,
+		      int copro2length ATTRIBUTE_UNUSED)
+{
+  int i;
+  int status = 0;
+  /* char insnbuf[CGEN_MAX_INSN_SIZE]; */
+  bfd_byte insnbuf[64];
+
+  /* If corelength > 0 then there is a core insn present. It
+     will be at the beginning of the buffer.  After printing
+     the core insn, we need to print the + on the next line.  */
+  if (corelength > 0)
+    {
+      int my_status = 0;
+
+      for (i = 0; i < corelength; i++ )
+	insnbuf[i] = buf[i];
+      cd->isas = & MEP_CORE_ISA;
+
+      my_status = print_insn (cd, pc, info, insnbuf, corelength);
+      if (my_status != corelength)
+	{
+	  (*info->fprintf_func) (info->stream, UNKNOWN_INSN_MSG);
+	  my_status = corelength;
+	}
+      status += my_status;
+
+      /* Print the + to indicate that the following copro insn is
+	 part of a vliw group.  */
+      if (copro1length > 0)
+	(*info->fprintf_func) (info->stream, " + ");
+    }
+
+  /* Now all that is left to be processed is the coprocessor insns
+     In vliw mode, there will always be one.  Its positioning will
+     be from byte corelength to byte corelength+copro1length -1.
+     No need to check for existence.   Also, the first vliw insn,
+     will, as spec'd, always be at least as long as the core insn
+     so we don't need to flush the buffer.  */
+  if (copro1length > 0)
+    {
+      int my_status = 0;
+
+      for (i = corelength; i < corelength + copro1length; i++ )
+	insnbuf[i - corelength] = buf[i];
+
+      switch (copro1length)
+	{
+	case 0:
+	  break;
+	case 2:
+	  cd->isas = & MEP_COP16_ISA;
+	  break;
+	case 4:
+	  cd->isas = & MEP_COP32_ISA;
+	  break;
+	case 6:
+	  cd->isas = & MEP_COP48_ISA;
+	  break;
+	case 8:
+	  cd->isas = & MEP_COP64_ISA;
+	  break;
+	default:
+	  /* Shouldn't be anything but 16,32,48,64.  */
+	  break;
+	}
+
+      my_status = print_insn (cd, pc, info, insnbuf, copro1length);
+
+      if (my_status != copro1length)
+	{
+	  (*info->fprintf_func) (info->stream, UNKNOWN_INSN_MSG);
+	  my_status = copro1length;
+	}
+      status += my_status;
+    }
+
+#if 0
+  /* Now we need to process the second copro insn if it exists. We
+     have no guarantee that the second copro insn will be longer
+     than the first, so we have to flush the buffer if we are have
+     a second copro insn to process.  If present, this insn will
+     be in the position from byte corelength+copro1length to byte
+     corelength+copro1length+copro2length-1 (which better equal 8
+     or else we're in big trouble.  */
+  if (copro2length > 0)
+    {
+      int my_status = 0;
+
+      for (i = 0; i < 64 ; i++)
+	insnbuf[i] = 0;
+
+      for (i = corelength + copro1length; i < 64; i++)
+	insnbuf[i - (corelength + copro1length)] = buf[i];
+
+      switch (copro2length)
+	{
+	case 2:
+	  cd->isas = 1 << ISA_EXT_COP1_16;
+	  break;
+	case 4:
+	  cd->isas = 1 << ISA_EXT_COP1_32;
+	  break;
+	case 6:
+	  cd->isas = 1 << ISA_EXT_COP1_48;
+	  break;
+	case 8:
+	  cd->isas = 1 << ISA_EXT_COP1_64;
+	  break;
+	default:
+	  /* Shouldn't be anything but 16,32,48,64.  */
+	  break;
+	}
+
+      my_status = print_insn (cd, pc, info, insnbuf, copro2length);
+
+      if (my_status != copro2length)
+	{
+	  (*info->fprintf_func) (info->stream, UNKNOWN_INSN_MSG);
+	  my_status = copro2length;
+	}
+
+      status += my_status;
+    }
+#endif
+
+  /* Status should now be the number of bytes that were printed
+     which should be 4 for VLIW32 mode and 64 for VLIW64 mode.  */
+
+  if ((!MEP_VLIW64 && (status != 4)) || (MEP_VLIW64 && (status != 8)))
+    return -1;
+  else
+    return status;
+}
+
+/* The two functions mep_examine_vliw[32,64]_insns are used find out
+   which vliw combinaion (16 bit core with 48 bit copro, 32 bit core
+   with 32 bit copro, etc.) is present.  Later on, when internally
+   parallel coprocessors are handled, only these functions should
+   need to be changed.
+
+   At this time only the following combinations are supported:
+
+   VLIW32 Mode:
+   16 bit core insn (core) and 16 bit coprocessor insn (cop1)
+   32 bit core insn (core)
+   32 bit coprocessor insn (cop1)
+   Note: As of this time, I do not believe we have enough information
+         to distinguish a 32 bit core insn from a 32 bit cop insn. Also,
+         no 16 bit coprocessor insns have been specified.
+
+   VLIW64 Mode:
+   16 bit core insn (core) and 48 bit coprocessor insn (cop1)
+   32 bit core insn (core) and 32 bit coprocessor insn (cop1)
+   64 bit coprocessor insn (cop1)
+
+   The framework for an internally parallel coprocessor is also
+   present (2nd coprocessor insn is cop2), but at this time it
+   is not used.  This only appears to be valid in VLIW64 mode.  */
+
+static int
+mep_examine_vliw32_insns (CGEN_CPU_DESC cd, bfd_vma pc, disassemble_info *info)
+{
+  int status;
+  int buflength;
+  int corebuflength;
+  int cop1buflength;
+  int cop2buflength;
+  bfd_byte buf[CGEN_MAX_INSN_SIZE];
+  char indicator16[1];
+  char indicatorcop32[2];
+
+  /* At this time we're not supporting internally parallel coprocessors,
+     so cop2buflength will always be 0.  */
+  cop2buflength = 0;
+
+  /* Read in 32 bits.  */
+  buflength = 4; /* VLIW insn spans 4 bytes.  */
+  status = (*info->read_memory_func) (pc, buf, buflength, info);
+
+  if (status != 0)
+    {
+      (*info->memory_error_func) (status, pc, info);
+      return -1;
+    }
+
+  /* Put the big endian representation of the bytes to be examined
+     in the temporary buffers for examination.  */
+
+  if (info->endian == BFD_ENDIAN_BIG)
+    {
+      indicator16[0] = buf[0];
+      indicatorcop32[0] = buf[0];
+      indicatorcop32[1] = buf[1];
+    }
+  else
+    {
+      indicator16[0] = buf[1];
+      indicatorcop32[0] = buf[1];
+      indicatorcop32[1] = buf[0];
+    }
+
+  /* If the two high order bits are 00, 01 or 10, we have a 16 bit
+     core insn and a 48 bit copro insn.  */
+
+  if ((indicator16[0] & 0x80) && (indicator16[0] & 0x40))
+    {
+      if ((indicatorcop32[0] & 0xf0) == 0xf0 && (indicatorcop32[1] & 0x07) == 0x07)
+	{
+	  /* We have a 32 bit copro insn.  */
+	  corebuflength = 0;
+	  /* All 4 4ytes are one copro insn. */
+	  cop1buflength = 4;
+	}
+      else
+	{
+	  /* We have a 32 bit core.  */
+	  corebuflength = 4;
+	  cop1buflength = 0;
+	}
+    }
+  else
+    {
+      /* We have a 16 bit core insn and a 16 bit copro insn.  */
+      corebuflength = 2;
+      cop1buflength = 2;
+    }
+
+  /* Now we have the distrubution set.  Print them out.  */
+  status = mep_print_vliw_insns (cd, pc, info, buf, corebuflength,
+				 cop1buflength, cop2buflength);
+
+  return status;
+}
+
+static int
+mep_examine_vliw64_insns (CGEN_CPU_DESC cd, bfd_vma pc, disassemble_info *info)
+{
+  int status;
+  int buflength;
+  int corebuflength;
+  int cop1buflength;
+  int cop2buflength;
+  bfd_byte buf[CGEN_MAX_INSN_SIZE];
+  char indicator16[1];
+  char indicator64[4];
+
+  /* At this time we're not supporting internally parallel
+     coprocessors, so cop2buflength will always be 0.  */
+  cop2buflength = 0;
+
+  /* Read in 64 bits.  */
+  buflength = 8; /* VLIW insn spans 8 bytes.  */
+  status = (*info->read_memory_func) (pc, buf, buflength, info);
+
+  if (status != 0)
+    {
+      (*info->memory_error_func) (status, pc, info);
+      return -1;
+    }
+
+  /* We have all 64 bits in the buffer now.  We have to figure out
+     what combination of instruction sizes are present.  The two
+     high order bits will indicate whether or not we have a 16 bit
+     core insn or not.  If not, then we have to look at the 7,8th
+     bytes to tell whether we have 64 bit copro insn or a 32 bit
+     core insn with a 32 bit copro insn.  Endianness will make a
+     difference here.  */
+
+  /* Put the big endian representation of the bytes to be examined
+     in the temporary buffers for examination.  */
+
+  /* indicator16[0] = buf[0];  */
+  if (info->endian == BFD_ENDIAN_BIG)
+    {
+      indicator16[0] = buf[0];
+      indicator64[0] = buf[0];
+      indicator64[1] = buf[1];
+      indicator64[2] = buf[2];
+      indicator64[3] = buf[3];
+    }
+  else
+    {
+      indicator16[0] = buf[1];
+      indicator64[0] = buf[1];
+      indicator64[1] = buf[0];
+      indicator64[2] = buf[3];
+      indicator64[3] = buf[2];
+    }
+
+  /* If the two high order bits are 00, 01 or 10, we have a 16 bit
+     core insn and a 48 bit copro insn.  */
+
+  if ((indicator16[0] & 0x80) && (indicator16[0] & 0x40))
+    {
+      if ((indicator64[0] & 0xf0) == 0xf0 && (indicator64[1] & 0x07) == 0x07
+	  && ((indicator64[2] & 0xfe) != 0xf0 || (indicator64[3] & 0xf4) != 0))
+	{
+	  /* We have a 64 bit copro insn.  */
+	  corebuflength = 0;
+	  /* All 8 bytes are one copro insn.  */
+	  cop1buflength = 8;
+	}
+      else
+	{
+	  /* We have a 32 bit core insn and a 32 bit copro insn.  */
+	  corebuflength = 4;
+	  cop1buflength = 4;
+	}
+    }
+  else
+    {
+      /* We have a 16 bit core insn and a 48 bit copro insn.  */
+      corebuflength = 2;
+      cop1buflength = 6;
+    }
+
+  /* Now we have the distrubution set.  Print them out. */
+  status = mep_print_vliw_insns (cd, pc, info, buf, corebuflength,
+				 cop1buflength, cop2buflength);
+
+  return status;
+}
+
+#ifdef MEP_IVC2_SUPPORTED
+
+static int
+print_slot_insn (CGEN_CPU_DESC cd,
+		 bfd_vma pc,
+		 disassemble_info *info,
+		 SLOTS_ATTR slot,
+		 bfd_byte *buf)
+{
+  const CGEN_INSN_LIST *insn_list;
+  CGEN_INSN_INT insn_value;
+  CGEN_EXTRACT_INFO ex_info;
+
+  insn_value = cgen_get_insn_value (cd, buf, 32, cd->insn_endian);
+
+  /* Fill in ex_info fields like read_insn would.  Don't actually call
+     read_insn, since the incoming buffer is already read (and possibly
+     modified a la m32r).  */
+  ex_info.valid = (1 << 8) - 1;
+  ex_info.dis_info = info;
+  ex_info.insn_bytes = buf;
+
+  /* The instructions are stored in hash lists.
+     Pick the first one and keep trying until we find the right one.  */
+
+  insn_list = CGEN_DIS_LOOKUP_INSN (cd, (char *) buf, insn_value);
+  while (insn_list != NULL)
+    {
+      const CGEN_INSN *insn = insn_list->insn;
+      CGEN_FIELDS fields;
+      int length;
+
+      if ((CGEN_INSN_ATTR_VALUE (insn, CGEN_INSN_CONFIG)
+	   && CGEN_INSN_ATTR_VALUE (insn, CGEN_INSN_CONFIG) != MEP_CONFIG)
+	  || ! (CGEN_ATTR_CGEN_INSN_SLOTS_VALUE (CGEN_INSN_ATTRS (insn)) & (1 << slot)))
+	{
+	  insn_list = CGEN_DIS_NEXT_INSN (insn_list);
+	  continue;
+	}
+
+      if ((insn_value & CGEN_INSN_BASE_MASK (insn))
+	  == CGEN_INSN_BASE_VALUE (insn))
+	{
+	  /* Printing is handled in two passes.  The first pass parses the
+	     machine insn and extracts the fields.  The second pass prints
+	     them.  */
+
+	  length = CGEN_EXTRACT_FN (cd, insn)
+	    (cd, insn, &ex_info, insn_value, &fields, pc);
+
+	  /* Length < 0 -> error.  */
+	  if (length < 0)
+	    return length;
+	  if (length > 0)
+	    {
+	      CGEN_PRINT_FN (cd, insn) (cd, info, insn, &fields, pc, length);
+	      /* Length is in bits, result is in bytes.  */
+	      return length / 8;
+	    }
+	}
+
+      insn_list = CGEN_DIS_NEXT_INSN (insn_list);
+    }
+
+  if (slot == SLOTS_P0S)
+    (*info->fprintf_func) (info->stream, "*unknown-p0s*");
+  else if (slot == SLOTS_P0)
+    (*info->fprintf_func) (info->stream, "*unknown-p0*");
+  else if (slot == SLOTS_P1)
+    (*info->fprintf_func) (info->stream, "*unknown-p1*");
+  else if (slot == SLOTS_C3)
+    (*info->fprintf_func) (info->stream, "*unknown-c3*");
+  return 0;
+}
+
+static int
+mep_examine_ivc2_insns (CGEN_CPU_DESC cd ATTRIBUTE_UNUSED, bfd_vma pc ATTRIBUTE_UNUSED, disassemble_info *info ATTRIBUTE_UNUSED)
+{
+  int status;
+  int buflength;
+  bfd_byte buf[8];
+  bfd_byte insn[8];
+  int e;
+
+  /* Read in 64 bits.  */
+  buflength = 8; /* VLIW insn spans 8 bytes.  */
+  status = (*info->read_memory_func) (pc, buf, buflength, info);
+
+  if (status != 0)
+    {
+      (*info->memory_error_func) (status, pc, info);
+      return -1;
+    }
+
+  if (info->endian == BFD_ENDIAN_LITTLE)
+    e = 1;
+  else
+    e = 0;
+
+  if (((unsigned char)buf[0^e] & 0xf0) < 0xc0)
+    {
+      /*      <--00--><--11--><--22--><--33--><--44--><--55--><--66--><--77--> */
+      /* V1   [-----core-----][--------p0s-------][------------p1------------] */
+
+      print_insn (cd, pc, info, buf, 2);
+
+      insn[0^e] = 0;
+      insn[1^e] = buf[2^e];
+      insn[2^e] = buf[3^e];
+      insn[3^e] = buf[4^e] & 0xf0;
+      (*info->fprintf_func) (info->stream, " + ");
+      print_slot_insn (cd, pc, info, SLOTS_P0S, insn);
+
+      insn[0^e] = buf[4^e] << 4 | buf[5^e] >> 4;
+      insn[1^e] = buf[5^e] << 4 | buf[6^e] >> 4;
+      insn[2^e] = buf[6^e] << 4 | buf[7^e] >> 4;
+      insn[3^e] = buf[7^e] << 4;
+      (*info->fprintf_func) (info->stream, " + ");
+      print_slot_insn (cd, pc, info, SLOTS_P1, insn);
+    }
+  else if ((buf[0^e] & 0xf0) == 0xf0 && (buf[1^e] & 0x0f) == 0x07)
+    {
+      /*      <--00--><--11--><--22--><--33--><--44--><--55--><--66--><--77--> */
+      /* V3   1111[--p0--]0111[--------p0--------][------------p1------------] */
+      /*                                          00000000111111112222222233333333 */
+
+      insn[0^e] = buf[0^e] << 4 | buf[1^e] >> 4;
+      insn[1^e] = buf[2^e];
+      insn[2^e] = buf[3^e];
+      insn[3^e] = buf[4^e] & 0xf0;
+      print_slot_insn (cd, pc, info, SLOTS_P0, insn);
+
+      insn[0^e] = buf[4^e] << 4 | buf[5^e] >> 4;
+      insn[1^e] = buf[5^e] << 4 | buf[6^e] >> 4;
+      insn[2^e] = buf[6^e] << 4 | buf[7^e] >> 4;
+      insn[3^e] = buf[7^e] << 4;
+      (*info->fprintf_func) (info->stream, " + ");
+      print_slot_insn (cd, pc, info, SLOTS_P1, insn);
+    }
+  else
+    {
+      /*      <--00--><--11--><--22--><--33--><--44--><--55--><--66--><--77--> */
+      /* V2   [-------------core-------------]xxxx[------------p1------------] */
+      print_insn (cd, pc, info, buf, 4);
+
+      insn[0^e] = buf[4^e] << 4 | buf[5^e] >> 4;
+      insn[1^e] = buf[5^e] << 4 | buf[6^e] >> 4;
+      insn[2^e] = buf[6^e] << 4 | buf[7^e] >> 4;
+      insn[3^e] = buf[7^e] << 4;
+      (*info->fprintf_func) (info->stream, " + ");
+      print_slot_insn (cd, pc, info, SLOTS_P1, insn);
+    }
+
+  return 8;
+}
+
+#endif /* MEP_IVC2_SUPPORTED */
+
+/* This is a hack.  SID calls this to update the disassembler as the
+   CPU changes modes.  */
+static int mep_ivc2_disassemble_p = 0;
+static int mep_ivc2_vliw_disassemble_p = 0;
+
+void
+mep_print_insn_set_ivc2_mode (int ivc2_p, int vliw_p, int cfg_idx);
+void
+mep_print_insn_set_ivc2_mode (int ivc2_p, int vliw_p, int cfg_idx)
+{
+  mep_ivc2_disassemble_p = ivc2_p;
+  mep_ivc2_vliw_disassemble_p = vliw_p;
+  mep_config_index = cfg_idx;
+}
+
+static int
+mep_print_insn (CGEN_CPU_DESC cd, bfd_vma pc, disassemble_info *info)
+{
+  int status;
+  int cop_type;
+  int ivc2 = 0;
+  static CGEN_ATTR_VALUE_BITSET_TYPE *ivc2_core_isa = NULL;
+
+  if (ivc2_core_isa == NULL)
+    {
+      /* IVC2 has some core-only coprocessor instructions.  We
+	 use COP32 to flag those, and COP64 for the VLIW ones,
+	 since they have the same names.  */
+      ivc2_core_isa = cgen_bitset_create (MAX_ISAS);
+    }
+
+  /* Extract and adapt to configuration number, if available. */
+  if (info->section && info->section->owner)
+    {
+      bfd *abfd = info->section->owner;
+      if (bfd_get_flavour (abfd) == bfd_target_elf_flavour)
+	{
+	  mep_config_index = abfd->tdata.elf_obj_data->elf_header->e_flags & EF_MEP_INDEX_MASK;
+	  /* This instantly redefines MEP_CONFIG, MEP_OMASK, .... MEP_VLIW64 */
+
+	  /* mep_config_map is a variable sized array, so we do not know how big it is.
+	     The only safe way to check the index therefore is to iterate over the array.
+	     We do know that the last entry is all null.  */
+	  int i;
+	  for (i = 0; i <= mep_config_index; i++)
+	    if (mep_config_map[i].name == NULL)
+	      break;
+
+	  if (i < mep_config_index)
+	    {
+	      opcodes_error_handler (_("illegal MEP INDEX setting '%x' in ELF header e_flags field"), mep_config_index);
+	      mep_config_index = 0;
+	    }
+
+	  cop_type = abfd->tdata.elf_obj_data->elf_header->e_flags & EF_MEP_COP_MASK;
+	  if (cop_type == EF_MEP_COP_IVC2)
+	    ivc2 = 1;
+	}
+    }
+
+  /* Picking the right ISA bitmask for the current context is tricky.  */
+  if (info->section)
+    {
+      if (info->section->flags & SEC_MEP_VLIW)
+	{
+#ifdef MEP_IVC2_SUPPORTED
+	  if (ivc2)
+	    {
+	      /* ivc2 has its own way of selecting its functions.  */
+	      cd->isas = & MEP_CORE_ISA;
+	      status = mep_examine_ivc2_insns (cd, pc, info);
+	    }
+	  else
+#endif
+	    /* Are we in 32 or 64 bit vliw mode?  */
+	    if (MEP_VLIW64)
+	      status = mep_examine_vliw64_insns (cd, pc, info);
+	    else
+	      status = mep_examine_vliw32_insns (cd, pc, info);
+	  /* Both the above branches set their own isa bitmasks.  */
+	}
+      else
+	{
+	  if (ivc2)
+	    {
+	      cgen_bitset_clear (ivc2_core_isa);
+	      cgen_bitset_union (ivc2_core_isa, &MEP_CORE_ISA, ivc2_core_isa);
+	      cgen_bitset_union (ivc2_core_isa, &MEP_COP32_ISA, ivc2_core_isa);
+	      cd->isas = ivc2_core_isa;
+	    }
+	  else
+	    cd->isas = & MEP_CORE_ISA;
+	  status = default_print_insn (cd, pc, info);
+	}
+    }
+  else /* sid or gdb */
+    {
+#ifdef MEP_IVC2_SUPPORTED
+      if (mep_ivc2_disassemble_p)
+	{
+	  if (mep_ivc2_vliw_disassemble_p)
+	    {
+	      cd->isas = & MEP_CORE_ISA;
+	      status = mep_examine_ivc2_insns (cd, pc, info);
+	      return status;
+	    }
+	  else
+	    {
+	      if (ivc2)
+		cd->isas = ivc2_core_isa;
+	    }
+	}
+#endif
+
+      status = default_print_insn (cd, pc, info);
+    }
+
+  return status;
+}
+
+
+/* -- opc.c */
+#include "elf/mep.h"
+
+/* A mask for all ISAs executed by the core. */
+CGEN_ATTR_VALUE_BITSET_TYPE mep_all_core_isas_mask = {0, 0};
+
+void
+init_mep_all_core_isas_mask (void)
+{
+  if (mep_all_core_isas_mask.length != 0)
+    return;
+  cgen_bitset_init (& mep_all_core_isas_mask, ISA_MAX);
+  cgen_bitset_set (& mep_all_core_isas_mask, ISA_MEP);
+  /* begin-all-core-isas */
+  cgen_bitset_add (& mep_all_core_isas_mask, ISA_EXT_CORE1);
+  /* end-all-core-isas */
+}
+
+CGEN_ATTR_VALUE_BITSET_TYPE mep_all_cop_isas_mask = {0, 0};
+
+void
+init_mep_all_cop_isas_mask (void)
+{
+  if (mep_all_cop_isas_mask.length != 0)
+    return;
+  cgen_bitset_init (& mep_all_cop_isas_mask, ISA_MAX);
+  /* begin-all-cop-isas */
+  cgen_bitset_add (& mep_all_cop_isas_mask, ISA_EXT_COP1_16);
+  cgen_bitset_add (& mep_all_cop_isas_mask, ISA_EXT_COP1_32);
+  cgen_bitset_add (& mep_all_cop_isas_mask, ISA_EXT_COP1_48);
+  cgen_bitset_add (& mep_all_cop_isas_mask, ISA_EXT_COP1_64);
+  /* end-all-cop-isas */
+}
+
+int
+mep_insn_supported_by_isa (const CGEN_INSN *insn, CGEN_ATTR_VALUE_BITSET_TYPE *isa_mask)
+{
+  CGEN_BITSET insn_isas = CGEN_INSN_BITSET_ATTR_VALUE (insn, CGEN_INSN_ISA);
+  return cgen_bitset_intersect_p (& insn_isas, isa_mask);
+}
+
+#define OPTION_MASK \
+	( (1 << CGEN_INSN_OPTIONAL_BIT_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_MUL_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_DIV_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_DEBUG_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_LDZ_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_ABS_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_AVE_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_MINMAX_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_CLIP_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_SAT_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_UCI_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_DSP_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_CP_INSN) \
+	| (1 << CGEN_INSN_OPTIONAL_CP64_INSN) )
+
+
+mep_config_map_struct mep_config_map[] =
+{
+  /* config-map-start */
+  /* Default entry: first module, with all options enabled. */
+  { "", 0,  EF_MEP_COP_IVC2 | EF_MEP_CPU_C5,0, 64, { 1, "\x20" }, { 1, "\x10" }, { 1, "\x8" }, { 1, "\x4" }, { 1, "\x3c" }, { 1, "\xc0" }, OPTION_MASK | (1 << CGEN_INSN_OPTIONAL_DSP_INSN) | (1 << CGEN_INSN_OPTIONAL_UCI_INSN) },
+  { "default", CONFIG_DEFAULT, EF_MEP_COP_IVC2 | EF_MEP_CPU_C5, 0, 64, { 1, "\x20" }, { 1, "\x10" }, { 1, "\x8" }, { 1, "\x4" }, { 1, "\x3c" }, { 1, "\xc0" },
+	  0
+	| (1 << CGEN_INSN_OPTIONAL_CP_INSN)
+	| (1 << CGEN_INSN_OPTIONAL_CP64_INSN)
+	| (1 << CGEN_INSN_OPTIONAL_MUL_INSN)
+	| (1 << CGEN_INSN_OPTIONAL_DIV_INSN)
+	| (1 << CGEN_INSN_OPTIONAL_BIT_INSN)
+	| (1 << CGEN_INSN_OPTIONAL_LDZ_INSN)
+	| (1 << CGEN_INSN_OPTIONAL_ABS_INSN)
+	| (1 << CGEN_INSN_OPTIONAL_AVE_INSN)
+	| (1 << CGEN_INSN_OPTIONAL_MINMAX_INSN)
+	| (1 << CGEN_INSN_OPTIONAL_CLIP_INSN)
+	| (1 << CGEN_INSN_OPTIONAL_SAT_INSN) },
+  /* config-map-end */
+  { 0, 0, 0, 0, 0, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, {0, 0}, 0 }
+};
+
+int mep_config_index = 0;
+
+static int
+check_configured_mach (int machs)
+{
+  /* All base insns are supported.  */
+  int mach = 1 << MACH_BASE;
+  switch (MEP_CPU & EF_MEP_CPU_MASK)
+    {
+    case EF_MEP_CPU_C2:
+    case EF_MEP_CPU_C3:
+      mach |= (1 << MACH_MEP);
+      break;
+    case EF_MEP_CPU_H1:
+      mach |= (1 << MACH_H1);
+      break;
+    case EF_MEP_CPU_C5:
+      mach |= (1 << MACH_MEP);
+      mach |= (1 << MACH_C5);
+      break;
+    default:
+      break;
+    }
+  return machs & mach;
+}
+
+int
+mep_cgen_insn_supported (CGEN_CPU_DESC cd, const CGEN_INSN *insn)
+{
+  int iconfig = CGEN_INSN_ATTR_VALUE (insn, CGEN_INSN_CONFIG);
+  int machs = CGEN_INSN_ATTR_VALUE (insn, CGEN_INSN_MACH);
+  CGEN_BITSET isas = CGEN_INSN_BITSET_ATTR_VALUE (insn, CGEN_INSN_ISA);
+  int ok1;
+  int ok2;
+  int ok3;
+
+  /* If the insn has an option bit set that we don't want,
+     reject it.  */
+  if (CGEN_INSN_ATTRS (insn)->bool_ & OPTION_MASK & ~MEP_OMASK)
+    return 0;
+
+  /* If attributes are absent, assume no restriction. */
+  if (machs == 0)
+    machs = ~0;
+
+  ok1 = ((machs & cd->machs) && cgen_bitset_intersect_p (& isas, cd->isas));
+  /* If the insn is config-specific, make sure it matches.  */
+  ok2 =  (iconfig == 0 || iconfig == MEP_CONFIG);
+  /* Make sure the insn is supported by the configured mach  */
+  ok3 = check_configured_mach (machs);
+
+  return (ok1 && ok2 && ok3);
+}
+
+int
+mep_cgen_insn_supported_asm (CGEN_CPU_DESC cd, const CGEN_INSN *insn)
+{
+#ifdef MEP_IVC2_SUPPORTED
+  /* If we're assembling VLIW packets, ignore the 12-bit BSR as we
+     can't relax that.  The 24-bit BSR is matched instead.  */
+  if (insn->base->num == MEP_INSN_BSR12
+      && cgen_bitset_contains (cd->isas, ISA_EXT_COP1_64))
+    return 0;
+#endif
+
+  return mep_cgen_insn_supported (cd, insn);
+}

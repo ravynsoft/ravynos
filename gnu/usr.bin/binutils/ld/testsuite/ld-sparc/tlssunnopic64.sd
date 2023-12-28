@@ -1,0 +1,14 @@
+#source: tlssunnopic64.s
+#source: tlsnopic.s
+#as: --64 -Av9
+#ld: -shared -melf64_sparc
+#objdump: -sj.got
+#target: sparc*-*-*
+
+.*:     file format elf64-sparc.*
+
+Contents of section \.got:
+ 102100 0+ 0+102000 0+ 0+  .*
+ 102110 0+ 0+ 0+ 0+  .*
+ 102120 0+ 0+ 0+ 0+  .*
+ 102130 0+ 0+  .*

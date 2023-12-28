@@ -1,0 +1,20 @@
+
+Elf file type is DYN \(Shared object file\)
+Entry point .*
+There are 5 program headers, starting at offset .*
+
+Program Headers:
+ * Type * Offset * VirtAddr * PhysAddr * FileSiz * MemSiz * Flg * Align
+ * REGINFO * [^ ]+ * 0x0+00000 * 0x0+00000 [^ ]+ * [^ ]+ * R * 0x.*
+ * LOAD * [^ ]+ * 0x0+00000 * 0x0+00000 [^ ]+ * [^ ]+ * R E * 0x.*
+ * LOAD * [^ ]+ * 0x0+10000 * 0x0+10000 [^ ]+ * [^ ]+ * RW  * 0x.*
+ * DYNAMIC * [^ ]+ * 0x0+00400 * 0x0+00400 [^ ]+ * [^ ]+ * R  * 0x.*
+ * NULL * .*
+
+ *Section to Segment mapping:
+ *Segment Sections\.\.\.
+ *0*0 * \.reginfo *
+ *0*1 * \.reginfo \.dynamic \.dynsym \.dynstr \.hash \.text \.MIPS.stubs *
+ *0*2 * \.data \.got *
+ *0*3 * \.dynamic *
+ *0*4 *

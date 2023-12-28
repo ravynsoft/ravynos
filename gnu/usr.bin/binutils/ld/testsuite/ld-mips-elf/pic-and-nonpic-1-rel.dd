@@ -1,0 +1,46 @@
+
+.*
+
+Disassembly of section \.text:
+
+00000000 <f1>:
+   0:	3c1c0000 	lui	gp,0x0
+			0: R_MIPS_HI16	_gp_disp
+   4:	279c0000 	addiu	gp,gp,0
+			4: R_MIPS_LO16	_gp_disp
+   8:	0399e021 	addu	gp,gp,t9
+   c:	0c000000 	jal	0 .*
+			c: R_MIPS_26	f3
+  10:	00000000 	nop
+  14:	03e00008 	jr	ra
+  18:	00000000 	nop
+
+0000001c <f2>:
+  1c:	3c1c0000 	lui	gp,0x0
+			1c: R_MIPS_HI16	_gp_disp
+  20:	279c0000 	addiu	gp,gp,0
+			20: R_MIPS_LO16	_gp_disp
+  24:	0399e021 	addu	gp,gp,t9
+  28:	03e00008 	jr	ra
+  2c:	00000000 	nop
+
+00000030 <f3>:
+  30:	f000 6a00 	li	v0,0
+			30: R_MIPS16_HI16	_gp_disp
+  34:	f000 0b00 	la	v1,34 .*
+			34: R_MIPS16_LO16	_gp_disp
+  38:	f400 3240 	sll	v0,16
+  3c:	e269      	addu	v0,v1
+  3e:	6500      	nop
+
+00000040 <__start>:
+  40:	0c000000 	jal	0 .*
+			40: R_MIPS_26	f1
+  44:	00000000 	nop
+  48:	0c000000 	jal	0 .*
+			48: R_MIPS_26	f2
+  4c:	00000000 	nop
+  50:	0c000000 	jal	0 .*
+			50: R_MIPS_26	f3
+  54:	00000000 	nop
+	...

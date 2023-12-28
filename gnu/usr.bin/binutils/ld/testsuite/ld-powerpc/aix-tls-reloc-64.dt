@@ -1,0 +1,23 @@
+#source: aix-tls-reloc.s
+#as: -a64
+#ld: -b64 -shared -bE:aix-tls-reloc.ex
+#objdump: -d -j.tdata -j.tbss
+#target: [is_xcoff_format]
+
+.*
+
+
+Disassembly of section .tdata:
+
+ffffffffffff8800 <tdata_ext>:
+ffffffffffff8800:.*
+
+ffffffffffff8804 <tdata_int_csect>:
+ffffffffffff8804:.*
+ffffffffffff8808:.*
+ffffffffffff880c:.*
+
+Disassembly of section .tbss:
+
+ffffffffffff8810 <tbss_ext>:
+	...

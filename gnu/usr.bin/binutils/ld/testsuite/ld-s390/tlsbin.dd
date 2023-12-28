@@ -1,0 +1,193 @@
+#source: tlsbinpic.s
+#source: tlsbin.s
+#as: -m31
+#ld: -shared -melf_s390
+#objdump: -dzrj.text
+#target: s390-*-*
+
+# PT_TLS layout is:
+# Offset from   Offset from     Name
+# TCB base      TCB end
+# 0x00          -0xa0           sg1..sg2
+# 0x20          -0x80           sl1..sl2
+# 0x40          -0x60           sh1..sh2
+# 0x60          -0x40           bg1..bg2
+# 0x80          -0x20           bl1..bl2
+
+.*: +file format elf32-s390
+
+Disassembly of section .text:
+
+0+[0-9a-f]+ <fn2>:
+# function prolog
+  +[0-9a-f]+:	90 6e f0 18       	stm	%r6,%r14,24\(%r15\)
+  +[0-9a-f]+:	a7 d5 00 24       	bras	%r13,[0-9a-f]+ <fn2\+0x4c>
+# _GLOBAL_OFFSET_TABLE_
+  +[0-9a-f]+:	[0-9a-f ]+       	.long	0x[0-9a-f]+
+# __tls_get_addr@plt-.LT1
+  +[0-9a-f]+:	[0-9a-f ]+       	.long	0x[0-9a-f]+
+# sG1@tlsgd
+  +[0-9a-f]+:	00 00 00 28       	.long	0x00000028
+# sG2@tlsgd
+  +[0-9a-f]+:	00 00 00 20       	.long	0x00000020
+# sg1@tlsgd
+  +[0-9a-f]+:	ff ff ff 60       	.long	0xffffff60
+# sl1@tlsgd
+  +[0-9a-f]+:	ff ff ff 80       	.long	0xffffff80
+# sh1@tlsgd
+  +[0-9a-f]+:	ff ff ff a0       	.long	0xffffffa0
+# sl1@tlsldm
+  +[0-9a-f]+:	00 00 00 00       	.long	0x00000000
+# sl1@dtpoff
+  +[0-9a-f]+:	ff ff ff 80       	.long	0xffffff80
+# sl2@dtpoff
+  +[0-9a-f]+:	ff ff ff 84       	.long	0xffffff84
+# sh1@tlsldm
+  +[0-9a-f]+:	00 00 00 00       	.long	0x00000000
+# sh1@dtpoff
+  +[0-9a-f]+:	ff ff ff a0       	.long	0xffffffa0
+# sh2@dtpoff
+  +[0-9a-f]+:	ff ff ff a4       	.long	0xffffffa4
+# sG2@gotntpoff
+  +[0-9a-f]+:	00 00 00 20       	.long	0x00000020
+# sg1@gotntpoff
+  +[0-9a-f]+:	ff ff ff 60       	.long	0xffffff60
+# sl1@gotntpoff
+  +[0-9a-f]+:	ff ff ff 80       	.long	0xffffff80
+# sh1@gotntpoff
+  +[0-9a-f]+:	ff ff ff a0       	.long	0xffffffa0
+# function prolog
+  +[0-9a-f]+:	18 ef             	lr	%r14,%r15
+  +[0-9a-f]+:	58 c0 d0 00       	l	%r12,0\(%r13\)
+  +[0-9a-f]+:	a7 fa ff a0       	ahi	%r15,-96
+  +[0-9a-f]+:	41 cc d0 00       	la	%r12,0\(%r12,%r13\)
+  +[0-9a-f]+:	50 e0 e0 00       	st	%r14,0\(%r14\)
+# Extract TCB and load branch offset
+  +[0-9a-f]+:	b2 4f 00 90       	ear	%r9,%a0
+  +[0-9a-f]+:	58 70 d0 04       	l	%r7,4\(%r13\)
+# GD -> IE because variable is not defined in executable
+  +[0-9a-f]+:	58 20 d0 08       	l	%r2,8\(%r13\)
+  +[0-9a-f]+:	58 22 c0 00       	l	%r2,0\(%r2,%r12\)
+  +[0-9a-f]+:	41 22 90 00       	la	%r2,0\(%r2,%r9\)
+# GD -> IE because variable is not defined in executable where
+# the variable is referenced through IE too
+  +[0-9a-f]+:	58 20 d0 0c       	l	%r2,12\(%r13\)
+  +[0-9a-f]+:	58 22 c0 00       	l	%r2,0\(%r2,%r12\)
+  +[0-9a-f]+:	41 22 90 00       	la	%r2,0\(%r2,%r9\)
+# GD -> LE with global variable defined in executable
+  +[0-9a-f]+:	58 20 d0 10       	l	%r2,16\(%r13\)
+  +[0-9a-f]+:	47 00 00 00       	nop	0
+  +[0-9a-f]+:	41 22 90 00       	la	%r2,0\(%r2,%r9\)
+# GD -> LE with local variable defined in executable
+  +[0-9a-f]+:	58 20 d0 14       	l	%r2,20\(%r13\)
+  +[0-9a-f]+:	47 00 00 00       	nop	0
+  +[0-9a-f]+:	41 22 90 00       	la	%r2,0\(%r2,%r9\)
+# GD -> LE with hidden variable defined in executable
+  +[0-9a-f]+:	58 20 d0 18       	l	%r2,24\(%r13\)
+  +[0-9a-f]+:	47 00 00 00       	nop	0
+  +[0-9a-f]+:	41 22 90 00       	la	%r2,0\(%r2,%r9\)
+# LD -> LE
+  +[0-9a-f]+:	58 20 d0 1c       	l	%r2,28\(%r13\)
+  +[0-9a-f]+:	47 00 00 00       	nop	0
+  +[0-9a-f]+:	41 32 90 00       	la	%r3,0\(%r2,%r9\)
+  +[0-9a-f]+:	58 40 d0 20       	l	%r4,32\(%r13\)
+  +[0-9a-f]+:	41 54 30 00       	la	%r5,0\(%r4,%r3\)
+  +[0-9a-f]+:	58 40 d0 24       	l	%r4,36\(%r13\)
+  +[0-9a-f]+:	41 54 30 00       	la	%r5,0\(%r4,%r3\)
+# LD -> LE against hidden variables
+  +[0-9a-f]+:	58 20 d0 28       	l	%r2,40\(%r13\)
+  +[0-9a-f]+:	47 00 00 00       	nop	0
+  +[0-9a-f]+:	41 32 90 00       	la	%r3,0\(%r2,%r9\)
+  +[0-9a-f]+:	58 40 d0 2c       	l	%r4,44\(%r13\)
+  +[0-9a-f]+:	41 54 30 00       	la	%r5,0\(%r4,%r3\)
+  +[0-9a-f]+:	58 40 d0 30       	l	%r4,48\(%r13\)
+  +[0-9a-f]+:	41 54 30 00       	la	%r5,0\(%r4,%r3\)
+# IE against global var
+  +[0-9a-f]+:	58 30 d0 34       	l	%r3,52\(%r13\)
+  +[0-9a-f]+:	58 33 c0 00       	l	%r3,0\(%r3,%r12\)
+  +[0-9a-f]+:	58 33 90 00       	l	%r3,0\(%r3,%r9\)
+# IE -> LE against global var defined in exec
+  +[0-9a-f]+:	58 30 d0 38       	l	%r3,56\(%r13\)
+  +[0-9a-f]+:	18 43             	lr	%r4,%r3
+  +[0-9a-f]+:	07 00             	nopr
+  +[0-9a-f]+:	41 54 90 00       	la	%r5,0\(%r4,%r9\)
+# IE -> LE against local var
+  +[0-9a-f]+:	58 30 d0 3c       	l	%r3,60\(%r13\)
+  +[0-9a-f]+:	18 43             	lr	%r4,%r3
+  +[0-9a-f]+:	07 00             	nopr
+  +[0-9a-f]+:	41 54 90 00       	la	%r5,0\(%r4,%r9\)
+# IE -> LE against hidden var
+  +[0-9a-f]+:	58 30 d0 40       	l	%r3,64\(%r13\)
+  +[0-9a-f]+:	18 43             	lr	%r4,%r3
+  +[0-9a-f]+:	07 00             	nopr
+  +[0-9a-f]+:	41 54 90 00       	la	%r5,0\(%r4,%r9\)
+# IE against global var with small got access (no optimization)
+  +[0-9a-f]+:	58 30 c0 14       	l	%r3,20\(%r12\)
+  +[0-9a-f]+:	41 33 90 00       	la	%r3,0\(%r3,%r9\)
+# IE against global var defined in exec with small got access
+# (no optimization)
+  +[0-9a-f]+:	58 30 c0 18       	l	%r3,24\(%r12\)
+  +[0-9a-f]+:	41 33 90 00       	la	%r3,0\(%r3,%r9\)
+# IE against local var with small got access (no optimization)
+  +[0-9a-f]+:	58 30 c0 10       	l	%r3,16\(%r12\)
+  +[0-9a-f]+:	41 33 90 00       	la	%r3,0\(%r3,%r9\)
+# IE against hidden var with small got access (no optimization)
+  +[0-9a-f]+:	58 30 c0 1c       	l	%r3,28\(%r12\)
+  +[0-9a-f]+:	41 33 90 00       	la	%r3,0\(%r3,%r9\)
+# function epilog
+  +[0-9a-f]+:	98 6e f0 78       	lm	%r6,%r14,120\(%r15\)
+  +[0-9a-f]+:	07 fe             	br	%r14
+  +[0-9a-f]+:	07 07             	nopr	%r7
+  +[0-9a-f]+:	07 07             	nopr	%r7
+  +[0-9a-f]+:	07 07             	nopr	%r7
+  +[0-9a-f]+:	07 07             	nopr	%r7
+  +[0-9a-f]+:	07 07             	nopr	%r7
+  +[0-9a-f]+:	07 07             	nopr	%r7
+  +[0-9a-f]+:	07 07             	nopr	%r7
+  +[0-9a-f]+:	07 07             	nopr	%r7
+
+0+[0-9a-f]+ <_start>:
+# function prolog
+  +[0-9a-f]+:	90 6e f0 18       	stm	%r6,%r14,24\(%r15\)
+  +[0-9a-f]+:	a7 d5 00 0c       	bras	%r13,[0-9a-f]+ <_start\+0x1c>
+# sG6@indntpoff
+  +[0-9a-f]+:	00 40 15 64       	.long	0x00401564
+# bg6@indntpoff
+  +[0-9a-f]+:	ff ff ff d4       	.long	0xffffffd4
+# bl6@indntpoff
+  +[0-9a-f]+:	ff ff ff f4       	.long	0xfffffff4
+# sh6@indntpoff
+  +[0-9a-f]+:	ff ff ff b4       	.long	0xffffffb4
+# sg3@indntpoff
+  +[0-9a-f]+:	ff ff ff 68       	.long	0xffffff68
+# function prolog
+  +[0-9a-f]+:	18 ef             	lr	%r14,%r15
+  +[0-9a-f]+:	a7 fa ff a0       	ahi	%r15,-96
+  +[0-9a-f]+:	50 e0 e0 00       	st	%r14,0\(%r14\)
+# Extract TCB
+  +[0-9a-f]+:	b2 4f 00 90       	ear	%r9,%a0
+# IE against global var
+  +[0-9a-f]+:	58 30 d0 00       	l	%r3,0\(%r13\)
+  +[0-9a-f]+:	58 33 c0 00       	l	%r3,0\(%r3,%r12\)
+  +[0-9a-f]+:	41 33 90 00       	la	%r3,0\(%r3,%r9\)
+# IE -> LE against global var defined in exec
+  +[0-9a-f]+:	58 30 d0 04       	l	%r3,4\(%r13\)
+  +[0-9a-f]+:	18 43             	lr	%r4,%r3
+  +[0-9a-f]+:	07 00             	nopr
+  +[0-9a-f]+:	41 54 90 00       	la	%r5,0\(%r4,%r9\)
+# IE -> LE against local var
+  +[0-9a-f]+:	58 30 d0 08       	l	%r3,8\(%r13\)
+  +[0-9a-f]+:	18 43             	lr	%r4,%r3
+  +[0-9a-f]+:	07 00             	nopr
+  +[0-9a-f]+:	41 54 90 00       	la	%r5,0\(%r4,%r9\)
+# IE -> LE against hidden but not local var
+  +[0-9a-f]+:	58 30 d0 0c       	l	%r3,12\(%r13\)
+  +[0-9a-f]+:	18 43             	lr	%r4,%r3
+  +[0-9a-f]+:	07 00             	nopr
+  +[0-9a-f]+:	41 54 90 00       	la	%r5,0\(%r4,%r9\)
+# LE, global var defined in exec
+  +[0-9a-f]+:	58 40 d0 10       	l	%r4,16\(%r13\)
+  +[0-9a-f]+:	41 54 90 00       	la	%r5,0\(%r4,%r9\)
+# function epilog
+  +[0-9a-f]+:	98 6e f0 78       	lm	%r6,%r14,120\(%r15\)
+  +[0-9a-f]+:	07 fe             	br	%r14

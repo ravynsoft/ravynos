@@ -1,0 +1,3 @@
+#...
+ +\[[ 0-9]+\] .debug_info +(PROGBITS|MIPS_DWARF) +0+ +[0-9a-f]+ +[0-9a-f]+ [0-9a-f]+ +C +0 +0 +(4|8)
+#pass

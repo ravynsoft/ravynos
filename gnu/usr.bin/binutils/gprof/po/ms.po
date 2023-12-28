@@ -1,0 +1,601 @@
+# gprof Bahasa Melayu (Malay) (ms).
+# Copyright (C) 2006, 2008, 2015, 2018, 2020, 2023 Free Software Foundation, Inc.
+# Copyright (C) 2006, 2008, 2015, 2018, 2020, 2023 Sharuzzaman Ahmat Raslan
+# This file is distributed under the same license as the binutils package.
+# Sharuzzaman Ahmat Raslan <sharuzzaman@gmail.com>, 2006, 2008, 2015, 2018, 2020, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gprof 2.39.90\n"
+"Report-Msgid-Bugs-To: https://sourceware.org/bugzilla/\n"
+"POT-Creation-Date: 2022-12-31 12:22+0000\n"
+"PO-Revision-Date: 2023-02-20 14:11+0800\n"
+"Last-Translator: Sharuzzaman Ahmat Raslan <sharuzzaman@gmail.com>\n"
+"Language-Team: Malay <translation-team-ms@lists.sourceforge.net>\n"
+"Language: ms\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#: alpha.c:102 mips.c:54
+msgid "<indirect child>"
+msgstr "<anak tidak terus>"
+
+#: alpha.c:107 mips.c:59
+#, c-format
+msgid "[find_call] %s: 0x%lx to 0x%lx\n"
+msgstr "[find_call] %s: 0x%lx ke 0x%lx\n"
+
+#: alpha.c:129
+#, c-format
+msgid "[find_call] 0x%lx: jsr%s <indirect_child>\n"
+msgstr "[find_call] 0x%lx: jsr%s <indirect_child>\n"
+
+#: alpha.c:139
+#, c-format
+msgid "[find_call] 0x%lx: bsr"
+msgstr "[find_call] 0x%lx: bsr"
+
+#: basic_blocks.c:128 call_graph.c:89 hist.c:106
+#, c-format
+msgid "%s: %s: unexpected end of file\n"
+msgstr "%s: %s: akhir fail tidak dijangka\n"
+
+#: basic_blocks.c:196
+#, c-format
+msgid "%s: warning: ignoring basic-block exec counts (use -l or --line)\n"
+msgstr "%s: amaran: mengabaikan kiraan pelaksanaan blok-asas (guna -l atau --line)\n"
+
+#. FIXME: This only works if bfd_vma is unsigned long.
+#: basic_blocks.c:289 basic_blocks.c:299
+#, c-format
+msgid "%s:%d: (%s:0x%lx) %lu executions\n"
+msgstr "%s:%d: (%s:0x%lx) %lu pelaksanaan\n"
+
+#: basic_blocks.c:290 basic_blocks.c:300
+msgid "<unknown>"
+msgstr "<tidak diketahui>"
+
+#: basic_blocks.c:543
+#, c-format
+msgid ""
+"\n"
+"\n"
+"Top %d Lines:\n"
+"\n"
+"     Line      Count\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"%d Baris Tertinggi:\n"
+"\n"
+"     Baris     Kiraan\n"
+"\n"
+
+#: basic_blocks.c:567
+#, c-format
+msgid ""
+"\n"
+"Execution Summary:\n"
+"\n"
+msgstr ""
+"\n"
+"Ringkasan Pelaksanaan:\n"
+"\n"
+
+#: basic_blocks.c:568
+#, c-format
+msgid "%9ld   Executable lines in this file\n"
+msgstr "%9ld   Baris bolehlaksana dalam fail ini\n"
+
+#: basic_blocks.c:570
+#, c-format
+msgid "%9ld   Lines executed\n"
+msgstr "%9ld   Baris dilaksana\n"
+
+#: basic_blocks.c:571
+#, c-format
+msgid "%9.2f   Percent of the file executed\n"
+msgstr "%9.2f   Peratus fail dilaksana\n"
+
+#: basic_blocks.c:575
+#, c-format
+msgid ""
+"\n"
+"%9lu   Total number of line executions\n"
+msgstr ""
+"\n"
+"%9lu   Jumlah baris pelaksanaan\n"
+
+#: basic_blocks.c:577
+#, c-format
+msgid "%9.2f   Average executions per line\n"
+msgstr "%9.2f   Purata pelaksanaan per baris\n"
+
+#: call_graph.c:68
+#, c-format
+msgid "[cg_tally] arc from %s to %s traversed %lu times\n"
+msgstr "[cg_tally] arc dari %s ke %s berpindah %lu kali\n"
+
+#: cg_print.c:74
+#, c-format
+msgid ""
+"\t\t     Call graph (explanation follows)\n"
+"\n"
+msgstr ""
+"\t\t     Graf panggilan (di ikuti penerangan)\n"
+"\n"
+
+#: cg_print.c:76
+#, c-format
+msgid ""
+"\t\t\tCall graph\n"
+"\n"
+msgstr ""
+"\t\t\tGraf panggilan\n"
+"\n"
+
+#: cg_print.c:79 hist.c:470
+#, c-format
+msgid ""
+"\n"
+"granularity: each sample hit covers %ld byte(s)"
+msgstr ""
+"\n"
+"kebutiran: setiap kali sampel melitupi %ld byte"
+
+#: cg_print.c:83
+#, c-format
+msgid ""
+" for %.2f%% of %.2f seconds\n"
+"\n"
+msgstr ""
+" untuk %.2f%% dari %.2f saat\n"
+"\n"
+
+#: cg_print.c:87
+#, c-format
+msgid ""
+" no time propagated\n"
+"\n"
+msgstr ""
+" tiada masa terambat\n"
+"\n"
+
+#: cg_print.c:96 cg_print.c:101 cg_print.c:104
+msgid "called"
+msgstr "dipanggil"
+
+#: cg_print.c:96 cg_print.c:104
+msgid "total"
+msgstr "jumlah"
+
+#: cg_print.c:96
+msgid "parents"
+msgstr "induk"
+
+#: cg_print.c:98 cg_print.c:102
+msgid "index"
+msgstr "indeks"
+
+#: cg_print.c:100
+#, no-c-format
+msgid "%time"
+msgstr "%time"
+
+#: cg_print.c:101
+msgid "self"
+msgstr "sendiri"
+
+#: cg_print.c:101
+msgid "descendants"
+msgstr "keturunan"
+
+#: cg_print.c:102 hist.c:496
+msgid "name"
+msgstr "nama"
+
+#: cg_print.c:104
+msgid "children"
+msgstr "anak"
+
+#: cg_print.c:109
+#, c-format
+msgid "index %% time    self  children    called     name\n"
+msgstr "indeks %% masa  sendiri anak        dipanggil  nama\n"
+
+#: cg_print.c:132
+#, c-format
+msgid " <cycle %d as a whole> [%d]\n"
+msgstr " <pusingan %d sepenuhnya> [%d]\n"
+
+#: cg_print.c:358
+#, c-format
+msgid "%6.6s %5.5s %7.7s %11.11s %7.7s %7.7s     <spontaneous>\n"
+msgstr "%6.6s %5.5s %7.7s %11.11s %7.7s %7.7s     <secara spontan>\n"
+
+#: cg_print.c:359
+#, c-format
+msgid "%6.6s %5.5s %7.7s %7.7s %7.7s %7.7s     <spontaneous>\n"
+msgstr "%6.6s %5.5s %7.7s %7.7s %7.7s %7.7s     <spontan>\n"
+
+#: cg_print.c:593
+#, c-format
+msgid ""
+"Index by function name\n"
+"\n"
+msgstr ""
+"Indeks dengan nama fungsi\n"
+"\n"
+
+#: cg_print.c:650 cg_print.c:659
+#, c-format
+msgid "<cycle %d>"
+msgstr "<pusingan %d>"
+
+#: corefile.c:61
+#, c-format
+msgid "%s: unable to parse mapping file %s.\n"
+msgstr "%s: tidak dapat menghurai fail pemetaan %s.\n"
+
+#: corefile.c:89 corefile.c:524
+#, c-format
+msgid "%s: could not open %s.\n"
+msgstr "%s: tidak dapat membuka %s.\n"
+
+#: corefile.c:193
+#, c-format
+msgid "%s: %s: not in executable format\n"
+msgstr "%s: %s: bukan dalam format bolehlaksana\n"
+
+#: corefile.c:204
+#, c-format
+msgid "%s: can't find .text section in %s\n"
+msgstr "%s: tidak dapat mencari seksyen .text dalam %s\n"
+
+#: corefile.c:278
+#, c-format
+msgid "%s: ran out room for %lu bytes of text space\n"
+msgstr "%s: tidak cukup ruang untuk %lu byte bagi ruang teks\n"
+
+#: corefile.c:292
+#, c-format
+msgid "%s: can't do -c\n"
+msgstr "%s: tidak dapat melakukan -c\n"
+
+#: corefile.c:331
+#, c-format
+msgid "%s: -c not supported on architecture %s\n"
+msgstr "%s: -c tidak disokong pada rekabentuk %s\n"
+
+#: corefile.c:533 corefile.c:640
+#, c-format
+msgid "%s: file `%s' has no symbols\n"
+msgstr "%s: fail `%s' tidak mempunyai simbol\n"
+
+#: corefile.c:538
+#, c-format
+msgid "%s: file `%s' has too many symbols\n"
+msgstr "%s: fail `%s' mempunyai terlalu banyak simbol\n"
+
+#: corefile.c:907
+#, c-format
+msgid "%s: somebody miscounted: ltab.len=%d instead of %ld\n"
+msgstr "%s: seseorang salah mengira: ltab.len=%d berbanding %ld\n"
+
+#: gmon_io.c:81
+#, c-format
+msgid "%s: address size has unexpected value of %u\n"
+msgstr "%s: saiz alamat mempunyai nilai %u tidak dijangka\n"
+
+#: gmon_io.c:298 gmon_io.c:394
+#, c-format
+msgid "%s: file too short to be a gmon file\n"
+msgstr "%s: fail terlalu pendek untuk menjadi fail gmon\n"
+
+#: gmon_io.c:308 gmon_io.c:437
+#, c-format
+msgid "%s: file `%s' has bad magic cookie\n"
+msgstr "%s: fail `%s' mempunyai cecikut magik buruk\n"
+
+#: gmon_io.c:319
+#, c-format
+msgid "%s: file `%s' has unsupported version %d\n"
+msgstr "%s: fail `%s' tidak mempunyai versi disokong %d\n"
+
+#: gmon_io.c:349
+#, c-format
+msgid "%s: %s: found bad tag %d (file corrupted?)\n"
+msgstr "%s: %s: tag buruk %d dijumpai (fail rosak?)\n"
+
+#: gmon_io.c:416
+#, c-format
+msgid "%s: profiling rate incompatible with first gmon file\n"
+msgstr "%s: kadar pemprofilan tidak sepadan dengan fail gmon pertama\n"
+
+#: gmon_io.c:467
+#, c-format
+msgid "%s: incompatible with first gmon file\n"
+msgstr "%s: tidak sepadan dengan fail gmon pertama\n"
+
+#: gmon_io.c:497
+#, c-format
+msgid "%s: file '%s' does not appear to be in gmon.out format\n"
+msgstr "%s: fail '%s' tidak kelihatan seperti dialam format gmon.out\n"
+
+#: gmon_io.c:510
+#, c-format
+msgid "%s: unexpected EOF after reading %d/%d bins\n"
+msgstr "%s: EOF tidak dijangka selepas membaca %d/%d bins\n"
+
+#: gmon_io.c:542
+#, c-format
+msgid "time is in ticks, not seconds\n"
+msgstr "masa dalam tick, bukan saat\n"
+
+#: gmon_io.c:548 gmon_io.c:728
+#, c-format
+msgid "%s: don't know how to deal with file format %d\n"
+msgstr "%s: tidak tahu bagaimana untuk menguruskan format fail %d\n"
+
+#: gmon_io.c:558
+#, c-format
+msgid "File `%s' (version %d) contains:\n"
+msgstr "Fail `%s' (versi %d) mengandungi:\n"
+
+#: gmon_io.c:561
+#, c-format
+msgid "\t%d histogram record\n"
+msgstr "\t%d rekod histogram\n"
+
+#: gmon_io.c:562
+#, c-format
+msgid "\t%d histogram records\n"
+msgstr "\t%d rekod histogram\n"
+
+#: gmon_io.c:564
+#, c-format
+msgid "\t%d call-graph record\n"
+msgstr "\t%d rekod graf panggilan\n"
+
+#: gmon_io.c:565
+#, c-format
+msgid "\t%d call-graph records\n"
+msgstr "\t%d rekod graf panggilan\n"
+
+#: gmon_io.c:567
+#, c-format
+msgid "\t%d basic-block count record\n"
+msgstr "\t%d rekod kiraan blok-asas\n"
+
+#: gmon_io.c:568
+#, c-format
+msgid "\t%d basic-block count records\n"
+msgstr "\t%d rekod kiraan blok-asas\n"
+
+#: gprof.c:162
+#, c-format
+msgid ""
+"Usage: %s [-[abcDhilLrsTvwxyz]] [-[ABCeEfFJnNOpPqQRStZ][name]] [-I dirs]\n"
+"\t[-d[num]] [-k from/to] [-m min-count] [-t table-length]\n"
+"\t[--[no-]annotated-source[=name]] [--[no-]exec-counts[=name]]\n"
+"\t[--[no-]flat-profile[=name]] [--[no-]graph[=name]]\n"
+"\t[--[no-]time=name] [--all-lines] [--brief] [--debug[=level]]\n"
+"\t[--function-ordering] [--file-ordering] [--inline-file-names]\n"
+"\t[--directory-path=dirs] [--display-unused-functions]\n"
+"\t[--file-format=name] [--file-info] [--help] [--line] [--min-count=n]\n"
+"\t[--no-static] [--print-path] [--separate-files]\n"
+"\t[--static-call-graph] [--sum] [--table-length=len] [--traditional]\n"
+"\t[--version] [--width=n] [--ignore-non-functions]\n"
+"\t[--demangle[=STYLE]] [--no-demangle] [--external-symbol-table=name] [@FILE]\n"
+"\t[image-file] [profile-file...]\n"
+msgstr ""
+"Penggunaan: %s [-[abcDhilLrsTvwxyz]] [-[ABCeEfFJnNOpPqQRStZ][name]] [-I dirs]\n"
+"\t[-d[num]] [-k from/to] [-m min-count] [-t table-length]\n"
+"\t[--[no-]annotated-source[=name]] [--[no-]exec-counts[=name]]\n"
+"\t[--[no-]flat-profile[=name]] [--[no-]graph[=name]]\n"
+"\t[--[no-]time=name] [--all-lines] [--brief] [--debug[=level]]\n"
+"\t[--function-ordering] [--file-ordering] [--inline-file-names]\n"
+"\t[--directory-path=dirs] [--display-unused-functions]\n"
+"\t[--file-format=name] [--file-info] [--help] [--line] [--min-count=n]\n"
+"\t[--no-static] [--print-path] [--separate-files]\n"
+"\t[--static-call-graph] [--sum] [--table-length=len] [--traditional]\n"
+"\t[--version] [--width=n] [--ignore-non-functions]\n"
+"\t[--demangle[=STYLE]] [--no-demangle] [--external-symbol-table=name] [@FILE]\n"
+"\t[image-file] [profile-file...]\n"
+
+#: gprof.c:178
+#, c-format
+msgid "Report bugs to %s\n"
+msgstr "Lapor pepijat ke %s\n"
+
+#: gprof.c:252
+#, c-format
+msgid "%s: debugging not supported; -d ignored\n"
+msgstr "%s: nyahpepijat tidak disokong; -d diabaikan\n"
+
+#: gprof.c:338
+#, c-format
+msgid "%s: unknown file format %s\n"
+msgstr "%s: format fail %s tidak diketahui\n"
+
+#. This output is intended to follow the GNU standards document.
+#: gprof.c:426
+#, c-format
+msgid "GNU gprof %s\n"
+msgstr "GNU gprof %s\n"
+
+#: gprof.c:427
+#, c-format
+msgid "Based on BSD gprof, copyright 1983 Regents of the University of California.\n"
+msgstr "Diasaskan pada BSD gprof, hakcipta 1983 Regents of the University of California.\n"
+
+#: gprof.c:428
+#, c-format
+msgid "This program is free software.  This program has absolutely no warranty.\n"
+msgstr "Program ini adalah perisian bebas. Program ini tidak mempunyai sebarang warranti.\n"
+
+#: gprof.c:469
+#, c-format
+msgid "%s: unknown demangling style `%s'\n"
+msgstr "%s: gaya nyahkusut `%s' tidak diketahui\n"
+
+#: gprof.c:492
+#, c-format
+msgid "%s: Only one of --function-ordering and --file-ordering may be specified.\n"
+msgstr "%s: Hanya satu dari --function-ordering dan --file-ordering boleh dinyatakan.\n"
+
+#: gprof.c:544
+#, c-format
+msgid "%s: sorry, file format `prof' is not yet supported\n"
+msgstr "%s: maaf, format format `prof' belum lagi disokong\n"
+
+#: gprof.c:598
+#, c-format
+msgid "%s: gmon.out file is missing histogram\n"
+msgstr "%s: fail gmon.out kehilangan histogram\n"
+
+#: gprof.c:605
+#, c-format
+msgid "%s: gmon.out file is missing call-graph data\n"
+msgstr "%s: fail gmon.out kehilangan data graf-panggilan\n"
+
+#: hist.c:134
+#, c-format
+msgid ""
+"%s: dimension unit changed between histogram records\n"
+"%s: from '%s'\n"
+"%s: to '%s'\n"
+msgstr ""
+"%s: unit dimensi berubah antara rekod histogram\n"
+"%s: dari '%s'\n"
+"%s: ke '%s'\n"
+
+#: hist.c:144
+#, c-format
+msgid ""
+"%s: dimension abbreviation changed between histogram records\n"
+"%s: from '%c'\n"
+"%s: to '%c'\n"
+msgstr ""
+"%s: pemendekan dimensi berubah antara rekod histogram\n"
+"%s: dari '%c'\n"
+"%s: ke '%c'\n"
+
+#: hist.c:158
+#, c-format
+msgid "%s: different scales in histogram records"
+msgstr "%s: skala berbeza dalam rekod histogram"
+
+#: hist.c:195
+#, c-format
+msgid "%s: overlapping histogram records\n"
+msgstr "%s: rekod histogram bertindih\n"
+
+#: hist.c:229
+#, c-format
+msgid "%s: %s: unexpected EOF after reading %u of %u samples\n"
+msgstr "%s: %s: EOF tidak dijangka selepas membaca %u dari %u sampel\n"
+
+#: hist.c:466
+#, c-format
+msgid "%c%c/call"
+msgstr "%c%c/panggilan"
+
+#: hist.c:474
+#, c-format
+msgid ""
+" for %.2f%% of %.2f %s\n"
+"\n"
+msgstr ""
+" untuk %.2f%% dari %.2f %s\n"
+"\n"
+
+#: hist.c:480
+#, c-format
+msgid ""
+"\n"
+"Each sample counts as %g %s.\n"
+msgstr ""
+"\n"
+"Setiap sampel kira sebagai %g %s.\n"
+
+#: hist.c:485
+#, c-format
+msgid ""
+" no time accumulated\n"
+"\n"
+msgstr ""
+" tiada masa dikumpulkan\n"
+"\n"
+
+#: hist.c:492
+msgid "cumulative"
+msgstr "kumulatif"
+
+#: hist.c:492
+msgid "self  "
+msgstr "sendiri  "
+
+#: hist.c:492
+msgid "total "
+msgstr "jumlah "
+
+#: hist.c:495
+msgid "time"
+msgstr "masa"
+
+#: hist.c:495
+msgid "calls"
+msgstr "panggilan"
+
+#: hist.c:584
+#, c-format
+msgid ""
+"\n"
+"\n"
+"\n"
+"flat profile:\n"
+msgstr ""
+"\n"
+"\n"
+"\n"
+"profil mendatar:\n"
+
+#: hist.c:590
+#, c-format
+msgid "Flat profile:\n"
+msgstr "Profil mendatar:\n"
+
+#: hist.c:711
+#, c-format
+msgid "%s: found a symbol that covers several histogram records"
+msgstr "%s: menjumpai simbol yang merangkumi beberapa rekod histogram"
+
+#: mips.c:71
+#, c-format
+msgid "[find_call] 0x%lx: jal"
+msgstr "[find_call] 0x%lx: jal"
+
+#: mips.c:99
+#, c-format
+msgid "[find_call] 0x%lx: jalr\n"
+msgstr "[find_call] 0x%lx: jalr\n"
+
+#: source.c:166
+#, c-format
+msgid "%s: could not locate `%s'\n"
+msgstr "%s: tidak dapat mengesan `%s'\n"
+
+#: source.c:244
+#, c-format
+msgid "*** File %s:\n"
+msgstr "*** Fail %s:\n"
+
+#: utils.c:105
+#, c-format
+msgid " <cycle %d>"
+msgstr " <pusingan %d>"

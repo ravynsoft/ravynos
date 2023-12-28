@@ -1,0 +1,855 @@
+;; Linux BPF CPU description  -*- Scheme -*-
+;; Copyright (C) 2019 Free Software Foundation, Inc.
+;;
+;; Contributed by Oracle Inc.
+;;
+;; This file is part of the GNU Binutils and of GDB.
+;;
+;; This program is free software; you can redistribute it and/or
+;; modify it under the terms of the GNU General Public License as
+;; published by the Free Software Foundation; either version 3 of the
+;; License, or (at your option) any later version.
+;;
+;; This program is distributed in the hope that it will be useful, but
+;; WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+;; General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA
+;; 02110-1301, USA.
+
+;; This file contains a CGEN CPU description for the Linux kernel eBPF
+;; instruction set.  eBPF is documented in the linux kernel source
+;; tree.  See linux/Documentation/networking/filter.txt, and also the
+;; sources in the networking subsystem, notably
+;; linux/net/core/filter.c.
+
+(include "simplify.inc")
+
+(define-arch
+  (name bpf)
+  (comment "Linux kernel BPF")
+  (insn-lsb0? #t)
+  ;; XXX explain the default-alignment setting is for the simulator.
+  ;; It is confusing that the simulator follows the emulated memory
+  ;; access conventions for fetching instructions by pieces...
+  (default-alignment unaligned)
+  (machs bpf xbpf)
+  (isas ebpfle ebpfbe xbpfle xbpfbe))
+
+;;;; The ISAs
+
+;; Logically, eBPF comforms a single instruction set featuring two
+;; kind of instructions: 64-bit instructions and 128-bit instructions.
+;;
+;; The 64-bit instructions have the form:
+;;
+;;      code:8 regs:8 offset:16 imm:32
+;;
+;; Whereas the 128-bit instructions (at the moment there is only one
+;; of such instructions, lddw) have the form:
+;;
+;;      code:8 regs:8 offset:16 imm:32 unused:32 imm:32 
+;;
+;; In both formats `regs' is itself composed by two fields:
+;;
+;;      dst:4 src:4
+;;
+;; The ISA is supposed to be orthogonal to endianness: the endianness
+;; of the instruction fields follow the endianness of the host running
+;; the eBPF program, and that's all.  However, this is not entirely
+;; true.  The definition of an eBPF code in the Linux kernel is:
+;;
+;; struct bpf_insn {
+;;	__u8	code;		/* opcode */
+;;	__u8	dst_reg:4;	/* dest register */
+;;	__u8	src_reg:4;	/* source register */
+;;	__s16	off;		/* signed offset */
+;;	__s32	imm;		/* signed immediate constant */
+;; };
+;;
+;; Since the ordering of fields in C bitmaps is defined by the
+;; implementation, the impact of endianness in the encoding of eBPF
+;; instructions is effectively defined by GCC.  In particular, GCC
+;; places dst_reg before src_reg in little-endian code, and the other
+;; way around in big-endian code.
+;;
+;; So, in reality, eBPF comprises two instruction sets: one for
+;; little-endian with instructions like:
+;;
+;;   code:8 src:4 dst:4 offset:16 imm:32 [unused:32 imm:32]
+;;
+;; and another for big-endian with instructions like:
+;;
+;;   code:8 dst:4 src:4 offset:16 imm:32 [unused:32 imm:32]
+;;
+;; where `offset' and the immediate fields are encoded in
+;; little-endian and big-endian byte-order, respectively.
+
+(define-pmacro (define-bpf-isa x-endian)
+  (define-isa
+    (name (.sym ebpf x-endian))
+    (comment "The eBPF instruction set")
+    ;; Default length to record in ifields.  This is used in
+    ;; calculations involving bit numbers.
+    (default-insn-word-bitsize 64)
+    ;; Length of an unknown instruction.  Used by disassembly and by the
+    ;; simulator's invalid insn handler.
+    (default-insn-bitsize 64)
+    ;; Number of bits of insn that can be initially fetched.  This is
+    ;; the size of the smallest insn.
+    (base-insn-bitsize 64)))
+
+(define-bpf-isa le)
+(define-bpf-isa be)
+
+(define-pmacro (define-xbpf-isa x-endian)
+  (define-isa
+    (name (.sym xbpf x-endian))
+    (comment "The xBPF instruction set")
+    (default-insn-word-bitsize 64)
+    (default-insn-bitsize 64)
+    (base-insn-bitsize 64)))
+
+(define-xbpf-isa le)
+(define-xbpf-isa be)
+
+(define-pmacro all-isas () (ISA ebpfle,ebpfbe,xbpfle,xbpfbe))
+(define-pmacro xbpf-isas () (ISA xbpfle,xbpfbe))
+
+(define-pmacro (endian-isas x-endian)
+  ((ISA (.sym ebpf x-endian) (.sym xbpf x-endian))))
+
+;;;; Hardware Hierarchy
+
+;;
+;;         bpf            architecture
+;;          |
+;;        bpfbf           cpu-family
+;;      /       \
+;;     bpf     xbpf       machine
+;;      |       |
+;;   bpf-def  xbpf-def    model
+
+(define-cpu
+  (name bpfbf)
+  (comment "Linux kernel eBPF virtual CPU")
+  (insn-endian big)
+  (word-bitsize 64))
+
+(define-mach
+  (name bpf)
+  (comment "Linux eBPF")
+  (cpu bpfbf)
+  (isas ebpfle ebpfbe))
+
+(define-model
+  (name bpf-def)
+  (comment "Linux eBPF default model")
+  (mach bpf)
+  (unit u-exec "execution unit" ()
+    1 ; issue
+    1 ; done
+    () ; state
+    () ; inputs
+    () ; outputs
+    () ; profile action (default)
+    ))
+
+(define-mach
+  (name xbpf)
+  (comment "Experimental BPF")
+  (cpu bpfbf)
+  (isas ebpfle ebpfbe xbpfle xbpfbe))
+
+(define-model
+  (name xbpf-def)
+  (comment "xBPF default model")
+  (mach xbpf)
+  (unit u-exec "execution unit" ()
+    1 ; issue
+    1 ; done
+    () ; state
+    () ; inputs
+    () ; outputs
+    () ; profile action (default)
+    ))
+
+;;;; Hardware Elements
+
+;; eBPF programs can access 10 general-purpose registers which are
+;; 64-bit.
+
+(define-hardware
+  (name h-gpr)
+  (comment "General Purpose Registers")
+  (attrs all-isas (MACH bpf xbpf))
+  (type register DI (16))
+  (indices keyword "%"
+           ;; XXX the frame pointer fp is read-only, so it should
+           ;; go in a different hardware.
+           (;; ABI names.  Take priority when disassembling.
+            (r0 0) (r1 1) (r2 2) (r3 3) (r4 4) (r5 5) (r6 6)
+            (r7 7) (r8 8) (r9 9) (fp 10)
+            ;; Additional names recognized when assembling.
+            (r0 0) (r6 6) (r10 10))))
+
+;; The program counter.  CGEN requires it, even if it is not visible
+;; to eBPF programs.
+
+(define-hardware
+  (name h-pc)
+  (comment "program counter")
+  (attrs PC PROFILE all-isas)
+  (type pc UDI)
+  (get () (raw-reg h-pc))
+  (set (newval) (set (raw-reg h-pc) newval)))
+  
+;; A 64-bit h-sint to be used by the imm64 operand below.  XXX this
+;; shouldn't be needed, as h-sint is supposed to be able to hold
+;; 64-bit values.  However, in practice CGEN limits h-sint to 32 bits
+;; in 32-bit hosts.  To be fixed in CGEN.
+
+(dnh h-sint64 "signed 64-bit integer" (all-isas) (immediate DI)
+     () () ())
+
+;;;; The Instruction Sets
+
+;;; Fields and Opcodes
+
+;; Convenience macro to shorten the definition of the fields below.
+(define-pmacro (dwf x-name x-comment x-attrs
+                    x-word-offset x-word-length x-start x-length
+                    x-mode)
+  "Define a field including its containing word."
+  (define-ifield
+    (name x-name)
+    (comment x-comment)
+    (.splice attrs (.unsplice x-attrs))
+    (word-offset x-word-offset)
+    (word-length x-word-length)
+    (start x-start)
+    (length x-length)
+    (mode x-mode)))
+
+;; For arithmetic and jump instructions the 8-bit code field is
+;; subdivided in:
+;;
+;;  op-code:4 op-src:1 op-class:3
+
+(dwf f-op-code "eBPF opcode code" (all-isas) 0 8 7 4 UINT)
+(dwf f-op-src "eBPF opcode source" (all-isas) 0 8 3 1 UINT)
+(dwf f-op-class "eBPF opcode instruction class" (all-isas) 0 8 2 3 UINT)
+
+(define-normal-insn-enum insn-op-code-alu "eBPF instruction codes"
+  (all-isas) OP_CODE_ f-op-code
+  (;; Codes for OP_CLASS_ALU and OP_CLASS_ALU64
+   (ADD #x0) (SUB #x1) (MUL #x2) (DIV #x3) (OR #x4) (AND #x5)
+   (LSH #x6) (RSH #x7) (NEG #x8) (MOD #x9) (XOR #xa) (MOV #xb)
+   (ARSH #xc) (END #xd)
+   ;; xBPF-only: signed div, signed mod
+   (SDIV #xe) (SMOD #xf)
+   ;; Codes for OP_CLASS_JMP
+   (JA #x0) (JEQ #x1) (JGT #x2) (JGE #x3) (JSET #x4)
+   (JNE #x5) (JSGT #x6) (JSGE #x7) (CALL #x8) (EXIT #x9)
+   (JLT #xa) (JLE #xb) (JSLT #xc) (JSLE #xd)))
+
+(define-normal-insn-enum insn-op-src "eBPF instruction source"
+  (all-isas) OP_SRC_ f-op-src
+  ;; X => use `src' as source operand.
+  ;; K => use `imm32' as source operand.
+  ((K #b0) (X #b1)))
+
+(define-normal-insn-enum insn-op-class "eBPF instruction class"
+  (all-isas) OP_CLASS_ f-op-class
+  ((LD    #b000) (LDX   #b001) (ST    #b010) (STX   #b011)
+   (ALU   #b100) (JMP   #b101) (JMP32 #b110) (ALU64 #b111)))
+
+;; For load/store instructions, the 8-bit code field is subdivided in:
+;;
+;; op-mode:3 op-size:2 op-class:3
+
+(dwf f-op-mode "eBPF opcode mode" (all-isas) 0 8 7 3 UINT)
+(dwf f-op-size "eBPF opcode size" (all-isas) 0 8 4 2 UINT)
+
+(define-normal-insn-enum insn-op-mode "eBPF load/store instruction modes"
+  (all-isas) OP_MODE_ f-op-mode
+  ((IMM #b000) (ABS #b001) (IND #b010) (MEM #b011)
+   ;; #b100 and #b101 are used in classic BPF only, reserved in eBPF.
+   (XADD #b110)))
+
+(define-normal-insn-enum insn-op-size "eBPF load/store instruction sizes"
+  (all-isas) OP_SIZE_ f-op-size
+  ((W  #b00)   ;; Word:        4 byte
+   (H  #b01)   ;; Half-word:   2 byte
+   (B  #b10)   ;; Byte:        1 byte
+   (DW #b11))) ;; Double-word: 8 byte
+
+;; The fields for the source and destination registers are a bit
+;; tricky.  Due to the bizarre nibble swap between little-endian and
+;; big-endian ISAs we need to keep different variants of the fields.
+;;
+;; Note that f-regs is used in the format spec of instructions that do
+;; NOT use registers, where endianness is irrelevant i.e. f-regs is a
+;; constant 0 opcode.
+
+(dwf f-dstle "eBPF dst register field" ((ISA ebpfle xbpfle)) 8 8 3 4 UINT)
+(dwf f-srcle "eBPF source register field" ((ISA ebpfle xbpfle)) 8 8 7 4 UINT)
+
+(dwf f-dstbe "eBPF dst register field" ((ISA ebpfbe xbpfbe)) 8 8 7 4 UINT)
+(dwf f-srcbe "eBPF source register field" ((ISA ebpfbe xbpfbe)) 8 8 3 4 UINT)
+
+(dwf f-regs "eBPF registers field" (all-isas) 8 8 7 8 UINT)
+
+;; Finally, the fields for the immediates.
+;;
+;; The 16-bit offsets and 32-bit immediates do not present any special
+;; difficulty: we put them in their own instruction word so the
+;; byte-endianness will be properly applied.
+
+(dwf f-offset16 "eBPF offset field" (all-isas) 16 16 15 16 HI)
+(dwf f-imm32 "eBPF 32-bit immediate field" (all-isas) 32 32 31 32 INT)
+
+;; For the disjoint 64-bit signed immediate, however, we need to use a
+;; multi-ifield.
+
+(dwf f-imm64-a "eBPF 64-bit immediate a" (all-isas) 32 32 31 32 UINT)
+(dwf f-imm64-b "eBPF 64-bit immediate b" (all-isas) 64 32 31 32 UINT)
+(dwf f-imm64-c "eBPF 64-bit immediate c" (all-isas) 96 32 31 32 UINT)
+
+(define-multi-ifield
+  (name f-imm64)
+  (comment "eBPF 64-bit immediate field")
+  (attrs all-isas)
+  (mode DI)
+  (subfields f-imm64-a f-imm64-b f-imm64-c)
+  (insert (sequence ()
+                    (set (ifield f-imm64-b) (const 0))
+                    (set (ifield f-imm64-c) (srl (ifield f-imm64) (const 32)))
+                    (set (ifield f-imm64-a) (and (ifield f-imm64) (const #xffffffff)))))
+  (extract (sequence ()
+                     (set (ifield f-imm64)
+                          (or (sll UDI (zext UDI (ifield f-imm64-c)) (const 32))
+                              (zext UDI (ifield f-imm64-a)))))))
+
+;;; Operands
+
+;; A couple of source and destination register operands are defined
+;; for each ISA: ebpfle and ebpfbe.
+
+(dno dstle "destination register" ((ISA ebpfle xbpfle)) h-gpr f-dstle)
+(dno srcle "source register" ((ISA ebpfle xbpfle)) h-gpr f-srcle)
+
+(dno dstbe "destination register" ((ISA ebpfbe xbpfbe)) h-gpr f-dstbe)
+(dno srcbe "source register" ((ISA ebpfbe xbpfbe)) h-gpr f-srcbe)
+
+;; Jump instructions have a 16-bit PC-relative address.
+;; CALL instructions have a 32-bit PC-relative address.
+
+(dno disp16 "16-bit PC-relative address" (all-isas PCREL-ADDR) h-sint
+     f-offset16)
+(dno disp32 "32-bit PC-relative address" (all-isas PCREL-ADDR) h-sint
+     f-imm32)
+
+;; Immediate operands in eBPF are signed, and we want the disassembler
+;; to print negative values in a sane way.  Therefore we use the macro
+;; below to register a printer, which is itself defined as a C
+;; function in bpf.opc.
+
+;; define-normal-signed-immediate-operand
+(define-pmacro (dnsio x-name x-comment x-attrs x-type x-index)
+  (define-operand
+    (name x-name)
+    (comment x-comment)
+    (.splice attrs (.unsplice x-attrs))
+    (type x-type)
+    (index x-index)
+    (handlers (print "immediate"))))
+
+(dnsio imm32 "32-bit immediate" (all-isas) h-sint f-imm32)
+(dnsio offset16 "16-bit offset" (all-isas) h-sint f-offset16)
+
+;; The 64-bit immediate cannot use the default
+;; cgen_parse_signed_integer, because it assumes operands are at much
+;; 32-bit wide.  Use our own.
+
+(define-operand
+  (name imm64)
+  (comment "64-bit immediate")
+  (attrs all-isas)
+  (type h-sint64)
+  (index f-imm64)
+  (handlers (parse "imm64") (print "immediate")))
+
+;; The endle/endbe instructions take an operand to specify the word
+;; width in endianness conversions.  We use both a parser and printer,
+;; which are defined as C functions in bpf.opc.
+
+(define-operand
+  (name endsize)
+  (comment "endianness size immediate: 16, 32 or 64")
+  (attrs all-isas)
+  (type h-uint)
+  (index f-imm32)
+  (handlers (parse "endsize") (print "endsize")))
+
+;;; ALU instructions
+
+;; For each opcode in insn-op-code-alu representing and integer
+;; arithmetic instruction (ADD, SUB, etc) we define a bunch of
+;; instruction variants:
+;;
+;;   ADD[32]{i,r}le for the little-endian ISA
+;;   ADD[32]{i,r}be for the big-endian ISA
+;;
+;; The `i' variants perform `dst OP imm32 -> dst' operations.
+;; The `r' variants perform `dst OP src -> dst' operations.
+;;
+;; The variants with 32 in their name are of ALU class.  Otherwise
+;; they are ALU64 class.
+
+(define-pmacro (define-alu-insn-un x-basename x-suffix x-op-class x-op-code
+                 x-endian x-mode x-semop)
+  (dni (.sym x-basename x-suffix x-endian)
+       (.str x-basename x-suffix)
+       (endian-isas x-endian)
+       (.str x-basename x-suffix " $dst" x-endian)
+       (+ (f-imm32 0) (f-offset16 0) ((.sym f-src x-endian) 0) (.sym dst x-endian)
+          x-op-class OP_SRC_K x-op-code)
+       (set x-mode (.sym dst x-endian) (x-semop x-mode (.sym dst x-endian)))
+       ()))
+
+(define-pmacro (define-alu-insn-bin x-basename x-suffix x-op-class x-op-code
+                 x-endian x-mode x-semop x-isas)
+  (begin
+    ;; dst = dst OP immediate
+    (dni (.sym x-basename x-suffix "i" x-endian)
+         (.str x-basename x-suffix " immediate")
+         (.splice (.unsplice x-isas))
+         (.str x-basename x-suffix " $dst" x-endian ",$imm32")
+         (+ imm32 (f-offset16 0) ((.sym f-src x-endian) 0) (.sym dst x-endian)
+            x-op-class OP_SRC_K x-op-code)
+         (set x-mode (.sym dst x-endian) (x-semop x-mode (.sym dst x-endian) imm32))
+         ())
+    ;; dst = dst OP src
+    (dni (.sym x-basename x-suffix "r" x-endian)
+         (.str x-basename x-suffix " register")
+         (.splice (.unsplice x-isas))
+         (.str x-basename x-suffix " $dst" x-endian ",$src" x-endian)
+         (+ (f-imm32 0) (f-offset16 0) (.sym src x-endian) (.sym dst x-endian)
+            x-op-class OP_SRC_X x-op-code)
+         (set x-mode (.sym dst x-endian)
+                      (x-semop x-mode (.sym dst x-endian) (.sym src x-endian)))
+         ())))
+
+(define-pmacro (define-alu-insn-mov x-basename x-suffix x-op-class x-op-code
+                 x-endian x-mode)
+  (begin
+    (dni (.sym mov x-suffix "i" x-endian)
+         (.str mov x-suffix " immediate")
+         (endian-isas x-endian)
+         (.str x-basename x-suffix " $dst" x-endian ",$imm32")
+         (+ imm32 (f-offset16 0) ((.sym f-src x-endian) 0) (.sym dst x-endian)
+            x-op-class OP_SRC_K x-op-code)
+         (set x-mode (.sym dst x-endian) imm32)
+         ())
+    (dni (.sym mov x-suffix "r" x-endian)
+         (.str mov x-suffix " register")
+         (endian-isas x-endian)
+         (.str x-basename x-suffix " $dst" x-endian ",$src" x-endian)
+         (+ (f-imm32 0) (f-offset16 0) (.sym src x-endian) (.sym dst x-endian)
+            x-op-class OP_SRC_X x-op-code)
+         (set x-mode (.sym dst x-endian) (.sym src x-endian))
+         ())))
+
+
+;; Unary ALU instructions (neg)
+(define-pmacro (daiu x-basename x-op-code x-endian x-semop)
+  (begin
+    (define-alu-insn-un x-basename "" OP_CLASS_ALU64 x-op-code x-endian DI x-semop)
+    (define-alu-insn-un x-basename "32" OP_CLASS_ALU x-op-code x-endian USI x-semop)))
+
+;; Binary ALU instructions (all the others)
+;; For ALU32: DST = (u32) DST OP (u32) SRC is correct semantics
+(define-pmacro (daib x-basename x-op-code x-endian x-semop x-isas)
+  (begin
+    (define-alu-insn-bin x-basename "" OP_CLASS_ALU64 x-op-code x-endian DI x-semop x-isas)
+    (define-alu-insn-bin x-basename "32" OP_CLASS_ALU x-op-code x-endian USI x-semop x-isas)))
+
+;; Move ALU instructions (mov)
+(define-pmacro (daim x-basename x-op-code x-endian)
+  (begin
+    (define-alu-insn-mov x-basename "" OP_CLASS_ALU64 x-op-code x-endian DI)
+    (define-alu-insn-mov x-basename "32" OP_CLASS_ALU x-op-code x-endian USI)))
+
+(define-pmacro (define-alu-instructions x-endian)
+  (begin
+    (daib add OP_CODE_ADD x-endian add (endian-isas x-endian))
+    (daib sub OP_CODE_SUB x-endian sub (endian-isas x-endian))
+    (daib mul OP_CODE_MUL x-endian mul (endian-isas x-endian))
+    (daib div OP_CODE_DIV x-endian udiv (endian-isas x-endian))
+    (daib or  OP_CODE_OR x-endian or (endian-isas x-endian))
+    (daib and OP_CODE_AND x-endian and (endian-isas x-endian))
+    (daib lsh OP_CODE_LSH x-endian sll (endian-isas x-endian))
+    (daib rsh OP_CODE_RSH x-endian srl (endian-isas x-endian))
+    (daib mod OP_CODE_MOD x-endian umod (endian-isas x-endian))
+    (daib xor OP_CODE_XOR x-endian xor (endian-isas x-endian))
+    (daib arsh OP_CODE_ARSH x-endian sra (endian-isas x-endian))
+    (daib sdiv OP_CODE_SDIV x-endian div ((ISA (.sym xbpf x-endian))))
+    (daib smod OP_CODE_SMOD x-endian mod ((ISA (.sym xbpf x-endian))))
+    (daiu neg OP_CODE_NEG x-endian neg)
+    (daim mov OP_CODE_MOV x-endian)))
+
+(define-alu-instructions le)
+(define-alu-instructions be)
+
+;;; Endianness conversion instructions
+
+;; The endianness conversion instructions come in several variants:
+;;
+;;  END{le,be}le for the little-endian ISA
+;;  END{le,be}be for the big-endian ISA
+;;
+;; Please do not be confused by the repeated `be' and `le' here.  Each
+;; ISA has both endle and endbe instructions.  It is the disposition
+;; of the source and destination register fields that change between
+;; ISAs, not the semantics of the instructions themselves (see section
+;; "The ISAs" above in this very file.)
+
+(define-pmacro (define-endian-insn x-suffix x-op-src x-endian)
+  (dni (.sym "end" x-suffix x-endian)
+       (.str "end" x-suffix " register")
+       (endian-isas x-endian)
+       (.str "end" x-suffix " $dst" x-endian ",$endsize")
+       (+  (f-offset16 0) ((.sym f-src x-endian) 0) (.sym dst x-endian) endsize
+           OP_CLASS_ALU x-op-src OP_CODE_END)
+       (set (.sym dst x-endian)
+            (c-call DI (.str "bpfbf_end" x-suffix) (.sym dst x-endian) endsize))
+       ()))
+
+(define-endian-insn "le" OP_SRC_K le)
+(define-endian-insn "be" OP_SRC_X le)
+(define-endian-insn "le" OP_SRC_K be)
+(define-endian-insn "be" OP_SRC_X be)
+
+;;; Load/Store instructions
+
+;; The lddw instruction takes a 64-bit immediate as an operand.  Since
+;; this instruction also takes a `dst' operand, we need to define a
+;; variant for each ISA:
+;;
+;;  LDDWle for the little-endian ISA
+;;  LDDWbe for the big-endian ISA  
+
+(define-pmacro (define-lddw x-endian)
+  (dni (.sym lddw x-endian)
+       (.str "lddw" x-endian)
+       (endian-isas x-endian)
+       (.str "lddw $dst" x-endian ",$imm64")
+       (+ imm64 (f-offset16 0) ((.sym f-src x-endian) 0)
+          (.sym dst x-endian)
+          OP_CLASS_LD OP_SIZE_DW OP_MODE_IMM)
+       (set DI (.sym dst x-endian) imm64)
+       ()))
+
+(define-lddw le)
+(define-lddw be)
+
+;; The absolute load instructions are non-generic loads designed to be
+;; used in socket filters.  They come in several variants:
+;;
+;; LDABS{w,h,b,dw}
+
+(define-pmacro (dlabs x-suffix x-size x-smode)
+  (dni (.sym "ldabs" x-suffix)
+       (.str "ldabs" x-suffix)
+       (all-isas)
+       (.str "ldabs" x-suffix " $imm32")
+       (+ imm32 (f-offset16 0) (f-regs 0)
+          OP_CLASS_LD OP_MODE_ABS (.sym OP_SIZE_ x-size))
+       (set x-smode
+            (reg x-smode h-gpr 0)
+            (mem x-smode
+                 (add DI
+                      (mem DI
+                           (add DI
+                                (reg DI h-gpr 6) ;; Pointer to struct sk_buff
+                                (c-call "bpfbf_skb_data_offset")))
+                      imm32)))
+       ;; XXX this clobbers R1-R5
+       ()))
+
+(dlabs "w" W SI)
+(dlabs "h" H HI)
+(dlabs "b" B QI)
+(dlabs "dw" DW DI)
+
+;; The indirect load instructions are non-generic loads designed to be
+;; used in socket filters.  They come in several variants:
+;;
+;; LDIND{w,h,b,dw}le for the little-endian ISA
+;; LDIND[w,h,b,dw}be for the big-endian ISA
+
+(define-pmacro (dlind x-suffix x-size x-endian x-smode)
+  (dni (.sym "ldind" x-suffix x-endian)
+       (.str "ldind" x-suffix)
+       (endian-isas x-endian)
+       (.str "ldind" x-suffix " $src" x-endian ",$imm32")
+       (+ imm32 (f-offset16 0) ((.sym f-dst x-endian) 0) (.sym src x-endian)
+          OP_CLASS_LD OP_MODE_IND (.sym OP_SIZE_ x-size))
+       (set x-smode
+            (reg x-smode h-gpr 0)
+            (mem x-smode
+                 (add DI
+                      (mem DI
+                           (add DI
+                                (reg DI h-gpr 6) ;; Pointer to struct sk_buff
+                                (c-call "bpfbf_skb_data_offset")))
+                      (add DI
+                           (.sym src x-endian)
+                           imm32))))
+       ;; XXX this clobbers R1-R5
+       ()))
+
+(define-pmacro (define-ldind x-endian)
+  (begin    
+    (dlind "w" W x-endian SI)
+    (dlind "h" H x-endian HI)
+    (dlind "b" B x-endian QI)
+    (dlind "dw" DW x-endian DI)))
+
+(define-ldind le)
+(define-ldind be)
+
+;; Generic load and store instructions are provided for several word
+;; sizes.  They come in several variants:
+;;
+;;  LDX{b,h,w,dw}le, STX{b,h,w,dw}le for the little-endian ISA
+;;
+;;  LDX{b,h,w,dw}be, STX{b,h,w,dw}be for the big-endian ISA
+;;
+;; Loads operate on [$SRC+-OFFSET] -> $DST
+;; Stores operate on $SRC -> [$DST+-OFFSET]
+
+(define-pmacro (dxli x-basename x-suffix x-size x-endian x-mode)
+  (dni (.sym x-basename x-suffix x-endian)
+       (.str x-basename x-suffix)
+       (endian-isas x-endian)
+       (.str x-basename x-suffix " $dst" x-endian ",[$src" x-endian "+$offset16]")
+       (+ (f-imm32 0) offset16 (.sym src x-endian) (.sym dst x-endian)
+          OP_CLASS_LDX (.sym OP_SIZE_ x-size) OP_MODE_MEM)
+       (set x-mode
+            (.sym dst x-endian)
+            (mem x-mode (add DI (.sym src x-endian) offset16)))
+       ()))
+
+(define-pmacro (dxsi x-basename x-suffix x-size x-endian x-mode)
+  (dni (.sym x-basename x-suffix x-endian)
+       (.str x-basename x-suffix)
+       (endian-isas x-endian)
+       (.str x-basename x-suffix " [$dst" x-endian "+$offset16],$src" x-endian)
+       (+ (f-imm32 0) offset16 (.sym src x-endian) (.sym dst x-endian)
+          OP_CLASS_STX (.sym OP_SIZE_ x-size) OP_MODE_MEM)
+       (set x-mode
+            (mem x-mode (add DI (.sym dst x-endian) offset16))
+            (.sym src x-endian)) ;; XXX address is section-relative
+       ()))
+
+(define-pmacro (define-ldstx-insns x-endian)
+  (begin
+    (dxli "ldx" "w" W x-endian SI)
+    (dxli "ldx" "h" H x-endian HI)
+    (dxli "ldx" "b" B x-endian QI)
+    (dxli "ldx" "dw" DW x-endian DI)
+
+    (dxsi "stx" "w" W x-endian SI)
+    (dxsi "stx" "h" H x-endian HI)
+    (dxsi "stx" "b" B x-endian QI)
+    (dxsi "stx" "dw" DW x-endian DI)))
+
+(define-ldstx-insns le)
+(define-ldstx-insns be)
+
+;; Generic store instructions of the form IMM32 -> [$DST+OFFSET] are
+;; provided in several variants:
+;;
+;;  ST{b,h,w,dw}le for the little-endian ISA
+;;  ST{b,h,w,dw}be for the big-endian ISA
+
+(define-pmacro (dsti x-suffix x-size x-endian x-mode)
+  (dni (.sym "st" x-suffix x-endian)
+       (.str "st" x-suffix)
+       (endian-isas x-endian)
+       (.str "st" x-suffix " [$dst" x-endian "+$offset16],$imm32")
+       (+ imm32 offset16 ((.sym f-src x-endian) 0) (.sym dst x-endian)
+          OP_CLASS_ST (.sym OP_SIZE_ x-size) OP_MODE_MEM)
+       (set x-mode
+            (mem x-mode (add DI (.sym dst x-endian) offset16))
+            imm32) ;; XXX address is section-relative
+       ()))
+
+(define-pmacro (define-st-insns x-endian)
+  (begin
+    (dsti "b" B x-endian QI)
+    (dsti "h" H x-endian HI)
+    (dsti "w" W x-endian SI)
+    (dsti "dw" DW x-endian DI)))
+
+(define-st-insns le)
+(define-st-insns be)
+
+;;; Jump instructions
+
+;; Compare-and-jump instructions, on the other hand, make use of
+;; registers.  Therefore, we need to define several variants in both
+;; ISAs:
+;;
+;;   J{eq,gt,ge,lt,le,set,ne,sgt,sge,slt,sle}[32]{i,r}le for the
+;;   little-endian ISA.
+;;   J{eq,gt,ge,lt,le,set,ne.sgt,sge,slt,sle}[32]{i,r}be for the
+;;   big-endian ISA.
+
+(define-pmacro (define-cond-jump-insn x-cond x-suffix x-op-class x-op-code x-endian x-mode x-semop)
+  (begin
+    (dni (.sym j x-cond x-suffix i x-endian)
+         (.str j x-cond x-suffix " i")
+         (endian-isas x-endian)
+         (.str "j" x-cond x-suffix " $dst" x-endian ",$imm32,$disp16")
+         (+ imm32 disp16 ((.sym f-src x-endian) 0) (.sym dst x-endian)
+            x-op-class OP_SRC_K (.sym OP_CODE_ x-op-code))
+         (if VOID (x-semop x-mode (.sym dst x-endian) imm32)
+             (set DI
+                  (reg DI h-pc) (add DI (reg DI h-pc)
+                                     (mul DI (add HI disp16 1) 8))))
+         ())
+    (dni (.sym j x-cond x-suffix r x-endian)
+         (.str j x-cond x-suffix " r")
+         (endian-isas x-endian)
+         (.str "j" x-cond x-suffix " $dst" x-endian ",$src" x-endian ",$disp16")
+         (+ (f-imm32 0) disp16 (.sym src x-endian) (.sym dst x-endian)
+            x-op-class OP_SRC_X (.sym OP_CODE_ x-op-code))
+         (if VOID (x-semop x-mode (.sym dst x-endian) (.sym src x-endian))
+             (set DI
+                  (reg DI h-pc) (add DI (reg DI h-pc)
+                                     (mul DI (add HI disp16 1) 8))))
+         ())))
+
+(define-pmacro (dcji x-cond x-op-code x-endian x-semop)
+  (begin
+    (define-cond-jump-insn x-cond "" OP_CLASS_JMP x-op-code x-endian DI x-semop)
+    (define-cond-jump-insn x-cond "32" OP_CLASS_JMP32 x-op-code x-endian SI x-semop )))
+
+(define-pmacro (define-condjump-insns x-endian)
+  (begin
+    (dcji "eq" JEQ x-endian eq)
+    (dcji "gt" JGT x-endian gtu)
+    (dcji "ge" JGE x-endian geu)
+    (dcji "lt" JLT x-endian ltu)
+    (dcji "le" JLE x-endian leu)
+    (dcji "set" JSET x-endian and)
+    (dcji "ne" JNE x-endian ne)
+    (dcji "sgt" JSGT x-endian gt)
+    (dcji "sge" JSGE x-endian ge)
+    (dcji "slt" JSLT x-endian lt)
+    (dcji "sle" JSLE x-endian le)))
+
+(define-condjump-insns le)
+(define-condjump-insns be)
+
+;; The `call' instruction doesn't make use of registers, but the
+;; semantic routine should have access to the src register in order to
+;; properly interpret the meaning of disp32.  Therefore we need one
+;; version per ISA.
+
+(define-pmacro (define-call-insn x-endian)
+  (dni (.sym call x-endian)
+       "call"
+       (endian-isas x-endian)
+       "call $disp32"
+       (+ disp32 (f-offset16 0) (.sym src x-endian) ((.sym f-dst x-endian) 0)
+          OP_CLASS_JMP OP_SRC_K OP_CODE_CALL)
+       (c-call VOID
+               "bpfbf_call" disp32 (ifield (.sym f-src x-endian)))
+       ()))
+
+(define-call-insn le)
+(define-call-insn be)
+
+(define-pmacro (define-callr-insn x-endian)
+  (dni (.sym callr x-endian)
+       "callr"
+       ((ISA (.sym xbpf x-endian)))
+       (.str "call $dst" x-endian)
+       (+ (f-imm32 0) (f-offset16 0) ((.sym f-src x-endian) 0) (.sym dst x-endian)
+          OP_CLASS_JMP OP_SRC_X OP_CODE_CALL)
+       (c-call VOID
+               "bpfbf_callr" (ifield (.sym f-dst x-endian)))
+       ()))
+
+(define-callr-insn le)
+(define-callr-insn be)
+
+;; The jump-always and `exit' instructions dont make use of either
+;; source nor destination registers, so only one variant per
+;; instruction is defined.
+
+(dni ja "ja" (all-isas) "ja $disp16"
+     (+ (f-imm32 0) disp16 (f-regs 0)
+        OP_CLASS_JMP OP_SRC_K OP_CODE_JA)
+     (set DI (reg DI h-pc) (add DI (reg DI h-pc)
+                                (mul DI (add HI disp16 1) 8)))
+     ())
+
+(dni "exit" "exit" (all-isas) "exit"
+     (+ (f-imm32 0) (f-offset16 0) (f-regs 0)
+        OP_CLASS_JMP (f-op-src 0) OP_CODE_EXIT)
+     (c-call VOID "bpfbf_exit")
+     ())
+
+;;; Atomic instructions
+
+;; The atomic exchange-and-add instructions come in two flavors: one
+;; for swapping 64-bit quantities and another for 32-bit quantities.
+
+(define-pmacro (sem-exchange-and-add x-endian x-mode)
+  (sequence VOID ((x-mode tmp))
+            ;; XXX acquire lock in simulator...  as a hardware element?
+            (set x-mode tmp (mem x-mode (add DI (.sym dst x-endian) offset16)))
+            (set x-mode
+                 (mem x-mode (add DI (.sym dst x-endian) offset16))
+                 (add x-mode tmp (.sym src x-endian)))))
+
+(define-pmacro (define-atomic-insns x-endian)
+  (begin
+    (dni (.str "xadddw" x-endian)
+         "xadddw"
+         (endian-isas x-endian)
+         (.str "xadddw [$dst" x-endian "+$offset16],$src" x-endian)
+         (+ (f-imm32 0) (.sym src x-endian) (.sym dst x-endian)
+            offset16 OP_MODE_XADD OP_SIZE_DW OP_CLASS_STX)
+         (sem-exchange-and-add x-endian DI)
+         ())
+    (dni (.str "xaddw" x-endian)
+         "xaddw"
+         (endian-isas x-endian)
+         (.str "xaddw [$dst" x-endian "+$offset16],$src" x-endian)
+         (+ (f-imm32 0) (.sym src x-endian) (.sym dst x-endian)
+            offset16 OP_MODE_XADD OP_SIZE_W OP_CLASS_STX)
+         (sem-exchange-and-add x-endian SI)
+         ())))
+
+(define-atomic-insns le)
+(define-atomic-insns be)
+
+;;; Breakpoint instruction
+
+;; The brkpt instruction is used by the BPF simulator and it doesn't
+;; really belong to the eBPF instruction set.
+
+(dni "brkpt" "brkpt" (all-isas)  "brkpt"
+     (+ (f-imm32 0) (f-offset16 0) (f-regs 0)
+        OP_CLASS_ALU OP_SRC_X OP_CODE_NEG)
+     (c-call VOID "bpfbf_breakpoint")
+     ())

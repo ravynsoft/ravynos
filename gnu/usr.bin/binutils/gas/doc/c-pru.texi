@@ -1,0 +1,150 @@
+@c Copyright (C) 2015-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@c man end
+@ifset GENERIC
+@page
+@node PRU-Dependent
+@chapter PRU Dependent Features
+@end ifset
+
+@cindex PRU support
+@menu
+* PRU Options::              Options
+* PRU Syntax::               Syntax
+* PRU Relocations::          Relocations
+* PRU Directives::           PRU Machine Directives
+* PRU Opcodes::              Opcodes
+@end menu
+
+@node PRU Options
+@section Options
+@cindex PRU options
+@cindex options for PRU
+
+@c man begin OPTIONS
+@table @gcctabopt
+
+@cindex @code{mlink-relax} command-line option, PRU
+@item -mlink-relax
+Assume that LD would optimize LDI32 instructions by checking the upper
+16 bits of the @var{expression}. If they are all zeros, then LD would
+shorten the LDI32 instruction to a single LDI. In such case @code{@value{AS}}
+will output DIFF relocations for diff expressions.
+
+@cindex @code{mno-link-relax} command-line option, PRU
+@item -mno-link-relax
+Assume that LD would not optimize LDI32 instructions. As a consequence,
+DIFF relocations will not be emitted.
+
+@cindex @code{mno-warn-regname-label} command-line option, PRU
+@item -mno-warn-regname-label
+Do not warn if a label name matches a register name. Usually assembler
+programmers will want this warning to be emitted. C compilers may want
+to turn this off.
+
+@end table
+@c man end
+
+@node PRU Syntax
+@section Syntax
+@menu
+* PRU Chars::                Special Characters
+@end menu
+
+
+@node PRU Chars
+@subsection Special Characters
+
+@cindex line comment character, PRU
+@cindex PRU line comment character
+@samp{#} and @samp{;} are the line comment characters.
+
+
+@node PRU Relocations
+@section PRU Machine Relocations
+
+@cindex machine relocations, PRU
+@cindex PRU machine relocations
+
+@table @code
+
+@cindex @code{pmem} directive, PRU
+@item %pmem(@var{expression})
+Convert @var{expression} from byte-address to a
+word-address.  In other words, shift right by two.
+
+@item %label(@var{expression})
+Mark the given operand as a label. This is useful if you need to jump to
+a label that matches a register name.
+
+@smallexample
+@group
+r1:
+    jmp r1		; Will jump to register R1
+    jmp %label(r1)	; Will jump to label r1
+@end group
+@end smallexample
+
+@end table
+
+
+@node PRU Directives
+@section PRU Machine Directives
+
+@cindex machine directives, PRU
+@cindex PRU machine directives
+
+@table @code
+
+@cindex @code{align} directive, PRU
+@item .align @var{expression} [, @var{expression}]
+This is the generic @code{.align} directive, however
+this aligns to a power of two.
+
+@cindex @code{word} directive, PRU
+@item .word @var{expression}
+Create an aligned constant 4 bytes in size.
+
+@cindex @code{dword} directive, PRU
+@item .dword @var{expression}
+Create an aligned constant 8 bytes in size.
+
+@cindex @code{2byte} directive, PRU
+@item .2byte @var{expression}
+Create an unaligned constant 2 bytes in size.
+
+@cindex @code{4byte} directive, PRU
+@item .4byte @var{expression}
+Create an unaligned constant 4 bytes in size.
+
+@cindex @code{8byte} directive, PRU
+@item .8byte @var{expression}
+Create an unaligned constant 8 bytes in size.
+
+@cindex @code{16byte} directive, PRU
+@item .16byte @var{expression}
+Create an unaligned constant 16 bytes in size.
+
+@cindex @code{set no_warn_regname_label} directive, PRU
+@item .set no_warn_regname_label
+Do not output warnings when a label name matches a register name. Equivalent
+to passing the @code{-mno-warn-regname-label} command-line option.
+
+@end table
+
+@node PRU Opcodes
+@section Opcodes
+
+@cindex PRU opcodes
+@cindex opcodes for PRU
+@code{@value{AS}} implements all the standard PRU core V3 opcodes in the
+original pasm assembler.  Older cores are not supported by @code{@value{AS}}.
+
+GAS also implements the LDI32 pseudo instruction for loading a 32-bit
+immediate value into a register.
+
+@smallexample
+       ldi32   sp, __stack_top
+       ldi32   r14, 0x12345678
+@end smallexample

@@ -1,0 +1,51 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+if ![is_elf_format] then {
+    return
+}
+
+run_list_test "lns-diag-1" ""
+run_dump_test "lns-duplicate"
+
+# ??? Won't work on targets that don't have a bare "nop" insn.
+# Perhaps we could arrange for an include file or something that
+# defined a macro...
+if { ![istarget s390*-*-*] } {
+    # Use alternate file for targets using DW_LNS_fixed_advance_pc opcodes.
+    if {    [istarget am3*-*-*]
+	 || [istarget avr*-*-*]
+	 || [istarget cr16-*-*]
+	 || [istarget crx-*-*]
+	 || [istarget ft32*-*]
+	 || [istarget loongarch*-*-*]
+	 || [istarget mn10*-*-*]
+	 || [istarget msp430-*-*]
+	 || [istarget nds32*-*-*]
+	 || [istarget pru-*-*]
+	 || [istarget riscv*-*-*]
+	 || [istarget rl78-*-*]
+	 || [istarget xtensa*-*-*] } {
+      run_dump_test "lns-common-1-alt"
+      run_dump_test "lns-big-delta"
+    } elseif { [istarget ia64*-*-*] } {
+      run_dump_test "lns-common-1" { { source "lns-common-1-ia64.s" } }
+    } elseif { [istarget or1k*-*-*] } {
+      run_dump_test "lns-common-1" { { source "lns-common-1-or1k.s" } }
+    } else {
+      run_dump_test "lns-common-1"
+    }
+}

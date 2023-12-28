@@ -1,0 +1,2231 @@
+# Expect script for ld-x86_64 tests
+#   Copyright (C) 2002-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# Test x86_64 linking; all types of relocs.  This tests the assembler and
+# tools like objdump as well as the linker.
+
+if { !([istarget "x86_64-*-elf*"] || [istarget "x86_64-*-linux*"]) } {
+    return
+}
+
+set emul "elf_x86_64"
+set saved_ASFLAGS "$ASFLAGS"
+set ASFLAGS "$ASFLAGS -mx86-used-note=no"
+
+# List contains test-items with 3 items followed by 2 lists:
+# 0:name 1:ld early options 2:ld late options 3:assembler options
+# 4:filenames of assembler files 5: action and options. 6: name of output file
+
+# Actions:
+# objdump: Apply objdump options on result.  Compare with regex (last arg).
+# nm: Apply nm options on result.  Compare with regex (last arg).
+# readelf: Apply readelf options on result.  Compare with regex (last arg).
+
+set x86_64tests {
+    {"Helper shared library (basic PLT test)"
+      "-shared -melf_x86_64" "" "--64" {pltlib.s} {} "libpltlib.so"}
+    {"basic PLT generation"
+     "-melf_x86_64 tmpdir/libpltlib.so" "" "--64" {plt.s}
+     {{objdump -drj.plt plt.pd}} "plt"}
+    {"Helper shared library" "-shared -melf_x86_64" ""
+     "--64" {tlslib.s} {} "libtlslib.so"}
+    {"TLS -fpic and -fno-pic exec transitions"
+     "-melf_x86_64 tmpdir/libtlslib.so --no-ld-generated-unwind-info \
+      -z noseparate-code -z max-page-size=0x200000 --hash-style=sysv" ""
+     "--64" {tlsbinpic.s tlsbin.s}
+     {{readelf -WSsrl tlsbin.rd} {objdump -drj.text tlsbin.dd}
+      {objdump -sj.got tlsbin.sd} {objdump -sj.tdata tlsbin.td}}
+      "tlsbin"}
+    {"TLS -fpic and -fno-pic exec transitions without PLT"
+     "-melf_x86_64 tmpdir/libtlslib.so --no-ld-generated-unwind-info \
+      -z noseparate-code -z max-page-size=0x200000 --hash-style=sysv" ""
+     "-mrelax-relocations=yes --64" {tlsbinpic2.s tlsbin.s}
+     {{readelf -WSsrl tlsbin2.rd} {objdump -drj.text tlsbin2.dd}
+      {objdump -sj.got tlsbin2.sd} {objdump -sj.tdata tlsbin2.td}}
+      "tlsbin2"}
+    {"TLS descriptor -fpic and -fno-pic exec transitions"
+     "-melf_x86_64 tmpdir/libtlslib.so --no-ld-generated-unwind-info \
+      -z noseparate-code -z max-page-size=0x200000 --hash-style=sysv" ""
+     "--64" {tlsbindesc.s tlsbin.s}
+     {{readelf -WSsrl tlsbindesc.rd} {objdump -drj.text tlsbindesc.dd}
+      {objdump -sj.got tlsbindesc.sd} {objdump -sj.tdata tlsbindesc.td}}
+      "tlsbindesc"}
+    {"TLS with global dynamic and descriptors"
+     "-shared -melf_x86_64 --no-ld-generated-unwind-info \
+      -z noseparate-code -z max-page-size=0x200000 --hash-style=sysv" ""
+     "--64" {tlsgdesc.s}
+     {{readelf -WSsrl tlsgdesc.rd} {objdump -drj.text\ -Mintel64 tlsgdesc.dd}}
+      "libtlsgdesc.so"}
+    {"TLS in debug sections" "-melf_x86_64" ""
+     "--64" {tlsg.s}
+     {{objdump -sj.debug_foobar tlsg.sd}} "tlsg"}
+    {"TLS GD->LE transition" "-melf_x86_64" ""
+     "--64" {tlsgd1.s}
+     {{objdump -dwr tlsgd1.dd}} "tlsgd1"}
+    {"TLS LD->LE transition" "-melf_x86_64" ""
+     "--64" {tlsld1.s}
+     {{objdump -dwr tlsld1.dd}} "tlsld1"}
+    {"TLS IE->LE transition" "-melf_x86_64" ""
+     "--64" {tlsie1.s}
+     {{objdump -dwr tlsie1.dd}} "tlsie1"}
+    {"Helper 64bit object 1" "-r -melf_x86_64" ""
+     "--64" {mixed1a.s} {} "libmixe1a.o"}
+    {"Helper 32bit object 1" "-r -melf_i386" ""
+     "--32" {mixed1b.s} {} "libmixe1b.o"}
+    {"Helper 64bit object 2" "-r -melf_x86_64" ""
+     "--64" {mixed2a.s} {} "libmixe2a.o"}
+    {"Helper 32bit object 2" "-r -melf_i386" ""
+     "--32" {mixed2b.s} {} "libmixe2b.o"}
+    {"Split by file with 'l' flag on section."
+     "-split-by-file -r -melf_x86_64" ""
+     "--64" {split-by-file1.s split-by-file2.s}
+     {{readelf -SW split-by-file.rd}} "split-by-file.o"}
+    {"TLS X32 IE->LE transition" "-melf32_x86_64" ""
+     "--x32" {tlsie4.s}
+     {{objdump -dwr tlsie4.dd}} "tlsie4"}
+    {"TLS X32 GD->LE transition" "-melf32_x86_64" ""
+     "--x32" {tlsgd4.s}
+     {{objdump -dwr tlsgd4.dd}} "tlsgd4"}
+    {"Helper TLS GD->IE transition DSO" "-shared -melf_x86_64" ""
+     "--64" {tlsgd5b.s} {} "libtlsgd5.so"}
+    {"TLS GD->IE transition" "-melf_x86_64 tmpdir/libtlsgd5.so" ""
+     "--64" {tlsgd5a.s}
+     {{objdump -dwr tlsgd5.dd}} "tlsgd5a"}
+    {"TLS GD->IE transition without PLT"
+     "-melf_x86_64 tmpdir/libtlsgd5.so" ""
+     "-mrelax-relocations=yes --64" {tlsgd5c.s}
+     {{objdump -dwr tlsgd5.dd}} "tlsgd5b"}
+    {"Helper TLS X32 GD->IE transition DSO" "-shared -melf32_x86_64" ""
+     "--x32" {tlsgd6b.s} {} "libtlsgd6.so"}
+    {"TLS X32 GD->IE transition" "-melf32_x86_64 tmpdir/libtlsgd6.so" ""
+     "--x32" {tlsgd6a.s}
+     {{objdump -dwr tlsgd6.dd}} "tlsgd6a"}
+    {"TLS X32 GD->IE transition without PLT"
+     "-melf32_x86_64 tmpdir/libtlsgd6.so" ""
+     "-mrelax-relocations=yes --x32" {tlsgd6c.s}
+     {{objdump -dwr tlsgd6.dd}} "tlsgd6b"}
+    {"TLS X32 LD->LE transition" "-melf32_x86_64" ""
+     "--x32" {tlsld2.s}
+     {{objdump -dwr tlsld2.dd}} "tlsld2"}
+    {"TLS -mcmodel=large GD->LE transition" "-melf_x86_64" ""
+     "--64" {tlsgd7.s}
+     {{objdump -dwr tlsgd7.dd}} "tlsgd7"}
+    {"TLS -mcmodel=large LD->LE transition" "-melf_x86_64" ""
+     "--64" {tlsld3.s}
+     {{objdump -dwr tlsld3.dd}} "tlsld3"}
+    {"TLS -mcmodel=large LD->LE transition with r15 as GOT base"
+     "-melf_x86_64" ""
+     "--64" {tlsld4.s}
+     {{objdump -dwr tlsld4.dd}} "tlsld4"}
+    {"TLS LD->LE transition without PLT"
+     "-melf_x86_64" ""
+     "--64 -mrelax-relocations=yes"
+     {tlsld5.s}
+     {{objdump -dwr tlsld5.dd}} "tlsld5"}
+    {"TLS X32 LD->LE transition without PLT" "-melf32_x86_64" ""
+     "--x32 -mrelax-relocations=yes"
+     {tlsld6.s}
+     {{objdump -dwr tlsld6.dd}} "tlsld6"}
+    {"TLS -mcmodel=large GD->IE transition" "-melf_x86_64 tmpdir/libtlsgd5.so" ""
+     "--64" {tlsgd8.s}
+     {{objdump -dwrj.text tlsgd8.dd}} "tlsgd8"}
+    {"TLS -mcmodel=large GD->LE transition with r15 as GOT base"
+     "-melf_x86_64" ""
+     "--64" {tlsgd9.s}
+     {{objdump -dwr tlsgd9.dd}} "tlsgd9"}
+    {"TLS -mcmodel=large GD->IE transition with r15 as GOT base"
+     "-melf_x86_64 tmpdir/libtlsgd5.so" ""
+     "--64" {tlsgd10.s}
+     {{objdump -dwrj.text tlsgd10.dd}} "tlsgd10"}
+    {"TLS GD->LE transition without PLT"
+     "-melf_x86_64" ""
+     "--64" {tlsgd11.s}
+     {{objdump -dwr tlsgd11.dd}} "tlsgd11"}
+    {"TLS X32 GD->LE transition without PLT"
+     "-melf32_x86_64" ""
+     "--x32" {tlsgd14.s}
+     {{objdump -dwr tlsgd14.dd}} "tlsgd14"}
+     {"build 32-bit object with 33 locals" "-melf_x86_64 -e 0" "" "--32" {32bit.s} {{ ld incompatible.l }} "dummy" }
+     {"build 64-bit object" "-melf_x86_64 -e 0 --defsym foo=1" "" "--64" {64bit.s} {} "dummy" }
+     {"link mixed objects"  "-melf_x86_64 -e 0 tmpdir/32bit.o tmpdir/64bit.o" "" "" {} { { ld incompatible.l } } "mixed"}
+    {"PR ld/17313 (1)" "-melf_x86_64" ""
+     "--64" {dummy.s} {} ""}
+    {"PR ld/17313 (2)" "-melf_x86_64 -shared --just-symbols=tmpdir/dummy.o" ""
+     "--64" {lea1.s} {} "libpr17313.so"}
+    {"PR ld/17306 (1)" "-melf_x86_64" ""
+     "--64" {pr17306b.s} {} ""}
+    {"PR ld/17306 (2)" "-melf_x86_64 -shared -Bsymbolic --just-symbols=tmpdir/pr17306b.o" ""
+     "--64" {pr17306a.s} {} "libpr17306.so"}
+    {"PR ld/17709 (1)" "-melf_x86_64 -shared" ""
+     "--64" {pr17709a.s} {} "libpr17709.so"}
+    {"PR ld/17709 (2)" "-melf_x86_64 tmpdir/libpr17709.so" ""
+     "--64" {pr17709b.s} {{ld "pr17709.err"}} "pr17709"}
+    {"Build pr19827a.o" "" ""
+     "--64" { pr19827a.S }}
+    {"Build pr19827b.so" "-melf_x86_64 -shared" ""
+     "--64" { pr19827b.S } {} "pr19827b.so"}
+    {"Build pr19827"
+     "-melf_x86_64 -pie -z notext tmpdir/pr19827a.o tmpdir/pr19827b.so"
+     ""
+     "--64" { dummy.s } {{readelf {-rW} pr19827.rd}} "pr19827"}
+    {"Build pr19827.so"
+     "-melf_x86_64 -shared -Bsymbolic -z notext" ""
+     "--64" { pr19827a.S }  {{readelf {-rW} pr19827.rd}} "pr19827.so"}
+    {"Build pr19969.so" "-melf_x86_64 -shared" ""
+     "--64" { pr19969a.S } {} "pr19969.so"}
+    {"Build pr20550a.o" "" ""
+     "--64" { pr20550a.s }}
+    {"Build pr20550b.so" "-melf_x86_64 -shared" ""
+     "--64" { pr20550b.s } {} "pr20550b.so"}
+    {"Build pr20550"
+     "-melf_x86_64 -pie -z notext tmpdir/pr20550a.o tmpdir/pr20550b.so"
+     ""
+     "--64" { dummy.s } {} "pr20550"}
+    {"Build pr27587"
+     "-melf_x86_64 -e main"
+     "" ""
+     { pr27587a.obj.bz2 pr27587b.obj.bz2 }
+     {{ld "pr27587.err"}} "pr27587"}
+    {"Build pr27590.o"
+     "-r -melf_x86_64"
+     "" ""
+     { pr27590a.obj.bz2 pr27590b.obj.bz2 }
+     {{readelf -SW pr27590.rd}} "pr27590.o"}
+    {"Build textrel-1.so" "-melf_x86_64 -shared" ""
+     "--64" { textrel-1a.s } {} "textrel-1.so"}
+    {"Build textrel-1" "-no-pie -melf_x86_64 -z nocopyreloc --warn-textrel"
+     "tmpdir/textrel-1.so"
+     "--64" { textrel-1b.s } {{ld "textrel-1.err"}} "textrel-1"}
+}
+
+run_ld_link_tests $x86_64tests
+
+run_ld_link_tests [list \
+    [list \
+	"TLS -fpic -shared transitions" \
+	"-shared -melf_x86_64 --no-ld-generated-unwind-info \
+	 -z noseparate-code -z max-page-size=0x200000 --hash-style=sysv \
+	 $NO_DT_RELR_LDFLAGS" \
+	"" "--64" \
+	{tlspic1.s tlspic2.s} \
+	{{readelf -WSsrl tlspic.rd} \
+	 {objdump {-drj.text -Mintel64} tlspic.dd} \
+	 {objdump -sj.got tlspic.sd} \
+	 {objdump -sj.tdata tlspic.td}} \
+	"libtlspic.so" \
+    ] \
+    [list \
+	"TLS -fpic -shared transitions with r15 as GOT base" \
+	"-shared -melf_x86_64 --no-ld-generated-unwind-info \
+	 -z noseparate-code -z max-page-size=0x200000 --hash-style=sysv \
+	 $NO_DT_RELR_LDFLAGS" \
+	 "" "--64 -mrelax-relocations=yes" \
+	{tlspic3.s tlspic2.s} \
+	{{readelf -WSsrl tlspic2.rd} \
+	 {objdump {-drj.text -Mintel64} tlspic2.dd} \
+	 {objdump -sj.got tlspic2.sd} \
+	 {objdump -sj.tdata tlspic2.td}} \
+	"libtlspic2.so" \
+    ] \
+    [list \
+	"TLS descriptor -fpic -shared transitions" \
+	"-shared -melf_x86_64 --no-ld-generated-unwind-info \
+	 -z noseparate-code -z max-page-size=0x200000 --hash-style=sysv \
+	 $NO_DT_RELR_LDFLAGS" \
+	"" "--64" \
+	{tlsdesc.s tlspic2.s} \
+	{{readelf -WSsrld tlsdesc.rd} \
+	 {objdump -drj.text tlsdesc.dd} \
+	 {objdump {-s -j.got -j.got.plt} tlsdesc.sd} \
+	 {objdump -sj.tdata tlsdesc.td} \
+	 {objdump -drj.plt tlsdesc.pd}} \
+	 "libtlsdesc.so" \
+    ] \
+]
+
+set test_name "Mixed x86_64 and i386 input test 1"
+set test mixed1
+if { ![ld_link $ld tmpdir/$test "-m$emul tmpdir/${test}a.o tmpdir/${test}b.o"] } {
+    if [string match "*i386* architecture of input file `tmpdir/${test}b.o' is incompatible with i386:x86-64* output*" $link_output] {
+	pass "$test_name"
+    } {
+	fail "$test_name"
+    }
+}
+
+set test_name "Mixed x86_64 and i386 input test 2"
+set test mixed2
+if { ![ld_link $ld tmpdir/$test "-m$emul tmpdir/${test}a.o tmpdir/${test}b.o"] } {
+    if [string match "*i386* architecture of input file `tmpdir/${test}b.o' is incompatible with i386:x86-64* output*" $link_output] {
+	pass "$test_name"
+    } {
+	fail "$test_name"
+    }
+}
+
+run_dump_test "abs"
+run_dump_test "apic"
+run_dump_test "pcrel8"
+run_dump_test "pcrel16"
+run_dump_test "pcrel16-2"
+run_dump_test "rela"
+run_dump_test "tlsgd2"
+run_dump_test "tlsgd3"
+run_dump_test "tlsgd12"
+run_dump_test "tlsgd13"
+run_dump_test "tlsie2"
+run_dump_test "tlsie3"
+run_dump_test "hidden1"
+run_dump_test "hidden2"
+run_dump_test "hidden3"
+run_dump_test "hidden4"
+run_dump_test "hidden5"
+run_dump_test "protected1"
+run_dump_test "protected2"
+run_dump_test "protected3"
+run_dump_test "protected4"
+run_dump_test "protected5"
+run_dump_test "protected6a"
+run_dump_test "protected6b"
+run_dump_test "protected7a"
+run_dump_test "protected7b"
+run_dump_test "protected8"
+run_dump_test "tlsle1"
+run_dump_test "tlspie1"
+run_dump_test "tlspie2a"
+run_dump_test "tlspie2b"
+run_dump_test "tlspie2c"
+run_dump_test "unique1"
+run_dump_test "nogot1"
+run_dump_test "nogot2"
+run_dump_test "discarded1"
+run_dump_test "pr12718"
+run_dump_test "pr12921"
+run_dump_test "pr13947"
+run_dump_test "pr12570a"
+run_dump_test "pr12570b"
+run_dump_test "pr14215"
+run_dump_test "pr14207"
+run_dump_test "gotplt1"
+run_dump_test "pie1"
+run_dump_test "pie2"
+run_dump_test "pie3"
+run_dump_test "pic1"
+run_dump_test "largecomm-1a"
+run_dump_test "largecomm-1b"
+run_dump_test "largecomm-1c"
+run_dump_test "largecomm-1d"
+run_dump_test "largecomm-1e"
+run_dump_test "largecomm-1f"
+run_dump_test "pr19539a"
+run_dump_test "pr19539b"
+run_dump_test "pr19807-1a"
+run_dump_test "pr19807-1b"
+run_dump_test "pr19807-2a"
+run_dump_test "pr19807-2b"
+run_dump_test "pr19807-2c"
+run_dump_test "pr19807-2d"
+run_dump_test "pr19807-2e"
+run_dump_test "pr19969"
+run_dump_test "pr20093-1"
+run_dump_test "pr20093-2"
+run_dump_test "property-x86-3"
+run_dump_test "property-x86-4a"
+run_dump_test "property-x86-4b"
+run_dump_test "property-x86-3-x32"
+run_dump_test "property-x86-4a-x32"
+run_dump_test "property-x86-4b-x32"
+run_dump_test "property-x86-5"
+run_dump_test "property-x86-5-x32"
+run_dump_test "property-x86-6"
+run_dump_test "property-x86-6-x32"
+run_dump_test "property-x86-ibt1a"
+run_dump_test "property-x86-ibt1b"
+run_dump_test "property-x86-ibt1a-x32"
+run_dump_test "property-x86-ibt1b-x32"
+run_dump_test "property-x86-ibt2"
+run_dump_test "property-x86-ibt2-x32"
+run_dump_test "property-x86-ibt3a"
+run_dump_test "property-x86-ibt3b"
+run_dump_test "property-x86-ibt3a-x32"
+run_dump_test "property-x86-ibt3b-x32"
+run_dump_test "property-x86-ibt4"
+run_dump_test "property-x86-ibt4-x32"
+run_dump_test "property-x86-ibt5"
+run_dump_test "property-x86-ibt5-x32"
+run_dump_test "property-x86-shstk1a"
+run_dump_test "property-x86-shstk1b"
+run_dump_test "property-x86-shstk1a-x32"
+run_dump_test "property-x86-shstk1b-x32"
+run_dump_test "property-x86-shstk2"
+run_dump_test "property-x86-shstk2-x32"
+run_dump_test "property-x86-shstk3a"
+run_dump_test "property-x86-shstk3b"
+run_dump_test "property-x86-shstk3a-x32"
+run_dump_test "property-x86-shstk3b-x32"
+run_dump_test "property-x86-shstk4"
+run_dump_test "property-x86-shstk4-x32"
+run_dump_test "property-x86-shstk5"
+run_dump_test "property-x86-shstk5-x32"
+run_dump_test "property-x86-cet1"
+run_dump_test "property-x86-cet1-x32"
+run_dump_test "property-x86-cet2a"
+run_dump_test "property-x86-cet2a-x32"
+run_dump_test "property-x86-cet2b"
+run_dump_test "property-x86-cet2b-x32"
+run_dump_test "property-x86-cet3a"
+run_dump_test "property-x86-cet3a-x32"
+run_dump_test "property-x86-cet3b"
+run_dump_test "property-x86-cet3b-x32"
+run_dump_test "property-x86-cet4a"
+run_dump_test "property-x86-cet4a-x32"
+run_dump_test "property-x86-cet4b"
+run_dump_test "property-x86-cet4b-x32"
+run_dump_test "property-x86-cet5a"
+run_dump_test "property-x86-cet5a-x32"
+run_dump_test "property-x86-cet5b"
+run_dump_test "property-x86-cet5b-x32"
+run_dump_test "property-x86-cet6"
+run_dump_test "property-x86-cet6-x32"
+run_dump_test "property-x86-lam-u48-1a"
+run_dump_test "property-x86-lam-u48-1b"
+run_dump_test "property-x86-lam-u48-2"
+run_dump_test "property-x86-lam-u48-3a"
+run_dump_test "property-x86-lam-u48-3b"
+run_dump_test "property-x86-lam-u48-4"
+run_dump_test "property-x86-lam-u48-5"
+run_dump_test "property-x86-lam-u57-1a"
+run_dump_test "property-x86-lam-u57-1b"
+run_dump_test "property-x86-lam-u57-2"
+run_dump_test "property-x86-lam-u57-3a"
+run_dump_test "property-x86-lam-u57-3b"
+run_dump_test "property-x86-lam-u57-4"
+run_dump_test "property-x86-lam-u57-5"
+run_dump_test "pr21884"
+run_dump_test "pr22071"
+run_dump_test "pr22115-1a"
+run_dump_test "pr22115-1a-x32"
+run_dump_test "pr22115-1b"
+run_dump_test "pr22115-1b-x32"
+run_dump_test "pr22115-1c"
+run_dump_test "pr22115-1c-x32"
+run_dump_test "pr22115-1d"
+run_dump_test "pr22115-1d-x32"
+run_dump_test "pr22135"
+run_dump_test "pr22782a"
+run_dump_test "pr22782b"
+run_dump_test "pr23189"
+run_dump_test "pr23194"
+run_dump_test "pr23324a"
+run_dump_test "pr23324b"
+run_dump_test "pr23372a"
+run_dump_test "pr23372a-x32"
+run_dump_test "pr23372b"
+run_dump_test "pr23372b-x32"
+run_dump_test "pr23372c"
+run_dump_test "pr23372c-x32"
+run_dump_test "pr23372d"
+run_dump_test "pr23372d-x32"
+run_dump_test "pr23486a"
+run_dump_test "pr23486a-x32"
+run_dump_test "pr23486b"
+run_dump_test "pr23486b-x32"
+run_dump_test "pr23486c"
+run_dump_test "pr23486c-x32"
+run_dump_test "pr23486d"
+run_dump_test "pr23486d-x32"
+run_dump_test "pr23854"
+run_dump_test "pr23930"
+run_dump_test "pr23930-x32"
+run_dump_test "pr24151a"
+run_dump_test "pr24151a-x32"
+run_dump_test "pr24322a"
+run_dump_test "pr24322a-x32"
+run_dump_test "pr24322b"
+run_dump_test "pr24322b-x32"
+run_dump_test "pr24458a"
+run_dump_test "pr24458a-x32"
+run_dump_test "pr24458b"
+run_dump_test "pr24458b-x32"
+run_dump_test "pr24458c"
+run_dump_test "pr24458c-x32"
+run_dump_test "pr24721"
+run_dump_test "pr24721-x32"
+run_dump_test "pr24905"
+run_dump_test "pr24905-x32"
+run_dump_test "align-branch-1"
+run_dump_test "pr25416-1a"
+run_dump_test "pr25416-2b"
+run_dump_test "pr25416-2a"
+run_dump_test "pr25416-2b"
+run_dump_test "pr25416-3"
+run_dump_test "pr25416-4"
+run_dump_test "pr26018"
+run_dump_test "pr26263"
+run_dump_test "pr26711-1"
+run_dump_test "pr26711-1-x32"
+run_dump_test "pr26711-2"
+run_dump_test "pr26711-2-x32"
+run_dump_test "pr26711-3"
+run_dump_test "pr26711-3-x32"
+run_dump_test "property-x86-isa1"
+run_dump_test "property-x86-isa1-x32"
+run_dump_test "property-x86-isa2"
+run_dump_test "property-x86-isa2-x32"
+run_dump_test "property-x86-isa3"
+run_dump_test "property-x86-isa3-x32"
+run_dump_test "property-x86-isa4"
+run_dump_test "property-x86-isa4-x32"
+run_dump_test "code16"
+run_dump_test "pr27491-1a"
+run_dump_test "pr27491-1b"
+run_dump_test "pr27491-1c"
+run_dump_test "pr27491-2"
+run_dump_test "pr27491-3"
+run_dump_test "pr27491-4"
+run_dump_test "dt-relr-1a"
+run_dump_test "dt-relr-1a-x32"
+run_dump_test "dt-relr-1b"
+run_dump_test "dt-relr-1b-x32"
+
+if { ![skip_sframe_tests] } {
+    run_dump_test "sframe-simple-1"
+    run_dump_test "sframe-plt-1"
+}
+
+if ![istarget "x86_64-*-linux*"] {
+    return
+}
+
+if ![ld_assemble $as "--x32 $srcdir/$subdir/start.s" tmpdir/startx32.o] {
+    fail "Build ILP32 start.o"
+    return
+}
+
+if ![ld_assemble $as "--32 $srcdir/$subdir/start.s" tmpdir/start32.o] {
+    fail "Build ia32 start.o"
+    return
+}
+
+if ![ld_assemble $as "--64 $srcdir/$subdir/start.s" tmpdir/start64.o] {
+    fail "Build LP64 start.o"
+    return
+}
+
+if ![ld_assemble $as "--x32 $srcdir/$subdir/foo.s" tmpdir/foox32.o] {
+    fail "Build ILP32 foo.o"
+    return
+}
+
+if ![ld_assemble $as "--32 $srcdir/$subdir/foo.s" tmpdir/foo32.o] {
+    fail "Build ia32 foo.o"
+    return
+}
+
+if ![ld_assemble $as "--64 $srcdir/$subdir/foo.s" tmpdir/foo64.o] {
+    fail "Build LP64 foo.o"
+    return
+}
+
+run_dump_test "compressed1"
+run_dump_test "ilp32-1"
+run_dump_test "ilp32-2"
+run_dump_test "ilp32-3"
+run_dump_test "ilp32-4"
+run_dump_test "ilp32-5"
+run_dump_test "ilp32-6"
+run_dump_test "ilp32-7"
+run_dump_test "ilp32-8"
+run_dump_test "ilp32-9"
+run_dump_test "ilp32-10"
+run_dump_test "ilp32-11"
+run_dump_test "ilp32-12"
+run_dump_test "ia32-1"
+run_dump_test "ia32-2"
+run_dump_test "ia32-3"
+run_dump_test "lp64-1"
+run_dump_test "lp64-2"
+run_dump_test "lp64-3"
+run_dump_test "pr13082-1a"
+run_dump_test "pr13082-1b"
+run_dump_test "pr13082-2a"
+run_dump_test "pr13082-2b"
+run_dump_test "pr13082-3a"
+run_dump_test "pr13082-3b"
+run_dump_test "pr13082-3c"
+run_dump_test "pr13082-3d"
+run_dump_test "pr13082-4a"
+run_dump_test "pr13082-4b"
+run_dump_test "pr13082-5a"
+run_dump_test "pr13082-5b"
+run_dump_test "pr13082-6a"
+run_dump_test "pr13082-6b"
+run_dump_test "lea1a"
+run_dump_test "lea1b"
+run_dump_test "lea1c"
+run_dump_test "lea1d"
+run_dump_test "lea1e"
+run_dump_test "lea1f"
+run_dump_test "lea1g"
+run_dump_test "lea1h"
+run_dump_test "lea1i"
+run_dump_test "lea1j"
+run_dump_test "lea1k"
+run_dump_test "lea1l"
+run_dump_test "mov1a"
+run_dump_test "mov1b"
+run_dump_test "mov1c"
+run_dump_test "mov1d"
+run_dump_test "mov2a"
+run_dump_test "mov2b"
+run_dump_test "mov2c"
+run_dump_test "mov2d"
+run_dump_test "ljmp1"
+run_dump_test "ljmp2"
+run_dump_test "load1a"
+run_dump_test "load1b"
+run_dump_test "load1c"
+run_dump_test "load1d"
+run_dump_test "load2"
+run_dump_test "call1a"
+run_dump_test "call1b"
+run_dump_test "call1c"
+run_dump_test "call1d"
+run_dump_test "call1e"
+run_dump_test "call1f"
+run_dump_test "call1g"
+run_dump_test "call1h"
+run_dump_test "call1i"
+run_dump_test "pr17935-1"
+run_dump_test "pr17935-2"
+run_dump_test "pr18160"
+run_dump_test "pr18176"
+run_dump_test "pr18801a"
+run_dump_test "pr18801b"
+run_dump_test "ifunc-textrel-1a"
+run_dump_test "ifunc-textrel-1b"
+run_dump_test "ifunc-textrel-2a"
+run_dump_test "ifunc-textrel-2b"
+run_dump_test "pr18815"
+run_dump_test "pr19013"
+run_dump_test "pr19013-x32"
+run_dump_test "pr19162"
+run_dump_test "pr19175"
+run_dump_test "pr18591"
+run_dump_test "pr19615"
+run_dump_test "pr19636-1a"
+run_dump_test "pr19636-1b"
+run_dump_test "pr19636-1c"
+run_dump_test "pr19636-1d"
+run_dump_test "pr19636-1e"
+run_dump_test "pr19636-1f"
+run_dump_test "pr19636-1g"
+run_dump_test "pr19636-1h"
+run_dump_test "pr19636-1i"
+run_dump_test "pr19636-1j"
+run_dump_test "pr19636-2a"
+run_dump_test "pr19636-2b"
+run_dump_test "pr19636-2c"
+run_dump_test "pr19636-2d"
+run_dump_test "pr19636-2e"
+run_dump_test "pr19636-2f"
+run_dump_test "pr19636-2g"
+run_dump_test "pr19636-2h"
+run_dump_test "pr19636-2i"
+run_dump_test "pr19636-2j"
+run_dump_test "pr19636-2k"
+run_dump_test "pr19636-2l"
+run_dump_test "pr19636-2m"
+run_dump_test "pr19636-3a"
+run_dump_test "pr19636-3b"
+run_dump_test "pr19636-3c"
+run_dump_test "pr19645"
+run_dump_test "pr19609-1a"
+run_dump_test "pr19609-1b"
+run_dump_test "pr19609-1c"
+run_dump_test "pr19609-1d"
+run_dump_test "pr19609-1e"
+run_dump_test "pr19609-1f"
+run_dump_test "pr19609-1g"
+run_dump_test "pr19609-1h"
+run_dump_test "pr19609-1i"
+run_dump_test "pr19609-1j"
+run_dump_test "pr19609-1k"
+run_dump_test "pr19609-1l"
+run_dump_test "pr19609-1m"
+run_dump_test "pr19609-2a"
+run_dump_test "pr19609-2b"
+run_dump_test "pr19609-2c"
+run_dump_test "pr19609-2d"
+run_dump_test "pr19609-3a"
+run_dump_test "pr19609-3b"
+run_dump_test "pr19609-4a"
+run_dump_test "pr19609-4b"
+run_dump_test "pr19609-4c"
+run_dump_test "pr19609-4d"
+run_dump_test "pr19609-4e"
+run_dump_test "pr19609-5a"
+run_dump_test "pr19609-5b"
+run_dump_test "pr19609-5c"
+run_dump_test "pr19609-5d"
+run_dump_test "pr19609-5e"
+run_dump_test "pr19609-6a"
+run_dump_test "pr19609-6b"
+run_dump_test "pr19609-6c"
+run_dump_test "pr19609-6d"
+run_dump_test "pr19609-7a"
+run_dump_test "pr19609-7b"
+run_dump_test "pr19609-7c"
+run_dump_test "pr19609-7d"
+run_dump_test "pr19939a"
+run_dump_test "pr19939b"
+run_dump_test "pr19719"
+run_dump_test "pr20253-1a"
+run_dump_test "pr20253-1b"
+run_dump_test "pr20253-1c"
+run_dump_test "pr20253-1d"
+run_dump_test "pr20253-1e"
+run_dump_test "pr20253-1f"
+run_dump_test "pr20253-1g"
+run_dump_test "pr20253-1h"
+run_dump_test "pr20253-1i"
+run_dump_test "pr20253-1j"
+run_dump_test "pr20253-1k"
+run_dump_test "pr20253-1l"
+run_dump_test "pr20253-3"
+run_dump_test "pr20253-4a"
+run_dump_test "pr20253-4b"
+run_dump_test "pr20253-4c"
+run_dump_test "pr20253-4d"
+run_dump_test "pr20253-4e"
+run_dump_test "pr20253-4f"
+run_dump_test "pr20253-5a"
+run_dump_test "pr20253-5b"
+run_dump_test "tlsdesc2"
+run_dump_test "pr22048"
+run_dump_test "pr22929"
+run_dump_test "pr26939"
+run_dump_test "pr26939-x32"
+run_dump_test "pr27016a"
+run_dump_test "pr27016b"
+run_dump_test "report-reloc-1"
+run_dump_test "report-reloc-1-x32"
+run_dump_test "pr29820"
+
+proc undefined_weak {cflags ldflags} {
+    set testname "Undefined weak symbol"
+    if { ![ string match "" $cflags$ldflags] } {
+	set testname "$testname ($cflags $ldflags)"
+    }
+
+    if { [string match "*-fPIE*" $cflags]
+	 && ![string match "*nodynamic-undefined-weak*" $ldflags] } {
+	set weak_symbol "Weak defined"
+    } else {
+	set weak_symbol "Weak undefined"
+    }
+
+    run_cc_link_tests [list \
+	[list \
+	    "Build libpr19704a.so" \
+	    "-shared -Wl,-soname,libpr19704.so" \
+	    "" \
+	    { dummy.s } \
+	    {} \
+	    "libpr19704a.so" \
+	] \
+	[list \
+	    "Build libpr19704b.so" \
+	    "-shared -Wl,-soname,libpr19704.so" \
+	    "-fPIC" \
+	    { pr19704b.c } \
+	    {} \
+	    "libpr19704b.so" \
+	] \
+    ]
+
+    exec cp tmpdir/libpr19704a.so tmpdir/libpr19704.so
+
+    run_ld_link_exec_tests [list \
+	[list \
+	    "Run pr19704" \
+	    "-Wl,--no-as-needed,-R,tmpdir $ldflags tmpdir/libpr19704.so" \
+	    "" \
+	    { pr19704a.c } \
+	    "pr19704" \
+	    "pr19704.out" \
+	    "$cflags" \
+	] \
+    ]
+
+    exec cp tmpdir/libpr19704b.so tmpdir/libpr19704.so
+
+    set exec_output [run_host_cmd tmpdir/pr19704 ""]
+    if {![string match $weak_symbol $exec_output]} {
+	fail $testname
+    } else {
+	pass $testname
+    }
+}
+
+# Must be native with the C compiler
+if { [isnative] && [check_compiler_available] } {
+    run_cc_link_tests [list \
+	[list \
+	    "Helper X32 DSO from x86-64 object" "" \
+	    "-m64 $NOSANITIZE_CFLAGS -fPIC -g" \
+	    {simple.c} {} "libsimple.a" \
+	] \
+    ]
+
+    set convertx32 "$objcopy -O elf32-x86-64 tmpdir/simple.o tmpdir/simple-x32.o"
+    send_log "$convertx32\n"
+    set got [remote_exec host "$convertx32"]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]] } then {
+	send_log "$got\n"
+	fail "Convert x86-64 object to x32"
+	return
+    }
+
+    run_ld_link_tests [list \
+	[list \
+	    "X32 DSO from x86-64 object" \
+	    "-shared -melf32_x86_64 tmpdir/simple-x32.o" \
+	    "$NOSANITIZE_CFLAGS" \
+	    "--x32 -mx86-used-note=yes" \
+	    {dummy.s} {{readelf {-s --wide} x86-64-x32.rd}} \
+	    "x86-64-x32" \
+	] \
+    ]
+
+    run_cc_link_tests [list \
+	[list \
+	    "Build plt-lib.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { plt-lib.c } \
+	    {} \
+	    "libplt-lib.so" \
+	] \
+	[list \
+	    "Build libplt-main1.a" \
+	    "" \
+	    "-fPIC -Wa,-mrelax-relocations=yes,-mx86-used-note=yes" \
+	    { plt-main1.c } \
+	    {{readelf {-Wr} plt-main1.rd}} \
+	    "libplt-main1.a" \
+	] \
+	[list \
+	    "Build libplt-main2.a" \
+	    "" \
+	    "-fPIC -Wa,-mrelax-relocations=yes,-mx86-used-note=yes" \
+	    { plt-main2.c } \
+	    {{readelf {-Wr} plt-main2.rd}} \
+	    "libplt-main2.a" \
+	] \
+	[list \
+	    "Build libplt-main3.a" \
+	    "" \
+	    "-fPIC -Wa,-mrelax-relocations=yes,-mx86-used-note=yes $PLT_CFLAGS" \
+	    { plt-main3.c } \
+	    {{readelf {-Wr} plt-main3.rd}} \
+	    "libplt-main3.a" \
+	] \
+	[list \
+	    "Build libplt-main4.a" \
+	    "" \
+	    "-fPIC -Wa,-mrelax-relocations=yes,-mx86-used-note=yes $PLT_CFLAGS" \
+	    { plt-main4.c } \
+	    {{readelf {-Wr} plt-main4.rd}} \
+	    "libplt-main4.a" \
+	] \
+	[list \
+	    "Build plt-main" \
+	    "tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
+	     tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
+	    "" \
+	    { plt-main5.c } \
+	    {{readelf {-Wr} plt-main.rd}} \
+	    "plt-main" \
+	] \
+	[list \
+	    "Build plt-main with PIE" \
+	    "tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
+	     tmpdir/plt-main4.o tmpdir/libplt-lib.so -pie" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { plt-main5.c } \
+	    {{readelf {-Wr} plt-main.rd}} \
+	    "plt-main" \
+	] \
+	[list \
+	    "Build copyreloc-lib.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { copyreloc-lib.c } \
+	    {} \
+	    "copyreloc-lib.so" \
+	] \
+	[list \
+	    "Build libcopyreloc-main.a" \
+	    "" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { copyreloc-main.S } \
+	    {} \
+	    "libcopyreloc-main.a" \
+	] \
+	[list \
+	    "Build copyreloc-main with PIE without -fPIE (1)" \
+	    "tmpdir/copyreloc-main.o tmpdir/copyreloc-lib.so -pie" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    {{readelf {-Wr} copyreloc-main1.rd}} \
+	    "copyreloc-main" \
+	] \
+	[list \
+	    "Build copyreloc-main with PIE without -fPIE (2)" \
+	    "tmpdir/copyreloc-main.o tmpdir/copyreloc-lib.so -pie" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    {{readelf {-Wr} copyreloc-main2.rd}} \
+	    "copyreloc-main" \
+	] \
+	[list \
+	    "Build pr17689.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { pr17689a.c } \
+	    {} \
+	    "pr17689.so" \
+	] \
+	[list \
+	    "Build pr17689now.so with -z now" \
+	    "-shared -Wl,-z,now" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { pr17689a.c } \
+	    {{readelf {-Wr} pr17689now.rd}} \
+	    "pr17689now.so" \
+	] \
+	[list \
+	    "Build pr17689b.o" \
+	    "" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr17689b.S } \
+	    {} \
+	] \
+	[list \
+	    "Build pr17689 with PIE without -fPIE" \
+	    "tmpdir/pr17689b.o tmpdir/pr17689.so -pie" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    {{readelf {-Wr} pr17689.rd}} \
+	    "pr17689" \
+	] \
+	[list \
+	    "Build pr17689 with PIE -z now without -fPIE" \
+	    "tmpdir/pr17689b.o tmpdir/pr17689.so -pie -Wl,-z,now" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    {{readelf {-Wr} pr17689now.rd}} \
+	    "pr17689now" \
+	] \
+	[list \
+	    "Build pr17827 with PIE without -fPIE" \
+	    "-Wl,--as-needed tmpdir/pr17689b.o tmpdir/pr17689.so -pie" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    {{readelf {-Wr} pr17827.rd}} \
+	    "pr17827" \
+	] \
+	[list \
+	    "Build pr18900.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { pr18900a.c } \
+	    "" \
+	    "pr18900.so" \
+	] \
+	[list \
+	    "Build pr18900.o" \
+	    "-r -nostdlib" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr18900b.c pr18900c.c } \
+	    "" \
+	    "pr18900.o" \
+	] \
+	[list \
+	    "Build pr18900a" \
+	    "tmpdir/pr18900.o tmpdir/pr18900.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    {{readelf {-Wrd} pr18900a.rd}} \
+	    "pr18900a" \
+	] \
+	[list \
+	    "Build pr18900b" \
+	    "-Wl,--as-needed tmpdir/pr18900.o tmpdir/pr18900.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    {{readelf {-Wrd} pr18900b.rd}} \
+	    "pr18900b" \
+	] \
+	[list \
+	    "Build pr19031.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { pr19031a.c } \
+	    "" \
+	    "pr19031.so" \
+	] \
+	[list \
+	    "Build gotpcrel1d.so" \
+	    "-shared" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { gotpcrel1d.S } \
+	    "" \
+	    "gotpcrel1d.so" \
+	] \
+	[list \
+	    "Build gotpcrel1a.o gotpcrel1b.o gotpcrel1c.o" \
+	    "" \
+	    "-Wa,-mrelax-relocations=yes,-mx86-used-note=yes" \
+	    { gotpcrel1a.S gotpcrel1b.c gotpcrel1c.c } \
+	] \
+	[list \
+	    "Build gotpcrel1" \
+	    "$NOPIE_LDFLAGS -Wl,--as-needed tmpdir/gotpcrel1a.o \
+	     tmpdir/gotpcrel1b.o tmpdir/gotpcrel1c.o \
+	     tmpdir/gotpcrel1d.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    {{objdump {-dw} gotpcrel1.dd}} \
+	    "gotpcrel1" \
+	] \
+	[list \
+	    "Build pr19319.so" \
+	    "-shared" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr19319a.S } \
+	    "" \
+	    "pr19319.so" \
+	] \
+	[list \
+	    "Build pr19319" \
+	    "-pie -nostdlib -nostartfiles tmpdir/pr19319.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr19319b.S } \
+	    {{objdump {-dw} pr19319.dd}} \
+	    "pr19319" \
+	] \
+	[list \
+	    "Build pr24276.so" \
+	    "-shared -nostdlib -nostartfiles \
+	     -Ltmpdir $srcdir/$subdir/pr24276.dso" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr19319b.S } \
+	    {{warning_output pr24276.warn}} \
+	    "pr24276.so" \
+	] \
+	[list \
+	    "Build property 1" \
+	    "" \
+	    "-Wa,-mx86-used-note=no" \
+	    {pass.c property-no-copy.S} \
+	    {{readelf {-n} property-1.r}} \
+	    "property-1" \
+	] \
+	[list \
+	    "Build property 1 (.o)" \
+	    "-r -nostdlib" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-no-copy.S} \
+	    {{readelf {-n} property-1a.r}} \
+	    "property-1.o" \
+	] \
+	[list \
+	    "Build property 1 (.so)" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=no" \
+	    {pass.c property-no-copy.S} \
+	    {{readelf {-n} property-1.r}} \
+	    "property-1.so" \
+	] \
+	[list \
+	    "Build property 2" \
+	    "" \
+	    "-Wa,-mx86-used-note=no" \
+	    {pass.c property-stack.S} \
+	    {{readelf {-n} property-2.r}} \
+	    "property-2" \
+	] \
+	[list \
+	    "Build property 2 (.o)" \
+	    "-r -nostdlib" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-stack.S} \
+	    {{readelf {-n} property-2a.r}} \
+	    "property-2.o" \
+	] \
+	[list \
+	    "Build property 2 (.so)" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    {pass.c property-stack.S} \
+	    {{readelf {-n} property-2.r}} \
+	    "property-2.so" \
+	] \
+	[list \
+	    "Build property 3" \
+	    "" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-stack.S property-x86-1.S} \
+	    {{readelf {-n} property-3.r}} \
+	    "property-3" \
+	] \
+	[list \
+	    "Build property 3 (.o)" \
+	    "-r -nostdlib" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-x86-1.S property-stack.S} \
+	    {{readelf {-n} property-3a.r}} \
+	    "property-3.o" \
+	] \
+	[list \
+	    "Build property 3 (.so)" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    {property-x86-1.S pass.c property-stack.S} \
+	    {{readelf {-n} property-3.r}} \
+	    "property-3.so" \
+	] \
+	[list \
+	    "Build property 4" \
+	    "" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-stack.S property-x86-1.S property-x86-2.S} \
+	    {{readelf {-n} property-4.r}} \
+	    "property-4" \
+	] \
+	[list \
+	    "Build property 4 (.o)" \
+	    "-r -nostdlib" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-x86-2.S property-x86-1.S property-stack.S} \
+	    {{readelf {-n} property-4a.r}} \
+	    "property-4.o" \
+	] \
+	[list \
+	    "Build property 4 (.so)" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    {property-x86-2.S property-x86-1.S pass.c property-stack.S} \
+	    {{readelf {-n} property-4.r}} \
+	    "property-4.so" \
+	] \
+	[list \
+	    "Build property 4 (-Wl,-z,stack-size=0)" \
+	    "-Wl,-z,stack-size=0" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-stack.S property-x86-1.S property-x86-2.S} \
+	    {{readelf {-n} property-4.r}} \
+	    "property-4" \
+	] \
+	[list \
+	    "Build property 5" \
+	    "-Wl,-z,stack-size=0x900000" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-stack.S property-x86-1.S property-x86-2.S} \
+	    {{readelf {-n} property-5.r}} \
+	    "property-5" \
+	] \
+	[list \
+	    "Build property 5 (.o)" \
+	    "-r -nostdlib -Wl,-z,stack-size=0x900000" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-x86-2.S property-x86-1.S property-stack.S} \
+	    {{readelf {-n} property-5a.r}} \
+	    "property-5.o" \
+	] \
+	[list \
+	    "Build property 5 (.so)" \
+	    "-shared -Wl,-z,stack-size=0x900000" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    {property-x86-2.S property-x86-1.S pass.c property-stack.S} \
+	    {{readelf {-n} property-5.r}} \
+	    "property-5.so" \
+	] \
+	[list \
+	    "Build property-6.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    {property-6a.c property-6c.S} \
+	    {{readelf {-n} property-6.r}} \
+	    "property-6.so" \
+	] \
+	[list \
+	    "Build property-6.o" \
+	    "-r -nostdlib" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {property-6b.c property-stack.S} \
+	    {{readelf {-n} property-2a.r}} \
+	    "property-6.o" \
+	] \
+	[list \
+	    "Build property-6" \
+	    "-Wl,--as-needed tmpdir/property-6.o tmpdir/property-6.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    {{readelf {-n} property-2.r}} \
+	    "property-6" \
+	] \
+	[list \
+	    "Build property 7a (.o)" \
+	    "-r -nostdlib" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {property-unsorted-1.S} \
+	    {{readelf {-n} property-7a.r}} \
+	    "property-7a.o" \
+	] \
+	[list \
+	    "Build property 7b (.o)" \
+	    "-r -nostdlib" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {property-unsorted-2.S} \
+	    {{readelf {-n} property-7a.r}} \
+	    "property-7b.o" \
+	] \
+	[list \
+	    "Build pr22001-1.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { pr22001-1a.c } \
+	    {} \
+	    "pr22001-1.so" \
+	] \
+	[list \
+	    "Build pr22001-1a" \
+	    "$NOPIE_LDFLAGS -Wl,-z,nocopyreloc,--no-as-needed,-z,notext tmpdir/pr22001-1.so" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
+	    { pr22001-1b.c } \
+	    {{error_output "pr22001-1a.err"}} \
+	    "pr22001-1a" \
+	] \
+	[list \
+	    "Build pr21997-1.so" \
+	    "-shared" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { property-stack.S property-no-copy.S pr21997-1a.S } \
+	    {} \
+	    "pr21997-1.so" \
+	] \
+	[list \
+	    "Build pr21997-1a" \
+	    "$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,notext tmpdir/pr21997-1.so" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
+	    { pr21997-1b.c } \
+	    {{error_output "pr21997-1a.err"}} \
+	    "pr21997-1a" \
+	] \
+	[list \
+	    "Build pr22064a.o" \
+	    "" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr22064a.S } \
+	] \
+	[list \
+	    "Build pr22064.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { pr22064b.c } \
+	    {} \
+	    "pr22064.so" \
+	] \
+	[list \
+	    "Build pr22393-3a.so" \
+	    "-shared -Wl,-z,separate-code,-z,max-page-size=0x1000" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    {pr22393-3a.c} \
+	    {{readelf -lW pr22393-3a.rd} \
+	     {readelf -lW pr22393-3b.rd}} \
+	    "pr22393-3a.so" \
+	] \
+	[list \
+	    "Build pr22393-3a-now.so" \
+	    "-shared -Wl,-z,separate-code,-z,now,-z,max-page-size=0x1000" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    {pr22393-3a.c} \
+	    {{readelf -lW pr22393-3a.rd} \
+	     {readelf -lW pr22393-3b.rd}} \
+	    "pr22393-3a-now.so" \
+	] \
+	[list \
+	    "Build pr22393-3" \
+	    "$NOPIE_LDFLAGS -Wl,-z,separate-code,-z,max-page-size=0x1000,--no-as-needed tmpdir/pr22393-3a.so" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
+	    {pr22393-3b.c} \
+	    {{readelf -lW pr22393-3a.rd} \
+	     {readelf -lW pr22393-3b.rd}} \
+	    "pr22393-3" \
+	] \
+	[list \
+	    "Build pr22393-3 (PIE)" \
+	    "-pie -Wl,-z,separate-code,-z,max-page-size=0x1000,--no-as-needed tmpdir/pr22393-3a-now.so" \
+	    "-fPIE -Wa,-mx86-used-note=yes" \
+	    {pr22393-3b.c} \
+	    {{readelf -lW pr22393-3a.rd} \
+	     {readelf -lW pr22393-3b.rd}} \
+	    "pr22393-3-pie" \
+	] \
+	[list \
+	    "Build pr22393-3 (static)" \
+	    "-static -Wl,-z,separate-code,-z,max-page-size=0x1000" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pr22393-3a.c pr22393-3b.c} \
+	    {{readelf -lW pr22393-3a.rd} \
+	     {readelf -lW pr22393-3b.rd}} \
+	    "pr22393-3-static" \
+	] \
+	[list \
+	    "Build pr22791-1.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { pr22791-1a.c } \
+	    {} \
+	    "pr22791-1.so" \
+	] \
+	[list \
+	    "Build pr22791-1" \
+	    "-pie -Wl,--no-as-needed,-z,notext tmpdir/pr22791-1.so" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
+	    { pr22791-1b.s } \
+	    {{error_output "pr22791-1.err"}} \
+	    "pr22791-1" \
+	] \
+	[list \
+	    "Build pr22791-2a.o" \
+	    "" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
+	    { pr22791-2a.s } \
+	] \
+	[list \
+	    "Build pr22791-2.so" \
+	    "-shared tmpdir/pr22791-2a.o" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { pr22791-2b.c } \
+	    {{readelf -drW pr22791-2.rd}} \
+	    "pr22791-2.so" \
+	] \
+	[list \
+	    "Build pr22791-2" \
+	    "-pie -Wl,--no-as-needed tmpdir/pr22791-2.so" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
+	    { pr22791-2c.s } \
+	    {{readelf -drW pr22791-2.rd}} \
+	    "pr22791-2" \
+	] \
+	[list \
+	    "Build pr22842.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { pr22842a.c } \
+	    {} \
+	    "pr22842.so" \
+	] \
+	[list \
+	    "Build pr22842" \
+	    "-pie -Wl,--no-as-needed tmpdir/pr22842.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr22842b.S } \
+	    {{readelf -rW pr22842a.rd} \
+	     {readelf -rW pr22842b.rd}} \
+	    "pr22842" \
+	] \
+	[list \
+	    "Build libprotected-func-1.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { protected-func-1a.s } \
+	    {} \
+	    "libprotected-func-1.so" \
+	] \
+	[list \
+	    "Build libprotected-func-2a.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { protected-func-2a.S } \
+	    {{readelf -n indirect-extern-access.rd}}  \
+	    "libprotected-func-2a.so" \
+	] \
+	[list \
+	    "Build libprotected-func-2b.so" \
+	    "-shared -z indirect-extern-access" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { protected-func-2c.c } \
+	    {{readelf -n indirect-extern-access.rd}}  \
+	    "libprotected-func-2b.so" \
+	] \
+	[list \
+	    "Build protected-func-2 without PIE" \
+	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libprotected-func-2b.so" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
+	    { protected-func-1b.c } \
+	    {{error_output "pr28875-func.err"}} \
+	    "protected-func-2" \
+	] \
+	[list \
+	    "Build libprotected-func-2c.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { protected-func-2c.c } \
+	    {}  \
+	    "libprotected-func-2c.so" \
+	] \
+	[list \
+	    "Build protected-func-2a without PIE" \
+	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libprotected-func-2c.so" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
+	    { protected-func-1b.c } \
+	    {{error_output "pr28875-func.err"}} \
+	    "protected-func-2a" \
+	] \
+	[list \
+	    "Build libprotected-data-1a.so" \
+	    "-shared -z noindirect-extern-access" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { protected-data-1a.c } \
+	    {} \
+	    "libprotected-data-1a.so" \
+	] \
+	[list \
+	    "Build libprotected-data-1b.so" \
+	    "-shared -z indirect-extern-access" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { protected-data-1a.c } \
+	    {} \
+	    "libprotected-data-1b.so" \
+	] \
+	[list \
+	    "Build protected-data-1 without PIE" \
+	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libprotected-data-1b.so" \
+	    "$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
+	    { protected-data-1b.c } \
+	    {{error_output "pr28875-data.err"}} \
+	    "protected-data-1" \
+	] \
+	[list \
+	    "Build libprotected-data-2a.so" \
+	    "-shared" \
+	    "-fPIC -Wa,-mx86-used-note=yes \
+	     -DUSE_GNU_PROPERTY_1_NEEDED_INDIRECT_EXTERN_ACCESS" \
+	    { protected-data-2a.S } \
+	    {{readelf -n indirect-extern-access.rd}}  \
+	    "libprotected-data-2a.so" \
+	] \
+	[list \
+	    "Build libprotected-data-2b.so" \
+	    "-shared -z indirect-extern-access" \
+	    "-fPIC -Wa,-mx86-used-note=yes" \
+	    { protected-data-2a.S } \
+	    {{readelf -n indirect-extern-access.rd}}  \
+	    "libprotected-data-2b.so" \
+	] \
+    ]
+
+    if  {[istarget "x86_64-*-linux*-gnux32"]} {
+	run_cc_link_tests [list \
+	    [list \
+		"Build pr25416-5b.o (GDesc -maddress-mode=short)" \
+		"" \
+		"-Wa,-mx86-used-note=yes" \
+		{ pr25416-5b.s } \
+	    ] \
+	    [list \
+		"Build pr25416-5b.so (GDesc -> IE -maddress-mode=short)" \
+		"-shared" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
+		{ pr25416-5b.s pr25416-5d.s } \
+		{} \
+		"pr25416-5b.so" \
+	    ] \
+	    [list \
+		"Build pr25416-5c.o (GDesc -maddress-mode=long)" \
+		"" \
+		"-Wa,-mx86-used-note=yes" \
+		{ pr25416-5c.s } \
+	    ] \
+	    [list \
+		"Build pr25416-5c.so (GDesc -> IE -maddress-mode=long)" \
+		"-shared" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
+		{ pr25416-5c.s pr25416-5d.s } \
+		{} \
+		"pr25416-5c.so" \
+	    ] \
+	    [list \
+		"Build pr25416-5d.so (GDesc -maddress-mode=short)" \
+		"-shared" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
+		{ pr25416-5b.s pr25416-5e.s } \
+		{} \
+		"pr25416-5d.so" \
+	    ] \
+	    [list \
+		"Build pr25416-5d.o (IE -maddress-mode=short)" \
+		"" \
+		"-Wa,-mx86-used-note=yes" \
+		{ pr25416-5d.s } \
+	    ] \
+	    [list \
+		"Build pr21997-1b" \
+		"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,notext tmpdir/pr21997-1.so" \
+		"$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
+		{ pr21997-1c.c } \
+		{{error_output "pr21997-1b.err"}} \
+		"pr21997-1b" \
+	    ] \
+	]
+
+	run_ld_link_exec_tests [list \
+	    [list \
+		"Run pr22001-1b" \
+		"$NOPIE_LDFLAGS -Wl,-z,nocopyreloc,--no-as-needed,-z,notext tmpdir/pr22001-1.so" \
+		"-Wa,-mx86-used-note=yes" \
+		{ pr22001-1c.c } \
+		"pr22001-1b" \
+		"pass.out" \
+		"$NOPIE_CFLAGS" \
+	    ] \
+	    [list \
+		"Run pr25416-5a (GDesc -> IE -maddress-mode=short)" \
+		"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr25416-5b.so" \
+		"-Wa,-mx86-used-note=yes" \
+		{ pr25416-5a.c } \
+		"pr25416-5a" \
+		"pass.out" \
+		"$NOPIE_CFLAGS" \
+	    ] \
+	    [list \
+		"Run pr25416-5b (GDesc -> LE -maddress-mode=short" \
+		"$NOPIE_LDFLAGS tmpdir/pr25416-5b.o tmpdir/pr25416-5d.o" \
+		"-Wa,-mx86-used-note=yes" \
+		{ pr25416-5a.c } \
+		"pr25416-5b" \
+		"pass.out" \
+		"$NOPIE_CFLAGS" \
+	    ] \
+	    [list \
+		"Run pr25416-5c (GDesc -> IE -maddress-mode=long)" \
+		"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr25416-5c.so" \
+		"-Wa,-mx86-used-note=yes" \
+		{ pr25416-5a.c } \
+		"pr25416-5c" \
+		"pass.out" \
+		"$NOPIE_CFLAGS" \
+	    ] \
+	    [list \
+		"Run pr25416-5d (GDesc -> LE -maddress-mode=long)" \
+		"$NOPIE_LDFLAGS tmpdir/pr25416-5c.o tmpdir/pr25416-5d.o" \
+		"-Wa,-mx86-used-note=yes" \
+		{ pr25416-5a.c } \
+		"pr25416-5d" \
+		"pass.out" \
+		"$NOPIE_CFLAGS" \
+	    ] \
+	    [list \
+		"Run pr25416-5e (GDesc -maddress-mode=short)" \
+		"$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr25416-5d.so" \
+		"-Wa,-mx86-used-note=yes" \
+		{ pr25416-5a.c } \
+		"pr25416-5e" \
+		"pass.out" \
+		"$NOPIE_CFLAGS" \
+	    ] \
+	    [list \
+		"Run pr25416-5f (PIE GDesc -> LE -maddress-mode=short)" \
+		"-pie -Wl,-z,notext tmpdir/pr25416-5b.o tmpdir/pr25416-5d.o" \
+		"-Wa,-mx86-used-note=yes" \
+		{ pr25416-5a.c } \
+		"pr25416-5f" \
+		"pass.out" \
+	    ] \
+	    [list \
+		"Run pr25416-5g (PIE GDesc -> LE -maddress-mode=long)" \
+		"-pie -Wl,-z,notext tmpdir/pr25416-5c.o tmpdir/pr25416-5d.o" \
+		"-Wa,-mx86-used-note=yes" \
+		{ pr25416-5a.c } \
+		"pr25416-5g" \
+		"pass.out" \
+	    ] \
+	]
+    } else {
+	run_cc_link_tests [list \
+	    [list \
+		"Build pr22001-1b" \
+		"$NOPIE_LDFLAGS -Wl,-z,nocopyreloc,--no-as-needed,-z,notext tmpdir/pr22001-1.so" \
+		"$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
+		{ pr22001-1c.c } \
+		{{error_output "pr22001-1b.err"}} \
+		"pr22001-1b" \
+	    ] \
+	    [list \
+		"Build pr21997-1b" \
+		"$NOPIE_LDFLAGS -Wl,--no-as-needed,-z,notext tmpdir/pr21997-1.so" \
+		"$NOPIE_CFLAGS -Wa,-mx86-used-note=yes" \
+		{ pr21997-1c.c } \
+		{{error_output "pr21997-1b.err"}} \
+		"pr21997-1b" \
+	    ] \
+	    [list \
+		"Build lam-u48.so" \
+		"-shared -Wl,-z,lam-u48" \
+		"" \
+		{dummy.s} \
+		{{readelf -n lam-u48.rd}}  \
+		"lam-u48.so" \
+	    ] \
+	    [list \
+		"Build lam-u57.so" \
+		"-shared -Wl,-z,lam-u57" \
+		"" \
+		{dummy.s} \
+		{{readelf -n lam-u57.rd}}  \
+		"lam-u57.so" \
+	    ] \
+	]
+    }
+
+    run_ld_link_exec_tests [list \
+	[list \
+	    "Run plt-main" \
+	    "-Wl,--no-as-needed tmpdir/plt-main1.o tmpdir/plt-main2.o \
+	     tmpdir/plt-main3.o tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { plt-main5.c } \
+	    "plt-main" \
+	    "plt-main.out" \
+	] \
+	[list \
+	    "Run plt-main with PIE" \
+	    "-Wl,--no-as-needed -pie tmpdir/plt-main1.o tmpdir/plt-main2.o \
+	     tmpdir/plt-main3.o tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { plt-main5.c } \
+	    "plt-main-pie" \
+	    "plt-main.out" \
+	    "-fPIC" \
+	] \
+	[list \
+	    "Run copyreloc-main with PIE without -fPIE" \
+	    "-Wl,--as-needed -pie tmpdir/copyreloc-main.o tmpdir/copyreloc-lib.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    "copyreloc-main" \
+	    "copyreloc-main.out" \
+	] \
+	[list \
+	    "Run pr17689 with PIE without -fPIE" \
+	    "-Wl,--no-as-needed -pie tmpdir/pr17689b.o tmpdir/pr17689.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    "pr17689" \
+	    "pr17689.out" \
+	] \
+	[list \
+	    "Run pr17689 with PIE -z now without -fPIE" \
+	    "-Wl,--as-needed,-z,now -pie tmpdir/pr17689b.o tmpdir/pr17689.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    "pr17689now" \
+	    "pr17689.out" \
+	] \
+	[list \
+	    "Run pr18900" \
+	    "-Wl,--no-as-needed tmpdir/pr18900.o tmpdir/pr18900.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    "pr18900" \
+	    "pr18900.out" \
+	] \
+	[list \
+	    "Run pr19031" \
+	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr19031.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr19031b.S pr19031c.c } \
+	    "pr19031" \
+	    "pr19031.out" \
+	    "$NOPIE_CFLAGS" \
+	] \
+	[list \
+	    "Run gotpcrel1" \
+	    "-Wl,--no-as-needed tmpdir/gotpcrel1d.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { gotpcrel1a.S gotpcrel1b.c gotpcrel1c.c } \
+	    "gotpcrel1" \
+	    "gotpcrel1.out" \
+	] \
+	[list \
+	    "Run property 1" \
+	    "" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-no-copy.S} \
+	    "property-1" "pass.out" \
+	] \
+	[list \
+	    "Run property 1 (PIE)" \
+	    "-pie" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-no-copy.S} \
+	    "property-1-pie" "pass.out" "-fPIE" \
+	] \
+	[list \
+	    "Run property 1 (static)" \
+	    "-static" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-no-copy.S} \
+	    "property-1-static" "pass.out" \
+	] \
+	[list \
+	    "Run property 2" \
+	    "" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-stack.S} \
+	    "property-2" "pass.out" \
+	] \
+	[list \
+	    "Run property 2 (PIE)" \
+	    "-pie" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-stack.S} \
+	    "property-2-pie" "pass.out" "-fPIE" \
+	] \
+	[list \
+	    "Run property 2 (static)" \
+	    "-static" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pass.c property-stack.S} \
+	    "property-3-static" "pass.out" \
+	] \
+	[list \
+	    "Run pr22001-1a (PIC 1)" \
+	    "$NOPIE_LDFLAGS -Wl,-z,nocopyreloc,--no-as-needed tmpdir/pr22001-1.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr22001-1b.c } \
+	    "pr22001-1a-pic-1" \
+	    "pass.out" \
+	    "-fPIC" \
+	] \
+	[list \
+	    "Run pr22001-1a (PIC 2)" \
+	    "-pie -Wl,-z,nocopyreloc,--no-as-needed tmpdir/pr22001-1.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr22001-1b.c } \
+	    "pr22001-1a-pic-2" \
+	    "pass.out" \
+	    "-fPIC" \
+	] \
+	[list \
+	    "Run pr22001-1b (PIC 1)" \
+	    "$NOPIE_LDFLAGS -Wl,-z,nocopyreloc,--no-as-needed tmpdir/pr22001-1.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr22001-1c.c } \
+	    "pr22001-1b-pic-1" \
+	    "pass.out" \
+	    "-fPIC" \
+	] \
+	[list \
+	    "Run pr22001-1b (PIC 2)" \
+	    "-pie -Wl,-z,nocopyreloc,--no-as-needed tmpdir/pr22001-1.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr22001-1c.c } \
+	    "pr22001-1b-pic-2" \
+	    "pass.out" \
+	    "-fPIC" \
+	] \
+	[list \
+	    "Run pr21997-1a (PIC 1)" \
+	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr21997-1.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr21997-1b.c } \
+	    "pr21997-1a-pic-1" \
+	    "pass.out" \
+	    "-fPIC" \
+	] \
+	[list \
+	    "Run pr21997-1a (PIC 2)" \
+	    "-pie -Wl,--no-as-needed tmpdir/pr21997-1.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr21997-1b.c } \
+	    "pr21997-1a-pic-2" \
+	    "pass.out" \
+	    "-fPIC" \
+	] \
+	[list \
+	    "Run pr21997-1b (PIC 1)" \
+	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/pr21997-1.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr21997-1c.c } \
+	    "pr21997-1b-pic-1" \
+	    "pass.out" \
+	    "-fPIC" \
+	] \
+	[list \
+	    "Run pr21997-1b (PIC 2)" \
+	    "-pie -Wl,--no-as-needed tmpdir/pr21997-1.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr21997-1c.c } \
+	    "pr21997-1b-pic-2" \
+	    "pass.out" \
+	    "-fPIC" \
+	] \
+	[list \
+	    "Run pr22064" \
+	    "-pie -Wl,--no-as-needed tmpdir/pr22064a.o tmpdir/pr22064.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { dummy.s } \
+	    "pr22064-pie" \
+	    "pass.out" \
+	    "-fPIE" \
+	] \
+	[list \
+	    "Run pr22393-3" \
+	    "$NOPIE_LDFLAGS -Wl,-z,separate-code,-z,max-page-size=0x1000,--no-as-needed tmpdir/pr22393-3a.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pr22393-3b.c} \
+	    "pr22393-3" \
+	    "pass.out" \
+	    "$NOPIE_CFLAGS" \
+	] \
+	[list \
+	    "Run pr22393-3 (PIE)" \
+	    "-pie -Wl,-z,separate-code,-z,max-page-size=0x1000,--no-as-needed tmpdir/pr22393-3a-now.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pr22393-3b.c} \
+	    "pr22393-3-pie" \
+	    "pass.out" \
+	    "-fPIE" \
+	] \
+	[list \
+	    "Run pr22393-3 (static)" \
+	    "-static -Wl,-z,separate-code,-z,max-page-size=0x1000" \
+	    "-Wa,-mx86-used-note=yes" \
+	    {pr22393-3a.c pr22393-3b.c} \
+	    "pr22393-3-static" \
+	    "pass.out" \
+	] \
+	[list \
+	    "Run pr22791-2" \
+	    "-pie -Wl,--no-as-needed tmpdir/pr22791-2.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr22791-2c.s } \
+	    "pr22791-2" \
+	    "pass.out" \
+	    "$NOPIE_CFLAGS" \
+	] \
+	[list \
+	    "Run pr22842" \
+	    "-pie -Wl,--no-as-needed tmpdir/pr22842.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { pr22842b.S } \
+	    "pr22842" \
+	    "pass.out" \
+	] \
+	[list \
+	    "Run pr23997" \
+	    "" \
+	    "" \
+	    { pr23997a.s pr23997b.c pr23997c.c } \
+	    "pr23997" \
+	    "pass.out" \
+	] \
+	[list \
+	    "Run protected-func-1 with PIE" \
+	    "-Wl,--no-as-needed -pie tmpdir/libprotected-func-1.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { protected-func-1b.c } \
+	    "protected-func-1b" \
+	    "pass.out" \
+	    "-fPIE" \
+	] \
+	[list \
+	    "Run protected-func-2a without PIE" \
+	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libprotected-func-2a.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { protected-func-2b.S } \
+	    "protected-func-2a" \
+	    "pass.out" \
+	    "$NOPIE_CFLAGS" \
+	] \
+	[list \
+	    "Run protected-func-2b with PIE" \
+	    "-Wl,--no-as-needed -pie tmpdir/libprotected-func-2a.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { protected-func-2b.S } \
+	    "protected-func-2b" \
+	    "pass.out" \
+	    "-fPIE" \
+	] \
+	[list \
+	    "Run protected-func-2c without PIE" \
+	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libprotected-func-2b.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { protected-func-2b.S } \
+	    "protected-func-2c" \
+	    "pass.out" \
+	    "$NOPIE_CFLAGS" \
+	] \
+	[list \
+	    "Run protected-func-2d with PIE" \
+	    "-Wl,--no-as-needed -pie tmpdir/libprotected-func-2b.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { protected-func-2b.S } \
+	    "protected-func-2d" \
+	    "pass.out" \
+	    "-fPIE" \
+	] \
+	[list \
+	    "Run protected-func-3a without PIE" \
+	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libprotected-func-2a.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { protected-func-3.c } \
+	    "protected-func-3a" \
+	    "pass.out" \
+	    "$NOPIE_CFLAGS" \
+	] \
+	[list \
+	    "Run protected-func-3b with PIE" \
+	    "-Wl,--no-as-needed -pie tmpdir/libprotected-func-2a.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { protected-func-3.c } \
+	    "protected-func-2b" \
+	    "pass.out" \
+	    "-fPIE" \
+	] \
+	[list \
+	    "Run protected-data-2a without PIE" \
+	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libprotected-data-2a.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { protected-data-2b.S } \
+	    "protected-data-2a" \
+	    "pass.out" \
+	    "$NOPIE_CFLAGS" \
+	] \
+	[list \
+	    "Run protected-data-2b with PIE" \
+	    "-Wl,--no-as-needed -pie tmpdir/libprotected-data-2a.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { protected-data-2b.S } \
+	    "protected-data-2b" \
+	    "pass.out" \
+	    "-fPIE" \
+	] \
+	[list \
+	    "Run protected-data-2c without PIE" \
+	    "$NOPIE_LDFLAGS -Wl,--no-as-needed tmpdir/libprotected-data-2b.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { protected-data-2b.S } \
+	    "protected-data-2c" \
+	    "pass.out" \
+	    "$NOPIE_CFLAGS" \
+	] \
+	[list \
+	    "Run protected-data-2d with PIE" \
+	    "-Wl,--no-as-needed -pie tmpdir/libprotected-data-2b.so" \
+	    "-Wa,-mx86-used-note=yes" \
+	    { protected-data-2b.S } \
+	    "protected-data-2d" \
+	    "pass.out" \
+	    "-fPIE" \
+	] \
+    ]
+
+    # Run-time tests which require working ifunc attribute support.
+    if { [check_ifunc_attribute_available] } {
+	run_cc_link_tests [list \
+	    [list \
+		"Build libpr19784a.so" \
+		"-shared -Wl,-Bsymbolic-functions" \
+		"-fPIC -O2 -g -Wa,-mx86-used-note=yes" \
+		{ pr19784b.c pr19784c.c } \
+		{} \
+		"libpr19784a.so" \
+	    ] \
+	    [list \
+		"Build libpr19784b.so" \
+		"-shared -Wl,-Bsymbolic-functions" \
+		"-fPIC -O2 -g -Wa,-mx86-used-note=yes" \
+		{ pr19784c.c pr19784b.c } \
+		{} \
+		"libpr19784b.so" \
+	    ] \
+	    [list \
+		"Build pr19784a.o" \
+		"" \
+		"-Wa,-mx86-used-note=yes" \
+		{ pr19784a.c } \
+	    ] \
+	]
+
+	run_ld_link_exec_tests [list \
+	    [list \
+		"Run pr19784a" \
+		"-Wl,--no-as-needed tmpdir/pr19784a.o tmpdir/libpr19784a.so" \
+		"-Wa,-mx86-used-note=yes" \
+		{ dummy.s } \
+		"pr19784a" \
+		"pass.out" \
+	    ] \
+	    [list \
+		"Run pr19784b" \
+		"-Wl,--as-needed tmpdir/pr19784a.o tmpdir/libpr19784b.so" \
+		"-Wa,-mx86-used-note=yes" \
+		{ dummy.s } \
+		"pr19784b" \
+		"pass.out" \
+	    ] \
+	]
+    }
+
+    if { [istarget "x86_64-*-linux*"] } {
+	set pltdump {{objdump {-drw} plt-main-ibt.dd}}
+	set pltsecdump {{readelf {-SW} plt-main-ibt-now.rd} {objdump {-drw} plt-main-ibt.dd}}
+	run_cc_link_tests [list \
+	    [list \
+		"Build plt-main with -z ibtplt" \
+		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
+		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -Wl,-z,ibtplt \
+		 -Wl,-z,noseparate-code,-z,max-page-size=0x200000" \
+		"-Wa,-mx86-used-note=yes" \
+		{ plt-main5.c } \
+		$pltdump \
+		"plt-main-ibt" \
+	    ] \
+	    [list \
+		"Build plt-main with PIE and -z ibtplt" \
+		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
+		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -pie \
+		 -Wl,-z,ibtplt,-z,noseparate-code \
+		 -Wl,-z,max-page-size=0x200000" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
+		{ plt-main5.c } \
+		$pltdump \
+		"plt-main-pie-ibt" \
+	    ] \
+	    [list \
+		"Build plt-main with -z ibtplt -z now" \
+		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
+		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -Wl,-z,ibtplt \
+		 -Wl,-z,now,-z,noseparate-code,-z,max-page-size=0x200000" \
+		"-Wa,-mx86-used-note=yes" \
+		{ plt-main5.c } \
+		$pltsecdump \
+		"plt-main-ibt-now" \
+	    ] \
+	    [list \
+		"Build plt-main with PIE and -z ibtplt -z now" \
+		"tmpdir/plt-main1.o tmpdir/plt-main2.o tmpdir/plt-main3.o \
+		 tmpdir/plt-main4.o tmpdir/libplt-lib.so -pie \
+		 -Wl,-z,ibtplt,-z,now,-z,noseparate-code \
+		 -Wl,-z,max-page-size=0x200000" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
+		{ plt-main5.c } \
+		$pltsecdump \
+		"plt-main-pie-ibt-now" \
+	    ] \
+	    [list \
+		"Build libibtplt-lib.so with -z ibtplt" \
+		"-shared -Wl,-z,ibtplt,-z,noseparate-code \
+		 -Wl,-z,max-page-size=0x200000" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
+		{ plt-main1.c plt-main2.c plt-main3.c plt-main4.c} \
+		$pltdump \
+		"libibtplt-lib.so" \
+	    ] \
+	    [list \
+		"Build libibtplt--now-lib.so with -z ibtplt -z now" \
+		"-shared -Wl,-z,ibtplt,-z,now,-z,noseparate-code \
+		 -Wl,-z,max-page-size=0x200000" \
+		"-fPIC -Wa,-mx86-used-note=yes" \
+		{ plt-main1.c plt-main2.c plt-main3.c plt-main4.c} \
+		$pltdump \
+		"libibtplt-now-lib.so" \
+	    ] \
+	]
+
+	run_ld_link_exec_tests [list \
+	    [list \
+		"Run plt-main with -z ibtplt" \
+		"-Wl,--no-as-needed,-z,ibtplt tmpdir/plt-main1.o \
+		 tmpdir/plt-main2.o tmpdir/plt-main3.o \
+		 tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
+		"-Wa,-mx86-used-note=yes" \
+		{ plt-main5.c } \
+		"plt-main-ibt" \
+		"plt-main.out" \
+	    ] \
+	    [list \
+		"Run plt-main with PIE and -z ibtplt" \
+		"-Wl,--no-as-needed,-z,ibtplt -pie tmpdir/plt-main1.o \
+		 tmpdir/plt-main2.o tmpdir/plt-main3.o \
+		 tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
+		"-Wa,-mx86-used-note=yes" \
+		{ plt-main5.c } \
+		"plt-main-pie-ibt" \
+		"plt-main.out" \
+		"-fPIC" \
+	    ] \
+	    [list \
+		"Run plt-main with -z ibtplt -z now" \
+		"-Wl,--no-as-needed,-z,ibtplt,-z,now tmpdir/plt-main1.o \
+		 tmpdir/plt-main2.o tmpdir/plt-main3.o \
+		 tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
+		"-Wa,-mx86-used-note=yes" \
+		{ plt-main5.c } \
+		"plt-main-ibt-now" \
+		"plt-main.out" \
+	    ] \
+	    [list \
+		"Run plt-main with PIE and -z ibtplt -z now" \
+		"-Wl,--no-as-needed,-z,ibtplt,-z,now -pie tmpdir/plt-main1.o \
+		 tmpdir/plt-main2.o tmpdir/plt-main3.o \
+		 tmpdir/plt-main4.o tmpdir/libplt-lib.so" \
+		"-Wa,-mx86-used-note=yes" \
+		{ plt-main5.c } \
+		"plt-main-pie-ibt-now" \
+		"plt-main.out" \
+		"-fPIC" \
+	    ] \
+	    [list \
+		"Run plt-main with libibtplt-lib.so -z ibtplt" \
+		"-Wl,--no-as-needed,-z,ibtplt tmpdir/libibtplt-lib.so \
+		 tmpdir/libplt-lib.so" \
+		"-Wa,-mx86-used-note=yes" \
+		{ plt-main5.c } \
+		"plt-main-ibt-lib" \
+		"plt-main.out" \
+	    ] \
+	    [list \
+		"Run plt-main with libibtplt-lib.so -z ibtplt -z now" \
+		"-Wl,--no-as-needed,-z,ibtplt,-z,now \
+		 tmpdir/libibtplt-now-lib.so tmpdir/libplt-lib.so" \
+		"-Wa,-mx86-used-note=yes" \
+		{ plt-main5.c } \
+		"plt-main-ibt-now-lib" \
+		"plt-main.out" \
+	    ] \
+	]
+
+	if { [check_ifunc_attribute_available] } {
+	    run_ld_link_exec_tests [list \
+		[list \
+		    "Run pr21481a" \
+		    "$NOPIE_LDFLAGS -Wl,-z,ibtplt" \
+		    "-Wa,-mx86-used-note=yes" \
+		    { pr21481a.c pr21481b.S } \
+		    "pr21481a" \
+		    "pass.out" \
+		     "$NOPIE_CFLAGS" \
+		] \
+		[list \
+		    "Run pr21481b" \
+		    "$NOPIE_LDFLAGS -Wl,-z,ibtplt,-z,now" \
+		    "-Wa,-mx86-used-note=yes" \
+		    { pr21481a.c pr21481b.S } \
+		    "pr21481b" \
+		    "pass.out" \
+		    "$NOPIE_CFLAGS" \
+		] \
+	    ]
+	}
+    }
+
+    undefined_weak "$NOPIE_CFLAGS" "$NOPIE_LDFLAGS"
+    undefined_weak "-fPIE" ""
+    undefined_weak "-fPIE" "-pie"
+    undefined_weak "-fPIE" "-Wl,-z,nodynamic-undefined-weak"
+    undefined_weak "-fPIE" "-pie -Wl,-z,nodynamic-undefined-weak"
+}
+
+if { ![istarget "x86_64-*-linux*"]} {
+    set ASFLAGS "$saved_ASFLAGS"
+    return
+}
+
+run_ld_link_tests [list \
+    [list \
+	"basic PLT generation (-z now)" \
+	"-z now -melf_x86_64 --hash-style=sysv tmpdir/libpltlib.so \
+	 -z noseparate-code -z max-page-size=0x200000" \
+	"" \
+	"--64" \
+	{plt2.s} \
+	{{readelf -SW plt2.rd} {objdump -dwr plt2.dd}} \
+	"plt2" \
+    ] \
+    [list \
+	"Build pr21626.so" \
+	"-shared -melf_x86_64" \
+	"" \
+	"--64 -defsym __64_bit__=1 -mx86-used-note=yes" \
+	{property-x86-3.s} \
+	"" \
+	"pr21626.so" \
+    ] \
+    [list \
+	"Build pr21626" \
+	"-melf_x86_64 tmpdir/pr21626.so" \
+	"" \
+	"--64 -mx86-used-note=yes" \
+	{start.s foo.s} \
+	"" \
+	"pr21626" \
+    ] \
+]
+
+# Linux only tests.  Disabled due to large memory requirement.
+if { "x$LD_CLASS" == "64bit" } then {
+    # This test needs 64-bit linker.
+    run_dump_test "pr17618"
+}
+run_dump_test "pltgot-1"
+run_dump_test "pltgot-2"
+run_dump_test "pr20830a"
+run_dump_test "pr20830b"
+run_dump_test "pr20830a-now"
+run_dump_test "pr20830b-now"
+run_dump_test "ibt-plt-1"
+run_dump_test "ibt-plt-1-x32"
+run_dump_test "ibt-plt-2a"
+run_dump_test "ibt-plt-2b"
+run_dump_test "ibt-plt-2c"
+run_dump_test "ibt-plt-2d"
+run_dump_test "ibt-plt-2a-x32"
+run_dump_test "ibt-plt-2b-x32"
+run_dump_test "ibt-plt-2c-x32"
+run_dump_test "ibt-plt-2d-x32"
+run_dump_test "ibt-plt-3a"
+run_dump_test "ibt-plt-3b"
+run_dump_test "ibt-plt-3c"
+run_dump_test "ibt-plt-3d"
+run_dump_test "ibt-plt-3a-x32"
+run_dump_test "ibt-plt-3b-x32"
+run_dump_test "ibt-plt-3c-x32"
+run_dump_test "ibt-plt-3d-x32"
+
+set ASFLAGS "$saved_ASFLAGS"

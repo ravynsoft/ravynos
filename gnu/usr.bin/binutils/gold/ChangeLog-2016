@@ -1,0 +1,1668 @@
+2016-12-28  Andreas Schwab  <schwab@linux-m68k.org>
+
+	* copy-relocs.h: Fix comment typo.
+
+2016-12-28  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/20996
+	* object.cc (build_compressed_section_map): Add explicit instantiations.
+
+2016-12-27  Cary Coutant  <ccoutant@gmail.com>
+
+	PR ld/20995
+	* copy-relocs.cc (Copy_relocs::make_copy_reloc): Use .data.rel.ro for
+	read-only data when linking with -z relro.
+	* copy-relocs.h (Copy_relocs::dynrelro_): New data member.
+	* testsuite/Makefile.am (copy_test_relro): New test case.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/copy_test_relro.cc: New source file.
+	* testsuite/copy_test_relro_1.cc: New source file.
+
+2016-12-23  Cary Coutant  <ccoutant@gmail.com>
+
+	* NEWS: Add new features in 1.14.
+	* version.cc (version_string): Bump to 1.14.
+
+2016-12-22  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/17643
+	* options.h (-z bndplt): New option.
+	* x86_64.cc (Output_data_plt_x86_64::regular_count): New method.
+	(Output_data_plt_x86_64::address_for_global): Move implementation into
+	virtual method.
+	(Output_data_plt_x86_64::address_for_local): Likewise.
+	(Output_data_plt_x86_64::got): New method.
+	(Output_data_plt_x86_64::got_plt): New method.
+	(Output_data_plt_x86_64::got_irelative): New method.
+	(Output_data_plt_x86_64::do_address_for_global): New virtual method.
+	(Output_data_plt_x86_64::do_address_for_local): New virtual method.
+	(class Output_data_plt_x86_64_bnd): New class.
+	(Target_x86_64::do_make_data_plt): Move out of line and specialize
+	for each size (both overloads).
+	(Output_data_plt_x86_64::set_final_data_size): Cosmetic changes.
+	* testsuite/Makefile.am (bnd_plt_1): New test case.
+	(bnd_ifunc_1): New test case.
+	(bnd_ifunc_2): New test case.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/bnd_ifunc_1.s: New source file.
+	* testsuite/bnd_ifunc_1.sh: New shell script.
+	* testsuite/bnd_ifunc_2.s: New source file.
+	* testsuite/bnd_ifunc_2.sh: New shell script.
+	* testsuite/bnd_plt_1.s: New source file.
+	* testsuite/bnd_plt_1.sh: New shell script.
+
+2016-12-22  Cary Coutant  <ccoutant@gmail.com>
+
+	* layout.cc (Layout::finalize): Track count of forced-local symbols
+	in .dynsym.
+	(Layout::create_symtab_sections): Add local_dynamic_count parameter;
+	use that instead of sh_info value.
+	(Layout::create_dynamic_symtab): Add pforced_local_dynamic_count
+	parameter; pass it to Symtab::set_dynsym_indexes().  Include forced
+	locals in sh_info value.  Pass index of first real global to
+	Dynobj::create_gnu_hash_table() and Dynobj::create_elf_hash_table().
+	* layout.h (Layout::create_symtab_sections): Add local_dynamic_count
+	parameter.
+	(Layout::create_dynamic_symtab): Add pforced_local_dynamic_count
+	parameter.
+	* symtab.cc (Symbol_table::set_dynsym_indexes): Add pforced_local_count
+	parameter.  Process forced-local symbols first and return the count.
+	(Symbol_table::finalize): Update comments.
+	* symtab.h (Symbol_table::set_dynsym_indexes): Add pforced_local_count
+	parameter.
+	(Symbol_table::first_dynamic_global_index_): Update comment.
+	(Symbol_table::dynamic_count_): Update comment.
+	* testsuite/Makefile.am (ifuncmod1.sh): New test case.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/ifuncmod1.sh: New shell script.
+
+2016-12-21  Cary Coutant  <ccoutant@gmail.com>
+
+	* symtab.cc (Symbol_table::define_special_symbol): Add is_forced_local
+	parameter; if set, do not check version script.
+	(Symbol_table::do_define_in_output_data): Pass is_forced_local for
+	STB_LOCAL predefined symbols.
+	(Symbol_table::do_define_in_output_segment): Likewise.
+	(Symbol_table::do_define_in_output_segment): Likewise.
+	(Symbol_table::do_define_as_constant): Likewise.
+	* symtab.h (Symbol_table::define_special_symbol): Add is_forced_local
+	parameter. Adjust all callers.
+	* testsuite/Makefile.am (ver_test_8.sh): New test case.
+	* testsuite/Makefile.in: Regenerate.
+	* ver_test_8.sh: New test script.
+
+2016-12-21  Cary Coutant  <ccoutant@gmail.com>
+
+	* output.cc (Output_segment::first_section): Return NULL if there are
+	no sections in the segment.
+	* output.h (Output_segment::first_section_load_address): Assert that
+	first section is not NULL.
+	* symtab.cc (Symbol_table::sized_write_globals): Attach linker-created
+	segment-relative symbols to first section of the segment.
+
+2016-12-21  Alan Modra  <amodra@gmail.com>
+
+	* arm.cc: Fix comment chars with high bit set.
+
+2016-12-20  Cary Coutant  <ccoutant@gmail.com>
+
+	* testsuite/Makefile.am: Add missing dependencies on gcctestdir/ld
+	or ../ld-new.
+	* testsuite/Makefile.in: Regenerate.
+
+2016-12-19  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/20949
+	* script.cc (Lex::get_token): Don't look ahead past NUL characters.
+
+2016-12-19  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/14676
+	PR gold/20983
+	* layout.h (Layout::choose_output_section): Add match_input_spec
+	parameter. Adjust all callers.
+	* layout.cc (Layout::choose_output_section): Likewise.  Pass
+	match_input_spec to Script_sections::output_section_name().
+	(Layout::create_note): Pass true for match_input_spec.
+	* script-sections.h (Script_sections::output_section_name): Add
+	match_input_spec parameter.
+	* script-sections.cc (Sections_element::output_section_name): Likewise.
+	(Output_section_definition::output_section_name): Likewise.
+	(Script_sections::output_section_name): Likewise.
+
+2016-12-19  Igor Kudrin  <ikudrin@accesssoftek.com>
+
+	* arm.cc (Target_arm::Target_arm): Move initialization code ...
+	(Target_arm::do_select_as_default_target): ... to here.
+	* testsuite/Makefile.am (arm_target_lazy_init): New test case.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/arm_target_lazy_init.s: New source file.
+	* testsuite/arm_target_lazy_init.t: New linker script.
+
+2016-12-19  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/20976
+	* symtab.cc (Symbol_table::sized_write_globals): Use address of
+	output section, not input section.
+	* testsuite/Makefile.am (pr20976): New test case.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/pr20976.c: New source file.
+
+2016-12-13  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/20749
+	* options.h (--orphan-handling): New option.
+	(General_options::Orphan_handling): New enum.
+	(General_options::orphan_handling_enum): New method.
+	(General_options::set_orphan_handling_enum): New method.
+	(General_options::orphan_handling_enum_): New data member.
+	* options.cc (General_options::General_options): Initialize new member.
+	(General_options::finalize): Convert --orphan-handling argument to enum.
+	* script-sections.cc (Script_sections::output_section_name): Check it.
+
+2016-12-13  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/20522
+	* layout.cc (Layout::choose_output_section): Add is_reloc parameter.
+	Adjust all callers.  Do not use linker script for is_reloc sections.
+	(Layout::layout_reloc): Pass is_reloc == true.
+	* layout.h (Layout::choose_output_section): Add is_reloc parameter.
+
+2016-12-12  Igor Kudrin  <ikudrin@accesssoftek.com>
+	    Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/14676
+	* script-sections.cc (Output_section_definition::output_section_name):
+	For linker-generated sections, compare with output section name.
+	* testsuite/Makefile.am (script_test_13): New test.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/script_test_13.c: New source file.
+	* testsuite/script_test_13.sh: New script.
+	* testsuite/script_test_13.t: New linker script.
+
+2016-12-12  Cary Coutant  <ccoutant@gmail.com>
+
+	* script-sections.cc (Orphan_section_placement::update_last_alloc):
+	New method.
+	(Orphan_section_placement::find_place): Place orphan .data section
+	after either RODATA or TEXT.
+	(Script_sections::place_orphan): Call update_last_alloc for allocated
+	sections.
+	(Script_sections::create_segments): Improve handling of BSS.
+
+2016-12-13  Alan Modra  <amodra@gmail.com>
+
+	PR gold/16711
+	* testsuite/script_test_15a.sh: Allows larger p_filesz.
+	* testsuite/script_test_15b.sh: Likewise.
+	* testsuite/script_test_15c.sh: Likewise.
+
+2016-12-13  Alan Modra  <amodra@gmail.com>
+
+	PR gold/20717
+	* testsuite/pr20717.t: Add .got output section containing .toc.
+
+2016-12-11  Igor Kudrin  <ikudrin@accesssoftek.com>
+
+	PR gold/20717
+	* testsuite/Makefile.am (pr20717): New test.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/pr20717.c: New test source file.
+	* testsuite/pr20717.sh: New test script.
+	* testsuite/pr20717.t: New test linker script.
+
+2016-12-11  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/16711
+	* output.cc (Output_section::set_final_data_size): Calculate data size
+	based on relative offset rather than file offset.
+	(Output_segment::set_section_addresses): Track file offset separately
+	from address offset.
+	(Output_segment::set_section_list_addresses): Add pfoff parameter.
+	Track file offset separately.  Don't move file offset for BSS
+	sections.
+	* output.h (Output_segment::set_section_list_addresses): Add pfoff
+	parameter.
+	* script-sections.cc (Orphan_section_placement): Add PLACE_LAST_ALLOC.
+	(Orphan_section_placement::Orphan_section_placement): Initialize it.
+	(Orphan_section_placement::output_section_init): Track last allocated
+	section.
+	(Orphan_section_placement::find_place): Place BSS after last allocated
+	section.
+	(Output_section_element_input::set_section_addresses): Always override
+	input section alignment when SUBALIGN is specified.
+	(Output_section_definition::set_section_addresses): Override alignment
+	of output section when SUBALIGN is specified.
+
+	* testsuite/Makefile.am (script_test_15a, script_test_15b)
+	(script_test_15c): New test cases.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/script_test_2.cc: Adjust expected layout.
+	* testsuite/script_test_15.c: New source file.
+	* testsuite/script_test_15a.sh: New shell script.
+	* testsuite/script_test_15a.t: New linker script.
+	* testsuite/script_test_15b.sh: New shell script.
+	* testsuite/script_test_15b.t: New linker script.
+	* testsuite/script_test_15c.sh: New shell script.
+	* testsuite/script_test_15c.t: New linker script.
+
+2016-12-08  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (Powerpc_relobj::stub_table): Return NULL rather
+	then asserting.
+
+2016-12-08  Alan Modra  <amodra@gmail.com>
+
+	* options.h (--stub-group-multi): Fix typo.
+
+2016-12-07  Alan Modra  <amodra@gmail.com>
+
+	* options.h (--stub-group-multi): New PowerPC option.
+	* powerpc.cc (Stub_control): Add multi_os_ var and param
+	to constructor.  Sort start_ var later.  Comment State.
+	(Stub_control::can_add_to_stub_group): Heed multi_os_.
+	(Target_powerpc::group_sections): Update.
+
+2016-12-07  Alan Modra  <amodra@gmail.com>
+
+	PR gold/20878
+	* powerpc.cc (Stub_control): Replace stubs_always_before_branch_
+	with stubs_always_after_branch_, group_end_addr_ with
+	group_start_addr_.
+	(Stub_control::can_add_to_stub_group): Rewrite to suit scanning
+	sections by increasing address.
+	(Target_powerpc::group_sections): Scan that way.  Delete corner
+	case.
+	* options.h (--stub-group-size): Update help string.
+
+2016-12-07  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (Stub_table_owner): Provide constructor.
+	(Powerpc_relobj::set_stub_table): Resize fill with -1.
+	(Target_powerpc::Branch_info::make_stub): Provide target debug
+	output on returning false.
+
+2016-12-05  Cary Coutant  <ccoutant@gmail.com>
+	    Tristan Gingold  <gingold@adacore.com>
+
+	* object.cc (Sized_relobj_file::do_count_local_symbols): Check
+	is_ordinary before using shndx.
+	* testsuite/Makefile.am (file_in_many_sections_test.sh): New test case.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/file_in_many_sections.c: New source file.
+	* testsuite/file_in_many_sections_test.sh: New script.
+
+2016-12-01  Cary Coutant  <ccoutant@gmail.com>
+	    Igor Kudrin  <ikudrin@accesssoftek.com>
+
+	PR gold/20717
+	* script-sections.cc (Script_sections): Set *keep to false when
+	no match.
+
+2016-12-01  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/20834
+	* target.h (Target::default_text_segment_address): Bump default
+	start address up to ABI page size.
+
+2016-12-01  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/18989
+	* options.cc (General_options::object_format_to_string): New function.
+	(General_options::copy_from_posdep_options): New function.
+	(General_options::parse_push_state): New function.
+	(General_options::parse_pop_state): New function.
+	* options.h (--push-state, --pop-state): New options.
+	(General_options::object_format_to_string): New method.
+	(General_options::set_incremental_disposition): New method.
+	(General_options::copy_from_posdep_options): New method.
+	(General_options::options_stack_): New data member.
+
+2016-12-01  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/20807
+	* aarch64.cc (Target_aarch64::scan_reloc_section_for_stubs): Handle
+	section symbols correctly.
+	* arm.cc (Target_arm): Likewise.
+	* powerpc.cc (Target_powerpc): Likewise.
+
+2016-11-27  Ambrogino Modigliani  <ambrogino.modigliani@gmail.com>
+
+	* aarch64-reloc.def: Fix spelling in comments.
+
+2016-11-27  Ambrogino Modigliani  <ambrogino.modigliani@gmail.com>
+
+	* aarch64.cc: Fix spelling in comments.
+	* arm.cc: Fix spelling in comments.
+	* icf.cc: Fix spelling in comments.
+	* layout.cc: Fix spelling in comments.
+	* layout.h: Fix spelling in comments.
+	* mips.cc: Fix spelling in comments.
+	* output.h: Fix spelling in comments.
+	* plugin.h: Fix spelling in comments.
+	* script-sections.h: Fix spelling in comments.
+	* script.h: Fix spelling in comments.
+	* stringpool.h: Fix spelling in comments.
+	* tilegx.cc: Fix spelling in comments.
+
+2016-11-22  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/20346
+	* options.cc (One_option::print): Print "(default)" when appropriate.
+	* options.h: Clean up and re-sort options.
+	(One_option::is_default): New data member.
+	(One_option::One_option): Add is_default parameter; adjust all calls.
+	(DEFINE_var): Add is_default__ parameter; adjust all calls.
+	(DEFINE_bool): Set is_default based on default_value__.
+	(DEFINE_bool_ignore): New macro.
+	(--no-eh-frame-hdr): New option.
+	(--enable-new-dtags): Remove mention of DT_FLAGS.
+
+2016-11-22  Ambrogino Modigliani  <ambrogino.modigliani@gmail.com>
+
+	* configure: Regenerate.
+
+2016-11-21  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/20693
+	* gold.cc (queue_middle_tasks): Force valid target earlier.
+
+2016-11-21  Igor Kudrin  <ikudrin@accesssoftek.com>
+
+	* layout.cc: Include windows.h and rpcdce.h (for MinGW32).
+	(Layout::create_build_id): Generate uuid using UuidCreate().
+
+2016-11-04  Loïc Yhuel <loic.yhuel@softathome.com>
+
+	* configure.ac: add missing '$'.
+	* configure: Regenerate.
+
+2016-10-21  Gergely Nagy  <ngg@tresorit.com>
+
+	PR gold/17704
+	* icf.cc (match_sections): Add new parameter section_addraligns.
+	Check section alignment and keep the section with the strictest
+	alignment.
+	(find_identical_sections): New local variable section_addraligns.
+	Store each section's alignment.
+	* testsuite/pr17704a_test.s: New file.
+	* testsuite/Makefile.am (pr17704a_test): New test.
+	* testsuite/Makefile.in: Regenerate.
+
+2016-10-06  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (Target_powerpc::Relocate::relocate): Add fall
+	through comment.
+	* tilegx.cc (Target_tilegx::Relocate::relocate): Likewise.
+
+2016-10-06  Alan Modra  <amodra@gmail.com>
+
+	* aarch64.cc: Spell fall through comments as "// Fall through.".
+	* arm.cc: Likewise.
+	* mips.cc: Likewise.
+	* powerpc.cc: Likewise.
+	* s390.cc: Likewise.
+	* sparc.cc: Likewise.
+	* x86_64.cc: Likewise.
+	* powerpc.cc (Target_powerpc::Relocate::relocate): Add missing
+	fall through comments.
+	* sparc.cc: (Target_sparc::Scan::global): Likewise.
+	(Target_sparc::Relocate::relocate): Likewise.
+	* tilegx.cc (Target_tilegx::Relocate::relocate): Likewise.
+	* resolve.cc (symbol_to_bits): Add missing break.
+
+2016-09-26  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/20238
+	* symtab.cc (Symbol_table::define_default_version): Check that
+	unversioned symbol is defined.
+
+2016-09-26  Vlad Zakharov  <vzakhar@synopsys.com>
+
+	* Makefile.in: Regenerate.
+	* configure: Likewise.
+	* testsuite/Makefile.in: Likewise.
+
+2016-09-26  Alan Modra  <amodra@gmail.com>
+
+	* aarch64.cc (Target_aarch64::is_erratum_835769_sequence): Avoid
+	compiler warning.
+	* output.cc (Output_segment::set_section_addresses): Likewise.
+	* testsuite/Makefile.in: Regenerate.
+
+2016-09-02  Doug Kwan  <dougkwan@google.com>
+
+	* arm.cc (Target_arm::Target_arm): Move method definition outside of
+	class definition.  Add code to handle --target1-rel, --target1-abs
+	and --target2= options.
+	(Target_arm::get_reloc_reloc_type): Change method to be non-static
+	and const.
+	(Target_arm::target1_is_rel_, Target_arm::target2_reloc_): New data
+	member declaration.
+	(Target_arm::Scan::local, Target_arm::Scan::global,
+	Target_arm::Relocate::relocate,
+	Target_arm::Relocatable_size_for_reloc::get_size_for_reloc): Adjust
+	call to Target_arm::get_real_reloc_type.
+	(Target_arm::get_real_reloc_type): Use command line options to
+	determine real types of R_ARM_TARGET1 and R_ARM_TARGET2.
+	* options.h (--target1-rel, --target1-abs, --target2): New ARM-only
+	options.
+
+2016-08-31  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (class Stub_control): Delete stub14_group_size_
+	and has14_.  Add group_size_.
+	(Stub_control::can_add_to_stub_group): Adjust to suit.  Print
+	debug info when switching to adding sections before stubs.
+
+2016-08-31  Alan Modra  <amodra@gmail.com>
+
+	* debug.h (DEBUG_TARGET): New.
+	(DEBUG_ALL): Add DEBUG_TARGET.
+	(gold_debug): Delete FORMAT param.
+	* powerpc.cc (Stub_control::can_add_to_stub_group): Print debug ourput.
+
+2016-08-30  Alan Modra  <amodra@gmail.com>
+
+	PR 20523
+	* powerpc.cc (class Stub_control): Add has14_.  Comment owner_.
+	(Stub_control::can_add_to_stub_group): Correct grouping of
+	sections containing 14-bit external branches.  When returning
+	false, set state_ to reflect the fact that we have one section
+	for the next group.  Rewrite most of function for clarity.
+	Add and expand comments.
+	(Target_powerpc::do_relax): Print stub group size retry in hex.
+
+2016-08-26  Han Shen  <shenhan@google.com>
+
+	PR gold/20529 - relaxing loop never ends.
+
+	* powerpc.cc (Stub_table::min_size_threshold_): New member to
+	limit size.
+	(Stub_table::set_min_size_threshold): New member function.
+	(Stub_table::set_address_and_size): Add code to only allow size
+	increase.
+	(Target_powerpc::do_relax): Add code to record last size.
+
+2016-08-23  Roland McGrath  <roland@hack.frob.com>
+
+	* options.h (General_options): Grok -z stack-size.
+	* output.h (Output_segment::set_size): New method.
+	* layout.cc (Layout::create_executable_stack_info): Renamed to ...
+	(Layout::create_stack_segment): ... this.  Always create the
+	segment if -z stack-size was used.
+	(Layout::set_segment_offsets): Don't call ->set_offset on the
+	PT_GNU_STACK segment.
+
+2016-08-15  Bharathi Seshadri  <bseshadr@cisco.com>
+
+	* options.h (General_options): Add --be8 option.
+	* arm.cc (Arm_relobj::do_relocate_sections): Add code to swap for be8.
+	(Output_data_plt_arm_standard::do_fill_first_plt_entry): Likewise.
+	(Output_data_plt_arm_short::do_fill_plt_entry): Likewise.
+	(Output_data_plt_arm_long::do_fill_plt_entry): Likewise.
+	(Target_arm::do_adjust_elf_header): Do EF_ARM_BE8 adjustment.
+
+2016-08-17  Cary Coutant  <ccoutant@gmail.com>
+
+	* i386.cc (Target_i386): Reset skip_call_tls_get_addr_ after printing
+	error message.
+	* testsuite/Makefile.am (pr20216a): Add missing dependencies.
+	(pr20308a): Add -Bgcctestdir/ to compile rules.
+	* testsuite/Makefile.in: Regenerate.
+
+2016-08-12  Roland McGrath  <roland@hack.frob.com>
+
+	PR gold/20462
+	* script-sections.cc (Script_sections::release_segments):
+	Reset this->segments_created_.
+
+2016-08-12  Roland McGrath  <roland@hack.frob.com>
+
+	* yyscript.y (HIDDEN): New %token.
+	(assignment): Handle HIDDEN(string = expr) syntax.
+	* script.cc (script_keyword_parsecodes): Add HIDDEN.
+
+2016-08-10  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/20216
+	* x86_64.cc (Target_x86_64::Relocate::relocate): Add check for
+	R_X86_64_GOTPCREL. Reset skip_call_tls_get_addr_ after printing
+	error message.
+	* testsuite/Makefile.am (pr20216_gd.o): Add -Bgcctestdir/.
+	(pr20216_ld.o): Likewise.
+	* testsuite/Makefile.in: Regenerate.
+
+2016-08-10  James Clarke  <jrtc27@jrtc27.com>
+
+	PR gold/20443
+	* symtab.cc (Symbol_table::add_from_relobj): Handle NULL symbols,
+	which will be present for STT_SPARC_REGISTER.
+	(Symbol_table::add_from_pluginobj): Likewise.
+	(Symbol_table::add_from_dynobj): Likewise.
+	(Symbol_table::add_from_incrobj): Removed dead code.
+
+2016-08-10  James Clarke  <jrtc27@jrtc27.com>
+
+	PR gold/20442
+	* sparc.cc (Target_sparc::Relocate::relocate): R_SPARC_GOTDATA_OP_LOX10
+	should fall back on R_SPARC_GOT10, not R_SPARC_GOT13.
+
+2016-08-10  James Clarke  <jrtc27@jrtc27.com>
+
+	PR gold/20441
+	* sparc.cc (Target_sparc::Scan::check_non_pic): Allow R_SPARC_32 on
+	sparc64.
+
+2016-06-29  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/20310
+	* testsuite/dynamic_list.sh: Remove check for _ZdlPv.
+
+2016-06-29  Cary Coutant  <ccoutant@gmail.com>
+
+	* testsuite/Makefile.am (MOSTLYCLEANFILES): Add eh_test_2.
+	* testsuite/Makefile.in: Regenerate.
+
+2016-06-30  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/Makefile.am (memory_test, memory_test_2): Pass
+	-Wl,-z to gcc, not plain -z.
+	* testsuite/Makefile.in: Regenerate.
+
+2016-06-29  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/20308
+	* i386.cc (Target_i386::Relocate::relocate): Allow
+	R_386_GOT32X relocation against ___tls_get_addr.
+	(Target_i386::Relocate::tls_gd_to_ie): Support indirect
+	call to __tls_get_addr.
+	(Target_i386::Relocate::tls_gd_to_le): Likewise.
+	(Target_i386::Relocate::tls_ld_to_le): Likewise.
+	* testsuite/Makefile.am (check_PROGRAMS): Add pr20308a_test,
+	pr20308b_test, pr20308c_test, pr20308d_test, pr20308e_test.
+	(pr20308a_test_SOURCES): New.
+	(pr20308a_test_DEPENDENCIES): Likewise.
+	(pr20308a_test_CFLAGS): Likewise.
+	(pr20308a_test_LDFLAGS): Likewise.
+	(pr20308a_test_LDADD): Likewise.
+	(pr20308b_test_SOURCES): Likewise.
+	(pr20308b_test_DEPENDENCIES): Likewise.
+	(pr20308b_test_CFLAGS): Likewise.
+	(pr20308b_test_LDFLAGS): Likewise.
+	(pr20308b_test_LDADD): Likewise.
+	(pr20308c_test_SOURCES): Likewise.
+	(pr20308c_test_DEPENDENCIES): Likewise.
+	(pr20308c_test_CFLAGS): Likewise.
+	(pr20308c_test_LDFLAGS): Likewise.
+	(pr20308c_test_LDADD): Likewise.
+	(pr20308d_test_SOURCES): Likewise.
+	(pr20308d_test_DEPENDENCIES): Likewise.
+	(pr20308d_test_CFLAGS): Likewise.
+	(pr20308d_test_LDFLAGS): Likewise.
+	(pr20308d_test_LDADD): Likewise.
+	(pr20308e_test_SOURCES): Likewise.
+	(pr20308e_test_DEPENDENCIES): Likewise.
+	(pr20308e_test_CFLAGS): Likewise.
+	(pr20308e_test_LDFLAGS): Likewise.
+	(pr20308e_test_LDADD): Likewise.
+	(pr20308a.so): Likewise.
+	(pr20308b.so): Likewise.
+	(pr20308_gd.o): Likewise.
+	(pr20308_ld.o): Likewise.
+	(MOSTLYCLEANFILES): Add pr20308a.so pr20308b.so.
+	* testsuite/Makefile.in: Regenerated.
+	* testsuite/pr20308_def.c: New file.
+	* testsuite/pr20308_gd.S: Likewise.
+	* testsuite/pr20308_ld.S: Likewise.
+	* testsuite/pr20308_main.c: Likewise.
+
+2016-06-29  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/20216
+	* configure.ac (DEFAULT_TARGET_X86_64_OR_X32): New
+	AM_CONDITIONAL.
+	* configure: Regenerated.
+	* x86_64.cc (Target_x86_64<size>::Relocate::relocate): Allow
+	R_X86_64_GOTPCRELX relocation against __tls_get_addr.
+	(Target_x86_64<size>::Relocate::tls_gd_to_ie): Support indirect
+	call to __tls_get_addr.
+	(Target_x86_64<size>::Relocate::tls_gd_to_le): Likewise.
+	(Target_x86_64<size>::Relocate::tls_ld_to_le): Likewise.
+	* testsuite/Makefile.am (check_PROGRAMS): Add pr20216a_test,
+	pr20216b_test, pr20216c_test, pr20216d_test, pr20216e_test.
+	(pr20216a_test_SOURCES): New.
+	(pr20216a_test_DEPENDENCIES): Likewise.
+	(pr20216a_test_CFLAGS): Likewise.
+	(pr20216a_test_LDFLAGS): Likewise.
+	(pr20216a_test_LDADD): Likewise.
+	(pr20216b_test_SOURCES): Likewise.
+	(pr20216b_test_DEPENDENCIES): Likewise.
+	(pr20216b_test_CFLAGS): Likewise.
+	(pr20216b_test_LDFLAGS): Likewise.
+	(pr20216b_test_LDADD): Likewise.
+	(pr20216c_test_SOURCES): Likewise.
+	(pr20216c_test_DEPENDENCIES): Likewise.
+	(pr20216c_test_CFLAGS): Likewise.
+	(pr20216c_test_LDFLAGS): Likewise.
+	(pr20216c_test_LDADD): Likewise.
+	(pr20216d_test_SOURCES): Likewise.
+	(pr20216d_test_DEPENDENCIES): Likewise.
+	(pr20216d_test_CFLAGS): Likewise.
+	(pr20216d_test_LDFLAGS): Likewise.
+	(pr20216d_test_LDADD): Likewise.
+	(pr20216e_test_SOURCES): Likewise.
+	(pr20216e_test_DEPENDENCIES): Likewise.
+	(pr20216e_test_CFLAGS): Likewise.
+	(pr20216e_test_LDFLAGS): Likewise.
+	(pr20216e_test_LDADD): Likewise.
+	(pr20216a.so): Likewise.
+	(pr20216b.so): Likewise.
+	(pr20216_gd.o): Likewise.
+	(pr20216_ld.o): Likewise.
+	(MOSTLYCLEANFILES): Add pr20216a.so pr20216b.so.
+	* testsuite/Makefile.in: Regenerated.
+	* testsuite/pr20216_def.c: New file.
+	* testsuite/pr20216_gd.S: Likewise.
+	* testsuite/pr20216_ld.S: Likewise.
+	* testsuite/pr20216_main.c: Likewise.
+
+2016-06-29  Alan Modra  <amodra@gmail.com>
+
+	* script_test_12.t: Delete .plt, specify 64k page size.
+	* script_test_12i.t: Likewise.
+
+2016-06-29  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/plugin_layout_with_alignment.c: Explicitly align all
+	variables.
+
+2016-06-29  Alan Modra  <amodra@gmail.com>
+
+	* testsuite/Makefile.am (copy_test_protected): Disable for powerpc.
+	* testsuite/Makefile.in: Regenerate.
+
+2016-06-28  Igor Kudrin  <ikudrin@accesssoftek.com>
+
+	* aarch64-reloc.def (NONE): New relocation.
+	* aarch64.cc (Target_aarch64::Scan::local): Handle R_AARCH64_NONE.
+	(Target_aarch64::Scan::global): Likewise.
+	* testsuite/Makefile.am (aarch64_reloc_none): New test.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/aarch64_reloc_none.s: New test source file.
+	* testsuite/aarch64_reloc_none.sh: New test script.
+
+2016-06-28  Sriraman Tallam  <tmsriram@google.com>
+
+	* x86_64.cc (Lazy_view): New class.
+	(can_convert_mov_to_lea): Templatize function.  Make the function
+	check for appropriate relocation types and use the view parameter
+	to get section contents.
+	(can_convert_callq_to_direct): New function.
+	(Target_x86_64<size>::Scan::global): Refactor.
+	(Target_x86_64<size>::Relocate::relocate): Refactor. Change any indirect
+	call via GOT that can be converted.
+	* testsuite/Makefile.am (x86_64_indirect_call_to_direct.sh): New test.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/x86_64_indirect_call_to_direct1.s: New file.
+	* testsuite/x86_64_indirect_jump_to_direct1.s: New file.
+
+2016-06-28  Igor Kudrin  <ikudrin@accesssoftek.com>
+
+	* aarch64.cc (Target_aarch64::Scan::local): Move the call to got_section
+	from the top level to the places of its use.
+
+2016-06-28  Igor Kudrin  <ikudrin@accesssoftek.com>
+
+	PR gold/18098
+	* script-c.h (Sort_wildcard): Add SORT_WILDCARD_BY_INIT_PRIORITY.
+	* script-sections.cc (Input_section_sorter::get_init_priority): New method.
+	(Input_section_sorter::operator()): Handle SORT_WILDCARD_BY_INIT_PRIORITY.
+	(Output_section_element_input::print): Likewise.
+	* script.cc (script_keyword_parsecodes): Add entry SORT_BY_INIT_PRIORITY.
+	* yyscript.y (SORT_BY_INIT_PRIORITY): New token.
+	(wildcard_section): Handle SORT_BY_INIT_PRIORITY.
+
+	* testsuite/Makefile.am (script_test_14): New test.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/script_test_14.s: New test source file.
+	* testsuite/script_test_14.sh: New test script.
+	* testsuite/script_test_14.t: New test linker script.
+
+2016-06-28  James Clarke  <jrtc27@jrtc27.com>
+
+	* sparc.cc (Target_sparc::Scan::local): Don't convert R_SPARC_32
+	to R_SPARC_RELATIVE if class is ELFCLASS64.
+	(Target_sparc::Scan::global): Likewise.
+
+2016-06-23  Cary Coutant  <ccoutant@gmail.com>
+	    Igor Kudrin  <ikudrin@accesssoftek.com>
+
+	PR gold/15370
+	* script-sections.cc
+	(Output_section_element_input::set_section_addresses): Keep bin_count
+	separate from input_pattern_count.
+	* testsuite/script_test_12.t: Add another section .x4.
+	* testsuite/script_test_12i.t: Likewise.
+	* testsuite/script_test_12a.c: Likewise.
+	* testsuite/script_test_12b.c: Likewise.
+
+2016-06-23  Igor Kudrin  <ikudrin@accesssoftek.com>
+
+	* gold-threads.cc (impl_threads::Lock_impl_threads): Fix typos.
+
+2016-06-22  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR ld/20283
+	* NEWS: Mention --enable-relro.
+	* configure.ac: Add --enable-relro.
+	(DEFAULT_LD_Z_RELRO): New.  Set by --enable-relro and default
+	to 1.
+	* config.in: Regenerated.
+	* configure: Likewise.
+	* options.h (General_options::relro): Default to
+	DEFAULT_LD_Z_RELRO.
+
+2016-06-20  Cary Coutant  <ccoutant@gmail.com>
+
+	* NEWS: Add new features in 1.12.
+	* version.cc (version_string): Bump to 1.12.
+
+2016-06-20  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/20245
+	* i386.cc (Target_i386::first_plt_entry_offset): Return 0 if
+	plt_ is NULL.
+	(Target_i386::plt_entry_size): Likewise.
+	(Target_x86_64<size>::first_plt_entry_offset): Likewise.
+	(Target_x86_64<size>::plt_entry_size): Likewise.
+
+2016-06-20  Vladimir Radosavljevic  <Vladimir.Radosavljevic@imgtec.com>
+
+	* mips.cc (Target_mips::Target_mips): Initialize rld_map_.
+	(Target_mips::rld_map_): New data member.
+	(Target_mips::do_finalize_sections): Add support for
+	DT_MIPS_RLD_MAP and DT_MIPS_RLD_MAP_REL dynamic tags,
+	.rld_map section, and __RLD_MAP symbol.
+	(Target_mips::do_dynamic_tag_custom_value): Add support for
+	DT_MIPS_RLD_MAP_REL dynamic tag.
+	* output.cc (Output_data_dynamic::get_entry_offset): New method
+	definition.
+	* output.h (Output_data_dynamic::get_entry_offset): New method
+	declaration.
+
+2016-06-20  Vladimir Radosavljevic  <Vladimir.Radosavljevic@imgtec.com>
+
+	* mips.cc (Mips_relocate_functions::relpc16): Add unaligned check.
+
+2016-06-20  Vladimir Radosavljevic  <Vladimir.Radosavljevic@imgtec.com>
+
+	* mips.cc (relocation_needs_la25_stub): Add support for relocs:
+	R_MIPS_PC21_S2 and R_MIPS_PC26_S2.
+	(hi16_reloc): Add support for R_MIPS_PCHI16 relocation.
+	(is_matching_lo16_reloc): Likewise.
+	(lo16_reloc): Add support for R_MIPS_PCLO16 relocation.
+	(Mips_output_data_plt::plt_entry_r6): New static data member for
+	R6 PLT entry.
+	(Target_mips::is_output_r6): New method.
+	(Target_mips::Mips_mach): Add new enum constants.
+	(Mips_relocate_functions::Status): Likewise.
+	(Mips_relocate_functions::pchi16_relocs): New static data member.
+	(Mips_relocate_functions::relpc21): New method.
+	(Mips_relocate_functions::relpc26): Likewise.
+	(Mips_relocate_functions::relpc18): Likewise.
+	(Mips_relocate_functions::relpc19): Likewise.
+	(Mips_relocate_functions::relpchi16): Likewise.
+	(Mips_relocate_functions::do_relpchi16): Likewise.
+	(Mips_relocate_functions::relpclo16): Likewise.
+	(Mips_output_data_plt::do_write): Add support for Mips r6 plt
+	entry.
+	(Target_mips::mips_32bit_flags): Add E_MIPS_ARCH_32R6 support.
+	(Target_mips::elf_mips_mach): Add E_MIPS_ARCH_32R6 and
+	E_MIPS_ARCH_64R6 support.
+	(Target_mips::update_abiflags_isa): Likewise.
+	(mips_get_size_for_reloc): Add support for relocs: R_MIPS_PCHI16,
+	R_MIPS_PCLO16, R_MIPS_PC21_S2, R_MIPS_PC26_S2, R_MIPS_PC18_S3 and
+	R_MIPS_PC19_S2.
+	(Target_mips::Scan::local): Add support for relocs: R_MIPS_PCHI16
+	and R_MIPS_PCLO16.
+	(Target_mips::Scan::global): Add support for relocs:
+	R_MIPS_PC21_S2 and R_MIPS_PC26_S2.
+	(Target_mips::Relocate::relocate): Call functions for resolving
+	Mips32r6 and Mips64r6 relocations, and print error message for
+	STATUS_PCREL_UNALIGNED.
+	(Target_mips::Scan::get_reference_flags): Add support for relocs:
+	R_MIPS_PCHI16, R_MIPS_PCLO16, R_MIPS_PC21_S2, R_MIPS_PC26_S2,
+	R_MIPS_PC18_S3 and R_MIPS_PC19_S2.
+	(Target_mips::elf_mips_mach_name): Add E_MIPS_ARCH_32R6 and
+	E_MIPS_ARCH_64R6 support.
+
+2016-06-13  H.J. Lu  <hongjiu.lu@intel.com>
+
+	PR gold/20246
+	* testsuite/script_test_2.t: Add .got.plt after .got.
+
+2016-06-10  Vladimir Radosavljevic  <Vladimir.Radosavljevic@imgtec.com>
+
+	* mips.cc (struct Mips_abiflags): New struct.
+	(Mips_relobj::Mips_relobj): Initialize attributes_section_data_
+	and abiflags_.
+	(Mips_relobj::~Mips_relobj): Delete object pointed by
+	attributes_section_data_.
+	(Mips_relobj::abiflags): New method.
+	(Mips_relobj::attributes_section_data): Likewise.
+	(Mips_relobj::attributes_section_data_): New data member.
+	(Mips_relobj::abiflags_): Likewise.
+	(class Mips_output_section_abiflags): New class.
+	(Target_mips::Target_mips): Initialize attributes_section_data_,
+	abiflags_ and has_abiflags_section_.
+	(Target_mips::do_should_include_section): Don't emit input
+	.MIPS.abiflags sections to output .MIPS.abiflags.
+	(Target_mips::Mips_mach): Add new enum constants.
+	(Target_mips::mips_isa_ext_mach): New method.
+	(Target_mips::mips_isa_ext): Likewise.
+	(Target_mips::update_abiflags_isa): Likewise.
+	(Target_mips::infer_abiflags): Likewise.
+	(Target_mips::create_abiflags): Likewise.
+	(Target_mips::fp_abi_string): Likewise.
+	(Target_mips::select_fp_abi): Likewise.
+	(Target_mips::merge_obj_attributes): Likewise.
+	(Target_mips::merge_obj_abiflags): Likewise.
+	(Target_mips::level_rev): Likewise.
+	(Target_mips::merge_obj_e_flags): Rename from
+	merge_processor_specific_flags. Remove dyn_obj argument,
+	call update_abiflags_isa when needed, compare NaN encodings and
+	compare FP64 state.
+	(Target_mips::add_machine_extensions): Add two machine extensions
+	and fix one.
+	(Target_mips::attributes_section_data_): New data member.
+	(Target_mips::abiflags_): Likewise.
+	(Target_mips::has_abiflags_section_): Likewise.
+	(Mips_relobj::do_read_symbols): Read .gnu.attributes and
+	.MIPS.abiflags sections if they exists.
+	(Target_mips::elf_mips_mach): Add E_MIPS_MACH_5900 and
+	E_MIPS_MACH_OCTEON3 support.
+	(Target_mips::do_adjust_elf_header): Setup EI_ABIVERSION flag.
+	(Target_mips::do_finalize_sections): Merge .gnu.attributes and
+	.MIPS.abiflags sections from input. Create these sections if
+	needed.
+	(Target_mips::elf_mips_mach_name): Add E_MIPS_MACH_5900 and
+	E_MIPS_MACH_OCTEON3 support, and change strings for
+	E_MIPS_MACH_LS2E, E_MIPS_MACH_LS2F and E_MIPS_MACH_LS3A just
+	to match bfd.
+
+2016-06-10  Vladimir Radosavljevic  <Vladimir.Radosavljevic@imgtec.com>
+
+	* mips.cc (Mips_relobj::Mips_relobj): Initialize
+	has_reginfo_section_.
+	(Mips_relobj::has_reginfo_section_): New data member.
+	(Mips_relobj::has_reginfo_section): New method.
+	(class Mips_output_section_reginfo): Change base class to
+	Output_section_data, and set masks of the output .reginfo section
+	in constructor.
+	(Mips_output_section_reginfo::as_mips_output_section_reginfo):
+	Remove.
+	(Mips_output_section_reginfo::set_masks): Likewise.
+	(Mips_output_section_reginfo::set_final_data_size): Likewise.
+	(Mips_output_section_reginfo::do_print_to_mapfile): New method.
+	(Target_mips::do_make_output_section): Remove.
+	(Mips_relobj::do_read_symbols): Set has_reginfo_section_ to true
+	if the object contains a .reginfo section.
+	(Target_mips::do_finalize_sections): Create a .reginfo output
+	section if needed.
+
+2016-06-09  Artemiy Volkov  <artemiyv@acm.org>
+
+	* mips.cc (Mips_output_data_got::do_write): Add missing template
+	args via typedef.
+
+2016-05-30  Marcin Kościelnicki  <koriakin@0x04.net>
+
+	PR/19960
+	* s390.cc (Target_s390::ss_code_st_r14): Removed.
+	(Target_s390::ss_code_l_r14): Removed.
+	(Target_s390::ss_code_ear): Removed.
+	(Target_s390::ss_code_c): Removed.
+	(Target_s390::ss_match_st_r14): New function.
+	(Target_s390::ss_match_l_r14): New function.
+	(Target_s390::ss_match_mcount): Call ss_match_{l,st}_r14 instead
+	of matching code directly.
+	(Target_s390::ss_match_ear): New function.
+	(Target_s390::ss_match_c): New function.
+	(Target_s390::do_calls_non_split): Call ss_match_{ear,c} instead
+	of matching code directly.
+
+2016-05-19  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/19823
+	* copy-relocs.cc (Copy_relocs::make_copy_reloc): Add object
+	parameter; check for protected symbol.
+	* copy-relocs.h (Copy_relocs::make_copy_reloc): Add object parameter.
+	* mips.cc (Mips_copy_relocs): Adjust call to make_copy_reloc.
+	* symtab.cc (Symbol::init_fields): Initialize is_protected_.
+	(Symbol_table::add_from_dynobj): Mark protected symbols.
+	* symtab.h (Symbol::is_protected): New method.
+	(Symbol::set_is_protected): New method.
+	(Symbol::is_protected_): New data member.
+
+	* testsuite/Makefile.am (copy_test_protected): New test.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/copy_test.cc (main): Add legal reference to protected
+	symbol.
+	* testsuite/copy_test_v1.cc (main): Likewise.
+	* testsuite/copy_test_2.cc (ip): Add protected symbol.
+	* testsuite/copy_test_protected.cc: New test source file.
+	* testsuite/copy_test_protected.sh: New test script.
+
+2016-05-19  Vladimir Radosavljevic  <vladimir.radosavljevic@imgtec.com>
+
+	* mips.cc (Mips_got_entry::Mips_got_entry): Remove object argument
+	for global got symbols, and set addend to 0.
+	(Mips_got_entry::hash): Change hash algorithm.
+	(Mips_got_entry::equals): Refactor.
+	(Mips_got_entry::object): Return input object for local got symbols
+	from union d.
+	(Mips_got_entry::addend): Change return of the relocation addend.
+	(Mips_got_entry::addend_): Move from union d.
+	(Mips_got_entry::object_): Move into union d.
+	(class Mips_symbol_hash): New class.
+	(Mips_got_info::Global_got_entry_set): New type.
+	(Mips_got_info::global_got_symbols): Change return type to
+	Global_got_entry_set.
+	(Mips_got_info::global_got_symbols_): Change type to
+	Global_got_entry_set.
+	(Mips_symbol::hash): New method.
+	(Mips_output_data_la25_stub::symbols_): Change type to std::vector.
+	(Mips_output_data_mips_stubs::Mips_stubs_entry_set): New type.
+	(Mips_output_data_mips_stubs::symbols_): Change type to
+	Mips_stubs_entry_set.
+	(Mips_got_info::record_global_got_symbol): Don't pass object
+	argument when creating global got symbol.
+	(Mips_got_info::record_got_entry): Remove find before inserting
+	got entries.
+	(Mips_got_info::add_reloc_only_entries): Change type of iterator
+	to Global_got_entry_set.
+	(Mips_got_info::count_got_symbols): Likewise.
+	(Mips_output_data_la25_stub::create_la25_stub): Use push_back
+	for adding entries to symbols_.
+	(Mips_output_data_la25_stub::do_write): Change type of iterator
+	to std::vector.
+	(Mips_output_data_mips_stubs::set_lazy_stub_offsets): Change type
+	of iterator to Mips_stubs_entry_set.
+	(Mips_output_data_mips_stubs::set_needs_dynsym_value): Likewise.
+	(Mips_output_data_mips_stubs::do_write): Likewise.
+
+2016-05-06  Han Shen  <shenhan@google.com>
+
+	PR gold/19987.
+
+	* aarch64-reloc.def: New relocation type.
+	* aarch64.cc (AArch64_relocate_functions::Page): Changed to public.
+	(Target_aarch64::Scan::local): Add R_AARCH64_LD64_GOTPAGE_LO15.
+	(Target_aarch64::Scan::global): Add R_AARCH64_LD64_GOTPAGE_LO15.
+	(Target_aarch64::Relocate::relocate): Implement R_AARCH64_LD64_GOTPAGE_LO15.
+
+2016-04-28  Nick Clifton  <nickc@redhat.com>
+
+	* po/zh_CN.po: Updated Chinese (simplified) translation.
+
+2016-04-15  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* Makefile.in: Regenerated with automake 1.11.6.
+	* aclocal.m4: Likewise.
+	* testsuite/Makefile.in: Likewise.
+
+2016-03-30  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/16979
+	* symtab.cc (Symbol_table::define_default_version): Check for case
+	where symbols are both in different shared objects.
+
+2016-03-27  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/16111
+	* i386.cc (Target_i386): Add check for fully-resolved symbol for
+	R_386_GOTOFF.
+
+2016-03-22  Nick Clifton  <nickc@redhat.com>
+
+	* configure: Regenerate.
+
+2016-03-21  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/19842
+	* errors.cc (Errors::undefined_symbol): Add info message when
+	symbol should have been provided by a plugin.
+	* target-reloc.h (issue_undefined_symbol_error): Check for
+	placeholder symbols defined in discarded sections.
+	* testsuite/Makefile.am (plugin_test_9b): New test case.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/plugin_test_9b_elf.cc: New test source file.
+	* testsuite/plugin_test_9b_ir.cc: New test source file.
+
+2016-03-20  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/19002
+	* ehframe.cc (Eh_frame::read_fde): Check for dropped functions.
+	* testsuite/Makefile.am (eh_test_2): New test.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/eh_test_2.sh: New test script.
+	* testsuite/eh_test_a.cc (bar): Make it comdat.
+	* testsuite/eh_test_b.cc (bar): Add a duplicate copy.
+
+2016-03-18  Vladimir Radosavljevic  <vladimir.radosavljevic@imgtec.com>
+
+	* mips.cc (Mips_relobj::is_n64_): Remove.
+	(Target_mips::ei_class_): Likewise.
+	(Mips_relobj::is_newabi): Call methods.
+	(Mips_relobj::is_n64): Change checking for N64 ABI.
+	(Target_mips::is_output_n64): Likewise.
+	(Target_mips::merge_processor_specific_flags): Remove ei_class
+	argument, and remove comparing ei_class.
+	(Target_mips::do_adjust_elf_header): Remove setting EI_CLASS field
+	of the ELF header.
+	(Target_mips::do_finalize_sections): Don't pass ei_class argument
+	to merge_processor_specific_flags.
+	(Target_mips::elf_mips_abi_name): Remove ei_class argument, and
+	change checking for N64 ABI.
+
+2016-03-17  Vladimir Radosavljevic  <vladimir.radosavljevic@imgtec.com>
+
+	* mips.cc (enum Special_relocation_symbol): New enum type.
+	(is_readonly_section): New function.
+	(eh_reloc): Likewise.
+	(Mips_got_entry::is_section_symbol_): New member.
+	(Mips_got_entry::is_section_symbol): New method.
+	(Mips_got_info::record_local_got_symbol): Add is_section_symbol
+	argument.
+	(Mips_relobj::mips_elf_options_section_name): New method.
+	(Mips_output_data_got::record_local_got_symbol): Add
+	is_section_symbol argument, and pass it to
+	Mips_got_info::record_local_got_symbol.
+	(Mips_output_data_got::got_offset): Add addend argument, and pass
+	it to Relobj::local_got_offset.
+	(struct Mips_output_reloc_writer): New type.
+	(class Mips_output_data_reloc): New class.
+	(Mips_output_data_plt::Reloc_section): Change type to
+	Mips_output_data_reloc.
+	(Target_mips::Reloc_section): Likewise.
+	(Mips_reloc_types::get_r_addend): Remove unsigned from return type.
+	(Mips_classify_reloc::get_r_type2): New method.
+	(Mips_classify_reloc::get_r_type3): Likewise.
+	(Mips_classify_reloc::get_r_ssym): Likewise.
+	(Target_mips::Reloca_section): Remove.
+	(Relocate::should_apply_static_reloc): Rename from
+	should_apply_r_mips_32_reloc.
+	(Target_mips::copy_reloc): Replace Reltype parameter with r_type
+	and r_offset.
+	(Mips_relocate_functions::Valtype): New type.
+	(Mips_relocate_functions::Valtype64): New type.
+	(Mips_relocate_functions::check_overflow): New method.
+	(Mips_relocate_functions::mips_reloc_unshuffle): Move to public
+	interface.
+	(Mips_relocate_functions::mips_reloc_shuffle): Likewise.
+	(Mips_relocate_functions::rel16): Add support for resolving
+	relocations for Mips64.
+	(Mips_relocate_functions::rel32): Likewise.
+	(Mips_relocate_functions::reljalr): Likewise.
+	(Mips_relocate_functions::relpc32): Likewise.
+	(Mips_relocate_functions::rel26): Likewise.
+	(Mips_relocate_functions::relpc16): Likewise.
+	(Mips_relocate_functions::relmicromips_pc7_s1): Likewise.
+	(Mips_relocate_functions::relmicromips_pc10_s1): Likewise.
+	(Mips_relocate_functions::relmicromips_pc16_s1): Likewise.
+	(Mips_relocate_functions::do_relhi16): Likewise.
+	(Mips_relocate_functions::do_relgot16_local): Likewise.
+	(Mips_relocate_functions::rello16): Likewise.
+	(Mips_relocate_functions::relgot): Likewise.
+	(Mips_relocate_functions::relgotpage): Likewise.
+	(Mips_relocate_functions::relgotofst): Likewise.
+	(Mips_relocate_functions::relgot_hi16): Likewise.
+	(Mips_relocate_functions::relgot_lo16): Likewise.
+	(Mips_relocate_functions::relgprel): Likewise.
+	(Mips_relocate_functions::relgprel32): Likewise.
+	(Mips_relocate_functions::tlsrelhi16): Likewise.
+	(Mips_relocate_functions::tlsrello16): Likewise.
+	(Mips_relocate_functions::tlsrel32): Likewise.
+	(Mips_relocate_functions::relsub): Likewise.
+	(Mips_relocate_functions::releh): New method.
+	(Mips_relocate_functions::rel64): Likewise.
+	(Mips_got_info::record_local_got_symbol): Add is_section_symbol and
+	pass it to Mips_got_entry.
+	(Mips_got_info::add_local_entries): Pass addend argument
+	to code functions, and for STT_SECTION symbols call
+	add_symbolless_local_addend.
+	(Mips_got_info::add_tls_entries): Pass addend argument to code
+	functions.
+	(Mips_relobj::do_read_symbols): Read gp value that was used to
+	create object.
+	(Mips_output_data_plt::plt_entry): Remove opcode from l[wd]
+	instruction. Opcode for instruction will be selected later.
+	(Target_mips::gc_process_relocs): Add case for SHT_RELA.
+	(Target_mips::scan_relocatable_relocs): Likewise.
+	(Target_mips::emit_relocs_scan): Likewise.
+	(Target_mips::relocate_relocs): Likewise.
+	(Target_mips::do_finalize_sections): Skip objects for merging
+	processor specific flags in which all input sections will be
+	discarded.
+	(mips_get_size_for_reloc): Add case for R_MIPS_EH.
+	(Target_mips::Scan::get_reference_flags): Likewise.
+	(Target_mips::relocate_special_relocatable): Call rel26 method with
+	calculate_only and calculated_value arguments.
+	(Target_mips::Scan::local): Add case for R_MIPS_EH. Don't create a
+	dynamic relocation against a readonly sections, and pass
+	is_section_symbol to Mips_got_info::record_local_got_symbol.
+	(Target_mips::Scan::global): Add case for R_MIPS_EH. Don't create a
+	dynamic relocation against a readonly sections, and pass r_type
+	and r_offset to Target_mips::copy_reloc.
+	(Target_mips::Relocate::relocate): Add support for resolving
+	relocations for Mips64.
+	(Target_mips::mips_info): Add case for Mips64 default dynamic
+	linker name.
+	(Target_selector_mips): Correct emulation names.
+
+2016-03-17  Vladimir Radosavljevic  <vladimir.radosavljevic@imgtec.com>
+
+	* mips.cc (class Mips_output_data_la25_stub): Add
+	do_print_to_mapfile function.
+
+2016-03-17  Vladimir Radosavljevic  <vladimir.radosavljevic@imgtec.com>
+
+	* mips.cc (Mips_classify_reloc::put_r_info): Call 32bit version of
+	elf_r_info.
+
+2016-03-09  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/plugin_layout_with_alignment.cc: Renamed to ..
+	* testsuite/plugin_layout_with_alignment.c: This.
+	* testsuite/Makefile.am (plugin_layout_with_alignment.o): Updated.
+	(plugin_layout_with_alignment): Likewise.
+	* testsuite/Makefile.in: Regenerated.
+
+2016-03-08  Cary Coutant  <ccoutant@gmail.com>
+
+	PR 19751
+	* testsuite/Makefile.am (retain_symbols_file_test): Remove check
+	for constructor.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/dynamic_list.sh: Likewise.
+	* testsuite/retain_symbols_file_test.sh: Likewise.
+
+2016-03-08  Cary Coutant  <ccoutant@gmail.com>
+
+	PR 19751
+	* arm.cc (Reloc_stub::Key::name): Add unused attribute.
+	* dirsearch.cc (Dir_caches::~Dir_caches): Likewise.
+
+2016-03-08  Cary Coutant  <ccoutant@gmail.com>
+	    Vladimir Radosavljevic  <vladimir.radosavljevic@imgtec.com>
+
+	* output.cc (Output_reloc_writer): New type.
+	(Output_data_reloc_base::do_write): Move implementation to template
+	in output.h and replace with invocation of template.
+	* output.h (Output_file): Move to top of file.
+	(Output_reloc::get_symbol_index): Move to public interface.
+	(Output_reloc::get_address): Likewise.
+	(Output_data_reloc_base::do_write_generic): New function template.
+
+2016-03-04  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/19019
+	PR gold/19763
+	* symtab.cc: Instantiate Sized_symbol::init_constant and
+	Sized_symbol::init_undefined.
+
+2016-03-03  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/19019
+	* layout.h (Layout::add_target_specific_dynamic_tag): New function.
+	* layout.cc (Layout::add_target_specific_dynamic_tag): New function.
+	* mips.cc (Target_mips::make_symbol): Adjust function signature.
+	* sparc.cc (Target_sparc::Target_sparc): Initialize register_syms_.
+	(Target_sparc::do_is_defined_by_abi): Remove test for
+	STT_SPARC_REGISTER.
+	(Target_sparc::Register_symbol): New struct type.
+	(Target_sparc::register_syms_): New data member.
+	(Target_sparc<64, true>::sparc_info): Set has_make_symbol to true.
+	(Target_sparc::make_symbol): New function.
+	(Target_sparc::do_finalize_sections): Add register symbols and new
+	dynamic table entries.
+	* symtab.h (Sized_symbol::init_undefined): Add value parameter.
+	(Symbol_table::add_target_global_symbol): New function.
+	(Symbol_table::target_symbols_): New data member.
+	* symtab.cc (Sized_symbol::init_undefined): Add value parameter.
+	(Symbol_table::Symbol_table): Initialize target_symbols_.
+	(Symbol_table::add_from_object): Pass additional parameters to
+	Target::make_symbol.
+	(Symbol_table::define_special_symbol): Likewise.
+	(Symbol_table::add_undefined_symbol_from_command_line): Pass 0 for
+	undefined symbol value.
+	(Symbol_table::set_dynsym_indexes): Process target-specific symbols.
+	(Symbol_table::sized_finalize): Likewise.
+	(Symbol_table::sized_write_globals): Likewise.
+	* target.h (Sized_target::make_symbol): Add name, st_type, object,
+	st_shndx, and value parameters.
+
+2016-03-03  Rafael Ávila de Espíndola <rafael.espindola@gmail.com>
+
+	* plugin.cc (do_should_include_member): Ignore LDPK_UNDEF and
+	LDPK_WEAKUNDEF symbols.
+
+2016-03-03  Than McIntosh  <thanm@google.com>
+
+	* plugin.cc (Plugin::load): Include hooks for get_input_section_size
+	and get_input_section_alignment in transfer vector.
+	(get_input_section_alignment): New function.
+	(get_input_section_size): New function.
+	* testsuite/Makefile.am: Add plugin_layout_with_alignment.sh test.
+	* testsuite/Makefile.in: [Regenerate.]
+	* testsuite/plugin_section_alignment.cc: New test file.
+	* testsuite/plugin_layout_with_alignment.cc: New test file.
+	* testsuite/plugin_layout_with_alignment.sh: New test file.
+
+2016-03-03  Evgenii Stepanov  <eugenis@google.com>
+
+	* plugin.h (Pluginobj::get_symbol_resolution_info): Add version
+	parameter.
+	* plugin.cc (get_symbols_v3): New function.
+	(Plugin::load): Add LDPT_GET_SYMBOLS_V3.
+	(Pluginobj::get_symbol_resolution_info): Return LDPS_NO_SYMS when using
+	new version.
+
+2016-02-26  Egor Kochetov  <egor.kochetov@intel.com>
+	    Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/19735
+	* ehframe.h (Cie::fde_encoding): New method.
+	* ehframe.cc (Eh_frame::read_fde): Discard FDEs for zero-length
+	address ranges.
+
+2016-02-15  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* testsuite/Makefile.am (x86_64_mov_to_lea5.o): Pass
+	-mrelax-relocations=yes to $(TEST_AS).
+	(x86_64_mov_to_lea6.o): Likewise.
+	(x86_64_overflow_pc32.o): Remove duplicated target.
+	* testsuite/Makefile.in: Regenerated.
+
+2016-02-15  Marcin Kościelnicki  <koriakin@0x04.net>
+
+	* s390.cc (Target_s390::match_view_u): New helper method.
+	(Target_s390::do_is_call_to_non_split): New method.
+	(Target_s390::ss_code_st_r14): New const.
+	(Target_s390::ss_code_l_r14): New const.
+	(Target_s390::ss_code_bras_8): New const.
+	(Target_s390::ss_code_l_basr): New const.
+	(Target_s390::ss_code_a_basr): New const.
+	(Target_s390::ss_code_ear): New const.
+	(Target_s390::ss_code_c): New const.
+	(Target_s390::ss_code_larl): New const.
+	(Target_s390::ss_code_brasl): New const.
+	(Target_s390::ss_code_jg): New const.
+	(Target_s390::ss_code_jgl): New const.
+	(Target_s390::ss_match_mcount): New helper method.
+	(Target_s390::ss_match_l): New helper method.
+	(Target_s390::ss_match_ahi): New helper method.
+	(Target_s390::ss_match_alfi): New helper method.
+	(Target_s390::ss_match_cr): New helper method.
+	(Target_s390::do_calls_non_split): New method.
+	* testsuite/Makefile.am: Added new tests.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/split_s390.sh: New test.
+	* testsuite/split_s390_1_a1.s: New test.
+	* testsuite/split_s390_1_a2.s: New test.
+	* testsuite/split_s390_1_n1.s: New test.
+	* testsuite/split_s390_1_n2.s: New test.
+	* testsuite/split_s390_1_z1.s: New test.
+	* testsuite/split_s390_1_z2.s: New test.
+	* testsuite/split_s390_1_z3.s: New test.
+	* testsuite/split_s390_1_z4.s: New test.
+	* testsuite/split_s390_2_ns.s: New test.
+	* testsuite/split_s390_2_s.s: New test.
+	* testsuite/split_s390x_1_a1.s: New test.
+	* testsuite/split_s390x_1_a2.s: New test.
+	* testsuite/split_s390x_1_n1.s: New test.
+	* testsuite/split_s390x_1_n2.s: New test.
+	* testsuite/split_s390x_1_z1.s: New test.
+	* testsuite/split_s390x_1_z2.s: New test.
+	* testsuite/split_s390x_1_z3.s: New test.
+	* testsuite/split_s390x_1_z4.s: New test.
+	* testsuite/split_s390x_2_ns.s: New test.
+	* testsuite/split_s390x_2_s.s: New test.
+
+2016-02-11 Rahul Chaudhry  <rahulchaudhry@google.com>
+
+	* aarch64.cc (Target_aarch64::scan_erratum_843419_span): Remove
+	info message for every erratum 843419 found and fixed.
+
+2016-02-07  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/18695
+	* x86_64.cc (Target_x86_64::Relocate::relocate): Add additional
+	information to relocation overflow errors.
+
+2016-02-06  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/18695
+	* x86_64.cc (X86_64_relocate_functions::pcrela32_check): Fix x32
+	overflow checking when symbol value + addend < 0.
+
+2016-02-06  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/19577
+	* reloc.h (Limits): New class.
+	(Bits::has_overflow32): Use min/max values from Limits.
+	(Bits::has_unsigned_overflow32): Likewise.
+	(Bits::has_signed_unsigned_overflow32): Likewise.
+	(Bits::has_overflow): Likewise.
+	(Bits::has_unsigned_overflow): Likewise.
+	(Bits::has_signed_unsigned_overflow64): Likewise.
+
+2016-02-06  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/19567
+	* reloc.h (Relocate_functions::Overflow_check): Add comments.
+	* x86_64.cc (X86_64_relocate_functions): New class.
+	(Target_x86_64::Relocate::relocate): Use the new class.
+	* testsuite/Makefile.am (x86_64_overflow_pc32): Add -Tdata option.
+	(x32_overflow_pc32): New test case.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/x32_overflow_pc32.sh: New script.
+	* testsuite/x86_64_overflow_pc32.s: Remove .space directive.
+
+2016-02-06  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/19577
+	* reloc.h (Bits::has_unsigned_overflow32): Fix static_cast.
+	(Bits::has_unsigned_overflow): Remove unnecessary static_cast.
+
+2016-02-06  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/19577
+	* reloc.h (Bits::has_unsigned_overflow32): Fix unsigned/signed
+	comparison.
+	(Bits::has_unsigned_overflow): Likewise.
+
+2016-02-06  Marcin Kościelnicki  <koriakin@0x04.net>
+
+	* i386.cc (Target_i386::is_call_to_non_split): Add view and view_size
+	parameters.
+	* reloc.cc (Sized_relobj_file::split_stack_adjust_reltype): Pass view
+	and view_size to is_call_to_non_split.
+	* target.cc (Target::is_call_to_non_split): Add view and view_size
+	parameters.
+	* target.h (class Target): Likewise.
+
+2016-02-05  Sriraman Tallam  <tmsriram@google.com>
+
+	* icf.cc (get_rel_addend): New function.
+	(get_section_contents):  Move merge section addend computation to a
+	new function.  Ignore negative values for SHT_REL and SHT_RELA addends.
+	Fix bug to not read past the length of the section.
+
+2016-02-05  Cary Coutant  <ccoutant@gmail.com>
+	    Andrew Senkevich  <andrew.senkevich@intel.com>
+
+	PR gold/18695
+	* x86_64.cc (Target_x86_64::Relocate::relocate): Add overflow
+	checking for R_X86_64_32, R_X86_64_32S, R_X86_64_PC32, and
+	R_X86_64_PLT32.
+	* testsuite/Makefile.am (x86_64_overflow_pc32): New test.
+	* testsuite/x86_64_overflow_pc32.sh: New test script.
+	* testsuite/x86_64_overflow_pc32.s: New source file.
+
+2016-02-05  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/18695
+	* reloc.h (Relocate_functions::Address): New typedef.
+	(Relocate_functions::Addendtype): New typedef.
+	(Relocate_functions::Overflow_check): New enum type.
+	(Relocate_functions::Reloc_status): New enum type.
+	(Relocate_functions::check_overflow): New function template.
+	(Relocate_functions::rel): Add check parameter; check for overflow.
+	(Relocate_functions::rel_unaligned): Likewise.
+	(Relocate_functions::rela): Likewise.
+	(Relocate_functions::pcrel): Likewise.
+	(Relocate_functions::pcrel_unaligned): Likewise.
+	(Relocate_functions::pcrela): Likewise.
+	(Relocate_functions::rel8): Adjust parameter types.
+	(Relocate_functions::rela8): Likewise.
+	(Relocate_functions::pcrel8): Likewise.
+	(Relocate_functions::pcrela8): Likewise.
+	(Relocate_functions::rel16): Likewise.
+	(Relocate_functions::rela168): Likewise.
+	(Relocate_functions::pcrel16): Likewise.
+	(Relocate_functions::pcrela16): Likewise.
+	(Relocate_functions::rel32): Likewise.
+	(Relocate_functions::rel32_unaligned): Likewise.
+	(Relocate_functions::rela32): Likewise.
+	(Relocate_functions::pcrel32): Likewise.
+	(Relocate_functions::pcrel32_unaligned): Likewise.
+	(Relocate_functions::pcrela32): Likewise.
+	(Relocate_functions::rel8_check): New function.
+	(Relocate_functions::rela8_check): New function.
+	(Relocate_functions::pcrel8_check): New function.
+	(Relocate_functions::pcrela8_check): New function.
+	(Relocate_functions::rel16_check): New function.
+	(Relocate_functions::rela168_check): New function.
+	(Relocate_functions::pcrel16_check): New function.
+	(Relocate_functions::pcrela16_check): New function.
+	(Relocate_functions::rel32_check): New function.
+	(Relocate_functions::rel32_unaligned_check): New function.
+	(Relocate_functions::rela32_check): New function.
+	(Relocate_functions::pcrel32_check): New function.
+	(Relocate_functions::pcrel32_unaligned_check): New function.
+	(Relocate_functions::pcrela32_check): New function.
+	(Bits::has_unsigned_overflow32): New function.
+	(Bits::has_unsigned_overflow): New function.
+	* testsuite/Makefile.am (overflow_unittest): New test.
+	* testsuite/Makefile.in: Regenerate.
+	* testsuite/overflow_unittest.cc: New source file.
+
+2016-02-04  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (relocate): Adjust last patch for big-endian.
+
+2016-02-02  Alan Modra  <amodra@gmail.com>
+
+	* powerpc.cc (relocate): Further restrict ELFv2 entry optimization.
+
+2016-01-15 Han Shen  <shenhan@google.com>
+
+	PR gold/19472 - need pc-relative stubs.
+
+	* aarch64.cc (Reloc_stub::stub_type_for_reloc): Return PC-relative
+	stub type for DSOs and pie executables.
+
+2016-01-12  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* i386.cc (Target_i386::Classify_reloc::get_r_addend): Remove
+	'typename'.
+
+2016-01-12  Cary Coutant  <ccoutant@gmail.com>
+
+	* arm.cc (Target_arm::Classify_reloc::get_r_addend): New method.
+	* i386.cc (Target_i386::Classify_reloc::get_r_addend): New method.
+	* mips.cc (Target_arm::Mips_classify_reloc::get_r_addend): (Both
+	specializations) New method.
+
+2016-01-11  Cary Coutant  <ccoutant@gmail.com>
+
+	PR gold/19353
+	* aarch64.cc (Target_aarch64::relocate_tls): Don't insist that
+	we have a TLS segment for GD-to-IE optimization.
+	* i386.cc (Target_i386::tls_gd_to_ie): Remove tls_segment parameter.
+	Adjust all calls.
+	(Target_i386::tls_desc_gd_to_ie): Likewise.
+	(Target_i386::relocate_tls): Don't insist that we have a TLS segment
+	for TLSDESC GD-to-IE optimizations.
+	* x86_64.cc (Target_x86_64::tls_gd_to_ie): Remove tls_segment parameter.
+	Adjust all calls.
+	(Target_x86_64::tls_desc_gd_to_ie): Likewise.
+	(Target_x86_64::relocate_tls): Don't insist that we have a TLS segment
+	for TLSDESC GD-to-IE optimizations.
+
+2016-01-11  Cary Coutant  <ccoutant@gmail.com>
+
+	Refactor gold to enable support for MIPS-64 relocation format.
+
+	* gc.h (get_embedded_addend_size): Remove sh_type parameter.
+	(gc_process_relocs): Remove sh_type template parameter.
+	Use Classify_reloc to access r_sym, r_type, and r_addend fields.
+	* object.h (Sized_relobj_file::split_stack_adjust): Add target
+	parameter.
+	(Sized_relobj_file::split_stack_adjust_reltype): Likewise.
+	* reloc-types.h (Reloc_types::copy_reloc_addend): (SHT_REL and SHT_RELA
+	specializations) Remove.
+	* reloc.cc (Emit_relocs_strategy): Rename and move to target-reloc.h.
+	(Sized_relobj_file::emit_relocs_scan): Call Target::emit_relocs_scan().
+	(Sized_relobj_file::emit_relocs_scan_reltype): Remove.
+	(Sized_relobj_file::split_stack_adjust): Add target parameter.
+	Adjust all callers.
+	(Sized_relobj_file::split_stack_adjust_reltype): Likewise. Call
+	Target::get_r_sym() to get r_sym field from relocations.
+	(Track_relocs::next_symndx): Call Target::get_r_sym().
+	* target-reloc.h (scan_relocs): Remove sh_type template parameter;
+	add Classify_reloc template parameter.  Use for accessing r_sym and
+	r_type.
+	(relocate_section): Likewise.
+	(Default_classify_reloc): New class (renamed and moved from reloc.cc).
+	(Default_scan_relocatable_relocs): Remove sh_type template parameter.
+	(Default_scan_relocatable_relocs::Reltype): New typedef.
+	(Default_scan_relocatable_relocs::reloc_size): New const.
+	(Default_scan_relocatable_relocs::sh_type): New const.
+	(Default_scan_relocatable_relocs::get_r_sym): New method.
+	(Default_scan_relocatable_relocs::get_r_type): New method.
+	(Default_emit_relocs_strategy): New class.
+	(scan_relocatable_relocs): Replace sh_type template parameter with
+	Scan_relocatable_relocs class.  Use it to access r_sym and r_type
+	fields.
+	(relocate_relocs): Replace sh_type template parameter with
+	Classify_reloc class.  Use it to access r_sym and r_type fields.
+	* target.h (Target::is_call_to_non_split): Replace r_type parameter
+	with pointer to relocation. Adjust all callers.
+	(Target::do_is_call_to_non_split): Likewise.
+	(Target::emit_relocs_scan): New virtual method.
+	(Sized_target::get_r_sym): New virtual method.
+	* target.cc (Target::do_is_call_to_non_split): Replace r_type parameter
+	with pointer to relocation.
+
+	* aarch64.cc (Target_aarch64::emit_relocs_scan): New method.
+	(Target_aarch64::Relocatable_size_for_reloc): Remove.
+	(Target_aarch64::gc_process_relocs): Use Default_classify_reloc.
+	(Target_aarch64::scan_relocs): Likewise.
+	(Target_aarch64::relocate_section): Likewise.
+	(Target_aarch64::Relocatable_size_for_reloc::get_size_for_reloc):
+	Remove.
+	(Target_aarch64::scan_relocatable_relocs): Use Default_classify_reloc.
+	(Target_aarch64::relocate_relocs): Use Default_classify_reloc.
+	* arm.cc (Target_arm::Arm_scan_relocatable_relocs): Remove sh_type
+	template parameter.
+	(Target_arm::emit_relocs_scan): New method.
+	(Target_arm::Relocatable_size_for_reloc): Replace with...
+	(Target_arm::Classify_reloc): ...this.
+	(Target_arm::gc_process_relocs): Use Classify_reloc.
+	(Target_arm::scan_relocs): Likewise.
+	(Target_arm::relocate_section): Likewise.
+	(Target_arm::scan_relocatable_relocs): Likewise.
+	(Target_arm::relocate_relocs): Likewise.
+	* i386.cc (Target_i386::emit_relocs_scan): New method.
+	(Target_i386::Relocatable_size_for_reloc): Replace with...
+	(Target_i386::Classify_reloc): ...this.
+	(Target_i386::gc_process_relocs): Use Classify_reloc.
+	(Target_i386::scan_relocs): Likewise.
+	(Target_i386::relocate_section): Likewise.
+	(Target_i386::scan_relocatable_relocs): Likewise.
+	(Target_i386::relocate_relocs): Likewise.
+	* mips.cc (Mips_scan_relocatable_relocs): Remove sh_type template
+	parameter.
+	(Mips_reloc_types): New class template.
+	(Mips_classify_reloc): New class template.
+	(Target_mips::Reltype): New typedef.
+	(Target_mips::Relatype): New typedef.
+	(Target_mips::emit_relocs_scan): New method.
+	(Target_mips::get_r_sym): New method.
+	(Target_mips::Relocatable_size_for_reloc): Replace with
+	Mips_classify_reloc.
+	(Target_mips::copy_reloc): Use Mips_classify_reloc.
+	(Target_mips::gc_process_relocs): Likewise.
+	(Target_mips::scan_relocs): Likewise.
+	(Target_mips::relocate_section): Likewise.
+	(Target_mips::scan_relocatable_relocs): Likewise.
+	(Target_mips::relocate_relocs): Likewise.
+	(mips_get_size_for_reloc): New function, factored out from
+	Relocatable_size_for_reloc::get_size_for_reloc.
+	(Target_mips::Scan::local): Use Mips_classify_reloc.
+	(Target_mips::Scan::global): Likewise.
+	(Target_mips::Relocate::relocate): Likewise.
+	* powerpc.cc (Target_powerpc::emit_relocs_scan): New method.
+	(Target_powerpc::Relocatable_size_for_reloc): Remove.
+	(Target_powerpc::gc_process_relocs): Use Default_classify_reloc.
+	(Target_powerpc::scan_relocs): Likewise.
+	(Target_powerpc::relocate_section): Likewise.
+	(Powerpc_scan_relocatable_reloc): Convert to class template.
+	(Powerpc_scan_relocatable_reloc::Reltype): New typedef.
+	(Powerpc_scan_relocatable_reloc::reloc_size): New const.
+	(Powerpc_scan_relocatable_reloc::sh_type): New const.
+	(Powerpc_scan_relocatable_reloc::get_r_sym): New method.
+	(Powerpc_scan_relocatable_reloc::get_r_type): New method.
+	(Target_powerpc::scan_relocatable_relocs): Use
+	Powerpc_scan_relocatable_reloc.
+	(Target_powerpc::relocate_relocs): Use Default_classify_reloc.
+	* s390.cc (Target_s390::emit_relocs_scan): New method.
+	(Target_s390::Relocatable_size_for_reloc): Remove.
+	(Target_s390::gc_process_relocs): Use Default_classify_reloc.
+	(Target_s390::scan_relocs): Likewise.
+	(Target_s390::relocate_section): Likewise.
+	(Target_s390::Relocatable_size_for_reloc::get_size_for_reloc):
+	Remove.
+	(Target_s390::scan_relocatable_relocs): Use Default_classify_reloc.
+	(Target_s390::relocate_relocs): Use Default_classify_reloc.
+	* sparc.cc (Target_sparc::emit_relocs_scan): New method.
+	(Target_sparc::Relocatable_size_for_reloc): Remove.
+	(Target_sparc::gc_process_relocs): Use Default_classify_reloc.
+	(Target_sparc::scan_relocs): Likewise.
+	(Target_sparc::relocate_section): Likewise.
+	(Target_sparc::Relocatable_size_for_reloc::get_size_for_reloc):
+	Remove.
+	(Target_sparc::scan_relocatable_relocs): Use Default_classify_reloc.
+	(Target_sparc::relocate_relocs): Use Default_classify_reloc.
+	* tilegx.cc (Target_tilegx::emit_relocs_scan): New method.
+	(Target_tilegx::Relocatable_size_for_reloc): Remove.
+	(Target_tilegx::gc_process_relocs): Use Default_classify_reloc.
+	(Target_tilegx::scan_relocs): Likewise.
+	(Target_tilegx::relocate_section): Likewise.
+	(Target_tilegx::Relocatable_size_for_reloc::get_size_for_reloc):
+	Remove.
+	(Target_tilegx::scan_relocatable_relocs): Use Default_classify_reloc.
+	(Target_tilegx::relocate_relocs): Use Default_classify_reloc.
+	* x86_64.cc (Target_x86_64::emit_relocs_scan): New method.
+	(Target_x86_64::Relocatable_size_for_reloc): Remove.
+	(Target_x86_64::gc_process_relocs): Use Default_classify_reloc.
+	(Target_x86_64::scan_relocs): Likewise.
+	(Target_x86_64::relocate_section): Likewise.
+	(Target_x86_64::Relocatable_size_for_reloc::get_size_for_reloc):
+	Remove.
+	(Target_x86_64::scan_relocatable_relocs): Use Default_classify_reloc.
+	(Target_x86_64::relocate_relocs): Use Default_classify_reloc.
+
+	* testsuite/testfile.cc (Target_test::emit_relocs_scan): New method.
+
+2016-01-01  Alan Modra  <amodra@gmail.com>
+
+	Update year range in copyright notice of all files.
+
+For older changes see ChangeLog-0815
+
+Copyright (C) 2016 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

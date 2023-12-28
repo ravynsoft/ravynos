@@ -1,0 +1,21 @@
+
+.*\.x:     file format elf32-or1k
+
+
+Disassembly of section \.text:
+
+[0-9a-f]+ <test>:
+ +[0-9a-f]+:	9c 21 ff f8 	l\.addi r1,r1,-8
+ +[0-9a-f]+:	d4 01 80 00 	l\.sw 0\(r1\),r16
+ +[0-9a-f]+:	d4 01 48 04 	l\.sw 4\(r1\),r9
+ +[0-9a-f]+:	04 00 [0-9a-f]+ [0-9a-f]+ 	l\.jal [0-9a-f]+ <test\+0x14>
+ +[0-9a-f]+:	1a 00 00 00 	l\.movhi r16,0x0
+ +[0-9a-f]+:	aa 10 [0-9a-f]+ [0-9a-f]+ 	l\.ori r16,r16,0x[0-9a-f]+
+ +[0-9a-f]+:	e2 10 48 00 	l\.add r16,r16,r9
+ +[0-9a-f]+:	1a 20 00 00 	l\.movhi r17,0x0
+ +[0-9a-f]+:	e2 31 80 00 	l\.add r17,r17,r16
+ +[0-9a-f]+:	86 31 00 0c 	l\.lwz r17,12\(r17\)
+ +[0-9a-f]+:	85 21 00 04 	l\.lwz r9,4\(r1\)
+ +[0-9a-f]+:	86 01 00 00 	l\.lwz r16,0\(r1\)
+ +[0-9a-f]+:	44 00 48 00 	l\.jr r9
+ +[0-9a-f]+:	9c 21 00 08 	l\.addi r1,r1,8

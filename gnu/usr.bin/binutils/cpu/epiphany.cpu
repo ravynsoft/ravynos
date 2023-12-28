@@ -1,0 +1,2937 @@
+; Adapteva EPIPHANY CPU description. -*- Scheme -*-
+; Copyright 1998, 1999, 2000, 2001, 2003, 2006, 2007, 2008, 2009, 2010, 2011
+; Free Software Foundation, Inc.
+;
+; Contributed by Embecosm on behalf of Adapteva, Inc.
+; This file is part of the GNU Binutils and of GDB.
+;
+; This program is free software; you can redistribute it and/or modify
+; it under the terms of the GNU General Public License as published by
+; the Free Software Foundation; either version 3 of the License, or
+; (at your option) any later version.
+;
+; This program is distributed in the hope that it will be useful,
+; but WITHOUT ANY WARRANTY; without even the implied warranty of
+; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+; GNU General Public License for more details.
+;
+; You should have received a copy of the GNU General Public License
+; along with this program; if not, write to the Free Software
+; Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+; MA 02110-1301, USA.
+
+(include "simplify.inc")
+					; define-arch must appear first
+
+(define-arch
+  (name epiphany) ; name of cpu family
+  (comment "Adapteva, Inc. EPIPHANY family")
+  (default-alignment aligned)
+  (insn-lsb0? #t)
+
+					; - a 16/32 bit instruction machine (the default)
+
+  (machs epiphany32)
+  (isas epiphany)
+  )
+
+					; Attributes.
+
+(define-attr
+  (for insn)
+  (type boolean)
+  (name SHORT-INSN)
+  (comment "instruction is a 16 bit form")
+  )
+
+;; 3 bit add/sub immediate forms - useful for relaxing into 11 bit form
+(define-attr
+  (for insn)
+  (type boolean)
+  (name IMM3)
+  (comment "instruction has a 3 bit immediate form")
+  )
+
+;; 8 bit mov immediate forms - useful for relaxing into 16 bit form
+(define-attr
+  (for insn)
+  (type boolean)
+  (name IMM8)
+  (comment "instruction has a 8 bit immediate form")
+  )
+
+					; Instruction set parameters.
+
+(define-isa
+  (name epiphany)
+  (comment "Adapteva, Inc. EPIPHANY32 ISA")
+
+  (default-insn-word-bitsize 32)
+  (default-insn-bitsize 32)
+  (base-insn-bitsize 32)
+  (decode-assist (3 2 1 0))  ; CGEN can figure this out
+  (liw-insns 1)				; # instructions fetched at once
+  )
+
+					; Cpu family definitions.
+
+
+(define-cpu
+					; cpu names must be distinct from the architecture name and machine names.
+  (name epiphanybf)
+  (comment "Adapteva, Inc. EPIPHANY Family")
+  (endian little)
+  (word-bitsize 32)
+  )
+
+(define-cpu
+  (name epiphanymf)
+  (comment "Adapteva, Inc. EPIPHANY Family")
+  (endian little)
+  (word-bitsize 32)
+  )
+
+
+(define-mach
+  (name epiphany32)
+  (comment "Adapteva EPIPHANY")
+  (cpu epiphanybf)
+  )
+
+
+					; Model descriptions.
+
+(define-model
+  (name epiphany32) (comment "Adapteva EPIPHANY 32/16") (attrs)
+  (mach epiphany32)
+
+  (unit u-exec "Execution Unit" ()
+	1 1 ; issue done
+	() ; state
+	() ; inputs
+	() ; outputs
+	() ; profile action (default)
+	)
+  )
+
+
+
+					; Instruction fields.
+					;
+					; Attributes:
+					; XXX: what EPIPHANY attrs
+					; PCREL-ADDR: pc relative value (for reloc and disassembly purposes)
+					; ABS-ADDR: absolute address (for reloc and disassembly purposes?)
+					; RESERVED: bits are not used to decode insn, must be all 0
+					; RELOC: there is a relocation associated with this field
+
+(define-attr
+  (for ifield operand)
+  (type boolean)
+  (name RELOC)
+  (comment "there is a reloc associated with this field (experiment)")
+  )
+
+;; define the fields of the instruction.
+;;   name            description              ATTR  MSB LEN
+(dnf f-opc	  "primary opcode"	       ()     3 4)
+(dnf f-opc-4-1    "secondary opcode"           ()     4 1)
+(dnf f-opc-6-3    "secondary opcode"           ()     6 3) ;;
+(dnf f-opc-8-5    "tertiary opcode"            ()     8 5) ;;
+(dnf f-opc-19-4   "additional opcode bits"     ()    19 4)
+(dnf f-condcode   "condition codes" 	       ()     7 4)
+(dnf f-secondary-ccs "flag for secondary ccs"  ()     7 1)
+(dnf f-shift      "shift amount"               ()     9 5)
+(dnf f-wordsize   "load/store size"            ()     6 2)
+(dnf f-store      "load/store flag"            ()     4 1) ;; 0==load,1==store
+(dnf f-opc-8-1    "opcode bits"                ()     8 1)
+(dnf f-opc-31-32  "all opcode set"             ()     31 32)
+
+(df f-simm8	  "branch displacement"   (PCREL-ADDR RELOC) 15 8 INT
+    ((value pc) (sra SI (sub SI value pc) 1))
+    ((value pc) (add SI (mul SI value 2) pc)))
+
+(df f-simm24     "branch displacement"	  (PCREL-ADDR RELOC) 31 24 INT
+    ((value pc) (sra SI (sub SI value pc) 1))
+    ((value pc) (add SI (mul SI value 2) pc)))
+
+(df f-sdisp3     "signed immediate 3 bit"      ()     9 3  INT #f #f)
+
+(dnf f-disp3      "address offset"             ()     9 3)
+(dnf f-disp8      "address offset"             ()    23 8)
+
+(dnf f-imm8      "move/add/sub imm8"           ()    12 8)
+(dnf f-imm-27-8  "move/add/sub imm16"          ()    27 8)
+(dnf f-addsubx   "+/- index address"           ()    20 1)
+(dnf f-subd      "+/- displ address"           ()    24 1)
+(dnf f-pm        "post-modify immediate"       ()    25 1)
+
+(dnf f-rm        "short rm"                    ()     9 3)   ;; RM
+(dnf f-rn        "short rn"                    ()    12 3)   ;; RN
+(dnf f-rd        "short rd"                    ()    15 3)   ;; RD
+
+(dnf f-rm-x       "extension rm"               ()    25 3)   ;; RM
+(dnf f-rn-x       "extension rn"               ()    28 3)   ;; RN
+(dnf f-rd-x       "extension rd"               ()    31 3)   ;; RD
+
+(dnf f-dc-9-1     "DC"                 (RESERVED)     9 1)
+
+(dnf f-sn        "short sn"                    ()    12 3)   ;; SN
+(dnf f-sd        "short sd"                    ()    15 3)   ;; SD
+
+(dnf f-sn-x       "extension sn"               ()    28 3)   ;; SN
+(dnf f-sd-x       "extension sd"               ()    31 3)   ;; SD
+
+
+
+(dnf f-dc-7-4     "movts zeros"                 ()     7 4)
+(dnf f-trap-swi-9-1     "trap or swi"                 ()     9 1)
+(dnf f-gien-gidis-9-1     "gien or gidis"                 ()     9 1)
+
+
+(dnf f-dc-15-3    "DC"                 (RESERVED)    15 3)
+(dnf f-dc-15-7    "DC"                 (RESERVED)    15 7)
+(dnf f-dc-15-6    "DC"                 ()            15 6)
+(dnf f-trap-num   "trap number"                ()    15 6)
+
+(dnf f-dc-20-1    "DC"                 (RESERVED)    20 1)
+
+(dnf f-dc-21-1    "DC"                 (RESERVED)    21 1)
+(dnf f-dc-21-2    "DC"                 (RESERVED)    21 2)
+
+(dnf f-dc-22-3    "DC"                 (RESERVED)    22 3)
+(dnf f-dc-22-2    "DC"                 (RESERVED)    22 2)
+(dnf f-dc-22-1    "DC"                 (RESERVED)    22 1)
+
+(dnf f-dc-25-6    "DC"                 (RESERVED)    25 6)
+(dnf f-dc-25-4    "DC"                 (RESERVED)    25 4)
+(dnf f-dc-25-2    "DC"                 (RESERVED)    25 2)
+(dnf f-dc-25-1    "DC"                 (RESERVED)    25 1)
+
+(dnf f-dc-28-1    "DC"                 (RESERVED)    28 1)
+(dnf f-dc-31-3    "DC"                 (RESERVED)    31 3)
+
+(dnmf f-disp11 "Unsigned offset for load/store" () UINT (f-disp3 f-disp8)
+      (sequence ()
+		(set (ifield f-disp8) (and (srl (ifield f-disp11) 3) (const 255)))
+		(set (ifield f-disp3) (and (ifield f-disp11) 7)))
+      (sequence ()
+		(set (ifield f-disp11) (or (sll (ifield f-disp8) 3)
+					   (ifield f-disp3)))
+		)
+      )
+
+
+(dnmf f-sdisp11 "Signed offset for load/store" () INT (f-disp3 f-disp8)
+      (sequence ()			;encode
+		(set (ifield f-disp8) (and #xff (srl SI (ifield f-sdisp11) 3)))
+		(set (ifield f-disp3)  (and SI (ifield f-sdisp11) 7)))
+      (sequence ()			;decode
+		(set (ifield f-sdisp11)
+		     (sub SI (xor (and (or (sll (ifield f-disp8) 3)
+					   (ifield f-disp3))
+				       #x7ff)
+				  #x400)
+			  #x400)))
+      )
+
+(dnmf f-imm16 "Short immediate for move/add/sub" () UINT (f-imm8 f-imm-27-8)
+      (sequence ()
+		(set (ifield f-imm8) (and (ifield f-imm16) #xff))
+		(set (ifield f-imm-27-8) (srl (ifield f-imm16) 8)))
+      (sequence ()
+		(set (ifield f-imm16) (or (sll (ifield f-imm-27-8) 8)
+					  (ifield f-imm8))))
+      )
+
+
+;; 32 bit instructions have the register number broken into two non-contiguous fields
+
+(define-pmacro (x-reg-field reg)
+  (define-multi-ifield
+    (name (.sym "f-" reg "6"))
+    (mode UINT)
+    (subfields (.sym "f-" reg "-x") (.sym "f-" reg))
+    (insert (sequence ()
+		      (set (ifield (.sym "f-" reg))   (and (ifield (.sym "f-" reg "6"))
+							   (const 7)))
+		      (set (ifield (.sym "f-" reg "-x"))  (srl (ifield (.sym "f-" reg "6"))
+							       (const 3)))
+		      ))
+    (extract (sequence ()
+		       (set (ifield (.sym "f-" reg "6")) (or (sll (ifield (.sym "f-" reg "-x"))
+								  (const 3))
+							     (ifield (.sym "f-" reg))))
+		       ))
+    )
+  )
+
+(x-reg-field rd)			; f-rd6
+(x-reg-field rn)			; f-rn6
+(x-reg-field rm)			; f-rm6
+(x-reg-field sd)			; f-sd6
+(x-reg-field sn)			; f-sn6
+
+
+;;;;;;;;;;
+					; Enums. ;
+;;;;;;;;;;
+
+					; insn-opc: bits 3..0 - major family selector
+(define-normal-insn-enum insn-opc "opc enums" () OP4_ f-opc
+  (
+   BRANCH16  ;; 0000
+   LDSTR16X  ;; 0001
+   FLOW16    ;; 0010
+   IMM16     ;; 0011
+   LDSTR16D  ;; 0100
+   LDSTR16P  ;; 0101
+   LSHIFT16  ;; 0110 - logical shift
+   DSP16     ;; 0111 - 3 reg DSP 16 bit insns
+   BRANCH    ;; 1000
+   LDSTRX    ;; 1001
+   ALU16     ;; 1010 - 3 reg 16 bit
+   IMM32     ;; 1011
+   LDSTRD    ;; 1100
+   LDSTRP    ;; 1101
+   ASHIFT16  ;; 1110   ASR, BITR
+   MISC      ;; 1111 - 32 bit shifts, 3 reg ALU, 3 reg DSP, FLOW, BITR
+   )
+  )
+
+(define-normal-insn-enum insn-wordsize "memory access width" () OPW_ f-wordsize
+					; specifies the size of a memory load/store operation
+  (BYTE SHORT WORD DOUBLE)
+  )
+
+(define-normal-insn-enum insn-memory-access "memory access direction" () OP_ f-store
+					; load=0, store=1
+  (LOAD STORE)
+  )
+
+					; enum for trap codes used by simulator
+(define-normal-insn-enum trap-codes "trap instruction dispatch code" () TRAP_ f-trap-num
+  (write read open exit pass fail close other)
+  )
+
+					; cond branch: bits 7..4
+					;
+(define-normal-insn-enum insn-cond "branch conditions" () OPC_ f-condcode
+  (EQ NE GTU GTEU LTEU LTU GT GTE LT LTE BEQ BNE BLT BLTE B BL))
+
+					; dsp 3 operand opcodes
+(define-normal-insn-enum insn-bop "binary operator subcodes" () OPB_ f-opc-6-3
+  (EOR ADD LSL SUB LSR AND ASR ORR))
+
+					; dsp 3 operand opcodes
+(define-normal-insn-enum insn-bopext "binary operator subcodes" () OPBE_ f-opc-6-3
+  (FEXT FDEP LFSR - - - - -))
+
+
+(define-normal-insn-enum insn-fop "floating operators" () OPF_ f-opc-6-3
+  (ADD SUB MUL MADD MSUB FLOAT FIX FABS))
+
+(define-normal-insn-enum insn-fopexn "extended floating operators" () OPF_ f-opc-6-3
+  (FRECIP FSQRT - - - - - -))
+
+
+
+
+; Immediate operation secondary opcodes
+(define-normal-insn-enum insn-immop "immediate operators" () OPI_ f-opc-6-3
+  (- ADD - SUB - - - TRAP) ; TRAP is special extension for simulator
+  )
+
+					; don't care fields
+(define-normal-insn-enum insn-dc-25-2 "don't cares" () OPI_25_2_ f-dc-25-2
+  (MBZ))
+
+; General Register keyword names.
+(define-keyword
+  (name gr-names)
+  (print-name h-registers)
+  (prefix "")
+  (values
+; some preferred aliases
+   (fp 11) (sp 13) (lr 14)
+; the default register names
+   (r0  0)  (r1  1)  (r2  2)  (r3  3)  (r4  4)  (r5  5)  (r6  6)  (r7  7)
+   (r8  8)  (r9  9) (r10 10) (r11 11) (r12 12) (r13 13) (r14 14) (r15 15)
+   (r16 16) (r17 17) (r18 18) (r19 19) (r20 20) (r21 21) (r22 22) (r23 23)
+   (r24 24) (r25 25) (r26 26) (r27 27) (r28 28) (r29 29) (r30 30) (r31 31)
+   (r32 32) (r33 33) (r34 34) (r35 35) (r36 36) (r37 37) (r38 38) (r39 39)
+   (r40 40) (r41 41) (r42 42) (r43 43) (r44 44) (r45 45) (r46 46) (r47 47)
+   (r48 48) (r49 49) (r50 50) (r51 51) (r52 52) (r53 53) (r54 54) (r55 55)
+   (r56 56) (r57 57) (r58 58) (r59 59) (r60 60) (r61 61) (r62 62) (r63 63)
+; some less popular aliases
+   (a1  0) (a2  1) (a3  2) (a4  3) (v1  4) (v2  5) (v3  6) (v4  7)
+   (v5  8) (v6  9) (v7 10) (v8 11)
+   (sb 9) (sl 10) (ip 12)
+   )
+  )
+
+(define-normal-insn-enum post-index "+/- index register" () DIR_ f-addsubx (POSTINC POSTDEC))
+
+(define-normal-insn-enum disp-post-modify "postmodify displacement" () PMOD_ f-pm (DISP POST))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+					; Hardware pieces.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; 64 general-purpose registers
+(define-hardware
+  (name h-registers)
+  (comment "all addressable registers")
+  (type register SI (64))
+  (attrs PROFILE CACHE-ADDR)
+  (indices extern-keyword gr-names)
+  )
+
+
+
+;; Same 64 registers as floating point registers
+(define-hardware
+  (name h-fpregisters)
+  (comment "all GPRs as float values")
+  (type register SF (64))
+  (attrs PROFILE VIRTUAL)
+  (indices extern-keyword gr-names)
+  (get (index) (subword SF (reg h-registers index) 0))
+  (set (index newval) (set (reg h-registers index) (subword SI newval 0)))
+  )
+
+;; define processor status bits as physical hardware
+
+(define-pmacro (psw-h-bit name cmt)
+  (dsh name cmt () (register BI)))
+
+(psw-h-bit h-zbit "integer zero bit")
+(psw-h-bit h-nbit "integer neg bit")
+(psw-h-bit h-cbit "integer carry bit")
+(psw-h-bit h-vbit "integer overflow bit")
+(psw-h-bit h-vsbit "integer overflow sticky")
+
+
+(psw-h-bit h-bzbit "floating point zero bit")
+(psw-h-bit h-bnbit "floating point neg bit")
+(psw-h-bit h-bvbit "floating point ovfl bit")
+(psw-h-bit h-bubit "floating point underfl bit")
+(psw-h-bit h-bibit "floating point invalid bit")
+(psw-h-bit h-bcbit "floating point carry bit")
+
+(psw-h-bit h-bvsbit "floating point overflow sticky")
+(psw-h-bit h-bisbit  "floating point invalid sticky")
+(psw-h-bit h-busbit  "floating point underflow sticky")
+
+(psw-h-bit h-expcause0bit  "exceprion cause bit0")
+(psw-h-bit h-expcause1bit  "exceprion cause bit1")
+(psw-h-bit h-expcause2bit  "external load stalled bit")
+(psw-h-bit h-extFstallbit  "external fetch stalled bit")
+
+(psw-h-bit h-trmbit  "0=round to nearest, 1=trunacte select bit")
+(psw-h-bit h-invExcEnbit  "invalid exception enable bit")
+(psw-h-bit h-ovfExcEnbit  "overflow exception enable bit")
+(psw-h-bit h-unExcEnbit  "underflow exception enablebit ")
+
+(psw-h-bit h-timer0bit0  "timer 0 mode selection 0")
+(psw-h-bit h-timer0bit1  "timer 0 mode selection 1")
+(psw-h-bit h-timer0bit2  "timer 0 mode selection 2")
+(psw-h-bit h-timer0bit3  "timer 0 mode selection 3")
+(psw-h-bit h-timer1bit0  "timer 1 mode selection 0")
+(psw-h-bit h-timer1bit1  "timer 1 mode selection 1")
+(psw-h-bit h-timer1bit2  "timer 1 mode selection 2")
+(psw-h-bit h-timer1bit3  "timer 1 mode selection 3")
+
+(psw-h-bit h-mbkptEnbit  "multicore bkpt enable")
+(psw-h-bit h-clockGateEnbit  "clock gating enable bkpt enable")
+
+
+(psw-h-bit h-coreCfgResBit12 "core config bit 12")
+(psw-h-bit h-coreCfgResBit13 "core config bit 13")
+(psw-h-bit h-coreCfgResBit14 "core config bit 14")
+(psw-h-bit h-coreCfgResBit15 "core config bit 15")
+(psw-h-bit h-coreCfgResBit16 "core config bit 16")
+
+
+(psw-h-bit h-coreCfgResBit20 "core config bit 20")
+(psw-h-bit h-coreCfgResBit21 "core config bit 21")
+
+(psw-h-bit h-coreCfgResBit24 "core config bit 24")
+(psw-h-bit h-coreCfgResBit25 "core config bit 25")
+(psw-h-bit h-coreCfgResBit26 "core config bit 26")
+(psw-h-bit h-coreCfgResBit27 "core config bit 27")
+(psw-h-bit h-coreCfgResBit28 "core config bit 28")
+(psw-h-bit h-coreCfgResBit29 "core config bit 29")
+(psw-h-bit h-coreCfgResBit30 "core config bit 30")
+(psw-h-bit h-coreCfgResBit31 "core config bit 31")
+
+
+(psw-h-bit h-arithmetic-modebit0  "arithmetic mode bit0")
+(psw-h-bit h-arithmetic-modebit1  "arithmetic mode bit1")
+(psw-h-bit h-arithmetic-modebit2  "arithmetic mode bit2")
+
+
+(psw-h-bit h-gidisablebit "global interrupt disable bit")
+(psw-h-bit h-kmbit "kernel mode bit")
+(psw-h-bit h-caibit "core active indicator mode bit")
+(psw-h-bit h-sflagbit "sflag bit")
+
+
+					; Define operands for each of the physical bits
+(define-pmacro (psw-bit name hname cmt)
+  (dnop name cmt (SEM-ONLY) hname f-nil)
+  )
+
+(psw-bit zbit h-zbit "integer zero bit")
+(psw-bit nbit h-nbit "integer neg bit")
+(psw-bit cbit h-cbit "integer carry bit")
+(psw-bit vbit h-vbit "integer overflow bit")
+
+(psw-bit bzbit  h-bzbit "floating point zero bit")
+(psw-bit bnbit  h-bnbit "floating point neg bit")
+(psw-bit bvbit  h-bvbit "floating point ovfl bit")
+(psw-bit bcbit  h-bcbit "floating point carry bit")
+
+(psw-bit bubit h-bubit "floating point underfl bit")
+(psw-bit bibit h-bibit "floating point invalid bit")
+
+
+(psw-bit vsbit  h-vsbit  "integer overflow sticky")
+(psw-bit bvsbit h-bvsbit "floating point overflow sticky")
+(psw-bit bisbit  h-bisbit  "floating point invalid sticky")
+(psw-bit busbit  h-busbit  "floating point underflow sticky")
+(psw-bit expcause0bit h-expcause0bit  "exceprion cause bit0")
+(psw-bit expcause1bit h-expcause1bit  "exceprion cause bit1")
+
+
+(psw-bit expcause2bit  h-expcause2bit  "external load stalled bit")
+(psw-bit extFstallbit  h-extFstallbit  "external fetch stalled bit")
+
+(psw-bit trmbit  h-trmbit  "0=round to nearest, 1=trunacte selct bit")
+(psw-bit invExcEnbit  h-invExcEnbit  "invalid exception enable bit")
+(psw-bit ovfExcEnbit  h-ovfExcEnbit  "overflow exception enable bit")
+(psw-bit unExcEnbit  h-unExcEnbit  "underflow exception enable bit")
+
+(psw-bit timer0bit0  h-timer0bit0  "timer 0 mode selection 0")
+(psw-bit timer0bit1  h-timer0bit1  "timer 0 mode selection 1")
+(psw-bit timer0bit2  h-timer0bit2  "timer 0 mode selection 2")
+(psw-bit timer0bit3  h-timer0bit3  "timer 0 mode selection 3")
+
+(psw-bit timer1bit0  h-timer1bit0  "timer 1 mode selection 0")
+(psw-bit timer1bit1  h-timer1bit1  "timer 1 mode selection 1")
+(psw-bit timer1bit2  h-timer1bit2  "timer 1 mode selection 2")
+(psw-bit timer1bit3  h-timer1bit3  "timer 1 mode selection 3")
+
+(psw-bit mbkptEnbit  h-mbkptEnbit "multicore bkpt enable")
+(psw-bit clockGateEnbit  h-clockGateEnbit "clock gate enable enable")
+
+(psw-bit arithmetic-modebit0  h-arithmetic-modebit0  "arithmetic mode bit0")
+(psw-bit arithmetic-modebit1  h-arithmetic-modebit1  "arithmetic mode bit1")
+(psw-bit arithmetic-modebit2  h-arithmetic-modebit2  "arithmetic mode bit2")
+
+(psw-bit coreCfgResBit12  h-coreCfgResBit12 "core config bit 12")
+(psw-bit coreCfgResBit13  h-coreCfgResBit13 "core config bit 13")
+(psw-bit coreCfgResBit14  h-coreCfgResBit14 "core config bit 14")
+(psw-bit coreCfgResBit15  h-coreCfgResBit15 "core config bit 15")
+(psw-bit coreCfgResBit16  h-coreCfgResBit16 "core config bit 16")
+
+(psw-bit coreCfgResBit20  h-coreCfgResBit20 "core config bit 20")
+(psw-bit coreCfgResBit21  h-coreCfgResBit21 "core config bit 21")
+
+(psw-bit coreCfgResBit24  h-coreCfgResBit24 "core config bit 24")
+(psw-bit coreCfgResBit25  h-coreCfgResBit25 "core config bit 25")
+(psw-bit coreCfgResBit26  h-coreCfgResBit26 "core config bit 26")
+(psw-bit coreCfgResBit27  h-coreCfgResBit27 "core config bit 27")
+(psw-bit coreCfgResBit28  h-coreCfgResBit28 "core config bit 28")
+(psw-bit coreCfgResBit29  h-coreCfgResBit29 "core config bit 29")
+(psw-bit coreCfgResBit30  h-coreCfgResBit30 "core config bit 30")
+(psw-bit coreCfgResBit31  h-coreCfgResBit31 "core config bit 31")
+
+
+(psw-bit gidisablebit h-gidisablebit "global interrupt disable bit")
+(psw-bit kmbit h-kmbit "kernel mode bit")
+(psw-bit caibit h-caibit "core actibe indicator bit")
+(psw-bit sflagbit h-sflagbit "sflag bit")
+
+
+
+
+;; Special registers - accessed via MOVTS and MOVFS.
+;;
+;;  "Core control and status" in group MR0=0, MR1=0
+
+(define-keyword
+  (name cr-names)
+  (print-name h-core-registers)
+  (prefix "")
+  (values  (config         0)
+	   (status         1) ; unified condition codes
+	   (pc             2) ; virtualized PC
+	   (debug          3);
+	   (iab            4)
+	   (lc             5);loop counter            Not impemented
+	   (ls             6);loop start address      Not impemented
+	   (le             7);loop end address        Not impemented
+	   (iret           8)
+	   (imask          9)
+	   (ilat           10)
+	   (ilatst         11)
+	   (ilatcl         12)
+	   (ipend          13)
+	   (ctimer0        14)
+	   (ctimer1        15)
+	   (hstatus        16)
+	   )
+  )
+;; DMA registers in group MR0=1, MR1=0
+
+(define-keyword
+  (name crdma-names)
+  (print-name h-coredma-registers)
+  (prefix "")
+  (values
+
+
+   (dma0config     0)
+   (dma0stride     1)
+   (dma0count      2)
+
+   (dma0srcaddr    3)
+   (dma0dstaddr    4)
+
+   (dma0auto0      5)
+   (dma0auto1      6)
+
+   (dma0status     7)
+
+   (dma1config     8)
+   (dma1stride     9)
+   (dma1count      10)
+
+   (dma1srcaddr    11)
+   (dma1dstaddr    12)
+
+   (dma1auto0      13)
+   (dma1auto1      14)
+
+   (dma1status     15)
+
+   )
+  )
+;; mem configuration registers in group MR0=0, MR1=1
+
+(define-keyword
+  (name crmem-names)
+  (print-name h-coremem-registers)
+  (prefix "")
+  (values
+   (memconfig     0)
+   (memstatus     1)
+   (memprotect    2)
+   (memreserve    3)
+   )
+  )
+
+;; mesh configuration registers in group MR0=1, MR1=1
+
+(define-keyword
+  (name crmesh-names)
+  (print-name h-coremesh-registers)
+  (prefix "")
+
+  (values
+
+
+   (meshconfig    0)
+   (coreid    1)
+   (meshmulticast 2)
+   (swreset   3)
+   )
+  )
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+					; PC is a byte-addressed register
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(dnh h-pc "program counter" (PC PROFILE) (pc) () () ())
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+					; Memory Effective Address wants to be visible
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(dnh h-memaddr "memory effective address" (PROFILE) (register SI) () () ())
+(dnop memaddr "memory effective address" (SEM-ONLY) h-memaddr f-nil)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+					; Special Core Registers
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; STATUS
+;; [0]=core active indicator
+;; [1]=global interrupt disable
+;; [2]=processor mode(1=user mode, 0=kernel mode)
+;; [3]=wired AND global flag
+
+;; [4]=integer zero                        zbit
+;; [5]=integer negative                    nbit
+;; [6]=integer carry                       cbit
+;; [7]=integer overflow                    vbit
+
+;; [8]=fpu zero flag                       bzbit
+;; [9]=fpu negative flag                   bnbit
+;; [10]=fpu overflow flag                  bvbit
+;; [11]=fpu carry flag(not used)           bcbit
+
+;; [12]=ialu overflow flag(sticky)         vsbit
+;; [13]=fpu invalid flag(sticky)           bisbit
+;; [14]=fpu overflow flag(sticky)          bvsbit
+;; [15]=fpu underflow flag(sticky)         busbit
+
+;; [17:16]=exception cause 00=no exception 01=load-store exception 10=fpu exception 11=unimplemented instruction
+;;                                         expcause1bit
+;;                                         expcause0bit
+
+;; [18]=external load stalled              expcause2bit
+;; [19]=external fetch stalled             extFstallbit
+
+;; [31:20]=RESERVED
+
+
+
+
+
+(define-hardware
+  (name h-core-registers)
+  (comment "Special Core Registers")
+  (type register USI (17))
+  (attrs)
+  (indices extern-keyword cr-names)
+  (get (index)
+       (cond USI
+	 ((eq index (const 1)) ; STATUS reg ?
+	  (or (or (or (or (sll USI kmbit (const 2))
+			  (sll USI gidisablebit (const 1)))
+		      (or (or (sll USI expcause1bit (const 17))
+			      (sll USI expcause0bit (const 16)))
+			  (or (sll USI expcause2bit (const 18))
+			      (sll USI extFstallbit (const 19)))))
+		  (or (or (or (sll USI busbit (const 15))
+			      (sll USI bisbit (const 13)))
+			  (or (sll USI bvsbit (const 14))
+			      (sll USI vsbit (const 12))))
+		      (or (or (sll USI bvbit (const 10))
+			      (sll USI bcbit (const 11)))
+			  (or (sll USI bnbit (const 9))
+			      (sll USI bzbit (const 8))))))
+	      (or (or (or (sll USI vbit (const 7))
+			  (sll USI cbit (const 6)))
+		      (or (sll USI nbit (const 5))
+			  (sll USI zbit (const 4))))
+		  (or (sll USI sflagbit (const 3))
+		      (sll USI (const 1) (const 0)))))) ;caibit
+	 ((eq index (const 0)) ; Config reg ?
+	  (or (or (or (or (or (or (sll USI timer0bit2 (const 6))
+				  (sll USI timer0bit3 (const 7)))
+			      (or (or (sll USI coreCfgResBit28 (const 28))
+				      (sll USI coreCfgResBit29 (const 29)))
+				  (or (sll USI coreCfgResBit30 (const 30))
+				      (sll USI coreCfgResBit31 (const 31)))))
+			  (or (or (sll USI coreCfgResBit24 (const 24))
+				  (sll USI coreCfgResBit25 (const 25)))
+			      (or (sll USI coreCfgResBit26 (const 26))
+				  (sll USI coreCfgResBit27 (const 27)))))
+		      (or (or (sll USI timer0bit0 (const 4))
+			      (sll USI timer0bit1 (const 5)))
+			  (or (sll USI coreCfgResBit14 (const 14))
+			      (sll USI coreCfgResBit15 (const 15)))))
+		  (or (or (or (or (sll USI timer1bit2 (const 10))
+				  (sll USI timer1bit3 (const 11)))
+			      (or (sll USI coreCfgResBit12 (const 12))
+				  (sll USI coreCfgResBit13 (const 13))))
+			  (or (sll USI clockGateEnbit (const 22))
+			      (sll USI mbkptEnbit (const 23))))
+		      (or (or (sll USI timer1bit0 (const 8))
+			      (sll USI timer1bit1 (const 9)))
+			  (or (sll USI coreCfgResBit20 (const 20))
+			      (sll USI coreCfgResBit21 (const 21))))))
+	      (or (or (sll USI invExcEnbit (const 1))
+		      (sll USI ovfExcEnbit (const 2)))
+		  (or (or (sll USI trmbit (const 0))
+			  (sll USI unExcEnbit (const 3)))
+		      (or (or (sll USI arithmetic-modebit0 (const 17))
+			      (sll USI arithmetic-modebit1 (const 18)))
+			  (or (sll USI arithmetic-modebit2 (const 19))
+			      (sll USI coreCfgResBit16 (const 16)))))))) ;config reg
+
+	 ((eq index (const 2)) (raw-reg USI h-pc)) ;PC reg
+
+	 (else (raw-reg USI h-core-registers index))))
+
+  (set (index val)
+       (cond VOID
+	 ((eq index (const 0)) ; CONFIG reg
+	  (sequence ()
+	    (set trmbit      (and (const 1) (srl val (const 0))))
+	    (set invExcEnbit (and (const 1) (srl val (const 1))))
+	    (set ovfExcEnbit (and (const 1) (srl val (const 2))))
+	    (set unExcEnbit  (and (const 1) (srl val (const 3))))
+	    (set timer0bit0  (and (const 1) (srl val (const 4))))
+	    (set timer0bit1  (and (const 1) (srl val (const 5))))
+	    (set timer0bit2  (and (const 1) (srl val (const 6))))
+	    (set timer0bit3  (and (const 1) (srl val (const 7))))
+	    (set timer1bit0  (and (const 1) (srl val (const 8))))
+	    (set timer1bit1  (and (const 1) (srl val (const 9))))
+	    (set timer1bit2  (and (const 1) (srl val (const 10))))
+	    (set timer1bit3  (and (const 1) (srl val (const 11))))
+
+	    (set coreCfgResBit12 (and (const 1) (srl val (const 12))))
+	    (set coreCfgResBit13 (and (const 1) (srl val (const 13))))
+	    (set coreCfgResBit14 (and (const 1) (srl val (const 14))))
+	    (set coreCfgResBit15 (and (const 1) (srl val (const 15))))
+	    (set coreCfgResBit16 (and (const 1) (srl val (const 16))))
+
+	    (set arithmetic-modebit0 (and (const 1) (srl val (const 17))))
+	    (set arithmetic-modebit1 (and (const 1) (srl val (const 18))))
+	    (set arithmetic-modebit2 (and (const 1) (srl val (const 19))))
+
+	    (set coreCfgResBit20 (and (const 1) (srl val (const 20))))
+	    (set coreCfgResBit21 (and (const 1) (srl val (const 21))))
+
+	    (set clockGateEnbit  (and (const 1) (srl val (const 22))))
+	    (set mbkptEnbit      (and (const 1) (srl val (const 23))))
+
+	    (set coreCfgResBit24 (and (const 1) (srl val (const 24))))
+	    (set coreCfgResBit25 (and (const 1) (srl val (const 25))))
+	    (set coreCfgResBit26 (and (const 1) (srl val (const 26))))
+	    (set coreCfgResBit27 (and (const 1) (srl val (const 27))))
+	    (set coreCfgResBit28 (and (const 1) (srl val (const 28))))
+	    (set coreCfgResBit29 (and (const 1) (srl val (const 29))))
+	    (set coreCfgResBit30 (and (const 1) (srl val (const 30))))
+	    (set coreCfgResBit31 (and (const 1) (srl val (const 31))))
+
+	    (set (raw-reg USI h-core-registers index) val)
+	    ;; check LSB of CONFIG for rounding mode
+	    (c-call "epiphany_set_rounding_mode" val)
+	  )
+	 )
+	 ((eq index (const 1))	;STATUS reg ; TODO check which bits can be set or clear
+	  (sequence ((USI newval))
+	    (set newval (and val (const #xfff2)))
+	    (set extFstallbit  (and (const 1) (srl newval (const 19))))
+	    (set expcause2bit  (and (const 1) (srl newval (const 18))))
+	    (set expcause1bit  (and (const 1) (srl newval (const 17))))
+	    (set expcause0bit  (and (const 1) (srl newval (const 16))))
+	    (set busbit (and (const 1) (srl newval (const 15))))
+	    (set bisbit (and (const 1) (srl newval (const 13))))
+	    (set bvsbit (and (const 1) (srl newval (const 14))))
+	    (set vsbit  (and (const 1) (srl newval (const 12))))
+	    (set bvbit  (and (const 1) (srl newval (const 10))))
+	    (set bcbit  (and (const 1) (srl newval (const 11))))
+	    (set bnbit  (and (const 1) (srl newval (const 9))))
+	    (set bzbit  (and (const 1) (srl newval (const 8))))
+	    (set vbit   (and (const 1) (srl newval (const 7))))
+	    (set cbit   (and (const 1) (srl newval (const 6))))
+	    (set nbit   (and (const 1) (srl newval (const 5))))
+	    (set zbit   (and (const 1) (srl newval (const 4))))
+	    (set sflagbit (and (const 1) (srl newval (const 3))))
+	    (set kmbit  (and (const 1) (srl newval (const 2))))
+	    ;;(set gie    (and (const 1) (srl newval (const 1))))
+	    (set (raw-reg SI h-core-registers (const 1)) newval)
+	   ))
+	 ;; causes simulator errors
+	 ;;	     ((eq index (const 2))	;PC reg
+	 ;;	      (set pc val))
+
+	 (else (set (raw-reg USI h-core-registers index) val))
+       ))
+)
+					; (define-pmacro (hcr-config) (reg h-core-registers 0)) etc.
+(.splice begin (.unsplice (.map
+			   (.pmacro (xname xnum)
+				    (define-pmacro ((.sym hcr- xname)) (reg h-core-registers xnum)))
+
+			   (
+			    config
+			    status
+			    pc
+			    debug
+			    iab
+			    lc
+			    ls
+			    le
+			    iret
+			    imask
+			    ilat
+			    ilatst
+			    ilatcl
+			    ipend
+			    ctimer0
+			    ctimer1
+			    hstatus
+
+
+
+			    )
+
+			   (0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16
+			      )
+			   )))
+
+
+
+;; DMA registers in MMR space
+(define-hardware
+  (name h-coredma-registers)
+  (comment "DMA registers in MMR space")
+  (type register USI (16))
+  (attrs)
+  (indices extern-keyword crdma-names)
+  )
+
+;; MEM registers in MMR space
+(define-hardware
+  (name h-coremem-registers)
+  (comment "MEM registers in MMR space")
+  (type register USI (4))
+  (attrs)
+  (indices extern-keyword crmem-names)
+  )
+
+;; MEM registers in MMR space
+(define-hardware
+  (name h-coremesh-registers)
+  (comment "MESH registers in MMR space")
+  (type register USI (4))
+  (attrs)
+  (indices extern-keyword crmesh-names)
+  )
+
+
+
+					; Operands
+
+					; Branch displacements
+(define-operand
+  (name simm24)
+  (comment "branch address pc-relative")
+  (attrs RELAX)
+  (type h-iaddr)
+  (index f-simm24)
+  (handlers (parse "branch_addr")))
+
+(define-operand
+  (name simm8)
+  (comment "branch address pc-relative")
+  (attrs RELAX)
+  (type h-iaddr)
+  (index f-simm8)
+  (handlers (parse "branch_addr")))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+					; Register operands
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-pmacro (short-regs nm group hw cmt)
+  (define-operand
+    (name nm)
+    (comment cmt)
+    (attrs)
+    (type hw)
+    (index (.sym "f-r" group))
+    (handlers (parse "shortregs") (print "keyword"))
+    )
+  )
+
+(define-pmacro (short-regs-core nm group hw cmt)
+  (define-operand
+    (name nm)
+    (comment cmt)
+    (attrs)
+    (type hw)
+    (index (.sym "f-s" group))
+    (handlers (parse "shortregs") (print "keyword"))
+    )
+  )
+
+
+					; short regs (0-7)
+(short-regs rd d h-registers "destination register")
+(short-regs rn n h-registers "source register")
+(short-regs rm m h-registers "source register")
+
+(short-regs frd d h-fpregisters "fp destination register")
+(short-regs frn n h-fpregisters "fp source register")
+(short-regs frm m h-fpregisters "fp source register")
+
+					; long regs (0-63)
+(dnop rd6 "destination register" () h-registers f-rd6)
+(dnop rn6 "source register"      () h-registers f-rn6)
+(dnop rm6 "source register"      () h-registers f-rm6)
+
+(dnop frd6 "fp destination register" () h-fpregisters f-rd6)
+(dnop frn6 "fp source register"      () h-fpregisters f-rn6)
+(dnop frm6 "fp source register"      () h-fpregisters f-rm6)
+
+					; special regs (0-7)
+(short-regs-core sd d h-core-registers "special destination")
+(short-regs-core sn n h-core-registers "special source")
+
+					; special regs (long form)
+(dnop sd6 "special destination register" () h-core-registers f-sd6)
+(dnop sn6 "special source register"      () h-core-registers f-sn6)
+
+(dnop sddma "dma register" () h-coredma-registers f-sd6)
+(dnop sndma "dma register"      () h-coredma-registers f-sn6)
+(dnop sdmem "mem register" () h-coremem-registers f-sd6)
+(dnop snmem "mem register"      () h-coremem-registers f-sn6)
+(dnop sdmesh "mesh register" () h-coremesh-registers f-sd6)
+(dnop snmesh "mesh register"      () h-coremesh-registers f-sn6)
+
+					; Immediate literals - but don't allow register names!
+(define-pmacro (dimmop nm cmt hwtype idx)
+  (define-operand (name nm) (comment cmt) (type hwtype) (index idx)
+    (attrs RELAX)
+    (handlers (parse "simm_not_reg")
+	      (print "simm_not_reg")))
+  )
+
+(dimmop simm3   "signed 3-bit literal"    h-sint f-sdisp3)
+(dimmop simm11  "signed 11-bit literal"   h-sint f-sdisp11)
+(dnop disp3  "short data displacement"   () h-uint f-disp3)
+(dnop trapnum6 "parameter for swi or trap" () h-uint f-trap-num)
+
+(define-pmacro (duimmop nm cmt hwtype idx)
+  (define-operand (name nm) (comment cmt) (type hwtype) (index idx)
+    (attrs)
+    (handlers (parse "uimm_not_reg")
+	      (print "uimm_not_reg")))
+  )
+
+(duimmop swi_num "unsigned 6-bit swi#" h-uint f-trap-num)
+(duimmop disp11 "sign-magnitude data displacement" h-uint f-disp11)
+
+(dnop shift   "immediate shift amount"   () h-uint f-shift)
+
+(define-operand (name imm16) (comment "16-bit unsigned literal") (attrs RELAX)
+  (type h-addr) (index f-imm16) (handlers (parse "imm16")))
+(define-operand (name imm8) (comment "8-bit unsigned literal") (attrs RELAX)
+  (type h-addr) (index f-imm8) (handlers (parse "imm8")))
+
+(define-operand
+  (name direction)
+  (comment "+/- indexing")
+  (attrs)
+  (type h-uint)
+  (index f-addsubx)
+  (handlers (parse "postindex")
+	    (print "postindex")))
+
+(define-operand
+  (name dpmi)
+  (comment "+/- magnitude immediate displacement")
+  (attrs)
+  (type h-uint)
+  (index f-subd)
+  (handlers (parse "postindex")
+	    (print "postindex")))
+
+
+
+;; call exception macro - no check for imask
+(define-pmacro (call-exception vaddr bit-in-ilat)
+  (if (eq gidisablebit 0)
+      (if (eq (and (hcr-imask) bit-in-ilat) 0)
+	  (sequence ()
+		    (set kmbit 1)
+		    (set gidisablebit 1)
+		    (set (hcr-iret) (add pc (const 2)))
+		    (set (hcr-ipend) (or (hcr-ipend) (const bit-in-ilat)))
+		    (set pc (const vaddr))
+
+		    )
+	  ;; schedule interrupt
+	  (set (hcr-ilat) (or (hcr-ilat) (const  bit-in-ilat)))
+	  )
+      )
+  )
+
+
+;;      (lc             5);loop counter            Not impemented
+;;       (ls             6);loop start address      Not impemented
+;;       (le             7);loop end address        Not impemented
+
+;;have callback to adjust pc in case od events ( HW loops ... )
+(define-pmacro (dni_wrapper isnid stdrdesc attr_ strassembl iopcode proceed null_b)
+  (begin
+    (dni isnid stdrdesc attr_ strassembl iopcode
+	 (sequence () proceed
+		   (sequence ((USI tmpPC))
+			     ;;(set tmpPC  (c-call  USI "epiphany_post_isn_callback" pc))
+
+			     (if (eq pc (hcr-le))
+				 (set (hcr-lc) (sub (hcr-lc) #x1)))
+			     (if (and
+				   (eq pc (hcr-le))
+				   (not (eq (hcr-lc) #x0)))
+				 (set pc (hcr-ls)))
+			     )
+		   )
+	 null_b)
+    )
+  )
+
+
+
+
+
+;; Some handy macros
+;;
+
+;; define instructions
+;;   Short (16 bit forms) must appear first so that instruction
+;;   selection can reject them and match long forms when registers
+;;   or immediates exceed the values in the 16 bit instructions
+
+
+;; B<COND> SIMM8
+;; B<COND> SIMM24
+
+(define-pmacro (br-insn name cond g-op)
+  (begin
+					; the 16-bit versions of branch
+    (dni (.sym "b" name "16")
+	 (.str "Conditional Branch - 16 bit" name)
+	 (COND-CTI SHORT-INSN)
+	 (.str "b" name ".s $simm8")
+	 (+ OP4_BRANCH16 (.sym "OPC_" cond) simm8)
+	 (if (g-op)
+	     (set pc simm8)
+	     )
+	 ()
+	 )
+
+    (dnmi (.sym "b" name "16r") "relaxable conditional branch"
+	  (COND-CTI RELAXABLE)
+	  (.str "b" name " $simm8")
+	  (emit (.sym "b" name "16") simm8)
+	  )
+
+    (dni (.sym "b" name)
+	 (.str "Conditional Branch " name)
+	 (COND-CTI)
+	 (.str "b" name ".l $simm24")
+	 (+ OP4_BRANCH (.sym "OPC_" cond) simm24)
+	 (if (g-op)
+	     (set pc simm24)
+	     )
+	 ()
+	 )
+
+    (dnmi (.sym "b" name "32r") "relaxable conditional branch"
+	  (COND-CTI RELAXED)
+	  (.str "b" name " $simm24")
+	  (emit (.sym "b" name) simm24)
+	  )
+    )
+  )
+
+
+					; basic conditional branches for integer arithmetic
+(br-insn "eq"	 EQ	(.pmacro () (eq zbit #x1)))
+(br-insn "ne"	 NE	(.pmacro () (eq zbit #x0)))
+(br-insn "gtu"   GTU	(.pmacro () (and BI cbit (not BI zbit))))
+(br-insn "gteu"  GTEU	(.pmacro () (eq cbit #x1)))
+(br-insn "lteu"  LTEU	(.pmacro () (or BI (not BI cbit) zbit)))
+(br-insn "ltu"   LTU	(.pmacro () (eq cbit #x0)))
+(br-insn "gt"	 GT	(.pmacro () (and BI (not BI zbit) (eq vbit nbit))))
+(br-insn "gte"   GTE	(.pmacro () (eq vbit nbit)))
+(br-insn "lt"	 LT	(.pmacro () (xor BI vbit nbit)))
+(br-insn "lte"   LTE	(.pmacro () (or BI zbit (xor vbit nbit))))
+
+
+					; floating point condition codes (floating point instructions)
+(br-insn "beq"   BEQ    (.pmacro () (or BI bzbit bzbit)))
+(br-insn "bne"   BNE    (.pmacro () (not BI bzbit)))
+(br-insn "blt"   BLT    (.pmacro () (and BI bnbit (not bzbit))))
+(br-insn "blte"  BLTE   (.pmacro () (or BI bnbit bzbit)))
+
+					; unconditional branches
+(dni b16 "short unconditional branch" (UNCOND-CTI SHORT-INSN)
+     "b.s $simm8"
+     (+ OP4_BRANCH16 OPC_B simm8)
+     (set pc simm8)
+     ()
+     )
+
+(dnmi b16r "relaxable b16"
+      (UNCOND-CTI RELAXABLE)
+      "b $simm8"
+      (emit b16 simm8)
+      )
+
+(dni b "long unconditional branch" (UNCOND-CTI)
+     "b.l $simm24"
+     (+ OP4_BRANCH OPC_B simm24)
+     (set pc simm24)
+     ()
+     )
+
+(dnmi b32r "relaxable b"
+      (UNCOND-CTI RELAXED)
+      "b $simm24"
+      (emit b simm24))
+
+;; BL R,ADDR
+
+(dni bl16 "branch and link"
+     (UNCOND-CTI SHORT-INSN)
+     ("bl.s $simm8")
+     (+ OP4_BRANCH16 OPC_BL simm8)
+     (sequence ()
+	       (set (reg h-registers 14) (add pc (const 2)))
+	       (set pc simm8))
+     ()
+     )
+
+(dnmi bl16r "bl16 relaxable"
+      (UNCOND-CTI RELAXABLE)
+      "bl $simm8"
+      (emit bl16 simm8))
+
+(dni bl "branch and link"
+     (UNCOND-CTI)
+     ("bl.l $simm24")
+     (+ OP4_BRANCH OPC_BL simm24)
+     (sequence ()
+	       (set (reg h-registers 14) (add pc (const 4)))
+	       (set pc simm24))
+     ()
+     )
+
+(dnmi blr "bl relaxable"
+      (UNCOND-CTI RELAXED)
+      "bl $simm24"
+      (emit bl simm24))
+
+;; JUMP <RN>
+(dni jr16 "unconditional jump 16"
+     (UNCOND-CTI SHORT-INSN)
+     ("jr $rn")
+     (+ OP4_FLOW16 (f-opc-8-5 #x14) (f-dc-15-3 #x0) (f-dc-9-1 #x0) rn)
+     (set pc rn)
+     ()
+     )
+
+;; RTS / JR
+;; ??? Putting a constant into a multi-ifield does not work -
+;; the constant gets inserted in full into each part.
+					;(dnmi rts "return from subroutine"
+					;     (UNCOND-CTI)
+					;     ("rts")
+					;     (emit jr (rn6 14)) ; jr lr  / jr r14
+					;)
+;; RTS / JR
+(dni rts "return from subroutine"
+     (ALIAS UNCOND-CTI)
+     ("rts")
+     (+ OP4_MISC (f-opc-8-5 #x14) (f-opc-19-4 #x2) (f-rn 6) (f-rn-x 1)
+	(f-dc-9-1 #x0)
+	(f-dc-15-3 #x0)
+	(f-dc-25-6 #x0)
+	(f-dc-31-3 #x0)
+	)
+     (set pc (reg h-registers 14))
+     ()
+     )
+
+(dni jr "unconditional jump"
+     (UNCOND-CTI)
+     ("jr $rn6")
+     (+ OP4_MISC (f-opc-8-5 #x14) (f-opc-19-4 #x2) rn6
+	(f-dc-9-1 #x0)
+	(f-dc-15-3 #x0)
+	(f-dc-25-6 #x0)
+	(f-dc-31-3 #x0)
+	)
+     (set pc rn6)
+     ()
+     )
+
+
+;; JALR <RN>
+(dni jalr16 "jump and link register"
+     (UNCOND-CTI SHORT-INSN)
+     ("jalr $rn")
+     (+ OP4_FLOW16  (f-opc-8-5 #x15) (f-dc-15-3 #x0) (f-dc-9-1 #x0)  rn)
+     (sequence ()
+	       (set (reg h-registers 14) (add pc (const 2)))
+	       (set pc rn)
+	       )
+     ()
+     )
+
+(dni jalr "jump and link register"
+     (UNCOND-CTI)
+     ("jalr $rn6")
+     (+ OP4_MISC
+	(f-opc-8-5 #x15)
+	(f-opc-19-4 #x2)
+	rn6
+	(f-dc-9-1 #x0)
+	(f-dc-15-3 #x0)
+	(f-dc-25-6 #x0)
+	(f-dc-31-3 #x0)
+
+	)
+     (sequence ()
+	       (set (reg h-registers 14) (add pc (const 4)))
+	       (set pc rn6))
+     ()
+     )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+					;  Load/Store Memory Instructions
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+(define-pmacro (callMisaligmentExceptionIfNeeded sel  addr isAligmentAccess)
+  (sequence ((BI scale))
+    (set isAligmentAccess
+	 (case BI sel
+	   ((OPW_BYTE)	(eq (and addr #x0) #x0))
+	   ((OPW_SHORT)	(eq (and addr #x1) #x0))
+	   ((OPW_WORD)	(eq (and addr #x3) #x0))
+	   (else	(eq (and addr #x7) #x0))))
+    (if (not BI isAligmentAccess)
+	(call-exception #x4 #x2))
+  )
+)
+
+
+
+;; helper to convert size selector OPW_<mode> into a literal scale factor
+(define-pmacro (ConvertSelectorToShift sel scale)
+  (set scale
+       (case SI sel
+	 ((OPW_BYTE)	(const 0))
+	 ((OPW_SHORT)	(const 1))
+	 ((OPW_WORD)	(const 2))
+	 (else	(const 3))))
+)
+
+;; common load macros from effective address, handling 8/16/32/64 bits
+(define-pmacro (load-double-from-ea regnum eff-addr mode sel)
+  (sequence ((SI loadaddr) (BI isAligmentAccess))
+	    (set loadaddr eff-addr)
+	    (callMisaligmentExceptionIfNeeded sel  loadaddr isAligmentAccess)
+
+	    (if (not (not BI isAligmentAccess))
+		(sequence ()
+			  (set memaddr loadaddr)
+			  (set regnum (mem SI loadaddr))
+			  (set loadaddr (add loadaddr (const 4)))
+			  (set memaddr loadaddr)
+			  (set (reg h-registers
+				    (add (index-of regnum)
+					 (const 1)))
+			       (mem SI loadaddr))
+
+			  )
+		)
+	    )
+  )
+
+(define-pmacro (load-from-ea regnum eff-addr mode sel)
+  (sequence ((BI isAligmentAccess))
+
+	    (callMisaligmentExceptionIfNeeded sel eff-addr   isAligmentAccess)
+	    (if (not (not BI isAligmentAccess))
+		(sequence ()
+			  (set memaddr eff-addr)
+			  (set regnum (zext SI (mem mode eff-addr)))
+			  )
+		)
+	    )
+  ) ;; 8/16/32 bit cases
+
+
+;; common store to effective address, handling 8/16/32/64 bit data
+(define-pmacro (store-double-to-ea eff-addr regnum mode sel)
+  (sequence ((SI storeaddr) (BI isAligmentAccess))
+	    (set storeaddr eff-addr)
+	    (callMisaligmentExceptionIfNeeded sel storeaddr isAligmentAccess)
+	    (if (not (not BI isAligmentAccess))
+		(sequence ()
+			  (set memaddr storeaddr)
+			  (set (mem SI storeaddr) regnum)
+			  (set storeaddr (add storeaddr (const 4)))
+			  (set memaddr storeaddr)
+			  (set (mem SI storeaddr)
+			       (reg h-registers (add (index-of regnum) (const 1))))
+			  )
+		)
+	    )
+  )
+
+(define-pmacro (store-to-ea eff-addr regnum mode sel)
+  (sequence ((BI isAligmentAccess))
+	    (callMisaligmentExceptionIfNeeded sel eff-addr   isAligmentAccess)
+	    (if (not (not BI isAligmentAccess))
+		(sequence ()
+			  (set memaddr eff-addr)
+			  (set (mem mode eff-addr) regnum)
+			  )
+		)
+	    )
+  )	;8/16/32 bit cases
+
+
+(define-pmacro (load-insn name mode sel sem-op)
+  (begin
+    (dni_wrapper (.sym name "x16.s")
+		 (.str "load " mode " indexed")
+		 (SHORT-INSN)
+		 (.str name " $rd,[$rn,$rm]")
+		 (+ OP4_LDSTR16X sel OP_LOAD rd rn rm)
+		 (sequence ()
+			   (sem-op rd (add rn rm) mode sel))
+		 ()
+		 )
+
+
+    (dni_wrapper (.sym name "p16.s")
+		 (.str "load " mode " postmodify")
+		 (SHORT-INSN)
+		 (.str name " $rd,[$rn],$rm")
+		 (+ OP4_LDSTR16P sel OP_LOAD rd rn rm)
+		 (sequence ((SI tmprm))
+			   (set tmprm rm)
+			   (sem-op rd rn mode sel)
+			   (set rn (add rn tmprm)))
+		 ()
+		 )
+
+
+    (dni_wrapper (.sym name "x.l")
+		 (.str "load " mode " indexed")
+		 ()
+		 (.str name " $rd6,[$rn6,$direction$rm6]")
+		 (+ OP4_LDSTRX sel OP_LOAD (f-opc-19-4 #x0) (f-dc-22-1 #x0) (f-dc-21-1 #x0) rd6 rn6 direction rm6)
+		 (sequence ()
+			   (if (ifield f-addsubx)
+			       (sem-op rd6 (sub rn6 rm6) mode sel)
+			       (sem-op rd6 (add rn6 rm6) mode sel)))
+		 ()
+		 )
+
+    (dnmi (.sym name "x")
+	  (.str "load " mode " indexed")
+	  (NO-DIS)
+	  (.str name ".l $rd6,[$rn6,$direction$rm6]")
+	  (emit  (.sym name "x.l") rd6 rn6 direction rm6)
+	  )
+
+
+
+    (dni_wrapper (.sym name "p.l")
+		 (.str "load " mode " postmodify")
+		 ()
+		 (.str name " $rd6,[$rn6],$direction$rm6")
+		 (+ OP4_LDSTRP sel OP_LOAD (f-opc-19-4 #x0) (f-dc-22-2 #x0) rd6 rn6 direction rm6)
+		 (sequence ((SI tmprm))
+			   (set tmprm rm6)
+			   (sem-op rd6 rn6 mode sel)
+			   (if (ifield f-addsubx)
+			       (set rn6 (sub rn6 tmprm))
+			       (set rn6 (add rn6 tmprm)))
+			   )
+		 ()
+		 )
+
+
+    (dnmi (.sym name "p")
+	  (.str "load " mode " postmodify")
+	  (NO-DIS)
+	  (.str name ".l $rd6,[$rn6],$direction$rm6")
+	  (emit  (.sym name "p.l") rd6 rn6 direction rm6)
+	  )
+
+
+    ;;immediate modes last so reg forms found first.
+    (dni_wrapper (.sym name "d16.s")
+		 (.str "load " mode " displacement")
+		 (SHORT-INSN IMM3)
+		 (.str name " $rd,[$rn,$disp3]")
+		 (+ OP4_LDSTR16D sel OP_LOAD rd rn disp3) ;; convert size to 'B'
+		 (sequence ((SI effa)
+			    (SI scale))
+			   (ConvertSelectorToShift sel scale)
+			   (set effa (add rn (sll disp3 scale)))
+			   (sem-op rd effa mode sel)
+			   )
+		 ()
+		 )
+
+
+    (dni_wrapper (.sym name "d.l")
+		 (.str "load " mode " displacement")
+		 ()
+		 (.str name " $rd6,[$rn6,$dpmi$disp11]")
+		 (+ OP4_LDSTRD sel OP_LOAD PMOD_DISP rd6 rn6 dpmi disp11)
+		 (sequence ((SI effa)
+			    (SI scale))
+			   (ConvertSelectorToShift sel scale)
+			   (if dpmi
+			       (set effa (sub rn6 (sll disp11 scale)))
+			       (set effa (add rn6 (sll disp11 scale)))
+			       )
+			   (sem-op rd6 effa mode sel)
+			   )
+		 ()
+		 )
+
+    (dnmi (.sym name "d")
+	  (.str "load " mode " displacement")
+	  (NO-DIS)
+	  (.str name ".l $rd6,[$rn6,$dpmi$disp11]")
+	  (emit  (.sym name "d.l") rd6 rn6  dpmi disp11)
+	  )
+
+
+
+    (dni_wrapper (.sym name "dpm.l")
+		 (.str "load " mode " displacement post-modify")
+		 ()
+		 (.str name " $rd6,[$rn6],$dpmi$disp11")
+		 (+ OP4_LDSTRD sel OP_LOAD PMOD_POST rd6 rn6 dpmi disp11)
+		 (sequence ((SI scale))
+			   (ConvertSelectorToShift sel scale)
+			   (sem-op rd6 rn6 mode sel)
+			   (if dpmi
+			       (set rn6 (sub rn6 (sll disp11 scale)))
+			       (set rn6 (add rn6 (sll disp11 scale)))
+			       )
+			   )
+		 ()
+		 )
+
+    (dnmi (.sym name "dpm")
+	  (.str "load " mode " displacement post-modify")
+	  (NO-DIS)
+	  (.str name ".l $rd6,[$rn6],$dpmi$disp11")
+	  (emit  (.sym name "dpm.l") rd6 rn6  dpmi disp11)
+	  )
+
+
+    ;; ;; macro form with a zero displacement
+    (dnmi (.sym name "ds0") "load with 0 disp"
+	  (SHORT-INSN IMM3)
+	  (.str name " $rd,[$rn]")
+	  (emit (.sym name "d16.s") rd rn (disp3 0))
+	  )
+    (dnmi (.sym name "dl0") "load with 0 disp"
+    	  (NO-DIS)
+	  (.str name " $rd6,[$rn6]")
+	  (emit (.sym name "d.l") rd6 rn6 (dpmi 0) (disp11 0))
+	  )
+    (dnmi (.sym name "dl0.l") "load with 0 disp"
+    	  (NO-DIS)
+	  (.str name ".l $rd6,[$rn6]")
+	  (emit (.sym name "d.l") rd6 rn6 (dpmi 0) (disp11 0))
+	  )
+
+
+    )
+  )
+
+(load-insn ldrb QI OPW_BYTE load-from-ea)
+(load-insn ldrh HI OPW_SHORT load-from-ea)
+(load-insn ldr  SI OPW_WORD  load-from-ea)
+(load-insn ldrd DI OPW_DOUBLE load-double-from-ea)
+
+
+
+
+;; TMP = MEM[RD+RM];    /* Copy content of memory to tmp.  */
+;; if (~TMP)            /* Check if memory location is zero.  */
+;;   MEM[RD+RM] = RD;   /* If zero, write RD to memory.  */
+;; RD = TMP;            /* Always write tmp into RD (NOTE it's destructive).  */
+
+
+(define-pmacro (testset-insn name mode sel)
+  (begin
+
+
+    (dni_wrapper (.sym name "t")
+		 (.str "testset " mode " indexed")
+		 ()
+		 (.str name " $rd6,[$rn6,$direction$rm6]")
+		 (+ OP4_LDSTRX sel OP_LOAD (f-opc-19-4 #x0) (f-dc-22-1 #x0) (f-dc-21-1 #x1)
+		    rd6 rn6 direction rm6)
+		 (sequence ((SI tmemaddr) (SI tmpValReg))
+
+			   ;;back up register
+			   (set tmpValReg rd6)
+
+			   (if (ifield f-addsubx)
+			       (set  tmemaddr  (sub rn6 rm6))
+			       (set  tmemaddr  (add rn6 rm6))
+			       )
+			   ;;always update rd
+			   (load-from-ea rd6 tmemaddr  mode sel)
+			   ;;if zero
+			   (if  rd6
+				(nop)
+				(set (mem mode tmemaddr) tmpValReg)
+				)
+
+			   )
+		 ()
+		 )
+
+
+    (dnmi  (.sym name "t.l")
+	   (.str "testset " mode ".l indexed")
+	   (NO-DIS)
+	   (.str name ".l $rd6,[$rn6,$direction$rm6]")
+	   (emit (.sym name "t") rd6 rn6 direction rm6)
+	   )
+
+
+    )
+  )
+
+(testset-insn testsetb QI OPW_BYTE)
+(testset-insn testseth HI OPW_SHORT)
+(testset-insn testset  SI OPW_WORD)
+;;no double mode support, since we have to send the src address, data
+;;(testset-insn testsetd DI OPW_DOUBLE load-double-from-ea)
+
+
+
+;; need 16 bit forms too
+(define-pmacro (store-insn name mode sel sem-op)
+  (begin
+    (dni_wrapper (.sym name "x16")
+		 (.str "store" mode " indexed")
+		 (SHORT-INSN)
+		 (.str name " $rd,[$rn,$rm]")
+		 (+ OP4_LDSTR16X sel OP_STORE rd rn rm)
+		 (sequence ()
+			   (sem-op (add rn rm) rd mode sel)
+			   )
+		 ()
+		 )
+
+    (dni_wrapper (.sym name "x")
+		 (.str "store" mode " indexed")
+		 ()
+		 (.str name " $rd6,[$rn6,$direction$rm6]")
+		 (+ OP4_LDSTRX sel OP_STORE (f-opc-19-4 #x0)  (f-dc-22-1 #x0) (f-dc-21-1 #x0) rd6 rn6 direction rm6)
+		 (sequence ()
+			   (if (ifield f-addsubx)
+			       (sem-op (sub rn6 rm6) rd6 mode sel)
+			       (sem-op (add rn6 rm6) rd6 mode sel)
+			       ))
+		 ()
+		 )
+
+    (dnmi (.sym name "x.l")
+	  (.str "store" mode " indexed")
+	  (NO-DIS)
+	  (.str name ".l $rd6,[$rn6,$direction$rm6]")
+	  (emit  (.sym name "x")  rd6 rn6 direction rm6)
+	  )
+
+
+
+
+
+    (dni_wrapper (.sym name "p16")
+		 (.str "store " mode " postmodify")
+		 (SHORT-INSN)
+		 (.str name " $rd,[$rn],$rm")
+		 (+ OP4_LDSTR16P sel OP_STORE rd rn rm)
+		 (sequence ()
+			   (sem-op rn rd mode sel)
+			   (set rn (add rn rm))
+			   )
+		 ()
+		 )
+
+    (dni_wrapper (.sym name "p")
+		 (.str "store " mode " postmodify")
+		 ()
+		 (.str name " $rd6,[$rn6],$direction$rm6")
+		 (+ OP4_LDSTRP sel OP_STORE (f-opc-19-4 #x0) (f-dc-22-2 #x0) rd6 rn6 direction rm6)
+		 (sequence ()
+			   (sem-op rn6 rd6 mode sel)
+			   (if (ifield f-addsubx)
+			       (set rn6	(sub rn6 rm6))
+			       (set rn6 (add rn6 rm6)))
+			   )
+		 ()
+		 )
+    (dnmi (.sym name "p.l")
+	  (.str "store " mode " postmodify")
+	  (NO-DIS)
+	  (.str name ".l $rd6,[$rn6],$direction$rm6")
+	  (emit (.sym name "p") rd6 rn6 direction rm6)
+	  )
+
+    (dni_wrapper (.sym name "d16")
+		 (.str "store " mode " displacement")
+		 (SHORT-INSN IMM3)
+		 (.str name " $rd,[$rn,$disp3]")
+		 (+ OP4_LDSTR16D sel OP_STORE rd rn disp3) ;; convert size to 'B'
+		 (sequence ((SI effa)
+			    (SI scale))
+			   (ConvertSelectorToShift sel scale)
+			   (set effa (add rn (sll disp3 scale)))
+			   (sem-op effa rd mode sel)
+			   )
+		 ()
+		 )
+
+    (dni_wrapper (.sym name "d")
+		 (.str "store " mode " displacement")
+		 ()
+		 (.str name " $rd6,[$rn6,$dpmi$disp11]")
+		 (+ OP4_LDSTRD sel OP_STORE PMOD_DISP rd6 rn6 dpmi disp11)
+		 (sequence ((SI effa)
+			    (SI scale))
+			   (ConvertSelectorToShift sel scale)
+			   (if dpmi
+			       (set effa (sub rn6 (sll disp11 scale)))
+			       (set effa (add rn6 (sll disp11 scale)))
+			       )
+			   (sem-op effa rd6 mode sel)
+			   )
+		 ()
+		 )
+
+    (dnmi (.sym name "d.l")
+	  (.str "store " mode " displacement")
+	  (NO-DIS)
+	  (.str name ".l $rd6,[$rn6,$dpmi$disp11]")
+	  (emit (.sym name "d") rd6 rn6 dpmi disp11)
+	  )
+
+
+    (dni_wrapper (.sym name "dpm")
+		 (.str "store " mode " displacement post-modify")
+		 ()
+		 (.str name " $rd6,[$rn6],$dpmi$disp11")
+		 (+ OP4_LDSTRD sel OP_STORE PMOD_POST rd6 rn6 dpmi disp11) ;; convert size to 'B'
+		 (sequence ((SI scale))
+			   (ConvertSelectorToShift sel scale)
+			   (sem-op rn6 rd6 mode sel)
+			   (if dpmi
+			       (set rn6 (sub rn6 (sll disp11 scale)))
+			       (set rn6 (add rn6 (sll disp11 scale)))
+			       )
+			   )
+		 ()
+		 )
+    (dnmi (.sym name "dpm.l")
+	  (.str "store " mode " displacement post-modify")
+	  (NO-DIS)
+	  (.str name ".l $rd6,[$rn6],$dpmi$disp11")
+	  (emit (.sym name "dpm") rd6 rn6 dpmi disp11)
+	  )
+
+    ;; macro form with a zero displacement
+    (dnmi (.sym name "ds0") "store w 0 disp"
+	  (SHORT-INSN IMM3)
+	  (.str name " $rd,[$rn]")
+	  (emit (.sym name "d16") rd rn (disp3 0))
+	  )
+
+    (dnmi (.sym name "dl0")  "store w 0 disp"
+	  ()
+	  (.str name " $rd6,[$rn6]")
+	  (emit (.sym name "d") rd6 rn6 (dpmi 0) (disp11 0))
+	  )
+
+    (dnmi (.sym name "dl0.l")  "store w 0 disp"
+	  (NO-DIS)
+	  (.str name ".l $rd6,[$rn6]")
+	  (emit (.sym name "d") rd6 rn6 (dpmi 0) (disp11 0))
+	  )
+
+
+
+    )
+  )
+
+(store-insn strb QI OPW_BYTE store-to-ea)
+(store-insn strh HI OPW_SHORT store-to-ea)
+(store-insn str  SI OPW_WORD store-to-ea)
+(store-insn strd DI OPW_DOUBLE store-double-to-ea)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; MOV<COND> RD,RN
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-pmacro (move-insns name cond g-op)
+  (begin
+    (dni_wrapper (.sym "cmov16" cond)
+		 (.str "move register " cond)
+		 (SHORT-INSN)
+		 (.str "mov" name " $rd,$rn")
+		 (+ OP4_FLOW16 (.sym "OPC_" cond) (f-opc-8-1 #x0) (f-dc-9-1 #x0) rd rn)
+		 (if (g-op)
+		     (set rd rn))
+		 ()
+		 )
+
+    (dni_wrapper (.sym "cmov" cond)
+		 (.str "move register " cond)
+		 ()
+		 (.str "mov" name " $rd6,$rn6")
+		 (+ OP4_MISC (.sym "OPC_" cond) (f-opc-8-1 #x0) (f-dc-9-1 #x0) (f-opc-19-4 #x2) (f-dc-25-6 #x0) rd6 rn6)
+		 (if (g-op)
+		     (set rd6 rn6))
+		 ()
+		 )
+    (dnmi (.sym "cmov.l" cond)
+	  (.str "move register " cond)
+	  (NO-DIS)
+	  (.str "mov" name ".l $rd6,$rn6")
+	  (emit (.sym "cmov" cond) rd6 rn6)
+	  )
+
+
+
+    )
+  )
+
+					; basic conditional moves
+(move-insns "eq"    EQ	   (.pmacro () (eq zbit #x1)))
+(move-insns "ne"    NE	   (.pmacro () (eq zbit #x0)))
+(move-insns "gtu"   GTU	   (.pmacro () (and BI cbit (not BI zbit))))
+(move-insns "gteu"  GTEU   (.pmacro () (eq cbit #x1)))
+(move-insns "lteu"  LTEU   (.pmacro () (or BI (not BI cbit) zbit)))
+(move-insns "ltu"   LTU	   (.pmacro () (eq cbit #x0)))
+(move-insns "gt"    GT	   (.pmacro () (and BI (not BI zbit) (eq vbit nbit))))
+(move-insns "gte"   GTE	   (.pmacro () (eq vbit nbit)))
+(move-insns "lt"    LT	   (.pmacro () (xor BI vbit nbit)))
+(move-insns "lte"   LTE	   (.pmacro () (or BI zbit (xor vbit nbit))))
+
+					; unconditional move
+(move-insns ""      B      (.pmacro () #x1))
+
+
+					; floating point condition codes (floating point instructions)
+(move-insns "beq"   BEQ    (.pmacro () (or BI bzbit bzbit)))
+(move-insns "bne"   BNE    (.pmacro () (not BI bzbit)))
+(move-insns "blt"   BLT    (.pmacro () (and BI bnbit (not bzbit))))
+(move-insns "blte"  BLTE   (.pmacro () (or BI bnbit bzbit)))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; MOVTS RD,RN
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; 16 bits form exists for group zero ( M1 and M0 equals to zero ) only
+
+(dni_wrapper movts16
+	     "move to special reg"
+	     (SHORT-INSN)
+	     "movts $sn,$rd"
+	     (+ OP4_FLOW16 (f-opc-8-5 #x10) (f-dc-9-1 #x0) rd sn) ;; rd is source for movts
+	     (set sn rd)
+	     ()
+	     )
+
+(define-pmacro (op-mmr-movts name sdreg code)
+  (begin
+
+    (dni_wrapper (.sym "movts" name)
+		 (.str "move to " name)
+		 ()
+		 (.str "movts $" sdreg ",$rd6")
+		 (+ OP4_MISC (f-dc-7-4 #x0) (f-opc-8-1 #x1) (f-dc-9-1 #x0) (f-opc-19-4 #x2) (f-dc-25-4 #x0) (f-dc-21-2 code) sdreg rd6);; rd is source for movts
+		 (set sdreg rd6)
+		 ()
+		 )
+
+    (dnmi (.sym "movts.l" name)
+	  (.str "move to " name)
+	  (NO-DIS)
+	  (.str "movts.l $" sdreg ",$rd6")
+	  (emit (.sym "movts" name) sdreg rd6)
+	  )
+
+
+
+
+    )
+  )
+
+(op-mmr-movts  6    sn6    #x0)
+(op-mmr-movts  dma  sndma  #x1)
+(op-mmr-movts  mem  snmem  #x2)
+(op-mmr-movts  mesh snmesh #x3)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; MOVFS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(dni_wrapper movfs16
+	     "move from special register"
+	     (SHORT-INSN)
+	     "movfs $rd,$sn"
+	     (+ OP4_FLOW16 (f-opc-8-5 #x11) (f-dc-9-1 #x0) rd sn)
+	     (set rd sn)
+	     ()
+	     )
+
+
+
+(define-pmacro (op-mmr-movfs name snreg code)
+  (begin
+
+    (dni_wrapper (.sym "movfs" name)
+		 (.str "move from " name)
+		 ()
+		 (.str "movfs $rd6,$" snreg)
+		 (+ OP4_MISC (f-dc-7-4 #x1) (f-opc-8-1 #x1) (f-dc-9-1 #x0) (f-opc-19-4 #x2) (f-dc-25-4 #x0) (f-dc-21-2 code) rd6 snreg)
+		 (set rd6 snreg)
+		 ()
+		 )
+
+    (dnmi (.sym "movfs.l" name)
+	  (.str "move from " name)
+	  (NO-DIS)
+	  (.str "movfs.l $rd6,$" snreg)
+	  (emit (.sym "movfs" name) rd6 snreg)
+	  )
+
+
+
+    )
+  )
+
+(op-mmr-movfs  6    sn6    #x0)
+(op-mmr-movfs  dma  sndma  #x1)
+(op-mmr-movfs  mem  snmem  #x2)
+(op-mmr-movfs  mesh snmesh #x3)
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; NOP 0x1a2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(dni_wrapper nop
+	     "no-operation"
+	     (SHORT-INSN)
+	     "nop"
+	     (+ OP4_FLOW16 (f-opc-8-5 #x1a) (f-dc-15-7 #x0))
+	     (nop)
+	     ()
+	     )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; SNOP 0x3a2
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(dni_wrapper snop
+	     "no-operation"
+	     (SHORT-INSN)
+	     "snop"
+	     (+ OP4_FLOW16 (f-opc-8-5 #x3a) (f-dc-15-7 #x0))
+	     (nop)
+	     ()
+	     )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; UNIMPL
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(dni_wrapper unimpl
+	     "not-implemented"
+	     ()
+	     "unimpl"
+	     (+ (f-opc-31-32  #x000F000F))
+	     (nop)
+	     ()
+	     )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; IDLE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(dni idle "idle until interrupt" () "idle"
+     (+ OP4_FLOW16 (f-opc-8-5 #x1b) (f-dc-15-7 #x0))
+     ;;     (set pc pc)	;; should branch to self until interrupt, but not modeling interrupts
+     (sequence ()
+       (set caibit 0)
+       (c-code "sim_engine_halt (CPU_STATE (current_cpu), current_cpu, NULL, \
+		pc, sim_exited, 0);"))
+     ()
+     )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; BKPT
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(dni bkpt
+     "breakpoint"
+     (SHORT-INSN)
+     "bkpt"
+     (+ OP4_FLOW16 (f-opc-8-5 #x1c) (f-dc-15-7 #x0))
+     (sequence ()
+     	 (c-call  "epiphany_break" pc)
+     	(set pc pc)
+     	)
+     ()
+     )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; MBKPT
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(dni mbkpt
+     "multicorebreakpoint"
+     (SHORT-INSN)
+     "mbkpt"
+     (+ OP4_FLOW16 (f-opc-8-5 #x1c) (f-dc-15-7 #x1))
+     ;;;(c-call "epiphany_break" pc)
+     (nop) ;; ignore the multi core break point in the simulator
+     ()
+     )
+
+;;;;;;;;;;;;;;;;
+;; RTI
+;;;;;;;;;;;;;;;;
+
+(dni rti "return from interrupt" (SHORT-INSN UNCOND-CTI)
+     "rti"
+     (+ OP4_FLOW16 (f-opc-8-5 #x1d) (f-dc-15-7 #x0))
+     (sequence ()
+	       ;; 	(set (hcr-ipend)
+	       ;; 	     (xor (hcr-ipend)
+	       ;; 		  (sll (const 1)
+	       ;; 		       (sub (c-raw-call SI "ffs" (and (hcr-ipend) (not (hcr-imask))))
+	       ;; 			    (const 1)))))
+
+	       (set (hcr-ipend)
+		    (c-call SI "epiphany_rti" (hcr-ipend) (hcr-imask)))
+	       (set gidisablebit 0)
+	       (set kmbit 0)
+					;(set caibit 1)
+	       (set pc (hcr-iret)))
+     ()
+     )
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; WAND is a wired flag that runs around the chip
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(dni_wrapper wand     "wand"
+	     (SHORT-INSN)
+	     "wand"
+	     (+ OP4_FLOW16 (f-opc-8-5 #x18) (f-dc-15-7 #x0))
+	     (set sflagbit 1)
+	     ()
+	     )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Sync likes wand, but wired OR
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(dni_wrapper sync     "sync"
+	     (SHORT-INSN)
+	     "sync"
+	     (+ OP4_FLOW16 (f-opc-8-5 #x1f) (f-dc-15-7 #x0))
+	     (nop);;TODO
+	     ()
+	     )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; GIE
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(dni_wrapper gien     "global interrupt enable"
+	     (SHORT-INSN)
+	     "gie"
+	     (+ OP4_FLOW16 (f-gien-gidis-9-1 #x0) (f-opc-8-5 #x19) (f-dc-15-6 #x0))
+	     (set gidisablebit 0)
+	     ()
+	     )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; GIDIS
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(dni_wrapper gidis     "global interrupt disable"
+	     (SHORT-INSN)
+	     "gid"
+	     (+ OP4_FLOW16 (f-gien-gidis-9-1 #x1) (f-opc-8-5 #x19) (f-dc-15-6 #x0))
+	     (set gidisablebit 1)
+	     ()
+	     )
+
+
+
+;;;;;;;;;;;;;;;;
+;; SWI
+;;;;;;;;;;;;;;;;
+
+;; Model only immediate 'fire' exception, if gien cleared or masked don't fire and don't check later - no ilat like behavior
+(dni swi_num "software interrupt" (SHORT-INSN UNCOND-CTI)
+     "swi $swi_num"
+     (+ OP4_FLOW16 (f-opc-8-5 #x1e) (f-trap-swi-9-1 #x0)  swi_num)
+     (sequence ()  (call-exception #x24  #x80))
+     ;;      (if (eq gie 1)
+     ;; 	 (sequence ()
+     ;; 		   (set kmbit 1)
+     ;; 		   (set gie 0)
+     ;; 		   (set (hcr-iret) (add pc (const 2)))
+     ;; 		   (set (hcr-ipend) (or (hcr-ipend) (const #x80)))
+     ;; 		   (set pc (const #x1c))
+
+     ;; 			   )
+     ;; 	 ;; schedule interrupt
+     ;; 	 (set (hcr-ilat) (or (hcr-ilat) (const #x80)))
+     ;; 	 )
+     ()
+     )
+(dni swi "software interrupt" (ALIAS SHORT-INSN UNCOND-CTI)
+     "swi"
+     (+ OP4_FLOW16 (f-opc-8-5 #x1e) (f-trap-swi-9-1 #x0) (f-dc-15-6 #x0))
+     (sequence ()  (call-exception #x24  #x80))
+     ()
+     )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; TRAP #disp3 - simulator only and chip as well - make the same grouop as swi
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; Only defining 16-bit form of this instruction.  It exists to support the
+;; simulator, by giving us a simple input/output mechanism beyond returning values
+;; in registers or memory.
+;; TRAP #N  - special sw trap for simulator support;  allows simple i/o using fixed arguments
+;; TRAP #0  - write (r0=i/o channel, r1=addr, r2=len) returns status in r0
+;; TRAP #1  - read  (r0=i/o channel, r1=addr, r2=len) returns length or -<code> on error
+;; TRAP #2  - open  (r0=string path, r1=mode) returns channel# or -<code> on error
+;; TRAP #3  - exit  (r0=status code) never returns.
+;; TRAP #4  - print "pass\n" and exit
+;; TRAP #5  - print "fail\n" and exit
+;; TRAP #6  - close  (r0=i/o channel)
+
+(dni trap16 "trap to simulator"
+     (SHORT-INSN UNCOND-CTI)
+     "trap $trapnum6"
+     (+ OP4_FLOW16 (f-opc-8-5 #x1e) (f-trap-swi-9-1 #x1)  trapnum6) ;;  (+ OP4_IMM16 OPI_TRAP (f-rd 0) (f-rn 0) disp3)
+     (set (reg SI h-registers 0) (c-call SI "epiphany_trap" pc trapnum6))
+     ()
+     )
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Integer arithmetic instructions 3 address forms
+;;   both 16 and 32 bit forms
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-pmacro (op-rrr name sem-op cond-op)
+  (begin
+    (dni_wrapper (.sym name "16")
+		 (.str name)
+		 (SHORT-INSN)
+		 (.str name " $rd,$rn,$rm")
+		 (+ OP4_ALU16 (.sym "OPB_" (.upcase (.str name))) rd rn rm)
+		 (sequence ()
+			   (cond-op rn rm)
+			   (set rd (sem-op SI rn rm))
+			   (set zbit (zflag rd))
+			   (set nbit (nflag rd))
+			   )
+		 ()
+		 )
+
+    (dni_wrapper (.sym name)
+		 (.str name)
+		 ()
+		 (.str name " $rd6,$rn6,$rm6")
+		 (+ OP4_MISC (.sym "OPB_" (.upcase (.str name))) (f-opc-19-4 #xa) (f-dc-22-3 #x0) rd6 rn6 rm6)
+		 (sequence ()
+			   (cond-op rn6 rm6)
+			   (set rd6 (sem-op SI rn6 rm6))
+			   (set zbit (zflag rd6))
+			   (set nbit (nflag rd6))
+			   )
+		 ()
+		 )
+
+    (dnmi (.sym name ".l")
+	  (.str name)
+	  (NO-DIS)
+	  (.str name ".l $rd6,$rn6,$rm6")
+	  (emit (.sym name) rd6 rn6 rm6)
+	  )
+
+
+
+    )
+  )
+
+;; submacros to set condition codes
+;;  NZ are always set to reflect the sign and value of the result
+;;  CV are a function of the operator
+(define-pmacro (add-vc a b) (sequence ()
+				      (set cbit (add-cflag SI a b 0))
+				      (set vbit (add-oflag SI a b 0))
+				      (set vsbit (or BI vsbit vbit))
+				      ))
+
+(define-pmacro (sub-vc a b) (sequence ()
+				      (set cbit (not (sub-cflag SI a b 0)))
+				      (set vbit (sub-oflag SI a b 0))
+				      (set vsbit (or vsbit vbit))
+				      ))
+
+(define-pmacro (logic-vc a b) (sequence ()
+					(set cbit 0)
+					(set vbit 0)
+					))
+
+(op-rrr add add add-vc)
+(op-rrr sub sub sub-vc)
+(op-rrr and and logic-vc)
+(op-rrr orr  or  logic-vc)
+(op-rrr eor xor logic-vc)
+
+;; Integer arithmetic immediate forms
+
+(define-pmacro (op-rri name code cond-op)
+  (begin
+    (dni_wrapper (.sym name "i16")
+		 (.str name)
+		 (SHORT-INSN IMM3)
+		 (.str name ".s $rd,$rn,$simm3")
+		 (+ OP4_IMM16 code rd rn simm3)
+		 (sequence ()
+			   (cond-op rn simm3)
+			   (set rd (name SI rn simm3))
+			   (set zbit (zflag rd))
+			   (set nbit (nflag rd))
+			   )
+		 ()
+		 )
+
+
+    (dni_wrapper (.sym name "i")
+		 (.str name)
+		 ()
+		 (.str name ".l $rd6,$rn6,$simm11")
+		 (+ OP4_IMM32 code OPI_25_2_MBZ rd6 rn6 simm11)
+		 (sequence ()
+			   (cond-op rn6 simm11)
+			   (set rd6 (name SI rn6 simm11))
+			   (set zbit (zflag rd6))
+			   (set nbit (nflag rd6))
+			   )
+		 ()
+		 )
+
+    ;;    (dnmi (.sym name "ri") "relaxed arithmetic immediate" (RELAXED)
+    ;;	  (.str name " $rd6,$rn6,$simm11")
+    ;;	  (emit (.sym name "i") rd6 rn6 simm11))
+    )
+  )
+
+(op-rri add OPI_ADD add-vc)
+(op-rri sub OPI_SUB sub-vc)
+
+(dnmi addir "relaxable short immediate add" (RELAXABLE IMM3)
+      "add $rd,$rn,$simm3"
+      (emit addi16 rd rn simm3))
+
+(dnmi addi32r "relaxed long immediate add" (RELAXED)
+      "add $rd6,$rn6,$simm11"
+      (emit addi rd6 rn6 simm11))
+
+;; Again, but not relaxable so that full sized registers are handled
+(dnmi addi32m "relaxed long immediate add" ()
+      "add $rd6,$rn6,$simm11"
+      (emit addi rd6 rn6 simm11))
+
+
+(dnmi subir "relaxable short immediate sub" (RELAXABLE IMM3)
+      "sub $rd,$rn,$simm3"
+      (emit subi16 rd rn simm3))
+
+(dnmi subi32r "relaxed long immediate sub" (RELAXED)
+      "sub $rd6,$rn6,$simm11"
+      (emit subi rd6 rn6 simm11))
+
+(dnmi subi32m "relaxed long immediate sub" ()
+      "sub $rd6,$rn6,$simm11"
+      (emit subi rd6 rn6 simm11))
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Shift instructions 3 address forms
+;;   both 16 and 32 bit forms
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-pmacro (shift-rrr name sem-op)
+  (begin
+    (dni_wrapper (.sym name "16")
+		 (.str name)
+		 (SHORT-INSN)
+		 (.str name " $rd,$rn,$rm")
+		 (+ OP4_ALU16 (.sym "OPB_" (.upcase (.str name))) rd rn rm)
+		 (sequence ()
+			   (logic-vc rn rm)
+			   (set rd (sem-op SI rn (and rm (const 31))))
+			   (set zbit (zflag rd))
+			   (set nbit (nflag rd))
+			   )
+		 ()
+		 )
+
+    (dni_wrapper (.sym name)
+		 (.str name)
+		 ()
+		 (.str name " $rd6,$rn6,$rm6")
+		 (+ OP4_MISC (.sym "OPB_" (.upcase (.str name))) (f-opc-19-4 #xa) (f-dc-22-3 #x0) rd6 rn6 rm6)
+		 (sequence ()
+			   (logic-vc rn6 rm6)
+			   (set rd6 (sem-op SI rn6 (and rm6 (const 31))))
+			   (set zbit (zflag rd6))
+			   (set nbit (nflag rd6))
+			   )
+		 ()
+		 )
+
+    (dnmi (.sym name ".l")
+	  (.str name)
+	  (NO-DIS)
+	  (.str name ".l $rd6,$rn6,$rm6")
+	  (emit (.sym name) rd6 rn6 rm6)
+	  )
+    )
+  )
+
+(shift-rrr asr sra)
+(shift-rrr lsr srl)
+(shift-rrr lsl sll)
+
+(define-pmacro (op-shift-rri name shortcode f5 longcode sem-op)
+  (begin
+    (dni_wrapper (.sym name "i16")
+		 (.str name)
+		 (SHORT-INSN)
+		 (.str name " $rd,$rn,$shift")
+		 (+ shortcode (f-opc-4-1 f5) rd rn shift)
+		 (sequence ()
+			   (logic-vc rn shift)
+			   (set rd (sem-op SI rn shift))
+			   (set zbit (zflag rd))
+			   (set nbit (nflag rd))
+			   )
+		 ()
+		 )
+    (dni_wrapper (.sym name "i32")
+		 (.str name)
+		 ()
+		 (.str name " $rd6,$rn6,$shift")
+		 (+ OP4_MISC (f-opc-4-1 f5) (f-opc-19-4 longcode) (f-dc-25-6 0) rd6 rn6 shift)
+		 (sequence ()
+			   (logic-vc rn6 shift)
+			   (set rd6 (sem-op SI rn6 shift))
+			   (set zbit (zflag rd6))
+			   (set nbit (nflag rd6))
+			   )
+		 ()
+		 )
+
+    (dnmi (.sym name "i32.l")
+	  (.str name)
+	  (NO-DIS)
+	  (.str name ".l $rd6,$rn6,$shift")
+	  (emit (.sym name "i32") rd6  rn6 shift)
+	  )
+
+
+    )
+  )
+
+(op-shift-rri lsr OP4_LSHIFT16 0 #x6 srl)
+(op-shift-rri lsl OP4_LSHIFT16 1 #x6 sll)
+(op-shift-rri asr OP4_ASHIFT16 0 #xe sra)
+
+;; BITR - bitreversal (FFT)
+;;
+;; From Dr Dobbs et al.
+;;
+;; unsigned int v;
+;; v = ((v >> 1) & 0x55555555) | ((v & 0x55555555) << 1);  ;; swap odd-even bits
+;; v = ((v >> 2) & 0x33333333) | ((v & 0x33333333) << 2);  ;; swap pairs
+;; v = ((v >> 4) & 0x0f0f0f0f) | ((v & 0x0f0f0f0f) << 4);  ;; swap nibbles
+;; v = ((v >> 8) & 0x00ff00ff) | ((v & 0x00ff00ff) << 8);  ;; swap bytes
+;; v =  (v >> 16)              |  (v               << 16); ;; swap halves
+(define-pmacro (bit-reversal dest src)
+  (sequence ((SI v))
+	    (set v src)
+	    (set v (or (and (srl v 1) #x55555555) (sll (and v #x55555555) 1)))
+	    (set v (or (and (srl v 2) #x33333333) (sll (and v #x33333333) 2)))
+	    (set v (or (and (srl v 4) #x0f0f0f0f) (sll (and v #x0f0f0f0f) 4)))
+	    (set v (or (and (srl v 8) #x00ff00ff) (sll (and v #x00ff00ff) 8)))
+	    (set v (or      (srl v 16)            (sll      v            16)))
+	    (set dest v)
+	    ))
+
+(dni_wrapper bitr16 "bit reverse short"
+	     (SHORT-INSN)
+	     ("bitr $rd,$rn")
+	     (+ OP4_ASHIFT16 (f-opc-4-1 1) rd rn (f-shift 0))
+	     (sequence ()
+		       (bit-reversal rd rn)
+		       (set zbit (zflag rd))
+		       (set nbit (nflag rd))
+		       (set cbit 0)
+		       (set vbit 0)
+		       )
+	     ()
+	     )
+
+(dni_wrapper bitr "bit reverse"
+	     ()
+	     ("bitr $rd6,$rn6")
+	     (+ OP4_MISC (f-opc-4-1 1) (f-opc-19-4 #xe) (f-dc-25-6 0) rd6 rn6 (f-shift 0))
+	     (sequence ()
+		       (bit-reversal rd6 rn6)
+		       (set zbit (zflag rd6))
+		       (set nbit (nflag rd6))
+		       (set cbit 0)
+		       (set vbit 0)
+		       )
+	     ()
+	     )
+(dnmi bitrl "bit reverse l"
+      (NO-DIS)
+      ("bitr.l $rd6,$rn6")
+      (emit bitr rd6 rn6)
+      )
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Integer arithmetic instructions
+;; Extended operation
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(define-pmacro (op-iextrrr  name  cond-op)
+  (begin
+
+    (dni_wrapper (.sym name)
+		 (.str name)
+		 ()
+		 (.str name " $rd6,$rn6,$rm6")
+		 (+ OP4_MISC (.sym "OPBE_" (.upcase (.str name))) (f-opc-19-4 #xa) (f-dc-22-2 #x0)  (f-dc-20-1 #x1)
+		    rd6 rn6 rm6)
+		 (sequence ()
+			   ;;  TODO cond operation (cond-op rn6 rm6)
+			   ;;(set rd6 (sem-op SI rn6 rm6))
+			   (set zbit (zflag rd6))
+			   (set nbit (nflag rd6))
+			   )
+		 ()
+		 )
+
+    (dnmi (.sym name ".l")
+	  (.str name)
+	  (NO-DIS)
+	  (.str name ".l $rd6,$rn6,$rm6")
+	  (emit (.sym name) rd6  rn6 rm6)
+	  )
+    )
+  )
+
+(op-iextrrr fext  sub-vc)
+(op-iextrrr fdep  sub-vc)
+(op-iextrrr lfsr  sub-vc)
+
+
+
+;; Immediate moves.  The 8 bit form is relaxed if it doesn't fit or is external
+;; Move RD,#IMM
+(dni_wrapper mov8
+	     "mov imm8"
+	     (SHORT-INSN)
+	     "mov.b $rd,$imm8"
+	     (+ OP4_IMM16 (f-opc-4-1 #x0) rd imm8)
+	     (set rd (zext SI imm8))
+	     ()
+	     )
+
+(dnmi mov8r "mov imm8 relaxable"
+      (RELAXABLE)
+      "mov $rd,$imm8"
+      (emit mov8 rd imm8))
+
+(dni_wrapper mov16
+	     "mov imm16"
+	     ()
+	     "mov.l $rd6,$imm16"
+	     (+ OP4_IMM32 (f-opc-4-1 #x0) (f-opc-19-4 #x2) (f-dc-28-1 #x0) rd6 imm16)
+	     (set rd6 (zext SI imm16))
+	     ()
+	     )
+
+(dnmi mov16r "mov imm16 relaxable"
+      ()
+      "mov $rd6,$imm16"
+      (emit mov16 rd6 imm16))
+
+;; MOVE TO HIGH WORD
+(dni_wrapper movt
+	     "movt imm16"
+	     ()
+	     "movt $rd6,$imm16"
+	     (+ OP4_IMM32 (f-opc-4-1 #x0) (f-opc-19-4 #x2) (f-dc-28-1 #x1) rd6 imm16)
+	     (set rd6 (or (and SI rd6 (const #xffff)) ; keep low bits of rd
+			  (sll SI imm16 (const 16)))) ; replacing just high bits
+	     ()
+	     )
+(dnmi movtl
+      "movt imm16"
+      (NO-DIS)
+      "movt.l $rd6,$imm16"
+      (emit movt rd6 imm16)
+      )
+
+
+
+;; FLOATING POINT OPERATIONS
+;; TWO operands
+(define-pmacro (op-two_operands-float name code)
+  (begin
+    (dni_wrapper
+      (.sym "f_" name "f16")
+      (.str "f_" name)
+      (SHORT-INSN)
+      (.str "f" name " $rd,$rn,$rm")
+      (+ OP4_DSP16 code rd rn rm)
+      (sequence ()
+	(if
+	  (eq  arithmetic-modebit2 0)
+	  (sequence ((SF fptemp) (SI sdtmp))
+	    (set sdtmp  (c-call SI (.str "epiphany_f" name) rd rn rm))
+
+	    ;;All bits are calculated in C
+	    (set bzbit  (c-call BI "get_epiphany_fzeroflag" sdtmp))
+	    (set bnbit  (c-call BI "get_epiphany_fnegativeflag" sdtmp))
+	    (set bvbit  (c-call BI "get_epiphany_foverflowflag" sdtmp))
+	    (set bubit  (c-call BI "get_epiphany_funderflowflag" sdtmp))
+	    (set bibit  (c-call BI "get_epiphany_finvalidflag" sdtmp))
+	    (set bvsbit (or bvsbit bvbit))
+	    (set busbit (or busbit bubit))
+	    (set bisbit (or bisbit bibit))
+	    (set rd sdtmp)
+	    (if (or (and invExcEnbit bisbit)
+		    (or (and ovfExcEnbit bvsbit) (and unExcEnbit busbit)))
+		(sequence ()
+		  (set expcause0bit (const 1))
+		  (set expcause1bit (const 1))
+		  (call-exception #x4 #x2)))
+	    ))
+	(if (eq arithmetic-modebit2 1)
+	    (sequence ((SI sdtmp))
+	      (set sdtmp  (c-call SI (.str "epiphany_i" name) rd rn rm))
+	      ;; carry is not connected inb the design (set bcbit bcbit)
+	      (set bzbit (zflag sdtmp))
+	      (set bnbit (nflag sdtmp))
+	      (set rd sdtmp)))
+	)
+
+      ()
+      )
+    (dnmi (.sym "i_" name "f16")
+	  (.str "i_" name)
+	  (SHORT-INSN NO-DIS)
+	  (.str "i" name " $rd,$rn,$rm")
+	  (emit (.sym "f_" name "f16") rd rn rm)
+    )
+
+
+    (dni_wrapper
+      (.sym "f_" name "f32")
+      (.str "f_" name)
+      ()
+      (.str "f" name " $rd6,$rn6,$rm6")
+      (+ OP4_MISC code (f-opc-19-4 #x7) (f-dc-22-3 #x0) rd6 rn6 rm6)
+      (sequence ()
+	(if
+	  (eq arithmetic-modebit2 0)
+	  (sequence ((SF fptemp) (SI sdtmp))
+	    (set sdtmp  (c-call SI (.str "epiphany_f" name) rd6 rn6 rm6))
+
+	    ;;All bits are calculated in C
+	    (set bzbit  (c-call BI "get_epiphany_fzeroflag" sdtmp))
+	    (set bnbit  (c-call BI "get_epiphany_fnegativeflag" sdtmp))
+	    (set bvbit  (c-call BI "get_epiphany_foverflowflag" sdtmp))
+	    (set bubit  (c-call BI "get_epiphany_funderflowflag" sdtmp))
+	    (set bibit  (c-call BI "get_epiphany_finvalidflag" sdtmp))
+	    (set bvsbit (or bvsbit bvbit))
+	    (set busbit (or busbit bubit))
+	    (set bisbit (or bisbit bibit))
+
+	    (set rd6 sdtmp)
+
+	    (if (or (and invExcEnbit bisbit)
+		    (or (and ovfExcEnbit bvsbit) (and unExcEnbit busbit)))
+		(sequence ()
+		  (set expcause0bit (const 1))
+		  (set expcause1bit (const 1))
+		  (call-exception #x4 #x2)))
+	    )
+	  )
+	(if (eq arithmetic-modebit2 1)
+	    (sequence ((SI sdtmp))
+	      (set sdtmp (c-call SI (.str "epiphany_i" name) rd6 rn6 rm6))
+	      ;; carry is not connected inb the design (set bcbit bcbit)
+	      (set bzbit (zflag sdtmp))
+	      (set bnbit (nflag sdtmp))
+	      (set rd6 sdtmp)
+	      )
+	    )
+	)
+      ()
+      )
+
+    (dnmi (.sym "f_" name "f32.l")
+	  (.str "f_" name)
+	  (NO-DIS)
+	  (.str "f" name ".l $rd6,$rn6,$rm6")
+	  (emit  (.sym "f_" name "f32") rd6  rn6 rm6)
+	  )
+    (dnmi (.sym "i_" name "f32")
+	  (.str "i_" name)
+	  (NO-DIS)
+	  (.str "i" name " $rd6,$rn6,$rm6")
+	  (emit  (.sym "f_" name "f32") rd6  rn6 rm6)
+	  )
+    (dnmi (.sym "i_" name "f32.l")
+	  (.str "i_" name)
+	  (NO-DIS)
+	  (.str "i" name ".l $rd6,$rn6,$rm6")
+	  (emit  (.sym "f_" name "f32") rd6  rn6 rm6)
+	  )
+
+
+
+    )
+  )
+
+(op-two_operands-float add OPF_ADD)
+(op-two_operands-float sub OPF_SUB)
+(op-two_operands-float mul OPF_MUL)
+(op-two_operands-float madd OPF_MADD)
+(op-two_operands-float msub OPF_MSUB)
+
+;; ONE operands
+;; FABS
+(define-pmacro (op-fabs-float name code)
+  (begin
+    (dni_wrapper (.sym "f_" name "f16")
+		 (.str "f_" name)
+		 (SHORT-INSN)
+		 (.str "f" name " rd,rn")
+		 (+ OP4_DSP16 code rd rn rn)
+		 (sequence ((SF fptemp) (SI sdtmp))
+
+		   ;(set sdtmp  (and rn  #x7fffffff))
+		   (set sdtmp  (c-call SI (.str "epiphany_fabs") rd rn rn))
+
+
+		   (set bnbit  (const SI 0))
+		   (set bzbit (eq SI sdtmp  (const SI 0)))
+
+		   ;;TODO subnormal ??
+		   (set bvsbit (or bvsbit bvbit))
+		   (set busbit (or busbit bubit))
+		   (set bisbit (or bisbit bibit))
+
+		   (set rd sdtmp)
+		   )
+		 ()
+		 )
+
+    (dni_wrapper (.sym "f_" name "f32")
+		 (.str "f_" name)
+		 ()
+		 (.str "f" name " $rd6,$rn6")
+		 (+ OP4_MISC code (f-opc-19-4 #x7) (f-dc-22-3 #x0) rd6 rn6 rn6)
+		 (sequence ((SF fptemp) (SI sdtmp))
+
+
+		   ;(set sdtmp   (and rn6  #x7fffffff))
+
+		   (set sdtmp  (c-call SI (.str "epiphany_fabs") rd6 rn6 rn6))
+
+
+		   (set bnbit   (const SI 0))
+		   (set bzbit (eq SI sdtmp  (const SI 0)))
+
+		   (set bvsbit (or bvsbit bvbit))
+		   (set busbit (or busbit bubit))
+		   (set bisbit (or bisbit bibit))
+
+		   (set rd6 sdtmp)
+
+		   )
+		 ()
+		 )
+
+    (dnmi  (.sym "f_" name "f32.l")
+	   (.str "f_" name)
+	   (NO-DIS)
+	   (.str "f" name ".l $rd6,$rn6")
+	   (emit (.sym "f_" name "f32") rd6  rn6)
+	   )
+
+
+    )
+  )
+
+(op-fabs-float abs OPF_FABS)
+
+
+(define-pmacro (op-fix2float-float name code)
+  (begin
+    (dni_wrapper (.sym "f_" name "f16")
+		 (.str "f_" name)
+		 (SHORT-INSN)
+		 (.str "f" name " $rd,$rn")
+		 (+ OP4_DSP16 code frd frn frn)
+		 (sequence ((SF fptemp) (SI sdtmp))
+
+		   (set sdtmp  (c-call SI (.str "epiphany_f" name) rd rn rn))
+
+		   (set bnbit (lt SI sdtmp  (const SI 0)))
+		   (set bzbit (eq SI sdtmp  (const SI 0)))
+
+		   (set bvsbit (or bvsbit bvbit))
+		   (set busbit (or busbit bubit))
+		   (set bisbit (or bisbit bibit))
+
+		   (set rd sdtmp)
+		   )
+		 ()
+		 )
+
+
+    (dni_wrapper (.sym "f_" name "f32")
+		 (.str "f_" name)
+		 ()
+		 (.str "f" name " $rd6,$rn6")
+		 (+ OP4_MISC code (f-opc-19-4 #x7) (f-dc-22-3 #x0) rd6 rn6 rn6)
+		 (sequence ((SF fptemp) (SI sdtmp))
+
+		   (set sdtmp  (c-call SI (.str "epiphany_f" name) rd6 rn6 rn6))
+
+		   (set bnbit (lt SI sdtmp  (const SI 0)))
+		   (set bzbit (eq SI sdtmp  (const SI 0)))
+
+		   (set bvsbit (or bvsbit bvbit))
+		   (set busbit (or busbit bubit))
+		   (set bisbit (or bisbit bibit))
+
+		   (set rd6 sdtmp)
+
+		   )
+		 ()
+		 )
+
+    (dnmi (.sym "f_" name "f32.l")
+	  (.str "f_" name)
+	  (NO-DIS)
+	  (.str "f" name ".l $rd6,$rn6")
+	  (emit (.sym "f_" name "f32")  rd6 rn6)
+	  )
+    )
+  )
+
+(op-fix2float-float loat OPF_FLOAT)
+
+(define-pmacro (op-float2fix-float name code)
+  (begin
+    (dni_wrapper (.sym "f_" name "f16")
+		 (.str "f_" name)
+		 (SHORT-INSN)
+		 (.str "f" name " $rd,$rn")
+		 (+ OP4_DSP16 code rd rn rn)
+		 (sequence ((SF fptemp) (SI sdtmp))
+
+		   (set sdtmp  (c-call SI (.str "epiphany_f" name) rd rn rn))
+
+		   (set bzbit (zflag sdtmp))
+		   (set bnbit (nflag sdtmp))
+
+		   (set bvbit  (c-call BI "get_epiphany_foverflowflag" sdtmp))
+		   (set bubit  (c-call BI "get_epiphany_funderflowflag" sdtmp))
+		   (set bibit  (c-call BI "get_epiphany_finvalidflag" sdtmp))
+
+		   (set bvsbit (or bvsbit bvbit))
+		   (set busbit (or busbit bubit))
+		   (set bisbit (or bisbit bibit))
+
+		   (set rd6 sdtmp)
+
+		   (if (or (and invExcEnbit bisbit)
+			   (or (and ovfExcEnbit busbit)
+			       (and unExcEnbit bvsbit)))
+		       (sequence ()
+			 (set expcause0bit (const 1))
+			 (set expcause1bit (const 1))
+			 (call-exception #x4 #x2)))
+		   (set rd sdtmp)
+		   )
+		 ()
+		 )
+
+
+
+    (dni_wrapper (.sym "f_" name "f32")
+		 (.str "f_" name)
+		 ()
+		 (.str "f" name " $rd6,$rn6")
+		 (+ OP4_MISC code (f-opc-19-4 #x7) (f-dc-22-3 #x0) rd6 rn6 rn6)
+		 (sequence ((SF fptemp) (SI sdtmp))
+
+		   (set sdtmp  (c-call SI (.str "epiphany_f" name) rd6 rn6 rm6))
+
+		   (set bzbit (zflag sdtmp))
+		   (set bnbit (nflag sdtmp))
+
+		   (set bvbit  (c-call BI "get_epiphany_foverflowflag" sdtmp))
+		   (set bubit  (c-call BI "get_epiphany_funderflowflag" sdtmp))
+		   (set bibit  (c-call BI "get_epiphany_finvalidflag" sdtmp))
+
+		   (set bvsbit (or bvsbit bvbit))
+		   (set busbit (or busbit bubit))
+		   (set bisbit (or bisbit bibit))
+
+		   (set rd6 sdtmp)
+
+		   (if (or (and invExcEnbit bisbit)
+			   (or (and ovfExcEnbit busbit)
+			       (and unExcEnbit bvsbit)))
+		       (sequence ()
+			 (set expcause0bit (const 1))
+			 (set expcause1bit (const 1))
+			 (call-exception #x4 #x2))
+		       )
+
+		   )
+		 ()
+		 )
+
+    (dnmi (.sym "f_" name "f32.l")
+	  (.str "f_" name)
+	  (NO-DIS)
+	  (.str "f" name ".l $rd6,$rn6")
+	  (emit (.sym "f_" name "f32") rd6  rn6)
+	  )
+
+
+    )
+  )
+
+
+
+
+
+(op-float2fix-float ix OPF_FIX)
+
+;; MAC (Multiply and Accumulate Instructions
+;; (define-pmacro (op-mac-float name code)
+;;   (begin
+;;     (dni_wrapper (.sym "fm" name "f16")
+;; 	 (.str "fm" name)
+;; 	 (SHORT-INSN)
+;; 	 (.str "fm" name " $frd,$frn,$frm")
+;; 	 (+ OP4_DSP16 code frd frn frm)
+;; 	 (sequence ((SF fptemp))
+;; 		   (set bvbit 0)
+;; 		   (set busbit 0)
+;;                    (set fptemp (c-call SF (.str "epiphany_fm" name) frd frm frn))
+;; 		   (set bnbit (lt SF fptemp (const SF 0)))
+;; 		   (set bzbit (eq SF fptemp (const SF 0)))
+;; 		   (set bvsbit (or bvsbit bvbit))
+;;                    (set frd fptemp)
+;; ;		   (set rd (subword SI frd 0))
+;; 		   )
+;; 	 ()
+;; 	 )
+
+;;     (dni_wrapper (.sym "fm" name "f32")
+;; 	 (.str "fm" name)
+;; 	 ()
+;; 	 (.str "fm" name " $frd6,$frn6,$frm6")
+;; 	 (+ OP4_MISC code (f-opc-19-4 #x7) (f-dc-22-3 #x0) frd6 frn6 frm6)
+;; 	 (sequence ((SF fptemp))
+;; 		   (set bvbit 0)
+;; 		   (set busbit 0)
+;;                    (set fptemp (c-call SF (.str "epiphany_fm" name) frd6 frm6 frn6))
+;; 		   (set bnbit (lt SF fptemp (const SF 0)))
+;; 		   (set bzbit (eq SF fptemp (const SF 0)))
+;; 		   (set bvsbit (or bvsbit bvbit))
+;;                    (set frd6 fptemp)
+;; ;		   (set rd6 (subword SI frd6 0))
+;; 		   )
+;; 	 ()
+;; 	 )
+;;     )
+;; )
+
+
+
+
+
+
+
+					; extended floating point operation
+
+
+(define-pmacro (op-fextop-float name code)
+  (begin
+
+    (dni_wrapper (.sym "f_" name "f32")
+		 (.str "f_" name)
+		 ()
+		 (.str "f" name " $frd6,$frn6")
+		 (+ OP4_MISC code (f-opc-19-4 #x7) (f-dc-22-2 #x0) (f-dc-20-1 #x1) frd6 frn6 frn6)
+		 (sequence ((SF fptemp))
+			   (set bvbit 0)
+			   (set busbit 0)
+			   (set fptemp (c-call SF (.str "epiphany_f" name) frn6))
+			   (set bnbit (lt SF fptemp (const SF 0)))
+			   (set bzbit (eq SF fptemp (const SF 0)))
+			   (set bvsbit (or bvsbit bvbit))
+			   (set frd6 fptemp)
+
+			   )
+		 ()
+		 )
+
+
+    (dnmi (.sym "f_" name "f32.l")
+	  (.str "f_" name)
+	  (NO-DIS)
+	  (.str "f" name ".l $frd6,$frn6")
+	  (emit (.sym "f_" name "f32") frd6 frn6)
+	  )
+    )
+  )
+
+(op-fextop-float recip OPF_FRECIP)
+(op-fextop-float sqrt  OPF_FSQRT)
+
+
+
+
+

@@ -1,0 +1,35 @@
+
+                Notes on enabling maintainer mode
+
+Note that if you configure with --enable-maintainer-mode, you will need
+special versions of automake, autoconf, libtool and gettext. You will
+find the sources for these in the respective upstream directories:
+
+  https://ftp.gnu.org/gnu/autoconf
+  https://ftp.gnu.org/gnu/automake
+  https://ftp.gnu.org/gnu/libtool
+  https://ftp.gnu.org/gnu/gettext
+
+The required versions of the tools for this tree are:
+
+  autoconf 2.69
+  automake 1.15.1
+  libtool 2.2.6
+  gettext 0.16.1
+
+Note - "make distclean" does not work with maintainer mode enabled.
+The Makefiles in the some of the po/ subdirectories depend upon the
+Makefiles in their parent directories, and distclean will delete the
+Makefiles in the parent directories before running the Makefiles in
+the child directories.  There is no easy way around this (short of
+changing the automake macros) as these dependencies need to exist in
+order to correctly build the NLS files.
+
+When running the testsuites a minimum version of dejagnu is also needed.
+Dejagnu can be found here:
+
+  https://ftp.gnu.org/gnu/dejagnu/
+
+The minimum version required is:
+
+  dejagnu 1.5.3

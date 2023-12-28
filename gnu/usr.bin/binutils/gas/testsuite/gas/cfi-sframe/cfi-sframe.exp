@@ -1,0 +1,101 @@
+# Copyright (C) 2022-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+if { ![is_elf_format] } then {
+    return
+}
+
+proc gas_sframe_check { } {
+    global check_as_sframe_result
+    global AS
+    global ASFLAGS
+    if [info exists check_as_sframe_result] {
+	return $check_as_sframe_result
+    }
+
+    set as_file "tmpdir/check_as_sframe.s"
+    set as_fh [open $as_file w 0666]
+    puts $as_fh "# Generated file. DO NOT EDIT"
+    puts $as_fh "\t.cfi_startproc"
+    puts $as_fh "\t.cfi_endproc"
+    close $as_fh
+    remote_download host $as_file
+    verbose -log "Checking SFrame support in AS:"
+
+    set old_ASFLAGS "$ASFLAGS"
+    set ASFLAGS "$ASFLAGS --gsframe"
+
+    global comp_output
+
+    set output_file "tmpdir/check_as_sframe.out"
+    set status [gas_host_run "$AS $ASFLAGS $as_file" "2>$output_file"]
+    set comp_output [file_contents "$output_file"]
+    set ASFLAGS "$old_ASFLAGS"
+
+    if { ![string match "" $comp_output]
+	 || [string match "*sframe not supported for target*" $comp_output] } then {
+	verbose -log "SFrame not supported in AS"
+	return 0
+    } else {
+	verbose -log "SFrame supported in AS"
+	return 1
+    }
+}
+
+proc gas_x86_64_check { } {
+    global NM
+    global NMFLAGS
+
+    set status [gas_host_run "$NM $NMFLAGS --help" ""]
+    return [regexp "targets:.*x86-64" [lindex $status 1]];
+}
+
+# common tests
+if  { ([istarget "x86_64-*-*"] || [istarget "aarch64*-*-*"]) \
+       && [gas_sframe_check] } then {
+
+    global ASFLAGS
+    set old_ASFLAGS "$ASFLAGS"
+
+    run_dump_test "cfi-sframe-common-1"
+    run_dump_test "cfi-sframe-common-2"
+    run_dump_test "cfi-sframe-common-3"
+    run_dump_test "cfi-sframe-common-4"
+    run_dump_test "cfi-sframe-common-5"
+    run_dump_test "cfi-sframe-common-6"
+    run_dump_test "cfi-sframe-common-7"
+    run_dump_test "cfi-sframe-common-8"
+
+    run_dump_test "common-empty-1"
+    run_dump_test "common-empty-2"
+    run_dump_test "common-empty-3"
+}
+
+# x86-64 specific tests
+if { [istarget "x86_64-*-*"] && [gas_sframe_check] } then {
+    if { [gas_x86_64_check] } then {
+	set ASFLAGS "$ASFLAGS --64"
+	run_dump_test "cfi-sframe-x86_64-1"
+	set ASFLAGS "$old_ASFLAGS"
+    }
+}
+
+# aarch64 specific tests
+if { [istarget "aarch64*-*-*"] && [gas_sframe_check] } then {
+    run_dump_test "cfi-sframe-aarch64-1"
+    run_dump_test "cfi-sframe-aarch64-2"
+    run_dump_test "cfi-sframe-aarch64-pac-ab-key-1"
+}

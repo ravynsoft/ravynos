@@ -1,0 +1,390 @@
+2017-03-15  Yaakov Selkowitz <yselkowitz@redhat.com>
+
+	PR bootstrap/79771
+	* gzguts.h (WIDECHAR): Do not define for __CYGWIN__.
+	* zlib.h (gzopen_w): Do not declare for __CYGWIN__.
+	* win32/zlib.def: Remove gzopen_w.
+		
+2017-01-22  Matthias Klose  <doko@ubuntu.com>
+
+	* Import zlib 1.2.11.
+	* configure: Regenerate.
+
+2017-01-13  Matthias Klose  <doko@ubuntu.com>
+
+	* Import zlib 1.2.10.
+	* configure: Regenerate.
+
+2016-11-15  Matthias Klose  <doko@ubuntu.com>
+
+	* configure: Regenerate.
+
+2015-11-23  Matthias Klose  <doko@ubuntu.com>
+
+	* Imported zlib 1.2.8; merged local changes.
+
+2015-05-13  Michael Haubenwallner  <michael.haubenwallner@ssi-schaefer.com>
+
+	* Makefile.in: Regenerated with automake-1.11.6.
+	* aclocal.m4: Likewise.
+	* configure: Likewise.
+
+2014-11-11  Francois-Xavier Coudert  <fxcoudert@gcc.gnu.org>
+
+	PR target/63610
+	* configure: Regenerate.
+
+2013-10-15  David Malcolm  <dmalcolm@redhat.com>
+
+	* configure.ac: Add --enable-host-shared, setting up new
+	PICFLAG variable.
+	* Makefile.am: Add PICFLAG to libz_a_CFLAGS.
+	* Makefile.in: Regenerate.
+	* configure: Regenerate.
+
+2013-09-20  Alan Modra  <amodra@gmail.com>
+
+	* configure: Regenerate.
+
+2012-11-16  Matthias Klose  <doko@ubuntu.com>
+
+	* Imported zlib 1.2.7; merged local changes.
+
+2012-09-14  David Edelsohn  <dje.gcc@gmail.com>
+
+	* configure: Regenerated.
+
+2012-05-16  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* configure: Regenerated.
+
+2012-03-02  Matthias Klose  <doko@ubuntu.com>
+
+	* Imported zlib 1.2.5; merged local changes.
+
+2011-11-21  Andreas Tobler  <andreast@fgznet.ch>
+
+        * configure: Regenerate.
+
+2011-02-13  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* configure: Regenerate.
+
+2010-04-02  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* Makefile.in: Regenerate.
+	* aclocal.m4: Regenerate.
+
+2009-12-05  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* Makefile.in: Regenerate.
+	* configure: Regenerate.
+
+2009-08-24  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* configure.ac (AC_PREREQ): Bump to 2.64.
+
+2009-08-22  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* Makefile.am (install-html, install-pdf, html): Remove.
+	* Makefile.in: Regenerate.
+
+	* Makefile.in: Regenerate.
+	* aclocal.m4: Regenerate.
+	* configure: Regenerate.
+
+2009-07-30  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* configure.ac (_AC_ARG_VAR_PRECIOUS): Use m4_rename_force.
+
+2009-03-01  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* configure: Regenerate.
+
+2008-12-18  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* configure: Regenerate.
+
+2008-09-26  Peter O'Gorman  <pogma@thewrittenword.com>
+            Steve Ellcey  <sje@cup.hp.com>
+
+	* configure: Regenerate for new libtool.
+	* Makefile.in: Ditto.
+
+2008-06-17  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* Makefile.in: Regenerate.
+	* configure: Regenerate.
+
+2008-03-16  Ralf Wildenhues  <Ralf.Wildenhues@gmx.de>
+
+	* aclocal.m4: Regenerate.
+	* configure: Likewise.
+	* Makefile.in: Likewise.
+
+2008-01-24  David Edelsohn  <edelsohn@gnu.org>
+
+	* configure: Regenerate.
+
+2007-07-05  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* aclocal.m4: Regenerated.
+
+2007-05-23  Steve Ellcey  <sje@cup.hp.com>
+
+	* Makefile.in: Regenerate.
+	* configure: Regenerate.
+	* aclocal.m4: Regenerate.
+
+2007-04-14  Steve Ellcey  <sje@cup.hp.com>
+
+	* Makefile.am: Add -I .. to ACLOCAL_AMFLAGS.
+	* Makefile.in: Regenerate.
+
+2007-03-01  Brooks Moses  <brooks.moses@codesourcery.com>
+
+	* Makefile.am: Add dummy install-pdf target.
+	* Makefile.in: Regenerate
+
+2007-01-16  Jack Howarth  <howarth@bromo.med.uc.edu>
+
+	* Makefile.am: Add ACLOCAL_AMFLAGS to use multi.m4.
+	* aclocal.m4: Regenerate.
+	* configure: Regenerate.
+	* Makefile.in: Regenerate.
+
+2006-06-13  Carlos O'Donell  <carlos@codesourcery.com>
+
+	* Makefile.am: Add html and install-html stubs.
+	* Makefile.in: Regenerate.
+	* aclocal.m4: Regenerate.
+
+2005-06-14  Tom Tromey  <tromey@redhat.com>
+
+	* Imported zlib 1.2.3; merged local changes.
+
+2005-06-14  Tom Tromey  <tromey@redhat.com>
+
+	PR libgcj/19877:
+	* configure, aclocal.m4, Makefile.in: Rebuilt.
+
+2005-06-06  Rainer Orth  <ro@TechFak.Uni-Bielefeld.DE>
+
+	* zconf.h (NO_vsnprintf): Define on Tru64 UNIX V4.0.
+
+2005-05-09  Mike Stump  <mrs@apple.com>
+	
+	* configure: Regenerate.
+
+2005-04-12  Mike Stump  <mrs@apple.com>
+
+	* configure: Regenerate.
+
+2004-11-24  Kelley Cook  <kcook@gcc.gnu.org>
+
+	* configure: Regenerate for libtool change.
+
+2004-11-24  Kelley Cook  <kcook@gcc.gnu.org>
+
+	* Makefile.in, aclocal.m4: Regenerate with automake 1.9.3.
+
+2004-11-22  Eric Botcazou  <ebotcazou@libertysurf.fr>
+
+	* zconf.h: Define NO_vsnprintf on Solaris 2.5.1.
+
+2004-10-11  Tom Tromey  <tromey@redhat.com>
+
+	PR libgcj/14856:
+	* Imported zlib 1.2.1; merged local changes.
+
+2005-06-15  Paolo Bonzini  <bonzini@gnu.org>
+
+	* Makefile.am: Remove useless multilib rules.
+	* configure.ac: Rewrite multilib support to use
+	features of recent automakes.
+	* aclocal.m4: Regenerate with Automake 1.8.5.
+	* Makefile.in: Regenerate with Automake 1.8.5.
+	* configure: Regenerate.
+
+2004-04-12  Kelley Cook  <kcook@gcc.gnu.org>
+
+	* Makefile.am: Add in libz_a_CFLAGS as recommended by automake doc.
+	* Makefile.in: Regenerate with automake 1.7.9.
+	* aclocal.m4: Likewise.
+	* configure: Regenerate.
+
+2004-04-10  Kelley Cook  <kcook@gcc.gnu.org>
+
+	* configure.in: Rename file to ...
+	* configure.ac: ...this.
+	* Makefile.in: Regenerate.
+
+2004-04-09  Nathanael Nerode  <neroden@gcc.gnu.org>
+
+	* configure.in: Update to autoconf 2.59; clean up slightly.
+	* acinclude.m4: Update to autoconf 2.59.
+	* aclocal.m4: Regenerate. 
+	* Makefile.in: Regenerate.
+	* configure: Regenerate.
+
+2004-01-14  Kelley Cook  <kcook@gcc.gnu.org>
+
+	* configure.in: Add in AC_PREREQ(2.13)
+
+2003-09-09  Alan Modra  <amodra@bigpond.net.au>
+
+	* configure: Regenerate.
+
+2003-07-11  Nathanael Nerode  <neroden@gcc.gnu.org>
+
+	PR bootstrap/7126
+	* configure.in: Correct zlib version number.
+	* configure: Regenerate.
+
+2003-07-11  Gerald Pfeifer  <pfeifer@dbai.tuwien.ac.at>
+
+	* README: Note that zlib is not part of GCC.
+
+2003-03-12  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in:  Avoid trailing /. in toolexeclibdir.
+	* configure: Rebuilt.
+
+2003-02-20  Alexandre Oliva  <aoliva@redhat.com>
+
+	* configure.in: Propagate ORIGINAL_LD_FOR_MULTILIBS to
+	config.status.
+	* configure: Rebuilt.
+
+2003-02-19  Alexandre Oliva  <aoliva@redhat.com>
+
+	* configure.in (multiosdir): Set to nothing if compiler is not GCC
+	or if it doesn't support -print-multi-os-directory.
+	* configure: Rebuilt.
+
+2002-09-22  Kaveh R. Ghazi  <ghazi@caip.rutgers.edu>
+
+	* Makefile.am (all-multi): Fix multilib parallel build.
+
+2002-05-16  Rainer Orth  <ro@TechFak.Uni-Bielefeld.DE>
+
+	* configure.in: Allow for PWDCMD to override hardcoded pwd.
+	* configure: Regenerate.
+
+	* ChangeLog: Move entries to ChangeLog.gcj.
+
+2002-05-08  Alexandre Oliva  <aoliva@redhat.com>
+
+	* configure.in (ORIGINAL_LD_FOR_MULTILIBS): Preserve LD at
+	script entry, and set LD to it when configuring multilibs.
+	* configure: Rebuilt.
+
+2002-03-17  Bryce McKinlay  <bryce@waitaki.otago.ac.nz>
+
+	* Makefile.am: Make target library a convenience library.
+	* Makefile.in: Rebuilt.
+
+2002-03-11  Tom Tromey  <tromey@redhat.com>
+
+	* ChangeLog.gcj: Imported 1.1.4, while preserving local changes.
+
+2001-07-03  Tom Tromey  <tromey@redhat.com>
+
+	Fix for PR bootstrap/3281:
+	* configure, Makefile.in: Rebuilt.
+	* configure.in: Set mkinstalldirs, for in-tree build.
+
+2001-06-09  Alexandre Oliva  <aoliva@redhat.com>, Stephen L Moshier  <moshier@mediaone.net>
+
+	* configure.in (AC_EXEEXT): Work around in case it expands to
+	nothing, as in autoconf 2.50.
+	* configure: Rebuilt.
+
+2001-05-13  Alexandre Oliva  <aoliva@redhat.com>
+
+	* acinclude.m4: Use ../libtool.m4.
+	* configure.in: Use ${zlib_basedir}/.. for AC_CONFIG_AUX_DIR.
+	* acinclude.m4, configure, Makefile.in: Rebuilt.
+
+2000-10-24  Chris Demetriou  <cgd@sibyte.com>
+
+	* configure.in: Invoke AC_PROG_CPP unconditionally before
+	conditional feature tests.
+
+2000-10-10  Alexandre Oliva  <aoliva@redhat.com>
+
+	* configure.in (zlib_basedir): Cope with empty with_target_subdir
+	* configure: Rebuilt.
+
+2000-09-06  Alexandre Oliva  <aoliva@redhat.com>
+
+	* configure.in (multilib): Enable by default only for target.
+	* configure: Rebuilt.
+
+Sun Sep  3 12:37:12 2000  Anthony Green  <green@redhat.com>
+
+	* configure.in: Add TARGET_LIBRARY conditional.
+	* configure: Rebuilt.
+	* Makefile.am: If we're building a build host library, call the
+	library libz.a and don't use libtool.
+	* Makefile.in: Rebuilt.
+
+1999-10-04  Tom Tromey  <tromey@cygnus.com>
+
+	* configure: Rebuilt.
+	* configure.in: Call AC_EXEEXT after LIB_AC_PROG_CC, but don't
+	actually let AC_EXEEXT run.
+
+1999-09-28  Tom Tromey  <tromey@cygnus.com>
+
+	* aclocal.m4, configure: Rebuilt.
+	* acinclude.m4 (LIB_AC_PROG_CC): Provide appropriate AC_PROG_ symbol.
+
+Mon Aug  9 18:33:38 1999  Rainer Orth  <ro@TechFak.Uni-Bielefeld.DE>
+
+	* Makefile.in: Rebuilt.
+	* Makefile.am (toolexeclibdir): Add $(MULTISUBDIR) even for native
+	builds.
+
+	* configure: Rebuilt.
+	* configure.in: Properly align --help output, fix capitalization.
+
+1999-08-02  Tom Tromey  <tromey@cygnus.com>
+
+	* aclocal.m4, configure: Rebuilt for new libtool.
+
+1999-07-19  Alexandre Oliva  <oliva@dcc.unicamp.br>
+
+	* Makefile.am (*-recursive, *-am, *-multi): Automake does not
+	generate *-recursive for this Makefile, use *-am instead.
+	* Makefile.in: Rebuilt.
+
+1999-06-21  Tom Tromey  <tromey@cygnus.com>
+
+	* Makefile.in: Rebuilt.
+	* Makefile.am (libzgcj_la_LDFLAGS): Use -version-info, not
+	-release.
+
+	* Makefile.in: Rebuilt.
+	* Makefile.am (toolexeclibdir): Define as libdir when
+	appropriate.
+	* configure: Rebuilt.
+	* configure.in (USE_LIBDIR): New conditional.
+
+1999-05-10  Tom Tromey  <tromey@cygnus.com>
+
+	* configure, Makefile.in: Rebuilt.
+	* Makefile.am (EXTRA_LTLIBRARIES): New macro.
+	(toolexeclib_LTLIBRARIES): Use @target_all@.
+	* configure.in: Recognize --with-system-zlib.  Subst target_all.
+
+1999-05-04  Tom Tromey  <tromey@cygnus.com>
+
+	* Makefile.in: Replace with automake-generated file.
+	* Makefile.am: New file.
+	* configure: Replaced with autoconf-generated script.
+	* aclocal.m4: New file.
+	* acinclude.m4: New file.
+	* configure.in: New file.
+	* Makefile: Removed.
+

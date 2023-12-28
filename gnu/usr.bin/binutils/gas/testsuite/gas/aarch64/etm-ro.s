@@ -1,0 +1,39 @@
+/* ETMv4 system registers  */
+
+/* Read from read-only system register.  */
+mrs x0, trcauthstatus
+mrs x0, trccidr0
+mrs x0, trccidr1
+mrs x0, trccidr2
+mrs x0, trccidr3
+mrs x0, trcdevaff0
+mrs x0, trcdevaff1
+mrs x0, trcdevarch
+mrs x0, trcdevid
+mrs x0, trcdevtype
+mrs x0, trcidr0
+mrs x0, trcidr1
+mrs x0, trcidr2
+mrs x0, trcidr3
+mrs x0, trcidr4
+mrs x0, trcidr5
+mrs x0, trcidr6
+mrs x0, trcidr7
+mrs x0, trcidr8
+mrs x0, trcidr9
+mrs x0, trcidr10
+mrs x0, trcidr11
+mrs x0, trcidr12
+mrs x0, trcidr13
+mrs x0, trclsr
+mrs x0, trcoslsr
+mrs x0, trcpdsr
+mrs x0, trcpidr0
+mrs x0, trcpidr1
+mrs x0, trcpidr2
+mrs x0, trcpidr3
+mrs x0, trcpidr4
+mrs x0, trcpidr5
+mrs x0, trcpidr6
+mrs x0, trcpidr7
+mrs x0, trcstatr

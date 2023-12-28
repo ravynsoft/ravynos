@@ -1,0 +1,13 @@
+[^:]*: Assembler messages:
+[^:]*:4: Error: instruction does not support writeback -- `fstd d0,\[r0\],#8'
+[^:]*:5: Error: instruction does not support writeback -- `fstd d0,\[r0,#-8\]!'
+[^:]*:6: Error: instruction does not support writeback -- `fsts s0,\[r0\],#8'
+[^:]*:7: Error: instruction does not support writeback -- `fsts s0,\[r0,#-8\]!'
+[^:]*:8: Error: instruction does not support writeback -- `fldd d0,\[r0\],#8'
+[^:]*:9: Error: instruction does not support writeback -- `fldd d0,\[r0,#-8\]!'
+[^:]*:10: Error: instruction does not support writeback -- `flds s0,\[r0\],#8'
+[^:]*:11: Error: instruction does not support writeback -- `flds s0,\[r0,#-8\]!'
+[^:]*:12: Error: selected FPU does not support instruction -- `vmrs r0,MVFR2'
+[^:]*:13: Error: selected FPU does not support instruction -- `vmsr MVFR2,r2'
+[^:]*:14: Error: selected FPU does not support instruction -- `vcvt.f16.f32 d1,q1'
+[^:]*:15: Error: selected FPU does not support instruction -- `vcvt.f32.f16 q1,d1'

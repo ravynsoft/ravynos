@@ -1,0 +1,98 @@
+#   Copyright (C) 2010-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+if {![istarget "x86_64-*-linux*"] || [is_remote host]} {
+    return
+}
+
+set tempfile tmpdir/x86-64temp.o
+set copyfile tmpdir/x86-64copy
+
+set test_list [lsort [glob -nocomplain $srcdir/$subdir/*.d]]
+foreach t $test_list {
+    # We need to strip the ".d", but can leave the dirname.
+    verbose [file rootname $t]
+    run_dump_test [file rootname $t]
+}
+
+set t $srcdir/$subdir/pr26808.dwp.bz2
+# We need to strip the ".bz2", but can leave the dirname.
+set test $subdir/[file tail $t]
+set testname [file rootname $test]
+verbose $testname
+if {[catch "system \"bzip2 -dc $t > $tempfile\""] != 0} {
+  untested "bzip2 -dc ($testname)"
+} else {
+    send_log "$READELF -wi $tempfile > tmpdir/pr26808.out 2> /dev/null\n"
+    verbose "$READELF -wi $tempfile > tmpdir/pr26808.out 2> /dev/null" 1
+    set got [catch "system \"$READELF -wi $tempfile > tmpdir/pr26808.out 2> /dev/null\""]
+
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]]} then {
+	fail $testname
+    } else {
+	send_log "cmp tmpdir/pr26808.out $srcdir/$subdir/pr26808.dump\n"
+	verbose "cmp tmpdir/pr26808.out $srcdir/$subdir/pr26808.dump" 1
+	set status [remote_exec build cmp "tmpdir/pr26808.out $srcdir/$subdir/pr26808.dump"]
+	set exec_output [lindex $status 1]
+	set exec_output [prune_warnings $exec_output]
+
+	if [string match "" $exec_output] then {
+	    pass "readelf -wi ($testname)"
+	} else {
+	    send_log "$exec_output\n"
+	    verbose "$exec_output" 1
+	    fail "readelf -wi ($testname)"
+	}
+    }
+}
+
+set t $srcdir/$subdir/pr27708.exe.bz2
+# We need to strip the ".bz2", but can leave the dirname.
+set test $subdir/[file tail $t]
+set testname [file rootname $test]
+verbose $testname
+if {[catch "system \"bzip2 -dc $t > $tempfile\""] != 0} {
+  untested "bzip2 -dc ($testname)"
+} else {
+    send_log "$STRIP $tempfile -o ${tempfile}.strip\n"
+    verbose "$STRIP $tempfile -o ${tempfile}.strip" 1
+    set got [catch "system \"$STRIP $tempfile -o ${tempfile}.strip\""]
+    if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]]} then {
+	fail $testname
+    } else {
+	send_log "$READELF -lW ${tempfile}.strip > tmpdir/pr27708.out 2> /dev/null\n"
+	verbose "$READELF -lW ${tempfile}.strip > tmpdir/pr27708.out 2> /dev/null" 1
+	set got [catch "system \"$READELF -lW ${tempfile}.strip > tmpdir/pr27708.out 2> /dev/null\""]
+
+	if { [lindex $got 0] != 0 || ![string match "" [lindex $got 1]]} then {
+	    fail $testname
+	} else {
+	    send_log "cmp tmpdir/pr27708.out $srcdir/$subdir/pr27708.dump\n"
+	    verbose "cmp tmpdir/pr27708.out $srcdir/$subdir/pr26808.dump" 1
+	    set status [remote_exec build cmp "tmpdir/pr27708.out $srcdir/$subdir/pr27708.dump"]
+	    set exec_output [lindex $status 1]
+	    set exec_output [prune_warnings $exec_output]
+
+	    if [string match "" $exec_output] then {
+		pass "strip ($testname)"
+	    } else {
+		send_log "$exec_output\n"
+		verbose "$exec_output" 1
+		fail "strip ($testname)"
+	    }
+	}
+    }
+}

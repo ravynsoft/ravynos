@@ -1,0 +1,33 @@
+
+.* file format .*
+
+
+Disassembly of section \.plt:
+
+# All entries must be microMIPS.
+10100000 <_PROCEDURE_LINKAGE_TABLE_>:
+.*:	7984 0000 	addiu	\$3,\$pc,1048576
+.*:	ff23 0000 	lw	\$25,0\(\$3\)
+.*:	0535      	subu	\$2,\$2,\$3
+.*:	2525      	srl	\$2,\$2,2
+.*:	3302 fffe 	addiu	\$24,\$2,-2
+.*:	0dff      	move	\$15,\$31
+.*:	45f9      	jalrs	\$25
+.*:	0f83      	move	\$28,\$3
+.*:	0c00      	nop
+
+10100018 <f_bc@micromipsplt>:
+.*:	7903 fffc 	addiu	\$2,\$pc,1048560
+#				    ^ 0x10200008
+.*:	ff22 0000 	lw	\$25,0\(\$2\)
+.*:	4599      	jr	\$25
+.*:	0f02      	move	\$24,\$2
+
+Disassembly of section \.text\.a:
+
+10101000 <testc>:
+.*:	4060 f80a 	bal	10100018 <f_bc@micromipsplt>
+.*:	0000 0000 	nop
+.*:	9400 f806 	b	10100018 <f_bc@micromipsplt>
+.*:	0c00      	nop
+.*:	459f      	jr	\$31

@@ -1,0 +1,88 @@
+# Copyright (C) 2021-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if {[info exists env(LC_ALL)]} {
+    set old_lc_all $env(LC_ALL)
+}
+set env(LC_ALL) "C"
+
+set pltf [exec uname -i]
+if { "$pltf" == "aarch64" } {
+# Use a filter for not leaf functions due to the unwind problem in libgp-collector.so
+    set ::env(ACCT_FILTER) [join { "|egrep -vw 'gpf|tailcallopt|"
+      "cache_trash|calladd|computeF|cond_global|cond_timeout_global|"
+      "lock_global|lock_local|lock_none|nothreads|sema_global|trylock_global'"
+      } "" ]
+}
+if { "$CHECK_TARGET" == "check-extra" || "$CHECK_TARGET" == "check-install" } {
+#         dir       cflags       gprofflags     tflags
+    set table {
+      {"mttest"   "-g -O0"      "-p on"}
+      {"mttest"   "-g -O0"      "-p on -h on"}
+      {"mttest"   "-g -O"       "-p on -a on"}
+      {"mttest"   "-g -O"       "-p on -a off"}
+      {"mttest"   "-g -O"       "-p on -h on"}
+      {"jsynprog" "-g -Wall"    "-p on -a on"}
+      {"jsynprog" "-g -Wall"    "-p on -a off"}
+      {"jsynprog" "-g -Wall"    "-p on -j on"}
+      {"synprog"  "-g -O0"      "-p on"}
+      {"synprog"  "-g -O0"      "-p on -h on"}
+      {"synprog"  "-g -O"       "-p on -a on"}
+      {"synprog"  "-g -O"       "-p on -a off"}
+      {"synprog"  "-g -O"       "-p on -h on"}
+    }
+} else {  # "$CHECK_TARGET" is "check" or "check-DEJAGNU"
+#         dir       cflags     gprofflags     tflags
+    set table {
+      {"jsynprog" "-g -Wall" "-p on -j on"  "-j add_int"}
+      {"mttest"   "-g -O0"   "-p on"        "-j calladd"}
+      {"synprog"  "-g -O0"   "-p on"        "cpu"}
+    }
+}
+
+global JDK_INC
+global GPROFNG_BROKEN_JAVAC
+
+foreach line $table {
+  set dir [lindex $line 0]
+  set cflags [lindex $line 1]
+  set gprofflags [lindex $line 2]
+  if { [llength $line] > 3 } {
+    set tflags [lindex $line 3]
+  } else {
+    set tflags " "
+  }
+
+  verbose [file rootname $line]
+  verbose running display test $line
+  if { $dir == "jsynprog"
+       && ($JDK_INC == "" || $GPROFNG_BROKEN_JAVAC == "yes") } {
+    unsupported $dir
+  } else {
+    run_display_test $dir $cflags $gprofflags $tflags
+  }
+}
+    
+
+if {[info exists old_lc_all]} {
+    set env(LC_ALL) $old_lc_all
+} else {
+    unset env(LC_ALL)
+}

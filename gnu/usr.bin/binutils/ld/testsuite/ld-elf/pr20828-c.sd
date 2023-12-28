@@ -1,0 +1,7 @@
+# Make sure no `fdata' is present in the dynamic symbol table, e.g.:
+#    Num:    Value  Size Type    Bind   Vis      Ndx Name
+#      1: 00000000     0 NOTYPE  LOCAL  DEFAULT    1 fdata
+#failif
+#...
+.+ +fdata
+#pass

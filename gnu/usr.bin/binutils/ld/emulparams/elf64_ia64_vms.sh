@@ -1,0 +1,6 @@
+SCRIPT_NAME=ia64vms
+
+OUTPUT_FORMAT="elf64-ia64-vms"
+ARCH=ia64
+
+EXTRA_EM_FILE=vms

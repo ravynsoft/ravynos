@@ -1,0 +1,13 @@
+
+tmpdir/gotreloc_31-1:     file format elf32-s390
+
+Disassembly of section .text:
+
+.* <foo>:
+.*:	c4 18 00 00 08 56 [	 ]*lgrl	%r1,11b4 <_GLOBAL_OFFSET_TABLE_\+0x14>
+.*:	e3 10 c0 14 00 04 [	 ]*lg	%r1,20\(%r12\)
+.*:	c0 10 00 00 08 52 [	 ]*larl	%r1,11b8 <bar>
+.*:	58 10 c0 14 [	 ]*l	%r1,20\(%r12\)
+.*:	c0 10 00 00 08 4d [	 ]*larl	%r1,11b8 <bar>
+.*:	c4 18 00 00 08 46 [	 ]*lgrl	%r1,11b0 <_GLOBAL_OFFSET_TABLE_\+0x10>
+.*:	c4 18 00 00 08 41 [	 ]*lgrl	%r1,11ac <_GLOBAL_OFFSET_TABLE_\+0xc>

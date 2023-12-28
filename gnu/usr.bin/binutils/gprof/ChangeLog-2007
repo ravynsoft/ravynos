@@ -1,0 +1,251 @@
+2007-10-24  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* configure.in: Move AM_PROG_LIBTOOL after AC_GNU_SOURCE.
+	* configure: Regenerated.
+
+2007-10-24  Alan Modra  <amodra@bigpond.net.au>
+
+	* Makefile.am (INCLUDES): Remove -D_GNU_SOURCE.
+	* configure.in: Invoke AC_GNU_SOURCE.
+	* Makefile.in: Regenerate.
+	* configure: Regenerate.
+	* gconfig.in: Regenerate.
+
+2007-10-12  Michael Haubenwallner  <haubi@gentoo.org>
+
+	PR gprof/5147
+	* configure.in: Add check for fabs() being in libm.
+	* configure: Regenerate.
+
+2007-09-25  Robert Norton  <rnorton@broadcom.com>
+
+	* cg_print.c (sort_members): Include the final member on the list
+	in the sort.
+
+2007-09-17  Nick Clifton  <nickc@redhat.com>
+
+	* po/es.po: Updated Spanish translation.
+
+2007-08-30  Nick Clifton  <nickc@redhat.com>
+
+	* po/fi.po: Updated Finnish translation.
+
+2007-08-24  Daniel Jacobowitz  <dan@codesourcery.com>
+
+	* po/sv.po: Updated Swedish translation.
+
+2007-08-17  Alan Modra  <amodra@bigpond.net.au>
+
+	* po/Make-in: Add --msgid-bugs-address to xgettext invocation.
+
+2007-08-12  Matthias Klose  <doko@ubuntu.com>
+
+	* Makefile.am (AM_MAKEINFOFLAGS, TEXI2DVI): Include
+	$(top_srcdir)/../../bfd/doc.
+	* Makefile.in: Regenerate.
+
+2007-08-12  Daniel Jacobowitz  <dan@codesourcery.com>
+
+	* configure.in (ALL_LINGUAS): Add fi.
+	* po/fi.po: New file.
+	* configure: Regenerated.
+
+2007-08-10  Nick Clifton  <nickc@redhat.com>
+
+	* po/ga.po: Updated Irish translation.
+	* po/vi.po: Updated Vietnamese translation.
+
+2007-08-07  Nick Clifton  <nickc@redhat.com>
+
+	* po/de.po: Updated German translation.
+
+2007-07-12  Nick Clifton  <nickc@redhat.com>
+
+	* po/vi.po: Updated translation.
+
+2007-07-12  Kai Tietz   <kai.tietz@onevision.com>
+
+	* cg_print.c: Force cast of sizeof to be a long.
+	* hist.c: Likewise.
+
+2007-07-06  Nick Clifton  <nickc@redhat.com>
+
+	* basic_blocks.c: Update copyright notice to refer to GPLv3.
+	* basic_blocks.h, bbconv.pl, bb_exit_func.c, call_graph.c,
+	call_graph.h, cg_print.c, cg_print.h, corefile.c, corefile.h,
+	flat_bl.m, gmon_io.c, gmon_io.h, gmon_out.h, hist.c, hist.h,
+	search_list.c, search_list.h, source.c, source.h, sym_ids.c,
+	sym_ids.h, symtab.c, symtab.h: Likewise.
+
+2007-07-05  Tristan Gingold  <gingold@adacore.com>
+
+	* corefile.c (core_sym_class): Do not discard nested subprograms.
+	* Makefile.am (corefile.o): Add dependency upon safe-ctype.h.
+	* Makefile.in: Regenerate.
+
+2007-07-02  Alan Modra  <amodra@bigpond.net.au>
+
+	* Makefile.am: Run "make dep-am".
+	* Makefile.in: Regenerate.
+	* aclocal.m4: Regenerate.
+	* gconfig.in: Regenerate.
+	* po/gprof.pot: Regenerate.
+
+2007-06-30  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* aclocal.m4: Regenerated.
+	* Makefile.in: Likewise.
+
+2007-06-20  Nick Clifton  <nickc@redhat.com>
+
+	* gprof.texi: Refer readers to the gcov tool if they want
+	line-by-line profiling.
+
+2007-06-14  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* Makefile.am (ACLOCAL_AMFLAGS): Add -I ../config -I ../bfd.
+
+	* acinclude.m4: Removed.
+
+	* Makefile.in: Regenerated.
+	* aclocal.m4: Likewise.
+	* configure: Likewise.
+
+2007-05-24  Steve Ellcey  <sje@cup.hp.com>
+
+	* Makefile.in: Regnerate.
+	* configure: Regenerate.
+	* aclocal.m4: Regenerate.
+
+2007-05-24  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* gprof.texi: Remove orphaned "@end ignore".
+
+2007-05-22  Nick Clifton  <nickc@redhat.com>
+
+	* gprof.texi: Use @copying around the copyright notice.
+
+2007-05-14  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* hist.c (scale_and_align_entries): Avoid C99 feature.
+
+2007-04-19  Alan Modra  <amodra@bigpond.net.au>
+
+	* corefile.c (core_create_function_syms, core_create_line_syms): Don't
+	set discard_underscores.
+	* gprof.c (discard_underscores): Delete.
+	* gprof.h (discard_underscores): Delete.
+	* sym_ids.c (match): Use bfd_get_symbol_leading_char to check for
+	leading underscores.
+	* utils.c (print_name_only): Call bfd_demangle rather than
+	cplus_demangle.
+	* Makefile.am: Run "make dep-am".
+	* Makefile.in: Regenerate.
+
+2007-04-14  Steve Ellcey  <sje@cup.hp.com>
+
+	* Makefile.am: Add ACLOCAL_AMFLAGS.
+	* Makefile.in: Regenerate.
+
+2007-04-10  Vladimir Prus  <vladimir@codesourcery.com>
+
+	* hist.h (struct histogram)
+	(histograms, num_histograms): New.
+	* hist.c (find_histogram, find_histogram_for_pc)
+	(read_histogram_header): New.
+	(s_lowpc, s_highpc, lowpc, highpc, hist_num_bins)
+	(hist_sample): Remove.
+	(hist_read_rec): Use the above, and handle multiple
+	histogram records with disjoint address ranges.
+	(hist_write_hist): Support several histogram records.
+	(scale_and_align_entries): Adjust for multiple histograms.
+	(hist_assign_samples_1): New.
+	(hist_assign_samples): Use the above.
+	(hist_clip_symbol_address): New.
+	* hist.h (hist_check_address)
+	(hist_clip_symbol_address): Declare.
+	* gmon_io.c (gmon_out_read, gmon_out_write): Adjust handling
+	of legacy format for multiple histogram changes.
+	* corefile.c (find_call): Check for core_text_space and
+	clip symbol address range here.
+	* vax.c	(vax_find_call): Don't check for
+	core_text_space, or clip the symbol's address range here.
+	Use hist_check_address to check call's target address.
+	* sparc.c: Likewise.
+	* tahoe.c: Likewise.
+	* i386.c: Likewise.
+	* mips.c: Likewise. Also use core_text_sect->vma as the base
+	address for code accesses, just like other machine-specific
+	routines do.
+	* gprof.texi: Adjust for the new logic.
+
+2007-03-28  Richard Sandiford  <richard@codesourcery.com>
+	    Phil Edwards  <phil@codesourcery.com>
+
+	* gprof.texi: Put the contents after the title page rather
+	than at the end of the document.
+
+2007-03-22  Joseph Myers  <joseph@codesourcery.com>
+
+	* Makefile.am (TEXI2POD): Include $(AM_MAKEINFOFLAGS).
+	(AM_MAKEINFOFLAGS, TEXI2DVI): Define with -I ../bfd/doc.
+	* Makefile.in: Regenerate.
+	* gprof.texi: Include bfdver.texi.  Report both VERSION_PACKAGE
+	and VERSION.
+
+2007-03-15  H.J. Lu  <hongjiu.lu@intel.com>
+
+	* Makefile.am (REPORT_BUGS_TO): Removed.
+	(INCLUDES): Remove -DREPORT_BUGS_TO.
+	* Makefile.in: Regenerated.
+
+	* configure.in (--with-bugurl): Removed.
+	* configure: Regenerated.
+
+2007-03-01  Joseph Myers  <joseph@codesourcery.com>
+
+	* gprof.c: Include bfdver.h
+	(main): Use BFD_VERSION_STRING for version number and package
+	name.
+	* Makefile.am (PKGVERSION): Remove.
+	(INCLUDES): Update.
+	Regenerate dependencies.
+	* Makefile.in: Regenerate.
+	* configure.in (PKGVERSION): Remove.
+	* configure: Regenerate.
+
+2007-02-17  Mark Mitchell  <mark@codesourcery.com>
+	    Nathan Sidwell  <nathan@codesourcery.com>
+	    Vladimir Prus  <vladimir@codesourcery.com>
+	    Joseph Myers  <joseph@codesourcery.com>
+
+	* configure.in (--with-pkgversion, --with-bugurl): New options.
+	* configure: Regenerate.
+	* Makefile.am (PKGVERSION, REPORT_BUGS_TO): Define.
+	(INCLUDES): Define PKGVERSION and REPORT_BUGS_TO.
+	Regenerate dependencies.
+	* Makefile.in: Regenerate.
+	* gprof.c (usage): Don't print empty REPORT_BUGS_TO.
+	(main): Include PKGVERSION in version output.
+	* gprof.h: Remove include of bin-bugs.h.
+
+2007-01-16  Ben Elliston  <bje@au.ibm.com>
+
+	* corefile.c (parse_error): New function.
+	(read_function_mappings): Check calls to fscanf and report any
+	errors in parsing the mapping file.
+
+For older changes see ChangeLog-2006
+
+Copyright (C) 2007 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

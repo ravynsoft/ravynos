@@ -1,0 +1,44 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+#
+# x86-64 ILP32 tests
+#
+proc gas_x32_check { } {
+    global NM
+    global NMFLAGS
+
+    set status [gas_host_run "$NM $NMFLAGS --help" ""]
+    return [regexp "targets:.*elf32-x86-64" [lindex $status 1]];
+}
+
+if [expr ([istarget "i*86-*-*"] || [istarget "x86_64-*-*"]) && [gas_x32_check] && [is_elf_format]] then {
+
+    global ASFLAGS
+    set old_ASFLAGS "$ASFLAGS"
+    set ASFLAGS "$ASFLAGS --x32"
+
+    foreach test [lsort [glob -nocomplain $srcdir/$subdir/*.d]] {
+	if { [runtest_file_p $runtests $test] } {
+	    run_dump_test [file rootname $test]
+	}
+    }
+
+    run_list_test "reloc64" "--defsym _bad_=1"
+    run_list_test "reloc-2"
+
+    set ASFLAGS "$old_ASFLAGS"
+}

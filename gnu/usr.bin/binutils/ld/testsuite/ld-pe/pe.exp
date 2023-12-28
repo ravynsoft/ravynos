@@ -1,0 +1,146 @@
+# Expect script for simple PE tests that require the just-built binutils only.
+#   Copyright (C) 2004-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# These tests can only be run on PE/COFF platforms.
+if {![is_pecoff_format]} {
+    return
+}
+
+# This test can only be run on PE/COFF platforms that support .secrel32.
+if {[istarget i*86-*-cygwin*]
+    || [istarget i*86-*-pe]
+    || [istarget i*86-*-mingw*]
+    || [istarget x86_64-*-mingw*]
+    || [istarget arm-wince-pe] } {
+
+    if {[istarget x86_64-*-mingw*] } {
+      set pe_tests {
+	{".secrel32" "--disable-reloc-section" "" "" {secrel1.s secrel2.s}
+	 {{objdump -s secrel_64.d}} "secrel.x"}
+	{".secidx" "--disable-reloc-section" "" "" {secidx1.s secidx2.s}
+	 {{objdump -s secidx_64.d}} "secidx.x"}
+	{"Empty export table" "" "" "" "exports.s"
+	 {{objdump -p exports64.d}} "exports.dll"}
+	{"TLS directory entry" "" "" "" "tlssec.s"
+	 {{objdump -p tlssec64.d}} "tlssec.dll"}
+      }
+    } elseif {[istarget i*86-*-cygwin*] } {
+      set pe_tests {
+	{".secrel32" "--disable-auto-import --disable-reloc-section" "" "" {secrel1.s secrel2.s}
+	 {{objdump -s secrel.d}} "secrel.x"}
+	{".secidx" "--disable-auto-import --disable-reloc-section" "" "" {secidx1.s secidx2.s}
+	 {{objdump -s secidx.d}} "secidx.x"}
+	{"Empty export table" "" "" "" "exports.s"
+	 {{objdump -p exports.d}} "exports.dll"}
+	{"TLS directory entry" "" "" "" "tlssec.s"
+	 {{objdump -p tlssec32.d}} "tlssec.dll"}
+      }
+    } elseif {[istarget arm-wince-pe] } {
+      set pe_tests {
+	{".secrel32" "--disable-reloc-section" "" "" {secrel1.s secrel2.s}
+	 {{objdump -s secrel.d}} "secrel.x"}
+	{"Empty export table" "" "" "" "exports.s"
+	 {{objdump -p exports.d}} "exports.dll"}
+	{"TLS directory entry" "" "" "" "tlssec.s"
+	 {{objdump -p tlssec32.d}} "tlssec.dll"}
+      }
+    } else {
+      set pe_tests {
+	{".secrel32" "--disable-reloc-section" "" "" {secrel1.s secrel2.s}
+	 {{objdump -s secrel.d}} "secrel.x"}
+	{".secidx" "--disable-reloc-section" "" "" {secidx1.s secidx2.s}
+	 {{objdump -s secidx.d}} "secidx.x"}
+	{"Empty export table" "" "" "" "exports.s"
+	 {{objdump -p exports.d}} "exports.dll"}
+	{"TLS directory entry" "" "" "" "tlssec.s"
+	 {{objdump -p tlssec32.d}} "tlssec.dll"}
+      }
+    }
+
+    run_ld_link_tests $pe_tests
+}
+
+if {[istarget "aarch64-*-pe*"] || [istarget "aarch64-*-mingw*"]} {
+    run_dump_test "pe-aarch64"
+
+    set pe_tests {
+      {"aarch64" "--image-base 0x1000" "" "" {aarch64a.s aarch64b.s}
+	{{objdump -dr aarch64.d}} "aarch64.x"}
+      {".secrel32" "--disable-reloc-section" "" "" {secrel1.s secrel2.s}
+	{{objdump -s secrel_64.d}} "secrel.x"}
+      {".secidx" "--disable-reloc-section" "" "" {secidx1.s secidx2.s}
+	{{objdump -s secidx_aarch64.d}} "secidx.x"}
+    }
+
+    run_ld_link_tests $pe_tests
+}
+
+run_dump_test "image_size"
+run_dump_test "export_dynamic_warning"
+
+run_dump_test "longsecn"
+run_dump_test "longsecn-1"
+run_dump_test "longsecn-2"
+run_dump_test "longsecn-3"
+run_dump_test "longsecn-4"
+run_dump_test "longsecn-5"
+
+run_dump_test "orphan"
+run_dump_test "orphan_nu"
+
+run_dump_test "reloc"
+
+run_dump_test "weakdef-1"
+
+run_dump_test "pr19803"
+run_dump_test "pr26659-weak-undef-sym"
+set pr19803_dll {
+    {   "PR 19803: not exporting swept symbols"
+	"-shared --out-implib dx.dll --gc-sections"
+	"" "" {pr19803.s}
+	{{objdump "--syms dx.dll" pr19803.e}}
+	"a.exe"}
+}
+# This test is *supposed* to fail.  If the symbol defined in pr19803.e is
+# found then it was not stripped from the export dll, despite the fact that
+# it (should have been) garbage collected from the executable.
+setup_xfail *-*-*
+run_ld_link_tests $pr19803_dll
+
+if {[istarget x86_64-*-mingw*] } {
+	run_dump_test "cfi"
+} elseif {[istarget i*86-*-cygwin*] || [istarget i*86-*-mingw*] } {
+	run_dump_test "cfi32"
+}
+
+set foreign_sym_test {
+  {"non-C aligned common" "" "" "" {non-c-lang-syms.s}
+   {{nm -C non-c-lang-syms.d}} "non-c-lang-syms.x"}
+}
+
+# MCore rearranges symbol order.
+setup_xfail mcore-*-pe
+run_ld_link_tests $foreign_sym_test
+
+run_dump_test "exclude-symbols-embedded-i386"
+run_dump_test "exclude-symbols-embedded-x86_64"
+run_dump_test "exclude-symbols-def-i386"
+run_dump_test "exclude-symbols-def-x86_64"

@@ -1,0 +1,65 @@
+# Machinemodel file for M5 systems
+#
+#   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; see the file COPYING3.  If not see
+# <http://www.gnu.org/licenses/>.
+
+indxobj_define M5_Chip ((CPUID>>3)/6)
+indxobj_define M5_Core (CPUID>>3)
+
+mobj_define Memory_page_size       "(EA_PAGESIZE ? EA_PAGESIZE : -1)"
+mobj_define Memory_page            "(((VADDR>255) && EA_PAGESIZE) ? VADDR & (~(EA_PAGESIZE-1)) : -1)"
+mobj_define Memory_64B_cacheline   "((VADDR>255)?(VADDR>>6<<6):-1)"
+mobj_define Memory_32B_cacheline   "((VADDR>255)?(VADDR>>5<<5):-1)"
+mobj_define Memory_address         "((VADDR>255)?(VADDR):-1)"
+
+mobj_define Memory_in_home_lgrp    (EA_LGRP==LWP_LGRP_HOME)
+mobj_define Memory_lgrp            (EA_LGRP)
+
+mobj_define Physical_page          "((PADDR && EA_PAGESIZE) ? PADDR & (~(EA_PAGESIZE-1)) : -1)"
+mobj_define Physical_64B_cacheline "(PADDR?(PADDR>>6<<6):-1)"
+mobj_define Physical_32B_cacheline "(PADDR?(PADDR>>5<<5):-1)"
+mobj_define Physical_address       "(PADDR?(PADDR):-1)"
+
+
+#mobj_define Vpage_8K   "((ea_pagesize==1<<13 && VADDR>255)?(VADDR>>13<<13):-1)"
+#mobj_define Vpage_64K  "((ea_pagesize==1<<16 && VADDR>255)?(VADDR>>16<<16):-1)"
+#mobj_define Vpage_4M   "((ea_pagesize==1<<22 && VADDR>255)?(VADDR>>22<<22):-1)"
+#mobj_define Vpage_256M "((ea_pagesize==1<<28 && VADDR>255)?(VADDR>>28<<28):-1)"
+#mobj_define Vpage_2G   "((ea_pagesize==1<<31 && VADDR>255)?(VADDR>>31<<31):-1)"
+
+#mobj_define Ppage_8K   "((ea_pagesize==1<<13 && PADDR)?(PADDR>>13<<13):-1)"
+#mobj_define Ppage_64K  "((ea_pagesize==1<<16 && PADDR)?(PADDR>>16<<16):-1)"
+#mobj_define Ppage_4M   "((ea_pagesize==1<<22 && PADDR)?(PADDR>>22<<22):-1)"
+#mobj_define Ppage_256M "((ea_pagesize==1<<28 && PADDR)?(PADDR>>28<<28):-1)"
+#mobj_define Ppage_2G   "((ea_pagesize==1<<31 && PADDR)?(PADDR>>31<<31):-1)"
+
+# comment out *CacheTag definitions since we don't have use cases to justify their complexity
+# comment out other *Cache* definitions since we don't have use cases to justify their complexity
+#       further, meminfo() tends not to give us physical addresses
+
+#mobj_define M5_L1ICacheSet "((PHYSPC>>5)&0x7F)"
+#mobj_define M5_L1ICacheTag "((PHYSPC>>12)&0x7FFFFFFFF)"
+#mobj_define M5_L1DCacheSet "(PADDR?((PADDR>>5)&0x7F):-1)"
+#mobj_define M5_L1DCacheTag "(PADDR?((PADDR>>12)&0x7FFFFFFFF):-1)"
+
+#mobj_define M5_L2ICacheSet "((((PHYSPC&0xFFFFFFF80FFF)|(((PHYSPC>>19)^(PHYSPC>>16)^(PHYSPC>>10)^(PHYSPC>>4)^(PHYSPC>>1)^PHYSPC)&0x7F000))>>5)&0x1FF)"
+#mobj_define M5_L2ICacheTag "((((PHYSPC&0xFFFFFFF80FFF)|(((PHYSPC>>19)^(PHYSPC>>16)^(PHYSPC>>10)^(PHYSPC>>4)^(PHYSPC>>1)^PHYSPC)&0x7F000))>>14)&0x1FFFFFFFF)"
+#mobj_define M5_L2DCacheSet "(PADDR?((((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000)))>>5)&0x1FF):-1)"
+#mobj_define M5_L2DCacheTag "(PADDR?((((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000)))>>14)&0x1FFFFFFFF):-1)"
+
+#mobj_define M5_L3DCacheSet "(PADDR?((((PADDR&0x800000000000)?((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000))):((((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000)))&0x7FFFFFFFFF3F)|(((((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000)))>>6)^((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000))))&0xC0)))>>6)&0xFFFF):-1)"
+#mobj_define M5_L3DCacheTag "(PADDR?((((PADDR&0x800000000000)?((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000))):((((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000)))&0x7FFFFFFFFF3F)|(((((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000)))>>6)^((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000))))&0xC0)))>>22)&0x3FFFFFF):-1)"
+#mobj_define M5_L3DBank "(PADDR?((((PADDR&0x800000000000)?((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000))):((((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000)))&0x7FFFFFFFFF3F)|(((((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000)))>>6)^((PADDR&0x800000000000)?PADDR:((PADDR&0xFFFFFFF80FFF)|(((PADDR>>19)^(PADDR>>16)^(PADDR>>10)^(PADDR>>4)^(PADDR>>1)^PADDR)&0x7F000))))&0xC0)))>>6)&0x3):-1)"

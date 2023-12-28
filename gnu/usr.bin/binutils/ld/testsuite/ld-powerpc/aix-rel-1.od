@@ -1,0 +1,22 @@
+
+.*
+
+# It doesn't matter whether .text, .bss and .debug are listed, as long as
+# they're empty.  The important thing is that .loader shouldn't appear
+# at all.
+Sections:
+ *Idx Name * Size .*
+ *0 \.text * 0+0 .*
+ *ALLOC, LOAD, CODE
+ *1 \.data * 0+8 .*
+ *CONTENTS, ALLOC, LOAD, RELOC, DATA
+ *2 \.bss * 0+0 .*
+ *ALLOC
+ *3 \.debug * 0+0 .*
+                  
+RELOCATION RECORDS FOR \[\.data\]:
+OFFSET +TYPE +VALUE
+0+0 R_POS(|_32) * \.puts
+0+4 R_POS(|_32) * foobar
+
+

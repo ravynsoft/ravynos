@@ -1,0 +1,2685 @@
+# Swedish messages for opcodes.
+# Copyright (C) 2001, 2002, 2003, 2006, 2017, 2018, 2019, 2020, 2021, 2022, 2023 Free Software Foundation, Inc.
+# This file is distributed under the same license as the binutils package.
+# Christian Rose <menthos@menthos.com>, 2001, 2002, 2003.
+# Daniel Nylander <po@danielnylander.se>, 2006.
+# Sebastian Rasmussen <sebras@gmail.com>, 2017, 2018, 2019, 2020, 2021, 2022, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: opcodes 2.39.90\n"
+"Report-Msgid-Bugs-To: https://sourceware.org/bugzilla/\n"
+"POT-Creation-Date: 2022-12-31 12:18+0000\n"
+"PO-Revision-Date: 2023-05-23 00:06+0200\n"
+"Last-Translator: Sebastian Rasmussen <sebras@gmail.com>\n"
+"Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 3.2.2\n"
+
+#: aarch64-asm.c:821
+msgid "specified register cannot be read from"
+msgstr "angivet register kan inte läsas från"
+
+#: aarch64-asm.c:830
+msgid "specified register cannot be written to"
+msgstr "angivet register kan inte skrivas till"
+
+#. Invalid option.
+#: aarch64-dis.c:103 arc-dis.c:807 arm-dis.c:12303
+#, c-format
+msgid "unrecognised disassembler option: %s"
+msgstr "okänd avassemblerarflagga: %s"
+
+#: aarch64-dis.c:3574
+#, c-format
+msgid "this `%s' should have an immediately preceding `%s'"
+msgstr "this ”%s” bör ha en omedelbart föregående ”%s”"
+
+#: aarch64-dis.c:3581
+#, c-format
+msgid "expected `%s' after previous `%s'"
+msgstr "förväntade ”%s” efter föregående ”%s”"
+
+#: aarch64-dis.c:4000
+#, c-format
+msgid ""
+"\n"
+"The following AARCH64 specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Följande AARCH64-specifika avassemblerarflaggor stöds för användning\n"
+"tillsammans med flaggan -M (flera flaggor kan skiljas åt med komman):\n"
+
+#: aarch64-dis.c:4004
+#, c-format
+msgid ""
+"\n"
+"  no-aliases         Don't print instruction aliases.\n"
+msgstr ""
+"\n"
+"  no-aliases         Skriv inte ut instruktionsalias.\n"
+
+#: aarch64-dis.c:4007
+#, c-format
+msgid ""
+"\n"
+"  aliases            Do print instruction aliases.\n"
+msgstr ""
+"\n"
+"  aliases            Skriv ut instruktionsalias.\n"
+
+#: aarch64-dis.c:4010
+#, c-format
+msgid ""
+"\n"
+"  no-notes         Don't print instruction notes.\n"
+msgstr ""
+"\n"
+"  no-notes         Skriv inte ut instruktionsnoteringar.\n"
+
+#: aarch64-dis.c:4013
+#, c-format
+msgid ""
+"\n"
+"  notes            Do print instruction notes.\n"
+msgstr ""
+"\n"
+"  notes            Skriv ut instruktionsnoteringar.\n"
+
+#: aarch64-dis.c:4017
+#, c-format
+msgid ""
+"\n"
+"  debug_dump         Temp switch for debug trace.\n"
+msgstr ""
+"\n"
+"  debug_dump         Tillfällig flagga för felsökningsspårning.\n"
+
+#: aarch64-dis.c:4021 arc-dis.c:1607 arc-dis.c:1630 arc-dis.c:1633
+#: loongarch-dis.c:306 mips-dis.c:2897 mips-dis.c:2909 mips-dis.c:2912
+#: nfp-dis.c:2993 riscv-dis.c:1282 riscv-dis.c:1285
+#, c-format
+msgid "\n"
+msgstr "\n"
+
+#: aarch64-opc.c:1357
+msgid "immediate value"
+msgstr "omedelbart värde"
+
+#: aarch64-opc.c:1367
+msgid "immediate offset"
+msgstr "omedelbar position"
+
+#: aarch64-opc.c:1377
+msgid "register number"
+msgstr "registernummer"
+
+#: aarch64-opc.c:1387
+msgid "register element index"
+msgstr "registerelementindex"
+
+#: aarch64-opc.c:1397
+msgid "shift amount"
+msgstr "skiftmängd"
+
+#: aarch64-opc.c:1409
+msgid "multiplier"
+msgstr "multiplikator"
+
+#: aarch64-opc.c:1483
+msgid "reg pair must start from even reg"
+msgstr "registerpar måste börja med jämnt register"
+
+#: aarch64-opc.c:1489
+msgid "reg pair must be contiguous"
+msgstr "registerpar måste vara kontinuerligt"
+
+#: aarch64-opc.c:1503
+msgid "extraneous register"
+msgstr "extra register"
+
+#: aarch64-opc.c:1509
+msgid "missing register"
+msgstr "saknar register"
+
+#: aarch64-opc.c:1520
+msgid "stack pointer register expected"
+msgstr "stackpekarregister förväntat"
+
+#: aarch64-opc.c:1545
+msgid "z0-z15 expected"
+msgstr "z0-z15 förväntat"
+
+#: aarch64-opc.c:1546
+msgid "z0-z7 expected"
+msgstr "z0-z7 förväntat"
+
+#: aarch64-opc.c:1572
+msgid "invalid register list"
+msgstr "ogiltig registerlista"
+
+#: aarch64-opc.c:1586
+msgid "p0-p7 expected"
+msgstr "p0-p7 förväntat"
+
+#: aarch64-opc.c:1612 aarch64-opc.c:1620
+msgid "unexpected address writeback"
+msgstr "oväntad adressåterskrivning"
+
+#: aarch64-opc.c:1631
+msgid "address writeback expected"
+msgstr "adressåterskrivning förväntad"
+
+#: aarch64-opc.c:1678
+msgid "negative or unaligned offset expected"
+msgstr "negativ eller ojusterad position förväntad"
+
+#: aarch64-opc.c:1735
+msgid "invalid register offset"
+msgstr "ogiltig registerposition"
+
+#: aarch64-opc.c:1757
+msgid "invalid post-increment amount"
+msgstr "ogiltig efter-inkrementeringsmängd"
+
+#: aarch64-opc.c:1773 aarch64-opc.c:2293
+msgid "invalid shift amount"
+msgstr "ogiltig skiftmängd"
+
+#: aarch64-opc.c:1786
+msgid "invalid extend/shift operator"
+msgstr "ogiltig utökad-/skiftoperator"
+
+#: aarch64-opc.c:1832 aarch64-opc.c:2093 aarch64-opc.c:2128 aarch64-opc.c:2147
+#: aarch64-opc.c:2155 aarch64-opc.c:2246 aarch64-opc.c:2423 aarch64-opc.c:2523
+#: aarch64-opc.c:2536
+msgid "immediate out of range"
+msgstr "omedelbar är utanför intervall"
+
+#: aarch64-opc.c:1862 aarch64-opc.c:1904 aarch64-opc.c:1967 aarch64-opc.c:2001
+msgid "invalid addressing mode"
+msgstr "ogiltigt adresseringsläge"
+
+#: aarch64-opc.c:1959
+msgid "index register xzr is not allowed"
+msgstr "indexregister xzr är inte tillåtet"
+
+#: aarch64-opc.c:2081 aarch64-opc.c:2103 aarch64-opc.c:2326 aarch64-opc.c:2334
+#: aarch64-opc.c:2400 aarch64-opc.c:2429
+msgid "invalid shift operator"
+msgstr "ogiltig skiftoperator"
+
+#: aarch64-opc.c:2087
+msgid "shift amount must be 0 or 12"
+msgstr "skiftmängd måste vara 0 eller 12"
+
+#: aarch64-opc.c:2110
+msgid "shift amount must be a multiple of 16"
+msgstr "skiftmängden måste vara en multipel av 16"
+
+#: aarch64-opc.c:2122
+msgid "negative immediate value not allowed"
+msgstr "negativt omedelbart värde tillåts inte"
+
+#: aarch64-opc.c:2257
+msgid "immediate zero expected"
+msgstr "omedelbar nolla förväntad"
+
+#: aarch64-opc.c:2271
+msgid "rotate expected to be 0, 90, 180 or 270"
+msgstr "rotation förväntades vara 0, 90, 180 eller 270"
+
+#: aarch64-opc.c:2282
+msgid "rotate expected to be 90 or 270"
+msgstr "rotation förväntades vara 90 eller 270"
+
+#: aarch64-opc.c:2342
+msgid "shift is not permitted"
+msgstr "skift är inte tillåtet"
+
+#: aarch64-opc.c:2367
+msgid "invalid value for immediate"
+msgstr "ogiltigt värde för omedelbar"
+
+#: aarch64-opc.c:2392
+msgid "shift amount must be 0 or 16"
+msgstr "skiftmängd måste vara 0 eller 16"
+
+#: aarch64-opc.c:2413
+msgid "floating-point immediate expected"
+msgstr "omedelbart flyttal förväntades"
+
+#: aarch64-opc.c:2447
+msgid "no shift amount allowed for 8-bit constants"
+msgstr "ingen skiftmängd tillåten för 8-bitarskonstanter"
+
+#: aarch64-opc.c:2457
+msgid "shift amount must be 0 or 8"
+msgstr "skiftmängd måste vara 0 eller 8"
+
+#: aarch64-opc.c:2470
+msgid "immediate too big for element size"
+msgstr "omedelbar för stor för elementstorlek"
+
+#: aarch64-opc.c:2477
+msgid "invalid arithmetic immediate"
+msgstr "ogiltig aritmetisk omedelbar"
+
+#: aarch64-opc.c:2491
+msgid "floating-point value must be 0.5 or 1.0"
+msgstr "flyttalsvärde måste vara 0.5 eller 1.0"
+
+#: aarch64-opc.c:2501
+msgid "floating-point value must be 0.5 or 2.0"
+msgstr "flyttalsvärde måste vara 0.5 eller 2.0"
+
+#: aarch64-opc.c:2511
+msgid "floating-point value must be 0.0 or 1.0"
+msgstr "flyttalsvärde måste vara 0.0 eller 1.0"
+
+#: aarch64-opc.c:2542
+msgid "invalid replicated MOV immediate"
+msgstr "ogiltig, replikerad MOV-omedelbar"
+
+#: aarch64-opc.c:2650
+msgid "extend operator expected"
+msgstr "utökad operator förväntades"
+
+#: aarch64-opc.c:2663
+msgid "missing extend operator"
+msgstr "saknar utökad operator"
+
+#: aarch64-opc.c:2669
+msgid "'LSL' operator not allowed"
+msgstr "”LSL”-operator inte tillåten"
+
+#: aarch64-opc.c:2690
+msgid "W register expected"
+msgstr "W-register förväntades"
+
+#: aarch64-opc.c:2701
+msgid "shift operator expected"
+msgstr "skiftoperator förväntades"
+
+#: aarch64-opc.c:2708
+msgid "'ROR' operator not allowed"
+msgstr "”ROR”-operator inte tillåten"
+
+#: aarch64-opc.c:3998
+msgid "reading from a write-only register"
+msgstr "läsning från ett register som endast kan skrivas"
+
+#: aarch64-opc.c:4000
+msgid "writing to a read-only register"
+msgstr "skrivning till ett register som endast kan läsas"
+
+#: aarch64-opc.c:5606
+msgid "the three register operands must be distinct from one another"
+msgstr "de tre registeroperanderna måste vara distinkta från varandra"
+
+#: aarch64-opc.c:5717
+msgid "destination register differs from preceding instruction"
+msgstr "destinationsregister skiljer sig från föregående instruktion"
+
+#: aarch64-opc.c:5720
+msgid "source register differs from preceding instruction"
+msgstr "källregister skiljer sig från det i föregående instruktion"
+
+#: aarch64-opc.c:5723
+msgid "size register differs from preceding instruction"
+msgstr "storleksregister skiljer sig från det i föregående instruktion"
+
+#: aarch64-opc.c:5771
+msgid "instruction opens new dependency sequence without ending previous one"
+msgstr "instruktion öppnar en ny beroende sekvens utan att avsluta föregående"
+
+#: aarch64-opc.c:5800
+msgid "previous `movprfx' sequence not closed"
+msgstr "föregående ”movprfx”-sekvens inte stängd"
+
+#: aarch64-opc.c:5819
+msgid "SVE instruction expected after `movprfx'"
+msgstr "SVE-instruktion förväntad efter ”movprfx”"
+
+#: aarch64-opc.c:5832
+msgid "SVE `movprfx' compatible instruction expected"
+msgstr "SVE ”movprfx”-kompatibel instruktion förväntad"
+
+#: aarch64-opc.c:5920
+msgid "predicated instruction expected after `movprfx'"
+msgstr "instruktion med predikat förväntad efter ”movprfx”"
+
+#: aarch64-opc.c:5932
+msgid "merging predicate expected due to preceding `movprfx'"
+msgstr "sammanslagningspredikat förväntat på grund av föregående ”movprfx”"
+
+#: aarch64-opc.c:5944
+msgid "predicate register differs from that in preceding `movprfx'"
+msgstr "predikatregister skiljer sig från det i föregående ”movprfx”"
+
+#: aarch64-opc.c:5963
+msgid "output register of preceding `movprfx' not used in current instruction"
+msgstr "utdataregister från föregående ”movprfx” används inte i aktuell instruktion"
+
+#: aarch64-opc.c:5976
+msgid "output register of preceding `movprfx' expected as output"
+msgstr "utdataregister från föregående ”movprfx” förväntat som utdata"
+
+#: aarch64-opc.c:5988
+msgid "output register of preceding `movprfx' used as input"
+msgstr "utdataregister från föregående ”movprfx” används som indata"
+
+#: aarch64-opc.c:6004
+msgid "register size not compatible with previous `movprfx'"
+msgstr "registerstorlek inte kompatibel med föregående ”movprfx”"
+
+#: alpha-opc.c:154
+msgid "branch operand unaligned"
+msgstr "grenoperanden ligger inte på jämn gräns"
+
+#: alpha-opc.c:170 alpha-opc.c:186
+msgid "jump hint unaligned"
+msgstr "hopptipset ligger inte på jämn gräns"
+
+#: arc-dis.c:380
+msgid ""
+"\n"
+"Warning: disassembly may be wrong due to guessed opcode class choice.\n"
+"Use -M<class[,class]> to select the correct opcode class(es).\n"
+"\t\t\t\t"
+msgstr ""
+"\n"
+"Varning: avassemblering kan vara felaktig på grund av gissade klassval för instruktioner.\n"
+"Använd -M<klass[,klass]> för att välja rätt instruktionsklasser.\n"
+"\t\t\t\t"
+
+#: arc-dis.c:442
+msgid "An error occurred while generating the extension instruction operations"
+msgstr "Ett fel inträffade vid generering av operationer för utökningsinstruktioner"
+
+#: arc-dis.c:850
+#, c-format
+msgid "unrecognised disassembler CPU option: %s"
+msgstr "okänd avassemblerarflagga för CPU: %s"
+
+#: arc-dis.c:1323
+msgid ""
+"\n"
+"Warning: illegal use of double register pair.\n"
+msgstr ""
+"\n"
+"Varning: otillåten användning av dubbelt registerpar.\n"
+
+#: arc-dis.c:1489
+msgid "Enforce the designated architecture while decoding."
+msgstr "Tvinga den utsedda arkitekturen vid avkodning."
+
+#: arc-dis.c:1491
+msgid "Recognize DSP instructions."
+msgstr "Känn igen DSP-instruktioner."
+
+#: arc-dis.c:1493
+msgid "Recognize FPX SP instructions."
+msgstr "Känn igen FPX SP-instruktioner."
+
+#: arc-dis.c:1495
+msgid "Recognize FPX DP instructions."
+msgstr "Känn igen FPX DP-instruktioner."
+
+#: arc-dis.c:1497
+msgid "Recognize FPU QuarkSE-EM instructions."
+msgstr "Känn igen FPU QuarkSE-EM-instruktioner."
+
+#: arc-dis.c:1499
+msgid "Recognize double assist FPU instructions."
+msgstr "Känn igen dubbelassisterade FPU-instruktioner."
+
+#: arc-dis.c:1501
+msgid "Recognize single precision FPU instructions."
+msgstr "Känn igen enkelprecisions-FPU-instruktioner."
+
+#: arc-dis.c:1503
+msgid "Recognize double precision FPU instructions."
+msgstr "Känn igen dubbelprecisions-FPU-instruktioner."
+
+#: arc-dis.c:1505
+msgid "Recognize NPS400 instructions."
+msgstr "Känn igen NPS400-instruktioner."
+
+#: arc-dis.c:1507
+msgid "Use only hexadecimal number to print immediates."
+msgstr "Använd endast hexadecimala nummer för att skriva ut omedelbara."
+
+#: arc-dis.c:1582
+#, c-format
+msgid ""
+"\n"
+"The following ARC specific disassembler options are supported for use \n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Följande ARC-specifika avassemblerarflaggor stöds för användning\n"
+"tillsammans med flaggan -M (flera flaggor kan skiljas åt med komman):\n"
+
+#: arc-dis.c:1616 mips-dis.c:2904 riscv-dis.c:1277
+#, c-format
+msgid ""
+"\n"
+"  For the options above, the following values are supported for \"%s\":\n"
+"   "
+msgstr ""
+"\n"
+"  För flaggorna ovan stöds följande värden på \"%s\":\n"
+"   "
+
+#: arc-dis.c:1626
+#, c-format
+msgid ""
+"\n"
+"   "
+msgstr ""
+"\n"
+"   "
+
+#: arc-opc.c:41 arc-opc.c:64 arc-opc.c:90 arc-opc.c:114
+msgid "LP_COUNT register cannot be used as destination register"
+msgstr "LP_COUNT-register kan inte används som destinationsregister"
+
+#: arc-opc.c:88
+msgid "cannot use odd number destination register"
+msgstr "kan inte använda udda numrerat destinationsregister"
+
+#: arc-opc.c:101 arc-opc.c:112
+msgid "cannot use odd number source register"
+msgstr "kan inte använda udda numrerat källregister"
+
+#: arc-opc.c:127
+msgid "operand is not zero"
+msgstr "operand är inte noll"
+
+#: arc-opc.c:186
+msgid "register R30 is a limm indicator"
+msgstr "register R30 är en limm-indikator"
+
+#: arc-opc.c:188
+msgid "register out of range"
+msgstr "register utanför intervall"
+
+#: arc-opc.c:207
+msgid "register must be R0"
+msgstr "register måste vara R0"
+
+#: arc-opc.c:225
+msgid "register must be R1"
+msgstr "register måste vara R1"
+
+#: arc-opc.c:242
+msgid "register must be R2"
+msgstr "register måste vara R2"
+
+#: arc-opc.c:259
+msgid "register must be R3"
+msgstr "register måste vara R3"
+
+#: arc-opc.c:276
+msgid "register must be SP"
+msgstr "register måste vara SP"
+
+#: arc-opc.c:293
+msgid "register must be GP"
+msgstr "register måste vara GP"
+
+#: arc-opc.c:310
+msgid "register must be PCL"
+msgstr "register måste vara PCL"
+
+#: arc-opc.c:327
+msgid "register must be BLINK"
+msgstr "register måste vara BLINK"
+
+#: arc-opc.c:344
+msgid "register must be ILINK1"
+msgstr "register måste vara ILINK1"
+
+#: arc-opc.c:361
+msgid "register must be ILINK2"
+msgstr "register måste vara ILINK2"
+
+#. ARC NPS400 Support: See comment near head of file.
+#: arc-opc.c:392 arc-opc.c:430 arc-opc.c:468 arc-opc.c:737
+msgid "register must be either r0-r3 or r12-r15"
+msgstr "register måste vara antingen r0-r3 eller r12-r15"
+
+#: arc-opc.c:519
+msgid "accepted values are from -1 to 6"
+msgstr "accepterade värden är från -1 till 6"
+
+#: arc-opc.c:548
+msgid "first register of the range should be r13"
+msgstr "första register i intervallet borde vara r13"
+
+#: arc-opc.c:550
+msgid "last register of the range doesn't fit"
+msgstr "sista register i intervallet får inte plats"
+
+#: arc-opc.c:570 arc-opc.c:585
+msgid "invalid register number, should be fp"
+msgstr "ogiltigt registernummer, borde vara fp"
+
+#: arc-opc.c:607
+msgid "invalid register number, should be blink"
+msgstr "ogiltigt registernummer, borde vara blink"
+
+#: arc-opc.c:629
+msgid "invalid register number, should be pcl"
+msgstr "ogiltigt registernummer, borde vara pcl"
+
+#: arc-opc.c:785
+msgid "invalid size, should be 1, 2, 4, or 8"
+msgstr "ogiltig storlek, borde vara 1, 2, 4 eller 8"
+
+#: arc-opc.c:830
+msgid "invalid immediate, must be 1, 2, or 4"
+msgstr "ogiltig omedelbar, måste vara 1, 2 eller 4"
+
+#: arc-opc.c:869
+msgid "invalid value for CMEM ld/st immediate"
+msgstr "ogiltigt värde för CMEM ld/st-omedelbar"
+
+#: arc-opc.c:896
+msgid "invalid position, should be 0, 16, 32, 48 or 64."
+msgstr "ogiltig position, borde vara 0, 16, 32, 48 eller 64."
+
+#: arc-opc.c:930
+msgid "invalid position, should be 16, 32, 64 or 128."
+msgstr "ogiltig position, borde vara 16, 32, 64 eller 128."
+
+#: arc-opc.c:952
+msgid "invalid size value must be on range 1-64."
+msgstr "ogiltigt storleksvärde måste vara i intervallet 1-64."
+
+#: arc-opc.c:983
+msgid "invalid position, should be 0, 8, 16, or 24"
+msgstr "ogiltig position, borde vara 0, 8, 16 eller 24"
+
+#: arc-opc.c:1008
+msgid "invalid size, value must be "
+msgstr "ogiltig storlek, värde måste vara "
+
+#: arc-opc.c:1082
+msgid "value out of range 1 - 256"
+msgstr "värde utanför intervall 1-256"
+
+#: arc-opc.c:1091
+msgid "value must be power of 2"
+msgstr "värde måste vara en tvåpotens"
+
+#: arc-opc.c:1144
+msgid "value must be in the range 0 to 28"
+msgstr "värde måste vara i intervallet 0 till 28"
+
+#: arc-opc.c:1166
+msgid "value must be in the range 1 to "
+msgstr "värde måste vara i intervallet 1 till "
+
+#: arc-opc.c:1196
+msgid "value must be in the range 0 to 240"
+msgstr "värde måste vara i intervallet 0 till 240"
+
+#: arc-opc.c:1198
+msgid "value must be a multiple of 16"
+msgstr "värde måste vara en multipel av 16"
+
+#: arc-opc.c:1218
+msgid "invalid address type for operand"
+msgstr "ogiltig adresstyp för operand"
+
+#: arc-opc.c:1252
+msgid "value must be in the range 0 to 31"
+msgstr "värde måste vara i intervallet 0 till 31"
+
+#: arc-opc.c:1277
+msgid "invalid position, should be one of: 0,4,8,...124."
+msgstr "ogiltig position, borde vara endera av: 0, 4, 8, …124."
+
+#: arm-dis.c:5204
+msgid "Select raw register names"
+msgstr "Välj råa registernamn"
+
+#: arm-dis.c:5206
+msgid "Select register names used by GCC"
+msgstr "Välj registernamn som används av GCC"
+
+#: arm-dis.c:5208
+msgid "Select register names used in ARM's ISA documentation"
+msgstr "Välj registernamn som används i ARM:s ISA-dokumentation"
+
+#: arm-dis.c:5210
+msgid "Assume all insns are Thumb insns"
+msgstr "Förvänta att alla instr är Thumb-instr"
+
+#: arm-dis.c:5211
+msgid "Examine preceding label to determine an insn's type"
+msgstr "Undersök föregående etikett för att avgöra en instruktions typ"
+
+#: arm-dis.c:5212
+msgid "Select register names used in the APCS"
+msgstr "Välj registernamn som används i APCS"
+
+#: arm-dis.c:5214
+msgid "Select register names used in the ATPCS"
+msgstr "Välj registernamn som används i ATPCS"
+
+#: arm-dis.c:5216
+msgid "Select special register names used in the ATPCS"
+msgstr "Välj specialregisternamn som används i ATPCS"
+
+#: arm-dis.c:5218
+msgid "Enable CDE extensions for coprocessor N space"
+msgstr "Aktivera CDE-utökningar för coprocessor-N-rymd"
+
+#: arm-dis.c:8530
+msgid "<illegal precision>"
+msgstr "<otillåten precision>"
+
+#: arm-dis.c:12264
+#, c-format
+msgid "unrecognised register name set: %s"
+msgstr "okänd registernamnsuppsättning: %s"
+
+#: arm-dis.c:12278
+#, c-format
+msgid "cde coprocessor not between 0-7: %s"
+msgstr "cde-coprocessor inte mellan 0-7: %s"
+
+#: arm-dis.c:12284
+#, c-format
+msgid "coproc must have an argument: %s"
+msgstr "coproc måste ha ett argument: %s"
+
+#: arm-dis.c:12297
+#, c-format
+msgid "coprocN argument takes options \"generic\", \"cde\", or \"CDE\": %s"
+msgstr "coprocN-argument tar alternativen ”generic”, ”cde” eller ”CDE”: %s"
+
+#: arm-dis.c:13009
+#, c-format
+msgid ""
+"\n"
+"The following ARM specific disassembler options are supported for use with\n"
+"the -M switch:\n"
+msgstr ""
+"\n"
+"Följande ARM-specifika avassemblerarflaggor stöds för användning\n"
+"tillsammans med flaggan -M:\n"
+
+#: avr-dis.c:130 avr-dis.c:152
+#, c-format
+msgid "undefined"
+msgstr "odefinierad"
+
+#: avr-dis.c:251
+#, c-format
+msgid "internal disassembler error"
+msgstr "internt fel i avassemblerare"
+
+#: avr-dis.c:312
+#, c-format
+msgid "unknown constraint `%c'"
+msgstr "okänd begränsning \"%c\""
+
+#: bpf-asm.c:97
+msgid "expected 16, 32 or 64 in"
+msgstr "förväntade 16, 32 eller 64 i"
+
+#: bpf-asm.c:181 epiphany-asm.c:456 fr30-asm.c:311 frv-asm.c:1264
+#: ip2k-asm.c:512 iq2000-asm.c:460 lm32-asm.c:350 m32c-asm.c:1585
+#: m32r-asm.c:329 mep-asm.c:1287 mt-asm.c:596 or1k-asm.c:576
+#: xstormy16-asm.c:277
+#, c-format
+msgid "internal error: unrecognized field %d while parsing"
+msgstr "internt fel: okänt fält %d vid tolkning"
+
+#: bpf-asm.c:233 epiphany-asm.c:508 fr30-asm.c:363 frv-asm.c:1316
+#: ip2k-asm.c:564 iq2000-asm.c:512 lm32-asm.c:402 m32c-asm.c:1637
+#: m32r-asm.c:381 mep-asm.c:1339 mt-asm.c:648 or1k-asm.c:628
+#: xstormy16-asm.c:329
+msgid "missing mnemonic in syntax string"
+msgstr "instruktion saknas i syntaxsträng"
+
+#. We couldn't parse it.
+#: bpf-asm.c:368 bpf-asm.c:372 bpf-asm.c:461 bpf-asm.c:568 epiphany-asm.c:643
+#: epiphany-asm.c:647 epiphany-asm.c:736 epiphany-asm.c:843 fr30-asm.c:498
+#: fr30-asm.c:502 fr30-asm.c:591 fr30-asm.c:698 frv-asm.c:1451 frv-asm.c:1455
+#: frv-asm.c:1544 frv-asm.c:1651 ip2k-asm.c:699 ip2k-asm.c:703 ip2k-asm.c:792
+#: ip2k-asm.c:899 iq2000-asm.c:647 iq2000-asm.c:651 iq2000-asm.c:740
+#: iq2000-asm.c:847 lm32-asm.c:537 lm32-asm.c:541 lm32-asm.c:630
+#: lm32-asm.c:737 m32c-asm.c:1772 m32c-asm.c:1776 m32c-asm.c:1865
+#: m32c-asm.c:1972 m32r-asm.c:516 m32r-asm.c:520 m32r-asm.c:609 m32r-asm.c:716
+#: mep-asm.c:1474 mep-asm.c:1478 mep-asm.c:1567 mep-asm.c:1674 mt-asm.c:783
+#: mt-asm.c:787 mt-asm.c:876 mt-asm.c:983 or1k-asm.c:763 or1k-asm.c:767
+#: or1k-asm.c:856 or1k-asm.c:963 xstormy16-asm.c:464 xstormy16-asm.c:468
+#: xstormy16-asm.c:557 xstormy16-asm.c:664
+msgid "unrecognized instruction"
+msgstr "okänd instruktion"
+
+#: bpf-asm.c:415 epiphany-asm.c:690 fr30-asm.c:545 frv-asm.c:1498
+#: ip2k-asm.c:746 iq2000-asm.c:694 lm32-asm.c:584 m32c-asm.c:1819
+#: m32r-asm.c:563 mep-asm.c:1521 mt-asm.c:830 or1k-asm.c:810
+#: xstormy16-asm.c:511
+#, c-format
+msgid "syntax error (expected char `%c', found `%c')"
+msgstr "syntaxfel (tecknet \"%c\" förväntades, hittade \"%c\")"
+
+#: bpf-asm.c:425 epiphany-asm.c:700 fr30-asm.c:555 frv-asm.c:1508
+#: ip2k-asm.c:756 iq2000-asm.c:704 lm32-asm.c:594 m32c-asm.c:1829
+#: m32r-asm.c:573 mep-asm.c:1531 mt-asm.c:840 or1k-asm.c:820
+#: xstormy16-asm.c:521
+#, c-format
+msgid "syntax error (expected char `%c', found end of instruction)"
+msgstr "syntaxfel (tecknet \"%c\" förväntades, hittade slutet på instruktion)"
+
+#: bpf-asm.c:455 epiphany-asm.c:730 fr30-asm.c:585 frv-asm.c:1538
+#: ip2k-asm.c:786 iq2000-asm.c:734 lm32-asm.c:624 m32c-asm.c:1859
+#: m32r-asm.c:603 mep-asm.c:1561 mt-asm.c:870 or1k-asm.c:850
+#: xstormy16-asm.c:551
+msgid "junk at end of line"
+msgstr "skräp vid slutet på raden"
+
+#: bpf-asm.c:567 epiphany-asm.c:842 fr30-asm.c:697 frv-asm.c:1650
+#: ip2k-asm.c:898 iq2000-asm.c:846 lm32-asm.c:736 m32c-asm.c:1971
+#: m32r-asm.c:715 mep-asm.c:1673 mt-asm.c:982 or1k-asm.c:962
+#: xstormy16-asm.c:663
+msgid "unrecognized form of instruction"
+msgstr "okänd instruktionsform"
+
+#: bpf-asm.c:581 epiphany-asm.c:856 fr30-asm.c:711 frv-asm.c:1664
+#: ip2k-asm.c:912 iq2000-asm.c:860 lm32-asm.c:750 m32c-asm.c:1985
+#: m32r-asm.c:729 mep-asm.c:1687 mt-asm.c:996 or1k-asm.c:976
+#: xstormy16-asm.c:677
+#, c-format
+msgid "bad instruction `%.50s...'"
+msgstr "felaktig instruktion \"%.50s...\""
+
+#: bpf-asm.c:584 epiphany-asm.c:859 fr30-asm.c:714 frv-asm.c:1667
+#: ip2k-asm.c:915 iq2000-asm.c:863 lm32-asm.c:753 m32c-asm.c:1988
+#: m32r-asm.c:732 mep-asm.c:1690 mt-asm.c:999 or1k-asm.c:979
+#: xstormy16-asm.c:680
+#, c-format
+msgid "bad instruction `%.50s'"
+msgstr "felaktig instruktion \"%.50s\""
+
+#: bpf-desc.c:1768
+#, c-format
+msgid "internal error: bpf_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: bpf_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: bpf-desc.c:1856
+#, c-format
+msgid "internal error: bpf_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: bpf_cgen_cpu_open: argument stöds inte ”%d”"
+
+#: bpf-desc.c:1875
+#, c-format
+msgid "internal error: bpf_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: bpf_cgen_cpu_open: ingen byteordning angiven"
+
+#. Default text to print if an instruction isn't recognized.
+#: bpf-dis.c:41 epiphany-dis.c:41 fr30-dis.c:41 frv-dis.c:41 ip2k-dis.c:41
+#: iq2000-dis.c:41 lm32-dis.c:41 m32c-dis.c:41 m32r-dis.c:41 mep-dis.c:41
+#: mmix-dis.c:293 mt-dis.c:41 nds32-dis.c:64 or1k-dis.c:41 xstormy16-dis.c:41
+msgid "*unknown*"
+msgstr "*okänd*"
+
+#: bpf-dis.c:203 epiphany-dis.c:279 fr30-dis.c:300 frv-dis.c:397
+#: ip2k-dis.c:289 iq2000-dis.c:190 lm32-dis.c:148 m32c-dis.c:892
+#: m32r-dis.c:280 mep-dis.c:1188 mt-dis.c:288 or1k-dis.c:175
+#: xstormy16-dis.c:169
+#, c-format
+msgid "internal error: unrecognized field %d while printing insn"
+msgstr "internt fel: okänt fält %d vid utskrift av instruktion"
+
+#: bpf-ibld.c:166 epiphany-ibld.c:166 fr30-ibld.c:166 frv-ibld.c:166
+#: ip2k-ibld.c:166 iq2000-ibld.c:166 lm32-ibld.c:166 m32c-ibld.c:166
+#: m32r-ibld.c:166 mep-ibld.c:166 mt-ibld.c:166 or1k-ibld.c:166
+#: xstormy16-ibld.c:166
+#, c-format
+msgid "operand out of range (%ld not between %ld and %lu)"
+msgstr "operanden är utanför intervallet (%ld är inte mellan %ld och %lu)"
+
+#: bpf-ibld.c:187 epiphany-ibld.c:187 fr30-ibld.c:187 frv-ibld.c:187
+#: ip2k-ibld.c:187 iq2000-ibld.c:187 lm32-ibld.c:187 m32c-ibld.c:187
+#: m32r-ibld.c:187 mep-ibld.c:187 mt-ibld.c:187 or1k-ibld.c:187
+#: xstormy16-ibld.c:187
+#, c-format
+msgid "operand out of range (0x%lx not between 0 and 0x%lx)"
+msgstr "operand utanför intervall (0x%lx inte mellan 0 och 0x%lx)"
+
+#: bpf-ibld.c:203 cgen-asm.c:351 epiphany-ibld.c:203 fr30-ibld.c:203
+#: frv-ibld.c:203 ip2k-ibld.c:203 iq2000-ibld.c:203 lm32-ibld.c:203
+#: m32c-ibld.c:203 m32r-ibld.c:203 mep-ibld.c:203 mt-ibld.c:203
+#: or1k-ibld.c:203 xstormy16-ibld.c:203
+#, c-format
+msgid "operand out of range (%ld not between %ld and %ld)"
+msgstr "operanden är utanför intervallet (%ld är inte mellan %ld och %ld)"
+
+#: bpf-ibld.c:630 epiphany-ibld.c:885 fr30-ibld.c:740 frv-ibld.c:866
+#: ip2k-ibld.c:617 iq2000-ibld.c:723 lm32-ibld.c:644 m32c-ibld.c:1741
+#: m32r-ibld.c:675 mep-ibld.c:1218 mt-ibld.c:759 or1k-ibld.c:738
+#: xstormy16-ibld.c:688
+#, c-format
+msgid "internal error: unrecognized field %d while building insn"
+msgstr "internt fel: okänt fält %d vid konstruktion av instruktion"
+
+#: bpf-ibld.c:714 epiphany-ibld.c:1180 fr30-ibld.c:946 frv-ibld.c:1184
+#: ip2k-ibld.c:693 iq2000-ibld.c:899 lm32-ibld.c:749 m32c-ibld.c:2903
+#: m32r-ibld.c:813 mep-ibld.c:1818 mt-ibld.c:980 or1k-ibld.c:897
+#: xstormy16-ibld.c:835
+#, c-format
+msgid "internal error: unrecognized field %d while decoding insn"
+msgstr "internt fel: okänt fält %d vid avkodning av instruktion"
+
+#: bpf-ibld.c:783 epiphany-ibld.c:1324 fr30-ibld.c:1093 frv-ibld.c:1463
+#: ip2k-ibld.c:768 iq2000-ibld.c:1031 lm32-ibld.c:839 m32c-ibld.c:3521
+#: m32r-ibld.c:927 mep-ibld.c:2289 mt-ibld.c:1181 or1k-ibld.c:993
+#: xstormy16-ibld.c:946
+#, c-format
+msgid "internal error: unrecognized field %d while getting int operand"
+msgstr "internt fel: okänt fält %d vid hämtning av heltalsoperand"
+
+#: bpf-ibld.c:834 epiphany-ibld.c:1450 fr30-ibld.c:1222 frv-ibld.c:1724
+#: ip2k-ibld.c:825 iq2000-ibld.c:1145 lm32-ibld.c:911 m32c-ibld.c:4121
+#: m32r-ibld.c:1023 mep-ibld.c:2742 mt-ibld.c:1364 or1k-ibld.c:1071
+#: xstormy16-ibld.c:1039
+#, c-format
+msgid "internal error: unrecognized field %d while getting vma operand"
+msgstr "internt fel: okänt fält %d vid hämtning av vma-operand"
+
+#: bpf-ibld.c:892 epiphany-ibld.c:1583 fr30-ibld.c:1354 frv-ibld.c:1992
+#: ip2k-ibld.c:885 iq2000-ibld.c:1266 lm32-ibld.c:990 m32c-ibld.c:4709
+#: m32r-ibld.c:1125 mep-ibld.c:3156 mt-ibld.c:1554 or1k-ibld.c:1156
+#: xstormy16-ibld.c:1139
+#, c-format
+msgid "internal error: unrecognized field %d while setting int operand"
+msgstr "internt fel: okänt fält %d vid inställning av heltalsoperand"
+
+#: bpf-ibld.c:940 epiphany-ibld.c:1706 fr30-ibld.c:1476 frv-ibld.c:2250
+#: ip2k-ibld.c:935 iq2000-ibld.c:1377 lm32-ibld.c:1059 m32c-ibld.c:5287
+#: m32r-ibld.c:1217 mep-ibld.c:3560 mt-ibld.c:1734 or1k-ibld.c:1231
+#: xstormy16-ibld.c:1229
+#, c-format
+msgid "internal error: unrecognized field %d while setting vma operand"
+msgstr "internt fel: okänt fält %d vid inställning av vma-operand"
+
+#: cgen-asm.c:373
+#, c-format
+msgid "operand out of range (%lu not between %lu and %lu)"
+msgstr "operanden är utanför intervallet (%lu är inte mellan %lu och %lu)"
+
+#: cris-desc.c:2622
+#, c-format
+msgid "internal error: cris_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: cris_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: cris-desc.c:2710
+#, c-format
+msgid "internal error: cris_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: cris_cgen_cpu_open: argument stöds inte ”%d”"
+
+#: cris-desc.c:2729
+#, c-format
+msgid "internal error: cris_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: cris_cgen_cpu_open: ingen byteordning angiven"
+
+#: d30v-dis.c:232
+#, c-format
+msgid "illegal id (%d)"
+msgstr "otillåtet id (%d)"
+
+#: d30v-dis.c:259
+#, c-format
+msgid "<unknown register %d>"
+msgstr "<okänt register %d>"
+
+#. Can't happen.
+#: dis-buf.c:61
+#, c-format
+msgid "Unknown error %d\n"
+msgstr "Okänt fel %d\n"
+
+#: dis-buf.c:67
+#, c-format
+msgid "Address 0x%<PRIx64> is out of bounds.\n"
+msgstr "Adressen 0x%<PRIx64> ligger utanför tillåtna gränser.\n"
+
+#: disassemble.c:876
+#, c-format
+msgid "assertion fail %s:%d"
+msgstr "försäkran misslyckades %s:%d"
+
+#: disassemble.c:877
+msgid "Please report this bug"
+msgstr "Rapportera denna bugg"
+
+#: epiphany-asm.c:68
+msgid "register unavailable for short instructions"
+msgstr "register otillgänglig för korta instruktioner"
+
+#: epiphany-asm.c:115
+msgid "register name used as immediate value"
+msgstr "registernamn använt som omedelbart värde"
+
+#. Don't treat "mov ip,ip" as a move-immediate.
+#: epiphany-asm.c:178 epiphany-asm.c:234
+msgid "register source in immediate move"
+msgstr "registerkälla i omedelbar förflyttning"
+
+#: epiphany-asm.c:187
+msgid "byte relocation unsupported"
+msgstr "byteomlokalisering stöds inte"
+
+#. -- assembler routines inserted here.
+#. -- asm.c
+#: epiphany-asm.c:193 frv-asm.c:972 iq2000-asm.c:56 lm32-asm.c:95
+#: lm32-asm.c:127 lm32-asm.c:157 lm32-asm.c:187 lm32-asm.c:217 lm32-asm.c:247
+#: m32c-asm.c:140 m32c-asm.c:235 m32c-asm.c:276 m32c-asm.c:334 m32c-asm.c:355
+#: m32r-asm.c:53 mep-asm.c:241 mep-asm.c:259 mep-asm.c:274 mep-asm.c:289
+#: mep-asm.c:301 or1k-asm.c:54
+msgid "missing `)'"
+msgstr "”)” saknas"
+
+#: epiphany-asm.c:270
+msgid "ABORT: unknown operand"
+msgstr "AVBROTT: okänd operand"
+
+#: epiphany-asm.c:296
+msgid "Not a pc-relative address."
+msgstr "Inte en pc-relativ adress."
+
+#: epiphany-desc.c:2110
+#, c-format
+msgid "internal error: epiphany_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: epiphany_cgen_rebuild_tables: insn-chunk-bitsize värden i konflikt: ”%d” vs. ”%d”"
+
+#: epiphany-desc.c:2198
+#, c-format
+msgid "internal error: epiphany_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: epiphany_cgen_cpu_open: argument stöds inte ”%d”"
+
+#: epiphany-desc.c:2217
+#, c-format
+msgid "internal error: epiphany_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: epiphany_cgen_cpu_open: ingen byteordning angiven"
+
+#: fr30-asm.c:93 m32c-asm.c:872 m32c-asm.c:879
+msgid "Register number is not valid"
+msgstr "Registernummer är inte giltigt"
+
+#: fr30-asm.c:95
+msgid "Register must be between r0 and r7"
+msgstr "Register måste vara mellan r0 och r7"
+
+#: fr30-asm.c:97
+msgid "Register must be between r8 and r15"
+msgstr "Register måste vara mellan r8 och r15"
+
+#: fr30-asm.c:116 m32c-asm.c:910
+msgid "Register list is not valid"
+msgstr "Registerlista är inte giltig"
+
+#: fr30-desc.c:1587
+#, c-format
+msgid "internal error: fr30_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: fr30_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: fr30-desc.c:1675
+#, c-format
+msgid "internal error: fr30_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: fr30_cgen_cpu_open: argument stöds inte ”%d”"
+
+#: fr30-desc.c:1694
+#, c-format
+msgid "internal error: fr30_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: fr30_cgen_cpu_open: ingen byteordning angiven"
+
+#: frv-asm.c:608
+msgid "missing `]'"
+msgstr "”]” saknas"
+
+#: frv-asm.c:611 frv-asm.c:621
+msgid "Special purpose register number is out of range"
+msgstr "Nummer för register för specialanvändning är utanför interval"
+
+#: frv-asm.c:908
+msgid "Value of A operand must be 0 or 1"
+msgstr "Värde för A-operand måste vara 0 eller 1"
+
+#: frv-asm.c:944
+msgid "register number must be even"
+msgstr "registernumret måste vara jämnt"
+
+#: frv-desc.c:6327
+#, c-format
+msgid "internal error: frv_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: frv_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: frv-desc.c:6415
+#, c-format
+msgid "internal error: frv_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: frv_cgen_cpu_open: argument stöds inte ”%d”"
+
+#: frv-desc.c:6434
+#, c-format
+msgid "internal error: frv_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: frv_cgen_cpu_open: ingen byteordning angiven"
+
+#: frv-opc.c:459
+#, c-format
+msgid "internal error: bad vliw->next_slot value"
+msgstr "internt fel: felaktigt vliw->next_slot-värde"
+
+#: frv-opc.c:769
+#, c-format
+msgid "internal error: bad major code"
+msgstr "internt fel: felaktig huvudkod"
+
+#: frv-opc.c:819
+#, c-format
+msgid "internal error: bad insn unit"
+msgstr "internt fel: felaktig insn-enhet"
+
+#: h8300-dis.c:309
+#, c-format
+msgid "Hmmmm 0x%x"
+msgstr "Hmmmm 0x%x"
+
+#: h8300-dis.c:617
+#, c-format
+msgid "Don't understand 0x%x \n"
+msgstr "Förstår inte 0x%x \n"
+
+#: i386-dis.c:8839
+msgid "<internal disassembler error>"
+msgstr "<internt fel i avassembleraren>"
+
+#: i386-dis.c:9065
+#, c-format
+msgid ""
+"\n"
+"The following i386/x86-64 specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Följande i386/x86-64-specifika avassemblerarflaggor stöds för användning\n"
+"tillsammans med flaggan -M (flera flaggor kan skiljas åt med komman):\n"
+
+#: i386-dis.c:9069
+#, c-format
+msgid "  x86-64      Disassemble in 64bit mode\n"
+msgstr "  x86-64      Avassemblera i 64-bitarsläge\n"
+
+#: i386-dis.c:9070
+#, c-format
+msgid "  i386        Disassemble in 32bit mode\n"
+msgstr "  i386        Avassemblera i 32-bitarsläge\n"
+
+#: i386-dis.c:9071
+#, c-format
+msgid "  i8086       Disassemble in 16bit mode\n"
+msgstr "  i8086       Avassemblera i 16-bitarsläge\n"
+
+#: i386-dis.c:9072
+#, c-format
+msgid "  att         Display instruction in AT&T syntax\n"
+msgstr "  att         Visa instruktion i AT&T-syntax\n"
+
+#: i386-dis.c:9073
+#, c-format
+msgid "  intel       Display instruction in Intel syntax\n"
+msgstr "  intel       Visa instruktion i Intel-syntax\n"
+
+#: i386-dis.c:9074
+#, c-format
+msgid ""
+"  att-mnemonic\n"
+"              Display instruction in AT&T mnemonic\n"
+msgstr ""
+"  att-mnemonic\n"
+"              Visa instruktion i AT&T-mnemonic\n"
+
+#: i386-dis.c:9076
+#, c-format
+msgid ""
+"  intel-mnemonic\n"
+"              Display instruction in Intel mnemonic\n"
+msgstr ""
+"  intel-mnemonic\n"
+"              Visa instruktion i Intel-mnemonic\n"
+
+#: i386-dis.c:9078
+#, c-format
+msgid "  addr64      Assume 64bit address size\n"
+msgstr "  addr64      Antag 64-bitars adresstorlek\n"
+
+#: i386-dis.c:9079
+#, c-format
+msgid "  addr32      Assume 32bit address size\n"
+msgstr "  addr32      Antag 32-bitars adresstorlek\n"
+
+#: i386-dis.c:9080
+#, c-format
+msgid "  addr16      Assume 16bit address size\n"
+msgstr "  addr16      Antag 16-bitars adresstorlek\n"
+
+#: i386-dis.c:9081
+#, c-format
+msgid "  data32      Assume 32bit data size\n"
+msgstr "  data32      Antag 32-bitars datastorlek\n"
+
+#: i386-dis.c:9082
+#, c-format
+msgid "  data16      Assume 16bit data size\n"
+msgstr "  data16      Antag 16-bitars datastorlek\n"
+
+#: i386-dis.c:9083
+#, c-format
+msgid "  suffix      Always display instruction suffix in AT&T syntax\n"
+msgstr "  suffix      Visa alltid instruktionssuffix i AT&T-syntax\n"
+
+#: i386-dis.c:9084
+#, c-format
+msgid "  amd64       Display instruction in AMD64 ISA\n"
+msgstr "  amd64       Visa instruktion i AMD64 ISA\n"
+
+#: i386-dis.c:9085
+#, c-format
+msgid "  intel64     Display instruction in Intel64 ISA\n"
+msgstr "  intel64     Visa instruktion i Intel64 ISA\n"
+
+#: i386-dis.c:9773
+msgid "64-bit address is disabled"
+msgstr "64-bitars adress är inaktiverad"
+
+#: i386-gen.c:560
+#, c-format
+msgid "%s: error: "
+msgstr "%s: fel: "
+
+#: i386-gen.c:686
+#, c-format
+msgid "%s: %d: unknown bitfield: %s\n"
+msgstr "%s: %d: okänt bitfält: %s\n"
+
+#: i386-gen.c:688 i386-gen.c:755
+#, c-format
+msgid "unknown bitfield: %s\n"
+msgstr "okänt bitfält: %s\n"
+
+#: i386-gen.c:820
+#, c-format
+msgid "%s: %d: missing `)' in bitfield: %s\n"
+msgstr "%s: %d: saknar ”)” i bitfält: %s\n"
+
+#: i386-gen.c:920
+#, c-format
+msgid "%s: %d: no memory operand\n"
+msgstr "%s: %d: ingen minnesoperand\n"
+
+#: i386-gen.c:956
+#, c-format
+msgid "%s: %d: unknown element size: %s\n"
+msgstr "%s: %d: okänd elementstorlek: %s\n"
+
+#: i386-gen.c:1013
+#, c-format
+msgid "%s:%d: Conflicting opcode space specifications\n"
+msgstr "%s:%d: Specifikationer för instruktionsrymder står i konflikt\n"
+
+#: i386-gen.c:1017
+#, c-format
+msgid "%s:%d: Warning: redundant opcode space specification\n"
+msgstr "%s:%d: Varning: redundant instruktionsrymdsspecifikation\n"
+
+#: i386-gen.c:1026
+#, c-format
+msgid "%s:%d: Conflicting prefix specifications\n"
+msgstr "%s:%d: Prefixspecifikationer står i konflikt\n"
+
+#: i386-gen.c:1030
+#, c-format
+msgid "%s:%d: Warning: redundant prefix specification\n"
+msgstr "%s:%d: Varning: redundant prefixspecifikation\n"
+
+#: i386-gen.c:1239
+#, c-format
+msgid "%s:%d: %s: unrecognized opcode encoding space\n"
+msgstr "%s:%d: %s: okänd instruktionskodningsrymd\n"
+
+#: i386-gen.c:1245
+#, c-format
+msgid "%s:%d: %s: residual opcode (0x%0*llx) too large\n"
+msgstr "%s:%d: %s: återstående instruktion (0x%0*llx) för stor\n"
+
+#: i386-gen.c:1612
+#, c-format
+msgid "%s: %d: (continued) line too long\n"
+msgstr "%s: %d: (fortsatt) rad får lång\n"
+
+#: i386-gen.c:1719
+#, c-format
+msgid "can't find i386-reg.tbl for reading, errno = %s\n"
+msgstr "kan inte hitta i386-reg.tbl för läsning, errno = %s\n"
+
+#: i386-gen.c:1796
+#, c-format
+msgid "can't create i386-init.h, errno = %s\n"
+msgstr "kan inte skapa i386-init.h, errno = %s\n"
+
+#: i386-gen.c:1911 ia64-gen.c:2819
+#, c-format
+msgid "unable to change directory to \"%s\", errno = %s\n"
+msgstr "kan inte byta katalog till \"%s\", errno = %s\n"
+
+#: i386-gen.c:1925 i386-gen.c:1930
+#, c-format
+msgid "CpuMax != %d!\n"
+msgstr "CpuMax != %d!\n"
+
+#: i386-gen.c:1934
+#, c-format
+msgid "%d unused bits in i386_cpu_flags.\n"
+msgstr "%d oanvända bitar i i386_cpu_flags.\n"
+
+#: i386-gen.c:1949
+#, c-format
+msgid "%d unused bits in i386_operand_type.\n"
+msgstr "%d oanvända bitar i386_operand_type.\n"
+
+#: i386-gen.c:1963
+#, c-format
+msgid "can't create i386-tbl.h, errno = %s\n"
+msgstr "kan inte skapa i386-tbl.h, errno = %s\n"
+
+#: ia64-gen.c:297
+#, c-format
+msgid "%s: Error: "
+msgstr "%s: Fel: "
+
+#: ia64-gen.c:310
+#, c-format
+msgid "%s: Warning: "
+msgstr "%s: Varning: "
+
+#: ia64-gen.c:496 ia64-gen.c:727
+#, c-format
+msgid "multiple note %s not handled\n"
+msgstr "multipel anteckning %s hanteras inte\n"
+
+#: ia64-gen.c:607
+msgid "can't find ia64-ic.tbl for reading\n"
+msgstr "kan inte hitta ia64-ic.tbl för läsning\n"
+
+#: ia64-gen.c:809
+#, c-format
+msgid "can't find %s for reading\n"
+msgstr "kan inte hitta %s för läsning\n"
+
+#: ia64-gen.c:1041
+#, c-format
+msgid ""
+"most recent format '%s'\n"
+"appears more restrictive than '%s'\n"
+msgstr ""
+"allra senaste formatet \"%s\"\n"
+"verkar mer restriktivt än \"%s\"\n"
+
+#: ia64-gen.c:1052
+#, c-format
+msgid "overlapping field %s->%s\n"
+msgstr "överlappande fält %s->%s\n"
+
+#: ia64-gen.c:1249
+#, c-format
+msgid "overwriting note %d with note %d (IC:%s)\n"
+msgstr "skriver över anteckning %d med anteckning %d (IC:%s)\n"
+
+#: ia64-gen.c:1456
+#, c-format
+msgid "don't know how to specify %% dependency %s\n"
+msgstr "vet inte hur %%-beroende %s ska anges\n"
+
+#: ia64-gen.c:1478
+#, c-format
+msgid "Don't know how to specify # dependency %s\n"
+msgstr "Vet inte hur #-beroende %s ska anges\n"
+
+#: ia64-gen.c:1517
+#, c-format
+msgid "IC:%s [%s] has no terminals or sub-classes\n"
+msgstr "IC:%s [%s] har inga terminaler eller underklasser\n"
+
+#: ia64-gen.c:1520
+#, c-format
+msgid "IC:%s has no terminals or sub-classes\n"
+msgstr "IC:%s har inga terminaler eller underklasser\n"
+
+#: ia64-gen.c:1529
+#, c-format
+msgid "no insns mapped directly to terminal IC %s [%s]"
+msgstr "inga instruktioner mappade direkt till terminal-IC %s [%s]"
+
+#: ia64-gen.c:1532
+#, c-format
+msgid "no insns mapped directly to terminal IC %s\n"
+msgstr "inga instruktioner mappade direkt till terminal-IC %s\n"
+
+#: ia64-gen.c:1543
+#, c-format
+msgid "class %s is defined but not used\n"
+msgstr "klassen %s är definierad men inte använd\n"
+
+# Misstänkt pluralhack!
+#: ia64-gen.c:1556
+#, c-format
+msgid "Warning: rsrc %s (%s) has no chks\n"
+msgstr "Varning: resurs %s (%s) har inte kontroller\n"
+
+# Misstänkt pluralhack!
+#: ia64-gen.c:1559
+#, c-format
+msgid "Warning: rsrc %s (%s) has no chks or regs\n"
+msgstr "Varning: resurs %s (%s) har inga kontroller eller register\n"
+
+#: ia64-gen.c:1563
+#, c-format
+msgid "rsrc %s (%s) has no regs\n"
+msgstr "resurs %s (%s) har inga register\n"
+
+#: ia64-gen.c:2455
+#, c-format
+msgid "IC note %d in opcode %s (IC:%s) conflicts with resource %s note %d\n"
+msgstr ""
+"IC-anteckning %d i instruktion %s (IC:%s) står i konflikt med resurs %s\n"
+"anteckning %d\n"
+
+#: ia64-gen.c:2483
+#, c-format
+msgid "IC note %d for opcode %s (IC:%s) conflicts with resource %s note %d\n"
+msgstr ""
+"IC-anteckning %d för instruktion %s (IC:%s) står i konflikt med resurs %s\n"
+"anteckning %d\n"
+
+#: ia64-gen.c:2497
+#, c-format
+msgid "opcode %s has no class (ops %d %d %d)\n"
+msgstr "instruktion %s har ingen klass (operationer %d %d %d)\n"
+
+#. We've been passed a w.  Return with an error message so that
+#. cgen will try the next parsing option.
+#: ip2k-asm.c:81
+msgid "W keyword invalid in FR operand slot."
+msgstr "W-nyckelord ogiltigt i FR-operandlucka."
+
+#. Invalid offset present.
+#: ip2k-asm.c:106
+msgid "offset(IP) is not a valid form"
+msgstr "avståndet(IP) är inte en giltig form"
+
+#. Found something there in front of (DP) but it's out
+#. of range.
+#: ip2k-asm.c:154
+msgid "(DP) offset out of range."
+msgstr "(DP) avståndet är utanför intervallet."
+
+#. Found something there in front of (SP) but it's out
+#. of range.
+#: ip2k-asm.c:195
+msgid "(SP) offset out of range."
+msgstr "(SP) avståndet är utanför intervallet."
+
+#: ip2k-asm.c:211
+msgid "illegal use of parentheses"
+msgstr "otillåten användning av parenteser"
+
+#: ip2k-asm.c:218
+msgid "operand out of range (not between 1 and 255)"
+msgstr "operanden utanför intervallet (inte mellan 1 och 255)"
+
+#. Something is very wrong. opindex has to be one of the above.
+#: ip2k-asm.c:242
+msgid "parse_addr16: invalid opindex."
+msgstr "parse_addr16: ogiltigt opindex."
+
+#: ip2k-asm.c:296
+msgid "Byte address required. - must be even."
+msgstr "Byteadress krävs - måste vara jämn."
+
+#: ip2k-asm.c:305
+msgid "cgen_parse_address returned a symbol. Literal required."
+msgstr "cgen_parse_address returnerade en symbol. Litteral krävs."
+
+#: ip2k-asm.c:360
+msgid "percent-operator operand is not a symbol"
+msgstr "procent-operatoroperand är inte en symbol"
+
+#: ip2k-asm.c:413
+msgid "Attempt to find bit index of 0"
+msgstr "Försök att hitta 0-bitindex"
+
+#: ip2k-desc.c:1016
+#, c-format
+msgid "internal error: ip2k_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: ip2k_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: ip2k-desc.c:1104
+#, c-format
+msgid "internal error: ip2k_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: ip2k_cgen_cpu_open: argument stöds inte ”%d”"
+
+#: ip2k-desc.c:1123
+#, c-format
+msgid "internal error: ip2k_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: ip2k_cgen_cpu_open: ingen byteordning angiven"
+
+#: iq2000-asm.c:112 iq2000-asm.c:142
+msgid "immediate value cannot be register"
+msgstr "omedelbart värde kan inte vara register"
+
+#: iq2000-asm.c:123 iq2000-asm.c:153 lm32-asm.c:70
+msgid "immediate value out of range"
+msgstr "omedelbart värde är utanför intervallet"
+
+#: iq2000-asm.c:182
+msgid "21-bit offset out of range"
+msgstr "21-bitars avstånd utanför intervallet"
+
+#: iq2000-desc.c:2021
+#, c-format
+msgid "internal error: iq2000_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: iq2000_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: iq2000-desc.c:2109
+#, c-format
+msgid "internal error: iq2000_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: iq2000_cgen_cpu_open: argument stöds inte ”%d”"
+
+#: iq2000-desc.c:2128
+#, c-format
+msgid "internal error: iq2000_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: iq2000_cgen_cpu_open: ingen byteordning angiven"
+
+#: lm32-asm.c:166
+msgid "expecting gp relative address: gp(symbol)"
+msgstr "förväntade gp-relativ adress: gp(symbol)"
+
+#: lm32-asm.c:196
+msgid "expecting got relative address: got(symbol)"
+msgstr "förväntade got-relativ adress: got(symbol)"
+
+#: lm32-asm.c:226
+msgid "expecting got relative address: gotoffhi16(symbol)"
+msgstr "förväntades got-relativ adress: gotoffhi16(symbol)"
+
+#: lm32-asm.c:256
+msgid "expecting got relative address: gotofflo16(symbol)"
+msgstr "förväntade got-relativ adress: gotofflo16(symbol)"
+
+#: lm32-desc.c:1003
+#, c-format
+msgid "internal error: lm32_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: lm32_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: lm32-desc.c:1091
+#, c-format
+msgid "internal error: lm32_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: lm32_cgen_cpu_open: argument stöds ej ”%d”"
+
+#: lm32-desc.c:1110
+#, c-format
+msgid "internal error: lm32_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: lm32_cgen_cpu_open: ingen byteordning angiven"
+
+#: loongarch-dis.c:300
+#, c-format
+msgid ""
+"\n"
+"The following LoongArch disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Följande LoongArch-specifika avassemblerarflaggor stöds för användning\n"
+"tillsammans med flaggan -M (flera flaggor kan skiljas åt med komman):\n"
+
+#: loongarch-dis.c:304
+#, c-format
+msgid ""
+"\n"
+"    numeric       Print numeric register names, rather than ABI names.\n"
+msgstr ""
+"\n"
+"    numeric       Skriv ut numeriska registernamn, snarare än ABI-namn.\n"
+"\n"
+
+#: m10200-dis.c:151 m10300-dis.c:574
+#, c-format
+msgid "unknown\t0x%04lx"
+msgstr "okänd\t0x%04lx"
+
+#: m10200-dis.c:321
+#, c-format
+msgid "unknown\t0x%02lx"
+msgstr "okänd\t0x%02lx"
+
+#: m32c-asm.c:117
+msgid "imm:6 immediate is out of range"
+msgstr "imm:6 omedelbar är utanför intervall"
+
+#: m32c-asm.c:145
+#, c-format
+msgid "%dsp8() takes a symbolic address, not a number"
+msgstr "%dsp8() tar en symbolisk adress, inte ett tal"
+
+#: m32c-asm.c:159 m32c-asm.c:163 m32c-asm.c:253
+msgid "dsp:8 immediate is out of range"
+msgstr "dsp:8 omedelbar är utanför intervall"
+
+#: m32c-asm.c:184 m32c-asm.c:188
+msgid "Immediate is out of range -8 to 7"
+msgstr "Omedelbar är utanför intervall -8 till 7"
+
+#: m32c-asm.c:209 m32c-asm.c:213
+msgid "Immediate is out of range -7 to 8"
+msgstr "Omedelbar är utanför intervall -7 till 8"
+
+#: m32c-asm.c:281
+#, c-format
+msgid "%dsp16() takes a symbolic address, not a number"
+msgstr "%dsp16() tar en symbolisk adress, inte ett tal"
+
+#: m32c-asm.c:305 m32c-asm.c:312 m32c-asm.c:373
+msgid "dsp:16 immediate is out of range"
+msgstr "dsp:16 omedelbar är utanför intervall"
+
+#: m32c-asm.c:399
+msgid "dsp:20 immediate is out of range"
+msgstr "dsp:20 omedelbar är utanför intervall"
+
+#: m32c-asm.c:425 m32c-asm.c:445
+msgid "dsp:24 immediate is out of range"
+msgstr "dsp:24 omedelbar är utanför intervall"
+
+#: m32c-asm.c:478
+msgid "immediate is out of range 1-2"
+msgstr "omedelbar är utanför intervall 1-2"
+
+#: m32c-asm.c:496
+msgid "immediate is out of range 1-8"
+msgstr "omedelbar är utanför intervall 1-8"
+
+#: m32c-asm.c:514
+msgid "immediate is out of range 0-7"
+msgstr "omedelbar är utanför intervall 0-7"
+
+#: m32c-asm.c:550
+msgid "immediate is out of range 2-9"
+msgstr "omedelbar är utanför intervall 2-9"
+
+#: m32c-asm.c:568
+msgid "Bit number for indexing general register is out of range 0-15"
+msgstr "Bitnummer för indexering av generella register är utanför intervall 0-15"
+
+#: m32c-asm.c:606 m32c-asm.c:662
+msgid "bit,base is out of range"
+msgstr "bit, bas är utanför intervall"
+
+#: m32c-asm.c:613 m32c-asm.c:618 m32c-asm.c:666
+msgid "bit,base out of range for symbol"
+msgstr "bit,bas utanför intervall för symbol"
+
+#: m32c-asm.c:802
+msgid "not a valid r0l/r0h pair"
+msgstr "inte ett giltigt r0l/r0h-par"
+
+#: m32c-asm.c:832
+msgid "Invalid size specifier"
+msgstr "Ogiltig storleksangivare"
+
+#: m32c-desc.c:63034
+#, c-format
+msgid "internal error: m32c_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: m32c_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: m32c-desc.c:63122
+#, c-format
+msgid "internal error: m32c_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: m32c_cgen_cpu_open: argument stöds ej ”%d”"
+
+#: m32c-desc.c:63141
+#, c-format
+msgid "internal error: m32c_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: m32c_cgen_cpu_open: ingen byteordning angiven"
+
+#: m32r-desc.c:1366
+#, c-format
+msgid "internal error: m32r_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: m32r_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: m32r-desc.c:1454
+#, c-format
+msgid "internal error: m32r_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: m32r_cgen_cpu_open: argument stöds ej ”%d”"
+
+#: m32r-desc.c:1473
+#, c-format
+msgid "internal error: m32r_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: m32r_cgen_cpu_open: ingen byteordning angiven"
+
+#: m68k-dis.c:1288
+#, c-format
+msgid "<function code %d>"
+msgstr "<funktionskod %d>"
+
+#: m68k-dis.c:1451
+#, c-format
+msgid "<internal error in opcode table: %s %s>\n"
+msgstr "<internt fel i instruktionstabellen: %s %s>\n"
+
+#: mep-asm.c:129
+msgid "Only $tp or $13 allowed for this opcode"
+msgstr "Endast $tp eller $13 tillåtet för denna instruktion"
+
+#: mep-asm.c:143
+msgid "Only $sp or $15 allowed for this opcode"
+msgstr "Endast $sp eller $15 tillåtet för denna instruktion"
+
+#: mep-asm.c:308 mep-asm.c:504
+#, c-format
+msgid "invalid %function() here"
+msgstr "ogiltig %funktion() här"
+
+#: mep-asm.c:336
+msgid "Immediate is out of range -32768 to 32767"
+msgstr "Omedelbar är utanför intervall -32768 till 32767"
+
+#: mep-asm.c:356
+msgid "Immediate is out of range 0 to 65535"
+msgstr "Omedelbar är utanför intervall 0 till 65535"
+
+#: mep-asm.c:549 mep-asm.c:562
+msgid "Immediate is out of range -512 to 511"
+msgstr "Omedelbar är utanför intervall -512 till 511"
+
+#: mep-asm.c:554 mep-asm.c:563
+msgid "Immediate is out of range -128 to 127"
+msgstr "Omedelbar är utanför intervall -128 till 127"
+
+#: mep-asm.c:558
+msgid "Value is not aligned enough"
+msgstr "Värde är inte justerat nog"
+
+#: mep-desc.c:6227
+#, c-format
+msgid "internal error: mep_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: mep_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: mep-desc.c:6315
+#, c-format
+msgid "internal error: mep_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: mep_cgen_cpu_open: argument stöds ej ”%d”"
+
+#: mep-desc.c:6334
+#, c-format
+msgid "internal error: mep_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: mep_cgen_cpu_open: ingen byteordning angiven"
+
+#: mips-dis.c:1904 mips-dis.c:2137
+#, c-format
+msgid "# internal error, undefined operand in `%s %s'"
+msgstr "# internt fel, okänd operand i ”%s %s”"
+
+#: mips-dis.c:2739
+msgid "Use canonical instruction forms.\n"
+msgstr "Använd kanoniska instruktionsformer.\n"
+
+#: mips-dis.c:2741
+msgid "Recognize MSA instructions.\n"
+msgstr "Känn igen MSA-instruktioner.\n"
+
+#: mips-dis.c:2743
+msgid "Recognize the virtualization ASE instructions.\n"
+msgstr "Känn igen ASE-virtualiseringsinstruktioner.\n"
+
+#: mips-dis.c:2745
+msgid ""
+"Recognize the eXtended Physical Address (XPA) ASE\n"
+"                  instructions.\n"
+msgstr ""
+"Känn igen utökade fysiskadress- (XPA) ASE-\n"
+"                  instruktioner.\n"
+
+#: mips-dis.c:2748
+msgid "Recognize the Global INValidate (GINV) ASE instructions.\n"
+msgstr "Känn igen globala invaliderings- (GINV) ASE-instruktioner.\n"
+
+#: mips-dis.c:2752
+msgid "Recognize the Loongson MultiMedia extensions Instructions (MMI) ASE instructions.\n"
+msgstr "Känn igen Loongson MultiMedia extensions Instructions (MMI) ASE-instruktioner\n"
+
+#: mips-dis.c:2756
+msgid "Recognize the Loongson Content Address Memory (CAM)  instructions.\n"
+msgstr "Känn igen Loongson Content Address Memory (CAM)-instruktioner.\n"
+
+#: mips-dis.c:2760
+msgid "Recognize the Loongson EXTensions (EXT)  instructions.\n"
+msgstr "Känn igen Loongson EXTensions (EXT)-instruktioner.\n"
+
+#: mips-dis.c:2764
+msgid "Recognize the Loongson EXTensions R2 (EXT2)  instructions.\n"
+msgstr "Känn igen Loongson EXTensions R2 (EXT2)-instruktioner.\n"
+
+#: mips-dis.c:2767
+msgid ""
+"Print GPR names according to specified ABI.\n"
+"                  Default: based on binary being disassembled.\n"
+msgstr ""
+"Skriv ut GPR-namn enligt angivet ABI.\n"
+"                  Standard: baserat på den binärfil som avassembleras.\n"
+
+#: mips-dis.c:2770
+msgid ""
+"Print FPR names according to specified ABI.\n"
+"                  Default: numeric.\n"
+msgstr ""
+"Skriv ut FPR-namn enligt angivet ABI.\n"
+"                  Standard: numeriskt.\n"
+
+#: mips-dis.c:2773
+msgid ""
+"Print CP0 register names according to specified architecture.\n"
+"                  Default: based on binary being disassembled.\n"
+msgstr ""
+"Skriv ut CP0-registernamn enligt angiven arkitektur.\n"
+"                  Standard: baserat på den binärfil som disassembleras.\n"
+
+#: mips-dis.c:2777
+msgid ""
+"Print HWR names according to specified architecture.\n"
+"                  Default: based on binary being disassembled.\n"
+msgstr ""
+"Skriv ut HWR-namn enligt angiven arkitektur.\n"
+"                  Standard: baserat på den binärfil som avassembleras.\n"
+
+#: mips-dis.c:2780
+msgid "Print GPR and FPR names according to specified ABI.\n"
+msgstr "Skriv ut GPR- och FPR-namn enligt det angivna ABI:t.\n"
+
+#: mips-dis.c:2782
+msgid ""
+"Print CP0 register and HWR names according to specified\n"
+"                  architecture."
+msgstr ""
+"Skriv ut CP0-register med HWR-namn enligt angiven\n"
+"                  arkitektur."
+
+#: mips-dis.c:2868
+#, c-format
+msgid ""
+"\n"
+"The following MIPS specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+"\n"
+msgstr ""
+"\n"
+"Följande MIPS-specifika avassemblerarflaggor stöds för användning\n"
+"tillsammans med flaggan -M (flera flaggor kan skiljas åt med komman):\n"
+"\n"
+
+#: mmix-dis.c:33
+#, c-format
+msgid "bad case %d (%s) in %s:%d"
+msgstr "felaktigt fall %d (%s) i %s:%d"
+
+#: mmix-dis.c:42
+#, c-format
+msgid "internal: non-debugged code (test-case missing): %s:%d"
+msgstr "internt: ej felsökt kod (testfall saknas): %s:%d"
+
+#: mmix-dis.c:52
+msgid "(unknown)"
+msgstr "(okänd)"
+
+#: mmix-dis.c:247 mmix-dis.c:255
+msgid "*illegal*"
+msgstr "*otillåten*"
+
+#: mmix-dis.c:529
+#, c-format
+msgid "*unknown operands type: %d*"
+msgstr "*okänd operandtyp: %d*"
+
+#: msp430-decode.opc:145 rl78-decode.opc:106
+#, c-format
+msgid "internal error: immediate() called with invalid byte count %d"
+msgstr "internt fel: immediate() anropad med ogiltigt byteantal %d"
+
+#: msp430-dis.c:59
+#, c-format
+msgid "Warning: disassembly unreliable - not enough bytes available"
+msgstr "Varning: avassemblering otillförlitlig - inte tillräckligt med byte tillgängliga"
+
+#: msp430-dis.c:65
+#, c-format
+msgid "Error: read from memory failed"
+msgstr "Fel: läsning från minne misslyckades"
+
+#: msp430-dis.c:499
+msgid "Warning: illegal as emulation instr"
+msgstr "Varning: ogiltig som emuleringsinstruktion"
+
+#. R2/R3 are illegal as dest: may be data section.
+#: msp430-dis.c:591
+msgid "Warning: illegal as 2-op instr"
+msgstr "Varning: ogiltig som 2-operandsinstruktion"
+
+#: msp430-dis.c:1002
+msgid "Warning: unrecognised CALLA addressing mode"
+msgstr "Varning: okänt CALLA-adresseringsläge"
+
+#: msp430-dis.c:1303 msp430-dis.c:1324 msp430-dis.c:1345
+#, c-format
+msgid "Warning: reserved use of A/L and B/W bits detected"
+msgstr "Varning: okänd användning av A/L- och B/W-bitar detekterad"
+
+#: mt-asm.c:110 mt-asm.c:190
+msgid "Operand out of range. Must be between -32768 and 32767."
+msgstr "Operand utanför intervall. Måste vara mellan -32768 och 32767."
+
+#: mt-asm.c:149
+msgid "Biiiig Trouble in parse_imm16!"
+msgstr "Stoooort Problem i parse_imm16!"
+
+#: mt-asm.c:157
+msgid "The percent-operator's operand is not a symbol"
+msgstr "Procent-operatorns operand är inte symbol"
+
+#: mt-asm.c:395
+msgid "invalid operand.  type may have values 0,1,2 only."
+msgstr "ogiltig operand.  typ får endast ha värdena 0, 1, 2."
+
+#: mt-desc.c:1147
+#, c-format
+msgid "internal error: mt_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: mt_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: mt-desc.c:1235
+#, c-format
+msgid "internal error: mt_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: mt_cgen_cpu_open: argument stöds ej ”%d”"
+
+#: mt-desc.c:1254
+#, c-format
+msgid "internal error: mt_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: mt_cgen_cpu_open: ingen byteordning angiven"
+
+#: nds32-asm.c:1760
+#, c-format
+msgid "internal error: unknown operand, %s"
+msgstr "internt fel: okänd operand, %s"
+
+#: nds32-asm.c:2396
+#, c-format
+msgid "internal error: don't know how to handle parsing results"
+msgstr "internt fel: vet inte hur tolkningsresultaten ska hanteras"
+
+#: nds32-asm.c:2404
+#, c-format
+msgid "internal error: unknown hardware resource"
+msgstr "internt fel: okänd hårdvaruresurs"
+
+#: nds32-dis.c:1178
+msgid "insufficient data to decode instruction"
+msgstr "otillräcklig data för att avkoda instruktion"
+
+#: nfp-dis.c:930
+msgid "<invalid_instruction>:"
+msgstr "<otillåten instruktion>:"
+
+#: nfp-dis.c:1334
+msgid ", <invalid CRC operator>, "
+msgstr ", <ogiltig CRC-operator>, "
+
+#: nfp-dis.c:1686
+msgid "<invalid branch>["
+msgstr "<ogiltig gren>["
+
+#: nfp-dis.c:2055 nfp-dis.c:2326
+#, c-format
+msgid "<invalid cmd target %d:%d:%d>[]"
+msgstr "<ogiltigt kommandomål %d:%d%d>[]"
+
+#: nfp-dis.c:2066 nfp-dis.c:2337
+#, c-format
+msgid "<invalid cmd action %d:%d:%d>[]"
+msgstr "<ogiltig kommandoåtgärd %d:%d:%d>[]"
+
+#: nfp-dis.c:2558
+msgid "File has no ME-Config section."
+msgstr "Fil har inget ME-Config-avsnitt."
+
+#: nfp-dis.c:2572
+msgid "File has invalid ME-Config section."
+msgstr "Fil har ogiltigt ME-Config-avsnitt."
+
+#: nfp-dis.c:2717
+#, c-format
+msgid "Error processing section %u "
+msgstr "Fel vid behandling av avsnitt %u "
+
+#: nfp-dis.c:2746
+#, c-format
+msgid "Invalid NFP option: %s"
+msgstr "Ogiltigt NFP-alternativ: %s"
+
+#: nfp-dis.c:2984
+#, c-format
+msgid ""
+"\n"
+"The following NFP specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Följande NFP-specifika avassemblerarflaggor stöds för användning\n"
+"tillsammans med flaggan -M (flera flaggor kan skiljas åt med komman):\n"
+
+#: nfp-dis.c:2988
+#, c-format
+msgid ""
+"\n"
+"  no-pc\t\t    Don't print program counter prefix.\n"
+"  ctx4\t\t    Force disassembly using 4-context mode.\n"
+"  ctx8\t\t    Force 8-context mode, takes precedence."
+msgstr ""
+"\n"
+"  no-pc\t\t    Skriv inte ut programräknarprefix.\n"
+"  ctx4\t\t    Tvinga avassemblering via 4-kontextläge.\n"
+"  ctx8\t\t    Tvinga 8-kontextläge, tar företräde."
+
+#: nios2-dis.c:135
+#, c-format
+msgid "out of memory"
+msgstr "slut på minne"
+
+#: nios2-dis.c:263
+#, c-format
+msgid "internal error: broken opcode descriptor for `%s %s'"
+msgstr "internt fel: trasig instruktionsbeskrivning för ”%s %s”"
+
+#. I and Z are output operands and can`t be immediate
+#. A is an address and we can`t have the address of
+#. an immediate either. We don't know how much to increase
+#. aoffsetp by since whatever generated this is broken
+#. anyway!
+#: ns32k-dis.c:533
+#, c-format
+msgid "$<undefined>"
+msgstr "$<odefinierad>"
+
+#: or1k-asm.c:55
+msgid "relocation invalid for store"
+msgstr "omlokalisering ogiltig för lagring"
+
+#: or1k-asm.c:56
+msgid "internal relocation type invalid"
+msgstr "intern omlokaliseringstyp ogiltig"
+
+#: or1k-desc.c:2041
+#, c-format
+msgid "internal error: or1k_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: or1k_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: or1k-desc.c:2129
+#, c-format
+msgid "internal error: or1k_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: or1k_cgen_cpu_open: argument stöds inte ”%d”"
+
+#: or1k-desc.c:2148
+#, c-format
+msgid "internal error: or1k_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: or1k_cgen_cpu_open: ingen byteordning angiven"
+
+#: ppc-dis.c:418
+#, c-format
+msgid "warning: ignoring unknown -M%s option"
+msgstr "varning: hoppar över okänd -M%s-flagga"
+
+#: ppc-dis.c:1256
+#, c-format
+msgid ""
+"\n"
+"The following PPC specific disassembler options are supported for use with\n"
+"the -M switch:\n"
+msgstr ""
+"\n"
+"Följande PPC-specifika avassemblerarflaggor stöds för användning\n"
+"tillsammans med flaggan -M:\n"
+
+#: ppc-opc.c:52 ppc-opc.c:75 ppc-opc.c:101 ppc-opc.c:131
+msgid "invalid register"
+msgstr "ogiltigt register"
+
+#: ppc-opc.c:397
+msgid "invalid conditional option"
+msgstr "ogiltig villkorlig flagga"
+
+#: ppc-opc.c:400
+msgid "invalid counter access"
+msgstr "ogiltig räknaråtkomst"
+
+#: ppc-opc.c:464
+msgid "BO value implies no branch hint, when using + or - modifier"
+msgstr "BO-värde implicerar inget grentips, när modifierarna + eller - används"
+
+#: ppc-opc.c:469
+msgid "attempt to set y bit when using + or - modifier"
+msgstr "försök att ställa in y-biten då modifieraren + eller - användes"
+
+#: ppc-opc.c:471
+msgid "attempt to set 'at' bits when using + or - modifier"
+msgstr "försök att ställa in ”at”-bitar när + eller - modifierare används"
+
+#: ppc-opc.c:575
+msgid "invalid offset: must be in the range [-512, -8] and be a multiple of 8"
+msgstr "ogiltig position: måste vara i intervallet [-512, -8] och vara en multipel av 8"
+
+#: ppc-opc.c:706
+msgid "invalid R operand"
+msgstr "ogiltig R-operand"
+
+#: ppc-opc.c:761
+msgid "invalid mask field"
+msgstr "ogiltigt maskfält"
+
+#: ppc-opc.c:784
+msgid "invalid mfcr mask"
+msgstr "ogiltig mfcr-mask"
+
+#: ppc-opc.c:902 ppc-opc.c:920
+msgid "illegal L operand value"
+msgstr "felaktigt L-operandsvärde"
+
+#: ppc-opc.c:943
+msgid "illegal WC operand value"
+msgstr "felaktigt WC-operandsvärde"
+
+#: ppc-opc.c:1040
+msgid "incompatible L operand value"
+msgstr "inkompatibelt L-operandsvärde"
+
+#: ppc-opc.c:1239 ppc-opc.c:1274
+msgid "illegal bitmask"
+msgstr "otillåten bitmask"
+
+#: ppc-opc.c:1418
+msgid "address register in load range"
+msgstr "adressregister i inläsningsintervall"
+
+#: ppc-opc.c:1458
+msgid "illegal PL operand value"
+msgstr "felaktigt PL-operandsvärde"
+
+#: ppc-opc.c:1539
+msgid "index register in load range"
+msgstr "indexregistret är i inläsningsintervallet"
+
+#: ppc-opc.c:1568 ppc-opc.c:1654
+msgid "source and target register operands must be different"
+msgstr "käll- och målregisteroperander måste vara olika"
+
+#: ppc-opc.c:1599
+msgid "invalid register operand when updating"
+msgstr "ogiltig registeroperand vid uppdatering"
+
+#: ppc-opc.c:1717
+msgid "illegal immediate value"
+msgstr "felaktigt omedelbart värde"
+
+#: ppc-opc.c:2024
+msgid "invalid bat number"
+msgstr "ogiltigt bat-nummer"
+
+#: ppc-opc.c:2059
+msgid "invalid sprg number"
+msgstr "ogiltigt sprg-nummer"
+
+#: ppc-opc.c:2096
+msgid "invalid tbr number"
+msgstr "ogiltigt tbr-nummer"
+
+#: ppc-opc.c:2203 ppc-opc.c:2271
+msgid "VSR overlaps ACC operand"
+msgstr "VSR överlappar med ACC-operand"
+
+#: ppc-opc.c:2380
+msgid "invalid constant"
+msgstr "ogiltig konstant"
+
+#: ppc-opc.c:2482 ppc-opc.c:2505 ppc-opc.c:2528 ppc-opc.c:2551
+msgid "UIMM = 00000 is illegal"
+msgstr "UIMM = 00000 är otillåtet"
+
+#: ppc-opc.c:2574
+msgid "UIMM values >7 are illegal"
+msgstr "UIMM-värden >7 är otillåtna"
+
+#: ppc-opc.c:2597
+msgid "UIMM values >15 are illegal"
+msgstr "UIMM-värden >15 är otillåtna"
+
+#: ppc-opc.c:2620
+msgid "GPR odd is illegal"
+msgstr "Udda GPR är otillåtet"
+
+#: ppc-opc.c:2643 ppc-opc.c:2666
+msgid "invalid offset"
+msgstr "ogiltig position"
+
+#: ppc-opc.c:2689
+msgid "invalid Ddd value"
+msgstr "ogiltigt Ddd-värde"
+
+#: ppc-opc.c:2742 ppc-opc.c:2769
+msgid "invalid TH value"
+msgstr "ogiltigt TH-värde"
+
+#. The option without '=' should be defined above.
+#: riscv-dis.c:117 riscv-dis.c:154
+#, c-format
+msgid "unrecognized disassembler option: %s"
+msgstr "okänd avassemblerarflagga: %s"
+
+#. Invalid options with '=', no option name before '=',
+#. and no value after '='.
+#: riscv-dis.c:125
+#, c-format
+msgid "unrecognized disassembler option with '=': %s"
+msgstr "okänd avassemblerarflagga med ”=”: %s"
+
+#: riscv-dis.c:139
+#, c-format
+msgid "unknown privileged spec set by %s=%s"
+msgstr "okänd privilegierad spec satt av %s=%s"
+
+#: riscv-dis.c:146
+#, c-format
+msgid "mis-matched privilege spec set by %s=%s, the elf privilege attribute is %s"
+msgstr "felaktig privilegie-spec satt av %s=%s, elf-privilegieattributet är %s"
+
+#: riscv-dis.c:631
+#, c-format
+msgid "# internal error, undefined modifier (%c)"
+msgstr "# internt fel, okänd modifierare (%c)"
+
+#: riscv-dis.c:1158
+msgid "Print numeric register names, rather than ABI names."
+msgstr "Skriv ut numeriska registernamn, snarare än ABI-namn."
+
+#: riscv-dis.c:1161
+msgid "Disassemble only into canonical instructions."
+msgstr "Avassemblera endas till kanoniska instruktionsformer."
+
+#: riscv-dis.c:1164
+msgid "Print the CSR according to the chosen privilege spec."
+msgstr "Skriv ut CSR enligt till den angivna privilegiespecen."
+
+#: riscv-dis.c:1240
+#, c-format
+msgid ""
+"\n"
+"The following RISC-V specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Följande RISC-V-specifika avassemblerarflaggor stöds för användning\n"
+"tillsammans med flaggan -M (flera flaggor kan skiljas åt med komman):\n"
+
+#: rx-dis.c:139 rx-dis.c:163 rx-dis.c:171 rx-dis.c:179 rx-dis.c:187
+msgid "<invalid register number>"
+msgstr "<ogiltigt registernummer>"
+
+#: rx-dis.c:147 rx-dis.c:195
+msgid "<invalid condition code>"
+msgstr "<ogiltig villkorsflagga>"
+
+#: rx-dis.c:155
+msgid "<invalid flag>"
+msgstr "<ogiltig flagga>"
+
+#: rx-dis.c:203
+msgid "<invalid opsize>"
+msgstr "<ogiltig opstorlek>"
+
+#: rx-dis.c:211
+msgid "<invalid size>"
+msgstr "<ogiltig storlek>"
+
+#: s12z-dis.c:239 s12z-dis.c:296 s12z-dis.c:307
+msgid "<illegal reg num>"
+msgstr "<otillåtet regnummer>"
+
+#: s12z-dis.c:370
+msgid "<bad>"
+msgstr "<felaktig>"
+
+#: s12z-dis.c:380
+msgid ".<bad>"
+msgstr ".<felaktig>"
+
+#: s390-dis.c:42
+msgid "Disassemble in ESA architecture mode"
+msgstr "Avassemblera i ESA-arkitektursläge"
+
+#: s390-dis.c:43
+msgid "Disassemble in z/Architecture mode"
+msgstr "Avassemblera i z/Arkitektursläge"
+
+#: s390-dis.c:44
+msgid "Print unknown instructions according to length from first two bits"
+msgstr "Skriv ut okända instruktioner enligt längd från de första två bitarna"
+
+#: s390-dis.c:76
+#, c-format
+msgid "unknown S/390 disassembler option: %s"
+msgstr "okänd S/390-avassemblerarflagga: %s"
+
+#: s390-dis.c:471
+#, c-format
+msgid ""
+"\n"
+"The following S/390 specific disassembler options are supported for use\n"
+"with the -M switch (multiple options should be separated by commas):\n"
+msgstr ""
+"\n"
+"Följande S/390-specifika avassemblerarflaggor stöds för användning\n"
+"tillsammans med flaggan -M (flera flaggor kan skiljas åt med komman):\n"
+
+#: score-dis.c:653 score-dis.c:871 score-dis.c:1032 score-dis.c:1138
+#: score-dis.c:1146 score-dis.c:1153 score7-dis.c:691 score7-dis.c:854
+msgid "<illegal instruction>"
+msgstr "<otillåten instruktion>"
+
+#: sparc-dis.c:308 sparc-dis.c:318
+#, c-format
+msgid "internal error: bad sparc-opcode.h: \"%s\", %#.8lx, %#.8lx\n"
+msgstr "internt fel: felaktig sparc-opcode.h: ”%s”, %#.8lx, %#.8lx\n"
+
+#: sparc-dis.c:377
+#, c-format
+msgid "internal error: bad sparc-opcode.h: \"%s\" == \"%s\"\n"
+msgstr "internt fel: felaktig sparc-opcode.h: ”%s” == ”%s”\n"
+
+#. Mark as non-valid instruction.
+#: sparc-dis.c:1094
+msgid "unknown"
+msgstr "okänd"
+
+#: v850-dis.c:190
+msgid "<invalid s-reg number>"
+msgstr "<ogiltigt s-regnummer>"
+
+#: v850-dis.c:206
+msgid "<invalid reg number>"
+msgstr "<ogiltigt regnummer>"
+
+#: v850-dis.c:222
+msgid "<invalid v-reg number>"
+msgstr "<ogiltigt v-regnummer>"
+
+#: v850-dis.c:236
+msgid "<invalid CC-reg number>"
+msgstr "<ogiltigt CC-regnummer>"
+
+#: v850-dis.c:250
+msgid "<invalid float-CC-reg number>"
+msgstr "<ogiltigt flyt-CC-regnummer>"
+
+#: v850-dis.c:264
+msgid "<invalid cacheop number>"
+msgstr "<ogiltigt cacheopnummer>"
+
+#: v850-dis.c:275
+msgid "<invalid prefop number>"
+msgstr "<ogiltigt prefopnummer>"
+
+#: v850-dis.c:510
+#, c-format
+msgid "unknown operand shift: %x"
+msgstr "okänd operandskiftning: %x"
+
+#: v850-dis.c:526
+#, c-format
+msgid "unknown reg: %d"
+msgstr "okänt register: %d"
+
+#. The functions used to insert and extract complicated operands.
+#. Note: There is a conspiracy between these functions and
+#. v850_insert_operand() in gas/config/tc-v850.c.  Error messages
+#. containing the string 'out of range' will be ignored unless a
+#. specific command line option is given to GAS.
+#: v850-opc.c:53
+msgid "displacement value is not in range and is not aligned"
+msgstr "förskjutningsvärdet är inte inom intervallet och ligger inte på jämn gräns"
+
+#: v850-opc.c:54
+msgid "displacement value is out of range"
+msgstr "förskjutningsvärdet är utanför intervallet"
+
+#: v850-opc.c:55
+msgid "displacement value is not aligned"
+msgstr "förskjutningsvärdet ligger inte på jämn gräns"
+
+#: v850-opc.c:57
+msgid "immediate value is out of range"
+msgstr "omedelbara värdet är utanför intervallet"
+
+#: v850-opc.c:58
+msgid "branch value out of range"
+msgstr "grenvärdet är utanför intervallet"
+
+#: v850-opc.c:59
+msgid "branch value not in range and to odd offset"
+msgstr "grenvärdet är inte inom intervallet och till ett udda avstånd"
+
+#: v850-opc.c:60
+msgid "branch to odd offset"
+msgstr "grening till udda avstånd"
+
+#: v850-opc.c:61
+msgid "position value is out of range"
+msgstr "positionsvärde är utanför intervall"
+
+#: v850-opc.c:62
+msgid "width value is out of range"
+msgstr "breddvärde är utanför intervall"
+
+#: v850-opc.c:63
+msgid "SelID is out of range"
+msgstr "SelID är utanför intervall"
+
+#: v850-opc.c:64
+msgid "vector8 is out of range"
+msgstr "vector8 är utanför intervall"
+
+#: v850-opc.c:65
+msgid "vector5 is out of range"
+msgstr "vector5 är utanför intervall"
+
+#: v850-opc.c:66
+msgid "imm10 is out of range"
+msgstr "imm10 är utanför intervall"
+
+#: v850-opc.c:67
+msgid "SR/SelID is out of range"
+msgstr "SR/SellD är utanför intervall"
+
+#: v850-opc.c:508
+msgid "invalid register for stack adjustment"
+msgstr "ogiltigt register för stackjustering"
+
+#: v850-opc.c:526
+msgid "invalid register name"
+msgstr "ogiltigt registernamn"
+
+#: wasm32-dis.c:93
+msgid "Disassemble \"register\" names"
+msgstr "Avassemblera ”register”-namn"
+
+#: wasm32-dis.c:94
+msgid "Name well-known globals"
+msgstr "Namnge välkända globaler"
+
+#: wasm32-dis.c:549
+#, c-format
+msgid ""
+"The following WebAssembly-specific disassembler options are supported for use\n"
+"with the -M switch:\n"
+msgstr ""
+"Följande WebAssembly-specifika avassemblerarflaggor stöds för användning\n"
+"tillsammans med flaggan -M:\n"
+
+#: xstormy16-asm.c:71
+msgid "Bad register in preincrement"
+msgstr "Felaktigt register i förhandsökning"
+
+#: xstormy16-asm.c:76
+msgid "Bad register in postincrement"
+msgstr "Felaktigt register i efterhandsökning"
+
+#: xstormy16-asm.c:78
+msgid "Bad register name"
+msgstr "Felaktigt registernamn"
+
+#: xstormy16-asm.c:82
+msgid "Label conflicts with register name"
+msgstr "Etiketten står i konflikt med registernamn"
+
+#: xstormy16-asm.c:86
+msgid "Label conflicts with `Rx'"
+msgstr "Etiketten står i konflikt med \"Rx\""
+
+#: xstormy16-asm.c:88
+msgid "Bad immediate expression"
+msgstr "Felaktigt omedelbart uttryck"
+
+#: xstormy16-asm.c:109
+msgid "No relocation for small immediate"
+msgstr "Ingen omlokalisering för litet omedelbart tal"
+
+#: xstormy16-asm.c:119
+msgid "Small operand was not an immediate number"
+msgstr "Liten operand var inte ett omedelbart tal"
+
+#: xstormy16-asm.c:157
+msgid "Operand is not a symbol"
+msgstr "Operanden är inte en symbol"
+
+#: xstormy16-asm.c:165
+msgid "Syntax error: No trailing ')'"
+msgstr "Syntaxfel: Inget eftersläpande \")\""
+
+#: xstormy16-desc.c:1318
+#, c-format
+msgid "internal error: xstormy16_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+msgstr "internt fel: xstormy16_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#: xstormy16-desc.c:1406
+#, c-format
+msgid "internal error: xstormy16_cgen_cpu_open: unsupported argument `%d'"
+msgstr "internt fel: xstormy16_cgen_cpu_open: argument stöds inte ”%d”"
+
+#: xstormy16-desc.c:1425
+#, c-format
+msgid "internal error: xstormy16_cgen_cpu_open: no endianness specified"
+msgstr "internt fel: xstormy16_cgen_cpu_open: ingen byteordning angiven"
+
+#~ msgid "unknown broadcast operand: %s\n"
+#~ msgstr "okänd utsändningsoperand: %s\n"
+
+#~ msgid "  dsp             Recognize DSP instructions.\n"
+#~ msgstr "  dsp             Känn igen DSP-instruktioner.\n"
+
+#~ msgid "  spfp            Recognize FPX SP instructions.\n"
+#~ msgstr "  spfp            Känn igen FPX SP-instruktioner.\n"
+
+#~ msgid "  dpfp            Recognize FPX DP instructions.\n"
+#~ msgstr "  dpfp            Känn igen FPX DP-instruktioner.\n"
+
+#~ msgid "  nps400          Recognize NPS400 instructions.\n"
+#~ msgstr "  nps400             Känn igen NPS400-instruktioner.\n"
+
+#~ msgid "%s: %s: (base_opcode >> 24) != 0: %s\n"
+#~ msgstr "%s: %s: (base_opcode >> 24) != 0: %s\n"
+
+#~ msgid "%s: %s: (base_opcode >> 16) != 0: %s\n"
+#~ msgstr "%s: %s: (base_opcode >> 16) != 0: %s\n"
+
+#~ msgid "%s: %s: (base_opcode >> 8) != 0: %s\n"
+#~ msgstr "%s: %s: (base_opcode >> 8) != 0: %s\n"
+
+#~ msgid "%s: %s: base_opcode != 0: %s\n"
+#~ msgstr "%s: %s: base_opcode != 0: %s\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "  no-aliases      Disassemble only into canonical instructions, rather\n"
+#~ "                  than into pseudoinstructions.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "  no-aliases      Avassemblera endast till kanoniska instruktioner, snarare\n"
+#~ "                 än till pseudoinstruktioner.\n"
+
+#~ msgid "Missing '#' prefix"
+#~ msgstr "”#”-prefix saknas"
+
+#~ msgid "Missing '.' prefix"
+#~ msgstr "”.”-prefix saknas"
+
+#~ msgid "Missing 'pof:' prefix"
+#~ msgstr "”pof:”-prefix saknas"
+
+#~ msgid "Missing 'pag:' prefix"
+#~ msgstr "”pag:”-prefix saknas"
+
+#~ msgid "Missing 'sof:' prefix"
+#~ msgstr "”sof:”-prefix saknas"
+
+#~ msgid "Missing 'seg:' prefix"
+#~ msgstr "”seg:”-prefix saknas"
+
+#~ msgid "internal error: xc16x_cgen_rebuild_tables: conflicting insn-chunk-bitsize values: `%d' vs. `%d'"
+#~ msgstr "internt fel: xc16x_cgen_rebuild_tables: insn-chunk-bitsize-värden i konflikt: ”%d” vs. ”%d”"
+
+#~ msgid "internal error: xc16x_cgen_cpu_open: unsupported argument `%d'"
+#~ msgstr "internt fel: xc16x_cgen_cpu_open: argument stöds inte ”%d”"
+
+#~ msgid "internal error: xc16x_cgen_cpu_open: no endianness specified"
+#~ msgstr "internt fel: xc16x_cgen_cpu_open: ingen byteordning angiven"
+
+#~ msgid "internal error, h8_disassemble_init"
+#~ msgstr "internt fel, h8_disassemble_init"
+
+#~ msgid "can't find i386-opc.tbl for reading, errno = %s\n"
+#~ msgstr "kan inte hitta i386-opc.tbl för läsning, errno = %s\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "  msa                      Recognize MSA instructions.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "  msa                      Känn igen MSA-instruktioner.\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "  hwr-names=ARCH           Print HWR names according to specified \n"
+#~ "                           architecture.\n"
+#~ "                           Default: based on binary being disassembled.\n"
+#~ msgstr ""
+#~ "\n"
+#~ "  hwr-names=ARCH           Skriv ut HWR-namn enligt angiven \n"
+#~ "                           arkitektur.\n"
+#~ "                           Standard: baserat på binären som avassembleras.\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "  For the options above, The following values are supported for \"ARCH\":\n"
+#~ "   "
+#~ msgstr ""
+#~ "\n"
+#~ "  För flaggorna ovan stöds följande värden på \"ARK\":\n"
+#~ "   "
+
+#~ msgid "Internal disassembler error"
+#~ msgstr "Internt fel i avassembleraren"
+
+#~ msgid "can't cope with insert %d\n"
+#~ msgstr "kan inte sätta in %d\n"
+
+#~ msgid "%02x\t\t*unknown*"
+#~ msgstr "%02x\t\t*okänd*"
+
+#~ msgid "# <dis error: %08lx>"
+#~ msgstr "# <avassembleringsfel: %08lx>"
+
+#~ msgid "Internal error:  bad sparc-opcode.h: \"%s\", %#.8lx, %#.8lx\n"
+#~ msgstr "Internt fel:  felaktig sparc-opcode.h: \"%s\", %#.8lx, %#.8lx\n"
+
+#~ msgid "Illegal limm reference in last instruction!\n"
+#~ msgstr "Otillåten limm-referens i sista instruktionen!\n"
+
+#~ msgid "unknown\t0x%04x"
+#~ msgstr "okänd\t0x%04x"
+
+#~ msgid "# internal error, incomplete extension sequence (+)"
+#~ msgstr "# internt fel, ofullständig ändelsesekvens (+)"
+
+#~ msgid "# internal error, undefined extension sequence (+%c)"
+#~ msgstr "# internt fel, odefinierad ändelsesekvens (+%c)"
+
+#~ msgid "# internal disassembler error, unrecognised modifier (%c)"
+#~ msgstr "# internt disassemblerfel, okänd modifierare (%c)"
+
+#~ msgid "offset not a multiple of 2"
+#~ msgstr "avståndet är inte en multipel av 2"
+
+#~ msgid "offset greater than 62"
+#~ msgstr "avståndet är större än 62"
+
+#~ msgid "offset not a multiple of 4"
+#~ msgstr "avståndet är inte en multipel av 4"
+
+#~ msgid "offset greater than 124"
+#~ msgstr "avståndet är större än 124"
+
+#~ msgid "offset not a multiple of 8"
+#~ msgstr "avståndet är inte en multipel av 8"
+
+#~ msgid "offset greater than 248"
+#~ msgstr "avståndet är större än 248"
+
+#~ msgid "offset not between -2048 and 2047"
+#~ msgstr "avståndet är inte mellan -2048 och 2047"
+
+#~ msgid "offset not between -8192 and 8191"
+#~ msgstr "avståndet är inte mellan -8192 och 8191"
+
+#~ msgid "ignoring least significant bits in branch offset"
+#~ msgstr "ignorerar minst signifikanta bitarna i grenavstånd"
+
+#~ msgid "target register operand must be even"
+#~ msgstr "målregisteroperand måste vara jämn"
+
+#~ msgid "source register operand must be even"
+#~ msgstr "källregisteroperand måste vara jämn"
+
+#~ msgid "branch value not in range and to an odd offset"
+#~ msgstr "grenvärdet är inte inom intervallet och till ett udda avstånd"
+
+#~ msgid "immediate value not in range and not even"
+#~ msgstr "omedelbara värdet är inte inom intervallet och inte jämnt"
+
+#~ msgid "Hmmmm %x"
+#~ msgstr "Hmmmm %x"
+
+#~ msgid "Don't understand %x \n"
+#~ msgstr "Förstår inte %x \n"
+
+#~ msgid "No relocation for small immediate number"
+#~ msgstr "Ingen omlokalisering för litet omedelbart tal"
+
+#~ msgid "unrecognized keyword/register name"
+#~ msgstr "okänt namn på nyckelord/register"

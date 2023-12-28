@@ -1,0 +1,57 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+# complex relocations testsuite
+
+proc ld_test { objects ldflags dest test } {
+    set ld_output [target_link $objects $dest $ldflags]
+    if [string match "" $ld_output] then { pass $test } else { fail $test }
+}
+
+proc ld_test_error { objects ldflags dest test } {
+    set ld_output [target_link $objects $dest $ldflags]
+    if [string match "" $ld_output] then { fail $test } else { pass $test }
+}
+
+proc objdump_test { exec flags dest test } {
+    set objdump [find_binutils_prog objdump]
+    verbose -log "$objdump $flags $exec > $dest"
+    catch "exec $objdump $flags $exec > $dest" objdump_output
+    if [string match "" $objdump_output] then { pass $test } else { fail $test }
+}
+
+proc regexp_test { file1 file2 test } {
+    if [regexp_diff $file1 $file2] then { fail $test } else { pass $test }
+}
+
+
+if [istarget mep*-*-*] {
+
+    # test that complex relocs between files work, generally
+    gas_test relocs-junk1.s {-mconfig=default -o relocs-junk1.o} {} {assembling relocs-junk1}
+    gas_test relocs-syms.s {-mconfig=default -o relocs-syms.o} {} {assembling relocs-syms}
+    gas_test relocs-junk2.s {-mconfig=default -o relocs-junk2.o} {} {assembling relocs-junk2}
+    gas_test relocs-refs.s {-mconfig=default -o relocs-refs.o} {} {assembling relocs-refs}
+    ld_test {relocs-junk1.o relocs-syms.o relocs-junk2.o relocs-refs.o} {--defsym __stack=0x1ffff0 --defsym __sbss_end=0x1000 -e 1233 -EL} {relocs.x} {linking relocs.x}
+    objdump_test {relocs.x} {-dzs} {relocs.dump} {disassembling relocs.x}
+    regexp_test {relocs.dump} "$srcdir/$subdir/relocs.d" {matching disassembly for relocs.x}
+
+    foreach test {3} {
+	# perform specific negative boundary tests
+	gas_test "relocs-bad$test.s" [list -mconfig=default -o "relocs-bad$test.o"] {} [list assembling "relocs-bad$test"]
+	ld_test_error "relocs-bad$test.o" {-e 1233 -EL} "relocs-bad$test.x" [list linking "relocs-bad$test"]
+    }
+}

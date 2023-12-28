@@ -1,0 +1,173 @@
+- Source extraction program for chew.
+-  Copyright (C) 1990-2023 Free Software Foundation, Inc.
+-  This file is part of BFD, the Binary File Descriptor library.
+
+-  This program is free software; you can redistribute it and/or modify
+-  it under the terms of the GNU General Public License as published by
+-  the Free Software Foundation; either version 3 of the License, or
+-  (at your option) any later version.
+
+-  This program is distributed in the hope that it will be useful,
+-  but WITHOUT ANY WARRANTY; without even the implied warranty of
+-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-  GNU General Public License for more details.
+
+-  You should have received a copy of the GNU General Public License
+-  along with this program; if not, write to the Free Software
+-  Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.
+
+- chew.c keywords defined here put output into bfd-in2.h and libbfd.h or
+- libcoff.h, from comments in the source.  See also doc.str.
+- Output lines generally come from comment lines starting with a dot,
+- or from keywords like SYNOPSIS.  Output switches to bfd-in2.h at the
+- end of each comment.  Use INTERNAL* to output to libbfd.h.
+-
+- EXTERNAL: output to bfd-in2.h, nothing to docs
+- INTERNAL: output to libbfd.h, nothing to docs
+- CODE_FRAGMENT: output to header and docs
+- FUNCTION: output to bfd-in2.h and docs
+- INTERNAL_FUNCTION: output to libbfd.h and docs
+- DEFINITION: alias for FUNCTION, but generally doesn't have SYNOPSIS,
+-	used for structs and other random code
+- INTERNAL_DEFINITION: as above, but output to libbfd.h and docs
+- ENUM* outputs to bfd-in2.h, libbfd.h and docs.
+
+: SYNOPSIS
+	skip_past_newline
+	get_stuff_in_command	
+	translatecomments
+	strip_trailing_newlines
+	remchar
+	" ATTRIBUTE_HIDDEN" internalmode @ catstrif
+	";\n\n" catstr
+	indent
+	maybecatstr
+;
+
+- Ignore stuff that is for the docs.  Output lines starting with dots.
+: ignore
+	skip_past_newline 
+	get_stuff_in_command
+	outputdots
+	maybecatstr
+	;
+
+: CODE_FRAGMENT
+	ignore ;
+
+- Output goes to bfd-in2.h
+: EXTERNAL
+	0 internalmode ! ignore ;
+
+- Output goes to libbfd.h/libcoff.h
+: INTERNAL 
+	1 internalmode ! ignore ;
+
+- input stack { a b } output b if internal, a if external
+: ifinternal
+	"" swap 1 internalmode ! maybecatstr
+	swap
+	"" swap 0 internalmode ! maybecatstr
+	catstr
+	;
+
+- Put note in output string, regardless of internal mode.
+: COMMENT
+	skip_past_newline
+	get_stuff_in_command
+	translatecomments
+	catstr
+	;
+
+- SENUM    enum-type-name
+- ENUM     enum-name
+- ENUMX    addl-enum-name
+- ENUMDOC  doc for preceding enums
+- ENDSENUM max-enum-name
+
+: make_enum_header
+	dup
+	"enum " swap catstr
+	" {\n" catstr
+	swap "  _dummy_first_" swap catstr catstr
+	",\n" catstr
+	;
+: make_string_table_header
+	dup
+	"#ifdef _BFD_MAKE_TABLE_" swap catstr swap
+	"\n\nstatic const char *const " swap catstr catstr
+	"_names[] = { \"@@uninitialized@@\",\n" catstr
+	;
+: SENUM
+	skip_past_newline
+	copy_past_newline
+	remchar
+	dup
+	make_enum_header
+	swap
+	make_string_table_header
+	ifinternal
+	catstr
+	get_stuff_in_command catstr
+	translatecomments ;
+: ENDSENUM
+	skip_past_newline
+	copy_past_newline strip_trailing_newlines
+	dup
+	"  " swap catstr " };\n" catstr	swap
+	" \"@@overflow: " swap catstr "@@\",\n};\n#endif\n\n" catstr
+	ifinternal
+	catstr
+	;
+: make_enumerator
+	"  " swap catstr
+	",\n" catstr
+	;
+: make_enumerator_string
+	"  \"" swap catstr
+	"\",\n" catstr
+	;
+: ENUM
+	skip_past_newline
+	copy_past_newline
+	remchar
+	dup
+	make_enumerator
+	swap
+	make_enumerator_string
+	ifinternal
+	;
+: ENUMX ENUM catstr ;
+: ENUMEQ
+	skip_past_newline
+	"#define "
+	copy_past_newline remchar
+	catstr
+	" "
+	catstr
+	copy_past_newline
+	catstr
+	"" swap 0 internalmode ! maybecatstr
+	;
+: ENUMEQX ENUMEQ catstr ;
+: ENUMDOC
+	skip_past_newline
+	get_stuff_in_command
+	strip_trailing_newlines
+	"\n{* " swap catstr "  *}\n" catstr
+	translatecomments
+	- discard it if we're doing internal mode
+	"" swap 0 internalmode ! maybecatstr
+	swap
+	catstr catstr
+	;
+: SECTION ignore ;
+: SUBSECTION ignore ;
+: SUBSUBSECTION ignore ;
+: INODE ignore ;
+: DESCRIPTION ignore ;
+: ENDDD EXTERNAL ;
+: FUNCTION EXTERNAL ;
+: INTERNAL_FUNCTION INTERNAL ;
+: DEFINITION EXTERNAL ;
+: INTERNAL_DEFINITION INTERNAL ;

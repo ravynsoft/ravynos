@@ -1,0 +1,43 @@
+# Copyright (C) 2012-2023 Free Software Foundation, Inc.
+
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston, MA 02110-1301, USA.  
+
+# Reported 93/05/09 by Jim Wilson: IEEE single-precision FLT_MIN value gets
+# assembled incorrectly.  (Off by one ulp.)
+
+proc dotest {} {
+    set testname "IEEE FLT_MIN, single-precision"
+    set x 0
+    gas_start "x930509a.s" "-al"
+    while 1 {
+	expect {
+	    -re " 00 ?00 ?80 ?00\[ 	\]+.single" { pass $testname; set x 1 }
+	    -re " 00 ?80 ?00 ?00\[ 	\]+.single" { pass $testname; set x 1 }
+	    -re ".single" { fail $testname; set x 1 }
+	    -re "\[^\n\]*\n" { }
+	    timeout { perror "timeout\n"; break }
+	    eof { break }
+	}
+    }
+    gas_finish
+
+    # C54x alignment/addressing is different, so the listing looks different
+    # float encoding is tested in c54x-specific tests.
+    # No floating point support in assembly code for CRIS.
+    setup_xfail "arc*-*-*" "cris-*-*" "*c30*-*-*" "*c54x*-*-*" "*c80*-*-*"
+    setup_xfail "vax*-*-*" "crisv32-*-*"
+
+    if !$x then { fail "$testname (listing didn't match)" }
+}

@@ -1,0 +1,34 @@
+#source: gotop64.s
+#as: --64 -K PIC
+#ld: -shared -melf64_sparc
+#objdump: -drj.text
+#target: sparc*-*-*
+
+.*: +file format elf64-sparc.*
+
+Disassembly of section .text:
+0000000000001000 <foo-0x8>:
+ +1000:	81 c3 e0 08 	retl *
+ +1004:	ae 03 c0 17 	add  %o7, %l7, %l7
+
+0000000000001008 <foo>:
+ +1008:	9d e3 bf 60 	save  %sp, -160, %sp
+ +100c:	2f 00 04 04 	sethi  %hi\(0x101000\), %l7
+ +1010:	7f ff ff fc 	call  1000 <foo-0x8>
+ +1014:	ae 05 e0 d0 	add  %l7, 0xd0, %l7	! 1010d0 <.*>
+ +1018:	01 00 00 00 	nop *
+ +101c:	23 00 00 00 	sethi  %hi\(0\), %l1
+ +1020:	01 00 00 00 	nop *
+ +1024:	a2 1c 60 08 	xor  %l1, 8, %l1
+ +1028:	01 00 00 00 	nop *
+ +102c:	f0 5d c0 11 	ldx  \[ %l7 \+ %l1 \], %i0
+ +1030:	01 00 00 00 	nop *
+ +1034:	23 00 00 03 	sethi  %hi\(0xc00\), %l1
+ +1038:	01 00 00 00 	nop *
+ +103c:	a2 1c 63 24 	xor  %l1, 0x324, %l1
+ +1040:	01 00 00 00 	nop *
+ +1044:	b0 05 c0 11 	add  %l7, %l1, %i0
+ +1048:	01 00 00 00 	nop *
+ +104c:	81 c7 e0 08 	ret 
+ +1050:	81 e8 00 00 	restore 
+#pass

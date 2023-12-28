@@ -1,0 +1,74 @@
+# Test --print-memory-usage linker functionality
+# By Tristan Gingold, AdaCore
+#   Copyright (C) 2015-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+
+# Mips adds MIPS.abiflags section.
+# Spu, pdp11 memory is too small.
+# Tic30 needs a special linker script.
+# Tic54x interpret space values in bits.
+# XCOFF has garbage collection
+if { [istarget mips*-*-*]
+     || [istarget spu*-*-*]
+     || [istarget pdp11*-*-*]
+     || [istarget tic30*-*-*]
+     || [istarget tic54x*-*-*]
+     || [is_xcoff_format] } {
+    return
+}
+
+set old_LDFLAGS $LDFLAGS
+if { [is_pecoff_format] } {
+    set LDFLAGS "$LDFLAGS --image-base 0"
+}
+
+run_ld_link_tests {
+    {
+	"print-memory-usage-1"
+	"-T print-memory-usage-1.t -T print-memory-usage.t --print-memory-usage"
+	""
+	""
+	{ "print-memory-usage-1.s" }
+	{ { ld "print-memory-usage-1.l" } }
+	"print-memory-usage-1"
+    }
+
+    {
+	"print-memory-usage-2"
+	"-T print-memory-usage-2.t --print-memory-usage"
+	""
+	""
+	{ "print-memory-usage-1.s" }
+	{ { ld "print-memory-usage-2.l" } }
+	"print-memory-usage-2"
+    }
+
+    {
+	"print-memory-usage-3"
+	"-T print-memory-usage-3.t -T print-memory-usage.t --print-memory-usage"
+	""
+	""
+	{ "print-memory-usage-3.s" }
+	{ { ld "print-memory-usage-3.l" } }
+	"print-memory-usage-3"
+    }
+
+}
+
+set LDFLAGS $old_LDFLAGS

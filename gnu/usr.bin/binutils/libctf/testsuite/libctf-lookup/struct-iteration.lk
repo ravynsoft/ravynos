@@ -1,0 +1,24 @@
+# source: struct-iteration-ctf.c
+# link: on
+iter test: foo, offset [0-9a-f]*, has type [0-9a-f]*/int
+iter test: bar, offset [0-9a-f]*, has type [0-9a-f]*/size_t
+iter test: baz, offset [0-9a-f]*, has type [0-9a-f]*/const char \*
+iter test: self, offset [0-9a-f]*, has type [0-9a-f]*/struct foo_t \*
+iter test: named, offset [0-9a-f]*, has type [0-9a-f]*/union 
+iter test: , offset [0-9a-f]*, has type [0-9a-f]*/struct 
+iter test: , offset [0-9a-f]*, has type [0-9a-f]*/struct 
+iter test: , offset [0-9a-f]*, has type [0-9a-f]*/union 
+iter test: after_the_end, offset [0-9a-f]*, has type [0-9a-f]*/int
+next test: foo, offset [0-9a-f]*, has type [0-9a-f]*/int
+next test: bar, offset [0-9a-f]*, has type [0-9a-f]*/size_t
+next test: baz, offset [0-9a-f]*, has type [0-9a-f]*/const char \*
+next test: self, offset [0-9a-f]*, has type [0-9a-f]*/struct foo_t \*
+next test: named, offset [0-9a-f]*, has type [0-9a-f]*/union 
+next test: , offset [0-9a-f]*, has type [0-9a-f]*/struct 
+next test: unnamed_sub_member, offset [0-9a-f]*, has type [0-9a-f]*/long int
+next test: , offset [0-9a-f]*, has type [0-9a-f]*/union 
+next test: one_more_level, offset [0-9a-f]*, has type [0-9a-f]*/double
+next test: yes_really_one_more, offset [0-9a-f]*, has type [0-9a-f]*/long int
+next test: , offset [0-9a-f]*, has type [0-9a-f]*/struct 
+next test: , offset [0-9a-f]*, has type [0-9a-f]*/union 
+next test: after_the_end, offset [0-9a-f]*, has type [0-9a-f]*/int

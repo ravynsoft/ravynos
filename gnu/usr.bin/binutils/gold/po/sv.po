@@ -1,0 +1,4733 @@
+# Swedish messages for gold.
+# Copyright © 2017 Free Software Foundation, Inc.
+# This file is distributed under the same license as the binutils package.
+# Sebastian Rasmussen <sebras@gmail.com>, 2017.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gold 2.24.90\n"
+"Report-Msgid-Bugs-To: bug-binutils@gnu.org\n"
+"POT-Creation-Date: 2014-02-10 09:42+1030\n"
+"PO-Revision-Date: 2017-07-02 11:34+0800\n"
+"Last-Translator: Sebastian Rasmussen <sebras@gmail.com>\n"
+"Language-Team: Swedish <tp-sv@listor.tp-sv.se>\n"
+"Language: sv\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 2.0.2\n"
+
+#: archive.cc:135
+#, c-format
+msgid "script or expression reference to %s"
+msgstr ""
+
+#: archive.cc:229
+#, c-format
+msgid "%s: no archive symbol table (run ranlib)"
+msgstr ""
+
+#: archive.cc:317
+#, c-format
+msgid "%s: bad archive symbol table names"
+msgstr ""
+
+#: archive.cc:349
+#, c-format
+msgid "%s: malformed archive header at %zu"
+msgstr ""
+
+#: archive.cc:369
+#, c-format
+msgid "%s: malformed archive header size at %zu"
+msgstr ""
+
+#: archive.cc:380
+#, c-format
+msgid "%s: malformed archive header name at %zu"
+msgstr ""
+
+#: archive.cc:411
+#, c-format
+msgid "%s: bad extended name index at %zu"
+msgstr ""
+
+#: archive.cc:421
+#, c-format
+msgid "%s: bad extended name entry at header %zu"
+msgstr ""
+
+#: archive.cc:518
+#, c-format
+msgid "%s: short archive header at %zu"
+msgstr ""
+
+#: archive.cc:702
+#, fuzzy, c-format
+msgid "%s: member at %zu is not an ELF object"
+msgstr "%F%B: medlem %B i arkivet är inte ett objekt\n"
+
+#: archive.cc:1043
+#, c-format
+msgid "%s: archive libraries: %u\n"
+msgstr ""
+
+#: archive.cc:1045
+#, c-format
+msgid "%s: total archive members: %u\n"
+msgstr ""
+
+#: archive.cc:1047
+#, c-format
+msgid "%s: loaded archive members: %u\n"
+msgstr ""
+
+#: archive.cc:1277
+#, c-format
+msgid "%s: lib groups: %u\n"
+msgstr ""
+
+#: archive.cc:1279
+#, c-format
+msgid "%s: total lib groups members: %u\n"
+msgstr ""
+
+#: archive.cc:1281
+#, c-format
+msgid "%s: loaded lib groups members: %u\n"
+msgstr ""
+
+#: arm-reloc-property.cc:303
+#, fuzzy, c-format
+msgid "invalid reloc %u"
+msgstr "%F%P: ogiltig omlokaliseringssats\n"
+
+#: arm-reloc-property.cc:316
+msgid "reloc "
+msgstr ""
+
+#: arm-reloc-property.cc:316
+msgid "unimplemented reloc "
+msgstr ""
+
+#: arm-reloc-property.cc:319
+msgid "dynamic reloc "
+msgstr ""
+
+#: arm-reloc-property.cc:322
+msgid "private reloc "
+msgstr ""
+
+#: arm-reloc-property.cc:325
+msgid "obsolete reloc "
+msgstr ""
+
+#: arm.cc:1074
+msgid "** ARM cantunwind"
+msgstr ""
+
+#: arm.cc:4037
+#, c-format
+msgid "%s: Thumb BLX instruction targets thumb function '%s'."
+msgstr ""
+
+#: arm.cc:4183
+msgid "conditional branch to PLT in THUMB-2 not supported yet."
+msgstr ""
+
+#: arm.cc:5263
+msgid "PREL31 overflow in EXIDX_CANTUNWIND entry"
+msgstr ""
+
+#. Something is wrong with this section.  Better not touch it.
+#: arm.cc:5509
+#, c-format
+msgid "uneven .ARM.exidx section size in %s section %u"
+msgstr ""
+
+#: arm.cc:5835
+msgid "Found non-EXIDX input sections in EXIDX output section"
+msgstr ""
+
+#: arm.cc:5889 arm.cc:5893
+#, c-format
+msgid "unwinding may not work because EXIDX input section %u of %s is not in EXIDX output section"
+msgstr ""
+
+#: arm.cc:6179
+#, c-format
+msgid "cannot scan executable section %u of %s for Cortex-A8 erratum because it has no mapping symbols."
+msgstr ""
+
+#: arm.cc:6381 object.cc:818
+#, c-format
+msgid "invalid symbol table name index: %u"
+msgstr ""
+
+#: arm.cc:6389 object.cc:824
+#, c-format
+msgid "symbol table name section has wrong type: %u"
+msgstr ""
+
+#: arm.cc:6639
+#, c-format
+msgid "EXIDX section %s(%u) links to invalid section %u in %s"
+msgstr ""
+
+#: arm.cc:6648
+#, c-format
+msgid "EXIDX sections %s(%u) and %s(%u) both link to text section%s(%u) in %s"
+msgstr ""
+
+#: arm.cc:6662
+#, c-format
+msgid "EXIDX section %s(%u) links to non-allocated section %s(%u)  in %s"
+msgstr ""
+
+#. I would like to make this an error but currently ld just ignores
+#. this.
+#: arm.cc:6672
+#, c-format
+msgid "EXIDX section %s(%u) links to non-executable section %s(%u) in %s"
+msgstr ""
+
+#: arm.cc:6756
+#, c-format
+msgid "SHF_LINK_ORDER not set in EXIDX section %s of %s"
+msgstr ""
+
+#: arm.cc:6789
+#, c-format
+msgid "relocation section %u has invalid info %u"
+msgstr ""
+
+#: arm.cc:6795
+#, c-format
+msgid "section %u has multiple relocation sections %u and %u"
+msgstr ""
+
+#: arm.cc:7155
+#, c-format
+msgid "undefined or discarded local symbol %u from  object %s in GOT"
+msgstr ""
+
+#: arm.cc:7177
+#, c-format
+msgid "undefined or discarded symbol %s in GOT"
+msgstr ""
+
+#: arm.cc:7293 i386.cc:168 sparc.cc:1349 tilegx.cc:182 x86_64.cc:257
+msgid "** PLT"
+msgstr ""
+
+#: arm.cc:7800 i386.cc:1685 powerpc.cc:5111 sparc.cc:2117 tilegx.cc:3123
+#: tilegx.cc:3575 x86_64.cc:2169 x86_64.cc:2598
+#, c-format
+msgid "%s: unsupported reloc %u against local symbol"
+msgstr ""
+
+#: arm.cc:7844
+#, c-format
+msgid "requires unsupported dynamic reloc %s; recompile with -fPIC"
+msgstr ""
+
+#: arm.cc:7935 i386.cc:1775 x86_64.cc:2377
+#, c-format
+msgid "section symbol %u has bad shndx %u"
+msgstr ""
+
+#. These are relocations which should only be seen by the
+#. dynamic linker, and should never be seen here.
+#: arm.cc:8044 arm.cc:8477 i386.cc:1844 i386.cc:2293 sparc.cc:2532
+#: sparc.cc:3009 tilegx.cc:3570 tilegx.cc:4123 x86_64.cc:2470 x86_64.cc:2931
+#, c-format
+msgid "%s: unexpected reloc %u in object file"
+msgstr ""
+
+#: arm.cc:8076 i386.cc:1878 sparc.cc:2431 tilegx.cc:3474 x86_64.cc:2502
+#, c-format
+msgid "local symbol %u has bad shndx %u"
+msgstr ""
+
+#: arm.cc:8177 i386.cc:2021 powerpc.cc:5655 sparc.cc:2551 tilegx.cc:3591
+#: tilegx.cc:4128 x86_64.cc:2614 x86_64.cc:3053
+#, c-format
+msgid "%s: unsupported reloc %u against global symbol %s"
+msgstr ""
+
+#: arm.cc:8635 i386.cc:2503
+#, fuzzy, c-format
+msgid "%s: unsupported RELA reloc section"
+msgstr "%s: emuleringar som stöds: "
+
+#: arm.cc:8725
+msgid "unable to provide V4BX reloc interworking fix up; the target profile does not support BX instruction"
+msgstr ""
+
+#: arm.cc:8859
+#, fuzzy, c-format
+msgid "cannot relocate %s in object file"
+msgstr "Tillåt inte oupplösta symboler i objektfiler"
+
+#: arm.cc:9333 arm.cc:9914
+#, c-format
+msgid "relocation overflow in %s"
+msgstr ""
+
+#: arm.cc:9341 arm.cc:9919
+#, c-format
+msgid "unexpected opcode while processing relocation %s"
+msgstr ""
+
+#: arm.cc:9485 i386.cc:2841 i386.cc:2923 i386.cc:2994 i386.cc:3030
+#: i386.cc:3102 powerpc.cc:7562 sparc.cc:3589 sparc.cc:3780 sparc.cc:3841
+#: sparc.cc:3948 tilegx.cc:4712 x86_64.cc:3486 x86_64.cc:3586 x86_64.cc:3664
+#: x86_64.cc:3698
+#, fuzzy, c-format
+msgid "unsupported reloc %u"
+msgstr "Emuleringar som stöds: "
+
+#: arm.cc:9564
+#, c-format
+msgid "%s: unexpected %s in object file"
+msgstr ""
+
+#: arm.cc:9899
+#, c-format
+msgid "cannot handle %s in a relocatable link"
+msgstr ""
+
+#: arm.cc:10003
+#, c-format
+msgid "Source object %s has EABI version %d but output has EABI version %d."
+msgstr ""
+
+#: arm.cc:10100 powerpc.cc:2077 target.cc:94
+#, c-format
+msgid "%s: unsupported ELF file type %d"
+msgstr ""
+
+#: arm.cc:10296
+#, fuzzy, c-format
+msgid "%s: unknown CPU architecture"
+msgstr "%P%F:%s: kan inte ställa in arkitektur: %E\n"
+
+#: arm.cc:10333
+#, c-format
+msgid "%s: conflicting CPU architectures %d/%d"
+msgstr ""
+
+#: arm.cc:10471
+#, c-format
+msgid "%s has both the current and legacy Tag_MPextension_use attributes"
+msgstr ""
+
+#: arm.cc:10499
+#, c-format
+msgid "%s uses VFP register arguments, output does not"
+msgstr ""
+
+#: arm.cc:10645
+#, c-format
+msgid "conflicting architecture profiles %c/%c"
+msgstr ""
+
+#. It's sometimes ok to mix different configs, so this is only
+#. a warning.
+#: arm.cc:10703
+#, c-format
+msgid "%s: conflicting platform configuration"
+msgstr ""
+
+#: arm.cc:10712
+#, c-format
+msgid "%s: conflicting use of R9"
+msgstr ""
+
+#: arm.cc:10725
+#, c-format
+msgid "%s: SB relative addressing conflicts with use of R9"
+msgstr ""
+
+#: arm.cc:10740
+#, c-format
+msgid "%s uses %u-byte wchar_t yet the output is to use %u-byte wchar_t; use of wchar_t values across objects may fail"
+msgstr ""
+
+#: arm.cc:10766
+#, c-format
+msgid "%s uses %s enums yet the output is to use %s enums; use of enum values across objects may fail"
+msgstr ""
+
+#: arm.cc:10782
+#, c-format
+msgid "%s uses iWMMXt register arguments, output does not"
+msgstr ""
+
+#: arm.cc:10803
+#, c-format
+msgid "fp16 format mismatch between %s and output"
+msgstr ""
+
+#: arm.cc:10849
+#, c-format
+msgid "%s has has both the current and legacy Tag_MPextension_use attributes"
+msgstr ""
+
+#: arm.cc:10895 arm.cc:10988
+#, c-format
+msgid "%s: unknown mandatory EABI object attribute %d"
+msgstr ""
+
+#: arm.cc:10899 arm.cc:10993
+#, c-format
+msgid "%s: unknown EABI object attribute %d"
+msgstr ""
+
+#: arm.cc:11345
+#, c-format
+msgid "cannot handle branch to local %u in a merged section %s"
+msgstr ""
+
+#: arm.cc:11425 target-reloc.h:390
+#, fuzzy
+msgid "relocation refers to discarded section"
+msgstr "Ta bort symboler i kastade sektioner"
+
+#. We cannot handle this now.
+#: arm.cc:11589
+#, c-format
+msgid "multiple SHT_ARM_EXIDX sections %s and %s in a non-relocatable link"
+msgstr ""
+
+#: attributes.cc:410
+#, c-format
+msgid "%s: must be processed by '%s' toolchain"
+msgstr ""
+
+#: attributes.cc:418
+#, c-format
+msgid "%s: object tag '%d, %s' is incompatible with tag '%d, %s'"
+msgstr ""
+
+#: binary.cc:129
+#, fuzzy, c-format
+msgid "cannot open %s: %s:"
+msgstr "%F%P: kan inte öppna %s: %E\n"
+
+#: common.cc:352 output.cc:2432 output.cc:2531
+#, c-format
+msgid "out of patch space in section %s; relink with --incremental-full"
+msgstr ""
+
+#: compressed_output.cc:225
+msgid "not compressing section data: zlib error"
+msgstr ""
+
+#: cref.cc:384
+#, fuzzy, c-format
+msgid "cannot open symbol count file %s: %s"
+msgstr "%P%F: kan inte öppna utdatafilen %s: %E\n"
+
+#: cref.cc:398
+#, c-format
+msgid ""
+"\n"
+"Cross Reference Table\n"
+"\n"
+msgstr ""
+"\n"
+"Korsreferenstabell\n"
+"\n"
+
+#: cref.cc:399
+msgid "Symbol"
+msgstr "Symbol"
+
+#: cref.cc:401
+#, fuzzy
+msgid "File"
+msgstr "Fil\n"
+
+#: descriptors.cc:125
+#, c-format
+msgid "file %s was removed during the link"
+msgstr ""
+
+#: descriptors.cc:177
+msgid "out of file descriptors and couldn't close any"
+msgstr ""
+
+#: descriptors.cc:198 descriptors.cc:234 descriptors.cc:267
+#, c-format
+msgid "while closing %s: %s"
+msgstr ""
+
+#: dirsearch.cc:73
+#, fuzzy, c-format
+msgid "%s: can not read directory: %s"
+msgstr "%P%F:%s: kan inte ställa in arkitektur: %E\n"
+
+#: dwarf_reader.cc:454
+#, c-format
+msgid "%s: DWARF info may be corrupt; offsets in a range list entry are in different sections"
+msgstr ""
+
+#: dwarf_reader.cc:1513
+#, c-format
+msgid "%s: corrupt debug info in %s"
+msgstr ""
+
+#: dynobj.cc:176
+#, c-format
+msgid "unexpected duplicate type %u section: %u, %u"
+msgstr ""
+
+#: dynobj.cc:231
+#, c-format
+msgid "unexpected link in section %u header: %u != %u"
+msgstr ""
+
+#: dynobj.cc:267
+#, c-format
+msgid "DYNAMIC section %u link out of range: %u"
+msgstr ""
+
+#: dynobj.cc:275
+#, c-format
+msgid "DYNAMIC section %u link %u is not a strtab"
+msgstr ""
+
+#: dynobj.cc:304
+#, c-format
+msgid "DT_SONAME value out of range: %lld >= %lld"
+msgstr ""
+
+#: dynobj.cc:316
+#, c-format
+msgid "DT_NEEDED value out of range: %lld >= %lld"
+msgstr ""
+
+#: dynobj.cc:329
+msgid "missing DT_NULL in dynamic segment"
+msgstr ""
+
+#: dynobj.cc:382
+#, c-format
+msgid "invalid dynamic symbol table name index: %u"
+msgstr ""
+
+#: dynobj.cc:389
+#, c-format
+msgid "dynamic symbol table name section has wrong type: %u"
+msgstr ""
+
+#: dynobj.cc:476 object.cc:690 object.cc:1453
+#, c-format
+msgid "bad section name offset for section %u: %lu"
+msgstr ""
+
+#: dynobj.cc:506
+#, c-format
+msgid "duplicate definition for version %u"
+msgstr ""
+
+#: dynobj.cc:535
+#, c-format
+msgid "unexpected verdef version %u"
+msgstr ""
+
+#: dynobj.cc:551
+#, c-format
+msgid "verdef vd_cnt field too small: %u"
+msgstr ""
+
+#: dynobj.cc:559
+#, c-format
+msgid "verdef vd_aux field out of range: %u"
+msgstr ""
+
+#: dynobj.cc:570
+#, c-format
+msgid "verdaux vda_name field out of range: %u"
+msgstr ""
+
+#: dynobj.cc:580
+#, c-format
+msgid "verdef vd_next field out of range: %u"
+msgstr ""
+
+#: dynobj.cc:614
+#, c-format
+msgid "unexpected verneed version %u"
+msgstr ""
+
+#: dynobj.cc:623
+#, c-format
+msgid "verneed vn_aux field out of range: %u"
+msgstr ""
+
+#: dynobj.cc:637
+#, c-format
+msgid "vernaux vna_name field out of range: %u"
+msgstr ""
+
+#: dynobj.cc:648
+#, c-format
+msgid "verneed vna_next field out of range: %u"
+msgstr ""
+
+#: dynobj.cc:659
+#, c-format
+msgid "verneed vn_next field out of range: %u"
+msgstr ""
+
+#: dynobj.cc:708
+msgid "size of dynamic symbols is not multiple of symbol size"
+msgstr ""
+
+#: dynobj.cc:1524
+#, fuzzy, c-format
+msgid "symbol %s has undefined version %s"
+msgstr "Tillåt inte odefinierad version"
+
+#: ehframe.cc:381
+msgid "overflow in PLT unwind data; unwinding through PLT may fail"
+msgstr ""
+
+#: ehframe.h:78
+msgid "** eh_frame_hdr"
+msgstr ""
+
+#: ehframe.h:419
+msgid "** eh_frame"
+msgstr ""
+
+#: errors.cc:81 errors.cc:92
+#, c-format
+msgid "%s: fatal error: "
+msgstr ""
+
+#: errors.cc:103 errors.cc:139
+#, c-format
+msgid "%s: error: "
+msgstr ""
+
+#: errors.cc:115 errors.cc:155
+#, fuzzy, c-format
+msgid "%s: warning: "
+msgstr "varning: "
+
+#: errors.cc:179
+#, fuzzy
+msgid "warning"
+msgstr "varning: "
+
+#: errors.cc:184
+msgid "error"
+msgstr ""
+
+#: errors.cc:190
+#, fuzzy, c-format
+msgid "%s: %s: undefined reference to '%s'\n"
+msgstr "%X%C: odefinierad referens till ”%T”\n"
+
+#: errors.cc:194
+#, fuzzy, c-format
+msgid "%s: %s: undefined reference to '%s', version '%s'\n"
+msgstr "%X%C: odefinierad referens till ”%T”\n"
+
+#: errors.cc:198
+#, c-format
+msgid "%s: the vtable symbol may be undefined because the class is missing its key function"
+msgstr ""
+
+#: errors.cc:208
+#, c-format
+msgid "%s: "
+msgstr ""
+
+#: expression.cc:192
+#, fuzzy, c-format
+msgid "undefined symbol '%s' referenced in expression"
+msgstr "%F%S: odefinierade symbolen ”%s” refererades i uttrycket\n"
+
+#: expression.cc:230
+msgid "invalid reference to dot symbol outside of SECTIONS clause"
+msgstr ""
+
+#. Handle unary operators.  We use a preprocessor macro as a hack to
+#. capture the C operator.
+#: expression.cc:302
+msgid "unary "
+msgstr ""
+
+#. Handle binary operators.  We use a preprocessor macro as a hack to
+#. capture the C operator.  KEEP_LEFT means that if the left operand
+#. is section relative and the right operand is not, the result uses
+#. the same section as the left operand.  KEEP_RIGHT is the same with
+#. left and right swapped.  IS_DIV means that we need to give an error
+#. if the right operand is zero.  WARN means that we should warn if
+#. used on section relative values in a relocatable link.  We always
+#. warn if used on values in different sections in a relocatable link.
+#: expression.cc:446
+msgid "binary "
+msgstr ""
+
+#: expression.cc:450
+#, fuzzy
+msgid " by zero"
+msgstr "%F%S / med noll\n"
+
+#: expression.cc:636
+msgid "max applied to section relative value"
+msgstr ""
+
+#: expression.cc:687
+msgid "min applied to section relative value"
+msgstr ""
+
+#: expression.cc:828
+msgid "aligning to section relative value"
+msgstr ""
+
+#: expression.cc:993
+#, c-format
+msgid "unknown constant %s"
+msgstr ""
+
+#: fileread.cc:141
+#, c-format
+msgid "munmap failed: %s"
+msgstr ""
+
+#: fileread.cc:209
+#, fuzzy, c-format
+msgid "%s: fstat failed: %s"
+msgstr "%P%F: bfd_hash_table_init misslyckades: %E\n"
+
+#: fileread.cc:250
+#, fuzzy, c-format
+msgid "could not reopen file %s"
+msgstr "%F%P: kan inte öppna basfil %s\n"
+
+#: fileread.cc:401
+#, fuzzy, c-format
+msgid "%s: pread failed: %s"
+msgstr "%X%P: cref-allokering misslyckades: %E\n"
+
+#: fileread.cc:415
+#, c-format
+msgid "%s: file too short: read only %lld of %lld bytes at %lld"
+msgstr ""
+
+#: fileread.cc:538
+#, c-format
+msgid "%s: attempt to map %lld bytes at offset %lld exceeds size of file; the file may be corrupt"
+msgstr ""
+
+#: fileread.cc:678
+#, fuzzy, c-format
+msgid "%s: lseek failed: %s"
+msgstr "%F%B: avslutande stängning misslyckades: %E\n"
+
+#: fileread.cc:684
+#, fuzzy, c-format
+msgid "%s: readv failed: %s"
+msgstr "%X%P: cref-allokering misslyckades: %E\n"
+
+#: fileread.cc:687
+#, c-format
+msgid "%s: file too short: read only %zd of %zd bytes at %lld"
+msgstr ""
+
+#: fileread.cc:854
+#, c-format
+msgid "%s: total bytes mapped for read: %llu\n"
+msgstr ""
+
+#: fileread.cc:856
+#, c-format
+msgid "%s: maximum bytes mapped for read at one time: %llu\n"
+msgstr ""
+
+#: fileread.cc:949
+#, fuzzy, c-format
+msgid "%s: stat failed: %s"
+msgstr "%P%F: bfd_hash_table_init misslyckades: %E\n"
+
+#: fileread.cc:1046
+#, fuzzy, c-format
+msgid "cannot find %s%s"
+msgstr "%P: kan inte hitta %s\n"
+
+#: fileread.cc:1071
+#, fuzzy, c-format
+msgid "cannot find %s"
+msgstr "%P: kan inte hitta %s\n"
+
+#: fileread.cc:1110
+#, fuzzy, c-format
+msgid "cannot open %s: %s"
+msgstr "%F%P: kan inte öppna %s: %E\n"
+
+#: gdb-index.cc:369
+#, c-format
+msgid "%s: --gdb-index currently supports only C and C++ languages"
+msgstr ""
+
+#. The top level DIE should be one of the above.
+#: gdb-index.cc:390
+#, c-format
+msgid "%s: top level DIE is not DW_TAG_compile_unit or DW_TAG_type_unit"
+msgstr ""
+
+#: gdb-index.cc:844
+#, c-format
+msgid "%s: DWARF info may be corrupt; low_pc and high_pc are in different sections"
+msgstr ""
+
+#: gdb-index.cc:970
+#, c-format
+msgid "%s: DWARF CUs: %u\n"
+msgstr ""
+
+#: gdb-index.cc:972
+#, c-format
+msgid "%s: DWARF CUs without pubnames/pubtypes: %u\n"
+msgstr ""
+
+#: gdb-index.cc:974
+#, c-format
+msgid "%s: DWARF TUs: %u\n"
+msgstr ""
+
+#: gdb-index.cc:976
+#, c-format
+msgid "%s: DWARF TUs without pubnames/pubtypes: %u\n"
+msgstr ""
+
+#: gdb-index.h:149
+msgid "** gdb_index"
+msgstr ""
+
+#: gold-threads.cc:103
+#, c-format
+msgid "pthead_mutextattr_init failed: %s"
+msgstr ""
+
+#: gold-threads.cc:107
+#, c-format
+msgid "pthread_mutextattr_settype failed: %s"
+msgstr ""
+
+#: gold-threads.cc:112
+#, fuzzy, c-format
+msgid "pthread_mutex_init failed: %s"
+msgstr "%P%F: bfd_hash_table_init misslyckades: %E\n"
+
+#: gold-threads.cc:116
+#, c-format
+msgid "pthread_mutexattr_destroy failed: %s"
+msgstr ""
+
+#: gold-threads.cc:123
+#, c-format
+msgid "pthread_mutex_destroy failed: %s"
+msgstr ""
+
+#: gold-threads.cc:131 gold-threads.cc:396
+#, c-format
+msgid "pthread_mutex_lock failed: %s"
+msgstr ""
+
+#: gold-threads.cc:139 gold-threads.cc:410
+#, c-format
+msgid "pthread_mutex_unlock failed: %s"
+msgstr ""
+
+#: gold-threads.cc:220
+#, c-format
+msgid "pthread_cond_init failed: %s"
+msgstr ""
+
+#: gold-threads.cc:227
+#, c-format
+msgid "pthread_cond_destroy failed: %s"
+msgstr ""
+
+#: gold-threads.cc:236
+#, c-format
+msgid "pthread_cond_wait failed: %s"
+msgstr ""
+
+#: gold-threads.cc:244
+#, c-format
+msgid "pthread_cond_signal failed: %s"
+msgstr ""
+
+#: gold-threads.cc:252
+#, c-format
+msgid "pthread_cond_broadcast failed: %s"
+msgstr ""
+
+#: gold-threads.cc:403
+#, c-format
+msgid "pthread_once failed: %s"
+msgstr ""
+
+#: gold.cc:101
+#, fuzzy, c-format
+msgid "%s: internal error in %s, at %s:%d\n"
+msgstr "%F%P: internt fel %s %d\n"
+
+#: gold.cc:191
+#, fuzzy
+msgid "no input files"
+msgstr "%P%F: inga indatafiler\n"
+
+#: gold.cc:221
+msgid "linking with --incremental-full"
+msgstr ""
+
+#: gold.cc:223
+msgid "restart link with --incremental-full"
+msgstr ""
+
+#: gold.cc:285
+msgid "cannot mix -r with --gc-sections or --icf"
+msgstr ""
+
+#: gold.cc:612
+#, fuzzy, c-format
+msgid "cannot mix -static with dynamic object %s"
+msgstr "%F%P: försökte länka dynamiskt objekt ”%s” statiskt\n"
+
+#: gold.cc:616
+#, c-format
+msgid "cannot mix -r with dynamic object %s"
+msgstr ""
+
+#: gold.cc:620
+#, c-format
+msgid "cannot use non-ELF output format with dynamic object %s"
+msgstr ""
+
+#: gold.cc:632
+#, c-format
+msgid "cannot mix split-stack '%s' and non-split-stack '%s' when using -r"
+msgstr ""
+
+#. FIXME: This needs to specify the location somehow.
+#: i386.cc:601 i386.cc:2655 sparc.cc:312 sparc.cc:3185 x86_64.cc:746
+#: x86_64.cc:3250
+msgid "missing expected TLS relocation"
+msgstr ""
+
+#: i386.cc:1699 sparc.cc:2229 tilegx.cc:3209 x86_64.cc:2279
+#, c-format
+msgid "%s: unsupported TLS reloc %u for IFUNC symbol"
+msgstr ""
+
+#: i386.cc:2809 i386.cc:3558 powerpc.cc:7521 sparc.cc:3583 tilegx.cc:4706
+#: x86_64.cc:3465 x86_64.cc:4205
+#, c-format
+msgid "unexpected reloc %u in object file"
+msgstr ""
+
+#: i386.cc:3002
+msgid "both SUN and GNU model TLS relocations"
+msgstr ""
+
+#: i386.cc:3572
+#, c-format
+msgid "unsupported reloc %u in object file"
+msgstr ""
+
+#: i386.cc:3802 x86_64.cc:4459
+#, c-format
+msgid "failed to match split-stack sequence at section %u offset %0zx"
+msgstr ""
+
+#: icf.cc:768
+#, c-format
+msgid "%s: ICF Converged after %u iteration(s)"
+msgstr ""
+
+#: icf.cc:771
+#, c-format
+msgid "%s: ICF stopped after %u iteration(s)"
+msgstr ""
+
+#: icf.cc:785
+#, c-format
+msgid "Could not find symbol %s to unfold\n"
+msgstr ""
+
+#: incremental.cc:80
+msgid "** incremental_inputs"
+msgstr ""
+
+#: incremental.cc:145
+#, c-format
+msgid "the link might take longer: cannot perform incremental link: %s"
+msgstr ""
+
+#: incremental.cc:411
+msgid "no incremental data from previous build"
+msgstr ""
+
+#: incremental.cc:417
+msgid "different version of incremental build data"
+msgstr ""
+
+#: incremental.cc:429
+msgid "command line changed"
+msgstr ""
+
+#: incremental.cc:456
+#, c-format
+msgid "%s: script file changed"
+msgstr ""
+
+#: incremental.cc:859
+#, fuzzy, c-format
+msgid "unsupported ELF machine number %d"
+msgstr "%XPEI-arkitekturen stöds inte: %s\n"
+
+#: incremental.cc:867 object.cc:3063
+#, fuzzy, c-format
+msgid "%s: incompatible target"
+msgstr "%s: mål som stöds:"
+
+#: incremental.cc:889
+msgid "output is not an ELF file."
+msgstr ""
+
+#: incremental.cc:912
+msgid "unsupported file: 32-bit, big-endian"
+msgstr ""
+
+#: incremental.cc:921
+msgid "unsupported file: 32-bit, little-endian"
+msgstr ""
+
+#: incremental.cc:933
+msgid "unsupported file: 64-bit, big-endian"
+msgstr ""
+
+#: incremental.cc:942
+msgid "unsupported file: 64-bit, little-endian"
+msgstr ""
+
+#: incremental.cc:2078
+msgid "COMDAT group has no signature"
+msgstr ""
+
+#: incremental.cc:2084
+#, c-format
+msgid "COMDAT group %s included twice in incremental link"
+msgstr ""
+
+#: int_encoding.cc:50 int_encoding.cc:83
+msgid "Unusually large LEB128 decoded, debug information may be corrupted"
+msgstr ""
+
+#: layout.cc:225
+#, fuzzy, c-format
+msgid "%s: total free lists: %u\n"
+msgstr "%s: total tid i länkning: %ld.%06ld\n"
+
+#: layout.cc:227
+#, c-format
+msgid "%s: total free list nodes: %u\n"
+msgstr ""
+
+#: layout.cc:229
+#, c-format
+msgid "%s: calls to Free_list::remove: %u\n"
+msgstr ""
+
+#: layout.cc:231 layout.cc:235
+#, fuzzy, c-format
+msgid "%s: nodes visited: %u\n"
+msgstr "%s: datastorlek %ld\n"
+
+#: layout.cc:233
+#, c-format
+msgid "%s: calls to Free_list::allocate: %u\n"
+msgstr ""
+
+#: layout.cc:946
+#, c-format
+msgid "Unable to create output section '%s' because it is not allowed by the SECTIONS clause of the linker script"
+msgstr ""
+
+#: layout.cc:2015
+msgid "multiple '.interp' sections in input files may cause confusing PT_INTERP segment"
+msgstr ""
+
+#: layout.cc:2079
+#, c-format
+msgid "%s: missing .note.GNU-stack section implies executable stack"
+msgstr ""
+
+#: layout.cc:2091
+#, c-format
+msgid "%s: requires executable stack"
+msgstr ""
+
+#: layout.cc:2590
+#, c-format
+msgid "unable to open --section-ordering-file file %s: %s"
+msgstr ""
+
+#: layout.cc:3024
+#, c-format
+msgid "--build-id=uuid failed: could not open /dev/urandom: %s"
+msgstr ""
+
+#: layout.cc:3031
+#, c-format
+msgid "/dev/urandom: read failed: %s"
+msgstr ""
+
+#: layout.cc:3033
+#, c-format
+msgid "/dev/urandom: expected %zu bytes, got %zd bytes"
+msgstr ""
+
+#: layout.cc:3055
+#, c-format
+msgid "--build-id argument '%s' not a valid hex number"
+msgstr ""
+
+#: layout.cc:3061
+#, fuzzy, c-format
+msgid "unrecognized --build-id argument '%s'"
+msgstr "%P: okänd flagga ”%s”\n"
+
+#: layout.cc:3626
+#, c-format
+msgid "load segment overlap [0x%llx -> 0x%llx] and [0x%llx -> 0x%llx]"
+msgstr ""
+
+#: layout.cc:3785 output.cc:4557
+#, c-format
+msgid "out of patch space for section %s; relink with --incremental-full"
+msgstr ""
+
+#: layout.cc:3794 output.cc:4565
+#, c-format
+msgid "%s: section changed size; relink with --incremental-full"
+msgstr ""
+
+#: layout.cc:4051
+msgid "out of patch space for symbol table; relink with --incremental-full"
+msgstr ""
+
+#: layout.cc:4122
+msgid "out of patch space for section header table; relink with --incremental-full"
+msgstr ""
+
+#: layout.cc:4840
+msgid "read-only segment has dynamic relocations"
+msgstr ""
+
+#: layout.cc:4843
+msgid "shared library text segment is not shareable"
+msgstr ""
+
+#: mapfile.cc:70
+#, fuzzy, c-format
+msgid "cannot open map file %s: %s"
+msgstr "%P%F: kan inte öppna tabellfil %s: %E\n"
+
+#: mapfile.cc:84
+#, fuzzy, c-format
+msgid "cannot close map file: %s"
+msgstr "%P%F: kan inte öppna tabellfil %s: %E\n"
+
+#: mapfile.cc:116
+#, fuzzy, c-format
+msgid ""
+"Archive member included because of file (symbol)\n"
+"\n"
+msgstr ""
+"Arkivmedlem inkluderad för att tillfredsställa referens från fil (symbol)\n"
+"\n"
+
+#: mapfile.cc:159
+#, c-format
+msgid ""
+"\n"
+"Allocating common symbols\n"
+msgstr ""
+"\n"
+"Allokerar gemensamma symboler\n"
+
+#: mapfile.cc:161
+#, c-format
+msgid ""
+"Common symbol       size              file\n"
+"\n"
+msgstr ""
+"Gemensam symbol     storlek           fil\n"
+"\n"
+
+#: mapfile.cc:195
+#, fuzzy, c-format
+msgid ""
+"\n"
+"Memory map\n"
+"\n"
+msgstr ""
+"\n"
+"Minneskonfiguration\n"
+"\n"
+
+#: mapfile.cc:367
+#, c-format
+msgid ""
+"\n"
+"Discarded input sections\n"
+"\n"
+msgstr ""
+"\n"
+"Överhoppade indatasektioner\n"
+"\n"
+
+#: merge.cc:493
+#, c-format
+msgid "%s: %s merged constants size: %lu; input: %zu; output: %zu\n"
+msgstr ""
+
+#: merge.cc:520
+msgid "mergeable string section length not multiple of character size"
+msgstr ""
+
+#: merge.cc:529
+#, c-format
+msgid "%s: last entry in mergeable string section '%s' not null terminated"
+msgstr ""
+
+#: merge.cc:604
+#, c-format
+msgid "%s: section %s contains incorrectly aligned strings; the alignment of those strings won't be preserved"
+msgstr ""
+
+#: merge.cc:726
+#, c-format
+msgid "%s: %s input bytes: %zu\n"
+msgstr ""
+
+#: merge.cc:728
+#, c-format
+msgid "%s: %s input strings: %zu\n"
+msgstr ""
+
+#: merge.h:366
+msgid "** merge constants"
+msgstr ""
+
+#: merge.h:495
+msgid "** merge strings"
+msgstr ""
+
+#: nacl.cc:43 object.cc:174 object.cc:3111 output.cc:5185
+#, c-format
+msgid "%s: %s"
+msgstr ""
+
+#: object.cc:101
+msgid "missing SHT_SYMTAB_SHNDX section"
+msgstr ""
+
+#: object.cc:145
+#, c-format
+msgid "symbol %u out of range for SHT_SYMTAB_SHNDX section"
+msgstr ""
+
+#: object.cc:152
+#, c-format
+msgid "extended index for symbol %u out of range: %u"
+msgstr ""
+
+#: object.cc:207
+#, c-format
+msgid "section name section has wrong type: %u"
+msgstr ""
+
+#: object.cc:914
+#, c-format
+msgid "section group %u info %u out of range"
+msgstr ""
+
+#: object.cc:933
+#, c-format
+msgid "symbol %u name offset %u out of range"
+msgstr ""
+
+#: object.cc:951
+#, c-format
+msgid "symbol %u invalid section index %u"
+msgstr ""
+
+#: object.cc:1003
+#, c-format
+msgid "section %u in section group %u out of range"
+msgstr ""
+
+#: object.cc:1011
+#, c-format
+msgid "invalid section group %u refers to earlier section %u"
+msgstr ""
+
+#: object.cc:1380 reloc.cc:290 reloc.cc:939
+#, c-format
+msgid "relocation section %u has bad info %u"
+msgstr ""
+
+#: object.cc:1610
+#, fuzzy, c-format
+msgid "%s: removing unused section from '%s' in file '%s'"
+msgstr "Lista borttagna oanvända sektioner via standard fel"
+
+#: object.cc:1636
+#, c-format
+msgid "%s: ICF folding section '%s' in file '%s'into '%s' in file '%s'"
+msgstr ""
+
+#: object.cc:1927
+msgid "size of symbols is not multiple of symbol size"
+msgstr ""
+
+#: object.cc:2156
+#, c-format
+msgid "local symbol %u section name out of range: %u >= %u"
+msgstr ""
+
+#: object.cc:2246
+#, c-format
+msgid "unknown section index %u for local symbol %u"
+msgstr ""
+
+#: object.cc:2256
+#, c-format
+msgid "local symbol %u section index %u out of range"
+msgstr ""
+
+#: object.cc:2826 reloc.cc:870
+#, c-format
+msgid "could not decompress section %s"
+msgstr ""
+
+#: object.cc:2942
+#, fuzzy, c-format
+msgid "%s is not supported but is required for %s in %s"
+msgstr "%P%X: Storleken %d för gruppen %s stöds inte\n"
+
+#: object.cc:3019
+#, fuzzy
+msgid "function "
+msgstr ": I funktionen \"%T\":\n"
+
+#: object.cc:3053
+#, fuzzy, c-format
+msgid "%s: unsupported ELF machine number %d"
+msgstr "%XPEI-arkitekturen stöds inte: %s\n"
+
+#: object.cc:3127 plugin.cc:1822
+#, c-format
+msgid "%s: not configured to support 32-bit big-endian object"
+msgstr ""
+
+#: object.cc:3143 plugin.cc:1831
+#, c-format
+msgid "%s: not configured to support 32-bit little-endian object"
+msgstr ""
+
+#: object.cc:3162 plugin.cc:1843
+#, c-format
+msgid "%s: not configured to support 64-bit big-endian object"
+msgstr ""
+
+#: object.cc:3178 plugin.cc:1852
+#, c-format
+msgid "%s: not configured to support 64-bit little-endian object"
+msgstr ""
+
+#: options.cc:157
+#, fuzzy, c-format
+msgid ""
+"Usage: %s [options] file...\n"
+"Options:\n"
+msgstr "Användning: %s [flaggor] fil…\n"
+
+#. config.guess and libtool.m4 look in ld --help output for the
+#. string "supported targets".
+#: options.cc:165
+#, c-format
+msgid "%s: supported targets:"
+msgstr "%s: mål som stöds:"
+
+#: options.cc:174
+#, fuzzy, c-format
+msgid "%s: supported emulations:"
+msgstr "%s: emuleringar som stöds: "
+
+#: options.cc:186
+#, c-format
+msgid "Report bugs to %s\n"
+msgstr ""
+"Rapportera fel till %s\n"
+"Rapportera fel i översättningen till tp-sv@listor.tp-sv.se\n"
+
+#: options.cc:203 options.cc:213 options.cc:223
+#, c-format
+msgid "%s: invalid option value (expected an integer): %s"
+msgstr ""
+
+#: options.cc:233 options.cc:244
+#, c-format
+msgid "%s: invalid option value (expected a floating point number): %s"
+msgstr ""
+
+#: options.cc:253
+#, c-format
+msgid "%s: must take a non-empty argument"
+msgstr ""
+
+#: options.cc:294
+#, c-format
+msgid "%s: must take one of the following arguments: %s"
+msgstr ""
+
+#: options.cc:325
+#, fuzzy, c-format
+msgid "  Supported targets:\n"
+msgstr "%s: mål som stöds:"
+
+#: options.cc:333
+#, c-format
+msgid "  Supported emulations:\n"
+msgstr "  Emuleringar som stöds:\n"
+
+#: options.cc:476
+#, fuzzy
+msgid "invalid argument to --section-start; must be SECTION=ADDRESS"
+msgstr "%P%F: ogiltigt argument till flaggan ”--section-start”\n"
+
+#: options.cc:489
+#, fuzzy
+msgid "--section-start address missing"
+msgstr "Ställ in startadress"
+
+#: options.cc:498
+#, c-format
+msgid "--section-start argument %s is not a valid hex number"
+msgstr ""
+
+#: options.cc:535
+#, fuzzy, c-format
+msgid "unable to parse script file %s"
+msgstr "öppnade skriptfilen %s\n"
+
+#: options.cc:543
+#, fuzzy, c-format
+msgid "unable to parse version script file %s"
+msgstr "öppnade skriptfilen %s\n"
+
+#: options.cc:551
+#, c-format
+msgid "unable to parse dynamic-list script file %s"
+msgstr ""
+
+#: options.cc:663
+#, c-format
+msgid "format '%s' not supported; treating as elf (supported formats: elf, binary)"
+msgstr ""
+
+#: options.cc:705
+#, fuzzy, c-format
+msgid "%s: use the --help option for usage information\n"
+msgstr "%P%F: använd flaggan --help för användningsinformation\n"
+
+#: options.cc:714
+#, fuzzy, c-format
+msgid "%s: %s: %s\n"
+msgstr "%P: läge %s\n"
+
+#: options.cc:818
+msgid "unexpected argument"
+msgstr ""
+
+#: options.cc:831 options.cc:892
+#, fuzzy
+msgid "missing argument"
+msgstr "%P%F: argument saknas till -m\n"
+
+#: options.cc:903
+msgid "unknown -z option"
+msgstr ""
+
+#: options.cc:1115
+#, c-format
+msgid "ignoring --threads: %s was compiled without thread support"
+msgstr ""
+
+#: options.cc:1122
+#, c-format
+msgid "ignoring --thread-count: %s was compiled without thread support"
+msgstr ""
+
+#: options.cc:1176
+#, c-format
+msgid "unable to open -retain-symbols-file file %s: %s"
+msgstr ""
+
+#: options.cc:1213
+msgid "-shared and -static are incompatible"
+msgstr ""
+
+#: options.cc:1215
+msgid "-shared and -pie are incompatible"
+msgstr ""
+
+#: options.cc:1217
+msgid "-pie and -static are incompatible"
+msgstr ""
+
+#: options.cc:1220
+msgid "-shared and -r are incompatible"
+msgstr ""
+
+#: options.cc:1222
+msgid "-pie and -r are incompatible"
+msgstr ""
+
+#: options.cc:1227
+#, fuzzy
+msgid "-F/--filter may not used without -shared"
+msgstr "%P%F: -f kan inte användas utan -shared\n"
+
+#: options.cc:1229
+#, fuzzy
+msgid "-f/--auxiliary may not be used without -shared"
+msgstr "%P%F: -f kan inte användas utan -shared\n"
+
+#: options.cc:1234
+msgid "-retain-symbols-file does not yet work with -r"
+msgstr ""
+
+#: options.cc:1240
+msgid "binary output format not compatible with -shared or -pie or -r"
+msgstr ""
+
+#: options.cc:1246
+#, c-format
+msgid "--hash-bucket-empty-fraction value %g out of range [0.0, 1.0)"
+msgstr ""
+
+#: options.cc:1251
+msgid "Options --incremental-changed, --incremental-unchanged, --incremental-unknown require the use of --incremental"
+msgstr ""
+
+#: options.cc:1261
+msgid "incremental linking is not compatible with -r"
+msgstr ""
+
+#: options.cc:1263
+msgid "incremental linking is not compatible with --emit-relocs"
+msgstr ""
+
+#: options.cc:1266
+msgid "incremental linking is not compatible with --plugin"
+msgstr ""
+
+#: options.cc:1269
+msgid "ignoring --gc-sections for an incremental link"
+msgstr ""
+
+#: options.cc:1274
+msgid "ignoring --icf for an incremental link"
+msgstr ""
+
+#: options.cc:1279
+msgid "ignoring --compress-debug-sections for an incremental link"
+msgstr ""
+
+#: options.cc:1359
+msgid "May not nest groups"
+msgstr ""
+
+#: options.cc:1361
+#, fuzzy
+msgid "may not nest groups in libraries"
+msgstr "%P%F: får inte nästla grupper (--help för användning)\n"
+
+#: options.cc:1373
+msgid "Group end without group start"
+msgstr ""
+
+#: options.cc:1383
+#, fuzzy
+msgid "may not nest libraries"
+msgstr "Länka inte mot delade bibliotek"
+
+#: options.cc:1385
+msgid "may not nest libraries in groups"
+msgstr ""
+
+#: options.cc:1397
+msgid "lib end without lib start"
+msgstr ""
+
+#. I guess it's neither a long option nor a short option.
+#: options.cc:1462
+msgid "unknown option"
+msgstr ""
+
+#: options.cc:1489
+#, fuzzy, c-format
+msgid "%s: missing group end\n"
+msgstr "%P%F: argument saknas till -m\n"
+
+#: options.h:624
+#, fuzzy
+msgid "Report usage information"
+msgstr "Visa versionsinformation"
+
+#: options.h:626
+#, fuzzy
+msgid "Report version information"
+msgstr "Visa versionsinformation"
+
+#: options.h:628
+#, fuzzy
+msgid "Report version and target information"
+msgstr "Visa versions- och emuleringsinformation"
+
+#: options.h:637 options.h:712
+#, fuzzy
+msgid "Not supported"
+msgstr "%P%F: -pie stöds inte\n"
+
+#: options.h:638 options.h:713
+#, fuzzy
+msgid "Do not copy DT_NEEDED tags from shared libraries"
+msgstr "Länka inte mot delade bibliotek"
+
+#: options.h:641 options.h:1289
+#, fuzzy
+msgid "Allow multiple definitions of symbols"
+msgstr "Tillåt flera defintioner"
+
+#: options.h:642
+#, fuzzy
+msgid "Do not allow multiple definitions"
+msgstr "Tillåt flera defintioner"
+
+#: options.h:645
+msgid "Allow unresolved references in shared libraries"
+msgstr "Tillåt oupplösta symboler i delade bibliotek"
+
+#: options.h:646
+#, fuzzy
+msgid "Do not allow unresolved references in shared libraries"
+msgstr "Tillåt inte oupplösta symboler i delade bibliotek"
+
+#: options.h:649
+#, fuzzy
+msgid "Only set DT_NEEDED for shared libraries if used"
+msgstr "Ställ endast in DT_NEEDED för följande dynamiska bibliotek om använda"
+
+#: options.h:650
+msgid "Always DT_NEEDED for shared libraries"
+msgstr ""
+
+#: options.h:653 options.h:831 options.h:1197 options.h:1207
+msgid "Ignored"
+msgstr "Ignorerad"
+
+#: options.h:653
+#, fuzzy
+msgid "[ignored]"
+msgstr "Ignorerad"
+
+#: options.h:661
+#, fuzzy
+msgid "Set input format"
+msgstr "Skriv ut standardutskriftsformat"
+
+#: options.h:664
+#, fuzzy
+msgid "-l searches for shared libraries"
+msgstr "Tillåt oupplösta symboler i delade bibliotek"
+
+#: options.h:666
+#, fuzzy
+msgid "-l does not search for shared libraries"
+msgstr "Länka inte mot delade bibliotek"
+
+#: options.h:669
+msgid "alias for -Bdynamic"
+msgstr ""
+
+#: options.h:671
+msgid "alias for -Bstatic"
+msgstr ""
+
+#: options.h:674
+#, fuzzy
+msgid "Use group name lookup rules for shared library"
+msgstr "Ställ in internt namn på delat bibliotek"
+
+#: options.h:677
+#, fuzzy
+msgid "Bind defined symbols locally"
+msgstr "Tillåt inga odefinierade symboler"
+
+#: options.h:680
+#, fuzzy
+msgid "Bind defined function symbols locally"
+msgstr "Bind globala funktionsreferenser lokalt"
+
+#: options.h:683
+msgid "Generate build ID note"
+msgstr ""
+
+#: options.h:684 options.h:740
+msgid "[=STYLE]"
+msgstr "[=STIL]"
+
+#: options.h:688
+msgid "Chunk size for '--build-id=tree'"
+msgstr ""
+
+#: options.h:688 options.h:693 options.h:1086 options.h:1100 options.h:1268
+#: options.h:1287
+msgid "SIZE"
+msgstr "STORLEK"
+
+#: options.h:692
+msgid "Minimum output file size for '--build-id=tree' to work differently than '--build-id=sha1'"
+msgstr ""
+
+#: options.h:696
+#, fuzzy
+msgid "Check segment addresses for overlaps (default)"
+msgstr "Kontrollera sektionsadresser för överlappningar (standard)"
+
+#: options.h:697
+#, fuzzy
+msgid "Do not check segment addresses for overlaps"
+msgstr "Kontrollera inte sektionsadresser för överlappningar"
+
+#: options.h:701 options.h:706
+msgid "Compress .debug_* sections in the output file"
+msgstr ""
+
+#: options.h:707
+msgid "[none]"
+msgstr ""
+
+#: options.h:716
+msgid "Output cross reference table"
+msgstr "Skapa korsreferenstabell"
+
+#: options.h:717
+#, fuzzy
+msgid "Do not output cross reference table"
+msgstr "Skapa korsreferenstabell"
+
+#: options.h:720
+msgid "Use DT_INIT_ARRAY for all constructors (default)"
+msgstr ""
+
+#: options.h:721
+msgid "Handle constructors as directed by compiler"
+msgstr ""
+
+#: options.h:724
+#, fuzzy
+msgid "Define common symbols"
+msgstr "Definiera en symbol"
+
+#: options.h:725
+#, fuzzy
+msgid "Do not define common symbols"
+msgstr "Definiera inte gemensam lagring"
+
+#: options.h:727 options.h:729
+msgid "Alias for -d"
+msgstr ""
+
+#: options.h:732
+msgid "Turn on debugging"
+msgstr ""
+
+#: options.h:733
+msgid "[all,files,script,task][,...]"
+msgstr ""
+
+#: options.h:736
+msgid "Define a symbol"
+msgstr "Definiera en symbol"
+
+#: options.h:736
+msgid "SYMBOL=EXPRESSION"
+msgstr "SYMBOL=UTTRYCK"
+
+#: options.h:739
+#, fuzzy
+msgid "Demangle C++ symbols in log messages"
+msgstr "Avkoda inte symbolnamn"
+
+#: options.h:743
+#, fuzzy
+msgid "Do not demangle C++ symbols in log messages"
+msgstr "Avkoda inte symbolnamn"
+
+#: options.h:747
+msgid "Look for violations of the C++ One Definition Rule"
+msgstr ""
+
+#: options.h:748
+msgid "Do not look for violations of the C++ One Definition Rule"
+msgstr ""
+
+#: options.h:751
+#, fuzzy
+msgid "Delete all local symbols"
+msgstr "Kasta alla lokala symboler"
+
+#: options.h:753
+#, fuzzy
+msgid "Delete all temporary local symbols"
+msgstr "Kasta temporära lokala symboler (standard)"
+
+#: options.h:756
+#, fuzzy
+msgid "Add data symbols to dynamic symbols"
+msgstr "Lägg till datasymboler till dynamisk lista"
+
+#: options.h:759
+#, fuzzy
+msgid "Add C++ operator new/delete to dynamic symbols"
+msgstr "Använd C++-operator new/delete dynamisk lista"
+
+#: options.h:762
+#, fuzzy
+msgid "Add C++ typeinfo to dynamic symbols"
+msgstr "Använd C++-typinformation dynamisk lista"
+
+#: options.h:765
+#, fuzzy
+msgid "Read a list of dynamic symbols"
+msgstr "Exportera alla dynamiska symboler"
+
+#: options.h:765 options.h:873 options.h:896 options.h:964 options.h:1033
+#: options.h:1142 options.h:1190
+msgid "FILE"
+msgstr "FIL"
+
+#: options.h:768
+#, fuzzy
+msgid "Set program start address"
+msgstr "Ställ in startadress"
+
+#: options.h:768 options.h:1157 options.h:1159 options.h:1161 options.h:1164
+#: options.h:1166
+msgid "ADDRESS"
+msgstr "ADRESS"
+
+#: options.h:771
+#, fuzzy
+msgid "Exclude libraries from automatic export"
+msgstr ""
+"  --exclude-libs bibl,bibl,…         Exkludera bibliotek från automatisk\n"
+"                                       export\n"
+
+#: options.h:775
+msgid "Export all dynamic symbols"
+msgstr "Exportera alla dynamiska symboler"
+
+#: options.h:776
+#, fuzzy
+msgid "Do not export all dynamic symbols (default)"
+msgstr "Exportera alla dynamiska symboler"
+
+#: options.h:779
+#, fuzzy
+msgid "Export SYMBOL to dynamic symbol table"
+msgstr "Exportera alla dynamiska symboler"
+
+#: options.h:779 options.h:807 options.h:893 options.h:1122 options.h:1177
+#: options.h:1234 options.h:1237
+msgid "SYMBOL"
+msgstr "SYMBOL"
+
+#: options.h:782
+#, fuzzy
+msgid "Link big-endian objects."
+msgstr "Länka objekt som är big-endian"
+
+#: options.h:785
+#, fuzzy
+msgid "Link little-endian objects."
+msgstr "Länka objekt som är little-endian"
+
+#: options.h:788
+msgid "Create exception frame header"
+msgstr ""
+
+#: options.h:791
+msgid "(ARM only) Do not warn about objects with incompatible enum sizes"
+msgstr ""
+
+#: options.h:795
+msgid "Auxiliary filter for shared object symbol table"
+msgstr "Yttre filter för symboltabell över delade objekt"
+
+#: options.h:796 options.h:800
+msgid "SHLIB"
+msgstr "DELBIBL"
+
+#: options.h:799
+msgid "Filter for shared object symbol table"
+msgstr "Filter för symboltabell över delade objekt"
+
+#: options.h:803
+msgid "Treat warnings as errors"
+msgstr "Behandla varningar som fel"
+
+#: options.h:804
+#, fuzzy
+msgid "Do not treat warnings as errors"
+msgstr "Behandla inte varningar som fel (standard)"
+
+#: options.h:807
+msgid "Call SYMBOL at unload-time"
+msgstr "Anropa SYMBOL vid urladdning"
+
+#: options.h:810
+msgid "(ARM only) Fix binaries for Cortex-A8 erratum."
+msgstr ""
+
+#: options.h:811
+msgid "(ARM only) Do not fix binaries for Cortex-A8 erratum."
+msgstr ""
+
+#: options.h:814
+msgid "(ARM only) Fix binaries for ARM1176 erratum."
+msgstr ""
+
+#: options.h:815
+msgid "(ARM only) Do not fix binaries for ARM1176 erratum."
+msgstr ""
+
+#: options.h:818
+msgid "(ARM only) Merge exidx entries in debuginfo."
+msgstr ""
+
+#: options.h:819
+msgid "(ARM only) Do not merge exidx entries in debuginfo."
+msgstr ""
+
+#: options.h:822
+msgid "(ARM only) Rewrite BX rn as MOV pc, rn for ARMv4"
+msgstr ""
+
+#: options.h:826
+msgid "(ARM only) Rewrite BX rn branch to ARMv4 interworking veneer"
+msgstr ""
+
+#: options.h:834
+msgid "Generate .gdb_index section"
+msgstr ""
+
+#: options.h:835
+msgid "Do not generate .gdb_index section"
+msgstr ""
+
+#: options.h:838
+msgid "Enable STB_GNU_UNIQUE symbol binding (default)"
+msgstr ""
+
+#: options.h:839
+msgid "Disable STB_GNU_UNIQUE symbol binding"
+msgstr ""
+
+#: options.h:842
+#, fuzzy
+msgid "Set shared library name"
+msgstr "Skapa ett delat bibliotek"
+
+#: options.h:842 options.h:1016 options.h:1050
+msgid "FILENAME"
+msgstr "FILNAMN"
+
+#: options.h:845
+msgid "Min fraction of empty buckets in dynamic hash"
+msgstr ""
+
+#: options.h:846
+msgid "FRACTION"
+msgstr ""
+
+#: options.h:849
+msgid "Dynamic hash style"
+msgstr ""
+
+#: options.h:849
+msgid "[sysv,gnu,both]"
+msgstr ""
+
+#: options.h:853
+#, fuzzy
+msgid "Set dynamic linker path"
+msgstr "Läs in dynamisk lista"
+
+#: options.h:853
+msgid "PROGRAM"
+msgstr "PROGRAM"
+
+#: options.h:856
+msgid "Do an incremental link if possible; otherwise, do a full link and prepare output for incremental linking"
+msgstr ""
+
+#: options.h:861
+msgid "Do a full link (default)"
+msgstr ""
+
+#: options.h:864
+msgid "Do a full link and prepare output for incremental linking"
+msgstr ""
+
+#: options.h:868
+msgid "Do an incremental link; exit if not possible"
+msgstr ""
+
+#: options.h:871
+msgid "Set base file for incremental linking (default is output file)"
+msgstr ""
+
+#: options.h:876
+msgid "Assume files changed"
+msgstr ""
+
+#: options.h:879
+msgid "Assume files didn't change"
+msgstr ""
+
+#: options.h:882
+msgid "Use timestamps to check files (default)"
+msgstr ""
+
+#: options.h:885
+msgid "Assume startup files unchanged (files preceding this option)"
+msgstr ""
+
+#: options.h:889
+msgid "Amount of extra space to allocate for patches"
+msgstr ""
+
+#: options.h:890
+msgid "PERCENT"
+msgstr ""
+
+#: options.h:893
+msgid "Call SYMBOL at load-time"
+msgstr "Anropa SYMBOL vid inläsning"
+
+#: options.h:896
+#, fuzzy
+msgid "Read only symbol values from FILE"
+msgstr "Behåll endast symboler angivna i FIL"
+
+#: options.h:900
+msgid "Map whole files to memory (default on 64-bit hosts)"
+msgstr ""
+
+#: options.h:901
+msgid "Map relevant file parts to memory (default on 32-bit hosts)"
+msgstr ""
+
+#: options.h:904
+msgid "Keep files mapped across passes (default)"
+msgstr ""
+
+#: options.h:905
+msgid "Release mapped files after each pass"
+msgstr ""
+
+#: options.h:908
+msgid "Generate unwind information for PLT (default)"
+msgstr ""
+
+#: options.h:909
+msgid "Do not generate unwind information for PLT"
+msgstr ""
+
+#: options.h:912
+msgid "Search for library LIBNAME"
+msgstr "Sök efter biblioteket BIBLNAMN"
+
+#: options.h:912
+msgid "LIBNAME"
+msgstr "BIBLNAMN"
+
+#: options.h:915
+#, fuzzy
+msgid "Add directory to search path"
+msgstr "Lägg till KATALOG till bibliotekssökvägen"
+
+#: options.h:915 options.h:1039 options.h:1042 options.h:1046 options.h:1136
+msgid "DIR"
+msgstr ""
+
+#: options.h:918
+msgid "Enable text section reordering for GCC section names (default)"
+msgstr ""
+
+#: options.h:920
+msgid "Disable text section reordering for GCC section names"
+msgstr ""
+
+#: options.h:923
+#, fuzzy
+msgid "Only search directories specified on the command line."
+msgstr ""
+"Använd endast bibliotekskataloger som anges\n"
+"                                på kommandoraden"
+
+#: options.h:927
+msgid "Put read-only non-executable sections in their own segment"
+msgstr ""
+
+#: options.h:931
+msgid "Set offset between executable and read-only segments"
+msgstr ""
+
+#: options.h:932
+msgid "OFFSET"
+msgstr ""
+
+#: options.h:935
+msgid "Set GNU linker emulation; obsolete"
+msgstr ""
+
+#: options.h:935
+msgid "EMULATION"
+msgstr "EMULERING"
+
+#: options.h:938
+msgid "Map the output file for writing (default)."
+msgstr ""
+
+#: options.h:939
+msgid "Do not map the output file for writing."
+msgstr ""
+
+#: options.h:942
+#, fuzzy
+msgid "Write map file on standard output"
+msgstr "Visa tabellfil på standard ut"
+
+#: options.h:943
+#, fuzzy
+msgid "Write map file"
+msgstr "Skriv en tabellfil"
+
+#: options.h:944
+#, fuzzy
+msgid "MAPFILENAME"
+msgstr "FILNAMN"
+
+#: options.h:947
+msgid "Do not page align data"
+msgstr "Justera inte data efter jämna sidor"
+
+#: options.h:949
+msgid "Do not page align data, do not make text readonly"
+msgstr "Justera inte data efter jämna sidor, gör inte texten endast läsbar"
+
+#: options.h:950
+msgid "Page align data, make text readonly"
+msgstr "Sidjustera data, gör texten endast läsbar"
+
+#: options.h:953
+msgid "Enable use of DT_RUNPATH and DT_FLAGS"
+msgstr ""
+
+#: options.h:954
+msgid "Disable use of DT_RUNPATH and DT_FLAGS"
+msgstr ""
+
+#: options.h:957
+msgid "Create an output file even if errors occur"
+msgstr "Skapa en utdatafil även om fel förekommer"
+
+#: options.h:960 options.h:1270
+#, fuzzy
+msgid "Report undefined symbols (even with --shared)"
+msgstr "Rapportera oupplösta symboler som varning"
+
+#: options.h:964
+msgid "Set output file name"
+msgstr "Ställ in utdatafilnamnet"
+
+#: options.h:967
+#, fuzzy
+msgid "Optimize output file size"
+msgstr "Optimera utdatafil"
+
+#: options.h:967
+msgid "LEVEL"
+msgstr ""
+
+#: options.h:970
+#, fuzzy
+msgid "Set output format"
+msgstr "Skriv ut standardutskriftsformat"
+
+#: options.h:970
+msgid "[binary]"
+msgstr ""
+
+#: options.h:973 options.h:982
+#, fuzzy
+msgid "(ARM only) Ignore for backward compatibility"
+msgstr "Ignorerad för kompatibilitet med SVR4"
+
+#: options.h:976 options.h:978
+msgid "Create a position independent executable"
+msgstr "Skapa en positionsoberoende körbar fil"
+
+#: options.h:985
+msgid "(PowerPC64 only) Align PLT call stubs to fit cache lines"
+msgstr ""
+
+#: options.h:986
+msgid "[=P2ALIGN]"
+msgstr ""
+
+#: options.h:989
+msgid "(PowerPC64 only) PLT call stubs should load r11"
+msgstr ""
+
+#: options.h:990
+msgid "(PowerPC64 only) PLT call stubs should not load r11"
+msgstr ""
+
+#: options.h:993
+msgid "(PowerPC64 only) PLT call stubs with load-load barrier"
+msgstr ""
+
+#: options.h:994
+msgid "(PowerPC64 only) PLT call stubs without barrier"
+msgstr ""
+
+#: options.h:998
+#, fuzzy
+msgid "Load a plugin library"
+msgstr "Läs in namngivet instick"
+
+#: options.h:998
+msgid "PLUGIN"
+msgstr "INSTICK"
+
+#: options.h:1000
+msgid "Pass an option to the plugin"
+msgstr ""
+
+#: options.h:1000
+msgid "OPTION"
+msgstr ""
+
+#: options.h:1004
+msgid "Use posix_fallocate to reserve space in the output file (default)."
+msgstr ""
+
+#: options.h:1006
+msgid "Use fallocate or ftruncate to reserve space."
+msgstr ""
+
+#: options.h:1009
+msgid "Preread archive symbols when multi-threaded"
+msgstr ""
+
+#: options.h:1012
+msgid "Print default output format"
+msgstr "Skriv ut standardutskriftsformat"
+
+#: options.h:1015
+msgid "Print symbols defined and used for each input"
+msgstr ""
+
+#: options.h:1019
+msgid "Ignored for SVR4 compatibility"
+msgstr "Ignorerad för kompatibilitet med SVR4"
+
+#: options.h:1022
+#, fuzzy
+msgid "Generate relocations in output"
+msgstr "Generera omlokaliseringsbar utdata"
+
+#: options.h:1025
+msgid "Generate relocatable output"
+msgstr "Generera omlokaliseringsbar utdata"
+
+#: options.h:1027
+msgid "Synonym for -r"
+msgstr ""
+
+#: options.h:1030
+msgid "Relax branches on certain targets"
+msgstr "Slappna av greningar på vissa mål"
+
+#: options.h:1033
+#, fuzzy
+msgid "keep only symbols listed in this file"
+msgstr "Behåll endast symboler angivna i FIL"
+
+#: options.h:1039 options.h:1042
+#, fuzzy
+msgid "Add DIR to runtime search path"
+msgstr "Lägg till KATALOG till bibliotekssökvägen"
+
+#: options.h:1045
+#, fuzzy
+msgid "Add DIR to link time shared library search path"
+msgstr "Ställ in länkningstidssökväg för delade bibliotek"
+
+#: options.h:1049
+msgid "Layout sections in the order specified."
+msgstr ""
+
+#: options.h:1053
+#, fuzzy
+msgid "Set address of section"
+msgstr "Ställ in adress på .bss-sektion"
+
+#: options.h:1053
+msgid "SECTION=ADDRESS"
+msgstr "SEKTION=ADRESS"
+
+#: options.h:1056
+#, fuzzy
+msgid "Sort common symbols by alignment"
+msgstr "Sortera gemensamma symboler efter justering [i angiven ordning]"
+
+#: options.h:1057
+#, fuzzy
+msgid "[={ascending,descending}]"
+msgstr "[=ascending|descending]"
+
+#: options.h:1060
+msgid "Sort sections by name.  '--no-text-reorder' will override '--sort-section=name' for .text"
+msgstr ""
+
+#: options.h:1062
+msgid "[none,name]"
+msgstr ""
+
+#: options.h:1066
+msgid "Dynamic tag slots to reserve (default 5)"
+msgstr ""
+
+#: options.h:1067 options.h:1115 options.h:1148 options.h:1150 options.h:1152
+#: options.h:1154
+msgid "COUNT"
+msgstr "ANTAL"
+
+#: options.h:1070
+msgid "Strip all symbols"
+msgstr "Ta bort alla symboler"
+
+#: options.h:1072
+#, fuzzy
+msgid "Strip debugging information"
+msgstr "Ta bort felsökningssymboler"
+
+#: options.h:1074
+#, fuzzy
+msgid "Emit only debug line number information"
+msgstr "Visa versions- och emuleringsinformation"
+
+#: options.h:1076
+msgid "Strip debug symbols that are unused by gdb (at least versions <= 7.4)"
+msgstr ""
+
+#: options.h:1079
+#, fuzzy
+msgid "Strip LTO intermediate code sections"
+msgstr "Ta bort symboler i kastade sektioner"
+
+#: options.h:1082
+msgid "(ARM, PowerPC only) The maximum distance from instructions in a group of sections to their stubs.  Negative values mean stubs are always after (PowerPC before) the group.  1 means use default size.\n"
+msgstr ""
+
+#: options.h:1089
+msgid "Use less memory and more disk I/O (included only for compatibility with GNU ld)"
+msgstr ""
+
+#: options.h:1093 options.h:1096
+#, fuzzy
+msgid "Generate shared library"
+msgstr "Skapa ett delat bibliotek"
+
+#: options.h:1099
+msgid "Stack size when -fsplit-stack function calls non-split"
+msgstr ""
+
+#: options.h:1105
+msgid "Do not link against shared libraries"
+msgstr "Länka inte mot delade bibliotek"
+
+#: options.h:1108
+msgid "Identical Code Folding. '--icf=safe' Folds ctors, dtors and functions whose pointers are definitely not taken."
+msgstr ""
+
+#: options.h:1115
+msgid "Number of iterations of ICF (default 2)"
+msgstr ""
+
+#: options.h:1118
+#, fuzzy
+msgid "List folded identical sections on stderr"
+msgstr "Lista borttagna oanvända sektioner via standard fel"
+
+#: options.h:1119
+#, fuzzy
+msgid "Do not list folded identical sections"
+msgstr "Lista inte borttagna oanvända sektioner"
+
+#: options.h:1122
+msgid "Do not fold this symbol during ICF"
+msgstr ""
+
+#: options.h:1125
+#, fuzzy
+msgid "Remove unused sections"
+msgstr "Lista inte borttagna oanvända sektioner"
+
+#: options.h:1126
+msgid "Don't remove unused sections (default)"
+msgstr "Ta inte bort oanvända sektioner (standard)"
+
+#: options.h:1129
+msgid "List removed unused sections on stderr"
+msgstr "Lista borttagna oanvända sektioner via standard fel"
+
+#: options.h:1130
+msgid "Do not list removed unused sections"
+msgstr "Lista inte borttagna oanvända sektioner"
+
+#: options.h:1133
+#, fuzzy
+msgid "Print resource usage statistics"
+msgstr "Visa statistik över minnesanvändning"
+
+#: options.h:1136
+msgid "Set target system root directory"
+msgstr ""
+
+#: options.h:1139
+msgid "Print the name of each input file"
+msgstr ""
+
+#: options.h:1142
+msgid "Read linker script"
+msgstr "Läs länkskript"
+
+#: options.h:1145
+msgid "Run the linker multi-threaded"
+msgstr ""
+
+#: options.h:1146
+msgid "Do not run the linker multi-threaded"
+msgstr ""
+
+#: options.h:1148
+msgid "Number of threads to use"
+msgstr ""
+
+#: options.h:1150
+msgid "Number of threads to use in initial pass"
+msgstr ""
+
+#: options.h:1152
+msgid "Number of threads to use in middle pass"
+msgstr ""
+
+#: options.h:1154
+msgid "Number of threads to use in final pass"
+msgstr ""
+
+#: options.h:1157
+#, fuzzy
+msgid "Set the address of the bss segment"
+msgstr "Ställ in adress för textsegment"
+
+#: options.h:1159
+#, fuzzy
+msgid "Set the address of the data segment"
+msgstr "Ställ in adress för ldata-segment"
+
+#: options.h:1161 options.h:1163
+#, fuzzy
+msgid "Set the address of the text segment"
+msgstr "Ställ in adress för textsegment"
+
+#: options.h:1166
+#, fuzzy
+msgid "Set the address of the rodata segment"
+msgstr "Ställ in adress för rodata-segment"
+
+#: options.h:1169
+msgid "(PowerPC64 only) Optimize TOC code sequences"
+msgstr ""
+
+#: options.h:1170
+msgid "(PowerPC64 only) Don't optimize TOC code sequences"
+msgstr ""
+
+#: options.h:1173
+msgid "(PowerPC64 only) Sort TOC and GOT sections"
+msgstr ""
+
+#: options.h:1174
+msgid "(PowerPC64 only) Don't sort TOC and GOT sections"
+msgstr ""
+
+#: options.h:1177
+#, fuzzy
+msgid "Create undefined reference to SYMBOL"
+msgstr "Börja med odefinierad referens till SYMBOL"
+
+#: options.h:1180
+#, fuzzy
+msgid "How to handle unresolved symbols"
+msgstr "Tillåt inga odefinierade symboler"
+
+#: options.h:1187
+msgid "Synonym for --debug=files"
+msgstr ""
+
+#: options.h:1190
+#, fuzzy
+msgid "Read version script"
+msgstr "Läs skript med versionsinformation"
+
+#: options.h:1193
+msgid "Warn about duplicate common symbols"
+msgstr "Varna för dubbla gemensamma symboler"
+
+#: options.h:1194
+#, fuzzy
+msgid "Do not warn about duplicate common symbols (default)"
+msgstr "Varna för dubbla gemensamma symboler"
+
+#: options.h:1200
+msgid "Warn if the stack is executable"
+msgstr ""
+
+#: options.h:1201
+#, fuzzy
+msgid "Do not warn if the stack is executable (default)"
+msgstr "Behandla inte varningar som fel (standard)"
+
+#: options.h:1204
+msgid "Don't warn about mismatched input files"
+msgstr "Varna inte om opassande indatafiler"
+
+#: options.h:1210
+#, fuzzy
+msgid "Warn when skipping an incompatible library"
+msgstr "Varna inte om ett inkompatibelt bibliotek hittas"
+
+#: options.h:1211
+#, fuzzy
+msgid "Don't warn when skipping an incompatible library"
+msgstr "Varna inte om ett inkompatibelt bibliotek hittas"
+
+#: options.h:1214
+msgid "Warn if text segment is not shareable"
+msgstr ""
+
+#: options.h:1215
+msgid "Do not warn if text segment is not shareable (default)"
+msgstr ""
+
+#: options.h:1218
+msgid "Report unresolved symbols as warnings"
+msgstr "Rapportera oupplösta symboler som varning"
+
+#: options.h:1222
+msgid "Report unresolved symbols as errors"
+msgstr "Rapportera oupplösta symboler som fel"
+
+#: options.h:1226
+msgid "(ARM only) Do not warn about objects with incompatible wchar_t sizes"
+msgstr ""
+
+#: options.h:1230
+msgid "Include all archive contents"
+msgstr ""
+
+#: options.h:1231
+msgid "Include only needed archive contents"
+msgstr ""
+
+#: options.h:1234
+msgid "Use wrapper functions for SYMBOL"
+msgstr "Använd inkapslingsfunktioner för SYMBOL"
+
+#: options.h:1237
+msgid "Trace references to symbol"
+msgstr ""
+
+#: options.h:1240
+#, fuzzy
+msgid "Allow unused version in script (default)"
+msgstr "Tillåt odefinierade symboler i delade objekt (standardalternativet)"
+
+#: options.h:1241
+#, fuzzy
+msgid "Do not allow unused version in script"
+msgstr "Tillåt inte oupplösta symboler i delade bibliotek"
+
+#: options.h:1244
+msgid "Default search path for Solaris compatibility"
+msgstr "Standardsökväg för Solaris-kompatibilitet"
+
+#: options.h:1245
+msgid "PATH"
+msgstr "SÖKVÄG"
+
+#: options.h:1248
+#, fuzzy
+msgid "Start a library search group"
+msgstr "Ställ in körtidssökväg för delade bibliotek"
+
+#: options.h:1250
+#, fuzzy
+msgid "End a library search group"
+msgstr "Ställ in körtidssökväg för delade bibliotek"
+
+#: options.h:1254
+#, fuzzy
+msgid "Start a library"
+msgstr "Starta en grupp"
+
+#: options.h:1256
+msgid "End a library "
+msgstr ""
+
+#: options.h:1259
+msgid "Ignored for GCC linker option compatibility"
+msgstr "Ignorerad för flaggkompatibilitet med GCC-länkare"
+
+#: options.h:1265
+#, fuzzy
+msgid "Sort dynamic relocs"
+msgstr "Exportera alla dynamiska symboler"
+
+#: options.h:1266
+msgid "Do not sort dynamic relocs"
+msgstr ""
+
+#: options.h:1268
+msgid "Set common page size to SIZE"
+msgstr ""
+
+#: options.h:1273
+msgid "Mark output as requiring executable stack"
+msgstr ""
+
+#: options.h:1275
+msgid "Mark DSO to be initialized first at runtime"
+msgstr ""
+
+#: options.h:1278
+msgid "Mark object to interpose all DSOs but executable"
+msgstr ""
+
+#: options.h:1281
+msgid "Mark object for lazy runtime binding (default)"
+msgstr ""
+
+#: options.h:1284
+msgid "Mark object requiring immediate process"
+msgstr ""
+
+#: options.h:1287
+msgid "Set maximum page size to SIZE"
+msgstr ""
+
+#: options.h:1295
+msgid "Do not create copy relocs"
+msgstr ""
+
+#: options.h:1297
+msgid "Mark object not to use default search paths"
+msgstr ""
+
+#: options.h:1300
+msgid "Mark DSO non-deletable at runtime"
+msgstr ""
+
+#: options.h:1303
+msgid "Mark DSO not available to dlopen"
+msgstr ""
+
+#: options.h:1306
+msgid "Mark DSO not available to dldump"
+msgstr ""
+
+#: options.h:1309
+msgid "Mark output as not requiring executable stack"
+msgstr ""
+
+#: options.h:1311
+msgid "Mark object for immediate function binding"
+msgstr ""
+
+#: options.h:1314
+msgid "Mark DSO to indicate that needs immediate $ORIGIN processing at runtime"
+msgstr ""
+
+#: options.h:1317
+msgid "Where possible mark variables read-only after relocation"
+msgstr ""
+
+#: options.h:1318
+msgid "Don't mark variables read-only after relocation"
+msgstr ""
+
+#: options.h:1320
+msgid "Do not permit relocations in read-only segments"
+msgstr ""
+
+#: options.h:1321 options.h:1323
+msgid "Permit relocations in read-only segments (default)"
+msgstr ""
+
+#: output.cc:1344
+msgid "section group retained but group element discarded"
+msgstr ""
+
+#: output.cc:1711 output.cc:1743
+msgid "out of patch space (GOT); relink with --incremental-full"
+msgstr ""
+
+#: output.cc:2372
+#, fuzzy, c-format
+msgid "invalid alignment %lu for section \"%s\""
+msgstr "%F%S ogiltig tilldelning till platsräknare\n"
+
+#: output.cc:4598
+#, c-format
+msgid "dot moves backward in linker script from 0x%llx to 0x%llx"
+msgstr ""
+
+#: output.cc:4601
+#, c-format
+msgid "address of section '%s' moves backward from 0x%llx to 0x%llx"
+msgstr ""
+
+#: output.cc:4965
+#, c-format
+msgid "%s: incremental base and output file name are the same"
+msgstr ""
+
+#: output.cc:4972
+#, c-format
+msgid "%s: stat: %s"
+msgstr ""
+
+#: output.cc:4977
+#, c-format
+msgid "%s: incremental base file is empty"
+msgstr ""
+
+#: output.cc:4989 output.cc:5087
+#, c-format
+msgid "%s: open: %s"
+msgstr ""
+
+#: output.cc:5006
+#, fuzzy, c-format
+msgid "%s: read failed: %s"
+msgstr "%X%P: cref-allokering misslyckades: %E\n"
+
+#: output.cc:5011
+#, c-format
+msgid "%s: file too short: read only %lld of %lld bytes"
+msgstr ""
+
+#: output.cc:5111
+#, c-format
+msgid "%s: mremap: %s"
+msgstr ""
+
+#: output.cc:5130
+#, c-format
+msgid "%s: mmap: %s"
+msgstr ""
+
+#: output.cc:5222
+#, c-format
+msgid "%s: mmap: failed to allocate %lu bytes for output file: %s"
+msgstr ""
+
+#: output.cc:5240
+#, c-format
+msgid "%s: munmap: %s"
+msgstr ""
+
+#: output.cc:5260
+#, c-format
+msgid "%s: write: unexpected 0 return-value"
+msgstr ""
+
+#: output.cc:5262
+#, c-format
+msgid "%s: write: %s"
+msgstr ""
+
+#: output.cc:5277
+#, c-format
+msgid "%s: close: %s"
+msgstr ""
+
+#: output.h:501
+msgid "** section headers"
+msgstr ""
+
+#: output.h:551
+msgid "** segment headers"
+msgstr ""
+
+#: output.h:598
+msgid "** file header"
+msgstr ""
+
+#: output.h:824
+msgid "** fill"
+msgstr ""
+
+#: output.h:990
+msgid "** string table"
+msgstr ""
+
+#: output.h:1513
+#, fuzzy
+msgid "** dynamic relocs"
+msgstr "Läs in dynamisk lista"
+
+#: output.h:1514 output.h:2214
+msgid "** relocs"
+msgstr ""
+
+#: output.h:2239
+#, fuzzy
+msgid "** group"
+msgstr "Sluta en grupp"
+
+#: output.h:2415
+msgid "** GOT"
+msgstr ""
+
+#: output.h:2597
+msgid "** dynamic"
+msgstr ""
+
+#: output.h:2734
+msgid "** symtab xindex"
+msgstr ""
+
+#: parameters.cc:221
+msgid "input file does not match -EB/EL option"
+msgstr ""
+
+#: parameters.cc:231
+msgid "-Trodata-segment is meaningless without --rosegment"
+msgstr ""
+
+#: parameters.cc:339 target-select.cc:199
+#, fuzzy, c-format
+msgid "unrecognized output format %s"
+msgstr "%P: okänd flagga ”%s”\n"
+
+#: parameters.cc:352
+#, fuzzy, c-format
+msgid "unrecognized emulation %s"
+msgstr "%P: okänt emuleringsläge: %s\n"
+
+#: parameters.cc:375
+msgid "no supported target for -EB/-EL option"
+msgstr ""
+
+#: plugin.cc:178
+#, c-format
+msgid "%s: could not load plugin library: %s"
+msgstr ""
+
+#: plugin.cc:187
+#, c-format
+msgid "%s: could not find onload entry point"
+msgstr ""
+
+#: plugin.cc:852
+msgid "input files added by plug-ins in --incremental mode not supported yet"
+msgstr ""
+
+#: powerpc.cc:856
+msgid "missing expected __tls_get_addr call"
+msgstr ""
+
+#: powerpc.cc:1663 powerpc.cc:1865
+#, c-format
+msgid "%s: ABI version %d is not compatible with ABI version %d output"
+msgstr ""
+
+#: powerpc.cc:1697 powerpc.cc:1907
+#, c-format
+msgid "%s: .opd invalid in abiv%d"
+msgstr ""
+
+#: powerpc.cc:1765
+#, c-format
+msgid "%s: unexpected reloc type %u in .opd section"
+msgstr ""
+
+#: powerpc.cc:1776
+#, c-format
+msgid "%s: .opd is not a regular array of opd entries"
+msgstr ""
+
+#: powerpc.cc:1843
+#, c-format
+msgid "%s: local symbol %d has invalid st_other for ABI version 1"
+msgstr ""
+
+#: powerpc.cc:2420
+#, c-format
+msgid "%s:%s exceeds group size"
+msgstr ""
+
+#: powerpc.cc:2643
+#, c-format
+msgid "%s:%s: branch in non-executable section, no long branch stub for you"
+msgstr ""
+
+#: powerpc.cc:3966
+msgid "** glink"
+msgstr ""
+
+#: powerpc.cc:4136 powerpc.cc:4500
+#, c-format
+msgid "%s: linkage table error against `%s'"
+msgstr ""
+
+#: powerpc.cc:4607
+msgid "** save/restore"
+msgstr ""
+
+#: powerpc.cc:5216 sparc.cc:2212
+msgid "requires unsupported dynamic reloc; recompile with -fPIC"
+msgstr ""
+
+#: powerpc.cc:5289
+#, fuzzy, c-format
+msgid "%s: unsupported reloc %u for IFUNC symbol"
+msgstr "%P%X: Storleken %d för gruppen %s stöds inte\n"
+
+#: powerpc.cc:6329 sparc.cc:3076 tilegx.cc:4193 x86_64.cc:3114
+#, fuzzy, c-format
+msgid "%s: unsupported REL reloc section"
+msgstr "%s: emuleringar som stöds: "
+
+#: powerpc.cc:6626
+msgid "__tls_get_addr call lacks marker reloc"
+msgstr ""
+
+#: powerpc.cc:6772
+msgid "call lacks nop, can't restore toc; recompile with -fPIC"
+msgstr ""
+
+#: powerpc.cc:7206 powerpc.cc:7230
+#, c-format
+msgid "toc optimization is not supported for %#08x instruction"
+msgstr ""
+
+#: powerpc.cc:7568
+msgid "relocation overflow"
+msgstr ""
+
+#: readsyms.cc:285
+#, c-format
+msgid "%s: file is empty"
+msgstr ""
+
+#. Here we have to handle any other input file types we need.
+#: readsyms.cc:920
+#, fuzzy, c-format
+msgid "%s: not an object or archive"
+msgstr "%X%s(%s): kan inte hitta medlem i arkiv"
+
+#: reduced_debug_output.cc:187
+msgid "Debug abbreviations extend beyond .debug_abbrev section; failed to reduce debug abbreviations"
+msgstr ""
+
+#: reduced_debug_output.cc:273
+msgid "Extremely large compile unit in debug info; failed to reduce debug info"
+msgstr ""
+
+#: reduced_debug_output.cc:281
+msgid "Debug info extends beyond .debug_info section;failed to reduce debug info"
+msgstr ""
+
+#: reduced_debug_output.cc:301 reduced_debug_output.cc:343
+msgid "Invalid DIE in debug info; failed to reduce debug info"
+msgstr ""
+
+#: reduced_debug_output.cc:324
+msgid "Debug info extends beyond .debug_info section; failed to reduce debug info"
+msgstr ""
+
+#: reloc.cc:317 reloc.cc:959
+#, c-format
+msgid "relocation section %u uses unexpected symbol table %u"
+msgstr ""
+
+#: reloc.cc:335 reloc.cc:976
+#, c-format
+msgid "unexpected entsize for reloc section %u: %lu != %u"
+msgstr ""
+
+#: reloc.cc:344 reloc.cc:985
+#, c-format
+msgid "reloc section %u size %lu uneven"
+msgstr ""
+
+#: reloc.cc:1367
+#, c-format
+msgid "could not convert call to '%s' to '%s'"
+msgstr ""
+
+#: reloc.cc:1527
+#, c-format
+msgid "reloc section size %zu is not a multiple of reloc size %d\n"
+msgstr ""
+
+#. We should only see externally visible symbols in the symbol
+#. table.
+#: resolve.cc:194
+msgid "invalid STB_LOCAL symbol in external symbols"
+msgstr ""
+
+#. Any target which wants to handle STB_LOOS, etc., needs to
+#. define a resolve method.
+#: resolve.cc:200
+#, c-format
+msgid "unsupported symbol binding %d"
+msgstr ""
+
+#. A dynamic object cannot reference a hidden or internal symbol
+#. defined in another object.
+#: resolve.cc:284
+#, c-format
+msgid "%s symbol '%s' in %s is referenced by DSO %s"
+msgstr ""
+
+#: resolve.cc:406
+#, fuzzy, c-format
+msgid "common of '%s' overriding smaller common"
+msgstr "%B: varning: gemensam i ”%T” åsidosätter mindre gemensam\n"
+
+#: resolve.cc:411
+#, fuzzy, c-format
+msgid "common of '%s' overidden by larger common"
+msgstr "%B: varning: gemensam i ”%T” åsidosattes av större gemensam\n"
+
+#: resolve.cc:416
+#, fuzzy, c-format
+msgid "multiple common of '%s'"
+msgstr "%B: varning: flera gemensamma i ”%T”\n"
+
+#: resolve.cc:458
+#, c-format
+msgid "symbol '%s' used as both __thread and non-__thread"
+msgstr ""
+
+#: resolve.cc:501
+#, fuzzy, c-format
+msgid "multiple definition of '%s'"
+msgstr "%X%C: flera definitioner av ”%T”\n"
+
+#: resolve.cc:540
+#, fuzzy, c-format
+msgid "definition of '%s' overriding common"
+msgstr "%B: varning: definitioner av ”%T” åsidosätter gemensam\n"
+
+#: resolve.cc:575
+#, fuzzy, c-format
+msgid "definition of '%s' overriding dynamic common definition"
+msgstr "%B: varning: definitioner av ”%T” åsidosätter gemensam\n"
+
+#: resolve.cc:725
+#, fuzzy, c-format
+msgid "common '%s' overridden by previous definition"
+msgstr "%B: varning: gemensam i ”%T” åsidosattes av definition\n"
+
+#: resolve.cc:860
+msgid "COPY reloc"
+msgstr ""
+
+#: resolve.cc:864 resolve.cc:887
+msgid "command line"
+msgstr ""
+
+#: resolve.cc:867
+#, fuzzy
+msgid "linker script"
+msgstr "Läs länkskript"
+
+#: resolve.cc:871
+msgid "linker defined"
+msgstr ""
+
+#: script-sections.cc:105
+#, c-format
+msgid "section %s overflows end of region %s"
+msgstr ""
+
+#: script-sections.cc:646
+msgid "Attempt to set a memory region for a non-output section"
+msgstr ""
+
+#: script-sections.cc:952 script-sections.cc:3583
+msgid "dot may not move backward"
+msgstr ""
+
+#: script-sections.cc:1019
+msgid "** expression"
+msgstr ""
+
+#: script-sections.cc:1204
+msgid "fill value is not absolute"
+msgstr ""
+
+#: script-sections.cc:2348
+#, c-format
+msgid "alignment of section %s is not absolute"
+msgstr ""
+
+#: script-sections.cc:2449
+#, c-format
+msgid "subalign of section %s is not absolute"
+msgstr ""
+
+#: script-sections.cc:2464
+#, fuzzy, c-format
+msgid "fill of section %s is not absolute"
+msgstr "Adressen på sektionen %s ställd till "
+
+#: script-sections.cc:2577
+msgid "SPECIAL constraints are not implemented"
+msgstr ""
+
+#: script-sections.cc:2619
+msgid "mismatched definition for constrained sections"
+msgstr ""
+
+#: script-sections.cc:3095
+#, c-format
+msgid "region '%.*s' already defined"
+msgstr ""
+
+#: script-sections.cc:3321
+msgid "DATA_SEGMENT_ALIGN may only appear once in a linker script"
+msgstr ""
+
+#: script-sections.cc:3336
+msgid "DATA_SEGMENT_RELRO_END may only appear once in a linker script"
+msgstr ""
+
+#: script-sections.cc:3341
+msgid "DATA_SEGMENT_RELRO_END must follow DATA_SEGMENT_ALIGN"
+msgstr ""
+
+#: script-sections.cc:3519
+msgid "no matching section constraint"
+msgstr ""
+
+#: script-sections.cc:3914
+msgid "creating a segment to contain the file and program headers outside of any MEMORY region"
+msgstr ""
+
+#: script-sections.cc:3963
+msgid "TLS sections are not adjacent"
+msgstr ""
+
+#: script-sections.cc:4110
+#, c-format
+msgid "allocated section %s not in any segment"
+msgstr ""
+
+#: script-sections.cc:4156
+#, c-format
+msgid "no segment %s"
+msgstr ""
+
+#: script-sections.cc:4169
+msgid "section in two PT_LOAD segments"
+msgstr ""
+
+#: script-sections.cc:4176
+msgid "allocated section not in any PT_LOAD segment"
+msgstr ""
+
+#: script-sections.cc:4205
+msgid "may only specify load address for PT_LOAD segment"
+msgstr ""
+
+#: script-sections.cc:4231
+#, c-format
+msgid "PHDRS load address overrides section %s load address"
+msgstr ""
+
+#. We could support this if we wanted to.
+#: script-sections.cc:4242
+msgid "using only one of FILEHDR and PHDRS is not currently supported"
+msgstr ""
+
+#: script-sections.cc:4257
+msgid "sections loaded on first page without room for file and program headers are not supported"
+msgstr ""
+
+#: script-sections.cc:4263
+msgid "using FILEHDR and PHDRS on more than one PT_LOAD segment is not currently supported"
+msgstr ""
+
+#: script.cc:1132
+msgid "invalid use of PROVIDE for dot symbol"
+msgstr ""
+
+#: script.cc:1508
+#, c-format
+msgid "%s: SECTIONS seen after other input files; try -T/--script"
+msgstr ""
+
+#. We have a match for both the global and local entries for a
+#. version tag.  That's got to be wrong.
+#: script.cc:2212
+#, c-format
+msgid "'%s' appears as both a global and a local symbol for version '%s' in script"
+msgstr ""
+
+#: script.cc:2239
+#, c-format
+msgid "wildcard match appears in both version '%s' and '%s' in script"
+msgstr ""
+
+#: script.cc:2244
+#, c-format
+msgid "wildcard match appears as both global and local in version '%s' in script"
+msgstr ""
+
+#: script.cc:2329
+#, c-format
+msgid "using '%s' as version for '%s' which is also named in version '%s' in script"
+msgstr ""
+
+#: script.cc:2427
+#, c-format
+msgid "version script assignment of %s to symbol %s failed: symbol not defined"
+msgstr ""
+
+#: script.cc:2623
+#, c-format
+msgid "%s:%d:%d: %s"
+msgstr ""
+
+#: script.cc:2689
+msgid "library name must be prefixed with -l"
+msgstr ""
+
+#. There are some options that we could handle here--e.g.,
+#. -lLIBRARY.  Should we bother?
+#: script.cc:2816
+#, c-format
+msgid "%s:%d:%d: ignoring command OPTION; OPTION is only valid for scripts specified via -T/--script"
+msgstr ""
+
+#: script.cc:2881
+#, c-format
+msgid "%s:%d:%d: ignoring SEARCH_DIR; SEARCH_DIR is only valid for scripts specified via -T/--script"
+msgstr ""
+
+#: script.cc:2909
+#, c-format
+msgid "%s:%d:%d: invalid use of VERSION in input file"
+msgstr ""
+
+#: script.cc:3025
+#, fuzzy, c-format
+msgid "unrecognized version script language '%s'"
+msgstr "%P: okänd flagga ”%s”\n"
+
+#: script.cc:3144 script.cc:3158
+#, c-format
+msgid "%s:%d:%d: DATA_SEGMENT_ALIGN not in SECTIONS clause"
+msgstr ""
+
+#: script.cc:3277
+msgid "unknown PHDR type (try integer)"
+msgstr ""
+
+#: script.cc:3296
+#, c-format
+msgid "%s:%d:%d: MEMORY region '%.*s' referred to outside of SECTIONS clause"
+msgstr ""
+
+#: script.cc:3307
+#, fuzzy, c-format
+msgid "%s:%d:%d: MEMORY region '%.*s' not declared"
+msgstr "%P:%S: varning: minnesregion ”%s” har inte deklarerats\n"
+
+#: script.cc:3352
+msgid "unknown MEMORY attribute"
+msgstr ""
+
+#: script.cc:3382
+#, fuzzy, c-format
+msgid "undefined memory region '%s' referenced in ORIGIN expression"
+msgstr "%F%S: odefinierad MINNES-region ”%s” refererades till i uttryck\n"
+
+#: script.cc:3401
+#, fuzzy, c-format
+msgid "undefined memory region '%s' referenced in LENGTH expression"
+msgstr "%F%S: odefinierad MINNES-region ”%s” refererades till i uttryck\n"
+
+#: sparc.cc:4326
+#, c-format
+msgid "%s: little endian elf flag set on BE object"
+msgstr ""
+
+#: sparc.cc:4329
+#, c-format
+msgid "%s: little endian elf flag clear on LE object"
+msgstr ""
+
+#: stringpool.cc:510
+#, c-format
+msgid "%s: %s entries: %zu; buckets: %zu\n"
+msgstr ""
+
+#: stringpool.cc:514
+#, c-format
+msgid "%s: %s entries: %zu\n"
+msgstr ""
+
+#: stringpool.cc:517
+#, c-format
+msgid "%s: %s Stringdata structures: %zu\n"
+msgstr ""
+
+#: symtab.cc:374
+#, fuzzy, c-format
+msgid "Cannot export local symbol '%s'"
+msgstr "%XKan inte exportera %s: symbolen hittades inte\n"
+
+#: symtab.cc:904
+#, fuzzy, c-format
+msgid "%s: reference to %s"
+msgstr "%X%C: odefinierad referens till ”%T”\n"
+
+#: symtab.cc:906
+#, fuzzy, c-format
+msgid "%s: definition of %s"
+msgstr "%X%C: flera definitioner av ”%T”\n"
+
+#: symtab.cc:1104
+#, c-format
+msgid "bad global symbol name offset %u at %zu"
+msgstr ""
+
+#: symtab.cc:1358
+msgid "--just-symbols does not make sense with a shared object"
+msgstr ""
+
+#: symtab.cc:1369
+#, fuzzy
+msgid "too few symbol versions"
+msgstr "Skapa standardsymbolversion"
+
+#: symtab.cc:1418
+#, c-format
+msgid "bad symbol name offset %u at %zu"
+msgstr ""
+
+#: symtab.cc:1481
+#, c-format
+msgid "versym for symbol %zu out of range: %u"
+msgstr ""
+
+#: symtab.cc:1489
+#, c-format
+msgid "versym for symbol %zu has no name: %u"
+msgstr ""
+
+#: symtab.cc:2742 symtab.cc:2881
+#, fuzzy, c-format
+msgid "%s: unsupported symbol section 0x%x"
+msgstr "%s: emuleringar som stöds: "
+
+#: symtab.cc:3155
+#, c-format
+msgid "%s: symbol table entries: %zu; buckets: %zu\n"
+msgstr ""
+
+#: symtab.cc:3158
+#, c-format
+msgid "%s: symbol table entries: %zu\n"
+msgstr ""
+
+#: symtab.cc:3310
+#, c-format
+msgid "while linking %s: symbol '%s' defined in multiple places (possible ODR violation):"
+msgstr ""
+
+#: symtab.cc:3319 symtab.cc:3322
+#, c-format
+msgid "  %s from %s\n"
+msgstr ""
+
+#: target-reloc.h:163
+msgid "internal"
+msgstr ""
+
+#: target-reloc.h:166
+msgid "hidden"
+msgstr ""
+
+#: target-reloc.h:169
+msgid "protected"
+msgstr ""
+
+#: target-reloc.h:174
+#, c-format
+msgid "%s symbol '%s' is not defined locally"
+msgstr ""
+
+#: target-reloc.h:414
+#, c-format
+msgid "reloc has bad offset %zu"
+msgstr ""
+
+#: target.cc:170
+#, c-format
+msgid "linker does not include stack split support required by %s"
+msgstr ""
+
+#: tilegx.cc:2074 x86_64.cc:1244
+msgid "out of patch space (PLT); relink with --incremental-full"
+msgstr ""
+
+#: tilegx.cc:2724 x86_64.cc:1871
+msgid "TLS_DESC not yet supported for incremental linking"
+msgstr ""
+
+#: tilegx.cc:2779
+msgid "TLS_DESC not yet supported for TILEGX"
+msgstr ""
+
+#: tilegx.cc:3188 x86_64.cc:2257
+#, c-format
+msgid "requires unsupported dynamic reloc %u; recompile with -fPIC"
+msgstr ""
+
+#: tls.h:59
+msgid "TLS relocation out of range"
+msgstr ""
+
+#: tls.h:73
+msgid "TLS relocation against invalid instruction"
+msgstr ""
+
+#. This output is intended to follow the GNU standards.
+#: version.cc:66
+#, c-format
+msgid "Copyright 2014 Free Software Foundation, Inc.\n"
+msgstr "Copyright 2014 Free Software Foundation, Inc.\n"
+
+#: version.cc:67
+#, c-format
+msgid ""
+"This program is free software; you may redistribute it under the terms of\n"
+"the GNU General Public License version 3 or (at your option) a later version.\n"
+"This program has absolutely no warranty.\n"
+msgstr ""
+"Detta program är fri programvara; du kan sprida det vidare under villkoren\n"
+"i GNU General Public License version 3 eller (om du så vill) senare version.\n"
+"Detta program har inga som helst garantier.\n"
+"\n"
+
+#: workqueue-threads.cc:106
+#, c-format
+msgid "%s failed: %s"
+msgstr ""
+
+#: x86_64.cc:2222
+msgid "requires dynamic R_X86_64_32 reloc which may overflow at runtime; recompile with -fPIC"
+msgstr ""
+
+#: x86_64.cc:2242
+#, c-format
+msgid "requires dynamic %s reloc against '%s' which may overflow at runtime; recompile with -fPIC"
+msgstr ""
+
+#: x86_64.cc:3776
+#, fuzzy, c-format
+msgid "unsupported reloc type %u"
+msgstr "%XPEI-arkitekturen stöds inte: %s\n"
+
+#: x86_64.cc:4211
+#, c-format
+msgid "unsupported reloc %u against local symbol"
+msgstr ""
+
+#~ msgid "  --support-old-code          Support interworking with old code\n"
+#~ msgstr "  --support-old-code          Stöd interaktion med gammal kod\n"
+
+#~ msgid "  --thumb-entry=<sym>         Set the entry point to be Thumb symbol <sym>\n"
+#~ msgstr "  --thumb-entry=<sym>         Ställ in ingångspunkten till att vara Thumb-symbol <sym>\n"
+
+#~ msgid "Errors encountered processing file %s"
+#~ msgstr "Fel inträffade vid bearbetning av filen %s"
+
+#~ msgid "%P: warning: '--thumb-entry %s' is overriding '-e %s'\n"
+#~ msgstr "%P: varning: ”--thumb-entry %s” åsidosätter ”-e %s”\n"
+
+#~ msgid "%P: warning: cannot find thumb start symbol %s\n"
+#~ msgstr "%P: varning: kan inte hitta Thumb-startsymbol %s\n"
+
+#~ msgid "  --base_file <basefile>             Generate a base file for relocatable DLLs\n"
+#~ msgstr ""
+#~ "  --base_file <basfil>               Generera en basfil för\n"
+#~ "                                       omlokaliseringsbara DLL:er\n"
+
+#~ msgid "  --dll                              Set image base to the default for DLLs\n"
+#~ msgstr ""
+#~ "  --dll                              Ställ in bildbas till standard för\n"
+#~ "                                       DLL:er\n"
+
+#~ msgid "  --file-alignment <size>            Set file alignment\n"
+#~ msgstr "  --file-alignment <storlek>         Ställ in filjustering\n"
+
+#~ msgid "  --heap <size>                      Set initial size of the heap\n"
+#~ msgstr "  --heap <storlek>                   Ställ in initial storlek på högen\n"
+
+#~ msgid "  --image-base <address>             Set start address of the executable\n"
+#~ msgstr "  --image-base <adress>              Ställ in startadressen för det körbara\n"
+
+#~ msgid "  --major-image-version <number>     Set version number of the executable\n"
+#~ msgstr "  --major-image-version <nummer>     Ställ in versionsnummer för det körbara\n"
+
+#~ msgid "  --major-os-version <number>        Set minimum required OS version\n"
+#~ msgstr "  --major-os-version <nummer>        Ställ in lägsta nödvändiga OS-version\n"
+
+#~ msgid "  --major-subsystem-version <number> Set minimum required OS subsystem version\n"
+#~ msgstr ""
+#~ "  --major-subsystem-version <nummer> Ställ in lägsta nödvändiga\n"
+#~ "                                       OS-undersystemsversion\n"
+
+#~ msgid "  --minor-image-version <number>     Set revision number of the executable\n"
+#~ msgstr ""
+#~ "  --minor-image-version <nummer>     Ställ in underrevisionsnummer för\n"
+#~ "                                       det körbara\n"
+
+#~ msgid "  --minor-os-version <number>        Set minimum required OS revision\n"
+#~ msgstr "  --minor-os-version <nummer>        Ställ in lägsta nödvändiga OS-revision\n"
+
+#~ msgid "  --minor-subsystem-version <number> Set minimum required OS subsystem revision\n"
+#~ msgstr ""
+#~ "  --minor-subsystem-version <nummer> Ställ in lägsta nödvändiga\n"
+#~ "                                       OS-undersystemsrevision\n"
+
+#~ msgid "  --section-alignment <size>         Set section alignment\n"
+#~ msgstr "  --section-alignment <storlek>      Ställ in sektionsjustering\n"
+
+#~ msgid "  --stack <size>                     Set size of the initial stack\n"
+#~ msgstr "  --stack <storlek>                  Ställ in storlek på initiala stacken\n"
+
+#~ msgid "  --subsystem <name>[:<version>]     Set required OS subsystem [& version]\n"
+#~ msgstr ""
+#~ "  --subsystem <namn>[:<version>]     Ställ in nödvändigt OS-undersystem\n"
+#~ "                                       [och nödvändig version]\n"
+
+#~ msgid "  --support-old-code                 Support interworking with old code\n"
+#~ msgstr "  --support-old-code                 Stöd interaktion med gammal kod\n"
+
+#~ msgid "  --[no-]leading-underscore          Set explicit symbol underscore prefix mode\n"
+#~ msgstr "  --[no-]leading-underscore          Ställ in uttryckligt understrecksprefixläge för symboler\n"
+
+#~ msgid "  --thumb-entry=<symbol>             Set the entry point to be Thumb <symbol>\n"
+#~ msgstr ""
+#~ "  --thumb-entry=<symbol>             Ställ in ingångspunkten till att\n"
+#~ "                                       vara Thumb-<symbol>\n"
+
+#~ msgid "  --insert-timestamp                 Use a real timestamp rather than zero.\n"
+#~ msgstr "  --insert-timestamp                 Använd en riktig tidsstämpel istället för noll.\n"
+
+#~ msgid "                                     This makes binaries non-deterministic\n"
+#~ msgstr "                                     Detta gör binärer icke-deterministiska\n"
+
+#~ msgid "  --add-stdcall-alias                Export symbols with and without @nn\n"
+#~ msgstr "  --add-stdcall-alias                Exportera symboler med och utan @nn\n"
+
+#~ msgid "  --disable-stdcall-fixup            Don't link _sym to _sym@nn\n"
+#~ msgstr "  --disable-stdcall-fixup            Länka inte _sym till _sym@nn\n"
+
+#~ msgid "  --enable-stdcall-fixup             Link _sym to _sym@nn without warnings\n"
+#~ msgstr "  --enable-stdcall-fixup             Länka _sym till _sym@nn utan varningar\n"
+
+#~ msgid "  --exclude-symbols sym,sym,...      Exclude symbols from automatic export\n"
+#~ msgstr ""
+#~ "  --exclude-symbols sym,sym,…        Exkludera symboler från automatisk\n"
+#~ "                                       export\n"
+
+#~ msgid "  --exclude-all-symbols              Exclude all symbols from automatic export\n"
+#~ msgstr "  --exclude-all-symbols              Exkludera alla symboler från automatisk export\n"
+
+#~ msgid "  --exclude-modules-for-implib mod,mod,...\n"
+#~ msgstr "  --exclude-modules-for-implib mod,mod,...\n"
+
+#~ msgid "                                     Exclude objects, archive members from auto\n"
+#~ msgstr "                                     Exkludera objekt, arkivmedlemmar från auto\n"
+
+#~ msgid "                                     export, place into import library instead.\n"
+#~ msgstr "                                     export, placera i ett import-bibliotek istället.\n"
+
+#~ msgid "  --export-all-symbols               Automatically export all globals to DLL\n"
+#~ msgstr ""
+#~ "  --export-all-symbols               Exportera automatiskt alla symboler\n"
+#~ "                                       till DLL\n"
+
+#~ msgid "  --kill-at                          Remove @nn from exported symbols\n"
+#~ msgstr "  --kill-at                          Ta bort @nn från exporterade symboler\n"
+
+#~ msgid "  --out-implib <file>                Generate import library\n"
+#~ msgstr "  --out-implib <fil>                 Generera importbibliotek\n"
+
+#~ msgid "  --output-def <file>                Generate a .DEF file for the built DLL\n"
+#~ msgstr "  --output-def <fil>                 Generera en .DEF-fil för byggd DLL\n"
+
+#~ msgid "  --warn-duplicate-exports           Warn about duplicate exports.\n"
+#~ msgstr "  --warn-duplicate-exports           Varna för dubbla exporter.\n"
+
+#~ msgid ""
+#~ "  --compat-implib                    Create backward compatible import libs;\n"
+#~ "                                       create __imp_<SYMBOL> as well.\n"
+#~ msgstr ""
+#~ "  --compat-implib                    Skapa bakåtkompatibla importbibliotek;\n"
+#~ "                                       och skapa även __imp_<SYMBOL>.\n"
+
+#~ msgid ""
+#~ "  --enable-auto-image-base           Automatically choose image base for DLLs\n"
+#~ "                                       unless user specifies one\n"
+#~ msgstr ""
+#~ "  --enable-auto-image-base           Välj automatiskt bildbas för DLL:er\n"
+#~ "                                       såvida inte användaren anger en\n"
+
+#~ msgid "  --disable-auto-image-base          Do not auto-choose image base. (default)\n"
+#~ msgstr ""
+#~ "  --disable-auto-image-base          Välj inte bildbas automatiskt\n"
+#~ "                                       (standard).\n"
+
+#~ msgid ""
+#~ "  --dll-search-prefix=<string>       When linking dynamically to a dll without\n"
+#~ "                                       an importlib, use <string><basename>.dll\n"
+#~ "                                       in preference to lib<basename>.dll \n"
+#~ msgstr ""
+#~ "  --dll-search-prefix=<sträng>       Använd <sträng><basnamn>.dll istället\n"
+#~ "                                       för lib<basnamn>.dll vid dynamisk\n"
+#~ "                                       länkning utan ett importbibliotek\n"
+
+#~ msgid ""
+#~ "  --enable-auto-import               Do sophisticated linking of _sym to\n"
+#~ "                                       __imp_sym for DATA references\n"
+#~ msgstr ""
+#~ "  --enable-auto-import               Utför sofistikerad länkning av _sym till\n"
+#~ "                                       __imp_sym för DATA-referenser\n"
+
+#~ msgid "  --disable-auto-import              Do not auto-import DATA items from DLLs\n"
+#~ msgstr ""
+#~ "  --disable-auto-import              Importera inte DATA-objekt från DLL:er\n"
+#~ "                                       automatiskt\n"
+
+#~ msgid ""
+#~ "  --enable-runtime-pseudo-reloc      Work around auto-import limitations by\n"
+#~ "                                       adding pseudo-relocations resolved at\n"
+#~ "                                       runtime.\n"
+#~ msgstr ""
+#~ "  --enable-runtime-pseudo-reloc      Kringgå begränsningar i automatisk\n"
+#~ "                                     import genom att lägga till\n"
+#~ "                                     pseudoomlokaliseringar som löses under\n"
+#~ "                                     körtid.\n"
+
+#~ msgid ""
+#~ "  --disable-runtime-pseudo-reloc     Do not add runtime pseudo-relocations for\n"
+#~ "                                       auto-imported DATA.\n"
+#~ msgstr ""
+#~ "  --disable-runtime-pseudo-reloc     Lägg inte till pseudoomlokaliseringar\n"
+#~ "                                     för automatisk importerad DATA under\n"
+#~ "                                     körtid.\n"
+
+#~ msgid ""
+#~ "  --enable-extra-pe-debug            Enable verbose debug output when building\n"
+#~ "                                       or linking to DLLs (esp. auto-import)\n"
+#~ msgstr ""
+#~ "  --enable-extra-pe-debug            Använd utförlig felsökningsutdata vid\n"
+#~ "                                       bygge av eller länkning till DLL:er\n"
+#~ "                                       (särskilt automatisk import)\n"
+
+#~ msgid ""
+#~ "  --large-address-aware              Executable supports virtual addresses\n"
+#~ "                                       greater than 2 gigabytes\n"
+#~ msgstr ""
+#~ "  --large-address-aware              Exekverbar fil har stöd för virtuella adresser\n"
+#~ "                                       större än 2 gigabyte\n"
+
+#~ msgid ""
+#~ "  --disable-large-address-aware      Executable does not support virtual\n"
+#~ "                                       addresses greater than 2 gigabytes\n"
+#~ msgstr ""
+#~ "  --disable-large-address-aware      Exekverbara har inte stöd för virtuella\n"
+#~ "                                       adresser större än 2 gigabyte\n"
+
+#~ msgid ""
+#~ "  --enable-long-section-names        Use long COFF section names even in\n"
+#~ "                                       executable image files\n"
+#~ msgstr ""
+#~ "  --enable-long-section-names        Använd långa COFF-sektionsnamn även i\n"
+#~ "                                       exekverbara avbildningsfiler\n"
+
+#~ msgid ""
+#~ "  --disable-long-section-names       Never use long COFF section names, even\n"
+#~ "                                       in object files\n"
+#~ msgstr ""
+#~ "  --disable-long-section-names       Använd aldrig långa COFF-sektionsnamn, inte\n"
+#~ "                                       ens i objektfiler\n"
+
+#~ msgid ""
+#~ "  --dynamicbase\t\t\t Image base address may be relocated using\n"
+#~ "\t\t\t\t       address space layout randomization (ASLR)\n"
+#~ msgstr ""
+#~ "  --dynamicbase\t\t\t Bildbasadress kan omlokaliseras via\n"
+#~ "\t\t\t\t       layoutrandomisering av adressrymd (ASLR)\n"
+
+#~ msgid "  --forceinteg\t\t Code integrity checks are enforced\n"
+#~ msgstr "  --forceinteg\t\t Kodintegritetskontroller är påtvingade\n"
+
+#~ msgid "  --nxcompat\t\t Image is compatible with data execution prevention\n"
+#~ msgstr "  --nxcompat\t\t Bild är kompatibel med förhindrande av dataexekvering\n"
+
+#~ msgid "  --no-isolation\t\t Image understands isolation but do not isolate the image\n"
+#~ msgstr "  --no-isolation\t\t Bild förstår isolering men isolera inte bilden\n"
+
+#~ msgid ""
+#~ "  --no-seh\t\t\t Image does not use SEH. No SE handler may\n"
+#~ "\t\t\t\t       be called in this image\n"
+#~ msgstr ""
+#~ "  --no-seh\t\t\t Bild använder inte SEH. Ingen SE-hanterare får\n"
+#~ "\t\t\t\t       anropas i denna bild\n"
+
+#~ msgid "  --no-bind\t\t\t Do not bind this image\n"
+#~ msgstr "  --no-bind\t\t\t Bind inte denna bild\n"
+
+#~ msgid "  --wdmdriver\t\t Driver uses the WDM model\n"
+#~ msgstr "  --wdmdriver\t\t Drivrutin använder WDM-modellen\n"
+
+#~ msgid "  --tsaware                  Image is Terminal Server aware\n"
+#~ msgstr "  --tsaware                  Bild är Terminal Server-medveten\n"
+
+#~ msgid "%P: warning: bad version number in -subsystem option\n"
+#~ msgstr "%P: varning: felaktigt nummer i flaggan -subsystem\n"
+
+#~ msgid "%P%F: invalid subsystem type %s\n"
+#~ msgstr "%P%F: ogiltig typ av undersystem %s\n"
+
+#~ msgid "%P%F: invalid hex number for PE parameter '%s'\n"
+#~ msgstr "%P%F: ogiltigt hexadecimalt tal för PE-parametern ”%s”\n"
+
+#~ msgid "%P%F: strange hex info for PE parameter '%s'\n"
+#~ msgstr "%P%F: konstig hexadecimal information för PE-parametern ”%s”\n"
+
+#~ msgid "%P: warning, file alignment > section alignment.\n"
+#~ msgstr "%P: varning, filjusteringen > sektionsjusteringen.\n"
+
+#~ msgid "%P: warning: --export-dynamic is not supported for PE targets, did you mean --export-all-symbols?\n"
+#~ msgstr "%P: varning: --export-dynamic stöds inte för PE-mål, menade du --export-all-symbols?\n"
+
+#~ msgid "Warning: resolving %s by linking to %s\n"
+#~ msgstr "Varning: löser upp %s genom att länka till %s\n"
+
+#~ msgid "Use --enable-stdcall-fixup to disable these warnings\n"
+#~ msgstr "Använd --enable-stdcall-fixup för att stänga av dessa varningar\n"
+
+#~ msgid "Use --disable-stdcall-fixup to disable these fixups\n"
+#~ msgstr "Använd --disable-stdcall-fixup för att stänga av dessa korrigeringar\n"
+
+#~ msgid "%C: Cannot get section contents - auto-import exception\n"
+#~ msgstr "%C: Kan inte få tag i sektionsinnehåll - undantag i automatisk import\n"
+
+#~ msgid "Info: resolving %s by linking to %s (auto-import)\n"
+#~ msgstr "Info: löser upp %s genom att länka till %s (automatisk import)\n"
+
+#~ msgid ""
+#~ "%P: warning: auto-importing has been activated without --enable-auto-import specified on the command line.\n"
+#~ "This should work unless it involves constant data structures referencing symbols from auto-imported DLLs.\n"
+#~ msgstr ""
+#~ "%P: varning: autoimportering har aktiverats utan att --enable-auto-import angavs på kommandoraden.\n"
+#~ "Detta bör fungera om det inte involverar konstanta datastrukturer som refererar till symboler från autoimporterade DLL:er.\n"
+
+#~ msgid "%B%F: could not read symbols: %E\n"
+#~ msgstr "%B%F: kunde inte läsa symboler: %E\n"
+
+#~ msgid "%F%P: cannot perform PE operations on non PE output file '%B'.\n"
+#~ msgstr "%F%P: kan inte utföra PE-operationer på utdatafil som inte är PE ”%B”.\n"
+
+#~ msgid "Errors encountered processing file %s\n"
+#~ msgstr "Fel uppstod vid behandling av filen %s\n"
+
+#~ msgid "Errors encountered processing file %s for interworking\n"
+#~ msgstr "Fel uppstod vid behandling av filen %s för interaktion\n"
+
+#~ msgid "%P%F: bfd_link_hash_lookup failed: %E\n"
+#~ msgstr "%P%F: bfd_link_hash_lookup misslyckades: %E\n"
+
+#~ msgid "%X%P: bfd_hash_table_init of cref table failed: %E\n"
+#~ msgstr "%X%P: bfd_hash_table_init av korsreferenstabellen misslyckades: %E\n"
+
+#~ msgid "%X%P: cref_hash_lookup failed: %E\n"
+#~ msgstr "%X%P: cref_hash_lookup misslyckades: %E\n"
+
+#~ msgid "No symbols\n"
+#~ msgstr "Inga symboler\n"
+
+#~ msgid "%P: symbol `%T' missing from main hash table\n"
+#~ msgstr "%P: symbolen ”%T” saknas från hashtabellen\n"
+
+#~ msgid "%B%F: could not read relocs: %E\n"
+#~ msgstr "%B%F: kunde inte läsa omlokaliseringar: %E\n"
+
+#~ msgid "%X%C: prohibited cross reference from %s to `%T' in %s\n"
+#~ msgstr "%X%C: förbjuden korsreferens från %s till ”%T” i %s\n"
+
+#~ msgid "%P%X: Different relocs used in set %s\n"
+#~ msgstr "%P%X: Olika omlokaliseringar använda i gruppen %s\n"
+
+#~ msgid "%P%X: Different object file formats composing set %s\n"
+#~ msgstr "%P%X: Olika objektfilformat utgör gruppen %s\n"
+
+#~ msgid "%P%X: %s does not support reloc %s for set %s\n"
+#~ msgstr "%P%X: %s stöder inte omlokaliseringen %s för gruppen %s\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "Set                 Symbol\n"
+#~ "\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Grupp               Symbol\n"
+#~ "\n"
+
+#~ msgid "%S SYSLIB ignored\n"
+#~ msgstr "%S SYSLIB ignorerades\n"
+
+#~ msgid "%S HLL ignored\n"
+#~ msgstr "%S HLL ignorerades\n"
+
+#~ msgid "  no emulation specific options.\n"
+#~ msgstr "  inga emuleringsspecifika flaggor.\n"
+
+#~ msgid "%P: warning: address of `%s' isn't multiple of maximum page size\n"
+#~ msgstr "%P: varning: adress för ”%s” är inte en multipel av maximal sidstorlek\n"
+
+#~ msgid "%F%S %% by zero\n"
+#~ msgstr "%F%S %% med noll\n"
+
+#~ msgid "%X%S: unresolvable symbol `%s' referenced in expression\n"
+#~ msgstr "%X%S: oupplösningsbara symbolen ”%s” refererades i uttrycket\n"
+
+#~ msgid "%F%S: undefined section `%s' referenced in expression\n"
+#~ msgstr "%F%S: odefinierade sektionen ”%s” refererades till i uttryck\n"
+
+#~ msgid "%F%S: unknown constant `%s' referenced in expression\n"
+#~ msgstr "%F%S: okänd konstant ”%s” refererades till i uttryck\n"
+
+#~ msgid "%F%S can not PROVIDE assignment to location counter\n"
+#~ msgstr "%F%S kan inte TILLHANDAHÅLLA tilldelning till platsräknare\n"
+
+#~ msgid "%F%S assignment to location counter invalid outside of SECTIONS\n"
+#~ msgstr "%F%S tilldelning till platsräknare ogiltig utanför SEKTIONER\n"
+
+#~ msgid "%F%S cannot move location counter backwards (from %V to %V)\n"
+#~ msgstr "%F%S kan inte flytta platsräknare bakåt (från %V till %V)\n"
+
+#~ msgid "%P%F:%s: hash creation failed\n"
+#~ msgstr "%P%F:%s: skapande av hash misslyckades\n"
+
+#~ msgid "%F%S: nonconstant expression for %s\n"
+#~ msgstr "%F%S: icke-konstant uttryck för %s\n"
+
+#~ msgid "attempt to open %s failed\n"
+#~ msgstr "försök att öppna %s misslyckades\n"
+
+#~ msgid "attempt to open %s succeeded\n"
+#~ msgstr "försök att öppna %s lyckades\n"
+
+#~ msgid "%F%P: invalid BFD target `%s'\n"
+#~ msgstr "%F%P: ogiltigt BFD-mål ”%s”\n"
+
+#~ msgid "%P: skipping incompatible %s when searching for %s\n"
+#~ msgstr "%P: hoppar över inkompatibel %s vid sökning av %s\n"
+
+#~ msgid "%P: cannot find %s (%s): %E\n"
+#~ msgstr "%P: kan inte hitta %s (%s): %E\n"
+
+#~ msgid "%P: cannot find %s: %E\n"
+#~ msgstr "%P: kan inte hitta %s: %E\n"
+
+#~ msgid "%P: cannot find %s inside %s\n"
+#~ msgstr "%P: kan inte hitta %s inuti %s\n"
+
+#~ msgid "cannot find script file %s\n"
+#~ msgstr "kan inte hitta skriptfilen %s\n"
+
+#~ msgid "%P%F: cannot open linker script file %s: %E\n"
+#~ msgstr "%P%F: kan inte öppna länkskriptfilen %s: %E\n"
+
+#~ msgid "%P%F: cannot represent machine `%s'\n"
+#~ msgstr "%P%F: kan inte representera maskinen ”%s”\n"
+
+#~ msgid "%P%F: can not create hash table: %E\n"
+#~ msgstr "%P%F: kan inte skapa hashtabell: %E\n"
+
+#~ msgid "%P:%S: warning: redeclaration of memory region `%s'\n"
+#~ msgstr "%P:%S: varning: omdeklaration av minnesregion ”%s”\n"
+
+#~ msgid "%F%P:%S: error: alias for default memory region\n"
+#~ msgstr "%F%P:%S: fel: alias för standard minnesområde\n"
+
+#~ msgid "%F%P:%S: error: redefinition of memory region alias `%s'\n"
+#~ msgstr "%F%P: %S: fel: omdefinition av alias för minnesområde ”%s”\n"
+
+#~ msgid "%F%P:%S: error: memory region `%s' for alias `%s' does not exist\n"
+#~ msgstr "%F%P:%S: fel: minnesområde ”%s” för alias ”%s” existerar inte\n"
+
+#~ msgid "%P%F: failed creating section `%s': %E\n"
+#~ msgstr "%P%F: misslyckades att skapa sektion ”%s”: %E\n"
+
+#~ msgid ""
+#~ "\n"
+#~ "As-needed library included to satisfy reference by file (symbol)\n"
+#~ "\n"
+#~ msgstr ""
+#~ "\n"
+#~ "As-needed-bibliotek inkluderat för att tillfredsställa referens av fil (symbol)\n"
+#~ "\n"
+
+#~ msgid "Name"
+#~ msgstr "Namn"
+
+#~ msgid "Origin"
+#~ msgstr "Början"
+
+#~ msgid "Length"
+#~ msgstr "Längd"
+
+#~ msgid "Attributes"
+#~ msgstr "Attribut"
+
+#~ msgid ""
+#~ "\n"
+#~ "Linker script and memory map\n"
+#~ "\n"
+#~ msgstr ""
+#~ "\n"
+#~ "Länkskript och minnestabell\n"
+#~ "\n"
+
+#~ msgid "%P%F: Illegal use of `%s' section\n"
+#~ msgstr "%P%F: Otillåten användning av sektionen ”%s”\n"
+
+#~ msgid "%P%F: output format %s cannot represent section called %s\n"
+#~ msgstr "%P%F: utdataformatet %s kan inte representera sektionen kallad %s\n"
+
+#~ msgid "%B: file not recognized: %E\n"
+#~ msgstr "%B: filen inte igenkänd: %E\n"
+
+#~ msgid "%B: matching formats:"
+#~ msgstr "%B: matchande format:"
+
+#~ msgid "%F%B: file not recognized: %E\n"
+#~ msgstr "%F%B: filen inte igenkänd: %E\n"
+
+#~ msgid "%F%B: error adding symbols: %E\n"
+#~ msgstr "%F%B: fel då symboler lades till: %E\n"
+
+#~ msgid "%P: warning: could not find any targets that match endianness requirement\n"
+#~ msgstr "%P: varning: kunde inte hitta några mål som matchar kravet på byteordning\n"
+
+#~ msgid "%P%F: target %s not found\n"
+#~ msgstr "%P%F: målet %s hittades inte\n"
+
+#~ msgid "%P%F:%s: can not make object file: %E\n"
+#~ msgstr "%P%F:%s: kan inte skapa objektfilen: %E\n"
+
+#~ msgid "%P: warning: %s contains output sections; did you forget -T?\n"
+#~ msgstr "%P: varning: %s innehåller utdatasektioner; glömde du -T?\n"
+
+#~ msgid "%P%F: bfd_hash_allocate failed creating symbol %s\n"
+#~ msgstr "%P%F: bfd_hash_allocate misslyckades att skapa symbol %s\n"
+
+#~ msgid "%P%F: bfd_hash_lookup failed creating symbol %s\n"
+#~ msgstr "%P%F: bfd_hash_lookup misslyckades med att skapa symbol %s\n"
+
+#~ msgid "%F%P: %s not found for insert\n"
+#~ msgstr "%F%P: %s hittades inte vid infogning\n"
+
+#~ msgid " load address 0x%V"
+#~ msgstr " inläsningsadress 0x%V"
+
+#~ msgid "%W (size before relaxing)\n"
+#~ msgstr "%W (storlek innan avslappning)\n"
+
+#~ msgid "Fail with %d\n"
+#~ msgstr "Misslyckas med %d\n"
+
+#~ msgid "%X%P: section %s loaded at [%V,%V] overlaps section %s loaded at [%V,%V]\n"
+#~ msgstr "%X%P: sektion %s laddad vid [%V,%V] överlappar med sektion %s laddad vid [%V,%V]\n"
+
+#~ msgid "%X%P: region `%s' overflowed by %ld bytes\n"
+#~ msgstr "%X%P: region ”%s” fick %ld byte överspill\n"
+
+#~ msgid "%X%P: address 0x%v of %B section `%s' is not within region `%s'\n"
+#~ msgstr "%X%P: adress 0x%v i %B-sektion ”%s” är inte inom området ”%s”\n"
+
+#~ msgid "%X%P: %B section `%s' will not fit in region `%s'\n"
+#~ msgstr ""
+#~ "%X%P: %B-sektion ”%s” kommer inte att få plats i region ”%s”\n"
+#~ "\n"
+
+#~ msgid "%F%S: non constant or forward reference address expression for section %s\n"
+#~ msgstr "%F%S: icke-konstant eller framåtrefererande adressuttryck för sektion %s\n"
+
+#~ msgid "%P%X: Internal error on COFF shared library section %s\n"
+#~ msgstr "%P%X: Internt fel i delat COFF-bibliotek sektion %s\n"
+
+#~ msgid "%P%F: error: no memory region specified for loadable section `%s'\n"
+#~ msgstr "%P%F: fel: inget minnesområde angivet för inläsbara sektionen ”%s”\n"
+
+#~ msgid "%P: warning: no memory region specified for loadable section `%s'\n"
+#~ msgstr "%P: varning: inget minnesområde angivet för inläsbara sektionen ”%s”\n"
+
+#~ msgid "%P: warning: changing start of section %s by %lu bytes\n"
+#~ msgstr "%P: varning: ändrar start på sektion %s med %lu byte\n"
+
+#~ msgid "%P: warning: dot moved backwards before `%s'\n"
+#~ msgstr "%P: varning: punkt flyttad bakåt före ”%s”\n"
+
+#~ msgid "%P%F: can't relax section: %E\n"
+#~ msgstr "%P%F: kan inte slappna av sektion: %E\n"
+
+#~ msgid "%F%P: invalid data statement\n"
+#~ msgstr "%F%P: ogiltig datasats\n"
+
+#~ msgid "%P%F: gc-sections requires either an entry or an undefined symbol\n"
+#~ msgstr "%P%F: gc-sektioner kräver antingen en post eller en odefinierad symbol\n"
+
+#~ msgid "%P%F:%s: can't set start address\n"
+#~ msgstr "%P%F:%s: kan inte ställa in startadress\n"
+
+#~ msgid "%P%F: can't set start address\n"
+#~ msgstr "%P%F: kan inte ställa in startadress\n"
+
+#~ msgid "%P: warning: cannot find entry symbol %s; defaulting to %V\n"
+#~ msgstr "%P: varning: kan inte hitta ingångssymbolen %s; använder som standard %V\n"
+
+#~ msgid "%P: warning: cannot find entry symbol %s; not setting start address\n"
+#~ msgstr "%P: varning: kan inte hitta ingångssymbolen %s; ställer inte in startadress\n"
+
+#~ msgid "%P%F: Relocatable linking with relocations from format %s (%B) to format %s (%B) is not supported\n"
+#~ msgstr "%P%F: Omlokaliseringsbar länkning med omlokaliseringar från formatet %s (%B) till formatet %s (%B) stöds inte\n"
+
+#~ msgid "%P%X: %s architecture of input file `%B' is incompatible with %s output\n"
+#~ msgstr "%P%X: %s-arkitekturen i indatafilen ”%B” är inkompatibel med %s-utdata\n"
+
+#~ msgid "%P%X: failed to merge target specific data of file %B\n"
+#~ msgstr "%P%X: misslyckades med att slå samman målspecifik data från fil %B\n"
+
+#~ msgid "%P%F: Could not define common symbol `%T': %E\n"
+#~ msgstr "%P%F: Kunde inte definiera generell symbol ”%T”: %E\n"
+
+#~ msgid "%P%F: invalid syntax in flags\n"
+#~ msgstr "%P%F: ogiltig syntax i flaggor\n"
+
+#~ msgid "%F%P:%S: error: align with input and explicit align specified\n"
+#~ msgstr "%F%P:%S: fel: justering med indata och uttrycklig justering angiven\n"
+
+#~ msgid "%P%F: Failed to create hash table\n"
+#~ msgstr "%P%F: Misslyckades med att skapa hashtabell\n"
+
+#~ msgid "%P%F: %s: plugin reported error after all symbols read\n"
+#~ msgstr "%P%F: %s: instick rapporterade fel efter att alla symboler lästs in\n"
+
+#~ msgid "%P%F: multiple STARTUP files\n"
+#~ msgstr "%P%F: flera samtidiga STARTUP-filer\n"
+
+#~ msgid "%X%P:%S: section has both a load address and a load region\n"
+#~ msgstr "%X%P:%S: sektionen har både en inläsningsadress och ett minnesinläsningsområde\n"
+
+#~ msgid "%X%P:%S: PHDRS and FILEHDR are not supported when prior PT_LOAD headers lack them\n"
+#~ msgstr "%X%P:%S: PHDRS och FILEHDR stöds inte när föregående PT_LOAD-huvuden saknar dem\n"
+
+#~ msgid "%F%P: no sections assigned to phdrs\n"
+#~ msgstr "%F%P: inga sektioner tilldelade till phdrs\n"
+
+#~ msgid "%F%P: bfd_record_phdr failed: %E\n"
+#~ msgstr "%F%P: bfd_record_phdr misslyckades: %E\n"
+
+#~ msgid "%X%P: section `%s' assigned to non-existent phdr `%s'\n"
+#~ msgstr "%X%P: sektionen ”%s” är tilldelad till icke-existerande phdr ”%s”\n"
+
+#~ msgid "%X%P: unknown language `%s' in version information\n"
+#~ msgstr "%X%P: okänt språk i ”%s” i versionsinformation\n"
+
+#~ msgid "%X%P: anonymous version tag cannot be combined with other version tags\n"
+#~ msgstr "%X%P: anonym versionstagg kan inte kombineras med andra versionstaggar\n"
+
+#~ msgid "%X%P: duplicate version tag `%s'\n"
+#~ msgstr "%X%P: dubbel versionstagg ”%s”\n"
+
+#~ msgid "%X%P: duplicate expression `%s' in version information\n"
+#~ msgstr "%X%P: dubbelt uttryck ”%s” i versionsinformation\n"
+
+#~ msgid "%X%P: unable to find version dependency `%s'\n"
+#~ msgstr "%X%P: kan inte hitta versionsberoende ”%s”\n"
+
+#~ msgid "%X%P: unable to read .exports section contents\n"
+#~ msgstr "%X%P: kan inte läsa innehållet i .exports-sektionen\n"
+
+#~ msgid "%X%P: unknown feature `%s'\n"
+#~ msgstr "%X%P: okänd funktion ”%s”\n"
+
+#~ msgid "%X%P: can't set BFD default target to `%s': %E\n"
+#~ msgstr "%X%P: kan inte ställa in BFD-standardmålet till ”%s”: %E\n"
+
+#~ msgid "built in linker script"
+#~ msgstr "inbyggt länkskript"
+
+#~ msgid "using external linker script:"
+#~ msgstr "använder externt länkskript:"
+
+#~ msgid "using internal linker script:"
+#~ msgstr "använder internt länkskript:"
+
+#~ msgid "%P: link errors found, deleting executable `%s'\n"
+#~ msgstr "%P: länkfel hittades, tar bort den körbara filen ”%s”\n"
+
+#~ msgid "%X%P: unable to open for source of copy `%s'\n"
+#~ msgstr "%X%P: kan inte öppna för källan till kopian ”%s”\n"
+
+#~ msgid "%X%P: unable to open for destination of copy `%s'\n"
+#~ msgstr "%X%P: kan inte öppna för mål av kopian ”%s”\n"
+
+#~ msgid "%P: Error writing file `%s'\n"
+#~ msgstr "%P: Fel vid skrivning av filen ”%s”\n"
+
+#~ msgid "%P: Error closing file `%s'\n"
+#~ msgstr "%P: Fel vid stängning av filen ”%s”\n"
+
+#~ msgid "%P%F: bfd_hash_lookup failed: %E\n"
+#~ msgstr "%P%F: bfd_hash_lookup misslyckades: %E\n"
+
+#~ msgid "%X%P: error: duplicate retain-symbols-file\n"
+#~ msgstr "%X%P: fel: dubbel retain-symbols-file\n"
+
+#~ msgid "%P%F: bfd_hash_lookup for insertion failed: %E\n"
+#~ msgstr "%P%F: bfd_hash_lookup för ingång misslyckades: %E\n"
+
+#~ msgid "%P: `-retain-symbols-file' overrides `-s' and `-S'\n"
+#~ msgstr "%P: ”-retain-symbols-file” åsidosätter ”-s” och ”-S”\n"
+
+#~ msgid "%D: first defined here\n"
+#~ msgstr "%D: först definierad här\n"
+
+#~ msgid "%P: Disabling relaxation: it will not work with multiple definitions\n"
+#~ msgstr "%P: Stänger av avslappning: det kommer inte att fungera med flera definitioner\n"
+
+#~ msgid "%B: warning: common is here\n"
+#~ msgstr "%B: varning: gemensam är här\n"
+
+#~ msgid "%B: warning: defined here\n"
+#~ msgstr "%B: varning: definierad här\n"
+
+#~ msgid "%B: warning: larger common is here\n"
+#~ msgstr "%B: varning: större gemensam är här\n"
+
+#~ msgid "%B: warning: smaller common is here\n"
+#~ msgstr "%B: varning: mindre gemensam är här\n"
+
+#~ msgid "%B: warning: previous common is here\n"
+#~ msgstr "%B: varning: föregående gemensam är här\n"
+
+#~ msgid "%P: warning: global constructor %s used\n"
+#~ msgstr "%P: varning: global konstruktor %s användes\n"
+
+#~ msgid "%P%F: BFD backend error: BFD_RELOC_CTOR unsupported\n"
+#~ msgstr "%P%F: Fel i BFD-backend: BFD_RELOC_CTOR stöds inte\n"
+
+#~ msgid "%C: warning: undefined reference to `%T'\n"
+#~ msgstr "%C: varning: odefinierad referens till ”%T”\n"
+
+#~ msgid "%X%D: more undefined references to `%T' follow\n"
+#~ msgstr "%X%D: flera odefinierade referenser till ”%T” följer\n"
+
+#~ msgid "%D: warning: more undefined references to `%T' follow\n"
+#~ msgstr "%D: varning: flera odefinierade referenser till ”%T” följer\n"
+
+#~ msgid "%X%B: undefined reference to `%T'\n"
+#~ msgstr "%X%B: odefinierad referens till ”%T”\n"
+
+#~ msgid "%B: warning: undefined reference to `%T'\n"
+#~ msgstr "%B: varning: odefinierad referens till ”%T”\n"
+
+#~ msgid "%X%B: more undefined references to `%T' follow\n"
+#~ msgstr "%X%B: flera odefinierade referenser till ”%T” följer\n"
+
+#~ msgid "%B: warning: more undefined references to `%T' follow\n"
+#~ msgstr "%B: varning: flera odefinierade referenser till ”%T” följer\n"
+
+#~ msgid " additional relocation overflows omitted from the output\n"
+#~ msgstr " ytterligare omlokaliseringsspill utelämnade från utdatan\n"
+
+#~ msgid " relocation truncated to fit: %s against undefined symbol `%T'"
+#~ msgstr " omlokalisering trunkerad för att passa: %s mot odefinierad symbol ”%T”"
+
+#~ msgid " relocation truncated to fit: %s against symbol `%T' defined in %A section in %B"
+#~ msgstr " omlokalisering trunkerad för att passa: %s mot symbol ”%T” definierad i %A-sektion i %B"
+
+#~ msgid " relocation truncated to fit: %s against `%T'"
+#~ msgstr " omlokalisering trunkerad för att passa: %s mot ”%T”"
+
+#~ msgid "%X%H: dangerous relocation: %s\n"
+#~ msgstr "%X%H: farlig omlokalisering: %s\n"
+
+#~ msgid "%X%H: reloc refers to symbol `%T' which is not being output\n"
+#~ msgstr "%X%H: omlokalisering refererar symbol ”%T” som inte skrivs ut\n"
+
+#~ msgid "no symbol"
+#~ msgstr "ingen symbol"
+
+#~ msgid "%B: In function `%T':\n"
+#~ msgstr "%B: I funktionen ”%T”:\n"
+
+#~ msgid "%P: internal error: aborting at %s line %d in %s\n"
+#~ msgstr "%P: internt fel: avbryter vid %s rad %d i %s\n"
+
+#~ msgid "%P: internal error: aborting at %s line %d\n"
+#~ msgstr "%P: internt fel: avbryter vid %s rad %d\n"
+
+#~ msgid "%P%F: please report this bug\n"
+#~ msgstr "%P%F: rapportera detta fel\n"
+
+#~ msgid "GNU ld %s\n"
+#~ msgstr "GNU ld %s\n"
+
+#~ msgid "%P%F: bfd_new_link_order failed\n"
+#~ msgstr "%P%F: bfd_new_link_order misslyckades\n"
+
+#~ msgid "%F%P: cannot create split section name for %s\n"
+#~ msgstr "%F%P: kan inte skapa delat sektionsnamn för %s\n"
+
+#~ msgid "%F%P: clone section failed: %E\n"
+#~ msgstr "%F%P: klonsektion misslyckades: %E\n"
+
+#~ msgid "%8x something else\n"
+#~ msgstr "%8x någonting annat\n"
+
+#~ msgid "%F%P: final link failed: %E\n"
+#~ msgstr "%F%P: avslutande länkning misslyckades: %E\n"
+
+#~ msgid "KEYWORD"
+#~ msgstr "NYCKELORD"
+
+#~ msgid "Shared library control for HP/UX compatibility"
+#~ msgstr "Styrning av delade bibliotek för kompatibilitet med HP/UX"
+
+#~ msgid "ARCH"
+#~ msgstr "ARK"
+
+#~ msgid "Set architecture"
+#~ msgstr "Ställ in arkitektur"
+
+#~ msgid "TARGET"
+#~ msgstr "MÅL"
+
+#~ msgid "Specify target for following input files"
+#~ msgstr "Ange mål för följande indatafiler"
+
+#~ msgid "Read MRI format linker script"
+#~ msgstr "Läs länkskript i MRI-format"
+
+#~ msgid "Force common symbols to be defined"
+#~ msgstr "Tvinga gemensamma symboler att vara definierade"
+
+#~ msgid "Undo the effect of --export-dynamic"
+#~ msgstr "Gör effekten av --export-dynamic ogjord"
+
+#~ msgid "Small data size (if no size, same as --shared)"
+#~ msgstr "Liten datastorlek (om ingen storlek, samma som --shared)"
+
+#~ msgid "Set PROGRAM as the dynamic linker to use"
+#~ msgstr "Ställ in PROGRAM som den dynamiska länkare som ska användas"
+
+#~ msgid "DIRECTORY"
+#~ msgstr "KATALOG"
+
+#~ msgid "Override the default sysroot location"
+#~ msgstr "Åsidosätt standard sysroot-plats"
+
+#~ msgid "Set emulation"
+#~ msgstr "Ställ in emulering"
+
+#~ msgid "ARG"
+#~ msgstr "ARG"
+
+#~ msgid "Send arg to last-loaded plugin"
+#~ msgstr "Skicka argument till senast inlästa instick"
+
+#~ msgid "Ignored for GCC LTO option compatibility"
+#~ msgstr "Ignorerad för flaggkompatibilitet med GCC LTO"
+
+#~ msgid "Just link symbols (if directory, same as --rpath)"
+#~ msgstr "Länka bara symboler (om katalog, samma som --rpath)"
+
+#~ msgid "Do not strip symbols in discarded sections"
+#~ msgstr "Ta inte bort symboler i kastade sektioner"
+
+#~ msgid "Trace file opens"
+#~ msgstr "Spåra filöppningar"
+
+#~ msgid "Read default linker script"
+#~ msgstr "Läs in standardlänkskript"
+
+#~ msgid "[=SECTION]"
+#~ msgstr "[=SEKTION]"
+
+#~ msgid "Don't merge input [SECTION | orphan] sections"
+#~ msgstr "Slå inte samman [SEKTION | föräldralösa] sektioner"
+
+#~ msgid "Build global constructor/destructor tables"
+#~ msgstr "Bygg globala konstruktors-/destruktorstabeller"
+
+#~ msgid "Don't discard any local symbols"
+#~ msgstr "Kasta inte några lokala symboler"
+
+#~ msgid "Trace mentions of SYMBOL"
+#~ msgstr "Spåra omnämningar av SYMBOL"
+
+#~ msgid "Accept input files whose architecture cannot be determined"
+#~ msgstr "Acceptera indatafiler vars arkitektur inte kan avgöras"
+
+#~ msgid "Reject input files whose architecture is unknown"
+#~ msgstr "Avvisa indatafiler vars arkitektur är okänd"
+
+#~ msgid ""
+#~ "Always set DT_NEEDED for dynamic libraries mentioned on\n"
+#~ "                                the command line"
+#~ msgstr ""
+#~ "Ställ alltid in DT_NEEDED för dynamiska bibliotek som nämns på\n"
+#~ "                                kommandoraden"
+
+#~ msgid "Ignored for SunOS compatibility"
+#~ msgstr "Ignorerad för SunOS-kompatibilitet"
+
+#~ msgid "Link against shared libraries"
+#~ msgstr "Länka mot delade bibliotek"
+
+#~ msgid "Bind global references locally"
+#~ msgstr "Bind globala referenser lokalt"
+
+#~ msgid "Copy DT_NEEDED links mentioned inside DSOs that follow"
+#~ msgstr "Kopiera DT_NEEDED-länkar som nämns inuti DSO:er som följer"
+
+#~ msgid "Do not copy DT_NEEDED links mentioned inside DSOs that follow"
+#~ msgstr "Kopiera inte DT_NEEDED-länkar som nämns inuti DSO:er som följer"
+
+#~ msgid "Demangle symbol names [using STYLE]"
+#~ msgstr "Avkoda symbolnamn [använd STIL]"
+
+#~ msgid "Generate embedded relocs"
+#~ msgstr "Generera inbäddade omlokaliseringar"
+
+#~ msgid "Force generation of file with .exe suffix"
+#~ msgstr "Tvinga generering av fil med ändelsen .exe"
+
+#~ msgid "Remove unused sections (on some targets)"
+#~ msgstr "Ta bort oanvända sektioner (på vissa mål)"
+
+#~ msgid "Set default hash table size close to <NUMBER>"
+#~ msgstr "Ställ in standardstorlek för hashtabell nära <NUMMER>"
+
+#~ msgid "Print option help"
+#~ msgstr "Visa hjälp om flaggor"
+
+#~ msgid "Use less memory and more disk I/O"
+#~ msgstr "Använd mindre minne och mer disk-I/O"
+
+#~ msgid "Create default symbol version for imported symbols"
+#~ msgstr "Skapa standardsymbolversion för importerade symboler"
+
+#~ msgid "Turn off --whole-archive"
+#~ msgstr "Slå av ---whole-archive"
+
+#~ msgid "Specify target of output file"
+#~ msgstr "Ange mål för utdatafil"
+
+#~ msgid "Ignored for Linux compatibility"
+#~ msgstr "Ignorerad för kompatibilitet med Linux"
+
+#~ msgid "Reduce memory overheads, possibly taking much longer"
+#~ msgstr "Reducera minnesanvändning, kan ta längre tid"
+
+#~ msgid "Reduce code size by using target specific optimizations"
+#~ msgstr "Reducera kodstorlek genom att använda målspecifika optimeringar"
+
+#~ msgid "Do not use relaxation techniques to reduce code size"
+#~ msgstr "Använd inte lättnadstekniker för att reducera kodstorlek"
+
+#~ msgid "name|alignment"
+#~ msgstr "name|alignment"
+
+#~ msgid "Sort sections by name or maximum alignment"
+#~ msgstr "Sortera sektioner efter namn eller maximal justering"
+
+#~ msgid "How many tags to reserve in .dynamic section"
+#~ msgstr "Hur många taggar som ska reserveras i .dynamic-sektion"
+
+#~ msgid "[=SIZE]"
+#~ msgstr "[=STORLEK]"
+
+#~ msgid "Split output sections every SIZE octets"
+#~ msgstr "Dela utdatasektioner var STORLEK oktett"
+
+#~ msgid "[=COUNT]"
+#~ msgstr "[=ANTAL]"
+
+#~ msgid "Split output sections every COUNT relocs"
+#~ msgstr "Dela utdatasektioner var ANTAL omlokalisering"
+
+#~ msgid "Display target specific options"
+#~ msgstr "Visa målspecifika flaggor"
+
+#~ msgid "Do task level linking"
+#~ msgstr "Utför länkning på uppgiftsnivå"
+
+#~ msgid "Use same format as native linker"
+#~ msgstr "Använd samma format som inhemska länkaren"
+
+#~ msgid "Set address of named section"
+#~ msgstr "Ställ in adress på namngiven sektion"
+
+#~ msgid "Set address of .data section"
+#~ msgstr "Ställ in adress på .data-sektion"
+
+#~ msgid "Set address of .text section"
+#~ msgstr "Ställ in adress på .text-sektion"
+
+#~ msgid ""
+#~ "How to handle unresolved symbols.  <method> is:\n"
+#~ "                                ignore-all, report-all, ignore-in-object-files,\n"
+#~ "                                ignore-in-shared-libs"
+#~ msgstr ""
+#~ "Hur oupplösta symboler ska hanteras.  <metod> är:\n"
+#~ "                                ignore-all, report-all, ignore-in-object-files,\n"
+#~ "                                ignore-in-shared-libs"
+
+#~ msgid "[=NUMBER]"
+#~ msgstr "[=NUMMER]"
+
+#~ msgid "Output lots of information during link"
+#~ msgstr "Visa mycket information under länkning"
+
+#~ msgid ""
+#~ "Take export symbols list from .exports, using\n"
+#~ "                                SYMBOL as the version."
+#~ msgstr ""
+#~ "Plocka lista med exportsymboler från .exports och\n"
+#~ "                                använd SYMBOL som version."
+
+#~ msgid "Warn if global constructors/destructors are seen"
+#~ msgstr "Varna om globala konstruktorer/destruktorer hittas"
+
+#~ msgid "Warn if the multiple GP values are used"
+#~ msgstr "Varna om flera GP-värden används"
+
+#~ msgid "Warn only once per undefined symbol"
+#~ msgstr "Varna endast en gång per odefinierad symbol"
+
+#~ msgid "Warn if start of section changes due to alignment"
+#~ msgstr "Varna om början på sektionen ändras på grund av justering"
+
+#~ msgid "Warn if shared object has DT_TEXTREL"
+#~ msgstr "Varna om delat objekt har DT_TEXTREL"
+
+#~ msgid "Warn if an object has alternate ELF machine code"
+#~ msgstr "Varna om objekt har alternativ ELF-maskinkod"
+
+#~ msgid "Include all objects from following archives"
+#~ msgstr "Inkludera alla objekt från följande arkiv"
+
+#~ msgid "Unresolved SYMBOL will not cause an error or warning"
+#~ msgstr "Oupplöst SYMBOL kommer inte att orsaka fel eller varning"
+
+#~ msgid "%P%F: unrecognized -a option `%s'\n"
+#~ msgstr "%P%F: okänd -a-flagga ”%s”\n"
+
+#~ msgid "%P%F: unrecognized -assert option `%s'\n"
+#~ msgstr "%P%F: okänd -assert-flagga ”%s”\n"
+
+#~ msgid "%F%P: unknown demangling style `%s'\n"
+#~ msgstr "%F%P: okänd avkodningsstil ”%s”\n"
+
+#~ msgid "%P%F: invalid number `%s'\n"
+#~ msgstr "%P%F: ogiltigt tal ”%s”\n"
+
+#~ msgid "%P%F: bad --unresolved-symbols option: %s\n"
+#~ msgstr "%P%F: okänd --unresolved-symbols-flagga %s\n"
+
+#~ msgid "%P%F: bad -plugin-opt option\n"
+#~ msgstr "%P%F: okänd -plugin-opt-flagga\n"
+
+#~ msgid "%P%F: bad -rpath option\n"
+#~ msgstr "%P%F: okänd -rpath-flagga\n"
+
+#~ msgid "%P%F: -shared not supported\n"
+#~ msgstr "%P%F: -shared stöds inte\n"
+
+#~ msgid "descending"
+#~ msgstr "fallande"
+
+#~ msgid "ascending"
+#~ msgstr "stigande"
+
+#~ msgid "%P%F: invalid common section sorting option: %s\n"
+#~ msgstr "%P%F: ogiltigt sorteringsalternativ för generell sektion: %s\n"
+
+#~ msgid "name"
+#~ msgstr "namn"
+
+#~ msgid "alignment"
+#~ msgstr "justering"
+
+#~ msgid "%P%F: invalid section sorting option: %s\n"
+#~ msgstr "%P%F: ogiltigt alternativ för sektionssortering: %s\n"
+
+#~ msgid "%P%F: missing argument(s) to option \"--section-start\"\n"
+#~ msgstr "%P%F: argument saknas till flaggan ”--section-start”\n"
+
+#~ msgid "%P%F: group ended before it began (--help for usage)\n"
+#~ msgstr "%P%F: gruppen slutade innan den började (--help för användning)\n"
+
+#~ msgid "%P%X: --hash-size needs a numeric argument\n"
+#~ msgstr "%P%X: --hash-size behöver ett numeriskt argument\n"
+
+#~ msgid "%P%F: -r and -shared may not be used together\n"
+#~ msgstr "%P%F: -r och -shared kan inte användas tillsammans\n"
+
+#~ msgid "%P%F: -F may not be used without -shared\n"
+#~ msgstr "%P%F: -F kan inte användas utan -shared\n"
+
+#~ msgid "%P%F: invalid hex number `%s'\n"
+#~ msgstr "%P%F: ogiltigt hexadecimalt tal ”%s”\n"
+
+#~ msgid "Options:\n"
+#~ msgstr "Flaggor:\n"
+
+#~ msgid "  @FILE"
+#~ msgstr "  @FIL"
+
+#~ msgid "Read options from FILE\n"
+#~ msgstr "Inläsningsflaggor från FIL\n"
+
+#~ msgid "%s: emulation specific options:\n"
+#~ msgstr "%s: emuleringsspecifika flaggor:\n"
+
+#~ msgid "%P%F: unknown format type %s\n"
+#~ msgstr "%P%F: okänd formattyp %s\n"
+
+#~ msgid "%XCannot export %s: invalid export name\n"
+#~ msgstr "%XKan inte exportera %s: ogiltigt exportnamn\n"
+
+#~ msgid "%XError, duplicate EXPORT with ordinals: %s (%d vs %d)\n"
+#~ msgstr "%XFel, dubbel EXPORT med ordinaler: %s (%d gentemot %d)\n"
+
+#~ msgid "Warning, duplicate EXPORT: %s\n"
+#~ msgstr "Varning, dubbel EXPORT: %s\n"
+
+#~ msgid "%XCannot export %s: symbol not defined\n"
+#~ msgstr "%XKan inte exportera %s: symbolen är inte definierad\n"
+
+#~ msgid "%XCannot export %s: symbol wrong type (%d vs %d)\n"
+#~ msgstr "%XKan inte exportera %s: symbolen är av fel typ (%d gentemot %d)\n"
+
+#~ msgid "%XError, ordinal used twice: %d (%s vs %s)\n"
+#~ msgstr "%XFel, ordinalen användes två gånger: %d (%s gentemot %s)\n"
+
+#~ msgid "%XError: %d-bit reloc in dll\n"
+#~ msgstr "%XFel: %d-bitars omlokalisering i dll\n"
+
+#~ msgid "%s: Can't open output def file %s\n"
+#~ msgstr "%s: Kan inte öppna utdatadefinitionsfilen %s\n"
+
+#~ msgid "; no contents available\n"
+#~ msgstr "; inget innehåll är tillgängligt\n"
+
+#~ msgid "%C: variable '%T' can't be auto-imported. Please read the documentation for ld's --enable-auto-import for details.\n"
+#~ msgstr "%C: variabeln ”%T” kan inte importeras automatiskt. Läs dokumentationen för ld:s --enable-auto-import för detaljer.\n"
+
+#~ msgid "%XCan't open .lib file: %s\n"
+#~ msgstr "%XKan inte öppna .lib-filen: %s\n"
+
+#~ msgid "Creating library file: %s\n"
+#~ msgstr "Skapar biblioteksfil: %s\n"
+
+#~ msgid "%Xbfd_openr %s: %E\n"
+#~ msgstr "%Xbfd_openr %s: %E\n"
+
+#~ msgid "%X%s(%s): can't find member in non-archive file"
+#~ msgstr "%X%s(%s): kan inte hitta medlem i icke-arkivfil"
+
+#~ msgid "%XError: can't use long section names on this arch\n"
+#~ msgstr "%XError: kan inte använda långa sektionsnamn för denna ark\n"
+
+#~ msgid "<no plugin>"
+#~ msgstr "<inget instick>"
+
+#~ msgid "%P%F: %s: error loading plugin: %s\n"
+#~ msgstr "%P%F: %s: Fel vid inläsning av instick: %s\n"
+
+#~ msgid "could not create dummy IR bfd: %F%E\n"
+#~ msgstr "kunde inte skapa låtsas IR-bfd: %F%E\n"
+
+#~ msgid "%P%F: %s: non-ELF symbol in ELF BFD!\n"
+#~ msgstr "%P%F: %s: icke-ELF-symbol i ELF BFD!\n"
+
+#~ msgid "%P%F: unknown ELF symbol visibility: %d!\n"
+#~ msgstr "%P%F: okänd synlighet för ELF-symbol: %d!\n"
+
+#~ msgid "%P: %B: symbol `%s' definition: %d, visibility: %d, resolution: %d\n"
+#~ msgstr "%P: %B: symbol ”%s” definition: %d, synlighet: %d, upplösning %d\n"
+
+#~ msgid "%P%F: %s: plugin error: %d\n"
+#~ msgstr "%P%F: %s: insticksfel: %d\n"
+
+#~ msgid "%P%F: %s: plugin reported error claiming file\n"
+#~ msgstr "%P%F: %s: instick rapporterade fel vid anspråk på fil\n"
+
+#~ msgid "%P: %s: error in plugin cleanup: %d (ignored)\n"
+#~ msgstr "%P: %s fel vid insticksuppstädning: %d (överhoppat)\n"
+
+#~ msgid "  --support-old-code   Support interworking with old code\n"
+#~ msgstr "  --support-old-code   Stöd interaktion med gammal kod\n"
+
+#~ msgid ""
+#~ "  --enable-auto-import               Do sophistcated linking of _sym to\n"
+#~ "                                       __imp_sym for DATA references\n"
+#~ msgstr ""
+#~ "  --enable-auto-import               Utför sofistikerad länkning av _sym till\n"
+#~ "                                       __imp_sym för DATA-referenser\n"
+
+#~ msgid "%B%F: could not read symbols; %E\n"
+#~ msgstr "%B%F: kunde inte läsa symboler; %E\n"
+
+#~ msgid "%F%P: %s uses undefined section %s\n"
+#~ msgstr "%F%P: %s använder odefinierad sektion %s\n"
+
+#~ msgid "%F%P: %s forward reference of section %s\n"
+#~ msgstr "%F%P: %s framåtreferens av sektionen %s\n"
+
+#~ msgid "%F%S non constant expression for %s\n"
+#~ msgstr "%F%S ickekonstant uttryck för %s\n"
+
+#~ msgid "%F%P: cannot open %s for %s: %E\n"
+#~ msgstr "%F%P: kan inte öppna %s för %s: %E\n"
+
+#~ msgid "%P%F: target architecture respecified\n"
+#~ msgstr "%P%F: målarkitekturen specifierades om\n"
+
+#~ msgid "%P: %B: warning: ignoring duplicate `%s' section symbol `%s'\n"
+#~ msgstr "%P: %B: varning: ignorerar dubbla \"%s\"-sektionssymbolen \"%s\"\n"
+
+#~ msgid "%X%P: region %s is full (%B section %s)\n"
+#~ msgstr "%X%P: området %s är fullt (%B-sektion %s)\n"
+
+#~ msgid "%P: no [COMMON] command, defaulting to .bss\n"
+#~ msgstr "%P: inget [COMMON]-kommando, använder standardalternativet .bss\n"
+
+#~ msgid "%P%F: -r and --mpc860c0 may not be used together\n"
+#~ msgstr "%P%F: -r och --mpc860c0 kan inte användas tillsammans\n"
+
+#~ msgid "%P%F: --relax and -r may not be used together\n"
+#~ msgstr "%P%F: --relax och -r kan inte användas tillsammans\n"
+
+#~ msgid "%F%P: bfd_hash_table_init failed: %E\n"
+#~ msgstr "%F%P: bfd_hash_table_init misslyckades: %E\n"
+
+#~ msgid "%F%P: bfd_hash_lookup failed: %E\n"
+#~ msgstr "%F%P: bfd_hash_lookup misslyckades: %E\n"
+
+#~ msgid "%P%X: generated"
+#~ msgstr "%P%X: genererad"
+
+#~ msgid "%B%F: could not read symbols\n"
+#~ msgstr "%B%F: kunde inte läsa symboler\n"
+
+#~ msgid "[=WORDS]"
+#~ msgstr "[=ORD]"
+
+#~ msgid ""
+#~ "Modify problematic branches in last WORDS (1-10,\n"
+#~ "\t\t\t\tdefault 5) words of a page"
+#~ msgstr ""
+#~ "Ändra problematiska greningar i sista ORD (1-10,\n"
+#~ "\t\t\t\tstandardvärde 5) orden på en sida"
+
+#~ msgid "%P%F: invalid argument to option \"mpc860c0\"\n"
+#~ msgstr "%P%F: ogiltigt argument till flaggan \"mpc860c0\"\n"
+
+#~ msgid "                                       create __imp_<SYMBOL> as well.\n"
+#~ msgstr "                                       skapa även __imp_<SYMBOL>.\n"
+
+#~ msgid "  --dll-search-prefix=<string>       When linking dynamically to a dll witout an\n"
+#~ msgstr "  --dll-search-prefix=<sträng>       Använd hellre <sträng><basnamn>.dll\n"
+
+#~ msgid "                                       importlib, use <string><basename>.dll \n"
+#~ msgstr "                                       än lib<basnamn>.dll vid dynamisk\n"
+
+#~ msgid "Archive member included"
+#~ msgstr "Inkluderade arkivmedlem"
+
+#~ msgid "Don't merge orphan sections with the same name"
+#~ msgstr "Slå inte samman föräldralösa sektioner med samma namn"

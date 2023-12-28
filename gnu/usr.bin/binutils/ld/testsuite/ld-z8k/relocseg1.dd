@@ -1,0 +1,61 @@
+
+.*:     file format coff-z8k
+
+
+Disassembly of section \.text:
+
+00001000 <this_start>:
+    1000:	8d07           	nop	
+    1002:	e8fe           	jr	t,0x1000
+    1004:	e826           	jr	t,0x1052
+    1006:	5e08 8000 1000 	jp	t,0x1000
+    100c:	5e08 8000 1052 	jp	t,0x1052
+    1012:	5f00 8000 1052 	call	0x1052
+    1018:	5f00 8000 109c 	call	0x109c
+    101e:	5f00 8000 1000 	call	0x1000
+    1024:	5f00 8000 1046 	call	0x1046
+    102a:	dfed           	calr	0x1052
+    102c:	dfc9           	calr	0x109c
+    102e:	d018           	calr	0x1000
+    1030:	dff6           	calr	0x1046
+    1032:	6101 8000 200e 	ld	r1,0x200e
+    1038:	6101 8000 2004 	ld	r1,0x2004
+    103e:	2101 200e      	ld	r1,#0x200e
+    1042:	2101 2004      	ld	r1,#0x2004
+
+00001046 <this_label>:
+    1046:	ca04           	ldb	rl2,#0x4
+    1048:	ca14           	ldb	rl2,#0x14
+    104a:	ca0e           	ldb	rl2,#0xe
+    104c:	ca1e           	ldb	rl2,#0x1e
+    104e:	a6b3           	bitb	rl3,#0x3
+    1050:	8d07           	nop	
+
+00001052 <other_start>:
+    1052:	8d07           	nop	
+    1054:	f182           	djnz	r1,0x1052
+    1056:	f809           	dbjnz	rl0,0x1046
+    1058:	e8d3           	jr	t,0x1000
+    105a:	e8fb           	jr	t,0x1052
+    105c:	5e08 8000 1000 	jp	t,0x1000
+    1062:	5e08 8000 1052 	jp	t,0x1052
+    1068:	5f00 8000 1052 	call	0x1052
+    106e:	5f00 8000 109c 	call	0x109c
+    1074:	5f00 8000 1000 	call	0x1000
+    107a:	5f00 8000 1046 	call	0x1046
+    1080:	d018           	calr	0x1052
+    1082:	dff4           	calr	0x109c
+    1084:	d043           	calr	0x1000
+    1086:	d021           	calr	0x1046
+    1088:	6101 8000 200e 	ld	r1,0x200e
+    108e:	6101 8000 2004 	ld	r1,0x2004
+    1094:	2101 200e      	ld	r1,#0x200e
+    1098:	2101 2004      	ld	r1,#0x2004
+
+0000109c <other_label>:
+    109c:	ca04           	ldb	rl2,#0x4
+    109e:	ca14           	ldb	rl2,#0x14
+    10a0:	ca0e           	ldb	rl2,#0xe
+    10a2:	ca1e           	ldb	rl2,#0x1e
+    10a4:	bd5a           	ldk	r5,#0xa
+    10a6:	8d07           	nop	

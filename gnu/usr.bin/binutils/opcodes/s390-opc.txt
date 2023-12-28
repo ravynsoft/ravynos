@@ -1,0 +1,2048 @@
+#  S/390 opcodes list. Use s390-mkopc to convert it into the opcode table.
+#  Copyright (C) 2000-2023 Free Software Foundation, Inc.
+#  Contributed by Martin Schwidefsky (schwidefsky@de.ibm.com).
+5a a RX_RRRD "add" g5 esa,zarch
+6a ad RX_FRRD "add normalized (long)" g5 esa,zarch
+2a adr RR_FF "add normalized (long)" g5 esa,zarch
+7a ae RX_FRRD "add normalized (short)" g5 esa,zarch
+3a aer RR_FF "add normalized (short)" g5 esa,zarch
+4a ah RX_RRRD "add halfword" g5 esa,zarch
+5e al RX_RRRD "add logical" g5 esa,zarch
+1e alr RR_RR "add logical" g5 esa,zarch
+fa ap SS_LLRDRD "add decimal" g5 esa,zarch
+1a ar RR_RR "add" g5 esa,zarch
+7e au RX_FRRD "add unnormalized (short)" g5 esa,zarch
+3e aur RR_FF "add unnormalized (short)" g5 esa,zarch
+6e aw RX_FRRD "add unnormalized (long)" g5 esa,zarch
+2e awr RR_FF "add unnormalized (long)" g5 esa,zarch
+36 axr RR_FEFE "add normalized" g5 esa,zarch
+b240 bakr RRE_RR "branch and stack" g5 esa,zarch
+45 bal RX_RRRD "branch and link" g5 esa,zarch
+05 balr RR_RR "branch and link" g5 esa,zarch
+4d bas RX_RRRD "branch and save" g5 esa,zarch
+0d basr RR_RR "branch and save" g5 esa,zarch
+0c bassm RR_RR "branch and save and set mode" g5 esa,zarch
+47 bc RX_URRD "branch on condition" g5 esa,zarch
+07 bcr RR_UR "branch on condition" g5 esa,zarch
+46 bct RX_RRRD "branch on count" g5 esa,zarch
+06 bctr RR_RR "branch on count" g5 esa,zarch
+b258 bsg RRE_RR "branch in subspace group" g5 esa,zarch
+0b bsm RR_RR "branch and set mode" g5 esa,zarch
+86 bxh RS_RRRD "branch on index high" g5 esa,zarch
+87 bxle RS_RRRD "branch on index low or equal" g5 esa,zarch
+59 c RX_RRRD "compare" g5 esa,zarch
+69 cd RX_FRRD "compare (long)" g5 esa,zarch
+29 cdr RR_FF "compare (long)" g5 esa,zarch
+bb cds RS_RERERD "compare double and swap" g5 esa,zarch
+79 ce RX_FRRD "compare (short)" g5 esa,zarch
+39 cer RR_FF "compare (short)" g5 esa,zarch
+b21a cfc S_RD "compare and form codeword" g5 esa,zarch
+49 ch RX_RRRD "compare halfword" g5 esa,zarch
+55 cl RX_RRRD "compare logical" g5 esa,zarch
+d5 clc SS_L0RDRD "compare logical" g5 esa,zarch
+0f clcl RR_RR "compare logical long" g5 esa,zarch
+95 cli SI_URD "compare logical" g5 esa,zarch
+bd clm RS_RURD "compare logical characters under mask" g5 esa,zarch
+15 clr RR_RR "compare logical" g5 esa,zarch
+b25d clst RRE_RR "compare logical string" g5 esa,zarch
+f9 cp SS_LLRDRD "compare decimal" g5 esa,zarch
+b24d cpya RRE_AA "copy access" g5 esa,zarch
+19 cr RR_RR "compare" g5 esa,zarch
+ba cs RS_RRRD "compare and swap" g5 esa,zarch
+b230 csch S_00 "clear subchannel" g5 esa,zarch
+b257 cuse RRE_RERE "compare until substring equal" g5 esa,zarch
+b250 csp RRE_RR "compare and swap and purge" g5 esa,zarch
+4f cvb RX_RRRD "convert to binary" g5 esa,zarch
+4e cvd RX_RRRD "convert to decimal" g5 esa,zarch
+5d d RX_RERRD "divide" g5 esa,zarch
+6d dd RX_FRRD "divide (long)" g5 esa,zarch
+2d ddr RR_FF "divide (long)" g5 esa,zarch
+7d de RX_FRRD "divide (short)" g5 esa,zarch
+3d der RR_FF "divide (short)" g5 esa,zarch
+83 diag RS_RRRD "diagnose" g5 esa,zarch
+fd dp SS_LLRDRD "divide decimal" g5 esa,zarch
+1d dr RR_RER "divide" g5 esa,zarch
+b22d dxr RRE_FEFE "divide (ext.)" g5 esa,zarch
+b24f ear RRE_RA "extract access" g5 esa,zarch
+de ed SS_L0RDRD "edit" g5 esa,zarch
+df edmk SS_L0RDRD "edit and mark" g5 esa,zarch
+b226 epar RRE_R0 "extract primary ASN" g5 esa,zarch
+b249 ereg RRE_RR "extract stacked registers" g5 esa,zarch
+b227 esar RRE_R0 "extract secondary ASN" g5 esa,zarch
+b24a esta RRE_RR "extract stacked state" g5 esa,zarch
+44 ex RX_RRRD "execute" g5 esa,zarch
+24 hdr RR_FF "halve (long)" g5 esa,zarch
+34 her RR_FF "halve (short)" g5 esa,zarch
+b231 hsch S_00 "halt subchannel" g5 esa,zarch
+b224 iac RRE_R0 "insert address space control" g5 esa,zarch
+43 ic RX_RRRD "insert character" g5 esa,zarch
+bf icm RS_RURD "insert characters under mask" g5 esa,zarch
+b20b ipk S_00 "insert PSW key" g5 esa,zarch
+b222 ipm RRE_R0 "insert program mask" g5 esa,zarch
+b221 ipte RRF_RURR "invalidate page table entry" g5 esa,zarch optparm2
+b229 iske RRE_RR "insert storage key extended" g5 esa,zarch
+b223 ivsk RRE_RR "insert virtual storage key" g5 esa,zarch
+58 l RX_RRRD "load" g5 esa,zarch
+41 la RX_RRRD "load address" g5 esa,zarch
+51 lae RX_RRRD "load address extended" g5 esa,zarch
+9a lam RS_AARD "load access multiple" g5 esa,zarch
+e500 lasp SSE_RDRD "load address space parameters" g5 esa,zarch
+23 lcdr RR_FF "load complement (long)" g5 esa,zarch
+33 lcer RR_FF "load complement (short)" g5 esa,zarch
+13 lcr RR_RR "load complement" g5 esa,zarch
+b7 lctl RS_CCRD "load control" g5 esa,zarch
+68 ld RX_FRRD "load (long)" g5 esa,zarch
+28 ldr RR_FF "load (long)" g5 esa,zarch
+78 le RX_FRRD "load (short)" g5 esa,zarch
+38 ler RR_FF "load (short)" g5 esa,zarch
+48 lh RX_RRRD "load halfword" g5 esa,zarch
+98 lm RS_RRRD "load multiple" g5 esa,zarch
+21 lndr RR_FF "load negative (long)" g5 esa,zarch
+31 lner RR_FF "load negative (short)" g5 esa,zarch
+11 lnr RR_RR "load negative" g5 esa,zarch
+20 lpdr RR_FF "load positive (long)" g5 esa,zarch
+30 lper RR_FF "load positive (short)" g5 esa,zarch
+10 lpr RR_RR "load positive" g5 esa,zarch
+82 lpsw SI_RD "load PSW" g5 esa,zarch
+18 lr RR_RR "load" g5 esa,zarch
+b1 lra RX_RRRD "load real address" g5 esa,zarch
+25 ldxr RR_FFE "load rounded (ext. to long)" g5 esa,zarch
+25 lrdr RR_FFE "load rounded (ext. to long)" g5 esa,zarch
+35 ledr RR_FF "load rounded (long to short)" g5 esa,zarch
+35 lrer RR_FF "load rounded (long to short)" g5 esa,zarch
+22 ltdr RR_FF "load and test (long)" g5 esa,zarch
+32 lter RR_FF "load and test (short)" g5 esa,zarch
+12 ltr RR_RR "load and test" g5 esa,zarch
+b24b lura RRE_RR "load using real address" g5 esa,zarch
+5c m RX_RERRD "multiply" g5 esa,zarch
+af mc SI_URD "monitor call" g5 esa,zarch
+6c md RX_FRRD "multiply (long)" g5 esa,zarch
+2c mdr RR_FF "multiply (long)" g5 esa,zarch
+7c mde RX_FRRD "multiply (short to long)" g5 esa,zarch
+7c me RX_FRRD "multiply (short to long)" g5 esa,zarch
+3c mder RR_FF "multiply short to long hfp" g5 esa,zarch
+3c mer RR_FF "multiply (short to long)" g5 esa,zarch
+4c mh RX_RRRD "multiply halfword" g5 esa,zarch
+fc mp SS_LLRDRD "multiply decimal" g5 esa,zarch
+1c mr RR_RER "multiply" g5 esa,zarch
+b232 msch S_RD "modify subchannel" g5 esa,zarch
+b247 msta RRE_R0 "modify stacked state" g5 esa,zarch
+d2 mvc SS_L0RDRD "move" g5 esa,zarch
+e50f mvcdk SSE_RDRD "move with destination key" g5 esa,zarch
+e8 mvcin SS_L0RDRD "move inverse" g5 esa,zarch
+d9 mvck SS_RRRDRD "move with key" g5 esa,zarch
+0e mvcl RR_RR "move long" g5 esa,zarch
+da mvcp SS_RRRDRD "move to primary" g5 esa,zarch
+db mvcs SS_RRRDRD "move to secondary" g5 esa,zarch
+e50e mvcsk SSE_RDRD "move with source key" g5 esa,zarch
+92 mvi SI_URD "move" g5 esa,zarch
+d1 mvn SS_L0RDRD "move numerics" g5 esa,zarch
+f1 mvo SS_LLRDRD "move with offset" g5 esa,zarch
+b254 mvpg RRE_RR "move page" g5 esa,zarch
+b255 mvst RRE_RR "move string" g5 esa,zarch
+d3 mvz SS_L0RDRD "move zones" g5 esa,zarch
+67 mxd RX_FERRD "multiply (long to ext.)" g5 esa,zarch
+27 mxdr RR_FEF "multiply (long to ext.)" g5 esa,zarch
+26 mxr RR_FEFE "multiply (ext.)" g5 esa,zarch
+54 n RX_RRRD "AND" g5 esa,zarch
+d4 nc SS_L0RDRD "AND" g5 esa,zarch
+94 ni SI_URD "AND" g5 esa,zarch
+14 nr RR_RR "AND" g5 esa,zarch
+56 o RX_RRRD "OR" g5 esa,zarch
+d6 oc SS_L0RDRD "OR" g5 esa,zarch
+96 oi SI_URD "OR" g5 esa,zarch
+16 or RR_RR "OR" g5 esa,zarch
+f2 pack SS_LLRDRD "pack" g5 esa,zarch
+b248 palb RRE_00 "purge ALB" g5 esa,zarch
+b218 pc S_RD "program call" g5 esa,zarch
+0101 pr E "program return" g5 esa,zarch
+b228 pt RRE_RR "program transfer" g5 esa,zarch
+b20d ptlb S_00 "purge TLB" g5 esa,zarch
+b23b rchp S_00 "reset channel path" g5 esa,zarch
+b22a rrbe RRE_RR "reset reference bit extended" g5 esa,zarch
+b238 rsch S_00 "resume subchannel" g5 esa,zarch
+5b s RX_RRRD "subtract" g5 esa,zarch
+b219 sac S_RD "set address space control" g5 esa,zarch
+b279 sacf S_RD "set address space control fast" g5 esa,zarch
+b237 sal S_00 "set address limit" g5 esa,zarch
+b24e sar RRE_AR "set access" g5 esa,zarch
+b23c schm S_00 "set channel monitor" g5 esa,zarch
+b204 sck S_RD "set clock" g5 esa,zarch
+b206 sckc S_RD "set clock comparator" g5 esa,zarch
+6b sd RX_FRRD "subtract normalized (long)" g5 esa,zarch
+2b sdr RR_FF "subtract normalized (long)" g5 esa,zarch
+7b se RX_FRRD "subtract normalized (short)" g5 esa,zarch
+3b ser RR_FF "subtract normalized (short)" g5 esa,zarch
+4b sh RX_RRRD "subtract halfword" g5 esa,zarch
+b214 sie S_RD "start interpretive execution" g5 esa,zarch
+ae sigp RS_RRRD "signal processor" g5 esa,zarch
+5f sl RX_RRRD "subtract logical" g5 esa,zarch
+8b sla RS_R0RD "shift left single" g5 esa,zarch
+8f slda RS_RE0RD "shift left double (long)" g5 esa,zarch
+8d sldl RS_RE0RD "shift left double logical (long)" g5 esa,zarch
+89 sll RS_R0RD "shift left single logical" g5 esa,zarch
+1f slr RR_RR "subtract logical" g5 esa,zarch
+fb sp SS_LLRDRD "subtract decimal" g5 esa,zarch
+b20a spka S_RD "set PSW key from address" g5 esa,zarch
+04 spm RR_R0 "set program mask" g5 esa,zarch
+b208 spt S_RD "set CPU timer" g5 esa,zarch
+b210 spx S_RD "set prefix" g5 esa,zarch
+b244 sqdr RRE_FF "square root (long)" g5 esa,zarch
+b245 sqer RRE_FF "square root (short)" g5 esa,zarch
+1b sr RR_RR "subtract" g5 esa,zarch
+8a sra RS_R0RD "shift right single" g5 esa,zarch
+8e srda RS_RE0RD "shift right double (long)" g5 esa,zarch
+8c srdl RS_RE0RD "shift right double logical (long)" g5 esa,zarch
+88 srl RS_R0RD "shift right single logical" g5 esa,zarch
+f0 srp SS_LIRDRD "shift and round decimal" g5 esa,zarch
+b25e srst RRE_RR "search string" g5 esa,zarch
+b225 ssar RRE_R0 "set secondary ASN" g5 esa,zarch
+b233 ssch S_RD "start subchannel" g5 esa,zarch
+b22b sske RRE_RR "set storage key extended" g5 esa,zarch
+80 ssm SI_RD "set system mask" g5 esa,zarch
+50 st RX_RRRD "store" g5 esa,zarch
+9b stam RS_AARD "store access multiple" g5 esa,zarch
+b212 stap S_RD "store CPU address" g5 esa,zarch
+42 stc RX_RRRD "store character" g5 esa,zarch
+b205 stck S_RD "store clock" g5 esa,zarch
+b207 stckc S_RD "store clock comparator" g5 esa,zarch
+be stcm RS_RURD "store characters under mask" g5 esa,zarch
+b23a stcps S_RD "store channel path status" g5 esa,zarch
+b239 stcrw S_RD "store channel report word" g5 esa,zarch
+b6 stctl RS_CCRD "store control" g5 esa,zarch
+60 std RX_FRRD "store (long)" g5 esa,zarch
+70 ste RX_FRRD "store (short)" g5 esa,zarch
+40 sth RX_RRRD "store halfword" g5 esa,zarch
+b202 stidp S_RD "store CPU id" g5 esa,zarch
+90 stm RS_RRRD "store multiple" g5 esa,zarch
+ac stnsm SI_URD "store then AND system mask" g5 esa,zarch
+ad stosm SI_URD "store then OR system mask" g5 esa,zarch
+b209 stpt S_RD "store CPU timer" g5 esa,zarch
+b211 stpx S_RD "store prefix" g5 esa,zarch
+b234 stsch S_RD "store subchannel" g5 esa,zarch
+b246 stura RRE_RR "store using real address" g5 esa,zarch
+7f su RX_FRRD "subtract unnormalized (short)" g5 esa,zarch
+3f sur RR_FF "subtract unnormalized (short)" g5 esa,zarch
+0a svc RR_U0 "supervisor call" g5 esa,zarch
+6f sw RX_FRRD "subtract unnormalized (long)" g5 esa,zarch
+2f swr RR_FF "subtract unnormalized (long)" g5 esa,zarch
+37 sxr RR_FEFE "subtract normalized (ext.)" g5 esa,zarch
+b24c tar RRE_AR "test access" g5 esa,zarch
+b22c tb RRE_RR "test block" g5 esa,zarch
+91 tm SI_URD "test under mask" g5 esa,zarch
+b236 tpi S_RD "test pending interruption" g5 esa,zarch
+e501 tprot SSE_RDRD "test protection" g5 esa,zarch
+dc tr SS_L0RDRD "translate" g5 esa,zarch
+99 trace RS_RRRD "trace" g5 esa,zarch
+dd trt SS_L0RDRD "translate and test" g5 esa,zarch
+93 ts SI_RD "test and set" g5 esa,zarch
+b235 tsch S_RD "test subchannel" g5 esa,zarch
+f3 unpk SS_LLRDRD "unpack" g5 esa,zarch
+0102 upt E "update tree" g5 esa,zarch
+57 x RX_RRRD "exclusive OR" g5 esa,zarch
+d7 xc SS_L0RDRD "exclusive OR" g5 esa,zarch
+97 xi SI_URD "exclusive OR" g5 esa,zarch
+17 xr RR_RR "exclusive OR" g5 esa,zarch
+f8 zap SS_LLRDRD "zero and add" g5 esa,zarch
+a70a ahi RI_RI "add halfword immediate" g5 esa,zarch
+84 brxh RSI_RRP "branch relative on index high" g5 esa,zarch
+84 jxh RSI_RRP "branch relative on index high" g5 esa,zarch
+85 brxle RSI_RRP "branch relative on index low or equal" g5 esa,zarch
+85 jxle RSI_RRP "branch relative on index low or equal" g5 esa,zarch
+a705 bras RI_RP "branch relative and save" g5 esa,zarch
+a705 jas RI_RP "branch relative and save" g5 esa,zarch
+a704 brc RI_UP "branch relative on condition" g5 esa,zarch
+a706 brct RI_RP "branch relative on count" g5 esa,zarch
+a706 jct RI_RP "branch relative on count" g5 esa,zarch
+b241 cksm RRE_RR "checksum" g5 esa,zarch
+a70e chi RI_RI "compare halfword immediate" g5 esa,zarch
+a9 clcle RS_RRRD "compare logical long extended" g5 esa,zarch
+a708 lhi RI_RI "load halfword immediate" g5 esa,zarch
+a8 mvcle RS_RERERD "move long extended" g5 esa,zarch
+a70c mhi RI_RI "multiply halfword immediate" g5 esa,zarch
+b252 msr RRE_RR "multiply single" g5 esa,zarch
+71 ms RX_RRRD "multiply single" g5 esa,zarch
+a700 tmlh RI_RU "test under mask low high" g5 esa,zarch
+a700 tmh RI_RU "test under mask high" g5 esa,zarch
+a701 tmll RI_RU "test under mask low low" g5 esa,zarch
+a701 tml RI_RU "test under mask low" g5 esa,zarch
+0700 nopr RR_0R "no operation" g5 esa,zarch optparm
+0700 b*8r RR_0R "conditional branch" g5 esa,zarch
+07f0 br RR_0R "unconditional branch" g5 esa,zarch
+4700 nop RX_0RRD "no operation" g5 esa,zarch optparm
+4700 b*8 RX_0RRD "conditional branch" g5 esa,zarch
+47f0 b RX_0RRD "unconditional branch" g5 esa,zarch
+a704 jnop RI_0P "nop jump" g5 esa,zarch
+a704 j*8 RI_0P "conditional jump" g5 esa,zarch
+a704 br*8 RI_0P "conditional jump" g5 esa,zarch
+a7f4 j RI_0P "unconditional jump" g5 esa,zarch
+a7f4 bru RI_0P "unconditional jump" g5 esa,zarch
+b34a axbr RRE_FEFE "add extended bfp" g5 esa,zarch
+b31a adbr RRE_FF "add long bfp" g5 esa,zarch
+ed000000001a adb RXE_FRRD "add long bfp" g5 esa,zarch
+b30a aebr RRE_FF "add short bfp" g5 esa,zarch
+ed000000000a aeb RXE_FRRD "add short bfp" g5 esa,zarch
+b349 cxbr RRE_FEFE "compare extended bfp" g5 esa,zarch
+b319 cdbr RRE_FF "compare long bfp" g5 esa,zarch
+ed0000000019 cdb RXE_FRRD "compare long bfp" g5 esa,zarch
+b309 cebr RRE_FF "compare short bfp" g5 esa,zarch
+ed0000000009 ceb RXE_FRRD "compare short bfp" g5 esa,zarch
+b348 kxbr RRE_FF "compare and signal extended bfp" g5 esa,zarch
+b318 kdbr RRE_FF "compare and signal long bfp" g5 esa,zarch
+ed0000000018 kdb RXE_FRRD "compare and signal long bfp" g5 esa,zarch
+b308 kebr RRE_FF "compare and signal short bfp" g5 esa,zarch
+ed0000000008 keb RXE_FRRD "compare and signal short bfp" g5 esa,zarch
+b396 cxfbr RRE_FER "convert from fixed 32 to extended bfp" g5 esa,zarch
+b395 cdfbr RRE_FR "convert from fixed 32 to long bfp" g5 esa,zarch
+b394 cefbr RRE_FR "convert from fixed 32 to short bfp" g5 esa,zarch
+b39a cfxbr RRF_U0RFE "convert to fixed extended bfp to 32" g5 esa,zarch
+b399 cfdbr RRF_U0RF "convert to fixed long bfp to 32" g5 esa,zarch
+b398 cfebr RRF_U0RF "convert to fixed short bfp to 32" g5 esa,zarch
+b34d dxbr RRE_FEFE "divide extended bfp" g5 esa,zarch
+b31d ddbr RRE_FF "divide long bfp" g5 esa,zarch
+ed000000001d ddb RXE_FRRD "divide long bfp" g5 esa,zarch
+b30d debr RRE_FF "divide short bfp" g5 esa,zarch
+ed000000000d deb RXE_FRRD "divide short bfp" g5 esa,zarch
+b35b didbr RRF_FUFF "divide to integer long bfp" g5 esa,zarch
+b353 diebr RRF_FUFF "divide to integer short bfp" g5 esa,zarch
+b38c efpc RRE_RR "extract fpc" g5 esa,zarch optparm
+b342 ltxbr RRE_FEFE "load and test extended bfp" g5 esa,zarch
+b312 ltdbr RRE_FF "load and test long bfp" g5 esa,zarch
+b302 ltebr RRE_FF "load and test short bfp" g5 esa,zarch
+b343 lcxbr RRE_FEFE "load complement extended bfp" g5 esa,zarch
+b313 lcdbr RRE_FF "load complement long bfp" g5 esa,zarch
+b303 lcebr RRE_FF "load complement short bfp" g5 esa,zarch
+b347 fixbr RRF_U0FEFE "load fp integer extended bfp" g5 esa,zarch
+b35f fidbr RRF_U0FF "load fp integer long bfp" g5 esa,zarch
+b357 fiebr RRF_U0FF "load fp integer short bfp" g5 esa,zarch
+b29d lfpc S_RD "load fpc" g5 esa,zarch
+b305 lxdbr RRE_FEF "load lengthened long to extended bfp" g5 esa,zarch
+ed0000000005 lxdb RXE_FERRD "load lengthened long to extended bfp" g5 esa,zarch
+b306 lxebr RRE_FEF "load lengthened short to extended bfp" g5 esa,zarch
+ed0000000006 lxeb RXE_FERRD "load lengthened short to extended bfp" g5 esa,zarch
+b304 ldebr RRE_FF "load lengthened short to long bfp" g5 esa,zarch
+ed0000000004 ldeb RXE_FRRD "load lengthened short to long bfp" g5 esa,zarch
+b341 lnxbr RRE_FEFE "load negative extended bfp" g5 esa,zarch
+b311 lndbr RRE_FF "load negative long bfp" g5 esa,zarch
+b301 lnebr RRE_FF "load negative short bfp" g5 esa,zarch
+b340 lpxbr RRE_FEFE "load positive extended bfp" g5 esa,zarch
+b310 lpdbr RRE_FF "load positive long bfp" g5 esa,zarch
+b300 lpebr RRE_FF "load positive short bfp" g5 esa,zarch
+b345 ldxbr RRE_FEFE "load rounded extended to long bfp" g5 esa,zarch
+b346 lexbr RRE_FEFE "load rounded extended to short bfp" g5 esa,zarch
+b344 ledbr RRE_FF "load rounded long to short bfp" g5 esa,zarch
+b34c mxbr RRE_FEFE "multiply extended bfp" g5 esa,zarch
+b31c mdbr RRE_FF "multiply long bfp" g5 esa,zarch
+ed000000001c mdb RXE_FRRD "multiply long bfp" g5 esa,zarch
+b307 mxdbr RRE_FEF "multiply long to extended bfp" g5 esa,zarch
+ed0000000007 mxdb RXE_FERRD "multiply long to extended bfp" g5 esa,zarch
+b317 meebr RRE_FF "multiply short bfp" g5 esa,zarch
+ed0000000017 meeb RXE_FRRD "multiply short bfp" g5 esa,zarch
+b30c mdebr RRE_FF "multiply short to long bfp" g5 esa,zarch
+ed000000000c mdeb RXE_FRRD "multiply short to long bfp" g5 esa,zarch
+b31e madbr RRF_F0FF "multiply and add long bfp" g5 esa,zarch
+ed000000001e madb RXF_FRRDF "multiply and add long bfp" g5 esa,zarch
+b30e maebr RRF_F0FF "multiply and add short bfp" g5 esa,zarch
+ed000000000e maeb RXF_FRRDF "multiply and add short bfp" g5 esa,zarch
+b31f msdbr RRF_F0FF "multiply and subtract long bfp" g5 esa,zarch
+ed000000001f msdb RXF_FRRDF "multiply and subtract long bfp" g5 esa,zarch
+b30f msebr RRF_F0FF "multiply and subtract short bfp" g5 esa,zarch
+ed000000000f mseb RXF_FRRDF "multiply and subtract short bfp" g5 esa,zarch
+b384 sfpc RRE_RR "set fpc" g5 esa,zarch optparm
+b299 srnm S_RD "set rounding mode" g5 esa,zarch
+b316 sqxbr RRE_FEFE "square root extended bfp" g5 esa,zarch
+b315 sqdbr RRE_FF "square root long bfp" g5 esa,zarch
+ed0000000015 sqdb RXE_FRRD "square root long bfp" g5 esa,zarch
+b314 sqebr RRE_FF "square root short bfp" g5 esa,zarch
+ed0000000014 sqeb RXE_FRRD "square root short bfp" g5 esa,zarch
+b29c stfpc S_RD "store fpc" g5 esa,zarch
+b34b sxbr RRE_FEFE "subtract extended bfp" g5 esa,zarch
+b31b sdbr RRE_FF "subtract long bfp" g5 esa,zarch
+ed000000001b sdb RXE_FRRD "subtract long bfp" g5 esa,zarch
+b30b sebr RRE_FF "subtract short bfp" g5 esa,zarch
+ed000000000b seb RXE_FRRD "subtract short bfp" g5 esa,zarch
+ed0000000012 tcxb RXE_FERRD "test data class extended bfp" g5 esa,zarch
+ed0000000011 tcdb RXE_FRRD "test data class long bfp" g5 esa,zarch
+ed0000000010 tceb RXE_FRRD "test data class short bfp" g5 esa,zarch
+b274 siga S_RD "signal adapter" g5 esa,zarch
+b2a6 cuutf RRE_RERE "convert unicode to utf-8" g5 esa,zarch
+b2a7 cutfu RRE_RR "convert utf-8 to unicode" g5 esa,zarch
+ee plo SS_RRRDRD2 "perform locked operation" g5 esa,zarch
+b25a bsa RRE_RR "branch and set authority" g5 esa,zarch
+b277 rp S_RD "resume program" g5 esa,zarch
+0107 sckpf E "set clock programmable field" g5 esa,zarch
+b27d stsi S_RD "store system information" g5 esa,zarch
+01ff trap2 E "trap" g5 esa,zarch
+b2ff trap4 S_RD "trap4" g5 esa,zarch
+b278 stcke S_RD "store clock extended" g5 esa,zarch
+b2a5 tre RRE_RER "translate extended" g5 esa,zarch
+eb000000008e mvclu RSE_RERERD "move long unicode" g5 esa,zarch
+e9 pka SS_L2RDRD "pack ascii" g5 esa,zarch
+e1 pku SS_L2RDRD "pack unicode" g5 esa,zarch
+b993 troo RRE_RER "translate one to one" g5 esa,zarch
+b992 trot RRE_RER "translate one to two" g5 esa,zarch
+b991 trto RRE_RER "translate two to one" g5 esa,zarch
+b990 trtt RRE_RER "translate two to two" g5 esa,zarch
+ea unpka SS_L0RDRD "unpack ascii" g5 esa,zarch
+e2 unpku SS_L0RDRD "unpack unicode" g5 esa,zarch
+b358 thder RRE_FF "convert short bfp to long hfp" g5 esa,zarch
+b359 thdr RRE_FF "convert long bfp to long hfp" g5 esa,zarch
+b350 tbedr RRF_U0FF "convert long hfp to short bfp" g5 esa,zarch
+b351 tbdr RRF_U0FF "convert long hfp to long bfp" g5 esa,zarch
+b374 lzer RRE_F0 "load short zero" g5 esa,zarch
+b375 lzdr RRE_F0 "load long zero" g5 esa,zarch
+b376 lzxr RRE_FE0 "load extended zero" g5 esa,zarch
+# Here are the new esame instructions:
+b946 bctgr RRE_RR "branch on count 64" z900 zarch
+b900 lpgr RRE_RR "load positive 64" z900 zarch
+b910 lpgfr RRE_RR "load positive 64<32" z900 zarch
+b901 lngr RRE_RR "load negative 64" z900 zarch
+b911 lngfr RRE_RR "load negative 64<32" z900 zarch
+b902 ltgr RRE_RR "load and test 64" z900 zarch
+b912 ltgfr RRE_RR "load and test 64<32" z900 zarch
+b903 lcgr RRE_RR "load complement 64" z900 zarch
+b913 lcgfr RRE_RR "load complement 64<32" z900 zarch
+b980 ngr RRE_RR "and 64" z900 zarch
+b921 clgr RRE_RR "compare logical 64" z900 zarch
+b931 clgfr RRE_RR "compare logical 64<32" z900 zarch
+b981 ogr RRE_RR "or 64" z900 zarch
+b982 xgr RRE_RR "exclusive or 64" z900 zarch
+b904 lgr RRE_RR "load 64" z900 zarch
+b914 lgfr RRE_RR "load 64<32" z900 zarch
+b920 cgr RRE_RR "compare 64" z900 zarch
+b930 cgfr RRE_RR "compare 64<32" z900 zarch
+b908 agr RRE_RR "add 64" z900 zarch
+b918 agfr RRE_RR "add 64<32" z900 zarch
+b909 sgr RRE_RR "subtract 64" z900 zarch
+b919 sgfr RRE_RR "subtract 64<32" z900 zarch
+b90a algr RRE_RR "add logical 64" z900 zarch
+b91a algfr RRE_RR "add logical 64<32" z900 zarch
+b90b slgr RRE_RR "subtract logical 64" z900 zarch
+b91b slgfr RRE_RR "subtract logical 64<32" z900 zarch
+e30000000046 bctg RXE_RRRD "branch on count 64" z900 zarch
+e3000000002e cvdg RXE_RRRD "convert to decimal 64" z900 zarch
+e3000000000e cvbg RXE_RRRD "convert to binary 64" z900 zarch
+e30000000024 stg RXE_RRRD "store 64" z900 zarch
+e30000000080 ng RXE_RRRD "and 64" z900 zarch
+e30000000021 clg RXE_RRRD "compare logical 64" z900 zarch
+e30000000031 clgf RXE_RRRD "compare logical 64<32" z900 zarch
+e30000000081 og RXE_RRRD "or 64" z900 zarch
+e30000000082 xg RXE_RRRD "exclusive or 64" z900 zarch
+e30000000004 lg RXE_RRRD "load 64" z900 zarch
+e30000000014 lgf RXE_RRRD "load 64<32" z900 zarch
+e30000000015 lgh RXE_RRRD "load halfword 64" z900 zarch
+e30000000020 cg RXE_RRRD "compare 64" z900 zarch
+e30000000030 cgf RXE_RRRD "compare 64<32" z900 zarch
+e30000000008 ag RXE_RRRD "add 64" z900 zarch
+e30000000018 agf RXE_RRRD "add 64<32" z900 zarch
+e30000000009 sg RXE_RRRD "subtract 64" z900 zarch
+e30000000019 sgf RXE_RRRD "subtract 64<32" z900 zarch
+e3000000000a alg RXE_RRRD "add logical 64" z900 zarch
+e3000000001a algf RXE_RRRD "add logical 64<32" z900 zarch
+e3000000000b slg RXE_RRRD "subtract logical 64" z900 zarch
+e3000000001b slgf RXE_RRRD "subtract logical 64<32" z900 zarch
+e3000000000c msg RXE_RRRD "multiply single 64" z900 zarch
+e3000000001c msgf RXE_RRRD "multiply single 64<32" z900 zarch
+ec0000000044 brxhg RIE_RRP "branch relative on index high 64" z900 zarch
+ec0000000044 jxhg RIE_RRP "branch relative on index high 64" z900 zarch
+ec0000000045 brxlg RIE_RRP "branch relative on index low or equal 64" z900 zarch
+ec0000000045 jxleg RIE_RRP "branch relative on index low or equal 64" z900 zarch
+eb0000000044 bxhg RSE_RRRD "branch on index high 64" z900 zarch
+eb0000000045 bxleg RSE_RRRD "branch on index low or equal 64" z900 zarch
+eb000000000c srlg RSE_RRRD "shift right single logical 64" z900 zarch
+eb000000000d sllg RSE_RRRD "shift left single logical 64" z900 zarch
+eb000000000a srag RSE_RRRD "shift right single 64" z900 zarch
+eb000000000b slag RSE_RRRD "shift left single 64" z900 zarch
+eb0000000024 stmg RSE_RRRD "store multiple 64" z900 zarch
+eb0000000026 stmh RSE_RRRD "store multiple high" z900 zarch
+eb0000000004 lmg RSE_RRRD "load multiple 64" z900 zarch
+eb0000000096 lmh RSE_RRRD "load multiple high" z900 zarch
+ef lmd SS_RRRDRD3 "load multiple disjoint" z900 zarch
+eb000000000f tracg RSE_RRRD "trace 64" z900 zarch
+e30000000003 lrag RXE_RRRD "load real address 64" z900 zarch
+e502 strag SSE_RDRD "store read address" z900 zarch
+eb0000000025 stctg RSE_CCRD "store control 64" z900 zarch
+eb000000002f lctlg RSE_CCRD "load control 64" z900 zarch
+eb0000000030 csg RSE_RRRD "compare and swap 64" z900 zarch
+eb000000003e cdsg RSE_RERERD "compare double and swap 64" z900 zarch
+eb0000000020 clmh RSE_RURD "compare logical characters under mask high" z900 zarch
+eb000000002c stcmh RSE_RURD "store characters under mask high" z900 zarch
+eb0000000080 icmh RSE_RURD "insert characters under mask high" z900 zarch
+a702 tmhh RI_RU "test under mask high high" z900 zarch
+a703 tmhl RI_RU "test under mask high low" z900 zarch
+c004 brcl RIL_UP "branch relative on condition long" z900 esa,zarch
+c004 jgnop RIL_0P "nop jump long" z900 esa,zarch
+c004 jg*8 RIL_0P "conditional jump long" z900 esa,zarch
+c004 br*8l RIL_0P "conditional jump long" z900 esa,zarch
+c0f4 jg RIL_0P "unconditional jump long" z900 esa,zarch
+c0f4 brul RIL_0P "unconditional jump long" z900 esa,zarch
+c005 brasl RIL_RP "branch relative and save long" z900 esa,zarch
+c005 jasl RIL_RP "branch relative and save long" z900 esa,zarch
+a707 brctg RI_RP "branch relative on count 64" z900 zarch
+a707 jctg RI_RP "branch relative on count 64" z900 zarch
+a709 lghi RI_RI "load halfword immediate 64" z900 zarch
+a70b aghi RI_RI "add halfword immediate 64" z900 zarch
+a70d mghi RI_RI "multiply halfword immediate 64" z900 zarch
+a70f cghi RI_RI "compare halfword immediate 64" z900 zarch
+b925 sturg RRE_RR "store using real address 64" z900 zarch
+b90e eregg RRE_RR "extract stacked registers 64" z900 zarch
+b905 lurag RRE_RR "load using real address 64" z900 zarch
+b90c msgr RRE_RR "multiply single 64" z900 zarch
+b91c msgfr RRE_RR "multiply single 64<32" z900 zarch
+b3a4 cegbr RRE_FR "convert from fixed 64 to short bfp" z900 zarch
+b3a5 cdgbr RRE_FR "convert from fixed 64 to long bfp" z900 zarch
+b3a6 cxgbr RRE_FER "convert from fixed 64 to extended bfp" z900 zarch
+b3a8 cgebr RRF_U0RF "convert to fixed short bfd to 64" z900 zarch
+b3a9 cgdbr RRF_U0RF "convert to fixed long bfp to 64" z900 zarch
+b3aa cgxbr RRF_U0RFE "convert to fixed extended bfp to 64" z900 zarch
+b3c4 cegr RRE_FR "convert from fixed 64 to short hfp" z900 zarch
+b3c5 cdgr RRE_FR "convert from fixed 64 to long hfp" z900 zarch
+b3c6 cxgr RRE_FER "convert from fixed 64 to extended hfp" z900 zarch
+b3c8 cger RRF_U0RF "convert to fixed short hfp to 64" z900 zarch
+b3c9 cgdr RRF_U0RF "convert to fixed long hfp to 64" z900 zarch
+b3ca cgxr RRF_U0RFE "convert to fixed extended hfp to 64" z900 zarch
+010b tam E "test addressing mode" z900 esa,zarch
+010c sam24 E "set addressing mode 24" z900 esa,zarch
+010d sam31 E "set addressing mode 31" z900 esa,zarch
+010e sam64 E "set addressing mode 64" z900 zarch
+a500 iihh RI_RU "insert immediate high high" z900 zarch
+a501 iihl RI_RU "insert immediate high low" z900 zarch
+a502 iilh RI_RU "insert immediate low high" z900 zarch
+a503 iill RI_RU "insert immediate low low" z900 zarch
+a504 nihh RI_RU "and immediate high high" z900 zarch
+a505 nihl RI_RU "and immediate high low" z900 zarch
+a506 nilh RI_RU "and immediate low high" z900 zarch
+a507 nill RI_RU "and immediate low low" z900 zarch
+a508 oihh RI_RU "or immediate high high" z900 zarch
+a509 oihl RI_RU "or immediate high low" z900 zarch
+a50a oilh RI_RU "or immediate low high" z900 zarch
+a50b oill RI_RU "or immediate low low" z900 zarch
+a50c llihh RI_RU "load logical immediate high high" z900 zarch
+a50d llihl RI_RU "load logical immediate high low" z900 zarch
+a50e llilh RI_RU "load logical immediate low high" z900 zarch
+a50f llill RI_RU "load logical immediate low low" z900 zarch
+b2b1 stfl S_RD "store facility list" z900 esa,zarch
+b2b2 lpswe S_RD "load psw extended" z900 zarch
+b90d dsgr RRE_RER "divide single 64" z900 zarch
+b90f lrvgr RRE_RR "load reversed 64" z900 zarch
+b916 llgfr RRE_RR "load logical 64<32" z900 zarch
+b917 llgtr RRE_RR "load logical thirty one bits" z900 zarch
+b91d dsgfr RRE_RER "divide single 64<32" z900 zarch
+b91f lrvr RRE_RR "load reversed 32" z900 esa,zarch
+b986 mlgr RRE_RER "multiply logical 64" z900 zarch
+b987 dlgr RRE_RER "divide logical 64" z900 zarch
+b988 alcgr RRE_RR "add logical with carry 64" z900 zarch
+b989 slbgr RRE_RR "subtract logical with borrow 64" z900 zarch
+b98d epsw RRE_RR "extract psw" z900 esa,zarch
+b996 mlr RRE_RER "multiply logical 32" z900 esa,zarch
+b997 dlr RRE_RER "divide logical 32" z900 esa,zarch
+b998 alcr RRE_RR "add logical with carry 32" z900 esa,zarch
+b999 slbr RRE_RR "subtract logical with borrow 32" z900 esa,zarch
+b99d esea RRE_R0 "extract and set extended authority" z900 zarch
+c000 larl RIL_RP "load address relative long" z900 esa,zarch
+e3000000000d dsg RXE_RERRD "divide single 64" z900 zarch
+e3000000000f lrvg RXE_RRRD "load reversed 64" z900 zarch
+e30000000016 llgf RXE_RRRD "load logical 64<32" z900 zarch
+e30000000017 llgt RXE_RRRD "load logical thirty one bits" z900 zarch
+e3000000001d dsgf RXE_RERRD "divide single 64<32" z900 zarch
+e3000000001e lrv RXE_RRRD "load reversed 32" z900 esa,zarch
+e3000000001f lrvh RXE_RRRD "load reversed 16" z900 esa,zarch
+e3000000002f strvg RXE_RRRD "store reversed 64" z900 zarch
+e3000000003e strv RXE_RRRD "store reversed 32" z900 esa,zarch
+e3000000003f strvh RXE_RRRD "store reversed 64" z900 esa,zarch
+e30000000086 mlg RXE_RERRD "multiply logical 64" z900 zarch
+e30000000087 dlg RXE_RERRD "divide logical 64" z900 zarch
+e30000000088 alcg RXE_RRRD "add logical with carry 64" z900 zarch
+e30000000089 slbg RXE_RRRD "subtract logical with borrow 64" z900 zarch
+e3000000008e stpq RXE_RRRD "store pair to quadword" z900 zarch
+e3000000008f lpq RXE_RERRD "load pair from quadword" z900 zarch
+e30000000096 ml RXE_RERRD "multiply logical 32" z900 esa,zarch
+e30000000097 dl RXE_RERRD "divide logical 32" z900 esa,zarch
+e30000000098 alc RXE_RRRD "add logical with carry 32" z900 esa,zarch
+e30000000099 slb RXE_RRRD "subtract logical with borrow 32" z900 esa,zarch
+e30000000090 llgc RXE_RRRD "load logical character" z900 zarch
+e30000000091 llgh RXE_RRRD "load logical halfword" z900 zarch
+eb000000001c rllg RSE_RRRD "rotate left single logical 64" z900 zarch
+eb000000001d rll RSE_RRRD "rotate left single logical 32" z900 esa,zarch
+b369 cxr RRE_FEFE "compare extended hfp" g5 esa,zarch
+b3b6 cxfr RRE_FER "convert from fixed 32 to extended hfp" g5 esa,zarch
+b3b5 cdfr RRE_FR "convert from fixed 32 to long hfp" g5 esa,zarch
+b3b4 cefr RRE_FR "convert from fixed 32 to short hfp" g5 esa,zarch
+b3ba cfxr RRF_U0RFE "convert to fixed extended hfp to 32" g5 esa,zarch
+b3b9 cfdr RRF_U0RF "convert to fixed long hfp to 32" g5 esa,zarch
+b3b8 cfer RRF_U0RF "convert to fixed short hfp to 32" g5 esa,zarch
+b362 ltxr RRE_FEFE "load and test extended hfp" g5 esa,zarch
+b363 lcxr RRE_FEFE "load complement extended hfp" g5 esa,zarch
+b367 fixr RRE_FEFE "load fp integer extended hfp" g5 esa,zarch
+b37f fidr RRE_FF "load fp integer long hfp" g5 esa,zarch
+b377 fier RRE_FF "load fp integer short hfp" g5 esa,zarch
+b325 lxdr RRE_FEF "load lengthened long to extended hfp" g5 esa,zarch
+ed0000000025 lxd RXE_FERRD "load lengthened long to extended hfp" g5 esa,zarch
+b326 lxer RRE_FEF "load lengthened short to extended hfp" g5 esa,zarch
+ed0000000026 lxe RXE_FERRD "load lengthened short to extended hfp" g5 esa,zarch
+b324 lder RRE_FF "load lengthened short to long hfp" g5 esa,zarch
+ed0000000024 lde RXE_FRRD "load lengthened short to long hfp" g5 esa,zarch
+b361 lnxr RRE_FEFE "load negative extended hfp" g5 esa,zarch
+b360 lpxr RRE_FEFE "load positive extended hfp" g5 esa,zarch
+b366 lexr RRE_FFE "load rounded extended to short hfp" g5 esa,zarch
+b337 meer RRE_FF "multiply short hfp" g5 esa,zarch
+ed0000000037 mee RXE_FRRD "multiply short hfp" g5 esa,zarch
+b336 sqxr RRE_FEFE "square root extended hfp" g5 esa,zarch
+ed0000000034 sqe RXE_FRRD "square root short hfp" g5 esa,zarch
+ed0000000035 sqd RXE_FRRD "square root long hfp" g5 esa,zarch
+b263 cmpsc RRE_RR "compression call" g5 esa,zarch
+eb00000000c0 tp RSL_R0RD "test decimal" g5 esa,zarch
+b365 lxr RRE_FEFE "load extended fp" g5 esa,zarch
+b22e pgin RRE_RR "page in" g5 esa,zarch
+b22f pgout RRE_RR "page out" g5 esa,zarch
+b276 xsch S_00 "cancel subchannel" g5 esa,zarch
+# New long displacement instructions on z990
+e3000000005a ay RXY_RRRD "add with long offset" z990 zarch
+e3000000007a ahy RXY_RRRD "add halfword with long offset" z990 zarch
+e3000000005e aly RXY_RRRD "add logical with long offset" z990 zarch
+eb0000000054 niy SIY_URD "and immediate with long offset" z990 zarch
+e30000000054 ny RXY_RRRD "and with long offset" z990 zarch
+e30000000059 cy RXY_RRRD "compare with long offset" z990 zarch
+eb0000000014 csy RSY_RRRD "compare and swap with long offset" z990 zarch
+eb0000000031 cdsy RSY_RERERD "compare double and swap with long offset" z990 zarch
+e30000000079 chy RXY_RRRD "compare halfword with long offset" z990 zarch
+e30000000055 cly RXY_RRRD "compare logical with long offset" z990 zarch
+eb0000000055 cliy SIY_URD "compare logical immediate with long offset" z990 zarch
+eb0000000021 clmy RSY_RURD "compare logical characters under mask with long offset" z990 zarch
+e30000000006 cvby RXY_RRRD "convert to binary with long offset" z990 zarch
+e30000000026 cvdy RXY_RRRD "convert to decimal with long offset" z990 zarch
+eb0000000057 xiy SIY_URD "exclusive or immediate with long offset" z990 zarch
+e30000000057 xy RXY_RRRD "exclusive or with long offset" z990 zarch
+e30000000073 icy RXY_RRRD "insert character with long offset" z990 zarch
+eb0000000081 icmy RSY_RURD "insert characters with long offset" z990 zarch
+ed0000000065 ldy RXY_FRRD "load (long) with long offset" z990 zarch
+ed0000000064 ley RXY_FRRD "load (short) with long offset" z990 zarch
+e30000000058 ly RXY_RRRD "load with long offset" z990 zarch
+eb000000009a lamy RSY_AARD "load access multiple" z990 zarch
+e30000000071 lay RXY_RRRD "load address with long offset" z990 zarch
+e30000000076 lb RXY_RRRD "load byte with long offset" z990 zarch
+e30000000077 lgb RXY_RRRD "load byte with long offset 64" z990 zarch
+e30000000078 lhy RXY_RRRD "load halfword with long offset" z990 zarch
+eb0000000098 lmy RSY_RRRD "load multiple with long offset" z990 zarch
+e30000000013 lray RXY_RRRD "load real address with long offset" z990 zarch
+eb0000000052 mviy SIY_URD "move immediate with long offset" z990 zarch
+e30000000051 msy RXY_RRRD "multiply single with long offset" z990 zarch
+eb0000000056 oiy SIY_URD "or immediate with long offset" z990 zarch
+e30000000056 oy RXY_RRRD "or with long offset" z990 zarch
+ed0000000067 stdy RXY_FRRD "store (long) with long offset" z990 zarch
+ed0000000066 stey RXY_FRRD "store (short) with long offset" z990 zarch
+e30000000050 sty RXY_RRRD "store with long offset" z990 zarch
+eb000000009b stamy RSY_AARD "store access multiple with long offset" z990 zarch
+e30000000072 stcy RXY_RRRD "store character with long offset" z990 zarch
+eb000000002d stcmy RSY_RURD "store characters under mask with long offset" z990 zarch
+e30000000070 sthy RXY_RRRD "store halfword with long offset" z990 zarch
+eb0000000090 stmy RSY_RRRD "store multiple with long offset" z990 zarch
+e3000000005b sy RXY_RRRD "subtract with long offset" z990 zarch
+e3000000007b shy RXY_RRRD "subtract halfword with long offset" z990 zarch
+e3000000005f sly RXY_RRRD "subtract logical with long offset" z990 zarch
+eb0000000051 tmy SIY_URD "test under mask with long offset" z990 zarch
+# 'old' instructions extended to long displacement
+# these instructions are entered into the opcode table twice.
+e30000000003 lrag RXY_RRRD "load real address with long offset 64" z990 zarch
+e30000000004 lg RXY_RRRD "load 64" z990 zarch
+e30000000008 ag RXY_RRRD "add with long offset 64" z990 zarch
+e30000000009 sg RXY_RRRD "subtract with long offset 64" z990 zarch
+e3000000000a alg RXY_RRRD "add logical with long offset 64" z990 zarch
+e3000000000b slg RXY_RRRD "subtract logical with long offset 64" z990 zarch
+e3000000000c msg RXY_RRRD "multiply single with long offset 64" z990 zarch
+e3000000000d dsg RXY_RERRD "divide single 64" z990 zarch
+e3000000000e cvbg RXY_RRRD "convert to binary with long offset 64" z990 zarch
+e3000000000f lrvg RXY_RRRD "load reversed 64" z990 zarch
+e30000000014 lgf RXY_RRRD "load 64<32" z990 zarch
+e30000000015 lgh RXY_RRRD "load halfword 64" z990 zarch
+e30000000016 llgf RXY_RRRD "load logical 64<32" z990 zarch
+e30000000017 llgt RXY_RRRD "load logical thirty one bits" z990 zarch
+e30000000018 agf RXY_RRRD "add with long offset 64<32" z990 zarch
+e30000000019 sgf RXY_RRRD "subtract with long offset 64<32" z990 zarch
+e3000000001a algf RXY_RRRD "add logical with long offset 64<32" z990 zarch
+e3000000001b slgf RXY_RRRD "subtract logical with long offset 64<32" z990 zarch
+e3000000001c msgf RXY_RRRD "multiply single with long offset 64<32" z990 zarch
+e3000000001d dsgf RXY_RERRD "divide single 64<32" z990 zarch
+e3000000001e lrv RXY_RRRD "load reversed 32" z990 esa,zarch
+e3000000001f lrvh RXY_RRRD "load reversed 16" z990 esa,zarch
+e30000000020 cg RXY_RRRD "compare with long offset 64" z990 zarch
+e30000000021 clg RXY_RRRD "compare logical with long offset 64" z990 zarch
+e30000000024 stg RXY_RRRD "store with long offset 64" z990 zarch
+e3000000002e cvdg RXY_RRRD "convert to decimal with long offset 64" z990 zarch
+e3000000002f strvg RXY_RRRD "store reversed 64" z990 zarch
+e30000000030 cgf RXY_RRRD "compare with long offset 64<32" z990 zarch
+e30000000031 clgf RXY_RRRD "compare logical with long offset 64<32" z990 zarch
+e3000000003e strv RXY_RRRD "store reversed 32" z990 esa,zarch
+e3000000003f strvh RXY_RRRD "store reversed 64" z990 zarch
+e30000000046 bctg RXY_RRRD "branch on count 64" z990 zarch
+e30000000080 ng RXY_RRRD "and with long offset 64" z990 zarch
+e30000000081 og RXY_RRRD "or with long offset 64" z990 zarch
+e30000000082 xg RXY_RRRD "exclusive or with long offset 64" z990 zarch
+e30000000086 mlg RXY_RERRD "multiply logical 64" z990 zarch
+e30000000087 dlg RXY_RERRD "divide logical 64" z990 zarch
+e30000000088 alcg RXY_RRRD "add logical with carry 64" z990 zarch
+e30000000089 slbg RXY_RRRD "subtract logical with borrow 64" z990 zarch
+e3000000008e stpq RXY_RRRD "store pair to quadword" z990 zarch
+e3000000008f lpq RXY_RERRD "load pair from quadword" z990 zarch
+e30000000090 llgc RXY_RRRD "load logical character" z990 zarch
+e30000000091 llgh RXY_RRRD "load logical halfword" z990 zarch
+e30000000096 ml RXY_RERRD "multiply logical 32" z990 esa,zarch
+e30000000097 dl RXY_RERRD "divide logical 32" z990 esa,zarch
+e30000000098 alc RXY_RRRD "add logical with carry 32" z990 esa,zarch
+e30000000099 slb RXY_RRRD "subtract logical with borrow 32" z990 esa,zarch
+eb0000000004 lmg RSY_RRRD "load multiple with long offset 64" z990 zarch
+eb000000000a srag RSY_RRRD "shift right single 64" z990 zarch
+eb000000000b slag RSY_RRRD "shift left single 64" z990 zarch
+eb000000000c srlg RSY_RRRD "shift right single logical 64" z990 zarch
+eb000000000d sllg RSY_RRRD "shift left single logical 64" z990 zarch
+eb000000000f tracg RSY_RRRD "trace 64" z990 zarch
+eb000000001c rllg RSY_RRRD "rotate left single logical 64" z990 zarch
+eb000000001d rll RSY_RRRD "rotate left single logical 32" z990 esa,zarch
+eb0000000020 clmh RSY_RURD "compare logical characters under mask high with long offset" z990 zarch
+eb0000000024 stmg RSY_RRRD "store multiple with long offset 64" z990 zarch
+eb0000000025 stctg RSY_CCRD "store control 64" z990 zarch
+eb0000000026 stmh RSY_RRRD "store multiple high" z990 zarch
+eb000000002c stcmh RSY_RURD "store characters under mask high with long offset" z990 zarch
+eb000000002f lctlg RSY_CCRD "load control 64" z990 zarch
+eb0000000030 csg RSY_RRRD "compare and swap with long offset 64" z990 zarch
+eb000000003e cdsg RSY_RERERD "compare double and swap with long offset 64" z990 zarch
+eb0000000044 bxhg RSY_RRRD "branch on index high 64" z990 zarch
+eb0000000045 bxleg RSY_RRRD "branch on index low or equal 64" z990 zarch
+eb0000000080 icmh RSY_RURD "insert characters under mask high with long offset" z990 zarch
+eb000000008e mvclu RSY_RERERD "move long unicode" z990 esa,zarch
+eb000000008f clclu RSY_RRRD "compare logical long unicode with long offset" z990 esa,zarch
+eb0000000096 lmh RSY_RRRD "load multiple high" z990 zarch
+# new z990 instructions
+b98a cspg RRE_RR "compare and swap and purge" z990 zarch
+b98e idte RRF_RURR2 "invalidate dat table entry" z990 zarch optparm
+b33e madr RRF_F0FF "multiply and add long hfp" z990 esa,zarch
+ed000000003e mad RXF_FRRDF "multiply and add long hfp" z990 esa,zarch
+b32e maer RRF_F0FF "multiply and add short hfp" z990 esa,zarch
+ed000000002e mae RXF_FRRDF "multiply and add short hfp" z990 esa,zarch
+b33f msdr RRF_F0FF "multiply and subtract long hfp" z990 esa,zarch
+ed000000003f msd RXF_FRRDF "multiply and subtract long hfp" z990 esa,zarch
+b32f mser RRF_F0FF "mutliply and subtract short hfp" z990 esa,zarch
+ed000000002f mse RXF_FRRDF "multiply and subttract short hfp" z990 esa,zarch
+b92e km RRE_RR "cipher message" z990 esa,zarch
+b92f kmc RRE_RR "cipher message with chaining" z990 esa,zarch
+b93e kimd RRE_RR "compute intermediate message digest" z990 esa,zarch
+b93f klmd RRE_RR "compute last message digest" z990 esa,zarch
+b91e kmac RRE_RR "compute message authentication code" z990 esa,zarch
+b99a epair RRE_R0 "extract primary ASN and instance" z990 esa,zarch
+b99b esair RRE_R0 "extract secondary ASN and instance" z990 esa,zarch
+b99e pti RRE_RR "program transfer with instance" z990 esa,zarch
+b99f ssair RRE_R0 "set secondary ASN with instance" z990 esa,zarch
+
+# z9-109 extended immediate instructions
+c209 afi RIL_RI "add immediate 32" z9-109 zarch
+c208 agfi RIL_RI "add immediate 64<32" z9-109 zarch
+c20b alfi RIL_RU "add logical immediate 32" z9-109 zarch
+c20a algfi RIL_RU "add logical immediate 64<32" z9-109 zarch
+c00a nihf RIL_RU "and immediate high" z9-109 zarch
+c00b nilf RIL_RU "and immediate low" z9-109 zarch
+c20d cfi RIL_RI "compare immediate 32" z9-109 zarch
+c20c cgfi RIL_RI "compare immediate 64<32" z9-109 zarch
+c20f clfi RIL_RU "compare logical immediate 32" z9-109 zarch
+c20e clgfi RIL_RU "compare logical immediate 64<32" z9-109 zarch
+c006 xihf RIL_RU "exclusive or immediate high" z9-109 zarch
+c007 xilf RIL_RU "exclusive or immediate low" z9-109 zarch
+c008 iihf RIL_RU "insert immediate high" z9-109 zarch
+c009 iilf RIL_RU "insert immediate low" z9-109 zarch
+# z9-109 misc instruction
+b983 flogr RRE_RER "find leftmost one" z9-109 zarch
+e30000000012 lt RXY_RRRD "load and test 32" z9-109 zarch
+e30000000002 ltg RXY_RRRD "load and test 64" z9-109 zarch
+b926 lbr RRE_RR "load byte 32" z9-109 zarch
+b906 lgbr RRE_RR "load byte 64" z9-109 zarch
+b927 lhr RRE_RR "load halfword 32" z9-109 zarch
+b907 lghr RRE_RR "load halfword 64" z9-109 zarch
+c001 lgfi RIL_RI "load immediate 64<32" z9-109 zarch
+e30000000094 llc RXY_RRRD "load logical character 32" z9-109 zarch
+b994 llcr RRE_RR "load logical character 32" z9-109 zarch
+b984 llgcr RRE_RR "load logical character 64" z9-109 zarch
+e30000000095 llh RXY_RRRD "load logical halfword 32" z9-109 zarch
+b995 llhr RRE_RR "load logical halfword 32" z9-109 zarch
+b985 llghr RRE_RR "load logical halfword 64" z9-109 zarch
+c00e llihf RIL_RU "load logical immediate high" z9-109 zarch
+c00f llilf RIL_RU "load logical immediate low" z9-109 zarch
+c00c oihf RIL_RU "or immediate high" z9-109 zarch
+c00d oilf RIL_RU "or immediate low" z9-109 zarch
+c205 slfi RIL_RU "subtract logical immediate 32" z9-109 zarch
+c204 slgfi RIL_RU "subtract logical immediate 64<32" z9-109 zarch
+0104 ptff E "perform timing facility function" z9-109 zarch
+# z9-109 store facility list extended
+b2b0 stfle S_RD "store facility list extended" z9-109 zarch
+# z9-109 store clock fast
+b27c stckf S_RD "store clock fast" z9-109 zarch
+# z9-109 move with optional specifications instruction
+c800 mvcos SSF_RRDRD "move with optional specifications" z9-109 zarch
+# z9-109 load page-table-entry address instruction
+b9aa lptea RRF_RURR2 "load page-table-entry address" z9-109 zarch
+# z9-109 conditional sske facility, sske instruction entered twice
+b22b sske RRF_U0RR "set storage key extended" z9-109 zarch optparm
+# z9-109 etf2-enhancement facility, instructions entered twice
+b993 troo RRF_U0RER "translate one to one" z9-109 esa,zarch optparm
+b992 trot RRF_U0RER "translate one to two" z9-109 esa,zarch optparm
+b991 trto RRF_U0RER "translate two to one" z9-109 esa,zarch optparm
+b990 trtt RRF_U0RER "translate two to two" z9-109 esa,zarch optparm
+# z9-109 etf3-enhancement facility, some instructions entered twice
+b9b1 cu24 RRF_U0RERE "convert utf-16 to utf-32" z9-109 zarch optparm
+b2a6 cu21 RRF_U0RERE "convert utf-16 to utf-8" z9-109 zarch optparm
+b2a6 cuutf RRF_U0RERE "convert unicode to utf-8" z9-109 zarch optparm
+b9b3 cu42 RRE_RERE "convert utf-32 to utf-16" z9-109 zarch
+b9b2 cu41 RRE_RERE "convert utf-32 to utf-8" z9-109 zarch
+b2a7 cu12 RRF_U0RERE "convert utf-8 to utf-16" z9-109 zarch optparm
+b2a7 cutfu RRF_U0RERE "convert utf-8 to unicode" z9-109 zarch optparm
+b9b0 cu14 RRF_U0RERE "convert utf-8 to utf-32" z9-109 zarch optparm
+b9be srstu RRE_RR "search string unicode" z9-109 zarch
+d0 trtr SS_L0RDRD "tranlate and test reverse" z9-109 zarch
+# z9-109 unnormalized hfp multiply & multiply and add
+b33b myr RRF_FE0FF "multiply unnormalized long hfp" z9-109 zarch
+b33d myhr RRF_F0FF "multiply unnormalized long hfp high" z9-109 zarch
+b339 mylr RRF_F0FF "multiply unnormalized long hfp low" z9-109 zarch
+ed000000003b my RXF_FRRDFE "multiply unnormalized long hfp" z9-109 zarch
+ed000000003d myh RXF_FRRDF "multiply unnormalized long hfp high" z9-109 zarch
+ed0000000039 myl RXF_FRRDF "multiply unnormalized long hfp low" z9-109 zarch
+b33a mayr RRF_F0FF "multiply and add unnormalized long hfp" z9-109 zarch
+b33c mayhr RRF_F0FF "multiply and add unnormalized long hfp high" z9-109 zarch
+b338 maylr RRF_F0FF "multiply and add unnormalized long hfp low" z9-109 zarch
+ed000000003a may RXF_FRRDF "multiply and add unnormalized long hfp" z9-109 zarch
+ed000000003c mayh RXF_FRRDF "multiply and add unnormalized long hfp high" z9-109 zarch
+ed0000000038 mayl RXF_FRRDF "multiply and add unnormalized long hfp low" z9-109 zarch
+b370 lpdfr RRE_FF "load positive no cc" z9-ec zarch
+b371 lndfr RRE_FF "load negative no cc" z9-ec zarch
+b372 cpsdr RRF_F0FF2 "copy sign" z9-ec zarch
+b373 lcdfr RRE_FF "load complement no cc" z9-ec zarch
+b3c1 ldgr RRE_FR "load fpr from gr" z9-ec zarch
+b3cd lgdr RRE_RF "load gr from fpr" z9-ec zarch
+b3d2 adtr RRR_F0FF "add long dfp" z9-ec zarch
+b3da axtr RRR_FE0FEFE "add extended dfp" z9-ec zarch
+b3e4 cdtr RRE_FF "compare long dfp" z9-ec zarch
+b3ec cxtr RRE_FEFE "compare extended dfp" z9-ec zarch
+b3e0 kdtr RRE_FF "compare and signal long dfp" z9-ec zarch
+b3e8 kxtr RRE_FF "compare and signal extended dfp" z9-ec zarch
+b3f4 cedtr RRE_FF "compare exponent long dfp" z9-ec zarch
+b3fc cextr RRE_FEFE "compare exponent extended dfp" z9-ec zarch
+b3f1 cdgtr RRE_FR "convert from fixed long dfp" z9-ec zarch
+b3f9 cxgtr RRE_FER "convert from fixed extended dfp" z9-ec zarch
+b3f3 cdstr RRE_FR "convert from signed bcd long dfp" z9-ec zarch
+b3fb cxstr RRE_FR "convert from signed bcd extended dfp" z9-ec zarch
+b3f2 cdutr RRE_FR "convert from unsigned bcd to long dfp" z9-ec zarch
+b3fa cxutr RRE_FER "convert from unsigned bcd to extended dfp" z9-ec zarch
+b3e1 cgdtr RRF_U0RF "convert from long dfp to fixed" z9-ec zarch
+b3e9 cgxtr RRF_U0RFE "convert from extended dfp to fixed" z9-ec zarch
+b3e3 csdtr RRF_0URF "convert from long dfp to signed bcd" z9-ec zarch
+b3eb csxtr RRF_0UREFE "convert from extended dfp to signed bcd" z9-ec zarch
+b3e2 cudtr RRE_RF "convert from long dfp to unsigned bcd" z9-ec zarch
+b3ea cuxtr RRE_RFE "convert from extended dfp to unsigned bcd" z9-ec zarch
+b3d1 ddtr RRR_F0FF "divide long dfp" z9-ec zarch
+b3d9 dxtr RRR_FE0FEFE "divide extended dfp" z9-ec zarch
+b3e5 eedtr RRE_RF "extract biased exponent from long dfp" z9-ec zarch
+b3ed eextr RRE_RFE "extract biased exponent from extended dfp" z9-ec zarch
+b3e7 esdtr RRE_RF "extract significance from long dfp" z9-ec zarch
+b3ef esxtr RRE_RFE "extract significance from extended dfp" z9-ec zarch
+b3f6 iedtr RRF_F0FR "insert biased exponent long dfp" z9-ec zarch
+b3fe iextr RRF_FE0FER "insert biased exponent extended dfp" z9-ec zarch
+b3d6 ltdtr RRE_FF "load and test long dfp" z9-ec zarch
+b3de ltxtr RRE_FEFE "load and test extended dfp" z9-ec zarch
+b3d7 fidtr RRF_UUFF "load fp integer long dfp" z9-ec zarch
+b3df fixtr RRF_UUFEFE "load fp integer extended dfp" z9-ec zarch
+b2bd lfas S_RD "load fpd and signal" z9-ec zarch
+b3d4 ldetr RRF_0UFF "load lengthened long dfp" z9-ec zarch
+b3dc lxdtr RRF_0UFEF "load lengthened extended dfp" z9-ec zarch
+b3d5 ledtr RRF_UUFF "load rounded long dfp" z9-ec zarch
+b3dd ldxtr RRF_UUFFE "load rounded extended dfp" z9-ec zarch
+b3d0 mdtr RRR_F0FF "multiply long dfp" z9-ec zarch
+b3d8 mxtr RRR_FE0FEFE "multiply extended dfp" z9-ec zarch
+b3f5 qadtr RRF_FUFF "Quantize long dfp" z9-ec zarch
+b3fd qaxtr RRF_FEUFEFE "Quantize extended dfp" z9-ec zarch
+b3f7 rrdtr RRF_FFRU "Reround long dfp" z9-ec zarch
+b3ff rrxtr RRF_FEFERU "Reround extended dfp" z9-ec zarch
+b2b9 srnmt S_RD "set rounding mode dfp" z9-ec zarch
+b385 sfasr RRE_R0 "set fpc and signal" z9-ec zarch
+ed0000000040 sldt RXF_FRRDF "shift coefficient left long dfp" z9-ec zarch
+ed0000000048 slxt RXF_FERRDFE "shift coefficient left extended dfp" z9-ec zarch
+ed0000000041 srdt RXF_FRRDF "shift coefficient right long dfp" z9-ec zarch
+ed0000000049 srxt RXF_FERRDFE "shift coefficient right extended dfp" z9-ec zarch
+b3d3 sdtr RRR_F0FF "subtract long dfp" z9-ec zarch
+b3db sxtr RRR_FE0FEFE "subtract extended dfp" z9-ec zarch
+ed0000000050 tdcet RXE_FRRD "test data class short dfp" z9-ec zarch
+ed0000000054 tdcdt RXE_FRRD "test data class long dfp" z9-ec zarch
+ed0000000058 tdcxt RXE_FERRD "test data class extended dfp" z9-ec zarch
+ed0000000051 tdget RXE_FRRD "test data group short dfp" z9-ec zarch
+ed0000000055 tdgdt RXE_FRRD "test data group long dfp" z9-ec zarch
+ed0000000059 tdgxt RXE_FERRD "test data group extended dfp" z9-ec zarch
+010a pfpo E "perform floating point operation" z9-ec zarch
+c801 ectg SSF_RRDRD "extract cpu time" z9-ec zarch
+c802 csst SSF_RRDRD "compare and swap and store" z9-ec zarch
+
+# The new instructions of the System z10 Enterprise Class
+eb000000006a asi SIY_IRD "add immediate (32<8)" z10 zarch
+eb000000007a agsi SIY_IRD "add immediate (64<8)" z10 zarch
+eb000000006e alsi SIY_IRD "add logical with signed immediate (32<8)" z10 zarch
+eb000000007e algsi SIY_IRD "add logical with signed immediate (64<8)" z10 zarch
+c60d crl RIL_RP "compare relative long (32)" z10 zarch
+c608 cgrl RIL_RP "compare relative long (64)" z10 zarch
+c60c cgfrl RIL_RP "compare relative long (64<32)" z10 zarch
+ec00000000f6 crb$32 RRS_RRRD0 "compare and branch (32)" z10 zarch
+ec00000000f6 crb RRS_RRRDU "compare and branch (32)" z10 zarch
+ec00000000e4 cgrb$32 RRS_RRRD0 "compare and branch (64)" z10 zarch
+ec00000000e4 cgrb RRS_RRRDU "compare and branch (64)" z10 zarch
+ec0000000076 crj$32 RIE_RRP0 "compare and branch relative (32)" z10 zarch
+ec0000000076 crj RIE_RRPU "compare and branch relative (32)" z10 zarch
+ec0000000064 cgrj$32 RIE_RRP0 "compare and branch relative (64)" z10 zarch
+ec0000000064 cgrj RIE_RRPU "compare and branch relative (64)" z10 zarch
+ec00000000fe cib$12 RIS_R0RDI "compare immediate and branch (32<8)" z10 zarch
+ec00000000fe cib RIS_RURDI "compare immediate and branch (32<8)" z10 zarch
+ec00000000fc cgib$12 RIS_R0RDI "compare immediate and branch (64<8)" z10 zarch
+ec00000000fc cgib RIS_RURDI "compare immediate and branch (64<8)" z10 zarch
+ec000000007e cij$12 RIE_R0PI "compare immediate and branch relative (32<8)" z10 zarch
+ec000000007e cij RIE_RUPI "compare immediate and branch relative (32<8)" z10 zarch
+ec000000007c cgij$12 RIE_R0PI "compare immediate and branch relative (64<8)" z10 zarch
+ec000000007c cgij RIE_RUPI "compare immediate and branch relative (64<8)" z10 zarch
+b9720000 crt$16 RRF_00RR "compare and trap" z10 zarch
+b972 crt RRF_U0RR "compare and trap" z10 zarch
+b9600000 cgrt$16 RRF_00RR "compare and trap 64" z10 zarch
+b960 cgrt RRF_U0RR "compare and trap 64" z10 zarch
+ec0000000072 cit$32 RIE_R0I0 "compare immediate and trap (32<16)" z10 zarch
+ec0000000072 cit RIE_R0IU "compare immediate and trap (32<16)" z10 zarch
+ec0000000070 cgit$32 RIE_R0I0 "compare immediate and trap (64<16)" z10 zarch
+ec0000000070 cgit RIE_R0IU "compare immediate and trap (64<16)" z10 zarch
+e30000000034 cgh RXY_RRRD "compare halfword (64<16)" z10 zarch
+e554 chhsi SIL_RDI "compare halfword immediate (16<16)" z10 zarch
+e55c chsi SIL_RDI "compare halfword immediate (32<16)" z10 zarch
+e558 cghsi SIL_RDI "compare halfword immediate (64<16)" z10 zarch
+c605 chrl RIL_RP "compare halfword relative long (32<8)" z10 zarch
+c604 cghrl RIL_RP "compare halfword relative long (64<8)" z10 zarch
+e555 clhhsi SIL_RDU "compare logical immediate (16<16)" z10 zarch
+e55d clfhsi SIL_RDU "compare logical immediate (32<16)" z10 zarch
+e559 clghsi SIL_RDU "compare logical immediate (64<16)" z10 zarch
+c60f clrl RIL_RP "compare logical relative long (32)" z10 zarch
+c60a clgrl RIL_RP "compare logical relative long (64)" z10 zarch
+c60e clgfrl RIL_RP "compare logical relative long (64<32)" z10 zarch
+c607 clhrl RIL_RP "compare logical relative long (32<16)" z10 zarch
+c606 clghrl RIL_RP "compare logical relative long (64<16)" z10 zarch
+ec00000000f7 clrb$32 RRS_RRRD0 "compare logical and branch (32)" z10 zarch
+ec00000000f7 clrb RRS_RRRDU "compare logical and branch (32)" z10 zarch
+ec00000000e5 clgrb$32 RRS_RRRD0 "compare logical and branch (64)" z10 zarch
+ec00000000e5 clgrb RRS_RRRDU "compare logical and branch (64)" z10 zarch
+ec0000000077 clrj$32 RIE_RRP0 "compare logical and branch relative (32)" z10 zarch
+ec0000000077 clrj RIE_RRPU "compare logical and branch relative (32)" z10 zarch
+ec0000000065 clgrj$32 RIE_RRP0 "compare logical and branch relative (64)" z10 zarch
+ec0000000065 clgrj RIE_RRPU "compare logical and branch relative (64)" z10 zarch
+ec00000000ff clib$12 RIS_R0RDU "compare logical immediate and branch (32<8)" z10 zarch
+ec00000000ff clib RIS_RURDU "compare logical immediate and branch (32<8)" z10 zarch
+ec00000000fd clgib$12 RIS_R0RDU "compare logical immediate and branch (64<8)" z10 zarch
+ec00000000fd clgib RIS_RURDU "compare logical immediate and branch (64<8)" z10 zarch
+ec000000007f clij$12 RIE_R0PU "compare logical immediate and branch relative (32<8)" z10 zarch
+ec000000007f clij RIE_RUPU "compare logical immediate and branch relative (32<8)" z10 zarch
+ec000000007d clgij$12 RIE_R0PU "compare logical immediate and branch relative (64<8)" z10 zarch
+ec000000007d clgij RIE_RUPU "compare logical immediate and branch relative (64<8)" z10 zarch
+b9730000 clrt$16 RRF_00RR "compare logical and trap (32)" z10 zarch
+b973 clrt RRF_U0RR "compare logical and trap (32)" z10 zarch
+b9610000 clgrt$16 RRF_00RR "compare logical and trap (64)" z10 zarch
+b961 clgrt RRF_U0RR "compare logical and trap (64)" z10 zarch
+ec0000000073 clfit$32 RIE_R0U0 "compare logical and trap (32<16)" z10 zarch
+ec0000000073 clfit RIE_R0UU "compare logical and trap (32<16)" z10 zarch
+ec0000000071 clgit$32 RIE_R0U0 "compare logical and trap (64<16)" z10 zarch
+ec0000000071 clgit RIE_R0UU "compare logical and trap (64<16)" z10 zarch
+eb000000004c ecag RSY_RRRD "extract cache attribute" z10 zarch
+c40d lrl RIL_RP "load relative long (32)" z10 zarch
+c408 lgrl RIL_RP "load relative long (64)" z10 zarch
+c40c lgfrl RIL_RP "load relative long (64<32)" z10 zarch
+e30000000075 laey RXY_RRRD "load address extended" z10 zarch
+e30000000032 ltgf RXY_RRRD "load and test (64<32)" z10 zarch
+c405 lhrl RIL_RP "load halfword relative long (32<16)" z10 zarch
+c404 lghrl RIL_RP "load halfword relative long (64<16)" z10 zarch
+c40e llgfrl RIL_RP "load logical relative long (64<32)" z10 zarch
+c402 llhrl RIL_RP "load logical halfword relative long (32<16)" z10 zarch
+c406 llghrl RIL_RP "load logical halfword relative long (64<16)" z10 zarch
+e544 mvhhi SIL_RDI "move (16<16)" z10 zarch
+e54c mvhi SIL_RDI "move (32<16)" z10 zarch
+e548 mvghi SIL_RDI "move (64<16)" z10 zarch
+e3000000005c mfy RXY_RERRD "multiply" z10 zarch
+e3000000007c mhy RXY_RRRD "multiply halfword" z10 zarch
+c201 msfi RIL_RI "multiply single immediate (32)" z10 zarch
+c200 msgfi RIL_RI "multiply single immediate (64)" z10 zarch
+e30000000036 pfd RXY_URRD "prefetch data" z10 zarch
+c602 pfdrl RIL_UP "prefetch data relative long" z10 zarch
+ec0000000054 rnsbg RIE_RRUUU "rotate then and selected bits" z10 zarch
+ec0000000057 rxsbg RIE_RRUUU "rotate then exclusive or selected bits" z10 zarch
+ec0000000056 rosbg RIE_RRUUU "rotate then or selected bits" z10 zarch
+ec0000000055 risbg RIE_RRUUU "rotate then insert selected bits" z10 zarch
+ec0000800055 risbgz RIE_RRUUU2 "rotate then insert selected bits and zero remaining bits" z10 zarch
+c40f strl RIL_RP "store relative long (32)" z10 zarch
+c40b stgrl RIL_RP "store relative long (64)" z10 zarch
+c407 sthrl RIL_RP "store halfword relative long" z10 zarch
+c600 exrl RIL_RP "execute relative long" z10 zarch
+af00 mc SI_URD "monitor call" z10 zarch
+b9a2 ptf RRE_R0 "perform topology function" z10 zarch
+b9af pfmf RRE_RR "perform frame management function" z10 zarch
+b9bf trte RRF_U0RER "translate and test extended" z10 zarch optparm
+b9bd trtre RRF_U0RER "translate and test reverse extended" z10 zarch optparm
+b2ed ecpga RRE_RR "extract coprocessor-group address" z10 zarch
+b2e4 ecctr RRE_RR "extract cpu counter" z10 zarch
+b2e5 epctr RRE_RR "extract peripheral counter" z10 zarch
+b284 lcctl S_RD "load cpu-counter-set controls" z10 zarch
+b285 lpctl S_RD "load peripheral-counter-set controls" z10 zarch
+b287 lsctl S_RD "load sampling controls" z10 zarch
+b28e qctri S_RD "query counter information" z10 zarch
+b286 qsi S_RD "query sampling information" z10 zarch
+b2e0 scctr RRE_RR "set cpu counter" z10 zarch
+b2e1 spctr RRE_RR "set peripheral counter" z10 zarch
+b280 lpp S_RD "load program parameter" z10 zarch
+
+# The new instructions of the IBM zEnterprise z196
+b9c8 ahhhr RRF_R0RR2 "add high high" z196 zarch
+b9d8 ahhlr RRF_R0RR2 "add high low" z196 zarch
+cc08 aih RIL_RI "add immediate high" z196 zarch
+b9ca alhhhr RRF_R0RR2 "add logical high high" z196 zarch
+b9da alhhlr RRF_R0RR2 "add logical high low" z196 zarch
+cc0a alsih RIL_RI "add logical with signed immediate high with cc" z196 zarch
+cc0b alsihn RIL_RI "add logical with signed immediate high no cc" z196 zarch
+cc06 brcth RIL_RP "branch relative on count high" z196 zarch
+b9cd chhr RRE_RR "compare high high" z196 zarch
+b9dd chlr RRE_RR "compare high low" z196 zarch
+e300000000cd chf RXY_RRRD "compare high" z196 zarch
+cc0d cih RIL_RI "compare immediate high" z196 zarch
+b9cf clhhr RRE_RR "compare logical high high" z196 zarch
+b9df clhlr RRE_RR "compare logical high low" z196 zarch
+e300000000cf clhf RXY_RRRD "compare logical high" z196 zarch
+cc0f clih RIL_RU "compare logical immediate" z196 zarch
+e300000000c0 lbh RXY_RRRD "load byte high" z196 zarch
+e300000000c4 lhh RXY_RRRD "load halfword high" z196 zarch
+e300000000ca lfh RXY_RRRD "load high" z196 zarch
+e300000000c2 llch RXY_RRRD "load logical character high" z196 zarch
+e300000000c6 llhh RXY_RRRD "load logical halfword high" z196 zarch
+ec000000005d risbhg RIE_RRUUU "rotate then insert selected bits high" z196 zarch
+ec0000000051 risblg RIE_RRUUU "rotate then insert selected bits low" z196 zarch
+e300000000c3 stch RXY_RRRD "store character high" z196 zarch
+e300000000c7 sthh RXY_RRRD "store halfword high" z196 zarch
+e300000000cb stfh RXY_RRRD "store high" z196 zarch
+b9c9 shhhr RRF_R0RR2 "subtract high high" z196 zarch
+b9d9 shhlr RRF_R0RR2 "subtract high low" z196 zarch
+b9cb slhhhr RRF_R0RR2 "subtract logical high high" z196 zarch
+b9db slhhlr RRF_R0RR2 "subtract logical high low" z196 zarch
+eb00000000f8 laa RSY_RRRD "load and add 32 bit" z196 zarch
+eb00000000e8 laag RSY_RRRD "load and add 64 bit" z196 zarch
+eb00000000fa laal RSY_RRRD "load and add logical 32 bit" z196 zarch
+eb00000000ea laalg RSY_RRRD "load and add logical 64 bit" z196 zarch
+eb00000000f4 lan RSY_RRRD "load and and 32 bit" z196 zarch
+eb00000000e4 lang RSY_RRRD "load and and 64 bit" z196 zarch
+eb00000000f7 lax RSY_RRRD "load and exclusive or 32 bit" z196 zarch
+eb00000000e7 laxg RSY_RRRD "load and exclusive or 64 bit" z196 zarch
+eb00000000f6 lao RSY_RRRD "load and or 32 bit" z196 zarch
+eb00000000e6 laog RSY_RRRD "load and or 64 bit" z196 zarch
+c804 lpd SSF_RERDRD2 "load pair disjoint 32 bit" z196 zarch
+c805 lpdg SSF_RERDRD2 "load pair disjoint 64 bit" z196 zarch
+b9f2 locr RRF_U0RR "load on condition 32 bit" z196 zarch
+b9f20000 locr*16 RRF_00RR "load on condition 32 bit" z196 zarch
+b9e2 locgr RRF_U0RR "load on condition 64  bit" z196 zarch
+b9e20000 locgr*16 RRF_00RR "load on condition 64  bit" z196 zarch
+eb00000000f2 loc RSY_RURD2 "load on condition 32 bit" z196 zarch
+eb00000000f2 loc*12 RSY_R0RD "load on condition 32 bit" z196 zarch
+eb00000000e2 locg RSY_RURD2 "load on condition 64 bit" z196 zarch
+eb00000000e2 locg*12 RSY_R0RD "load on condition 64 bit" z196 zarch
+eb00000000f3 stoc RSY_RURD2 "store on condition 32 bit" z196 zarch
+eb00000000f3 stoc*12 RSY_R0RD "store on condition 32 bit" z196 zarch
+eb00000000e3 stocg RSY_RURD2 "store on condition 64 bit" z196 zarch
+eb00000000e3 stocg*12 RSY_R0RD "store on condition 64 bit" z196 zarch
+b9f8 ark RRF_R0RR2 "add 3 operands 32 bit" z196 zarch
+b9e8 agrk RRF_R0RR2 "add 3 operands 64 bit" z196 zarch
+ec00000000d8 ahik RIE_RRI0 "add immediate 3 operands 32 bit" z196 zarch
+ec00000000d9 aghik RIE_RRI0 "add immediate 3 operands 64 bit" z196 zarch
+b9fa alrk RRF_R0RR2 "add logical 3 operands 32 bit" z196 zarch
+b9ea algrk RRF_R0RR2 "add logical 3 operands 64 bit" z196 zarch
+ec00000000da alhsik RIE_RRI0 "add logical immediate 3 operands 32 bit" z196 zarch
+ec00000000db alghsik RIE_RRI0 "add logical immediate 3 operands 64 bit" z196 zarch
+b9f4 nrk RRF_R0RR2 "and 3 operands 32 bit" z196 zarch
+b9e4 ngrk RRF_R0RR2 "and 3 operands 64 bit" z196 zarch
+b9f7 xrk RRF_R0RR2 "xor 3 operands 32 bit" z196 zarch
+b9e7 xgrk RRF_R0RR2 "xor 3 operands 64 bit" z196 zarch
+b9f6 ork RRF_R0RR2 "or 3 operands 32 bit" z196 zarch
+b9e6 ogrk RRF_R0RR2 "or 3 operands 64 bit" z196 zarch
+eb00000000dd slak RSY_RRRD "shift left single 3 operands 32 bit" z196 zarch
+eb00000000df sllk RSY_RRRD "shift left single logical 3 operands 32 bit" z196 zarch
+eb00000000dc srak RSY_RRRD "shift right single 3 operands 32 bit" z196 zarch
+eb00000000de srlk RSY_RRRD "shift right single logical 3 operands 32 bit" z196 zarch
+b9f9 srk RRF_R0RR2 "subtract 3 operands 32 bit" z196 zarch
+b9e9 sgrk RRF_R0RR2 "subtract 3 operands 64 bit" z196 zarch
+b9fb slrk RRF_R0RR2 "subtract logical 3 operands 32 bit" z196 zarch
+b9eb slgrk RRF_R0RR2 "subtract logical 3 operands 64 bit" z196 zarch
+b9e1 popcnt RRE_RR "population count" z196 zarch
+b9ae rrbm RRE_RR "reset reference bits multiple" z196 zarch
+b394 cefbra RRF_UUFR "convert from 32 bit fixed to short bfp with rounding mode" z196 zarch
+b395 cdfbra RRF_UUFR "convert from 32 bit fixed to long bfp with rounding mode" z196 zarch
+b396 cxfbra RRF_UUFER "convert from 32 bit fixed to extended bfp with rounding mode" z196 zarch
+b3a4 cegbra RRF_UUFR "convert from 64 bit fixed to short bfp with rounding mode" z196 zarch
+b3a5 cdgbra RRF_UUFR "convert from 64 bit fixed to long bfp with rounding mode" z196 zarch
+b3a6 cxgbra RRF_UUFER "convert from 64 bit fixed to extended bfp with rounding mode" z196 zarch
+b390 celfbr RRF_UUFR "convert from 32 bit logical fixed to short bfp with rounding mode" z196 zarch
+b391 cdlfbr RRF_UUFR "convert from 32 bit logical fixed to long bfp with rounding mode" z196 zarch
+b392 cxlfbr RRF_UUFER "convert from 32 bit logical fixed to extended bfp with rounding mode" z196 zarch
+b3a0 celgbr RRF_UUFR "convert from 64 bit logical fixed to short bfp with rounding mode" z196 zarch
+b3a1 cdlgbr RRF_UUFR "convert from 64 bit logical fixed to long bfp with rounding mode" z196 zarch
+b3a2 cxlgbr RRF_UUFER "convert from 64 bit logical fixed to extended bfp with rounding mode" z196 zarch
+b398 cfebra RRF_UURF "convert to 32 bit fixed from short bfp with rounding mode" z196 zarch
+b399 cfdbra RRF_UURF "convert to 32 bit fixed from long bfp with rounding mode" z196 zarch
+b39a cfxbra RRF_UURFE "convert to 32 bit fixed from extended bfp with rounding mode" z196 zarch
+b3a8 cgebra RRF_UURF "convert to 64 bit fixed from short bfp with rounding mode" z196 zarch
+b3a9 cgdbra RRF_UURF "convert to 64 bit fixed from long bfp with rounding mode" z196 zarch
+b3aa cgxbra RRF_UURFE "convert to 64 bit fixed from extended bfp with rounding mode" z196 zarch
+b39c clfebr RRF_UURF "convert to 32 bit fixed logical from short bfp with rounding mode" z196 zarch
+b39d clfdbr RRF_UURF "convert to 32 bit fixed logical from long bfp with rounding mode" z196 zarch
+b39e clfxbr RRF_UURFE "convert to 32 bit fixed logical from extended bfp with rounding mode" z196 zarch
+b3ac clgebr RRF_UURF "convert to 64 bit fixed logical from short bfp with rounding mode" z196 zarch
+b3ad clgdbr RRF_UURF "convert to 64 bit fixed logical from long bfp with rounding mode" z196 zarch
+b3ae clgxbr RRF_UURFE "convert to 64 bit fixed logical from extended bfp with rounding mode" z196 zarch
+b357 fiebra RRF_UUFF "load fp integer short bfp with inexact suppression" z196 zarch
+b35f fidbra RRF_UUFF "load fp integer long bfp with inexact suppression" z196 zarch
+b347 fixbra RRF_UUFEFE "load fp integer extended bfp with inexact suppression" z196 zarch
+b344 ledbra RRF_UUFF "load rounded short/long bfp to short/long bfp with rounding mode" z196 zarch
+b345 ldxbra RRF_UUFEFE "load rounded long/extended bfp to long/extended bfp with rounding mode" z196 zarch
+b346 lexbra RRF_UUFEFE "load rounded short/extended bfp to short/extended bfp with rounding mode" z196 zarch
+b3d2 adtra RRF_FUFF2 "add long dfp with rounding mode" z196 zarch
+b3da axtra RRF_FEUFEFE2 "add extended dfp with rounding mode" z196 zarch
+b3f1 cdgtra RRF_UUFR "convert from fixed long dfp with rounding mode" z196 zarch
+b951 cdftr RRF_UUFR "convert from 32 bit fixed to long dfp with rounding mode" z196 zarch
+b959 cxftr RRF_UUFER "convert from 32 bit fixed to extended dfp with rounding mode" z196 zarch
+b3f9 cxgtra RRF_UUFER "convert from fixed extended dfp with rounding mode" z196 zarch
+b952 cdlgtr RRF_UUFR "convert from 64 bit fixed logical to long dfp with rounding mode" z196 zarch
+b95a cxlgtr RRF_UUFER "convert from 64 bit fixed logical to extended dfp with rounding mode" z196 zarch
+b953 cdlftr RRF_UUFR "convert from 32 bit fixed logical to long dfp with rounding mode" z196 zarch
+b95b cxlftr RRF_UUFR "convert from 32 bit fixed logical to extended dfp with rounding mode" z196 zarch
+b3e1 cgdtra RRF_UURF "convert to 64 bit fixed from long dfp with rounding mode" z196 zarch
+b3e9 cgxtra RRF_UURFE "convert to 64 bit fixed from extended dfp with rounding mode" z196 zarch
+b941 cfdtr RRF_UURF "convert to 32 bit fixed from long dfp source with rounding mode" z196 zarch
+b949 cfxtr RRF_UURF "convert to 32 bit fixed from extended dfp source with rounding mode" z196 zarch
+b942 clgdtr RRF_UURF "convert to 64 bit fixed logical from long dfp with rounding mode" z196 zarch
+b94a clgxtr RRF_UURFE "convert to 64 bit fixed logical from extended dfp with rounding mode" z196 zarch
+b943 clfdtr RRF_UURF "convert to 32 bit fixed logical from long dfp with rounding mode" z196 zarch
+b94b clfxtr RRF_UURFE "convert to 32 bit fixed logical from extended dfp with rounding mode" z196 zarch
+b3d1 ddtra RRF_FUFF2 "divide long dfp with rounding mode" z196 zarch
+b3d9 dxtra RRF_FEUFEFE2 "divide extended dfp with rounding mode" z196 zarch
+b3d0 mdtra RRF_FUFF2 "multiply long dfp with rounding mode" z196 zarch
+b3d8 mxtra RRF_FEUFEFE2 "multiply extended dfp with rounding mode" z196 zarch
+b3d3 sdtra RRF_FUFF2 "subtract long dfp with rounding mode" z196 zarch
+b3db sxtra RRF_FEUFEFE2 "subtract extended dfp with rounding mode" z196 zarch
+b2b8 srnmb S_RD "set 3 bit bfp rounding mode" z196 zarch
+b92a kmf RRE_RR "cipher message with CFB" z196 zarch
+b92b kmo RRE_RR "cipher message with OFB" z196 zarch
+b92c pcc RRE_00 "perform cryptographic computation" z196 zarch
+b92d kmctr RRF_R0RR "cipher message with counter" z196 zarch
+b928 pckmo RRE_00 "perform cryptographic key management operation" z196 zarch
+
+# The new instructions of the IBM zEnterprise EC12
+b2ec etnd RRE_R0 "extract transaction nesting depth" zEC12 zarch htm
+e30000000025 ntstg RXY_RRRD "nontransactional store" zEC12 zarch htm
+b2fc tabort S_RD "transaction abort" zEC12 zarch htm
+e560 tbegin SIL_RDU "transaction begin" zEC12 zarch htm
+e561 tbeginc SIL_RDU "constrained transaction begin" zEC12 zarch htm
+b2f8 tend S_00 "transaction end" zEC12 zarch htm
+c7 bpp SMI_U0RDP "branch prediction preload" zEC12 zarch
+c5 bprp MII_UPP "branch prediction relative preload" zEC12 zarch
+b2e8 ppa RRF_U0RR "perform processor assist" zEC12 zarch htm
+b2fa niai IE_UU "next instruction access intent" zEC12 zarch
+b98f crdte RRF_RURR2 "compare and replace DAT table entry" zEC12 zarch optparm
+e3000000009f lat RXY_RRRD "load and trap 32 bit" zEC12 zarch
+e30000000085 lgat RXY_RRRD "load and trap 64 bit" zEC12 zarch
+e300000000c8 lfhat RXY_RRRD "load high and trap" zEC12 zarch
+e3000000009d llgfat RXY_RRRD "load logical and trap 32>64" zEC12 zarch
+e3000000009c llgtat RXY_RRRD "load logical thirty one bits and trap 31>64" zEC12 zarch
+eb0000000023 clt RSY_RURD "compare logical and trap 32 bit reg-mem" zEC12 zarch
+eb0000000023 clt$12 RSY_R0RD "compare logical and trap 32 bit reg-mem" zEC12 zarch
+eb000000002b clgt RSY_RURD "compare logical and trap 64 bit reg-mem" zEC12 zarch
+eb000000002b clgt$12 RSY_R0RD "compare logical and trap 64 bit reg-mem" zEC12 zarch
+ec0000000059 risbgn RIE_RRUUU "rotate then insert selected bits nocc" zEC12 zarch
+ec0000800059 risbgnz RIE_RRUUU2 "rotate then insert selected bits and zero remaining bits nocc" zEC12 zarch
+ed00000000aa cdzt RSL_LRDFU "convert from zoned long" zEC12 zarch
+ed00000000ab cxzt RSL_LRDFEU "convert from zoned extended" zEC12 zarch
+ed00000000a8 czdt RSL_LRDFU "convert to zoned long" zEC12 zarch
+ed00000000a9 czxt RSL_LRDFEU "convert to zoned extended" zEC12 zarch
+
+# The new instructions of IBM z13
+
+e70000000027 lcbb RXE_RRRDU "load count to block boundary" z13 zarch vx
+
+# Chapter 21
+e70000000013 vgef VRV_VVXRDU "vector gather element 4 byte elements" z13 zarch vx
+e70000000012 vgeg VRV_VVXRDU "vector gather element 8 byte elements" z13 zarch vx
+e70000000044 vgbm VRI_V0U "vector generate byte mask" z13 zarch vx
+e70000000044 vzero VRI_V "vector set to zero" z13 zarch vx
+e700ffff0044 vone VRI_V "vector set to ones" z13 zarch vx
+e70000000046 vgm VRI_V0UUU "vector generate mask" z13 zarch vx
+e70000000046 vgmb VRI_V0UU "vector generate mask byte" z13 zarch vx
+e70000001046 vgmh VRI_V0UU "vector generate mask halfword" z13 zarch vx
+e70000002046 vgmf VRI_V0UU "vector generate mask word" z13 zarch vx
+e70000003046 vgmg VRI_V0UU "vector generate mask double word" z13 zarch vx
+e70000000056 vlr VRX_VV "vector register load" z13 zarch vx
+e70000000005 vlrep VRX_VRRDU "vector load and replicate" z13 zarch vx
+e70000000005 vlrepb VRX_VRRD "vector load and replicate byte elements" z13 zarch vx
+e70000001005 vlreph VRX_VRRD "vector load and replicate halfword elements" z13 zarch vx
+e70000002005 vlrepf VRX_VRRD "vector load and replicate word elements" z13 zarch vx
+e70000003005 vlrepg VRX_VRRD "vector load and replicate double word elements" z13 zarch vx
+e70000000000 vleb VRX_VRRDU "vector load byte element" z13 zarch vx
+e70000000001 vleh VRX_VRRDU "vector load halfword element" z13 zarch vx
+e70000000003 vlef VRX_VRRDU "vector load word element" z13 zarch vx
+e70000000002 vleg VRX_VRRDU "vector load double word element" z13 zarch vx
+e70000000040 vleib VRI_V0IU "vector load byte element immediate" z13 zarch vx
+e70000000041 vleih VRI_V0IU "vector load halfword element immediate" z13 zarch vx
+e70000000043 vleif VRI_V0IU "vector load word element immediate" z13 zarch vx
+e70000000042 vleig VRI_V0IU "vector load double word element immediate" z13 zarch vx
+e70000000021 vlgv VRS_RVRDU "vector load gr from vr element" z13 zarch vx
+e70000000021 vlgvb VRS_RVRD "vector load gr from vr byte element" z13 zarch vx
+e70000001021 vlgvh VRS_RVRD "vector load gr from vr halfword element" z13 zarch vx
+e70000002021 vlgvf VRS_RVRD "vector load gr from vr word element" z13 zarch vx
+e70000003021 vlgvg VRS_RVRD "vector load gr from vr double word element" z13 zarch vx
+e70000000004 vllez VRX_VRRDU "vector load logical element and zero" z13 zarch vx
+e70000000004 vllezb VRX_VRRD "vector load logical byte element and zero" z13 zarch vx
+e70000001004 vllezh VRX_VRRD "vector load logical halfword element and zero" z13 zarch vx
+e70000002004 vllezf VRX_VRRD "vector load logical word element and zero" z13 zarch vx
+e70000003004 vllezg VRX_VRRD "vector load logical double word element and zero" z13 zarch vx
+e70000000007 vlbb VRX_VRRDU "vector load to block boundary" z13 zarch vx
+e70000000022 vlvg VRS_VRRDU "vector load VR element from GR" z13 zarch vx
+e70000000022 vlvgb VRS_VRRD "vector load VR byte element from GR" z13 zarch vx
+e70000001022 vlvgh VRS_VRRD "vector load VR halfword element from GR" z13 zarch vx
+e70000002022 vlvgf VRS_VRRD "vector load VR word element from GR" z13 zarch vx
+e70000003022 vlvgg VRS_VRRD "vector load VR double word element from GR" z13 zarch vx
+e70000000062 vlvgp VRR_VRR "vector load VR from GRs disjoint" z13 zarch vx
+e70000000037 vll VRS_VRRD "vector load with length" z13 zarch vx
+e70000000061 vmrh VRR_VVV0U "vector merge high" z13 zarch vx
+e70000000061 vmrhb VRR_VVV "vector merge high byte" z13 zarch vx
+e70000001061 vmrhh VRR_VVV "vector merge high halfword" z13 zarch vx
+e70000002061 vmrhf VRR_VVV "vector merge high word" z13 zarch vx
+e70000003061 vmrhg VRR_VVV "vector merge high double word" z13 zarch vx
+e70000000060 vmrl VRR_VVV0U "vector merge low" z13 zarch vx
+e70000000060 vmrlb VRR_VVV "vector merge low byte" z13 zarch vx
+e70000001060 vmrlh VRR_VVV "vector merge low halfword" z13 zarch vx
+e70000002060 vmrlf VRR_VVV "vector merge low word" z13 zarch vx
+e70000003060 vmrlg VRR_VVV "vector merge low double word" z13 zarch vx
+e70000000094 vpk VRR_VVV0U "vector pack" z13 zarch vx
+e70000001094 vpkh VRR_VVV "vector pack halfword" z13 zarch vx
+e70000002094 vpkf VRR_VVV "vector pack word" z13 zarch vx
+e70000003094 vpkg VRR_VVV "vector pack double word" z13 zarch vx
+e70000000097 vpks VRR_VVV0U0U "vector pack saturate" z13 zarch vx
+e70000001097 vpksh VRR_VVV "vector pack saturate halfword" z13 zarch vx
+e70000002097 vpksf VRR_VVV "vector pack saturate word" z13 zarch vx
+e70000003097 vpksg VRR_VVV "vector pack saturate double word" z13 zarch vx
+e70000101097 vpkshs VRR_VVV "vector pack saturate halfword" z13 zarch vx
+e70000102097 vpksfs VRR_VVV "vector pack saturate word" z13 zarch vx
+e70000103097 vpksgs VRR_VVV "vector pack saturate double word" z13 zarch vx
+e70000000095 vpkls VRR_VVV0U0U "vector pack logical saturate" z13 zarch vx
+e70000001095 vpklsh VRR_VVV "vector pack logical saturate halfword" z13 zarch vx
+e70000002095 vpklsf VRR_VVV "vector pack logical saturate word" z13 zarch vx
+e70000003095 vpklsg VRR_VVV "vector pack logical saturate double word" z13 zarch vx
+e70000101095 vpklshs VRR_VVV "vector pack logical saturate halfword" z13 zarch vx
+e70000102095 vpklsfs VRR_VVV "vector pack logical saturate word" z13 zarch vx
+e70000103095 vpklsgs VRR_VVV "vector pack logical saturate double word" z13 zarch vx
+e7000000008c vperm VRR_VVV0V "vector permute" z13 zarch vx
+e70000000084 vpdi VRR_VVV0U "vector permute double word immediate" z13 zarch vx
+e7000000004d vrep VRI_VVUU "vector replicate" z13 zarch vx
+e7000000004d vrepb VRI_VVU "vector replicate byte" z13 zarch vx
+e7000000104d vreph VRI_VVU "vector replicate halfword" z13 zarch vx
+e7000000204d vrepf VRI_VVU "vector replicate word" z13 zarch vx
+e7000000304d vrepg VRI_VVU "vector replicate double word" z13 zarch vx
+e70000000045 vrepi VRI_V0IU "vector replicate immediate" z13 zarch vx
+e70000000045 vrepib VRI_V0I "vector replicate immediate byte" z13 zarch vx
+e70000001045 vrepih VRI_V0I "vector replicate immediate halfword" z13 zarch vx
+e70000002045 vrepif VRI_V0I "vector replicate immediate word" z13 zarch vx
+e70000003045 vrepig VRI_V0I "vector replicate immediate double word" z13 zarch vx
+e7000000001b vscef VRV_VVXRDU "vector scatter element 4 byte" z13 zarch vx
+e7000000001a vsceg VRV_VVXRDU "vector scatter element 8 byte" z13 zarch vx
+e7000000008d vsel VRR_VVV0V "vector select" z13 zarch vx
+e7000000005f vseg VRR_VV0U "vector sign extend to double word" z13 zarch vx
+e7000000005f vsegb VRR_VV "vector sign extend byte to double word" z13 zarch vx
+e7000000105f vsegh VRR_VV "vector sign extend halfword to double word" z13 zarch vx
+e7000000205f vsegf VRR_VV "vector sign extend word to double word" z13 zarch vx
+e70000000008 vsteb VRX_VRRDU "vector store byte element" z13 zarch vx
+e70000000009 vsteh VRX_VRRDU "vector store halfword element" z13 zarch vx
+e7000000000b vstef VRX_VRRDU "vector store word element" z13 zarch vx
+e7000000000a vsteg VRX_VRRDU "vector store double word element" z13 zarch vx
+e7000000003f vstl VRS_VRRD "vector store with length" z13 zarch vx
+e700000000d7 vuph VRR_VV0U "vector unpack high" z13 zarch vx
+e700000000d7 vuphb VRR_VV "vector unpack high byte" z13 zarch vx
+e700000010d7 vuphh VRR_VV "vector unpack high halfword" z13 zarch vx
+e700000020d7 vuphf VRR_VV "vector unpack high word" z13 zarch vx
+e700000000d5 vuplh VRR_VV0U "vector unpack logical high" z13 zarch vx
+e700000000d5 vuplhb VRR_VV "vector unpack logical high byte" z13 zarch vx
+e700000010d5 vuplhh VRR_VV "vector unpack logical high halfword" z13 zarch vx
+e700000020d5 vuplhf VRR_VV "vector unpack logical high word" z13 zarch vx
+e700000000d6 vupl VRR_VV0U "vector unpack low" z13 zarch vx
+e700000000d6 vuplb VRR_VV "vector unpack low byte" z13 zarch vx
+e700000010d6 vuplhw VRR_VV "vector unpack low halfword" z13 zarch vx
+e700000020d6 vuplf VRR_VV "vector unpack low word" z13 zarch vx
+e700000000d4 vupll VRR_VV0U "vector unpack logical low" z13 zarch vx
+e700000000d4 vupllb VRR_VV "vector unpack logical low byte" z13 zarch vx
+e700000010d4 vupllh VRR_VV "vector unpack logical low halfword" z13 zarch vx
+e700000020d4 vupllf VRR_VV "vector unpack logical low word" z13 zarch vx
+
+# Chapter 22
+e700000000f3 va VRR_VVV0U "vector add" z13 zarch vx
+e700000000f3 vab VRR_VVV "vector add byte" z13 zarch vx
+e700000010f3 vah VRR_VVV "vector add halfword" z13 zarch vx
+e700000020f3 vaf VRR_VVV "vector add word" z13 zarch vx
+e700000030f3 vag VRR_VVV "vector add double word" z13 zarch vx
+e700000040f3 vaq VRR_VVV "vector add quad word" z13 zarch vx
+e700000000f1 vacc VRR_VVV0U "vector add compute carry" z13 zarch vx
+e700000000f1 vaccb VRR_VVV "vector add compute carry byte" z13 zarch vx
+e700000010f1 vacch VRR_VVV "vector add compute carry halfword" z13 zarch vx
+e700000020f1 vaccf VRR_VVV "vector add compute carry word" z13 zarch vx
+e700000030f1 vaccg VRR_VVV "vector add compute carry doubleword" z13 zarch vx
+e700000040f1 vaccq VRR_VVV "vector add compute carry quadword" z13 zarch vx
+e700000000bb vac VRR_VVVU0V "vector add with carry" z13 zarch vx
+e700040000bb vacq VRR_VVV0V "vector add with carry quadword" z13 zarch vx
+e700000000b9 vaccc VRR_VVVU0V "vector add with carry compute carry" z13 zarch vx
+e700040000b9 vacccq VRR_VVV0V "vector add with carry compute carry quadword" z13 zarch vx
+e70000000068 vn VRR_VVV "vector and" z13 zarch vx
+e70000000069 vnc VRR_VVV "vector and with complement" z13 zarch vx
+e700000000f2 vavg VRR_VVV0U "vector average" z13 zarch vx
+e700000000f2 vavgb VRR_VVV "vector average byte" z13 zarch vx
+e700000010f2 vavgh VRR_VVV "vector average half word" z13 zarch vx
+e700000020f2 vavgf VRR_VVV "vector average word" z13 zarch vx
+e700000030f2 vavgg VRR_VVV "vector average double word" z13 zarch vx
+e700000000f0 vavgl VRR_VVV0U "vector average logical" z13 zarch vx
+e700000000f0 vavglb VRR_VVV "vector average logical byte" z13 zarch vx
+e700000010f0 vavglh VRR_VVV "vector average logical half word" z13 zarch vx
+e700000020f0 vavglf VRR_VVV "vector average logical word" z13 zarch vx
+e700000030f0 vavglg VRR_VVV "vector average logical double word" z13 zarch vx
+e70000000066 vcksm VRR_VVV "vector checksum" z13 zarch vx
+e700000000db vec VRR_VV0U "vector element compare" z13 zarch vx
+e700000000db vecb VRR_VV "vector element compare byte" z13 zarch vx
+e700000010db vech VRR_VV "vector element compare half word" z13 zarch vx
+e700000020db vecf VRR_VV "vector element compare word" z13 zarch vx
+e700000030db vecg VRR_VV "vector element compare double word" z13 zarch vx
+e700000000d9 vecl VRR_VV0U "vector element compare logical" z13 zarch vx
+e700000000d9 veclb VRR_VV "vector element compare logical byte" z13 zarch vx
+e700000010d9 veclh VRR_VV "vector element compare logical half word" z13 zarch vx
+e700000020d9 veclf VRR_VV "vector element compare logical word" z13 zarch vx
+e700000030d9 veclg VRR_VV "vector element compare logical double word" z13 zarch vx
+e700000000f8 vceq VRR_VVV0U0U "vector compare equal" z13 zarch vx
+e700000000f8 vceqb VRR_VVV "vector compare equal byte" z13 zarch vx
+e700000010f8 vceqh VRR_VVV "vector compare equal half word" z13 zarch vx
+e700000020f8 vceqf VRR_VVV "vector compare equal word" z13 zarch vx
+e700000030f8 vceqg VRR_VVV "vector compare equal double word" z13 zarch vx
+e700001000f8 vceqbs VRR_VVV "vector compare equal byte" z13 zarch vx
+e700001010f8 vceqhs VRR_VVV "vector compare equal half word" z13 zarch vx
+e700001020f8 vceqfs VRR_VVV "vector compare equal word" z13 zarch vx
+e700001030f8 vceqgs VRR_VVV "vector compare equal double word" z13 zarch vx
+e700000000fb vch VRR_VVV0U0U "vector compare high" z13 zarch vx
+e700000000fb vchb VRR_VVV "vector compare high byte" z13 zarch vx
+e700000010fb vchh VRR_VVV "vector compare high half word" z13 zarch vx
+e700000020fb vchf VRR_VVV "vector compare high word" z13 zarch vx
+e700000030fb vchg VRR_VVV "vector compare high double word" z13 zarch vx
+e700001000fb vchbs VRR_VVV "vector compare high byte" z13 zarch vx
+e700001010fb vchhs VRR_VVV "vector compare high half word" z13 zarch vx
+e700001020fb vchfs VRR_VVV "vector compare high word" z13 zarch vx
+e700001030fb vchgs VRR_VVV "vector compare high double word" z13 zarch vx
+e700000000f9 vchl VRR_VVV0U0U "vector compare high logical" z13 zarch vx
+e700000000f9 vchlb VRR_VVV "vector compare high logical byte" z13 zarch vx
+e700000010f9 vchlh VRR_VVV "vector compare high logical half word" z13 zarch vx
+e700000020f9 vchlf VRR_VVV "vector compare high logical word" z13 zarch vx
+e700000030f9 vchlg VRR_VVV "vector compare high logical double word" z13 zarch vx
+e700001000f9 vchlbs VRR_VVV "vector compare high logical byte" z13 zarch vx
+e700001010f9 vchlhs VRR_VVV "vector compare high logical half word" z13 zarch vx
+e700001020f9 vchlfs VRR_VVV "vector compare high logical word" z13 zarch vx
+e700001030f9 vchlgs VRR_VVV "vector compare high logical double word" z13 zarch vx
+e70000000053 vclz VRR_VV0U "vector count leading zeros" z13 zarch vx
+e70000000053 vclzb VRR_VV "vector count leading zeros byte" z13 zarch vx
+e70000001053 vclzh VRR_VV "vector count leading zeros halfword" z13 zarch vx
+e70000002053 vclzf VRR_VV "vector count leading zeros word" z13 zarch vx
+e70000003053 vclzg VRR_VV "vector count leading zeros doubleword" z13 zarch vx
+e70000000052 vctz VRR_VV0U "vector count trailing zeros" z13 zarch vx
+e70000000052 vctzb VRR_VV "vector count trailing zeros byte" z13 zarch vx
+e70000001052 vctzh VRR_VV "vector count trailing zeros halfword" z13 zarch vx
+e70000002052 vctzf VRR_VV "vector count trailing zeros word" z13 zarch vx
+e70000003052 vctzg VRR_VV "vector count trailing zeros doubleword" z13 zarch vx
+e7000000006d vx VRR_VVV "vector exclusive or" z13 zarch vx
+e700000000b4 vgfm VRR_VVV0U "vector galois field multiply sum" z13 zarch vx
+e700000000b4 vgfmb VRR_VVV "vector galois field multiply sum byte" z13 zarch vx
+e700000010b4 vgfmh VRR_VVV "vector galois field multiply sum halfword" z13 zarch vx
+e700000020b4 vgfmf VRR_VVV "vector galois field multiply sum word" z13 zarch vx
+e700000030b4 vgfmg VRR_VVV "vector galois field multiply sum doubleword" z13 zarch vx
+e700000000bc vgfma VRR_VVVU0V "vector galois field multiply sum and accumulate" z13 zarch vx
+e700000000bc vgfmab VRR_VVV0V "vector galois field multiply sum and accumulate byte" z13 zarch vx
+e700010000bc vgfmah VRR_VVV0V "vector galois field multiply sum and accumulate halfword" z13 zarch vx
+e700020000bc vgfmaf VRR_VVV0V "vector galois field multiply sum and accumulate word" z13 zarch vx
+e700030000bc vgfmag VRR_VVV0V "vector galois field multiply sum and accumulate doubleword" z13 zarch vx
+e700000000de vlc VRR_VV0U "vector load complement" z13 zarch vx
+e700000000de vlcb VRR_VV "vector load complement byte" z13 zarch vx
+e700000010de vlch VRR_VV "vector load complement halfword" z13 zarch vx
+e700000020de vlcf VRR_VV "vector load complement word" z13 zarch vx
+e700000030de vlcg VRR_VV "vector load complement doubleword" z13 zarch vx
+e700000000df vlp VRR_VV0U "vector load positive" z13 zarch vx
+e700000000df vlpb VRR_VV "vector load positive byte" z13 zarch vx
+e700000010df vlph VRR_VV "vector load positive halfword" z13 zarch vx
+e700000020df vlpf VRR_VV "vector load positive word" z13 zarch vx
+e700000030df vlpg VRR_VV "vector load positive doubleword" z13 zarch vx
+e700000000ff vmx VRR_VVV0U "vector maximum" z13 zarch vx
+e700000000ff vmxb VRR_VVV "vector maximum byte" z13 zarch vx
+e700000010ff vmxh VRR_VVV "vector maximum halfword" z13 zarch vx
+e700000020ff vmxf VRR_VVV "vector maximum word" z13 zarch vx
+e700000030ff vmxg VRR_VVV "vector maximum doubleword" z13 zarch vx
+e700000000fd vmxl VRR_VVV0U "vector maximum logical" z13 zarch vx
+e700000000fd vmxlb VRR_VVV "vector maximum logical byte" z13 zarch vx
+e700000010fd vmxlh VRR_VVV "vector maximum logical halfword" z13 zarch vx
+e700000020fd vmxlf VRR_VVV "vector maximum logical word" z13 zarch vx
+e700000030fd vmxlg VRR_VVV "vector maximum logical doubleword" z13 zarch vx
+e700000000fe vmn VRR_VVV0U "vector minimum" z13 zarch vx
+e700000000fe vmnb VRR_VVV "vector minimum byte" z13 zarch vx
+e700000010fe vmnh VRR_VVV "vector minimum halfword" z13 zarch vx
+e700000020fe vmnf VRR_VVV "vector minimum word" z13 zarch vx
+e700000030fe vmng VRR_VVV "vector minimum doubleword" z13 zarch vx
+e700000000fc vmnl VRR_VVV0U "vector minimum logical" z13 zarch vx
+e700000000fc vmnlb VRR_VVV "vector minimum logical byte" z13 zarch vx
+e700000010fc vmnlh VRR_VVV "vector minimum logical halfword" z13 zarch vx
+e700000020fc vmnlf VRR_VVV "vector minimum logical word" z13 zarch vx
+e700000030fc vmnlg VRR_VVV "vector minimum logical doubleword" z13 zarch vx
+e700000000aa vmal VRR_VVVU0V "vector multiply and add low" z13 zarch vx
+e700000000aa vmalb VRR_VVV0V "vector multiply and add low byte" z13 zarch vx
+e700010000aa vmalhw VRR_VVV0V "vector multiply and add low halfword" z13 zarch vx
+e700020000aa vmalf VRR_VVV0V "vector multiply and add low word" z13 zarch vx
+e700000000ab vmah VRR_VVVU0V "vector multiply and add high" z13 zarch vx
+e700000000ab vmahb VRR_VVV0V "vector multiply and add high byte" z13 zarch vx
+e700010000ab vmahh VRR_VVV0V "vector multiply and add high halfword" z13 zarch vx
+e700020000ab vmahf VRR_VVV0V "vector multiply and add high word" z13 zarch vx
+e700000000a9 vmalh VRR_VVVU0V "vector multiply and add logical high" z13 zarch vx
+e700000000a9 vmalhb VRR_VVV0V "vector multiply and add logical high byte" z13 zarch vx
+e700010000a9 vmalhh VRR_VVV0V "vector multiply and add logical high halfword" z13 zarch vx
+e700020000a9 vmalhf VRR_VVV0V "vector multiply and add logical high word" z13 zarch vx
+e700000000ae vmae VRR_VVVU0V "vector multiply and add even" z13 zarch vx
+e700000000ae vmaeb VRR_VVV0V "vector multiply and add even byte" z13 zarch vx
+e700010000ae vmaeh VRR_VVV0V "vector multiply and add even halfword" z13 zarch vx
+e700020000ae vmaef VRR_VVV0V "vector multiply and add even word" z13 zarch vx
+e700000000ac vmale VRR_VVVU0V "vector multiply and add logical even" z13 zarch vx
+e700000000ac vmaleb VRR_VVV0V "vector multiply and add logical even byte" z13 zarch vx
+e700010000ac vmaleh VRR_VVV0V "vector multiply and add logical even halfword" z13 zarch vx
+e700020000ac vmalef VRR_VVV0V "vector multiply and add logical even word" z13 zarch vx
+e700000000af vmao VRR_VVVU0V "vector multiply and add odd" z13 zarch vx
+e700000000af vmaob VRR_VVV0V "vector multiply and add odd byte" z13 zarch vx
+e700010000af vmaoh VRR_VVV0V "vector multiply and add odd halfword" z13 zarch vx
+e700020000af vmaof VRR_VVV0V "vector multiply and add odd word" z13 zarch vx
+e700000000ad vmalo VRR_VVVU0V "vector multiply and add logical odd" z13 zarch vx
+e700000000ad vmalob VRR_VVV0V "vector multiply and add logical odd byte" z13 zarch vx
+e700010000ad vmaloh VRR_VVV0V "vector multiply and add logical odd halfword" z13 zarch vx
+e700020000ad vmalof VRR_VVV0V "vector multiply and add logical odd word" z13 zarch vx
+e700000000a3 vmh VRR_VVV0U "vector multiply high" z13 zarch vx
+e700000000a3 vmhb VRR_VVV "vector multiply high byte" z13 zarch vx
+e700000010a3 vmhh VRR_VVV "vector multiply high halfword" z13 zarch vx
+e700000020a3 vmhf VRR_VVV "vector multiply high word" z13 zarch vx
+e700000000a1 vmlh VRR_VVV0U "vector multiply logical high" z13 zarch vx
+e700000000a1 vmlhb VRR_VVV "vector multiply logical high byte" z13 zarch vx
+e700000010a1 vmlhh VRR_VVV "vector multiply logical high halfword" z13 zarch vx
+e700000020a1 vmlhf VRR_VVV "vector multiply logical high word" z13 zarch vx
+e700000000a2 vml VRR_VVV0U "vector multiply low" z13 zarch vx
+e700000000a2 vmlb VRR_VVV "vector multiply low byte" z13 zarch vx
+e700000010a2 vmlhw VRR_VVV "vector multiply low halfword" z13 zarch vx
+e700000020a2 vmlf VRR_VVV "vector multiply low word" z13 zarch vx
+e700000000a6 vme VRR_VVV0U "vector multiply even" z13 zarch vx
+e700000000a6 vmeb VRR_VVV "vector multiply even byte" z13 zarch vx
+e700000010a6 vmeh VRR_VVV "vector multiply even halfword" z13 zarch vx
+e700000020a6 vmef VRR_VVV "vector multiply even word" z13 zarch vx
+e700000000a4 vmle VRR_VVV0U "vector multiply logical even" z13 zarch vx
+e700000000a4 vmleb VRR_VVV "vector multiply logical even byte" z13 zarch vx
+e700000010a4 vmleh VRR_VVV "vector multiply logical even halfword" z13 zarch vx
+e700000020a4 vmlef VRR_VVV "vector multiply logical even word" z13 zarch vx
+e700000000a7 vmo VRR_VVV0U "vector multiply odd" z13 zarch vx
+e700000000a7 vmob VRR_VVV "vector multiply odd byte" z13 zarch vx
+e700000010a7 vmoh VRR_VVV "vector multiply odd halfword" z13 zarch vx
+e700000020a7 vmof VRR_VVV "vector multiply odd word" z13 zarch vx
+e700000000a5 vmlo VRR_VVV0U "vector multiply logical odd" z13 zarch vx
+e700000000a5 vmlob VRR_VVV "vector multiply logical odd byte" z13 zarch vx
+e700000010a5 vmloh VRR_VVV "vector multiply logical odd halfword" z13 zarch vx
+e700000020a5 vmlof VRR_VVV "vector multiply logical odd word" z13 zarch vx
+e7000000006b vno VRR_VVV "vector nor" z13 zarch vx
+e7000000006b vnot VRR_VVV2 "vector not" z13 zarch vx
+e7000000006a vo VRR_VVV "vector or" z13 zarch vx
+e70000000050 vpopct VRR_VV0U "vector population count" z13 zarch vx
+e70000000073 verllv VRR_VVV0U "vector element rotate left logical reg" z13 zarch vx
+e70000000073 verllvb VRR_VVV "vector element rotate left logical reg byte" z13 zarch vx
+e70000001073 verllvh VRR_VVV "vector element rotate left logical reg halfword" z13 zarch vx
+e70000002073 verllvf VRR_VVV "vector element rotate left logical reg word" z13 zarch vx
+e70000003073 verllvg VRR_VVV "vector element rotate left logical reg doubleword" z13 zarch vx
+e70000000033 verll VRS_VVRDU "vector element rotate left logical mem" z13 zarch vx
+e70000000033 verllb VRS_VVRD "vector element rotate left logical mem byte" z13 zarch vx
+e70000001033 verllh VRS_VVRD "vector element rotate left logical mem halfword" z13 zarch vx
+e70000002033 verllf VRS_VVRD "vector element rotate left logical mem word" z13 zarch vx
+e70000003033 verllg VRS_VVRD "vector element rotate left logical mem doubleword" z13 zarch vx
+e70000000072 verim VRI_VVV0UU "vector element rotate and insert under mask" z13 zarch vx
+e70000000072 verimb VRI_VVV0U "vector element rotate and insert under mask byte" z13 zarch vx
+e70000001072 verimh VRI_VVV0U "vector element rotate and insert under mask halfword" z13 zarch vx
+e70000002072 verimf VRI_VVV0U "vector element rotate and insert under mask word" z13 zarch vx
+e70000003072 verimg VRI_VVV0U "vector element rotate and insert under mask doubleword" z13 zarch vx
+e70000000070 veslv VRR_VVV0U "vector element shift left reg" z13 zarch vx
+e70000000070 veslvb VRR_VVV "vector element shift left reg byte" z13 zarch vx
+e70000001070 veslvh VRR_VVV "vector element shift left reg halfword" z13 zarch vx
+e70000002070 veslvf VRR_VVV "vector element shift left reg word" z13 zarch vx
+e70000003070 veslvg VRR_VVV "vector element shift left reg doubleword" z13 zarch vx
+e70000000030 vesl VRS_VVRDU "vector element shift left mem" z13 zarch vx
+e70000000030 veslb VRS_VVRD "vector element shift left mem byte" z13 zarch vx
+e70000001030 veslh VRS_VVRD "vector element shift left mem halfword" z13 zarch vx
+e70000002030 veslf VRS_VVRD "vector element shift left mem word" z13 zarch vx
+e70000003030 veslg VRS_VVRD "vector element shift left mem doubleword" z13 zarch vx
+e7000000007a vesrav VRR_VVV0U "vector element shift right arithmetic reg" z13 zarch vx
+e7000000007a vesravb VRR_VVV "vector element shift right arithmetic reg byte" z13 zarch vx
+e7000000107a vesravh VRR_VVV "vector element shift right arithmetic reg halfword" z13 zarch vx
+e7000000207a vesravf VRR_VVV "vector element shift right arithmetic reg word" z13 zarch vx
+e7000000307a vesravg VRR_VVV "vector element shift right arithmetic reg doubleword" z13 zarch vx
+e7000000003a vesra VRS_VVRDU "vector element shift right arithmetic mem" z13 zarch vx
+e7000000003a vesrab VRS_VVRD "vector element shift right arithmetic mem byte" z13 zarch vx
+e7000000103a vesrah VRS_VVRD "vector element shift right arithmetic mem halfword" z13 zarch vx
+e7000000203a vesraf VRS_VVRD "vector element shift right arithmetic mem word" z13 zarch vx
+e7000000303a vesrag VRS_VVRD "vector element shift right arithmetic mem doubleword" z13 zarch vx
+e70000000078 vesrlv VRR_VVV0U "vector element shift right logical reg" z13 zarch vx
+e70000000078 vesrlvb VRR_VVV "vector element shift right logical reg byte" z13 zarch vx
+e70000001078 vesrlvh VRR_VVV "vector element shift right logical reg halfword" z13 zarch vx
+e70000002078 vesrlvf VRR_VVV "vector element shift right logical reg word" z13 zarch vx
+e70000003078 vesrlvg VRR_VVV "vector element shift right logical reg doubleword" z13 zarch vx
+e70000000038 vesrl VRS_VVRDU "vector element shift right logical mem" z13 zarch vx
+e70000000038 vesrlb VRS_VVRD "vector element shift right logical mem byte" z13 zarch vx
+e70000001038 vesrlh VRS_VVRD "vector element shift right logical mem halfword" z13 zarch vx
+e70000002038 vesrlf VRS_VVRD "vector element shift right logical mem word" z13 zarch vx
+e70000003038 vesrlg VRS_VVRD "vector element shift right logical mem doubleword" z13 zarch vx
+e70000000074 vsl VRR_VVV "vector shift left" z13 zarch vx
+e70000000075 vslb VRR_VVV "vector shift left by byte" z13 zarch vx
+e70000000077 vsldb VRI_VVV0U "vector shift left double by byte" z13 zarch vx
+e7000000007e vsra VRR_VVV "vector shift right arithmetic" z13 zarch vx
+e7000000007f vsrab VRR_VVV "vector shift right arithmetic by byte" z13 zarch vx
+e7000000007c vsrl VRR_VVV "vector shift right logical" z13 zarch vx
+e7000000007d vsrlb VRR_VVV "vector shift right logical by byte" z13 zarch vx
+e700000000f7 vs VRR_VVV0U "vector subtract" z13 zarch vx
+e700000000f7 vsb VRR_VVV "vector subtract byte" z13 zarch vx
+e700000010f7 vsh VRR_VVV "vector subtract halfword" z13 zarch vx
+e700000020f7 vsf VRR_VVV "vector subtract word" z13 zarch vx
+e700000030f7 vsg VRR_VVV "vector subtract doubleword" z13 zarch vx
+e700000040f7 vsq VRR_VVV "vector subtract quadword" z13 zarch vx
+e700000000f5 vscbi VRR_VVV0U "vector subtract compute borrow indication" z13 zarch vx
+e700000000f5 vscbib VRR_VVV "vector subtract compute borrow indication byte" z13 zarch vx
+e700000010f5 vscbih VRR_VVV "vector subtract compute borrow indication halfword" z13 zarch vx
+e700000020f5 vscbif VRR_VVV "vector subtract compute borrow indication word" z13 zarch vx
+e700000030f5 vscbig VRR_VVV "vector subtract compute borrow indication doubleword" z13 zarch vx
+e700000040f5 vscbiq VRR_VVV "vector subtract compute borrow indication quadword" z13 zarch vx
+e700000000bf vsbi VRR_VVVU0V "vector subtract with borrow indication" z13 zarch vx
+e700040000bf vsbiq VRR_VVV0V "vector subtract with borrow indication quadword" z13 zarch vx
+e700000000bd vsbcbi VRR_VVVU0V "vector subtract with borrow compute borrow indication" z13 zarch vx
+e700040000bd vsbcbiq VRR_VVV0V "vector subtract with borrow compute borrow indication quadword" z13 zarch vx
+e70000000065 vsumg VRR_VVV0U "vector sum across doubleword" z13 zarch vx
+e70000001065 vsumgh VRR_VVV "vector sum across doubleword - halfword" z13 zarch vx
+e70000002065 vsumgf VRR_VVV "vector sum across doubleword - word" z13 zarch vx
+e70000000067 vsumq VRR_VVV0U "vector sum across quadword" z13 zarch vx
+e70000002067 vsumqf VRR_VVV "vector sum across quadword - word elements" z13 zarch vx
+e70000003067 vsumqg VRR_VVV "vector sum across quadword - doubleword elements" z13 zarch vx
+e70000000064 vsum VRR_VVV0U "vector sum across word" z13 zarch vx
+e70000000064 vsumb VRR_VVV "vector sum across word - byte elements" z13 zarch vx
+e70000001064 vsumh VRR_VVV "vector sum across word - halfword elements" z13 zarch vx
+e700000000d8 vtm VRR_VV "vector test under mask" z13 zarch vx
+
+# Chapter 23 - Vector String Instructions
+e70000000082 vfae VRR_VVV0U0U "vector find any element equal" z13 zarch optparm,vx
+e70000000082 vfaeb VRR_VVV0U0 "vector find any element equal byte" z13 zarch optparm,vx
+e70000001082 vfaeh VRR_VVV0U0 "vector find any element equal halfword" z13 zarch optparm,vx
+e70000002082 vfaef VRR_VVV0U0 "vector find any element equal word" z13 zarch optparm,vx
+e70000100082 vfaebs VRR_VVV0U1 "vector find any element equal" z13 zarch optparm,vx
+e70000101082 vfaehs VRR_VVV0U1 "vector find any element equal" z13 zarch optparm,vx
+e70000102082 vfaefs VRR_VVV0U1 "vector find any element equal" z13 zarch optparm,vx
+e70000200082 vfaezb VRR_VVV0U2 "vector find any element equal" z13 zarch optparm,vx
+e70000201082 vfaezh VRR_VVV0U2 "vector find any element equal" z13 zarch optparm,vx
+e70000202082 vfaezf VRR_VVV0U2 "vector find any element equal" z13 zarch optparm,vx
+e70000300082 vfaezbs VRR_VVV0U3 "vector find any element equal" z13 zarch optparm,vx
+e70000301082 vfaezhs VRR_VVV0U3 "vector find any element equal" z13 zarch optparm,vx
+e70000302082 vfaezfs VRR_VVV0U3 "vector find any element equal" z13 zarch optparm,vx
+e70000000080 vfee VRR_VVV0U0U "vector find element equal" z13 zarch optparm,vx
+e70000000080 vfeeb VRR_VVV0U0 "vector find element equal byte" z13 zarch optparm,vx
+e70000001080 vfeeh VRR_VVV0U0 "vector find element equal halfword" z13 zarch optparm,vx
+e70000002080 vfeef VRR_VVV0U0 "vector find element equal word" z13 zarch optparm,vx
+e70000100080 vfeebs VRR_VVV "vector find element equal byte" z13 zarch vx
+e70000101080 vfeehs VRR_VVV "vector find element equal halfword" z13 zarch vx
+e70000102080 vfeefs VRR_VVV "vector find element equal word" z13 zarch vx
+e70000200080 vfeezb VRR_VVV "vector find element equal byte" z13 zarch vx
+e70000201080 vfeezh VRR_VVV "vector find element equal halfword" z13 zarch vx
+e70000202080 vfeezf VRR_VVV "vector find element equal word" z13 zarch vx
+e70000300080 vfeezbs VRR_VVV "vector find element equal byte" z13 zarch vx
+e70000301080 vfeezhs VRR_VVV "vector find element equal halfword" z13 zarch vx
+e70000302080 vfeezfs VRR_VVV "vector find element equal word" z13 zarch vx
+e70000000081 vfene VRR_VVV0U0U "vector find element not equal" z13 zarch optparm,vx
+e70000000081 vfeneb VRR_VVV0U0 "vector find element not equal byte" z13 zarch optparm,vx
+e70000001081 vfeneh VRR_VVV0U0 "vector find element not equal halfword" z13 zarch optparm,vx
+e70000002081 vfenef VRR_VVV0U0 "vector find element not equal word" z13 zarch optparm,vx
+e70000100081 vfenebs VRR_VVV "vector find element not equal byte" z13 zarch vx
+e70000101081 vfenehs VRR_VVV "vector find element not equal halfword" z13 zarch vx
+e70000102081 vfenefs VRR_VVV "vector find element not equal word" z13 zarch vx
+e70000200081 vfenezb VRR_VVV "vector find element not equal byte" z13 zarch vx
+e70000201081 vfenezh VRR_VVV "vector find element not equal halfword" z13 zarch vx
+e70000202081 vfenezf VRR_VVV "vector find element not equal word" z13 zarch vx
+e70000300081 vfenezbs VRR_VVV "vector find element not equal byte" z13 zarch vx
+e70000301081 vfenezhs VRR_VVV "vector find element not equal halfword" z13 zarch vx
+e70000302081 vfenezfs VRR_VVV "vector find element not equal word" z13 zarch vx
+e7000000005c vistr VRR_VV0U0U "vector isolate string" z13 zarch optparm,vx
+e7000000005c vistrb VRR_VV0U2 "vector isolate string byte" z13 zarch optparm,vx
+e7000000105c vistrh VRR_VV0U2 "vector isolate string halfword" z13 zarch optparm,vx
+e7000000205c vistrf VRR_VV0U2 "vector isolate string word" z13 zarch optparm,vx
+e7000010005c vistrbs VRR_VV "vector isolate string byte" z13 zarch vx
+e7000010105c vistrhs VRR_VV "vector isolate string halfword" z13 zarch vx
+e7000010205c vistrfs VRR_VV "vector isolate string word" z13 zarch vx
+e7000000008a vstrc VRR_VVVUU0V "vector string range compare" z13 zarch optparm,vx
+e7000000008a vstrcb VRR_VVVU0VB "vector string range compare byte" z13 zarch optparm,vx
+e7000100008a vstrch VRR_VVVU0VB "vector string range compare halfword" z13 zarch optparm,vx
+e7000200008a vstrcf VRR_VVVU0VB "vector string range compare word" z13 zarch optparm,vx
+e7000010008a vstrcbs VRR_VVVU0VB1 "vector string range compare byte" z13 zarch optparm,vx
+e7000110008a vstrchs VRR_VVVU0VB1 "vector string range compare halfword" z13 zarch optparm,vx
+e7000210008a vstrcfs VRR_VVVU0VB1 "vector string range compare word" z13 zarch optparm,vx
+e7000020008a vstrczb VRR_VVVU0VB2 "vector string range compare byte" z13 zarch optparm,vx
+e7000120008a vstrczh VRR_VVVU0VB2 "vector string range compare halfword" z13 zarch optparm,vx
+e7000220008a vstrczf VRR_VVVU0VB2 "vector string range compare word" z13 zarch optparm,vx
+e7000030008a vstrczbs VRR_VVVU0VB3 "vector string range compare byte" z13 zarch optparm,vx
+e7000130008a vstrczhs VRR_VVVU0VB3 "vector string range compare halfword" z13 zarch optparm,vx
+e7000230008a vstrczfs VRR_VVVU0VB3 "vector string range compare word" z13 zarch optparm,vx
+
+# Chapter 24
+e700000000e3 vfa VRR_VVV0UU "vector fp add" z13 zarch vx
+e700000030e3 vfadb VRR_VVV "vector fp add long" z13 zarch vx
+e700000830e3 wfadb VRR_VVV "vector fp add long" z13 zarch vx
+e700000000cb wfc VRR_VV0UU2 "vector fp compare scalar" z13 zarch vx
+e700000030cb wfcdb VRR_VV "vector fp compare scalar long" z13 zarch vx
+e700000000ca wfk VRR_VV0UU2 "vector fp compare and signal scalar" z13 zarch vx
+e700000030ca wfkdb VRR_VV "vector fp compare and signal scalar long" z13 zarch vx
+e700000000e8 vfce VRR_VVV0UUU "vector fp compare equal" z13 zarch vx
+e700000030e8 vfcedb VRR_VVV "vector fp compare equal long" z13 zarch vx
+e700001030e8 vfcedbs VRR_VVV "vector fp compare equal long" z13 zarch vx
+e700000830e8 wfcedb VRR_VVV "vector fp compare equal long" z13 zarch vx
+e700001830e8 wfcedbs VRR_VVV "vector fp compare equal long" z13 zarch vx
+e700000000eb vfch VRR_VVV0UUU "vector fp compare high" z13 zarch vx
+e700000030eb vfchdb VRR_VVV "vector fp compare high long" z13 zarch vx
+e700001030eb vfchdbs VRR_VVV "vector fp compare high long" z13 zarch vx
+e700000830eb wfchdb VRR_VVV "vector fp compare high long" z13 zarch vx
+e700001830eb wfchdbs VRR_VVV "vector fp compare high long" z13 zarch vx
+e700000000ea vfche VRR_VVV0UUU "vector fp compare high or equal" z13 zarch vx
+e700000030ea vfchedb VRR_VVV "vector fp compare high or equal long" z13 zarch vx
+e700001030ea vfchedbs VRR_VVV "vector fp compare high or equal long" z13 zarch vx
+e700000830ea wfchedb VRR_VVV "vector fp compare high or equal long" z13 zarch vx
+e700001830ea wfchedbs VRR_VVV "vector fp compare high or equal long" z13 zarch vx
+e700000000c3 vcdg VRR_VV0UUU "vector fp convert from fixed 64 bit" z13 zarch vx
+e700000030c3 vcdgb VRR_VV0UU "vector fp convert from fixed 64 bit" z13 zarch vx
+e700000830c3 wcdgb VRR_VV0UU8 "vector fp convert from fixed 64 bit" z13 zarch vx
+e700000000c1 vcdlg VRR_VV0UUU "vector fp convert from logical 64 bit" z13 zarch vx
+e700000030c1 vcdlgb VRR_VV0UU "vector fp convert from logical 64 bit" z13 zarch vx
+e700000830c1 wcdlgb VRR_VV0UU8 "vector fp convert from logical 64 bit" z13 zarch vx
+e700000000c2 vcgd VRR_VV0UUU "vector fp convert to fixed 64 bit" z13 zarch vx
+e700000030c2 vcgdb VRR_VV0UU "vector fp convert to fixed 64 bit" z13 zarch vx
+e700000830c2 wcgdb VRR_VV0UU8 "vector fp convert to fixed 64 bit" z13 zarch vx
+e700000000c0 vclgd VRR_VV0UUU "vector fp convert to logical 64 bit" z13 zarch vx
+e700000030c0 vclgdb VRR_VV0UU "vector fp convert to logical 64 bit" z13 zarch vx
+e700000830c0 wclgdb VRR_VV0UU8 "vector fp convert to logical 64 bit" z13 zarch vx
+e700000000e5 vfd VRR_VVV0UU "vector fp divide" z13 zarch vx
+e700000030e5 vfddb VRR_VVV "vector fp divide long" z13 zarch vx
+e700000830e5 wfddb VRR_VVV "vector fp divide long" z13 zarch vx
+e700000000c7 vfi VRR_VV0UUU "vector load fp integer" z13 zarch vx
+e700000030c7 vfidb VRR_VV0UU "vector load fp integer long" z13 zarch vx
+e700000830c7 wfidb VRR_VV0UU8 "vector load fp integer long" z13 zarch vx
+e700000000c4 vlde VRR_VV0UU2 "vector fp load lengthened" z13 zarch vx
+e700000020c4 vldeb VRR_VV "vector fp load lengthened short to long" z13 zarch vx
+e700000820c4 wldeb VRR_VV "vector fp load lengthened short to long" z13 zarch vx
+e700000000c5 vled VRR_VV0UUU "vector fp load rounded" z13 zarch vx
+e700000030c5 vledb VRR_VV0UU "vector fp load rounded long to short" z13 zarch vx
+e700000830c5 wledb VRR_VV0UU8 "vector fp load rounded long to short" z13 zarch vx
+e700000000e7 vfm VRR_VVV0UU "vector fp multiply" z13 zarch vx
+e700000030e7 vfmdb VRR_VVV "vector fp multiply long" z13 zarch vx
+e700000830e7 wfmdb VRR_VVV "vector fp multiply long" z13 zarch vx
+e7000000008f vfma VRR_VVVU0UV "vector fp multiply and add" z13 zarch vx
+e7000300008f vfmadb VRR_VVVV "vector fp multiply and add long" z13 zarch vx
+e7000308008f wfmadb VRR_VVVV "vector fp multiply and add long" z13 zarch vx
+e7000000008e vfms VRR_VVVU0UV "vector fp multiply and subtract" z13 zarch vx
+e7000300008e vfmsdb VRR_VVVV "vector fp multiply and subtract long" z13 zarch vx
+e7000308008e wfmsdb VRR_VVVV "vector fp multiply and subtract long" z13 zarch vx
+e700000000cc vfpso VRR_VV0UUU "vector fp perform sign operation" z13 zarch vx
+e700000030cc vfpsodb VRR_VV0U2 "vector fp perform sign operation long" z13 zarch vx
+e700000830cc wfpsodb VRR_VV0U2 "vector fp perform sign operation long" z13 zarch vx
+e700000030cc vflcdb VRR_VV "vector fp perform sign operation long" z13 zarch vx
+e700000830cc wflcdb VRR_VV "vector fp perform sign operation long" z13 zarch vx
+e700001030cc vflndb VRR_VV "vector fp perform sign operation long" z13 zarch vx
+e700001830cc wflndb VRR_VV "vector fp perform sign operation long" z13 zarch vx
+e700002030cc vflpdb VRR_VV "vector fp perform sign operation long" z13 zarch vx
+e700002830cc wflpdb VRR_VV "vector fp perform sign operation long" z13 zarch vx
+e700000000ce vfsq VRR_VV0UU2 "vector fp square root" z13 zarch vx
+e700000030ce vfsqdb VRR_VV "vector fp square root long" z13 zarch vx
+e700000830ce wfsqdb VRR_VV "vector fp square root long" z13 zarch vx
+e700000000e2 vfs VRR_VVV0UU "vector fp subtract" z13 zarch vx
+e700000030e2 vfsdb VRR_VVV "vector fp subtract long" z13 zarch vx
+e700000830e2 wfsdb VRR_VVV "vector fp subtract long" z13 zarch vx
+e7000000004a vftci VRI_VVUUU "vector fp test data class immediate" z13 zarch vx
+e7000000304a vftcidb VRI_VVU2 "vector fp test data class immediate" z13 zarch vx
+e7000008304a wftcidb VRI_VVU2 "vector fp test data class immediate" z13 zarch vx
+
+ed00000000ae cdpt RSL_LRDFU "convert from packed to long dfp" z13 zarch
+ed00000000af cxpt RSL_LRDFEU "convert from packed to extended dfp" z13 zarch
+ed00000000ac cpdt RSL_LRDFU "convert from long dfp to packed" z13 zarch
+ed00000000ad cpxt RSL_LRDFEU "convert from extended dfp to packed" z13 zarch
+
+b9e0 locfhr RRF_U0RR "load high on condition from gpr" z13 zarch
+b9e00000 locfhr*16 RRF_00RR "load high on condition from gpr" z13 zarch
+eb00000000e0 locfh RSY_RURD2 "load high on condition from memory" z13 zarch
+eb00000000e0 locfh*12 RSY_R0RD "load high on condition from memory" z13 zarch
+ec0000000042 lochi RIE_RUI0 "load halfword immediate on condition into 32 bit gpr" z13 zarch
+ec0000000042 lochi*12 RIE_R0I0 "load halfword immediate on condition into 32 bit gpr" z13 zarch
+ec0000000046 locghi RIE_RUI0 "load halfword immediate on condition into 64 bit gpr" z13 zarch
+ec0000000046 locghi*12 RIE_R0I0 "load halfword immediate on condition into 64 bit gpr" z13 zarch
+ec000000004e lochhi RIE_RUI0 "load halfword high immediate on condition" z13 zarch
+ec000000004e lochhi*12 RIE_R0I0 "load halfword high immediate on condition" z13 zarch
+eb00000000e1 stocfh RSY_RURD2 "store high on condition" z13 zarch
+eb00000000e1 stocfh*12 RSY_R0RD "store high on condition" z13 zarch
+
+e3000000003a llzrgf RXY_RRRD "load logical and zero rightmost bytes 32->64" z13 zarch
+e3000000003b lzrf RXY_RRRD "load and zero rightmost byte 32->32" z13 zarch
+e3000000002a lzrg RXY_RRRD "load and zero rightmost byte 64->64" z13 zarch
+b93c ppno RRE_RR "perform pseudorandom number operation" z13 zarch
+
+# Aligned vector store hints
+
+e70000000006 vl VRX_VRRDU "vector memory load" z13 zarch optparm,vx
+e70000000036 vlm VRS_VVRDU "vector load multiple" z13 zarch optparm,vx
+e7000000000e vst VRX_VRRDU "vector store" z13 zarch optparm,vx
+e7000000003e vstm VRS_VVRDU "vector store multiple" z13 zarch optparm,vx
+
+# arch12 instructions
+
+# Vector Enhancements Facility 1
+
+e70000000085 vbperm VRR_VVV "vector bit permute" arch12 zarch
+e70000006004 vllezlf VRX_VRRD "vector load logical word element and zero - left aligned" arch12 zarch
+e700000000b8 vmsl VRR_VVVUU0V "vector multiply sum logical" arch12 zarch
+e700030000b8 vmslg VRR_VVVU0VB "vector multiply sum logical double word" arch12 zarch
+e7000000006c vnx VRR_VVV "vector not exclusive or" arch12 zarch
+e7000000006e vnn VRR_VVV "vector nand" arch12 zarch
+e7000000006f voc VRR_VVV "vector or with complement" arch12 zarch
+e70000000050 vpopctb VRR_VV "vector population count byte" arch12 zarch
+e70000001050 vpopcth VRR_VV "vector population count halfword" arch12 zarch
+e70000002050 vpopctf VRR_VV "vector population count word" arch12 zarch
+e70000003050 vpopctg VRR_VV "vector population count double word" arch12 zarch
+e700000020e3 vfasb VRR_VVV "vector fp add short" arch12 zarch
+e700000820e3 wfasb VRR_VVV "scalar vector fp add scalar short" arch12 zarch
+e700000840e3 wfaxb VRR_VVV "scalar vector fp add scalar extended" arch12 zarch
+e700000020cb wfcsb VRR_VV "scalar vector fp compare scalar short" arch12 zarch
+e700000040cb wfcxb VRR_VV "scalar vector fp compare scalar extended" arch12 zarch
+e700000020ca wfksb VRR_VV "scalar vector fp compare and signal scalar short" arch12 zarch
+e700000040ca wfkxb VRR_VV "scalar vector fp compare and signal scalar extended" arch12 zarch
+
+e700000020e8 vfcesb VRR_VVV "vector fp compare equal short" arch12 zarch
+e700001020e8 vfcesbs VRR_VVV "vector fp compare equal short" arch12 zarch
+e700000820e8 wfcesb VRR_VVV "scalar vector fp compare equal scalar short" arch12 zarch
+e700001820e8 wfcesbs VRR_VVV "scalar fp compare equal scalar short" arch12 zarch
+e700000840e8 wfcexb VRR_VVV "scalar vector fp compare equal scalar extended" arch12 zarch
+e700001840e8 wfcexbs VRR_VVV "scalar vector fp compare equal scalar extended" arch12 zarch
+
+e700000420e8 vfkesb VRR_VVV "vector fp compare and signal equal short" arch12 zarch
+e700001420e8 vfkesbs VRR_VVV "vector fp compare and signal equal short" arch12 zarch
+e700000c20e8 wfkesb VRR_VVV "scalar vector fp compare and signal equal scalar short" arch12 zarch
+e700001c20e8 wfkesbs VRR_VVV "scalar fp compare and signal equal scalar short" arch12 zarch
+e700000430e8 vfkedb VRR_VVV "vector fp compare and signal equal long" arch12 zarch vx
+e700001430e8 vfkedbs VRR_VVV "vector fp compare and signal equal long" arch12 zarch vx
+e700000c30e8 wfkedb VRR_VVV "vector fp compare and signal equal long" arch12 zarch vx
+e700001c30e8 wfkedbs VRR_VVV "vector fp compare and signal equal long" arch12 zarch vx
+e700000c40e8 wfkexb VRR_VVV "scalar vector fp compare and signal equal scalar extended" arch12 zarch
+e700001c40e8 wfkexbs VRR_VVV "scalar vector fp compare and signal equal scalar extended" arch12 zarch
+
+e700000020eb vfchsb VRR_VVV "vector fp compare high short" arch12 zarch
+e700001020eb vfchsbs VRR_VVV "vector fp compare high short" arch12 zarch
+e700000820eb wfchsb VRR_VVV "scalar vector fp compare high scalar short" arch12 zarch
+e700001820eb wfchsbs VRR_VVV "scalar vector fp compare high scalar short" arch12 zarch
+e700000840eb wfchxb VRR_VVV "scalar vector fp compare high scalar extended" arch12 zarch
+e700001840eb wfchxbs VRR_VVV "scalar vector fp compare high scalar extended" arch12 zarch
+
+e700000420eb vfkhsb VRR_VVV "vector fp compare and signal high short" arch12 zarch
+e700001420eb vfkhsbs VRR_VVV "vector fp compare and signal high short" arch12 zarch
+e700000c20eb wfkhsb VRR_VVV "scalar vector fp compare and signal high scalar short" arch12 zarch
+e700001c20eb wfkhsbs VRR_VVV "scalar vector fp compare and signal high scalar short" arch12 zarch
+e700000430eb vfkhdb VRR_VVV "vector fp compare and signal high long" arch12 zarch vx
+e700001430eb vfkhdbs VRR_VVV "vector fp compare and signal high long" arch12 zarch vx
+e700000c30eb wfkhdb VRR_VVV "vector fp compare and signal high long" arch12 zarch vx
+e700001c30eb wfkhdbs VRR_VVV "vector fp compare and signal high long" arch12 zarch vx
+e700000c40eb wfkhxb VRR_VVV "scalar vector fp compare and signal high scalar extended" arch12 zarch
+e700001c40eb wfkhxbs VRR_VVV "scalar vector fp compare and signal high scalar extended" arch12 zarch
+
+e700000020ea vfchesb VRR_VVV "vector fp compare high or equal short" arch12 zarch
+e700001020ea vfchesbs VRR_VVV "vector fp compare high or equal short" arch12 zarch
+e700000820ea wfchesb VRR_VVV "scalar vector fp compare high or equal scalar short" arch12 zarch
+e700001820ea wfchesbs VRR_VVV "scalar vector fp compare high or equal scalar short" arch12 zarch
+e700000840ea wfchexb VRR_VVV "scalar vector fp compare high or equal scalar extended" arch12 zarch
+e700001840ea wfchexbs VRR_VVV "scalar vector fp compare high or equal scalar extended" arch12 zarch
+
+e700000420ea vfkhesb VRR_VVV "vector fp compare and signal high or equal short" arch12 zarch
+e700001420ea vfkhesbs VRR_VVV "vector fp compare and signal high or equal short" arch12 zarch
+e700000c20ea wfkhesb VRR_VVV "scalar vector fp compare and signal high or equal scalar short" arch12 zarch
+e700001c20ea wfkhesbs VRR_VVV "scalar vector fp compare and signal high or equal scalar short" arch12 zarch
+e700000430ea vfkhedb VRR_VVV "vector fp compare and signal high or equal long" arch12 zarch vx
+e700001430ea vfkhedbs VRR_VVV "vector fp compare and signal high or equal long" arch12 zarch vx
+e700000c30ea wfkhedb VRR_VVV "vector fp compare and signal high or equal long" arch12 zarch vx
+e700001c30ea wfkhedbs VRR_VVV "vector fp compare and signal high or equal long" arch12 zarch vx
+e700000c40ea wfkhexb VRR_VVV "scalar vector fp compare and signal high or equal scalar extended" arch12 zarch
+e700001c40ea wfkhexbs VRR_VVV "scalar vector fp compare and signal high or equal scalar extended" arch12 zarch
+
+e700000020e5 vfdsb VRR_VVV "vector fp divide short" arch12 zarch
+e700000820e5 wfdsb VRR_VVV "scalar vector fp divide scalar short" arch12 zarch
+e700000840e5 wfdxb VRR_VVV "scalar vector fp divide scalar extended" arch12 zarch
+e700000020c7 vfisb VRR_VV0UU "vector load fp integer short" arch12 zarch
+e700000820c7 wfisb VRR_VV0UU8 "scalar vector load fp integer scalar short" arch12 zarch
+e700000840c7 wfixb VRR_VV0UU8 "scalar vector load fp integer scalar extended" arch12 zarch
+e700000000c4 vfll VRR_VV0UU2 "vector fp load lengthened" arch12 zarch
+e700000020c4 vflls VRR_VV "vector fp load lengthened" arch12 zarch
+e700000820c4 wflls VRR_VV "scalar vector fp load lengthened short" arch12 zarch
+e700000830c4 wflld VRR_VV "scalar vector fp load lengthened long" arch12 zarch
+e700000000c5 vflr VRR_VV0UUU "vector fp load rounded" arch12 zarch
+e700000030c5 vflrd VRR_VV0UU "vector fp load rounded long" arch12 zarch
+e700000830c5 wflrd VRR_VV0UU8 "scalar vector fp load rounded long" arch12 zarch
+e700000840c5 wflrx VRR_VV0UU8 "scalar vector fp load rounded extended" arch12 zarch
+e700000000ef vfmax VRR_VVV0UUU "vector fp maximum" arch12 zarch
+e700000020ef vfmaxsb VRR_VVV0U0 "vector fp maximum short" arch12 zarch
+e700000030ef vfmaxdb VRR_VVV0U0 "vector fp maximum long" arch12 zarch
+e700000820ef wfmaxsb VRR_VVV0U0 "scalar fp maximum scalar short" arch12 zarch
+e700000830ef wfmaxdb VRR_VVV0U0 "scalar fp maximum scalar long" arch12 zarch
+e700000840ef wfmaxxb VRR_VVV0U0 "scalar fp maximum scalar extended" arch12 zarch
+e700000000ee vfmin VRR_VVV0UUU "vector fp minimum" arch12 zarch
+e700000020ee vfminsb VRR_VVV0U0 "vector fp minimum short" arch12 zarch
+e700000030ee vfmindb VRR_VVV0U0 "vector fp minimum long" arch12 zarch
+e700000820ee wfminsb VRR_VVV0U0 "scalar fp minimum scalar short" arch12 zarch
+e700000830ee wfmindb VRR_VVV0U0 "scalar fp minimum scalar long" arch12 zarch
+e700000840ee wfminxb VRR_VVV0U0 "scalar fp minimum scalar extended" arch12 zarch
+e700000020e7 vfmsb VRR_VVV "vector fp multiply short" arch12 zarch
+e700000820e7 wfmsb VRR_VVV "scalar vector fp multiply scalar short" arch12 zarch
+e700000840e7 wfmxb VRR_VVV "scalar vector fp multiply scalar extended" arch12 zarch
+e7000200008f vfmasb VRR_VVVV "vector fp multiply and add short" arch12 zarch
+e7000208008f wfmasb VRR_VVVV "scalar vector fp multiply and add scalar short" arch12 zarch
+e7000408008f wfmaxb VRR_VVVV "scalar vector fp multiply and add scalar extended" arch12 zarch
+e7000200008e vfmssb VRR_VVVV "vector fp multiply and subtract short" arch12 zarch
+e7000208008e wfmssb VRR_VVVV "scalar vector fp multiply and subtract scalar short" arch12 zarch
+e7000408008e wfmsxb VRR_VVVV "scalar vector fp multiply and subtract scalar extended" arch12 zarch
+e7000000009f vfnma VRR_VVVU0UV "vector fp negative multiply and add" arch12 zarch
+e7000200009f vfnmasb VRR_VVVV "vector fp negative multiply and add short" arch12 zarch
+e7000208009f wfnmasb VRR_VVVV "scalar vector fp negative multiply and add scalar short" arch12 zarch
+e7000300009f vfnmadb VRR_VVVV "vector fp negative multiply and add long" arch12 zarch
+e7000308009f wfnmadb VRR_VVVV "scalar vector fp negative multiply and add scalar long" arch12 zarch
+e7000408009f wfnmaxb VRR_VVVV "scalar vector fp negative multiply and add scalar extended" arch12 zarch
+e7000000009e vfnms VRR_VVVU0UV "vector fp negative multiply and subtract" arch12 zarch
+e7000200009e vfnmssb VRR_VVVV "vector fp negative multiply and subtract short" arch12 zarch
+e7000208009e wfnmssb VRR_VVVV "scalar vector fp negative multiply and subtract scalar short" arch12 zarch
+e7000300009e vfnmsdb VRR_VVVV "vector fp negative multiply and subtract long" arch12 zarch
+e7000308009e wfnmsdb VRR_VVVV "scalar vector fp negative multiply and subtract scalar long" arch12 zarch
+e7000408009e wfnmsxb VRR_VVVV "scalar vector fp negative multiply and subtract scalar extended" arch12 zarch
+e700000020cc vfpsosb VRR_VV0U2 "vector fp perform sign operation short" arch12 zarch
+e700000820cc wfpsosb VRR_VV0U2 "scalar vector fp perform sign operation scalar short" arch12 zarch
+e700000020cc vflcsb VRR_VV "vector fp perform sign operation short" arch12 zarch
+e700000820cc wflcsb VRR_VV "scalar vector fp perform sign operation scalar short" arch12 zarch
+e700001020cc vflnsb VRR_VV "vector fp perform sign operation short" arch12 zarch
+e700001820cc wflnsb VRR_VV "scalar vector fp perform sign operation scalar short" arch12 zarch
+e700002020cc vflpsb VRR_VV "vector fp perform sign operation short" arch12 zarch
+e700002820cc wflpsb VRR_VV "scalar vector fp perform sign operation scalar short" arch12 zarch
+e700000840cc wfpsoxb VRR_VV0U2 "scalar vector fp perform sign operation scalar extended" arch12 zarch
+e700000840cc wflcxb VRR_VV "scalar vector fp perform sign operation scalar extended" arch12 zarch
+e700001840cc wflnxb VRR_VV "scalar vector fp perform sign operation scalar extended" arch12 zarch
+e700002840cc wflpxb VRR_VV "scalar vector fp perform sign operation scalar extended" arch12 zarch
+e700000020ce vfsqsb VRR_VV "vector fp square root short" arch12 zarch
+e700000820ce wfsqsb VRR_VV "scalar vector fp square root scalar short" arch12 zarch
+e700000840ce wfsqxb VRR_VV "scalar vector fp square root scalar extended" arch12 zarch
+e700000020e2 vfssb VRR_VVV "vector fp subtract short" arch12 zarch
+e700000820e2 wfssb VRR_VVV "scalar vector fp subtract scalar short" arch12 zarch
+e700000840e2 wfsxb VRR_VVV "scalar vector fp subtract scalar extended" arch12 zarch
+e7000000204a vftcisb VRI_VVU2 "vector fp test data class immediate short" arch12 zarch
+e7000008204a wftcisb VRI_VVU2 "scalar vector fp test data class immediate scalar short" arch12 zarch
+e7000008404a wftcixb VRI_VVU2 "scalar vector fp test data class immediate scalar extended" arch12 zarch
+
+# Miscellaneous Instruction Extensions Facility 2
+
+e30000000038 agh RXY_RRRD "add halfword to 64 bit value" arch12 zarch
+e30000000047 bic RXY_URRD "branch indirect on condition" arch12 zarch
+e3f000000047 bi RXY_0RRD "unconditional indirect branch" arch12 zarch
+e30000000047 bi*8 RXY_0RRD "branch indirect on condition" arch12 zarch
+b9ec mgrk RRF_R0RER "multiply 64x64reg -> 128" arch12 zarch
+e30000000084 mg RXY_RERRD "multiply 64x64mem -> 128" arch12 zarch
+e3000000003c mgh RXY_RRRD "multiply halfword 64x16mem -> 64" arch12 zarch
+b9fd msrkc RRF_R0RR2 "multiply single 32x32 -> 32" arch12 zarch
+b9ed msgrkc RRF_R0RR2 "multiply single 64x64 -> 64" arch12 zarch
+e30000000053 msc RXY_RRRD "multiply single 32x32mem -> 32" arch12 zarch
+e30000000083 msgc RXY_RRRD "multiply single 64x64mem -> 64" arch12 zarch
+e30000000039 sgh RXY_RRRD "subtract halfword from 64 bit value" arch12 zarch
+
+# Vector packed decimal facility
+
+e60000000037 vlrlr VRS_RRDV "vector load rightmost with length" arch12 zarch
+e60000000035 vlrl VSI_URDV "vector load rightmost with immediate length" arch12 zarch
+e6000000003f vstrlr VRS_RRDV "vector store rightmost with length" arch12 zarch
+e6000000003d vstrl VSI_URDV "vector store rightmost with immediate length" arch12 zarch
+e60000000071 vap VRI_VVV0UU2 "vector add decimal" arch12 zarch
+e60000000077 vcp VRR_0VV0U "vector compare decimal" arch12 zarch
+e60000000050 vcvb VRR_RV0U "vector convert to binary 32 bit" arch12 zarch
+e60000000052 vcvbg VRR_RV0U "vector convert to binary 64 bit" arch12 zarch
+e60000000058 vcvd VRI_VR0UU "vector convert to decimal 32 bit" arch12 zarch
+e6000000005a vcvdg VRI_VR0UU "vector convert to decimal 64 bit" arch12 zarch
+e6000000007a vdp VRI_VVV0UU2 "vector divide decimal" arch12 zarch
+e60000000049 vlip VRI_V0UU2 "vector load immediate decimal" arch12 zarch
+e60000000078 vmp VRI_VVV0UU2 "vector multiply decimal" arch12 zarch
+e60000000079 vmsp VRI_VVV0UU2 "vector multiply and shift decimal" arch12 zarch
+e60000000034 vpkz VSI_URDV "vector pack zoned" arch12 zarch
+e6000000005b vpsop VRI_VVUUU2 "vector perform sign operation decimal" arch12 zarch
+e6000000007b vrp VRI_VVV0UU2 "vector remainder decimal" arch12 zarch
+e6000000007e vsdp VRI_VVV0UU2 "vector shift and divide decimal" arch12 zarch
+e60000000059 vsrp VRI_VVUUU2 "vector shift and round decimal" arch12 zarch
+e60000000073 vsp VRI_VVV0UU2 "vector subtract decimal" arch12 zarch
+e6000000005f vtp VRR_0V "vector test decimal" arch12 zarch
+e6000000003c vupkz VSI_URDV "vector unpack zoned" arch12 zarch
+
+# Guarded storage facility
+
+e3000000004c lgg RXY_RRRD "load guarded 64 bit" arch12 zarch
+e30000000048 llgfsg RXY_RRRD "load logical and shift guarded 64 bit" arch12 zarch
+e3000000004d lgsc RXY_RRRD "load guarded storage controls" arch12 zarch
+e30000000049 stgsc RXY_RRRD "store guarded storage controls" arch12 zarch
+
+# Message-Security-Assist Extension 8
+
+b929 kma RRF_R0RR "cipher message with galois counter mode" arch12 zarch
+
+b93c prno RRE_RR "perform pseudorandom number operation" arch12 zarch
+b9a1 tpei RRE_RR "test pending external interruption" arch12 zarch
+b9ac irbm RRE_RR "insert reference bits multiple" arch12 zarch
+
+# arch13 instructions
+
+
+# Miscellaneous Instruction Extensions Facility 2
+
+b9f5 ncrk RRF_R0RR2 "and with complement 32 bit" arch13 zarch
+b9e5 ncgrk RRF_R0RR2 "and with complement 64 bit" arch13 zarch
+e50a mvcrl SSE_RDRD "move right to left" arch13 zarch
+b974 nnrk RRF_R0RR2 "nand 32 bit" arch13 zarch
+b964 nngrk RRF_R0RR2 "nand 64 bit" arch13 zarch
+b976 nork RRF_R0RR2 "nor 32 bit" arch13 zarch
+b966 nogrk RRF_R0RR2 "nor 64 bit" arch13 zarch
+b977 nxrk RRF_R0RR2 "not exclusive or 32 bit" arch13 zarch
+b967 nxgrk RRF_R0RR2 "not exclusive or 64 bit" arch13 zarch
+b975 ocrk RRF_R0RR2 "or with complement 32 bit" arch13 zarch
+b965 ocgrk RRF_R0RR2 "or with complement 64 bit" arch13 zarch
+b9e1 popcnt RRF_U0RR "population count arch13" arch13 zarch optparm
+b9f0 selr RRF_RURR "select 32 bit" arch13 zarch
+b9f00000 selr*20 RRF_R0RR3 "select 32 bit" arch13 zarch
+b9e3 selgr RRF_RURR "select 64 bit" arch13 zarch
+b9e30000 selgr*20 RRF_R0RR3 "select 64 bit" arch13 zarch
+b9c0 selfhr RRF_RURR "select high" arch13 zarch
+b9c00000 selfhr*20 RRF_R0RR3 "select high" arch13 zarch
+
+# Vector Enhancements Facility 2
+
+e60000000006 vlbr VRX_VRRDU "vector load byte reversed elements" arch13 zarch
+e60000001006 vlbrh VRX_VRRD "vector load byte reversed halfword elements" arch13 zarch
+e60000002006 vlbrf VRX_VRRD "vector load byte reversed word elements" arch13 zarch
+e60000003006 vlbrg VRX_VRRD "vector load byte reversed doubleword elements" arch13 zarch
+e60000004006 vlbrq VRX_VRRD "vector load byte reversed quadword elements" arch13 zarch
+
+e60000000007 vler VRX_VRRDU "vector load elements reversed" arch13 zarch
+e60000001007 vlerh VRX_VRRD "vector load halfword elements reversed" arch13 zarch
+e60000002007 vlerf VRX_VRRD "vector load word elements reversed" arch13 zarch
+e60000003007 vlerg VRX_VRRD "vector load doubleword elements reversed" arch13 zarch
+
+e60000000004 vllebrz VRX_VRRDU "vector load byte reversed element and zero" arch13 zarch
+e60000001004 vllebrzh VRX_VRRD "vector load byte reversed halfword element and zero" arch13 zarch
+e60000002004 vllebrzf VRX_VRRD "vector load byte reversed word element and zero" arch13 zarch
+e60000003004 ldrv VRX_VRRD "load byte reversed doubleword" arch13 zarch
+e60000003004 vllebrzg VRX_VRRD "vector load byte reversed doubleword element and zero" arch13 zarch
+e60000006004 lerv VRX_VRRD "load byte reversed word" arch13 zarch
+e60000006004 vllebrze VRX_VRRD "vector load byte reversed word element left-aligned and zero" arch13 zarch
+
+e60000000001 vlebrh VRX_VRRDU "vector load byte reversed halfword element" arch13 zarch
+e60000000003 vlebrf VRX_VRRDU "vector load byte reversed word element" arch13 zarch
+e60000000002 vlebrg VRX_VRRDU "vector load byte reversed doubleword element" arch13 zarch
+
+e60000000005 vlbrrep VRX_VRRDU "vector load byte reversed element and replicate" arch13 zarch
+e60000001005 vlbrreph VRX_VRRD "vector load byte reversed halfword element and replicate" arch13 zarch
+e60000002005 vlbrrepf VRX_VRRD "vector load byte reversed word element and replicate" arch13 zarch
+e60000003005 vlbrrepg VRX_VRRD "vector load byte reversed doubleword element and replicate" arch13 zarch
+
+e6000000000e vstbr VRX_VRRDU "vector store byte reversed elements" arch13 zarch
+e6000000100e vstbrh VRX_VRRD "vector store byte reversed halfword elements" arch13 zarch
+e6000000200e vstbrf VRX_VRRD "vector store byte reversed word elements" arch13 zarch
+e6000000300e vstbrg VRX_VRRD "vector store byte reversed doubleword elements" arch13 zarch
+e6000000400e vstbrq VRX_VRRD "vector store byte reversed quadword elements" arch13 zarch
+
+e6000000000f vster VRX_VRRDU "vector store elements reversed" arch13 zarch
+e6000000100f vsterh VRX_VRRD "vector store halfword elements reversed" arch13 zarch
+e6000000200f vsterf VRX_VRRD "vector store word elements reversed" arch13 zarch
+e6000000300f vsterg VRX_VRRD "vector store doubleword elements reversed" arch13 zarch
+
+e60000000009 vstebrh VRX_VRRDU "vector store byte reversed halfword element" arch13 zarch
+e6000000000b vstebrf VRX_VRRDU "vector store byte reversed word element" arch13 zarch
+e6000000000b sterv VRX_VRRD "store byte reversed word" arch13 zarch
+e6000000000a vstebrg VRX_VRRDU "vector store byte reversed doubleword element" arch13 zarch
+e6000000000a stdrv VRX_VRRD "store byte reversed doubleword" arch13 zarch
+
+e70000000086 vsld VRI_VVV0U "vector shift left double by bit" arch13 zarch
+e70000000087 vsrd VRI_VVV0U "vector shift right double by bit" arch13 zarch
+
+e7000000008b vstrs VRR_VVVUU0V "vector string search" arch13 zarch optparm
+
+e7000000008b vstrsb VRR_VVVU0VB "vector string search byte" arch13 zarch optparm
+e7000100008b vstrsh VRR_VVVU0VB "vector string search halfword" arch13 zarch optparm
+e7000200008b vstrsf VRR_VVVU0VB "vector string search word" arch13 zarch optparm
+
+e7000020008b vstrszb VRR_VVV0V "vector string search byte zero" arch13 zarch
+e7000120008b vstrszh VRR_VVV0V "vector string search halfword zero" arch13 zarch
+e7000220008b vstrszf VRR_VVV0V "vector string search word zero" arch13 zarch
+
+e700000000c3 vcfps VRR_VV0UUU "vector fp convert from fixed" arch13 zarch
+e700000020c3 vcefb VRR_VV0UU "vector fp convert from fixed 32 bit" arch13 zarch
+e700000820c3 wcefb VRR_VV0UU8 "vector fp convert from fixed 32 bit" arch13 zarch
+
+e700000000c1 vcfpl VRR_VV0UUU "vector fp convert from logical" arch13 zarch
+e700000020c1 vcelfb VRR_VV0UU "vector fp convert from logical 32 bit" arch13 zarch
+e700000820c1 wcelfb VRR_VV0UU8 "vector fp convert from logical 32 bit" arch13 zarch
+
+e700000000c2 vcsfp VRR_VV0UUU "vector fp convert to fixed" arch13 zarch
+e700000020c2 vcfeb VRR_VV0UU "vector fp convert to fixed 32 bit" arch13 zarch
+e700000820c2 wcfeb VRR_VV0UU8 "vector fp convert to fixed 32 bit" arch13 zarch
+
+e700000000c0 vclfp VRR_VV0UUU "vector fp convert to logical" arch13 zarch
+e700000020c0 vclfeb VRR_VV0UU "vector fp convert to logical 32 bit" arch13 zarch
+e700000820c0 wclfeb VRR_VV0UU8 "vector fp convert to logical 32 bit" arch13 zarch
+
+# Deflate conversion facility
+
+b939 dfltcc RRF_R0RR2 "deflate conversion call" arch13 zarch
+
+# Enhanced-Sort Facility
+
+b938 sortl RRE_RR "sort lists" arch13 zarch
+
+# Vector packed decimal enhancement facility
+
+e60000000050 vcvb VRR_RV0UU "vector convert to binary 32 bit" arch13 zarch optparm
+e60000000052 vcvbg VRR_RV0UU "vector convert to binary 64 bit" arch13 zarch optparm
+
+# Message Security Assist Extension 9
+
+b93a kdsa RRE_RR "compute digital signature authentication" arch13 zarch
+
+
+# arch14 instructions
+
+e60000000074 vschp VRR_VVV0U0U " " arch14 zarch
+e60000002074 vschsp VRR_VVV0U0 " " arch14 zarch
+e60000003074 vschdp VRR_VVV0U0 " " arch14 zarch
+e60000004074 vschxp VRR_VVV0U0 " " arch14 zarch
+e6000000007c vscshp VRR_VVV " " arch14 zarch
+e6000000007d vcsph VRR_VVV0U0 " " arch14 zarch
+e60000000051 vclzdp VRR_VV0U2 " " arch14 zarch
+e60000000070 vpkzr VRI_VVV0UU2 " " arch14 zarch
+e60000000072 vsrpr VRI_VVV0UU2 " " arch14 zarch
+e60000000054 vupkzh VRR_VV0U2 " " arch14 zarch
+e6000000005c vupkzl VRR_VV0U2 " " arch14 zarch
+
+b93b nnpa RRE_00 " " arch14 zarch
+e60000000056 vclfnh VRR_VV0UU2 " " arch14 zarch
+e6000000005e vclfnl VRR_VV0UU2 " " arch14 zarch
+e60000000075 vcrnf VRR_VVV0UU " " arch14 zarch
+e6000000005d vcfn VRR_VV0UU2 " " arch14 zarch
+e60000000055 vcnf VRR_VV0UU2 " " arch14 zarch
+
+b98B rdp RRF_RURR2 " " arch14 zarch optparm
+
+eb0000000071 lpswey SIY_RD " " arch14 zarch
+b200 lbear S_RD " " arch14 zarch
+b201 stbear S_RD " " arch14 zarch
+
+b28f qpaci S_RD " " arch14 zarch

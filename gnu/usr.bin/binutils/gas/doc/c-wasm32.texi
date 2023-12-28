@@ -1,0 +1,119 @@
+@c Copyright (C) 2017-2023 Free Software Foundation, Inc.
+@c This is part of the GAS manual.
+@c For copying conditions, see the file as.texinfo.
+@c man end
+
+@ifset GENERIC
+@page
+@node WebAssembly-Dependent
+@chapter WebAssembly Dependent Features
+@end ifset
+
+@ifclear GENERIC
+@node Machine Dependencies
+@chapter WebAssembly Dependent Features
+@end ifclear
+
+@cindex WebAssembly support
+@menu
+* WebAssembly-Notes::                Notes
+* WebAssembly-Syntax::               Syntax
+* WebAssembly-Floating-Point::       Floating Point
+* WebAssembly-Opcodes::              Opcodes
+* WebAssembly-module-layout::        Module Layout
+@end menu
+
+@node WebAssembly-Notes
+@section Notes
+@cindex WebAssembly notes
+@cindex notes for WebAssembly
+
+While WebAssembly provides its own module format for executables, this
+documentation describes how to use @code{@value{AS}} to produce
+intermediate ELF object format files.
+
+@node WebAssembly-Syntax
+@section Syntax
+@cindex WebAssembly Syntax
+The assembler syntax directly encodes sequences of opcodes as defined
+in the WebAssembly binary encoding specification at
+https://github.com/webassembly/spec/BinaryEncoding.md.  Structured
+sexp-style expressions are not supported as input.
+
+@menu
+* WebAssembly-Chars::                Special Characters
+* WebAssembly-Relocs::               Relocations
+* WebAssembly-Signatures::           Signatures
+@end menu
+
+@node WebAssembly-Chars
+@subsection Special Characters
+
+@cindex line comment character, WebAssembly
+@cindex WebAssembly line comment character
+@samp{#} and @samp{;} are the line comment characters.  Note that if
+@samp{#} is the first character on a line then it can also be a
+logical line number directive (@pxref{Comments}) or a preprocessor
+control command (@pxref{Preprocessing}).
+
+@node WebAssembly-Relocs
+@subsection Relocations
+@cindex WebAssembly relocations
+@cindex relocations, WebAssembly
+
+Special relocations are available by using the @samp{@@@var{plt}},
+@samp{@@@var{got}}, or @samp{@@@var{got}} suffixes after a constant
+expression, which correspond to the R_ASMJS_LEB128_PLT,
+R_ASMJS_LEB128_GOT, and R_ASMJS_LEB128_GOT_CODE relocations,
+respectively.
+
+The @samp{@@@var{plt}} suffix is followed by a symbol name in braces;
+the symbol value is used to determine the function signature for which
+a PLT stub is generated. Currently, the symbol @emph{name} is parsed
+from its last @samp{F} character to determine the argument count of
+the function, which is also necessary for generating a PLT stub.
+
+@node WebAssembly-Signatures
+@subsection Signatures
+@cindex WebAssembly signatures
+@cindex signatures, WebAssembly
+
+Function signatures are specified with the @code{signature}
+pseudo-opcode, followed by a simple function signature imitating a
+C++-mangled function type: @code{F} followed by an optional @code{v},
+then a sequence of @code{i}, @code{l}, @code{f}, and @code{d}
+characters to mark i32, i64, f32, and f64 parameters, respectively;
+followed by a final @code{E} to mark the end of the function
+signature.
+
+@node WebAssembly-Floating-Point
+@section Floating Point
+@cindex floating point, WebAssembly (@sc{ieee})
+@cindex WebAssembly floating point (@sc{ieee})
+WebAssembly uses little-endian @sc{ieee} floating-point numbers.
+
+@node WebAssembly-Opcodes
+@section Regular Opcodes
+@cindex opcodes, WebAssembly
+@cindex WebAssembly opcodes
+Ordinary instructions are encoded with the WebAssembly mnemonics as
+listed at:
+@url{https://github.com/WebAssembly/design/blob/master/BinaryEncoding.md}.
+
+Opcodes are written directly in the order in which they are encoded,
+without going through an intermediate sexp-style expression as in the
+@code{was} format.
+
+For ``typed'' opcodes (block, if, etc.), the type of the block is
+specified in square brackets following the opcode: @code{if[i]},
+@code{if[]}.
+
+@node WebAssembly-module-layout
+@section WebAssembly Module Layout
+@cindex module layout, WebAssembly
+@cindex WebAssembly module layout
+@code{@value{AS}} will only produce ELF output, not a valid
+WebAssembly module. It is possible to make @code{@value{AS}} produce
+output in a single ELF section which becomes a valid WebAssembly
+module, but a linker script to do so may be preferable, as it doesn't
+require running the entire module through the assembler at once.

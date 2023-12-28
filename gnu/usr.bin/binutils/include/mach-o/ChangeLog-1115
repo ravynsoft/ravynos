@@ -1,0 +1,136 @@
+2015-12-03  Tristan Gingold  <gingold@adacore.com>
+
+	* loader.h (bfd_mach_o_header_flags): Add
+	BFD_MACH_O_MH_APP_EXTENSION_SAFE.
+
+2015-11-17  Tristan Gingold  <gingold@adacore.com>
+
+	* arm64.h: New file.
+	* arm.h: New file.
+	* unwind.h: Add arm64 encodings.
+	* loader.h (bfd_mach_o_cpu_subtype): Add arm64 literals.
+	(BFD_MACH_O_LC_ENCRYPTION_INFO_64, BFD_MACH_O_LC_LINKER_OPTIONS)
+	(BFD_MACH_O_LC_LINKER_OPTIMIZATION_HINT)
+	(BFD_MACH_O_LC_VERSION_MIN_WATCHOS): Define.
+	* external.h (mach_o_encryption_info_64_command_external):
+	(mach_o_linker_option_command_external)
+	(mach_o_dyld_cache_header_external)
+	(mach_o_dyld_cache_mapping_info_external)
+	(mach_o_dyld_cache_image_info_external): New types.
+
+2015-01-01  Alan Modra  <amodra@gmail.com>
+
+	Update year range in copyright notice of all files.
+
+2014-04-16  Tristan Gingold  <gingold@adacore.com>
+
+	* loader.h: Add macros for rebase, bind and export constants.
+
+2014-04-16  Tristan Gingold  <gingold@adacore.com>
+
+	* loader.h (BFD_MACH_O_CPU_ARCH_MASK, BFD_MACH_O_CPU_ARCH_ABI64)
+	(BFD_MACH_O_CPU_SUBTYPE_MASK, BFD_MACH_O_CPU_SUBTYPE_LIB64): Define.
+
+2014-04-03  Tristan Gingold  <gingold@adacore.com>
+
+	* unwind.h (mach_o_compact_unwind_64): Fix typo in personality.
+
+2014-04-02  Tristan Gingold  <gingold@adacore.com>
+
+	* external.h (mach_o_prebound_dylib_command_external)
+	(mach_o_prebind_cksum_command_external)
+	(mach_o_twolevel_hints_command_external): New types.
+
+2014-03-26  Tristan Gingold  <gingold@adacore.com>
+
+	* loader.h (bfd_mach_o_cpu_type): Add BFD_MACH_O_CPU_TYPE_ARM64.
+
+2014-03-17  Tristan Gingold  <gingold@adacore.com>
+
+	* unwind.h: New file.
+
+2014-03-05  Alan Modra  <amodra@gmail.com>
+
+	Update copyright years.
+
+2012-11-14  Tristan Gingold  <gingold@adacore.com>
+
+	* external.h (mach_o_entry_point_command_external)
+	(mach_o_source_version_command_external)
+	(mach_o_data_in_code_entry_external): New structures.
+
+	* loader.h (bfd_mach_o_load_command_type): Add
+	BFD_MACH_O_LC_MAIN, BFD_MACH_O_LC_DATA_IN_CODE,
+	BFD_MACH_O_LC_SOURCE_VERSION and BFD_MACH_O_LC_DYLIB_CODE_SIGN_DRS.
+	(BFD_MACH_O_REFERENCE_MASK): Adjust value.
+	(BFD_MACH_O_N_REF_TO_WEAK): New definition.
+	(BFD_MACH_O_N_ARM_THUMB_DEF, BFD_MACH_O_N_SYMBOL_RESOLVER): Likewise.
+	(bfd_mach_o_data_in_code_entry_kind): New enum.
+
+2012-11-14  Tristan Gingold  <gingold@adacore.com>
+
+	* arm.h: New file.
+
+2012-02-23  Iain Sandoe  <idsandoe@googlemail.com>
+
+	* external.h: Add comments about relocations fields.  Add macros
+	for non-scattered relocations.  Move scattered relocation macros to
+	here.
+	* reloc.h: Remove macros related to external representation of reloc
+	fields.
+
+2012-01-12  Iain Sandoe  <idsandoe@googlemail.com>
+
+	* loader.h (BFD_MACH_O_INDIRECT_SYM_LOCAL): New.
+	(BFD_MACH_O_INDIRECT_SYM_ABS): New
+
+2012-01-04  Tristan Gingold  <gingold@adacore.com>
+
+	* external.h (mach_o_fvmlib_command_external): New structure.
+
+2012-01-04  Tristan Gingold  <gingold@adacore.com>
+
+	* loader.h: Update copyright year.
+	(bfd_mach_o_cpu_subtype): Add ARM subtypes.
+
+2012-01-04  Tristan Gingold  <gingold@adacore.com>
+
+	* external.h: Update copyright year.
+	(mach_o_symtab_command_external): Add comments.
+	(mach_o_encryption_info_command_external): New structure.
+
+2011-12-16  Tristan Gingold  <gingold@adacore.com>
+
+	* codesign.h: New file.
+
+2011-08-08  Tristan Gingold  <gingold@adacore.com>
+
+	* loader.h (bfd_mach_o_load_command_type): Add
+	BFD_MACH_O_LC_LOAD_UPWARD_DYLIB, BFD_MACH_O_LC_VERSION_MIN_MACOSX,
+	BFD_MACH_O_LC_VERSION_MIN_IPHONEOS, BFD_MACH_O_LC_FUNCTION_STARTS,
+	and BFD_MACH_O_LC_DYLD_ENVIRONMENT.
+	* external.h (mach_o_version_min_command_external): New structure.
+
+2011-08-08  Tristan Gingold  <gingold@adacore.com>
+
+	* loader.h: Reorder declarations.
+	* x86-64.h: New file.
+	* external.h: New file.
+	* reloc.h: New file.
+
+2011-07-06  Tristan Gingold  <gingold@adacore.com>
+
+	* loader.h: New file.
+
+Copyright (C) 2011-2015 Free Software Foundation, Inc.
+
+Copying and distribution of this file, with or without modification,
+are permitted in any medium without royalty provided the copyright
+notice and this notice are preserved.
+
+Local Variables:
+mode: change-log
+left-margin: 8
+fill-column: 74
+version-control: never
+End:

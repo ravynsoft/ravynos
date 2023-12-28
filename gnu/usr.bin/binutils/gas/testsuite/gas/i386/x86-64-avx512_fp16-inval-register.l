@@ -1,0 +1,11 @@
+.*: Assembler messages:
+.*:6: Error: destination and source registers must be distinct for `vfcmaddcph'
+.*:7: Error: destination and source registers must be distinct for `vfcmaddcph'
+.*:8: Error: destination and source registers must be distinct for `vfcmaddcph'
+.*:9: Error: destination and source registers must be distinct for `vfcmaddcsh'
+.*:10: Error: destination and source registers must be distinct for `vfmaddcph'
+.*:11: Error: destination and source registers must be distinct for `vfmaddcsh'
+.*:12: Error: destination and source registers must be distinct for `vfcmulcph'
+.*:13: Error: destination and source registers must be distinct for `vfcmulcsh'
+.*:14: Error: destination and source registers must be distinct for `vfmulcph'
+.*:15: Error: destination and source registers must be distinct for `vfmulcsh'

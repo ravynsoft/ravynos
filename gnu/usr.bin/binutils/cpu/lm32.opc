@@ -1,0 +1,235 @@
+/* Lattice Mico32 opcode support.  -*- C -*-
+   Copyright 2008, 2009  Free Software Foundation, Inc.
+   Contributed by Jon Beniston <jon@beniston.com>
+
+   This file is part of the GNU Binutils.
+
+   This program is free software; you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation; either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program; if not, write to the Free Software
+   Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+   MA 02110-1301, USA.  */
+
+/* -- opc.h */
+
+/* Allows reason codes to be output when assembler errors occur.  */
+#define CGEN_VERBOSE_ASSEMBLER_ERRORS
+
+#define CGEN_DIS_HASH_SIZE 64
+#define CGEN_DIS_HASH(buf,value) ((value >> 26) & 0x3f) 
+
+/* -- asm.c */
+
+/* Handle signed/unsigned literal.  */
+
+static const char *
+parse_imm (CGEN_CPU_DESC cd,
+	   const char **strp,
+	   int opindex,
+	   unsigned long *valuep)
+{
+  const char *errmsg;
+  signed long value;
+
+  errmsg = cgen_parse_signed_integer (cd, strp, opindex, & value);
+  if (errmsg == NULL)
+    {
+      unsigned long x = value & 0xFFFF0000;
+      if (x != 0 && x != 0xFFFF0000)
+        errmsg = _("immediate value out of range");
+      else
+        *valuep = (value & 0xFFFF);
+    }
+  return errmsg;
+}
+
+/* Handle hi() */
+
+static const char *
+parse_hi16 (CGEN_CPU_DESC cd,
+	    const char **strp,
+	    int opindex,
+	    unsigned long *valuep)
+{
+  if (strncasecmp (*strp, "hi(", 3) == 0)
+    {
+      enum cgen_parse_operand_result result_type;
+      bfd_vma value;
+      const char *errmsg;
+
+      *strp += 3;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_HI16,
+                                   &result_type, &value);
+      if (**strp != ')')
+        return _("missing `)'");
+
+      ++*strp;
+      if (errmsg == NULL
+          && result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+        value = (value >> 16) & 0xffff;
+      *valuep = value;
+
+      return errmsg;
+    }
+
+  return parse_imm (cd, strp, opindex, valuep);
+}
+
+/* Handle lo() */
+
+static const char *
+parse_lo16 (CGEN_CPU_DESC cd,
+	    const char **strp,
+	    int opindex,
+	    unsigned long *valuep)
+{
+  if (strncasecmp (*strp, "lo(", 3) == 0)
+    {
+      const char *errmsg;
+      enum cgen_parse_operand_result result_type;
+      bfd_vma value;
+
+      *strp += 3;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_LO16,
+                                   &result_type, &value);
+      if (**strp != ')')
+        return _("missing `)'");
+      ++*strp;
+      if (errmsg == NULL
+          && result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+        value &= 0xffff;
+      *valuep = value;
+      return errmsg;
+    }
+
+  return parse_imm (cd, strp, opindex, valuep);
+}
+
+/* Handle gp() */
+
+static const char *
+parse_gp16 (CGEN_CPU_DESC cd,
+	    const char **strp,
+	    int opindex,
+	    long *valuep)
+{
+  if (strncasecmp (*strp, "gp(", 3) == 0)
+    {
+      const char *errmsg;
+      enum cgen_parse_operand_result result_type;
+      bfd_vma value;
+
+      *strp += 3;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_GPREL16,
+                                   & result_type, & value);
+      if (**strp != ')')
+        return _("missing `)'");
+      ++*strp;
+      if (errmsg == NULL
+          && result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+        value &= 0xffff;
+      *valuep = value;
+      return errmsg;
+    }
+
+  return _("expecting gp relative address: gp(symbol)");
+}
+
+/* Handle got() */
+
+static const char *
+parse_got16 (CGEN_CPU_DESC cd,
+	     const char **strp,
+	     int opindex,
+	     long *valuep)
+{
+  if (strncasecmp (*strp, "got(", 4) == 0)
+    {
+      const char *errmsg;
+      enum cgen_parse_operand_result result_type;
+      bfd_vma value;
+
+      *strp += 4;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_LM32_16_GOT,
+                                   & result_type, & value);
+      if (**strp != ')')
+        return _("missing `)'");
+      ++*strp;
+      if (errmsg == NULL
+          && result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+        value &= 0xffff;
+      *valuep = value;
+      return errmsg;
+    }
+
+  return _("expecting got relative address: got(symbol)");
+}
+
+/* Handle gotoffhi16() */
+
+static const char *
+parse_gotoff_hi16 (CGEN_CPU_DESC cd,
+		   const char **strp,
+		   int opindex,
+		   long *valuep)
+{
+  if (strncasecmp (*strp, "gotoffhi16(", 11) == 0)
+    {
+      const char *errmsg;
+      enum cgen_parse_operand_result result_type;
+      bfd_vma value;
+
+      *strp += 11;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_LM32_GOTOFF_HI16,
+                                   & result_type, & value);
+      if (**strp != ')')
+        return _("missing `)'");
+      ++*strp;
+      if (errmsg == NULL
+          && result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+        value &= 0xffff;
+      *valuep = value;
+      return errmsg;
+    }
+
+  return _("expecting got relative address: gotoffhi16(symbol)");
+}
+
+/* Handle gotofflo16() */
+
+static const char *
+parse_gotoff_lo16 (CGEN_CPU_DESC cd,
+		   const char **strp,
+		   int opindex,
+		   long *valuep)
+{
+  if (strncasecmp (*strp, "gotofflo16(", 11) == 0)
+    {
+      const char *errmsg;
+      enum cgen_parse_operand_result result_type;
+      bfd_vma value;
+
+      *strp += 11;
+      errmsg = cgen_parse_address (cd, strp, opindex, BFD_RELOC_LM32_GOTOFF_LO16,
+                                   &result_type, &value);
+      if (**strp != ')')
+        return _("missing `)'");
+      ++*strp;
+      if (errmsg == NULL
+          && result_type == CGEN_PARSE_OPERAND_RESULT_NUMBER)
+        value &= 0xffff;
+      *valuep = value;
+      return errmsg;
+    }
+
+  return _("expecting got relative address: gotofflo16(symbol)");
+}

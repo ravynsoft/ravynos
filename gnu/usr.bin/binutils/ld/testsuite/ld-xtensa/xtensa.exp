@@ -1,0 +1,45 @@
+# Expect script for ld-xtensa tests
+#   Copyright (C) 2008-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if { !([istarget "xtensa*-*-*"]) } {
+    return
+}
+
+run_dump_test "call_overflow"
+run_dump_test "coalesce"
+run_dump_test "diff_overflow"
+run_dump_test "lcall"
+run_dump_test "relax-diff1"
+run_dump_test "relax-loc"
+run_dump_test "relax-ndiff"
+
+run_dump_test "relax-static-pie"
+run_dump_test "relax-static-local-pie"
+run_dump_test "relax-static-shared"
+run_dump_test "relax-static-local-shared"
+
+run_dump_test "relax-undef-weak-pie"
+run_dump_test "relax-undef-weak-pie-export-dynamic"
+run_dump_test "relax-undef-weak-local-pie"
+run_dump_test "relax-undef-weak-shared"
+run_dump_test "relax-undef-weak-local-shared"
+
+run_dump_test "startstop"

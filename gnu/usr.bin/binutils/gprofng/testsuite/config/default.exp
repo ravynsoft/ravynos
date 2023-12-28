@@ -1,0 +1,48 @@
+# Basic expect script for gprofng tests
+#   Copyright (C) 2021-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This file is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+# The "make check" target in the Makefile passes in
+# "CC=$(CC_FOR_TARGET)".  But, if the user invokes runtest directly,
+# these flags may not be set.
+if {![info exists CC]} {
+    set CC [find_gcc]
+}
+if {![info exists CC_FOR_TARGET]} {
+    set CC_FOR_TARGET $CC
+}
+if {![info exists CFLAGS]} {
+    set CFLAGS "-g -O2"
+}
+
+if { "$CHECK_TARGET" == "check-install" } {
+    set ::env(GPROFNG) "$PREFIX/bin/gprofng"
+} else {
+    set ::env(GPROFNG) "$BUILDDIR/src/gprofng"
+}
+
+set TEST_TIMEOUT 300
+
+# Create directories where gprofng can find libraries and binaries:
+remote_exec host "sh -c \"rm -rf tmpdir; mkdir -p tmpdir\""
+remote_exec host "sh -c \"mkdir -p lib; rm -f lib/gprofng; ln -s ../libcollector/.libs lib/gprofng\""
+remote_exec host "sh -c \"rm -f bin; ln -s src bin\""
+
+load_lib display-lib.exp

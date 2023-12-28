@@ -1,0 +1,3 @@
+#...
+.*: removing unused section '\.data' in file 'tmpdir/pr22649-2.*\.o'
+#pass

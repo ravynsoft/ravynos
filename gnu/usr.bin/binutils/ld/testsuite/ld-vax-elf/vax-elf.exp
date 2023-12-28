@@ -1,0 +1,191 @@
+# Expect script for VAX ELF linker tests
+#   Copyright (C) 2012-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+if { ![istarget vax-*-*] || ![is_elf_format] } {
+    return
+}
+
+run_ld_link_tests [list \
+    [list "PLT test (shared library)" \
+	  "-shared -T plt-local-lib.ld --hash-style=sysv" "" \
+	  "-k" \
+	  { plt-local-lib.s } \
+	  { { objdump -d plt-local-lib.dd } } \
+	  "plt-local-lib.so"] \
+    [list "PLT test (object 1)" \
+	  "-r" "" \
+	  "-k" \
+	  { plt-local-hidden-pic.s } \
+	  {} \
+	  "plt-local-hidden-pic-r.o"] \
+    [list "PLT test (object 2)" \
+	  "-r" "" \
+	  "-k" \
+	  { plt-local-rehidden-pic.s } \
+	  {} \
+	  "plt-local-rehidden-pic-r.o"] \
+    [list "PLT test (executable)" \
+	  "-T plt-local.ld --hash-style=sysv tmpdir/plt-local-hidden-pic-r.o \
+	   tmpdir/plt-local-rehidden-pic-r.o tmpdir/plt-local-lib.so" "" \
+	  "" \
+	  { plt-local.s } \
+	  { { objdump -d plt-local.dd } } \
+	  "plt-local"]]
+
+# Global offset table tests.  Make sure hidden symbols do not get GOT
+# assignments.  Also verify offset references.
+run_ld_link_tests [list \
+    [list "GOT test (auxiliary shared library)" \
+	  "-shared" "" \
+	  "-k" \
+	  { got-local-aux.s } \
+	  {} \
+	  "got-local-aux.so"] \
+    [list "GOT test (auxiliary shared library for offsets)" \
+	  "-shared" "" \
+	  "-k" \
+	  { got-local-aux-off.s } \
+	  {} \
+	  "got-local-aux-off.so"] \
+    [list "GOT test (object 1)" \
+	  "-r" "" \
+	  "-k" \
+	  { got-local-ref.s } \
+	  {} \
+	  "got-local-ref-r.o"] \
+    [list "GOT test (object 1 hidden reference with offset)" \
+	  "-r" "" \
+	  "-k" \
+	  { got-local-ref-off-hidden.s } \
+	  {} \
+	  "got-local-ref-off-hidden-r.o"] \
+    [list "GOT test (object 1 visible reference with offset)" \
+	  "-r" "" \
+	  "-k" \
+	  { got-local-ref-off-visible.s } \
+	  {} \
+	  "got-local-ref-off-visible-r.o"] \
+    [list "GOT test (object 1 external reference with offset)" \
+	  "-r" "" \
+	  "-k" \
+	  { got-local-ref-off-external.s } \
+	  {} \
+	  "got-local-ref-off-external-r.o"] \
+    [list "GOT test (object 2)" \
+	  "-r" "" \
+	  "-k" \
+	  { got-local-def.s } \
+	  {} \
+	  "got-local-def-r.o"] \
+    [list "GOT test (object 2 for offsets)" \
+	  "-r" "" \
+	  "-k" \
+	  { got-local-def-off.s } \
+	  {} \
+	  "got-local-def-off-r.o"] \
+    [list "GOT test (executable)" \
+	  "-e 0 tmpdir/got-local-aux.so tmpdir/got-local-ref-r.o \
+	   tmpdir/got-local-def-r.o" "" \
+	  "" \
+	  {} \
+	  { { readelf "-x .got" got-local-exe.xd } } \
+	  "got-local-exe"] \
+    [list "GOT test (shared library)" \
+	  "-shared tmpdir/got-local-aux.so tmpdir/got-local-ref-r.o \
+	   tmpdir/got-local-def-r.o" "" \
+	  "" \
+	  {} \
+	  { { readelf "-x .got" got-local-lib.xd } } \
+	  "got-local-lib.so"] \
+    [list "GOT test (executable hidden reference with offset)" \
+	  "-e 0 -T got-local.ld tmpdir/got-local-aux-off.so \
+	   tmpdir/got-local-ref-off-hidden-r.o \
+	   tmpdir/got-local-def-off-r.o" "" \
+	  "" \
+	  {} \
+	  { { readelf "-x .got" got-local-exe-off.xd } \
+	    { objdump -d got-local-exe-off-hidden.dd } } \
+	  "got-local-exe-off-hidden"] \
+    [list "GOT test (shared library hidden reference with offset)" \
+	  "-shared -T got-local.ld tmpdir/got-local-aux-off.so \
+	   tmpdir/got-local-ref-off-hidden-r.o \
+	   tmpdir/got-local-def-off-r.o" "" \
+	  "" \
+	  {} \
+	  { { readelf "-x .got" got-local-lib-off.xd } \
+	    { objdump -d got-local-lib-off-hidden.dd } } \
+	  "got-local-lib-off-hidden.so"] \
+    [list "GOT test (executable visible reference with offset)" \
+	  "-e 0 -T got-local.ld tmpdir/got-local-aux-off.so \
+	   tmpdir/got-local-ref-off-visible-r.o \
+	   tmpdir/got-local-def-off-r.o" "" \
+	  "" \
+	  {} \
+	  { { readelf "-x .got" got-local-exe-off.xd } \
+	    { objdump -d got-local-exe-off-visible.dd } } \
+	  "got-local-exe-off-visible"] \
+    [list "GOT test (shared library visible reference with offset)" \
+	  "-shared -T got-local.ld tmpdir/got-local-aux-off.so \
+	   tmpdir/got-local-ref-off-visible-r.o \
+	   tmpdir/got-local-def-off-r.o" "" \
+	  "" \
+	  {} \
+	  { { ld got-local-lib-off-visible.ed } } \
+	  "got-local-lib-off-visible.so"] \
+    [list "GOT test (executable external reference with offset)" \
+	  "-e 0 -T got-local.ld tmpdir/got-local-aux-off.so \
+	   tmpdir/got-local-ref-off-external-r.o \
+	   tmpdir/got-local-def-off-r.o" "" \
+	  "" \
+	  {} \
+	  { { ld got-local-off-external.ed } } \
+	  "got-local-exe-off-external"] \
+    [list "GOT test (shared library external reference with offset)" \
+	  "-shared -T got-local.ld tmpdir/got-local-aux-off.so \
+	   tmpdir/got-local-ref-off-external-r.o \
+	   tmpdir/got-local-def-off-r.o" "" \
+	  "" \
+	  {} \
+	  { { ld got-local-off-external.ed } } \
+	  "got-local-lib-off-external.so"]]
+
+# Export class relocation tests.
+run_ld_link_tests [list \
+    [list \
+	"VAX export class call relocation test" \
+	"-shared -Ttext 0x12340000 -T export-class.ld --hash-style=sysv" "" \
+	"-k" \
+	[list export-class-call.s export-class-def.s] \
+	[list \
+	    [list objdump -d export-class-call.dd] \
+	    [list readelf -r export-class-call.rd] \
+	    [list readelf "-x .got" export-class-call.xd]] \
+	"export-class-call.so"] \
+    [list \
+	"VAX export class data relocation test" \
+	"-shared -Ttext 0x12340000 -T export-class.ld --hash-style=sysv" "" \
+	"-k" \
+	[list export-class-data.s export-class-def.s] \
+	[list \
+	    [list objdump -d export-class-data.dd] \
+	    [list readelf -r export-class-data.rd] \
+	    [list readelf "-x .got" export-class-data.xd]] \
+	"export-class-data.so"]]

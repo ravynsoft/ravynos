@@ -1,0 +1,6 @@
+# check for just one GOT entry
+#...
+.* \.rela\.dyn +RELA +[0-9a-f]+ [0-9a-f]+ 000018 .*
+#...
+.* \.got +PROGBITS +[0-9a-f]+ [0-9a-f]+ 000010 .*
+#pass

@@ -1,0 +1,600 @@
+# Esperanto translation.
+# Copyright (C) 2011, 2013, 2014, 2018, 2020, 2023 Free Software Foundation, Inc.
+# This file is distributed under the same license as the binutils package.
+# Felipe Castro <fefcas@gmail.com> 2011, 2013, 2014, 2018, 2020, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: gprof 2.39.90\n"
+"Report-Msgid-Bugs-To: https://sourceware.org/bugzilla/\n"
+"POT-Creation-Date: 2022-12-31 12:22+0000\n"
+"PO-Revision-Date: 2023-01-08 15:44-0300\n"
+"Last-Translator: Felipe Castro <fefcas@gmail.com>\n"
+"Language-Team: Esperanto <translation-team-eo@lists.sourceforge.net>\n"
+"Language: eo\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"X-Generator: Poedit 2.4.2\n"
+
+#: alpha.c:102 mips.c:54
+msgid "<indirect child>"
+msgstr "<malrekta ido>"
+
+#: alpha.c:107 mips.c:59
+#, c-format
+msgid "[find_call] %s: 0x%lx to 0x%lx\n"
+msgstr "[find_call] %s: 0x%lx to 0x%lx\n"
+
+#: alpha.c:129
+#, c-format
+msgid "[find_call] 0x%lx: jsr%s <indirect_child>\n"
+msgstr "[find_call] 0x%lx: jsr%s <indirect_child>\n"
+
+#: alpha.c:139
+#, c-format
+msgid "[find_call] 0x%lx: bsr"
+msgstr "[find_call] 0x%lx: bsr"
+
+#: basic_blocks.c:128 call_graph.c:89 hist.c:106
+#, c-format
+msgid "%s: %s: unexpected end of file\n"
+msgstr "%s: %s: ne atendita dosierfino\n"
+
+#: basic_blocks.c:196
+#, c-format
+msgid "%s: warning: ignoring basic-block exec counts (use -l or --line)\n"
+msgstr "%s: averto: ni preteratentas nombradon de baz-blokaj lanĉoj (uzu -l aŭ --line)\n"
+
+#. FIXME: This only works if bfd_vma is unsigned long.
+#: basic_blocks.c:289 basic_blocks.c:299
+#, c-format
+msgid "%s:%d: (%s:0x%lx) %lu executions\n"
+msgstr "%s:%d: (%s:0x%lx) %lu lanĉoj\n"
+
+#: basic_blocks.c:290 basic_blocks.c:300
+msgid "<unknown>"
+msgstr "<nekonata>"
+
+#: basic_blocks.c:543
+#, c-format
+msgid ""
+"\n"
+"\n"
+"Top %d Lines:\n"
+"\n"
+"     Line      Count\n"
+"\n"
+msgstr ""
+"\n"
+"\n"
+"Superaj %d Linioj:\n"
+"\n"
+"     Linio     Nombro\n"
+"\n"
+
+#: basic_blocks.c:567
+#, c-format
+msgid ""
+"\n"
+"Execution Summary:\n"
+"\n"
+msgstr ""
+"\n"
+"Resumo pri plenumado:\n"
+"\n"
+
+#: basic_blocks.c:568
+#, c-format
+msgid "%9ld   Executable lines in this file\n"
+msgstr "%9ld   Plenumeblaj linioj en tiu ĉi dosiero\n"
+
+#: basic_blocks.c:570
+#, c-format
+msgid "%9ld   Lines executed\n"
+msgstr "%9ld   Linioj plenumitaj\n"
+
+#: basic_blocks.c:571
+#, c-format
+msgid "%9.2f   Percent of the file executed\n"
+msgstr "%9.2f   Elcento el la dosiero plenumita\n"
+
+#: basic_blocks.c:575
+#, c-format
+msgid ""
+"\n"
+"%9lu   Total number of line executions\n"
+msgstr ""
+"\n"
+"%9lu   Entuta nombro da liniaj plenumoj\n"
+
+#: basic_blocks.c:577
+#, c-format
+msgid "%9.2f   Average executions per line\n"
+msgstr "%9.2f   Meznombraj plenumoj por linio\n"
+
+#: call_graph.c:68
+#, c-format
+msgid "[cg_tally] arc from %s to %s traversed %lu times\n"
+msgstr "[cg_tally] arko de %s al %s trairis %lu fojojn\n"
+
+#: cg_print.c:74
+#, c-format
+msgid ""
+"\t\t     Call graph (explanation follows)\n"
+"\n"
+msgstr ""
+"\t\t     Vok-grafikaĵo (klarigo sekvas)\n"
+"\n"
+
+#: cg_print.c:76
+#, c-format
+msgid ""
+"\t\t\tCall graph\n"
+"\n"
+msgstr ""
+"\t\t\tVok-grafikaĵo\n"
+"\n"
+
+#: cg_print.c:79 hist.c:470
+#, c-format
+msgid ""
+"\n"
+"granularity: each sample hit covers %ld byte(s)"
+msgstr ""
+"\n"
+"ereco: ĉiu specimeno kovras %ld bajto(j)n"
+
+#: cg_print.c:83
+#, c-format
+msgid ""
+" for %.2f%% of %.2f seconds\n"
+"\n"
+msgstr ""
+" por %.2f%% el %.2f seconds\n"
+"\n"
+
+#: cg_print.c:87
+#, c-format
+msgid ""
+" no time propagated\n"
+"\n"
+msgstr ""
+" neniu tempo disvastigite\n"
+"\n"
+
+#: cg_print.c:96 cg_print.c:101 cg_print.c:104
+msgid "called"
+msgstr "vokita"
+
+#: cg_print.c:96 cg_print.c:104
+msgid "total"
+msgstr "totalo"
+
+#: cg_print.c:96
+msgid "parents"
+msgstr "patroj"
+
+#: cg_print.c:98 cg_print.c:102
+msgid "index"
+msgstr "indekso"
+
+#: cg_print.c:100
+#, no-c-format
+msgid "%time"
+msgstr "%tempo"
+
+#: cg_print.c:101
+msgid "self"
+msgstr "mem"
+
+#: cg_print.c:101
+msgid "descendants"
+msgstr "posteuloj"
+
+#: cg_print.c:102 hist.c:496
+msgid "name"
+msgstr "nomo"
+
+#: cg_print.c:104
+msgid "children"
+msgstr "idoj"
+
+#: cg_print.c:109
+#, c-format
+msgid "index %% time    self  children    called     name\n"
+msgstr "indekso %% tempo   mem   idoj        vokita     nomo\n"
+
+#: cg_print.c:132
+#, c-format
+msgid " <cycle %d as a whole> [%d]\n"
+msgstr " <cikligi %d kiel tuton> [%d]\n"
+
+#: cg_print.c:358
+#, c-format
+msgid "%6.6s %5.5s %7.7s %11.11s %7.7s %7.7s     <spontaneous>\n"
+msgstr "%6.6s %5.5s %7.7s %11.11s %7.7s %7.7s     <spontanea>\n"
+
+#: cg_print.c:359
+#, c-format
+msgid "%6.6s %5.5s %7.7s %7.7s %7.7s %7.7s     <spontaneous>\n"
+msgstr "%6.6s %5.5s %7.7s %7.7s %7.7s %7.7s     <spontanea>\n"
+
+#: cg_print.c:593
+#, c-format
+msgid ""
+"Index by function name\n"
+"\n"
+msgstr ""
+"Indekso laŭ funkci-nomo\n"
+"\n"
+
+#: cg_print.c:650 cg_print.c:659
+#, c-format
+msgid "<cycle %d>"
+msgstr "<ciklo %d>"
+
+#: corefile.c:61
+#, c-format
+msgid "%s: unable to parse mapping file %s.\n"
+msgstr "%s: ne eblas analizi mapig-dosieron %s.\n"
+
+#: corefile.c:89 corefile.c:524
+#, c-format
+msgid "%s: could not open %s.\n"
+msgstr "%s: ni ne povis malfermi %s.\n"
+
+#: corefile.c:193
+#, c-format
+msgid "%s: %s: not in executable format\n"
+msgstr "%s: %s: ne estas laŭ lanĉebla formo\n"
+
+#: corefile.c:204
+#, c-format
+msgid "%s: can't find .text section in %s\n"
+msgstr "%s: ni ne povas trovi sekcion .text en %s\n"
+
+#: corefile.c:278
+#, c-format
+msgid "%s: ran out room for %lu bytes of text space\n"
+msgstr "%s: mankis loko por %lu bajtoj el teksto-spaco\n"
+
+#: corefile.c:292
+#, c-format
+msgid "%s: can't do -c\n"
+msgstr "%s: ni ne povas fari -c\n"
+
+#: corefile.c:331
+#, c-format
+msgid "%s: -c not supported on architecture %s\n"
+msgstr "%s: -c ne estas subtenata en arkitekturo %s\n"
+
+#: corefile.c:533 corefile.c:640
+#, c-format
+msgid "%s: file `%s' has no symbols\n"
+msgstr "%s: dosiero '%s' ne havas simbolojn\n"
+
+#: corefile.c:538
+#, c-format
+msgid "%s: file `%s' has too many symbols\n"
+msgstr "%s: la dosiero '%s' havas tro da simboloj\n"
+
+#: corefile.c:907
+#, c-format
+msgid "%s: somebody miscounted: ltab.len=%d instead of %ld\n"
+msgstr "%s: iu estis misnombrata: ltab.len=%d anstataŭ %ld\n"
+
+#: gmon_io.c:81
+#, c-format
+msgid "%s: address size has unexpected value of %u\n"
+msgstr "%s: adres-grando havas neatenditan valoron de %u\n"
+
+#: gmon_io.c:298 gmon_io.c:394
+#, c-format
+msgid "%s: file too short to be a gmon file\n"
+msgstr "%s: dosiero tro mallonga por esti el tipo gmon\n"
+
+#: gmon_io.c:308 gmon_io.c:437
+#, c-format
+msgid "%s: file `%s' has bad magic cookie\n"
+msgstr "%s: dosiero '%s' havas malĝustan magian kuketon\n"
+
+#: gmon_io.c:319
+#, c-format
+msgid "%s: file `%s' has unsupported version %d\n"
+msgstr "%s: dosiero '%s' havas nesubtenatan version %d\n"
+
+#: gmon_io.c:349
+#, c-format
+msgid "%s: %s: found bad tag %d (file corrupted?)\n"
+msgstr "%s: %s: ni trovis malĝustan etikedon %d (ĉu dosiero rompita?)\n"
+
+#: gmon_io.c:416
+#, c-format
+msgid "%s: profiling rate incompatible with first gmon file\n"
+msgstr "%s: profila rapido ne kongruas kun unua dosiero gmon\n"
+
+#: gmon_io.c:467
+#, c-format
+msgid "%s: incompatible with first gmon file\n"
+msgstr "%s: nekongrua kun unua dosiero gmon\n"
+
+#: gmon_io.c:497
+#, c-format
+msgid "%s: file '%s' does not appear to be in gmon.out format\n"
+msgstr "%s: dosiero '%s' ne ŝajnas esti laŭ formo gmon.out\n"
+
+#: gmon_io.c:510
+#, c-format
+msgid "%s: unexpected EOF after reading %d/%d bins\n"
+msgstr "%s: neatendita EOF post legado de %d/%d ujoj\n"
+
+#: gmon_io.c:542
+#, c-format
+msgid "time is in ticks, not seconds\n"
+msgstr "tempo estas laŭ marketoj (ticks), ne sekundoj\n"
+
+#: gmon_io.c:548 gmon_io.c:728
+#, c-format
+msgid "%s: don't know how to deal with file format %d\n"
+msgstr "%s: ni ne scias kiel trakti dosier-formon %d\n"
+
+#: gmon_io.c:558
+#, c-format
+msgid "File `%s' (version %d) contains:\n"
+msgstr "Dosiero '%s' (versio %d) enhavas:\n"
+
+#: gmon_io.c:561
+#, c-format
+msgid "\t%d histogram record\n"
+msgstr "\t%d histograma rikordo\n"
+
+#: gmon_io.c:562
+#, c-format
+msgid "\t%d histogram records\n"
+msgstr "\t%d histogramaj rikordoj\n"
+
+#: gmon_io.c:564
+#, c-format
+msgid "\t%d call-graph record\n"
+msgstr "\t%d vok-grafikaĵa rikordo\n"
+
+#: gmon_io.c:565
+#, c-format
+msgid "\t%d call-graph records\n"
+msgstr "\t%d vok-grafikaĵaj rikordoj\n"
+
+#: gmon_io.c:567
+#, c-format
+msgid "\t%d basic-block count record\n"
+msgstr "\t%d baz-blok-nombrada rikordo\n"
+
+#: gmon_io.c:568
+#, c-format
+msgid "\t%d basic-block count records\n"
+msgstr "\t%d baz-blok-nombradaj rikordoj\n"
+
+#: gprof.c:162
+#, c-format
+msgid ""
+"Usage: %s [-[abcDhilLrsTvwxyz]] [-[ABCeEfFJnNOpPqQRStZ][name]] [-I dirs]\n"
+"\t[-d[num]] [-k from/to] [-m min-count] [-t table-length]\n"
+"\t[--[no-]annotated-source[=name]] [--[no-]exec-counts[=name]]\n"
+"\t[--[no-]flat-profile[=name]] [--[no-]graph[=name]]\n"
+"\t[--[no-]time=name] [--all-lines] [--brief] [--debug[=level]]\n"
+"\t[--function-ordering] [--file-ordering] [--inline-file-names]\n"
+"\t[--directory-path=dirs] [--display-unused-functions]\n"
+"\t[--file-format=name] [--file-info] [--help] [--line] [--min-count=n]\n"
+"\t[--no-static] [--print-path] [--separate-files]\n"
+"\t[--static-call-graph] [--sum] [--table-length=len] [--traditional]\n"
+"\t[--version] [--width=n] [--ignore-non-functions]\n"
+"\t[--demangle[=STYLE]] [--no-demangle] [--external-symbol-table=name] [@FILE]\n"
+"\t[image-file] [profile-file...]\n"
+msgstr ""
+"Uzmaniero: %s [-[abcDhilLrsTvwxyz]] [-[ABCeEfFJnNOpPqQRStZ][nomo]] [-I ujoj]\n"
+"\t[-d[num]] [-k de/al] [-m min-num] [-t tabelo-longo]\n"
+"\t[--[no-]annotated-source[=nomo]] [--[no-]exec-counts[=nomo]]\n"
+"\t[--[no-]flat-profile[=nomo]] [--[no-]graph[=nomo]]\n"
+"\t[--[no-]time=nomo] [--all-lines] [--brief] [--debug[=nivelo]]\n"
+"\t[--function-ordering] [--file-ordering] [--inline-file-names]\n"
+"\t[--directory-path=ujoj] [--display-unused-functions]\n"
+"\t[--file-format=nomo] [--file-info] [--help] [--line] [--min-count=n]\n"
+"\t[--no-static] [--print-path] [--separate-files]\n"
+"\t[--static-call-graph] [--sum] [--table-length=longo] [--traditional]\n"
+"\t[--version] [--width=n] [--ignore-non-functions]\n"
+"\t[--demangle[=STILO]] [--no-demangle] [--external-symbol-table=nomo] [@DOSIERO]\n"
+"\t[bildo-dosiero] [profilo-dosiero...]\n"
+
+#: gprof.c:178
+#, c-format
+msgid "Report bugs to %s\n"
+msgstr "Raportu program-misojn al %s\n"
+
+#: gprof.c:252
+#, c-format
+msgid "%s: debugging not supported; -d ignored\n"
+msgstr "%s: rafinado ne estas subtenata; -d estas preteratentita\n"
+
+#: gprof.c:338
+#, c-format
+msgid "%s: unknown file format %s\n"
+msgstr "%s: nekonata dosier-formo %s\n"
+
+#. This output is intended to follow the GNU standards document.
+#: gprof.c:426
+#, c-format
+msgid "GNU gprof %s\n"
+msgstr "GNU gprof %s\n"
+
+#: gprof.c:427
+#, c-format
+msgid "Based on BSD gprof, copyright 1983 Regents of the University of California.\n"
+msgstr "Surbaze de BSD gprof, kopirajto 1983 Regents of the University of California.\n"
+
+#: gprof.c:428
+#, c-format
+msgid "This program is free software.  This program has absolutely no warranty.\n"
+msgstr "Tiu ĉi programo estas libera programaro. Tiu ĉi programo havas absolute neniun garantion.\n"
+
+#: gprof.c:469
+#, c-format
+msgid "%s: unknown demangling style `%s'\n"
+msgstr "%s: nekonata maladorniga stilo '%s'\n"
+
+#: gprof.c:492
+#, c-format
+msgid "%s: Only one of --function-ordering and --file-ordering may be specified.\n"
+msgstr "%s: Nur unu el --function-ordering kaj --file-ordering povas esti indikata.\n"
+
+#: gprof.c:544
+#, c-format
+msgid "%s: sorry, file format `prof' is not yet supported\n"
+msgstr "%s: pardonu, dosier-formato 'prof' ankoraŭ ne estas subtenata\n"
+
+#: gprof.c:598
+#, c-format
+msgid "%s: gmon.out file is missing histogram\n"
+msgstr "%s: dosiero gmon.out malhavas histogramon\n"
+
+#: gprof.c:605
+#, c-format
+msgid "%s: gmon.out file is missing call-graph data\n"
+msgstr "%s: dosiero gmon.out malhavas vok-grafikaĵan datumaron\n"
+
+#: hist.c:134
+#, c-format
+msgid ""
+"%s: dimension unit changed between histogram records\n"
+"%s: from '%s'\n"
+"%s: to '%s'\n"
+msgstr ""
+"%s: dimensi-unuo ŝanĝis inter histogramaj rikordoj\n"
+"%s: de '%s'\n"
+"%s: al '%s'\n"
+
+#: hist.c:144
+#, c-format
+msgid ""
+"%s: dimension abbreviation changed between histogram records\n"
+"%s: from '%c'\n"
+"%s: to '%c'\n"
+msgstr ""
+"%s: dimensia mallongigo ŝanĝis inter histogramaj rikordoj\n"
+"%s: de '%c'\n"
+"%s: al '%c'\n"
+
+#: hist.c:158
+#, c-format
+msgid "%s: different scales in histogram records"
+msgstr "%s: malsamaj skaloj en histogramaj rikordoj"
+
+#: hist.c:195
+#, c-format
+msgid "%s: overlapping histogram records\n"
+msgstr "%s: surmiksitaj histogramaj rikordoj\n"
+
+#: hist.c:229
+#, c-format
+msgid "%s: %s: unexpected EOF after reading %u of %u samples\n"
+msgstr "%s: %s: neatendita EOF post legado de %u el %u specimenoj\n"
+
+#: hist.c:466
+#, c-format
+msgid "%c%c/call"
+msgstr "%c%c/voko"
+
+#: hist.c:474
+#, c-format
+msgid ""
+" for %.2f%% of %.2f %s\n"
+"\n"
+msgstr ""
+" por %.2f%% el %.2f %s\n"
+"\n"
+
+#: hist.c:480
+#, c-format
+msgid ""
+"\n"
+"Each sample counts as %g %s.\n"
+msgstr ""
+"\n"
+"Ĉiu specimeno kalkuliĝas kiel %g %s.\n"
+
+#: hist.c:485
+#, c-format
+msgid ""
+" no time accumulated\n"
+"\n"
+msgstr ""
+" neniu tempo akumulita\n"
+"\n"
+
+#: hist.c:492
+msgid "cumulative"
+msgstr "akumula"
+
+#: hist.c:492
+msgid "self  "
+msgstr "mem  "
+
+#: hist.c:492
+msgid "total "
+msgstr "totalo "
+
+#: hist.c:495
+msgid "time"
+msgstr "tempo"
+
+#: hist.c:495
+msgid "calls"
+msgstr "vokoj"
+
+#: hist.c:584
+#, c-format
+msgid ""
+"\n"
+"\n"
+"\n"
+"flat profile:\n"
+msgstr ""
+"\n"
+"\n"
+"\n"
+"plata profilo:\n"
+
+#: hist.c:590
+#, c-format
+msgid "Flat profile:\n"
+msgstr "Plata profilo:\n"
+
+#: hist.c:711
+#, c-format
+msgid "%s: found a symbol that covers several histogram records"
+msgstr "%s: ni trovis simbolon kiu kovras plurajn histogramajn rikordojn"
+
+#: mips.c:71
+#, c-format
+msgid "[find_call] 0x%lx: jal"
+msgstr "[find_call] 0x%lx: jal"
+
+#: mips.c:99
+#, c-format
+msgid "[find_call] 0x%lx: jalr\n"
+msgstr "[find_call] 0x%lx: jalr\n"
+
+#: source.c:166
+#, c-format
+msgid "%s: could not locate `%s'\n"
+msgstr "%s: ni ne povis lokigi '%s'\n"
+
+#: source.c:244
+#, c-format
+msgid "*** File %s:\n"
+msgstr "*** Dosiero %s:\n"
+
+#: utils.c:105
+#, c-format
+msgid " <cycle %d>"
+msgstr " <ciklo %d>"

@@ -1,0 +1,118 @@
+# Copyright (C) 2021-2023 Free Software Foundation, Inc.
+#
+# This file is part of the GNU Binutils.
+#
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street - Fifth Floor, Boston,
+# MA 02110-1301, USA.
+#
+
+load_file $srcdir/../../ld/testsuite/lib/ld-lib.exp
+
+global srcdir subdir OBJDUMP
+global testname
+global subsrcdir
+
+set subsrcdir "$srcdir/$subdir/"
+set testname "$dir/libctf-repeat-cu.exp"
+
+if ![is_elf_format] {
+    unsupported "CTF needs bfd changes to be emitted on non-ELF"
+    return 0
+}
+
+if {![check_ctf_available]} {
+    unsupported "no CTF format support in the compiler"
+    return 0
+}
+
+if {[info exists env(LC_ALL)]} {
+    set old_lc_all $env(LC_ALL)
+}
+set env(LC_ALL) "C"
+
+# Compile one SRC to OBJ and put it into ARCHIVE.
+proc one_lib_compile { src flags obj archive } {
+    global CC_FOR_TARGET CFLAGS_FOR_TARGET AR subsrcdir
+
+    if [is_remote host] {
+	set src [remote_download host [file join $subsrcdir $src]]
+    } else {
+	set src [file join $subsrcdir $src]
+    }
+
+    set comp_output [prune_warnings [run_host_cmd "$CC_FOR_TARGET" "$CFLAGS_FOR_TARGET $flags -gctf -fPIC -c -o $obj $src"]]
+    if { $comp_output != "" } {
+	return $comp_output
+    }
+
+    set ar_output [prune_warnings [run_host_cmd "$AR" "rc $archive $obj"]]
+    return $comp_output
+}
+
+# Compile one SRC to OBJ and put it into ARCHIVE: error-check the result.
+proc one_lib_compile_check { src flags obj archive } {
+    global testname
+
+    set comp_output [one_lib_compile $src $flags $obj $archive]
+
+    if { $comp_output != ""} {
+	send_log "compilation of $src with $flags failed with <$comp_output>"
+	perror "compilation of $src with $flags failed"
+	fail $testname
+	return 0
+    }
+    return 1
+}
+
+if { ! [one_lib_compile_check libctf-repeat-cu-lib.c "-DINT -DFUN=a" tmpdir/libctf-repeat-cu-lib.o tmpdir/a.a] } {
+    return 0
+}
+
+if { ! [one_lib_compile_check libctf-repeat-cu-lib.c "-DCHAR -DFUN=b" tmpdir/libctf-repeat-cu-lib.o tmpdir/b.a] } {
+    return 0
+}
+
+if { ! [one_lib_compile_check libctf-repeat-cu-lib.c "-DFUN=c" tmpdir/libctf-repeat-cu-lib.o tmpdir/c.a] } {
+    return 0
+}
+
+if [is_remote host] {
+    set src [remote_download host [file join $subsrcdir libctf-repeat-cu-main.c]]
+} else {
+    set src [file join $subsrcdir libctf-repeat-cu-main.c]
+}
+
+set comp_output [prune_warnings [run_host_cmd "$CC_FOR_TARGET" "$CFLAGS_FOR_TARGET -gctf -fPIC -shared -o tmpdir/libctf-repeat-cu-main.so $src tmpdir/a.a tmpdir/b.a tmpdir/c.a"]]
+if { $comp_output != "" } {
+    send_log "compilation of tmpdir/libctf-repeat-cu-main.so failed"
+    perror "compilation of tmpdir/libctf-repeat-cu-main.so failed"
+    fail $testname
+    return $comp_output
+}
+
+set comp_output [prune_warnings [run_host_cmd "$OBJDUMP" "--ctf tmpdir/libctf-repeat-cu-main.so > tmpdir/dump.out"]]
+
+if { [regexp_diff "tmpdir/dump.out"  [file join $subsrcdir libctf-repeat-cu.d] ] } {
+    fail $testname
+    if { $verbose == 2 } then { verbose "output is [file_contents tmpdir/dump.out]" 2 }
+}
+
+pass $testname
+
+if {[info exists old_lc_all]} {
+    set env(LC_ALL) $old_lc_all
+} else {
+    unset env(LC_ALL)
+}

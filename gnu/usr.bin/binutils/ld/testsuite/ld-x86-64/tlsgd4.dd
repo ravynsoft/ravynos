@@ -1,0 +1,10 @@
+#target: x86_64-*-linux*
+
+.*: +file format .*
+
+Disassembly of section .text:
+
+[a-f0-9]+ <_start>:
+[ 	]*[a-f0-9]+:	64 8b 04 25 00 00 00 00 	mov    %fs:0x0,%eax
+[ 	]*[a-f0-9]+:	48 8d 80 fc ff ff ff 	lea    -0x4\(%rax\),%rax
+#pass
