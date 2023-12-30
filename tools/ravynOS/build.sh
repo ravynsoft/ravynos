@@ -73,13 +73,13 @@ extras_build() {
     if [ $? -ne 0 ]; then exit $?; fi
 }
 
-basepkg() {
+kernelpkg() {
     cd ${CIRRUS_WORKING_DIR}
     make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang kernel.txz
     if [ $? -ne 0 ]; then exit $?; fi
 }
 
-kernelpkg() {
+basepkg() {
     cd ${CIRRUS_WORKING_DIR}
     make -C release MK_LIB32=no NOSRC=true NOPORTS=true KERNCONF=RAVYN COMPILER_TYPE=clang base.txz
     if [ $? -ne 0 ]; then exit $?; fi
