@@ -27,8 +27,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)mount.h	8.21 (Berkeley) 5/20/95
  */
 
 #ifndef _SYS_MOUNT_H_
@@ -52,7 +50,12 @@
 
 typedef struct fsid { int32_t val[2]; } fsid_t;	/* filesystem id type */
 
-#define fsidcmp(a, b) memcmp((a), (b), sizeof(fsid_t))
+/* Returns non-zero if fsids are different. */
+static inline int
+fsidcmp(const fsid_t *a, const fsid_t *b)
+{
+	return (a->val[0] != b->val[0] || a->val[1] != b->val[1]);
+}
 
 /*
  * File identifier.

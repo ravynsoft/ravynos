@@ -28,7 +28,6 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/cdefs.h>
 #include <sys/param.h>
 #include <sys/systm.h>
 #include <sys/malloc.h>
@@ -129,7 +128,6 @@ device_tag_init(struct dmar_ctx *ctx, device_t dev)
 
 	domain = CTX2DOM(ctx);
 	maxaddr = MIN(domain->iodom.end, BUS_SPACE_MAXADDR);
-	ctx->context.tag->common.ref_count = 1; /* Prevent free */
 	ctx->context.tag->common.impl = &bus_dma_iommu_impl;
 	ctx->context.tag->common.boundary = 0;
 	ctx->context.tag->common.lowaddr = maxaddr;
@@ -238,6 +236,9 @@ domain_init_rmrr(struct dmar_domain *domain, device_t dev, int bus,
 	iommu_gaddr_t start, end;
 	vm_pindex_t size, i;
 	int error, error1;
+
+	if (!dmar_rmrr_enable)
+		return (0);
 
 	error = 0;
 	TAILQ_INIT(&rmrr_entries);

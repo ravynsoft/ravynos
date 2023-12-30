@@ -5278,6 +5278,9 @@ bbr_stopall(struct tcpcb *tp)
 
 	bbr = (struct tcp_bbr *)tp->t_fb_ptr;
 	bbr->rc_all_timers_stopped = 1;
+
+	tcp_hpts_remove(tp);
+
 	return (0);
 }
 
@@ -6842,7 +6845,7 @@ bbr_update_rtt(struct tcpcb *tp, struct tcp_bbr *bbr,
 	 * Ok its a SACK block that we retransmitted. or a windows
 	 * machine without timestamps. We can tell nothing from the
 	 * time-stamp since its not there or the time the peer last
-	 * recieved a segment that moved forward its cum-ack point.
+	 * received a segment that moved forward its cum-ack point.
 	 *
 	 * Lets look at the last retransmit and see what we can tell
 	 * (with BBR for space we only keep 2 note we have to keep
@@ -9925,6 +9928,8 @@ bbr_init(struct tcpcb *tp, void **ptr)
 	struct inpcb *inp = tptoinpcb(tp);
 	struct tcp_bbr *bbr = NULL;
 	uint32_t cts;
+
+	tcp_hpts_init(tp);
 
 	*ptr = uma_zalloc(bbr_pcb_zone, (M_NOWAIT | M_ZERO));
 	if (*ptr == NULL) {

@@ -31,8 +31,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *      @(#)ip_mroute.c 8.2 (Berkeley) 11/15/93
  */
 
 /*
@@ -1252,22 +1250,17 @@ del_mfc(struct mfcctl2 *mfccp)
 
 	MRW_WLOCK();
 
-	rt = mfc_find(&origin, &mcastgrp);
+	LIST_FOREACH(rt, &V_mfchashtbl[MFCHASH(origin, mcastgrp)], mfc_hash) {
+		if (in_hosteq(rt->mfc_origin, origin) &&
+		    in_hosteq(rt->mfc_mcastgrp, mcastgrp))
+			break;
+	}
 	if (rt == NULL) {
 		MRW_WUNLOCK();
 		return EADDRNOTAVAIL;
 	}
 
-	/*
-	 * free the bw_meter entries
-	 */
-	free_bw_list(rt->mfc_bw_meter_leq);
-	rt->mfc_bw_meter_leq = NULL;
-	free_bw_list(rt->mfc_bw_meter_geq);
-	rt->mfc_bw_meter_geq = NULL;
-
-	LIST_REMOVE(rt, mfc_hash);
-	free(rt, M_MRTABLE);
+	expire_mfc(rt);
 
 	MRW_WUNLOCK();
 

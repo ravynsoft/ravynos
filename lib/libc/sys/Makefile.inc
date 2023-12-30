@@ -1,4 +1,3 @@
-#	@(#)Makefile.inc	8.3 (Berkeley) 10/24/94
 
 # sys sources
 .PATH: ${LIBC_SRCTOP}/${LIBC_ARCH}/sys ${LIBC_SRCTOP}/sys
@@ -18,7 +17,6 @@
 #
 NOASM=	exit.o \
 	getlogin.o \
-	sstk.o \
 	yield.o
 PSEUDO=	_exit.o \
 	_getlogin.o
@@ -100,10 +98,8 @@ SRCS+=${MDASM}
 # not declared for no generation of default code (NOASM).  Add each
 # syscall that satisfies these conditions to the ASM list.
 .for _asm in ${MIASM}
-.if (${MDASM:R:M${_asm:R}} == "")
-.if (${NOASM:R:M${_asm:R}} == "")
+.if !${MDASM:R:M${_asm:R}} && !${NOASM:R:M${_asm:R}}
 ASM+=$(_asm)
-.endif
 .endif
 .endfor
 

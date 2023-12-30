@@ -32,8 +32,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)in_pcb.h	8.1 (Berkeley) 6/10/93
  */
 
 #ifndef _NETINET_IN_PCB_H_
@@ -672,7 +670,6 @@ int	in_pcbconnect(struct inpcb *, struct sockaddr_in *, struct ucred *,
 	    bool);
 int	in_pcbconnect_setup(struct inpcb *, struct sockaddr_in *, in_addr_t *,
 	    u_short *, in_addr_t *, u_short *, struct ucred *);
-void	in_pcbdetach(struct inpcb *);
 void	in_pcbdisconnect(struct inpcb *);
 void	in_pcbdrop(struct inpcb *);
 void	in_pcbfree(struct inpcb *);
@@ -723,10 +720,8 @@ struct inpcb_iterator {
 struct inpcb *inp_next(struct inpcb_iterator *);
 void	in_losing(struct inpcb *);
 void	in_pcbsetsolabel(struct socket *so);
-int	in_getpeeraddr(struct socket *so, struct sockaddr **nam);
-int	in_getsockaddr(struct socket *so, struct sockaddr **nam);
-struct sockaddr *
-	in_sockaddr(in_port_t port, struct in_addr *addr);
+int	in_getpeeraddr(struct socket *, struct sockaddr *sa);
+int	in_getsockaddr(struct socket *, struct sockaddr *sa);
 void	in_pcbsosetlabel(struct socket *so);
 #ifdef RATELIMIT
 int

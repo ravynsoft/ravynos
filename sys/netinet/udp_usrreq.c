@@ -34,8 +34,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)udp_usrreq.c	8.6 (Berkeley) 5/23/95
  */
 
 #include <sys/cdefs.h>
@@ -1643,7 +1641,6 @@ udp_detach(struct socket *so)
 	KASSERT(inp->inp_faddr.s_addr == INADDR_ANY,
 	    ("udp_detach: not disconnected"));
 	INP_WLOCK(inp);
-	in_pcbdetach(inp);
 	in_pcbfree(inp);
 }
 

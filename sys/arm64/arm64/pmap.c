@@ -48,8 +48,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	from:	@(#)pmap.c	7.7 (Berkeley)	5/12/91
  */
 /*-
  * Copyright (c) 2003 Networks Associates Technology, Inc.
@@ -7864,14 +7862,11 @@ pmap_pte_bti(pmap_t pmap, vm_offset_t va __diagused)
 }
 
 #if defined(KASAN)
-static vm_paddr_t	pmap_san_early_kernstart;
 static pd_entry_t	*pmap_san_early_l2;
 
 void __nosanitizeaddress
 pmap_san_bootstrap(struct arm64_bootparams *abp)
 {
-
-	pmap_san_early_kernstart = pmap_early_vtophys(KERNBASE);
 	kasan_init_early(abp->kern_stack, KSTACK_PAGES * PAGE_SIZE);
 }
 

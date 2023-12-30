@@ -65,8 +65,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)udp_usrreq.c	8.6 (Berkeley) 5/23/95
  */
 
 #include <sys/cdefs.h>
@@ -1203,7 +1201,6 @@ udp6_detach(struct socket *so)
 	KASSERT(inp != NULL, ("udp6_detach: inp == NULL"));
 
 	INP_WLOCK(inp);
-	in_pcbdetach(inp);
 	in_pcbfree(inp);
 }
 

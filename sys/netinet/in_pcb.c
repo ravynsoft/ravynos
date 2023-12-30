@@ -34,8 +34,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)in_pcb.c	8.4 (Berkeley) 5/24/95
  */
 
 #include <sys/cdefs.h>
@@ -1406,26 +1404,6 @@ in_pcbdisconnect(struct inpcb *inp)
 #endif /* INET */
 
 /*
- * in_pcbdetach() is responsibe for disassociating a socket from an inpcb.
- * For most protocols, this will be invoked immediately prior to calling
- * in_pcbfree().  However, with TCP the inpcb may significantly outlive the
- * socket, in which case in_pcbfree() is deferred.
- */
-void
-in_pcbdetach(struct inpcb *inp)
-{
-
-	KASSERT(inp->inp_socket != NULL, ("%s: inp_socket == NULL", __func__));
-
-#ifdef RATELIMIT
-	if (inp->inp_snd_tag != NULL)
-		in_pcbdetach_txrtlmt(inp);
-#endif
-	inp->inp_socket->so_pcb = NULL;
-	inp->inp_socket = NULL;
-}
-
-/*
  * inpcb hash lookups are protected by SMR section.
  *
  * Once desired pcb has been found, switching from SMR section to a pcb
@@ -1735,19 +1713,30 @@ in_pcbfree(struct inpcb *inp)
 #endif
 
 	INP_WLOCK_ASSERT(inp);
-	KASSERT(inp->inp_socket == NULL, ("%s: inp_socket != NULL", __func__));
+	KASSERT(inp->inp_socket != NULL, ("%s: inp_socket == NULL", __func__));
 	KASSERT((inp->inp_flags & INP_FREED) == 0,
 	    ("%s: called twice for pcb %p", __func__, inp));
 
-	inp->inp_flags |= INP_FREED;
+	/*
+	 * in_pcblookup_local() and in6_pcblookup_local() may return an inpcb
+	 * from the hash without acquiring inpcb lock, they rely on the hash
+	 * lock, thus in_pcbremhash() should be the first action.
+	 */
+	if (inp->inp_flags & INP_INHASHLIST)
+		in_pcbremhash(inp);
 	INP_INFO_WLOCK(pcbinfo);
 	inp->inp_gencnt = ++pcbinfo->ipi_gencnt;
 	pcbinfo->ipi_count--;
 	CK_LIST_REMOVE(inp, inp_list);
 	INP_INFO_WUNLOCK(pcbinfo);
 
-	if (inp->inp_flags & INP_INHASHLIST)
-		in_pcbremhash(inp);
+#ifdef RATELIMIT
+	if (inp->inp_snd_tag != NULL)
+		in_pcbdetach_txrtlmt(inp);
+#endif
+	inp->inp_flags |= INP_FREED;
+	inp->inp_socket->so_pcb = NULL;
+	inp->inp_socket = NULL;
 
 	RO_INVALIDATE_CACHE(&inp->inp_route);
 #ifdef MAC
@@ -1760,12 +1749,16 @@ in_pcbfree(struct inpcb *inp)
 #ifdef INET
 	if (inp->inp_options)
 		(void)m_free(inp->inp_options);
+	DEBUG_POISON_POINTER(inp->inp_options);
 	imo = inp->inp_moptions;
+	DEBUG_POISON_POINTER(inp->inp_moptions);
 #endif
 #ifdef INET6
 	if (inp->inp_vflag & INP_IPV6PROTO) {
 		ip6_freepcbopts(inp->in6p_outputopts);
+		DEBUG_POISON_POINTER(inp->in6p_outputopts);
 		im6o = inp->in6p_moptions;
+		DEBUG_POISON_POINTER(inp->in6p_moptions);
 	} else
 		im6o = NULL;
 #endif
@@ -1826,57 +1819,40 @@ in_pcbdrop(struct inpcb *inp)
 /*
  * Common routines to return the socket addresses associated with inpcbs.
  */
-struct sockaddr *
-in_sockaddr(in_port_t port, struct in_addr *addr_p)
-{
-	struct sockaddr_in *sin;
-
-	sin = malloc(sizeof *sin, M_SONAME,
-		M_WAITOK | M_ZERO);
-	sin->sin_family = AF_INET;
-	sin->sin_len = sizeof(*sin);
-	sin->sin_addr = *addr_p;
-	sin->sin_port = port;
-
-	return (struct sockaddr *)sin;
-}
-
 int
-in_getsockaddr(struct socket *so, struct sockaddr **nam)
+in_getsockaddr(struct socket *so, struct sockaddr *sa)
 {
 	struct inpcb *inp;
-	struct in_addr addr;
-	in_port_t port;
 
 	inp = sotoinpcb(so);
 	KASSERT(inp != NULL, ("in_getsockaddr: inp == NULL"));
 
-	INP_RLOCK(inp);
-	port = inp->inp_lport;
-	addr = inp->inp_laddr;
-	INP_RUNLOCK(inp);
+	*(struct sockaddr_in *)sa = (struct sockaddr_in ){
+		.sin_len = sizeof(struct sockaddr_in),
+		.sin_family = AF_INET,
+		.sin_port = inp->inp_lport,
+		.sin_addr = inp->inp_laddr,
+	};
 
-	*nam = in_sockaddr(port, &addr);
-	return 0;
+	return (0);
 }
 
 int
-in_getpeeraddr(struct socket *so, struct sockaddr **nam)
+in_getpeeraddr(struct socket *so, struct sockaddr *sa)
 {
 	struct inpcb *inp;
-	struct in_addr addr;
-	in_port_t port;
 
 	inp = sotoinpcb(so);
 	KASSERT(inp != NULL, ("in_getpeeraddr: inp == NULL"));
 
-	INP_RLOCK(inp);
-	port = inp->inp_fport;
-	addr = inp->inp_faddr;
-	INP_RUNLOCK(inp);
+	*(struct sockaddr_in *)sa = (struct sockaddr_in ){
+		.sin_len = sizeof(struct sockaddr_in),
+		.sin_family = AF_INET,
+		.sin_port = inp->inp_fport,
+		.sin_addr = inp->inp_faddr,
+	};
 
-	*nam = in_sockaddr(port, &addr);
-	return 0;
+	return (0);
 }
 
 static bool
@@ -3003,7 +2979,11 @@ sysctl_setsockopt(SYSCTL_HANDLER_ARGS, struct inpcbinfo *pcbinfo,
 			so = inp->inp_socket;
 			KASSERT(so != NULL, ("inp_socket == NULL"));
 			soref(so);
-			error = (*ctloutput_set)(inp, &sopt);
+			if (params->sop_level == SOL_SOCKET) {
+				INP_WUNLOCK(inp);
+				error = sosetopt(so, &sopt);
+			} else
+				error = (*ctloutput_set)(inp, &sopt);
 			sorele(so);
 			break;
 		}

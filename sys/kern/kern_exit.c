@@ -32,8 +32,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)kern_exit.c	8.7 (Berkeley) 2/12/94
  */
 
 #include <sys/cdefs.h>
@@ -997,7 +995,6 @@ proc_reap(struct thread *td, struct proc *p, int *status, int options)
 	proc_id_clear(PROC_ID_PID, p->p_pid);
 
 	PROC_LOCK(p);
-	knlist_delete(p->p_klist, td, 1);
 	knlist_detach(p->p_klist);
 	p->p_klist = NULL;
 	PROC_UNLOCK(p);

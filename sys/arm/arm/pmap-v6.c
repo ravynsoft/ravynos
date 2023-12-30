@@ -36,8 +36,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	from:	@(#)pmap.c	7.7 (Berkeley)	5/12/91
  */
 /*-
  * Copyright (c) 2003 Networks Associates Technology, Inc.
@@ -6483,7 +6481,7 @@ pmap_fault(pmap_t pmap, vm_offset_t far, uint32_t fsr, int idx, bool usermode)
 	}
 #endif
 	/*
-	 * Accesss bits for page and section. Note that the entry
+	 * Access bits for page and section. Note that the entry
 	 * is not in TLB yet, so TLB flush is not necessary.
 	 *
 	 * QQQ: This is hardware emulation, we do not call userret()

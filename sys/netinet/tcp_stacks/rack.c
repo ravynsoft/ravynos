@@ -8213,8 +8213,12 @@ static int
 rack_stopall(struct tcpcb *tp)
 {
 	struct tcp_rack *rack;
+
 	rack = (struct tcp_rack *)tp->t_fb_ptr;
 	rack->t_timers_stopped = 1;
+
+	tcp_hpts_remove(tp);
+
 	return (0);
 }
 
@@ -9141,7 +9145,7 @@ rack_update_rtt(struct tcpcb *tp, struct tcp_rack *rack,
 		 * Ok its a SACK block that we retransmitted. or a windows
 		 * machine without timestamps. We can tell nothing from the
 		 * time-stamp since its not there or the time the peer last
-		 * recieved a segment that moved forward its cum-ack point.
+		 * received a segment that moved forward its cum-ack point.
 		 */
 ts_not_found:
 		i = rsm->r_rtr_cnt - 1;
@@ -14973,6 +14977,8 @@ rack_init(struct tcpcb *tp, void **ptr)
 	uint32_t iwin, snt, us_cts;
 	int err, no_query;
 
+	tcp_hpts_init(tp);
+
 	/*
 	 * First are we the initial or are we a switched stack?
 	 * If we are initing via tcp_newtcppcb the ptr passed
@@ -18449,7 +18455,7 @@ rack_fo_base_copym(struct mbuf *the_m, uint32_t the_off, int32_t *plen,
 		n->m_len = mlen;
 		soff += mlen;
 		len_cp += n->m_len;
-		if (m->m_flags & (M_EXT|M_EXTPG)) {
+		if (m->m_flags & (M_EXT | M_EXTPG)) {
 			n->m_data = m->m_data + off;
 			mb_dupcl(n, m);
 		} else {

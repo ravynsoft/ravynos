@@ -1,5 +1,3 @@
-#	From: @(#)bsd.prog.mk	5.26 (Berkeley) 6/25/91
-#
 # The include file <bsd.kmod.mk> handles building and installing loadable
 # kernel modules.
 #
@@ -361,10 +359,11 @@ afterinstall: _kldxref
 .ORDER: realinstall _kldxref
 .ORDER: _installlinks _kldxref
 _kldxref: .PHONY
-	@if type kldxref >/dev/null 2>&1; then \
-		${ECHO} ${KLDXREF_CMD} ${DESTDIR}${KMODDIR}; \
-		${KLDXREF_CMD} ${DESTDIR}${KMODDIR}; \
-	fi
+	${KLDXREF_CMD} ${DESTDIR}${KMODDIR}
+.if defined(NO_ROOT) && defined(METALOG)
+	echo ".${DISTBASE}${KMODDIR}/linker.hints type=file mode=0644 uname=root gname=wheel" | \
+	    cat -l >> ${METALOG}
+.endif
 .endif
 .endif # !target(realinstall)
 
@@ -525,13 +524,13 @@ assym.inc: ${SYSDIR}/kern/genassym.sh
 	sh ${SYSDIR}/kern/genassym.sh genassym.o > ${.TARGET}
 genassym.o: ${SYSDIR}/${MACHINE}/${MACHINE}/genassym.c offset.inc
 genassym.o: ${SRCS:Mopt_*.h}
-	${CC} -c ${CFLAGS:N-flto:N-fno-common} -fcommon \
+	${CC} -c ${CFLAGS:N-flto*:N-fno-common} -fcommon \
 	    ${SYSDIR}/${MACHINE}/${MACHINE}/genassym.c
 offset.inc: ${SYSDIR}/kern/genoffset.sh genoffset.o
 	sh ${SYSDIR}/kern/genoffset.sh genoffset.o > ${.TARGET}
 genoffset.o: ${SYSDIR}/kern/genoffset.c
 genoffset.o: ${SRCS:Mopt_*.h}
-	${CC} -c ${CFLAGS:N-flto:N-fno-common} -fcommon \
+	${CC} -c ${CFLAGS:N-flto*:N-fno-common} -fcommon \
 	    ${SYSDIR}/kern/genoffset.c
 
 CLEANDEPENDFILES+=	${_ILINKS}

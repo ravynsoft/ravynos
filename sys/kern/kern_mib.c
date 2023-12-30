@@ -33,8 +33,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)kern_sysctl.c	8.4 (Berkeley) 4/14/94
  */
 
 #include <sys/cdefs.h>
@@ -755,6 +753,10 @@ sysctl_kern_pid_max(SYSCTL_HANDLER_ARGS)
 SYSCTL_PROC(_kern, OID_AUTO, pid_max, CTLTYPE_INT |
     CTLFLAG_RWTUN | CTLFLAG_NOFETCH | CTLFLAG_MPSAFE,
     0, 0, sysctl_kern_pid_max, "I", "Maximum allowed pid");
+
+SYSCTL_INT(_kern, OID_AUTO, pid_max_limit, CTLFLAG_RD,
+    SYSCTL_NULL_INT_PTR, PID_MAX,
+    "Maximum allowed pid (kern.pid_max) top limit");
 
 #include <sys/bio.h>
 #include <sys/buf.h>

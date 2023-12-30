@@ -32,8 +32,6 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- *	@(#)kern_sig.c	8.7 (Berkeley) 4/18/94
  */
 
 #include <sys/cdefs.h>
@@ -4298,9 +4296,7 @@ filt_sigattach(struct knote *kn)
 static void
 filt_sigdetach(struct knote *kn)
 {
-	struct proc *p = kn->kn_ptr.p_proc;
-
-	knlist_remove(p->p_klist, kn, 0);
+	knlist_remove(kn->kn_knlist, kn, 0);
 }
 
 /*

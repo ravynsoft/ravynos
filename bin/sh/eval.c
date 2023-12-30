@@ -30,12 +30,6 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-#if 0
-static char sccsid[] = "@(#)eval.c	8.9 (Berkeley) 6/8/95";
-#endif
-#endif /* not lint */
-#include <sys/cdefs.h>
 #include <paths.h>
 #include <signal.h>
 #include <stdlib.h>
@@ -905,7 +899,7 @@ evalcommand(union node *cmd, int flags, struct backcmd *backcmd)
 				 * so we just delete the hash before and after
 				 * the command runs. Partly deleting like
 				 * changepatch() does doesn't seem worth the
-				 * bookinging effort, since most such runs add
+				 * booking effort, since most such runs add
 				 * directories in front of the new PATH.
 				 */
 				clearcmdentry();
