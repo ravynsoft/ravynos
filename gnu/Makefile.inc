@@ -15,7 +15,11 @@ CONFIGURE_ARGS+=        --sbindir=${SBINDIR}
 CONFIGURE_ARGS+=        --sysconfdir=${SYSCONFDIR}
 CONFIGURE_ARGS+=        --localstatedir=${LOCALSTATEDIR}
 
+.if exists(${DESTDIR}/legacy/bin/gmake)
+GMAKE=          ${DESTDIR}/legacy/bin/gmake
+.else
 GMAKE=          gmake
+.endif
 
 gnu_configure:
 	${.CURDIR}/configure ${CONFIGURE_ARGS}
