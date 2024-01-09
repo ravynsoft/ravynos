@@ -376,9 +376,9 @@ void __iomem *pci_iomap_range(struct pci_dev *dev,
 			      int bar,
 			      unsigned long offset,
 			      unsigned long maxlen);
-struct resource *_lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size);
-struct pcim_iomap_devres *lkpi_pcim_iomap_devres_find(struct pci_dev *pdev);
-void lkpi_pcim_iomap_table_release(struct device *, void *);
+static struct resource *_lkpi_pci_iomap(struct pci_dev *pdev, int bar, int mmio_size);
+static struct pcim_iomap_devres *lkpi_pcim_iomap_devres_find(struct pci_dev *pdev);
+static void lkpi_pcim_iomap_table_release(struct device *, void *);
 struct pci_dev *lkpi_pci_get_device(uint16_t, uint16_t, struct pci_dev *);
 struct msi_desc *lkpi_pci_msi_desc_alloc(int);
 struct device *lkpi_pci_find_irq_dev(unsigned int irq);
