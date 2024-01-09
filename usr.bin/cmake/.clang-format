@@ -1,0 +1,51 @@
+---
+# This configuration requires clang-format version 15 exactly.
+BasedOnStyle: Mozilla
+AlignOperands: false
+AllowShortFunctionsOnASingleLine: InlineOnly
+AlwaysBreakAfterDefinitionReturnType: None
+AlwaysBreakAfterReturnType: None
+BinPackArguments: true
+BinPackParameters: true
+BraceWrapping:
+  AfterClass:      true
+  AfterEnum:       true
+  AfterFunction:   true
+  AfterStruct:     true
+  AfterUnion:      true
+BreakBeforeBraces: Custom
+ColumnLimit: 79
+IndentPPDirectives: AfterHash
+SortUsingDeclarations: false
+SpaceAfterTemplateKeyword: true
+IncludeBlocks: Regroup
+IncludeCategories:
+  - Regex:           '^[<"]cmSTL\.hxx'
+    Priority:        -2
+  - Regex:           '^[<"]cmConfigure\.h'
+    Priority:        -1
+  - Regex:           '^<queue>'
+    Priority:        1
+  - Regex:           '^(<|")cm(ext)?/'
+    Priority:        2
+  - Regex:           '^(<|")windows\.h'
+    Priority:        3
+  - Regex:           '^<sys/'
+    Priority:        5
+  - Regex:           '^(<|")Qt?[A-Z]'
+    Priority:        6
+  - Regex:           '^<cmtp/'
+    Priority:        7
+  - Regex:           '^(<|")cmsys/'
+    Priority:        8
+  - Regex:           '^(<|")cm_'
+    Priority:        9
+  - Regex:           '^(<|")cm[A-Z][^.]+\.h'
+    Priority:        10
+  - Regex:           '^<[^.]+\.h'
+    Priority:        4
+  - Regex:           '^<'
+    Priority:        1
+  - Regex:           '.*'
+    Priority:        11
+...
