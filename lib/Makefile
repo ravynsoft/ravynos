@@ -117,6 +117,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libutil \
 	${_libvgl} \
 	libwrap \
+        libxml2 \
 	libxo \
 	libxpc \
 	liby \

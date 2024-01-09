@@ -1,0 +1,5 @@
+<x xmlns:xinclude="http://www.w3.org/2001/XInclude">
+   <p>Something</p>
+   <d><xinclude:include xpointer="xpointer(//p)"/></d>
+   <xinclude:include xpointer="xpointer(//d)"/>
+</x>

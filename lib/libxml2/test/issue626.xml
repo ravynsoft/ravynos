@@ -1,0 +1,13 @@
+<!DOCTYPE doc [
+<!ATTLIST e a1 CDATA #IMPLIED>
+<!ATTLIST e a2 CDATA #IMPLIED>
+<!ATTLIST e a3 CDATA #IMPLIED>
+<!ATTLIST e a4 CDATA #IMPLIED>
+<!ATTLIST e a5 CDATA #IMPLIED>
+<!ATTLIST e a6 CDATA #IMPLIED>
+]>
+<doc>
+    <!-- This tests whether xmlCleanSpecialAttr works. The attribute values
+         must not be normalized. -->
+    <e a1=" x  x " a2=" x  x " a3=" x  x " a4=" x  x " a5=" x  x " a6=" x  x "/>
+</doc>

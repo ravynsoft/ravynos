@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<xs:schema id="foo" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="inner">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="a" type="xs:double" minOccurs="1" />
+        <xs:element name="b" type="xs:double" minOccurs="1" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="outer">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="inner" minOccurs="0" maxOccurs="unbounded" />
+        <xs:element name="c" type="xs:double" minOccurs="1" />
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>

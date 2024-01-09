@@ -1,0 +1,104 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>globals: interface for all global variables of the library</title>
+<meta name="generator" content="Libxml2 devhelp stylesheet">
+<link rel="start" href="index.html" title="libxml2 Reference Manual">
+<link rel="up" href="general.html" title="API">
+<link rel="stylesheet" href="style.css" type="text/css">
+<link rel="chapter" href="general.html" title="API">
+</head>
+<body bgcolor="white" text="black" link="#0000FF" vlink="#840084" alink="#0000FF">
+<table class="navigation" width="100%" summary="Navigation header" cellpadding="2" cellspacing="2"><tr valign="middle">
+<td><a accesskey="p" href="libxml2-entities.html"><img src="left.png" width="24" height="24" border="0" alt="Prev"></a></td>
+<td><a accesskey="u" href="general.html"><img src="up.png" width="24" height="24" border="0" alt="Up"></a></td>
+<td><a accesskey="h" href="index.html"><img src="home.png" width="24" height="24" border="0" alt="Home"></a></td>
+<td><a accesskey="n" href="libxml2-hash.html"><img src="right.png" width="24" height="24" border="0" alt="Next"></a></td>
+<th width="100%" align="center">libxml2 Reference Manual</th>
+</tr></table>
+<h2><span class="refentrytitle">globals</span></h2>
+<p>globals - interface for all global variables of the library</p>
+<p>Deprecated, don't use </p>
+<p>Author(s): </p>
+<div class="refsynopsisdiv">
+<h2>Synopsis</h2>
+<pre class="synopsis">typedef struct _xmlGlobalState <a href="#xmlGlobalState">xmlGlobalState</a>;
+typedef <a href="libxml2-globals.html#xmlGlobalState">xmlGlobalState</a> * <a href="#xmlGlobalStatePtr">xmlGlobalStatePtr</a>;
+void	<a href="#xmlCleanupGlobals">xmlCleanupGlobals</a>		(void);
+<a href="libxml2-globals.html#xmlGlobalStatePtr">xmlGlobalStatePtr</a>	<a href="#xmlGetGlobalState">xmlGetGlobalState</a>	(void);
+void	<a href="#xmlInitGlobals">xmlInitGlobals</a>			(void);
+void	<a href="#xmlInitializeGlobalState">xmlInitializeGlobalState</a>	(<a href="libxml2-globals.html#xmlGlobalStatePtr">xmlGlobalStatePtr</a> gs);
+</pre>
+</div>
+<div class="refsect1" lang="en"><h2>Description</h2></div>
+<div class="refsect1" lang="en">
+<h2>Details</h2>
+<div class="refsect2" lang="en">
+<div class="refsect2" lang="en">
+<h3>
+<a name="xmlGlobalState">Structure </a>xmlGlobalState</h3>
+<pre class="programlisting">struct _xmlGlobalState {
+The content of this structure is not made public by the API.
+} xmlGlobalState;
+</pre>
+<p></p>
+</div>
+<hr>
+<div class="refsect2" lang="en">
+<h3>
+<a name="xmlGlobalStatePtr">Typedef </a>xmlGlobalStatePtr</h3>
+<pre class="programlisting"><a href="libxml2-globals.html#xmlGlobalState">xmlGlobalState</a> * xmlGlobalStatePtr;
+</pre>
+<p></p>
+</div>
+<hr>
+<div class="refsect2" lang="en">
+<h3>
+<a name="xmlCleanupGlobals"></a>xmlCleanupGlobals ()</h3>
+<pre class="programlisting">void	xmlCleanupGlobals		(void)<br>
+</pre>
+<p>DEPRECATED: This function is a no-op. Call <a href="libxml2-parser.html#xmlCleanupParser">xmlCleanupParser</a> to free global state but see the warnings there. <a href="libxml2-parser.html#xmlCleanupParser">xmlCleanupParser</a> should be only called once at program exit. In most cases, you don't have call cleanup functions at all.</p>
+</div>
+<hr>
+<div class="refsect2" lang="en">
+<h3>
+<a name="xmlGetGlobalState"></a>xmlGetGlobalState ()</h3>
+<pre class="programlisting"><a href="libxml2-globals.html#xmlGlobalStatePtr">xmlGlobalStatePtr</a>	xmlGetGlobalState	(void)<br>
+</pre>
+<p>DEPRECATED</p>
+<div class="variablelist"><table border="0">
+<col align="left">
+<tbody><tr>
+<td><span class="term"><i><tt>Returns</tt></i>:</span></td>
+<td>NULL.</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+<div class="refsect2" lang="en">
+<h3>
+<a name="xmlInitGlobals"></a>xmlInitGlobals ()</h3>
+<pre class="programlisting">void	xmlInitGlobals			(void)<br>
+</pre>
+<p>DEPRECATED: Alias for <a href="libxml2-parser.html#xmlInitParser">xmlInitParser</a>.</p>
+</div>
+<hr>
+<div class="refsect2" lang="en">
+<h3>
+<a name="xmlInitializeGlobalState"></a>xmlInitializeGlobalState ()</h3>
+<pre class="programlisting">void	xmlInitializeGlobalState	(<a href="libxml2-globals.html#xmlGlobalStatePtr">xmlGlobalStatePtr</a> gs)<br>
+</pre>
+<p>DEPRECATED: No-op.</p>
+<div class="variablelist"><table border="0">
+<col align="left">
+<tbody><tr>
+<td><span class="term"><i><tt>gs</tt></i>:</span></td>
+<td>a pointer to a newly allocated global state</td>
+</tr></tbody>
+</table></div>
+</div>
+<hr>
+</div>
+</div>
+</body>
+</html>
