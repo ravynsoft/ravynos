@@ -1,0 +1,136 @@
+%prep
+
+  if zmodload zsh/datetime 2>/dev/null; then
+    setopt multibyte
+    unset LC_ALL
+    LC_TIME=C
+    TZ=UTC+0
+    # It's not clear this skip_extensions is correct, but the
+    # format in question is causing problems on Solaris.
+    # We'll revist this after the release.
+    [[ "$(strftime %^_10B 0 2>/dev/null)" = "   JANUARY" ]] || skip_extensions=1
+    [[ "$(LC_TIME=ja_JP.UTF-8 strftime %OS 1 2>/dev/null)" = 一 ]] || skip_japanese=1
+  else
+    ZTST_unimplemented="can't load the zsh/datetime module for testing"
+  fi
+
+%test
+
+  strftime '' 0
+  strftime %y 0
+  strftime %Y 1000000000
+  strftime %x 1200000000
+  strftime %X 1200000001
+0:basic format specifiers
+>
+>70
+>2001
+>01/10/08
+>21:20:01
+
+  strftime %-m_%f_%K_%L 1181100000
+  strftime %6. 0
+0:zsh extensions
+>6_6_3_3
+>000000
+
+  if [[ $skip_extensions = 1 ]]; then
+    ZTST_skip="strftime extensions not supported"
+  elif [[ $skip_japanese = 1 ]]; then
+    ZTST_skip="Japanese UTF-8 locale not supported"
+  else
+    (
+    LC_TIME=ja_JP.UTF-8
+    strftime %Ey 1000000000
+    strftime %Oy 1000000000
+    strftime %Ex 1000000000
+    strftime %OS 1000000000
+    strftime %03Ey 650000000
+    )
+  fi
+0:alternate format extensions
+>13
+>一
+>平成13年09月09日
+>四十
+>002
+
+  if [[ $skip_extensions = 1 ]]; then
+    ZTST_skip="strftime extensions not supported"
+  else
+    (
+      strftime '%#A' 0
+      strftime '%^_10B' 0
+      strftime %03Ey 650000000
+      strftime %-Oe 0
+      # width=400 is too wide and should cause an error
+      strftime %400d 0 2> /dev/null || echo OK
+    )
+  fi
+0:various extensions
+>THURSDAY
+>   JANUARY
+>090
+>1
+>OK
+
+  print -r -- ${(V)"$(strftime $'%Y\0%m\0%d' 100000000)"}
+0:Embedded nulls
+>1973^@03^@03
+
+# We assume '%@' is not a valid format on any OSs.
+# The result can be '%@' (Linux), '@' (BSDs) or an error (Cygwin).
+  [[ $(strftime '%@' 0 2> /dev/null) == (%|)@ || $? != 0 ]]
+0:bad format specifier
+
+# This test may fail at 23:59:59.xxx on New Year's Eve :/
+  [[ "$( strftime '%Y' )" == "$( strftime '%Y' "$EPOCHSECONDS" )" ]]
+0:epochtime optional
+
+  strftime '%Y-%m-%d %H:%M:%S.%3.' 1012615322
+  strftime '%Y-%m-%d %H:%M:%S.%3.' 1012615322 0
+  strftime '%Y-%m-%d %H:%M:%S.%3.' 1012615322 2
+  strftime '%Y-%m-%d %H:%M:%S.%3.' 1012615322 $(( 222 * (10 ** 6) ))
+0:optional nanoseconds
+>2002-02-02 02:02:02.000
+>2002-02-02 02:02:02.000
+>2002-02-02 02:02:02.000
+>2002-02-02 02:02:02.222
+
+  strftime '%Y' '' 2> /dev/null
+1:empty epochtime not allowed
+
+  strftime '%Y' 1012615322 '' 2> /dev/null
+1:empty nanoseconds not allowed
+
+  strftime '%N' 1012615322 $(( 10 ** 9 )) 2> /dev/null
+1:too-large nanoseconds not allowed
+
+  strftime '%N' 1012615322 ${(l<64><9>):-} 2> /dev/null
+1:overflowed nanoseconds not allowed
+
+  strftime '%N' 1012615322 -1 2> /dev/null
+1:negative nanoseconds not allowed
+
+  strftime -r '%Y' 2> /dev/null
+1:-r timestring not optional
+
+  # This tests rounding up and the use of repeated %.s
+  strftime '%Y-%m-%d %H:%M:%S.%3..%3.' 1012615322 $(( 999_999 ))
+  # These test the ceiling on rounding up
+  for 1 in %. %1. %3. %6. %9. %12.; do
+    print -rn - "$1 "
+    strftime "%Y-%m-%d %H:%M:%S.$1" 1012615322 $(( 999_999_999 ))
+  done
+0:%. truncation
+>2002-02-02 02:02:02.001.001
+>%. 2002-02-02 02:02:02.999
+>%1. 2002-02-02 02:02:02.9
+>%3. 2002-02-02 02:02:02.999
+>%6. 2002-02-02 02:02:02.999999
+>%9. 2002-02-02 02:02:02.999999999
+>%12. 2002-02-02 02:02:02.999999999
+
+  strftime -n 'one line%n' 2> /dev/null
+0:-n option
+>one line

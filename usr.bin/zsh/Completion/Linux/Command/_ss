@@ -1,0 +1,112 @@
+#compdef ss
+
+local curcontext="$curcontext" suf ret=1
+local -a state line expl pref filt
+local -A opt_args
+local info="-h -V --help --version"
+local sx="state exclude"
+
+_arguments -C -s \
+  "(- *)"{-h,--help}'[show option summary]' \
+  "(- *)"{-V,--version}'[show version information]' \
+  "($info -n --numeric)"{-n,--numeric}"[don't resolve service names]" \
+  "($info -r --resolve)"{-r,--resolve}'[resolve host addresses]' \
+  "($info -a --all -l --listening)"{-a,--all}'[display all sockets]' \
+  "($info -l --listening -a --all)"{-l,--listening}'[display listening sockets]' \
+  "($info -o --options -e --extended)"{-o,--options}'[show timer information]' \
+  "($info -e --extended -o --options)"{-e,--extended}'[show detailed information]' \
+  "($info -m --memory)"{-m,--memory}'[show socket memory usage]' \
+  "($info -p --processes)"{-p,--processes}'[show process using each socket]' \
+  "($info -i --info)"{-i,--info}'[show internal TCP information]' \
+  "($info)--tipcinfo[show internal tipc socket information]" \
+  "($info -s --summary)"{-s,--summary}'[print summary statistics]' \
+  "($info)--tos[show tos and priority information]" \
+  "($info -b --bpf)"{-b,--bpf}'[show bpf filter socket information]' \
+  "($info -E --events)"{-E,--events}'[continually display sockets as they are destroyed]' \
+  "($info -Z --context)"{-Z,--context}'[display process SELinux security contexts]' \
+  "($info -z --contexts)"{-z,--contexts}'[display process and socket SELinux security contexts]' \
+  "($info -N --net)"{-N,--net}'[switch to specified network namespace]:network namespace' \
+  "($info -4 --ipv4 -6 --ipv6)"{-4,--ipv4}'[display only IP version 4 sockets]' \
+  "($info -4 --ipv4 -6 --ipv6)"{-6,--ipv6}'[display only IP version 6 sockets]' \
+  "($info -0 --packet)"{-0,--packet}'[display PACKET sockets]' \
+  "($info -t --tcp)"{-t,--tcp}'[display TCP sockets]' \
+  "($info -S --sctp)"{-S,--sctp}'[display SCTP sockets]' \
+  "($info -u --udp)"{-u,--udp}'[display UDP sockets]' \
+  "($info -d --dccp)"{-d,--dccp}'[display DCCP sockets]' \
+  "($info -w --raw)"{-w,--raw}'[display RAW sockets]' \
+  "($info -x --unix)"{-x,--unix}'[display Unix domain sockets]' \
+  "($info)--tipc[display only TIPC sockets]" \
+  "($info)--xdp[display only XDP sockets]" \
+  "($info)--vsock[display only vsock sockets]" \
+  "($info -f --family)"{-f+,--family=}'[display sockets of specified type]:family:(inet inet6 link unix netlink vsock tipc xdp help)' \
+  "($info -K --kill)"{-K,--kill}'[forcibly close sockets, display what was closed]' \
+  "($info -H --no-header)"{-H,--no-header}'[suppress header line]' \
+  "($info -O --oneline)"{-O,--oneline}"[print socket's data on a single line]" \
+  "($info -A --query --socket)"{-A+,--query=,--socket=}'[specify socket tables to show]: :_values -s , socket\ table all inet tcp udp raw unix packet netlink unix_dgram unix_stream unix_seqpacket packet_raw packet_dgram vsock_stream vsock_dgram tipc' \
+  "($info -D)"{-D+,--diag=}'[dump raw info to file]:file:_files' \
+  "($info -F)"{-F+,--filter=}'[read filter information from a file]:file:_files' \
+  "($info)*: :->filter" && ret=0
+
+if [[ -n $state ]]; then
+  case $words[CURRENT-1] in
+  (d|s)port)
+    _wanted operators expl operator \
+      compadd \< \> \= \>= \<= \== \!= eq ge gt lt le ne && ret=0
+  ;;
+  dst|src)
+    if compset -P unix: || (( $+opt_args[-x] + $+opt_args[--unix] )) || [[ $opt_args[-f] = unix ]]; then
+      _files -g '*(=)' && ret=0
+    elif compset -P nl:; then
+      if compset -P \*:; then
+        _pids && ret=0
+      else
+        _message channel
+      fi
+    elif compset -P link:; then
+      compset -P \*: && _message ifindex || _message protocol
+    else
+      compset -P 'inet(6|):'
+      pref=$?
+      compset -S ':*' || suf="-qS:"
+      if compset -P \*:; then
+        _ports && ret=0
+      elif compset -P \*/; then
+        _wanted netmasks expl netmask compadd $suf {1..31} && ret=0
+      elif (( pref )); then
+        _alternative \
+          "hosts:host:_hosts $suf" \
+          "prefixes:prefix:compadd $suf nl link unix" && ret=0
+      else
+        _hosts $suf && ret=0
+      fi
+    fi
+  ;;
+  state|exclude)
+    _wanted states expl state compadd -M 'm:{a-zA-Z_}={A-Za-z-}' \
+      ESTABLISHED SYN-SENT SYN-RECV FIN-WAIT-1 FIN-WAIT-2 TIME-WAIT \
+      CLOSED CLOSE-WAIT LAST-ACK LISTENING CLOSING \
+      all connected synchronized bucket big && ret=0
+  ;;
+  *)
+    if [[ $words[CURRENT-2] = (d|s)port ]]; then
+      compset -P '*:' || pref=(-P :)
+      _ports $pref
+      return
+    else
+      (( $#line > 1 )) && [[ ${words[CURRENT-1]:Q} != (and|or|\() ]] &&
+          filt=( "($sx)*"{and,or} )
+      _values -w -s ' ' -S ' ' filter $filt \
+        "*state[sockets in specified state]" \
+        "*exclude[sockets not in specified state]" \
+        "($sx)*src[local address/port of socket]" \
+        "($sx)*dst[peer address/port of socket]" \
+        "($sx)*dport[peer port]: :(lt gt ge)" \
+        "($sx)*sport[local port]" \
+        "($sx)*autobound[socket bound to ephemeral port]" \
+        "($sx)*"{not,\(,\)} && ret=0
+    fi
+  ;;
+  esac
+fi
+
+return ret

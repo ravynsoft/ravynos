@@ -1,0 +1,14 @@
+#compdef gsbj gsdj gsdj500 gslj gslp gsnd ps2ascii ghostview mgv pstoedit pstotgif
+
+local expl ext
+
+# ghostscript:
+#  gs gsbj gsdj gsdj500 gslj gslp gsnd ps2ascii
+
+if [[ "$1" == '-z' ]]; then
+  ext='(|.gz|.Z)'
+  shift
+fi
+
+_description files expl 'PostScript or PDF file'
+_files "$@" "$expl[@]" -g "*.(#i)(pdf|ps|eps)$ext(-.)"

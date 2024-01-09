@@ -1,0 +1,93 @@
+#compdef -P zf*
+
+# Completion for zftp builtin and zf* functions.  The functions
+# zfcd_match and zfget_match (also used for old-style completion)
+# need to be installed for remote file and directory completion to work.
+
+# emulate -L zsh
+
+# Don't try any more completion after this.
+_compskip=all
+
+local subcom expl curcontext="${curcontext}"
+
+if [[ $service = zftp ]]; then
+  if [[ $CURRENT -eq 2 ]]; then
+    _wanted commands expl sub-command \
+        compadd open params user login type ascii binary mode put \
+          putat get getat append appendat ls dir local remote mkdir rmdir \
+          session rmsession
+    return
+  fi
+  subcom=$words[2]
+  curcontext="${curcontext/:zftp:/:zftp-${words[2]}:}"
+else
+  subcom=$service
+fi
+
+case $subcom in
+  *(cd|ls|dir))
+    # complete remote directories
+    [[ -z ${functions[zfcd_match]} ]] && autoload -Uz zfcd_match
+    _tags directories && zfcd_match $PREFIX $SUFFIX
+    ;;
+
+  *(get(|at)|gcp|delete|remote))
+    # complete remote files
+    [[ -z ${functions[zfget_match]} ]] && autoload -Uz zfget_match
+    _tags files && zfget_match $PREFIX $SUFFIX
+    ;;
+
+  *(put(|at)|pcp))
+    # complete local files
+    _files
+    ;;
+
+  *(open|anon|params))
+    # complete hosts:  should do cleverer stuff with user names
+    _hosts
+    ;;
+
+  *(goto|mark))
+    # complete bookmarks.  First decide if ncftp mode is go.
+    if [[ $words[2] = -*n* ]]; then
+      if [[ -f ~/.ncftp/bookmarks ]]; then
+        _wanted bookmarks expl bookmark \
+            compadd - $(awk -F, 'NR > 2 { print $1 }' ~/.ncftp/bookmarks)
+      fi
+    else
+      if [[ -f ${ZFTP_BMFILE:=${ZDOTDIR:-$HOME}/.zfbkmarks} ]]; then
+        _wanted bookmarks expl bookmark \
+            compadd - $(awk '{print $1}' $ZFTP_BMFILE)
+      fi
+    fi
+    ;;
+
+  *session)
+    # complete sessions, excluding the current one.
+    _wanted sessions expl 'another FTP session' \
+        compadd - ${$(zftp session):#$ZFTP_SESSION}
+    ;;
+
+  *transfer)
+    # complete arguments like sess1:file1 sess2:file2
+    if [[ $PREFIX = *:* ]]; then
+      # complete file in the given session
+      _tags files || return 1
+      local sess=${PREFIX%%:*} oldsess=$ZFTP_SESSION
+      compset -p $(( $#sess + 1 ))
+      [[ -n $sess ]] && zftp session $sess
+      zfget_match $PREFIX $SUFFIX
+      [[ -n $sess && -n $oldsess ]] && zftp session $oldsess
+    else
+      # note here we can complete the current session
+      _wanted sessions expl 'FTP session' compadd -S : - $(zftp session)
+    fi
+    ;;
+
+  *)
+    # dunno... try ordinary completion after all.
+    _compskip=''
+    return 1
+    ;;
+esac

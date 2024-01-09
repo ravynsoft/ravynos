@@ -1,0 +1,153 @@
+#compdef less -value-,LESS,-default- -value-,LESSCHARSET,-default-
+
+local curcontext="$curcontext" fgbg=foreground ret=1
+local -a state line expl files basic suf
+
+case $service in
+  *LESSCHARSET*)
+    _wanted charsets expl 'character set' compadd ascii iso8859 latin1 latin9 \
+        dos ebcdic IBM-1047 koi8-r next utf-8
+    return
+  ;;
+  *LESS*)
+    compset -q
+    words=( fake "$words[@]" )
+    (( CURRENT++ ))
+  ;;
+  *)
+    files=( '*:file:_files' )
+  ;;
+esac
+
+if compset -P '+[-0-9]#'; then
+  _describe 'less command' '(
+    g:goto\ line
+    F:scroll\ to\ end\ and\ keep\ reading\ file
+    G:go\ to\ end\ of\ file
+    %:go\ to\ position\ in\ file
+    p:go\ to\ position\ in\ file
+  )'
+  return
+fi
+
+_arguments -S -s -A "[-+]*"  \
+  '(-? --help)'{-\?,--help}'[display summary of less commands]' \
+  '(-a --search-skip-screen)'{-a,--search-skip-screen}'[skip current screen in searches]' \
+  '(-A --SEARCH-SKIP-SCREEN)'{-A,--SEARCH-SKIP-SCREEN}"[start searches just after target line]" \
+  '(-b --buffers)'{-b+,--buffers=}'[specify amount of buffer space used for each file]:buffer space (kilobytes)' \
+  '(-B --auto-buffers)'{-B,--auto-buffers}"[don't automatically allocate buffers for pipes]" \
+  '(-C --CLEAR-SCREEN -c --clear-screen)'{-c,--clear-screen}'[repaint screen instead of scrolling]' \
+  '!(-c --clear-screen)'{-C,--CLEAR-SCREEN} \
+  '(-d --dumb)'{-d,--dumb}'[suppress error message if terminal is dumb]' \
+  '*'{-D+,--color=}'[set screen colors]: :->colors' \
+  '(-e -E --quit-at-eof --QUIT-AT-EOF)'{-e,--quit-at-eof}'[exit the second time end-of-file is reached]' \
+  '(-e -E --quit-at-eof --QUIT-AT-EOF)'{-E,--QUIT-AT-EOF}'[exit when end-of-file is reached]' \
+  '(-f --force)'{-f,--force}'[force opening of non-regular files]' \
+  '(-F --quit-if-one-screen)'{-F,--quit-if-one-screen}'[exit if entire file fits on first screen]' \
+  '(-G --HILITE-SEARCH -g --hilite-search)'{-g,--hilite-search}'[highlight only one match for searches]' \
+  '(-g --hilite-search -G --HILITE-SEARCH)'{-G,--HILITE-SEARCH}'[disable highlighting of search matches]' \
+  '(-h --max-back-scroll)'{-h+,--max-back-scroll=}'[specify backward scroll limit]:backward scroll limit (lines)' \
+  '(-I --IGNORE-CASE -i --ignore-case)'{-i,--ignore-case}'[ignore case in searches that lack uppercase]' \
+  '(-i --ignore-case -I --IGNORE-CASE)'{-I,--IGNORE-CASE}'[ignore case in all searches]' \
+  '(-j --jump-target)'{-j+,--jump-target}'[specify screen position of target lines]:position (line)' \
+  '(-J --status-column)'{-J,--status-column}'[display status column on the left]' \
+  \*{-k+,--lesskey-file=}'[use specified lesskey file]:lesskey file:_files' \
+  '(-K --quit-on-intr)'{-K,--quit-on-intr}'[exit less in response to ctrl-c]' \
+  '(-L --no-lessopen)'{-L,--no-lessopen}'[ignore the LESSOPEN environment variable]' \
+  '(-M --LONG-PROMPT -m --long-prompt)'{-m,--long-prompt}'[prompt verbosely]' \
+  '(-m --long-prompt -M --LONG-PROMPT)'{-M,--LONG-PROMPT}'[prompt very verbosely]' \
+  '(-N --LINE-NUMBERS -n --line-numbers)'{-n,--line-numbers}"[don't keep track of line numbers]" \
+  '(-n --line-numbers -N --LINE-NUMBERS)'{-N,--LINE-NUMBERS}'[show line numbers]' \
+  '(* -O --LOG-FILE -o --log-file)'{-o+,--log-file=}'[copy input to file]:file:_files' \
+  '(* -o --log-file -O --LOG-FILE)'{-O+,--LOG-FILE=}'[copy input to file, overwriting if necessary]:file:_files' \
+  '(-p --pattern)'{-p+,--pattern=}'[start at specified pattern]:pattern' \
+  \*{-P+,--prompt=}'[specify prompt format]:prompt:->prompts' \
+  '(-Q --QUIET --SILENT -q --quiet --silent)'{-q,--quiet,--silent}'[never use bell]' \
+  '(-q --quiet --silent -Q --QUIET --SILENT)'{-Q,--QUIET,--SILENT}'[limit use of bell]' \
+  '(-r -R --raw-control-chars --RAW-CONTROL-CHARS)'{-r,--raw-control-chars}'[display raw control characters]' \
+  '(-r -R --raw-control-chars --RAW-CONTROL-CHARS)'{-R,--RAW-CONTROL-CHARS}'[display control chars; keep track of screen effects]' \
+  '(-s --squeeze-blank-lines)'{-s,--squeeze-blank-lines}'[squeeze consecutive blank lines down to one]' \
+  '(-S --chop-long-lines)'{-S,--chop-long-lines}'[truncate long lines instead of folding]' \
+  '(-t --tag)'{-t+,--tag=}'[edit file containing tag]:tag:->tags' \
+  '(-T --tag-file)'{-T+,--tag-file=}'[specify tags file]:tags file:_files' \
+  '(-u --underline-special)'{-u,--underline-special}'[send backspaces and carriage returns to the terminal]' \
+  '(-U --UNDERLINE-SPECIAL)'{-U,--UNDERLINE-SPECIAL}'[treat backspaces, tabs and carriage returns as control characters]' \
+  '(* -)'{-V,--version}'[display version information]' \
+  '(-W --HILITE-UNREAD -w --hilite-unread)'{-w,--hilite-unread}'[highlight first unread line after forward page]' \
+  '(-w --hilite-unread -W --HILITE-UNREAD)'{-W,--HILITE-UNREAD}'[highlight first unread line after forward movement]' \
+  '(-x --tabs)'{-x+,--tabs=}'[set tab stops]:tab stops' \
+  '(-X --no-init)'{-X,--no-init}'[disable use of terminal init string]' \
+  '--no-keypad[disable use of keypad terminal init string]' \
+  '(-y --max-forw-scroll)'{-y,--max-forw-scroll}'[specify forward scroll limit]' \
+  '(-z --window)'{-z+,--window=}'[specify scrolling window size]:lines' \
+  '(-\" --quotes)'{'-\"+',--quotes=}'[change quoting character]:quoting characters' \
+  '(-~ --tilde)'{-~,--tilde}"[don't display tildes after end of file]" \
+  '(-\# --shift)'{'-\#+',--shift=}"[specify amount to move when scrolling horizontally]:number" \
+  '--file-size[automatically determine the size of the input file]' \
+  '--incsearch[search file as each pattern character is typed in]' \
+  '--line-num-width=[set the width of line number field]:width [7]' \
+  '--follow-name[the F command changes file if the input file is renamed]' \
+  '--mouse[enable mouse input]' \
+  '--no-histdups[remove duplicates from command history]' \
+  '--rscroll=[set the character used to mark truncated lines]:character [>]' \
+  '--save-marks[retain marks across invocations of less]' \
+  '--status-col-width=[set the width of the -J status column]:width [2]' \
+  '--use-backslash[subsequent options use backslash as escape char]' \
+  '--use-color[enable colored text]' \
+  '--wheel-lines=[specify lines to move for each click of the mouse wheel]:lines' \
+  "$files[@]" && ret=0
+
+
+if [[ -n "$state" ]]; then
+  case $state in
+    colors)
+      if compset -P 1 \?; then
+        [[ $IPREFIX[-1] != [a-z] ]] || compset -P 1 + || _describe 'color application' '( +:add\ to\ existing\ attribute )'
+        suf=( -S '' )
+        compset -P 1 '([-a-zA-Z]|*.)' && fgbg=background && suf=()
+        basic=( B:blue C:cyan G:green K:black M:magenta R:red W:white Y:yellow )
+        _describe -t colors "$fgbg color" \
+            "( -:default ${(j. .)${(@)basic/:/:light\ }} ${(Lj. .)basic} )" "$suf[@]"  && ret=0
+      else
+        _describe 'text' '(
+          B:binary\ characters
+          C:control\ characters
+          E:errors\ and\ informational\ messages
+          M:mark\ letters\ in\ the\ status\ column
+          N:line\ numbers\ enabled\ via\ the\ -N\ option
+          P:prompts
+          R:the\ rscroll\ character
+          S:search\ results
+          W:the\ highlight\ enabled\ via\ the\ -w\ option
+          d:bold\ text
+          k:blinking\ text
+          s:standout\ text
+          u:underlined\ text
+        )' -S '' && ret=0
+      fi
+    ;;
+    prompts)
+      if compset -p 1; then
+	_message -e prompt
+      else
+	_describe 'prompt' '(
+	  s:short\ prompt
+	  m:medium\ prompt
+	  M:long\ prompt
+	  h:help\ screen\ prompt
+	  \=:\=\ command\ prompt
+	  w:waiting\ prompt
+	)' && ret=0
+      fi
+    ;;
+    tags)
+      if (( $+LESSGLOBALTAGS )); then
+        _global_tags && ret=0
+      else
+        _ctags_tags && ret=0
+      fi
+    ;;
+  esac
+fi
+
+return ret

@@ -1,0 +1,121 @@
+#compdef -K _history-complete-older complete-word \e/ _history-complete-newer complete-word \e,
+#
+# Complete words from the history
+#
+# by Adam Spiers, with help gratefully received from
+# Sven Wischnowsky and Bart Schaefer
+#
+# Available styles:
+#
+#   list --  avoid to display lists of available matches
+#   stop --  stop before looping at beginning and end of matches
+#   sort --  sort matches lexically (default is to sort by age)
+#   remove-all-dups --
+#            remove /all/ duplicate matches rather than just consecutives
+#   range -- range of history words to complete
+
+_history_complete_word () {
+  eval "$_comp_setup"
+
+  local expl direction stop curcontext="$curcontext"
+
+  if [[ -z "$curcontext" ]]; then
+    curcontext=history-words:::
+  else
+    curcontext="history-words${curcontext#*:}"
+  fi
+
+  if [[ $WIDGET = *newer ]]; then
+    direction=newer
+  else
+    direction=older
+  fi
+
+  zstyle -t ":completion:${curcontext}:history-words" stop && stop=yes
+
+  zstyle -T ":completion:${curcontext}:history-words" list || compstate[list]=''
+
+  if [[ $LASTWIDGET = _history-complete-* &&
+        ( -n "$compstate[old_list]" || -n $_hist_stop ) ]]; then
+    if [[ "$direction" == older ]]; then
+      if [[ $_hist_stop = new ]]; then
+        PREFIX=$_hist_old_prefix
+        _history_complete_word_gen_matches
+        compstate[insert]=2
+        _hist_stop=
+      elif [[ $_hist_stop = old ]]; then
+        PREFIX=$_hist_old_prefix
+        _history_complete_word_gen_matches
+        compstate[insert]=1
+        _hist_stop=
+      elif [[ compstate[old_insert] -lt _hist_menu_length ]]; then
+        compstate[old_list]=keep
+        (( compstate[insert] = compstate[old_insert] + 1 ))
+      elif [[ -n $stop ]]; then
+        _hist_stop=old
+        _message 'beginning of history reached'
+        return 1
+      else
+        compstate[old_list]=keep
+        compstate[insert]=1
+      fi
+    elif [[ "$direction" == 'newer' ]]; then
+      if [[ $_hist_stop = old ]]; then
+        PREFIX=$_hist_old_prefix
+        _history_complete_word_gen_matches
+        compstate[insert]=$(( $compstate[nmatches] - 1 ))
+        _hist_stop=
+      elif [[ $_hist_stop = new ]]; then
+        PREFIX=$_hist_old_prefix
+        _history_complete_word_gen_matches
+        compstate[insert]=$compstate[nmatches]
+        _hist_stop=
+      elif [[ compstate[old_insert] -gt 1 ]]; then
+        compstate[old_list]=keep
+        (( compstate[insert] = compstate[old_insert] - 1 ))
+      elif [[ -n $stop ]]; then
+        _hist_stop=new
+        _message 'end of history reached'
+        return 1
+      else
+        compstate[old_list]=keep
+        compstate[insert]=$_hist_menu_length
+      fi
+    fi
+    return 0
+  else
+    _hist_stop=
+    _hist_old_prefix="$PREFIX"
+    _history_complete_word_gen_matches
+  fi
+
+  (( $compstate[nmatches] ))
+}
+
+_history_complete_word_gen_matches () {
+
+  [[ -n "$_hist_stop" ]] && PREFIX="$_hist_old_prefix"
+
+  _main_complete _history
+
+  zstyle -T ":completion:${curcontext}:history-words" list || compstate[list]=
+
+  _hist_menu_length="$compstate[nmatches]"
+
+  if [[ $_lastcomp[insert] != *unambig* ]]; then
+    case "$direction" in 
+      newer)  compstate[insert]=$_hist_menu_length
+	      [[ -n "$_hist_stop" ]] && (( compstate[insert]-- ))
+              ;;
+      older)  compstate[insert]=1
+	      [[ -n "$_hist_stop" ]] && (( compstate[insert]++ ))
+              ;;
+    esac
+  fi
+
+  _hist_stop=
+
+  return
+}
+
+_history_complete_word "$@"

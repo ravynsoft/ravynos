@@ -1,0 +1,71 @@
+#compdef reprepro
+
+local curcontext="$curcontext" state line expl distfile ret=1
+typeset -A opt_args
+local -a codenames
+
+_arguments -C \
+  '(-h --help)'{-h,--help}'[display help]' \
+  '*'{-v,-V,--verbose}'[be more verbose]' \
+  '--silent[be less verbose]' \
+  '(-b --basedir)'{-b,--basedir}':basedir:_files -/' \
+  '--confdir:config dir:_files -/' \
+  '--distdir:dist dir:_files -/' \
+  '--logdir:log dir:_files -/' \
+  '--overridedir:override dir:_files -/' \
+  '--dbdir:db dir:_files -/' \
+  '--listdir:list dir:_files -/' \
+  '--methoddir:method dir:_files -/' \
+  '(-C --component)'{-C,--component}':component:(component1 component2)' \
+  '(-A --architecture)'{-A,--architecture}':architecture:_sequence -s "|" _deb_architectures -' \
+  '(-T --type)'{-T,--type}':file type:(dsc deb udeb)' \
+  '(-S --section)'{-S,--section}':section:(section1 section2)' \
+  '(-P --priority)'{-P,--priority}':priority:(high low)' \
+  '--export=:whether and how:(never changed normal force)' \
+  '--ignore=:error type:(what otherwhat)' \
+  '--nolistsdownload[do not download Release or index files]' \
+  '--keepunreferencedfiles[do not delete files that are no longer used]' \
+  '--keepunneededlists' \
+  '--keepdirectories' \
+  '--ask-passphrase' \
+  '--noskipold' \
+  '--waitforlock:count:' \
+  '--spacecheck:behavior:(full none)' \
+  '--dbsafetymargin:bytes count:' \
+  '--safetymargin:bytes count:' \
+  '--noguessgpgtty' \
+  ':reprepro command:(export createsymlinks list listfilter remove update
+    iteratedupdate checkupdate predelete pull checkpull includedeb
+    includeudeb includedsc include processincoming check checkpool
+    rereference dumpreferences dumpunreferenced deleteunreferenced
+    reoverride dumptracks retrack removealltracks removetrack tidytracks
+    copy clearvanished gensnapshot rerunnotifiers)' \
+  '*::subcmd:->subcmd' && ret=0
+
+case "$state" in
+  subcmd)
+    case "$words[1]" in
+      (export|update|iteratedupdate|checkupdate|predelete|pull|checkpull|check)
+        if [[ -n "$opt_args[--confdir]" ]]; then
+	  distfile=${opt_args[--confdir]}/distributions
+	elif [[ -n "$opt_args[-b]" ]]; then
+	  distfile=${opt_args[-b]}/conf/distributions
+	elif [[ -n "$opt_args[--basedir]" ]]; then
+	  distfile=${opt_args[--basedir]}/conf/distributions
+	elif [[ -n "$REPREPRO_BASE_DIR" ]]; then
+	  distfile=${REPREPRO_BASE_DIR}/conf/distributions
+	else
+	  distfile=$PWD/conf/distributions
+	fi
+
+        codenames=($(awk '/^[Cc][Oo][Dd][Ee][Nn][Aa][Mm][Ee]: / {$1="";print}' "$distfile"))
+	_wanted -V 'codenames' expl 'codename' compadd -a codenames && ret=0
+      ;;
+      (*)
+	_files && ret=0
+      ;;
+    esac
+  ;;
+esac
+
+return ret

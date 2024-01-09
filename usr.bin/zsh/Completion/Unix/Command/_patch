@@ -1,0 +1,133 @@
+#compdef patch gpatch
+
+if (( ! $+_patch_args )); then
+  local help="$(LC_ALL=C $words[1] --help 2>&1)"
+  local -A optionmap
+  local arg
+  local comp_p='compadd "$expl[@]" -S0 -r "1-9" - ""'
+
+  [[ "$help" = *--[^h]* || "$help" = *\[-c\|-e\|-n\]* ]] && arg=+
+
+  optionmap=(
+    '*( -p NUM[, ]|\[-p (num|strip-count)\])*' '(--strip)-p+[number of path prefix components to strip]:number of path prefix components to strip:'"{$comp_p}"
+    '*\[--strip\[=strip-count\]\]*' '(-p)--strip=-[number of path prefix components to strip]:number of path prefix components to strip:'"{$comp_p}"
+    '* --strip=NUM[, ]*' '(-p)--strip=[number of path prefix components to strip]:number of path prefix components to strip:'"{$comp_p}"
+
+    '*\[-Fmax-fuzz\]*' '(--fuzz)-F-[specify the maximum fuzz factor]:maximum fuzz factor:'
+    '*(\[-F max-fuzz\]| -F LINES[, ])*' '(--fuzz)-F+[specify the maximum fuzz factor]:maximum fuzz factor:'
+    '*(\[--fuzz=max-fuzz\]| --fuzz( |=)LINES[, ])*' '(-F)--fuzz=[specify the maximum fuzz factor]:maximum fuzz factor:'
+
+    '*(\[-[a-zA-Z]#l[a-zA-Z]#\]| -l[, ])*' '(--ignore-whitespace)-l[ignore white space changes]'
+    '*(\[--ignore-whitespace\]| --ignore-whitespace[, ])*' '(-l)--ignore-whitespace[ignore white space changes]'
+
+    '*(\[-[a-zA-Z]#c[a-zA-Z]#\]| -c[, ]|\[-c\|)*' '(   -e -n -u --context --ed --normal --unified)-c[interpret context diff]'
+    '*(\[-[a-zA-Z]#e[a-zA-Z]#\]| -e[, ]|\|-e\|)*' '(-c    -n -u --context --ed --normal --unified)-e[interpret ed script]'
+    '*(\[-[a-zA-Z]#n[a-zA-Z]#\]| -n[, ]|\|-n\])*' '(-c -e    -u --context --ed --normal --unified)-n[interpret normal diff]'
+    '*(\[-[a-zA-Z]#u[a-zA-Z]#\]| -u[, ])*'        '(-c -e -n    --context --ed --normal --unified)-u[interpret unified diff]'
+    '*(\[--context\]| --context[, ])*'            '(-c -e -n -u           --ed --normal --unified)--context[interpret context diff]'
+    '*(\[--ed\]| --ed[, ])*'                      '(-c -e -n -u --context      --normal --unified)--ed[interpret ed script]'
+    '*(\[--normal\]| --normal[, ])*'              '(-c -e -n -u --context --ed          --unified)--normal[interpret normal diff]'
+    '*(\[--unified\]| --unified[, ])*'            '(-c -e -n -u --context --ed --normal          )--unified[interpret unified diff]'
+
+    '*(\[-[a-zA-Z]#N[a-zA-Z]#\]| -N[, ])*' '(--forward)-N[ignore reverse patches]'
+    '*(\[--forward\]| --forward[, ])*' '(-N)--forward[ignore reverse patches]'
+    '*(\[-[a-zA-Z]#R[a-zA-Z]#\]| -R[, ])*' '(--reverse)-R[reverse mode]'
+    '*(\[--reverse\]| --reverse[, ])*' '(-R)--reverse[reverse mode]'
+
+    '*(\[-i patchfile\]| -i PATCHFILE[, ])*' '*-i+[specify input patch file]:patch file:_files'
+    '* --input=PATCHFILE[, ]*' '*--input=[specify input patch file]:patch file:_files'
+
+    '*(\[-o out-file\]| -o FILE[, ]|\[-o outfile\])*' "(--output)-o${arg}[output file]:output file:_files"
+    '*(\[--output=out-file\]| --output=FILE[, ])*' '(-o)--output=[output file]:output file:_files'
+    '*(\[-r rej-name\]| -r FILE[, ]|\[-r rejectfile\])*' "(--reject-file)-r${arg}[reject file]:reject file:_files"
+    '*(\[--reject-file=rej-name\]| --reject-file=FILE[, ])*' '(-r)--reject-file=[reject file]:reject file:_files'
+
+    '*(\[-D symbol\]| -D NAME[, ]|\[-D define\])*' '(--ifdef)-D+[cpp symbol]:symbol:'
+    '*(\[--ifdef=symbol\]| --ifdef=NAME[, ])*' '(-D)--ifdef=[cpp symbol]:symbol:'
+
+    '* --merge*' '(--reject-file --reject-format -r)--merge[merge using conflict markers instead of creating reject files]'
+
+    '*(\[-[a-zA-Z]#E[a-zA-Z]#\]| -E[, ])*' '(--remove-empty-files)-E[remove empty files]'
+    '*(\[--remove-empty-files\]| --remove-empty-files[, ])*' '(-E)--remove-empty-files[remove empty files]'
+
+    '* -Z[, ]*'         '(   -T --set-utc --set-time)-Z[assume timestamp as UTC]'
+    '* -T[, ]*'         '(-Z    --set-utc --set-time)-T[assume timestamp as local time]'
+    '* --set-utc[, ]*'  '(-Z -T           --set-time)--set-utc[assume timestamp as UTC]'
+    '* --set-time[, ]*' '(-Z -T --set-utc           )--set-time[assume timestamp as local time]'
+
+    '* --quoting-style=WORD[, ]*' '--quoting-style=[quoting style]:quoting style:(literal shell shell-always c escape)'
+
+    '*(\[-[a-zA-Z]#b[a-zA-Z]#\]| -b[, ])*' '(--backup)-b[backup original]'
+    '* --backup[, ]*' '(-b)--backup[backup original]'
+    '* --backup-if-mismatch[, ]*' '(--no-backup-if-mismatch)--backup-if-mismatch[back up if not match exactly]'
+    '* --no-backup-if-mismatch[, ]*' '(--backup-if-mismatch)--no-backup-if-mismatch[back up only if otherwise requested]'
+
+    '*(\[-V {numbered,existing,simple}\]| -V STYLE[, ])*' "(--version-control)-V${arg}[backup method]:backup method:(numbered existing simple)"
+    '*\[-V t \| nil \| never\]*' '(-B)-V+[specify backup method]:backup method:((t\:numbered nil\:existing never\:simple))'
+    '*(\[--version-control={numbered,existing,simple}\]| --version-control=STYLE[, ])*' '(-V)--version-control=[backup method]:backup method:(numbered existing simple)'
+
+    '*(\[-B backup-prefix\]| -B PREFIX[, ])*' "(--prefix)-B${arg}[specify backup prefix]:backup prefix:"
+    '*(\[--prefix=backup-prefix\]| --prefix=PREFIX[, ])*' '(-B)--prefix=[specify backup prefix]:backup prefix:'
+    '* -Y PREFIX[, ]*' '(--basename-prefix)-Y+[specify backup basename prefix]:backup basename prefix:'
+    '* --basename-prefix=PREFIX[, ]*' '(-Y)--basename-prefix=[specify backup basename prefix]:backup basename prefix:'
+    '*\[-b backup-ext\]*'                              "(   -z --suffix)-b${arg}[specify backup suffix]:backup suffix:(.bak)"
+    '*\[-z backup-ext\]*' '(--suffix)-z+[specify backup suffix]:backup suffix [.orig]:(.bak)'
+    '* -z SUFFIX[, ]*'                                 '(-b    --suffix)-z+[specify backup suffix]:backup suffix:(.bak)'
+    '*(\[--suffix=backup-ext\]| --suffix=SUFFIX[, ])*' '(-b -z         )--suffix=[specify backup suffix]:backup suffix:(.bak)'
+
+    '* -g NUM[, ]*' '(--get)-g+[get from RCS etc.]:number:((1\:get -1\:ask))'
+    '* --get=NUM[, ]*' '(-g)--get=[get from RCS etc.]:number:((1\:get -1\:ask))'
+
+    '* -g  --get *' '(-G --get --no-get)-g[get from RCS or SCCS]
+(-g -G --no-get)--get[get from RCS or SCCS]'
+    '* -G  --no-get *' '(-g --get --no-get)-G[don'\''t get from RCS or SCCS]
+(-g -G --get)--no-get[don'\''t get from RCS or SCCS]'
+
+    '*(\[-[a-zA-Z]#f[a-zA-Z]#\]| -f[, ])*' '(   -t --force --batch)-f[force mode]'
+    '*(\[-[a-zA-Z]#t[a-zA-Z]#\]| -t[, ])*' '(-f    --force --batch)-t[batch mode]'
+    '*(\[--force\]| --force[, ])*'         '(-f -t         --batch)--force[force mode]'
+    '*(\[--batch\]| --batch[, ])*'         '(-f -t --force        )--batch[batch mode]'
+
+    '*(\[-[a-zA-Z]#s[a-zA-Z]#\]| -s[, ])*' '(   --quiet --silent)-s[silent mode]'
+    '*(\[--quiet\]| --quiet[, ])*'         '(-s         --silent)--quiet[silent mode]'
+    '*(\[--silent\]|--silent[, ])*'        '(-s --quiet         )--silent[silent mode]'
+
+    '* --verbose[, ]*' '--verbose[verbose mode]'
+
+    '*(\[-[a-zA-Z]#C[a-zA-Z]#\])*' '(--check)-C[only check that the patch would apply cleanly]'
+    '*\[--check\]*' '(-C)--check[only check that the patch would apply cleanly]'
+    '* --dry-run[, ]*' '--dry-run[only check that the patch would apply cleanly]'
+
+    '*--posix*' '--posix[POSIX mode]'
+
+    '*(\[-d directory\]| -d DIR[, ]|\[-d dir\])*' '(--directory)-d+[change the working directory]:chdir to:_files -/'
+    '*(\[--directory=directory\]| --directory=DIR[, ])*' '(-d)--directory=[change the working directory]:chdir to:_files -/'
+
+    '* --reject-format=*' '--reject-format=[specify format of rejects]:format:(context unified)'
+    '* --read-only=*' '--read-only=[specify how to handle read-only input files]:behaviour [warn]: (ignore warn fail)'
+
+    '* --binary[, ]*' '--binary[binary mode]'
+
+    '*(\[-[a-zA-Z]#v[a-zA-Z]#\]| -v[, ])*' '(-)-v[print version]'
+    '*(\[--version\]| --version[, ])*' '(-)--version[print version]'
+    '* --help[, ]*' '(-)--help[print help message]'
+
+    '*\[-[a-zA-Z]#S[a-zA-Z]#\]*' '*-S[ignore this patch]'
+    '*\[--skip\]*' '*--skip[ignore this patch]'
+
+    '*\[--index-first\]*' '--index-first[take Index: line precedence]'
+
+    '* --use-index-line *' '--use-index-line[deal with Index: line]'
+    '* --patch-root=DIR *' '--patch-root=[restrict paths]:patch root:_files -/'
+
+    '* -U *' '(--unified-reject-files)-U[create unified reject files]'
+    '* --unified-reject-files *' '(-U)--unified-reject-files[create unified reject files]'
+    '* --global-reject-file=file *' '--global-reject-file=[put all rejects into one file]:file:_files'
+  )
+  _patch_args=(
+    ${arg:+"-s"}
+    ${(fF)optionmap[(K)"$help"]}
+  )
+fi
+
+_arguments "${(@)_patch_args}" ':original file:_files' ':patch file:_files'

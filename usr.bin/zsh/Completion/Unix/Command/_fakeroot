@@ -1,0 +1,10 @@
+#compdef fakeroot
+
+_arguments \
+  '(-l --lib)'{-l,--lib}'[specify alternate wrapper library]:wrapper library:_files' \
+  '--faked[specify alternate faked binary]:fake binary:_command_names -e' \
+  '-s[save the fakeroot environment on exit]:save file:_files' \
+  '-i[load a previously saved environment]:file:_files' \
+  '(-u --unknown-is-real)'{-u,--unknown-is-real}'[use real ownership of previously unknown files]' \
+  '(-):command name:_command_names -e'  \
+  '*::arguments:_normal'

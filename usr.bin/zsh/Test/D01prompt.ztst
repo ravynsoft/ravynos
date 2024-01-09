@@ -1,0 +1,265 @@
+%prep
+
+  mkdir prompt.tmp
+  cd prompt.tmp
+  mydir=$PWD
+  SHLVL=2
+  setopt extendedglob
+
+%test
+
+  hash -d mydir=$mydir
+  print -P '  %%%):  %)
+  %%~:  %~
+  %%d:  %d
+  %%1/: %1/
+  %%h:  %h
+  %%L:  %L
+  %%M:  %M
+  %%m:  %m
+  %%n:  %n
+  %%N:  %N
+  %%i:  %i
+  a%%{...%%}b:  a%{%}b
+  '
+0q:Basic prompt escapes as shown.
+>  %):  )
+>  %~:  ~mydir
+>  %d:  $mydir
+>  %1/: ${mydir:t}
+>  %h:  0
+>  %L:  2
+>  %M:  $HOST
+>  %m:  ${HOST%%.*}
+>  %n:  $USERNAME
+>  %N:  (eval)
+>  %i:  2
+>  a%{...%}b:  ab
+>  
+
+  true
+  print -P '%?'
+  false
+  print -P '%?'
+0:`%?' prompt escape
+>0
+>1
+
+  PS4="%_> "
+  setopt xtrace
+  if true; then true; else false; fi
+  unsetopt xtrace
+0:`%_' prompt escape
+?if> true
+?then> true
+?> unsetopt xtrace
+
+  diff =(print -P '%#') =(print -P '%(!.#.%%)')
+0:`%#' prompt escape and its equivalent
+
+  psvar=(caesar adsum jam forte)
+  print -P '%v' '%4v'
+0:`%v' prompt escape
+>caesar forte
+
+  true
+  print -P '%(?.true.false)'
+  false
+  print -P '%(?.true.false)'
+0:ternary prompt escapes
+>true
+>false
+
+  print -P 'start %10<...<truncated at 10%<< Not truncated%3< ...<Not shown'
+  print -P 'start %10>...>truncated at 10%>> Not truncated%3> ...>Not shown'
+0:prompt truncation
+>start ...d at 10 Not truncated ...
+>start truncat... Not truncated ...
+
+# It's hard to check the time and date as they are moving targets.
+# We therefore just check that various forms of the date are consistent.
+# In fact, if you perform this at midnight it can still fail.
+# We could test for that, but we can't be bothered.
+# I hope LC_ALL is enough to make the format what's expected.
+
+# The $date2 assignment tests that %s is interpreted as a printf format
+# string, rather than as a prompt escape (end standout).
+
+  LC_ALL=C
+  date1=$(print -P %w)
+  date2=$(print -P -f %s %W)
+  date3=$(print -P %D)
+  if [[ $date1 != [A-Z][a-z][a-z][[:blank:]]##[0-9]## ]]; then
+    print "Date \`$date1' is not in the form \`Day DD' (e.g. \`Mon 1'"
+  fi
+  if [[ $date2 != [0-9][0-9]/[0-9][0-9]/[0-9][0-9] ]]; then
+    print "Date \`$date2' is not in the form \`DD/MM/YYYY'"
+  fi
+  if [[ $date3 != [0-9][0-9]-[0-9][0-9]-[0-9][0-9] ]]; then
+    print "Date \`$date3' is not in the form \`YY-MM-DD'"
+  fi
+  if (( $date1[5,-1] != $date2[4,5] )) || (( $date2[4,5] != $date3[7,8] ))
+  then
+    print "Days of month do not agree in $date1, $date2, $date3"
+  fi
+  if (( $date2[1,2] != $date3[4,5] )); then
+    print "Months do not agree in $date2, $date3"
+  fi
+  if (( $date2[7,8] != $date3[1,2] )); then
+    print "Years do not agree in $date2, $date3"
+  fi
+  # These are somewhat questionable, but...
+  ns=( ${="$(print -P '%D{%9.} %D{%N}')"} )
+  if [[ $ns[1] != [0-9](#c9) ]] || [[ $ns[2] != [0-9](#c9) ]]; then
+    print "Nanosecond lengths/formats are not as expected in $ns[1], $ns[2]"
+  fi
+  if (( ($ns2[2] - $ns[1]) > 5000000 )); then
+    print "Nanoseconds differ too much in $ns[1], $ns[2]"
+  fi
+0:Dates produced by prompt escapes
+
+  mkdir foo
+  mkdir foo/bar
+  mkdir foo/bar/rod
+  (zsh_directory_name() {
+    emulate -L zsh
+    setopt extendedglob
+    local -a match mbegin mend
+    if [[ $1 = d ]]; then
+      if [[ $2 = (#b)(*bar)/rod ]]; then
+        reply=(barmy ${#match[1]})
+      else
+        return 1
+      fi
+    else
+      if [[ $2 = barmy ]]; then
+        reply=($mydir/foo/bar)
+      else
+        return 1
+      fi
+    fi
+  }
+  # success
+  print ~[barmy]/anything
+  cd foo/bar/rod
+  print -P %~
+  # failure
+  setopt nonomatch
+  print ~[scuzzy]/rubbish
+  cd ../..
+  print -P %~
+  # catastrophic failure
+  unsetopt nonomatch
+  print ~[scuzzy]/rubbish
+  )
+1q:Dynamic named directories
+>$mydir/foo/bar/anything
+>~[barmy]/rod
+>~[scuzzy]/rubbish
+>~mydir/foo
+?(eval):33: no directory expansion: ~[scuzzy]
+
+  (
+  zsh_directory_name() {
+  emulate -L zsh
+  setopt extendedglob
+  local -a match mbegin mend
+  if [[ $1 = n ]]; then
+      if [[ $2 = *:l ]]; then
+	  reply=(${2%%:l}/very_long_directory_name)
+	  return 0
+      else
+	  return 1
+      fi
+  else
+      if [[ $2 = (#b)(*)/very_long_directory_name ]]; then
+	reply=(${match[1]}:l ${#2})
+	return 0
+      else
+	return 1
+      fi
+  fi
+  }
+  parent=$PWD
+  dir=$parent/very_long_directory_name
+  mkdir $dir
+  cd $dir
+  fn() {
+     PS4='+%N:%i> '
+     setopt localoptions xtrace
+     # The following is the key to the test.
+     # It invokes zsh_directory_name which does PS4 output stuff
+     # while we're doing prompt handling for the parameter
+     # substitution.  This checks recursion works OK.
+     local d=${(%):-%~}
+     print ${d//$parent/\<parent\>}
+  }
+  fn 2>stderr
+  # post process error to remove variable contents
+  while read line; do
+    # tricky: reply is set to include directory length which is variable
+    [[ $line = *reply* ]] && continue
+    print ${line//$parent/\<parent\>}
+  done <stderr >&2
+  )
+0:Recursive use of prompts
+>~[<parent>:l]
+?+zsh_directory_name:1> emulate -L zsh
+?+zsh_directory_name:2> setopt extendedglob
+?+zsh_directory_name:3> local -a match mbegin mend
+?+zsh_directory_name:4> [[ d = n ]]
+?+zsh_directory_name:12> [[ <parent>/very_long_directory_name = (#b)(*)/very_long_directory_name ]]
+?+zsh_directory_name:14> return 0
+?+fn:7> local d='~[<parent>:l]'
+?+fn:8> print '~[<parent>:l]'
+
+# Test that format strings are not subject to prompt expansion
+ print -P -f '%%Sfoo%%s\n' bar
+0:print -P -f
+>%Sfoo%s
+
+  print ${(%U)Y-%(v}
+0:Regression test for test on empty psvar
+>
+
+# Unrecognised colour strings should produce the default sequence
+  f=${(%):-'%f'} # Recognised
+  Fdefault=${(%):-'%F{default}'} # Recognised
+  Freset=${(%):-'%F{reset}'} # Unrecognised
+  Ffoo=${(%):-'%F{foo}'} # Unrecognised
+  [[ $f == $Fdefault && $Fdefault == $Freset && $Freset == $Ffoo ]]
+0:Regression test for workers/44029
+
+  if
+    zmodload zsh/terminfo >& /dev/null &&
+      (( terminfo[colors] >= 8 ))
+  then
+    F1=$(echoti setaf 2)
+    F2=${(%):-%2F}
+    F3=${(%):-%F{2}}
+    F4=${(%):-%F{green}}
+    [[ -n $F1 && $F1 = $F2 && $F2 = $F3 && $F3 = $F4 ]]
+  else
+    ZTST_skip='Missing terminfo module or non-colour terminal'
+  fi
+0:Equivalence of terminal colour settings (foreground colour)
+
+  if
+    zmodload zsh/terminfo >& /dev/null &&
+      (( terminfo[colors] >= 8 ))
+  then
+    K1=$(echoti setab 2)
+    K2=${(%):-%2K}
+    K3=${(%):-%K{2}}
+    K4=${(%):-%K{green}}
+    [[ -n $K1 && $K1 = $K2 && $K2 = $K3 && $K3 = $K4 ]]
+  else
+    ZTST_skip='Missing terminfo module or non-colour terminal'
+  fi
+0:Equivalence of terminal colour settings (background colour)
+
+ (RPS1=foo; echo $RPS1 $RPROMPT)
+ (RPS2=bar; echo $RPS2 $RPROMPT2)
+-fD:RPS1 and RPROMPT are aliases (regression from 5.0.6) (workers/49600)
+>foo foo
+>bar bar

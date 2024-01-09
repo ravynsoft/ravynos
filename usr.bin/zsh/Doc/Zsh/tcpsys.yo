@@ -1,0 +1,827 @@
+texinode(TCP Function System)(Zftp Function System)(Calendar Function System)(Top)
+chapter(TCP Function System)
+cindex(TCP function system)
+cindex(ztcp, function system based on)
+sect(Description)
+
+A module tt(zsh/net/tcp) is provided to provide network I/O over
+TCP/IP from within the shell; see its description in
+ifzman(\
+zmanref(zshmodules)\
+)\
+ifnzman(\
+noderef(Zsh Modules)\
+).  This manual page describes a function suite based on the module.  
+If the module is installed, the functions are usually installed at the
+same time, in which case they will be available for
+autoloading in the default function search path.  In addition to the
+tt(zsh/net/tcp) module, the tt(zsh/zselect) module is used to implement
+timeouts on read operations.  For troubleshooting tips, consult the
+corresponding advice for the tt(zftp) functions described in
+ifzman(\
+zmanref(zshzftpsys)\
+)\
+ifnzman(\
+noderef(Zftp Function System)\
+).
+
+There are functions corresponding to the basic I/O operations open, close,
+read and send, named tt(tcp_open) etc., as well as a function
+tt(tcp_expect) for pattern match analysis of data read as input.  The
+system makes it easy to receive data from and send data to multiple named
+sessions at once.  In addition, it can be linked with the shell's line
+editor in such a way that input data is automatically shown at the
+terminal.  Other facilities available including logging, filtering and
+configurable output prompts.
+
+To use the system where it is available, it should be enough to
+`tt(autoload -U tcp_open)' and run tt(tcp_open) as documented below to
+start a session.  The tt(tcp_open) function will autoload the remaining
+functions.
+
+startmenu()
+menu(TCP Functions)
+menu(TCP Parameters)
+menu(TCP Examples)
+menu(TCP Bugs)
+endmenu()
+
+texinode(TCP Functions)(TCP Parameters)()(TCP Function System)
+sect(TCP User Functions)
+
+subsect(Basic I/O)
+
+startitem()
+findex(tcp_open)
+xitem(tt(tcp_open) [ tt(-qz) ] var(host port) [ var(sess) ])
+xitem(tt(tcp_open) [ tt(-qz) ] [ tt(-s) var(sess) | tt(-l) var(sess)[tt(,)...] ] ... )
+item(tt(tcp_open) [ tt(-qz) ] [ tt(-a) var(fd) | tt(-f) var(fd) ] [ var(sess) ])(
+Open a new session.  In the first and simplest form, open a TCP connection
+to host var(host) at port var(port); numeric and symbolic forms are
+understood for both.
+
+If var(sess) is given, this becomes the name of the session which can be
+used to refer to multiple different TCP connections.  If var(sess) is
+not given, the function will invent a numeric name value (note this is
+em(not) the same as the file descriptor to which the session is attached).
+It is recommended that session names not include `funny' characters, where
+funny characters are not well-defined but certainly do not include
+alphanumerics or underscores, and certainly do include whitespace.
+
+In the second case, one or more sessions to be opened are given by name.
+A single session name is given after tt(-s) and a comma-separated list
+after tt(-l); both options may be repeated as many times as necessary.
+A failure to open any session causes tt(tcp_open) to abort.
+The host and port are read from the file tt(.ztcp_sessions) in the same
+directory as the user's zsh initialisation files, i.e. usually the home
+directory, but tt($ZDOTDIR) if that is set.  The file consists of lines
+each giving a session name and the corresponding host and port, in that
+order (note the session name comes first, not last), separated by
+whitespace.
+
+The third form allows passive and fake TCP connections.  If the option
+tt(-a) is used, its argument is a file descriptor open for listening for
+connections.  No function front-end is provided to open such a file
+descriptor, but a call to `tt(ztcp -l) var(port)' will create one with the
+file descriptor stored in the parameter tt($REPLY).  The listening port can
+be closed with `tt(ztcp -c) var(fd)'.  A call to `tt(tcp_open -a) var(fd)'
+will block until a remote TCP connection is made to var(port) on the local
+machine.  At this point, a session is created in the usual way and is
+largely indistinguishable from an active connection created with one of the
+first two forms.
+
+If the option tt(-f) is used, its argument is a file descriptor which is
+used directly as if it were a TCP session.  How well the remainder of the
+TCP function system copes with this depends on what actually underlies this
+file descriptor.  A regular file is likely to be unusable; a FIFO (pipe) of
+some sort will work better, but note that it is not a good idea for two
+different sessions to attempt to read from the same FIFO at once.
+
+If the option tt(-q) is given with any of the three forms, tt(tcp_open)
+will not print informational messages, although it will in any case exit
+with an appropriate status.
+
+If the line editor (zle) is in use, which is typically the case if the
+shell is interactive, tt(tcp_open) installs a handler inside zle which
+will check for new data at the same time as it checks for keyboard input.
+This is convenient as the shell consumes no CPU time while waiting; the
+test is performed by the operating system.  Giving the option tt(-z) to
+any of the forms of tt(tcp_open) prevents the handler from being
+installed, so data must be read explicitly.  Note, however, this is not
+necessary for executing complete sets of send and read commands from a
+function, as zle is not active at this point.  Generally speaking, the
+handler is only active when the shell is waiting for input at a command
+prompt or in the tt(vared) builtin.  The option has no effect if zle is not
+active; `tt([[ -o zle]])' will test for this.
+
+The first session to be opened becomes the current session and subsequent
+calls to tt(tcp_open) do not change it.  The current session is stored
+in the parameter tt($TCP_SESS); see below for more detail about the
+parameters used by the system.
+
+The function tt(tcp_on_open), if defined, is called when a session
+is opened.  See the description below.
+)
+findex(tcp_close)
+item(tt(tcp_close) [ tt(-qn) ] [ tt(-a) | tt(-l) var(sess)[tt(,)...] | var(sess) ... ])(
+Close the named sessions, or the current session if none is given,
+or all open sessions if tt(-a) is given.  The options tt(-l) and tt(-s) are
+both handled for consistency with tt(tcp_open), although the latter is
+redundant.
+
+If the session being closed is the current one, tt($TCP_SESS) is unset,
+leaving no current session, even if there are other sessions still open.
+
+If the session was opened with tt(tcp_open -f), the file descriptor is
+closed so long as it is in the range 0 to 9 accessible directly from the
+command line.  If the option tt(-n) is given, no attempt will be made to
+close file descriptors in this case.  The tt(-n) option is not used for
+genuine tt(ztcp) session; the file descriptors are always closed with the
+session.
+
+If the option tt(-q) is given, no informational messages will be printed.
+)
+findex(tcp_read)
+redef(SPACES)(0)(tt(ifztexi(NOTRANS(@ @ @ @ @ @ @ @ @ ))ifnztexi(         )))
+xitem(tt(tcp_read )[ tt(-bdq) ] [ tt(-t) var(TO) ] [ tt(-T) var(TO) ])
+item(SPACES()[ tt(-a) | tt(-u) var(fd)[tt(,)...] | tt(-l) var(sess)[tt(,)...] | tt(-s) var(sess) ... ])(
+Perform a read operation on the current session, or on a list of
+sessions if any are given with tt(-u), tt(-l) or tt(-s), or all open
+sessions if the option tt(-a) is given.  Any of the tt(-u), tt(-l) or
+tt(-s) options may be repeated or mixed together.  The tt(-u) option
+specifies a file descriptor directly (only those managed by this system
+are useful), the other two specify sessions as described for
+tt(tcp_open) above.
+
+The function checks for new data available on all the sessions listed.
+Unless the tt(-b) option is given, it will not block waiting for new data.
+Any one line of data from any of the available sessions will be read,
+stored in the parameter tt($TCP_LINE), and displayed to standard output
+unless tt($TCP_SILENT) contains a non-empty string.  When printed to
+standard output the string tt($TCP_PROMPT) will be shown at the start of
+the line; the default form for this includes the name of the session being
+read.  See below for more information on these parameters.  In this mode,
+tt(tcp_read) can be called repeatedly until it returns status 2 which
+indicates all pending input from all specified sessions has been handled.
+
+With the option tt(-b), equivalent to an infinite timeout, the function
+will block until a line is available to read from one of the specified
+sessions.  However, only a single line is returned.
+
+The option tt(-d) indicates that all pending input should be drained.  In
+this case tt(tcp_read) may process multiple lines in the manner given
+above; only the last is stored in tt($TCP_LINE), but the complete set is
+stored in the array tt($tcp_lines).  This is cleared at the start of each
+call to tt(tcp_read).
+
+The options tt(-t) and tt(-T) specify a timeout in seconds, which may be a
+floating point number for increased accuracy.  With tt(-t) the timeout is
+applied before each line read.  With tt(-T), the timeout applies to the
+overall operation, possibly including multiple read operations if the
+option tt(-d) is present; without this option, there is no distinction
+between tt(-t) and tt(-T).
+
+The function does not print informational messages, but if the option
+tt(-q) is given, no error message is printed for a non-existent session.
+
+A return status of 2 indicates a timeout or no data to read.  Any other
+non-zero return status indicates some error condition.
+
+See tt(tcp_log) for how to control where data is sent by tt(tcp_read).
+)
+findex(tcp_send)
+xitem(tt(tcp_send) [ tt(-cnq) ] [ tt(-s) var(sess) | tt(-l) var(sess)[tt(,)...] ] var(data) ...)
+item(tt(tcp_send) [ tt(-cnq) ] tt(-a) var(data) ...)(
+Send the supplied data strings to all the specified sessions in turn.  The
+underlying operation differs little from a `tt(print -r)' to the session's
+file descriptor, although it attempts to prevent the shell from dying owing
+to a tt(SIGPIPE) caused by an attempt to write to a defunct session.
+
+The option tt(-c) causes tt(tcp_send) to behave like tt(cat).  It reads
+lines from standard input until end of input and sends them in turn to the
+specified session+LPAR()s+RPAR() exactly as if they were given as var(data)
+arguments to individual tt(tcp_send) commands.
+
+The option tt(-n) prevents tt(tcp_send) from putting a newline at the end
+of the data strings.
+
+The remaining options all behave as for tt(tcp_read).
+
+The data arguments are not further processed once they have been passed to
+tt(tcp_send); they are simply passed down to tt(print -r).
+
+If the parameter tt($TCP_OUTPUT) is a non-empty string and logging is
+enabled then the data sent to each session will be echoed to the log
+file+LPAR()s+RPAR() with tt($TCP_OUTPUT) in front where appropriate, much
+in the manner of tt($TCP_PROMPT).
+)
+enditem()
+
+subsect(Session Management)
+
+startitem()
+findex(tcp_alias)
+xitem(tt(tcp_alias) [ tt(-q) ] var(alias)tt(=)var(sess) ...)
+xitem(tt(tcp_alias) [ tt(-q) ] [ var(alias) ... ])
+item(tt(tcp_alias) tt(-d) [ tt(-q) ] var(alias) ...)(
+This function is not particularly well tested.
+
+The first form creates an alias for a session name; var(alias) can then be
+used to refer to the existing session var(sess).  As many aliases may be
+listed as required.
+
+The second form lists any aliases specified, or all aliases if none.
+
+The third form deletes all the aliases listed.  The underlying sessions are
+not affected.
+
+The option tt(-q) suppresses an inconsistently chosen subset of error
+messages.
+)
+findex(tcp_log)
+item(tt(tcp_log) [ tt(-asc) ] [ tt(-n) | tt(-N) ] [ var(logfile) ])(
+With an argument var(logfile), all future input from tt(tcp_read) will be
+logged to the named file.  Unless tt(-a) (append) is given, this file will
+first be truncated or created empty.  With no arguments, show the current
+status of logging.
+
+With the option tt(-s), per-session logging is enabled.  Input from
+tt(tcp_read) is output to the file var(logfile)tt(.)var(sess).  As the
+session is automatically discriminated by the filename, the contents are
+raw (no tt($TCP_PROMPT)).  The option  tt(-a) applies as above.
+Per-session logging and logging of all data in one file are not mutually
+exclusive.
+
+The option tt(-c) closes all logging, both complete and per-session logs.
+
+The options tt(-n) and tt(-N) respectively turn off or restore output of
+data read by tt(tcp_read) to standard output; hence `tt(tcp_log -cn)' turns
+off all output by tt(tcp_read).
+
+The function is purely a convenient front end to setting the parameters
+tt($TCP_LOG), tt($TCP_LOG_SESS), tt($TCP_SILENT), which are described below.
+)
+findex(tcp_rename)
+item(tt(tcp_rename) var(old) var(new))(
+Rename session var(old) to session var(new).  The old name becomes invalid.
+)
+findex(tcp_sess)
+item(tt(tcp_sess) [ var(sess) [ var(command) [ var(arg) ... ] ] ])(
+With no arguments, list all the open sessions and associated file
+descriptors.  The current session is marked with a star.  For use in
+functions, direct access to the parameters tt($tcp_by_name), tt($tcp_by_fd)
+and tt($TCP_SESS) is probably more convenient; see below.
+
+With a var(sess) argument, set the current session to var(sess).
+This is equivalent to changing tt($TCP_SESS) directly.
+
+With additional arguments, temporarily set the current session while
+executing `var(command) var(arg) ...'.  var(command) is re-evaluated
+so as to expand aliases etc., but the remaining var(arg)s are passed
+through as that appear to tt(tcp_sess).  The original session is restored
+when tt(tcp_sess) exits.
+)
+enditem()
+
+subsect(Advanced I/O)
+
+startitem()
+findex(tcp_command)
+item(tt(tcp_command) var(send-option) ... var(send-argument) ...)(
+This is a convenient front-end to tt(tcp_send).  All arguments are passed
+to tt(tcp_send), then the function pauses waiting for data.  While data is
+arriving at least every tt($TCP_TIMEOUT) (default 0.3) seconds, data is
+handled and printed out according to the current settings.  Status 0 is
+always returned.
+
+This is generally only useful for interactive use, to prevent the display
+becoming fragmented by output returned from the connection.  Within a
+programme or function it is generally better to handle reading data by a
+more explicit method.
+)
+findex(tcp_expect)
+redef(SPACES)(0)(tt(ifztexi(NOTRANS(@ @ @ @ @ @ @ @ @ @ @ ))ifnztexi(           )))
+xitem(tt(tcp_expect )[ tt(-q) ] [ tt(-p) var(var) | tt(-P) var(var) ] [ tt(-t) var(TO) | tt(-T) var(TO) ])
+item(SPACES()[ tt(-a) | tt(-s) var(sess) | tt(-l) var(sess)[tt(,)...] ] var(pattern) ...)(
+Wait for input matching any of the given var(pattern)s from any of the
+specified sessions.  Input is ignored until an input line matches one of
+the given patterns; at this point status zero is returned, the matching
+line is stored in tt($TCP_LINE), and the full set of lines read during the
+call to tt(tcp_expect) is stored in the array tt($tcp_expect_lines).
+
+Sessions are specified in the same way as tt(tcp_read): the default is to
+use the current session, otherwise the sessions specified by tt(-a),
+tt(-s), or tt(-l) are used.
+
+Each var(pattern) is a standard zsh extended-globbing pattern; note that it
+needs to be quoted to avoid it being expanded immediately by filename
+generation.  It must match the full line, so to match a substring there
+must be a `tt(*)' at the start and end.  The line matched against includes
+the tt($TCP_PROMPT) added by tt(tcp_read).  It is possible to include the
+globbing flags `tt(#b)' or `tt(#m)' in the patterns to make backreferences
+available in the parameters tt($MATCH), tt($match), etc., as described in
+the base zsh documentation on pattern matching.
+
+Unlike tt(tcp_read), the default behaviour of tt(tcp_expect) is to block
+indefinitely until the required input is found.  This can be modified by
+specifying a timeout with tt(-t) or tt(-T); these function as in
+tt(tcp_read), specifying a per-read or overall timeout, respectively, in
+seconds, as an integer or floating-point number.  As tt(tcp_read), the
+function returns status 2 if a timeout occurs.
+
+The function returns as soon as any one of the patterns given match.  If
+the caller needs to know which of the patterns matched, the option tt(-p)
+var(var) can be used; on return, tt($var) is set to the number of the
+pattern using ordinary zsh indexing, i.e. the first is 1, and so on.  Note
+the absence of a `tt($)' in front of var(var).  To avoid clashes, the
+parameter cannot begin with `tt(_expect)'.  The index -1 is used if
+there is a timeout and 0 if there is no match.
+
+The option tt(-P) var(var) works similarly to tt(-p), but instead of
+numerical indexes the regular arguments must begin with a prefix
+followed by a colon: that prefix is then used as a tag to which var(var)
+is set when the argument matches.  The tag tt(timeout) is used if there
+is a timeout and the empty string if there is no match.  Note it is
+acceptable for different arguments to start with the same prefix if the
+matches do not need to be distinguished.
+
+The option tt(-q) is passed directly down to tt(tcp_read).
+
+As all input is done via tt(tcp_read), all the usual rules about output of
+lines read apply.  One exception is that the parameter tt($tcp_lines) will
+only reflect the line actually matched by tt(tcp_expect); use
+tt($tcp_expect_lines) for the full set of lines read during the function
+call.
+)
+findex(tcp_proxy)
+item(tt(tcp_proxy))(
+This is a simple-minded function to accept a TCP connection and execute a
+command with I/O redirected to the connection.  Extreme caution should be
+taken as there is no security whatsoever and this can leave your computer
+open to the world.  Ideally, it should only be used behind a firewall.
+
+The first argument is a TCP port on which the function will listen.
+
+The remaining arguments give a command and its arguments to execute with
+standard input, standard output and standard error redirected to the
+file descriptor on which the TCP session has been accepted.
+If no command is given, a new zsh is started.  This gives everyone on
+your network direct access to your account, which in many cases will be a
+bad thing.
+
+The command is run in the background, so tt(tcp_proxy) can then accept new
+connections.  It continues to accept new connections until interrupted.
+)
+findex(tcp_spam)
+item(tt(tcp_spam) [ tt(-ertv) ] [ tt(-a) | tt(-s) var(sess) | tt(-l) var(sess)[tt(,)...] ] var(cmd) [ var(arg) ... ])(
+Execute `var(cmd) [ var(arg) ... ]' for each session in turn.  Note this executes
+the command and arguments; it does not send the command line as data
+unless the tt(-t) (transmit) option is given.
+
+The sessions may be selected explicitly with the standard tt(-a), tt(-s) or
+tt(-l) options, or may be chosen implicitly.  If none of the three options
+is given the rules are: first, if the array tt($tcp_spam_list) is set, this
+is taken as the list of sessions, otherwise all sessions are taken.
+Second, any sessions given in the array tt($tcp_no_spam_list) are removed
+from the list of sessions.
+
+Normally, any sessions added by the `tt(-a)' flag or when all sessions are
+chosen implicitly are spammed in alphabetic order; sessions given by the
+tt($tcp_spam_list) array or on the command line are spammed in the order
+given.  The tt(-r) flag reverses the order however it was arrived it.
+
+The tt(-v) flag specifies that a tt($TCP_PROMPT) will be output before each
+session.  This is output after any modification to tt(TCP_SESS) by the
+user-defined tt(tcp_on_spam) function described below.  (Obviously that
+function is able to generate its own output.)
+
+If the option tt(-e) is present, the line given as `var(cmd) [ var(arg) ... ]' is executed
+using tt(eval), otherwise it is executed without any further processing.
+)
+findex(tcp_talk)
+item(tt(tcp_talk))(
+This is a fairly simple-minded attempt to force input to the line editor to
+go straight to the default tt(TCP_SESS).
+
+An escape string, tt($TCP_TALK_ESCAPE), default `tt(:)', is used to allow
+access to normal shell operation.  If it is on its own at the start of the
+line, or followed only by whitespace, the line editor returns to normal
+operation.  Otherwise, the string and any following whitespace are skipped
+and the remainder of the line executed as shell input without any change of
+the line editor's operating mode.
+
+The current implementation is somewhat deficient in terms of use of the
+command history.  For this reason, many users will prefer to use some form
+of alternative approach for sending data easily to the current session.
+One simple approach is to alias some special character (such as `tt(%)') to
+`tt(tcp_command -)tt(-)'.
+)
+findex(tcp_wait)
+item(tt(tcp_wait))(
+The sole argument is an integer or floating point number which gives the
+seconds to delay.  The shell will do nothing for that period except wait
+for input on all TCP sessions by calling tt(tcp_read -a).  This is similar
+to the interactive behaviour at the command prompt when zle handlers are
+installed.
+)
+enditem()
+
+subsect(`One-shot' file transfer)
+startitem()
+xitem(tt(tcp_point) var(port))
+item(tt(tcp_shoot) var(host) var(port))(
+This pair of functions provide a simple way to transfer a file between
+two hosts within the shell.  Note, however, that bulk data transfer is
+currently done using tt(cat).  tt(tcp_point) reads any data arriving at
+var(port) and sends it to standard output; tt(tcp_shoot) connects to
+var(port) on var(host) and sends its standard input.  Any unused var(port)
+may be used; the standard mechanism for picking a port is to think of a
+random four-digit number above 1024 until one works.
+
+To transfer a file from host tt(woodcock) to host tt(springes), on
+tt(springes):
+
+example(tcp_point 8091 >output_file)
+
+and on tt(woodcock):
+
+example(tcp_shoot springes 8091 <input_file)
+
+As these two functions do not require tt(tcp_open) to set up a TCP
+connection first, they may need to be autoloaded separately.
+)
+enditem()
+
+sect(TCP User-defined Functions)
+
+Certain functions, if defined by the user, will be called by the function
+system in certain contexts.  This facility depends on the module
+tt(zsh/parameter), which is usually available in interactive shells as the
+completion system depends on it.  None of the functions need be defined;
+they simply provide convenient hooks when necessary.
+
+Typically, these are called after the requested action has been taken, so
+that the various parameters will reflect the new state.
+
+startitem()
+findex(tcp_on_alias)
+item(tt(tcp_on_alias) var(alias) var(fd))(
+When an alias is defined, this function will be called with two arguments:
+the name of the alias, and the file descriptor of the corresponding session.
+)
+findex(tcp_on_awol)
+item(tt(tcp_on_awol) var(sess) var(fd))(
+If the function tt(tcp_fd_handler) is handling input from the line
+editor and detects that the file descriptor is no longer reusable,
+by default it removes it from the list of file descriptors handled
+by this method and prints a message.  If the function tt(tcp_on_awol)
+is defined it is called immediately before this point.  It may
+return status 100, which indicates that the normal handling should
+still be performed; any other return status indicates that no further
+action should be taken and the tt(tcp_fd_handler) should return
+immediately with the given status.  Typically the action of tt(tcp_on_awol)
+will be to close the session.
+
+The variable tt(TCP_INVALIDATE_ZLE) will be a non-empty string if it is
+necessary to invalidate the line editor display using `tt(zle -I)' before
+printing output from the function.
+
+(`AWOL' is military jargon for `absent without leave' or some
+variation.  It has no pre-existing technical meaning known to the author.)
+)
+findex(tcp_on_close)
+item(tt(tcp_on_close) var(sess) var(fd))(
+This is called with the name of a session being closed and the file
+descriptor which corresponded to that session.  Both will be invalid by
+the time the function is called.
+)
+findex(tcp_on_open)
+item(tt(tcp_on_open) var(sess) var(fd))(
+This is called after a new session has been defined with the session name
+and file descriptor as arguments.  If it returns a non-zero status,
+opening the session is assumed to fail and the session is closed
+again; however, tt(tcp_open) will continue to attempt to open any
+remaining sessions given on the command line.
+)
+findex(tcp_on_rename)
+item(tt(tcp_on_rename) var(oldsess) var(fd) var(newsess))(
+This is called after a session has been renamed with the three arguments
+old session name, file descriptor, new session name.
+)
+findex(tcp_on_spam)
+item(tt(tcp_on_spam) var(sess) var(command ...))(
+This is called once for each session spammed, just em(before) a command is
+executed for a session by tt(tcp_spam).  The arguments are the session name
+followed by the command list to be executed.  If tt(tcp_spam) was called
+with the option tt(-t), the first command will be tt(tcp_send).
+
+This function is called after tt($TCP_SESS) is set to reflect the session
+to be spammed, but before any use of it is made.  Hence it is possible to
+alter the value of tt($TCP_SESS) within this function.  For example, the
+session arguments to tt(tcp_spam) could include extra information to be
+stripped off and processed in tt(tcp_on_spam).
+
+If the function sets the parameter tt($REPLY) to `tt(done)', the command
+line is not executed; in addition, no prompt is printed for the tt(-v)
+option to tt(tcp_spam).
+)
+findex(tcp_on_unalias)
+item(tt(tcp_on_unalias) var(alias) var(fd))(
+This is called with the name of an alias and the corresponding session's
+file descriptor after an alias has been deleted.
+)
+enditem()
+
+sect(TCP Utility Functions)
+
+The following functions are used by the TCP function system but will rarely
+if ever need to be called directly.
+
+startitem()
+findex(tcp_fd_handler)
+item(tt(tcp_fd_handler))(
+This is the function installed by tt(tcp_open) for handling input from
+within the line editor, if that is required.  It is in the format
+documented for the builtin `tt(zle -F)' in
+ifzman(\
+zmanref(zshzle)
+)\
+ifnzman(\
+noderef(Zle Builtins)
+).
+
+While active, the function sets the parameter tt(TCP_HANDLER_ACTIVE) to 1.
+This allows shell code called internally (for example, by setting
+tt(tcp_on_read)) to tell if is being called when the shell is otherwise
+idle at the editor prompt.
+)
+findex(tcp_output)
+item(tt(tcp_output) [ tt(-q) ] tt(-P) var(prompt) tt(-F) var(fd) tt(-S) var(sess))(
+This function is used for both logging and handling output to standard
+output, from within tt(tcp_read) and (if tt($TCP_OUTPUT) is set)
+tt(tcp_send).
+
+The var(prompt) to use is specified by tt(-P); the default is the empty
+string.  It can contain:
+startitem()
+item(tt(%c))(
+Expands to 1 if the session is the current session, otherwise 0.  Used
+with ternary expressions such as `tt(%LPAR()c.-.PLUS()RPAR())' to
+output `tt(PLUS())' for the current session and `tt(-)' otherwise.
+)
+item(tt(%f))(
+Replaced by the session's file descriptor.
+)
+item(tt(%s))(
+Replaced by the session name.
+)
+item(tt(%%))(
+Replaced by a single `tt(%)'.
+)
+enditem()
+
+The option tt(-q) suppresses output to standard output, but not to any log
+files which are configured.
+
+The tt(-S) and tt(-F) options are used to pass in the session name and file
+descriptor for possible replacement in the prompt.
+)
+enditem()
+
+texinode(TCP Parameters)(TCP Examples)(TCP Functions)(TCP Function System)
+sect(TCP User Parameters)
+
+Parameters follow the usual convention that uppercase is used for scalars
+and integers, while lowercase is used for normal and associative array.
+It is always safe for user code to read these parameters.  Some parameters
+may also be set; these are noted explicitly.  Others are included in this
+group as they are set by the function system for the user's benefit,
+i.e. setting them is typically not useful but is benign.
+
+It is often also useful to make settable parameters local to a function.
+For example, `tt(local TCP_SILENT=1)' specifies that data read during the
+function call will not be printed to standard output, regardless of the
+setting outside the function.  Likewise, `tt(local TCP_SESS=)var(sess)'
+sets a session for the duration of a function, and `tt(local
+TCP_PROMPT=)' specifies that no prompt is used for input during the
+function.
+
+startitem()
+vindex(tcp_expect_lines)
+item(tt(tcp_expect_lines))(
+Array.  The set of lines read during the last call to tt(tcp_expect),
+including the last (tt($TCP_LINE)).
+)
+vindex(tcp_filter)
+item(tt(tcp_filter))(
+Array. May be set directly.  A set of extended globbing patterns which,
+if matched in tt(tcp_output), will cause the line not to be printed to
+standard output.  The patterns should be defined as described for the
+arguments to tt(tcp_expect).  Output of line to log files is not affected.
+)
+vindex(TCP_HANDLER_ACTIVE)
+item(tt(TCP_HANDLER_ACTIVE))(
+Scalar.  Set to 1 within tt(tcp_fd_handler) to indicate to functions
+called recursively that they have been called during an editor session.
+Otherwise unset.
+)
+vindex(TCP_LINE)
+item(tt(TCP_LINE))(
+The last line read by tt(tcp_read), and hence also tt(tcp_expect).
+)
+vindex(TCP_LINE_FD)
+item(tt(TCP_LINE_FD))(
+The file descriptor from which tt($TCP_LINE) was read.
+tt(${tcp_by_fd[$TCP_LINE_FD]}) will give the corresponding session name.
+)
+vindex(tcp_lines)
+item(tt(tcp_lines))(
+Array. The set of lines read during the last call to tt(tcp_read),
+including the last (tt($TCP_LINE)).
+)
+vindex(TCP_LOG)
+item(tt(TCP_LOG))(
+May be set directly, although it is also controlled by tt(tcp_log).
+The name of a file to which output from all sessions will be sent.
+The output is proceeded by the usual tt($TCP_PROMPT).  If it is not an
+absolute path name, it will follow the user's current directory.
+)
+findex(TCP_LOG_SESS)
+item(tt(TCP_LOG_SESS))(
+May be set directly, although it is also controlled by tt(tcp_log).
+The prefix for a set of files to which output from each session separately
+will be sent; the full filename is tt(${TCP_LOG_SESS}.)var(sess).
+Output to each file is raw; no prompt is added.  If it is not an absolute
+path name, it will follow the user's current directory.
+)
+vindex(tcp_no_spam_list)
+item(tt(tcp_no_spam_list))(
+Array.  May be set directly.  See tt(tcp_spam) for how this is used.
+)
+vindex(TCP_OUTPUT)
+item(tt(TCP_OUTPUT))(
+May be set directly.  If a non-empty string, any data sent to a session by
+tt(tcp_send) will be logged.  This parameter gives the prompt to be used
+in a file specified by tt($TCP_LOG) but not in a file generated from
+tt($TCP_LOG_SESS).  The prompt string has the same format as
+tt(TCP_PROMPT) and the same rules for its use apply.
+)
+vindex(TCP_PROMPT)
+item(tt(TCP_PROMPT))(
+May be set directly.  Used as the prefix for data read by tt(tcp_read)
+which is printed to standard output or to the log file given by
+tt($TCP_LOG), if any.  Any `tt(%s)', `tt(%f)' or `tt(%%)' occurring in the
+string will be replaced by the name of the session, the session's
+underlying file descriptor, or a single `tt(%)', respectively.  The
+expression `tt(%c)' expands to 1 if the session being read is the current
+session, else 0; this is most useful in ternary expressions such as
+`tt(%LPAR()c.-.PLUS()RPAR())' which outputs `tt(PLUS())' if the session is
+the current one, else `tt(-)'.
+
+If the prompt starts with tt(%P), this is stripped and the complete
+result of the previous stage is passed through standard prompt tt(%)-style
+formatting before being output.
+)
+vindex(TCP_READ_DEBUG)
+item(tt(TCP_READ_DEBUG))(
+May be set directly.  If this has non-zero length, tt(tcp_read) will give
+some limited diagnostics about data being read.
+)
+vindex(TCP_SECONDS_START)
+item(tt(TCP_SECONDS_START))(
+This value is created and initialised to zero by tcp_open.
+
+The functions tt(tcp_read) and tt(tcp_expect) use the shell's
+tt(SECONDS) parameter for their own timing purposes.  If that parameter
+is not of floating point type on entry to one of the functions, it will
+create a local parameter tt(SECONDS) which is floating point and set the
+parameter tt(TCP_SECONDS_START) to the previous value of tt($SECONDS).
+If the parameter is already floating point, it is used without a local
+copy being created and tt(TCP_SECONDS_START) is not set.  As the global
+value is zero, the shell elapsed time is guaranteed to be the sum of
+tt($SECONDS) and tt($TCP_SECONDS_START).
+
+This can be avoided by setting tt(SECONDS) globally to a floating point
+value using `tt(typeset -F SECONDS)'; then the TCP functions will never
+make a local copy and never set tt(TCP_SECONDS_START) to a non-zero value.
+)
+vindex(TCP_SESS)
+item(tt(TCP_SESS))(
+May be set directly.  The current session; must refer to one of the
+sessions established by tt(tcp_open).
+)
+vindex(TCP_SILENT)
+item(tt(TCP_SILENT))(
+May be set directly, although it is also controlled by tt(tcp_log).
+If of non-zero length, data read by tt(tcp_read) will not be written to
+standard output, though may still be written to a log file.
+)
+vindex(tcp_spam_list)
+item(tt(tcp_spam_list))(
+Array.  May be set directly.  See the description of the function
+tt(tcp_spam) for how this is used.
+)
+vindex(TCP_TALK_ESCAPE)
+item(tt(TCP_TALK_ESCAPE))(
+May be set directly.  See the description of the function tt(tcp_talk) for
+how this is used.
+)
+vindex(TCP_TIMEOUT)
+item(tt(TCP_TIMEOUT))(
+May be set directly.  Currently this is only used by the function
+tt(tcp_command), see above.
+)
+enditem()
+
+sect(TCP User-defined Parameters)
+
+The following parameters are not set by the function system, but have
+a special effect if set by the user.
+
+startitem()
+vindex(tcp_on_read)
+item(tt(tcp_on_read))(
+This should be an associative array; if it is not, the behaviour is
+undefined.  Each key is the name of a shell function or other command,
+and the corresponding value is a shell pattern (using tt(EXTENDED_GLOB)).
+Every line read from a TCP session directly or indirectly using
+tt(tcp_read) (which includes lines read by tt(tcp_expect)) is compared
+against the pattern.  If the line matches, the command given in the key is
+called with two arguments: the name of the session from which the line was
+read, and the line itself.
+
+If any function called to handle a line returns a non-zero status, the
+line is not output.  Thus a tt(tcp_on_read) handler containing only
+the instruction `tt(return 1)' can be used to suppress output of
+particular lines (see, however, tt(tcp_filter) above).  However, the line
+is still stored in tt(TCP_LINE) and tt(tcp_lines); this occurs after all
+tt(tcp_on_read) processing.
+)
+enditem()
+
+sect(TCP Utility Parameters)
+
+These parameters are controlled by the function system; they may be read
+directly, but should not usually be set by user code.
+
+startitem()
+findex(tcp_aliases)
+item(tt(tcp_aliases))(
+Associative array.  The keys are the names of sessions established with
+tt(tcp_open); each value is a space-separated list of aliases which refer
+to that session.
+)
+findex(tcp_by_fd)
+item(tt(tcp_by_fd))(
+Associative array.  The keys are session file descriptors; each
+value is the name of that session.
+)
+findex(tcp_by_name)
+item(tt(tcp_by_name))(
+Associative array.  The keys are the names of sessions; each value is the
+file descriptor associated with that session.
+)
+enditem()
+
+texinode(TCP Examples)(TCP Bugs)(TCP Parameters)(TCP Function System)
+sect(TCP Examples)
+
+Here is a trivial example using a remote calculator.
+
+To create a calculator server on port 7337 (see the tt(dc) manual page for
+quite how infuriating the underlying command is):
+
+example(tcp_proxy 7337 dc)
+
+To connect to this from the same host with a session also named `tt(dc)':
+
+example(tcp_open localhost 7337 dc)
+
+To send a command to the remote session and wait a short while for output
+(assuming tt(dc) is the current session):
+
+example(tcp_command 2 4 + p)
+
+To close the session:
+
+example(tcp_close)
+
+The tt(tcp_proxy) needs to be killed to be stopped.  Note this will not
+usually kill any connections which have already been accepted, and also
+that the port is not immediately available for reuse.
+
+The following chunk of code puts a list of sessions into an xterm header,
+with the current session followed by a star.
+
+example(print -n "\033]2;TCP:" ${(k)tcp_by_name:/$TCP_SESS/$TCP_SESS\*} "\a")
+
+texinode(TCP Bugs)()(TCP Examples)(TCP Function System)
+sect(TCP Bugs)
+
+The function tt(tcp_read) uses the shell's normal tt(read) builtin.  As
+this reads a complete line at once, data arriving without a terminating
+newline can cause the function to block indefinitely.
+
+Though the function suite works well for interactive use and for data
+arriving in small amounts, the performance when large amounts of data are
+being exchanged is likely to be extremely poor.

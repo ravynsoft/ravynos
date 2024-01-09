@@ -1,0 +1,16 @@
+#autoload
+
+local expl
+
+_tags fonts || return 1
+
+# This *has* to be improved some day...
+
+if (( ! $+_font_cache )); then
+  typeset -gU _font_cache
+
+ _font_cache=( ${(f)"$(_call_program fonts xlsfonts)"} )
+fi
+
+_wanted fonts expl font \
+    compadd -M 'r:|-=* r:|=*' "$@" -a - _font_cache

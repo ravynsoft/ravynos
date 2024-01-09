@@ -1,0 +1,177 @@
+#compdef php -P php[0-9.-]
+
+# Notes:
+# - We make no distinction between internal and user functions
+# - We don't complete CGI options, which are rarely used interactively
+# - Exclusivity on some of the miscellaneous options isn't very accurate
+# - @todo Arguments to an -f script aren't completed accurately -- we need to
+#   massage words/CURRENT so that the -f arg becomes words[1], but if we just
+#   leave it at that the output will break if the script has any options of its
+#   own. We would want to complete script options only following `--`, as in
+#   `php -f /bin/foo -- -<TAB>`
+
+# Complete PHP class names
+(( $+functions[_php_classes] )) ||
+_php_classes() {
+  local cmd
+  local -a tmp
+
+  cmd='foreach ( get_declared_classes() as $c ) { echo "$c\n"; }'
+  tmp=( ${(f)"$( _call_program classes $words[1] -r ${(q)cmd} )"} )
+
+  _wanted -x classes expl 'PHP class' compadd -a "$@" - tmp
+}
+
+# Complete PHP extensions/module names; use --zend for Zend extensions only
+(( $+functions[_php_extensions] )) ||
+_php_extensions() {
+  local idx
+  local -a expl zend tmp
+
+  zparseopts -a zend -D -E -- -zend
+
+  # `php -m` lists all extensions under two sections called '[PHP Modules]' and
+  # '[Zend Modules]'. An extension can (but won't necessarily) exist under both
+  # of these at the same time
+  tmp=( ${(f)"$( _call_program extensions $words[1] -m )"} )
+  idx=${tmp[(i)\[Zend Modules\]]}
+
+  # Get only Zend extensions (for --rz)
+  if (( $#zend )); then
+    tmp=( ${(@)tmp[(idx+1),-1]} )
+  # Get PHP extensions (for everything else)
+  else
+    tmp=( ${(@)tmp[2,(idx-1)]} )
+  fi
+
+  _wanted -x extensions expl 'PHP extension' compadd -a "$@" - tmp
+}
+
+# Complete PHP function names
+(( $+functions[_php_functions] )) ||
+_php_functions() {
+  local cmd
+  local -a expl tmp
+
+  cmd='
+    foreach ( get_defined_functions() as $a ) {
+      foreach ( $a as $f ) {
+        echo "$f\n";
+      }
+    }
+  '
+  tmp=( ${(f)"$( _call_program functions $words[1] -r ${(q)cmd} )"} )
+
+  _wanted -x functions expl 'PHP function' compadd -a "$@" - tmp
+}
+
+_php() {
+  local curcontext=$curcontext php_suffix php_files ret=1
+  local -a context expl line state state_descr args
+  local -A opt_args
+
+  zstyle -s ":completion:${curcontext}:" suffixes php_suffix '|' ||
+  php_suffix='php|php5|phar'
+
+  php_files=":PHP file:_files -g '*.($php_suffix)(#q-.)'"
+
+  args=(
+    + mc # Misc. options
+    '(-a --interactive)'{-a,--interactive}'[run interactively]'
+    '*'{-d+,--define=}'[define INI directive]: :->directive'
+    '(-e --profile-info)'{-e,--profile-info}'[generate extended information for debugger/profiler]'
+    '(-H --hide-args)'{-H,--hide-args}'[hide script name and arguments from external tools]'
+    '(fi im pb pf rf rn sc sv *)--ini[display configured INI paths]'
+    # Note: PHP does not automatically prepend extension_dir to extension file
+    # names (the way it does when parsing the INI file) at the command line
+    '*'{-z+,--zend-extension=}'[load specified Zend extension]:Zend extension:_files -g "*.so(|.*)(#q-.)"'
+
+    + '(fi)' # File arguments
+    "(im pb pf rf sv)"{-f+,--file=}'[parse and/or execute specified file]'$php_files
+    '(-)1'$php_files
+
+    + '(hv)' # Help/version options; kept separate by convention
+    '(- 1 *)'{-h,--help}'[display help information]'
+    '(- 1 *)'{-v,--version}'[display version information]'
+    '!(- 1 *)'{-\?,--usage}
+
+    + '(im)' # Info/module options (exclusive with everything but -c/-n)
+    '(fi mc pb pf rf rn sc sv *)'{-i,--info}'[display configuration information (phpinfo())]'
+    '(fi mc pb pf rf rn sc sv *)'{-m,--modules}'[display installed extensions]'
+
+    + '(in)' # php.ini set/disable options (unrelated to --ini!)
+    {-c+,--php-ini=}'[specify php.ini or containing directory]:INI file or directory:_files -g "*.ini(-.)"'
+    {-n,--no-php-ini}'[ignore php.ini]'
+
+    + '(pb)' # Input-processing begin/end options
+    '(-B --process-begin fi im rf rn sc sv)'{-B+,--process-begin=}'[run specified PHP code before processing input lines]:PHP code:'
+    '(-E --process-end fi im rf rn sc sv)'{-E+,--process-end=}'[run specified PHP code after processing input lines]:PHP code:'
+
+    + '(pf)' # Input-processing options
+    '(fi im rf rn sc sv)'{-R+,--process-code=}'[run specified PHP code for every input line]:PHP code:'
+    '(fi im rf rn sc sv)'{-F+,--process-file=}'[parse and execute specified file for every input line]'$php_files
+
+    + '(rf)' # Reflection options
+    '(fi im rn pb pf sc sv *)'{--rc=,--rclass=}'[display information about specified class]: :_php_classes'
+    '(fi im rn pb pf sc sv *)'{--re=,--rextension=}'[display information about specified extension]: :_php_extensions'
+    '(fi im rn pb pf sc sv *)'{--rf=,--rfunction=}'[display information about specified function]: :_php_functions'
+    '(fi im rn pb pf sc sv *)'{--ri=,--rextinfo=}'[display configuration information about specified extension]: :_php_extensions'
+    '(fi im rn pb pf sc sv *)'{--rz=,--rzendextension=}'[display information about specified Zend extension]: :_php_extensions --zend'
+
+    + '(rn)' # Run-script options
+    "(fi im pb pf rf sc sv)"{-r+,--run=}'[run specified PHP code]:PHP code:'
+
+    + '(sc)' # Source-checking/formatting options
+    '(im pb pf rf rn sv *)'{-l,--syntax-check}'[check syntax only (lint)]'
+    '(im pb pf rf rn sv *)'{-s,--syntax-highlight}'[display HTML syntax-highlighted source]'
+    '!(im pb pf rf rn sv *)--syntax-highlighting'
+    '(im pb pf rf rn sv *)'{-w,--strip}'[display source stripped of comments and whitespace]'
+
+    + sv # Built-in Web server options
+    '(-S --server fi im pb pf rf rn sc *)'{-S+,--server=}'[start Web server on specified address/port]: :->server'
+    '(-t --docroot fi im pb pf rf rn sc *)'{-t+,--docroot=}'[specify Web-server document root]:document root:_directories'
+
+    + ar # Script-argument operands
+    '(-)*:: :->argument'
+  )
+
+  _arguments -C -s -S : $args && ret=0
+
+  case $state in
+    argument)
+      if [[ -n $opt_args[(i)(pb|pf|rn)-*] ]]; then
+        _description files expl 'script argument'
+        _files "${(@)expl}" && ret=0
+      else
+        _normal && ret=0
+      fi
+      ;;
+    directive)
+      local -a directives suf
+      local code='foreach (ini_get_all() as $k => $v) { echo "$k\n"; }'
+      directives=( ${(f)"$(
+        _call_program directives $words[1] -r ${(q)code}
+      )"} )
+      if compset -P 1 '*='; then
+        _default && ret=0
+      else
+        compset -S '=*' || suf=( -qS '=' )
+        _wanted directives expl 'INI directive' \
+          compadd "$suf[@]" -a directives && ret=0
+      fi
+      ;;
+    server)
+      if compset -P '*:'; then
+        _wanted -2V port-numbers expl 'port number' \
+          compadd 80 81 443 591 8000 8001 8008 8080 8443 && ret=0
+        ret=0
+      else
+        _wanted hosts expl 'local address' _bind_addresses -0bhK -qS: && ret=0
+      fi
+      ;;
+  esac
+
+  return ret
+}
+
+_php "$@"

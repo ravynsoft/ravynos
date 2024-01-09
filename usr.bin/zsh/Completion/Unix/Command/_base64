@@ -1,0 +1,59 @@
+#compdef base64 gbase64 base32 gbase32
+
+# Note: This does NOT cover `uuencode`/`uudecode`, which on some BSD systems
+# have the aliases `b64encode`/`b64decode` — those are sufficiently different
+# that they belong in another function. It DOES cover GNU's `base32`, since it
+# is essentially the same program as their `base64`.
+
+local variant type=base${service//[^2346]/}
+
+_pick_variant -r variant \
+  gnu='Free Soft' fourmilab=fourmi darwin=-D unix --version
+
+case $variant in
+  gnu)
+    _arguments -s -S : \
+      '(: -)--help[display help information]' \
+      '(: -)--version[display version information]' \
+      + dec \
+      '(enc -d --decode)'{-d,--decode}"[decode input from $type]" \
+      '(enc -i --ignore-garbage)'{-i,--ignore-garbage}'[ignore irrelevant characters when decoding]' \
+      + '(enc)' \
+      '(dec)'{-w+,--wrap=}'[wrap encoded lines at specified number of columns]:number of columns' \
+      + in \
+      '1:input file:_files'
+    return
+    ;;
+  darwin)
+    _arguments -s -S : \
+      '(: -)'{-h,--help}'[display help information]' \
+      + '(dec)' \
+      '(enc)'{-D,--decode}"[decode input from $type]" \
+      + '(enc)' \
+      '(dec)'{-b+,--break=}'[wrap encoded lines at specified number of columns]:number of columns' \
+      + '(out)' \
+      {-o+,--output=}'[specify output file]:output file:_files' \
+      + '(in)' \
+      {-i+,--input=}'[specify input file]:input file:_files' \
+      '1:input file:_files'
+    return
+    ;;
+  fourmilab)
+    _arguments -s -S : \
+      '(: -)--copyright[display copyright information]' \
+      '(: -)'{-u,--help}'[display help information]' \
+      '(: -)--version[display version information]' \
+      + dec \
+      '(enc -d --decode)'{-d,--decode}"[decode input from $type]" \
+      '(enc -n --noerrcheck)'{-n,--noerrcheck}'[ignore errors when decoding]' \
+      + '(enc)' \
+      '(dec)'{-e,--encode}"[encode input to $type]" \
+      + io \
+      '1:input file:_files' \
+      '2:output file:_files'
+    return
+    ;;
+esac
+
+# A few other implementations exist, though they are rarely encountered
+_default

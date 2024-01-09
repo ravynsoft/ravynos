@@ -1,0 +1,13 @@
+#compdef nautilus
+
+_arguments \
+  '--browser[open a browser window]' \
+  '(--check -c)'{-c,--check}'[perform a quick set of self-check tests]' \
+  '(--geometry -g)'{-g,--geometry=}':geometry:_x_geometry' \
+  '(--no-default-window -n)'{-n,--no-default-window}'[only create windows for explicitly specified URIs]' \
+  '--no-desktop[do not manage the desktop]' \
+  '(--quit -q)'{-q,--quit}'[quit Nautilus]' \
+  '--help[show a summary of options]' \
+  '--version[show version]' \
+  '*:URI: _alternative "files:file:_files" "urls:URL:_urls"'
+

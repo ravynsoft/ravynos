@@ -1,0 +1,31 @@
+#compdef cygcheck cygcheck.exe
+
+# cygwin 1.5.25
+
+local curcontext="$curcontext" state line expl
+typeset -A opt_args
+
+local -a exclusive_opts
+exclusive_opts=(-k --keycheck -f --find-package -l --list-package -p --package-query -h --help -V --version)
+
+_arguments -C -s -S \
+  "(* $exclusive_opts -c --check-setup)"{-c,--check-setup}'[show installed version of the specified package and verify integrity (or for all installed packages if none specified)]:*:package:->package' \
+  "(* $exclusive_opts -d --dump-only)"{-d,--dump-only}'[just list packages, do not verify (with -c)]' \
+  "(* $exclusive_opts -s --sysinfo)"{-s,--sysinfo}'[produce diagnostic system information (implies -c -d)]' \
+  "(* $exclusive_opts -r --registry)"{-r,--registry}'[also scan registry for Cygwin settings (with -s)]' \
+  '(* -)'{-k,--keycheck}'[perform a keyboard check session (must be run from a plain console only, not from a pty/rxvt/xterm)]' \
+  '(* -)'{-f,--find-package}'[find the package that specified file belongs to]:*:file:_files' \
+  '(* -)'{-l,--list-package}'[list contents of the specified package (or all packages if none given)]:*:package:->package' \
+  '(* -)'{-p,--package-query}'[search for the specified regexp in the entire cygwin.com package repository (requires internet connectivity)]:regexp:' \
+  '(-V --version -k --keycheck -f --find-package -l --list-package -p --package-query -c --check-setup -d --dump-only -v --verbose)'{-v,--verbose}'[produce more verbose output]' \
+  '(-V --version -k --keycheck -f --find-package -l --list-package -p --package-query -c --check-setup -d --dump-only -h --help)'{-h,--help}'[annotate output with explanatory comments when given with another command, otherwise print this help]' \
+  '(* -)'{-V,--version}'[print the version of cygcheck and exit]' \
+  '(-)*:program: _command_names -e' && return
+
+if [[ "$state" = package ]]; then
+  local -a packages
+  packages=( ${${${(f)"$(_call_program packages $words[1] -c -d)"}[3,-1]}%% *} )
+  _wanted packages expl package compadd -a packages && return
+fi
+
+return 1

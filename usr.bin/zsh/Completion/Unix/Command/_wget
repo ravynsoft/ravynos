@@ -1,0 +1,222 @@
+#compdef wget
+
+local curcontext="$curcontext" state line expl
+typeset -A opt_args
+
+_arguments -C -s \
+  '(- *)'{--version,-V}'[display version info]' \
+  '(- *)'{--help,-h}'[display help]' \
+  '(--background -b)'{--background,-b}'[run in background]' \
+  '(--execute -e)'{--execute=,-e+}'[execute .wgetrc command]:.wgetrc command' \
+  '(--output-file -o --append-output -a)'{--output-file=,-o+}'[specify output logfile]:log file to output:_files' \
+  '(--append-output -a --output-file -o)'{--append-output=,-a+}'[specify output logfile to append to]:log file to append:_files' \
+  '(--debug -d)'{--debug,-d}'[turn on debug output]' \
+  '(--quiet -q --verbose -v --no-verbose -nv)'{--quiet,-q}'[turn off output]' \
+  '(--quiet -q --verbose -v --no-verbose -nv)'{--verbose,-v}'[turn on verbose output]' \
+  '*-n+[turn off flags]:flags:->noflags' \
+  '--report-speed=:type:(bits)' \
+  '(--input-file -i)'{--input-file=,-i+}'[specify input file]:file containing URLs:_files' \
+  '--input-metalink=[download files covered in local Metalink file]:file:_files' \
+  '(--force-html -F)'{--force-html,-F}'[treat input file as html]' \
+  '(--base -B)'{--base=,-B+}'[prepend URL to relative links]:base URL:_urls' \
+  '--config=[specify config file]:config file:_files' \
+  '(--config)--no-config' '--rejected-log=:file:_files' \
+  '(--tries -t)'{--tries=,-t+}'[set number of retries]:number of retries' \
+  '--retry-connrefused[retry even if connection is refused]' \
+  '--retry-on-http-error=[specify list of HTTP errors to retry]:http error' \
+  '(--output-document -O)'{--output-document=,-O+}'[specify file to write documents to]:output file:_files' \
+  '(--continue -c)'{--continue,-c}'[continue getting an existing file]'  \
+  '--start-pos=:offset' '--show-progress' \
+  '--progress=[set progress gauge type]:gauge type:->gauge' \
+  '(--timestamping -N)'{--timestamping,-N}'[retrieve only files newer than existing]' \
+  '--no-if-modified-since' \
+  "--no-use-server-timestamps[don't set the local file's timestamp by the one on the server]" \
+  '(--server-response -S)'{--server-response,-S}'[print server response]' \
+  "--spider[don't download anything]" \
+  '(--timeout -T)'{--timeout=,-T+}'[set all timeout values]:timeout (seconds)' \
+  '--dns-servers=[specify DNS servers to query]:DNS server:_sequence _hosts' \
+  '--bind-dns-address=[bind DNS resolver to specified address]:hostname or IP on local host' \
+  '(--timeout -T)--dns-timeout=[set the DNS lookup timeout]:DNS lookup timeout (seconds)' \
+  '(--timeout -T)--connect-timeout=[set the connect timeout]:connect timeout (seconds)' \
+  '(--timeout -T)--read-timeout=[set the read timeout]:read timeout (seconds)' \
+  '(--wait -w)'{--wait=,-w+}'[specify wait between retrievals]:time (seconds)' \
+  '(--random-wait)--waitretry=:time (seconds)' \
+  '(--waitretry)--random-wait[random wait time between retrievals]' \
+  '--no-proxy[explicitly turn off proxy]' \
+  '(--quota -Q)'{--quota=,-Q+}'[set retrieval quota]:number' \
+  '--bind-address=[specify address to bind to (hostname or IP)]:bind address:_bind_addresses' \
+  '--limit-rate=[specify limit to download rate]:download rate limit' \
+  '--no-dns-cache[disable caching DNS lookups]' \
+  '--restrict-file-names=[restrict chars in file names to ones OS allows]:OS:->restrict' \
+  '--ignore-case[ignore case when matching files/directories]' \
+  '(-4 --inet4-only -6 --inet6-only)'{-4,--inet4-only}'[connect only to IPv4 addresses]' \
+  '(-4 --inet4-only -6 --inet6-only)'{-6,--inet6-only}'[connect only to IPv6 addresses]' \
+  '--prefer-family=[connect first to addresses of specified family]:address family:(IPv6 IPv4 none)' \
+  '(--http-user --ftp-user)--user[set both ftp and http user]:user' \
+  '(--http-password --ftp-password)--password[set both ftp and http password]:password' \
+  '(--password --http-password --ftp-password)--ask-password:[prompt for passwords]' \
+  '--use-askpass=:command:_command_names -e' \
+  '--no-iri[turn off IRI support]' \
+  '--local-encoding=[specify local encoding for IRIs]:encoding' \
+  '--remote-encoding=[specify default remote encoding]:encoding' \
+  '--unlink[remove file before clobber]' \
+  '--keep-badhash[Keep files with checksum mismatch (append .badhash)]' \
+  '--metalink-index=[metalink application/metalink4+xml metaurl ordinal]:number' \
+  '--metalink-over-http[use Metalink metadata from HTTP response headers]' \
+  '--preferred-location[preferred location for Metalink resources]' \
+  '--xattr[turn on storage of metadata in extended file attributes]' \
+  '(-nd --no-directories)'{-nd,--no-directories}"[don't create directories]" \
+  '(--force-directories -x)'{--force-directories,-x}'[force creation of directories]' \
+  '(-nH --no-host-directories)'{-nH,--no-host-directories}"[don't create host directories]" \
+  '--protocol-directories[use protocol name in directories]' \
+  '(--directory-prefix -P)'{--directory-prefix=,-P+}'[specify prefix to save files to]:prefix:_files -/' \
+  '--cut-dirs=:number:' \
+  '(--user)--http-user=:user' \
+  '(--password --ask-password)--http-password=:password' \
+  '--no-cache[disallow server-cached data]' \
+  '--default-page=[specify default page name, normally index.html]:default page [index.html]' \
+  '(--adjust-extension -E)'{--adjust-extension,-E}'[save all HTML/CSS documents with proper extensions]' \
+  "--ignore-length[ignore \`Content-Length' header field]" \
+  '*--header=[send a custom HTTP header]:header:->header' \
+  '--compression=:compression:(auto gzip none)' \
+  '--max-redirect=:number' \
+  '--proxy-user=:user' \
+  '--proxy-password=:password' \
+  '--referer=:URL:_urls' \
+  '--save-headers[save http headers]' \
+  '(--user-agent -U)'{--user-agent=,-U+}'[specify user agent to identify as]:user-agent' \
+  '--no-http-keep-alive[disable HTTP keep-alive]' \
+  '--no-cookies[turn cookies off]' \
+  '--load-cookies=[specify file to load cookies from]:cookie file:_files' \
+  '--save-cookies=[specify file to save cookies to]:cookie file:_files' \
+  '--keep-session-cookies[load and save session cookies]' \
+  '--post-data=[use the POST method with specified data]:data to send' \
+  '--post-file=[use the POST method; sending contents of a file]:file:_files' \
+  '--method=[use specified HTTP method]:method:(GET POST HEAD DELETE)' \
+  '(--body-file)--body-data=[send string as data]:string' \
+  '(--body-data)--body-file=[send contents of file]:file:_files' \
+  '--content-disposition[honor the Content-Disposition header when choosing local file names]'  \
+  '--content-on-error[output received content on server errors]' \
+  "--auth-no-challenge[send basic HTTP authentication without first waiting for server's challenge]" \
+  '--secure-protocol=[choose secure protocol]:protocol:(SSLv2 SSLv3 TLSv1 TLSv1_1 TLSv1_2 PFS)' \
+  --https-only \
+  "--no-check-certificate[don't check the server certificate]" \
+  '--certificate=[specify client certificate]:client certificate file:_files' \
+  '--certificate-type=[specify client certificate type]:certificate type:(PEM DER)' \
+  '--private-key=[specify private key file]:key file:_files' \
+  '--private-key-type=[specify private key type]:key type:key type:(PEM DER)' \
+  "--ca-certificate=[specify file with bundle of CA's]:file:_files" \
+  "--ca-directory=[specify dir where hash list of CA's are stored]:directory:_directories" \
+  '--crl-file=[specify file with bundle of CRLs]:file:_files' \
+  '--pinnedpubkey=:file:_files' \
+  '--random-file[specify file with random data for seeding generator]:file:_files' \
+  '--egd-file=[specify filename of EGD socket]:file:_files' \
+  '--ciphers=[set the priority string (GnuTLS) or cipher list string (OpenSSL) directly]:string' \
+  '--no-hsts[disable HSTS]' \
+  '--hsts-file[specify path of HSTS database]:file:_files' \
+  '(--user)--ftp-user=:user' \
+  '(--password --ask-password)--ftp-password=:password' \
+  "--no-remove-listing[don't remove \`.listing' files]" \
+  '--no-glob[turn off FTP file name globbing]' \
+  '--no-passive-ftp' \
+  '--preserve-permissions[preserve remote file permissions with ftp]' \
+  --retr-symlinks --ftps-implicit --ftps-resume-ssl \
+  --ftps-clear-data-connection --ftps-fallback-to-ftp \
+  '--warc-file=:file:_files' --warc-header=:string --warc-max-size=:number \
+  --warc-cdx --warc-dedup=:file:_files --no-warc-compression --no-warc-digests \
+  --no-warc-keep-log --warc-tempdir=:directory:_directories \
+  '(--recursive -r)'{--recursive,-r}'[recurse subdirectories]' \
+  '(--level -l)'{--level=,-l+}'[specify maximum recursion depth]:level' \
+  '--delete-after' \
+  '(--convert-links -k)'{--convert-links,-k}'[convert links to be relative]' \
+  --convert-file-only \
+  '--backups=:max backups' \
+  '(--backup-converted -K)'{--backup-converted,-K}'[backup files before conversion]' \
+  '(--mirror -m -r -N -l)'{--mirror,-m}'[mirror (-r -N -l inf --no-remove-listing)]' \
+  '(--page-requisites -p)'{--page-requisites,-p}'[get all images needed to display page]' \
+  '--strict-comments[turn on strict (SGML) handling of HTML comments]' \
+  '(--accept -A)'{--accept=,-A+}'[specify accepted extensions]:extensions' \
+  '(--reject -R)'{--reject=,-R+}'[specify rejected extensions]:extensions' \
+  --{accept,reject}-regex=:regex '--regex-type=:regex type:(posix pcre)' \
+  '(--domains -D)'{--domains=,-D+}'[specify accepted domains]:domains:_domains' \
+  '--exclude-domains=:rejected domain:_sequence _domains' \
+  '--follow-ftp' \
+  '--follow-tags=:HTML tags:' \
+  '--ignore-tags=[specify ignored HTML tags]:HTML tags' \
+  '(--span-hosts -H)'{--span-hosts,-H}'[span hosts]' \
+  '(--relative -L)'{--relative,-L}'[follow relative links only]' \
+  '(--include-directories -I)'{--include-directories=,-I+}'[include directories]:allowed directories' \
+  '--trust-server-names' \
+  '(--exclude-directories -X)'{--exclude-directories=,-X+}'[exclude directories]:excluded directories' \
+  '(-np --no-parent)'{-np,--no-parent}"[don't ascend to parent directory]" \
+  '--no-verbose' \
+  '--no-clobber' \
+  '--no-netrc' \
+  '--no-use-server-timestamps[do not set timestamp to server provided value]' \
+  '--htmlify=:htmlify:' \
+  '--no:no:->noflags' \
+  '*:URL:_urls' && return 0
+
+case "$state" in
+  gauge)
+    _values -S : 'progress gauge type' \
+      'dot:style:(default binary mega giga micro)' \
+      'bar:force:(force)'
+  ;;
+  noflags)
+    _values -s '' 'option' \
+      'v[non verbose]' \
+      'H[no host directories]' \
+      'd[no directories]' \
+      'c[no clobber]' \
+      'p[no parent]'
+  ;;
+  restrict)
+    _values -s , 'filename char restriction' \
+      '(windows)unix' \
+      '(unix)windows' \
+      '(unix windows)nocontrol' \
+      ascii \
+      '(uppercase)lowercase' \
+      '(lowercase)uppercase'
+  ;;
+  header)
+    local -a headers
+    local suf=': '
+    compquote suf
+    headers=(
+             Accept{,-{Charset,Encoding,Language,Datetime}}
+             Authorization
+             Cache-Control
+             Connection
+             Cookie
+             Content-{Length,MD5,Type}
+             Date
+             Expect
+             From
+             Host
+             If-Match
+             If-Modified-Since
+             If-None-Match
+             If-Range
+             If-Unmodified-Since
+             Max-Forwards
+             Pragma
+             Proxy-Authorization
+             Range
+             Referer
+             TE
+             Upgrade
+             User-Agent
+             Via
+             Warning
+             X-Requested-With
+             X-Do-Not-Track
+             DNT
+             X-Forwarded-For
+             X-ATT-DeviceId
+             X-Wap-Profile
+             )
+    _wanted headers expl 'HTTP header' compadd -S $suf -a headers
+  ;;
+esac

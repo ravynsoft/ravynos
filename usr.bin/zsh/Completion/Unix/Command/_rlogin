@@ -1,0 +1,75 @@
+#compdef rlogin rsh remsh=rsh rcp
+
+_rlogin () {
+  case "$service" in
+  rlogin)
+    _arguments -s \
+      '-8[allow 8-Bit data]' \
+      '-e-[specify escape character]:escape character:' \
+      '-l[specify login user name]:login as:_rlogin_users' \
+      ':remote host name:_rlogin_hosts'
+    ;;
+  rsh|remsh)
+    local context state line ret=1
+    typeset -A opt_args
+    local -a _comp_priv_prefix
+
+    _arguments -s \
+      '-n[ignore stdin]' \
+      '-l[specify login user name]:login as:_rlogin_users' \
+      ':remote host name:_rlogin_hosts' \
+      '(-):command: _command_names -e' \
+      '*::command:->command' && ret=0
+
+    if [[ -n "$state" ]]; then
+      shift 1 words
+      (( CURRENT-- ))
+      _normal && ret=0
+    fi
+    return ret
+    ;;
+  rcp)
+    local curcontext="$curcontext" state line ret=1 expl
+    typeset -A opt_args
+
+    _arguments -C -s \
+      '-p[preserve modification times]' \
+      '-r[recursively copy directories]' \
+      '*:files:->files' && ret=0
+
+    if [[ -n "$state" ]]; then
+      if compset -P 1 '*:'; then
+	_remote_files -- rsh && ret=0
+      elif compset -P 1 '*@'; then
+        _wanted hosts expl host _rlogin_hosts -S: && ret=0
+      else
+        _alternative \
+	    'files:: _files' \
+	    'hosts:: _rlogin_all_hosts -S:' \
+	    'users:: _rlogin_users -qS@' && ret=0
+      fi
+    fi
+    return ret
+    ;;    
+  esac
+}
+
+_rlogin_users () {
+  _tags users && _combination -s '[:@]' my-accounts users-hosts users "$@"
+}
+
+_rlogin_hosts () {
+  _tags hosts &&
+      if [[ "$IPREFIX" == *@ ]]; then
+        _combination -s '[:@]' my-accounts users-hosts "users=${IPREFIX/@}" hosts "$@"
+      else
+        _combination -s '[:@]' my-accounts users-hosts \
+            ${opt_args[-l]:+"users=${opt_args[-l]:q}"} hosts "$@"
+      fi
+}
+
+_rlogin_all_hosts () {
+  _tags hosts && _combination -s '[:@]' my-accounts users-hosts hosts "$@"
+}
+
+_rlogin "$@"

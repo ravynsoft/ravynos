@@ -1,0 +1,83 @@
+#compdef open
+
+# Notes:
+# - open(1) says that -f opens the result in the default text editor. This is
+#   not true; the result is always opened in TextEdit unless another option is
+#   supplied to override it
+# - We no longer try to restrict files to those associated with the specified
+#   app; this was a nice idea, but it's unreliable
+
+_open_absolute_application_path() {
+  local expl curcontext
+  zstyle -T ":completion:${curcontext}:files" prefix-needed && \
+    [[ "$PREFIX" != [/~]* && compstate[nmatches] -ne 0 ]] && return 1
+  _wanted files expl 'application file' _path_files -P "$PREFIX[1]" -W /
+}
+
+_open() {
+  local curcontext=$curcontext ret=1
+  local -a context expl line state state_descr tmp
+  local -A opt_args val_args
+
+  # No +, and no -S (--args covers that)
+  _arguments -s -C : \
+    '(-a -b -e -f -R -t)-a+[specify application name]: :->applications' \
+    '(: * -)--args[pass remaining arguments to application]:*:::argument' \
+    '(-a -b -e -f -R -t)-b+[specify application bundle identifier]: :->bundle-ids' \
+    '(-a -b -e -f -R -t)-e[open with TextEdit]' \
+    '(-h)-f[open standard input with TextEdit or specified application]' \
+    '(-R)-F[open application with fresh state]' \
+    '-g[do not bring application to foreground]' \
+    '(-f)-h[open library header file]' \
+    '(-R)-n[always open new instance of application]' \
+    '(-a -b -e -f -F -n -s -t -W --args)-R[reveal in Finder]' \
+    '(-R)-s+[specify SDK name/version]: :->sdks' \
+    '(-a -b -e -f -R -t)-t[open with default text editor]' \
+    '(-R)-W[wait for application to exit]' \
+    '(-f)*: :->files' \
+  && ret=0
+
+  case $state in
+    applications)
+      _alternative \
+        "commands: :_mac_applications" \
+        "files:: _open_absolute_application_path" \
+      && ret=0
+      ;;
+    bundle-ids)
+      autoload -Uz zargs
+      _retrieve_mac_apps
+      tmp=( ${(@)_mac_apps:#/System/Library/(Private|)Frameworks/*} )
+      tmp=( ${(0)"$(
+        _call_program bundle-ids \
+          zargs -n300 -P2 -- ${(@q)tmp} -- mdls -rn kMDItemCFBundleIdentifier
+      )"} )
+      tmp=( ${(@)tmp:#\(null\)} )
+      _values 'bundle identifier' $tmp com.apple.TextEdit && ret=0
+      ;;
+    files)
+      if (( $+opt_args[-h] )); then
+        tmp=(
+          /System/Library/Frameworks/*/Headers/*.h(#q-.N:t)
+          /usr/local/include/**/*.h(#q-.N:t)
+          /usr/include/**/*.h(#q-.N:t)
+        )
+        _describe -t headers 'header file' tmp && ret=0
+      else
+        _webbrowser && ret=0
+      fi
+      ;;
+    sdks)
+      tmp=( /Library/Developer/CommandLineTools/SDKs/*.*.sdk(#qN:t:r) )
+      if (( $#tmp )); then
+        _describe -t sdks 'SDK name/version' tmp && ret=0
+      else
+        _message -e sdks 'SDK name/version' && ret=0
+      fi
+      ;;
+  esac
+
+  return ret
+}
+
+_open "$@"

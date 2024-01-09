@@ -1,0 +1,225 @@
+#compdef swanctl
+
+# Completion for strongSwan's swanctl. See also ipsec, which is deprecated but
+# still supported by strongSwan, and also used by Openswan/Libreswan.
+#
+# Note that in most cases elevated privileges are required to connect to the
+# VICI socket, so the gain-privileges style may be necessary to complete SA
+# names and the like: zstyle ':completion:*:swanctl/*' gain-privileges yes
+#
+# Other notes:
+# - One of swanctl's selling points is that it can provide 'raw' structured
+#   responses for scripting, etc. In practice, though, the output formatted for
+#   humans seems easier to 'parse' from the shell than the plist-like raw output
+# - @todo We don't complete authority names, pool names, peer IPs, etc.
+
+# Complete connection names, SA names, or SA unique IDs. The distinctions
+# between concepts like 'connections' and 'SAs' are very blurry here, partially
+# for convenience and partially due to author confusion
+# --child => complete only child/CHILD_SA names/IDs
+# --ids   => complete unique SA IDs rather than connection/SA names
+# --ike   => complete only connection/IKE_SA names/IDs
+(( $+functions[_swanctl_connections] )) ||
+_swanctl_connections() {
+  local i which
+  local -a expl tmp matches
+  local -A opts
+
+  zparseopts -D -E -A opts - -child -ids -ike
+
+  tmp=( ${(@M)${(f)"$(
+    _call_program -p swanctl-sas $words[1] -l
+  )"}:#[^:]##: \#<->*} )
+  (( $+opts[--ids] )) || tmp+=( ${(@M)${(f)"$(
+    _call_program -p swanctl-conns $words[1] -L
+  )"}:#[^:]##: ([A-Z][A-Za-z0-9]#|),*} )
+
+  for i in $tmp; do
+    if (( $+opts[--child] )) && [[ $i != [[:space:]]* ]]; then
+      continue
+    elif (( $+opts[--ike] )) && [[ $i == [[:space:]]* ]]; then
+      continue
+    fi
+
+    # <name>: #<unique id>, ...
+    i=${i//[#:,]/ }
+
+    if (( $+opts[--ids] )); then
+      matches+=( "${i[(w)2]}:${i[(w)1]} #${i[(w)2]}" )
+    else
+      matches+=( ${i[(w)1]} )
+    fi
+  done
+
+  if (( $+opts[--ids] )); then
+    matches=( ${(onu)matches} )
+    if (( $+opts[--child] )); then
+      which=CHILD_
+    elif (( $+opts[--ike] )); then
+      which=IKE_
+    fi
+    _describe -x2Vt sa-ids "${which}SA unique ID" matches
+  else
+    if (( $+opts[--child] )); then
+      which='child '
+    elif (( $+opts[--ike] )); then
+      which='IKE '
+    fi
+    _wanted -x connections expl "${which}connection/SA name" compadd - $matches
+  fi
+}
+
+_swanctl() {
+  # Although swanctl will correctly parse multiple short options in the first
+  # word, as in `swanctl -lh`, it won't actually *do* anything with the
+  # subsequent options -- so we'll require that they be separated. Also, --help
+  # doesn't take any further options, so just stop if we've got that
+  if (( CURRENT == 2 )) || [[ $words[2] == (-h*|--help) ]]; then
+    _arguments : \
+      '(-)'{-a,--load-pools}'[(re)load pool configuration]' \
+      '(-)'{-A,--list-pools}'[display loaded pool configurations]' \
+      '(-)'{-b,--load-authorities}'[(re)load authority configuration]' \
+      '(-)'{-B,--list-authorities}'[display loaded authority configurations]' \
+      '(-)'{-c,--load-conns}'[(re)load connection configuration]' \
+      '(-)'{-C,--counters}'[display or reset IKE event counters]' \
+      '(-)'{-d,--redirect}'[redirect IKE_SA]' \
+      '(-)'{-f,--flush-certs}'[flush cached certificates]' \
+      '(-)'{-g,--list-algs}'[display loaded algorithms]' \
+      '(-)'{-h,--help}'[display help information]' \
+      '(-)'{-i,--initiate}'[initiate a connection]' \
+      '(-)'{-l,--list-sas}'[display currently active IKE_SAs]' \
+      '(-)'{-L,--list-conns}'[display loaded configurations]' \
+      '(-)'{-m,--monitor-sa}'[monitor for IKE_SA and CHILD_SA changes]' \
+      '(-)'{-p,--install}'[install trap or shunt policy]' \
+      '(-)'{-P,--list-pols}'[display currently installed policies]' \
+      '(-)'{-q,--load-all}'[load credentials, authorities, pools, and connections]' \
+      '(-)'{-r,--reload-settings}'[reload daemon strongswan.conf]' \
+      '(-)'{-R,--rekey}'[rekey SA]' \
+      '(-)'{-s,--load-creds}'[(re)load credentials]' \
+      '(-)'{-S,--stats}'[display daemon statistics]' \
+      '(-)'{-t,--terminate}'[terminate connection]' \
+      '(-)'{-T,--log}'[trace logging output]' \
+      '(-)'{-u,--uninstall}'[uninstall trap or shunt policy]' \
+      '(-)'{-v,--version}'[display version information]' \
+      '(-)'{-x,--list-certs}'[display stored certificates]'
+    return
+  fi
+
+  local ret=1 cmd
+  local -a args cert_flags cert_types
+
+  cert_flags=( aa any ca none ocsp )
+  cert_types=( ocsp_response pubkey x509 x509_ac x509_crl )
+
+  if [[ $words[2] == -[^-]* ]]; then
+    cmd=${(M)words[2]#??}
+  else
+    cmd=$words[2]
+  fi
+  words=( $words[1] "${(@)words[3,-1]}" )
+  (( CURRENT-- ))
+
+  # Technically, only -v, -u, and -+ are truly global command options. However,
+  # in practice, all commands also support -h, -P, and -r
+  args=(
+    '(: * -)'{-h,--help}'[display help information]'
+    '(-P -r --pretty --raw)'{-P,--pretty}'[dump raw response message in pretty print]'
+    '(-P -r --pretty --raw)'{-r,--raw}'[dump raw response message]'
+    # https://wiki.strongswan.org/projects/strongswan/wiki/LoggerConfiguration
+    # https://github.com/strongswan/strongswan/blob/master/src/libstrongswan/utils/debug.h
+    '(-v --debug)'{-v+,--debug=}'[specify debug level]:debug level [1]:((
+      -1\:"absolutely silent (SILENT)"
+      0\:"basic auditing (AUDIT)"
+      1\:"generic control flow with errors (CTRL)"
+      2\:"detailed control flow (DIAG)"
+      3\:"raw binary blobs (RAW)"
+      4\:"sensitive data (PRIVATE)"
+    ))'
+    '(-u --uri)'{-u+,--uri=}'[specify service URI to connect to]:VICI service URI:_urls'
+    '(-+ --options)'{'-\++',--options=}'[read command-line options from specified file]:options file:_files'
+  )
+
+  case $cmd in
+    -A|--list-pools) args+=(
+      '(-n --name)'{-n+,--name=}'[filter by specified pool name]:pool name'
+      '(-l --leases)'{-l,--leases}'[display leases of each pool]'
+    ) ;;
+    -B|--list-authorities) args+=(
+      '(-n --name)'{-n+,--name=}'[filter by specified authority name]:authority name'
+    ) ;;
+    -C|--counters) args+=(
+      '(-a -n --all --name)'{-a,--all}'[display/reset counters for all tracked connections]'
+      '(-a -n --all --name)'{-n+,--name=}'[specify connection name]: :_swanctl_connections --ike'
+      '(-r --reset)'{-r,--reset}'[reset counters]'
+    ) ;;
+    -d|--redirect) args+=(
+      '(-d --peer-id)'{-d+,--peer-id=}'[redirect by IKE_SA matching specified peer identity]:peer identity'
+      '(-g --gateway)'{-g+,--gateway=}'[redirect to specified gateway]:target gateway'
+      '(-i --ike)'{-i+,--ike=}'[redirect by specified IKE_SA name]: :_swanctl_connections --ike'
+      '(-I --ike-id)'{-I+,--ike-id=}'[redirect by specified IKE_SA unique ID]: :_swanctl_connections --ids --ike'
+      '(-p --peer-ip)'{-p+,--peer-ip=}'[redirect by IKE_SA matching specified peer IP]:peer IP address'
+    ) ;;
+    -f|--flush-certs) args+=(
+      '(-t --type)'{-t+,--type=}"[filter by specified certificate type]:certificate type:(
+        ${(j< >)${(@q-)cert_types}}
+      )"
+    ) ;;
+    -i|--initiate) args+=(
+      '(-c --child)'{-c+,--child=}'[specify CHILD_SA name]: :_swanctl_connections --child'
+      '(-i --ike)'{-i+,--ike=}"[specify CHILD_SA's connection name]: :_swanctl_connections --ike"
+      '(-t --timeout)'{-t+,--timeout=}'[specify timeout before detaching]:timeout (seconds)'
+    ) ;;
+    -l|--list-sas) args+=(
+      '(-i --ike)'{-i+,--ike=}'[filter by specified IKE_SA name]: :_swanctl_connections --ike'
+      '(-I --ike-id)'{-I+,--ike-id=}'[filter by specified IKE_SA unique ID]: :_swanctl_connections --ids --ike'
+      '(-n --noblock)'{-n,--noblock}'[do not wait for IKE_SAs in use]'
+    ) ;;
+    -p|-u|--install|--uninstall) args+=(
+      '(-c --child)'{-c+,--child=}'[specify CHILD_SA name]: :_swanctl_connections --child'
+      '(-i --ike)'{-i+,--ike=}"[specify CHILD_SA's connection name]: :_swanctl_connections --ike"
+    ) ;;
+    -P|--list-pols) args+=(
+      '(-c --child)'{-c+,--child=}'[filter by specified CHILD_SA name]: :_swanctl_connections --child'
+      '(-d --drop)'{-d,--drop}'[list drop policies]'
+      '(-p --pass)'{-p,--pass}'[list bypass policies]'
+      '(-t --trap)'{-t,--trap}'[list trap policies]'
+    ) ;;
+    -q|-s|--load-all|--load-creds) args+=(
+      '(-c --clear)'{-c,--clear}'[clear previously loaded credentials]'
+      '(-n --noprompt)'{-n,--noprompt}'[do not prompt for passwords]'
+    ) ;;
+    -R|--rekey) args+=(
+      '(-c --child)'{-c+,--child=}'[rekey by specified CHILD_SA name]: :_swanctl_connections --child'
+      '(-C --child-id)'{-C+,--child-id=}'[rekey by specified CHILD_SA unique ID]: :_swanctl_connections --ids --child'
+      '(-i --ike)'{-i+,--ike=}'[rekey by specified IKE_SA name]: :_swanctl_connections --ike'
+      '(-I --ike-id)'{-I+,--ike-id=}'[rekey by specified IKE_SA unique ID]: :_swanctl_connections --ids --ike'
+    ) ;;
+    -t|--terminate) args+=(
+      '(-t --timeout)'{-t+,--timeout=}'[specify timeout before detaching]:timeout (seconds)'
+      '(-c --child)'{-c+,--child=}'[terminate by specified CHILD_SA name]: :_swanctl_connections --child'
+      '(-C --child-id)'{-C+,--child-id=}'[terminate by specified CHILD_SA unique ID]: :_swanctl_connections --ids --child'
+      '(-i --ike)'{-i+,--ike=}'[terminate by specified IKE_SA name]: :_swanctl_connections --ike'
+      '(-I --ike-id)'{-I+,--ike-id=}'[terminate by specified IKE_SA unique ID]: :_swanctl_connections --ids --ike'
+    ) ;;
+    -v|--version) args+=(
+      '(-d --daemon)'{-d,--daemon}'[query daemon version]'
+    ) ;;
+    -x|--list-certs) args+=(
+      '(-f --flag)'{-f+,--flag=}"[filter by specified X.509 certificate flag]:certificate flag:(
+        ${(j< >)${(@q-)cert_flags}}
+      )"
+      '(-p --pem)'{-p,--pem}'[display PEM encoding of certificate]'
+      '(-s --subject)'{-s+,--subject=}'[filter by specified certificate subject]:certificate subject'
+      '(-S --short)'{-S,--short}'[omit some certificate details]'
+      '(-t --type)'{-t+,--type=}"[filter by specified certificate type]:certificate type:(
+        ${(j< >)${(@q-)cert_types}}
+      )"
+      '(-u --utc)'{-u,--utc}'[use UTC for time fields]'
+    ) ;;
+  esac
+
+  _arguments -s -S : $args && ret=0
+  return ret
+}
+
+_swanctl "$@"

@@ -1,0 +1,112 @@
+#compdef dbus-send dbus-monitor dbus-launch
+
+local curcontext="$curcontext" state line expl find end ret=1
+typeset -A opt_args
+local -a suf introspect interfaces
+
+case $service in
+  dbus-send)
+    _arguments -A "--*" -C \
+      '(--session)--system' '(--system)--session' \
+      '--address=-:bus address:->addresses' \
+      '--dest=-:connection:->connections' \
+      '--print-reply=-::format:(literal)' \
+      '--reply-timeout=-:timeout (ms)' \
+      '--type=-:type:(method_call signal)' \
+      '(* -)--help' \
+      ':object path:->objectpaths' \
+      ':message name:->methods' \
+      ':content:->contents' && ret=0
+  ;;
+  dbus-monitor)
+    _arguments -A "--*" -C \
+      '*:watch expression:->expressions' \
+      - '(bus)' \
+      --system --session \
+      '--address=-:bus address:->addresses' \
+      - '(format)' \
+      --monitor --profile --pcap --binary && ret=0
+  ;;
+  dbus-launch)
+    _arguments -C \
+      --version"[print the version of dbus-launch]" \
+      --help"[print the help info of dbus-launch]" \
+      --sh-syntax"[emit bourne-shell compatible code to set up environment variables]" \
+      --csh-syntax"[emit csh compatible code to set up environment variables]" \
+      --auto-syntax"[choose --csh-syntax or --sh-syntax based on the SHELL environment variable]" \
+      --binary-syntax"[use a nul-terminated syntax with the environment data]" \
+      --close-stderr"[close stderr stream before starting the d-bus daemon]" \
+      --exit-with-session"[create a persistent \"babysitter\" process]" \
+      --exit-with-x11"[create a persistent \"babysitter\" process that will connect to the x server]" \
+      --autolaunch="[scan for a previously-started session and reuse the values found there]:machine id:->machine-id" \
+      --config-file="[pass --config-file=FILENAME to the bus daemon]" && ret=0
+  ;;
+esac
+
+case $state in
+  addresses)
+    compset -P '*;'
+    if compset -P 1 '*='; then
+      _files && ret=0
+    else
+      _message -e addresses address
+    fi
+  ;;
+  connections)
+    _wanted connections expl connection compadd ${=${(M)PREFIX:#*.*}:+-M 'r:|.=* r:|=*'} ${$(_call_program connections dbus-send ${opt_args[(I)--system]} --print-reply=literal --dest=org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus.ListActivatableNames 2>/dev/null):#(array|\[|\])} ${$(_call_program connections dbus-send ${opt_args[(I)--system]} --print-reply=literal --dest=org.freedesktop.DBus /org/freedesktop/DBus org.freedesktop.DBus.ListNames 2>/dev/null):#(array|\[|\])} && ret=0
+  ;;
+  objectpaths)
+    if [[ -prefix / ]]; then
+      compset -P ${PREFIX%%[^/]#}
+      _wanted objectpaths expl 'object path' compadd -qS/ ${${${(M)${(f)"$(_call_program objectpaths dbus-send --print-reply ${(M)words:#(--dest=|--system|--address=)*} ${${IPREFIX%/}:-/} org.freedesktop.DBus.Introspectable.Introspect 2>/dev/null)"}:#*node name=[^/]##\"*}#*\"}%\"*} && ret=0
+    else
+      _wanted objectpaths expl 'object path' compadd -S '/' -r '-=' '' && ret=0
+    fi
+  ;;
+  methods)
+    introspect=( ${(M)${(f)"$(_call_program methods dbus-send --print-reply ${(M)words:#(--dest=|--system|--address=|/)*} org.freedesktop.DBus.Introspectable.Introspect 2>/dev/null)"}:#*name=*} )
+    interfaces=( ${${${(M)introspect:#*interface name=*}#*\"}%\"*} )
+    _wanted interfaces expl interface compadd -qS. -M 'r:|.=* r:|=*' -a interfaces && ret=0
+    if [[ $compstate[nmatches] != $#interfaces ]] && compset -P '*.'; then
+      find="*interface name=?${IPREFIX%.}??"
+      end=${interfaces[(i)${IPREFIX%.}]}
+      _wanted methods expl method compadd ${${${(M)${${introspect[${introspect[(i)$find]}+1,(in.end+1.)*interface name=*]}:#*interface name=*}:#*${${opt_args[--type]%_*}:-method} name=*}#*\"}%\"*} && ret=0
+    fi
+  ;;
+  contents)
+    compset -S ':*' || suf=( -S : )
+    while compset -P '(array|dict|variant):'; do
+      :
+    done
+    if compset -P '*:'; then
+      _message -e value 'value'
+    else
+      _alternative -O suf \
+        'containers:container:(array dict variant)' \
+	'types:type:(string double byte boolean objpath '${(j. .):-{,u}int{16,32,64}}\) && ret=0
+    fi
+  ;;
+  expressions)
+    _values -w -s , 'expression' \
+      'type:message type:(signal method_call method_return error)' \
+      'sender:bus or name' \
+      'interface:interface' \
+      'member:member' \
+      'path:path' \
+      'path_namespace:path' \
+      'destination:unique name' \
+      arg{0..9}:value \
+      'arg0namespace:namespace' \
+      'eavesdrop:eavesdropping:(true false)' && ret=0
+  ;;
+  machine-id)
+    { local machine_id="$(</var/lib/dbus/machine-id)" } 2>/dev/null
+    if [[ -n "$machine_id" ]]; then
+        _wanted machine-ids expl machine-id compadd $machine_id && ret=0
+    else
+        _message "No /var/lib/dbus/machine-id found" && ret=0
+    fi
+  ;;
+esac
+
+return ret

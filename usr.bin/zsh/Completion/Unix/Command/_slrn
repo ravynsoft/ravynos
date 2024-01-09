@@ -1,0 +1,25 @@
+#compdef slrn
+
+_arguments \
+  '-n[do not check for new groups]' \
+  '-h[NNTP host]:NNTP host:_hosts' \
+  '-p[NNTP port]:NNTP port:_ports' \
+  '-f[name of the newsrc file to use]:newsrc file:_files' \
+  '(-C\-)-C[use colors]' \
+  "(-C)-C\-[don't use colors]" \
+  '-d[get new text descriptions of each group from server]' \
+  '-i[specify initialization file to use]:config file:_files' \
+  '-D-[add predefined preprocessing token]' \
+  '-k[do not process score file]' \
+  '-k0[process score file but inhibit expensive scores]' \
+  '-a[use active file for getting new news]' \
+  '-m[force XTerm mouse reporting]' \
+  '-w[wait for a key before switching to full screen mode]' \
+  '--create[create a newsrc file by getting list of groups from server]' \
+  '--debug[write debugging output to specified file]:debug file:_files' \
+  '(-)--help[show help information]' \
+  '--inews[use an external inews program to post articles]' \
+  '--kill-log[keep a log of articles  killed by the scorefile]:log file:_files' \
+  '--nntp[use builtin NNTP support]' \
+  '--pull[spool outgoing articles locally]' \
+  '--spool[read directly from spool]' \

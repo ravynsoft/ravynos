@@ -1,0 +1,41 @@
+#compdef hash rehash
+
+local state line expl common_args curcontext="$curcontext" ret=1
+typeset -A opt_args
+
+common_args=( \
+  '-d[use named directory hash table]' \
+  '(-r -m -v)-f[rebuild hash table]' )
+
+case ${service} in
+  hash)
+    _arguments -C -s -S \
+      '(-f -m -v)-r[empty hash table]' \
+      '(-f -r)-m[treat arguments as patterns]' \
+      '(-f -r -m)-v[list entries as they are added]' \
+      '(-f -r -v)-L[list in the form of calls to hash]' \
+      "${common_args[@]}" \
+      '(-d -f -r -m -v -L)*:hash:->hashval' && ret=0
+  ;;
+  rehash)
+    _arguments -C -s ${common_args[@]} && return 0
+  ;;
+esac
+
+if [[ $state = hashval ]]; then
+  if (( $+opt_args[-d] )); then
+    if compset -P 1 '*='; then
+      _wanted -C value files expl directories _path_files -/ && ret=0
+    else
+      _wanted -C name named-directories expl 'named directory' \
+          compadd -q -S '=' -k nameddirs && ret=0
+    fi
+  elif compset -P 1 '*='; then
+    _wanted -C value values expl 'executable file' _files -g '*(-*)' && ret=0
+  else
+    curcontext="${curcontext%:*}:name"
+    _path_commands -q -S '=' && ret=0
+  fi
+fi
+
+return ret

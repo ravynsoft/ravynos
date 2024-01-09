@@ -1,0 +1,354 @@
+#compdef netstat
+
+local Wopt Xopt nopt="[don't resolve addresses to names]"
+local lopt='[show only listening sockets]'
+local zopt='-z[reset statistic counters after displaying them]'
+local popt='(-f)-p+[filter by protocol]:protocol:compadd -a plist'
+local Iopt='(-i)-I+[show information about the specified interface]:interface:_net_interfaces'
+local set sel tblopt
+local -A sets
+local -a Mopts families flist plist args sockets extend interval verbose
+local -a {sel_,}{bpf,dhcp,groups,interfaces,masquerade,media,memory,multicast,pcb,queues,rdomains,routing,statistics,wireless}
+
+case $OSTYPE in
+  linux-gnu)
+    families=(
+      '(-4 --inet)'{-4,--inet}
+      '(-6 --inet)'{-4,--inet6}
+      '(-A --protocol)'{-A+,--protocol=}':protocol:_sequence compadd - inet inet6 unix ipx ax25 netrom ddp bluetooth'
+      --unix -x --ip --tcpip --ax25 --x25 --rose --ash
+      --bluetooth --ipx --netrom --ddp --appletalk --econet --ec
+    )
+    extend=( \*{-e,--extend}'[show additional information]' )
+    verbose=( '(-v --verbose)'{-v,--verbose}'[show what is going on]' )
+    args=(
+      '(-c --continuous)'{-c,--continuous}'[repeat information every second]'
+      '!(-n --numeric)'{-N,--symbolic}
+      '(-n --numeric)'{-n,--numeric}"$nopt"
+      --numeric-hosts --numeric-ports --numeric-users
+      '1: :_guard "[0-9]#" "repeat interval (seconds)"'
+      - '(help)'
+      '(- 1)'{-h,--help}'[display usage information]'
+      '(- 1)'{-V,--version}'[display version information]'
+    )
+    sets=(
+      routing    '(--route|-[^-]#r*)'
+      groups     '(--groups|-[^-]#g*)'
+      interfaces '(--interfaces|-[^-]#[iI]*)'
+      statistics '(--statistics|-[^-]#s*)'
+      masquerade '(--masquerade|-[^-]#M*)'
+    )
+
+    sel_routing=( '(-r --route)'{-r,--route}'[display routing table]' )
+    sel_interfaces=(
+      '(-I --interfaces)-i[display interface table]'
+      '(-i -I --interfaces)'{--interface=-,-I=-}'[display interface table]::interface:_net_interfaces'
+    )
+    sel_groups=( '(-g --groups)'{-g,--groups}'[display multicast group memberships]' )
+    sel_masquerade=( '(-M --masquerade)'{-M,--masquerade}'[display masqueraded connections]' )
+    [[ -e /proc/net/ip_masquerade ]] || sel_masquerade=( \!${^sel_masquerade} )
+    sel_statistics=( '(-s --statistics -c --continuous -n --numeric --numeric-hosts --numeric-ports --numeric-users)'{-s,--statistics}'[display networking statistics]' )
+
+    sockets=(
+      $families $verbose
+      --tcp -t --udp -u --udplite -U --sctp -S --raw -w
+      '(-2 --l2cap)'{-2,--l2cap}
+      '(-f --rfcomm)'{-f,--rfcomm}
+      '(-a --all -l --listening)'{-l,--listening}$lopt
+      '(-a --all -l --listening)'{-a,--all}'[show all sockets]'
+      --symbolic -N --extend -e
+      '(--timers -o)'{--timers,-o}'[show information on networking timers]'
+      '(--program -p)'{--program,-p}'[show process id and program name for sockets]'
+      '(--wide -W)'{--wide,-W}"[don't truncate IP addresses in output]"
+      '(-Z --context)'{-Z,--context}'[display SELinux security context for sockets]'
+    )
+    routing=(
+      $families $extend $verbose
+      '-C[display routing cache instead of FIB]'
+    )
+    interfaces=(
+      $extend $verbose
+      '(-a --all)'{-a,--all}'[show interfaces that are not up]'
+    )
+    groups=()
+    masquerade=( $extend )
+    statistics=( $families )
+  ;;
+  solaris*|darwin*|dragonfly*|freebsd*)
+    families=( '(-p -4 -6)-f+[specify address family]:address family:compadd -a flist' )
+  ;|
+  freebsd*)
+    families+=(
+      '(-6 -f)-4[show IPv4 only]'
+      '(-4 -f)-6[show IPv6 only]'
+    )
+  ;|
+  (open|net)bsd*)
+    popt='(-f)-p+[filter by protocol]:protocol:compadd - ${(M)${(f)"$(</etc/protocols)"}##[a-z0-9]#}'
+    families=(
+      '(-u)-f+[specify address family]:address family:_sequence compadd - -a flist'
+      '(-f)-u[limit reports to the unix address family]' # undocumented on NetBSD
+    )
+  ;|
+  *) # everything except linux
+    sets=(
+      routing    '-[^-]#r*'
+      groups     '-[^-]#g*'
+      interfaces '-[^-]#[iIw]*'
+      memory     '-[^-]#m*'
+      statistics '-[^-]#s*'
+    )
+    flist=( inet inet6 unix )
+    verbose=( '-v[verbose]' )
+    sel_routing=( '-r[display routing table]' )
+    sel_groups=( '-g[display multicast group memberships]' )
+    sel_interfaces=( $Iopt '-i[display interface table]' )
+    sel_statistics=( '*-s[display per protocol statistics]' )
+    sockets=( $families -n$nopt '-a[show all sockets]' )
+    routing=( -n$nopt )
+    interfaces=( $families -n$nopt )
+    statistics=( $families )
+  ;|
+  (open|net)bsd*)
+    sets+=( pcb '-[^-]#P*' )
+    sel_pcb=( '-P+[display contents of the protocol control block]:pcb' )
+    routing+=( $verbose '(-L)-s[show routing statistics]' )
+    groups+=( $families
+      '(-s)-l[display wider fields for the IPv6 multicast routing table]'
+      '(-l)-s[show multicast routing statistics]'
+    )
+    interfaces+=(
+      '(-p)-s[show interface statistics]'
+    )
+  ;|
+  darwin*|dragonfly*|(net|free|open)bsd*)
+    sockets+=( '-A[show address of a PCB associated with sockets]' )
+    interfaces+=(
+      '-b[show the number of bytes in and out]'
+      '-d[show the number of dropped packets]'
+      '1: :_guard "[0-9]#" "repeat interval (seconds)"'
+    )
+    routing=( $families )
+    sel_memory=( '-m[display statistics recorded by the memory management routines]' )
+    sel_interfaces+=( '(1 -a -f -i -p -s -u)-w+[display packet traffic at intervals]:interval (seconds)' )
+  ;|
+  darwin*|dragonfly*|(net|free)bsd*)
+    interfaces+=( '-a[show multicast addresses currently in use]' )
+  ;|
+  dragonfly*|(net|free|open)bsd*)
+    Mopts=(
+      '-M+[extract values from specified core]:core file:_files'
+      '-N+[extract name list from specified system image]:system image:_files'
+    )
+    interfaces+=(
+      '-h[print all counters in human readable form]'
+    )
+    sockets+=( $Mopts )
+  ;|
+  darwin*|dragonfly*|freebsd*)
+    Wopt='-W+[avoid truncating fields even if it causes overflow]'
+    sockets+=( $Wopt
+      '-L[show size of listen queues]'
+    )
+    groups+=( $Wopt )
+  ;|
+  dragonfly*|netbsd*|freebsd*)
+    sockets+=( '(-n)-S[show network addresses as numbers but show ports symbolically]' )
+  ;|
+  netbsd*|freebsd*)
+    sets+=( bpf '-[^-]#B*' )
+    sel_bpf=( '-B[display statistics about bpf(4) peers]' )
+  ;|
+  dragonfly*|freebsd*)
+    plist=( divert icmp igmp ip ipsec pim tcp udp icmp6 ip6 rip6 tcp udp pfkey ctrl data )
+    sockets+=( $popt )
+    statistics+=( $popt $zopt $Mopts )
+    memory+=( $Mopts )
+    routing+=( $Mopts $zopt
+      '(-A -a -f -l -n -W)*-s[show routing statistics]'
+      '-W[show path MTU for each route]'
+    )
+    groups+=( $families $Mopts
+    '(-W)*-s[show multicast routing statistics; repeat to suppress those with zero counters]'
+    )
+  ;|
+
+  solaris2.<11->)
+    sets+=( dcache '-[^-]#d*' )
+    sel_dcache=( '-d[display the destination cache entry table]' )
+    dcache=( $families )
+    args=( '-T+[specify time format]:time format:((u\:seconds\ since\ epoch d\:standard\ date\ format))' )
+    sockets+=(
+      '-u[list user, pid and program that created network endpoint]'
+      '-k[show only sockets with kernel data path bypass enabled]'
+      '-L[only show state of sockets using SO_REUSEPORT load balancing]'
+    )
+  ;&
+  solaris*)
+    args=( -A '-*' $args )
+    interval=(
+      '1: :_guard "[0-9]#" "repeat interval (seconds)"'
+      '2: :_guard "[0-9]#" "count"'
+    )
+    sets+=(
+      dhcp      '-[^-]#D*'
+      media     '-[^-]#p*'
+      multicast '-[^-]#M*'
+    )
+    sel_media=( '-p[display net to media tables]' )
+    sel_memory=( '-m[display STREAMS memory statistics]' )
+    sel_multicast=( '-M[display multicast routing tables]' )
+    sel_dhcp=( '-D[display status of DHCP configured interfaces]' )
+    sockets+=(
+      $verbose
+      '-R[show extended security attributes]'
+      '-P[specify protocol]:protocol:(ip ipv6 icmp icmpv6 igmp udp tcp rawip)'
+    )
+    routing+=( $verbose
+      '*-f+[filter routing table]:rule:_values -S \: "filter rule" $flist
+	"af[specify address family]\:family\:(inet inet6 unix)"
+        "outif[specify output interface]\:interface\:_net_interfaces"
+        "dst[specify destination IP]\:IP address"
+        "flags[select routes tagged with flags]\:flags"' \
+      '-a[show state of all routing tables]'
+      '-R[show extended security attributes]'
+    )
+    groups+=( $families -n$nopt $verbose )
+    interfaces+=( $interval
+      '-a[show state of all interfaces]'
+    )
+    statistics+=(
+      '-P[specify protocol]:protocol:(ip ipv6 icmp icmpv6 igmp udp tcp rawip)'
+    )
+    media=( -n$nopt $families )
+    memory+=( $verbose $interval )
+    multicast+=(
+      -n$nopt $families
+      '-s[show per protocol statistics]'
+    )
+    dhcp=( $families $Iopt )
+  ;;
+  darwin*)
+    sets+=( queues '-[^-]#q*' )
+    sel_queues=( '*-q[display network interface send queue statistics]' )
+    sel_memory=( \*$sel_memory )
+    sockets+=(
+      '-l[show full IPv6 address]'
+      '-W[avoid truncating addresses]'
+    )
+    routing+=( '-l[show mtu and use wider display]' )
+    interfaces+=(
+      '(-x)-R[show reachability information]'
+      '-S[show interface link status and state]'
+      '(-R)-x[show extended reachability information]'
+    )
+    queues=( $Iopt
+      '-c+[limit statistics to specified queue]:queue'
+    )
+    groups+=( $families
+      '*-v[show link-layer memberships; repeat for timers and counters]'
+    )
+  ;;
+  dragonfly*)
+    plist+=( carp )
+    sockets+=(
+      '-P[show additional protocol-specific information]'
+      '-c+[access cpu specific route table]:cpu'
+    )
+    interfaces+=( $zopt
+      '-B[show maximum buffer sizes instead of current buffer usage]'
+      '-t[show the contents of watchdog timers]'
+      '(-a -B -b -d -h -n -t -w)*-s[show protocol statistics; repeat to suppress those with zero counters]'
+    )
+    routing+=(
+      '-A[show contents of internal Patricia tree structures]'
+      '-a[show protocol-cloned routes]'
+    )
+  ;;
+  openbsd*)
+    sets+=( wireless '-W*' rdomains '-R' )
+    sel_rdomains=( '-R[show all rdomains with associated interfaces and routing tables]' )
+    sel_wireless=( '-W+[display per-interface IEEE 802.11 wireless statistics]:interface' )
+    flist+=( local mpls )
+    tblopt='-T+[select an alternate routing table to query]:routing table:_routing_tables'
+    sockets+=( -l$lopt $tblopt '-B[show buffer sizes for TCP sockets]' )
+    routing+=( $Mopts $tblopt
+      '-A[show the internal addresses of the routing table]'
+      '-F[only show routes with gateway in the same address family as the destination]'
+    )
+    interfaces+=(
+      '-c+[show specified number of updates, then exit]:count'
+      '-e[show only the number of errors on the interface]'
+      '-q[only show interfaces that have seen packets]'
+      '-t[show current value of the watchdog timer function]'
+    )
+    statistics+=( $popt '-r[display routing statistics]' )
+    groups+=( -n$nopt )
+    pcb+=( $Mopts $verbose )
+  ;;
+  netbsd*)
+    popt='(-f)-p+[filter by protocol]:protocol:compadd - ${(M)${(f)"$(</etc/protocols)"}##[a-z0-9]#}'
+    Xopt='-X[force use of sysctl(3) when retrieving information]'
+    flist+=( arp ns atalk mpls local )
+    sets+=( queues '-[^-]#q*' )
+    sel_queues=( '-q[display software interrupt queue details for all protocols]' )
+    routing+=( $Xopt
+      "(-s)-L[don't show link-level routes]"
+      '-T[show MPLS tags for the routing tables]'
+    )
+    bpf+=( $Xopt $Iopt
+      '-s[show bpf(4) statistics]'
+    )
+    interfaces+=( $Xopt )
+    memory+=( $Xopt) statistics+=( $Xopt )
+    pcb+=( $Mopts $popt )
+  ;;
+  freebsd<13->.*)
+    sockets+=(
+      '-c[show TCP stack used for each session]'
+      '-C[show TCP congestion control algorithm and diagnostic]'
+    )
+  ;&
+  freebsd<11->.*)
+    routing+=( '-F+[show specified routing table]:routing table' )
+    bpf=( '-z[reset statistic counters after displaying them]' )
+    statistics+=( $bpf[-1] )
+  ;&
+  freebsd*)
+    flist+=( pfkey netgraph ng link )
+    plist+=( sctp ipsec6 pfkey )
+
+    sets+=( netisr  '-[^-]#Q*' )
+    sel_netisr=( '-Q[display netisr(9) statistics]' )
+    sockets+=(
+      '-R[show flowid and flowtype for each socket]'
+      '-T[show diagnostic information from the TCP control block]'
+      '-x[show socket buffer and TCP timer statistics]'
+    )
+    interfaces+=(
+      $popt $Mopts $Iopt $Wopt
+      '-q+[exit after specified number of outputs]:number'
+    )
+    bpf+=( $Iopt $zopt )
+  ;;
+esac
+
+# Ignore display specific options except the default (socket) display until a
+# display has been selected. This is not strictly correct (options can be in
+# any order) but makes the completion much more useful. Descriptions for
+# options that select a specific display (option set) typically start with
+# "display" to set them apart from other options.
+sock=''
+for set in ${(k)sets}; do
+  sel=sel_$set
+  if [[ -z $words[(r)$~sets[$set]] ]]; then
+    ign='!'
+  else
+    sock='!'
+    ign=''
+  fi
+  args+=( - "$set" ${(P)sel} ${ign}${(P)^set} )
+done
+args+=( - sockets ${sock}${sockets} )
+
+_arguments -s -S $args

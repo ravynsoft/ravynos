@@ -1,0 +1,21 @@
+#compdef dupload
+
+if (( ! $+_dupload_sites )); then
+  _dupload_sites=(
+    $(grep -hs "^\$cfg" /etc/dupload.conf ~/.dupload.conf | sed 's/^\$cfg{\([^}]*\)}.*$/\1/')
+  )
+fi
+
+_arguments \
+  '--to:nickname[nickname of target site]:('"$_dupload_sites"')' \
+  '(-d --debug)'{-d,--debug}'[ftp verbosity]:debuglevel:' \
+  '(-f --force)'{-f,--force}'[upload ignoring logs]' \
+  '(-k --keep)'{-k,--keep}'[keep going, skip broken]' \
+  '--no[dry run]' \
+  '--nomail[suppress announcement]' \
+  '--mailonly[dry run and real announcement]' \
+  '--noarchive[add anti-archival header]' \
+  '(-p --print)'{-p,--print}'[print config legibly]' \
+  '(-q --quiet)'{-q,--quiet}'[quiet]' \
+  '(-V --Version)'{-V,--Version}'[display version information]' \
+  '*:changes file:_files -g "*.changes(-.)"'

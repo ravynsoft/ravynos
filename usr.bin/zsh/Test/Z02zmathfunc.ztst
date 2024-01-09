@@ -1,0 +1,58 @@
+%prep
+  autoload -Uz zmathfunc && zmathfunc
+
+%test
+
+  echo $(( min(42, 43) )) $(( max(42, 43) )) $(( sum(42, 43) ))
+  echo $(( min(42) )) $(( max(42) )) $(( sum(42) ))
+  echo $(( sum() ))
+0:basic functionality test
+>42 43 85
+>42 42 42
+>0
+
+
+  (set -e; echo $(( min(0,   42) )))
+  (set -e; echo $(( max(0,  -42) )))
+  (set -e; echo $(( sum(42, -42) )))
+0:regression test for ERR_EXIT 
+>0
+>0
+>0
+
+ echo $(( min(42, 43, 44) ))
+ echo $(( min(44, 42, 43) ))
+ echo $(( min(43, 44, 42) ))
+ #
+ echo $(( max(42, 43, 44) ))
+ echo $(( max(44, 42, 43) ))
+ echo $(( max(43, 44, 42) ))
+0:min() and max() with three arguments
+>42
+>42
+>42
+>44
+>44
+>44
+
+ echo $(( min() ))
+1:error test for min()
+?(eval):1: wrong number of arguments: min()
+
+ echo $(( max() ))
+1:error test for max()
+?(eval):1: wrong number of arguments: max()
+
+ zsh_math_func_min "foo bar" x y z
+2d:check errors from an unsupported use-case (workers/48156)
+# We expect one non-empty line of stderr, but don't care about the specific
+# error message; thus, the expectation is a pattern (*), for stderr (?), which
+# matches any non-empty string (?*).
+#
+# Sorry, Perl, but I had to give you a run for your money.
+*??*
+F:Calling zsh_math_func_min directly isn't a supported use-case, but if it
+F:returns zero, something's probably wrong.
+
+
+%clean

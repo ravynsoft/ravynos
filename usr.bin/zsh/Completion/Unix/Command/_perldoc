@@ -1,0 +1,68 @@
+#compdef perldoc -value-,PERLDOC,-default-
+
+local curcontext="$curcontext" state line expl args ret=1
+typeset -A opt_args
+
+args=( '*:Perl pod page:->perl-pods' )
+
+if [[ $service = *PERLDOC* ]]; then
+  compset -q
+  words=( fake "$words[@]" )
+  (( CURRENT++ ))
+  args=()
+fi
+
+_arguments -C -s -S -A "-*" \
+  '(- *)-h[print help information]' \
+  '(- *)-V[display version information]' \
+  '-D[describe search for the item]' \
+  '-t[use plain text output instead of nroff]' \
+  '-u[show raw Pod source]' \
+  '*-m[display entire module]:module:_perl_modules' \
+  '-l[display only filename of the module found]' \
+  '-F[consider arguments as filenames]' \
+  '(-q -v)-f+[view documentation for Perl built-in function]:perl builtin function:->perl-builtin-funcs' \
+  '(-f -v)-q+[search question headings in Perl FAQ]:regular expression' \
+  '(-f -q)-v+[view documentation for predefined variable]:special variable:->perl-variables' \
+  '(-d)-T[send output direct to stdout and not via pager]' \
+  '(-T)-d+[specify output file]:output file:_files' \
+  '-o+[specify output format]:output format:(man nroff pod rtf text tk xml latex)' \
+  '-M[specifies module to use for formatting]:module:_perl_modules' \
+  '-w[specify option to formatter]:option' \
+  '-X[use an index if present]' \
+  '-n+[specify replacement for nroff]:nroff replacement:_command_names -e' \
+  '-r[recursive search]' \
+  '-i[ignore case]' \
+  "$args[@]" && ret=0
+
+case  $state in
+  perl-builtin-funcs)
+    : ${(A)_perl_builtin_funcs:=${(u)${${(M)${(f)"$(_call_program functions \
+	perldoc -u perlfunc 2>/dev/null)"}:#\=item [a-z]*}#* }%%[^a-z]*}}
+
+    _wanted functions expl 'perl built-in function' compadd "$@" -a - \
+	_perl_builtin_funcs && ret=0
+  ;;
+
+  perl-pods)
+    if (( $+opt_args[-F] )); then
+      _wanted files expl 'Perl module or .pod' \
+          _files -g "*.(pod|pm)(-.)" && ret=0
+    else
+      _alternative \
+	'modules:module: _perl_modules -tP' \
+	'pods:base pod: _perl_basepods' \
+	'files:module or .pod file:_files -g "*.(pod|pm)(-.)"' && ret=0
+    fi
+  ;;
+
+  perl-variables)
+    : ${(A)_perl_special_vars:=${(u)${${${(M)${(f)"$(_call_program variables \
+      perldoc -u perlvar 2>/dev/null)"}:#\=item [\$\@\%]*}#* }:#\$<I*}}}
+
+    _wanted variables expl 'perl special variable' compadd "$@" -a - \
+	_perl_special_vars && ret=0
+  ;;
+esac
+
+return ret

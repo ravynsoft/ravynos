@@ -1,0 +1,225 @@
+#compdef gnutls-cli gnutls-cli-debug gnutls-serv certtool srptool
+
+local -a args
+
+args=(
+  '(- :)'{-h,--help}'[display help information]'
+  '(- :)--version=[display version information]:information:((v\:simple c\:copyright n\:full))'
+  '(- :)-v[display version information]'
+  '(- :)'{-\!,--more-help}'[display help information through a pager]'
+  '(-d --debug)'{-d,--debug}'[enable debugging]:debug level'
+  \*{-V,--verbose}'[more verbose output]'
+)
+
+case "$service" in
+  gnutls-*)
+    args+=(
+      '(-p --port)'{-p,--port}'[specify port or service to connect to]:port:_ports'
+    )
+  ;|
+  gnutls-cli*)
+    args+=(
+      '(--app-proto --starttls-proto)'{--app-proto,--starttls-proto}"=[specify application protocol to use to obtain the server's certificate]:protocol:(https ftp smtp imap ldap xmpp lmtp pop3 nntp sieve postgres)"
+     ':hostname:_hosts'
+    )
+  ;|
+  gnutls-cli|gnutls-serv)
+    args+=(
+      "--sni-hostname=[specify server's hostname for server name indication extension]:hostname"
+      "--noticket[don't accept session tickets]"
+      '(-u --udp)'{-u,--udp}'[use DTLS (datagram TLS) over UDP]'
+      '--mtu=[set MTU for datagram TLS]:mtu'
+      '--srtp-profiles=[offer SRTP profiles]:string'
+      '(-b --heartbeat)'{-b,--heartbeat}'[activate heartbeat support]'
+      '--x509fmtder[use DER format for certificates to read from]'
+      '--priority=[specify TLS algorithms and protocols to enable]:(NORMAL PFS SECURE128 SECURE192 SUITEB128 SUITEB192 LEGACY PERFORMANCE NONE)'
+      '--x509cafile=[specify certificate file to use]:file:_files'
+      '--x509crlfile=[specify CRL file to use]:file:_files'
+      '*--x509keyfile=[specify X.509 key file to use]:file:_files'
+      '*--x509certfile=[specify X.509 certificate file to use]:file:_files'
+      '*--rawpkkeyfile=[specify private key file or URL to use]:file:_files'
+      '*--rawpkfile=[specify raw public-key file to use]:file:_files'
+      '(-l --list -p --port)'{-l,--list}'[print list of the supported algorithms/modes]'
+      '--keymatexport=[specify label used for exporting keying material]:label'
+      '--keymatexportsize=[specify size of the exported keying material]:size'
+    )
+  ;|
+  gnutls-cli|gnutls-serv|certtool)
+    args+=(
+      '--provider=[specify PKCS #11 provider library]:provider:_files'
+    )
+  ;|
+  gnutls-cli|certtool)
+    args+=(
+      '--verify-allow-broken[allow broken algorithms, such as MD5 for certificate verification]'
+    )
+  ;|
+
+  gnutls-cli)
+    args+=(
+      '--tofu[enable trust on first use authentication]' '!--no-tofu'
+      '--strict-tofu[fail to connect if a certificate is unknown or has changed]' '!--no-strict-tofu'
+      '--dane[enable DANE certificate verification (DNSSEC)]' '!--no-dane'
+      '--local-dns[use the local DNS server for DNSSEC resolving]' '!--no-local-dna'
+      '--no-ca-verification[disable CA certificate verification]' '!--ca-verification'
+      '--ocsp[enable OCSP certificate verification]' '!--no-oscp'
+      '(-r --resume)'{-r,--resume}'[establish a session and resume]'
+      '--earlydata=[send early data on resumption from the specified file]:file:_files'
+      '(-e --rehandshake)'{-e,--rehandshake}'[connect, establish a session and rehandshake immediately]'
+      "--verify-hostname-str=[specify server's hostname to use for validation]:hostname"
+      '(-s --starttls)'{-s,--starttls}'[start TLS on EOF or SIGALRM]'
+      '--crlf[send CR LF instead of LF]'
+      '--fastopen[enable TCP Fast Open]'
+      "--print-cert[print peer's certificate in PEM format]"
+      "--save-cert=[save peer's certificate chain in the specified file in PEM format]:file:_files"
+      "(--save-ocsp-multi)--save-ocsp=[save peer's OCSP status response in the provided file]:file:_files"
+      "(--save-ocsp)--save-ocsp-multi=[save all peer's OCSP responses in the provided file]:file:_files"
+      '--save-server-trace=[save the server-side TLS message trace in the provided file]:file:_files'
+      '--save-client-trace=[save the client-side TLS message trace in the provided file]:file:_files'
+      '--dh-bits=[specify minimum number of bits allowed for DH]:bits'
+      '--srpusername[specify SRP username to use]:username'
+      '--srppasswd[specify SRP password to use]:password'
+      '--pskusername[specify PSK username to use]:username'
+      '--pskkey[specify PSK key to use]:key'
+      "--insecure[don't require server cert validation]"
+      '--benchmark-ciphers[benchmark individual ciphers]'
+      '--benchmark-soft-ciphers[benchmark individual software ciphers]'
+      '--benchmark-tls-kx[benchmark TLS key exchange methods]'
+      '--benchmark-tls-ciphers[benchmark TLS ciphers]'
+      '--priority-list[print list of the supported priority strings]'
+      '*--alpn=[enable application layer protocol]:string'
+      '--recordsize=[specify maximum record size to advertise]:record size (0-4096)'
+      "--disable-sni[don't send a Server Name]"
+      '--single-key-share[send a single key share under TLS1.3]'
+      '--post-handshake-auth[enable post-handshake authentication under TLS1.3]'
+      '--inline-commands[inline commands of the form ^<cmd>^]'
+      '--inline-commands-prefix=[change delimiter used for inline commands]:delimiter [^]'
+      '--fips140-mode[report status of FIPS140-2 mode in gnutls library]'
+      '--logfile=[redirect informational messages to a specific file]:file:_files'
+      '--waitresumption[block waiting for the resumption data under TLS1.3]'
+      '--ca-auto-retrieve[enable automatic retrieval of missing CA certificates]'
+    )
+  ;;
+
+  gnutls-serv)
+    args+=(
+      '--sni-hostname-fatal[send fatal alert on sni-hostname mismatch]'
+      '*--alpn=[specify ALPN protocol to be enabled by the server]:protocol'
+      '--alpn-fatal[send fatal alert on non-matching ALPN name]'
+      '--earlydata[accept early data]'
+      '--maxearlydata=[specify maximum early data size to accept]:size'
+      "--nocookie[don't require cookie on DTLS sessions]"
+      '(-g --generate)'{-g,--generate}'[generate Diffie-Hellman parameters]'
+      '(-q --quiet)'{-q,--quiet}'[suppress some messages]'
+      "--nodb[don't use a resumption database]"
+      '--http[act as an HTTP server]'
+      '--echo[act as an Echo server]'
+      "--crlf[don't replace CRLF by LF in Echo server mode]"
+      '(-a --disable-client-cert -r --require-client-cert)'{-a,--disable-client-cert}"[don't request a client certificate]"
+      '(-a --disable-client-cert -r --require-client-cert)'{-r,--require-client-cert}'[require a client certificate]'
+      '--verify-client-cert[if a client certificate is sent then verify it]'
+      '--dhparams=[specify DH params file to use]:file:_files'
+      '--srppasswd=[specify SRP password file to use]:file:_files'
+      '--srppasswdconf=[specify SRP password configuration file to use]:file:_files'
+      '--pskpasswd=[specify PSK password file to use]:file:_files'
+      '--pskhint=[specify PSK identity hint to use]:string'
+      '*--ocsp-response=[specify OCSP response to send to client]:string:_files'
+      '--ignore-ocsp-response-errors[ignore any errors when setting the OCSP response]'
+      '--recordsize=[specify maximum record size to advertise]:record size (0-16384)'
+      '--httpdata=[specify data to use as HTTP response]:file:_files'
+    )
+  ;;
+
+  certtool)
+    args+=(
+      '(-q --generate-request)--infile:input file:_files '
+      '--outfile:output file:_files '
+      '(-s --generate-self-signed)'{-s,--generate-self-signed}'[generate a self-signed certificate]'
+      '(-c --generate-certificate)'{-c,--generate-certificate}'[generate a signed certificate]'
+      '--generate-proxy[generate a proxy certificate]'
+      '--generate-crl[generate a CRL]'
+      '(-u --update-certificate)'{-u,--update-certificate}'[update a signed certificate]'
+      '--fingerprint[print the fingerprint of the given certificate]'
+      '--key-id[print the key ID of the given certificate]'
+      '--v1[generate an X.509 version 1 certificate (with no extensions)]'
+      '--sign-params=[sign a certificate with a specific signature algorithm]:algorithm:(RSA-PSS)'
+      '(-p --generate-privkey)'{-p,--generate-privkey}'[generate a private key]'
+      '(-q --generate-request --infile)'{-q,--generate-request}'[generate a PKCS #10 certificate request]'
+      '(-e --verify-chain)'{-e,--verify-chain}'[verify a PEM encoded certificate chain]'
+      '--verify[verify a PEM encoded certificate chain using a trusted list]'
+      '--verify-crl[verify a CRL]'
+      '(--verify-email)--verify-hostname=[specify hostname to be used for certificate chain verification]:hostname:_hosts'
+      '(--verify-hostname)--verify-email=[specify email to be used for certificate chain verification]:email:_email_addresses'
+      '--verify-purpose=[specify a purpose OID to be used for certificate chain verification]:purpose'
+      '--verify-profile=[specify a security level profile to be used for verification]:profile'
+      '--p7-sign[sign using a PKCS #7 structure]'
+      '--p7-detached-sign[sign using a detached PKCS #7 structure]'
+      "--no-p7-include-cert[don't include signer's certificate will in the cert list]"
+      '--p7-time[include a timestamp in the PKCS #7 structure]'
+      '--p7-show-data[show embedded data in the PKCS #7 structure]'
+      '--p7-verify[verify the provided PKCS #7 structure]'
+      '--generate-dh-params[generate PKCS #3 encoded Diffie Hellman parameters]'
+      '--get-dh-params[get the included PKCS #3 encoded Diffie Hellman parameters]'
+      '--dh-info[print information PKCS #3 encoded Diffie-Hellman parameters]'
+      '--load-privkey:private key file:_files'
+      '--load-pubkey:public key file:_files'
+      '--load-request:certificate request file:_files'
+      '--load-certificate:certificate file:_files'
+      '--load-ca-privkey:certificate authority private key file:_files'
+      '--load-ca-certificate:certificate authority certificate file:_files'
+      '--load-crl=[load the provided CRL]:CRL'
+      '--load-data=[load auxiliary data]:data'
+      '--password=[specify password to use]:password'
+      '--hex-numbers[big number in an easier format to parse]'
+      '--cprint[prints certain information is C-friendly format]'
+      '--null-password[enforce a NULL password]'
+      '--empty-password[enforce an empty password]'
+      '--key-type=[specify the key type to use on key generation]:key type'
+      '(-i --certificate-info)'{-i,--certificate-info}'[print information on a certificate]'
+      '(-l --crl-info)'{-l,--crl-info}'[print information on a CRL]'
+      '--crq-info[print information on a certificate request]'
+      "--no-crq-extensions[don't use extensions in certificate requests]"
+      '--p12-info[print information on a PKCS #12 structure]'
+      '--p12-name=[specify PKCS #12 friendly name to use]:name'
+      '--p7-info[print information on a PKCS #7 structure]'
+      '--smime-to-p7[convert S/MIME to PKCS #7 structure]'
+      '(-k --key-info)'{-k,--key-info}'[print information on a private key]'
+      '--p8-info[print information on a PKCS #8 structure]'
+      '--to-rsa[convert an RSA-PSS key to raw RSA format]'
+      '--bits=[specify number of bits for key generation]:bits'
+      '--curve=[specify the curve used for EC key generation]:curve'
+      '--sec-param=[specify the security level]:security level:(low legacy medium high ultra)'
+      '--to-p8[convert a given key to a PKCS #8 structure]'
+      '--provable[generate a private key or parameters from a seed using a provable method]'
+      '--verify-provable-privkey[verify a private key generated from a seed using a provable method]'
+      '--seed=[when generating a private key use the given seed]:seed (hex-encoded)'
+      '--pubkey-info[print information on a public key]'
+      '--to-p12[generate a PKCS #12 structure]'
+      '(-8 --pkcs8)'{-8,--pkcs8}'[use PKCS #8 format for private keys]'
+      '--hash=[specify hash algorithm for signing]:algorithm:(MD5 SHA1 RMD160)'
+      '--salt-size=[specify the RSA-PSS key default salt size]:size'
+      {--inder,--inraw}'[use DER format for input certificates and private keys]'
+      {--outder,--outraw}'[use DER format for output certificates and private keys]'
+      '--template=[specify template file to use for non-interactive operation]:file:_files'
+      '--stdout-info[print information to stdout instead of stderr]'
+      '--ask-pass[enable interaction for entering password when in batch mode]'
+      '--pkcs-cipher=[specify cipher to use for pkcs operations]:cipher:(3des 3des-pkcs12 aes-128 aes-192 aes-256 rc2-40 arcfour)'
+      '!(--no-text)--text'
+      "--no-text[don't output textual information before PEM-encoded certificates, private keys, etc]"
+    )
+  ;;
+
+  srptool)
+    args+=(
+      '(-i --index)'{-i+,--index=}':index of params in tpasswd.conf'
+      '(-u --username)'{-u+,--username=}':username:_users'
+      '(-p --passwd)'{-p+,--passwd=}':password file:_files'
+      '(-s --salt)'{-s+,--salt=}'[specify salt size]:salt size for crypt algorithm'
+      '--verify[just verify password]'
+      '(-v --passwd-conf)'{-v+,--passwd-conf=}'[generate a password configuration file]:password conf file:_files'
+      '--create-conf=[generate a tpasswd.conf file]:file:_files'
+    )
+    ;;
+esac
+
+_arguments -s -S $args

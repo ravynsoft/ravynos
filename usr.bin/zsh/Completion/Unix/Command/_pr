@@ -1,0 +1,103 @@
+#compdef pr
+
+local curcontext=$curcontext variant msg ret=1
+local -a state state_descr line specs optA
+typeset -A opt_args
+
+# take care of '+FIRST_PAGE[:LAST_PAGE]' (GNU) or '+FIRST_PAGE' (POSIX)
+if _pick_variant -r variant gnu=GNU $OSTYPE --version; then
+  msg='FIRST_PAGE[:LAST_PAGE]'
+else
+  msg='first page'
+fi
+
+if [[ $words[CURRENT] = +* ]]; then
+  _message "$msg" && return
+fi
+
+if (( ! ${words[(I)+[0-9]*]} )); then
+  # if +number is not on the command line
+  specs=( '(hv)--pages=[specify first and last page numbers]: : _message $msg' )
+fi
+
+# common specs
+specs+=(
+  '(hv -a --across)'{-a,--across}'[with multi-column output, print columns across rather than down]'
+  '(hv -d --double-space)'{-d,--double-space}'[double space the output]'
+  '(hv -e --expand-tabs)'{-e-,--expand-tabs=-}'[expand tab (or specified char) with specified number of spaces]::number of spaces [8]:->char_number'
+  '(hv -h --header -t --omit-header)'{-h+,--header=}'[specify text used in header]:header: '
+  '(hv -i --output-tabs)'{-i-,--output-tabs=-}'[replace specified number of spaces with tab (or specified char)]::number of spaces [8]:->char_number'
+  '(hv -l --length)'{-l+,--length=}'[specify the page length]:number of lines [66]: '
+  '(hv -m --merge)'{-m,--merge}'[print all files in parallel, one in each column]'
+  '(hv -n --number-lines)'{-n-,--number-lines=-}'[number lines with specified separator and width]::number of digits [5]:->char_number'
+  '(hv -o --indent)'{-o+,--indent=}'[specify left margin]:margin [0]: '
+  '(hv -r -no-file-warnings)'{-r,--no-file-warnings}'[omit warning when a file cannot be opened]'
+  '(hv -s --separator)'{-s-,--separator=-}'[specify column separator character]:character [tab]: '
+  '(hv -t --omit-header -h --header)'{-t,--omit-header}'[omit page headers and trailers]'
+  '(hv -w --width)'{-w+,--width=}'[specify page width for multi-column output]:number of characters [72]: '
+  '(hv)*: :_files'
+)
+# XXX: pr accepts -2 -3 -4 ... for specifying the number of columns.
+#      Here we offer only -2 and -3, and do so only if there is no
+#      -2 -3 -4 ... or --columns on the command line.
+if (( ! ${words[(I)-([0-9]##*|-columns*)]} )); then
+  specs+=( {-2,-3}'[specify number of columns]' )
+fi
+
+if [[ $variant = gnu ]]; then
+  # GNU coreutils 8.32
+  specs+=(
+    '(hv -c --show-control-chars)'{-c,--show-control-chars}'[use hat (^G) and octal backslash notation]'
+    '(hv -D --date-format)'{-D+,--date-format=}'[specify format for the header date]: :_date_formats'
+    '(hv -f -F --form-feed)'{-f,-F,--form-feed}'[use form feeds instead of newlines to separate pages]'
+    '(hv -J --join-lines)'{-J,--join-lines}'[merge full lines in multi-column output]'
+    '(hv -N --first-line-number)'{-N+,--first-line-number=}'[specify the line number of the 1st line]:number: '
+    '(hv -S --sep-string)'{-S-,--sep-string=-}'[specify column separator string]:string: '
+    '(hv -T --omit-pagination)'{-T,--omit-pagination}'[omit page headers and trailers, eliminate any pagination]'
+    '(hv -v --show-nonprinting)'{-v,--show-nonprinting}'[use octal backslash notation]'
+    '(hv -W --page-width)'{-W+,--page-width=}'[specify page width always]:number of characters [72]: '
+  )
+  if (( ! ${words[(I)-[0-9]##*]} )); then
+    # if -2 -3 -4 ... are not on the command line
+    specs+=(
+      '(hv)--columns=[specify number of columns]:number of columns: '
+      + hv
+      '(- *)--help[display help and exit]'
+      '(- *)--version[output version information and exit]'
+    )
+  fi
+else
+  specs=( ${specs:#(|*\))--*} )    # remove long options
+  case $variant in
+    freebsd*|dragonfly*|darwin*|netbsd*)
+      specs+=(
+	'(-f)-F[use form feeds instead of newlines to separate pages]'
+	'(-F)-f[same as -F but pause before the 1st page if stdout is terminal]'
+	'-p[pause before each page if stdout is terminal]'
+      )
+      ;|
+    freebsd*|dragonfly*|darwin*)
+      specs+=( '-L+[specify locale to use]: :_locales' )
+      ;;
+    openbsd*)
+      specs+=( '(-f -F)'{-f,-F}'[use form feeds instead of newlines to separate pages]' )
+      ;;
+  esac
+  optA=( -A '[-+]?*' )  # a single '-' is a valid file name (stdin)
+fi
+
+_arguments -C -s -S $optA : $specs && ret=0
+
+case $state in
+  char_number)
+    # argument for option -e (and -i, -n) can be -e. -e10 or -e.10
+    # where . is any non-digit character
+    if compset -p 1; then
+      _message "$state_descr" && ret=0
+    else
+      _message "a character [tab] (optional), and $state_descr" && ret=0
+    fi
+    ;;
+esac
+
+return ret

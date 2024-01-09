@@ -1,0 +1,10 @@
+name=zsh/compctl
+link=either
+load=yes
+
+moddeps="zsh/complete zsh/zle"
+
+autofeatures="b:compctl b:compcall"
+
+headers="compctl.h"
+objects="compctl.o"

@@ -1,0 +1,29 @@
+#compdef -value-,TERMINFO_DIRS,-default- -P -value-,*PATH,-default-
+
+# options:
+#  -s <sep> to specify the separator (default is a colon)
+#  -S       to say that the separator should be added as a suffix (instead
+#           of the default slash)
+# any description passed should apply to an individual directory and not
+# to the entire list
+
+local sep=: dosuf suf
+
+while [[ "$1" = -(s*|S) ]]; do
+  case "$1" in
+  -s)  sep="$2"; shift 2;;
+  -s*) sep="${1[3,-1]}"; shift;;
+  -S)  dosuf=yes; shift;;
+  esac
+done
+
+compset -P "*${sep}"
+compset -S "${sep}*" || suf="$sep"
+
+if [[ -n "$dosuf" ]]; then
+  suf=(-S "$suf")
+else
+  suf=()
+fi
+
+_directories "$suf[@]" -r "${sep}"' /\t\t\-' "$@"

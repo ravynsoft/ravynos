@@ -1,0 +1,320 @@
+#compdef networksetup
+
+# Notes:
+# - Inconsistent option capitalisation is intentional; see networksetup(1)
+# - Options related to user/log-in/system profiles are omitted, since they no
+#   longer function (despite appearing in the manual)
+# - Each d/p/s could list associated d/p/s in the descriptions
+# - Options that take multiple devices/services (e.g. -createBond) could exclude
+#   those previously specified on the command line
+# - Bond, PPPoE, and VLAN functionality couldn't be tested; some option-
+#   arguments aren't completed (-deleteBond, -deleteVLAN, ...)
+# - -createpppoeservice arguments in particular may not be right
+
+# Complete network devices
+(( $+functions[_networksetup_devices] )) ||
+_networksetup_devices() {
+  local -a expl tmp
+
+  tmp=( ${(f)"$(
+    _call_program network-devices $words[1] -listallhardwareports
+  )"} )
+  tmp=( ${(@M)tmp##Device:*} )
+  tmp=( ${(@)tmp##Device:[[:space:]]##} )
+
+  _wanted -x devices expl 'network device' compadd -a "$@" - tmp
+}
+
+# Complete network locations
+(( $+functions[_networksetup_locations] )) ||
+_networksetup_locations() {
+  local -a expl tmp
+
+  tmp=( ${(f)"$( _call_program network-locations $words[1] -listlocations )"} )
+
+  _wanted -x locations expl 'network location' compadd -a "$@" - tmp
+}
+
+# Complete hardware ports
+(( $+functions[_networksetup_ports] )) ||
+_networksetup_ports() {
+  local -a expl tmp
+
+  tmp=( ${(f)"$(
+    _call_program hardware-ports $words[1] -listallhardwareports
+  )"} )
+  tmp=( ${(@M)tmp##Hardware Port:*} )
+  tmp=( ${(@)tmp##Hardware Port:[[:space:]]##} )
+
+  _wanted -x ports expl 'hardware port' compadd -a "$@" - tmp
+}
+
+# Complete network services
+(( $+functions[_networksetup_services] )) ||
+_networksetup_services() {
+  local -a expl tmp
+
+  tmp=( ${(f)"$(
+    _call_program network-services $words[1] -listallnetworkservices
+  )"} )
+  # The command output doesn't distinguish between a leading asterisk used to
+  # indicate an inactive service and one that's just used in the service name
+  # itself... but the latter scenario seems uncommon, so we'll assume it's
+  # always the former
+  tmp=( ${(@)tmp#\*} )
+  # The first line is an explanation of the asterisk thing; skip it
+  tmp=( ${(@)tmp[2,-1]} )
+
+  _wanted -x services expl 'network service' compadd -a "$@" - tmp
+}
+
+# Complete Wi-Fi networks — this function expects the final argument to be the
+# name of a wireless device (pre-escaped, as if taken from $words)
+(( $+functions[_networksetup_wifi_networks] )) ||
+_networksetup_wifi_networks() {
+  local -a expl tmp
+
+  tmp=( ${(f)"$(
+    _call_program wifi-networks $words[1] \
+      -listpreferredwirelessnetworks ${(q-)@[-1]}
+  )"} )
+  # Lines with Wi-Fi networks on them are prefixed by white space
+  tmp=( ${(@M)tmp##[[:space:]]*} )
+  tmp=( ${(@)tmp##[[:space:]]##} )
+
+  shift -p # Discard device argument
+  _wanted -x wifi-networks expl 'Wi-Fi network' compadd -a "$@" - tmp
+}
+
+_networksetup() {
+  local i j ret=1
+  local -a context line state state_descr args tmp
+  local -A opt_args val_args proxies
+
+  args=(
+    + '(cmd)'
+    '-addDeviceToBond[add specified device/port to bond]: :->dp: :->b'
+    '-addpreferredwirelessnetworkatindex[add preferred Wi-Fi network for specified device]: :->d: :->w:*::: :->wifi-idx-info'
+    '-connectpppoeservice[connect specified PPPoE service]: :->P'
+    '-create6to4service[create new 6to4 service]:6to4 service name'
+    '-createBond[create bond with specified devices/ports]:bond name: :*: :->dp'
+    '-createlocation[create new network location]:network location name: :*: :->s'
+    '-createnetworkservice[create new network service on specified device/port]: :->dp:network service name'
+    '-createpppoeservice[create new PPPoE service on specified device/port]: :->dp: :->s:PPPoE account name: :PPPoE password: :PPPoE service name'
+    '-createVLAN[create VLAN on specified device/port]:VLAN name: : :->dp:VLAN tag'
+    '-deleteBond[delete specified bond]: :->b'
+    '-deletelocation[delete specified network location]: :->l'
+    '-deletepppoeservice[delete specified PPPoE service]: :->P'
+    '-deleteVLAN[delete VLAN from specified device/port]:VLAN name: : :->dp:VLAN tag'
+    '-detectnewhardware[detect new network hardware]'
+    '-disconnectpppoeservice[disconnect specified PPPoE service]: :->P'
+    '-duplicatenetworkservice[duplicate specified network service]: :->s:network service name'
+    '-getadditionalroutes[list additional IPv4 routes for specified network service]: :->s'
+    '-getairportnetwork[display Wi-Fi network for specified device]: :->d'
+    '-getairportpower[display Wi-Fi power state for specified device]: :->d'
+    '-getautoproxyurl[display proxy auto-config URL for specified network service]: :->s'
+    '-getv6additionalroutes[list additional IPv6 routes for specified network service]: :->s'
+    '-getcomputername[display computer name]'
+    '-getcurrentlocation[display current network location]'
+    '-getdnsservers[display DNS info for specified network service]: :->s'
+    '-getinfo[display info for specified network service]: :->s'
+    '-getmacaddress[display MAC address for specified device/port]: :->dp'
+    '-getMedia[display media for specified device/port]: :->dp'
+    '-getMTU[display MTU for specified device/port]: :->dp'
+    '-getnetworkserviceenabled[get enabled state for specified network service]: :->s'
+    '-getpassiveftp[display passive FTP state for specified network service]: :->s'
+    '-getproxyautodiscovery[display proxy auto-discovery state for specified network service]: :->s'
+    '-getproxybypassdomains[display proxy bypass domains for specified network service]: :->s'
+    '-getsearchdomains[display DNS search domains for specified network service]: :->s'
+    '-help[display help information]'
+    '-isBondSupported[display whether device/port can be added to a bond]: :->dp'
+    '-listallhardwareports[list hardware ports]'
+    '-listallnetworkservices[list network services]'
+    '-listBonds[list bonds]'
+    '-listdevicesthatsupportVLAN[list devices that support VLANs]'
+    '-listlocations[list network locations]'
+    '-listnetworkserviceorder[list network services and their devices/ports in order]'
+    '-listpreferredwirelessnetworks[list preferred Wi-Fi networks for the specified device]: :->d'
+    '-listpppoeservices[list PPPoE services]'
+    '-listValidMedia[list valid media for specified device/port]: :->dp'
+    '-listValidMTURange[display valid MTU range for specified device/port]: :->dp'
+    '-listVLANs[list VLANs]'
+    '-ordernetworkservices[set network service order]:*: :->s'
+    '-printcommands[list commands]'
+    '-removeallpreferredwirelessnetwork[remove all preferred Wi-Fi networks from specified device]: :->d'
+    '-removeDeviceFromBond[remove specified device/port from bond]: :->dp: :->b'
+    '-removenetworkservice[remove specified network service]: :->s'
+    '-removepreferredwirelessnetwork[remove preferred Wi-Fi network from specified device]: :->d: :->w'
+    '-renamenetworkservice[rename specified network service]: :->s:network service name'
+    '-set6to4automatic[set specified 6to4 service to get relay address automatically]:6to4 service:->s'
+    '-set6to4manual[set specified 6to4 service to use manual relay address]:6to4 service:->s:relay address'
+    '-setadditionalroutes[set additional IPv4 routes for specified network service]: :->s:*::: :->routes-v4'
+    '-setairportnetwork[set Wi-Fi network for specified device]: :->d: :->w:Wi-Fi network password'
+    '-setairportpower[set Wi-Fi power state for specified device]: :->d:Wi-Fi power state:(on off)'
+    '-setautoproxyurl[set proxy auto-config URL for specified network service]: :->s:proxy auto-config URL:_urls'
+    '-setcomputername[set computer name]:computer name'
+    '-setbootp[set specified network service to use BOOTP]: :->s'
+    '-setdhcp[set specified network service to use DHCP]: :->s:client ID (optional)'
+    '-setdnsservers[set DNS servers for specified network service]: :->s:*:DNS server address'
+    '-setmanual[set specified network service to use manual IPv4 IP/subnet/router]: :->s:IP address: :subnet mask: :router address'
+    '-setmanualwithdhcprouter[set specified network service to use DHCP with manual IP]: :->s:IP address'
+    '-setMedia[set media for specified device/port]: :->dp: :->media:*:media option'
+    '-setMTU[set MTU for specified device/port]: :->dp: :->mtu'
+    '-setMTUAndMediaAutomatically[set specified device/port to automatically set MTU and media type]: :->dp'
+    '-setnetworkserviceenabled[set enabled state for specified network service]: :->s:network service enabled state:(on off)'
+    '-setpassiveftp[set passive FTP state for specified network service]: :->s:passive FTP state:(on off)'
+    '-setpppoeaccountname[set account name for specified PPPoE service]: :->P:PPPoE account name'
+    '-setpppoepassword[set password for specified PPPoE service]: :->P:PPPoE password'
+    '-setproxyautodiscovery[set proxy auto-discovery state for specified network service]: :->s:proxy auto-discovery state:(on off)'
+    '-setproxybypassdomains[set proxy bypass domains for specified network service]: :->s:*:proxy bypass domain'
+    '-setsearchdomains[set DNS search domains for specified network service]: :->s:*:DNS search domain'
+    '-setv6additionalroutes[set additional IPv6 routes for specified network service]: :->s:*::: :->routes-v6'
+    '-setv4automatic[set specified network service to get IPv4 address automatically]: :->s'
+    '-setv6automatic[set specified network service to get IPv6 address automatically]: :->s'
+    '-setv6linklocal[set specified network service to use link-local address only for IPv6]: :->s'
+    '-setv6manual[set specified network service to use manual IPv6 IP/prefix/router]: :->s:IP address: :prefix length: :router address'
+    '-setv4off[disable IPv4 for specified network service]: :->s'
+    '-setv6off[disable IPv6 for specified network service]: :->s'
+    '-showBondStatus[display status for specified bond]: :->b'
+    '-showpppoestatus[display status for specified PPPoE service]: :->P'
+    '-switchtolocation[switch to specified network location]: :->l'
+  )
+
+  proxies=(
+    ftp FTP
+    gopher Gopher
+    socks SOCKS
+    secureweb HTTPS
+    streaming RTSP
+    web HTTP
+  )
+
+  for i j in ${(kv)proxies}; do
+    args+=(
+      "-get${i}proxy[display $j proxy info for specified network service]: :->s"
+      "-set${i}proxy[set $j proxy info for specified network service]: :->s:*::: :->proxy-info"
+      "-set${i}proxystate[set $j proxy state for specified network service]: :->s:proxy state:(on off)"
+    )
+  done
+
+  _arguments : $args && ret=0
+
+  case $state in
+    b) _message -e bonds 'interface bond' && ret=0 ;;
+    d) _networksetup_devices && ret=0 ;;
+    l) _networksetup_locations && ret=0 ;;
+    p) _networksetup_ports && ret=0 ;;
+    P) _message -e pppoe-services 'PPPoE service' && ret=0 ;;
+    s) _networksetup_services && ret=0 ;;
+    dp)
+      _alternative \
+        'devices::_networksetup_devices' \
+        'ports::_networksetup_ports' \
+      && ret=0
+      ;;
+    dps)
+      _alternative \
+        'devices::_networksetup_devices' \
+        'ports::_networksetup_ports' \
+        'services::_networksetup_services' \
+      && ret=0
+      ;;
+    ps)
+      _alternative \
+        'ports::_networksetup_ports' \
+        'services::_networksetup_services' \
+      && ret=0
+    ;;
+    w)
+      # Wi-Fi network always follows device/port on command line
+      _networksetup_wifi_networks $words[(CURRENT - 1)] && ret=0
+      ;;
+    media)
+      # Media type always follows device/port on command line
+      tmp=( ${(f)"$(
+        _call_program media-types $words[1] \
+          -listValidMedia $words[(CURRENT - 1)]
+      )"} )
+      tmp=( ${tmp##\**} ) # Error message
+      if (( $#tmp )); then
+        _describe -t media-types 'media type' tmp && ret=0
+      else
+        _message -e media-types 'media type' && ret=0
+      fi
+      ;;
+    mtu)
+      # MTU value always follows device/port on command line
+      tmp=( ${(f)"$(
+        _call_program mtu-ranges $words[1] \
+          -listValidMTURange $words[(CURRENT - 1)]
+      )"} )
+      tmp=( ${(M)tmp##Valid MTU Range:*} )
+      tmp=( ${tmp##*:[[:space:]]#} )
+      _message -e mtu-value "MTU value${tmp:+ (${tmp})}" && ret=0
+      ;;
+    proxy-info)
+      (( CURRENT > 5 )) ||
+      case $(( CURRENT % 5 )) in
+        1) _message -e hosts 'proxy server address' && ret=0 ;;
+        2) _message -e ports 'proxy port number' && ret=0 ;;
+        3) _values 'authenticated proxy support' on off && ret=0 ;;
+        4)
+          [[ $words[(CURRENT - 1)] == on ]] &&
+          _message -e users 'proxy user name' &&
+          ret=0
+          ;;
+        0)
+          [[ $words[(CURRENT - 2)] == on ]] &&
+          _message -e passwords 'proxy password' &&
+          ret=0
+          ;;
+      esac
+      ;;
+    routes-v4)
+      case $(( CURRENT % 3 )) in
+        1) _message -e addresses 'destination address' && ret=0 ;;
+        2) _message -e masks 'subnet mask' && ret=0 ;;
+        0) _message -e addresses 'router address' && ret=0 ;;
+      esac
+      ;;
+    routes-v6)
+      case $(( CURRENT % 3 )) in
+        1) _message -e addresses 'destination address' && ret=0 ;;
+        2) _message -e prefixes 'prefix length' && ret=0 ;;
+        0) _message -e addresses 'router address' && ret=0 ;;
+      esac
+      ;;
+    wifi-idx-info)
+      (( CURRENT > 3 )) ||
+      case $(( CURRENT % 3 )) in
+        1)
+          _message -e wifi-indexes 'index in preferred Wi-Fi networks list' &&
+          ret=0
+          ;;
+        2)
+          tmp=(
+            'OPEN:none (unsecured)'
+            'WPA:WPA Personal'
+            'WPA2:WPA2 Personal'
+            'WPA/WPA2:WPA/WPA2 Personal'
+            'WPAE:WPA Enterprise'
+            'WPA2E:WPA2 Enterprise'
+            'WPAE/WPA2E:WPA/WPA2 Enterprise'
+            'WEP:plain WEP'
+            '8021XWEP:802.1X WEP'
+          )
+          _describe -t security-types 'Wi-Fi network security type' tmp && ret=0
+          ;;
+        0)
+          [[ ${(U)words[(CURRENT - 1)]} != OPEN ]] &&
+          _message -e passwords 'Wi-Fi network password' &&
+          ret=0
+          ;;
+      esac
+      ;;
+  esac
+
+  return ret
+}
+
+_networksetup "$@"

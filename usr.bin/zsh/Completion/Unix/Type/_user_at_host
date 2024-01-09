@@ -1,0 +1,31 @@
+#autoload
+
+# Complete user/host combinations. Normally this looks for the style
+# `users-hosts' for the tag `accounts'. A different tag may be given
+# with `-t tag'.
+# A `-' or `--' as the first argument is ignored.
+
+local expl suf tag=accounts
+
+if [[ "$1" = -t?* ]]; then
+  tag="${1[3,-1]}"
+  shift
+elif [[ "$1" = -t ]]; then
+  tag="$2"
+  shift 2
+fi
+
+[[ "$1" = -(|-) ]] && shift
+
+if [[ -prefix 1 *@ ]]; then
+  local user=${PREFIX%%@*}
+
+  compset -P 1 '*@'
+
+  _wanted -C user-at hosts expl "host for $user" \
+      _combination -s '[:@]' "${tag}" users-hosts users="$user" hosts "$@" -
+else
+  compset -S '@*' || suf="@"
+  _wanted users expl "user" \
+      _combination -s '[:@]' "${tag}" users-hosts users -S "$suf" -q "$@" -
+fi

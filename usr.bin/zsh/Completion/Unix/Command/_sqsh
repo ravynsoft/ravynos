@@ -1,0 +1,51 @@
+#compdef sqsh
+
+_sybase_server() {
+    local interfaces
+
+    if [[ -n "$opt_args[-I]" ]]; then
+        interfaces=${(e)~opt_args[-I]:Q}
+    elif [[ -n "$opt_args[-y]" ]]; then
+        interfaces=${(e)~opt_args[-y]:Q}/interfaces
+    else
+        interfaces=$SYBASE/interfaces
+    fi
+
+    [[ -f $interfaces ]] && compadd ${${(f)"$(<$interfaces)"}:#[[:space:]#]*}
+}
+
+_arguments : \
+    '-A[adjust TDS packet size (512)]:packet size (bytes):(512 1024 1536 2048)' \
+    '-B[turn off file buffering on startup]' \
+    '-C[send sql statement to server]:sql' \
+    '-D[change database context on startup]:database' \
+    '-E[replace default editor (vi)]:editor' \
+    '-H[set the client hostname]:reported hostname' \
+    '-I[alternate interfaces file]:interface file:_files' \
+    '-J[client character set]:charset' \
+    '*-L[set the value of a given variable]:variable=value' \
+    '-P[Sybase password (NULL)]:password' \
+    '-S[name of Sybase server (\$DSQUERY)]:_sybase_server' \
+    '-U[name of Sybase user]:username' \
+    '-X[enable client password encryption]' \
+    '-a[max. # of errors before abort]:number' \
+    '-b[suppress banner message on startup]' \
+    '*-c[alias for the ''go'' command]:go alias' \
+    '-d[min. severity level to display]:severity level (0-22)' \
+    '-e[echo batch prior to executing]' \
+    '-f[min. severity level for failure]:failure severity' \
+    '-h[disable headers and footers]' \
+    '-i[read input from file]:_files' \
+    '-k[specify alternate keywords file]:_files' \
+    '-l[set debugging level]' \
+    '-m[set display mode (normal)]:display style:(horiz vert bcp html meta pretty none)' \
+    '-n[set chained transaction mode]:chained transaction mode:(on off)' \
+    '-o[direct all output to file]:_files' \
+    '-p[display performance stats]' \
+    '-r[specify name of .sqshrc]:_files' \
+    '-s[alternate column separator (\t)]:column separator' \
+    '-t[filter batches through program]:filter program:_files -g "*(*)"' \
+    '-v[display current version and exit]' \
+    '-w[adjust result display width]:number' \
+    '-y[override value of $SYBASE]:_directories' \
+    '-z[alternate display language]:language'

@@ -1,0 +1,27 @@
+# zpty is required by tests of interactive modes of the shell itself.
+# This tests some extra things.
+
+%prep
+
+  if ! zmodload zsh/zpty 2>/dev/null
+  then
+    ZTST_unimplemented="the zsh/zpty module is not available"
+  fi
+
+%test
+
+  zpty cat cat
+  zpty -w cat a line of text
+  var=
+  zpty -r cat var && print -r -- ${var%%$'\r\n'}
+  zpty -d cat
+0:zpty with a process that does not set up the terminal: internal write
+>a line of text
+
+  zpty cat cat
+  print a line of text | zpty -w cat
+  var=
+  zpty -r cat var && print -r -- ${var%%$'\r\n'}
+  zpty -d cat
+0:zpty with a process that does not set up the terminal: write via stdin
+>a line of text

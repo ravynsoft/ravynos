@@ -1,0 +1,17 @@
+#compdef dpatch-edit-patch
+
+_arguments \
+  '(-d --description)'{-d,--description=}'[description for the new patch, if applicable]' \
+  '(-o --outdir)'{-o,--outdir=}'[output directory for patches]:patch output directory:_files -/' \
+  '(-s --sourcedir)'{-s,--sourcedir=}'[source directory]:source directory:_files -/' \
+  '(-t --tmpdir)'{-t,--tmpdir=}'[temporary directory]:temporary directory:_files -/' \
+  '(-p --stampdir)'{-p,--stampdir=}'[stamp directory]:stamp directory:_files -/' \
+  '(-e --exclude)'{-e,--exclude}'[list of files and directories to be excluded]:excluded files and directories:_files' \
+  '(-b --debianonly)'{-b,--debianonly=}'[unpack .orig.tar.gz before invoking the shell]:path to .orig.tar.gz:_files' \
+  '(-k --keeptemp)'{-k,--keeptemp}'[keep working source tree after exit]' \
+  '(-c --clean)'{-c,--clean}'[clean the current directory]' \
+  '(-l --shell)'{-l,--shell=}'[shell to be invoked]:shell:' \
+  '(-P --origtargzpath)'{-P,--origtargzpath=}'[colon-separated list of paths containing upstream tarballs, use with -b]:path to upstream tarballs:_dir_list' \
+  '(-h --help)'{-h,--help}'[help text]' \
+  '1:patch name:_files -W $PWD/debian/patches -g \*.dpatch\(-.\:r\)' \
+  '2:base patch name:_files -W $PWD/debian/patches -g \*.dpatch\(-.\:r\)'

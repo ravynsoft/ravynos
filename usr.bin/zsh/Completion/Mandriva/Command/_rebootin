@@ -1,0 +1,29 @@
+#compdef rebootin
+
+local context state line expl
+typeset -A opt_args
+local loader=${$(_call_program -p entries detectloader -q):-GRUB}
+
+_arguments -s \
+    '-n[no immediate reboot just set the flags for next reboot]' \
+    '-f[create a /fastboot file to reboot in fastboot mode]' \
+    '*::arguments:->loader_entry'
+
+case $state in
+  loader_entry)
+    case $loader in
+      GRUB)
+	if [ -r /boot/grub/menu.lst ]; then
+	  _wanted -C $context entries expl entry \
+	      compadd ${${(M)${(f)"$(</boot/grub/menu.lst)"}##title *}#title }
+	fi
+      ;;
+      LILO)
+	if [ -r /etc/lilo.conf ]; then
+	  _wanted -C $context entries expl entry \
+	      compadd $(awk -F= '{ if ($0 ~ /label=/) print $2 }' /etc/lilo.conf)
+	fi
+      ;;
+    esac
+  ;;
+esac

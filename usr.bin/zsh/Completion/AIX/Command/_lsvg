@@ -1,0 +1,10 @@
+#compdef lsvg
+
+_arguments -C -s \
+  '(-i -l -M -p)-o[lists only active volume groups]' \
+  '(-i -l -M -p)-n[specify physical volume to access variable descriptor from]:physical volume:_physical_volumes' \
+  '(-o -n)-i[reads volume group names from standard input]' \
+  '(-o -n -M -p)-l[list logical volumes in volume group]' \
+  '(-o -n -l -p)-M[list mapping of physical and logical partition numbers]' \
+  '(-o -n -l -M)-p[list physical volumes used by volume group]' \
+  '*:volume group:_volume_groups'

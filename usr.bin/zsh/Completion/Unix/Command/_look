@@ -1,0 +1,34 @@
+#compdef look
+
+local curcontext="$curcontext" state line expl args sep='+' ret=1
+typeset -A opt_args
+
+case $OSTYPE in
+  linux*)
+    args=(
+      '(2 -a --alternative)'{-a,--alternative}'[use alternative dictionary file]'
+      '(-d --alphanum)'{-d,--alphanum}'[dictionary order]'
+      '(-f --ignore-case)'{-f,--ignore-case}'[case insensitive]'
+      '(-t --terminate)'{-t+,--terminate=}'[specify termination character]:termination character'
+      '(-)'{-h,--help}'[display help information]'
+      '(-)'{-V,--version}'[display version information]'
+    )
+  ;;
+  solaris*) sep='-' ;&
+  *)
+    args=( -A "-*"
+      "-t${sep}[specify termination character]:termination character"
+      '-f[case insensitive]'
+      '-d[dictionary order]'
+    )
+  ;;
+esac
+
+_arguments -C -s -S $args \
+  '1:string:->string' \
+  '2:dictionary file:_files' && ret=0
+
+[[ -n "$state" && ! -prefix - ]] && _wanted values expl 'word prefix' \
+    compadd - $(_call_program words $words[1] '"$PREFIX"') && return
+
+return ret

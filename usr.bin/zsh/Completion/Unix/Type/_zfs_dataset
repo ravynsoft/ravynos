@@ -1,0 +1,80 @@
+#autoload
+
+local -a type expl_type_arr rsrc rdst paths_allowed
+local -a typearg datasetlist expl mlist
+local expl_type
+
+# -e takes an argument which is passed as the "descr" argument to _wanted
+# -p indicates that filesystem paths, not just dataset names, are allowed
+# -r1 indicates that we're completing the source of a rename
+# -r2 indicates that we're completing the destination of a rename
+# -t takes arguments (what kinds of datasets) and can appear multiple times
+zparseopts -D -E e:=expl_type_arr p=paths_allowed r1=rsrc r2=rdst t+:=type
+
+[[ -n $type[(r)fs] ]] && typearg=( filesystem )
+[[ -n $type[(r)vol] ]] && typearg+=( volume )
+[[ -n $type[(r)snap] ]] && typearg+=( snapshot )
+[[ -n $type[(r)share] && $implementation = solaris ]] && typearg+=( share )
+[[ -n $type[(r)bookmark] && $implementation = openzfs ]] &&
+    typearg+=( bookmark )
+if [[ -n $typearg ]]; then
+	typearg=( -t ${(j:,:)typearg} )
+# We know we're in zfs list if paths_allowed is non-empty.
+elif [[ -n $opt_args[-t] && ${#paths_allowed} -gt 0 ]]; then
+	typearg=( -t $opt_args[-t] )
+fi
+
+if [[ ${#paths_allowed} -gt 0 && $PREFIX == /* ]]; then
+	_path_files
+	return
+fi
+
+if [[ ${#rsrc} -gt 0 ]]; then
+	# With the -r option to zfs rename, we can only rename snapshots.  With the
+	# -p option, we can only rename filesystems and volumes.
+	if [[ -n $words[(r)-r] ]]; then
+		typearg=( -t snapshot )
+	elif [[ -n $words[(r)-p] ]]; then
+		typearg=( -t filesystem,volume )
+	elif [[ $implementation == openzfs ]]; then
+		typearg=( -t filesystem,snapshot,volume )
+	else
+		typearg=( -t filesystem,share,snapshot,volume )
+	fi
+fi
+
+if [[ ${#rdst} -gt 0 ]]; then
+	if [[ ${words[CURRENT - 1]} == *@* ]]; then
+		# If we're renaming snapshots, there's nothing to complete, so
+		# we simply give instructions.  (In non-recursive cases, we
+		# could put the name of the snapshotted dataset first, but why
+		# bother with the long form?)
+		_message -e 'snapshot name (beginning with "@")'
+		return
+	else
+		# The parent dataset must be a filesystem, and can't rename
+		# a dataset into another pool.  Plus we hardcode the expl.
+		typearg=( -t filesystem -r ${${words[CURRENT - 1]}%%/*} )
+		expl_type_arr=( -e "parent dataset" )
+	fi
+fi
+
+if [[ -n $type[(r)clone] ]]; then
+  datasetlist=( ${(f)"$(zfs list -H -o name,origin -t filesystem 2>/dev/null | awk -F$'\t' "\$2 != \"-\" {print \$1}")":#no cloned filesystems available} )
+else
+	datasetlist=( ${(f)"$(zfs list -H -o name $typearg 2>/dev/null)":#no datasets available} )
+fi
+
+expl_type=${typearg[2,-1]//,/\/}
+if [[ -n $type[(r)mtpt] ]]; then
+	mlist=( ${(f)"$(zfs list -H -o mountpoint $typearg 2>/dev/null)":#no mountpoints available} )
+	datasetlist=( $datasetlist $mlist )
+	expl_type="$expl_type/mountpoint"
+fi
+
+if [[ -n $expl_type_arr[2] ]]; then
+	expl_type=$expl_type_arr[2]
+fi
+
+_description datasets expl "$expl_type"
+_multi_parts "$@" "$expl[@]" -q / datasetlist

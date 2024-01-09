@@ -1,0 +1,194 @@
+#compdef dpkg dpkg-deb dpkg-query dpkg-reconfigure
+
+local _dpkg_deb_actions _dpkg_common_actions _dpkg_actions _dpkg_options
+local _dpkg_options_recursive #_dpkg_actions_install _dpkg_actions_record_avail
+local _dpkg_deb_only_actions
+local _dpkg_deb_and_query_only_actions _dpkg_deb_and_query_only_options 
+local _dpkg_query_actions
+local curcontext="$curcontext" context state line expl ret
+typeset -A opt_args
+
+_dpkg_deb_only_actions=(
+    '-D[debugging output]'
+    '(--new)--old[old archive format]'
+    '(--old)--new[new archive format]'
+    '--nocheck[suppress control file check]'
+    '-z+[compression level]:compression number:(1 2 3 4 5 6 7 8 9)'
+)
+
+_dpkg_deb_actions=(
+  '(--build -b)'{--build,-b}'[build archive]:directory:_files -/'
+  '(--contents -c)'{--contents,-c}'[list contents]: :_deb_files'
+  '(--info -I)'{--info,-I}'[show info]: :_deb_files'
+  '(--field -f)'{--field,-f}'[show fields]: :_deb_files'
+  '(--control -e)'{--control,-e}'[extract control]: :_deb_files'
+  '(--extract -x)'{--extract,-x}'[extract files]: :_deb_files'
+  '(--vextract -X)'{--vextract,-X}'[extract and list files]: :_deb_files'
+  '--fsys-tarfile[output fs tarfile]: :_deb_files'
+)
+
+_dpkg_common_actions=(
+  '--help[show help]'
+  '--version[show version]'
+  '(--license --licence)'{--license,--licence}'[show licensing]'
+)
+
+_dpkg_actions=(
+  '(--install -i)'{--install,-i}'[install packages]:*:Debian packages:->install'
+  '--unpack[unpack package]: :_deb_files'
+  '--configure[reconfigure specified packages]:*:package:->configure'
+  '(--remove -r)'{--remove,-r}'[remove package]:*:package:->remove'
+  '(--purge -P)'{--purge,-P}'[purge package]:*:package:->purge'
+  '--update-avail[update available]:package file:_files'
+  '--merge-avail[merge available]:package file:_files'
+  '(--record-avail -A)'{--record-avail,-A}'[record available]:*:package files:->record_avail'
+  '--forget-old-unavail[forget uninstalled unavailable]'
+  '--clear-avail[clear available]'
+  '(--audit -C)'{--audit,-C}'[check for broken pkgs]'
+  '--get-selections[get selections]:pattern:'
+  '--set-selections[set selections]'
+  '--yet-to-unpack[list uninstalled]'
+  '--print-architecture[print target architecture]'
+  '--print-installation-architecture'
+  '--print-foreign-architectures[print list of extra architectures]'
+  '--add-architecture[add extra architecture]:architecture:->add_architecture'
+  '--remove-architecture[remove extra architecture]:architecture:->remove_architecture'
+  '--compare-versions[compare version numbers]:*::expression:= ->compare_versions'
+)
+
+_dpkg_options=(
+  '--abort-after[abort after errors]:number of errors:'
+  '--root=[alternative root]:root:_files -/'
+  '--instdir=[change inst root but not data dir]:_files -/'
+  '(--selected-only -O)'{--selected-only,-O}'[skip unselected packages]'
+  '(--skip-same-version -E)'{--skip-same-version,-E}'[skip packages with same version as installed]'
+  '(--refuse-downgrade -G)'{--refuse-downgrade,-G}'[skip packages with earlier version than installed]'
+  '(--auto-deconfigure -B)'{--auto-deconfigure,-B}'[install can break other packages]'
+  '--largemem[optimize for >4Mb RAM]'
+  '--smallmem[optimize for <4Mb RAM]'
+  '--no-act[show potential actions but do not follow through]'
+  '-D+[debug options]:debug options:(h 1 2 3)'
+  '--debug=[debug options]:debug options:(help 1 2 3)'
+  '--ignore-depends=[ignore depends involving package]:package:_deb_packages avail'
+  --{force,refuse,no-force}'--[forcing options]:what:(all downgrade configure-any hold bad-path not-root overwrite overwrite-diverted bad-verify depends-version depends confnew confold confdef confmiss conflicts architecture overwrite-dir remove-reinstreq remove-essential help)'
+)
+
+_dpkg_options_recursive=( '(--recursive -R)'{--recursive,-R}'[recursive]' )
+
+_dpkg_deb_and_query_only_actions=(
+    '(--show -W)'{--show,-W}'[show package info]: :_deb_files'
+)
+
+_dpkg_deb_and_query_only_options=(
+    '--showformat=-[alternative format]:format: '
+)
+
+_dpkg_query_actions=(
+      '(--status -s)'{--status,-s}'[display package status]:*:packages:->status'
+      '(--print-avail -p)'{--print-avail,-p}'[display available details]:packages:_deb_packages avail'
+      '(--listfiles -L)'{--listfiles,-L}'[list owned files]:*:packages:->listfiles'
+      '(--list -l)'{--list,-l}'[list packages]:*:packages:->list'
+      '(--search -S)'{--search,-S}'[search for file owner]:*:pattern:->search'
+      '--admindir=[data directory]:directory:_files -/'
+)
+
+# not needed anymore?
+#  _dpkg_actions_install=('(--install)-i[install]' '(-i)--install')
+#  _dpkg_actions_record_avail=('(--record-avail)-A[record available]' '(-A)--record-avail')
+
+case "$service" in
+  dpkg)
+    _arguments -C -s \
+      "$_dpkg_actions[@]" \
+      "$_dpkg_deb_actions[@]" \
+      "$_dpkg_common_actions[@]" \
+      "$_dpkg_options[@]" \
+      "$_dpkg_options_recursive[@]" \
+      "$_dpkg_query_actions[@]" && return 0
+  ;;
+
+  dpkg-deb)
+    _arguments "$_dpkg_deb_actions[@]" \
+        "$_dpkg_deb_only_actions[@]" \
+        "$_dpkg_common_actions[@]" \
+        "$_dpkg_deb_and_query_only_actions[@]" \
+        "$_dpkg_deb_and_query_only_options[@]" && return 0
+
+  ;;
+
+  dpkg-query)
+    _arguments "$_dpkg_query_actions[@]" \
+           "$_dpkg_common_actions[@]" \
+           "$_dpkg_deb_and_query_only_actions[@]" \
+           "$_dpkg_deb_and_query_only_options[@]" && return 0
+  ;;
+  dpkg-reconfigure)
+    _arguments -s -w \
+      '(-f --frontend)'{-f,--frontend}'[select frontend to use]:frontend:(dialog readline noninteractive gnome kde editor web)' \
+      '(-p --priority)'{-p,--priority}'[specify min priority of questions]:priority:(low medium high critical)' \
+      '--default-priority[use default question priority]' \
+      '(*)--all[reconfigure all installed packages using debconf]' \
+      '(-u --unseen-only)'{-u,--unseen-only}'[only ask questions not yet seen are asked]' \
+      '--force[reconfigure even packages in broken state]' \
+      '(-)'{-h,--help}'[display help information]' \
+      '*:package:_deb_packages installed' && return 0
+  ;;
+esac
+
+case "$state" in
+  install|record_avail)
+    _call_function ret _dpkg_$state && return ret
+# not needed anymore?
+#            "${(@e):-\$_dpkg_actions_${state}}" \
+    _arguments -C -A '-*' -s \
+	"$_dpkg_options[@]" \
+	\!${^_dpkg_actions%%:*} \
+      - recur \
+	"$_dpkg_options_recursive[@]" \
+	'*:directory:_path_files -/' \
+      - nonrecur \
+	'*: :_deb_files'
+  ;;
+  remove|status|listfiles)
+    _call_function ret _dpkg_$state && return ret
+    _arguments -C -A "-*" -s "$_dpkg_options[@]" \
+       '*:package:_deb_packages installed'
+  ;;
+  purge)
+    _call_function ret _dpkg_$state && return ret
+    _arguments -C -A "-*" -s "$_dpkg_options[@]" \
+       '*:package:_deb_packages xinstalled'
+  ;;
+  list)
+    _call_function ret _dpkg_$state && return ret
+    _arguments -C -A "-*" -s "$_dpkg_options[@]" \
+       '*:packages:_deb_packages avail'
+  ;;
+  compare_versions)
+    _call_function ret _dpkg_$state && return ret
+    _arguments -C -A "-*" -s \
+    '1:version A:' \
+    '2:operator:(lt le eq ne ge gt lt-nl le-nl ge-nl gt-nl)' \
+    '3:version B:'
+  ;;
+  configure)
+    _call_function ret _dpkg_$state && return ret
+    _arguments -C -A "-*" -s '--configure' \
+       "$_dpkg_options[@]" \
+      '(* -a --pending)'{-a,--pending}'[pending packages]' \
+      '*:package:_deb_packages installed'
+  ;;
+  search)
+    _call_function ret _dpkg_$state && return ret
+    _files
+  ;;
+  add_architecture)
+    _call_function ret _dpkg_$state && return ret
+    _wanted architecture expl 'extra architecture' \
+      compadd ${(f)"$(dpkg-architecture -L 2>/dev/null)"}
+  ;;
+  remove_architecture)
+    _call_function ret _dpkg_$state && return ret
+    _wanted architecture expl 'extra architecture' \
+      compadd ${(f)"$(dpkg --print-foreign-architectures 2>/dev/null)"}
+esac

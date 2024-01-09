@@ -1,0 +1,31 @@
+#compdef auto-apt
+
+local expl prev="$words[CURRENT-1]"
+
+# if there is a command in arguments ?
+if [[ -n $words[(r)(run|update|update-local|merge|del|check|list|search|debuilt|status)] ]] ; then
+
+  # yes, add completion for command arguments and command options
+  if [[ -n $words[(r)(update|update-local|merge)] && "$words[CURRENT]" = -* ]] ; then
+    _wanted option expl 'option' compadd - "-a" && return;
+  fi
+
+  if [[ -n $words[(r)(check|list|search)] && "$words[CURRENT]" = -* ]] ; then
+    _wanted option expl 'option' compadd - "-v" "-f" && return;
+  fi
+
+  case $prev in
+    run) _wanted command expl 'command' _files -g '*(/,*)' && return ;;
+    del) _wanted package expl 'package' _deb_packages avail && return ;;
+  esac
+else
+  _arguments \
+    '-a:distribution:_values -s , distribution main contrib non-free non-US none' \
+    '-p:hook:_values -s , hook exec open access stat none' \
+    '-D:dbfile:_files' \
+    '-F:filedb:_files' \
+    -h -s -y -q -i -X -x -L \
+    '*:command:(run update update-local merge del check list search debuild status)' && return
+fi
+
+return 1

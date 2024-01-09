@@ -1,0 +1,14 @@
+#! /bin/sh
+
+find . -name .git -prune -o -name '?*.*' -prune -o -name .preconfig -print | (
+    while read pre; do
+	cmd=`echo $pre | sed 's,^,cd ,;s,/\([^/]*\)$, \&\& ./\1,'`
+	echo >&2 "$cmd"
+	if ( eval "$cmd" ); then :; else
+	    echo "$0: $pre failed (status $?)"
+	    exit 1
+	fi
+    done
+)
+
+exit 0

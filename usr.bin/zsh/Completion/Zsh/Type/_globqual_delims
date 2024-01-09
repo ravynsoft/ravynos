@@ -1,0 +1,24 @@
+#autoload
+
+# Helper for _globquals.  Sets delim to delimiter to match.
+
+# don't restore special parameters
+compstate[restore]=no
+
+delim=$PREFIX[1]
+compset -p 1
+
+# One of matching brackets?
+# These don't actually work: the parser gets very confused.
+local matchl="<({[" matchr=">)}]"
+integer ind=${matchl[(I)$delim]}
+
+(( ind )) && delim=$matchr[ind]
+
+if compset -P "[^$delim]#$delim"; then
+  # Completely matched.
+  return 0
+else
+  # Still in delimiter
+  return 1
+fi

@@ -1,0 +1,12 @@
+#compdef visudo
+
+_arguments -s -S : \
+  '(: * -)'{-h,--help}'[display help information]' \
+  '(: * -)'{-V,--version}'[display version information]' \
+  '(-f --file)'{-f+,--file=}'[specify sudoers file]:sudoers file:_files' \
+  + c \
+  '(x -c --check)'{-c,--check}'[check sudoers file for errors only]' \
+  '(-q --quiet)'{-q,--quiet}'[suppress error messages (with -c)]' \
+  '(x -s --strict)'{-s,--strict}'[enable strict checking]' \
+  + '(x)' \
+  '(c)'{-x+,--export=}'[export sudoers file to specified JSON output file]:JSON output file:_files'

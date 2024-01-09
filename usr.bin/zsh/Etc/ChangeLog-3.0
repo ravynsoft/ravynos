@@ -1,0 +1,4912 @@
+2000-05-29  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/version.h: Version 3.0.8 released.
+
+	* acconfig.h, configure.in, Etc/NEWS: Copy RLIM_T_IS_LONG_LONG
+	configure test from 3.1.7.
+
+	* Src/builtin.c: Fix printf() formatting in one case where
+	RLIM_T_IS_LONG_LONG; Mike Sullivan <Mike.Sullivan@Eng.Sun.COM>
+
+2000-05-27  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/builtin.c: Fix a crash in "read -q" when zsh was not
+	interactive; 11607, plus Sven, 11524.
+
+2000-05-19  Bart Schaefer  <schaefer@zsh.org>
+
+	* Etc/BUGS, Src/builtin.c: Make the "read" builtin interruptible
+	even when it's in a pipeline.  Describe the bug that makes this
+	change necessary.
+
+2000-05-15  Bart Schaefer  <schaefer@zsh.org>
+
+	* Etc/MACHINES: Add note for OpenStep 4.2 from Brian Boonstra.
+
+	* Etc/FAQ: Latest version from PWS.
+
+	* Src/utils.c: Fix for ${(s::)...} when parameter value has
+	meta-characters; Sven, 11368.
+
+2000-05-12  Bart Schaefer  <schaefer@zsh.org>
+
+	* Etc/BUGS: Make note of the numeric range globbing bug reported
+	by Zefram in 10444 (requires too many other changes to fix now).
+
+	* Etc/NEWS: Note change in character ranges in globbing.
+
+2000-05-11  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/builtin.c, Src/params.c: "typeset -U" updates exported
+	colon-arrays; PWS, 11314.
+
+	* Src/jobs.c: In setprevjob(), skip jobs with either the
+	STAT_NOPRINT or STAT_SUBJOB bits set, as suggested in
+	zsh-workers/10005.
+
+2000-04-30  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/glob.c: Disable locale-sensitive character ranges; sorting
+	is still done by locale.  This is the 3.1.7 behavior.
+
+	* Src/builtin.c: Since "read -q" always reads from the tty, always
+	write the prompt to the tty.  Adapted from Sven, 10727.
+
+2000-03-08  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/utils.c, configure, configure.in, config.h.in: Silence linker
+	warnings on FreeBSD by using _mktemp() when available.
+
+2000-02-29  Bart Schaefer  <schaefer@zsh.org>
+
+	* Doc/zsh.texi: Silence a couple of warnings.
+
+2000-02-28  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/init.c, Src/params.c: Silence some harmless compiler
+	warnings; Sven, 9905.
+
+	* Src/exec.c: Fix problem with handling of errflag that caused
+	push-line-or-edit to fail when used within a here-document; Sven;
+	9900 and 9903.
+
+	* Etc/NEWS: Note minor new features and configuration changes.
+
+2000-02-27  Bart Schaefer  <schaefer@zsh.org>
+	
+	* Src/version.h: Version 3.0.8 (pre-release).
+
+	* Src/builtin.c: Fixes to `vared', particularly when run from a
+	subshell; adapted from PWS, 7308, and Sven, 8591.
+
+	* configure.in, configure, acconfig.h, config.h.in,
+	Src/prototypes.h: Add test for mknod() prototype, per bug report
+	from Olivier Delemar.
+
+	* Src/exec.c, Src/globals.h, Src/init.c, Src/builtin.c: Fix
+	improper redirection of xtrace output; unlock terminal device on
+	Solaris as per zsh-workers/5118; misc. insignificant typos.
+
+2000-02-23  Bart Schaefer  <schaefer@zsh.org>
+
+	* config.sub: Handle the latest Alpha hardware type; Sven, 9840.
+
+2000-02-16  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/subst.c: Better quoting behavior for ${(e)...}
+	substitutions; from Sven, 9763.
+
+2000-02-15  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/signames.awk: Missing newline.
+
+	* Src/jobs.c, Src/signames.awk: Wrap signal message array derefs
+	in a macro to avoid segfaults in the event we receive an
+	unrecognized signal.
+
+2000-02-13  Bart Schaefer  <schaefer@zsh.org>
+
+	* configure.in, configure: Import the 3.1.6 signal.h (or
+	equivalent) detection code.
+
+	* Etc/MACHINES: Mention potential resource.h problem on Linux.
+
+2000-02-12  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/init.c: Redo the way we attach to the tty in init_io() to
+	avoid competing with our parent on systems that don't prevent TTY
+	ioctl()s from background jobs.
+
+2000-02-06  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/builtin.c: Clear the PM_UNSET flag from the `pm' structure
+	before setting the parameter; PWS, 9582.
+
+2000-02-03  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/utils.c: Interrupt read1char() when any of the usual shell
+	loop control flags becomes set (e.g. by a trap handler); Sven,
+	9522.
+
+	* Src/exec.c: A different reformulation of 9345; based on Sven,
+	9503 and 9521.
+
+2000-01-29  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/globals.h: Add a missing EXTERN.
+
+	* Src/globals.h, Src/jobs.c, Src/zsh.h, Src/builtin.c, Src/exec.c:
+	Fixes for suspending/restarting subshells; adapted from Sven, 9345.
+
+2000-01-12  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/loop.c: Fix behavior of "select" loops with respect to
+	reading stdin; adapted from PWS, 9295.
+
+2000-01-08  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/loop.c: Using a negative count with the "repeat" construct
+	should not loop.  Adapted from Sven, 9188.
+
+1999-12-12  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/exec.c: Don't try to suspend/resume loops and other shell
+	constructs as separate processes when the parent shell is not
+	doing job control in the first place.
+
+1999-11-25  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/lex.c: Fix off-by-one line number when reporting unmatched
+	cshjunkiequote errors.
+
+1999-11-24  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/signals.c: Just for sanity, be sure not to SIGHUP ourself
+	when already exiting.
+
+1999-10-25  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/system.h, Src/hashtable.h, Src/init.c, Src/params.c,
+	INSTALL, acconfig.h, configure.in, configure, config.h.in:
+	Configure option to disable setlocale() support, and also do a
+	linkage test for it rather than simply test for the LC_ALL
+	constant; adapted from Zefram, 8372, by Tatsuo Furukawa.
+
+1999-10-24  Bart Schaefer  <schaefer@zsh.org>
+
+	* Makefile.in: Don't bother trying to enumerate all the files in
+	the ftp-dist tar, just pack up the whole zsh-$(VERSION) directory.
+	The enumeration caused files in subdirectories to be included
+	twice by tar.
+
+1999-10-23  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/zle_misc.c, Doc/zshparam.man: Add the %L prompt token, for
+	the value of SHLVL, as in 3.1.6; thanks to Phil Pennock
+	<phil@PsiDev.net> for pointing out this inconsistency.
+
+1999-10-22  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/mem.c: Fix a couple of typos in comments.
+
+1999-10-19  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/utils.c: Remove redundant variable decls; noted by Albert
+	Chin in 8327.
+
+	* Src/builtin.c: Tweak whitespace in string constant.
+
+	* Src/builtin.c: Recognize "maxpthreads" limit as noted by Albert
+	Chin in private mail; also arrange to print the "sockbufsize"
+	limit in "ulimit -a".
+
+	* Src/rlimits.awk: Recognize "maxpthreads" limit as noted by
+	Albert Chin in private mail.
+
+1999-10-18  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/version.h: Version 3.0.7 released.
+
+	* Src/builtin.c, Src/rlimits.awk: Fix handling of AIO_OPS as a
+	purely numeric resource, and rename "sbsize" to "sockbufsize" for
+	clarity; both pointed out by Zefram in 8320.
+
+1999-10-17  Bart Schaefer  <schaefer@zsh.org>
+
+	* META-FAQ: Update FTP site list to match the latest FAQ.
+
+	* Etc/FAQ: Latest FAQ from 3.1.6; "production version" is 3.0.7.
+
+	* Src/rlimits.awk: Pick up the FreeBSD SBSIZE limit; Jos Backus, 8309.
+
+1999-10-14  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/rlimits.awk, Src/builtin.c: Handle AIO_MEM and AIO_OPS
+	limits; adapted from Zefram, 8229.
+
+1999-10-12  Bart Schaefer  <schaefer@zsh.org>
+
+	* config.sub: Import config.sub from 3.1.6.
+
+1999-10-10  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/globals.h: More complete option resetting by `emulate', plus
+	adjust emulations in which some options are (un)set; adapted from
+	Zefram, 8152, 8154.
+
+	* Src/exec.c, Src/glob.c: Return "bad file descriptor" if a
+	redirection attempts to grab one of zsh's internal descriptors;
+	adapted from Zefram, 8187.
+
+	* Src/exec.c: Plug coproc input file descriptor leak.
+
+	* Src/lex.c: Fix lexing of "&>" redirections.
+
+1999-10-06  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/jobs.c: Reattach the tty and resize the terminal after a
+	foreground job is stopped.
+
+1999-10-04  Bart Schaefer  <schaefer@zsh.org>
+
+	* builtin.c: Fix core dump when exporting an unset special parameter.
+
+	* zle_refresh.c: Don't go into an infinite loop trying to refresh
+	the full ZLE prompt in a single-line-zle environment; adapted from
+	Geoff, 8126.
+
+1999-09-26  Bart Schaefer  <schaefer@zsh.org>
+
+	* math.c: Math lexing of #\x character values should use STOUC()
+	on 'x'.
+
+1999-09-12  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/zle_tricky.c: Clean up quotename() a litte; adapted from 7784.
+
+1999-09-10  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/zle_tricky.c: Fix potential buffer overflow in quotename();
+	adapted from Sven, 7713.
+
+	* Src/subst.c: Zero-filling with "typezet -Z" now matches the
+	documentation; Sven, zsh-users/2576,2578.
+
+1999-09-03  Bart Schaefer  <schaefer@zsh.org>
+
+	* Doc/zsh.texi, Doc/zshoptions.man: Correct the documentation for
+	GLOB_COMPLETE.
+
+1999-09-01  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/builtin.c, Src/exec.c: Final (?) tweak for process group
+	management; Sven, 7605.
+
+1999-08-31  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/signals.c: Remove 3.1.6 #ifdefs not supported by the 3.0
+	configure, and return -1 from killjb() when any kill fails, not
+	just when the last one does.
+
+	* Src/exec.c, Src/signals.c, Src/utils.c: Yet another tweak to
+	process group handling; Sven, 7573.
+
+	* config.h.in, configure, configure.in: Use a newer configure test
+	to search for functions in libnsl.
+
+1999-08-30  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/signals.c: Attempt kill() if killpg() fails, just in case;
+	Sven, 7530.
+
+1999-08-29  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/signals.c: Patch for problem resuming process groups after
+	suspend; 7529.
+
+1999-08-28  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/init.c: Fix parsing of "zsh -c ..." to be more like other
+	shells; 7510.
+
+1999-08-09  Bart Schaefer  <schaefer@zsh.org>
+
+	* configure.in: Import tgetstr-checking code from 3.1.6, as
+	suggested by Jos Backus, 7408.
+
+1999-08-07  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/rlimits.awk, Src/signames.awk: Replace 034 with 34, as per
+	Ed Osinski (7392) and Geoff (7393).
+
+1999-08-02  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/loop.c: Handle send-break (^G) at the "select" prompt
+	properly; Sven, 7349, plus another old bugfix nabbed from 3.1.6.
+
+	* Src/utils.c: Pick up improved blocking stdin behavior from
+	3.1.6, including Irving Wolfe's patch for fcntl() arguments in
+	7336.
+
+	* Src/builtin.c: Fix bug in "getopts" when using options prefixed
+	by "+"; PWS, 3590 (ancient).
+
+	* Src/init.c: Pass the right number of (unused) arguments to
+	fcntl(); Geoff Wing, 7335.
+
+1999-08-01  Bart Schaefer  <schaefer@zsh.org>
+
+	* Src/version.h: Version 3.0.6 released.
+
+	* configure.in, Makefile.in, configure: Add --enable-distdir and
+	--enable-ftpdir for configuring "make dist" and "make ftp-dist".
+	Rewrite dist, ftp-dist, dist-diff, and zsh-doc.tar.gz targets to
+	use the new configurations.  Drop obsolete "sed ... README" from
+	release target; "make release" now works sanely if one first
+	unpacks the old zsh-doc.tar.gz in the Doc subdirectory.
+
+1999-07-31 16:33  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi: Update FTP site list from 3.1.6 metafaq.yo.
+
+1999-07-31 08:04  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi: Borrow a couple of macro definitions from the 3.1.6
+	yodl output to replace several @iftex and @ifinfo pairs.  Change a
+	couple of @code into @example for clarity when the examples use two
+	single quotes to represent the empty string; the diff to fix the
+	examples everywhere is too large and not worth the effort as it's
+        already been done better in the 3.1.6 manuals.
+
+1999-07-31 06:12  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi: Change some @xref{} to @pxref{} to preempt uglier
+	patches used in RedHat's .src.rpm file for zsh, and reword a couple
+        of things slightly.
+
+1999-07-31 04:50  Bart Schaefer <schaefer@zsh.org>
+
+	* META-FAQ, Etc/FAQ: Final release meta-documents, from PWS in
+        private mail.
+
+1999-07-29 03:28  Bart Schaefer <schaefer@zsh.org>
+
+	* configure: Re-autoconf for change in lfs help.
+
+	* Etc/BUGS: Document number range bug; PWS, 7303.
+
+1999-07-26 16:44  Bart Schaefer <schaefer@zsh.org>
+
+	* configure.in: Change the help message for large file support to
+        read "disable".
+
+1999-07-25 08:23  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/intro.ms: Me: 7275: Fix to work with groff.
+
+1999-07-25 05:53  Bart Schaefer <schaefer@zsh.org>
+
+	* Etc/NEWS: Mention PRINT_EIGHT_BIT and preexec.
+
+1999-07-25 05:30  Bart Schaefer <schaefer@zsh.org>
+
+	* Version 3.0.6-test-1 made available.
+
+	* META-FAQ: Update FTP site list from 3.1.6.
+
+	* INSTALL: Restructure slightly to match 3.1.6; mention "lfs" under
+        configure options.
+
+1999-07-24 23:26  Bart Schaefer <schaefer@zsh.org>
+	
+	* Etc/CONTRIBUTORS: Incorporate some bits from 3.1.6.
+
+	* Etc/NEWS: Update in preparation for 3.0.6 release.
+
+1999-07-17 19:48  Bart Schaefer <schaefer@zsh.org>
+
+	* Functions/Makefile.in, Src/Makefile.in, Util/Makefile.in: Update
+        DIST lists.
+
+1999-07-17 18:02  Bart Schaefer <schaefer@zsh.org>
+
+	* Makefile.in, Doc/Makefile.in, Etc/Makefile.in,
+	Functions/Makefile.in, Misc/Makefile.in, Src/Makefile.in,
+	StartupFiles/Makefile.in, Util/Makefile.in: Remove references to
+        RCS files and begin to get "make dist" working again.
+
+1999-07-14 05:22  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c, Src/init.c, Src/parse.c, Src/utils.c: A last few line
+	numbering fixes from PWS, 7114; in the process, adapt a couple of
+	memory-leak fixes from 3.1.5, add Zefram's shout patch from way
+	back in 2743, and don't use getpwuid() and getpwnam() on systems
+        that do not support them.
+
+	* config.h.in, configure, configure.in: Test for availability of
+        getpwuid and getpwnam.
+
+1999-07-14 02:04  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c: Treat "foo=bar >&file" as a redirection, not as a
+        NULLCMD; PWS, 6982.
+
+1999-07-14 01:54  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c: Further tweak to 6823 to be sure the right scriptname
+        is used to report certain errors.
+
+1999-07-13 16:21  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c: Re-adapt 6823 to get line numbers during autoloading,
+        per advice from PWS.
+
+1999-07-13 09:35  Bart Schaefer <schaefer@zsh.org>
+
+	* INSTALL, configure.in: Enable large file support by default;
+        adapted from PWS, 7091.
+
+1999-07-13 09:25  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/builtin.c: Save and restore lexical state in "eval"; PWS,
+        7049.
+
+1999-07-13 09:17  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/utils.c: Suppress bogus debug message in findsep(); PWS,
+        7021.
+
+1999-07-13 09:14  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_refresh.c: Reprint the completion listing if
+	execute-named-command is performed; Sven, 7004, but applied for
+        symmetry only as this case probably can't ever occur in 3.0.6.
+
+1999-07-13 09:10  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/hist.c: PWS's patch for line numbering error when history
+	can't be flushed; 7001.
+
+1999-07-13 08:57  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/builtin.c: Cause "typeset +f" and "functions +" to print the
+        names (only) of functions; PWS, 6987.
+
+1999-07-13 08:47  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c, Src/jobs.c: Fix job table problems and backgrounding
+        of jobs with subjobs; Sven, 6971.
+
+	* Src/exec.c: Fix for the "time" builtin in relation to all the job
+        control patches; Sven, 6936 and 6941.
+
+	* Src/builtin.c, Src/exec.c, Src/jobs.c, Src/signals.c: Fix more
+	subshell job control details plus suspend/fg of a shell function
+        piped to a builtin loop; Sven, 6933.
+
+	* Src/exec.c: Fix one last case in which job status wasn't properly
+        printed; Sven, 6974.
+
+1999-07-13 08:40  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c, Src/utils.c: Print line numbers when issuing error
+	messages; adapted from PWS, 6823, but unlike 3.1.6 requires
+        function_arg_zero to print the correct function name.
+
+1999-06-29 15:37  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c: Fix tracking of changed process group in subshells;
+        Sven, 6926.
+
+1999-06-29 14:45  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/builtin.c, Src/exec.c, Src/jobs.c, Src/zsh.h: Fix the
+	remaining problems with job-table manipulation in the new job
+	control patches and cover two cases where the process group leader
+        was previously not set correctly; Sven, 6908.
+
+1999-06-29 07:42  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c, Src/jobs.c: Sven: 6901: Attempt to back off broken
+        pgrp behavior.
+
+1999-06-28 17:14  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c: Include PWS's patch from way back in 4390 for
+	interrupts at the PS3 prompt, as it doesn't appear to have had any
+	worrisome side effects.
+
+1999-06-28 15:39  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c, Src/jobs.c: Fixes for job status reporting; Sven,
+	6887.
+
+1999-06-27 21:26  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_refresh.c: Fix for display bug; Geoff Wing, 6884.
+
+1999-06-27 09:49  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/init.c: Back out 6850.
+
+1999-06-25 16:33  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c, Src/init.c: Make sure any zsh that's going to handle
+	terminal signals is in its own process group, and attempt
+	(unsuccessfully) to prevent it from stopping itself when suspending
+        a loop construct; Sven, 6848 and 6850.
+
+1999-06-25 09:38  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c, Src/jobs.c: More process-group handling changes to
+	permit shell loop constructs to be suspended; adapted from Sven,
+        6819 and 6824.
+
+1999-06-22 16:17  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_tricky.c: Fix a small bug in extended completion 'R[]'
+        patterns; Sven, 6786.
+
+1999-06-22 15:12  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c: Don't accidentally forget about a suspended shell
+        function; Sven, 6778.
+
+1999-06-21 16:10  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/jobs.c: Fix reported job status of a suspended loop; Sven,
+	6755.  This is #ifdef'd for now because there may be unintended
+        side-effects.
+
+1999-06-19 05:16  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c: Permit shell constructs such as loops to be
+        suspended; Sven, 6707.
+
+1999-06-19 05:11  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi, Doc/zshbuiltins.man, Src/builtin.c, Src/exec.c,
+	Src/init.c, Src/input.c, Src/parse.c, Src/zsh.h: Adapt Sven's and
+        PWS's patches for correct LINENO computation from 6693, 6705.
+
+1999-06-19 04:28  Bart Schaefer <schaefer@zsh.org>
+
+	* configure: Rerun autoconf for more 64-bit changes.
+
+	* Src/init.c: Issue an error for shell options with embedded
+        spaces; PWS, 6658.
+
+1999-06-16 08:38  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zsh.h: Alternate formulation of zulong as introduced in
+        pws-22.
+
+1999-06-16 08:26  Bart Schaefer <schaefer@zsh.org>
+
+	* configure.in: Further 64-bit fixes covering 6570 and 6639,
+        adapted to 3.0.6 by PWS.
+
+1999-06-16 07:22  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/jobs.c: Relocate the extern decl for list_pipe, as we need it
+        in wider scope now.
+
+1999-06-16 07:13  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/jobs.c: Fix interrupt and reaping of builtin loop at the end
+        of a pipe when in a non-MONITOR-ing shell; Sven, zsh-users/2388.
+
+	* config.h.in, configure: Rerun autoheader and autoconf following
+	64-bit changes.
+
+1999-06-16 06:59  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c: Strip trailing whitespace when performing "#!"
+        execute-emulation; 6652.
+
+	* Src/hist.c: Fix crash when using shortcut history substitution
+        (^foo^bar) with an empty history list; 6651.
+
+1999-06-16 05:57  Bart Schaefer <schaefer@zsh.org>
+
+	* INSTALL, acconfig.h, aclocal.m4, configure.in, Src/builtin.c,
+	Src/math.c, Src/mem.c, Src/params.c, Src/subst.c, Src/utils.c,
+	Src/zsh.h: More patches from PWS for 64-bit support, in 6552, 6563,
+        6570, 6571, and 6626.
+
+1999-06-16 05:28  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi: Add an index entry for subscripts, as PWS did in
+        6563.
+
+1999-06-15 16:58  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/subst.c: Handle -0 as a dirstack element; Tanaka Akira, 6641.
+
+1999-06-15 04:44  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi, Doc/zshmisc.man, Src/lex.c: Adapt PWS's patch for
+        ksh function definition syntax, from 6618.
+
+1999-06-15 04:14  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/utils.c: Rework SIGWINCH and LINES/COLUMNS handling once
+        again; zsh-workers/6617.
+
+1999-06-13 19:13  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi: Fix one typo and change coordinator to PWS.
+
+1999-06-08 06:18  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/hashtable.c: Fix loss of newline in new code to output 64-bit
+        integer.
+
+1999-06-08 05:58  Bart Schaefer <schaefer@zsh.org>
+
+	* INSTALL, acconfig.h, aclocal.m4, config.h.in, configure,
+	configure.in, Src/builtin.c, Src/exec.c, Src/glob.c, Src/globals.h,
+	Src/hashtable.c, Src/init.c, Src/input.c, Src/math.c, Src/mem.c,
+	Src/params.c, Src/subst.c, Src/system.h, Src/utils.c, Src/zsh.h:
+	Handling for 64-bit integers on 32-bit systems where the compiler
+        supports them, including large file support; PWS, 6449.
+
+1999-06-07 03:14  Bart Schaefer <schaefer@zsh.org>
+
+	* configure.in: Fix for configure typo; Naoki Wakamatsu, 6477.
+
+1999-06-06 05:02  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi: Add missing description for `compctl -s'.
+
+1999-06-06 04:33  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/hist.c: Ignore whitespace in history searches; from Wayne
+        Davison, 6476.
+
+1999-06-05 08:26  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi, Doc/zshexpn.man, Src/glob.c: Add time-in-seconds
+	granularity to the a, c, and m glob qualifiers, as per Sven's
+        patch in 6458, and document this change.
+
+1999-06-05 08:18  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi, Doc/zshoptions.man: Add Wayne's manual page fixes
+	from 6443 to zsh.texi, but change "blanks" to "whitespace" in the
+        HIST_REDUCE_BLANKS description in both documents.
+
+1999-06-05 08:04  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zshbuiltins.man, Doc/zshoptions.man, Src/hashtable.c,
+	Src/hist.c, Src/zle_hist.c, Src/zsh.h: History and doc bugfixes
+	collected from the 3.1.x source by Wayne Davison and posted in
+	6436, 6439, and 6443; except that history files are still written
+	in the traditional format, but can be read in either old or new
+        (3.1.6) format.
+
+1999-06-04 15:44  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/subst.c: Nested substitutions should require braces; adapted
+        from PWS's patch in 6464.
+
+1999-06-02 15:04  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/subst.c: Final tweak to quoting in ${ }; PWS, 6433
+
+1999-06-01 18:03  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/builtin.c, Src/params.c: Two parameter fixes from 3.1.5,
+	adapted to 3.0.6 by PWS in zsh-workers 6419: typeset -m restored
+	unset parameters which hadn't been removed from the table; in fn1()
+	{ local foo; unset foo; foo=bar; }, foo is restored at local level,
+	whereas if the `unset foo' appeared in a nested function it would
+        have been restored at global level, which was presumably wrong.
+
+1999-06-01 17:54  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi: Document new quoting behavior inside ${...}, as per
+        PWS in 6416.
+
+1999-06-01 16:59  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_refresh.c: Temporarily restore the old line buffer when
+	moving around to clear the completion list, because on terminals
+	that can't "move right" we need to redraw any characters the motion
+        passes over; Sven, 6411.
+
+1999-05-31 22:14  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/subst.c: Adapt PWS's patch from zsh-workers 6335 to permit
+	quoted strings inside ${ }, which permits e.g. ${(f)"$(typeset)"}
+        equivalent to "${(@f)$(typeset)}".
+
+1999-05-31 20:42  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c, Src/jobs.c, Src/zsh.h: Revise and explain in lengthy
+	comments the handling of tty process groups when pipelines end in
+	shell builtin constructs; Sven and PWS in zsh-workers 6240, 6257,
+        6258, 6285, and 6302, with minor adjustment for 3.0.x.
+
+1999-05-31 18:48  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/Makefile.in: Handle the (un)installation of more than 9
+	subfiles created by makeinfo; suggested by Andrej Borsenkow in
+        zsh-workers 6392.
+
+1999-05-31 07:57  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/system.h: Pick up from 3.1.5 the #define-renamings of a few
+	zsh global symbols to avoid name conflicts with system library
+        functions on some platforms.
+
+1999-05-31 03:31  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_tricky.c: Fix display bug when listing completion
+	matches; Sven, zsh-workers 6247. Fix for duplicated last character
+	when completing inside $(...); Sven, zsh-workers 6344 (as
+	corrected by zsh-workers 6351).
+
+	* Src/exec.c: Make ERREXIT behavior consistent with non-broken
+        Bourne shells; PWS in zsh-workers 6314.
+
+	* Src/builtin.c: Use the correct printf() format when
+	RLIM_T_IS_UNSIGNED; adapted from PWS's patch in zsh-workers 6272,
+	but does not include "long long" support. Change "typeset -U" to
+	work on the colon-array version of linked parameters; PWS in
+	zsh-workers 6294.
+
+	* Src/globals.h, Src/zle_refresh.c: Relocate the new globals from
+	zsh-workers 6211 into globals.h, as suggested by Wayne Davison in
+        6225.
+
+1999-05-31 01:18  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_main.c: Additional typeahead repairs from PWS in
+        zsh-workers 6224.
+
+1999-05-04 18:06  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_hist.c, Src/zle_main.c, Src/zle_misc.c,
+	Src/zle_refresh.c, Src/zle_tricky.c, Src/zle_utils.c, Src/zle_vi.c:
+	Clear the completion listing upon starting assorted zle commands;
+        adapted from 3.1.5 by Sven in zsh-workers 6211.
+
+	* config.h.in, configure: Improved typeahead behavior on all
+        systems; PWS, 6205 (plus rerun autoconf).
+
+	* Src/exec.c: Use waitforpid() in getoutput() to be sure we don't
+	hang on child_suspend(), which can happen if all children are
+        reaped during handling of a user-defined signal trap.
+
+1999-05-03 23:53  Bart Schaefer <schaefer@zsh.org>
+
+	* acconfig.h, configure.in, Src/zle_main.c: Improved typeahead
+        behavior on all systems; PWS, 6205.
+
+1999-05-03 09:49  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/utils.c: Setopt shouldn't complain about setting an option to
+	its current value; PWS, 6193.
+
+1999-04-30 10:28  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/glob.c: Expansion of ~ and other assorted globbing flags via
+	globsubst or ${~param} should not depend upon the extendedglob
+	option; PWS, 6165.
+
+1999-04-30 05:42  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/utils.c: Copy the window size from the shttyinfo structure
+	upon SIGWINCH, as per zsh-workers 4447.
+
+1999-04-28 05:29  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_main.c: Move setting of timeval tv_sec = 0 to immediately
+	before select() to work around obscure Linux problem where select()
+	may write garbage into tv_sec after the kernel has been running for
+	248 days.  Linux problem and its workaround reported by Ville Herva
+	<vherva@babbage.tky.hut.fi> in zsh-workers 6126.
+
+1999-04-28 05:20  Bart Schaefer <schaefer@zsh.org>
+
+	* INSTALL, Makefile.in, configure.in, Doc/Makefile.in,
+	Etc/Makefile.in, Functions/Makefile.in, Misc/Makefile.in,
+	Misc/compctl-examples, Src/Makefile.in, Src/builtin.c,
+	Src/compat.c, Src/cond.c, Src/exec.c, Src/glob.c, Src/globals.h,
+	Src/hashtable.c, Src/hashtable.h, Src/hist.c, Src/init.c,
+	Src/input.c, Src/jobs.c, Src/lex.c, Src/linklist.c, Src/loop.c,
+	Src/math.c, Src/mem.c, Src/params.c, Src/parse.c, Src/prototypes.h,
+	Src/rlimits.awk, Src/signals.c, Src/signals.h, Src/signames.awk,
+	Src/subst.c, Src/system.h, Src/text.c, Src/utils.c, Src/watch.c,
+	Src/zle.h, Src/zle_bindings.c, Src/zle_hist.c, Src/zle_main.c,
+	Src/zle_misc.c, Src/zle_move.c, Src/zle_refresh.c,
+	Src/zle_tricky.c, Src/zle_utils.c, Src/zle_vi.c, Src/zle_word.c,
+	Src/ztype.h, StartupFiles/Makefile.in, StartupFiles/zlogin,
+	StartupFiles/zshenv, StartupFiles/zshrc, Util/Makefile.in,
+	Util/reporter, Util/zsh-development-guide: Remove $Id...$ line.
+
+	* Src/zsh.h: Remove $Id...$ line.  Change all macros that use "if
+	(...) {;} else ..." to be unambiguous statements, mostly by
+	wrapping in "do { ... } while (0)".
+
+1999-04-28 05:16  Bart Schaefer <schaefer@zsh.org>
+
+	* Etc/FAQ: Update to latest FAQ.  Remove $ from around $Id ... $
+	line to freeze RCS id.
+
+1999-04-25 17:17  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/globals.h, Src/zle_refresh.c, Src/zsh.h: Tatsuo Furukawa
+	<frkwtto@osk3.3web.ne.jp> change to use absolute cursor move when
+	available, from zsh-workers 6073, as modified by Geoff Wing in
+	6096.
+
+1999-04-25 05:56  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi, Doc/zshbuiltins.man, Doc/zshexpn.man,
+	Doc/zshmisc.man: Copy some new parameter expansion text from
+	3.1.5-pws-15, and do a few other parameter expansion fixes; fix a
+	couple of awkward sentences; copy doc for print_eight_bit into
+	zsh.texi; fix some cross-references among the man pages.
+
+1999-04-24 23:52  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zsh.texi: Incorporate changes to various meta-info from the
+	3.1.5-pws-15 documentation.
+
+1999-04-24 22:07  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/init.c, Src/params.c, Src/utils.c: Adapt zsh-workers 5783 and
+	5844 to 3.0.5 to correctly propagate errflag out of zerr() even in
+	some noerrs cases.
+
+1999-04-24 06:12  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/builtin.c, Src/exec.c, Src/glob.c, Src/hist.c, Src/input.c,
+	Src/jobs.c, Src/lex.c, Src/params.c, Src/parse.c, Src/subst.c,
+	Src/utils.c, Src/watch.c, Src/zle_main.c, Src/zle_refresh.c,
+	Src/zle_tricky.c: Most of Wayne Davison's big compiler warning
+	elimination patch, from the URL he posted in zsh-workers 6072. 
+	Some lines that got wider than 80 columns have been reformatted,
+	and the braces around single-line macro calls are not included
+	(because I intend to fix the macros themselves if possible).
+
+1999-04-24 06:05  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_tricky.c: Sven fixes for completion in $((...)) and for a
+	potential core dump when building completion lists from internal
+	hash tables; adapted by Sven from zsh-workers 5564 and 5759.
+
+1999-04-21 16:50  Bart Schaefer <schaefer@zsh.org>
+
+	* Etc/CONTRIBUTORS: Patch in a few changes from the 3.1.5 version
+	of this file.
+
+1999-04-21 15:29  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/utils.c: PWS fix for interrupting a query, zsh-workers 5364
+	(follow-up to 5281).
+
+	* configure.in: PWS noticed a problem with the configure.in test
+	for typeahead clobber.
+
+1999-04-21 08:46  Bart Schaefer <schaefer@zsh.org>
+
+	* README, META-FAQ: Update to match the 3.1.5 version.
+
+1999-04-21 06:39  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/hist.c, Src/input.c, Src/zle_main.c, Src/zsh.h: Adapt PWS's
+	zleread()/typeahead patch from zsh-workers 5776 to 3.0.5.
+	
+1999-04-21 05:18  Bart Schaefer <schaefer@zsh.org>
+
+	* Doc/zshbuiltins.man, Doc/zsh.texi, Src/builtin.c,
+	Src/hashtable.h: Add "emulate -L" (emulate sets localoptions
+	option), adapted from 3.1.5-pws-8.
+
+1999-04-21 05:07  Bart Schaefer <schaefer@zsh.org>
+
+	* config.guess, configure.in, configure: Adapt PWS's patch from
+	zsh-workers 5757 for CLOBBERS_TYPEAHEAD.
+
+1999-02-05 17:20  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/utils.c: PWS fix for another EINTR, adapted from zsh-workers
+	5281.
+
+1999-01-29 19:12  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/init.c, Src/system.h: PWS's patch plus mine from zsh-workers
+	5113 to use dup(0) or dup(1) rather than attempting
+	open("/dev/tty"); and also add the O_NOCTTY flag when doing the
+	open(), as in 3.1.5.
+
+1999-01-26 17:57  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/globals.h: Bug noticed by Sven and fixed by PWS in
+	zsh-workers 4988.
+
+1999-01-24 17:19  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/hist.c: One fragment of PWS's big compilations warning patch
+	in zsh-workers 4931, to fix misplaced braces.
+
+1999-01-23 06:02  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_tricky.c: Sven's patch from zsh-workers 4951 to slightly
+	alter the behavior of completion following a redirection operator.
+
+1999-01-22 15:19  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_tricky.c: Just the one fragment of Sven's patch in
+	zsh-workers 4949 that applies to completion of job table entries.
+
+1999-01-15 16:39  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/builtin.c: PWS's patch from zsh-workers 4914 to fix crash in
+	`typeset'.  (Equivalent to his patch in 4902 for 3.1.5.)
+
+1999-01-04 02:57  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/utils.c: Y2K bugfix copied from 3.1.5, suggested by Goran
+	Larsson in zsh-workers 4870.
+
+1998-12-03 15:51  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_tricky.c: Fix (for unspecified problem) from Sven in
+	zsh-workers 4697.
+
+1998-11-22 01:54  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_word.c: Cross end-of-line in vi-forward-word when editing
+	multiple lines.
+
+1998-11-15 23:18  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/subst.c: Second hunk of previous change, to fix
+	${(l<10><0><x>)foo} as well.
+
+1998-11-15 22:41  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/subst.c: Fix of sorts for the ${(l<10><x>)foo} bug reported
+	in zsh-workers 4543.
+
+1998-11-13 06:06  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/input.c: PWS's tweak from zsh-workers 4612 that seems to fix
+	signed char problems which in turn break input of chars with the
+	high bit set.
+
+1998-10-24 19:48  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/exec.c: Patch readoutput() so the output of command
+	substitutions isn't lost on an EINTR read error.
+
+1998-09-25 16:33  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/jobs.c: PWS's patch for mishandled job wait when the last job
+	in a pipeline is not added to the job table before an earlier job
+	in the same pipeline is reaped. From zsh-workers 4397.
+
+1998-09-03 15:04  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/parse.c: Adaptation to 3.0.5 of Zoltan's patch from
+	zsh-workers 4376 for case ... esac parsing; any single complex
+	command should parse as if semicolon-terminated.
+
+1998-07-02 15:56  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/hist.c, Src/input.c, Src/parse.c: PWS's patch from
+	zsh-workers 4172 to eliminate the `lastc' global and thereby clean
+	up some goofy history management and a couple of unexpected exits. 
+	This replaces the previous input.c patch for a specific case of
+	this problem.
+
+1998-06-23 18:55  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_tricky.c: Sven's patch from 4147 for strange
+	completinword behavior.
+
+	* Src/zle_tricky.c: Sven's patch from 4148 for starting
+	menucompletion when the inserted prefix would otherwise trigger
+	REC_EXACT.
+
+1998-06-23 18:49  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/input.c: PWS's patch from zsh-workers 4095 for unintentional
+	shell exit when `lastc' is incorrectly set.
+
+	* Src/zle_tricky.c: Sven Wischnowsky's patch from zsh-workers 4140
+	for starting menu completion following a compctl that uses -U.
+
+1998-05-23 15:53  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/utils.c: Zefram's chaselinks patch from zsh-workers 3872.
+
+1998-05-23 15:48  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/params.c: Zoltan's patch from zsh-workers 3974 for crash on
+	unset of a special param.
+
+1998-05-23 15:42  Bart Schaefer <schaefer@zsh.org>
+
+	* Functions/checkmail: Zoltan's patch from zsh-workers/3963 to
+	ignore zero-length files.
+
+	* Src/zle_utils.c: Wayne Davison's patch from zsh-workers 3969 for
+	positioning the mark after a yank.
+
+1998-04-14 16:14  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/Makefile.in: Andreas J. Koenig's patch from zsh-workers 3660
+	to cause failure of rlimits.awk to properly abort the build.
+
+1998-03-25 16:46  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/jobs.c: PWS's patch from zsh-workers/3818 to not mess up the
+	tty settings when doing a command while zle is active (e.g. inside
+	a completion function).
+
+1998-03-25 16:35  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_main.c: PWS's patch from zsh-workers/3816 for bindkey
+	exiting too vigorously on error.
+
+1998-03-19 17:19  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/subst.c: PWS's patch from zsh-workers/3806 for ${var:s/x/y}
+	modifiers.
+
+	* Src/glob.c: PWS's patch from zsh-workers/3808 for (:s/x/y) glob
+	qualifiers.
+
+1998-02-22 04:45  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/glob.c: PWS's patch for number-range globbing with
+	number-prefix matching.
+
+1998-02-20 17:26  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/zle_tricky.c: PWS's patch to simplify
+	expand-or-complete-prefix.
+
+1997-12-10 06:50  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/utils.c: Don't call ioctl(TIOCSWINSZ) from non-interactive
+	shells.
+
+1997-11-19 19:53  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/init.c: PWS's "preexec" function (ala "precmd"), from
+	zsh-users 1068.
+
+	* Doc/zsh.texi, Doc/zshmisc.man: Document PWS's "preexec" function.
+
+1997-11-19 19:43  Bart Schaefer <schaefer@zsh.org>
+
+	* Util/helpfiles: PWS's latest revision, from zsh-workers 3598.
+
+1997-11-19 16:44  Bart Schaefer <schaefer@zsh.org>
+
+	* Src/subst.c: Zoltan's patch for rcexpandparam bug, from
+	zsh-workers 3548.
+
+Thu Sep 26 01:57:07 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-3.0.5 released
+
+	* Src/rlimits.awk: SunOS 4 nawk doesn't support /re/ || /re/ { ... }
+
+Thu Sep 25 05:00:07 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Spelling and zrealloc fix from Martin Buchholz <mrb@Eng.Sun.COM>
+	  (3478)
+
+	* After a='a ' ${(o)=a}b should expand to two words, `a' `b'.
+
+Sun Sep 21 07:48:07 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_main.c, Src/zle_tricky.c: Use gotmult instead of
+	  zmult	!= 1 to test for prefix-arg.  From Bart (3322)
+
+	* Misc/c2z: c2z fixes and improvements from Bart (3484)
+
+	* Src/zle_utils.c: Menucomplete inserted extra spaces.  From
+	  Peter.
+
+	* Src/zle_refresh.c: Refresh fixes for some automargin
+ 	  terminals.  From Geoff (3340)
+
+	* Src/rlimits.awk, configure, configure.in: rlimit
+ 	  changes to support GNU libc.  From Kunihiro Ishiguro
+ 	  <kunihiro@zebra.org> (3369)
+
+	* Src/zle_tricky.c, Src/params.c: Memory leak fixes from
+ 	  Andrei Tcherepanov and Peter (3301)
+
+	* Src/glob.c: The (-T) and (-M) glob qualifiers follow symlinks to
+ 	  determine the file marks.  From Peter (3285) with some fixes by
+ 	  me.
+
+Sat Sep 20 06:37:55 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/params.c: typeset -U array; array=(1 2 1) created a
+ 	  non-unique array.
+
+	* Src/math.c: $((0x1+0x2)) did not work
+
+Fri Sep 19 05:46:49 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c: Remove wrong (int (*)(void)) prototype
+ 	  from match_username cast.  Go back to no prototype at all, since
+ 	  some systems (e.g. on Linux) the yp_callback.foreach prototype
+ 	  is wrong.
+
+	* Src/params.c: Keep the old environment until the new environment
+ 	  is completely built.
+
+Tue Sep 16 04:43:25 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c: Show explanation if there are no or more
+ 	  than one possible completions.
+
+	* Src/glob.c: Glob after ((#)) with extendedglob set caused a coredump
+
+	* Src/builtin.c: read -k sometimes caused a coredump
+
+	* Src/jobs.c, Src/init.c, Src/params.c, Src/signals.c,
+ 	  Src/utils.c: Setting LINES and COLUMNS manually now works, and
+ 	  it is equivalent to stty rows and stty columns.
+
+Sat Aug  2 20:00:18 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/subst.c, Src/utils.c, Src/zsh.h: RC_EXPAND_PARAM fixes
+
+	* Src/parse.c: [[ bug bug ]] bug caused BUG: wrong character in
+	  hungetc()
+
+Sun Jul 13 07:53:01 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/glob.c: */ should only glob searchable directories or
+ 	  directory links.
+
+	* configure, configure.in: Prefer curses to termcap on HP-UX 10.x.
+  	  From Peter (3360)
+
+	* Src/builtin.c, Src/init.c, Src/utils.c: Set blocking read on
+ 	  stdin when used by shinstdin or read
+
+	* Src/builtin.c: Read builtin cleanup, handle backslashes correctly
+
+Mon Jun 30 04:48:17 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/jobs.c: bg should set STAT_NOSTTY.  From SUZUKI Hisao
+ 	  <suzuki@otsl.oki.co.jp>
+
+	* Src/exec.c, Src/jobs.c, Src/zsh.h: Ignore tty settings set by
+ 	  background jobs
+
+Mon Jun 23 05:57:10 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-3.0.4 released
+
+	* META-FAQ: New mirror in Israel.
+
+	* Src/glob.c: The pattern *a~b did not match aa.  From Peter (3249)
+
+Sun Jun 22 23:08:08 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_refresh.c: zle refresh coredump fix from Geoff (3260)
+
+Sat Jun 21 02:52:35 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/jobs.c: Do not inherit tty settings from suspended jobs.
+
+	* configure, configure.in: Use case instead of sed hack to test
+	  for aix
+
+Fri Jun 20 03:58:04 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/jobs.c: Another attempt to get tty settings right
+
+Tue Jun 17 05:53:19 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/subst.c: paramsubst return the array elements directly
+ 	  without copying them which can lead to data corruption.  From
+ 	  Zefram (3250)
+
+Mon Jun 16 05:35:01 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c: autoparamkeys and completeinword did not
+ 	  work well when : is pressed after a successfull completion
+ 	  inside a parameter name
+
+	* Src/makepro.sed: workaround for the HP-UX 10.20 sed bug from
+	  Jim Mattson <jmattson@cup.hp.com> (3232)
+
+	* Src/builtin.c: getopts a: accepted : as a valid option.  Fix
+ 	  from Bernd Eggink <eggink@rrz.uni-hamburg.de> (3201)
+
+	* Src/params.c: Put only valid exported zsh parameters into the
+ 	  new environment
+
+Fri Jun  6 06:23:29 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/jobs.c: zsh forgot stty settings when a backgrounded job
+ 	  terminated while zle was active.  From Peter (3196)
+
+---- Version 3.1 diverged from 3.0 at this point, later to become 4.0 ----
+
+Tue Jun  3 06:14:14 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-3.0.3 released
+
+	* Src/params.c: Some compilers do not like ? (void *) :
+
+	* Src/jobs.c: pg(){ less;};:|pg caused suspended (tty input)
+
+Mon Jun  2 07:17:08 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_refresh.c: Xterm cut & paste fixes from Geoff (3135)
+
+	* Src/hist.c: Fix !# history expansion during completion.  From
+ 	  Peter (3132)
+
+Sun Jun  1 08:02:19 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/system.h: Use _POSIX_VDISABLE is available.  Fixes ^@ in zle
+ 	  on some systems.
+
+Thu May 29 05:17:31 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/cond.c: directories are always executable by root
+
+	* META-FAQ: The zsh web page moved.
+
+Tue May 20 05:22:16 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/utils.c: if abort or edit used on a correct prompt, do not
+ 	  attempt to correct further words on the line.
+
+Sun May 18 18:57:08 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c, Src/exec.c, Src/init.c, Src/signals.c, Src/jobs.c:
+ 	  Do not handle SIGPIPE specially for shells with job control
+
+	* Src/init.c, Src/jobs.c, Src/utils.c: (:); while true; do; done
+ 	  was uninterruptible.  Sometimes LINES/COLUMNS was not set
+ 	  properly for non-interractive shells.
+
+	* Src/exec.c, Src/signals.c: `:`; while true; do; done was
+ 	  uninterruptible
+
+Mon May 12 09:01:55 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/hist.c: !:2-1 history expansion caused memory corruption
+
+Sun May 11 08:52:00 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/lex.c: $((foo);bar) syntax works
+
+	* Src/hist.c: A terminal hangup caused coredump while saving history
+
+	* Src/globals.h, Src/init.c, Src/params.c: if we cannot get the
+ 	  correct window size with ioctl, set LINES and COLUMNS from
+ 	  termcap.
+
+	* Src/builtin.c: make sure zexit is not reentered when its
+ 	  execution is interrupted by a signal.
+
+Fri May  9 07:59:00 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zsh.texi: @br{} removed
+
+	* Src/exec.c: Quick hack: do not open file redirections if noexec
+ 	  is set
+
+	* Src/jobs.c: printjobs() set errflag when the foreground process
+ 	  was interrupted.
+
+Thu May  8 09:18:56 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/cond.c: [[ -x file ]] does stat for privileged users
+
+	* Src/zle_utils.c: do no read line[ll] (which is undefined)
+
+	* Src/signals.c: flush the input queue on interrupt
+
+	* Src/zle_tricky.c, Src/hist.c, Src/lex.c, Src/parse.c:
+	  ((foo);bar) now works
+
+Tue May  6 05:56:36 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/signals.c: WINCH traps did not work.  From Peter (3093)
+
+Wed Apr 30 07:40:30 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/text.c: printing case commands were broken.  From Zefram (3062)
+
+Mon Apr 28 07:28:34 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c, Src/system.h, acconfig.h, config.h.in, configure,
+ 	  configure.in, Src/rlimits.c: Use rlim_t if available
+
+	* Etc/FAQ: March 24 1997 FAQ from Peter
+
+Sat Apr 26 06:26:11 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Functions/zed: Reenter zed if it fails to save the file
+
+	* Functions/zed: Use bindkey -L to temporarily save bindings.
+  	  From Zefram (3012)
+
+Fri Apr 25 06:41:36 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Functions/cdmatch, Misc/compctl-examples: compctl-examples
+ 	  improvements from Zefram (3006)
+
+	* Src/globals.h: NOTIFY is off in sh/ksh mode.  From Zefram (3003)
+
+Sun Apr 20 07:24:12 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/init.c, Src/params.c, Src/utils.c: Remove setintenv()
+
+Tue Apr 15 05:51:27 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_refresh.c: SGTABTYPE can contain more than one bit
+ 	  set.  From Geoff (2976)
+
+	* Src/builtin.c: vared 1 caused a coredump.  From Peter (2909)
+
+	* Src/exec.c, Src/signals.c: execute trap on EXIT in the caller's
+ 	  environment. From Peter (2896)
+
+	* Src/builtin.c: vared path caused permanent
+ 	  allocation in arrayfixenv
+
+Sat Mar  8 00:17:24 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c: Sometimes an incorrect compctl
+ 	  caused a core dump.  From Peter (2942)
+
+	* Src/zle.h, Src/zle_main.c, Src/zle_misc.c,
+ 	  Src/zle_refresh.c, Src/zle_tricky.c, Src/builtin.c,
+ 	  Src/globals.h, Src/init.c, Src/params.c, Src/zsh.h: termok
+ 	  changed to termflags.  Modified version of art. 2970 from Geoff
+
+	* Src/init.c, Src/params.c, Src/utils.c: handle narrow and short
+ 	  terminals centralized in zlevarsetfn().  From Bart and me (2956,
+ 	  2957)
+
+Fri Mar  7 23:54:18 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle.h, Src/zle_misc.c, Src/zle_refresh.c,
+	  Src/utils.c: act as if single_line_zle were set when LINES < 3.
+	  From Geoff (2865)
+
+Wed Mar  5 23:37:30 1997  Zoltan T. Hidvegi  <hzoli@vnet.ibm.com>
+
+	* Src/loop.c: $? was incorrectly reset before executing case,
+	  while, for
+
+Tue Feb 18 20:59:51 1997  Zoltan Hidvegi  <hzoli@vnet.ibm.com>
+
+	* Src/builtin.c: getopts handling of required argument fix from
+	  Andrew Robinson (2846)
+
+	* Src/signals.c: An #ifdef SIGWINCH was missing.  From Hrvoje
+	  Niksic <hniksic@srce.hr> (2844)
+
+	* Src/exec.c: return from a function called from a loop breaked
+	  the loop
+
+	* Src/lex.c: eval \$\{$#\} did not work
+
+Mon Jan 27 22:04:29 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/signals.c: temprarily set breaks to zero when executing a trap
+
+	* Src/exec.c: do not reset breaks in doshfunc
+
+Sun Jan 26 02:55:02 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/init.c: set noerrexit to -1 in setupvals()
+
+Sat Jan 25 20:07:46 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/subst.c, Src/utils.c: some assignments were missing from my
+ 	  spacesplit fix
+
+	* Etc/FAQ: FAQ from Peter: Id: zsh.FAQ,v 2.23 1997/01/24 13:21:16
+ 	  pws Exp
+
+	* Src/zle.h, Src/zle_misc.c, Src/zle_refresh.c:
+ 	  redisplay fix for multiline prompts from Geoff (2817)
+
+Mon Jan 20 21:11:22 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/hashtable.h, acconfig.h, config.h.in, configure,
+ 	  configure.in: some old compilers cannot initialise a union
+
+	* Src/zle_utils.c: move the mark when characters are
+	  inserted/deleted.  From Peter (2807)
+
+Sat Jan 18 22:34:17 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* acconfig.h, config.h.in, configure, configure.in: use the
+ 	  AC_FUNC_STRCOLL builtin autoconf test
+
+Tue Jan 14 13:52:36 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_move.c: vi-goto-column did not move to the last column
+
+Sat Jan 11 23:45:50 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/system.h: define lstat(X,Y) instead of lstst if HAVE_LSTAT
+ 	  is not defined
+
+	* Src/zle_tricky.c: ll was not restored for xorrec
+
+	* Src/builtin.c: read -l forgot to duplicate line before assignment
+
+	* Src/jobs.c: do not execute trap when only the child receives the
+ 	  signal.  Based on article 2480 from Zefram.
+
+	* Src/builtin.c: fix bugs when there was no current job after disown
+
+Thu Jan  9 14:44:28 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/hist.c: Peter's patch broke history expansion in some cases.
+  	  From Peter (2755)
+
+Wed Jan  8 22:02:51 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/globals.h, Src/hist.c, Src/lex.c: hist_ignore_dups did not
+ 	  work with fc in precmd().  From Peter (2748)
+
+	* configure, configure.in: on NetBSD <sys/time.h> is needed for
+ 	  rlimit type checks.  Based on article 2742 from Geoff
+
+Tue Jan  7 23:10:24 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/params.c, Src/builtin.c, Src/exec.c: print error when
+	  changing read-only variables, prevent core dump when assigning
+	  an array to read-only scalar and some other fixes
+
+	* Src/zle_tricky.c: compctl -S bugfix
+
+Mon Jan  6 20:43:36 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c, acconfig.h, config.h.in, configure, configure.in:
+	  better /dev/fd filesystem check
+
+Sun Jan  5 23:33:32 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c, Src/system.h, Src/utils.c, acconfig.h,
+ 	  config.h.in, configure, configure.in: checks for quad_t and
+ 	  unsigned resource types
+
+	* Src/jobs.c: set_clktck() function added
+
+	* Src/builtin.c, Src/rlimits.awk: safe fallback when RLIM_ macros
+ 	  are not found
+
+	* Src/zle_main.c: EOF ignored in interactive mode when not in
+ 	  the first line.  From Peter (2713)
+
+Fri Jan  3 02:26:03 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Misc/compctl-examples: setopt/unsetopt compctl fixes
+
+Thu Jan  2 20:57:33 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* configure, configure.in: alpha-linux defines signals in
+ 	  <asm/signum.h>.  From David Krinsky <krinsky@hcs.harvard.edu>
+ 	  (2706)
+
+Wed Jan  1 20:04:06 1997  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/params.c, Src/hashtable.h: remove the struct iparam hack
+ 	  which assumed that sizeof(long) == sizeof(void*)
+
+	* Src/system.h, configure, configure.in: dgux CLOBBERS_TYPEAHEAD.
+  	  From Roderick Schertler <roderick@gate.net> (2623)
+
+Tue Dec 31 02:28:09 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c, Src/params.c, Src/utils.c: use
+ 	  dupstrpfx/ztrduppfx
+
+	* Src/globals.h, Src/input.c, Src/lex.c, Src/zsh.h: after alias
+ 	  foo='echo ' ; alias bar=foo, foo bar should expand to foo echo.
+  	  From Peter (2558)
+
+Sun Dec 29 22:34:21 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zsh.texi, Doc/zshexpn.man, Doc/zshmisc.man, Src/glob.c,
+ 	  Src/lex.c: brace related bugfixes
+
+	* Src/glob.c, Src/utils.c: fix a buffer overflow bug in parsecomp()
+
+	* Src/exec.c, Src/loop.c, Src/parse.c: case argument should not be
+ 	  globbed
+
+Thu Dec 19 21:37:17 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* zsh-3.0.2 repacked
+
+	* Src/init.c: work around a bug in NeXTStep 3.2 which caused slow
+ 	  refresh
+
+	* Etc/FAQ: FAQ from Peter: Id: zsh.FAQ,v 2.22 1996/12/19 09:52:11
+ 	  pws Exp
+
+Tue Dec 17 20:08:58 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-3.0.2 released
+
+	* Src/params.c: remove some compiler varnings
+
+	* Src/Makefile.in: rlimits.h depends on rlimits.awk.  Cosmetic
+ 	  changes.  From Zefram (2589)
+
+Mon Dec 16 03:33:12 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* README: unknown limits should no longer be a problem
+
+	* Src/glob.c: toggles were not reset after a comma in a glob
+ 	  qualifier list (e.g. *(@-.,/))
+
+	* Src/builtin.c: fg %% failed and disabled job control sometimes
+ 	  when there were no current job
+
+Sun Dec 15 22:09:21 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zsh.texi, Doc/zshzle.man, Src/zle_hist.c:
+ 	  insert-last-word with numeric arguments inserts the given word
+ 	  from the previous history event.  From Bart (2445),
+ 	  documentation by me.
+
+Sat Dec 14 02:44:21 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c (execcmd): builtin < / > / closed stdin
+
+	* configure, Src/Makefile.in, Src/builtin.c, Src/rlimits.awk,
+ 	  configure.in: awk generated rlimits from Peter (2573)
+
+	* config.guess, config.sub, configure, configure.in: upgrade to
+ 	  autoconf-2.12.  Linux machines are still recognized without the
+ 	  -gnu suffix
+
+	* configure, configure.in: working fifos should be tested in /tmp
+
+Wed Dec 11 02:30:39 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c, Src/builtin.c, Src/exec.c, Src/globals.h,
+ 	  Src/hist.c, Src/init.c, Src/input.c, Src/lex.c, Src/zsh.h:
+ 	  remove the alias stack and fix several related bugs. From Peter
+ 	  (2548, 2551)
+
+	* Doc/zsh.texi, META-FAQ: ftp mirror site changes
+
+	* Src/params.c: use the heap in getstrvalue()
+
+Tue Dec 10 02:27:35 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_refresh.c: single line zle refresh bugfix from Geoff
+ 	  (2549)
+
+	* Src/subst.c: ${(l:4:)foo} stopped working between 3.0.0 and 3.0.1
+
+	* Src/math.c: $((#\c)) character code expansion did not work when
+ 	  c was a metafied
+
+	* Src/params.c: $foo[i] did not work when foo[i] was a metafied
+ 	  character
+
+	* Src/builtin.c: use the heap in zexit()
+
+Sun Dec  8 21:32:06 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/input.c: no further input should be attempted when lexstop
+ 	  is true (e.g. after eof).
+
+	* Misc/compctl-examples: MH compctl changes from Peter (2535)
+
+	* Src/signals.c: use the heap when reading TMOUT
+
+	* Src/jobs.c: use the heap when reading REPORTTIME.  From Peter (3534)
+
+	* Src/zle_tricky.c, Src/glob.c, Src/hashtable.c, Src/utils.c:
+ 	  unmetafy did not put a null terminator to the end of the string.
+  	  zreaddir discarded the metafied filename.  readdir was used
+ 	  instead of zreaddir in zle_tricky.c.  From Zefram (2533)
+
+	* Src/jobs.c: CLK_TCK is 60 on NeXT not 64 as defined in the
+ 	  system headers.  From Robert F Tobler
+ 	  <rft@raven.cg.tuwien.ac.at> (2522)
+
+	* Src/input.c, Src/zsh.h: alias foo='a=b foo' ; foo caused an
+ 	  infinite loop.  From Peter (2515)
+
+	* Src/builtin.c, Src/compctl.c: more bad option fixes. Make
+ 	  the getopts builtin 8-bit clean.  From Zefram (2508)
+
+	* Src/builtin.c: show metafied characters correctly in bad option
+ 	  errors.  From Zefram (2497)
+
+Tue Nov 26 02:45:15 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c: the STTY parameter did not work well when pipes were
+ 	  used.  From Peter (2474)
+
+	* Etc/FAQ: FAQ from Peter: Id: zsh.FAQ,v 2.21 1996/11/25 09:13:28
+ 	  pws Exp
+
+Sun Nov 24 22:44:12 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_move.c: vi-goto-mark fix from Thorsten
+
+Sat Nov 23 23:34:58 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c:
+	  ((...)) substituted the expression twice and coredumped on (())
+
+	* Doc/zsh.texi, Doc/zshcompctl.man: compctl -e clarification from
+ 	  Peter (2453)
+
+Wed Nov 20 00:58:06 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/utils.c: The spell checker always tries to fix as many
+ 	  leading directory compontents as possible.  From Bart (2429)
+
+	* Src/zle_tricky.c: my spell-word fix used an uninitialised
+ 	  pointer.  Fix from Bart (2428)
+
+Sun Nov 17 21:21:22 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/params.c: remove a few memory leaks when initialising the
+ 	  parameter table.
+
+	* Src/exec.c, Src/zsh.h: allow arbitrary number of multios.  From
+ 	  Zefram (2414)
+
+	* Src/exec.c, Src/parse.c, Src/text.c, Src/zsh.h: do not convert
+ 	  ((...)) to builtin let internally.
+
+Sat Nov 16 23:57:40 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c: spell-word zle function did not work for word
+ 	  beginning with a tilde
+
+	* Doc/Makefile.in: give some explanation if the user compiling zsh
+ 	  has no makeinfo
+
+	* Makefile.in, acconfig.h, configure.in, config.h.in: Makefile and
+ 	  configure fixes from Zefram (2416)
+
+	* Src/zle_tricky.c: the cursor moved back on TAB when it was on
+ 	  "".  From Zefram (2415)
+
+Thu Nov 14 12:59:25 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_refresh.c: one more refresh fix from Geoff (2404)
+
+Wed Nov 13 21:47:28 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* config.guess, config.sub: recognize i[6-9]86
+
+	* Src/globals.h, Src/init.c, Src/utils.c: make fdtable dynamic
+
+	* Src/zle_refresh.c: zle_refresh fix from Geoff (2387)
+
+	* Src/zle_refresh.c: some checks added.  From Geoff (2386)
+
+	* Src/zle_refresh.c: fix an off-by-one array bound bug.  From
+ 	  Geoff (2359)
+
+	* Src/zle_refresh.c: zle_refresh scrolling change from Geoff (2351)
+
+Tue Nov 12 21:35:18 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/init.c, Src/zle_refresh.c: zle-refresh patch from Geoff (2336)
+
+Sun Nov  3 23:00:05 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/system.h: set OPEN_MAX to 64 if NOFILE is not defined
+
+	* Src/hashtable.c: disable -f TRAPxxx permanently removed the
+	  function
+
+	* Functions/pushd: setopt localoptions must come after
+	  emulate -R zsh
+
+Sat Nov  2 22:47:53 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/compat.c, Src/hashtable.c, Src/utils.c: do not blindly
+ 	  assume that . and .. are always the first two enrties in a
+ 	  directory.  Problem discovered by Hideki ONO and fixed by Bart
+ 	  (2309)
+
+	* Src/utils.c: max_zsh_fd should not be decreased below zero
+
+Thu Oct 31 01:38:10 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/hist.c: zsh splitted lines longer than 1022 while reading
+ 	  the history file
+
+	* Src/glob.c (doesmatch): <-number> range glob did not work
+
+	* Src/builtin.c: read -c ignored its first parameter
+
+Fri Oct 25 20:50:38 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-3.0.1 released
+
+	* Functions/pushd: First version
+
+	* Functions/pushd: empty dummy revision
+
+	* Src/zle_main.c: key binding coredump fix from Peter (2131)
+
+Thu Oct 24 10:02:00 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c: A minor bugfix related to alwayslastprompt and
+ 	  compctl -X from Geoff (2255)
+
+Thu Oct 24 09:15:18 1996  pws  <pws@ihf.de>
+
+	* Etc/FAQ: checked in with -k by hzoli at 1996/10/25 19:57:51
+
+Mon Oct 21 20:39:19 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zsh.texi, Doc/zshoptions.man: Better documentation of
+ 	  GLOB_ASSIGN and MAGIC_EQUAL_SUBST from Peter (2164)
+
+Sun Oct 20 00:08:41 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* configure, configure.in: I made a stupid mistake in the Cray
+ 	  hacks for nis_list
+
+Sat Oct 19 19:39:12 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* configure, configure.in: allow cross-compiling
+
+Fri Oct 18 20:34:06 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zsh.man, Doc/zsh.texi, Doc/zshall.man: Paul Falstad's
+ 	  preferred E-mail address is pjf@cts.com
+
+	* Src/hist.c: A little simplifiction.
+
+Wed Oct 16 22:58:08 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Etc/BUGS: sed in HP-UX 10.20 is broken.
+
+	* Src/builtin.c: popd to a non-existent directory did not remove
+ 	  that from the directory stack.  popd should warn when the
+ 	  directory stack is empty.  From Bart (zsh-users 437)
+
+Tue Oct 15 21:07:03 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_utils.c: use int instead of char in getzlequery
+
+	* Doc/Makefile.in, Doc/zsh.texi, Etc/Makefile.in,
+ 	  Functions/Makefile.in, Makefile.in, Misc/Makefile.in,
+ 	  Src/Makefile.in, Src/builtin.c, Src/compat.c, Src/cond.c,
+ 	  Src/exec.c, Src/glob.c, Src/globals.h, Src/hashtable.c,
+ 	  Src/hashtable.h, Src/hist.c, Src/init.c, Src/input.c,
+ 	  Src/jobs.c, Src/lex.c, Src/linklist.c, Src/loop.c, Src/math.c,
+ 	  Src/mem.c, Src/params.c, Src/parse.c, Src/prototypes.h,
+ 	  Src/signals.c, Src/signals.h, Src/subst.c, Src/system.h,
+ 	  Src/text.c, Src/utils.c, Src/watch.c, Src/zle.h,
+ 	  Src/zle_bindings.c, Src/zle_hist.c, Src/zle_main.c,
+ 	  Src/zle_misc.c, Src/zle_move.c, Src/zle_refresh.c,
+ 	  Src/zle_tricky.c, Src/zle_utils.c, Src/zle_vi.c, Src/zle_word.c,
+ 	  Src/zsh.h, Src/ztype.h, StartupFiles/Makefile.in,
+ 	  Util/Makefile.in, configure.in: copyright condition changes
+
+	* Src/zle_refresh.c: bugfix and optimisation for poor terminals
+ 	  from Geoff (2221)
+
+Tue Oct  8 23:19:38 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Etc/BUGS, Etc/CONTRIBUTORS, Etc/MACHINES, Etc/NEWS: spell fixes
+ 	  from Geoff (2190)
+
+	* Src/builtin.c: there was an extra check for unknown limits
+
+	* Src/prototypes.h, acconfig.h, config.h.in, configure,
+ 	  configure.in: make compilation possible on OSF/1 V4.x with gcc
+
+Tue Oct  8 00:16:29 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/init.c: PS3 and PS4 were only initialized in non-interactive
+ 	  shells
+
+	* Src/utils.c: getquery always returned n on cray-unicos. From
+ 	  Richard D. Slater (2136)
+
+	* config.guess, config.sub: recognize c90-cray and t90-cray machines.
+	  From Richard D. Slater <rdslater@splash.Princeton.EDU> (2136)
+
+	* configure, configure.in: changes to enable NIS+ username
+ 	  completion on Unicos based on information provided by Charles
+ 	  Finan <chf@bear.com>.
+
+	* Src/zle_tricky.c: get_comp_string simplification and a little
+ 	  bugfix based on art. 2198 from Zefram
+
+	* Src/builtin.c: print -P '\0hehe' printed nothing.
+
+	* Src/zle_misc.c: handle meta characters in prompts
+
+	* Src/utils.c: a litle optimization
+
+Sun Oct  6 12:21:08 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Functions/cdmatch, Functions/cdmatch2, Functions/multicomp: add
+ 	  emulate -R zsh to some function examples.  From Bart (2172)
+
+	* Src/exec.c, Src/jobs.c, Src/zsh.h: =(...) arguments to a
+ 	  function were deleted after the first command of the function
+ 	  was executed.  Fix from Louis.Granboulan@ens.fr (2165).
+
+	* Doc/zsh.texi, Doc/zshexpn.man, Etc/NEWS, Src/glob.c: trailing /
+ 	  in a glob pattern now works like in other shells.
+
+Thu Oct  3 00:02:35 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* configure, configure.in: on AIX curses should always be
+ 	  preferred to termcap
+
+	* Util/zsh-development-guide: added description about the coding
+	  style.
+
+	* Src/subst.c: expand arithmetic expressions in substitution flags
+ 	  and modifiers
+
+	* Src/glob.c: echo foo(:t:r) gave no matches error
+
+Tue Oct  1 00:50:49 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c, Src/exec.c, Src/hashtable.h, Src/params.c,
+ 	  Src/zle_tricky.c: dots no longer appear in place of empty
+ 	  components of PATH, MANPATH etc.
+
+Sat Sep 28 21:22:31 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zsh.h, Src/builtin.c, Src/hashtable.h, Src/init.c,
+ 	  Src/jobs.c, Src/params.c, Src/utils.c, Src/zle_misc.c,
+ 	  Src/zle_refresh.c, Src/zle_tricky.c: COLUMNS=1 causes a
+ 	  coredump.  From Bart (2173)
+
+	* Src/subst.c: tilde expansion did not work for usernames
+ 	  beginning with a digit
+
+	* Src/utils.c: zstrtol did not handle signs
+
+	* Src/globals.h, Src/init.c, Src/utils.c: when an error occurs in
+ 	  a sourced script the full pathname of the script is included in
+ 	  the message.  From Peter (2170)
+
+	* Src/init.c: initialise ttystrname in init_io to avoid duplicated
+ 	  call of ttyname
+
+Tue Sep 24 19:45:30 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_refresh.c: one character long prompts did not work.
+  	  From Geoff (2118)
+
+	* Src/zle_main.c: getkey shoud use EOF instead of -1 when no
+ 	  characters were read.  From hoh@approve.se (Goran Larsson)
+ 	  (2144)
+
+	* Src/zle_utils.c: ^C answer to a query printed a funny character.
+	  From hoh@approve.se (Goran Larsson) (2144)
+
+Mon Sep 23 23:28:38 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/lex.c: array assignments stopped working after my previous fix
+
+	* Src/exec.c: If setpgrp fails make the process a new job leader.
+  	  From Peter (2150)
+
+	* Functions/cat: A simplified implementation of cat as a zsh function
+
+	* Src/exec.c, Src/utils.c: Do not close coprocin/coprocout for
+ 	  command/process substitutions
+
+	* Src/builtin.c: POSIX: shift n should fail with error message if
+ 	  n > $#
+
+Sat Sep 14 04:19:41 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/utils.c: metafy/unmetafy speedups
+
+	* Src/lex.c: assignment parsing fix (e.g. 1foo=bar is not an
+ 	  assignment)
+
+	* Src/exec.c: an index bug which never caused any problems fixed.
+
+	* Src/glob.c, Src/lex.c, Src/subst.c, Src/zle_tricky.c: setopt
+ 	  extendedglob no longer affects parsing.  From Peter (2123) with
+ 	  and me (2127)
+
+	* Src/params.c: shift <number> did not work
+
+Fri Sep 13 03:30:51 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c: read builtin simplifications and improvements
+
+	* Src/builtin.c: the read builtin did not handle meta characters
+
+Sat Sep  7 15:19:40 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/params.c, config.h.in, configure, configure.in:
+	  setting the USERNAME parameter executes initgroups()
+
+	* configure, configure.in: define HAVE_NIS_PLUS only if the
+ 	  nis_list function is found
+
+Tue Sep  3 20:33:07 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c: autoload has no effect for already defined
+ 	  functions & other cosmetic changes
+
+	* Src/utils.c: control keys at a query prompt left ^ as a garbage
+ 	  on the screen.  Fix from hoh@approve.se (Goran Larsson)
+
+Sun Sep  1 22:58:11 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Etc/NEWS: more news
+
+	* Src/mem.c: fill the freed heap with 0xff on popheap and freeheap
+
+	* Src/zle_tricky.c: completion did not work well after
+ 	  delete-char-or-list
+
+	* Src/builtin.c: umask prints 0222 instead of 222
+
+Sat Aug 31 23:43:06 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c: fc -e should not change lastval
+
+	* Src/input.c: fc -e prints the modified line of stderr instead of
+ 	  stdout
+
+	* Src/init.c: use source instead of sourcehome for sourcing $ENV
+ 	  in sh/ksh mode
+
+	* Doc/zsh.texi, Doc/zshbuiltins.man, Src/builtin.c: set -s and set
+ 	  +A now works as in ksh
+
+	* Src/params.c: getaparam used by shift and compctl -k did not
+ 	  work with KSH_ARRAYS
+
+	* Src/exec.c: a prefix without command is not an error.
+
+	* Doc/zsh.texi, Doc/zshbuiltins.man, Src/builtin.c,
+ 	  Src/hashtable.h: unset -f is the same as unfunction
+
+	* Src/builtin.c: read should set variables even if EOF is read
+
+	* Src/builtin.c: typeset -i foo should not change an already set
+ 	  base for foo
+
+	* Src/init.c, Src/loop.c, Src/signals.c: terminate zsh if an
+ 	  untrapped INT signal is received while sourcing a startup script
+ 	  and the privileged option is set
+
+	* Doc/zsh.texi, Doc/zshmisc.man, Src/globals.h: NO_BG_NICE is set
+ 	  in sh/ksh mode
+
+	* Src/zle_refresh.c: xterm cut&paste fix from Geoff (2095)
+
+Thu Aug 29 21:07:24 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/lex.c, Src/zle_tricky.c: run-help always uses the alias
+ 	  expanded word
+
+	* Src/zle_refresh.c: fixes for slow refresh on some terminals from
+ 	  Geoff (2091)
+
+Mon Aug 26 00:02:36 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c: save/restore underscore on execsave/execrestore
+
+	* Src/zle_tricky.c: line was wrongly used unmetafied in getcurcmd()
+
+Sun Aug 25 23:06:43 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Functions/checkmail, Doc/zsh.texi, Doc/zshmisc.man, Src/cond.c,
+ 	  Src/parse.c: new -N contitional test to check if the access time
+ 	  of a file is not newer than its modification time.  A new
+ 	  checkmail function is also included to check mailpath or the
+ 	  given forlers for new mails.
+
+	* Src/builtin.c: umask error message fix from János Farkas
+ 	  <chexum@shadow.banki.hu> (2061)
+
+	* Src/mem.c, Src/zsh.h: halloc simplification
+
+	* Src/zsh.h: save/restore underscore on execsave/execrestore
+
+	* Doc/zsh.texi: <> should be <->.
+	  From hoh@approve.se (Goran Larsson)
+
+	* Doc/zshoptions.man: a space was missing after .BR.
+	  From Bart (2019)
+
+	* Src/exec.c, Src/globals.h, Src/signals.c, Src/signals.h,
+ 	  Src/utils.c: Some little speedups
+
+Fri Aug 23 19:18:43 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c: compctl -X did not work
+
+	* Functions/run-help: fixed compctl handling
+
+	* Util/helpfiles: comment changes
+
+	* Src/params.c: $foo[(i)...], caused invalid subscript error
+
+Thu Aug 22 21:57:47 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* META-FAQ: ftp.uit.no now mirrors the primary site.
+  	  ftp.nis.co.jp should be used instead of shirakaba.nis.co.jp
+
+	* Src/parse.c: if ((...)) { ... } else { ... } should work.  From
+ 	  Bart (2043) and me
+
+	* Src/builtin.c: RLIMIT_TCACHE = cachedthreads on HP-UX 10.20
+
+	* Etc/MACHINES: better description of the OSF/1 header bug
+	  workaround
+
+Thu Aug 15 17:40:38 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-3.0.0 released
+
+	* configure, configure.in: remove -DDEBUG from the default CFLAGS
+
+	* Makefile.in: Automatically update zsh-doc.tar.gz and the www
+ 	  manual with make release
+
+	* Doc/zsh.texi: final version for zsh-3.0
+
+	* Src/zsh.h: some compilers complained the 0x80 is out of range
+
+	* Doc/zsh.texi, Doc/zshmisc.man, Src/globals.h: undo the emulation
+ 	  of the echo style of /bin/sh in sh mode.
+
+	* Functions/run-help: new version from Bart with some modifications
+
+	* META-FAQ: new mirror in Japan and Slovenia, META-FAQ.html
+
+	* Src/exec.c: $(< nosuchfile) dumped core.  From Peter (1985)
+
+Wed Aug 14 17:02:39 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/parse.c: ignore spaces in case foo in ( f* | b* ) ...
+
+	* Src/exec.c: fix error messages when there is an unreadable
+ 	  directory or a non-directory in the path.  From Peter (1666)
+
+	* Src/utils.c: zstrtol skips leading whitespaces.  From Risto J
+ 	  Laitinen <rjl@math.jyu.fi>
+
+	* Src/builtin.c: fc builtin fix from Peter (1956)
+
+	* Doc/zsh.man, Doc/zsh.texi, Doc/zshall.man, Doc/zshmisc.man,
+ 	  Doc/zshoptions.man, Src/exec.c, Src/globals.h, Src/hashtable.h,
+ 	  Src/zsh.h: POSIX_BUILTIN option added
+
+Tue Aug 13 20:36:44 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zsh.texi, Doc/zshparam.man, Src/init.c, Src/zle_misc.c: PS2
+ 	  defaults to %_> , %_ prints all shell constructs.  From Peter
+ 	  (1948)
+
+	* Src/hist.c: a cast was missing in a debug test
+
+Mon Aug 12 18:01:08 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c: limit fixes for Alpha/Linux 2.0.x from Jeff Blank
+ 	  <jfblank@mtu.edu> (1951)
+
+	* META-FAQ: ftp.funet.fi mirrors zsh
+
+	* Doc/zshmisc.man, Doc/zsh.texi, Src/globals.h, acconfig.h,
+ 	  config.h.in, configure, configure.in: test for the echo style of
+ 	  /bin/sh
+
+	* Src/math.c: $[#\c] did not work for meta characters.  From Heiko
+ 	  Schroeder (1937)
+
+	* Src/builtin.c: hostorical sh compatibility: set - is set +xv and
+ 	  set - args is set +xv -- args.
+
+	* Src/zle_main.c, Src/zle_refresh.c: call getiparam("BAUD") once
+ 	  before each zle invocation instead of calling it on each
+ 	  keystroke.
+
+	* Src/hist.c, Src/signals.c: Zsh coredumped on auto-logout
+
+Sun Aug 11 19:46:50 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/input.c: Fix history expansion in foo<!$.  This may also fix
+ 	  some other rare bugs.  From Peter (1930)
+
+	* Src/zle_main.c: zsfree used to free bindkey -s binding.  From
+ 	  Peter (1927)
+
+	* Doc/zsh.texi, Doc/zshparam.man: minor corrections from Peter (1926)
+
+	* Src/builtin.c, Src/exec.c: The exit builtin used exit() instead
+ 	  of _exit() in subshells.  From Peter (1923)
+
+	* Src/zle_tricky.c: Untokenize and quote the current command
+ 	  before passing it to run-help.  Based on art. 1920 from Bart.
+
+Sun Aug  4 18:28:00 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-3.0-pre6 released
+
+	* Doc/zsh.texi, Doc/zshparam.man, Src/hashtable.h, Src/params.c:
+ 	  LANG and LC_{ALL,CTYPE,COLLATE,MESSAGES,TIME} special parameters
+ 	  added
+
+	* Src/utils.c (ztrftime): use strftime() for %a, %b and %p since
+ 	  it respects LC_TIME
+
+	* Src/mem.c: zsh_mem segfaulted when the free list was empty and a
+ 	  large block was freed.
+
+	* Src/zle_tricky.c: do not complete unset special parameters
+
+Sat Aug  3 02:54:46 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/init.c, Src/builtin.c, Src/globals.h, Src/zsh.h: setopt
+ 	  prints non-default options.  From Wayne (1907)
+
+	* Src/exec.c, Src/zsh.h: foo | some_function > ... closed stdout
+ 	  permanemtly
+
+	* Src/zle_utils.c: zsfree used on the non-null-terminated vibuf[*].buf
+
+Fri Aug  2 20:05:50 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zsh.texi: spelling fixes from Mark and added reference to
+ 	  obtaining precompiled documentation, zsh-doc.tar.gz from Clive
+ 	  (1858)
+
+	* Etc/BUGS, Etc/FEATURES, Etc/NEWS: `spelling' fixes
+	  from Zefram (1856)
+
+	* Functions/multicomp: unset nounset (in other words set unset) in
+ 	  the function
+
+	* Src/zle_refresh.c: zsfree was used to free the
+ 	  non-null-terminated lpptbuf and rpptbuf
+
+	* Src/mem.c: fill freed memory with 0xff intead of 0 when
+ 	  ZSH_MEM_DEBUG is defined
+
+	* Src/builtin.c, Src/exec.c: parse_string does not use
+ 	  pushheap/popheap.  $(< file command) works
+
+	* Src/lex.c: lexsave() saves lexstop, gettok does not do hwbegin()
+ 	  when lexstop != 0
+
+	* Src/hist.c: strinbeg/strinend increases/decreases strin.  This
+ 	  fixes the here-document within command substitution bug.
+
+Thu Aug  1 17:56:17 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/lex.c: \" should remain unchanged in here documents
+
+Wed Jul 31 19:10:04 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-3.0-pre5 released
+
+	* Doc/zsh.texi: updated to zsh-3.0-pre5
+
+	* Src/signals.c: update shtimes for disowned and command/process
+ 	  substitution processes since otherwise these would be added to
+ 	  the time of the next terminating non-disowned process.  From
+ 	  Peter (1849)
+
+	* Src/jobs.c: more than 100% CPU usage is meaningfull on parallel
+ 	  machines.  From Peter (1849)
+
+	* Doc/Makefile.in: use $< only in implicit rules
+
+	* Src/builtin.c, Src/jobs.c, Src/zle_misc.c, Src/zle_refresh.c,
+ 	  Src/zle_tricky.c, Src/zsh.h: COLUMNS=0 caused division by zero
+
+	* Src/zle_refresh.c: use single line scroll only if speed >=
+ 	  19200.  Fix a refresh bug happenning with half-screen scrolls.
+  	  From Mason (1835)
+
+	* Doc/zsh.texi: texinfo updates from Clive (1833, 1838)
+
+	* Src/hashtable.h, Src/params.c, Src/zsh.h: {E,}{U,G}ID, USERNAME,
+	  histchars, HISTCHARS, IFS are not imported
+
+	* Doc/zshparam.man, Src/exec.c: foo=something command did not work
+ 	  well when foo was a special array or integer parameter or when
+ 	  foo was a read-only parameter.  It's fixed but now USERNAME=name
+ 	  command will not work to start a single command under a
+ 	  different username.  (USERNAME=name ; command) should be used
+ 	  instead.
+
+	* Src/math.c: $[foo=] and $[foo,]caused SEGV
+
+	* Src/utils.c, Src/zsh.h: DPUTS calls dputs() to print a debug
+ 	  message.  This makes debugging easier since a breakpoint can be
+ 	  set to dputs.
+
+Tue Jul 30 20:28:38 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/params.c, Src/utils.c: zsh -s dereferenced wordchars while
+ 	  it was still NULL.  Reported by Peter.
+
+	* Src/exec.c: handle special parameter assignments before builtins
+ 	  and functions
+
+	* Doc/zshmisc.man, Src/hashtable.h: MANPATH is not special in
+ 	  sh/ksh mode
+
+Mon Jul 29 23:44:19 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/mem.c: a little-bit improved ZSH_MEM_WARNING
+
+	* Src/init.c, Src/params.c, Src/utils.c, Src/zsh.h: zsh -s
+ 	  dereferenced ifs while it was still NULL.  Reported by Peter.
+
+	* Src/signals.c: unfunxtion TRAPxxx gave a bogous BUG: message.
+  	  From Peter (1823)
+
+	* Functions/zed: save/restore TMOUT fix
+
+	* Doc/zshzle.man: isearch case-sensitivity documentation
+
+	* Src/globals.h: swap option leters for noclobber and
+	  printexitvalue again
+
+	* Src/exec.c, Src/loop.c: do fake exec in complex commands
+
+	* Src/parse.c: zsh -c 'echo foo ; & echo bar' should give parse
+	  error.
+
+Sun Jul 28 22:34:08 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zshoptions.man: SH_FILE_EXPN renamed to SH_FILE_EXPANSION,
+ 	  -s works as SHIN_STDIN again in sh/ksh mode, -t is
+ 	  SINGLE_COMMAND in sh/ksh mode
+
+	* Src/globals.h, Src/subst.c, Src/zsh.h, Doc/zshexpn.man,
+ 	  Doc/zshmisc.man: SH_FILE_EXPN renamed to SH_FILE_EXPANSION
+
+	* Functions/zed: some fixes
+
+	* Misc/compctl-examples: (un)setopt completion example now know
+	  about no_option
+
+	* Src/zle_tricky.c: accept-and-menu-complete did not work well
+ 	  with GLOB_COMPLETE
+
+	* Src/zle_tricky.c: an other attempt to implement proper quoting
+	  after a failed completion
+
+	* Src/zle_hist.c: do not use zsfree on non-null-terminated strings
+
+	* Src/zle_hist.c, Src/zle_utils.c: isearch is case sensitive if it
+ 	  has a numeric argument
+
+	* Src/globals.h: -s is back in sh/ksh mode for SHIN_STDIN
+
+Sat Jul 27 20:24:36 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/compat.c, Src/glob.c, Src/init.c, Src/mem.c,
+ 	  Src/zle_tricky.c: changes to make the upcoming gcc-2.8.0 more
+ 	  silent
+
+Fri Jul 26 21:02:59 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-3.0-pre4 released
+
+	* Makefile.in: the diffs for the FAQ contains RCS header diffs
+
+	* Doc/zshmisc.man: COMPATIBILITY section added
+
+	* Doc/zsh.man: use %manext% instead of 1
+
+	* Doc/zshbuiltins.man, Src/builtin.c, Src/hashtable.h: emulate -R
+ 	  added
+
+	* Doc/zshoptions.man, Src/globals.h, Src/zsh.h: shoptionletters
+ 	  added, localoptions is only set for ksh, ksh knows -t and -s is
+ 	  different from zsh so ksh -s is disabled.
+
+	* Src/init.c: sh/ksh mode does not use $ZDOTDIR.  ENV is expanded
+
+	* Src/builtin.c, Src/exec.c, Src/signals.c: final (?) trap fixes
+
+	* Doc/Makefile.in: added rules for zsh_a4.ps, zsh_us.ps, zsh_toc.html
+
+	* Src/hashtable.c: print { } for empty funxtion definitions.  From
+ 	  Peter (1778)
+
+Thu Jul 25 21:50:36 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/signals.c, Src/subst.c: old compilers do not like char []
+ 	  automatic initializers
+
+	* Src/globals.h: ignorebraces is not set for ksh emulation
+
+	* Etc/CONTRIBUTORS: Bart Schaefer added to 3.0 contributors
+
+	* Src/zle_tricky.c: backed out an earlier patch of mine which
+ 	  quoted the line after a failed completion.
+
+	* Src/builtin.c, Src/exec.c, Src/init.c: some checks to prevent
+ 	  buffer overflows from Bart (1760)
+
+	* Src/params.c: do not import special array parameters like path.
+
+	* Src/params.c, Src/subst.c: Subscripts can be used in all array
+ 	  types substitutions.  For example
+ 	  "${${(M)${(f@)$(<builtin.pro)}:%char*}[2][(w)3]}" expands to the
+ 	  third word of the second line of builtin.pro which begins with
+ 	  char.  This is really a bugfix: ${foo[1]} does not give error is
+ 	  foo is unset and the UNSET option is set.
+
+	* Src/zle_main.c: return or break (probably called from a trap)
+ 	  stops zle
+
+	* Src/builtin.c, Src/exec.c: return does not do anything special
+ 	  if used in a function called from a TRAPxxx function.
+
+Thu Jul 25 08:08:47 1996  pws  <pws@bolyai.cs.elte.hu>
+
+	* Etc/FAQ: checked in with -k by hzoli at 1996/07/25 20:32:43
+
+Wed Jul 24 15:02:42 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Etc/NEWS, Src/lex.c: disallow [[-z $foo]] again since it will
+ 	  cause problems with POSIX character classes (e.g. [[:ALPHA:]]).
+
+	* Src/zle_misc.c: deletechar works at the end of lines.
+
+Tue Jul 23 21:04:22 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c, Src/exec.c, Src/globals.h, Src/hashtable.c,
+ 	  Src/jobs.c, Src/signals.c, Src/zsh.h: more signal trap fixes
+
+	* Src/exec.c: add zleactive = 0; to entersubsh().  From Bart and
+ 	  Peter (1735)
+
+	* Src/zle_vi.c: vi-replace-chars repeat correctly with
+ 	  vi-repeat-change.  From Zefram (1696)
+
+	* Doc/zshzle.man, Src/zle.h, Src/zle_main.c, Src/zle_misc.c,
+ 	  Src/zle_utils.c, Src/zle_vi.c: vi-style named cut buffers work
+ 	  in ZLE.  From Zefram (1683)
+
+	* Src/builtin.c: whence -c (and which) tells if the given command
+ 	  is not found.
+
+Mon Jul 22 20:32:13 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zshexpn.man, Doc/zshoptions.man, Doc/zshparam.man,
+ 	  Src/globals.h, Src/subst.c, Src/zsh.h: SH_FILE_EXPN option and
+ 	  some other changes related to sh/ksh emulation from Zefram
+ 	  (1695)
+
+	* Doc/zshoptions.man, Src/builtin.c, Src/exec.c, Src/globals.h,
+ 	  Src/zsh.h: FUNCTION_ARGZERO option from Zefram (1669)
+
+	* Doc/zshcompctl.man: some stylistic improvements from Peter (1675)
+
+	* Src/parse.c: case foo in (foo) echo yes;; esac fixed.  From Bart
+ 	  (1734)
+
+	* Doc/zsh.texi: A couple of small fixes from Anthony Heading
+ 	  <aheading@jpmorgan.com> & Vinnie Shelton
+ 	  <shelton@icd.teradyne.com>.  Updated URL for mdb's online
+ 	  documentation.  Updated to include changes made to man-pages
+ 	  pre2 -> pre3.  FIXME: URL for ps & dvi. From Clive (1730)
+
+Mon Jul 22 01:26:09 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c, Doc/zshmisc.man: traps defined by the trap builtin
+ 	  are unset in subshells
+
+	* Src/exec.c, Src/builtin.c, Src/globals.h, Src/hashtable.c,
+ 	  Src/init.c, Src/jobs.c, Src/signals.c, Src/zsh.h,
+ 	  Doc/zshbuiltins.man: traps defined by the trap builtin are now
+ 	  executed in the current shell environment and not as a shell
+ 	  function.
+
+	* Src/utils.c, Src/zle_hist.c, Src/zle_utils.c: add Emacs-like
+ 	  case insensitive incremental search
+
+	* Doc/zsh.man, Doc/zshall.man, Doc/zshexpn.man, Doc/zshmisc.man,
+ 	  Doc/zshoptions.man, Src/builtin.c, Src/exec.c, Src/glob.c,
+ 	  Src/globals.h, Src/hist.c, Src/init.c, Src/params.c,
+ 	  Src/parse.c, Src/signals.c, Src/subst.c, Src/utils.c,
+ 	  Src/zle_hist.c, Src/zle_main.c, Src/zle_misc.c,
+ 	  Src/zle_tricky.c, Src/zle_vi.c, Src/zsh.h: second option
+ 	  reorganization: setopt no_something is the same as unsetopt
+ 	  something.  From Zefram.
+
+Sat Jul 20 17:07:14 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* acconfig.h, config.h.in, configure, configure.in: configure
+ 	  check for working strcoll()
+
+	* configure, configure.in: cache broken signed to unsigned char
+ 	  conversion, and the path for utmp/wtmp/signals.h.  Modified
+ 	  cache variable names according to the GNU aucoconf standard.
+  	  From Zefram (1698)
+
+	* config.guess: fix for dgux
+
+	* Src/prototypes.h: strerror() prototype for SunOS from Zefram (1664)
+
+	* Doc/zsh.man, Doc/zshall.man: modified the AUTHOR section
+
+	* Etc/CONTRIBUTORS: Peter told me that programmable completion was
+ 	  done by Sven only.
+
+	* Src/exec.c, Src/init.c: make compilation possible on systems
+ 	  withour resurce limits.  From Wayne (1656)
+
+	* Src/lex.c: cmdstack changed bugfix from Zefram (1671)
+
+Fri Jul 19 19:25:14 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/subst.c: parameter modifier fixes, better diagnostics
+
+	* Src/subst.c: nested $((...)) substitutions now work.
+
+	* Src/zle_refresh.c: do not put the cursor into the last screen
+ 	  line if possible.  From Zefram (1678)
+
+	* Src/zle_refresh.c: a third refresh patch from Mason (1685)
+
+	* Src/zle_refresh.c: another refresh improvement from Mason (1642)
+
+	* Src/glob.c: a minor optimization
+
+	* Src/builtin.c: rlimit fixes for AIX 4.2
+
+	* Src/parse.c: case foo in (pattern) foo=bar;; esac now works
+
+	* Src/lex.c: allow {command} [[-z $foo]] etc. again.
+
+	* Src/lex.c: name=(...) did not work is there was a alias for name.
+
+	* Misc/compctl-examples: avoid a fork/exec in CVS completion.
+  	  From Bart.
+
+	* Src/jobs.c: fix a core dump in printjob().  From Zefram (1689)
+
+	* Src/lex.c: do not handle `<' in case patterns specially
+
+Thu Jul 18 23:03:59 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/subst.c: a little simplification
+
+Mon Jul 15 04:43:43 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-3.0-pre3 released
+
+	* Etc/CONTRIBUTORS: added major contributors to zsh-3.0 briefly
+	  describing their work.
+
+	* Misc/compctl-examples: CVS compctl improvements from Bart (293, 1639)
+
+	* Src/exec.c, Src/hist.c: some compilers were noisy
+
+	* Src/exec.c: fix problems of failed redirection in an exec'ed
+ 	  command. From Peter (1526)
+
+	* Src/zle_refresh.c: big zle patch from Geoff to improve handling
+ 	  of long lines (1637)
+
+	* Src/exec.c: redirected than interrupted builtins sometimes left
+ 	  the output redirected.  From Peter (1609)
+
+	* Src/builtin.c, Src/exec.c, Src/jobs.c: jobs does not redraw the
+ 	  terminal when called from a compctl.  The output from jobs now
+ 	  goes to stdout.  From Peter (1606)
+
+	* Src/zle_main.c: fix terminal problems when backgrounding
+ 	  less. From Bart Schaefer (1546)
+
+	* Src/builtin.c, Src/exec.c, Src/globals.h, Src/init.c: limit,
+	  ulimt, unlimit improvements: hard limit for the children can
+	  always be raised up to the hard limits of the shell.
+	  Optimization: setrlimit() is only called when necessary.
+
+Sat Jul 13 20:26:35 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Etc/NEWS, Doc/zshmisc.man, Src/globals.h, Src/hashtable.h,
+ 	  Src/hist.c, Src/lex.c, Src/parse.c, Src/utils.c,
+ 	  Src/zle_tricky.c, Src/zsh.h: The lexer no longer depens on the
+ 	  history code (it does not use hwget).  ! [[ { } are now reserved
+ 	  words.
+
+	* Src/lex.c: parsestr() failed if the string contained a backslash
+ 	  newline
+
+Fri Jul 12 17:19:02 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_hist.c, Src/zle_main.c: always execute the zle command
+	  which ended an I-search.  From Wayne (1613)
+
+	* Src/exec.c: for word in %1 should not trigger sutoresume.  From
+	  Peter (1619)
+
+	* Src/parse.c: allow the repeat word { list } syntax without
+	  noshortloops.  If CSHJUNKIELOOPS is set accept repeat word list
+	  end.
+
+	* Doc/zshmisc.man: more precise definition the syntax of
+ 	  complex commands
+
+	* Src/parse.c: the repeat word sublist syntax does not work if
+ 	  NOSHORTLOOPS is set
+
+	* Src/parse.c: The foo () sublist function definition syntax is
+ 	  changed to foo () command for ksh and POSIX compatibility.  This
+ 	  syntax does not require NO_SHORT_LOOPS.
+
+Thu Jul 11 21:03:51 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c: handle metacharacters in here documents
+
+	* Src/subst.c: remnulargs is unnecessary in singsub() since it is
+ 	  done in prefork()
+
+	* Doc/zsh.texi, Doc/zshmisc.man: case documentation improvements
+
+	* Src/exec.c, Src/hist.c: remove hgets() and merge it into gethere()
+
+	* Src/zle_tricky.c: feep when completion is tried when the current
+ 	  word begins in an already accepted line.  Make the code a bit
+ 	  simpler and add a debug check.
+
+	* Src/zle_tricky.c: fix completing in $(...)
+
+Wed Jul 10 20:52:55 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/glob.c, Src/subst.c, config.h.in, configure, configure.in:
+ 	  use strcoll for sorting.  From Andrej Borsenkow
+ 	  <borsenkow.msk@sni.de> (1599) with some modifications
+
+	* Src/exec.c: FOO=bar function leaved FOO=bar in the environment
+
+Wed Jul 10 02:34:49 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c: FOO=bar function leaved FOO=bar in the environment
+
+	* Src/exec.c, Src/init.c: FOO=bar function fixes from Peter (1573)
+
+	* Src/zle_tricky.c: quoting after faild completion fixed
+
+	* Src/utils.c, Src/zle_tricky.c: menu completion after ~/ and
+ 	  $foo/ fixed
+
+Tue Jul  9 21:09:29 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zsh.texi, Doc/zshmisc.man, Src/parse.c: case foo in
+ 	  (pattern) ... syntax documented and parsing improved
+
+	* Doc/zsh.texi: Removed the chapter "History" as it was duplicated
+ 	  as "History Expansion" in chapter "Expansion".  From Clive.
+
+	* Src/zle_tricky.c: gcc gave `ocs' might be used uninitialized warning
+
+	* Src/init.c, Src/utils.c: bangchar is special iff
+ 	  unset(NOBANGHIST) &&interactive && isset(SHINSTDIN)
+
+	* Src/zle_tricky.c: fix completing words containing bangchar
+
+	* Src/hist.c: prevent infinite loop when saving history
+
+	* Src/zle_tricky.c: fix various completion bugs mostly related to
+ 	  completing in multiline command structures
+
+	* Src/lex.c: do not call exalias if errflag is true (fixes
+ 	  push-line-or-edit)
+
+Mon Jul  8 20:37:59 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/init.c: set shout fully buffered
+
+Mon Jul  8 01:56:51 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c, Src/globals.h, Src/hist.c, Src/init.c, Src/input.c,
+	  Src/lex.c, Src/parse.c, Src/zsh.h: doexpandhist() no does not
+	  mess up the history.  Here document are put into the history and
+	  some other here document fixes.
+
+Sun Jul  7 16:03:48 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/init.c: alloc_stackp debug check fix
+
+	* Doc/zsh.texi: Add accents to my name fix a typo and improve
+ 	  ulimit documentation (Zoltan)
+
+	* Doc/zshbuiltins.man: improve ulimit documentation
+
+Sun Jul  7 00:18:17 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/lex.c: remove warning about the new <> behaviour
+
+Sat Jul  6 18:17:13 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c: fix completing in process and command
+	  substitutions
+
+Fri Jul  5 21:58:31 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c, acconfig.h, config.h.in, configure,
+ 	  configure.in: configure check for NIS+ and some othe related
+ 	  changes.  From Peter (1530) and me
+
+	* Doc/zsh.texi: updated texinfo documentation from Clive
+
+	* Src/system.h: RLIMIT_* fixes for HP-UX A.09.x
+
+	* Src/signals.c: pid_d *procsubpid instead of int *.
+	  From Wayne (1528)
+
+	* Src/zsh.h: X was used instead of Y in DPUTS.  From Wayne (1528)
+
+	* Doc/Makefile.in, Doc/zsh.man, Doc/zshall.man,
+ 	  Doc/zshoptions.man, INSTALL, configure, configure.in:
+ 	  --enable-etcdir is back.  The customized locations are put into
+ 	  the manual
+
+Thu Jul  4 20:46:17 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-3.0-pre2 released
+
+	* Src/zsh.h: some old compilers did not like the "foo" "bar" syntax
+
+	* INSTALL, acconfig.h, config.h.in, configure, configure.in:
+ 	  replace --enable-etcdir with --enable-{zshenv,zshrc,zlogin,
+ 	  zprofile,zlogout}
+
+	* Src/builtin.c, Src/exec.c, Src/hist.c, Src/lex.c, Src/mem.c,
+ 	  Src/signals.c, Src/utils.c, Src/zle_main.c, Src/zle_misc.c,
+ 	  Src/zle_tricky.c, Src/zsh.h: heapalloc()/permalloc() replaced
+ 	  with HEAPALLOC/PERMALLOC.  Both begin a new block which must be
+ 	  terminated by LASTALLOC.  LASTALLOC_RETURN must be used to
+ 	  return in the middle of such a block.  Example usage:
+	  PERMALLOC { l = dupstruct(list); } LASTALLOC;
+	  Idea from Bart and Zefram
+
+Thu Jul  4 13:18:11 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zshoptions.man: >| is preferred to >!
+
+Mon Jul  1 20:59:36 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zshmisc.man, Doc/zshoptions.man, Src/globals.h, Src/parse.c,
+ 	  Src/zsh.h: CSH_JUNKIE_PAREN option removed.  From Bart Schaefer
+ 	  (1496) with some modifications
+
+Mon Jul  1 20:13:26 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/mem.c, acconfig.h, config.h.in, configure, configure.in:
+	  check for brk/sbrk prototypes
+
+	* Misc/compctl-examples: complete *.rpm files after rpm -i
+
+	* Misc/compctl-examples: improved MH completions from Peter
+	  (zsh-users 268)
+
+	* Src/system.h: RLIMIT_ definitions are not hidden in HPUX 10.x
+
+Mon Jul  1 14:01:46 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c: ulimit fixes
+
+	* Src/builtin.c, Src/globals.h, Src/hashtable.h, Src/hist.c,
+ 	  Src/init.c, Src/jobs.c, Src/params.c, Src/signals.c,
+ 	  Src/utils.c, Src/zle_main.c, Src/zle_tricky.c: BAUD,
+ 	  DIRSTACKSIZE, KEYTIMEOUT, LISTMAX, LOGCHECK, MAILCHECK, PERIOD,
+ 	  REPORTTIME, SAVEHIST and TMOUT are no longer special parameters.
+
+Mon Jul  1 02:27:23 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/globals.h, Src/builtin.c, Src/exec.c, Src/init.c, Src/lex.c,
+ 	  Src/mem.c, Src/signals.c, Src/utils.c, Src/zle_main.c,
+ 	  Src/zle_misc.c, Src/zle_tricky.c, Src/zsh.h: new
+ 	  heapalloc/permalloc/lastalloc macros.  heapalloc/permalloc
+ 	  starts with an open brace and lastalloc ends in a closing brace
+ 	  so these can only be used together. lastalloc_return must be
+ 	  used instead of return between heapalloc/permalloc and
+ 	  lastalloc.  From Bart Schaefer (1490) with some modifications
+
+Mon Jul  1 01:13:17 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zshbuiltins.man, Src/builtin.c, Src/exec.c, Src/hashtable.h:
+	  limit/unlimit/ulimit changes, bash/ksh compatible ulimit
+
+Sun Jun 30 21:14:16 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/intro.ms, Doc/zsh.man, Doc/zshall.man:
+	  Paul Falstad's E-mail is pf@software.com
+
+Sun Jun 30 15:46:13 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c (doshfunc): do not change the value of underscore
+
+	* Src/builtin.c, Src/utils.c: zjoin and sepjoin returns an
+	  ncalloc'ed result (which makes them reentrant)
+
+	* Src/zle_misc.c (undo): zsfree can only be used on null
+	  terminated strings
+
+	* Src/signals.c: restore the old signal mask in unqueue_signals
+
+	* Src/exec.c: cmdoutpid and cmdoutval added to execstack
+
+Sun Jun 30 01:30:27 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/mem.c: fill freed memory with zeros if ZSH_MEM_DEBUG is defined
+
+	* Src/exec.c, Src/globals.h, Src/jobs.c, Src/signals.c, Src/zsh.h:
+ 	  cmdoutpid and cmdoutval added to execstack
+
+Sat Jun 29 15:24:54 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c, Src/hist.c, Src/utils.c: fix problems with quad_t
+ 	  resource limits.  From Geoff (1444,1471)
+
+Fri Jun 28 17:52:52 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c: use the heap during the execution of chpwd()
+
+Fri Jun 28 15:00:11 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* ChangeLog: zsh-3.0-pre1 released
+
+	* Makefile.in: replace dots with _ in symbolic revision names
+
+	* Src/subst.c: fix a silly bug I made
+
+	* Makefile.in: make release changes
+
+Fri Jun 28 14:08:44 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/Makefile.in: zsh.info and zsh.dvi depends on zsh.texi
+
+	* Doc/zsh.texi: Fixed compctl -d and -e. Added ref to ***/.
+	  HISTCHARS depreciated, use histchars.
+
+Fri Jun 28 13:46:02 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/glob.c: foo.bar(:r) did not work
+
+Fri Jun 28 01:27:57 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_misc.c: alwayslastprompt fix when listing in
+ 	  execute-named-command
+
+	* Doc/zshparam.man, Src/jobs.c: %% represents % in TIMEFMT
+
+Thu Jun 27 23:51:19 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Etc/BUGS: I hope that all awk problems are solved by now
+
+	* Src/subst.c: more bugfixes
+
+	* Src/exec.c: do not dump core on ls =()
+
+	* Src/builtin.c: fix problems with more than 63 character long
+ 	  fields in bin_read
+
+	* Src/hist.c: hungetc did not work when an originally unquoted
+ 	  bang came from a history substitution (e.g. when !$ should
+ 	  expand to $!)
+
+	* Src/subst.c, Src/glob.c: fix some really rare substitution bugs
+
+	* Src/exec.c: foo=( '' ) assigned an empty array
+
+	* README: instructions added what to do when there are unknown
+ 	  limits
+
+	* INSTALL, acconfig.h, config.h.in, configure, configure.in:
+ 	  --enable-etcdir added
+
+Wed Jun 26 23:19:48 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/hist.c, Doc/zshexpn.man: get !# work again.  From Peter
+ 	  (1218 and 1219)
+
+	* Src/hashtable.h, Doc/zshbuiltins.man, Src/builtin.c:
+	  umask -S prints the mask in symbolyc form
+
+	* Src/init.c: do not buffer stdin if SHINSTDIN is set and not
+ 	  interactive.  This is because the line that comes afrer a
+ 	  command line on the standard input should be the potential
+ 	  standard input of the command.  This means that echo -e
+ 	  'cat\nfoo' | zsh will print foo instead of command not found:
+ 	  foo
+
+	* Doc/zshbuiltins.man, Src/builtin.c: POSIX conforming kill builtin
+
+Wed Jun 26 08:58:31 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zsh.man, Doc/zshall.man, Doc/zshbuiltins.man,
+ 	  Doc/zshcompctl.man, Doc/zshexpn.man, Doc/zshmisc.man,
+ 	  Doc/zshoptions.man, Doc/zshparam.man, Doc/zshzle.man: date and
+ 	  version number changed
+
+	* Doc/zshbuiltins.man, Doc/zshmisc.man: -, command, exec and
+ 	  noglob are builtins
+
+Tue Jun 25 23:15:04 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/lex.c: \<nevline>c was interpreted as \c in dquote_parse()
+
+Tue Jun 25 21:07:59 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Etc/NEWS: AUTO_PUSHD and IFS change description
+
+	* Etc/FAQ: New FAQ from Peter
+
+	* Src/signals.c: queue_signals()/unqueue_signals()
+ 	  increase/decreas the queueing_enabled variable and when it drops
+ 	  to zero accumulated signals are processed
+
+	* Src/mem.c: queue_signals in zfree(), malloc(), realloc() when
+ 	  ZSH_MEM is used remove signal queueing from zalloc() and
+ 	  zcalloc()
+
+	* Doc/zshzle.man, Src/zle_bindings.c: reverse / and ? vi mode
+	  keybindings (so the original behaviour is back)
+
+	* Src/exec.c: save underscore, lastval, noeval and badcshglob in
+ 	  execsave
+
+Tue Jun 25 19:46:34 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zshexpn.man: trailing newlines are removed in command
+ 	  substitution
+
+Tue Jun 25 00:52:10 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c, Src/signals.c: new function execsave()/execrestore()
+ 	  used in dotrap()
+
+Mon Jun 24 21:05:00 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c: doshfunc must use the heap
+
+	* Src/signals.c: dotrap should not change allocation state
+
+	* Src/watch.c: do not watch utmp entries without a login name.
+  	  From János Farkas (1432)
+
+	* Src/utils.c: handle terminals faster than 100000 baud.  From
+ 	  János Farkas (1431) with modifications
+
+	* Src/subst.c: fix nested $[$[...]] sunstitution
+
+Fri Jun 21 14:40:00 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zshexpn.man: <> is a redirection operator.
+	  From Mark Borges (1390)
+
+	* Src/glob.c (glob): untokenize bad patterns if NO_BAD_PATTERN is
+ 	  set From Peter (1395)
+
+	* Doc/Makefile.in: zsh.info* files are removed from the
+ 	  distribution since these should be generated from zsh.texi.
+  	  Added targets zsh.info and zsh.dvi.
+
+	* Doc/zsh.texi: minor corrections from Clive (1399)
+
+	* Doc/zsh.texi: changes between 2.6-beta20 and beta21 are
+	  documented.  From Clive Messer <clive@epos.demon.co.uk> (1372)
+
+	* Src/glob.c: remove the undocumented [(foo)(bar)] glob feature
+	  since it is the same as (foo|bar).
+
+Thu Jun 20 20:58:14 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/parse.c: enable < =(...) and > =(...) again
+
+	* Src/parse.c: no special handling is necessary if test has two
+	  arguments
+
+	* Src/zle_tricky.c: allow tilde and equals substitution with
+	  compctl -g
+
+Wed Jun 19 20:55:00 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-2.6-beta21 released
+
+Wed Jun 19 20:51:45 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c: on Solaris RLIMIT_AS == RLIMIT_VMEM
+
+	* configure, configure.in: remove -pedantic from gcc options
+
+Wed Jun 19 20:21:33 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/hashtable.c: fix printing of the command name tables and
+ 	  displaying of arrays etc.  From Zefram (1259)
+
+	* Src/params.c: unset USERNAME coredump fix.  Also do not reset
+ 	  integer variables to zero before unsetting.  From Zefram (1258)
+
+
+Wed Jun 19 20:12:37 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c, Src/params.c, Src/subst.c, Src/utils.c: handle
+	  the case when the first character of IFS is a meta character
+
+Tue Jun 18 21:05:17 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zshexpn.man: [...] glob documentation
+
+	* Doc/zshoptions.man: SH_GLOB disables numeric globbing on the
+ 	  result of parameter expansions and in some other cases.
+
+Tue Jun 18 19:28:12 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/subst.c, Src/utils.c: handle null (but not unset) IFS
+
+	* Src/exec.c: an other implementation of IFS field splitting of
+ 	  process substitutions
+
+	* Src/glob.c: in tokenize(): <> is not a glob pattern.  Do not
+ 	  tokenize < if SH_GLOB is set.  Tokenize only glob special
+ 	  characters.  in notstrcmp(): handle arbitrary big numbers if
+ 	  NUMERICGLOBSORT is used.
+
+Mon Jun 17 18:33:44 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/lex.c: reset lexstop to zero after most hungetc's
+
+Mon Jun 17 02:14:04 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zsh.texi: a major update from Clive Messer
+ 	  <clive@epos.demon.co.uk>
+
+	* Doc/zshparam.man, Src/builtin.c, Src/exec.c, Src/params.c,
+ 	  Src/subst.c, Src/utils.c, Src/ztype.h: ksh/POSIX compatible IFS
+ 	  behaviour
+
+Sun Jun 16 19:37:01 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/subst.c: ${(Oi)...} should sort case-independently in
+	  descending order.  From Thorsten Meinecke (1337)
+
+	* Doc/zshoptions.man, Etc/NEWS, Src/globals.h: swap option leters
+	  for noclobber and printexitvalue since according to POSIX 1003.2
+	  noclobber must be -C
+
+	* Src/exec.c: make noclobber a bit more secure
+
+Sun Jun 16 18:50:47 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Misc/compctl-examples: compctl for the RedHat rpm utility
+
+Sun Jun 16 14:50:42 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/system.h: include <sys/ioctl.h> if GWINSZ_IN_SYS_IOCTL is
+ 	  defined.  This in fact just removes an earlier experimental
+ 	  patch which accicently got into the release.
+
+Sat Jun 15 23:37:44 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zshmisc.man, Etc/NEWS, Src/exec.c, Src/glob.c,
+ 	  Src/globals.h, Src/lex.c, Src/parse.c, Src/text.c, Src/zsh.h:
+	  <> redirection operator
+
+	* Src/builtin.c, Src/parse.c: POSIX test builtin
+
+	* Src/zle_tricky.c: use heapalloc() in reversemenucomplete()
+
+Tue Jun 11 21:03:45 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c, Src/glob.c, Src/globals.h, Src/lex.c, Src/parse.c,
+ 	  Src/text.c, Src/zsh.h: POSIX redirection changes.  Epand word
+ 	  after >& or <& and decide the action after the expansion.  >&
+ 	  redirects both stdout and stderr only if the expansion of the
+ 	  word is not -, p or a number.  The &> operator is added to which
+ 	  does not check the result of the expansion.  This change also
+	  incorporates the patch from Zefram in art. 1261.
+
+	* Src/utils.c: use nicezputs for printing rm * confirmation question
+
+	* Src/exec.c: fix autoresume and %job
+
+	* Src/zle_tricky.c: use heapalloc() in do_menucomp()
+
+Mon Jun 10 20:58:16 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/glob.c: treat pattern/ as pattern(-/) instead of pattern(/)
+
+	* Perform only single-word substitution in redirections if
+	  NO_MULTIOS is set.  Based on a patch from Zefram.
+
+	* Src/parse.c: fix cmdstack empty bug when CSH_JUNKIE_PAREN is set
+
+	* Src/zle_tricky.c: fix compctl -g if nonomatch is set
+
+	* Src/parse.c, Src/lex.c: POSIX: allow an optional leading open
+ 	  parenthesis in case patterns
+
+	* Src/builtin.c: handle RLIMIT_AS in Linux 2.0
+
+Sun Jun  9 23:30:02 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c: compctl -L fixes
+
+	* Src/zle_tricky.c: compctl -l '' foo only worked for the first
+ 	  argument of foo.
+
+Fri Jun  7 15:24:18 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-2.6-beta20
+
+	* Etc/NEWS: There were some changes since 2.5
+
+	* Src/params.c, Src/subst.c: sh/ksh compatibility changes: perform
+ 	  tilde and equals substitution together with other substitutions
+ 	  and disable braceless colon modifiers and subscripting in
+ 	  parameter expansion when zsh is invoked as sh/ksh.
+
+	* Src/exec.c: NULLCMD and READNULLCMD did not work if set to a
+ 	  builtin
+
+	* Doc/zshparam.man, acconfig.h, config.h.in, configure.in,
+ 	  configure, Src/hashtable.h, Src/params.c: Special parameter
+ 	  changes: remove HOSTTYPE, and disable cdpath, fignore, fpath,
+ 	  mailpath, manpath, watch, psvar and path in sh/ksh compatibility
+ 	  mode.
+
+Thu Jun  6 20:23:23 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c (doexpansion): move newlinklist() after heapalloc()
+
+	* Src/builtin.c (bin_cd): a heapalloc() was missing
+
+	* Src/builtin.c: use zwarnnam() instead of zerrnam() in most
+ 	  builtins and reset errflag to zero if necessary.
+
+	* Src/builtin.c, Src/zle_tricky.c, Src/zsh.h: new compctl options:
+ 	  -m for external commands and -w for reserved words.  -cFBmwaRG
+ 	  now only completes enabled commands.  -d, -e documentation
+ 	  fixed.
+
+Wed Jun  5 22:27:49 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c: getcurcmd() did not use the heap when it
+ 	  called the lexer.  I also added some debug tests.
+
+Mon Jun  3 18:53:10 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/hashtable.c, Src/zle_hist.c, Src/zle_main.c,
+ 	  Src/zle_tricky.c, Src/zle_utils.c: add some (char *) and
+ 	  (unsigned char *) casts
+
+Mon Jun  3 16:55:44 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-2.6-beta20-test1
+
+	* Src/subst.c: multsub() did not like when prefork() resulted in
+ 	  an empty list
+
+Mon Jun  3 03:14:06 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/subst.c: fix brace expansion bug
+
+Mon Jun  3 01:42:58 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Makefile.in: config.status depends on Src/version.h
+
+	* Doc/zsh.man, Doc/zshall.man: remove the accents from my name
+ 	  since some man pagers do not like it
+
+	* Src/signames.awk: now this should _really_ work even with SunOS
+ 	  4 nawk
+
+	* Src/builtin.c, Src/exec.c: do not set $0 for sourced scripts and
+ 	  functions in sh/ksh mode
+
+	* Src/zle_misc.c: use heapalloc when doing substitution with
+ 	  PROMPT_SUBST set
+
+	* configure, configure.in: add -DDEBUG to the default CFLAGS
+
+	* Doc/zshbuiltins.man, Doc/zshoptions.man, Src/builtin.c,
+ 	  Src/cond.c, Src/exec.c, Src/globals.h, Src/hashtable.h,
+ 	  Src/init.c, Src/params.c, Src/utils.c, Src/zle_main.c,
+ 	  Src/zle_tricky.c, Src/zle_vi.c, Src/zsh.h: reorganized option
+ 	  handling from Zefram (1227)
+
+Sun Jun  2 23:36:36 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c, Src/builtin.c, Src/glob.c, Src/hashtable.h,
+ 	  Src/subst.c, Src/zsh.h: reorganize execcmd() again.  Glob only
+ 	  the first argument before fork().  -, command, exec and noglob
+ 	  are now builtins.  The builtin builtin is now handled in
+ 	  execcmd().  fixcline() is removed.  prefork() removes null
+ 	  arguments.  The result of glob() does not have tokens so
+ 	  untokenize() is no longer necessary after globlist().
+
+	* Src/lex.c: give warnings when DEBUG is defined and the lexer is
+ 	  called with !useheap
+
+	* Src/zsh.h: added some debug macros
+
+	* Src/zle_tricky.c: use the heap in doexpansion()
+
+	* Src/parse.c: give warnings when DEBUG is defined and the lexer
+ 	  is called with !useheap
+
+Fri May 31 14:09:34 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c, Src/utils.c: nicezputs and nicechar fixes
+
+Thu May 30 18:20:46 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/exec.c: simplify makecline which also fixes a bug introcuced
+ 	  by the previous patch
+
+	* Src/exec.c, Src/hashtable.h, Src/parse.c, Src/text.c, Src/zsh.h:
+ 	  execcmd() reorganization.  Do globbing before fork, remove -,
+ 	  exec, noglob and command from the list of reserved words.
+  	  Interpret EXEC=exec ; $EXEC something like other shells.  From
+ 	  Peter (1229)
+
+Tue May 28 20:49:53 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_misc.c: fix gosmacs-transpose-chars bug when a line has
+	  less than two characters
+
+Mon May 27 23:52:54 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c: clwords initialisation after resizing clwords
+	  was wrong.  From Zefram (1173)
+
+Mon May 27 17:43:31 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c: typeset -i2 a now works.  Based on art. 1165 from
+	  SUZUKI Hisao <suzuki@oz.fantasy.otsl.oki.co.jp>
+
+	* Doc/zshparam.man, Src/utils.c: expand messages in mailpath
+
+	* Doc/zshbuiltins.man: revised read manual entry from Peter (663)
+
+Sun May 26 23:14:07 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Etc/FAQ: New version from Peter
+
+Thu May 23 20:14:05 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c: further improve handling of null at the end of
+ 	  a completion word
+
+	* Src/zle_tricky.c: fix problems when a completion ends in a null
+ 	  character.  From Zefram (1145)
+
+	* Src/zle_utils.c: move the line[ll] in foredel/backdel since it
+ 	  contains the null terminator character when called from
+ 	  zle_tricky.c.  From Zefram (1144)
+
+	* Src/zle_tricky.c (quotename): handle the (metafied) null
+ 	  character.  From Zefram (1143)
+
+Thu May 23 13:40:50 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-2.6-beta19 released
+
+	* Src/signames.awk: this version should work with all awks out
+	  there.  From Geoff (1142) and me
+
+	* Src/glob.c, Src/subst.c, Doc/zshexpn.man: ${...:#...}
+	  substitution now removes matching array elements
+
+Thu May 23 01:29:48 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Doc/zshoptions.man: an attempt was made to document SH_GLOB
+
+	* Src/builtin.c: popd now works even if chaselinks is set.  From
+ 	  Anthony (1123)
+
+Wed May 22 23:43:01 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/glob.c, Src/zle_tricky.c: add some remnulargs()
+
+	* Src/builtin.c: print -m fixed
+
+Wed May 22 21:00:06 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/glob.c, Src/globals.h, Src/init.c, Src/lex.c, Src/zsh.h:
+	  SH_GLOB option added
+
+Wed May 22 20:19:13 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/signames.awk: revert changes made in beta18.
+
+	* Src/cond.c (getstat): always use fstat when testing for /dev/fd/n
+
+	* Src/exec.c (getoutputfile): open the file before zfork()
+
+Tue May 21 19:39:16 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: zsh-2.6-beta18 released
+
+	* Etc/MACHINES: note that /dev/fd must be a link to /proc/self/fd
+ 	  on Linux
+
+	* Src/builtin.c: jobs exits with status 1 if the given job is not
+	  found.  From Peter (1069)
+
+	* configure, configure.in: prefer curses over termcap for aix-3.2*
+ 	  and not just for aix-3.2.5
+
+	* META-FAQ: Ftp site list changes
+
+Mon May 20 01:24:24 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/signames.awk: change #else to \#else since some nawks did
+ 	  not like the former.  From Johan Danielsson <joda@pdc.kth.se>
+ 	  (1096)
+
+	* Src/builtin.c, Src/params.c, Src/utils.c: rename join() to zjoin
+ 	  since join is used by Cray Unicos 9.  From Johan Danielsson
+ 	  <joda@pdc.kth.se> (1096)
+
+	* Src/utils.c (inittyptab): null is not blank and not special
+
+	* Src/zle_tricky.c: Do a lexrestore() before returning from
+ 	  get_comp_string().
+
+	* Src/zle_tricky.c: Undo Zefram's modifications in quotename() to
+	  fix a bug when completing ~/foo
+
+Sun May 19 23:20:45 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c: Reformat and add some comments.
+	  From Zefram (1092)
+
+	* Src/zle_tricky.c: Make completion 8-bit clean.  From Zefram (1092)
+
+	* Src/glob.c, Src/subst.c: use STOUC instead of (unsigned char) cast
+
+	* Src/glob.c, Src/subst.c: Make substitution compatible with
+ 	  (ba)sh and other little cleanups in lex.c.
+
+	* Src/hashtable.c, Src/utils.c: Make output 8-bit clean in zerr()
+ 	  and in hashtable.c.  From Zefram (1093)
+
+	* Src/glob.c, Src/lex.c, Src/subst.c, Src/utils.c, Src/zle_main.c,
+ 	  Src/zle_refresh.c, Src/ztype.h: use STOUC instead of (unsigned
+ 	  char) cast
+
+	* Src/glob.c, Src/globals.h, Src/lex.c, Src/subst.c, Src/zsh.h:
+ 	  Make substitution compatible with (ba)sh and other little
+ 	  cleanups in lex.c.
+
+Fri May 17 20:23:47 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/version.h: 2.6-beta18-test1
+
+	* Src/zle.h, Src/zle_hist.c, Src/zle_main.c, Src/zle_misc.c,
+ 	  Src/zle_move.c, Src/zle_tricky.c, Src/zle_vi.c, Src/zle_word.c:
+ 	  Rename mult to zmult since mult caused problems on Solaris 2.5
+
+	* Src/zle_hist.c, Src/zle_tricky.c, Src/zle_utils.c,
+ 	  Src/zle_word.c, Src/zsh.h: Remove UTOSCP and STOUCP macros
+
+	* Etc/MACHINES: Note about GNU strip bug on OSF/1
+
+Thu May 16 23:46:44 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_hist.c, Src/zle_utils.c: Some simple cleanups in
+	  doisearch() and hstrnstr()
+
+	* Src/zle_hist.c: Recall the last isearch if fwd/bck-isearch
+	  repeated on an empty search.  It also fixes a rare isearch bug.
+	  From Wayne (1084)
+
+Thu May 16 00:15:42 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* acconfig.h, config.h.in, configure, configure.in, Src/system.h:
+	  configure hacks against SCO bugs
+
+Wed May 15 01:41:33 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_hist.c, Src/zle_misc.c: More 8-bit zle changes
+
+	* Src/zle_hist.c: A minor optimization which also removes an
+ 	  strlen() which should have been ztrlen().  From Wayne (1071)
+
+	* Src/builtin.c: compctl fixes from Zefram (1068)
+
+Tue May 14 03:19:34 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/utils.c, Src/zle_hist.c, Src/zle_main.c, Src/zsh.h: Keep
+ 	  modified history lines until the next accept* function.  Make
+ 	  history{beginning,}search{forward,backward} 8-bit clean.  From
+ 	  Wayne (1062, 1063) and me.
+
+	* Src/exec.c: in getoutputfile() returned the ztrdupped name from
+ 	  the jobtable From Peter (1061)
+
+Mon May 13 02:17:07 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/zle_tricky.c: temporary 8-bit clean patches
+
+	* Src/utils.c, Src/zsh.h: Add META_HEAPDUP method to metafy
+
+	* Src/builtin.c: Use #error again but do not put the # to the
+	  first column to make the traditional cpp happy
+
+	* Src/exec.c, Src/params.c: Do not call singsub() if parsestr()
+ 	  returned an error.
+
+	* Src/lex.c: dquote_parse() did not return error on unmatched `.
+	  parsestr() now restores the original string on error.
+
+	* Src/init.c: Change backquotes to normal quotes in the default
+ 	  sprompt to make it work if PROMPT_SUBST is set.
+
+	* Src/exec.c: Remove debug test for open file descriptors in closem()
+
+	* Src/exec.c, Src/parse.c: Fix coredump when chpwd is autoloaded
+
+	* Src/zle_hist.c: history-beginning-* fix
+
+	* Src/builtin.c, Src/exec.c, Src/init.c, Src/params.c,
+ 	  Src/utils.c: In metafy use -1 instead of zero if the len is
+ 	  unknown
+
+Sun May 12 01:46:12 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/utils.c, Src/zle_hist.c, Src/zle_utils.c:
+	  Incremental search fixes from Wayne (1051)
+
+Sat May 11 00:42:14 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* config.guess, configure: Use autoconf-2.10
+
+Fri May 10 21:01:56 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c, Src/glob.c, Src/hashtable.c, Src/utils.c,
+ 	  Src/zle.h, Src/zle_hist.c, Src/zle_main.c, Src/zle_misc.c,
+ 	  Src/zle_move.c, Src/zle_refresh.c, Src/zle_utils.c,
+ 	  Src/zle_vi.c: Make most of ZLE 8-bit clean.  From Zefram (1046)
+
+	* Src/exec.c, Src/utils.c: More redirection fixes from Zefram (1045)
+
+	* Src/hist.c, Src/zle.h, Src/zle_bindings.c, Src/zle_hist.c,
+ 	  Src/zle_main.c, Src/zle_tricky.c, Src/zle_vi.c: Cleanup of ZLE
+ 	  bindings (use enum, rename some functions). From Zefram (1015)
+
+	* Src/exec.c, Src/utils.c: Redirection fixes from Zefram (1011)
+
+	* Src/zle_hist.c, Src/zle_utils.c: History search improvements
+ 	  from Wayne (1014)
+
+	* Src/exec.c: Metafy was missing for autoloaded functions
+
+Fri May 10 12:06:23 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Makefile.in: Improve check-rcs and handle dot-files (like
+	  Src/.indent.pro)
+
+	* Src/zle_tricky.c: Use permanent allocation for cmdstr instead of
+	  the heap to prevent SEGV
+
+Tue May  7 20:49:17 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/builtin.c, Src/glob.c, Src/input.c, Src/zle_misc.c,
+ 	  Src/zle_tricky.c: Some changes to make Ultrix cc happy (1001)
+
+	* Src/exec.c, Src/globals.h: Do not use negative numbers in
+ 	  fdtable (996)
+
+	* Src/exec.c: Close process substitution file descriptors in the
+ 	  child process (987)
+
+Tue May  6 23:59:59 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* zsh-2.6-beta17 released
+
+Mon May  6 01:37:20 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* Src/signals.h: SIGNAL_HANDTYPE is RETSIGTYPE (*)_((int))
+
+	* Src/builtin.c: Preprocessor hacks to make the limit builtin work
+ 	  correctly.
+
+	* Makefile.in: New targets: dist-diff, release, md5sum.  Rewritten
+ 	  dist and dist-rcs rules.  A minor change to superclean-top.
+
+	* Src/Makefile.in: Rewitten tags target rules.
+
+	* Src/zle_tricky.c: do tilde expansion in expand-word and
+	  list-expand (zsh-users/200)
+
+	* configure.in, INSTALL: added --enable-zsh-debug option
+
+	* exec.c, init.c, utils.c, globals.h: create an fdtable array to
+ 	  hold information about the file descriptors used by the shell.
+  	  Do not call close() on each fd greater than 9 only on those that
+ 	  are marked in fdtable.  Use /dev/fd/ if it is available for
+ 	  <(...) and >(...) process substitutions.
+
+Fri May  3 03:38:28 1996  Zoltán Hidvégi  <hzoli@cs.elte.hu>
+
+	* README, META-FAQ, Util/zsh-development-guide: new maintainer.
+	  Some other changes in the README.
+
+	* Added the helpfiles script from Peter in Util (492)
+
+	* merged the patches from beta15-hzoli14.  Here is the ChangeLog
+	  for that:
+
+	March/April 1995
+
+	* pushd/popd changes from Anthony Heading <aheading@jpmorgan.com>
+
+	* fignore fixes from Sven
+
+	* where builtin from Zefram (5901) + manual from me.
+
+	* New glob qualifiers from Zefram (5918)
+
+	* &| backgrounding from Zefram (5919) with some manual changes
+	  from me
+
+	* New option, -m to print
+
+	* New option, -U to typeset to remove duplications from an array
+
+	* Swap -f and -F on the command line if zsh is invoked as sh/ksh.
+
+	* KSH_ARRAYS option
+
+	* array subscripts can be really used without leading $ in math
+
+	* if a parameter is used in math its value is evaluated with full
+	  arithmetic evaluation.
+
+	* # can be used in mathematical expressions as described in the
+	  manual.
+
+	* new parameter TTYIDLE containing the idle time of the current
+	  tty in seconds
+
+	* new parameter ZSHNAME to tell how zsh is invoked
+
+	* lots of bugfixes in params.c
+
+	* If SIGALRM is not trapped zsh will only exit on alarm if
+	  TTYIDLE >= TMOUT.  If TTYIDLE < TMOUT a new alarm is set to
+	  TMOUT - TTYIDLE seconds.  No change in behaviour when SIGALRM
+	  is trapped.
+
+	* $#foo when foo is an array returns the array length in double
+	  quotes
+
+	* $=foo and ${(s:...:)foo} forces splitting even in double quotes
+
+	* New flags to paramer substitution: @, A, e, p, f, F, W
+
+	* autoremoveslash if a slash is typed
+
+	* fix bugs related to menu completion and expand-or-complete-prefix
+
+	* cshjunkiequotes fixed to really emulate csh behaviour. So far
+	  backslash newline was removed in double- and backquotes but csh
+	  removes the backslash only.
+
+	* the $, # and ? special parameters can bee used without the
+	  leading $ in math
+
+	* negative sign is printed before the base in convbase
+	  (-2#111 instead of 2#-111)
+
+	* > <(foo)  and < >(foo) redirections are now cause parse error
+
+	* < <(foo) fixed (it did not work so far).
+
+	* fixed a bug when history were expanded on cat <\!foo
+
+	* history expansion is disabled in single quotes within double
+	  quotes: echo "`echo '!$'`" prints !$. It is not yet perfect but
+	  not worse than in bash since history expansion is also disabled
+	  in `echo "'!$'"`.
+
+	* echo $(echo \!$) no longer expands history. This sometimes
+	  caused infinite memory eating loops in earlier verions.
+
+	* history bangchars are only escaped in the history if they were
+	  originally escaped on the command line.
+
+	* $((...)) math evaluation is done before fork now which makes
+	  assignment and increment/decrement operators work. Now all
+	  substitutions are done before fork exept globbing. To reflect
+	  this change I removed postfork() from subst.c and replaced with
+	  globlist().
+
+	* The shell behaviour is slightly changed when the globsubst
+	  option is set.  Now globsubst is really globsubst, ie. only
+	  tidle and equals substitution and globbing is done on the
+	  result of parameter expansion and command substitution which
+	  makes it more sh-compatible. It means that foo='$bar' ; echo
+	  $foo no longer prints the value of bar.  It also prevents
+	  infinite uninterruptable loops like foo='$foo' ; echo $foo.
+	  Also globsubst no longer removes single and double quotes from
+	  the value of parameters and a backshlash is only removed if it
+	  followed by a glob special character or a backslash. The result
+	  of command substitution is handled the same way.  These are
+	  really done by tokenize() in glob.c. This function must not be
+	  used to tokenize a string before singsub(). We have to use the
+	  lexer for that. I provided a parsestr() function for that which
+	  parses a given string as it were a string within double quotes
+	  (but it may contain double quotes).
+
+	* Expansion does not starts again on each expanded parameter
+ 	  which should make it a little faster. With rcexpandparam set
+ 	  the part of the line following the array evaluated only
+ 	  once. This makes it a little bit faster but it may cause
+ 	  problems when the tail of the line has an arithmetic expression
+ 	  with a side effect: $foo$[i++] increments i by one but in old
+ 	  versions i was incremented by the number of array elements. If
+ 	  foo is an empty array i is not changed in either versions.
+
+	* Parsing of mathematical substitutions are now done like double
+ 	  quoted strings. The body of a math substiturion is first
+ 	  expanded using parameter, command and arithmetic substitution
+ 	  and only the result is evaluated. This means that modifyers,
+ 	  backquote substitution and ${foo##$bar} type expansions can be
+ 	  used. This makes ((...)), $((...))  and $[...] completely
+ 	  equivalent.
+
+	* If $@ is empty ''$@ and $@"" and similar arguments are not
+ 	  removed. The argument is only removed from the argument list if
+ 	  it is written as "$@"	(or if rcexpandparam is set).
+
+	* zatol() function is removed
+
+	* doexpandhist() (ie. magic-space) now keeps the cursor in the
+	  right palace in all cases I hope.
+
+	* lexer fixes to help completion and to fix parsing problems in
+ 	  brace-params (things like ${foo:-()} and ${foo:-|} used to give
+ 	  a parse error but ${foo:-(}) didn't.)
+
+	* get_comp_string completely rewritten
+
+	Wed Apr 12 1995
+
+	* I changed the lexer to allow `]' characters in [...] glob
+ 	  list. This is to make zsh compatible with all other shells I
+ 	  know. This should be documented in the manual where the
+ 	  description of [a-z] syntax is also missing. I'd copy the
+ 	  relevant part from an other manual page but there may be
+ 	  copyright problems with that. I looked at some man pages but
+ 	  they contained almost word-by-word the same so I think we can
+ 	  do that as well (change some words perhaps).
+
+	* There are some important changes in the new substitution code.
+  	  The right hand side of parameter assignments is no longer
+ 	  globbed by default (note that tidle and equals substitution is
+ 	  not globbing). This is compatible with sh/ksh/bash. I added an
+ 	  option, GLOB_ASSIGN which can be set to restore the old
+ 	  behaviour but I do not recommend the usage of this option. For
+ 	  more details, see the manual.  If GLOB_ASSIGN is not set, it is
+ 	  guaranteed that foo=... assignments assign a scalar value. In
+ 	  earlier versions foo=* or foo=$bar where bar is an array
+ 	  created scalars if the result had zero or one words and an
+ 	  array otherwise.
+
+	Thu Apr 13 1995
+
+	* prompts are empty if the shell is not interactive from
+	  P.Stephenson (5836)
+
+	* pwd -r prints the real path
+
+	* emulate builtin
+
+	* ! and bangchar quoting fixed.
+
+	* echo { prints { when ignorebraces is set
+
+	* completion works correctly with COMPLETE_ALIASES
+
+	Tue Apr 18 1995
+
+	* i/o not redirected to /dev/null in <(...) and >(...) (both in
+ 	  redirections and in arguments).
+
+	Wed Apr 19 1995
+
+	* ${$(...)...} syntax can be used
+
+	Sat Apr 29 1995
+
+	* zle history expansion was buggy when a word begun with a #.
+	  It's fixed.
+
+	* prompt substitution is now completely functional (things like
+	  ${...##...} or `...` are usable now in prompts)
+
+	Fri May  5 1995
+
+	* USERNAME, LOGNAME, HOST, TTY and signals are no longer specials
+ 	  parameters. They are initialized as before but are now writable
+ 	  and unsettable.
+
+	* make sure that vared does not go to the previous history line
+ 	  with up-line-or-history.  You can use vared -h to get the old
+	  behaviour.
+
+	Tue May  9 1995
+
+	* TAB always inserts itself at the beginning of a line (6126, 6146)
+
+	Sat Jun  3 1995
+
+	* Leading zero no longer denotes octal. Leading 0x still means
+ 	  hex and it also sets lastbase. (95)
+
+	* getvar in math.c removed
+
+	Fri Jun  9 1995
+
+	* cdmatch2 function to complete the 2nd arg. to cd/pushd
+
+	Fri Jul  7 1995
+
+	* Fix :s/l/r/ modifier when l is empty (176)
+
+	* Prefixed commands no longer trigger autoresume from
+	  P.Stephenson (172)
+
+	* FOO=bar function now set the FOO environment variable in the
+	  function from P.Stephenson (103)
+
+	* Leading . is not special for ~ exclude patterns from
+	  P.Stephenson (98)
+
+	* Do not exit the spelling prompt until an acceptable key is
+	  pressed.  From Wayne Davison <wayne@tenor.clarinet.com> (6138)
+
+	* Capitalize ../configure to ../Configure from Wayne (6132)
+
+	* After yank, mark set to the beginning of the yanked text from
+	  Wayne (6131)
+
+	* . file no longer sources directories. From P.Stephenson (6063)
+
+	* Prevent infinite loops when zle expands history.
+	  From Zefram (152) with a few hunks omitted.
+
+	Sat Jul  8 1995
+
+	* executenamedcommand() now resets showinglist to zero on exit to
+ 	  prevent a SEGV when a list of completion (of zle commands) was
+ 	  showed. (193)
+
+	Mon Jul 10 1995
+
+	* !:s//r/ gives `no previous substitution' message instead of
+	  "no previous substitution with &". From Thorsten Meinecke (182)
+
+	* $foo:s//r/ gives similar error message (it didn't use to give
+	  any) (194)
+
+	* print -c fixes from Zefram (183)
+
+	* HIST_NO_STORE fix from Zefram (186)
+
+	* Manual fix: export = typeset -x. From Zefram (190)
+
+	* type/whence/which -f option ducumented. From Zefram (192)
+
+	* whence builtin fix from Zefram (192)
+
+	Mon Jul 17 1995
+
+	* A fix for Sven's old fignore fixes from Wayne (213)
+
+	* print builtin option fixes from Zefram (214)
+
+	* Disable list-expand zle function inside braces etc. From Zefram
+	  (215)
+
+	Wed Jul 19 1995
+
+	* Make self-insert refuse the NUL character. From Zefram (238)
+
+	* Completion on words containing quoted char's fix (250)
+
+	Mon Jul 24 1995
+
+	* Completion fixes for words beginning with ~ or =. From Zefram
+	  (241)
+
+	* vi mode fixes from Zefram (230)
+
+	* Allow prefix/suffix in xor'd completion. From Zefram (254)
+
+	* sh compatibility option: NO_MULTIOS. From Zefram (255, 260)
+
+	* vi-forward-char beeps when it has to beep. From Zefram (258)
+
+	* Allow more than one line long status line (or minibuffer). From
+	  Zefram (256)
+
+	* Minibuffer fixes: more zle commands, long search
+	  strings... From Zefram (261)
+
+	* vi-quoted-insert and quoted-insert in minibuffers. From Zefram
+	  (262)
+
+	* make sure that vi-backward-kill-word doesn't delete past the
+	  beginning of the line. From Zerfam (263)
+
+	* execute-named-cmd fixes from Zefram (264)
+
+	Tue Aug  8 1995
+
+	* Patch from Peter to prevent writing the builtin command names
+	  (293)
+
+	* Removed the -fwritable-strings kludge.
+
+	Wed Aug 16 1995
+
+	* a zsfree moved after an error-check in subst.c. From Thorsten (322)
+
+	* Initialize hsubl/hsubr to NULL in globals.h (323)
+
+	Thu Sep 21 1995
+
+	* input.c and here documents bugfixes (395,398)
+
+	Sun Sep 24 1995
+
+	* K, M and G size glob qualifiers from Thorsten Meinecke (402)
+
+	Mon Nov  6 1995:
+
+	* Do not save history on exec/exit from init scripts. (538)
+
+	Wed Jan  3 1996:
+
+	* Whence -f is back.  From Zefram (644)
+
+	* A single ^ no longer crashes zsh.  From Peter (560)
+
+	Mon Jan  8 1996
+
+	* Fix echotc to work with ncurses
+
+	Fri March  1 1996
+
+	* It's a bug to call lexsave with alstackind != 0 (792).
+
+	Sun March  3 1996
+
+	* The first working and mostly 8-bit clean version.
+
+	* add lexsave/lexrestore to parselstring()
+
+	* save/restore tok with lexsave/lexrestore
+
+	* a xored completion bugfix in zle_tricky.c
+
+	* cd .. should not use cdpath (877)
+
+	* get magic-space & completion work with interactivecomments
+
+	* an fc builtin fix
+
+	Mon March  4 1996
+
+	* make n and N extended completions work on words with special
+	  characters (880)
+
+	* Allow colon qualifiers with ^...^...^ history substitution.
+	  From Peter (608)
+
+	* Fix printquoted() to handle CSH_JUNKIE_QUOTES.  From Zefram (713)
+
+	* AUTO_PUSHD option documentation fix forom Anthony Heading (598)
+
+	Wed March  6 1996
+
+	* Fix $PATH[1,(ws.:.)-2] type expansions (800).
+
+	Tue March 19 1996
+
+	* Do not use setvbuf(stderr, NULL, _IOFBF, 0) to work around a
+	  bug in Linux libc 5.3.6 or older.
+
+	* Fix a little bug in compctl -l (841)
+
+	Fri March 22 1996
+
+	* mypid, lastpid, ppid should be long instead of pid_t (846)
+
+	Fri March 29 1996
+
+	* Set $? to 1 after wibble=$(false).
+	  From Zefram and me (637, 855, 856)
+
+	* Prevent infinite loops when zsh looses its controlling
+	  tty. From Peter (862)
+
+	Sun March 31 1996
+
+	* signal handling fixes from Peter (6200, 89, 91, summarized in
+	  826).
+
+	* Some fixes related to quotes and completion (882)
+
+	Sat April 27 1996
+
+	* Execute traps properly.  From Peter (929)
+
+	* Yet an other vi mode fix from Zefram (936)
+
+	* \ should quote \ in here documents.
+
+	* Workaround a bug in GNU autoconf which makes configure think
+ 	  that there is no -lcourses and -lncurses if the test for
+ 	  -ltermcap failed.  From János Farkas <chexum@shadow.banki.hu>
+ 	  (972)
+
+	Sun April 27 1996
+
+	* Call entersubshell after opening the pipe in getproc to avoid
+ 	  hangs in open.  This prevents hangs when a $(... <(...))
+  	  substituion is interrupted in an unfortunate moment. (964)
+
+Wed May  1 03:49:31 1996  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh-2.6-beta16 released.  rc.
+
+	* read -q and read -k would mess up terminal if
+	  non-interactive.  From P.Stephenson (565).
+
+	* Must call init_term() in putpromtpt so that %-sequences
+	  are recognized in non-interactive shells.
+	  From Eskandar Ensafi (791).
+
+Tue Apr 30 02:08:48 1996  Richard Coleman  <coleman@math.gatech.edu>
+
+	* fixed time printing bug in printhhmmss when time was
+	  small.  From Zoltan (793).
+
+Mon Apr 29 03:37:35 1996  Richard Coleman  <coleman@math.gatech.edu>
+
+	* fixed history from dropping last line of multi-line command
+	  when it contains a comment.  From P.Stephenson (741).
+
+	* Change all functions in loop.c to give execlist non-zero
+	  parameter for dont_change_job.  Removed code in functions
+	  in loop.c to remember current job number.  rc.
+
+Fri Apr 26 20:50:40 1996  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Small cleanup of handling of SIGCHLD signal.  rc.
+
+	* Fix vi range bug.  From Zefram (936).
+
+	* execpline and execpline2 now assume that the
+	  sublist/pipeline passed to them is not NULL.  NULL
+	  arguments must be handled higher up.  From rc.
+
+	* Prefer curses library over termcap for certain versions
+	  of AIX.  From Mike Kazda (948).
+
+	* Updated MACHINES entry for Linux.  From Bas.
+
+	* Rearrange function execlist.  From rc.
+
+Thu Apr 25 01:34:02 1996  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Merged initjob and getfreejob.  From rc.
+
+Wed Apr 24 22:15:22 1996  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh-2.6-beta15 released.  From rc.
+
+	* Merge runlist and execlist.  Add parameter to execlist
+	  and execstring to retain current job number.  Remove
+	  function zyztem.  From rc.
+
+Mon Apr 15 01:27:16 1996  Richard J. Coleman  <coleman@math.gatech.edu>
+
+	* Fixed typo in zle_tricky.c.  From Samuel Tardieu (925).
+
+	* Zsh-2.6-beta14 released.  From rc.
+
+Sat Apr 13 01:49:07 1996  Richard J. Coleman  <coleman@math.gatech.edu>
+
+	* alias -L now prints `-- ' first if alias begins with
+	  `-'.  Also changes reporter to use "alias -L".  Also
+	  removed Log messages from reporter.  From Zefram (712).
+
+Fri Apr 12 19:16:53 1996  Richard J. Coleman  <coleman@math.gatech.edu>
+
+	* Printing was missing glob characters.
+	  From Zoltan (705).
+
+	* Small rearrangement of function `source'.  From rc.
+
+	* Change zshall.x to use relative paths to other man
+	  pages.  From Zefram and others.
+
+Thu Apr 11 01:32:11 1996  Richard J. Coleman  <coleman@math.gatech.edu>
+
+	* Move code to hash whole directory into cmdnamtab
+	  to its own function `hashdir'.  From rc.
+
+	* Unbalanced stack in math expression could cause
+	  core dump.  From Zoltan (879).
+
+	* Tighten up security on temporary files.
+	  From Zoltan (881).
+
+Tue Apr  9 02:01:09 1996  Richard J. Coleman  <coleman@math.gatech.edu>
+
+	* Make termbuf local rather than global.  Only allocate
+	  static termbuf if tgetent will not accept NULL termbuf
+	  (and hence allocate its own).  Add configure check for
+	  tgetent that accepts NULL termbuf.
+	  From Zoltan (878, 892).
+
+Fri Apr  5 01:23:40 1996  Richard J. Coleman  <coleman@math.gatech.edu>
+
+	* Lots of refresh bugs fixed.
+	  From Mason (820,831,867,868).
+
+Sun Mar 31 23:34:38 1996  Richard J. Coleman  <coleman@math.gatech.edu>
+
+	* Update configure to version 2.9.  From rc.
+
+Fri Mar 29 23:44:47 1996  Richard J. Coleman  <coleman@math.gatech.edu>
+
+	* Add emptytable and filltable methods to hash tables.  Changed
+	  fullhash and addusernames to be these methods for cmdnamtab
+	  and nameddirtab.
+	  From rc.
+
+Mon Mar 25 20:08:15 1996  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Convert named directories table from a link list
+	  to a hash table.  From Zefram (711).
+
+Thu Dec 21 10:00:00 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh-2.6-beta13 released.
+
+Mon Dec 18 23:25:34 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Make the parameters WATCHFMT, TIMEFMT, TMPPREFIX,
+	  and FCEDIT non-special parameters.  From Zoltan (271).
+
+Sat Dec 16 22:50:51 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fix in trashzle, and small cleanup of do_ambiguous which
+	  fixes a double listing problem when LIST_AMBIGUOUS is
+	  unset.  From Zefram (694).
+
+	* Fix so that escape sequences (bold, etc...) work
+	  in WATCHFMT strings.  From P.Stephenson (695).
+
+Wed Dec 13 00:30:22 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Updated MACHINES files with info about OSF/1 and Solaris
+	  from the FAQ.  From rc.
+
+	* Fix zle bug, where completion list wasn't being invalidated
+	  after ^C.  From Zefram (687).
+
+Mon Dec 11 00:02:44 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Addition to zshexpn.man to describe when history
+	  expansion takes place.  From P.Stephenson (624).
+
+	* Clean up the nice* printing functions, as well
+	  as add support for 8-bit characters.  Patches were
+	  submitted from various people { P.Stephenson,
+	  Thorsten Meinecke, Zefram }, but I used patches
+	  (646,647).
+
+Sun Dec 10 20:20:18 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fix problem with 8-bit-cleanliness in input.c.
+	  From various people.
+
+	* A couple of fixes for refreshing screens with
+	  automargin.  From P.Stephenson (662).
+
+	* Use strerror instead of sys_errlist in utils.c.
+	  From P.Stephenson (667).
+
+Fri Dec  8 02:15:52 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fix Doc subdirectory to work if building in an
+	  alternate directory.  From Scott Blachowicz.
+
+Mon Nov 20 23:21:45 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh-2.6-beta12 released.
+
+	* Updated to GNU autoconf 2.6.  From rc.
+
+	* Improve handling of valid termcap entries that
+	  don't have the ability to move up.  From P.Stephenson
+	  (623).
+
+Sat Nov 18 23:39:16 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Updated INSTALL, configure.in, aclocal.m4, and
+	  Makefile.in to GNU autoconf 2.5.  From rc.
+
+Thu Nov 16 01:38:38 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* BGNICE was running in parent rather than child.
+	  From rc.
+
+	* Fix problems with completion explanation strings.
+	  From Zefram (240).
+
+	* Fix bug with REC_EXACT.  From Zefram (207).
+
+	* Fix bug where when LIST_AMBIGUOUS is unset, it will
+	  sometimes insert the unambiguous portion a second
+	  time.  From Zefram (199).
+
+	* Remove a superfluous display of a completion list when
+	  AUTO_LIST and ALWAYS_LAST_PROMPT are set.  From
+	  Zefram (198).
+
+	* Clean up the way completion lists are shown.
+	  From Zefram (165).
+
+	* Make zle so that it will keep a completion list fully
+	  visible on the screen if it is still valid.  From
+	  Zefram (151).
+
+	* Reorganize the completion code so that it only works
+	  out the completion list again when something has
+	  actually changed.  From Zefram (145).
+
+Wed Nov 15 22:13:17 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Several cleanups and fixes to the input, and history
+	  mechanisms.  Fixed bug where completing after command
+	  that was an alias containing itself would expand
+	  repeatedly.  Fixed bug where aliases ending in spaces
+	  would leave the spaces in the history line.  Also removed
+	  INP_SPACE, INP_OLDSPACE hack of adding bogus space.
+	  From P.Stephenson (611,612,614).
+
+Tue Nov 14 03:33:45 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fix substitution bug for ${FOO:-} when FOO is unset.
+	  From Zoltan and P.Stephenson (545).
+
+	* Did some reorganization for code in execcmd() that
+	  determines if the shell should fork.  Removed the
+	  flag CFLAG_FAKE_EXEC since it was no longer needed.
+	  From rc.
+
+Mon Nov 13 20:48:54 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Don't do FAKE_EXEC for jobs running in the
+	  current shells.  From P.Stephenson (604).
+
+Fri Nov 10 01:47:04 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Change mechanism by which history remembers word breaks.
+	  Uses an array of indexes into the history event rather
+	  than adding character HISTSPACE to remember word breaks.
+	  Remove special parameter LITHISTSIZE.
+	  Remove zsh option HISTLIT.
+	  From P.Stephenson (515).
+
+Wed Nov  8 00:07:01 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Combine catproc, teeproc, and closemn in exec.c.  Also fixes
+	  a memory leak in multio.  From rc.
+
+	* Fix exec.c so that _exit rather than exit is used
+	  from subshells.  We now keep track of which subshells
+	  are real and which are fake (we are doing an exec).
+	  From P.Stephenson (562).
+
+	* Small cleanups for man pages zsh.1, zshall.1,
+	  zshmisc.1.  From rc, Mark Borges, and Mark Hanson
+	  (570,571)
+
+	* Installation of man page zshall.1 will now
+	  insert correct location of other man pages. From rc
+	  and Zefram (566).
+
+Mon Nov  6 22:32:19 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh 2.6-beta11 released.
+
+Sat Nov  4 23:49:15 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fix whence/which/type so that commands added with
+	  `hash foo=bar' are correctly reported.  From rc.
+
+Thu Nov  2 03:04:09 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Delay setting up terminal and termcap in noninteractive
+	  shells until needed.  From P.Stephenson (479).
+
+Wed Nov  1 18:20:49 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Remove some arbitrary buffer limits in zle_tricky.c
+	  From Zoltan (506).
+
+	* Fix not clearing properly if more characters were
+	  inserted than deleted.  Fix not clearing the last
+	  character in the line if rprompt was printed.
+	  From Geoff Wing (164,273).
+
+	* Fix core dump in `bindkey'.  From P.Stephenson (514).
+
+Mon Oct 30 01:49:10 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Added -L option to `alias' builtin.  From rc.
+
+Sun Oct 29 04:34:51 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Removed hack of setting sourcelevel to 32768 to suppress
+	  errexit and trapping of SIGZERR and SIGEXIT in init scripts.
+	  Added global noerrexit for this.  From rc.
+
+	* Added new command flag CFLAG_FAKE_EXEC.  This flag is used
+	  when we can pretend this is an `exec' since this is the
+	  last command in a subshell, or for `zsh -c'.  Rearranged code
+	  to determine whether to do a fake exec.  Fixed code so that
+	  fake exec (typically from command substitution) doesn't trash
+	  the history file.  Also added code to save history file when
+	  exec'ing a builtin.  From rc, Zoltan, and P.Stephenson.
+
+Wed Oct 25 22:58:54 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fixed hash -d foo=/usr/local/foo.  Also fixed hash -d foo
+	  so that is doesn't try to free memory from the heap.  From rc.
+
+Thu Oct 19 19:13:33 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Documentation fix for BRACE_CCL.  From P.Stephenson (173).
+
+	* Add -Q option to compctl.  From Zefram (167).
+
+	* New version of reporter script.  From Karl Vogel.
+
+	* Add [[ str == pat ]].  From Zoltan (451).  The old
+	  syntax remains, but this should be considered the
+	  preferred form.
+
+	* Add code to workaround a bug in in.rshd.  It is
+	  not turned on by default.  You need to add the
+	  #define RSH_BUG_WORKAROUND to turn on this code.
+
+	* When you disable/enable a shell function
+	  such as TRAPsig, the trapping of the signal
+	  `sig' will also be disabled/enabled.  From rc.
+
+Mon Oct  9 19:34:07 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Spelling correction changes.  From Zoltan.
+
+	* Prompt code changes.  From Zefram (195,265) and
+	  Zoltan (280).
+
+Fri Oct  6 14:10:35 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fix for input.c and hist.c when comparing
+	  HISTSPACE.  From P.Stephenson (421).
+
+Wed Oct  4 02:25:23 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* gettext2 wasn't printing text for pre-commands
+	  noglob and `-'.  From Zefram.
+
+	* Should do bitwise-or for CFLAG_DASH.  From Zefram
+	  and Zoltan.
+
+Mon Sep 25 00:18:08 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Rearrange things in setupvals() so that path is
+	  set before cmdnamtable is built.  From Zoltan.
+
+	* Only tokenize commas that are inside of
+	  brace expansion.  From Zoltan (403).
+
+	* Fix command resolution for commands (such as
+	  typeset) that need automatic MAGIC_EQUAL_SUBST
+	  substitution.  From Zefram.
+
+Sun Sep 24 20:19:33 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* A small fix for compctl.  From Zefram.
+
+	* Change phork to zfork.  From rc.
+
+	* Fix core dump when setting trap.  Also remove
+	  warning message about unsetting unset parameters.
+	  From Zoltan.
+
+Thu Sep 21 02:10:02 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Cleanups for glob.c.  From Zoltan (202).
+
+	* Rearrange the checking of hash tables for
+	  commands.  From Zefram and rc.
+
+Tue Sep 19 21:23:54 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fix to function restarthashtable so that if
+	  restarting a table that is not re-allocated,
+	  the memory will be re-zeroed.  This fix core dumps
+	  when PATH is changed.  From rc.
+
+	* Fix tty-opening code in init_io.
+	  From P.Stephenson (391).
+
+Mon Sep 18 18:58:23 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Change Z_* pipeline flags to be or'able.  This
+	  cleans up pipeline code as well as making
+	  `time command' work correctly in subshells.
+	  From P.Stephenson (384).
+
+	* Small patch to input routines for `eval'.
+	  From P.Stephenson (385).
+
+	* More cleanup of builtin `compctl'.  From Zefram
+	  and rc.
+
+Sun Sep 17 01:50:40 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Improvements and additions for the compctl's in
+	  compctl-examples.  From Zefram.
+
+Thu Sep 14 20:00:32 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Cleanup of printing text with special characters.
+	  Move this printing into own function printquoted.
+	  From Zefram (170,184).
+
+	* Add man info for fc -i.  From Zefram.
+
+	* Fix for signal trapping bug.  From P.Stephenson (119).
+
+	* Fix bug of using spacejoin when IFS has changed.
+	  From Zoltan (52).
+
+Tue Sep 12 20:56:46 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Add code for unhash -d.  From Zefram.
+
+	* Add back code for re-running autoloaded functions
+	  that define themselves by name.  Also fix bug in
+	  running autoloaded functions with parameters.
+	  From P.Stephenson (379).
+
+Sat Sep  9 00:28:02 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Corrected man page entry for hash, unhash, rehash,
+	  function, unfunction, enable, disable, alias,
+	  and unalias.  rc
+
+Fri Sep  8 17:03:18 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Added zshall man page.  From P.Stephenson.
+
+	* New version of zshcompctl man page from
+	  P.Stephenson (234).
+
+	* Fix completion code w.r.t the separated hash tables.
+	  Also makes the disabled/enabled flags act as
+	  modifiers.  From Zefram.
+
+	* Moved code in execcmd to save/restore parameters
+	  (for shell functions and buiiltins) to their own
+	  functions.  Also cleaned it up some.  rc
+
+	* Cleaned up bin_typeset some.  rc
+
+Thu Aug 31 00:21:54 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Change configure to get right signal.h file for
+	  Linux 1.3.x.  From Thorsten Meinecke and Zoltan
+	  (196,289).
+
+	* Eliminate ZLE_NAMEDBUFFER.  From Zefram (136).
+
+	* Big patch to clean up base routines for history
+	  input.  From P.Stephenson (140,334).
+
+Mon Aug 28 21:01:03 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Add some detail to file globbing flags.  Mark Borges (323).
+
+	* Split function handling code out of bin_typeset into
+	  bin_functions.  rc
+
+Tue Jul 18 05:13:01 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Changed syntax of hash builtin.  Use the syntax
+	  "hash foo1=bar1 foo2=bar2" to add elements to the
+	  cmdnam hash table.  Also added the -m option which
+	  will print out all elements of cmdnam table matching
+	  a glob pattern.  rc
+
+Mon Jul 17 16:42:49 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Merged bin_enable and bin_disable.  rc
+
+Sat Jul 15 04:46:03 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Merged bin_hash and bin_rehash.  Split named dir
+	  code in bin_hash out into its own function
+	  bin_nameddir_hash.  rc
+
+Fri Jul 14 00:16:47 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* You can enable/disable reserved words with
+	  "enable -r", and "disable -r".  You can enable/
+	  disable aliases with "enable -a", and
+	  "disable -a".  rc
+
+Mon Jul 10 20:29:37 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* unhash only unhashed entries in hash table for external
+	  commands.  Use "unhash -f" to unhash shell functions.  Added
+	  option so that "unhash -a" will unhash elements of the
+	  alias hash table.  unfunction is now equivalent to "unhash -f".
+	  unalias is now equivalent to "unhash -a".  rc
+
+
+	* enable/disable now only works on builtins.  You can use
+	  "enable -f" or "disable -f" to enable/disable shell
+	  functions.  rc
+
+	* Split hash table cmdnamtab into 3 hash tables.  cmdnamtab
+	  for external commands and hashed commands.  shfunctab for
+	  shell functions.  builtintab for builtin commands.  This
+	  of course entailed lots for changes in builtin.c.  rc
+
+Fri Jun 30 05:10:13 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh 2.6-beta10 released.
+
+	* Make HOSTTYPE, OSTYPE, MACHTYPE, VENDOR, and
+	  ZSH_VERSION non-special parameters.  From Zoltan (5827).
+
+	* Added parameter ZSH_NAME.  From Zoltan (5615).
+
+Wed Jun 28 17:25:23 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Build/installation parameters that are changed in the
+	  top makefile are now passed down to recursive makefile
+	  calls.  From rc.
+
+Mon Jun 26 04:32:33 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Add some comments and some small cleanups of params.c.
+	  From rc.
+
+Fri Jun 23 03:37:55 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Assuming sufficient privileges (typically root), you can
+	  change the username (and uid and gid) of the shell process
+	  by assigning to USERNAME.  Also (again assuming sufficient
+	  privileges) you can start an individual command under a
+	  different username (and uid/gid) by:
+	  USERNAME=username command
+	  From rc.
+
+	* Updated the man page entries for USERNAME, UID, GID,
+	  EUID, EGID, and LOGNAME.  From rc and Zoltan.
+
+Mon Jun 19 02:07:46 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Allow var[a,b]=c type string assignments  when b < a.
+	  From Zoltan (5791).
+
+Sun Jun 18 01:17:08 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Add a glob of comments (pun intended) to glob.c.
+	  From P. Stephenson (101).
+
+Fri Jun 16 00:30:41 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Use zsh's own zstrtol instead of vendor strtol
+	  since a lot of them are broken.
+
+	* Fix some problems dealing with 64 bit ints.
+	  From Zoltan (5826).
+
+	* Add new versions of config.sub and config.guess to
+	  distribution.  Rebuilt configure with new autoconf 2.4.
+
+Thu Jun 15 00:25:43 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Add new builtin called "hashinfo" which will dump
+	  stats about the various internal hash tables.  You can enable
+	  this command with the configure option --enable-zsh-hash-debug.
+	  This will add the #define ZSH_HASH_DEBUG to config.h.
+
+	* Add support for printing time report in HH:MM:SS
+	  format.  From Zoltan (96).
+
+	* Changed the DEFAULT_TIMEFMT to
+	  "%J  %U user %S system %P cpu %*E total".
+	  From rc.
+
+	* Cleanup of code to print a condition.
+	  From P. Stephenson (74).
+
+	* Make errors in math evaluation in let are non-fatal.
+	  Also fix some problems with multiple traps.  From
+	  P.Stephenson (59).
+
+	* Fix for redirection bug.  From Zefram (31).
+
+	* Merge setmoreflags and initterm into init_io.
+	  From P.Stephenson (64). 
+
+	* Use _exit instead of exit when in subshell and
+	  CFLAG_EXEC.  From P.Stephenson (72).
+
+Wed Jun 14 23:17:55 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Add support for NIS+.  From Sven Wischnowsky (77).
+	  ( No configure support yet )
+
+Thu Jun  8 14:16:28 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Small fix to vicmdmode.  From Zefram (86).
+
+	* Add configure test for CLOBBERS_TYPEAHEAD.
+	  From P. Stephenson (88).
+
+	* Big reorganization of code dealing with the various
+	  hash tables.  From rc.
+
+Tue May 30 01:55:51 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh 2.6-beta9 released.
+
+	* Add some optimisations to matheval.  From P. Stephenson (55).
+
+	* Separate the I/O of zle from direct reliance on
+	  stdin/stdout or fd's 0 and 1.  From P. Stephenson (26).
+
+Fri May 26 00:01:52 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Merged setupparams and setparams into buildparamtab.
+	  From Richard Coleman.
+
+	* Split aliases and reserved words into two separate
+	  hash tables.  From Peter Stephenson (33).
+
+Thu May 25 00:27:55 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Tighten up permissions on temporary files and named
+	  pipes that zsh creates.  From Duncan Sinclair (5298).
+
+Mon May 22 23:54:52 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Use sed instead of cut in configure.  From Eskandar.
+
+Fri May 19 00:08:52 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Add some casts to pacify noisy compilers.
+	  From Zoltan (6123).
+
+	* Fix for describe-key-briefly and where-is which
+	  had problem with command lines spanning more than
+	  one screen.  From Zoltan (6127).
+
+	* Fix core dump in bindkey.  From Peter (6198).
+
+	* Fix typo in exec.c code.  From Peter (6197).
+
+	* Fix for redisplay from Zefram (6009).
+
+	* Small fix for missing newlines in single_line_zle
+	  mode. (6201).
+
+Wed May 17 01:50:48 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Added function zrealloc to mimic POSIX realloc.
+
+Wed May 10 19:13:34 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fix so that with builtin at the end of a pipeline,
+	  the return value of pipeline is return value of
+	  builtin.  From P.Stephenson (6161).
+
+	* Fix problem with exec.  From P.Stephenson (6160).
+
+Tue May  9 00:35:45 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fixes to read builtin.  From Dave Sainty (6142).
+
+	* Vi mode fix.  From Zefram (6115).
+
+Mon May  8 23:44:00 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Patch for exec.c so that execpline will correctly invert
+	  return values of !foo, when foo is shell function.  From
+	  P.Stephenson (6098).
+
+Thu May  4 00:02:51 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh 2.6-beta8 released.
+
+	* Allow globbing of words beginning with %.  From
+	  Zoltan (6002).
+
+	* Add -T option to compctl.  From Sven (6028).
+
+	* Patch to allow array subscripts in arithmetic
+	  evaluations without $.  From Zoltan (5715).
+
+	* Patch so that exec bit gets to execcursh by execcmd.
+	  From P.Stephenson (6076).  Now zsh -c '{ foo }' will
+	  exec last command instead of forking.
+
+Wed May  3 23:56:21 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fix bug in accept-and-menu-complete on variable
+	  names.  From Zoltan (6078).
+
+Tue May  2 00:17:47 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Remove redundant call to inittyptab in setupvals
+	  in init.c.  (rc)
+
+	* Setopt PROMPTSUBST if started as sh or ksh.  From
+	  Zoltan (6070).
+
+	* Check for /dev/fd filesystem with configure.  Don't
+	  do /dev/fd simulation in conditional expressions
+	  unless /dev/fd is not supported.  (rc)
+
+	* Patch for job.c so that ^C-ing a job started by a
+	  function stop the whole function.  From Sven (5837).
+
+Mon May  1 23:50:05 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Patch so that zsh -c and subshells will exec last
+	  command correctly.  From P.Stephenson (6057).
+
+Sun Apr 30 04:28:57 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fixed handling of ${foo+`echo hello`}.
+	  From Zoltan (6019).
+
+	* Fixed reversed arguments in difftime compatibility
+	  function.  From Wayne Davison (6050).
+
+Wed Apr 26 20:07:27 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh 2.6-beta7 released.
+
+Tue Apr 25 00:56:13 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fix some memory leaks.  From Zoltan (5959).
+
+	* Setopt NOBADPATTERN if started as sh or ksh.  From
+	  P.Stephenson (6031).
+
+	* Big patch for zle's vi mode.  From Zefram (6014).
+
+	* Make test builtin compatible with /bin/test.
+	  From P.Stephenson (6012).
+
+Mon Apr 24 21:26:44 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* In arithmetic evaluation, numbers can now be entered
+	  using C syntax (0xff and 077).  From Zoltan (5780).
+
+Fri Apr 21 17:03:37 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Rearranged builtin.c to group things more logically.
+	  From Zefram.
+
+Mon Apr 17 21:22:26 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh 2.6-beta6 released.
+
+	* lots of fixes I don't remember.
+
+	* new zle functions describe-key-briefly and
+	  whereis.
+
+	* precedents fixed in math mode.
+
+	* lots of changes to named directory code, new options -r,
+	  and -f to hash.
+
+	* option NO_HIST_CLOBBER removed and HIST_ALLOW_CLOBBER
+	  added.  It is not on by default.
+
+	* most of signals.{c,h} rewritten.
+
+	* lots of configurations changes.
+
+	* history saved on exec and timeout.
+
+Wed Mar  8 23:06:16 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Reversed -f and -F (again).
+
+Fri Mar  3 20:48:34 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Fix a couple of memory leaks from Sven (5561).
+
+	* Comments and minor changes to builtin.c from
+	  Zefram (5495).
+
+Mon Feb 27 23:14:45 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh 2.6-beta5 released.
+
+	* Builtin.c enhancements from Zefram (5428).
+
+	* Added ksh style autoloaded functions from
+	  P.Stephenson (5424).
+
+	* Job.c and exec.c fixes from Sven Wischnowsky (5417,5491)
+
+	* New version of cdmatch from Zoltan Hidvegi (5376).
+
+	* Comments for builtin.c from Zefram (5378).
+
+	* New version of zed from Zoltan Hidvegi (5372)
+
+	* KSHPRIV changed to PRIVILEGED from Zoltan Hidvegi
+	  (5370,5420).
+
+	* New option BSD_ECHO from Zoltan Hidvegi (5391,5474)
+
+	* Fix core dump on !<RET> from P.Stephenson (5410)
+
+	* Compctl fixes from P.Stephenson (5373)
+
+	* Enable ksh style redirection from Zoltan Hidvegi
+	  (5374)
+
+	* Fix partial command running on ^C from P. Stephenson
+	  (5326)
+
+	* History fixes from Zoltan Hidvegi (5300,5342)
+
+	* Accept modifiers in glob patterns from Zoltan Hidvegi
+	  (5272)
+
+	* Bug fixes to completion code from Sven Wischnowsky and
+	  Zoltan Hidvegi. (5263,5291,5327,5344,5352,5369,5386,
+	  5403,5408,5422,5468)
+
+	* More comments for zle_tricky.c from Sven Wischnowsky
+	  (5258).
+
+	* Fixed problem with signals.h coming after some prototypes.
+	  (Richard).
+
+	* Changed funcs.h to prototypes.h.  Moved a couple externs
+	  from prototypes.h to zsh.h (Richard)
+
+Sun Feb 12 22:51:19 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh 2.6-beta4 released.
+
+Sat Feb 11 00:06:51 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* patch for getopts.  From Peter Stephenson.
+
+	* Add big patch of comments to zle_tricky.c from
+	  Sven Wischnowsky.
+
+Thu Feb  9 22:44:26 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Add Numeric brace expansion.
+
+	* Added rlimit kludge for HP/UX.
+
+	* Big patch to RPROMPT stuff from Eskandar Ensafi.
+
+	* Lots of fixes for zle_tricky.c, zle_main.c, zle_misc.c
+	  from Zoltan Hidvegi and Sven Wischnowsky.
+
+Thu Feb  2 02:56:46 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Switched -f and -F options so that -f is noglob
+	  and -F is norcs.  This for greater ksh compatibility.
+
+Wed Feb  1 21:24:48 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Added option LOCAL_OPTIONS.  From Peter Stephenson.
+
+Tue Jan 31 15:05:31 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Added manual entry for autoparamslash.
+
+	* Updates to compctl code in builtin.c.  From Peter Stephenson.
+
+	* Renamed signals.awk to signames.awk.  Move the signal
+	  handling code out of jobs.c, utils.c, zsh.h into
+	  signals.h and signals.c.
+
+Mon Jan 30 00:49:37 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* changed GLOBAL_ZLOGOUT to be sourced after .zlogout
+
+Sat Jan 28 04:22:04 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* added #define RLIM_T_IS_QUAD_T for real BSD4.4 systems.
+
+Fri Jan 27 17:45:21 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* patch to exec.c for pipeline bug.  From
+	  Sven Wischnowsky. (article 5063).
+
+Thu Jan 26 22:00:27 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Added GLOBAL_ZLOGOUT
+
+	* Changed configure.in so that libnsl is only linked
+	  if needed to find getdomainname.
+
+Wed Jan 25 15:40:56 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Zsh version 2.6-beta3 released.
+
+	* Added small patch for FCEDIT and POSTEDIT.  From
+	  Geoff Wing.
+
+	* Added new version of reporter script.  From
+	  Karl Vogel.
+
+Tue Jan 24 00:16:20 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* Added patch so that shwordsplit doesn't toggle.
+	  From Peter Stephenson.
+
+	* Several patches for tty settings and some cleanup of
+	  prompting.  From Eskandar Ensafi.
+
+	* patch for builtin from Hegedus Peter.
+
+	* patch for pipe bug.  From Sven Wischnowsky.
+
+	* patch to zle_tricky.c for small completion bug.  From
+	  Sven Wischnowsky.
+
+	* Patch for math.c.  From Peter Stephenson.
+
+	* Added new zle_refresh.c and followup patch.  From
+	  Geoff Wing.
+
+Mon Jan 23 22:42:17 1995  Richard Coleman  <coleman@math.gatech.edu>
+
+	* patch to prevent job table from filling up.
+
+	* Added patch for autoparamslash option.  From
+	  Sven Wischnowsky.
+
+Mon Dec 12 20:17:01 1994  Richard Coleman  <zsh@math.gatech.edu>
+
+	* Fixed buglet in CSH_JUNKIE_PAREN.  From
+	  Peter Stephenson.
+
+Thu Nov 17 19:57:17 1994  Richard Coleman  <zsh@math.gatech.edu>
+
+	* Spurious comma in configure.in.  Spurious spaces on
+          blank lines in Makefile{.in} were causing problems
+          on netbsd.
+
+Wed Nov 16 00:24:33 1994  Richard Coleman  <zsh@math.gatech.edu>
+
+	* Zsh version 2.6-beta2 released.
+
+	* New version of aclocal.m4.  Borrowed from m4-1.4.
+          Made a few changes since we're not strict ansi yet.
+
+Wed Nov  9 20:29:21 1994  Richard Coleman  <zsh@math.gatech.edu>
+
+	* Added updated replacement for zle_refresh.c from Geoff Wing.
+
+Tue Nov  8 21:01:08 1994  Richard Coleman  <zsh@math.gatech.edu>
+
+	* initialize tty modes in non-interactive shells.
+
+	* fixed so expand-or-complete-prefix respects
+	  always_last_prompt option. (Sven)
+
+	* fix for pipes in for loops. (Sven)
+
+	* Patch from  Peter Stephenson to fix <-> for case where
+	  the file names are large.
+
+	* Added 2 patches from Eskandar Ensafi for zle_misc.c,
+	  watch.c,zsh.h, for cleaning up handling of termcap
+	  strings and text attributes.
+
+	* Added replacement for zle_refresh.c from Geoff Wing.
+
+Mon Nov  7 01:00 1994 Richard Coleman <zsh@math.gatech.edu>
+
+	* Reorganized the directory structure and renamed some of the
+	  directories.
+
+        * New targets dist and dist-rcs to automatically create
+          zsh distributions.
+
+Sun Nov  6 08:10 1994 Richard Coleman <zsh@math.gatech.edu>
+
+        * Finished converting to autoconf 2.1.
+
+Sun Oct 23 20:05 1994 Sven Wischnowsky <oberon@cs.tu-berlin.de>
+
+	* exec.c,utils.c: fix problem with commands in pipeline not
+	  able to attach to tty under certain conditions.
+
+Sun Oct 23 03:25 1995 Richard Coleman <zsh@math.gatech.edu>
+
+	* configure.in,jobs.c: removed configure test for sigsetjmp.
+	  Use _POSIX_VERSION instead.
+
+Sun Oct 23 03:20 1994 Peter Stephenson <P.Stephenson@swan.ac.uk>
+
+	* builtin.c,exec.c,globals.h: big patch to fix problems with
+	  typeset and variable assignment.
+
+Mon Oct 17 18:28 1994 Martin Steed <msteed@tfs.com>
+
+	* signals.awk: added change so that _SIGxxx will be
+	  recognized in sys/signal.h.
+
+Mon Oct 17 18:21 1994 Kunihiro Ishiguro <kunihiro@sramhb.sra.co.jp
+
+	* zsh.h: replaced #elif since HP-UX 8.07 doesn't support it.
+
+Sun Oct 16 22:23 1994 Richard Coleman <zsh@math.gatech.edu>
+
+	* Created Makefile.in for rest of subdirectories.
+
+Sun Oct 16 21:00 1994 Richard Coleman <zsh@math.gatech.edu>
+
+	* Zsh version 2.6-beta1 released.

@@ -1,0 +1,25 @@
+#compdef smit smitty
+
+local state line expl curcontext="$curcontext"
+
+_arguments -C \
+  '-s[specify smit.script file]:smit.script file:_files' \
+  '-l[specify smit.log file]:smit.log file:_files' \
+  '-C[use curses interface]' \
+  '-D[debug mode]' \
+  '-d[FastPath is dialogue screen]' \
+  '-f[allow redirection of stdin and stdout]' \
+  '-h[display help/usage message]' \
+  '-M[start smit in windows mode]' \
+  '-m[FastPath is menu screen]' \
+  '-n[FastPath is selector screen]' \
+  '-o[alternate SMIT/ODM database]' \
+  '-t[generate trace information]' \
+  '-v[verbose]' \
+  '-x[do not run any execute commands]' \
+  '-X[do not run any commands]' \
+  '1:fast path:->fastpath'
+
+[[ "$state" = fastpath ]] && (( $+commands[odmget] )) &&
+  _wanted fastpaths expl 'fast path' compadd \
+      $(odmget sm_cmd_hdr sm_name_hdr|sed -n 's/^	id = \"\(.*\)\"/\1/p')

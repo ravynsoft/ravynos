@@ -1,0 +1,20 @@
+#autoload
+
+local -A opts
+local whicharg
+
+zparseopts -E -D -- '-_opts:=opts'
+
+whicharg=${opts#*:}
+
+case ${opts%:*} in
+(installed)
+	compadd "$@" - ${opt_args[$whicharg]}/var/sadm/pkg/*/pkginfo(:h:t)
+	;;
+(spooled)
+	compadd "$@" - ${opt_args[$whicharg]}/*(:t)
+	;;
+(uninstalled)
+	compadd "$@" - ${opt_args[$whicharg]:-/var/spool/pkg}/*/pkgmap(:h:t)
+	;;
+esac

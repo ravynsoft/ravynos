@@ -1,0 +1,23 @@
+#autoload
+
+[[ _matcher_num -gt 1 ]] && return 1
+
+# This completer is an example showing how menu completion can be
+# implemented with the new completion system.
+# Use this one before the normal _complete completer, as in:
+#
+#   zstyle ":completion:::::" completer _menu _complete
+
+if [[ -n "$compstate[old_list]" ]]; then
+
+  # We have an old list, keep it and insert the next match.
+
+  compstate[old_list]=keep
+  compstate[insert]=$((compstate[old_insert]+1))
+else
+  # No old list, make completion insert the first match.
+
+  compstate[insert]=1
+fi
+
+return 1

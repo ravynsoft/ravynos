@@ -183,6 +183,7 @@ SUBDIR=	alias \
 	xz \
 	xzdec \
 	yes \
+        zsh \
 	zstd
 
 # NB: keep these sorted by MK_* knobs

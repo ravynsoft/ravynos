@@ -1,0 +1,16 @@
+#autoload
+
+# Simple function to offer delimiters for modifiers and qualifiers.
+# Single argument is tag to use.
+
+local expl
+local -a list
+
+zstyle -a ":completion:${curcontext}:$1" delimiters list ||
+  list=(: + / - %)
+
+if (( ${#list} )); then
+  _wanted delimiters expl delimiter compadd -S '' -a list
+else
+  _message delimiter
+fi

@@ -1,0 +1,35 @@
+#compdef -P */X11(|R<4->)/*
+
+local ret long xargs opts rawret nm="$compstate[nmatches]"
+
+xargs=(
+  '-display:display:_x_display'
+  '-geometry:geometry:_x_geometry'
+)
+
+(( $# )) || xargs=( "$xargs[@]" '*:default: _default' )
+
+long=$argv[(I)--]
+if (( long )); then
+  argv[long]=( "$xargs[@]" -- )
+else
+  set -- "$@" "$xargs[@]"
+fi
+
+opts=()
+while [[ $1 = -(O*|[CRWsw]) ]]; do
+  opts=($opts $1)
+  [[ $1 = -R ]] && rawret=yes
+  shift
+done
+
+_arguments -R "$opts[@]" "$@"
+
+ret=$?
+
+if [[ "$ret" = 300 ]]; then
+  compstate[restore]=''
+  [[ -z $rawret ]] && ret=$(( nm == $compstate[nmatches] ))
+fi
+
+return ret

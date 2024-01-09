@@ -1,0 +1,20 @@
+#compdef nginx
+
+local -ah signals=(
+  'quit\:shut down gracefully (SIGQUIT)'
+  'reload\:reload configuration (SIGHUP)'
+  'reopen\:re-open log files (SIGUSR1)'
+  'stop\:shut down quickly (SIGTERM)'
+)
+
+_arguments -s -S : \
+  '(: * -)'{-\?,-h}'[display help information]' \
+  '(: * -)-v[display version information]' \
+  '(: * -)-V[display version information and configure options]' \
+  '-c+[specify configuration file]:configuration file:_files' \
+  '-g+[specify global configuration directives]:configuration directives' \
+  '-p+[specify prefix path]:prefix path:_directories' \
+  '(-s)-q[suppress non-error messages (with -t/-T)]' \
+  "(-q -t -T)-s+[send specified signal to master process]:signal:((${(j< >)${(@q-)signals}}))" \
+  '(-s -T)-t[test configuration]' \
+  '(-s -t)-T[test and dump configuration]'

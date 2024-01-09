@@ -1,0 +1,61 @@
+#compdef flex flex++
+
+local curcontext="$curcontext" state line ret=1
+typeset -A opt_args
+
+_arguments -C -s -S \
+  '-C-[specify degree of table compression]:table compression:->tabcomp' \
+  '--align[trade off larger tables for better memory alignment]' \
+  '--ecs[construct equivalence classes]' \
+  '--meta-ecs[construct meta-equivalence classes]' \
+  '--read[use read() instead of stdio for scanner input]' \
+  '(-f --full)'{-f,--full}'[generate fast scanner (full table)]' \
+  '(-F --fast)'{-F,--fast}'[use fast scanner table representation]' \
+  '(-d --debug)'{-d,--debug}'[enable debug mode in scanner]' \
+  '(-b --backup)'{-b,--backup}'[write backup information to lex.backup]' \
+  '(-p --perf-report)'{-p,--perf-report}'[generate performance report]' \
+  '(-s --nodefault)'{-s,--nodefault}'[suppress default rule to ECHO unmatched text]' \
+  '(-T --trace)'{-T,--trace}'[trace mode]' \
+  '(-w --nowarn)'{-w,--nowarn}'[suppress warnings]' \
+  '(-v --verbose)'{-v,--verbose}'[show summary of statistics about scanner]' \
+  '--hex[use hexadecimal numbers instead of octal in debug outputs]' \
+  '(-o --outfile)'{-o+,--outfile=}'[specify output file]:output file:_files' \
+  '(-S --skel)'{-S+,--skel=}'-[override skeleton file]:skeleton file:_files' \
+  '(-t --stdout)'{-t,--stdout}'[write scanner to stdout]' \
+  '--yyclass=[specify name of C++ class]:class name' \
+  '--header-file=-[create a C header file in addition to the scanner]:file:_files' \
+  '--tables-file=-[write tables to file]::tables file:_files' \
+  '(-7 -8 --7bit --8bit)'{-7,--7bit}'[generate 7-bit scanner]' \
+  '(-7 -8 --7bit --8bit)'{-8,--8bit}'[generate 8-bit scanner]' \
+  '(-B --batch -I --interactive)'{-B,--batch}'[generate batch scanner]' \
+  '(-i --case-insensitive)'{-i,--case-insensitive}'[generate case-insensitive scanner]' \
+  '(-l --lex-compat)'{-l,--lex-compat}'[maximum compatibility with original lex]' \
+  '(-X --posix-compat)'{-l,--posix-compat}'[maximum compatibility with POSIX lex]' \
+  '(-B --batch -I --interactive)'{-I,--interactive}'[generate interactive scanner]' \
+  '--yylineno[track line count in yylineno]' \
+  '-\+[generate C++ scanner class]' \
+  '-D-[define macro]:macro' \
+  '(-L --noline)'{-L,--noline}"[don't generate #line directives]" \
+  '(-P --prefix)'{-P+,--prefix=}'[change yy prefix]:prefix string' \
+  '(-R --reentrant)'{-R,--reentrant}'[generate a reentrant C scanner]' \
+  '--bison-bridge[scanner for bison pure parser]' \
+  '--bison-locations[include yylloc support]' \
+  '--stdinit[initialize yyin/yyout to stdin/stdout]' \
+  "--nounistd[don't include <unistd.h>]" \
+  "--no-[don't generate a particular function]:function" \
+  '(-c -n)'{-c,-n}'[do nothing]' \
+  '(- *)'{-h,--help}'[display help information]' \
+  '( *)'{-V,--version}'[display version information]' \
+  '*:input file:_files -g "*.(#i)(f|)lex(-.)"' && ret=0
+
+if [[ -n "$state" ]]; then
+  _values -s '' 'table compression' \
+    'a[align tables]' \
+    'e[construct equivalence classes]' \
+    '(m)f[generate full tables]' \
+    '(m)F[generate fast tables]' \
+    '(f F)m[construct meta-equivalence classes]' \
+    "r[don't use stdio library]" && ret=0
+fi
+
+return ret

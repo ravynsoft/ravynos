@@ -1,0 +1,349 @@
+# Tests for the echo, print, printf and pushln builtins
+
+# Tested elsewhere:
+#  Use of print -p to output to coprocess	A01grammar
+#  Prompt expansion with print -P		D01prompt
+#  -l, -r, -R and -n indirectly tested in various places
+#  multibyte tests in D07multibyte
+
+# Not yet tested:
+#  echo and pushln
+#  print's -b -c -s -z -N options
+
+
+%test
+
+ print -D "${HOME:-~}"
+0:replace directory name
+>~
+
+ print -u2 'error message'
+0:output to file-descriptor
+?error message
+
+ print -o foo bar Baz
+0:argument sorting
+>Baz bar foo
+
+ print -f
+1:print -f needs a format specified
+?(eval):print:1: argument expected: -f
+
+ print -Of '%s\n' foo bar baz
+0:reverse argument sorting
+>foo
+>baz
+>bar
+
+# some locales force case-insensitive sorting
+ (LC_ALL=C; print -o a B c)
+0:case-sensitive argument sorting
+>B a c
+
+ (LC_ALL=C; print -io a B c)
+0:case-insensitive argument sorting
+>a B c
+
+ print -m '[0-9]' one 2 three 4 five 6
+0:removal of non-matching arguments
+>2 4 6
+
+ printf '%s\n' string
+0:test s format specifier
+>string
+
+ printf '%b' '\t\\\n'
+0:test b format specifier
+>	\
+
+ printf '%q\n' '=a=b \ c!'
+0: test q format specifier
+>\=a=b\ \\\ c!
+
+ printf '%c\n' char
+0:test c format specifier
+>c
+
+ printf '%.10e%n\n' 1 count >/dev/null
+ printf '%d\n' $count
+0:test n format specifier
+>16
+
+ printf '%5b%n\n' abc count >/dev/null; echo $count
+0:check count of width-specified %b
+>5
+
+ printf '%s!%5b!\n' abc
+0:ensure width is applied to empty param
+>abc!     !
+
+ printf '%d %d\n' 123.45 678 90.1
+0:test d format specifier
+>123 678
+>90 0
+
+ printf '%g %g\n' 123.45 678 90.1
+0:test g format specifier
+>123.45 678
+>90.1 0
+
+ nan=0 inf=1 Infinity=2
+ printf '%.1f\n' -inf Infinity Inf nan NaN -Inf -0.0
+0:infinity constants
+>-inf
+>inf
+>inf
+>nan
+>nan
+>-inf
+>-0.0
+
+ print -f 'arg: %b\n' -C2 '\x41' '\x42' '\x43'
+0:override -C when -f was given
+>arg: A
+>arg: B
+>arg: C
+
+# Is anyone not using ASCII
+ printf '%d\n' \'A
+0:initial quote to get numeric value of character with int
+>65
+
+ printf '%.1E\n' \'B
+0:initial quote to get numeric value of character with double
+>6.6E+01
+
+ printf '%x\n' $(printf '"\xf0')
+0:numeric value of high numbered character
+>f0
+
+ printf '\x25s\n' arg
+0:using \x25 to print a literal % in format
+>%s
+
+ printf '%3c\n' c
+0:width specified in format specifier
+>  c
+
+ printf '%.4s\n' chopped
+0:precision specified in format specifier
+>chop
+
+ printf '%*.*f\n' 6 2 10.2
+0:width/precision specified in arguments
+> 10.20
+
+ printf '%z'
+1:use of invalid directive
+?(eval):printf:1: %z: invalid directive
+
+ printf '%d\n' 3a
+1:bad arithmetic expression
+?(eval):1: bad math expression: operator expected at `a'
+>0
+
+ printf '%12$s' 1 2 3
+1:out of range argument specifier
+?(eval):printf:1: 12: argument specifier out of range
+
+ printf '%2$s\n' 1 2 3
+1:out of range argument specifier on format reuse
+?(eval):printf:1: 2: argument specifier out of range
+>2
+
+ printf '%*0$d'
+1:out of range argument specifier on width
+?(eval):printf:1: 0: argument specifier out of range
+
+ print -m -f 'format - %s.\n' 'z' a b c
+0:format not printed if no arguments left after -m removal
+
+ print -f 'format - %s%b.\n'
+0:format printed despite lack of arguments
+>format - .
+
+ printf 'x%4sx\n'
+0:with no arguments empty string where string needed
+>x    x
+
+ printf '%d\n'
+0:with no arguments, zero used where number needed
+>0
+
+ printf '%s\t%c:%#x%%\n' one a 1 two b 2 three c 3
+0:multiple arguments with format reused
+>one	a:0x1%
+>two	b:0x2%
+>three	c:0x3%
+
+ printf '%d%n' 123 val val val > /dev/null
+ printf '%d\n' val
+0:%n count zeroed on format reuse
+>1
+
+# this may fill spec string with '%0'+- #*.*lld\0' - 14 characters
+ printf '%1$0'"'+- #-08.5dx\n" 123
+0:maximal length format specification
+>+00123  x
+
+ printf "x:%-20s:y\n" fubar
+0:left-justification of string
+>x:fubar               :y
+
+ printf '%*smorning\n' -5 good
+0:negative width specified
+>good morning
+
+ printf '%.*g\n' -1 .1
+0:negative precision specified
+>0.1
+
+ printf '%2$s %1$d\n' 1 2
+0:specify argument to output explicitly
+>2 1
+
+ printf '%3$.*1$d\n' 4 0 3
+0:specify output and precision arguments explicitly
+>0003
+
+ printf '%2$d%1$d\n' 1 2 3 4
+0:reuse format where arguments are explicitly specified
+>21
+>43
+
+ printf '%1$*2$d' 1 2 3 4 5 6 7 8 9 10; echo .EoL.
+0:reuse of specified arguments 
+> 1   3     5       7         9.EoL.
+
+ echo -n 'Now is the time'; echo .EoL.
+0:testing -n with echo
+>Now is the time.EoL.
+
+ printf '%1$0+.3d\n' 3
+0:flags mixed with specified argument
+>+003
+
+# Test the parsing of the \c escape.
+
+ echo '1 2!\c3 4' a b c d; echo .EoL.
+0:Truncating first echo arg using backslash-c
+>1 2!.EoL.
+
+ echo a b '1 2?\c5 6' c d; echo .EoL.
+0:Truncating third echo arg using backslash-c
+>a b 1 2?.EoL.
+
+ printf '1 2!\c3 4'; echo .EoL.
+0:Truncating printf literal using backslash-c
+>1 2!.EoL.
+
+ printf '%s %b!\c%s %s' 1 2 3 4 5 6 7 8 9; echo .EoL.
+0:Truncating printf format using backslash-c
+>1 2!.EoL.
+
+ printf '%s %b!\c%s %s' '1\c' '2\n\c' 3 4 5 6 7 8 9
+0:Truncating printf early %b arg using backslash-c
+>1\c 2
+
+ printf '%b %b\n' 1 2 3 4 '5\c' 6 7 8 9; echo .EoL.
+0:Truncating printf late %b arg using backslash-c
+>1 2
+>3 4
+>5.EoL.
+
+# The following usage, as stated in the manual, is not recommended and the
+# results are undefined. Tests are here anyway to ensure some form of
+# half-sane behaviour.
+
+ printf '%2$s %s %3$s\n' Morning Good World
+0:mixed style of argument selection
+>Good Morning World
+
+ printf '%*1$.*d\n' 1 2
+0:argument specified for width only
+>00
+
+ print -f '%*.*1$d\n' 1 2 3
+0:argument specified for precision only
+>2
+>000
+
+ printf -- '%s\n' str
+0:initial `--' ignored to satisfy POSIX
+>str
+
+ printf '%'
+1:nothing after % in format specifier
+?(eval):printf:1: %: invalid directive
+
+ printf $'%\0'
+1:explicit null after % in format specifier
+?(eval):printf:1: %: invalid directive
+
+ printf '%b\n' '\0123'
+0:printf handles \0... octal escapes in replacement text
+>S
+
+ print -lO $'a' $'a\0' $'a\0b' $'a\0b\0' $'a\0b\0a' $'a\0b\0b' $'a\0c' |
+ while read -r line; do
+    for (( i = 1; i <= ${#line}; i++ )); do
+      foo=$line[i]
+      printf "%02x" $(( #foo ))
+    done
+    print
+ done
+0:sorting with embedded nulls
+>610063
+>6100620062
+>6100620061
+>61006200
+>610062
+>6100
+>61
+
+ foo=$'one\ttwo\tthree\tfour\n'
+ foo+=$'\tone\ttwo\tthree\tfour\n'
+ foo+=$'\t\tone\t\ttwo\t\tthree\t\tfour'
+ foo+='\0' # regression test for multibyte tab expand
+ print -x4 $foo | tr '\0' Z # avoid raw nul byte in expected output below
+ print -X4 $foo | tr '\0' Z
+0:Tab expansion by print
+>one	two	three	four
+>    one	two	three	four
+>        one		two		three		fourZ
+>one two three   four
+>    one two three   four
+>        one     two     three       fourZ
+
+ unset foo
+ print -v foo once more
+ typeset -p foo
+ printf -v foo "%s\0%s-" into the breach
+ typeset -p foo
+0:print and printf into a variable
+>typeset -g foo='once more'
+>typeset -g foo=$'into\C-@the-breach\C-@-'
+
+ typeset -a foo
+ print -f '%2$d %4s' -v foo one 1 two 2 three 3
+ typeset -p foo
+0:printf into an array variable
+>typeset -a foo=( '1  one' '2  two' '3 three' )
+
+ typeset -a foo
+ print -f '%s' -v foo string
+ typeset -p foo
+0:printf to an array variable without format string reuse
+>typeset foo=string
+
+ printf -
+ printf - -
+ printf --
+ printf -- -
+ printf -- --
+ printf -x -v foo
+ # Final print for newline on stdout
+ print
+0:regression test of printf with assorted ambiguous options or formats
+>------x
+?(eval):printf:3: not enough arguments

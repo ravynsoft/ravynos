@@ -1,0 +1,64 @@
+#compdef who gwho
+
+local args variant
+
+_pick_variant -r variant gnu=GNU $OSTYPE --version
+
+case $variant in
+  gnu)
+    args=(
+      '(Q -a --all -b --boot -d --dead -l --login -p --process -q --count -r --runlevel -t --time -T -w --mesg --message --writable -u --users)'{-a,--all}'[same as -b -d --login -p -r -t -T -u]'
+      '(Q -b --boot)'{-b,--boot}'[print time of last system boot]'
+      '(Q -d --dead -a --all)'{-d,--dead}'[print dead processes]'
+      '(Q -H --heading)'{-H,--heading}'[print line of column headings]'
+      '(Q -l --login)'{-l,--login}'[print system login processes]'
+      '(Q)--lookup[canonicalize hostnames via DNS]'
+      '(Q)-m[print information about current terminal]'
+      '(Q -p --process)'{-p,--process}'[print active processes spawned by init]'
+      '(Q -r --runlevel)'{-r,--runlevel}'[print current runlevel]'
+      '(Q -t --time)'{-t,--time}'[print last system clock change]'
+      '(Q -T -w --mesg --message --writable)'{-T,-w,--mesg,--message,--writable}"[show user's message acceptance status as +, - or ?]"
+      '(Q -u --users)'{-u,--users}'[show idle time]'
+      '!(Q -a)-s' '!(Q -a)--short'
+      + Q
+      '(-)'{-q,--count}'[print only login names and number of users logged on]'
+      '(-)--help[display help information]'
+      '(-)--version[display version information]'
+    )
+  ;;
+  darwin*|dragonfly*|netbsd*|solaris*)
+    args=(
+      '(Q -a)-d[print dead processes]'
+      '(Q -a)-l[print system login processes]'
+      '(Q -a)-p[print active processes spawned by init]'
+      '(Q -a)-r[print current runlevel]'
+      '(Q -a)-t[print last system clock change]'
+    )
+  ;|
+  dragonfly*|netbsd*)
+    args+=( '(Q)-v[show process exit status, session id etc]' )
+  ;|
+  (net|free)bsd*|darwin*|dragonfly*|solaris*)
+    args+=(
+      '(Q -b -d -p -r -T -u)-a[print all entries]'
+      '(Q -a)-b[print time of last system boot]'
+      '!(Q -a)-s'
+    )
+  ;|
+  *)
+    args+=(
+      '(Q)-H[print line of column headings]'
+      '(Q)-m[print information about current terminal]'
+      "(Q -a)-T[show user's message acceptance status as +, - or ?]"
+      '(Q -a)-u[show idle time]'
+      + Q '(-a -b -d -H -l -m -p -r -s -t -T -v)-q[print only login names and number of users logged on]'
+    )
+  ;|
+  solaris*)
+    args+=(
+      '(-a -b -d -H -l -m -p -r -s -t -T)-n+[specify number of users to list per line]:number'
+    )
+  ;;
+esac
+
+_arguments -s -S ':file:_files' $args

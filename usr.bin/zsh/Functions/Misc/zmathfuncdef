@@ -1,0 +1,87 @@
+# Define a mathematical function with its definition and smart(ish)
+# guessing of the number of arguments.  Doesn't overload for different
+# numbers of arguments, but that could be done.  Type overloading would be
+# more fraught.
+
+emulate -L zsh
+setopt extendedglob
+local -a match mbegin mend line
+local func
+
+if (( $# > 2 )); then
+  print "Usage: $0 [name [body]]" >&2
+  return 1
+fi
+
+zmodload -i zsh/parameter || return 1
+
+if (( $# == 0 )); then
+  functions -M | while read -A line; do
+    func=${functions[$line[6]]}
+    if [[ $func = (#b)[[:space:]]#\(\([[:space:]]#(*[^[:space:]])[[:space:]]#\)\) ]]; then
+      print "zmathfuncdef $line[3] ${(qq)match[1]}"
+    fi
+  done
+  return 0
+fi
+
+local mname=$1
+local fname="zsh_math_func_$1"
+
+if (( $# == 1 )); then
+  functions +M $mname && unfunction $fname
+  return 0
+elif [[ -n $functions[$fname] ]]; then
+  functions +M $mname
+fi
+
+integer iarg=0 ioptarg
+local body=$2
+
+# count compulsory arguments
+while [[ $body = *'$'(\{|)$((iarg+1))(|[^:[:digit:]]*) ]]; do
+  (( iarg++ ))
+done
+
+# count optional arguments
+(( ioptarg = iarg ))
+while [[ $body = *'${'$((ioptarg+1))':-'* ]]; do
+  (( ioptarg++ ))
+done
+
+functions -M $mname $iarg $ioptarg $fname || return 1
+
+# See if we need to autoload a math function from the standard
+# library.
+if ! zmodload -e zsh/mathfunc; then
+  local -a mathfuncs match mbegin mend loads
+  local mathfuncpat bodysearch
+
+  # generate pattern to match all known math functions
+  mathfuncs=(abs acos acosh asin asinh atan atanh cbrt ceil cos cosh erf erfc
+    exp expm1 fabs float floor gamma int j0 j1 lgamma log log10 log1p logb
+    sin sinh sqrt tan tanh y0 y1 signgam copysign fmod hypot nextafter jn yn
+    ldexp scalb rand48)
+  mathfuncpat="(${(j.|.)mathfuncs})"
+  bodysearch=$body
+  while [[ $bodysearch = (#b)(*[^[:alnum]]|)([[:alnum:]]##)\((*) ]]; do
+    # save worrying about search order...
+    bodysearch=$match[1]$match[3]
+    if [[ $match[2] = ${~mathfuncpat} ]]; then
+      # Uses function from math library.
+      loads+=($match[2])
+    fi
+  done
+  if (( ${#loads} )); then
+    zmodload -af zsh/mathfunc $loads
+  fi
+fi
+
+{
+  eval "$fname() { (( $body )); true }"
+} always {
+  # Remove math function if shell function definition failed.
+  if (( TRY_BLOCK_ERROR )); then
+    functions +M $mname
+  fi
+}

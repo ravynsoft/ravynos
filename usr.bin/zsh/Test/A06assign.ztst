@@ -1,0 +1,732 @@
+# Tests of parameter assignments
+
+%prep
+  mkdir assign.tmp && cd assign.tmp
+
+  touch tmpfile1 tmpfile2
+
+%test
+
+ typeset -A assoc
+ assoc=(one 1 two 2 odd)
+1:assign to association with odd no. of values
+?(eval):2: bad set of key/value pairs for associative array
+
+# tests of array element assignment
+
+ array=(1 2 3 4 5)
+ array[1]=42
+ print $array
+0:Replacement of array element
+>42 2 3 4 5
+
+ array=(1 2 3 4 5)
+ array[1]=(42 43)
+ print $array
+0:Replacement of array element with array
+>42 43 2 3 4 5
+
+ array=(1 2 3 4 5)
+ array[1,2]=(42 43)
+ print $array
+0:Replacement of start of array
+>42 43 3 4 5
+
+ array=(1 2 3 4 5)
+ array[1,4]=(42 43)
+ print $array
+0:Replacement of start of array with shorter slice
+>42 43 5
+
+ array=(1 2 3 4 5)
+ array[1,6]=(42 43)
+ print $array
+0:Replacement of array by extending slice
+>42 43
+
+ array=(1 2 3 4 5)
+ array[3]=(42 43)
+ print $array
+0:Replacement of middle element with array
+>1 2 42 43 4 5
+
+ array=(1 2 3 4 5)
+ array[3,4]=(42 43 44)
+ print $array
+0:Replacement of slice in middle
+>1 2 42 43 44 5
+
+ array=(1 2 3 4 5)
+ array[7,8]=(42 43)
+ print $array
+ # check that [6] was left empty...
+ array[6]=41
+ print $array
+0:Appending by replacing elements off the end
+>1 2 3 4 5 42 43
+>1 2 3 4 5 41 42 43
+
+ array=(1 2 3 4 5)
+ array[-1]=42
+ print $array
+0:Replacement of last element of array, negative indices
+>1 2 3 4 42
+
+ array=(1 2 3 4 5)
+ array[-1]=(42 43)
+ print $array
+0:Replacement of last element of array with array, negative indices
+>1 2 3 4 42 43
+
+ array=(1 2 3 4 5)
+ array[-3,-2]=(42 43 44)
+ print $array
+0:Replacement of middle of array, negative indices
+>1 2 42 43 44 5
+
+ array=(1 2 3 4 5)
+ array[-5,-1]=(42 43)
+ print $array
+0:Replacement of entire array, negative indices
+>42 43
+
+ array=(1 2 3 4 5)
+ array[-7,-1]=(42 43)
+ print $array
+0:Replacement of more than entire array, negative indices
+>42 43
+
+ array=(1 2 3 4 5)
+ array[-7]=42
+ print $array
+0:Replacement of element off start of array.
+>42 1 2 3 4 5
+
+ array=(1 2 3 4 5)
+ array[-7]=42
+ array[-6]=43
+ print $array
+0:Replacement off start doesn't leave gaps.  Hope this is right.
+>43 1 2 3 4 5
+
+ array=(1 2 3 4 5)
+ array[1,-1]=(42 43)
+ print $array
+ array[-3,3]=(1 2 3 4 5)
+ print $array
+0:Replacement of entire array, mixed indices
+>42 43
+>1 2 3 4 5
+
+ array=(1 2 3 4 5)
+ array[-7,7]=(42 43)
+ print $array
+0:Replacement of more than entire array, mixed indices
+>42 43
+
+ array=(1 2 3 4 5)
+ array[3,-2]=(42 43 44)
+ print $array
+ array[-3,5]=(100 99)
+ print $array
+0:Replacement of slice in middle, mixed indices
+>1 2 42 43 44 5
+>1 2 42 100 99 5
+
+# (subsection: append to array)
+
+ array=( )
+ array[5,6]=( 1 2 3 )
+ print $array
+ print "${(q@)array}"
+0:Append to empty array by range
+>1 2 3
+>'' '' '' '' 1 2 3
+
+ array=( a )
+ array[5,6]=( 1 2 3 )
+ print $array
+ print "${(q@)array}"
+0:Append to 1-element array by range
+>a 1 2 3
+>a '' '' '' 1 2 3
+
+ array=( a b )
+ array[5,6]=( 1 2 3 )
+ print $array
+ print "${(q@)array}"
+0:Append to 2-element array by range
+>a b 1 2 3
+>a b '' '' 1 2 3
+
+ array=( a b )
+ array[5,5]=( 1 2 3 )
+ print $array
+ print "${(q@)array}"
+0:Append to 2-element array by [a,a] range
+>a b 1 2 3
+>a b '' '' 1 2 3
+
+ array=( a b c d )
+ array[5,6]=( 1 2 3 )
+ print $array
+ print "${(q@)array}"
+0:Append array by range, continuously
+>a b c d 1 2 3
+>a b c d 1 2 3
+
+ array=( a b c d )
+ array[5,5]=( 1 2 3 )
+ print $array
+ print "${(q@)array}"
+0:Append array by [a,a] range, continuously
+>a b c d 1 2 3
+>a b c d 1 2 3
+
+ array=( )
+ array+=( 1 2 3 )
+ print $array
+ print "${(q@)array}"
+0:Append empty array via +=
+>1 2 3
+>1 2 3
+
+ array=( a )
+ array+=( 1 2 3 )
+ print $array
+ print "${(q@)array}"
+0:Append 1-element array via +=
+>a 1 2 3
+>a 1 2 3
+
+# tests of array assignment using lastval ($?)
+
+  true
+  array=( $? )
+  print $array
+0:Assign $? to array (true)
+>0
+
+  false
+  array=( $? )
+  print $array
+0:Assign $? to array (false)
+>1
+
+  true
+  typeset array=( $? )
+  print $array
+0:Assign $? to array with typeset (true)
+>0
+
+  false
+  typeset array=( $? )
+  print $array
+0:Assign $? to array with typeset (false)
+>1
+
+  array=( )
+  true
+  array+=( $? )
+  false
+  array+=( $? )
+  print $array
+0:Append $? to array (true+false)
+>0 1
+
+# tests of var+=scalar
+
+ s+=foo
+ echo $s
+0:append scalar to unset scalar
+>foo
+
+ s=foo
+ s+=bar
+ echo $s
+0:append to scalar
+>foobar
+
+ set -- a b c
+ 2+=end
+ echo $2
+0:append to positional parameter
+>bend
+
+ a=(first second)
+ a+=last
+ print -l $a
+0:add scalar to array
+>first
+>second
+>last
+
+ setopt ksharrays
+ a=(first second)
+ a+=last
+ print -l $a
+ unsetopt ksharrays
+0:add scalar to array with ksharrays set
+>firstlast
+
+ a=(1 2)
+ a[@]+=3
+ print -l $a
+0:add scalar to array with alternate syntax
+>1
+>2
+>3
+
+ integer i=10
+ i+=20
+ (( i == 30 ))
+0:add to integer
+
+ float f=3.4
+ f+=2.3
+ printf "%g\n" f
+0:add to float
+>5.7
+
+ typeset -A hash
+ hash=(one 1)
+ hash+=string
+ [[ $hash[@] == string ]]
+0:add scalar to association
+
+# tests of var+=(array)
+
+ unset a
+ a+=(1 2 3)
+ print -l $a
+0:add array to unset parameter
+>1
+>2
+>3
+
+ a=(a)
+ a+=(b)
+ print -l $a
+0:add array to existing array
+>a
+>b
+
+ s=foo
+ s+=(bar)
+ print -l $s
+0:add array to scalar
+>foo
+>bar
+
+ integer i=1
+ i+=(2 3)
+ print -l $i
+0:add array to integer
+>1
+>2
+>3
+
+ float f=2.5
+ f+=(3.5 4.5)
+ printf '%g\n' $f
+0:add array to float
+>2.5
+>3.5
+>4.5
+
+ typeset -A h
+ h+=(a 1 b 2)
+ print -l $h
+0:add to empty association
+>1
+>2
+
+ typeset -A h
+ h=(a 1)
+ h+=(b 2 c 3)
+ print -l $h
+0:add to association
+>1
+>2
+>3
+
+ typeset -A h
+ h=(a 1 b 2)
+ h+=()
+ print -l $h
+0:add empty array to association
+>1
+>2
+
+# tests of var[range]+=scalar
+
+ s=sting
+ s[2]+=art
+ echo $s
+0:insert scalar inside another
+>starting
+
+ s=inert
+ s[-4]+=s
+ echo $s
+0:insert scalar inside another with negative index
+>insert
+
+ s=append
+ s[2,6]+=age
+ echo $s
+0:append scalar to scalar using a range
+>appendage
+
+ s=123456789
+ s[3,-5]+=X
+ echo $s
+0:insert scalar inside another, specifying a slice
+>12345X6789
+
+ a=(a b c)
+ a[2]+=oo
+ echo $a
+0:append to array element
+>a boo c
+
+ a=(a b c d)
+ a[-2]+=ool
+ echo $a
+0:append to array element with negative index
+>a b cool d
+
+ a=(a b c d)
+ a[2,-1]+=oom
+ echo $a
+0:append to array element, specifying a slice
+>a b c doom
+
+ setopt ksharrays
+ a=(a b c d)
+ a[0]+=0
+ echo $a
+ unsetopt ksharrays
+0:append to array element with ksharrays set
+>a0
+
+ typeset -A h
+ h=(one foo)
+ h[one]+=bar
+ echo $h
+0:append to association element
+>foobar
+
+ typeset -A h
+ h[foo]+=bar
+ echo ${(kv)h}
+0:append to non-existent association element
+>foo bar
+
+ typeset -A h
+ h=(one a two b three c four d)
+ h[(I)*o*]+=append
+1:attempt to append to slice of association
+?(eval):3: h: attempt to set slice of associative array
+
+ integer i=123
+ i[2]+=6
+1:attempt to add to indexed integer variable
+?(eval):2: attempt to add to slice of a numeric variable
+
+ float f=1234.5
+ f[2,4]+=3
+1:attempt to add to slice of float variable
+?(eval):2: attempt to add to slice of a numeric variable
+
+ unset u
+ u[3]+=third
+ echo $u[1]:$u[3]
+0:append to unset variable with index
+>:third
+ 
+# tests of var[range]+=(array)
+
+ a=(1 2 3)
+ a[2]+=(a b)
+ echo $a
+0:insert array inside another
+>1 2 a b 3
+
+ a=(a b c)
+ a[-1]+=(d)
+ echo $a
+0:append to array using negative index
+>a b c d
+
+ a=(1 2 3 4)
+ a[-1,-3]+=(x)
+ echo $a
+0:insert array using negative range
+>1 2 x 3 4
+
+ s=string
+ s[2]+=(a b)
+1:attempt to insert array into string
+?(eval):2: s: attempt to assign array value to non-array
+
+ integer i=365
+ i[2]+=(1 2)
+1:attempt to insert array into string
+?(eval):2: i: attempt to assign array value to non-array
+
+ typeset -A h
+ h=(a 1)
+ h[a]+=(b 2)
+1:attempt to append array to hash element
+?(eval):3: h: attempt to set slice of associative array
+
+ unset u
+ u[-34,-2]+=(a z)
+ echo $u
+0:add array to indexed unset variable
+>a z
+
+ repeat 10 PATH=. echo hello
+0:saving and restoring of exported special parameters
+>hello
+>hello
+>hello
+>hello
+>hello
+>hello
+>hello
+>hello
+>hello
+>hello
+
+ repeat 10 FOO=BAR BAR=FOO echo $FOO $BAR
+0:save and restore multiple variables around builtin
+>
+>
+>
+>
+>
+>
+>
+>
+>
+>
+
+  call() { print $HELLO; }
+  export HELLO=world
+  call
+  HELLO=universe call
+  call
+  HELLO=${HELLO}liness call
+  call
+  unset HELLO
+0:save and restore when using original value in temporary
+>world
+>universe
+>world
+>worldliness
+>world
+
+ (integer i n x
+ float f
+ setopt globassign
+ i=tmpfile1
+ n=tmpf*
+ x=*2
+ f=2+2
+ typeset -p i n x f)
+0:GLOB_ASSIGN with numeric types
+>typeset -i i=0
+>typeset -a n=( tmpfile1 tmpfile2 )
+>typeset x=tmpfile2
+>typeset -E f=4.000000000e+00
+
+  setopt globassign
+  foo=tmpf*
+  print $foo
+  unsetopt globassign
+  foo=tmpf*
+  print $foo
+0:GLOB_ASSIGN option
+>tmpfile1 tmpfile2
+>tmpf*
+
+  (setopt globassign
+  typeset -A foo
+  touch gatest1 gatest2
+  foo=(gatest*)
+  print ${(t)foo}
+  rm -rf gatest*)
+0:GLOB_ASSIGN doesn't monkey with type if not scalar assignment.
+>association-local
+
+ A=(first second)
+ A="${A[*]}" /bin/sh -c 'echo $A'
+ print -l "${A[@]}"
+0:command execution with assignments shadowing array parameter
+>first second
+>first
+>second
+
+ setopt ksharrays
+ A=(first second)
+ A="${A[*]}" /bin/sh -c 'echo $A'
+ print -l "${A[@]}"
+ unsetopt ksharrays
+0:command execution with assignments shadowing array parameter with ksharrays
+>first second
+>first
+>second
+
+ typeset -aU unique_array=(first second)
+ unique_array[1]=second
+ print $unique_array
+0:assignment to unique array
+>second
+
+ typeset -a array=(first)
+ array[1,3]=(FIRST)
+ print $array
+0:slice beyond length of array
+>FIRST
+
+# tests of string assignments
+
+ a="abc"
+ a[1]=x
+ print $a
+0:overwrite first character in string
+>xbc
+
+ a="abc"
+ a[2]="x"
+ print $a
+0:overwrite middle character in string
+>axc
+
+ a="abc"
+ a[3]="x"
+ print $a
+0:overwrite last character in string
+>abx
+
+ a="abc"
+ a[-1]="x"
+ print $a
+0:overwrite -1 character in string
+>abx
+
+ a="abc"
+ a[-2]="x"
+ print $a
+0:overwrite -2 character (middle) in string
+>axc
+
+ a="ab"
+ a[-2]="x"
+ print $a
+0:overwrite -2 character (first) in string
+>xb
+
+ a="abc"
+ a[-3]="x"
+ print $a
+0:overwrite -3 character (first) in string
+>xbc
+
+ a="abc"
+ a[-4]="x"
+ print $a
+0:overwrite -4 character (before first) in string
+>xabc
+
+ a="abc"
+ a[-5]="x"
+ print $a
+0:overwrite -5 character (before-before first) in string
+>xabc
+
+ a="abc"
+ a[-4,0]="x"
+ print $a
+0:overwrite [-4,0] characters (before first) in string
+>xabc
+
+ a="abc"
+ a[-4,-4]="x"
+ print $a
+0:overwrite [-4,-4] character (before first) in string
+>xabc
+
+ a="abc"
+ a[-40,-30]="x"
+ print $a
+0:overwrite [-40,-30] characters (far before first) in string
+>xabc
+
+ a="abc"
+ a[-40,1]="x"
+ print $a
+0:overwrite [-40,1] characters in short string
+>xbc
+
+ a="abc"
+ a[-40,40]="x"
+ print $a
+0:overwrite [-40,40] characters in short string
+>x
+
+ a="abc"
+ a[2,40]="x"
+ print $a
+0:overwrite [2,40] characters in short string
+>ax
+
+ a="abc"
+ a[2,-1]="x"
+ print $a
+0:overwrite [2,-1] characters in short string
+>ax
+
+ a="abc"
+ a[-2,-1]="x"
+ print $a
+0:overwrite [-2,-1] characters in short string
+>ax
+
+ a="a"
+ a[-1]="xx"
+ print $a
+0:overwrite [-1] character with "xx"
+>xx
+
+ a="a"
+ a[-2]="xx"
+ print $a
+0:overwrite [-2] character (before first) with "xx"
+>xxa
+
+ a="a"
+ a[2]="xx"
+ print $a
+0:overwrite [2] character (after last) with "xx"
+>axx
+
+ a=""
+ a[1]="xx"
+ print $a
+0:overwrite [1] character (string: "") with "xx"
+>xx
+
+ a=""
+ a[-1]="xx"
+ print $a
+0:overwrite [-1] character (string: "") with "xx"
+>xx
+
+ a=""
+ a[2]="xx"
+ print $a
+0:overwrite [2] character (string: "") with "xx"
+>xx

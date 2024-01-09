@@ -1,0 +1,40 @@
+#compdef -value-,LD_DEBUG,-default-
+
+local vals
+
+vals=(
+  'libs[display library search paths]'
+  'files[show processing of files and libraries]'
+  'bindings[display symbol binding]'
+  'reloc[display relocation processing]'
+  'symbols[display symbol table processing]'
+  'unused[show unused files]'
+  'versions[show version processing]'
+  'help[display help message]'
+)
+
+case $OSTYPE in
+  solaris*)
+    vals+=(
+      'basic[provide basic trace information/warnings]'
+      'cap[display hardware/software capability processing]'
+      'detail[provide more info in conjunction with other options]'
+      'demangle[display C++ symbol names in their demangled form]'
+      'init[display init and fini processing]'
+      'long[display long object names without truncation]'
+      'move[display move section processing]'
+      'segments[display available output segments and address/offset processing]'
+      'strtab[display information about string table compression]'
+      'tls[display TLS processing info]'
+    )
+  ;;
+  linux*)
+    vals+=(
+      'all[combine all options]'
+      'scopes[display scope information]'
+      'statistics[display relocation statistics]'
+    )
+  ;;
+esac
+_values -s , capability $vals
+  

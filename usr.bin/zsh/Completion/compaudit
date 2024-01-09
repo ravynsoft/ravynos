@@ -1,0 +1,176 @@
+# So that this file can also be read with `.' or `source' ...
+compaudit() {                           # Define and then call
+
+# Audit the fpath to assure that it contains all the directories needed by
+# the completion system, and that those directories are at least unlikely
+# to contain dangerous files.  This is far from perfect, as the modes or
+# ownership of files or directories might change between the time of the
+# audit and the time the function is executed.
+
+# This function is designed to be called from compinit, which assumes that
+# it is in the same directory, i.e., it can be autoloaded from the initial
+# fpath as compinit was.  Most local parameter names in this function must
+# therefore be the same as those used in compinit.
+
+emulate -L zsh
+setopt extendedglob
+
+[[ -n $commands[getent] ]] || getent() {
+  if [[ $1 = hosts ]]; then
+    sed 's/#.*//' /etc/$1 | grep -w $2
+  elif [[ $2 = <-> ]]; then
+    grep ":$2:[^:]*$" /etc/$1
+  else
+    grep "^$2:" /etc/$1
+  fi
+}
+
+# The positional parameters are the directories to check, else fpath.
+if (( $# )); then
+  local _compdir=''
+elif (( $#fpath == 0 )); then
+  print 'compaudit: No directories in $fpath, cannot continue' 1>&2
+  return 1
+else
+  set -- $fpath
+fi
+
+# _i_check is defined by compinit; used here as a test for whether this
+# function is running standalone or was called by compinit.  If called
+# by compinit, we use parameters that are defined in compinit's scope,
+# otherwise we make them local here.
+(( $+_i_check )) || {
+  local _i_q _i_line _i_file _i_fail=verbose
+  local -a _i_files _i_addfiles _i_wdirs _i_wfiles
+  local -a -U +h fpath
+}
+
+fpath=( $* )
+
+# _compdir may be defined by the user; see the compinit documentation.
+# If it isn't defined, we want it to point somewhere sensible, but the
+# user is allowed to set it to empty to bypass the check below.
+(( $+_compdir )) || {
+  local _compdir=${fpath[(r)*/$ZSH_VERSION/*]}
+  [[ -z $_compdir ]] && _compdir=$fpath[1]
+  ### [[ -d $_compdir/../Base ]] && _compdir=${_compdir:h}
+}
+
+_i_wdirs=()
+_i_wfiles=()
+
+_i_files=( ${^~fpath:/.}/^([^_]*|*~|*.zwc)(N) )
+if [[ -n $_compdir ]]; then
+  if [[ $#_i_files -lt 20 || $_compdir = */Base || -d $_compdir/Base ]]; then
+    # Too few files: we need some more directories, or we need to check
+    # that all directories (not just Base) are present.
+    _i_addfiles=()
+    if [[ -d $_compdir/Base/Core ]]; then
+      # Add all the Completion subdirectories (CVS-layout)
+      _i_addfiles=(${_compdir}/*/*(/^M))
+    elif [[ -d $_compdir/Base ]]; then
+      # Likewise (installation-layout)
+      _i_addfiles=(${_compdir}/*(/^M))
+    fi
+    for _i_line in {1..$#_i_addfiles}; do
+      (( $_i_line )) || break
+      _i_file=${_i_addfiles[$_i_line]}
+      [[ -d $_i_file && -z ${fpath[(r)$_i_file]} ]] ||
+        _i_addfiles[$_i_line]=
+    done
+    fpath=($fpath $_i_addfiles)
+    _i_files=( ${^~fpath:/.}/^([^_]*|*~|*.zwc)(N) )
+  fi
+fi
+
+[[ $_i_fail == use ]] && return 0
+
+# We will always allow files to be owned by root and the owner of the
+# present process.
+local _i_owners="u0u${EUID}"
+
+# Places we will look for a link to the executable
+local -a _i_exes
+_i_exes=(
+    /proc/$$/exe
+    /proc/$$/object/a.out
+    )
+local _i_exe
+
+# If we can find out who owns the executable, we will allow files to
+# be owned by that user, too.  The argument is that if you don't trust
+# the owner of the executable, it's way too late to worry about it now...
+for _i_exe in $_i_exes; do
+  if [[ -e $_i_exe ]] ;then
+    if zmodload -F zsh/stat b:zstat 2>/dev/null; then
+      local -A _i_stathash
+      if zstat -H _i_stathash $_i_exe &&
+	[[ $_i_stathash[uid] -ne 0 ]]; then
+	_i_owners+="u${_i_stathash[uid]}"
+      fi
+    fi
+    break
+  fi
+done
+
+# We search for:
+# - world/group-writable directories in fpath not owned by $_i_owners
+# - parent-directories of directories in fpath that are world/group-writable
+#   and not owned by $_i_owners (that would allow someone to put a
+#   digest file for one of the directories into the parent directory)
+# - digest files for one of the directories in fpath not owned by $_i_owners
+# - and for files in directories from fpath not owned by $_i_owners
+#   (including zwc files)
+
+_i_wdirs=( ${^fpath}(N-f:g+w:,-f:o+w:,-^${_i_owners})
+           ${^fpath:h}(N-f:g+w:,-f:o+w:,-^${_i_owners}) )
+
+# RedHat Linux "per-user groups" check.  This is tricky, because it's very
+# difficult to tell whether the sysadmin has put someone else into your
+# "private" group (e.g., via the default group field in /etc/passwd, or
+# by NFS group sharing with an untrustworthy machine).  So we must assume
+# that this has not happened, and pick the best group.
+
+if (( $#_i_wdirs )); then
+  local GROUP GROUPMEM _i_pw _i_gid
+  if ((UID == EUID )); then
+    getent group $LOGNAME | IFS=: read GROUP _i_pw _i_gid GROUPMEM
+  else
+    getent group $EGID | IFS=: read GROUP _i_pw _i_gid GROUPMEM
+  fi
+
+  if [[ $GROUP == $LOGNAME && ( -z $GROUPMEM || $GROUPMEM == $LOGNAME ) ]]
+  then
+    _i_wdirs=( ${^_i_wdirs}(N-f:g+w:^g:${GROUP}:,-f:o+w:,-^${_i_owners}) )
+  fi
+fi
+
+if [[ -f /etc/debian_version ]]
+then
+  local _i_ulwdirs
+  _i_ulwdirs=( ${(M)_i_wdirs:#/usr/local/*} )
+  _i_wdirs=( ${_i_wdirs:#/usr/local/*} ${^_i_ulwdirs}(Nf:g+ws:^g:staff:,f:o+w:,^u0) )
+fi
+
+_i_wdirs=( $_i_wdirs ${^fpath}.zwc^([^_]*|*~)(N-^${_i_owners}) )
+_i_wfiles=( ${^fpath}/^([^_]*|*~)(N-^${_i_owners}) )
+
+case "${#_i_wdirs}:${#_i_wfiles}" in
+(0:0) _i_q= ;;
+(0:*) _i_q=files ;;
+(*:0) _i_q=directories ;;
+(*:*) _i_q='directories and files' ;;
+esac
+
+if [[ -n "$_i_q" ]]; then
+  [[ $_i_fail == verbose ]] && {
+    print There are insecure ${_i_q}: 1>&2
+    print -l - $_i_wdirs $_i_wfiles
+  }
+  return 1
+fi
+return 0
+
+}                                       # Define and then call
+
+compaudit "$@"

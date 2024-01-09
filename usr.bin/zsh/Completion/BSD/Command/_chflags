@@ -1,0 +1,23 @@
+#compdef chflags
+
+local args own='-g *(-u$EUID)'
+
+(( ! EUID || $+_comp_priv_prefix )) && own=
+
+if [[ $OSTYPE = (darwin|dragonfly|freebsd)* ]]; then
+  args=(
+    "-f[don't display diagnostic messages]"
+    '-v[verbose output]'
+  )
+fi
+
+_arguments -s -A "-*" : $args \
+  ': :_file_flags' \
+  '*:file:_files "$own"' \
+  - opth \
+  '-h[act on symlinks]' \
+  - optR \
+  '-R[recurse directories]' \
+  '(-L -P)-H[follow symlinks on the command line (specify with -R)]' \
+  '(-H -P)-L[follow all symlinks (specify with -R)]' \
+  '(-L -H)-P[do not follow symlinks (specify with -R)]'

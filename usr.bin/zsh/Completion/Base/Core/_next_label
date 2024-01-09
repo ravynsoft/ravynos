@@ -1,0 +1,25 @@
+#autoload
+
+local __gopt __descr __spec
+
+__gopt=()
+zparseopts -D -a __gopt 1 2 V J x
+
+if comptags -A "$1" curtag __spec; then
+  (( $#funcstack > _tags_level )) && _comp_tags="${_comp_tags% * }"
+  _tags_level=$#funcstack
+  _comp_tags="$_comp_tags $__spec "
+  if [[ "$curtag" = *[^\\]:* ]]; then
+    zformat -f __descr "${curtag#*:}" "d:$3"
+    _description "$__gopt[@]" "${curtag%:*}" "$2" "$__descr"
+    curtag="${curtag%:*}"
+    set -A $2 "${(P@)2}" "${(@)argv[4,-1]}"
+  else
+    _description "$__gopt[@]" "$curtag" "$2" "$3"
+    set -A $2 "${(@)argv[4,-1]}" "${(P@)2}"
+  fi
+
+  return 0
+fi
+
+return 1

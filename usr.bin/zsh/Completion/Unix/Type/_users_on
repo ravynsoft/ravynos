@@ -1,0 +1,11 @@
+#compdef write
+
+local expl
+
+if (( $+commands[users] )); then
+  _wanted users expl 'users logged on' \
+      compadd "$@" - $(_call_program users users) && return 0
+else
+  # Other methods of finding out users logged on should be added here
+  return 1
+fi

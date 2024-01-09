@@ -1,0 +1,495 @@
+# Tests corresponding to the texinfo node `Arithmetic Evaluation'
+
+%test
+
+  integer light there
+  (( light = 42 )) &&
+  let 'there = light' &&
+  print $(( there ))
+0:basic integer arithmetic
+>42
+
+  float light there
+  integer rnd
+  (( light = 3.1415 )) &&
+  let 'there = light' &&
+  print -- $(( rnd = there * 10000 ))
+# save rounding problems by converting to integer
+0:basic floating point arithmetic
+>31415
+
+  integer rnd
+  (( rnd = ((29.1 % 13.0 * 10) + 0.5) ))
+  print $rnd
+0:Test floating point modulo function
+>31
+
+  print $(( 0x10 + 0X01 + 2#1010 ))
+0:base input
+>27
+
+  float light
+  (( light = 4 ))
+  print $light
+  typeset -F light
+  print $light
+0:conversion to float
+>4.000000000e+00
+>4.0000000000
+
+  integer i
+  (( i = 32.5 ))
+  print $i
+0:conversion to int
+>32
+
+  integer i
+  (( i = 4 - - 3 * 7 << 1 & 7 ^ 1 | 16 ** 2 ))
+  print $i
+0:precedence (arithmetic)
+>1591
+
+  fn() {
+    setopt localoptions c_precedences
+    integer i
+    (( i = 4 - - 3 * 7 << 1 & 7 ^ 1 | 16 ** 2 ))
+    print $i
+  }
+  fn
+0:precedence (arithmetic, with C_PRECEDENCES)
+>259
+
+  print $(( 1 < 2 || 2 < 2 && 3 > 4 ))
+0:precedence (logical)
+>1
+
+  print $(( 1 + 4 ? 3 + 2 ? 4 + 3 ? 5 + 6 ? 4 * 8 : 0 : 0 : 0 : 0 ))
+0:precedence (ternary)
+>32
+
+  print $(( 3 ? 2 ))
+1:parsing ternary (1)
+?(eval):1: bad math expression: ':' expected
+
+  print $(( 3 ? 2 : 1 : 4 ))
+1:parsing ternary (2)
+?(eval):1: bad math expression: ':' without '?'
+
+  print $(( 0, 4 ? 3 : 1, 5 ))
+0:comma operator
+>5
+
+  foo=000
+  print $(( ##A + ##\C-a + #foo + $#foo ))
+0:#, ## and $#
+>117
+
+  print $((##))
+1:## without following character
+?(eval):1: bad math expression: character missing after ##
+
+  print $((## ))
+0:## followed by a space
+>32
+
+  integer i
+  (( i = 3 + 5 * 1.75 ))
+  print $i
+0:promotion to float
+>11
+
+  typeset x      &&
+  (( x = 3.5 ))  &&
+  print $x       &&
+  (( x = 4 ))    &&
+  print $x
+0:use of scalars to store integers and floats
+>3.5
+>4
+
+  (( newarray[unsetvar] = 1 ))
+2:error using unset variable as index
+?(eval):1: newarray: assignment to invalid subscript range
+
+  integer setvar=1
+  (( newarray[setvar]++ ))
+  (( newarray[setvar]++ ))
+  print ${(t)newarray} ${#newarray} ${newarray[1]}
+0:setting array elements in math context
+>array 1 2
+
+  xarr=()
+  (( xarr = 3 ))
+  print ${(t)xarr} $xarr
+0:converting type from array
+>integer 3
+
+  print $(( 13 = 42 ))
+1:bad lvalue
+?(eval):1: bad math expression: lvalue required
+
+  x=/bar
+  (( x = 32 ))
+  print $x
+0:assigning to scalar which contains non-math string
+>32
+
+  print $(( ))
+0:empty math parse e.g. $(( )) acts like a zero
+>0
+
+  print $(( a = ))
+1:empty assignment
+?(eval):1: bad math expression: operand expected at end of string
+
+  print $(( 3, ))
+1:empty right hand of comma
+?(eval):1: bad math expression: operand expected at end of string
+
+  print $(( 3,,4 ))
+1:empty middle of comma
+?(eval):1: bad math expression: operand expected at `,4 '
+
+  print $(( (3 + 7, 4), 5 ))
+0:commas and parentheses, part 1
+>5
+
+  print $(( 5, (3 + 7, 4) ))
+0:commas and parentheses, part 1
+>4
+
+  print $(( 07.5 ))
+  (setopt octalzeroes; print $(( 09.5 )))
+0:leading zero doesn't affect floating point
+>7.5
+>9.5
+
+  (setopt octalzeroes; print $(( 09 )))
+1:octalzeroes rejects invalid constants
+?(eval):1: bad math expression: operator expected at `9 '
+
+  (setopt octalzeroes; print $(( 08#77 )))
+0:octalzeroes doesn't affect bases
+>63
+
+  print $(( 36#z ))
+0:bases up to 36 work
+>35
+
+  print $(( 37#z ))
+1:bases beyond 36 don't work
+?(eval):1: invalid base (must be 2 to 36 inclusive): 37
+
+  fail=39
+  print $(( 3 + "fail" ))
+0:Double quotes are not treated specially in arithmetic
+>42
+
+  alias 3=echo
+  print $(( 3 + "OK"); echo "Worked")
+0:not a parse failure because not arithmetic
+>+ OK Worked
+
+  fn() {
+    emulate -L zsh
+    print $(( [#16] 255 ))
+    print $(( [##16] 255 ))
+    setopt cbases
+    print $(( [#16] 255 ))
+    print $(( [##16] 255 ))
+  }
+  fn
+0:doubled # in base removes radix
+>16#FF
+>FF
+>0xFF
+>FF
+
+  array=(1)
+  x=0
+  (( array[++x]++ ))
+  print $x
+  print $#array
+  print $array
+0:no double increment for subscript
+>1
+>1
+>2
+
+  # This is a bit naughty...  the value of array
+  # isn't well defined since there's no sequence point
+  # between the increments of x, however we just want
+  # to be sure that in this case, unlike the above,
+  # x does get incremented twice.
+  x=0
+  array=(1 2)
+  (( array[++x] = array[++x] + 1 ))
+  print $x
+0:double increment for repeated expression
+>2
+
+  # Floating point.  Default precision should take care of rounding errors.
+  print $(( 1_0.000_000e0_1 ))
+  # Integer.
+  print $(( 0x_ff_ff_ ))
+  # _ are parts of variable names that don't start with a digit
+  __myvar__=42
+  print $(( __myvar__ + $__myvar__ ))
+  # _ is not part of variable name that does start with a digit
+  # (which are substituted before math eval)
+  set -- 6
+  print $(( $1_000_000 ))
+  # Underscores in expressions with no whitespace
+  print $(( 3_000_+4_000_/2 ))
+  # Underscores may appear in the base descriptor, for what it's worth...
+  print $(( 1_6_#f_f_ ))
+0:underscores in math constants
+>100.
+>65535
+>84
+>6000000
+>5000
+>255
+
+  # Force floating point.
+  for expr in "3/4" "0x100/0x200" "0x30/0x10"; do
+    print $(( $expr ))
+    setopt force_float
+    print $(( $expr ))
+    unsetopt force_float
+  done
+0:Forcing floating point constant evaluation, or not.
+>0
+>0.75
+>0
+>0.5
+>3
+>3.
+
+  print $(( 0x30 + 0.5 ))
+  print $(( 077 + 0.5 ))
+  (setopt octalzeroes; print $(( 077 + 0.5 )) )
+0:Mixed float and non-decimal integer constants
+>48.5
+>77.5
+>63.5
+
+  underscore_integer() {
+    setopt cbases localoptions
+    print $(( [#_] 1000000 ))
+    print $(( [#16_] 65536 ))
+    print $(( [#16_4] 65536 * 32768 ))
+  }
+  underscore_integer
+0:Grouping output with underscores: integers
+>1_000_000
+>0x10_000
+>0x8000_0000
+
+  print $(( [#_] (5. ** 10) / 16. ))
+0:Grouping output with underscores: floating point
+>610_351.562_5
+
+  env SHLVL=1+RANDOM $ZTST_testdir/../Src/zsh -f -c 'print $SHLVL'
+0:Imported integer functions are not evaluated
+>2
+
+  print $(( 0b0 + 0b1 + 0b11 + 0b110 ))
+0:Binary input
+>10
+
+  print $(( 0b2 ))
+1:Binary numbers don't tend to have 2's in
+?(eval):1: bad math expression: operator expected at `2 '
+# ` for emacs shell mode
+
+  in=1 info=2 Infinity=3 Inf=4
+  print $(( in )) $(( info )) $(( Infinity )) $(( $Inf )) $(( inf )) $(( INF )) $(( Inf )) $(( iNF ))
+0:Infinity parsing
+>1 2 3 4 Inf Inf Inf Inf
+
+  integer Inf
+  print $(( Inf[0] ))
+1:Refer to Inf with an array subscript
+?(eval):2: bad base syntax
+
+  (( NaN = 1 ))
+2:Assign to NaN
+?(eval):1: bad math expression: lvalue required
+
+  a='Inf'
+  (( b = 1e500 ))
+  print $((1e500)) $(($((1e500)))) $(( a )) $b $(( b )) $(( 3.0 / 0 ))
+0:Overflow to infinity
+>Inf Inf Inf Inf Inf Inf
+
+  print $((1e500))
+  print $(( $((1e500)) ))
+0:Reinput infinity value into math context
+>Inf
+>Inf
+
+  print $((1e500/1e500)) $((-1e500/1e500)) $(( 24. % 0 ))
+0:NaN results
+>NaN NaN NaN
+
+  (( 3 / 0 ))
+2:Integer division by zero
+?(eval):1: division by zero
+
+  integer varassi
+  print $(( varassi = 5.5 / 2.0 ))
+  print $varassi
+0:Integer variable assignment converts result to integer
+>2
+>2
+# It's hard to test for integer to float.
+
+  integer ff1=3 ff2=4
+  print $(( ff1/ff2 ))
+  setopt force_float
+  print $(( ff1/ff2 ))
+  unsetopt force_float
+0:Variables are forced to floating point where necessary
+# 0.75 is exactly representable, don't expect rounding error.
+>0
+>0.75
+
+  # The following tests for a bug that only happens when
+  # backing up over input read a line at a time, so we'll
+  # read the input from stdin.
+  $ZTST_testdir/../Src/zsh -f <<<'
+  print $((echo first command
+  ); echo second command)
+  print third command
+  '
+0:Backing up a line of input when finding out it's not arithmetic
+>first command second command
+>third command
+
+  $ZTST_testdir/../Src/zsh -f <<<'
+  print $((3 +
+  4))
+  print next line
+  '
+0:Not needing to back up a line when reading multiline arithmetic
+>7
+>next line
+
+  $ZTST_testdir/../Src/zsh -f <<<'
+  print $((case foo in
+  bar)
+  echo not this no, no
+  ;;
+  foo)
+  echo yes, this one
+  ;;
+  esac)
+  print after case in subshell)
+  '
+0:Non-arithmetic subst with command substitution parse from hell
+>yes, this one after case in subshell
+
+  print "a$((echo one subst)
+  (echo two subst))b"
+0:Another tricky case that is actually a command substitution
+>aone subst
+>two substb
+
+  print "x$((echo one frob); (echo two frob))y"
+0:Same on a single line
+>xone frob
+>two froby
+
+  # This case actually only works by accident: if it wasn't for the
+  # unbalanced parenthesis this would be a valid math substitution.
+  # Hence it's definitely not recommended code.  However, it does give
+  # the algorithm an extra check.
+  print $((case foo in
+  foo)
+  print Worked OK
+  ;;
+  esac))
+0:Would-be math expansion with extra parenthesis making it a cmd subst
+>Worked OK
+
+  (setopt extendedglob
+  set -- 32.463
+  print ${$(( $1 * 100 ))%%.[0-9]#})
+0:Arithmetic substitution nested in parameter substitution
+>3246
+
+  print $((`:`))
+0:Null string in arithmetic evaluation after command substitution
+>0
+
+  print $(( 1 + $(( 2 + 3 )) ))
+  print $(($((3+4))))
+  print $((1*$((2*$((3))*4))*5))
+0:Nested math substitutions.  Yes, I know, very useful.
+>6
+>7
+>120
+
+  foo="(1)"
+  print $((foo))
+  print $(($foo))
+  print $(((2)))
+  foo="3)"
+  (print $((foo))) 2>&1
+  (print $(($foo))) 2>&1
+1: Good and bad trailing parentheses
+>1
+>1
+>2
+>(eval):6: bad math expression: unexpected ')'
+>(eval):7: bad math expression: unexpected ')'
+
+  unset number
+  (( number = 3 ))
+  print ${(t)number}
+  unset number
+  (setopt posix_identifiers
+  (( number = 3 ))
+  print ${(t)number})
+0:type of variable when created in arithmetic context
+>integer
+>scalar
+
+  integer a=1
+  print $(( ++a * 2 ))
+  print $(( ++a ))
+  print $(( a++ * 2 ))
+  print $(( a ))
+  print $(( ++a++ * 2 ))
+1: Allow rvalue but not lvalue operations with result of increment
+>4
+>3
+>6
+>4
+?(eval):6: bad math expression: lvalue required
+
+  print $(( -2#101-16#f ))
+0: Unary minus doesn't apply to base but to number as a whole.
+>-20
+
+  ( set -o nounset
+  true $(( noexist + 1 ))
+  echo 'should never get here' )
+1:Arithmetic, NO_UNSET part 1
+?(eval):2: noexist: parameter not set
+
+  ( setopt nounset
+  (( noexist++ )) )
+2:Arithmetic, NO_UNSET part 2
+?(eval):2: noexist: parameter not set
+
+  ( unsetopt unset
+  let noexist==0 )
+1:Arithmetic, NO_UNSET part 3
+?(eval):2: noexist: parameter not set
+
+  print $(( "6+2" / "1+3" ))
+0:Double quotes are not treated specially in arithmetic (POSIX)
+# and do not do grouping!  this is 6 + (2/1) + 3
+>11

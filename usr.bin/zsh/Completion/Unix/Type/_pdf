@@ -1,0 +1,20 @@
+#compdef pdf2dsc pdf2ps pdfimages pdfinfo pdftopbm pdftops pdftotext pdfopt pdffonts kpdf apvlv epdfview
+
+local expl ext=''
+
+# ghostscript:
+#  pdf2dsc pdf2ps pdfopt
+# xpdf:
+#  pdfimages pdfinfo pdftopbm pdftops pdftotext xpdf pdffonts
+# KDE 3:
+#  kpdf
+# KDE 4:
+#  okular
+
+if [[ "$1" == '-z' ]]; then
+  ext='(|.bz2|.gz|.Z)'
+  shift
+fi
+
+_description files expl 'PDF file'
+_files "$@" "$expl[@]" -g "*.(#i)pdf$ext(-.)"

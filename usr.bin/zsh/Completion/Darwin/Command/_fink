@@ -1,0 +1,168 @@
+#compdef fink
+
+_fink_get_packages_with_cache(){
+  local cache_policy
+  zstyle -s ":completion:${curcontext}:" cache-policy cache_policy
+  if [[ -z "$cache_policy" ]]; then
+    zstyle ":completion:${curcontext}:" cache-policy _finkpkgs_caching_policy
+  fi
+
+  typeset -g -a _fink_pkgs
+  local expl
+
+  if ( (( #_fink_pkgs == 0 )) || _cache_invalid finkpkgs) \
+       && ! _retrieve_cache finkpkgs; then
+    _fink_pkgs=(${(f)"$(
+      command fink list --tab \
+      | command grep -v '\[virtual package\]' \
+      | command sed 's/^   / n /' \
+      | command cut -f1,2
+    )"})
+    _store_cache finkpkgs _fink_pkgs
+  fi
+
+  if (( # > 0 )); then
+    local i
+    for i in "$@"; do
+      case "$i" in
+        -i) packages+=(${${(M)_fink_pkgs:#?i?*}#*	}) ;;
+        -o) packages+=(${${(M)_fink_pkgs:#(i)*}#*	}) ;;
+        -n) packages+=(${${(M)_fink_pkgs:# n *}#*	}) ;;
+      esac
+    done
+  else
+    packages=(${_fink_pkgs#*	})
+  fi
+}
+
+_fink_get_packages_without_cache(){
+  local expl
+
+  packages=(${(f)"$(
+    command fink list -t "$@" "$PREFIX" \
+    | command grep -v '\[virtual package\]' \
+    | command cut -f2
+  )"})
+}
+
+_fink_get_packages(){
+  # variable packages will be set
+  if zstyle -t ":completion:${curcontext}:" use-cache; then
+    _fink_get_packages_with_cache "$@"
+  else
+    _fink_get_packages_without_cache "$@"
+  fi
+}
+
+_finkpkgs_caching_policy(){
+  local -a oldp
+  oldp=( "$1"(Nmw+1) )
+  (( $#oldp )) ||
+    [[ /sw/var/cache/apt/pkgcache.bin -nt "$1" ]] ||
+    [[ /sw/var/lib/dpkg/available -nt "$1" ]]
+}
+
+_fink(){
+  local -a _1st_arguments
+  _1st_arguments=(
+    'install:install or update packages'
+    'remove:remove packages'
+    'purge:remove packages and configuration files'
+    'update-all:update all installed packages to the latest version'
+    'list:search package name or conditions and list'
+    'apropos:search package descriptions or conditions and list'
+    'describe:display a description of the package'
+    'fetch:download package source files'
+    'fetch-all:downloads all package source files'
+    'fetch-missing:download all missing package source files'
+    'build:build .deb packages'
+    'rebuild:rebuild .deb packages'
+    'reinstall:reinstall packages'
+    'configure:rerun the fink configuration process'
+    'selfupdate:upgrade to a new fink release'
+    'validate:validate files'
+    'scanpackages:call dpkg-scanpackages'
+    'checksums:validate the MD5 digest of all tarballs'
+    'cleanup:removes obsolete package files'
+  )
+
+  local curcontext="$curcontext" state line expl
+  local -A opt_args
+
+  _arguments \
+    '(-h --help)'{-h,--help}'[display help text]' \
+    '(-q --quiet)'{-q,--quiet}'[causes fink to be less verbose]' \
+    '(-V --version)'{-V,--version}'[display version information]' \
+    '(-v --verbose)'{-v,--verbose}'[causes fink to be more verbose]' \
+    '(-y --yes)'{-y,--yes}'[assume default answer for interactive questions]' \
+    '*:: :->subcmds' && return 0
+
+  if (( CURRENT == 1 )); then
+    _describe -t commands "fink subcommand" _1st_arguments
+    return
+  fi
+
+  local -a packages
+
+  case "$words[1]" in
+    install|update|enable|activate|use)
+      _fink_get_packages -n -o
+      _wanted packages expl 'not installed or outdated fink package' compadd -a packages ;;
+    remove|disable|deactivate|unuse|delete|purge)
+      _fink_get_packages -i
+      _wanted packages expl 'installed package' compadd -a packages ;;
+    #update-all)
+    list)
+      _arguments \
+	'(-t --tab)'{-t,--tab}'[outputs list with tabs as field delimiter]' \
+        '(-i --installed)'{-i,--installed}'[packages currently installed]' \
+        '(-u --uptodate)'{-u,--uptodate}'[packages up to date]' \
+        '(-o --outdate)'{-o,--outdated}'[packages newer version is available]' \
+        '(-n --notinstalled)'{-n,--notinstalled}'[packages not installed]' \
+	'(-b --buildonly)'{-b,--buildonly}'[packages Build Only Depends]' \
+	'(-s --section)'{-s=,--section=}'[sections]:section name' \
+	'(-m --maintainer)'{-m=,--maintainer=}'[maintainer]:maintainer name' \
+	--tree='[tree]:tree name' \
+	'(-w --width)'{-w=,--width=}'[width of display]:number or "auto"' \
+	'(1 : -)'{-h,--help}'[display help text]' \
+	'1: :->pkgs' && return 0
+
+        if [[ "$state" == pkgs ]]; then
+          _fink_get_packages
+          _wanted packages expl 'package name hint' compadd -a packages
+        fi ;;
+    apropos)
+      _arguments \
+        '(-t --tab)'{-t,--tab}'[output the list with tabs as field delimiter]' \
+        '(-w --width)'{-w=,--width=}'[width of display]:number or "auto"' \
+        '(1 : -)'{-h,--help}'[display help text]' \
+        '1: :->pkgs' && return
+
+        if [[ "$state" == pkgs ]]; then
+          _fink_get_packages
+          _wanted packages expl 'package hint' compadd -a packages
+        fi ;;
+    describe|desc|description|info)
+      _fink_get_packages
+      _wanted packages expl 'package' compadd -a packages ;;
+    #fetch)
+    #fetch-all)
+    fetch-missing)
+      _arguments \
+        '(-i --ignore-restrictive)'{-i,--ignore-restrictive}'[do not fetch packages that are "License: Restrictive"]' ;;
+    #build)
+    rebuild|reinstall)
+      _fink_get_packages
+      _wanted packages expl 'package' compadd -a packages ;;
+    #configure)
+    #selfupdate)
+    validate|check)
+      _wanted files expl 'finkinfo file' _files -g "*.info(-.)" ;;
+    #scanpackages)
+    #checksums)
+    #cleanup)
+    *) _default ;;
+  esac
+}
+
+_fink "$@"

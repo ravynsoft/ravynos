@@ -1,0 +1,113 @@
+#compdef install ginstall
+
+local curcontext="$curcontext" lx ret=1
+local -a line state state_descr common_args args tmp
+local -A opt_args val_args
+
+# These are *almost* common — non-GNU variants need to remove the long options
+common_args=(
+  '(--backup)-b[create backups of destination files]'
+  '(-C -c --compare)'{-C,--compare}'[copy files; do nothing if identical destination file exists]'
+  '(-C -c --compare)-c[copy files (default)]'
+  '(-d --directory)'{-d,--directory}'[create directories]'
+  '(-g --group)'{-g+,--group=}'[specify destination file group]: :_groups'
+  '(-m --mode)'{-m+,--mode=}'[specify destination file mode]: :_file_modes'
+  '(-o --owner)'{-o+,--owner=}'[specify destination file owner]: :_users'
+  '(-p --preserve-timestamps)'{-p,--preserve-timestamps}'[preserve modification times]'
+  '(-s --strip)'{-s,--strip}'[strip binaries]'
+  '(-v --verbose)'{-v,--verbose}'[output verbosely]'
+  '*: :_files'
+)
+
+if _pick_variant gnu='Free Soft' unix --version; then
+  # Hide Linux-specific options on non-Linux platforms
+  [[ $OSTYPE == linux* ]] || lx='!'
+  args+=(
+    $common_args
+    '(-b --backup)--backup=[create backup; optionally specify method]:: :->controls'
+    "${lx}--context=-[like -Z, or specify SELinux security context to set]::SELinux security context:_selinux_contexts"
+    '-D[create all leading destination path components]'
+    '(: -)--help[display help information]'
+    "${lx}--preserve-context[preserve SELinux security context]"
+    '--strip-program=[specify program used to strip binaries]:strip program:_files'
+    '(-S --suffix)'{-S+,--suffix=}'[specify backup suffix]:backup suffix'
+    '(-t --target-directory)'{-t+,--target-directory=}'[copy source to specified directory]: :_directories'
+    '(-T --no-target-directory)'{-T,--no-target-directory}'[treat destination as regular file]'
+    '(: -)--version[display version information]'
+    "${lx}-Z[set SELinux security context on destination files to default type]"
+  )
+
+else
+  args+=(
+    ${common_args##((#s)|*\))(\*|)--*}
+    '-B+[specify backup suffix for -b]:backup suffix'
+    '-f+[specify destination file flags]: :_file_flags'
+  )
+  [[ $OSTYPE == dragonfly* ]] && args+=(
+    '!-D+[no effect (compatibility with NetBSD)]: :_directories'
+    '-L+[use user/group database files from specified directory]: :_directories'
+    '-l[fall back to system files if user/group not found in -L directory]'
+  )
+  [[ $OSTYPE == netbsd* ]] && args+=(
+    '-a+[specify shell command to run on files after install]:shell command'
+    '-r[use temporary files to perform safe copy]'
+    '-S+[specify arguments to pass to strip program]:arguments to strip program'
+  )
+  [[ $OSTYPE == (net|open)bsd* ]] && {
+    # (Net|Open)BSD has no -v for some reason
+    args=( ${args##((#s)|*\))(\*|)-v*} )
+  }
+  [[ $OSTYPE == openbsd* ]] && args+=(
+    '-D[create all leading destination path components]'
+    '-F[flush installed file contents to disk]'
+  )
+  [[ $OSTYPE == (darwin|dragonfly)* ]] && args+=(
+    '-M[disable use of mmap(2)]'
+  )
+  [[ $OSTYPE == (dragonfly|freebsd|netbsd)* ]] && args+=(
+    '(-C -c --compare)-l+[link files (rather than copy) using specified method]: :->linkflags'
+    '+N+[use user/group database files from specified directory]: :_directories'
+    '-U[indicate that install is unprivileged]'
+  )
+  [[ $OSTYPE == (freebsd|netbsd)* ]] && args+=(
+    '-D+[specify destination directory used for metadata log]: :_directories'
+    '-h+[store digest in metadata log using specified method]: :->digests'
+    '-M+[log mtree(8) metadata for installed files to specified file]:metadata log file:_files'
+    '-T+[specify mtree(8) tags to store in metadata log]:mtree(8) tags'
+  )
+  [[ $OSTYPE == netbsd* ]] || args+=(
+    '-S[use temporary files to perform safe copy]'
+  )
+fi
+
+_arguments -C -s -S : $args && ret=0
+
+case $state in
+  controls)
+    tmp=(
+      {none,off}':never make backups'
+      {numbered,t}':make numbered backups'
+      {existing,nil}':make numbered backups if they already exist'
+      # 'never' actually means 'always'...
+      {simple,never}':make simple backups'
+    )
+    _describe -t controls 'version control method' tmp && ret=0
+    ;;
+  digests)
+    tmp=( none md5 rmd160 sha1 sha256 sha512 )
+    [[ $OSTYPE == netbsd* ]] && tmp+=( sha384 )
+    _values 'digest method' $tmp && ret=0
+    ;;
+  linkflags)
+    tmp=(
+      'h[hard links]'
+      's[symlinks]'
+      'm[mixed (hard links for files on same file system)]'
+      'a[symlinks use absolute path]'
+      'r[symlinks use relative path]'
+    )
+    _values -S '' 'link flag' $tmp && ret=0
+    ;;
+esac
+
+return ret

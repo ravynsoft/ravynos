@@ -1,0 +1,96 @@
+#compdef ispell buildhash munchlist findaffix tryaffix icombine ijoin
+
+case "$service" in
+ispell)
+  _arguments -s \
+    '(-n -h)-t[input file is in TeX/LaTeX format]' \
+    '(-t -h)-n[input file is in nroff/troff format]' \
+    '(-n -t)-h[input file is in HTML format]' \
+    '(-x)-b[create backup file]' \
+    '(-b)-x[don'"'"'t create backup file]' \
+    '(-C)-B[report run-together words as errors]' \
+    '(-B)-C[take run-together words as compounds]' \
+    '-P[don'"'"'t generate extra root/affix combinations]' \
+    '-m[make possible root/affix combinations]' \
+    '-S[sort guesses by probable correctness]' \
+    '-d[specify alternate dictionary file]:dictionary file:_files' \
+    '-p[specify alternate personal dictionary file]:personal dictionary file:_files' \
+    '-w[specify additional word characters]:word characters:' \
+    '-W[specify length of legal words]:length of legal words:' \
+    '-T[specify formatter type]:formatter type:(nroff mm ms me man NeXT tex bib)' \
+    '(-N)-M[show menu]' \
+    '(-M)-N[don'"'"'t show menu]' \
+    '-L-[specify number of context lines to show]:number of context lines:' \
+    '-V[show non-7-bit characters escaped]' \
+    '-l[produce list of misspelled words on stdout]' \
+    '-s[stop after each line of input (SIGTSTP)]' \
+    '-f[specify output file name]:output file:_files' \
+    '(-A)-a[single line input/output mode]' \
+    '(-a)-A[single line input/output mode (with include-files)]' \
+    '(-e)-c[produce list of possible root words and affixes]' \
+    '(-c)-e-[expand affix flags]::expansion level:((1\:normal 2\:append\ prepend\ original\ root/affix\ combination 3\:output\ multiple\ lines 4\:append\ root\ length\ ratios))' \
+    '-D[dump affix tables]' \
+    '*-v[show version]' \
+    ':file to spell-check:_files'
+  ;;
+buildhash)
+  _arguments \
+    '(-c)-s[silent operation]' \
+    '(: -s)-c[count mode]:count: :affix file:_files -g "*.(#i)aff(-.)"' \
+    ':raw dictionary file:_files:' \
+    ':affix file:_files -g "*.(#i)aff(-.)"' \
+    ':hashed output file:_files "*.(#i)hash(-.)"'
+  ;;
+munchlist)
+  _arguments -s \
+    '-l[specify affix file]:affix file:_files -g "*.(#i)aff(-.)"' \
+    '-c[specify converted output file name]:converted file name:_files' \
+    '-T[specify string character type]:string character type:' \
+    '-s[specify strip hash file]:hash file:_files "*.(#i)hash(-.)"' \
+    '-D[debug mode]' \
+    '-v[verbose mode]' \
+    '-w[specify additional word characters]:word characters:' \
+    '*:dictionary file:_files'
+  ;;
+findaffix)
+  _arguments -s \
+    '(-s)-p[search possible prefixes]' \
+    '(-p)-s[search possible suffixes]' \
+    '-f[sort affixes by frequency]' \
+    '-c[clean output]' \
+    '-m[specify minimum affix length]:minimum affix length:' \
+    '-M[specify maximum affix length]:maximum affix length:' \
+    '-e[specify header/trailer length of suppressed affixes]:header/trailer length of suppressed affixes:' \
+    '-t[specify field separator character]:field separator character:' \
+    '-l[specify minimum occurrence count]:minimum occurrence count:' \
+    '*:dictionary file:_files'
+  ;;
+tryaffix)
+  _arguments -s \
+    '(-s)-p[estimate effectiveness of prefix]' \
+    '(-p)-s[estimate effectiveness of suffix]' \
+    '-c[write only summary of the results]' \
+    ':expanded dictionary file:_files:' \
+    '*:affix and optional addition:'
+  ;;
+icombine)
+  _arguments \
+    '-T[specify string character type]:string character type:' \
+    ':affix file:_files -g "*.(#i)aff(-.)"'
+  ;;
+ijoin)
+  _arguments -s \
+    '(-u)-s[use signed comparison]' \
+    '(-s)-u[use unsigned comparison]' \
+    '-a[print lines for unpairable lines and normal output]:file number:(1 2)' \
+    '-v[print lines for unpairable lines instead of normal output]:file number:(1 2)' \
+    '-e[specify replacement string]:replacement string:' \
+    '-o[specify output field list]:output field list:' \
+    '-t[specify field separator character]:field separator character:' \
+    '(-1 -2)-j-[specify join file and field]:file number:(1 2):field number:' \
+    '(-j)-1[specify join field]:field number:' \
+    '(-j)-2[specify join field]:field number:' \
+    ':first input file:_files' \
+    ':second input file:_files'
+  ;;
+esac

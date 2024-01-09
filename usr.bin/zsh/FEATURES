@@ -1,0 +1,114 @@
+------------
+ZSH FEATURES
+------------
+
+(Note that this file only lists basic shell features, for those who
+may not have encountered zsh before.  Those familiar with zsh are
+unlikely to find anything new here.)
+
+very close to ksh/sh grammar, with csh additions
+most features of ksh, bash, and tcsh
+can emulate ksh or POSIX sh
+100 builtins, 145 options, 166 key bindings
+short for loops, ex: for i (*.c) echo $i
+select
+shell functions
+autoloaded functions (loaded from a file when they are first referenced)
+conditional expressions (test builtin, [ ... ], and ksh-style [[ ... ]])
+global aliases (may be expanded anywhere on the line)
+directory stack access with ~num
+process substitution (vi =(cmd) edits the output of cmd)
+generalized pipes (ls foo >>(cmd1) 2>>(cmd2) pipes stdout to cmd1
+  and stderr to cmd2)
+arithmetic expressions
+advanced globbing:
+  ls **/file  searches recursively for "file" in subdirectories
+  ls file<20->  matches file20, file21, file22, etc.
+  ls *.(c|pro)  matches *.c and *.pro
+  ls *(R)  matches only world-readable files
+  ls *.c~lex.c  matches all .c files except lex.c
+  ls (#a1)README  matches README with one error, e.g. RADME, REEDME, RAEDME
+  ls (#ia1)README same but case insensitive
+qualifiers in parentheses after globbing expression:
+  ls *(*@)  matches executable files/directories or symlinks
+  ls *(L0f.go-w.)  matches all zero-length files not group or world writable
+  ls *(om[1,3])  matches the three most recently modified files
+  ls *(om[2])  matches the second most recently modified file
+null command shorthands:
+  "< file" is same as "more <file"
+  "> file" is same as "cat >file"
+  ">> file" is same as "cat >>file"
+ksh-style coprocesses
+automatic file stream teeing (ls >foo >bar puts output in two places)
+chpwd() function run every time you change directory (useful for
+  updating the status line)
+job control
+csh-style history
+full vi line editing, including "c2w" and "y$" and such things
+full emacs line editing
+line editor is programmable via shell functions
+  - access and manipulate editor state via builtins and parameters
+  - user-defined `widgets' behave like other editor functions
+  - keymap customisation
+  - example functions provided
+incremental history search
+magic-space history
+spelling correction
+array parameters
+associative array parameters
+tie parameters a la path/PATH, e.g. ld_library_path/LD_LIBRARY_PATH
+$MACHTYPE, $VENDOR and $OSTYPE identify the host machine
+$LINENO, $RANDOM, $SECONDS, $cdpath, $COLUMNS, $fignore, $HISTCHARS, $mailpath
+$UID, $EUID, $GID, $EGID and $USERNAME can be assigned to
+with autocd option, typing a directory name by itself is the same as
+  typing "cd dirname"
+incremental path hashing
+automatic process time reporting for commands that run over a certain limit
+full tcsh-style prompt substitution plus conditional prompt expressions
+utmp login/logout reporting
+with histverify option, performing csh-style history expansions causes the
+  input line to be brought up for editing instead of being executed
+with sunkeyboardhack option, accidentally typed trailing ` characters
+  are removed from the input line (for those of you with Sun keyboards :-) )
+with KEYBOARD_HACK, any accidentally typed trailing ascii character can be junked
+"cd old new" replaces "old" with "new" in directory string
+generalized argument completion, new system based on shell functions:
+  - highly context sensitive
+  - large (and I mean large) set of completions supplied, from a2ps to zstyle
+  - partial file path completion
+  - spelling correction and approximate completion of any completable word
+  - highly configurable expansion of shell arguments
+  - completion list colouring [`colorizing' for you lot over there]
+  - selection of completion elements with the cursor
+  - full scrolling of lists (in optional module)
+  - completion of words from the history list
+  - `styles' feature for versatile configuration
+  - `tags' feature for choosing completions preferentially
+  - `match' specifications, allowing e.g.
+    - variant forms:  NO_glob, noglob, _NOGLOB_ all from the keyword glob
+    - partial-word matches with arbitrary anchors, e.g.
+      z_t.c -> zle_tricky.c
+      c.u.s -> comp.unix.shell
+    - complete control over case-insensitive matching
+    - can be defined globally or for individual completions
+  - bindable special completion functions
+menu completion: pressing TAB repeatedly cycles through the possible matches
+prompt on right side of screen
+directory stacks
+history datestamps and execution time records
+command scheduling (like at(1), but in the shell's context)
+tty mode freezing
+up to 9 startup files (but you only need 1 or 2)
+really 8-bit clean, and we mean it this time
+which -a cmd lists all occurrences of "cmd" in the path
+floating point support
+dynamically loadable binary modules, supplied modules include
+  - an FTP client which runs in the shell, with function suite
+  - math functions
+  - builtin interface to the `stat' system command
+  - builtin versions of standard commands (mv, ln, etc.) for emergencies
+  - special parameters to access internal state of hash tables etc.
+  - special associative array to access contents of files directly
+  - profiler for shell functions
+  - a pseudo-terminal handler, for purposes like `expect'
+  - builtins for interaction with termcap and terminfo

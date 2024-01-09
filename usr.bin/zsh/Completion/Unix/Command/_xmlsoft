@@ -1,0 +1,142 @@
+#compdef xsltproc xmllint -value-,XML_CATALOG_FILES,-default-
+
+# xmllint: using libxml version 20904
+# xsltproc: using libxml 20904, libxslt 10129 and libexslt 817
+
+local -a encoding
+
+encoding=(
+  UTF-8
+  UTF-16
+  ISO-10646-UCS-2
+  ISO-10646-UCS-4
+  ISO-8859-1
+  ISO-8859-2
+  ISO-8859-3
+  ISO-8859-4
+  ISO-8859-5
+  ISO-8859-6
+  ISO-8859-7
+  ISO-8859-8
+  ISO-8859-9
+  ISO-2022-JP
+  SHIFT_JIS
+  EUC-JP
+)
+
+case $service in
+  xsltproc)
+    _arguments \
+      '(-)'{--version,-V}'[show libxml and libxslt versions]' \
+      '(--verbose -v)'{--verbose,-v}"[show logs of what's happening]" \
+      '(--output -o)'{--output,-o}'[specify output file]:output file:_files' \
+      '--timing[display the time used]' \
+      '--repeat[run the transformation 20 times]' \
+      '--debug[dump the tree of the result instead]' \
+      '--dumpextensions[dump registered extension elements and functions]' \
+      '--novalid[skip the DTD loading phase]' \
+      '--nodtdattr[do not default attributes from the DTD]' \
+      '--noout[do not dump the result]' \
+      '--maxdepth[increase the maximum depth]:depth' \
+      '--maxvars[increase the maximum variables]:variables' \
+      '--maxparserdepth[increase the maximum parser depth]:depth' \
+      '--seed-rand[initialise random number generator]:seed' \
+      '--html[input document is an HTML file]' \
+      '--encoding[the input document character encoding]:encoding:(${encoding[@]})' \
+      '*--param[pass a parameter,value pair]:name::value (xpath expression)' \
+      '*--stringparam[pass a parameter]:name::value' \
+      '--path[provide a set of paths for resources]:path:_dir_list' \
+      '--nonet[refuse to fetch DTDs or entities over network]' \
+      '--nowrite[refuse to write to any file or resource]' \
+      '--nomkdir[refuse to create directories]' \
+      '--writesubtree[allow file write only with the path subtree]:path:_files -/' \
+      '--catalogs[use SGML catalogs]' \
+      '--xinclude[do XInclude processing on document input]' \
+      '--xincludestyle[do XInclude processing on stylesheets]' \
+      '--load-trace[print trace of all external entities loaded]' \
+      {--profile,--norman}'[dump profiling information]' \
+      '1:stylesheet:_files -g "*.xslt#(-.)"' \
+      ':file:_files -g "*.xml(-.)"' && return
+  ;;
+  xmllint)
+    _arguments \
+      '--version[display the version of the XML library used]' \
+      '--debug[dump a debug tree of the in-memory document]' \
+      '--shell[run a navigating shell]' \
+      '--debugent[debug the entities defined in the document]' \
+      '--copy[used to test the internal copy implementation]' \
+      '--recover[output what was parsable on broken XML documents]' \
+      '--huge[remove any internal arbitrary parser limits]' \
+      '--noent[substitute entity references by their value]' \
+      '--noenc[ignore any encoding specified inside the document]' \
+      "(--output -o)--noout[don't output the result tree]" \
+      '--path[provide a set of paths for resources]:path:_dir_list' \
+      '--load-trace[print trace of all external entities loaded]' \
+      '--nonet[refuse to fetch DTDs or entities over network]' \
+      '--nocompact[do not generate compact text nodes]' \
+      '--htmlout[output results as HTML]' \
+      '--nowrap[do not put HTML doc wrapper]' \
+      '--valid[validate the document in addition to std well-formed check]' \
+      '(--dtdvalid --relaxng --schema)--postvalid[do a posteriori validation, i.e after parsing]' \
+      '(--postvalid --relaxng --schema --dtdvalidfpi)--dtdvalid[do a posteriori validation against a given DTD]:DTD:_webbrowser' \
+      '(--postvalid --relaxng --schema --dtdvalid)--dtdvalidfpi[as --dtdvalid but specify DTD with public identifier]:DTD identifier' \
+      '--quiet[be quiet when successful]' \
+      '--timing[print some timings]' \
+      '(--noout --output -o)'{--output,-o}'[save to a given file]:output file:_files' \
+      '--repeat[repeat 100 times, for timing or profiling]' \
+      '--insert[ad-hoc test for valid insertions]' \
+      '--compress[turn on gzip compression of output]' \
+      '--html[use the HTML parser]' \
+      '--xmlout[use the XML serializer when using --html]' \
+      '--nodefdtd[do not default HTML doctype]' \
+      '--push[use the push mode of the parser]' \
+      '--pushsmall[use the push mode of the parser using tiny increments]' \
+      '--memory[parse from memory]' \
+      '--maxmem[limit memory allocation]:bytes' \
+      '--nowarning[do not emit warnings from parser/validator]' \
+      '--noblanks[drop (ignorable?) blanks spaces]' \
+      '--nocdata[replace cdata section with text nodes]' \
+      '--format[reformat/reindent the input]' \
+      '--encode[output in the given encoding]:encoding:(${encoding[@]})' \
+      '--dropdtd[remove the DOCTYPE of the input docs]' \
+      "--pretty[pretty-print in a particular style]:style:((0\:don\'t\ pretty\ print 1\:reformat 2\:add\ whitespace))" \
+      '--c14n[save in W3C canonical format]' \
+      '--c14n11[save in W3C canonical format v1.1 (with comments)]' \
+      '--exc-c14n[save in W3C exclusive canonical format]' \
+      '--nsclean[remove redundant namespace declarations]' \
+      '(--nocatalogs)--catalogs[use SGML catalogs]' \
+      '(--catalogs)--nocatalogs[deactivate all catalogs]' \
+      '--auto[generate a small doc on the fly]' \
+      '(--noxincludenode)--xinclude[do XInclude processing]' \
+      '(--xinclude)--noxincludenode[do XInclude processing but do not generate XInclude nodes]' \
+      '--nofixup-base-uris[do not fixup xml:base uris]' \
+      '--loaddtd[fetch external DTD]' \
+      '--dtdattr[loaddtd + populate the tree with inherited attributes]' \
+      '--stream[use the streaming interface to process very large files]' \
+      '--walker[create a reader and walk though the resulting doc]' \
+      '--pattern[test the pattern support]:pattern value' \
+      '--chkregister[verify the node registration code]' \
+      '(--dtdvalid --postvalid --schema)--relaxng[do RelaxNG validation against specified schema]:schema:_webbrowser' \
+      '(--dtdvalid --postvalid --relaxng)--schema[do validation against specified WXS schema]:schema:_webbrowser' \
+      '(--dtdvalid --postvalid --relaxng)--schematron[do validation against specified schematron]:schema:_webbrowser' \
+      '--sax1[use the old SAX1 interfaces for processing]' \
+      '--sax[do not build a tree but work just at the SAX level]' \
+      '--oldxml10[use XML-1.0 parsing rules before the 5th edition]' \
+      '(--noout)--xpath[evaluate the XPath expression, implies --noout]:XPath expression' \
+      '*:XML file:_webbrowser' && return
+  ;;
+  *XML_CATALOG_FILES*)
+    compset -q
+    if [[ -prefix *: ]]; then
+      _urls
+      return
+    fi
+
+    compset -S ':*'
+    _alternative \
+      'files:catalog file:_files' \
+      'url-schemas:URL schema:compadd -S "" file:///' && return
+  ;;
+esac
+
+return 1

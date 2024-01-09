@@ -1,0 +1,55 @@
+#compdef picocom
+
+function _picocom_flowcontrol () {
+    local expl
+    local -a modes
+    modes=( x h n )
+    _wanted flow-ctrl-mode expl 'flow control mode' compadd -a $expl -- modes
+}
+
+function _picocom_paritymode () {
+    local expl
+    local -a modes
+    modes=( o e n )
+    _wanted parity-mode expl 'parity mode' compadd -a $expl -- modes
+}
+
+function _picocom_databits () {
+    local expl
+    local -a widths
+    widths=( 5 6 7 8 )
+    _wanted data-bits expl 'data bits' compadd -a $expl -- widths
+}
+
+function _picocom_escape () {
+    setopt localoptions braceccl
+    local expl
+    local -a ctrlchars
+    ctrlchars=( {a-z} _ '?' '[' '\' ']' '@' '^' )
+    _wanted escape-key expl 'escape key' compadd -a $expl -- ctrlchars
+}
+
+function _picocom () {
+    local -a args
+
+    args=( '(--baud -b)'{--baud,-b}'[define baud-rate to set the terminal to]:baud rate:_baudrates'
+           '(--flow -f)'{--flow,-f}'[define type of flow control to use]:flow control:_picocom_flowcontrol'
+           '(--parity -p)'{--parity,-p}'[define type of parity to use]:parity mode:_picocom_paritymode'
+           '(--databits -d)'{--databits,-d}'[define the number of databits per word]:data bits:_picocom_databits'
+           '(--escape -e)'{--escape,-e}'[define command mode character]:escape character:_picocom_escape'
+           '(--echo -c)'{--echo,-c}'[enable local echo]'
+           '(--noinit -i)'{--noinit,-i}'[do not initialise serial port]'
+           '(--noreset -r)'{--noreset,-r}'[do not reset serial port]'
+           '(--nolock -l)'{--nolock,-l}'[do not lock serial port]'
+           '(--send-cmd -s)'{--send-cmd,-s}'[define file send command]:file send command:_cmdstring'
+           '(--receive-cmd -v)'{--receive-cmd,-v}'[define file receive command]:file receive command:_cmdstring'
+           '--imap[define input character map]:input character map:'
+           '--omap[define output character map]:output character map:'
+           '--emap[define local echo character map]:local echo character map:'
+           '(--help -h)'{--help,-h}'[display help message]'
+           '*:device:_files -g "*(-%c)"' )
+
+    _arguments -C : "${args[@]}"
+}
+
+_picocom "$@"

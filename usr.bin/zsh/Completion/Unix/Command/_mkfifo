@@ -1,0 +1,20 @@
+#compdef mkfifo gmkfifo
+
+local -a aopts args
+
+if _pick_variant gnu='Free Soft' unix --version; then
+  args=(
+    '(: * -)--help[display help information]'
+    '(: * -)--version[display version information]'
+    '(-m --mode)'{-m+,--mode=}'[specify file mode]: :_file_modes'
+  )
+  [[ $OSTYPE == linux* ]] && args+=(
+    '(--context)-Z[set SELinux security context to default]'
+    '(-Z)--context=-[like -Z, or specify SELinux security context]::SELinux security context:_selinux_contexts'
+  )
+else
+  aopts=( -A '-*' )
+  args=( '-m+[specify file mode]: :_file_modes' )
+fi
+
+_arguments -s -S $aopts : '*:FIFO:_files' $args

@@ -1,0 +1,87 @@
+#compdef ldap
+
+local -a commands scopes
+commands=(
+  search:'search a directory'
+)
+scopes=(
+  base:'base object only'
+  one:'one level'
+  sub:subtree
+)
+
+_ldap_url() {
+  local nm=$compstate[nmatches]
+  local -a expl protocols suf_proto suf_scope tags
+  protocols=(
+    ldap:'TCP in plaintext'
+    ldaps:'TLS'
+    ldap+tls:'TCP and use StartTLS'
+    ldapi:'connect to a socket'
+  )
+
+  # [protocol://]host[:port][/basedn[?[attribute,...][?[scope][?[filter]]]]]
+  if ! compset -P '*://'; then
+    tags=(protocol)
+    compset -S ':*' || suf_proto=( -S :// )
+  fi
+
+  if ! compset -P '*/'; then
+    if compset -P '*:'; then
+      tags=(port)
+      compset -S '/*'
+    else
+      if ! compset -S '://*'; then
+        tags+=(host)
+        compset -S '[:/]*'
+      fi
+    fi
+  else
+    case $PREFIX in
+      *\?*\?*\?*) tags=(filter);;
+      *\?*\?*) tags=(scope); [[ -suffix \?* ]] || suf_scope=( -qS \? );;
+      *\?*) tags=(attribute);;
+      *) tags=(basedn);;
+    esac
+    compset -P '*\?'
+    compset -S '\?*'
+  fi
+
+  _tags $tags
+  while _tags; do
+    _requested protocol && _describe -t protocol protocol protocols $suf_proto
+    _requested host && _hosts -S ''
+    _requested port expl port
+    _requested basedn expl 'base DN'
+    _requested attribute expl attribute
+    _requested scope && _describe -t scope scope scopes $suf_scope
+    _requested filter expl filter
+    [[ nm -ne compstate[nmatches] ]] && return 0
+  done
+}
+
+if (( CURRENT == 2 )); then
+  _describe command commands
+else
+  shift words; (( CURRENT-- ))
+  case $words[1] in
+    search)
+      _arguments -s -S -A '-*' \
+        '-b+[specify base DN]:base DN:' \
+        '-c+[specify CA file]:CA file:' \
+        '-D+[specify bind DN]:bind DN:' \
+        '-H+[specify URL]: :_ldap_url' \
+        '-L[output in LDIF]' \
+        '-l+[specify time limit or 0 for no limit]:time limit [0]:' \
+        '-s+[specify scope]:scope [sub]:(($scopes))' \
+        '-v[be verbose]' \
+        '-W[prompt for bind secret]' \
+        '-w+[specify bind secret]:bind secret:' \
+        '-x[use simple authentication]' \
+        '-Z[use StartTLS]' \
+        '-z+[specify maximum number of results or 0 for no limit]:size limit [0]:' \
+        '::filter:' \
+        '*:attribute:'
+      ;;
+  esac
+fi

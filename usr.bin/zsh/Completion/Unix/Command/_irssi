@@ -1,0 +1,36 @@
+#compdef irssi
+
+local expl
+
+_irssi_servers() {
+  local a
+  a=( $(grep "\(^[{ 	]*address\)\|\([{ 	]address\)[ 	]*=" ~/.irssi/config | sed -e "s,^.*address *= *\"\([^\"]\+\).*,\1 ,g") )
+  _wanted irc-servers expl 'irc server' compadd "$@" -a - a
+}
+
+_irssi_ports() {
+  local a
+  a=( $(grep "\(^[{ 	]*port\)\|\([{ 	]port\)[ 	]*=" ~/.irssi/config | sed -e "s,^.*port *= *\"\([^\"]\+\).*,\1,g") )
+  _wanted ports expl 'port' compadd "$@" -a - a
+}
+
+_irssi_nick() {
+  local a
+  a=( $(grep "\(^[{ 	]*nick\)\|\([{ 	]nick\)\|\([{ 	]alternate_nick\)\|\(^[{ 	]*alternate_nick\)[ 	]*=" ~/.irssi/config | sed -e "s,^.*nick *= *\"\([^\"]\+\).*,\1,g") )
+  _wanted nicknames expl 'nick' compadd "$@" -a - a
+}
+
+_arguments -s \
+  '--config=[config file]:config:_files' \
+  '--home=[home dir location]:home:_dir_list' \
+  '(-c --connect)'{-c,--connect=}'[connect to servers]:irc server:_irssi_servers' \
+  '(-w --password)'{-w,--password=}'[password]:password' \
+  '(-p --port)'{-p,--port=}'[specify a port]:port:_irssi_ports' \
+  '-![disable autoconnect]' \
+  '--noconnect[disable autoconnect]' \
+  '(-n --nick)'{-n,--nick=}'[set nick name]:nick:_irssi_nick' \
+  '(-h --hostname)'{-h,--hostname=}'[specify hostname]:hostname:_hosts' \
+  '(-)'{-v,--version}'[display version information]' \
+  '(-)'{-\?,--help}'[display help information]' \
+  '(-)--usage[display usage]'
+

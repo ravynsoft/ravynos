@@ -1,0 +1,117 @@
+#compdef findmnt
+#
+# Note for customization:
+#   Options -N -k -m -s are in a group 'S' and need be specified as
+#   'S-option-N' etc. in the context for zstyle. For example, if you want
+#   all PIDs to be completed for 'findmnt -N<TAB>', then
+#     zstyle ':completion:*:findmnt:S-option-N-1:processes' command 'ps -A'
+#
+local curcontext=$curcontext state state_descr line ret=1
+typeset -A opt_args
+
+_arguments -s -C \
+  '(H -A --all)'{-A,--all}'[print all filesystems]' \
+  '(H -a --ascii)'{-a,--ascii}'[use ascii characters for tree formatting]' \
+  '(H -b --bytes)'{-b,--bytes}'[print SIZE etc. in bytes]' \
+  '(H -c --nocanonicalize)'{-c,--nocanonicalize}'[do not canonicalize path]' \
+  '(H -d --direction)'{-d+,--direction=}'[specify the search direction]:direction:(forward backward)' \
+  '(H -e --evaluate)'{-e,--evaluate}'[convert LABEL/UUID/PARTLABEL/PARTUUID to the device name]' \
+  '(H -F --tab-file)*'{-F+,--tab-file=}'[search in the specified tab file]:tab file:_files' \
+  '(H -f --first-only)'{-f,--first-only}'[print the first matching filesystem only]' \
+  '(H -i --invert)'{-i,--invert}'[invert the sense of matching]' \
+  '(H -M --mountpoint :)'{-M+,--mountpoint=}'[specify the mountpoint]: :->targets' \
+  '(H -n --noheadings)'{-n,--noheadings}'[do not print a header line]' \
+  '(H -O --options)'{-O+,--options=}'[only print the filesystems with the specified options]:list of options: ' \
+  '(H -o --output --output-all)'{-o+,--output=}'[specify output columns]: :->columns' \
+  '(H -o --output)--output-all[output all available columns]' \
+  '(H -p --poll)'{-p+,--poll=}'[monitor changes in /proc/self/mountinfo]::action:(mount umount remount move)' \
+  '(H --real)--pseudo[print only pseudo-filesystems]' \
+  '(H -R --submounts)'{-R,--submounts}'[print recursively all submounts]' \
+  '(H --pseudo)--real[print only real filesystems]' \
+  '(H -S --source :)'{-S+,--source=}'[specify the mount source]: :->sources' \
+  '(H -T --target :)'{-T+,--target=}'[specify the mount target]:target:_files' \
+  '(H -t --types)'{-t+,--types=}'[specify the type of filesystems]:filesystem types:_sequence -s , _file_systems' \
+  '--tree[use tree-like output if possible]' \
+  '(H -U --uniq)'{-U,--uniq}'[ignore filesystems with duplicated mount targets]' \
+  '(H -u --notruncate)'{-u,--notruncate}'[do not truncate text in columns]' \
+  '(H -v --nofsroot)'{-v,--nofsroot}'[do not print \[/dir\] in the SOURCE column]' \
+  '(H -w --timeout)'{-w+,--timeout}'[specify timeout for --poll]:milliseconds: ' \
+  '(H -x --verify)'{-x,--verify}'[check mount table content]' \
+  '(H)--verbose[print more information]' \
+  '(H)1: :->sources_targets' \
+  '(H)2:: :->targets' \
+  + '(format)' \
+  '(H)'{-D,--df}'[imitate the output of df command]' \
+  '(H)'{-J,--json}'[use JSON output format]' \
+  '(H)'{-l,--list}'[use list output format]' \
+  '(H)'{-P,--pairs}'[use key="value" output format]' \
+  '(H)'{-r,--raw}'[use raw output format]' \
+  + '(S)' \
+  '(H)'{-k,--kernel}'[search in /proc/self/mountinfo (default)]' \
+  '(H)'{-m,--mtab}'[search in /etc/mtab]' \
+  '(H)'{-N+,--task=}'[search /proc/<pid>/mountinfo]: :_pids' \
+  '(H)'{-s,--fstab}'[search in /etc/fstab]' \
+  + '(H)' \
+  '(- :)'{-h,--help}'[display help text and exit]' \
+  '(- :)'{-V,--version}'[display version and exit]' \
+    && ret=0
+
+__findmnt_mountpoints () {
+  compadd "$@" \
+    ${(f)"$(_call_program mount-points findmnt $opts -oTARGET)"}
+}
+
+case $state in
+  columns)
+    compset -P '+' || _describe -t list-prefixes prefix \
+		      '( +:"not replace but extend the list" )' -S '' && ret=0
+    local -a columns=(
+      ${${${(f)"$(_call_program columns findmnt -h)"}[(r)Available*,-2]}[2,-1]}
+    )
+    columns=( ${${${${${${columns## #}//:/\\:}//\[/\\[}//]/\\]}/  /[}/%/]} )
+    _values -s , -M 'm:{a-z}={A-Z}' column $columns && ret=0
+    ;;
+  *) # call "findmnt $opts" to get possible sources/targets
+    local opts='-lnve'
+    if [[ -n $opt_args[(I)S-(-m|--mtab)] ]]; then
+      opts+=' -m'
+    elif [[ -n $opt_args[(I)S-(-s|--fstab)] ]]; then
+      opts+=' -s'
+    elif [[ -n $opt_args[(I)S-(-N|--task)] ]]; then
+      opts+=" -N${(v)opt_args[(I)S-(-N|--task)]}"
+    fi
+    ;|
+  sources*) # 'sources' or 'sources_targets'
+    local -a val
+    if compset -P 'LABEL='; then
+      val=( ${(f)"$(_call_program labels findmnt $opts -oLABEL)"} )
+      _describe -t labels 'LABEL' val && ret=0
+    elif compset -P 'PARTLABEL='; then
+      val=( ${(f)"$(_call_program labels findmnt $opts -oPARTLABEL)"} )
+      _describe -t labels 'PARTLABEL' val && ret=0
+    elif compset -P 'UUID='; then
+      val=( ${(f)"$(_call_program uuids findmnt $opts -oUUID)"} )
+      _describe -t uuids 'UUID' val && ret=0
+    elif compset -P 'PARTUUID='; then
+      val=( ${(f)"$(_call_program uuids findmnt $opts -oPARTUUID)"} )
+      _describe -t uuids 'PARTUUID' val && ret=0
+    else
+      local -a alts=(
+	'devices:device:compadd \
+		$(_call_program devices findmnt $opts -oSOURCE)'
+	'device-numbers:major-minor:compadd \
+		${$(_call_program device-numbers findmnt $opts -oMAJ:MIN)// /}'
+	'prefixes:prefix:compadd -S "" LABEL= UUID= PARTLABEL= PARTUUID='
+      )
+      [[ $state = sources_targets ]] &&
+	alts+=( 'mount-points:mountpoint:__findmnt_mountpoints' )
+      _alternative $alts && ret=0
+    fi
+    ;;
+  targets)
+    local expl
+    _wanted mount-points expl 'mountpoint' __findmnt_mountpoints && ret=0
+    ;;
+esac
+
+return ret

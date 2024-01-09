@@ -1,0 +1,25 @@
+ifztexi(\
+def(printindex)(2)(\
+  texipage()NL()\
+  NOTRANS(@unnumbered) ARG1+NL()\
+  NL()\
+  NOTRANS(@printindex) ARG2\
+)\
+texinode(Concept Index)(Variables Index)(Top)(Top)
+printindex(Concept Index)(cp)
+
+texinode(Variables Index)(Options Index)(Concept Index)(Top)
+printindex(Variables Index)(vr)
+
+texinode(Options Index)(Functions Index)(Variables Index)(Top)
+printindex(Options Index)(pg)
+
+texinode(Functions Index)(Editor Functions Index)(Options Index)(Top)
+printindex(Functions Index)(fn)
+
+texinode(Editor Functions Index)(Style and Tag Index)(Functions Index)(Top)
+printindex(Editor Functions Index)(tp)
+
+texinode(Style and Tag Index)()(Editor Functions Index)(Top)
+printindex(Style and Tag Index)(ky)
+)\

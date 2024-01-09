@@ -1,0 +1,80 @@
+#compdef logger
+
+local variant ign
+local -a args common
+local -a priorities
+
+_pick_variant -r variant linux=util-linux busybox=BusyBox $OSTYPE -V
+
+priorities=( {kern,user,mail,daemon,auth,syslog,lpr,news,uucp,cron,authpriv,ftp,ntp,security,console,local{0..7}}.{emerg,panic,alert,crit,err,error,warn,warning,notice,info,debug} )
+args=( "(--id)-i[log the logger command's pid]" )
+common=(
+  '(-f --file --journald *)'{-f+,--file=}'[log contents of specified file]:file:_files'
+  '(-s --stderr)'{-s,--stderr}'[output message to standard error as well]'
+  '(-P --port)'{-P+,--port}'[use specified port for UDP or TCP connection]:port [514]:_ports'
+  '(-p --priority)'{-p+,--priority}'[mark message with specified priority]:priority:_multi_parts . priorities'
+  '(-t --tag)'{-t+,--tag}"[specify tag to mark log line with]:tag [$USER]"
+)
+
+case $variant in
+  (net|open)bsd*)
+    args+=( ${(M)common:#*\)-[fpst]*}
+      '-c[write the message to the console if unable to use syslogd(8)]'
+    )
+  ;|
+  dragonfly*|freebsd*)
+    args+=(
+      '(-6)-4[use IPv4 addresses only]'
+      '(-4)-6[use IPv6 addresses only]'
+      '-A[send the message to all addresses]'
+    )
+  ;|
+  darwin*|dragonfly*) args+=( ${(M)common:#*\)-[sfpt]*} ) ;|
+  freebsd*)
+    args+=( ${common:#*\)--*}
+      "-H+[set value for hostname in message header]:hostname [${HOST%%.*}]"
+      '-h+[write to specified remote syslog server or socket]: : _alternative
+        "hosts\:server\:_hosts"
+        "sockets\:socket\:_files -g \*\(=\)"'
+      '-S+[specify source address and port when using -h]: :_bind_addresses -0bh'
+    )
+  ;;
+  dragonfly*)
+    args+=( '-h+[write to specified remote syslog server]:server:_hosts' )
+  ;;
+  busybox) args=( ${(M)common:#*\)-[spt]*} ) ;; # no -i
+  solaris*) args+=( ${(M)common:#*\)-[fpt]*} ) ;;
+  netbsd*)
+    args+=(
+      '-d+[log this in the structured data (SD) field]:sd field'
+      '-m+[specify message ID used for the message]:message id'
+      '-n[open log file immediately]'
+    )
+  ;;
+  linux)
+    (( $#words > 2 )) && ign='!'
+    args+=( $common
+      "(-i)--id=-[log the given id, or otherwise the pid]::id [$$]:_pids"
+      '(* -e --skip-empty)'{-e,--skip-empty}"[don't log empty lines when processing files]"
+      '--no-act[do everything except the write the log]'
+      '--octet-count[use rfc6587 octet counting]'
+      '(*)--prio-prefix[look for a prefix on every line read from stdin]'
+      '(-S --size)'{-S+,--size=}'[specify maximum size for a single message]:size [1KiB]'
+      '(-n --server)'{-n+,--server=}'[write to specified remote syslog server]:server:_hosts'
+      '(-T --tcp -d --udp)'{-T,--tcp}'[use TCP only]'
+      '(-d --udp -T --tcp)'{-d,--udp}'[use UDP only]'
+      '(--rfc5424 --msgid --sd-id --sd-param)--rfc3164[use the obsolete BSD syslog protocol]'
+      '(--rfc3164)--rfc5424=-[use the syslog protocol (default for remote)]::without:_sequence compadd - notime notq nohost'
+      '(--rfc3164)*--sd-id=[specify rfc5424 structured data ID]:id'
+      '(--rfc3164)*--sd-param=[specify rfc5424 structured data name=value]:data'
+      '(--rfc3164)--msgid=[set rfc5424 message id field]:message id'
+      '(-u --socket)'{-u,--socket=}'[write to specified Unix socket]:socket:compadd -f -M "r\:|_=* r\:|=*" ${${(M)${(f)"$(</proc/net/unix)"}\:#* /*}##* }'
+      '--socket-errors=-[print connection errors when using Unix sockets]::state:(on off auto)'
+      '(* -f --file)--journald=-[write journald entry]::file:_files'
+      "${ign}(- *)"{-h,--help}'[display usage information]'
+      "${ign}(- *)"{-V,--version}'[display version information]'
+    )
+  ;;
+esac
+
+_arguments -s -S -A "-*" $args '*: :_guard "^-*" message'

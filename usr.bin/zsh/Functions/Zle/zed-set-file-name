@@ -1,0 +1,26 @@
+emulate -L zsh
+
+autoload -Uz read-from-minibuffer
+
+case $curcontext in
+  (zed:::)
+    local curcontext=zed-set-file-name:::
+    # The call to vared from zed does the equivalent of
+    #  bindkey -A zed main
+    # which confuses read-from-minibuffer.  Fix it.
+    bindkey -A zed-normal-keymap main;;
+  (zed-set-file-name:::)
+    zle -M "zed-set-file-name: may not be called recursively"
+    return 1;;
+  (*)
+    zle -M "zed-set-file-name: not called from within zed"
+    return 1;;
+esac
+{
+  local REPLY
+  read-from-minibuffer "File name: "
+  zed_file_name=$REPLY
+} always {
+  # Re-install the zed keymap in the way vared should have all along
+  zle -K zed
+}

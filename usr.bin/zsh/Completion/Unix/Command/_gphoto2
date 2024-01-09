@@ -1,0 +1,96 @@
+#compdef gphoto2
+
+local curcontext="$curcontext" ret=1
+local -a state line values expl
+typeset -A opt_args
+
+_arguments -s -C \
+  '(-)'{-\?,--help}'[display help information]' \
+  '(-)'{-h,--usage}'[display a short usage message]' \
+  '--debug[turn on debugging]' \
+  '--debug-loglevel=[set debug level]:debug level:(error debug data all)' \
+  '--debug-logfile=[name of file to write debug info to]:file:_files' \
+  '(-q --quiet)'{-q,--quiet}'[quiet output]' \
+  '--hook-script=[hook script to call after downloads, captures, etc.]:file:_files' \
+  '--stdout[send file to stdout]' \
+  '--stdout-size[print filesize before data]' \
+  '--auto-detect[list auto-detected cameras]' \
+  '--show-exif=[show EXIF information of JPEG images]:range' \
+  '--show-info=[show image information, like width, height, and capture time]:range' \
+  '--summary[summary of camera status]' \
+  '--manual[camera driver manual]' \
+  '--about[show information about the camera driver]' \
+  '--storage-info[show storage information]' \
+  '--shell[start the gphoto2 shell]' \
+  '(-)'{-v,--version}'[display version and exit]' \
+  '--list-cameras[list supported camera models]' \
+  '--list-ports[list supported port devices]' \
+  '(-a --abilities)'{-a,--abilities}'[display camera abilities]' \
+  '--port=[specify port device]:port:->ports' \
+  '--speed=[specify serial transfer speed]:speed' \
+  '--camera=[specify camera model]:camera model:->models' \
+  '--usbid=[override USB IDs (expert only)]:usbid' \
+  '--list-config[list configuration tree]' \
+  '--list-all-config[dump full configuration tree]' \
+  '--get-config=[get configuration value]:string' \
+  '--set-config=[set configuration value or index in choices]:string' \
+  '--set-config-index=[set configuration value index in choices]:string' \
+  '--set-config-value=[set configuration value]:string' \
+  '--config[start curses configuration menu]' \
+  '--reset[reset device port]' \
+  '--keep[keep images on camera after capturing]' \
+  '--keep-raw[keep the RAW images on the camera with --capture-image-and-download]' \
+  '--no-keep[remove images from camera after capturing]' \
+  '--wait-event=-[wait for event from camera]::count' \
+  '--wait-event-and-download=-[wait for event from camera and download new images]::count' \
+  '--capture-preview[capture a quick preview]' \
+  '--show-preview[capture a quick preview and display using ASCII art]' \
+  '(-B --bulb)'{-B,--bulb=}'[set bulb exposure time]:exposure time (seconds)' \
+  '(-F --frames)'{-F,--frames=}'[set number of frames to capture]:frames [unlimited]' \
+  '(-I --interval)'{-I,--interval=}'[set capture interval in seconds]:interval (seconds)' \
+  '--reset-interval[reset capture interval on signal]' \
+  '--capture-image[capture an image]' \
+  '--trigger-capture[trigger capture of an image]' \
+  '--capture-image-and-download[capture an image and download it]' \
+  '--capture-movie=-[capture a movie]:count or seconds' \
+  '--capture-sound[capture an audio clip]' \
+  '--capture-tethered=-[wait for shutter release on the camera and download]::count' \
+  '(-l --list-folders)'{-l,--list-folders}'[list folders in folder]' \
+  '(-L --list-files)'{-L,--list-files}'[list files in folder]' \
+  '(-m --mkdir)'{-m,--mkdir=}'[create a directory]:directory' \
+  '(-r --rmdir)'{-r,--rmdir=}'[remove a directory]:directory' \
+  '(-n --num-files)'{-n,--num-files}'[display number of files]' \
+  '(-p --get-file)'{-p,--get-file=}'[get files given in range]:range' \
+  '(-P --get-all-files)'{-P,--get-all-files}'[get all files from folder]' \
+  '(-t --get-thumbnail)'{-t,--get-thumbnail=}'[get thumbnails given in range]:range' \
+  '(-T --get-all-thumbnails)'{-T,--get-all-thumbnails}'[get all thumbnails from folder]' \
+  '--get-metadata=[get metadata given in range]:range' \
+  '--get-all-metadata[get all metadata from folder]' \
+  '--upload-metadata=[upload metadata for file]:string' \
+  '--get-raw-data=[get raw data given in range]:range' \
+  '--get-all-raw-data[get all raw data from folder]' \
+  '--get-audio-data=[get audio data given in range]:range' \
+  '--get-all-audio-data[get all audio data from folder]' \
+  '(-d --delete-file)'{-d,--delete-file=}'[delete files in given range]:range' \
+  '(-D --delete-all-files)'{-D,--delete-all-files}'[delete all files in folder]' \
+  '(-u --upload-file)'{-u,--upload-file=}'[upload a file to camera]:file:_files' \
+  '--filename=[specify pattern to save file as]:pattern:_date_formats' \
+  '(-f --folder)'{-f,--folder=}'[specify camera folder]:folder [/]' \
+  '(-R --recurse --no-recurse)'{-R,--recurse}'[recursion (default for download)]' \
+  '(-R --recurse)--no-recurse[no recursion (default for deletion)]' \
+  '--new[process new files only]' \
+  '--force-overwrite[overwrite files without asking]' \
+  '--skip-existing[skip files that already exist on local filesystem]' && ret=0
+
+case $state in
+  models)
+    _wanted models expl 'camera model' compadd \
+        ${${${(f)"$(_call_program models $words[1] --list-cameras)"}[3,-1]#*\"}%%\"*} && ret=0
+  ;;
+  ports)
+    values=( ${${${(f)"$(gphoto2 --list-ports)"}[4,-1]/:/\\:}/ ##/:} )
+    _describe -t ports 'port' values
+  ;;
+esac
+
+return ret

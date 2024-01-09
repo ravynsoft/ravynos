@@ -1,0 +1,55 @@
+#compdef gdb
+
+local cur="$words[CURRENT]" prev w list ret=1 expl
+
+[[ "$PREFIX" = --* ]] &&
+    _arguments -- '*=(CORE|SYM)FILE:core file:_files' \
+		  '*=EXECFILE:executable:_files -g \*\(-\*\)' \
+		  '*=TTY: :_ttys -o' && return 0
+
+if compset -P '-(cd|directory)='; then
+  _files -/
+elif compset -P '-tty='; then
+  _ttys -o
+elif compset -P '-(exec|se)='; then
+  _description files expl executable
+  _files "$expl[@]" -g '*(-*)'
+elif compset -P '-(symbols|core|command)='; then
+  _files
+elif compset -P '--pid='; then
+  _pids
+elif [[ "$PREFIX" = -* ]]; then
+  _tags options
+  while _tags; do
+    while _next_label options expl option; do
+      compadd "$expl[@]" -QS '' - -symbols\= -exec\= -se\= -core\= -command\= \
+                                  -directory\= -cd\= -tty\= && ret=0
+      compadd "$expl[@]"        - -help -h -s -e -c -x -d -nx -n -quiet -q \
+	    		          -batch -fullname -f -b && ret=0
+    done
+    (( ret )) || return 0
+  done
+else
+  prev="$words[CURRENT-1]"
+
+  case "$prev" in
+  (-d)     _files -/ && return 0 ;;
+  (-[csx]) _files && return 0 ;;
+  (-e)     _description files expl executable
+           _files "$expl[@]" -g '*(-*)' && return 0 ;;
+  (-b)     _baudrates && return 0 ;;
+  esac
+
+  w=( "${(@)words[2,CURRENT-1]}" )
+  while [[ "$w[1]" = -* ]]; do
+    [[ "$w[1]" = -(cd|se|tty|[decsxb]) ]] && shift 1 w
+    shift 1 w
+  done
+
+  if [[ $#w -gt 1 ]]; then
+    _alternative "files:: _files -g '*core*(-.)'" "processes:: _pids -m ${w[1]:t}"
+  else
+    _description files expl executable
+    _files "$expl[@]" -g '*(-*)'
+  fi
+fi

@@ -1,0 +1,9 @@
+#compdef sysupgrade
+
+_arguments -s -S -A '-*' : \
+  '-f[force an already applied upgrade]' \
+  '-k[keep the downloaded files]' \
+  '-n[do not reboot]' \
+  '(-s)-r[upgrade to the next release]' \
+  '(-r)-s[upgrade to a snapshot]' \
+  ':installurl:'

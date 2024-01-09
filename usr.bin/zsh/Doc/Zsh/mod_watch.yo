@@ -1,0 +1,146 @@
+COMMENT(!MOD!zsh/watch
+Reporting of login and logout events.
+!MOD!)
+The tt(zsh/watch) module can be used to report when specific users log in or
+out. This is controlled via the following parameters.
+
+startitem()
+vindex(LOGCHECK)
+item(tt(LOGCHECK))(
+The interval in seconds between checks for login/logout activity
+using the tt(watch) parameter.
+)
+vindex(watch)
+vindex(WATCH)
+item(tt(watch) <S> <Z> (tt(WATCH) <S>))(
+An array (colon-separated list) of login/logout events to report.
+
+If it contains the single word `tt(all)', then all login/logout events
+are reported.  If it contains the single word `tt(notme)', then all
+events are reported as with `tt(all)' except tt($USERNAME).
+
+An entry in this list may consist of a username,
+an `tt(@)' followed by a remote hostname,
+and a `tt(%)' followed by a line (tty).  Any of these may
+be a pattern (be sure to quote this during the assignment to
+tt(watch) so that it does not immediately perform file generation);
+the setting of the tt(EXTENDED_GLOB) option is respected.
+Any or all of these components may be present in an entry;
+if a login/logout event matches all of them,
+it is reported.
+
+For example, with the tt(EXTENDED_GLOB) option set, the following:
+
+example(watch=('^(pws|barts)'))
+
+causes reports for activity associated with any user other than tt(pws)
+or tt(barts).
+)
+vindex(WATCHFMT)
+item(tt(WATCHFMT))(
+The format of login/logout reports if the tt(watch) parameter is set.
+Default is `tt(%n has %a %l from %m)'.
+Recognizes the following escape sequences:
+
+startitem()
+item(tt(%n))(
+The name of the user that logged in/out.
+)
+item(tt(%a))(
+The observed action, i.e. "logged on" or "logged off".
+)
+item(tt(%l))(
+The line (tty) the user is logged in on.
+)
+item(tt(%M))(
+The full hostname of the remote host.
+)
+item(tt(%m))(
+The hostname up to the first `tt(.)'.  If only the
+IP address is available or the utmp field contains
+the name of an X-windows display, the whole name is printed.
+
+em(NOTE:)
+The `tt(%m)' and `tt(%M)' escapes will work only if there is a host name
+field in the utmp on your machine.  Otherwise they are
+treated as ordinary strings.
+)
+item(tt(%F{)var(color)tt(}) LPAR()tt(%f)RPAR())(
+Start (stop) using a different foreground color.
+)
+item(tt(%K{)var(color)tt(}) LPAR()tt(%k)RPAR())(
+Start (stop) using a different background color.
+)
+item(tt(%S) LPAR()tt(%s)RPAR())(
+Start (stop) standout mode.
+)
+item(tt(%U) LPAR()tt(%u)RPAR())(
+Start (stop) underline mode.
+)
+item(tt(%B) LPAR()tt(%b)RPAR())(
+Start (stop) boldface mode.
+)
+xitem(tt(%t))
+item(tt(%@))(
+The time, in 12-hour, am/pm format.
+)
+item(tt(%T))(
+The time, in 24-hour format.
+)
+item(tt(%w))(
+The date in `var(day)tt(-)var(dd)' format.
+)
+item(tt(%W))(
+The date in `var(mm)tt(/)var(dd)tt(/)var(yy)' format.
+)
+item(tt(%D))(
+The date in `var(yy)tt(-)var(mm)tt(-)var(dd)' format.
+)
+item(tt(%D{)var(string)tt(}))(
+The date formatted as var(string) using the tt(strftime) function, with
+zsh extensions as described by
+ifzman(EXPANSION OF PROMPT SEQUENCES in zmanref(zshmisc))\
+ifnzman(noderef(Prompt Expansion)).
+)
+item(tt(%LPAR())var(x)tt(:)var(true-text)tt(:)var(false-text)tt(RPAR()))(
+Specifies a ternary expression.
+The character following the var(x) is
+arbitrary; the same character is used to separate the text
+for the "true" result from that for the "false" result.
+Both the separator and the right parenthesis may be escaped
+with a backslash.
+Ternary expressions may be nested.
+
+The test character var(x) may be any one of `tt(l)', `tt(n)', `tt(m)'
+or `tt(M)', which indicate a `true' result if the corresponding
+escape sequence would return a non-empty value; or it may be `tt(a)',
+which indicates a `true' result if the watched user has logged in,
+or `false' if he has logged out.
+Other characters evaluate to neither true nor false; the entire
+expression is omitted in this case.
+
+If the result is `true', then the var(true-text)
+is formatted according to the rules above and printed,
+and the var(false-text) is skipped.
+If `false', the var(true-text) is skipped and the var(false-text)
+is formatted and printed.
+Either or both of the branches may be empty, but
+both separators must be present in any case.
+)
+enditem()
+)
+enditem()
+
+Furthermore, the tt(zsh/watch) module makes available one builtin
+command:
+
+startitem()
+findex(log)
+vindex(watch, use of)
+cindex(watching users)
+cindex(users, watching)
+item(tt(log))(
+List all users currently logged in who are affected by
+the current setting of the tt(watch) parameter.
+)
+enditem()

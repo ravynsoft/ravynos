@@ -1,0 +1,12 @@
+name=zsh/complete
+link=either
+load=yes
+functions='Completion/*comp* Completion/AIX/*/* Completion/BSD/*/* Completion/Base/*/* Completion/Cygwin/*/* Completion/Darwin/*/* Completion/Debian/*/* Completion/Linux/*/* Completion/Mandriva/*/* Completion/Redhat/*/* Completion/Solaris/*/* Completion/openSUSE/*/* Completion/Unix/*/* Completion/X/*/* Completion/Zsh/*/*'
+
+moddeps="zsh/zle"
+
+autofeatures="b:compadd b:compset c:prefix c:suffix c:between c:after"
+
+headers="comp.h"
+
+objects="complete.o compcore.o compmatch.o compresult.o"

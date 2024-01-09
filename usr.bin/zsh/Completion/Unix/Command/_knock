@@ -1,0 +1,9 @@
+#compdef knock
+
+_arguments \
+	'(-u --udp)'{-u,--udp}'[UDP mode]' \
+	'(-v --verbose)'{-v,--verbose}'[verbose]' \
+	'(-V --version -h --help -u --udp -v --verbose)'{-V,--version}'[display version]' \
+	'(-h --help -u --udp -v --verbose -V --version)'{-h,--help}'[help]' \
+	'1:host:_hosts' \
+	'*:port:_ports'

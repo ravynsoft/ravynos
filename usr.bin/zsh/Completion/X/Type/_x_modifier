@@ -1,0 +1,7 @@
+#autoload
+
+local expl
+
+_wanted modifiers expl modifier \
+    compadd "$@" -M 'm:{a-z}={A-Z}' - \
+            Shift Lock Control Mod1 Mod2 Mod3 Mod4 Mod5

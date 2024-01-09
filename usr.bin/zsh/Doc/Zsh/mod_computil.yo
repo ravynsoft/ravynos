@@ -1,0 +1,88 @@
+COMMENT(!MOD!zsh/computil
+A module with utility builtins needed for the shell function based
+completion system.
+!MOD!)
+cindex(completion, utility)
+The tt(zsh/computil) module adds several builtin commands that are used by
+some of the completion functions in the completion system based on shell
+functions (see 
+ifzman(zmanref(zshcompsys))\
+ifnzman(noderef(Completion System))
+).  Except for tt(compquote) these builtin commands are very
+specialised and thus not very interesting when writing your own
+completion functions.  In summary, these builtin commands are:
+
+startitem()
+findex(comparguments)
+item(tt(comparguments))(
+This is used by the tt(_arguments) function to do the argument and
+command line parsing.  Like tt(compdescribe) it has an option tt(-i) to 
+do the parsing and initialize some internal state and various options
+to access the state information to decide what should be completed.
+)
+findex(compdescribe)
+item(tt(compdescribe))(
+This is used by the tt(_describe) function to build the displays for
+the matches and to get the strings to add as matches with their
+options.  On the first call one of the options tt(-i) or tt(-I) should be
+supplied as the first argument.  In the first case, display strings without
+the descriptions will be generated, in the second case, the string used to
+separate the matches from their descriptions must be given as the
+second argument and the descriptions (if any) will be shown.  All other 
+arguments are like the definition arguments to tt(_describe) itself.
+
+Once tt(compdescribe) has been called with either the tt(-i) or the
+tt(-I) option, it can be repeatedly called with the tt(-g) option and
+the names of four parameters as its arguments.  This will step through
+the different sets of matches and store the value of tt(compstate[list])
+in the first scalar, the options for tt(compadd) in the second array,
+the matches in the third array, and the strings to be displayed in the
+completion listing in the fourth array.  The arrays may then be directly
+given to tt(compadd) to register the matches with the completion code.
+)
+findex(compfiles)
+item(tt(compfiles))(
+Used by the tt(_path_files) function to optimize complex recursive
+filename generation (globbing).  It does three things.  With the
+tt(-p) and tt(-P) options it builds the glob patterns to use,
+including the paths already handled and trying to optimize the
+patterns with respect to the prefix and suffix from the line and the
+match specification currently used.  The tt(-i) option does the
+directory tests for the tt(ignore-parents) style and the tt(-r) option 
+tests if a component for some of the matches are equal to the string
+on the line and removes all other matches if that is true.
+)
+findex(compgroups)
+item(tt(compgroups))(
+Used by the tt(_tags) function to implement the internals of the
+tt(group-order) style.  This only takes its arguments as names of
+completion groups and creates the groups for it (all six types: sorted 
+and unsorted, both without removing duplicates, with removing all
+duplicates and with removing consecutive duplicates).
+)
+findex(compquote)
+item(tt(compquote) [ tt(-p) ] var(names) ...)(
+There may be reasons to write completion functions that have to add
+the matches using the tt(-Q) option to tt(compadd) and perform quoting
+themselves.  Instead of interpreting the first character of the
+tt(all_quotes) key of the tt(compstate) special association and using
+the tt(q) flag for parameter expansions, one can use this builtin
+command.  The arguments are the names of scalar or array parameters
+and the values of these parameters are quoted as needed for the
+innermost quoting level.  If the tt(-p) option is given, quoting is
+done as if there is some prefix before the values of the parameters,
+so that a leading equal sign will not be quoted.
+
+The return status is non-zero in case of an error and zero otherwise.
+)
+findex(comptags)
+findex(comptry)
+xitem(tt(comptags))
+item(tt(comptry))(
+These implement the internals of the tags mechanism.
+)
+findex(compvalues)
+item(tt(compvalues))(
+Like tt(comparguments), but for the tt(_values) function.
+)
+enditem()

@@ -1,0 +1,37 @@
+#autoload
+
+# This function completes 'ls' to '/bin/ls'
+_hashed_absolute_command_paths() {
+  local -aU set_of_dirs_of_hashed_commands=( ${^commands%/*}/ )
+  local i
+  integer ret=1
+  for i in $set_of_dirs_of_hashed_commands
+  do
+    local -a matches=( "${(@)commands[(R)${~i}[^/]#]}" )
+    local -a descs=( $matches:t )
+    compadd -M "l:|=$i" -d descs "$@" -a matches
+    ret=0
+  done
+  return ret
+}
+
+# This function completes absolute pathnames of executables, e.g., /etc/rc.local
+_typed-in_absolute_command_paths() {
+  # TODO: the description "full path to an executable" and tag in the caller are ignored by _path_files
+  if [[ -z $PREFIX ]]; then
+    _path_files -/ -g '*(-*)' -P / -W /
+  elif [[ $PREFIX[1] == / ]]; then
+    _path_files -/ -g '*(-*)' -W /
+  else
+    return 1
+  fi
+}
+
+_absolute_command_paths() {
+  _alternative \
+    'commands:hashed command by absolute path:_hashed_absolute_command_paths' \
+    'commands:full path to an executable:_typed-in_absolute_command_paths'
+}
+
+
+_absolute_command_paths "$@"

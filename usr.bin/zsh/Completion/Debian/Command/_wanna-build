@@ -1,0 +1,44 @@
+#compdef wanna-build
+
+_arguments \
+  '(-v --verbose)'{-v,--verbose}'[verbose]' \
+  '--take[take package for building]' \
+  '(-f --failed)'{-f,--failed}'[record as failed]' \
+  '(-u --uploaded)'{-u,--uploaded}'[record as uploaded]' \
+  '(-n --no-build)'{-n,--no-build}'[record as undesired]' \
+  '--dep-wait[record as waiting for source dependencies]' \
+  '--merge-quinn[merge quinn-diff output into database]' \
+  '--merge-partial-quinn[merge partial quinn-diff output into database]' \
+  '--merge-packages[merge Packages files into database]' \
+  '--merge-sources[merge Sources files into database]' \
+  '--merge-all' \
+  '--pretend-avail[pretend that given packages are available now]' \
+  '(-i --info)'{-i,--info=}':source package:_deb_packages avail' \
+  '(-l --list)'{-l,--list=}':state:(needs-build building uploaded failed installed dep-wait not-for-us all failed-removed dep-wait-removed install-wait reupload-wait)' \
+  '(-m --message)'{-m,--message=}':message:' \
+  '(-o --override)'{-o,--override}"[override another user's lock]" \
+  '(-U --user)'{-U,--user=}':user name:' \
+  '--import:ASCII file:_files' \
+  '--export:ASCII file:_files' \
+  '--create-db[create database]' \
+  '--correct-compare' \
+  '(-N --no-propagation)'{-N,--no-propagation} \
+  '(-D --no-down-propagation)'{-D,--no-down-propagation} \
+  '--give-back[give package back]' \
+  '--forget' \
+  '--forget-user' \
+  '--binNMU:version:' \
+  '--perm-build-priority:priority:' \
+  '--build-priority:priority:' \
+  '(-d --dist)'{-d,--dist=}':distribution:(stable testing unstable all)' \
+  '(-O --order)'{-O,--order=}':ordering:(P S p s n c b)' \
+  '(-b --database)'{-b,--database=}':database:' \
+  '(-A --arch)'{-A,--arch=}':architecture:' \
+  '(-c --category)'{-c,--category=}':category:(uploaded-fixed-pkg fix-expected reminder-sent nmu-offered easy medium hard compiler-error none)' \
+  '(-a --min-age)'{-a,--min-age=}':minimum age:' \
+  '--max-age:maximum age:' \
+  '--manual-edit' \
+  '--maintlock-create' \
+  '--maintlock-remove' \
+  '--clean-db' \
+  ':package_version:_deb_packages avail'

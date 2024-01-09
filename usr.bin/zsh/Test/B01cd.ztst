@@ -1,0 +1,173 @@
+# This file serves as a model for how to write tests, so is more heavily
+# commented than the others.  All tests are run in the Test subdirectory
+# of the distribution, which must be writable.  They should end with
+# the suffix `.ztst': this is not required by the test harness itself,
+# but it is needed by the Makefile to run all the tests.
+
+# Blank lines with no other special meaning (e.g. separating chunks of
+# code) and all those with a `#' in the first column are ignored.
+
+# All section names start with a % in the first column.  The names
+# must be in the expected order, though not all sections are required.
+# The sections are %prep (preparatory setup:  code executed should return
+# status 0, but no other tests are performed), %test (the main tests), and
+# %clean (to cleanup: the code is simply unconditionally executed).
+#
+# Literal shell code to be evaluated must be indented with any number
+# of spaces and/or tabs, to differentiate it from tags with a special
+# meaning to the test harness.  Note that this is true even in sections
+# where there are no such tags.  Also note that file descriptor 9
+# is reserved for input from the test script, and file descriptor 8
+# preserves the original stdout.  Option settings are preserved between the
+# execution of different code chunks; initially, all standard zsh options
+# (the effect of `emulate -R zsh') are set.
+
+%prep
+# This optional section prepares the test, creating directories and files
+# and so on.  Chunks of code are separated by blank lines (which is not
+# necessary before the end of the section); each chunk of code is evaluated
+# in one go and must return status 0, or the preparation is deemed to have
+# failed and the test ends with an appropriate error message.  Standard
+# output from this section is redirected to /dev/null, but standard error
+# is not redirected.
+#
+# Tests should use subdirectories ending in `.tmp'.  These will be
+# removed with all the contents even if the test is aborted.
+ mkdir cdtst.tmp cdtst.tmp/foo cdtst.tmp/real cdtst.tmp/sub
+
+ ln -s ../real cdtst.tmp/sub/fake
+
+ setopt chaselinks
+ cd .
+ unsetopt chaselinks
+ mydir=$PWD
+
+%test
+# This is where the tests are run.  It consists of blocks separated
+# by blank lines.  Each block has the same format and there may be any
+# number of them.  It consists of indented code, plus optional sets of lines
+# beginning '<', '>' and '?' which may appear in any order.  These correspond
+# to stdin (fed to the code), stdout (compared with code output) and
+# stderr (compared with code error output) respectively.  These subblocks
+# may occur in any order, but the natural one is: code, stdin, stdout,
+# stderr.
+#
+# The rules for '<', '>' and '?' lines are the same: only the first
+# character is stripped (with the exception for '*' noted below), with
+# subsequent whitespace being significant; lines are not subject to any
+# substitution unless the `q' flag (see below) is set.
+#
+# Each line of a '>' and '?' chunk may be preceded by a '*', so the line
+# starts '*>' or '*?'.  This signifies that for any line with '*' in front
+# the actual output should be pattern matched against the corresponding
+# lines in the test output.  Each line following '>' or '?' must be a
+# valid pattern, so characters special to patterns such as parentheses
+# must be quoted with a backslash.  The EXTENDED_GLOB option is used for
+# all such patterns.
+#
+# Each chunk of indented code is to be evaluated in one go and is to
+# be followed by a line starting (in the first column) with
+# the expected status returned by the code when run, or - if it is
+# irrelevant.  An optional set of single-letter flags follows the status
+# or -.  The following are understood:
+#   d   Don't diff stdout against the expected stdout.
+#   D   Don't diff stderr against the expected stderr.
+#   q   All redirection lines given in the test script (not the lines
+#       actually produced by the test) are subject to ordinary quoted shell
+#       expansion (i.e. not globbing).
+#   f   Test is expected to fail. If the test's exit code, stdout, and stderr
+#       match, report a problem; otherwise, carry on to the next test case.
+# This can be followed by a `:' and a message describing the
+# test, which will be printed if the test fails, along with a
+# description of the failure that occurred.  The `:' and message are
+# optional, but highly recommended.
+# Hence a complete status line looks something like:
+#  0dDq:Checking whether the world will end with a bang or a whimper
+#
+# If either or both of the '>' and '?' sets of lines is absent, it is
+# assumed the corresponding output should be empty and it is an error if it
+# is not.  If '<' is empty, stdin is an empty (but opened) file.
+#
+# It is also possible to add lines in the redirection section beginning
+# with `F:'.  The remaining text on all such lines will be concatenated
+# (with newlines in between) and displayed in the event of an error.
+# This text is useful for explaining certain frequent errors, for example
+# ones which may arise from the environment rather than from the shell
+# itself.  (The example below isn't particularly useful as errors with
+# `cd' are unusual.)
+#
+# A couple of features aren't used in this file, but are useful in cases
+# where features may not be available so should not be tested.  They both
+# take the form of variables.  Note that to keep the test framework simple
+# there is no magic in setting the variables: the chunk of code being
+# executed needs to avoid executing any test code by appropriate structure
+# (typically "if").  In both cases, the value of the variable is output
+# as a warning that the test was skipped.
+# ZTST_unimplemented: Set this in the %prep phase if the entire test file
+#   is to be skipped.
+# ZTST_skip: Set this in any test case if that single test case is to be
+#   skipped.  Testing resumes at the next test case in the same file.
+#
+# Syntax highlighting for Vim is available, see Util/ztst-*.vim.
+ cd cdtst.tmp/sub/fake &&
+ pwd &&
+ print $PWD
+0q:Preserving symbolic links in the current directory string
+>$mydir/cdtst.tmp/sub/fake
+>$mydir/cdtst.tmp/sub/fake
+F:This test shouldn't really fail.  The fact that it has indicates
+F:something is broken.  But you already knew that.
+
+ cd ../../.. &&
+ pwd &&
+ print $PWD
+0q:Changing directory up through symbolic links without following them
+>$mydir
+>$mydir
+
+ setopt chaselinks
+ cd cdtst.tmp/sub/fake &&
+ pwd &&
+ print $PWD
+0q:Resolving symbolic links with chaselinks set
+>$mydir/cdtst.tmp/real
+>$mydir/cdtst.tmp/real
+
+ ln -s nonexistent link_to_nonexistent
+ pwd1=$(pwd -P)
+ cd -s link_to_nonexistent
+ pwd2=$(pwd -P)
+ [[ $pwd1 = $pwd2 ]] || print "Ooops, changed to directory '$pwd2'"
+0:
+?(eval):cd:3: not a directory: link_to_nonexistent
+
+ (unset HOME; ARGV0=sh $ZTST_testdir/../Src/zsh -c cd)
+1:Implicit cd with unset HOME.
+?zsh:cd:1: HOME not set
+
+ $ZTST_testdir/../Src/zsh -fc 'cd -P ////dev && pwd'
+-f:(workers/45367) cd -P squashes multiple leading slashes
+>/dev  
+
+ chpwd_hook() { hook_pwd=$PWD; }
+ chpwd_functions=(chpwd_hook)
+ cd $mydir/cdtst.tmp/foo &&
+ (cd $mydir && mv $mydir/cdtst.tmp/{foo,bar}) &&
+ print $PWD &&
+ print $hook_pwd &&
+ cd . &&
+ print $PWD &&
+ print $hook_pwd
+ chpwd_functions=()
+ unfunction chpwd_hook
+0q:cd . with moved PWD
+>$mydir/cdtst.tmp/foo
+>$mydir/cdtst.tmp/foo
+>$mydir/cdtst.tmp/bar
+>$mydir/cdtst.tmp/bar
+
+%clean
+# This optional section cleans up after the test, if necessary,
+# e.g. killing processes etc.  This is in addition to the removal of *.tmp
+# subdirectories.  This is essentially like %prep, except that status
+# return values are ignored.

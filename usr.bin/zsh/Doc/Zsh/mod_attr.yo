@@ -1,0 +1,41 @@
+COMMENT(!MOD!zsh/attr
+Builtins for manipulating extended attributes (xattr).
+!MOD!)
+The tt(zsh/attr) module is used for manipulating extended attributes.
+The tt(-h) option causes all commands to operate on symbolic links instead
+of their targets.
+The builtins in this module are:
+
+startitem()
+findex(zgetattr)
+cindex(extended attributes, xattr, getting from files)
+item(tt(zgetattr) [ tt(-h) ] var(filename) var(attribute) [ var(parameter) ])(
+Get the extended attribute var(attribute) from the specified
+var(filename). If the optional argument var(parameter) is given, the
+attribute is set on that parameter instead of being printed to stdout.
+)
+findex(zsetattr)
+cindex(extended attributes, xattr, setting on files)
+item(tt(zsetattr) [ tt(-h) ] var(filename) var(attribute) var(value))(
+Set the extended attribute var(attribute) on the specified
+var(filename) to var(value).
+)
+findex(zdelattr)
+cindex(extended attributes, xattr, removing, deleting)
+item(tt(zdelattr) [ tt(-h) ] var(filename) var(attribute))(
+Remove the extended attribute var(attribute) from the specified
+var(filename).
+)
+findex(zlistattr)
+cindex(extended attributes, xattr, listing)
+item(tt(zlistattr) [ tt(-h) ] var(filename) [ var(parameter) ])(
+List the extended attributes currently set on the specified
+var(filename). If the optional argument var(parameter) is given, the
+list of attributes is set on that parameter instead of being printed to stdout.
+)
+enditem()
+
+tt(zgetattr) and tt(zlistattr) allocate memory dynamically.  If the
+attribute or list of attributes grows between the allocation and the call
+to get them, they return 2.  On all other errors, 1 is returned.  This
+allows the calling function to check for this case and retry.

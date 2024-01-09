@@ -1,0 +1,74 @@
+#compdef env genv
+
+local context state line variant ign ret=1
+local -a args suf
+
+_pick_variant -r variant gnu=Free\ Soft $OSTYPE --version
+case $variant in
+  gnu)
+    (( $#words > 2 )) && ign='!'
+    args=(
+      '(-)'{-i,--ignore-environment}'[start with empty environment]'
+      '(--ignore-environment -i --help --version)*'{-u+,--unset=}'[remove variable from the environment]:env var to remove:_parameters -g "*export*"'
+      '(-C --chdir)'{-C+,--chdir=}'[change working directory]:directory:_directories'
+      '(-S --split-string)'{-S+,--split-string=}'[perform word splitting]:string to split'
+      '--block-signal=[block delivery of signals to command]:signal:_sequence _signals'
+      '--default-signal=[reset handling of signals to the default]:signal:_sequence _signals'
+      '--ignore-signal=[set handling of signals to do nothing]:signal:_sequence _signals'
+      '--list-signal-handling[list non default signal handling to stderr]'
+      '(-v --debug)'{-v,--debug}'[print verbose information for each processing step]'
+      "${ign}(- *)--help[display help information]"
+      "${ign}(- *)--version[display version information]"
+    )
+  ;;
+  freebsd*)
+    args=(
+      '-0[use NUL, not newline after each variable in output]'
+      '-L[add variables from system login.conf(5)]: :->user-class'
+      '-U[add variables from user and system login.conf(5)]: :->user-class'
+    )
+  ;|
+  freebsd*|darwin*|dragonfly*)
+    args+=(
+      '(-i)*-u+[remove variable from the environment]:env var to remove:_parameters -g "*export*"'
+      '-P+[specify alternate executable search PATH]:path:_dir_list'
+      '-S+[perform word splitting]:string to split'
+      '*-v[verbose output]'
+    )
+  ;&
+  *)
+    if (( $words[(i)-] < CURRENT )); then
+      words[(i)-]=()
+      (( CURRENT-- ))
+    else
+      args+=(
+	'(-i)'{-,-i}'[start with empty environment]'
+      )
+    fi
+  ;;
+esac
+
+_arguments $args \
+  '*::arguments:->normal' && ret=0
+
+if [[ -n $state ]]; then
+  case $state in
+    normal)
+      while [[ $words[1] = *=* ]]; do
+        shift words
+        (( CURRENT-- ))
+      done
+      _normal && ret=0
+    ;;
+    user-class)
+      if compset -P 1 '*/'; then
+        _login_classes && ret=0
+      else
+        compset -S '/*' || suf=( -qS/ )
+        _users $suf && ret=0
+      fi
+    ;;
+  esac
+fi
+
+return ret

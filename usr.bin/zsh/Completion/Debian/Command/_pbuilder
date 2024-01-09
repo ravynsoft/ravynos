@@ -1,0 +1,32 @@
+#compdef pbuilder
+
+local expl
+
+if (( CURRENT == 2 )); then
+  _wanted tag expl 'pbuilder command' \
+    compadd create update build execute clean login dumpconfig debuild \
+  	--create --update --build --execute --clean --login --dumpconfig --debuild
+else
+  compset -n 1
+  _arguments \
+    '--basetgz:location:_files -g "*.tgz(-.)"' \
+    '--buildplace:location:_files -/' \
+    '--buildresult:location:_files -/' \
+    '--mirror:URL:_urls' \
+    '--othermirror:URL:_urls' \
+    '--distribution:codename:_deb_codenames' \
+    '--architecture:architecture:_deb_architectures' \
+    '--components:component:(main contrib non-free)' \
+    '--override-config' \
+    '--hookdir:location:_files -/' \
+    '--debbuildopts:dpkg-buildpackage options:' \
+    '--logfile:log file:_files' \
+    '--binary-arch' \
+    '--bindmounts:bind mountpoints:_files -/' \
+    '--debootstrapopts:debootstrap options:' \
+    '--debootstrap:debootstrap implementation:(debootstrap cdebootstrap)' \
+    '--save-after-login' \
+    '--save-after-exec' \
+    '--autocleanaptcache' \
+    '*:source package:_files -g "*.dsc(-.)"'
+fi

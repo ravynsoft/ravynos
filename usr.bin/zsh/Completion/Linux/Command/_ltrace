@@ -1,0 +1,35 @@
+#compdef ltrace
+
+local root hlp="-h --help -V --version"
+
+(( EUID )) && root='!'
+
+_arguments -s -S $args \
+  "(-c -a --align $hlp)"{-a+,--align=}"[align return values in a specific column]:column [$((COLUMNS*5/8))]" \
+  "(-c $hlp)-A+[specify maximum number of array elements to print]:elements" \
+  "(-c -b --no-signals $hlp)"{-b,--no-signals}"[don't print signals]" \
+  "(-a --align -A -b --no-signals -i -n --indent -r -s -t -tt -ttt -T $hlp)-c[count time and calls, and report a summary on exit]" \
+  "(-C --demangle $hlp)"{-C,--demangle}'[decode low-level symbol names into user-level names]' \
+  "(-D --debug $hlp)"{-D+,--debug=}'[enable debugging]:mask:(help 77)' \
+  "($hlp)*-e+[modify which library calls to trace]:filter" \
+  "($hlp)-f[trace child processes]" \
+  "($hlp)*"{-F+,--config=}'[load alternate configuration file]:file:_files' \
+  '(- 1 *)'{-h,--help}'[display help information]' \
+  "(-c $hlp)-i[print instruction pointer at time of call]" \
+  "(-l --library $hlp)"{-l+,--library=}'[only trace symbols implemented by specified library]:library:_files' \
+  "($hlp)-L[don't display library calls]" \
+  "(-c -n --indent $hlp)"{-n+,--indent=}'[specify indent for each level of call nesting]:spaces' \
+  "(-o --output $hlp)"{-o+,--output=}'[write the trace output to specified file]:file:_files' \
+  "(: $hlp)-p+[attach to the process with specified process ID and begin tracing]:process ID:_pids" \
+  "(-c $hlp)-r[print relative timestamps]" \
+  "(-c $hlp)-s+[specify the maximum string size to print]:maximum string size [32]" \
+  "($hlp)-S[trace system calls as well as library calls]" \
+  "(-c -ttt $hlp)-t[prefix each line of the trace with the time of day]" \
+  "(-c -ttt -tt $hlp)-tt[prefix each line of the trace with the time of day including the microseconds]" \
+  "(-c -tt -t $hlp)-ttt[prefix each line of the trace with the number of seconds and microseconds since the epoch]" \
+  "(-c $hlp)-T[show the time spent in each call]" \
+  "${root}-u+[run as specified user]:user:_users" \
+  '(- 1 *)'{-V,--version}'[display version information]' \
+  "($hlp)*-x+[modify which static functions to trace]:filter" \
+  '(-):command name: _command_names -e' \
+  '*::arguments:_normal'

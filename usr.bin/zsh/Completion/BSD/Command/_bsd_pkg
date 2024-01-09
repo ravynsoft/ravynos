@@ -1,0 +1,257 @@
+#compdef pkg_add pkg_create pkg_delete pkg_info
+
+(( $+functions[_bsd_pkg_pkgfiles] )) ||
+_bsd_pkg_pkgfiles() {
+  local ret=1 paths portsdir pkgsdir
+
+  case $OSTYPE in
+  netbsd*)
+    portsdir=/usr/pkgsrc
+    pkgsdir=${PACKAGES:-$portsdir/packages}/All
+    ;;
+  openbsd*)
+    portsdir=${${(M)${(f)"$(</etc/mk.conf)"}:#PORTSDIR*}#*=[[:blank:]]#}
+    portsdir=${${portsdir:-$PORTSDIR}:-/usr/ports}
+    pkgsdir=${${(M)${(f)"$(</etc/mk.conf)"}:#PACKAGE_REPOSITORY*}#*=[[:blank:]]#}
+    pkgsdir=${${pkgsdir:-$PACKAGE_REPOSITORY}:-$portsdir/packages/}/$(make -V MACHINE_ARCH)/All
+    ;;
+  *)
+    portsdir=${PORTSDIR:-/usr/ports}
+    pkgsdir=${PACKAGES:-$portsdir/packages}/All
+    ;;
+  esac
+
+  paths=( "${(@)${(@s.:.)PKG_PATH}:#}" )
+  _files "$@" -g '*.t[bg]z(-.)' && ret=0
+  (( $#path )) && _files "$@" -W paths -g '*.t[bg]z(-.)' && ret=0
+  compadd "$@" - $pkgsdir/*.t[bg]z(-.) && ret=0
+
+  return ret
+}
+
+(( $+functions[_bsd_pkg_pkgs] )) ||
+_bsd_pkg_pkgs() {
+  compadd "$@" - ${PKG_DBDIR:-/var/db/pkg}/*(/:t)
+}
+
+(( $+functions[_bsd_pkg_pkgs_and_files] )) ||
+_bsd_pkg_pkgs_and_files() {
+  local ret=1
+
+  if (( $words[(I)-*F*] )); then
+    _files "$@" && ret=0
+  else
+    _bsd_pkg_pkgs "$@" && ret=0
+  fi
+
+  return ret
+}
+
+_bsd_pkg() {
+  local flags
+
+  case "$service" in
+  pkg_add)
+    flags=(
+      "-n[don't really install packages]"
+      '-v[be verbose]'
+    )
+
+    case "$OSTYPE" in
+    netbsd*)
+      flags+=(
+        '-A[do not record packages as installed manually]'
+        '-C[specify configuration file]:config file:_files'
+        '-D[force updating even if dependencies are not satisfied]'
+        '-f[force installation]'
+        "-I[don't execute installation scripts]"
+        '-K[override PKG_DBDIR]:pkg_dbdir:_files -/'
+        '-m[specify machine architecture]:architecture:_netbsd_architectures'
+        '-P[specify destdir prefix]:destdir directory:_files -/'
+        '-p[specify prefix]:prefix directory:_files -/'
+        "-R[don't record]"
+        '-U[replace an already installed version]'
+        '-u[update]'
+        '-V[show version and exit]'
+        '*:package to install:_bsd_pkg_pkgfiles'
+      )
+      ;;
+    openbsd*)
+      flags+=(
+        '-A+[arch to assume for any package tests]:architecture:_obsd_architectures'
+        '-a[do not record packages as installed manually]'
+        '-aa[force already installed packages to be tagged as installed automatically]'
+        '-B+[specify destdir prefix]:destdir directory:_files -/'
+        '-c[while replacing packages, delete extra configuration file in the old package]'
+        '*-D+[specify failsafe to waive]:failsafe:((
+          allversions\:"do not trim older p* variants of packages for updates"
+          arch\:"architecture recorded in package may not match"
+          checksum\:"verify checksums before deleting or tying old files"
+          dontmerge\:"do not merge updates together if dependencies are too strict"
+          donttie\:"do not try to find new files in old packages by comparing the stored sha256"
+          downgrade\:"do not filter out package versions older than what is currently installed"
+          installed\:"in update mode, reinstall an existing package with the same update signature"
+          nonroot\:"install even if not running as root"
+          repair\:"attempt to repair installed packages with missing registration data"
+          scripts\:"external scripts may fail"
+          SIGNER\:"list of trusted signers, separated by commas"
+          snap\:"force %c and %m to expand to snapshots"
+          unsigned\:"allow the installation of unsigned packages without warnings/errors"
+          updatedepends\:"force update even if forward dependencies no longer match"
+        ))'
+        '-I[force non-interactive mode]'
+        '-i[force interactive mode]'
+        '-L+[specify a localbase]:localbase:_files -/'
+        '-l+[specify pkg_info output file to install]:pkg_info file:_files'
+        '-m[always display progress meter]'
+        '-P+[check distribution permissions]:permission type:(ftp)'
+        "-qq[don't check checksums]"
+        '-r[replace existing packages]'
+        "-s[don't install; just report disk size changes]"
+        '-U[update dependencies before installing]'
+        '-u[update the specified package or all if none given]'
+        '-V[turn on statistics output]'
+        '-x[disable progress meter]'
+        '-z[fuzzy package matching]'
+      )
+    esac
+
+    _arguments -s $flags[@]
+    ;;
+
+  pkg_create)
+    case "$OSTYPE" in
+    netbsd*)
+      # NetBSD users, improve me!
+      flags=(
+        '*:package name:_bsd_pkg_pkgs'
+      )
+      ;;
+    esac
+
+    _arguments -s $flags[@]
+    ;;
+
+  pkg_delete)
+    flags=(
+      "-n[don't really deinstall packages]"
+      '-v[be verbose]'
+    )
+
+    case "$OSTYPE" in
+    netbsd*)
+      flags+=(
+        '(:)-A[remove automatically installed packages that are no longer required]'
+        "-D[don't execute deinstallation scripts]"
+        '-F[specify each package by an installed file]'
+        '-f[force deinstallation]'
+        '-ff[force deinstallation even if preserved]'
+        '-K+[override PKG_DBDIR]:pkg_dbdir:_files -/'
+        '-k[silently skip preserved packages]'
+        '-N[leave the files installed]'
+        "-O[only delete the package's entries]"
+        '-P+[specify destdir prefix]:destdir directory:_files -/'
+        '-p+[specify prefix]:prefix directory:_files -/'
+        '-R[delete upward recursively]'
+        '-r[delete recursively]'
+        '-V[show version and exit]'
+        '*:package name:_bsd_pkg_pkgs_and_files'
+      )
+      ;;
+    openbsd*)
+      flags+=(
+        '-a[delete unused dependencies]'
+        '-B+[specify destdir prefix]:destdir directory:_files -/'
+        '*-D+[specify failsafe to waive]:failsafe:((
+          baddepend\:"force deletion of packages even if they reference nonexistent dependencies"
+          checksum\:"verify checksums before deleting or tying old files"
+          dependencies\:"delete the set of packages that depend upon the requested packages"
+          nonroot\:"install even if not running as root"
+          scripts\:"external scripts may fail"
+        ))'
+        '-I[force non-interactive mode]'
+        '-i[force interactive mode]'
+        '-m[always display progress meter]'
+        "-qq[don't check checksums]"
+        "-s[don't install; just report disk size changes]"
+        '-V[turn on statistics output]'
+        '-X[delete everything, except the specified packages]'
+        '-x[disable progress meter]'
+        '*:package name:_bsd_pkg_pkgs_and_files'
+      )
+      ;;
+    esac
+
+    _arguments -s $flags[@]
+    ;;
+
+  pkg_info)
+    flags=(
+      '(:)-a[show all installed packages]'
+      '-c[show comment fields]'
+      '-d[show long descriptions]'
+      '-e+[test if package is installed]:package name:_bsd_pkg_pkgs'
+      '-f[show packing list instructions]'
+      '-I[show index lines]'
+      '-L[show full pathnames of files]'
+      '-l+[specify prefix string]:prefix string:'
+      '-q[be quiet]'
+      '-R[show list of installed requiring packages]'
+      '-s[show total size occupied by each package]'
+      '-v[be verbose]'
+      '(-a -A)*:package name:_bsd_pkg_pkgs_and_files'
+    )
+
+    case "$OSTYPE" in
+    netbsd*)
+      flags+=(
+        '-B[show build information]'
+        '-b[show RCS Id strings]'
+        '-D[show install-message files]'
+        '-F[specify each package by an installed file]'
+        '-i[show install scripts]'
+        '-K+[override PKG_DBDIR]:pkg_dbdir:_files -/'
+        '-k[show deinstall scripts]'
+        '-m[show mtree files]'
+        '-N[show which packages each package was built with]'
+        '-n[show which packages each package needs]'
+        '-p[show installation prefixes]'
+        '-Q+[show the definition of the specified variable from the build information]:variable:'
+        '-r[show list of installed requiring packages recursively]'
+        '-S[show total size occupied by each package and its dependents]'
+        '-u[show information for all user-installed packages]'
+        '-V[show version and exit]'
+        '-X[print summary information]'
+      )
+      ;;
+    openbsd*)
+      flags+=(
+        '(:)-A[show all installed packages, including internal packages]'
+        '-C[show certificate information]'
+        '*-D+[specify failsafe to waive]:failsafe:((
+          SIGNER\:"list of trusted signers, separated by commas"
+          snap\:"force %c and %m to expand to snapshots"
+          unsigned\:"allow the installation of unsigned packages without warnings/errors"
+        ))'
+        '-E[show the package that contains the specified file]:file:_files'
+        # XXX only with -L
+        '-K[prefix filenames with category keywords]'
+        '-M[show the install-message file]'
+        '-m[only show manual installations]'
+        '-P[show the pkgpath]'
+        '-Q+[show packages matching the specified query]:query:'
+        '-r+[check the list of packages for a specified pkgspec]:pkgspec:'
+        '-S[show the update signature]'
+        '-t[show packages not required by any other]'
+        '-U[show the deinstall-message file]'
+        '-z[fuzzy package matching]'
+      )
+      ;;
+    esac
+
+    _arguments -s $flags[@]
+    ;;
+  esac
+}
+
+_bsd_pkg "$@"

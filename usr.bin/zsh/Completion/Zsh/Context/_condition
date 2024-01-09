@@ -1,0 +1,60 @@
+#compdef -condition-
+
+local prev="$words[CURRENT-1]" ret=1
+
+if [[ "$prev" = -o ]]; then
+  _tags -C -o options && _options
+elif [[ "$prev" = -([a-hkprsuwxLOGSN]|[no]t|ef) ]]; then
+  _tags -C "$prev" files && _files
+elif [[ "$prev" = -t ]]; then
+  _file_descriptors
+elif [[ "$prev" = -v ]]; then
+  _parameters -r "\= \t\n\[\-"
+else
+  if [[ "$PREFIX" = -* ]] ||
+     ! zstyle -T ":completion:${curcontext}:options" prefix-needed; then
+
+    if [[ "$prev" = (\[\[|\|\||\&\&|\!|\() ]]; then
+      _describe -o 'condition code' \
+                '( -a:existing\ file
+	           -b:block\ special\ file
+	           -c:character\ special\ file
+	           -d:directory
+	           -e:existing\ file
+	           -f:regular\ file
+	           -g:setgid\ bit
+	           -h:symbolic\ link
+	           -k:sticky\ bit
+	           -n:non-empty\ string
+	           -o:option
+	           -p:named\ pipe
+	           -r:readable\ file
+	           -s:non-empty\ file
+	           -t:terminal\ file\ descriptor
+	           -u:setuid\ bit
+		   -v:set\ variable
+	           -w:writable\ file
+	           -x:executable\ file
+	           -z:empty\ string
+	           -L:symbolic\ link
+	           -O:own\ file
+	           -G:group-owned\ file
+	           -S:socket
+	           -N:unread\ file)' && ret=0
+    else
+      _describe -o 'condition code' \
+	        '( -nt:newer\ than
+	           -ot:older\ than
+	           -ef:same\ file
+	           -eq:numerically\ equal
+	           -ne:numerically\ not\ equal
+	           -lt:numerically\ less\ than
+	           -le:numerically\ less\ than\ or\ equal
+	           -gt:numerically\ greater\ than
+	           -ge:numerically\ greater\ than\ or\ equal)' && ret=0
+    fi
+  fi
+  _alternative 'files:: _files' 'parameters:: _parameters' && ret=0
+
+  return ret
+fi

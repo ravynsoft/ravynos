@@ -1,0 +1,186 @@
+# Add to HOOK the given WIDGET
+# 
+# HOOK is one of isearch-exit, isearch-update, line-pre-redraw, line-init,
+# line-finish, history-line-set, keymap-select (the zle- prefix is allowed
+# but not required).  If a widget corresponding to HOOK already exists, it
+# is preserved and called first in the new set of HOOK widgets.
+#
+# With -d, remove the WIDGET from the hook instead; deletes the hook
+# linkage if it is empty.
+#
+# -D behaves like -d, but pattern characters are active in WIDGET, so
+# any matching widget will be deleted from the hook.
+#
+# Without -d, if the WIDGET is not already defined, a function having the
+# same name is marked for autoload; -U is passed down to autoload if that
+# is given, as are -z and -k.  (This is harmless if the function is
+# already defined.)  The WIDGET is then created with zle -N.
+#
+# The -L option lists the hooks and their associated widgets.
+
+# This is probably more safeguarding than necessary
+zmodload -e zsh/zle || return 1
+{ zmodload zsh/parameter && zmodload zsh/zleparameter } || {
+    print -u2 "add-zle-hook-widget: Need parameter modules for zle hooks"
+    return 1
+}
+
+() { # Preserve caller global option settings
+
+emulate -L zsh
+
+# Setup - create the base functions for hook widgets that call the others
+
+local -a hooktypes=( zle-isearch-exit zle-isearch-update
+                     zle-line-pre-redraw zle-line-init zle-line-finish
+                     zle-history-line-set zle-keymap-select )
+# Stash in zstyle to make it global
+zstyle zle-hook types ${hooktypes#zle-}
+
+# Relying on multifuncdef option here
+function azhw:${^hooktypes} {
+    local -a hook_widgets
+    local hook
+    # Values of these styles look like number:name
+    # and we run them in number order
+    zstyle -a $WIDGET widgets hook_widgets
+    for hook in "${(@)${(@on)hook_widgets[@]}#<->:}"; do
+	if [[ "$hook" = user:* ]]; then
+	    # Preserve $WIDGET within the renamed widget
+	    zle "$hook" -f "nolast" -N -- "$@"
+	else
+	    zle "$hook" -f "nolast" -Nw -- "$@"
+	fi || return
+    done
+    return 0
+}
+
+# Redefine ourself with the setup left out
+
+function add-zle-hook-widget {
+    local -a hooktypes
+    zstyle -a zle-hook types hooktypes
+
+    # This part copied from add-zsh-hook
+    local usage="Usage: $funcstack[1] hook widgetname\nValid hooks are:\n  $hooktypes"
+
+    local opt
+    local -a autoopts
+    integer del list help
+
+    while getopts "dDhLUzk" opt; do
+	case $opt in
+	    (d)
+	    del=1
+	    ;;
+
+	    (D)
+	    del=2
+	    ;;
+
+	    (h)
+	    help=1
+	    ;;
+
+	    (L)
+	    list=1
+	    ;;
+
+	    ([Uzk])
+	    autoopts+=(-$opt)
+	    ;;
+
+	    (*)
+	    return 1
+	    ;;
+	esac
+    done
+    shift $(( OPTIND - 1 ))
+
+    1=${1#zle-}	# Strip prefix not stored in zle-hook types style
+
+    if (( list )); then
+	zstyle -L "zle-(${1:-${(@j:|:)hooktypes[@]}})" widgets
+	return $?
+    elif (( help || $# != 2 || ${hooktypes[(I)$1]} == 0 )); then
+	print -u$(( 2 - help )) $usage
+	return $(( 1 - help ))
+    fi
+
+    local -aU extant_hooks
+    local hook="zle-$1"
+    local fn="$2"
+
+    if (( del )); then
+        # delete, if hook is set
+	if zstyle -g extant_hooks "$hook" widgets; then
+	    if (( del == 2 )); then
+		set -A extant_hooks ${extant_hooks[@]:#(<->:|)${~fn}}
+	    else
+		set -A extant_hooks ${extant_hooks[@]:#(<->:|)$fn}
+	    fi
+            # unset if no remaining entries
+	    if (( ${#extant_hooks} )); then
+		zstyle "$hook" widgets "${extant_hooks[@]}"
+	    else
+		zstyle -d "$hook" widgets
+	    fi
+	fi
+    else
+	# Check whether attempting to add a widget named for the hook
+	if [[ "$fn" = "$hook" ]]; then
+	    if (( ${+widgets[$fn]} )); then
+		print -u2 "$funcstack[1]: Cannot hook $fn to itself"
+		return 1
+	    fi
+	    # No point in building the array until another is added
+	    autoload "${autoopts[@]}" -- "$fn"
+	    zle -N "$fn"
+	    return 0
+	fi
+	integer i=${#options[ksharrays]}-2
+	zstyle -g extant_hooks "$hook" widgets
+        # Check for an existing widget, add it as the first hook
+	if [[ ${widgets[$hook]:-} != "user:azhw:$hook" ]]; then
+	    if [[ -n ${widgets[$hook]:-} ]]; then
+		zle -A "$hook" "${widgets[$hook]}"
+		extant_hooks=(0:"${widgets[$hook]}" "${extant_hooks[@]}")
+	    fi
+	    zle -N "$hook" azhw:"$hook"
+	fi
+	# Add new widget only if not already in the hook list
+	if [[ -z ${(M)extant_hooks[@]:#(<->:|)$fn} ]]; then
+       	    # no index and not already hooked
+            # assign largest existing index plus 1
+	    i=${${(On@)${(@M)extant_hooks[@]#<->:}%:}[i]:-0}+1
+	else
+	    return 0
+	fi
+	extant_hooks+=("${i}:${fn}")
+	zstyle -- "$hook" widgets "${extant_hooks[@]}"
+	if (( ! ${+widgets[$fn]} )); then
+	    autoload "${autoopts[@]}" -- "$fn"
+	    zle -N -- "$fn"
+	fi
+	if (( ! ${+widgets[$hook]} )); then
+	    zle -N "$hook" azhw:"$hook"
+	fi
+    fi
+}
+
+} "$@" # Resume caller global options
+
+# Handle zsh autoloading conventions:
+# - "file" appears last in zsh_eval_context when "source"-ing
+# - "evalautofunc" appears with kshautoload set or autoload -k
+# - "loadautofunc" appears with kshautoload unset or autoload -z
+# - use of autoload +X cannot reliably be detected, use best guess
+case "$zsh_eval_context" in
+*file) ;;
+*evalautofunc) ;;
+*loadautofunc) add-zle-hook-widget "$@";;
+*) [[ -o kshautoload ]] || add-zle-hook-widget "$@";;
+esac
+# Note fallback here is equivalent to the usual best-guess used by
+# functions written for zsh before $zsh_eval_context was available
+# so this case-statement is backward-compatible.

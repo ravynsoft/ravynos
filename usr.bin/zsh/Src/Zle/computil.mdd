@@ -1,0 +1,9 @@
+name=zsh/computil
+link=either
+load=yes
+
+moddeps="zsh/complete zsh/zle"
+
+objects="computil.o"
+
+autofeatures="b:compdescribe b:comparguments b:compvalues b:compquote b:comptags b:comptry b:compfiles b:compgroups"

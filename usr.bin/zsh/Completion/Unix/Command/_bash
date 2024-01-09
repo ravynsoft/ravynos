@@ -1,0 +1,86 @@
+#compdef bash
+
+local ret=1
+local -a context line state state_descr args tmp cmd
+local -A opt_args val_args
+
+cmd=( $words[1] --noprofile --norc )
+
+args=(
+  # Long options must appear before short options (take care — some of these are
+  # duplicated in the s group below!)
+  + l
+  '!--debug'
+  '--debugger[enable extended debugging mode]'
+  '(-D --dump-po-strings --dump-strings)--dump-po-strings[like -D, but display in gettext PO format]'
+  '(-D --dump-po-strings --dump-strings)--dump-strings[display strings subject to language translation]'
+  '(: -)--help[display help information]'
+  # The usual = is deliberately omitted here
+  '(--init-file --rcfile)'{--init-file,--rcfile}'[load specified file instead of ~/.bashrc]: :_files'
+  '(-l --login)--login[act as login shell]'
+  '--noediting[disable readline editing]'
+  '--noprofile[do not load /etc/profile, ~/.bash_profile, etc.]'
+  '--norc[do not load ~/.bashrc]'
+  '--posix[enable POSIX mode]'
+  '--pretty-print[format a shell script]'
+  '(-r --restricted)--restricted[act as restricted shell]'
+  '(: -)--version[display version information]'
+  # This is ugly, but this way the + variants have accurate descriptions. Note
+  # that bash does accept + variants of -i, -l, -s, etc., but they don't seem to
+  # actually do anything, so we don't bother with them
+  + s
+  '(l)'{'-a[','+a[do not '}'mark all functions and variables for export]'
+  '(l)'{'-B[','+B[do not '}'enable brace expansion]'
+  '(l)'{'-b[','+b[do not '}'report status of terminated background jobs immediately]'
+  '(l)'{'-C[','+C[do not '}'prevent output redirection from overwriting existing files]'
+  '(l 1 -)-c[execute specified command string]:command string:_cmdstring:argv[0]:'
+  '(l)-D[display strings subject to language translation]'
+  '(l)'{'-E[','+E[do not '}'make functions and subshells inherit ERR traps]'
+  '(l)'{'-e[','+e[do not '}'exit immediately on non-zero return]'
+  '(l)'{'-f[','+f[do not '}'disable file globbing]'
+  '(l)'{'-H[','+H[do not '}'enable history substitution]'
+  '(l)'{'-h[','+h[do not '}'hash commands]'
+  '(l)-i[act as interactive shell]'
+  '(l)'{'-k[','+k[do not '}'act on variable assignments in command arguments]'
+  '(l)-l[act as login shell]'
+  '(l)'{'-m[','+m[do not '}'enable job control]'
+  '(l)'{'-n[','+n[do not '}'read (syntax-check) commands only]'
+  '(l)*'{'-O[','+O[un'}'set specified `shopt` option]: :->shopt-options'
+  '(l)*'{'-o[','+o[un'}'set specified `set` option]: :->set-options'
+  '(l)'{'-P[','+P[do not '}'resolve cd paths]'
+  '(l)'{'-p[','+p[do not '}'enable privileged mode]'
+  '(l)-r[act as restricted shell]'
+  '(l 1 -c)-s[read commands from standard input]'
+  '(l)'{'-T[','+T[do not '}'make functions and subshells inherit DEBUG and RETURN traps]'
+  '(l)'{'-t[','+t[do not '}'exit after executing one command]'
+  '(l)'{'-u[','+u[do not '}'treat unset variables as an error during parameter expansion]'
+  '(l)'{'-v[','+v[do not '}'print shell input lines as they are read]'
+  '(l)'{'-x[','+x[do not '}'print command trace]'
+  + o
+  '(-)1:script file:_files'
+  '(-)*:: :->args'
+)
+
+_arguments -s -S -A '-*' : $args && ret=0
+
+case $state in
+  args)
+    if [[ -n ${opt_args[(i)s--[cs]]} ]]; then
+      _files && ret=0
+    else
+      _normal && ret=0
+    fi
+    ;;
+  set-options)
+    tmp=( ${(f)"$( _call_program set-options $cmd -c '"shopt -o"' )"} )
+    tmp=( ${tmp%%[[:space:]]*} )
+    _values -w '`set` option' $tmp && ret=0
+    ;;
+  shopt-options)
+    tmp=( ${(f)"$( _call_program shopt-options $cmd -c shopt )"} )
+    tmp=( ${tmp%%[[:space:]]*} )
+    _values -w '`shopt` option' $tmp && ret=0
+    ;;
+esac
+
+return ret

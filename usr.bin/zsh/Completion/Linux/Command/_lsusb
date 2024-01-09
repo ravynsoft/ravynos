@@ -1,0 +1,35 @@
+#compdef lsusb
+
+local usbidsline vendorid pair ret=1
+local curcontext="$curcontext" state line expl
+typeset -A opt_args
+
+_arguments -C \
+  '(-v --verbose -t --tree)'{-v,--verbose}'[be verbose]' \
+  '-s+[filter devices by bus and/or device number]:bus and/or devnum to show' \
+  '-d+[filter devices by vendor/product ID]:vendor and product to show:->vendorproduct' \
+  '-D+[display only specified device]:device:_files -g "*(-%)" -P / -W /' \
+  '(-t --tree -v --verbose)'{-t,--tree}'[dump the physical USB device hierarchy as a tree]' \
+  '(-)'{-V,--version}'[print version information]' \
+  '(-)'{-h,--help}'[print help information]' && ret=0
+
+if [[ -n $state && ${+_lsusb_vendors} -eq 0 ]]; then
+  typeset -A _lsusb_vendors _lsusb_devices
+  cat /usr/share/(misc|hwdata)/usb.ids | while IFS="" read usbidsline
+  do
+    case "$usbidsline" in
+      ((#b)([0-9a-f]##) ##(*))
+        vendorid="$match[1]"
+        _lsusb_vendors[$vendorid]="$match[2]"
+      ;;
+      (	(#b)([0-9a-f]##) ##(*)))
+        pair="$vendorid:$match[1]"
+        _lsusb_devices[${pair}]="$match[2]"
+      ;;
+    esac
+  done
+fi
+
+_wanted products expl 'vendor ID:product ID' compadd -k _lsusb_devices && ret=0
+
+return ret

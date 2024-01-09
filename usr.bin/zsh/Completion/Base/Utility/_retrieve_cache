@@ -1,0 +1,31 @@
+#autoload
+#
+# Retrieval component of completions caching layer
+
+local _cache_ident _cache_dir _cache_path _cache_policy
+_cache_ident="$1"
+
+if zstyle -t ":completion:${curcontext}:" use-cache; then
+  # Decide which directory to retrieve cache from, and ensure it exists
+  zstyle -s ":completion:${curcontext}:" cache-path _cache_dir
+  : ${_cache_dir:=${ZDOTDIR:-$HOME}/.zcompcache}
+  if [[ ! -d "$_cache_dir" ]]; then
+    [[ -e "$_cache_dir" ]] &&
+      _message "cache-dir ($_cache_dir) isn't a directory\!"
+    return 1
+  fi
+
+  _cache_path="$_cache_dir/$_cache_ident"
+
+  if [[ -e "$_cache_path" ]]; then
+    _cache_invalid "$_cache_ident" && return 1
+
+    . "$_cache_path"
+    return 0
+  else
+    return 1
+  fi
+else
+  return 1
+fi
+

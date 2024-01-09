@@ -1,0 +1,172 @@
+# Test zparseopts from the zsh/zutil module
+
+%prep
+
+  if zmodload zsh/zutil 2> /dev/null; then
+    # Produce a string representing an associative array ordered by its keys
+    order_assoc() {
+      local -a _arr
+      for 2 in "${(@kP)1}"; do
+        _arr+=( "${(q-)2} ${(q-)${(P)1}[$2]}" )
+      done
+      print -r - ${(j< >)${(@o)_arr}}
+    }
+  else
+    ZTST_unimplemented="can't load the zsh/zutil module for testing"
+  fi
+
+%test
+
+  () {
+    local -a optv
+    zparseopts -a optv - a b: c:- z
+    print -r - ret: $?, optv: $optv, argv: $argv
+  } -ab1 -c -d -e -z
+0:zparseopts -a
+>ret: 0, optv: -a -b 1 -c-d, argv: -ab1 -c -d -e -z
+
+  () {
+    local -A opts
+    zparseopts -A opts - a b: c:- z
+    print -r - ret: $?, opts: "$( order_assoc opts )", argv: $argv
+  } -ab1 -c -d -e -z
+0:zparseopts -A
+>ret: 0, opts: -a '' -b 1 -c -d, argv: -ab1 -c -d -e -z
+
+  () {
+    local -a optv
+    zparseopts -D -a optv - a b: c:- z
+    print -r - ret: $?, optv: $optv, argv: $argv
+  } -ab1 -c -d -e -z
+0:zparseopts -D
+>ret: 0, optv: -a -b 1 -c-d, argv: -e -z
+
+  () {
+    local -a optv
+    zparseopts -E -a optv - a b: c:- z
+    print -r - ret: $?, optv: $optv, argv: $argv
+  } -ab1 -c -d -e -z
+0:zparseopts -E
+>ret: 0, optv: -a -b 1 -c-d -z, argv: -ab1 -c -d -e -z
+
+  () {
+    local -a optv
+    zparseopts -D -E -a optv - a b: c:- z
+    print -r - ret: $?, optv: $optv, argv: $argv
+  } -ab1 -c -d -e -z
+0:zparseopts -D -E
+>ret: 0, optv: -a -b 1 -c-d -z, argv: -e
+
+  for 1 in '-a -x -z' '-ax -z' '-a --x -z'; do
+    () {
+      local -a optv
+      zparseopts -D -E -F -a optv - a b: c:- z
+      print -r - ret: $?, optv: $optv, argv: $argv
+    } $=1
+  done
+0:zparseopts -F
+?(anon):zparseopts:2: bad option: -x
+>ret: 1, optv: , argv: -a -x -z
+?(anon):zparseopts:2: bad option: -x
+>ret: 1, optv: , argv: -ax -z
+?(anon):zparseopts:2: bad option: --x
+>ret: 1, optv: , argv: -a --x -z
+
+  for 1 in '-a 1 2 3' '1 2 3'; do
+    () {
+      local -a optv=( -x -y -z )
+      zparseopts -D -K -a optv - a b: c:- z
+      print -r - ret: $?, optv: $optv, argv: $argv
+    } $=1
+  done
+0:zparseopts -K -a
+>ret: 0, optv: -a, argv: 1 2 3
+>ret: 0, optv: -x -y -z, argv: 1 2 3
+
+  for 1 in '-a 1 2 3' '1 2 3'; do
+    () {
+      local -A opts=( -b 1 -z '' )
+      zparseopts -D -K -A opts - a b: c:- z
+      print -r - ret: $?, opts: "$( order_assoc opts )", argv: $argv
+    } $=1
+  done
+0:zparseopts -K -A
+>ret: 0, opts: -a '' -b 1 -z '', argv: 1 2 3
+>ret: 0, opts: -b 1 -z '', argv: 1 2 3
+
+  () {
+    local -a optv
+    local -A opts
+    zparseopts -D -M -a optv -A opts - a:=-aaa -aaa:
+    print -r - ret: $?, optv: $optv, opts: "$( order_assoc opts )", argv: $argv
+  } --aaa foo -a bar 1 2 3
+0:zparseopts -M
+>ret: 0, optv: --aaa bar, opts: --aaa bar, argv: 1 2 3
+
+  () {
+    local -a optv aa ab
+    zparseopts -a optv - a=aa b:=ab c:- z
+    print -r - ret: $?, optv: $optv, aa: $aa, ab: $ab, argv: $argv
+  } -ab1 -c -d
+0:multiple arrays
+>ret: 0, optv: -c-d, aa: -a, ab: -b 1, argv: -ab1 -c -d
+
+  for 1 in '-a - -b - - -b' '-a -- -b -- -- -b' '-a 1 -b - - -b'; do
+    # -D alone strips - out
+    () {
+      local -a optv
+      zparseopts -D -F -a optv - a b: c:- z
+      print -r - '(-D   )' ret: $?, optv: $optv, argv: $argv
+    } $=1
+    # -D -E leaves - in
+    () {
+      local -a optv
+      zparseopts -D -E -F -a optv - a b: c:- z
+      print -r - '(-D -E)' ret: $?, optv: $optv, argv: $argv
+    } $=1
+  done
+0:-/-- handling
+>(-D   ) ret: 0, optv: -a, argv: -b - - -b
+>(-D -E) ret: 0, optv: -a, argv: - -b - - -b
+>(-D   ) ret: 0, optv: -a, argv: -b -- -- -b
+>(-D -E) ret: 0, optv: -a, argv: -- -b -- -- -b
+>(-D   ) ret: 0, optv: -a, argv: 1 -b - - -b
+>(-D -E) ret: 0, optv: -a -b -, argv: 1 - -b
+
+  # Escaping should always work, but it's optional on the first character
+  for specs in '\+ \: \= \\' '+ : = \'; do
+    () {
+      local -a optv
+      zparseopts -D -a optv - $=specs
+      print -r - ret: $?, optv: $optv, argv: $argv
+    } -+:=\\ 1 2 3
+  done
+  () {
+    local -a optv
+    zparseopts -D -a optv - '-\:\:\::'
+    print -r - ret: $?, optv: $optv, argv: $argv
+  } --:::foo 1 2 3
+0:special characters in option names
+>ret: 0, optv: -+ -: -= -\, argv: 1 2 3
+>ret: 0, optv: -+ -: -= -\, argv: 1 2 3
+>ret: 0, optv: --::: foo, argv: 1 2 3
+
+  for specs in '-foo: -foobar' '-foobar -foo:'; do
+    () {
+      local -a optv
+      zparseopts -a optv - $=specs
+      print -r - ret: $?, optv: $optv, argv: $argv
+    } --foobar 1 2 3
+  done
+0:overlapping option specs (scan order)
+>ret: 0, optv: --foobar, argv: --foobar 1 2 3
+>ret: 0, optv: --foo bar, argv: --foobar 1 2 3
+
+  () {
+    local -a optv
+    zparseopts -a optv - a b: c:- z
+    print -r - ret: $?, optv: $optv, argv: $argv
+  } -ab1 -c
+0:missing optarg
+?(anon):zparseopts:2: missing argument for option: -c
+>ret: 1, optv: , argv: -ab1 -c

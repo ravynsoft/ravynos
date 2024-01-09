@@ -1,0 +1,9 @@
+#compdef unhash
+
+_arguments -s -S \
+  '(-a -f -s *)-d[remove named directories]:*:named directory:compadd -k nameddirs' \
+  '(-d -f -s *)-a[remove aliases]:*:alias:_aliases' \
+  '(-a -d -f *)-s[remove suffix aliases]:*:suffix alias:_aliases -s s' \
+  '(-d -a -s *)-f[remove functions]:*:shell function:_functions' \
+  '-m[treat arguments as patterns]' \
+  '(-a -d -f -m)*:command: _command_names -e'

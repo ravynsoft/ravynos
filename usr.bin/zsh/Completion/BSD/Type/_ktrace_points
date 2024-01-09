@@ -1,0 +1,50 @@
+#autoload
+
+local points=(
+  'c[trace system calls]'
+  'i[trace I/O]'
+  'n[trace namei translations]'
+  's[trace signal processing]'
+  'u[trace user data]'
+  '+[trace the default points]'
+)
+
+case $OSTYPE in
+  dragonfly*|freebsd*|netbsd*)
+    points+=(
+      'w[context switches]'
+    )
+    ;|
+  freebsd*|openbsd*)
+    points+=(
+      't[trace various structures]'
+    )
+    ;|
+  freebsd*)
+    points+=(
+      'f[trace page faults]'
+      'p[trace capability check failures]'
+      'y[trace sysctl(3) requests]'
+    )
+    ;;
+  netbsd*)
+    points+=(
+      'A[trace all tracepoints]'
+      'a[trace exec arguments]'
+      'e[trace emulation changes]'
+      'f[trace open file descriptors after exec]'
+      'S[trace MIB access (sysctl)]'
+      'v[trace exec environment]'
+      '-[do not trace following trace points]'
+    )
+    ;;
+  openbsd*)
+    points+=(
+      'p[trace violation of pledge(2) restrictions]'
+      'x[trace argument vector in execve(2)]'
+      'X[trace environment in execve(2)]'
+    )
+    ;;
+esac
+
+_values -s '' 'ktrace point' $points

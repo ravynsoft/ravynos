@@ -1,0 +1,26 @@
+#compdef entr
+
+local curcontext="$curcontext" state state_descr line ret=1
+typeset -A opt_args
+
+_arguments -s -S \
+  '(-r)-a[respond to all events rather than consolidating them to avoid looping]' \
+  '-c[execute clear before invoking utility]' \
+  '-d[track directories and exit if a new file is added]' \
+  "-n[non-interactive mode; don't access TTY]" \
+  '-p[postpone first execution of the utility]' \
+  '(-a)-r[reload a persistent child process]' \
+  '(*)-s[evaluate the first argument using interpreter specified by $SHELL]' \
+  '-z[exit after the utility completes]' \
+  '(-): :->command' \
+  '*::arguments:_normal' && ret=0
+
+if [[ -n $state ]]; then
+  if (( $+opt_args[-s] )); then
+    _cmdstring && ret=0
+  else
+    _command_names -e && ret=0
+  fi
+fi
+
+return ret

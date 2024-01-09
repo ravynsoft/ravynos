@@ -1,0 +1,895 @@
+#autoload
+
+local -a match mbegin mend
+
+local splitchars
+if zstyle -s ":completion:${curcontext}:" file-split-chars splitchars; then
+  compset -P "*[${(q)splitchars}]"
+fi
+
+# Look for glob qualifiers.  Do this first:  if we're really
+# in a glob qualifier, we don't actually want to expand
+# the earlier part of the path.  We can't expand inside
+# parentheses otherwise, so as we test that successfully
+# we should be able to commit to glob qualifiers here.
+#
+# Extra nastiness to be careful about a quoted parenthesis.
+# The initial tests look for parentheses with zero or an
+# even number of backslashes in front.  We also require that
+# there was at least one character before the parenthesis for
+# a bare glob qualifier.
+# The later test looks for an outstanding quote.
+if _have_glob_qual $PREFIX; then
+  local ret=1
+  compset -p ${#match[1]}
+  compset -S '[^\)\|\~]#(|\))'
+  if [[ $_comp_caller_options[extendedglob] == on ]] && compset -P '\#'; then
+    _globflags && ret=0
+  else
+    if [[ $_comp_caller_options[extendedglob] == on ]]; then
+      local -a flags
+      flags=(
+      '#:introduce glob flag'
+      )
+      _describe -t globflags "glob flag" flags -Q -S '' && ret=0
+    fi
+    _globquals && ret=0
+  fi
+  return ret
+fi
+
+# Utility function for in-path completion. This allows `/u/l/b<TAB>'
+# to complete to `/usr/local/bin'.
+
+local linepath realpath donepath prepath testpath exppath skips skipped
+local tmp1 tmp2 tmp3 tmp4 i orig eorig pre suf tpre tsuf opre osuf cpre
+local pats haspats ignore pfx pfxsfx sopt gopt opt sdirs ignpar cfopt listsfx
+local nm=$compstate[nmatches] menu matcher mopts sort mid accex fake
+local listfiles listopts tmpdisp origtmp1 Uopt
+local accept_exact_dirs path_completion
+integer npathcheck
+local -a Mopts
+
+typeset -U prepaths exppaths
+
+exppaths=()
+
+# Get the options.
+
+zparseopts -a mopts \
+    'P:=pfx' 'S:=pfxsfx' 'q=pfxsfx' 'r:=pfxsfx' 'R:=pfxsfx' \
+    'W:=prepaths' 'F:=ignore' 'M+:=matcher' \
+    J+: V+: x+: X+: 1 2 o+: n 'f=tmp1' '/=tmp1' 'g+:-=tmp1'
+
+sopt="-${(@j::M)${(@)tmp1#-}#?}"
+(( $tmp1[(I)-[/g]*] )) && haspats=yes
+(( $tmp1[(I)-g*] )) && gopt=yes
+if (( $tmp1[(I)-/] )); then
+  pats="${(@)${(@M)tmp1:#-g*}#-g}"
+  pats=( '*(-/)' ${${(z):-x $pats}[2,-1]} )
+else
+  pats="${(@)${(@M)tmp1:#-g*}#-g}"
+  pats=( ${${(z):-x $pats}[2,-1]} )
+fi
+pats=( "${(@)pats:# #}" )
+
+if (( $#pfx )); then
+  compset -P "${(b)pfx[2]}" || pfxsfx=( "$pfx[@]" "$pfxsfx[@]" )
+fi
+
+if (( $#prepaths )); then
+  tmp1="${prepaths[2]}"
+  if [[ "$tmp1[1]" = '(' ]]; then
+    prepaths=( ${^=tmp1[2,-2]%/}/ )
+  elif [[ "$tmp1[1]" = '/' ]]; then
+    prepaths=( "${tmp1%/}/" )
+  else
+    prepaths=( ${(P)^tmp1%/}/ )
+    (( ! $#prepaths )) && prepaths=( ${tmp1%/}/ )
+  fi
+  (( ! $#prepaths )) && prepaths=( '' )
+else
+  prepaths=( '' )
+fi
+
+if (( $#ignore )); then
+  if [[ "${ignore[2]}" = \(* ]]; then
+    ignore=( ${=ignore[2][2,-2]} )
+  else
+    ignore=( ${(P)ignore[2]} )
+  fi
+fi
+
+# If we were given no file selection option, we behave as if we were given
+# a `-f'.
+
+if [[ "$sopt" = -(f|) ]]; then
+  if [[ -z "$gopt" ]]; then
+    sopt='-f'
+    pats=('*')
+  else
+    unset sopt
+  fi
+fi
+
+if (( ! $mopts[(I)-[JVX]] )); then
+  local expl
+
+  if [[ -z "$gopt" && "$sopt" = -/ ]]; then
+    _description directories expl directory
+  else
+    _description files expl file
+  fi
+  tmp1=$expl[(I)-M*]
+  if (( tmp1 )); then
+    if (( $#matcher )); then
+      matcher[2]="$matcher[2] $expl[1+tmp1]"
+    else
+      matcher=(-M "$expl[1+tmp1]")
+    fi
+  fi
+  mopts=( "$mopts[@]" "$expl[@]" )
+fi
+
+# If given no `-F' option, we may want to use $fignore, turned into patterns.
+
+[[ -z "$_comp_no_ignore" && $#ignore -eq 0 &&
+   ( -z $gopt || "$pats" = \ #\*\ # ) && -n $FIGNORE ]] && 
+    ignore=( "?*${^fignore[@]}" )
+
+if (( $#ignore )); then
+  _comp_ignore=( "$_comp_ignore[@]" "$ignore[@]" )
+  (( $mopts[(I)-F] )) || mopts=( "$mopts[@]" -F _comp_ignore )
+fi
+
+if [[ $#matcher -eq 0 && -o nocaseglob ]]; then
+  # If globbing is case insensitive and there's no matcher,
+  # do case-insensitive matching.
+  matcher=( -M 'm:{a-zA-Z}={A-Za-z}' )
+fi
+
+if (( $#matcher )); then
+  # Add the current matcher to the options to compadd.
+  mopts=( "$mopts[@]" "$matcher[@]" )
+fi
+
+if zstyle -s ":completion:${curcontext}:" file-sort tmp1; then
+  case "$tmp1" in
+  *size*)             sort=oL;;
+  *links*)            sort=ol;;
+  *(time|date|modi)*) sort=om;;
+  *access*)           sort=oa;;
+  *(inode|change)*)   sort=oc;;
+  *)                  sort=on;;
+  esac
+  [[ "$tmp1" = *rev* ]] && sort[1]=O
+  [[ "$tmp1" = *follow* ]] && sort="-${sort}-"
+
+  if [[ "$sort" = on ]]; then
+    sort=
+  else
+    mopts=( -o nosort "${mopts[@]}" )
+
+    tmp2=()
+    for tmp1 in "$pats[@]"; do
+      if _have_glob_qual "$tmp1" complete; then
+	# unbalanced parenthesis is correct: match[1] contains the start,
+	# match[5] doesn't contain the end.
+	tmp2+=( "${match[1]}#q${sort})(${match[5]})" )
+      else
+        tmp2+=( "${tmp1}(${sort})" )
+      fi
+    done
+    pats=( "$tmp2[@]" )
+  fi
+fi
+
+# Check if we have to skip over sequences of slashes. The value of $skips
+# is used below to match the pathname components we always have to accept
+# immediately.
+
+if zstyle -t ":completion:${curcontext}:paths" squeeze-slashes; then
+  skips='((.|..|)/)##'
+else
+  skips='((.|..)/)##'
+fi
+
+zstyle -s ":completion:${curcontext}:paths" special-dirs sdirs
+zstyle -t ":completion:${curcontext}:paths" list-suffixes &&
+    listsfx=yes
+
+[[ "$pats" = ((|*[[:blank:]])\*(|[[:blank:]]*|\([^[:blank:]]##\))|*\([^[:blank:]]#/[^[:blank:]]#\)*) ]] &&
+    sopt=$sopt/
+
+zstyle -a ":completion:${curcontext}:paths" accept-exact accex
+zstyle -a ":completion:${curcontext}:" fake-files fake
+
+zstyle -s ":completion:${curcontext}:" ignore-parents ignpar
+
+zstyle -t ":completion:${curcontext}:paths" accept-exact-dirs &&
+  accept_exact_dirs=1
+zstyle -T ":completion:${curcontext}:paths" path-completion &&
+  path_completion=1
+
+if [[ -n "$compstate[pattern_match]" ]]; then
+  if { [[ -z "$SUFFIX" ]] && _have_glob_qual "$PREFIX" complete; } ||
+    _have_glob_qual "$SUFFIX" complete; then
+    # Copy all glob qualifiers from the line to
+    # the patterns used when generating matches
+    tmp3=${match[5]}
+    if [[ -n "$SUFFIX" ]]; then
+      SUFFIX=${match[2]}
+    else
+      PREFIX=${match[2]}
+    fi
+    tmp2=()
+    for tmp1 in "$pats[@]"; do
+      if _have_glob_qual "$tmp1" complete; then
+	# unbalanced parenthesis is correct: match[1] contains the start,
+	# match[5] doesn't contain the end.
+	tmp2+=( "${match[1]}${tmp3}${match[5]})")
+      else
+	tmp2+=( "${tmp1}(${tmp3})" )
+      fi
+    done
+    pats=( "$tmp2[@]" )
+  fi
+fi
+
+# We get the prefix and the suffix from the line and save the whole
+# original string. Then we see if we will do menu completion.
+
+pre="$PREFIX"
+suf="$SUFFIX"
+opre="$PREFIX"
+osuf="$SUFFIX"
+orig="${PREFIX}${SUFFIX}"
+eorig="$orig"
+
+[[ $compstate[insert] = (*menu|[0-9]*) || -n "$_comp_correct" ||
+   ( -n "$compstate[pattern_match]" &&
+     "${orig#\~}" != (|*[^\\])[][*?#~^\|\<\>]* ) ]] && menu=yes
+if [[ -n "$_comp_correct" ]]; then
+    cfopt=-
+    Uopt=-U
+else
+    Mopts=(-M "r:|/=* r:|=*")
+fi
+
+# Now let's have a closer look at the string to complete.
+
+if [[ "$pre" = [^][*?#^\|\<\>\\]#(\`[^\`]#\`|\$)*/* && "$compstate[quote]" != \' ]]; then
+
+  # If there is a parameter expansion in the word from the line, we try
+  # to complete the beast by expanding the prefix and completing anything
+  # after the first slash after the parameter expansion.
+  # This fails for things like `f/$foo/b/<TAB>' where the first `f' is
+  # meant as a partial path.
+
+  linepath="${(M)pre##*\$[^/]##/}"
+  function {
+    # do not treat an unset parameter expansion as the empty string
+    setopt localoptions nounset
+    eval 'realpath=${(e)~linepath}' 2>/dev/null
+  }
+  [[ -z "$realpath" || "$realpath" = "$linepath" ]] && return 1
+  pre="${pre#${linepath}}"
+  i='[^/]'
+  i="${#linepath//$i}"
+  orig="${orig[1,(in:i:)/][1,-2]}"
+  donepath=
+  prepaths=( '' )
+elif [[ "$pre[1]" = \~ && "$compstate[quote]" = (|\`) ]]; then
+
+  # It begins with `~', so remember anything before the first slash to be able
+  # to report it to the completion code. Also get an expanded version of it
+  # (in `realpath'), so that we can generate the matches. Then remove that
+  # prefix from the string to complete, set `donepath' to build the correct
+  # paths and make sure that the loop below is run only once with an empty
+  # prefix path by setting `prepaths'.
+
+  linepath="${pre[2,-1]%%/*}"
+  if [[ -z "$linepath" ]]; then
+    realpath="${HOME%/}/"
+  elif [[ "$linepath" = ([-+]|)[0-9]## ]]; then
+    if [[ "$linepath" != [-+]* ]]; then
+      tmp1="$linepath"
+    else
+      if [[ "$linepath" = -* ]]; then
+        tmp1=$(( $#dirstack $linepath ))
+      else
+        tmp1=$linepath[2,-1]
+      fi
+      [[ -o pushdminus ]] && tmp1=$(( $#dirstack - $tmp1 ))
+    fi
+    if (( ! tmp1 )); then
+      realpath=$PWD/
+    elif [[ tmp1 -le $#dirstack ]]; then
+      realpath=$dirstack[tmp1]/
+    else
+      _message 'not enough directory stack entries'
+      return 1
+    fi
+  elif [[ "$linepath" = [-+] ]]; then
+    realpath=${~:-\~$linepath}/
+  else
+    eval "realpath=~${linepath}/" 2>/dev/null
+    if [[ -z "$realpath" ]]; then
+      _message "unknown user \`$linepath'"
+      return 1
+    fi
+  fi
+  linepath="~${linepath}/"
+  [[ "$realpath" = "$linepath" ]] && return 1
+  pre="${pre#*/}"
+  orig="${orig#*/}"
+  donepath=
+  prepaths=( '' )
+else
+  # If the string does not start with a `~' we don't remove a prefix from the
+  # string.
+
+  linepath=
+  realpath=
+
+  if zstyle -s ":completion:${curcontext}:" preserve-prefix tmp1 &&
+     [[ -n "$tmp1" && "$pre" = (#b)(${~tmp1})* ]]; then
+
+    pre="$pre[${#match[1]}+1,-1]"
+    orig="$orig[${#match[1]}+1,-1]"
+    donepath="$match[1]"
+    prepaths=( '' )
+
+  elif [[ "$pre[1]" = / ]]; then
+    # If it is a absolute path name, we remove the first slash and put it in
+    # `donepath' meaning that we treat it as the path that was already handled.
+    # Also, we don't use the paths from `-W'.
+
+    pre="$pre[2,-1]"
+    orig="$orig[2,-1]"
+    donepath='/'
+    prepaths=( '' )
+  else
+    # The common case, we just use the string as it is, unless it begins with
+    # `./' or `../' in which case we don't use the paths from `-W'.
+    
+    [[ "$pre" = (.|..)/* ]] && prepaths=( '' )
+    donepath=
+  fi
+fi
+
+# Now we generate the matches. First we loop over all prefix paths given
+# with the `-W' option.
+
+for prepath in "$prepaths[@]"; do
+
+  # Get local copies of the prefix, suffix, and the prefix path to use
+  # in the following loop, which walks through the pathname components
+  # in the string from the line.
+
+  skipped=
+  cpre=
+
+  if [[ ( -n $accept_exact_dirs || -z $path_completion ) && \
+        ${pre} = (#b)(*)/([^/]#) ]]; then
+    # We've been told either that we can accept an exact directory prefix
+    # immediately, or that path expansion is inhibited.  Try the longest
+    # path prefix first: in the first case, this saves stats in the simple
+    # case and may get around automount behaviour if early components don't
+    # yet exist, and in the second case this is the prefix we want to keep.
+    #
+    # Explanation of substitution: For tmp1 and tpre, which are used further
+    # on, we need to remove quotes from everything that's not a pattern
+    # character, because the code that does the file generation only
+    # strips quotes from pattern characters (you know better than
+    # to ask why).
+    tmp1=${match[1]}
+    tpre=${match[2]}
+    tmp2=$tmp1
+    tmp1=${tmp1//(#b)\\(?)/$match[1]}
+    tpre=${tpre//(#b)\\([^\\\]\[\^\~\(\)\#\*\?])/$match[1]}
+    # Theory: donepath needs the quoting of special characters
+    # still in it.  However, we need it without at this point.
+    # (I think.)  Note this is different from the above where we're
+    # doing something a bit different.
+    tmp3=${donepath//(#b)\\(?)/$match[1]}
+    while true; do
+      if [[ -z $path_completion || -d $prepath$realpath$tmp3$tmp2 ]]; then
+	tmp3=$tmp3$tmp1/
+	# Now put donepath back the way it should be.  (I think.)
+	donepath=${tmp3//(#b)([\\\]\[\^\~\(\)\#\*\?])/\\$match[1]}
+	pre=$tpre
+	break
+      elif [[ $tmp1 = (#b)(*)/([^/]#) ]]; then
+	tmp1=$match[1]
+	tpre=$match[2]/$tpre
+      else
+	break
+      fi
+    done
+  fi
+
+  tpre="$pre"
+  tsuf="$suf"
+  # Now we strip quoting from pattern characters, too, because
+  # testpath is used as a literal string.  I suppose we could
+  # alternatively use ${~testpath} later.
+  #
+  # I'm not sure if donepath itself should be entirely unquoted at
+  # some point but probably not here, since we need the quoted pattern
+  # characters in tmp1 below (I think).
+  testpath="${donepath//(#b)\\([\\\]\[\^\~\(\)\#\*\?])/$match[1]}"
+
+  tmp2="${(M)tpre##${~skips}}"
+  tpre="${tpre#$tmp2}"
+
+  tmp1=( "$prepath$realpath$donepath$tmp2" )
+
+  # count of attempts for pws non-canonical hack
+  (( npathcheck = 0 ))
+  while true; do
+
+    origtmp1=("${tmp1[@]}")
+    # Get the prefix and suffix for matching.
+
+    if [[ "$tpre" = */* ]]; then
+      PREFIX="${tpre%%/*}"
+      SUFFIX=
+    else
+      PREFIX="${tpre}"
+      SUFFIX="${tsuf%%/*}"
+    fi
+
+    # Force auto-mounting. There might be a better way...
+    # Commented out in the hope that `pws non-canonical hack'
+    # down below does this for us.  Can be uncommented if it
+    # doesn't.
+
+    # : ${^tmp1}/${PREFIX}${SUFFIX}/.(/)
+
+    # Get the matching files by globbing.
+
+    tmp2=( "$tmp1[@]" )
+
+    if [[ "$tpre$tsuf" = (#b)*/(*) ]]; then
+
+      # We are going to be looping over the leading path segments.
+      # This means we should not apply special-dirs handling unless
+      # the path tail is a fake directory that needs to be simulated,
+      # and we should not apply pattern matching until we are looking
+      # for files rather than for intermediate directories.
+
+      if [[ -n "$fake${match[1]}" ]]; then
+        compfiles -P$cfopt tmp1 accex "$skipped" "$_matcher $matcher[2]" "$sdirs" fake
+      else
+        compfiles -P$cfopt tmp1 accex "$skipped" "$_matcher $matcher[2]" '' fake
+      fi
+    elif [[ "$sopt" = *[/f]* ]]; then
+      compfiles -p$cfopt tmp1 accex "$skipped" "$_matcher $matcher[2]" "$sdirs" fake "$pats[@]"
+    else
+      compfiles -p$cfopt tmp1 accex "$skipped" "$_matcher $matcher[2]" '' fake "$pats[@]"
+    fi
+    tmp1=( $~tmp1 ) 2> /dev/null
+
+    if [[ -n "$PREFIX$SUFFIX" ]]; then
+      # See which of them match what's on the line.
+
+      # pws non-canonical hack which seems to work so far...
+      # if we didn't match by globbing, check that there is
+      # something to match by explicit name.  This is for
+      # `clever' filing systems where names pop into existence
+      # when referenced.
+      #
+      # As suggested by Bart, to make sure the "compfiles" checks
+      # still work we repeat the tests above if we successfully
+      # find something that might need adding, but we make sure
+      # we only do this once for completion of each path segment.
+      if (( ! $#tmp1 && npathcheck == 0 )); then
+	(( npathcheck = 1 ))
+	for tmp3 in "$tmp2[@]"; do
+	  if [[ -n $tmp3 && $tmp3 != */ ]]; then
+	    tmp3+=/
+	  fi
+	  if [[ -e "$tmp3${(Q)PREFIX}${(Q)SUFFIX}" ]] then
+	    (( npathcheck = 2 ))
+	  fi
+	done
+	if (( npathcheck == 2 )); then
+	  # repeat loop with same arguments
+	  tmp1=("$origtmp1[@]")
+	  continue
+	fi
+      fi
+
+      if (( ! $#tmp1 )); then
+        tmp2=( ${^${tmp2:#/}}/$PREFIX$SUFFIX )
+      elif [[ "$tmp1[1]" = */* ]]; then
+        if [[ -n "$_comp_correct" ]]; then
+          tmp2=( "$tmp1[@]" )
+          builtin compadd -D tmp1 "$matcher[@]" - "${(@)tmp1:t}"
+
+          if [[ $#tmp1 -eq 0 ]]; then
+            tmp1=( "$tmp2[@]" )
+	    compadd -D tmp1 "$matcher[@]" - "${(@)tmp2:t}"
+          fi
+        else
+          tmp2=( "$tmp1[@]" )
+          compadd -D tmp1 "$matcher[@]" - "${(@)tmp1:t}"
+        fi
+      else
+        tmp2=( '' )
+        compadd -D tmp1 "$matcher[@]" -a tmp1
+      fi
+
+      # If no file matches, save the expanded path and continue with
+      # the outer loop.
+
+      if (( ! $#tmp1 )); then
+ 	if [[ "$tmp2[1]" = */* ]]; then
+	  tmp2=( "${(@)tmp2#${prepath}${realpath}}" )
+	  if [[ "$tmp2[1]" = */* ]]; then
+	    tmp2=( "${(@)tmp2:h}" )
+	    compquote tmp2
+	    if [[ "$tmp2" = */ ]]; then
+	      exppaths=( "$exppaths[@]" ${^tmp2}${tpre}${tsuf} )
+	    else
+	      exppaths=( "$exppaths[@]" ${^tmp2}/${tpre}${tsuf} )
+	    fi
+          elif [[ ${tpre}${tsuf} = */* ]]; then
+	    exppaths=( "$exppaths[@]" ${tpre}${tsuf} )
+
+	    ### this once was in an `else' (not `elif')
+	  fi
+        fi
+        continue 2
+      fi
+    elif (( ! $#tmp1 )); then
+      # A little extra hack: if we were completing `foo/<TAB>' and `foo'
+      # contains no files, this will normally produce no matches and other
+      # completers might think that's it's their time now. But if the next
+      # completer is _correct or something like that, this will result in
+      # an attempt to correct a valid directory name. So we just add the
+      # original string in such a case so that the command line doesn't 
+      # change but other completers still think there are matches.
+      # We do this only if we weren't given a `-g' or `-/' option because
+      # otherwise this would keep `_files' from completing all filenames
+      # if none of the patterns match.
+
+      if [[ -z "$tpre$tsuf" && -n "$pre$suf" ]]; then
+	pfxsfx=(-S '' "$pfxsfx[@]")
+	### Don't remember what the break was good for. We explicitly
+	### execute this only when there are no matches in the directory,
+	### so why continue?
+	###
+        ### tmp1=( "$tmp2[@]" )
+	### break
+      elif [[ -n "$haspats" && -z "$tpre$tsuf$suf" && "$pre" = */ ]]; then
+	PREFIX="${opre}"
+	SUFFIX="${osuf}"
+        compadd -nQS '' - "$linepath$donepath$orig"
+        tmp4=-
+      fi
+      continue 2
+    fi
+
+    if [[ -n "$ignpar" && -z "$_comp_no_ignore" &&
+          "$tpre$tsuf" != */* && $#tmp1 -ne 0 &&
+          ( "$ignpar" != *dir* || "$pats" = '*(-/)' ) &&
+          ( "$ignpar" != *..* || "$tmp1[1]" = *../* ) ]]; then
+
+      compfiles -i tmp1 ignore "$ignpar" "$prepath$realpath$donepath"
+      _comp_ignore+=( ${(@)ignore#$prepath$realpath$donepath} )
+
+      (( $#_comp_ignore && ! $mopts[(I)-F] )) &&
+          mopts=( "$mopts[@]" -F _comp_ignore )
+    fi
+
+    # Step over to the next component, if any.
+
+    if [[ "$tpre" = */* ]]; then
+      tpre="${tpre#*/}"
+    elif [[ "$tsuf" = */* ]]; then
+      tpre="${tsuf#*/}"
+      tsuf=
+    else
+      break
+    fi
+
+    # There are more components, so skip over the next components and make a
+    # slash be added.
+
+    #tmp1=( ${tmp1//(#b)([][()|*?^#~<>\\=])/\\${match[1]}} )
+    tmp2="${(M)tpre##${~skips}}"
+    if [[ -n "$tmp2" ]]; then
+      skipped="/$tmp2"
+      tpre="${tpre#$tmp2}"
+    else
+      skipped=/
+    fi
+    (( npathcheck = 0 ))
+  done
+
+  # The next loop searches the first ambiguous component.
+
+  tmp3="$pre$suf"
+  tpre="$pre"
+  tsuf="$suf"
+  if [[ -n "${prepath}${realpath}${testpath}" ]]
+  then
+    if [[ -o nocaseglob ]]
+    then
+      tmp1=( "${(@)tmp1#(#i)${prepath}${realpath}${testpath}}" )
+    else
+      tmp1=( "${(@)tmp1#${prepath}${realpath}${testpath}}" )
+    fi
+  fi
+
+  while true; do
+
+    # First we check if some of the files match the original string
+    # for this component. If there are some we remove all other
+    # names. This avoids having `foo' complete to `foo' and `foobar'.
+    # The return value is non-zero if the component is ambiguous.
+
+    compfiles -r tmp1 "${(Q)tmp3}"
+    tmp4=$?
+
+    if [[ "$tpre" = */* ]]; then
+      tmp2="${cpre}${tpre%%/*}"
+      PREFIX="${linepath}${donepath}${tmp2}"
+      SUFFIX="/${tpre#*/}${tsuf#*/}"
+    else
+      tmp2="${cpre}${tpre}"
+      PREFIX="${linepath}${donepath}${tmp2}"
+      SUFFIX="${tsuf}"
+    fi
+
+    # This once tested `|| [[ -n "$compstate[pattern_match]" &&
+    # "$tmp2" = (|*[^\\])[][*?#~^\|\<\>]* ]]' but it should now be smart
+    # enough to handle multiple components with patterns.
+
+    if (( tmp4 )); then
+      # The component we're checking is ambiguous.
+      # For menu completion we now add the possible completions
+      # for this component with the unambiguous prefix we have built
+      # and the rest of the string from the line as the suffix.
+      # For normal completion we add the rests of the filenames
+      # collected as the suffixes to make the completion code expand
+      # it as far as possible.
+
+      tmp2="$testpath"
+      if [[ -n "$linepath" ]]; then
+        compquote -p tmp2 tmp1
+      elif [[ -n "$tmp2" ]]; then
+        compquote -p tmp1
+        compquote tmp2
+      else
+        compquote tmp1 tmp2
+      fi
+
+      if [[ -z "$_comp_correct" &&
+            "$compstate[pattern_match]" = \*  && -n "$listsfx" &&
+            "$tmp2" = (|*[^\\])[][*?#~^\|\<\>]* ]]; then
+        PREFIX="$opre"
+        SUFFIX="$osuf"
+      fi
+
+      # This once tested `-n $menu ||' but our menu-completion expert says
+      # that's not what we want.
+
+      if [[ -z "$compstate[insert]" ]] ||
+         { ! zstyle -t ":completion:${curcontext}:paths" expand suffix &&
+           [[ -z "$listsfx" &&
+              ( -n "$_comp_correct" ||
+                -z "$compstate[pattern_match]" || "$SUFFIX" != */* ||
+                "${SUFFIX#*/}" = (|*[^\\])[][*?#~^\|\<\>]* ) ]] }; then
+	# We have not been told to insert the match, so we are
+	# listing, or something.
+        (( tmp4 )) && zstyle -t ":completion:${curcontext}:paths" ambiguous &&
+            compstate[to_end]=
+        if [[ "$tmp3" = */* ]]; then
+	  if [[ -z "$listsfx" || "$tmp3" != */?* ]]; then
+	    # I think this means we are expanding some directory
+	    # back up the path.
+	    tmp1=("${(@)tmp1%%/*}")
+	    _list_files tmp1 "$prepath$realpath$testpath"
+	    compadd $Uopt -Qf "$mopts[@]" \
+                    -p "${Uopt:+$IPREFIX}$linepath$tmp2" \
+	            -s "/${tmp3#*/}${Uopt:+$ISUFFIX}" \
+	            -W "$prepath$realpath$testpath" \
+		    "$pfxsfx[@]" $Mopts \
+		    $listopts \
+	            -a tmp1
+          else
+	    # Same with a non-empty suffix
+	    tmp1=("${(@)^tmp1%%/*}/${tmp3#*/}")
+	    _list_files tmp1 "$prepath$realpath$testpath"
+	    compadd $Uopt -Qf "$mopts[@]" \
+                    -p "${Uopt:+$IPREFIX}$linepath$tmp2" \
+	            -s "${Uopt:+$ISUFFIX}" \
+	            -W "$prepath$realpath$testpath" \
+		    "$pfxsfx[@]" $Mopts \
+	            $listopts \
+		    -a tmp1
+          fi
+	else
+	  _list_files tmp1 "$prepath$realpath$testpath"
+	  compadd $Uopt -Qf "$mopts[@]" -p "${Uopt:+$IPREFIX}$linepath$tmp2" \
+	          -s "${Uopt:+$ISUFFIX}" \
+	          -W "$prepath$realpath$testpath" \
+		   "$pfxsfx[@]" $Mopts \
+	           $listopts \
+		   -a tmp1
+	fi
+      else
+	# We are inserting the match into the command line.
+        if [[ "$tmp3" = */* ]]; then
+	  tmp4=( $Uopt -Qf "$mopts[@]" -p "${Uopt:+$IPREFIX}$linepath$tmp2"
+	         -W "$prepath$realpath$testpath"
+	         "$pfxsfx[@]" $Mopts )
+	  if [[ -z "$listsfx" ]]; then
+            for i in "$tmp1[@]"; do
+	      tmpdisp=("$i")
+	      _list_files tmpdisp "$prepath$realpath$testpath"
+	      compadd "$tmp4[@]" -s "${Uopt:+$ISUFFIX}" $listopts - "$tmpdisp"
+	    done
+          else
+            [[ -n "$compstate[pattern_match]" ]] && SUFFIX="${SUFFIX:gs./.*/}*"
+
+            for i in "$tmp1[@]"; do
+	      _list_files i "$prepath$realpath$testpath"
+	      compadd "$tmp4[@]" $listopts - "$i"
+	    done
+          fi
+        else
+	  _list_files tmp1 "$prepath$realpath$testpath"
+	  compadd $Uopt -Qf "$mopts[@]" -p "${Uopt:+$IPREFIX}$linepath$tmp2" \
+	          -s "${Uopt:+$ISUFFIX}" \
+                  -W "$prepath$realpath$testpath" \
+		  "$pfxsfx[@]" $Mopts \
+                  $listopts \
+		  -a tmp1
+        fi
+      fi
+      tmp4=-
+      # Found an ambiguity, stop the loop over components.
+      break
+    fi
+
+    # If we have checked all components, we stop now and add the 
+    # strings collected after the loop.
+
+    if [[ "$tmp3" != */* ]]; then
+      tmp4=
+      break
+    fi
+
+    # Otherwise we add the unambiguous component to `testpath' and
+    # take it from the filenames.
+
+    testpath="${testpath}${tmp1[1]%%/*}/"
+
+    tmp3="${tmp3#*/}"
+
+    if [[ "$tpre" = */* ]]; then
+      if [[ -z "$_comp_correct" && -n "$compstate[pattern_match]" &&
+            "$tmp2" = (|*[^\\])[][*?#~^\|\<\>]* ]]; then
+        cpre="${cpre}${tmp1[1]%%/*}/"
+      else
+        cpre="${cpre}${tpre%%/*}/"
+      fi
+      tpre="${tpre#*/}"
+    elif [[ "$tsuf" = */* ]]; then
+      [[ "$tsuf" != /* ]] && mid="$testpath"
+      if [[ -z "$_comp_correct" && -n "$compstate[pattern_match]" &&
+            "$tmp2" = (|*[^\\])[][*?#~^\|\<\>]* ]]; then
+        cpre="${cpre}${tmp1[1]%%/*}/"
+      else
+        cpre="${cpre}${tpre}/"
+      fi
+      tpre="${tsuf#*/}"
+      tsuf=
+    else
+      tpre=
+      tsuf=
+    fi
+
+    tmp1=( "${(@)tmp1#*/}" )
+  done
+
+  if [[ -z "$tmp4" ]]; then
+    # I think this means it's finally time to add the matches,
+    # now we've collected contributions from all components.
+    if [[ "$mid" = */ ]]; then
+      # This seems to mean we're completing in the middle of the
+      # command line argument, i.e. not in the last component.
+      # There are two cases, depending on whether this part of
+      # the path itself has multiple directories or not.
+      PREFIX="${opre}"
+      SUFFIX="${osuf}"
+
+      tmp4="${testpath#${mid}}"
+      if [[ $mid = */*/* ]]; then
+	# Multiple levels of directory involved.
+	tmp3="${mid%/*/}"
+	tmp2="${${mid%/}##*/}"
+	if [[ -n "$linepath" ]]; then
+          compquote -p tmp3
+	else
+          compquote tmp3
+	fi
+	compquote tmp4 tmp2 tmp1
+	for i in "$tmp1[@]"; do
+	  _list_files tmp2 "$prepath$realpath${mid%/*/}"
+          compadd $Uopt -Qf "$mopts[@]" -p "${Uopt:+$IPREFIX}$linepath$tmp3/" \
+	    -s "/$tmp4$i${Uopt:+$ISUFFIX}" \
+            -W "$prepath$realpath${mid%/*/}/" \
+	    "$pfxsfx[@]" $Mopts $listopts - "$tmp2"
+	done
+      else
+	# Simpler case with fewer directories: avoid double counting.
+	tmp2="${${mid%/}##*/}"
+	compquote tmp4 tmp2 tmp1
+	for i in "$tmp1[@]"; do
+	  _list_files tmp2 "$prepath$realpath${mid%/*/}"
+          compadd $Uopt -Qf "$mopts[@]" -p "${Uopt:+$IPREFIX}$linepath" \
+	    -s "/$tmp4$i${Uopt:+$ISUFFIX}" \
+            -W "$prepath$realpath" \
+	    "$pfxsfx[@]" $Mopts $listopts - "$tmp2"
+	done
+      fi
+    else
+      # This would seem to be where we're completing the last
+      # component of the path -- the normal one, in other words.
+      if [[ "$osuf" = */* ]]; then
+        PREFIX="${opre}${osuf}"
+        SUFFIX=
+      else
+        PREFIX="${opre}"
+        SUFFIX="${osuf}"
+      fi
+      tmp4="$testpath"
+      if [[ -n "$linepath" ]]; then
+        compquote -p tmp4 tmp1
+      elif [[ -n "$tmp4" ]]; then
+        compquote -p tmp1
+        compquote tmp4
+      else
+        compquote tmp4 tmp1
+      fi
+      if [[ -z "$_comp_correct" && -n "$compstate[pattern_match]" &&
+            "${PREFIX#\~}$SUFFIX" = (|*[^\\])[][*?#~^\|\<\>]* ]]; then
+	# Pattern match, we need to be clever with matchers.
+	tmp1=("$linepath$tmp4${(@)^tmp1}")
+	_list_files tmp1 "$prepath$realpath"
+        compadd -Qf -W "$prepath$realpath" "$pfxsfx[@]" "$mopts[@]" \
+                -M "r:|/=* r:|=*" $listopts -a tmp1
+      else
+	# Not a pattern match
+	_list_files tmp1 "$prepath$realpath$testpath"
+        compadd $Uopt -Qf -p "${Uopt:+$IPREFIX}$linepath$tmp4" \
+	        -s "${Uopt:+$ISUFFIX}" \
+	        -W "$prepath$realpath$testpath" \
+	        "$pfxsfx[@]" "$mopts[@]" $Mopts $listopts -a tmp1
+      fi
+    fi
+  fi
+done
+
+# If we are configured to expand paths as far as possible and we collected
+# expanded paths that are different from the string on the line, we add
+# them as possible matches. Do that only if we are currently trying the
+# last entry in the matcher-list style, otherwise other match specs might
+# make the suffix that didn't match this time match in one of the following
+# attempts.
+
+if [[ _matcher_num -eq ${#_matchers} ]] &&
+   zstyle -t ":completion:${curcontext}:paths" expand prefix &&
+   [[ nm -eq compstate[nmatches] && $#exppaths -ne 0 &&
+      "$linepath$exppaths" != "$eorig" ]]; then
+  PREFIX="${opre}"
+  SUFFIX="${osuf}"
+  compadd -Q "$mopts[@]" -S '' -M "r:|/=* r:|=*" -p "$linepath" -a exppaths
+fi
+
+[[ nm -ne compstate[nmatches] ]]

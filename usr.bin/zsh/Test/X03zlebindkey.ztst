@@ -1,0 +1,159 @@
+# Tests of the bindkey command.
+# This concentrates on the command itself and also resolving keystrokes
+# into bindings.  The latter is particularly tricky with multibyte sequences.
+
+%prep
+  unset -m LC_\*
+  ZSH_TEST_LANG=
+  langs=(en_{US,GB}.{UTF-,utf}8 en.UTF-8
+	 $(locale -a 2>/dev/null | egrep 'utf8|UTF-8'))
+  for LANG in $langs; do
+    if [[ é = ? ]]; then
+      ZSH_TEST_LANG=$LANG
+      break;
+    fi
+  done
+  if ( zmodload zsh/zpty 2>/dev/null ); then
+    . $ZTST_srcdir/comptest
+    comptestinit -z $ZTST_testdir/../Src/zsh
+  else
+    ZTST_unimplemented="the zsh/zpty module is not available"
+  fi
+
+%test
+
+  zpty_run 'bindkey -s "\C-xy" foo'
+  zletest $'\C-xy'
+  zpty_run 'bindkey -r "\C-xy"'
+0:bindkey -s
+>BUFFER: foo
+>CURSOR: 3
+
+  zpty_run 'bindkey -s "\C-xy" foo'
+  zpty_run 'bindkey -s "\C-x\C-y" bar'
+  zletest $'\C-xy\C-x\C-y'
+  zpty_run 'bindkey -r "\C-xy"'
+  zpty_run 'bindkey -r "\C-x\C-y"'
+0:bindkey with multiple definitions associated with prefix
+>BUFFER: foobar
+>CURSOR: 6
+
+  bindkey -s '\C-xy' bar
+  bindkey '\C-xy'
+  bindkey -r '\C-xy'
+  bindkey '\C-xy'
+0:bindkey output
+>"^Xy" "bar"
+>"^Xy" undefined-key
+
+# As we're only looking at definitions here, we don't
+# bother using the pseudo-terminal; just test in the normal fashion.
+  bindkey -e
+  bindkey -s '\C-xy' foo
+  bindkey -N testmap emacs
+  bindkey -M testmap '\C-xy'
+  bindkey -s -M testmap '\C-xy' bar
+  bindkey -M testmap '\C-xy'
+  bindkey '\C-xy'
+  bindkey -A testmap main
+  bindkey '\C-xy'
+  bindkey -A emacs main
+  bindkey '\C-xy'
+0:creating keymaps from existing keymaps
+>"^Xy" "foo"
+>"^Xy" "bar"
+>"^Xy" "foo"
+>"^Xy" "bar"
+>"^Xy" "foo"
+
+# Depends on the keymap created in the previous test.
+  bindkey -l
+  bindkey -D testmap
+  print Deleted...
+  bindkey -l
+0:deleting keymaps
+>.safe
+>command
+>emacs
+>isearch
+>main
+>testmap
+>vicmd
+>viins
+>viopp
+>visual
+>Deleted...
+>.safe
+>command
+>emacs
+>isearch
+>main
+>vicmd
+>viins
+>viopp
+>visual
+
+# This \M... style display of 8-bit characters is a bit
+# dated in multibyte mode, but no one's complained...
+  if [[ -z $ZSH_TEST_LANG ]]; then
+    ZTST_skip="multibyte not available for bindkey test"
+  else
+    bindkey | grep '\\M.*self-insert'
+  fi
+0:in multibyte mode all bytes with bit 7 set start self-insert
+>"\M-^@"-"\M-^?" self-insert
+
+  if [[ -z $ZSH_TEST_LANG ]]; then
+    ZTST_skip="multibyte not available for bindkey test"
+  else
+    zpty_run 'alias unbind="bindkey -r ホ"'
+    zpty_run 'bindkey -s ホ bar'
+    zletest 'ホ'
+    zpty_run unbind
+    zletest 'ホ'
+    zpty_run 'bindkey ホ self-insert'
+    zletest 'ホ'
+    zpty_run unbind
+    zletest 'ホ'
+  fi
+0:bindkey -s multibyte characters
+>BUFFER: bar
+>CURSOR: 3
+>BUFFER: ホ
+>CURSOR: 1
+>BUFFER: ホ
+>CURSOR: 1
+>BUFFER: ホ
+>CURSOR: 1
+
+  zpty_run 'bindkey " " magic-space'
+  setopt interactivecomments
+  zletest 'echo $(( x ) x ) y'
+  zletest 'echo $(( ##x ) ##x ) y'
+  unsetopt interactivecomments
+  zletest 'echo $(( x ) x ) y'
+  zletest 'echo $(( ##x ) ##x ) y'
+0:history expansion of failed command substitution using magic-space binding
+>BUFFER: echo $(( x ) x ) y
+>CURSOR: 18
+>BUFFER: echo $(( ##x ) ##x ) y
+>CURSOR: 22
+>BUFFER: echo $(( x ) x ) y
+>CURSOR: 18
+>BUFFER: echo $(( ##x ) ##x ) y
+>CURSOR: 22
+
+  bindkey -d
+  for name in a b c d e; bindkey -N $name
+  bindkey -d
+  bindkey -l
+0:delete all keymaps after expanding keymapnamtab
+>.safe
+>command
+>emacs
+>isearch
+>main
+>vicmd
+>viins
+>viopp
+>visual

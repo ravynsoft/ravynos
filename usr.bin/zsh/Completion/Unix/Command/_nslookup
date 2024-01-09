@@ -1,0 +1,160 @@
+#compdef nslookup
+
+# This may also be called from the `nslookup' wrapper function during
+# `vared'iting a line.
+# In this case this function tries to call other user-defined functions
+# for certain contexts before adding completion. If these functions are
+# defined, they are called and the default completions from this function
+# are not added. The functions called are named `_nslookup_<state>', with
+# `<state>' being any of:
+#
+#  command
+#    When completing the first word on the line.
+#  redirect
+#    When completing after a redirection operator.
+#
+# Also, when completing after the first word, if the first word contains
+# only lower case letters, we try to call the function `_nslookup_<word>',
+# where `<word>' is the first word from the line. If the first word contains
+# other characters than lower case letters, we try to call the function
+# `_nslookup_host'.
+
+local state curcontext="$curcontext" expl ret=1 setopts
+typeset -A opt_args
+
+setopts=(
+  'all[print current values]' \
+  '(nodebug)debug[simple debugging information]' \
+  '(debug)nodebug[no simple debugging information]' \
+  '(nod2)d2[extra debugging information]' \
+  '(d2)nod2[no extra debugging information]' \
+  '(nodefname)defname[append default domain name]' \
+  '(defname)nodefname[don'"'"'t append default domain name]' \
+  '(nosearch)search[append search list]' \
+  '(search)nosearch[don'"'"'t append search list]' \
+  '(norecurse)recurse[name server may query other servers]' \
+  '(recurse)norecurse[name server may not query other servers]' \
+  '(novc)vc[use virtual circuit]' \
+  '(vc)novc[don'"'"'t use virtual circuit]' \
+  '(noignoretc)ignoretc[ignore packet truncation errors]' \
+  '(ignoretc)noignoretc[don'"'"'t ignore packet truncation errors]' \
+  'class[change query class]:query class:((in\:Internet\ class chaos\:CHAOS\ class hesiod\:MIT\ Athena\ Hesiod\ class any\:wildcard\ \(any\ of\ the\ above\)))'
+  "domain[change default domain]:default domain:_domains"
+  'srchlist[change default domain and search list]: :->srchlist'
+  'port[change name server port]:name server port:'
+  {query,}type'[change type of information query]:query information type:((a\:internet\ address cname\:canonical\ name\ for\ alias hinfo\:CPU\ and\ operating\ system\ type minfo\:mailbox\ or\ mail\ list\ information mx\:mail\ exchanger ns\:name\ server\ for\ zone ptr\:host\ name\ or\ other\ information soa\:domain\'"'"'s\ \`start-of-authority\'"'"'\ information txt\:text\ information uinfo\:user\ information wks\:supported\ well-known\ services))'
+  'retry[change number of retries]:number of retries:'
+  'root[change name of root server]:root server:_hosts'
+  'timeout[change initial timeout interval]:timeout (seconds):'
+)
+
+if [[ -n "$compcontext" ]]; then
+  if [[ CURRENT -eq 1 ]]; then
+
+    _call_function ret _nslookup_command && return ret
+
+    _alternative \
+        'commands:command:(server lserver root finger ls view help set exit)' \
+	'hosts:: _hosts' && ret=0
+    return ret
+  elif [[ "$compstate[context]" = redirect ]]; then
+
+    _call_function ret _nslookup_redirect && return ret
+
+    _tags -C redirection files || return 1
+
+    if [[ "$words[1]" != (finger|ls) ]]; then
+      _message "redirection not allowed for command \`$words[1]'"
+      return 1
+    elif [[ "$compstate[redirect]" = '>' ]]; then
+      _description files expl 'write to file'
+    elif [[ "$compstate[redirect]" = '>>' ]]; then
+      _description files expl 'append to file'
+    else
+      _message "unknown redirection operator \`$compstate[redirect]'"
+      return 1
+    fi
+
+    _files "$expl[@]"
+    return
+  fi
+
+  if [[ "$words[1]" = [a-z]## ]]; then
+    _call_function ret _nslookup_$words[1] && return ret
+  else
+    _call_function ret _nslookup_host && return ret
+  fi
+
+  case "$words[1]" in
+  (|l)server)
+    _wanted hosts expl 'new default server' _hosts
+    return
+    ;;
+  root|exit|help|\?)
+    return 1
+    ;;
+  finger)
+    _message -e names 'finger name'
+    return 1
+    ;;
+  ls)
+    _arguments -s \
+      '-t[records of given type]:query information type:((a\:internet\ address cname\:canonical\ name\ for\ alias hinfo\:CPU\ and\ operating\ system\ type minfo\:mailbox\ or\ mail\ list\ information mx\:mail\ exchanger ns\:name\ server\ for\ zone ptr\:host\ name\ or\ other\ information soa\:domain\'"'"'s\ \`start-of-authority\'"'"'\ information txt\:text\ information uinfo\:user\ information wks\:supported\ well-known\ services))' \
+     '-a[aliases of hosts in domain]' \
+     '-d[all records]' \
+     '-h[CPU and operating system information]' \
+     '-s[well-known services]' \
+     ":domain:_domains"
+    return
+    ;;
+  view)
+    _description files expl 'view file'
+    _files "$expl[@]"
+    return
+    ;;
+  set)
+    typeset -A val_args
+
+    _values 'state information' "$setopts[@]" && ret=0
+
+    [[ -z "$state" ]] && return ret
+    ;;
+  *)
+    _wanted hosts expl 'server' _hosts
+    return
+  esac
+fi
+
+# Now comes the command line option completion part.
+
+if [[ -z "$state" ]]; then
+  local line
+  typeset -A opt_args
+
+  _arguments -C \
+    "-${(@)^${(@M)setopts:#*\]:*}/\[/=[}" \
+    "-${(@)^setopts:#(\(|*\]:)*}" \
+    "${(@)^${(@)${(@M)setopts:#\(*}/\)/)-}/\(/(-}" \
+    ':host to find:_hosts' \
+    ':server:_hosts' && ret=0
+fi
+
+# This is completion after `srchlist' for both types.
+
+if [[ -n "$state" ]]; then
+  _tags domains || return 1
+
+  if compset -P '*/'; then
+    _description domains expl 'search list entry'
+  else
+    _description domains expl 'default domain name and first search list entry'
+  fi
+  if [[ -n "$_vals_cache_multi" ]]; then
+    _domains "$expl[@]" -qS/ -r "/\\- \\t\\n$_vals_cache_multi"
+  else
+    _domains "$expl[@]" -qS/
+  fi
+  return
+fi
+
+return ret

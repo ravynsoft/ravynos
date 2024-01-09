@@ -1,0 +1,114 @@
+#compdef rdesktop xfreerdp
+
+local curcontext="$curcontext" state line expl args redir ret=1
+typeset -A opt_args
+
+case $service in
+  rdesktop)
+    args=(
+      '(-5)-4[use RDP version 4]'
+      '(-4)-5[use RDP version 5]'
+      '-b[force server to use bitmaps for screen updates]'
+      '-B[use X server backing store]'
+      '-E[disable encryption]'
+      "-m[don't send mouse motion events]"
+      '-C[use private colormap]'
+      '-S[single application mode]'
+      '-N[enable numlock synchronisation]'
+      '-P[enable bitmap caching]'
+      '*-r[device redirection]: :->redirection'
+    )
+  ;;
+  xfreerdp)
+    args=(
+      '(-)'{-h,--help}'[display help information]'
+      "-o[don't redirect audio to client]"
+      '-s[set startup-shell]:shell'
+      '-t[connect to specified port]:port:_ports'
+      '--app[RemoteApp connection]'
+      '--ext[load an extension]:extension'
+      '--no-auth[disable authentication]'
+      '--authonly[authentication only, no UI]'
+      '--from-stdin[prompt for username, password, domain and hostname]'
+      '--no-fastpath[disable fast-path]'
+      '--gdi[graphics rendering]:backend:(hw sw)'
+      "--no-motion[don't send mouse motion events]"
+      '--no-osb[disable offscreen bitmaps]'
+      '--no-bmp-cache[disable bitmap cache]'
+      '--plugin[load a virtual channel plugin]:(cliprdr drdynvc rdpsnd rail rdpdbg rdpdr)'
+      '--rfx[enable RemoteFX]'
+      '--rfx-mode[RemoteFX operational flags]:mode:((v\:video i\:image))'
+      '--nsc[enable NSCodec]'
+      '--disable-wallpaper'
+      '--composition[enable desktop composition]'
+      '--disable-full-window-drag'
+      '--disable-menu-animations'
+      '--disable-theming'
+      '--kbd-list[list all keyboard layout ids used by -k]'
+      '--no-rdp[disable Standard RDP encryption]'
+      '--no-tls[disable TLS encryption]'
+      '--no-nla[disable network level authentication]'
+      '--ntlm[force NTLM authentication protocol version]:version:(1 2)'
+      '--certificate-name[specify logon certificate]:certificate'
+      '--ignore-certificate[ignore verification of logon certificate]'
+      '--sec[force protocol security]:security:(rdp tls nla)'
+      '--secure-checksum[use salted checksums with Standard RDP encryption]'
+      '--version[print version information]'
+    )
+  ;;
+esac
+
+_arguments -C -s $args \
+  '-u[username]:username:_users' \
+  '-d[domain]:domain' \
+  '-s[shell]:startup shell' \
+  '-c[working directory]:directory:_directories' \
+  '-p[password]:password' \
+  '-n[set reported client hostname]:client hostname:_hosts' \
+  '-k[keyboard map]:keyboard map' \
+  '(-f)-g[geometry]:geometry (WxH)' \
+  '(-g)-f[fullscreen mode]' \
+  '-D[hide window decorations]' \
+  '-K[do not override window manager key bindings]' \
+  '-T[set window title]:title' \
+  '-X[embed in another window]:window:_x_window' \
+  '-a[colour depth]:depth:(8 15 16 24 32)' \
+  '-z[enable compression]' \
+  '-x[bandwidth performance behaviour]:experience:((b\:broadband l\:lan m\:modem))' \
+  '-0[attach to server console]' \
+  ':server:->hostsport' && ret=0
+
+case $state in
+  hostsport)
+    if compset -P '*:'; then
+      _ports && ret=0
+    else
+      compset -S ':*'
+      _hosts && ret=0
+    fi
+  ;;
+  redirection)
+    redir="${PREFIX%%:*}"
+    if compset -P 1 '*='; then
+      curcontext="${curcontext%:*}:$redir"
+      case $redir in
+	comport|lptport) _wanted devices expl device _files -g '*(-%)' && ret=0 ;;
+	disk) _directories && ret=0 ;;
+	printer) _printers && ret=0 ;;
+	scard) _message -e aliases 'alias name' ;;
+      esac
+    else
+      compset -S '=*'
+      _values -S : 'redirection' \
+	'comport:port' \
+	'disk:sharename' \
+	'lptport:lptport' \
+	'printer:printername:_printers -S=' \
+	'sound:sound:(local off remote)' \
+	'lspci' \
+	'scard:sound card name' && ret=0
+    fi
+  ;;
+esac
+ 
+return ret

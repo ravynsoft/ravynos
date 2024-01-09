@@ -1,0 +1,108 @@
+#compdef lz4 lz4c lz4c32 lz4cat unlz4
+
+# Notes:
+# - All lz4 CLI tools take the same options — you can do `unlz4 --compress` if
+#   you want — and we complete accordingly. One can make a reasonable argument
+#   that we shouldn't, but...?
+# - The only exceptions to the above are the legacy compression options (-c0,
+#   -hc, and so on) — only lz4c accepts these. Each of these options is
+#   interpreted separately otherwise (e.g., -c0 becomes equivalent to -c -0)
+# - All these tools use a non-standard option-handling method that we don't
+#   fully support. For example, the tool will let you do things like `-b1e3i3`
+#   instead of `-b1 -e3 -i3` — we won't
+
+local ret=1
+local -a context line state state_descr expl args levels=( -{1..16} )
+local -A opt_args val_args
+
+args=(
+  + excl # Fully exclusive options
+  '(: -)'{-h,--help}'[display help information]'
+  '(: -)-H[display long help information]'
+  '(: -)'{-V,--version}'[display version information]'
+  + misc # Misc. arguments
+  '(-q -v --quiet --verbose)*'{-q,--quiet}'[reduce output verbosity]'
+  '(-q -v --quiet --verbose)*'{-v,--verbose}'[increase output verbosity]'
+  '*::: :->files'
+  + B # Benchmark/compress-mode options (not allowed with legacy format)
+  '(d t -l)*-B-[specify block property]: :->block-props'
+  '(d t -l --no-content-size)--content-size[record original uncompressed size]'
+  '(d t -l --no-frame-crc)--frame-crc[enable content checksum]'
+  '(d t -l --content-size)--no-content-size[do not record original uncompressed size]'
+  '(d t -l --frame-crc)--no-frame-crc[disable content checksum]'
+  '(d t -l --sparse)--no-sparse[disable sparse-file support]'
+  '(d t -l --no-sparse)--sparse[enable sparse-file support]'
+  + C # Compress/decompress-mode options
+  '(b t -c --stdout --to-stdout)'{-c,--stdout}'[write on standard output]'
+  '(b t -y)'{-f,--force}'[overwrite target without prompting, or cat on standard output]'
+  '(b t -k --keep --rm)'{-k,--keep}'[keep source file]'
+  '(b t -m -r --multiple)'{-m,--multiple}'[take multiple input files]'
+  '!(b -t -f -y --force)--no-force'
+  '(b t -m --multiple)-r[operate recursively on directories]'
+  '(b t -k --keep)--rm[remove source file]'
+  '!(b t -c --stdout)--to-stdout'
+  + b # Benchmark-mode options
+  "(C c d t)-b-[benchmark file using specified compression level]:: :->levels"
+  "(C c d t)-e-[specify upper compression level limit (with -b)]: :->levels"
+  '(C c d t)-i-[specify minimum evaluation time (with -b)]:evaluation time (seconds)'
+  + c # Compress-mode options
+  "(b d t ${(j< >)levels} -c0 -c1 -c2 -hc)"${^levels}
+  '(B b d t -m -r --multiple)-l[compress using legacy (Linux kernel) format]'
+  '(b d t -z --compress)'{-z,--compress}'[compress file]'
+  + d # Decompress-mode options
+  '(B b c d t)'{-d,--decompress}'[decompress file]'
+  '!(B b c d t)--uncompress'
+  + t # Test-mode options
+  '(B C b c d t)'{-t,--test}'[test integrity of compressed file]'
+)
+[[ $service == lz4c ]] && args+=(
+  + l # Legacy compress-mode options (not to be confused with the legacy format)
+  "(b d t ${(j< >)levels} -c1 -c2 -hc)-c0[use fast compression (like -0)]"
+  "(b d t ${(j< >)levels} -c0 -c2 -hc)-c1[use high compression (like -9)]"
+  "(b d t ${(j< >)levels} -c0 -c1 -c2 -hc)"{-c2,-hc}'[use very high compression (like -12)]'
+  '(b t -f --force)-y[overwrite target without prompting]'
+)
+
+_arguments -s -S : $args && ret=0
+
+case $state in
+  block-props)
+    # The usage help indicates that the use of an explicit byte value (-B32 or
+    # greater) is only for benchmarking, and indeed when such a value is given
+    # the tool prints a message prefixed with 'bench:'... but there is nothing
+    # that actually restricts this to the benchmark mode, so...?
+    _values 'predefined block property or block size in bytes (32+)' \
+      '4[set block size to 64 KiB]' \
+      '5[set block size to 256 KiB]' \
+      '6[set block size to 1 MiB]' \
+      '7[set block size to 4 MiB]' \
+      'D[enable block dependency]' \
+      'X[enable block checksum]' \
+    && ret=0
+    ;;
+  files)
+    if
+      (( CURRENT == 1 )) ||
+      [[ -n ${opt_args[(i)*-(-b|-m|-r|--multiple)]} ]]
+    then
+      if [[ -n ${opt_args[(i)*--r]} ]]; then
+        _description files expl 'input file or directory'
+      else
+        _description files expl 'input file'
+      fi
+      _files "${(@)expl}" && ret=0
+    elif (( CURRENT == 2 )); then
+      _description files expl 'output file'
+      _files "${(@)expl}" && ret=0
+    else
+      _message 'no more arguments' && ret=0
+    fi
+    ;;
+  levels)
+    _wanted levels expl 'compression level' \
+      compadd -o numeric - ${levels/#-/} \
+    && ret=0
+    ;;
+esac
+
+return ret

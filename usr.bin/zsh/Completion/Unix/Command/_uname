@@ -1,0 +1,90 @@
+#compdef uname guname
+
+typeset -A _uname_args
+local -a args
+
+case $LANG in
+  de_*)
+    _uname_args=(
+      all               "alle Grundinformationen ausgeben"
+      kernel-name       "Namen des Kernels ausgeben"
+      nodename          "Netzwerknamen der Maschine ausgeben"
+      kernel-release    "Release-Nummer des Kernels ausgeben"
+      kernel-version    "Version des Kernels ausgeben"
+      os-release        "Release-Nummer des Betriebssystems ausgeben"
+      machine           "Maschinentyp (Hardware) ausgeben"
+      processor         "Typ des Prozessors ausgeben"
+      hardware-platform "Hardwareplattform ausgeben"
+      operating-system  "Namen des Betriebssystems ausgeben"
+      help              "Hilfe anzeigen und beenden"
+      version           "Versionsinformation anzeigen und beenden"
+    )
+  ;;
+  (*)
+    _uname_args=(
+      all               "print all basic information"
+      kernel-name       "print kernel name"
+      nodename          "print network node hostname"
+      kernel-release    "print kernel release"
+      kernel-version    "print kernel version"
+      os-release        "print operating system release level"
+      machine           "print machine hardware name"
+      processor         "print processor type"
+      hardware-platform "print hardware platform"
+      operating-system  "print name of the operating system"
+      help              "display help information"
+      version           "output version information and exit"
+    )
+  ;;
+esac
+
+if _pick_variant gnu="Free Soft" unix --version; then
+  _arguments -s \
+    '(-)'{--all,-a}'['$_uname_args[all]']' \
+    '(--kernel-name -s)'{--kernel-name,-s}'['$_uname_args[kernel-name]']' \
+    '(--nodename -n)'{--nodename,-n}'['$_uname_args[nodename]']' \
+    '(--kernel-release -r)'{--kernel-release,-r}'['$_uname_args[kernel-release]']' \
+    '(--kernel-version -v)'{--kernel-version,-v}'['$_uname_args[kernel-version]']' \
+    '(--machine -m)'{--machine,-m}'['$_uname_args[machine]']' \
+    '(--processor -p)'{--processor,-p}'['$_uname_args[processor]']' \
+    '(--hardware-platform -i)'{--hardware-platform,-i}'['$_uname_args[hardware-platform]']' \
+    '(--operating-system -o)'{--operating-system,-o}'['$_uname_args[operating-system]']' \
+    '(-)--help['$_uname_args[help]']' \
+    '(-)--version['$_uname_args[version]']'
+else
+  args=(
+    "(-m -n -r -s -v)-a[${_uname_args[all]}]"
+    '-m[print hardware class]'
+    "-n[${_uname_args[nodename]}]"
+    "-p[${_uname_args[processor]}]"
+    "-r[${_uname_args[os-release]}]"
+    "-s[${_uname_args[operating-system]}]"
+    '-v[print detailed operating system version]'
+  )
+  case $OSTYPE in
+    freebsd*|dragonfly*)
+      args+=(
+        '-i[print kernel ident]'
+        '-K[print kernel version]'
+        '-U[print user environment version]'
+      )
+    ;|
+    dragonfly*)
+      args+=(
+        '-P[write ABI string for dports / pkgng, including odd-to-even version-munging]'
+        '-PP[write ABI string for dports / pkgng, without version-munging]'
+      )
+    ;;
+    freebsd<13->.*)
+      args+=( "-b[print kernel's linker-generated build-id]" )
+    ;;
+    solaris*)
+      args+=(
+        '-i[print platform name]'
+	'-S[set system name]:system name'
+        '-X[print expanded system information]'
+      )
+    ;;
+  esac
+  _arguments -s $args
+fi

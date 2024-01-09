@@ -1,0 +1,273 @@
+#compdef make gmake pmake dmake freebsd-make bmake
+
+# TODO: Based on targets given on the command line, show only variables that
+# are used in those targets and their dependencies.
+
+_make-expandVars() {
+  local open close var val front='' rest=$1
+
+  while [[ $rest == (#b)[^$]#($)* ]]; do
+    front=$front${rest[1,$mbegin[1]-1]}
+    rest=${rest[$mbegin[1],-1]}
+
+    case $rest[2] in
+      ($)	    # '$$'. may not appear in target and variable's value
+	front=$front\$\$
+	rest=${rest[3,-1]}
+	continue
+	;;
+      (\()	    # Variable of the form $(foobar)
+	open='('
+	close=')'
+	;;
+      ({)	    # ${foobar}
+	open='{'
+	close='}'
+	;;
+      ([[:alpha:]]) # $foobar. This is exactly $(f)oobar.
+	open=''
+	close=''
+	var=$rest[2]
+	;;
+      (*)	    # bad parameter name
+	print -- $front$rest
+	return 1
+	;;
+    esac
+
+    if [[ -n $open ]]; then
+      if [[ $rest == \$$open(#b)([[:alnum:]_]##)(#B)$close* ]]; then
+	var=$match
+      else  # unmatched () or {}, or bad parameter name
+	print -- $front$rest
+	return 1
+      fi
+    fi
+
+    val=''
+    if [[ -n ${VAR_ARGS[(i)$var]} ]]; then
+      val=${VAR_ARGS[$var]}
+    else
+      if [[ -n $opt_args[(I)(-e|--environment-overrides)] ]]; then
+	if [[ $parameters[$var] == scalar-export* ]]; then
+	  val=${(P)var}
+	elif [[ -n ${VARIABLES[(i)$var]} ]]; then
+	  val=${VARIABLES[$var]}
+	fi
+      else
+	if [[ -n ${VARIABLES[(i)$var]} ]]; then
+	  val=${VARIABLES[$var]}
+	elif [[ $parameters[$var] == scalar-export* ]]; then
+	  val=${(P)var}
+	fi
+      fi
+    fi
+    rest=${rest//\$$open$var$close/$val}
+  done
+
+  print -- ${front}${rest}
+}
+
+_make-parseMakefile () {
+  local input var val target dep TAB=$'\t' tmp IFS=
+
+  while read input
+  do
+    case "$input " in
+      # VARIABLE = value OR VARIABLE ?= value
+      ([[:alnum:]][[:alnum:]_]#[" "$TAB]#(\?|)=*)
+      var=${input%%[ $TAB]#(\?|)=*}
+      val=${input#*=}
+      val=${val##[ $TAB]#}
+      VARIABLES[$var]=$val
+      ;;
+
+      # VARIABLE := value OR VARIABLE ::= value
+      # Evaluated immediately
+      ([[:alnum:]][[:alnum:]_]#[" "$TAB]#:(:|)=*)
+      var=${input%%[ $TAB]#:(:|)=*}
+      val=${input#*=}
+      val=${val##[ $TAB]#}
+      val=$(_make-expandVars $val)
+      VARIABLES[$var]=$val
+      ;;
+
+      # TARGET: dependencies
+      # TARGET1 TARGET2 TARGET3: dependencies
+      ([[*?[:alnum:]$][^$TAB:=%]#:[^=]*)
+      target=$(_make-expandVars ${input%%:*})
+      TARGETS+=( ${(z)target} )
+      ;;
+
+      # Include another makefile
+      (${~incl}" "*)
+      local f=${input##${~incl} ##}
+      if [[ $incl == '.include' ]]
+      then
+        f=${f#[\"<]}
+        f=${f%[\">]}
+      fi
+      f=$(_make-expandVars $f)
+
+      if [[ -r $f ]]
+      then
+        _make-parseMakefile < $f
+      fi
+      ;;
+    esac
+  done
+}
+
+_make() {
+
+  local prev="$words[CURRENT-1]" file expl tmp is_gnu incl match basedir nul=$'\0'
+  local context state state_descr line
+  local -a option_specs
+  local -A VARIABLES VAR_ARGS opt_args
+  local -aU TARGETS keys
+  local -i cdir=-1 ret=1
+
+  # VAR=VAL on the current command line
+  for tmp in $words; do
+    if [[ $tmp == (#b)([[:alnum:]_]##)=(*) ]]; then
+      VAR_ARGS[${tmp[$mbegin[1],$mend[1]]}]=${(e)tmp[$mbegin[2],$mend[2]]}
+    fi
+  done
+  keys=( ${(k)VAR_ARGS} ) # to be used in 'compadd -F keys'
+
+  _pick_variant -r is_gnu gnu=GNU unix -v -f
+
+  if [[ $is_gnu == gnu ]]
+  then
+    incl="(-|)include"
+    option_specs=(
+      '(-B --always-make)'{-B,--always-make}'[unconditionally make all targets]'
+      '*'{-C,--directory=}'[change directory first]:change to directory:->cdir'
+      '-d[print lots of debug information]'
+      '--debug=-[print various types of debug information]:debug options:->debug'
+      '(-e --environment-overrides)'{-e,--environment-overrides}'[environment variables override makefiles]'
+      \*{-E+,--eval=-}'[evaluate string as a makefile statement]:string'
+      '(-f --file --makefile)'{-f,--file=,--makefile=}'[read specified file as a makefile]:makefile:->file'
+      '(- *)'{-h,--help}'[print help message and exit]'
+      '(-i --ignore-errors)'{-i,--ignore-errors}'[ignore errors from recipes]'
+      '*'{-I,--include-dir=}'[search specified directory for included makefiles]:search path for included makefile:->dir'
+      '(-j --jobs)'{-j+,--jobs=}'[allow specified number of parallel jobs; unlimited jobs with no arg]:: : _guard "[0-9]#" "number of jobs"'
+      '(-k --keep-going)'{-k,--keep-going}"[keep going when some targets can't be made]"
+      '(-l --load-average --max-load)'{-l,--load-average=,--max-load}"[don't start multiple jobs unless load is below specified value]:load"
+      '(-L --check-symlink-times)'{-L,--check-symlink-times}'[use the latest mtime between symlinks and target]'
+      '(-n --just-print --dry-run --recon)'{-n,--just-print,--dry-run,--recon}"[don't actually run any recipe; just print them]"
+      '*'{-o,--old-file=,--assume-old=}"[consider specified file to be old and don't remake it]:file not to remake:->file"
+      '(-O --output-sync)'{-O-,--output-sync=-}'[synchronize output of parallel jobs]::granularity for grouping output:compadd -E 0 none line target recurse'
+      '(-p --print-data-base)'{-p,--print-data-base}'[print makes internal database]'
+      '(-q --question)'{-q,--question}'[run no recipe; exit status says if up to date]'
+      '(-r --no-builtin-rules)'{-r,--no-builtin-rules}'[disable the built-in implicit rules]'
+      '(-R --no-builtin-variables)'{-R,--no-builtin-variables}'[disable the built-in variable settings]'
+      '(-s --silent --quiet)'{-s,--silent,--quiet}"[don't echo recipes]"
+      '--no-silent[echo recipes (disable --silent mode)]'
+      '(-S --no-keep-going --stop)'{-S,--no-keep-going,--stop}'[turns off -k]'
+      '(-t --touch)'{-t,--touch}'[touch targets instead of remaking them]'
+      '(- *)'{-v,--version}'[print the version number of make and exit]'
+      '(-w --print-directory)'{-w,--print-directory}'[print the current directory]'
+      '--no-print-directory[turn off -w, even if it was turned on implicitly]'
+      '*'{-W,--what-if=,--new-file=,--assume-new=}'[consider specified file to be infinitely new]:file to treat as modified:->file'
+      '--warn-undefined-variables[warn when an undefined variable is referenced]'
+      '--warn-undefined-functions[warn when an undefined user function is called]'
+    )
+  else
+    # Basic make options only.
+    incl=.include
+    option_specs=(
+      '-C[change directory first]:directory:->cdir'
+      '-I[include directory for makefiles]:directory:->dir'
+      '-f[specify makefile]:makefile:->file'
+      '-o[specify file not to remake]:file not to remake:->file'
+      '-W[pretend file was modified]:file to treat as modified:->file'
+    )
+  fi
+
+  _arguments -s $option_specs \
+    '*:make target:->target' && ret=0
+
+  [[ $state = cdir ]] && cdir=-2
+  basedir=${(j./.)${${~"${(@s.:.):-$PWD:${(Q)${opt_args[-C]:-$opt_args[--directory]}//\\:/$nul}}"}[(R)/*,cdir]}//$nul/:}
+  VAR_ARGS[CURDIR]="${basedir}"
+
+  case $state in
+    (*dir)
+    _description directories expl "$state_descr"
+    _files "$expl[@]" -W $basedir -/ && ret=0
+    ;;
+
+    (file)
+    _description files expl "$state_descr"
+    _files "$expl[@]" -W $basedir && ret=0
+    ;;
+
+    (debug)
+    _values -s , 'debug option' \
+      '(b v i j m)a[all debugging output]' \
+      'b[basic debugging output]' \
+      '(b)v[one level above basic]' \
+      '(b)i[describe implicit rule searches (implies b)]' \
+      'j[show details on invocation of subcommands]' \
+      'm[enable debugging while remaking makefiles]' && ret=0
+    ;;
+
+    (target)
+    file=${(v)opt_args[(I)(-f|--file|--makefile)]}
+    if [[ -n $file ]]
+    then
+      [[ $file == [^/]* ]] && file=$basedir/$file
+      [[ -r $file ]] || file=
+    else
+      if [[ $is_gnu == gnu && -r $basedir/GNUmakefile ]]
+      then
+        file=$basedir/GNUmakefile
+      elif [[ -r $basedir/makefile ]]
+      then
+        file=$basedir/makefile
+      elif [[ -r $basedir/Makefile ]]
+      then
+        file=$basedir/Makefile
+      else
+        file=''
+      fi
+    fi
+
+    if [[ -n "$file" ]]
+    then
+      if [[ $is_gnu == gnu ]] 
+      then
+        if zstyle -t ":completion:${curcontext}:targets" call-command; then
+          _make-parseMakefile < <(_call_program targets "$words[1]" -nsp --no-print-directory -f "$file" --always-make 2> /dev/null)
+        else
+          _make-parseMakefile < $file
+        fi
+      else
+        if [[ $OSTYPE == (freebsd|dragonfly|netbsd)* || /$words[1] == */bmake* ]]; then
+          TARGETS+=(${=${(f)"$(_call_program targets "$words[1]" -s -f "$file" -V.ALLTARGETS 2> /dev/null)"}})
+          _make-parseMakefile < <(_call_program targets "$words[1]" -nsdg1Fstdout -f "$file" .PHONY 2> /dev/null)
+        else
+          _make-parseMakefile < $file
+        fi
+      fi
+    fi
+
+    if [[ $PREFIX == *'='* ]]
+    then
+      # Complete make variable as if shell variable
+      compstate[parameter]="${PREFIX%%\=*}"
+      compset -P 1 '*='
+      _value "$@" && ret=0
+    else
+      _alternative \
+        'targets:make target:compadd -Q -a TARGETS' \
+        'variables:make variable:compadd -S = -F keys -k VARIABLES' \
+        '*:file:_files -W $basedir' && ret=0
+    fi
+  esac
+
+  return ret
+}
+
+_make "$@"

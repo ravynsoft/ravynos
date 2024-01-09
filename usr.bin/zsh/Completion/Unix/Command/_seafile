@@ -1,0 +1,33 @@
+#compdef seaf-cli
+
+local -a commands
+
+commands=(
+  "init\:'initialize config directory'"
+  "start\:'start seafile daemon'"
+  "stop\:'stop seafile daemon'"
+  "list\:'list local libraries'"
+  "list-remote\:'list remote libraries'"
+  "status\:'show syncing status'"
+  "download\:'download a library from seafile server'"
+  "download-by-name\:'download a library defined by name from seafile server'"
+  "sync\:'sync a library with an existing foler'"
+  "desync\:'desync a library with seafile server'"
+  "create\:'create a library'"
+  "config\:'configure seafile client'"
+)
+
+_arguments \
+  ":command:(($commands))" \
+  {-h,--help}'[show help]' \
+  {-c,--confdir}'[specify config directory]:config directory:_files -/' \
+  {-d,--dir,--folder}'[directory]:directory:_directories' \
+  {-s,--server}'[URL for seafile server]':server \
+  {-u,--username}'[username]':username \
+  {-p,--password}'[password]':password \
+  {-a,--tfa}'[two-factor authentication]':tfa \
+  {-l,--library}'[library id]':library \
+  {-e,--libpasswd}'[library password]':libpasswd \
+  {-k,--key}'[configuration key]':key \
+  {-v,--value}'[configuration value]':value \
+  "*: :_files"

@@ -1,0 +1,91 @@
+## vim:ft=zsh
+#
+# This function is the common guts of the gen-applied-string /
+# gen-unapplied-string / set-patch-format dance of several backends.
+#
+# Parameters:
+# $1 - name of an array parameter to be the argument to gen-applied-string
+#      (patches in reverse order)
+# $2 - name of a parameter to store the applied-string in
+# $3 - name of an array parameter to be the argument to gen-unapplied-string
+#      (patches in order)
+# $4 - name of a parameter to store the unapplied-string in
+# $5 - context argument for use in zstyle getters
+# $6 - name of a parameter to store a patch-format format string in
+# $7 - name of an assoc parameter with extra $hook_com key-value pairs for the
+#      set-patch-format hook invocation, or '' for none
+# $8 - name of a function that sets $reply to extra arguments for the patch-format zformat call, or '' for none
+# $9 - name of an assoc parameter with extra $hook_com key-value pairs for the
+#      gen-applied-string & gen-unapplied-string hook invocations, or '' for none
+#
+# The expanded patch-format string is returned in $REPLY.
+#
+# Output:
+# - $hook_com is overwritten and the keys 'applied', 'applied-n',
+#   'unapplied', 'unapplied-n', 'all-n' are set.
+{
+    hook_com=()
+
+    local applied_needs_escaping='unknown'
+    hook_com+=( ${9:+"${(@kvP)9}"} )
+    if VCS_INFO_hook 'gen-applied-string' "${(@P)1}"; then
+        if (( ${(P)#1} )); then
+            REPLY=${(P)1[1]}
+        else
+            REPLY=""
+        fi
+        applied_needs_escaping='yes'
+    else
+        REPLY=${hook_com[applied-string]}
+    fi
+    : ${(P)2::=$REPLY}
+    hook_com=()
+
+    local unapplied_needs_escaping='unknown'
+    hook_com+=( ${9:+"${(@kvP)9}"} )
+    if VCS_INFO_hook 'gen-unapplied-string' "${(@P)3}"; then
+        REPLY=${(P)#3}
+        unapplied_needs_escaping='yes'
+    else
+        REPLY=${hook_com[unapplied-string]}
+    fi
+    : ${(P)4::=$REPLY}
+    hook_com=()
+
+    if (( ${(P)#1} )); then
+        zstyle -s "${5}" patch-format REPLY || REPLY="%p (%n applied)"
+    else
+        zstyle -s "${5}" nopatch-format REPLY || REPLY="no patch applied"
+    fi
+    : ${(P)6::=$REPLY}
+
+    hook_com=(
+      applied-n ${(P)#1}
+      applied "${(P)2}"
+      unapplied-n ${(P)#3}
+      unapplied "${(P)4}"
+    )
+    hook_com[all-n]=$(( ${hook_com[applied-n]} + ${hook_com[unapplied-n]} ))
+    hook_com+=( ${7:+"${(@kvP)7}"} )
+    if VCS_INFO_hook 'set-patch-format' "${(P)6}"; then
+        # Escape the value for use in $PS1
+        if [[ $applied_needs_escaping == 'yes' ]]; then
+          hook_com[applied]=${hook_com[applied]//'%'/%%}
+        fi
+        if [[ $unapplied_needs_escaping == 'yes' ]]; then
+          hook_com[unapplied]=${hook_com[unapplied]//'%'/%%}
+        fi
+
+        reply=()
+        [[ -n $8 ]] && "$8"
+        zformat -f REPLY "${(P)6}" "p:${hook_com[applied]}" "u:${hook_com[unapplied]}" \
+                                        "n:${hook_com[applied-n]}" "c:${hook_com[unapplied-n]}" \
+                                        "a:${hook_com[all-n]}" \
+                                        "${reply[@]}"
+    else
+        unset applied_needs_escaping unapplied_needs_escaping # the hook deals with escaping
+        REPLY=${hook_com[patch-replace]}
+    fi
+    hook_com=()
+
+}

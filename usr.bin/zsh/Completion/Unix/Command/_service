@@ -1,0 +1,42 @@
+#compdef service
+
+# *:: for last argument looks more like a hack but it is
+# the simplest way known to me to reset $words and keep
+# _sub_command happy
+
+# we are interested in init service only
+local args actions ctx="${curcontext}argument-1:"
+zstyle -T  ":completion:${ctx}" tag-order && \
+  zstyle ":completion:${ctx}" tag-order init
+
+case $OSTYPE in
+  freebsd<11->.*)
+    args=( '-j+[perform actions in specified jail]:jail:_jails' )
+  ;&
+  freebsd*|dragonfly*)
+    actions=(
+      '(*)-r[show the results of boot time rcorder]'
+      '(*)-R[restart all enabled local services]'
+    )
+  ;&
+  netbsd*)
+    _arguments -s $args \
+      '(-e -R)-v[verbose]' \
+      '*::service argument:_init_d' \
+      + '(actions)' $actions \
+      '(*)-e[show services that are enabled]' \
+      '(*)-l[list all scripts in /etc/rc.d and the local startup directory]' \
+      ':service name:_services'
+  ;;
+  *)
+    _arguments -s \
+      '(-d --debug)'{-d,--debug}'[turn debugging on]' \
+      '(- :)'{-h,--help}'[print help information]' \
+      '(- :)'{-v,--version}'[print version information]' \
+      '(-)'{-f,--full-restart}'[restart service]' \
+      '(- :)'{-R,--full-restart-all}'[restart all services]' \
+      '(- :)'{-s,--status-all}'[print status of all services]' \
+      ':service name:_services' \
+      '*::service argument: _init_d'
+  ;;
+esac

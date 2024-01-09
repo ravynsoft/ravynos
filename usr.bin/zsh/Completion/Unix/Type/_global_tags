@@ -1,0 +1,7 @@
+#autoload
+
+local expl tags
+
+tags=( $(_call_program global-tags global --completion $PREFIX 2>/dev/null) )
+
+_wanted global-tags expl 'tag' compadd -M 'm:{a-zA-Z}={A-Za-z}' -a "$@" - tags

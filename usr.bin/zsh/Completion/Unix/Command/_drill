@@ -1,0 +1,46 @@
+#compdef drill
+
+local curcontext="$curcontext" ret=1
+local -a state line expl
+
+_arguments -s -S -C \
+  '-D[enable DNSSEC (DO bit)]' \
+  '-T[trace from the root down]' \
+  '-S[chase signature(s) to a known key]' \
+  '-I[specify source address to query from]:source address' \
+  '(-Q)-V+[specify verbosity]:number (0-5)' \
+  '(-V)-Q[quiet mode (overrules -V)]' \
+  '-f+[read packet from file and send it]:file:_files' \
+  '-i+[read packet from file and print it]:file:_files' \
+  '-w+[write answer packet to file]:file:_files' \
+  '-q+[write query packet to file]:file:_files' \
+  '(- *)-h[display usage information]' \
+  '(- *)-v[display version information]' \
+  '(-6)-4[stay on ipv4]' \
+  '(-4)-6[stay on ipv6]' \
+  '-a[fallback to EDNS0 and TCP if the answer is truncated]' \
+  '-b+[specify buffer size (defaults to 512 b)]:size (bytes) [512]' \
+  '-c+[use specified file for rescursive nameserver configuration]:file [/etc/resolv.conf]:_files' \
+  '-k+[specify a file that contains a trusted DNSSEC key]:file:_files' \
+  '*-o+[set/unset header bits]:mnemonic (uppercase sets, lower unsets):_sequence compadd - QR qr AA aa TC tc RD rd CD cd RA ra AD ad' \
+  '-p+[use specified remote port number]:port:_ports' \
+  '-s[show the DS RR for each key in a packet]' \
+  '-x[do a reverse lookup]' \
+  '-r+[use specified file as root servers hint file]:file:_files' \
+  '-t[send the query with tcp]' '!(-t)-u' \
+  '-d+[use specified domain as the start point for the trace]:domain' \
+  '-y+[specify named base64 tsig key, and optional algorithm]:name\:key\:algorithm [hmac-md5.sig-alg.reg.int]' \
+  "-z[don't randomize the nameservers before use]" \
+  '*:args:->args' && ret=0
+
+if [[ -n $state ]]; then
+  if compset -P @; then
+    _wanted hosts expl 'DNS server' _hosts && ret=0;
+  else
+    _alternative 'hosts:host:_hosts' \
+       'types:query type:_dns_types' \
+       'classes:query class:compadd -M "m:{a-z}={A-Z}" - IN CS CH HS' && ret=0
+  fi
+fi
+
+return ret

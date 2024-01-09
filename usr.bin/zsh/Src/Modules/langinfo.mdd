@@ -1,0 +1,8 @@
+name=zsh/langinfo
+
+link=`if test x$ac_cv_func_nl_langinfo; then echo either; else echo no; fi`
+load=no
+
+autofeatures="p:langinfo"
+
+objects="langinfo.o"

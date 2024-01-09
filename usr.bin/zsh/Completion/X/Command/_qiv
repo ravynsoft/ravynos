@@ -1,0 +1,50 @@
+#compdef qiv
+
+_arguments -s \
+  '(- *)'{-h,--help}'[display help information]' \
+  '(- *)'{-v,--version}'[display version information]' \
+  '--display:display:_x_display' \
+  \*{-F,--file}'[read file names from file]:file:_files' \
+  '(-B --browse)'{-B,--browse}'[scan directory of file for browsing]' \
+  '(-e --center)'{-e,--center}'[disable window centering]' \
+  '(-C --cycle)'{-C,--cycle}"[don't cycle after last image]" \
+  '(-w --fixed_width -W --fixed_zoom)'{-w,--fixed_width}'[use window with specified width]:width' \
+  '(-w --fixed_width -W --fixed_zoom)'{-W,--fixed_zoom}'[use window with specified zoom factor]:zoom (percentage)' \
+  '(-x -y -z --root --root_t --root_s -f --file *)'{-x,--root}'[use image as the current desktop background, centered]:image file:_files' \
+  '(-x -y -z --root --root_t --root_s -f --file *)'{-y,--root_t}'[use image on the current desktop background, tiled]:image file:_files' \
+  '(-x -y -z --root --root_t --root_s -f --file *)'{-z,--root_s}'[use image as the current desktop background, stretched]:image file:_files' \
+  '(-m --maxpect)'{-m,--maxpect}'[expand image to fit screen size]' \
+  '(-t --scale_down)'{-t,--scale_down}'[shrink images to fit screen size]' \
+  "--trashbin[move files to user's trash bin instead of .qiv-trash when deleting]" \
+  '(-b --brightness)'{-b,--brightness}'[set brightness]:brightness (-32..32)' \
+  '(-c --contrast)'{-c,--contrast}'[set contrast]:contrast (-32..32)' \
+  '(-g --gamma)'{-g,--gamma}'[set gamma]:gamma (-32..32)' \
+  '(-n --no_filter)'{-n,--no_filter}'[disable filtering of images by extension]' \
+  '(-i --no_statusbar -I --statusbar)'{-i,--no_statusbar}'[disable statusbar]' \
+  '(-i --no_statusbar -I --statusbar)'{-I,--statusbar}'[enable statusbar]' \
+  '(-p --transparency)'{-p,--transparency}'[enable transparency]' \
+  '(-a --do_grab)'{-a,--do_grab}'[grab the pointer in windowed mode]' \
+  '(-G --disable_grab)'{-G,--disable_grab}'[disable pointer grabbing in fullscreen mode]' \
+  '(-o --bg_color)'{-o,--bg_color}'[set root background color]:color:_x_color' \
+  '(-s --slide)'{-s,--slide}'[start slideshow immediately]' \
+  '(-r --random)'{-r,--random}'[shuffle images for slideshow]' \
+  '(-R --readonly)'{-R,--readonly}'[disable delete feature]' \
+  '(-S --shuffle)'{-S,--shuffle}'[shuffle images for next/prev feature]' \
+  '(-d --delay)'{-d,--delay}'[set slideshow delay]:delay (seconds)' \
+  '(-f --fullscreen)'{-f,--fullscreen}'[use fullscreen window on startup]' \
+  '(-P --ignore_path_sort)'{-P,--ignore_path_sort}'[sort images by just the filename]' \
+  '(-M --merged_case_sort)'{-M,--merged_case_sort}'[sort images case-insensitively]' \
+  '(-K --mtime_sort)'{-K,--mtime_sort}'[sort images by their modification time]' \
+  '(-N --numeric_sort -K --mtime_sort)'{-N,--numeric_sort}'[numeric image sort]' \
+  '(-D --no_sort -N --numeric_sort -K --mtime_sort -M --merged_case_sort -P --ignore_path_sort)'{-D,--no_sort}"[don't apply any sorting to the images]" \
+  '(-T --watch)'{-T,--watch}'[reload the image if it changes]' \
+  '(-u --recursivedir)'{-u,--recursivedir}'[recursively include all files]' \
+  '(-L --followlinks)'{-L,--followlinks}'[follow symlinks to directories]' \
+  '(-A --select_dir)'{-A,--select_dir}'[store selected files in specified directory]:directory [.qiv-select]:_directories' \
+  '(-l --autorotate)'{-l,--autorotate}"[don't autorotate JPEGs according to EXIF rotation tag]" \
+  '(-q --rotate)'{-q,--rotate}'[rotate image]:angle:((1\:90 2\:180 3\:270))' \
+  '(-X --xineramascreen)'{-X,--xineramascreen}'[specify preferred screen]:screen' \
+  '(-Y --source_profile)'{-Y,--source_profile}'[specify colour profile file as source profile]:colour profile file:_files' \
+  '(-Z --display_profile)'{-Z,--display_profile}'[specify colour profile file as display profile]:colour profile file:_files' \
+  '--vikeys[enable movement with h/j/k/l]' \
+  '*:image file:_files -g "*.(#i)(bmp|eim|gif|ico|jp([eg]|eg)|pcx|png|p[pngb]m|pjpeg|svg|tif(|f)|wmf|x[pb]m)(-.)"'

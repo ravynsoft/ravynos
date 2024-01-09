@@ -1,0 +1,244 @@
+#compdef ps
+
+_ps_props() {
+  local opts
+
+  if [[ $1 = -s ]]; then
+    shift
+    compset -P '[+-]' || _describe -t modifiers modifier \
+	'( +:ascending\ order -:descending\ order )' -S ''
+  fi
+
+  case $OSTYPE in
+    linux-gnu) opts=( ${${(f)"$(_call_program properties $words[1] L)"}%% *} ) ;;
+    *bsd*|dragonfly*|darwin*) opts=( $(_call_program properties $words[1] L) ) ;;
+    solaris*) opts=( ${=${(f)"$(_call_program properties $words[1] - 2>&1)"}[-3,-1]} ) ;;
+  esac
+
+  compadd "$@" -a opts
+}
+
+local curcontext="$curcontext" state line expl ret=1
+local short long pids
+local -a args bsd bsdarg
+local -A equivs
+
+args=(
+  '-a[select processes with tty except session leaders]'
+  {-A,-e}'[select every process]'
+  '-d[select all processes except session leaders]'
+  '*-p+[select processes by ID]:process ID:_sequence -s , _pids'
+  '*-G+[select processes by real group]:group:_sequence -s , _groups'
+  '*-g+[select processes by effective group or session]:group:_sequence -s , _groups'
+  '*-s+[select processes by session leaders]:session leader:_sequence -s , _pids'
+  '*-t+[select processes by attached terminal]:tty:_sequence -s , _ttys -Do'
+  '*-u+[select processes by effective user]:user:_sequence -s , _users'
+  '*-U+[select processes by real user]:user:_sequence -s , _users'
+  '-o+[specify output format]:property:_sequence -s , _ps_props -'
+
+  '-c[show scheduler properties]'
+  '-f[full listing]'
+  '-j[show session ID and process group ID]'
+  '-l[long listing]'
+  '-L[show information about each light weight process]'
+  '-y[show RSS in place of ADDR (used with -l)]'
+)
+
+bsd=(
+  'a[include processes belonging to other users]'
+  '(j s u v X)l[output in long format]'
+  '(l s u v X)j[output in job control format]'
+  'x[include processes with no controlling terminal]'
+  '(j l s u X)v[output in virtual memory format]'
+  '*w[wide output]'
+  'L[display all format specifiers]'
+  'S[include child process data with the parent]'
+  'T[select processes attached to current terminal]'
+)
+bsdarg=(
+  '*p[select processes by ID]'
+  '*t[select processes by attached terminal]'
+  'O[specify additional output fields]'
+  'o[specify output format]'
+)
+
+case $OSTYPE in
+  solaris2.<11->)
+    args+=(
+      '-h[select processes homed to the specified lgrp]:lgrp list'
+      '-H[show home lgroup of the process]'
+    )
+  ;|
+  solaris*)
+    args+=(
+      '-P[show processor to which the process or lwp is bound]'
+      '*-z[select processes by zone]:zone list:_sequence _zones'
+      '-Z[show zone with which process is associated]'
+    )
+  ;;
+  linux-gnu|dragonfly*|freebsd*|netbsd*|openbsd*)
+    bsd+=(
+      'e[show environment after command]'
+      '(j l s v X)u[output in resource usage format]'
+    )
+    bsdarg+=(
+      'N[set namelist file for WCHAN display]'
+      '*U[select processes by effective user]'
+    )
+  ;|
+  linux-gnu|dragonfly*|freebsd*|openbsd*)
+    bsd+=( 'H[show threads as if they were processes]' )
+  ;|
+  darwin*|dragonfly*|freebsd*|netbsd*|openbsd*)
+    bsd+=(
+      'A[select every process]'
+      'c[show just executable name for command]'
+      'h[repeat header lines, one per page of output]'
+      '(r)m[sort by memory usage]'
+      '(m)r[sort by CPU usage]'
+    )
+  ;|
+  darwin*|dragonfly*|freebsd*|netbsd*)
+    bsd+=( 'C[ignore resident time for CPU percentage]' )
+  ;|
+  dragonfly*|freebsd*|netbsd*|openbsd*)
+    bsdarg+=( 'M[extract values from specified core]' )
+  ;|
+  linux-gnu|netbsd*) bsdarg+=( 'k[specify sort order]' ) ;|
+  darwin*|freebsd*)
+    bsd+=( 'X[skip processes with no controlling terminal]' )
+    bsdarg+=( '*G[select processes by real group]' )
+  ;|
+  freebsd*|dragonfly*)
+    bsd+=( 'f[show command and environment for swapped out processes]' )
+  ;|
+  netbsd*|openbsd*)
+    bsdarg+=( 'W[extract swap information from specified file]' )
+  ;|
+  freebsd*|netbsd*)
+    bsd+=(
+      'd[show process hierarchy]'
+    )
+  ;|
+  darwin*)
+    bsd+=(
+      'd[select all processes except session leaders]'
+      'E[show environment after command]'
+      'f[full listing]'
+      'M[show threads corresponding to each process]'
+    )
+    bsdarg+=(
+      '*g[select processes by process group leader]'
+      '*U[select processes by real user]'
+    )
+    if [[ $words[CURRENT] = -* ]]; then
+      bsd+=( 'e[select every process]' )
+      bsdarg+=( 'u[select processes by user id]' )
+    else
+      bsd+=(
+        'e[show environment after command]'
+        '(j l v)u[output in resource usage format]'
+      )
+    fi
+  ;;
+  dragonfly*)
+    bsd+=( 'R[subsort by parent/child chain]' )
+  ;;
+  freebsd*)
+    bsd+=(
+      '*J[select processes by jail ID]'
+      'Z[show mac label]'
+    )
+  ;;
+  netbsd*) bsd+=( '(j l u v)s[output in thread format]' ) ;;
+  openbsd*)
+    bsd+=(
+      'k[display information about kernel threads]'
+    )
+  ;;
+  linux-gnu)
+    args+=(
+      '-O+[specify additional output fields]:property:_sequence -s , _ps_props -'
+      '(-N --deselect)'{-N,--deselect}'[negate selection: all processes except those selected]'
+      '*-C[select processes by command name]:command:_sequence -s , _command_names -e'
+      '*--ppid[select processes by parent process ID]:parent process:_sequence -S , _pids'
+      '(-f)-F[extra full format listing]'
+      '--context[show SELinux security context format]'
+      '-M[show security data]'
+      '(--forest -H)'{--forest,-H}'[show process hierarchy]'
+      '--headers[repeat header lines, one per page of output]'
+      '(--cols --columns --width)'{--cols,--columns,--width}'[set screen width]:width'
+      '(--lines --rows)'{--lines,--rows}'[set screen height]'
+      '--cumulative[include child process data with the parent]'
+      '-n[set namelist file for WCHAN display]:file:_files'
+      '(--no-headers --no-heading)'{--no-headers,--no-heading}'[suppress headers]'
+      '(-q --quick-pid -a -A -d -e -N --deselect -C -p --pid --ppid -G --Group -g --group -s --sid -t --tty -u --user -U --User --forest -H --sort)'{-q+,--quick-pid=}'[select processes by ID (quick mode)]:process ID:_sequence -s , _pids'
+      '--sort=[specify sort order]:order:_sequence -s , _ps_props -s'
+      '-w[wide output]'
+      '-m[show threads after processes]'
+      '-T[show threads, with SPID column]'
+      '-Z[show security context format (SELinux)]'
+      '(- *)--help[display help information]::subject:(simple list output threads misc all)'
+      '(- *)--info[display debugging information]'
+      '(- *)'{-V,--version}'[display version information]'
+    )
+    equivs=( G Group g group p pid s sid t tty U User u user o format )
+    for short long in ${(kv)equivs}; do
+      args+=( ${${(M)args:#(\*|)-$short*}/$short+/-$long=} )
+    done
+    bsd+=(
+      'c[show true command name]'
+      'f[show process hierarchy]'
+      'h[suppress header]'
+      'm[show threads after processes]'
+      'n[numeric output for WCHAN and USER]'
+      'r[select running processes]'
+      '(j l u v X)s[output in signal format]'
+      'V[display version information]'
+      '(j l s u v)X[output in register format]'
+      'Z[show security data]'
+    )
+    bsdarg+=( 'q[select processes by ID (quick mode)]' )
+  ;;
+esac
+
+if (( CURRENT > 1 )) && [[ $OSTYPE != (solaris*|linux-gnu) ||
+              ( $OSTYPE = linux-gnu && $words[CURRENT-1] != -* ) ]]; then
+  case $words[CURRENT-1] in
+    *k)
+      local sopt
+      [[ $OSTYPE = linux-gnu ]] && sopt='-s'
+      _wanted -C option-k-1 properties expl 'property' \
+		_sequence -s , _ps_props $sopt - && return ;;
+    *g) [[ $OSTYPE = darwin* ]] && _wanted -C option-g-1 processes \
+		expl 'process ID' _sequence -s , _pids && return ;;
+    *G) _sequence -s , _groups && return ;;
+    *J) _sequence _jails -0 && return ;;
+    *[MNW]) _files && return ;;
+    *t)
+      _wanted -C option-t-1 ttys expl tty _sequence -s , _ttys -Do && return
+    ;;
+    *[pq]) _wanted -C "option-${words[CURRENT-1][-1]}-1" processes \
+	expl 'process ID' _sequence -s , _pids && return ;;
+    *U) _wanted -C option-U-1 users expl user _sequence -s , _users && return ;;
+    *u) [[ $OSTYPE = darwin* && $words[CURRENT-1] = -* ]] && \
+	_wanted -C option-u-1 users expl user _sequence -s , _users && return ;;
+    *[oO]) _wanted -C "option-${words[CURRENT-1][-1]}-1" properties \
+        expl 'property' _sequence -s , _ps_props - && return ;;
+  esac
+fi
+
+if [[ $OSTYPE = (*bsd*|darwin*|dragonfly*) ]]; then
+  compset -P - && pids=1
+else
+  [[ $OSTYPE = solaris* ]] || args+=( '*:: :->rest' )
+  _arguments -C -s $args && ret=0
+  [[ -z "$state" ]] && return ret
+fi
+
+_values -s '' -S ' ' 'option' $bsd && ret=0
+_values -S ' ' 'option' $bsdarg && ret=0
+if [[ -z $pids ]]; then
+  _pids && ret=0
+fi
+return ret

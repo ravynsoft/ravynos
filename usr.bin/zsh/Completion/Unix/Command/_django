@@ -1,0 +1,210 @@
+#compdef django-admin.py django-admin manage.py
+
+local curcontext="$curcontext" state line expl ret=1
+
+if [[ "$service" = "manage.py" && ! -x ./manage.py ]]; then
+  _default
+  return
+fi
+
+declare -ga common_args
+common_args=(
+  '--help[display help information]'
+  '--version[display version information]'
+  '--pythonpath=[directory to add to the Python path]:directory:_directories -W / -P /'
+  '--settings=[python path to settings module]:settings'
+  '--traceback[print traceback on exception]'
+)
+
+typeset -A opt_args
+_arguments -C \
+  $common_args \
+  ':subcommand:->subcommand' \
+  '*::options:->options' && ret=0
+
+case $state in
+  subcommand)
+    subcommands=(
+      "cleanup:remove old data from the database"
+      "compilemessages:compile .po files to .mo for use with gettext"
+      "createcachetable:creates table for SQL cache backend"
+      "createsuperuser:create a superuser"
+      "dbshell:run command-line client for the current database"
+      "diffsettings:display differences between the current settings and Django defaults"
+      "dumpdata:output contents of database as a fixture"
+      "flush:execute 'sqlflush' on the current database"
+      "inspectdb:output Django model module for tables in database"
+      "loaddata:install the named fixture(s) in the database"
+      "makemessages:pull out all strings marked for translation"
+      "reset:executes 'sqlreset' for the given app(s)"
+      "runfcgi:run this project as a fastcgi"
+      "runserver:start a lightweight web server for development"
+      "shell:run a Python interactive interpreter. Tries to use IPython, if it's available"
+      "sql:print the CREATE TABLE statements for the given app(s)"
+      "sqlall:print the CREATE TABLE, CREATE INDEX and custom statements for the given app(s)"
+      "sqlclear:print the DROP TABLE statements for the given app(s)"
+      "sqlcustom:print the custom table-modifying SQL statements for the given app(s)"
+      "sqlflush:print the SQL statements required to return all tables to installation state"
+      "sqlindexes:print the CREATE INDEX statements for the given app(s)"
+      "sqlreset:print the DROP TABLE and CREATE TABLE statements for the given app(s)"
+      "sqlsequencereset:print the SQL statements for resetting sequences for the given app(s)"
+      "startapp:create Django app directory in this project's directory"
+      "startproject:create a Django project directory structure for a given project name"
+      "syncdb:create database tables for apps in INSTALLED_APPS where required"
+      "test:run the test suite for the specified app, or the entire site"
+      "testserver:run a development server with data from the given fixture(s)"
+      "validate:validate all installed modules"
+    )
+
+    for cmd in $(./manage.py --help 2>&1 >/dev/null | \
+        awk -v drop=1 '{ if (!drop) print substr($0, 3) } /^Available subcommands/ { drop=0 }')
+    do
+        if ! echo $subcommands | grep -qs "${cmd}:"
+        then
+            subcommands+=($cmd)
+        fi
+    done
+
+    _describe -t subcommands 'django admin subcommand' subcommands && ret=0
+    ;;
+
+  options)
+    declare -a args
+    args=(
+      $common_args
+    )
+
+    declare -a verbosity
+    verbosity=(
+      '--verbosity=:verbosity:(0 1 2):[verbosity level; 0=minimal, 1=normal, 2=all]'
+    )
+
+    declare -a locale
+    locale=(
+      {-l,--locale=}'[locale to process (default: all)]:locale'
+    )
+
+    declare -a noinput
+    noinput=(
+      '--noinput[do not prompt for any input]'
+    )
+
+    port_opts={,0.0.0.0\\:,127.0.0.1\\:}800{0,1}
+
+    _appname () {
+      local settings=""
+      if [ -e settings.py ]; then
+          settings="settings.py"
+      elif [ -n "${DJANGO_SETTINGS_MODULE}" ]; then
+          settings="${DJANGO_SETTINGS_MODULE}"
+      else
+        return 0
+      fi
+
+      _wanted appname expl appname compadd - $(command \
+        sed -n "/INSTALLED_APPS\s*=\s*(/,/)/p" ${settings} | \
+        sed -n "s/^\s*'\(.*\.\)*\(.*\)'.*$/\2 /pg")
+    }
+
+    case $words[1] in
+      compilemessages)
+        args+=$locale
+        ;;
+
+      createcachetable)
+        args+=':tablename:'
+        ;;
+
+      createsuperuser)
+        args+=(
+          $noinput
+          '--username[username for the superuser]:username'
+          '--email[email address for the superuser]:email'
+        )
+        ;;
+
+      dumpdata)
+        args+=(
+          '--format=:format:(xml python json yaml):[serialization format for the fixtures]'
+          '--indent=[indent level to use when pretty-printing]:indent'
+          {-e,--exclude=}'[app to exclude]:exclude:_appname'
+        )
+        ;;
+
+      flush)
+        args+=$verbosity
+        ;;
+
+      loaddata)
+        args+=(
+          $verbosity
+          '*:fixture:'
+        )
+        ;;
+
+      makemessages)
+        args+=(
+          $locale
+          $verbosity
+          {-d,--domain=}'[domain of the message files]:domain [django]:(django djangojs)'
+          {-a,--all}'[re-examine all code and templates]'
+          {-e,--extensions=}'[file extension(s) to examine]:extension [html]'
+        )
+        ;;
+
+      runserver|runserver_plus)
+        args+=(
+          '--noreload[do not use auto-reloader]'
+      	  '--adminmedia=[directory from which to serve admin media]:directory:_directories'
+          ':port:('$port_opts')'
+        )
+        ;;
+
+      shell)
+        args+='--plain[use plain Python, not IPython]'
+        ;;
+
+      reset|sql*)
+        args+='*:appname:_appname'
+        ;;
+
+      startapp)
+        args+=':new_appname:'
+        ;;
+
+      syncdb)
+        args+=(
+          $verbosity
+          $noinput
+        )
+        ;;
+
+      "test")
+        args+=(
+          $verbosity
+          $noinput
+         '*:appname:_appname'
+        )
+        ;;
+
+      testserver)
+        args+=(
+          $verbosity
+          '--addrport=:addrport:('$port_opts'):[port number or ipaddr:port to run server on]'
+          '*:fixture:'
+        )
+        ;;
+
+      validate|runfcgi)
+        ;;
+
+      *)
+        _files
+        ;;
+    esac
+
+    _arguments -C $args && ret=0
+    ;;
+esac
+
+return ret

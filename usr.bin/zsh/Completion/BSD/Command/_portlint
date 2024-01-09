@@ -1,0 +1,17 @@
+#compdef portlint
+
+_arguments -s \
+    '-a[additional check for scripts/* and pkg-*]' \
+    '-A[turn on all additional checks (equivalent to -abcNt)]' \
+    '-b[warn $(VARIABLE)]' \
+    '-c[committer mode]' \
+    '-C[pedantic committer mode (equivalent to -abct)]' \
+    '-g[group errors together to avoid duplication (disabled if -v is specified)]' \
+    '-h[show summary of command line options]' \
+    '-v[verbose mode]' \
+    '-t[nit pick about use of spaces]' \
+    '-N[writing a new port]' \
+    '-V[print the version and exit]' \
+    '-M[set make variables to ENV (ex. PORTSDIR=/usr/ports.work)]: :_guard ".#" "environment vars"' \
+    '-B[allow # contiguous blank lines]: :_guard "[0-9]#" "numeric value"' \
+    ':port directory:_files -/'

@@ -1,0 +1,13 @@
+#autoload
+
+# watch [-cinotW] [-f snpdev] [tty]
+
+_arguments -w -S -s : \
+  "-c[reconnect on close]" \
+  "-f:snp(4) device: " \
+  "-i[force interactive mode even when stdout is not a tty]" \
+  "-n[disable the ability to switch the watched tty interactively]" \
+  "-o[reconnect on overflow]" \
+  "-t[print date and time at start]" \
+  "-W[allow write access to observed tty]" \
+  "(-): : _ttys -Do"

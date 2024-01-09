@@ -1,0 +1,105 @@
+#compdef kfmclient kioclient
+
+# kfmclient is a command line interface for use with Konqueror,
+# the KDE file manager and web browser.
+#
+# In KDE4, kioclient has similar syntax but doesn't necessarily talk
+# to Konqueror ("kioclient exec ." by default starts Dolphin, for example).
+
+local expl
+local -a context state line
+typeset -A opt_args
+
+_arguments \
+  '--help[show help message]' \
+  '--help-qt[show Qt specific options]' \
+  '--help-kde[show KDE specific options]' \
+  '--help-all[show all options]' \
+  '--author[show author information]' \
+  '-v[show version information]' \
+  '--version[show version information]' \
+  '--license[show license information]' \
+  '--commands[show available commands]' \
+  '--display=:X display:_x_display' \
+  '--session=:session id for restoring application: ' \
+  '--cmap[use private colormap (8-bit display)]' \
+  '--ncols=:limit on number of colors (8-bit display): ' \
+  '--nograb[never grab mouse or keyboard]' \
+  '--dograb[override nograb in debugger]' \
+  '--sync[switch to synchronous mode when debugging]' \
+  '--fn=:font name:_x_font' \
+  '--font=:font name:_x_font' \
+  '--bg=:background color:_x_color' \
+  '--background=:background color:_x_color' \
+  '--fg=:foreground color:_x_color' \
+  '--foreround=:foreground color:_x_color' \
+  '--btn=:button color:_x_color' \
+  '--button=:button color:_x_color' \
+  '--name=:application name: ' \
+  '--title=:application title (caption): ' \
+  '--visual=:specify visual:_x_visual' \
+  '--inputstyle:X input method:(onthespot overthespot offthespot root)' \
+  '--im:X Input Method server: ' \
+  '--noxim[disable X Input Method]' \
+  '--reverse[reverse widget layout]' \
+  '--caption=:name in titlebar: ' \
+  '--icon=:application icon: ' \
+  '--miniicon=:icon in titlebar: ' \
+  '--config=:configuration  file:_files' \
+  '--dcopserver=:DCOP server: ' \
+  '--nocrashhandler[disable crash handler, allow core dumps]' \
+  '--waitforwm[wait for a WM_NET compatible window manager]' \
+  '--style=:GUI style for application: ' \
+  '--geometry=:client window geometry:_x_geometry' \
+  '1:client command:(openURL openProfile openProperties exec move
+download copy sortDesktop configure configureDesktop)' \
+  '2::args:->firstarg' \
+  '3::args:->secondarg'  &&  return 0
+
+[[ $state = *arg ]] || return 1
+
+# Argument to previous command.
+
+case $line[1] in
+  (openURL)
+  if [[ $state = secondarg ]]; then
+    _mime_types
+    return
+  elif [[ $state = firstarg ]]; then
+    _webbrowser
+    return
+  fi
+  ;;
+
+  (openProfile)
+  if [[ $state = secondarg ]]; then
+    _webbrowser
+    return
+  elif [[ $state = firstarg ]]; then
+    local appdata=${$(kde-config --path data 2> /dev/null):-~/.kde/share/apps/}
+    _wanted profile expl 'Konqueror profile' \
+      compadd -- ${(s/:/)^${appdata}}konqueror/profiles/*(:t)
+    return
+  fi
+  ;;
+
+  (exec)
+  if [[ $state = secondarg ]]; then
+    # Look for a Desktop Action binding.
+    _wanted binding expl 'KDE binding' compadd -- ${${${(M)${(f)"$(<$file)"}:#"[Desktop Action "*"]"}%%\]}##"[Desktop Action "}
+    return
+  elif [[ $state = firstarg ]]; then
+    _webbrowser
+    return
+  fi
+  ;;
+
+  (move|download|copy|openProperties)
+  if [[ $state = firstarg ]]; then
+      _webbrowser
+      return
+  fi
+  ;;
+esac
+
+_message "no more arguments"

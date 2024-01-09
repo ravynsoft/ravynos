@@ -1,0 +1,64 @@
+#compdef cu
+
+local variant ign
+local -a args
+
+_pick_variant -r variant taylor='Taylor UUCP' $OSTYPE --version
+
+case $variant in
+  openbsd*)
+    args+=(
+      "-d[don't block waiting for a carrier to be detected]"
+      '-r[start cu in restricted mode - prevent local operations]'
+      '-E+[specify escape character]:escape character [~]'
+    )
+  ;;
+  taylor|(net|free)bsd*)
+    args+=(
+      '(-o -P --parity)-e[use even parity]'
+      '(-e -P --parity)-o[use odd parity]'
+    )
+  ;|
+  dragonfly*|(net|free)bsd*)
+    args+=( '-t[connect via a hard-wired connection to a host on a dial-up line]' )
+  ;|
+  taylor|netbsd*)
+    (( $#words > 2 )) && ign='!'
+    args+=(
+      "${ign}--help[display usage information]"
+      '(-s)--speed=[set line speed for the connection]:line speed [9600]:_baudrates'
+      '(-e -o -P)--parity=[set parity]:parity [none]:(even odd none)'
+      '(-h --halfduplex)'{-h,--halfduplex}'[echo characters locally]'
+      '--nostop[turn off XON/XOFF handling]'
+      '(-E --escape)'{-E+,--escape=}'[specify escape character]:escape character [~]'
+      '(-a -p --port)'{-a+,-p+,--port=}'[specify the port]:port'
+      '(-c --phone -n --prompt)'{-c+,--phone=}'[specify phone number to call]:phone number'
+      '(1 -l -z --system)--line=[specify line to use]:line:(/dev/(cuaU#<->|ttyS<->|tty.*|cu.*)(N%c))'
+    )
+  ;|
+  taylor)
+    args+=(
+      "${ign}(-v --version)"{-v,--version}"[display version information]"
+      '(-n --prompt -c --phone)'{-n,--prompt}'[prompt for the phone number to use]'
+      '(-x --debug)-d[enter debugging mode]'
+      '(-d -x --debug)'{-x+,--debug=}'[turn on particular debugging types]:debug type:_sequence compadd - all abnormal chat handshake port config incoming outgoing'
+      '(-I --config)'{-I+,--config=}'[specify configuration file]:configuration file:_files'
+      '(1 -z --system)'{-z+,--system=}'[specify system to call]:system'
+    )
+  ;;
+  netbsd*)
+    args+=(
+      '(-E --escape)-n+[disable escape character processing]'
+      '(-f -F --flow)'{-F+,--flow=}'[set flow control]:flow control:(hard soft none)'
+      '(-F --flow)-f[use no flow control]'
+      '(-e -o --parity)-P+[set parity]:parity [none]:(even odd none)'
+    )
+  ;;
+  dragonfly*|freebsd*) args+=( '-a[set the acu port]:acu' ) ;|
+  freebsd*) args=( -A "-*" $args '-h[echo characters locally]' ) ;;
+esac
+
+_arguments -s $args \
+  '(--speed)-s+[set line speed for the connection]:line speed [9600]:_baudrates' \
+  '(1 --line -z --system)-l+[specify line to use]:line:(/dev/(cuaU#<->|ttyS<->|tty.*|cu.*)(N%c))' \
+  '1: :_guard "^-*" system'

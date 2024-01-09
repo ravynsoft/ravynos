@@ -1,0 +1,188 @@
+#!/bin/zsh
+# zed
+#
+# No other shell could do this.
+# Edit small files with the command line editor.
+# Use ^X^W to save (or ZZ in vicmd mode), ^C to abort.
+# Option -f: edit shell functions.  (Also if called as fned.)
+# Option -h: edit shell history.  (Also if called as histed.)
+
+setopt localoptions noksharrays
+
+local var opts zed_file_name
+# We do not want timeout while we are editing a file
+integer TMOUT=0 okargs=1 fun hist bind
+local -a expand
+
+zparseopts -D -A opts f h b x:
+fun=$+opts[-f]
+hist=$+opts[-h]
+bind=$+opts[-b]
+if [[ $opts[-x] == <-> ]]; then
+  expand=(-x $opts[-x])
+elif (( $+opts[-x] )); then
+  print -r "Integer expected after -x: $opts[-x]" >&2
+  return 1
+fi
+
+[[ $0 = fned ]] && fun=1
+[[ $0 = histed ]] && hist=1
+(( hist && $# <= 2 )) && okargs=$#
+(( bind )) && okargs=0
+
+if (( $# != okargs || bind + fun + hist > 1 )); then
+    echo 'Usage:
+zed filename
+zed -f [ -x N ] function
+zed -h [ filename [ size ] ]
+zed -b' >&2
+    return 1
+fi
+
+local curcontext=zed:::
+
+() {
+    # Matching used in zstyle -m: hide result from caller.
+    # Variables not used directly here.
+    local -a match mbegin mend
+    zstyle -m ":completion:zed:*" insert-tab '*' ||
+	zstyle ":completion:zed:*" insert-tab yes
+}
+
+zmodload zsh/terminfo 2>/dev/null
+
+__zed_pg_up()
+{
+    integer count=$(( LINES / 2 - 1 ))
+    while (( count -- )); do
+        zle up-line
+    done
+}
+
+__zed_pg_down()
+{
+    integer count=$(( LINES / 2 - 1 ))
+    while (( count -- )); do
+        zle down-line
+    done
+}
+
+if ! zle -la __zed_pg_up __zed_pg_down; then
+    zle -N __zed_pg_up
+    zle -N __zed_pg_down
+fi
+
+if (( bind )) || ! bindkey -M zed >&/dev/null; then
+  # Make the zed keymap a copy of the current main.
+  bindkey -N zed main
+  # Save the current main.  In zle widgets called from
+  # zed we may want to set this temporally.
+  bindkey -A main zed-normal-keymap
+
+  # Define a widget to use at startup, undo shouldn't clear initial buffer
+  __zed_init() {
+    UNDO_LIMIT_NO=$UNDO_CHANGE_NO
+  }
+  zle -N __zed_init
+
+  # Assign some default keys.
+  # Depending on your stty's, you may be able to use ^J as accept-line, else:
+
+  # The following isn't useful if we are copying viins, but that's
+  # a nicety.
+  bindkey -M zed '^x^w' accept-line
+  bindkey -M zed '^M' self-insert-unmeta
+
+  [[ ${+terminfo} = 1 ]] && {
+    [[  -n "$terminfo[kpp]" ]] && bindkey -M zed "$terminfo[kpp]" __zed_pg_up
+    [[ -n "$terminfo[knp]" ]] && bindkey -M zed "$terminfo[knp]" __zed_pg_down
+    [[ -n "$terminfo[khome]" ]] && bindkey -M zed "$terminfo[khome]" beginning-of-line
+    [[ -n "$terminfo[kend]" ]] && bindkey -M zed "$terminfo[kend]" end-of-line
+
+    # Fallback to well known code as terminfo might be wrong (often) sometimes
+    bindkey -M zed "^[[H" beginning-of-line
+    bindkey -M zed "^[[F" end-of-line
+  }
+
+  # Make zed-set-file-name available.
+  # Assume it's in fpath; there's no error at this point if it isn't
+  autoload -Uz zed-set-file-name
+  zle -N zed-set-file-name
+fi
+if (( bind )) || ! bindkey -M zed-vicmd >&/dev/null; then
+  bindkey -N zed-vicmd vicmd
+
+  bindkey -M zed-vicmd "ZZ" accept-line
+  [[ ${+terminfo} = 1 ]] && {
+    [[ -n "$terminfo[kpp]" ]] && bindkey -M zed-vicmd "$terminfo[kpp]" __zed_pg_up
+    [[ -n "$terminfo[knp]" ]] && bindkey -M zed-vicmd "$terminfo[knp]" __zed_pg_down
+    [[ -n "$terminfo[khome]" ]] && bindkey -M zed-vicmd "$terminfo[khome]" vi-beginning-of-line
+    [[ -n "$terminfo[kend]" ]] && bindkey -M zed-vicmd "$terminfo[kend]" vi-end-of-line
+
+    # Fallback to well known code as terminfo might be wrong (often) sometimes
+    bindkey -M zed-vicmd "^[[H" vi-beginning-of-line
+    bindkey -M zed-vicmd "^[[F" vi-end-of-line
+  }
+fi
+
+(( bind )) && return 0
+
+# don't mangle !'s
+setopt localoptions nobanghist
+
+if ((fun)) then
+  var="$(functions $expand -- "$1")"
+  # If function is undefined but autoloadable, load it
+  if [[ $var = *\#\ undefined* ]] then
+    var="$(autoload +X "$1"; functions -- "$1")"
+  elif [[ -z $var ]] then
+    var="${(q-)1} () {
+}"
+  fi
+  vared -M zed -m zed-vicmd -i __zed_init var && eval function "$var"
+elif ((hist)) then
+  if [[ -n $1 ]]; then
+    { fc -p -a "$1" ${2:-$({ wc -l <"$1" } 2>/dev/null)} || return }
+    let HISTSIZE++  
+    print -s ""		# Work around fc -p limitation
+  fi
+  # When editing the current shell history, the "zed -h" command is not
+  # itself included because the current event is not added to the ring
+  # until the next prompt is printed.  This means "zed -h" is prepended
+  # to the result of the edit, because of the way "print -s" is defined.
+  var=( "${(@Oav)history}" )
+  IFS=$'\n' vared -M zed -m zed-vicmd -i __zed_init var
+  if (( ? )); then
+    [[ -n $1 ]] && unset HISTFILE
+  else
+    local HISTSIZE=0 savehist=$#var
+    fc -R /dev/null	# Remove entries other than those added here
+    HISTSIZE=$savehist	# Resets on function exit because local
+    [[ -n $1 ]] && SAVEHIST=$savehist	# Resets via foregoing fc -a
+    for (( hist=1; hist <= savehist; hist++ ))
+    do print -rs -- "$var[hist]"
+    done
+    if [[ -n $zed_file_name ]]; then
+      fc -W "$zed_file_name"
+      [[ -n $1 ]] && unset HISTFILE
+    fi
+    # Note prepend effect when global HISTSIZE greater than $savehist.
+    # This does not affect file editing.
+  fi
+else
+  zed_file_name="$1"
+  [[ -f $1 ]] && var="$(<"$1")"
+  while vared -M zed -m zed-vicmd -i __zed_init var
+  do
+    {
+      print -r -- "$var" >| "$zed_file_name"
+    } always {
+      (( TRY_BLOCK_ERROR = 0 ))
+    } && break
+    echo -n -e '\a'
+  done
+fi
+
+return 0
+
+# End of zed

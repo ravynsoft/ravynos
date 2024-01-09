@@ -1,0 +1,34 @@
+#compdef xfig
+
+_x_arguments \
+  -{help,Landscape,Portrait,debug,dontswitchcmap,flushleft,inches,inverse,latexfonts,left,metric,monochrome,multiple,noscalablefonts,notrack,right,scalablefonts,showallbuttons,single,specialtext,tablet,track} \
+  '-bold:bold font:_x_font' \
+  '-button:button font:_x_font' \
+  '-but_per_row:number of buttons' \
+  '-cbg:canvas background color:_x_color' \
+  '-cfg:canvas foreground color:_x_color' \
+  '-depth:visual depth' \
+  '-exportlanguage:export language:(box latex epic eepic eepicemu pictex ibmgl eps ps pstex textyl tpic pic mf acad pcx png gif jpeg tiff ppm xbm xpm)' \
+  '-iconGeometry:icon geometry:_x_geometry' \
+  '-internalBW:internal border width' \
+  '-keyfile:compose key file:_files' \
+  '-magnification:magnification factor' \
+  '-max_image_colors:maximum number of colors' \
+  '-normal:normal font:_x_font' \
+  '-papersize:output paper size:((Letter\:8.5\"\ x\ 11\" Legal\:8.5\"\ x\ 14\" Ledger\:17\"\ x\ 11\" Tabloid\:11\"\ x\ 17\" A\:8.5\"\ x\ 11\" B\:11\"\ x\ 17\" C\:17\"\ x\ 22\" D\:22\"\ x\ 34\" E\:34\"\ x\ 44\" A4\:21\ cm\ x\ 29.7\ cm A3\:29.7\ cm\ x\ 42\ cm A2\:42\ cm\ x\ 59.4\ cm A1\:59.4\ cm\ x\ 84.1\ cm A0\:84.1\ cm\ x\ 118.9\ cm B%\:18.2\ cm\ x\ 25.7\ cm))' \
+  '-pheight:canvas height' \
+  '-pwidth:canvas width' \
+  '-spellcheckcommand:program: _command_names -e' \
+  '-startfillstyle:fill style (-1 to 21)' \
+  '-startfontsize:font size (in points)' \
+  '-startgridmode:grid mode:((0\:no\ grid 1\:1/4\ inch\ or\ 5\ mm 2\:1/2\ inch\ or\ 1\ cm 3\:1\ inch\ or\ 2\ cm))' \
+  '-startlatexfont:latex font' \
+  '-startlinewidth:line width' \
+  '-startposnmode:positioning mode:((0\:any 1\:1/16\ inch\ or\ 1\ mm 2\:1/4\ inch\ or\ 5\ mm 3\:1/2\ inch\ or\ 1\ cm 4\:1\ inch\ or\ 2\ cm))' \
+  '-startpsfont:postscript font' \
+  '-starttextstep:text step' \
+  '-userscale:scale factor' \
+  '-userunit:unit string' \
+  '-visual:visual:_x_visual' \
+  '-zoom:zoom scale' \
+  '*:xfig file:_files -g "*.(#i)(|x)fig(-.)"'

@@ -1,0 +1,32 @@
+#compdef stdbuf gstdbuf
+
+local -a short long buf args
+local i opt gnu=0
+
+short=( -e -i -o )
+long=( --error --input --output )
+buf=( err in out )
+
+opt='[set initial buffering for std${buf[i]}]: : _alternative
+  "sizes\: \: _numbers -u bytes size k M G"
+  "modes\:mode\:((0\:unbuffered L\:line\ buffered'
+if _pick_variant gnu=GNU freebsd --version; then
+  gnu=1
+  args=(
+    '(- *)--help[display usage information]'
+    '(- *)--version[display version information]'
+  )
+else
+  opt+=' B\:fully\ buffered'
+fi
+opt+='))"'
+
+for ((i=1;i<=3;i++)); do
+  args+=( "(${long[i]})${short[i]}+${(e)opt}" )
+  (( gnu )) && args+=(
+    "(${short[i]})${long[i]}=${(e)opt}"
+  )
+done
+(( CURRENT > 2 )) && args+=( '*::command:_normal' )
+
+_arguments -s -S $args

@@ -1,0 +1,59 @@
+#compdef asciinema
+
+local ret=1
+local -a context line state state_descr help
+local -A opt_args
+
+help=( '(: * -)'{-h,--help}'[display help information]' )
+
+_arguments -A '-*' \
+  $help \
+  '(: * -)--version[display version information]' \
+  '1:command:((
+    auth\:"link install ID with asciinema.org account"
+    cat\:"dump full output of recorded session"
+    play\:"play back recorded session"
+    rec\:"record session"
+    upload\:"upload recorded session"
+  ))' \
+  '*:: :->next' \
+&& ret=0
+
+[[ $state == next ]] &&
+case $words[1] in
+  auth)
+    _arguments -s -S : $help && ret=0
+    ;;
+  cat|upload)
+    _arguments -s -S : $help '1::recording file:_files' && ret=0
+    ;;
+  play)
+    _arguments -s -S : \
+      $help \
+      '(-i --idle-time-limit)'{-i+,--idle-time-limit=}'[specify max idle time]:max idle time (seconds)' \
+      '(-s --speed)'{-s+,--speed=}'[specify playback speed]:speed factor' \
+      '1: :->files-urls' \
+    && ret=0
+    [[ $state == files-urls ]] &&
+    _alternative 'files:recording file:_files' 'urls: :_urls' &&
+    ret=0
+    ;;
+  rec)
+    _arguments -s -S : \
+      $help \
+      '(--overwrite)--append[append to existing recording]' \
+      '(-c --command)'{-c+,--command=}'[specify command to record]: :_path_commands' \
+      '(-e --env)'{-e+,--env=}'[specify environment variables to capture]:environment variable:_sequence _parameters -g "*export*"' \
+      '(-i --idle-time-limit)'{-i+,--idle-time-limit=}'[specify max idle time]:max idle time (seconds)' \
+      '(-q -y --quiet --yes)'{-q,--quiet}'[suppress notices/warnings (implies -y)]' \
+      '--raw[save raw stdout output, without timing or other metadata]' \
+      '--stdin[enable stdin (keyboard) recording]' \
+      '(-t --title)'{-t+,--title=}'[specify title of recording]:title' \
+      '(--append)--overwrite[overwrite existing recording]' \
+      '(-y --yes)'{-y,--yes}'[bypass confirmation prompts]' \
+      '1::recording file:_files' \
+    && ret=0
+    ;;
+esac
+
+return ret

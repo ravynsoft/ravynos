@@ -1,0 +1,73 @@
+#compdef strings gstrings eu-strings
+
+local args variant format bytes
+format='[precede each string by its byte offset in the file]:format:((d\:decimal o\:octal x\:hexadecimal))'
+bytes='[specify minimum string length]:length (bytes) [4]'
+args=(
+  '(-t --radix)-o[precede each string by its decimal byte offset]'
+  '!(-n --bytes)-'{1,2,3,4,5,6,7,8,9}
+)
+
+if _pick_variant -r variant binutils=GNU elftoolchain=elftoolchain elfutils=elfutils unix -V; then
+  args+=(
+    '(-a --all -d --data)'{-a,--all}'[look everywhere in file, not just initialised data space of object files]'
+    '(-e --encoding)'{-e+,--encoding=}'[select character size and endianness]:character type:((
+      s\:7-bit
+      S\:8-bit
+      b\:16-bit\ big-endian
+      l\:16-bit\ little-endian
+      B\:32-bit\ big-endian
+      L\:32-bit\ little-endian))'
+    '(-f --print-file-name)'{-f,--print-file-name}'[print name of the file before each string]'
+    '(-n --bytes)'{-n+,--bytes=}"$bytes"
+    '(-d -t --radix)'{-t+,--radix=}"$format"
+    '(- *)--help[display help information]'
+    '(- *)--version[display version information]'
+  )
+  case $variant in
+    elfutils|binutils)
+      args+=( '(- *)-V[display version information]' )
+    ;|
+    elftoolchain|binutils)
+      args+=(
+        '(- *)-h[display help information]'
+	'(- *)-v[display version information]'
+      )
+    ;|
+    binutils)
+      args+=(
+	'(-a --all -d --data)'{-d,--data}'[only print strings from file data sections]'
+	'(-w --include-all-whitespace)'{-w,--include-all-whitespace}'[include all whitespace as valid string characters]'
+	'(-T --target)'{-T+,--target=}'[specify binary file format]:format:compadd - ${(z)${(M)${(f)"$(_call_program targets strings --help)"}##* supported targets*}##*\: }'
+	'(-s --output-separator)'{-s+,--output-separator=}'[specify string used to separate strings in output]:separator'
+      )
+    ;;
+    elfutils)
+      args+=(
+	'(- *)--usage[display a short usage message]'
+	'(- *)-?[display help information]'
+      )
+    ;;
+  esac
+else
+  args+=(
+    "(-d)-t+$format"
+    "-n+$bytes"
+    '-a[look everywhere in file, not just initialised data space of object files]'
+  )
+  case $OSTYPE in
+    darwin*)
+      local -a arch
+      arch=( ${(z)${${"$(_call_program architectures strings -arch - 2>&1)"}#*flags are: }%%$'\n'*} all )
+      args+=( '-arch[specify the architecture]:architecture:compadd -a arch' )
+    ;;
+  esac
+fi
+
+if compset -P '@'; then
+  _files
+  return
+fi
+
+_arguments -S -s $args \
+  '*:file:_files'

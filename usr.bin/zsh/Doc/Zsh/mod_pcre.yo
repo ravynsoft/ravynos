@@ -1,0 +1,89 @@
+COMMENT(!MOD!zsh/pcre
+Interface to the PCRE library.
+!MOD!)
+cindex(regular expressions, perl-compatible)
+The tt(zsh/pcre) module makes some commands available as builtins:
+
+startitem()
+findex(pcre_compile)
+item(tt(pcre_compile) [ tt(-aimxs) ] var(PCRE))(
+Compiles a perl-compatible regular expression.
+
+Option tt(-a) will force the pattern to be anchored.
+Option tt(-i) will compile a case-insensitive pattern.
+Option tt(-m) will compile a multi-line pattern; that is,
+tt(^) and tt($) will match newlines within the pattern.
+Option tt(-x) will compile an extended pattern, wherein
+whitespace and tt(#) comments are ignored.
+Option tt(-s) makes the dot metacharacter match all characters,
+including those that indicate newline.
+)
+findex(pcre_study)
+item(tt(pcre_study))(
+Studies the previously-compiled PCRE which may result in faster
+matching.
+)
+findex(pcre_match)
+item(tt(pcre_match) [ tt(-v) var(var) ] [ tt(-a) var(arr) ] \
+[ tt(-n) var(offset) ] [ tt(-b) ] var(string))(
+Returns successfully if tt(string) matches the previously-compiled
+PCRE.
+
+Upon successful match,
+if the expression captures substrings within parentheses,
+tt(pcre_match) will set the array tt(match) to those
+substrings, unless the tt(-a) option is given, in which
+case it will set the array var(arr).  Similarly, the variable
+tt(MATCH) will be set to the entire matched portion of the
+string, unless the tt(-v) option is given, in which case the variable
+var(var) will be set.
+No variables are altered if there is no successful match.
+A tt(-n) option starts searching for a match from the
+byte var(offset) position in var(string).  If the tt(-b) option is given,
+the variable tt(ZPCRE_OP) will be set to an offset pair string,
+representing the byte offset positions of the entire matched portion
+within the var(string).  For example, a tt(ZPCRE_OP) set to "32 45" indicates
+that the matched portion began on byte offset 32 and ended on byte offset 44.
+Here, byte offset position 45 is the position directly after the matched
+portion.  Keep in mind that the byte position isn't necessarily the same
+as the character position when UTF-8 characters are involved.
+Consequently, the byte offset positions are only to be relied on in the
+context of using them for subsequent searches on var(string), using an offset
+position as an argument to the tt(-n) option.  This is mostly
+used to implement the "find all non-overlapping matches" functionality.
+
+A simple example of "find all non-overlapping matches":
+
+example(string="The following zip codes: 78884 90210 99513"
+pcre_compile -m "\d{5}"
+accum=()
+pcre_match -b -- $string
+while [[ $? -eq 0 ]] do
+    b=($=ZPCRE_OP)
+    accum+=$MATCH
+    pcre_match -b -n $b[2] -- $string
+done
+print -l $accum)
+)
+enditem()
+
+The tt(zsh/pcre) module makes available the following test condition:
+
+startitem()
+findex(pcre-match)
+item(var(expr) tt(-pcre-match) var(pcre))(
+Matches a string against a perl-compatible regular expression.
+
+For example,
+
+example([[ "$text" -pcre-match ^d+$ ]] &&
+print text variable contains only "d's".)
+
+pindex(REMATCH_PCRE)
+pindex(NO_CASE_MATCH)
+If the tt(REMATCH_PCRE) option is set, the tt(=~) operator is equivalent to
+tt(-pcre-match), and the tt(NO_CASE_MATCH) option may be used.  Note that
+tt(NO_CASE_MATCH) never applies to the tt(pcre_match) builtin, instead use
+the tt(-i) switch of tt(pcre_compile).
+)
+enditem()

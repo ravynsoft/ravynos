@@ -1,0 +1,53 @@
+#compdef tr gtr
+
+local curcontext="$curcontext" state line expl ret=1
+local args variant k
+local -A descr
+descr=(
+  -c '[complement characters specified by first string]'
+  -d '[delete specified characters from input]'
+  -s '[squeeze repeated instances of character to a single instance]'
+)
+
+_pick_variant -r variant gnu=GNU $OSTYPE --version
+case $variant in
+  gnu)
+    args=(
+      '(-c -C --complement)'{-c,-C,--complement}"${descr[-c]}"
+      '(-d --delete 2)'{-d,--delete}"${descr[-d]}"
+      '(-s --squeeze-repeats)'{-s,--squeeze-repeats}"${descr[-s]}"
+      '(- 1 2)--help[display help information]'
+      '(- 1 2)--version[display version information]'
+    )
+  ;;
+  darwin*|dragonfly*|*bsd*)
+    args+=( "(-c)-C$descr[-c]" )
+  ;|
+  darwin*|dragonfly*|freebsd*)
+    args+=( '-u[guarantee that output is unbuffered]' )
+  ;|
+  *)
+    for k in c d s; do
+      args+=( -$k$descr[-$k] )
+    done
+  ;;
+esac
+
+_arguments -C -s $args \
+  '1:character set:->chsets' \
+  '2:character set:->chsets' && ret=0
+
+if [[ -n $state ]]; then
+  if compset -P '*\[:'; then
+    _wanted characters expl 'character class' \
+        compadd -S ":${${QIPREFIX:+]}:-\]}$compstate[quote] " \
+	alnum alpha blank cntrl digit graph lower print punct space upper \
+	xdigit && return
+  elif compset -P '*\\'; then
+    _describe -t characters character \
+        '(\\\\:backslash a:alert b:backspace f:form\ feed n:new\ line r:return t:tab v:vertical\ tab)' -S '' && return
+  fi
+  _message -e characters 'character set'
+fi
+
+return ret

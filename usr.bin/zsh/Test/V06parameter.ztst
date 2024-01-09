@@ -1,0 +1,97 @@
+%prep
+
+  setopt chaselinks
+  cd .
+  unsetopt chaselinks
+  mydir=$PWD
+
+%test
+
+  print 'print In sourced file
+  print $LINENO + $functrace + ${funcsourcetrace}
+  ' >sourcedfile
+  print -r -- 'print Started functrace.zsh
+  module_path=(./Modules)
+  print $LINENO + $functrace + ${funcsourcetrace}
+  :
+  fn() {
+    print Inside function $0
+    print $LINENO + $functrace + ${funcsourcetrace}
+  }
+  :
+  fn
+  :
+  fpath=(. $fpath)
+  :
+  echo '\''print Inside $0
+    print $LINENO + $functrace + ${funcsourcetrace}
+  '\'' >autofn
+  :
+  autoload autofn
+  :
+  autofn
+  autofn
+  . ./sourcedfile' >functrace.zsh
+  $ZTST_testdir/../Src/zsh +Z -f ./functrace.zsh
+0q:Function tracing
+>Started functrace.zsh
+>3 + +
+>Inside function fn
+>2 + ./functrace.zsh:10 + ./functrace.zsh:5
+>Inside autofn
+>2 + ./functrace.zsh:20 + $mydir/autofn:0
+>Inside autofn
+>2 + ./functrace.zsh:21 + $mydir/autofn:0
+>In sourced file
+>2 + ./functrace.zsh:22 + ./sourcedfile:0
+
+  print -r -- 'module_path=(./Modules)
+  debug_hook() { print $funcfiletrace[1] $functrace[1]; }
+  set -o DEBUG_BEFORE_CMD
+  trap "debug_hook" DEBUG
+  fn() {
+    a=1
+    eval "b=2"
+    c=3
+  }
+  fn
+  w=5
+  eval "x=6
+  y=7"
+  z=8' >rocky3.zsh
+  $ZTST_testdir/../Src/zsh +Z -f ./rocky3.zsh
+0:Eval tracing
+>./rocky3.zsh:5 ./rocky3.zsh:5
+>./rocky3.zsh:10 ./rocky3.zsh:10
+>./rocky3.zsh:6 fn:1
+>./rocky3.zsh:7 fn:2
+>./rocky3.zsh:7 (eval):1
+>./rocky3.zsh:8 fn:3
+>./rocky3.zsh:11 ./rocky3.zsh:11
+>./rocky3.zsh:12 ./rocky3.zsh:12
+>./rocky3.zsh:12 (eval):1
+>./rocky3.zsh:13 (eval):2
+>./rocky3.zsh:14 ./rocky3.zsh:14
+
+  (
+    fpath=($PWD)
+    print "print I have been autoloaded" >myfunc
+    autoload $PWD/myfunc
+    print ${functions_source[myfunc]}
+    myfunc
+    print ${functions_source[myfunc]}
+  )
+0q: $functions_source
+>$mydir/myfunc
+>I have been autoloaded
+>$mydir/myfunc
+
+ functions+=(a 'echo foo'); a
+ functions+=(a 'echo bar'); a
+0:$functions can be appended to twice
+>foo
+>bar
+
+%clean
+
+ rm -f autofn functrace.zsh rocky3.zsh sourcedfile myfunc

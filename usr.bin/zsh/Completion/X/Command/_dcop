@@ -1,0 +1,119 @@
+#compdef dcop dcopstart dcopfind dcopref dcopclient dcopobject
+
+local curcontext="$curcontext" desc vals arg base max=0 ret=1
+local app obj fun
+local -a state line expl
+
+case $service in
+  dcop(client|object))
+    state=( dcopref )
+    max=2
+  ;;
+  dcopref) max=3 ;;
+  dcopstart)
+    if (( CURRENT > 2 )); then
+      _urls && return
+    fi
+  ;;
+  dcopfind)
+    local cmd=$words[1]
+    _arguments -C \
+      '-a[print application id instead of DCOPRef]' \
+      '-l[if object not found, run dcopstart and retry]' \
+      '*::args:->args' && ret=0
+    unset state
+    words=( $cmd $words )
+    (( CURRENT++ ))
+  ;;
+esac
+
+if (( max && CURRENT > max )); then
+  _message 'no more arguments'
+  return 1
+fi
+
+if [[ -z "$state" ]]; then
+  state=(application object function)
+  [[ $words[2] = DCOPRef* && CURRENT -ne 2 ]]
+  base=$?
+  state=( ${state[CURRENT-base]:-arg} )
+
+  [[ $state[1] = application && $service = dcop(|find) ]] && state+=( dcopref )
+fi
+
+while (( $#state )); do
+  unset app obj fun
+
+  if [[ $words[2] = (#b)DCOPRef*\(([^,]#)((#e)|,)([^\\\)]#)(*) ]]; then
+    if [[ -n $match[2] ]]; then
+      app=$match[1]
+      if [[ -n $match[4] ]]; then
+        obj=$match[3]
+	[[ -n $words[3] && CURRENT -gt 3 ]] && fun=$words[3]
+      fi
+    fi
+  else
+    case $CURRENT in
+      <5->) fun="$words[4]" ;&
+      4) obj="$words[3]" ;&
+      3) app="$words[2]" ;;
+    esac
+  fi
+  vals=( ${(f)"$(_call_program dcop-$state[1]s ${(M)words[1]##*/}dcop $app $obj 2>/dev/null)"} )
+
+  case "$state[1]" in
+    application|object)
+      [[ -n ${(M)vals:#*\(default\)} ]] && vals+=( default )
+      _wanted dcop-$state[1]s expl $state[1] compadd "$@" - ${vals% \(default\)} && ret=0
+    ;;
+
+    function)
+      [[ $service = dcopfind ]] && vals=( ${(M)vals:#bool *} )
+      _wanted dcop-$state[1]s expl $state[1] compadd "$@" - ${${vals#* }%\(*} && ret=0
+    ;;
+
+    arg)
+      arg=${${${(M)vals:#*$fun\(*}#*\(}%\)*},
+      arg=${${(s.,.)arg}[CURRENT-base-3]}
+      if [[ -n $arg ]]; then
+	if [[ $arg = (Q(|C)String|*int )* || $arg != *\ * ]]; then
+	  # don't mention the argument's type
+	  desc="${arg##* }"
+	else
+	  desc="${arg##* } (${arg% *})"
+	fi
+	case $arg in
+	  bool*) _wanted argument expl "$desc" compadd true false && return ;;
+	  (#i)*(file|path|dir)*) _wanted argument expl "$desc" _files && return ;;
+	  (#i)*url*) _wanted argument expl "$desc" _urls && return ;;
+	  *) _message -e argument "$desc" ;;
+	esac
+      else
+	_message 'no more arguments'
+      fi
+    ;;
+
+    dcopref)
+      if ! compset -P '*\('; then
+	_wanted dcoprefs expl 'dcop ref' compadd -S '' 'DCOPRef(' && ret=0
+      elif compset -P '*,'; then
+        if compset -S '(|\\)\)*'; then
+	  set -- -S '' "$@"
+	else
+	  set -- "$@" -S"${${QIPREFIX:+)}:-\)}$compstate[quote] "
+	fi
+        state+=( object )
+      else
+        if compset -S ',*'; then
+	  set -- "$@" -S ''
+	else
+	  set -- "$@" -S ,
+	fi
+        state+=( application )
+      fi
+    ;;
+  esac
+  shift state
+done
+
+return ret

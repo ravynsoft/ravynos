@@ -1,0 +1,34 @@
+#compdef -P pydoc[0-9.]#
+
+local curcontext=$curcontext state state_descr line ret=1
+typeset -A opt_args
+local -a args
+
+args=(
+  '(- *)-k[search keyword]:keyword'
+  '(-k -g -w *)-p[start web server on specified port]:port number'
+  '(-)-w[write out HTML in current directory]'
+  '(-)*: :->lookup'
+)
+
+if _pick_variant pydoc3='pydoc3 -b' pydoc2 -h; then
+  args+=( '(-k -w *)-b[start server and open browser]' )
+else
+  args+=( '(- *)-g[start gui]' )
+fi
+
+_arguments -C : $args && return 0
+
+case $state in
+(lookup)
+  if [[ $words[CURRENT] = */* ]]; then
+    _files && ret=0
+  else
+    _alternative \
+      'keywords:keyword:compadd ${=${${(f)"$(_call_program keywords $words[1] keywords)"}[2,-1]}}' \
+      'topics:topic:compadd ${=${${(f)"$(_call_program topics $words[1] topics)"}[2,-1]}}' \
+      'modules:module:_python_modules' && ret=0
+  fi
+esac
+
+return ret

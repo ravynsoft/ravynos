@@ -1,0 +1,27 @@
+#compdef getmail
+
+_getmail_confiles() {
+    local -a a f
+    local expl
+    f=( ~/.getmail/*~$HOME/.getmail/oldmail*(.))
+    a=(${f#~/.getmail/})
+    _wanted getmail-conffile expl 'config file' compadd "$@" -a - a
+}
+
+local -a arguments
+    arguments=(
+        '--version[show version]'
+        '(--help -h)'{--help,-h}'[display help]'
+        '(--getmaildir -g)'{--getmaildir=,-g+}'[specify config/data directory]:config directory:_directories'
+        \*{--rcfile=,-r+}'[specify configuration file]:config file:_getmail_confiles'
+        '--dump[dump configuration]'
+        '--trace[print extended information]'
+        '*:files:_files'
+        \*{--verbose,-v}'[verbose mode]'
+        '(--quiet -q)'{--quiet,-q}'[silent mode]'
+        '(--delete -d --dont-delete -l)'{--delete,-d}'[delete messages from server]'
+        '(--delete -d --dont-delete -l)'{--dont-delete,-l}"[don't delete messages from server]"
+        '(--new -n --all -a)'{--all,-a}'[retrieve all messages]'
+        '(--new -n --all -a)'{--new,-n}'[retrieve only new messages]'
+    )
+_arguments -s -S $arguments

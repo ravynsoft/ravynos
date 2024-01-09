@@ -1,0 +1,21 @@
+#compdef toilet
+
+local fontdir
+typeset -A opt_args
+
+fontdir=$(_call_program path toilet -I2 2>/dev/null)
+
+_arguments \
+  '(-f --font)'{-f,--font}'[specify font]:font:_files -W ${~opt_args[-d]\:-$fontdir} -g \*\[ft\]lf\*\(-.\:r\)' \
+  '(-d --directory)'{-d,--directory}'[specify font directory]:font directory:_files -/' \
+  '(-t --termwidth -w --width)'{-w,--width}'[set output width]:width:' \
+  '(-t --termwidth -w --width)'{-t,--termwidth}'[adapt to terminal width]' \
+  '(-F --filter)'{-F,--filter}'[apply filter to text]:filter:(gay metal)' \
+  '--gay[rainbow filter]' \
+  '--metal[metal filter]' \
+  '--irc[output IRC color codes]' \
+  '--html[output HTML document]' \
+  '--tga[output TGA document]' \
+  '(-h --help)'{-h,--help}'[help]' \
+  '(-I --infocode)'{-I,--infocode}'[print FIGlet-compatible infocode]:code:' \
+  '(-v --version)'{-v,--version}'[version]'

@@ -1,0 +1,30 @@
+#compdef nvram
+
+local ret=1
+local -a context line state state_descr tmp
+local -A opt_args val_args
+
+# Note: -x can only be used with -f/-p, but must be used first to have effect
+_arguments -s : \
+  '(: -)-c[delete all NVRAM variables]' \
+  '(: -)-d[delete specified NVRAM variable]: :->variables-ro' \
+  '(: -)-f[set NVRAM variables from file]: :_files' \
+  '(: -)-p[print all NVRAM variables]' \
+  '(-c -d)-x[use XML format for input and output]' \
+  '(-)*: :->variables-rw' \
+&& ret=0
+
+[[ $state == variables-* ]] && {
+  tmp=( ${${(f)"$( _call_program variables $words[1] -p )"}%%[[:space:]]*} )
+
+  [[ $state == variables-rw ]] &&
+  tmp=( ${^tmp}'::NVRAM variable value' )
+
+  if (( $#tmp )); then
+    _values -w 'NVRAM variable' $tmp && ret=0
+  else
+    _message 'NVRAM variable' && ret=0
+  fi
+}
+
+return ret

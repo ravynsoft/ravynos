@@ -1,0 +1,297 @@
+#compdef urpme urpmi urpmi.addmedia urpmi.removemedia urpmi.update urpmq urpmf parsehdlist
+
+_urpmi_media() {
+  # TODO should we probe for active media only?
+  compadd "$@" - ${(f)"$(urpmq --list-media 2> /dev/null)"}
+}
+
+_urpmi_rpms() {
+  local ret=1 expl
+
+  _tags rpms files
+
+  while _tags; do
+    if _requested rpms expl 'urpmi RPM'; then
+      local -a pkgs
+      pkgs=( $(urpmq --list 2> /dev/null \
+		${(k)opt_args[--media]:-${opt_args[--searchmedia]:+--media}} \
+		${(v)opt_args[--media]}${opt_args[--searchmedia]:+${opt_args[--media]:+,}${opt_args[--searchmedia]}} \
+		${(k)opt_args[--excludemedia]} ${(v)opt_args[--excludemedia]}
+	      )
+	   )
+      compadd "$expl[@]" -a pkgs && ret=0
+    fi
+
+    _requested files expl '(S)RPM file' \
+      _files -g '*.(#i)rpm(-.)' && ret=0
+
+    (( ret )) || break
+  done
+
+  return ret
+}
+
+# TODO add completion of remote directory for SSH, rsync, ftp
+_urpmi_media_url() {
+  local expl ret=1
+
+  if compset -P file:// || compset -P removable://; then
+    _files "$@" -W / -/ && ret=0
+  elif [[ -prefix '(ftp|http)://' ]]; then
+    _urls "$@" && ret=0
+  else
+    if (( ${+opt_args[--virtual]} )); then
+      _wanted mediatype expl 'type of media' \
+	compadd -S "" "$@" -- file:// && ret=0
+    else
+      _wanted mediatype expl 'type of media' \
+	compadd -S "" "$@" -- ssh:// rsync:// file:// http:// ftp:// removable:// && ret=0
+    fi
+  fi
+
+  return ret
+}
+
+_urpme_package() {
+  local -a _rpms
+  _rpms=( $(_call_program packages rpm -qa) )
+  compadd "$@" -a _rpms
+}
+
+_urpmi_parallel_alias() {
+  # placeholder as I do not actually have parallel system to test
+  return 1
+}
+
+_urpmi() {
+  local ret=1 help="--help -h"
+  local -a opts_help opts_net opts_verbose opts_inst_rem opts_search opts_media
+
+  opts_help=(
+    "(: -)"{--help,-h}"[print usage information]"
+  )
+
+  opts_net=(
+    "($help --wget)--curl[use curl to retrieve distant files]"
+    "($help)--limit-rate[limit the download speed]:download speed (b/s)"
+    "($help)--proxy:proxy host:_hosts"
+    "($help)--proxy-user:proxy user:_users"
+    "($help --curl)--wget[use wget to retrieve distant files]"
+  )
+
+  opts_verbose=(
+    "(--help -h -v)-q[quiet mode]"
+    "(--help -h -q)-v[verbose mode]"
+  )
+  opts_inst_rem=(
+    "($help)--auto[automatically select a package in choices]"
+    "($help)--force[force invocation even if some packages do not exist]"
+    "($help)--parallel[distributed urpmi across machines of alias]:urpmi alias name:_urpmi_parallel_alias"
+    "($help)--root[use another root for rpm installation]:root directory:_files -/"
+    "($help)--test[test only, do not modify system]"
+    "($help)-a[select all matches on command line]"
+  )
+
+  opts_search=(
+    "($help --fuzzy -z)"{--fuzzy,-y}"[return all matches even if exact match exists]"
+    "($help -p -P)-p[allow search in provides to find package]"
+    "($help -p -P)-P[do not search in provides to find package]"
+  )
+
+  opts_media=(
+    "($help)--excludemedia[do not use the given media]:urpmi media:_sequence _urpmi_media"
+    "($help --update --use-distrib)--media[use only the media listed by comma]:urpmi media:_sequence _urpmi_media"
+    "($help)--searchmedia[use only the given media to search requested (or updated) packages]:urpmi media:_urpmi_media"
+    "($help)--sortmedia[sort media according to substrings separated by comma]:urpmi media:_sequence _urpmi_media"
+    "($help)--synthesis[use the given synthesis instead of urpmi db]:synthesis file:_url"
+    "($help --media --use-distrib)--update[use only update media]"
+    "($help --media --update)--use-distrib[configure urpmi on the fly from a distrib tree]:installation media:_urpmi_media_url"
+  )
+
+  case "$service" in
+    urpme )
+      _arguments -A '-*' \
+        $opts_help \
+        $opts_inst_rem \
+	"--auto[do not ask any question]" \
+	"-v[verbose]" \
+	": :_urpme_package" && ret=0
+    ;;
+    urpmi.addmedia )
+      _arguments -A '-*' \
+        $opts_help \
+        $opts_net \
+	$opts_verbose \
+	"($help)--arch[use specified architecture]:Mandrake architecture: " \
+	"($help :)--distrib[automatically create all media from an installation medium]:media URL:_urpmi_media_url" \
+	"($help)--from[use specified url for list of mirrors]:mirror URL:_url" \
+	"($help)--no-md5sum[disable MD5SUM file checking]" \
+	"($help --probe-hdlist --probe-synthesis)--no-probe[do not try to find any synthesis or hdlist file]" \
+	"($help --no-probe --probe-synthesis)--probe-hdlist[try to find and use hdlist file]" \
+	"($help --no-probe --probe-hdlist)--probe-synthesis[try to find and use synthesis file]" \
+	"($help)--update[mark as update media]" \
+	"($help)--version[use specified distribution version]:Mandrake version: " \
+	"($help)--virtual[create virtual media which are always up-to-date]" \
+	"($help)-c[clean headers cache directory]" \
+	"($help)-f[force generation of hdlist files]" \
+	"($help --distrib):name of media: " \
+	"($help --distrib):media URL:_urpmi_media_url" \
+	"($help --distrib): :(with)" \
+	"($help --distrib):relative path to hdlist file" \
+       && ret=0
+    ;;
+    urpmi.removemedia )
+      _arguments -A '-*' \
+        $opts_help \
+        $opts_verbose \
+	"($help : -)"{--help,-h}"[print usage information]" \
+	"($help :)-a[select all media]" \
+	"($help)-c[clean headers cache directory]" \
+	"($help)-y[fuzzy matching on media names]" \
+	"(-a)"{,\*}":media:_sequence _urpmi_media" \
+       && ret=0
+    ;;
+    urpmi.update )
+      _arguments -A '-*' \
+        $opts_help \
+        $opts_net \
+	$opts_verbose \
+	"($help : -)"{--help,-h}"[print usage information]" \
+	"($help)--force-key[force update of gpg key]" \
+	"($help : -a)--update[update only update media]" \
+	"($help --update :)-a[select all non-removable media]" \
+	"($help)-c[clean /var/cache/urpmi/headers on exit]" \
+	"($help)*-f[force generation of hdlist files]" \
+	"($help -a)"{,\*}":media:_sequence _urpmi_media" \
+       && ret=0
+    ;;
+    urpmi )
+      _arguments -A '-*' \
+        $opts_help \
+        $opts_net \
+	$opts_verbose \
+	$opts_inst_rem \
+	$opts_search \
+	$opts_media \
+	"($help : -)"{--help,-h}"[print usage information]" \
+	"($help)--allow-force[allow asking user to install packages without dependencies checking and integrity]" \
+	"($help)--allow-nodeps[allow asking user to install packages without dependencies checking]" \
+	"($help)--auto-select[automatically select packages to upgrade the system]" \
+	"($help --env)--bug[output a bug report in given directory]:directory for bug report:_files -/" \
+	"($help -X)--best-output[automatically select text or X interface]" \
+	"($help --noclean)--clean[remove rpm from cache before anything else]" \
+	"($help --clean)--noclean[keep rpm not used in cache]" \
+	"($help --bug)--env[use specific environment (typically result of --bug)]:directory for bug report:_files -/" \
+	"($help)--excludedocs[exclude docs files]: " \
+	"($help)--excludepath[exclude path separated by comma]:path: " \
+	"($help)--install-src[install only source package (no binaries)]" \
+	"($help)--keep[keep existing packages if possible]" \
+	"($help)--more-choices[propose more choices than the default]" \
+	"($help --no-resume)--resume[resume transfer of partially-downloaded files]" \
+	"($help --resume)--no-resume[do not resume transfer of partially-downloaded files]" \
+	"($help)--root[use another root for rpm installation]:root directory:_files -/" \
+	"($help)--skip[packages which installation should be skipped]:packages: " \
+	"($help)--split-length[small transaction length]:transaction length: " \
+	"($help)--split-level[split in small transaction]:transaction size: " \
+	"($help --src -s)"{--src,-s}"[next package is source package]" \
+	"($help)--strict-arch[upgrade only packages with the same architecture]" \
+	"($help)--no-uninstall[never ask to uninstall a package, abort the installation]" \
+	"($help --verify-rpm)--no-verify-rpm[do not verify rpm signature before installation]" \
+	"($help --no-verify-rpm)--verify-rpm[verify rpm signature before installation]" \
+	"($help)-a[select all packages matching command line]" \
+	"($help -m -M)-m[choose minimum closure of requires (default)]" \
+	"($help -m -M)-M[choose maximum closure of requires]" \
+	"($help --best-output)-X[use X interface]" \
+	"($help)"{,\*}": :_urpmi_rpms" \
+      && ret=0
+    ;;
+    urpmq )
+      _arguments -A '-*' \
+        $opts_help \
+	$opts_media \
+        $opts_search \
+	"($help)--auto-select[automatically select packages for upgrading the system]" \
+	"($help)--force[ignore non-existent packages]" \
+	"($help)--headers[extract headers for package listed from urpmi db to stdout]" \
+	"($help : -list --list-media --list-url --list-nodes --list-aliases)--list[list available packages]" \
+	"($help : -list --list-media --list-url --list-nodes --list-aliases)--list-media[list available media]" \
+	"($help : -list --list-media --list-url --list-nodes --list-aliases)--list-url[list available url]" \
+	"($help : -list --list-media --list-url --list-nodes --list-aliases)--list-nodes[list available nodes]" \
+	"($help : -list --list-media --list-url --list-nodes --list-aliases)--list-aliases[list available aliases]" \
+	"($help)--sources[show full path to package file]" \
+	"($help --src -s)"{--src,-s}"[next package is source package]" \
+	"($help)--summary[print RPM summary]" \
+	"($help)-c[complete output with package to be removed]" \
+	"($help)-d[extend query to package dependencies]" \
+	"($help)-f[print version, release and arch with name]" \
+	"($help)-g[print groups too with name]" \
+	"($help)-i[print useful information in human readable form]" \
+	"($help)-l[list files in package]" \
+	"($help)-r[print version and release too with name]" \
+	"($help)-R[reverse search to what requires package]" \
+	"($help)-u[remove package if a better version is already installed]" \
+	"($help -list --list-media --list-url --list-nodes --list-aliases)*:urpmi package name":_urpmi_rpms \
+     && ret=0
+    ;;
+    urpmf )
+      # TODO this is not complete, some operators are missing
+      _arguments -A '-*' \
+        $opts_help \
+	$opts_media \
+	"($help --name --group --size --epoch --summary --description --sourcerpm --packager --buildhost --url --provides --requires --files --conflicts --obsoletes)--all[print all tags]" \
+	"($help --all --name)--buildhost[print tag buildhost: build host]" \
+	"($help --all --name)--conflicts[print tag conflicts: all conflicts]" \
+	"($help --all --name)--description[print tag description: description]" \
+	"($help --all --name)--epoch[print tag epoch: epoch]" \
+	"($help --all --name)--files[print tag files: all files]" \
+	"($help --all --name)--group[print tag group: group]" \
+	"($help --all --group --size --epoch --summary --description --sourcerpm --packager --buildhost --url --provides --requires --files --conflicts --obsoletes)--name[print only package names]" \
+	"($help --all --name)--obsoletes[print tag obsoletes: all obsoletes]" \
+	"($help --verbose)--quiet[do not print tag name]" \
+	"($help --all --name)--packager[print tag packager: packager]" \
+	"($help --all --name)--provides[print tag provides: all provides]" \
+	"($help --all --name)--requires[print tag requires: all requires]" \
+	"($help --all --name)--size[print tag size: size]" \
+	"($help --all --name)--sourcerpm[print tag sourcerpm: source rpm]" \
+	"($help --all --name)--summary[print tag summary: summary]" \
+	"($help)--uniq[do not print identical lines]" \
+	"($help --all --name)--url[print tag url: url]" \
+	"($help --quiet)--verbose[verbose mode]" \
+	"($help)*-a[binary AND operator]" \
+	"($help)-i[ignore case distinctions in every pattern]" \
+	"($help)-f[print version, release and arch with name]" \
+	"($help)-e[include perl code directly as perl -e]:perl code: " \
+	"($help)*-o[binary OR operator]" \
+      && ret=0
+    ;;
+    parsehdlist )
+      # TODO this is not complete, some operators are missing
+      _arguments -A '-*' \
+        $opts_help \
+	"($help --interactive --quiet --name --group --size --epoch --summary --description --sourcerpm --packager --buildhost --url --provides --requires --files --conflicts --obsoletes)--all[print all tags]" \
+	"($help --all --interactive  --name)--buildhost[print tag buildhost: build host]" \
+	"($help --all --interactive  --name)--conflicts[print tag conflicts: all conflicts]" \
+	"($help --all --interactive  --name)--description[print tag description: description]" \
+	"($help --all --interactive  --name)--epoch[print tag epoch: epoch]" \
+	"($help --all --interactive  --name)--files[print tag files: all files]" \
+	"($help --all --interactive  --name)--group[print tag group: group]" \
+	"($help --all --interactive  --group --size --epoch --summary --description --sourcerpm --packager --buildhost --url --provides --requires --files --conflicts --obsoletes)--name[print only package names]" \
+	"($help --all --interactive  --name)--obsoletes[print tag obsoletes: all obsoletes]" \
+	"($help --interactive)--quiet[do not print tag name]" \
+	"($help --all --interactive  --name)--packager[print tag packager: packager]" \
+	"($help --all --interactive  --name)--provides[print tag provides: all provides]" \
+	"($help --all --interactive  --name)--requires[print tag requires: all requires]" \
+	"($help --all --interactive  --name)--size[print tag size: size]" \
+	"($help --all --interactive  --name)--sourcerpm[print tag sourcerpm: source rpm]" \
+	"($help --all --interactive  --name)--summary[print tag summary: summary]" \
+	"($help)--uniq[do not print identical lines]" \
+	"($help --all --interactive  --name)--url[print tag url: url]" \
+	"*:hdlist file:_files -g '*.cz(-.)'" \
+      && ret=0
+    ;;
+  esac
+
+  return ret
+}
+
+_urpmi "$@"

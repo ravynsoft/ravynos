@@ -1,0 +1,27 @@
+#compdef iftop
+
+_interfaces () {
+  local disp expl sep
+  _description interfaces expl 'network interface'
+  _net_interfaces "$expl[@]"
+  if zstyle -t ":completion:${curcontext}:interfaces" verbose; then
+    zstyle -s ":completion:${curcontext}:interfaces" list-separator sep || sep=--
+    disp=( "any $sep capture on all interfaces" )
+    compadd "$expl[@]" -ld disp any
+  else
+    compadd "$expl[@]" any
+  fi
+}
+
+_arguments \
+  '(-h -n -N -p -b -B -P -i -f -F -c)'-h'[print a summary of usage]' \
+  -n"[don't do hostname lookups]" \
+  -N"[don't resolve port number to service names]" \
+  -p'[run in promiscuous mode]' \
+  -P'[turn on port display]' \
+  -b"[don't display bar graphs of traffic]" \
+  -B'[display bandwidth rates in bytes/sec rather than bits/sec]' \
+  '-i+[interface]:network interface:_interfaces' \
+  '-f+[filter]:BPF filter' \
+  '-F+[net/mask]:network/mask' \
+  '-c+[config file]:config file:_files'

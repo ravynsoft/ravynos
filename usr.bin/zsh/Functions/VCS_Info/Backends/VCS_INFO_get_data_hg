@@ -1,0 +1,244 @@
+## vim:ft=zsh
+## mercurial support by: Frank Terbeck <ft@bewatermyfriend.org>
+## with large contributions by Seth House <seth@eseth.com>
+## Distributed under the same BSD-ish license as zsh itself.
+
+setopt localoptions extendedglob NO_shwordsplit
+
+local hgbase bmfile branchfile topicfile rebasefile dirstatefile mqseriesfile \
+    curbmfile curbm \
+    mqstatusfile mqguardsfile patchdir mergedir \
+    r_csetid r_lrev r_branch i_bmhash i_bmname \
+    revformat branchformat hgactionstring hgchanges \
+    hgbmstring hgmqstring applied_string unapplied_string guards_string
+
+local -a hgid_args defrevformat defbranchformat \
+    hgbmarks mqpatches mqguards mqunapplied hgmisc \
+    i_patch i_patchguards i_negguards i_posguards
+
+local -A hook_com
+
+hgbase=${vcs_comm[basedir]}
+rrn=${hgbase:t}
+r_csetid='' # changeset id (long hash)
+r_lrev='' # local revision
+patchdir="${hgbase}/.hg/patches"
+mergedir="${hgbase}/.hg/merge/"
+bmfile="${hgbase}/.hg/bookmarks"
+curbmfile="${hgbase}/.hg/bookmarks.current"
+branchfile="${hgbase}/.hg/branch"
+topicfile="${hgbase}/.hg/topic"
+rebasefile="${hgbase}/.hg/rebasestate"
+dirstatefile="${hgbase}/.hg/dirstate"
+mqstatusfile="${patchdir}/status" # currently applied patches
+mqseriesfile="${patchdir}/series" # all patches
+mqguardsfile="${patchdir}/guards"
+
+# Look for any --flavours
+VCS_INFO_adjust
+
+# Calling the 'hg' program is quite a bit too slow for prompts.
+# Disabled by default anyway, so no harm done.
+if zstyle -t ":vcs_info:${vcs}:${usercontext}:${rrn}" get-revision ; then
+    if zstyle -t ":vcs_info:${vcs}:${usercontext}:${rrn}" use-simple \
+            && VCS_INFO_hexdump ${dirstatefile} 20 ; then
+        # Calling VCS_INFO_hexdump is (much) faster than hg but doesn't get
+        # the local rev
+        r_csetid=$REPLY
+    else
+        # Settling for a short (but unique!) hash because getting the full
+        # 40-char hash in addition to all the other info we want isn't
+        # available in a single hg invocation
+        hgid_args=( id -i -n )
+
+        # Looking for changes is a tad bit slower since the dirstate cache must
+        # first be refreshed before being read
+        zstyle -t ":vcs_info:${vcs}:${usercontext}:${rrn}" \
+            "check-for-changes" || hgid_args+=( -r. )
+
+        HGPLAIN=1 ${vcs_comm[cmd]} ${(z)hgid_args} 2> /dev/null \
+            | read -r r_csetid r_lrev
+    fi
+fi
+
+# If the user doesn't opt to invoke hg we can still get the current branch
+if [[ -r ${branchfile} ]] ; then
+    r_branch=$(< ${branchfile})
+fi
+
+# If we still don't know the branch it's safe to assume default
+[[ -n ${r_branch} ]] || r_branch="default"
+
+# Show topic if there is any (the UI for this experimental concept is not yet
+# final, but for a long time the convention has been to join the branch name
+# and the topic name by a colon)
+if [[ -f ${topicfile} && -r ${topicfile} && -s ${topicfile} ]] ; then
+    IFS= read -r REPLY < ${topicfile}
+    r_branch=${r_branch}:${REPLY}
+fi
+
+# The working dir has uncommitted-changes if the revision ends with a +
+if [[ $r_lrev[-1] == + ]] ; then
+    hgchanges=1
+
+    r_lrev=${r_lrev%+}
+    r_csetid=${r_csetid%+}
+fi
+
+# This directory only exists during a merge
+[[ -d $mergedir ]] && hgactionstring="merging"
+
+# This file only exists during a rebase
+[[ -e $rebasefile ]] && hgactionstring="rebasing"
+
+
+### Build the current revision display
+[[ -n ${r_csetid} ]] && defrevformat+=( "%h" )
+[[ -n ${r_lrev} ]] && defrevformat+=( "%r" )
+
+zstyle -s ":vcs_info:${vcs}:${usercontext}:${rrn}" \
+    "hgrevformat" revformat || revformat=${(j/:/)defrevformat}
+
+hook_com=( localrev "${r_lrev}" "hash" "${r_csetid}" )
+
+if VCS_INFO_hook 'set-hgrev-format' "${revformat}"; then
+    zformat -f r_lrev "${revformat}" \
+        "r:${hook_com[localrev]}" "h:${hook_com[hash]}"
+else
+    r_lrev=${hook_com[rev-replace]}
+fi
+
+hook_com=()
+
+### Build the branch display
+[[ -n ${r_branch} ]] && defbranchformat+=( "%b" )
+[[ -n ${r_lrev} ]] && defbranchformat+=( "%r" )
+
+zstyle -s ":vcs_info:${vcs}:${usercontext}:${rrn}" \
+    branchformat branchformat || branchformat=${(j/:/)defbranchformat}
+
+hook_com=( branch "${r_branch}" revision "${r_lrev}" )
+
+if VCS_INFO_hook 'set-branch-format' "${branchformat}"; then
+    zformat -f branchformat "${branchformat}" \
+        "b:${hook_com[branch]}" "r:${hook_com[revision]}"
+else
+    branchformat=${hook_com[branch-replace]}
+fi
+
+hook_com=()
+
+### Look for current Bookmarks (this requires knowing the changeset id)
+if zstyle -t ":vcs_info:${vcs}:${usercontext}:${rrn}" get-bookmarks \
+        && [[ -r "${bmfile}" ]] && [[ -n "$r_csetid" ]] ; then
+    while read -r i_bmhash i_bmname ; do
+        # Compare hash in bookmarks file with changeset id
+        [[ $i_bmhash == $r_csetid* ]] && hgbmarks+=( $i_bmname )
+    done < ${bmfile}
+
+    if [[ -r "$curbmfile" ]] ; then
+        curbm=$(<"${curbmfile}")
+        hook_com[hg-active-bookmark]=$curbm
+    else
+        # leave curbm empty and [hg-active-bookmark] undefined.
+    fi
+
+    if VCS_INFO_hook 'gen-hg-bookmark-string' "${hgbmarks[@]}"; then
+        # If there is an active bookmark, annotate it and put it first.
+        if [[ -n $curbm ]] ; then
+            hgbmarks[(i)$curbm]=()
+            hgbmarks[1,0]="${curbm}*"
+        fi
+        hgbmstring=${(j:, :)hgbmarks}
+        # Deannotate the array, in case later code expects it to be valid.
+        # (The order is not restored.)
+        [[ -n $curbm ]] && hgbmarks[1]=${${hgbmarks[1]}[1,-2]}
+    else
+        hgbmstring=${hook_com[hg-bookmark-string]}
+    fi
+
+    hook_com=()
+fi
+
+### Look for any applied Mercurial Queue patches
+if zstyle -T ":vcs_info:${vcs}:${usercontext}:${rrn}" get-mq \
+        && [[ -d $patchdir ]] ; then
+    if [[ -e $mqstatusfile ]]; then
+        mqpatches=( ${${(f)"$(< "${patchdir}/status")"}/(#s)[a-f0-9]##:/} )
+        mqpatches=( ${(Oa)mqpatches} )
+    fi
+
+    if zstyle -t ":vcs_info:${vcs}:${usercontext}:${rrn}" get-unapplied \
+            && [[ -r ${mqseriesfile} ]]; then
+        # Okay, here's a little something that assembles a list of unapplied
+        # patches that takes into account if mq-guards are active or not.
+
+        # Collect active guards
+        if [[ -r ${mqguardsfile} ]]; then
+            mqguards=( ${(f)"$(< "${mqguardsfile}")"} )
+            mqguards=( ${(oa)mqguards} )
+        fi
+
+        while read -r i_patch i_patchguards ; do
+            # Skip commented lines
+            [[ ${i_patch} == [[:space:]]#"#"* ]] && continue
+
+            # Skip applied patches
+            (( ${+mqpatches[(re)${i_patch}]} )) && continue
+
+            # Separate negative and positive guards to more easily find the
+            # intersection of active guards with patch guards
+            i_patchguards=( ${(s: :)i_patchguards} )
+            i_negguards=( ${${(M)i_patchguards:#*"#-"*}/(#s)\#-/} )
+            i_posguards=( ${${(M)i_patchguards:#*"#+"*}/(#s)\#+/} )
+
+            # Patch with any negative guards is never pushed if guard is active
+            if [[ ${#i_negguards} -gt 0
+                    && ${#${(@M)mqguards:#${(~j,|,)i_negguards}}} -gt 0 ]] ; then
+                continue
+            fi
+
+            # Patch with positive guards is only pushed if guard is active
+            if [[ ${#i_posguards} -gt 0 ]] ; then
+                if [[ ${#${(@M)mqguards:#${(~j,|,)i_posguards}}} -gt 0 ]] ; then
+                    mqunapplied+=( $i_patch )
+                fi
+                continue
+            fi
+
+            # If we made it this far the patch isn't guarded and should be pushed
+            mqunapplied+=( $i_patch )
+        done < ${mqseriesfile}
+    fi
+
+    if VCS_INFO_hook 'gen-mqguards-string' "${mqguards[@]}"; then
+        guards_string=${(j:,:)mqguards}
+        # TODO: %-escape extra_zformats[g:...] value
+    else
+        guards_string=${hook_com[guards-string]}
+    fi
+
+    local -A extra_hook_com=( guards "${guards_string}"   guards-n ${#mqguards} )
+
+    (( ${+functions[VCS_INFO_hg_extra_zformats]} )) || 
+    VCS_INFO_hg_extra_zformats() {
+        reply=( "g:${hook_com[guards]}" "G:${#mqguards}" )
+    }
+
+    VCS_INFO_set-patch-format 'mqpatches' 'applied_string' \
+                              'mqunapplied' 'unapplied_string' \
+                              ":vcs_info:${vcs}:${usercontext}:${rrn}" hgmqstring \
+                              extra_hook_com VCS_INFO_hg_extra_zformats ''
+    hgmqstring=$REPLY
+fi
+
+
+### Build the misc string
+hgmisc+=( ${hgmqstring} )
+hgmisc+=( ${hgbmstring} )
+
+backend_misc[patches]="${hgmqstring}"
+backend_misc[bookmarks]="${hgbmstring}"
+
+VCS_INFO_formats "${hgactionstring}" "${branchformat}" "${hgbase}" '' "${hgchanges}" "${r_lrev}" "${(j:;:)hgmisc}"
+return 0

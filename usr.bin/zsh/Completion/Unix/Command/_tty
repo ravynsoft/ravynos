@@ -1,0 +1,18 @@
+#compdef tty gtty
+
+local -a args
+
+if _pick_variant gnu='Free Soft' unix --version; then
+  args=(
+    '(-)--help[display help information]'
+    '(-)--version[display version information]'
+    '(-s --quiet --silent)'{-s,--quiet,--silent}'[suppress normal output]'
+  )
+else
+  args=( '-s[suppress normal output]' )
+  [[ $OSTYPE == solaris* ]] && args+=(
+    "-l[display terminal's synchronous line number]"
+  )
+fi
+
+_arguments -s -S : $args

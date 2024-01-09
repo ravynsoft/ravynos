@@ -1,0 +1,62 @@
+#compdef -k complete-word \C-xt
+
+# Complete tags using either TAGS or tags.  Looks up your directory
+# hierarchy to find one.  If both exist, uses TAGS.
+#
+# You can override the choice of tags file with $TAGSFILE (for TAGS)
+# or $tagsfile (for tags).
+#
+# Could be rewritten by some sed expert to use sed instead of perl.
+
+emulate -L zsh
+
+# Tags file to look for
+local c_Tagsfile=${TAGSFILE:-TAGS} c_tagsfile=${tagsfile:-tags} expl
+# Max no. of directories to scan up through
+integer c_maxdir=10
+# Context.
+local curcontext="$curcontext"
+local -a c_tags_array
+
+if [[ -z "$curcontext" ]]; then
+  curcontext="complete-tag:::"
+else
+  curcontext="complete-tag:${curcontext#*:}"
+fi
+
+local c_path=
+integer c_idir
+while [[ ! -f $c_path$c_Tagsfile &&
+         ! -f $c_path$c_tagsfile && $c_idir -lt $c_maxdir ]]; do
+  (( c_idir++ ))
+  c_path=../$c_path
+done
+
+if [[ -f $c_path$c_Tagsfile && $c_path$c_Tagsfile -ef $c_path$c_tagsfile &&
+      "$(head -1 $c_path$c_tagsfile)" == '!_TAG_'* ]]; then
+        c_Tagsfile=
+fi
+
+if [[ -f $c_path$c_Tagsfile ]]; then
+  # prefer the more comprehensive TAGS, which unfortunately is a
+  # little harder to parse.
+  # could do this with sed, just can't be bothered to work out how,
+  # after quarter of an hour of trying, except for
+  #  rm -f =sed; ln -s /usr/local/bin/perl /usr/bin/sed
+  # but that's widely regarded as cheating.
+  c_tags_array=($(sed -n \
+        -e 's/^\(.*[a-zA-Z_0-9]\)[[ '$'\t'':;,()]*'$'\177''.*$/\1/' \
+        -e 's/^.*[^a-zA-Z_0-9]//' \
+        -e '/^[a-zA-Z_].*/p' $c_path$c_Tagsfile))
+#  c_tags_array=($(perl -ne '/([a-zA-Z_0-9]+)[ \t:;,\(]*\x7f/ &&
+#                  print "$1\n"' $c_path$c_Tagsfile))
+  _main_complete - '' _wanted etags expl 'emacs tag' \
+      compadd -a c_tags_array
+elif [[ -f $c_path$c_tagsfile ]]; then
+  # tags doesn't have as much in, but the tag is easy to find.
+  # we can use awk here.
+  c_tags_array=($(awk '{ print $1 }' $c_path$c_tagsfile))
+  _main_complete - '' _wanted vtags expl 'vi tag' compadd -a c_tags_array
+else
+  return 1
+fi

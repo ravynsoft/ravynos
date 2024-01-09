@@ -1,0 +1,66 @@
+#compdef cp gcp
+
+if _pick_variant gnu=GNU unix --version; then
+  _arguments -s -S \
+    '(-a --archive)'{-a,--archive}'[archive mode, same as -dR --preserve=all]' \
+    "--attributes-only[don't copy file data, just attributes]" \
+    '(-b --backup)-b[backup]' \
+    '(-b --backup)--backup=-[backup each destination file]::method:(none off numbered t existing nil simple never)' \
+    '--copy-contents[copy contents of special files when recursive]' \
+    '-d[same as --no-dereference --preserve=links]' \
+    '(-f --force)'{-f,--force}'[remove and retry for destinations that cannot be opened]' \
+    '(-i --interactive -n --no-clobber)'{-i,--interactive}'[prompt before overwrite]' \
+    '-H[follow command-line symbolic links]' \
+    '(-l --link)'{-l,--link}'[link files instead of copying]' \
+    '(-L --dereference)'{-L,--dereference}'[always follow symbolic links]' \
+    '(-n --no-clobber -i --interactive)'{-n,--no-clobber}"[don't overwrite an existing file]" \
+    '(-P --no-dereference)'{-P,--no-dereference}'[never follow symbolic links]' \
+    '-p[same as --preserve=mode,ownership,timestamps]' \
+    '--preserve=-[preserve specified attributes]:: :_values -s , attribute mode timestamps ownership links context xattr all' \
+    "--no-preserve=[don't preserve specified attributes]: :_values -s , attribute mode timestamps ownership links context xattr all" \
+    '--parents[append source path to target directory]' \
+    '(-R -r --recursive)'{-R,-r,--recursive}'[copy directories recursively]' \
+    '--reflink=-[control clone/CoW copies]::when to perform a lightweight copy:(always auto)' \
+    '--remove-destination[remove each existing destination file before attempting to open it]' \
+    '--sparse=[control creation of sparse files]:when to create sparse files:(auto always never)' \
+    '--strip-trailing-slashes[remove any trailing slashes from each source argument]' \
+    '(-s --symbolic-link)'{-s,--symbolic-link}'[make symbolic links instead of copies of non-directories]' \
+    '(-S --suffix)'{-S+,--suffix=}'[override the usual backup suffix]:backup suffix' \
+    '(-t --target-directory)'{-t+,--target-directory=}'[copy all source arguments into target directory]:target directory:_files -/' \
+    '(-T --no-target-directory)'{-T,--no-target-directory}'[treat DEST as a normal file]' \
+    '(-u --update)'{-u,--update}'[copy only when source is newer than destination or destination is missing]' \
+    '(-v --verbose)'{-v,--verbose}'[explain what is being done]' \
+    '(-x --one-file-system)'{-x,--one-file-system}'[stay on this file system]' \
+    '(--context)-Z[set destination SELinux security context]' \
+    '(-Z)--context=-[set destination SELinux security context]:: :_selinux_contexts' \
+    '(- *)--help' '(- *)--version' \
+    '*:file or directory:_files'
+else
+  local pattern arg args
+  args=(
+    '(-L -P)-H[follow symlinks on the command line in recursive mode]'
+    '(-H -P)-L[follow all symlinks in recursive mode]'
+    '(-H -L)-P[do not follow symlinks in recursive mode (default)]'
+    '(-i -n)-f[force overwriting existing file]'
+    '(-f -n)-i[confirm before overwriting existing file]'
+    '-p[preserve timestamps, mode, owner, flags, ACLs, and extended attributes]'
+    '-R[copy directories recursively]' \
+    '(-)*:file or directory:_files'
+  )
+  for pattern arg in \
+    '(aix|hpux|irix|solaris)*' '-r[copy directories recursively]' \
+    'solaris2.<9->*' '-@[preserve extended attributes]' \
+    'solaris2.<11->*' '-/[preserve extended attributes and extended system attributes]' \
+    '(darwin|dragonfly|freebsd)*' "(-f -i)-n[don't overwrite existing file]" \
+    'netbsd*' "-N[don't copy file flags]" \
+    '(darwin|dragonfly|freebsd|netbsd|openbsd)*' '-a[archive mode, same as -RpP]' \
+    '(dragonfly|freebsd)*' '-l[link files instead of copying]' \
+    '(darwin|dragonfly|*bsd)*' '-v[show file names as they are copied]' \
+    'darwin*' "-X[don't copy extended attributes or resource forks]" \
+    '(dragonfly|freebsd)*' "-x[don't traverse file systems]" \
+    'freebsd<10->.*' '-s[make symbolic links instead of copies of non-directories]'
+  do
+    [[ $OSTYPE = $~pattern ]] && args+=( $arg )
+  done
+  _arguments -s -S $args
+fi

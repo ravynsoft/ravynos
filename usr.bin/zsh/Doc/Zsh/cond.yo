@@ -1,0 +1,264 @@
+texinode(Conditional Expressions)(Prompt Expansion)(Arithmetic Evaluation)(Top)
+chapter(Conditional Expressions)
+ifzman(\
+sect(Conditional Expressions)
+)\
+cindex(conditional expressions)
+cindex(expressions, conditional)
+A em(conditional expression) is used with the tt([[)
+compound command to test attributes of files and to compare strings.
+Each expression can be constructed from one or more
+of the following unary or binary expressions:
+
+startitem()
+item(tt(-a) var(file))(
+true if var(file) exists.
+)
+item(tt(-b) var(file))(
+true if var(file) exists and is a block special file.
+)
+item(tt(-c) var(file))(
+true if var(file) exists and is a character special file.
+)
+item(tt(-d) var(file))(
+true if var(file) exists and is a directory.
+)
+item(tt(-e) var(file))(
+true if var(file) exists.
+)
+item(tt(-f) var(file))(
+true if var(file) exists and is a regular file.
+)
+item(tt(-g) var(file))(
+true if var(file) exists and has its setgid bit set.
+)
+item(tt(-h) var(file))(
+true if var(file) exists and is a symbolic link.
+)
+item(tt(-k) var(file))(
+true if var(file) exists and has its sticky bit set.
+)
+item(tt(-n) var(string))(
+true if length of var(string) is non-zero.
+)
+item(tt(-o) var(option))(
+true if option named var(option) is on.  var(option)
+may be a single character, in which case it is a single letter option name.
+(See noderef(Specifying Options).)
+
+When no option named var(option) exists, and the tt(POSIX_BUILTINS) option
+hasn't been set, return 3 with a warning.  If that option is set, return 1
+with no warning.
+)
+item(tt(-p) var(file))(
+true if var(file) exists and is a FIFO special file (named pipe).
+)
+item(tt(-r) var(file))(
+true if var(file) exists and is readable by current process.
+)
+item(tt(-s) var(file))(
+true if var(file) exists and has size greater than zero.
+)
+item(tt(-t) var(fd))(
+true if file descriptor number var(fd)
+is open and associated with a terminal device.
+(note: var(fd) is not optional)
+)
+item(tt(-u) var(file))(
+true if var(file) exists and has its setuid bit set.
+)
+item(tt(-v) var(varname))(
+true if shell variable var(varname) is set.
+)
+item(tt(-w) var(file))(
+true if var(file) exists and is writable by current process.
+)
+item(tt(-x) var(file))(
+true if var(file) exists and is executable by current process.
+If var(file) exists and is a directory, then the current process
+has permission to search in the directory.
+)
+item(tt(-z) var(string))(
+true if length of var(string) is zero.
+)
+item(tt(-L) var(file))(
+true if var(file) exists and is a symbolic link.
+)
+item(tt(-O) var(file))(
+true if var(file) exists and is owned by the effective user ID of this process.
+)
+item(tt(-G) var(file))(
+true if var(file) exists and its group matches
+the effective group ID of this process.
+)
+item(tt(-S) var(file))(
+true if var(file) exists and is a socket.
+)
+item(tt(-N) var(file))(
+true if var(file) exists and its access time is
+not newer than its modification time.
+)
+item(var(file1) tt(-nt) var(file2))(
+true if var(file1) exists and is newer than var(file2).
+)
+item(var(file1) tt(-ot) var(file2))(
+true if var(file1) exists and is older than var(file2).
+)
+item(var(file1) tt(-ef) var(file2))(
+true if var(file1) and var(file2) exist and refer to the same file.
+)
+xitem(var(string) tt(=) var(pattern))
+item(var(string) tt(==) var(pattern))(
+true if var(string) matches var(pattern).
+The two forms are exactly equivalent.  The `tt(=)' form is
+the traditional shell syntax (and hence the only one generally used
+with the tt(test) and tt([) builtins); the `tt(==)' form provides
+compatibility with other sorts of computer language.
+)
+item(var(string) tt(!=) var(pattern))(
+true if var(string) does not match var(pattern).
+)
+item(var(string) tt(=~) var(regexp))(
+true if var(string) matches the regular expression
+var(regexp).  If the option tt(RE_MATCH_PCRE) is set
+var(regexp) is tested as a PCRE regular expression using
+the tt(zsh/pcre) module, else it is tested as a POSIX
+extended regular expression using the tt(zsh/regex) module.
+Upon successful match, some variables will be updated; no variables
+are changed if the matching fails.
+
+If the option tt(BASH_REMATCH) is not set the scalar parameter
+tt(MATCH) is set to the substring that matched the pattern and
+the integer parameters tt(MBEGIN) and tt(MEND) to the index of the start
+and end, respectively, of the match in var(string), such that if
+var(string) is contained in variable tt(var) the expression
+`tt(${var[$MBEGIN,$MEND]})' is identical to `tt($MATCH)'.  The setting
+of the option tt(KSH_ARRAYS) is respected.  Likewise, the array
+tt(match) is set to the substrings that matched parenthesised
+subexpressions and the arrays tt(mbegin) and tt(mend) to the indices of
+the start and end positions, respectively, of the substrings within
+var(string).  The arrays are not set if there were no parenthesised
+subexpressions.  For example, if the string `tt(a short string)' is matched
+against the regular expression `tt(s+LPAR()...RPAR()t)', then (assuming the
+option tt(KSH_ARRAYS) is not set) tt(MATCH), tt(MBEGIN)
+and tt(MEND) are `tt(short)', tt(3) and tt(7), respectively, while tt(match),
+tt(mbegin) and tt(mend) are single entry arrays containing
+the strings `tt(hor)', `tt(4)' and `tt(6)', respectively.
+
+If the option tt(BASH_REMATCH) is set the array
+tt(BASH_REMATCH) is set to the substring that matched the pattern
+followed by the substrings that matched parenthesised
+subexpressions within the pattern.
+)
+item(var(string1) tt(<) var(string2))(
+true if var(string1) comes before var(string2)
+based on ASCII value of their characters.
+)
+item(var(string1) tt(>) var(string2))(
+true if var(string1) comes after var(string2)
+based on ASCII value of their characters.
+)
+item(var(exp1) tt(-eq) var(exp2))(
+true if var(exp1) is numerically equal to var(exp2).
+Note that for purely numeric comparisons use of the
+tt(LPAR()LPAR())var(...)tt(RPAR()RPAR()) builtin described in
+ifzman(the section `ARITHMETIC EVALUATION')\
+ifnzman(noderef(Arithmetic Evaluation)) is more convenient than
+conditional expressions.
+)
+item(var(exp1) tt(-ne) var(exp2))(
+true if var(exp1) is numerically not equal to var(exp2).
+)
+item(var(exp1) tt(-lt) var(exp2))(
+true if var(exp1) is numerically less than var(exp2).
+)
+item(var(exp1) tt(-gt) var(exp2))(
+true if var(exp1) is numerically greater than var(exp2).
+)
+item(var(exp1) tt(-le) var(exp2))(
+true if var(exp1) is numerically less than or equal to var(exp2).
+)
+item(var(exp1) tt(-ge) var(exp2))(
+true if var(exp1) is numerically greater than or equal to var(exp2).
+)
+item(tt(LPAR()) var(exp) tt(RPAR()))(
+true if var(exp) is true.
+)
+item(tt(!) var(exp))(
+true if var(exp) is false.
+)
+item(var(exp1) tt(&&) var(exp2))(
+true if var(exp1) and var(exp2) are both true.
+)
+item(var(exp1) tt(||) var(exp2))(
+true if either var(exp1) or var(exp2) is true.
+)
+enditem()
+
+For compatibility, if there is a single argument that is not
+syntactically significant, typically a variable, the condition is
+treated as a test for whether the expression expands as a string of
+non-zero length.  In other words, tt([[ $var ]]) is the same as tt([[ -n
+$var ]]).  It is recommended that the second, explicit, form be used
+where possible.
+
+Normal shell expansion is performed on the var(file), var(string) and
+var(pattern) arguments, but the result of each expansion is constrained to
+be a single word, similar to the effect of double quotes.
+
+Filename generation is not performed on any form of argument to
+conditions.  However, it can be forced in any case where normal shell
+expansion is valid and when the option tt(EXTENDED_GLOB) is in effect by
+using an explicit glob qualifier of the form tt(LPAR()#q+RPAR()) at the
+end of the string.  A normal glob qualifier expression may appear
+between the `tt(q)' and the closing parenthesis; if none appears the
+expression has no effect beyond causing filename generation.  The
+results of filename generation are joined together to form a single
+word, as with the results of other forms of expansion.
+
+This special use of filename generation is only available with the
+tt([[) syntax.  If the condition occurs within the tt([) or tt(test)
+builtin commands then globbing occurs instead as part of normal command
+line expansion before the condition is evaluated.  In this case it may
+generate multiple words which are likely to confuse the syntax of the
+test command.
+
+For example,
+
+example([[ -n file*(#qN) ]])
+
+produces status zero if and only if there is at least one file in the
+current directory beginning with the string `tt(file)'.  The globbing
+qualifier tt(N) ensures that the expression is empty if there is
+no matching file.
+
+Pattern metacharacters are active for the var(pattern) arguments;
+the patterns are the same as those used for filename generation, see
+ifzman(\
+zmanref(zshexpn)\
+)\
+ifnzman(\
+noderef(Filename Generation)\
+)\
+, but there is no special behaviour
+of `tt(/)' nor initial dots, and no glob qualifiers are allowed.
+
+In each of the above expressions, if
+var(file) is of the form `tt(/dev/fd/)var(n)',
+where var(n) is an integer,
+then the test applied to the open file whose
+descriptor number is var(n),
+even if the underlying system does not support
+the tt(/dev/fd) directory.
+
+In the forms which do numeric comparison, the expressions var(exp)
+undergo arithmetic expansion as if they were enclosed in
+tt($LPAR()LPAR())var(...)tt(RPAR()RPAR()).
+
+For example, the following:
+
+example([[ ( -f foo || -f bar ) && $report = y* ]] && print File exists.)
+
+tests if either file tt(foo) or file tt(bar) exists, and if so, if the
+value of the parameter tt(report) begins with `tt(y)'; if the complete
+condition is true, the message `tt(File exists.)' is printed.

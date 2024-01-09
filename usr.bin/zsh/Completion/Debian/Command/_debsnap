@@ -1,0 +1,77 @@
+#compdef debsnap
+
+# Based on debsnap from devscripts-2.20.3
+
+local context state state_descr line ret=1
+local -a expl
+typeset -A opt_args
+
+_arguments \
+  '(-d --destdir)'{-d+,--destdir=}'[set download directory]:download directory:_files -/' \
+  '(-f --force)'{-f,--force}'[allow non-empty destination directory]' \
+  '(-v --verbose)'{-v,--verbose}'[print configuration and report progress]' \
+  --list"[list versions; don't download]" \
+  --binary'[operate on binary packages (default: source packages)]' \
+  '*'{-a+,--architecture=}'[specify architectures to download]:architecture to download:_deb_architectures' \
+  --first='[download all versions newer than this]:version number (lower bound):->versions' \
+  --last='[download all versions older than this]:version number (upper bound):->versions' \
+  '(-)'{-h,--help}'[show usage information]' \
+  '(-)'--version'[show version number and license]' \
+  '1: :->package' \
+  '2:version number to download:->versions' \
+  && ret=0
+
+# -a implies --binary
+if (( ${+opt_args[-a]} || ${+opt_args[--architecture]} )); then
+  opt_args[--binary]=''
+fi
+
+case $state in
+  (package)
+    if (( ${+opt_args[--binary]} )); then
+      _description binary-packages expl 'binary package to download'
+      _deb_packages "${expl[@]}" avail && ret=0
+    else
+      _description source-packages expl 'source package to download'
+      _deb_packages "${expl[@]}" source && ret=0
+    fi
+    ;;
+  (versions)
+    local package=${(Q)line[1]}
+    if [[ -n $package ]]; then
+      # Compute the arguments to --list
+      local -a args
+      () {
+        local i j
+
+        # repeatable flags with arguments, where the values can't contain colons
+        for i in ${(k)opt_args[(I)(-a|--architecture)]}; do
+          for j in ${(@s.:.)opt_args[$i]}; do
+            [[ -n $j ]] || continue
+            args+=( $i $j )
+          done
+        done
+
+        # non-repeatable flags with arguments, where the values may contain colons
+        for i in ${(k)opt_args[(I)(--first|--last)]}; do
+          # Avoid spurious "No matches" results in 'debsnap --first 42.1 --last 42.<TAB>'.
+          [[ $context != option${i}-* ]] || continue
+
+          # Un-escape colons (epoch separators in the version number)
+          args+=( $i ${(Q)opt_args[$i]} )
+        done
+
+        # flags without arguments
+        args+=( ${(k)opt_args[(I)(--binary)]} )
+      }  
+
+      local -a versions=( ${(Oaf)"$(_call_program versions debsnap --list ${args} -- ${line[1]})"} )
+      _description -V versions expl ${state_descr}
+      compadd "$@" "${expl[@]}" -a versions && ret=0
+    else
+      _message -- $state_descr && ret=0
+    fi
+    ;;
+esac
+
+return ret

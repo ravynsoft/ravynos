@@ -1,0 +1,29 @@
+#compdef cscope
+
+_arguments -s -S \
+  '-b[build the cross-reference only]' \
+  '-C[ignore letter case when searching]' \
+  "-c[use only ASCII characters in the cross-ref file (don't compress)]" \
+  "-d[don't update the cross-reference]" \
+  '-e[suppress the <Ctrl>-e command prompt between files]' \
+  '-F+[read symbol reference lines from specified file]:symbol-reference file:_files' \
+  '-f+[specify cross-reference file]:cross-reference file [cscope.out]:_files' \
+  '(-)'{-h,--help}'[display help information]' \
+  '*-I+[specify directory to search for #include files]:include directory:_directories' \
+  '-i+[specify file containing a list if files to browse]:file [cscope.file]:_files' \
+  "-k[kernel mode - don't use /usr/include for #include files]" \
+  '-L[do a single search with line-oriented output]' \
+  '-l[line-oriented interface]' \
+  -{0,1,2,3,4,5,6,7,8,9}'+:pattern' \
+  '-P+[prepend path to relative file names in pre-built cross-ref file]:path:_directories' \
+  '-p+[specify number of path components to display]:path components [1]' \
+  '-q[build an inverted index for quick symbol searching]' \
+  '-R[recurse directories for files]' \
+  '-s+[specify directory to search for additional source files]:directory:_directories' \
+  '-T[use only the first eight characters to match against C symbols]' \
+  '-U[check file time stamps]' \
+  '-u[unconditionally build the cross-reference file]' \
+  '-v[be more verbose in line mode]' \
+  '-X[remove the cscope reference file and inverted indexes at end]' \
+  '(-)'{-V,--version}'[display version information]' \
+  '*:file:_files'

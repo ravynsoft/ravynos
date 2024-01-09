@@ -1,0 +1,27 @@
+#compdef add-zsh-hook
+
+_add-zsh-hook_hooks() {
+  local expl
+  if (( $+opt_args[-d] )); then
+    _wanted functions expl "installed hook" compadd -a - "$line[1]_functions" && return 0
+  else
+    _functions && return 0
+  fi
+  return 1
+}
+
+_add-zsh-hook() {
+  local context state state_descr line
+  typeset -A opt_args
+  _arguments -s -w -S : \
+    "(-d -D -U -z -k)-L[output in form of 'typeset' commands]" \
+    '(-L -D -U -z -k)-d[remove HOOK from the array]' \
+    '(-L -d -U -z -k)-D[interpret HOOK as pattern to remove from the array]' \
+    '(-L -d -D)-U[suppress alias expansion for functions]' \
+    '(-L -d -D -k)-z[mark function for zsh-style autoloading]' \
+    '(-L -d -D -z)-k[mark function for ksh-style autoloading]' \
+    ':hook class:(chpwd precmd preexec periodic zshaddhistory zshexit zsh_directory_name)' \
+    ':hook function:_add-zsh-hook_hooks'
+}
+
+_add-zsh-hook "$@"

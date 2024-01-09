@@ -1,0 +1,6 @@
+#compdef odmget odmshow odme
+
+local expl
+
+_wanted objectclasses expl 'object class' \
+   _files -W ${ODMDIR:-/etc/objrepos} -g '^*.vc(-.)' "$@" -

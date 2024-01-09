@@ -1,0 +1,33 @@
+#compdef axi-cache
+
+local expl
+
+_arguments \
+  '--version[version]' \
+  '(-h --help)'{-h,--help}'[help]' \
+  '(-s --sort)'{-s,--sort=}':sort value:('${(j: :)${${(M)${(f)"$(</var/lib/apt-xapian-index/values)"}:#[a-z]*}%%	*}}')' \
+  '--tags[show tags, not packages]' \
+  '*:args:->args' && return 0
+
+if (( CURRENT == 2 )); then
+  _wanted tag expl 'axi-cache command' \
+    compadd help search more last show again info \
+    rdetails depends madison policy showpkg showsrc
+else
+  case "$words[2]" in
+    (search|show|again|rdetails|depends|madison|policy|showpkg|showsrc)
+      _wanted tag expl 'terms/query' \
+        compadd -- $($service $words[2] --tabcomplete=plain -- $words[CURRENT])
+    ;;
+    (more|last)
+      _wanted tag expl 'count' \
+        compadd -- 1 2 3 4 5 6 7 8 9 0
+    ;;
+    (help|info)
+       # no args
+    ;;
+    (*)
+      _files
+    ;;
+    esac
+fi

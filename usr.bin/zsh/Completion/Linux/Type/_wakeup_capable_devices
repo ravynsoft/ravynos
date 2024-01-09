@@ -1,0 +1,15 @@
+#autoload
+
+local ret=1 item devline expl
+typeset -a desc
+
+_call_program wakeup-capable-devices acpitool -w 2> /dev/null |
+while read devline; do
+  [[ -n ${devline:#(#b)([0-9]#).[[:space:]]#([^[:space:]]#)[[:space:]]#[0-9]#[[:space:]]#(*)} ]] && continue
+  zformat -f item "${match[1]}:%8d (currently ${match[3]})" d:${match[2]}
+  desc+=$item
+done
+
+_describe -t wakeup-capable-devices 'wakeup capable device' desc "$@" && ret=0
+
+return ret

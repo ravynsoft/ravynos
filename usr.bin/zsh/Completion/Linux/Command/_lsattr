@@ -1,0 +1,11 @@
+#compdef lsattr
+
+_arguments -s -S : \
+  '-a[show all files, including hidden ones]' \
+  '-d[list directory entries instead of contents]' \
+  '-l[use long option names]' \
+  "-p[show file's project number]" \
+  '-R[act recursively]' \
+  '-V[display version information]' \
+  "-v[show file's version/generation number]" \
+  '*: :_files'

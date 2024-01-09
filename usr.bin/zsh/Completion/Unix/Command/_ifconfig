@@ -1,0 +1,90 @@
+#compdef ifconfig
+
+local curcontext="$curcontext" state line ret=1
+local -a opts args alias debug updownlist
+
+alias=( '(-alias alias)'{,-}'alias[remove or establish alternate address for if]' )
+debug=( '(-debug debug)'{,-}'debug[disable or enable debugging code]' )
+updownlist=(
+  '(-a -d -C)-u[restrict to interfaces which are up]'
+  '(-a -u -C)-d[restrict to interfaces which are down]'
+  '(-a -C -m -L 1 *)-l[list interfaces]'
+)
+
+case $OSTYPE in
+  darwin*)
+    args=( -s $updownlist )
+    opts=(
+      $alias $debug delete dest_address ipdst nsellength
+      {,-}trailers {,-}link{0,1,2}
+    )
+  ;;
+  freebsd*|dragonfly*)
+    args=( -s $updown
+      '(-a -l -u -d -m -L 1 *)-C[list interface cloners]'
+      '(-l -C)-m[list supported media]'
+      '(-l -C)-L[show address lifetime as time offset]'
+    )
+    listopts=(
+        active caps chan countries mac mesh regdomain roam txparam txpower
+        scan sta wme
+    )
+    opts=( $alias $debug $listopts
+      anycast lladdr media {,-}mediaopt {,delete}tunnel create destroy
+      {,un}plumb vlan {,-}vlandev metric prefixlen range phase ssid muid
+      stationname channel authmode {,-}powersave powersavesleep wepmode
+      {,-}wep {,-}nwkey add delete ether {,-}link{0,1,2} list wme wmm
+      roam roam:rssi roam:rate roaming
+    )
+  ;|
+  dragonfly*)
+    args+=( '-n[disable auto-loading of kernel network interface driver]' )
+  ;;
+  irix5*) opts=( $debug ) ;;
+  irix6*)
+    opts=( $debug {-,}highbw {,-}link{0,1,2} primary rspace sspace  )
+    args=( '-w[display additional information]' )
+  ;;
+  linux*)
+    opts=(
+      '(-promisc promisc)'{,-}'promisc[disable or enable promiscuous mode]'
+      '(-allmulti allmulti)'{,-}'allmulti[disable or enable all-multicast]'
+      'media[set physical port type]:medium type:(auto 10base2 10baseT AUI)'
+      'hw[set hardware class]:hardware class:(ether ax25 ARCnet netrom)'
+      add del dstaddr io_addr irq mem_start multicast pointopoint
+      tunnel txqueuelen
+    )
+  ;;
+  solaris*)
+    args=(
+      '-ad[apply to all down interfaces]'
+      '-adD[apply to all down interfaces not controlled by DHCP]'
+      '-au[apply to all up interfaces]'
+      '-auD[apply to all up interfaces not controlled by DHCP]'
+    )
+    opts=(
+      'auto-revarp[use RARP to acquire address]'
+      {,-}trailers {,-}private {,un}plumb
+      '(dhcp auto-dhcp)'{,auto-}'dhcp[use dhcp]'
+      primary wait drop extend ping release start status
+    )
+  ;;
+esac
+
+_arguments -C "$args[@]" \
+  '-a[apply to all interfaces]' \
+  '1:network interface:_net_interfaces -r ": \t\n\-"' \
+  '::address family:(atalk ether inet inet6 ax25 ddp ipx netrom)' \
+  '*:option:->options' && ret=0
+  
+[[ -n "$state" ]] && _values -S ' ' -w 'option' "$opts[@]" \
+  '(down)up[activate interface]' \
+  '(up)down[shut down interface]' \
+  '(-arp arp)'{,-}'arp[disable or enable address resolution protocol]' \
+  'metric[set routing metric for interface]:routing metric' \
+  'mtu[set maximum transfer unit]:mtu' \
+  'netmask[specify network mask]:netmask' \
+  'broadcast[specify broadcast address]:broadcast address' \
+  'address[specify IP address of interface]:IP address' && ret=0
+
+return ret

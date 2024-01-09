@@ -1,0 +1,31 @@
+#autoload
+#
+# device types on FreeBSD/DragonFly
+# (for commands using devstat_buildmatch(), such as iostat and vmstat)
+#
+local -a d i types
+
+d=( da sa printer proc worm cd scanner optical changer
+    comm array enclosure floppy)
+i=( IDE SCSI other )
+types=(
+  "($d)da[direct access devices]"
+  "($d)sa[sequential access devices]"
+  "($d)printer[printers]"
+  "($d)proc[processor devices]"
+  "($d)worm[write once read multiple devices]"
+  "($d)cd[CD devices]"
+  "($d)scanner[scanner devices]"
+  "($d)optical[optical memory devices]"
+  "($d)changer[medium changer devices]"
+  "($d)comm[communication devices]"
+  "($d)array[storage array devices]"
+  "($d)enclosure[enclosure services devices]"
+  "($d)floppy[floppy devices]"
+  "($i)IDE[Integrated Drive Electronics devices]"
+  "($i)SCSI[Small Computer System Interface devices]"
+  "($i)other[any other device interface]"
+  'pass[passthrough devices]'
+)
+
+_values -s , 'device type' $types

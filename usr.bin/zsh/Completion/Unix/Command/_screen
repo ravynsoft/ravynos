@@ -1,0 +1,142 @@
+#compdef screen
+
+local curcontext="$curcontext" state line expl ret=1
+local scr_cmds sessions
+
+scr_cmds=(
+  acladd            aclchg            acldel            aclgrp
+  aclumask          activity          addacl            allpartial
+  altscreen         at                attrcolor         autodetach
+  autonuke          backtick          bce               bd_bc_down
+  bd_bc_left        bd_bc_right       bd_bc_up          bd_bell
+  bd_braille_table  bd_eightdot       bd_info           bd_link
+  bd_lower_left     bd_lower_right    bd_ncrc           bd_port
+  bd_scroll         bd_skip           bd_start_braille  bd_type
+  bd_upper_left     bd_upper_right    bd_width          bell_msg
+  bind              bindkey           blanker           blankerprg
+  break             breaktype         bufferfile        c1
+  caption           chacl             charset           chdir
+  clear             colon             command           compacthist
+  console           copy              crlf              debug
+  defautonuke       defbce            defbreaktype      defc1
+  defcharset        defencoding       defescape         defflow
+  defgr             defhstatus        defkanji          deflog
+  deflogin          defmode           defmonitor        defnonblock
+  defobuflimit      defscrollback     defshell          defsilence
+  defslowpaste      defutf8           defwrap           defwritelock
+  detach            digraph           dinfo             displays
+  dumptermcap       echo              encoding          escape
+  eval              exec              fit               flow
+  focus             gr                hardcopy          hardcopy_append
+  hardcopydir       hardstatus        height            help
+  history           hstatus           idle              ignorecase
+  info              kanji             kill              lastmsg
+  license           lockscreen        log               logfile
+  login             logtstamp         mapdefault        mapnotnext
+  maptimeout        markkeys          maxwin            meta
+  monitor           msgminwait        msgwait           multiuser
+  nethack           next              nonblock          number
+  obuflimit         only              other             partial
+  password          paste             pastefont         pow_break
+  pow_detach        pow_detach_msg    prev              printcmd
+  process           quit              readbuf           readreg
+  redisplay         register          remove            removebuf
+  reset             resize            screen            scrollback
+  select            sessionname       setenv            setsid
+  shell             shelltitle        silence           silencewait
+  sleep             slowpaste         sorendition       source
+  split             startup_message   stuff             su
+  suspend           term              termcap           termcapinfo
+  terminfo          time              title             umask
+  unsetenv          utf8              vbell             vbell_msg
+  vbellwait         verbose           version           wall
+  width             windowlist        windows           wrap
+  writebuf          writelock         xoff              xon
+  zmodem            zombie
+)
+
+_arguments -C \
+  '(-6)-4[resolve hostnames only to IPv4 addresses]' \
+  '(-4)-4[resolve hostnames only to IPv6 addresses]' \
+  "-a[force all capabilities into each window's termcap]" \
+  '-A[adapt all windows to the new display width & height]' \
+  "-c[read configuration file instead of '.screenrc']:config file:_files" \
+  '-d[detach the elsewhere running screen (with -r: reattach here)]: :->attached-sessions' \
+  '-dmS[start as daemon, screen session in detached mode]:session name' \
+  '-D[detach and logout remote (with -r: reattach here)]: :->attached-sessions' \
+  '-e[change command characters]:command characters' \
+  '-f-[set flow control]:flow control:((n\:flow\ control\ off a\:flow\ control\ auto \:flow\ control\ on))' \
+  '-h[set the size of the scrollback history buffer]:buffer size' \
+  '-i[interrupt output sooner when flow control is on]' \
+  "(-l)-ln[login mode off (don't update utmp database)]" \
+  '(-ln)-l[login mode on (update utmp database)]' \
+  '(- *)'{-ls,-list}'[list sessions/socket directory]: :->any-sessions' \
+  "-L[terminal's last character can be safely updated]" \
+  '-Logfile[set logfile name]:log file:_files' \
+  '-m[ignore $STY variable, do create a new screen session]' \
+  '-O[choose optimal output rather than exact vt100 emulation]' \
+  '-p[preselect the named window]:window number or name:((\=\:windowlist -\:blank\ window \:window\ number))' \
+  '-q[quiet startup, exit with non-zero return code if unsuccessful]' \
+  '-Q[send response to stdout of command query process]:screen command:(echo info lastmsg number select time title windows)' \
+  '-r[reattach to a detached screen process]: :->detached-sessions' \
+  '-Dr: :->any-sessions' \
+  '-dr: :->any-sessions' \
+  '-R[reattach if possible, otherwise start a new session]: :->detached-sessions' \
+  '-DR: :->any-sessions' \
+  '-dR: :->any-sessions' \
+  '-s[shell to execute rather than $SHELL]:shell name: _command_names -e' \
+  '-S[name this session <pid>.sockname instead of <pid>.<tty>.<host>]:session name:->any-sessions' \
+  "-t[set title (window's name)]:title" \
+  '-T[use term as $TERM for windows, rather than "screen"]:terminal type:_terminals' \
+  '-U[tell screen to use UTF-8 encoding]' \
+  '(- *)-v[print screen version]' \
+  '(- *)-wipe[do nothing, clean up SockDir]: :->any-sessions' \
+  '-x[attach to a not detached screen (multi display mode)]: :->attached-sessions' \
+  '-Dx: :->any-sessions' \
+  '-dx: :->any-sessions' \
+  '-X[execute command as a screen command in the specified session]:screen command:(${scr_cmds[@]})' \
+  '*:: :->normal' && ret=0
+
+if [[ -n $state ]]; then
+  case $state in
+    normal)
+      if (( CURRENT == 1 )) && [[ $PREFIX == /dev/* ]]; then
+	  _path_files -g '*(%)'
+      elif (( CURRENT == 2 )) && [[ ${words[1]} == /dev/* ]]; then
+	  _baudrates
+      elif (( CURRENT > 2 )) && [[ ${words[1]} == /dev/* ]]; then
+	  _message "no more parameters"
+      else
+	  _normal
+      fi
+    ;;
+    attached-sessions)
+      sessions=(
+        ${${${(M)${(f)"$(_call_program screen-sessions $words[1] \
+            -ls 2>/dev/null)"}:#*[Aa]ttached*}##[[:blank:]]}%%[[:blank:]]*}
+      )
+    ;;
+    detached-sessions)
+      sessions=(
+        ${${${(M)${(f)"$(_call_program screen-sessions $words[1] \
+            -ls 2>/dev/null)"}:#*[Dd]etached*}##[[:blank:]]}%%[[:blank:]]*}
+      )
+    ;;
+    any-sessions)
+      sessions=(
+        ${${${(M)${(f)"$(_call_program screen-sessions $words[1] \
+	    -ls 2>/dev/null)"}:#*tached*}##[[:blank:]]}%%[[:blank:]]*}
+      )
+  esac
+
+  # check if initial PID is necessary to make sessions unambiguous
+  if [[ ${#${(u)sessions#*.}} -lt $#sessions ]]; then
+    _wanted screen-sessions expl "${state%-*} screen process" \
+	compadd -a sessions
+  else
+    _wanted screen-sessions expl "${state%-*} screen process" \
+	compadd ${sessions#*.}
+  fi
+fi && ret=0
+
+return ret

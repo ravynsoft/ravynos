@@ -1,0 +1,137 @@
+#compdef nm eu-nm
+
+local args files variant
+
+files="*:object file:_object_files"
+args=(
+  '(-A -o --print-file-name)'{-A,-o,--print-file-name}'[print name of input file on each line]'
+  '(--demangle --no-demangle)-C[decode symbol names]'
+  '(-D --dynamic)'{-D,--dynamic}'[display dynamic symbols instead of normal ones]'
+  '(-g --extern-only)'{-g,--extern-only}'[display only global symbols]'
+  '(-t --radix -o -x)'{-t,--radix}'[specify radix for numeric values]:radix:((d\:decimal o\:octal x\:hexadecimal))'
+)
+
+if _pick_variant -r variant binutils=GNU elftoolchain=elftoolchain elfutils=elfutils unix -V; then
+  args+=(
+    '(- *)--help[display help information]'
+    '(- *)'{-V,--version}'[display version information]'
+    '(-f --format -P --portability)-B[same as --format=bsd]'
+    '(-u --undefined-only)--defined-only[display only defined symbols]'
+    '(-f --format -P)--format=[specify output format]:format:(bsd sysv posix)'
+    '(-n --numeric-sort -p --no-sort --size-sort -v)'{-n,--numeric-sort}'[sort symbols numerically by address]'
+    '(-p --no-sort -n -v --numeric-sort -r --reverse-sort --size-sort)'{-p,--no-sort}'[do not sort symbols]'
+    '(-P --portability -B -f --format)'{-P,--portability}'[same as --format=posix]'
+    '(-r --reverse-sort -p --no-sort)'{-r,--reverse-sort}'[reverse sort order]'
+    '(-u --undefined-only --defined-only)'{-u,--undefined-only}'[display only undefined symbols]'
+    '(-a --debug-syms)'{-a,--debug-syms}'[display debugger-only symbols]'
+    '(-S --print-size)'{-S,--print-size}'[print size of defined symbols]'
+    '(-s --print-armap)'{-s,--print-armap}'[include index for symbols from archive members]'
+  )
+  case $variant in
+    elftoolchain|binutils)
+      args+=(
+	'(-l --line-numbers)'{-l,--line-numbers}'[display source file and line numbers from debug information]'
+	"(-C --demangle)--no-demangle[don't decode symbol names]"
+	'(-p --no-sort -n -v --numeric-sort)--size-sort[sort symbols by size]'
+	'(-n --numeric-sort -p --no-sort --size-sort)-v[sort symbols numerically by address]'
+	'(- *)-h[display help information]'
+      )
+    ;|
+    elftoolchain)
+      args=( ${args:#*(-C|-o|--portability)\[*}
+	'(-C --demangle)'{-C,--demangle=-}'[decode symbol names]::style:(auto gnu-v2 gnu-v3 arm)'
+	'(-g --extern-only)-e[only display global and static symbols]'
+	'(--format -P)-F+[specify output format]:format:(bsd sysv posix)'
+	'-o[with -P, same as -t o; otherwise same as -A]'
+	'(-t --radix)-x[print values in hexadecimal]'
+      )
+    ;;
+    elfutils)
+      args+=(
+        '--mark-special[mark special symbols]'
+	'--color=[use color in output]:color:(always auto never)'
+	'(-C)--demangle[decode symbol names]'
+	'(--format -P)-f+[specify output format]:format:(bsd sysv posix)'
+	'(- *)--usage[give a short usage message]'
+	'(- *)-?[display help information]'
+      )
+    ;;
+    binutils)
+      compset -P '@' && files='*:options file:_files'
+      args+=(
+        '!(--no-recurse-limit)--recurse-limit'
+        '--no-recurse-limit[disable demangling recursion limit]'
+	'(-f --format -P)-f+[specify output format]:format:(bsd sysv posix)'
+	'(-C --no-demangle)--demangle=-[decode symbol names]::style [auto]:(auto gnu lucid arm hp edg gnu-v3 java gnat rust dlang)'
+        '--ifunc-chars=[specify characters to use for indirect function symbols]:characters for global/local indirect function symbols [ii]'
+	'--plugin[load specified plugin]:plugin'
+	'--special-syms[include special symbols in the output]'
+	'--synthetic[display synthetic symbols as well]'
+	"--target=[target object format]:target:(${${(@M)${(f)$(_call_program targets nm --help)}:#*supported targets:*}##*: })"
+	'--with-symbol-versions[display version strings after symbol names]'
+      )
+    ;;
+  esac
+else
+  case $OSTYPE in
+    (darwin*|openbsd*)
+      args=(
+	'(-A -o)'{-A,-o}'[prepend file name to each output line]'
+	'(-g)-a[display all symbols including those for debuggers]'
+	'(-a)-g[display only global symbols]'
+	'(-U)-u[display only undefined symbols]'
+	'(-p)-n[sort numerically rather than alphabetically]'
+	"(-n -r)-p[don't sort; display in symbol-table order]"
+	'(-p)-r[sort in reverse order]'
+	'(-j)-P[print information in a portable format]'
+	'(-j)-t[specify radix for numeric values (used with -P)]:radix:((d\:decimal o\:octal x\:hexadecimal))'
+      );|
+    (darwin*)
+      args+=(
+	"(-u)-U[don't display undefined symbols]"
+	'-f[display symbol table of dynamic library flat]'
+	'(-P -t -m)-j[just display symbol names (no value or type)]'
+	'-l[display .section_start if no symbol is in the section (used with -s)]'
+	'(-j)-m[use verbose format for Mach-O symbols]'
+	'-s[list only symbols in the specified section]:segment name: :section name: '
+	"-x[display symbol table entry's fields in hexadecimal]"
+	'*-arch[select architecture from universal file]:architecture:(all i386 x86_64)'
+      );;
+    (openbsd*)
+      args+=(
+	'-C[decode low-level symbol names]'
+	'-D[display dynamic symbol table instead of normal symbol table]'
+	'-e[output extended information]'
+	'-s[show archive index]'
+	'-w[warn about non-object archive members]'
+      );;
+    (solaris*)
+      args=( ${args:#(|*\)(\*|))-[o-]*}
+	"-h[don't display column headers]"
+	'-l[distinguish WEAK symbols with * character]'
+	'(-t -x)-o[print values in octal]'
+	'(-v)-n[sort symbols by name]'
+	'(-P)-p[produce parsable output]'
+	'(-p)-P[portable output format]'
+	'(-r)-R[print archive name, object file and symbol name]'
+	'-r[prepend name of input file to each symbol name]'
+	'-s[print section name instead of index]'
+	'-u[print undefined symbols only]'
+	'(-n)-v[sort external symbols by value]'
+	'-V[display version of the nm command]'
+	'(-o -t)-x[print values in hexadecimal]'
+      );;
+    (*)
+      # minimal POSIX
+      args=(
+	'-A[print name of input file on each line]'
+	'(-u)-g[display only global symbols]'
+	'-P[print information in a portable format]'
+	'-t[specify radix for numeric values]:radix:((d\:decimal o\:octal x\:hexadecimal))'
+	'(-g)-u[display only undefined symbols]'
+	'-v[sort symbols by value instead of by name]'
+      );;
+  esac
+fi
+
+_arguments -s -S : "$args[@]" $files

@@ -1,0 +1,75 @@
+#compdef zle
+
+local expl ret=1
+local -a opts compwids state line context
+
+compwids=(accept-and-menu-complete
+	  complete-word
+	  delete-char-or-list
+	  expand-or-complete
+	  expand-or-complete-prefix
+	  list-choices
+	  menu-complete
+	  menu-expand-or-complete
+	  reverse-menu-complete)
+
+opts=(-A -C -D -F -L -M -N -R -T -U -a -c -l -r \* :)
+
+_arguments -s -S \
+    "($opts)-A[define widget alias]:old widget:->widget :new widget:->widget" \
+    "($opts)-C[define completion widget]:new widget name:->comp-widget :completion widget:->builtin-comp-widget :widget shell function:->function" \
+    "($opts)-D[delete widget]:*:widget:->widget" \
+    \(${(j. .)opts:#-[lFT]}')-L[with -l, list as commands]' \
+    \(${(j. .)opts:#-[La]}')-l+[list user-defined widgets]:*:-:->listing' \
+    \(${(j. .)opts:#-l}')-a[with -l, list all widgets]' \
+    "(: * ${(j. .)opts:#-[Lw]})-F[install file descriptor handler]:file descriptor:_file_descriptors::handler:_functions" \
+    "!($opts)-K:keymap:compadd -a keymaps" \
+    "($opts)-M[display message]:message: " \
+    "($opts)-N[define new widget]:widget name:->widget-or-function ::widget shell function:->function" \
+    \(${(j. .)opts:#-c}')-R+[redisplay]:*:-:->redisplay' \
+    \(${(j. .)opts:#-R}')-c[with -R, clear listing]' \
+    "($opts)-U[unget to input stack]:string: " \
+    '(: *)-T[manipulate transformations]:transformation:(tc):function:_functions' \
+    \(${(j. .)opts:#-T}')-r[remove transformations]' \
+    '(-):widget:->widget' \
+    '(-)*::widget args:->args' && ret=0
+
+[[ $state == listing ]] &&
+  _arguments -s -S '!-l' \
+    "(-a)-L[list as commands]" \
+    "(-L)-a[list all widgets]" \
+    '*:widget name:->widget' && ret=0
+
+case "$state[1]" in
+  (args)
+    _arguments \
+      '(-N)-n[numeric prefix]:number:' \
+      '(-n)-N[reset numeric prefix]' \
+      '-K[specify temporary keymap]:keymap:compadd -a keymaps' \
+      '-w[set $WIDGET to reflect widget being called]' \
+      '(-)*:widget arguments: ' && ret=0
+    ;;
+  (widget*)
+    _wanted -C "$context[1]" widgets expl "${state_descr[1]:-widget}" _widgets && ret=0
+    ;|
+  (*function)
+    _wanted -C "$context[1]" functions expl 'widget shell function' \
+        compadd -M 'r:|-=* r:|=*' -k functions && 
+        ret=0
+    ;;
+  (comp-widget)
+    _wanted -C "$context[1]" widgets expl 'completion widget' \
+      _widgets -g "(*:|)(.|)(${(j(|))compwids})(|:*)" && ret=0
+    ;&
+  (builtin-comp-widget)
+    _wanted -C "$context[1]" widgets expl 'builtin completion widget' \
+      compadd -M 'r:|-=* r:|=*' -k "widgets[(I)(.|)(${(j(|))compwids})]" && ret=0
+    ;;
+  (redisplay)
+    _arguments -s -S '!-R' \
+      "-c[clear listing]" \
+      ":status line" "*:strings to list" && ret=0
+    ;;
+esac
+
+return ret

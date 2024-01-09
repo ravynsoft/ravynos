@@ -1,0 +1,80 @@
+#compdef mt
+
+local -a args cmds
+local state line curcontext="$curcontext" ret=1
+
+args=( '(-)-f[specify raw tape device]:tape device:_files' )
+cmds=(
+  {eof,weof}':write specified number of EOF marks at current position'
+  'fsf:forward space by specified number of files'
+  'fsr:forward space by specified number of records'
+  'bsf:backward space by specified number of files'
+  'bsr:backward space by specified number of records'
+  'asf:absolute space to specified file number'
+  'eom:go to end of recorded media on the tape'
+  'rewind:rewind the tape'
+  {offline,rewoffl}':rewind and unload the tape'
+  'status:print status information about the tape unit'
+  'retension:rewind, wind to end of reel, rewind again - smoothes tape tension'
+  'erase:erase the tape'
+)
+
+if _pick_variant gnu=GNU unix --version; then
+  args=(
+    '(1 2 -)'{-V,--version}'[print version info]' 
+    '(1 2 -)--help[display usage info]'
+    '(-V --version --help -f --file)'{-f,--file=}'[specify raw tape device]:tape device:_files'
+    '(-V --version --help)--rsh-command=[specify remote shell command]:rsh command:_command_names -e'
+  )
+  # should really allow remote user@host for tape device
+  cmds+=(
+    'bsfm:backward space by specified number of file marks'
+    'fsfm:forward space by specified number of file marks'
+    'fss:forward space by specified number of setmarks'
+    'bss:backward space by specified number of setmarks'
+    'wset:write specified number of setmarks at current position'
+    {eod,seod}':space to end of valid data'
+    'setblk:set drive block size'
+    'setdensity:set tape density code'
+    'drvbuffer:set drive buffer code'
+    'stoptions:set driver option bits'
+    'stwrthreshold:set device write threshold'
+    'seek:seek to specified block'
+    'tell:tell the current block on tape'
+    'densities:explain some common density codes'
+    'datcompression:enquire or set compression status'
+  )
+elif [[ $OSTYPE = (freebsd|dragonfly)* ]]; then
+  cmds=( ${cmds:#(asf|eof):*}
+    'smk:write specified number of setmarks at current position'
+    'fss:forward space by specified number of setmarks'
+    'bss:backward space by specified number of setmarks'
+    'rdhpos:read hardware block position'
+    'rdspos:read SCSI logical block position'
+    'sethpos:set hardware block position'
+    'setspos:set SCSI logical block position'
+    'errstat:print error status info about device'
+    'blocksize:set drive block size'
+    'density:set tape density code'
+    'geteotmodel:print the current EOT filemark model'
+    'seteotmodel:set the current EOT filemark model'
+    'eod:go to end of recorded media on the tape'
+    'comp:set compression mode'
+  )
+elif [[ $OSTYPE = solaris* ]]; then
+  cmds+=(
+    'nbsf:back space by specified number of files positioning at file start'
+    'reserve:allow drive to remain reserved after close until explicit release'
+    'release:re-establish release at close behaviour'
+  )
+  if (( ! EUID )); then
+    cmds+=( 'forcereserve:break reservation of tape drive held by other host' )
+  fi
+fi
+
+_arguments -C "$args[@]" '(--help --version -V)1:operation:->operation' \
+    '2:count:' && ret=0
+
+[[ -n "$state" ]] && _describe -t operations 'operation' cmds && ret=0
+
+return ret

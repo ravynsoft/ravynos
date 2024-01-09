@@ -1,0 +1,19 @@
+#autoload
+
+local expl
+
+_tags extensions || return 1
+
+(( $+_xe_cache )) || _xe_cache=( "${(@)${(@f)$(xdpyinfo)}[(r)number of extensions:*,-1][2,(r)default screen number:*][1,-2]//[      ]}" )
+
+if [[ "$1" = -a ]]; then
+  shift
+
+  _wanted extensions expl 'X extension' \
+      compadd "$@" -M 'm:{a-z}={A-Z} r:|-=* r:|=*' - all "$_xe_cache[@]"
+else
+  [[ "$1" = - ]] && shift
+
+  _wanted extensions expl 'X extension' \
+      compadd "$@" -M 'm:{a-z}={A-Z} r:|-=* r:|=*' -a - _xe_cache
+fi

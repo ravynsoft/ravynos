@@ -1,0 +1,69 @@
+#compdef acpitool
+
+local ret=1 selbrands disambig
+typeset -a brands args
+
+if ! zstyle -a ":completion:${curcontext}:" acpi-extensions brands || \
+  (( $brands[(I)detect] )); then
+  [[ -d /proc/acpi/toshiba ]] && brands+=toshiba
+  [[ -d /proc/acpi/asus ]] && brands+=asus
+  [[ -d /proc/acpi/ibm ]] && brands+=thinkpad
+elif (( $brands[(I)all] )); then
+  brands=(toshiba asus thinkpad)
+fi
+
+args=(
+  '(-a --ac_adapter)'{-a,--ac_adapter}'[show AC adapter presence]'
+  '-b[show battery status for available batteries]'
+  '(-B --battery)'{-B,--battery}'[show detailed battery status for all batteries found]'
+  '(-c --cpu)'{-c,--cpu}'[show CPU information]'
+  '(-a --ac_adapter -A -b -B --battery -c --cpu -e -f --fan -t --thermal -w)-e[show just about everything]'
+  '(-f --fan)'{-f,--fan}'[show fan status]'
+  '(-h --help)'{-h,--help}'[display help]'
+  '(-s --suspend)'{-s,--suspend}'[suspend machine to memory (sleep state S3)]'
+  '-S[suspend machine to disk (sleep state S4)]'
+  '(-t --thermal)'{-t,--thermal}'[show thermal zone(s) information and trip points]'
+  '-v[show more verbose output]'
+  '(-V --version)'{-V,--version}'[output version information and exit]'
+  '-w[show the wakeup capable devices]'
+  '-W+[toggle enable/disable wakeup capable device]: :_wakeup_capable_devices'
+)
+
+if (( $brands[(I)asus] )); then
+  disambig=
+  (( $brands[(I)(toshiba|thinkpad)] )) && disambig='Asus '
+  args+=(
+    '(-A --Asus)'{-A,--Asus}'[show supported Asus ACPI extensions]'
+    '-m+[set mail LED status]:mail LED status:((1\:on 0\:off))'
+    '-n+[set wireless LED status]:wireless LED status:((1\:on 0\:off))'
+    '-o+[set LCD panel status]:LCD panel status:((1\:on 0\:off))'
+    "-z+[set ${disambig}LCD brightness level]:${disambig}LCD brightness level:(0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15)"
+  )
+fi
+
+selbrands=
+if (( $brands[(I)toshiba] )); then
+  selbrands=Toshiba
+  args+=(
+    '-F+[force fan on or switch back to auto mode]:fan status:((1\:on 0\:auto))'
+    '(-T --Toshiba)'{-T,--Toshiba}'[show supported Toshiba ACPI extensions]'
+  )
+fi
+
+if (( $brands[(I)thinkpad] )); then
+  [[ -n $selbrands ]] && selbrands+=/
+  selbrands=${selbrands}Thinkpad
+  args+=('-j[eject ultrabay device]')
+fi
+
+if [[ -n $selbrands ]]; then
+  disambig=
+  (( $brands[(I)asus] )) && disambig="$selbrands "
+  args+=(
+    "-l+[set ${disambig}LCD brightness level]:${disambig}LCD brightness level:(0 1 2 3 4 5 6 7)"
+  )
+fi
+
+_arguments -s $args && ret=0
+
+return ret

@@ -1,0 +1,72 @@
+#compdef -k complete-word \C-xC
+
+# Function to correct a filename.  Can be used as a completion widget,
+# or as a function in its own right, in which case it will print the
+# corrected filename to standard output.
+#
+# You can adapt max_approx to the maximum number of mistakes
+# which are allowed in total.
+#
+# If the numeric prefix is greater than 1, the maximum number of errors
+# will be set to that.
+
+# Doesn't get right special characters in the filename; should
+# strip them (e.g. "foo\ bar" -> "foo bar") and then re-insert them.
+
+emulate -LR zsh
+setopt extendedglob
+
+local file="$PREFIX$SUFFIX" trylist tilde etilde testcmd
+integer approx max_approx=6
+
+if [[ -z $WIDGET ]]; then
+  file=$1
+  local IPREFIX
+else
+  (( ${NUMERIC:-1} > 1 )) && max_approx=$NUMERIC
+fi
+
+if [[ $file = \~*/* ]]; then
+  tilde=${file%%/*}
+  etilde=${~tilde} 2>/dev/null
+  file=${file/#$tilde/$etilde}
+fi
+
+if [[ $CURRENT -eq 1 && $file != /* ]]; then
+  testcmd=1
+elif [[ $file = \=* ]]; then
+  [[ -n $WIDGET ]] && PREFIX="$PREFIX[2,-1]"
+  IPREFIX="${IPREFIX}="
+  file="$file[2,-1]"
+  testcmd=1
+fi
+
+# We need the -Q's to avoid the tilde we've put back getting quoted.
+if [[ -z $testcmd && -e "$file" ]] ||
+  { [[ -n $testcmd ]] && whence "$file" >&/dev/null }; then
+  if [[ -n $WIDGET ]]; then
+    compadd -QUf -i "$IPREFIX" -I "$ISUFFIX" "${file/#$etilde/$tilde}"
+    [[ -n "$compstate[insert]" ]] && compstate[insert]=menu
+  else
+    print "$file"
+  fi
+  return
+fi
+
+for (( approx = 1; approx <= max_approx; approx++ )); do
+  if [[ -z $testcmd ]]; then
+    trylist=( (#a$approx)"$file"(N) )
+  else
+    trylist=( "${(@)${(@f)$(whence -wm "(#a$approx)$file" 2>/dev/null)}%:*}" )
+    [[ $file = */* ]] || trylist=(${trylist##*/})
+  fi
+  (( $#trylist )) && break
+done
+(( $#trylist )) || return 1
+
+if [[ -n $WIDGET ]]; then
+  compadd -QUf -i "$IPREFIX" -I "$ISUFFIX" "${trylist[@]/#$etilde/$tilde}"
+  [[ -n "$compstate[insert]" ]] && compstate[insert]=menu
+else
+  print "$IPREFIX${^trylist[@]}"
+fi

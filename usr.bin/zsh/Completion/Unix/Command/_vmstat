@@ -1,0 +1,126 @@
+#compdef vmstat
+
+local -a specs
+case $OSTYPE in
+  *linux*)
+    specs=(
+      '(-w --wide)'{-w,--wide}'[wide output]'
+      '(-t --timestamp)'{-t,--timestamp}'[show timestamp]'
+      '(-n --one-header)'{-n,--one-header}'[do not redisplay header]'
+      '(-S --unit)'{-S+,--unit=}'[specify unit for displayed sizes]:unit prefix [K]:((k\:1000 K\:1024 m\:1000000 M\:1048576))'
+      '(-C --full-cache)'{-C,--full-cache}'[add further cache lines to main cache]'
+      '1: :_guard "[0-9]#" "interval (seconds)"' '2:count'
+      + '(action)' \
+      '(- :)'{-h,--help}'[display help information]'
+      '(- :)'{-V,--version}'[display version information]'
+      {-a,--active}'[show active/inactive memory]'
+      '(- :)'{-f,--forks}'[show number of forks since boot]'
+      '(-S --unit -t --timestamp -w --wide)'{-m,--slabs}'[show slabinfo]'
+      '(-w --wide -n --one-header -t --timestamp :)'{-s,--stats}'[show event counter statistics]'
+      {-d,--disk}'[show disk statistics]'
+      {-p+,--partition=}'[show partition specific statistics]:partition:_files -W /dev -g "*(-%)"'
+      '(- :)'{-D,--disk-sum}'[summarize disk statistics]'
+    )
+  ;;
+  *bsd*|dragonfly*)
+    specs=(
+      '-c+[specify number of times to refresh the display]:count'
+      '-i[report the number of interrupts taken by devices since boot]'
+      '-M+[specify core file to extract values associated with the name list from]:core:_files'
+      '-N+[specify file to extract the name list from]:system:_files'
+      '-w+[specify delay between each display]:delay (seconds)'
+      '*: :_bsd_disks'
+    )
+  ;|
+  *bsd*)
+    specs+=(
+      '-f[report on the number fork syscalls since boot and pages of virtual memory for each]'
+    )
+  ;|
+  freebsd*|dragonfly*)
+    specs+=(
+      '-m[report on the usage of kernel dynamic memory allocated using malloc(9) by type]'
+      '-n+[change the maximum number of disks to display]:number of disks to display [2]'
+      '*-p+[specify which types of devices to display]: :->devices'
+      '-s[display the contents of the SUM structure]'
+      '-z[report on memory used by the kernel zone allocator, uma(9), by zone]'
+    )
+  ;|
+  freebsd*)
+    specs+=(
+      '-a[include statistics about all interrupts]'
+      '-h[human readable memory columns output]'
+      '-H[scriptable memory columns output]'
+      '-o[list virtual memory objects]'
+      '-P[report per-cpu system/user/idle cpu statistics]'
+    )
+  ;|
+  (net|open)bsd*)
+    specs+=(
+      '-m[report usage of kernel dynamic memory listed first by size of allocation then type of usage]'
+      '-s[display the contents of the UVMEXP structure]'
+      '-v[print more verbose information]'
+    )
+  ;|
+  openbsd*)
+    specs+=(
+      '-t[report on the number of page in and page reclaims since boot]'
+      '-z[include statistics about all interrupts]'
+    )
+  ;;
+  netbsd*)
+    specs+=(
+      '-C[report on kernel memory caches]'
+      '-e[report the values of system event counters]'
+      '-H[report all hash table statistics]'
+      '-h+[dump specified hash table]:hash table:->hashes'
+      '-L[list all hash tables]'
+      '-l[list UVM histories maintained by the kernel]'
+      '-t[display contents of the vmtotal structure]'
+      '-U[dump all UVM histories]'
+      '-u+[dump specified UVM history]:uvm'
+      '-W[print more information about kernel memory pools]'
+    )
+  ;;
+  dragonfly*)
+    specs+=(
+      '-b[use brief format for formatted numbers]'
+      '-o[report usage of kernel object cache]'
+      '-u[output unformatted numeric values]'
+      '-v[include IRQ numbers and IRQ target CPU numbers before device names (with -i)]'
+    )
+  ;;
+  solaris2.<11->)
+    specs+=( '(-i -s)-T+[specify time format]:time format:((u\:seconds\ since\ epoch d\:standard\ date\ format))' )
+  ;&
+  solaris*)
+    specs+=(
+      '-q[suppress messages related to state changes]'
+      + '(actions)' \
+      '(-T)-i[report the number of interrupts taken by devices since boot]'
+      '-p[report paging activity]'
+      '(-T)-s[display the total number of system events since boot]'
+      '-S[report on swapping rather than paging activity]'
+      '::disk:_files -W /dev -g "*(-%b)"'
+      ': :_guard "[0-9]#" "interval (seconds)"' '::count'
+    )
+  ;;
+esac
+
+if (( $#specs )); then
+  local curcontext=$curcontext state state_descr line ret=1
+  typeset -A opt_args
+
+  _arguments -C -s -w -A '-*' : "$specs[@]" && ret=0
+
+  if [[ $state == devices ]]; then
+    _fbsd_device_types && ret=0
+  elif [[ $state == hashes ]]; then
+   local -a tables
+   tables=( ${${${(f)"$(_call_program hashes $words[1] -L)"}[2,-1]#?}/ ##/:} )
+    _describe -t hashes 'hash table' tables && ret=0
+  fi
+  return ret
+fi
+
+_default

@@ -1,0 +1,11 @@
+#compdef mixerctl
+
+: ${(A)_cache_mixerctlvars:=${${(f)"$(mixerctl -a)"}%%=*}}
+_arguments -s -S -A "-*" \
+  '(-q -t *)-a[Print all device variables and their current values]' \
+  '-f[Specify an alternative audio mixing device]:file:_files -g "*(-%c)"' \
+  '(-q -t)-n[Suppress printing of the variable name]' \
+  '(-a -n -v)-q[Suppress all printing when setting a variable]' \
+  '(-a -n -v)-t[Attempt to select the next possible value of an enum]' \
+  '(-q -t)-v[Show all possible values of variables]' \
+  '(-a)*:mixerctl variable:_multi_parts -i -S = -q . _cache_mixerctlvars'

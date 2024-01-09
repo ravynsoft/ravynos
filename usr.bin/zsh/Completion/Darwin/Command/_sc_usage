@@ -1,0 +1,10 @@
+#compdef sc_usage
+
+_arguments -s -A '-*' : \
+  '-c+[specify code file to use]:code file:_files' \
+  '-e[sort output by call count]' \
+  '-l[use scrolling output style instead of window updating style]' \
+  '-s+[specify sampling interval]:seconds' \
+  '(- :)-E[specify command path and args to execute]: :_absolute_command_paths:*:: :_normal' \
+  '1: : _alternative "processes:: _pids"
+	"processes-names:: _process_names -a"'

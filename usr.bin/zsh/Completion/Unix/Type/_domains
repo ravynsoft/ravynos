@@ -1,0 +1,20 @@
+#autoload
+
+local expl domains tmp
+
+if ! zstyle -a ":completion:${curcontext}:domains" domains domains; then
+  if (( ! $+_cache_domains )); then
+    _cache_domains=()
+    if [[ -f /etc/resolv.conf ]]; then
+      while read tmp; do
+        [[ "$tmp" = (domain|search)* ]] &&
+            _cache_domains=( "$_cache_domains[@]" "${=${tmp%%[ 	]#}#*[ 	]}" )
+      done < /etc/resolv.conf
+      _cache_domains=( "${(@)_cache_domains:#[ 	]#}" )
+    fi
+  fi
+  domains=( "$_cache_domains[@]" )
+fi
+
+_wanted domains expl domain \
+    compadd -M 'm:{a-zA-Z}={A-Za-z} r:|.=* r:|=*' -a "$@" - domains

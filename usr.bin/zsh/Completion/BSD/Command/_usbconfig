@@ -1,0 +1,63 @@
+#compdef usbconfig
+
+local curcontext="$curcontext" i ret=1
+local -a state line expl devices ids partial args
+
+_arguments -C \
+  '(-d)-u[limit device range to given USBUS unit]:bus:->buses' \
+  '(-d)-a[limit device range to given USB device index]:address:->addresses' \
+  '(-a -u)-d[limit device range to given unit and address]:device:->devices' \
+  '-i[specify interface index]:interface index' \
+  '(- 1)-h[display usage information]' \
+  '(-)1:command:compadd -M "r:|_=* r:|=*"
+    set_config set_alt set_template get_template add_dev_quirk_vplh
+    remove_dev_quirk_vplh add_quirk remove_quirk detach_kernel_driver
+    dump_quirk_names dump_device_quirks dump_all_desc dump_device_desc
+    dump_curr_config_desc dump_all_config_desc dump_string dump_info show_ifdrv
+    suspend resume power_off power_save power_on reset list do_request' \
+  '*::: := ->args' && ret=0
+
+case $state in
+  buses) partial=( ${(kv)=opt_args[(i)-a]:--a 1} ) i=1 ;|
+  addresses) partial=( ${(kv)opt_args[(i)-u]} ) i=2 ;&
+  buses)
+    devices=( ${${(f)"$(_call_program usb-devices usbconfig $partial list)"}:#No device*} )
+    ids=( ${${(MSI.i.)devices##[^0-9]<->}#?} )
+    _wanted usb-$state expl ${state%es} compadd -ld devices -o numeric -a ids && ret=0
+  ;;
+  devices)
+    devices=( ${${${(f)"$(_call_program usb-devices usbconfig list)"}/: /:}:#No device*} )
+    if (( $#devices )); then
+      _describe -t usb-devices device devices -M 'B:=ugen' && ret=0
+    else
+      _message -e usb-devices device
+    fi
+  ;;
+  args)
+    curcontext="${curcontext%:*}-$line[1]:"
+    case $line[1] in
+      set_config) args=( '1:cfg index' ) ;;
+      set_alt) args=( '1:alt index' ) ;;
+      set_template) args=( '1:template (see usb_template(4))' ) ;;
+      (add|remove)_dev_quirk_vplh) args=( -C
+        ':vendor id' ':product id' ':low revision'
+        ':high revision' ':quirk:->quirks'
+      ) ;;
+      (add|remove)_quirk) args=( -C '1:quirk:->quirks' ) ;;
+      dump_string) args=( '1:index' ) ;;
+      do_request) args=( :bmReqTyp :bReq :wVal :wIdx :wLen '*:data' ) ;;
+    esac
+    if (( $#args )); then
+      _arguments $args && ret=0
+    else
+      _message 'no more arguments'
+    fi
+    if [[ $state = quirks ]]; then
+      _wanted quirks expl quirk compadd \
+          -M 'm:{:lower:}={:upper:} r:|_=* r:|=* b:=UQ_' \
+          ${${(f)"$(_call_program quirks usbconfig dump_quirk_names)"}:#*list of*} && ret=0
+    fi
+  ;;
+esac
+
+return ret

@@ -1,0 +1,12 @@
+#autoload
+
+local expl
+
+_description files expl 'object file'
+
+__object_file() {
+  [[ -x $REPLY || $REPLY = *.(a|o|elf|dylib) || $REPLY = *.so(.<->)# ||
+	$REPLY = (core*|*.core) ]]
+}
+
+_files -g '*(-.e,__object_file,)' "$@" "${(@)expl}"

@@ -1,0 +1,66 @@
+#compdef dropbox
+
+if [[ CURRENT -eq 2 || $words[2] = help ]]; then
+  local -a line progs
+
+  _call_program command dropbox help |
+    while read -A line; do
+	if [[ $line[1] = [a-z]## ]]; then
+	  progs+=("${line[1]}:${line[2,-1]}")
+	fi
+    done
+
+  _describe -t command 'Dropbox command' progs
+else
+  local -a opts
+
+  case $words[2] in
+    (exclude)
+    _path_files -g '*(/)'
+    ;;
+
+    (filestatus)
+    shift words
+    (( CURRENT-- ))
+    _arguments -s : \
+       '(-l --list)'{-l,--list}'[use format like ls]' \
+       '(-a --all)'{-a,--all}'[do not ignore entries starting .]' \
+       '*:File to list:_files'
+    ;;
+
+    (ls|puburl|sharelink)
+    _files
+    ;;
+
+    (autostart|lansync)
+    opts=("y:turn $words[2] on" "n:turn $words[2] off")
+    _describe "$words[2] behaviour" opts
+    ;;
+
+    (proxy)
+    _arguments \
+      '2:proxy mode:(none auto manual)' \
+      '3:proxy type for manual mode:(http socks4 socks5)' \
+      '4:proxy host for manual mode:_hosts' \
+      '5:proxy port for manual mode:_ports' \
+      '6:proxy user for manual mode:_users' \
+      '7:proxy password for manual mode:'
+    ;;
+
+    (start)
+    shift words
+    (( CURRENT-- ))
+    _arguments -s : '(-i --install)'{-i,--install}'[auto install dropboxd]'
+    ;;
+
+    (throttle)
+    _arguments \
+      '2:download limit (KB/s):(unlimited)' \
+      '3:upload limit (KB/s):(unlimited)'
+    ;;
+
+    (*)
+    _default
+    ;;
+  esac
+fi

@@ -1,0 +1,144 @@
+#compdef perl
+
+typeset -A opt_args
+
+_perl () {
+  _arguments -s \
+    '-0-[input record separator ($/)]:: :_perl_input_seps' \
+    '-a[autosplit mode with -n or -p (splits $_ into @F)]' \
+    '-C-[control some unicode features]: :_perl_unicode_flags' \
+    "-c[check syntax only (runs BEGIN and END blocks)]" \
+    '(   -dt -d: -dt:)-d[run scripts under debugger]' \
+    '(-d     -d: -dt:)-dt[run scripts under debugger (debugged code uses threads)]' \
+    '(-d -dt     -dt:)-d\:-[run under control of a debugging/tracing module]:debugging/tracing module:_perl_modules --strip-prefix --perl-hierarchy=Devel' \
+    '(-d -dt -d:     )-dt\:-[run under control of a debugging/tracing module (debugged coded uses threads)]:debugging/tracing module:_perl_modules --strip-prefix --perl-hierarchy=Devel' \
+    '-D-[set debugging flags]: :_perl_debugging_flags' \
+    '(1 -E)*-e+[run one line of program]:one line of program' \
+    '(1 -e)*-E+[like -e but enable all optional features]:one line of program' \
+    '-f[disable executing $Config{sitelib}/sitecustomize.pl at startup]' \
+    '-F-[split() pattern for autosplit (-a)]:split() pattern, // is optional' \
+    '-h[list help summary]' \
+    '-i-[edit <> files in place (make backup if extension supplied)]:backup file extension: ' \
+    '*-I-[specify @INC/#include directory (may be used more than once)]:include path:_files -/' \
+    '-l-[enable line ending processing, specifies line terminator]:: :_perl_output_seps' \
+    \*{-m,-M}"-[module.. executes \`use/no module...' before executing your script]:module:_perl_m_opt" \
+    "-n[assume 'while (<>) { ... }' loop around your script]" \
+    "-p[assume loop like -n but print line also like sed]" \
+    "-s[enable some switch parsing for switches after script name]" \
+    "-S[look for the script using PATH environment variable]" \
+    '(   -T)-t[turn on taint checks but only issue warnings]' \
+    '(-t   )-T[turn on taint checks]' \
+    "-u[dump core after parsing script]" \
+    "-U[allow unsafe operations]" \
+    "-v[print version, patchlevel and license]" \
+    "-V-[print perl configuration information]:configuration key:_perl_config_vars" \
+    '(   -W -X)-w[turn warnings on for compilation of your script (recommended)]' \
+    "(-w    -X)-W[enable all warnings (ignores 'no warnings')]" \
+    "(-w -W   )-X[disable all warnings (ignores 'use warnings')]" \
+    '-x-[ignore text before #!perl line and optionally cd to directory]:directory to cd to:_files -/' \
+    '1:Perl script:_files -g "*.(p[ml]|PL|t)(-.)"' \
+    '*::args:= _perl_normal'
+}
+
+_perl_normal() {
+  local expl
+  if [[ -z "$opt_args[(I)-(e|E)]" ]]; then
+    shift words
+    (( CURRENT-- ))
+  fi
+  _normal && ret=0
+}
+
+_perl_m_opt () {
+  compset -P '-'
+
+  if compset -P 1 '*='; then
+    _message -e module-arguments 'module arguments, comma separated'
+  else
+    _perl_modules -S= -q
+  fi
+}
+
+_perl_input_seps() {
+  if [[ $#PREFIX -eq 1 && $PREFIX != [0-9a-zA-Z] ]]; then
+    # convert a non-octal or potential option character into octal representation
+    compadd -i "$IPREFIX" -U $(( [##8] ##$PREFIX ))
+  else
+    _describe -x -t separators "input record separator, $/ in octal or hex (\0, if no argument) [\n]" '(
+      0:paragraph\ mode
+      777:slurp\ whole\ input\ files
+    )' || _comp_mesg=yes
+  fi
+}
+
+_perl_output_seps() {
+  if [[ $#PREFIX -eq 1 && $PREFIX != [0-9a-zA-Z] ]]; then
+    # convert a non-octal or potential option character into octal representation
+    compadd -i "$IPREFIX" -U $(( [##8] ##$PREFIX ))
+  else
+    _message -e separators "output record separator, $\\ in octal or hex [$/]"
+  fi
+}
+
+_perl_config_vars () {
+  if (( ! $+_perl_config_vars )); then
+    _perl_config_vars=( $(perl -MConfig -e 'print join("\n", keys %Config);') )
+  fi
+
+  local add_colon='-P:'
+  compset -P '*:' && add_colon=''
+
+  local delimiter='\ '
+  (( compstate[quoting] )) && delimiter=' '
+
+  compset -P '* ' && compset -q
+  compadd "$expl[@]" $add_colon -S$delimiter -q -a _perl_config_vars
+}
+
+_perl_unicode_flags () {
+  _values -s '' 'unicode bitmask or flag' \
+    '(S)I[  1 STDIN is assumed to be in UTF-8]' \
+    '(S)O[  2 STDOUT will be in UTF-8]' \
+    '(S)E[  4 STDERR will be in UTF-8]' \
+    '(I O E)S[  7 I + O + E]' \
+    '(D)i[  8 UTF-8 is the default PerlIO layer for input streams]' \
+    '(D)o[ 16 UTF-8 is the default PerlIO layer for output streams]' \
+    '(i o)D[ 24 i + o]' \
+    'A[ 32 the @ARGV elements are expected to be strings encoded in UTF-8]' \
+    'L[ 64 make "IOEioA" conditional on the locale environment variables]' \
+    'a[256 set ${^UTF8CACHE} to -1, used for debugging]' \
+}
+
+_perl_debugging_flags () {
+  _values -s '' 'debug flag or bitmask' \
+    'p[        1 tokenizing and parsing (with v, display parse stack)]' \
+    's[        2 stack snapshots (with v, display all stacks)]' \
+    'l[        4 context (loop) stack processing]' \
+    't[        8 trace execution]' \
+    'o[       16 method and overload resolution]' \
+    'c[       32 string/numeric conversions]' \
+    'P[       64 print profiling info, source file input state]' \
+    'm[      128 memory and SV allocation]' \
+    'f[      256 format processing]' \
+    'r[      512 regular expression parsing and execution]' \
+    'x[     1024 syntax tree dump]' \
+    'u[     2048 tainting checks]' \
+    'U[     4096 unofficial, user hacking (reserved for private, unreleased use)]' \
+    'X[    16384 scratchpad allocation]' \
+    'D[    32768 cleaning up]' \
+    'S[    66536 Op slab allocation]' \
+    'T[   131072 tokenising]' \
+    'R[   262144 include reference counts of dumped variables (e.g. when using -Ds)]' \
+    "J[   524288 show s,t,P-debug (don't jump over) on opcodes within package DB]" \
+    'v[  1048576 verbose: use in conjunction with other flags]' \
+    'C[  2097152 copy-on-write]' \
+    'A[  4194304 consistency checks on internal structures]' \
+    'q[  8388608 quiet - currently only suppresses the "EXECUTING" message]' \
+    'M[ 16777216 trace smart match resolution]' \
+    'B[ 33554432 dump subroutine definitions, including special blocks like BEGIN]' \
+    'L[ 67108864 trace locale-related info]' \
+    'i[134217728 trace PerlIO layer processing]' \
+    'y[268435456 trace y///, tr/// compilation and execution]'
+}
+
+_perl "$@"

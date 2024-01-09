@@ -1,0 +1,38 @@
+#!/bin/zsh -f
+#
+# Install this function by placing it in your FPATH and then
+# adding to your .zshrc the line if you use run-help function:
+#       autoload -Uz run-help-ip
+
+if [ $# -eq 0 ]; then
+    man ip
+    return
+fi
+
+if ! man -w ip-address >/dev/null 2>&1; then
+    man ip
+    return
+fi
+
+case $1 in
+    (addrl*) man ip-addrlabel ;;
+    (a*) man ip-address ;;
+    (l2*) man ip-l2tp ;;
+    (li*) man ip-link ;;
+    (ma*) man ip-maddress ;;
+    (mo*) man ip-monitor ;;
+    (mr*) man ip-mroute ;;
+    (nei*) man ip-neighbour ;;
+    (netc*) man ip-netconf ;;
+    (netn*) man ip-netns ;;
+    (nt*) man ip-ntable ;;
+    (ro*) man ip-route ;;
+    (ru*) man ip-rule ;;
+    (tcp*) man ip-tcp_metrics ;;
+    (to*) man ip-token ;;
+    (tu*) man ip-tunnel ;;
+    (xf*) man ip-xfrm ;;
+    (*) man ip ;;
+esac
+
+return $?

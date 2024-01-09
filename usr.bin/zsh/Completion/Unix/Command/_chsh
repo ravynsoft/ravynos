@@ -1,0 +1,67 @@
+#compdef chsh chpass
+
+local variant help=h
+local -a args shells
+
+case $OSTYPE in
+  darwin*|*bsd*)
+    args=( '(-a)-s[specify new login shell]:shell:($shells)' )
+  ;|
+  (free|net|open)bsd*)
+    args+=( '(-s 1)-a[specify user database entry]:passwd entry' )
+  ;|
+  darwin*)
+    args+=(
+      '-l[specify location of user]:location'
+      '-u[specify authentication name]:auth user'
+    )
+  ;;
+  (free|net)bsd*)
+    args+=(
+      '(-y)-l[update only the local password file]'
+      '(-l)-y[force YP database entry to be changed]'
+    )
+  ;|
+  freebsd*)
+    args+=(
+      '-p[specify encrypted password field]:password hash'
+      '-e[change account expire time]:expiry time'
+      '-d[specify NIS domain]:domain'
+      '-h[specify NIS server to query]:NIS server:_hosts'
+      '-o[force use of RPC-based updates]'
+    )
+  ;;
+  (linux-gnu)
+    _pick_variant -r variant util-linux=util-linux suse=pwdutils debian -v
+    args=( -S : '(-)'{-s+,--shell=}'[specify new login shell]:shell:($shells)' )
+    case $variant in
+      suse|util-linux)
+	shells=( $(_call_program shells $words[1] -l) )
+        args+=(
+	  '(-)'{-l,--list-shells}'[print shells in /etc/shells]'
+	  '(-)'{-v,--version}'[display version information]'
+        )
+	help=u
+      ;|
+      util-linux|debian)
+	args+=( '(-)-'{$help,-help}'[display help information]' )
+      ;|
+      suse)
+        args+=(
+	  '(-)'{-u,--usage}'[display short usage message]'
+	  '(-)--help[display help information]'
+	  '(-D --binddn)'{-D+,--binddn=}'[specify LDAP distinguished name to bind]:binddn'
+	  '(-P --path)'{-P+,--path=}'[specify path to search for passwd and shadow files]:path:_directories'
+	  '(-q --quiet)'{-q,--quiet}"[don't be verbose]"
+	  '--service=[use specified name service]:service:(files nis nisplus ldap)'
+	)
+      ;;
+      debian)
+	args+=( '(-R --root)'{-R+,--root=}'[specify directory to chroot into]:directory:_directories' )
+      ;;
+    esac
+  ;;
+esac
+
+(( $#shells )) || shells=( ${(Z+Cn+)"$(</etc/shells)"} )
+_arguments $args '1:user name:_users'

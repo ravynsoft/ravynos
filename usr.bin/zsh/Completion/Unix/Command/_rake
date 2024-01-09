@@ -1,0 +1,51 @@
+#compdef rake
+
+# rake, version 0.8.3
+
+local curcontext="$curcontext" state line expl ret=1
+typeset -A opt_args
+
+_arguments -C -s -S \
+  '(--classic-namespace -C)'{--classic-namespace,-C}'[put Task and FileTask in the top level namespace]' \
+  '(--dry-run -n)'{--dry-run,-n}'[do a dry run without executing actions]' \
+  '(- *)'{--describe,-D}'[describe the tasks (matching the specified pattern), then exit]:pattern::' \
+  '(--execute -e)'{--execute,-e}'[execute some Ruby code and exit]:Ruby code:' \
+  '(--execute-print -p)'{--execute-print,-p}'[execute some Ruby code, print the result, then exit]:Ruby code:' \
+  '(--execute-continue -E)'{--execute-continue,-E}'[execute some Ruby code, then continue with normal task processing]:Ruby code:' \
+  '(- *)'{--help,-h,-H}'[display help information]' \
+  \*{--libdir,-I}'[include specified directory in the search path for required modules]:library directory:_files -/' \
+  '(--rakelibdir --rakelib -R)'{--rakelibdir,--rakelib,-R}'[auto-import any .rake files in the specified directory. (default is 'rakelib')]:rake library directory:_files -/' \
+  '(--nosearch -N)'{--nosearch,-N}'[do not search parent directories for the Rakefile]' \
+  '(- *)'{--prereqs,-P}'[display the tasks and prerequisites, then exit]' \
+  '(--quiet -q --silent -s --verbose -v)'{--quiet,-q}'[do not log messages to standard output]' \
+  '(--rakefile -f)'{--rakefile,-f}'[use specified file as the rakefile]:rake file:_files' \
+  \*{--require,-r}'[require specified module before executing rakefile]:library:->library' \
+  '(- *)--rules[trace the rules resolution]' \
+  '(--quiet -q --silent -s --verbose -v)'{--silent,-s}"[like --quiet, but also suppresses the 'in directory' announcement]" \
+  '(--system -g)'{--system,-g}'[using system wide (global) rakefiles (usually '~/.rake/*.rake')]' \
+  '(- *)'{--tasks,-T}'[display the tasks (matching the specified pattern) with descriptions, then exit]:pattern::' \
+  '(--trace -t)'{--trace,-t}'[turn on invoke/execute tracing, enable full backtrace]' \
+  '(--quiet -q --silent -s --verbose -v)'{--verbose,-v}'[log message to standard output (default)]' \
+  '(- *)'{--version,-V}'[display version information]' \
+  '*:target:->target' && ret=0
+
+case "$state" in
+  library)
+    local -a dirs
+    dirs=( $(_call_program directories ruby -e 'puts\ \$:' 2>/dev/null) ${(s.:.)opt_args[-I]} )
+    _wanted libraries expl library _path_files -W dirs && ret=0
+  ;;
+  target)
+    local -a targets
+    local all
+    zstyle -t ":completion:${curcontext}:targets" extended && all=-A
+    targets=( ${${(f)"$(_call_program targets $words[1] $all -sT $opt_args[(I)(-N|--nosearch)] ${(kv)opt_args[(I)(-f|--rakefile)]} 2>/dev/null)"}/(#b)rake ([^ ]##) ##\# (*)/${${match[1]}//:/\\:}:${match[2]:l}} )
+    if (( ! ${targets[(I)rake aborted!]} )) then
+      _describe -t targets 'rake target' targets && ret=0
+    else
+      _message -e targets 'rake target'
+    fi
+  ;;
+esac
+
+return ret

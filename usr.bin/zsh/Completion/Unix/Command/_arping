@@ -1,0 +1,56 @@
+#compdef arping
+
+if _pick_variant iputils=iputils thabets -V; then
+
+_arguments -s \
+  '-f[quit on first reply]' \
+  '-q[be quiet]' \
+  '-b[keep broadcasting, do not go unicast]' \
+  '-D[duplicate address detection mode]'\
+  '-U[unsolicited ARP mode, update your neighbours]' \
+  '-A[ARP answer mode, update your neighbours]' \
+  '-V[print version and exit]' \
+  '-c[how many packets to send]:count' \
+  '-w[how long to wait for a reply]:timeout' \
+  '-i[specify interval between packets]:interval (seconds)' \
+  '-I[interface]:ethernet interface:_net_interfaces' \
+  '-s[source ip address]:source IP address:_hosts' \
+  ':destination:_hosts'
+
+else
+
+_arguments -s -S  -A "-*" \
+  '(-)'{-h,--help}'[display help information]' \
+  '-q[only display error messages]' \
+  '-a[audible ping]' \
+  '*-v[verbose output]' \
+  '-r[raw output: only the MAC/IP address displayed]' \
+  '-R[like -r but shows "the other one"]' \
+  '-d[find duplicate replies]' \
+  '-D[display answers as exclamation marks and missing packets as dots]' \
+  '-e[like -a but beep when there is no reply]' \
+  "-F[don't try to be smart about the interface name]" \
+  '-g+[specify group to setgid() to]:group [nobody]:_groups' \
+  '-m+[specify type of timestamp for incoming packets]:timestamp type' \
+  '(:)-B[255.255.255.255]' \
+  '-0[source 0.0.0.0]' \
+  '-b[source 255.255.255.255]' \
+  '-S+[set source IP]:source IP address:_hosts' \
+  '-T+[target IP]:target IP address:_hosts' \
+  '-p[turn on promiscuous mode]' \
+  '-Q+[specify 802.1p priority to set]:priority [0]' \
+  '-s[set source MAC address]:source MAC address' \
+  '-t[set target MAC address]:target MAC address' \
+  '-c[send this many requests]:count' \
+  '-C[only wait for specified replies]:reply count' \
+  '-i+[interface]:interface:_net_interfaces' \
+  '-A[only count addresses matching requested address]' \
+  '-P[send ARP replies instead of requests]' \
+  '-u[show index=received/sent instead of just index=received when pinging MACs]' \
+  '-U[send unsolicited ARP]' \
+  '-V+[specify VLAN tag to set]:vlan' \
+  '-w+[specify time to wait between pings (microseconds)]:time (microseconds)' \
+  '-W+[specify time to wait between pings (seconds)]:time (seconds)' \
+  '(-B):address:_hosts'
+ 
+fi

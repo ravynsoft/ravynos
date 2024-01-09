@@ -1,0 +1,688 @@
+#compdef zstyle
+
+local state context ostate line expl ctop suf
+local nm=$compstate[nmatches] taglist patterns contexts MATCH
+integer MBEGIN MEND
+typeset -A opt_args styles
+
+# Assoc array of styles; the values give the possible top-level
+# contexts:
+#   c   completion
+#   d   chpwd
+#   e   line editor
+#   v   vcs_info
+#   z   zftp
+# or any combination of the above,
+# followed by a colon, followed by a state to enter, empty if none.
+styles=(
+  accept-exact		 c:bool
+  accept-exact-dirs	 c:bool
+  add-space		 c:bool
+  ambiguous              c:bool
+  assign-list            c:_parameters
+  auto-description	 c:
+  avoid-completer        c:completer
+  break-keys             c:
+  cache-path		 c:_directories
+  cache-policy           c:_functions
+  call-command           c:bool
+  command                c:command
+  command-path		 c:_dir_list
+  commands               c:
+  complete               c:bool
+  complete-options	 c:bool
+  completer		 c:completer
+  condition		 c:bool
+  cursor		 c:cursor
+  delimiters		 c:
+  disabled               c:bool
+  domains                c:
+  environ		 c:environ
+  expand		 c:
+  extra-verbose		 c:bool
+  fake			 c:
+  fake-always            c:
+  fake-files		 c:fake-files
+  fake-parameters	 c:fake-params
+  file-list              c:bool
+  file-patterns		 c:filepat
+  file-sort              c:fsort
+  filter		 c:
+  force-list             c:
+  format		 c:
+  glob			 c:bool
+  global                 c:bool
+  group-name		 c:
+  group-order		 c:tag
+  groups		 c:_groups
+  hidden		 c:bool
+  hosts			 c:_hosts
+  hosts-ports		 c:host-port
+  ignore-line            c:ignline
+  ignore-parents         c:ignorepar
+  ignored-patterns	 c:
+  insert-ids             c:insert-ids
+  insert-sections	 c:insert-sections
+  insert-tab             c:bool
+  insert-unambiguous	 c:insunambig
+  keep-prefix		 c:keep-prefix
+  last-prompt		 c:bool
+  list			 ce:listwhen
+  list-colors		 c:
+  list-dirs-first	 c:bool
+  list-grouped		 c:bool
+  list-packed		 c:bool
+  list-prompt            c:
+  list-rows-first	 c:bool
+  list-separator	 c:separator
+  list-suffixes		 c:bool
+  local			 c:
+  mail-directory         c:_directories
+  match-original	 c:match-orig
+  matcher		 c:
+  matcher-list		 c:
+  max-errors		 c:
+  max-matches-width      c:max-matches-width
+  menu			 c:boolauto
+  muttrc                 c:_files
+  numbers		 c:bool
+  old-list		 c:bool
+  old-matches            c:oldmatches
+  old-menu		 c:bool
+  original		 c:bool
+  packageset		 c:packageset
+  path			 c:_directories
+  pager			 c:_command_names
+  path-completion	 c:bool
+  pine-directory         c:_directories
+  ports			 c:_ports
+  prefix-hidden		 c:bool
+  prefix-needed		 c:bool
+  preserve-prefix        c:preserve-prefix
+  range                  c:
+  recent-dirs-insert     c:recent-dirs-insert
+  recursive-files        c:
+  regular                c:bool
+  rehash		 c:bool
+  remote-access		 c:bool
+  remove-all-dups	 c:bool
+  select-prompt          c:
+  select-scroll          c:
+  separate-sections      c:bool
+  show-ambiguity	 c:
+  show-completer	 c:bool
+  single-ignored         c:single-ignored
+  sort			 c:sort-order
+  special-dirs		 c:sdirs
+  squeeze-slashes	 c:bool
+  stop			 c:stop
+  strip-comments	 c:bool
+  subst-globs-only       c:bool
+  substitute		 c:bool
+  suffix		 c:bool
+  tag-order		 c:tag-order
+  try-to-use-pminst	 c:bool
+  urls                   c:_urls
+  use-cache		 c:bool
+  use-compctl		 c:urgh
+  use-ip		 c:bool
+  use-perl		 c:bool
+  users			 c:_users
+  users-hosts		 c:user-host
+  users-hosts-ports	 c:user-host-port
+  verbose		 ce:bool
+  word			 c:bool
+
+  recent-dirs-default    d:bool
+  recent-dirs-file       d:_files
+  recent-dirs-max        d:
+  recent-dirs-prune      d:
+  recent-dirs-pushd      d:bool
+
+  auto-previous          e:bool
+  break-keys             e:
+  cursor                 e:
+  edit-buffer            e:bool
+  edit-previous          e:bool
+  editor                 e:
+  insert-kept            e:
+  leave-cursor           e:bool
+  match                  e:
+  prompt                 e:
+  stop-keys              e:
+  toggle                 e:bool
+  url-globbers           e:
+  url-local-schema       e:
+  url-metas              e:
+  url-other-schema       e:
+  url-seps               e:
+  whence                 e:
+  word-chars             e:
+  word-class             e:
+  word-style             e:word-style
+  word-context           e:
+
+  formats                v:vcs-format
+  actionformats          v:vcs-format
+  branchformat           v:branch-format
+  nvcsformats            v:
+  hgrevformat            v:hgrev-format
+  stgitformat            v:stg-format
+  patch-format           v:patch-format
+  nopatch-format         v:patch-format
+  max-exports            v:
+  enable                 v:vcs
+  disable                v:vcs
+  disable-patterns       v:
+  check-for-changes      v:bool
+  check-for-staged-changes
+                         v:bool
+  stagedstr              v:
+  unstagedstr            v:
+  command                v:_command_names
+  use-server             v:bool
+  use-simple             v:bool
+  get-revision           v:bool
+  get-mq                 v:bool
+  get-bookmarks          v:bool
+  get-unapplied          v:bool
+  debug                  v:bool
+  hooks                  v:_vcs_info_hooks
+  use-prompt-escapes     v:bool
+  use-quilt              v:bool
+  quilt-standalone       v:bool
+  quilt-patch-dir        v:_directories
+  quiltcommand           v:_command_names
+
+  chpwd			 z:bool
+  progress		 z:progress
+  remote-glob		 z:bool
+  titlebar		 z:bool
+  update		 z:
+)
+
+taglist=(
+  accounts all-expansions all-files arguments arrays association-keys
+  bookmarks builtins characters colormapids colors commands contexts
+  corrections cursors default descriptions devices directories
+  directory-stack displays expansions extensions files flags fstypes
+  fonts functions globbed-files groups history-words hosts indexes
+  interfaces jobs keymaps keysyms libraries limits local-directories
+  mailboxes manuals maps messages modifiers modules my-accounts
+  named-directories names newsgroups nicknames options original
+  other-accounts packages parameters path-directories paths pods ports
+  prefixes printers processes processes-names ps regex sequences
+  sessions signals strings styles tags targets timezones types urls
+  users values variant visuals warnings widgets windows zsh-options
+  email-address ${(k)functions[(I)_email-*]#_}
+)
+
+# Be careful with the context arguments here.  They like to masquerade.
+_arguments -C -A '-*' \
+  '(: -)-L[output in form of zstyle commands]:pattern for context patterns:->metapatterns:style:->metastyles' \
+  '(: -)-d[delete style definitions]:verbatim context pattern:->patterns:*:styles:->pstyles' \
+  '(: -)-e[value is evaluated when style is looked up]:context pattern:->contexts:style:->styles:*:command:_cmdstring' \
+  '(: -)-g[retrieve style definition]:array parameter:_parameters -g "*array*":verbatim context pattern:->patterns:styles:->pstyles' \
+  '(: -)-s[retrieve style value as string]:context name:->contexts:style:->styles:scalar parameter:_parameters -g "*scalar*":separator: ' \
+  '(: -)-b[retrieve style value as boolean]:context name:->contexts:style:->styles:scalar parameter:_parameters -g "*scalar*"' \
+  '(: -)-a[retrieve style value as array]:context name:->contexts:style:->styles:array parameter:_parameters -g "*array*"' \
+  '(: -)-t[test a style, returning false if it'\''s undefined]:context name:->contexts:style:->styles:*:strings to test presence of: ' \
+  '(: -)-T[test a style, returning true if it'\''s undefined]:context name:->contexts:style:->styles:*:strings to test presence of: ' \
+  '(: -)-m[pattern-match values of a style]:context name:->contexts:style:->styles:pattern: ' \
+  ':context pattern:->contexts' ':style:->styles' '*:argument:->style-arg'
+
+while (( $#state )); do
+  case "$state[1]" in
+    # 'contexts' completes either full context names (for -t/-s/-a), or context
+    # patterns (for 'zstyle :foo bar' and -e).
+    (contexts)
+      if [[ ! -prefix :*: ]]; then
+	_wanted contexts expl "$state_descr"  compadd -P : -qS : chpwd completion vcs_info zftp zle
+      elif compset -P :completion:; then
+        contexts=( functions _completers cmdorcont argument tag )
+      elif compset -P :vcs_info:; then
+        contexts=( vcs-string user-context repo-root-name )
+      elif compset -P :zle:; then
+	_wanted widgets expl widget _widgets -qS :
+      fi
+      if (( $#contexts )); then
+        for ostate in $contexts; do
+	  compset -P '[^:]#:' || break
+	done
+	suf=()
+	compset -S ':*' || suf=( -qS: )
+	[[ $ostate = $contexts[-1] ]] && suf=()
+	if compset -P '(|\\)\((*\||)'; then  # handle (x|y) patterns
+	  suf=()
+	  compset -S '(|\\)[)|]*' ||
+	      suf=( -S "${${QIPREFIX:+|}:-\|}" -r "${${QIPREFIX:+|}:-\\\\} \t)" )
+	fi
+	state+=( "$ostate" )
+      fi
+      ;;
+
+    # 'patterns' completes context patterns that are set, for -d/-g.
+    (patterns)
+      zstyle -g patterns
+      _wanted contexts expl "$state_descr" compadd -a patterns
+      ;;
+
+    # 'metapatterns': patterns that are matched not against contexts, but
+    # against patterns.
+    (metapatterns)
+      zstyle -g patterns
+      patterns=( "${(@b)patterns}" )
+      _wanted contexts expl "$state_descr" compadd -a patterns
+      ;;
+
+    # 'metastyles': styles that are set on context patterns matching the given
+    # metapattern.
+    (metastyles)
+      # Anonymous function to shadow the global $styles assoc
+      () { 
+        local metapattern=${(Q)${${opt_args[-L]%:*}//(#m)\\([\\:])/${MATCH[2]}}}
+        local -a metastyles styles
+        local pattern
+        zstyle -g patterns
+        for pattern in "${(@M)patterns:#${~metapattern}}"; do
+          zstyle -g styles $pattern
+          metastyles+=( "${styles[@]}" )
+        done
+        _wanted styles expl "$state_descr" compadd -a metastyles
+        unset pattern
+        unset metastyles
+      }
+      ;;
+
+    # 'pstyles': complete styles that are set for the verbatim context pattern
+    # specified on the command line.  (If the user has set no zstyles, this
+    # will complete nothing.)
+    (pstyles)
+      local -a pstyles
+      local pattern
+      if (( $+opt_args[-d] )); then
+        pattern=${opt_args[-d]}
+        pattern=${pattern%":${(b)PREFIX}"} # remove style
+        pattern=${pattern//(#m)\\([\\:])/${MATCH[2]}} # undo _arguments escaping
+        pattern=${(Q)pattern} # undo command-line escaping (assumes no noglob)
+        zstyle -g pstyles $pattern
+      elif (( $+opt_args[-g] )); then
+        pattern=${opt_args[-g]}
+        pattern=${pattern%":${(b)PREFIX}"} # remove style
+        pattern=${pattern#*:} # remove array name
+        pattern=${pattern//(#m)\\([\\:])/${MATCH[2]}} # undo _arguments escaping
+        pattern=${(Q)pattern} # undo command-line escaping (assumes no noglob)
+        zstyle -g pstyles $pattern
+      fi
+      _wanted styles expl style compadd -a pstyles
+      unset pattern
+      unset pstyles
+    ;;
+
+    # 'styles': complete all styles that may be set in the context given on the
+    # command line.  This is independent of what styles are set.
+    (styles)
+      # Get the top-level context we're completing for, if any.
+      if [[ -n $line[1] ]]; then
+        # zstyle :something <TAB>
+        local the_context=$line[1]
+      else
+        # zstyle -x :something <TAB>
+        local joined_value=${(v)opt_args[(i)(-e|-s|-b|-a|-t|-T|-m)]}
+        local the_context=${(Q)joined_value[0, ${joined_value[(i)[^\\]:]}-2 ]}
+      fi
+      # Note: for 'zstyle :something <TAB>' and for 'zstyle -e :something <TAB>',
+      # $the_context is a context pattern; for -s,-b,-a,-t,-T,-m, it is a context
+      # name.  We currently draw no distinction between these two cases.
+      case $the_context in
+	(:completion:*)
+	ctop=c
+	;;
+
+	(:chwpd:*)
+	ctop=d
+	;;
+
+	(:zftp:*)
+	ctop=z
+	;;
+
+        (:vcs_info:*)
+        ctop=v
+        ;;
+
+	(:zle:*)
+	ctop=e
+	;;
+
+	(*)
+        ctop=a-z
+	;;
+      esac
+      _wanted styles expl style \
+         compadd -M 'r:|-=* r:|=*' -k "styles[(R)[^:]#[$ctop][^:]#:*]"
+      ;;
+
+    (style-arg)
+      state+=( "${styles[${(Q)line[2]}]#*:}" )
+      ;;
+
+    (argument)
+      _message -e arguments argument
+      ;;
+
+    (bool)
+      _wanted values expl boolean compadd true false
+      ;;
+
+    (boolauto)
+      _wanted values expl boolean \
+          compadd true false auto select search search-backward interactive
+      ;;
+
+    (cmdorcont)
+      _alternative -O suf \
+        'commands:command:_path_commands' \
+        'contexts:context:(-array-value- -brace-parameter- -command- -condition- -math- -parameter- -redirect- -subscript- -value-)'
+     ;;
+
+    (cursor)
+      _wanted values expl 'cursor positioning' compadd complete key default
+      ;;
+
+    (completer)
+      _wanted values expl completer _completers -p
+      ;;
+
+    (environ)
+      if [[ "$PREFIX" = *\=* ]]; then
+	compstate[parameter]="${PREFIX%%\=*}"
+	compset -P 1 '*='
+	_value
+      else
+        suf=()
+	compset -S '=*' || suf=(-S '=')
+	_parameters -q $suf
+      fi
+      ;;
+
+    (fsort)
+      _wanted values expl 'how to sort files' \
+	compadd name size links time date modification access inode change reverse
+      ;;
+
+    (function)
+      _wanted control-functions expl 'control function' \
+          compadd predict-on all-matches
+      ;;
+
+    (functions)
+      _wanted comp-widgets expl 'completion widget' \
+          compadd $suf -M 'r:|-=* r:|=*' - all-matches complete-debug complete-tag \
+	  correct-word expand-word expand-alias-word history-words \
+	  ${${${(M)${(f)"$(_call_program comp-widgets zle -l)"}:#*-C*}:#_*}/ -C*}
+      ;;
+
+    (user-host-port)
+      if [[ $PREFIX != *[@:]* ]]; then
+	_users -S @
+      elif [[ $PREFIX = *[@:]*[[@:]* ]]; then
+	compset -P 2 '*[:@]'
+	_ports
+      else
+	compset -P 1 '*[:@]'
+	_hosts -S :
+      fi
+      ;;
+
+    (host-port)
+      if [[ $PREFIX != *:* ]]; then
+	_hosts -S :
+      else
+	compset -P 1 '*:'
+	_ports
+      fi
+      ;;
+
+    (listwhen)
+      _wanted values expl 'when to list completions' \
+	compadd always never sometimes
+      ;;
+
+    (packageset)
+      _wanted values expl 'default package set' \
+        compadd available installed uninstalled
+      ;;
+
+    (progress)
+      _wanted values expl 'progress meter style' \
+        compadd none bar percent
+      ;;
+
+    (sdirs)
+      _wanted values expl 'whether to complete . or ..' \
+        compadd true false ..
+      ;;
+
+    (stop)
+      _wanted values expl 'when to insert matches' \
+	compadd true false verbose
+      ;;
+
+    (tag)
+      _wanted tags expl tag compadd $suf -a taglist
+      ;;
+
+    (tag-order)
+      if compset -P '*:*:'; then
+        _message -e descriptions description
+      elif compset -P '*:'; then
+        _message -e labels 'tag label'
+      else
+        suf=()
+        compset -S ':*' || suf=( -qS: )
+        _wanted values expl tag compadd $suf -a taglist
+      fi
+      ;;
+
+    (filepat)
+      if compset -P '*:*:'; then
+        _message -e descriptions description
+      elif compset -P '*:'; then
+        _message -e tags tag
+      else
+        _message -e patterns 'glob pattern'
+      fi
+      ;;
+
+    (user-host)
+      if [[ $PREFIX = *[@:]* ]]; then
+	compset -P '*[@:]'
+	_hosts
+      else
+	_users -S @
+      fi
+      ;;
+
+    (ignorepar)
+      _wanted values expl 'which parents to ignore' \
+        compadd parent pwd .. directory
+      ;;
+
+    (single-ignored)
+      _wanted values expl 'how to handle a single ignored match' \
+          compadd - show menu
+      ;;
+
+    (command)
+      shift 3 words
+      (( CURRENT -= 3 ))
+      _normal
+      ;;
+
+    (insert-ids)
+      _wanted values expl 'when to insert process IDs' \
+          compadd - menu single longer
+      ;;
+
+    (insert-sections)
+      _wanted values expl 'where to insert man page section' \
+          compadd - true false prepend suffix
+      ;;
+
+    (fake-files)
+      _message -e fakes 'prefix and names'
+      ;;
+
+    (fake-params)
+      if compset -P '*:'; then
+	_wanted values expl 'parameter type' compadd scalar array integer
+      else
+        suf=''
+        compset -S ':*' || suf='-qS:'
+      	_wanted values expl 'fake parameter' _parameters $suf
+      fi
+      ;;
+
+    (ignline)
+      _wanted values expl 'ignore strings on the line' compadd true false current current-shown other
+      ;;
+
+    (keep-prefix)
+      _wanted values expl 'keep prefix' compadd true false changed
+      ;;
+
+    (match-orig)
+      _wanted values expl "match without inserting \`*'" compadd only both
+      ;;
+
+    (oldmatches)
+      _wanted values expl 'use list of old matches' compadd true false only
+      ;;
+
+    (insunambig)
+      _wanted values expl 'insert unambiguous string' compadd true false pattern
+      ;;
+
+    (preserve-prefix)
+      _message -e prefixes 'pattern matching prefix to keep'
+      ;;
+
+    (recent-dirs-insert)
+      _wanted values expl 'inserting recent directories' \
+	compadd true false always fallback both
+      ;;
+
+    (separator)
+      _message -e separators 'separator string'
+      ;;
+
+    (sort-order)
+      _wanted sort-orders expl 'sort order' compadd -F line - true false match nosort numeric reverse
+      ;;
+
+    (max-matches-width)
+      _message -e numbers 'maximum display width for matches'
+      ;;
+
+    (urgh)
+      _wanted values expl no compadd no false off 0
+      ;;
+
+    (word-style)
+      _wanted word-styles expl 'word style' compadd {normal,specified,unspecified,shell,whitespace}-subword
+      ;;
+
+    (vcs-string)
+      _wanted vcs expl vcs compadd $suf - \
+          ${${(f)"$(_call_program vcs vcs_info_printsys 2>/dev/null)"}:#\#*}
+      ;;
+
+    (vcs)
+      _wanted vcs expl vcs compadd \
+          ${${(f)"$(_call_program vcs vcs_info_printsys 2>/dev/null)"}:#(\#|*-)*}
+      ;;
+
+    (user-context)
+      _wanted user-contexts expl 'user context' compadd $suf default command
+      ;;
+
+    (repo-root-name)
+      _message -e names 'repository root name'
+      ;;
+
+    (vcs-format)
+      if [[ $PREFIX = *% ]]; then
+        compset -P '*%'
+        _values -s '' 'format replacement' \
+          's[the vcs in use]' \
+          'b[the current branch]' \
+          'a[an identifier describing the action]' \
+          'i[current revision no/id]' \
+          'c[details of staged changes]' \
+          'u[details of unstaged changes]' \
+          'r[repository name]' \
+          'S[subdirectory within repository]' \
+          'm[misc replacement - backend specific]'
+      else
+        _message -e formats 'vcs format'
+      fi
+      ;;
+
+    (branch-format)
+      if [[ $PREFIX = *% ]]; then
+        compset -P '*%'
+        _values -s '' 'format replacement' \
+          'b[the current branch]' \
+          'r[current revision number]'
+      else
+        _message -e formats 'vcs format'
+      fi
+      ;;
+
+    (hgrev-format)
+      if [[ $PREFIX = *% ]]; then
+        compset -P '*%'
+        _values -s '' 'format replacement' \
+          'h[current revision hash (global)]' \
+          'r[current revision number (local)]'
+      else
+        _message -e formats 'vcs format'
+      fi
+      ;;
+
+    (stg-format)
+      if [[ $PREFIX = *% ]]; then
+        compset -P '*%'
+        _values -s '' 'format replacement' \
+          'p[patch currently on top of the stack]' \
+          'c[the number of unapplied patches]'
+      else
+        _message -e formats 'vcs format'
+      fi
+      ;;
+
+    (patch-format)
+      if [[ $PREFIX = *% ]]; then
+        compset -P '*%'
+        _values -s '' 'format replacement' \
+          'p[name of top-most patch (applied-string)]' \
+          'u[number of unapplied patches (unapplied-string)]' \
+          'n[number of applied patches]' \
+          'c[number of unapplied patches]' \
+          'a[number of all patches]' \
+          'g[names of active mq guards (hg backend)]' \
+          'G[number of active mq guards (hg backend)]'
+      else
+        _message -e formats 'vcs format'
+      fi
+      ;;
+
+    (_*)
+      ${=state[1]} $suf
+      ;;
+  esac
+  shift state
+done
+
+[[ $compstate[nmatches] != $nm ]]

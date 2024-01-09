@@ -1,0 +1,13 @@
+#compdef ranlib
+
+_arguments \
+    "(-a)-s[preferred type ToC (default)]" \
+    "(-s)-a[original type ToC]" \
+    "-c[include common symbols]" \
+    "(-T)-L[4.4bsd archive extended format #1 (default)]" \
+    "(-L)-T[truncate names to 16 chars, per pre-4.4.bsd format]" \
+    "-f[warn about fat archives]" \
+    "-t[do not rebuild ToC (ignored)]" \
+    "(-)-[no more options]" \
+    "1:archive: _files"
+

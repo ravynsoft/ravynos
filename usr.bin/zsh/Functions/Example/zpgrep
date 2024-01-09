@@ -1,0 +1,32 @@
+# Usage: zpgrep <perl5-compatible regex> <file1> <file2> ... <fileN>
+#
+
+zpgrep() {
+local file pattern ret
+
+pattern=$1
+shift
+ret=1
+
+if ((! ARGC)) then
+	set -- -
+fi
+
+zmodload zsh/pcre || return
+pcre_compile -- "$pattern"
+pcre_study
+
+for file
+do
+	if [[ "$file" == - ]] then
+		while IFS= read -ru0 buf; do
+			pcre_match -- "$buf" && ret=0 && print -r -- "$buf"
+		done
+	else
+		while IFS= read -ru0 buf; do
+			pcre_match -- "$buf" && ret=0 && print -r -- "$buf"
+		done < "$file"
+	fi
+done
+return "$ret"
+}

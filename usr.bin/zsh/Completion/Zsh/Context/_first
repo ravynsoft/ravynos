@@ -1,0 +1,47 @@
+#compdef -first-
+
+# This function is called at the very beginning before any other
+# function for a specific context.
+#
+# This just gives some examples of things you might want to do here.
+#
+#
+# Other things you can do here is to complete different things if the
+# word on the line matches a certain pattern. This example allows
+# completion of words from the history by adding two commas at the end 
+# and hitting TAB.
+#
+#     if [[ "$PREFIX" = *,, ]]; then
+#       local max i=1 expl opt
+#     
+#       PREFIX="$PREFIX[1,-2]"
+#       # If a numeric prefix is given, we use it as the number of
+#       # lines (multiplied by ten below) in the history to search.
+#       if [[ ${NUMERIC:-1} -gt 1 ]]; then
+#         max=$NUMERIC
+#         unset NUMERIC
+#       else
+#         # The default is to search the last 100 lines.
+#         max=10
+#       fi
+#       # We first search in the last ten words, then in the last
+#       # twenty words, and so on...
+#       while [[ i -le max ]]; do
+#         if zstyle -t ":completion:${curcontext}:history-words" sort; then
+#           opt=-J
+#         else
+#           opt=-V
+#         fi
+#         if _wanted "$opt" history-words expl "history ($n)" \
+#                compadd -Q - \
+#                    "${(@)${(@)historywords:#[\$'\"]*}[1,i*10]}"; then
+#           # We have found at least one matching word, so we switch
+#           # on menu-completion and make sure that no other
+#           # completion function is called by setting _compskip.
+#           compstate[insert]=menu
+#           _compskip=all
+#           return 0
+#         fi
+#         (( i++ ))
+#       done
+#     fi

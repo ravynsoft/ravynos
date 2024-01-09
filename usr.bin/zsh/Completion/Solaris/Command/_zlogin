@@ -1,0 +1,16 @@
+#compdef zlogin
+# Synced with the Nevada build 162 man page
+
+local -a _comp_priv_prefix
+_arguments -s \
+  '-E[disable escape character]' \
+  '-e[specify escape character]:character' \
+  '-l[specify username]:username:_users' \
+  ':zonename:_zones' \
+  - set1 \
+  '-C[connect to zone console]' \
+  '-d[disconnect on zone halt]' \
+  - set2 \
+  '-S["safe" login mode]' \
+  '(-):command name: _command_names -e' \
+  '*::utility: _normal'

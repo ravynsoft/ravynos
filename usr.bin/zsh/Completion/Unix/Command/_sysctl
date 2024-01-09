@@ -1,0 +1,94 @@
+#compdef sysctl
+
+local -a args sysctlvars
+
+case $OSTYPE in
+  linux*)
+    args=(
+      {-e,--ignore}'[ignore errors about unknown keys]'
+      '(-n -N --names)'{-N,--names}'[show only variable names]'
+      '(-N -n --values)'{-n,--values}'[show only variable values]'
+      '(-)'{-w,--write}'[write mode]'
+      '(-A -a -w --system *)'{-p,--load=}'[specify file to load sysctl settings from]:file (can be regexp):_files'
+      {-q,--quiet}'[do not display names and values when setting variables]'
+      '(-e --ignore -w --write -A -a --all *)'{-A,-a,--all}'[display all variables]'
+    )
+    if _pick_variant ng=procps-ng procps --version; then
+      args+=(
+	'--deprecated[include deprecated parameters in --all listing]'
+	{-b,--binary}'[print value without new line]'
+	'(-p --load)--system[load settings from all system config files]'
+	{-r+,--pattern=}'[only apply to variables matching specified pattern]:extended regexp'
+      )
+    else
+      args=( ${args:#((#s)|*\))(\*|)--*} )	# remove long options
+    fi
+    _arguments -S -A "-*" : $args \
+      '(- :)'{-h,--help}'[display help text and exit]' \
+      '(- :)'{-V,--version}'[display version info and exit]' \
+      '*:sysctl variable:_files -W /proc/sys'
+  ;;
+  freebsd<11->.*)
+    args+=(
+      '-B[specify buffer size for reading]:buffer size'
+      '-t[display type of variable]'
+    )
+  ;|
+  freebsd<10->.*)
+    args+=(
+      '-f+[specify file of name/value pairs to process first]:file:_files'
+      '-T[display only variables that are settable via loader]'
+      '-W[display only writable variables that are not statistical]'
+    )
+  ;|
+  darwin*|freebsd*)
+    args+=( '-h[format output for human readability]' )
+  ;|
+  darwin*|dragonfly*|freebsd*)
+    sysctlvars=( $(_call_program sysctl-variables sysctl -aN) )
+    _arguments -s -S -A "-*" $args \
+      '(-a -o *)-A[equivalent to -o -a (for compatibility)]' \
+      '(*)-a[list all]' \
+      '-b[binary output]' \
+      '-d[print the description of the variable instead of its value]' \
+      '(-N -n)-e[separate name and value with =]' \
+      "-i[silently exit if variable doesn't exist]" \
+      '(-n)-N[show only variable names]' \
+      '(-N)-n[show only variable values]' \
+      '(-x)-o[show opaques as well (values suppressed)]' \
+      '-q[suppress some warnings]' \
+      '(* -o)-X[equivalent to -x -a (for compatibility)]' \
+      '(-o)-x[show opaques as well (entire values)]' \
+      '*:sysctl variable:_multi_parts -i -S = -q . sysctlvars'
+  ;;
+  openbsd*)
+    sysctlvars=( ${${${(f)"$(_call_program sysctl-variables
+				sysctl -a 2>/dev/null)"}%%=*}:# *} )
+    _arguments -S -s -A "-*" \
+      '(-A -q *)-a[list all string and integer variables]' \
+      '(-a -q *)-A[list all known variables]' \
+      '-n[show only values]' \
+      '(-a -A)-q[suppress all output when setting a variable]' \
+      '*:sysctl variable:_multi_parts -i -S = -q . sysctlvars'
+  ;;
+  netbsd*)
+    sysctlvars=( ${${${(f)"$(_call_program sysctl-variables
+				sysctl -a 2>/dev/null)"}%% =*}%%:*} )
+    _arguments -S -s -A "-*" : \
+      '(-a -f -M -q -w)-A[list all known variables]' \
+      '(-A -f -M -q -w *)-a[list all string and integer variables]' \
+      '(-M -w -x)-d[print the description of the variable instead of its value]' \
+      '(-f -M -w)-e[separate name and value with =]' \
+      '(-a -A -w *)-f[read variable from specified file]:file:_files' \
+      '(-a -A -d -r -x -w)-M[print entire MIB instead of just value]' \
+      '-n[show only variable values]' \
+      '(-A -a -M)-q[silently ignore nonexistent variables]' \
+      '(-M -x)-r[binary output]' \
+      '(-a -A -d -e -f -M -r)-w[write mode]' \
+      '(-d -M -r)*-x[hex output. -xx for hexdump-like output]' \
+      '*:sysctl variable:_multi_parts ${words[(r)-w]:+-S=} -i . sysctlvars'
+  ;;
+  *)
+    _default
+  ;;
+esac

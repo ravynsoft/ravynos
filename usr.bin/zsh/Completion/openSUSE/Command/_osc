@@ -1,0 +1,149 @@
+#compdef osc
+#
+# Copyright (C) 2009,2010 Holger Macht <holger@homac.de>
+#
+# This file is released under the GPLv2.
+#
+# Based on the zsh guide from http://zsh.dotsrc.org/Guide/zshguide06.html
+#
+# Toggle verbose completions: zstyle ':completion:*:osc:*' verbose no
+#                             zstyle ':completion:*:osc-subcommand:*' verbose no
+# 
+# Use the variables $ZSH_OSC_BUILD_TARGETS_EXTRA and $ZSH_OSC_PROJECTS_EXTRA to
+# extend the list of possible completions in your ~/.zshrc like that:
+#  export OSC_PROJECTS_EXTRA="Base:System Base:shells"
+#
+# version 0.2
+#
+
+OSC_BUILD_TARGETS="openSUSE_12.1 openSUSE_12.2 openSUSE_12.3 openSUSE_Tumbleweed openSUSE_Factory SLE_11_SP2"
+OSC_PROJECTS="openSUSE:Factory openSUSE:Tumbleweed openSUSE:12.3 openSUSE:12.2 openSUSE:12.1"
+
+# user defined variables $OSC_BUILD_TARGETS_EXTRA and
+# $OSC_PROJECTS_EXTRA can add to the project/build target list
+OSC_BUILD_TARGETS="$OSC_BUILD_TARGETS $ZSH_OSC_BUILD_TARGETS_EXTRA"
+OSC_PROJECTS="$OSC_PROJECTS $ZSH_OSC_PROJECTS_EXTRA"
+
+# Main dispatcher
+
+_osc() {
+    if (( CURRENT > 2 )) && [[ ${words[2]} != "help" ]]; then
+        # Remember the subcommand name
+	local cmd=${words[2]}
+        # Set the context for the subcommand.
+	curcontext="${curcontext%:*:*}:osc-subcommand"
+        # Narrow the range of words we are looking at to exclude `osc'
+	(( CURRENT-- ))
+	shift words
+        # Run the completion for the subcommand
+	if [ "$cmd" = "submitreq" -o "$cmd" = "sr" ]; then
+	    _osc_cmd_submitreq
+	elif [ "$cmd" = "getbinaries" ]; then
+	    _osc_cmd_getbinaries
+	elif [ "$cmd" = "checkout" -o "$cmd" = "co" -o "$cmd" = "branch" ]; then
+	    _osc_cmd_checkout
+	elif [ "$cmd" = "buildlog" -o "$cmd" = "buildinfo" -o "$cmd" = "bl" ]; then
+	    _osc_cmd_buildlog
+	else
+	    _osc_cmd_do $cmd
+	fi
+    else
+	local hline
+	local -a cmdlist
+	local tag=0
+	_call_program help-commands osc help | while read -A hline; do
+	    # start parsing with "commands:"
+	    [[ $hline[1] = "commands:" ]] && tag=1
+	    # stop parsing at the line starting with "For"
+	    [[ $hline[1] = "For" ]] && tag=0
+	    [[ $tag = 0 ]] && continue
+	    # all commands have to start with lower case letters
+	    [[ $hline[1] =~ ^[A-Z] ]] && continue
+	    (( ${#hline} < 2 )) && continue
+
+    	    # ${hline[1]%,} truncates the last ','
+	    cmdlist=($cmdlist "${hline[1]%,}:${hline[2,-1]}")
+	done
+	_describe -t osc-commands 'osc command' cmdlist
+    fi
+}
+
+_osc_cmd_getbinaries() {
+    _arguments \
+	'1:PROJECT:( `echo $OSC_PROJECTS` )' \
+	'2:PACKAGE:(PACKAGE)' \
+	'3:REPOSITORY:( `echo $OSC_BUILD_TARGETS` )' \
+	'4:ARCHITECTURE:(i586 x86_64)'
+}
+
+_osc_cmd_checkout() {
+    _arguments \
+	'1:PROJECT:( `echo $OSC_PROJECTS` )' \
+	'2:PACKAGE:(PACKAGE)'
+}
+
+_osc_cmd_buildlog() {
+    _arguments \
+	'1:REPOSITORY:( `echo $OSC_BUILD_TARGETS` )' \
+	'2:ARCHITECTURE:(i586 x86_64)'
+}
+
+_osc_cmd_submitreq() {
+    local hline
+    local -a cmdlist
+    local tag=0
+    _call_program help-commands osc help $cmd | while read -A hline; do
+        # start parsing from "usage:"
+	[[ $hline[1] = "usage:" ]] && tag=1
+	[[ $tag = 0 ]] && continue
+
+	if [[ $hline[1] =~ ^osc ]]; then
+	    shift hline; shift hline
+	elif ! [[ $hline[1] =~ ^- ]]; then
+            # Option has to start with a '-' or 'osc submitrequest'
+	    continue
+	fi
+
+	(( ${#hline} < 2 )) && continue
+
+	cmdlist=($cmdlist "${hline[1]%,}:${hline[2,-1]}")
+
+    done
+    
+    _describe -t osc-commands 'osc command' cmdlist
+}
+
+
+_osc_cmd_do() {
+    local hline
+    local -a cmdlist
+    local tag=0
+    
+    # only start completion if there's some '-' on the line
+    if ! [ "$words[2]" = "-" ]; then
+	_complete
+	return
+    fi
+
+    _call_program help-commands osc help $cmd | while read -A hline; do
+	# start parsing from "Options:"
+	[[ $hline[1] = "Options:" ]] && tag=1
+	[[ $tag = 0 ]] && continue
+	# Option has to start with a '-'
+	[[ $hline[1] =~ ^- ]] || continue
+	(( ${#hline} < 2 )) && continue
+
+	cmdlist=($cmdlist "${hline[1]%,}:${hline[2,-1]}")
+    done
+
+    if [ -n "$cmdlist" ]; then
+	_describe -t osc-commands 'osc command' cmdlist
+    else
+	_complete
+    fi
+}
+
+# Code to make sure _osc is run when we load it
+_osc "$@"
+
+

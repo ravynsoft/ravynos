@@ -1,0 +1,147 @@
+# Tests for the module zsh/mathfunc
+
+%prep
+  if ! zmodload zsh/mathfunc 2>/dev/null; then
+    ZTST_unimplemented="The module zsh/mathfunc is not available."
+  fi
+
+%test
+  # -g makes pi available in later tests
+  float -gF 5 pi
+  (( pi = 4 * atan(1.0) ))
+  print $pi
+0:Basic operation with atan
+>3.14159
+
+  float -F 5 result
+  (( result = atan(3,2) ))
+  print $result
+0:atan with two arguments
+>0.98279
+
+  print $(( atan(1,2,3) ))
+1:atan can't take three arguments
+?(eval):1: wrong number of arguments: atan(1,2,3)
+
+  float r1=$(( rand48() ))
+  float r2=$(( rand48() ))
+  float r3=$(( rand48() ))
+  # Yes, this is a floating point equality test like they tell
+  # you not to do.  As the pseudrandom sequence is deterministic,
+  # this is the right thing to do in this case.
+  if (( r1 == r2 )); then
+    print "Seed not updated correctly the first time"
+  else
+    print "First two random numbers differ, OK"
+  fi
+  if (( r2 == r3 )); then
+    print "Seed not updated correctly the second time"
+  else
+    print "Second two random numbers differ, OK"
+  fi
+0:rand48 with default initialisation
+F:This test fails if your math library doesn't have erand48().
+>First two random numbers differ, OK
+>Second two random numbers differ, OK
+
+  seed=f45677a6cbe4
+  float r1=$(( rand48(seed) ))
+  float r2=$(( rand48(seed) ))
+  seed2=$seed
+  float r3=$(( rand48(seed) ))
+  float r4=$(( rand48(seed2) ))
+  # Yes, this is a floating point equality test like they tell
+  # you not to do.  As the pseudrandom sequence is deterministic,
+  # this is the right thing to do in this case.
+  if (( r1 == r2 )); then
+    print "Seed not updated correctly the first time"
+  else
+    print "First two random numbers differ, OK"
+  fi
+  if (( r2 == r3 )); then
+    print "Seed not updated correctly the second time"
+  else
+    print "Second two random numbers differ, OK"
+  fi
+  if (( r3 == r4 )); then
+    print "Identical seeds generate identical numbers, OK"
+  else
+    print "Indeterminate result from identical seeds"
+  fi
+0:rand48 with pre-generated seed
+F:This test fails if your math library doesn't have erand48().
+>First two random numbers differ, OK
+>Second two random numbers differ, OK
+>Identical seeds generate identical numbers, OK
+
+  float -F 5 pitest
+  (( pitest = 4.0 * atan(1) ))
+  # This is a string test of the output to 5 digits.
+  if [[ $pi = $pitest ]]; then
+    print "OK, atan on an integer seemed to work"
+  else
+    print "BAD: got $pitest instead of $pi"
+  fi
+0:Conversion of arguments from integer
+>OK, atan on an integer seemed to work
+
+  float -F 5 result
+  typeset str
+  for str in 0 0.0 1 1.5 -1 -1.5; do
+    (( result = abs($str) ))
+    print $result
+  done
+0:Use of abs on various numbers
+>0.00000
+>0.00000
+>1.00000
+>1.50000
+>1.00000
+>1.50000
+
+   print $(( sqrt(-1) ))
+0:Non-negative argument checking for square roots.
+>NaN
+
+# Simple test that the pseudorandom number generators are producing
+# something that could conceivably be pseudorandom numbers in a
+# linear range.  Not a detailed quantitative verification.
+  integer N=10000 isource ok=1
+  float -F f sum sumsq max max2 av sd
+  typeset -a randoms
+  randoms=('f = RANDOM' 'f = rand48()')
+  for isource in 1 2; do
+    (( sum = sumsq = max = 0 ))
+    repeat $N; do
+      let $randoms[$isource]
+      (( f > max )) && (( max = f ))
+      (( sum += f, sumsq += f * f ))
+    done
+    (( av = sum / N ))
+    (( sd = sqrt((sumsq - N * av * av) / (N-1)) ))
+    (( max2 = 0.5 * max ))
+    if (( av > max2 * 1.1 )) || (( av < max2 * 0.9 )); then
+      print "WARNING: average of random numbers is suspicious.
+  Was testing: $randoms[$isource]"
+      (( ok = 0 ))
+    fi
+    if (( sd < max / 4 )); then
+      print "WARNING: distribution of random numbers is suspicious.
+  Was testing: $randoms[$isource]"
+      (( ok = 0 ))
+    fi
+  done
+  (( ok ))
+0:Test random number generator distributions are not grossly broken
+
+  float -F 5 g l
+  (( g = gamma(2), l = lgamma(2) ))
+  print $g, $l
+0:Test Gamma function gamma and lgamma
+>1.00000, 0.00000
+
+  float -F 5 a b c
+  (( a = log2(0.5), b = log2(1.5), c = log2(99) ))
+  print -r - "$a, $b, $c"
+0:log2
+>-1.00000, 0.58496, 6.62936

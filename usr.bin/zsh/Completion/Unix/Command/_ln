@@ -1,0 +1,95 @@
+#compdef ln gln zf_ln
+
+local curcontext="$curcontext" state line ret=1 variant
+local -A opt_args
+
+local -a args opts=( -A '-*' )
+args=(
+  '(-i)-f[remove existing destination files]'
+  '-s[create symbolic links instead of hard links]'
+)
+
+_pick_variant -r variant -b zsh gnu=gnu $OSTYPE --help
+case $variant; in
+  gnu)
+    opts=()
+    args=(
+      '(-b --backup)-b[create a backup of each existing destination file]' \
+      '(-b --backup)--backup=[create a backup of each existing destination file]::method:((
+          none\:"never create backups"
+          off\:"never create backups"
+          numbered\:"create numbered backup"
+          t\:"create numbered backup"
+          existing\:"same as numbered if numbered backups exist, otherwise same as simple"
+          nil\:"same as numbered if numbered backups exist, otherwise same as simple"
+          simple\:"always create simple backups"
+          never\:"always create simple backups"))'
+      '(-d -F --directory)'{-d,-F,--directory}'[allow the superuser to attempt to hard link directories]'
+      '(-f --force)'{-f,--force}'[remove existing destination files]'
+      '(-i --interactive)'{-i,--interactive}'[prompt before removing destination files]'
+      '(-L --logical)'{-L,--logical}'[create hard links to symbolic link references]'
+      '(-n --no-dereference)'{-n,--no-dereference}'[treat destination symbolic link to a directory as if it were a normal file]'
+      '(-P --physical)'{-P,--physical}'[create hard links directly to symbolic links]'
+      '(-r --relative)'{-r,--relative}'[create symbolic links relative to link location]'
+      '(-s --symbolic)'{-s,--symbolic}'[create symbolic links instead of hard links]'
+      '(-S --suffix)'{-S,--suffix=}'[override default backup suffix]:suffix'
+      '(-t --target-directory)'{-t,--target-directory=}'[specify directory in which to create the links]: :_directories'
+      '(-T --no-target-directory)'{-T,--no-target-directory}'[treat destination as a normal file]'
+      '(-v --verbose)'{-v,--verbose}'[print name of each linked file]'
+      '--help[display usage information and exit]'
+      '--version[display version information and exit]')
+    ;;
+  zsh)
+    args+=(
+      '-d[attempt to hard link directories]'
+      {-h,-n}'[do not dereference destination]'
+      '(-f)-i[prompt before removing destination files]')
+    ;;
+  darwin*|dragonfly*|freebsd*|netbsd*|openbsd*)
+    args+=(
+      {-h,-n}'[do not dereference destination]'
+    )
+    ;|
+  darwin*|dragonfly*|freebsd*|netbsd*)
+    args+=(
+      '-F[remove existing destination directories]'
+      '(-f)-i[prompt before removing destination files]'
+      '-v[print name of each linked file]'
+    )
+    ;|
+  dragonfly*|freebsd*|netbsd*|openbsd*)
+    args+=(
+      '(-L)-P[create hard links directly to symbolic links]'
+      '(-P)-L[create hard links to symbolic link references]'
+    )
+    ;|
+  dragonfly*|freebsd*|netbsd*)
+    args+=(
+      "-w[warn if source of a symbolic link doesn't currently exist]"
+    )
+    ;;
+esac
+
+_arguments -C -s -S $opts : \
+  $args \
+  ':link target:_files' \
+  '*:: :->files' && ret=0
+
+case $state in
+  (files)
+    if [[ $variant == gnu && -n ${opt_args[(I)-t|--target-directory]} ]]; then
+      _wanted files expl 'link target' _files && ret=0
+    else
+      if (( CURRENT == 2 )); then
+        local expl
+        _wanted files expl 'additional link target or link name' _files && ret=0
+      else
+        _alternative \
+          'link-targets:additional link target:_files' \
+          'target-directories:target directory:_directories' && ret=0
+      fi
+    fi
+    ;;
+esac
+
+return ret

@@ -1,0 +1,1475 @@
+# Test various shell options.
+# Interactive options not tested here:
+#    ALWAYS_LAST_PROMPT
+#    ALWAYS_TO_END
+#    APPEND_HISTORY (history not maintained)
+#    AUTO_LIST
+#    AUTO_MENU
+#    AUTO_NAME_DIRS  (named directory table not maintained)
+#    AUTO_PARAM_KEYS
+#    AUTO_PARAM_SLASH
+#    AUTO_REMOVE_SLASH
+#    AUTO_RESUME
+#    BANG_HIST
+#    BASH_AUTO_LIST
+#    BEEP (!)
+#    BG_NICE
+#    CHECK_JOBS
+#    COMPLETE_ALIASES
+#    COMPLETE_IN_WORD
+#    CORRECT
+#    CORRECT_ALL
+#    CSH_JUNKIE_HISTORY
+#    DVORAK
+#    EXTENDED_HISTORY
+#    FLOW_CONTROL
+#    GLOB_COMPLETE
+#    HIST_ALLOW_CLOBBER
+#    HIST_BEEP
+#    HIST_EXPIRE_DUPS_FIRST
+#    HIST_FIND_NO_DUPS
+#    HIST_IGNORE_ALL_DUPS
+#    HIST_IGNORE_DUPS (-h)
+#    HIST_IGNORE_SPACE (-g)
+#    HIST_NO_FUNCTIONS
+#    HIST_NO_STORE
+#    HIST_REDUCE_BLANKS
+#    HIST_SAVE_NO_DUPS
+#    HIST_VERIFY
+#    HUP
+#    IGNORE_EOF
+#    INC_APPEND_HISTORY
+#    INTERACTIVE
+#    INTERACTIVE_COMMENTS
+#    LIST_AMBIGUOUS
+#    LIST_BEEP
+#    LIST_PACKED
+#    LIST_ROWS_FIRST
+#    LIST_TYPES
+#    LOGIN
+#    LONG_LIST_JOBS
+#    MAIL_WARNING
+#    MENU_COMPLETE
+#    MONITOR
+#    NOTIFY
+#    OVERSTRIKE
+#    PRINT_EIGHT_BIT
+#    PROMPT_CR
+#    PUSHD_SILENT
+#    REC_EXACT
+#    RM_STAR_WAIT
+#    SHARE_HISTORY
+#    SINGLE_LINE_ZLE
+#    SUN_KEYBOARD_HACK
+#    ZLE
+# The following require SHINSTDIN and are not (yet) tested:
+#    AUTO_CD
+#    SHINSTDIN
+#
+# Other difficult things I haven't done:
+#    GLOBAL_RCS (uses fixed files outside build area)
+#    HASH_CMDS     )
+#    HASH_DIRS     )  fairly seriously internal, hard to test at all
+#    HASH_LIST_ALL )
+#    PRINT_EXIT_STATUS   haven't worked out what this does yet, although
+#                        Bart suggested a fix.
+#    RCS        (  "      "    "    " )
+#    SH_OPTION_LETTERS   even I found this too dull to set up a test for
+#    SINGLE_COMMAND      kills shell
+#    VERBOSE             hard because done on input (c.f. SHINSTDIN).
+
+%prep
+  mkdir options.tmp && cd options.tmp
+
+  mkdir tmpcd homedir
+
+  touch tmpfile1 tmpfile2
+
+  mydir=$PWD
+  mydirt=`print -P %~`
+  mydirhome=`export HOME=$mydir/homedir; print -P %~`
+  catpath=$(which cat)
+  lspath==ls
+
+  # If the module fails to load, individual test points will skip.
+  zmodload zsh/zpty 2>/dev/null || true 
+
+%test
+
+  # setopt should move on to the next operation in the face of an error, but
+  # preserve the >0 return code
+  unsetopt aliases
+  setopt not_a_real_option aliases && return 2
+  print -r - $options[aliases]
+0:setopt error handling
+?(eval):setopt:4: no such option: not_a_real_option
+>on
+
+  alias echo='print foo'
+  unsetopt aliases
+  # use eval else aliases are all parsed at start
+  eval echo bar
+  setopt aliases
+  eval echo bar
+  unalias echo
+0:ALIASES option
+>bar
+>foo bar
+
+  setopt allexport
+  testpm1=exported
+  unsetopt allexport
+  testpm2=unexported
+  print ${(t)testpm1}
+  print ${(t)testpm2}
+0:ALL_EXPORT option
+>scalar-export
+>scalar
+  
+  # Count the number of directories on the stack.  Don't care what they are.
+  dircount() { dirs -v | tail -1 | awk '{ print $1 + 1}'; }
+  unsetopt autopushd
+  cd tmpcd
+  dircount
+  cd ..
+  setopt autopushd
+  cd tmpcd
+  dircount
+  unsetopt autopushd
+  popd >/dev/null
+0:AUTO_PUSHD option
+>1
+>2
+
+  unsetopt badpattern
+  print [a
+  setopt badpattern
+  print [b
+1:BAD_PATTERN option
+>[a
+?(eval):4: bad pattern: [b
+
+  unsetopt bareglobqual nomatch
+  print *(.)
+  setopt bareglobqual nomatch
+  print *(.)
+0:BARE_GLOB_QUAL option
+>*(.)
+>tmpfile1 tmpfile2
+
+  setopt braceccl
+  print {abcd}
+  unsetopt braceccl
+  print {abcd}
+0:BRACE_CCL option
+>a b c d
+>{abcd}
+
+# Don't use NUL as a field separator in the following.
+  setopt braceccl
+  print {$'\0'-$'\5'} | IFS=' ' read -A chars
+  for c in $chars; do print $(( #c )); done
+  unsetopt braceccl
+0:BRACE_CCL option starting from NUL
+>0
+>1
+>2
+>3
+>4
+>5
+
+  setopt bsdecho
+  echo "histon\nimpington"
+  echo -e "girton\ncottenham"
+  unsetopt bsdecho
+  echo "newnham\ncomberton"
+0:BSD_ECHO option
+>histon\nimpington
+>girton
+>cottenham
+>newnham
+>comberton
+
+  unsetopt c_bases
+  print $(( [#16]15 ))
+  print $(( [#8]9 ))
+  setopt c_bases
+  print $(( [#16]31 ))
+  print $(( [#8]17 ))
+  setopt octal_zeroes
+  print $(( [#8]19 ))
+  unsetopt c_bases octal_zeroes
+0:C_BASES option
+>16#F
+>8#11
+>0x1F
+>8#21
+>023
+
+  setopt cdablevars
+  # only absolute paths are eligible for ~-expansion
+  cdablevar1=tmpcd
+  (cd cdablevar1)
+  cdablevar2=$PWD/tmpcd
+  cd cdablevar2
+  cd ..
+  print back in ${PWD:t}
+  unsetopt cdablevars
+  cd cdablevar2
+1q:CDABLE_VARS option
+>back in options.tmp
+?(eval):cd:4: no such file or directory: cdablevar1
+?(eval):cd:10: no such file or directory: cdablevar2
+
+# CHASE_DOTS should go with CHASE_LINKS in B01cd.ztst
+# which saves me having to write it here.
+
+  setopt noclobber
+  rm -f foo1 bar1 rod1
+  echo waterbeach >foo1
+  (echo landbeach >foo1)
+  cat foo1
+  (echo lode >>bar1)
+  [[ -f bar1 ]] && print That shouldn\'t be there.
+  echo denny >rod1
+  echo wicken >>rod1
+  cat rod1
+  unsetopt noclobber
+  rm -f foo2 bar2 rod2
+  echo ely >foo2
+  echo march >foo2
+  cat foo2
+  echo wimpole >>bar2
+  cat bar2
+  echo royston >rod2
+  echo foxton >>rod2
+  cat rod2
+  rm -f foo* bar* rod*
+0:CLOBBER option
+>waterbeach
+>denny
+>wicken
+>march
+>wimpole
+>royston
+>foxton
+?(eval):4: file exists: foo1
+?(eval):6: no such file or directory: bar1
+
+   setopt cshjunkieloops
+   eval 'for f in swaffham bulbeck; print $f; end'
+   print next one should fail >&2
+   unsetopt cshjunkieloops
+   eval 'for f in chesterton arbury; print $f; end'
+1:CSH_JUNKIE_LOOPS option (for loop)
+>swaffham
+>bulbeck
+?next one should fail
+?(eval):1: parse error near `end'
+
+# ` emacs deconfusion
+
+  setopt cshjunkiequotes
+  print this should cause an error >&2
+  eval "print 'line one
+  line two'"
+  print this should not >&2
+  eval "print 'line three\\
+  line four'"
+  unsetopt cshjunkiequotes
+0:CSH_JUNKIE_QUOTES option
+>line three
+>  line four
+?this should cause an error
+?(eval):1: unmatched '
+?this should not
+
+# ' emacs deconfusion
+
+  nullcmd() { print '$NULLCMD run'; }
+  readnullcmd() { print 'Running $READNULLCMD'; cat; }
+  NULLCMD=nullcmd
+  READNULLCMD=readnullcmd
+  setopt cshnullcmd
+  rm -f foo
+  print "This should fail" >&2
+  (>foo)
+  print "This should succeed" >&2
+  print "These are the contents of foo" >foo
+  cat foo
+  print "This should also fail" >&2
+  (<foo)
+  unsetopt cshnullcmd
+  rm -f foo
+  >foo
+  <foo
+  rm -f foo
+0:CSH_NULL_CMD option
+>These are the contents of foo
+>Running $READNULLCMD
+>$NULLCMD run
+?This should fail
+?(eval):8: redirection with no command
+?This should succeed
+?This should also fail
+?(eval):13: redirection with no command
+
+# nomatch should be overridden by cshnullglob
+  setopt nomatch cshnullglob
+  print tmp* nothing* blah
+  print -n 'hoping for no match: ' >&2
+  (print nothing* blah)
+  print >&2
+  unsetopt cshnullglob nomatch
+  print tmp* nothing* blah
+  print nothing* blah
+0:CSH_NULL_GLOB option
+>tmpcd tmpfile1 tmpfile2 blah
+>tmpcd tmpfile1 tmpfile2 nothing* blah
+>nothing* blah
+?hoping for no match: (eval):4: no match
+?
+
+# The trick is to avoid =cat being expanded in the output while $catpath is.
+  setopt NO_equals
+  print -n trick; print =cat
+  setopt equals
+  print -n trick; print =cat
+0q:EQUALS option
+>trick=cat
+>trick$catpath
+
+# explanation of expected TRAPZERR output:  from false and from
+# testfn() with ERR_EXIT on (hmm, should we really get a second one from
+# the function exiting?), then from the false only with ERR_EXIT off.
+  TRAPZERR() { print ZERR trapped; }
+  testfn() { setopt localoptions $2; print $1 before; false; print $1 after; }
+  (testfn on errexit)
+  testfn off
+  unfunction TRAPZERR testfn
+0:ERR_EXIT option
+>on before
+>ZERR trapped
+>ZERR trapped
+>off before
+>ZERR trapped
+>off after
+
+  (
+    setopt ERR_EXIT
+    () { false; print is executed; } && true
+    () { false; print is not executed; }
+    print is not executed
+  )
+1:ERR_EXIT is suppressed within a function followed by "&&"
+>is executed
+
+  (
+    setopt ERR_RETURN
+    () { false; print is not executed; } || print is executed
+    print is also executed
+  )
+0:ERR_RETURN is not suppressed within a function followed by "||"
+>is executed
+>is also executed
+
+  (
+    setopt ERR_RETURN
+    () {
+      () { false; print Not executed 1; } || true
+      print Executed
+      () { false; print Not executed 2; }
+      print Not executed 3;
+    } && false
+  )
+1:ERR_RETURN with additional levels
+>Executed
+
+  (print before; setopt noexec; print after)
+0:NO_EXEC option
+>before
+
+  (setopt noexec
+  typeset -A hash
+  hash['this is a string'])
+0:NO_EXEC option should not attempt to parse subscripts
+
+  (setopt noexec nomatch
+  echo *NonExistentFile*)
+0:NO_EXEC option should not do globbing
+
+  (setopt noexec
+  echo ${unset_var?Not an error})
+0:NO_EXEC should not test for unset variables
+
+  (setopt noexec
+  : ${${string%[aeiou]*}/(#m)?(#e)/${(U)MATCH}}  Rule 1
+  : ${array[4,5][1][2,3]}                        Rule 2
+  : ${${(P)foo[1,6]}[1,3]}                       Rule 3
+  : "${${(@)array}[1,2]}"                        Rule 5
+  : "${(@)${(@)array}[1,2]#?}"                   Rule 6
+  : ${(el.20..X.)${bar}}                         Rule 11 success case)
+0:NO_EXEC handles parameter substitution examples
+
+  (setopt noexec
+  : ${(el.20..X.)$bar}                           Rule 11 failure case)
+1:NO_EXEC does recognize bad substitution syntax
+*?* bad substitution
+
+  setopt NO_eval_lineno
+  eval 'print $LINENO'
+  setopt eval_lineno
+  eval 'print $LINENO'
+0:EVAL_LINENO option
+>2
+>1
+
+  # The EXTENDED_GLOB test doesn't test globbing fully --- it just tests
+  # that certain patterns are treated literally with the option off
+  # and as patterns with the option on.
+  testfn() { print -n "$1 $2 $3 "; if [[ $1 = ${~2} ]];
+             then print yes; else print no; fi; }
+  tests=('a#' '?~b' '^aa')
+  strings=('a' 'aa' 'b' 'a#' '?~b' '^aa')
+  for opt in noextendedglob extendedglob; do
+    setopt $opt
+    for test in $tests; do
+      for string in $strings; do
+         testfn $string $test $opt
+      done
+    done
+  done
+0:EXTENDED_GLOB option
+>a a# noextendedglob no
+>aa a# noextendedglob no
+>b a# noextendedglob no
+>a# a# noextendedglob yes
+>?~b a# noextendedglob no
+>^aa a# noextendedglob no
+>a ?~b noextendedglob no
+>aa ?~b noextendedglob no
+>b ?~b noextendedglob no
+>a# ?~b noextendedglob no
+>?~b ?~b noextendedglob yes
+>^aa ?~b noextendedglob no
+>a ^aa noextendedglob no
+>aa ^aa noextendedglob no
+>b ^aa noextendedglob no
+>a# ^aa noextendedglob no
+>?~b ^aa noextendedglob no
+>^aa ^aa noextendedglob yes
+>a a# extendedglob yes
+>aa a# extendedglob yes
+>b a# extendedglob no
+>a# a# extendedglob no
+>?~b a# extendedglob no
+>^aa a# extendedglob no
+>a ?~b extendedglob yes
+>aa ?~b extendedglob no
+>b ?~b extendedglob no
+>a# ?~b extendedglob no
+>?~b ?~b extendedglob no
+>^aa ?~b extendedglob no
+>a ^aa extendedglob yes
+>aa ^aa extendedglob no
+>b ^aa extendedglob yes
+>a# ^aa extendedglob yes
+>?~b ^aa extendedglob yes
+>^aa ^aa extendedglob yes
+
+  foo() { print My name is $0; }
+  unsetopt functionargzero
+  foo
+  setopt functionargzero
+  foo
+  unfunction foo
+0:FUNCTION_ARGZERO option
+>My name is (anon)
+>My name is foo
+
+  setopt _NO_glob_
+  print tmp*
+  set -o glob
+  print tmp*
+0:GLOB option
+>tmp*
+>tmpcd tmpfile1 tmpfile2
+
+  showit() { local v;
+             for v in first second third; do
+               eval print \$$v \$\{\(t\)$v\}
+	     done;
+           }      
+  setit() { typeset -x first=inside1;
+            typeset +g -x second=inside2;
+            typeset -g -x third=inside3;
+            showit;
+          }
+  first=outside1 second=outside2 third=outside3
+  unsetopt globalexport
+  setit
+  showit
+  setopt globalexport
+  setit
+  showit
+  unfunction setit showit
+0:GLOBAL_EXPORT option
+>inside1 scalar-local-export
+>inside2 scalar-local-export
+>inside3 scalar-export
+>outside1 scalar
+>outside2 scalar
+>inside3 scalar-export
+>inside1 scalar-export
+>inside2 scalar-local-export
+>inside3 scalar-export
+>inside1 scalar-export
+>outside2 scalar
+>inside3 scalar-export
+
+# GLOB_ASSIGN is tested in A06assign.ztst.
+
+  mkdir onlysomefiles
+  touch onlysomefiles/.thisfile onlysomefiles/thatfile
+  setopt globdots
+  print onlysomefiles/*
+  unsetopt globdots
+  print onlysomefiles/*
+  rm -rf onlysomefiles
+0:GLOB_DOTS option
+>onlysomefiles/.thisfile onlysomefiles/thatfile
+>onlysomefiles/thatfile
+
+  # we've tested this enough times already...
+  # could add some stuff for other sorts of expansion
+  foo='tmp*'
+  setopt globsubst
+  print ${foo}
+  unsetopt globsubst
+  print ${foo}
+0:GLOB_SUBST option
+>tmpcd tmpfile1 tmpfile2
+>tmp*
+
+  setopt histsubstpattern
+  print *(:s/t??/TING/)
+  foo=(tmp*)
+  print ${foo:s/??p/THUMP/}
+  foo=(one.c two.c three.c)
+  print ${foo:s/#%(#b)t(*).c/T${match[1]}.X/}
+  print *(#q:s/#(#b)tmp(*e)/'scrunchy${match[1]}'/)
+  unsetopt histsubstpattern
+0:HIST_SUBST_PATTERN option
+>TINGcd TINGfile1 TINGfile2 homedir
+>THUMPcd THUMPfile1 THUMPfile2
+>one.c Two.X Three.X
+>homedir scrunchyfile1 scrunchyfile2 tmpcd
+
+  setopt ignorebraces
+  echo X{a,b}Y
+  unsetopt ignorebraces
+  echo X{a,b}Y
+0:IGNORE_BRACES option
+>X{a,b}Y
+>XaY XbY
+
+  setopt ksh_arrays
+  array=(one two three)
+  print $array $array[2]
+  print ${array[0]} ${array[1]} ${array[2]} ${array[3]}
+  unsetopt ksh_arrays
+  print $array $array[2]
+  print ${array[0]} ${array[1]} ${array[2]} ${array[3]}
+  unset array
+0:KSH_ARRAYS option
+>one one[2]
+>one two three
+>one two three two
+>one two three
+
+  fpath=(.)
+  echo >foo 'echo foo loaded; foo() { echo foo run; }'
+  echo >bar 'bar() { echo bar run; }'
+  setopt kshautoload
+  autoload foo bar
+  foo
+  bar
+  unfunction foo bar
+  unsetopt kshautoload
+  autoload foo bar
+  foo
+  bar
+0:KSH_AUTOLOAD option
+>foo loaded
+>foo run
+>bar run
+>foo loaded
+>bar run
+
+# ksh_glob is tested by the glob tests.
+
+  setopt kshoptionprint globassign
+  print set
+  setopt | grep kshoptionprint
+  setopt | grep globassign
+  unsetopt kshoptionprint
+  print unset
+  setopt | grep kshoptionprint
+  setopt | grep globassign
+  unsetopt globassign
+0:KSH_OPTION_PRINT option
+>set
+>kshoptionprint        on
+>globassign            on
+>unset
+>globassign
+
+  # This test is now somewhat artificial as
+  # KSH_TYPESET only applies to the builtin
+  # interface.  Tests to the more standard
+  # reserved word interface appear elsewhere.
+  (
+  # reserved words are handled during parsing,
+  # hence eval...
+  disable -r typeset
+  eval '
+  setopt kshtypeset
+  ktvars=(ktv1 ktv2)
+  typeset ktfoo=`echo arg1 arg2` $ktvars
+  print $+ktv1 $+ktv2 $+ktv3
+  print $ktfoo
+  unsetopt kshtypeset
+  typeset noktfoo=`echo noktarg1 noktarg2`
+  print $noktfoo
+  print $+noktarg1 $+noktarg2
+  unset ktfoo ktv1 ktv2 noktfoo noktarg2
+  '
+  )
+0:KSH_TYPESET option
+>1 1 0
+>arg1 arg2
+>noktarg1
+>0 1
+
+  showopt() { setopt | egrep 'localoptions|ksharrays'; }
+  f1() { setopt localoptions ksharrays; showopt }
+  f2() { setopt ksharrays; showopt }
+  setopt kshoptionprint
+  showopt
+  f1
+  showopt
+  f2
+  showopt
+  unsetopt ksh_arrays
+0:LOCAL_OPTIONS option
+>ksharrays             off
+>localoptions          off
+>ksharrays             on
+>localoptions          on
+>ksharrays             off
+>localoptions          off
+>ksharrays             on
+>localoptions          off
+>ksharrays             on
+>localoptions          off
+
+# LOCAL_TRAPS was tested in C03traps (phew).
+
+  fn() {
+    local HOME=/any/old/name
+    print -l var=~ 'anything goes/here'=~ split=`echo maybe not`;
+  }
+  setopt magicequalsubst
+  fn
+  setopt kshtypeset
+  fn
+  unsetopt magicequalsubst kshtypeset
+  fn
+0:MAGIC_EQUAL_SUBST option
+>var=/any/old/name
+>anything goes/here=/any/old/name
+>split=maybe
+>not
+>var=/any/old/name
+>anything goes/here=/any/old/name
+>split=maybe not
+>var=~
+>anything goes/here=~
+>split=maybe
+>not
+
+  setopt MARK_DIRS
+  print tmp*
+  unsetopt MARK_DIRS
+  print tmp*
+0:MARK_DIRS option
+>tmpcd/ tmpfile1 tmpfile2
+>tmpcd tmpfile1 tmpfile2
+
+# maybe should be in A04redirect
+  print "This is in1" >in1
+  print "This is in2" >in2
+  unsetopt multios
+  print Test message >foo1 >foo2
+  print foo1: $(<foo1)
+  print foo2: $(<foo2)
+  cat <in1 <in2
+  setopt multios
+  print Test message >foo1 >foo2
+  sleep 1   # damn, race in multios
+  print foo1: $(<foo1)
+  print foo2: $(<foo2)
+  cat <in1 <in2
+  rm -f foo1 foo2 in1 in2
+0:MULTIOS option
+>foo1:
+>foo2: Test message
+>This is in2
+>foo1: Test message
+>foo2: Test message
+>This is in1
+>This is in2
+
+# This is trickier than it looks.  There's a hack at the end of
+# execcmd() to catch the multio processes attached to the
+# subshell, which otherwise sort of get lost in the general turmoil.
+# Without that, the multios aren't synchronous with the subshell
+# or the main shell starting the "cat", so the output files appear
+# empty.
+  setopt multios
+  ( echo hello ) >multio_out1 >multio_out2 && cat multio_out*
+0:Multios attached to a subshell
+>hello
+>hello
+
+# This tests for another race in multios.
+  print -u $ZTST_fd 'This test hangs the shell when it fails...'
+  setopt multios
+  echo These are the contents of the file >multio_race.out
+  multio_race_fn() { cat; }
+  multio_race_fn <$(echo multio_race.out multio_race.out)
+0:Fix for race with input multios
+>These are the contents of the file
+>These are the contents of the file
+
+# Subshell to shield nullexec redirections
+  ( exec 3>&1 3>&2; print -u 3 some words )
+  sleep 1	# let background multi thread catch up
+0:regression test: multios with nullexec
+>some words
+?some words
+
+# tried this with other things, but not on its own, so much.
+  unsetopt nomatch
+  print with nonomatch: flooble*
+  setopt nomatch
+  print with nomatch flooble*
+1:NOMATCH option
+>with nonomatch: flooble*
+?(eval):4: no matches found: flooble*
+
+# NULL_GLOB should override NONOMATCH...
+  setopt nullglob nomatch
+  print frooble* tmp*
+  unsetopt nullglob nomatch
+  print frooble* tmp*
+0:NULL_GLOB option
+>tmpcd tmpfile1 tmpfile2
+>frooble* tmpcd tmpfile1 tmpfile2
+
+  touch ngs1.txt ngs2.txt ngs10.txt ngs20.txt ngs100.txt ngs200.txt
+  setopt numericglobsort
+  print -l ngs*
+  unsetopt numericglobsort
+  print -l ngs*
+0:NUMERIC_GLOB_SORT option
+>ngs1.txt
+>ngs2.txt
+>ngs10.txt
+>ngs20.txt
+>ngs100.txt
+>ngs200.txt
+>ngs1.txt
+>ngs10.txt
+>ngs100.txt
+>ngs2.txt
+>ngs20.txt
+>ngs200.txt
+
+  typeset -i 10 oznum
+  setopt octalzeroes
+  (( oznum = 012 + 013 ))
+  print $oznum
+  unsetopt octalzeroes
+  (( oznum = 012 + 013 ))
+  print $oznum
+  unset oznum
+0:OCTAL_ZEROES options
+>21
+>25
+
+  typeset -a oldpath
+  oldpath=($path)
+  mkdir pdt_topdir pathtestdir pdt_topdir/pathtestdir
+  print "#!/bin/sh\necho File in upper dir" >pathtestdir/findme
+  print "#!/bin/sh\necho File in lower dir" >pdt_topdir/pathtestdir/findme
+  chmod u+x pathtestdir/findme pdt_topdir/pathtestdir/findme
+  pathtestdir/findme
+  rm -f pathtestdir/findme
+  setopt pathdirs
+  path=($PWD $PWD/pdt_topdir)
+  pathtestdir/findme
+  print unsetting option...
+  unsetopt pathdirs
+  pathtestdir/findme
+  path=($oldpath)
+  unset oldpath
+  rm -rf pdt_topdir pathtestdir
+0:PATH_DIRS option
+>File in upper dir
+>File in lower dir
+>unsetting option...
+?(eval):14: no such file or directory: pathtestdir/findme
+
+  (setopt pathdirs; path+=( /usr/bin ); type ./env)
+1:whence honours PATH_DIRS option
+>./env not found
+
+  setopt posixbuiltins
+  PATH= command -v print
+  PATH= command -V print
+  PATH= command print foo
+  unsetopt posixbuiltins
+  print unsetting...
+  PATH= command -V print
+  PATH= command print foo
+127:POSIX_BUILTINS option
+>print
+>print is a shell builtin
+>foo
+>unsetting...
+>print is a shell builtin
+?(eval):8: command not found: print
+
+  (
+     setopt posixbuiltins
+     opts=()
+     command $opts print foo
+     opts=(-v)
+     command $opts print
+     opts=(-V)
+     command $opts print
+  )
+0:command with options from expansion
+>foo
+>print
+>print is a shell builtin
+
+  # With non-special command: original value restored
+  # With special builtin: new value kept
+  # With special builtin preceded by "command": original value restored.
+  (setopt posixbuiltins
+  FOO=val0
+  FOO=val1 true; echo $FOO
+  FOO=val2 times 1>/dev/null 2>&1; echo $FOO
+  FOO=val3 command times 1>/dev/null 2>&1; echo $FOO)
+0:POSIX_BUILTINS and restoring variables
+>val0
+>val2
+>val2
+
+  print "Contents of file" >cat_arg
+  (
+     cat() { print Function with argument $1 }
+     print Without
+     (exec cat cat_arg; print Not reached)
+     print With
+     (setopt posixbuiltins; exec cat cat_arg; print Not reached)
+  )
+0:POSIX_BUILTINS and exec
+>Without
+>Function with argument cat_arg
+>With
+>Contents of file
+
+# PRINTEXITVALUE only works if shell input is coming from standard input.
+# Goodness only knows why.
+  $ZTST_testdir/../Src/zsh -f <<<'
+      setopt printexitvalue
+      func() {
+	  false
+      }
+      func
+  '
+1:PRINT_EXIT_VALUE option
+?zsh: exit 1
+
+  $ZTST_testdir/../Src/zsh -f <<<'
+      setopt printexitvalue
+      () { false; }
+  '
+1:PRINT_EXIT_VALUE option for anonymous function
+?zsh: exit 1
+
+  setopt promptbang
+  print -P !
+  setopt nopromptbang
+  print -P !
+0:PROMPT_BANG option
+>0
+>!
+
+  unsetopt promptpercent
+  print -P '%/'
+  setopt promptpercent
+  print -P '%/'
+0q:PROMPT_PERCENT option
+>%/
+>$mydir
+
+  setopt promptsubst
+  print -P '`echo waaah`'
+  unsetopt promptsubst
+  print -P '`echo waaah`'
+0:PROMPT_SUBST option
+>waaah
+>`echo waaah`
+
+  dirs
+  pushd $mydir/tmpcd
+  dirs
+  pushd $mydir/tmpcd
+  dirs
+  setopt pushdignoredups
+  pushd $mydir/tmpcd
+  dirs
+  unsetopt pushdignoredups
+  popd >/dev/null
+  popd >/dev/null
+0q:PUSHD_IGNOREDUPS option
+>$mydirt
+>$mydirt/tmpcd $mydirt
+>$mydirt/tmpcd $mydirt/tmpcd $mydirt
+>$mydirt/tmpcd $mydirt/tmpcd $mydirt
+
+  mkdir newcd
+  cd $mydir
+  pushd $mydir/tmpcd
+  pushd $mydir/newcd
+  dirs
+  pushd -0
+  dirs
+  setopt pushdminus pushdsilent
+  pushd -0
+  dirs
+  unsetopt pushdminus
+  popd >/dev/null
+  popd >/dev/null
+  cd $mydir  
+0q:PUSHD_MINUS option
+>$mydirt/newcd $mydirt/tmpcd $mydirt
+>$mydirt $mydirt/newcd $mydirt/tmpcd
+>$mydirt $mydirt/newcd $mydirt/tmpcd
+
+# Do you have any idea how dull this is?
+
+  (export HOME=$mydir/homedir
+  pushd $mydir/tmpcd
+  pushd
+  dirs
+  setopt pushdtohome
+  pushd
+  dirs
+  unsetopt pushdtohome
+  popd
+  pushd
+  popd
+  dirs)
+0q:PUSHD_TO_HOME option
+>$mydirhome $mydirhome/tmpcd
+>~ $mydirhome $mydirhome/tmpcd
+>$mydirhome
+
+  array=(one two three four)
+  setopt rcexpandparam
+  print aa${array}bb
+  unsetopt rcexpandparam
+  print aa${array}bb
+0:RC_EXPAND_PARAM option
+>aaonebb aatwobb aathreebb aafourbb
+>aaone two three fourbb
+
+  setopt rcquotes
+  # careful, this is done when parsing a complete block
+  eval "print 'one''quoted''expression'"
+  unsetopt rcquotes
+  eval "print 'another''quoted''expression'"
+0:RC_QUOTES option
+>one'quoted'expression
+>anotherquotedexpression
+
+# too lazy to test jobs -Z and ARGV0.
+  (setopt restricted; cd /)
+  (setopt restricted; PATH=/bin:/usr/bin)
+  (setopt restricted; /bin/ls)
+  (setopt restricted; hash ls=/bin/ls)
+  (setopt restricted; print ha >outputfile)
+  (setopt restricted; exec ls)
+  (setopt restricted; unsetopt restricted)
+  :
+0:RESTRICTED option
+?(eval):cd:1: restricted
+?(eval):2: PATH: restricted
+?(eval):3: /bin/ls: restricted
+?(eval):hash:4: restricted: /bin/ls
+?(eval):5: writing redirection not allowed in restricted mode
+?(eval):exec:6: ls: restricted
+?(eval):unsetopt:7: can't change option: restricted
+
+# ' emacs deconfusion
+
+  fn() {
+    print =ls ={ls,}
+    local foo='=ls'
+    print ${~foo}
+  }
+  setopt shfileexpansion
+  fn
+  unsetopt shfileexpansion
+  fn
+0q:SH_FILE_EXPANSION option
+>$lspath =ls =
+>=ls
+>$lspath $lspath =
+>$lspath
+
+  () {
+    emulate -L sh
+    v='~/one ~/two'
+    print -l -- $v $v
+  }
+0:SH_FILE_EXPANSION option with GLOB_SUBST et al.
+F:Regression test for workers/41811
+>~/one
+>~/two
+>~/one
+>~/two
+
+  (
+    setopt shfileexpansion
+    set -- also appearing
+    print -l $*$*
+  )
+0:SH_FILE_EXPANSION interaction with inserting nodes from parameters
+>also
+>appearingalso
+>appearing
+
+  testpat() {
+    if [[ $1 = ${~2} ]]; then print $1 $2 yes; else print $1 $2 no; fi
+  }
+  print option on
+  setopt shglob
+  repeat 2; do
+    for str in 'a(b|c)' ab; do
+      testpat $str 'a(b|c)'
+    done
+    for str in 'a<1-10>' a9; do
+      testpat $str 'a<1-10>'
+    done
+    [[ ! -o shglob ]] && break
+    print option off
+    unsetopt shglob
+  done
+0:SH_GLOB option
+>option on
+>a(b|c) a(b|c) yes
+>ab a(b|c) no
+>a<1-10> a<1-10> yes
+>a9 a<1-10> no
+>option off
+>a(b|c) a(b|c) no
+>ab a(b|c) yes
+>a<1-10> a<1-10> no
+>a9 a<1-10> yes
+
+  print this is bar >bar
+  fn() {
+    local NULLCMD=cat READNULLCMD=cat
+    { echo hello | >foo } 2>/dev/null
+    cat foo
+    <bar
+  }
+  setopt shnullcmd
+  print option set
+  fn
+  unsetopt shnullcmd
+  print option unset
+  fn
+  rm -f foo bar
+0:SH_NULLCMD option
+>option set
+>option unset
+>hello
+>this is bar
+
+  fn() { 
+    eval 'for f in foo bar; print $f'
+    eval 'for f (word1 word2) print $f'
+    eval 'repeat 3 print nonsense'
+  }
+  unsetopt shortloops shortrepeat
+  print shortloops and shortrepeat unset
+  fn
+  setopt shortrepeat
+  print shortrepeat set
+  fn
+  setopt shortloops
+  print shortloops set
+  fn
+0:SHORT_LOOPS option
+>shortloops and shortrepeat unset
+>shortrepeat set
+>nonsense
+>nonsense
+>nonsense
+>shortloops set
+>foo
+>bar
+>word1
+>word2
+>nonsense
+>nonsense
+>nonsense
+?(eval):1: parse error near `print'
+?(eval):1: parse error near `print'
+?(eval):1: parse error near `print'
+?(eval):1: parse error near `print'
+?(eval):1: parse error near `print'
+
+  fn() { print -l $*; }
+  setopt shwordsplit
+  print option set
+  repeat 2; do
+    foo='two words'
+    fn $foo
+    fn "${=foo}"
+    [[ ! -o shwordsplit ]] && break
+    unsetopt shwordsplit
+    print option unset
+  done
+0:SH_WORD_SPLIT option
+>option set
+>two
+>words
+>two
+>words
+>option unset
+>two words
+>two
+>words
+
+  fn() { unset foo; print value is $foo; }
+  setopt nounset
+  print option unset unset by setting nounset
+  eval fn
+  print option unset reset
+  setopt unset
+  fn
+0:UNSET option
+>option unset unset by setting nounset
+>option unset reset
+>value is
+?fn: foo: parameter not set
+
+  fn1() { unset foo; print value 1 is ${foo#bar}; }
+  fn2() { unset foo; print value 2 is ${foo%bar}; }
+  fn3() { unset foo; print value 3 is ${foo/bar}; }
+  setopt nounset
+  print option unset unset by setting nounset
+  eval fn1
+  eval fn2
+  eval fn3
+  print option unset reset
+  setopt unset
+  fn1
+  fn2
+  fn3
+0:UNSET option with operators
+>option unset unset by setting nounset
+>option unset reset
+>value 1 is
+>value 2 is
+>value 3 is
+?fn1: foo: parameter not set
+?fn2: foo: parameter not set
+?fn3: foo: parameter not set
+
+  fn() {
+    emulate -L zsh
+    setopt warncreateglobal
+    foo1=bar1
+    unset foo1
+    foo1=bar2
+    local foo2=bar3
+    unset foo2
+    foo2=bar4
+    typeset -g foo3
+    foo3=bar5
+    fn2() {
+      foo3=bar6
+    }
+    foo4=bar7 =true
+    (( foo5=8 ))
+    integer foo6=9
+    (( foo6=10 ))
+  }
+  # don't pollute the test environment with the variables...
+  (fn)
+0:WARN_CREATE_GLOBAL option
+?fn:3: scalar parameter foo1 created globally in function fn
+?fn:5: scalar parameter foo1 created globally in function fn
+?fn:15: numeric parameter foo5 created globally in function fn
+
+  fn() {
+    emulate -L zsh
+    setopt warncreateglobal
+    TZ=UTC date >&/dev/null
+    local um=$(TZ=UTC date 2>/dev/null)
+  }
+  fn
+0:WARN_CREATE_GLOBAL negative cases
+
+  (
+    foo1=global1 foo2=global2 foo3=global3 foo4=global4
+    integer foo5=5
+    # skip foo6, defined in fn_wnv
+    foo7=(one two)
+    fn_wnv() {
+       # warns
+       foo1=bar1
+       # doesn't warn
+       local foo2=bar3
+       unset foo2
+       # still doesn't warn
+       foo2=bar4
+       # doesn't warn
+       typeset -g foo3=bar5
+       # warns
+       foo3=bar6
+       fn2() {
+          # warns if global option, not attribute
+          foo3=bar6
+       }
+       fn2
+       # doesn't warn
+       foo4=bar7 =true
+       # warns
+       (( foo5=8 ))
+       integer foo6=9
+       # doesn't warn
+       (( foo6=10 ))
+       foo7[3]=three
+       foo7[4]=(four)
+    }
+    print option off >&2
+    fn_wnv
+    print option on >&2
+    setopt warnnestedvar
+    fn_wnv
+    unsetopt warnnestedvar
+    print function attribute on >&2
+    functions -W fn_wnv
+    fn_wnv
+    print all off again >&2
+    functions +W fn_wnv
+    fn_wnv
+  )
+0:WARN_NESTED_VAR option
+?option off
+?option on
+?fn_wnv:2: scalar parameter foo1 set in enclosing scope in function fn_wnv
+?fn_wnv:11: scalar parameter foo3 set in enclosing scope in function fn_wnv
+?fn2:2: scalar parameter foo3 set in enclosing scope in function fn2
+?fn_wnv:20: numeric parameter foo5 set in enclosing scope in function fn_wnv
+?function attribute on
+?fn_wnv:2: scalar parameter foo1 set in enclosing scope in function fn_wnv
+?fn_wnv:11: scalar parameter foo3 set in enclosing scope in function fn_wnv
+?fn_wnv:20: numeric parameter foo5 set in enclosing scope in function fn_wnv
+?all off again
+
+
+  (
+    setopt warnnestedvar
+    () {
+      typeset -A a
+      : ${a[hello world]::=foo}
+      print ${(t)a}
+      key="hello world"
+      print $a[$key]
+    }
+  )
+0:No false positive on parameter used with subscripted assignment
+>association-local
+>foo
+
+  (
+    setopt warnnestedvar
+    () {
+      local var=(one two)
+      () { var=three; }
+      print $var
+    }
+  )
+0:Warn when changing type of nested variable: array to scalar.
+?(anon): scalar parameter var set in enclosing scope in function (anon)
+>three
+
+  (
+    setopt warnnestedvar
+    () {
+      local var=three
+      () { var=(one two); }
+      print $var
+    }
+  )
+0:Warn when changing type of nested variable: scalar to array.
+?(anon): array parameter var set in enclosing scope in function (anon)
+>one two
+
+# This really just tests if XTRACE is egregiously broken.
+# To test it properly would need a full set of its own.
+  fn() { print message; }
+  PS4='+%N:%i> '
+  setopt xtrace
+  fn
+  unsetopt xtrace
+  fn
+0:XTRACE option
+>message
+>message
+?+(eval):4> fn
+?+fn:0> print message
+?+(eval):5> unsetopt xtrace
+
+  setopt ignoreclosebraces
+  eval "icb_test() { echo this is OK; }"
+  icb_test
+  icb_args() { print $#; }
+  eval "icb_args { this, is, ok, too }"
+0:IGNORE_CLOSE_BRACES option
+>this is OK
+>6
+
+  (setopt pipefail
+  true | true | true
+  print $?
+  true | false | true
+  print $?
+  exit 2 | false | true
+  print $?
+  false | exit 2 | true
+  print $?)
+0:PIPE_FAIL option
+>0
+>1
+>1
+>2
+
+  for (( i = 0; i < 10; i++ )); do
+     () {
+        print $i
+        break
+     }
+  done
+0:NO_LOCAL_LOOPS
+>0
+
+  () {
+      emulate -L zsh
+      setopt localloops
+      for (( i = 0; i < 10; i++ )); do
+	  () {
+              setopt nolocalloops # ignored in parent
+              print $i
+              break
+	  }
+      done
+  }
+0:LOCAL_LOOPS
+>0
+>1
+>2
+>3
+>4
+>5
+>6
+>7
+>8
+>9
+?(anon):4: `break' active at end of function scope
+?(anon):4: `break' active at end of function scope
+?(anon):4: `break' active at end of function scope
+?(anon):4: `break' active at end of function scope
+?(anon):4: `break' active at end of function scope
+?(anon):4: `break' active at end of function scope
+?(anon):4: `break' active at end of function scope
+?(anon):4: `break' active at end of function scope
+?(anon):4: `break' active at end of function scope
+?(anon):4: `break' active at end of function scope
+
+# There are further tests for PRIVILEGED in P01privileged.ztst.
+ if [[ -o privileged ]]; then
+   unsetopt privileged
+ fi
+ unsetopt privileged
+0:PRIVILEGED sanity check: unsetting is idempotent
+F:If this test fails at the first unsetopt, refer to P01privileged.ztst.
+
+  if [[ -o privileged ]]; then
+    (( UID != EUID ))
+  else
+    (( UID == EUID ))
+  fi
+0:PRIVILEGED sanity check: default value is correct
+
+  if zmodload -e zsh/zpty 2>/dev/null; then
+    for target_dir target_pattern in \
+      '.' '*' \
+      '/' '/*'
+    do
+      before=`ls -a -- $target_dir`
+      zpty subshell $ZTST_testdir/../Src/zsh -f +Z
+      [[ $PWD == */options.tmp ]] || return 1 # Sanity check before calling rm(1).
+      zpty -w subshell 'PS1=PROMPT'
+      zpty -r -m subshell REPLY $'*PROMPT'
+      zpty -w subshell "rm $target_pattern"
+      zpty -w -n subshell 'n'
+      sleep 1
+      zpty -rt subshell REPLY && print -r -- ${REPLY%%$'\r\n'}
+      zpty -d subshell
+      after=`ls -a -- $target_dir`
+      [[ $before == $after ]] || return 1
+    done
+  else
+    ZTST_skip="the zsh/zpty module is not available"
+  fi
+  BEL=$'\a'
+0q:RM_STAR_SILENT
+*>zsh: sure you want to delete all 15 files in ${PWD:h}/options.tmp \[yn\]\? ${BEL}(|n)
+*>zsh: sure you want to delete (all <->|more than <->) files in / \[yn\]\? ${BEL}(|n)
+
+  () {
+    local var
+    print ${(t)var}
+  }
+0:(t) returns correct type
+>scalar-local
+
+  () {
+    readonly var
+    typeset -p var
+  }
+0:readonly with typeset -p
+F:compare E03posix.ztst
+>typeset -r var=''

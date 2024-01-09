@@ -1,0 +1,84 @@
+texinode(Restricted Shell)()(Compatibility)(Invocation)
+sect(Restricted Shell)
+cindex(restricted shell)
+pindex(RESTRICTED)
+When the basename of the command used to invoke zsh starts with the letter
+`tt(r)' or the `tt(-r)' command line option is supplied at invocation, the
+shell becomes restricted.  Emulation mode is determined after stripping the
+letter `tt(r)' from the invocation name.  The following are disabled in
+restricted mode:
+
+startitemize()
+itemiz(changing directories with the tt(cd) builtin)
+itemiz(changing or unsetting the tt(EGID), tt(EUID), tt(GID),
+tt(HISTFILE), tt(HISTSIZE), tt(IFS), tt(LD_AOUT_LIBRARY_PATH),
+tt(LD_AOUT_PRELOAD), tt(LD_LIBRARY_PATH), tt(LD_PRELOAD),
+tt(MODULE_PATH), tt(module_path), tt(PATH), tt(path), tt(SHELL),
+tt(UID) and tt(USERNAME) parameters)
+itemiz(specifying command names containing tt(/))
+itemiz(specifying command pathnames using tt(hash))
+itemiz(redirecting output to files)
+itemiz(using the tt(exec) builtin command to replace the shell with another
+command)
+itemiz(using tt(jobs -Z) to overwrite the shell process' argument and
+environment space)
+itemiz(using the tt(ARGV0) parameter to override tt(argv[0]) for external
+commands)
+itemiz(turning off restricted mode with tt(set +r) or tt(unsetopt
+RESTRICTED))
+enditemize()
+
+These restrictions are enforced after processing the startup files.  The
+startup files should set up tt(PATH) to point to a directory of commands
+which can be safely invoked in the restricted environment.  They may also
+add further restrictions by disabling selected builtins.
+
+Restricted mode can also be activated any time by setting the
+tt(RESTRICTED) option.  This immediately enables all the restrictions
+described above even if the shell still has not processed all startup
+files.
+
+A shell em(Restricted Mode) is an outdated way to restrict what users may
+do:  modern systems have better, safer and more reliable ways to
+confine user actions, such as em(chroot jails), em(containers) and
+em(zones).
+
+A restricted shell is very difficult to implement safely.  The feature
+may be removed in a future version of zsh.
+
+It is important to realise that the restrictions only apply to the shell,
+not to the commands it runs (except for some shell builtins).  While a
+restricted shell can only run the restricted list of commands accessible
+via the predefined `tt(PATH)' variable, it does not prevent those
+commands from running any other command.
+
+As an example, if `tt(env)' is among the list of em(allowed) commands,
+then it allows the user to run any command as `tt(env)' is not a shell
+builtin command and can run arbitrary executables.
+
+So when implementing a restricted shell framework it is important to be
+fully aware of what actions each of the em(allowed) commands or features
+(which may be regarded as em(modules)) can perform.
+
+Many commands can have their behaviour affected by environment
+variables.  Except for the few listed above, zsh does not restrict
+the setting of environment variables.
+
+If a `tt(perl)', `tt(python)', `tt(bash)', or other general purpose
+interpreted script it treated as a restricted
+command, the user can work around the restriction by
+setting specially crafted `tt(PERL5LIB)', `tt(PYTHONPATH)',
+`tt(BASHENV)' (etc.) environment variables. On GNU systems, any
+command can be made to run arbitrary code when performing character set
+conversion (including zsh itself) by setting a `tt(GCONV_PATH)'
+environment variable.  Those are only a few examples.
+
+Bear in mind that, contrary to some other shells, `tt(readonly)' is not a
+security feature in zsh as it can be undone and so cannot be used to
+mitigate the above.
+
+A restricted shell only works if the allowed commands are few
+and carefully written so as not to grant more access to users than
+intended.  It is also important to restrict what zsh module the user may
+load as some of them, such as `tt(zsh/system)', `tt(zsh/mapfile)' and
+`tt(zsh/files)', allow bypassing most of the restrictions.

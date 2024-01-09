@@ -1,0 +1,150 @@
+# To get the "command not found" message when aliasing is suppressed
+# we need, er, a command that isn't found.
+# The other aliases are only ever used as aliases.
+
+%prep
+  alias ThisCommandDefinitelyDoesNotExist=echo
+
+  alias -g bar=echo
+
+  alias '\bar=echo'
+
+%test
+  ThisCommandDefinitelyDoesNotExist ThisCommandDefinitelyDoesNotExist
+0:Basic aliasing
+>ThisCommandDefinitelyDoesNotExist
+
+  bar bar
+0:Global aliasing
+>echo
+
+  \ThisCommandDefinitelyDoesNotExist ThisCommandDefinitelyDoesNotExist
+127:Not aliasing
+?(eval):1: command not found: ThisCommandDefinitelyDoesNotExist
+
+  \bar \bar
+0:Aliasing with a backslash
+>bar
+
+  (alias '!=echo This command has the argument'
+  eval 'print Without
+  ! true'
+  setopt posixaliases
+  eval 'print With
+  ! true')
+1:POSIX_ALIASES option
+>Without
+>This command has the argument true
+>With
+
+  print -u $ZTST_fd 'This test hangs the shell when it fails...'
+  alias cat='LC_ALL=C cat'
+  cat <(echo foo | cat)
+0:Alias expansion works at the end of parsed strings
+>foo
+
+  alias -g '&&=(){ return $?; } && '
+  alias not_the_print_command=print
+  eval 'print This is output
+  && print And so is this
+  && { print And this too; false; }
+  && print But not this
+  && print Nor this
+  true
+  && not_the_print_command And aliases are expanded'
+0:We can now alias special tokens.  Woo hoo.
+>This is output
+>And so is this
+>And this too
+>And aliases are expanded
+
+  $ZTST_testdir/../Src/zsh -fis <<<'
+  unsetopt PROMPT_SP
+  PROMPT="" PS2="" PS3="" PS4="" RPS1="" RPS2=""
+  exec 2>&1
+  alias \{=echo
+  { begin
+  {end
+  fc -l -2' 2>/dev/null
+0:Aliasing reserved tokens
+>begin
+>end
+*>*5*{ begin
+*>*6*{end
+
+  $ZTST_testdir/../Src/zsh -fis <<<'
+  unsetopt PROMPT_SP
+  PROMPT="" PS2="" PS3="" PS4="" RPS1="" RPS2=""
+  exec 2>&1
+  alias -g S=\"
+  echo S a string S "
+  fc -l -1' 2>/dev/null
+0:Global aliasing quotes
+> a string S 
+*>*5*echo S a string S "
+# "
+# Note there is a trailing space on the "> a string S " line
+
+  (
+  unalias -a
+  alias
+  )
+0:unalias -a
+
+  alias -s foo=print
+  type bar.foo; type -w bar.foo
+  unalias -as
+0:unalias -as
+>foo is a suffix alias for print
+>foo: suffix alias
+
+  aliases[x=y]=z
+  alias -L | grep x=y
+  echo $pipestatus[1]
+0:printing invalid aliases warns
+>0
+?(eval):2: invalid alias 'x=y' encountered while printing aliases
+# Currently, 'alias -L' returns 0 in this case.  Perhaps it should return 1.
+
+  alias -s mysuff='print -r "You said it.";'
+  eval 'thingummy.mysuff'
+127:No endless loop with suffix alias in command position
+>You said it.
+?(eval):1: command not found: thingummy.mysuff
+
+  alias +x; alias -z
+1:error message has the correct sign
+?(eval):alias:1: bad option: +x
+?(eval):alias:1: bad option: -z
+
+  # Usual issue that aliases aren't expanded until we
+  # trigger a new parse...
+  (alias badalias=notacommand
+  eval 'badalias() { print does not work; }')
+1:ALIAS_FUNC_DEF off by default.
+?(eval):1: defining function based on alias `badalias'
+?(eval):1: parse error near `()'
+
+  (alias goodalias=isafunc
+  setopt ALIAS_FUNC_DEF
+  eval 'goodalias() { print does now work; }'
+  isafunc)
+0:ALIAS_FUNC_DEF causes the icky behaviour to be available
+>does now work
+
+  (alias thisisokthough='thisworks() { print That worked; }'
+  eval thisisokthough
+  thisworks)
+0:NO_ALIAS_FUNC_DEF works if the alias is a complete definition
+>That worked
+
+ type \bar
+ type -w \bar
+ type \\bar
+ type -w \\bar
+0:type -w of alias -g
+>bar is a global alias for echo
+>bar: global alias
+>\bar is an alias for echo
+>\bar: alias
+

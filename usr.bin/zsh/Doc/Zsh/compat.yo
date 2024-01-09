@@ -1,0 +1,81 @@
+texinode(Compatibility)(Restricted Shell)()(Invocation)
+sect(Compatibility)
+cindex(compatibility)
+cindex(sh compatibility)
+cindex(ksh compatibility)
+Zsh tries to emulate bf(sh) or bf(ksh) when it is invoked as
+tt(sh) or tt(ksh) respectively; more precisely, it looks at the first
+letter of the name by which it was invoked, excluding any initial `tt(r)'
+(assumed to stand for `restricted'), and if that is `tt(b)', `tt(s)' or `tt(k)' it
+will emulate bf(sh) or bf(ksh).  Furthermore, if invoked as tt(su) (which
+happens on certain systems when the shell is executed by the tt(su)
+command), the shell will try to find an alternative name from the tt(SHELL)
+environment variable and perform emulation based on that.
+
+In bf(sh) and bf(ksh) compatibility modes the following
+parameters are not special and not initialized by the shell:
+tt(ARGC),
+tt(argv),
+tt(cdpath),
+tt(fignore),
+tt(fpath),
+tt(HISTCHARS),
+tt(mailpath),
+tt(MANPATH),
+tt(manpath),
+tt(path),
+tt(prompt),
+tt(PROMPT),
+tt(PROMPT2),
+tt(PROMPT3),
+tt(PROMPT4),
+tt(psvar),
+tt(status).
+
+vindex(ENV, use of)
+The usual zsh startup/shutdown scripts are not executed.  Login shells
+source tt(/etc/profile) followed by tt($HOME/.profile).  If the
+tt(ENV) environment variable is set on invocation, tt($ENV) is sourced
+after the profile scripts.  The value of tt(ENV) is subjected to
+parameter expansion, command substitution, and arithmetic expansion
+before being interpreted as a pathname.  Note that the tt(PRIVILEGED)
+option also affects the execution of startup files.
+
+The following options are set if the shell is invoked as tt(sh) or
+tt(ksh):
+tt(NO_BAD_PATTERN),
+tt(NO_BANG_HIST),
+tt(NO_BG_NICE),
+tt(NO_EQUALS),
+tt(NO_FUNCTION_ARGZERO),
+tt(GLOB_SUBST),
+tt(NO_GLOBAL_EXPORT),
+tt(NO_HUP),
+tt(INTERACTIVE_COMMENTS),
+tt(KSH_ARRAYS),
+tt(NO_MULTIOS),
+tt(NO_NOMATCH),
+tt(NO_NOTIFY),
+tt(POSIX_BUILTINS),
+tt(NO_PROMPT_PERCENT),
+tt(RM_STAR_SILENT),
+tt(SH_FILE_EXPANSION),
+tt(SH_GLOB),
+tt(SH_OPTION_LETTERS),
+tt(SH_WORD_SPLIT).
+Additionally the tt(BSD_ECHO) and tt(IGNORE_BRACES)
+options are set if zsh is invoked as tt(sh).
+Also, the
+tt(KSH_OPTION_PRINT),
+tt(LOCAL_OPTIONS),
+tt(PROMPT_BANG),
+tt(PROMPT_SUBST)
+and
+tt(SINGLE_LINE_ZLE)
+options are set if zsh is invoked as tt(ksh).
+
+Please note that, whilst reasonable efforts are taken to address
+incompatibilities when they arise, zsh does not guarantee complete
+emulation of other shells, nor POSIX compliance. For more information on
+the differences between zsh and other shells, please refer to chapter 2
+of the shell FAQ, uref(https://www.zsh.org/FAQ/).

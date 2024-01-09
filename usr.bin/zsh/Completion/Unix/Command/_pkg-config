@@ -1,0 +1,66 @@
+#compdef pkg-config
+
+local arguments packages curcontext="$curcontext" state line expl ret=1
+declare -A opt_args
+
+# Up-to-date as of pkg-config 0.29-4 (debian package) man page synopsis
+arguments=(
+      "--modversion[print the version information of a given package]"
+      "--version[print version information of pkg-config itself]"
+      "--atleast-pkgconfig-version=[require given version of pkg-config]:minimum version"
+      "(- *)"{--help,-\?}"[display a help message]"
+      "(- *)--usage[display brief usage message]"
+      "--print-errors[cause errors to be printed]"
+      "--short-errors[print short error messages]"
+      "--silence-errors[prevent the printing of errors]"
+      "--errors-to-stdout[print errors to stdout rather than stderr]"
+      "--cflags[print the preprocessor and compiler flags]"
+      "--cflags-only-I[output -I flags only]"
+      "--cflags-only-other[output cflags not covered by the cflags-only-I option]"
+      "--debug[show verbose debug information]"
+      "--libs[print the link flags]"
+      "--libs-only-L[print the -L and -R parts of \"--libs\"]"
+      "--libs-only-l[print the -l part of \"--libs\"]"
+      "--libs-only-other[output other libs]"
+      "--validate[syntax check a .pc file]"
+      "--list-all[list all known packages]"
+      "--variable=[return the value of the specified variable]:variable:->variable"
+      "--define-variable=[set the global value for a variable]:name value pair"
+      "--print-variables[list all variables defined in the package]"
+      "--uninstalled[return success if any \"-uninstalled\" packages are being used]"
+      "--exists[test whether the package exists or not]"
+      "--atleast-version=[test whether the version is at least that of the specified value]:least value"
+      "--exact-version=[test whether the version is exactly that of the specified value]:exact value"
+      "--max-version=[test whether the version is no greater than some specific value]:max version"
+      "--print-provides[list all modules the package provides]"
+      "--print-requires[list all modules the package requires]"
+      "--print-requires-private[list all modules the package requires for static linking (see --static)]"
+#      "--msvc-syntax[output linker flags in a form compatible with MSVC++ (Windows only)]"
+#      "--dont-define-prefix[disables automatic overriding of the variable \"prefix\" (Windows only)]"
+#      "--prefix-variable=[set the name of the variable \"prefix\" (Windows only)]:prefix value"
+      "*: :->packages"
+)
+
+_arguments -C -S : $arguments && ret=0
+
+case $state in
+  (packages)
+    packages=( ${${(f)"$(_call_program packages pkg-config --list-all)"}%% *} )
+    _alternative \
+      'packages:package:compadd -a - packages' \
+      'files:package file:_files -g "*.pc(-.)"' \
+      && ret=0
+  ;;
+
+  (variable)
+    if [[ $line[1] != '-' ]]; then
+      local -a variables=( ${${(f)"$(_call_program variables "pkg-config --print-variables -- ${(q)line[1]}")"}} )
+      _wanted variables expl 'variable' compadd -a - variables && ret=0
+    else
+      _message "variable"
+    fi
+    ;;
+
+esac
+
+return ret

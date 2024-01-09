@@ -1,0 +1,114 @@
+#compdef ypcat ypmatch yppasswd ypwhich ypset ypserv ypbind yppush yppoll ypxfr domainname
+
+local curcontext="$curcontext" line state expl args ret=1
+typeset -A opt_args
+
+if (( ! $+_cache_yp_maps )); then
+  typeset -ga _cache_yp_maps _cache_yp_nicks
+  _cache_yp_maps=( "${(@)${(@f)$(_call_program maps ypwhich -m)}%% *}" )
+  _cache_yp_nicks=( "${(@)${(@)${(@f)$(_call_program names ypwhich -x)}#*\"}%%\"*}" )
+fi
+
+args=(
+  '(-x)-d[specify domain]:domain name' \
+  '(-x)-k[display keys]' \
+  '(-x)-t[inhibit nicknames]' \
+  '(: -d -k -t)-x[display nicknames]' \
+)
+
+case "$service" in
+ypcat)
+  _arguments -C -s $args ':map name:->map' && ret=0
+  ;;
+ypmatch)
+  _arguments -C -s $args '::key map:->keymap' ':map name:->map' &&
+    ret=0
+  ;;
+yppasswd)
+  _users
+  return
+  ;;
+ypwhich)
+  _arguments -C \
+    '(-x)-d[specify domain]:domain name' \
+    '(-x -V2 -m -t)-V1[identify version 1 servers]' \
+    '(-x -V1 -m -t)-V2[identify version 2 servers]' \
+    '(: -x -V1 -V2 -m)-t[specify map name]:map name:->maponly' \
+    '(: -x -V1 -V2 -t)-m[specify map or nick name]:map or nick name:->map' \
+    '(: -d -m -t -V1 -V2)-x[display nicknames]' \
+    ':host:_hosts' && ret=0
+  ;;
+ypset)
+  _arguments -C \
+    '(-V2)-V1[bind version 1 servers]' \
+    '(-V1)-V2[bind version 2 servers]' \
+    '-d[specify domain]:domain name' \
+    '-h[set NIS binding on specified host]:host:_hosts' \
+    ':server:_hosts' && ret=0
+    ;;
+ypserv)
+  _arguments -C \
+    '-a[specify database routines]:database routines:((b\:btree d\:dbm/ndbm h\:hash))' && ret=0
+  ;;
+ypbind)
+  _arguments -C \
+    '-s[allow secure mode for ypbind]' \
+    '-S[set domain and servers]:domain:->servers' \
+    '(-ypsetme)-ypset[accept all ypset requests]' \
+    '(-ypset)-ypsetme[accept only local ypset requests]' && ret=0
+  ;;
+yppush)
+  _arguments -C \
+    '-d[specify domain]:domain name' \
+    '-v[print messages]' \
+    ':map name:->map' && ret=0
+  ;;
+yppoll)
+  _arguments -C \
+    '-d[specify domain]:domain name' \
+    '-h[ask specified yp server]:host:_hosts' \
+    ':map name:->map' && ret=0
+  ;;
+ypxfr)
+  _arguments -C \
+    '-a[specify database routines]:database routines:((b\:btree d\:dbm/ndbm h\:hash))' \
+    '-f[force transfer]' \
+    "-c[don't clear current map]" \
+    '-d[specify domain]:domain name' \
+    '-h[get map from specified host instead of master]:host:_hosts' \
+    '-C[call back]:transaction ID: :program number: :IP address: :port number' \
+    ':map name:->map' && ret=0
+  ;;
+domainname)
+  _message -e new-domains 'new domain name'
+  return 1
+  ;;
+esac
+
+[[ "$state" = keymap ]] && _message -e keys 'key'
+
+if [[ "$state" = map* ]]; then
+  if [[ $+opt_args[-t] -eq 0 && "$state" != maponly ]]; then
+    _tags maps nicknames
+  else
+    _tags maps
+  fi
+
+  while _tags; do
+    # The `-M ...' allows `pa.n<TAB>' to complete to `passwd.byname'.
+    _requested maps expl 'map name' \
+        compadd -M 'l:.|by=by l:.|=by r:|.=* r:|=*' -a \
+                _cache_yp_maps && ret=0
+    _requested nicknames expl nicknames \
+        compadd -a _cache_yp_nicks && ret=0
+    (( ret )) || return 0
+  done
+elif [[ "$state" = servers ]]; then
+  if compset -P '*,'; then
+    _wanted hosts expl server _hosts -qS, && ret=0
+  else
+    _message -e domains 'domain name'
+  fi
+fi
+
+return ret

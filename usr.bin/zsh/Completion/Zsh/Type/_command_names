@@ -1,0 +1,68 @@
+#autoload
+
+# The option `-e' if given as the first argument says that we should
+# complete only external commands and executable files. This and a
+# `-' as the first argument is then removed from the arguments.
+
+local args defs expl ffilt
+
+zstyle -t ":completion:${curcontext}:commands" rehash && rehash
+
+zstyle -t ":completion:${curcontext}:functions" prefix-needed && \
+ [[ $PREFIX != [_.]* ]] && \
+ ffilt='[(I)[^_.]*]'
+
+defs=(
+  'commands:external command:_path_commands'
+)
+
+if [[ -n "$path[(r).]" || $PREFIX = */* ]]; then
+  defs+=( 'executables:executable file:_files -g \*\(-\*\)' )
+else
+  # this is ignored but exists to facilitate the use of the fake style
+  _description executables expl 'executable file'
+fi
+
+if [[ "$1" = -e ]]; then
+  shift
+elif (( ${#precommands:|builtin_precommands} )); then
+  # precommand excludes internal options below
+else
+  [[ "$1" = - ]] && shift
+
+  defs=( "$defs[@]"
+    'builtins:builtin command:compadd -Qk builtins'
+    "functions:shell function:compadd -k 'functions$ffilt'"
+    'aliases:alias:compadd -Qk aliases'
+    'suffix-aliases:suffix alias:_suffix_alias_files'
+    'reserved-words:reserved word:compadd -Qk reswords'
+    'jobs:: _jobs -t'
+    'parameters:: _parameters -g "^*(readonly|association)*" -qS= -r "\n\t\- =[+"'
+    'parameters:: _parameters -g "*association*~*readonly*" -qS\[ -r "\n\t\- =[+"'
+  )
+fi
+
+args=( "$@" )
+
+local -a cmdpath
+
+zstyle -a ":completion:${curcontext}" command-path cmdpath
+
+# Using the current PATH doesn't necessarily make sense when completing commands
+# to tools like sudo, which might set a different one. A common issue is that
+# /**/sbin appear in the PATH used by the tool, but not in the one used by the
+# unprivileged user who calls it. To do the right thing in the most common
+# cases, we'll simply ensure that the sbin variants always appear here when not
+# otherwise overridden (bash-completion's _sudo does something similar)
+if (( ! $#cmdpath && $#_comp_priv_prefix )); then
+  cmdpath=( $path ${path/%\/bin//sbin} )
+  cmdpath=( ${(u)^cmdpath}(/-N) )
+fi
+
+if (( $#cmdpath )); then
+  local -a +h path
+  local -A +h commands
+  path=( $cmdpath:A )
+fi
+
+_alternative -O args "$defs[@]"

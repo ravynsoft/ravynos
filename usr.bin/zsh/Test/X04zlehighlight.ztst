@@ -1,0 +1,212 @@
+# Tests for region_highlight, true-color support, near-color support
+# Version 0.7 2018-12-06
+%prep
+
+  export TERM=xterm-256color
+  if [[ ${+termcap} != 1 || ${termcap[Co]} != <-> || ${termcap[Co]} -lt 256 ]]; then
+    ZTST_unimplemented="no termcap module OR termcap doesn't support 256 or more colors"
+  elif zmodload zsh/zpty 2> /dev/null; then
+    zpty_start() {
+      export PS1= PS2=
+      zpty -d
+      zpty zsh "${(q)ZTST_testdir}/../Src/zsh -fiV +Z"
+      zpty -w zsh "module_path=( ${(j< >)${(@q-)module_path}} \$module_path )"
+      zpty -w zsh 'zle_highlight=( fg_start_code:"CDE|3" fg_end_code:"|" bg_start_code:"BCDE|4" bg_end_code:"|" )'
+    }
+    zpty_input() {
+      zpty ${${(M)2:#nonl}:+-n} -w zsh "$1"
+    }
+    zpty_enable_zle() {
+      zpty -w zsh "tcfunc() { REPLY=""; }"
+      # This line will not be echoed back, behaving like ! -o zle
+      zpty -w zsh "setopt zle; zle -T tc tcfunc; unset zle_bracketed_paste"
+    }
+    zpty_line() {
+      setopt localoptions extendedglob noshwordsplit
+      local REPLY cm=$'\r'
+      integer i
+      for (( i = 0; i < ${1:-1}; ++i )); do
+        zpty -r zsh REPLY
+        # Normalise me/sgr0 to \e[0m. We also need to strip \e(B in zpty_stop()
+        REPLY=${REPLY//${termcap[me]}/$'\x1b[0m'}
+        # P is for "preserve", and induces keeping some
+        # expected color codes to test region_highlight,
+        # etc. - the color codes are made a regular text.
+        [[ "$2" = "p" ]] && {
+            REPLY=${REPLY//(#b)$'\x1b'\[([0-9;]##m)/${match[1]}}
+        } || {
+            REPLY=${REPLY//$'\x1b'\[[0-9;]##m/}   # remove all [0-9]...m codes
+        }
+        # Fix e^Mexit - match ((?)\r(?)), if \2 == \3, then replace with \2
+        # otherwise replace with \1 stripped out of leading/trailing [[:space:]]
+        REPLY=${REPLY//(#b)((?(#c0,1))$cm(?(#c0,1)))/${${${(M)match[2]:#${match[3]}}:+${match[2]}}:-${${match[1]##[[:space:]]##}%%[[:space:]]##}}}
+        [[ -n "$REPLY" ]] && print -r -- ${${REPLY%%[[:space:]]##}##[[:space:]]##}
+      done
+    }
+    zpty_stop() {
+      setopt localoptions extendedglob
+      local REPLY cm=$'\r'
+      # To early Ctrl-D might happen, it was happening when debug
+      # logs were writing to a file slowing down Zle a little
+      LANG=C sleep 0.333
+      # Zle is active, can use Ctrl-D to exit
+      zpty -n -w zsh $'\C-d'
+      # zpty gives no output when piped without these braces (?)
+      # The while loop with // substitution is to convert `e^Mexit'
+      # into `exit' (see zpty_line). The sed commands remove escapes
+      { zpty -r zsh } |
+      sed -e $'/[^\t\r ]/!d' -e $'s/\r$//' -e $'s/\x1b\\[[0-9;]*m//g' -e $'s/\x1b([A-Z]//g' |
+      while read REPLY; do
+        REPLY=${REPLY//(#b)((?(#c0,1))$cm(?(#c0,1)))/${${${(M)match[2]:#${match[3]}}:+${match[2]}}:-${${match[1]##[[:space:]]##}%%[[:space:]]##}}}
+        print -rn -- "$REPLY"
+      done
+      zpty -d
+      :
+    }
+  else
+    ZTST_unimplemented='the zsh/zpty module is not available'
+  fi
+
+%test
+
+  zpty_start
+  zpty_input 'rh_widget() { BUFFER="true word2 word3"; region_highlight+=( "0 4 fg=196" ); rh2; }'
+  zpty_input 'rh2() { region_highlight=( "2 3 standout" ); };' # note the =, not +=
+  zpty_input 'zle -N rh_widget'
+  zpty_input 'bindkey "\C-a" rh_widget'
+  zpty_enable_zle
+  zpty_input $'\C-a'  # emits newline, which executes BUFFER="true" command
+  zpty_line 1 p       # the line of interest, preserving escapes ("p")
+  zpty_stop
+0:region highlight - standout overlapping on other region_highlight entry
+>0m27m24mtr7mu27me word2 word3
+
+  zpty_start
+  zpty_input 'rh_widget() { BUFFER="true"; region_highlight+=( "0 4 fg=green" ); }'
+  zpty_input 'zle -N rh_widget'
+  zpty_input 'bindkey "\C-a" rh_widget'
+  zpty_enable_zle
+  zpty_input $'\C-a'  # emits newline, which executes BUFFER="true" command
+  zpty_line 1 p       # the line of interest, preserving escapes ("p")
+  zpty_stop
+0:basic region_highlight with 8 colors
+>0m27m24mCDE|32|trueCDE|39|
+
+  zpty_start
+  zpty_input 'rh_widget() { region_highlight+=( "0 4 fg=green memo=someplugin" ); typeset -p region_highlight }'
+  zpty_input 'zle -N rh_widget'
+  zpty_input 'bindkey "\C-a" rh_widget'
+  zpty_enable_zle
+  zpty_input $'\C-a'
+  zpty_line
+  zpty_stop
+0:region_highlight memo information round trips
+>typeset -a region_highlight=( '0 4 fg=green memo=someplugin' )
+
+  zpty_start
+  zpty_input 'rh_widget() { region_highlight+=( "0 4 fg=green memo=someplugin,futureattribute=futurevalue" ); typeset -p region_highlight }'
+  zpty_input 'zle -N rh_widget'
+  zpty_input 'bindkey "\C-a" rh_widget'
+  zpty_enable_zle
+  zpty_input $'\C-a'
+  zpty_line
+  zpty_stop
+0:region_highlight memo information forward compatibility, #1
+>typeset -a region_highlight=( '0 4 fg=green memo=someplugin' )
+
+  zpty_start
+  zpty_input 'rh_widget() { region_highlight+=( "0 4 fg=green memo=someplugin futurefifthfield" ); typeset -p region_highlight }'
+  zpty_input 'zle -N rh_widget'
+  zpty_input 'bindkey "\C-a" rh_widget'
+  zpty_enable_zle
+  zpty_input $'\C-a'
+  zpty_line
+  zpty_stop
+0:region_highlight memo information forward compatibility, #2
+>typeset -a region_highlight=( '0 4 fg=green memo=someplugin' )
+
+  zpty_start
+  zpty_input 'rh_widget() { region_highlight+=( "0 4 fg=green memo=some'$'\0''plugin" ); typeset -p region_highlight }'
+  zpty_input 'zle -N rh_widget'
+  zpty_input 'bindkey "\C-a" rh_widget'
+  zpty_enable_zle
+  zpty_input $'\C-a'
+  zpty_line
+  zpty_stop
+0:region_highlight memo information forward compatibility, #3: NULs
+>typeset -a region_highlight=( '0 4 fg=green memo=some' )
+
+  zpty_start
+  zpty_input 'rh_widget() { BUFFER="true"; region_highlight+=( "0 4 fg=#040810" ); }'
+  zpty_input 'zle -N rh_widget'
+  zpty_input 'bindkey "\C-a" rh_widget'
+  zpty_enable_zle
+  zpty_input $'\C-a'  # emits newline, which executes BUFFER="true" command
+  zpty_line 1 p       # the line of interest, preserving escapes ("p")
+  zpty_stop
+0:basic region_highlight with true-color (hex-triplets)
+>0m27m24m38;2;4;8;16mtrueCDE|39|
+
+  zpty_start
+  zpty_input 'zmodload zsh/nearcolor'
+  zpty_input 'rh_widget() { BUFFER="true"; region_highlight+=( "0 4 fg=#040810" ); }'
+  zpty_input 'zle -N rh_widget'
+  zpty_input 'bindkey "\C-a" rh_widget'
+  zpty_enable_zle
+  zpty_input $'\C-a'  # emits newline, which executes BUFFER="true" command
+  zpty_line 1 p       # the line of interest, preserving escapes ("p")
+  zpty_stop
+0:basic region_highlight with near-color (hex-triplets at input)
+>0m27m24mCDE|3232|trueCDE|39|
+
+  zpty_start
+  zpty_input 'rh_widget() { BUFFER="true"; region_highlight+=( "0 4 fg=green" ); rh2; }'
+  zpty_input 'rh2() { region_highlight+=( "1 2 fg=red" ); }' # `r' in red; the above line would be too long
+  zpty_input 'zle -N rh_widget'
+  zpty_input 'bindkey "\C-a" rh_widget'
+  zpty_enable_zle
+  zpty_input $'\C-a'  # emits newline, which executes BUFFER="true" command
+  zpty_line 1 p       # the line of interest, preserving escapes ("p")
+  zpty_stop
+0:overlapping region_highlight with 8 colors
+>0m27m24mCDE|32|tCDE|31|rCDE|39|CDE|32|ueCDE|39|
+
+  zpty_start
+  zpty_input 'rh_widget() { BUFFER="true"; region_highlight+=( "0 4 fg=#00cc00" ); rh2; }'
+  zpty_input 'rh2() { region_highlight+=( "1 2 fg=#cc0000" ); }' # `r' in red; the above line would be too long
+  zpty_input 'zle -N rh_widget'
+  zpty_input 'bindkey "\C-a" rh_widget'
+  zpty_enable_zle
+  zpty_input $'\C-a'  # emits newline, which executes BUFFER="true" command
+  zpty_line 1 p       # the line of interest, preserving escapes ("p")
+  zpty_stop
+0:overlapping region_highlight with true-color
+>0m27m24m38;2;0;204;0mt38;2;204;0;0mrCDE|39|38;2;0;204;0mueCDE|39|
+
+  zpty_start
+  zpty_input 'zmodload zsh/nearcolor'
+  zpty_input 'rh_widget() { BUFFER="true"; region_highlight+=( "0 4 fg=#00cc00" ); rh2; }'
+  zpty_input 'rh2() { region_highlight+=( "1 2 fg=#cc0000" ); }' # `r' in red; the above line would be too long
+  zpty_input 'zle -N rh_widget'
+  zpty_input 'bindkey "\C-a" rh_widget'
+  zpty_enable_zle
+  zpty_input $'\C-a'  # emits newline, which executes BUFFER="true" command
+  zpty_line 1 p       # the line of interest, preserving escapes ("p")
+  zpty_stop
+0:overlapping region_highlight with near-color (hex-triplets at input)
+>0m27m24mCDE|340|tCDE|3160|rCDE|39|CDE|340|ueCDE|39|
+
+  zpty_start
+  zpty_input 'f () { zle clear-screen; zle g -f nolast; BUFFER=": ${(q)LASTWIDGET}" }; zle -N f'
+  zpty_input 'g () { }; zle -N g'
+  zpty_input 'bindkey "\C-a" f'
+  zpty_enable_zle
+  zpty_input $'\C-a'
+  zpty_line 1 p
+  zpty_stop
+0:zle $widgetname -f nolast
+>0m27m24m0m27m24m: clear-screen
+
+%clean
+
+  zmodload -ui zsh/zpty

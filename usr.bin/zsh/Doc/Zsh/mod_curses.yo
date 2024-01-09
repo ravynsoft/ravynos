@@ -1,0 +1,274 @@
+COMMENT(!MOD!zsh/curses
+curses windowing commands
+!MOD!)
+The tt(zsh/curses) module makes available one builtin command and
+various parameters.
+
+subsect(Builtin)
+
+startitem()
+findex(zcurses)
+cindex(windows, curses)
+xitem(tt(zcurses) tt(init))
+xitem(tt(zcurses) tt(end))
+xitem(tt(zcurses) tt(addwin) var(targetwin) var(nlines) var(ncols) var(begin_y) var(begin_x) [ var(parentwin) ] )
+xitem(tt(zcurses) tt(delwin) var(targetwin) )
+xitem(tt(zcurses) tt(refresh) [ var(targetwin) ... ] )
+xitem(tt(zcurses) tt(touch) var(targetwin) ...)
+xitem(tt(zcurses) tt(move) var(targetwin) var(new_y) var(new_x) )
+xitem(tt(zcurses) tt(clear) var(targetwin) [ tt(redraw) | tt(eol) | tt(bot) ])
+xitem(tt(zcurses) tt(position) var(targetwin) var(array))
+xitem(tt(zcurses) tt(char) var(targetwin) var(character) )
+xitem(tt(zcurses) tt(string) var(targetwin) var(string) )
+xitem(tt(zcurses) tt(border) var(targetwin) var(border) )
+xitem(tt(zcurses) tt(attr) var(targetwin) [ [tt(+)|tt(-)]var(attribute) | var(fg_col)tt(/)var(bg_col) ] [...])
+xitem(tt(zcurses) tt(bg) var(targetwin) [ [tt(+)|tt(-)]var(attribute) | var(fg_col)tt(/)var(bg_col) | tt(@)var(char) ] [...])
+xitem(tt(zcurses) tt(scroll) var(targetwin) [ tt(on) | tt(off) | [tt(+)|tt(-)]var(lines) ])
+xitem(tt(zcurses) tt(input) var(targetwin) [ var(param) [ var(kparam) [ var(mparam) ] ] ])
+xitem(tt(zcurses) tt(mouse) [ tt(delay) var(num) | [tt(+)|tt(-)]tt(motion) ])
+xitem(tt(zcurses) tt(timeout) var(targetwin) var(intval))
+xitem(tt(zcurses) tt(querychar) var(targetwin) [ var(param) ])
+item(tt(zcurses) tt(resize) var(height) var(width) [ tt(endwin) | tt(nosave) | tt(endwin_nosave) ])(
+Manipulate curses windows.  All uses of this command should be
+bracketed by `tt(zcurses init)' to initialise use of curses, and
+`tt(zcurses end)' to end it; omitting `tt(zcurses end)' can cause
+the terminal to be in an unwanted state.
+
+The subcommand tt(addwin) creates a window with var(nlines) lines and
+var(ncols) columns.  Its upper left corner will be placed at row
+var(begin_y) and column
+var(begin_x) of the screen.  var(targetwin) is a string and refers
+to the name of a window that is not currently assigned.  Note
+in particular the curses convention that vertical values appear
+before horizontal values.
+
+If tt(addwin) is given an existing window as the final argument, the new
+window is created as a subwindow of var(parentwin).  This differs from an
+ordinary new window in that the memory of the window contents is shared
+with the parent's memory.  Subwindows must be deleted before their parent.
+Note that the coordinates of subwindows are relative to the screen, not
+the parent, as with other windows.
+
+Use the subcommand tt(delwin) to delete a window created with
+tt(addwin).  Note that tt(end) does em(not) implicitly delete windows,
+and that tt(delwin) does not erase the screen image of the window.
+
+The window corresponding to the full visible screen is called
+tt(stdscr); it always exists after `tt(zcurses init)' and cannot
+be delete with tt(delwin).
+
+The subcommand tt(refresh) will refresh window var(targetwin); this is
+necessary to make any pending changes (such as characters you have
+prepared for output with tt(char)) visible on the screen.  tt(refresh)
+without an argument causes the screen to be cleared and redrawn.
+If multiple windows are given, the screen is updated once at the end.
+
+The subcommand tt(touch) marks the var(targetwin)s listed as changed.
+This is necessary before tt(refresh)ing windows if a window that
+was in front of another window (which may be tt(stdscr)) is deleted.
+
+The subcommand tt(move) moves the cursor position in var(targetwin) to
+new coordinates var(new_y) and var(new_x).  Note that the 
+subcommand tt(string) (but not the subcommand tt(char)) advances the
+cursor position over the characters added.
+
+The subcommand tt(clear) erases the contents of var(targetwin).  One
+(and no more than one) of three options may be specified.  With the
+option tt(redraw), in addition the next tt(refresh) of var(targetwin)
+will cause the screen to be cleared and repainted.  With the option
+tt(eol), var(targetwin) is only cleared to the end of the current cursor
+line.  With the option
+tt(bot), var(targetwin) is cleared to the end of the window, i.e
+everything to the right and below the cursor is cleared.
+
+The subcommand tt(position) writes various positions associated with
+var(targetwin) into the array named var(array).
+These are, in order:
+startsitem()
+sitem(-)(The y and x coordinates of the cursor relative to the top left
+of var(targetwin))
+sitem(-)(The y and x coordinates of the top left of var(targetwin) on the
+screen)
+sitem(-)(The size of var(targetwin) in y and x dimensions.)
+endsitem()
+
+Outputting characters and strings are achieved by tt(char) and tt(string)
+respectively.
+
+To draw a border around window var(targetwin), use tt(border).  Note
+that the border is not subsequently handled specially:  in other words,
+the border is simply a set of characters output at the edge of the
+window.  Hence it can be overwritten, can scroll off the window, etc.
+
+The subcommand tt(attr) will set var(targetwin)'s attributes or
+foreground/background color pair for any successive character output.
+Each var(attribute) given on the line may be prepended by a tt(+) to set
+or a tt(-) to unset that attribute; tt(+) is assumed if absent.  The
+attributes supported are tt(blink), tt(bold), tt(dim), tt(reverse),
+tt(standout), and tt(underline).
+
+Each var(fg_col)tt(/)var(bg_col) attribute (to be read as
+`var(fg_col) on var(bg_col)') sets the foreground and background color
+for character output.  The color tt(default) is sometimes available
+(in particular if the library is ncurses), specifying the foreground
+or background color with which the terminal started.  The color pair
+tt(default/default) is always available. To use more than the 8 named
+colors (red, green, etc.) construct the var(fg_col)tt(/)var(bg_col)
+pairs where var(fg_col) and var(bg_col) are decimal integers, e.g
+tt(128/200).  The maximum color value is 254 if the terminal supports
+256 colors.
+
+tt(bg) overrides the color and other attributes of all characters in the
+window.  Its usual use is to set the background initially, but it will
+overwrite the attributes of any characters at the time when it is called.
+In addition to the arguments allowed with tt(attr), an argument tt(@)var(char)
+specifies a character to be shown in otherwise blank areas of the window.
+Owing to limitations of curses this cannot be a multibyte character
+(use of ASCII characters only is recommended).  As the specified set
+of attributes override the existing background, turning attributes
+off in the arguments is not useful, though this does not cause an error.
+
+The subcommand tt(scroll) can be used with tt(on) or tt(off) to enabled
+or disable scrolling of a window when the cursor would otherwise move
+below the window due to typing or output.  It can also be used with a
+positive or negative integer to scroll the window up or down the given
+number of lines without changing the current cursor position (which
+therefore appears to move in the opposite direction relative to the
+window).  In the second case, if scrolling is tt(off) it is temporarily
+turned tt(on) to allow the window to be scrolled.
+
+The subcommand tt(input) reads a single character from the window
+without echoing it back.  If var(param) is supplied the character is
+assigned to the parameter var(param), else it is assigned to the
+parameter tt(REPLY).
+
+If both var(param) and var(kparam) are supplied, the key is read in
+`keypad' mode.  In this mode special keys such as function keys and
+arrow keys return the name of the key in the parameter var(kparam).  The
+key names are the macros defined in the tt(curses.h) or tt(ncurses.h)
+with the prefix `tt(KEY_)' removed; see also the description of the
+parameter tt(zcurses_keycodes) below.  Other keys cause a value to be
+set in var(param) as before.  On a successful return only one of
+var(param) or var(kparam) contains a non-empty string; the other is set
+to an empty string.
+
+If var(mparam) is also supplied, tt(input) attempts to handle mouse
+input.  This is only available with the ncurses library; mouse handling
+can be detected by checking for the exit status of `tt(zcurses mouse)' with
+no arguments.  If a mouse
+button is clicked (or double- or triple-clicked, or pressed or released with
+a configurable delay from being clicked) then var(kparam) is set to the string
+tt(MOUSE), and var(mparam) is set to an array consisting of the
+following elements:
+startitem()
+sitem(-)(An identifier to discriminate different input devices; this
+is only rarely useful.)
+sitem(-)(The x, y and z coordinates of the mouse click relative to
+the full screen, as three elements in that order (i.e. the y coordinate
+is, unusually, after the x coordinate).  The z coordinate is only
+available for a few unusual input devices and is otherwise set to zero.)
+sitem(-)(Any events that occurred as separate items; usually
+there will be just one.  An event consists of tt(PRESSED), tt(RELEASED),
+tt(CLICKED), tt(DOUBLE_CLICKED) or tt(TRIPLE_CLICKED) followed
+immediately (in the same element) by the number of the button.)
+sitem(-)(If the shift key was pressed, the string tt(SHIFT).)
+sitem(-)(If the control key was pressed, the string tt(CTRL).)
+sitem(-)(If the alt key was pressed, the string tt(ALT).)
+endsitem()
+
+Not all mouse events may be passed through to the terminal window;
+most terminal emulators handle some mouse events themselves.  Note
+that the ncurses manual implies that using input both with and
+without mouse handling may cause the mouse cursor to appear and
+disappear.
+
+The subcommand tt(mouse) can be used to configure the use of the mouse.
+There is no window argument; mouse options are global.
+`tt(zcurses mouse)' with no arguments returns status 0 if mouse handling
+is possible, else status 1.  Otherwise, the possible arguments (which
+may be combined on the same command line) are as follows.
+tt(delay) var(num) sets the maximum delay in milliseconds between press and
+release events to be considered as a click; the value 0 disables click
+resolution, and the default is one sixth of a second.  tt(motion) proceeded
+by an optional `tt(PLUS())' (the default) or tt(-) turns on or off
+reporting of mouse motion in addition to clicks, presses and releases,
+which are always reported.  However, it appears reports for mouse
+motion are not currently implemented.
+
+The subcommand tt(timeout) specifies a timeout value for input from
+var(targetwin).  If var(intval) is negative, `tt(zcurses input)' waits
+indefinitely for a character to be typed; this is the default.  If
+var(intval) is zero, `tt(zcurses input)' returns immediately; if there
+is typeahead it is returned, else no input is done and status 1 is
+returned.  If var(intval) is positive, `tt(zcurses input)' waits
+var(intval) milliseconds for input and if there is none at the end of
+that period returns status 1.
+
+The subcommand tt(querychar) queries the character at the current cursor
+position.  The return values are stored in the array named var(param) if
+supplied, else in the array tt(reply).  The first value is the character
+(which may be a multibyte character if the system supports them); the
+second is the color pair in the usual var(fg_col)tt(/)var(bg_col)
+notation, or tt(0) if color is not supported.  Any attributes other than
+color that apply to the character, as set with the subcommand tt(attr),
+appear as additional elements.
+
+The subcommand tt(resize) resizes tt(stdscr) and all windows to given
+dimensions (windows that stick out from the new dimensions are resized
+down). The underlying curses extension (tt(resize_term call)) can be
+unavailable. To verify, zeroes can be used for var(height) and
+var(width). If the result of the subcommand is tt(0), resize_term is
+available (tt(2) otherwise). Tests show that resizing can be normally
+accomplished by calling tt(zcurses end) and tt(zcurses refresh). The
+tt(resize) subcommand is provided for versatility. Multiple system
+configurations have been checked and tt(zcurses end) and tt(zcurses
+refresh) are still needed for correct terminal state after resize. To
+invoke them with tt(resize), use var(endwin) argument.  Using
+var(nosave) argument will cause new terminal state to not be saved
+internally by tt(zcurses). This is also provided for versatility and
+should normally be not needed.
+)
+enditem()
+
+subsect(Parameters)
+
+startitem()
+vindex(ZCURSES_COLORS)
+item(tt(ZCURSES_COLORS))(
+Readonly integer.  The maximum number of colors the terminal
+supports.  This value is initialised by the curses library and is not
+available until the first time tt(zcurses init) is run.
+)
+vindex(ZCURSES_COLOR_PAIRS)
+item(tt(ZCURSES_COLOR_PAIRS))(
+Readonly integer.  The maximum number of color pairs
+var(fg_col)tt(/)var(bg_col) that may be defined in `tt(zcurses attr)'
+commands; note this limit applies to all color pairs that have been
+used whether or not they are currently active.  This value is initialised
+by the curses library and is not available until the first time tt(zcurses
+init) is run.
+)
+vindex(zcurses_attrs)
+item(tt(zcurses_attrs))(
+Readonly array.  The attributes supported by tt(zsh/curses); available
+as soon as the module is loaded.
+)
+vindex(zcurses_colors)
+item(tt(zcurses_colors))(
+Readonly array.  The colors supported by tt(zsh/curses); available
+as soon as the module is loaded.
+)
+vindex(zcurses_keycodes)
+item(tt(zcurses_keycodes))(
+Readonly array.  The values that may be returned in the second
+parameter supplied to `tt(zcurses input)' in the order in which they
+are defined internally by curses.  Not all function keys
+are listed, only tt(F0); curses reserves space for tt(F0) up to tt(F63).
+)
+vindex(zcurses_windows)
+item(tt(zcurses_windows))(
+Readonly array.  The current list of windows, i.e. all windows that
+have been created with `tt(zcurses addwin)' and not removed with
+`tt(zcurses delwin)'.
+)
+enditem()

@@ -1,0 +1,60 @@
+#compdef fmt gfmt
+
+local variant
+local -a args
+local copt="[preserve indentation of first two lines]"
+local wopt="[specify maximum line width]:width [75]"
+local sopt="[don't join short lines\: split only]"
+
+args=( -A "-*" "(1 2)-w+$wopt" '*:file:_files' )
+_pick_variant -r variant gnu=GNU $OSTYPE --version
+case $variant in
+  gnu)
+    args=(
+      '(-c --crown-margin)'{-c,--crown-margin}$copt
+      '(-w --width)'{-w+,--width=}$wopt
+      '(-p --prefix)'{-p+,--prefix=}'[only reformat lines with specified prefix]:prefix'
+      '(-s --split-only)'{-s,--split-only}$sopt
+      '(-t --tagged-paragraph)'{-t,--tagged-paragraph}'[indentation of first line different from second]'
+      '(-u --uniform-spacing)'{-u,--uniform-spacing}'[use one space between words, two after sentences]'
+      '(-g --goal)'{-g,--goal=}'[specify goal width]:goal width [93% of width]'
+      '(- *)--help[display help information]'
+      '(- *)--version[display version information]'
+      '*:file:_files'
+    )
+  ;;
+  solaris*)
+    args=(
+      "-c$copt"
+      "-s$sopt"
+    )
+  ;;
+  netbsd*)
+    args+=(
+      '-C[center the text]'
+      '(1 2)-g+[specify goal width]:goal width'
+      '(1 2)-m+[specify maximum width]:maximum width'
+      '-r[format all lines]'
+    )
+  ;|
+  darwin*|dragonfly*|freebsd*|openbsd*)
+    args+=(
+      '-c[center the text line by line]'
+      '-m[sensible formatting of mail header lines]'
+      '-n[format lines beginning with a . (dot) character]'
+      "-p[change in indentation doesn't start new paragraph]"
+      '-s[collapse whitespace inside lines]'
+      '-d+[specify sentence-ending characters]:sentence ends [.?!]'
+      '-l+[replace initial spaces with tabs]:tab width [8]'
+      '-t+[specify tab width of input files]:tab width [8]'
+    )
+  ;& # fall-through
+  netbsd*)
+    args+=( ':: :_guard "[0-9]#" goal width' )
+    (( ${(M)#words[1,CURRENT-1]:#[0-9]##} )) && args+=(
+      ':: :_guard "[0-9]#" maximum width'
+    )
+  ;;
+esac
+
+_arguments -s -S $args

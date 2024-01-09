@@ -1,0 +1,125 @@
+#compdef -p */(init|rc[0-9S]#).d/*
+
+local cmds script
+local -a flags
+
+_compskip=all
+
+if [[ $OSTYPE = freebsd* ]]; then
+  (( $+functions[_init_d_fullpath] )) ||
+  _init_d_fullpath() {
+    local -a scriptpath
+    local name=$1 dir
+    # Known locations of init scripts
+    # C.f. Unix/Type/_services
+    scriptpath=(/etc/rc.d $(/bin/sh -c '. /etc/rc.subr; load_rc_config XXX; echo $local_startup' 2>/dev/null))
+
+    for dir in $scriptpath; do
+      if [[ -f $dir/$name ]]; then
+        echo $dir/$name
+        return 0
+      fi
+    done
+    return 1
+  }
+
+  (( $+functions[_init_d_get_cmds] )) ||
+  _init_d_get_cmds() {
+    local magic cmds cmd_prefix
+
+    [[ -x $script ]] || return 1
+    [[ $(read -u0 -k2 magic < $script && echo $magic) = '#!' ]] || return 0
+    [[ -f /etc/rc.subr ]] && [[ -x /sbin/rcorder ]] || return 0
+    grep -q '^ *\.  */etc/rc\.subr *$' $script || return 0
+    cmds=(
+      start stop restart rcvar status poll
+      $(/bin/sh -c "set -- rcvar; . $script >/dev/null; echo \$extra_commands" 2>/dev/null)
+    )
+
+    for cmd_prefix in {,one,fast,force,quiet}; do
+      echo ${cmds/#/$cmd_prefix}
+    done
+
+    return 0
+  }
+elif [[ $OSTYPE = openbsd* ]]; then
+  (( $+functions[_init_d_fullpath] )) ||
+  _init_d_fullpath() {
+    echo /etc/rc.d/$1
+    return 0
+  }
+
+  (( $+functions[_init_d_get_cmds] )) ||
+  _init_d_get_cmds() {
+    local -a cmds disabled
+
+    cmds=(start stop reload restart check)
+    disabled=(${${${(M)${(f)"$(< $script)"}:#rc_(${(~j:|:)cmds})=NO}#rc_}%=NO})
+    echo ${cmds:|disabled}
+  }
+
+  flags=('-d[print debug information]' '-f[forcibly start the daemon]')
+else
+  (( $+functions[_init_d_fullpath] )) ||
+  _init_d_fullpath() {
+    local -a scriptpath
+    local name=$1 dir
+    # Known locations of init scripts
+    # C.f. Unix/Type/_services
+    scriptpath=(/etc/init.d /etc/rc.d /etc/rc.d/init.d)
+
+    for dir in $scriptpath; do
+      if [[ -f $dir/$name ]]; then
+        echo $dir/$name
+        return 0
+      fi
+    done
+    return 1
+  }
+
+  (( $+functions[_init_d_get_cmds] )) ||
+  _init_d_get_cmds() {
+    local what magic cmds
+    local -a tmp
+
+    [[ -x $script ]] || return 1
+
+    # If the file starts with `#!' we hope that this is a shell script
+    # and get lines looking like <space>foo|bar) with the words in $what. Note
+    # that we'll fail to match if any of the alternate patterns in the case
+    # clause are not enumerated (e.g., `start|stop|custom)` won't match)
+    tmp=(
+      status add delete clean list
+      load save show check {config,}test
+      standalone master graceful
+      debug debug{_,-}{up,down} dump{,{_,-}stats}
+      {force-,graceful-,try-,}{start,stop,restart,reload}
+      {start,stop}-htcacheclean
+    )
+    what="((['\"]|)(${(j<|>)tmp})(['\"]|))"
+
+    read -u0 -k2 magic < $script && [[ $magic = '#!' ]] && {
+      cmds=( ${(f)"$(< $script)"} )
+      cmds=( ${(M)cmds:#[[:blank:]]#${~what}([[:blank:]]#\|[[:blank:]]#${~what})#[[:blank:]]#\)} )
+      cmds=( ${${(j:|:s:|:)cmds}//[^-a-z_]} )
+    }
+
+    # This would be the pattern to use every line of the form <space>foo).
+    # Some people say this might match too many lines...
+    #
+    #    cmds=( ${${(j:|:s:|:)${(M)${(f)"$(< $script)"}:#[[:blank:]]#(\'|)[a-z_|]##\'|)\)}}//[^a-z_]} )
+
+    echo $cmds
+    return 0
+  }
+fi
+
+script=$words[1]
+[[ $script = */* ]] || script="$(_init_d_fullpath "$script")"
+
+cmds=( $(_init_d_get_cmds) ) || return 1
+
+(( $#cmds )) || zstyle -a ":completion:${curcontext}:commands" commands cmds ||
+    cmds=(start stop)
+
+_arguments -s -A "-*" $flags ':init.d command:_sub_commands $cmds'

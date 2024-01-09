@@ -1,0 +1,19 @@
+#autoload
+
+# This is mainly a wrapper around the more general `_approximate'.
+# By setting `compstate[pattern_match]' to something unequal to `*' and
+# then calling `_approximate', we get only corrections, not all strings
+# with the corrected prefix and something after it.
+#
+# Supported configuration keys are the same as for `_approximate', only
+# starting with `correct'.
+
+local ret=1 opm="$compstate[pattern_match]"
+
+compstate[pattern_match]='-'
+
+_approximate && ret=0
+
+compstate[pattern_match]="$opm"
+
+return ret

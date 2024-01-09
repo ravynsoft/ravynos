@@ -1,0 +1,59 @@
+#!/usr/local/bin/zsh -f
+#
+# This script creates a test repository for testing the git backend's behaviour during rebase-apply operations.
+#
+# It works in ./vcs-test/.
+#
+# Suggested zshrc settings:
+#
+#     autoload vcs_info
+#     precmd() { vcs_info; typeset -pm vcs\* }
+#     zstyle ':vcs_info:*' actionformats %m
+#     zstyle ':vcs_info:*' patch-format '[%n+%c=%a] [%p] [%u]'
+#     zstyle :vcs_info:\*gen-applied-string\* hooks f1
+#     +vi-f1() { typeset -p argv hook_com }
+#     zstyle :vcs_info:\*gen-unapplied-string\* hooks f2
+#     +vi-f2() { typeset -p argv hook_com }
+#     zstyle :vcs_info:\* get-unapplied true
+#
+mkdir "vcs-test"
+cd "vcs-test"
+git init
+
+append_lines() { for 1; do echo line from r$1 >> iota && git commit -am "r$1: Append a line"; done }
+
+echo "This is the file 'iota'." > iota
+git add iota
+git commit -m "r1: Add iota"
+git tag rebase_onto_this HEAD
+
+# Make another change to iota
+append_lines 2
+git tag rebase_from_this HEAD
+
+# Make non-conflicting changes
+for 1 in 3 4 5 6; do
+    touch kappa$1
+    git add kappa$1
+    git commit -m "r${1}: non-conflicting change"
+done
+
+# Make more changes to iota
+append_lines 7 8 9
+
+# Specify a rebase that would create the history [1,3,4,5,6,7,8,9].
+# This will conflict because r7 depends on r2 which is not included.
+git checkout -b myref
+case $0:P in
+    (*/test-repo-git-rebase-apply)
+        git rebase --onto=rebase_onto_this rebase_from_this myref
+        ;;
+    (*/test-repo-git-rebase-merge)
+        git -c core.editor=true rebase -i --onto=rebase_onto_this rebase_from_this myref
+        ;;
+    (*)
+        echo >&2 "$0: unrecognized basename"
+        ;;
+esac
+
+

@@ -1,0 +1,74 @@
+## vim:ft=zsh
+## subversion support by:
+##  + Frank Terbeck <ft@bewatermyfriend.org>
+##  + Phil Pennock
+## Distributed under the same BSD-ish license as zsh itself.
+
+setopt localoptions noksharrays extendedglob NO_shwordsplit
+local svnbase svnbranch a b rrn
+local -i rc
+local -A svninfo parentinfo cwdinfo
+local -A hook_com
+integer -r SVN_ERR_WC_UPGRADE_REQUIRED=155036 # from /usr/local/include/subversion-1/svn_error_codes.h
+integer -r SVN_ERR_WC_UNSUPPORTED_FORMAT=155021
+
+svnbase=".";
+svninfo=()
+# Unfortunately, `$pipestatus' is broken currently. Until that problem is
+# resolved, here is a workaround that will get things done, without using it.
+# Clumsily, but that's life.
+local -a dat
+dat=( ${(f)"$(${vcs_comm[cmd]} info --non-interactive 2>&1)"} )
+rc=$?
+if (( rc != 0 )) ; then
+  if (( rc == 1 )) && [[ -n ${(M)dat:#"svn: E${SVN_ERR_WC_UPGRADE_REQUIRED}: "*} ]]; then
+    hook_com=()
+    # User should run 'svn upgrade'
+    VCS_INFO_formats '' '?' '?' '' '' '?' 'working copy upgrade required'
+    return $?
+  elif (( rc == 1 )) && [[ -n ${(M)dat:#"svn: E${SVN_ERR_WC_UNSUPPORTED_FORMAT}: "*} ]]; then
+    hook_com=()
+    # User probably needs to install a newer svn, but we're not sure, so point
+    # the user to svn's error message.
+    VCS_INFO_formats '' '?' '?' '' '' '?' 'svn error'
+    return $?
+  else
+    return 1
+  fi
+fi
+# The following line is the real code, the following is the workaround.
+#${vcs_comm[cmd]} info --non-interactive \
+print -l "${dat[@]}" \
+|& while IFS=: read a b; do
+    svninfo[${a// /_}]="${b## #}"
+done
+#rc=${pipestatus[1]}
+#(( rc != 0 )) && return 1
+
+cwdinfo=(${(kv)svninfo})
+
+# Set svnbase to the wcroot path and svninfo to its `svn info`.
+if (( ${+svninfo[Working_Copy_Root_Path]} )); then
+  # svn 1.7+
+  svnbase=${svninfo[Working_Copy_Root_Path]}
+  ${vcs_comm[cmd]} info --non-interactive -- "${svnbase}" | while IFS=: read a b; do svninfo[${a// /_}]="${b## #}"; done
+else
+  # svn 1.0-1.6
+  svnbase=${svnbase:P}
+  while [[ -d "${svnbase:h}/.svn" ]]; do
+      parentinfo=()
+      ${vcs_comm[cmd]} info --non-interactive -- "${svnbase:h}" | while IFS=: read a b; do parentinfo[${a// /_}]="${b## #}"; done
+      [[ ${parentinfo[Repository_UUID]} != ${svninfo[Repository_UUID]} ]] && break
+      svninfo=(${(kv)parentinfo})
+      svnbase=${svnbase:h}
+      if [[ $svnbase == '/' ]]; then
+	  break
+      fi
+  done
+fi
+
+rrn=${svnbase:t}
+VCS_INFO_set-branch-format "${svninfo[URL]##*/}" "${cwdinfo[Revision]}" &&
+    svnbranch="${REPLY}"
+VCS_INFO_formats '' "${svnbranch}" "${svnbase}" '' '' "${cwdinfo[Revision]}" ''
+return 0

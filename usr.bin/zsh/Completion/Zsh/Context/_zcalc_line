@@ -1,0 +1,81 @@
+#compdef -zcalc-line-
+
+# This handles completion of a zcalc command line read via vared.
+
+_zcalc_line_escapes() {
+  local -a cmds
+  cmds=(
+    "!:shell escape"
+    "q:quit"
+    "norm:normal output format"
+    "sci:scientific output format"
+    "fix:fixed point output format"
+    "eng:engineering (power of 1000) output format"
+    "raw:raw output format"
+    "local:make variables local"
+    "function:define math function (also \:func or \:f)"
+  )
+  cmds=("\:"${^cmds})
+  _describe -t command-escapes "command escape" cmds -Q
+}
+
+_zcalc_line() {
+  local expl
+
+  if [[ CURRENT -eq 1 && $words[1] != ":"(\\|)"!"* ]]; then
+    local -a alts
+    if [[ $words[1] = (|:*) ]]; then
+      alts=("command-escapes:command escape:_zcalc_line_escapes")
+    fi
+    if [[ $words[1] = (|[^:]*) ]]; then
+      alts+=("math:math formula:_math")
+    fi
+    _alternative $alts
+    return
+  fi
+
+  case $words[1] in
+    (":"(\\|)"!"*)
+    if [[ $words[1] = ":"(\\|)"!" && CURRENT -gt 1 ]]; then
+      shift words
+      (( CURRENT-- ))
+    else
+      words[1]=${words[1]##:(\\|)\!}
+      compset -P ':(\\|)!'
+    fi
+    _normal
+    ;;
+
+    (:function)
+    # completing already defined user math functions is in fact exactly
+    # the wrong thing to do since currently zmathfuncdef won't overwrite,
+    # but it may jog the user's memory...
+    if (( CURRENT == 2 )); then
+      _wanted math-functions expl 'math function' \
+	compadd -- ${${(k)functions:#^zsh_math_func_*}##zsh_math_func_}
+    else
+      _math
+    fi
+    ;;
+
+    (:local)
+    _parameter
+    ;;
+
+    (:(fix|sci|eng))
+    if (( CURRENT == 2 )); then
+      _message "precision"
+    fi
+    ;&
+
+    (:*)
+    _message "no more arguments"
+    ;;
+
+    ([^:]*)
+    _math
+    ;;
+  esac
+}
+
+_zcalc_line "$@"

@@ -1,0 +1,15 @@
+#compdef fortune
+
+_arguments \
+  '-a[choose from all lists of maxims, both offensive and not]' \
+  '-c[show the cookie file from which the fortune came]' \
+  '-e[consider all fortune files to be of equal size]' \
+  '-f[print out the list of files which would be searched]' \
+  '-l[long dictums only]' \
+  '-m[print all matches to regex]:BRE' \
+  '-n[set longest length to be short]:length' \
+  '-o[choose only from potentially offensive aphorisms]' \
+  '-s[short apothegms only]' \
+  '-i[ignore case for -m patterns]' \
+  '-w[wait before termination for a time based on msg length]' \
+  '*:databases'

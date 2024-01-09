@@ -1,0 +1,53 @@
+#compdef plutil
+
+local ret=1 k v
+local -a context line state state_descr tmp fmts=( xml1 binary1 json )
+local -A opt_args val_args types=(
+  -bool    'boolean'
+  -data    'base64-encoded data'
+  -date    'date (XML property-list format)'
+  -float   '64-bit float'
+  -integer '64-bit integer'
+  -json    'JSON fragment'
+  -xml     'XML property list'
+)
+
+_arguments -s -S : \
+  '(: -)-help[display help information]' \
+  '(-p -r)-s[suppress normal output]' \
+  '*:input file:_files' \
+  - set1 \
+  '-lint[check input for syntax errors]' \
+  - set2 \
+  "(-extract -insert -replace -remove)-convert[convert to specified format]:output format:(${(j< >)fmts})" \
+  "(-convert -insert -replace -remove)-extract[extract value at specified key path from property list]: :->k:output format:(${(j< >)fmts})" \
+  '(-convert -extract -replace -remove)-insert[insert value at specified key path into property list]: :->k: :->t: :->v' \
+  '(-convert -extract -insert -remove)-replace[replace value at specified key path in property list]: :->k: :->t: :->v' \
+  '(-convert -extract -insert -replace)-remove[remove value at specified key path from property list]: :->k' \
+  '(-o -extract -insert -replace -remove)-e[specify output file extension]:output file extension' \
+  '(-e -extract -insert -replace -remove)-o[specify output file]:output file:_files' \
+  '(-r -s)-p[pretty-print property list]' \
+  '(-p -s)-r[pretty-print JSON]' \
+&& ret=0
+
+case $state in
+  k) _message 'key path' && ret=0 ;;
+  t)
+    tmp=()
+    for k v in ${(kv)types}; do
+      tmp+=( "${k}[${v}]" )
+    done
+    _values 'value type' $tmp && ret=0
+    ;;
+  v)
+    if [[ $words[(CURRENT - 1)] == -bool ]]; then
+      _values $types[-bool] YES NO true false && ret=0
+    elif (( $+types[$words[(CURRENT - 1)]] )); then
+      _message $types[$words[(CURRENT - 1)]] && ret=0
+    else
+      _message value && ret=0
+    fi
+    ;;
+esac
+
+return ret

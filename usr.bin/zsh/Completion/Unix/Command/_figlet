@@ -1,0 +1,40 @@
+#compdef figlet
+
+local fontdir
+typeset -A opt_args
+
+fontdir=$(_call_program path figlet -I2 2>/dev/null)
+
+_arguments -s -S \
+  "(-r -l -x)-c[center justify]" \
+  "(-S -s -o -W -m)-k[use kerning]" \
+  "(-r -c -x)-l[left justify]" \
+  "(-p)-n[normal mode]" \
+  "(-k -S -s -W)-o[let letters overlap]" \
+  "(-n)-p[paragraph mode]" \
+  "(-c -l -x)-r[right justify]" \
+  "(-k -S -o -W -m)-s[smushed spacing]" \
+  "(-w)-t[use terminal width]" \
+  "(-I)-v[version]" \
+  "(-r -c -l)-x[use default justification of font]" \
+  "(-E)-D[use Deutsch character set]" \
+  "(-D)-E[use English character set]" \
+  "(-X -R)-L[left-to-right]" \
+  "(-C)-N[clear controlfile list]" \
+  "(-L -X)-R[right-to-left]" \
+  "(-k -s -o -W -m)-S[smush letters together or else!]" \
+  "(-k -S -s -o -m)-W[wide spacing]" \
+  "(-L -R)-X[use default writing direction of font]" \
+  "(-t)-w+[specify output width]:output width (in columns)" \
+  "-d+[specify font directory]:font directory:_path_files -/" \
+  '-f+[specify font]:font:_files -W ${~opt_args[-d]\:-$fontdir} -g \*flf\*\(-.\:r\)' \
+  '(-k -S -s -o -W)-m+[specify layout mode]:layout mode' \
+  '(-N)-C+[specify control file]:control file:_files -W ${~opt_args[-d]\:-$fontdir} -g \*flc\*\(-.\:r\)' \
+  "(-v)-I+[display info]:info code:((
+    -1\:normal\ operation\ \(default\)
+    0\:version,\ copyright\ and\ usage\ information
+    1\:version\ in\ integer\ format
+    2\:default\ font\ directory
+    3\:name\ of\ font\ figlet\ would\ use
+    4\:output\ width\ in\ columns
+  ))"

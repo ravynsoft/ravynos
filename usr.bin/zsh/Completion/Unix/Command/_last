@@ -1,0 +1,61 @@
+#compdef last lastb
+
+local pattern arg args ttys
+ttys=( /dev/tty*(N) /dev/pts/*(N) reboot )
+ttys=( ${ttys#/dev/} )
+
+[[ $OSTYPE = linux-gnu ]] || args=( -A "-*" )
+for pattern arg in \
+  '(solaris*|linux-gnu)' '(--hostlast)-a[display hostname in last column]' \
+  '((free|net|open)bsd*|darwin*|dragonfly*)' '-h+[limit sessions by hostname]:host:_hosts' \
+  '((free|open)bsd*)' '-s[report duration in seconds]' \
+  '(freebsd*|openbsd*)' '-d+[limit sessions to those active at snapshot time]:time ([[CC]YY][MMDD]hhmm[.SS])' \
+  '((net|free|open)bsd*|darwin*|dragonfly*)' '-t+[limit sessions by tty]:tty:_ttys -D' \
+  'openbsd*' '-c[calculate total time]' \
+  '^darwin*' '(--file)-f+[specify account file]:file:_files' \
+  '(solaris*|linux-gnu|freebsd*|openbsd*)' '(--limit)-n+[specify number of lines to show]:number' \
+  '((open|net)bsd*|dragonfly*)' '-T[show more detailed time information including year and seconds]' \
+  'netbsd*' '-x[assume file is in wtmpx(5) format]' \
+  'netbsd*' '-n[show IP of remote hosts]' \
+  'freebsd*' '-w[show seconds in duration field]' \
+  'freebsd*' '-y[show year in session start time]'
+do
+  [[ $OSTYPE = $~pattern ]] && args+=( $arg )
+done
+
+case $OSTYPE in
+  netbsd*|dragonfly*)
+    args+=(
+      '-H[specify width for host field]:width'
+      '-N[specify width for login name field]:width'
+      '-L[specify width for tty field]:width'
+    )
+  ;;
+  linux-gnu)
+    args+=(
+      '(-a)--hostlast[display hostname in last column]'
+      '(-d --dns -i --ip)'{-d,--dns}'[translate IP to hostname]'
+      '(-f)--file=[specify account file]:file:_files'
+      '(-F --fulltimes)'{-F,--fulltimes}'[show full login and logout times and dates]'
+      '(-i --ip -d --dns)'{-i,--ip}'[show IP of remote hosts]'
+      '(-n)--limit=[specify number of lines to show]:number'
+      '(-R --nohostname)'{-R,--nohostname}'[suppress display of hostname field]'
+      '(-s --since)'{-s+,--since=}'[display lines since the specified time]:time (YYYYMMDDhhmmss)'
+      '(-t --until)'{-t+,--until=}'[display lines until the specified time]:time (YYYYMMDDhhmmss)'
+      '(-p --present)'{-p+,--present=}'[display who were present at the specified time]:time (YYYYMMDDhhmmss)'
+      '(-w --fullnames)'{-w,--fullnames}'[show full user and domain names]'
+      '(-x --system)'{-x,--system}'[display shutdown/runlevel entries]'
+      '--time-format=[show timestamps in the specified format]:format:(notime short full iso)'
+      '(- *)'{-h,--help}'[display usage information]'
+      '(- *)'{-V,--version}'[display version information]'
+    )
+  ;;
+esac
+
+if [[ $OSTYPE = (linux-gnu|solaris*) ]]; then
+  args+=( '*:arg: _alternative "users:user:_users" "ttys:tty:_ttys -d" "ttys:tty:(reboot)"' )
+else
+  args+=( '*:user:_users' )
+fi
+
+_arguments -s -S $args

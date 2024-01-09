@@ -1,0 +1,31 @@
+#compdef cowsay cowthink
+
+local context state line
+typeset -A opt_args
+
+_arguments -s -S -A "-*" \
+  "(H mode)-e+[specify cow's eyes]:eye string [oo]" \
+  '(H)-f+[specify cowfile]:cowfile:->cowfile' \
+  "(H mode)-T+[specify cow's tongue]:tongue string" \
+  '(H)-W+[specify width for message word wrap]:wrap column [40]' \
+  '(H)-n[no wordwrap]' \
+  '*:message' \
+  + 'H' \
+  '(- *)-h[display usage information]' \
+  '(- *)-l[list all cowfiles]' \
+  + '(mode)' \
+  '(H -e -T)-b[borg mode]' \
+  '(H -e -T)-d[dead mode]' \
+  '(H -e -T)-g[greedy mode]' \
+  '(H -e -T)-p[paranoia mode]' \
+  '(H -e -T)-s[stoned mode]' \
+  '(H -e -T)-t[tired mode]' \
+  '(H -e -T)-w[wired mode]' \
+  '(H -e -T)-y[youthful mode]' && return
+
+case "$state" in
+  (cowfile)
+    _wanted -C option-f-1 cowfiles expl 'cow file' compadd \
+      ${=${(f)"$(_call_program cowfiles $words[1] -l)"}:#*\:} || _files -g "*.cow(-.)"
+  ;;
+esac

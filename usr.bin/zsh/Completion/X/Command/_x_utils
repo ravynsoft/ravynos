@@ -1,0 +1,210 @@
+#compdef xdpyinfo xwininfo xkill xfontsel xfd xev xhost xon xsetroot xwd xwud xrdb xprop xlsatoms xlsclients
+
+local curcontext="$curcontext" state state_descr line expl ret=1
+
+case "$service" in
+xdpyinfo)
+  _x_arguments \
+    -queryExtensions \
+    '-ext:extension: _x_extension -a' \
+    -version
+  ;;
+xwininfo)
+  _x_arguments \
+    -{help,int,children,tree,stats,bits,events,size,wm,shape,frame,all,english,metric} \
+    '(-id -name)-root' \
+    '(-id -root)-name:name: _x_window -n' \
+    '(-name -root)-id:id: _x_window'
+  ;;
+xprop)
+  _x_arguments -C \
+    -{help,frame,notype,spy} \
+    '-grammar[show grammar for command line options]' \
+    '(-id -name)-root[use the root window as the target window]' \
+    '(-id -root)-name[specify target window by name]:name: _x_window -n' \
+    '(-name -root)-id[specify target window by window id]:id: _x_window' \
+    '-font[display the properties of a font]:font: _x_font' \
+    '-len[show at most n bytes of any property]:n' \
+    '*-fs[read more property formats from file]:file: _files' \
+    '*-remove[specify an atom to remove from the target window]:property atom:->atoms' \
+    '*-set[specify an atom and a value to set on the target window]:property atom:->atoms:value' \
+    '*-f:property atom:->atoms:format: ::dformat' \
+    '*:property atoms:->atoms'
+  ;;
+xlsatoms)
+  _x_arguments -C \
+    '*-format[printf-style format to use]:format' \
+    '*-range[atom values to list]:[num]-[num]' \
+    '*-name[name of single atom to print]:atom:->atoms'
+  ;;
+xlsclients)
+  _x_arguments -C \
+    '-a[list all clients on all screens]' \
+    '-l[long format adding window/icon names and class hints]' \
+    '-m[maximum characters of command to include]:characters'
+ ;;
+xkill)
+  _x_arguments \
+    -version \
+    -frame \
+    '(-id)-all' \
+    '(-all)-id:window: _x_window' \
+    '-button:selection button:(any 1 2 3 4 5)'
+  ;;
+xfontsel)
+  _xt_arguments \
+    -{print,scaled} \
+    '-pattern:font pattern:_x_font' \
+    '-sample:sample text' \
+    '-sample16:16-bit sample text' \
+    '-sampleUCS:ISO10646 sample text'
+  ;;
+xfd)
+  _xt_arguments \
+    '-fn:font: _x_font' \
+    '-fa:font: _xft_fonts' \
+    -{box,center} \
+    '-start:first character number' \
+    '-bc:box border color:_x_color' \
+    '-rows:number of rows' \
+    '-columns:number of columns'
+  ;;
+xev)
+  _x_arguments \
+    '-bw:border width' \
+    '-bs:type of backing store:(NotUseful WhenMapped Always)' \
+    '-id:id:_x_window' \
+    '-s[use save-under]' \
+    '-name:window name' \
+    '-rv' \
+    '*-event:event mask:(keyboard mouse expose visibility structure substructure focus property colormap owner_grab_button randr)'
+  ;;
+xhost)
+  local type tmp match
+
+  if [[ -z $PREFIX ]]; then
+    _describe prefixes '(-:disallow +:allow)' -S '' -r ''
+  fi
+
+  if compset -P '-'; then
+    tmp=(${(f)"$(xhost)"})
+    shift tmp
+    tmp=(${tmp:#LOCAL:|<*>})
+    if [[ "$tmp" = *:* ]]; then
+      if compset -P 1 '(#b)(*):'; then
+	type="$match[1]"
+	_tags displays
+	while _tags; do
+          while _next_label displays expl 'disallow access'; do
+	      { compadd "$expl[@]" -M 'm:{a-z}={A-Z} r:|[:.]=* r:|=*' - \
+		        ${${(M)tmp:#(#i)$type:*}#(#i)$type:} ||
+	            _hosts "$expl[@]" } && ret=0
+	  done
+	  (( ret )) || return 0
+        done
+      else
+	_alternative \
+	    'types:name family:compadd -S: ${(L)tmp%%:*}' \
+	    'hosts:host:compadd ${(@)tmp#*:}' && ret=0
+      fi
+    else
+      _tags displays
+      while _tags; do
+        while _next_label displays expl 'disallow access'; do
+	  { compadd "$expl[@]" -M 'm:{a-z}={A-Z} r:|[:.]=* r:|=*' -a tmp ||
+            _hosts "$expl[@]" } && ret=0
+        done
+	(( ret )) || return 0
+      done
+    fi
+  else
+    compset -P +
+
+    if [[ "$PREFIX" = *:* ]]; then
+      type="${(L)PREFIX%%:*}"
+      compset -P 1 '*:'
+
+      case "$type" in
+      inet) _hosts && ret=0;;
+      dnet) _message -e decnet-hosts 'DECnet host';;
+      nis)  _message -e network-names 'Secure RPC network name';;
+      krb)  _message -e principals 'Kerberos V5 principal';;
+      esac
+    else
+      _alternative \
+          'types:name family:compadd -S: - inet dnet nis krb' \
+	  'hosts:: _hosts' && ret=0
+    fi
+  fi
+  return ret
+  ;;
+xon)
+  _arguments \
+    -{access,debug,nols} \
+    '-name:window name' \
+    '-screen:screen number' \
+    '-user:remote user name:_users' \
+    ':remote host:_hosts' \
+    '(-):command: _command_names -e' \
+    '*:command: _normal'
+  ;;
+xsetroot)
+  _x_arguments \
+    -{help,version,def,default,gray,grey,rv,reverse} \
+    '-cursor:cursor file:_files -g \*.\(\#i\)\(xbm\|curs\(\|or\)\):mask file:_files -g \*.\(\#i\)\(xbm\|curs\(\|or\)\|mask\)\(-.\)' \
+    '-cursor_name:cursor name:_x_cursor' \
+    '-xcf:cursor file:_files:size' \
+    '-bitmap:bitmap file:_files -g \*.\(\#i\)xbm\(-.\)' \
+    '-mod:x grid distance (1-16): :y grid distance (1-16)' \
+    '-fg:foreground color:_x_color' \
+    '-bg:background color:_x_color' \
+    '-solid:screen solid color:_x_color' \
+    '-name:root window name'
+  ;;
+xwd)
+  _x_arguments \
+    -{debug,help,nobdrs,xy,frame,root,icmap,screen,silent} \
+    '-out:output file:_files' \
+    '-add:pixel change value' \
+    '-id:id: _x_window' \
+    '-name:name: _x_window -n'
+  ;;
+xwud)
+  _x_arguments \
+    -{help,new,noclick,raw,rv,scale} \
+    '-bg:background color:_x_color' \
+    '-fg:foreground color:_x_color' \
+    '-in:input file:_files -g \*.\(\#i\)xwd\(-.\)' \
+    '-plane:image plane to display' \
+    '-std:standard colormap:(best default gray red blue green)' \
+    '-vis:visual:_x_visual'
+  ;;
+xrdb)
+  _x_arguments \
+    -{help,quiet,symbols,retain,version} \
+    '(-all -screen -screens)-global' \
+    '(-global -screen -screens)-all' \
+    '(-global -all -screens)-screen' \
+    '(-global -all -screen)-screens' \
+    '-n[only display on stdout]' \
+    '(-nocpp)-cpp:preprocessor program:_files -g \*\(-\*\)' \
+    '(-cpp)-nocpp' \
+    '(-load -override -merge -remove)-query' \
+    '(-query -override -merge -remove)-load' \
+    '(-query -load -merge -remove)-override' \
+    '(-query -load -override -remove)-merge' \
+    '(-query -load -override -merge)-remove' \
+    '-edit:output file:_files' \
+    '-backup:backup extension' \
+    '*-D-:symbol to define' \
+    '*-U-:symbol to undefine' \
+    '*-I-:include directory:_files -/' \
+    '*:defaults file:_files'
+  ;;
+esac && ret=0
+
+if [[ $state == atoms ]]; then
+  _wanted atoms expl "$state_descr" compadd ${${(f)"$(_call_program atoms xlsatoms 2> /dev/null)"}#*$'\t'} && ret=0
+fi
+
+return ret

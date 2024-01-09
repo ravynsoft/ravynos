@@ -1,0 +1,6 @@
+#compdef -P (texi(2*|ndex))
+
+local expl
+
+_description files expl 'texinfo file'
+_files "$@" "$expl[@]" -g '*.(texinfo|texi)(-.)'

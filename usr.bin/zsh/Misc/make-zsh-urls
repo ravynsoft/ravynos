@@ -1,0 +1,155 @@
+#!/usr/bin/perl -w
+
+use strict;
+
+=head1 NAME
+
+make-zsh-urls -- create F<~/.zsh/urls> hierarchy
+
+=head1 SYNOPSIS
+
+% make-zsh-urls [B<OPTION>] ...
+
+=head1 DESCRIPTION
+
+make-zsh-urls creates a hierarchy of files and directories under
+F<~/.zsh/urls> for use by the _urls completion function in the new
+completion system of zsh 3.1.6 and higher.
+
+It needs the B<URI::Bookmarks> suite of modules to run, which are
+available from CPAN, the Comprehensive Perl Archive Network.
+See B<http://www.perl.com/cpan> or L<CPAN> for more information.
+
+The following options are available:
+
+B<--output-dir>, B<-o>   Specify the output directory for the 
+                   hierarchy.  Defaults to F<~/.zsh/urls>.
+
+B<--input-file>, B<-i>   Specify the input bookmarks file.
+                   Defaults to F<~/.netscape/bookmarks.html>.
+
+B<--root-node>, B<-r>    Specify which folder contains the
+                   bookmarks which the hierarchy will be
+                   created from.  Defaults to the root
+                   of the bookmark collection tree.
+
+=cut
+
+use Getopt::Long;
+use URI::Bookmarks::Netscape;
+use URI;
+
+my ($out_dir, $input_file, $root_name, $help);
+GetOptions('output-dir|o=s' => \$out_dir,
+           'input-file|i=s' => \$input_file,
+            'root-node|r=s' => \$root_name,
+                   'help|h' => \$help)
+  or usage();
+
+usage() if $help;
+
+$out_dir ||= "$ENV{HOME}/.zsh/urls";
+$input_file ||= "$ENV{HOME}/.netscape/bookmarks.html";
+
+my $bookmarks =
+  new URI::Bookmarks(file => $input_file);
+
+my $root = $bookmarks->tree_root();
+if ($root_name) {
+  my @root_nodes = $bookmarks->name_to_nodes($root_name);
+  if (@root_nodes == 0) {
+    die "Couldn't find any nodes with name `$root_name'; aborting.\n";
+  }
+  else {
+    if (@root_nodes > 1) {
+      warn "Found more than one node with name `$root_name'; " .
+           "taking first occurrence.\n";
+    }
+    $root = $root_nodes[0];
+  }
+}    
+
+my @bookmark_path = ();
+$root->walk_down({callback     => \&pre_callback,
+                  callbackback => \&post_callback});
+
+sub pre_callback {
+  my ($node, $options) = @_;
+
+  my $depth = $options->{_depth} || 0;
+  my $name = $node->name;
+  my $type = $node->type;
+
+  if ($type eq 'bookmark') {
+    my $url = $node->attribute->{'HREF'};
+
+    # Type A
+    my $full = $url;
+    $full =~ s@^(https?|ftp|gopher)://@"\L$1/"@ei;
+    $full =~ s@file:@@i;
+    my ($path, $file) = $full =~ m@(.+)/(.*)@;
+    # This is horribly inefficient but I'm too lazy to reimplement mkdir -p
+    # Why isn't there a CPAN module for it?
+    system '/bin/mkdir',  '-p', "$out_dir/$path" unless -d "$out_dir/$path";
+    system 'touch', "$out_dir/$path" unless $full eq "$path/";
+
+    # Type B
+    $name =~ s@/@-@g;
+    my $bookmark_file = "$out_dir/bookmark/" .
+                        (join '/', @bookmark_path) .
+                         "/$name";
+    open(BOOKMARK, ">$bookmark_file") or die "open >$bookmark_file: $!";
+    print BOOKMARK $url, "\n";
+    close(BOOKMARK) or die $!;
+  }
+  elsif ($type eq 'folder' && $depth > 0) {
+    print +('  ' x ($depth - 1)), "Processing folder `$name' ...\n";
+    push @bookmark_path, $name;
+
+    # Type B
+    system '/bin/mkdir',
+             '-p',
+             "$out_dir/bookmark/" .
+             (join '/', @bookmark_path);
+  }    
+
+  return 1;
+}
+
+sub post_callback {
+  my ($node, $options) = @_;
+
+  my $type = $node->type;
+
+  if ($type eq 'folder') {
+    my $name = pop @bookmark_path;
+  }    
+}
+
+sub usage {
+  print <<EOF;
+Usage: make-zsh-urls [OPTION] ...
+  --help, -h         Display this help.
+  --output-dir, -o   Specify the output directory for the hierarchy.
+                     Defaults to ~/.zsh/urls.
+  --input-file, -i   Specify the input bookmarks file.
+                     Defaults to ~/.netscape/bookmarks.html.
+  --root-node, -r    Specify which folder contains the bookmarks which
+                     the hierarchy will be created from.  Defaults to
+                     the root of the bookmark collection tree.  
+EOF
+  exit 0;
+}
+
+
+=head1 AUTHOR
+
+  Adam Spiers <adam@spiers.net>
+
+=head1 COPYRIGHT
+
+  Copyright (c) 1999 Adam Spiers <adam@spiers.net>. All rights
+  reserved. This program is free software; you can redistribute it and/or
+  modify it under the same terms as Perl or zsh.
+
+=cut

@@ -1,0 +1,174 @@
+#compdef -value-,PROMPT,-default- -value-,PROMPT2,-default- -value-,PROMPT3,-default- -value-,PROMPT4,-default- -value-,RPROMPT,-default- -value-,RPROMPT2,-default- -value-,PS1,-default- -value-,PS2,-default- -value-,PS3,-default- -value-,PS4,-default- -value-,RPS1,-default- -value-,RPS2,-default- -value-,SPROMPT,-default-
+
+local -a specs ccol
+local expl grp cols bs suf pre changed=1 ret=1
+local -A ansi
+
+[[ -z $compstate[quote] ]] && bs='\'
+
+# first strip off any complete prompt specifications leaving only the
+# current, incomplete, one
+while (( changed )); do
+  changed=0
+  compset -P '%[DFK](\\|){[^}]#}' && changed=1 # formats with arg: %x{...}
+  compset -P '%[0-9-\\]#[^DFK(0-9-<>\\\[]' && changed=1 # normal formats
+  compset -P '%[0-9-\\]#(<[^<]#<|>[^>]#>|\[[^\]]#\])' && changed=1 # truncations
+  compset -P '%[0-9-\\]#(\\|)\([0-9-]#[^0-9]?|[^%]' && changed=1 # start of ternary
+  compset -P '[^%]##' && changed=1 # sundry other characters
+  # %D/%F/%K without a following { ... }
+  [[ $PREFIX = %(-|)<->#[DFK](\\[^{]|[^{\\])* ]] &&
+      compset -P '%[0-9\\-]#[DFK]' && changed=1
+done
+[[ $PREFIX = %(-|)<->[FK](#e) ]] && compset -P '*' # F/K with number
+
+if compset -P '%[FK]'; then
+  # this should use -P but that somehow causes single quotes to be stripped
+  compset -P '(\\|){' || pre=( -p '{' )
+  compset -S '(\\|)}*' || suf=( -S "$bs}" )
+  ansi=(
+    black 30
+    red 31
+    green 32
+    yellow 33
+    blue 34
+    magenta 35
+    cyan 36
+    white 37
+    default 39
+  )
+
+  _description -V ansi-colors expl 'ansi color'
+  grp="$expl[expl[(i)-J]+1]"
+  print -v ccol -f "($grp)=%s=%s" ${(kv)ansi}
+  _comp_colors+=( $ccol )
+  compadd "$expl[@]" $suf $pre -k ansi && ret=0
+  if (( $#suf )) && compset -P "(<->|%v)"; then
+    _wanted ansi-colors expl 'closing brace' compadd -S '' \} && ret=0
+  elif (( $+terminfo[colors] )); then
+    (( cols = $terminfo[colors] - 1 ))
+    (( cols = cols > 255 ? 255 : cols ))
+    _description -V terminal-colors expl 'terminal color'
+    grp="$expl[expl[(i)-J]+1]"
+    compadd "$expl[@]" $suf $pre {0..$cols}
+    for c in {0..$cols}; do
+      _comp_colors+=( "($grp)=${c}=${${${(%):-%F{$c\}}#?\[}%m}" )
+    done
+  else
+    _message -e terminal-colors "number"
+  fi
+fi
+
+if compset -P '%[0-9-\\]#(\\|)\([0-9-]#[^0-9]'; then
+  # ternary conditional: first delimiter
+  compset -S '*'
+  _delimiters && ret=0
+elif compset -P '%[0-9-\\]#[<>\]]'; then
+  # truncation
+  _message -e replacements 'replacement string'
+elif compset -P '%[0-9-\\]#(\\|)\([0-9-]#'; then
+  # ternary conditional: condition character
+  compset -S '[.:+/-%]*' || suf=( -S . )
+  compset -S '*'
+  specs=(
+    '!:running with privileges'
+    '#:effective uid'
+    '?:exit status'
+    '_:at least n shell constructs started'
+    'C:at least n path elements'
+    '/:at least n path elements'
+    '.:at least n path elements'
+    'c:at least n path elements'
+    '~:at least n path elements'
+    'D:month'
+    'd:day of month'
+    'g:effective gid'
+    'j:number of jobs'
+    'L:SHLVL'
+    'l:number of characters already printed'
+    'S:SECONDS parameter at least n'
+    'T:current hour'
+    't:current minute'
+    'v:psvar has at least n elements'
+    'V:element n of psvar is set and non-empty'
+    'w:day of week (Sunday = 0)'
+  )
+  [[ $IPREFIX != *- ]] && _describe -t ternary-prompt-expressions \
+      'ternary prompt format test character' specs $suf && ret=0
+  _message -e numbers number
+elif compset -P '%D(\\|){'; then
+  compset -S '(\\|)}*'
+  _date_formats zsh && ret=0
+elif [[ -prefix '%' ]] ||
+      ! zstyle -t ":completion:${curcontext}:prompt-format-specifiers" prefix-needed
+then
+  specs=(
+    'm:hostname up to first .'
+    '_:status of parser'
+    '^:reversed status of parser'
+    'd:current working directory'
+    '/:current working directory'
+    '~:current working directory, with ~ replacement'
+    'N:name of current script or shell function'
+    'x:name of file containing code being executed'
+    'c:deprecated'
+    '.:deprecated'
+    'C:deprecated'
+    'F:start using fg color'
+    'K:start using bg color'
+    'G:counts as extra character inside %{...%}'
+    '(:ternary expression %(x.true-string.false-string)'
+  )
+  compset -P '%' || pre=( -p '%' )
+  if ! compset -P '(-|)<->'; then
+    if [[ $service == -value-,SPROMPT,* ]]; then
+      specs+=(
+	'r:suggested correction'
+	'R:corrected string'
+      )
+    fi
+    specs+=(
+      '%:A %'
+      '):A )'
+      'l:current line (tty) with /dev/tty stripped'
+      'M:full hostname'
+      'n:username'
+      'y:current line (tty)'
+      '#:a # when root, % otherwise'
+      '?:return status of last command'
+      'h:current history event number'
+      '!:current history event number'
+      'i:current line number'
+      'I:current source line number'
+      'j:number of jobs'
+      'L:$SHLVL'
+      'D:date in yy-mm-dd format'
+      'T:current time of day, 24-hour format'
+      't:current time of day, 12-hour am/pm format'
+      '@:current time of day, 12-hour am/pm format'
+      '*:current time of day, 24-hour format with seconds'
+      'w:the date in day-dd format'
+      'W:the date in mm/dd/yy format'
+      'D{:format string like strftime'
+      'B:start bold'
+      'b:stop bold'
+      'E:clear to end of line'
+      'U:start underline'
+      'u:stop underline'
+      'S:start standout'
+      's:stop standout'
+      'f:reset fg color'
+      'k:reset bg color'
+      '{:start literal escape sequence'
+      '}:stop literal escape sequence'
+      'v:value from $psvar array'
+      '<:truncation from left %len<string<'
+      '>:truncation from right %len>string>'
+      '[:truncation from who knows where'
+    )
+  fi
+  _describe -t prompt-format-specifiers 'prompt format specifier' \
+      specs -S '' $pre && ret=0
+  (( ! $#pre )) && _message -e prompt-format-specifiers number
+fi
+
+return ret

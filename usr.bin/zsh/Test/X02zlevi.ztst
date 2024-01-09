@@ -1,0 +1,610 @@
+# Tests of the vi mode of ZLE
+
+%prep
+  unset -m LC_\*
+  ZSH_TEST_LANG=
+  langs=(en_{US,GB}.{UTF-,utf}8 en.UTF-8
+	 $(locale -a 2>/dev/null | egrep 'utf8|UTF-8'))
+  for LANG in $langs; do
+    if [[ é = ? ]]; then
+      ZSH_TEST_LANG=$LANG 
+      break;
+    fi
+  done
+  if ( zmodload zsh/zpty 2>/dev/null ); then
+    . $ZTST_srcdir/comptest
+    comptestinit -v -z $ZTST_testdir/../Src/zsh
+  else
+    ZTST_unimplemented="the zsh/zpty module is not available"
+  fi
+
+%test
+
+  zletest $'goox\ecld'
+0:change last character in buffer
+>BUFFER: good
+>CURSOR: 4
+
+  zletest $'{ ({[}]) }\e0c%chg'
+0:change forward to matching bracket
+>BUFFER: chg
+>CURSOR: 3
+
+  zletest $'s( match )\ed%'
+0:delete backwards to matching bracket
+>BUFFER: s
+>CURSOR: 0
+
+  zletest $'one\eo\edd'
+0:delete empty line
+>BUFFER: one
+>CURSOR: 0
+
+  zletest $'1\eo\eyya2\epa3'
+0:yank and paste blank line
+>BUFFER: 1
+>2
+>3
+>CURSOR: 5
+
+  zpty_run 'bindkey -r "\e~"'
+  zletest $'\e' $'~aI\e' $'~o\e' \~
+0:swap case on a blank line
+>BUFFER: i
+>
+>CURSOR: 2
+
+  zletest $'\eOword\eO\eraok\ejrxj.rae'
+0:replace character when at end of buffer or newline
+>BUFFER: ok
+>wxrd
+>e
+>CURSOR: 9
+
+  zletest $'two\eOone\ehRreplace'
+0:replace acts like insert at newline
+>BUFFER: oreplace
+>two
+>CURSOR: 8
+
+  zletest $' four\eO\C-v\tthree\eO  two\eOone\e3J'
+0:join lines with line count
+>BUFFER: one two three
+> four
+>CURSOR: 7
+
+# like real vi, we just join as many as possible, in vim this beeps
+  zletest $'two\eOone\e3J'
+0:join more lines than possible
+>BUFFER: one two
+>CURSOR: 3
+
+  zletest $'fi\eO\eOif\e2>j'
+0:don't indent blank lines
+>BUFFER: 	if
+>
+>	fi
+>CURSOR: 1
+
+  zletest $'\C-v\ti\e>>'
+0:additional indentation
+>BUFFER: 		i
+>CURSOR: 2
+
+  zletest $'one\eox\e>k'
+0:indent with one character on final line
+>BUFFER: 	one
+>	x
+>CURSOR: 1
+
+  zletest $'one two\eyb'
+0:yank left moves the cursor
+>BUFFER: one two
+>CURSOR: 4
+
+  zletest $'one two\e0ye'
+0:yank right leaves the cursor
+>BUFFER: one two
+>CURSOR: 0
+
+  zletest $'short\eoand longer\eyk'
+0:yank up line moves cursor up but not to buffer start
+>BUFFER: short
+>and longer
+>CURSOR: 4
+
+  zletest $'one\eotwo\ekyj'
+0:yank down line leaves the cursor
+>BUFFER: one
+>two
+>CURSOR: 2
+
+  zletest $'long\eo  s\eolong\ekjy-k'
+0:yank up clears lastcol
+>BUFFER: long
+>  s
+>long
+>CURSOR: 2
+
+  zletest $'long\eos\eklljyk'
+0:yank up honours lastcol
+>BUFFER: long
+>s
+>CURSOR: 2
+
+  zletest $'long\eolong\eo  s\eolong\ekjd-k'
+0:delete up clears lastcol
+>BUFFER: long
+>long
+>CURSOR: 0
+
+  zletest $'one two\e03rX$.'
+0:repeat replace chars at the end of the line consumes the replace char
+>BUFFER: XXX two
+>CURSOR: 6
+
+  zletest $'one two three\e02rxw3.w.'
+0:numeric argument to repeat replaces change count
+>BUFFER: xxe xxx xxxee
+>CURSOR: 10
+
+  zletest $'one two three four five six seven eight\e.03d2wk.1.'
+0:numeric args to both action and movement are multiplied (and saved for any repeat)
+>BUFFER: eight
+>seven eight
+>CURSOR: 0
+
+  zletest $'yankee doodle\ebhDyy0"1P'
+0:paste register 1 to get last deletion
+>BUFFER:  doodleyankee
+>CURSOR: 6
+
+  zletest $'yankee\eyyodoodle\edd"0p'
+0:paste register 0 to get last yank
+>BUFFER: yankee
+>yankee
+>CURSOR: 7
+
+  zletest $'err\eddahello\e"hddP'
+0:setting named register also sets unnamed register
+>BUFFER: hello
+>
+>CURSOR: 0
+
+  zletest $'first\e"ay0ddasecond\e"Add"aP'
+0:appending to named register
+>BUFFER: firs
+>second
+>
+>CURSOR: 0
+
+  zletest $'word\e"a"byy"bp'
+0:set one and then a different register
+>BUFFER: word
+>word
+>CURSOR: 5
+
+  zletest $'i\exaar\e0"a"_cewn\eP'
+0:set register then set black hole register
+>BUFFER: win
+>CURSOR: 1
+
+  zletest $'double\eyy"_"0P'
+0:reset register after selecting black hole
+>BUFFER: double
+>double
+>CURSOR: 0
+
+# zsh works like vi here; in vim you get the concatenated string
+  zletest $'first\e"addasecond\eddP'
+0:retrieve unnamed register after appending
+>BUFFER: second
+>
+>CURSOR: 0
+
+  zletest $'123456789\exxxxxxxxx"1P.........'
+0:repeat advances to next killring register
+>BUFFER: 9987654321
+>CURSOR: 0
+
+  zletest $'Z\exayankee doodle\e"_db0"_yeP'
+0:yank and delete to black hole register
+>BUFFER: Zyankee e
+>CURSOR: 0
+
+  zletest $'foo\eddabar\e"_p..'
+0:paste from black hole register and repeat
+>BUFFER: bar
+>CURSOR: 2
+
+  zletest $'start\eFa"ac2lnew\eX"ap..'
+0:repeat paste from named register
+>BUFFER: stnwararart
+>CURSOR: 9
+
+  zpty_run 'bindkey -a "^P" yank-pop'
+  zletest $'word\C-wline\eddiSE\eP\C-P'
+0:line based put before followed by character based yank-pop
+>BUFFER: SwordE
+>CURSOR: 4
+
+  zletest $'line\eddiword\C-w\eiSE\eP\C-P'
+0:character based put before followed by line based yank-pop
+>BUFFER: line
+>SE
+>CURSOR: 0
+
+  zletest $'one two three\C-w\C-w\C-wSE\e0p\C-P\C-P'
+0:put after cycled twice with yank-pop
+>BUFFER: SthreeE
+>CURSOR: 5
+
+  zletest $'word\C-wline\eddiSE\ehp\C-P'
+0:line based put after followed by character based yank-pop
+>BUFFER: SwordE
+>CURSOR: 4
+
+  zletest $'line\eddiword\C-w\eiSE\ehp\C-P'
+0:character based after before followed by line based yank-pop
+>BUFFER: SE
+>line
+>CURSOR: 3
+
+  zletest $'word\euaend'
+0:undo initial change
+>BUFFER: end
+>CURSOR: 3
+
+  zletest $'text\e.'
+0:repeat initial edit
+>BUFFER: text
+>text
+>CURSOR: 8
+
+  zpty_run 'print -z before'
+  zletest $'after\e.'
+0:repeat initial edit with non-blank starting line
+>BUFFER: beforeafterafter
+>CURSOR: 15
+
+  zpty_run 'setopt overstrike;print -z bung'
+  zletest $'ing\e2|.'
+0:repeat initial edit with overstrike set
+>BUFFER: binging
+>CURSOR: 3
+
+  print -u $ZTST_fd 'This test may hang the shell when it fails...'
+  zletest $'worm\erdhd..'
+0:use of vi-repeat as the motion and repeat after a failed change
+>BUFFER: wodd
+>CURSOR: 2
+
+  zpty_run 'bindkey "^_" undo'
+  zletest $'undoc\037e'
+0:use of undo in vi insert mode
+>BUFFER: undoe
+>CURSOR: 5
+
+  zletest $'one\euatwo\e0clthree'
+0:vi mode undo of initial and subsequent change
+>BUFFER: threewo
+>CURSOR: 5
+
+  zletest $'xxx\euiyyy\euAz'
+0:undo invoked twice
+>BUFFER: z
+>CURSOR: 1
+
+  zpty_run 'bindkey -a "^K" redo'
+  zletest $'123\C-_\e\C-k'
+0:undo in insert mode, redo in command
+>BUFFER: 123
+>CURSOR: 2
+
+  zpty_run 'bindkey "^Y" redo'
+  zletest $'pre\eA123\C-_\C-y\eu'
+0:undo and redo in insert mode, undo in command
+>BUFFER: pre
+>CURSOR: 2
+
+  zletest $'two\eOone\eo\euo\eu'
+0:undo starting with a next change in the change list
+>BUFFER: one
+>two
+>CURSOR: 2
+
+  zpty_run 'bindkey "^Gu" split-undo'
+  zletest $'one\C-gutwo\eu'
+0:split the undo sequence
+>BUFFER: one
+>CURSOR: 2
+
+  zletest $'one two\ebmt3|`tx``'
+0:setting mark and returning to original position
+>BUFFER: one wo
+>CURSOR: 2
+
+  zletest $'keepnot\eo  unwanted\ekhhcvj '
+0:force character-wise change to join lines
+>BUFFER: keep wanted
+>CURSOR: 5
+
+  zletest $'}\eOkeep{del\eF{dvj'
+0:character-wise delete to beginning of line leaves the newline'
+>BUFFER: keep
+>}
+>CURSOR: 3
+
+  zletest $'keep\eOdel\edVh'
+0:force line-wise delete of line
+>BUFFER: keep
+>CURSOR: 0
+
+  zletest $'one two three\eFwdVawaX'
+0:line-wise force of a text object
+>BUFFER: X
+>CURSOR: 1
+
+  zletest $'one two\evbcx'
+0:change selection
+>BUFFER: one x
+>CURSOR: 5
+
+  zletest $'four\eOthree\eOtwo\eOone\evjjhCnew'
+0:change character wise selection with C acts linewise
+>BUFFER: new
+>four
+>CURSOR: 3
+
+  zletest $'x testing\ehvbx'
+0:x kills selections
+>BUFFER: x g
+>CURSOR: 2
+
+  zletest $'line end\eOstart 1 back new\e0verawvrbwevbrcwvj0erdwv$re'
+0:replace characters in selections
+>BUFFER: aaaaa b cccc dddddddd eee
+>CURSOR: 24
+
+  zletest $'one two\eyb0vep'
+0:put over selection at start of buffer
+>BUFFER: tw two
+>CURSOR: 1
+
+  zletest $'hello\C-wbye\evhp'
+0:put over selection at end of buffer
+>BUFFER: bhello
+>CURSOR: 5
+
+  zletest $'old\C-w\evyvP'
+0:yank empty selection
+>BUFFER: old
+>CURSOR: 2
+
+  zletest $'old\C-w\evdvP'
+0:delete empty selection
+>BUFFER: old
+>CURSOR: 2
+
+  zletest $'one\eotwo\eyykVp'
+0:yank linewise and put over linewise selection at start of buffer
+>BUFFER: two
+>two
+>CURSOR: 0
+
+  zletest $'one\eotwo\eothree\eyykVp'
+0:yank linewise and put over linewise selection in middle of buffer
+>BUFFER: one
+>three
+>three
+>CURSOR: 4
+
+  zletest $'two\eOone\eyyjVp'
+0:yank linewise and put over linewise selection at end of buffer
+>BUFFER: one
+>one
+>CURSOR: 4
+
+  zletest $'one\eyhVp'
+0:yank character-wise and put over linewise selection
+>BUFFER: n
+>CURSOR: 0
+
+# vim puts a blank line above in this test
+  zletest $'one\eotwo\eyy0kvlp'
+0:yank linewise and put over character-wise selection at start of buffer
+>BUFFER: two
+>e
+>two
+>CURSOR: 0
+
+  zletest $'one\eyyhvp'
+0:yank linewise and put over character-wise selection in middle of buffer
+>BUFFER: o
+>one
+>e
+>CURSOR: 2
+
+# vim behaviour on this one really looks like a bug
+  zletest $'two\eOone\eyyjvhp'
+0:yank linewise and put over character-wise selection at end of buffer
+>BUFFER: one
+>t
+>one
+>CURSOR: 6
+
+  zletest $'abc123456789\exxxxxxxxxhv"9p0P'
+0:paste last (9th) register over a selection
+>BUFFER: ba9c
+>CURSOR: 0
+
+  zletest $'one\eo\eo\eotwo\ekkVdvd'
+0:delete blank line using selection
+>BUFFER: one
+>two
+>CURSOR: 4
+
+  zletest $'One Two Three\e2bvw~'
+0:toggle case of selection
+>BUFFER: One tWO three
+>CURSOR: 4
+
+  zletest $' --ww  ww--\eo\eoww\eo\eo--\eo\eo  ww\e' bi{a,b,c,d,e,f,g,h,i,j,k}$'\e'
+0:backward word
+>BUFFER: k j--iww  hwwg--
+>f
+>eww
+>d
+>c--
+>b
+>  aww
+>CURSOR: 0
+
+  zletest $' --ww  ww--\eo\eoww\eo\eo--\eo\eo  ww\e' Bi{a,b,c,d,e,f,g,h,i}$'\e'
+0:backword blank word
+>BUFFER: i h--ww  gww--
+>f
+>eww
+>d
+>c--
+>b
+>  aww
+>CURSOR: 0
+
+  zletest $' --ww  ww--\eo\eoww\eo\eo--\eo\eo  ww\e' gei{a,=,b,c,d,=,e,f,=,g}$'\e'
+0:backward word end
+>BUFFER: g -=-wfw  wew-=-
+>d
+>wcw
+>b
+>-=-
+>a
+>  ww
+>CURSOR: 0
+
+  zletest $' --ww  ww--\eo\eoww\eo\eo--\eo\eo  ww\e' gEi{=,b,=,d,e}$'\e'
+0:backward blank word end
+>BUFFER: e --wdw  ww-=-
+>
+>wbw
+>
+>-=-
+>
+>  ww
+>CURSOR: 0
+
+  zletest $'  ww\eO\eO--\eO\eOww\eO\eO --ww  ww--\e0' wi{=,a,b,=,c,d,e,=,f,g}$'\e'
+0:forward word
+>BUFFER:  =--aww  bww=--
+>c
+>dww
+>e
+>=--
+>f
+>  gww
+>CURSOR: 32
+
+  zletest $'  ww\eO\eO--\eO\eOww\eO\eO --ww  ww--\e0' Wi{=,a,b,c,d,=,e,f}$'\e'
+0:forward blank word
+>BUFFER:  =--ww  aww--
+>b
+>cww
+>d
+>=--
+>e
+>  fww
+>CURSOR: 30
+
+  zletest $'  ww\eO\eO--\eO\eOww\eO\eO --ww  ww--\e0' ea{a,b,c,d,e,f,g}$'\e'
+0:forward word end
+>BUFFER:  --awwb  wwc--d
+>
+>wwe
+>
+>--f
+>
+>  wwg
+>CURSOR: 31
+
+  zletest $'  ww\eO\eO--\eO\eOww\eO\eO --ww  ww--\e0' Ea{a,b,c,d,e}$'\e'
+0:forward blank word end
+>BUFFER:  --wwa  ww--b
+>
+>wwc
+>
+>--d
+>
+>  wwe
+>CURSOR: 29
+
+  if [[ -z $ZSH_TEST_LANG ]]; then
+    ZTST_skip="no UTF-8 locale for Zle vi-mode test"
+  else
+    zletest $'/あいう/えお/かき\ebxgegex0wxex'
+  fi
+0:word motion with multibyte characters
+>BUFFER: /い/え/き
+>CURSOR: 2
+
+  zletest $'    ----word    ----    word    word----    ----\e42|daw30|daw22|daw14|daw2|daw'
+0:delete all word on blanks
+>BUFFER: word
+>CURSOR: 0
+
+  zletest $'    word----word    word----word    word    \e38|daw30|daw22|daw14|daw6|daw'
+0:delete all word on alphanumerics
+>BUFFER:     --------
+>CURSOR: 4
+
+  zletest $'    ----word----    ----word----    ----    \e38|daw30|daw22|daw14|daw6|daw'
+0:delete all word on other characters
+>BUFFER:     wordword
+>CURSOR: 4
+
+  zletest $'- word word\e4|2daw'
+0:delete all word with numeric argument
+>BUFFER: -
+>CURSOR: 0
+
+  zletest $'----    word    ----word\eo    \eo----\eodone\eh' \
+      'vhawmaawmbawmcawmdawmeawmfawmgv`ara`brb`crc$r$`drd`ere`frf`grg'
+0:all word with existing selection and cursor before mark
+>BUFFER: g---f   worde   ----dord
+>c  $
+>b---
+>aone
+>CURSOR: 0
+
+  zletest $'----    word    word----\e0lvlawmaawmbawmcawvrd`ara`brb`crc'
+0:all word with existing selection and mark before cursor
+>BUFFER: ----   aword   bworc---d
+>CURSOR: 19
+
+  zletest $' --ww  ww---\eo\eoww\evhiwiw' m{a,b,c,d,e}iw vrE \`{a,b,c,d,e}r.
+0:in word with existing selection and cursor before mark
+>BUFFER: E.-.w. .w.--
+>
+>ww
+>CURSOR: 1
+
+  zletest $'  --ww  ww--\eO  \ev0o' m{a,b,c,d,e}iw vrE \`{a,b,c,d,e}r.
+0:in word with existing selection and mark before cursor
+>BUFFER:  .
+> .-.w. .wE--
+>CURSOR: 10
+
+  zletest $'  `one`  $(echo two) " three " $\'four\'\C-v\tfive ${six:-6}\e' \
+      vaaom{a,b,c,d,e,f}v \`{a,b,c,d,e,f}rX
+0:all argument for different arguments
+>BUFFER: X `one`X $(echo two)X" three "X$'four'XfiveX${six:-6}
+>CURSOR: 0
+
+  zletest $'{ls `echo x`  $((3+4)) "a b" $\'\\t\\n\' ${d%/}\e' \
+      cia{6,5,4,3,2,1}$'\eBB'
+0:in argument for different arguments
+>BUFFER: 1ls `2`  $(3) "4" $'5' ${6}
+>CURSOR: 0
+
+%clean
+
+  zmodload -ui zsh/zpty

@@ -1,0 +1,41 @@
+#compdef atrm atq at batch
+
+local context state line expl ret=1
+typeset -A opt_args
+
+#todo (when extremely bored) make -l and -d do the atq and atrm completions
+case $service in
+atrm)
+  _arguments \
+    '-V[print version number]' \
+    '*:job number:->jobs' && ret=0
+  ;;
+atq)
+  _arguments \
+    '-V[print version number]' \
+    '-q[uses specified queue]:a-z+A-Z' && ret=0
+  ;;
+at|batch)
+  _arguments \
+    - new-job \
+      '-V[print version number]' \
+      '-q[uses specified queue, uppercase acts as batch]:a-z+A-Z' \
+      '-f[read job from file rather than from stdin]:file:_files' \
+      '-v[show the time the job will be executed]' \
+      '-m[send mail even if there was no output]' \
+      ':time:' \
+    - atq \
+      '-l[alias for atq]' \
+    - atrm \
+      '-d[alias for atrm]' \
+    - show-job \
+      '-c[cat specified jobs to stdout]:*:job number:->jobs' && ret=0
+esac
+
+case $state in
+jobs)
+  _wanted -C $context jobs expl 'job number' compadd ${(M)${(f)"$(_call_program job atq)"}##<->} && ret=0
+  ;;
+esac
+
+return ret

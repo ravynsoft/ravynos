@@ -1,0 +1,15 @@
+#compdef subl
+
+_arguments -s -S : \
+  '(-a -n --add --new-window)'{-a,--add}'[add to current window]' \
+  '(-b --background)'{-b,--background}"[don't activate application]" \
+  '--command[run specified command]:command' \
+  '(: -)'{-h,--help}'[display help information]' \
+  '(-a -n --add --new-window)'{-n,--new-window}'[open new window]' \
+  '--project[load specified project]:project file:_files' \
+  '(-s --stay)'{-s,--stay}'[keep application activated]' \
+  '--safe-mode[launch using sandboxed (clean) environment]' \
+  '--launch-or-new-window[only open new window if application is open]' \
+  '(: -)'{-v,--version}'[display version information]' \
+  '(-w --wait)'{-w,--wait}'[wait for files to close]' \
+  '*:file or directory:_files'

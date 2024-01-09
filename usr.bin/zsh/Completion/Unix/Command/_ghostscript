@@ -1,0 +1,121 @@
+#compdef gs ghostscript
+
+local -a specs names device
+
+device=( ${${path[1,CURRENT-1]}[(R)-sDEVICE=*]} )
+
+if compset -N '-[-+@]'; then
+  if [[ CURRENT -eq 1 ]]; then
+    _pspdf
+  else
+    _message -e arguments 'userdict ARGUMENTS'
+    return 1
+  fi
+elif compset -P '@'; then
+  _files
+else
+  local curcontext="$curcontext" state line expl ret=1
+  typeset -A opt_args
+
+  _x_arguments -C \
+    '-q[quiet startup]' \
+    '-g-[set device size]:device size (<width>x<height>):' \
+    '-r-[set resolution]:resolution (<val> or <x>x<y>):' \
+    '-I+[add to library file search path]:directory:_dir_list' \
+    \*-{d,D}'-[define name with definition]:def:->dname' \
+    \*-{s,S}'-[define name with value]:def:->sname' \
+    '-u[undefine name, cancelling -d or -s]:name:->uname' \
+    '-P[look first in the current directory for library files]' \
+    '-c[specify postscript code]:*[-@]*:postscript (-f to end)' \
+    '-o+[specify OutputFile and enable -dPATCH and -dNOPAUSE options]: :->outfile' \
+    '(- *)-'{h,\?}'[display useful options and available devices]' \
+    '!-f-:PostScript or PDF file:_pspdf' \
+    '*:PostScript or PDF file:_pspdf' && ret=0
+
+  [[ $state = sname ]] && compset -P '(stdout|OutputFile)=' && state=outfile
+  case "$state" in
+  dname)
+    if [[ "$PREFIX" = *\=* ]]; then
+      _message -e definition-values 'systemdict definition value'
+    else
+      names=( ${${(f)"$($words[1] -q -o /dev/null -DNODISPLAY -c 'systemdict { type /booleantype eq { = } if } forall')"}:#*[a-z]*} )
+      _wanted boolean-definitions expl 'systemdict boolean definition' compadd -M 'm:{a-z}={A-Z}' -a names && ret=0
+      names=( FirstPage LastPage
+          $($words[1] -q -o /dev/null $device -DNODISPLAY -c 'currentpagedevice { type /integertype eq { = } if } forall') )
+      _wanted integer-definitions expl 'currentpagedevice integer definition' compadd -S = -M 'm:{a-z}={A-Z}' -a names && ret=0
+    fi
+    ;;
+  sname)
+    if compset -P 1 '*='; then
+      case "$IPREFIX" in
+      *DEVICE\=)
+        _wanted devices expl 'ghostscript device' \
+	    compadd - ${(0)"$($words[1] -q -o /dev/null -DNODISPLAY -c 'devicenames { dup length string cvs print (\0) print } forall')"} && ret=0
+        ;;
+      *PAPERSIZE=)
+	names=( $($words[1] -q -o /dev/null -DNODISPLAY -c 'statusdict /.pagetypenames get { = } forall ') )
+	_description paper-sizes expl 'paper size'
+	compadd "$expl[@]" -a names && ret=0
+      ;;
+      *PDFSETTINGS=)
+	_description settings expl 'configuration'
+	compadd "$expl[@]" /screen /ebook /printer /prepress /default && ret=0
+      ;;
+      *AutoRotatePages=)
+	_description settings expl 'orientation selection'
+	compadd "$expl[@]" /None /All /PageByPage && ret=0
+      ;;
+      *CompatibilityLevel=)
+	_description pdf-levels expl 'PDF compatibility level'
+	compadd "$expl[@]" 1.{2,3,4} && ret=0
+      ;;
+      *FONT=) # e.g. SUBSTFONT
+	_wanted fonts expl 'font' compadd - \
+	    $($words[1] -q -o /dev/null -DNODISPLAY -c '(*) { = } 256 string /Font resourceforall') && ret=0
+      ;;
+      *)
+        _message -e values 'systemdict value'
+        return 1
+      ;;
+      esac
+    else
+      _wanted definition-names expl 'systemdict name' compadd -S\= -M 'm:{a-z}={A-Z}' - \
+	  DEVICE OutputFile PAPERSIZE PDFSETTINGS CompatibilityLevel stdout COLORSCREEN \
+	  DITHERPPI InterpolateControl TextAlphaBits GraphicsAlphaBits PageList SUBSTFONT \
+	  && ret=0
+    fi
+    ;;
+  uname)
+    _message -e definition-names 'systemdict definition name'
+  ;;
+  outfile)
+    if compset -P "*%"; then
+      specs=(
+	{d,i}':signed decimal number or with leading " numeric value of following character'
+	'o:unsigned octal number'
+	'u:unsigned decimal number'
+	{x,X}':unsigned hexadecimal number, letters capitalized as x'
+	'%:a literal percent sign'
+	'#:alternate form'
+	'0:zero pad to length'
+	'-:left adjust result'
+	'+:always place sign before number'
+	'.:precision'
+      )
+      if ! compset -P '[0-9#.+-]##'; then
+	specs+=(
+	  'stdout:redirect to standard output'
+	  'stderr:redirect to standard error'
+	  'pipe%:redirect to a pipe'
+	)
+      fi
+      _describe -t print-format-specifiers 'print format specifier' specs -S '' && ret=0
+    else
+      _description files expl 'output file'
+      _files "$expl[@]" && ret=0
+    fi
+  ;;
+  esac
+
+  return ret
+fi

@@ -1,0 +1,25 @@
+#compdef set
+
+noglob _arguments -s -S \
+  - list '+[list names of parameters]' - others \
+  '-o+[set specified option]:option:_options' \
+  '+o+[unset specified option]:option:_options' \
+  '-s[sort arguments in descending order]' \
+  '+s[sort arguments in ascending order]' \
+  '-A+[define array with specified name]:array:_arrays' \
+  '+A+[replace initial elements in specified array]:array:_arrays' \
+  {-,+}0[correct] {-,+}1[printexitvalue] {-,+}2[no-badpattern] \
+  {-,+}3[no-nomatch] {-,+}4[globdots] {-,+}5[notify] {-,+}6[bgnice] \
+  {-,+}7[ignoreeof] {-,+}8[markdirs] {-,+}9[autolist] {-,+}B[no-beep] \
+  {-,+}C[no-clobber] {-,+}D[pushdtohome] {-,+}E[pushdsilent] {-,+}F[no-glob] \
+  {-,+}G[nullglob] {-,+}H[rmstarsilent] {-,+}I[ignorebraces] {-,+}J[autocd] \
+  {-,+}K[no-banghist] {-,+}L[sunkeyboardhack] {-,+}M[singlelinezle] \
+  {-,+}N[autopushd] {-,+}O[correctall] {-,+}P[rcexpandparam] {-,+}Q[pathdirs] \
+  {-,+}R[longlistjobs] {-,+}S[recexact] {-,+}T[cdablevars] \
+  {-,+}U[mailwarning] {-,+}V[no-promptcr] {-,+}W[autoresume] \
+  {-,+}X[listtypes] {-,+}Y[menucomplete] {-,+}Z[zle] {-,+}a[allexport] \
+  {-,+}d[no-globalrcs] {-,+}e[errexit] {-,+}f[no-rcs] {-,+}g[histignorespace] \
+  {-,+}h[histignoredups] {-,+}i[interactive] {-,+}k[interactivecomments] \
+  {-,+}l[login] {-,+}m[monitor] {-,+}n[no-exec] {-,+}p[privileged] \
+  {-,+}r[restricted] {-,+}t[singlecommand] {-,+}u[no-unset] {-,+}v[verbose] \
+  {-,+}w[chaselinks] {-,+}x[xtrace] {-,+}y[shwordsplit]

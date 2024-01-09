@@ -1,0 +1,78 @@
+#compdef debchange dch=debchange
+
+# Based on dch from devscripts-2.15.3
+
+# At most one of -a/-e/-i/-r/-v may be specified.
+# TODO: specifying --release in the exclusion lists makes -i/-a/-v/-e exclude --release-heuristic, although they shouldn't.
+# TODO: --news' optional argument isn't completed
+# TODO: support --noconf/--no-conf
+
+# List taken from error message: "Only one of ... is allowed; try dch --help for more info"
+local -a mutex=(
+  -a --append
+  -i --increment
+  -e --edit
+  -r --release
+  -v --newversion
+  -d --fromdirname
+  -n --nmu
+  --bin-nmu
+  -q --qa
+  -R --rebuild
+  -s --security
+  --team
+  --bpo
+  -l --local
+)
+
+_arguments -S -s -A "-*" \
+  '(-h --help)'{-h,--help}'[display help information]' \
+  --version'' \
+  "($mutex)"{-i,--increment}'[increment release or version number]' \
+  "($mutex)"{-a,--append}'[add new changelog entry]' \
+  "($mutex)"{-v+,--newversion=}'[specify new version number]:version:' \
+  "($mutex)"{-e,--edit}'[edit changelog in an editor]' \
+  "($mutex)"{-r,--release}'[finalize changelog for a release]' \
+  '(--no-force-save-on-release)'--force-save-on-release'[with --release, require changelog to be saved when previewed (default)]' \
+  '(--force-save-on-release)'--no-force-save-on-release'[with --release, do not require changelog to be saved when previewed]' \
+  --create'[create a new debian/changelog (or NEWS) file]' \
+  --empty'[with --create, do not add an "Initial release." entry]' \
+  --package='[specify package name to use in new changelog or new entry]:package name:_deb_packages avail' \
+  "($mutex)"{-n,--nmu}'[increment release number for a non-maintainer upload (NMU)]' \
+  "($mutex)"--bin-nmu'[increment release number for a binary non-maintainer upload (binNMU)]' \
+  "($mutex)"{-q,--qa}'[increment release number for a quality assurance upload (QA)]' \
+  "($mutex)"{-R,--rebuild}'[increment release number for a no-change upload (a rebuild)]' \
+  "($mutex)"{-s,--security}'[increment release number for a security team upload]' \
+  "($mutex)"--team'[increment release number for a team upload]' \
+  "($mutex)"{-U,--upstream}'[increment release number for a parent-distro upload (on a derived distro)]' \
+  "($mutex)"--bpo'[increment release number for a ${suite}-backports upload]' \
+  "($mutex)"{-l+,--local=}'[add suffix to version number (for local builds)]:version number suffix' \
+  '(-b --force-bad-version)'{-b,--force-bad-version}'[force version number to be less than the current one]' \
+  --allow-lower-version='[allow version number lower than current one if the former matches ARG]:pattern to match version numbers that may be lower than current one' \
+  --force-distribution'[accept unrecognized distribution name]' \
+  '(--no-auto-nmu)'--auto-nmu'[automatically detect NMUs (default)]' \
+  '(--auto-nmu)'--no-auto-nmu'[do not automatically detect NMUs]' \
+  "($mutex)"{-d,--fromdirname}'[derive upstream version number from basename of current working directory]' \
+  --closes='[specify bug numbers to close]:bug numbers to close (comma-separated)' \
+  --query'[with --closes, contact the BTS (default)]' \
+  --noquery'[with --closes, contact the BTS (default)]' \
+  '(--no-preserve --nopreserve --preserve -p)'{-p,--preserve}'[preserve source tree directory name]' \
+  '(--preserve -p)'{--no-preserve,--nopreserve}'[do not preserve source tree directory name (default)]' \
+  --vendor='[override distributor ID (default\: see dpkg-vendor)]:vendor name' \
+  '(-D --distribution)'{-D+,--distribution=}'[specify distribution name for entry (default: value of top entry)]:distribution name' \
+  '(-u --urgency)'{-u+,--urgency=}'[specify urgency for entry (default\: value of top entry)]:urgency' \
+  '(-c --changelog)'{-c+,--changelog=}'[specify changelog filename]:changelog filename:_files' \
+  --news'[edit NEWS instead of changelog (optional argument\: filename)]' \
+  '(--nomultimaint)'--multimaint'[indicate multiple authors (default)]' \
+  '(--multimaint)'--nomultimaint'[do not indicate multiple authors]' \
+  '(--nomultimaint-merge)'--multimaint-merge'[merge changes by a the same author]' \
+  '(--multimaint-merge)'--nomultimaint-merge'[do not merge changes by a the same author (default)]' \
+  '(-m --maintmaint)'{-m,--maintmaint}'[do not modify maintainer details]' \
+  '(-M --controlmaint)'{-M,--controlmaint}'[use maintainer details from debian/control]' \
+  '(--nomainttrailer)'{-t,--mainttrailer}'[do not modify changelog trailer line unless required]' \
+  '(--mainttrailer -t)'--nomainttrailer'[modify changelog trailer line normally]' \
+  --check-dirname-level':when to check the parent directory'\''s name:((0\:never 1\:"if different from current working directory" 2\:always))' \
+  --check-dirname-regex'[regex to match base directory'\''s name]:anchored perl regular expression (default\: '\''PACKAGE(-.+)?'\'')' \
+  --release-heuristic'[control "package has been released" heuristic]:heuristic:((changelog\:"via changelog \"UNRELEASED\" distribution (default)" log\:"ia upload logfile in parent directory"))' \
+  ':text:'
+  # multimaint

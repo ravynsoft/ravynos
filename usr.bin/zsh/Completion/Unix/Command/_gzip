@@ -1,0 +1,112 @@
+#compdef gzip gunzip gzcat=gunzip pigz unpigz -redirect-,<,gunzip=gunzip -redirect-,>,gzip=gunzip -redirect-,<,gzip=gzip -value-,GZIP,-default-
+
+local decompress files expl curcontext="$curcontext" state line ret=1
+local -a pigz
+typeset -A opt_args
+local excl="--decompress --uncompress -1 -2 -3 -4 -5 -6 -7 -8 -9 -11 --best"
+
+files=( '*:files:->files' )
+case "$service" in
+unpigz|pigz)
+  pigz=(
+    '(-A --alias)'{-A+,--alias=}'[specify filename to use in zip entry for stdin]:filename'
+    '(-C --comment)'{-C+,--comment=}'[put specified comment in the gzip or zip header]'
+    '(-H --huffman -U --rle)'{-H,--huffman}'[use only Huffman coding for compression]'
+    '(-U --rle -H --huffman)'{-U,--rle}'[use run-length encoding for compression]'
+    '(-K --zip -z --zlib)'{-K,--zip}'[compress to PKWare zip format]'
+    '(-b --blocksize)'{-b+,--blocksize}'[set compression block size]:size (KiB)'
+    '(-p --processes)'{-p,--processes}'[specify number of processes to use]'
+    '(-z --zlib -K --zip)'{-z,--zlib}'[compress to zlib (.zz) format]'
+    '(-m --no-time)'{-m,--no-time}"[don't store/restore modification time in/from header]"
+    '(-M --time)'{-M,--time}"[store/restore modification time in/from header]"
+    '(--synchronous)-Y[force output file write to permanent storage]'
+  )
+;|
+pigz)
+  pigz+=(
+    '(-i --independent)'{-i,--independent}'[compress blocks independently to allow for damage recovery]'
+    "($excl)-11"
+    '(--rsyncable)-R[make rsync-friendly archive]'
+    "($excl)"{-F,--first}'[do iterations first, before block split]'
+    "($excl)"{-I+,--iterations}'[specify number of iterations for optimization]:iterations [15]'
+    "($excl)"{-J+,--maxsplits}'[specify maximum number of split blocks]:split blocks [15]'
+    "($excl)"{-O,--oneblock}"[don't split into smaller blocks]"
+  )
+;|
+*GZIP*)
+  compset -q
+  words=( fake "$words[@]" )
+  (( CURRENT++ ))
+  files=()
+  ;&
+gunzip|zcat|unpigz)
+  decompress=yes
+  ;&
+gzip|pigz)
+  _arguments -C -s -S \
+    '(--to-stdout --stdout)-c[write on standard output]' \
+    '(-c --stdout)--to-stdout[write on standard output]' \
+    '(-c --to-stdout)--stdout[write on standard output]' \
+    "($excl)"{-d,--decompress,--uncompress}'[decompress]' \
+    '(--force)-f[force overwrite]' \
+    '(-f)--force[force overwrite]' \
+    '(- *)'{-h,--help}'[display help message]' \
+    "(--keep)-k[don't delete input files]" \
+    "(-k)--keep[don't delete input files]" \
+    '(--list)-l[list compressed file contents]' \
+    '(-l)--list[list compressed file contents]' \
+    '(- *)'{-L,--license}'[display software license]' \
+    "(--no-name)-n[don't save or restore the original name and time stamp]" \
+    "(-n)--no-name[don't save or restore the original name and time stamp]" \
+    '(--name)-N[save or restore the original name and time stamp]' \
+    '(-N)--name[save or restore the original name and time stamp]' \
+    '(--quiet --silent)-q[suppress all warnings]' \
+    '(-q --silent)--quiet[suppress all warnings]' \
+    '(-q --quiet)--silent[suppress all warnings]' \
+    '(--recursive)-r[operate recursively on directories]' \
+    '(-r)--recursive[operate recursively on directories]' \
+    '(-R)--rsyncable[make rsync-friendly archive]' \
+    '(--suffix)-S+[specify suffix for compressed files]:suffix:' \
+    '(-S)--suffix=[specify suffix for compressed files]:suffix:' \
+    '(-Y)--synchronous[force output file write to permanent storage]' \
+    '(--test)-t[test compressed file integrity]' \
+    '(-t)--test[test compressed file integrity]' \
+    '(--verbose)-v[verbose mode]' \
+    '(-v)--verbose[verbose mode]' \
+    '(- *)'{-V,--version}'[display version number]' \
+    "($excl)"-{-fast,1,2,3,4,5,6,7,8,9,-best} \
+    "$pigz[@]" "$files[@]" && ret=0
+  ;;
+esac
+
+case "$state" in
+files)
+  (( $+opt_args[-d] || $+opt_args[--decompress] || $+opt_args[--uncompress] ||
+     $+opt_args[-l] || $+opt_args[--list] ||
+     $+opt_args[-t] || $+opt_args[--test] )) &&
+    decompress=yes
+  if (( $+opt_args[-r] || $+opt_args[--recursive] )); then
+    if [[ -z "$decompress" ]]; then
+      _description directories expl 'directory to compress'
+      _files "$expl[@]" -/ && return
+    else
+      _description directories expl 'compressed directory'
+      _files "$expl[@]" -/ && return
+    fi
+  else
+    if [[ -z "$decompress" ]]; then
+      _description files expl 'file to compress'
+      _files "$expl[@]" -g '^*.(([tT]|)[gG]|)[zZ](-.)' && return
+    else
+      _description files expl 'compressed file'
+      if (( $+opt_args[-f] )); then
+	_files "$expl[@]" && return
+      else
+	_files "$expl[@]" -g '*.(([tT]|)[gG]|)[zZ](-.)' && return
+      fi
+    fi
+  fi
+  ;;
+esac
+
+return ret

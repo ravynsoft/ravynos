@@ -1,0 +1,22 @@
+#compdef dpkg-cross
+
+local _dpkgcross_arches
+
+_dpkgcross_arches=(/etc/dpkg-cross/cross-config.*(N))
+_dpkgcross_arches=(${${_dpkgcross_arches#*.}:-alpha amd64 common cygwin-i386 gnu hppa i386 linux m32r m68k mips powerpc sh sh3 sh3eb sh4 sh4eb w32})
+
+_arguments \
+  '(-h --help)'{-h,--help}'[show summary of options]' \
+  '(-v --verbose)'{-v,--verbose}'[be more verbose]' \
+  '(-q --quiet)'{-q,--quiet}'[be more quiet]' \
+  '(-a --arch)'{-a,--arch}':architecture:('"$_dpkgcross_arches"')' \
+  '(-i --install)'{-i,--install}'[install packages]' \
+  '(-A --convert-anyway)'{-A,--convert-anyway}'[convert package even if not useful]' \
+  '(-b --build)'{-b,--build}'[just build but do not install]' \
+  '(-r --remove)'{-r,--remove}'[remove packages]' \
+  '(-s --status)'{-s,--status}'[print status of named packages]' \
+  '(-l --list)'{-l,--list}'[print short status of named packages or patterns]' \
+  '(-L --list-files)'{-L,--list-files}'[list files belonging to named packages]' \
+  '(-u --update)'{-u,--update}'[update current cross-inst]' \
+  '(-Q --query)'{-Q,--query}'[print available update packages]' \
+  '*:package or path or pattern:_files'

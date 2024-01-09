@@ -1,0 +1,382 @@
+# Tests corresponding to the texinfo node `Conditional Expressions'
+
+%prep
+
+ if ! zmodload zsh/zutil 2>/dev/null; then
+   ZTST_unimplemented="can't load the zsh/zutil module for testing"
+ fi
+
+%test
+
+  zregexparse p1 p2 ''
+0:empty
+
+  zregexparse p1 p2 a /a/
+0:element
+
+  zregexparse p1 p2 aaaaaa /a/ \#
+0:closure
+
+  zregexparse p1 p2 ab /a/ /b/
+0:concatenation
+
+  zregexparse p1 p2 a /a/ \| /b/
+0:alternation 1
+
+  zregexparse p1 p2 b /a/ \| /b/
+0:alternation 2
+
+  zregexparse p1 p2 a \( /a/ \)
+0:grouping
+
+  zregexparse p1 p2 abbaaab \( /a/ \| /b/ \) \#
+0:alternation, grouping and closure
+
+  zregexparse p1 p2 abcdef /ab/ %cd% /cdef/
+0:lookahead 1
+
+  zregexparse p1 p2 abcdef /ab/ %ZZ% /cdef/
+1:lookahead 2
+
+  zregexparse p1 p2 abcd /ab/ %cd% '-print guard' ':print caction' /cd/
+0:pattern, lookahead, guard and completion action
+>guard
+
+  zregexparse p1 p2 abcd /ab/ %cd% '-print guard; false' ':print caction' /cd/
+1:guard failure
+>guard
+>caction
+
+  zregexparse p1 p2 abcdef /ab/ '{print AB}' /cd/ '{print CD}' /ef/ '{print EF}'
+0:action
+>AB
+>CD
+>EF
+
+  zregexparse p1 p2 aaa
+  print $? $p1 $p2
+0:aaa
+>2 0 0
+
+  zregexparse p1 p2 aaa /a/
+  print $? $p1 $p2
+0:aaa /a/
+>2 1 1
+
+  zregexparse p1 p2 aaa /a/ /a/
+  print $? $p1 $p2
+0:aaa 2*/a/
+>2 2 2
+
+  zregexparse p1 p2 aaa /a/ /a/ /a/
+  print $? $p1 $p2
+0:aaa 3*/a/
+>0 3 3
+
+  zregexparse p1 p2 aaa /a/ /a/ /a/ /a/
+  print $? $p1 $p2
+0:aaa 4*/a/
+>1 3 3
+
+  zregexparse p1 p2 aaa /a/ /a/ /a/ /a/ /a/
+  print $? $p1 $p2
+0:aaa 5*/a/
+>1 3 3
+
+  zregexparse p1 p2 aaa /aaa/
+  print $? $p1 $p2
+0:aaa /aaa/
+>0 3 3
+
+  zregexparse p1 p2 aaa /aaa/ /a/
+  print $? $p1 $p2
+0:aaa /aaa/ /a/
+>1 3 3
+
+  zregexparse p1 p2 aaa /a/ \#
+  print $? $p1 $p2
+0:aaa /aaa/ #
+>0 3 3
+
+  zregexparse p1 p2 aaa /a/ \# \#
+  print $? $p1 $p2
+0:aaa /aaa/ # #
+>0 3 3
+
+  zregexparse p1 p2 aaa \( /a/ \)
+  print $? $p1 $p2
+0:aaa ( /a/ )
+>2 1 1
+
+  zregexparse p1 p2 aaa \( /a/ \) \#
+  print $? $p1 $p2
+0:aaa ( /a/ ) #
+>0 3 3
+
+  zregexparse p1 p2 aaa /a/ /b/
+  print $? $p1 $p2
+0:aaa /a/ /b/
+>1 1 1
+
+  zregexparse p1 p2 a /a/ '{print A}'
+  print $? $p1 $p2
+0:a /a/ '{A}'
+>A
+>0 1 1
+
+  zregexparse p1 p2 a /b/ '{print A}'
+  print $? $p1 $p2
+0:a /b/ '{A}'
+>1 0 0
+
+  zregexparse p1 p2 a /b/ ':print A' '{print B}'
+  print $? $p1 $p2
+0:a /b/ ':A' '{B}'
+>A
+>1 0 0
+
+  zregexparse p1 p2 ab /a/ '{print A}'
+  print $? $p1 $p2
+0:ab /a/ '{A}'
+>2 1 1
+
+  zregexparse p1 p2 ab /a/ '{print A}' /b/ '{print B}'
+  print $? $p1 $p2
+0:ab /a/ '{A}' /b/ '{B}'
+>A
+>B
+>0 2 2
+
+  zregexparse p1 p2 ab /a/ ':print A' '{print B}' /b/ ':print C' '{print D}'
+  print $? $p1 $p2
+0:ab /a/ ':A' '{B}' /b/ ':C' '{D}'
+>B
+>D
+>0 2 2
+
+  zregexparse p1 p2 abc /a/ '{print A}' /b/ '{print B}' /c/ '{print C}'
+  print $? $p1 $p2
+0:abc /a/ '{A}' /b/ '{B}' /c/ '{C}'
+>A
+>B
+>C
+>0 3 3
+
+  zregexparse p1 p2 abz /a/ '{print A}' /b/ '{print B}' /c/ '{print C}'
+  print $? $p1 $p2
+0:abz /a/ '{A}' /b/ '{B}' /c/ '{C}'
+>A
+>1 2 2
+
+  zregexparse p1 p2 azz /a/ '{print A}' /b/ '{print B}' /c/ '{print C}'
+  print $? $p1 $p2
+0:azz /a/ '{A}' /b/ '{B}' /c/ '{C}'
+>1 1 1
+
+  zregexparse p1 p2 aba '{print A}' /a/ '{print B}' /b/ '{print C}' /c/ '{print D}'
+  print $? $p1 $p2
+0:aba '{A}' /a/ '{B}' /b/ '{C}' /c/ '{D}'
+>A
+>B
+>1 2 2
+
+  zregexparse p1 p2 a /a/ '{print "$match[1]"}'
+  print $? $p1 $p2
+0:a /a/ '{M1}'
+>a
+>0 1 1
+
+  zregexparse p1 p2 aaa /a/ '{print A}' //
+  print $? $p1 $p2
+0:aaa /a/ '{A}' //
+>A
+>2 1 1
+
+  zregexparse p1 p2 aaa /a/ '{print "$match[1]"}' // '{print A}'
+  print $? $p1 $p2
+0:aaa /a/ '{M1}' // '{A}'
+>a
+>2 1 1
+
+  zregexparse p1 p2 abcdef /a/ '{print $match[1]}' /b/ '{print $match[1]}' /c/ '{print $match[1]}' // '{print A}'
+  print $? $p1 $p2
+0:abcdef /a/ '{M1}' /b/ '{M1}' /c/ '{M1}' // '{A}'
+>a
+>b
+>c
+>2 3 3
+
+  zregexparse p1 p2 abcdef /a/ '{print A}' /b/ '{print B}' /c/ '{print C}' // '{print D}'
+  print $? $p1 $p2
+0:abcdef /a/ '{A}' /b/ '{B}' /c/ '{C}' // '{D}'
+>A
+>B
+>C
+>2 3 3
+
+  zregexparse p1 p2 a /a/ '{print A}' /b/ '{print B}'
+  print $? $p1 $p2
+0:a /a/ {A} /b/ {B}
+>1 1 1
+
+  zregexparse p1 p2 abcdef \
+    /a/ '-print Ga:$p1:$p2:$match[1]' '{print Aa:$p1:$p2:$match[1]}' \
+    /b/ '-print Gb:$p1:$p2:$match[1]' '{print Ab:$p1:$p2:$match[1]}' \
+    /c/ '-print Gc:$p1:$p2:$match[1]' '{print Ac:$p1:$p2:$match[1]}' \
+    //
+  print $? $p1 $p2
+0:abcdef /a/ -Ga {Aa} /b/ -Gb {Aa} /c/ -Gc {Ac} //
+>Ga:0:0:a
+>Gb:1:1:b
+>Aa:1:1:a
+>Gc:2:2:c
+>Ab:2:2:b
+>Ac:3:3:c
+>2 3 3
+
+  zregexparse p1 p2 abcdef \
+    /a/ '-print Ga:$p1:$p2:$match[1]' '{print Aa:$p1:$p2:$match[1]}' \
+    /b/ '-print Gb:$p1:$p2:$match[1]' '{print Ab:$p1:$p2:$match[1]}' \
+    /c/ '-print Gc:$p1:$p2:$match[1]' '{print Ac:$p1:$p2:$match[1]}' \
+    '/[]/' ':print F:$p1:$p2'
+  print $? $p1 $p2
+0:abcdef /a/ -Ga {Aa} /b/ -Gb {Ab} /c/ -Gc {Ac} /[]/ :F
+>Ga:0:0:a
+>Gb:1:1:b
+>Aa:1:1:a
+>Gc:2:2:c
+>Ab:2:2:b
+>F:3:3
+>1 3 3
+
+  zregexparse p1 p2 abcdef \
+    /a/ '-print Ga:$p1:$p2:$match[1]' '{print Aa:$p1:$p2:$match[1]}' \
+    /b/ '-print Gb:$p1:$p2:$match[1]' '{print Ab:$p1:$p2:$match[1]}' \
+    /c/ '-print Gc:$p1:$p2:$match[1]' '{print Ac:$p1:$p2:$match[1]}' \
+    \( '/[]/' ':print F1:$p1:$p2' \| /z/ ':print F2' \)
+  print $? $p1 $p2
+0:abcdef /a/ -Ga {Aa} /b/ -Gb {Ab} /c/ -Gc {Ac} ( /[]/ :F1 | /z/ :F2 )
+>Ga:0:0:a
+>Gb:1:1:b
+>Aa:1:1:a
+>Gc:2:2:c
+>Ab:2:2:b
+>F1:3:3
+>F2
+>1 3 3
+
+  zregexparse p1 p2 a '/[]/' ':print A'
+  print $? $p1 $p2
+0:a /[]/ :A
+>A
+>1 0 0
+
+  zregexparse p1 p2 $'\0' $'/\0/' '{print A}'
+  print $? $p1 $p2
+0:"\0" /\0/ {A}
+>A
+>0 1 1
+
+  zregexparse p1 p2 $'\0' $'/\0/' '{print A}' '/ /' '{print B}'  
+  print $? $p1 $p2
+0:"\0" /\0/ {A} / / {B}
+>1 1 1
+
+  zregexparse p1 p2 abcdef \(  '/?/' '{print $match[1]}' \) \#
+  print $? $p1 $p2
+0:abcdef ( /?/ {M1} ) #
+>a
+>b
+>c
+>d
+>e
+>f
+>0 6 6
+
+  zregexparse p1 p2 abcdef \(  '/c?|?/' '{print $match[1]}' \) \#
+  print $? $p1 $p2
+0:abcdef ( /c?|?/ {M1} ) #
+>a
+>b
+>cd
+>e
+>f
+>0 6 6
+
+  zregexparse p1 p2 abcacdef \( /a/ '{print $match[1]}' \| /b/ '{print $match[1]}' \| /c/ '{print $match[1]}' \) \#
+  print $? $p1 $p2
+0:abcacdef ( /a/ {M1} | /b/ {M1} | /c/ {M1} ) #
+>a
+>b
+>c
+>a
+>1 5 5
+
+  zregexparse p1 p2 abcdef \( /a/ ':print A' \| /b/ ':print B' \| /c/ ':print C' \) \#
+  print $? $p1 $p2
+0:abcdef ( /a/ :A | /b/ :B | /c/ :C ) #
+>A
+>B
+>C
+>1 3 3
+
+  zregexparse p1 p2 abcdef \( /a/ ':print A' '{print $match[1]}' \| /b/ ':print B' '{print $match[1]}' \| /c/ ':print C' '{print $match[1]}' \) \#
+  print $? $p1 $p2
+0:abcdef ( /a/ :A {M1} | /b/ :B {M1} | /c/ :C {M1} ) #
+>a
+>b
+>A
+>B
+>C
+>1 3 3
+
+  zregexparse p1 p2 $'com\0xx' /$'[^\0]#\0'/ \( /$'[^\0]#\0'/ :'print A' /$'[^\0]#\0'/ :'print B' \) \#
+  print $? $p1 $p2
+0:"com\0xx" /W/ ( /W/ :A /W/ :B ) #
+>A
+>1 4 4
+
+  zregexparse p1 p2 $'com\0xx\0yy' /$'[^\0]#\0'/ \( /$'[^\0]#\0'/ :'print A' /$'[^\0]#\0'/ :'print B' \) \#
+  print $? $p1 $p2
+0:"com\0xx\0yy" /W/ ( /W/ :A /W/ :B ) #
+>B
+>1 7 7
+
+  zregexparse p1 p2 $'com\0xx\0yy\0zz' /$'[^\0]#\0'/ \( /$'[^\0]#\0'/ :'print A' /$'[^\0]#\0'/ :'print B' \) \#
+  print $? $p1 $p2
+0:"com\0xx\0yy\0zz" /W/ ( /W/ :A /W/ :B ) #
+>A
+>1 10 10
+
+  zregexparse p1 p2 abcdez /abc/ ':print A:$p1:$p2' /def/ ':print B:$p1:$p2'
+  print $? $p1 $p2
+0:abcdez /abc/ :A /def/ :B
+>B:3:3
+>1 3 3
+
+  zregexparse p1 p2 abcdez /abc/+ ':print A:$p1:$p2' /def/ ':print B:$p1:$p2'
+  print $? $p1 $p2
+0:abcdez /abc/+ :A /def/ :B
+>A:0:3
+>B:0:3
+>1 0 3
+
+  zregexparse p1 p2 abcdez /abc/+ ':print A:$p1:$p2' // /def/ ':print B:$p1:$p2'
+  print $? $p1 $p2
+0:abcdez /abc/+ :A // /def/ :B
+>A:0:3
+>B:0:3
+>1 0 3
+
+  zregexparse p1 p2 abcdez /abc/+ ':print A:$p1:$p2' //- /def/ ':print B:$p1:$p2'
+  print $? $p1 $p2
+0:abcdez /abc/+ :A //- /def/ :B
+>B:3:3
+>1 3 3
+
+  zregexparse p1 p2 $'ZZZZ\0abcdef' $'/ZZZZ\0/' /abc/+ ':print A:$p1:$p2' /dee/ ':print B:$p1:$p2'
+  print $? $p1 $p2
+0:"ZZZZ\0abcdef" /ZZZZ\0/ /abc/+ :A /dee/ :B
+>A:5:8
+>B:5:8
+>1 5 8

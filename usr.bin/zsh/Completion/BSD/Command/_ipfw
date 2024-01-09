@@ -1,0 +1,325 @@
+#compdef ipfw
+
+local word=$'/[^ \t\0]#[ \t\0]/' comma next pqs nat
+local -a actions address pathname ropts ca
+local -A opt_args nat_options
+
+_ipfw_tables() {
+  local -a expl match opts all
+  zparseopts -D -E -a opts M+: x+: X+: J+: V+: o+: 1 2 a=all
+  _description -x ipfw-tables expl 'table'
+  match=( ${${${(M)${(f)"$(_call_program ipfw-tables
+      ipfw table all info 2>/dev/null)"}:#-*}#*\(}%%\)*} )
+  if (( $#all )); then
+    match+=( all )
+    compadd -D match -a match
+    [[ $#PREFIX -eq 0 && $#match -eq 1 && $match[1] = all ]] && compstate[insert]=''
+  fi
+  compadd "$opts[@]" "$expl[@]" "$@" -a match
+}
+
+_ipfw_rules() {
+  local -a rules
+  rules=( ${${(f)"$(_call_program ipfw-rules ipfw list)"}/ /:} )
+  _describe -x -t ipfw-rules rule rules "$@"
+}
+
+ropts=( # rule options
+  bridged
+  defer-{immediate-,}action diverted{,-loopback,-output}
+  dst-{ip{,6,v6},port} established ext6hdr
+  fib flow flow-id frag gid jail
+  icmptypes icmp6types in out
+  ipid iplen ipoptions ipprecedence ipsec iptos dscp ipttl ipversion
+  keep-state layer2 limit lookup
+  MAC mac-type proto record-state recv xmit via
+  set-limit setup sockarg
+  src-{ip,ip6,port} tagged
+  tcpack tcpdatalen tcpflags tcpmss tcpseq tcpwin tcpoptions
+  uid verrevpath versrcreach antispoof
+)
+
+nat_options=(
+  nat64lsn "prefix4 prefix6 states_chunk host_del_age pg_del_age tcp_syn_age tcp_est_age tcp_close_age udp_age icmp_age log -log allow_private -allow_private"
+  nat64stl "prefix6 table4 table6 log -log allow_private -allow_private"
+  nat64clat "clat_prefix plat_prefix log -log allow_private -allow_private"
+  nptv6 "int_prefix ext_prefix ext_if prefixlen"
+)
+
+ca=( compadd -S " " -r " $compstate[quote]\t\n\-" )
+
+address=(
+  \( $'/not[ \t\0]/' ':operators:operator:$ca not' \| \)
+  \( $'/(any|me|me6)[ \t\0]/' ':addresses:address:$ca any me me6'
+  \| '/table??/' ':tables:table:compadd -S "" -s\( table'
+    $word ':tables:table:_ipfw_tables -s\) -S ""'
+  \| // -'comma=0'
+    \(
+      // -'(( ! comma ))'
+      \( $'/[^, \t\0]#/' $'%[, \t\0]%' ':hosts:ip or host:_hosts -S, -r "/: \t\n\-"'
+      \| $'/[^},/:]##//' '/[]/' ': _message -e numbers "mask length"'
+      \| $'/[^},/:]##:/' '/[]/' ': _message -e numbers "mask"'
+      \| $'/([0-9]##.)(#c3)[0-9]##/' '/[]/' ':symbols:symbol:compadd -S "" / : ,'
+      \| // '%[1-9]%' '/[]/' ': _message -e ip-addresses "IP address"' \)
+      \( /,/ -'comma=0' \| // -'comma=1' \)
+      $'/([ \t\0]|)/'
+    \) \#
+    // -'(( comma ))'
+  \)
+)
+address=(
+  \( $'/[({][ \t]\0/' -'next=1' ':symbols:symbol:$ca - {'
+    \( // -'(( next ))' $address
+      \( $'/or[ \t\0]/' -'next=1' ':symbols:symbol:$ca - or \}' \| // -'next=0' \)
+    \) \#
+    $'/[})][ \t\0]/'
+  \| $address \)
+  \(
+    \( $'/not[ \t\0]/' ':specifiers:specifier:$ca - not' \| \)
+    $word -$'[[ $match != to? && -z ${(M)ropts:#${match%?}} ]]' ':ports:port:_sequence _ports'
+  \| \)
+)
+
+actions=(
+  $'/[^\0]##\0(-[a-zA-Z0-9]##[ \t]#)#/' # skip over options, completed by _arguments but can
+  \(                                    # be quoted in one argument which that doesn't handle
+    $'/add[ \t\0]/' ':firewall-commands:firewall configuration:$ca add'
+    \( $'/<->[ \t\0]/' ': _guard "[0-9]#" "rule number (00000-65535)"' \| \)
+    \( $'/set[ \t\0]/' ':specifiers:specifier:$ca set' $word ':sets:set:$ca -o numeric {0..31}' \| \)
+    \( $'/prob[ \t\0]/' ':specifiers:specifier:$ca prob' $word ': _message -e probabilities "match probability (0.0-1.0)"' \| \)
+    \( # rule actions
+      $'/check-state[ \t\0]/' $word ': _message -e flow-names "flow name"'
+    \|
+      \( $'/(divert|tee)[ \t\0]/' $word ': _message -e ports port'
+      \| $'/(fwd|forward)[ \t\0]/'
+        \( $word ': _guard "[0-9]#" "ip address"'
+        \| '/[^\0]#,/' ':specials:special:compadd -qS, tablearg'
+        $word ':ports:port:_ports -qS " "' \)
+      \| $'/(nat*|nptv6)[ \t\0]/'
+        \( $word ': _guard "[0-9]#" "nat instance"'
+        \| $word ':specials:special:$ca global tablearg' \)
+      \| $'/pipe[ \t\0]/' $word ': _message -e pipes "dummynet pipe"'
+      \| $'/queue[ \t\0]/' $word ': _message -e queues "dummynet queue"'
+      \| $'/(skipto|call)[ \t\0]/' \( /t/+ $word ':specials:special:$ca tablearg' \| '/[]/' ':ipfw-rules:rule:_ipfw_rules -qS " "' \)
+      \| $'/unreach[ \t\0]/' $word ':codes:code:$ca net host protocol port needfrag srcfail net-unknown host-unknown isolated net-prohib host-prohib tosnet toshost filter-prohib host-precedence precedence-cutoff'
+      \| $'/unreach6[ \t\0]/' $word ':codes:code:$ca no-route admin-prohib address port'
+      \| $'/(netgraph|ngtee)[ \t\0]/' $word ': _message -e cookies cookie'
+      \| $'/setfib[ \t\0]/' \( $word ': _guard "[0-9]#" "routing table"' \| '/[]/' ':specials:special:$ca tablearg' \)
+      \| $'/setdscp[ \t\0]/' \( $word ':dscps:dscp:$ca cs{0..7} af{1,2,3,4}{1,2,3} ef be' \| '/[]/' ':specials:special:$ca tablearg' \)
+      \| $'/tcp-setmss[ \t\0]/' $word ': _message -e mss mss'
+      \| $word \)
+      \( $'/log[ \t\0]/' ':specifiers:specifier:$ca log'
+        \( $'/logamount[ \t\0]/' ':specifiers:specifier:$ca logamount' $word ': _message -e limits "maximum count"' \| \)
+      \| \)
+      \( $'/altq[ \t\0]/' ':specifiers:specifier:$ca altq' $word ': _message -e queues queue' \| \)
+      \( $'/(tag|untag)[ \t\0]/' ':specifiers:specifier:$ca tag untag' $word ': _message -e numbers "tag (1-65534)"' \| \)
+      # rule body
+      \( \( $'/not[ \t\0]/' ':operators:operator:$ca not' \| \)
+        $'/(ip(v|)(4|6|)|all|icmp|ip|tcp|udp|sctp)[ \t\0]/' ':protocols:protocol:$ca ip ip4 ipv4 ip6 ipv6 all icmp tcp udp sctp'
+        $'/from[ \t\0]/' ':specifiers:specifier:$ca from'
+        $address
+        $'/to[ \t\0]/' ':specifiers:specifier:$ca to'
+        $address
+      \| \)
+      # rule options
+      \( $'///[ \t\0]/' ':rule-options:rule option:((//\:comment))' // ': _message -e comments comment'
+      \| $'/(dst|src)-ip(|6|v6)[ \t\0]/' $word ': _message -e addresses address'
+      \| $'/(dst|src)-port[ \t\0]/' $word ':ports:port:_sequence _ports'
+      \| $'/ext6hdr[ \t\0]/' $word ':headers:extended header:_sequence compadd - frag hopopt route rthdr0 rthdr2 dstopt ah esp'
+      \| $'/fib[ \t\0]/' $word ': _message -e routing-tables "routing table"'
+      \| $'/flow[ \t\0]/' '/table??/' ':tables:table:compadd -S "" -s\( table'
+         $word ':tables:table:_ipfw_tables -s\) -S ""'
+      \| $'/flow-id[ \t\0]/' $word ': _message -e flow-labels "flow label"'
+      \| $'/frag[ \t\0]/' $word ':fragmentation options:fragmentation option:_sequence compadd - df mf rf offset'
+      \| $'/gid[ \t\0]/' $word ':groups:group:_groups'
+      \| $'/jail[ \t\0]/' $word ':jails:jail:_jails'
+      \| $'/ipoptions[ \t\0]/' $word ':ip-options:ip option:_sequence compadd - ssrr lsrr rr ts'
+      \| $'/iptos[ \t\0]/' $word ':tos-fields:tos field:_sequence compadd - lowdelay throughput reliability mincost congestion'
+      \| $'/(set-|)limit[ \t\0]/' $word ':parameters:parameter to limit:$ca {src,dsr}-{addr,port}'
+         $word ': _message -e numbers "connection limit"'
+      \| $'/lookup[ \t\0]/' $word ':fields:field:$ca {src,dst}-{ip,port} uid jail'
+         $word ': _message -e names name'
+      \| $'/(#i)mac[ \t\0]/' $word ': _message -e mac-addresses "destination mac"'
+         $word ': _message -e mac-addresses "source mac"'
+      \| $'/proto[ \t\0]/' $word ': _message -e protocols "IP protocol"'
+      \| $'/(recv|xmit|via)[ \t\0]/'
+        \( $word ':interfaces:interface:_net_interfaces -qS " "'
+        \| $word ':ipfw-tables:table:_ipfw_tables -qS " "'
+        \| $'/any[ \t\0]/' ':interfaces:interface:$ca any' \)
+      \| $'/tcpflags[ \t\0]/' $word ':tcp-flags:tcp flag:_sequence compadd - fin syn rst psh ack urg'
+      \| $'/tcpoptions[ \t\0]/' $word ':tcp-options:tcp option:_sequence compadd - mss window sack ts cc'
+      \| $'/uid[ \t\0]/' $word ':users:user:_users -qS " "'
+      \| $'/(icmp(|6)types|ipid|iplen|ipprecedence|dscp|ipttl|ipversion|keep-state|mac-type|tagged|tcp(ack|datalen|mss|pack|seq|win))[ \t\0]/' $word ': _message -e values value'
+      \| $word ':rule-options:rule option:$ca -a ropts'
+      \) \#
+    \|
+      '/[]/' ':actions:action:$ca allow check-state count deny divert forward nat nat64lsn nat64stl nat64clat nptv6 pipe queue reset reset6 skipto call return tee unreach unreach6 netgraph setfib ngtee setfib setdscp tcp-setmss reass abort abort6'
+    \)
+  \| $'/set[ \t\0]show[ \t\0]/'
+  \| $'/set[ \t\0]move[ \t\0]/'
+    \( // %r% $'/rule[ \t\0]/' ': $ca rule' \| \)
+    $word ':ipfw-rules: :_ipfw_rules -qS " "'
+    $'/to[ \t\0]/' ': $ca to'
+    $word ':ipfw-rules: :_ipfw_rules'
+  \| $'/set[ \t\0]swap[ \t\0]/'
+    $word ':ipfw-sets:set:$ca -o numeric {0..31}'
+    $word ':ipfw-sets:set:compadd -o numeric {0..31}'
+  \| $'/set[ \t\0]/' '%[ed]%'
+    \(
+      $'/(en|dis)able[ \t\0]/' ':set-commands:set command:$ca -F line enable disable'
+      $'/<->[ \t\0]/' ':ipfw-sets:set:$ca -o numeric {0..31}'
+      $'/<->[ \t\0]/' ':ipfw-sets:set:$ca -o numeric {0..31}' \#
+    \) \#
+  \|
+    \( $'/set[ \t\0]/' ':firewall-commands:firewall configuration:$ca set'
+      \( $'/<->[ \t\0]/' ':sets:set:$ca -o numeric {0..31}'
+      \| '/[]/' ':set-commands:set command:$ca move swap show enable disable' \)
+    \| \)
+    \( $'/(list|show|delete)[ \t\0]/' ':firewall-commands:firewall configuration:$ca list show delete zero resetlog'
+      \( $'/[0-9]##-/' $word ':ipfw-rules: :_ipfw_rules -qS " "'
+      \| $word ':ipfw-rules: :_ipfw_rules -qS "-"' \) \#
+    \| $'/(zero|resetlog)[ \t\0]/' $word ':ipfw-rules: :_ipfw_rules -qS " "' \#
+    \| $'/flush[ \t\0]/' ':firewall-commands:firewall configuration:(flush)'
+    \| $'/table[ \t\0]/' ':commands:command:$ca table'
+      \( # lookup tables
+        $'/all[ \t\0]/' $word ':commands:table command:compadd destroy list info detail flush'
+      \|
+        $word ':tables:table:_ipfw_tables -a -qS " "'
+        \( $'/create[ \t\0]/'
+          \( $'/type[ \t\0]/' $word ':types:type:(addr iface number flow)'
+          \| $'/valtype[ \t\0]([^ \t\0]#,|)/' $word ':value-types:value type:compadd -qS, skipto pipe fib nat dscp tag divert netgraph limit ipv4 ipv6'
+          \| $'/algo[ \t\0]/' $word ':algorithms:lookup algorithm:$ca addr\:radix addr\:hash iface\:array number\:array flow\:hash'
+          \| $'/limit[ \t\0]/' $word ': _message -e numbers "maximum number of items"'
+          \| $word ':options:option:$ca -F line type valtype algo limit locked missing or-flush' \) \#
+        \| $'/modify[ \t\0]/'
+          $'/limit[ \t\0]/' ':options:option:$ca limit'
+          $word ': _message -e numbers "maximum number of items"'
+        \| $'/swap[ \t\0]/'
+          $word ':tables:table:_ipfw_tables -a'
+        \| $'/(atomic[ \t\0]|)add[ \t\0]/' \(
+          $word ': _message -e table-keys "table key"'
+          $word ': _message -e values value' \) \#
+        \| $'/delete[ \t\0]/' $word ': _message -e table-keys "table key"' \#
+        \| $'/lookup[ \t\0]/' $word ': _message -e addresses address'
+        \|
+          '/[]/' ':commands:table command:compadd - destroy lock unlock list info detail flush'
+        \|
+          $word ':commands:table command:$ca -Q - create modify swap add atomic\ add delete lookup'
+        \)
+      \)
+    \| $'/(nat64(lsn|stl|clat)|nptv6)[ \t\0]/' -'nat=${match%?}' ':commands:command:$ca nat64lsn nat64stl nat64clat nptv6'
+      $word ': _message -e names name'
+      \( $'/(config|create)[ \t\0]/'
+        \( $'/[^\0]#prefix([46]|)[ \t\0]/' $word ': _message -e prefixes prefix'
+        \| $'/states_chunks[ \t\0]/' $word ': _message -e numbers number'
+        \| $'/[^\0]#_age[ \t\0]/' ': _message -e seconds "age (seconds)"'
+        \| $'/table[46][ \t\0]/' $word ':ipfw-tables:ipfw table:_ipfw_tables -qS " "'
+        \| $'/ext_if[ \t\0]/' $word ':interfaces:interface:_net_interfaces -qS " "'
+        \| $'/prefixlen[ \t\0]/' ': _message -e lengths length'
+        \| $word ':options:option:$ca -F line $=nat_options[$nat]' \) \#
+      \| $'/(list|show)[ \t\0]/'
+        \( // -'[[ $nat = *lsn]' $word ':states:state:(states)'
+        \| // -'[[ $nat != *lsn]' \)
+      \| $'/stats[ \t\0]/' $word ':commands:command:(reset)'
+      \|
+        $word ':commands:command:$ca create config list show destroy stats'
+      \)
+    \)
+  \| # in-kernel NAT
+    $'/nat[ \t\0]/' ':commands:command:$ca nat'
+      $word ': _message -e numbers "nat instance"'
+      \( $'/config[ \t\0]/'
+        \( $'/if[ \t\0]/' $word ':interfaces:interface:_net_interfaces -qS " "'
+        \| $'/ip[ \t\0]/' $word ': _message -e ip-addresses "ip address"'
+        \| $'/redirect_addr[ \t\0]/'
+          $word ': _message -e ip-addresses "IP address"'
+          $word ': _message -e ip-addresses "IP address"'
+        \| $'/redirect_port[ \t\0]/' $word ':protocols:protocol:$ca sctp tcp udp'
+          '/[^:]##:/' ': _message -e ip-addresses "IP address"'
+          $word ':ports:port:_ports'
+          $word ':ports:port:_sequence _ports'
+        \| $'/redirect_proto[ \t\0]/' $word ':protocols:protocol:$ca sctp tcp udp'
+          $word ': _message -e ip-addresses "IP address"'
+          $word ': _message -e ip-addresses "IP address"'
+        \| $word ':parameters:config parameter:$ca ip if log deny_in same_ports unreg_only unreg_cgn reset reverse proxy_only skip_global redirect_port redirect_addr redirect_proto'
+        \) \#
+      \| $'/show[ \t\0]/' $word ':actions:action:(config log)'
+      \| '/[]/' ':commands:command:$ca config show' \)
+  \| # dummynet configuration
+    $'/(pipe|queue|sched)[ \t\0]/' -'pqs=${match%?}' ':dummynet-commands:dummynet configuration:$ca pipe queue sched'
+    $word ': _message -e numbers number'
+    $word ':options:config:$ca config'
+    \( $'/bw[ \t\0]/'
+      \( $word ':bandwidths: :_numbers -M "m:{a-z}={A-Z}" bandwidth {K,M,G}{bit,Byte}/s'
+      \| $word ':devices:device:_net_interfaces -qS " "' \)
+    \| $'/delay[ \t\0]/' $word ': _message -e numbers "propagation delay (ms)"'
+    \| $'/burst[ \t\0]/' $word ': _message -e numbers "size (bytes)"'
+    \| $'/profile[ \t\0]/' $word ':files:file:_files -qS " "'
+    \| $'/pipe[ \t\0]/' $word ': _message -e pipes pipe'
+    \| $'/weight[ \t\0]/' $word ': _message -e weights "weight (1-100) [1]"'
+    \| $'/type[ \t\0]/-'
+      \( $'/fq_(pie|codel)[ \t\0]/'
+        \( $'/limit[ \t\0]/' $word ': _message -e numbers "limit (packets) [10240]"'
+        \| $'/flows[ \t\0]/' $word ': _message -e numbers "flow queues [1024]"'
+        \| $'/quantum[ \t\0]/' ':parameters:parameter:$ca -F line quantum limit flows' \) \#
+        '/[]/'
+      \| $word ':types:scheduling algorithm:$ca fifo wf2q+ rr qfq fq_codel fq_pie fq_codel' \)
+    \| $'/buckets[ \t\0]/' $word ': _message -e sizes "hash table size (16-65536)"'
+    \| $'/mask[ \t\0]/' $word ':mask-specifiers:mask specifier:$ca dst-ip dst-ip6 src-ip src-ip6 dst-port src-port flow-id proto all'
+    \| $'/plr[ \t\0]/' $word ': _message -e numbers "packet loss rate (0.0-1.0)"'
+    \| $'/queue[ \t\0]/' $word ': _message -e sizes "queue size"'
+    \| $'/(red|gred)[ \t\0]/' $word ': _message -e thresholds thresholds'
+    \| $'/codel[ \t\0]/'
+      \( $'/(target|interval)[ \t\0]/' $word ': _message -e times "time (ms)"'
+      \| $'/(ecn|noecn)[ \t\0]/' ':options:option:$ca -F line target interval ecn noecn' \) \#
+      '/[]/'
+    \| $'/pie[ \t\0]/'
+      \( $'/(target|tupdate|max_burst)[ \t\0]/' $word ': _message -e times "time"'
+      \| $'/(alpha|beta)[ \t\0]/' $word ': _message -e weights weight'
+      \| $'/max_ecnth[ \t\0]/' $word ': _message -e probabilities probability'
+      \| $word ':options:option:$ca -F line alpha beta max_burst max_ecnth {,no}{ecn,capdrop,drand} onoff dre ts' \) \#
+      '/[]/'
+    \| // '-[[ $pqs = pipe ]]' $'/noerror[ \t\0]/' ':options:option:$ca -F line bw delay burst profile buckets mask noerror plr queue red gred codel pie'
+    \| // '-[[ $pqs = queue ]]' $'/noerror[ \t\0]/' ':options:option:$ca -F line pipe weight buckets mask noerror plr queue red gred codel pie'
+    \| // '-[[ $pqs = sched ]]' $'/[]/' ':options:option:$ca -F line type bw delay burst profile'
+    \) \#
+  \| # sysctl shortcuts
+    $'/(en|dis)able[ \t\0]/' ':sysctl-shortcuts:sysctl shortcut:$ca enable disable'
+    $word ':values:value:(firewall altq one_pass debug verbose dyn_keepalive)'
+  \|
+    $'/internal[ \t\0]/' ':commands:command:$ca internal'
+    $word ':lists:list:(iflist talist vlist)'
+  \)
+)
+
+if (( $words[(I)-p*] )); then
+  pathname=( ':path:_files -P / -W /' )
+fi
+
+_regex_arguments _ipfw_actions "$actions[@]"
+
+if [[ -prefix *[$' \t']* ]]; then
+  # This allows from things like ipfw "-n add..."
+  _ipfw_actions
+  return
+fi
+
+_arguments -s $pathname \
+  '(-p)-a[show counter values when listing rules (implied by show)]' \
+  '(-p)-b[show only the action and the comment]' \
+  '-c[show rules in compact form]' \
+  '(-p)-d[show dynamic rules in addition to static ones]' \
+  '(-p)-D[act on dynamic states only]' \
+  '-f[run without confirmation]' \
+  '(- *)-h[display syntax summary]' \
+  '(-p)-i[format values as IP addresses in table listings]' \
+  '-n[only check syntax, make no changes]' \
+  '-N[resolve addresses and service names in output]' \
+  '-q[quiet output]' \
+  '-S[show the set each rule belongs to]' \
+  '(-p)-s+[sort pipes by field]:field (negative reverses):((0\:unsorted 1\:packets 2\:bytes 3\:total\ packets 4\:total\ bytes))' \
+  '(-p -T)-t[show timestamp of last match, ctime() format]' \
+  '(-p -t)-T[show timestamp of last match as seconds since epoch]' \
+  '(-a -b -d -D -i -s -t -T *)-p+[specify preprocessor]:preprocessor:_command_names -e' \
+  '*:::actions:= _ipfw_actions'
+

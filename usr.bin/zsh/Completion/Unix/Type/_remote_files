@@ -1,0 +1,104 @@
+#autoload
+
+# Complete files on remote systems using SSH (and other programs). Needs
+# key-based authentication with no passwords or a running ssh-agent to work.
+#
+# Usage:
+#   _remote_files [-/] [-g glob] [-h host] [-W dir] -- <cmd> [<cmd options>]
+#
+# Options:
+# - -/: only complete directories
+# - -g: specify a pattern to match against files
+#       p, = and * glob qualifiers supported
+# - -h: specify the remote host, default is ${IPREFIX%:}
+# - -W: specify the parent directory to list files from,
+#       default is the home directory
+#
+#
+# Commands:
+# - ssh: Additional options for non-interactive use are automatically added
+#        (see below).
+# - All other commands are used unaltered.
+#
+# Examples:
+# - _remote_files -- ssh
+#   Use ssh to retrieve the remote paths. The "--" is not optional!
+# - _remote_files --no-files -- ssh -2 -p 42
+#   Use ssh with the option -2 and -p 42 to retrieve the remote paths and
+#   complete only directories.
+# - _remote_files -- rsh
+#   Use rsh to retrieve the remote paths.
+
+
+# There should be coloring based on all the different ls -F classifiers.
+local expl rempat remfiles remdispf remdispd args cmd suf ret=1
+local -a args cmd_args
+local glob host dir dirprefix
+
+if zstyle -T ":completion:${curcontext}:files" remote-access; then
+
+  # Parse options to _remote_files. Stops at the first "--".
+  zparseopts -D -E -a args / g:=glob h:=host W:=dir
+  (( $#host)) && shift host || host="${IPREFIX%:}"
+
+  args=( ${argv[1,(i)--]} )
+  shift ${#args}
+  [[ $args[-1] = -- ]] && args[-1]=()
+  # Command to run on the remote system.
+  cmd="$1"
+  shift
+
+  # Handle arguments to ssh.
+  if [[ $cmd == ssh ]]; then
+    zparseopts -D -E -a cmd_args p: 1 2 4 6 F:
+    cmd_args=( -o BatchMode=yes "$cmd_args[@]" -a -x )
+  else
+    cmd_args=( "$@" )
+  fi
+
+  if (( $#dir )); then
+    dirprefix=${dir}/
+  fi
+
+  if [[ -z $QIPREFIX ]]
+    then rempat="${dirprefix}${PREFIX%%[^./][^/]#}\*"
+    else rempat="${dirprefix}${(q)PREFIX%%[^./][^/]#}\*"
+  fi
+
+  # remote filenames
+  remfiles=(${(M)${(f)"$(
+    _call_program files $cmd $cmd_args $host \
+      command ls -d1FL -- "$rempat" 2>/dev/null
+  )"}%%[^/]#(|/)})
+
+  compset -P '*/'
+  compset -S '/*' || (( ${args[(I)-/]} )) || suf='remote file'
+
+  # display strings for remote files and directories
+  remdispf=(${remfiles:#*/})
+  remdispd=(${(M)remfiles:#*/})
+
+  if (( $#glob )); then
+    match=( '(|[*=|])' )
+    glob[2]="${glob[2]/(#b)\(((|^)[p=\*])\)(#e)/}"
+    glob[2]+="${${match[1]/p/\|}/\*/\*}"
+    remdispf=( ${(M)remdispf:#${~glob[2]}} )
+  fi
+
+  local -a autoremove
+  [[ -o autoremoveslash ]] && autoremove=(-r "/ \t\n\-")
+
+  _tags remote-files
+  while _tags; do
+    while _next_label remote-files expl ${suf:-remote directory}; do
+      [[ -n $suf ]] &&
+          compadd "$args[@]" "$expl[@]" -d remdispf -- ${(q)remdispf%[*=|]} && ret=0
+      compadd ${suf:+-S/} $autoremove "$args[@]" "$expl[@]" -d remdispd \
+	-- ${(q)remdispd%/} && ret=0
+    done
+    (( ret )) || return 0
+  done
+  return ret
+else
+    _message -e remote-files 'remote file'
+fi

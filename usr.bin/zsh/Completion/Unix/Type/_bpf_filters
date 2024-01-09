@@ -1,0 +1,217 @@
+#autoload
+
+# spaces are valid instead of word ends, perhaps better to just do compset -q
+
+local -a networks fields dirs protos relop
+local -A subtypes flags
+local values dir wlantype skip repeat=1 packet proto=0
+local suf=']'
+
+local WORD=$'[^ \0]##[ \0]##'
+
+networks=(
+  /$'[^/ \0]#'/
+  \(
+    /$'[ \0]'/ ': _message -e networks network'
+    /$'mask[ \0]'/ ':masks:mask:(mask)'
+    /$WORD/ ':netmasks:netmask:'
+  \|
+    /// /$WORD/ ': _message -e masks "netmask length (bits)"'
+  \)
+)
+subtypes=(
+  mgt 'assoc-req assoc-resp reassoc-req reassoc-resp probe-req probe-resp beacon atim disassoc auth deauth'
+  ctl 'ps-poll rts cts ack cf-end cf-end-ack'
+  data 'data data-cf-ack data-cf-poll data-cf-ack-poll null cf-ack cf-poll cf-ack-poll qos-data qos-data-cf-ack qos-data-cf-poll qos-data-cf-ack-poll qos qos-cf-poll and qos-cf-ack-poll'
+)
+flags=(
+  len len
+  tcp 'tcp-fin tcp-syn tcp-rst tcp-push tcp-ack tcp-urg'
+  icmp 'icmp-echoreply icmp-unreach icmp-sourcequench icmp-redirect icmp-echo icmp-routeradvert icmp-routersolicit icmp-timxceed icmp-paramprob icmp-tstamp icmp-tstampreply icmp-ireq icmp-ireqreply icmp-maskreq icmp-maskreply'
+)
+
+case $OSTYPE in
+  solaris*)
+    fields=( ipaddr etheraddr atalkaddr ethertype rpc nofrag inet inet6 vlan-id )
+    protos=( bootp dhcp dhcp6 apple pppoe ldap slp ospf )
+    dirs=( from to )
+    relop=( \^ % )
+  ;|
+  solaris2.<11->)
+    fields+=( zone )
+  ;|
+  (free|open)bsd*) # pf(4) specific filters
+    fields=( ifname on rnr rulenum srnr subruleset reason ruleset rset action )
+  ;|
+  ^(solaris|openbsd)*)
+    protos+=( mpls netbeui iso geneve aarp ipx llc )
+  ;|
+  ^openbsd*)
+    protos+=( ah esp sctp pppoed pppoes )
+  ;|
+  ^solaris*)
+    protos+=( fddi wlan atalk stp lat moprc mopdl )
+    relop=( '>>' '<<' )
+  ;;
+esac
+
+compquote suf
+
+# the regex is essentially:
+# ( [not]* ( expression | [protocol]? [standalone-field | direction field ]? ) and|or ) *
+# the proto variable ensures that and/or is not allowed if there is no
+# protocol or field: it is one, the other or both but not neither
+
+_regex_arguments _bpf /$'[^\0]#\0'/ \( \
+  /$'(not[ \0]#|![ \0]#|(\\\\|)\\([ \0]#)'/ ':operators:operator:(not \()' \# \
+  \(\
+    \(\
+      \(\
+        /"(0x[0-9a-f]##|[0-9]##|${(j.|.)${=flags}})"$'[ \0]#'/ -'((repeat != 2))' ":expressions:expression:compadd ${=flags[$packet]}" \
+      \|\
+        /'[a-z]##(\\|)\[[^\]]##(\\|)\]'$'[ \0]#'/ \
+      \|\
+        /'[a-z]##(\\|)\[[^:\]]##:'/ /'[]'/ ':sizes:field size (bytes):compadd -S "$suf" 1 2 4' \
+      \|\
+        /'tcp(\\|)\['/ -packet=tcp \
+        /'[]'/ ':offsets:header offset:compadd -S "$suf " tcpflags' \
+      \|\
+        /'icmp(\\|)\['/ -packet=icmp \
+        /'[]'/ ':offsets:header offset:compadd -S "$suf " icmptype icmpcode' \
+      \|\
+        /'[a-z]##(\\|)\['/ /'[]'/ ':offsets:offset:' \
+      \)\
+      \(\
+        /$'(\\\\|)([<>=!](\\\\|)[<>=]|[<>&|=+*/%^-])[ \0]#'/ -'repeat=0' ":operators:operator:(+ - = != < > <= >= & | $relop and or)" \
+        // ': _message -e expressions expression' \
+      \|\
+        // -'repeat=2' \
+      \)\
+    \) \# \
+    // -'(( repeat == 2))' \
+    // -'repeat=1' \
+  \|\
+    /$'ether[ \0]proto[ \0]'/ \
+    /$WORD/ ':protocols:protocol:(\ip \ip6 \arp \rarp \atalk \aarp \dec \net \sca \lat \mopdl \moprc \iso \stp \ipx \netbeui)' \
+  \|\
+    /$'(less|greater)[ \0]'/ ':fields:field:(less greater)' \
+    /$WORD/ ':numbers:length (bytes):' \
+  \|\
+    \(\
+      /$'(tcp|udp|icmp|ether|ip|ip6|arp|rarp|decnet|bootp|dhcp|dhcp6|apple|pppoe|pppoed|ldap|ah|esp|slp|sctp|ospf|iso|clnp|esis|isis|atalk|aarp|iso|stp|ipx|netbeui|lat|moprc|mopdl)[ \0]'/ ":protocols:protocol qualifier:(tcp udp icmp ether tr ip ip6 arp rarp decnet $protos)" \
+    \| /$'((fddi|tr|wlan)[ \0]|)'/ '-(( ++proto ))' \) \
+    \(\
+      /$'mpls[ \0]'/ \
+      /$'((0x|)[0-9a-f]##[ \0]|)'/ ': _message -e labels "label number"' \
+    \|\
+      /$'geneve[ \0]'/ \
+      /$'((0x|)[0-9a-f]##[ \0]|)'/ ': _message -e vnis "vni"' \
+    \|\
+      /$'pppoes[ \0]'/ \
+      /$'((0x|)[0-9a-f]##[ \0]|)'/ ': _message -e session-ids "session id"' \
+    \|\
+      /$'proto[ \0]'/ ':fields:field:(proto)' \
+      /$WORD/ ':protocols:protocol:(\icmp \icmp6 \igmp \igrp \pim \ah \esp \vrrp \udp \tcp)' \
+    \|\
+      /$'(broad|multi)cast[ \0]'/ ':fields:field:(broadcast multicast)' \
+    \|\
+      /$'type[ \0]'/ ':fields:field:(type)' \
+      /$WORD/ -'wlantype=${match%?}' ':wlan-types:wlan type:(mgt ctl data)' \
+      \(\
+        /$'subtype[ \0]'/ ':fields:field:(subtype)' \
+        /$WORD/ ':subtypes:subtype:compadd ${=subtypes[$wlantype]:-$subtypes}' \
+      \| \)\
+    \|\
+      /$'protochain[ \0]'/ ':fields:field:(protochain)' \
+      /$WORD/ ':protocols:protocol:' \
+    \|\
+      /$'vlan-id[ \0]'/ \
+      /$WORD/ ':vlans:vlan:' \
+    \|\
+      /$'vlan[ \0]'/ ':fields:field:(vlan)' \
+      \( /$WORD/ ': _message -e vlans vlan' \| \) \
+    \|\
+      \(\
+        /$'(ra|ta|addr[1-4]|inbound|outbound)[ \0]'/ ":directions:direction qualifier:(src dst inbound outbound ra ta addr1 addr2 addr3 addr4 $dirs)" \
+      \|\
+        /$'(src|from|dst|to)[ \0]'/ -'values=${values:-hosts};dir=$match' \
+        \(\
+          /$'(or|and)[ \0]'/ ':operators:operator:(or and)' \
+          /$'(src|dst)[ \0]'/ ':directions:direction qualifier:compadd ${${${${dir%?}:/dst/to}:/(src|from)/dst}:/to/src}' \
+        \| \)\
+      \| \)\
+      \(\
+        /$'(host|gateway)[ \0]'/ ":fields:field:(host gateway $fields)" \
+        /$WORD/ -values=hosts ':hosts:host:_hosts' \
+      \|\
+        /$'inet(6|)[ \0]'/ \
+        \( /$'host[ \0]'/ ':fields:field:(host)' \| \) \
+        /$WORD/ -values=hosts ':hosts:host:_hosts' \
+      \|\
+        /$'ethertype[ \0]'/ \
+        /$WORD/ ':numbers:number:' \
+      \|\
+        /$'(ipaddr|etheraddr|atalkaddr)[ \0]'/ \
+        /$WORD/ ':addresses:address:' \
+      \|\
+        /$'llc[ \0]'/\
+        /$'((s|u|rr|rnr|rej|ui|ua|disc|sabme|test|xid|frmr)[ \0]|)'/ ':types:type:(s u rr rnr rej ui ua disc sabme test xid frmr)' \
+      \|\
+        /$'(ifname|on)[ \0]'/ \
+        /$WORD/ ':interfaces:interface:_net_interfaces' \
+      \|\
+        /$'(rnr|rulenum|srnr|subruleset)[ \0]'/ \
+        /$WORD/ ':rules:rule number:' \
+      \|\
+        /$'reason[ \0]'/ \
+        /$WORD/ ':reasons:reason:(match bad-offset fragment short normalize memory)' \
+      \|\
+        /$'(rset|ruleset)[ \0]'/ \
+        /$WORD/ ':rule-sets:rule set:' \
+      \|\
+        /$'action[ \0]'/ \
+        /$WORD/ ':actions:action:(pass block nat rdr binat scrub)' \
+      \|\
+        /$'rpc[ \0]'/ \
+        \(\
+          /$'[^, \0]##[ \0]'/ ':programs:rpc program:compadd -qS, - ${${(f)"$(</etc/rpc)"}%%[[:blank:]#]*}' \
+        \|\
+          /$'[^, \0]##,[^, \0]##,'/ /$'[^, \0]##[ \0]'/ ':procedures:procedure:' \
+        \|\
+          /$'[^, \0]##,'/ /$'[^, \0]##[ \0]'/ ':versions:version:' \
+        \)\
+      \|\
+        /$'zone[ \0]'/ \
+        /$WORD/ ':zones:zone:_zones' \
+      \|\
+        /$'port[ \0]'/ ':fields:field:(port)' \
+        /$WORD/ -values=ports ':ports:port:_ports' \
+      \|\
+        /$'portrange[ \0]'/ -values=portranges ':fields:field:(portrange)' \
+        /$'[^ \0-]##-'/ ':ports:port:_ports -S-' \
+        /$WORD/ ':ports:port:_ports' \
+      \|\
+        /$'net[ \0]'/ -values='networks' ':fields:field:(net)' \
+        $networks \
+      \|\
+        // -'[[ $values = hosts ]]' \
+        /$WORD/ ':hosts:host:_hosts' \
+      \|\
+        // -'[[ $values = ports ]]' \
+        /$WORD/ ':ports:port:_ports' \
+      \|\
+        // -'[[ $values = networks ]]' \
+        $networks \
+      \|\
+        // -'[[ $values = portranges ]]' \
+        /$'[^ \0-]##-'/ ':ports:port:_ports -S-' \
+        /$WORD/ ':ports:port:_ports' \
+      \|\
+        // -'(( ++proto ))' \
+      \)\
+   \)\
+  \)\
+  // -'(( proto < 2 ))' \
+  /$'(and|or|&&|\\|\\||\\))[ \0]'/ -proto=0 ':operators:operator:compadd and or \)' \) \#
+
+_bpf "$@"

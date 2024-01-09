@@ -1,0 +1,39 @@
+#autoload
+
+# Complete files and expand tilde expansions in it.
+
+if [[ ( -o magicequalsubst && "$IPREFIX" = *\= ) || $argv[(I)-W*] -ne 0 ]]; then
+  _files "$@"
+  return
+fi
+
+case "$PREFIX" in
+\~/*)
+  IPREFIX="${IPREFIX}${HOME}/"
+  PREFIX="${PREFIX[3,-1]}"
+  _files "$@" -W "${HOME}"
+  ;;
+\~*/*)
+  local user="${PREFIX[2,-1]%%/*}"
+
+  if (( $+userdirs[$user] )); then
+    user="$userdirs[$user]"
+  elif (( $+nameddirs[$user] )); then
+    user="$nameddirs[$user]"
+  else
+    _message "unknown user \`$user'"
+    return 1
+  fi
+  IPREFIX="${IPREFIX}${user%/}/"
+  PREFIX="${PREFIX#*/}"
+  _files "$@" -W "$user"
+  ;;
+\~*)
+  compset -p 1
+  local -a expl=( "$@" )
+  _alternative -O expl users:user:_users named-directories:'named directory':'compadd -k nameddirs'
+  ;;
+*)
+  _files "$@"
+  ;;
+esac

@@ -1,0 +1,19 @@
+#compdef jls
+
+local curcontext=$curcontext state state_descr line
+typeset -A opt_args
+
+_arguments -C -s -w -A '-*' : \
+  '-d[include diying jails]' \
+  '-h[print header line]' \
+  "-N[print jail's name instead of numeric ID]" \
+  '-n[print parameters in ``name=value'\'\'' format]' \
+  '-q[quote parameter value when it contains whitespace, quotes or empty string]' \
+  '-s[print parameters suitable for passing to jail(8)]' \
+  '-v[print a multiple-line summary per jail]' \
+  '-j[the jid or name of the jail to list]:jail:_jails' \
+  '*: :->parameters'
+
+if [[ $state == parameters ]]; then
+  _values -w -S ' ' 'jail parameter' ${${${(f)"$(sysctl -N security.jail.param)"}%.#}##security.jail.param.#}
+fi

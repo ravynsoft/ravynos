@@ -1,0 +1,50 @@
+#compdef -value- -array-value- -value-,-default-,-default-
+
+# You can customize completion for different parameters by writing
+# functions with the tag-line `#compdef -value-,<name>,<command>' where
+# <name> is the name of the parameter (or name-key when completing an
+# associative array value) and <command> is either `-default-' or the
+# name of the command from the command-line.
+
+if [[ "$service" != -value-,* ]]; then
+  local strs ctx=
+
+  strs=( -default- )
+
+  if [[ "$compstate[context]" != *value && -n "$_comp_command1" ]]; then
+    ctx="${_comp_command}"
+    strs=( "${_comp_command1}" "$strs[@]" )
+    [[ -n "$_comp_command2" ]] &&
+        strs=( "${_comp_command2}" "$strs[@]" )
+  fi
+
+  _dispatch -value-,${compstate[parameter]},$ctx \
+            -value-,{${compstate[parameter]},-default-},${^strs}
+else
+  if [[ "$compstate[parameter]" != *-* &&
+        "$compstate[context]" = array_value &&
+        "${(Pt)${compstate[parameter]}}" = assoc* ]]; then
+    local expl
+    if (( CURRENT & 1 )); then
+      _wanted association-keys expl 'association key' \
+          compadd -k "$compstate[parameter]"
+    else
+      compstate[parameter]="${compstate[parameter]}-${words[CURRENT-1]}"
+
+      _dispatch -value-,${compstate[parameter]}, \
+                -value-,{${compstate[parameter]},-default-},-default-
+    fi
+  else
+    local pats
+
+    if { zstyle -a ":completion:${curcontext}:" assign-list pats &&
+         [[ "$compstate[parameter]" = (${(j:|:)~pats}) ]] } ||
+       [[ "$PREFIX$SUFFIX" = *:* ]]; then
+      compset -P '*:'
+      compset -S ':*'
+      _default -r '\-\n\t /:' "$@"
+    else
+      _default "$@"
+    fi
+  fi
+fi

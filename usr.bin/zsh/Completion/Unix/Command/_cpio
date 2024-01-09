@@ -1,0 +1,133 @@
+#compdef cpio
+
+local -a args
+local ig curcontext="$curcontext" state line
+local expl ret=1
+local fmts='(bar bin odc newc crc tar ustar hpbin hpodc)'
+
+_pick_variant -r ig gnu=GNU unix --version
+
+if (( CURRENT == 2 )); then
+   # Complete arguments
+   args=('-o[create archive]' '-i[extract from archive]'
+   '-p[run as filter on directory tree]')
+   [[ $ig = gnu ]] && args=($args '--create[create archive]'
+   '--extract[extract from archive]'
+   '--pass-through[run as filter on directory tree]'
+   '--help[show help text]' '--version[show version information]')
+else
+  if [[ -n ${words[(r)(-o*|-[^-]*o*|--create)]} ]]; then
+    # Options for creating archive
+    if [[ $ig = gnu ]]; then
+	args=(
+	   '--file=:archive file:->afile'
+	   "--format=:format type:$fmts"
+	   '--message=:message at end of volume:'
+	   '--null' '--reset-access-time'
+	   '--verbose' '--dot' '--append'
+           '--block-size=:block size (512 byte units)'
+	   '--dereference'
+           '--io-size=:block size (bytes)'
+	   '--quiet' '--force-local'  '--help'   '--version')
+    fi
+    args+=(
+	  '-A[append files to archive]'
+	  '-B[block size 5120 bytes with special file]'
+          '-C[set block size per record]:block size (bytes)'
+	  '-F[set archive file to use]:archive file:->afile'
+	  '(-H)-c[read/write header in ASCII]'
+	  "(-c)-H[set format type for archive header]:$fmts"
+	  '-L[follow symbolic links]'
+	  '-M[print message at end of volume]:message to print:'
+	  '-O[set output archive file]:output archive file:_files'
+	 )
+  elif [[ -n ${words[(r)(-i*|-[^-]*i*|--extract)]} ]]; then
+    if [[ $ig = gnu ]]; then
+      args=('--file=:archive file:->afile'
+	    "--format=:format type:$fmts"
+	    '--make-directories' '--nonmatching'
+            '--preserve-modification-time' '--numeric'
+	    '--rename' '--list' '--swap-bytes' '--swap-halfwords'
+	    '--dot' '--unconditional' '--verbose'
+            '--block-size=:block size (512 byte units)'
+	    '--swap-halfwords'
+	    '--io-size=:block size in bytes:'
+	    '--pattern-file=:file with list of patterns:_files'
+	    '--owner=:user (and group) for files:->user'  '--no-preserve-owner'
+	    '--message=:message at end of volume:'
+            '--force-local'
+	    '--no-absolute-filenames' '--sparse' '--only-verify-crc'
+	    '--quiet' '--help' '--version')
+    fi
+    args+=(
+	  '-b[reverse bytes in word]'
+	  '-B[block size 5120 bytes with special file]'
+	  '-d[create directories as needed]'
+          '-C[set block size per record]:block size (bytes)'
+	  '-E[read filenames from file]:file name for list of files:_files'
+	  '-f[only copy files not matching patterns]'
+	  '-F[set archive file to use]:archive file:->afile'
+	  '(-H)-c[read/write header in ASCII]'
+	  "(-c)-H[set format type for archive header]:$fmts"
+	  '-I[set input archive file]:input archive file:_files'
+	  '-m[preserve file modification times]'
+	  '-M[print message at end of volume]:message to print:'
+	  '-n[show UID and GID numerically]'
+	  '-r[interactively rename files]'
+	  '-R[set user and group for files]:user (and group) for files:->user'
+	  '-s[swap bytes within each halfword]'
+	  '-S[swap bytes within each word]'
+	  '-t[print a table of contents]'
+	  '*:pattern to extract'
+	  )
+  elif [[ -n ${words[(r)(-p*|-[^-]*p*|--pass-through)]} ]]; then
+    if [[ $ig = gnu ]]; then
+      args=('--null' '--reset-access-time' '--make-directories'
+            '--link' '--quiet' '--preserve-modification-time'
+	    '--unconditional' '--verbose' '--dot' '--dereference'
+	    '--owner=:user (and group) for files:->user'
+	    '--no-preserve-owner' '--sparse'  '--help'  '--version')
+    fi
+    args+=(
+	  '-d[create directories as needed]'
+	  '-l[link files instead of copying]'
+	  '-L[follow symbolic links]'
+	  '-m[preserve file modification times]'
+	  '-R[set user and group for files]:user (and group) for files:->user'
+	  '*:destination directory:_files -/'
+	  )
+  else
+    return 1
+  fi
+  args+=(
+	'-a[reset access time of input files]'
+	)
+fi
+
+_arguments -C -s "$args[@]" && ret=0
+
+if [[ $state = afile ]]; then
+  if [[ $ig != gnu ]]; then
+    _files && ret=0
+  elif compset -P 1 '*:'; then
+    _remote_files -- ssh && ret=0
+  elif compset -P '*@'; then
+    _wanted hosts expl 'remote host name' _hosts && ret=0
+  else
+    _alternative \
+	'files:: _files' \
+	'hosts:remote host name:_hosts -S:' \
+	'users:user name:_users -qS@' && ret=0
+  fi
+elif [[ $state = user ]]; then
+  if compset -P '*[:.]'; then
+    _groups && ret=0
+  else
+    local suf=.
+    [[ $OSTYPE = (solaris|hpux)* ]] && suf=:
+    compset -S '.*' && unset suf
+    _users -S "$suf" -q && ret=0
+  fi
+fi
+
+return ret

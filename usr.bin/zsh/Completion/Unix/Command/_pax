@@ -1,0 +1,47 @@
+#compdef pax
+
+_arguments -s \
+  '-r[read]' \
+  '-w[write]' \
+  '-a[append]' \
+  '-b:block size:(512 1024 1536 2048 2560 3072 3584 4096 4608 5120 5632 6144 6656 7168 7680 8192 8704 9216 9728 10240 10752 11264 11776 12288 12800 13312 13824 14336 14848 15360 15872 16384 16896 17408 17920 18432 18944 19456 19968 20480 20992 21504 22016 22528 23040 23552 24064 24576 25088 25600 26112 26624 27136 27648 28160 28672 29184 29696 30208 30720 31232 31744 32256 32768 33280 33792 34304 34816 35328 35840 36352 36864 37376 37888 38400 38912 39424 39936 40448 40960 41472 41984 42496 43008 43520 44032 44544 45056 45568 46080 46592 47104 47616 48128 48640 49152 49664 50176 50688 51200 51712 52224 52736 53248 53760 54272 54784 55296 55808 56320 56832 57344 57856 58368 58880 59392 59904 60416 60928 61440 61952 62464 62976 63488 64000 64512
+  1k 2k 3k 4k 5k 6k 7k 8k 9k 10k 11k 12k 13k 14k 15k 16k 17k 18k 19k 20k
+  21k 22k 23k 24k 25k 26k 27k 28k 29k 30k 31k 32k 33k 34k 35k 36k 37k 38k
+  39k 40k 41k 42k 43k 44k 45k 46k 47k 48k 49k 50k 51k 52k 53k 54k 55k 56k
+  57k 58k 59k 60k 61k 62k 63k 
+  1b 2b 3b 4b 5b 6b 7b 8b 9b 10b 11b 12b 13b 14b 15b 16b 17b 18b 19b 20b
+  21b 22b 23b 24b 25b 26b 27b 28b 29b 30b 31b 32b 33b 34b 35b 36b 37b 38b
+  39b 40b 41b 42b 43b 44b 45b 46b 47b 48b 49b 50b 51b 52b 53b 54b 55b 56b
+  57b 58b 59b 60b 61b 62b 63b 64b 65b 66b 67b 68b 69b 70b 71b 72b 73b 74b
+  75b 76b 77b 78b 79b 80b 81b 82b 83b 84b 85b 86b 87b 88b 89b 90b 91b 92b
+  93b 94b 95b 96b 97b 98b 99b 100b 101b 102b 103b 104b 105b 106b 107b 108b
+  109b 110b 111b 112b 113b 114b 115b 116b 117b 118b 119b 120b 121b 122b
+  123b 124b 125b 126b)' \
+  '-c[match all but specified]' \
+  '-d[match only directory but not contents]' \
+  '-f:archive:_files -g "*.(tar|cpio)(-.)"' \
+  '-i[interactively rename files]' \
+  '-j[filter archive through bzip2]' \
+  '-k[do not overwrite existing files]' \
+  '-l[hardlink files]' \
+  '-n[select only the first match for each pattern]' \
+  '-o:options:_values options write_opt\:writeopt\:\(nodir\)' \
+  '-p:privileges:(a ae aem am amo amp ao ap e em em m mo mp o p)' \
+  '-s:substitution expression:' \
+  '-t[reset access times of files after access]' \
+  '-u[ignore older files]' \
+  '-v[verbose]' \
+  '-x:output format:(cpio bcpio sv4cpio sv4crc tar ustar)' \
+  '-B:maximum number of octets per archive:' \
+  '-D[ignore older files by ctime]' \
+  '-E:maximum number of consecutive read faults:' \
+  '*-G:group:_groups' \
+  '-H[follow only command-line symlinks]' \
+  '-L[follow all symlinks]' \
+  '-P[do not follow symlinks]' \
+  '-T:time range:' \
+  '*-U:user:_users' \
+  '-X[do not descend into directories that have a different device ID]' \
+  '-Y[ignore older files by ctime after file name mods]' \
+  '-Z[ignore older files after file name mods]' \
+  '*: :_files'

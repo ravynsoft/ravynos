@@ -1,0 +1,38 @@
+#compdef lsdev
+
+local curcontext="${curcontext}" state line expl
+
+_arguments -C \
+  '(-P)-C[list info about device in customized devices object class]' \
+  '(-C -l)-P[list info about device in predefined object class]' \
+  '-c[specify a device class]:device class:->classes' \
+  '-f[read flags from file]:file:_files' \
+  '-F[specify output format]:format:->columnnames' \
+  '-H[display headers above columns]' \
+  '-h[display command usage]' \
+  '(-P)-l[specify device logical name]:device logical name' \
+  '-r[display set of values in a column]:column name:->columnnames' \
+  '(-P)-S[specify a device state]:device state:(Available Defined Stopped)' \
+  '-s[specify a device subclass]:device subclass:->subclasses' \
+  '-t[specify a device type name]:device type name:->devtypes' && return 0
+
+case $state in
+  classes)
+    _wanted devclasses expl 'device class name' \
+        compadd - $(lsdev ${words[(r)-[CP]]:--P} -r class)
+  ;;
+  subclasses)
+    _wanted devsubclasses expl 'device subclass name' \
+        compadd - $(lsdev ${words[(r)-[CP]]:--P} -r subclass)
+  ;;
+  devtypes)
+    _wanted devtypes expl 'device type name' \
+        compadd - $(lsdev ${words[(r)-[CP]]:--P} -r type)
+  ;;
+  columnnames)
+    [[ $words[CURRENT-1] = -F ]] && compset -P '*[^a-zA-Z]'
+    _wanted devcolumnnames expl 'column name' \
+        compadd - ${(s: :)words[(r)-C]:+name status location} \
+	  class subclass description type
+  ;;
+esac

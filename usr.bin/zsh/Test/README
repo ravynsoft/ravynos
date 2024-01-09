@@ -1,0 +1,38 @@
+There are now different sections, expressed by the first letter in the
+scripts names:
+
+ A: basic command parsing and execution
+ B: builtins
+ C: shell commands with special syntax
+ D: substititution
+ E: options
+ P: privileged (needs super-user privileges)
+ V: modules
+ W: builtin interactive commands and constructs
+ X: line editing
+ Y: completion
+ Z: separate systems and user contributions
+
+You will need to run these by using `make test' in the Test subdirectory of
+the build area for your system (which may or may not be the same as the
+Test subdirectory of the source tree), or the directory above.  You can get
+more information about the tests being performed with
+  ZTST_verbose=1 make check
+(`test' is equivalent to `check') or change 1 to 2 for even more detail.
+
+A test file is usually aborted on the first error.  To continue to the
+end, run with
+  ZTST_continue=1 make check
+This can usefully be combined with ZTST_verbose.  The test is always
+aborted on a syntax error as in that case it is not obvoius how to
+continue.
+
+Individual or groups of tests can be performed with
+  make TESTNUM=C02 check
+or
+  make TESTNUM=C check
+to perform just the test beginning C02, or all tests beginning C,
+respectively.
+
+Instructions on how to write tests are given in B01cd.ztst, which acts as a
+model.

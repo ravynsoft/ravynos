@@ -1,0 +1,84 @@
+#compdef kdump
+
+_kdump_pid() {
+  local -a args pids
+  local -A assoc_pids
+
+  if (( $+opt_args[-f] )); then
+    args=(-f $opt_args[-f])
+  fi
+  pids=(${${${(f)"$(_call_program kdump-pids kdump $args)"}:#($'\t'|       )*}## #})
+  [[ $OSTYPE == netbsd* ]] && pids=(${pids/ ##[0-9]##/})
+  pids=(${(u)${pids/ /:}%% *})
+  for 1 in $pids; do
+    local pid=${1%%:*} process=${1#*:}
+    if (( $+assoc_pids[$pid] )); then
+      assoc_pids[$pid]+=", $process"
+    else
+      assoc_pids[$pid]=$process
+    fi
+  done
+  pids=()
+  for pid procs in ${(kv)assoc_pids}; do
+    pids+=($pid:$procs)
+  done
+  _describe -t kdump-pids 'kdump pid' pids
+}
+
+local args=(
+  '-d[display numbers in decimal]'
+  '-f+[use the specified file (- for stdin)]:dump file:_files'
+  '-l[loop reading the trace file]'
+  '-m+[maximum I/O bytes to display]:max data bytes:'
+  '-n[suppress ad hoc translations]'
+  '-p+[show output only for the specified pid]: :_kdump_pid'
+  '(-E    -T)-R[display relative timestamps]'
+  '(-E -R   )-T[display absolute timestamps]'
+  '-t[select which tracepoints to display]: :_ktrace_points'
+)
+
+case $OSTYPE; in
+  freebsd*|netbsd*)
+    args+=(
+      '(-R -T)-E[display elapsed timestamps]'
+    )
+    ;|
+  freebsd*|openbsd*)
+    args+=(
+      '-H[display thread identifiers]'
+    )
+    ;|
+  dragonfly*)
+    args+=(
+      '(-c -R)-a[display full human readable output]'
+      '-c[display the CPU the thread is running on]'
+      '-j[use a fixed format output]'
+    )
+    ;;
+  freebsd*)
+    args+=(
+      '-A[display description of the ABI of traced process]'
+      '-r[symbolically display structure members]'
+      '-S[display system call numbers]'
+      '-s[suppress display of I/O data]'
+    )
+    ;;
+  netbsd*)
+    args+=(
+      '-e[interpret system call maps using the specified emulation]:emulation:'
+      '-N[suppress system call name translation]'
+      '-X[Display GIO data in hex and ascii in groups of specified size]:size:(1 2 4 8 16)'
+      '-x[Display GIO data in hex and ascii]'
+      '1:dump file:_files'
+    )
+    ;;
+  openbsd*)
+    args+=(
+      # XXX handle -TR
+      '-X[display I/O data in hex and ASCII]'
+      '-x[display I/O data in hex]'
+    )
+    ;;
+esac
+
+_arguments -s -S -A '-*' : $args

@@ -1,0 +1,41 @@
+#compdef abcde
+
+_arguments -s -S -A "-*" \
+  '(-t -T -p)-1[encode the whole CD in a single file]' \
+  '-a[comma-delimited list of actions to perform]:action:_sequence compadd - cddb cue read getalbumart embedalbumart normalize encode tag move replaygain playlist clean' \
+  '-b[enable batch mode normalization]' \
+  '-B[enable automatic embedding of album art with certain containers]' \
+  '-c+[specify an additional configuration file to parse]:config:_files' \
+  '-C+[resume a session when read was completed but CD is not present]:disc id:compadd abcde.*(N:e)' \
+  '-d+[specify CD device from which to read audio tracks]:CD device:_files -g "*(-%)" -P / -W /' \
+  '-D[capture debugging information]' \
+  '-e[erase information about encoded tracks from the internal status file]' \
+  '-f[force the removal of the temporary ABCDETEMPDIR directory]' \
+  "-g[enable lame's --nogap option]" \
+  '-G[download album art using the getalbumart function]' \
+  '(- :)-h[get help information]' \
+  '-j+[start specified number of encoder processes at once]:number' \
+  '-k[keep the wav files after encoding]' \
+  '-l[use the low disk space algorithm]' \
+  '-L[use a local CDDB repository]' \
+  '-m[create DOS-style playlists, modifying the resulting one by adding CRLF line endings those to work]' \
+  "-n[don't query CDDB database]" \
+  '-N[non interactive mode]' \
+  '-o+[select output type]:output type [vorbis]:(vorbis ogg mp3 flac spx mpc m4a wav wv ape opus mka aiff)' \
+  "-p[pads track numbers with 0's]" \
+  '-P[use Unix PIPES to read and encode in one step]' \
+  '-Q+[specify CD lookup methods]:lookup method [musicbrainz]:_sequence compadd - musicbrainz cddb cdtext' \
+  '-r+[remote encode on this comma-delimited list of machines using distmp3]:hosts:_sequence _hosts' \
+  '-s+[fields to be shown in the CDDB parsed entries]:field:_sequence compadd - year genre' \
+  '-S+[set the speed of the CD drive]:speed' \
+  '-t+[start the numbering of the tracks at a given number]:track-number' \
+  '-T+[start the numbering of the tracks at a given number and change internal tag numbering]:track-number' \
+  '-U[set CDDBPROTO to version 5]' \
+  '(- :)-v[show the version and exit]' \
+  '-V[be more verbose]' \
+  '-x[eject the CD when all tracks have been read]' \
+  '-X+[use an alternative "cue2discid" implementation]:cue2discid:_command_names -e' \
+  '-w+[add a comment to the tracks ripped from the CD]:comment' \
+  "-W+[concatenate CD's]:cd-number" \
+  '-z[debug mode]' \
+  '*: :_guard "^-*" "track list"'

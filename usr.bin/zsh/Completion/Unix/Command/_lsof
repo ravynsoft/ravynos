@@ -1,0 +1,127 @@
+#compdef lsof
+
+local curcontext="$curcontext" ret=1
+local -a state line expl args vals fields alts suf hsuf pref
+
+case $OSTYPE in
+  linux*)
+    args=(
+      '-E[display endpoint info for pipes, sockets and pseudoterminal files but not files of the endpoints]'
+      '+E[display endpoint info for pipes, sockets and pseudoterminal files including files of the endpoints]'
+      '-X[skip reporting of info on network connections]'
+    )
+  ;;
+  solaris*)
+    args=(
+      '-X[include deleted files]'
+      '-z[zone information]::zone:_zones'
+    )
+  ;;
+esac
+
+_arguments -C -s -S $args \
+  '(-)'{-\?,-h}'[list help]' \
+  '-a[AND selections]' \
+  '-b[avoid kernel blocks]' \
+  '-C[disable reporting of path name components]' \
+  '+c[truncate command name to specified characters]:characters' \
+  '-c[list files with specified command name beginning]:command name' \
+  '+d[search for open instances for contents of specified dir]:search directory:_files -/' \
+  '-d[specify list of file descriptors to exclude/include]:file descriptors:->filedes' \
+  '+D[recursively search from specified dir]:search directory:_files -/' \
+  '-D[direct use of device cache file]:function:((\?\:report\ device\ cache\ file\ paths b\:build\ the\ device\ cache\ file i\:ignore\ the\ device\ cache\ file r\:read\ the\ device\ cache\ file u\:read\ and\ update\ the\ device\ cache\ file))' \
+  '*-+e[exempt filesystem from blocking kernel calls]:file system:_directories' \
+  '-f[inhibit listing of kernel file structure info]::info type:->file-structures' \
+  '+f[enable listing of kernel file structure info]::info type:->file-structures' \
+  '-F[select output fields]:fields:->fields' \
+  '-g[select by process group id]::process group id:_sequence -s , _pgids' \
+  '(*)*-i[select internet files]::address:->addresses' \
+  '-K+[select listing of tasks of processes]::value:((i\:ignore\ tasks))' \
+  '-k[specify kernel name list file]:kernel file:_files' \
+  '-l[inhibit conversion of UIDs to user names]' \
+  '-L[list no link counts]' \
+  '+L[list all link counts]::max link count for listed files' \
+  '-m[specify kernel memory file]:kernel memory file:_files' \
+  '-M[disable reporting of portmapper registrations]' \
+  '+M[enable reporting of portmapper registrations]' \
+  '-n[inhibit conversion of network numbers to hostnames]' \
+  '-N[select listing of NFS files]' \
+  '(-s)-o[list file offset]::digits for file offset' \
+  '-O[avoid overheads of bypassing potential blocking]' \
+  '-P[inhibit conversion of port numbers to port names]' \
+  '-p[list files for specified processes]:process ID:_sequence -s , _pids' \
+  '-r[repeat listing endlessly]::delay (seconds)' \
+  '+r[repeat listing until no files listed]::delay (seconds)' \
+  '-R[list parent PID]' \
+  '(-o)-s+[list file size or exclude TCP/UDP files by state]::state:->states' \
+  '-S[specify timeout for kernel functions that might deadlock]:timeout (seconds)' \
+  '-T[select reporting of TCP/TPI info]::info type:((q\:queue\ length\ reporting s\:state\ reporting w\:window\ size\ reporting))' \
+  '(+w -w)-t[terse output]' \
+  '-u[list files owned by specified users]:user:_users -S,' \
+  '-U[list Unix domain socket files]' \
+  '(-)-v[list version info]' \
+  '-V[indicate unsuccessfully searched for items]' \
+  '(-t)+w[suppress warnings]' \
+  '(-t)-w[enable warnings]' \
+  '-x[cross filesystems/traverse symlinks with +d/+D]::type:((f\:filesystems s\:symlinks))' \
+  '*:file:_files' && ret=0
+
+case $state in
+  addresses)
+    if compset -P 1 '*:'; then
+      _ports && ret=0
+    else
+      if compset -P 1 '*@'; then
+        pref=()
+      else
+        pref=( -P @ )
+        suf=( -qS @ )
+        [[ $PREFIX = (#i)(4|6|tcp|udp)* ]] || alts=( 'ip-versions:IP version:(4 6)' )
+        compset -P '[46]'
+        alts+=( 'protocols:protocol:compadd $suf -M 'm:{a-z}={A-Z}' TCP UDP' )
+      fi
+      if compset -S '@*'; then
+        suf=()
+      else
+        hsuf=( -qS : )
+        compset -S ':*' && hsuf=()
+        alts+=( "hosts:host:_hosts $pref $hsuf" )
+      fi
+
+      _alternative $alts && ret=0
+    fi
+  ;;
+  fields)
+    fields=( ${${${${(f)"$($words[1] -F \? 2>&1)"}[2,-1]#??}//  ##/:}:#(#s)[${PREFIX:-:}]:*} )
+    compset -P '*'
+    _describe -t fields "field" fields -S '' && ret=0
+  ;;
+  filedes)
+    _sequence -s , _wanted -x file-descriptors expl "file descriptor" compadd - \
+        cwd err jld ltz mem mmap pd rtd tr txt v86 && ret=0
+  ;;
+  file-structures)
+    vals=(
+      'g[file flag abbreviations]'
+      'G[file flags in hexadecimal]'
+    )
+    [[ $OSTYPE != linux* ]] && vals+=(
+      'c[file structure use count]'
+      'f[file structure address]'
+      'n[file structure node address]'
+    )
+    _values 'kernel file structures' $vals && ret=0
+  ;;
+  states)
+    if compset -P 1 '*:'; then
+      _sequence _wanted states expl state compadd - -M 'm:{a-z}={A-Z}' \
+          CLOSED IDLE BOUND LISTEN ESTABLISHED SYN_SENT SYN_RCDV ESTABLISHED \
+          CLOSE_WAIT FIN_WAIT1 CLOSING LAST_ACK FIN_WAIT_2 TIME_WAIT && ret=0
+    else
+      compset -S ':*' || suf=( -qS : )
+      _wanted protocols expl protocol compadd $suf -M 'm:{a-z}={A-Z}' TCP UDP && ret=0
+    fi
+  ;;
+esac
+
+return ret

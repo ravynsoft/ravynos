@@ -1,0 +1,48 @@
+#compdef w
+
+local args
+
+case $OSTYPE in
+  linux*)
+    args=(
+      '(H -f --from)'{-f,--from}'[toggle display of remote hostname]'
+      '(H -h)--no-header[suppress the heading]'
+      '(H -i --ip-addr)'{-i,--ip-addr}'[display IP address instead of hostname]'
+      '(H -o --old-style -s --short)'{-o,--old-style}'[old style output format]'
+      '(H -s --short -o --old-style)'{-s,--short}'[use short output format]'
+      '(H -u --no-current)'{-u,--no-current}'[ignore the username while figuring out the current process and cpu times]'
+      '(H -n --no-truncat)'{-n,--no-truncat}'[non-truncated listing (large)]'
+      + H
+      '(-)--help[display help information]'
+      '(-)'{-V,--version}'[display version information]'
+    )
+  ;;
+  *bsd*|darwin*|dragonfly*)
+    args+=( '-i[sort output by idle time]' )
+  ;|
+  openbsd*)
+    args+=( '-a[translate network addresses into names]' )
+  ;|
+  (free|net)bsd*|dragonfly*)
+    args+=( '-n[show network addresses as numbers]' )
+  ;|
+  *bsd*|dragonfly*)
+    args+=(
+      '-M+[extract values from specified core]:core file:_files'
+      '-N+[extract name list from specified system]:system file:_files'
+    )
+  ;|
+  freebsd*|dragonfly*)
+    args+=( '-d[dump process list on a per controlling tty basis]' )
+  ;|
+  solaris*)
+    args+=( '!(-s -w -l)'{-l,-w}
+      '-s[short output form]'
+      '(-)-u[produce only the heading line]'
+    )
+  ;|
+esac
+
+_arguments -S -s \
+  '(--no-header)-h[suppress the heading]' \
+  '*:user:_users' $args

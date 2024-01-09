@@ -1,0 +1,7 @@
+#compdef exec
+
+_arguments -s -S -A '-*' : \
+  '-a+[set argv\[0\] to specified string]:argv[0] string' \
+  '-c[clear environment]' \
+  '-l[simulate login shell (prepend - to argv\[0\])]' \
+  '*:: : _normal -p $service'

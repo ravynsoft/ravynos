@@ -1,0 +1,40 @@
+#autoload
+
+# a separated list where each component of the list uses the same
+# function.
+
+# -n num : number of items in list [default is unlimited]
+# -s sep : specify separator [defaults to comma]
+# -d     : duplicate values allowed
+
+local curcontext="$curcontext" nm="$compstate[nmatches]" pre qsep nosep minus
+local -a opts sep num pref suf cont end uniq dedup garbage
+
+zparseopts -D -a opts s:=sep n:=num p:=pref i:=pref P:=pref I:=suf S:=suf \
+    q=suf r:=suf R:=suf C:=cont F:=garbage d=uniq M+: J+: V+: 1 2 o+: X+: x+:
+(( $#cont )) && curcontext="${curcontext%:*}:$cont[2]"
+(( $#sep )) || sep[2]=,
+
+if (( $+suf[(r)-S] )); then
+  end="${(q)suf[suf[(i)-S]+1]}"
+  (( $#end )) && compset -S ${end}\* && suf=() && nosep=1
+fi
+
+qsep="${sep[2]}"
+compquote -p qsep
+if (( ! $#uniq )); then
+  (( $+pref[(r)-P] )) && pre="${(q)pref[pref[(i)-P]+1]}"
+  dedup=( "${(@)${(@ps.$qsep.)PREFIX#$pre}[1,-2]}" "${(@)${(@ps.$qsep.)SUFFIX}[2,-1]}" )
+  [[ -n $compstate[quoting] ]] || dedup=( ${(Q)dedup} )
+fi
+
+if (( $#num )) && compset -P $(( num[2] - 1 )) \*${(q)qsep}; then
+  pref=()
+else
+  (( ! nosep && (!$#num || num[2] > 1) )) && suf=( -S ${qsep} -r "$end[1]${(q)qsep[1]} \t\n\-" )
+  compset -S ${(q)qsep}\* && suf=()
+  compset -P \*${(q)qsep} && pref=()
+fi
+
+(( minus = argv[(ib:2:)-] ))
+"${(@)argv[1,minus-1]}" "$opts[@]" -F dedup "$pref[@]" "$suf[@]" "${(@)argv[minus+1,-1]}"

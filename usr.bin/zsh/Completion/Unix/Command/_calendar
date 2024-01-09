@@ -1,0 +1,34 @@
+#compdef calendar
+
+if [[ $+functions[calendar] -eq 1 && -z $precommands[(r)command] ]]; then
+  # The shell function is loaded, and we're not instructed to
+  # use an external command, so complete that.
+  _arguments \
+    '-a[show all calendar items]' \
+    '-b[brief, display first line only]' \
+    '-d[move events to done file]' \
+    '-D[never move events to done file]' \
+    '-r[show all remaining items from start or now]' \
+    '-s[use sched to schedule a warning]' \
+    '-v[verbose]' \
+    '-B[select number of lines to display]:lines: ' \
+    '-C[select calendar file]:calendar file:_path_files' \
+    '-n[select max number of events]:max number of events: ' \
+    '-S[select show programme]:show programme:_command_names' \
+    '1:date/time: ' \
+    '(-r)2:end date/time: '
+else
+  # This is only one particular version of calendar.
+  # Some variant of BSD, I think.
+
+  _arguments \
+    '-a[process files of all users]' \
+    '-A[print today and the following num days]:number of days:' \
+    '-b[enforce special KOI8 date calculation mode]' \
+    '-B[print today and the previous num days]:number of days:' \
+    '-f[use file as the default calendar]:calendar file:_files' \
+    '-l[print today and the following num days]:number of days:' \
+    '-w[print today and the following num days only if today is Friday]:number of days:' \
+    '-t[act as though today is the date specified]:date:'
+
+fi

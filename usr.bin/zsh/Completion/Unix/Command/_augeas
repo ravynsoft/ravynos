@@ -1,0 +1,61 @@
+#compdef augtool
+
+local curcontext="$curcontext" state line expl ret=1
+local -A opt_args
+
+_arguments -C -s \
+  '(-c --typecheck)'{-c,--typecheck}'[perform type checking on lenses]' \
+  '(-b --backup)'{-b,--backup}'[preserve original files with .augsave extension]' \
+  '(-n --new)'{-n,--new}'[leave files untouched but save changes with a .augnew extension]' \
+  '(-r --root)'{-r,--root=}'[specify filesystem root]:root directory:_files -/' \
+  \*{-I+,--include=}'[add directory containing lenses to search path]:directory:_files -/' \
+  \*{-t+,--transform=}'[add a file transform]:xfm' \
+  '(-l --load-file)'{-l+,--load-file=}'[load individual file in the tree]:file:_files' \
+  '(-f --file *)'{-f+,--file=}'[read commands from specified file]:file:_files' \
+  '(-i --interactive)'{-i,--interactive}'[read commands from the terminal]' \
+  '(-e --echo)'{-e,--echo}'[echo commands read from a file or stdin]' \
+  '(-s --autosave)'{-s,--autosave}'[automatically save at the end of instructions]' \
+  '(-S --nostdinc)'{-S,--nostdinc}'[do not search the builtin default directories for modules]' \
+  '(-L --noload)'{-L,--noload}'[do not load any files into the tree on startup]' \
+  '(-A --noautoload)'{-A,--noautoload}'[do not autoload modules from the search path]' \
+  '--span[load span positions for nodes related to a file]' \
+  '--timing[after executing each command, show how long it took]' \
+  '(- *)--version[print version information]' \
+  '(-)'{-h,--help}'[print help information]' \
+  '*:: :->subcommands' && ret=0
+
+[[ -z $state ]] && return ret
+
+if [[ CURRENT -eq 1 || $words[1] == help ]]; then
+  local -a subcmds
+  subcmds=( ${${${(M)${(f)"$(_call_program subcommands augtool help 2>/dev/null)"}:#  *}## #}// #- /:} )
+  _describe -t subcommands "augtool command" subcmds && ret=0
+  return ret
+fi
+
+_tags paths
+while _tags; do
+  if _requested paths; then
+    local subcmd="$words[1]"
+    curcontext="${curcontext%:*}-${subcmd}:"
+    if compset -P '/files/'; then
+      _all_labels paths expl path _path_files -W / && ret=0
+    elif compset -P '/augeas/'; then
+      compset -P '*/'
+      local files
+      files=( ${${(f)"$(_call_program path augtool ls ${words[CURRENT]%/*} 2>/dev/null)"}% = *} )
+      while _next_label paths expl path; do
+	compadd "$expl[@]" -- ${files:#*/} && ret=0
+	compadd "$expl[@]" -S '' -- ${(M)files:#*/} && ret=0
+      done
+    else
+      local -a suf
+      suf=(-S '')
+      compset -S '/*' || suf=( -S / )
+      _all_labels paths expl path compadd -P/ "$suf[@]" files augeas && ret=0
+    fi
+  fi
+  (( ret )) || break
+done
+
+return ret

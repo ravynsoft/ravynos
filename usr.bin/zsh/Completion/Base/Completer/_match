@@ -1,0 +1,81 @@
+#autoload
+
+# This is intended to be used as a completer function after the normal
+# completer as in: `zstyle ":completion:::::" completer _complete _match'.
+# It temporarily switches on pattern matching, allowing you to try 
+# completion on patterns without having to setopt glob_complete.
+#
+# Note, however, that this is only really useful if you don't use the
+# expand-or-complete function because otherwise the pattern will
+# be expanded using globbing.
+
+### Shouldn't be needed any more: [[ _matcher_num -gt 1 ]] && return 1
+
+local tmp opm="$compstate[pattern_match]" ret=1 orig ins
+local oms="$_old_match_string"
+local ocsi="$compstate[insert]" ocspi="$compstate[pattern_insert]"
+
+# Do nothing if we don't have a pattern.
+
+tmp="${${:-$PREFIX$SUFFIX}#[~=]}"
+[[ "$tmp:q" = "$tmp" ]] && return 1
+
+_old_match_string="$PREFIX$SUFFIX$HISTNO"
+
+_tags matches original
+
+zstyle -s ":completion:${curcontext}:" match-original orig
+zstyle -s ":completion:${curcontext}:" insert-unambiguous ins
+
+# Try completion without inserting a `*'?
+
+if [[ -n "$orig" ]]; then
+  compstate[pattern_match]='-'
+  _complete && ret=0
+  compstate[pattern_match]="$opm"
+
+  # No completion with inserting `*'?
+
+  [[ ret -eq 1 && "$orig" = only ]] && return 1
+fi
+
+if (( ret )); then
+  compstate[pattern_match]='*'
+  _complete && ret=0
+  compstate[pattern_match]="$opm"
+fi
+
+if (( ! ret )); then
+
+  if [[ "$ins" = pattern && $compstate[nmatches] -gt 1 ]]; then
+
+    [[ "$oms" = "$PREFIX$SUFFIX$HISTNO" &&
+       "$compstate[insert]" = automenu-unambiguous ]] &&
+        compstate[insert]=automenu
+    [[ "$compstate[insert]" != *menu ]] &&
+        compstate[pattern_insert]= compstate[insert]=
+
+# We tried to be clever here, making completion insert unambiguous
+# expansions as early as possible, but this is really hard to test
+# and the code below probably does more harm than good.    
+#
+#    [[ $compstate[unambiguous_cursor] -gt $#compstate[unambiguous] ]] &&
+#        ins=yes compstate[insert]="$ocsi" compstate[pattern_insert]="$ocspi"
+  fi
+
+  if [[ "$ins" = (true|yes|on|1) &&
+      $#compstate[unambiguous] -ge ${#:-${PREFIX}${SUFFIX}} ]]
+  then 
+    compstate[pattern_insert]=unambiguous
+  elif _requested original &&
+      { [[ compstate[nmatches] -gt 1 ]] ||
+	zstyle -t ":completion:${curcontext}:" original }; then
+    local expl
+
+    _description -V original expl original
+
+    compadd "$expl[@]" -U -Q - "$PREFIX$SUFFIX"
+  fi    
+fi
+
+return ret

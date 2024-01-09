@@ -1,0 +1,89 @@
+#compdef unison
+
+local context state line
+typeset -A opt_args
+
+_arguments \
+    '-auto[automatically accept default (nonconflicting) actions]' \
+    '-batch[batch mode\: ask no questions at all]' \
+    '-doc[show documentation]:topic:(about people lists status copying ack install tutorial basics failures running ssh news all topics)' \
+    '-follow[add a pattern to the follow list]:pattern:' \
+    '-force[force changes from this replica to the other]:replica:' \
+    '-group[synchronize group attributes]' \
+    '-ignore[add a pattern to the ignore list]:pattern:' \
+    '-ignorenot[add a pattern to the ignorenot list]:pattern:' \
+    '-owner[synchronize owner]' \
+    '-path[path to synchronize]:path:_files' \
+    '-perms[part of the permissions which is synchronized]:perms:' \
+    '-prefer[choose this replicas version for conflicting changes]:replica:' \
+    '-root[root of a replica (should be used exactly twice)]:path:_files -/' \
+    '-silent[print nothing except error messages]' \
+    '-terse[suppress status messages]' \
+    '-testserver[exit immediately after the connection to the server]' \
+    '-times[synchronize modification times]' \
+    '-version[print version and exit]' \
+    '-addprefsto[add new prefs to]:file:_files' \
+    '-addversionno[add version number to name of unison on server]' \
+    '-backup[add a pattern to the backup list]:pattern:' \
+    '-backupcurr[add a pattern to the backupcurr list]:pattern:' \
+    '-backupcurrnot[add a pattern to the backupcurrnot list]:pattern:' \
+    '-backupdir[directory for storing centralized backups]:directory:_files -/' \
+    '-backuploc[where backups are stored]:backup location:(local central)' \
+    '-backupnot[add a pattern to the backupnot list]:pattern:' \
+    '-backupprefix[prefix for the names of backup files]:prefix:' \
+    '-backups[keep backup copies of all files]' \
+    '-backupsuffix[a suffix to be added to names of backup files]:suffix:' \
+    '-confirmbigdel[ask about whole-replica (or path) deletes (default true)]' \
+    '-confirmmerge[ask for confirmation before committing results of a merge]' \
+    '-contactquietly[suppress the "contacting server" message during startup]' \
+    '-copyprog[external program for copying large files]:program:_files -g "*(-x)"' \
+    '-copyprogrest[variant of copyprog for resuming partial transfers]:program:_files -g "*(-x)"' \
+    '-copyquoterem[add quotes to remote file name for copyprog]:quote style:(true false default)]' \
+    '-copythreshold[use copyprog on files bigger than this]:size (kb):' \
+    '-debug:debug module:(all verbose)' \
+    '-diff[command for showing differences between files]:program:_files -g "*(-x)"' \
+    '-dontchmod[when set, never use the chmod system call]' \
+    '-dumbtty[do not change terminal settings in text UI]' \
+    '-fastcheck:fast update detection:(true false default)' \
+    '-forcepartial[add a pattern to the forcepartial list]:pattern:' \
+    '-height[height of main window in graphical interface]:number (lines):' \
+    '-host[bind the socket to this host name in server socket mode]:host:_hosts' \
+    '-ignorecase[identify upper/lowercase filenames]:ignorecase:(true false default)' \
+    '-ignorelocks[ignore locks left over from previous run (dangerous!)]' \
+    '-immutable[add a pattern to the immutable list]:pattern:' \
+    '-immutablenot[add a pattern to the immutablenot list]:pattern:' \
+    '-key[define a keyboard shortcut for this profile (in some UIs)]:shortcut:' \
+    '-killserver[kill server when done (even when using sockets)]' \
+    '-label[provide a descriptive string label for this profile]:label:' \
+    '-log[record actions in logfile (default true)]' \
+    '-logfile:logfile name:_files' \
+    '-maxbackups[number of backed up versions of a file]:number:' \
+    '-maxthreads[maximum number of simultaneous file transfers]:number:' \
+    '-merge[add a pattern to the merge list]:pattern:' \
+    '-mountpoint[abort if this path does not exist]:mountpoint:_files -/' \
+    "-numericids[don't map uid/gid values by user/group names]" \
+    '-preferpartial[add a pattern to the preferpartial list]:pattern:' \
+    '-pretendwin[use creation times for detecting updates]' \
+    '-repeat[synchronize repeatedly (text interface only)]:repeat:' \
+    '-retry[re-try failed synchronizations N times (text ui only)]:retry times:' \
+    '-rootalias[register alias for canonical root names]:root alias:' \
+    '-rsrc:synchronize resource forks:(true false default)' \
+    '-rsync[activate the rsync transfer mode (default true)]' \
+    '-selftest[run internal tests and exit]' \
+    '-servercmd[name of unison executable on remote server]:program:_files -g "*(-x)"' \
+    '-showarchive[show "true names" (for rootalias) of roots and archive]' \
+    '-socket[act as a server on a socket]:socket:_files -g "*(-=)"' \
+    '-sortbysize[list changed files by size, not name]' \
+    '-sortfirst[add a pattern to the sortfirst list]:pattern:' \
+    '-sortlast[add a pattern to the sortlast list]:pattern:' \
+    '-sortnewfirst[list new before changed files]' \
+    '-sshargs[other arguments (if any) for remote shell command]:ssh args:' \
+    '-sshcmd[path to the ssh executable]:program:_files -g "*(-x)"' \
+    '-ui:user interface:(text graphic)' \
+    '-xferbycopying[optimize transfers using local copies (default true)]' \
+    '*:profile:->profile'
+
+if [[ $state == profile ]]; then
+    local -a profiles=( ${UNISON:-~/.unison}/*.prf(N:t:r) )
+    compadd "$@" -a profiles
+fi

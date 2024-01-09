@@ -1,0 +1,9 @@
+#compdef setsid
+
+_arguments -s -S -A '-*' : \
+  '(: * -)'{-h,--help}'[display help information]' \
+  '(: * -)'{-V,--version}'[display version information]' \
+  '(-c --ctty)'{-c,--ctty}'[set controlling terminal to current one]' \
+  '(-f --fork)'{-f,--fork}'[always fork]' \
+  '(-w --wait)'{-w,--wait}'[wait for program to exit, and use same return code]' \
+  '*:: : _normal -p $service'

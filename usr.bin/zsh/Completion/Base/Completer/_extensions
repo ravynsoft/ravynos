@@ -1,0 +1,33 @@
+#autoload
+
+# This completer completes filename extensions when completing
+# after *. or ^*. It can be used anywhere in the completer list
+# but if used after _expand, patterns that already match a file
+# will be expanded before it is called.
+
+compset -P '(#b)([~$][^/]#/|)(*/|)(\^|)\*.' || return 1
+
+local -aU files
+local -a expl suf mfiles
+
+files=( ${(e)~match[1]}${match[2]}*.* ) || return 1
+eval set -A files '${(MSI:'{1..${#${(O)files//[^.]/}[1]}}':)files%%.[^/]##}'
+files=( ${files:#.<->(.*|)} )
+
+if zstyle -t ":completion:${curcontext}:extensions" prefix-hidden; then
+  files=( ${files#.} )
+else
+  PREFIX=".$PREFIX"
+  IPREFIX="${IPREFIX%.}"
+fi
+
+zstyle -T ":completion:${curcontext}:extensions" add-space ||
+  suf=( -S '' )
+
+_description extensions expl 'file extension'
+
+# for an exact match, fail so as to give _expand or _match a chance.
+compadd -O mfiles "$expl[@]" -a files
+[[ $#mfiles -gt 1 || ${mfiles[1]} != $PREFIX ]] &&
+    compadd "$expl[@]" "$suf[@]" -a files &&
+    [[ -z $compstate[exact_string] ]]

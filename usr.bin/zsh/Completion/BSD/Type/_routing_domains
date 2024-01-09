@@ -1,0 +1,6 @@
+#autoload
+
+local expl
+
+_description routing-domains expl 'routing domain'
+compadd "$@" "$expl[@]" -  ${${(M)${(f)"$(_call_program routing-domains netstat -R)"}:#Rdomain *}#Rdomain }

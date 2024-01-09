@@ -1,0 +1,165 @@
+# Test control commands for loops and functions.
+
+%test
+
+  fn3() { return $1; print Error }
+  fn2() { fn3 $1 }
+  fn() {
+    print start $1
+    fn2 $1
+    return
+    print Error
+  }
+  for val in -1 0 1 255; do
+    fn $val; print $?
+  done
+0:Passing of return values back through functions
+>start -1
+>-1
+>start 0
+>0
+>start 1
+>1
+>start 255
+>255
+
+  $ZTST_testdir/../Src/zsh -fc 'fn() {
+    continue
+  }
+  fn'
+1:continue outside loop
+?fn:continue:1: not in while, until, select, or repeat loop
+
+  for outer in 0 1 2 3; do
+    print outer $outer
+    for inner in 0 1 2 3; do
+      print inner $inner
+      continue $(( (outer & 1) ? 2 : 1 ))
+      print error
+    done
+    print outer end
+  done
+0:continue with valid argument
+>outer 0
+>inner 0
+>inner 1
+>inner 2
+>inner 3
+>outer end
+>outer 1
+>inner 0
+>outer 2
+>inner 0
+>inner 1
+>inner 2
+>inner 3
+>outer end
+>outer 3
+>inner 0
+
+  for outer in 0 1; do
+    continue 0
+    print -- $outer got here, status $?
+  done
+1:continue error case 0
+?(eval):continue:2: argument is not positive: 0
+
+  for outer in 0 1; do
+    continue -1
+    print -- $outer got here, status $?
+  done
+1:continue error case -1
+?(eval):continue:2: argument is not positive: -1
+
+  fn() {
+    break
+  }
+  for outer in 0 1; do
+    print $outer
+    fn
+  done
+0:break from within function (this is a feature, I disovered)
+>0
+
+  for outer in 0 1 2 3; do
+    print outer $outer
+    for inner in 0 1 2 3; do
+      print inner $inner
+      break $(( (outer & 1) ? 2 : 1 ))
+      print error
+    done
+    print outer end
+  done
+0:break with valid argument
+>outer 0
+>inner 0
+>outer end
+>outer 1
+>inner 0
+
+  for outer in 0 1; do
+    break 0
+    print -- $outer got here, status $?
+  done
+1:break error case 0
+?(eval):break:2: argument is not positive: 0
+
+  for outer in 0 1; do
+    break -1
+    print -- $outer got here, status $?
+  done
+1:break error case -1
+?(eval):break:2: argument is not positive: -1
+
+  false
+  for x in; do
+    print nothing executed
+  done
+0:Status 0 from for with explicit empty list
+
+  set --
+  false
+  for x; do
+    print nothing executed
+  done
+0:Status 0 from for with implicit empty list
+
+  (exit 2)
+  for x in 1 2; do
+    print $?
+  done
+0:Status from previous command propagated into for loop
+>2
+>0
+
+  false
+  for x in $(echo 1 2; (exit 3)); do
+    print $?
+  done
+0:Status from expansion propagated into for loop
+>3
+>0
+
+  false
+  for x in $(exit 4); do
+    print not executed
+  done
+0:Status from expansion not propagated after unexecuted for loop
+  
+  false
+  for x in NonExistentFilePrefix*(N); do
+    print not executed, either
+  done
+0:Status from before for loop not propagated if empty after expansion
+
+  for x in $(echo 1; false); do
+  done
+0:Status reset by empty list in for loop
+
+  false
+  for x in $(echo 1; false); do
+    echo $?
+    (exit 4)  
+  done
+4:Last status from loop body is kept even with other funny business going on
+>1

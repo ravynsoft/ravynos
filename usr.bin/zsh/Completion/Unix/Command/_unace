@@ -1,0 +1,18 @@
+#compdef unace
+
+_arguments -S \
+  '-c[show comments]' \
+  '-f[full path matching]' \
+  '-o[overwrite files]' \
+  '-p+[specify password]:password' \
+  '-y[assume yes on all queries]' \
+  '-x+[specify files to exclude]:files' \
+  '-h[print help information]' \
+  '1:unace command:((
+    e\:extract\ files
+    l\:list\ archive
+    t\:test\ archive\ integrity
+    v\:list\ archive\ \(verbose\)
+    x\:extract\ files\ with\ full\ path
+  ))' \
+  '*:files:_files -g "*.ace(-.)"'

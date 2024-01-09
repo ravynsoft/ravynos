@@ -1,0 +1,127 @@
+#compdef aptitude
+
+local curcontext="$curcontext" sep ret=1
+local state line expl specs disp cmds suf
+
+_arguments -C \
+  '(- 1 *)'{-h,--help}'[display help information]' \
+  '(- 1 *)--version[display version information]' \
+  '--add-user-tag=[add user tag to affected packages]:tag' \
+  '--add-user-tag-to=[add user tag to matching packages]:tag,pattern' \
+  '--allow-new-upgrades[install upgrades for packages regardless]' \
+  '(--no-new-installs)--allow-new-installs[allow the safe-upgrade command to install new packages]' \
+  '--allow-untrusted[install packages from untrusted sources without prompting]' \
+  '--disable-columns[output results without any special formatting]' \
+  '(-F --display-format)'{-F,--display-format}'[specify output format for search command]:format:->format-strings' \
+  '--group-by=[control how the versions command groups its output]:grouping:(archive auto none package source-package source-version)' \
+  '--log-file=[specify output log file]:file:_files' \
+  '*--log-level=[specify minimum message level to log]:level:compadd -o nosort off fatal error warn info debug trace' \
+  '--log-resolver[set some standard log levels related to the resolver]' \
+  '(--allow-new-installs)--no-new-installs[prevent safe-upgrade from installing any new packages]' \
+  '(--allow-new-upgrades)--no-new-upgrades[prevent safe-upgrade from upgrading packages regardless]' \
+  "--no-show-resolver-actions[don't display the actions performed by the “safe” resolver]" \
+  '(-O --sort)'{-O,--sort}'[specify sort order]:sort order:->orderings' \
+  '-o[set a configuration file option]:key=value' \
+  '(-s --simulate)'{-s,--simulate}'[print actions without performing them]' \
+  '(-d --download-only)'{-d,--download-only}"[just download packages - don\'t install]" \
+  '(-P --prompt)'{-P,--prompt}'[always display a prompt]' \
+  '--purge-unused[purge in addition to removing each package that is no longer required]' \
+  '(-y --assume-yes)'{-y,--assume-yes}'[assume yes answer to questions]' \
+  '(-w --width)'{-w,--width}'[specify output width]:width' \
+  '-f[aggressively try to fix dependencies of broken packages]' \
+  '(-V --show-versions)'{-V,--show-versions}'[show which versions of packages will be installed]' \
+  '(-D --show-deps)'{-D,--show-deps}'[show brief explanations of automatic installations and removals]' \
+  '-Z[show disk space changes for each package]' \
+  '(-v --verbose)'{-v,--verbose}'[causes some commands to display extra information]' \
+  '(-R --without-recommends)'{-R,--with-recommends}'[install recommended packages when installing new packages]' \
+  '(--without-suggests)--with-suggests[install suggested packages when installing new packages]' \
+  '(-r --with-recommends)'{-r,--without-recommends}'[ignore recommended packages when installing new packages]' \
+  '(--with-suggests)--without-suggests[ignore suggested packages when installing new packages]' \
+  '--remove-user-tag=[remove user tag from affected packages]:tag' \
+  '--remove-user-tag-from=[remove user tag from matching packages]:tag,pattern' \
+  '(-t --target-release)'{-t,--target-release}'[set the release from which packages should be installed]:release:->aptitude-releases' \
+  '(-q --quiet)'{-q=,--quiet=}'[less Output]:level' \
+  '--schedule-only[schedule operations to be performed in the future]' \
+  '--purge-unused[purge unused packages instead of removing]' \
+  '--visual-preview[start up the visual interface and display its preview screen]' \
+  '--full-resolver[attempts to resolve conflicts with a higher risk of breakage]' \
+  '--safe-resolver[attempts to resolve conflicts with a lower risk of breakage]' \
+  '--show-package-names[control when the versions command shows package names]:when:(always auto never)' \
+  '--show-summary=[summarize each dependency chain that the why command outputs]::mode:(no-summary first-package first-package-and-type all-packages all-packages-with-dep-versions)' \
+  '(-W --show-why)'{-W,--show-why}'[show which manually installed package requires each automatically installed package]' \
+  '-S[load the extended state information from non-standard state file]:state file:_files' \
+  '-u[begin updating the package lists as soon as the program starts]' \
+  '-i[displays a download preview when the program starts]' \
+  '-Z[show how much disk space will be used or freed by the individual packages]' \
+  '1: :->cmds' \
+  '*: :->args' && ret=0
+
+case $state in
+  aptitude-releases)
+    releases=(
+      ${${(M)${(f)"$(</etc/apt/sources.list)"}\
+:#[ $'\t']#deb(|-src)*}/(#b)[ $'\t']#[^ $'\t']##[ $'\t']##[^ $'\t']##[ $'\t']##([^ $'\t']##)*/$match[1]}
+    )
+    _description releases expl release
+    compadd "$expl[@]" -a releases && ret=0
+  ;;
+  cmds)
+    cmds=( ${${(M)${(f)"$(_call_program commands aptitude -h 2>/dev/null)"}:# [^- ][^ ]## *}/(#b) ([^ ]##) ##(- )#([^- ]*)/$match[1]:$match[3]:l})
+
+    _describe -t commands 'aptitude command' cmds && ret=0
+  ;;
+  format-strings)
+    compset -P '(%\#[0-9]|%[A-Za-z%]|[^%])#'
+    compset -S '*'
+    zstyle -s ":completion:${curcontext}:format-specifiers" list-separator sep || sep=--
+    specs=(
+      '%%:literal %'             '%#:parameter replacement' '%a:action flag'
+      '%A:action'                '%B:broken count'          '%c:current state flag'
+      '%C:current state'         '%d:description'           '%D:package size'
+      '%E:architecture'          '%H:hostname'              '%i:pin priority'
+      '%I:installed size'        '%m:maintainer'            '%M:automatic flag'
+      '%n:program version'       '%N:program name'          '%o:download size'
+      '%O:origin'                '%p:package name'          '%P:priority'
+      '%r:reverse depends count' '%R:abbreviated priority'  '%s:section'
+      '%S:trust status'          '%t:archive'               '%T:tagged'
+      '%u:disk usage change'     '%v:current version'       '%V:candidate version'
+      '%Z:size change'
+    )
+    zformat -a disp " $sep " $specs
+    _description format-specifiers expl 'format specifier'
+    compadd "$expl[@]"  -S '' -d disp - ${specs%:*}
+  ;;
+  orderings)
+    line=( "${(@)${(@)${(@s.,.)PREFIX}#(\\|)\~}[1,-2]}" )
+    compset -P '*,'
+    compset -S ',*' || suf=( -qS , )
+    if ! compset -P '(\\|)~'; then
+      _description prefixes expl 'reverse order'
+      compadd "$expl[@]" -S '' \~ && ret=0
+    fi
+    _description sort-key expl 'order [name,version]'
+    compadd -F line "$expl[@]" $suf - installsize installsizechange debsize \
+        name priority version && ret=0
+  ;;
+  args)
+    case $line[1] in
+      search)
+        _message -e patterns pattern
+      ;;
+      (download|show|changelog|why|why-not|build-dep|build-depends)
+        _deb_packages avail && ret=0
+      ;;
+      (remove|purge|hold|unhold|reinstall|forbid-version|markauto|unmarkauto)
+        _deb_packages installed && ret=0
+      ;;
+      install)
+        _deb_packages uninstalled && ret=0
+      ;;
+      *)
+        (( ret )) && _message 'no more arguments'
+      ;;
+    esac
+  ;;
+esac
+
+return ret

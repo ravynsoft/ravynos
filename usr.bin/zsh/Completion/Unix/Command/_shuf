@@ -1,0 +1,28 @@
+#compdef shuf gshuf
+
+local ret=1
+local -a context line state state_descr
+local -A opt_args
+
+_arguments -s -S : \
+  '(: -)--help[display help information]' \
+  '(: -)--version[display version information]' \
+  '(-n --head-count)'{-n+,--head-count=}'[limit output to specified number of lines]:output line limit' \
+  '(-o --output)'{-o+,--output=}'[write result to specified file]:output file:_files' \
+  '--random-source=[use specified file as source of random bytes]: :_files' \
+  '(-r --repeat)'{-r,--repeat}'[allow output lines to repeat]' \
+  '(-z --zero-terminated)'{-z,--zero-terminated}'[use NUL as line delimiter]' \
+  '(-i --input-range)*: :->operands' \
+  + '(excl)' \
+  {-e,--echo}'[treat operands as input lines]' \
+  '(:)'{-i+,--input-range=}'[treat specified numbers as input lines]:number range (x-y)' \
+&& ret=0
+
+[[ $state == operands ]] &&
+if [[ -n ${opt_args[(i)excl-(-e|--echo)]} ]]; then
+  _message 'input line' && ret=0
+else
+  _files && ret=0
+fi
+
+return ret

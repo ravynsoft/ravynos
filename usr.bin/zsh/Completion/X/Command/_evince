@@ -1,0 +1,26 @@
+#compdef evince
+
+_arguments -s -S \
+  - '(help)' \
+  '--version[display version information]' \
+  {-h,--help}'[display help information]' \
+  '--help-all[display help on all options]' \
+  '--help-gtk[display help on GTK+ options]' \
+  - normal \
+  '--class=[specify program class as used by the window manager]:class' \
+  '--name=[program name as used by the window manager]:name:_x_name' \
+  '--gdk-debug=[specify GDK debugging flags to set]:flag' \
+  '--gdk-no-debug=[specify GDK debugging flags to unset]:flag' \
+  '--gtk-module=[load additional GTK+ modules]:module' \
+  '--g-fatal-warnings[make all warnings fatal]' \
+  '--gtk-debug=[specify GTK+ debugging flags to set]:flag' \
+  '--gtk-no-debug=[specify GTK+ debugging flags to unset]:flag' \
+  '(-p --page-label -i --page-index -n --named-dest)'{-p,--page-label=}'[specify page label of the document to display]' \
+  '(-p --page-label -i --page-index -n --named-dest)'{-i,--page-index=}'[specify page number of the document to display]' \
+  '(-p --page-label -i --page-index -n --named-dest)'{-n,--named-dest=}'[specify named destination to display]' \
+  '(-f --fullscreen -s --presentation -w --preview)'{-f,--fullscreen}'[run evince in fullscreen mode]' \
+  '(-f --fullscreen -s --presentation -w --preview)'{-s,--presentation}'[run evince in presentation mode]' \
+  '(-f --fullscreen -s --presentation -w --preview)'{-w,--preview}'[run evince as a previewer]' \
+  '(-l --find)'{-l,--find=}'[specify word or phrase to find in the document]:word or phrase' \
+  '--display=[specify X display]:display:_x_display' \
+  '*:document file:_files -g "*.(#i)(dvi|djvu|pdf|ps|eps|tif|tiff)(-.)"' \

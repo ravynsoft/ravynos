@@ -1,0 +1,462 @@
+#compdef man apropos whatis
+
+# Notes:
+# - Solaris is seemingly the only OS that doesn't allow the `man n page` syntax;
+#   you must use `man -s n page`
+# - We assume that Linux distributions are using either man-db or mandoc
+# - @todo Would be nice to support completing the initial operand as a section
+#   name (on non-Solaris systems)
+# - @todo We don't support the man-db feature of 'sub-pages' — that is, treating
+#   pairs of operands like `git diff` as `git-diff`
+# - @todo Option exclusivity isn't super accurate
+# - @todo Solaris man accepts a single hyphen as the first option to disable
+#   paging (like AIX's -c); we don't support that
+# - @todo Linux apropos/whatis take options; we don't complete them yet
+
+_man() {
+  local dirs expl mrd awk variant noinsert
+  local -a context line state state_descr args modes
+  local -aU sects
+  local -A opt_args val_args sect_descs
+
+  if [[ $service == man ]]; then
+    # We'll treat all mandoc-based systems (Alpine, various Illumos distros,
+    # etc.) as OpenBSD
+    _pick_variant -r variant openbsd='-S subsection' $OSTYPE ---
+
+    modes=(
+      -f -K -k -l -R -w -W
+      --apropos
+      --global-apropos
+      --local-file
+      --location
+      --location-cat
+      --recode
+      --whatis
+      --where
+      --where-cat
+    )
+    [[ $variant == darwin* ]] && modes+=( -t )
+
+    args=(
+      "(${(j< >)modes})"{-f,--whatis}'[display short description (like whatis)]'
+      "(${(j< >)modes})"{-k,--apropos}'[search for keyword (like apropos)]'
+      '(-M --manpath)'{-M+,--manpath=}'[specify manual search path]:manual search path:_sequence -s\: _directories'
+    )
+    if [[ $variant == (darwin|dragonfly|freebsd|linux)* ]]; then
+      args+=(
+        '(-a -S -s --all --sections)'{-a,--all}'[display all matching pages]'
+        '(-P --pager)'{-P+,--pager=}'[specify output pager]:pager:_path_commands'
+        # @todo Could enumerate these
+        '(-p --preprocessor)'{-p+,--preprocessor=}'[specify roff preprocessor sequence]:preprocessor sequence'
+      )
+    else
+      args+=( '(-s)-a[display all matching pages]' )
+    fi
+    [[ $variant == (aix|solaris)* ]] || args+=(
+      '(-C --config-file)'{-C+,--config-file=}'[specify configuration file]:configuration file:_files'
+      "(${(j< >)modes})"{-w,--path,--where}'[display file locations]'
+    )
+    [[ $variant == (aix|netbsd|openbsd)* ]] || args+=(
+      # @todo FreeBSD allows this to be given multiple times
+      '(-d --debug)'{-d,--debug}'[display debugging information]'
+    )
+    [[ $variant == (darwin|dragonfly|freebsd|linux|solaris|aix)* ]] && args+=(
+      '(-7 -H -t --ascii --html --troff)'{-t,--troff}'[format man page using troff]'
+    )
+    [[ $variant == (darwin|linux)* ]] && args+=(
+      "(${(j< >)modes})"{-K,--global-apropos}'[search for keyword in all pages]'
+      '(-m --systems)'{-m+,--systems=}'[search manual of specified system]:operating system'
+    )
+    [[ $variant == (darwin|dragonfly|freebsd)* ]] && args+=(
+      '(: -)-h[display help information]'
+      '(-a)-S+[specify manual sections to search]: :->sects'
+    )
+    [[ $variant == (dragonfly|freebsd)* ]] && args+=(
+      # @todo Could enumerate these
+      '-m[search manual of specified architecture]:architecture'
+      '-o[use non-localized man pages]'
+    )
+    [[ $variant == (netbsd|openbsd)* ]] && args+=(
+      '-c[disable paging]'
+      '-m[augment manual search path]:manual search path:_sequence -s\: _directories'
+      '(-a)-s+[specify manual section to search]: :->sects'
+    )
+    [[ $variant == linux* ]] && args+=(
+      '(: -)'{-\?,--help}'[display help information]'
+      '(-7 -t -H -T -Z --ascii --html --troff --troff-device --ditroff)'{-7,--ascii}'[translate man pages for 7-bit terminal]'
+      '(-D --default)'{-D,--default}'[reset man to default options]'
+      # @todo Could enumerate these
+      '(-E --encoding)'{-E+,--encoding=}'[specify output encoding]:encoding'
+      '(-e --extension)'{-e+,--extension=}'[specify sub-extension]:sub-extension'
+      '(-H --html)'{-H-,--html=-}'[produce HTML output for specified browser]::Web browser:_path_commands'
+      '(-i -I --ignore-case --match-case)'{-i,--ignore-case}'[search case-insensitively]'
+      '(-i -I --ignore-case --match-case)'{-I,--match-case}'[search case-sensitively]'
+      '(-L --locale)'{-L+,--locale=}'[specify locale]:locale:_locales'
+      "(${(j< >)modes})"{-l+,--local-file=}'[format and display specified file]:*:::manual file:_files'
+      "!(${(j< >)modes})"{--location,--location-cat}
+      '--names-only[match only page names (with --regex or --wildcard)]'
+      '(--nh --no-hyphenation)'{--nh,--no-hyphenation}'[disable hyphenation]'
+      '(--nj --no-justification)'{--nj,--no-justification}'[disable justification]'
+      '--no-subpages[do not combine pairs of page names into single page name]'
+      # @todo Could enumerate these
+      "(${(j< >)modes})"{-R+,--recode=}'[output man page in specified encoding]:encoding'
+      '(-r --prompt)'{-r+,--prompt=}'[specify prompt for less]:less prompt'
+      '(-a --all --wildcard)--regex[treat page name as regular expression]'
+      '(-a -S -s --all --sections)'{-S+,-s+,--sections=}'[specify manual sections to search]: :->sects'
+      # @todo Could enumerate these
+      '(-T -t --troff --troff-device)'{-T-,--troff-device=-}'[specify roff output device]::roff output device'
+      '(-u --update)'{-u,--update}'[update database caches]'
+      '(: -)--usage[display brief usage information]'
+      '(: -)'{-V,--version}'[display version information]'
+      "(${(j< >)modes})"{-W,--where-cat}'[display cat file locations]'
+      '--warnings=[enable specified groff warnings]:groff warnings'
+      '(-a --all --regex)--wildcard[treat page name as shell glob]'
+      # @todo Could enumerate these
+      '(-X --gxditview)'{-X-,--gxditview=-}'[display output in gxditview using specified DPI]::resolution (DPI) [75]'
+      # @todo Post-process how?
+      '(-t --troff -Z --ditroff)'{-Z,--ditroff}'[post-process output for chosen device]'
+    )
+    [[ $variant == darwin* ]] && args+=(
+      # We use _files here because browsers are usually in /Applications, which
+      # typically isn't in PATH
+      '-B+[specify browser to use for HTML files]:Web browser:_files'
+      '-c[reformat source man page]'
+      # @todo -d should be exclusive with this above
+      '(-d)-D[display man page along with debugging information]'
+      '(-D -F --preformat)'{-F,--preformat}'[format man page only (do not display)]'
+      '-H+[specify command to render HTML as text]:HTML pager:_path_commands'
+      # --help and --version are undocumented but functional
+      '(: -)--help[display help information]'
+      # -s is also undocumented; it's provided for compatibility with Solaris
+      '!(-S)-s+: :->sects'
+      '(: -)'{-v,--version}'[display version information]'
+      "(${(j< >)modes})-W[display file locations, one per line, with no other information]"
+    )
+    [[ $variant == netbsd* ]] && args+=(
+      '-h[display only synopsis lines]'
+      '(: -)-p[display manual search path]'
+      '-S+[display only man pages with file names matching specified string]:search string'
+    )
+    [[ $variant == openbsd* ]] && args+=(
+      "(${(j< >)modes})-l+[format and display specified file]:*:::manual file:_files"
+      # @todo Could enumerate these
+      '-S[search manual of specified architecture]:architecture'
+    )
+    [[ $variant == solaris* ]] && args+=(
+      "(${(j< >)modes})-l[display file locations]"
+      '-r[format man page only (do not display)]'
+      '(-a)-s+[specify manual sections to search]: :->sects'
+      # @todo Does this in fact want a file path?
+      '-T+[format man page using specified macro package]:macro package:_files'
+    )
+    [[ $variant == aix* ]] && args+=(
+      '-c[display man page using cat]'
+      '-F[display only first matching entry]'
+      '-m[only search paths specified by -M/MANPATH]'
+      '-r[search remotely]'
+    )
+
+    # Strip (most) long options from non-Linux platforms
+    if [[ $variant == darwin* ]]; then
+      args=( ${(M)args:#((#s)|*\))(\*|)(-[^-]|--(help|path|pref|vers))*} )
+    elif [[ $variant != linux* ]]; then
+      args=( ${(M)args:#((#s)|*\))(\*|)-[^-]*} )
+    fi
+  fi
+
+  _arguments -s -S : $args '*::: :->man' && return 0
+  [[ -n $state ]] || return 1
+
+  if (( ! $#_manpath )); then
+    local mp
+    mp=( ${(s.:.)$(manpath 2>/dev/null)} )
+    [[ "$mp" == *:* ]] && mp=( ${(s.:.)mp} )
+    if (( $#mp )); then
+      _manpath=( $mp )
+    elif (( $#manpath )); then
+      _manpath=( $manpath )
+    fi
+  fi
+
+  (( $#_manpath )) ||
+      _manpath=( /usr/man(-/) /(opt|usr)/(pkg|dt|share|X11R6|local)/(cat|)man(-/) )
+
+  # Override man path
+  [[ -n ${opt_args[-M]} ]] &&
+  _manpath=( ${(s<:>)opt_args[-M]} )
+
+  # Augment man path
+  [[ $variant == (netbsd|openbsd)* ]] &&
+  [[ -n ${opt_args[-m]} ]] &&
+  _manpath+=( ${(s<:>)opt_args[-m]} )
+
+  # `sman' is the SGML manual directory for Solaris 7.
+  # 1M is system administrator commands on SVR4
+
+  mrd=(${^_manpath/\%L/${LANG:-En_US.ASCII}}/mandb(N))
+
+  # $sect is from the command line, the "3p" in "man 3p memcpy".
+  #   It may also be a |-joined (and later in the code "()"-enclosed) list of
+  #   section names.
+  #   TODO: disentangle this to always be an array.
+  # $sect_dirname is from the filesystem, the "3" in "/usr/share/man/man3"
+  # These are used by _man_pages
+  local sect sect_dirname
+
+  # Take care: We can't use the sections from these options until we've finished
+  # completing them; otherwise (e.g.) -s1:<TAB> will give no results
+  if
+    [[ $service != man ]] || [[ $state == sects ]] || (( $+opt_args[-a] ))
+  then
+    sect='*'
+  elif
+    [[ $variant == (darwin|linux)* ]] &&
+    [[ -n ${opt_args[(i)-S|-s|--sections]} ]]
+  then
+    noinsert=1
+    sect=${opt_args[${opt_args[(i)-S|-s|--sections]}]//[:,]/|}
+  elif
+    [[ $variant == (netbsd|openbsd|solaris)* ]] && (( $+opt_args[-s] ))
+  then
+    noinsert=1
+    sect=${opt_args[-s]//,/|}
+  elif [[ $variant == (dragonfly|freebsd)* ]] && (( $+opt_args[-S] )); then
+    noinsert=1
+    sect=${opt_args[-S]//:/|}
+  # It's only a small help, but, per man-db, we can avoid treating an initial
+  # operand like `8139too` as a section name by ensuring that only the first
+  # character is a digit. This doesn't do much for stuff like `2to3`, but we can
+  # at least special-case a few common patterns for now
+  elif
+    (( CURRENT > 1 )) &&
+    [[ $variant != solaris* ]] &&
+    [[ ${${(Q)words[1]}##(2to3|7z)*} == ([0-9](|[^0-9[:punct:]]*)|[lnopx]) ]]
+  then
+    noinsert=1
+    sect=$words[1]
+  elif [[ -n ${sect:=$MANSECT} ]]; then
+    sect=${sect//:/|}
+  fi
+
+  # Colons may have been escaped
+  sect=${(Q)sect}
+
+  if [[ $sect = (<->*|[lnopx]) || $sect = *\|* ]]; then
+    sects=( ${(s.|.)sect} )
+
+    # Most man implementations support partial matching of a page's
+    # (sub-)section name — e.g., `3per` for `3perl`. The (sub-)section name may
+    # or may not correspond to the directory name (most systems combine
+    # sub-sections), but we'll assume that if it starts with a number and we're
+    # not on Solaris (which doesn't support this feature at all) that we can do
+    # a match against the leading number. This is irritating if you DO want the
+    # exact sub-section specified, but unfortunately there's no way to determine
+    # this programmatically — i guess we could add a style to control it
+    () {
+      for 1; do
+        if [[ $OSTYPE == solaris* || $1 != <->* ]]; then
+          dirs+=( $^_manpath/(sman|man|cat)$1(|.*)/ )
+        else
+          dirs+=( $^_manpath/(sman|man|cat)${1%%[^0-9]#}*/ )
+        fi
+      done
+    } $sects
+
+    sect=${(j<|>)sects}
+    [[ $sect == *'|'* ]] && sect="($sect)"
+    awk="\$2 == \"$sect\" {print \$1}"
+  else
+    sect=
+    dirs=( $^_manpath/(sman|man|cat)*/ )
+    awk='{print $1}'
+  fi
+
+  # Ignore directories with no pages inside
+  dirs=( ${^dirs}(#qFN) )
+
+  # Solaris 11 and on have a man-index directory that doesn't contain manpages
+  dirs=( ${dirs:#*/man-index/} )
+  sects=( ${(o)${${dirs##*(man|cat)}%.*}%/} )
+
+  # If we've got this far, we can build our look-up table for descriptions of
+  # the more common sections. Unless otherwise labelled, the more specific ones
+  # come from Solaris or one of its variants
+  (( $#sects )) && () {
+    sect_descs=(
+      0        'library headers'
+      1        'general commands'
+      1cups    'CUPS commands'
+      1m       'maintenance commands'
+      1openssl 'OpenSSL commands'
+      2        'system calls'
+      3        'library functions'
+      3c       'C library functions'
+      3curses  'curses library functions'
+      3elf     'ELF library functions'
+      3f       'Fortran library functions'
+      3lua     'Lua features' # NetBSD
+      3mail    'mailbox library functions'
+      3openssl 'OpenSSL library functions'
+      3pam     'PAM library functions'
+      3pool    'pool configuration library functions'
+      3proc    'process control library functions'
+      3x11     'Xlib functions'
+      3xcurses 'curses library functions [X/Open]'
+      4        'devices and drivers'
+      5        'file formats and conventions'
+      3openssl 'OpenSSL configuration files'
+      6        'games'
+      7        'miscellanea'
+      8        'maintenance commands and procedures'
+      9        'kernel features'
+      9lua     'Lua kernel bindings' # NetBSD
+      l        'local documentation' # AIX, etc. — TCL on some systems?
+      n        'new documentation' # AIX, etc.
+      o        'old documentation' # AIX, etc.
+      p        'public documentation' # AIX, etc.
+      x        'X11 features'
+    )
+
+    # Add POSIX variants
+    for 1 in ${(k)sect_descs}; do
+      [[ $1 == <-> ]] || continue
+      sect_descs+=( "${1}p" "${sect_descs[$1]} [POSIX]" )
+    done
+
+    # Add OS-specific stuff that's too risky for or overrides the general list
+    [[ $OSTYPE == darwin*  ]] && sect_descs+=( n 'Tcl/Tk features' )
+    [[ $OSTYPE == openbsd* ]] && sect_descs+=( 3p 'Perl features' )
+    # @todo Oracle Solaris 11.4 adopts the BSD/Linux structure, making many of
+    # these inaccurate — this should be handled accordingly in the future. If
+    # OSTYPE isn't helpful (since other Solaris descendants may not follow
+    # suit), we could perhaps use the presence of SysV-style sections under
+    # _manpath as the determinant
+    [[ $OSTYPE == solaris* ]] && sect_descs+=(
+      1t  'Tcl/Tk features'
+      3m  'mathematical library functions'
+      4   'file formats and conventions'
+      5   'miscellanea'
+      7   'special files'
+      7d  'devices'
+      7fs 'file systems'
+      7i  'ioctl requests'
+      7m  'STREAMS modules'
+      7p  'protocols'
+      9e  'driver entry points'
+      9f  'driver functions'
+      9p  'driver properties'
+      9s  'driver data structures'
+    )
+  }
+
+  [[ $state == sects ]] && {
+    local s
+    local -a specs
+
+    (( $#sects )) || {
+      _message -e sections 'manual section'
+      return 1
+    }
+
+    # Build specs from descriptions
+    for s in $sects; do
+      specs+=( "${s}:${(b)sect_descs[$s]}" )
+    done
+    specs=( ${specs%:} )
+
+    if [[ $variant == (darwin|dragonfly|freebsd|linux)* ]]; then
+      _sequence -s : _describe -t sections 'manual section' specs
+    elif [[ $variant == solaris* ]]; then
+      _sequence -s , _describe -t sections 'manual section' specs
+    else
+      _describe -t sections 'manual section' specs
+    fi
+    return
+  }
+
+  if zstyle -t ":completion:${curcontext}:manuals" separate-sections; then
+    local d ret=1
+
+    (( $#sects )) || return 1
+
+    if [[ $PREFIX$SUFFIX == */* ]]; then
+      _tags manuals.${^sects} files
+    else
+      _tags manuals.${^sects}
+    fi
+
+    while _tags; do
+      for sect_dirname in $sects; do
+        d=$sect_dirname
+        (( $+sect_descs[$d] )) && d+=" (${sect_descs[$d]})"
+
+        _requested manuals.$sect_dirname expl "manual page, section $d" _man_pages &&
+            ret=0
+      done
+      [[ $PREFIX$SUFFIX == */* ]] &&
+      _requested files expl directory _files -/ && ret=0
+      (( ret )) || return 0
+    done
+    ## To fall back to other sections' manpages when completing filenames, like
+    ## the 'else' codepath does:
+    #
+    # if (( ret )) && [[ $PREFIX$SUFFIX == */* ]]; then
+    #   sect_dirname=
+    #   _wanted manuals expl 'manual page' _man_pages && return
+    # fi
+
+    return 1
+  else
+    sect_dirname=
+    _wanted manuals expl 'manual page' _man_pages
+  fi
+}
+
+_man_pages() {
+  local pages sopt tmp
+
+  # What files corresponding to manual pages can end in.
+  local suf='.((?|<->*|ntcl)(|.gz|.bz2|.z|.Z|.lzma))'
+
+  if [[ $PREFIX$SUFFIX = */* ]]; then
+    # Easy way to test for versions of man that allow file names.
+    # This can't be a normal man page reference.
+    # Try to complete by glob first.
+    if [[ -n $sect_dirname ]]; then
+      _path_files -g "*.*$sect_dirname*(|.gz|.bz2|.z|.Z|.lzma)" "$expl[@]"
+    else
+      _path_files -g "*$suf" "$expl[@]" && return
+      _path_files "$expl[@]"
+    fi
+    return $?
+  fi
+
+  pages=( ${(M)dirs:#*$sect_dirname/} )
+  pages=( ${^pages}/"*${sect:+.$sect"*"}" )
+  pages=( ${^~pages}(N:t) )
+
+  (($#mrd)) && pages[$#pages+1]=($(awk $awk $mrd))
+
+  # Remove any compression suffix, then remove the minimum possible string
+  # beginning with .<->: that handles problem cases like files called
+  # `POSIX.1.5'.
+
+  [[ $variant = solaris* ]] && sopt='-s '
+  if ! ((CURRENT > 1 || noinsert)); then
+    zstyle -s ":completion:${curcontext}:manuals.$sect_dirname" insert-sections tmp
+  fi
+  case "$tmp" in
+    prepend|true|on|yes|1)
+      compadd "$@" -P "$sopt$sect_dirname " - ${pages%$~suf}
+    ;;
+    suffix)
+      compadd "$@" -s ".$sect_dirname" - ${pages%$~suf}
+    ;;
+    *)
+      compadd "$@" - ${pages%$~suf}
+    ;;
+  esac
+}
+
+_man "$@"

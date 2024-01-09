@@ -1,0 +1,12 @@
+#compdef savecore
+
+_savecore() {
+	_arguments -s \
+		'-L[take live dump]' \
+		'-v[verbose]' \
+		'-d[disregard dump header valid flag]' \
+		'-f[save crash dump from file]:file:_files' \
+		'::directory:_files -/'
+}
+
+_savecore "$@"

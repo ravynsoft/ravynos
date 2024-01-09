@@ -1,0 +1,7 @@
+#compdef zcat
+
+if _pick_variant gz='(GNU|NetBSD|Apple)' unix --license; then
+  _gzip "$@"
+else
+  _compress "$@"
+fi

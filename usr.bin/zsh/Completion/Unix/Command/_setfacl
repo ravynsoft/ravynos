@@ -1,0 +1,35 @@
+#compdef setfacl setfacl.exe
+
+if _pick_variant cygwin=cygwin unix --version; then
+# cygwin 1.5.25
+_arguments -s -S \
+  '(-d --delete)'{-d,--delete}'[delete one or more specified ACL entries]:ACL entry' \
+  '(-f --file)'{-f,--file}'[set ACL entries for FILE to ACL entries read from a ACL_FILE]:ACL file:_files' \
+  '(-m --modify)'{-m,--modify}'[modify one or more specified ACL entries]:ACL entry' \
+  '(-r --replace)'{-r,--replace}'[replace mask entry with maximum permissions needed for the file group class]' \
+  '(-s --substitute)'{-s,--substitute}'[substitute specified ACL entries for the \[ACL of FILE\]]:ACL entry' \
+  '(- *)'{-h,--help}'[output usage information and exit]' \
+  '(- *)'{-v,--version}'[output version information and exit]' \
+  '*: :_files'
+else
+_arguments -s -S \
+  '(-m --modify)'{-m,--modify=}'[modify the current ACL]:ACL:' \
+  '(-M --modify-file)'{-M,--modify-file=}'[read ACL entries to modify from file]:file:_files' \
+  '(-x --remove)'{-x,--remove=}'[remove ACL entries]:ACL:' \
+  '(-X --remove-file)'{-X,--remove-file=}'[read ACL entries to remove from file]:file:_files' \
+  '(-b --remove-all)'{-b,--remove-all}'[remove all extended ACL entries]' \
+  '(-k --remove-default)'{-k,--remove-default}'[remove the default ACL]' \
+  '--set=[set the ACL, replacing the current ACL]:ACL:' \
+  '--set-file=[read ACL entries to set from file]:file:_files' \
+  '--mask[do recalculate the effective rights mask]' \
+  '(-n --no-mask)'{-n,--no-mask}'[don'"'"'t recalculate the effective rights mask]' \
+  '(-d --default)'{-d,--default}'[operations apply to the default ACL]' \
+  '(-R --recursive)'{-R,--recursive}'[recurse into subdirectories]' \
+  '(-L --logical)'{-L,--logical}'[logical walk, follow symbolic links]' \
+  '(-P --physical)'{-P,--physical}'[physical walk, do not follow symbolic links]' \
+  '--restore=[restore ACLs]:file:_files' \
+  '--test[test mode (ACLs are not modified)]' \
+  '(- *)'{-v,--version}'[display version information]' \
+  '(- *)'{-h,--help}'[display help information]' \
+  '*: :_files'
+fi

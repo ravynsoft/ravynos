@@ -1,0 +1,110 @@
+#compdef -value-,PRINTER,-default- -value-,LPDEST,-default-
+
+local expl ret=1 list disp sep tmp servopt
+integer ind
+
+if (( $+commands[lsallq] )); then
+  # Use AIX's command to list print queues
+  _wanted printers expl printer compadd "$@" - $(lsallq)
+  return
+fi
+
+zstyle -s ":completion:${curcontext}:printers" list-separator sep || sep=--
+
+# If we've been given a different print server on the command line,
+# list printers on that.  This information shouldn't be cached.
+# (I) searches backwards---this is good, since some commands, such
+# as lpoptions, can take multiple -h arguments and we want the last
+# one before the current argument.  For lpr, -h might mean something
+# else and the option is -H.
+if [[ $service = lpr ]]; then
+  servopt=-H
+else
+  servopt=-h
+fi
+if (( $+commands[lpstat] )); then
+  ind=${words[1,CURRENT][(I)${servopt}*]}
+  if (( ind > 0 )); then
+    if [[ $words[ind] = $servopt ]]; then
+      tmp=-h$words[ind+1]
+    else
+      tmp=-h${words[ind][3,-1]}
+    fi
+    _wanted printers expl printer compadd "$@" - \
+      ${${(f)"$(_call_program printers lpstat $tmp -a 2>/dev/null)"}%% *} &&
+        return
+  fi
+fi
+
+
+if (( ! $+_lp_cache )); then
+  local file entry names i
+
+  file=( /etc/(printcap|printers.conf) )
+
+  _lp_cache=()
+  _lp_alias_cache=()
+
+  if (( $#file )); then
+    while read entry; do
+      if [[ "$entry" = [^[:blank:]\#\*_]*:* ]]; then
+        names=( "${(s:|:)entry%%:*}" )
+        if [[ "$entry" = *:description=* ]]; then
+          disp="${${entry##*:description=}%%:*}"
+        elif [[ $#names -gt 1 && "$names[-1]" = *\ * ]] ;then
+          disp="$names[-1]"
+        else
+          disp=''
+        fi
+        if [[ -n "$disp" ]]; then
+          _lp_cache+=( "${names[1]}:${disp}" )
+  	  _lp_alias_cache+=( "${(@)^names[2,-1]:#*\ *}:${disp}" )
+        else
+          _lp_cache+=( "${names[1]}" )
+  	  _lp_alias_cache+=( "${(@)names[2,-1]:#*\ *}" )
+        fi
+      fi
+    done < $file[1]
+  fi
+
+  if (( $+commands[lpstat] )); then
+    # If lpstat it exists, it's possible there are some other
+    # printers there, so add them.
+    _call_program printers lpstat -a 2>/dev/null | while read entry; do
+      entry=${entry%%[[:blank:]]*}
+      if (( ${_lp_cache[(I)$entry:*]} == 0 )); then
+	_lp_cache+=( $entry )
+      fi
+    done
+  fi
+
+  if [[ $OSTYPE = solaris* ]] && (( ${+commands[ypcat]} )) &&
+      tmp=$(_call_program printers ypcat printers.conf.byname 2>/dev/null); then
+    _lp_cache+=( ${${${(S)${(f)tmp}/(#b):*((#e)|description=([^:]#):)*/:${match[2]}|}%%|*}:#_default*} ) # If you use YP
+  fi
+
+  (( $#_lp_cache )) || _lp_cache=( 'lp0:guessed default printer' )
+  (( $#_lp_alias_cache )) || unset _lp_alias_cache
+fi
+
+if zstyle -T ":completion:${curcontext}:printers" verbose; then
+  zformat -a list " $sep " "$_lp_cache[@]"
+  disp=(-ld list)
+else
+  disp=()
+fi
+_wanted printers expl printer \
+    compadd "$@" "$disp[@]" - "${(@)_lp_cache%%:*}" && return 0
+
+(( $+_lp_alias_cache )) || return 1
+
+if zstyle -T ":completion:${curcontext}:printers" verbose; then
+  zformat -a list " $sep " "$_lp_alias_cache[@]"
+  disp=(-ld list)
+else
+  disp=()
+fi
+_wanted printers expl printer \
+    compadd "$@" "$disp[@]" - "${(@)_lp_alias_cache%%:*}" && return 0
+
+return 1

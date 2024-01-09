@@ -1,0 +1,30 @@
+#compdef xdvi
+
+_xt_arguments \
+  -+{allowshell,copy,expert,hush{,chars,checksums,specials},keep,l,no{ghostscript,grey,gssafer,makepk,postscript,scan},safer,thorough,underlink,version} \
+  +{altfont,base,browser,cr,debug,density,gamma,gspalette,hl,icongeometry,interpreter,margin,mfmode,offsets,p,paper,shrink,S,sidemargin,topmargin,xoffset,yoffset,grid{1,2,3},mgs{,1,2,3,4,5}} \
+  '-altfont:default font' \
+  '-base:base URL' \
+  '-browser:WWW browser:_command_names -e' \
+  '-cr:cursor color:_x_color' \
+  '-debug:debugging bitmask:((1\:bitmaps 2\:dvi\ translation 4\:pk\ reading 8\:batch\ operation 16\:events 32\:file\ opening 64\:PostScript\ communication 128\:Kpathsea\ statistics 256\:Kpathsea\ hash\ table\ lookups 512\:Kpathsea\ path\ definitions 1024\:Kpathsea\ path\ expansion 2048\:Kpathsea\ searches))' \
+  '-density:font shrink density' \
+  '-gamma:anti-aliasing factor [1.0]' \
+  -grid{1,2,3}':grid color:_x_color' \
+  '-gspalette:Ghostscript palette:(Color Greyscale Monochrome)' \
+  '-hl:page highlight color:_x_color' \
+  '-icongeometry:icon geometry:_x_geometry' \
+  '-interpreter:Ghostscript program:_command_names -e' \
+  '-margin:margin size' \
+  '-mfmode:metafont string' \
+  -mgs{,1,2,3,4,5}':magnifier size' \
+  '-offsets:offset size' \
+  '-p:font size (pixel per inch)' \
+  '-paper:paper size (<width>x<height> or ...):(us usr legal foolscap a1 a2 a3 a4 a5 a6 a7 b1 b2 b3 b4 b5 b6 b7 c1 c2 c3 c4 c5 c6 c7 a1r a2r a3r a4r a5r a6r a7r)' \
+  '-shrink:shrink factor' \
+  '-S:font shrink density' \
+  '-sidemargin:side margin' \
+  '-topmargin:top margin' \
+  '-xoffset:horizontal offset' \
+  '-yoffset:vertical offset' \
+  '*:DVI file:_files -g "*.(#i)dvi(|.Z|.gz|.bz2)(-.)"'

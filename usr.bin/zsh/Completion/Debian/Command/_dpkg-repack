@@ -1,0 +1,7 @@
+#compdef dpkg-repack
+
+_arguments \
+  '--root=[take package from filesystem rooted on <dir>]:root dir:_files -/' \
+  '--arch=[force the package to be built for specified architecture]:architecture:_deb_architectures' \
+  '--generate[generate build directory but do not build deb]' \
+  '*:package:_deb_packages xinstalled'

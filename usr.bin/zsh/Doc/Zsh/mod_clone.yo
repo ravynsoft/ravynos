@@ -1,0 +1,49 @@
+COMMENT(!MOD!zsh/clone
+A builtin that can clone a running shell onto another terminal.
+!MOD!)
+The tt(zsh/clone) module makes available one builtin command:
+
+startitem()
+findex(clone)
+cindex(shell, cloning)
+cindex(cloning the shell)
+cindex(terminal)
+item(tt(clone) var(tty))(
+Creates a forked instance of the current shell, attached to the specified
+var(tty).  In the new shell, the tt(PID), tt(PPID) and tt(TTY) special
+parameters are changed appropriately.  tt($!) is set to zero in the new
+shell, and to the new shell's PID in the original shell.
+
+The return status of the builtin is zero in both shells if successful,
+and non-zero on error.
+
+The target of tt(clone) should be an unused terminal, such as an unused virtual
+console or a virtual terminal created by
+
+example(xterm -e sh -c 'trap : INT QUIT TSTP; tty;
+        while :; do sleep 100000000; done')
+
+Some words of explanation are warranted about this long xterm command
+line: when doing clone on a pseudo-terminal, some other session
+("session" meant as a unix session group, or SID) is already owning
+the terminal. Hence the cloned zsh cannot acquire the pseudo-terminal
+as a controlling tty. That means two things:
+
+startitemize()
+itemiz(the job control signals will go to the sh-started-by-xterm process
+group (that's why we disable INT QUIT and TSTP with trap; otherwise
+the while loop could get suspended or killed))
+itemiz(the cloned shell will have job control disabled, and the job
+control keys (control-C, control-\ and control-Z) will not work.)
+enditemize()
+
+This does not apply when cloning to an em(unused) vc.
+
+Cloning to a used (and unprepared) terminal will result in two
+processes reading simultaneously from the same terminal, with
+input bytes going randomly to either process.
+
+tt(clone) is mostly useful as a shell built-in replacement for
+openvt.
+)
+enditem()

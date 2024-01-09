@@ -1,0 +1,43 @@
+#compdef bpython bpython-gtk bpython-urwid bpython2 bpython2-gtk bpython2-urwid bpython3 bpython3-gtk bpython3-urwid
+
+local -a all_opts urwid_opts gtk_opts
+
+all_opts=(
+  '--config[configuration file]:config file:_files'
+  '-h --help[show help message]'
+  '(-i --interactive)'{-i,--interactive}'[drop to bpython after running a file]'
+  '(-q --quiet)'{-q,--quiet}'[do not flush the output to stdout]'
+  '(-V --version)'{-V,--version}'[print version]'
+  '1:script:_files -g "*.u#py(-.)"'
+  '*:arguments:'
+)
+
+urwid_opts=(
+  '(-r --reactor)'{-r,--reactor}'[use twisted reactor instead of the event loop]:reactor'
+  '--help-reactors[display list of available Twisted reactors]'
+  '(-p --plugin)'{-p,--plugin}'[execute a twisted plugin]:plugin'
+  '(-s --server)'{-s,--server}'[run an eval server on the given port]:port:_ports'
+)
+
+gtk_opts=(
+  '--socket-id[embed bpython]:socket id:'
+)
+
+case "$service" in
+  bpython|bpython2|bpython3)
+    _arguments \
+      "$all_opts[@]"
+  ;;
+
+  bpython-urwid|bpython2-urwid|bpython3-urwid)
+    _arguments \
+      "$all_opts[@]" \
+      "$urwid_opts[@]"
+  ;;
+
+  bpython-gtk|bpython2-gtk|bpython3-gtk)
+    _arguments \
+      "$all_opts[@]" \
+      "$gtk_opts[@]"
+  ;;
+esac

@@ -1,0 +1,71 @@
+#autoload
+
+# How to convert XrmOptionDescRec:
+
+# XrmOptionDescRec optionDescList[] = {
+#   ...
+#   {option, specifier, argKind, value},
+#   ...
+# };
+
+#  argKind		argument for _xt_arguments
+#  XrmoptionNoArg	option
+#  XrmoptionIsArg	option
+#  XrmoptionStickyArg	option-:message:action
+#  XrmoptionSepArg	option:message:action
+#  XrmoptionResArg	option:message:_x_resource
+#  XrmoptionSkipArg	option:message:action
+#  XrmoptionSkipLine	option:*::message:action
+#  XrmoptionSkipNArgs	option:message[1]:action[1]:...:message[value]:action[value]
+
+# cf. XrmParseCommand(3X11), X11R6.4/xc/lib/Xt/Initialize.c, X(5)
+
+local ret long xargs opts rawret nm="$compstate[nmatches]"
+
+xargs=(
+  -+{rv,synchronous}
+  -{reverse,iconic}
+  '-background:background color:_x_color'
+  '-bd:border color:_x_color'
+  '-bg:background color:_x_color'
+  '-bordercolor:border color:_x_color'
+  '-borderwidth:border width:_x_borderwidth'
+  '-bw:border width:_x_borderwidth'
+  '-display:display:_x_display'
+  '-fg:foreground color:_x_color'
+  '-font:font:_x_font'
+  '-fn:font:_x_font'
+  '-foreground:foreground color:_x_color'
+  '-geometry:geometry:_x_geometry'
+  '-name:name:_x_name'
+  '-selectionTimeout:selection timeout (milliseconds):_x_selection_timeout'
+  '-title:title:_x_title'
+  '-xnllanguage:locale:_x_locale'
+  '*-xrm:resource:_x_resource'
+  '-xtsessionID:session ID:_xt_session_id'
+)
+
+long=$argv[(I)--]
+if (( long )); then
+  argv[long]=( "$xargs[@]" -- )
+else
+  set -- "$@" "$xargs[@]"
+fi
+
+opts=()
+while [[ $1 = -(O*|[CRWsw]) ]]; do
+  opts=($opts $1)
+  [[ $1 = -R ]] && rawret=yes
+  shift
+done
+
+_arguments -R "$opts[@]" "$@"
+
+ret=$?
+
+if [[ "$ret" = 300 ]]; then
+  compstate[restore]=''
+  [[ -z $rawret ]] && ret=$(( nm == $compstate[nmatches] ))
+fi
+
+return ret

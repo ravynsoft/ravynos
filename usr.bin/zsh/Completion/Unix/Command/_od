@@ -1,0 +1,83 @@
+#compdef od god
+
+local curcontext="$curcontext" state state_descr line args ret=1
+local -A opt_args
+
+args=(
+  '(-A --address-radix)'{-A+,--address-radix=}'[file offset base]:base:((d\:decimal o\:octal x\:hexadecimal n\:none))'
+  '(-j --skip-bytes)'{-j+,--skip-bytes=}'[skip specified bytes]:bytes'
+  '(-N --read-bytes)'{-N+,--read-bytes=}'[dump at most specified bytes]:bytes'
+  '*'{-t+,--format=}'[specify output format]:format string:->format'
+  '(-v --output-duplicates)'{-v,--output-duplicates}'[do not use * to mark line suppression]'
+  '-a[output named characters (-t a)]'
+  '-b[output octal bytes (-t o1)]'
+  '-c[output characters with C-style escape (-t c)]'
+  '-d[output unsigned decimal shorts (-t u2)]'
+  '-f[output single-precision floats (-t fF)]'
+  {-h,-x}'[output hexadecimal shorts (-t x2)]'
+  '-i[output decimal integers (-t dI)]'
+  {-l,-I,-L}'[output decimal longs (-t dL)]'
+  {-o,-B}'[output octal shorts (-t o2)]'
+  '-s[output decimal shorts (-t d2)]'
+)
+
+if _pick_variant gnu=GNU unix --version; then
+  # -h -B -I and -L are obsolescent and undocumented
+  args=( ${(R)args:#(|\*)(|\(*\))-[hBIL]*} )
+  args+=(
+    '--traditional'
+    '--endian=[swap input bytes]:endianness:(big little)'
+    {-S+,--strings=-}'[output strings of at least specified bytes long]:length'
+    {-w-,--width=-}'[output specified bytes per line]:bytes'
+    '(- : *)--help[display help and exit]'
+    '(- : *)--version[output version information and exit]'
+  )
+else
+  args=( ${(R)args:#(|\*)(|\(*\))--*} )    # remove long options
+  case "$OSTYPE" in
+    darwin*|freebsd*|dragonfly*|openbsd*)
+      args+=(
+        '-D[output unsigned decimal integers (-t u4)]'
+        {-e,-F}'[output double-precision floats (-t fD)]'
+        {-H,-X}'[output hexadecimal ints (-t x4)]'
+        '-O[output octal ints (-t o4)]'
+      )
+    ;;
+    solaris*)
+      args=(
+        ${(M)args:#(|\*)(|\(*\))-[AjNtvbcdfosx]*}
+	'-C[output all printable characters and use C-style escapes]'
+	'-D[output unsigned decimal long words (-t u4)]'
+	'-F[output double-precision floats (-t f8)]'
+	'-O[output octal ints (-t o4)]'
+	'-S[output decimal ints (-t d4)]'
+	'-X[output hexadecimal ints (-t x4)]'
+      )
+    ;;
+    (*)
+      # POSIX options only
+      args=( ${(M)args:#(|\*)(|\(*\))-[AjNtvbcdosx]*} )
+    ;;
+  esac
+fi
+
+_arguments -C -s -S : "$args[@]" '*: :_files' && return 0
+
+case "$state" in
+  (format)
+    compset -P '*[acCSIL1248FDL]'
+    if compset -P '*[doux]'; then
+      args=( 'C:char' 'S:short' 'I:int' 'L:long' 1 2 4 8 )
+      _describe -t integer-size 'size of integer' args && ret=0
+    elif compset -P '*f'; then
+      args=( 'F:float' 'D:double' 'L:long double' )
+      _describe -t float-size 'size of float' args && ret=0
+    fi
+    args=( 'a:named character' 'c:character (C-style escape)'
+           'd:decimal' 'o:octal' 'u:unsigned decimal'
+           'x:hexadecimal' 'f:floating-point number' )
+    _describe -t type-specifier 'type specifier' args && ret=0
+  ;;
+esac
+
+return ret

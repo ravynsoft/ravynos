@@ -1,0 +1,71 @@
+#compdef dconf
+
+local curcontext="$curcontext" state line cmds ret=1
+local cmd=$words[1]
+
+cmds=(
+  'help:display help information'
+  'read:read the value of a key'
+  'list:list the contents of a directory'
+  'write:change the value of a key'
+  'reset:reset the value of a key or directory'
+  'compile:compile a binary database from keyfiles'
+  'update:update the system databases'
+  'watch:watch a path for changes'
+  'dump:dump an entire subpath to stdout'
+  'load:populate a subpath from stdin'
+)
+
+if (( CURRENT == 2 )); then
+  _describe -t commands command cmds
+  return
+fi
+
+curcontext="${curcontext%:*}-$words[2]:"
+shift words
+(( CURRENT-- ))
+
+case $words[1] in
+  dump|list|load) state=dirs ;;
+  watch) state=keys ;;
+  read)
+    _arguments -A "-*" '-d[read default values]' '1:key:->keys' && ret=0
+  ;;
+  write)
+    _arguments '1:key:->keys' '2:value' && ret=0
+  ;;
+  reset)
+    _arguments -A "-*" '-f[reset entire directory]' '1:key:->keys' && ret=0
+    [[ $+opt_args[-f] = 1 && state = keys ]] && state=dirs
+  ;;
+  compile)
+    _arguments '1:file:_files' '2:path:_directories' && ret=0
+  ;;
+  help)
+    _describe -t commands command cmds && ret=0
+  ;;
+  *) _default && ret=0 ;;
+esac
+
+case $state in
+  keys)
+    compset -P '*/'
+    dirs=( ${${${(f)"$(_call_program keys dconf _complete \'\' "${IPREFIX:-/}")"}#$IPREFIX}%% #} )
+    _tags keys
+    while _tags; do
+      if _requested keys; then
+        _description keys expl keu
+        compadd "$expl[@]" -qS ' ' ${dirs:#*/} && ret=0
+        compadd "$expl[@]" -S '' ${(M)dirs:#*/} && ret=0
+      fi
+      (( ret )) || break
+    done
+  ;;
+  dirs)
+    compset -P '*/'
+    _wanted keys expl directory compadd -S '' - \
+        ${${(f)"$(_call_program keys dconf _complete / "${IPREFIX:-/}")"}#$IPREFIX} && ret=0
+  ;;
+esac
+
+return ret

@@ -1,0 +1,39 @@
+#compdef scselect
+
+local ret=1 u l
+local -a context line state state_descr tmp loc1 loc2
+local -A opt_args
+
+_arguments -s -S : \
+  '-n[delay changing until next boot]' \
+  '1: :->locations' \
+&& ret=0
+
+[[ $state == locations ]] && {
+  # For some reason scselect expects location names to be encoded in Mac OS
+  # Roman; in order to prevent completed arguments from breaking the tool, we'll
+  # insert the UUID instead if the name would contain incompatible characters
+  tmp=( ${(f)"$( _call_program locations $words[1] )"} )
+  tmp=( ${tmp[2,-1]} )
+  tmp=( ${tmp##[*[:space:]]##} )
+  tmp=( ${tmp//:/\\:} )
+  tmp=( ${tmp/[[:space:]]##\(/$'\0'} )
+  tmp=( ${tmp%\)} )
+
+  for u l in "${(@0)tmp}"; do
+    loc1+=( "${l}:${u}" )
+    if [[ $l == [[:ascii:]]## ]]; then
+      loc2+=( $l )
+    else
+      loc2+=( $u )
+    fi
+  done
+
+  if (( $#loc1 )); then
+    _describe location loc1 loc2 && ret=0
+  else
+    _message location && ret=0
+  fi
+}
+
+return ret

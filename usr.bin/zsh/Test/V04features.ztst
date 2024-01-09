@@ -1,0 +1,172 @@
+%prep
+
+# Do some tests on handling of features.
+# This also does some slightly more sophisticated loading and
+# unloading tests than we did in V01zmodload.ztst.
+#
+# We use zsh/datetime because it has a list of features that is short
+# but contains two types.
+
+  # Subshell for prep test so we can load individual features later
+  if ! (zmodload zsh/datetime 2>/dev/null); then
+    ZTST_unimplemented="can't load the zsh/datetime module for testing"
+  fi
+
+%test
+  zmodload -F zsh/datetime
+  zmodload -lF zsh/datetime
+0:Loading modules with no features
+>-b:strftime
+>-p:EPOCHSECONDS
+>-p:EPOCHREALTIME
+>-p:epochtime
+
+  zmodload -F zsh/datetime b:strftime
+  zmodload -lF zsh/datetime
+0:Enabling features
+>+b:strftime
+>-p:EPOCHSECONDS
+>-p:EPOCHREALTIME
+>-p:epochtime
+
+  zmodload -F zsh/datetime +p:EPOCHSECONDS -b:strftime
+  zmodload -lF zsh/datetime
+0:Disabling features
+>-b:strftime
+>+p:EPOCHSECONDS
+>-p:EPOCHREALTIME
+>-p:epochtime
+
+  zmodload -Fe zsh/datetime p:EPOCHSECONDS b:strftime
+0:Testing existing features
+
+  zmodload -Fe zsh/datetime +p:EPOCHSECONDS
+0:Testing features are in given state (on feature is on)
+
+  zmodload -Fe zsh/datetime -p:EPOCHSECONDS
+1:Testing features are in given state (on feature is not off
+
+  zmodload -Fe zsh/datetime +p:strftime
+1:Testing features are in given state (off feature is not on)
+
+  zmodload -Fe zsh/datetime -b:strftime
+0:Testing features are in given state (off feature is off
+
+  zmodload -Fe zsh/datetime p:EPOCHSECONDS b:strftime b:mktimebetter
+1:Testing non-existent features
+
+  zmodload -FlP dtf zsh/datetime
+  for feature in b:strftime p:EPOCHSECONDS; do
+    if [[ ${${dtf[(R)?$feature]}[1]} = + ]]; then
+      print $feature is enabled
+    else
+      print $feature is disabled
+    fi
+  done
+0:Testing features via array parameter
+>b:strftime is disabled
+>p:EPOCHSECONDS is enabled
+
+  fn() {
+    local EPOCHSECONDS=scruts
+    print $EPOCHSECONDS
+    print ${(t)EPOCHSECONDS}
+  }
+  fn
+  if [[ $EPOCHSECONDS = <-> ]]; then
+    print EPOCHSECONDS is a number
+  else
+    print EPOCHSECONDS is some random piece of junk
+  fi
+  print ${(t)EPOCHSECONDS}
+0:Module special parameter is hidden by a local parameter
+>scruts
+>scalar-local
+>EPOCHSECONDS is a number
+>integer-readonly-hide-hideval-special
+
+  typeset +h EPOCHSECONDS
+  fn() {
+    local EPOCHSECONDS=scruts
+    print Didn\'t get here >&2
+  }
+  fn
+1:Unhidden readonly special can't be assigned to when made local
+?fn:1: read-only variable: EPOCHSECONDS
+
+  zmodload -u zsh/datetime
+0:Module unloaded
+
+  zmodload -e zsh/datetime
+1:Module doesn't exist when unloaded
+
+  zmodload -Fe zsh/datetime p:EPOCHSECONDS
+1:Module doesn't have features when unloaded
+
+  fn() {
+    local EPOCHSECONDS=scrimf
+    zmodload zsh/datetime
+  }
+  fn
+2:Failed to add parameter if local parameter present
+?fn:2: Can't add module parameter `EPOCHSECONDS': local parameter exists
+?fn:zsh/datetime:2: error when adding parameter `EPOCHSECONDS'
+
+  zmodload -lF zsh/datetime
+0:Feature state with loading after error enabling
+>+b:strftime
+>-p:EPOCHSECONDS
+>+p:EPOCHREALTIME
+>+p:epochtime
+
+  zmodload -F zsh/datetime p:EPOCHSECONDS
+  zmodload -Fe zsh/datetime +p:EPOCHSECONDS
+0:Successfully added feature parameter that previously failed
+
+  fn() {
+    local EPOCHSECONDS=scrooble
+    zmodload -u zsh/datetime
+    print $EPOCHSECONDS
+  }
+  fn
+  print ${+EPOCHSECONDS}
+0:Successfully unloaded a module despite a parameter being hidden
+>scrooble
+>0
+
+  EPOCHSECONDS=(any old parameter)
+  print -l $EPOCHSECONDS
+0:Using parameter as normal after unloading is OK
+>any
+>old
+>parameter
+
+  print strftime is ${builtins[strftime]:-undefined}
+  zmodload -F zsh/datetime b:strftime
+  print strftime is ${builtins[strftime]:-undefined}
+  zmodload -F zsh/datetime -b:strftime
+  print strftime is ${builtins[strftime]:-undefined}
+0:Enabling and disabling of builtins as features
+>strftime is undefined
+>strftime is defined
+>strftime is undefined
+
+  zmodload -u zsh/datetime
+  zmodload zsh/datetime
+2:Loading won't override global parameter
+?(eval):2: Can't add module parameter `EPOCHSECONDS': parameter already exists
+?(eval):zsh/datetime:2: error when adding parameter `EPOCHSECONDS'
+
+  unset EPOCHSECONDS
+  zmodload -F zsh/datetime p:EPOCHSECONDS
+  zmodload -Fe zsh/datetime +p:EPOCHSECONDS
+0:unsetting a global parameter allows feature parameter to be enabled
+
+  zmodload -F zsh/datetime -b:strftime -p:EPOCHSECONDS
+  zmodload zsh/datetime
+  zmodload -lF zsh/datetime
+0:zmodload with no -F enables all features
+>+b:strftime
+>+p:EPOCHSECONDS
+>+p:EPOCHREALTIME
+>+p:epochtime

@@ -1,0 +1,172 @@
+#compdef lynx
+
+local curcontext="$curcontext" state line ret=1
+typeset -A opt_args
+
+_arguments -C \
+  '-accept_all_cookies[accept cookies without prompting if Set-Cookie handling is on (off)]' \
+  '-anonymous[apply restrictions for anonymous account, see also -restrictions]' \
+  "-assume_charset=[charset for documents that don't specify it]:character set:" \
+  '-assume_local_charset=[charset assumed for local files]:character set:' \
+  '-assume_unrec_charset=[use this instead of unrecognized charsets]:character set:' \
+  '-auth=[authentication information for protected documents]:username\:password:' \
+  '-base[prepend a request URL comment and BASE tag to text/html outputs for -source dumps]' \
+  '-bibp=[specify a local bibp server (default http://bibhost/)]:bibp server:_urls' \
+  '-blink[forces high intensity background colors for color mode, if available and supported by the terminal]' \
+  '-book[use the bookmark page as the startfile (off)]' \
+  '-buried_news[toggles scanning of news articles for buried references (on)]' \
+  '-cache=[specify number of documents cached in memory]:number of documents:' \
+  '-case[enable case sensitive user searching (off)]' \
+  '-center[toggle center alignment in HTML TABLE (off)]' \
+  '-cfg=[specifies a lynx.cfg file other than the default]:configuration file:_files' \
+  '-child[exit on left-arrow in startfile, and disable save to disk]' \
+  '-child_relaxed[exit on left-arrow in startfile (allows save to disk)]' \
+  '-cmd_log=[log keystroke commands to the given file]:keystroke log:_files' \
+  '-cmd_script=[read keystroke commands from the given file (see -cmd_log)]:keystroke log:_files' \
+  '-color[forces color mode on, if available]' \
+  '-collapse_br_tags[toggle collapsing of BR tags (on)]' \
+  '-connect_timeout=[set the N-second connection timeout]:connection timeout (seconds) [18000]' \
+  '-convert_to=[convert input]:format:_mime_types' \
+  '-cookie_file=[specifies a file to use to read cookies]:cookie file:_files' \
+  '-cookie_save_file=[specifies a file to use to store cookies]:cookie file:_files' \
+  '-cookies[toggles handling of Set-Cookie headers (on)]' \
+  '-core[toggles forced core dumps on fatal errors (off)]' \
+  '-crawl[with -traversal, output each page to a file with -dump, format output as with -traversal, but to stdout]' \
+  '-curses_pads[uses curses pad feature to support left/right shifting (on)]' \
+  '-debug_partial[incremental display stages with MessageSecs delay (off)]' \
+  '-default_colors[use terminal default foreground/background colors (on)]' \
+  '-delay=[set NNN-second delay at statusline message]:delay (seconds) [0.000]' \
+  "-display=[set the display variable for X exec'ed programs]:display:_x_display" \
+  '-display_charset=[charset for the terminal output]:character set:' \
+  "-dont_wrap_pre[inhibit wrapping of text in <pre> when -dump'ing and -crawl'ing, mark wrapped lines in interactive session (off)]" \
+  '-dump[dump the first file to stdout and exit]' \
+  '-editor=[enable edit mode with specified editor]:editor:_command_names -e' \
+  '-emacskeys[enable emacs-like key movement (off)]' \
+  "-enable_scrollback[toggles compatibility with comm programs' scrollback keys (may be incompatible with some curses packages) (off)]" \
+  '-error_file=[write the HTTP status code here]:error file:_files' \
+  '-exec[enable local program execution (normally not configured)]' \
+  '-fileversions[include all versions of files in local VMS directory listings]' \
+  '-force_empty_hrefless_a[force HREF-less 'A' elements to be empty (close them as soon as they are seen) (off)]' \
+  '-force_html[forces the first document to be interpreted as HTML (off)]' \
+  '-force_secure[toggle forcing of the secure flag for SSL cookies (off)]' \
+  '-forms_options[toggles forms-based vs old-style options menu (on)]' \
+  '-from[toggle transmission of From headers (on)]' \
+  '-ftp[disable ftp access (off)]' \
+  '-get_data[user data for get forms, read from stdin, terminated by '---' on a line]' \
+  '-head[send a HEAD request (off)]' \
+  '(- *)-help[print this usage message]' \
+  '-hiddenlinks=[hidden links: options are merge, listonly, or ignore]:option:(merge listonly ignore)' \
+  "-historical[toggles use of '>' or '-->' as terminator for comments (off)]" \
+  '-homepage=[set homepage separate from start page]:URL:->html' \
+  '-html5_charsets[toggle use of HTML5 charset replacements]' \
+  '-image_links[toggles inclusion of links for all images (off)]' \
+  '-index=[set the default index file to URL]:URL:->html' \
+  '-ismap[toggles inclusion of ISMAP links when client-side MAPs are present (off)]' \
+  '-justify[do justification of text (off)]' \
+  '-link=[starting count for lnk#.dat files produced by -crawl (0)]:starting count:' \
+  '-list_inline[with -dump, show links inline with text]' \
+  '-listonly[with -dump, forces it to show only the list of links (off)]' \
+  '-localhost[disable URLs that point to remote hosts (off)]' \
+  '-locexec[enable local program execution from local files only (if lynx was compiled with local execution enabled)]' \
+  '-lss=[specifies a lynx.lss file other than the default]:color-style file:_files' \
+  '-mime_header[include mime headers and force source dump]' \
+  '-minimal[toggles minimal versus valid comment parsing (on)]' \
+  '-newschunksize=[number of articles in chunked news listings]:number of news articles:' \
+  '-newsmaxchunk=[maximum news articles in listings before chunking]:maximum number of news articles:' \
+  '-nobold[disable bold video-attribute]' \
+  '-nobrowse[disable directory browsing]' \
+  '-nocc[disable Cc: prompts for self copies of mailings (off)]' \
+  '-nocolor[turn off color support]' \
+  '-noexec[disable local program execution]' \
+  '-nofilereferer[disable transmission of Referer headers for file URLs (on)]' \
+  '-nolist[disable the link list feature in dumps (off)]' \
+  '-nolog[disable mailing of error messages to document owners (on)]' \
+  '-nomargins[disable the right/left margins in the default style-sheet (off)]' \
+  '-nomore[disable -more- string in statusline messages]' \
+  '-nonrestarting_sigwinch[make window size change handler non-restarting (off)]' \
+  '-nonumbers[disable the link/form numbering feature in dumps (off)]' \
+  '-nopause[disable forced pauses for statusline messages]' \
+  '-noprint[disable some print functions, like -restrictions=print (off)]' \
+  "-noredir[don't follow Location: redirection (off)]" \
+  '-noreferer[disable transmission of Referer headers (off)]' \
+  '-noreverse[disable reverse video-attribute]' \
+  '-nosocks[disable SOCKS proxy usage by a SOCKSified Lynx]' \
+  '-nostatus[disable the miscellaneous information messages (off)]' \
+  '-notitle[disable the title at the top of each page (off)]' \
+  '-nounderline[disable underline video-attribute]' \
+  "-nozap=[disable checks for the 'z' key]:duration:(all initially full)" \
+  '-number_fields[force numbering of links as well as form input fields (off)]' \
+  '-number_links[force numbering of links (off)]' \
+  '-partial[toggles display partial pages while downloading (on)]' \
+  '-partial_thres=[number of lines to render before repainting display with partial-display logic (-1)]:number of lines:' \
+  '-passive-ftp[toggles passive ftp connection (on)]' \
+  '-pauth=[authentication information for protected proxy server]:username\:password:' \
+  '-popup[toggles handling of single-choice SELECT options via popup windows or as lists of radio buttons (off)]' \
+  '-post_data[user data for post forms, read from stdin, terminated by '---' on a line]' \
+  '-preparsed[show parsed text/html with -source and in source view to visualize how lynx behaves with invalid HTML (off)]' \
+  '-prettysrc[do syntax highlighting and hyperlink handling in source view (off)]' \
+  '-print[enable print functions (DEFAULT), opposite of -noprint (on)]' \
+  '-pseudo_inlines[toggles pseudo-ALTs for inlines with no ALT string (on)]' \
+  '-raw[toggles default setting of 8-bit character translations or CJK mode for the startup character set (off)]' \
+  '-realm[restricts access to URLs in the starting realm (off)]' \
+  '-read_timeout=[set the N-second read-timeout]:timeout (seconds) [18000]' \
+  '-reload[flushes the cache on a proxy server (only the first document affected) (off)]' \
+  '-restrictions=[use -restrictions to see list]:options:->restrictions' \
+  '-resubmit_posts[toggles forced resubmissions (no-cache) of forms with method POST when the documents they returned are sought with the PREV_DOC command or from the History List (off)]' \
+  '-rlogin[disable rlogins (off)]' \
+  '-scrollbar[toggles showing scrollbar (off)]' \
+  '-scrollbar_arrow[toggles showing arrows at ends of the scrollbar (on)]' \
+  '-selective[require .www_browsable files to browse directories]' \
+  '-session=[resume from specified file on startup and save session to it on exit]:session file:_files' \
+  '-sessionin=[resume session from specified file on startup]:session file:_files' \
+  '-sessionout=[save session to specified file on exit]:session file:_files' \
+  '-short_url[enables examination of beginning and end of long URL in status line (off)]' \
+  "-show_cfg[show 'LYNX.CFG' setting (off)]" \
+  '-show_cursor[toggles hiding of the cursor in the lower right corner (on)]' \
+  '-show_rate[toggles display of transfer rate (on)]' \
+  "-soft_dquotes[toggles emulation of the old Netscape and Mosaic bug which treated '>' as a co-terminator for double-quotes and tags (off)]" \
+  '-source[dump the source of the first file to stdout and exit]' \
+  '-stack_dump[disable SIGINT cleanup handler (off)]' \
+  '-startfile_ok[allow non-http startfile and homepage with -validate (off)]' \
+  '-stderr[write warning messages to standard error when -dump or -source is used (off)]' \
+  '-stdin[read startfile from standard input (off)]' \
+  '-tagsoup[use TagSoup rather than SortaSGML parser (off)]' \
+  '-telnet[disable telnets (off)]' \
+  '-term=[set terminal type]:terminal name:_terminals' \
+  '-tlog[toggles use of a Lynx Trace Log for the current session (on)]' \
+  '-tna[turn on "Textfields Need Activation" mode (off)]' \
+  '-trace[turns on Lynx trace mode (off)]' \
+  '-trace_mask=[customize Lynx trace mode]:trace mask:(0 1 2 3 4 5 6 7)' \
+  '-traversal[traverse all http links derived from startfile]' \
+  '-trim_blank_lines[toggle trimming of leading/trailing/collapsed-br blank lines (on)]' \
+  '-trim_input_fields[trim input text/textarea fields in forms (off)]' \
+  '-underline_links[toggles use of underline/bold attribute for links (off)]' \
+  '-underscore[toggles use of _underline_ format in dumps (off)]' \
+  '-unique_urls[toggle use of unique-urls setting for -dump and -listonly options (off)]' \
+  '-use_mouse[turn on mouse support (off)]' \
+  '-useragent=[set alternate Lynx User-Agent header]:user-agent header:' \
+  '-validate[accept only http URLs (meant for validation) implies more restrictions than -anonymous, but goto is allowed for http and https (off)]' \
+  '-verbose[toggles [LINK\], [IMAGE\] and [INLINE\] comments with filenames of these images (on)]' \
+  '(- *)-version[print Lynx version information]' \
+  '-vikeys[enable vi-like key movement (off)]' \
+  '-width=[specify screen width for formatting of dumps]:number of columns [80]' \
+  '-with_backspaces[emit backspaces in output if -dumping or -crawling]' \
+  '-xhtml-parsing[enable XHTML 1.0 parsing (off)]' \
+  ':URL:->html' && ret=0
+
+case "$state" in
+restrictions)
+  _values -s ',' 'restriction' \
+    \? all bookmark bookmark_exec change_exec_perms chdir compileopts_info \
+    default dired_support disk_save dotfiles download editor exec exec_frozen \
+    externals file_url goto inside_ftp inside_news inside_rlogin \
+    inside_telnet jump lynxcfg_info lynxcfg_xinfo lynxcgi mail multibook \
+    news_post options_save outside_ftp outside_news outside_rlogin \
+    outside_telnet print shell suspend telnet_port useragent && return
+  ;;
+html)
+  _alternative 'files:file:_files -g "*.x#html#(-.)"' 'urls:URL:_urls' && return
+  ;;
+esac
+
+return ret

@@ -1,0 +1,972 @@
+#
+# This file contains tests corresponding to the `Shell Grammar' texinfo node.
+#
+
+%prep
+
+  mkdir basic.tmp && cd basic.tmp
+
+  touch foo bar
+  echo "'" >unmatched_quote.txt
+
+%test
+#
+# Tests for `Simple Commands and Pipelines'
+#
+
+  # Test skipping early to ensure we run the remainder...
+  if [[ -n $ZTST_test_skip ]]; then
+    ZTST_skip="Test system verification for skipping"
+  else
+    print "This is standard output"
+    print "This is standard error" >&2
+    false
+  fi
+1:Test skipping if ZTST_test_skip is set
+>This is standard output
+?This is standard error
+
+  echo foo | cat | sed 's/foo/bar/'
+0:Basic pipeline handling
+>bar
+
+  false | true
+0:Exit status of pipeline with builtins (true)
+
+  true | false
+1:Exit status of pipeline with builtins (false)
+
+  false
+  $nonexistent_variable
+0:Executing command that evaluates to empty resets status
+
+  false
+  sleep 1 &
+  print $?
+  # a tidy test is a happy test
+  wait $!
+0:Starting background command resets status
+>0
+
+  false
+  . /dev/null
+0:Sourcing empty file resets status
+
+  fn() { local foo; read foo; print $foo; }
+  coproc fn
+  print -p coproc test output
+  read -p bar
+  print $bar
+0:Basic coprocess handling
+>coproc test output
+
+  true | false && print true || print false
+0:Basic sublist (i)
+>false
+
+  false | true && print true || print false
+0:Basic sublist (ii)
+>true
+
+  (cd /NonExistentDirectory >&/dev/null) || print false
+0:Basic subshell list with error
+>false
+
+  { cd /NonExistentDirectory >&/dev/null } || print false
+0:Basic current shell list with error
+>false
+
+  fn() { : && ! ; : }
+  functions -x3 fn
+  fn
+0:End of sublist containing ! with no command
+>fn () {
+>   : && !
+>   :
+>}
+
+  if [[ m -eq y ]]; then
+    : && !
+    :
+  fi
+0:! followed by no further commands
+
+  fn() { ! {!} && ! (!) || ! {!} }
+  functions -x2 fn
+  fn
+0:exclamation marks without following commands
+>fn () {
+>  ! {
+>    !
+>  } && ! (
+>    !
+>  ) || ! {
+>    !
+>  }
+>}
+
+  ! | true
+1:! followed by no command but by a pipe
+?(eval):1: parse error near `|'
+
+#
+# Tests for `Precommand Modifiers'
+#
+  - $ZTST_testdir/../Src/zsh -fc "[[ \$0 = \"-$ZTST_testdir/../Src/zsh\" ]]"
+0:`-' precommand modifier
+
+  echo f*
+  noglob echo f*
+0:`noglob' precommand modifier
+>foo
+>f*
+
+  (exec /bin/sh; echo bar)
+0:`exec' precommand modifier
+
+  (exec -l $ZTST_testdir/../Src/zsh -fc 'echo $0' | sed 's%/.*/%%' )
+0:`exec' with -l option
+>-zsh
+
+  (exec -a /bin/SPLATTER /bin/sh -c 'echo $0')
+0:`exec' with -a option
+>/bin/SPLATTER
+
+  (exec -a/bin/SPLOOSH /bin/sh -c 'echo $0')
+0:`exec' with -a option, no space
+>/bin/SPLOOSH
+
+  (exec -a foo* $ZTST_testdir/../Src/zsh -fc 'print -r -- ${(V)0}')
+  (exec -a "" $ZTST_testdir/../Src/zsh -fc 'print -r -- ${(V)0}')
+0:rationalisation of arguments to exec -a
+>foo*
+>
+
+  (
+    opts=(-a /bin/WHOOOSH)
+    exec $opts /bin/sh -c 'echo $0'
+  )
+0:`exec' with -a option from expansion
+>/bin/WHOOOSH
+
+  (export FOO=bar; exec -c /bin/sh -c 'echo x${FOO}x')
+0:`exec' with -c option
+>xx
+
+  (\exec /bin/sh -c 'echo Test one'; print Not reached)
+  ('exec' /bin/sh -c 'echo Test two'; print Not reached)
+  (\exec -c /bin/sh -c 'echo Test three'; print Not reached)
+0:precommand modifiers with quotes
+>Test one
+>Test two
+>Test three
+
+  cat() { echo Function cat executed; }
+  command cat && unfunction cat
+0:`command' precommand modifier
+<External command cat executed
+>External command cat executed
+
+  (command -p echo this is output)
+  (\command -p echo this is more output)
+  ('command' -p echo this is yet more output)
+0: command -p without -v or -V
+>this is output
+>this is more output
+>this is yet more output
+
+  command -pv cat
+  command -pv echo
+  command -p -V cat
+  command -p -V -- echo
+0:command -p in combination
+*>*/cat
+>echo
+>cat is /*/cat
+>echo is a shell builtin
+
+  args=(
+  'command -pv cat'
+  'command -pv echo'
+  'command -p -V cat'
+  'command -p -V -- echo'
+  )
+  for arg in $args; do
+    ${=arg}
+  done
+0:command -p in combination, using expansion
+*>*/cat
+>echo
+>cat is /*/cat
+>echo is a shell builtin
+
+  cd() { echo Not cd at all; }
+  builtin cd . && unfunction cd
+0:`builtin' precommand modifier
+
+#
+# Tests for `Complex Commands'
+#
+
+  if true; then
+    print true-1
+  elif true; then
+    print true-2
+  else
+    print false
+  fi
+0:`if ...' (i)
+>true-1
+
+  if false; then
+    print true-1
+  elif true; then
+    print true-2
+  else
+    print false
+  fi
+0:`if ...' (ii)
+>true-2
+
+  if false; then
+    print true-1
+  elif false; then
+    print true-2
+  else
+    print false
+  fi
+0:`if ...' (iii)
+>false
+
+  if true;
+    :
+  fi
+1d:`if ...' (iv)
+?(eval):3: parse error near `fi'
+
+  for name in word to term; do
+    print $name
+  done
+0:`for' loop
+>word
+>to
+>term
+
+  for name
+  in word to term; do
+    print $name
+  done
+0:`for' loop with newline before in keyword
+>word
+>to
+>term
+
+  for (( name = 0; name < 3; name++ )); do
+    print $name
+  done
+0:arithmetic `for' loop
+>0
+>1
+>2
+
+  for (( $(true); ; )); do break; done
+  for (( ; $(true); )); do break; done
+  for (( ; ; $(true) )); do break; done
+  for (( ; $((1)); )); do break; done
+0:regression test, nested cmdsubst in arithmetic `for' loop
+
+  for keyvar valvar in key1 val1 key2 val2; do
+     print key=$keyvar val=$valvar
+  done
+0:enhanced `for' syntax with two loop variables
+>key=key1 val=val1
+>key=key2 val=val2
+
+  for keyvar valvar stuffvar in keyA valA stuffA keyB valB stuffB; do
+     print key=$keyvar val=$valvar stuff=$stuffvar
+  done
+0:enhanced `for' syntax with three loop variables
+>key=keyA val=valA stuff=stuffA
+>key=keyB val=valB stuff=stuffB
+
+  for in in in in in stop; do
+    print in=$in
+  done
+0:compatibility of enhanced `for' syntax with standard syntax
+>in=in
+>in=in
+>in=in
+>in=stop
+
+  name=0
+  while (( name < 3 )); do
+    print $name
+    (( name++ ))
+  done
+0:`while' loop
+>0
+>1
+>2
+
+  name=0
+  until (( name == 3 )); do
+    print $name
+    (( name++ ))
+  done
+0:`until' loop
+>0
+>1
+>2
+
+  repeat 3 do
+    echo over and over
+  done
+0:`repeat' loop
+>over and over
+>over and over
+>over and over
+
+  word=Trinity
+  case $word in
+    Michaelmas) print 0
+                ;;
+    Hilary) print 1
+            ;;
+    Trinity) print 2
+             ;;
+    *) print 3
+       ;;
+  esac
+0:`case', old syntax
+>2
+
+  word=Trinity
+  case $word in
+    (Michaelmas) print 0
+                ;;
+    (Hilary) print 1
+            ;;
+    (Trinity) print 2
+             ;;
+    (*) print 3
+       ;;
+  esac
+0:`case', new syntax
+>2
+
+  word=Hilary
+  case $word in
+    (Michaelmas) print 0
+                ;;
+    (Hilary) print 1
+            ;&
+    (Trinity) print 2
+             ;&
+    (*) print 3
+       ;;
+  esac
+0:`case', new syntax, cascaded
+>1
+>2
+>3
+
+  case whatever in
+  (*) print yeah, right ;&
+  esac
+  print but well
+0:'case', redundant final ";&"
+>yeah, right
+>but well
+
+## Select now reads from stdin if the shell is not interactive.
+## Its own output goes to stderr.
+  (COLUMNS=80 LINES=3
+  PS3="input> "
+  select name in one two three; do
+    print $name
+  done)
+0:`select' loop
+<2
+?1) one     2) two     3) three   
+?input> input> 
+>two
+
+  function name1 name2 () { print This is $0; }
+  name2
+  name1 name2() { print This is still $0; }
+  name2
+0:`function' keyword
+>This is name2
+>This is still name2
+
+  (time cat) >&/dev/null
+0:`time' keyword (status only)
+
+  TIMEFMT='%E %mE %uE %* %m%mm %u%uu'; time (:)
+0:`time' keyword with custom TIMEFMT
+*?[0-9]##.[0-9](#c2)s [0-9]##ms [0-9]##us %\* %m%mm %u%uu
+
+  if [[ -f foo && -d . && -n $ZTST_testdir ]]; then
+    true
+  else
+    false
+  fi
+0:basic [[ ... ]] test
+
+#
+# Current shell execution with try/always form.
+# We put those with errors in subshells so that any unhandled error doesn't
+# propagate.
+#
+
+  {
+     print The try block.
+  } always {
+     print The always block.
+  }
+  print After the always block.
+0:Basic `always' syntax
+>The try block.
+>The always block.
+>After the always block.
+
+  ({
+    print Position one.
+    print ${*this is an error*}
+    print Position two.
+  } always {
+    if (( TRY_BLOCK_ERROR )); then
+      print An error occurred.
+    else
+      print No error occurred.
+    fi
+  }
+  print Position three)
+1:Always block with error not reset
+>Position one.
+>An error occurred.
+?(eval):3: bad substitution
+
+  ({
+    print Stelle eins.
+    print ${*voici une erreur}
+    print Posizione due.
+  } always {
+    if (( TRY_BLOCK_ERROR )); then
+      print Erratum factum est. Retro ponetur.
+      (( TRY_BLOCK_ERROR = 0 ))
+    else
+      print unray touay foay anguageslay
+    fi
+  }
+  print Status after always block is $?.)
+0:Always block with error reset
+>Stelle eins.
+>Erratum factum est. Retro ponetur.
+>Status after always block is 1.
+?(eval):3: bad substitution
+
+# Outputting of structures from the wordcode is distinctly non-trivial,
+# we probably ought to have more like the following...
+  fn1() { { echo foo; } }
+  fn2() { { echo foo; } always { echo bar; } }
+  fn3() { ( echo foo; ) }
+  functions fn1 fn2 fn3
+0:Output of syntactic structures with and without always blocks
+>fn1 () {
+>	{
+>		echo foo
+>	}
+>}
+>fn2 () {
+>	{
+>		echo foo
+>	} always {
+>		echo bar
+>	}
+>}
+>fn3 () {
+>	(
+>		echo foo
+>	)
+>}
+
+
+#
+# Tests for `Alternate Forms For Complex Commands'
+#
+
+  if (true) { print true-1 } elif (true) { print true-2 } else { print false }
+  if (false) { print true-1 } elif (true) { print true-2 } else { print false }
+  if (false) { print true-1 } elif (false) { print true-2 } else { print false }
+0:Alternate `if' with braces
+>true-1
+>true-2
+>false
+
+  if { true } print true
+  if { false } print false
+0:Short form of `if'
+>true
+
+  eval "if"
+1:Short form of `if' can't be too short
+?(eval):1: parse error near `if'
+
+  for name ( word1 word2 word3 ) print $name
+0:Form of `for' with parentheses.
+>word1
+>word2
+>word3
+
+  for name in alpha beta gamma; print $name
+0:Short form of `for'
+>alpha
+>beta
+>gamma
+
+  for (( val = 2; val < 10; val *= val )) print $val
+0:Short arithmetic `for'
+>2
+>4
+
+  foreach name ( verbiage words periphrasis )
+    print $name
+  end
+0:Csh-like `for'
+>verbiage
+>words
+>periphrasis
+
+# see comment with braces used in if loops
+  val=0;
+  while (( val < 2 )) { print $((val++)); }
+0:Alternative `while'
+>0
+>1
+
+  val=2;
+  until (( val == 0 )) { print $((val--)); }
+0:Alternative `until'
+>2
+>1
+
+  repeat 3 print Hip hip hooray
+0:Short `repeat'
+>Hip hip hooray
+>Hip hip hooray
+>Hip hip hooray
+
+  repeat 2*2 print yeah
+0:Tokens in repeat argument
+>yeah
+>yeah
+>yeah
+>yeah
+
+  case bravo {
+    (alpha) print schmalpha
+	    ;;
+    (bravo) print schmavo
+	    ;;
+    (charlie) print schmarlie
+	    ;;
+  }
+0:`case' with braces
+>schmavo
+
+  for word in artichoke bladderwort chrysanthemum Zanzibar
+  case $word in
+    (*der*) print $word contains the forbidden incantation der
+         ;;
+    (a*) print $word begins with a
+         ;&
+    ([[:upper:]]*) print $word either begins with a or an upper case letter
+         ;|
+    ([[:lower:]]*) print $word begins with a lower case letter
+         ;|
+    (*e*) print $word contains an e
+         ;;
+  esac
+0:`case' with mixed ;& and ;|
+>artichoke begins with a
+>artichoke either begins with a or an upper case letter
+>artichoke begins with a lower case letter
+>artichoke contains an e
+>bladderwort contains the forbidden incantation der
+>chrysanthemum begins with a lower case letter
+>chrysanthemum contains an e
+>Zanzibar either begins with a or an upper case letter
+
+  print -u $ZTST_fd 'This test hangs the shell when it fails...'
+  name=0
+# The number 4375 here is chosen to produce more than 16384 bytes of output
+  while (( name < 4375 )); do
+    print -n $name
+    (( name++ ))
+  done < /dev/null | { read name; print done }
+0:Bug regression: `while' loop with redirection and pipeline
+>done
+
+# This used to be buggy and print X at the end of each iteration.
+  for f in 1 2 3 4; do
+    print $f || break
+  done && print X
+0:Handling of ||'s and &&'s with a for loop in between
+>1
+>2
+>3
+>4
+>X
+
+# Same bug for &&, used to print `no' at the end of each iteration
+  for f in 1 2 3 4; do
+    false && print strange
+  done || print no
+0:Handling of &&'s and ||'s with a for loop in between
+>no
+
+  $ZTST_testdir/../Src/zsh -f unmatched_quote.txt
+1:Parse error with file causes non-zero exit status
+?unmatched_quote.txt:2: unmatched '
+
+  $ZTST_testdir/../Src/zsh -f <unmatched_quote.txt
+1:Parse error on standard input causes non-zero exit status
+?zsh: unmatched '
+
+  $ZTST_testdir/../Src/zsh -f -c "'"
+1:Parse error on inline command causes non-zero exit status
+?zsh:1: unmatched '
+
+  $ZTST_testdir/../Src/zsh -f NonExistentScript
+127q:Non-existent script causes exit status 127
+?$ZTST_testdir/../Src/zsh: can't open input file: NonExistentScript
+
+  (setopt nonomatch
+  # use this to get stuff at start of line
+  contents=$'# comment \'\necho value #with " stuff\n# comment\n#comment
+  echo not#comment\n'
+  eval 'VAR=$('"$contents"')'
+  print -l $VAR)
+0:comments within $(...)
+>value
+>not#comment
+
+  . ./nonexistent
+127: Attempt to "." non-existent file.
+?(eval):.:1: no such file or directory: ./nonexistent
+
+  echo '[[' >bad_syntax
+  . ./bad_syntax
+126: Attempt to "." file with bad syntax.
+?./bad_syntax:2: parse error near `\n'
+# `
+
+  echo 'false' >dot_false
+  . ./dot_false
+  print $?
+  echo 'true' >dot_true
+  . ./dot_true
+  print $?
+0:Last status of successfully executed "." file is retained
+>1
+>0
+
+  echo 'echo dot
+  until return 42; do
+    :
+  done' >until_dot
+  . ./until_dot
+  echo After dot
+0:return in positive until test in dot file does not cause excess breaks
+>dot
+>After dot
+
+  echo 'echo $?' >dot_status
+  false
+  . ./dot_status
+0:"." file sees status from previous command
+>1
+
+  mkdir test_path_script
+  print "#!/bin/sh\necho Found the script." >test_path_script/myscript
+  chmod u+x test_path_script/myscript
+  path=($PWD/test_path_script $path)
+  export PATH
+  $ZTST_testdir/../Src/zsh -f -o pathscript myscript
+0:PATHSCRIPT option
+>Found the script.
+
+  $ZTST_testdir/../Src/zsh -f myscript
+127q:PATHSCRIPT option not used.
+?$ZTST_testdir/../Src/zsh: can't open input file: myscript
+# '
+
+  $ZTST_testdir/../Src/zsh -fc 'echo $0; echo $1' myargzero myargone
+0:$0 is traditionally if bizarrely set to the first argument with -c
+>myargzero
+>myargone
+
+  (setopt shglob
+  eval '
+  if ! (echo success1); then echo failure1; fi
+  if !(echo success2); then echo failure2; fi
+  print -l one two | while(read foo)do(print read it)done
+  ')
+0:Parentheses in shglob
+>success1
+>success2
+>read it
+>read it
+
+  fn() { { return } always { echo always 1 }; echo not executed }
+  fn
+  fn() { { echo try 2 } always { return }; echo not executed }
+  fn
+0:Always block interaction with return
+>always 1
+>try 2
+
+  (
+  mywrap() { echo BEGIN; true; echo END }
+  mytest() { { exit 3 } always { mywrap }; print Exited before this }
+  mytest
+  print Exited before this, too
+  )
+3:Exit and always block with functions: simple
+>BEGIN
+>END
+F:Note that the behaviour of 'exit' inside try-list inside a function is unspecified.
+
+  (
+  mytrue() { echo mytrue; return 0 }
+  mywrap() { echo BEGIN; mytrue; echo END }
+  mytest() { { exit 4 } always { mywrap }; print Exited before this }
+  mytest
+  print Exited before this, too
+  )
+4:Exit and always block with functions: nested
+>BEGIN
+>mytrue
+>END
+F:Note that the behaviour of 'exit' inside try-list inside a function is unspecified.
+
+  (emulate sh -c '
+   fn() {
+    case $1 in
+      ( one | two | three )
+      print Matched $1
+      ;;
+      ( fo* | fi* | si* )
+      print Pattern matched $1
+      ;;
+      ( []x | a[b]* )
+      print Character class matched $1
+      ;;
+    esac
+  }
+  '
+  which fn
+  fn one
+  fn two
+  fn three
+  fn four
+  fn five
+  fn six
+  fn abecedinarian
+  fn xylophone)
+0: case word handling in sh emulation (SH_GLOB parentheses)
+>fn () {
+>	case $1 in
+>		(one | two | three) print Matched $1 ;;
+>		(fo* | fi* | si*) print Pattern matched $1 ;;
+>		([]x | a[b]*) print Character class matched $1 ;;
+>	esac
+>}
+>Matched one
+>Matched two
+>Matched three
+>Pattern matched four
+>Pattern matched five
+>Pattern matched six
+>Character class matched abecedinarian
+
+  case grumph in
+    ( no | (grumph) )
+    print 1 OK
+    ;;
+  esac
+  case snruf in
+    ( fleer | (|snr(|[au]f)) )
+    print 2 OK
+    ;;
+  esac
+0: case patterns within words
+>1 OK
+>2 OK
+
+  case horrible in
+    ([a-m])(|[n-z])rr(|ib(um|le|ah)))
+    print It worked
+    ;;
+  esac
+  case "a string with separate words" in
+    (*with separate*))
+    print That worked, too
+    ;;
+  esac
+0:Unbalanced parentheses and spaces with zsh pattern
+>It worked
+>That worked, too
+
+  case horrible in
+    (([a-m])(|[n-z])rr(|ib(um|le|ah)))
+    print It worked
+    ;;
+  esac
+  case "a string with separate words" in
+    (*with separate*)
+    print That worked, too
+    ;;
+  esac
+0:Balanced parentheses and spaces with zsh pattern
+>It worked
+>That worked, too
+
+  fn() {
+    typeset ac_file="the else branch"
+    case $ac_file in
+      *.$ac_ext | *.xcoff | *.tds | *.d | *.pdb | *.xSYM | *.bb | *.bbg | *.map | *.inf | *.dSYM | *.o | *.obj ) ;;
+      *.* ) break;;
+      *)
+      ;;
+    esac
+    print Stuff here
+  }
+  which fn
+  fn
+0:Long case with parsed alternatives turned back into text
+>fn () {
+>	typeset ac_file="the else branch" 
+>	case $ac_file in
+>		(*.$ac_ext | *.xcoff | *.tds | *.d | *.pdb | *.xSYM | *.bb | *.bbg | *.map | *.inf | *.dSYM | *.o | *.obj)  ;;
+>		(*.*) break ;;
+>		(*)  ;;
+>	esac
+>	print Stuff here
+>}
+>Stuff here
+
+  (exit 37)
+  case $? in
+    (37) echo $?
+    ;;
+  esac
+0:case retains exit status for execution of cases
+>37
+
+  false
+  case stuff in
+    (nomatch) foo
+    ;;
+  esac
+  echo $?
+0:case sets exit status to zero if no patterns are matched
+>0
+
+  case match in
+    (match) true; false; (exit 37)
+    ;;
+  esac
+  echo $?
+0:case keeps exit status of last command executed in compound-list
+>37
+
+  case '' in
+    burble) print No.
+    ;;
+    spurble|) print Yes!
+    ;;
+    |burble) print Not quite.
+    ;;
+  esac
+  case '' in
+    burble) print No.
+    ;;
+    |burble) print Wow!
+    ;;
+    spurble|) print Sorry.
+    ;;
+  esac
+  case '' in
+    gurgle) print No.
+    ;;
+    wurgle||jurgle) print Yikes!
+    ;;
+    durgle|) print Hmm.
+    ;;
+    |zurgle) print Hah.
+    ;;
+  esac
+  case '' in
+    # Useless doubled empty string to check special case.
+    ||jurgle) print Ok.
+    ;;
+  esac
+0: case with no opening parentheses and empty string 
+>Yes!
+>Wow!
+>Yikes!
+>Ok.
+
+  x=1
+  x=2 | echo $x
+  echo $x
+0:Assignment-only current shell commands in LHS of pipeline
+>1
+>1
+
+ echo pipe | ; sed s/pipe/PIPE/
+ true && ; echo and true
+ false && ; echo and false
+ true || ; echo or true
+ false || ; echo or false
+0:semicolon is equivalent to newline
+>PIPE
+>and true
+>or false
+
+ $ZTST_testdir/../Src/zsh -fc '{ ( ) } always { echo foo }'
+0:exec last command optimization inhibited for try/always
+>foo
+
+ a='${'
+ if : ${(e)a}; then echo x; fi
+1:Status on bad substitution in if without else
+?(eval):2: bad substitution
+
+ echo 'echo foo # comment
+  echo $(
+  echo bar # comment
+ )' >source_comments.zsh
+ $ZTST_testdir/../Src/zsh -f -o extendedglob -is -c '. ./source_comments.zsh'
+0:Comments should be handled in command subst in interactively sourced files
+>foo
+>bar
+
+ function 'ls,/' () {echo success}
+ {ls,/}
+0:workers/47599: current-shell blocks masquerading as brace expansion
+>success
+F:This test was written to ensure the behaviour doesn't change silently.
+F:If this test fails during development, it *might* be appropriate to change
+F:its expectations.
+
+ (
+   export VALUE=first
+   print -l 'echo Value is $VALUE' 'VALUE=second sh' 'echo Value is $VALUE' |
+   $ZTST_testdir/../Src/zsh -f
+ )
+0:Non-interactive shell command input is line buffered
+>Value is first
+>Value is second

@@ -1,0 +1,8 @@
+#compdef grep-excuses
+
+_arguments \
+   '(--no-conf --noconf)'{--no-conf,--noconf}'[do not read any config files]' \
+   '(--wipnity -w)'{--wipnity,-w}'[get information from release.debian.org]' \
+   '--version[display version information]' \
+   '--help[display help information]' \
+   ':package:_deb_packages avail'

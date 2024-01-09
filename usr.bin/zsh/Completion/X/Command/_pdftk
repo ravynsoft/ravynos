@@ -1,0 +1,61 @@
+#compdef pdftk
+
+_pdfwithhandle()
+{
+    compset -P '(#I)[A-Z]='
+    _files "$@" -g '(#i)*.pdf'
+}
+
+local expl
+local -a opts operations
+
+opts=(output encrypt_40bit encrypt_128bit allow owner_pw user_pw flatten
+	compress uncompress keep_first_id keep_final_id drop_xfa verbose
+	dont_ask do_ask)
+operations=(cat attach_files unpack_files burst fill_form background stamp
+	generate_fdf multibackground multistamp dump_data dump_data_fields
+	update_info)
+
+case $words[CURRENT-1] in
+    ((input|owner|user)_pw)
+	_message "password, or PROMPT"
+	;;
+
+    (allow)
+	#_description permissions expl "permission"
+	#compadd $expl \
+	_values -s , permission \
+	    Printing DegradedPrinting ModifyContents Assembly CopyContents \
+	    ScreenReaders ModifyAnnotations FillIn AllFeatures
+	;;
+
+    (attach_files)
+	_files "$@"
+	;;
+
+    (fill_form)
+        _wanted files expl 'FDF or XFDF file' _files -g '(#i)*.(fdf|xfdf)(-.)'
+	;;
+
+    ((multibackground|background|stamp|multistamp|output))
+	_pdf
+	;;
+
+    (update_info)
+	_files
+	;;
+
+    (*)
+	false
+	;;
+esac && return 0
+
+if [[ -n $words[(r)(${(j:|:)operations})] ]]; then
+    _description options expl "option"
+    compadd $@ $expl $opts
+else
+    _tags files operations
+    _alternative \
+	'files:PDF file:_pdfwithhandle' \
+	"operations:operation:($operations)"
+fi

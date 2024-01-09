@@ -1,0 +1,23 @@
+#compdef matlab
+
+_arguments : \
+    {-h,-help}'[display arguments]' \
+    '(-)-n[display final environment variables, and exit]' \
+    '(-)-e[display all environment variables and values, and exit]' \
+    '-arch[start MATLAB assuming architecture arch]:architecture:' \
+    '-c[set location of the license file]:licensefile:_files' \
+    '(-nodisplay)-display:display:_x_display' \
+    '(-display)-nodisplay[do not display any X commands]' \
+    '-nosplash[do not display the splash screen during startup]' \
+    '-mwvisual[the default X visual to use for figure windows]:visualid:' \
+    '(-nosoftwareopengl)-softwareopengl' '(-softwareopengl)-nosoftwareopengl' \
+    '-singleCompThread[limit to single computational thread]' \
+    '-debug[provide debugging information especially for X based problems]' \
+    '(-nodesktop -nojvm)-desktop[allow the MATLAB desktop to be started by a process without a controlling terminal]' \
+    '(-desktop -nojvm)-nodesktop[do not start the MATLAB desktop]' \
+    '(-nodesktop -desktop)-nojvm[shut off all Java support by not starting the Java virtual machine]' \
+    '-jdb[enable remote java debugging]::port [4444]:_ports' \
+    '-r[start MATLAB and execute the MATLAB_command]:MATLAB_command:' \
+    '-logfile[copy any command window output to a file]:log file:_files' \
+    '-D-:debugger:_command_names -e' \
+    '-nouserjavapath[ignore custom javaclasspath.txt and javalibrarypath.txt files]'

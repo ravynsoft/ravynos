@@ -1,0 +1,51 @@
+#compdef csplit
+
+local curcontext=$curcontext cnt_info ret=1
+local -a state state_descr line specs optA
+typeset -A opt_args
+
+# common specs
+specs=(
+  '(hv -f --prefix)'{-f+,--prefix=}'[specify prefix for output file names]:prefix [xx]: '
+  '(hv -n --digits -b --suffix-format)'{-n+,--digits=}'[specify number of digits in output file names]:number [2]: '
+  '(hv -k --keep-files)'{-k,--keep-files}'[do not remove output files on errors]'
+  '(hv -s --quiet --silent)'{-s,--quiet,--silent}'[do not print counts of output file sizes]'
+  '(hv)1: :_files'
+  '(hv)*: :->patterns'
+)
+
+if _pick_variant gnu=GNU unix --version; then
+  # GNU coreutils 8.32
+  specs+=(
+    '(hv -b --suffix-format -n --digits)'{-b+,--suffix-format=}'[specify format for numbers in output file names]:format [%%02d]: '
+    '(hv)--suppress-matched[suppress the lines matching the pattern]'
+    '(hv -z --elide-empty)'{-z,--elide-empty-files}'[remove empty output files]'
+    + hv
+    '(: * -)--help[display help and exit]'
+    '(: * -)--version[output version information and exit]'
+  )
+  cnt_info="(integer or '*')"
+else
+  # POSIX ({Free,Open}BSD, DragonFly, macOS)
+  specs=( ${specs:#(|*\))--*} )  # remove long options
+  optA=( -A '-?*' )  # a single '-' is a valid file name (stdin)
+fi
+
+_arguments -C -s -S $optA : $specs && ret=0
+
+case $state in
+  patterns)
+    if compset -P '(/?*/|%?*%)'; then
+      _message '[+|-]offset' && ret=0
+    elif compset -P '[/%]'; then
+      _message 'regex' && ret=0
+    elif compset -P '(|\\){'; then
+      _message "count $cnt_info" && ret=0
+    elif compset -P '[0-9]*'; then
+      _message 'line number' && ret=0
+    elif [[ ${words[CURRENT]} != -* ]] then
+      _message "line_number, '/regex/[offset]', '%%regex%%[offset]', or '{count}'" && ret=0
+    fi
+esac
+
+return ret

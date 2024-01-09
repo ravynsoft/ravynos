@@ -1,0 +1,51 @@
+#compdef svn-buildpackage
+
+_arguments \
+  '--svn-builder=[use CMD as build command instead of dpkg-buildpackage]:build command: _command_names -e' \
+  '--svn-ignore-new[do not stop on svn conflicts or new/changed files]' \
+  '--svn-dont-clean[do not run debian/rules clean (default: clean first)]' \
+  '--svn-no-links[do not use file links (default: use links where possible)]' \
+  '--svn-dont-purge[do not wipe the build directory (default: purge after build)]' \
+  '--svn-reuse[reuse an existing build directory, copy trunk over it]' \
+  '--svn-export[just prepares the build directory and exits]' \
+  '--svn-tag[final build: Export && build && tag && dch -i]' \
+  '--svn-retag[replace an existing tag directory if found while tagging]' \
+  '--svn-only-tag[tags the current trunk directory without building]' \
+  '--svn-noautodch[do not add a new Debian changelog entry when done]' \
+  '--svn-lintian[run lintian after the build]' \
+  '--svn-linda[like --svn-lintian, run linda instead]' \
+  '--svn-move[move package files to .. after successful build]' \
+  '--svn-move-to=:target dir:_files -/' \
+  '--svn-pkg:package name:_deb_packages avail' \
+  '--svn-override[override config variables]:list:' \
+  '--svn-prebuild:hook: _command_names -e' \
+  '--svn-postbuild:hook: _command_names -e' \
+  '--svn-pretag:hook: _command_names -e' \
+  '--svn-posttag:hook: _command_names -e' \
+  '--svn-verbose[more verbose program output]' \
+  '--svn-noninteractive[turn off interactive mode]' \
+  '-b[binary-only build, no source]' \
+  '-B[binary-only build, no source or arch-indep binaries]' \
+  '-S[source-only build, no binaries]' \
+  '-s-:source generation:((i\:default a\:force\ inclusion\ of\ original\ source d\:force\ exclusion\ of\ original\ source))' \
+  '-a-:architecture:_deb_architectures' \
+  '-v-:version' \
+  '-C-:changes description:_files' \
+  '-m-:maintainer address:_email_addresses' \
+  '-e-:maintainer address:_email_addresses' \
+  '(-d)-D[check build dependencies and conflicts]' \
+  '(-D)-d[do not check build dependencies and conflicts]' \
+  '-W[turn certain errors into warnings]' \
+  '-E[negates previously-set -W]' \
+  '-nc[do not clean source tree]' \
+  '-tc[clean the source tree after build]' \
+  '-r-:gain-root command: _command_names -e' \
+  '-p-:sign command: _command_names -e' \
+  '-k-:key ID:' \
+  '-us[do not sign source package]' \
+  '-uc[do not sign .changes file]' \
+  '*-i-:ignore regexp:' \
+  '*-I-:ignore filename:_files' \
+  '--admindir=:dpkg database dir:_files -/' \
+  '(-h --help)'{-h,--help}'[show usage message]' \
+  '--version[show version]'

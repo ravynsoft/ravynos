@@ -1,0 +1,14 @@
+name=zsh/curses
+link='if test "x$ac_cv_func_initscr" = xyes && test "x$zsh_cv_path_curses_header" != x; then echo dynamic; else echo no; fi'
+load=no
+
+autofeatures="b:zcurses"
+
+objects="curses.o"
+
+:<<\Make
+curses.o curses..o: curses_keys.h
+
+curses_keys.h: curses_keys.awk @CURSES_KEYS_H@
+	$(AWK) -f $(sdir)/curses_keys.awk @CURSES_KEYS_H@ /dev/null >curses_keys.h
+Make

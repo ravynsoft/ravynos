@@ -1,0 +1,39 @@
+#compdef add-zle-hook-widget
+
+_add-zle-hook-widget_types() {
+  local -a tmp
+
+  autoload -U add-zle-hook-widget
+  add-zle-hook-widget -h >&/dev/null # sets the zstyle
+  zstyle -g tmp zle-hook types
+
+  compadd "$@" -M 'L:|=zle-' -M 'r:|-=* r:|=*' -- zle-${^tmp}
+}
+
+_add-zle-hook-widget_widgets() {
+  local expl
+  if (( $+opt_args[-d] )); then
+    local -a tmp
+    zstyle -g tmp $line[1] widgets
+    _wanted widgets expl "installed hook" compadd -- ${tmp#<->:} && return 0
+  else
+    _wanted widgets expl widget _widgets -g 'user:*' && return 0
+  fi
+  return 1
+}
+
+_add-zle-hook-widget() {
+  local context state state_descr line
+  typeset -A opt_args
+  _arguments -s -w -S : \
+    "(-d -D -U -z -k)-L[output in form of 'zstyle' commands]" \
+    '(-L -D -U -z -k)-d[remove HOOK from the array]' \
+    '(-L -d -U -z -k)-D[interpret HOOK as pattern to remove from the array]' \
+    '(-L -d -D)-U[suppress alias expansion for functions]' \
+    '(-L -d -D -k)-z[mark function for zsh-style autoloading]' \
+    '(-L -d -D -z)-k[mark function for ksh-style autoloading]' \
+    ':hook type:_add-zle-hook-widget_types' \
+    ':widget:_add-zle-hook-widget_widgets'
+}
+
+_add-zle-hook-widget "$@"

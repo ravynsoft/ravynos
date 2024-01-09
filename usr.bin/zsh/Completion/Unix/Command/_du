@@ -1,0 +1,79 @@
+#compdef du gdu
+
+if _pick_variant gnu=Free\ Soft unix --version /dummy/no-such-file; then
+  local context state line expl ret=1
+
+  _arguments -s \
+    '(-a --all -s --summarize)'{-a,--all}'[write counts for all files]' \
+    '--apparent-size[print apparent sizes rather than disc usage]' \
+    '(-B --block-size -k)'{-B+,--block-size=}'[specify block size]:size (bytes)' \
+    '(-B --block-size -k --apparent-size -b --bytes)'{-b,--bytes}'[equivalent to --apparent-size --block-size=1]' \
+    '(-c --total)'{-c,--total}'[produce a grand total]' \
+    '(-H -D --dereference-args -L --dereference -P --no-dereference)'{-H,-D,--dereference-args}'[dereference arguments that are symlinks]' \
+    '(-H -D --dereference-args -L --dereference -P --no-dereference)'{-P,--no-dereference}'[do not dereference any symlinks]' \
+    '(-h --human-readable -H --si)'{-h,--human-readable}'[print sizes in human readable format]' \
+    '(--si -h --human-readable)--si[human readable form using powers of 1000]' \
+    '(-B --block-size)-k[use block size of 1k]' \
+    '(-B --block-size)-m[use block size of 1M]' \
+    '(-l --count-links)'{-l,--count-links}'[count sizes many times if hard linked]' \
+    '(-L --dereference -H -D --dereference-args -P --no-dereference)'{-L,--dereference}'[dereference all symlinks]' \
+    '(-S --separate-dirs)'{-S,--separate-dirs}'[do not include size of subdirectories]' \
+    '(-s --summarize --max-depth -d -a --all)'{-s,--summarize}'[only report total for each argument]' \
+    '(-x --one-file-system)'{-x,--one-file-system}'[skip directories on different filesystems]' \
+    '(-0 --null)'{-0,--null}'[end each output line with NUL instead of newline]' \
+    \*{-X+,--exclude-from=}'[exclude files matching any pattern in file]:file:_files' \
+    '*--exclude=[exclude files matching pattern]:pattern' \
+    '(-s --summarize -d --max-depth)'{-d+,--max-depth=}'[maximum levels to recurse]:levels' \
+    '--files0-from=[use NUL-terminated list of files from file]:file:_files' \
+    '--time-style=[show times using given style, +FORMAT for strftime formatted args]:style:->timestyle' \
+    '--time=-[show time of last modification of any file in the directory]:property:(atime access use ctime status)' \
+    '(-t --threshold)'{-t+,--threshold=}'[report only entries for which size exceeds threshold]:threshold' \
+    '--inodes[list inode usage information instead of block usage]' \
+    '(* -)--help[display help information]' \
+    '(* -)--version[display version information]' \
+    '*:file:_files' && ret=0
+
+  case $state in
+    (timestyle)
+      local -a style desc
+      style=(full-iso long-iso iso +)
+      desc=('full-iso' 'long-iso' 'iso' '+FORMAT like `date'\''')
+      _wanted -C $context -V style expl style compadd -d desc -a style && ret=0
+    ;;
+  esac
+
+  return ret
+
+else
+  local pattern arg args
+  args=(
+    '(-a -s -d)-a[report sizes for all files, not just directories]'
+    '(-H -L -P)-L[follow all symlinks]'
+    '(-a -s -d)-s[only report total for each argument]'
+    '(-h -m -g -B)-k[use block size of 1K-byte]'
+    '-r[notify about unreadable files/directories]'
+  )
+  local xdev='[skip directories on different filesystems]'
+  for pattern arg in \
+    'freebsd*' '-A[apparent size instead of usage]' \
+    '(darwin*|*bsd*|dragonfly*|solaris2.<10->)' '(-H -L -P)-H[follow symlinks on the command line]' \
+    '(darwin|*bsd|dragonfly)*' '(-H -L -P)-P[do not follow symlinks (default)]' \
+    '(darwin|dragonfly|freebsd)*' '*-I+[ignore files/directories matching specified mask]:mask' \
+    '(darwin|*bsd|dragonfly)*' '(-a -s -d)-d+[display entry for directories up to specified depth]:depth' \
+    '(darwin*|*bsd*|dragonfly*|solaris2.<10->)' '(-k -m -g -B)-h[human readable output]' \
+    'netbsd*' '-i[output inode usage instead of blocks]' \
+    '(darwin*|freebsd*|netbsd*|solaris2.<11->)' '(-h -k -g -B)-m[use block size of 1M-byte]' \
+    '(darwin|freebsd<8->.|netbsd)*' '(-h -k -m -B)-g[use block size of 1G-byte]' \
+    'freebsd*' '(-h -k -m -g)-B+[block size]:block size (bytes)' \
+    '(darwin|*bsd|dragonfly)*' '-c[display grand total]' \
+    'freebsd*' '-l[count sizes many times if hard linked]' \
+    '(freebsd|netbsd)*' '-n[ignore files and directories with nodump flag set]' \
+    'solaris*' "(-a)-o[don't add child directories' usage to parent's total]" \
+    'freebsd<8->.*' '-t+[report only entries for which size exceeds threshold]:threshold' \
+    'solaris*' "-d$xdev" \
+    '(darwin|*bsd|dragonfly|solaris)*' "-x$xdev"
+  do
+    [[ $OSTYPE = $~pattern ]] && args+=( $arg )
+  done
+  _arguments -s -A "-*" $args '*:file:_files'
+fi

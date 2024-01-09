@@ -1,0 +1,152 @@
+#compdef -k complete-word \C-x\C-r
+
+# This allows an on-the-fly choice of completions.  On typing the key
+# sequence given above, you will be prompted for a string of arguments.  If
+# this string begins with `_', it will be taken as the name of a function to
+# evaluate to generate the completions; unambiguous strings in the function
+# name are automatically completed.
+#
+# Else it is taken to be a set of arguments for compadd to generate a list
+# of choices.  The possibilities are the same as the flags for generating
+# completions given in the zshcompwid manual page.  Note the arguments are
+# verbatim:  include minus signs, spaces, quotes, etc.
+#
+# On subsequent calls, the same completion will be re-performed.  To
+# force a new type of completion to be read, supply a numeric argument.
+#
+# For example,
+#  % bindkey | grep rever<C-xC-r>
+#  Completion: -b<RET>
+#  % bindkey | grep reverse-menu-complete _
+#
+# Global variables used:
+#  _read_comp         Last completion string read from user
+
+# emulate -L zsh
+setopt localoptions extendedglob nobadpattern unset # xtrace promptsubst
+# local PS4='%N:%i:$((#key))> '
+
+typeset -g _read_comp
+if [[ ${+NUMERIC} = 0 && -n $_read_comp ]]; then
+  if [[ $_read_comp = _* ]]; then
+    eval $_read_comp
+  else
+    eval "compadd $_read_comp"
+  fi
+  return
+fi
+
+_read_comp=
+
+local key search str str2 newch funcs funcs2 exact msg list
+integer pos
+
+msg="Completion: "
+
+zle -R $msg
+
+if ! read -k key; then
+  zle -cR ''
+  return 1
+fi
+
+while [[ '#key' -ne 10 && '#key' -ne 13 ]]; do
+  if [[ '#key' -eq 0 && '#key' -eq 3 || '#key' -eq 7 ]]; then
+    zle -cR ''
+    return 1
+  fi
+  if [[ ( '#key' -eq 8 || '#key' -eq 127 ) && -n $str ]]; then
+    # delete character
+    str="$str[1,-2]"
+    exact=
+    list=()
+  elif [[ '#key' -eq 21 ]]; then
+    # ^U: delete line
+    str=
+    exact=
+    list=()
+  elif [[ '#key' -eq 4 && $str = _[^\ ]# && $str != *' '* ]]; then
+    # ^D: list completions
+    list=(${$(whence -m "$str*" 2>/dev/null)%: function})
+  elif [[ ( -n $exact && $key != ' ' ) || '#key & 127' -lt 32 ]]; then
+    # If we've got an exact function, only allow a space after it.
+    # Don't try to insert non-printing characters.
+    if [[ -n $ZBEEP ]]; then
+      print -nb $ZBEEP
+    elif [[ -o beep ]]; then
+      print -n "\a"
+    fi
+    list=()
+  else
+    str="$str$key"
+    if [[ $str = _[^\ ]# ]]; then
+      # Rudimentary completion for function names.
+      # Allow arguments, i.e. don't do this after we've got a space.
+      funcs=(${$(whence -m "$str*" 2>/dev/null)%: function})
+      if [[ -o autolist && $#str -gt 1 ]]; then
+	list=($funcs)
+      else
+	list=()
+      fi
+      if (( $#funcs == 1 )); then
+	# Exact match; prompt the user for a newline to confirm
+	str=$funcs[1]
+	exact=" (Confirm)"
+      elif (( $#funcs == 0 )); then
+	# We can't call zle beep, because this isn't a zle widget.
+	if [[ -n $ZBEEP ]]; then
+	  print -nb $ZBEEP
+	elif [[ -o beep ]]; then
+	  print -n "\a"
+	fi
+	str="$str[1,-2]"
+	list=()
+      else
+	# Add characters to the string until a name doesn't
+	# match any more, then backtrack one character to get
+	# the longest unambiguous match.
+	str2=$str
+	pos=$#str2
+	while true; do
+	  (( pos++ ))
+	  newch=${funcs[1][pos]}
+	  [[ -z $newch ]] && break
+	  str2=$str2$newch
+	  funcs2=(${funcs##$str2*})
+	  (( $#funcs2 )) && break
+	  str=$str2
+	done
+      fi
+    else
+      exact=
+    fi
+  fi
+  if (( $#list )); then
+    zle -R "$msg$str$exact" $list
+  else
+    zle -cR "$msg$str$exact"
+  fi
+  if ! read -k key; then
+    zle -cR ''
+    return 1
+  fi
+done
+
+if [[ -z $str ]]; then
+  # string must be non-zero
+  return 1
+elif [[ $str = _* ]] && ! whence ${str%% *} >& /dev/null; then
+  # a function must be known to the shell
+  return 1
+else
+  # remember the string for re-use
+  _read_comp=$str
+fi
+
+zle -cR ''
+
+if [[ $str = _* ]]; then
+  eval $str
+else
+  eval "compadd $str"
+fi

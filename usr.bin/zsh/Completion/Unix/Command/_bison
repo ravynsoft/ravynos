@@ -1,0 +1,21 @@
+#compdef bison
+
+_arguments -s -S \
+  '(--file-prefix)-b+[specify output file prefix]:output file prefix' \
+  '(--defines)-d[write token definition file]' \
+  '(--raw)-r[output bison token numbers]' \
+  '(--token-table)-k[output token table]' \
+  '(--no-lines)-l[don'"'"'t generate #line directives]' \
+  '(--no-parser)-n[don'"'"'t generate parse (only declarations)]' \
+  '(--output-file)-o+[specify parser output file name]:parser file name:_files' \
+  '(--name-prefix)-p+[change yy prefix]:prefix string' \
+  '(--debug)-t[output YYDEBUG definition]' \
+  '(--verbose)-v[verbose mode]' \
+  '(--version)-V[show version]' \
+  '(--help)-h[show help]' \
+  '(--yacc --fixed-output-file)-y[imitate yacc'"'"'s output file convention]' \
+  ':input file:_files -g \*.\(\#i\)\(bison\|yacc\|y\)\(-.\)' \
+  -- \
+  '*=outfile:parser file name:_files' \
+  '*file-prefix=prefix:output file prefix' \
+  '*name-prefix=prefix:prefix string'

@@ -1,0 +1,18 @@
+case $1 in
+    (b*)    man btrfs-balance          ;;
+    (c*)    man btrfs-check            ;;
+    (d*)    man btrfs-device           ;;
+    (f*)    man btrfs-filesystem       ;;
+    (i*)    man btrfs-inspect-internal ;;
+    (p*)    man btrfs-property         ;;
+    (qg*)   man btrfs-qgroup           ;;
+    (qu*)   man btrfs-quota            ;;
+    (rec*)  man btrfs-receive          ;;
+    (rep*)  man btrfs-replace          ;;
+    (resc*) man btrfs-rescue           ;;
+    (rest*) man btrfs-restore          ;;
+    (sc*)   man btrfs-scrub            ;;
+    (se*)   man btrfs-send             ;;
+    (su*)   man btrfs-subvolume        ;;
+    (*)     man btrfs                  ;;
+esac

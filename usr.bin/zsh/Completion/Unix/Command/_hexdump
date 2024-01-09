@@ -1,0 +1,35 @@
+#compdef hexdump hd
+
+local -a args fmts optpar
+fmts=(
+ {--one-byte-octal,-b}'[one-byte octal display]'
+ {--one-byte-char,-c}'[one-byte character display]'
+ {--two-bytes-decimal,-d}'[two-byte decimal display]'
+ {--two-bytes-octal,-o}'[two-byte octal display]'
+ {--two-bytes-hex,-x}'[two-byte hexadecimal display]'
+ {--format=,-e+}'[specify format string to be used for displaying data]:format'
+ {--format-file=,-f+}'[specify file that contains format strings]:file:_files'
+)
+args=(
+ '(H -n --length)'{--length=,-n+}'[interpret only specified amount of input]:length (bytes)'
+ '(H -s --skip)'{--skip=,-s+}'[skip specified bytes at the beginning]:offset (bytes)'
+ '(H -v --no-squeezing)'{--no-squeezing,-v}'[output identical lines]'
+)
+
+[[ $service = hexdump ]] && fmts+=( {--canonical,-C}'[canonical hex+ASCII display]' )
+
+if [[ $OSTYPE = linux* ]]; then
+  args+=(
+    '(-L --color)'{-L+,--color=}'[interpret color formatting specifiers colors are enabled by default]:mode'
+    + H
+    '(- *)'{-h,--help}'[display usage information]'
+    '(- *)'{-V,--version}'[display version information]'
+  )
+else
+  # strip long options by taking every second element
+  print -v fmts -f '%2$s' -- "$fmts[@]"
+  print -v args -f '%2$s' -- "$args[@]"
+  optpar=( -A "-*" )
+fi
+
+_arguments -s -S $optpar '*:file:_files' $args + '(formats)' '(H)'$^fmts

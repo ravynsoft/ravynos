@@ -1,0 +1,59 @@
+#autoload
+
+# This should be used to complete parameter names if you need some of the
+# extra options of compadd. It completes only non-local parameters.
+
+# If you specify a -g option with a pattern, the pattern will be used to
+# restrict the type of parameters matched.
+
+if compset -P '*:'; then
+  _history_modifiers p
+  return
+fi
+
+local i pfilt
+local -i nm=$compstate[nmatches]
+local -a expl pattern=( -g \* ) normal described verbose faked fakes tmp
+
+zstyle -t ":completion:${curcontext}:parameters" prefix-needed &&
+    [[ $PREFIX != [_.]* ]] &&
+        pfilt='[^_.]'
+_description parameters expl parameter
+zparseopts -D -K -E g:=pattern
+
+if zstyle -t ":completion:${curcontext}:parameters" extra-verbose; then
+  described=(
+      "${(@M)${(@k)parameters[(R)$~pattern[2]~*(hideval|local|special)*]}:#$~pfilt*}"
+  )
+  compadd "$@" "$expl[@]" -D described -a - described
+  if (( $#described )); then
+    # Normally, calling typeset without flags would print the values of its
+    # arguments. However, inside a function, it instead declare its arguments
+    # as local variables and outputs nothing. Thus, to force it print out
+    # parameter values, we pass it the -m flag.
+    verbose=(
+        ${${${(f@)"$( typeset -m ${(@b)described} )"}/=/:}[@]//'\'/'\\'}
+    )
+    _describe -t parameters parameter verbose "$@" "$expl[@]"
+  fi
+
+  normal=(
+      "${(@M)${(@k)parameters[(R)$~pattern[2]~^(*(hideval|special)*)~*local*]}:#$~pfilt*}"
+  )
+else
+  normal=( "${(@M)${(@k)parameters[(R)$~pattern[2]~*local*]}:#$~pfilt*}" )
+fi
+
+if zstyle -a ":completion:${curcontext}:" fake-parameters tmp; then
+  for i in "$tmp[@]"; do
+    if [[ "$i" = *:* ]]; then
+      faked=( "$faked[@]" "$i" )
+    else
+      fakes=( "$fakes[@]" "$i" )
+    fi
+  done
+fi
+compadd "$@" "$expl[@]" - "$normal[@]" "${(@)fakes:|described}" \
+    "${(@)${(@)${(@M)faked:#${~pattern[2]}}%%:*}:|described}"
+
+(( compstate[nmatches] > nm ))

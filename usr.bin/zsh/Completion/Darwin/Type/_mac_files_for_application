@@ -1,0 +1,74 @@
+#autoload
+
+_mac_rsrc_check() {
+  [[ ! -s "$REPLY/..namedfork/rsrc" ]] && return 1
+  if [[ -x /Developer/Tools/GetFileInfo ]]; then
+    local ftype="$(command /Developer/Tools/GetFileInfo -t $REPLY)"
+    ftype="${ftype//\"/}"
+    [[ -n "$types[(r)$ftype]" ]]
+  else
+      grep --quiet "\(${(j/\|/)types}\)" "$REPLY/..namedfork/rsrc"
+  fi
+}
+
+_mac_parse_info_plist() {
+  # For now, awk is used because builtin function "read" was too slow.
+  # '<' is used for the delimiter because some Info.plist files use CR as
+  # newline but read doesn't treat them as so
+  local s='
+    BEGIN { RS="<" }
+      /^key>/ { sub(/key>/, ""); reading_key=$0 }
+      /^string>/ {
+        sub(/string>/, "")
+        if (reading_key == "CFBundleTypeExtensions") exts=exts " \"" $0 "\""
+        if (reading_key == "CFBundleTypeOSTypes") types=types " \"" $0 "\""
+      }
+      END {
+        print "exts=(" exts ")\ntypes=(" types ")"
+      }
+    '
+    command awk $s "$app_path/Contents/Info.plist" | while read; do
+      eval "$REPLY"
+    done
+}
+
+# Try to complete files for the specified application.
+_mac_files_for_application() {
+  local -a opts
+  zparseopts -D -a opts q n 1 2 o+: P: S: r: R: W: x+: X+: M+: F: J+: V+:
+
+  local app_path
+  _retrieve_mac_apps
+  app_path="${_mac_apps[(r)*/$1(|.app)]:-$1}"
+
+  local -a glob_patterns
+  glob_patterns=()
+
+  # Try to get extensions from "Info.plist" XML file.
+  if [[ -f "$app_path/Contents/Info.plist" ]]; then
+    local -a exts types
+    _mac_parse_info_plist
+
+    if [[ -n "$exts[(r)\*]" ]]; then
+      glob_patterns=( "*" )
+    else
+      if (( #exts != 0 )); then
+        glob_patterns+=( "*.(${(j/|/)exts})(N)" )
+      fi
+
+      if (( #types != 0 )); then
+        glob_patterns+=( "^*.[[:alnum:]]##(.Ne:_mac_rsrc_check:)" )
+      fi
+    fi
+  else
+    glob_patterns=( "*" )
+  fi
+
+  case ${#glob_patterns} in
+    0) return 1 ;;
+    1) _files "$opts[@]" -g "$glob_patterns[1]" ;;
+    *) _files "$opts[@]" -g "{${(j/,/)glob_patterns}}" ;;
+  esac
+}
+
+_mac_files_for_application "$@"

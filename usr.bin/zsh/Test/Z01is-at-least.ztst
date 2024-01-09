@@ -1,0 +1,27 @@
+%prep
+  autoload -Uz is-at-least
+
+%test
+
+  versions=(
+    1 1.1 1.1.1 1.2 1.2.1
+    2 2.1 2.1.1 2.2 2.2.1
+    3 3.1 3.1.1 3.2 3.2.1
+  )
+  for (( i = 1; i <= $#versions; ++i)); do
+    for (( j = i+1; j <= $#versions; ++j)); do
+      is-at-least $versions[i] $versions[j] || echo "$versions[i] ≰ $versions[j]"
+      { ! is-at-least $versions[j] $versions[i] } || echo "$versions[j] ≤ $versions[i]"
+    done
+  done
+0:is-at-least smoke test
+
+  is-at-least 5.8.0.2 5.8
+1f:regression test: Two trailing zeroes are filled in
+# TODO: When fixing this, extend the smoke test to cover this.
+
+  is-at-least 5.8.0.2 5.8.0.0
+1:regression test: Two trailing zeroes are filled in
+# TODO: Extend the smoke test to cover this.
+
+%clean

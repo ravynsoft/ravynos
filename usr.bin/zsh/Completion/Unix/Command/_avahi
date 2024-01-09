@@ -1,0 +1,52 @@
+#compdef avahi-browse avahi-browse-domains avahi-resolve avahi-resolve-address avahi-resolve-host-name
+
+local curcontext="$curcontext" pri ret=1
+local -A opt_args
+local -a state line args serv desc disp
+
+args=(
+  '(- 1)'{-h,--help}'[display usage information]'
+  '(- 1)'{-V,--version}'[display version information]'
+  '(-v --verbose)'{-v,--verbose}'[enable verbose mode]'
+)
+
+case $service in
+  *-browse*)
+    serv=( ${(f)"$(_call_program service-types avahi-browse -bk)"} )
+    desc=( ${(f)"$(_call_program service-types-description avahi-browse -b)"} )
+    (( $#desc )) && print -v disp -f '%s:%s' ${serv:^desc}
+
+    _arguments -s -S -C $args \
+      '(-D --browse-domains -a --all -b --dump-db)'{-D,--browse-domains}'[browse for browsing domains instead of services]' \
+      '(-D --browse-domains -a --all -b --dump-db)'{-a,--all}'[show all services, regardless of the type]' \
+      '(-d --domain)'{-d+,--domain=}'[specify domain to browse in]:domain' \
+      '(-t --terminate)'{-t,--terminate}'[terminate after dumping a more or less complete list]' \
+      '(-c --cache)'{-c,--cache}'[terminate after dumping all entries from the cache]' \
+      '(-l --ignore-local)'{-l,--ignore-local}'[ignore local services]' \
+      '(-r --resolve)'{-r,--resolve}'[resolve services found]' \
+      '(-f --no-fail)'{-f,--no-fail}"[don't fail if the daemon is not available]" \
+      '(-p --parsable)'{-p,--parsable}'[output in parsable format]' \
+      '(-k --no-db-lookup)'{-k,--no-db-lookup}"[don't lookup service types]" \
+      '(-D --browse-domains -a --all -b --dump-db)'{-b,--dump-db}'[dump service type database]' \
+      '1: :->service-types' && ret=0
+
+    [[ -n $state ]] && _describe -t services "service type" disp && ret=0
+  ;;
+  *-resolve*)
+    if (( ${words[(I)(-n|--name)]} )) || [[ $service = *-host-name ]]; then
+       args=( '*:host:_hosts' )
+       pri=1
+    fi
+    if (( ${words[(I)(-a|--address)]} )) || [[ $service = *-address && -n $pri ]]; then
+       args=( '*: :_guard "^-*" address' )
+    fi
+
+    _arguments -s -S $args \
+      '(-a --address -n --name -h --help -V --version)'{-a,--address}'[resolve address]' \
+      '(-a --address -n --name -h --help -V --version)'{-n,--name}'[resolve host name]' \
+      '(-4)-6[lookup IPv6 address]' \
+      '(-6)-4[lookup IPv4 address]' && ret=0
+  ;;
+esac
+
+return ret

@@ -1,0 +1,285 @@
+#compdef cdrdao
+
+# TODO: Options must come before parameters.
+
+# Command completion and main loop {{{1
+
+_cdrdao () {
+  local ret=1
+  local -a commands
+  if (( CURRENT == 2 )); then
+    commands=( ${${${(M)${(f)"$(_call_program subcommands cdrdao 2>&1)"}:#  *}// #- /:}#??} )
+    _describe -t subcommands 'cdrdao command' commands && ret=0
+  else
+    local cmd="${words[2]}"
+    local curcontext="${curcontext%:*:*}:cdrdao-$cmd:"
+    shift words
+    (( CURRENT-- ))
+    if ! _call_function ret _cdrdao-$cmd; then
+      _default && ret=0
+    fi
+  fi
+
+  return ret
+}
+
+# Common arguments {{{1
+
+declare -ga _cdrdao_tmpfile_args
+_cdrdao_tmpfile_args=(
+  '--tmpdir[directory to store temporary data in]:directory:_directories'
+  '--keep[do not remove temporary data when done]'
+)
+
+# TODO: Gah!  Fix a cddb server spec matcher
+declare -ga _cdrdao_cddb_args
+_cdrdao_cddb_args=(
+  '--cddb-servers[specify list of CDDB servers to use]:CDDB servers:'
+  '--cddb-timeout[specify timeout in seconds for connections to CDDB servers]: :_guard "[[\:digit\:]]" timeout'
+  '--cddb-directory[directory where fetched CDDB records will be stored]:directory:_directories'
+)
+
+declare -g _cdrdao_paranoiamode_arg
+_cdrdao_paranoiamode_arg='--paranoia-mode[set correction mode for digital audio extraction]:mode:(("0\:no checking" "1\:perform overlapped reading to avoid jitter" "2\:like 1 but with checks of read audio data" "3\:like 2 but with scratch detection/repair (default)"))'
+
+declare -g _cdrdao_fasttoc_arg
+_cdrdao_fasttoc_arg='--fast-toc[skip pre-gap-length and index-mark extraction]'
+
+declare -g _cdrdao_swap_arg
+_cdrdao_swap_arg='--swap[swap the byte order of samples]'
+
+declare -g _cdrdao_reload_arg
+_cdrdao_reload_arg='--reload[reload the disk if necessary]'
+
+declare -g _cdrdao_eject_arg
+_cdrdao_eject_arg='--eject[eject CD after completed operation]'
+
+declare -g _cdrdao_speed_arg
+_cdrdao_speed_arg='-speed[set writing speed]: :_guard "[[\:digit\:]]##" speed'
+
+declare -ga _cdrdao_common_args
+_cdrdao_common_args=(
+  '(*)'{-h,--help}'[display command/option summary]'
+  '-v[set verbosity level]: :_guard "[[\:digit\:]]##" verbosity')
+
+declare -ga _cdrdao_common_toc_args
+_cdrdao_common_toc_args=(
+  $_cdrdao_common_args
+  ':TOC file:_files -g "*.toc(-.)"')
+
+declare -ga _cdrdao_common_device_args
+_cdrdao_common_device_args=(
+  $_cdrdao_common_args
+  '--device[set SCSI address of the CD recorder]:device:__cdrdao-device'
+  '--driver[use given driver for the CD recorder]:driver:__cdrdao-drivers'
+)
+
+declare -ga _cdrdao_common_toc_device_args
+_cdrdao_common_toc_device_args=(
+  $_cdrdao_common_toc_args
+  $_cdrdao_common_device_args
+  '--force[force execution of operation]'
+)
+
+declare -ga _cdrdao_common_read_args
+_cdrdao_common_read_args=(
+  '--rspeed[set reading speed]: :_guard "[[\:digit\:]]##" speed'
+  '--session[specify what session to process on multi-session CDs]: :_guard "[[\:digit\:]]##" "session number"'
+  '--read-subchan[set sub-channel reading-mode]:mode:(("rw\:de-interleaved and error corrected" "rw_raw\:not de-interleaved, not error-corrected, and L-EC data included"))'
+  '--tao-source[indicate that source CD was written in TAO mode]'
+  '--with-cddb[retrieve CD-TEXT data from a CDDB server]')
+
+# Sub-command completion {{{1
+
+_cdrdao-show-toc () {
+  __cdrdao-show-toc-or-toc-info-or-toc-size
+}
+
+_cdrdao-toc-info () {
+  __cdrdao-show-toc-or-toc-info-or-toc-size
+}
+
+_cdrdao-toc-size () {
+  __cdrdao-show-toc-or-toc-info-or-toc-size
+}
+
+__cdrdao-show-toc-or-toc-info-or-toc-size () {
+  _arguments \
+    $_cdrdao_common_toc_args \
+    $_cdrdao_tmpfile_args
+}
+
+_cdrdao-read-toc () {
+  __cdrdao-read-toc-or-read-cd $_cdrdao_cddb_args
+}
+
+_cdrdao-read-cd () {
+  __cdrdao-read-toc-or-read-cd \
+    $_cdrdao_paranoiamode_arg \
+    $_cdrdao_cddb_args
+}
+
+__cdrdao-read-toc-or-read-cd () {
+  local -a dependent_args
+
+  __cdrdao-read-toc-or-read-cd-or-copy-dependent-args
+
+  _arguments \
+    $_cdrdao_common_toc_device_args \
+    $_cdrdao_common_read_args \
+    $dependent_args \
+    $_cdrdao_fasttoc_arg \
+    '--datafile[set name of data file placed in TOC file]:file:_files' \
+    '--read-raw[read data in raw format from CD]' \
+    '--no-mode2-mixed[if MODE2_FORM1 or MODE2_FORM2, do not extract as MODE2_FORM_MIX]' \
+    "$@" && ret=0
+}
+
+_cdrdao-read-cddb () {
+  _arguments \
+    $_cdrdao_common_toc_args \
+    $_cdrdao_cddb_args
+}
+
+_cdrdao-show-data () {
+  _arguments \
+    $_cdrdao_common_toc_args \
+    $_cdrdao_swap_arg
+}
+
+_cdrdao-read-test () {
+  _arguments \
+    $_cdrdao_common_toc_args
+}
+
+_cdrdao-disk-info () {
+  __cdrdao-disk-info-or-drive-info
+}
+
+__cdrdao-disk-info-or-drive-info () {
+  _arguments \
+    $_cdrdao_common_device_args
+}
+
+_cdrdao-discid() {
+  _arguments $_cdrdao_common_device_args $_cdrdao_cddb_args \
+    '--query-string[print out CDDB query only]'
+}
+
+_cdrdao-msinfo () {
+  _arguments \
+    $_cdrdao_common_device_args \
+    $_cdrdao_reload_arg
+}
+
+_cdrdao-drive-info () {
+  __cdrdao-disk-info-or-drive-info
+}
+
+_cdrdao-unlock () {
+  _arguments \
+    $_cdrdao_common_device_args \
+    $_cdrdao_reload_arg \
+    $_cdrdao_eject_arg
+}
+
+_cdrdao-blank () {
+  _arguments \
+    $_cdrdao_common_device_args \
+    $_cdrdao_speed_arg \
+    '--blank-mode[set the blanking mode]:blanking mode:(("full\:completely erase data" "minimal\:only dereference data"))' \
+    $_cdrdao_eject_arg
+}
+
+_cdrdao-scanbus () {
+  _arguments \
+    $_cdrdao_common_args
+}
+
+_cdrdao-simulate () {
+  __cdrdao-simulate-or-write
+}
+
+__cdrdao-simulate-or-write () {
+  local _cdrdao_capacity_arg=
+
+  if (( $words[(I)--full-burn] )); then
+    _cdrdao_capacity_arg='--capacity[set disk capacity for --full-burn]: :_guard "[[\:digit\:]]" minutes'
+  fi
+
+  _arguments \
+    $_cdrdao_common_toc_device_args \
+    $_cdrdao_speed_arg \
+    '--multi[do not close the session after successful write]' \
+    '--overburn[allow overburning of medium]' \
+    '--full-burn[force burning to the outer disk edge]' \
+    $_cdrdao_capacity_arg \
+    $_cdrdao_eject_arg \
+    $_cdrdao_swap_arg \
+    '--buffers[set fifo buffer size]: :_guard "[[\:digit\:]]" size' \
+    $_cdrdao_reload_arg \
+    $_cdrdao_tmpfile_args \
+    '-n[do not pause before writing]' \
+    $*
+}
+
+_cdrdao-write () {
+  __cdrdao-simulate-or-write \
+    '--simulate[only perform a write simulation]' \
+    '--buffer-under-run-protection[whether to use buffer under-run protection]:buffer under-run protection setting:(("0\:disable buffer under-run protection" "1\:enable buffer under-run protection"))' \
+    '--write-speed-control[whether to use writing-speed control]:writing-speed control setting:(("0\:disable writing-speed control" "1\:enable writing-speed control"))' \
+    $*
+}
+
+__cdrdao-read-toc-or-read-cd-or-copy-dependent-args () {
+  if (( words[(I)--tao-source] )); then
+    dependent_args+='--tao-source-adjust[specify number of link blocks for tracks written in TAO mode]: :_guard "[[\:digit\:]]##" "link blocks"'
+  fi
+
+  if (( words[(I)--with-cddb] )); then
+    dependent_args+=$_cdrdao_cddb_args
+  fi
+}
+
+_cdrdao-copy () {
+  local -a dependent_args
+
+  __cdrdao-read-toc-or-read-cd-or-copy-dependent-args
+
+  _cdrdao-write \
+    $dependent_args \
+    $_cdrdao_common_read_args \
+    '--source-device[set SCSI address of the CD reader]:device:__cdrdao-device' \
+    '--source-driver[use given driver for the CD reader]:driver:__cdrdao-drivers' \
+    '--on-the-fly[perform on-the-fly copy of CD (no image created)]' \
+    $_cdrdao_fasttoc_arg \
+    '--keepimage[do not remove generated image when done]' \
+    $_cdrdao_paranoiamode_arg
+}
+
+# Type completion {{{1
+
+__cdrdao-device () {
+  # Use cdrdao scanbus and also check what OS we're running under and provide
+  # additional stuff, like devices (/dev/sg0)
+  local -a expl devices
+  devices=(${${(f)"$(_call_program devices cdrdao scanbus -v 0 2>&1)"}%% :*})
+
+  _wanted devices expl 'device' compadd -a devices
+}
+
+__cdrdao-drivers () {
+  local expl suf
+  local -Ua drivers
+  drivers=(${(f)"$(_call_program drivers cut -d'\|' -f4 /usr/share/cdrdao/drivers -s)"})
+  if compset -P \*:; then
+    _message -e options option
+  else
+    compset -S :\* || suf=-qS:
+    _wanted drivers expl 'driver' compadd $suf -a drivers
+  fi
+}
+
+# }}}1
+
+_cdrdao

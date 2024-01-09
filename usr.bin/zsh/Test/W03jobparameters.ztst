@@ -1,0 +1,78 @@
+# Tests for interactive job control with parameter state
+
+%prep
+
+  if zmodload zsh/zpty 2> /dev/null; then
+    zpty_start() {
+      export PS1= PS2=
+      zpty -d
+      zpty zsh "${(q)ZTST_testdir}/../Src/zsh -fiV +Z"
+    }
+    zpty_input() {
+      zpty -w zsh "${(F)@}" $'\n'
+    }
+    zpty_line() {
+      local REPLY
+      integer i
+      for (( i = 0; i < ${1:-1}; ++i )); do
+        zpty -r zsh REPLY
+        print -r -- ${REPLY%%($'\r\n'|$'\n')}
+      done
+    }
+    zpty_stop() {
+      # exit twice in case of check_jobs
+      zpty -w zsh $'exit\nexit\n'
+      # zpty gives no output when piped without these braces (?)
+      { zpty -r zsh } | sed $'/[^[:space:]]/!d; s/\r$//;'
+      zpty -d
+      :
+    }
+    if ! zmodload zsh/parameter 2> /dev/null; then
+      ZTST_unimplemented='the zsh/parameter module is not available'
+    fi
+  else
+    ZTST_unimplemented='the zsh/zpty module is not available'
+  fi
+
+%test
+
+  zpty_start
+  zpty_input "MODULE_PATH=${(q)MODULE_PATH}"
+  zpty_input 'sleep 3 &'
+  zpty_input 'print $jobstates'
+  zpty_input '(print $jobstates)'
+  zpty_input 'jobs -s'
+  zpty_stop
+0:$jobstate for running job in main shell and subshell
+*>\[1] [0-9]##
+*>running:+:*=running
+*>running:+:*=running
+*>zsh:*SIGHUPed*
+
+# $jobstates refers to a job started in the main shell unless
+# one has been started in the subshell.  In the latter case,
+# the subshell has no job control so the job is not marked as current.
+  zpty_start
+  zpty_input "MODULE_PATH=${(q)MODULE_PATH}"
+  zpty_input 'sleep 3 &'
+  zpty_input '(print main; print $jobstates; sleep 2& print sub; print $jobstates)'
+  zpty_input 'jobs -s'
+  zpty_stop
+0:$jobstate shows one job started in main shell or one started in subshell
+*>\[1] [0-9]##
+>main
+*>running:+:*=running
+>sub
+*>running::*=running
+*>zsh:*SIGHUPed*
+
+# output from zpty removes empty lines
+  zpty_start
+  zpty_input "MODULE_PATH=${(q)MODULE_PATH}"
+  zpty_input '(print main; print $jobstates; sleep 2& print sub; print $jobstates)'
+  zpty_input 'jobs -s'
+  zpty_stop
+0:$jobstate shows no job started in main shell but one started in subshell
+>main
+>sub
+*>running::*=running

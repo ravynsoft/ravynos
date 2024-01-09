@@ -1,0 +1,47 @@
+#compdef losetup -value-,LOOPDEV_DEBUG,-default-
+
+if [[ $service = *LOOPDEV_DEBUG* ]]; then
+  local expl
+  _wanted values expl value compadd all
+  return
+fi
+
+local device offset
+
+device='1:device:_files -g "/dev/loop<->"'
+offset=( {-o,--offset}'+[specify data start is offset]:offset (bytes)' )
+
+_arguments -s -S \
+  - '(H)'\
+  {-V,--version}'[display version information]' \
+  {-h,--help}'[display help]' \
+  - 'info' \
+  '(-v --verbose)'{-v,--verbose}'[verbose mode]' \
+  '(-o --offset -a --all)'{-a,--all}'[show the status of all loop devices]' \
+  '(-O --output --output-all)'{-O+,--output=}'[specify columns to be printed with --list]:column:_sequence -s , compadd - name autoclear back-file back-ino back-maj\:min maj\:min offset partscan ro sizelimit dio log-sec' \
+  '(-O --output)--output-all[output all columns]' \
+  '(-J --json --raw -O --output -n --noheadings)'{-J,--json}'[use JSON --list output format]' \
+  '(-l --list)'{-l,--list}'[list currently used loop devices]' \
+  '(-J --json)--raw[raw output format]' \
+  '(-n --noheadings -J --json)'{-n,--noheadings}"[don't print headings in --list output]" \
+  - '(resize)' \
+  {-c,--set-capacity}'[reread the size of the file associated with the loop device]' \
+  - 'detach' \
+  '(-)'{--delete,--detach,-d}'[detach from specified loop device]' \
+  "$device" \
+  - '(detach-all)' \
+  {-D,--detach-all}'[detach all associated loop devices]' \
+  - 'create' \
+  '--direct-io[open backing file with O_DIRECT]::enable:(on off)' \
+  '(-f --find 1)'{-f,--find}'[find the first unused loop device]' \
+  '(-L --nooverlap)'{-L,--nooverlap}'[avoid possible conflict between devices]' \
+  '(-P --partscan)'{-P,--partscan}'[scan the partition table of newly created loop devices]' \
+  '--sizelimit[limit device to specified size]:size (bytes)' \
+  '(-b --sector-size)'{-b+,--sector-size=}'[set logical sector size of loop device]:size (bytes)' \
+  '--show[print device name after setup]' \
+  '(-r --read-only)'{-r,--read-only}'[set up a read-only loop device]' \
+  "(-f)$device" \
+  '2:file:_files' \
+  - 'assoc' \
+  '(-j --associated)'{-j,--associated}'[show the status of all loop devices associated with an file]:associated file:_files' \
+  "(-f)$device"

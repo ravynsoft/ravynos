@@ -1,0 +1,53 @@
+#compdef mupdf
+
+local -a ext=(
+  cbt
+  cbz
+  tar
+  zip
+  epub
+  gproof
+  fb2
+  htm
+  html
+  xhtml
+  xml
+  bmp
+  gif
+  hdp
+  j2k
+  jfif
+  jfif-tbnl
+  jp2
+  jpe
+  jpeg
+  jpg
+  jpx
+  jxr
+  pam
+  pbm
+  pgm
+  png
+  pnm
+  ppm
+  tif
+  tiff
+  wdp
+  pdf
+  pclm
+  ai
+  svg
+  oxps
+  xps
+)
+
+_arguments -S -s -A '-*' \
+  '-p+[use specified password]:password:' \
+  '-r+[specify initial zoom level]:resolution [72]:' \
+  '-A+[specify anti-aliasing quality]:bits [8]:({0..8})' \
+  '-C+[specify full-page tint:tint (RRGGBB) [FFFAF0]:' \
+  '-W+[specify page width]:width:' \
+  '-H+[specify page height]:height:' \
+  '-S+[specify font size]:font size:' \
+  '-U+[specify user style sheet]:CSS file:_files' \
+  ': :_files -g "*(#i).(${(j:|:)ext})(-.)"'

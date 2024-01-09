@@ -1,0 +1,32 @@
+#autoload
+
+# This is used to generate filenames usable as a tar archive. This may
+# get one argument, a collection of tar option characters that may be
+# used to find out what kind of filename is needed. If no argument is
+# given but the parameter `_tar_cmd' is set, that is used.
+# If your version of `tar' supports this you may want to complete
+# things like `host:file' or `user@host:file' here.
+
+local expl
+
+[[ $# -eq 0 && $+_tar_cmd -ne 0 ]] && set "$_tar_cmd"
+
+_description files expl 'archive file'
+
+if [[ "$1" = *[urtx]* ]]; then
+  if [[ "$1" = *[zZ]* ]]; then
+    _files "$expl[@]" -g '*.((tar|TAR).(gz|GZ|Z)|tgz)(-.)'
+  elif [[ "$1" = *[Ijy]* ]]; then
+    _files "$expl[@]" -g '*.(tar|TAR).bz2(-.)'
+  elif [[ "$1" = *J* ]]; then
+    _files "$expl[@]" -g '*.(tar|TAR).(lzma|xz)(-.)'
+  elif [[ "$_cmd_variant[$service]" == gnu ]]; then
+    _files "$expl[@]" -g '*.((tar|TAR)(.gz|.GZ|.Z|.bz2|.lzma|.xz|.zst|lzo|)|(tbz|tgz|txz|tzst|taz|taZ|tz2|tbz2|tlz))(-.)'
+  elif [[ "$_cmd_variant[$service]" == libarchive ]]; then
+    _files "$expl[@]" -g '*.((tar|TAR|cpio)(.gz|.GZ|.Z|.bz2|.lzma|.xz|.zst|lzo|)|(tbz|tgz|txz|tzst|tzo|taz|tbz2|tz2|tlz|tZ|7z|ar|iso|deb|cab|lha|mtree|rar|warc|xar|zip))(-.)'
+  else
+    _files "$expl[@]" -g '*.(tar|TAR)(-.)'
+  fi
+else
+  _files "$expl[@]"
+fi

@@ -1,0 +1,54 @@
+#compdef ptx
+
+local -a specs optA
+
+# common specs
+specs=(
+  '(hv -b --break-file)'{-b+,--break-file=}'[use characters in specified file as word separators]:break file:_files'
+  '(hv -f --ignore-case)'{-f,--ignore-case}'[fold lower case to upper case for sorting]'
+  '(hv -g --gap-size)'{-g+,--gap-size=}'[specify gap size between output fields]:number of chars [3]: '
+  '(hv -i --ignore-file)'{-i+,--ignore-file=}'[ignore keywords listed in specified file]:ignore file:_files'
+  '(hv -o --only-file)'{-o+,--only-file=}'[use only the keywords listed in specified file]:only file:_files'
+  '(hv -r --references)'{-r,--references}'[first field of each line is a reference]'
+  '(hv -w --width)'{-w+,--width=}'[specify page width, reference excluded]:number of characters [72]: '
+)
+
+if _pick_variant gnu=GNU unix --version; then
+  # GNU coreutils 8.32
+  specs+=(
+    '(hv -A --auto-reference)'{-A,--auto-reference}'[output automatically generated references]'
+    '(hv -G --traditional)'{-G,--traditional}"[behave more like System V 'ptx']"
+    '(hv -F --flag-truncation)'{-F+,--flag-truncation=}'[specify string for flagging line truncations]:string [/]: '
+    '(hv -M --macro-name)'{-M+,--macro-name=}"[specify macro name to use instead of 'xx']:macro name: "
+    '(hv)-O[generate output as roff directives]'
+    '(hv -R --right-side-refs)'{-R,--right-side-refs}'[put references at right, not counted in -w]'
+    '(hv -S --sentence-regexp)'{-S+,--sentence-regexp=}'[specify regexp for end of lines/sentences]:regexp: '
+    '(hv)-T[generate output as TeX directives]'
+    '(hv -W --word-regexp -b --break-file)'{-W+,--word-regexp=}'[specify regexp to match each keyword]:regexp: '
+    '(hv)--format=[specify the output format]:format:(roff tex)'
+    !{-t,--typeset-mode}'[not implemented]'
+    + hv
+    '(: * -)--help[display help and exit]'
+    '(: * -)--version[output version information and exit]'
+  )
+  if (( $words[(I)(-G|--traditional)] )); then
+    specs+=( + arg '1:input file:_files'  '2:output file:_files' )
+  else
+    specs+=( + arg '(-G --traditional)*:input file:_files' )
+  fi
+else
+  # The only non-GNU implementation I can find is the one in
+  # heirloom-doctools. FreeBSD has a package for this.
+  specs=( ${specs:#(|*\))--*} )    # remove long options
+  # remove '+' from -b+ -g+ -i+ -o+ -w+
+  local MATCH MBEGIN MEND
+  specs=( ${specs/(#m)-[bgiow]+/$MATCH[1,-2]} )
+  specs+=(
+    '-t[prepare output for typesetter]'
+    '1:input file:_files'
+    '2:output file:_files'
+  )
+  optA=( -A '-?*' )  # a single '-' is a valid file name (stdin)
+fi
+
+_arguments -s -S $optA : $specs

@@ -1,0 +1,14 @@
+#compdef vared
+
+_arguments -s -A "-*" \
+  '(-a)-A[edit associative array]' \
+  '(-A)-a[edit array parameter]' \
+  "-c[create parameter or change type]" \
+  '-p+[specify left prompt]:prompt' \
+  '-r+[specify right prompt]:right prompt' \
+  '-i+[specify initialisation widget]:widget:_widgets' \
+  '-f+[specify finish widget]:widget:_widgets' \
+  '-h[allow access to history]' \
+  '-e[exit on EOF (^D)]' \
+  '1:parameter spec:_vars'
+

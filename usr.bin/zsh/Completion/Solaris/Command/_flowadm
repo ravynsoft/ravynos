@@ -1,0 +1,99 @@
+#compdef flowadm
+
+local -a subcmds tr props
+local expl
+
+_flowadm_flow(){
+  compadd "$@" - $(_call_program flows flowadm show-flow -p -o flow)
+}
+
+subcmds=(
+  help show-flow add-flow match-flow remove-flow set-flowprop
+  reset-flowprop show-flowprop
+)
+tr=( tcp udp sctp icmp icmpv6 )
+props=( maxbw )
+
+if [[ $service == "flowadm" ]]; then
+	_arguments -C -A "-*" \
+		'*::command:->subcmd' && return 0
+	
+	if (( CURRENT == 1 )); then
+		_wanted commands expl "flowadm subcommand" compadd -a subcmds
+		return
+	fi
+	service="$words[1]"
+	curcontext="${curcontext%:*}-$service:"
+fi
+case $service in
+
+	("help")
+		_arguments ':subcommand:($subcmds)'
+		;;
+
+	("show-flow")
+	_arguments -A "-*" \
+		'-o[specify field to display]:field:(flow link ipaddr proto port dsfield)' \
+		'-p[parsable output]' \
+		'-P[persistent flow property information]' \
+		- set1 \
+		'-l[display information for link]:link or flow:_net_interfaces' \
+		- set2 \
+		':flow:_flowadm_flow' \
+	;;
+
+	(match-flow)
+	_arguments -A "-*" \
+		'-o[specify field to display]:field:(flow link ipaddr proto port dsfield)' \
+		'-p[parsable output]' \
+		'-P[persistent flow property information]' \
+		'-a[specify attribute]:attribute:(local_ip= remote_ip= transport=$tr local_port= dsfield=)' \
+		'(:)-l[display information for link]:link or flow:_net_interfaces' \
+		'(-l):flow:_flowadm_flow' \
+	;;
+
+	("add-flow")
+	_arguments -A "-*" \
+		'-t[temporary changes - do not persist across reboots]' \
+		'-R[alternate root dir]:alternate root:_files' \
+		'-l[specify link to which flow will be added]:link:_net_interfaces' \
+		'-a[specify attribute]:attribute:(local_ip= remote_ip= transport=$tr local_port= dsfield=)' \
+		'-p[set property value]:property:(maxbw=)' \
+	;;
+
+	("remove-flow")
+	_arguments -A "-*" \
+		'-t[temporary changes - do not persist across reboots]' \
+		'-R[alternate root dir]:alternate root:_files' \
+		- set1 \
+		'-l[specify link from which flow will be deleted]:link:_net_interfaces' \
+		- set2 \
+		':flow:_flowadm_flow' \
+	;;
+
+	("set-flowprop")
+	_arguments -A "-*" \
+		'-t[temporary changes - do not persist across reboots]' \
+		'-R[alternate root dir]:alternate root:_files' \
+		'-p[set property value]:property:(maxbw=)' \
+		':flow:_flowadm_flow' \
+	;;
+
+	("reset-flowprop")
+	_arguments -A "-*" \
+		'-t[temporary changes - do not persist across reboots]' \
+		'-R[alternate root dir]:alternate root:_files' \
+		'-p[set property value]:property:(maxbw=)' \
+		':flow:_flowadm_flow' \
+	;;
+
+	("show-flowprop")
+	_arguments -A "-*" \
+		'-c[parsable output (requires -o)]' \
+		'-l[specify link whose properties will be shown]:link:_net_interfaces' \
+		'-P[persistent flow property information]' \
+		'-p[property to show]:property:_values -s , "property" $props' \
+		':flow:_flowadm_flow' \
+	;;
+
+esac

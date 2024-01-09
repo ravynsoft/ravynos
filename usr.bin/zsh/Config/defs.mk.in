@@ -1,0 +1,114 @@
+#
+# Basic Makefile definitions
+#
+# Copyright (c) 1995-1997 Richard Coleman
+# All rights reserved.
+#
+# Permission is hereby granted, without written agreement and without
+# license or royalty fees, to use, copy, modify, and distribute this
+# software and to distribute modified versions of this software for any
+# purpose, provided that the above copyright notice and the following
+# two paragraphs appear in all copies of this software.
+#
+# In no event shall Richard Coleman or the Zsh Development Group be liable
+# to any party for direct, indirect, special, incidental, or consequential
+# damages arising out of the use of this software and its documentation,
+# even if Richard Coleman and the Zsh Development Group have been advised of
+# the possibility of such damage.
+#
+# Richard Coleman and the Zsh Development Group specifically disclaim any
+# warranties, including, but not limited to, the implied warranties of
+# merchantability and fitness for a particular purpose.  The software
+# provided hereunder is on an "as is" basis, and Richard Coleman and the
+# Zsh Development Group have no obligation to provide maintenance,
+# support, updates, enhancements, or modifications.
+#
+
+# fundamentals
+SHELL = /bin/sh
+@SET_MAKE@
+EXEEXT = @EXEEXT@
+
+# headers
+ZSH_CURSES_H = @ZSH_CURSES_H@
+ZSH_TERM_H = @ZSH_TERM_H@
+
+# install basename
+tzsh            = @tzsh@
+
+# installation directories
+prefix          = @prefix@
+exec_prefix     = @exec_prefix@
+bindir          = @bindir@
+libdir          = @libdir@
+MODDIR          = $(libdir)/$(tzsh)/$(VERSION)
+infodir         = @infodir@
+mandir          = @mandir@
+datarootdir     = @datarootdir@
+datadir         = @datadir@
+fndir           = @fndir@
+fixed_sitefndir = @fixed_sitefndir@
+sitefndir       = @sitefndir@
+scriptdir       = @scriptdir@
+sitescriptdir   = @sitescriptdir@
+htmldir         = @htmldir@
+runhelpdir      = @runhelpdir@
+runhelp         = @runhelp@
+
+# compilation
+CC              = @CC@
+CPP             = @CPP@
+CPPFLAGS        = @CPPFLAGS@
+DEFS            = @DEFS@
+CFLAGS          = @CFLAGS@
+LDFLAGS         = @LDFLAGS@
+EXTRA_LDFLAGS   = @EXTRA_LDFLAGS@
+DLCFLAGS        = @DLCFLAGS@
+DLLDFLAGS       = @DLLDFLAGS@
+LIBLDFLAGS      = @LIBLDFLAGS@
+EXELDFLAGS      = @EXELDFLAGS@
+LIBS            = @LIBS@
+DL_EXT          = @DL_EXT@
+DLLD            = @DLLD@
+EXPOPT          = @EXPOPT@
+IMPOPT          = @IMPOPT@
+
+# utilities
+AWK             = @AWK@
+ANSI2KNR        = @ANSI2KNR@
+YODL            = @YODL@ @YODL_OPTIONS@
+YODL2TXT        = @YODL@2txt
+YODL2HTML       = @YODL@2html
+
+# install utility
+INSTALL_PROGRAM = @INSTALL_PROGRAM@
+INSTALL_DATA    = @INSTALL_DATA@
+
+# variables used in determining what to install
+FUNCTIONS_SUBDIRS = @FUNCTIONS_SUBDIRS@
+
+# Additional fpath entries (eg. for vendor specific directories).
+additionalfpath = @additionalfpath@
+
+# flags passed to recursive makes in subdirectories
+MAKEDEFS = \
+prefix='$(prefix)' exec_prefix='$(exec_prefix)' bindir='$(bindir)' \
+libdir='$(libdir)' MODDIR='$(MODDIR)' infodir='$(infodir)' mandir='$(mandir)' \
+datadir='$(datadir)' fndir='$(fndir)' htmldir='$(htmldir)' runhelpdir='$(runhelpdir)' \
+CC='$(CC)' CPPFLAGS='$(CPPFLAGS)' DEFS='$(DEFS)' CFLAGS='$(CFLAGS)' \
+LDFLAGS='$(LDFLAGS)' EXTRA_LDFLAGS='$(EXTRA_LDFLAGS)' \
+DLCFLAGS='$(DLCFLAGS)' DLLDFLAGS='$(DLLDFLAGS)' \
+LIBLDFLAGS='$(LIBLDFLAGS)' EXELDFLAGS='$(EXELDFLAGS)' \
+LIBS='$(LIBS)' DL_EXT='$(DL_EXT)' DLLD='$(DLLD)' \
+AWK='$(AWK)' ANSI2KNR='$(ANSI2KNR)' \
+YODL='$(YODL)' YODL2TXT='$(YODL2TXT)' YODL2HTML='$(YODL2HTML)' \
+FUNCTIONS_INSTALL='$(FUNCTIONS_INSTALL)' tzsh='$(tzsh)'
+
+# override built-in suffix list
+.SUFFIXES:
+
+# parallel build is not supported (pmake, gmake)
+.NOTPARALLEL:
+
+# parallel build is not supported (dmake)
+.NO_PARALLEL:

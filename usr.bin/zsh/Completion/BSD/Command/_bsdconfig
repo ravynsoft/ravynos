@@ -1,0 +1,63 @@
+#compdef bsdconfig
+
+local -a shortcuts
+shortcuts=(
+  api
+  'console:utilities to customize the behavior of the system console'
+  'defaultrouter:default router/gateway'
+  'diskmgmt:manage disk partitions and/or labels using sade(8)'
+  'docsinstall:install/reinstall FreeBSD documentation set(s)'
+  'dot:generate a graphviz dot(1) language file(printed on stdout)'
+  'groupadd:add groups'
+  'groupdel:delete groups'
+  'groupedit:edit/view groups'
+  'groupmgmt:utilities to add/change/view/delete group accounts'
+  'hostname:set hostname/domainname'
+  includes
+  'kern_securelevel:set kern.securelevel variable'
+  'mouse:utilities for configuring, exploring, and enabling console mouse support'
+  'mouse_disable:disable mouse support'
+  'mouse_enable:enable mouse support'
+  'mouse_flags:set mouse daemon flags'
+  'mouse_port:select mouse port'
+  'mouse_type:select mouse type'
+  'nameservers:DNS Nameservers menu under networking'
+  'netdev:configure network interfaces'
+  'networking:utilities for network related settings'
+  'packages:browse, install, uninstall, or re-install packaged software'
+  'password:set the system administrator (root) password'
+  'security:configure various system security settings'
+  'startup:configure various aspects of system startup'
+  'startup_misc:miscellaneous startup services'
+  'startup_rcadd:add directives to rc.conf(5)'
+  'startup_rcconf:view/edit directives to rc.conf(5)'
+  'startup_rcdelete:delete directives from rc.conf(5)'
+  'startup_rcvar:toggle directives on/off'
+  'syscons_font:select console font'
+  'syscons_keymap:select console keymap'
+  'syscons_repeat:set key repeat speed'
+  'syscons_saver:select console screensaver'
+  'syscons_screenmap:select console screenmap'
+  'syscons_ttys:select console TTY type'
+  'timezone:set the regional timezone of the local machine'
+  'ttys:edit the ttys(5) database with your favorite editor'
+  'useradd:add users'
+  'userdel:delete users'
+  'useredit:edit/view users'
+  'usermgmt:utilities to add/edit/view/delete user accounts'
+  vt_font
+  vt_keymap
+  vt_repeat
+  vt_saver
+  vt_screenmap
+  vt_ttys
+)
+
+_arguments -s -w -A '-*' : \
+  '-d[debug mode]' \
+  '-D[send debug info to file]: :{ compset -P 1 +; _files }' \
+  '-f[load file as script then exit]: : _files' \
+  '-h[display help information]' \
+  '-S[secure X11 mode]' \
+  '-X[use Xdialog(1)]' \
+  '1:bsdconfig(8) menu:(( $shortcuts ))'

@@ -1,0 +1,187 @@
+comptestinit () {
+  setopt extendedglob
+  [[ -d $ZTST_testdir/Modules/zsh ]] && module_path=( $ZTST_testdir/Modules )
+  fpath=( $ZTST_srcdir/../Functions/*~*/CVS(/)
+          $ZTST_srcdir/../Completion
+          $ZTST_srcdir/../Completion/*/*~*/CVS(/) )
+
+  zmodload zsh/zpty || return $?
+
+  comptest_zsh=${ZSH:-zsh}
+  comptest_keymap=e
+
+  while getopts vz: opt; do
+    case $opt in
+      z) comptest_zsh="$OPTARG";;
+      v) comptest_keymap="v";;
+    esac
+  done
+  (( OPTIND > 1 )) && shift $(( OPTIND - 1 ))
+
+  export PS1="<PROMPT>"
+  zpty zsh "$comptest_zsh -f +Z"
+
+  zpty -r zsh log1 "*<PROMPT>*" || { 
+    print "first prompt hasn't appeared."
+    return 1
+  }
+
+  comptesteval \
+"export LC_ALL=${ZSH_TEST_LANG:-C}" \
+"emulate -R zsh" \
+"export ZDOTDIR=$ZTST_testdir" \
+"module_path=( $module_path )" \
+"fpath=( $fpath )" \
+"bindkey -$comptest_keymap" \
+'LISTMAX=10000000
+stty 38400 columns 80 rows 24 tabs -icanon -iexten
+TERM=vt100
+KEYTIMEOUT=1
+setopt zle
+autoload -U compinit
+compinit -u
+zstyle ":completion:*" completer _expand _complete _ignored
+zstyle ":completion:*:default" list-colors "no=<NO>" "fi=<FI>" "di=<DI>" "ln=<LN>" "pi=<PI>" "so=<SO>" "bd=<BD>" "cd=<CD>" "ex=<EX>" "mi=<MI>" "tc=<TC>" "sp=<SP>" "lc=<LC>" "ec=<EC>\n" "rc=<RC>"
+zstyle ":completion:*" group-name ""
+zstyle ":completion:*:messages" format "<MESSAGE>%d</MESSAGE>
+"
+zstyle ":completion:*:descriptions" format "<DESCRIPTION>%d</DESCRIPTION>
+"
+zstyle ":completion:*:options" verbose yes
+zstyle ":completion:*:values" verbose yes
+setopt noalwayslastprompt listrowsfirst completeinword
+zmodload zsh/complist
+complete-word-with-report () {
+  print -lr "<WIDGET><complete-word>"
+  zle complete-word
+  print -lr - "<LBUFFER>$LBUFFER</LBUFFER>" "<RBUFFER>$RBUFFER</RBUFFER>"
+  zle clear-screen
+  zle -R
+}
+list-choices-with-report () {
+  print -lr "<WIDGET><list-choices>"
+  zle list-choices
+  zle clear-screen
+  zle -R
+}
+comp-finish () {
+  print "<WIDGET><finish>"
+  zle kill-whole-line
+  zle clear-screen
+  zle -R
+}
+zle-finish () {
+  local buffer="$BUFFER" cursor="$CURSOR" mark="$MARK"
+  (( region_active)) || unset mark
+  BUFFER=""
+  zle -I
+  zle clear-screen
+  zle redisplay
+  print -lr "<WIDGET><finish>" "BUFFER: $buffer" "CURSOR: $cursor"
+  (( $+mark )) && print -lr "MARK: $mark"
+  zle accept-line
+}
+zle -N complete-word-with-report
+zle -N list-choices-with-report
+zle -N comp-finish
+zle -N zle-finish
+bindkey "^I" complete-word-with-report
+bindkey "^D" list-choices-with-report
+bindkey "^Z" comp-finish
+bindkey "^X" zle-finish
+bindkey -a "^X" zle-finish
+'
+}
+
+zpty_flush() {
+  local junk
+  if zpty -r -t zsh junk \*; then
+    (( ZTST_verbose > 2 )) && print -n -u $ZTST_fd "$*: ${(V)junk}"
+    while zpty -r -t zsh junk \* ; do
+      (( ZTST_verbose > 2 )) && print -n -u $ZTST_fd "${(V)junk}"
+    done
+    (( ZTST_verbose > 2 )) && print -u $ZTST_fd ''
+  fi
+}
+
+zpty_run() {
+  zpty -w zsh "$*"
+  zpty -r -m zsh log "*<PROMPT>*" || {
+    print "prompt hasn't appeared."
+    return 1
+  }
+}
+
+comptesteval () {
+   {
+     # Avoid symlink attacks on the predictable filename
+     # TODO: either use =(:) or create this file in the tests' workdir
+     local tmp=/tmp/comptest.$$
+     () {
+       setopt localoptions NO_CLOBBER ERR_EXIT
+       print -lr - "$@" > $tmp
+     } "$@"
+
+     # zpty_flush Before comptesteval
+     zpty -w zsh ". ${(q)tmp}"
+     zpty -r -m zsh log_eval "*<PROMPT>*" || {
+       print "prompt hasn't appeared."
+       return 1
+     }
+     zpty_flush After comptesteval
+     : Suppress error from zpty_flush
+   } always {
+     rm $tmp
+   }
+}
+
+comptest () {
+  input="$*"
+  zpty -n -w zsh "$input"$'\C-Z'
+  zpty -r -m zsh log "*<WIDGET><finish>*<PROMPT>*" || {
+    print "failed to invoke finish widget."
+    return 1
+  }
+
+  logs=(${(s:<WIDGET>:)log})
+  shift logs
+
+  for log in "$logs[@]"; do
+    if [[ "$log" = (#b)*$'<LBUFFER>'(*)$'</LBUFFER>\r\n<RBUFFER>'(*)$'</RBUFFER>'* ]]; then
+      print -lr "line: {$match[1]}{$match[2]}"
+    fi
+    while (( ${(N)log#*(#b)(<LC><(??)><RC>(*)<EC>|<DESCRIPTION>(*)</DESCRIPTION>|<MESSAGE>(*)</MESSAGE>|<COMPADD>(*)</COMPADD>|<INSERT_POSITIONS>(*)</INSERT_POSITIONS>)} )); do
+      log="${log[$mend[1]+1,-1]}"
+      if (( 0 <= $mbegin[2] )); then
+	if [[ $match[2] != TC && $match[3] != \ # ]]; then
+	  print -lr "$match[2]:{${match[3]%${(%):-%E}}}"
+	fi
+      elif (( 0 <= $mbegin[4] )); then
+	print -lr "DESCRIPTION:{$match[4]}"
+      elif (( 0 <= $mbegin[5] )); then
+	print -lr "MESSAGE:{$match[5]}"
+      elif (( 0 <= $mbegin[6] )); then
+        print -lr "COMPADD:{${${match[6]}//[$'\r\n']/}}"
+      elif (( 0 <= $mbegin[7] )); then
+        print -lr "INSERT_POSITIONS:{${${match[7]}//[$'\r\n']/}}"
+      fi
+    done
+  done
+}
+
+zletest () {
+  local first=0
+  for input; do
+    # zpty_flush Before zletest
+    # sleep for $KEYTIMEOUT
+    (( first++ )) && { sleep 2 & } | read -t 0.011 -u 0 -k 1
+    zpty -n -w zsh "$input"
+  done
+  zpty -n -w zsh $'\C-X'
+  zpty -r -m zsh log "*<WIDGET><finish>*<PROMPT>*" || {
+    print "failed to invoke finish widget."
+    return 1
+  }
+  # zpty_flush After zletest
+  print -lr "${(@)${(@ps:\r\n:)log##*<WIDGET><finish>}[2,-2]}"
+}

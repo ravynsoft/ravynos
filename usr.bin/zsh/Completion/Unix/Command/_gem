@@ -1,0 +1,328 @@
+#compdef gem -P gem[0-9.]#
+
+local curcontext="$curcontext" state line expl ret=1
+local -A opt_args def
+local -a args cmds helptopics proxy lropts filter
+local cmd="unknown"
+
+proxy=(
+  '(-p --http-proxy)'{-p,--http-proxy=}'[use HTTP proxy for remote operations]:proxy url:_urls'
+)
+lropts=( $proxy
+  '${def[local]}(-l --local -r --remote -b --both)'{-l,--local}'[restrict operations to the LOCAL domain]'
+  '${def[remote]}(-l --local -r --remote -b --both)'{-r,--remote}'[restrict operations to the REMOTE domain]'
+  '${def[both]}(-l --local -r --remote -b --both)'{-b,--both}'[allow LOCAL and REMOTE operations]'
+  '(-B --bulk-threshold)'{-B,--bulk-threshold=}'[specify threshold for switching to bulk synchronization]:threshold [1000]'
+  '--clear-sources[clear the gem sources]'
+  \*{-s,--source=}'[append specified URL to list of gem sources]:url:_urls'
+)
+
+_arguments -C -s \
+  '(* -)'{-h,--help}'[display usage information]' \
+  '(* -)'{-v,--version}'[display version information]' \
+  '*::command:->command' && ret=0
+
+if [[ $state = command ]]; then
+  if (( CURRENT == 1 )); then
+    cmd=subcommands
+  else
+    cmds=(
+      build cert check cleanup contents dependency environment fetch
+      generate_index help install info list lock mirror open outdated owner
+      pristine push query rdoc search server signin signout sources
+      specification stale uninstall unpack update which yank
+    )
+    cmds=( ${(M)cmds:#${words[1]}*} )
+    if (( ${#cmds} == 1 )) || [[ $cmds[1] = install ]]; then
+      cmd="$cmds[1]"
+      curcontext="${curcontext%:*:*}:gem-${cmd}:"
+    fi
+  fi
+  case $cmd in
+    help)
+      helptopics=(
+        'commands:list all gem commands'
+        'examples:show some examples of usage'
+        'gem_dependencies:gem dependencies file guide'
+        'platforms:show information about platforms'
+      )
+      _describe -t topics 'help topic' helptopics -- && ret=0
+    ;&
+    subcommands)
+      cmds=( ${${${(M)${(f)"$(_call_program commands gem help commands)"}:#    [^ ]*}## #}/ ##/:} )
+      _describe -t commands 'gem command' cmds -- && ret=0
+      return ret
+    ;;
+    check|cleanup|contents|dependency|list|open|pristine|rdoc|uninstall|unpack|update)
+      args+=( '(--all --skip)*:installed gem:->gems-local' )
+    ;|
+    install)
+      (( ${(M)#line:#[^-]*} > 1 )) && args+=(
+        '(*)--[specify build options]:*:build option:_default'
+      )
+    ;|
+    fetch|install|lock|owner|search|yank)
+      args+=( '*:gem:->gems-remote' )
+    ;|
+    cleanup|uninstall)
+      args+=( '(-D --check-development)'{-D,--check-development}'[check development dependencies while uninstalling]' )
+    ;|
+    contents|pristine|rdoc)
+      args+=( '(*)--all[apply to all installed gems]' )
+    ;|
+    info|list|query) def[local]='!' ;|
+    search) def[remote]='!' ;|
+    info|list|query|search)
+      args+=( ${(e)lropts}
+        '(-a --all)'{-a,--all}'[display all gem versions]'
+        '(-e --exact)'{-e,--exact}'[use exact string matching instead of regex]'
+        '(-I --no-installed -i --installed)'{-i,--installed}'[check if gem is installed]'
+        '(-I --no-installed -i --installed)'{-I,--no-installed}'[check if gem is not installed]'
+        '--no-versions[display only gem names]'
+      )
+    ;|
+    list|query|search)
+      args+=(
+        '(-d --details)'{-d,--details}'[display detailed gem information]'
+        '!(-d --details)--no-details'
+      )
+    ;|
+    check|contents|dependency|fetch|install|list|open|pristine|query|rdoc|search|specification|uninstall|unpack|yank)
+      args+=( '(-v --version)'{-v,--version=}'[specify version of gem]:version' )
+    ;|
+    dependency|fetch|install|outdated|specification|uninstall|update|yank)
+      args+=( '--platform=[specify the platform of gem]:platform' )
+    ;|
+    dependency|fetch|install|list|query|search|specification|update)
+      args+=( '--prerelease[include prerelease versions of a gem]' '!(--prerelease)--no-prerelease' )
+    ;|
+    install|unpack|update)
+      args+=( '(-P --trust-policy)'{-P,--trust-policy=}'[specify gem trust policy]:policy' )
+    ;|
+    install|update)
+      def[both]='!'
+      args+=( ${(e)lropts}
+        '(-N --no-document)--document=[generate documentation for installed gems]::documentation type:_sequence compadd - rdoc ri'
+        '(-N --no-document --document)'{-N,--no-document}'[disable documentation generation]'
+        '--build-root=[specify temporary installation root]:directory:_directories'
+        '--vendor[install gem into the vendor directory]'
+        '(-f --force)'{-f,--force}'[force gem to install, bypassing dependency checks]'
+        "(-w --wrappers)--no-wrappers[don't install bin wrappers]"
+        '--format-executable[add matching version suffix on executables to ruby]'
+        "--user-install[install in user's home directory]"
+        '--development[install additional development dependencies]'
+        '--development-all[install development dependencies for all gems]'
+        "--conservative[don't attempt to upgrade gems already meeting version requirement]"
+        "--minimal-deps[don't upgrade any dependencies that already meet version requirements]"
+        '--post-install-message[print post install message]'
+        '(-g --file)'{-g,--file=}'[read from a gem dependencies API file and install the listed gems]:file:_files'
+        '--without=[omit the named groups when installing gem dependencies]:group'
+        "--default[add the gem's full specification to specifications/default and extract only its bin]"
+        '--explain[rather than install the gems, indicate which would be installed]'
+        "--no-lock[don't create a lock file]"
+        '--suggestions[suggest alternates when gems are not found]'
+      )
+    ;|
+    (un|)install|pristine|update)
+      args+=(
+        '(-n --bindir)'{-n,--bindir=}'[specify directory where binary files are located]:directory:_directories'
+      )
+    ;|
+    (un|)install|update)
+      args+=(
+        '--ignore-dependencies[ignore dependency requirements]'
+        '(-i --install-dir)'{-i,--install-dir=}'[specify gem repository directory to get installed gems]:directory:_directories'
+      )
+    ;|
+    owner|push)
+      args+=( $proxy )
+    ;|
+    owner|push|yank)
+      args+=( '(-k --key)'{-k,--key=}'[use specified API key from ~/.gem/credentials]:key name' )
+    ;|
+    owner|push|signin|yank)
+      args+=( '--host=[use another gemcutter-compatible host]:host:_urls' )
+    ;|
+    owner|push|signin)
+      args+=( '--otp=[specify digit code for multifactor authentication]:code' )
+    ;|
+    install|pristine|update)
+      args+=( '(-E --env-shebang)'{-E,--env-shebang}'[rewrite executables with a shebang of /usr/bin/env]' )
+    ;|
+    build)
+      args+=(
+        '(--strict)--force[skip validation of the spec]'
+        '(--force)--strict[consider warnings as errors when validating the spec]'
+        '(-o --output)'{-o+,--output=}'[output gem with the given filename]:file:_files'
+        '-C+[run as if specified directory was the current directory]:directory:_directories'
+        '1:gemspec file:_files -g "*.gemspec(-.)"'
+      )
+    ;;
+    cert)
+      args+=(
+        '(-a --add)'{-a,--add=}'[add a trusted certificate.]:certificate' \
+        '(-l --list)'{-l,--list=}'[list trusted certificates where the subject contains specified filter]:filter'
+        '(-r --remove)'{-r,--remove=}'[remove trusted certificates where the subject contains specified filter]:filter'
+        '(-b --build)'{-b,--build=}'[build private key and self-signed certificate for specified email address]:email address:_email_addresses -c'
+        '(-C --certificate)'{-C,--certificate=}'[specify signing certificate for --sign]:certificate'
+        '(-K --private-key)'{-K,--private-key=}'[specify key for --sign or --build]:key'
+        '(-s --sign)'{-s,--sign=}'[sign specified certificate with the key from -K and the certificate from -C]:certificate'
+        '(-d --days)'{-d,--days=}'[specify days before certificate expires]:days'
+        '(-R --re-sign)'{-R,--re-sign}'[re-sign the certificate]'
+      )
+    ;;
+    check)
+      args+=(
+        "--no-alien[don't report \"unmanaged\" or rogue files in the gem repository]"
+        '--doctor[clean up uninstalled gems and broken specifications]'
+        "--dry-run[don't remove files, only report what would be removed]"
+        "--no-gems[don't check installed gems for problems]"
+      )
+    ;;
+    cleanup)
+      args+=(
+        '(-n -d --dryrun)'{-n,-d,--dryrun}"[don't uninstall gems]"
+        "--user-install[cleanup in user's home directory instead of GEM_HOME]"
+      )
+    ;;
+    contents)
+      args+=(
+        '(-s --spec-dir)'{-s,--spec-dir=}'[search for gems in specific paths]:path:_sequence _directories'
+        '(-l --lib-only)'{-l,--lib-only}"[only return files in the Gem's lib_dirs]"
+        '--no-prefix[include installed path prefix]'
+        '--show-install-dir[show only the gem install dir]'
+      )
+    ;;
+    dependency)
+      def[local]='!'
+      args+=( ${(e)lropts}
+        '(-R --reverse-dependencies)'{-R,--reverse-dependencies}'[include reverse dependencies in the output]'
+        '--pipe[pipe format]'
+      )
+    ;;
+    environment)
+      args+=( '1:information:(gemdir gempath version remotesources platform)' )
+    ;;
+    fetch)
+      def=( both \! local \! remote \! )
+      args+=( ${(e)lropts} )
+    ;;
+    generate_index)
+      args+=(
+        '(-d --directory)'{-d,--directory=}'[specify repository base dir containing gems]:directory:_directories'
+        '--update[update modern indexes with gems added since the last update]'
+      )
+    ;;
+    lock)
+      args+=( '(-s --strict)'{-s,--strict}'[fail if unable to satisfy a dependency]' )
+    ;;
+    open)
+      args+=( '(-e --editor)'{-e,--editor=}'[open gem sources in specified editor]:editor:_command_names -e' )
+    ;;
+    outdated)
+      args+=( ${(e)lropts} )
+    ;;
+    owner)
+      args+=(
+        '(-a --add)'{-a,--add=}'[add an owner]:email:_email_addresses -c'
+        '(-r --remove)'{-r,--remove=}'[remove an owner]:email:_email_addresses -c'
+      )
+    ;;
+    pristine)
+      args+=(
+        '(*)*--skip=[with --all, skip specified gem]:installed gem:->gems-local'
+        "--no-extensions[don't restore gems with extensions in addition to regular gems]"
+        '--only-executables[only restore executables]'
+      )
+    ;;
+    push)
+      args+=( '1:gem file:_files -g "*.gem(-.)"' )
+    ;;
+    query)
+      args+=(
+        '(-n --name-matches)'{-n,--name-matches=}'[specify regex to match against gem names]:gem name (regex):->gems-local'
+      )
+    ;;
+    rdoc)
+      args+=(
+        '--rdoc[generate RDoc HTML]'
+        '--no-ri[generate RI data]'
+        '--overwrite[overwrite installed documents]'
+      )
+    ;;
+    server)
+      args+=(
+        '(-p --port)'{-p,--port=}'[specify port to listen on]:port [8808]:_ports'
+        '(-d --dir)'{-d,--dir=}'[specify directories from which to serve gems]:directory:_directories'
+        '--daemon[run as a daemon]'
+        '(-b --bind)'{-b,--bind=}'[specify addresses to bind]:host:_sequence _hosts'
+        '(-l --launch)'{-l,--launch=}'[launch a browser window]:command:_command_names -e'
+      )
+    ;;
+    sources)
+      args+=( $proxy
+        '(-a --add)'{-a,--add=}'[add source]:source URI:_urls'
+        '(-l --list)'{-l,--list}'[list sources]'
+        '(-r --remove)'{-r,--remove=}'[remove source]:source URI:_urls'
+        '(-c --clear-all)'{-c,--clear-all}'[remove all sources (clear the cache)]'
+        '(-u --update)'{-u,--update}'[update source cache]'
+      )
+    ;;
+    specification)
+      def[local]='!'
+      args+=( ${(e)lropts}
+      '--all[output specifications for all versions of the gem]'
+        '!(--ruby --marshal)--yaml' '(--ruby --json)--marshal' '(--marshal --json 2)--ruby'
+        '1:gem:->gems-local'
+        '2:gemspec field:(name description version platform authors autorequire bindir cert_chain date dependencies email executable executables extensions extra_rdoc_files files homepage licenses metadata post_install_message rdoc_options require_paths required_ruby_version requirements rubyforge_project rubygems_version signing_key specification_version summary test_files)'
+      )
+    ;;
+    uninstall)
+      args+=(
+        '(-a --all)'{-a,--all}'[uninstall all matching versions]'
+        '(-x --executables)'{-x,--executables}'[uninstall applicable executables without confirmation]'
+        "--no-user-install[uninstall from user's home directory]"
+        "--format-executable[assume executable names match Ruby's prefix and suffix]"
+        '--force[uninstall all versions of the named gems ignoring dependencies]'
+        '--abort-on-dependent[prevent uninstalling gems that are depended on by other gems]'
+        '--vendor[uninstall gem from the vendor directory]'
+      )
+    ;;
+    unpack)
+      args+=(
+        '--spec[unpack the gem specification]'
+        '--target=[specify target directory for unpacking]:directory:_directories'
+      )
+    ;;
+    update)
+      args+=( '--system[update the RubyGems system software]::version' )
+    ;;
+    which)
+      args+=(
+        '(-a --all)'{-a,--all}'[show all matching files]'
+        '(-g --gems-first)'{-g,--gems-first}'[search gems before non-gems]'
+        '*:file:_files'
+      )
+    ;;
+    yank)
+      args+=( '--otp=[specify code for multifactor authentication]:code' )
+    ;;
+  esac
+  _arguments -C ${args:-'*: :_default'} \
+    '(-)'{-h,--help}'[display usage information]' \
+    '(-V --verbose --no-verbose)'{-V,--verbose,--no-verbose}'[set verbose level of output]' \
+    '(-q --quiet -V --verbose --no-verbose)'{-q,--quiet}'[silence commands progress meter]' \
+    '--silent[silence rubygems output]' \
+    '--config-file=[use specified config file]:file:_files' \
+    '--backtrace[show stack backtrace on errors]' \
+    '--debug[turn on ruby debugging]' \
+    '--norc[avoid loading any .gemrc file]' && ret=0
+
+  if [[ $state == gems* ]]; then
+    filter=( ${${opt_args[(I)-([lbr]|-local|-remote|-both)]}:-${${(M)state:#*-*}/gems-/--}} )
+    _description gems expl gem
+    compadd "$expl[@]" ${${(f)"$(_call_program gems gem list $filter -q --no-versions)"}%% *} && ret=0
+  fi
+fi
+
+return ret

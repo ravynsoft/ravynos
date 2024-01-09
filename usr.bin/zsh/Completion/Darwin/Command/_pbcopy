@@ -1,0 +1,30 @@
+#compdef pbcopy pbpaste
+
+local ret=1
+local -a context line state state_descr args
+local -A opt_args val_args
+
+args=(
+  '(-)-help[display help information]'
+  '-pboard[specify pasteboard to copy to or paste from]: :->pboards'
+)
+[[ $service == pbpaste ]] && args+=(
+  '-Prefer[specify type of data to prefer when pasting]: :->dtypes'
+)
+
+_arguments : $args && ret=0
+
+case $state in
+  dtypes)
+    _values 'data type' \
+      'txt[plain text]' \
+      'rtf[rich text]' \
+      'ps[encapsulated PostScript]' \
+    && ret=0
+    ;;
+  pboards)
+    _values pasteboard general ruler find font && ret=0
+    ;;
+esac
+
+return ret

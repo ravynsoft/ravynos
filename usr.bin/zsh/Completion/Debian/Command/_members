@@ -1,0 +1,9 @@
+#compdef members
+
+_arguments \
+  '(-a --all)'{-a,--all}'[show all group members on one line]' \
+  '(-p --primary)'{-p,--primary}'[show only primary group members]' \
+  '(-s --secondary)'{-s,--secondary}'[show only secondary group members]' \
+  '(-t --two-lines)'{-t,--two-lines}'[show only primary/secondary across two lines]' \
+  '(-h --help)'{-h,--help}'[show help]' \
+  ':group:_groups'

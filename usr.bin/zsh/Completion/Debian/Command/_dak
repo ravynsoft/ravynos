@@ -1,0 +1,243 @@
+#compdef dak
+
+local expl cmd args ret=1
+
+if (( CURRENT == 2 )); then
+  if (( ! $+_dak_cmds )); then
+    typeset -gH _dak_cmds
+    _dak_cmds=(${${${(f)${"$(_call_program dak dak --help)"#*Availa#ble commands:}}#[^a-z] ##}%%[ 	]*})
+  fi
+
+  _describe -t subcommands 'subcommand' _dak_cmds
+  return
+fi
+
+cmd="$words[2]"
+local curcontext="${curcontext%:*:*}:dak-$cmd:"
+
+args=( '(-)'{--help,-h}'[show help message]' )
+
+case $cmd in
+(ls)
+    args+=(
+  '(-a --architecture)'{-a,--architecture=}':arch:_sequence _deb_architectures -a "all source"'
+  '(-b --binary-type)'{-b,--binary-type=}':type:(deb udeb)'
+  '(-c --component)'{-c,--component=}':component:_values -s , "component list" main contrib non-free'
+  '(-g --greaterorequal)'{-g,--greaterorequal}
+  '(-G --greaterthan)'{-G,--greaterthan}
+  '(-r --regex)'{-r,--regex}
+  '(-s --suite)'{-s,--suite=}':suite:_values -s , "suite list" oldstable stable testing unstable experimental'
+  '(-S --source-and-binary)'{-S,--source-and-binary}
+  '*:package:_deb_packages avail'
+        )
+    ;;
+(override)
+    args+=(
+  '(-d --done)'{-d,--done=}'[send prioritys/section change as closure to bug]:bug number:'
+  '(-n --no-action)'{-n,--no-action}'[do not do anything]'
+  '(-s --suite)'{-s,--suite=}':suite:_values -s , "suite list" oldstable stable testing unstable experimental'
+  ':package:_deb_packages avail'
+  ':section:(admin base comm contrib/admin contrib/comm contrib/devel contrib/doc contrib/games contrib/graphics contrib/interpreters contrib/kde contrib/libdevel contrib/libs contrib/mail contrib/math contrib/misc contrib/net contrib/otherosfs contrib/perl contrib/python contrib/science contrib/sound contrib/tex contrib/text contrib/utils contrib/web contrib/x11 devel doc editors electronics embedded games gnome graphics hamradio interpreters kde libdevel libs mail math misc net news non-free/admin non-free/base non-free/comm non-free/devel non-free/doc non-free/editors non-free/electronics non-free/games non-free/graphics non-free/hamradio non-free/libdevel non-free/libs non-free/mail non-free/math non-free/misc non-free/net non-free/news non-free/otherosfs non-free/python non-free/science non-free/sound non-free/tex non-free/text non-free/utils non-free/web non-free/x11 oldlibs otherosfs perl python science shells sound tex text utils web x11)'
+  ':priority:(extra important optional required standard)'
+    )
+    ;;
+(check-archive)
+    args+=(
+  '*:mode:((
+  md5sums\:validate\ the\ md5sums\ stored\ in\ the\ database
+  files\:check\ files\ in\ the\ database\ against\ what\ is\ in\ the\ archive
+  dsc-syntax\:validate\ the\ syntax\ of\ .dsc\ files\ in\ the\ archive
+  missing-overrides\:check\ for\ missing\ overrides
+  source-in-one-dir\:ensure\ the\ source\ for\ each\ package\ is\ in\ one\ directory
+  timestamps\:check\ for\ future\ timestamps\ in\ .debs
+  tar-gz-in-dsc\:ensure\ each\ .dsc\ lists\ a\ .tar.gz\ file
+  validate-indices\:ensure\ files\ mentioned\ in\ Packages\ and\ Sources\ exist
+  files-not-symlinks\:check\ files\ in\ the\ database\ are\ not\ symlinks
+  validate-builddeps\:validate\ build-dependencies\ of\ .dsc\ files\ in\ the\ archive))'
+    )
+    ;;
+(queue-report)
+    args+=(
+   '(-n --new)'{-n,--new}'[produce html output]'
+   '(-s --sort)'{-s,--sort=}':sort key:((ao\:age,\ oldest\ first an\:age,\ newest\ first na\:name,\ ascending nd\:name,\ descending nf\:notes,\ first nl\:notes,\ last))'
+   '(-a --age)'{-a,--age=}':age key:((m\:minutes h\:hours d\:days w\:weeks o\:months y\:years))'
+    )
+    ;;
+(rm)
+    args+=(
+  '(-a --architecture)'{-a,--architecture=}':arch:_sequence _deb_architectures -a "all source"'
+  '(-b --binary)'{-b,--binary}'[remove binaries only]'
+  '(-c --component)'{-c,--component=}':component:_values -s , "component list" main contrib non-free'
+  '(-C --carbon-copy)'{-C,--carbon-copy=}':cc address:_email_addresses'
+  '(-d --done)'{-d,--done=}'[send prioritys/section change as closure to bug]:bug number:'
+  '(-m --reason)'{-m,--reason=}':reason for removal:'
+  '(-n --no-action)'{-n,--no-action}'[do not do anything]'
+  '(-p --partial)'{-p,--partial}'[do not affect override files]'
+  '(-R --rdep-check)'{-R,--rdep-check}'[check reverse dependencies]'
+  '(-s --suite)'{-s,--suite=}':suite:_values -s , "suite list" oldstable stable testing unstable experimental'
+  '(-S --source-only)'{-S,--source-only}'[remove source only]'
+  '*:package:_deb_packages avail'
+    )
+    ;;
+(process-unchecked|process-accepted)
+    args+=(
+  '(-a --automatic)'{-a,--automatic}'[automatic run]'
+  '(-n --no-action)'{-n,--no-action}'[do not do anything]'
+  '(-p --no-lock)'{-p,--no-lock}'[do not check lockfile]'
+  '(-s --no-mail)'{-s,--no-mail}'[do not send any mail]'
+  '(-V --version)'{-V,--version}'[display the version number and exit]'
+    )
+    ;;
+
+(make-suite-file-list)
+    args+=(
+   '(-a --architecture)'{-a,--architecture=}':arch:_sequence _deb_architectures -a "all source"'
+  '(-c --component)'{-c,--component=}':component:_values -s , "component list" main contrib non-free'
+  '(-n --no-delete)'{-n,--no-delete}'[do not delete older versions]'
+  '(-s --suite)'{-s,--suite=}':suite:_values -s , "suite list" oldstable stable testing unstable experimental'
+    )
+    ;;
+
+(generate-releases)
+    args+=(
+   '*:suite:(oldstable stable testing unstable experimental)'
+    )
+    ;;
+
+(generate-index-diffs)
+    args+=(
+   '-c[give the canonical path of the file]'
+   '-p[name for the patch (defaults to current time)]'
+   '-n[take no action]'
+   '*:suite:(oldstable stable testing unstable experimental)'
+    )
+    ;;
+
+(clean-suites)
+    args+=(
+   '(-n --no-action)'{-n,--no-action}'[do not do anything]'
+   '*:suite:(oldstable stable testing unstable experimental)'
+    )
+    ;;
+
+(clean-queues)
+    args+=(
+   '(-d --days)'{-d,--days=}':days:'
+   '(-i --incoming)'{-i,--incoming=}':incoming dir:'
+   '(-n --no-action)'{-n,--no-action}'[do not do anything]'
+   '(-v --verbose)'{-v,--verbose}'[explain what is being done]'
+    )
+    ;;
+
+(clean-proposed-updates)
+    args+=(
+   '(-v --verbose)'{-v,--verbose}'[be more verbose about what is being done]'
+   '*:changes or admin file:_files -g "*.(changes|joey)(-.)"'
+    )
+    ;;
+
+(check-overrides)
+    args+=(
+   '(-n --no-action)'{-n,--no-action}'[do not do anything]'
+    )
+    ;;
+
+(clean-proposed-updates)
+    args+=(
+   '(-q --quiet)'{-q,--quiet}'[be quieter about what is being done]'
+   '(-v --verbose)'{-v,--verbose}'[be more verbose about what is being done]'
+   '*:changes or deb or admin file:_files -g "*.(changes|deb|joey)(-.)"'
+    )
+    ;;
+
+(control-overrides)
+    args+=(
+  '(-c --component)'{-c,--component=}':component:(main contrib non-free)'
+  '(-s --suite)'{-s,--suite=}':suite:(oldstable stable testing unstable experimental)'
+  '(-t --type)'{-t,--type=}':type:(deb dsc udeb)'
+  '(-a --add)'{-a,--add}'[add overrides]'
+  '(-S --set)'{-S,--set}'[set overrides]'
+  '(-l --list)'{-l,--list}'[list overrides]'
+  '(-q --quiet)'{-q,--quiet}'[be less verbose]'
+        )
+    ;;
+
+(control-suite)
+    args+=(
+  '(-a --add)'{-a,--add=}':suite:(oldstable stable testing unstable experimental)'
+  '(-l --list)'{-l,--list=}':suite:(oldstable stable testing unstable experimental)'
+  '(-r --remove)'{-r,--remove=}':suite:(oldstable stable testing unstable experimental)'
+  '(-s --set)'{-s,--set=}':suite:(oldstable stable testing unstable experimental)'
+   '*:file:_files'
+    )
+    ;;
+
+(cruft-report)
+    args+=(
+  '(-m --mode)'{-m,--mode=}':mode:(full daily)'
+  '(-s --suite)'{-s,--suite=}':suite:(oldstable stable testing unstable experimental)'
+    )
+    ;;
+
+(decode-dot-dak)
+    args+=(
+    '*:dot-dak file:_files -g "*.dak(-.)"'
+    )
+    ;;
+
+(import-archive)
+    args+=(
+    '(-a --action)'{-a,--action}'[actually perform the initialization]'
+    )
+    ;;
+
+(import-users-from-passwd)
+    args+=(
+  '(-n --no-action)'{-n,--no-action}'[do not do anything]'
+  '(-q --quiet)'{-q,--quiet}'[be quiet about what is being done]'
+  '(-v --verbose)'{-v,--verbose}'[explain what is being done]'
+    )
+    ;;
+
+(make-maintainers)
+    args+=(
+    '*:extra file:_files'
+    )
+    ;;
+
+(poolize)
+    args+=(
+  '(-l --limit)'{-l,--limit=}'[only migrate amount of packages]:amount (kb)'
+  '(-n --no-action)'{-n,--no-action}'[do not do anything]'
+  '(-v --verbose)'{-v,--verbose}'[explain what is being done]'
+    )
+    ;;
+
+(reject-proposed-updates)
+    args+=(
+  '(-m --message)'{-m,--message=}'[use this message for rejection]:message:'
+  '(-s --no-mail)'{-s,--no-mail}'[do not send any mail]'
+  '*:changes file:_files -g "*.changes(-.)"'
+    )
+    ;;
+
+(stats)
+    args+=(
+  ':mode:((arch-space\:displays\ space\ used\ by\ each\ architecture pkg-nums\:displays\ the\ number\ of\ packages\ by\ suite/architecture daily-install\:displays\ daily\ install\ stats\ suitable\ for\ graphing))'
+    )
+    ;;
+
+(symlink-dists)
+    args+=(
+   '(-v --verbose)'{-v,--verbose}'[explain what is being done]'
+    )
+    ;;
+
+    (*)
+      args+=( '*: :_default' )
+    ;;
+
+esac
+
+_arguments -s "$args[@]" && ret=0
+return ret

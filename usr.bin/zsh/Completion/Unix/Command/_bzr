@@ -1,0 +1,426 @@
+#compdef bzr
+
+# bzr is the bazaar-ng revision-control system
+
+local curcontext="$curcontext" state line expl cmd args ret=1
+typeset -A opt_args
+
+_arguments -C \
+    '1: :->cmd' \
+    '*:: :->args' && ret=0
+
+if (( ! $+_bzr_cmds )); then
+    typeset -gH _bzr_cmds
+    _bzr_cmds=(${(f)"$(_call_program subcommands bzr shell-complete)"})
+fi
+
+if [[ $state != 'args' ]]; then
+    _describe -t subcommands 'subcommand' _bzr_cmds
+    return
+fi
+
+cmd="$words[1]"
+curcontext="${curcontext%:*:*}:bzr-$cmd:"
+
+(( $+functions[_bzr_unknownFiles] )) ||
+_bzr_unknownFiles() {
+    local fileList
+    fileList=(${(ps:\0:)"$(_call_program files bzr ls --null --unknown -R)"})
+    compadd -af fileList
+}
+
+(( $+functions[_bzr_unknownRoot] )) ||
+_bzr_unknownRoot() {
+    local -a fileList
+    fileList=(${(ps:\0:)"$(_call_program files bzr ls --null --from-root --unknown)"})
+    compadd -af fileList
+}
+
+(( $+functions[_bzr_versionedFiles] )) ||
+_bzr_versionedFiles() {
+    local fileList
+    fileList=(${(ps:\0:)"$(_call_program files bzr ls --null --versioned -R)"})
+    compadd -af fileList
+}
+
+(( $+functions[_bzr_modifiedFiles] )) ||
+_bzr_modifiedFiles() {
+    local fileList
+    fileList=(${(ps:\0:)"$(_call_program files bzr status . --versioned --short | cut -b 5- | tr '\n' '\0')"})
+    compadd -af fileList
+}
+
+(( $+functions[_bzr_completeParents] )) ||
+_bzr_completeParents() {
+    local parentFile=$(_call_program parents bzr root)/.bzr/branch/parent
+    [[ -r $parentFile ]] && _wanted parents expl parent compadd -- $(<$parentFile)
+}
+
+args=( '(-)'{--help,-h}'[show help message]' )
+
+case $cmd in
+(add)
+    args+=(
+	'--dry-run[show what would be added without adding anything]'
+	'--no-recurse[do not recurse into subdirectories]'
+	'(-q --quiet -v --verbose)'{--quiet,-q}'[be quiet]'
+	'(-v --verbose -q --quiet)'{--verbose,-v}'[display more information]'
+	'*:unknown file:_bzr_unknownFiles'
+	)
+    ;;
+
+(annotate|blame|praise)
+    args+=(
+	'--all[show annotations on all lines]'
+	'--long[show date in annotations]'
+	'(-r --revision)'{--revision=,-r}'[the revision to show]:rev:'
+	'*:file:_bzr_versionedFiles'
+	)
+    ;;
+
+(branch|get|clone)
+    args+=(
+	'(-r --revision)'{--revision=,-r}'[the revision to get]:rev:'
+	'--basis=[specify basis branch]:basis:'
+	)
+    if (( CURRENT == 2 )); then
+	args+=( '*:FROM_LOCATION:_files -/' )
+    elif (( CURRENT == 3 )); then
+	args+=( '*:TO_LOCATION:_files -/' )
+    fi
+    ;;
+
+(checkout|co)
+    args+=(
+	'--lightweight[perform a lightweight checkout]'
+	'(-r --revision)'{--revision=,-r}'[the revision to get]:rev:'
+	)
+    _bzr_completeParents && ret=0
+    ;;
+
+(rename|move|mv)
+    if (( CURRENT == 2 )); then
+	args+=( '*:file:_bzr_versionedFiles' )
+    else
+	args=( '*:destination dir:_files -/' )
+    fi
+    ;;
+
+(cat)
+    args+=(
+	'(-r --revision)'{--revision=,-r}'[revision]:rev:'
+	'*:file:_bzr_versionedFiles'
+	)
+    ;;
+
+(root)
+    args+=( '*:file:_files' )
+    ;;
+
+(log)
+    args+=(
+	'--forward[reverse direction of revisions]'
+	'(-l --long --short --log_format)--line[use log format with one line per revision. Same as "--log-format line"]'
+	'(-l --long --short --line)--log-format=[use the specified log format]:log format:(line short long)'
+	'(-l --long --short --line --log-format)'{--long,-l}'[use detailed log format. Same as "--log-format long"]'
+	'(-l --long --log_format)--short[use moderately short log format. Same as "--log-format short"]'
+	'(-m --message)'{--message=,-m}'[specify regexp]:regexp:'
+	'(-r --revision)'{--revision=,-r}'[revision or range]:rev or rev range:'
+	'--show-ids[show file IDs]'
+	'--timezone=[specify timezone for dates]:timezone:'
+	'(-v --verbose)'{--verbose,-v}'[show revision manifest]'
+	'*:file:_bzr_versionedFiles'
+	)
+    ;;
+
+(resolve|resolved)
+    args+=(
+	'--all[resolve all conflicts in this tree]'
+	'*:file:_bzr_versionedFiles'
+	)
+    ;;
+
+(status|st|stat)
+    args+=(
+	'--all[include unchanged versioned files]'
+	'(-r --revision)'{--revision=,-r}'[compare working tree with revision]:revision:'
+	'--show-ids[show file IDs]'
+	'*:file:_bzr_versionedFiles'
+	)
+    ;;
+
+(check)
+    args+=(
+	'(-v --verbose)'{--verbose,-v}'[display more information]'
+	'*:DIR:_files -/'
+	)
+    ;;
+
+(mkdir|renames|update)
+    args+=( '*:DIR:_files -/' )
+    ;;
+
+(init|upgrade)
+    args+=(
+	'--format=[format for repository]:format:(default knit metaweave weave)'
+	'*:DIR:_files -/'
+	)
+    ;;
+
+(init-repo|init-repository)
+    args+=(
+	'--format=[format for repository]:format:(default knit metaweave weave)'
+	'--trees[allows branches in repository to have a working tree]'
+	'*:DIR:_files -/'
+	)
+    ;;
+
+(remove|rm)
+    args+=(
+	'(-v --verbose)'{--verbose,-v}'[display more information]'
+	'*:file:_bzr_versionedFiles'
+	)
+    ;;
+
+(pull)
+    args+=(
+	'--overwrite[ignore differences, overwrite unconditionally]'
+	'--remember[remember the specified location as a default]'
+	'(-r --revision)'{--revision=,-r}'[get a particular revision]:revision:'
+	'(-v --verbose)'{--verbose,-v}'[display more information]'
+	'*:local repository:_files -/'
+	)
+    _bzr_completeParents && ret=0
+    ;;
+
+(missing)
+    args+=(
+	'(-l --long --short --log_format)--line[use log format with one line per revision. Same as "--log-format line"]'
+	'(-l --long --short --line)--log-format=[use the specified log format]:log format:(line short long)'
+	'(-l --long --short --line --log-format)'{--long,-l}'[use detailed log format. Same as "--log-format long"]'
+	'(-l --long --log_format)--short[use moderately short log format. Same as "--log-format short"]'
+	'--mine-only[display changes in the local branch only]'
+	'--reverse[reverse the order of revisions]'
+	'--show-ids[show internal object ids]'
+	'--theirs-only[display changes in the remote branch only]'
+	'(-v --verbose)'{--verbose,-v}'[display more information]'
+	'*:local repository:_files -/'
+	)
+    _bzr_completeParents && ret=0
+    ;;
+
+(commit|checkin|ci)
+    args+=(
+	'(-F --file)'{--file=,-F}'[commit message from file]:message file:'
+	'--local[perform a local only commit in a bound branch]'
+	'(-m --message)'{--message=,-m}'[commit message]:message text:'
+	'--strict[refuse to commit if there are unknown files]'
+	'--unchanged[include unchanged files]'
+	'(-q --quiet -v --verbose)'{--quiet,-q}'[be quiet]'
+	'(-v --verbose -q --quiet)'{--verbose,-v}'[display more information]'
+	'*:modified file:_bzr_modifiedFiles'
+	)
+    ;;
+
+(shelve)
+    args+=(
+	'--destroy[Destroy removed changes instead of shelving them]'
+	'(-m --message)'{--message=,-m}'[shelve message]:message text:'
+	'--all[shelve all changes]'
+	'(-q --quiet)'{--quiet,-q}'[be quiet]'
+	'(-v --verbose)'{--verbose,-v}'[display more information]'
+	'*:modified file:_bzr_modifiedFiles'
+	)
+    ;;
+
+(bind|break-lock|reconcile)
+    _bzr_completeParents && ret=0
+    ;;
+
+(register-branch)
+    args+=(
+	'--author=[email of the branch author, if not you]:email:'
+	'--branch-description=[longer description of the branch]:description:'
+	'--branch-name=[short name for the branch]:name:'
+	'--branch-title=[one-sentence description of the branch]:title:'
+	'--dry-run[prepare the request but do not actually send it]'
+	'--link-bug=[the bug this branch fixes]:bug-ID:'
+	'--product=[launchpad product short name to associate with the branch]:product:'
+	)
+    _bzr_completeParents && ret=0
+    ;;
+
+(remerge)
+    args+=(
+	'--merge-type=[the type of the merge]:type:'
+	'--reprocess[reprocess to reduce spurious conflicts]'
+	'--show-base[show base revision text in conflicts]'
+	)
+    _bzr_completeParents && ret=0
+    ;;
+
+(conflicts|added|deleted|modified|unknowns|directories|ignored|unbind|nick|revno|version)
+    ;;
+
+(whoami)
+    args+=( '--email[only show e-mail address]' )
+    ;;
+
+(inventory)
+    args+=(
+	'--kind=[limit output by type]:kind:(file directory symlink)'
+	'(-r --revision)'{--revision=,-r}'[show inventory of a revision]:revision:'
+	'--show-ids[show file IDs]'
+	)
+    ;;
+
+(diff|dif|di|cdiff)
+    args+=(
+	'(-r --revision)'{--revision=,-r}'[revision]:revision:'
+	'--diff-options=[options to pass to gdiff]:diff options:'
+	'(-p --prefix)'{--prefix,-p}'[set prefix added to old and new filenames]'
+	'*:file:_files'
+	)
+    ;;
+
+(export)
+    args+=(
+	'(-r --revision)'{--revision=,-r}'[revision]:revision:'
+	'--format=[format of exported file]:format:(dir tar tgz tbz2)'
+	'--root=[root directory of patch]:_files -/'
+	'*:destination:_files'
+	)
+    ;;
+
+(ignore)
+    args+=( '*:NAME_PATTERN:_bzr_unknownRoot' )
+    ;;
+
+(info)
+    args+=(
+	'(-v --verbose)'{--verbose,-v}'[display more information]'
+	'*:branch:_files -/'
+	)
+    ;;
+
+(testament)
+    args+=(
+	'(-l --long)'{--long,-l}'[use long format]'
+	'(-r --revision)'{--revision=,-r}'[revision]:revision:'
+	'*:branch:_files -/'
+	)
+    ;;
+
+(revert|merge-revert)
+    args+=(
+	'--no-backup[skip generation of backup~ files]'
+	'(-r --revision)'{--revision=,-r}'[revision]:revision:'
+	'*:file:_bzr_modifiedFiles'
+	)
+    ;;
+
+(merge)
+    args+=(
+	'--force[ignore uncommitted changes]'
+	'--merge-type:merge type:(diff3 merge3 weave)'
+	'--remember[remember the specified location as a default]'
+	'--reprocess[reprocess to reduce spurious conflicts]'
+	'(-r --revision)'{--revision=,-r}'[revision]:revision:'
+	'--show-base[show base revision text in conflicts]'
+	'*:local repository:_files -/'
+	)
+    _bzr_completeParents && ret=0
+    ;;
+
+(ls)
+    args+=(
+	'(-q --quiet -v --verbose)'{--quiet,-q}'[be quiet]'
+	'(-v --verbose -q --quiet)'{--verbose,-v}'[display more information]'
+	'(-r --revision)'{--revision=,-r}'[revision]:revision:'
+	'--from-root[print all paths from the root of the branch]'
+	'--non-recursive[do not recurse into subdirectories]'
+	'--null[null separate the files]'
+	'--ignored[print ignored files]'
+	'--unknown[print unknown files]'
+	'--versioned[print versioned files]'
+	)
+    ;;
+
+(switch)
+    args+=(
+	'--force[switch even if local commits will be lost]'
+	'(-q --quiet -v --verbose)'{--quiet,-q}'[be quiet]'
+	'(-v --verbose -q --quiet)'{--verbose,-v}'[display more information]'
+	'*:local repository:_files -/'
+	)
+    _bzr_completeParents && ret=0
+    ;;
+
+(help)
+    args=(
+	'(-l --long)'{--long,-l}'[use long format]'
+	'*:subcmds:->cmds'
+	)
+    _arguments -s "$args[@]" && ret=0
+    _describe -t subcommands 'subcommand' _bzr_cmds && ret=0
+    return ret
+    ;;
+
+    # Plugins
+
+(visualize|visualise|viz|vis)
+    args+=( '(-r --revision)'{--revision=,-r}'[starting revision]:rev:' )
+    ;;
+
+(gannotate|gblame|gpraise)
+    args+=(
+	'--all[show annotations on all lines]'
+	"--plain[don't highlight annotation lines]"
+	'*:file:_bzr_versionedFiles'
+	)
+    ;;
+
+(push)
+    args+=(
+	'--create-prefix[create the path leading up to the branch when missing]'
+	'--overwrite[ignore differences, overwrite unconditionally]'
+	'--remember[remember the specified location as a default]'
+	'*:local repository:_files -/'
+	)
+    _bzr_completeParents && ret=0
+    ;;
+
+(clean-tree)
+    args+=(
+	'--dry-run[show files to delete instead of deleting them]'
+	'--ignored[delete all ignored files]'
+	'--detritus[delete conflict files, merge backups, failed self-tests, *~, *.tmp, etc]'
+	)
+    ;;
+
+(uncommit)
+    args+=(
+	'--dry-run[do not make any changes]'
+	'--force[say "yes" to all questions]'
+	'(-r --revision)'{--revision=,-r}'[the earliest revision to delete]:rev:'
+	'(-v --verbose)'{--verbose,-v}'[display more information]'
+	)
+    ;;
+
+(sign-my-commits)
+    args+=( '--dry-run[do not actually sign anything]' )
+    ;;
+
+(send)
+    args+=( '*:DIR:_files -/' )
+    ;;
+
+(*)
+    _default
+    return
+    ;;
+esac
+
+_arguments -s "$args[@]" && ret=0
+
+return ret

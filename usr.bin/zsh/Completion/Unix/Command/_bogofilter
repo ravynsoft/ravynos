@@ -1,0 +1,127 @@
+#compdef bogoutil bogotune bogofilter
+
+_bogoutil_caching_policy () {
+  local -a oldp
+
+  # rebuild if cache is more than a week old
+  oldp=( "$1"(mw+1) )
+  (( $#oldp )) && return 0
+
+  return 1
+}
+
+_bogoutil() {
+
+  local bogotokens expl ret=1
+	typeset -a _bogoutil_actions
+	_bogoutil_actions=(-h --help -V --version -d --dump -l --load -u
+		--upgrade -m -w -p -H --db-verify -r -R --db-prune --db-recover
+		--db-recover-harder --db-remove-environment -k --db-cachesize)
+
+  _arguments -s \
+  	'*'{-v,--verbosity}'[verbose]' \
+  	'-n[replace non-ASCII characters]' \
+	{-D,--debug-to-stdout}'[redirect debug output to stdout]' \
+  	'-a[acceptable token age]:date or day count' \
+  	'-c[acceptable count]:count threshold' \
+  	'-s[acceptable size range]:min-max range' \
+	{-y,--timestamp-date=}'[date for when unknown]:date in YYYYMMDD format' \
+	'(--input-file -I)'{-I,--input-file=}'[input file]:input file:_files' \
+	{-x,--debug-flags=}'[debug flags]:debug flags:' \
+	"($_bogoutil_actions)"{-d,--dump=}'[print contents of db]:database file:_files -g "*.db(-.)"' \
+  	"($_bogoutil_actions)"{-l,--load=}'[load file into db]:textfile:_files' \
+	"($_bogoutil_actions)"{-u,--upgrade=}'[upgrade wordlist version]:database file:_files -g "*.db(-.)"' \
+	"($_bogoutil_actions)"'-m[perform maintenance functions]:file:_files' \
+  	"($_bogoutil_actions)"'-w[display token information]:database file or directory:_files' \
+  	"($_bogoutil_actions)"'-p[display token probability information]:database file or directory:_files' \
+	"($_bogoutil_actions)"'-H[print histogram]:database file or directory:_files' \
+	"($_bogoutil_actions)"'-r[recalculate ROBX]:database:_files -/' \
+	"($_bogoutil_actions)"'-R[recalculate and save ROBX]:database:_files -/' \
+	"($_bogoutil_actions)"{-k,--db-cachesize=}'[set Berkeley DB cache size]:size in MB' \
+	"($_bogoutil_actions)"'--db-verify[verify database]:database:_files -/' \
+	"($_bogoutil_actions)"'--db-recover[run regular recovery]:database:_files -/' \
+	"($_bogoutil_actions)"'--db-recover-harder[run catastrophic recovery]:database:_files -/' \
+	"($_bogoutil_actions)"'--db-prune[checkpoint database]:database:_files -/' \
+	"($_bogoutil_actions)"'--db-remove-environment:database:_files -/' \
+	'--db_lk_max_locks[set max lock count]' \
+	'--db_lk_max_objects[set max object count]' \
+	"($_bogoutil_actions)"{-h,--help}'[help]' \
+	"($_bogoutil_actions)"{-V,--version}'[version]' \
+  	'*:tokens:->tokens' && ret=0
+
+  zstyle -s ":completion:${curcontext}:" cache-policy update_policy
+  if [[ -z "$update_policy" ]]; then
+    zstyle ":completion:${curcontext}:" cache-policy _bogoutil_caching_policy
+  fi
+
+  case $state in
+  	(tokens)
+  	if ( [[ -z "$bogotokens" ]] || _cache_invalid bogotokens ) &&
+  	  ! _retrieve_cache bogotokens; then
+          bogotokens=(${${(f)"$(_call_program bogotokens bogoutil -d ~/.bogofilter/wordlist.db -c 50)"}%% *})
+  	  _store_cache bogotokens bogotokens
+  	fi
+          _wanted tokens expl "token" compadd -a bogotokens && ret=0
+  	;;
+  esac
+
+  return ret
+}
+
+case $service in
+	(bogoutil)
+	_bogoutil "$@"
+	;;
+	(bogotune)
+	_arguments \
+	'-h[help]' \
+	'-C[do not read standard configs]' \
+	'-c[config file]:config file:_files' \
+	'-D[do not a wordlist file]' \
+	'-d[wordlist dir]:directory:_files -/' \
+	'-E[disable ESF tuning]' \
+	'-M[output input file in message count format]' \
+	'-r[specify robx value]:robx value:' \
+	'-T[specify fp target value]:fp target value:' \
+	'-s[spam files]:spam files:_files' \
+	'-n[non-spam files]:non-spam files:_files' \
+	'-v[verbose]' \
+	'-q[quiet]'
+	;;
+	(bogofilter)
+	_arguments -s -w \
+	'(--help)-h[help]' \
+	'(--version)-V[version]' \
+	'(--query)-Q[query]' \
+	'-QQ[display extended config info]' \
+	'(--passthrough)-p[passthrough]' \
+	'(--ham-true)-e[ham-true]' \
+	'(--update-as-scored)-u[update-as-scored]' \
+	'(--classify-mbox)-M[classify-mbox]' \
+	'(--classify-stdin)-b[classify-stdin]' \
+	'(--classify-files)-B[classify-files]:file list:_files' \
+	'(--dataframe)-R[print R dataframe]' \
+	'(--register-spam)-s[register as spam]' \
+	'(--register-ham)-n[register as non-spam]' \
+	'(--unregister-spam)-S[unregister as spam]' \
+	'(--unregister-ham)-N[unregister as non-spam]' \
+	'(--config-file)-c[config file]:config file:_files' \
+	'(--no-config-file)-C[do not read standard config files]' \
+	'(--bogofilter_dir)-d[wordlist directory]' \
+	'(--no-header-tags)-H[disable header line tagging]' \
+	'(--db_cachesize)-k[set Berkeley DB cache size]:megabytes:' \
+	'(--use-syslog)-l[log via syslog]' \
+	'(--syslog-tag)-L[specify tag value for log messages]:tag:' \
+	'(--input-file)-I[specify input file instead of stdin]:input file:_files' \
+	'(--output-file)-O[specify output file instead of stdout]:output file:_files' \
+	'(--min_dev --robs --robx)-m[user-defined min_dev, robs, and robx]:values:' \
+	'(--spam_cutoff --ham_cutoff)-o[user-defined spam and ham cutoffs]:values:' \
+	'(--terse)-t[terse output mode]' \
+	'(--fixed-terse-format)-T[invariant terse output mode]' \
+	'(--report-unsure)-U[print statistics if spamicity is unsure]' \
+	'(--verbosity)-v[set debug verbosity level]' \
+	'(--timestamp-date)-y[set date for token timestamps]' \
+	'(--debug-to-stdout)-D[direct debug output to stdout]' \
+	'(--debug-flags)-x[debug flags]:debug flags:'
+	;;
+esac

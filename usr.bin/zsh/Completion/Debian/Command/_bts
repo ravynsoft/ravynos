@@ -1,0 +1,291 @@
+#compdef bts
+
+local expl first=1
+
+_arguments -A "-*" \
+  '(-o --offline)'{-o,--offline}'[use cached bugs]' \
+  '(--online --no-offline)'{--online,--no-offline}'[do not use cached bugs]' \
+  '(--cache --no-cache)--cache[cache new versions of pages]' \
+  '(--cache --no-cache)--no-cache[do not cache new versions of pages]' \
+  '--cache-mode=:cache mode:(min mbox full)' \
+  '--cache-delay=:seconds:' \
+  '--mbox[open a mail reader to read the corresponding mbox]' \
+  '--mailreader=:reader:' \
+  '(-f --force-refresh)'{-f,--force-refresh}'[download bug report even if unchanged]' \
+  '-no-force-refresh[do not force refresh]' \
+  '(-q --quiet)*'{-q,--quiet}'[only display info about newly cached pages]' \
+  '(--no-conf --noconf)*'{--no-conf,--noconf}'[do not read any config files]' \
+  '*:subcommand and args:->subcmds' && return 0
+
+compset -N '-[^0-9]##' && first=0
+compset -N '[,.]' && first=0
+[[ $first -eq 0 ]] || compset -n 2
+
+if [[ CURRENT -eq 1 ]]; then
+  _wanted cmd expl 'bts command' compadd show bugs reopen retitle \
+      reassign merge unmerge tag tags severity forwarded notforwarded help \
+      clone submitter found notfound block unblock user usertag usertags \
+      package owner noowner reportspam cache cleancache claim unclaim \
+      subscribe unsubscribe fixed notfixed affects spamreport status \
+      select done archive unarchive summary forcemerge limit listcachedbugs \
+      version
+  return
+fi
+
+case "$words[1]" in
+  (unmerge|notforwarded|noowner|reportspam|spamreport|archive|unarchive)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    else
+      _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  (show|bugs)
+    if [[ CURRENT -eq 2 ]]; then
+      _alternative \
+        'packages:package:_deb_packages avail' \
+        'emails:package maintainer:compadd $DEBEMAIL' \
+        'bugnum:bug number:_debbugs_bugnumber'
+    else
+      _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  reopen)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 ]]; then
+      _wanted submitter expl 'new submitter' compadd -- $DEBEMAIL
+    else
+      _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  retitle)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 ]]; then
+     _message -e submitter 'new title'
+    else
+     _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  reassign)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 ]]; then
+     _wanted submitter expl 'new package' _deb_packages avail
+    else
+     _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  (status)
+    # TODO: some additional syntaxes aren't being completed.
+  ;&
+  (merge|forcemerge)
+    _debbugs_bugnumber
+    if [[ CURRENT -gt 2 ]]; then
+     _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  tags#)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 ]]; then
+      _wanted operator expl 'operator' compadd - '+' '-' '='
+    elif [[ CURRENT -eq 4 ]]; then
+      _wanted tag expl 'tag' \
+	 compadd patch wontfix moreinfo unreproducible help pending \
+	 fixed security upstream confirmed fixed-upstream \
+	 fixed-in-experimental d-i ipv6 lfs l10n potato woody sarge \
+	 sarge-ignore etch etch-ignore lenny lenny-ignore squeeze \
+	 squeeze-ignore wheezy wheezy-ignore sid experimental
+    else
+      _wanted tag expl 'tag' \
+	 compadd patch wontfix moreinfo unreproducible help pending \
+	 fixed security upstream confirmed fixed-upstream \
+	 fixed-in-experimental d-i ipv6 lfs l10n potato woody sarge \
+	 sarge-ignore etch etch-ignore lenny lenny-ignore squeeze \
+	 squeeze-ignore wheezy wheezy-ignore sid experimental
+      _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  severity)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 ]]; then
+      _wanted severity expl 'severity' \
+	  compadd wishlist minor normal serious important critical grave
+    else
+      _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  forwarded)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 ]]; then
+     _wanted upstream expl 'upstream email' _email_addresses -c
+    else
+     _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  (clone)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 || -prefix [-] ]]; then
+     _wanted newid expl 'new ID' compadd -- -{1..9}
+    else
+     _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  (submitter)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    else
+     _alternative \
+       'bugnum:bug number:_debbugs_bugnumber' \
+       'email:email address:_email_addresses -c' \
+       'bang:bang:compadd \!'
+    fi
+  ;;
+  (owner|subscribe|unsubscribe)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 ]]; then
+      _alternative \
+        'email:email address:_email_addresses -c' \
+        'bang:bang:compadd \!'
+    else
+      _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  (found|notfound|fixed|notfixed)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 ]]; then
+      _message -e version 'version'
+    else
+      _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  (block|unblock)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 ]]; then
+      _wanted prep expl 'preposition' compadd by with
+    else
+     _alternative \
+       'bugnum:bug number:_debbugs_bugnumber' \
+       'separator:separator:compadd -S " " , .'
+    fi
+  ;;
+  (user)
+    if [[ CURRENT -eq 2 ]]; then
+      _wanted upstream expl 'user email for usertags' _email_addresses -c
+    else
+      _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  (usertags#)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 ]]; then
+      _wanted operator expl 'operator' compadd - '+' '-' '='
+    elif [[ CURRENT -eq 4 ]]; then
+      _message -e usertag 'user tag'
+    else
+      _message -e usertag 'user tag'
+      _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  (package)
+    if [[ CURRENT -eq 2 ]]; then
+     _wanted package expl 'package' _deb_packages avail
+    else
+     _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  (cache)
+     _alternative \
+       'source-packages:source package:_deb_packages -P "src:" source' \
+       'package:binary package:_deb_packages avail' \
+       'email:email address:_email_addresses -c -P "from:"' \
+       'bugnum:bug number:_debbugs_bugnumber' \
+       'rc:rc:compadd release-critical'
+  ;;
+  (cleancache)
+     _alternative \
+       'source-packages:source package:_deb_packages -P "src:" source' \
+       'package:binary package:_deb_packages avail' \
+       'email:email address:_email_addresses -c -P "from:"' \
+       'bugnum:bug number:_debbugs_bugnumber' \
+       'all:all:compadd ALL'
+  ;;
+  (claim|unclaim)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 ]]; then
+      _alternative \
+        'email:email address:_email_addresses -c' \
+	'separator:separator:compadd -S " " , .'
+    else
+      _wanted sep expl 'separator' compadd -S ' ' , .
+    fi
+  ;;
+  (affects)
+    if [[ CURRENT -eq 2 ]]; then
+      _debbugs_bugnumber
+    elif [[ CURRENT -eq 3 ]]; then
+      _wanted operator expl 'operator' compadd - '+' '-' '='
+    else
+      _wanted package expl 'package' _deb_packages avail
+    fi
+  ;;
+  (summary)
+    case $CURRENT in
+      (2) _debbugs_bugnumber;;
+      (3) _message -e message-number 'message number';&
+      (4) _wanted sep expl 'separator' compadd -S ' ' , .;;
+    esac
+  ;;
+  (close|done)
+    case $CURRENT in
+      (2) _debbugs_bugnumber;;
+      (3) _message -e version 'version';&
+      (4) _wanted sep expl 'separator' compadd -S ' ' , .;;
+    esac
+  ;;
+  (select)
+    _values -S : -w "select field" \
+      '*package[binary package]: :_deb_packages avail' \
+      '*source[source package]: :_deb_packages source' \
+      '*maintainer:email address of the maintainer:_email_addresses -c' \
+      '*submitter:email address of the submitter:_email_addresses -c' \
+      '*severity:severity:(wishlist minor normal important serious grave critical)' \
+      '*tag[tags applied to the bug]:tags:' \
+      '*owner:owner:_email_addresses -c' \
+      '*correspondent:email address of a correspondent:_email_addresses -c' \
+      '*affects:affected package:_deb_packages avail' \
+      '*users:namespaces of usertags:_email_addresses -c' \
+      '*archive:whether to search archived bugs:((0:no 1:yes both:both))'
+      # undocumented: bugs
+    _wanted sep expl 'separator' compadd -S ' ' , .
+  ;;
+  (limit)
+    _values -S : -w "limit field" \
+      '*submitter[email address of the submitter]:submitter:_email_addresses -c' \
+      '*date[bug submission timestamp]:unix timestamp' \
+      '*subject[subject of the bug]:bug subject:' \
+      '*msgid[message-id of the initial bug report]:message-id:' \
+      '*package[binary package]: :_deb_packages avail' \
+      '*source[source package]: :_deb_packages source' \
+      '*tag[tags applied to the bug]:tags:' \
+      '*severity:severity:(wishlist minor normal important serious grave critical)' \
+      '*owner:owner:_email_addresses -c' \
+      '*affects:affected package:_deb_packages avail' \
+      '*archive:whether to search archived bugs:((0:no 1:yes both:both))'
+    _wanted sep expl 'separator' compadd -S ' ' , .
+  ;;
+  help)
+  ;&
+  *) _wanted sep expl 'separator' compadd -S ' ' , .
+  ;;
+esac

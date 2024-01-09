@@ -1,0 +1,29 @@
+#compdef tex latex slitex pdftex pdflatex jadetex pdfjadetex xetex=tex xelatex=latex latexmk
+
+_arguments : \
+    '-enc[enable encTeX extensions]' \
+    '(-no-file-line-error -file-line-error)'{-no,}'-file-line-error[enable/disable file\:line\:error style messages]' \
+    '-fmt=-[use FMTNAME instead of program name or a %& line]:FMTNAME:' \
+    '-halt-on-error[stop processing at the first error]' \
+    '-ini[be initex, for dumping formats]' \
+    '-interaction[set interaction mode]:STRING:(batchmode nonstopmode  scrollmode errorstopmode)' \
+    '-ipc[send DVI output to a socket as well as the usual output file]' \
+    '-ipc-start[as -ipc, and also start the server at the other end]' \
+    '-jobname=-[set the job name]:STRING:' \
+    '-kpathsea-debug=-[set path searching debugging flags according to the bits of NUMBER]:NUMBER:' \
+    '(-no-mktex -mktex)'{-no,}'-mktex=-[enable/disable mktexFMT generation]:FMT:(tex tfm)' \
+    '-mltex[enable MLTeX extensions]' \
+    '-output-comment=-[DVI file comment]:STRING:' \
+    '-output-directory=-[directory to write files to]:DIR:' \
+    '(-no-parse-first-line -parse-first-line)'{-no,}'-parse-first-line[disable/enable parsing of the first line of the input file]' \
+    '-progname=-[set program (and fmt) name]:STRING:' \
+    '-recorder[enable filename recorder]' \
+    '(-no-shell-escape -shell-escape)'{-no,}-shell-escape'[enable/disable \\write18{SHELL COMMAND}]' \
+    '-shell-restricted[enable restricted \\write18]' \
+    '-src-specials[insert source specials into the DVI file]' \
+    '-src-specials=-[insert source specials in certain places of the DVI file]:WHERE:_values -s , WHERE cr display hbox math par parend vbox' \
+    '-translate-file=-[use the TCX file TCXNAME]:TCXNAME:' \
+    '-8bit[make all characters printable by default]' \
+    '-help[display this help and exit]' \
+    '-version[output version information and exit]' \
+    '*:TeX or LaTeX file:_files -g "*.(tex|TEX|texinfo|texi|dtx)(-.)"'

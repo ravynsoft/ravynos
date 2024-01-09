@@ -1,0 +1,20 @@
+#compdef debuild
+
+local ign noc
+
+(( $#words > 2 )) && ign='!'
+(( CURRENT != 2 )) && noc='!'
+
+_arguments \
+  "${ign}(- 1 *)"{-h,--help}'[display usage information]' \
+  "${ign}(- 1 *)--version[display version and copyright information]" \
+  ${noc}{--no-conf,--noconf}"[don't read devscripts config files]" \
+  {-r-,--rootcmd=}'[specify command used to become root if debuild not setuid root]: : _command_names -e' \
+  '(--preserve-env)*'{-e-,--preserve-envvar=}'[preserve environment variable]:environment variable:_parameters -g "*export*"' \
+  '(-e --preserve-envvar)--preserve-env[preserve all environment vars (except PATH)]' \
+  '*'{-e-,--set-envvar=}'[preserve environment variable]:environment variable:_parameters -g "*export*" -qS=' \
+  '--prepend-path=[prepend to the sanitised PATH]: :_dir_list' \
+  '(-D)-d[skip checking of build dependencies]' \
+  '(-d)-D[force checking of build dependencies]' \
+  '--check-dirname-level[specify how much to check directory names]:level [1]:((0\:never 1\:only\ if\ program\ changes\ directory 2\:always))' \
+  '--check-dirname-regex[specify what constitutes a matching directory name]:perl regex [PACKAGE(-.*)?]'

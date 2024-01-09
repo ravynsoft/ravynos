@@ -1,0 +1,714 @@
+#compdef apt apt-get apt-cache apt-cdrom apt-config apt-mark
+
+_apt () {
+  case "$service" in
+    apt) _apt-cmd "$@";;
+    apt-get) _apt-get "$@";;
+    apt-cache) _apt-cache "$@";;
+    apt-cdrom) _apt-cdrom "$@";;
+    apt-config) _apt-config "$@";;
+    apt-mark) _apt-mark "$@";;
+    *) _message "unknown command $service";;
+  esac
+}
+
+# usage: _apt_arguments funcname option-spec... -- rest-regex
+_apt_arguments () {
+
+  local funcname
+  funcname="$1"
+  shift
+
+  typeset -A canonicalize num_options
+  local short_hasarg short_bool short_intlevel short_configfile short_arbitem
+  local long_hasarg long_bool long_intlevel long_configfile long_arbitem
+  local short_release long_release
+  local comp_hasarg=''
+  local opt opts type
+
+  while [[ 0 -lt $# && $1 != -- ]]; do
+    opts="${1%%:*}"
+    type="${1#*:}"
+
+    case $type in
+      bool) num_options[$opts]=1;;
+      intlevel) num_options[$opts]=-1;;
+      configfile) num_options[$opts]=1;;
+      arbitem) num_options[$opts]=-1;;
+      release) num_options[$opts]=1;;
+      *) num_options[$opts]=1
+	 comp_hasarg="${comp_hasarg}$opts) $type;;"$'\n'
+	 type=hasarg;;
+    esac
+
+    for opt in ${(s:,:)=opts}; do
+      canonicalize[$opt]="$opts"
+      case $opt in
+	--*) eval "long_$type=(\$long_$type ${opt#--})";;
+	-?) eval "short_$type=(\$short_$type ${opt#-})";;
+      esac
+    done
+    shift
+  done
+
+  # skip --
+  [[ 0 -lt $# ]] && shift
+
+  comp_hasarg="{case \$current_option in
+  ${comp_hasarg}esac}"
+
+  local short_seq false true bool bool_prefix intlevel word word1 nul qnul match
+  local comp_bool comp_intlevel comp_configfile comp_arbitem comp_long comp_opt
+  local comp_release comp_long_prefix comp_short
+  local regex_short regex_long regex_all regex_long_prefix
+
+  regex_all=( \( "$@" \) )
+
+  short_seq="(${(j:|:)short_bool}|${(j:|:)short_intlevel})#"
+
+  false=(no false without off disable)
+  true=(yes true with on enable)
+  bool=($false $true)
+
+  bool_prefix=(--${^bool}-)
+
+  intlevel='[0-9]##'
+
+  word=$'[^\0]#\0'
+  word1=$'[^\0]##\0'
+  nul=$'\0'
+  qnul="\$'\\0'"
+
+  comp_bool="($bool)"
+  comp_intlevel=
+  comp_configfile='_files'
+  comp_arbitem=
+  comp_release='_apt_releases'
+
+  comp_short=\
+'{if [[ $PREFIX = -'"$short_seq"' ]]; then
+  _apt_consume_short ${PREFIX[2,-1]}
+  tmp1=(${(M)${(s:,:)${(kj:,:)num_options[(R)*~0]}}:#-?})
+  tmp2=(${PREFIX}${^tmp1#-})
+  _describe -o option tmp1 tmp2
+elif [[ -z "$PREFIX" ]]; then
+  tmp1=(${(M)${(s:,:)${(kj:,:)num_options[(R)*~0]}}:#-?})
+  _describe -o option tmp1
+fi}'
+
+  comp_long=\
+'tmp1="${(j:|:)${(@)${(@M)${(@s:,:)${(@kj:,:)num_options[(R)*~0]}}:#--*}#--}}"
+tmp2=(--${(M)^long_bool:#$~tmp1} --${(M)^long_intlevel:#$~tmp1})
+tmp3=(--${(M)^long_hasarg:#$~tmp1} --${(M)^long_configfile:#$~tmp1} --${(M)^long_arbitem:#$~tmp1} --${(M)^long_release:#$~tmp1})
+_describe -o option tmp2 -- tmp3 -S= -- bool_prefix -S ""'
+
+  comp_long_prefix=\
+'{tmp1="${(j:|:)${(@)${(@M)${(@s:,:)${(@kj:,:)num_options[(R)*~0]}}:#--*}#--}}"
+tmp2=($_ra_left${(M)^long_bool:#$~tmp1} $_ra_left${(M)^long_intlevel:#$~tmp1})
+tmp3=($_ra_left${(M)^long_hasarg:#$~tmp1} $_ra_left${(M)^long_configfile:#$~tmp1} $_ra_left${(M)^long_arbitem:#$~tmp1} $_ra_left${(M)^long_release:#$~tmp1})
+tmp1="${(j:|:)${(@)${(@M)${(@s:,:)${(@kj:,:)num_options[(R)*~0]}}:#-?}#-}}"
+tmp2=("$tmp2[@]" $_ra_left${(M)^short_bool:#$~tmp1} $_ra_left${(M)^short_intlevel:#$~tmp1})
+tmp3=("$tmp3[@]" $_ra_left${(M)^short_hasarg:#$~tmp1} $_ra_left${(M)^short_configfile:#$~tmp1} $_ra_left${(M)^short_arbitem:#$~tmp1} $_ra_left${(M)^short_release:#$~tmp1})
+_describe -o option tmp2 -- tmp3 -S=}'
+
+  comp_opt='{{ ! zstyle -T ":completion:${curcontext}:options" prefix-needed || [[ "$PREFIX" = -* ]] }'" && { $comp_short; $comp_long }}"
+  comp_short="{$comp_short}"
+  comp_long="{$comp_long}"
+
+  regex_short=()
+  regex_long=()
+  regex_long_prefix=()
+
+  if (( $#short_hasarg )); then
+    regex_short=("$regex_short[@]"
+      /"$short_seq(${(j:|:)short_hasarg})(=|)"/
+	-'_apt_consume_short ${match[1]%=}; current_option=${canonicalize[-${${match[1]%=}[-1]}]}'
+	\( /"$word1"/ ":options:option:$comp_hasarg" \| /"$nul"/ /"$word"/ ":options:option:$comp_hasarg" \) \|
+    )
+    regex_long_prefix=("$regex_long_prefix[@]"
+      /"(${(j:|:)short_hasarg})$nul"/
+	-'_apt_consume_short ${match[1][-2]}; current_option=${canonicalize[-${${match[1]%'$qnul'}[-1]}]}'
+	/"$word"/ ":options:option:$comp_hasarg" \|
+      /"(${(j:|:)short_hasarg})="/
+	-'_apt_consume_short ${match[1][-2]}; current_option=${canonicalize[-${${match[1]%=}[-1]}]}'
+	\( /"$word1"/ ":options:option:$comp_hasarg" \| /"$nul"/ /"$word"/ ":options:option:$comp_hasarg" \) \|
+    )
+  fi
+
+  if (( $#short_bool )); then
+    regex_short=("$regex_short[@]"
+      /"$short_seq(${(j:|:)short_bool})($nul(${(j:|:)bool})|(${(j:|:)bool})|)$nul"/
+	-'_apt_consume_short ${match[1]%%('$qnul'('${(j:|:)bool}')|('${(j:|:)bool}')|)'$qnul'}' \|
+      /"$short_seq(${(j:|:)short_bool})="/
+	-'_apt_consume_short ${match[1]%=}'
+	\( /"$word1"/ ":names:boolean value:$comp_bool" \| /"$nul"/ /"$word"/ ":names:boolean value:$comp_bool" \) \|
+    )
+    regex_long_prefix=("$regex_long_prefix[@]"
+      /"(${(j:|:)short_bool})="/
+	-'_apt_consume_short ${match[1][-2]}'
+	\( /"$word1"/ ":names:boolean value:$comp_bool" \| /"$nul"/ /"$word"/ ":names:boolean value:$comp_bool" \) \|
+      /"(${(j:|:)short_bool})$nul"/
+	-'_apt_consume_short ${match[1][-2]}'
+	/"((${(j:|:)bool})$nul|)"/ ":names:boolean value:$comp_bool" \|
+    )
+  fi
+
+  if (( $#short_intlevel )); then
+    regex_short=("$regex_short[@]"
+      /"$short_seq(${(j:|:)short_intlevel})($nul$intlevel|$intlevel|)$nul"/
+	-'_apt_consume_short ${match[1]%%'"($qnul$intlevel|$intlevel|)$qnul"'}' \|
+      /"$short_seq(${(j:|:)short_intlevel})="/
+	-'_apt_consume_short ${match[1]%=}'
+	\( /"$word1"/ ":options:option:$comp_intlevel" \| /"$nul"/ /"$word"/ ":options:option:$comp_intlevel" \) \|
+    )
+    regex_long_prefix=("$regex_long_prefix[@]"
+      /"(${(j:|:)short_intlevel})="/
+	-'_apt_consume_short ${match[1][-2]}'
+	\( /"$word1"/ ":options:option:$comp_intlevel" \| /"$nul"/ /"$word"/ ":options:option:$comp_intlevel" \) \|
+      /"(${(j:|:)short_intlevel})$nul"/
+	-'_apt_consume_short ${match[1][-2]}'
+	/"($intlevel$nul|)"/ ":options:option:$comp_intlevel" \|
+    )
+  fi
+
+  if (( $#short_configfile )); then
+    regex_short=("$regex_short[@]"
+      /"$short_seq(${(j:|:)short_configfile})(=|)"/
+	-'_apt_consume_short ${match[1]%=}'
+	\( /"$word1"/ ":files:config file:$comp_configfile" \| /"$nul"/ /"$word"/ ":files:config file:$comp_configfile" \) \|
+    )
+    regex_long_prefix=("$regex_long_prefix[@]"
+      /"(${(j:|:)short_configfile})$nul"/
+	-'_apt_consume_short ${match[1][-2]}'
+	/"$word"/ ":files:config file:$comp_configfile" \|
+      /"(${(j:|:)short_configfile})="/
+	-'_apt_consume_short ${match[1][-2]}'
+	\( /"$word1"/ ":files:config file:$comp_configfile" \| /"$nul"/ /"$word"/ ":files:config file:$comp_configfile" \) \|
+    )
+  fi
+
+  if (( $#short_arbitem )); then
+    regex_short=("$regex_short[@]"
+      /"$short_seq(${(j:|:)short_arbitem})(=|)"/
+	-'_apt_consume_short ${match[1]%=}'
+	\( /"$word1"/ ":options:option:$comp_arbitem" \| /"$nul"/ /"$word"/ ":options:option:$comp_arbitem" \) \|
+    )
+    regex_long_prefix=("$regex_long_prefix[@]"
+      /"(${(j:|:)short_arbitem})$nul"/
+	-'_apt_consume_short ${match[1][-2]}'
+	/"$word"/ ":options:option:$comp_arbitem" \|
+      /"(${(j:|:)short_arbitem})="/
+	-'_apt_consume_short ${match[1][-2]}'
+	\( /"$word1"/ ":options:option:$comp_arbitem" \| /"$nul"/ /"$word"/ ":options:option:$comp_arbitem" \) \|
+    )
+  fi
+
+  if (( $#short_release )); then
+    regex_short=("$regex_short[@]"
+      /"$short_seq(${(j:|:)short_release})(=|)"/
+	-'_apt_consume_short ${match[1]%=}'
+	\( /"$word1"/ ":releases:release name:$comp_release" \| /"$nul"/ /"$word"/ ":release name:release:$comp_release" \) \|
+    )
+    regex_long_prefix=("$regex_long_prefix[@]"
+      /"(${(j:|:)short_release})$nul"/
+	-'_apt_consume_short ${match[1][-2]}'
+	/"$word"/ ":releases:release name:$comp_release" \|
+      /"(${(j:|:)short_release})="/
+	-'_apt_consume_short ${match[1][-2]}'
+	\( /"$word1"/ ":releases:release name:$comp_release" \| /"$nul"/ /"$word"/ ":releases:release name:$comp_release" \) \|
+    )
+  fi
+
+  if (( $#long_hasarg )); then
+    regex_long=("$regex_long[@]"
+      /"(${(j:|:)long_hasarg})$nul"/
+	-'_apt_consume_long ${match[1]%'$qnul'}; current_option=${canonicalize[--${match[1]%'$qnul'}]}'
+	/"$word"/ ":options:option:$comp_hasarg" \|
+      /"(${(j:|:)long_hasarg})="/
+	-'_apt_consume_long ${match[1]%=}; current_option=${canonicalize[--${match[1]%=}]}'
+	\( /"$word1"/ ":options:option:$comp_hasarg" \| /"$nul"/ /"$word"/ ":options:option:$comp_hasarg" \) \|
+    )
+    regex_long_prefix=("$regex_long_prefix[@]"
+      /"(${(j:|:)long_hasarg})$nul"/
+	-'_apt_consume_long ${match[1]%'$qnul'}; current_option=${canonicalize[--${match[1]%'$qnul'}]}'
+	/"$word"/ ":options:option:$comp_hasarg" \|
+      /"(${(j:|:)long_hasarg})="/
+	-'_apt_consume_long ${match[1]%=}; current_option=${canonicalize[--${match[1]%=}]}'
+	\( /"$word1"/ ":options:option:$comp_hasarg" \| /"$nul"/ /"$word"/ ":options:option:$comp_hasarg" \) \|
+    )
+  fi
+
+  if (( $#long_bool )); then
+    regex_long=("$regex_long[@]"
+      /"(${(j:|:)long_bool})="/
+	-'_apt_consume_long ${match[1]%=}'
+	\( /"$word1"/ ":names:boolean value:$comp_bool" \| /"$nul"/ /"$word"/ ":names:boolean value:$comp_bool" \) \|
+      /"(${(j:|:)long_bool})$nul"/
+	-'_apt_consume_long ${match[1]%'$qnul'}'
+	/"((${(j:|:)bool})$nul|)"/ ":names:boolean value:$comp_bool" \|
+    )
+    regex_long_prefix=("$regex_long_prefix[@]"
+      /"(${(j:|:)long_bool})="/
+	-'_apt_consume_long ${match[1]%=}'
+	\( /"$word1"/ ":names:boolean value:$comp_bool" \| /"$nul"/ /"$word"/ ":names:boolean value:$comp_bool" \) \|
+      /"(${(j:|:)long_bool})$nul"/
+	-'_apt_consume_long ${match[1]%'$qnul'}'
+	/"((${(j:|:)bool})$nul|)"/ ":names:boolean value:$comp_bool" \|
+    )
+  fi
+
+  if (( $#long_intlevel )); then
+    regex_long=("$regex_long[@]"
+      /"(${(j:|:)long_intlevel})="/
+	-'_apt_consume_long ${match[1]%=}'
+	\( /"$word1"/ ":options:option:$comp_intlevel" \| /"$nul"/ /"$word"/ ":options:option:$comp_intlevel" \) \|
+      /"(${(j:|:)long_intlevel})$nul"/
+	-'_apt_consume_long ${match[1]%'$qnul'}'
+	/"($intlevel$nul|)"/ ":options:option:$comp_intlevel" \|
+    )
+    regex_long_prefix=("$regex_long_prefix[@]"
+      /"(${(j:|:)long_intlevel})="/
+	-'_apt_consume_long ${match[1]%=}'
+	\( /"$word1"/ ":options:option:$comp_intlevel" \| /"$nul"/ /"$word"/ ":options:option:$comp_intlevel" \) \|
+      /"(${(j:|:)long_intlevel})$nul"/
+	-'_apt_consume_long ${match[1]%'$qnul'}'
+	/"($intlevel$nul|)"/ ":options:option:$comp_intlevel" \|
+    )
+  fi
+
+  if (( $#long_configfile )); then
+    regex_long=("$regex_long[@]"
+      /"(${(j:|:)long_configfile})$nul"/
+	-'_apt_consume_long ${match[1]%'$qnul'}'
+	/"$word"/ ":files:config file:$comp_configfile" \|
+      /"(${(j:|:)long_configfile})="/
+	-'_apt_consume_long ${match[1]%=}'
+	\( /"$word1"/ ":files:config file:$comp_configfile" \| /"$nul"/ /"$word"/ ":files:config file:$comp_configfile" \) \|
+    )
+    regex_long_prefix=("$regex_long_prefix[@]"
+      /"(${(j:|:)long_configfile})$nul"/
+	-'_apt_consume_long ${match[1]%'$qnul'}'
+	/"$word"/ ":files:config file:$comp_configfile" \|
+      /"(${(j:|:)long_configfile})="/
+	-'_apt_consume_long ${match[1]%=}'
+	\( /"$word1"/ ":files:config file:$comp_configfile" \| /"$nul"/ /"$word"/ ":files:config file:$comp_configfile" \) \|
+    )
+  fi
+
+  if (( $#long_arbitem )); then
+    regex_long=("$regex_long[@]"
+      /"(${(j:|:)long_arbitem})$nul"/
+	-'_apt_consume_long ${match[1]%'$qnul'}'
+	/"$word"/ ":options:option:$comp_arbitem" \|
+      /"(${(j:|:)long_arbitem})="/
+	-'_apt_consume_long ${match[1]%=}'
+	\( /"$word1"/ ":options:option:$comp_arbitem" \| /"$nul"/ /"$word"/ ":options:option:$comp_arbitem" \) \|
+    )
+    regex_long_prefix=("$regex_long_prefix[@]"
+      /"(${(j:|:)long_arbitem})$nul"/
+	-'_apt_consume_long ${match[1]%'$qnul'}'
+	/"$word"/ ":options:option:$comp_arbitem" \|
+      /"(${(j:|:)long_arbitem})="/
+	-'_apt_consume_long ${match[1]%=}'
+	\( /"$word1"/ ":options:option:$comp_arbitem" \| /"$nul"/ /"$word"/ ":options:option:$comp_arbitem" \) \|
+    )
+  fi
+
+  if (( $#long_release )); then
+    regex_long=("$regex_long[@]"
+      /"(${(j:|:)long_release})$nul"/
+	-'_apt_consume_long ${match[1]%'$qnul'}'
+	/"$word"/ ":releases:release name:$comp_release" \|
+      /"(${(j:|:)long_release})="/
+	-'_apt_consume_long ${match[1]%=}'
+	\( /"$word1"/ ":releases:release name:$comp_release" \| /"$nul"/ /"$word"/ ":releases:release name:$comp_release" \) \|
+    )
+    regex_long_prefix=("$regex_long_prefix[@]"
+      /"(${(j:|:)long_release})$nul"/
+	-'_apt_consume_long ${match[1]%'$qnul'}'
+	/"$word"/ ":releases:release name:$comp_release" \|
+      /"(${(j:|:)long_release})="/
+	-'_apt_consume_long ${match[1]%=}'
+	\( /"$word1"/ ":releases:release name:$comp_release" \| /"$nul"/ /"$word"/ ":releases:release name:$comp_release" \) \|
+    )
+  fi
+
+  regex_all=(
+    /"$word"/
+    \( /--/+ \( "$regex_long[@]"
+		/"(${(j:|:)bool})-"/+
+		  \( "$regex_long_prefix[@]"
+		     /"[]"/ ":options:option:$comp_long_prefix" \) \) \|
+       /-/+ \( "$regex_short[@]" /"[]"/ \) \|
+       /"[]"/ ":options:option:$comp_opt" \) \#
+    "$regex_all[@]"
+  )
+
+  _regex_arguments "${funcname}_sm" "$regex_all[@]"
+
+  eval "$funcname () {
+    typeset -A canonicalize num_options
+    canonicalize=(${(kv)canonicalize})
+    num_options=(${(kv)num_options})
+
+    local short_hasarg short_bool short_intlevel short_configfile short_arbitem
+    local long_hasarg long_bool long_intlevel long_configfile long_arbitem
+    local short_release long_release
+    local bool_prefix
+    short_hasarg=($short_hasarg)
+    short_bool=($short_bool)
+    short_intlevel=($short_intlevel)
+    short_configfile=($short_configfile)
+    short_arbitem=($short_arbitem)
+    short_release=($short_release)
+    long_hasarg=($long_hasarg)
+    long_bool=($long_bool)
+    long_intlevel=($long_intlevel)
+    long_configfile=($long_configfile)
+    long_arbitem=($long_arbitem)
+    long_release=($long_release)
+    bool_prefix=($bool_prefix)
+
+    local current_option tmp1 tmp2 tmp3
+
+    ${funcname}_sm
+  }"
+}
+
+_apt_consume_short () {
+  local short opt
+  for short in ${(s::)1}; do
+    opt="$canonicalize[-$short]"
+    (( 0 < num_options[$opt] && num_options[$opt]-- ))
+  done
+  return 0
+}
+
+_apt_consume_long () {
+  local long opt
+  opt="$canonicalize[--$1]"
+  (( 0 < num_options[$opt] && num_options[$opt]-- ))
+  return 0
+}
+
+_apt-cmd () {
+  _apt_arguments _apt-cmd_sm \
+    -h,--help:bool \
+    -v,--version:bool \
+    -c,--config-file:configfile \
+    -o,--option:arbitem \
+    -t,--target-release:release \
+    -- \
+    /$'list\0'/ \( \
+      \( \
+        /$'--installed\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# /'[]'/ \| \
+        // %-% /$'--[^\0]#\0'/ ':options:option:(--installed --upgradable --all-versions)' \
+      \| \) \
+      /$'[^-\0][^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \
+    \) \| \
+    /$'search\0'/ /$'[^\0]#\0'/ ':strings:pattern:' \| \
+    /$'showsrc\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'show\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'depends\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'rdepends\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'policy\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'update\0'/ \| \
+    \( \
+      /$'(install|download|source|build-dep)\0'/ -'subcmd=${match%?}' \
+      /$'[^\0]#\0'/ ':packages::_deb_packages -qr "\n\t\- /=+-" "$expl_packages[@]" avail' \# \
+      \( \
+	// '%(.|)/%' -'[[ $subcmd = install ]]' /'[]'/ ':files: :_deb_files -c' \| \
+	/$'[^\0/=]#\/'/ /'[]'/ ':apt-releases:release name:_apt_releases' \| \
+	/$'[^\0/=]#='/ /'[]'/ ':apt-package-versions:package version:_apt_versions_of_binary_package' \| \
+      \) \
+    \) \| \
+    /$'(remove|reinstall|purge)\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /$'upgrade\0'/ \| \
+    /$'autoclean\0'/ \| \
+    /$'changelog\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'autoremove\0'/ \| \
+    /$'full-upgrade\0'/ \| \
+    /$'dist-upgrade\0'/ \| \
+    /$'edit-sources\0'/ \| \
+    /"[]"/ ':argument-1::compadd "$expl_action[@]" list search showsrc show depends rdepends policy update install reinstall download source build-dep remove upgrade full-upgrade dist-upgrade edit-sources autoclean changelog autoremove purge'
+
+  _apt-cmd () {
+    local expl_action expl_packages subcmd
+    _description actions expl_action 'action'
+    _description packages expl_packages 'package'
+
+    _apt-cmd_sm
+  }
+
+  _apt-cmd "$@"
+}
+
+_apt-get () {
+  _apt_arguments _apt-get_sm \
+    -h,--help:bool \
+    -v,--version:bool \
+    -q,--quiet,--silent:intlevel \
+    -d,--download-only:bool \
+    -b,--compile,--build:bool \
+    -s,--simulate,--just-print,--dry-run,--recon,--no-act:bool \
+    -y,--yes,--assume-yes:bool \
+    -f,--fix-broken:bool \
+    -u,--show-upgraded:bool \
+    -V,--verbose-versions:bool \
+    -m,--ignore-missing,--fix-missing:bool \
+    --no-download:bool \
+    --no-install-recommends:bool \
+    --ignore-hold:bool \
+    --no-upgrade:bool \
+    --force-yes:bool \
+    --print-uris:bool \
+    --purge:bool \
+    --list-cleanup:bool \
+    --reinstall:bool \
+    -c,--config-file:configfile \
+    -o,--option:arbitem \
+    -t,--target-release,--default-release:release \
+    --trivial-only:bool \
+    --no-remove:bool \
+    --only-source:bool \
+    --diff-only:bool \
+    --tar-only:bool \
+    --arch-only:bool \
+    --allow-unauthenticated:bool \
+    --auto-remove:bool \
+    -- \
+    /$'update\0'/ \| \
+    /$'upgrade\0'/ \| \
+    \( \
+    /$'install\0'\|$'download\0'\|$'source\0'\|$'build-dep\0'/ \
+      /$'[^\0]#\0'/ ':packages::_deb_packages -qr "\n\t\- /=" "$expl_packages[@]" avail' \# \
+      \( \
+	/$'[^\0/=]#/'/ /'[]'/ ':apt-releases:release name:_apt_releases' \| \
+	/$'[^\0/=]#='/ /'[]'/ ':apt-package-versions:package version:_apt_versions_of_binary_package' \
+      \) \
+    \) \| \
+    /$'remove\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /$'purge\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /$'dist-upgrade\0'/ \| \
+    /$'dselect-upgrade\0'/ \| \
+    /$'clean\0'/ \| \
+    /$'autoclean\0'/ \| \
+    /$'changelog\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'check\0'/ \| \
+    /$'autoremove\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /$'help\0/' \| \
+    /$'markauto\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /$'unmarkauto\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /"[]"/	':argument-1::compadd "$expl_action[@]" update upgrade install remove purge dist-upgrade dselect-upgrade clean autoclean changelog check source build-dep autoremove help markauto unmarkauto download'
+
+  _apt-get () {
+    local expl_action expl_packages
+    _description actions expl_action 'action'
+    _description packages expl_packages 'package'
+
+    _apt-get_sm
+  }
+
+  _apt-get "$@"
+}
+
+_apt-cache () {
+  _apt_arguments _apt-cache_sm \
+    -h,--help:bool \
+    -v,--version:bool \
+    -p,--pkg-cache:'_files "$expl_pkg_cache[@]"' \
+    -s,--src-cache:'_files "$expl_src_cache[@]"' \
+    -q,--quiet:intlevel \
+    -i,--important:bool \
+    -f,--full:bool \
+    -g,--generate:bool \
+    -n,--names-only:bool \
+    --all-names:bool \
+    -a,--all-versions:bool \
+    --recurse:bool \
+    -c,--config-file:configfile \
+    -o,--option:arbitem \
+    --installed:bool \
+    -- \
+    /$'help\0'/ \| \
+    /$'add\0'/ /$'[^\0]#\0'/ ':files:index file:_files' \# \| \
+    /$'gencaches\0'/ \| \
+    /$'showpkg\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'showsrc\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'stats\0'/ \| \
+    /$'dump\0'/ \| \
+    /$'dumpavail\0'/ \| \
+    /$'unmet\0'/ \| \
+    /$'search\0'/ /$'[^\0]#\0'/ ':strings:pattern:' \| \
+    /$'show\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'depends\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'rdepends\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'pkgnames\0'/ /$'[^\0]#\0'/ ':strings:prefix:' \| \
+    /$'dotty\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'xvcg\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'policy\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /$'madison\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" avail' \# \| \
+    /"[]"/ ':argument-1::compadd "$expl_action[@]" help add gencaches showpkg showsrc stats dump dumpavail unmet search show depends rdepends pkgnames dotty policy xvcg madison'
+
+  _apt-cache () {
+    local expl_action expl_packages expl_pkg_cache expl_src_cache
+    _description actions expl_action 'action'
+    _description packages expl_packages 'package'
+    _description files expl_pkg_cache 'package cache'
+    _description files expl_src_cache 'source cache'
+
+    _apt-cache_sm
+  }
+
+  _apt-cache "$@"
+}
+
+_apt-cdrom () {
+  _apt_arguments _apt-cdrom_sm \
+    -h,--help:bool \
+    -v,--version:bool \
+    -d,--cdrom:'_files "$expl_mount_point[@]" -/' \
+    -r,--rename:bool \
+    -m,--no-mount:bool \
+    -f,--fast:bool \
+    -n,--just-print,--recon,--no-act:bool \
+    -a,--thorough:bool \
+    -c,--config-file:configfile \
+    -o,--option:arbitem \
+    -- \
+    /$'add\0'/ \| \
+    /$'ident\0'/ \| \
+    /"[]"/	':argument-1::compadd "$expl_action[@]" add ident'
+
+  _apt-cdrom () {
+    local expl_action expl_mount_point
+    _description actions expl_action 'action'
+    _description files expl_mount_point 'mount point'
+
+    _apt-cdrom_sm
+  }
+
+  _apt-cdrom "$@"
+}
+
+_apt-config () {
+  _apt_arguments _apt-config \
+    -h,--help:bool \
+    -v,--version:bool \
+    -c,--config-file:configfile \
+    -o,--option:arbitem \
+    -- \
+    /$'shell\0'/ \
+      \( \
+	/$'[^\0]#\0'/ ':parameters:shell variable to assign:_parameters' \
+	/$'[^\0]#\0'/ ':values:configuration key:compadd - ${${(f)"$(apt-config dump 2>&1)"}% *}' \
+      \) \# \| \
+    /$'dump\0'/ \| \
+    /"[]"/	':argument-1:action:compadd shell dump'
+
+  _apt-config "$@"
+}
+
+_apt_releases_update () {
+  if ( [[ ${+_apt_releases} -eq 0 ]] ||
+      _cache_invalid APT_releases ) && ! _retrieve_cache APT_releases;
+  then
+    local -a tmp=("${(f)$(apt-cache policy)}")
+    _apt_releases=(
+${${${${(M)tmp:#*release*a=*}#*a=}%%,*}:#now}
+${${${${(M)tmp:#*release*n=*}#*n=}%%,*}:#now}
+    )
+    typeset -U _apt_releases
+    _store_cache APT_releases _apt_releases
+  fi
+}
+
+_apt_releases () {
+  local update_policy
+
+  zstyle -s ":completion:*:*:$service:*" cache-policy update_policy
+  if [[ -z "$update_policy" ]]; then
+    zstyle ":completion:*:*:$service:*" cache-policy _apt_caching_policy
+  fi
+
+  _apt_releases_update
+
+  _tags apt-releases && compadd -a _apt_releases
+}
+
+# Complete versions of the package named in $match[1].
+#
+# Interpret the package name as a binary package (even if there is
+# a source package by that name, too).
+_apt_versions_of_binary_package() {
+  local package_name=${match[1]%=} # $match was set by _regex_arguments
+  local line
+  local name version source
+  local -a kv
+
+  for line in ${(f)"$(_call_program versions-of-package "apt-cache madison $package_name")"}; do
+    # If $package_name is a source package name, we'll have lines of the form
+    #   $package_name | $version | ...Sources
+    #
+    # If $package_name is a binary package name, we'll have lines of the form
+    #   $package_name | $version | ...Packages
+    #   $src_package_name | $version | ...Sources
+    for name version source in "${(@s. | .)line}"; do
+      # Remove leading/trailing whitespace
+      name=${name// }
+      version=${version// }
+      source=${${source# ##}% ##}
+
+      # Skip source packages
+      if [[ $name != $package_name ]] || [[ $source != *Packages* ]]; then
+        continue
+      fi
+
+      kv+=( "${version//:/\\:}:$source" )
+    done
+  done
+
+  _describe -t apt-package-versions 'package version' kv "$@"
+}
+
+_apt_caching_policy () {
+  local -a oldp
+
+  oldp=( "$1"(mw+1) )
+  (( $#oldp )) && return 0
+
+  [[ /var/cache/apt/pkgcache.bin -nt "$1" ||
+     /var/lib/dpkg/available -nt "$1" ]]
+}
+
+_apt-mark () {
+  _apt_arguments _apt-mark_sm \
+    -h,--help:bool \
+    -v,--version:bool \
+    -f,--file:configfile \
+    -c,--config-file:configfile \
+    -o,--option:arbitem \
+    -qq:bool \
+    -s:bool \
+    -- \
+    /$'auto\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /$'manual\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /$'hold\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /$'unhold\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /$'showauto\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /$'showmanual\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /$'showhold\0'/ /$'[^\0]#\0'/ ':packages::_deb_packages "$expl_packages[@]" installed' \# \| \
+    /"[]"/	':argument-1::compadd "$expl_action[@]" auto manual hold unhold showauto showmanual showhold'
+
+  _apt-mark () {
+    local expl_action expl_packages
+    _description actions expl_action 'action'
+    _description packages expl_packages 'package'
+
+    _apt-mark_sm
+  }
+
+  _apt-mark "$@"
+}
+
+_apt "$@"

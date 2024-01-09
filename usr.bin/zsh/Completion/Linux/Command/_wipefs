@@ -1,0 +1,26 @@
+#compdef wipefs
+
+_arguments -s -S \
+  '(H -a --all)'{-a,--all}'[wipe all magic strings]' \
+  '(H -b --backup)'{-b,--backup}'[create a signature backup in $HOME]' \
+  '(H -f --force)'{-f,--force}'[force erasure]' \
+  '(H -i --no-headings -J --json -p --parsable)'{-i,--no-headings}"[don't print headings]" \
+  '(H -J --json -i --no-headings -p --parsable)'{-J,--json}'[use JSON output format]' \
+  '(H -n --no-act)'{-n,--no-act}'[do everything except the actual write() call]' \
+  '(H -o --offset)'{-o+,--offset=}'[specify offset to erase]:offset (bytes)' \
+  '(H -O --output)'{-O+,--output=}'[specify columns to display]: : _values -s, "column"
+    "uuid[partition/filesystem UUID]"
+    "label[filesystem label]"
+    "length[magic string length]"
+    "type[superblock type]"
+    "offset[magic string offset]"
+    "usage[type description]"
+    "device[block device name]"' \
+  '(H -p --parsable -i --no-headings -J --json)'{-p,--parsable}'[print out in parsable instead of printable format]' \
+  '(H -q --quiet)'{-q,--quiet}'[suppress output messages]' \
+  '(H -t --types)'{-t+,--types=}'[limit the set of filesystem, RAIDs or partition tables]:type:_file_systems' \
+  '(H)--lock=-[use exclusive device lock]::mode:(yes no nonblock)' \
+  '(H)*:disk device:_files -g "*(-%)" -P / -W /' \
+  + '(H)' \
+  '(- *)'{-h,--help}'[display help information]' \
+  '(- *)'{-V,--version}'[display version information]'

@@ -1,0 +1,96 @@
+#compdef xmodmap
+
+local curcontext="$curcontext" state line ret=1
+typeset -A opt_args
+
+_x_arguments -C \
+  -{help,grammar,verbose,quiet} \
+  '-n[only show what would be done]' \
+  '*-e[specify expression]:expression:->expr' \
+  '-pm[print modifier map]' \
+  '-pk[print keymap table]' \
+  '-pke[print keymap table as expressions]' \
+  '-pp[print pointer map]' \
+  ':X mapping file:_files' && ret=0
+
+if [[ -n "$state" ]]; then
+  local expl expr="${PREFIX##[ 	]#}" what suf
+
+  if compset -P '[^ 	]##[ 	]##'; then
+    case "$expr" in
+    keycode*)
+      if compset -P '*=[ 	]#'; then
+        compset -P '*[ 	]'
+        what=ksyms
+      elif [[ "$expr" = *[\ \	]##[^\ \	]##[\ \	] ]]; then
+        IPREFIX="${IPREFIX}${PREFIX}"
+	PREFIX=''
+	compadd -S ' ' '=' && ret=0
+      else
+        _message -e keys 'key code or `any'"'"
+      fi
+      ;;
+    keysym*)
+      if compset -P '*=[ 	]#'; then
+        compset -P '*[ 	]'
+        what=ksyms
+      elif [[ "$expr" = *[\ \	]##[^\ \	]##[\ \	] ]]; then
+        IPREFIX="${IPREFIX}${PREFIX}"
+	PREFIX=''
+	compadd -S ' ' '=' && ret=0
+      else
+        what=ksym-eq
+      fi
+      ;;
+    clear*)
+      what=mods
+      ;;
+    (add|remove)*)
+      if compset -P '*[ 	]##'; then
+        what=ksyms
+      else
+        what=mods-eq
+      fi
+      ;;
+    pointer*)
+      if compset -P '*=[ 	]#'; then
+        compset -P '*[ 	]'
+        _description values expl 'button code'
+        compadd "$expl[@]" -qS ' ' 1 2 3 4 5 default
+        return
+      else
+        IPREFIX="${IPREFIX}${PREFIX}"
+	PREFIX=''
+	compadd -S ' ' '=' && ret=0
+      fi
+      ;;
+    esac
+
+    if [[ "$what" = *eq* ]]; then
+      suf=(-S ' = ')
+    elif [[ "$what" = *ksyms* ]]; then
+      if [[ -n "$compstate[quote]" ]]; then
+        suf=(-S "$compstate[quote] " -r "$compstate[quote] ")
+      else
+        suf=(-qS ' ')
+      fi
+    else
+      suf=()
+    fi
+
+    [[ "$what" = *mods* ]] && _x_modifier "$suf[@]" && ret=0
+    [[ "$what" = *ksym* ]] && _x_keysym "$suf[@]" && ret=0
+
+  else
+    _tags commands
+    while _tags; do
+      while _next_label commands expl command; do
+        compadd "$expl[@]" -S ' ' keycode keysym clear add remove && ret=0
+        compadd "$expl[@]" -S ' = ' pointer && ret=0
+      done
+      (( ret )) || return 0
+    done
+  fi
+fi
+
+return ret

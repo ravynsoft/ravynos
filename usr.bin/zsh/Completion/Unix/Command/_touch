@@ -1,0 +1,45 @@
+#compdef touch gtouch
+
+local args variant
+_pick_variant -r variant gnu=GNU $OSTYPE --version
+
+args=(
+  '-a[change access time (atime)]'
+  '-m[change modification time (mtime)]'
+  '(-r -d --date --reference 1)-t+[use specified time]:time ([[CC]YY]MMDDhhmm[.SS])'
+)
+case $variant in
+  gnu)
+    args+=(
+      '(-c --no-create)'{-c,--no-create}"[don't create file if it doesn't exist]"
+      '(-h --no-dereference)'{-h,--no-dereference}'[act on symbolic links themselves]'
+      '(-t -d --date -r --reference)'{-r+,--reference=}'[use corresponding times from specified reference file]:file:_files'
+      '(-t -d --date -r --reference)'{-d+,--date=}'[use specified date/time]:date/time'
+      '*--time=[change specified time]:time:(atime access use mtime modify)'
+      '(-)--help[display help information]'
+      '(-)--version[display version information]'
+    )
+  ;;
+  darwin*|dragonfly*|freebsd*)
+    args+=(
+      '(-c 1)-A+[adjust time stamps by relative value]:time delta ([[-][hh]mm]SS)'
+    )
+  ;|
+  darwin*|dragonfly*|freebsd*|netbsd*)
+    args+=( '-h[act on symbolic links themselves]' )
+  ;|
+  dragonfly*|freebsd*|openbsd*|solaris*)
+    args+=( '(-r -t 1)-d+[use specified date/time]:date/time' )
+  ;|
+  darwin*|dragonfly*|freebsd*|netbsd*|solaris*)
+    args+=( '1:: :_guard "[0-9]#" "timespec (MMDDhhmm[YY])"' )
+  ;|
+  *) # not GNU
+    args=( -A "-*" $args
+      "(-A)-c[don't create file if it doesn't exist]"
+      '(-t -d 1)-r+[use corresponding times from specified reference file]:file:_files'
+    )
+  ;;
+esac
+
+_arguments -s -S $args '*:file:_files'

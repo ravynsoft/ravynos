@@ -1,0 +1,26 @@
+#compdef fusermount
+
+local expl context state line
+typeset -A opt_args
+
+_arguments \
+  '-h[display help information]' \
+  '-V[display version information]' \
+  '-o[specify mount options]:mount option:_fuse_values "mount option"' \
+  '-u[unmount a fuse mount]' \
+  '-z[unmount lazily (work even when if the resource is still busy)]' \
+  '-q[suppress nonessential output]' \
+  ':mount point:->mountpoint' && return 0
+
+typeset -a mtpts
+
+case "$state" in
+  (mountpoint)
+  if [[ $+opt_args[-u] -eq 0 ]]; then
+    _files -/
+  else
+    mtpts=(${${${"${(f)$(< /etc/mtab)}"}#* }%% *})
+    _canonical_paths mounted 'mounted filesystem' "${(@g::)mtpts}"
+  fi
+  ;;
+esac

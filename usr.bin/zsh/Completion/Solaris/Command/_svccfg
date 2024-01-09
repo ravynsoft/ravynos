@@ -1,0 +1,131 @@
+#compdef svccfg
+
+local curcontext="$curcontext" ret=1
+local -a state line expl subcmds args
+local -A opt_args
+
+# Subcommands that don't make sense on the commandline are missing
+subcmds=(
+  apply export extract import inventory validate
+  add delete list
+  addpg addpropvalue delcust delpg delprop delpropvalue describe
+  editprop listpg listprop listcust setenv setprop unsetenv
+  setnotify listnotify delnotify
+  listsnap revert selectsnap
+  refresh
+  help
+)
+
+_arguments -s -A "-*" \
+  '-v[verbose]' \
+  '-s+[specify fmri on which to operate]:fmri:_svcs_fmri -c' \
+  '(1 *)-f+[read commands from file]:command file:_files' \
+  '1: :->subcmds' \
+  '*:: :->args' && ret=0
+
+case $state in
+  subcmds)
+    _wanted commands expl 'svccfg subcommand' compadd -a subcmds && ret=0
+  ;;
+  args)
+    curcontext="${curcontext%:*}-$words[1]:"
+
+    case $words[1] in
+      import)
+        _arguments \
+          '-V[verify property updates]' \
+          ':file:_files'
+      ;;
+
+      apply|inventory) _files ;;
+
+      validate)
+        _alternative 'files:file:_files' 'fmris:fmri:_svcs_fmri -c'
+      ;;
+
+      export) _svcs_fmri -c ;;
+
+      delete)
+        _arguments \
+          '-f[force deletion if online or degraded]' \
+          '*:fmri:_svcs_fmri -c'
+      ;;
+
+      describe)
+        local fmri=$opt_args[-s]
+        _arguments -A "-*" \
+          '-v[give all information]' \
+          '-t[show only template data]' \
+          ':property group or property:->properties'
+
+        if [[ -n $state ]]; then
+          fmris=( ${(f)"$(_call_program properties svcs -H -o fmri $fmri)"} )
+          if (( $#fmris > 1 )); then
+            _message "'$fmri' is ambiguous"
+            return 1
+          fi
+
+          # Get all the property names for the FMRI
+          props=( ${${${(f)"$(_call_program properties svccfg -s $fmri describe)"}:# *}%% *} )
+
+          _multi_parts "$@" - / props && ret=0
+        fi
+      ;;
+
+      extract|add|delete|list|addpg|addpropvalue|delcust|delpg|delprop)
+      ;;
+
+      delpropvalue|editprop|listpg|listcust|setenv|setprop|unsetenv)
+      ;;
+
+      listprop)
+        _arguments \
+          '-l+[print the layer the value came from]:layer:(manifest system-profile enterprise-profile site-profile node-profile sysconfig-profile admin current all)' \
+          '(-o)-f[print the file a property came from]' \
+          '(-f)-o+[select fields to print]:field:_sequence compadd - propname pgname instname servicename layer proptype value file masked time' \
+          '*-G+[specify property group]:property group' \
+          '-P+[specify property name]:property name' && ret=0
+      ;;
+
+      setnotify)
+        args=( '2:notification parameter:->parameters' )
+      ;&
+      listnotify|delnotify|selectsnap)
+        _arguments $args \
+          '-g[apply to notification parameters in svc:/system/svc/global:default]' \
+          '1: :->tsets-classes'
+
+        case $state in
+          tsets-classes)
+            local states=( uninitialized offline online degraded maintenance disabled )
+            _alternative \
+              'state-transitions:state transition:_sequence compadd - all {to-,from-,}$^states' \
+              'event-classes:event class:_sequence compadd - problem-{diagnosed,updated,repaired,resolved}' && ret=0
+          ;;
+          parameters)
+            if compset -P 'mailto:'; then
+              _email_addresses -c && ret=0
+            elif compset -P 'snmp:'; then
+              _wanted values expl value compadd active inactive && ret=9
+            else
+              _wanted uri-formats expl 'URI format' compadd -S: mailto snmp && ret=0
+            fi
+          ;;
+        esac
+      ;;
+
+      revert)
+        _wanted snapshots expl snapshot compadd initial previous running start && ret=0
+      ;;
+
+      refresh|listsnap)
+        _message 'no more arguments'
+      ;;
+      *) # fallback to default completion for unknown subcommands
+        _default && ret=0
+      ;;
+    esac
+  ;;
+esac
+
+return ret

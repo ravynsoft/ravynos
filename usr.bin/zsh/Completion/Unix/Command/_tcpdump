@@ -1,0 +1,194 @@
+#compdef tcpdump
+
+local args ret=1
+local root
+(( EUID )) && root='!'
+
+_tcpdump_interfaces() {
+  local disp expl sep interfaces
+  [[ $OSTYPE != openbsd* ]] &&
+      interfaces=( ${${${${(f)"$(_call_program interfaces tcpdump -D)"}#<->.}//[()]/}/ /:} )
+  if (( $#interfaces )); then
+    _describe -t interfaces 'network interface' interfaces
+  else
+    _description interfaces expl 'network interface'
+    _net_interfaces "$expl[@]"
+    if zstyle -t ":completion:${curcontext}:interfaces" verbose; then
+      zstyle -s ":completion:${curcontext}:interfaces" list-separator sep || sep=--
+      disp=( "any $sep capture on all interfaces" )
+      compadd "$expl[@]" -ld disp any
+    else
+      compadd "$expl[@]" any
+    fi
+  fi
+}
+
+_esp_secrets () {
+  if [[ $OSTYPE = openbsd* ]]; then
+    _values -S : 'ESP algorithm' \
+      aes128:secret \
+      aes128-hmac96:secret \
+      blowfish:secret \
+      blowfish-hmac96:secret \
+      cast:secret \
+      cast-hmac96:secret \
+      des3:secret \
+      des3-hmac96:secret \
+      des:secret \
+      des-hmac96:secret
+  else
+    _values -S : 'ESP algorithm' \
+      'des-cbc:secret' \
+      '3des-cbc:secret' \
+      'blowfish-cbc:secret' \
+      'rc3-cbc:secret' \
+      'cast128-cbc:secret' \
+      none
+  fi
+}
+
+_packet_types () {
+  local -a types
+  types=(
+    'cnfp:Cisco NetFlow protocol'
+    'rpc:Remote Procedure Call'
+    'rtp:Real-Time Applications protocol'
+    'rtcp:Real-Time Applications control protocol'
+    'vat:Visual Audio Tool'
+    'wb:distributed White Board'
+  )
+  if [[ $OSTYPE = openbsd* ]]; then
+    types+=(
+      'sack:RFC 2018 TCP Selective Acknowledgements Options'
+      'vrrp:Virtual Router Redundancy Protocol'
+      'tcp:Transmission Control Protocol'
+    )
+  else
+    types+=(
+      'aodv:Ad-hoc On-demand Distance Vector protocol'
+      'carp:Common Address Redundancy Protocol'
+      'radius:RADIUS'
+      'snmp:Simple Network Management Protocol'
+      'tftp:Trivial File Transfer Protocol'
+      'vxlan:Virtual eXtensible Local Area Network'
+      'zmtpl:ZeroMQ Message Transport Protocol'
+    )
+  fi
+  _describe -t packet-types 'packet type' types
+}
+
+_time_stamp_types () {
+  local vals
+  vals=( ${${${(ps:\n  :)"$(_call_program time-stamp-types tcpdump -J ${(kv)opt_args[(i)-i|--interface]} 2>&1)"}[2,-1]:#*cannot be set*}/ /:} )
+  _describe -t time-stamp-types "time stamp type" vals
+}
+
+_data_link_types () {
+  local vals expl
+  if (( $+opt_args[(i)-i|--interface] )); then
+    vals=( ${${${(s:  :)"$(_call_program data-link-types tcpdump -L ${(kv)opt_args[(i)-i|--interface]} 2>&1)"}[2,-1]}/ /:} )
+    _describe -t data-link-types "data link type (${(v)opt_args[(i)-i|--interface]})" vals
+  else
+    _wanted data-link-types expl "data link type (general)" \
+        compadd EN10MB LINUX_SLL
+  fi
+}
+
+_bpf_filter () {
+}
+
+args=(
+  '-A[print each packet in ASCII]'
+  '-c+[exit after receiving specified number of packets]:number of packets'
+  '(-ddd)-d[dump the compiled packet-matching code in a human readable form]'
+  '(-ddd)-dd[dump packet-matching code as a C program fragment]'
+  '(-d -dd)-ddd[dump packet-matching code as decimal numbers (preceded with a count)]'
+  "-E[decrypting IPsec ESP packets]:spi@ipaddr::algo\:secret:_esp_secrets"
+  '-e[print the link-level header on each dump line]'
+  '-F+[specify input file for the filter expression]:filter expression file:_files'
+  "-f[print 'foreign' IPv4 addresses numerically]"
+  '-l[make stdout line buffered]'
+  "-N[don't print domain name qualification of host names]"
+  "(-nn)-n[don't convert addresses to names]"
+  "-O[don't run the packet-matching code optimizer]"
+  '(-p --no-promiscuous-mode)'{-p,--no-promiscuous-mode}"[don't put the interface into promiscuous mode]"
+  '-q[quick (quiet?) output]'
+  '-r+[read packets from file]:input file:_files'
+  '(-S --absolute-tcp-sequence-numbers)'{-S,--absolute-tcp-sequence-numbers}'[print absolute TCP sequence numbers]'
+  '-T+[interpret captured packets as specified type]:packet type:_packet_types'
+  "(-tt -ttt -tttt -ttttt)-t[don't print a timestamp on each dump line]"
+  '(-t -ttt -tttt -ttttt)-tt[print an unformatted timestamp on each dump line]'
+  '(-vv -vvv)-v[slightly more verbose output]'
+  '(-v -vvv)-vv[more verbose output]'
+  '-w+[write the raw packets to file]:output file:_files'
+  '-X[print each packet (minus its link level header) in hex and ASCII]'
+  '-x[print each packet (minus its link level header) in hex]'
+  '(-y --linktype)'{-y+,--linktype=}'[set the data link type to use while capturing packets]: :_data_link_types'
+)
+
+if [[ $OSTYPE = openbsd* ]]; then
+  args=(
+    '-i+[specify interface]:interface:_tcpdump_interfaces'
+    - listd
+    '-L[list data link types for the interface]'
+    - capture
+    ${(R)args:#(|\*)(|\(*\))--*} # removes any long-options
+    '(-n)-a[attempt to convert network and broadcast addresses to names]'
+    '-B+[specify drop action to be used when filter expression matches a packet]:drop action:(pass capture drop)'
+    '-D[select packet flowing in specified direction]:direction:(in out)'
+    '-I[print the interface on each dump line]'
+    '-o[print a guess of the possible operating system(s)]'
+    '-s+[specify amount of data to snarf from each packet]:length (bytes) [116]'
+    '(-t -tt -tttt -ttttt)-ttt[print day and month in timestamp]'
+    '(-t -tt -ttt -ttttt)-tttt[print timestamp difference between packets]'
+    '(-t -tt -ttt -tttt)-ttttt[print timestamp difference since the first packet]'
+  )
+else
+  args=(
+    '(-i --interface -D --list-interfaces)'{-i+,--interface=}'[specify interface]:interface:_tcpdump_interfaces'
+    - listt
+    '(-J --list-time-stamp-types)'{-J,--list-time-stamp-types}'[list supported time stamp types]'
+    - listd
+    '(-L --list-data-link-types)'{-L,--list-data-link-types}'[list data link types for the interface]'
+    - capture
+    $args
+    '(-B --buffer-size)'{-B+,--buffer-size=}'[set the operating system capture buffer size]:size (kiB)'
+    '-b[print the AS number in BGP packets in ASDOT notation]'
+    '-C+[specify output file size]:output file size (MB)'
+    '(-)'{-D,--list-interfaces}'[print the list of the network interfaces available on the system]'
+    '-G+[rotate dump file specified with -w at specified interval]:interval (seconds)'
+    '-H[attempt to detect 802.11s draft mesh headers]'
+    '(- *)'{-h,--help}'[display help information]'
+    '(- *)--version[display version information]'
+    '(-I --monitor-mode)'{-I,--monitor-mode}'[put the Wi-Fi interface in monitor mode]'
+    '--immediate-mode[deliver packets to tcpdump as soon as they arrive without buffering]'
+    '-I[put the interface in monitor mode]'
+    '(-j --time-stamp-type)'{-j+,--time-stamp-type=}'[set the time stamp type for the capture]: :_time_stamp_types'
+    '--time-stamp-precision=[set the time stamp precision for the capture]:precision [micro]:(micro nano)'
+    '(-K --dont-verify-checksums)'{-K,--dont-verify-checksums}"[don't verify IP, TCP, or UDP checksums]"
+    '*-m+[load SMI MIB module definitions]:SMI MIB module definition:_files'
+    "(-n)-nn[don't convert protocol and port numbers to names]"
+    '-M+[specify shared secret for validating the digests in TCP segments with the TCP-MD5 option]:secret'
+    '(-# --number)'{-\#,--number}'[print an optional packet number at the beginning of the line]'
+    '(-O --no-optimize)'{-O,--no-optimize}"[don't run the packet-matching code optimizer]"
+    '(-s --snapshot-length)'{-s+,--snapshot-length=}'[specify amount of data to snarf from each packet]:length (bytes) [65535]'
+    '(-t -tt -tttt -ttttt)-ttt[print a delta (in micro-seconds) on each line since previous line]'
+    '(-t -tt -ttt -ttttt)-tttt[print a timestamp in default format preceded by date on each dump line]'
+    '(-t -tt -ttt -tttt)-ttttt[print a delta (in micro-seconds) on each line since first line]'
+    '(-U --packet-buffered)'{-U,--packet-buffered}'[make output packet-buffered when saving to file (-w)]'
+    '-u[print undecoded NFS handles]'
+    '-V+[read a list of filenames from specified file]:file:_files'
+    '(-v -vv)-vvv[most verbose output]'
+    '-W+[limit the number of created files (-C)]:number of files'
+    '(-X)-XX[print each packet, including its link level header, in hex and ASCII]'
+    '(-x)-xx[print each packet, including its link level header, in hex]'
+    "${root}(-Z --relinquish-privileges)"{-Z+,--relinquish-privileges=}'[drop privileges and run as specified user]:user:_users'
+    '-z+[specify command to run on files (with -C or -G)]:command:_command_names -e'
+  )
+fi
+[[ $OSTYPE = freebsd* ]] && args+=(
+  '-R[assume ESP/AH packets to be based on old specification (RFC1825 to RFC1829)]'
+)
+
+_arguments -s $args \
+  '*::BPF filter:= _bpf_filters'

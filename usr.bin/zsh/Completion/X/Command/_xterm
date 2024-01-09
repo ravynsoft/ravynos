@@ -1,0 +1,32 @@
+#compdef xterm
+
+_xt_arguments \
+  -+{132,ah,ai,aw,bc,bdc,cb,cjk_width,cm,cn,cu,dc,fbb,fbx,fullscreen,hf,hm,hold,ie,im,itc,j,k8,l,lc,ls,maximized,mb,mesg,mk_width,nul,pc,pob,rvc,rw,s,samename,sb,sf,si,sk,sm,sp,t,u8,uc,ulc,ulit,ut,vb,wc,wf} \
+  -{version,help,leftbar,rightbar,C} \
+  '-report-'{charclass,colors,fonts,icons,xres} \
+  '-T:title' \
+  '-b:inner border size:' \
+  '-baudrate:rate [38400]' \
+  '-bcf:time text cursor is off when blinking (milliseconds):' \
+  '-bcn:time text cursor is on when blinking (milliseconds):' \
+  '-cc:character class:' \
+  '-class:string' \
+  '-cr:text cursor color:_x_color' \
+  '-e:program: _command_names -e:*::program arguments: _normal' \
+  '-fa:font pattern:_xft_fonts' \
+  '-fb:bold font:_x_font' \
+  '-fi:icon font:_x_font' \
+  '-hc:background color for highlighted text:_x_color' \
+  '-mc:multi-click threshold (milliseconds):' \
+  '-ms:pointer cursor color:_x_color' \
+  '-n:icon name' \
+  '-nb:margin bell number:' \
+  '-selbg:color:_x_color' \
+  '-selfg:color:_x_color' \
+  '-sh:scaling' \
+  '-sl:save lines:' \
+  '-ti:terminal ID:_terminals' \
+  '-tm:terminal setting:' \
+  '-tn:terminal type:' \
+  '-ziconbeep:iconbeep (percent):' \
+  '-S-:pseudo-terminal and file descriptor:'

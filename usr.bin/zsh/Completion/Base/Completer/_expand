@@ -1,0 +1,245 @@
+#autoload
+
+# This completer function is intended to be used as the first completer
+# function and allows one to say more explicitly when and how the word
+# from the line should be expanded than expand-or-complete.
+# This function will allow other completer functions to be called if
+# the expansions done produce no result or do not change the original
+# word from the line.
+
+setopt localoptions nonomatch
+
+[[ _matcher_num -gt 1 ]] && return 1
+
+local exp word sort expr expl subd pref suf=" " force opt asp tmp opre pre epre
+local continue=0
+
+(( $# )) &&
+    while getopts gsco opt; do
+      force="$force$opt"
+    done
+
+if [[ "$funcstack[2]" = _prefix ]]; then
+  word="$IPREFIX$PREFIX$SUFFIX"
+else
+  word="$IPREFIX$PREFIX$SUFFIX$ISUFFIX"
+fi
+
+[[ "$word" = *\$(|\{[^\}]#) ||
+   ( "$word" = *\$[a-zA-Z0-9_]## && $+parameters[${word##*\$}] -eq 0 ) ]] &&
+    return 1
+
+### I'm not sure about the pattern to use in the following test.
+# It once was:
+#  [[ "$word" = (\~*/|\$(|[=~#^+])[a-zA-Z0-9_\[\]]##[^a-zA-Z0-9_\[\]]|\$\{*\}?)[^\$\{\}\(\)\<\>?^*#~]# ]] &&
+
+zstyle -T ":completion:${curcontext}:" suffix &&
+  [[ "$word" = (\~*/*|*\$(|[=~#^+])[a-zA-Z0-9_\[\]]##[^a-zA-Z0-9_\[\]]|*\$\{*\}?) &&
+     "${(e)word}" != (#s)(*[^\\]|)[][^*?\(\)\<\>\{\}\|]* ]] &&
+  return 1
+
+zstyle -s ":completion:${curcontext}:" accept-exact tmp ||
+    [[ ! -o recexact ]] || tmp=1
+
+if [[ "$tmp" != (yes|true|on|1) ]]; then
+  { [[ "$word" = \~(|[-+]) ||
+	   ( "$word" = \~[-+][1-9]## && $word[3,-1] -le $#dirstack ) ||
+     $word = \~\[*\]/* ]] && return 1 }
+  { [[ ( "$word" = \~* && ${#userdirs[(I)${word[2,-1]}*]}+${#nameddirs[(I)${word[2,-1]}*]} -gt 1 ) ||
+       ( "$word" = *\$[a-zA-Z0-9_]## && 
+         ${#parameters[(I)${word##*\$}*]} -ne 1 ) ]] && continue=1 }
+  [[ continue -eq 1 && "$tmp" != continue ]] && return 1
+fi
+
+# In exp we will collect the expansions.
+
+exp=("$word")
+
+# First try substitution. That weird thing spanning multiple lines
+# changes quoted spaces, tabs, and newlines into spaces and protects
+# this function from aborting on parse errors in the expansion.
+
+if [[ "$force" = *s* ]] ||
+   zstyle -T ":completion:${curcontext}:" substitute; then
+
+###  We once used this:
+###
+###  [[ ! -o ignorebraces && "${#${exp}//[^\{]}" = "${#${exp}//[^\}]}" ]] &&
+###      eval exp\=\( ${${(q)exp}:gs/\\{/\{/:gs/\\}/\}/} \) 2>/dev/null
+###
+###  instead of the following loop to expand braces.  But that made
+###  parameter expressions such as ${foo} be expanded like brace
+###  expansions, too (and with braceccl set...).
+
+   if [[ ! $_comp_caller_options[ignorebraces] == on && "${#${exp}//[^\{]}" = "${#${exp}//[^\}]}" ]]; then
+     local otmp
+
+     tmp=${(q)word}
+     while [[ $#tmp != $#otmp ]]; do
+       otmp=$tmp
+       tmp=${tmp//(#b)\\\$\\\{(([^\{\}]|\\\\{|\\\\})#)([^\\])\\\}/\\$\\\\{${match[1]}${match[3]}\\\\}}
+     done
+     eval exp\=\( ${tmp:gs/\\{/\{/:gs/\\}/\}/} \) 2>/dev/null
+   fi
+
+###  There's a bug: spaces resulting from brace expansion are quoted in
+###  the following expression, too.  We don't want that, but I have no
+###  idea how to fix it.
+
+  setopt aliases
+  eval 'exp=( ${${(e)exp//\\[ 	
+]/ }//(#b)([ 	
+])/\\$match[1]} )' 2>/dev/null
+  setopt NO_aliases
+else
+  exp=( ${exp:s/\\\$/\$} )
+fi
+
+# If the array is empty, store the original string again.
+
+[[ -z "$exp" ]] && exp=("$word")
+
+subd=("$exp[@]")
+
+# Now try globbing.
+
+# We need to come out of this with consistent quoting, by hook or by crook.
+integer done_quote
+local -a orig_exp=( $exp )
+if [[ "$force" = *g* ]] || zstyle -T ":completion:${curcontext}:" glob; then
+  eval 'exp=( ${~exp//(#b)\\([ 	\"'"\'"'
+])/$match[1]} ); exp=( ${(q)exp} )' 2>/dev/null && (( $#exp )) && done_quote=1
+fi
+# If the globbing failed, or we didn't try globbing, we'll do
+# it again without the "~" so globbing is simply omitted.
+if (( ! done_quote )); then
+  eval 'exp=( ${orig_exp//(#b)\\([ 	\"'"\'"'
+])/$match[1]} ); exp=( ${(q)exp} )' 2>/dev/null
+fi
+
+### Don't remember why we once used this instead of the (q) above.
+#    eval 'exp=( ${~exp} ); exp=( ${exp//(#b)([][()|*?^#~<>\\=])/\\${match[1]}} )' 2>/dev/null
+
+# If we don't have any expansions or only one and that is the same
+# as the original string, we let other completers run.
+
+(( $#exp )) || exp=("$subd[@]")
+
+[[ $#exp -eq 1 && "${exp[1]//\\}" = "${word//\\}"(|\(N\)) ]] && return 1
+
+# With subst-globs-only we bail out if there were no glob expansions,
+# regardless of any substitutions
+
+{ [[ "$force" = *o* ]] ||
+  zstyle -t ":completion:${curcontext}:" subst-globs-only } &&
+  [[ "$subd" = "$exp"(|\(N\)) ]] &&  return 1
+
+zstyle -s ":completion:${curcontext}:" keep-prefix tmp || tmp=changed
+
+if [[ "$word" = (\~*/*|*\$*/*) && "$tmp" = (yes|true|on|1|changed) ]]; then
+  if [[ "$word" = *\$* ]]; then
+    opre="${(M)word##*\$[^/]##/}"
+  else
+    opre="${word%%/*}"
+  fi
+  eval 'epre=( ${(e)~opre} )' 2> /dev/null
+
+  if [[ -n "$epre" && $#epre -eq 1 ]]; then
+    pre="${(q)epre[1]}"
+    [[ ( "$tmp" != changed || $#exp -gt 1 ||
+       "${opre}${exp[1]#${pre}}" != "$word" ) && "${exp[1]}" = $pre* ]] &&
+       exp=( ${opre}${^exp#${pre}} )
+  fi
+  [[ $#exp -eq 1 && "$exp[1]" = "$word" ]] && return 1
+fi
+
+# Now add as matches whatever the user requested.
+
+zstyle -s ":completion:${curcontext}:" sort sort
+
+[[ "$sort" = (yes|true|1|on) ]] && exp=( "${(@o)exp}" )
+
+if zstyle -s ":completion:${curcontext}:" add-space tmp; then
+  if [[ "$tmp" != *subst* || "$word" != *\$* || "$exp[1]" = *\$* ]]; then
+    [[ "$tmp" = *file* ]] && asp=file
+    [[ "$tmp" = *(yes|true|1|on|subst)* ]] && asp="yes$asp"
+  fi
+else
+  asp=file
+fi
+
+# If there is only one expansion, add a suitable suffix
+
+if (( $#exp == 1 )); then
+  if [[ -d ${exp[1]/${opre}/${pre}} && "$exp[1]" != */ ]]; then
+    suf=/
+  elif [[ "$asp" = yes* ||
+          ( "$asp" = *file && -f "${exp[1]/${opre}/${pre}}" ) ]]; then
+    suf=' '
+  else
+    suf=
+  fi
+fi
+
+if [[ -z "$compstate[insert]" ]] ;then
+  if [[ "$sort" = menu ]]; then
+    _description expansions expl expansions "o:$word"
+  else
+    _description -V expansions expl expansions "o:$word"
+  fi
+
+  compadd "$expl[@]" -UQ -qS "$suf" -a exp
+else
+  _tags all-expansions expansions original
+
+  if [[ $#exp -ge 1 ]] && _requested expansions; then
+    local i j normal space dir
+
+    if [[ "$sort" = menu ]]; then
+      _description expansions expl expansions "o:$word"
+    else
+      _description -V expansions expl expansions "o:$word"
+    fi
+    normal=()
+    space=()
+    dir=()
+
+    for i in "$exp[@]"; do
+      j="${i/${opre}/${pre}}"
+      if [[ -d "$j" && "$i" != */ ]]; then
+        dir=( "$dir[@]" "$i" )
+      elif [[ "$asp" = yes* || ( "$asp" = *file && -f "$j" ) ]]; then
+        space=( "$space[@]" "$i" )
+      else
+	normal=( "$normal[@]" "$i" )
+      fi
+    done
+    pref="${${word:#[~/]*}:+$PWD}/"
+    (( $#dir ))    && compadd "$expl[@]" -fW "$pref" -UQ -qS/ -a dir
+    (( $#space ))  && compadd "$expl[@]" -fW "$pref" -UQ -qS " " -a space
+    (( $#normal )) && compadd "$expl[@]" -fW "$pref" -UQ -qS "" -a normal
+  fi
+  if _requested all-expansions; then
+    local disp dstr
+
+    if [[ "$sort" = menu ]]; then
+      _description all-expansions expl 'all expansions' "o:$word"
+    else
+      _description -V all-expansions expl 'all expansions' "o:$word"
+    fi
+    if [[ "${#${exp}}" -ge COLUMNS ]]; then
+      disp=( -ld dstr )
+      dstr=( "${(r:COLUMNS-5:)exp} ..." )
+    else
+      disp=()
+    fi
+    [[ -o multios ]] && exp=($exp[1] $compstate[redirect]${^exp[2,-1]})
+    compadd "$disp[@]" "$expl[@]" -UQ -qS "$suf" - "$exp"
+  fi
+
+  _requested original expl original && compadd "$expl[@]" -UQ - "$word"
+
+  compstate[insert]=menu
+fi
+
+return continue

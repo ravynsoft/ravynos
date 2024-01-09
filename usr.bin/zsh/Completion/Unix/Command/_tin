@@ -1,0 +1,54 @@
+#compdef tin rtin
+
+local newshosts expl state line curcontext="$curcontext" ret=1
+
+_arguments -C -s \
+  '(-6)-4[force connecting via IPv4]' \
+  '(-4)-6[force connecting via IPv6]' \
+  '-a[toggle color flag]' \
+  '-A[force authentication on connect]' \
+  '-c[mark all news as read in subscribed groups]' \
+  "-d[don't show newsgroup descriptions]" \
+  '-f[specify newsrc file to use]:newsrc file:_files' \
+  '-G[specify limit to articles/group to get]:number of articles/group to get' \
+  '-g[specify NNTP server]:NNTP server:->newshosts' \
+  '-h[display help on tin usage]' \
+  '-H[display help information]' \
+  '-I[specify news index file directory]:news index file directory:_files -/' \
+  '-l[get number of articles per group from the active file]' \
+  '-m[specify mailbox directory]:mailbox directory:_files -/' \
+  '-M[mail new news to specified user]:user:_users' \
+  '-n[only read subscribed groups from server]' \
+  '-N[mail new news to yourself]' \
+  '-o[post all postponed articles and exit]' \
+  '-p[specify port to connect to NNTP server]:NNTP port:_ports' \
+  "-q[don't check for new newsgroups]" \
+  '-Q[quick start. Same as -nqd]' \
+  ${${service:#r*}:+-r\[read news remotely over NNTP\]} \
+  '-R[read news saved with -S]' \
+  '-s[specify saved news directory]:saved news directory:_files -/' \
+  '-S[save new news for later reading]' \
+  '-u[update index files]' \
+  '-U[update index files in the background while reading news]' \
+  '-v[verbose output in batch mode]' \
+  '-V[display version information]' \
+  '-w[post an article and exit]' \
+  "-X[don't save any files on quit]" \
+  '-z[start if any unread news]' \
+  '-Z[return status to indicate if any unread news]' \
+  '::newsgroup:_newsgroups' && return 0
+
+if [[ "$state" = newshosts ]]; then
+  newshosts=( ${${(f)"$(<${TIN_HOMEDIR:-$HOME}/.tin/newsrctable)"}%%\#*} ) 2>/dev/null
+  _tags hosts nicknames
+  while _tags; do
+    _requested hosts expl 'NNTP server hostname' \
+        compadd ${=newshosts#*[[:blank:]]##[^[:blank:]]*[[:blank:]]} && ret=0
+    _requested nicknames expl 'NNTP server nickname' \
+        compadd -M 'r:|.=* r:|=*' ${newshosts%%[[:blank:]]*} && ret=0
+    (( ret )) || return 0
+  done
+fi
+
+return 1
+

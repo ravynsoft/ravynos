@@ -1,0 +1,26 @@
+#compdef zsh
+
+local curcontext=$curcontext state state_descr line expl not='!'
+typeset -A opt_args
+
+[[ $CURRENT = 2 ]] && not=''
+
+_arguments -S -s : \
+  ${not}'--emulate[specify emulation mode]:mode:(zsh sh ksh csh)' \
+  '*-o+[set named option]:option:_options' \
+  '*+o+[unset named option]:option:_options' \
+  '(1 -s --shinstdin)'{-s,--shinstdin}'[read commands from standard input]' \
+  '(-)-b[end of option processing, like --]' \
+  '(1 -)-c[run a command]:command:_cmdstring' \
+  '(-)1:script file:_files' \
+  '*::script arguments:->args' -- && return 0
+
+case $state in
+  (args)
+    if [[ -n ${opt_args[(I)-c|-s|--shinstdin]} ]]; then
+      _files
+    else
+      _normal
+    fi
+    ;;
+esac

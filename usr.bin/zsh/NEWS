@@ -1,0 +1,1578 @@
+-------------------------------------
+CHANGES FROM PREVIOUS VERSIONS OF ZSH
+-------------------------------------
+
+Note also the list of incompatibilities in the README file.
+
+Changes since 5.8.1
+-------------------
+
+zsh 5.9 is dedicated to the memory of Sven Guckes, who was, amongst other
+things, a long-time zsh advocate.  For more information, see:
+
+  https://linuxnews.de/2022/02/sven-guckes-verstorben/
+  https://groups.google.com/g/vim_announce/c/MJBKVd-xrEE/m/joVNaDgAAgAJ
+
+When unsetting a hash element, the string enclosed in square brackets is
+interpreted literally after any normal command-line-argument expansions.
+Thus
+  unset "hash[$key]"
+first expands $key as usual for a double-quoted string, and then interprets
+that result as the exact hash element to unset.  This differs from previous
+versions of the shell, which would also remove a leading backslash for an
+unusual subset of characters in the expansion of $key.  Note this also
+means, for example, that now
+  unset 'hash[ab]cd]'
+unsets the element with key "ab]cd" rather than silently doing nothing.
+
+The function command learnt a -T option to declare a function and enable
+tracing for it simultaneously.
+
+The option SHORT_REPEAT was added to enable the short syntax of
+SHORT_LOOPS for the repeat command only. It is disabled by default.
+
+The _arguments function now supports NUL-delimiting optargs in the
+opt_args array via the -0 option. Developers of completion functions
+should find this easier to handle reliably than the default
+colon-delimiting behaviour.
+
+The zsh/system module's `zsystem flock` command learnt an -i option to
+set the wait interval used with -t. Additionally, -t now supports
+fractional seconds.
+
+The option CLOBBER_EMPTY was added to enable the overwrite behaviour
+of CLOBBER for empty files only. It is disabled by default.
+
+A (-) expansion flag was added. It works like (n) but correctly sorts
+negative numbers.
+
+The (*) expansion flag enables EXTENDED_GLOB for pattern matching.
+For example, ${(*)sample/(#b)*(pat)*/${match[1]}} uses backreferences
+even if EXTENDED_GLOB is not otherwise set.  However, this does not
+descend into nested exapansions, and doubling as (**) does not disable
+EXTENDED_GLOB.
+
+The compinit function learnt a -w option to explain why compdump runs.
+When run without the -i or -u options and compaudit discovers security
+issues, answering "y" to the "Ignore insecure ..." prompt removes the
+insecure elements (like the -i option) where previously it ignored the
+result (thus formerly like the -u option).  Further, removing those
+elements includes dropping directories from the $fpath array.
+
+The zsh/datetime module's strftime builtin learnt an -n option to omit
+the trailing newline when printing a formatted time.
+
+The XTRACE option is now disabled while running user-defined completion
+widgets.  This corresponds to long-standing behavior of other user ZLE
+widgets.  Use the _complete_debug widget to capture XTRACE output, or
+use "functions -T" to enable tracing of specific completion functions.
+
+The fc builtin learnt an -s option which is a POSIX equivalent to the
+`fc -e-` method of re-executing a command without invoking an editor.
+
+The option CASE_PATHS was added to control how NO_CASE_GLOB behaves.
+NO_CASE_GLOB + NO_CASE_PATHS is equivalent to the current NO_CASE_GLOB
+behaviour. NO_CASE_GLOB + CASE_PATHS treats only path components that
+contain globbing characters as case-insensitive; this behaviour may
+yield more predictable results on case-sensitive file systems.
+NO_CASE_PATHS is the default.
+
+With the new TYPESET_TO_UNSET option set, "typeset foo" leaves foo unset,
+in contrast to the default behavior which assigns foo="".  Any parameter
+attributes such as numeric type, sorting, and padding are retained until
+the parameter is explicitly unset or a conflicting value is assigned.
+This is similar to default behavior of bash and ksh.  This option is
+disabled by default.
+
+The compadd builtin's -D option can now be specified more than once.
+
+The zsh/zutil module's zformat builtin learnt an -F option which behaves
+like -f except that ternary expressions check for existence instead of
+doing math evaluation.
+
+The conventional syntax used to indicate units, ranges, and default values
+in completion descriptions (e.g. `timeout (seconds) (0-60) [20]`) is now
+recognised by the completion system itself. These components are parsed
+out of the description and can be individually styled. A _numbers helper
+function has been added to help function authors offer rich completion
+for these values.
+
+The log builtin, WATCH parameter, et al., have been broken out into a
+separate module, zsh/watch. The module is enabled by default.
+
+The zsh/watch module's WATCHFMT parameter now supports colours via the
+%F and %K escapes.
+
+The STTY parameter can now be set to an empty string before running a
+command to automatically restore terminal settings after the command
+finishes.
+
+The "jobs" command and "$jobstates" and related parameters can report on
+parent shell jobs even in subshells.  This is a snapshot of the parent
+state, frozen at the point the subshell started.  However, if a subshell
+starts its own background jobs, the parent state is discarded in order
+to report on those new jobs.
+
+Changes from 5.8 to 5.8.1
+-------------------------
+
+CVE-2021-45444: Some prompt expansion sequences, such as %F, support
+'arguments' which are themselves expanded in case they contain colour
+values, etc. This additional expansion would trigger PROMPT_SUBST
+evaluation, if enabled. This could be abused to execute code the user
+didn't expect. e.g., given a certain prompt configuration, an attacker
+could trick a user into executing arbitrary code by having them check
+out a Git branch with a specially crafted name.
+
+This is fixed in the shell itself by no longer performing PROMPT_SUBST
+evaluation on these prompt-expansion arguments.
+
+Users who are concerned about an exploit but unable to update their
+binaries may apply the partial work-around described in the file
+Etc/CVE-2021-45444-VCS_Info-workaround.patch included with the shell
+source. [ Reported by RyotaK <security@ryotak.me>. Additional thanks to
+Marc Cornellà <hello@mcornella.com>. ]
+
+A regression was introduced in 5.8.1 in which, when reading a script
+from standard input, zsh itself would consume lines that should otherwise
+have been consumed by commands executed earlier in the script. This was
+not intentional and has been fixed in subsequent versions.
+
+Changes from 5.7.1-test-3 to 5.8
+--------------------------------
+
+CVE-2019-20044: When unsetting the PRIVILEGED option, the shell sets its
+effective user and group IDs to match their respective real IDs. On some
+platforms (including Linux and macOS, but not FreeBSD), when the RUID and
+EUID were both non-zero, it was possible to regain the shell's former
+privileges by e.g. assigning to the EUID or EGID parameter. In the course
+of investigating this issue, it was also found that the setopt built-in
+did not correctly report errors when unsetting the option, which
+prevented users from handling them as the documentation recommended.
+setopt now returns non-zero if it is unable to safely drop privileges.
+[ Reported by Sam Foxman <samfoxman320@gmail.com>. ]
+
+Changes from 5.7.1 to 5.7.1-test-3
+----------------------------------
+
+The zsh/zutil module's zparseopts builtin learnt an -F option to abort
+parsing when an unrecognised option-like parameter is encountered.
+
+The zsh/files module gained a chmod builtin.
+
+Several changes have been made to the way completion functions track
+'precommands' (such as `command` and `env`) and determine whether the
+command being completed for is a shell builtin. Developers of completion
+functions may wish to familiarise themselves with `_normal -p` and
+`_pick_variant -b`.
+
+The option CD_SILENT was added to suppress all output from cd (whether
+explicit or implicit with AUTO_CD). It is disabled by default.
+
+The compadd builtin's -o option now takes an optional argument to
+specify the order of completion matches. This affects the display
+of candidate matches and the order in which they are selected when
+cycling between them using menu completion.
+
+The :h and :t modifiers in parameter expansion (if braces are present),
+glob qualifiers and history expansion may take following decimal digit
+arguments in order to keep that many leading or trailing path components
+instead of the defaults of all but one (:h) and one (:t).  In an absolute
+path the leading '/' counts as one component.
+
+The functions builtin gained a -c option to efficiently copy functions.
+
+The zshmisc(1) manual page incorrectly stated that when 'exit' is used
+in a `try' block inside a function, the corresponding `always' block will
+be executed.  The manual page has been corrected.  The shell's behaviour
+has not changed, but code such as the following:
+.
+    f() { { exit } always { echo Hello world } }
+.
+should be changed either to use 'return' instead of 'exit', or to have
+the try/always block outside of any function.
+
+Changes from 5.6.2 to 5.7.1
+---------------------------
+
+There are only minor changes between 5.7 and 5.7.1.
+
+Support for 24-bit true color terminals has been added. Hex triplets
+can be used when specifying colours for prompts and line editor
+highlighting. On 88 and 256 colour terminals, a new zsh/nearcolor module
+allows colours specified with hex triplets to be matched against the
+nearest available colour.
+
+The zsh/datetime module's strftime builtin now accepts an argument
+specifying the nanoseconds time component; both arguments can be omitted
+to use the current time.
+
+Changes from 5.6.1 to 5.6.2
+---------------------------
+
+Fix another SIGTTOU case.
+
+Fix SIGWINCH being ignored when zsh is not in the foreground.
+
+The release tarballs are now compressed using xz(1), whereas previously
+both xz(1) and gzip(1) versions were available.  If this gets in your way,
+give us a shout.
+
+Changes from 5.6 to 5.6.1
+-------------------------
+
+Fix packaging issue that broke runhelp.
+
+Fix a regression with pipelines getting backgrounded and emitting SIGTTOU.
+
+Changes from 5.5.1-test-2 to 5.6
+--------------------------------
+
+CVE-2018-0502: Data from the second line of a #! script file might be passed to
+execve().  For example, in the following situation -
+.
+    printf '#!foo\nbar' > baz
+    ./baz
+.
+the shell might take "bar" rather than "foo" for the argv[0] to be passed to
+execve().  [ Reported by Anthony Sottile and Buck Evan. ]
+
+CVE-2018-13259: A shebang line longer than 64 characters would be truncated.
+For example, in the following situation:
+.
+    ( printf '#!'; repeat 64 printf 'x'; printf 'y' ) > foo
+    ./foo
+.
+the shell might execute x...x (64 repetitions) rather than x...xy (64 x's,
+one y).  [ Reported by Daniel Shahaf. ]
+
+Changes from 5.5.1 to 5.5.1-test-2
+----------------------------------
+
+Non-stop IEEE 754 arithmetic support - Inf and NaN are now returned
+from floating point operations where errors were printed before.
+Inf and NaN are also recognised in arithmetic expressions.
+
+In shell patterns, [[:blank:]] now honours the locale instead of
+matching exclusively on space and tab, like for the other POSIX
+character classes or for extended regular expressions.
+
+The zsh/system module now provides the PID of the last process
+substitution via $sysparams[procsubstpid].
+
+Time formatting via the %D prompt escape now offers nanosecond
+precision with the %. and %N format specifiers. Additionally,
+nanosecond precision on file times is supported in the module
+zsh/stat.
+
+The zsh/mathfunc module now includes a log2() function.
+
+The parameter ZLE_RECURSIVE has been added to indicate the
+current ZLE recursion level.
+
+Changes from 5.5 to 5.5.1
+-------------------------
+
+Apart from a fix for a configuration problem finding signal names from
+(some) recent versions of glibc, there are only minor changes.
+
+Changes from 5.4.2 to 5.5
+-------------------------
+
+The effect of the NO_INTERACTIVE_COMMENTS option extends into $(...) and
+`...` command substitutions when used on the command line.  Previously,
+comments were always recognized within command substitutions unless the
+comment character "#" was disabled via reset of $histchars.
+
+An alternative assignment syntax for indicating indices for arrays
+and keys for associative arrays:
+
+typeset -a array=([1]=first [2]=second)
+typeset -A assoc=([key1]=val1 [key2]=val2)
+
+is allowed for compatibility with other shells.  In the case of normal
+arrays the new syntax can be mixed with the old.
+
+The %E, %S, and %U TIMEFMT specifiers now support m and u prefixes
+(e.g., %mE) to output times in milliseconds and microseconds,
+respectively.
+
+The option CHECK_RUNNING_JOBS was added to control whether zsh should
+check for running jobs in addition to suspended ones with CHECK_JOBS.
+It is enabled by default.
+
+Changes from 5.3.1 to 5.4.2
+---------------------------
+
+There are only minor changes between 5.4 and 5.4.2.
+
+The 'exec' and 'command' precommand modifiers, and options to them, are
+now parsed after parameter expansion.  Previously, both the modifier and
+any options to it were parsed between alias expansion and parameter
+expansion (see zshexpn(1)), so they could neither be quoted nor be the
+result of parameter expansion.  Examples: 's=command; $s -V ls' and
+'\command -V ls' now work as expected.
+
+Functions executed by ZLE widgets no longer have their standard input
+closed, but redirected from /dev/null instead. That still guards
+against user defined widgets inadvertently reading from the tty device.
+
+There is an option WARN_NESTED_VAR, a companion to the existing
+WARN_CREATE_GLOBAL that causes a warning if a function updates a
+variable from an enclosing scope without using typeset -g.  It can be
+turned on for an individual function with "functions -W".
+
+zmodload now has an option -s to be silent on a failure to find a module
+but still print other errors.
+
+The autoload builtin gained several new features to load functions from a
+file path determined at the time of definition rather than at the time of
+loading.
+
+The zsh/parameter module now exposes the file paths associated with
+shell functions via the parameters functions_source and
+dis_functions_source.
+
+Changes from 5.2 to 5.3.1
+-------------------------
+
+There are only minor compatibility fixes between 5.3 and 5.3.1.
+
+It is possible to enable character width support for Unicode 9 by
+configuring with `--enable-unicode9'; this compiles in some additional
+tables.  At some point this support may move into a module, in which
+case the configure option will be changed to cause the module to be
+permanently loaded.  This option is not useful unless your terminal also
+supports Unicode 9.
+
+The new word modifier ':P' computes the physical path of the argument.
+It is different from the existing ':a' modifier which always resolves
+'/before/here/../after' to '/before/after', and differs from the
+existing ':A' modifier which resolves symlinks only after 'here/..' is
+removed, even when /before/here is itself a symbolic link.  It is
+recommended to review uses of ':A' and, if appropriate, convert them
+to ':P' as soon as compatibility with 5.2 is no longer a requirement.
+
+The output of "typeset -p" uses "export" commands or the "-g" option
+for parameters that are not local to the current scope.  Previously,
+all output was in the form of "typeset" commands, never using "-g".
+
+vi-repeat-change can repeat user-defined widgets if the widget calls
+zle -f vichange.
+
+The parameter $registers now makes the contents of vi register buffers
+available to user-defined widgets.
+
+New vi-up-case and vi-down-case builtin widgets bound to gU/gu (or U/u
+in visual mode) for doing case conversion.
+
+A new select-word-match function provides vim-style text objects with
+configurable word boundaries using the existing match-words-by-style
+mechanism.
+
+Support for the conditional expression [[ -v var ]] to test if a
+variable is set for compatibility with other shells.
+
+The print and printf builtins have a new option -v to assign the output
+to a variable. This is for bash compatibility but with the additional
+feature that, for an array, a separate element is used each time the
+format is reused.
+
+New x: syntax in completion match specifications make it possible to
+disable match specifications hardcoded in completion functions.
+
+Changes from 5.1.1 to 5.2
+-------------------------
+
+The new module zsh/param/private can be loaded to allow the shell
+to define parameters that are private to a function scope (i.e. are
+not propagated to nested functions called within this function).
+
+The parameter flag ${(P)...} is now more useful when it appears in
+a nested expansion.  For example,
+
+  typeset -A assoc=(one un two deux three trois)
+  name=assoc
+  print ${${(P)name}[one]}
+
+now prints "un".  In previous versions of the shell the value of the
+substitution was fully expanded on return from ${(P)name}, making
+associative array subscripting difficult.  As a side effect, flags
+for formatting appearing in the inner substitution now affect the
+substitution of the name (into "assoc" in this case), which is not
+normally useful: flags that should apply to the value must be in the
+outer substitution.
+
+The GLOB_STAR_SHORT option allows the pattern **/* to be shortened to
+just ** if no / follows. so **.c searches recursively for a file whose
+name has the suffix ".c".
+
+The effect of the WARN_CREATE_GLOBAL option has been significantly
+extended, so expect it to cause additional warning messages about
+parameters created globally within function scope.
+
+Paste highlighting (added in 5.1) is now enabled by default to signal
+that accept-line hasn't occurred.  Paste highlighting may be disabled
+via
+  zle_highlight+=(paste:none)
+.  Disabling paste highlighting will retain the "bracketed paste"
+behaviour, unless that is separately disabled via zle_bracketed_paste.
+
+Changes from 5.1 to 5.1.1
+-------------------------
+
+5.1.1 is primarily a bug fix release; however, a few minor features were
+added.
+
+The ZLE variables YANK_ACTIVE, YANK_START and YANK_END have been added
+and are useful for managing highlighting.
+
+The zsh-specific pattern match range tests have been supplemented with
+[:INCOMPLETE:] and [:INVALID:] to help detect the state of partially
+read multibyte character strings.
+
+Changes from 5.0.8 to 5.1
+-------------------------
+
+The builtins declare, export, local, readonly and typeset
+now have corresponding reserved words.  When used in
+this form, the builtin syntax is extended so that assignments
+following the reserved word are treated similarly to
+assignments that appear at the start of the command line.
+For example,
+  local scalar=`echo one word` array=(several words)
+creates a local "scalar" containing the text "one word"
+and an array "array" containing the words "several"
+"words".
+
+- The print builtin has new options -x and -X to expand tabs.
+
+- Several new command completions and numerous updates to others.
+
+- Options to "fc" to segregate internal and shared history.
+
+- All emulations including "sh" use multibyte by default; several
+  repairs to multibyte handling.
+
+- ZLE supports "bracketed paste" mode to avoid interpreting pasted
+  newlines as accept-line.  Pastes can be highlighted for visibility
+  and to make it more obvious whether accept-line has occurred.
+
+- Improved (though still not perfect) POSIX compatibility for getopts
+  builtin when POSIX_BUILTINS is set.
+
+- New setopt APPEND_CREATE for POSIX-compatible NO_CLOBBER behaviour.
+
+- Completion of date values now displays in a calendar format when
+  the complist module is available.  Controllable by zstyle.
+
+- New parameter UNDO_LIMIT_NO for more control over ZLE undo repeat.
+
+- Several repairs/improvements to the contributed narrow-to-region
+  ZLE function.
+
+- Many changes to child-process and signal handling to eliminate race
+  conditions and avoid deadlocks on descriptor and memory management.
+
+- New builtin sysopen in zsh/system module for detailed control of
+  file descriptor modes.
+
+
+Changes from 5.0.0 to 5.0.8
+---------------------------
+
+- Global aliases can be created for syntactic tokens such as command
+  separators (";", "&", "|", "&&", "||"), redirection operators, etc.
+  Use at your own risk!  The POSIX_ALIASES option is interpreted more
+  strictly to prevent expansion of these and other alias names containing
+  quotes, glob metacharacters, parameter references, etc.
+
+- There have been various further improvements to builtin handling
+  with the POSIX_BUILTINS option (off by default) for compatibility with
+  the POSIX standard.
+
+- 'whence -v' is now more informative, and 'whence -S' shows you
+  how a full chain of symbolic links resolves to a command.
+
+- The 'p' parameter flag now allows an argument to be specified
+  as a reference to a variable, e.g. ${(ps.$sep.)foo} to split $foo
+  on a string given by $sep.
+
+- The option FORCE_FLOAT now forces variables, not just constants,
+  to floating point in arithmetic expressions.
+
+- The type of an assignment in arithmetic expressions, e.g. the
+  type seen by the variable res in $(( res = a = b )), is now
+  more logical and C-like.
+
+- The default binding of 'u' in vi command mode has changed to undo
+  multiple changes when invoked repeatedly. '^R' is now bound to redo
+  changes. To revert to toggling of the last edit use:
+    bindkey -a u vi-undo-change
+
+- Compatibility with Vim has been improved for vi editing mode. Most
+  notably, Vim style text objects are supported and the region can be
+  manipulated with vi commands in the same manner as Vim's visual mode.
+
+- Elements of the watch variable may now be patterns.
+
+- The logic for retrying history locking has been improved.
+
+- Some rationalisations have been made to the zsh/db/gdbm module that
+  should make it more useful and predictable in operation.
+
+- Numeric constants encountered in mathematical expressions (but not other
+  contexts) can contain underscores as separators that will be ignored on
+  evaluation, as allowed in other scripting languages.  For example,
+  0xFFFF_FFFF, or 3.141_592_654.  From 5.0.6 this is also available
+  in output, e.g.
+    setopt cbases
+    zmodload zsh/mathfunc
+    print $(( [#16_4] 2**32 - 1 )) $(( [#_3] 4 * atan(1.0) ))
+
+- "functions -T" turns on tracing for the specified function(s) only,
+  similar to "functions -t" except that tracing is turned off for any
+  functions called from the specified one(s) that don't also have the -t
+  or -T flag.
+
+- The option FORCE_FLOAT has been added to force all arithmetic constants
+  to be treated as floating point.  This is most useful locally within
+  functions or scripts performing floating point calculations.
+
+- The default $fpath/$FPATH is now designed to include
+  /usr/local/share/zsh/site-functions unless the installer has
+  specifically decided to use another path, i.e. regardless of
+  the standard installation location.  This directory does not need to
+  exist.  Sites that set an explicit site directory can put that in
+  /etc/zshenv as before.  The intention of the new path element is to
+  increase the likelihood that locally added functions can be found with
+  the shell running "out of the box", unless the shell has been
+  deliberately configured differently by the installer for some special
+  purpose.
+
+- Individual pattern characters can be disabled.  For example, to allow '^'
+  to be an ordinary character even if the option EXTENDED_GLOB is set, use
+  "disable -p '^'".
+
+- The variable editing builtin vared can be given custom editing widgets
+  for initialisation and finishing.
+
+- The line editor's capability for listening on file descriptors
+  additional to the terminal has been enhanced so that the handler for
+  such file descriptors can be a line editor widget.  Previously the
+  handler always behaved as a standard shell function.
+
+- Hooks for adding history (the function zshaddhistory and the
+  array zshaddhistory_functions) can return status 2 to indicate that
+  history is to be saved internally within the shell but not written.
+
+- In file completion, the recursive-files style can be set to an array of
+  patterns to match against "$PWD/".  In any matched location, it is
+  possible to complete files in arbitrarily deep subdirectories without
+  needing to type the directory prefix.  See example in the zshcompsys
+  manual.
+
+- The _user_expand completer now allows expansion functions in the
+  user-expand files to return a string in REPLY that will be used to name
+  the set of expansions returned.
+
+- The parameter HISTORY_IGNORE may be set to a pattern which matches
+  lines in the internal history that are to be omitted from the history
+  file at file write time.  This differs from history changes made in
+  the zshaddhistory hook or by the HIST_IGNORE_* options, all of which
+  take effect immediately on the internal history list itself.
+
+- The parameter ZLE_RPROMPT_INDENT can be set to 0 to remove the space
+  before the right hand side of the screen (this causes problems with
+  some terminals).  It is not special and is not set by default; the
+  effect in that case is as if it was 1, as in previous versions.
+
+- If the option EXTENDED_GLOB is in effect, it is possible to force
+  globbing within conditional code using the [[ ... ]] syntax by flagging
+  that a certain string is a glob using the (#q) glob qualifier syntax.
+  The resulting glob is treated as a single argument.  For example,
+  [[ -n *.c(#qN) ]] tests whether there are any .c files in the current
+  directory.
+
+- In prompt strings, the %N(l.true.false) conditional (line length) and
+  the %N<..< and %N>..> truncation operators now accept negative values
+  of N, which count the remaining space to the opposite margin (positive
+  values of N still count the space used since the start of the prompt).
+  In PS1 and PROMPT, this counts to the right margin, whereas in RPS1 and
+  RPROMPT, it counts to the left margin (not to the opposite prompt).
+
+- Also in prompt strings, %e or the equivalent test %(e..) are used to
+  output or test the execution / evaluation depth of a shell
+  construct within functions etc.  This is useful in $PS4.
+
+- Another new prompt feature is the %. escape within time strings, for
+  example %D{%H:%M:%S.%.}.  It provides zero-padded decimal fractions of a
+  second; by default milliseconds are shown, but the number of digits may
+  be indicated from 1 to 6, e.g. "%6.".  (Note this is part of the
+  extensions to strftime() formats rather than basic prompt escapes.)
+
+- The operators :^ and :^^ in parameter substitution allow for array
+  zipping in the form ${name:^array}. With the :^ operator, all entries
+  in $name and $array will be output in alternating order. With :^ the
+  longer array is trimmed whereas the :^^ operator repeats the shorter
+  array enough to match the longer array.
+
+- The value of $? when a job becomes stopped is now the signal number plus
+  128, for compatibility with other shells.  Note that different operating
+  systems use different values e.g. for SIGTSTP, so it is not possible in
+  portable scripts to detect stopped jobs by comparing to a fixed number.
+  Also, the value of $pipestatus is now updated when a job stops, not just
+  when it exits.
+
+- Redirections applied to function definitions take effect when the
+  function is executed, not when it is defined.  Other shells already
+  work this way.  For example,
+    fn() { echo hello } >~/logfile
+  Running fn writes "hello" to logfile.  In older versions of the shell
+  it would create an empty file at the point of definition.
+
+Changes between 4.2 and 5.0.0
+-----------------------------
+
+The following changes first appeared in the 4.3 series of releases;
+see also the file Etc/NEWS-4.3.
+
+Here is a summary of the most significant changes:
+
+- Multibyte characters strings are supported throughout the shell.
+  Various options, editor features, and expansion flags have been
+  added to aid in using them.
+
+- The following new options have appeared: COMBINING_CHARS,
+  DEBUG_BEFORE_CMD, HASH_EXECUTABLES_ONLY, HIST_FCNTL_LOCK,
+  HIST_LEX_WORDS, HIST_SAVE_BY_COPY, MULTIBYTE, NO_MULTI_FUNCDEF,
+  PATH_SCRIPT, POSIX_ALIASES, POSIX_CD, POSIX_JOBS, POSIX_STRINGS,
+  POSIX_TRAPS, PROMPT_SP, SOURCE_TRACE.
+
+- Highlighting and colouring of the command line is supported.
+
+- Job control is supported in non-interactive shells and subshells.
+
+- The zshroadmap manual page provides a slightly more helpful
+  introduction to the shell manual than was previously available.
+
+- There have been some notable enhancements to POSIX compatibility
+  when the shell is in a corresponding emulation (e.g. "emulate sh").
+
+Expansion (parameters, globbing, etc.) and redirection
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+- The character group tests [[:IDENT:]], [[:IFS:]], [[:IFSSPACE:]],
+  [[:WORD:]] in patterns allow testing if a character can be
+  part of an identifier, is an IFS character, is an IFS whitespace
+  character, or is considered part of the word using the line editor's
+  logic based on the shell variable WORDCHARS.
+
+- In extended globbing, "(#cN,M)" means "match the preceding group
+  at least N but no more than M times".
+
+- The glob qualifier P can be used with an argument to add an extra
+  word before each glob match.
+
+- The syntax ~[...] provides dynamic directory naming by means
+  of the shell function zsh_directory_name or associated hook functions.
+  This is useful for expanding paths with many variable components as
+  commonly found in software development.
+
+- Parameter substitution has the ${NAME:OFFSET} and ${NAME:OFFSET:LENGTH}
+  syntax for compatibility with other shells (and zero-based indexing
+  is used to enhance compatibility).  LENGTH may be negative to count
+  from the end.
+
+- The arbitrary limit on parameter subscripts (262144) has been removed.
+  As it was not configurable and tested in an inconvenient place it
+  was deemed preferable to remove it completely.  The limit was originally
+  introduced to prevent accidental creation of a large parameter array
+  by typos that generated assignments along the lines of "12345678=0".
+  The general advice is not to do that.
+
+- The parameter substitution flag (D) abbreviates directories in parameters
+  using the familiar ~ form.
+
+- The parameter substitution flag (g) can take delimited arguments o, e and
+  c to provide echo- and print-style expansion: (g::) provides basic
+  echo-style expansion; (g:e:) provides the extended capabilities of
+  print; (g:o:) provides octal escapes without a leading zero; (g:c:)
+  additionally expands "^c" style control characters as for bindkey.
+  Options may be combined, e.g. (g:eoc:).
+
+- The parameter substitution flag (m) indicates that string lengths used
+  calculated by the (l) and (r) flags or the # operator should take
+  account of the printing width of characters in multibyte mode, whether
+  0, 1 or more.  (mm) causes printing characters to count as 1 and
+  non-printing characters to count as 0.
+
+- The parameter substitution flag (q-) picks the most minimal way of
+  quoting the parameter words, to make the result as readable as possible.
+
+- The parameter substitution flag (Z), a variant of (z), takes arguments
+  describing how to split a variable using shell syntax: (Z:c:) parses
+  comments as strings (the default is not to treat comment characters
+  specially); (Z:C:) parses comments and strips them; (Z:n:) treats
+  newlines as ordinary whitespace (the default is to turn unquoted
+  newlines into semicolons; this is now documented).
+
+- The parameter subscript flag (e) forces the argument to be treated
+  as a string, never a pattern, e.g. ${array[(ie)*]} looks for the
+  index of the array element containing the literal string "*".
+
+- The operators :| and :* in parameter substitution allow for array
+  subtraction and intersection in the form ${name:|array}. With the :|
+  operator, all entries in $name that are also in $array will be removed
+  from the substitution. Conversely for the :* operation only the
+  entries that are in both arrays will be substituted.
+
+- Numeric expansions can have a positive or negative step
+  e.g. "{3..9..2}".  Negative start and end of ranges are also now
+  supported.
+
+- =(<<<...) is optimised to eliminate the need for an external process.
+  It writes the given string to a file and substitutes the name on the
+  command line.
+
+- The redirection operations "{myfd}>file" and "{myfd}>&-" open and
+  close a new file descriptor (at least 10) contained in the shell
+  variable myfd, which can be written to with ">&$myfd".  This allows
+  arbitrary file descriptors rather than the explicit range 0 to 9.
+
+- New prompt escapes:
+  %x and %I show source file and line number, useful in $PS4 (the
+    existing %N and %i show names and lines in the execution environment
+    rather than the source file).
+  %F, %K, %f, %k allow colouring of prompts both using ANSI colour names
+    and values supported by individual terminal emulators.
+
+Builtins and shell functions
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+- Directory-changing builtins take an option -q to suppress side
+  effects such as printing directories or calling the chpwd hook functions.
+
+- Various enhancements have been made to traps:
+  - The option DEBUG_BEFORE_CMD is on by default, so DEBUG traps
+    can be used to debug code about to be run
+  - $ZSH_DEBUG_CMD in such a trap gives the code to be run
+  - "setopt ERR_EXIT" in a DEBUG trap causes the code not to be executed
+
+- The "fc" builtin is now more useful non-interactively.
+
+Shell variables (parameters)
+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+
+- New variables:
+  CORRECT_IGNORE can be set to a pattern to be ignored in spelling correction.
+  KEYBOARD_HACK defines characters to be ignored if typed unmatched at
+    the end of the line (an extension of the SUN_KEYBOARD_HACK option,
+    but note that setting the option will override the variable).
+  ZSH_PATCHLEVEL provides a unique indication of the code compiled to
+    make the shell, even between releases.
+  ZSH_SUBSHELL indicates the subshell level, incremented once per fork, at
+    which the code is being run.
+
+Options
+-+-+-+-
+
+- New options:
+  COMBINING_CHARS: assume that the terminal displays combining
+    characters correctly.  The shell cannot determine this by itself,
+    hence the option.  This is highly recommended for MacOS X where
+    file names are stored with accented characters split into basic
+    and combining characters.
+  DEBUG_BEFORE_CMD (on by default): execute debug traps before the
+    code they refer to.  This is a change of the default behaviour
+    as the new behaviour is much more useful.
+  HASH_EXECUTABLES_ONLY: don't insert non-executable files into the
+    command hash used e.g. by completion; this is optional as the
+    resulting behaviour may be very slow on network paths.
+  HIST_FCNTL_LOCK: Use the system's file locking mechanism instead
+    of an ad-hoc mechanism for locking history files.
+  HIST_LEX_WORDS: Perform lexical analysis on history lines read from
+    files, so the words are more accurately determined.  May be very slow.
+  HIST_SAVE_BY_COPY (on by default): if unset, write a history file in
+    place by truncating the old one.  Only needs to be turned off in
+    special circumstances.
+  MULTIBYTE (on by default if available): both variables and editor
+    command lines are treated as sequences of multibyte characters
+    rather than raw bytes depending on the locale.  May be turned off
+    within functions to perform bytewise operations.
+  MULTI_FUNCDEF (on by default): "foo bar () { ... }" defines two
+    functions.  This is often found to be confusing and bug-prone,
+    so you may want to unset it.
+  PATH_SCRIPT: search the path for a script specified as the first
+    argument to the shell on invocation.
+  POSIX_ALIASES: reserved words are not candidates for alias expansion.
+  POSIX_CD: make directory changing more POSIX-compatible.
+  POSIX_JOBS: make job control more POSIX compliant.
+  POSIX_STRINGS: $'...\0...' always processes \0 as a NULL, but if the
+    option is set the remainder of the string is ignored.
+  POSIX_TRAPS: EXIT traps are not executed on return from shell functions.
+  PROMPT_SP: improves display of lines not ending with newlines when
+    PROMPT_CR is in effect.
+  SOURCE_TRACE: print information as files are executed with ".",
+    "source", or as startup or shutdown files.
+
+Line editor
+-+-+-+-+-+-
+
+- Supports multibyte characters, including characters wider than one
+  screen cell and (with the COMBINING_CHARS option) combining characters.
+
+- New builtin widgets:
+  arguments-base: allow non-decimal numeric arguments
+  history-incremental-pattern-search-{backward,forward}: support
+    patterns in incremental searches.
+
+- New special variables:
+  region_highlight allows arbitrary highlighting of parts of the
+    command line; it is maintained dynamically.
+  UNDO_CHANGE_NO gives a unique record of the current change state of
+    the command line, for undoing back to a particular point using
+    the undo widget.
+  zle_highlight provides master control of highlighting for special
+    modes, e.g. unprintable characters.
+  ZLE_LINE_ABORTED records an editor line that was aborted by an error
+    or C-g.  It can be used to recover aborted lines.
+  ZLE_STATE give miscellaneous information, currently whether the line
+    editor is in insert or overwrite mode.
+
+- The undo widget takes an argument, a previous value of $UNDO_CHANGE_NO.
+
+Completion
+-+-+-+-+-+
+
+- Many new and enhanced completion functions
+
+- New styles:
+  accept-exact-dirs:  suppress path expansion of directory components
+    that already exist, speeding up completion significantly on slow
+    network directories.
+  path-completion:  can be used to suppress directory components before
+    the current one completely, so e.g. /u/b<TAB> only completes after the
+    "b", not the "u".
+
+- New special variables:
+  ZLE_REMOVE_SUFFIX_CHARS, ZLE_SPACE_SUFFIX_CHARS provide enhanced
+    flexibility over suffix removal.
+
+- Matching control, typically handled with the matcher-list style,
+  supports named character ranges, such as [:upper:], wherever
+  ranges were allowed, for example 'm:{[:upper:]}={[:lower:]}'.
+  However, matching control does not yet handle multibyte characters
+  properly, so this is currently limited to ASCII.
+
+Syntax and compatibility
+-+-+-+-+-+-+-+-+-+-+-+-+
+
+- Substitutions of the form ${var:-"$@"} and ${var:+"$@"} now behave
+  much more like other shells when appropriate (e.g. with the
+  SH_WORD_SPLIT option).
+
+- Assignments within variable substitutions, such as ${var=value},
+  are also more compatible with other shells where appropriate.
+
+- The emulate command can now be passed an expression to be evaluated
+  in a "sticky" emulation, so that functions defined there always
+  behave in the appropriate emulation.
+
+- "emulate sh" and similar modes have improved compatibility with
+  respect to deciding whether the shell should exit on errors.
+
+- Signals now accept SIG as part of the name.
+
+Modules
+-+-+-+-
+
+- Modules now present "features", specific builtins (b:), parameters
+  (p:), conditions (c:) and math functions (f:), allowing more control
+  over what is imported from a module.
+
+- The zsh/curses module provides access to the "curses" screen
+  manipulation package.
+
+- The zsh/datetime module has a calendar utility, although it is not
+  as robust as standalone calendar utilities.
+
+- The zsh/newuser module and associated functions has facilities for
+  setting up startup files for a first-time user.
+
+- The zsh/parameter module contains some new arrays to aid in tracing
+  of the shell's call stack: $funcsourcetrace and $funcfiletrace.
+
+- The zsh/parameter module provides $usergroups, an associative arrays
+  whose keys are the names of groups the current user belongs to, with
+  the group identifier as the corresponding value.
+
+- The zsh/system module has a zsystem builtin which provides file
+  locking and also a forward-compatible means for testing subcommands
+  supported.
+
+Internal improvements
+-+-+-+-+-+-+-+-+-+-+-
+
+- High resolution timestamps are used internally for certain
+  comparisons when available.
+
+Add-on functions
+-+-+-+-+-+-+-+-+
+
+- The VCS_Info system provides a way of keeping track of the state
+  of numerous version control systems within the shell.
+
+- cdr etc.: change to a directory from a list that persists between
+  shell instances, with completion support.
+
+- regexp-replace replaces text in variables using regular expressions;
+  it may be used by zle function widgets based on the functions
+  replace-string and replace-string-again to provide regular expression
+  replacements in the line editor.
+
+
+Changes in 4.2 since version 4.2.0
+----------------------------------
+
+- The autoload and related builtins take options -k and -z to indicate
+  ksh or zsh autoloading style for given functions, making it possible
+  to mix and match.
+
+- Assignments to associative arrays can use the i and r index flags.
+  For example,
+    assoc[(i)alpha*]=bravo
+  sets the value for the element whose key matches the pattern `alpha*';
+    assoc[(r)activ*]=passive
+  sets the value for the element whose current value matches the pattern
+  `activ*'.
+
+- The glob qualifier F indicates a non-empty directory.  Hence *(F)
+  indicates all subdirectories with entries, *(/^F) means all
+  subdirectories with no entries.
+
+- fc -p and fc -P provide push/pop for the status of the shell's
+  history (both internal and using the history file).  With automatic
+  scoping (fc -ap) it becomes easy to use a temporary history in a
+  function.  This has been added to the calculator function zcalc to make
+  its internal history work more seamlessly.
+
+- A new `try block' and `always block' syntax has been introduced
+  to make it easier to ensure the shell runs important tidy-up code
+  in the event of an error.  It also runs after a break, continue, or
+  return, including a return forced by the ERR_RETURN option
+  (but not an exit, which is immediate).  The syntax is:
+    `{' try-block-list `}' `always' `{' always-block-list `}'
+  where no newline or semicolon may appear between `}' and `always'.
+  This is compatible with all previous valid zsh syntax as an `always'
+  at that point used to be a syntax error.  For example,
+    { echo Code run in current shell } always { echo Tidy-up code }
+
+- A new zle widget reset-prompt has been added to re-expand the current
+  prompt.  Changes to the variable in use as well as changes in its
+  expansions are both taken into account.  The same effect is now forced by
+  a job change notification, making the %j prompt escape and %(j..) ternary
+  expression more useful.
+
+- The zftp module supports ports following the hostname in the normal suffix
+  notation, `host:port'.  This requires IPv6 colon-style addresses to be
+  specified in suitably quoted square brackets, for example:
+
+  zftp open '[f000::baaa]'
+  zftp open '[f000::baaa]:ftp'
+
+  (the two are equivalent).
+
+- Special traps, those that don't correspond to signals, i.e. ZERR, DEBUG
+  and EXIT are no longer executed inside other traps.  This caused
+  unnecessary confusion if, for example, both DEBUG and EXIT traps
+  were set.  The new behaviour is more compatible with other shells.
+
+- New option TRAPS_ASYNC which if set allows traps to run while the
+  shell is waiting for a child process.  This is the traditional zsh
+  behaviour; POSIX requires the option to be unset.  In sh/ksh
+  compatibility mode the option is turned off by default and the option
+  letter -T turns it on, for compatibility with FreeBSD sh.
+
+- New WIDGETSTYLE, WIDGETFUNC parameters in ZLE.
+
+- Glob qualifier (+func) is shorthand for (e:func:) (calls a command,
+  typically a shell function, with no argument).
+
+
+New features between zsh versions 4.0 and 4.2
+---------------------------------------------
+
+Configuration:
+- upgraded to use autoconf post-2.50
+- improved compatibility with other shells through shell options,
+  builtin arguments and improved builtin option parsing
+
+Syntax and builtins:
+- new printf builtin
+- `+=' to append to parameters which works for scalars, arrays and (with
+  pairs) associative arrays.
+- enhanced multiple parameter `for' loops:
+    for key value in key1 value1 key2 value2 ...
+  maintaining full compatibility with POSIX syntax.
+- Suffix aliases allow the shell to run a command on a file by suffix,
+  e.g `alias -s ps=gv' makes `foo.ps' execute `gv foo.ps'.  Supplied
+  function zsh-mime-setup uses existing mailcap and mime.types files
+  to set up suitable aliases.  Supplied function pick-web-browser is
+  suitable for finding a browser to show .html etc. files by suffix alias.
+- new option `no_case_glob' for case-insensitive globbing.
+
+Add-on modules and functions:
+- zsh/datetime modules makes date formatting and seconds since EPOCH
+  available inside the shell.
+- zsh/net/tcp module provides builtin interface to TCP through ztcp
+  builtin.  Function suite for interactive and script use with expect-style
+  pattern matching.
+- zsh/net/socket module provides zsocket builtin.
+- zcalc calculator function with full line editing.
+- builtin interface to pcre library
+- zsh/zselect module provides zselect builtin as interface to select
+  system call
+
+Completion system:
+- general improvements to command and context support, low-level functions,
+  display code.
+- in verbose mode, matches with the same description are grouped
+- highly configurable completions for values of specific parameters,
+  specific redirections for specific commands
+- support for bash completion functions (typically zsh native functions are
+  more powerful where available)
+- New completions provided for (some of these may be in later 4.0
+  releases):  valgrind, tidy, texinfo, infocmp, Java classes, larch, limit,
+  locale parameters, netcat, mysqldiff, mt, lsof, elinks, ant, debchange
+  (dch), email addresses, file system types, Perforce, xsltproc.
+  Plus many others.
+
+Line editor:
+- special parameters $PREDISPLAY, $POSTDISPLAY available in function
+  widgets to configure uneditable text (for narrowing)
+- recursive editing
+- supplied widgets read-from-minibuffer, replace-string use these features
+  (more intuitive prompting and argument reading than 4.0)
+- access to killed text via $CUTBUFFER and $killring
+- supplied highly configurable word widgets forward-word-match etc., can
+  set what constitutes a word interactively or in startup script
+  (implement bash-style behaviour, replacing previous bash-* word widgets)
+- interface to incremental search via $LASTSEARCH
+- better handling of keymaps in zle and widgets
+- better support for output from user-defined widgets while zle is active
+- tetris game which runs entirely in zle
+- several other contributed widgets
+
+Local internal improvements:
+- disowned jobs are automatically restarted
+- \u and \U print escapes for Unicode
+- read -d <delimiter> allows a custom line ending.
+- read -t <timeout>.
+- line numbers in error messages and $PS4 output are more consistent
+- `=prog' expands only paths, no longer aliases for consistency
+- job display in prompts; `jobs' command output can be piped
+- prompts: new $RPROMPT2, %^, %j, %y, enhanced %{, %}, %_.
+- rand48() function in zsh/mathfunc for better randomness in arithmetic
+  (if the corresponding math library function is present)
+- $SECONDS parameter can be made floating point via `typeset -F SECONDS'
+  for better timing accuracy
+- improvements to command line history mechanism
+- job table is dynamically sized, preventing overflow (typically seen
+  previously in complex completions).
+- many bugfixes
+
+
+New features in zsh version 4.0.1
+---------------------------------
+
+Compared with 3.1.9, there are mostly incremental improvements to
+  - the new completion system --- more functions, completers, styles...
+  - the line editor
+  - handling of signals and traps
+  - the configuration system, particularly for modules
+  - Cygwin support (now essentially complete)
+  - arithmetic evaluation
+  - the zpty (pseudoterminal handling) module
+  - the test suite
+plus various bug fixes and compatibility improvements.
+
+The alias modules (zle.so as an alias for zsh/zle.so, etc.) have been
+removed; use `zmodload -A' to load modules under other names.  This is
+irrelevant if you are upgrading from 3.0.
+
+Compared with the 3.0 series of releases (the last stable set), the most
+significant of a large number of improvements in the shell are:
+  - Dynamically loadable modules with hierarchical naming system
+  - Shell functions as editor functions, with much additional builtin support
+  - Incredibly rich new completion system; just needs a single
+    initialization command to provide completion for all sorts of commands
+    and contexts
+  - Associative arrays
+  - Lots of new features in parameter substitution and globbing; more
+    logical handling of nested parameter substitutions
+  - Rewritten pattern-matching (globbing) code supports approximate
+    and case-insensitive matching and backreferences
+  - Various custom modules for pty's, FTP, special parameters, etc.
+  - Rewrites of many internal parts of the code: execution code to
+    provide compilation to internal representation, pattern matching
+  - Floating point arithmetic and mathematical functions module
+  - A test suite
+  - Various new options for compatibility with this, that and the other
+See the 3.1.x changes below for more detail.
+
+
+New features in zsh version 3.1.8 and 3.1.9
+-------------------------------------------
+These are primarily bug-fix versions.  There are only a few user-visible
+changes.
+ - Array slices ${array[a,b]} with b < a now correctly have zero length.
+
+
+New features in zsh version 3.1.7
+---------------------------------
+Further enhancements to new completion system:
+ - Comprehensive context-sensitive configuration via `styles', which
+   can be set by the menu-driven front end in compinstall
+ - General mechanism for setting patterns to be ignored in a completion;
+   overriding  of patterns to be matched for functions
+ - New completers: _prefix to complete word before cursor, _ignored
+   to complete using words so far ignored (like $fignore but more
+   powerful), _history to complete words from shell history
+ - Multiple use of completers with different options, similarly splitting
+   of different types of completion (`tags') so they are considered with
+   different styles
+ - Many more supplied completions for standard commands which work out of
+   the box, and better handling of command line options/arguments which
+   behave in the usual way
+ - $fpath now set up to use installed functions by default; functions
+   can be loaded just by `autoload -U compinit; compinit'
+ - Much improved handling of nested quoting and nested braces
+ - New LIST_PACKED and LIST_ROWS_FIRST completion options and corresponding
+   styles
+ - compctl library separated out (frozen but still supported)
+ - User-friendly introduction available at zsh website
+   http://zsh.sourceforge.net/
+
+Additions to complist listing library (coloured completion and menu
+selection):
+ - Listings can be shown page by page (are by default for new completion)
+ - Menu selection allows full up and down scrolling of long lists
+
+Other editing features:
+ - new parameters $PENDING, $MARK, $BUFFERLINES
+ - Easy display of a prompt from within an editing widget
+
+Code parsing, storing and execution:
+ - Completely new system of storing code internally, greatly optimised
+ - Much less memory for shell functions etc.
+ - Can compile shell functions to .zwc `wordcode' functions for fast
+   loading
+ - Can create `digest' files of entire directories in .zwc format
+
+Parameters:
+ - Floating point support added, similar to ksh93, `typeset -F' and
+   `typeset -E' declare floating point variables; usual C/Fortran-like
+   rules for integer/float conversion
+ - Mathematical library zsh/mathfunc contains all the standard mathematical
+   functions for use in arithmetical expressions
+ - Improved parsing of arithmetical expressions and better error messages
+ - Special parameters can be made local
+ - `typeset -h' hides specialness of parameters, either as parameter
+   attribute or when declaring new local variable
+ - Local parameters can now be exported as in other shells; new option
+   GLOBAL_EXPORTS on by default provides old behaviour that `typeset -x'
+   referred to global parameters.
+ - zsh/parameter module enhanced: now needed for new completion; parameters
+   provided have `-h' flag set so that they are hidden by `typeset', so
+   that existing functions don't need to be changed
+ - Quotes can be stripped from parameter values with ${(Q)...}, providing
+   reverse of ${(q...)...} facility
+
+Globbing and pattern matching:
+ - Pattern matching rewritten for efficiency
+ - Supports `backreferences', i.e. extracting parenthesised chunks of
+   matches, e.g.
+     [[ $foo = (#b)(*/)[^/]* ]]
+   stores the part of $foo up to the last / in $match[1] and the indexes of
+   the match in $mbegin[1], $mend[1].  (#m) is also available to set $MATCH
+   to the entire match and corresponding $MBEGIN, $MEND:  useful in
+   parameter substitutions like ${.../.../...}.
+ - (#s) and (#e) match start and end of pattern like ^ and $ in regular
+   expression, useful in complex expressions such as ((#s)|/)dirname((#e)|/)
+   and in parameter expressions.
+
+ - Depth-first/last listing of recursive glob lists
+
+Functions etc.:
+ - `autoload -X' inside a function body instructs the shell to
+   bootstrap the function at that point
+ - `autoload +X fn' says load the function fn but don't execute it
+ - Prompt `themes' make customization of prompts easier
+
+Modules:
+ - New hierarchical naming scheme for modules; supplied modules go into
+   zsh subdirectory, so zle becomes zsh/zle etc.; aliases supplied for
+   compatibility for existing code, but the new format should be used in
+   future.
+ - zmodload is more consistent between dynamically and statically linked
+   shells
+ - zsh/zftp and its function suite support multiple sessions (zfsession
+   command); zftransfer allows transfer of files between two ftp sessions
+   with no local file; use styles for e.g. progress style; IPv6 supported;
+   recursive put `zfput -r' for uploads
+ - zsh/zpty module creates pseudoterminal and allows builtin `expect'-like
+   behaviour
+
+Other:
+ - Test suite, not yet complete (`make test')
+ - use of Linux task limits
+ - Many fixes including output redirection with `setopt xtrace' and
+   other redirection fixes; NIS+ problem.
+ - Better null-command behaviour in sh and csh emulation
+ - Internal memory usage optimisations
+
+
+New features in zsh version 3.1.6 (beta version)
+------------------------------------------------
+Note also the changes for 3.0.6, which include changes between 3.1.5. and
+3.1.6.
+
+New completion system via shell functions; massive degree of
+programmability and configurability:
+ - ready-made function suite to use, see zshcompsys(1)
+ - approximate completion and spelling correction via completion
+ - control over matching for case-independence, partial word completion, etc.
+ - menu selection:  choose a completion by moving the cursor
+ - coloured completion lists
+ - completion of filenames in quotes is now more reliable; splitting
+   quoted strings into command arguments is also possible.
+
+Other editing changes:
+  - enhancements to function/editing interface:  new parameters, numeric
+    arguments, string argument passing, reading keys from widgets.
+  - the old history-search-{back,for}ward behaviour and bindings have
+    returned (up to minor details).
+  - BASH_AUTO_LIST option to show completion list only on second key press.
+  - the ZBEEP parameter gives a string to output instead of beeping,
+    allowing you to have a visual bell.
+
+History changes: new options HIST_NO_FUNCTIONS, HIST_EXPIRE_DUPS_FIRST,
+HIST_FIND_NO_DUPS, HIST_IGNORE_ALL_DUPS, INC_APPEND_HISTORY,
+HIST_SAVE_NO_DUPS, SHARE_HISTORY, allow better control of when history is
+read and written and how duplicates are handled.  New format for history
+saves.
+
+Associative arrays plus enhanced parameter substitutions to retrieve keys
+and values.
+
+Globbing changes:
+  - Case-insensitive and approximate globbing.
+  - Ordering and indexing of globbing matches, e.g. *(om[1]) picks
+    most recently modified file.
+  - General file mode qualifier with chmod(1)-like syntax, e.g. *(f:u+wx:)
+
+New loadable modules:
+  - zftp, plus associated function suite, for turning your zsh session
+    into an FTP session too
+  - parameter, for examining and altering shell hash tables via an
+    associative array interface.
+  - mapfile, for reading and writing external files via an associative
+    array interface.
+
+Debugging and prompt enhancements:
+  - $PS4 can contain %i for $LINENO as well as %N for script or function
+    names (default PS4 changed), also %_ for current shell structure
+    executing;
+  - Prompt truncation %<...< is now more flexible: it applies to a
+    whole section of the prompt, not just one escape.  You need to put
+    %<< after the truncated escape to get the old behaviour.
+  - %20(l.yes.no) in prompts prints yes if at least 20 characters have
+    been output, else no (e.g. for outputting extra newlines).
+
+Parameter and expansion changes
+  - `typeset -t MYPATH mypath' creates tied path/PATH-like variables
+  - `typeset -g' allows operations on parameters without making them local
+  - New expansions
+    - ${(t)param} prints type information for $param
+    - ${(P)param} treats value of $param as the name of a param to
+      substitute
+    - ${foo:q} can quote replaced parameter text from expansion
+    - ${foo/old/new} substitution, like bash; also (S) flag for shortest
+      match
+    - $foo[(b.2.i)bar] starts searching $foo for bar starting at 2nd match
+
+Builtin and function changes
+  - stat module: `stat -H hash foo' gives you e.g. $hash[mtime]
+  - `autoload -U' autoloads functions without alias expansion.
+
+Other new options:
+  - LOCAL_TRAPS allows signal traps to be local to functions (as in ksh).
+  - NO_RCS can now be turned on at any point in initialization files.
+  - NO_GLOBAL_RCS can force /etc/z* files after /etc/zshenv to be skipped.
+    (Please don't use this as an excuse to stuff more into /etc/zshenv!)
+  - Existing MAGIC_EQUAL_SUBST option is more useful; any argument containing
+    ...=~...:~... will perform filename expansion on the ~ (previously,
+    the string before `=' had to look like a parameter name).
+
+Configuration changes:
+  - Generation of signal names should be more reliable
+  - Customizable installation of shell functions from distribution.
+
+
+New features in zsh version 3.0.6
+---------------------------------
+
+Most of these changes are designed to improve compatibility with zsh
+version 3.1.6, the latest development release.  However, this release also
+fixes all known Year 2000 (Y2K) bugs in zsh 3.0.
+
+History changes:
+  - whitespace between words is ignored in history searches.
+  - new option HIST_REDUCE_BLANKS removes extra whitespace in the stored
+    history.
+  - support for reading (but not writing) version 3.1.6 history files.
+
+Globbing changes:
+  - the a, c, and m glob qualifiers can now test time in seconds.
+  - globbing of number ranges behaves more like character ranges in that
+    it can match a prefix of a number, e.g. `<1-5>*' matches 1, 2, 3, 4,
+    5, 17, 23skiddoo, 5986, etc., but not 6, 7, 8ball, 911, etc.
+
+Parameter and expansion changes:
+  - expansion of ~ and other globbing flags via ${~param} do not depend
+    upon EXTENDED_GLOB (bug fix).
+  - nested parameter substitutions require braces (this was always the
+    documented behaviour, but previous parsers didn't enforce it).
+  - quote only nested expansion, e.g. ${(f)"$(<file)"} reads complete
+    `file', then splits lines into array.
+
+Builtin and function changes:
+  - `typeset -U' works on the colon-array version of linked parameters.
+  - `typeset +f' and `functions +' output the names (only) of functions.
+  - `emulate -L' has the effect of `setopt localoptions'.
+  - in fn1() { local foo; unset foo; foo=bar; }, foo is restored at local
+    level, whereas if the `unset foo' appeared in a nested function it
+    would have been restored at global level, which was presumably wrong.
+  - `foo=bar >&file' is a redirection, not a NULLCMD.
+  - any single complex command, such as `case ... esac', parses as if
+    semicolon-terminated (bug fix).
+  - the shell function `preexec', if defined, is run after parsing each
+    command line but before executing the command.
+
+Other changes:
+  - the option PRINT_EIGHT_BIT causes zsh to emit raw bytes in prompts
+    and completion lists even if the system ctype(3) package says that
+    those bytes are not "printable."
+
+Debugging enhancements:
+  - LINENO is now very much more useful in scripts and functions and is
+    reported correctly in most error messages.
+  - ERREXIT behaviour is now consistent with newer Bourne-like shells,
+    e.g. with respect to `if' tests that fail.
+
+Configuration changes:
+  - Large file and 64-bit integers on 32-bit machines supported where
+    provided by OS.
+  - a few more system features, such as getpwnam/getpwuid, are tested for.
+
+
+New features in zsh version 3.1 (beta version)
+----------------------------------------------
+
+On most operating systems zsh can load binary modules dynamically at
+run-time.  ZLE and the compctl builtin are now reside in a separate
+module which is loaded automatically on demand.
+
+for ((expr; expr; expr)) do ... done loop syntax from AT&T ksh93 is
+now supported.
+
+POSIX globbing character classes ([:alnum:] etc.) are now supported.
+
+ksh's case fall-through feature (;&) is supported.
+
+ksh93's $'' quoting syntax is supported.
+
+Restricted mode is now supported.  This is controlled by the new option
+RESTRICTED (-r).
+
+New options BARE_GLOB_QUAL, HIST_NO_FUNCTIONS (alias NO_LOG), KSH_GLOB,
+PRINT_EIGHT_BIT, PROMPT_BANG, PROMPT_PERCENT, RM_STAR_WAIT.
+
+Options ALWAYS_LAST_PROMPT, APPEND_HISTORY, AUTO_LIST, AUTO_MENU,
+AUTO_PARAM_KEYS, AUTO_PARAM_SLASH, AUTO_REMOVE_SLASH, LIST_AMBIGUOUS
+and LIST_TYPES are now on by default.
+
+In ZLE, arbitrarily many keymaps can be defined.  Multi-character
+keybindings now work.
+
+Completion can be performed within a brace expansion.
+
+EMACS-like universal-argument function.
+
+
+New features in zsh version 3.0
+-------------------------------
+
+Trailing "/" in a glob pattern now works like in other shell thus it
+can no longer be used as a shorthand for "(/)".
+
+Much improved sh/ksh emulation.  When zsh is invoked as sh it mostly
+conforms to POSIX 1003.2.
+
+Enhanced parameter expansion features: new flags: A, @, e, W, p, f, F.
+Expansions can be nested.  For example,
+"${${(M)${(f@)$(<builtin.pro)}:#char*}[2][(w)3]}" expands to the third
+word of the second line of builtin.pro which begins with char.  See
+zshexpn(1) for the details.
+
+***/foo glob does recursive directory search following symbolic links.
+
+Traps defined by the trap builtin are now executed in the current shell
+environment and not as a shell function.  This means that $1 is not set
+to the signal number.  Of course the TRAPxxx functions continue working
+as before.
+
+Traps defined by the trap builtin are reset to their default values in
+subshells.
+
+Option names can be prefixed by `no' to unset an option.
+setopt no_option_name is the same as unsetopt option_name.
+This change affects the output of the setopt and unsetopt
+builtins when these are invoked without arguments.  See
+the zshoptions manual page for more explanation.
+
+!, {, } and [[ are now reserved words.  Things like [[-z $foo]] or {foo}
+should not be used.  {foo} still works if the IGNORE_BRACES option is not
+set but this feature may be removed in the future.  [[ -z $foo ]] and
+{ foo } should be used instead.
+
+HOSTTYPE special parameter is removed.  The new OSTYPE, MACHTYPE and
+VENDOR parameters should be used instead.
+
+VERSION parameter is renamed to ZSH_VERSION
+
+exec now saves the history in interactive shells.  If you do not like this
+behaviour you can alias exec to 'unset HISTFILE ; exec'.
+
+${~spec}, ${=spec} and ${^spec} used to toggle the effect of
+globsubst/shwordsplit/rcexpandparam.  Now these force the corresponding
+option on. ~, = or ^ can be doubled to force the relevant option off for
+the substitution.
+
+Explicitly requested word splitting like ${=spec} or ${(s:delim:)spec}
+will be executed even if the substitution is double quoted.
+
+The right-hand side of assignments are no longer globbed by default hence
+assignment foo=* will assign '*' as a value of foo.  Use the foo=( * )
+array assignment syntax to get the old behaviour.  Alternatively the
+GLOB_ASSIGN can be set to emulate the old behaviour but the usage of this
+option is strongly discouraged and this option may be completely removed in
+the future.
+
+foo=$bar no longer creates an array even if bar is an array.  Use
+foo=( $bar ) or even better, foo=( "$bar[@]" ) instead.
+
+When foo is an array parameter ${#foo} will always return the length of the
+array even if the substitution is double quoted.  ${(c)#foo} should be used
+to get back the old behaviour.
+
+When the prompt_subst option is set prompts are fully expanded using
+parameter expansion, command substitution and arithmetic expansion.
+In 2.5 backquote substitution was not performed in the prompts so this
+change might cause problems in some startup scripts if ` is used literally
+in prompts.
+
+History substitution is now not performed if the history escape character
+appears in a single-quoted string.  This may break some interactive shell
+functions which use \! in single-quoted strings.
+
+The UID, EUID, GID, EGID parameters can be assigned now. The assignment
+executes the setuid(), seteuid(), setgid(), setegid() respectively.  On
+systems where setuid and seteuid is not supported these functions are
+emulated using setreuid or setresuid which may result in a different
+behaviour.
+
+Assigning the USERNAME parameter will call setuid(uid) where uid is the
+user id of the specified user.
+
+The privileged (-p) option is automatically set on invocation if euid != uid
+or egid != gid.  If this option is set no user startup files are sourced.
+The shell will drop privileges when this option is unset by resetting its
+euid to uid and its egid to gid.
+
+The =number substitution for accessing the directory stack is changed to
+~number to allow =command substitution when a command name begins with a
+digit.
+
+<> is a redirection operator which opens the standard input for both
+reading and writing.  To match a number use <->.
+
+Option letters -1 and -C for PRINT_EXIT_VALUE and NO_CLOBBER are swapped:
+`set -C' sets NO_CLOBBER and `set -1' sets PRINT_EXIT_VALUE.
+
+AUTO_PUSHD behaviour is changed.  Now cd without arguments will always go
+to the $HOME directory even if AUTO_PUSHD is set and PUSHD_TO_HOME is not
+set.  If you preferred the old behaviour you can alias cd to pushd.
+
+IFS word splitting with SH_WORD_SPLIT and the splitting of the input in the
+read builtin has changed in cases when IFS contains characters other than
+<space>, <tab>, <newline>.  See the description of IFS in the zshparam
+manual page for more details.
+
+
+New features in zsh version 2.5
+-------------------------------
+
+Greatly expanded completion possibilities.  Programmable completion
+allows detailed control over what arguments of what commands can be
+completed to what.  See dots/zcomp in the distribution for examples.
+
+Expand filenames with ~ and = on the right hand side of parameter
+assignments.  New option MAGIC_EQUAL_SUBST to do it in all
+identifier=expression arguments.
+
+${+name} becomes 1 or 0 if name is set or unset.  ${~spec} toggles
+GLOB_SUBST in substitution.  Parameter substitution takes lots
+of flags in the format ${(flags)name}.
+
+New glob qualifiers for block/character special files, times in glob
+qualifiers can be in months, weeks, days, hours, minutes.  Qualifiers can
+work on links or on what they point to.  Qualifiers separated by commas
+are or-ed.
+
+New parameter substitution modifiers (fFwW) to repeat actions.  New
+option CSH_JUNKIE_HISTORY.
+
+New line editor functions history-beginning-search-backward,
+history-beginning-search-forward, expand-or-complete-prefix, push-input,
+push-line-or-edit.
+
+Assign to part of a string, use qualifiers on string subscription with
+$foo[(qual)2,5]
+
+New parameters: EGID, EUID, KEYTIMEOUT
+
+New prompt escape sequence %_ to get constructs like for and while in
+the secondary prompt.  %E in prompt clears to end of screen.
+
+Conditional expressions in PROMPT and WATCHFMT.
+
+New options ALWAYS_LAST_PROMPT, ALWAYS_TO_END, AUTO_PARAM_KEYS,
+COMPLETE_ALIASES, COMPLETE_IN_WORD, CSH_JUNKIE_HISTORY, GLOB_SUBST,
+LIST_AMBIGUOUS, MAGIC_EQUAL_SUBST, NO_FLOW_CONTROL, PROMPT_SUBST
+
+New option -m to many builtins makes arguments subject to pattern
+matching.
+
+Bindkey can now bind both key sequences and prefixes of those.  You can
+for example bind ESC and function keys sending ESC sequences.
+
+Additional options to read builtin to use in functions called by
+completion.
+
+New options to print to sort arguments and print them in columns.
+
+Some additional resource limits can be specified.
+
+Some editor functions now work in the minibuffer.

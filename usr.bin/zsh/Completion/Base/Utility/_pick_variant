@@ -1,0 +1,49 @@
+#autoload
+
+local output cmd pat pre
+local -a var
+local -A opts
+
+(( $+_cmd_variant )) || typeset -gA _cmd_variant
+
+zparseopts -D -A opts b: c: r:
+: ${opts[-c]:=$words[1]}
+
+while [[ $1 = *=* ]]; do
+  var+=( "${1%%\=*}" "${1#*=}" )
+  shift
+done
+
+if (( ${#precommands:|builtin_precommands} )); then
+  pre=command
+elif (( $+opts[-b] && ( $precommands[(I)builtin] || $+builtins[$opts[-c]] ) )); then
+  (( $+opts[-r] )) && : ${(P)opts[-r]::=$opts[-b]}
+  return 0
+elif (( $precommands[(I)builtin] )); then
+  pre=builtin
+else
+  # Neither builtin nor command-forcing precommand specified,
+  # so no prefix is needed.
+  pre=
+fi
+
+if [[ $pre != builtin ]] && (( $+_cmd_variant[$opts[-c]] )); then
+  (( $+opts[-r] )) && : ${(P)opts[-r]::=${_cmd_variant[$opts[-c]]}}
+  [[ $_cmd_variant[$opts[-c]] = "$1" ]] && return 1
+  return 0
+fi
+
+output="$(_call_program variant $pre $opts[-c] "${@[2,-1]}" </dev/null 2>&1)"
+
+for cmd pat in "$var[@]"; do
+  if [[ $output = *$~pat* ]]; then
+    (( $+opts[-r] )) && : ${(P)opts[-r]::=$cmd}
+    _cmd_variant[$opts[-c]]="$cmd"
+    return 0
+  fi
+done
+
+(( $+opts[-r] )) && : ${(P)opts[-r]::=$1}
+[[ $pre != builtin ]] && _cmd_variant[$opts[-c]]="$1"
+
+return 1

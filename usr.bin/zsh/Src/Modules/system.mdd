@@ -1,0 +1,35 @@
+name=zsh/system
+link=dynamic
+load=no
+
+autofeatures="b:sysread b:syswrite b:sysopen b:sysseek b:syserror p:errnos f:systell"
+
+objects="system.o errnames.o"
+
+headers="errcount.h"
+
+:<<\Make
+# careful: ERRNO_H may contain a list
+errnames.c: errnames1.awk errnames2.awk $(dir_top)/config.h @ERRNO_H@
+	   if [ x"@ERRNO_H@" = x ]; then \
+		touch errtmp.out; \
+	   else \
+		$(AWK) -f $(sdir)/errnames1.awk @ERRNO_H@ >errtmp.c; \
+		case "`$(CPP) --version </dev/null 2>&1`" in \
+		*"Free Software Foundation"*) \
+		$(CPP) -P errtmp.c >errtmp.out;; \
+		*) \
+		$(CPP) errtmp.c >errtmp.out;; \
+		esac; \
+	   fi
+	   $(AWK) -f $(sdir)/errnames2.awk errtmp.out > $@
+	   rm -f errtmp.c errtmp.out
+
+errcount.h: errnames.c
+	grep 'define.*ERRCOUNT' errnames.c > $@
+
+clean-here: clean.system
+clean.system:
+	rm -f errcount.h errnames.c
+Make
+

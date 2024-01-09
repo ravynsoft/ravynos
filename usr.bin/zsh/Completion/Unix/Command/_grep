@@ -1,0 +1,142 @@
+#compdef grep egrep fgrep bsdgrep rgrep zgrep zegrep zfgrep ggrep gegrep gfgrep gzgrep gzegrep gzfgrep bzgrep bzegrep bzfgrep -value-,GREP_OPTIONS,-default-
+
+local command variant
+local -a arguments matchers
+
+if [[ $service = *GREP_OPT* ]]; then
+  compset -q
+  words=( fake "$words[@]" )
+  (( CURRENT++ ))
+  command=grep
+else
+  arguments=( '(-e --regexp -f --file)1: :_guard "^-*" pattern' )
+  if [[ $service = z* ]]; then
+    arguments+=( '*: :_files -g "*.gz(-.)"' )
+  elif [[ $service = bz* ]]; then
+    arguments+=( '*: :_files -g "*.bz2(-.)"' )
+  else
+    arguments+=( '*: :_files' )
+  fi
+  command="$words[1]"
+fi
+
+if [[ $service != (|g|z|gz|bz)[ef]grep ]]; then
+  matchers='(--extended-regexp --fixed-strings --basic-regexp --perl-regexp -E -F -G -P)'
+  arguments+=(
+    $matchers{--extended-regexp,-E}'[use extended regular expression]'
+    $matchers{--fixed-strings,-F}'[use literal strings]'
+    $matchers{--basic-regexp,-G}'[use basic regular expression]'
+  )
+fi
+[[ $service = rgrep ]] || arguments+=(
+  '(--directories -d -r --recursive)'{--directories=,-d+}'[specify handling of directories]:action on directory:(read skip recurse)'
+  '(--recursive -r --dereference-recursive -R -d --directories)'{--recursive,-r}'[recurse subdirectories]'
+)
+
+arguments+=(
+  '(--after-context -A)'{--after-context=,-A+}'[specify lines of trailing context]:lines'
+  '(--text -a --binary-files -I)'{--text,-a}'[process binary file as if it were text]'
+  '(--before-context -B)'{--before-context=,-B+}'[specify lines of leading context]:lines'
+  '(--context -C)'{--context=,-C-}'[specify lines of context]:lines'
+  '(--color --colour)--'{color,colour}'=-[distinguish matching string]::when:(always never auto)'
+  '(--byte-offset -b -c)'{--byte-offset,-b}'[print the byte offset with output lines]'
+  '(--text -a -I)--binary-files=[specify type to assume for binary files]:file type:(binary without-match text)'
+  '(--count -c --byte-offset -b --line-number -n)'{--count,-c}'[only print a count of matching lines]'
+  '(--devices -D)'{--devices=,-D+}'[specify handling of devices, FIFOs and sockets]:action on device:(read skip)'
+  '(1)*'{--regexp=,-e+}'[specify pattern]:pattern'
+  '(1)*'{--file=,-f+}'[specify pattern file]:file:_files'
+  '(--with-filename -H --no-filename -h)'{--with-filename,-H}'[print filename with each match]'
+  '(--no-filename -h --with-filename -H --null -Z --files-without-match -L --file-with-matches -l)'{--no-filename,-h}'[suppress printing of filenames]'
+  '--label=[provide filename to print for stdin]:filename label for stdin'
+  '--line-buffered[flush output on every line]'
+  '(--text -a --binary-files)-I[process binary files as if non-matching]'
+  '(--ignore-case -i -y)'{--ignore-case,-i,-y}'[case-insensitive]'
+  '(--files-without-match -L --file-with-matches -l --no-filename -h -o --only-matching)'{--files-without-match,-L}"[output non-matching files' names only]"
+  '(--files-with-matches -l --files-without-match -L --no-filename -h -o --only-matching)'{--files-with-matches,-l}"[output matching files' names only]"
+  '(--max-count -m)'{--max-count=,-m+}'[stop after specified no of matches in each file]:max number of matches'
+  '(--line-number -n -c)'{--line-number,-n}'[prefix output with line numbers]'
+  '(--only-matching -o --files-with-matches -l --files-without-match -L)'{--only-matching,-o}'[show only matching part of line]'
+  '(--quiet --silent -q)'{--quiet,--silent,-q}'[suppress normal output]'
+  '*--include=[examine files matching specified pattern]:file pattern'
+  '*--exclude=[skip files matching specified pattern]:file pattern'
+  '*--exclude-dir=[skip directories matching specified pattern]:directory pattern'
+  '(--no-messages -s)'{--no-messages,-s}'[suppress messages about unreadable or non-existent files]'
+  '(--version -V)'{--version,-V}'[display version info]'
+  '(--invert-match -v)'{--invert-match,-v}'[select non-matching lines]'
+  '(--word-regexp -w --line-regexp -x)'{--word-regexp,-w}'[force pattern to match only whole words]'
+  '(--line-regexp -x --word-regexp -w)'{--line-regexp,-x}'[force pattern to match only whole lines]'
+  '(-)--help[display help information]'
+)
+
+_pick_variant -r variant -c "$command" gnu=gnu gpl2=2.5.1 unix --version
+case $variant:$OSTYPE in
+  (gnu:*|gpl2:freebsd*))
+    [[ $service != (|g|z|gz|bz)[ef]grep ]] && arguments+=(
+      $matchers{--perl-regexp,-P}'[use perl regular expression]'
+    )
+  ;|
+  *:openbsd*|unix:freebsd*)
+    arguments=( # argument to context is optional and after = only
+      ${arguments:#((#s)|*\))-(C|-context)*}
+      '(--context -C)'{--context=-,-C-}'[specify lines of context]::lines'
+    )
+  ;|
+  (gnu:*|gpl2:(free|net)bsd*))
+    arguments+=(
+      '*--exclude-from=[skip files matching pattern in specified file]:file:_files'
+      '(-z --null-data)'{-z,--null-data}'[input data separated by 0 byte, not newline]'
+    )
+  ;|
+  gpl2:(freebsd|darwin)*)
+    arguments+=(
+      '(--null --no-filename -h)--null[print 0 byte after each filename]'
+      '(-Z --decompress -J --bz2decompress)'{-J,--bz2decompress}"[decompress bzip2'ed input before searching]"
+      '(-Z --decompress -J --bz2decompress)'{-Z,--decompress}"[decompress gzip'ed input before searching]"
+    )
+  ;|
+  (gpl2:darwin*|unix:freebsd*))
+    arguments+=(
+      '(-p -S)-O[recurse symlinks on the command line]'
+      "!(-O -S)-p[don't recurse symlinks]"
+      '(-O -p)-S[recurse all symlinks]'
+      '*--include-dir=[only search directories matching specified pattern]:directory pattern'
+    )
+  ;|
+  (gnu:*|gpl2:netbsd*|unix:freebsd*))
+    arguments+=(
+      '(--null -Z --no-filename -h)'{--null,-Z}'[print 0 byte after each filename]'
+    )
+  ;|
+  gnu:*)
+    arguments+=(
+      '(--no-group-separator)--group-separator=[specify separator between blocks of context]:separator [--]'
+      "(--group-separator)--no-group-separator[don't separate context blocks]"
+      '(-T --initial-tab)'{-T,--initial-tab}'[make tabs line up (if needed)]'
+      '(--recursive -r --dereference-recursive -R -d --directories)'{--dereference-recursive,-R}'[recurse subdirectories, following symlinks]'
+    )
+  ;;
+  unix:freebsd*)
+    arguments+=(
+      '!(-U --binary --binary-files)'{-U,--binary}
+      '--mmap[use mmap(2) instead of read(2) to read input]'
+    )
+    [[ $service = rgrep ]] || arguments+=(
+      '(--recursive -r -d --directories)-R[recurse subdirectories]'
+    )
+  ;;
+  gpl2:*) arguments=( ${${arguments:#*\)-r}/\)-r/\)-R} ) ;;
+  *:openbsd*)
+    arguments=(
+      ${(M)arguments:#((#s)|*\))--(context|binary-files|line-buffered|label|max-count)*}
+      ${${arguments:#((#s)|*\))(\*|)-[d-]*}/\)-r/\)-R}
+      "-U[search binary files but don't print them]"
+      '-Z[behave as zgrep]'
+    )
+  ;;
+  *)
+    # remove long options and GNU specific short opts, this is right for solaris
+    arguments=( ${arguments:#((#s)|*\))(\*|)-[aABCdDfGHILmorVy-]*} )
+  ;;
+esac
+
+_arguments -S -s $arguments[@]

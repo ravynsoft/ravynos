@@ -1,0 +1,25 @@
+#autoload
+
+# Options:
+#
+# -d  strip /dev/ prefix from matches
+# -D  matches allowed with or without /dev/ prefix
+# -o  only complete those ttys to which processes are attached
+
+local -a ttys expl pre
+local stripdev optdev open
+
+zparseopts -D -K -E d=stripdev D=optdev o=open
+
+if [[ -n $open ]]; then
+  ttys=( ${(u)${${(f)"$(_call_program open-ttys ps -Ao tty=)"}:#\?*}%% *} )
+  _description open-ttys expl 'open tty'
+else
+  ttys=( /dev/tty?*(N) /dev/pts/^ptmx(N) )
+  ttys=( ${ttys#/dev/} )
+  _description ttys expl 'tty'
+fi
+[[ -z $stripdev ]] && pre=( -p /dev/ )
+
+[[ -n $optdev ]] && compadd "$@" "$expl[@]" -M 'r:|/=* r:|=*' -a ttys && return
+compadd "$@" "$expl[@]" "$pre[@]" -M 'r:|/=* r:|=*' -a ttys

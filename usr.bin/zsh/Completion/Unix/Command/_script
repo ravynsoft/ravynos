@@ -1,0 +1,84 @@
+#compdef script scriptreplay
+
+local args hlp="-h --help -V --version"
+
+if [[ $service = scriptreplay ]]; then
+  _arguments -S -s \
+    "(1 -t --timing -T --log-timing $hlp)"{-t+,-T+,--timing=,--log-timing=}'[specify file containing timing output]:timing file:_files' \
+    "(-I --log-in -B --log-io $hlp)"{-I+,--log-in=}'[specify file containing terminal input]:file:_files' \
+    "(2 -s --typescript -B --log-io $hlp)"{-s+,-O+,--typescript=,--log-out=}'[specify file containing terminal output]:typescript file:_files' \
+    "(-B --log-io -I --log-in -s -O --typescript --log-out $hlp)"{-B,--log-io}'[specify file containing terminal input and output]' \
+    "($hlp)--summary[display overview about recorded session and exit]" \
+    "(3 -d --divisor $hlp)"{-d+,--divisor=}'[speed up replay]:factor' \
+    "(-m --maxdelay $hlp)"{-m+,--maxdelay=}'[set maximum delay between updates]:delay (seconds)' \
+    "(-x --stream $hlp)"{-x+,--stream=}'[specify stream type]:name:(out in signal or info)' \
+    "(-c --cr-mode $hlp)"{-c+,--cr-mode=}'[specify CR char mode]:mode:(auto never always)' \
+    '(- *)'{-h,--help}'[display help information]' \
+    '(- *)'{-V,--version}'[display version information]' \
+    "(-t --timing $hlp):timing file:_files" \
+    "(-s --typescript -O --log-out $hlp):typescript file:_files" \
+    "(-d --divisor $hlp): :_guard '[0-9.]#' 'timing divisor'"
+  return
+fi
+
+case $OSTYPE in
+  linux*)
+    args=( -S
+      "(-I --log-in $hlp)"{-I,--log-in}'[log stdin to file]:file:_files'
+      "(-O --log-out $hlp)"{-O,--log-out}'[log stdout to file]:file:_files'
+      "(-B --log-io $hlp)"{-B,--log-io}'[log stdin and stdout to file]:file:_files'
+      "(-T --log-timing -t --timing $hlp)"{-T+,--log-timing=}'[log timing information to file]:file:_files'
+      "(-m --logging-format $hlp)"{-m+,--logging-format=}'[specify log file format]:format:(classic advanced)'
+      "(-a --append $hlp)"{-a,--append}'[append to the log file]'
+      "(-c --command $hlp)"{-c,--command=}'[run specified command instead of a shell]:command:_cmdstring'
+      "(-e --return $hlp)"{-e,--return}'[return exit status of the child process]'
+      "(-f --flush $hlp)"{-f,--flush}'[flush output after each write]'
+      "(-E --echo $hlp)"{-E+,--echo=}'[echo input]:when:(auto always never)'
+      "($hlp)--force[use output file even when it is a link]"
+      "(-o --output-limit $hlp)"{-o+,--output-limit=}'[terminate if output files exceed specified size]:size (bytes)'
+      "(-q --quiet $hlp)"{-q,--quiet}'[be quiet]'
+      "(-t --timing $hlp)"{-t-,--timing=-}'[output timing data]::timing file:_files'
+      '(- 1)'{-h,--help}'[display help information]'
+      '(- 1)'{-V,--version}'[display version information]'
+    )
+  ;;
+  darwin*|dragonfly*|netbsd*|freebsd*)
+    args=(
+      '-q[be quiet: suppress display of starting and ending lines]'
+      '(-a -r -k)-d[suppress sleeps when playing back a session]'
+      '(-a -r -k -t)-p[play back a recorded session]'
+      '(-d -p)-r[record a session with input, output and timing data]'
+    )
+  ;|
+  netbsd*|openbsd*)
+    args+=(
+      '-c[run specified command instead of a shell]:command:_cmdstring'
+    )
+  ;|
+  netbsd*)
+    args+=( '-f[flush output after each write]' )
+  ;|
+  freebsd*)
+    args+=(
+      '-f[use filemon(4)]'
+    )
+  ;|
+  darwin*|dragonfly*|freebsd*)
+    args+=(
+      '-F[send output to specified named pipe]:fifo:_files -g "*(p)"'
+      '-t+[specify interval of data flushing]:interval (seconds)'
+      '-k[log keys sent to the program as well as output]'
+      '*:::arguments: _normal'
+    )
+  ;|
+  darwin*|freebsd*)
+  ;|
+  *)
+    args+=(
+      '(-p -d)-a[append output]'
+    )
+  ;;
+esac
+
+_arguments -s $args \
+  "($hlp):typescript file:_files"

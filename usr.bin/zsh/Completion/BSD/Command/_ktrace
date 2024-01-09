@@ -1,0 +1,30 @@
+#compdef ktrace
+
+local args=(
+  '-a[append to the trace file]'
+  '(*)-C[disable tracing on all user owned processes or all processes if executed by root]'
+  '-c[clear the trace points]'
+  '-d[trace current descendants]'
+  '-f+[log trace to specified file]:trace file:_files'
+  '(-p *)-g+[enable/disable tracing on specified process group]:pgid:_pgids'
+  '-i[inherit trace flags on future children]'
+  '(-g *)-p+[enable/disable tracing on specified PID]: :_pids'
+  '-t+[select information to include in dump]:trace string:_ktrace_points'
+  '*:: : _normal -p ktrace'
+)
+
+case $OSTYPE; in
+  openbsd*)
+    args+=(
+      '-B[process relocations immediately]'
+    )
+    ;;
+  netbsd*)
+    args+=(
+      '-n[stop tracing if writes to the trace file would block]'
+      '-s[write to the trace file with synchronized I/O]'
+    )
+    ;;
+esac
+
+_arguments -s -S -A '-*' : $args

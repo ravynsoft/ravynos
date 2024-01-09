@@ -1,0 +1,108 @@
+#compdef gnupod_addsong gnupod_addsong.pl=gnupod_addsong gnupod_check gnupod_check.pl=gnupod_check gnupod_INIT gnupod_INIT.pl=gnupod_INIT gnupod_search gnupod_search.pl=gnupod_search mktunes mktunes.pl=mktunes tunes2pod tunes2pod.pl=tunes2pod
+
+local arguments
+
+case "$service" in
+  (gnupod_addsong)
+  arguments=(
+    '(-h --help)'{-h,--help}'[display help and exit]'
+    --version'[output version information and exit]'
+    '(-m --mount)'{-m,--mount=}'[iPod mountpoint, default is $IPOD_MOUNTPOINT]:mount point:_files'
+    '(-r --restore)'{-r,--restore}'[restore the iPod (create a new GNUtunesDB from scratch)]'
+    '(-d --duplicate)'{-d,--duplicate}'[allow duplicate files]'
+    '(-p --playlist)'{-p,--playlist=}'[add songs to this playlist]:playlist:'
+    --playlist-is-podcast'[set podcast flag for playlist(s) created using --playlist]'
+    --podcast-artwork'[download and install artwork for podcasts from their channel]'
+    --podcast-cache-dir='[set a directory in which podcast media files will be cached]:podcast cache dir:'
+    --podcast-files-limit='[limit files to download (0 = all (default), -X = X oldest, X = X newest)]:podcast files limit:'.
+    --disable-v1'[do not read ID3v1 Tags (MP3 Only)]'
+    --disable-v2'[do not read ID3v2 Tags (MP3 Only)]'
+    '(-x --decode)'{-x,--decode=}'[convert FLAC Files to WAVE/MP3 or AAC on-the-fly]:encoding:(pcm mp3 aac aacbm)'
+    --decode=video'[convert .avi Files into iPod video on-the-fly]'
+    '(-e --reencode)'{-e,--reencode=}'[reencode MP3/AAC files with new quality on-the-fly]:quality number (0 = Good 9 = Bad):(1 2 3 4 5 6 7 8 9)'
+    '(-t --set-title)'{-t,--set-title=}'[set Title (Override ID3 Tag)]:title:'
+    '(-a --set-artist)'{-a,--set-artist=}'[set Artist (Override ID3 Tag)]:artist:'
+    '(-l --set-album)'{-l,--set-album=}'[set Album (Override ID3 Tag)]:album:'
+    '(-g --set-genre)'{-g,--set-genre=}'[set Genre (Override ID3 Tag)]:genre:'
+    --set-rating='[set Rating (0=-/20=*/40=**/60=***/80=****/100=*****)]:rating:(0 20 40 60 80 100)'
+    --set-playcount='[set Playcount]:play count:'
+    --set-songnum='[override Songnum/Tracknum field]:song number:'
+    '(-b --set-bookmarkable)'{-b,--set-bookmarkable}'[set this song as bookmarkable (= Remember position)]'
+    --set-shuffleskip'[exclude this file in shuffle-mode]'
+    --set-compilation'[mark songs as being part of a compilation]'
+    --min-vol-adj='[minimum volume adjustment allowed by ID3v2.4 RVA2 tag]:adjustment (-100..100) [0]'
+    --max-vol-adj='[maximum volume adjustment allowed by ID3v2.4 RVA2 tag]:adjustment (-100..100) [0]'
+    --artwork='[use FILE as album cover]:artwork:_files'
+    '*:file to add:_files'
+)
+  ;;
+
+  (gnupod_check)
+  arguments=(
+    '(-h --help)'{-h,--help}'[display help and exit]'
+    --version'[output version information and exit]'
+    '(-m --mount)'{-m,--mount=}'[iPod mountpoint (default is $IPOD_MOUNTPOINT)]:mount point:_files'
+    --fixit'[try to fixup some errors (may delete lost files)]'
+)
+  ;;
+
+  (gnupod_INIT)
+  arguments=(
+    '(-h --help)'{-h,--help}'[display help and exit]'
+    --version'[output version information and exit]'
+    '(-m --mount)'{-m,--mount=}'[iPod mountpoint (default is $IPOD_MOUNTPOINT)]:mount point:_files'
+    '(-d --disable-convert)'{-d,--disable-convert}'[do not try to convert an existing iTunesDB]'
+    '(-f --france)'{-f,--france}'[limit volume to 100dB, works only on very old iPods]'
+    --noask'[do not wait for any user input]'
+)
+  ;;
+
+  (gnupod_search)
+  arguments=(
+    --help'[display help and exit]'
+    --version'[display version information and exit]'
+    '(-m --mount)'{-m,--mount=}'[iPod mountpoint (default is $IPOD_MOUNTPOINT)]:mount point:_files'
+    '(-t --title)'{-t,--title=}'[search songs by title]:title string:'
+    '(-a --artist)'{-a,--artist=}'[search songs by artist]:artist string:'
+    '(-l --album)'{-l,--album=}'[search songs by album]:album string:'
+    '(-i --id)'{-i,--id=}'[search songs by ID]:ID integer:'
+    '(-g --genre)'{-g,--genre=}'[search songs by genre]:genre string:'
+    '(-c --playcount)'{-c,--playcount=}'[search songs by playcount]:playcount:'
+    '(-s --rating)'{-s,--rating=}'[search songs by Rating (20 is one star, 40 two, etc.)]:playcount:(0 20 40 60 80 100)'
+    '(-R --podcastrss)'{-R,--podcastrss=}'[search songs by RSS]:RSS:'
+    '(-G --podcastguid)'{-G,--podcastguid=}'[search songs by GUID]:GUID:'
+    '(-b --bitrate)'{-b,--bitrate=}'[search songs by Bitrate]:bitrate:'
+    '(-o --match-once)'{-o,--match-once}'[search does not need to match multiple times (eg. -a & -l)]'
+    --delete'[remove matched songs from the iPod]'
+    --view='[modify output (default is ialt, see --help)]:output string:'
+    --rename='[rename key into value for matched songs]:KEY=VALUE:'
+    --artwork='[use FILE as Cover for found files]:artwork:_files'
+)
+  ;;
+
+  (mktunes)
+  arguments=(
+    '(-h --help)'{-h,--help}'[display help and exit]'
+    --version'[output version information and exit]'
+    '(-m --mount)'{-m,--mount=}'[iPod mountpoint (default is $IPOD_MOUNTPOINT)]:mount point:_files'
+    '(-n --ipod-name)'{-n,--ipod-name=}'[iPod Name (For unlabeled iPods)]:name:'
+    '(-v --volume)'{-v,--volume=}'[adjust volume +-VALUE%]:volume percent:'
+    '(-e --energy)'{-e,--energy}'[save energy (disable scrolling title)]'
+    '(-g --fwguid)'{-g,--fwguid=}'[FirewireGuid / Serial of connected iPod]'
+)
+  ;;
+
+  (tunes2pod)
+  arguments=(
+    '(-h --help)'{-h,--help}'[display help and exit]'
+    --version'[output version information and exit]'
+    '(-m --mount)'{-m,--mount=}'[iPod mountpoint (default is $IPOD_MOUNTPOINT)]:mount point:_files'
+    --force'[disable sync checking]'
+)
+  ;;
+  (*)
+  return 1
+  ;;
+esac
+
+_arguments : $arguments

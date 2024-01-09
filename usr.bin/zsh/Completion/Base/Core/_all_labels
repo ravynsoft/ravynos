@@ -1,0 +1,43 @@
+#autoload
+
+local __gopt __len __tmp __pre __suf __ret=1 __descr __spec __prev
+
+if [[ "$1" = - ]]; then
+  __prev=-
+  shift
+fi
+
+__gopt=()
+zparseopts -D -a __gopt 1 2 V J x
+
+__tmp=${argv[(ib:4:)-]}
+__len=$#
+if [[ __tmp -lt __len ]]; then
+  __pre=$(( __tmp-1 ))
+  __suf=$__tmp
+elif [[ __tmp -eq $# ]]; then
+  __pre=-2
+  __suf=$(( __len+1 ))
+else
+  __pre=4
+  __suf=5
+fi
+
+while comptags "-A$__prev" "$1" curtag __spec; do
+  (( $#funcstack > _tags_level )) && _comp_tags="${_comp_tags% * }"
+  _tags_level=$#funcstack
+  _comp_tags="$_comp_tags $__spec "
+  if [[ "$curtag" = *[^\\]:* ]]; then
+    zformat -f __descr "${curtag#*:}" "d:$3"
+    _description "$__gopt[@]" "${curtag%:*}" "$2" "$__descr"
+    curtag="${curtag%:*}"
+
+    "$4" "${(P@)2}" "${(@)argv[5,-1]}" && __ret=0
+  else
+    _description "$__gopt[@]" "$curtag" "$2" "$3"
+
+    "${(@)argv[4,__pre]}" "${(P@)2}" "${(@)argv[__suf,-1]}" && __ret=0
+  fi
+done
+
+return __ret

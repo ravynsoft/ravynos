@@ -1,0 +1,208 @@
+#compdef ls gls
+
+local arguments is_gnu datef
+
+if ! _pick_variant gnu=gnu unix --help; then
+  arguments=(
+    '(-A)-a[list entries starting with .]'
+    '(-a)-A[list all except . and ..]'
+    '-d[list directory entries instead of contents]'
+    '-L[list referenced file for sym link]'
+    '-R[list subdirectories recursively]'
+
+    '(-k)-h[print sizes in human readable form]'
+    '(-h)-k[print sizes in kilobytes]'
+
+    '-i[print file inode numbers]'
+    '(-l -g -1 -C -m -x)-l[long listing]'
+    '(-l -g -C -m -x)-1[single column output]'
+    '(-l -g -1 -m -x)-C[list entries in columns sorted vertically]'
+    '(-l -g -1 -C -x)-m[comma separated]'
+    '(-l -g -1 -C -m)-x[sort horizontally]'
+
+    '-s[display size of each file in blocks]'
+
+    '(-u)-c[status change time]'
+    '(-c)-u[access time]'
+
+    '-r[reverse sort order]'
+
+    '(-t)-S[sort by size]'
+    '(-S)-t[sort by modification time]'
+
+    '(-p)-F[append file type indicators]'
+    '(-F)-p[append file type indicators for directory]'
+
+    '-n[numeric uid, gid]'
+
+    '(-B -b -w -q)-q[hide control chars]'
+
+    '*: :_files'
+  )
+  if [[ "$OSTYPE" = (netbsd*|dragonfly*|freebsd*|openbsd*|darwin*) ]]; then
+    arguments+=(
+      '-T[show complete time information]'
+      '(-a -A -r -S -t)-f[output is not sorted]'
+    )
+  fi
+  if [[ $OSTYPE = (netbsd*|dragonfly*|freebsd*|openbsd*) ]]; then
+    arguments+=( '-o[display file flags]' )
+  fi
+  if [[ $OSTYPE = (netbsd*|dragonfly*|freebsd*|darwin*) ]]; then
+    arguments+=(
+      '(-B -b -w -q)-B[print octal escapes for control characters]'
+      '(-B -b -w -q)-b[as -B, but use C escape codes whenever possible]'
+      '(-B -b -w -q)-w[print raw characters]'
+      '-W[display whiteouts when scanning directories]'
+    )
+  fi
+  if [[ $OSTYPE = (netbsd*|openbsd*|darwin*|solaris*) ]]; then
+    arguments+=(
+      '(-l -1 -C -m -x)-g[long listing but without owner information]'
+    )
+  fi
+  if [[ $OSTYPE = netbsd* ]]; then
+    arguments+=(
+      '-M[output file sizes in comma-separated form]'
+      '-O[output only leaf (non-directory) files]'
+      '-P[print full pathname for each file]'
+      "-X[don't cross mount points when recursing]"
+    )
+  fi
+  if [[ $OSTYPE = (dragonfly*|freebsd*|openbsd*|darwin*) ]]; then
+    arguments+=( '-H[follow symlinks on the command line]' )
+  fi
+  if [[ $OSTYPE = (dragonfly*|freebsd*|darwin*) ]]; then
+    arguments+=(
+      '-G[enable colorized output]'
+      '-P[do not follow symlinks]'
+    )
+  fi
+  if [[ $OSTYPE = (dragonfly*|freebsd*) ]]; then
+    arguments+=(
+      '(-A)-I[prevent -A from being automatically set for the super-user]'
+      '(-1 -C -m -x)-D+[specify format for date]:format: _date_formats'
+    )
+  fi
+  if [[ $OSTYPE = dragonfly* ]]; then
+    arguments+=(
+      '-_[use GMT based date and time output with nanotime timestamp]'
+      '-y[display FSMID in long listing]'
+    )
+  fi
+  if [[ $OSTYPE = (freebsd*|darwin*) ]]; then
+    arguments+=( '(-c -u)-U[file creation time]' )
+  fi
+  if [[ $OSTYPE = freebsd* ]]; then
+    arguments+=(
+      '-,[print file sizes grouped and separated by thousands]'
+      '-y[with -t, sort filenames in the same order as the time]'
+      '-Z[display MAC label]'
+      '--color=-[control use of color]:color:(never always auto)'
+    )
+  fi
+  if [[ $OSTYPE = darwin* ]]; then
+    arguments+=(
+      '-@[display extended attribute keys and sizes in long listing]'
+      '-e[display ACL in long listing]'
+      '(-l -1 -C -m -x)-o[long listing but without group information]'
+      '-O[display file flags]'
+      '-v[print raw characters]'
+    )
+  fi
+  if [[ $OSTYPE = solaris* ]]; then
+    arguments+=(
+      '(-q)-b[print octal escapes for control characters]'
+      '(-l -1 -C -m -x)-o[long listing but without group information]'
+      '(-l -t -s -r -a)-f[interpret each argument as a directory]'
+      '(-E -l)-e[long listing with full and consistent date/time]'
+      '(-e -l)-E[long listing with ISO format date/time]'
+      '-H[follow symlinks on the command line]'
+      '-v[long listing with verbose ACL information]'
+      '-V[long listing with compact ACL information]'
+      '-@[long listing with marker for extended attribute information]'
+    )
+  fi
+else
+  [[ $PREFIX = *+* ]] && datef='formats:format: _date_formats'
+  arguments=(
+    '(--all -a -A --almost-all)'{--all,-a}'[list entries starting with .]'
+    '(--almost-all -A -a --all)'{--almost-all,-A}'[list all except . and ..]'
+    '--author[print the author of each file]'
+    '(--ignore-backups -B)'{--ignore-backups,-B}"[don't list entries ending with ~]"
+    '(--directory -d)'{--directory,-d}'[list directory entries instead of contents]'
+    '(--dired -D)'{--dired,-D}"[generate output designed for Emacs' dired mode]"
+    '*'{--ignore=,-I+}"[don't list entries matching pattern]:pattern: "
+    '(--dereference -L --dereference-command-line -H --dereference-command-line-symlink-to-dir)'{--dereference,-L}'[list referenced file for sym link]'
+    '(--dereference -L --dereference-command-line -H --dereference-command-line-symlink-to-dir)'{--dereference-command-line,-H}'[follow symlink on the command line]'
+    '(--dereference -L --dereference-command-line -H)'--dereference-command-line-symlink-to-dir
+    '(--recursive -R)'{--recursive,-R}'[list subdirectories recursively]'
+
+    '(--no-group -G)'{--no-group,-G}'[inhibit display of group information]'
+    '(--block-size --human-readable -h --si --kilobytes -k)'{--human-readable,-h}'[print sizes in human readable form]'
+    '(--block-size --human-readable -h --si --kilobytes -k)--si[sizes in human readable form; powers of 1000]'
+    '(--inode -i)'{--inode,-i}'[print file inode numbers]'
+
+    '(--format -l -g -o -1 -C -m -x)-l[long listing]'
+    '(--format -l -1 -C -m -x)-g[long listing but without owner information]'
+    --group-directories-first
+    '(--format -l --no-group -G -1 -C -m -x)-o[no group, long]'
+    '(--format -l -g -o -C -m -x)-1[single column output]'
+    '(--format -l -g -o -1 -m -x)-C[list entries in columns sorted vertically]'
+    '(--format -l -g -o -1 -C -x)-m[comma separated]'
+    '(--format -l -g -o -1 -C -m)-x[sort horizontally]'
+    '(-l -g -o -1 -C -m -x)--format=[specify output format]:format:(verbose long commas horizontal across vertical single-column)'
+
+    '(--size -s -f)'{--size,-s}'[display size of each file in blocks]'
+
+    '(--time -u)-c[status change time]'
+    '(--time -c)-u[access time]'
+    '(-c -u)--time=[specify time to show]:time:(ctime status use atime access)'
+    '--time-style=[show times using specified style]:style: _alternative "time-styles\:time style\:(full-iso long-iso iso locale)" $datef'
+
+    '(-a --all -U -l --format -s --size -t --sort --full-time)-f[unsorted, all, short list]'
+    '(--reverse -r -U -f)'{--reverse,-r}'[reverse sort order]'
+
+    '(--sort -t -U -v -X)-S[sort by size]'
+    '(--sort -S -U -v -X)-t[sort by modification time]'
+    '(--sort -S -t -v -X)-U[unsorted]'
+    '(--sort -S -t -U -X)-v[sort by version (filename treated numerically)]'
+    '(--sort -S -t -U -v)-X[sort by extension]'
+    '(-S -t -U -v -X)--sort=[specify sort key]:sort key:(size time none version extension)'
+
+    '--color=-[control use of color]:color:(never always auto)'
+    "*--hide=[like -I, but overridden by -a or -A]:pattern: "
+    '--hyperlink=[output terminal codes to link files using file::// URI]::when:(none auto always)'
+    '(--classify -F --indicator-style -p --file-type)'{--classify,-F}'[append file type indicators]'
+    '(--file-type -p --indicator-style -F --classify)--file-type[append file type indicators except *]'
+    '(--file-type -p --indicator-style -F --classify)-p[append / to directories]'
+    '(-F --classify -p --file-type)--indicator-style=[specify indicator style]:indicator style:(none file-type classify slash)'
+
+    '(-f)--full-time[list both full date and full time]'
+
+    '(--block-size --human-readable -h --si --kilobytes -k)'{--kilobytes,-k}'[use block size of 1k]'
+    '(--human-readable -h --si --kilobytes -k)--block-size=[specify block size]:block size (bytes):(K M G T P E Z Y KB MB TB PB EB ZB YB)'
+
+    '(--numeric-uid-gid -n)'{--numeric-uid-gid,-n}'[numeric uid, gid]'
+    '(--tabsize -T)'{--tabsize=,-T+}'[specify tab size]:tab size'
+    '(--width -w)'{--width=,-w+}'[specify screen width]:screen width'
+
+    '(--quoting-style -b --escape -N --literal -Q --quote-name)'{--escape,-b}'[print octal escapes for control characters]'
+    '(--quoting-style -b --escape -N --literal -Q --quote-name)'{--literal,-N}'[print entry names without quoting]'
+    '(--quoting-style -b --escape -N --literal -Q --quote-name)'{--quote-name,-Q}'[quote names]'
+    '(-b --escape -N --literal -Q --quote-name)--quoting-style=[specify quoting style]:quoting style:(literal shell shell-always c escape clocale locale)'
+
+    '(--hide-control-chars -q --show-control-chars)'{--hide-control-chars,-q}'[hide control chars]'
+    '(-q --hide-control-chars)--show-control-chars'
+    '(- :)--help[display help information]'
+    '(- :)--version[display version information]'
+    '*:file:_files'
+  )
+  if [[ $OSTYPE = linux* ]]; then
+    arguments+=(
+      '(-Z --context)'{-Z,--context}'[print any security context of each file]'
+    )
+  fi
+fi
+
+_arguments -s -S : $arguments

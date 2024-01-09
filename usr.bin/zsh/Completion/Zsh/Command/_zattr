@@ -1,0 +1,35 @@
+#compdef zgetattr zsetattr zdelattr zlistattr
+
+local context state line expl ret=1 REPLY
+
+case $service in
+zgetattr)
+_arguments \
+  '1:file:_files' \
+  '2:attribute:->attrs' \
+  '3:parameter'
+;;
+zsetattr)
+_arguments \
+  '1:file:_files' \
+  '2:attribute:->attrs' \
+  '3:value'
+;;
+zdelattr)
+_arguments \
+  '1:file:_files' \
+  '2:attribute:->attrs'
+;;
+zlistattr)
+_arguments \
+  '1:file:_files' \
+  '2:parameter'
+;;
+esac && ret=0
+
+if [[ $state = attrs ]]; then
+  zlistattr ${(Q)${~line[1]}} REPLY 2> /dev/null
+  _wanted -C "$context[1]" attrs expl 'attribute' compadd -a REPLY && ret=0
+fi
+
+return ret

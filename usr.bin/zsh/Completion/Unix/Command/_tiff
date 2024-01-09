@@ -1,0 +1,273 @@
+#compdef -P (tiff*|*2tiff|pal2rgb)
+
+local pat expl ret=1
+
+if [[ "$service" = *2tiff ]]; then
+  pat="*.(#i)${service}(-.)"
+else
+  pat='*.(#i)tiff(-.)'
+fi
+
+if [[ $# -ne 0 || $+_in_tiff -ne 0 ]]; then
+  if (( ! $# )); then
+    _description files expl 'picture file'
+    set -- "$expl[@]"
+  fi
+  _wanted files expl 'picture file' _path_files "$@" -g "$pat" - ||
+      _files "$@" "$expl[@]" -g '*.(#i)tif(|f)(-.)'
+  return
+fi
+
+local _in_tiff=yes
+
+local curcontext="$curcontext" state line ret=1
+typeset -A opt_args
+
+case "$service" in
+tiff2bw)
+  _arguments -C \
+    '-c+[specify compression scheme]:compression scheme:->compress' \
+    '-r+[specify rows per strip]:rows per strip' \
+    '-R+[specify percentage of red channel]:percentage' \
+    '-G+[specify percentage of green channel]:percentage' \
+    '-B+[specify percentage of blue channel]:percentage' \
+    ':input file:_files -g "*.(#i)tif(|f)(-.)"' \
+    ':output file:_files -g "*.(#i)tif(|f)(-.)"' && ret=0
+  ;;
+tiff2pdf)
+  _arguments -s \
+    '-o+[specify output file]:output file:_files -g "*.(#i)pdf(-.)"' \
+    '(-z -d)-j[compress with JPEG]' \
+    '(-j -d)-z[compress with Zip/Deflate]' \
+    '-q+[specify compression quality]:quality' \
+    '-n[no compressed data passthrough]' \
+    "(-z -j)-d[don't compress]" \
+    '-i[invert colors]' \
+    '-u+[set distance unit]:unit:((i\:inches m\:centimeters))' \
+    '-x+[set x resolution]:resolution (dots per unit)' \
+    '-y+[set y resolution]:resolution (dots per unit)' \
+    '-w+[specify width in units]:width' \
+    '-l+[specify length in units]:length' \
+    '-r+[specify scope for resolution settings]:scope:((d\:images\ without\ resolution o\:all\ images))' \
+    '-p+[specify paper size]:paper size:(letter legal A4)' \
+    '-F[make the tiff fill the PDF page]' \
+    '-f[set PDF "Fit Window" user preference]' \
+    '-e+[specify date]:date (YYYYMMDDHHMMSS)' \
+    '-c+[set document creator, overrides image software default]:creator' \
+    '-a+[set document author, overrides image artist default]:author' \
+    '-t+[set document title, overrides image document name default]:title' \
+    '-s+[set document subject, overrides image image description default]:subject' \
+    '-k+[set document keywords]:keywords' \
+    '-b[set PDF "Interpolate" user preference]' \
+    '-m+[set memory allocation limit]:limit (MiB)' \
+    '(- :)-h[display usage information]' \
+    ':input file:_files -g "*.(#i)tif(|f)(-.)"'
+  ;;
+tiff2ps)
+  _arguments -s \
+    '!(-2 -3 -8 -m)-1' \
+    '(-3)-2[generate PostScript Level 2 output]' \
+    '(-2)-3[generate PostScript Level 3 output]' \
+    '-8[disable use of ASCII85 encoding with PostScript Level 2/3]' \
+    '-a[generate output for all IFDs]' \
+    '-b+[set the bottom margin]:margin (inches)' \
+    '-c[center image]' \
+    '-C+[set postscript document creator name]:creator' \
+    '-d+[set initial TIFF directory]:initial TIFF directory' \
+    '(-e)-D[print two pages per sheet (duplex)]' \
+    '(-p -D -T)-e[generate Encapsulated PostScript]' \
+    '-h+[set printed page height]:height (inches)' \
+    '-w+[set printed page width]:width (inches)' \
+    '(-W)-H+[split image if height is more than specified value]:limit (inches)' \
+    '(-H)-W+[split image if width is more than specified value]:limit (inches)' \
+    '-L+[specify overlap for split images]:overlap (inches)' \
+    '-i+[enable/disable (Nz/0) pixel interpolation]:state [enabled]:((0\:disable 1\:enable))' \
+    '-l+[set the left margin]:margin (inches)' \
+    '-m[use "imagemask" operator instead of "image"]' \
+    '-M+[set memory allocation limit]:limit (MiB)' \
+    '-o+[set initial TIFF directory (file offset)]:file offset (bytes)' \
+    '(-e)-p[generate non-Encapsulated PostScript]' \
+    '-O+[specify output file]:output file:_files -g "*.(#i)(|e)ps(-.)"' \
+    '-P+[set PageOrientation DSC comment to Landscape or Portrait]:orientation:(L P)' \
+    '-r+[rotate image]:rotation:(90 180 270 auto)' \
+    '-s[generate output for a single image]' \
+    '-t+[set postscript document title]:title' \
+    '(-e)-T[print pages for top edge binding]' \
+    '(-y)-x[override resolution units as centimeters]' \
+    '(-x)-y[override resolution units as inches]' \
+    '-z[enable printing in the deadzone]' \
+    '*:input TIFF file:_files -g "*.(#i)tif(|f)(-.)"' && ret=0
+  ;;
+tiffcmp)
+  _arguments -s \
+    '-l[list all differing bytes]' \
+    '-z+[list specified number of bytes that differs between the files]:bytes' \
+    '-t[ignore differences in directories]' \
+    ':first input TIFF file:_files -g "*.(#i)tif(|f)(-.)"' \
+    ':second input TIFF file:_files -g "*.(#i)tif(|f)(-.)"' && ret=0
+  ;;
+tiffcp)
+  _arguments -C -s \
+    '-a[append to output instead of overwriting]' \
+    '-c+[specify compression scheme]:compression scheme:->compress' \
+    '-o+[set initial TIFF directory (file offset)]:file offset' \
+    '-p+[set sample packing]:sample packing:(contig separate)' \
+    '(-t)-s[write output in strips]' \
+    '(-s)-t[write output in tiles]' \
+    '-x[force the merged tiff pages in sequence]' \
+    '-8[write BigTIFF instead of default ClassicTIFF]' \
+    '(-L)-B[write output in big-endian byte order instead of native ordering]' \
+    '(-B)-L[write output in little-endian byte order instead of native ordering]' \
+    '-M[disable use of memory-mapped files]' \
+    '-C[disable strip chopping]' \
+    '-i[ignore read errors]' \
+    '-b+[specify bias (dark) monochrome image to be subtracted from all others]:file:_files' \
+    '-,=-[specify substitute character for image indices]:character [,]' \
+    '-m+[set memory allocation limit]:limit (MiB)' \
+    '-r+[specify rows per strip]:rows per strip' \
+    '-w+[specify output tile width]:output tile width' \
+    '-l+[specify output tile length]:output tile length' \
+    '-f+[specify fill order]:fill order:(lsb2msb msb2lsb)' \
+    '*:TIFF file:_files -g "*.(#i)tif(|f)(-.)"' && ret=0
+  ;;
+tiffdither)
+  _arguments -C \
+    '-c+[specify compression scheme]:compression scheme:->compress' \
+    '-f+[specify fill order]:fill order:(lsb2msb msb2lsb)' \
+    '-r+[specify rows per strip]:rows per strip' \
+    '-t+[set threshold for dithering]:dither threshold value [128]' \
+    ':input file:_files -g "*.(#i)tif(|f)(-.)"' \
+    ':output file:_files -g "*.(#i)tif(|f)(-.)"' && ret=0
+  ;;
+tiffdump)
+  _arguments \
+    '-o+[set initial TIFF directory (file offset)]:file offset' \
+    '-h[print numbers in hexadecimal]' \
+    '-m+[change number of indirect items printed]:items [24]' \
+    '*:input TIFF file:_files -g "*.(#i)tif(|f)(-.)"' && ret=0
+  ;;
+tiffinfo)
+  _arguments -s \
+    '-c[display colormap and color/gray response curves]' \
+    '-D[read and decompress data]' \
+    '-d[print decompressed data]' \
+    '-j[display JPEG-related tags]' \
+    '-o+[set initial TIFF directory (file offset)]:file offset' \
+    '-r[read/display raw image data instead of decoded data]' \
+    '-s[display offsets and byte counts for all data strips]' \
+    '-i[ignore read errors]' \
+    '-f+[force fill order]:fill order:(lsb2msb msb2lsb)' \
+    '-w[display raw data in words]' \
+    '-z[enable strip chopping]' \
+    '*:input TIFF file:_files -g "*.(#i)tif(|f)(-.)"' && ret=0
+  ;;
+tiffmedian)
+  _arguments -C \
+    '-r+[specify rows per strip]:rows per strip' \
+    '-C+[specify number of colormap entries]:number of colormap entries' \
+    '-c+[specify compression scheme]:compression scheme:->compress' \
+    '-f[use Floyd-Steinberg dithering]' \
+    ':input file:_files -g "*.(#i)tif(|f)(-.)"' \
+    ':output file:_files -g "*.(#i)tif(|f)(-.)"' && ret=0
+  ;;
+tiffsplit)
+  _arguments \
+    ':input file:_files -g "*.(#i)tif(|f)(-.)"' \
+    ':output file prefix' && ret=0
+  ;;
+fax2tiff)
+  _arguments -s \
+    '!(-1 -2 -3 -4)-'{1,3} \
+    '(-1 -4)-2[input is Group 3, 2d encoded]' \
+    '(-1 -2 -A)-4[input is Group 4 encoded]' \
+    '-U[input is uncompressed]' \
+    '(-4)-A[input is EOL-aligned]' \
+    '-B[0 in input means black]' \
+    '-M[input is msb-to-lsb]' \
+    '-R+[specify resolution]:resolution (lines per inch) [196]' \
+    '-X+[specify input data width]:width [1728]' \
+    '-o+[specify output file]:output file:_files -g "*.(#i)tif(|f)(-.)"' \
+    '(-5 -p)-8[generate G4-encoded output]' \
+    '-u[generate uncompressed output]' \
+    '(-8)-5[generate 1d encoded output]' \
+    "(-8)-p[don't align EOL codes]" \
+    '-c[generate `classic'"'"' TIFF format]' \
+    '-m[output in msb-to-lsb order]' \
+    '-r+[specify rows per strip]:rows per strip' \
+    '-s[stretch image by duplicating all rows]' \
+    '-v[verbose mode]' \
+    '-z[generate LZW compressed output]' \
+    ':FAX input file:_files -g "*.(#i)(g[34]|fax)(-.)"' && ret=0
+  ;;
+gif2tiff)
+  _arguments -C \
+    '-r+[specify rows per strip]:rows per strip' \
+    '-c+[specify compression scheme]:compression scheme:->compress' \
+    ':input GIF file:_files -g "*.(#i)gif(-.)"' \
+    ':output file:_files -g "*.(#i)tif(|f)(-.)"' && ret=0
+  ;;
+ppm2tiff)
+  _arguments -C \
+    '-r+[specify rows per strip]:rows per strip' \
+    '-c+[specify compression scheme]:compression scheme:->compress' \
+    '-R+[specify resolution]:resolution (dots/inch)' \
+    ':input GIF file:_files -g "*.(#i)ppm(-.)"' \
+    ':output file:_files -g "*.(#i)tif(|f)(-.)"' && ret=0
+  ;;
+ras2tiff)
+  _arguments -C \
+    '-r+[specify rows per strip]:rows per strip' \
+    '-c+[specify compression scheme]:compression scheme:->compress' \
+    ':input raster image file:_files -g "*.(#i)ras(|t)(-.)"' \
+    ':output file:_files -g "*.(#i)tif(|f)(-.)"' && ret=0
+  ;;
+pal2rgb)
+  _arguments -C \
+    '-C+[specify number of bits for colormap entries]:bits for colormap entries:(8 16)' \
+    '-p+[set sample packing]:sample packing:(contig separate)' \
+    '-c+[specify compression scheme]:compression scheme:->compress' \
+    '-r+[specify rows per strip]:rows per strip' \
+    ':input file:_files -g "*.(#i)tif(|f)(-.)"' \
+    ':output file:_files -g "*.(#i)tif(|f)(-.)"' && ret=0
+  ;;
+*)
+  _description files expl 'picture file'
+  _files "$expl[@]" -g "$pat" && ret=0
+esac
+
+if [[ -n "$state" ]]; then
+  if [[ "$PREFIX" = *:* ]]; then
+    local scheme="${PREFIX%%:*}"
+
+    compset -P 1 '*:'
+
+    case "$scheme" in
+    g3)
+      _values -s : 'FAX Group 3 option' \
+        '(2d)1d[use 1D-encoding]' \
+        '(1d)2d[use 2D-encoding]' \
+	'fill[byte-align EOL codes]' && ret=0
+      ;;
+    jpeg)
+      _message -e values "compression quality (0-100), or \`r' (output RGB)"
+      ret=0
+      ;;
+    lzw|lzma|zip|zstd|webp)
+      _values 'LZW and deflate option' \
+        '1[without differencing]' \
+        '2[with differencing]' && ret=0
+      ;;
+    esac
+  else
+    _tags values
+    while _tags; do
+      while _next_label values expl 'compression scheme'; do
+        compadd "$expl[@]" - none jbig g4 packbits sgilog && ret=0
+        compadd "$expl[@]" -qS: - lzw zip lzma zstd webp jpeg g3 && ret=0
+      done
+      (( ret )) || return 0
+    done
+  fi
+fi
+
+return ret

@@ -1,0 +1,133 @@
+#compdef -subscript-
+
+local expl ind osuf flags sep
+
+[[ $ISUFFIX = *\]* ]] || osuf=\]
+
+if [[ "$1" = -q ]]; then
+  compquote osuf
+  osuf+=' '
+  shift
+fi
+
+compset -P '\(([^\(\)]|\(*\))##\)' # remove subscript flags
+
+# Look for a dynamic name expansion.  Completion only gives us
+# the stuff inside the square brackets; we need to find out what's
+# outside.  We ought to check for quoting, really, but given we've
+# got to the subscript code " ~[" is pretty likely to be a dynamic
+# name expansion.  Also expand in anything that looks like an assignment
+# or colon list.
+integer pos=$((CURSOR+1))
+while [[ pos -gt 1 && $BUFFER[pos-1] != '[' ]]; do (( pos-- )); done
+if [[ $BUFFER[1,pos-1] = (|*[[:space:]:=]##)\~\[ ]]; then
+  _dynamic_directory_name
+elif [[ "$PREFIX" = :* ]]; then
+  _wanted characters expl 'character class' \
+      compadd -p: -S ':]' alnum alpha ascii blank cntrl digit graph \
+      lower print punct space upper xdigit IFS IDENT IFSSPACE WORD
+elif compset -P '\('; then
+  local match
+  compset -S '\)*'
+
+  if [[ $PREFIX = (#b)*([bns])(?|)(*) ]]; then
+    local f=$match[1] d=$match[2] e=$match[2] v=$match[3]
+    [[ $f = s && ${(Pt)${compstate[parameter]}} != scalar* ]] && return 1
+    if [[ -z $d ]]; then
+      _message -e delimiters 'delimiter'
+      return
+    else
+      case $d in
+      (\() e=\);;
+      (\[) e=\];;
+      (\{) e=\};;
+      esac
+      if [[ $v != *$e* ]]; then
+	case $f in
+	(s) _message 'separator string';;
+	(b|n) [[ $v = <-># ]] && _message 'number' || return 1;;
+	esac
+	[[ -n $v && $SUFFIX$ISUFFIX != *$e* ]] && _message 'delimiter'
+	return 0
+      fi
+    fi
+  fi
+
+  case ${(Pt)${compstate[parameter]}} in
+    assoc*) flags=(
+      '(R k K i I)r[any one value matched by subscript as pattern]'
+      '(r k K i I)R[all values matched by subscript as pattern]'
+      '(r R K i I)k[any one value where subscript matched by key as pattern]'
+      '(r R k i I)K[all values where subscript matched by key as pattern]'
+      '(r R k K I)i[any one key matched by subscript as pattern]'
+      '(r R k K i)I[all keys matched by subscript as pattern]'
+      'e[interpret * or @ as a single key]'
+    );;
+    (|scalar*)) flags=(
+      'f[make subscripting work on lines of scalar]'
+      'w[make subscripting work on words of scalar]'
+      's[specify word separator]'
+      'p[recognise escape sequences in subsequent s flag]'
+    );&
+    array*) flags=($flags
+      'e[interpret * or @ as a single key and use plain string matching]'
+      'n[Nth lowest/highest index with i/I/r/R flag]'
+      'b[begin with specified element]'
+      '(r R k K i)I[highest index of value matched by subscript]'
+      '(r R k K I)i[lowest index of value matched by subscript]'
+      '(r k K i I)R[value matched by subscript at highest index]'
+      '(R k K i I)r[value matched by subscript at lowest index]'
+    );;
+  esac
+
+  _values -s '' 'subscript flag' $flags
+elif [[ ${(Pt)${compstate[parameter]}} = assoc* ]]; then
+  local suf MATCH MBEGIN MEND
+  local -a keys
+  keys=("${(@)${(@k)${(P)compstate[parameter]}}//(#m)[\$\\\[\]\(\)\{\}]/\\$MATCH}")
+  keys=("${(@)keys//#%(#m)[*@]/(e)$MATCH}")
+  [[ "$RBUFFER" != (|\\)\]* ]] && suf="$osuf"
+
+  _wanted association-keys expl 'association key' \
+      compadd -Q -S "$suf" -a keys
+elif [[ ${(Pt)${compstate[parameter]}} = array* ]]; then
+  local list i j ret=1 disp
+
+  _tags indexes parameters
+
+  while _tags; do
+    if _requested indexes; then
+      ind=( {1..${#${(P)${compstate[parameter]}}}} )
+      if zstyle -T ":completion:${curcontext}:indexes" verbose; then
+        list=()
+        for i in "$ind[@]"; do
+          if [[ "$i" = ${PREFIX}*${SUFFIX} ]]; then
+              list+=( "${i}:$(print -D -- ${(P)${compstate[parameter]}[$i]})" )
+	  else
+	      list+=( '' )
+	  fi
+        done
+        zstyle -s ":completion:${curcontext}:indexes" list-separator sep || sep=--
+        zformat -a list " $sep " "$list[@]"
+	disp=( -d list)
+      else
+        disp=()
+      fi
+
+      if [[ "$RBUFFER" = (|\\)\]* ]]; then
+        _all_labels -V indexes expl 'array index' \
+            compadd -S '' "$disp[@]" -a ind && ret=0
+      else
+        _all_labels -V indexes expl 'array index' \
+            compadd -S "$osuf" "$disp[@]" -a ind && ret=0
+      fi
+    fi
+    _requested parameters && _parameters && ret=0
+
+    (( ret )) || return 0
+  done
+
+  return 1
+else
+  _dispatch -math- -math-
+fi

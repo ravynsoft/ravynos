@@ -1,0 +1,21 @@
+#compdef readshortcut readshortcut.exe
+
+# cygutils 1.3.2
+
+_arguments -s -S \
+  '(--fields -f)'{-f,--fields}'[show field names]' \
+  '(--unix -u --windows -w)'{-u,--unix}'[use Unix path format for display (default)]' \
+  '(--unix -u --windows -w)'{-w,--windows}'[use Windows path format for display ]' \
+  '(--target -t)'{-t,--target}'[display shortcut target]' \
+  '(--working -g)'{-g,--working}'[display shortcut working directory]' \
+  '(--args -r)'{-r,--args}'[display shortcut arguments]' \
+  '(--showcmd -s)'{-s,--showcmd}'[display shortcut "show" command value]' \
+  '(--icon -i)'{-i,--icon}'[display icon library location]' \
+  '(--offset -j)'{-j,--offset}'[display icon library offset]' \
+  '(--desc -d)'{-d,--desc}'[display shortcut description]' \
+  '(--all -a)'{-a,--all}'[display all information]' \
+  '(- 1)'{-h,--help}'[display help information]' \
+  '(- 1)--usage[display brief usage message]' \
+  '(- 1)'{-v,--version}'[display version information]' \
+  '(- 1)--license[display licensing information]' \
+  '1:shortcut:_files -g "*.lnk(-.)"'

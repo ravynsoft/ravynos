@@ -1,0 +1,45 @@
+# oliver prompt theme
+
+prompt_oliver_help() {
+  cat <<'ENDHELP'
+With this prompt theme, the prompt contains the current directory,
+history number, number of jobs (if non-zero) and the previous
+command's exit code (if non-zero) and a final character which
+depends on privileges.
+
+The colour of the prompt depends on two associative arrays -
+$pcolour and $tcolour. Each array is indexed by the name of the
+local host. Alternatively, the colour can be set with parameters
+to prompt. To specify colours, use English words like 'yellow',
+optionally preceded by 'bold'.
+
+The hostname and username are also included unless they are in the
+$normal_hosts or $normal_users array.
+ENDHELP
+}
+
+prompt_oliver_setup() {
+  prompt_opts=( cr subst percent )
+
+  [[ "${(t)pcolour}" != assoc* ]] && typeset -Ag pcolour
+  [[ "${(t)tcolour}" != assoc* ]] && typeset -Ag tcolour
+  local pcol=${1:-${pcolour[${HOST:=`hostname`}]:-bold}}
+  local pcolr="%F{${${pcol#bold}:-default}}"
+  [[ $pcol = bold* ]] && pcolr=%B$pcolr
+
+  local tcol=${2:-${tcolour[$HOST]}}
+  local tcolr="fg=${${tcol#bold}:-default}"
+  [[ $tcol = bold* ]] && tcolr=bold,$tcolr
+
+  local a host="%m:" user="%n "
+  [[ $HOST == (${(j(|))~normal_hosts}) ]] && host=""
+  [[ $LOGNAME == (root|${(j(|))~normal_users}) ]] && user=""
+
+  PS1="$pcolr$user$host%~%"'$((COLUMNS-12))'"(l.$prompt_newline. )[%h%1(j.%%%j.)%0(?..:%?)]%# %b%f%k"  RPS2='<%^'
+  PS2=''
+
+  typeset -ga zle_highlight
+  zle_highlight[(r)default:*]=default:$tcolr
+}
+
+prompt_oliver_setup "$@"

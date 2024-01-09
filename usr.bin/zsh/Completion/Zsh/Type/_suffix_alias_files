@@ -1,0 +1,21 @@
+#autoload
+
+# Complete files for which a suffix alias exists.
+
+local expl pat
+
+(( ${#saliases} )) || return 1
+
+if (( ${#saliases} == 1 )); then
+    pat="*.${(kq)saliases}"
+else
+    local -a tmpa
+    # This is so we can quote the alias names against expansion
+    # without quoting the `|' which needs to be active in the pattern
+    # --- remember that an alias name can be pretty much anything.
+    tmpa=(${(kq)saliases})
+    pat="*.(${(kj.|.)tmpa})"
+fi
+
+# _wanted is called for us by _command_names
+_path_files "$@" -g $pat

@@ -1,0 +1,72 @@
+#compdef lha
+
+local expl
+
+if (( CURRENT == 2 )); then
+    compset -P -
+
+    local lhacmds
+    lhacmds=(
+	'(  x l v u d m c p t)a[add \(or replace\) to archive]'
+	'(a   l v u d m c p t)x[extract from archive]'
+	'(a x   v u d m c p t)l[list]'
+	'(a x l   u d m c p t)v[verbose List]'
+	'(a x l v   d m c p t)u[update newer files to archive]'
+	'(a x l v u   m c p t)d[delete from archive]'
+	'(a x l v u d   c p t)m[move to archive]'
+	'(a x l v u d m   p t)c[re-construct new archive]'
+	'(a x l v u d m c   t)p[print to stdout from archive]'
+	'(a x l v u d m c p  )t[test file CRC in archive]'
+    )
+
+    if [ "${words[2]#-}" != "" ]; then
+	lhacmds=($lhacmds
+	    'v[verbose]'
+	    'q[quiet]'
+	    'n[not execute]'
+	    'f[force\(over write at extract\)]'
+	    't[files are text files]'
+	    'e[text code convert from/to EUC]'
+	    'g[use generic format \(for compatibility\)]'
+	)
+	case ${words[2]#-} in
+	    a*|u*)
+		lhacmds=($lhacmds
+		    'd[delete files after]'
+		    "z[don't compress files]"
+		    '(  1 2)0[header level 0]'
+		    '(0   2)1[header level 1]'
+		    '(0 1  )2[header level 2]'
+		)
+		;;
+	    c*)
+		lhacmds=($lhacmds 'd[delete files after]')
+		;;
+	    x*)
+		lhacmds=($lhacmds 'i[ignore directory path]')
+		;;
+	esac
+    fi
+
+    _values -s '' 'lha command' $lhacmds
+elif (( CURRENT == 3 )); then
+    _wanted files expl 'lha file' _files -g '*.lzh(-.)'
+else
+    case ${words[2]#-} in
+	l*|x*|d*)
+	    if [ -f "$words[3]" ]; then
+		_lzh_cache_list=`$words[1] lq $words[3] | awk '{print $NF}'`
+		_lzh_cache_list=("${(@f)${_lzh_cache_list}}")
+		
+		_wanted files expl 'file from archive' _multi_parts / _lzh_cache_list
+	    else
+		_message -r "archive file is not found : ${words[3]}"
+		return 1
+	    fi
+		
+	    ;;
+	*)
+	    _files
+	;;
+    esac
+fi

@@ -1,0 +1,18 @@
+#compdef tput
+local -a args
+
+case $OSTYPE in
+  *linux*)
+    args=(
+      - set1
+      '-S[allows more than one capability per invocation of tput]'
+      - set2
+      '-V[reports the version of ncurses used for tput]'
+    )
+esac
+      
+_arguments : \
+  $args - set3 \
+  '(-S -V)-T+[terminal type]:terminal type:_terminals' \
+  '1:terminal capability:( init reset longname ${(k)terminfo} )' \
+  '*:capability parameters:{ [[ $words[1] != (init|reset|longname) ]] && _message parameter }'

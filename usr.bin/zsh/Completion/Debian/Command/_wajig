@@ -1,0 +1,78 @@
+#compdef wajig
+
+local curcontext="$curcontext" state line expl cmds argno ret=1
+
+_arguments -C -s \
+  '(- 1 *)'{-h,--help}'[print usage message]' \
+  '(- 1 *)--version[display version information]' \
+  '(-q --quiet)'{-q,--quiet}'[do everything quietly]' \
+  '(-s --simulate)'{-s,--simulate}"[trace but don't execute]" \
+  '(-t --teaching)'{-t,--teaching}'[trace the sequence of commands performed]' \
+  '(-v --verbose)'{-v,--verbose}'[increase (or set) the level of verbosity]' \
+  '1: :->cmds' \
+  '*: :->args' && ret=0
+
+case $state in
+  cmds)
+    cmds=( ${(f)"$( _call_program commands $words[1] commands )"} )
+    cmds=( ${(@)cmds/(#b)([^ ]##) ##(?)(*)/$match[1]:${match[2]:l}${match[3]//:/\\:}} )
+
+    _describe -t commands 'wajig command' cmds && ret=0
+  ;;
+  args)
+    (( argno = $#line-1 ))
+    case ${line[1]:gs/-/} in
+      autoalts|autoalternatives|updatealts)
+	((argno==1)) && _wanted alternatives expl alternative \
+	    _files -W /var/lib/dpkg/alternatives && ret=0
+      ;;
+      listfiles|repackage|package)
+	((argno==1)) || break
+      ;&
+      hold|large|readme|reconfigure|reinstall|remove|removedepend|showremove|size?|upgrade)
+	_wanted package expl 'package' _deb_packages installed && ret=0
+      ;;
+      purgedepend)
+	((argno==1)) && _wanted package expl 'package' _deb_packages xinstalled && ret=0
+      ;;
+      purge)
+	_wanted package expl 'package' _deb_packages xinstalled && ret=0
+      ;;
+      autoinstall|force|showinstall|installr|recommended|installrs|installs|suggested|install/*)
+	_wanted package expl 'package' _deb_packages uninstalled && ret=0
+      ;;
+      install)
+	_alternative \
+	  'packages:package:_deb_packages uninstalled' \
+	  'files:package file:_files -g "*.deb(-.)"' && ret=0
+      ;;
+      bug|bugs|dependents|geturl)
+	((argno==1)) || break
+      ;&
+      available|build|builddepend|changelog|describe|whatis|detail|details|show|news|policy|download|source|status|recdownload)
+	_wanted package expl 'package' _deb_packages available && ret=0
+      ;;
+      unhold)
+	_wanted package expl 'package' _deb_packages held && ret=0
+      ;;
+      filedownload|downloadfile|fileinstall|installfile|fileremove|removefile|indfile)
+	((argno==1)) && _files && ret=0
+      ;;
+      whichpkg)
+	_files
+      ;;
+      rpminstall|rpmtodeb|rpm2deb)
+	((argno==1)) && _files -g '*.rpm(-.)' && ret=0
+      ;;
+      searchapt)
+	_wanted distributions expl distribution \
+	    compadd stable testing unstable && ret=0
+      ;;
+      reload|restart|start|stop)
+	((argno==1)) && _services && ret=0
+      ;;
+    esac
+  ;;
+esac
+
+return ret

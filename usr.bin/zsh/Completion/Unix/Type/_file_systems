@@ -1,0 +1,38 @@
+#autoload
+
+local expl fss
+
+case $OSTYPE in
+  aix*) fss=( jfs nfs cdrfs ) ;;
+  irix*) fss=( efs proc fd nfs iso9660 dos hfs cachefs xfs ) ;;
+  linux*)
+    typeset -aU fss
+    fss=( adfs bfs cramfs ext2 ext3 hfs hpfs iso9660 minix ntfs qnx4
+          reiserfs romfs swap udf ufs vxfs xfs xiafs )
+    [[ -r /proc/filesystems ]] &&
+        fss+=( ${$(</proc/filesystems)#nodev} )
+    [[ -r /etc/filesystems ]] &&
+        fss+=( ${${${(f)"$(</etc/filesystems)"}:#\#*}#\*} )        
+  ;;
+  osf*) fss=( advfs ufs nfs mfs cdfs ) ;;
+  solaris*) fss=( ufs nfs hsfs s5fs pcfs cachefs tmpfs ) ;;
+  dragonfly*)
+    fss=( cd9660 devfs ext2fs fdesc kernfs linprocfs mfs msdos nfs
+          ntfs null nwfs portal procfs std udf ufs umap union )
+  ;;
+  freebsd*)
+    fss=( ${${(f)"$(_call_program fstypes lsvfs)"}[3,-1]%% *} ) ||
+    fss=( cd9660 devfs ext2fs fdescfs kernfs linprocfs linsysfs mfs msdosfs nfs
+    ntfs nullfs nwfs portalfs procfs smbfs std tmpfs udf ufs unionfs
+    reiserfs xfs zfs )
+  ;;
+  darwin*)
+    fss=( autofs /sbin/mount_*(#qN-*:s./sbin/mount_.) )
+  ;;
+  *)
+    # default for all other systems
+    fss=( ufs )
+  ;;
+esac
+
+_wanted fstypes expl 'file system type' compadd "$@" -M 'L:|no=' -a "$@" - fss

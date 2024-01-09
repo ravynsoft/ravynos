@@ -1,0 +1,24 @@
+## vim:ft=zsh
+## cvs support by: Frank Terbeck <ft@bewatermyfriend.org>
+## Distributed under the same BSD-ish license as zsh itself.
+
+setopt localoptions NO_shwordsplit
+
+[[ $1 == '--flavours' ]] && return 1
+
+VCS_INFO_check_com ${vcs_comm[cmd]} || return 1
+if ! [[ -d "./CVS" ]] || ! [[ -r "./CVS/Repository" ]] ; then
+    return 1
+fi
+
+# Look for the most distant parent that still has a CVS subdirectory.
+local cvsbase="."
+cvsbase=${cvsbase:P}
+while [[ -d "${cvsbase:h}/CVS" ]]; do
+    cvsbase="${cvsbase:h}"
+    if [[ $cvsbase == '/' ]]; then
+        break
+    fi
+done
+
+vcs_comm[basedir]="${cvsbase}"

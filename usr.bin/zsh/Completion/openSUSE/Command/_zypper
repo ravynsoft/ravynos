@@ -1,0 +1,185 @@
+#compdef zypper
+#
+# Copyright (C) 2009 Holger Macht <holger@homac.de>
+# Copyright (C) 2014 Thomas Mitterfellner <thomas.mitterfellner@gmail.com>
+# Copyright (C) 2014 Mariusz Fik <fisiu@opensuse.org>
+#
+# This file is released under the GPLv2.
+#
+# Based on the zsh guide from http://zsh.dotsrc.org/Guide/zshguide06.html
+#
+# Toggle verbose completions: zstyle ':completion:*:zypper:*' verbose no
+#                             zstyle ':completion:*:zypper-subcommand:*' verbose no
+#
+#  version 0.3
+#
+# Main dispatcher
+
+function _zypper_caching_policy () {
+    # rebuild if zsh's cache is older than zypper's
+    if test /var/cache/zypp/raw -nt "$1"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+_zypper() {
+    typeset -A opt_args
+    local context curcontext="$curcontext" state line
+
+    if (( CURRENT > 2 )) && [[ ${words[2]} != "help" ]]; then
+        # Remember the subcommand name
+        local cmd=${words[2]}
+        # Set the context for the subcommand.
+        curcontext="${curcontext%:*:*}:zypper-subcommand"
+        # Narrow the range of words we are looking at to exclude `zypper'
+        (( CURRENT-- ))
+        shift words
+
+        _zypper_cmd_do $cmd
+    else
+        local hline
+        local -a cmdlist
+        local tag=0
+        _call_program help-commands LANG=C zypper help | sed -e ':a;N;$!ba;s/\n\t\t\t\t/ /g' | while read -A hline; do
+            # start parsing with "Global Options:"
+            [[ $hline =~ "^Global Options:" ]] && tag=1
+            [[ $tag = 0 ]] && continue
+            # skip empty lines
+            [[ $hline =~ ^\s*$ ]] && continue
+            # all commands have to start with lower case letters
+            [[ $hline == [[:upper:]]* ]] && continue
+            (( ${#hline} < 2 )) && continue
+
+            # cut comma at end of command
+            hline[1]=`echo $hline[1] | sed -e 's/\(^.*\),/\1/'`
+
+            # ${hline[1]%,} truncates the last ','
+            cmdlist=($cmdlist "${hline[1]%,}:${hline[2,-1]}")
+        done
+        _describe -t zypper-commands 'zypper command' cmdlist
+    fi
+}
+
+_all_repos() {
+    local -a repos
+    repos=( $(zypper -q lr | tail -n +3 | cut -d'|' -f 2) )
+    _describe -t repos 'available repository' repos && return
+}
+
+_enabled_repos() {
+    repos=( $(zypper -x lr | grep 'enabled="1"' | cut -d\" -f 2) )
+    _describe -t repos 'available repository' repos && return
+}
+
+_disabled_repos() {
+    repos=( $(zypper -x lr | grep 'enabled="0"' | cut -d\" -f 2) )
+    _describe -t repos 'available repository' repos && return
+}
+
+_zypper_cmd_do() {
+    typeset -A opt_args
+    local context state line
+    local hline
+    local -a cmdlist
+    local tag=0
+    local curcontext="$curcontext"
+
+    zstyle ":completion:${curcontext}:" use-cache on
+    zstyle ":completion:${curcontext}:" cache-policy _zypper_caching_policy
+
+    _call_program help-commands LANG=C zypper help $cmd | while read -A hline; do
+        # start parsing from "Options:"
+        [[ $hline =~ "^Command options:" ]] && tag=1
+        [[ $tag = 0 ]] && continue
+        # Option has to start with a '-'
+        [[ $hline[1] =~ ^- ]] || continue
+        (( ${#hline} < 2 )) && continue
+
+        cmdlist=($cmdlist "${hline[1]%,}:${hline[2,-1]}")
+    done
+
+    if [ -n "$cmdlist" ]; then
+        local -a repos
+
+        # special completion lists for certain options (mainly repos)
+        case ${words[CURRENT - 1]} in
+            --from)
+                repos=( $(zypper -x lr | grep 'enabled="1"' | cut -d\" -f 2) )
+                _describe -t repos 'available repository' repos && return
+               ;;
+            (--enable|-e)
+                case $cmd in
+                    (mr|modifyrepo) 
+                        _disabled_repos && return
+                    ;;
+                esac
+                ;;
+            (--disable|-d)
+                case $cmd in
+                    (mr|modifyrepo) 
+                        _enabled_repos && return
+                    ;;
+                esac
+                ;;
+            (--type|-t)
+                local -a types
+                case $cmd in
+                    (if|info|se|search|in|install) 
+                        types=( pattern srcpackage package patch )
+                        _describe -t types 'package type' types && return
+                    ;;
+                esac
+                ;;
+        esac
+
+        # all options available for the active main command
+	_describe -t zypper-commands 'zypper command' cmdlist
+
+        case $cmd in
+            (lr|repos)
+                _all_repos
+                ;;
+            (in|install)
+                local expl
+                _description files expl 'RPM file'
+                _files "$expl[@]" -g '*.(#i)rpm(.)'
+                ;;
+        esac
+        
+        # only suggest packages if at least one character is given
+        if [[ ${words[CURRENT]} =~ "^[0-9a-zA-Z]" ]] ; then
+          local -a pkglist
+
+          if ( [[ ${+_zypp_all_raw} -eq 0 ]] || _cache_invalid ZYPPER_ALL_RAW ) && ! _retrieve_cache ZYPPER_ALL_RAW;
+          then
+              _zypp_all_raw=$(zypper -x -q se | grep '<solvable' | cut -d \" -f 2,4)
+              _zypp_all=( $(echo $_zypp_all_raw | grep 'installed' | cut -d\" -f 2) )
+              _zypp_not_installed=( $(echo $_zypp_all_raw | grep 'not-installed' | cut -d\" -f 2 ) )
+              _zypp_installed=( $(echo $_zypp_all_raw | grep '^installed' | cut -d\" -f 2 ) )
+              _store_cache ZYPPER_ALL_RAW _zypp_all_raw _zypp_all _zypp_not_installed _zypp_installed
+          fi
+
+          case $cmd in
+              (in|install)
+                  pkglist=( $_zypp_not_installed )
+                  compadd $pkglist && return
+                  ;;
+              (rm|remove|up|update)
+                  pkglist=( $_zypp_installed )
+                  compadd $pkglist && return
+                  ;;
+              (if|info|se|search)
+                  pkglist=( $_zypp_all )
+                  compadd $pkglist && return
+                  ;;
+          esac
+        fi
+    else
+	_complete
+    fi
+}
+
+# Code to make sure _zypper is run when we load it
+_zypper "$@"

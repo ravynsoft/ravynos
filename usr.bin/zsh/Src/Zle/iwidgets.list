@@ -1,0 +1,203 @@
+#
+# intwidgets.list - list of internally implemented ZLE widgets
+#
+# Each line has the form:
+#
+# "canonical-name" , functionname , ZLE_FLAGS
+#
+# `#' starts a comment.  Blank lines are ignored.
+#
+
+"accept-and-hold", acceptandhold, 0
+"accept-and-infer-next-history", acceptandinfernexthistory, 0
+"accept-and-menu-complete", acceptandmenucomplete, ZLE_MENUCMP | ZLE_KEEPSUFFIX
+"accept-line", acceptline, 0
+"accept-line-and-down-history", acceptlineanddownhistory, 0
+"accept-search", NULL, 0
+"argument-base", argumentbase, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL | ZLE_NOTCOMMAND
+"auto-suffix-remove", handlesuffix, ZLE_NOTCOMMAND
+"auto-suffix-retain", handlesuffix, ZLE_KEEPSUFFIX | ZLE_NOTCOMMAND
+"backward-char", backwardchar, 0
+"backward-delete-char", backwarddeletechar, ZLE_KEEPSUFFIX
+"backward-delete-word", backwarddeleteword, ZLE_KEEPSUFFIX
+"backward-kill-line", backwardkillline, ZLE_KILL | ZLE_KEEPSUFFIX
+"backward-kill-word", backwardkillword, ZLE_KILL | ZLE_KEEPSUFFIX
+"backward-word", backwardword, 0
+"beep", handlefeep, 0
+"beginning-of-buffer-or-history", beginningofbufferorhistory, ZLE_LINEMOVE
+"beginning-of-history", beginningofhistory, 0
+"beginning-of-line", beginningofline, 0
+"beginning-of-line-hist", beginningoflinehist, 0
+"bracketed-paste", bracketedpaste, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_YANKBEFORE
+"capitalize-word", capitalizeword, 0
+"clear-screen", clearscreen, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL | ZLE_NOTCOMMAND
+"complete-word", completeword, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_ISCOMP
+"copy-prev-word", copyprevword, ZLE_KEEPSUFFIX
+"copy-prev-shell-word", copyprevshellword, ZLE_KEEPSUFFIX
+"copy-region-as-kill", copyregionaskill, ZLE_KEEPSUFFIX
+"deactivate-region", deactivateregion, 0
+"delete-char", deletechar, ZLE_KEEPSUFFIX
+"delete-char-or-list", deletecharorlist, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_ISCOMP
+"delete-word", deleteword, ZLE_KEEPSUFFIX
+"describe-key-briefly", describekeybriefly, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL
+"digit-argument", digitargument, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL | ZLE_NOTCOMMAND
+"down-case-word", downcaseword, 0
+"down-history", downhistory, 0
+"down-line", downline, ZLE_LINEMOVE | ZLE_LASTCOL
+"down-line-or-history", downlineorhistory, ZLE_LINEMOVE | ZLE_LASTCOL
+"down-line-or-search", downlineorsearch, ZLE_LINEMOVE | ZLE_LASTCOL
+"emacs-backward-word", emacsbackwardword, 0
+"emacs-forward-word", emacsforwardword, 0
+"end-of-buffer-or-history", endofbufferorhistory, ZLE_LINEMOVE
+"end-of-history", endofhistory, 0
+"end-of-line", endofline, 0
+"end-of-line-hist", endoflinehist, 0
+"end-of-list", endoflist, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL
+"exchange-point-and-mark", exchangepointandmark, 0
+"execute-last-named-cmd", NULL, 0
+"execute-named-cmd", NULL, 0
+"expand-cmd-path", expandcmdpath, 0
+"expand-history", expandhistory, 0
+"expand-or-complete", expandorcomplete, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_ISCOMP
+"expand-or-complete-prefix", expandorcompleteprefix, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_ISCOMP
+"expand-word", expandword, 0
+"forward-char", forwardchar, 0
+"forward-word", forwardword, 0
+"get-line", zgetline, 0
+"gosmacs-transpose-chars", gosmacstransposechars, 0
+"history-beginning-search-backward", historybeginningsearchbackward, 0
+"history-beginning-search-forward", historybeginningsearchforward, 0
+"history-incremental-search-backward", historyincrementalsearchbackward, 0
+"history-incremental-search-forward", historyincrementalsearchforward, 0
+"history-incremental-pattern-search-backward", historyincrementalpatternsearchbackward, 0
+"history-incremental-pattern-search-forward", historyincrementalpatternsearchforward, 0
+"history-search-backward", historysearchbackward, 0
+"history-search-forward", historysearchforward, 0
+"infer-next-history", infernexthistory, 0
+"insert-last-word", insertlastword, ZLE_MENUCMP | ZLE_KEEPSUFFIX
+"kill-buffer", killbuffer, ZLE_KILL | ZLE_KEEPSUFFIX
+"kill-line", killline, ZLE_KILL | ZLE_KEEPSUFFIX
+"kill-region", killregion, ZLE_KILL | ZLE_KEEPSUFFIX
+"kill-whole-line", killwholeline, ZLE_KILL | ZLE_KEEPSUFFIX
+"kill-word", killword, ZLE_KILL | ZLE_KEEPSUFFIX
+"list-choices", listchoices, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL | ZLE_ISCOMP
+"list-expand", listexpand, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL
+"magic-space", magicspace, ZLE_KEEPSUFFIX | ZLE_MENUCMP
+"menu-complete", menucomplete, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_ISCOMP
+"menu-expand-or-complete", menuexpandorcomplete, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_ISCOMP
+"neg-argument", negargument, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL | ZLE_NOTCOMMAND
+"overwrite-mode", overwritemode, 0
+"pound-insert", poundinsert, 0
+"push-input", pushinput, 0
+"push-line", pushline, 0
+"push-line-or-edit", pushlineoredit, 0
+"put-replace-selection", putreplaceselection, ZLE_KEEPSUFFIX
+"quoted-insert", quotedinsert, ZLE_MENUCMP | ZLE_KEEPSUFFIX
+"quote-line", quoteline, 0
+"quote-region", quoteregion, 0
+"read-command", readcommand, ZLE_NOTCOMMAND
+"recursive-edit", recursiveedit, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL
+"redisplay", redisplay, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL
+"redo", redo, ZLE_KEEPSUFFIX
+"reset-prompt", resetprompt, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL | ZLE_NOTCOMMAND | ZLE_NOLAST
+"reverse-menu-complete", reversemenucomplete, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_ISCOMP
+"run-help", processcmd, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL
+"select-a-word", selectword, ZLE_KEEPSUFFIX
+"select-in-word", selectword, ZLE_KEEPSUFFIX
+"select-a-blank-word", selectword, ZLE_KEEPSUFFIX
+"select-in-blank-word", selectword, ZLE_KEEPSUFFIX
+"select-a-shell-word", selectargument, ZLE_KEEPSUFFIX
+"select-in-shell-word", selectargument, ZLE_KEEPSUFFIX
+"self-insert", selfinsert, ZLE_MENUCMP | ZLE_KEEPSUFFIX
+"self-insert-unmeta", selfinsertunmeta, ZLE_MENUCMP | ZLE_KEEPSUFFIX
+"send-break", sendbreak, 0
+"set-mark-command", setmarkcommand, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL
+"split-undo", splitundo, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL | ZLE_NOTCOMMAND
+"spell-word", spellword, 0
+"set-local-history", setlocalhistory, ZLE_LASTCOL
+"transpose-chars", transposechars, 0
+"transpose-words", transposewords, 0
+"undefined-key", undefinedkey, 0
+"undo", undo, ZLE_KEEPSUFFIX
+"universal-argument", universalargument, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL | ZLE_NOTCOMMAND
+"up-case-word", upcaseword, 0
+"up-history", uphistory, 0
+"up-line", upline, ZLE_LINEMOVE | ZLE_LASTCOL
+"up-line-or-history", uplineorhistory, ZLE_LINEMOVE | ZLE_LASTCOL
+"up-line-or-search", uplineorsearch, ZLE_LINEMOVE | ZLE_LASTCOL
+"vi-add-eol", viaddeol, 0
+"vi-add-next", viaddnext, 0
+"vi-backward-blank-word", vibackwardblankword, 0
+"vi-backward-char", vibackwardchar, 0
+"vi-backward-delete-char", vibackwarddeletechar, ZLE_KEEPSUFFIX
+"vi-backward-kill-word", vibackwardkillword, ZLE_KEEPSUFFIX
+"vi-backward-word", vibackwardword, 0
+"vi-backward-word-end", vibackwardwordend, 0
+"vi-backward-blank-word-end", vibackwardblankwordend, 0
+"vi-beginning-of-line", vibeginningofline, 0
+"vi-caps-lock-panic", vicapslockpanic, ZLE_LASTCOL
+"vi-change", vichange, ZLE_LASTCOL | ZLE_VIOPER
+"vi-change-eol", vichangeeol, 0
+"vi-change-whole-line", vichangewholeline, 0
+"vi-cmd-mode", vicmdmode, 0
+"vi-delete", videlete, ZLE_KEEPSUFFIX | ZLE_LASTCOL | ZLE_VIOPER
+"vi-delete-char", videletechar, ZLE_KEEPSUFFIX
+"vi-digit-or-beginning-of-line", vidigitorbeginningofline, 0
+"vi-down-case", vidowncase, ZLE_LASTCOL | ZLE_VIOPER
+"vi-down-line-or-history", vidownlineorhistory, ZLE_LINEMOVE
+"vi-end-of-line", viendofline, ZLE_LASTCOL
+"vi-fetch-history", vifetchhistory, ZLE_LINEMOVE
+"vi-find-next-char", vifindnextchar, 0
+"vi-find-next-char-skip", vifindnextcharskip, 0
+"vi-find-prev-char", vifindprevchar, 0
+"vi-find-prev-char-skip", vifindprevcharskip, 0
+"vi-first-non-blank", vifirstnonblank, 0
+"vi-forward-blank-word", viforwardblankword, 0
+"vi-forward-blank-word-end", viforwardblankwordend, 0
+"vi-forward-char", viforwardchar, 0
+"vi-forward-word", viforwardword, 0
+"vi-forward-word-end", viforwardwordend, 0
+"vi-goto-column", vigotocolumn, 0
+"vi-goto-mark", vigotomark, 0
+"vi-goto-mark-line", vigotomarkline, ZLE_LINEMOVE
+"vi-history-search-backward", vihistorysearchbackward, 0
+"vi-history-search-forward", vihistorysearchforward, 0
+"vi-indent", viindent, ZLE_LASTCOL | ZLE_VIOPER
+"vi-insert", viinsert, 0
+"vi-insert-bol", viinsertbol, 0
+"vi-join", vijoin, 0
+"vi-kill-eol", vikilleol, ZLE_KEEPSUFFIX
+"vi-kill-line", vikillline, ZLE_KEEPSUFFIX
+"vi-match-bracket", vimatchbracket, 0
+"vi-open-line-above", viopenlineabove, 0
+"vi-open-line-below", viopenlinebelow, 0
+"vi-oper-swap-case", vioperswapcase, ZLE_LASTCOL | ZLE_VIOPER
+"vi-pound-insert", vipoundinsert, 0
+"vi-put-after", viputafter, ZLE_YANKAFTER | ZLE_KEEPSUFFIX
+"vi-put-before", viputbefore, ZLE_YANKBEFORE | ZLE_KEEPSUFFIX
+"vi-quoted-insert", viquotedinsert, ZLE_MENUCMP | ZLE_KEEPSUFFIX
+"vi-repeat-change", virepeatchange, 0
+"vi-repeat-find", virepeatfind, 0
+"vi-repeat-search", virepeatsearch, 0
+"vi-replace", vireplace, 0
+"vi-replace-chars", vireplacechars, 0
+"vi-rev-repeat-find", virevrepeatfind, 0
+"vi-rev-repeat-search", virevrepeatsearch, 0
+"vi-set-buffer", visetbuffer, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL
+"vi-set-mark", visetmark, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL
+"vi-substitute", visubstitute, 0
+"vi-swap-case", viswapcase, ZLE_LASTCOL
+"vi-undo-change", viundochange, ZLE_KEEPSUFFIX
+"vi-unindent", viunindent, ZLE_LASTCOL | ZLE_VIOPER
+"vi-up-case", viupcase, ZLE_LASTCOL | ZLE_VIOPER
+"vi-up-line-or-history", viuplineorhistory, ZLE_LINEMOVE
+"vi-yank", viyank, ZLE_LASTCOL | ZLE_VIOPER
+"vi-yank-eol", viyankeol, 0
+"vi-yank-whole-line", viyankwholeline, 0
+"visual-line-mode", visuallinemode, ZLE_MENUCMP | ZLE_LASTCOL
+"visual-mode", visualmode, ZLE_MENUCMP | ZLE_LASTCOL
+"what-cursor-position", whatcursorposition, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL
+"where-is", whereis, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL
+"which-command", processcmd, ZLE_MENUCMP | ZLE_KEEPSUFFIX | ZLE_LASTCOL
+"yank", yank, ZLE_YANKBEFORE | ZLE_KEEPSUFFIX
+"yank-pop", yankpop, ZLE_KEEPSUFFIX | ZLE_NOTCOMMAND

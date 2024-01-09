@@ -1,0 +1,81 @@
+#compdef fuser
+
+local -a args argf variant
+typeset -A opt_args
+
+args=(
+  '-u[append the user name of the process owner to each PID]'
+  '(-f)-c[list all processes accessing files on the filesystem specified by name]'
+  '(-c)-f[list all processes accessing named files]'
+)
+argf=( '*:file:_files' )
+
+_pick_variant -r variant psmisc='(#i)psmisc' $OSTYPE -V
+case $variant in
+  psmisc)
+  (( $+functions[_fuser_services] )) ||
+  _fuser_services() {
+    local expl suf ret=1
+
+    [[ $opt_args[-n] = ??p || $EUID = 0 ]] || return
+
+    if compset -P '*/'; then
+      _wanted protocols expl protocol compadd tcp udp
+    elif compset -P '*,*,'; then
+      compset -S '/*' || [[ -n $opt_args[-n] ]] || suf=( -qS / )
+      _ports $suf && ret=0
+    elif compset -P '*,'; then
+      compset -S ',*' || suf=( -S ,  -r "/ \t\n\-" )
+      _hosts $suf && ret=0
+    else
+      compset -S ',*' || suf=( -S ${${opt_args[-n]/?*/,}:-/} -r "/, \t\n\-" )
+      _ports $suf && ret=0
+    fi
+
+    return ret
+  }
+
+    args+=(
+      '(-s)-a[show all files specified on the command line]' \
+      {-c,-m}'[list all processes accessing files on the filesystem specified by name]' \
+      '-k[kill processes accessing the file]' \
+      '-i[ask for confirmation before killing]' \
+      '(-)-l[list all known signal names]' \
+      '-n[select name space]:namespace:(file udp tcp)' \
+      '(-a -u -v)-s[silent operation]' \
+      '-v[verbose mode]' \
+      '-V[display version information]' \
+      '-4[search only for IPv4 sockets]' \
+      '-6[search only for IPv6 sockets]' \
+    )
+    argf=( '*:name: _alternative "files:file:_files" "services:service:_fuser_services"' )
+    [[ -prefix -  && -z ${${words[1,CURRENT-1]}[(r)-[A-Z][A-Z]*]} ]] &&
+        argf[1]+=' "signals:signal:_signals -P-"'
+  ;;
+  freebsd*|openbsd*|solaris2.<9->)
+    args+=(
+      '-s[send alternate signal]:signal:_signals'
+      '-k[send SIGKILL to each process]'
+    )
+  ;|
+  openbsd*|freebsd*)
+    args+=(
+      '-M[extra values from specified core file]:core file:_files'
+      '-N[extract name list from specified system]:system'
+    )
+  ;|
+  freebsd*) args+=( '-m[include mapped files]' ) ;;
+  solaris2.<9->)
+    args+=(
+      '-n[list only processes with non-blocking mandatory locks]'
+    )
+  ;;
+  solaris2.<10->)
+    args+=( '-d[report device usage for all minor nodes bound to same device]' )
+  ;;
+  sysv4 )
+    (( $+words[(r)-k] )) && argf=( ':name: _alternative signals\:signal\:_signals\ -p files:file:_files' )
+  ;;
+esac
+
+_arguments -s $args $argf

@@ -1,0 +1,55 @@
+#compdef mv gmv zf_mv
+
+local args variant aopts=( -A '-*' )
+
+_pick_variant -r variant -b zsh gnu=GNU $OSTYPE --version
+case $variant; in
+  gnu)
+    aopts=()
+    args=(
+      '(-b --backup -n --no-clobber)--backup=[make a backup of each existing destination file]: : _values "backup type"
+        {none,off}"[never make backups]"
+        {numbered,t}"[make numbered backups]"
+        {existing,nil}"[numbered backups, if they already exist]"
+        {simple,never}"[always make simple backups]"'
+      '(-b --backup -n --no-clobber)-b[make a backup of each existing destination file]'
+      '(-f --force -i --interactive -n --no-clobber)'{-f,--force}"[don't prompt before overwriting]"
+      '(-f --force -i --interactive -n --no-clobber)'{-i,--interactive}'[prompt before overwriting existing file]'
+      '--strip-trailing-slashes[remove any trailing slashes from each source argument]'
+      '(-S --suffix)'{-S+,--suffix=}'[specify the backup suffix]:backup suffix [~]'
+      '(-t --target-directory)'{-t+,--target-directory=}'[move all source arguments into specified directory]:directory:_directories'
+      '(-T --no-target-directory)'{-T,--no-target-directory}'[treat final argument as a normal file]'
+      '(-u --update)'{-u,--update}'[move only when destination file is older or missing]'
+      '(-v --verbose)'{-v,--verbose}'[show file names after they are moved]'
+      '(- *)--help[display usage information]'
+      '(- *)--version[display version information]'
+    )
+    [[ $OSTYPE = linux* ]] && args+=(
+      '(-Z --context)'{-Z,--context}'[set SELinux security context of destination file to default type]'
+    )
+    ;;
+  *)
+    args=(
+      "(-i -n)-f[don't prompt before overwriting]"
+      '(-f -n)-i[prompt before overwriting existing file]'
+    )
+    ;|
+  darwin*|dragonfly*|freebsd*)
+    args+=(
+      "(-f -i)-n[don't overwrite existing file]"
+    )
+    ;|
+  darwin*|dragonfly*|*bsd*)
+    args+=(
+      '-v[show file names after they are moved]'
+    )
+    ;|
+  dragonfly*|freebsd*)
+    args+=(
+      "-h[if target is a symlink to a directory, don't follow it]"
+    )
+    ;;
+esac
+
+_arguments -s -S $aopts $args \
+  '*: :_files'

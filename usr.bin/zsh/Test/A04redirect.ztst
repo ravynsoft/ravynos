@@ -1,0 +1,724 @@
+# Tests corresponding to the `Redirection' texinfo node.
+
+%prep
+  mkdir redir.tmp && cd redir.tmp
+
+  myfd=99
+  (echo >&$myfd) 2>msg
+  bad_fd_msg="${$(<msg)##*:}"
+
+%test
+
+  print 'This is file redir' >redir  &&  cat redir
+0:'>' and '<' redirection
+>This is file redir
+
+  rm -f redir
+  print 'This is still file redir' <>redir >&0  &&  cat <>redir
+0:'<>' redirection
+>This is still file redir
+
+  rm -f redir
+  print 'With a bar' >|redir  &&  cat redir
+0:'>|' redirection
+>With a bar
+
+  rm -f redir
+  print 'With a bang' >!redir  &&  cat redir
+0:'>!' redirection
+>With a bang
+
+  rm -f redir
+  print 'Line 1' >>redir  &&  print 'Line 2' >>redir  &&  cat redir
+0:'>>' redirection
+>Line 1
+>Line 2
+
+  rm -f redir
+  print 'Line a' >>|redir  &&  print 'Line b' >>!redir
+0:'>>|' and '>>!' redirection
+
+  foo=bar
+  cat <<'  HERE'
+  $foo
+  HERE
+  eval "$(print 'cat <<HERE\n$foo\nHERE')"
+0:Here-documents
+>  $foo
+>bar
+
+  cat <<-HERE
+# note tabs at the start of the following lines
+	$foo$foo
+	HERE
+0:Here-documents stripping tabs
+>barbar
+
+  cat <<-$'$HERE '`$(THERE) `'$((AND)) '"\EVERYWHERE" #
+# tabs again.  sorry about the max miller.
+	Here's a funny thing.  Here is a funny thing.
+	I went home last night.  There's a funny thing.
+	Man walks into a $foo.  Ouch, it's an iron $foo.
+	$HERE `$(THERE) `$((AND)) \EVERYWHERE
+0:Here-documents don't perform shell expansion on the initial word
+>Here's a funny thing.  Here is a funny thing.
+>I went home last night.  There's a funny thing.
+>Man walks into a $foo.  Ouch, it's an iron $foo.
+
+  cat <<-$'\x45\x4e\x44\t\x44\x4f\x43'
+# tabs again
+	This message is unfathomable.
+	END	DOC
+0:Here-documents do perform $'...' expansion on the initial word
+>This message is unfathomable.
+
+  cat <<<"This is a line with a $foo in it"
+0:'<<<' redirection
+>This is a line with a bar in it
+
+  cat <<<$'a\nb\nc'
+0:here-strings with $'...' quoting
+>a
+>b
+>c
+
+# The following tests check that output of parsed here-documents works.
+# This isn't completely trivial because we convert the here-documents
+# internally to here-strings.  So we check again that we can output
+# the reevaluated here-strings correctly.  Hence there are three slightly
+# different stages.  We don't care how the output actually looks, so
+# we don't test that.
+  heretest() {
+    print First line
+    cat <<-HERE
+	$foo$foo met celeste  'but with extra'  "stuff to test quoting"
+	HERE
+    print Last line
+  }
+  heretest
+  eval "$(functions heretest)"
+  heretest
+  eval "$(functions heretest)"
+  heretest
+0:Re-evaluation of function output with here document, unquoted
+>First line
+>barbar met celeste  'but with extra'  "stuff to test quoting"
+>Last line
+>First line
+>barbar met celeste  'but with extra'  "stuff to test quoting"
+>Last line
+>First line
+>barbar met celeste  'but with extra'  "stuff to test quoting"
+>Last line
+
+  heretest() {
+    print First line
+    cat <<'    HERE'
+    $foo$foo met celeste  'but with extra'  "stuff to test quoting"\
+    HERE
+    print Last line
+  }
+  heretest
+  eval "$(functions heretest)"
+  heretest
+  eval "$(functions heretest)"
+  heretest
+0:Re-evaluation of function output with here document, quoted
+>First line
+>    $foo$foo met celeste  'but with extra'  "stuff to test quoting"\
+>Last line
+>First line
+>    $foo$foo met celeste  'but with extra'  "stuff to test quoting"\
+>Last line
+>First line
+>    $foo$foo met celeste  'but with extra'  "stuff to test quoting"\
+>Last line
+
+  read -r line <<'  HERE'
+  HERE
+1:No input, not even newline, from empty here document.
+
+  heretest() {
+    print First line
+    cat <<-HERE
+	$foo\
+	$foo
+	some\
+	stuff
+	to\
+  test
+	tab\stripping
+	HERE
+    print Last line
+  }
+  heretest
+  eval "$(functions heretest)"
+  heretest
+  eval "$(functions heretest)"
+  heretest
+0:Line continuation in here-document with unquoted delimiter
+>First line
+>bar	bar
+>some	stuff
+>to  test
+>tab\stripping
+>Last line
+>First line
+>bar	bar
+>some	stuff
+>to  test
+>tab\stripping
+>Last line
+>First line
+>bar	bar
+>some	stuff
+>to  test
+>tab\stripping
+>Last line
+
+  heretest() {
+    print First line
+    cat <<-HERE
+	$foo\\
+	$foo
+	some\\ \
+	stuff
+	to\
+  test \\
+	more backslash craziness\\\\\\\\\
+	wild
+	HERE
+    print Last line
+  }
+  heretest
+0:No line continuation in here-document on escaped backslash
+>First line
+>bar\
+>bar
+>some\ 	stuff
+>to  test \
+>more backslash craziness\\\\	wild
+>Last line
+
+  #
+  # exec tests: perform these in subshells so if they fail the
+  # shell won't exit.
+  #
+  (exec 3>redir  &&  print hello >&3  &&  print goodbye >&3  && cat redir)
+0:'>&' redirection
+>hello
+>goodbye
+
+  (exec 3<redir && read foo <&3 && print $foo && read foo <&3 && print $foo)
+0:'<&' redirection
+>hello
+>goodbye
+
+  ({exec 3<&- } 2>/dev/null
+   exec 3<&-
+   read foo <&-)
+1:'<&-' redirection with numeric fd (no error message on failure)
+
+  (exec {varid}<&0
+  exec {varid}<&-
+  print About to close a second time >&2
+  read {varid}<&-)
+1:'<&-' redirection with fd in variable (error message on failure)
+?About to close a second time
+*?\(eval\):*: failed to close file descriptor *
+
+  eval $'fn-varid() { print {\x18}<<0 }'
+  { which -x2 fn-varid; fn-varid } | tr $'\x18' '?'
+0:Regression test for off-by-one in varid check
+>fn-varid () {
+>  print {?} <<0
+>0
+>}
+>{?}
+
+  print foo >&-
+0:'>&-' redirection
+
+  (exec >&-
+  print foo)
+0:'>&-' with attempt to use closed fd
+*?\(eval\):2: write error:*
+
+  fn() { local foo; read foo; print $foo; }
+  coproc fn
+  print test output >&p
+  read bar <&p
+  print $bar
+0:'>&p' and '<&p' redirection
+>test output
+
+  ( print Output; print Error >& 2 ) >&errout  &&  cat errout
+0:'>&FILE' handling
+>Output
+>Error
+
+  rm -f errout
+  ( print Output2; print Error2 >& 2 ) &>errout  &&  cat errout
+0:'&>FILE' handling
+>Output2
+>Error2
+
+  rm -f errout
+  ( print Output3; print Error3 >& 2 ) >&|errout  &&  cat errout
+  ( print Output4; print Error4 >& 2 ) >&!errout  &&  cat errout
+  ( print Output5; print Error5 >& 2 ) &>|errout  &&  cat errout
+  ( print Output6; print Error6 >& 2 ) &>!errout  &&
+  ( print Output7; print Error7 >& 2 ) >>&errout  &&
+  ( print Output8; print Error8 >& 2 ) &>>errout  &&
+  ( print Output9; print Error9 >& 2 ) >>&|errout  &&
+  ( print Output10; print Error10 >& 2 ) &>>|errout  &&
+  ( print Output11; print Error11 >& 2 ) >>&!errout  &&
+  ( print Output12; print Error12 >& 2 ) &>>!errout  &&  cat errout
+0:'>&|', '>&!', '&>|', '&>!' redirection
+>Output3
+>Error3
+>Output4
+>Error4
+>Output5
+>Error5
+>Output6
+>Error6
+>Output7
+>Error7
+>Output8
+>Error8
+>Output9
+>Error9
+>Output10
+>Error10
+>Output11
+>Error11
+>Output12
+>Error12
+
+  rm -f errout
+  ( print Output; print Error 1>&2 ) 1>errout 2>&1  && cat errout
+0:'Combining > with >& (1)'
+>Output
+>Error
+
+  rm -f errout
+  ( print Output; print Error 1>&2 ) 2>&1 1>errout   &&  print errout:  &&
+  cat errout
+0:'Combining > with >& (2)'
+>Error
+>errout:
+>Output
+
+  rm -f errout
+  print doo be doo be doo >foo >bar 
+  print "foo: $(<foo)\nbar: $(<bar)"
+0:2-file multio
+>foo: doo be doo be doo
+>bar: doo be doo be doo
+
+  rm -f foo bar
+  print dont be dont be dont >foo | sed 's/dont/wont/g' >bar
+0:setup file+pipe multio
+
+  print "foo: $(<foo)\nbar: $(<bar)"
+0:read file+pipe multio
+>foo: dont be dont be dont
+>bar: wont be wont be wont
+
+  rm -f *
+  touch out1 out2
+  print All files >*
+  print *
+  print "out1: $(<out1)\nout2: $(<out2)"
+0:multio with globbing
+>out1 out2
+>out1: All files
+>out2: All files
+
+  print This is out1 >out1
+  print This is out2 >out2
+0:setup multio for input
+
+# Currently, <out{1,2} doesn't work: this is a bug.
+  cat <out*
+0:read multio input
+>This is out1
+>This is out2
+
+  cat out1 | sed s/out/bout/ <out2
+0:read multio input with pipe
+>This is bout1
+>This is bout2
+
+  unset NULLCMD
+  >out1
+1:null redir with NULLCMD unset
+?(eval):2: redirection with no command
+
+  echo this should still work >out1
+  print "$(<out1)"
+0:null redir in $(...) with NULLCMD unset
+>this should still work
+
+  READNULLCMD=cat
+  print cat input >out1
+  <out1
+1:READNULLCMD with NULLCMD unset
+?(eval):3: redirection with no command
+
+  NULLCMD=:
+  >out1
+  [[ ! -s out1 ]] || print out1 is not empty
+0:null redir with NULLCMD=:
+<input
+
+  print cat input >out1
+  <out1
+0:READNULLCMD
+>cat input
+
+  NULLCMD=cat
+  >out1
+  cat out1
+0:null redir with NULLCMD=cat
+<input
+>input
+
+  (myfd=
+  exec {myfd}>logfile
+  if [[ -z $myfd ]]; then
+    print "Ooops, failed to set myfd to a file descriptor." >&2
+  else
+    print This is my logfile. >&$myfd
+    print Examining contents of logfile...
+    cat logfile
+  fi)
+0:Using {fdvar}> syntax to open a new file descriptor
+>Examining contents of logfile...
+>This is my logfile.
+
+  (setopt noclobber
+   exec {myfd}>logfile2
+   echo $myfd
+   exec {myfd}>logfile3) | read myfd
+  (( ! ${pipestatus[1]} ))
+1q:NO_CLOBBER prevents overwriting parameter with allocated fd
+?(eval):4: can't clobber parameter myfd containing file descriptor $myfd
+
+  (setopt noclobber
+   exec {myfd}>logfile2b
+   print First open >&$myfd
+   rm -f logfile2b # prevent normal file no_clobberation
+   myotherfd="${myfd}+0"
+   exec {myotherfd}>logfile2b
+   print Overwritten >&$myotherfd)
+   cat logfile2b
+0:NO_CLOBBER doesn't complain about any other expression
+>Overwritten
+
+  (exec {myfd}>logfile4
+  echo $myfd
+  exec {myfd}>&-
+  print This message should disappear >&$myfd) | read myfd
+  (( ! ${pipestatus[1]} ))
+1q:Closing file descriptor using brace syntax
+?(eval):4: $myfd:$bad_fd_msg
+
+  typeset -r myfd
+  echo This should not appear {myfd}>nologfile
+1:Error opening file descriptor using readonly variable
+?(eval):2: can't allocate file descriptor to readonly parameter myfd
+
+  (typeset +r myfd
+  exec {myfd}>newlogfile
+  typeset -r myfd
+  exec {myfd}>&-)
+1:Error closing file descriptor using readonly variable
+?(eval):4: can't close file descriptor from readonly parameter myfd
+
+# This tests the here-string to filename optimisation; we can't
+# test that it's actually being optimised, but we can test that it
+# still works.
+  cat =(<<<$'This string has been replaced\nby a file containing it.')
+0:Optimised here-string to filename
+>This string has been replaced
+>by a file containing it.
+
+  print This f$'\x69'le contains d$'\x61'ta. >redirfile
+  print redirection:
+  cat<redirfile>outfile
+  print output:
+  cat outfile
+  print append:
+  cat>>outfile<redirfile
+  print more output:
+  cat outfile
+0:Parsing of redirection operators (no space required before operators)
+>redirection:
+>output:
+>This file contains data.
+>append:
+>more output:
+>This file contains data.
+>This file contains data.
+
+  $ZTST_testdir/../Src/zsh -fc 'exec >/nonexistent/nonexistent
+  echo output'
+0:failed exec redir, no POSIX_BUILTINS
+>output
+?zsh:1: no such file or directory: /nonexistent/nonexistent
+
+  $ZTST_testdir/../Src/zsh -f -o POSIX_BUILTINS -c '
+  exec >/nonexistent/nonexistent
+  echo output'
+1:failed exec redir, POSIX_BUILTINS
+?zsh:2: no such file or directory: /nonexistent/nonexistent
+
+  $ZTST_testdir/../Src/zsh -f -o POSIX_BUILTINS -c '
+  set >/nonexistent/nonexistent
+  echo output'
+1:failed special builtin redir, POSIX_BUILTINS
+?zsh:2: no such file or directory: /nonexistent/nonexistent
+
+  $ZTST_testdir/../Src/zsh -f -o POSIX_BUILTINS -c '
+  command set >/nonexistent/nonexistent
+  echo output'
+0:failed special builtin redir with command prefix, POSIX_BUILTINS
+>output
+?zsh:2: no such file or directory: /nonexistent/nonexistent
+
+  $ZTST_testdir/../Src/zsh -f -o POSIX_BUILTINS -c '
+  echo >/nonexistent/nonexistent
+  echo output'
+0:failed unspecial builtin redir, POSIX_BUILTINS
+>output
+?zsh:2: no such file or directory: /nonexistent/nonexistent
+
+  $ZTST_testdir/../Src/zsh -f -o POSIX_BUILTINS -c '
+  . /nonexistent/nonexistent
+  echo output'
+1:failed dot, POSIX_BUILTINS
+?zsh:.:2: no such file or directory: /nonexistent/nonexistent
+
+  $ZTST_testdir/../Src/zsh -f -c '
+  . /nonexistent/nonexistent
+  echo output'
+0:failed dot, NO_POSIX_BUILTINS
+>output
+?zsh:.:2: no such file or directory: /nonexistent/nonexistent
+
+  $ZTST_testdir/../Src/zsh -f -o CONTINUE_ON_ERROR <<<'
+  readonly foo
+  foo=bar set output
+  echo output'
+0:failed assignment on posix special, CONTINUE_ON_ERROR
+>output
+?zsh: read-only variable: foo
+
+  $ZTST_testdir/../Src/zsh -f <<<'
+  readonly foo
+  foo=bar set output
+  echo output'
+1:failed assignment on posix special, NO_CONTINUE_ON_ERROR
+?zsh: read-only variable: foo
+
+  $ZTST_testdir/../Src/zsh -f -o CONTINUE_ON_ERROR <<<'
+  readonly foo
+  foo=bar echo output
+  echo output'
+0:failed assignment on non-posix-special, CONTINUE_ON_ERROR
+>output
+?zsh: read-only variable: foo
+
+  [</dev/null ]
+1:check behaviour with square brackets
+
+  print any old rubbish >input1
+  () {
+    local var
+    read var
+    print I just read $var
+  } <input1 >output1
+  print Nothing output yet
+  cat output1
+0:anonymous function redirections are applied immediately
+>Nothing output yet
+>I just read any old rubbish
+
+  print you cannot be serious >input1
+  () {
+    local var
+    read var
+    print $1 $var $2
+  } <input1 Shirley >output1 dude
+  print Nothing output yet
+  cat output1
+0:anonymous function redirections mixed with argument
+>Nothing output yet
+>Shirley you cannot be serious dude
+
+  redirfn() {
+    local var
+    read var
+    print I want to tell you about $var
+    print Also, this might be an error >&2
+  } <input2 >output2 2>&1
+  print something I heard on the radio >input2
+  redirfn
+  print No output until after this
+  cat output2
+0:redirections with normal function definition
+>No output until after this
+>I want to tell you about something I heard on the radio
+>Also, this might be an error
+
+  which redirfn
+0:text output of function with redirections
+>redirfn () {
+>	local var
+>	read var
+>	print I want to tell you about $var
+>	print Also, this might be an error >&2
+>} < input2 > output2 2>&1
+
+  1func 2func 3func() { print Ich heisse $0 } >output3
+  for i in 1 2 3; do
+    f=${i}func
+    print Running $f
+    $f
+    cat output3
+    unfunction $f
+  done
+0:multiply named functions with redirection
+>Running 1func
+>Ich heisse 1func
+>Running 2func
+>Ich heisse 2func
+>Running 3func
+>Ich heisse 3func
+
+  redirfn2() { print The latest output; } >&3
+  redirfn2 3>output4
+  print No output yet
+  cat output4
+0:Redirections in both function definition and command line
+>No output yet
+>The latest output
+
+# This relies on the fact that the test harness always loads
+# the zsh/parameter module.
+  print $functions[redirfn]
+0:Output from $functions[] for definition with redirection
+>{
+>	local var
+>	read var
+>	print I want to tell you about $var
+>	print Also, this might be an error >&2
+>} < input2 > output2 2>&1
+
+  noredirfn() { print This rather boring function has no redirection.; }
+  print $functions[noredirfn]
+0:Output from $functions[] for definition with no redirection
+>	print This rather boring function has no redirection.
+
+  (x=43
+   x=$(print This should appear, really >&2; print Not used) exec >test.log
+   print x=$x)
+   cat test.log
+0:Assignment with exec used for redirection: no POSIX_BUILTINS
+>x=43
+?This should appear, really
+
+  (setopt POSIX_BUILTINS
+   x=45
+   x=$(print This should appear, too >&2; print And this) exec >test.log
+   print x=$x)
+   cat test.log
+0:Assignment with exec used for redirection: POSIX_BUILTINS
+>x=And this
+?This should appear, too
+
+  fn-two-heres() {
+# tabs below
+    cat <<-x <<-y
+	foo
+	x
+	bar
+	y
+  }
+  which -x2 fn-two-heres
+  fn-two-heres
+  eval "$(which -x2 fn-two-heres)"
+  fn-two-heres
+  print $functions[fn-two-heres]
+0:Two here-documents in a line are shown correctly.
+>fn-two-heres () {
+>  cat <<x <<y
+>foo
+>x
+>bar
+>y
+>}
+>foo
+>bar
+>foo
+>bar
+>	cat <<x <<y
+>foo
+>x
+>bar
+>y
+
+  fn-here-pipe() {
+    cat <<-HERE |& cat
+	FOO
+	HERE
+  }
+  fn-here-pipe
+  which fn-here-pipe
+0:Combination of HERE-document and |&
+>FOO
+>fn-here-pipe () {
+>	cat <<HERE 2>&1 | cat
+>FOO
+>HERE
+>}
+
+  a=b 2>/dev/null c=d
+  print $a
+  print $c
+0:Redirect in the middle of assignments
+>b
+>d
+
+  (umask 0777
+  cat <<'  HERE'
+  look ma, no permissions
+  HERE
+  cat <<<"it's a miracle"
+  )
+0:Here-{string,document}s succeed with restrictive umask
+>  look ma, no permissions
+>it's a miracle
+
+  exec {testfd}<<'  HERE'
+  This is, in some sense, a here document.
+  HERE
+  cat <&$testfd
+0:Regression test for here document with fd declarator
+>  This is, in some sense, a here document.
+
+  (setopt noclobber clobberempty
+  rm -f foo
+  touch foo
+  print Works >foo
+  cat foo
+  print Works not >foo
+  # Make sure the file was not harmed
+  cat foo
+  )
+0:CLOBBER_EMPTY
+>Works
+>Works
+?(eval):6: file exists: foo

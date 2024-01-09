@@ -1,0 +1,29 @@
+#compdef portsnap
+
+local curcontext="$curcontext" state line flags
+typeset -A opt_args
+
+flags=(
+  '(cron)fetch[fetch a compressed snapshot or update existing one]'
+  '(fetch)cron[sleep rand(3600) seconds, and then fetch updates]'
+  '(update)extract[extract snapshot, replacing existing files and dirs]'
+  '(extract)update[update ports tree to match current snapshot]'
+)
+
+_arguments -C -s \
+    '-d[store working files in workdir]:workdir:_files -/' \
+    '-f[read configuration options from conffile]:conf file:_files' \
+    '-I[update INDEX only. (update command only)]' \
+    '-k[trust an RSA key with SHA256 hash of KEY]:RSA key:_files' \
+    '-l[merge the specified local describes file into the INDEX]:file:_files' \
+    '-p[location of uncompressed ports tree]:uncompressed ports tree:_files -/' \
+    '-s[server from which to fetch updates]:server:_hosts' \
+    '*:principal:->principal' && ret=0
+
+if [[ $state == principal ]]; then
+  _alternative \
+    ':file flag:_values -S " " -w "commands" $flags[@]' \
+    '*:path:_files -/'
+fi
+
+return ret
