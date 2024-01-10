@@ -2705,6 +2705,7 @@ bootstrap-tools: ${_bt}-links .PHONY
     ${_mkesdb} \
     ${_migcom} \
     ${_zic} \
+    usr.bin/nasm \
     ${LOCAL_BSTOOL_DIRS}
 ${_bt}-${_tool}: ${_bt}-links .PHONY .MAKE
 	${_+_}@${ECHODIR} "===> ${_tool} (obj,all,install)"; \
