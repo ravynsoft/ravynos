@@ -1,0 +1,160 @@
+Changes in TIFF v3.7.1
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.7.1 (:tag:`Release-v3-7-1`)
+  Previous Version        :doc:`v3.7.0 <v3.7.0>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Major changes
+-------------
+
+* This is mostly bugfix release. Most important fix is the one
+  related to wrong custom tag read/write code.
+
+
+Software configuration changes
+------------------------------
+
+* :file:`autogen.sh`: :program:`aclocal` and :program:`autoheader`
+  should be executed after :program:`libtoolize`.
+  Also add ``-I .`` to aclocal invocation to check
+  current directory for macros.
+
+* nmake.opt: Link with the :file:`user32.lib` in windowed mode. As per bug
+  :bugzilla-rs:`697`
+
+* :file:`nmake.opt`, :file:`makefile.vc`: make it easier to rename the libtiff DLL.
+
+* :file:`configure`, :file:`configure.ac`: Added ``--enable-rpath`` option to embed
+  linker paths into library binary.
+
+
+Library changes
+---------------
+
+* :file:`tiff.h`: Revert back libtiff data type definitions as per
+  bug :bugzilla-rs:`687`
+
+* :file:`tif_dirread.c`: Do not forget about :c:macro:`TIFF_VARIABLE2` when
+  checking for tag count in :c:func:`TIFFReadDirectory` function. As per bug
+  :bugzilla-rs:`713`
+
+* :file:`tif_getimage.c`: Support for multiple-alpha-channelled
+  RGB-images as per bug
+  :bugzilla-rs:`718`
+
+* :file:`tif_getimage.c`: ``#define A1`` bracketing for clean build on
+  SunPro compiler.
+
+* :file:`tif_dirwrite.c`: Always write :c:macro:`TIFFTAG_SUBIFD` using ``LONG`` type
+  as per bugs
+  :bugzilla-rs:`703` and
+  :bugzilla-rs:`704`.
+
+* :file:`tif_win32.c`: Use :c:expr:`char*` strings instead of :c:type:`TCHAR` in windowed
+  mode as per bug
+  :bugzilla-rs:`697`
+
+* :file:`tif_dir.c`, :file:`tif_dirread.c`: Remove :c:func:`TIFFReassignTagToIgnore`
+  call from the :c:func:`TIFFReadDirectory` function. :c:func:`TIFFReassignTagToIgnore`
+  must be removed in the future, as it was never used properly. As per
+  bug :bugzilla-rs:`692`
+
+* :file:`tif_jpeg.c`: Added a work-around in order to allow
+  compilation with the heavily modified version of libjpeg delivered
+  with Cygwin.
+
+* :file:`tif_dir.c`: Properly handle tags, which have the :c:type:`uint32`
+  counts. As per bug
+  :bugzilla-rs:`693`
+
+* :file:`tif_unix.c`: Make UNIX module compilable (and usable)
+  on Windows.
+
+* :file:`tiff.h`: Added Adobe DNG tags.
+
+* :file:`tif_aux.c`: Set the appropriate ``ReferenceBlackWhite`` array for
+  YCbCr image which lacks that tag (noted by Hans Petter Selasky).
+
+* :file:`tif_color.c`: Division by zero fixed (Hans Petter Selasky).
+
+* :file:`tif_stream.cxx`, :file:`tiffio.h`: Added C++ stream interface
+  contributed by Edward Lam (see
+  :bugzilla-rs:`654`
+  for details). Those who want to use C++ streams should
+  ``#include <tiffio.hxx>``.
+
+* :file:`tif_open.c`: Removed :c:func:`close` in :c:func:`TIFFClientOpen` if file
+  is bad. This is the callers responsibility.
+  :bugzilla-rs:`651`
+
+* :file:`tiffio.h`, :file:`tif_win32.c`, :file:`libtiff.def`: Added :c:func:`TIFFOpenW`
+  function to work with the double byte strings (used to represent
+  filenames in some locales). As per bug
+  :bugzilla-rs:`625`
+
+* :file:`tif_dirread.c`: Fixed problem when fetching ``BitsPerSample`` and
+  ``Compression`` tags of type ``LONG`` from broken TIFFs as per bug
+  :bugzilla-rs:`662`
+
+* :file:`tif_dirinfo.c`: Fixed definition for ``TIFFTAG_RICHTIFFIPTC``,
+  the writecount should have :c:type:`uint32` type. As per bug
+  :bugzilla-rs:`662`
+
+* :file:`tif_write.c`: Fixed wrong ``if()`` statement in
+  :c:func:`TIFFAppendToStrip` function as per bug
+  :bugzilla-rs:`660`
+
+* :file:`tif_dirinfo.c`: Change definition for ``TIFFTAG_EXTRASAMPLES``
+  field. The caller should supply a count when setting this field. As
+  per bug :bugzilla-rs:`648`. 
+
+* :file:`tif_jpeg.c`, :file:`tif_ojpeg.c`: ``TIFFTAG_JPEGTABLES`` should have
+  uint32 count. Use this type everywhere.
+
+* :file:`tif_next.c`: avoid use of :c:type:`u_long` and :c:type:`u_char` types.
+
+* :file:`tif_fax3.c`: Fixed case with the wrong decode routines
+  choosing when the incorrect ``Group4Options`` tag set. As per bug
+  :bugzilla-rs:`323`
+
+* :file:`tif_dirwrite.c`: Fixed problem with passing count variable of
+  wrong type when writing the :c:macro:`TIFF_BYTE`/:c:macro:`TIFF_SBYTE` tags in
+  :c:func:`TIFFWriteNormalTag`.
+
+* :file:`tif_compress.c`: Zero division problem fixed (Vladimir Nadvornik,
+  Dmitry V. Levin).
+
+
+Tools changes
+-------------
+
+* :file:`fax2ps.c`: Be able to extract the first page (#0). As per bug
+  :bugzilla-rs:`690`
+
+* :file:`tiff2ps.c`: Fixed wrong variable data type when read ``Position``
+  tags (Tristan Hill).
+
+* :file:`tiff2ps.c`: Fixed wrong variable data type when read ``Resolution``
+  tags (Peter Fales).
+
+* :file:`tiffset.c`: Check the :c:func:`malloc` return value (Dmitry V. Levin).
+
+
+Contributed software changes
+----------------------------
+
+* None.

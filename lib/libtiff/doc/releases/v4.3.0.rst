@@ -1,0 +1,85 @@
+Changes in TIFF v4.3.0
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.3.0 (:tag:`v4.3.0`)
+    Previous Version        :doc:`v4.2.0 <v4.2.0>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site #1     `<http://www.simplesystems.org/libtiff/>`_
+    Master HTTP Site #2     `<https://libtiff.gitlab.io/libtiff/>`_
+    Master HTTP Site #3     `<http://libtiff.maptools.org/>`_
+    ======================  ==========================================
+
+This document provides a summary of significant changes made to the
+software between the *previous* and *current* versions (see
+above). A fully-detailed change summary is provided by the :file:`ChangeLog` file
+included in the release package and by the Git commit history:
+
+Major changes
+-------------
+
+* Build and usage of the library and its utilities requires a C99 capable
+  compiler.
+
+* New optional codec for the LERC (Limited Error Raster Compression) compression scheme.
+  To have it available, configure libtiff against the SDK available at
+  `<https://github.com/esri/lerc>`_
+
+* CMake build: revamp of build scripts
+
+Software configuration changes
+------------------------------
+
+* cmake: revamp of the cmake build scripts. There are impacts on the case of
+  some options.
+
+* cmake: update minimum version and policy version to 3.9.
+
+* Remove NMake build support. The functionality provided by the NMake build
+  is now completely superseded by the CMake build.
+
+* Remove antiquated Scons and makefile.lcc build support.
+
+* Remove non-functional VMS and WinCE support.
+
+* :file:`autogen.sh` now updates :file:`config.guess` and :file:`config.sub` from master gnulib version.
+
+Library changes
+---------------
+
+* Use of :c:type:`int8`, :c:type:`uint8`, :c:type:`int16`, :c:type:`uint16`,
+  :c:type:`int32`, :c:type:`uint32`, :c:type:`int64`, :c:type:`uint64`
+  typedefs is now deprecated. libtiff code and headers no longer use them,
+  and use their C99 standard equivalents (with ``_t`` suffix). Those typedefs
+  are still available, with deprecation warnings, but external code is strongly
+  encouraged to use the corresponding C99 :file:`stdint.h` types. The deprecated
+  types might be removed in a future release.
+
+* Removal of unused, or now useless due to C99 availability, functions in :file:`port/`
+
+* A few issues spotted by static code analysis tools fixed. Compiler
+  warnings addressed.
+
+Tools changes
+-------------
+
+* In usage text, insert a line of text summarizing each tool's purpose
+
+* tiff tools: made display of compression methods and their parameters
+  conditional on their actual availability
+
+* :program:`tiff2ps`: exit the loop in case of error (#232)
+
+* :program:`tiff2pdf`: check that tiff_datasize fits in a signed :c:type:`tsize_t` (#202)
+
+* :program:`tiffsplit`: exit with :c:macro:`EXIT_FAILURE` if there are extra args on the command line
+
+* :program:`tiffcmp`: fix comparaison with pixels that are fractional number of bytes (#53)
+
+Contributed software changes
+----------------------------
+
+* :file:`iptcutil.c` - set ``#ifdef _WIN32`` (was ``#ifdef WIN32``, which failed at build time)

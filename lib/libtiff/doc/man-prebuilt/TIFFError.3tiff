@@ -1,0 +1,155 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "TIFFERROR" "3tiff" "Sep 08, 2023" "4.6" "LibTIFF"
+.SH NAME
+TIFFError \- library error handling interface
+.SH SYNOPSIS
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <tiffio.h>
+#include <stdarg.h>
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void  TIFFError(const  char  *module, const  char  *fmt, \&...) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void  TIFFErrorExt(thandle_t  fd, const  char  *module, const  char  *fmt, \&...) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void  TIFFErrorExtR(TIFF  *tif, const  char  *module, const  char  *fmt, \&...) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B typedef  void  (*TIFFErrorHandler)(const  char  *module,  const  char  *fmt,  va_list  ap) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B typedef  void  (*TIFFErrorHandlerExt)(thandle_t  fd,  const  char  *module,  const  char  *fmt,  va_list  ap) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B typedef  int  (*TIFFErrorHandlerExtR)(TIFF  *tif,  void  *user_data,  const  char  *module,  const  char  *fmt,  va_list  ap) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \fI\%TIFFErrorHandler\fP  TIFFSetErrorHandler(\fI\%TIFFErrorHandler\fP  handler) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \fI\%TIFFErrorHandlerExt\fP  TIFFSetErrorHandlerExt(\fI\%TIFFErrorHandlerExt\fP  handler) 
+.UNINDENT
+.SH DESCRIPTION
+.sp
+\fI\%TIFFError()\fP invokes the library\-wide error handler function
+to (normally) write an error message to \fBstderr\fP\&.
+The \fIfmt\fP parameter is a \fBprintf()\fP format string, and any number
+arguments can be supplied. The \fImodule\fP parameter is interpreted as a
+string that, if non\-zero, should be printed before the message; it
+typically is used to identify the software module in which an error is
+detected.
+.sp
+Applications that desire to capture control in the event of an error
+should use \fI\%TIFFSetErrorHandler()\fP to override the default
+error handler. A \fBNULL\fP (0) error handler function may be
+installed to suppress error messages.
+.sp
+Two more application\-specific error handler callbacks are available,
+each with different call parameters and passing parameters to the handler.
+Each handler is also linked with an error message function, i.e.
+\fI\%TIFFErrorExt()\fP and \fI\%TIFFErrorExtR()\fP if the application
+intends to call the handler with those extended parameters.
+.sp
+\fI\%TIFFErrorExt()\fP  provides a file handle as parameter.
+Within \fBlibtiff\fP \fI\%TIFFErrorExt()\fP is called passing \fBtif\->tif_clientdata\fP
+as \fIfd\fP, which represents the TIFF file handle (file descriptor).
+The application\-specific and library\-wide handler for \fI\%TIFFErrorExt()\fP
+is setup with \fI\%TIFFSetErrorHandlerExt()\fP\&.
+.sp
+\fI\%TIFFErrorExtR()\fP (introduced with libtiff 4.5) is called with its
+TIFF handle and thus provides access to a per\-TIFF handle (re\-entrant)
+error handler. That means for different TIFF handles, different error
+handlers can be setup. This application\-specific handler
+can be setup when a TIFF file is opened with one of the following functions:
+\fI\%TIFFOpenExt()\fP, \fI\%TIFFOpenWExt()\fP, \fI\%TIFFFdOpenExt()\fP
+or \fI\%TIFFClientOpenExt()\fP\&.
+Furthermore, a \fBcustom defined data structure\fP \fIuser_data\fP for the
+error handler can be given along.
+.SH NOTE
+.sp
+Both functions \fI\%TIFFError()\fP and \fI\%TIFFErrorExt()\fP
+each attempt to call both handler functions if they are defined.
+First \fI\%TIFFErrorHandler()\fP is called and then \fI\%TIFFErrorHandlerExt()\fP\&.
+However, \fI\%TIFFError()\fP passes a “0” as a file handle to
+\fI\%TIFFErrorHandlerExt()\fP\&.
+.sp
+\fI\%TIFFErrorExtR()\fP tries first to call the per\-TIFF handle defined
+error handler. If \fI\%TIFFErrorHandlerExtR()\fP is not defined or
+returns 0, \fI\%TIFFErrorHandler()\fP and then \fI\%TIFFErrorHandlerExt()\fP
+are called. From libtiff 4.5 onwards \fI\%TIFFErrorExtR()\fP is used
+within the \fBlibtiff\fP library where the TIFF handle is available.
+Otherwise, \fI\%TIFFErrorExt()\fP is used!
+.SH RETURN VALUES
+.sp
+\fI\%TIFFSetErrorHandler()\fP and \fI\%TIFFSetErrorHandlerExt()\fP
+returns a reference to the previous error handler function.
+.sp
+\fI\%TIFFErrorHandlerExtR()\fP returns an integer as “stop” to control the call
+of further error handler functions within \fI\%TIFFErrorExtR()\fP:
+.INDENT 0.0
+.INDENT 3.5
+.INDENT 0.0
+.IP \(bu 2
+0: both functions \fI\%TIFFErrorHandler()\fP and \fI\%TIFFErrorHandlerExt()\fP are called.
+.IP \(bu 2
+non\-zero: no further error message function is called.
+.UNINDENT
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fI\%TIFFWarning\fP (3tiff),
+\fI\%TIFFOpen\fP (3tiff),
+\fI\%libtiff\fP (3tiff),
+printf (3)
+.SH AUTHOR
+LibTIFF contributors
+.SH COPYRIGHT
+1988-2022, LibTIFF contributors
+.\" Generated by docutils manpage writer.
+.

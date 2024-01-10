@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFFquery &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFReadDirectory" href="TIFFReadDirectory.html" />
+    <link rel="prev" title="TIFFProcFunctions" href="TIFFProcFunctions.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFReadDirectory.html" title="TIFFReadDirectory"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TIFFProcFunctions.html" title="TIFFProcFunctions"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFquery</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffquery">
+<h1>TIFFquery<a class="headerlink" href="#tiffquery" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+</pre></div>
+</div>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFCurrentDirectory">
+<span class="n"><span class="pre">tdir_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCurrentDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFCurrentDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFCurrentDirOffset">
+<span class="n"><span class="pre">uint64_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCurrentDirOffset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFCurrentDirOffset" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFLastDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFLastDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFLastDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFNumberOfDirectories">
+<span class="n"><span class="pre">tdir_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFNumberOfDirectories</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFNumberOfDirectories" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFCurrentRow">
+<span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCurrentRow</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFCurrentRow" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFCurrentStrip">
+<span class="n"><span class="pre">tstrip_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCurrentStrip</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFCurrentStrip" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFCurrentTile">
+<span class="n"><span class="pre">ttile_t</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCurrentTile</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFCurrentTile" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFFileno">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFFileno</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFFileno" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFFileName">
+<span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFFileName</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFFileName" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFGetMode">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFGetMode</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFGetMode" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFIsTiled">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFIsTiled</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFIsTiled" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFIsBigEndian">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFIsBigEndian</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFIsBigEndian" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFIsBigTIFF">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFIsBigTIFF</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFIsBigTIFF" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFIsByteSwapped">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFIsByteSwapped</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFIsByteSwapped" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFIsMSB2LSB">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFIsMSB2LSB</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFIsMSB2LSB" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFIsUpSampled">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFIsUpSampled</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFIsUpSampled" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFGetVersion">
+<span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="sig-name descname"><span class="n"><span class="pre">TIFFGetVersion</span></span></span><span class="sig-paren">(</span><span class="kt"><span class="pre">void</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFGetVersion" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p>The following query routines return status information about the directory
+structure of an open TIFF file.</p>
+<p><a class="reference internal" href="#c.TIFFCurrentDirectory" title="TIFFCurrentDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentDirectory()</span></code></a> returns the index of the current directory
+(directories are numbered starting at 0). This number is suitable for
+use with the <a class="reference internal" href="TIFFSetDirectory.html#c.TIFFSetDirectory" title="TIFFSetDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetDirectory()</span></code></a> routine.
+A value of 65535 (non-existing directory) is returned if the directory
+has not yet been written to the file after opening it.</p>
+<p><a class="reference internal" href="#c.TIFFCurrentDirOffset" title="TIFFCurrentDirOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentDirOffset()</span></code></a> returns the file offset of the current
+directory (instead of an index).
+The file offset is suitable for use with the <a class="reference internal" href="TIFFSetDirectory.html#c.TIFFSetSubDirectory" title="TIFFSetSubDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetSubDirectory()</span></code></a>
+routine. This is required for accessing subdirectories linked through a
+<code class="docutils literal notranslate"><span class="pre">SubIFD</span></code> tag.</p>
+<p><a class="reference internal" href="#c.TIFFLastDirectory" title="TIFFLastDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFLastDirectory()</span></code></a> returns a non-zero value if the current
+directory is the last directory in the file; otherwise zero is returned.</p>
+<p><a class="reference internal" href="#c.TIFFNumberOfDirectories" title="TIFFNumberOfDirectories"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFNumberOfDirectories()</span></code></a> returns the number of directories in a
+file. Be aware that just created directories, which are not “written” to
+file do not count.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Be aware that the return value of the above directory query functions
+is not valid until the directory is “written” to file AND read back
+e.g. <a class="reference internal" href="TIFFSetDirectory.html#c.TIFFSetDirectory" title="TIFFSetDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetDirectory()</span></code></a> or <a class="reference internal" href="TIFFReadDirectory.html#c.TIFFReadDirectory" title="TIFFReadDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirectory()</span></code></a>.</p>
+</div>
+<p>The following query routines return information about an open TIFF file
+and its image data.</p>
+<p><a class="reference internal" href="#c.TIFFCurrentRow" title="TIFFCurrentRow"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentRow()</span></code></a>, <a class="reference internal" href="#c.TIFFCurrentStrip" title="TIFFCurrentStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentStrip()</span></code></a>, and
+<a class="reference internal" href="#c.TIFFCurrentTile" title="TIFFCurrentTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentTile()</span></code></a> return the current row, strip, and tile,
+respectively, that is being read or written. These values are updated each
+time a read or write is done.</p>
+<p><a class="reference internal" href="#c.TIFFFileno" title="TIFFFileno"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFileno()</span></code></a> returns the underlying file descriptor used to access
+the TIFF image in the filesystem.</p>
+<p><a class="reference internal" href="#c.TIFFFileName" title="TIFFFileName"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFileName()</span></code></a> returns the pathname argument passed to
+<a class="reference internal" href="TIFFOpen.html#c.TIFFOpen" title="TIFFOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpen()</span></code></a> or <a class="reference internal" href="TIFFOpen.html#c.TIFFFdOpen" title="TIFFFdOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFdOpen()</span></code></a>.</p>
+<p><a class="reference internal" href="#c.TIFFGetMode" title="TIFFGetMode"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetMode()</span></code></a> returns the mode with which the underlying file
+was opened. On UNIX systems, this is the value passed to the
+<code class="xref c c-func docutils literal notranslate"><span class="pre">open()</span></code> (2) system call.</p>
+<p><a class="reference internal" href="#c.TIFFIsTiled" title="TIFFIsTiled"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsTiled()</span></code></a> returns a non-zero value if the image data has a tiled
+organization. Zero is returned if the image data is organized in strips.</p>
+<p><a class="reference internal" href="#c.TIFFIsBigEndian" title="TIFFIsBigEndian"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsBigEndian()</span></code></a> returns a non-zero value if the file is BigEndian
+and zero if the file is LittleEndian.</p>
+<p><a class="reference internal" href="#c.TIFFIsBigTIFF" title="TIFFIsBigTIFF"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsBigTIFF()</span></code></a> returns a non-zero value if the file is in
+BigTIFF style.</p>
+<p><a class="reference internal" href="#c.TIFFIsByteSwapped" title="TIFFIsByteSwapped"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsByteSwapped()</span></code></a> returns a non-zero value if the image data
+was in a different byte-order than the host machine. Zero is returned if
+the TIFF file and local host byte-orders are the same.  Note that
+<a class="reference internal" href="TIFFReadTile.html#c.TIFFReadTile" title="TIFFReadTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadTile()</span></code></a>, <a class="reference internal" href="TIFFReadEncodedStrip.html#c.TIFFReadEncodedStrip" title="TIFFReadEncodedStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadEncodedStrip()</span></code></a> and
+<a class="reference internal" href="TIFFReadScanline.html#c.TIFFReadScanline" title="TIFFReadScanline"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadScanline()</span></code></a> functions already normally perform byte
+swapping to local host order if needed.</p>
+<p><a class="reference internal" href="#c.TIFFIsMSB2LSB" title="TIFFIsMSB2LSB"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsMSB2LSB()</span></code></a> returns a non-zero value if the image data is being
+returned with bit 0 as the most significant bit.</p>
+<p><a class="reference internal" href="#c.TIFFIsUpSampled" title="TIFFIsUpSampled"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsUpSampled()</span></code></a> returns a non-zero value if image data returned
+through the read interface routines is being up-sampled. This can be
+useful to applications that want to calculate I/O buffer sizes to reflect
+this usage (though the usual strip and tile size routines already do this).</p>
+<p><a class="reference internal" href="#c.TIFFGetVersion" title="TIFFGetVersion"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetVersion()</span></code></a> returns an <code class="docutils literal notranslate"><span class="pre">ASCII</span></code> string that has a version
+stamp for the TIFF library software.</p>
+</section>
+<section id="diagnostics">
+<h2>Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this heading">¶</a></h2>
+<p>None.</p>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="libtiff.html"><span class="doc">libtiff</span></a> (3tiff),
+<a class="reference internal" href="TIFFOpen.html"><span class="doc">TIFFOpen</span></a> (3tiff)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TIFFquery</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#diagnostics">Diagnostics</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="TIFFProcFunctions.html"
+                          title="previous chapter">TIFFProcFunctions</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFReadDirectory.html"
+                          title="next chapter">TIFFReadDirectory</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/TIFFquery.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFReadDirectory.html" title="TIFFReadDirectory"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TIFFProcFunctions.html" title="TIFFProcFunctions"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFquery</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

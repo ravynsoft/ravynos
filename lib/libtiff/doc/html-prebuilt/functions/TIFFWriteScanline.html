@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFFWriteScanline &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFWriteTile" href="TIFFWriteTile.html" />
+    <link rel="prev" title="TIFFWriteRawTile" href="TIFFWriteRawTile.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFWriteTile.html" title="TIFFWriteTile"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TIFFWriteRawTile.html" title="TIFFWriteRawTile"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFWriteScanline</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffwritescanline">
+<h1>TIFFWriteScanline<a class="headerlink" href="#tiffwritescanline" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+</pre></div>
+</div>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFWriteScanline">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFWriteScanline</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="n"><span class="pre">tdata_t</span></span><span class="w"> </span><span class="n"><span class="pre">buf</span></span>, <span class="n"><span class="pre">uint32_t</span></span><span class="w"> </span><span class="n"><span class="pre">row</span></span>, <span class="n"><span class="pre">tsample_t</span></span><span class="w"> </span><span class="n"><span class="pre">sample</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFWriteScanline" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p>Write data to a file at the specified row. The <em>sample</em> parameter is
+used only if data are organized in separate planes
+(<code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> = 2).
+The data are assumed to be uncompressed and in the native bit- and
+byte-order of the host machine. The data written to the file is
+compressed according to the compression scheme of the current
+TIFF directory (see further below). If the current scanline is past the
+end of the current subfile, the <code class="docutils literal notranslate"><span class="pre">ImageLength</span></code> field is automatically
+increased to include the scanline (except for <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> = 2,
+where the <code class="docutils literal notranslate"><span class="pre">ImageLength</span></code> cannot be changed once the first data are
+written). If the <code class="docutils literal notranslate"><span class="pre">ImageLength</span></code> is increased, the <code class="docutils literal notranslate"><span class="pre">StripOffsets</span></code>
+and <code class="docutils literal notranslate"><span class="pre">StripByteCounts</span></code> fields are similarly enlarged to reflect data
+written past the previous end of image.</p>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this heading">¶</a></h2>
+<p>The library writes encoded data using the native machine byte order.
+Correctly implemented TIFF readers are expected to do any necessary
+byte-swapping to correctly process image data with <code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code>
+greater than 8. The library attempts to hide bit-ordering differences
+between the image and the native machine by converting data from the
+native machine order.</p>
+<p>In C++ the <em>sample</em> parameter defaults to 0.</p>
+<p>Once data are written to a file for the current directory, the values of
+certain tags may not be altered; see <a class="reference internal" href="TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a> for more
+information.</p>
+<p>It is not possible to write scanlines to a file that uses a tiled
+organization.  The routine <a class="reference internal" href="TIFFquery.html#c.TIFFIsTiled" title="TIFFIsTiled"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsTiled()</span></code></a> can be used to
+determine if the file is organized as tiles or strips.</p>
+</section>
+<section id="return-values">
+<h2>Return values<a class="headerlink" href="#return-values" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="#c.TIFFWriteScanline" title="TIFFWriteScanline"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteScanline()</span></code></a> returns -1 if it immediately detects an
+error and 1 for a successful write.</p>
+</section>
+<section id="diagnostics">
+<h2>Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this heading">¶</a></h2>
+<p>All error messages are directed to the <a class="reference internal" href="TIFFError.html#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a> routine.</p>
+<p><code class="docutils literal notranslate"><span class="pre">%s:</span> <span class="pre">File</span> <span class="pre">not</span> <span class="pre">open</span> <span class="pre">for</span> <span class="pre">writing</span></code>:</p>
+<blockquote>
+<div><p>The file was opened for reading, not writing.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Can</span> <span class="pre">not</span> <span class="pre">write</span> <span class="pre">scanlines</span> <span class="pre">to</span> <span class="pre">a</span> <span class="pre">tiled</span> <span class="pre">image&quot;</span></code>:</p>
+<blockquote>
+<div><p>An attempt was made to write a scanline to a tiled image. The image
+is assumed to be organized in tiles because the <code class="docutils literal notranslate"><span class="pre">TileWidth</span></code> and
+<code class="docutils literal notranslate"><span class="pre">TileLength</span></code> tags have been set with <a class="reference internal" href="TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a>.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Compression</span> <span class="pre">algorithm</span> <span class="pre">does</span> <span class="pre">not</span> <span class="pre">support</span> <span class="pre">random</span> <span class="pre">access&quot;</span></code>:</p>
+<blockquote>
+<div><p>Data was written in a non-sequential order to a file that uses a
+compression algorithm and that has <code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span></code> greater than one.
+That is, data in the image is to be stored in a compressed form, and
+with multiple rows packed into a strip. In this case, the library
+does not support random access to the data. The data should either be
+written as entire strips, sequentially by rows, or the value of
+<code class="docutils literal notranslate"><span class="pre">RowsPerStrip</span></code> should be set to one.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">%s:</span> <span class="pre">Must</span> <span class="pre">set</span> <span class="pre">&quot;ImageWidth&quot;</span> <span class="pre">before</span> <span class="pre">writing</span> <span class="pre">data</span></code>:</p>
+<blockquote>
+<div><p>The image’s width has not be set before the first write.
+See <a class="reference internal" href="TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a> for information on how to do this.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">%s:</span> <span class="pre">Must</span> <span class="pre">set</span> <span class="pre">&quot;PlanarConfiguration&quot;</span> <span class="pre">before</span> <span class="pre">writing</span> <span class="pre">data</span></code>:</p>
+<blockquote>
+<div><p>The organization of data has not be defined before the first write.
+See <a class="reference internal" href="TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a> for information on how to do this.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">Can</span> <span class="pre">not</span> <span class="pre">change</span> <span class="pre">&quot;ImageLength&quot;</span> <span class="pre">when</span> <span class="pre">using</span> <span class="pre">separate</span> <span class="pre">planes</span></code>:</p>
+<blockquote>
+<div><p>Separate image planes are being used (<code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> = 2),
+but the number of rows has not been specified before the first write.
+The library supports the dynamic growth of an image only when data
+are organized in a contiguous manner (<code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> = 1).</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;%d:</span> <span class="pre">Sample</span> <span class="pre">out</span> <span class="pre">of</span> <span class="pre">range,</span> <span class="pre">max</span> <span class="pre">%d&quot;</span></code>:</p>
+<blockquote>
+<div><p>The <em>sample</em> parameter was greater than the value of the
+<code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> tag.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">%s:</span> <span class="pre">No</span> <span class="pre">space</span> <span class="pre">for</span> <span class="pre">strip</span> <span class="pre">arrays</span></code>:</p>
+<blockquote>
+<div><p>There was not enough space for the arrays that hold strip offsets and
+byte counts.</p>
+</div></blockquote>
+</section>
+<section id="bugs">
+<h2>Bugs<a class="headerlink" href="#bugs" title="Permalink to this heading">¶</a></h2>
+<p>Writing subsampled YCbCR data does not work correctly because, for
+<code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> = 2 the size of a scanline is not calculated on
+a per-sample basis, and for <code class="docutils literal notranslate"><span class="pre">PlanarConfiguration</span></code> = 1 the library
+does not pack the block-interleaved samples.</p>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="TIFFOpen.html"><span class="doc">TIFFOpen</span></a> (3tiff),
+<a class="reference internal" href="TIFFWriteEncodedStrip.html"><span class="doc">TIFFWriteEncodedStrip</span></a> (3tiff),
+<a class="reference internal" href="TIFFWriteRawStrip.html"><span class="doc">TIFFWriteRawStrip</span></a> (3tiff),
+<a class="reference internal" href="libtiff.html"><span class="doc">libtiff</span></a> (3tiff)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TIFFWriteScanline</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#notes">Notes</a></li>
+<li><a class="reference internal" href="#return-values">Return values</a></li>
+<li><a class="reference internal" href="#diagnostics">Diagnostics</a></li>
+<li><a class="reference internal" href="#bugs">Bugs</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="TIFFWriteRawTile.html"
+                          title="previous chapter">TIFFWriteRawTile</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFWriteTile.html"
+                          title="next chapter">TIFFWriteTile</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/TIFFWriteScanline.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFWriteTile.html" title="TIFFWriteTile"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TIFFWriteRawTile.html" title="TIFFWriteRawTile"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFWriteScanline</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

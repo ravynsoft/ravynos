@@ -1,0 +1,179 @@
+Changes in TIFF v3.7.0alpha
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.7.0alpha (:tag:`Release-v3-7-0-alpha`)
+  Previous Version        :doc:`v3.6.1 <v3.6.1>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Major changes
+-------------
+
+* Significant changes in software configuration: we are switched
+  to GNU autotools now.
+  
+* :program:`tiffset`: Set any libtiff supported tags. Tags
+  can be supplied by the mnemonic name or number.
+
+
+Software configuration changes
+------------------------------
+
+* Get rid of the old configuration system and switch to
+  GNU autotools.
+
+
+Library changes
+---------------
+
+* :file:`libtiff/tif_ojpeg.c`: Fixed problem with duplicated ``SOI`` and ``SOF``
+  markers as per bug
+  :bugzilla-rs:`581`.
+
+* :file:`libtiff/tif_open.c`, :file:`libtiff/tiffio.h`: New function added:
+  :c:func:`TIFFIsBigEndian`. Function returns nonzero if given was file written
+  in big-endian order.
+
+* :file:`libtiff/tif_print.c`: added (untested) support for printing
+  ``SSHORT``, ``SLONG`` and ``SRATIONAL`` fields.
+
+* :file:`libtiff/tif_fax3.c`: Avoid reading CCITT compression options
+  if compression type mismatches. See
+  :bugzilla-rs:`565`.
+
+* :file:`libtiff/tif_strip.c`: Never return 0 from the :c:func:`TIFFNumberOfStrips`.
+
+* :file:`libtiff/tif_dirread.c`: Workaround for broken TIFF writers which
+  store single ``SampleFormat`` value for multisampled images. See
+  :bugzilla-rs:`562`.
+
+* :file:`libtiff/tif_write.c`: Allow in-place updating of the compressed
+  images (don't work properly with all codecs). For details see GDAL bug
+  :bugzilla-rs:`534`.
+
+* :file:`libtiff/tif_jpeg.c`: Workaround for wrong sampling factors used
+  in the Intergarph JPEG compressed TIFF images as per bug:
+  :bugzilla-rs:`532`.
+
+* :file:`libtiff/tif_open.c`: Use dummy :c:func:`mmap`/:c:func:`munmap` functions in
+  :c:func:`TIFFClientOpen` when the appropriate client functions was not
+  supplied by user.
+
+* :file:`libtiff/tif_dirread.c`: Fixed problem with handling :c:enumerator:`TIFF_UNDEFINED`
+  tag type in :c:func:`TIFFFetchNormalTag` as per bug
+  :bugzilla-rs:`508`.
+
+* :file:`libtiff/tif_codec.c`: Fixed typo in ``TIFFInitPackBits`` name as per:
+  :bugzilla-rs:`494`.
+
+* :file:`libtiff/tif_fax3.c`: Fixed problem, introdiced in 3.6.1 release,
+  with the CCITT encoding modes as per bug
+  :bugzilla-rs:`483`.
+  We need more work on fax codec to support update mode.
+
+* :file:`libtiff/tiff.h`: Fixed tag definitions for :c:macro:`TIFFTAG_YCLIPPATHUNITS`
+  and :c:macro:`TIFFTAG_INDEXED` as per bug
+  :bugzilla-rs:`475`.
+
+* :file:`libtiff/tif_win32.c`, :file:`libtiff/tif_unix.c`: Check whether the pointer is
+  :c:macro:`NULL` before proceeding further as per bug
+  :bugzilla-rs:`474`.
+
+  Check results, returned by the :c:func:`TIFFFdOpen` before returning and close
+  file if :c:func:`TIFFFdOpen` failed as per bug
+  :bugzilla-rs:`468`.
+
+* :file:`libtiff/libtiff.def`, :file:`libtiff/tif_close.c`,
+  :file:`libtiff/tiffio.h`, :file:`libtiff/tif_open.c`:
+  Separate :c:func:`TIFFCleanup` from the :c:func:`TIFFClose` in order to fix the bug
+  :bugzilla-rs:`468`.
+
+* :file:`libtiff/tif_dirwrite.c`: Fixed handling of writable ASCII tags
+  that are ``field_passcount=TRUE`` properly.  Arguably anonymous custom
+  tags should be declared as ``passcount=FALSE``, but I don't want to change
+  that without a careful review.
+
+* :file:`libtiff/tif_write.c`: Fixed reporting size of the buffer in case
+  of stripped image in :c:func:`TIFFWriteBufferSetup`. As per bug
+  :bugzilla-rs:`460`.
+        
+* :file:`libtiff/tif_dir.c`: Incomplete cleanup in :c:func:`TIFFFreeDirectory`,
+  patch from Gerben Koopmans.
+
+* :file:`libtiff/tif_dirread.c`: Check :c:member:`field_passcount` value before setting
+  the value of undefined type, patch from Gerben Koopmans.    
+
+* :file:`libtiff/tiff.h`, :file:`libtiff/tif_fax3.c`:
+  Fixes for AMD 64 platform as suggested by Jeremy C. Reed.
+
+* :file:`libtiff/tif_win32.c`: Fixed problem with :c:func:`_TIFFrealloc` when
+  the :c:macro:`NULL` pointer passed. Patch supplied by Larry Grill.
+
+
+Tools changes
+-------------
+
+* :program:`tiffset`: Set any libtiff supported tags. Tags
+  can be supplied by the mnemonic name or number.
+
+* :file:`ycbcr.c`: fixed :c:func:`main` declaration as per:
+  :bugzilla-rs:`513`.
+
+* :program:`tiffsplit`: Don't forget
+  to copy ``PhotometricInterpretation`` tag.
+  
+* :program:`tiffsplit`:
+
+  * Fixed problem with
+    unproperly written multibyte files. Now output files will be written
+    using the same byte order flag as in the input image. See
+    :bugzilla-rs:`574`.
+
+  * Copy ``JPEGTables``
+    tag contents for JPEG compressed images. Reported by Artem Mirolubov.
+
+* :program:`tiffcp`:
+
+  * Close output file on normal exit.
+  
+  * Don't emit warnings
+    when ``Orientation`` tag does not present in the input image.
+  
+  * Properly set
+    Photometric Interpretation in case of JPEG compression of grayscale
+    images.
+  
+  * Fixed problem with wrong
+    interpretation of the ``InkNames`` tag as per bug
+    :bugzilla-rs:`466`.
+    Memory leak fixed.
+
+  * Fixed problem with
+    wrong ``PhotometricInterpretation`` setting for non-RGB images.
+
+
+Contributed software changes
+----------------------------
+
+* Outdated stuff removed.
+
+* Almost all programs are synchronized with the current libtiff
+  and should compile without problems.
+
+
+LZW compression kit changes
+---------------------------
+
+* No changes.

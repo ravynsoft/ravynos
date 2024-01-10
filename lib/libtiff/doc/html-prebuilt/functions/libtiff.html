@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>libtiff &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFAccessTagMethods" href="TIFFAccessTagMethods.html" />
+    <link rel="prev" title="TIFF Functions Overview" href="../functions.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFAccessTagMethods.html" title="TIFFAccessTagMethods"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../functions.html" title="TIFF Functions Overview"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">libtiff</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="libtiff">
+<h1>libtiff<a class="headerlink" href="#libtiff" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+</pre></div>
+</div>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>cc<span class="w"> </span>file.c<span class="w"> </span>-ltiff
+</pre></div>
+</div>
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p><strong class="program">libtiff</strong> is a library for reading and writing data files encoded with the
+<em>“Tag Image File”</em> format, Revision 6.0 (or revision 5.0 or revision 4.0). This file
+format is suitable for archiving multi-color and monochromatic image data.</p>
+<p>The library supports several compression algorithms, as indicated by the
+<code class="docutils literal notranslate"><span class="pre">Compression</span></code> field, including:
+no compression (1),
+CCITT 1D Huffman compression (2),
+CCITT Group 3 Facsimile compression (3),
+CCITT Group 4 Facsimile compression (4),
+Lempel-Ziv &amp; Welch compression (5),
+baseline JPEG compression (7),
+word-aligned 1D Huffman compression (32771),
+PackBits compression (32773).
+In addition, several nonstandard compression algorithms are supported: the
+4-bit compression algorithm used by the
+<em>ThunderScan</em> program (32809) (decompression only),
+NeXT’s 2-bit compression algorithm (32766) (decompression only),
+an experimental LZ-style algorithm known as Deflate (32946),
+and an experimental CIE LogLuv compression scheme designed
+for images with high dynamic range (32845 for LogL and 32845 for LogLuv).
+Directory information may be in either little- or big-endian byte order; byte
+swapping is automatically done by the library. Data bit ordering may be either
+Most Significant Bit (<code class="docutils literal notranslate"><span class="pre">MSB</span></code>) to Least Significant Bit (<code class="docutils literal notranslate"><span class="pre">LSB</span></code>) or
+LSB to MSB.
+Finally, the library does not support files in which the
+<code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code> ,
+<code class="docutils literal notranslate"><span class="pre">Compression</span></code> ,
+<code class="docutils literal notranslate"><span class="pre">MinSampleValue</span></code> ,
+or
+<code class="docutils literal notranslate"><span class="pre">MaxSampleValue</span></code>
+fields are defined differently on a per-sample basis
+(in Rev. 6.0 the
+<code class="docutils literal notranslate"><span class="pre">Compression</span></code>
+tag is not defined on a per-sample basis, so this is immaterial).</p>
+</section>
+<section id="data-types">
+<h2>Data types<a class="headerlink" href="#data-types" title="Permalink to this heading">¶</a></h2>
+<p>The library makes extensive use of C typedefs to promote portability.
+Two sets of typedefs are used, one for communication with clients
+of the library and one for internal data structures and parsing of the
+TIFF format.
+The following typedefs are exposed to users either through function
+definitions or through parameters passed through the varargs interfaces.</p>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="k">typedef</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">ttag_t</span><span class="p">;</span><span class="w">    </span><span class="c1">// directory tag</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">tdir_t</span><span class="p">;</span><span class="w">    </span><span class="c1">// directory index</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">uint16_t</span><span class="w"> </span><span class="n">tsample_t</span><span class="p">;</span><span class="w"> </span><span class="c1">// sample number</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">tstrip_t</span><span class="p">;</span><span class="w">  </span><span class="c1">// strip number</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">ttile_t</span><span class="p">;</span><span class="w">   </span><span class="c1">// tile number</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">int64_t</span><span class="w"> </span><span class="n">tmsize_t</span><span class="p">;</span><span class="w">   </span><span class="c1">// signed size type (int32_t on 32-bit platforms)</span>
+<span class="k">typedef</span><span class="w"> </span><span class="n">tmsize_t</span><span class="w"> </span><span class="n">tsize_t</span><span class="p">;</span><span class="w">   </span><span class="c1">// i/o size in bytes</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">tdata_t</span><span class="p">;</span><span class="w">      </span><span class="c1">// image data ref</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">void</span><span class="o">*</span><span class="w"> </span><span class="n">thandle_t</span><span class="p">;</span><span class="w">    </span><span class="c1">// client data handle</span>
+<span class="k">typedef</span><span class="w"> </span><span class="kt">uint64_t</span><span class="w"> </span><span class="n">toff_t</span><span class="p">;</span><span class="w">    </span><span class="c1">// file offset</span>
+</pre></div>
+</div>
+<p>Note that
+<code class="xref c c-type docutils literal notranslate"><span class="pre">tstrip_t</span></code>,
+<code class="xref c c-type docutils literal notranslate"><span class="pre">ttile_t</span></code>,
+and
+<code class="xref c c-type docutils literal notranslate"><span class="pre">tsize_t</span></code>
+are constrained to be no more than 32-bit quantities by 32-bit fields they are
+stored in in the
+TIFF
+image.
+Likewise
+<code class="xref c c-type docutils literal notranslate"><span class="pre">tsample_t</span></code>
+is limited by the 16-bit field used to store the
+<code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code>
+tag.</p>
+<p><code class="xref c c-type docutils literal notranslate"><span class="pre">tdir_t</span></code>
+constrains the maximum number of
+IFDs
+that may appear in an image and may be an arbitrary size (w/o penalty).
+Starting with libtiff 4.5.0, tdir_t is a 32-bit unsigned integer. Previously,
+it was a 16-bit unsigned integer.</p>
+<p><code class="xref c c-type docutils literal notranslate"><span class="pre">ttag_t</span></code>
+must be either int, unsigned int, pointer, or double because the library uses
+a varargs interface and
+C restricts the type of the parameter before an ellipsis to be a promoted type.
+<code class="xref c c-type docutils literal notranslate"><span class="pre">toff_t</span></code>
+is defined as <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64_t</span></code> because TIFF file offsets are (unsigned) 32-bit
+quantities, and BigTIFF file offsets are unsigned 64-bit quantities.
+A signed value is used because some interfaces return -1 on
+error. Finally, note that user-specified data references are passed as opaque
+handles and only cast at the lowest layers where their type is presumed.</p>
+</section>
+<section id="list-of-routines">
+<span id="id1"></span><h2>List of routines<a class="headerlink" href="#list-of-routines" title="Permalink to this heading">¶</a></h2>
+<p>The following routines are part of the library. Consult specific manual pages
+for details on their operation; on most systems doing <strong class="command">man function-name</strong>
+will work.</p>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text"><em>Libtiff functions</em></span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFAccessTagMethods.html#c.TIFFAccessTagMethods" title="TIFFAccessTagMethods"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFAccessTagMethods()</span></code></a></p></td>
+<td><p>provides read/write access to the TIFFTagMethods within the TIFF structure
+to application code without giving access to the private TIFF structure</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFCheckpointDirectory" title="TIFFCheckpointDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCheckpointDirectory()</span></code></a></p></td>
+<td><p>writes the current state of the directory</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFtile.html#c.TIFFCheckTile" title="TIFFCheckTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCheckTile()</span></code></a></p></td>
+<td><p>very x,y,z,sample is within image</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFcolor.html#c.TIFFCIELabToRGBInit" title="TIFFCIELabToRGBInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCIELabToRGBInit()</span></code></a></p></td>
+<td><p>initialize CIE L*a*b* 1976 to RGB conversion state</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFcolor.html#c.TIFFCIELabToXYZ" title="TIFFCIELabToXYZ"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCIELabToXYZ()</span></code></a></p></td>
+<td><p>perform CIE L*a*b* 1976 to CIE XYZ conversion</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFClose.html#c.TIFFCleanup" title="TIFFCleanup"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCleanup()</span></code></a></p></td>
+<td><p>auxiliary function to free the TIFF structure</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFClientdata" title="TIFFClientdata"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientdata()</span></code></a></p></td>
+<td><p>return open file’s clientdata handle, which represents
+the file descriptor used within <code class="docutils literal notranslate"><span class="pre">libtiff</span></code>.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFClientOpen" title="TIFFClientOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpen()</span></code></a></p></td>
+<td><p>open a file for reading or writing</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFClientOpenExt" title="TIFFClientOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpenExt()</span></code></a></p></td>
+<td><p>open a file for reading or writing with options,
+such as re-entrant error and warning handlers may be passed</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFClose.html#c.TIFFClose" title="TIFFClose"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClose()</span></code></a></p></td>
+<td><p>close a previously opened TIFF file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFstrip.html#c.TIFFComputeStrip" title="TIFFComputeStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFComputeStrip()</span></code></a></p></td>
+<td><p>return strip containing y,sample</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFtile.html#c.TIFFComputeTile" title="TIFFComputeTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFComputeTile()</span></code></a></p></td>
+<td><p>return tile containing x,y,z,sample</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFCustomDirectory.html#c.TIFFCreateCustomDirectory" title="TIFFCreateCustomDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateCustomDirectory()</span></code></a></p></td>
+<td><p>setup for a <em>custom</em> directory in a open TIFF file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFCreateDirectory.html#c.TIFFCreateDirectory" title="TIFFCreateDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateDirectory()</span></code></a></p></td>
+<td><p>setup for a directory in a open TIFF file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFCustomDirectory.html#c.TIFFCreateEXIFDirectory" title="TIFFCreateEXIFDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateEXIFDirectory()</span></code></a></p></td>
+<td><p>setup for a <em>EXIF</em> custom directory in a open TIFF file within a TIFF tag</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFCustomDirectory.html#c.TIFFCreateGPSDirectory" title="TIFFCreateGPSDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateGPSDirectory()</span></code></a></p></td>
+<td><p>setup for a <em>GPS</em> custom directory in a open TIFF file within a TIFF tag</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFCurrentDirectory" title="TIFFCurrentDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentDirectory()</span></code></a></p></td>
+<td><p>return index of current directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFCurrentDirOffset" title="TIFFCurrentDirOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentDirOffset()</span></code></a></p></td>
+<td><p>return file offset of the current directory (instead of an index)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFCurrentRow" title="TIFFCurrentRow"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentRow()</span></code></a></p></td>
+<td><p>return index of current scanline</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFCurrentStrip" title="TIFFCurrentStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentStrip()</span></code></a></p></td>
+<td><p>return index of current strip</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFCurrentTile" title="TIFFCurrentTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentTile()</span></code></a></p></td>
+<td><p>return index of current tile</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFDataWidth.html#c.TIFFDataWidth" title="TIFFDataWidth"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFDataWidth()</span></code></a></p></td>
+<td><p>return the size of TIFF data types</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFstrip.html#c.TIFFDefaultStripSize" title="TIFFDefaultStripSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFDefaultStripSize()</span></code></a></p></td>
+<td><p>return number of rows for a reasonable-sized strip according to the
+current settings of the ImageWidth, BitsPerSample and SamplesPerPixel,
+tags and any compression-specific requirements</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFtile.html#c.TIFFDefaultTileSize" title="TIFFDefaultTileSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFDefaultTileSize()</span></code></a></p></td>
+<td><p>return pixel width and height of a reasonable-sized tile;
+suitable for setting up the TileWidth and TileLength tags</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFDeferStrileArrayWriting.html#c.TIFFDeferStrileArrayWriting" title="TIFFDeferStrileArrayWriting"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFDeferStrileArrayWriting()</span></code></a></p></td>
+<td><p>is an advanced writing function to control when/where the
+[Strip/Tile][Offsets/ByteCounts] arrays are written into the file,
+and must be used in a particular sequence together with
+TIFFForceStrileArrayWriting() (see description)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFError.html#c.TIFFError" title="TIFFError"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFError()</span></code></a></p></td>
+<td><p>library-wide error handling function printing to <code class="docutils literal notranslate"><span class="pre">stderr</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFError.html#c.TIFFErrorExt" title="TIFFErrorExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExt()</span></code></a></p></td>
+<td><p>user-specific library-wide error handling function that can be passed
+a file handle, which is set to the open TIFF file within <code class="docutils literal notranslate"><span class="pre">libtiff</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFError.html#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a></p></td>
+<td><p>user-specific re-entrant library error handling function,
+to which its TIFF structure is passed
+containing the pointer to a user-specific data object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFFdOpen" title="TIFFFdOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFdOpen()</span></code></a></p></td>
+<td><p>open a file for reading or writing</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFFdOpenExt" title="TIFFFdOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFdOpenExt()</span></code></a></p></td>
+<td><p>open a file for reading or writing with options,
+such as re-entrant error and warning handlers may be passed</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFFieldDataType.html#c.TIFFFieldDataType" title="TIFFFieldDataType"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldDataType()</span></code></a></p></td>
+<td><p>get data type from field information</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFFieldQuery.html#c.TIFFFieldIsAnonymous" title="TIFFFieldIsAnonymous"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldIsAnonymous()</span></code></a></p></td>
+<td><p>returns if field was unknown to <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> and has been auto-registered</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFFieldName.html#c.TIFFFieldName" title="TIFFFieldName"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldName()</span></code></a></p></td>
+<td><p>get field name from field information</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFFieldPassCount.html#c.TIFFFieldPassCount" title="TIFFFieldPassCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldPassCount()</span></code></a></p></td>
+<td><p>get whether to pass a value count to Get/SetField</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFFieldReadCount.html#c.TIFFFieldReadCount" title="TIFFFieldReadCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldReadCount()</span></code></a></p></td>
+<td><p>get number of values to be read from field</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFFieldQuery.html#c.TIFFFieldSetGetCountSize" title="TIFFFieldSetGetCountSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldSetGetCountSize()</span></code></a></p></td>
+<td><p>returns size of <code class="docutils literal notranslate"><span class="pre">count</span></code> parameter of <a class="reference internal" href="TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a> and
+<a class="reference internal" href="TIFFGetField.html#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFFieldQuery.html#c.TIFFFieldSetGetSize" title="TIFFFieldSetGetSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldSetGetSize()</span></code></a></p></td>
+<td><p>return data size in bytes of the field data type used for <code class="docutils literal notranslate"><span class="pre">libtiff</span></code>
+internal storage.</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFFieldTag.html#c.TIFFFieldTag" title="TIFFFieldTag"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldTag()</span></code></a></p></td>
+<td><p>get tag value from field information</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFFieldQuery.html#c.TIFFFieldWithName" title="TIFFFieldWithName"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldWithName()</span></code></a></p></td>
+<td><p>get field information given field name</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFFieldQuery.html#c.TIFFFieldWithTag" title="TIFFFieldWithTag"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldWithTag()</span></code></a></p></td>
+<td><p>get field information given tag</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFFieldWriteCount.html#c.TIFFFieldWriteCount" title="TIFFFieldWriteCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldWriteCount()</span></code></a></p></td>
+<td><p>get number of values to be written to field</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFFileName" title="TIFFFileName"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFileName()</span></code></a></p></td>
+<td><p>return name of open file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFFileno" title="TIFFFileno"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFileno()</span></code></a></p></td>
+<td><p>return open file descriptor</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFcodec.html#c.TIFFFindCODEC" title="TIFFFindCODEC"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFindCODEC()</span></code></a></p></td>
+<td><p>find standard codec for the specific scheme</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFFieldQuery.html#c.TIFFFindField" title="TIFFFindField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFindField()</span></code></a></p></td>
+<td><p>get field information given tag and data type</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFFlush.html#c.TIFFFlush" title="TIFFFlush"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFlush()</span></code></a></p></td>
+<td><p>flush all pending writes</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFFlush.html#c.TIFFFlushData" title="TIFFFlushData"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFlushData()</span></code></a></p></td>
+<td><p>flush pending data writes</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFDeferStrileArrayWriting.html#c.TIFFForceStrileArrayWriting" title="TIFFForceStrileArrayWriting"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFForceStrileArrayWriting()</span></code></a></p></td>
+<td><p>is an advanced writing function that writes the
+[Strip/Tile][Offsets/ByteCounts] arrays at the end of the file (see description)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFCreateDirectory.html#c.TIFFFreeDirectory" title="TIFFFreeDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFreeDirectory()</span></code></a></p></td>
+<td><p>release storage associated with a directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFGetBitRevTable" title="TIFFGetBitRevTable"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetBitRevTable()</span></code></a></p></td>
+<td><p>return bit reversal table</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFClientInfo.html#c.TIFFGetClientInfo" title="TIFFGetClientInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetClientInfo()</span></code></a></p></td>
+<td><p>returns a pointer to the data of the named entry in the clientinfo-list</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFProcFunctions.html#c.TIFFGetCloseProc" title="TIFFGetCloseProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetCloseProc()</span></code></a></p></td>
+<td><p>returns a pointer to file close method</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFcodec.html#c.TIFFGetConfiguredCODECs" title="TIFFGetConfiguredCODECs"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetConfiguredCODECs()</span></code></a></p></td>
+<td><p>gets list of configured codecs, both built-in and registered by user</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFGetField.html#c.TIFFGetField" title="TIFFGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetField()</span></code></a></p></td>
+<td><p>return tag value in current directory</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFGetField.html#c.TIFFGetFieldDefaulted" title="TIFFGetFieldDefaulted"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetFieldDefaulted()</span></code></a></p></td>
+<td><p>return tag value in current directory with default value set if the
+value is not already set and a default is defined</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFProcFunctions.html#c.TIFFGetMapFileProc" title="TIFFGetMapFileProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetMapFileProc()</span></code></a></p></td>
+<td><p>returns a pointer to memory mapping method</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFGetMode" title="TIFFGetMode"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetMode()</span></code></a></p></td>
+<td><p>return open file mode</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFProcFunctions.html#c.TIFFGetReadProc" title="TIFFGetReadProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetReadProc()</span></code></a></p></td>
+<td><p>returns a pointer to file read method</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFProcFunctions.html#c.TIFFGetSeekProc" title="TIFFGetSeekProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetSeekProc()</span></code></a></p></td>
+<td><p>returns a pointer to file seek method</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFProcFunctions.html#c.TIFFGetSizeProc" title="TIFFGetSizeProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetSizeProc()</span></code></a></p></td>
+<td><p>returns a pointer to file size requesting method</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFStrileQuery.html#c.TIFFGetStrileByteCount" title="TIFFGetStrileByteCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetStrileByteCount()</span></code></a></p></td>
+<td><p>return value of the TileByteCounts/StripByteCounts array for the
+specified tile/strile</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFStrileQuery.html#c.TIFFGetStrileByteCountWithErr" title="TIFFGetStrileByteCountWithErr"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetStrileByteCountWithErr()</span></code></a></p></td>
+<td><p>same as <cite>TIFFGetStrileByteCount()</cite> and additionally provides an error return</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFStrileQuery.html#c.TIFFGetStrileOffset" title="TIFFGetStrileOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetStrileOffset()</span></code></a></p></td>
+<td><p>return value of the TileOffsets/StripOffsets array for the specified tile/strile</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFStrileQuery.html#c.TIFFGetStrileOffsetWithErr" title="TIFFGetStrileOffsetWithErr"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetStrileOffsetWithErr()</span></code></a></p></td>
+<td><p>same as <cite>TIFFGetStrileOffset()</cite> and additionally provides an error return</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFCustomTagList.html#c.TIFFGetTagListCount" title="TIFFGetTagListCount"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetTagListCount()</span></code></a></p></td>
+<td><p>return number of entries in the custom tag list</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFCustomTagList.html#c.TIFFGetTagListEntry" title="TIFFGetTagListEntry"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetTagListEntry()</span></code></a></p></td>
+<td><p>return tag number of the (n.th - 1) entry within the custom tag list</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFProcFunctions.html#c.TIFFGetUnmapFileProc" title="TIFFGetUnmapFileProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetUnmapFileProc()</span></code></a></p></td>
+<td><p>returns a pointer to memory unmapping method</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFGetVersion" title="TIFFGetVersion"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetVersion()</span></code></a></p></td>
+<td><p>return library version string</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFProcFunctions.html#c.TIFFGetWriteProc" title="TIFFGetWriteProc"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFGetWriteProc()</span></code></a></p></td>
+<td><p>returns a pointer to file write method</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFIsBigEndian" title="TIFFIsBigEndian"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsBigEndian()</span></code></a></p></td>
+<td><p>returns a non-zero value if the file is BigEndian and zero if the file is
+LittleEndian</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFIsBigTIFF" title="TIFFIsBigTIFF"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsBigTIFF()</span></code></a></p></td>
+<td><p>returns a non-zero value if the file is in BigTIFF style</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFIsByteSwapped" title="TIFFIsByteSwapped"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsByteSwapped()</span></code></a></p></td>
+<td><p>return true if image data is byte-swapped</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFcodec.html#c.TIFFIsCODECConfigured" title="TIFFIsCODECConfigured"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsCODECConfigured()</span></code></a></p></td>
+<td><p>check, whether we have working codec</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFIsMSB2LSB" title="TIFFIsMSB2LSB"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsMSB2LSB()</span></code></a></p></td>
+<td><p>return true if image data is being returned with bit 0 as the most significant bit</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFIsTiled" title="TIFFIsTiled"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsTiled()</span></code></a></p></td>
+<td><p>return true if image data is tiled</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFIsUpSampled" title="TIFFIsUpSampled"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFIsUpSampled()</span></code></a></p></td>
+<td><p>returns a non-zero value if image data returned through the read interface
+Routines is being up-sampled</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFLastDirectory" title="TIFFLastDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFLastDirectory()</span></code></a></p></td>
+<td><p>returns a non-zero value if the current directory is the last directory
+in the file; otherwise zero is returned</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFMergeFieldInfo.html#c.TIFFMergeFieldInfo" title="TIFFMergeFieldInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFMergeFieldInfo()</span></code></a></p></td>
+<td><p>adds application defined TIFF tags to the list of known <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> tags</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFquery.html#c.TIFFNumberOfDirectories" title="TIFFNumberOfDirectories"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFNumberOfDirectories()</span></code></a></p></td>
+<td><p>return number of directories in a file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFstrip.html#c.TIFFNumberOfStrips" title="TIFFNumberOfStrips"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFNumberOfStrips()</span></code></a></p></td>
+<td><p>return number of strips in an image</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFtile.html#c.TIFFNumberOfTiles" title="TIFFNumberOfTiles"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFNumberOfTiles()</span></code></a></p></td>
+<td><p>return number of tiles in an image</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFOpen" title="TIFFOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpen()</span></code></a></p></td>
+<td><p>open a file for reading or writing</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFOpenExt" title="TIFFOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenExt()</span></code></a></p></td>
+<td><p>open a file for reading or writing  with options,
+such as re-entrant error and warning handlers may be passed</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFOpenW" title="TIFFOpenW"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenW()</span></code></a></p></td>
+<td><p>opens a TIFF file with a Unicode filename, for read/writing</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFOpenWExt" title="TIFFOpenWExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenWExt()</span></code></a></p></td>
+<td><p>opens a TIFF file with a Unicode filename, for read/writing
+with options, such as re-entrant error and warning handlers may be passed</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFOpenOptions.html#c.TIFFOpenOptionsAlloc" title="TIFFOpenOptionsAlloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenOptionsAlloc()</span></code></a></p></td>
+<td><p>allocates memory for <a class="reference internal" href="TIFFOpenOptions.html#c.TIFFOpenOptions" title="TIFFOpenOptions"><code class="xref c c-type docutils literal notranslate"><span class="pre">TIFFOpenOptions</span></code></a> opaque structure</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFOpenOptions.html#c.TIFFOpenOptionsFree" title="TIFFOpenOptionsFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenOptionsFree()</span></code></a></p></td>
+<td><p>releases the allocated memory for <a class="reference internal" href="TIFFOpenOptions.html#c.TIFFOpenOptions" title="TIFFOpenOptions"><code class="xref c c-type docutils literal notranslate"><span class="pre">TIFFOpenOptions</span></code></a></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFOpenOptions.html#c.TIFFOpenOptionsSetMaxSingleMemAlloc" title="TIFFOpenOptionsSetMaxSingleMemAlloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenOptionsSetMaxSingleMemAlloc()</span></code></a></p></td>
+<td><p>limits the maximum single memory allocation within <code class="docutils literal notranslate"><span class="pre">libtiff</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFOpenOptions.html#c.TIFFOpenOptionsSetErrorHandlerExtR" title="TIFFOpenOptionsSetErrorHandlerExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenOptionsSetErrorHandlerExtR()</span></code></a></p></td>
+<td><p>setup of a user-specific and per-TIFF handle (re-entrant) error handler</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFOpenOptions.html#c.TIFFOpenOptionsSetWarningHandlerExtR" title="TIFFOpenOptionsSetWarningHandlerExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenOptionsSetWarningHandlerExtR()</span></code></a></p></td>
+<td><p>setup of a user-specific and per-TIFF handle (re-entrant) warning handler</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFPrintDirectory.html#c.TIFFPrintDirectory" title="TIFFPrintDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFPrintDirectory()</span></code></a></p></td>
+<td><p>print description of the current directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFsize.html#c.TIFFRasterScanlineSize" title="TIFFRasterScanlineSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRasterScanlineSize()</span></code></a></p></td>
+<td><p>returns the size in bytes of a complete decoded and packed raster scanline</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFsize.html#c.TIFFRasterScanlineSize64" title="TIFFRasterScanlineSize64"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRasterScanlineSize64()</span></code></a></p></td>
+<td><p>return size as <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64_t</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFstrip.html#c.TIFFRawStripSize" title="TIFFRawStripSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRawStripSize()</span></code></a></p></td>
+<td><p>return number of bytes in a raw strip</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFstrip.html#c.TIFFRawStripSize64" title="TIFFRawStripSize64"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRawStripSize64()</span></code></a></p></td>
+<td><p>return number of bytes in a raw strip as <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64_t</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFbuffer.html#c.TIFFReadBufferSetup" title="TIFFReadBufferSetup"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadBufferSetup()</span></code></a></p></td>
+<td><p>specify i/o buffer for reading</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFCustomDirectory.html#c.TIFFReadCustomDirectory" title="TIFFReadCustomDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadCustomDirectory()</span></code></a></p></td>
+<td><p>read the custom directory from the given offset
+and set the context of the TIFF-handle tif to that custom directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFReadDirectory.html#c.TIFFReadDirectory" title="TIFFReadDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirectory()</span></code></a></p></td>
+<td><p>read the next directory</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFReadEncodedStrip.html#c.TIFFReadEncodedStrip" title="TIFFReadEncodedStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadEncodedStrip()</span></code></a></p></td>
+<td><p>read and decode a strip of data</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFReadEncodedTile.html#c.TIFFReadEncodedTile" title="TIFFReadEncodedTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadEncodedTile()</span></code></a></p></td>
+<td><p>read and decode a tile of data</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFCustomDirectory.html#c.TIFFReadEXIFDirectory" title="TIFFReadEXIFDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadEXIFDirectory()</span></code></a></p></td>
+<td><p>read the EXIF directory from the given offset
+and set the context of the TIFF-handle tif to that EXIF directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFReadFromUserBuffer.html#c.TIFFReadFromUserBuffer" title="TIFFReadFromUserBuffer"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadFromUserBuffer()</span></code></a></p></td>
+<td><p>replaces the use of <a class="reference internal" href="TIFFReadEncodedStrip.html#c.TIFFReadEncodedStrip" title="TIFFReadEncodedStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadEncodedStrip()</span></code></a> / <a class="reference internal" href="TIFFReadEncodedTile.html#c.TIFFReadEncodedTile" title="TIFFReadEncodedTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadEncodedTile()</span></code></a>
+when the user can provide the buffer for the input data</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFCustomDirectory.html#c.TIFFReadGPSDirectory" title="TIFFReadGPSDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadGPSDirectory()</span></code></a></p></td>
+<td><p>read the GPS directory from the given offset
+and set the context of the TIFF-handle tif to that GPS directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFReadRawStrip.html#c.TIFFReadRawStrip" title="TIFFReadRawStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRawStrip()</span></code></a></p></td>
+<td><p>read a raw strip of data</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFReadRawTile.html#c.TIFFReadRawTile" title="TIFFReadRawTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRawTile()</span></code></a></p></td>
+<td><p>read a raw tile of data</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFReadRGBAImage.html#c.TIFFReadRGBAImage" title="TIFFReadRGBAImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBAImage()</span></code></a></p></td>
+<td><p>read an image into a fixed format raster</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFReadRGBAImage.html#c.TIFFReadRGBAImageOriented" title="TIFFReadRGBAImageOriented"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBAImageOriented()</span></code></a></p></td>
+<td><p>works like <a class="reference internal" href="TIFFReadRGBAImage.html#c.TIFFReadRGBAImage" title="TIFFReadRGBAImage"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBAImage()</span></code></a> except that the user can specify
+the raster origin position</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFReadRGBAStrip.html#c.TIFFReadRGBAStrip" title="TIFFReadRGBAStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBAStrip()</span></code></a></p></td>
+<td><p>reads a single strip of a strip-based image into memory, storing the
+result in the user supplied RGBA raster</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFReadRGBAStrip.html#c.TIFFReadRGBAStripExt" title="TIFFReadRGBAStripExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBAStripExt()</span></code></a></p></td>
+<td><p>same as <a class="reference internal" href="TIFFReadRGBAStrip.html#c.TIFFReadRGBAStrip" title="TIFFReadRGBAStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBAStrip()</span></code></a> but providing the parameter <cite>stop_on_error</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFReadRGBATile.html#c.TIFFReadRGBATile" title="TIFFReadRGBATile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBATile()</span></code></a></p></td>
+<td><p>reads a single tile of a tile-based image into memory, storing the
+result in the user supplied RGBA raster</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFReadRGBATile.html#c.TIFFReadRGBATileExt" title="TIFFReadRGBATileExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBATileExt()</span></code></a></p></td>
+<td><p>same as <a class="reference internal" href="TIFFReadRGBATile.html#c.TIFFReadRGBATile" title="TIFFReadRGBATile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadRGBATile()</span></code></a> but providing the parameter <cite>stop_on_error</cite></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFReadScanline.html#c.TIFFReadScanline" title="TIFFReadScanline"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadScanline()</span></code></a></p></td>
+<td><p>read and decode a row of data</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFReadTile.html#c.TIFFReadTile" title="TIFFReadTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadTile()</span></code></a></p></td>
+<td><p>read and decode a tile of data</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFcodec.html#c.TIFFRegisterCODEC" title="TIFFRegisterCODEC"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRegisterCODEC()</span></code></a></p></td>
+<td><p>override standard codec for the specific scheme</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFReverseBits" title="TIFFReverseBits"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReverseBits()</span></code></a></p></td>
+<td><p>reverse bits in an array of bytes</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFRewriteDirectory" title="TIFFRewriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRewriteDirectory()</span></code></a></p></td>
+<td><p>operates similarly to <a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>, but can be called
+with directories previously read or written that already have an established
+location in the file and places it at the end of the file</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFRGBAImage.html#c.TIFFRGBAImageBegin" title="TIFFRGBAImageBegin"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRGBAImageBegin()</span></code></a></p></td>
+<td><p>setup decoder state for TIFFRGBAImageGet</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFRGBAImage.html#c.TIFFRGBAImageEnd" title="TIFFRGBAImageEnd"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRGBAImageEnd()</span></code></a></p></td>
+<td><p>release TIFFRGBAImage decoder state</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFRGBAImage.html#c.TIFFRGBAImageGet" title="TIFFRGBAImageGet"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRGBAImageGet()</span></code></a></p></td>
+<td><p>read and decode an image</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFRGBAImage.html#c.TIFFRGBAImageOK" title="TIFFRGBAImageOK"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRGBAImageOK()</span></code></a></p></td>
+<td><p>is image readable by TIFFRGBAImageGet</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFsize.html#c.TIFFScanlineSize" title="TIFFScanlineSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFScanlineSize()</span></code></a></p></td>
+<td><p>return size of a scanline</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFsize.html#c.TIFFScanlineSize64" title="TIFFScanlineSize64"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFScanlineSize64()</span></code></a></p></td>
+<td><p>return size of a scanline as <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64_t</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFSetClientdata" title="TIFFSetClientdata"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetClientdata()</span></code></a></p></td>
+<td><p>set open file’s clientdata (file descriptor/handle),
+and return previous value</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFClientInfo.html#c.TIFFSetClientInfo" title="TIFFSetClientInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetClientInfo()</span></code></a></p></td>
+<td><p>adds or replaces an entry in the clientinfo-list</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFcodec.html#c.TIFFSetCompressionScheme" title="TIFFSetCompressionScheme"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetCompressionScheme()</span></code></a></p></td>
+<td><p>set compression scheme</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFSetDirectory.html#c.TIFFSetDirectory" title="TIFFSetDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetDirectory()</span></code></a></p></td>
+<td><p>set the current directory</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFError.html#c.TIFFSetErrorHandler" title="TIFFSetErrorHandler"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetErrorHandler()</span></code></a></p></td>
+<td><p>set error handler function</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFError.html#c.TIFFSetErrorHandlerExt" title="TIFFSetErrorHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetErrorHandlerExt()</span></code></a></p></td>
+<td><p>set error handler function with a file handle as parameter</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFSetField.html#c.TIFFSetField" title="TIFFSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetField()</span></code></a></p></td>
+<td><p>set a tag’s value in the current directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFSetFileName" title="TIFFSetFileName"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetFileName()</span></code></a></p></td>
+<td><p>sets the file name in the TIFF-structure and returns the old file name</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFSetFileno" title="TIFFSetFileno"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetFileno()</span></code></a></p></td>
+<td><p>overwrites a copy of the open file’s I/O descriptor, and return previous value
+(refer to detailed description)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFOpen.html#c.TIFFSetMode" title="TIFFSetMode"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetMode()</span></code></a></p></td>
+<td><p>sets the <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> open mode in the TIFF-structure and returns the old mode</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFSetDirectory.html#c.TIFFSetSubDirectory" title="TIFFSetSubDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetSubDirectory()</span></code></a></p></td>
+<td><p>set the current directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFSetTagExtender.html#c.TIFFSetTagExtender" title="TIFFSetTagExtender"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetTagExtender()</span></code></a></p></td>
+<td><p>is used to register the merge function for user defined tags as an
+extender callback with <code class="docutils literal notranslate"><span class="pre">libtiff</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFstrip.html#c.TIFFSetupStrips" title="TIFFSetupStrips"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetupStrips()</span></code></a></p></td>
+<td><p>setup  or reset strip parameters and strip array memory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFWarning.html#c.TIFFSetWarningHandler" title="TIFFSetWarningHandler"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetWarningHandler()</span></code></a></p></td>
+<td><p>set warning handler function</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFWarning.html#c.TIFFSetWarningHandlerExt" title="TIFFSetWarningHandlerExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetWarningHandlerExt()</span></code></a></p></td>
+<td><p>set warning handler function with a file handle as parameter</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFSetWriteOffset" title="TIFFSetWriteOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetWriteOffset()</span></code></a></p></td>
+<td><p>set current write offset</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFstrip.html#c.TIFFStripSize" title="TIFFStripSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFStripSize()</span></code></a></p></td>
+<td><p>return size of a strip</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFstrip.html#c.TIFFStripSize64" title="TIFFStripSize64"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFStripSize64()</span></code></a></p></td>
+<td><p>return equivalent size for a strip of data as <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64_t</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFSwabArrayOfDouble" title="TIFFSwabArrayOfDouble"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabArrayOfDouble()</span></code></a></p></td>
+<td><p>swap bytes of an array of doubles</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFSwabArrayOfFloat" title="TIFFSwabArrayOfFloat"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabArrayOfFloat()</span></code></a></p></td>
+<td><p>swap bytes of an array of floats</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFSwabArrayOfLong" title="TIFFSwabArrayOfLong"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabArrayOfLong()</span></code></a></p></td>
+<td><p>swap bytes of an array of longs</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFSwabArrayOfLong8" title="TIFFSwabArrayOfLong8"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabArrayOfLong8()</span></code></a></p></td>
+<td><p>swap bytes of an array of uint64_t</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFSwabArrayOfShort" title="TIFFSwabArrayOfShort"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabArrayOfShort()</span></code></a></p></td>
+<td><p>swap bytes of an array of shorts</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFSwabArrayOfTriples" title="TIFFSwabArrayOfTriples"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabArrayOfTriples()</span></code></a></p></td>
+<td><p>swap the first and third byte of each triple within an array of bytes</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFSwabDouble" title="TIFFSwabDouble"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabDouble()</span></code></a></p></td>
+<td><p>swap bytes of double</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFSwabFloat" title="TIFFSwabFloat"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabFloat()</span></code></a></p></td>
+<td><p>swap bytes of float</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFSwabLong" title="TIFFSwabLong"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabLong()</span></code></a></p></td>
+<td><p>swap bytes of long</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFSwabLong8" title="TIFFSwabLong8"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabLong8()</span></code></a></p></td>
+<td><p>swap bytes of long long (uint64_t)</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFswab.html#c.TIFFSwabShort" title="TIFFSwabShort"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSwabShort()</span></code></a></p></td>
+<td><p>swap bytes of short</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFtile.html#c.TIFFTileRowSize" title="TIFFTileRowSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFTileRowSize()</span></code></a></p></td>
+<td><p>return size of a row in a tile</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFtile.html#c.TIFFTileRowSize64" title="TIFFTileRowSize64"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFTileRowSize64()</span></code></a></p></td>
+<td><p>return size of a row in a tile as <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64_t</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFtile.html#c.TIFFTileSize" title="TIFFTileSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFTileSize()</span></code></a></p></td>
+<td><p>return size of a tile</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFtile.html#c.TIFFTileSize64" title="TIFFTileSize64"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFTileSize64()</span></code></a></p></td>
+<td><p>return size of a tile as <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64_t</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFCreateDirectory.html#c.TIFFUnlinkDirectory" title="TIFFUnlinkDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFUnlinkDirectory()</span></code></a></p></td>
+<td><p>unlink the specified directory from the directory chain</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFcodec.html#c.TIFFUnRegisterCODEC" title="TIFFUnRegisterCODEC"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFUnRegisterCODEC()</span></code></a></p></td>
+<td><p>unregisters the codec</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFSetField.html#c.TIFFUnsetField" title="TIFFUnsetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFUnsetField()</span></code></a></p></td>
+<td><p>clear the contents of the field in the internal structure</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFGetField.html#c.TIFFVGetField" title="TIFFVGetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFVGetField()</span></code></a></p></td>
+<td><p>return tag value in current directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFGetField.html#c.TIFFVGetFieldDefaulted" title="TIFFVGetFieldDefaulted"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFVGetFieldDefaulted()</span></code></a></p></td>
+<td><p>return tag value in current directory</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFSetField.html#c.TIFFVSetField" title="TIFFVSetField"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFVSetField()</span></code></a></p></td>
+<td><p>set a tag’s value in the current directory</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFstrip.html#c.TIFFVStripSize" title="TIFFVStripSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFVStripSize()</span></code></a></p></td>
+<td><p>return number of bytes in a strip</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFstrip.html#c.TIFFVStripSize64" title="TIFFVStripSize64"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFVStripSize64()</span></code></a></p></td>
+<td><p>return number of bytes in a strip with <em>nrows</em> rows of data as <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64_t</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFtile.html#c.TIFFVTileSize" title="TIFFVTileSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFVTileSize()</span></code></a></p></td>
+<td><p>returns the number of bytes in a row-aligned tile with <em>nrows</em> of data</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFtile.html#c.TIFFVTileSize64" title="TIFFVTileSize64"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFVTileSize64()</span></code></a></p></td>
+<td><p>returns the number of bytes in a row-aligned tile with <em>nrows</em> of data
+a <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64_t</span></code> number</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFWarning.html#c.TIFFWarning" title="TIFFWarning"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarning()</span></code></a></p></td>
+<td><p>library-wide warning handling function printing to <code class="docutils literal notranslate"><span class="pre">stderr</span></code></p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFWarning.html#c.TIFFWarningExt" title="TIFFWarningExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExt()</span></code></a></p></td>
+<td><p>user-specific library-wide warning handling function that can be passed
+a file handle, which is set to the open TIFF file within <code class="docutils literal notranslate"><span class="pre">libtiff</span></code></p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFWarning.html#c.TIFFWarningExtR" title="TIFFWarningExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExtR()</span></code></a></p></td>
+<td><p>user-specific re-entrant library warning handling function,
+to which its TIFF structure is passed
+containing the pointer to a user-specific data object</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFbuffer.html#c.TIFFWriteBufferSetup" title="TIFFWriteBufferSetup"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteBufferSetup()</span></code></a></p></td>
+<td><p>sets up the data buffer used to write raw (encoded) data to a file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFWriteCheck" title="TIFFWriteCheck"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteCheck()</span></code></a></p></td>
+<td><p>verify file is writable and that the directory information is setup properly</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFCustomDirectory.html#c.TIFFWriteCustomDirectory" title="TIFFWriteCustomDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteCustomDirectory()</span></code></a></p></td>
+<td><p>write the current custom directory (also EXIF or GPS) to file</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a></p></td>
+<td><p>write the current directory</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFWriteEncodedStrip.html#c.TIFFWriteEncodedStrip" title="TIFFWriteEncodedStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteEncodedStrip()</span></code></a></p></td>
+<td><p>compress and write a strip of data</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFWriteEncodedTile.html#c.TIFFWriteEncodedTile" title="TIFFWriteEncodedTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteEncodedTile()</span></code></a></p></td>
+<td><p>compress and write a tile of data</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFWriteRawStrip.html#c.TIFFWriteRawStrip" title="TIFFWriteRawStrip"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteRawStrip()</span></code></a></p></td>
+<td><p>write a raw strip of data</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFWriteRawTile.html#c.TIFFWriteRawTile" title="TIFFWriteRawTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteRawTile()</span></code></a></p></td>
+<td><p>write a raw tile of data</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFWriteScanline.html#c.TIFFWriteScanline" title="TIFFWriteScanline"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteScanline()</span></code></a></p></td>
+<td><p>write a scanline of data</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFWriteTile.html#c.TIFFWriteTile" title="TIFFWriteTile"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteTile()</span></code></a></p></td>
+<td><p>compress and write a tile of data</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFcolor.html#c.TIFFXYZToRGB" title="TIFFXYZToRGB"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFXYZToRGB()</span></code></a></p></td>
+<td><p>perform CIE XYZ to RGB conversion</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFcolor.html#c.TIFFYCbCrtoRGB" title="TIFFYCbCrtoRGB"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFYCbCrtoRGB()</span></code></a></p></td>
+<td><p>perform YCbCr to RGB conversion</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFcolor.html#c.TIFFYCbCrToRGBInit" title="TIFFYCbCrToRGBInit"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFYCbCrToRGBInit()</span></code></a></p></td>
+<td><p>initialize YCbCr to RGB conversion state</p></td>
+</tr>
+</tbody>
+</table>
+<table class="docutils align-default" id="id3">
+<caption><span class="caption-text"><em>Libtiff auxillary functions</em></span><a class="headerlink" href="#id3" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 20.0%" />
+<col style="width: 80.0%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Name</p></th>
+<th class="head"><p>Description</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFmemory.html#c._TIFFCheckMalloc" title="_TIFFCheckMalloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFCheckMalloc()</span></code></a></p></td>
+<td><p>checking for integer overflow before dynamically allocate memory buffer</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFmemory.html#c._TIFFCheckRealloc" title="_TIFFCheckRealloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFCheckRealloc()</span></code></a></p></td>
+<td><p>checking for integer overflow before dynamically reallocate memory buffer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="_TIFFauxiliary.html#c._TIFFClampDoubleToUInt32" title="_TIFFClampDoubleToUInt32"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFClampDoubleToUInt32()</span></code></a></p></td>
+<td><p>clamps double values into the range of <code class="xref c c-type docutils literal notranslate"><span class="pre">uint32_t</span></code> (i.e. 0 .. 0xFFFFFFFF)</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFmemory.html#c._TIFFfree" title="_TIFFfree"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFfree()</span></code></a></p></td>
+<td><p>free memory buffer</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFCustomDirectory.html#c._TIFFGetExifFields" title="_TIFFGetExifFields"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFGetExifFields()</span></code></a></p></td>
+<td><p>return a pointer to the <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> internal definition list of the EXIF tags</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFCustomDirectory.html#c._TIFFGetGpsFields" title="_TIFFGetGpsFields"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFGetGpsFields()</span></code></a></p></td>
+<td><p>return a pointer to the <code class="docutils literal notranslate"><span class="pre">libtiff</span></code> internal definition list of the GPS tags</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFmemory.html#c._TIFFmalloc" title="_TIFFmalloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFmalloc()</span></code></a></p></td>
+<td><p>dynamically allocate memory buffer</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFmemory.html#c._TIFFmemcmp" title="_TIFFmemcmp"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFmemcmp()</span></code></a></p></td>
+<td><p>compare contents of the memory buffers</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFmemory.html#c._TIFFmemcpy" title="_TIFFmemcpy"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFmemcpy()</span></code></a></p></td>
+<td><p>copy contents of the one buffer to another</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="TIFFmemory.html#c._TIFFmemset" title="_TIFFmemset"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFmemset()</span></code></a></p></td>
+<td><p>fill memory buffer with a constant byte</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="_TIFFauxiliary.html#c._TIFFMultiply32" title="_TIFFMultiply32"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFMultiply32()</span></code></a></p></td>
+<td><p>checks for an integer overflow of the multiplication result of <cite>uint32_t</cite> and
+return the multiplication result or <cite>0</cite> if an overflow would happen</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="_TIFFauxiliary.html#c._TIFFMultiply64" title="_TIFFMultiply64"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFMultiply64()</span></code></a></p></td>
+<td><p>checks for an integer overflow of the multiplication result of <cite>uint64_t</cite> and
+return the multiplication result or <cite>0</cite> if an overflow would happen</p></td>
+</tr>
+<tr class="row-even"><td><p><a class="reference internal" href="TIFFmemory.html#c._TIFFrealloc" title="_TIFFrealloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFrealloc()</span></code></a></p></td>
+<td><p>dynamically reallocate memory buffer</p></td>
+</tr>
+<tr class="row-odd"><td><p><a class="reference internal" href="_TIFFRewriteField.html#c._TIFFRewriteField" title="_TIFFRewriteField"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFRewriteField()</span></code></a></p></td>
+<td><p>Rewrite a field in the directory on disk without regard
+to updating the TIFF directory structure in memory</p></td>
+</tr>
+</tbody>
+</table>
+</section>
+<section id="tag-usage">
+<h2>Tag usage<a class="headerlink" href="#tag-usage" title="Permalink to this heading">¶</a></h2>
+<p>For a table of TIFF tags recognized by the library refer to
+<a class="reference internal" href="../specification/coverage.html"><span class="doc">LibTIFF Coverage of the TIFF 6.0 Specification</span></a>.</p>
+</section>
+<section id="pseudo-tags">
+<h2>“Pseudo tags”<a class="headerlink" href="#pseudo-tags" title="Permalink to this heading">¶</a></h2>
+<p>In addition to the normal TIFF
+tags the library supports a collection of
+tags whose values lie in a range outside the valid range of TIFF
+tags. These tags are termed <em>pseudo-tags</em>
+and are used to control various codec-specific functions within the library.
+The table below summarizes the defined pseudo-tags.</p>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">libtiff supported tags</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 34.5%" />
+<col style="width: 6.9%" />
+<col style="width: 6.9%" />
+<col style="width: 51.7%" />
+</colgroup>
+<thead>
+<tr class="row-odd"><th class="head"><p>Tag name</p></th>
+<th class="head"><p>Codec</p></th>
+<th class="head"><p>R/W</p></th>
+<th class="head"><p>Library Use/Notes</p></th>
+</tr>
+</thead>
+<tbody>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_FAXMODE</span></code></p></td>
+<td><p>G3</p></td>
+<td><p>R/W</p></td>
+<td><p>general codec operation</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_FAXFILLFUNC</span></code></p></td>
+<td><p>G3/G4</p></td>
+<td><p>R/W</p></td>
+<td><p>bitmap fill function</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_JPEGQUALITY</span></code></p></td>
+<td><p>JPEG</p></td>
+<td><p>R/W</p></td>
+<td><p>compression quality control</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_JPEGCOLORMODE</span></code></p></td>
+<td><p>JPEG</p></td>
+<td><p>R/W</p></td>
+<td><p>control colorspace conversions</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_JPEGTABLESMODE</span></code></p></td>
+<td><p>JPEG</p></td>
+<td><p>R/W</p></td>
+<td><p>control contents of <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> tag</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_ZIPQUALITY</span></code></p></td>
+<td><p>Deflate</p></td>
+<td><p>R/W</p></td>
+<td><p>compression quality level</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PIXARLOGDATAFMT</span></code></p></td>
+<td><p>PixarLog</p></td>
+<td><p>R/W</p></td>
+<td><p>user data format</p></td>
+</tr>
+<tr class="row-odd"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PIXARLOGQUALITY</span></code></p></td>
+<td><p>PixarLog</p></td>
+<td><p>R/W</p></td>
+<td><p>compression quality level</p></td>
+</tr>
+<tr class="row-even"><td><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SGILOGDATAFMT</span></code></p></td>
+<td><p>SGILog</p></td>
+<td><p>R/W</p></td>
+<td><p>user data format</p></td>
+</tr>
+</tbody>
+</table>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_FAXMODE</span></code>:</p>
+<blockquote>
+<div><p>Control the operation of the Group 3 codec.
+Possible values (independent bits that can be combined by
+or’ing them together) are:</p>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">FAXMODE_CLASSIC</span></code>:</p>
+<blockquote>
+<div><p>(enable old-style format in which the <code class="docutils literal notranslate"><span class="pre">RTC</span></code>
+is written at the end of the last strip),</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">FAXMODE_NORTC</span></code>:</p>
+<blockquote>
+<div><p>(opposite of <code class="xref c c-macro docutils literal notranslate"><span class="pre">FAXMODE_CLASSIC</span></code>; also called
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">FAXMODE_CLASSF</span></code>),</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">FAXMODE_NOEOL</span></code>:</p>
+<blockquote>
+<div><p>(do not write <code class="docutils literal notranslate"><span class="pre">EOL</span></code> codes at the start of each row of data),</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">FAXMODE_BYTEALIGN</span></code>:</p>
+<blockquote>
+<div><p>(align each encoded row to an 8-bit boundary),</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">FAXMODE_WORDALIGN</span></code>:</p>
+<blockquote>
+<div><p>(align each encoded row to an 16-bit boundary),</p>
+</div></blockquote>
+<p>The default value is dependent on the compression scheme; this
+pseudo-tag is used by the various G3 and G4 codecs to share code.</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_FAXFILLFUNC</span></code>:</p>
+<blockquote>
+<div><p>Control the function used to convert arrays of black and white
+runs to packed bit arrays.
+This hook can be used to image decoded scanlines in multi-bit
+depth rasters (e.g. for display in colormap mode)
+or for other purposes.
+The default value is a pointer to a builtin function that images
+packed bilevel data.</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_IPTCNEWSPHOTO</span></code>:</p>
+<blockquote>
+<div><p>Tag contains image metadata per the IPTC newsphoto spec: Headline,
+captioning, credit, etc… Used by most wire services.</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PHOTOSHOP</span></code>:</p>
+<blockquote>
+<div><p>Tag contains Photoshop captioning information and metadata. Photoshop
+uses in parallel and redundantly alongside <code class="xref c c-macro docutils literal notranslate"><span class="pre">IPTCNEWSPHOTO</span></code> information.</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_JPEGQUALITY</span></code>:</p>
+<blockquote>
+<div><p>Control the compression quality level used in the baseline algorithm.
+Note that quality levels are in the range 0-100 with a default value of 75.</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_JPEGCOLORMODE</span></code>:</p>
+<blockquote>
+<div><p>Control whether or not conversion is done between
+RGB and YCbCr colorspaces.
+Possible values are:</p>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">JPEGCOLORMODE_RAW</span></code>:</p>
+<blockquote>
+<div><p>(do not convert), and</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">JPEGCOLORMODE_RGB</span></code>:</p>
+<blockquote>
+<div><p>(convert to/from RGB)</p>
+</div></blockquote>
+<p>The default value is <code class="xref c c-macro docutils literal notranslate"><span class="pre">JPEGCOLORMODE_RAW</span></code>.</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_JPEGTABLESMODE</span></code>:</p>
+<blockquote>
+<div><p>Control the information written in the <code class="docutils literal notranslate"><span class="pre">JPEGTables</span></code> tag.
+Possible values (independent bits that can be combined by
+or’ing them together) are:</p>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">JPEGTABLESMODE_QUANT</span></code>:</p>
+<blockquote>
+<div><p>(include quantization tables), and</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">JPEGTABLESMODE_HUFF</span></code>:</p>
+<blockquote>
+<div><p>(include Huffman encoding tables).</p>
+</div></blockquote>
+<p>The default value is <span class="c-expr sig sig-inline c"><span class="n">JPEGTABLESMODE_QUANT</span><span class="w"> </span><span class="o">|</span><span class="w"> </span><span class="n">JPEGTABLESMODE_HUFF</span></span>.</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_ZIPQUALITY</span></code>:</p>
+<blockquote>
+<div><p>Control the compression technique used by the Deflate codec.
+Quality levels are in the range 1-9 with larger numbers yielding better
+compression at the cost of more computation.
+The default quality level is 6 which yields a good time-space tradeoff.</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PIXARLOGDATAFMT</span></code>:</p>
+<blockquote>
+<div><p>Control the format of user data passed <em>in</em>
+to the PixarLog codec when encoding and passed
+<em>out</em> from when decoding. Possible values are:</p>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">PIXARLOGDATAFMT_8BIT</span></code>:</p>
+<blockquote>
+<div><p>for 8-bit unsigned pixels,</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">PIXARLOGDATAFMT_8BITABGR</span></code>:</p>
+<blockquote>
+<div><p>for 8-bit unsigned ABGR-ordered pixels,</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">PIXARLOGDATAFMT_11BITLOG</span></code>:</p>
+<blockquote>
+<div><p>for 11-bit log-encoded raw data,</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">PIXARLOGDATAFMT_12BITPICIO</span></code>:</p>
+<blockquote>
+<div><p>for 12-bit PICIO-compatible data,</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">PIXARLOGDATAFMT_16BIT</span></code>:</p>
+<blockquote>
+<div><p>for 16-bit signed samples, and</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">PIXARLOGDATAFMT_FLOAT</span></code>:</p>
+<blockquote>
+<div><p>for 32-bit IEEE floating point samples.</p>
+</div></blockquote>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_PIXARLOGQUALITY</span></code>:</p>
+<blockquote>
+<div><p>Control the compression technique used by the PixarLog codec.
+This value is treated identically to <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_ZIPQUALITY</span></code>; see the
+above description.</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SGILOGDATAFMT</span></code>:</p>
+<blockquote>
+<div><p>Control the format of client data passed <em>in</em>
+to the SGILog codec when encoding and passed
+<em>out</em> from when decoding.  Possible values are:</p>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">SGILOGDATAFMT_FLTXYZ</span></code>:</p>
+<blockquote>
+<div><p>for converting between LogLuv and 32-bit IEEE floating valued XYZ pixels,</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">SGILOGDATAFMT_16BITLUV</span></code>:</p>
+<blockquote>
+<div><p>for 16-bit encoded Luv pixels,</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">SGILOGDATAFMT_32BITRAW</span></code>:
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">SGILOGDATAFMT_24BITRAW</span></code>:</p>
+<blockquote>
+<div><p>for no conversion of data,</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">SGILOGDATAFMT_8BITRGB</span></code>:</p>
+<blockquote>
+<div><p>for returning 8-bit RGB data (valid only when decoding LogLuv-encoded data),</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">SGILOGDATAFMT_FLTY</span></code>:</p>
+<blockquote>
+<div><p>for converting between LogL and 32-bit IEEE floating valued Y pixels,</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">SGILOGDATAFMT_16BITL</span></code>:</p>
+<blockquote>
+<div><p>for 16-bit encoded L pixels, and</p>
+</div></blockquote>
+<p><code class="xref c c-macro docutils literal notranslate"><span class="pre">SGILOGDATAFMT_8BITGRY</span></code>:</p>
+<blockquote>
+<div><p>for returning 8-bit greyscale data
+(valid only when decoding LogL-encoded data).</p>
+</div></blockquote>
+</div></blockquote>
+</section>
+<section id="diagnostics">
+<h2>Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this heading">¶</a></h2>
+<p>All error messages are directed through the <a class="reference internal" href="TIFFError.html#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a> routine.
+By default messages are directed to <code class="docutils literal notranslate"><span class="pre">stderr</span></code> in the form:
+<code class="docutils literal notranslate"><span class="pre">module:</span> <span class="pre">message\n</span></code>.
+Warning messages are likewise directed through the
+<a class="reference internal" href="TIFFWarning.html#c.TIFFWarningExtR" title="TIFFWarningExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExtR()</span></code></a> routine.</p>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="../tools/tiffdump.html"><span class="doc">tiffdump</span></a>,
+<a class="reference internal" href="../tools/tiffcp.html"><span class="doc">tiffcp</span></a>,
+<a class="reference internal" href="../tools/tiffinfo.html"><span class="doc">tiffinfo</span></a>,
+<a class="reference internal" href="../tools/tiffsplit.html"><span class="doc">tiffsplit</span></a>,</p>
+<p><strong>“Tag Image File Format Specification *Revision 6.0*”</strong>,
+an Aldus Technical Memorandum.</p>
+<p><strong>“The Spirit of TIFF Class F”</strong> ,
+an appendix to the TIFF 5.0 specification prepared by Cygnet Technologies.</p>
+</section>
+<section id="bugs">
+<h2>Bugs<a class="headerlink" href="#bugs" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>The library does not support multi-sample images
+where some samples have different bits/sample.</p></li>
+<li><p>The library does not support random access to compressed data
+that is organized with more than one row per tile or strip.</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">libtiff</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#data-types">Data types</a></li>
+<li><a class="reference internal" href="#list-of-routines">List of routines</a></li>
+<li><a class="reference internal" href="#tag-usage">Tag usage</a></li>
+<li><a class="reference internal" href="#pseudo-tags">“Pseudo tags”</a></li>
+<li><a class="reference internal" href="#diagnostics">Diagnostics</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+<li><a class="reference internal" href="#bugs">Bugs</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="../functions.html"
+                          title="previous chapter">TIFF Functions Overview</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFAccessTagMethods.html"
+                          title="next chapter">TIFFAccessTagMethods</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/libtiff.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFAccessTagMethods.html" title="TIFFAccessTagMethods"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../functions.html" title="TIFF Functions Overview"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">libtiff</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

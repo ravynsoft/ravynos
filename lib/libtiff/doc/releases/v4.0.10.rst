@@ -1,0 +1,239 @@
+Changes in TIFF v4.0.10
+=======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.0.10 (:tag:`v4.0.10`)
+    Previous Version        :doc:`v4.0.9 <v4.0.9>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site #1     `<http://www.simplesystems.org/libtiff/>`_
+    Master HTTP Site #2     `<http://libtiff.maptools.org/>`_
+    ======================  ==========================================
+
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:
+
+
+Major changes
+-------------
+
+* The libtiff source repository is changed from CVS to Git and the master libtiff source repository is now at
+  `Gitlab <https://gitlab.com/libtiff/libtiff>`_.
+  This is the first release to be made from the new Git repository.
+
+
+Software configuration changes
+------------------------------
+
+* Minimum CMake version is now v2.8.11 for the CMake-based build.
+
+* Libwebp will be automatically detected and used by configure/cmake if present.
+
+* Libzstd will be automatically detected and used by configure/cmake if present.
+
+
+Library changes
+---------------
+
+* Added ZSTD compression codec.
+  `Zstandard <https://github.com/facebook/zstd>`_ or zstd as
+  short version, is a fast lossless compression algorithm, targeting
+  real-time compression scenarios at zlib-level and better
+  compression ratios. It's backed by a very fast entropy stage,
+  provided by Huff0 and FSE library.
+
+  We require libzstd >= 1.0.0 so as to be able to use streaming
+  compression and decompression methods.
+
+  The default compression level we have selected is 9 (range goes
+  from 1 to 22), which experimentally offers equivalent or better
+  compression ratio than the default deflate/ZIP level of 6, and
+  much faster compression.
+
+  For example on a 6600×4400 16bit image, ``tiffcp -c zip`` runs in
+  10.7 seconds, while ``tiffcp -c zstd`` runs in 5.3
+  seconds. Decompression time for zip is 840 ms, and for zstd 650
+  ms. File size is 42735936 for zip, and 42586822 for zstd. Similar
+  findings on other images.
+
+  On a 25894×16701 16bit image:
+
+  .. table:: Compressor Relative Performance
+      :widths: auto
+
+      ===========  ================  ==================  ===========
+      Compressor   Compression time  Decompression time  File size
+      ===========  ================  ==================  ===========
+      ZSTD         35 s              3.2 s               399,700,498
+      ZIP/Deflate  1m 20 s           4.9 s               419,622,336
+      ===========  ================  ==================  ===========
+
+  Please note that ``COMPRESSION_ZSTD`` is self-assigned the id 50000
+  by the libtiff project and is not officially registered with Adobe
+  since Adobe's registration function is defunct.
+
+* Added WebP compression codec.
+
+  `WebP <https://developers.google.com/speed/webp/>`_ is
+  a high performance compressor intended for photos as commonly used
+  on the Web.  The WebP encoder is not designed for huge images, but
+  serves very well for compressing strips and tiles in TIFF as long
+  as the strips or tiles do not exceed the capability of the
+  encoder.
+
+  As a test of compression performance metrics, GraphicsMagick
+  was used on an extremely high quality 8-bit TIFF image from a
+  Hasselblad H4D-200MS camera with pixel dimensions of
+  16352×12264. The image was re-encoded with 1024×1024 tiles and
+  various compression algorithms, using default settings for each
+  algorithm.  Based on this test, the compression and decompression
+  performance (in iterations per second), the resulting file size,
+  and the calculated total PSNR are provided here.  It can be seen
+  that WebP provided excellent encode and decode performance, and
+  the compressed file size was very small:
+
+
+  .. table:: Compressor Relative Performance
+      :widths: auto
+
+      ==========  ============  =============  =========  =====
+      Compressor   Compression  Decompression  File size  PSNR
+      ==========  ============  =============  =========  =====
+      None        0.536 iter/s  1.506 iter/s   576.03MiB  ∞
+      LZW         0.105 iter/s  0.266 iter/s   270.68MiB  ∞
+      ZStd        0.020 iter/s  0.518 iter/s   238.42MiB  ∞
+      LZMA        0.009 iter/s  0.056 iter/s   247.61MiB  ∞
+      ZIP         0.009 iter/s  0.301 iter/s   247.88MiB  ∞
+      JPEG        0.446 iter/s  0.760 iter/s   18.59MiB   39.00
+      WebP        0.019 iter/s  0.330 iter/s   9.38MiB    37.78
+      ==========  ============  =============  =========  =====
+
+  Please note that ``COMPRESSION_WEBP`` is self-assigned the id 50001
+  by the libtiff project and is not officially registered with Adobe
+  since Adobe's registration function is defunct.
+
+* :c:func:`TIFFPrintDirectory`: fix null pointer dereference on corrupted
+  file. Fixes :bugzilla:`Bug 2770 - NULL Pointer Dereference in tiffinfo.c with crafted TIFF
+  image <2770>`.
+
+* :c:func:`_TIFFVGetField`: fix heap out-of-bounds access when requesting
+  ``TIFFTAG_NUMBEROFINKS`` on a EXIF
+  directory. Fixes :bugzilla:`Bug 2765 - Heap Out-Of-Bounds Memory Access - 68122422
+  <2765>`.
+  Reported by Google Autofuzz project.
+
+* Fix a memory leak in :c:func:`TIFFStreamOpen`. :c:func:`TIFFStreamOpen` allocates a
+  new ``tiff{o,i}s_data``, but if :c:func:`TIFFClientOpen` fails then that struct is
+  leaked.
+
+* Fix for bug 2772. It is possible to craft a TIFF document where
+  the IFD list is circular, leading to an infinite loop while
+  traversing the chain. The libtiff directory reader has a failsafe
+  that will break out of this loop after reading 65535 directory
+  entries, but it will continue processing, consuming time and
+  resources to process what is essentially a bogus TIFFdocument.
+
+  This change fixes the above behavior by breaking out of processing
+  when a TIFF document has >= 65535 directories and terminating with an
+  error.
+
+* :c:func:`ChopUpSingleUncompressedStrip`: avoid memory exhaustion
+  (:cve:`2017-11613`).  In :c:func:`ChopUpSingleUncompressedStrip`, if the
+  computed number of strips is big enough and we are in read only
+  mode, validate that the file size is consistent with that number of
+  strips to avoid useless attempts at allocating a lot of memory for
+  the :c:member:`td_stripbytecount` and :c:member:`td_stripoffset`
+  arrays. Fixes :bugzilla:`Bug 2724 - memory exhaustion in ChopUpSingleUncompressedStrip
+  <2724>`.
+
+* Port code: Add :c:func:`strtol`, :c:func:`strtoll` and :c:func:`strtoull`. Also update
+  :c:func:`strtoul`.  All use the same implementation from NetBSD libc.
+
+* Fix for :cve:`2018-7456` "NULL pointer dereference in
+  :c:func:`TIFFPrintDirectory`".
+
+* :c:func:`TIFFWriteDirectorySec`: avoid
+  assertion. Fixes :bugzilla:`Bug 2795 - There is a reachable assertion abort in function
+  TIFFWriteDirectorySec() of libtiff 4.0.9. A crafted input will lead
+  to remote denial of attack. (:cve:`2018-10963`)
+  <2795>`.
+
+* :c:func:`LZWDecodeCompat`: fix potential index-out-of-bounds
+  write. Fixes :bugzilla:`Bug
+  2780 - A heap-buffer-overflow in function LZWDecodeCompat in
+  libtiff4.0.9 (:cve:`2018-8905`)
+  <2780>`.
+  The fix consists in using the
+  similar code as :c:func:`LZWDecode` to validate we don't write outside of
+  the output buffer.
+
+* Remove builtin support for GUI warning and error message
+  boxes. Now warnings always go to the console by default unless
+  applications define their own warning and error handlers.
+
+  GUI applications (and Windows CE) are required to define such handlers.
+
+* Add tag and pseudo-tag definitions for ESRI LERC codec (out of
+  tree codec whose source is
+  at `<https://github.com/OSGeo/gdal/blob/master/gdal/frmts/gtiff/tif_lerc.c>`_.
+
+* Fix libtiff 4.0.8 regression when reading LZW-compressed strips with scanline API
+  Fixes :bugzilla:`Bug 2800 - Regression: Opening a tiff file with v4.0.9 gives an error with LZWDecode
+  <2800>`.
+
+* :c:func:`TIFFSetupStrips`: avoid potential :c:type:`uint32` overflow on 32-bit
+  systems with large number of strips.  Probably relates
+  to :bugzilla:`Bug
+  2788 - Heap Buffer Overflow in TIFFWriteScanline of tif_write.c
+  (:cve:`2018-10779`)
+  <2788>`.
+
+* Fix out-of-bound read on some tiled images.
+
+* Avoid potential :c:type:`int32` overflows in :c:func:`multiply_ms`.
+
+* Only read/write ``TIFFTAG_GROUP3OPTIONS`` or ``TIFFTAG_GROUP4OPTIONS``
+  if compression is ``COMPRESSION_CCITTFAX3`` or
+  ``COMPRESSION_CCITTFAX4``.
+
+* JBIG: fix potential out-of-bounds write in :c:func:`JBIGDecode`. Also
+  fix a (harmless) potential use of uninitialized memory when
+  ``tif->tif_rawsize > tif->tif_rawcc``. In case libtiff is compiled with
+  ``CHUNKY_STRIP_READ_SUPPORT``, make sure that whole strip data is
+  provided to :c:func:`JBIGDecode`.
+
+* :c:func:`LZMAPreEncode`: emit verbose error if :c:func:`lzma_stream_encoder` fails
+  (typically because not enough memory available)
+
+
+Tools changes
+-------------
+
+* :program:`tiff2pdf`: Fix
+  :cve:`2017-9935`, :bugzilla:`Bug
+  2704 - There is a heap based buffer overflow in the tiff2pdf tool of
+  the libtiff library. A crafted TIFF document can lead to a heap
+  based buffer overflow resulting in multiple damages.
+  <2704>`.
+
+* :program:`pal2rgb`: Add workaround to pal2rgb buffer overflow.
+
+* :program:`tiffset`: Add support for :c:macro:`LONG8`, :c:macro:`SLONG8` and :c:macro:`IFD8` field types
+
+* :program:`tiff2bw`: avoid null pointer dereference in case of out of memory
+  situation. Fixes :bugzilla:`Bug
+  2819 - There is a NULL pointer dereference at function LZWDecode in
+  libtiff 4.0.9 (:cve:`2018-18661`)
+  <2819>`.
+
+
+Contributed software changes
+----------------------------
+
+None

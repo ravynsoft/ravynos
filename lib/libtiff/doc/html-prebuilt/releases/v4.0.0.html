@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v4.0.0 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Old release history" href="historical.html" />
+    <link rel="prev" title="Changes in TIFF v4.0.1" href="v4.0.1.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="historical.html" title="Old release history"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="v4.0.1.html" title="Changes in TIFF v4.0.1"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v4.0.0</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v4-0-0">
+<h1>Changes in TIFF v4.0.0<a class="headerlink" href="#changes-in-tiff-v4-0-0" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id2">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id2" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v4.0.0 (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/tags/Release-v4-0-0">tag Release-v4-0-0</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v3.9.5.html"><span class="doc">v3.9.5</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the changes made to the software between the
+<em>previous</em> and <em>current</em> versions (see above).  If you don’t
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned. Please consult
+the ChangeLog file in the source package for full change details.  The
+following information is located here:</p>
+<section id="major-changes">
+<h2>Major changes<a class="headerlink" href="#major-changes" title="Permalink to this heading">¶</a></h2>
+<p>BigTIFF support changes:</p>
+<ul class="simple">
+<li><p>The <code class="docutils literal notranslate"><span class="pre">options</span></code> parameter in the <a class="reference internal" href="../functions/TIFFOpen.html#c.TIFFOpen" title="TIFFOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpen()</span></code></a> and <a class="reference internal" href="../functions/TIFFOpen.html#c.TIFFClientOpen" title="TIFFClientOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpen()</span></code></a> funcs has
+been extended. When creating new files, you can add option <code class="docutils literal notranslate"><span class="pre">4</span></code> to
+specify you want to create a ClassicTIFF file, though that is the
+default and the option is not strictly necessary. (As such, old
+calling code will continue to function and create ClassicTIFF files.)
+Or you can add option <code class="docutils literal notranslate"><span class="pre">8</span></code> to specify you want to create a BigTIFF file
+instead. This new option is also reflected in some of the tools we
+already upgraded. For instance, you can use the <code class="docutils literal notranslate"><span class="pre">-8</span></code> option on <strong class="program">tiffcp</strong> to
+have <strong class="program">tiffcp</strong> produce BigTIFF files instead of the default ClassicTIFF.
+(Whilst an additional option is provided for version selection when
+creating new files, no such option is necessary when reading TIFF
+files. LibTiff reads ClassicTIFF and BigTIFF both, and the application
+does not need to be aware which TIFF version an opened file is.)</p></li>
+<li><p>Although the tag count in BigTIFF is 64bit, we restricted the
+count in the implementation to a much more reasonable size. This is
+necessary in current implementation, because all tag data gets read
+automatically in the IFD reading stage, so if there’s half a dozen
+private tags with multiple gigabytes of data that causes considerable
+overhead even if the application level is never interested in these
+tags. Our choice to ignore tags with data longer then a certain sanity
+value is much needed as things stand. We also recommend to step away
+from writing tiles that are 8 kilobyte in their uncompressed form, or
+writing single-line strips, in really big files, resulting in mega’s
+of tiles or strips. It’s much more efficient to choose bigger tile or
+strip sizes, up to several megabyte if needed, and have a few kilo of
+tiles or strips instead.</p></li>
+<li><p>Although it’s rare, some application code does directly access
+file offsets. Some of these are automatically upgraded because they
+used the <code class="xref c c-type docutils literal notranslate"><span class="pre">toff_t</span></code> type, others need to be aware that the datatype
+changed and need to start using <code class="xref c c-type docutils literal notranslate"><span class="pre">toff_t</span></code> or <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64</span></code>. This impacts access
+to tags like the <code class="docutils literal notranslate"><span class="pre">EXIF</span></code> IFD tag, for example, or the <code class="docutils literal notranslate"><span class="pre">SubIfds</span></code> tag, or to
+<code class="docutils literal notranslate"><span class="pre">StripOffsets</span></code> or <code class="docutils literal notranslate"><span class="pre">TileOffsets</span></code>, the return type of functions like
+<a class="reference internal" href="../functions/TIFFquery.html#c.TIFFCurrentDirOffset" title="TIFFCurrentDirOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentDirOffset()</span></code></a>, and a parameter type to functions like
+<a class="reference internal" href="../functions/TIFFSetDirectory.html#c.TIFFSetSubDirectory" title="TIFFSetSubDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetSubDirectory()</span></code></a>.</p></li>
+<li><p>Although it’s rare, some application code does use structures
+like <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFHeader</span></code> or <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFDirEntry</span></code> that used to be an exact binary
+representation of TIFF structures. These need to change. The old
+TIFFHeader structure is replaced by the new TIFFHeaderClassic,
+TIFFHeaderBig, and TIFFHeaderCommon structures that are an exact
+binary representation of the ClassicTIFF and BigTIFF header, and of
+the part that is common to both. There is no new equivalent for the
+old <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFDirEntry</span></code> structure (or more precisely, there is still a
+<code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFDirEntry</span></code> structure, but it is changed, moved to library-private
+definition, and no longer an exact binary representation of the tag
+structure of either TIFF version).</p></li>
+<li><p>Sizer functions, like <a class="reference internal" href="../functions/TIFFtile.html#c.TIFFTileSize" title="TIFFTileSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFTileSize()</span></code></a> or <a class="reference internal" href="../functions/TIFFsize.html#c.TIFFScanlineSize" title="TIFFScanlineSize"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFScanlineSize()</span></code></a> and the
+like, return a <code class="xref c c-func docutils literal notranslate"><span class="pre">tmsize_t()</span></code> value (<code class="xref c c-func docutils literal notranslate"><span class="pre">tmsize_t()</span></code> is defined as <code class="xref c c-type docutils literal notranslate"><span class="pre">int32</span></code> on 32bit
+machines, and <code class="xref c c-type docutils literal notranslate"><span class="pre">int64</span></code> on 64bit machines, and as such it is meant to
+represent signed memory sizes). This is because we figure 98% of the
+calling code uses the return value as sizes in allocations and the
+like. So, any overflow that is theoretically possible with BigTIFF
+when LibTiff is running on a 32bit system, is best detected inside the
+sizer functions and it is best to return a type that makes sense as a
+memory size. If your calling code is the exception and is interested
+in actual file size, you best use the newer <a class="reference internal" href="../functions/TIFFtile.html#c.TIFFTileSize64" title="TIFFTileSize64"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFTileSize64()</span></code></a> or
+<a class="reference internal" href="../functions/TIFFsize.html#c.TIFFScanlineSize64" title="TIFFScanlineSize64"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFScanlineSize64()</span></code></a> function that returns an <code class="xref c c-type docutils literal notranslate"><span class="pre">uint64</span></code> type.</p></li>
+<li><p>These TIFF tags require a 64-bit type as an argument in
+libtiff 4.0.0:</p>
+<ul>
+<li><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_FREEBYTECOUNTS</span></code></p></li>
+<li><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_FREEOFFSETS</span></code></p></li>
+<li><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_STRIPBYTECOUNTS</span></code></p></li>
+<li><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_STRIPOFFSETS</span></code></p></li>
+<li><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_TILEBYTECOUNTS</span></code></p></li>
+<li><p><code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_TILEOFFSETS</span></code></p></li>
+</ul>
+</li>
+</ul>
+<p>Other important backward incompatible changes in the public API:</p>
+<ul class="simple">
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRewriteField()</span></code> renamed into <a class="reference internal" href="../functions/_TIFFRewriteField.html#c._TIFFRewriteField" title="_TIFFRewriteField"><code class="xref c c-func docutils literal notranslate"><span class="pre">_TIFFRewriteField()</span></code></a> and moved out
+from the public interface (from <code class="file docutils literal notranslate"><span class="pre">tiffio.h</span></code> to <code class="file docutils literal notranslate"><span class="pre">tiffiop.h</span></code>). Type of its
+<code class="docutils literal notranslate"><span class="pre">count</span></code> parameter changed from <code class="xref c c-type docutils literal notranslate"><span class="pre">uint32</span></code> to <code class="xref c c-type docutils literal notranslate"><span class="pre">tmsize_t</span></code>.</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFMergeFieldInfo.html#c.TIFFMergeFieldInfo" title="TIFFMergeFieldInfo"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFMergeFieldInfo()</span></code></a> returns non-void result now. It returns 0
+if successful and -1 if failed. Though this is now obsoleted function
+and should not be used in new programs. Use the new tag extension
+scheme instead.</p></li>
+<li><p><a class="reference internal" href="../functions/TIFFFieldQuery.html#c.TIFFFieldWithTag" title="TIFFFieldWithTag"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldWithTag()</span></code></a> and <a class="reference internal" href="../functions/TIFFFieldQuery.html#c.TIFFFieldWithName" title="TIFFFieldWithName"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFieldWithName()</span></code></a> functions now return
+pointer to <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFField</span></code> constant object instead of <code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFFieldInfo</span></code>.</p></li>
+<li><p><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReassignTagToIgnore()</span></code> function and <code class="xref c c-enum docutils literal notranslate"><span class="pre">TIFFIgnoreSense</span></code> enumeration
+have been removed. They was unused and never been used properly.
+Should be unneeded for high-level applications.</p></li>
+<li><p><code class="xref c c-struct docutils literal notranslate"><span class="pre">TIFFTagValue</span></code> structure removed from the public <code class="file docutils literal notranslate"><span class="pre">tiffio.h</span></code>
+to private <code class="file docutils literal notranslate"><span class="pre">tif_dir.h</span></code> and not accessible anymore. It should be unneeded
+for high-level applications.</p></li>
+</ul>
+</section>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<p>Updated autotools: Autoconf 2.68, Automake 1.11.1, libtool 2.4.</p>
+<ul class="simple">
+<li><p>Enabled support for Automake silent build rules
+(<code class="docutils literal notranslate"><span class="pre">--enable-silent-rules</span></code> or <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">V=0</span></code>)</p></li>
+<li><p>Enabled support for Automake colorized and parallel tests.</p></li>
+<li><p>Added detection of 64-bit integer types since libtiff 4.0
+requires use of 64-bit signed and unsigned integer types.</p></li>
+<li><p>Libtiff now provides a more comprehensive test suite with
+over 72 tests, which may be executed on Unix-like systems, or
+under Microsoft Windows using MinGW/MSYS or Cygwin.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--disable-lzma</span></code> configure option to disable use of liblzma.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--enable-defer-strile-load</span></code> configure option to enable
+experimental deferred strip/tile offset/size loading.  May
+cause some extremely sophisticated uses of libtiff to fail.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">--enable-chunky-strip-read</span></code> configure option to enable
+experimental enable reading large strips in chunks in
+<a class="reference internal" href="../functions/TIFFReadScanline.html#c.TIFFReadScanline" title="TIFFReadScanline"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadScanline()</span></code></a>.</p></li>
+<li><p>Now always uses WIN32 native I/O functions for Microsoft
+Windows except for under Cygwin.</p></li>
+<li><p>Now provides a pkg-config support file (libtiff-4.pc).</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Patches/fixes made to stable libtiff (v3.9.X) are also
+applied to 4.0.0.  There are too many to list here.  See the
+distribution <code class="file docutils literal notranslate"><span class="pre">ChangeLog</span></code> for a detailed change list.</p></li>
+<li><p>There is considerable change in some files like
+<code class="xref c c-func docutils literal notranslate"><span class="pre">tif_dirread()</span></code> and <code class="xref c c-func docutils literal notranslate"><span class="pre">tif_dirwrite()</span></code>. These changes don’t impact
+backwards compatibility, they are mostly a clean rewrite that
+does allow BigTIFF support as well as somewhat more robust
+reading of the unexpected already and will also serve future
+API extension but does not impact current API or functionality
+in a negative way that you need to know about.</p></li>
+<li><p>Although there is still a functional definition for types
+like <code class="xref c c-type docutils literal notranslate"><span class="pre">toff_t</span></code> (file offset), <code class="xref c c-type docutils literal notranslate"><span class="pre">tstrip_t</span></code> (strip index number), etc,
+we recommend against using these in newer code. We have
+learned that it is next to impossible to use these
+consistently and make real abstraction of the binary format of
+these types. Instead, at a certain level we always end up
+doing casts anyway, and taking the exact binary format into
+account, so these types are nothing but dangerously misleading
+and obfuscating. You do not need to update calling code that
+uses them, as 99.9% of such code will continue to work. But we
+recommend against using them in newer calling code, and we
+started replacing them with binary clear types like <code class="xref c c-type docutils literal notranslate"><span class="pre">uint16</span></code>,
+<code class="xref c c-type docutils literal notranslate"><span class="pre">uint32</span></code> and such in the library.</p></li>
+<li><p>We do use and will continue to use one functional type
+that is an exception to the above rule, being <code class="xref c c-type docutils literal notranslate"><span class="pre">tmsize_t</span></code>. This
+is a signed memory size type, i.e. it is <code class="xref c c-type docutils literal notranslate"><span class="pre">int32</span></code> on 32bit
+machines, or <code class="xref c c-type docutils literal notranslate"><span class="pre">int64</span></code> on 64bit machines.</p></li>
+<li><p>Optionally support LZMA compression via TIFF tag 34925.
+<strong class="program">tiffcp</strong> supports compression levels similar to <code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">lzma:p1</span></code> or
+<code class="docutils literal notranslate"><span class="pre">-c</span> <span class="pre">zip:p9</span></code> for setting the LZMA compression parameters.</p></li>
+<li><p>Optionally defer the load of strip/tile offset and size
+tags for optimized scanning of directories.  Enabled with the
+<code class="docutils literal notranslate"><span class="pre">--enable-defer-strile-load</span></code> configure option (<code class="xref c c-macro docutils literal notranslate"><span class="pre">DEFER_STRILE_LOAD</span></code>
+<code class="docutils literal notranslate"><span class="pre">#define</span></code> in <code class="file docutils literal notranslate"><span class="pre">tif_config.h</span></code>).</p></li>
+<li><p>Optionally enable experimental support for reading big
+strips in chunks.  Enabled with the <code class="docutils literal notranslate"><span class="pre">--enable-chunky-strip-read</span></code>
+configure option.</p></li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong class="program">tiffset</strong>: add <code class="docutils literal notranslate"><span class="pre">-d</span></code> and <code class="docutils literal notranslate"><span class="pre">-sd</span></code> switches to allow operation on
+a particular directory, not just the first.</p></li>
+</ul>
+</section>
+<section id="contributed-software-changes">
+<h2>Contributed software changes<a class="headerlink" href="#contributed-software-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>None</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v4.0.0</a><ul>
+<li><a class="reference internal" href="#major-changes">Major changes</a></li>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+<li><a class="reference internal" href="#contributed-software-changes">Contributed software changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v4.0.1.html"
+                          title="previous chapter">Changes in TIFF v4.0.1</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="historical.html"
+                          title="next chapter">Old release history</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v4.0.0.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="historical.html" title="Old release history"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="v4.0.1.html" title="Changes in TIFF v4.0.1"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v4.0.0</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

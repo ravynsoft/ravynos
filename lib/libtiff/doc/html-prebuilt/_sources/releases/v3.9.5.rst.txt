@@ -1,0 +1,217 @@
+Changes in TIFF v3.9.5
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v3.9.5 (:tag:`Release-v3-9-5`)
+    Previous Version        :doc:`v3.9.4 <v3.9.4>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+    ======================  ==========================================
+
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:
+
+
+Major changes
+-------------
+
+* None
+
+
+Software configuration changes
+------------------------------
+
+* :file:`configure.ac`: Should use ``AC_CANONICAL_HOST`` since host specifies
+  the run-time target whereas target is used to specify the final
+  output target if the package is a build tool (like a compiler),
+  which libtiff is not.  Resolves :bugzilla:`2307` "Use
+  AC_CANONICAL_HOST macro".
+
+
+Library changes
+---------------
+
+* :file:`libtiff/tif_getimage.c`: Check the number of samples per pixel when
+  working with YCbCr image in :c:func:`PickContigCase`. As per bug
+  :bugzilla:`2216`
+
+* :file:`libtiff/tif_dir.c`: Set the bogus post-decoding hook when processing
+  :c:macro:`TIFFTAG_BITSPERSAMPLE` in :c:func:`_TIFFVSetField` for the case of 8 bit when
+  we don't need any post-processing. That helps to reset the hook if we
+  previously set this field to some other value and the hook was
+  initialized accordingly. As per bug
+  :bugzilla:`2035`
+
+* :file:`libtiff/tif_getimage.c`: Avoid wrong math du to the signed/unsigned
+  integer type conversions. As per bug
+  :bugzilla:`2207`
+
+* :file:`libtiff/tif_dirinfo.c`: Don't use assertions in :c:func:`_TIFFFieldWithTag`
+  and :c:func:`_TIFFFieldWithName` if the tag is not found in the tag table.
+  This should be normal situation and returned :c:macro:`NULL` value should be
+  properly handled by the caller.
+
+* :file:`libtiff/{tif_dirwrite.c, tif_print.c}`: Properly handle ``DotRange``
+  tag as it can be either byte or short size and should be set and read
+  by value, not as an array. As per bug
+  :bugzilla:`2116`
+
+* :file:`libtiff/tif_dirread.c`: Really reset the tag count in :c:func:`CheckDirCount`
+  to expected value as the warning message suggests. As per bug
+  :bugzilla:`1963`
+
+* :file:`libtiff/tif_open.c`: Fix mode check before opening a file.
+  :bugzilla:`1906`
+
+* :file:`libtiff/tif_jpeg.c`, :file:`libtiff/tif_strip.c`: apply patch for
+  :cve:`2010-3087` per bug
+  :bugzilla:`2140`
+
+* :file:`libtiff/tif_dirread.c`: fix crash when reading a badly-constructed
+  TIFF per :bugzilla:`1994`
+
+* :file:`libtiff/tif_ojpeg.c`: fix buffer overflow on problem data
+  :bugzilla:`1999`
+
+* :file:`libtiff/tif_dirread.c`: modify warnings
+  :bugzilla:`2016`
+
+* :file:`libtiff/tif_jpeg.c`: fix use of clumplines calculation
+  :bugzilla:`2149`
+
+* :file:`libtiff/tif_color.c`: prevent crash in handling bad TIFFs
+  resolves :cve:`2010-2595`,
+  :bugzilla:`2208`
+
+* :file:`libtiff/tif_dirread.c`: fix needless tag ordering warning
+  :bugzilla:`2210`
+
+* :file:`libtiff/tif_jpeg.c`: reduce usage of ``JCS_UNKNOWN`` in order
+  to improve compatibility with various viewers
+  submitted by e-mail from `Dwight Kelly <dkelly@apago.com>`_
+
+* :file:`libtiff/tif_strip.c`: use :c:func:`TIFFGetFieldDefaulted` instead
+  of :c:func:`TIFFGetField` when we assume that it will succeed
+  :bugzilla:`2215`
+
+* :file:`libtiff/tif_dirread.c`: tolerate some cases where
+  ``FIELD_COLORMAP`` is missing
+  :bugzilla:`2189`
+
+* :file:`libtiff/tif_jpeg.c`: Fix regressions with 2 and 3 band images
+  caused by commit on 2010-12-14.  Submitted by e-mail from 
+  `Even Rouault <even.rouault@mines-paris.org>`_
+
+* :file:`libtiff/tif_dirwrite.c`: Avoid undefined behaviour when casting from
+  :c:expr:`float` to :c:expr:`unsigned int` in :c:func:`TIFFWriteRationalArray` as reported by
+  Kareem Shehata.
+
+* :file:`libtiff/tif_fax3.h`: Protect against a fax ``VL(n)`` codeword commanding
+  a move left.  Without this, a malicious input file can generate an 
+  indefinitely large series of runs without ``a0`` ever reaching the right
+  margin, thus overrunning our buffer of run lengths.  Per :cve:`2011-0192`.
+  This is a modified version of a patch proposed by Drew Yao of Apple 
+  Product Security.  It adds an :c:func:`unexpected` report, and disallows the
+  equality case, since emitting a run without increasing ``a0`` still allows
+  buffer overrun.
+
+* :file:`libtiff/tif_fax3.h`: Fix to last change allowing zero length
+  runs at the start of a scanline---needed for legal cases.
+
+* :file:`libtiff/tif_thunder.c`: Correct potential buffer overflow with
+  thunder encoded files with wrong bitspersample set.  The libtiff 
+  development team would like to thank Marin Barbella and TippingPoint's
+  Zero Day Initiative for reporting this vulnerability (ZDI-CAN-1004,
+  :cve:`2011-1167`).
+  :bugzilla:`2300`
+
+* :file:`libtiff/tiffiop.h`: avoid declaring :c:type:`int64`/:c:type:`uint64` on AIX with XLC
+  where they are already available. (:bugzilla:`2301`)
+
+
+Tools changes
+-------------
+
+* :file:`tools/tiffcrop.c`: Patch from Richard Nolde. Reject YCbCr
+  subsampled data since tiffcrop currently doesn't support it.  Fix
+  JPEG support.
+
+* :file:`tools/tiffcp.c`: Initialize buffer arrays with zero to avoid
+  referencing to uninitialized memory in some cases (e.g. when tile size
+  set bigger than the image size).
+
+* :file:`tools/tiff2pdf.c`: Better generation of ID field in
+  :c:func:`t2p_write_pdf_trailer`. Get rid of GCC aliasing warnings.
+
+* :file:`tools/tiff2pdf.c`: Fixed computation of the tile buffer size when
+  converting JPEG encoded tiles.
+
+* :file:`tools/tiff2pdf.c`: Better handling of string fields, use static
+  string buffers instead of dynamically allocated, use :c:func:`strncpy` instead
+  of :c:func:`strcpy`, control the string lengths.
+
+* :file:`tools/tiff2bw.c`, :file:`tools/thumbnail.c`, :file:`tools/pal2rgb.c`: Fix the count for
+  ``WhitePoint`` tag as per bug
+  :bugzilla:`2042`
+
+* :file:`tools/tiffdump.c`: Use :c:func:`PrintData` function instead of
+  :c:func:`PrintByte`/:c:func:`PrintShort`/:c:func:`PrintLong`. Should fix an issue reported at
+  :bugzilla:`2116`
+
+* :file:`tools/tiffset.c`: Properly handle ``TIFFTAG_PAGENUMBER``,
+  ``TIFFTAG_HALFTONEHINTS``, ``TIFFTAG_YCBCRSUBSAMPLING``, ``TIFFTAG_DOTRANGE``
+  which should be set by value.
+
+* :file:`tools/tiffdump.c`: Avoid integer overflows computing the buffer size
+  for large directories. As per bug
+  :bugzilla:`2218`
+
+* :file:`tools/tiff2pdf.c`: Fixed ID buffer filling in
+  :c:func:`t2p_write_pdf_trailer`, thanks to Dmitry V. Levin.
+
+* :file:`tools/tiffcrop.c`: Patch from Richard Nolde to avoid a
+  potentially unterminated buffer due to using an exceptionally long
+  file name.
+
+* :file:`tools/tiff2ps.c`: improvements and enhancements from Richard Nolde
+  with additional command line options for Document Title, 
+  Document Creator, and Page Orientation
+
+* :file:`tools/tiffsplit.c`: abort when reading a TIFF without a byte-count
+  per :bugzilla:`1996`
+
+* :file:`tools/tiff2pdf.c`: add fill-page option
+  :bugzilla:`2051`
+
+* :file:`tools/fax2ps.c`: replace unsafe :c:func:`tmpfile` with :c:func:`mkstemp`
+  :bugzilla:`2118`
+
+* :file:`tools/tiff2pdf.c`: fix colors for images with RGBA
+  interleaved data
+  :bugzilla:`2250`
+
+* :file:`tools/tiffcrop.c`: new release by Richard Nolde
+  :bugzilla:`2004`
+
+* :file:`tools/fax2ps.c`: be consistent with page-numbering
+  :bugzilla:`2225`
+
+* :file:`tools/gif2tiff.c`: fix buffer overrun
+  :bugzilla:`2270`
+
+* :file:`tools/fax2ps.c` (:c:func:`main`): Use :c:func:`tmpfile` rather than :c:func:`mkstemp` since
+  it is much more portable.  Tmpfile is included in ISO/IEC
+  9899:1990 and the WIN32 CRT.
+
+
+Contributed software changes
+----------------------------
+
+* None

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Acknowledgments &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Release history" href="../releases/index.html" />
+    <link rel="prev" title="Reporting Bugs" href="bugs.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../releases/index.html" title="Release history"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="bugs.html" title="Reporting Bugs"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">LibTIFF Project</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Acknowledgments</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="acknowledgments">
+<h1>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permalink to this heading">¶</a></h1>
+<a class="reference internal image-reference" href="../_images/ring.gif"><img alt="ring" src="../_images/ring.gif" style="width: 124px;" /></a>
+<section id="maintainers">
+<h2>Maintainers<a class="headerlink" href="#maintainers" title="Permalink to this heading">¶</a></h2>
+<p>The LibTIFF software was written by Sam Leffler while working for
+Silicon Graphics.</p>
+<p>Silicon Graphics has seen fit to allow us to give this work away.  It
+is free.  There is no support or guarantee of any sort as to its
+operations, correctness, or whatever.  If you do anything useful with
+all or parts of it you need to honor the copyright notices.  It would
+also be nice to be acknowledged.</p>
+<p>LibTIFF as been maintained by cast of others since 1999.</p>
+<p>The persons currently actively maintaining and releasing libtiff are:</p>
+<ul class="simple">
+<li><p>Even Rouault</p></li>
+<li><p><a class="reference external" href="mailto:bfriesen&#37;&#52;&#48;GraphicsMagick&#46;org">Bob Friesenhahn</a></p></li>
+</ul>
+<p>Significant maintainers in the past (since the 3.5.1 release) were:</p>
+<ul class="simple">
+<li><p><a class="reference external" href="http://pobox.com/~warmerdam">Frank Warmerdam</a></p></li>
+<li><p><a class="reference external" href="mailto:dron&#37;&#52;&#48;ak4719&#46;spb&#46;edu">Andrey Kiselev</a></p></li>
+<li><p>Joris Van Damme</p></li>
+<li><p>Lee Howard</p></li>
+</ul>
+</section>
+<section id="contributors">
+<h2>Contributors<a class="headerlink" href="#contributors" title="Permalink to this heading">¶</a></h2>
+<p>The LZW algorithm is derived from the compress program (the proper attribution
+is included in the source code).</p>
+<p>The Group 3 fax stuff originated as code from Jef Poskanzer, but has since
+been rewritten several times.  The latest version uses an algorithm from
+Frank Cringle – consult <code class="file docutils literal notranslate"><span class="pre">libtiff/mkg3states.c</span></code> and
+<code class="file docutils literal notranslate"><span class="pre">libtiff/tif_fax3.h</span></code> for further information.</p>
+<p>The JPEG support was written by Tom Lane and is dependent on the
+excellent work of Tom Lane and the Independent JPEG Group (IJG) who distribute
+their work under friendly licensing similar to this software. Joris Van Damme
+implemented the robust Old JPEG decoder (as included in libtiff since version
+3.9.0, there was another Old JPEG module in older releases, which was
+incomplete and unsuitable for many existing images of that format).</p>
+<p>JBIG module was written by Lee Howard and depends on JBIG library from the Markus
+Kuhn.</p>
+<p>Many other people have by now helped with bug fixes and code; a few of
+the more persistent contributors have been:</p>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">Contributors</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<colgroup>
+<col style="width: 100.0%" />
+</colgroup>
+<tbody>
+<tr class="row-odd"><td><p>Bjorn P. Brox</p></td>
+</tr>
+<tr class="row-even"><td><p>Dan McCoy</p></td>
+</tr>
+<tr class="row-odd"><td><p>J.T. Conklin</p></td>
+</tr>
+<tr class="row-even"><td><p>Richard Minner</p></td>
+</tr>
+<tr class="row-odd"><td><p>Frank D. Cringle</p></td>
+</tr>
+<tr class="row-even"><td><p>Richard Mlynarik</p></td>
+</tr>
+<tr class="row-odd"><td><p>Soren Pingel Dalsgaard</p></td>
+</tr>
+<tr class="row-even"><td><p>Niles Ritter</p></td>
+</tr>
+<tr class="row-odd"><td><p>Steve Johnson</p></td>
+</tr>
+<tr class="row-even"><td><p>Karsten Spang</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tom Lane</p></td>
+</tr>
+<tr class="row-even"><td><p>Peter Smith</p></td>
+</tr>
+<tr class="row-odd"><td><p>Brent Roman</p></td>
+</tr>
+<tr class="row-even"><td><p>Mike Welles</p></td>
+</tr>
+<tr class="row-odd"><td><p>Frank Warmerdam</p></td>
+</tr>
+<tr class="row-even"><td><p>Greg Ward</p></td>
+</tr>
+<tr class="row-odd"><td><p>Stanislav Brabec</p></td>
+</tr>
+<tr class="row-even"><td><p>Roman Shpount</p></td>
+</tr>
+<tr class="row-odd"><td><p>Peter Skarpetis</p></td>
+</tr>
+<tr class="row-even"><td><p>Arvan Pritchard</p></td>
+</tr>
+<tr class="row-odd"><td><p>Bernt Herd</p></td>
+</tr>
+<tr class="row-even"><td><p>Joseph Orost</p></td>
+</tr>
+<tr class="row-odd"><td><p>Phil Beffery</p></td>
+</tr>
+<tr class="row-even"><td><p>Ivo Penzar</p></td>
+</tr>
+<tr class="row-odd"><td><p>Francois Dagand</p></td>
+</tr>
+<tr class="row-even"><td><p>Albert Chin-A-Young</p></td>
+</tr>
+<tr class="row-odd"><td><p>Bruce A. Mallett</p></td>
+</tr>
+<tr class="row-even"><td><p>Dwight Kelly</p></td>
+</tr>
+<tr class="row-odd"><td><p>Andrey Kiselev</p></td>
+</tr>
+<tr class="row-even"><td><p>Ross Finlayson</p></td>
+</tr>
+<tr class="row-odd"><td><p>Dmitry V. Levin</p></td>
+</tr>
+<tr class="row-even"><td><p>Bob Friesenhahn</p></td>
+</tr>
+<tr class="row-odd"><td><p>Lee Howard</p></td>
+</tr>
+<tr class="row-even"><td><p>Joris Van Damme</p></td>
+</tr>
+<tr class="row-odd"><td><p>Tavis Ormandy</p></td>
+</tr>
+<tr class="row-even"><td><p>Richard Nolde</p></td>
+</tr>
+<tr class="row-odd"><td><p>Even Rouault</p></td>
+</tr>
+<tr class="row-even"><td><p>Roger Leigh</p></td>
+</tr>
+</tbody>
+</table>
+<p>(apologies to anyone that was inadvertently not listed.)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Acknowledgments</a><ul>
+<li><a class="reference internal" href="#maintainers">Maintainers</a></li>
+<li><a class="reference internal" href="#contributors">Contributors</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="bugs.html"
+                          title="previous chapter">Reporting Bugs</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="../releases/index.html"
+                          title="next chapter">Release history</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/project/acknowledgements.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../releases/index.html" title="Release history"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="bugs.html" title="Reporting Bugs"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >LibTIFF Project</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Acknowledgments</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

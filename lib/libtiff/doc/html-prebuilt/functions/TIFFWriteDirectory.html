@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFFWriteDirectory &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFWriteEncodedStrip" href="TIFFWriteEncodedStrip.html" />
+    <link rel="prev" title="TIFFWarning" href="TIFFWarning.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFWriteEncodedStrip.html" title="TIFFWriteEncodedStrip"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TIFFWarning.html" title="TIFFWarning"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFWriteDirectory</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffwritedirectory">
+<h1>TIFFWriteDirectory<a class="headerlink" href="#tiffwritedirectory" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+</pre></div>
+</div>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFWriteDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFWriteDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFWriteDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFRewriteDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFRewriteDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFRewriteDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFCheckpointDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFCheckpointDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFCheckpointDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFSetWriteOffset">
+<span class="kt"><span class="pre">void</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFSetWriteOffset</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="n"><span class="pre">toff_t</span></span><span class="w"> </span><span class="n"><span class="pre">off</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFSetWriteOffset" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFWriteCheck">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFWriteCheck</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span>, <span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="n"><span class="pre">tiles</span></span>, <span class="k"><span class="pre">const</span></span><span class="w"> </span><span class="kt"><span class="pre">char</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">module</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFWriteCheck" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a> will write the contents of the current
+directory (IFD) to the file and setup to create a new directory (IFD)
+using <a class="reference internal" href="TIFFCreateDirectory.html#c.TIFFCreateDirectory" title="TIFFCreateDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateDirectory()</span></code></a>.
+Applications only need to call <a class="reference internal" href="#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>
+when writing multiple subfiles (images) to a single TIFF file.
+This is called “multi-page TIFF” or “multi-image TIFF”
+(see <a class="reference internal" href="../multi_page.html"><span class="doc">Multi Page / Multi Image TIFF</span></a>).
+<a class="reference internal" href="#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a> is automatically called by
+<a class="reference internal" href="TIFFClose.html#c.TIFFClose" title="TIFFClose"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClose()</span></code></a> and <a class="reference internal" href="TIFFFlush.html#c.TIFFFlush" title="TIFFFlush"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFlush()</span></code></a> to write a modified
+directory if the file is open for writing.</p>
+<p>The <a class="reference internal" href="#c.TIFFRewriteDirectory" title="TIFFRewriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFRewriteDirectory()</span></code></a> function operates similarly to
+<a class="reference internal" href="#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>, but can be called with directories
+previously read or written that already have an established location
+in the file.  It will rewrite the directory, but instead of placing it
+at its old location (as <a class="reference internal" href="#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a> would) it will
+place them at the end of the file, correcting the pointer from the
+preceding directory or file header to point to it’s new location.  This
+is particularly important in cases where the size of the directory and
+pointed to data has grown, so it won’t fit in the space available at the
+old location.</p>
+<p>The <a class="reference internal" href="#c.TIFFCheckpointDirectory" title="TIFFCheckpointDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCheckpointDirectory()</span></code></a> writes the current state of the
+tiff directory into the file to make what is currently in the file
+readable.  Unlike <a class="reference internal" href="#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>,
+<a class="reference internal" href="#c.TIFFCheckpointDirectory" title="TIFFCheckpointDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCheckpointDirectory()</span></code></a> does not free up the directory data
+structures in memory, so they can be updated (as strips/tiles are
+written) and written again.  Reading such a partial file you will at
+worst get a tiff read error for the first strip/tile encountered that
+is incomplete, but you will at least get all the valid data in the file
+before that.  When the file is complete, just use
+<a class="reference internal" href="#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a> as usual to finish it off cleanly.</p>
+<p>The <a class="reference internal" href="#c.TIFFSetWriteOffset" title="TIFFSetWriteOffset"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetWriteOffset()</span></code></a> sets the current write offset.
+This should only be used to set the offset to a known previous location
+(very carefully), or to 0 so that the next write gets appended to the end
+of the file.</p>
+<p>The <a class="reference internal" href="#c.TIFFWriteCheck" title="TIFFWriteCheck"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteCheck()</span></code></a>  verify file is writable and that the directory
+information is setup properly.  In doing the latter we also “freeze”
+the state of the directory so that important information is not changed.</p>
+</section>
+<section id="return-values">
+<h2>Return values<a class="headerlink" href="#return-values" title="Permalink to this heading">¶</a></h2>
+<p>1 is returned when the contents are successfully written to the file.
+Otherwise, 0 is returned if an error was encountered when writing
+the directory contents.</p>
+</section>
+<section id="diagnostics">
+<h2>Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this heading">¶</a></h2>
+<p>All error messages are directed to the <a class="reference internal" href="TIFFError.html#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a> routine.</p>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Error</span> <span class="pre">post-encoding</span> <span class="pre">before</span> <span class="pre">directory</span> <span class="pre">write&quot;</span></code>:</p>
+<blockquote>
+<div><p>Before writing the contents of the current directory, any pending data are
+flushed. This message indicates that an error occurred while doing this.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Error</span> <span class="pre">flushing</span> <span class="pre">data</span> <span class="pre">before</span> <span class="pre">directory</span> <span class="pre">write&quot;</span></code>:</p>
+<blockquote>
+<div><p>Before writing the contents of the current directory, any pending data are
+flushed. This message indicates that an error occurred while doing this.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Cannot</span> <span class="pre">write</span> <span class="pre">directory,</span> <span class="pre">out</span> <span class="pre">of</span> <span class="pre">space&quot;</span></code>:</p>
+<blockquote>
+<div><p>There was not enough space to allocate a temporary area for the directory
+that was to be written.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Error</span> <span class="pre">writing</span> <span class="pre">directory</span> <span class="pre">count&quot;</span></code>:</p>
+<blockquote>
+<div><p>A write error occurred when writing the count of fields in the directory.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Error</span> <span class="pre">writing</span> <span class="pre">directory</span> <span class="pre">contents&quot;</span></code>:</p>
+<blockquote>
+<div><p>A write error occurred when writing the directory fields.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Error</span> <span class="pre">writing</span> <span class="pre">directory</span> <span class="pre">link&quot;</span></code>:</p>
+<blockquote>
+<div><p>A write error occurred when writing the link to the next directory.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">Error</span> <span class="pre">writing</span> <span class="pre">data</span> <span class="pre">for</span> <span class="pre">field</span> <span class="pre">&quot;%s&quot;</span></code>:</p>
+<blockquote>
+<div><p>A write error occurred when writing indirect data for the specified field.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Error</span> <span class="pre">writing</span> <span class="pre">TIFF</span> <span class="pre">header&quot;</span></code>:</p>
+<blockquote>
+<div><p>A write error occurred when re-writing header at the front of the file.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Error</span> <span class="pre">fetching</span> <span class="pre">directory</span> <span class="pre">count&quot;</span></code>:</p>
+<blockquote>
+<div><p>A read error occurred when fetching the directory count field for
+a previous directory.
+This can occur when setting up a link to the directory that is being
+written.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">&quot;Error</span> <span class="pre">fetching</span> <span class="pre">directory</span> <span class="pre">link&quot;</span></code>:</p>
+<blockquote>
+<div><p>A read error occurred when fetching the directory link field for
+a previous directory.
+This can occur when setting up a link to the directory that is being
+written.</p>
+</div></blockquote>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="TIFFquery.html"><span class="doc">TIFFquery</span></a> (3tiff),
+<a class="reference internal" href="TIFFOpen.html"><span class="doc">TIFFOpen</span></a> (3tiff),
+<a class="reference internal" href="TIFFCreateDirectory.html"><span class="doc">TIFFCreateDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFCustomDirectory.html"><span class="doc">TIFFCustomDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFSetDirectory.html"><span class="doc">TIFFSetDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFReadDirectory.html"><span class="doc">TIFFReadDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFError.html"><span class="doc">TIFFError</span></a> (3tiff),
+<a class="reference internal" href="../multi_page.html"><span class="doc">Multi Page / Multi Image TIFF</span></a>,
+<a class="reference internal" href="libtiff.html"><span class="doc">libtiff</span></a> (3tiff)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TIFFWriteDirectory</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#return-values">Return values</a></li>
+<li><a class="reference internal" href="#diagnostics">Diagnostics</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="TIFFWarning.html"
+                          title="previous chapter">TIFFWarning</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFWriteEncodedStrip.html"
+                          title="next chapter">TIFFWriteEncodedStrip</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/TIFFWriteDirectory.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFWriteEncodedStrip.html" title="TIFFWriteEncodedStrip"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TIFFWarning.html" title="TIFFWarning"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFWriteDirectory</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

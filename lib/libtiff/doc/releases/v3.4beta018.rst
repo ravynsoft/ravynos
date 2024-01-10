@@ -1,0 +1,50 @@
+Changes in TIFF v3.4beta018
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.4beta018 (no release tag)
+  Previous Version        :doc:`v3.4beta016 <v3.4beta016>`
+  Master Download Site    `<ftp://ftp.sgi.com/graphics/tiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* configure now recognizes IRIX 6.x systems
+* configure now uses ``ENVOPTS`` when searching for an ANSI
+  C compiler; this fixes a problem configuring the software under
+  HP/UX with the native C compiler
+* configure now correctly recognizes memory-mapped files are supported
+  under AIX
+
+
+Library changes
+---------------
+
+* ``make install`` now properly installs the include files
+* some portability fixes from Bjorn Brox
+* the G3/G4 codec now warns about decoded rows that are longer than
+  the image/tile width
+* changes from Frank Cringle to make the library work with the
+  gcc-specific bounds checking software
+* miscellaneous fixes to :c:func:`TIFFPrintDirectory`
+* bug fix to correct a problem where :c:func:`TIFFWriteRawStrip`
+  could not be used to automatically grow an image's length
+
+
+Tools changes
+-------------
+
+* fixes from Frank Cringle to update :program:`fax2tiff`
+* portability fixes to :program:`tiff2bw` and :program:`tiffcmp`
+* :program:`tiffdump` now uses the byte swapping routines in the library

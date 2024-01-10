@@ -1,0 +1,63 @@
+Changes in TIFF v3.9.1
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.9.1 (:tag:`Release-v3-9-1`)
+  Previous Version        :doc:`v3.9.0 <v3.9.0>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:
+
+
+Major changes
+-------------
+
+* This is a bug-fix release for several bugs (two of which
+  are dire) which were discovered in the 3.9.0 release.
+
+
+Software configuration changes
+------------------------------
+
+* Several defines were missing from :file:`tif_config.vc.h` which
+  are necessary to compile the library using MSVC.
+
+* Colorized tests were actually not enabled as expected.
+  Parallel tests mode is now also enabled so that tests can be
+  run in parallel, and test output is sent to :file:`.log` files.
+
+
+Library changes
+---------------
+
+* :file:`libtiff/tif_write.c` (:c:func:`TIFFAppendToStrip`): Remove cast
+  which caused libtiff to output a wrong last strip with
+  byte-count and strip-offset of zero.  This cast was added on
+  the day of the 3.9.0 release.
+
+* :file:`libtiff/tif_dirwrite.c`: Back out changes from 2007-11-22
+  that resulted in the final strip not being written in some
+  circumstances.
+  :bugzilla:`2088`
+
+
+Tools changes
+-------------
+
+None
+
+
+Contributed software changes
+----------------------------
+
+* None

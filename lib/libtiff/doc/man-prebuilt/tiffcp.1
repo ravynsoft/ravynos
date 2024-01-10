@@ -1,0 +1,336 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "TIFFCP" "1" "Sep 08, 2023" "4.6" "LibTIFF"
+.SH NAME
+tiffcp \- copy (and possibly convert) a TIFF file
+.SH SYNOPSIS
+.sp
+\fBtiffcp\fP [ \fIoptions\fP ] \fIsrc1.tif\fP … \fIsrcN.tif\fP \fIdst.tif\fP
+.SH DESCRIPTION
+.sp
+\fBtiffcp\fP combines one or more files created according
+to the Tag Image File Format, Revision 6.0 into a single TIFF file.
+Because the output file may be compressed using a different
+algorithm than the input files, \fBtiffcp\fP is most often
+used to convert between different compression schemes.
+.sp
+By default, \fBtiffcp\fP will copy all the understood tags in a
+TIFF directory of an input file to the associated directory in the output file.
+.sp
+\fBtiffcp\fP can be used to reorganize the storage characteristics of data
+in a file, but it is explicitly intended to not alter or convert
+the image data content in any way.
+.SH OPTIONS
+.INDENT 0.0
+.TP
+.B \-a
+Append to an existing output file instead of overwriting it.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-b image
+subtract the following monochrome image from all others
+processed.  This can be used to remove a noise bias
+from a set of images.  This bias image is typically an
+image of noise the camera saw with its shutter closed.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-B
+Force output to be written with Big\-Endian byte order.
+This option only has an effect when the output file is created or
+overwritten and not when it is appended to.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-C
+Suppress the use of \(dqstrip chopping\(dq when reading images
+that have a single strip/tile of uncompressed data.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-c
+Specify the compression to use for data written to the output file:
+\fB\-c none\fP for no compression,
+\fB\-c packbits\fP for PackBits compression,
+\fB\-c lzw\fP for Lempel\-Ziv & Welch compression,
+\fB\-c zip\fP for Deflate compression,
+\fB\-c lzma\fP for LZMA2 compression,
+\fB\-c jpeg\fP for baseline JPEG compression,
+\fB\-c g3\fP for CCITT Group 3 (T.4) compression,
+\fB\-c g4\fP for CCITT Group 4 (T.6) compression, or
+\fB\-c sgilog\fP for SGILOG compression.
+.sp
+By default \fBtiffcp\fP will compress data according to the
+value of the \fBCompression\fP tag found in the source file.
+.sp
+The CCITT Group 3 and Group 4 compression algorithms can only
+be used with bilevel data.
+.sp
+Group 3 compression can be specified together with several
+T.4\-specific options:
+.INDENT 7.0
+.IP \(bu 2
+\fB1d\fP for 1\-dimensional encoding,
+.IP \(bu 2
+\fB2d\fP for 2\-dimensional encoding, and
+.IP \(bu 2
+\fBfill\fP to force each encoded scanline to be zero\-filled so that the
+terminating EOL code lies on a byte boundary.
+.UNINDENT
+.sp
+Group 3\-specific options are specified by appending a \fB:\fP\-separated
+list to the \fBg3\fP option; e.g. \fB\-c g3:2d:fill\fP
+to get 2D\-encoded data with byte\-aligned EOL codes.
+.sp
+LZW, Deflate and LZMA2 compression can be specified together with a
+\fBpredictor\fP value. A predictor value of 2 causes each scanline of the output image to
+undergo horizontal differencing before it is encoded; a value of 1 forces each
+scanline to be encoded without differencing. A value 3 is for floating point
+predictor which you can use if the encoded data are in floating point format.
+LZW\-specific options are specified by appending a \fB:\fP\-separated list to the
+\fBlzw\fP option; e.g. \fB\-c lzw:2\fP for LZW compression with horizontal differencing.
+.sp
+Deflate and LZMA2 encoders support various compression levels (or encoder presets) set as
+character \fBp\fP and a preset number. \fBp1\fP is the fastest one with the worst
+compression ratio and \fBp9\fP is the slowest but with the best possible ratio;
+e.g. \fB\-c zip:3:p9\fP for
+Deflate encoding with maximum compression level and floating point predictor.
+.sp
+For the Deflate codec, and in a libtiff build with libdeflate enabled, \fBp12\fP is
+actually the maximum level.
+.sp
+For the Deflate codec, and in a libtiff build with libdeflate enabled, \fBs0\fP can be used to
+require zlib to be used, and \fBs1\fP for libdeflate (defaults to libdeflate when
+it is available).
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-f fillorder
+Specify the bit fill order to use in writing output data.  By default, \fBtiffcp\fP
+will create a new file with the same fill order as the original.  Specifying \fB\-f lsb2msb\fP
+will force data to be written with the \fBFillOrder\fP tag set to \fBLSB2MSB\fP, while
+\fB\-f msb2lsb\fP will force data to be written with the \fBFillOrder\fP tag set to
+\fBMSB2LSB\fP\&.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-i
+Ignore non\-fatal read errors and continue processing of the input file.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-l
+Specify the length of a tile (in pixels).
+.sp
+\fBtiffcp\fP attempts to set the tile dimensions so
+that no more than 8 kilobytes of data appear in a tile.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-L
+Force output to be written with Little\-Endian byte order.
+This option only has an effect when the output file is created or
+overwritten and not when it is appended to.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-M
+Suppress the use of memory\-mapped files when reading images.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-o offset
+Set initial directory offset.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-p
+Specify the planar configuration to use in writing image data
+that has one 8\-bit sample per pixel. By default, \fBtiffcp\fP
+will create a new file with the same planar configuration as
+the original.  Specifying \fB\-p contig\fP
+will force data to be written with multi\-sample data packed
+together, while \fB\-p separate\fP
+will force samples to be written in separate planes.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-r
+Specify the number of rows (scanlines) in each strip of data
+written to the output file.  By default (or when value \fB0\fP
+is specified), \fBtiffcp\fP attempts to set the rows/strip
+that no more than 8 kilobytes of data appear in a strip. If you specify
+special value \fB\-1\fP it will results in infinite number of the rows per
+strip. The entire image will be the one strip in that case.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-s
+Force the output file to be written with data organized in strips
+(rather than tiles).
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-t
+Force the output file to be written with data organized in tiles (rather than
+strips). options can be used to force the resultant image to be written as
+strips or tiles of data, respectively.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-w
+Specify the width of a tile (in pixels). :program::\fItiffcp\fP
+attempts to set the tile dimensions so that no more than 8 kilobytes of data
+appear in a tile.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-x
+Force the output file to be written with \fBPAGENUMBER\fP value in sequence.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-8
+Write BigTIFF instead of classic TIFF format.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-,= character
+substitute \fIcharacter\fP for \fB,\fP
+in parsing image directory indices
+in files.  This is necessary if filenames contain commas.
+Note that \fB\-,=\fP
+with whitespace immediately following will disable
+the special meaning of the \fB,\fP entirely.  See examples.
+.UNINDENT
+.INDENT 0.0
+.TP
+.B \-m size
+Set maximum memory allocation size (in MiB). The default is 256MiB.
+Set to 0 to disable the limit.
+.UNINDENT
+.SH EXAMPLES
+.sp
+The following concatenates two files and writes the result using LZW encoding:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+tiffcp \-c lzw a.tif b.tif result.tif
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+To convert a G3 1d\-encoded TIFF to a single strip of G4\-encoded data the following might be used:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+tiffcp \-c g4 \-r 10000 g3.tif g4.tif
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+(1000 is just a number that is larger than the number of rows in
+the source file.)
+.sp
+To extract a selected set of images from a multi\-image TIFF file, the file
+name may be immediately followed by a \fB,\fP separated list of image directory
+indices.  The first image is always in directory 0.  Thus, to copy the 1st and
+3rd images of image file \fBalbum.tif\fP to \fBresult.tif\fP:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+tiffcp album.tif,0,2 result.tif
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+A trailing comma denotes remaining images in sequence.  The following command
+will copy all image with except the first one:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+tiffcp album.tif,1, result.tif
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+Given file \fBCCD.tif\fP whose first image is a noise bias
+followed by images which include that bias,
+subtract the noise from all those images following it
+(while decompressing) with the command:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+tiffcp \-c none \-b CCD.tif CCD.tif,1, result.tif
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.sp
+If the file above were named \fBCCD,X.tif\fP, the \fB\-,=\fP
+option would be required to correctly parse this filename with image numbers,
+as follows:
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+tiffcp \-c none \-,=% \-b CCD,X.tif CCD,X%1%.tif result.tif
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fI\%tiffinfo\fP (1),
+\fI\%tiffdump\fP (1),
+\fI\%tiffsplit\fP (1),
+\fI\%libtiff\fP (3tiff)
+.SH AUTHOR
+LibTIFF contributors
+.SH COPYRIGHT
+1988-2022, LibTIFF contributors
+.\" Generated by docutils manpage writer.
+.

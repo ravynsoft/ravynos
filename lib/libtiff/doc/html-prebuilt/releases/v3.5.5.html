@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v3.5.5 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes in TIFF v3.5.4" href="v3.5.4.html" />
+    <link rel="prev" title="Changes in TIFF v3.5.6beta" href="v3.5.6beta.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v3.5.4.html" title="Changes in TIFF v3.5.4"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="v3.5.6beta.html" title="Changes in TIFF v3.5.6beta"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" accesskey="U">Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.5.5</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v3-5-5">
+<h1>Changes in TIFF v3.5.5<a class="headerlink" href="#changes-in-tiff-v3-5-5" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id4">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id4" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v3.5.5 (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/tags/Release-v3-5-5">tag Release-v3-5-5</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v3.5.4.html"><span class="doc">v3.5.4</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="ftp://ftp.onshore.com/pub/libtiff/">ftp://ftp.onshore.com/pub/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site</p></td>
+<td><p><a class="reference external" href="http://www.simplesystems.org/libtiff/">http://www.simplesystems.org/libtiff/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document describes the changes made to the software between the
+<em>previous</em> and <em>current</em> versions (see above).
+If you don’t find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:</p>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">configure</span></code>: added test for libc6 for linux targets.  Bug reported by
+<a class="reference external" href="mailto:utx&#37;&#52;&#48;k332&#46;feld&#46;cvut&#46;cz">Stanislav Brabec</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">configure</span></code>: fixed bugs in sed scripts
+(applied sed script <code class="docutils literal notranslate"><span class="pre">s:/&#64;:s;&#64;:;s:/s;;:;:</span></code> to configure).
+fix submitted by <a class="reference external" href="mailto:utx&#37;&#52;&#48;k332&#46;feld&#46;cvut&#46;cz">Stanislav Brabec</a>.</p></li>
+<li><p><code class="file docutils literal notranslate"><span class="pre">tools/iptcutil</span></code> was not in files list, and wasn’t being
+added to tar archive.  <code class="file docutils literal notranslate"><span class="pre">Updated</span> <span class="pre">Makefile.in</span></code>.</p></li>
+<li><p>Added 3.5 docs to <code class="file docutils literal notranslate"><span class="pre">html/Makefile.in</span></code>.
+Thanks to  <a class="reference external" href="mailto:utx&#37;&#52;&#48;k332&#46;feld&#46;cvut&#46;cz">Stanislav Brabec</a></p></li>
+<li><p>Fixed <code class="file docutils literal notranslate"><span class="pre">tools/tiffcmp</span></code> so that <code class="docutils literal notranslate"><span class="pre">stopondiff</span></code> testing works.
+Patch care of <a class="reference external" href="mailto:joe&#37;&#52;&#48;sanskrit&#46;lz&#46;att&#46;com">Joseph Orost</a>.</p></li>
+<li><p>Added <code class="file docutils literal notranslate"><span class="pre">fax3sm_winnt.c</span></code> to distribution list in <code class="file docutils literal notranslate"><span class="pre">Makefile.in</span></code>.</p></li>
+<li><p>Added <code class="file docutils literal notranslate"><span class="pre">libtiff/libtiff.def</span></code> to <code class="docutils literal notranslate"><span class="pre">TIFFILES</span></code> distribution list.</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="file docutils literal notranslate"><span class="pre">tif_fax3.c</span></code>: Fixed serious bug introduced during the <code class="docutils literal notranslate"><span class="pre">uint16-&gt;uint32</span></code>
+conversion for the run arrays.</p></li>
+<li><p>Set <code class="xref c c-member docutils literal notranslate"><span class="pre">td_sampleformat</span></code> default to <code class="xref c c-macro docutils literal notranslate"><span class="pre">SAMPLEFORMAT_UINT</span></code> instead of
+<code class="xref c c-macro docutils literal notranslate"><span class="pre">SAMPLEFORMAT_VOID</span></code> in <code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFDefaultDirectory()</span></code> in <code class="file docutils literal notranslate"><span class="pre">tif_dir.c</span></code>.</p></li>
+<li><p>Added “GetDefaulted” support for <code class="xref c c-macro docutils literal notranslate"><span class="pre">TIFFTAG_SAMPLEFORMAT</span></code> in <code class="file docutils literal notranslate"><span class="pre">tif_aux.c</span></code>.</p></li>
+<li><p>Patched <code class="file docutils literal notranslate"><span class="pre">tif_fax3.c</span></code> so that <code class="docutils literal notranslate"><span class="pre">dsp-&gt;runs</span></code> is allocated a bit bigger
+to avoid overruns encountered with <code class="file docutils literal notranslate"><span class="pre">frle_bug.tif</span></code>.</p></li>
+<li><p>Modified <code class="file docutils literal notranslate"><span class="pre">tif_unix.c</span></code> to support 2-4GB seeks if <code class="xref c c-macro docutils literal notranslate"><span class="pre">USE_64BIT_API</span></code> is
+set to 1, and added default (off) setting in <code class="file docutils literal notranslate"><span class="pre">tiffconf.h</span></code>.  This
+should eventually be set by the configure script somehow.
+The original work on all these 2-4GB changes was done by
+<a class="reference external" href="mailto:psmith&#37;&#52;&#48;creo&#46;com">Peter Smith</a>.</p></li>
+<li><p>Modified <code class="file docutils literal notranslate"><span class="pre">tif_win32.c</span></code> to support 2-4GB seeks.</p></li>
+<li><p>tentatively changed <code class="xref c c-type docutils literal notranslate"><span class="pre">toff_t</span></code> to be unsigned instead of signed to
+facilitate support for 2-4GB files.</p></li>
+<li><p>Updated a variety of files to use <code class="xref c c-type docutils literal notranslate"><span class="pre">toff_t</span></code>.  Fixed some mixups
+between <code class="xref c c-type docutils literal notranslate"><span class="pre">toff_t</span></code> and <code class="xref c c-type docutils literal notranslate"><span class="pre">tsize_t</span></code>.</p></li>
+<li><p>Set <code class="xref c c-member docutils literal notranslate"><span class="pre">tif_rawdatasize</span></code> to zero when freeing raw data buffer in
+<a class="reference internal" href="../functions/TIFFWriteDirectory.html#c.TIFFWriteDirectory" title="TIFFWriteDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteDirectory()</span></code></a>.</p></li>
+<li><p>Enabled <code class="xref c c-macro docutils literal notranslate"><span class="pre">REWRITE_HACK</span></code> in <code class="file docutils literal notranslate"><span class="pre">tif_write.c</span></code> by default.</p></li>
+<li><p>Fix bug in <code class="file docutils literal notranslate"><span class="pre">tif_write.c</span></code> when switching between reading one directory
+and writing to another.</p></li>
+<li><p>Made <a class="reference internal" href="../functions/TIFFWriteDirectory.html#c.TIFFWriteCheck" title="TIFFWriteCheck"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWriteCheck()</span></code></a> public, and added <a class="reference internal" href="../functions/TIFFCreateDirectory.html#c.TIFFCreateDirectory" title="TIFFCreateDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCreateDirectory()</span></code></a></p></li>
+<li><p>Added <a class="reference internal" href="../functions/TIFFmemory.html"><span class="doc">TIFFmemory</span></a> functions to <code class="file docutils literal notranslate"><span class="pre">libtiff.def</span></code>.</p></li>
+<li><p>Added <code class="file docutils literal notranslate"><span class="pre">libtiff/libtiff.def</span></code> to <code class="docutils literal notranslate"><span class="pre">TIFFILES</span></code> distribution list.</p></li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><strong class="program">fax2ps</strong>:</p>
+<ul>
+<li><p>Fixed mixup of width and height in bounding box statement
+as per submission by <a class="reference external" href="mailto:nalin&#37;&#52;&#48;redhat&#46;com">Nalin Dahyabhai</a>.</p></li>
+<li><p>Modified <code class="xref c c-var docutils literal notranslate"><span class="pre">printruns</span></code> to take <code class="xref c c-type docutils literal notranslate"><span class="pre">uint32</span></code> instead of <code class="xref c c-type docutils literal notranslate"><span class="pre">uint16</span></code>.
+Patch courtesy of <a class="reference external" href="mailto:herd&#37;&#52;&#48;herdsoft&#46;com">Bernt Herd</a>.</p></li>
+</ul>
+</li>
+<li><p>Largely reimplemented <code class="file docutils literal notranslate"><span class="pre">contrib/addtiffo</span></code> to avoid temp files,
+updating the TIFF file in place.  Fixed a few other bugs to.</p></li>
+<li><p>Altered descriptions in tools to reflect “by default” lzw not supported</p></li>
+</ul>
+</section>
+<section id="lzw-compression-kit-changes">
+<h2>LZW compression kit changes<a class="headerlink" href="#lzw-compression-kit-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>created <code class="file docutils literal notranslate"><span class="pre">mangle-src.sh</span></code> – sed scripts to munge src into LZW enabled format.
+Thanks to <a class="reference external" href="mailto:utx&#37;&#52;&#48;k332&#46;feld&#46;cvut&#46;cz">Stanislav Brabec</a>.</p></li>
+<li><p>created <code class="file docutils literal notranslate"><span class="pre">Makefile</span></code></p></li>
+<li><p>merged <code class="file docutils literal notranslate"><span class="pre">tif_dir.c</span></code> with current source.</p></li>
+<li><p>Created lzw compression kit, as a new CVS module (<code class="docutils literal notranslate"><span class="pre">libtiff-lzw-compression-kit</span></code>).</p></li>
+<li><p>Updated <code class="file docutils literal notranslate"><span class="pre">index.html</span></code> to note lzw compression kit.</p></li>
+</ul>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v3.5.5</a><ul>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+<li><a class="reference internal" href="#lzw-compression-kit-changes">LZW compression kit changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v3.5.6beta.html"
+                          title="previous chapter">Changes in TIFF v3.5.6beta</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="v3.5.4.html"
+                          title="next chapter">Changes in TIFF v3.5.4</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v3.5.5.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v3.5.4.html" title="Changes in TIFF v3.5.4"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="v3.5.6beta.html" title="Changes in TIFF v3.5.6beta"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+          <li class="nav-item nav-item-2"><a href="historical.html" >Old release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v3.5.5</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

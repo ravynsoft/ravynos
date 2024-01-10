@@ -110,6 +110,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libtacplus \
 	libthr \
 	libthread_db \
+        libtiff \
 	libucl \
 	libufs \
 	libugidfw \
@@ -157,6 +158,7 @@ SUBDIR_DEPEND_libprocstat= libkvm libutil
 SUBDIR_DEPEND_libradius= libmd
 SUBDIR_DEPEND_libsmb= libkiconv
 SUBDIR_DEPEND_libtacplus= libmd
+SUBDIR_DEPEND_libtiff= libz liblzma libzstd
 SUBDIR_DEPEND_libulog= libmd
 SUBDIR_DEPEND_libunbound= ${_libldns}
 SUBDIR_DEPEND_liblzma= libthr

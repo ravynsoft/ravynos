@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>BigTIFF Design &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="LibTIFF Coverage of the TIFF 6.0 Specification" href="coverage.html" />
+    <link rel="prev" title="DRAFT TIFF Technical Note #2" href="technote2.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="coverage.html" title="LibTIFF Coverage of the TIFF 6.0 Specification"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="technote2.html" title="DRAFT TIFF Technical Note #2"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">TIFF File Format Specification</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">BigTIFF Design</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="bigtiff-design">
+<h1>BigTIFF Design<a class="headerlink" href="#bigtiff-design" title="Permalink to this heading">¶</a></h1>
+<p>This design details a 64-bit (larger than 4GB) TIFF format specification.
+The design is based on a proposal by Steve Carlsen of Adobe, with input
+from various other parties.</p>
+<section id="briefly">
+<h2>Briefly<a class="headerlink" href="#briefly" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Version = 43</p></li>
+<li><p>8-byte offset to first IFD</p></li>
+<li><p>Value/Offset fields are 8 bytes</p></li>
+<li><p>8-byte offset to the next IFD</p></li>
+<li><p>add <code class="docutils literal notranslate"><span class="pre">TIFFType</span></code> of <code class="docutils literal notranslate"><span class="pre">LONG8</span></code>, an 8 byte (unsigned) int</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">StripOffsets</span></code> and <code class="docutils literal notranslate"><span class="pre">TileOffsets</span></code> and <code class="docutils literal notranslate"><span class="pre">ByteCounts</span></code> can be LONG8</p></li>
+</ul>
+</section>
+<section id="more-detail">
+<h2>More Detail<a class="headerlink" href="#more-detail" title="Permalink to this heading">¶</a></h2>
+<ul>
+<li><p>The Version ID, in header bytes 2-3, formerly decimal 42, now changes to <strong>43</strong></p></li>
+<li><p>Header bytes 4-5 contain the decimal number <strong>8</strong>.</p>
+<ul class="simple">
+<li><p>If there is some other number here, a reader should give up.</p></li>
+<li><p>This is to provide a nice way to move to 16-byte pointers some day.</p></li>
+</ul>
+</li>
+<li><p>Header bytes 6-7 are reserved and must be <strong>zero</strong>.</p>
+<ul class="simple">
+<li><p>If they’re not, a reader should give up.</p></li>
+</ul>
+</li>
+<li><p>Header bytes 8-15 contain the 8-byte offset to the first IFD.</p></li>
+<li><p>Value/Offset fields are 8 bytes long, and take up bytes 8-15 in an IFD entry.</p>
+<ul class="simple">
+<li><p>If the value is ≤ 8 bytes, it must be stored in the field.</p></li>
+<li><p>All values must begin at an 8-byte-aligned address.</p></li>
+</ul>
+</li>
+<li><p>8-byte offset to the Next_IFD, at the end of an IFD.</p></li>
+<li><p>To keep IFD entries 8-byte-aligned, we begin with an 8-byte (instead of 2-byte) count of the number of directory entries.</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">TIFFTypes</span></code> of <code class="docutils literal notranslate"><span class="pre">LONG8</span></code> (= 16), an 8 byte (unsigned) int, and <code class="docutils literal notranslate"><span class="pre">SLONG8</span></code> (= 17).</p></li>
+<li><p>Add <code class="docutils literal notranslate"><span class="pre">TIFFType</span></code> <code class="docutils literal notranslate"><span class="pre">IFD8</span></code> (=18) an 8byte IFD offset.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">StripOffsets</span></code> and <code class="docutils literal notranslate"><span class="pre">TileOffsets</span></code> and <code class="docutils literal notranslate"><span class="pre">ByteCounts</span></code> may be <code class="docutils literal notranslate"><span class="pre">LONG8</span></code> or the traditionally allowed <code class="docutils literal notranslate"><span class="pre">LONG</span></code> or <code class="docutils literal notranslate"><span class="pre">SHORT</span></code>.</p></li>
+<li><p>The proposed extension is <code class="file docutils literal notranslate"><span class="pre">.tf8</span></code>, and call it “8-Byte TIFF”.</p>
+<p>Otherwise, it’s just like “original TIFF.” (“TIFF Classic?”)</p>
+</li>
+</ul>
+</section>
+<section id="open-issues">
+<h2>Open Issues<a class="headerlink" href="#open-issues" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>What to call the new format</p>
+<ul>
+<li><p>ChrisCox – I don’t think end users will understand what “8-byte TIFF” means</p></li>
+<li><p>AndreyKiselev - 23 Sep 2004 – What about TIFF64? “64” is a widely used buzzword and should be directly associated with the 64-bit offsets and 64-bit architectures.</p></li>
+</ul>
+</li>
+<li><p>What 3 character file extension to use (gotta be DOS compatible)</p></li>
+<li><p>What 4 character file type to use (for Macintosh)</p></li>
+<li><p>What MIME type to use</p></li>
+</ul>
+</section>
+<section id="samples">
+<h2>Samples<a class="headerlink" href="#samples" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference external" href="http://www.awaresystems.be/imaging/tiff/bigtiff/BigTIFFSamples.zip">Example files</a>
+from Joris Van Damme.</p>
+</section>
+<section id="changes">
+<h2>Changes<a class="headerlink" href="#changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">TIFFType</span></code> 13 is <code class="docutils literal notranslate"><span class="pre">ttIFD</span></code>, 14 is assigned to <code class="docutils literal notranslate"><span class="pre">ttUnicode</span></code>, and 15 is assigned to <code class="docutils literal notranslate"><span class="pre">ttComplex</span></code>. So, I changed the types for <code class="docutils literal notranslate"><span class="pre">ttLong8</span></code> and <code class="docutils literal notranslate"><span class="pre">ttSLong8</span></code> to 16 and 17, respectively.</p>
+<ul>
+<li><p>AndreyKiselev - 23 Sep 2004 – Where are these fields defined? Is there any new Technical Note or something? And what is encoding behind the word “Unicode”?</p></li>
+<li><p>ChrisCox - 27 Sep 2004 – They are in the Adobe TIFF definitions.  I am still working on releasing updated TIFF documentation.</p></li>
+</ul>
+</li>
+<li><p>Added list of open issues.</p></li>
+<li><p>settle on version 43</p></li>
+<li><p>cleanup</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">TIFFType</span></code> 18 (8 byte IFD) added.</p></li>
+<li><p>Clarified that fields which may be <code class="docutils literal notranslate"><span class="pre">LONG8</span></code> can also be one of the old supported types.</p></li>
+</ul>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference external" href="http://www.awaresystems.be/imaging/tiff/bigtiff.html">AWare Systems’ informal overview of the BigTIFF proposal</a>.</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">BigTIFF Design</a><ul>
+<li><a class="reference internal" href="#briefly">Briefly</a></li>
+<li><a class="reference internal" href="#more-detail">More Detail</a></li>
+<li><a class="reference internal" href="#open-issues">Open Issues</a></li>
+<li><a class="reference internal" href="#samples">Samples</a></li>
+<li><a class="reference internal" href="#changes">Changes</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="technote2.html"
+                          title="previous chapter">DRAFT TIFF Technical Note #2</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="coverage.html"
+                          title="next chapter">LibTIFF Coverage of the TIFF 6.0 Specification</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/specification/bigtiff.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="coverage.html" title="LibTIFF Coverage of the TIFF 6.0 Specification"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="technote2.html" title="DRAFT TIFF Technical Note #2"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >TIFF File Format Specification</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">BigTIFF Design</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

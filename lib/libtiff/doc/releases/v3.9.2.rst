@@ -1,0 +1,67 @@
+Changes in TIFF v3.9.2
+======================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.9.2 (:tag:`Release-v3-9-2`)
+  Previous Version        :doc:`v3.9.1 <v3.9.1>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).  If you don't
+find something listed here, then it was not done in this timeframe, or
+it was not considered important enough to be mentioned.  The following
+information is located here:
+
+
+Major changes
+-------------
+
+* Fixes a number of bugs present in the 3.9.1 release.
+
+* OJPEG support updated to work with IJG JPEG 7 release.
+
+* :program:`tiffcrop` validated for most TIFF storage subformats and sample depths.
+
+
+Software configuration changes
+------------------------------
+
+* x86_64 now uses the same default fill order as i386.
+
+
+Library changes
+---------------
+
+* Writing tags with an array value of type :c:enumerator:`TIFF_DOUBLE` now
+  returns correct error status. The :c:macro:`TIFFTAG_SMINSAMPLEVALUE` and
+  :c:macro:`TIFFTAG_SMAXSAMPLEVALUE` tags failed to write without this fix.
+
+* OJPEG decoder now works with IJG JPEG 7.  Resolves "Bug
+  2090 - OJPEG crash with libjpeg v7".
+  :bugzilla:`2090`
+
+* Eliminate most GCC "dereferencing type-punned pointer"
+  warnings.
+
+
+Tools changes
+-------------
+
+* New :program:`tiffcrop` from Richard Nolde.  Major updates to add
+  significant functionality for reading and writing tile based
+  images with bit depths not a multiple of 8 which cannot be
+  handled by :program:`tiffcp`.
+
+* Allow building tools with GCC using the ``-Wformat
+  -Werror=format-security`` flags.
+
+Contributed software changes
+----------------------------
+
+* None

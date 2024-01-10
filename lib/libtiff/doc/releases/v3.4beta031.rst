@@ -1,0 +1,59 @@
+Changes in TIFF v3.4beta031
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.4beta031 (no release tag)
+  Previous Version        :doc:`v3.4beta029 <v3.4beta029>`
+  Master Download Site    `<ftp://ftp.sgi.com/graphics/tiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* :program:`configure` now captures significantly more information
+  in the :file:`config.log` file and provides more information when
+  it is unable to setup a configuration
+* support was added for building shared libraries on more systems:
+  AIX, HPUX, Solaris, and Linux.
+* a new configuration parameter ``LIBCOPTS`` was added for
+  passing arguments to the C compiler to use when building only
+  the library; this is part of the enhanced support for building
+  shared libraries
+* include files for optional packages that reside in :file:`/usr/include`
+  are now handled correctly
+* build trees may now be configured using either relative or absolute
+  pathnames to the source distribution
+* several new configuration parameters were added, mainly for building
+  shared libraries: ``DIST_MAJOR``, ``DIST_MINOR``, 
+  ``DIST_ALPHA``, and ``DSOSUF_VERSION``
+
+
+Library changes
+---------------
+
+* the Deflate support has been revised: it requires version 0.99 of
+  the zlib software distribution, **the output format has changed and
+  is incompatible with previous versions of this library** (each
+  strip now includes a header read and written by the zlib library)
+* the codec name printed by the :c:func:`TIFFPrintDirectory` routine is now
+  taken from the codec table instead of from a builtin table; this means
+  that application-defined codecs are handled correctly
+* a new symbol was added that contains the library version number;
+  this can be used to do a compile-time compatibility check of the
+  library version
+
+Documentation changes
+---------------------
+
+* the creation and installation of manual pages was redone; it now
+  implements the documented "configuration scheme"

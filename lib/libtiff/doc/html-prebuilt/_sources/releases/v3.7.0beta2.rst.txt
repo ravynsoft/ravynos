@@ -1,0 +1,69 @@
+Changes in TIFF v3.7.0beta2
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.7.0beta2 (:tag:`Release-v3-7-0beta2`)
+  Previous Version        :doc:`v3.7.0beta <v3.7.0beta>`
+  Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+  Master HTTP Site        `<http://www.simplesystems.org/libtiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Major changes
+-------------
+
+* The code has been reviewed by Dmitry Levin: added checks
+  for values, returned by the space allocation functions, fixed
+  problems with the possible integer overflows.
+
+
+Software configuration changes
+------------------------------
+
+* Several fixes in the test suite.
+
+
+Library changes
+---------------
+
+* Preliminary support for BigTIFF files: now libtiff can
+  recognize and reject to open such images. ;-)
+
+* :file:`libtiff/tif_dirinfo.c`: changed type of XMLPacket (tag 700) to
+  :c:enumerator:`TIFF_BYTE` instead of :c:enumerator:`TIFF_UNDEFINED` to comply with the info
+  in the Adobe XMP Specification.
+
+* Added many checks for integer overflow and for successful space
+  allocations in the different parts of library. Code review
+  completed by Dmitry V. Levin.
+
+* :file:`libtiff/tiffio.h`, :file:`libtiff/tif_compress.c`: Added
+  :c:func:`TIFFGetConfiguredCODECs` function to get the list of configured codecs.
+
+
+Tools changes
+-------------
+
+* :file:`tiff2bw`: Write ``ImageWidth``/``ImageHeight`` tags to output file, as
+  noted by Gennady Khokhorin.
+
+
+Contributed software changes
+----------------------------
+
+* No changes.
+
+
+LZW compression kit changes
+---------------------------
+
+* This one is not longer needed.

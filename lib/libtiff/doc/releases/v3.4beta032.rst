@@ -1,0 +1,53 @@
+Changes in TIFF v3.4beta032
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.4beta032 (no release tag)
+  Previous Version        :doc:`v3.4beta031 <v3.4beta031>`
+  Master Download Site    `<ftp://ftp.sgi.com/graphics/tiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* various fixups and subtle improvements to :program:`configure`
+  from Richard Mlynarik
+
+
+Library changes
+---------------
+
+* a new codec from Pixar designed for high-resolution color images;
+  note that this codec is not configured by default
+* a bug fix for reading tags with a single ``FLOAT`` value
+* change to the :c:func:`TIFFGetField` calling convention:
+  a tag that has a single value of
+  type ``DOUBLE`` is now retrieved by passing a
+  ``double*`` instead of a
+  ``double**`` (this change makes the handling of tags with
+  ``DOUBLE`` values identical to the handling of tags with
+  ``FLOAT`` values)
+* fix to VMS support for the handling of floating point values
+
+
+Tools changes
+-------------
+
+* :program:`tiffdump` now handles tags with ``FLOAT`` and ``DOUBLE``
+  values
+
+
+Contributed software changes
+----------------------------
+
+* updates to the Acorn OS support from Peter Greenham

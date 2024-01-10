@@ -1,0 +1,32 @@
+Changes in TIFF v3.4beta035
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.4beta035 (no release tag)
+  Previous Version        :doc:`v3.4beta034 <v3.4beta034>`
+  Master Download Site    `<ftp://ftp.sgi.com/graphics/tiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* support was added installing the HTML documentation
+* support was added for building the library as a DSO under FreeBSD
+
+
+Library changes
+---------------
+
+* the interface to the :program:`mkversion` program was restored to
+  the form used prior to v3.4beta034
+* several portability problems for 16-bit systems were fixed

@@ -1,0 +1,105 @@
+Changes in TIFF v3.4beta028
+===========================
+
+.. table:: References
+  :widths: auto
+
+  ======================  ==========================================
+  Current Version         v3.4beta028 (no release tag)
+  Previous Version        :doc:`v3.4beta024 <v3.4beta024>`
+  Master Download Site    `<ftp://ftp.sgi.com/graphics/tiff/>`_
+  ======================  ==========================================
+
+This document describes the changes made to the software between the
+*previous* and *current* versions (see above).
+If you don't find something listed here, then it was not done in this
+timeframe, or it was not considered important enough to be mentioned.
+The following information is located here:
+
+
+Software configuration changes
+------------------------------
+
+* a "``-noninteractive``" flag was added to configure to
+  control whether or not it prints and prompts for configuration information
+* various typos and fixes were made in configure for the the
+  library-only build support (this and other configure fixes from
+  `Richard Mlynarik <mly@adoc.xerox.com>`_)
+* bugs were fixed in the handling of pathnames supplied for external
+  packages; e.g. ``DIR_JPEG``
+* the handling of ``SETMAKE`` is now done properly
+* the default prototype function declaration for :c:func:`pow` was corrected
+* a bug was fixed in :file:`libtiff/Makefile.in` that caused installation
+  to fail on systems without DSO support
+
+
+Library changes
+---------------
+
+* Acorn RISC O/S support that was accidentally left out of the
+  left out of the previous distribution is present (from Peter Greenham)
+* complaints about unknown and/or unsupported codecs have been
+  delayed until they are invoked; this permits applications to open
+  images and look at tags even if the image data is compressed with
+  an unknown/unsupported compression scheme
+* bugs in handling unknown tags have been corrected; applications
+  that use multiple codecs, each with codec-specific tags, no longer
+  generate confusing error messages
+* a missing pseudo-tag definition in the CCITT G3 codec was fixed
+  (this problem caused core dumps in the :program:`tiffcp` program)
+* pseudo-tags are now treated specially; they are always considered
+  to be set (i.e. they do not use bits in the ``FIELD_*`` bit-vectors).
+* the use of strip chopping can now be controlled on a per-file basis
+  through a mode parameter supplied when opening a file ("``C``" to
+  enable strip chopping and "``c``" to disable)
+* two bugs were fixed in the writing of opposite-endian byte-order
+  files
+* support was added for three new fax-related tags registered to
+  SGI: ``FaxRecvParams``, ``FaxRecvTime``, and ``FaxSubAddress``
+* the bit order of image data read and written can now be controlled
+  on a per-file basis through a mode parameter supplied when opening
+  a file ("``B``" to force MSB2LSB bit order, "``L``" for LSB2MSB bit
+  order, and "``H``" for the bit order of the native CPU)
+* the byte order of image and tag data written to newly-created files
+  can now be controlled on a per-file basis through a mode parameter
+  supplied when opening a file ("``b``" to force Big-Endian byte order
+  and "``l``" to force Little-Endian byte order)
+* the use memory-mapped files for images opened read-only can now
+  be controlled on a per-file basis through a mode parameter supplied
+  when opening a file ("``M``" to enable use of memory-mapped files
+  and "``m``" to disable use)
+* the use of the :c:macro:`WIN32` define in :file:`tiffiop.h` has
+  been replaced by :c:macro:`__WIN32__`
+
+
+Tools changes
+-------------
+
+* :program:`fax2ps` now does a ``save`` and ``restore``
+  around each page of PostScript; this fixes a problem with VM
+  overflow when printing a many-page document on some printers
+* a bug in the handling of 3-channel images by :program:`ras2tiff`
+  was fixed
+* :program:`tiffcp` has new options to control the byte order of
+  newly created files: "``-B``" for Big-Endian byte order, "``-L``"
+  for Little-Endian byte order; a "``-M``" option to disable the
+  use of memory-mapped files, and a "``-C``" option to disable the
+  use of strip chopping
+* bugs were fixed in :program:`tiffcp` handling of codec-specific tags
+
+
+Documentation changes
+---------------------
+
+* the :c:func:`TIFFOpen` page has been updated to reflect the new
+  optional open mode parameters
+
+Contributed software changes
+----------------------------
+
+* :file:`contrib/win95` contains information and code from `Philippe Tenenhaus
+  <100423.3705@compuserve.com>`_
+  about using the software under Windows 95
+* :file:`contrib/winnt` contains information and code from `Dave Dyer
+  <ddyer@triple-i.com>`_
+  about using the software under Windows NT

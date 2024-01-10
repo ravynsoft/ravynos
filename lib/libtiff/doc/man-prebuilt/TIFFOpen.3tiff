@@ -1,0 +1,473 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "TIFFOPEN" "3tiff" "Sep 08, 2023" "4.6" "LibTIFF"
+.SH NAME
+TIFFOpen \- open a TIFF file for reading or writing
+.SH SYNOPSIS
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <tiffio.h>
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B TIFF  *TIFFOpen(const  char  *filename, const  char  *mode) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B TIFF  *TIFFOpenW(const  wchar_t  *name, const  char  *mode) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B TIFF  *TIFFFdOpen(const  int  fd, const  char  *filename, const  char  *mode) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B TIFF  *TIFFOpenExt(const  char  *filename, const  char  *mode, \fI\%TIFFOpenOptions\fP  *opts) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B TIFF  *TIFFOpenWExt(const  wchar_t  *name, const  char  *mode, \fI\%TIFFOpenOptions\fP  *opts) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B TIFF  *TIFFFdOpenExt(const  int  fd, const  char  *filename, const  char  *mode, \fI\%TIFFOpenOptions\fP  *opts) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B const  char  *TIFFSetFileName(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFSetFileno(TIFF  *tif, int  fd) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFSetMode(TIFF  *tif, int  mode) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B typedef  tsize_t  (*TIFFReadWriteProc)(thandle_t,  tdata_t,  tsize_t) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B typedef  toff_t  (*TIFFSeekProc)(thandle_t,  toff_t,  int) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B typedef  int  (*TIFFCloseProc)(thandle_t) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B typedef  toff_t  (*TIFFSizeProc)(thandle_t) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B typedef  int  (*TIFFMapFileProc)(thandle_t,  tdata_t*,  toff_t*) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B typedef  void  (*TIFFUnmapFileProc)(thandle_t,  tdata_t,  toff_t) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B TIFF  *TIFFClientOpen(const  char  *filename, const  char  *mode, thandle_t  clientdata, \fI\%TIFFReadWriteProc\fP  readproc, \fI\%TIFFReadWriteProc\fP  writeproc, \fI\%TIFFSeekProc\fP  seekproc, \fI\%TIFFCloseProc\fP  closeproc, \fI\%TIFFSizeProc\fP  sizeproc, \fI\%TIFFMapFileProc\fP  mapproc, \fI\%TIFFUnmapFileProc\fP  unmapproc) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B TIFF  *TIFFClientOpenExt(const  char  *filename, const  char  *mode, thandle_t  clientdata, \fI\%TIFFReadWriteProc\fP  readproc, \fI\%TIFFReadWriteProc\fP  writeproc, \fI\%TIFFSeekProc\fP  seekproc, \fI\%TIFFCloseProc\fP  closeproc, \fI\%TIFFSizeProc\fP  sizeproc, \fI\%TIFFMapFileProc\fP  mapproc, \fI\%TIFFUnmapFileProc\fP  unmapproc, \fI\%TIFFOpenOptions\fP  *opts) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B thandle_t  TIFFClientdata(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B thandle_t  TIFFSetClientdata(TIFF  *tif, thandle_t  newvalue) 
+.UNINDENT
+.SH DESCRIPTION
+.sp
+\fI\%TIFFOpen()\fP opens a TIFF file whose name is \fIfilename\fP
+and returns a handle to be used in subsequent calls to routines in
+\fBlibtiff\fP\&.  If the open operation fails, then
+\fBNULL\fP (0) is returned.  The \fImode\fP parameter specifies if
+the file is to be opened for reading (\fBr\fP) or (\fBr+\fP), writing (\fBw\fP), or
+appending (\fBa\fP) and, optionally, whether to override certain
+default aspects of library operation (see below \fI\%Options\fP).
+.sp
+The \fImode\fP (\fBr\fP) opens only an \fBexisting\fP file for reading and (\fBr+\fP)
+for reading and writing.
+When a file is opened for appending, existing data will not
+be touched; instead new data will be written as additional subfiles.
+If an existing file is opened for writing, all previous data is
+overwritten.
+.sp
+If a file is opened for reading, the first TIFF directory in the file
+is automatically read.
+If a file is opened for writing or appending, a default directory
+is automatically created for writing subsequent data.
+This directory has all the default values specified in TIFF Revision 6.0:
+.INDENT 0.0
+.IP \(bu 2
+\fBBitsPerSample\fP = 1,
+.IP \(bu 2
+\fBThreshHolding\fP = “bilevel art scan”
+.IP \(bu 2
+\fBFillOrder\fP = 1 (most significant bit of each data byte is filled first)
+.IP \(bu 2
+\fBOrientation\fP = 1 (the 0th row represents the visual top of the image,
+and the 0th column represents the visual left hand side),
+.IP \(bu 2
+\fBSamplesPerPixel\fP = 1,
+.IP \(bu 2
+\fBRowsPerStrip\fP = ∞,
+.IP \(bu 2
+\fBResolutionUnit\fP = 2 (inches), and
+.IP \(bu 2
+\fBCompression\fP = 1 (no compression).
+.UNINDENT
+.sp
+To alter these values, or to define values for additional fields,
+\fI\%TIFFSetField()\fP must be used.
+.sp
+\fI\%TIFFOpenW()\fP opens a TIFF file with a Unicode filename, for read/writing.
+.sp
+\fI\%TIFFFdOpen()\fP is like \fI\%TIFFOpen()\fP except that it opens a
+TIFF file given an open file descriptor \fIfd\fP\&.
+The file’s name and mode must reflect that of the open descriptor.
+Even for write\-only mode, \fBlibtiff\fP needs read permissions because
+some of its functions need to read back the partially written TIFF file.
+The object associated with the file descriptor \fBmust support random access\fP\&.
+In order to close a TIFF file opened with \fI\%TIFFFdOpen()\fP
+first \fI\%TIFFCleanup()\fP should be called to free the internal
+TIFF structure without closing the file handle and afterwards the
+file should be closed using its file descriptor \fIfd\fP\&.
+.sp
+\fI\%TIFFOpenExt()\fP (added in libtiff 4.5) is like \fI\%TIFFOpen()\fP,
+but options, such as re\-entrant error and warning handlers may be passed
+with the \fIopts\fP argument. The \fIopts\fP argument may be NULL.
+Refer to \fI\%TIFFOpenOptions\fP for allocating and filling the \fIopts\fP argument
+parameters. The allocated memory for \fI\%TIFFOpenOptions\fP
+can be released straight after successful execution of the related
+“TIFFOpenExt” functions.
+.sp
+\fI\%TIFFOpenWExt()\fP (added in libtiff 4.5) is like \fI\%TIFFOpenExt()\fP,
+but opens a TIFF file with a Unicode filename.
+.sp
+\fI\%TIFFFdOpenExt()\fP (added in libtiff 4.5) is like \fI\%TIFFFdOpen()\fP,
+but options, such as re\-entrant error and warning handlers may be passed
+with the \fIopts\fP argument. The \fIopts\fP argument may be NULL.
+Refer to \fI\%TIFFOpenOptions\fP for filling the \fIopts\fP argument.
+.sp
+\fI\%TIFFSetFileName()\fP sets the file name in the tif\-structure
+and returns the old file name.
+.sp
+\fI\%TIFFSetFileno()\fP overwrites a copy of the open file’s I/O descriptor,
+that was saved when the TIFF file was first opened,
+and returns the previous value. See note below.
+.sp
+\fI\%TIFFSetMode()\fP sets the \fBlibtiff\fP open mode in the tif\-structure
+and returns the old mode.
+.sp
+\fI\%TIFFClientOpen()\fP is like \fI\%TIFFOpen()\fP except that the caller
+supplies a collection of functions that the library will use to do UNIX\-like
+I/O operations.  The \fIreadproc\fP and \fIwriteproc\fP functions are called to read
+and write data at the current file position.
+\fIseekproc\fP is called to change the current file position à la \fBlseek()\fP (2).
+\fIcloseproc\fP is invoked to release any resources associated with an open file.
+\fIsizeproc\fP is invoked to obtain the size in bytes of a file.
+\fImapproc\fP and \fIunmapproc\fP are called to map and unmap a file’s contents in
+memory; c.f. \fBmmap()\fP (2) and \fBmunmap()\fP (2).
+The \fIclientdata\fP parameter is an opaque “handle” passed to the client\-specified
+routines passed as parameters to \fI\%TIFFClientOpen()\fP\&.
+.sp
+\fI\%TIFFClientOpenExt()\fP (added in libtiff 4.5) is like \fI\%TIFFClientOpen()\fP,
+but options argument \fIopts\fP like for \fI\%TIFFOpenExt()\fP can be passed.
+.sp
+\fI\%TIFFClientdata()\fP returns open file’s clientdata handle,
+which is the real open file’s I/O descriptor used by \fBlibtiff\fP\&.
+Note: Within tif_unix.c this handle is converted into an integer file descriptor.
+.sp
+\fI\%TIFFSetClientdata()\fP sets open file’s clientdata, and return previous value.
+The clientdata is used as open file’s I/O descriptor within \fBlibtiff\fP\&.
+.sp
+\fBNOTE:\fP
+.INDENT 0.0
+.INDENT 3.5
+\fIclientdata\fP is used as file descriptor or handle of the opened TIFF file within
+\fIlibtif\fP, whereas the file descriptor \fIfd\fP (changeable by \fI\%TIFFSetFileno()\fP)
+is only set once to the value of \fIclientdata\fP converted to an integer
+(in tif_win32.c as well as in tif_unix.c).
+When updating the file’s clientdata with \fI\%TIFFSetClientdata()\fP,
+the \fIfd\fP value is \fBnot\fP updated.
+.UNINDENT
+.UNINDENT
+.SH OPTIONS
+.sp
+The open mode parameter can include the following flags in
+addition to the \fBr\fP, \fBr+\fP, \fBw\fP, and \fBa\fP flags.
+Note however that option flags must follow the read\-write\-append
+specification.
+.sp
+Note 2: Also for \fBw\fP the file will be opened with \fIread access\fP rights
+because \fBlibtiff\fP needs to read back the partially written TIFF file
+for some of its functions.
+.sp
+\fBl\fP:
+.INDENT 0.0
+.INDENT 3.5
+When creating a new file force information be written with
+Little\-Endian byte order (but see below).
+By default the library will create new files using the native
+CPU byte order.
+.UNINDENT
+.UNINDENT
+.sp
+\fBb\fP:
+.INDENT 0.0
+.INDENT 3.5
+When creating a new file force information be written with
+Big\-Endian byte order (but see below).
+By default the library will create new files using the native
+CPU byte order.
+.UNINDENT
+.UNINDENT
+.sp
+\fBL\fP:
+.INDENT 0.0
+.INDENT 3.5
+Force image data that is read or written to be treated with
+bits filled from Least Significant Bit (LSB) to
+Most Significant Bit (MSB).
+Note that this is the opposite to the way the library has
+worked from its inception.
+.UNINDENT
+.UNINDENT
+.sp
+\fBB\fP:
+.INDENT 0.0
+.INDENT 3.5
+Force image data that is read or written to be treated with
+bits filled from Most Significant Bit (MSB) to
+Least Significant Bit (LSB); this is the default.
+.UNINDENT
+.UNINDENT
+.sp
+\fBH\fP:
+.INDENT 0.0
+.INDENT 3.5
+Force image data that is read or written to be treated with
+bits filled in the same order as the native
+CPU.
+.UNINDENT
+.UNINDENT
+.sp
+\fBM\fP:
+.INDENT 0.0
+.INDENT 3.5
+Enable the use of memory\-mapped files for images opened read\-only.
+If the underlying system does not support memory\-mapped files
+or if the specific image being opened cannot be memory\-mapped
+then the library will fallback to using the normal system interface
+for reading information.
+By default the library will attempt to use memory\-mapped files.
+.UNINDENT
+.UNINDENT
+.sp
+\fBm\fP:
+.INDENT 0.0
+.INDENT 3.5
+Disable the use of memory\-mapped files.
+.UNINDENT
+.UNINDENT
+.sp
+\fBC\fP:
+.INDENT 0.0
+.INDENT 3.5
+Enable the use of “strip chopping” when reading images
+that are comprised of a single strip or tile of uncompressed data.
+Strip chopping is a mechanism by which the library will automatically
+convert the single\-strip image to multiple strips,
+each of which has about 8 Kilobytes of data.
+This facility can be useful in reducing the amount of memory used
+to read an image because the library normally reads each strip
+in its entirety.
+Strip chopping does however alter the apparent contents of the
+image because when an image is divided into multiple strips it
+looks as though the underlying file contains multiple separate
+strips.
+Finally, note that default handling of strip chopping is a compile\-time
+configuration parameter.
+The default behaviour, for backwards compatibility, is to enable
+strip chopping.
+.UNINDENT
+.UNINDENT
+.sp
+\fBc\fP:
+.INDENT 0.0
+.INDENT 3.5
+Disable the use of strip chopping when reading images.
+.UNINDENT
+.UNINDENT
+.sp
+\fBh\fP:
+.INDENT 0.0
+.INDENT 3.5
+Read TIFF header only, do not load the first image directory. That could be
+useful in case of the broken first directory. We can open the file and proceed
+to the other directories.
+.UNINDENT
+.UNINDENT
+.sp
+\fB4\fP:
+.INDENT 0.0
+.INDENT 3.5
+ClassicTIFF for creating a file (default)
+.UNINDENT
+.UNINDENT
+.sp
+\fB8\fP:
+.INDENT 0.0
+.INDENT 3.5
+BigTIFF for creating a file.
+.UNINDENT
+.UNINDENT
+.sp
+\fBD\fP:
+.INDENT 0.0
+.INDENT 3.5
+Enable use of deferred strip/tile offset/bytecount array loading. They will
+be loaded the first time they are accessed to. This loading will be done in
+its entirety unless the O flag is also specified.
+.UNINDENT
+.UNINDENT
+.sp
+\fBO\fP:
+.INDENT 0.0
+.INDENT 3.5
+On\-demand loading of values of the strip/tile offset/bytecount arrays, limited
+to the requested strip/tile, instead of whole array loading (implies \fBD\fP)
+.UNINDENT
+.UNINDENT
+.SH BYTE ORDER
+.sp
+The TIFF specification (\fBall versions\fP) states that compliant readers
+“must be capable of reading images written in either byte order” .
+Nonetheless some software that claims to support the reading of
+TIFF images is incapable of reading images in anything but the native
+CPU byte order on which the software was written.
+(Especially notorious are applications written to run on Intel\-based machines.)
+By default the library will create new files with the native
+byte\-order of the CPU on which the application is run.
+This ensures optimal performance and is portable to any application
+that conforms to the TIFF specification.
+To force the library to use a specific byte\-order when creating
+a new file the \fBb\fP and \fBl\fP option flags may be included in
+the call to open a file; for example, \fBwb\fP or \fBwl\fP\&.
+.SH RETURN VALUES
+.sp
+Upon successful completion
+\fI\%TIFFOpen()\fP, \fI\%TIFFFdOpen()\fP, and \fI\%TIFFClientOpen()\fP
+return a TIFF pointer.  Otherwise, \fBNULL\fP is returned.
+.SH DIAGNOSTICS
+.sp
+All error messages are directed to the \fI\%TIFFErrorExtR()\fP routine.
+Likewise, warning messages are directed to the \fI\%TIFFWarningExtR()\fP routine.
+.sp
+\fB\(dq%s\(dq: Bad mode\fP:
+.INDENT 0.0
+.INDENT 3.5
+The specified \fImode\fP parameter was not one of \fBr\fP (read), \fBw\fP (write),
+or \fBa\fP (append).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dq%s: Cannot open\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+\fI\%TIFFOpen()\fP was unable to open the specified filename for read/writing.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqCannot read TIFF header\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+An error occurred while attempting to read the header information.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqError writing TIFF header\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+An error occurred while writing the default header information
+for a new file.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqNot a TIFF file, bad magic number %d (0x%x)\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+The magic number in the header was not (hex)
+0x4d4d or (hex) 0x4949.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqNot a TIFF file, bad version number %d (0x%x)\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+The version field in the header was not 42 (decimal).
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqCannot append to file that has opposite byte ordering\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+A file with a byte ordering opposite to the native byte
+ordering of the current machine was opened for appending (\fBa\fP).
+This is a limitation of the library.
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fI\%libtiff\fP (3tiff),
+\fI\%TIFFClose\fP (3tiff),
+\fI\%TIFFStrileQuery\fP,
+\fI\%TIFFOpenOptions\fP
+.SH AUTHOR
+LibTIFF contributors
+.SH COPYRIGHT
+1988-2022, LibTIFF contributors
+.\" Generated by docutils manpage writer.
+.

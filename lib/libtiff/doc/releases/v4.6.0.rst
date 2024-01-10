@@ -1,0 +1,153 @@
+Changes in TIFF v4.6.0
+======================
+
+.. table:: References
+    :widths: auto
+
+    ======================  ==========================================
+    Current Version         v4.6.0 (:tag:`v4.6.0`)
+    Previous Version        :doc:`v4.5.1 <v4.5.1>`
+    Master Download Site    `<https://download.osgeo.org/libtiff/>`_
+    Master HTTP Site #1     `<http://www.simplesystems.org/libtiff/>`_
+    Master HTTP Site #2     `<https://libtiff.gitlab.io/libtiff/>`_
+    ======================  ==========================================
+
+This document provides a summary of significant changes made to the
+software between the *previous* and *current* versions (see
+above). A fully-detailed change summary is provided by the :file:`ChangeLog` file
+included in the release package and by the Git commit history:
+
+Major changes
+-------------
+
+.. warning::
+
+    This version removes a big number of utilities that have suffered from lack
+    of maintenance over the years and were the source of various reported
+    security issues.
+    See "Removed functionality" below for the list of removed utilities.
+    Starting with libtiff v4.6.0, their source code, at this time, will still be
+    available in the source distribution, but they will no longer be built by
+    default, and issues related to them will no longer be accepted in the
+    libtiff bug tracker.
+    The only remaining supported TIFF tools are tiffinfo, tiffdump, tiffcp,
+    tiffset and tiffsplit.
+
+
+Software configuration changes
+------------------------------
+
+* TiffConfig.cmake.in: set TIFF_INCLUDE_DIR, TIFF_INCLUDE_DIRS and
+  TIFF_LIBRARIES for compatibility with FindTIFF.cmake as shipped by CMake
+  (fixes :issue:`589`)
+
+* Update CMake and autoconf scripts to consistently update LibTIFF version
+  defines and references in various files when version definition in
+  configure.ac has been changed.
+
+  - Move in tiffvers.h from libtiff source directory to libtiff build directory.
+  - Remove unused version information from tif_config.h
+  - With every CMake build the version defines (e.g. 4.5.1) within tiffvers.h
+    are consistently updated from configure.ac. The version release-date is
+    taken from file RELEASE-DATE.
+  - The files VERSION and RELEASE-DATE are only updated with a special CMake
+    target build: cmake --build . --target tiff_release.
+  - For autotools, version information is updated from configure.ac with
+    ./autogen.sh. LIBTIFF_RELEASE_DATE is taken form file RELEASE-DATE.
+  - ./configure generates tiffvers.h with the cached version information and
+    LIBTIFF_RELEASE_DATE.
+  - "make release" updates tiffvers.h and VERSION file with cached version info
+    and RELEASE-DATE file and tiffves.h with the current date.
+
+* CMake: fix build with -Dstrip-chopping=off (fixes :issue:`600`)
+
+Library changes
+---------------
+
+New/improved functionalities:
+
+* Fix using ``__attribute__`` libtiff with clang-for-windows
+
+API/ABI breaks:
+
+* None
+
+Bug fixes:
+
+* WebP decoder: validate WebP blob width, height, band count against TIFF
+  parameters to avoid use of uninitialized variable, or decoding corrupted
+  content without explicit error (fixes :issue:`581`,  :issue:`582`).
+
+* WebP codec: turn exact mode when creating lossless files to avoid altering
+  R,G,B values in areas where alpha=0 (https://github.com/OSGeo/gdal/issues/8038)
+
+* Fix TransferFunction writing of only two transfer functions.
+
+* TIFFReadDirectoryCheckOrder: avoid integer overflow. When it occurs, it
+  should be harmless in practice though
+  (https://gitlab.com/libtiff/libtiff/-/merge_requests/512)
+
+Documentation
+-------------
+
+* TiffField functions documentation updated with return behaviour for not
+  defined tags and determination of write-/read-count size.
+
+Tools changes
+-------------
+
+Removed functionality:
+
+* The following tools are no longer compiled and have been moved to archive/tools:
+
+  - fax2ps
+  - fax2tiff
+  - pal2rgb
+  - ppm2tiff
+  - raw2tiff
+  - rgb2ycbcr
+  - thumbnail
+  - tiff2bw
+  - tiff2rgba
+  - tiffcmp
+  - tiffcrop
+  - tiffdither
+  - tiffgt
+  - tiffmedian
+
+* The following tools are no longer compiled by default: tiff2ps and tiff2pdf.
+  They have been moved to tools/unsupported. 
+  They can be built by setting ``--enable-tools-unsupported`` for autoconf,
+  or ``-Dtiff-tools-unsupported`` for CMake, but as the name imply, they are
+  no longer supported by upstream. Packagers are suggested *not* to enable those
+  options.
+
+* tiffcp: remove -i option (ignore errors), because almost all
+  fuzzer issues were consequential errors from ignored errors because of the
+  "-i" option.
+
+New/improved functionality:
+
+* None
+
+Bug fixes:
+
+* tiffset: fix #597: warning: comparison of integer expressions of different
+  signedness. (fixes :issue:`597`)
+
+* tiffcp: fix memory corruption (overflow) on hostile images
+  (fixes :issue:`591`)
+
+Test changes
+------------
+
+* Add missing test_write_read_tags.c and test_transferfunction_write_read.c
+  in tarball (fixes :issue:`585`) and correct "long" issue.
+
+* Don't use "long" because can be int32_t or int64_t, depending on compiler and
+  system.
+
+Changes to contributed and unsupported tools
+--------------------------------------------
+
+* raw2tiff: fix integer overflow and bypass of the check (fixes :issue:`592`)

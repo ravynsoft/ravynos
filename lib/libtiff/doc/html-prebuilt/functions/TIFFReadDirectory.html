@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>TIFFReadDirectory &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="TIFFReadEncodedStrip" href="TIFFReadEncodedStrip.html" />
+    <link rel="prev" title="TIFFquery" href="TIFFquery.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="TIFFReadEncodedStrip.html" title="TIFFReadEncodedStrip"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="TIFFquery.html" title="TIFFquery"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" accesskey="U">TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFReadDirectory</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="tiffreaddirectory">
+<h1>TIFFReadDirectory<a class="headerlink" href="#tiffreaddirectory" title="Permalink to this heading">¶</a></h1>
+<section id="synopsis">
+<h2>Synopsis<a class="headerlink" href="#synopsis" title="Permalink to this heading">¶</a></h2>
+<div class="highlight-c notranslate"><div class="highlight"><pre><span></span><span class="cp">#include</span><span class="w"> </span><span class="cpf">&lt;tiffio.h&gt;</span>
+</pre></div>
+</div>
+<dl class="c function">
+<dt class="sig sig-object c" id="c.TIFFReadDirectory">
+<span class="kt"><span class="pre">int</span></span><span class="w"> </span><span class="sig-name descname"><span class="n"><span class="pre">TIFFReadDirectory</span></span></span><span class="sig-paren">(</span><span class="n"><span class="pre">TIFF</span></span><span class="w"> </span><span class="p"><span class="pre">*</span></span><span class="n"><span class="pre">tif</span></span><span class="sig-paren">)</span><a class="headerlink" href="#c.TIFFReadDirectory" title="Permalink to this definition">¶</a><br /></dt>
+<dd></dd></dl>
+
+</section>
+<section id="description">
+<h2>Description<a class="headerlink" href="#description" title="Permalink to this heading">¶</a></h2>
+<p>Read the next directory in the specified file and make it the current
+directory. Applications only need to call <a class="reference internal" href="#c.TIFFReadDirectory" title="TIFFReadDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFReadDirectory()</span></code></a>
+to read multiple subfiles in a single TIFF file—(the first directory
+in a file is automatically read when <a class="reference internal" href="TIFFOpen.html#c.TIFFOpen" title="TIFFOpen"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpen()</span></code></a> is called.</p>
+</section>
+<section id="notes">
+<h2>Notes<a class="headerlink" href="#notes" title="Permalink to this heading">¶</a></h2>
+<p>If the library is compiled with <code class="xref c c-macro docutils literal notranslate"><span class="pre">STRIPCHOP_SUPPORT</span></code> enabled, then
+images that have a single uncompressed strip or tile of data are
+automatically treated as if they were made up of multiple strips or tiles of
+approximately 8 kilobytes each. This operation is done only in-memory; it does
+not alter the contents of the file. However, the construction of the “chopped
+strips” is visible to the application through the number of strips [tiles]
+returned by <a class="reference internal" href="TIFFstrip.html#c.TIFFNumberOfStrips" title="TIFFNumberOfStrips"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFNumberOfStrips()</span></code></a> [<a class="reference internal" href="TIFFtile.html#c.TIFFNumberOfTiles" title="TIFFNumberOfTiles"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFNumberOfTiles()</span></code></a>].</p>
+</section>
+<section id="return-values">
+<h2>Return values<a class="headerlink" href="#return-values" title="Permalink to this heading">¶</a></h2>
+<p>If the next directory was successfully read, 1 is returned. Otherwise, 0 is
+returned if an error was encountered, or if there are no more directories to
+be read.</p>
+</section>
+<section id="diagnostics">
+<h2>Diagnostics<a class="headerlink" href="#diagnostics" title="Permalink to this heading">¶</a></h2>
+<p>All error messages are directed to the <a class="reference internal" href="TIFFError.html#c.TIFFErrorExtR" title="TIFFErrorExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFErrorExtR()</span></code></a> routine.
+Likewise, warning messages are directed to the <a class="reference internal" href="TIFFWarning.html#c.TIFFWarningExtR" title="TIFFWarningExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFWarningExtR()</span></code></a> routine.</p>
+<p><code class="docutils literal notranslate"><span class="pre">Seek</span> <span class="pre">error</span> <span class="pre">accessing</span> <span class="pre">TIFF</span> <span class="pre">directory</span></code>:</p>
+<blockquote>
+<div><p>An error occurred while positioning to the location of the
+directory.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">Wrong</span> <span class="pre">data</span> <span class="pre">type</span> <span class="pre">%d</span> <span class="pre">for</span> <span class="pre">field</span> <span class="pre">&quot;%s&quot;</span></code>:</p>
+<blockquote>
+<div><p>The tag entry in the directory had an incorrect data type.
+For example, an <code class="docutils literal notranslate"><span class="pre">ImageDescription</span></code> tag with a <code class="docutils literal notranslate"><span class="pre">SHORT</span></code>
+data type.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">TIFF</span> <span class="pre">directory</span> <span class="pre">is</span> <span class="pre">missing</span> <span class="pre">required</span> <span class="pre">&quot;%s&quot;</span> <span class="pre">field</span></code>:</p>
+<blockquote>
+<div><p>The specified tag is required to be present by the TIFF
+5.0 specification, but is missing.
+The directory is (usually) unusable.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">%s:</span> <span class="pre">Rational</span> <span class="pre">with</span> <span class="pre">zero</span> <span class="pre">denominator</span></code>:</p>
+<blockquote>
+<div><p>A directory tag has a <code class="docutils literal notranslate"><span class="pre">RATIONAL</span></code> value whose denominator is zero.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">Incorrect</span> <span class="pre">count</span> <span class="pre">%d</span> <span class="pre">for</span> <span class="pre">field</span> <span class="pre">&quot;%s&quot;</span> <span class="pre">(%lu,</span> <span class="pre">expecting</span> <span class="pre">%lu);</span> <span class="pre">tag</span> <span class="pre">ignored</span></code>:</p>
+<blockquote>
+<div><p>The specified tag’s count field is bad.
+For example, a count other than 1 for a <code class="docutils literal notranslate"><span class="pre">SubFileType</span></code> tag.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">Cannot</span> <span class="pre">handle</span> <span class="pre">different</span> <span class="pre">per-sample</span> <span class="pre">values</span> <span class="pre">for</span> <span class="pre">field</span> <span class="pre">&quot;%s&quot;</span></code>:</p>
+<blockquote>
+<div><p>The tag has <code class="docutils literal notranslate"><span class="pre">SamplesPerPixel</span></code> values and they are not all the same; e.g.
+<code class="docutils literal notranslate"><span class="pre">BitsPerSample</span></code>.  The library is unable to handle images of this sort.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">Count</span> <span class="pre">mismatch</span> <span class="pre">for</span> <span class="pre">field</span> <span class="pre">&quot;%s&quot;;</span> <span class="pre">expecting</span> <span class="pre">%d,</span> <span class="pre">got</span> <span class="pre">%d</span></code>:</p>
+<blockquote>
+<div><p>The count field in a tag does not agree with the number expected by the
+library. This should never happen, so if it does, the library refuses to
+read the directory.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">Invalid</span> <span class="pre">TIFF</span> <span class="pre">directory;</span> <span class="pre">tags</span> <span class="pre">are</span> <span class="pre">not</span> <span class="pre">sorted</span> <span class="pre">in</span> <span class="pre">ascending</span> <span class="pre">order</span></code>:</p>
+<blockquote>
+<div><p>The directory tags are not properly sorted as specified
+in the TIFF 5.0 specification.  This error is not fatal.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">Ignoring</span> <span class="pre">unknown</span> <span class="pre">field</span> <span class="pre">with</span> <span class="pre">tag</span> <span class="pre">%d</span> <span class="pre">(0x%x)</span></code>:</p>
+<blockquote>
+<div><p>An unknown tag was encountered in the directory;
+the library ignores all such tags.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">TIFF</span> <span class="pre">directory</span> <span class="pre">is</span> <span class="pre">missing</span> <span class="pre">required</span> <span class="pre">&quot;ImageLength&quot;</span> <span class="pre">field</span></code>:</p>
+<blockquote>
+<div><p>The image violates the specification by not having a necessary field.
+There is no way for the library to recover from this error.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">TIFF</span> <span class="pre">directory</span> <span class="pre">is</span> <span class="pre">missing</span> <span class="pre">required</span> <span class="pre">&quot;PlanarConfig&quot;</span> <span class="pre">field</span></code>:</p>
+<blockquote>
+<div><p>The image violates the specification by not having a necessary field.
+There is no way for the library to recover from this error.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">TIFF</span> <span class="pre">directory</span> <span class="pre">is</span> <span class="pre">missing</span> <span class="pre">required</span> <span class="pre">&quot;StripOffsets&quot;</span> <span class="pre">field</span></code>:</p>
+<blockquote>
+<div><p>The image has multiple strips, but is missing the tag that
+specifies the file offset to each strip of data.
+There is no way for the library to recover from this error.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">TIFF</span> <span class="pre">directory</span> <span class="pre">is</span> <span class="pre">missing</span> <span class="pre">required</span> <span class="pre">&quot;TileOffsets&quot;</span> <span class="pre">field</span></code>:</p>
+<blockquote>
+<div><p>The image has multiple tiles, but is missing the tag that
+specifies the file offset to each tile of data.
+There is no way for the library to recover from this error.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">TIFF</span> <span class="pre">directory</span> <span class="pre">is</span> <span class="pre">missing</span> <span class="pre">required</span> <span class="pre">&quot;StripByteCounts&quot;</span> <span class="pre">field</span></code>:</p>
+<blockquote>
+<div><p>The image has multiple strips, but is missing the tag that
+specifies the size of each strip of data.
+There is no way for the library to recover from this error.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">TIFF</span> <span class="pre">directory</span> <span class="pre">is</span> <span class="pre">missing</span> <span class="pre">required</span> <span class="pre">&quot;StripByteCounts&quot;</span> <span class="pre">field,</span> <span class="pre">calculating</span> <span class="pre">from</span> <span class="pre">imagelength</span></code>:</p>
+<blockquote>
+<div><p>The image violates the specification by not having a necessary field.
+However, when the image is comprised of only one strip or tile, the
+library will estimate the missing value based on the file size.</p>
+</div></blockquote>
+<p><code class="docutils literal notranslate"><span class="pre">Bogus</span> <span class="pre">&quot;StripByteCounts&quot;</span> <span class="pre">field,</span> <span class="pre">ignoring</span> <span class="pre">and</span> <span class="pre">calculating</span> <span class="pre">from</span> <span class="pre">imagelength</span></code>:</p>
+<blockquote>
+<div><p>Certain vendors violate the specification by writing zero for
+the StripByteCounts tag when they want to leave the value
+unspecified.
+If the image has a single strip, the library will estimate
+the missing value based on the file size.</p>
+</div></blockquote>
+</section>
+<section id="see-also">
+<h2>See also<a class="headerlink" href="#see-also" title="Permalink to this heading">¶</a></h2>
+<p><a class="reference internal" href="TIFFOpen.html"><span class="doc">TIFFOpen</span></a> (3tiff),
+<a class="reference internal" href="TIFFCreateDirectory.html"><span class="doc">TIFFCreateDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFCustomDirectory.html"><span class="doc">TIFFCustomDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFquery.html"><span class="doc">TIFFquery</span></a> (3tiff),
+<a class="reference internal" href="TIFFWriteDirectory.html"><span class="doc">TIFFWriteDirectory</span></a> (3tiff),
+<a class="reference internal" href="TIFFSetDirectory.html"><span class="doc">TIFFSetDirectory</span></a> (3tiff),
+<a class="reference internal" href="../multi_page.html"><span class="doc">Multi Page / Multi Image TIFF</span></a>,
+<a class="reference internal" href="libtiff.html"><span class="doc">libtiff</span></a> (3tiff)</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">TIFFReadDirectory</a><ul>
+<li><a class="reference internal" href="#synopsis">Synopsis</a></li>
+<li><a class="reference internal" href="#description">Description</a></li>
+<li><a class="reference internal" href="#notes">Notes</a></li>
+<li><a class="reference internal" href="#return-values">Return values</a></li>
+<li><a class="reference internal" href="#diagnostics">Diagnostics</a></li>
+<li><a class="reference internal" href="#see-also">See also</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="TIFFquery.html"
+                          title="previous chapter">TIFFquery</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="TIFFReadEncodedStrip.html"
+                          title="next chapter">TIFFReadEncodedStrip</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/functions/TIFFReadDirectory.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="TIFFReadEncodedStrip.html" title="TIFFReadEncodedStrip"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="TIFFquery.html" title="TIFFquery"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="../functions.html" >TIFF Functions Overview</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">TIFFReadDirectory</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>

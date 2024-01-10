@@ -1,0 +1,210 @@
+.\" Man page generated from reStructuredText.
+.
+.
+.nr rst2man-indent-level 0
+.
+.de1 rstReportMargin
+\\$1 \\n[an-margin]
+level \\n[rst2man-indent-level]
+level margin: \\n[rst2man-indent\\n[rst2man-indent-level]]
+-
+\\n[rst2man-indent0]
+\\n[rst2man-indent1]
+\\n[rst2man-indent2]
+..
+.de1 INDENT
+.\" .rstReportMargin pre:
+. RS \\$1
+. nr rst2man-indent\\n[rst2man-indent-level] \\n[an-margin]
+. nr rst2man-indent-level +1
+.\" .rstReportMargin post:
+..
+.de UNINDENT
+. RE
+.\" indent \\n[an-margin]
+.\" old: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.nr rst2man-indent-level -1
+.\" new: \\n[rst2man-indent\\n[rst2man-indent-level]]
+.in \\n[rst2man-indent\\n[rst2man-indent-level]]u
+..
+.TH "TIFFWRITEDIRECTORY" "3tiff" "Sep 08, 2023" "4.6" "LibTIFF"
+.SH NAME
+TIFFWriteDirectory \- write the current directory in an open TIFF file
+.SH SYNOPSIS
+.INDENT 0.0
+.INDENT 3.5
+.sp
+.nf
+.ft C
+#include <tiffio.h>
+.ft P
+.fi
+.UNINDENT
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFWriteDirectory(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFRewriteDirectory(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFCheckpointDirectory(TIFF  *tif) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B void  TIFFSetWriteOffset(TIFF  *tif, toff_t  off) 
+.UNINDENT
+.INDENT 0.0
+.TP
+.B int  TIFFWriteCheck(TIFF  *tif, int  tiles, const  char  *module) 
+.UNINDENT
+.SH DESCRIPTION
+.sp
+\fI\%TIFFWriteDirectory()\fP will write the contents of the current
+directory (IFD) to the file and setup to create a new directory (IFD)
+using \fI\%TIFFCreateDirectory()\fP\&.
+Applications only need to call \fI\%TIFFWriteDirectory()\fP
+when writing multiple subfiles (images) to a single TIFF file.
+This is called “multi\-page TIFF” or “multi\-image TIFF”
+(see \fI\%Multi Page / Multi Image TIFF\fP).
+\fI\%TIFFWriteDirectory()\fP is automatically called by
+\fI\%TIFFClose()\fP and \fI\%TIFFFlush()\fP to write a modified
+directory if the file is open for writing.
+.sp
+The \fI\%TIFFRewriteDirectory()\fP function operates similarly to
+\fI\%TIFFWriteDirectory()\fP, but can be called with directories
+previously read or written that already have an established location
+in the file.  It will rewrite the directory, but instead of placing it
+at its old location (as \fI\%TIFFWriteDirectory()\fP would) it will
+place them at the end of the file, correcting the pointer from the
+preceding directory or file header to point to it’s new location.  This
+is particularly important in cases where the size of the directory and
+pointed to data has grown, so it won’t fit in the space available at the
+old location.
+.sp
+The \fI\%TIFFCheckpointDirectory()\fP writes the current state of the
+tiff directory into the file to make what is currently in the file
+readable.  Unlike \fI\%TIFFWriteDirectory()\fP,
+\fI\%TIFFCheckpointDirectory()\fP does not free up the directory data
+structures in memory, so they can be updated (as strips/tiles are
+written) and written again.  Reading such a partial file you will at
+worst get a tiff read error for the first strip/tile encountered that
+is incomplete, but you will at least get all the valid data in the file
+before that.  When the file is complete, just use
+\fI\%TIFFWriteDirectory()\fP as usual to finish it off cleanly.
+.sp
+The \fI\%TIFFSetWriteOffset()\fP sets the current write offset.
+This should only be used to set the offset to a known previous location
+(very carefully), or to 0 so that the next write gets appended to the end
+of the file.
+.sp
+The \fI\%TIFFWriteCheck()\fP  verify file is writable and that the directory
+information is setup properly.  In doing the latter we also “freeze”
+the state of the directory so that important information is not changed.
+.SH RETURN VALUES
+.sp
+1 is returned when the contents are successfully written to the file.
+Otherwise, 0 is returned if an error was encountered when writing
+the directory contents.
+.SH DIAGNOSTICS
+.sp
+All error messages are directed to the \fI\%TIFFErrorExtR()\fP routine.
+.sp
+\fB\(dqError post\-encoding before directory write\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+Before writing the contents of the current directory, any pending data are
+flushed. This message indicates that an error occurred while doing this.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqError flushing data before directory write\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+Before writing the contents of the current directory, any pending data are
+flushed. This message indicates that an error occurred while doing this.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqCannot write directory, out of space\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+There was not enough space to allocate a temporary area for the directory
+that was to be written.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqError writing directory count\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+A write error occurred when writing the count of fields in the directory.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqError writing directory contents\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+A write error occurred when writing the directory fields.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqError writing directory link\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+A write error occurred when writing the link to the next directory.
+.UNINDENT
+.UNINDENT
+.sp
+\fBError writing data for field \(dq%s\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+A write error occurred when writing indirect data for the specified field.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqError writing TIFF header\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+A write error occurred when re\-writing header at the front of the file.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqError fetching directory count\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+A read error occurred when fetching the directory count field for
+a previous directory.
+This can occur when setting up a link to the directory that is being
+written.
+.UNINDENT
+.UNINDENT
+.sp
+\fB\(dqError fetching directory link\(dq\fP:
+.INDENT 0.0
+.INDENT 3.5
+A read error occurred when fetching the directory link field for
+a previous directory.
+This can occur when setting up a link to the directory that is being
+written.
+.UNINDENT
+.UNINDENT
+.SH SEE ALSO
+.sp
+\fI\%TIFFquery\fP (3tiff),
+\fI\%TIFFOpen\fP (3tiff),
+\fI\%TIFFCreateDirectory\fP (3tiff),
+\fI\%TIFFCustomDirectory\fP (3tiff),
+\fI\%TIFFSetDirectory\fP (3tiff),
+\fI\%TIFFReadDirectory\fP (3tiff),
+\fI\%TIFFError\fP (3tiff),
+\fI\%Multi Page / Multi Image TIFF\fP,
+\fI\%libtiff\fP (3tiff)
+.SH AUTHOR
+LibTIFF contributors
+.SH COPYRIGHT
+1988-2022, LibTIFF contributors
+.\" Generated by docutils manpage writer.
+.

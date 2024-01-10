@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="generator" content="Docutils 0.19: https://docutils.sourceforge.io/" />
+
+    <title>Changes in TIFF v4.5.0 &#8212; LibTIFF 4.6.0 documentation</title>
+    <link rel="stylesheet" type="text/css" href="../_static/pygments.css" />
+    <link rel="stylesheet" type="text/css" href="../_static/sphinxdoc.css" />
+    <script data-url_root="../" id="documentation_options" src="../_static/documentation_options.js"></script>
+    <script src="../_static/doctools.js"></script>
+    <script src="../_static/sphinx_highlight.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Changes in TIFF v4.4.0" href="v4.4.0.html" />
+    <link rel="prev" title="Changes in TIFF v4.5.1" href="v4.5.1.html" /> 
+  </head><body>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="v4.4.0.html" title="Changes in TIFF v4.4.0"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="v4.5.1.html" title="Changes in TIFF v4.5.1"
+             accesskey="P">previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" accesskey="U">Release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v4.5.0</a></li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <section id="changes-in-tiff-v4-5-0">
+<h1>Changes in TIFF v4.5.0<a class="headerlink" href="#changes-in-tiff-v4-5-0" title="Permalink to this heading">¶</a></h1>
+<table class="docutils align-default" id="id1">
+<caption><span class="caption-text">References</span><a class="headerlink" href="#id1" title="Permalink to this table">¶</a></caption>
+<tbody>
+<tr class="row-odd"><td><p>Current Version</p></td>
+<td><p>v4.5.0 (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/tags/v4.5.0">tag v4.5.0</a>)</p></td>
+</tr>
+<tr class="row-even"><td><p>Previous Version</p></td>
+<td><p><a class="reference internal" href="v4.4.0.html"><span class="doc">v4.4.0</span></a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master Download Site</p></td>
+<td><p><a class="reference external" href="https://download.osgeo.org/libtiff/">https://download.osgeo.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site #1</p></td>
+<td><p><a class="reference external" href="http://www.simplesystems.org/libtiff/">http://www.simplesystems.org/libtiff/</a></p></td>
+</tr>
+<tr class="row-odd"><td><p>Master HTTP Site #2</p></td>
+<td><p><a class="reference external" href="https://libtiff.gitlab.io/libtiff/">https://libtiff.gitlab.io/libtiff/</a></p></td>
+</tr>
+<tr class="row-even"><td><p>Master HTTP Site #3</p></td>
+<td><p><a class="reference external" href="http://libtiff.maptools.org/">http://libtiff.maptools.org/</a></p></td>
+</tr>
+</tbody>
+</table>
+<p>This document provides a summary of significant changes made to the
+software between the <em>previous</em> and <em>current</em> versions (see
+above). A fully-detailed change summary is provided by the <code class="file docutils literal notranslate"><span class="pre">ChangeLog</span></code> file
+included in the release package and by the Git commit history:</p>
+<section id="major-changes">
+<h2>Major changes<a class="headerlink" href="#major-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>Whole code base reformatting of .c/.h files using new .clang-format format</p></li>
+<li><p>Documentation changed from static HTML and man pages to Restructured Text
+(rst). HTML and man pages are now build artifacts.</p></li>
+</ul>
+</section>
+<section id="software-configuration-changes">
+<h2>Software configuration changes<a class="headerlink" href="#software-configuration-changes" title="Permalink to this heading">¶</a></h2>
+<ul class="simple">
+<li><p>SONAME version bumped to 6 due to changes in symbol versioning.</p></li>
+<li><p>autoconf/cmake: detect (not yet released) libjpeg-turbo 2.2 to take into
+its capability of handling both 8-bit JPEG and 12-bit JPEG in a single build.</p></li>
+<li><p>autoconf/cmake: detect sphinx-build to build HTML and man pages</p></li>
+<li><p>CMakeLists.txt: fix warning with -Wdev</p></li>
+<li><p>CMake: correctly set default value of ‘lzma’ option when liblzma is detected
+(<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/482">issue #482</a>)</p></li>
+<li><p>CMake: Moved linking of CMath::CMath into CMath_LIBRARY check.</p></li>
+<li><p>Fix CMake build to be compatible with FetchContent.</p></li>
+<li><p>cmake: Correct duplicate definition of _CRT_SECURE_NO_WARNINGS (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/443">issue #443</a>)</p></li>
+<li><p>cmake: Fixes for Visual Studio 2022.</p></li>
+<li><p>Adds Requires.private generation so that pkg-config can correctly find
+the dependencies of libtiff.</p></li>
+<li><p>Fix dependency on libm on Android</p></li>
+<li><p>cmake: libtiffxx is static on win32</p></li>
+<li><p>Fix build in tif_lzw.c</p></li>
+<li><p>CMake: Add options for disabling tools, tests, contrib and docs.</p></li>
+</ul>
+</section>
+<section id="library-changes">
+<h2>Library changes<a class="headerlink" href="#library-changes" title="Permalink to this heading">¶</a></h2>
+<p>New/improved functionalities:</p>
+<ul class="simple">
+<li><p>Addition of an open option concept with the new functions
+<a class="reference internal" href="../functions/TIFFOpen.html#c.TIFFOpenExt" title="TIFFOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenExt()</span></code></a>, <a class="reference internal" href="../functions/TIFFOpen.html#c.TIFFOpenWExt" title="TIFFOpenWExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenWExt()</span></code></a>, <a class="reference internal" href="../functions/TIFFOpen.html#c.TIFFFdOpenExt" title="TIFFFdOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFFdOpenExt()</span></code></a>,
+<a class="reference internal" href="../functions/TIFFOpen.html#c.TIFFClientOpenExt" title="TIFFClientOpenExt"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFClientOpenExt()</span></code></a>, <a class="reference internal" href="../functions/TIFFOpenOptions.html#c.TIFFOpenOptionsAlloc" title="TIFFOpenOptionsAlloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenOptionsAlloc()</span></code></a>,
+<a class="reference internal" href="../functions/TIFFOpenOptions.html#c.TIFFOpenOptionsFree" title="TIFFOpenOptionsFree"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenOptionsFree()</span></code></a></p></li>
+<li><p>Leveraging above mentioned open option concept, addition of a new capability
+to limit the size of a single dynamic memory allocation done
+by the library with <a class="reference internal" href="../functions/TIFFOpenOptions.html#c.TIFFOpenOptionsSetMaxSingleMemAlloc" title="TIFFOpenOptionsSetMaxSingleMemAlloc"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenOptionsSetMaxSingleMemAlloc()</span></code></a></p></li>
+<li><p>Leveraging above mentioned open option concept, addition of a new capability
+to specify per-TIFF handle re-entrant error and warning callbacks
+with <a class="reference internal" href="../functions/TIFFOpenOptions.html#c.TIFFOpenOptionsSetErrorHandlerExtR" title="TIFFOpenOptionsSetErrorHandlerExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenOptionsSetErrorHandlerExtR()</span></code></a> and
+<a class="reference internal" href="../functions/TIFFOpenOptions.html#c.TIFFOpenOptionsSetWarningHandlerExtR" title="TIFFOpenOptionsSetWarningHandlerExtR"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFOpenOptionsSetWarningHandlerExtR()</span></code></a></p></li>
+<li><p>Related to IFD-Loop detection refactoring, the number of IFDs that libtiff
+can browse through has been extended from 65535 to 1048576. This value is
+a build-time setting that can be configured with CMake’s TIFF_MAX_DIR_COUNT
+variable or autoconf’s –with-max-dir-count option.</p></li>
+</ul>
+<p>API/ABI breaks:</p>
+<ul class="simple">
+<li><p>tdir_t type updated to uint32_t. This type is now used for the return value of
+<a class="reference internal" href="../functions/TIFFquery.html#c.TIFFCurrentDirectory" title="TIFFCurrentDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFCurrentDirectory()</span></code></a> and <a class="reference internal" href="../functions/TIFFquery.html#c.TIFFNumberOfDirectories" title="TIFFNumberOfDirectories"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFNumberOfDirectories()</span></code></a>, and
+as the argument of <a class="reference internal" href="../functions/TIFFSetDirectory.html#c.TIFFSetDirectory" title="TIFFSetDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFSetDirectory()</span></code></a> and <a class="reference internal" href="../functions/TIFFCreateDirectory.html#c.TIFFUnlinkDirectory" title="TIFFUnlinkDirectory"><code class="xref c c-func docutils literal notranslate"><span class="pre">TIFFUnlinkDirectory()</span></code></a></p></li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li><p>TIFFWriteRawStrip(): restore capabilities to append data in the current strip
+(<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/489">issue #489</a>)</p></li>
+<li><p>_TIFFReadEncodedTileAndAllocBuffer(): avoid excessive memory allocation on
+broken files (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/479">issue #479</a>)</p></li>
+<li><p>TIFFReadRGBATileExt(): fix (unsigned) integer overflow on strips/tiles &gt; 2 GB
+(oss-fuzz #53137)</p></li>
+<li><p>Replace sprintf calls with snprintf to fix warnings on macOS 13 SDK</p></li>
+<li><p>Added warning messages for FIELD_IGNORE tags for writing and for
+TIFF_SETGET_UNDEFINED for reading added. (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/438">issue #438</a>)</p></li>
+<li><p>tif_dirinfo.c: fix TIFFTAG_CLIPPATH tag declaration (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/439">issue #439</a>)</p></li>
+<li><p>tif_dirinfo.c: fix TIFFTAG_COMPRESSION and _BITSPERSAMPLE tag declaration
+(<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/364">issue #364</a>)</p></li>
+<li><p>Revised handling of TIFFTAG_INKNAMES and related TIFFTAG_NUMBEROFINKS value
+(<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/149">issue #149</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/150">issue #150</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/152">issue #152</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/168">issue #168</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/250">issue #250</a>,
+<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/269">issue #269</a>,:issue:<cite>398</cite>, CVE-2022-3599, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/456">issue #456</a>)</p></li>
+<li><p>TIFFAdvanceDirectory(): fix unsigned-integer-overflow in mapped case
+(oss-fuzz #52309)</p></li>
+<li><p>Improved/fixes IFD-Loop Handling (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/455">issue #455</a>).</p></li>
+<li><p>Update getimage to support large raster images.</p></li>
+<li><p>Presetting of default tag values extended (e.g. PlanarConfig). (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/449">issue #449</a>)</p></li>
+<li><p>Deal with RichTIFFIPTC tag written with LONG type (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/225">issue #225</a>)</p></li>
+<li><p>TIFFSetValue(): Writing IFD8 &amp; LONG8 tags to ClassicTIFF corrected
+(<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/442">issue #442</a>)</p></li>
+<li><p>tif_jpeg.c: allow to pass -DEXPECTED_JPEG_LIB_VERSION=number to do optional
+compile-time version check</p></li>
+<li><p>TIFFReadFromUserBuffer(): fix clearing of TIFF_CODERSETUP flag that could
+cause issues with reading JPEG compressed files</p></li>
+<li><p>_TIFFCheckFieldIsValidForCodec(): return FALSE when passed a codec-specific
+tag and the codec is not configured (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/433">issue #433</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/486">issue #486</a>,
+CVE-2022-34526)</p></li>
+<li><p>Add basic 16 bit cielab support.</p></li>
+<li><p>WEBP codec: avoid temporary buffer and memcpy() on whole tile/strip decoding</p></li>
+<li><p>tif_predict.c: make horAcc8() work with icc (ICC) 2021.6.0 20220226 -O2</p></li>
+</ul>
+</section>
+<section id="tools-changes">
+<h2>Tools changes<a class="headerlink" href="#tools-changes" title="Permalink to this heading">¶</a></h2>
+<p>New/improved functionality:</p>
+<ul class="simple">
+<li><p><strong class="program">tiffinfo</strong>: Updated to parse through SubIFDs and show their tags.</p></li>
+</ul>
+<p>Bug fixes:</p>
+<ul class="simple">
+<li><p><strong class="program">tiffcrop</strong>: add check if (bps != 1) in writeSingleSection()
+(<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/169">issue #169</a>)</p></li>
+<li><p><strong class="program">tiffcrop</strong>: Fix too many ‘mode’ options on command line
+(<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/470">issue #470</a> and <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/450">issue #450</a>)</p></li>
+<li><p><strong class="program">tiffcrop</strong>: Fix memory allocation to require a larger buffer
+(<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/271">issue #271</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/381">issue #381</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/386">issue #386</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/388">issue #388</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/389">issue #389</a>,
+<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/435">issue #435</a>, CVE-2022-3570, CVE-2022-3598)</p></li>
+<li><p><strong class="program">tiffcrop</strong>: disable incompatibility of -Z, -X, -Y, -z options with
+any PAGE_MODE_x option (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/411">issue #411</a>, CVE-2022-3627, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/413">issue #413</a>,
+CVE-2022-3597, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/426">issue #426</a>, CVE-2022-3626)</p></li>
+<li><p><strong class="program">tiffcrop</strong>: -S option mutually exclusive (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/349">issue #349</a>,
+<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/414">issue #414</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/422">issue #422</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/423">issue #423</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/424">issue #424</a>)</p></li>
+<li><p><strong class="program">tiffcrop</strong>: fix floating-point exception (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/415">issue #415</a>,
+<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/427">issue #427</a>, <a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/428">issue #428</a>, CVE-2022-2056, CVE-2022-2057, CVE-2022-2058)</p></li>
+<li><p><strong class="program">tiff2pdf</strong>: Don’t try to seek into stdout (<a class="reference external" href="https://gitlab.com/libtiff/libtiff/-/issues/441">issue #441</a>)</p></li>
+<li><p><strong class="program">tiffinfo</strong>: update curdir from uint16_t to tdir_t for more than 64k
+IFD handling.</p></li>
+</ul>
+</section>
+<section id="contributed-software-changes">
+<h2>Contributed software changes<a class="headerlink" href="#contributed-software-changes" title="Permalink to this heading">¶</a></h2>
+<p>None</p>
+</section>
+</section>
+
+
+            <div class="clearer"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+  <div>
+    <h3><a href="../index.html">Table of Contents</a></h3>
+    <ul>
+<li><a class="reference internal" href="#">Changes in TIFF v4.5.0</a><ul>
+<li><a class="reference internal" href="#major-changes">Major changes</a></li>
+<li><a class="reference internal" href="#software-configuration-changes">Software configuration changes</a></li>
+<li><a class="reference internal" href="#library-changes">Library changes</a></li>
+<li><a class="reference internal" href="#tools-changes">Tools changes</a></li>
+<li><a class="reference internal" href="#contributed-software-changes">Contributed software changes</a></li>
+</ul>
+</li>
+</ul>
+
+  </div>
+  <div>
+    <h4>Previous topic</h4>
+    <p class="topless"><a href="v4.5.1.html"
+                          title="previous chapter">Changes in TIFF v4.5.1</a></p>
+  </div>
+  <div>
+    <h4>Next topic</h4>
+    <p class="topless"><a href="v4.4.0.html"
+                          title="next chapter">Changes in TIFF v4.4.0</a></p>
+  </div>
+  <div role="note" aria-label="source link">
+    <h3>This Page</h3>
+    <ul class="this-page-menu">
+      <li><a href="../_sources/releases/v4.5.0.rst.txt"
+            rel="nofollow">Show Source</a></li>
+    </ul>
+   </div>
+<div id="searchbox" style="display: none" role="search">
+  <h3 id="searchlabel">Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" aria-labelledby="searchlabel" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"/>
+      <input type="submit" value="Go" />
+    </form>
+    </div>
+</div>
+<script>document.getElementById('searchbox').style.display = "block"</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="v4.4.0.html" title="Changes in TIFF v4.4.0"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="v4.5.1.html" title="Changes in TIFF v4.5.1"
+             >previous</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../index.html">LibTIFF 4.6.0 documentation</a> &#187;</li>
+          <li class="nav-item nav-item-1"><a href="index.html" >Release history</a> &#187;</li>
+        <li class="nav-item nav-item-this"><a href="">Changes in TIFF v4.5.0</a></li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &#169; Copyright 1988-2022, LibTIFF contributors.
+      Created using <a href="https://www.sphinx-doc.org/">Sphinx</a> 7.0.1.
+    </div>
+  </body>
+</html>
