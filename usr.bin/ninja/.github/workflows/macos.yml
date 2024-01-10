@@ -1,0 +1,53 @@
+name: macOS
+
+on:
+  pull_request:
+  push:
+  release:
+    types: published
+
+jobs:
+  build:
+    runs-on: macos-11.0
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install dependencies
+      run: brew install re2c p7zip cmake
+
+    - name: Build ninja
+      shell: bash
+      env:
+        MACOSX_DEPLOYMENT_TARGET: 10.12
+      run: |
+        cmake -Bbuild -GXcode '-DCMAKE_OSX_ARCHITECTURES=arm64;x86_64'
+        cmake --build build --config Release
+
+    - name: Test ninja
+      run: ctest -C Release -vv
+      working-directory: build
+
+    - name: Create ninja archive
+      shell: bash
+      run: |
+        mkdir artifact
+        7z a artifact/ninja-mac.zip ./build/Release/ninja
+
+    # Upload ninja binary archive as an artifact
+    - name: Upload artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: ninja-binary-archives
+        path: artifact
+
+    - name: Upload release asset
+      if: github.event.action == 'published'
+      uses: actions/upload-release-asset@v1.0.1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ github.event.release.upload_url }}
+        asset_path: ./artifact/ninja-mac.zip
+        asset_name: ninja-mac.zip
+        asset_content_type: application/zip

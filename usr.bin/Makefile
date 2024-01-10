@@ -105,6 +105,7 @@ SUBDIR=	alias \
 	newgrp \
 	nfsstat \
 	nice \
+        ninja \
 	nl \
 	nohup \
 	notifyutil \
