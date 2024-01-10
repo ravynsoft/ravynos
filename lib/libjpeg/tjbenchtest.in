@@ -1,0 +1,445 @@
+#!/bin/bash
+
+set -u
+set -e
+trap onexit INT
+trap onexit TERM
+trap onexit EXIT
+
+onexit()
+{
+	if [ -d $OUTDIR ]; then
+		rm -rf $OUTDIR
+	fi
+}
+
+runme()
+{
+	echo \*\*\* $*
+	"$@"
+}
+
+EXT=bmp
+IMAGES="vgl_5674_0098.${EXT} vgl_6434_0018a.${EXT} vgl_6548_0026a.${EXT} big_tree8.${EXT}"
+IMGDIR=@CMAKE_CURRENT_SOURCE_DIR@/testimages
+OUTDIR=`mktemp -d /tmp/__tjbenchtest_output.XXXXXX`
+EXEDIR=@CMAKE_CURRENT_BINARY_DIR@
+JAVA="@Java_JAVA_EXECUTABLE@"
+JAVAARGS="-cp $EXEDIR/java/turbojpeg.jar -Djava.library.path=$EXEDIR"
+TJBENCH=$EXEDIR/tjbench
+BMPARG=
+NSARG=
+YUVARG=
+ALLOC=0
+ALLOCARG=
+ENTROPYARG=
+JAVAARG=
+LOSSLSARG=
+LOSSLSPSV=
+TJQUAL=95
+x1SUBSAMP="444 GRAY"
+x24SUBSAMP="422 440 420 411 441"
+ALLSUBSAMP="444 422 440 420 411 441 GRAY"
+PRECISION=8
+if [ "$EXT" = "bmp" ]; then BMPARG=-bmp; fi
+
+if [ -d $OUTDIR ]; then
+	rm -rf $OUTDIR
+fi
+mkdir -p $OUTDIR
+
+while [ $# -gt 0 ]; do
+	case "$1" in
+	-yuv)
+		NSARG=-nosmooth
+		YUVARG=-yuv
+
+# NOTE: The combination of tj3EncodeYUV*() and tj3CompressFromYUV*() does not
+# always produce bitwise-identical results to tj3Compress*() if subsampling is
+# enabled.  In both cases, if the image width or height are not evenly
+# divisible by the MCU width/height, then the bottom and/or right edge are
+# expanded.  However, the libjpeg code performs this expansion prior to
+# downsampling, and TurboJPEG performs it in tj3CompressFromYUV*(), which is
+# after downsampling.  Thus, the two will agree only if the width/height along
+# each downsampled dimension is an odd number or is evenly divisible by the MCU
+# width/height.  This disagreement basically amounts to a round-off error, but
+# there is no easy way around it, so for now, we just test the only image that
+# works.  (NOTE: big_tree8 does not suffer from the above issue, but it suffers
+# from an unrelated problem whereby the combination of tj3DecompressToYUV*()
+# and tj3DecodeYUV*() do not produce bitwise-identical results to
+# tj3Decompress*() if decompression scaling is enabled.  This latter phenomenon
+# is not yet fully understood but is also believed to be some sort of round-off
+# error.)
+		IMAGES="vgl_6548_0026a.${EXT}"
+		;;
+	-alloc)
+		ALLOCARG=-alloc
+		ALLOC=1
+		;;
+	-java)
+		JAVAARG=-java
+		TJBENCH="$JAVA $JAVAARGS TJBench"
+		;;
+	-optimize)
+		ENTROPYARG=-optimize
+		;;
+	-progressive)
+		if [ "$ENTROPYARG" = "-arithmetic" ]; then
+			ENTROPYARG=-progressive-arithmetic
+		else
+			ENTROPYARG=-progressive
+		fi
+		;;
+	-arithmetic)
+		if [ "$ENTROPYARG" = "-progressive" ]; then
+			ENTROPYARG=-progressive-arithmetic
+		else
+			ENTROPYARG=-arithmetic
+		fi
+		;;
+	-lossless)
+		LOSSLSARG="-lossless"
+		LOSSLSPSV=4
+		TJQUAL=4
+		x1SUBSAMP=444
+		x24SUBSAMP=444
+		ALLSUBSAMP=444
+		;;
+	-precision)
+		shift
+		PRECISION=$1
+		if [ $PRECISION != 8 ]; then
+			EXT=ppm
+			IMAGES="big_building16.${EXT}"
+			BMPARG=
+		fi
+		;;
+	esac
+	shift
+done
+
+if [ $PRECISION = 8 -a "$YUVARG" = "" ]; then
+	if [ "$ENTROPYARG" = "-optimize" ]; then
+		IMAGES="vgl_6434_0018a.${EXT}"
+	elif [ "$ENTROPYARG" = "-progressive" ]; then
+		IMAGES="vgl_6548_0026a.${EXT}"
+	elif [ "$ENTROPYARG" = "-arithmetic" -o \
+		"$ENTROPYARG" = "-progressive-arithmetic" ]; then
+		IMAGES="big_tree8.${EXT}"
+	fi
+fi
+
+exec >$EXEDIR/tjbenchtest$JAVAARG$YUVARG$ALLOCARG$ENTROPYARG$LOSSLSARG-$PRECISION.log
+
+if [ "$ENTROPYARG" = "-progressive-arithmetic" ]; then
+	ENTROPYARG="-progressive -arithmetic"
+fi
+
+# Standard tests
+for image in $IMAGES; do
+
+	cp $IMGDIR/$image $OUTDIR
+	basename=`basename $image .${EXT}`
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct fast $ENTROPYARG $LOSSLSARG $LOSSLSPSV -grayscale -outfile $OUTDIR/${basename}_GRAY_fast_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct fast $ENTROPYARG $LOSSLSARG $LOSSLSPSV -sample 1x4 -outfile $OUTDIR/${basename}_441_fast_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct fast $ENTROPYARG $LOSSLSARG $LOSSLSPSV -sample 4x1 -outfile $OUTDIR/${basename}_411_fast_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct fast $ENTROPYARG $LOSSLSARG $LOSSLSPSV -sample 2x2 -outfile $OUTDIR/${basename}_420_fast_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct fast $ENTROPYARG $LOSSLSARG $LOSSLSPSV -sample 1x2 -outfile $OUTDIR/${basename}_440_fast_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct fast $ENTROPYARG $LOSSLSARG $LOSSLSPSV -sample 2x1 -outfile $OUTDIR/${basename}_422_fast_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct fast $ENTROPYARG $LOSSLSARG $LOSSLSPSV -sample 1x1 -outfile $OUTDIR/${basename}_444_fast_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct int $ENTROPYARG $LOSSLSARG $LOSSLSPSV -grayscale -outfile $OUTDIR/${basename}_GRAY_accurate_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct int $ENTROPYARG $LOSSLSARG $LOSSLSPSV -sample 1x4 -outfile $OUTDIR/${basename}_441_accurate_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct int $ENTROPYARG $LOSSLSARG $LOSSLSPSV -sample 4x1 -outfile $OUTDIR/${basename}_411_accurate_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct int $ENTROPYARG $LOSSLSARG $LOSSLSPSV -sample 2x2 -outfile $OUTDIR/${basename}_420_accurate_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct int $ENTROPYARG $LOSSLSARG $LOSSLSPSV -sample 1x2 -outfile $OUTDIR/${basename}_440_accurate_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct int $ENTROPYARG $LOSSLSARG $LOSSLSPSV -sample 2x1 -outfile $OUTDIR/${basename}_422_accurate_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	runme $EXEDIR/cjpeg -quality 95 -precision $PRECISION -dct int $ENTROPYARG $LOSSLSARG $LOSSLSPSV -sample 1x1 -outfile $OUTDIR/${basename}_444_accurate_cjpeg.jpg $IMGDIR/${basename}.${EXT}
+	for samp in $ALLSUBSAMP; do
+		runme $EXEDIR/djpeg -dct fast -rgb $NSARG $BMPARG -outfile $OUTDIR/${basename}_${samp}_fast_djpeg.${EXT} $OUTDIR/${basename}_${samp}_fast_cjpeg.jpg
+		runme $EXEDIR/djpeg -dct int -rgb $NSARG $BMPARG -outfile $OUTDIR/${basename}_${samp}_accurate_djpeg.${EXT} $OUTDIR/${basename}_${samp}_accurate_cjpeg.jpg
+	done
+	for samp in $x24SUBSAMP; do
+		runme $EXEDIR/djpeg -dct fast -nosmooth $BMPARG -outfile $OUTDIR/${basename}_${samp}_fast_nosmooth_djpeg.${EXT} $OUTDIR/${basename}_${samp}_fast_cjpeg.jpg
+		runme $EXEDIR/djpeg -dct int -nosmooth $BMPARG -outfile $OUTDIR/${basename}_${samp}_accurate_nosmooth_djpeg.${EXT} $OUTDIR/${basename}_${samp}_accurate_cjpeg.jpg
+	done
+
+	# Compression
+	for dct in accurate fast; do
+		dctarg=
+		if [ "${dct}" = "fast" ]; then
+			dctarg=-fastdct
+		fi
+		runme $TJBENCH $OUTDIR/$image $TJQUAL -precision $PRECISION -rgb -quiet -benchtime 0.01 -warmup 0 ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+		if [ "$LOSSLSARG" != "-lossless" ]; then
+			runme $TJBENCH $OUTDIR/$image $TJQUAL -precision $PRECISION -subsamp 440 -rgb -quiet -benchtime 0.01 -warmup 0 ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+			runme $TJBENCH $OUTDIR/$image $TJQUAL -precision $PRECISION -subsamp 411 -rgb -quiet -benchtime 0.01 -warmup 0 ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+			runme $TJBENCH $OUTDIR/$image $TJQUAL -precision $PRECISION -subsamp 441 -rgb -quiet -benchtime 0.01 -warmup 0 ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+		fi
+		for samp in $ALLSUBSAMP; do
+			if [ "$LOSSLSARG" = "-lossless" ]; then
+				runme cmp $OUTDIR/${basename}_LOSSLS_PSV${TJQUAL}.jpg $OUTDIR/${basename}_${samp}_${dct}_cjpeg.jpg
+			else
+				runme cmp $OUTDIR/${basename}_${samp}_Q${TJQUAL}.jpg $OUTDIR/${basename}_${samp}_${dct}_cjpeg.jpg
+			fi
+		done
+	done
+
+	for dct in fast accurate; do
+		dctarg=
+		if [ "${dct}" = "fast" ]; then
+			dctarg=-fastdct
+		fi
+
+		# Tiled compression & decompression
+		runme $TJBENCH $OUTDIR/$image $TJQUAL -precision $PRECISION -rgb -tile -quiet -benchtime 0.01 -warmup 0 ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+		for samp in $x1SUBSAMP; do
+			if [ $ALLOC = 1 ]; then
+				if [ "$LOSSLSARG" = "-lossless" ]; then
+					runme cmp $OUTDIR/${basename}_LOSSLS_PSV${TJQUAL}_full.${EXT} $OUTDIR/${basename}_${samp}_${dct}_djpeg.${EXT}
+					rm $OUTDIR/${basename}_LOSSLS_PSV${TJQUAL}_full.${EXT}
+				else
+					runme cmp $OUTDIR/${basename}_${samp}_Q${TJQUAL}_full.${EXT} $OUTDIR/${basename}_${samp}_${dct}_djpeg.${EXT}
+					rm $OUTDIR/${basename}_${samp}_Q${TJQUAL}_full.${EXT}
+				fi
+			else
+				if [ "$LOSSLSARG" = "-lossless" ]; then
+					for i in $OUTDIR/${basename}_LOSSLS_PSV${TJQUAL}_[0-9]*x[0-9]*.${EXT} \
+						$OUTDIR/${basename}_LOSSLS_PSV${TJQUAL}_full.${EXT}; do
+						runme cmp $i $OUTDIR/${basename}_${samp}_${dct}_djpeg.${EXT}
+						rm $i
+					done
+				else
+					for i in $OUTDIR/${basename}_${samp}_Q${TJQUAL}_[0-9]*x[0-9]*.${EXT} \
+						$OUTDIR/${basename}_${samp}_Q${TJQUAL}_full.${EXT}; do
+						runme cmp $i $OUTDIR/${basename}_${samp}_${dct}_djpeg.${EXT}
+						rm $i
+					done
+				fi
+			fi
+		done
+		runme $TJBENCH $OUTDIR/$image $TJQUAL -precision $PRECISION -rgb -tile -quiet -benchtime 0.01 -warmup 0 -fastupsample ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+		if [ "$LOSSLSARG" != "-lossless" ]; then
+			runme $TJBENCH $OUTDIR/$image $TJQUAL -precision $PRECISION -subsamp 440 -rgb -tile -quiet -benchtime 0.01 -warmup 0 -fastupsample ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+			runme $TJBENCH $OUTDIR/$image $TJQUAL -precision $PRECISION -subsamp 411 -rgb -tile -quiet -benchtime 0.01 -warmup 0 -fastupsample ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+			runme $TJBENCH $OUTDIR/$image $TJQUAL -precision $PRECISION -subsamp 441 -rgb -tile -quiet -benchtime 0.01 -warmup 0 -fastupsample ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+		fi
+		for samp in $x24SUBSAMP; do
+			if [ $ALLOC = 1 ]; then
+				if [ "$LOSSLSARG" = "-lossless" ]; then
+					runme cmp $OUTDIR/${basename}_LOSSLS_PSV${TJQUAL}_full.${EXT} $OUTDIR/${basename}_${samp}_${dct}_nosmooth_djpeg.${EXT}
+					rm $OUTDIR/${basename}_LOSSLS_PSV${TJQUAL}_full.${EXT}
+				else
+					runme cmp $OUTDIR/${basename}_${samp}_Q${TJQUAL}_full.${EXT} $OUTDIR/${basename}_${samp}_${dct}_nosmooth_djpeg.${EXT}
+					rm $OUTDIR/${basename}_${samp}_Q${TJQUAL}_full.${EXT}
+				fi
+			else
+				if [ "$LOSSLSARG" = "-lossless" ]; then
+					for i in $OUTDIR/${basename}_LOSSLS_PSV${TJQUAL}_[0-9]*x[0-9]*.${EXT} \
+						$OUTDIR/${basename}_LOSSLS_PSV${TJQUAL}_full.${EXT}; do
+						runme cmp $i $OUTDIR/${basename}_${samp}_${dct}_nosmooth_djpeg.${EXT}
+						rm $i
+					done
+				else
+					for i in $OUTDIR/${basename}_${samp}_Q${TJQUAL}_[0-9]*x[0-9]*.${EXT} \
+						$OUTDIR/${basename}_${samp}_Q${TJQUAL}_full.${EXT}; do
+						# If the tile size is smaller than the MCU size, then there will be
+						# edge artifacts at the tile boundaries, so the decompressed image
+						# will not be identical to the untiled decompressed image.
+						TILESIZE=$(basename $(echo $i | sed 's/.*_//g') .${EXT})
+						if [ "$TILESIZE" = "8x8" ]; then
+							continue
+						fi
+						if [ "$TILESIZE" = "16x16" -a \
+							\( "${samp}" = "411" -o "${samp}" = "441" \) ]; then
+							continue
+						fi
+						runme cmp $i $OUTDIR/${basename}_${samp}_${dct}_nosmooth_djpeg.${EXT}
+						rm $i
+					done
+				fi
+			fi
+		done
+
+		# Tiled decompression
+		if [ "$LOSSLSARG" != "-lossless" ]; then
+			for samp in $x1SUBSAMP; do
+				runme $TJBENCH $OUTDIR/${basename}_${samp}_Q95.jpg $BMPARG -tile -quiet -benchtime 0.01 -warmup 0 ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG
+				if [ $ALLOC = 1 ]; then
+					runme cmp $OUTDIR/${basename}_${samp}_Q95_full.${EXT} $OUTDIR/${basename}_${samp}_${dct}_djpeg.${EXT}
+					rm $OUTDIR/${basename}_${samp}_Q95_full.${EXT}
+				else
+					for i in $OUTDIR/${basename}_${samp}_Q95_[0-9]*x[0-9]*.${EXT} \
+						$OUTDIR/${basename}_${samp}_Q95_full.${EXT}; do
+						runme cmp $i $OUTDIR/${basename}_${samp}_${dct}_djpeg.${EXT}
+						rm $i
+					done
+				fi
+			done
+			for samp in $x24SUBSAMP; do
+				runme $TJBENCH $OUTDIR/${basename}_${samp}_Q95.jpg $BMPARG -tile -quiet -benchtime 0.01 -warmup 0 -fastupsample ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG
+				if [ $ALLOC = 1 ]; then
+					runme cmp $OUTDIR/${basename}_${samp}_Q95_full.${EXT} $OUTDIR/${basename}_${samp}_${dct}_nosmooth_djpeg.${EXT}
+					rm $OUTDIR/${basename}_${samp}_Q95_full.${EXT}
+				else
+					for i in $OUTDIR/${basename}_${samp}_Q95_[0-9]*x[0-9]*.${EXT} \
+						$OUTDIR/${basename}_${samp}_Q95_full.${EXT}; do
+						TILESIZE=$(basename $(echo $i | sed 's/.*_//g') .${EXT})
+						if [ "$TILESIZE" = "8x8" ]; then
+							continue
+						fi
+						if [ "$TILESIZE" = "16x16" -a \
+							\( "${samp}" = "411" -o "${samp}" = "441" \) ]; then
+							continue
+						fi
+						runme cmp $i $OUTDIR/${basename}_${samp}_${dct}_nosmooth_djpeg.${EXT}
+						rm $i
+					done
+				fi
+			done
+		fi
+	done
+
+	# Partial decompression
+	if [ "$LOSSLSARG" != "-lossless" -a "$YUVARG" != "-yuv" ]; then
+		for samp in $ALLSUBSAMP; do
+			CROPW8_8=103
+			CROPL8_8=16
+			CROPW7_8=91
+			CROPL7_8=14
+			if [ "${samp}" = "411" ]; then
+				CROPW8_8=87
+				CROPL8_8=32
+				CROPW7_8=77
+				CROPL7_8=28
+			fi
+			runme $EXEDIR/djpeg -rgb -crop ${CROPW8_8}x90+${CROPL8_8}+5 $NSARG -outfile $OUTDIR/${basename}_${samp}_scale_crop_djpeg.ppm $OUTDIR/${basename}_${samp}_accurate_cjpeg.jpg
+			runme $TJBENCH $OUTDIR/${basename}_${samp}_Q${TJQUAL}.jpg -crop ${CROPW8_8}x90+${CROPL8_8}+5 -quiet -benchtime 0.01 -warmup 0 ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+			runme cmp $OUTDIR/${basename}_${samp}_Q${TJQUAL}_full.ppm $OUTDIR/${basename}_${samp}_scale_crop_djpeg.ppm
+			rm $OUTDIR/${basename}_${samp}_Q${TJQUAL}_full.ppm $OUTDIR/${basename}_${samp}_scale_crop_djpeg.ppm
+
+			runme $EXEDIR/djpeg -rgb -scale 7/8 -crop ${CROPW7_8}x81+${CROPL7_8}+3 $NSARG -outfile $OUTDIR/${basename}_${samp}_scale_crop_djpeg.ppm $OUTDIR/${basename}_${samp}_accurate_cjpeg.jpg
+			runme $TJBENCH $OUTDIR/${basename}_${samp}_Q${TJQUAL}.jpg -scale 7/8 -crop ${CROPW7_8}x81+${CROPL7_8}+3 -quiet -benchtime 0.01 -warmup 0 ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+			runme cmp $OUTDIR/${basename}_${samp}_Q${TJQUAL}_7_8.ppm $OUTDIR/${basename}_${samp}_scale_crop_djpeg.ppm
+			rm $OUTDIR/${basename}_${samp}_Q${TJQUAL}_7_8.ppm $OUTDIR/${basename}_${samp}_scale_crop_djpeg.ppm
+
+			runme $EXEDIR/djpeg -rgb -scale 1/2 -crop 40x40+0+0 $NSARG -outfile $OUTDIR/${basename}_${samp}_scale_crop_djpeg.ppm $OUTDIR/${basename}_${samp}_accurate_cjpeg.jpg
+			runme $TJBENCH $OUTDIR/${basename}_${samp}_Q${TJQUAL}.jpg -scale 1/2 -crop 40x40+0+0 -quiet -benchtime 0.01 -warmup 0 ${dctarg} $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+			runme cmp $OUTDIR/${basename}_${samp}_Q${TJQUAL}_1_2.ppm $OUTDIR/${basename}_${samp}_scale_crop_djpeg.ppm
+			rm $OUTDIR/${basename}_${samp}_Q${TJQUAL}_1_2.ppm $OUTDIR/${basename}_${samp}_scale_crop_djpeg.ppm
+		done
+	fi
+
+	# Scaled decompression
+	for scale in 2_1 15_8 7_4 13_8 3_2 11_8 5_4 9_8 7_8 3_4 5_8 1_2 3_8 1_4 1_8; do
+		scalearg=`echo $scale | sed 's/\_/\//g'`
+		SCALE=$scale
+		if [ "$LOSSLSARG" = "-lossless" ]; then
+			SCALE=full
+		fi
+		for samp in $ALLSUBSAMP; do
+			runme $EXEDIR/djpeg -rgb -scale ${scalearg} $NSARG $BMPARG -outfile $OUTDIR/${basename}_${samp}_${scale}_djpeg.${EXT} $OUTDIR/${basename}_${samp}_accurate_cjpeg.jpg
+			if [ "$LOSSLSARG" = "-lossless" ]; then
+				runme $TJBENCH $OUTDIR/${basename}_LOSSLS_PSV${TJQUAL}.jpg $BMPARG -scale ${scalearg} -quiet -benchtime 0.01 -warmup 0 $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+				runme cmp $OUTDIR/${basename}_LOSSLS_PSV${TJQUAL}_${SCALE}.${EXT} $OUTDIR/${basename}_${samp}_${scale}_djpeg.${EXT}
+				rm $OUTDIR/${basename}_LOSSLS_PSV${TJQUAL}_${SCALE}.${EXT}
+			else
+				runme $TJBENCH $OUTDIR/${basename}_${samp}_Q${TJQUAL}.jpg $BMPARG -scale ${scalearg} -quiet -benchtime 0.01 -warmup 0 $YUVARG $ALLOCARG $ENTROPYARG $LOSSLSARG
+				runme cmp $OUTDIR/${basename}_${samp}_Q${TJQUAL}_${SCALE}.${EXT} $OUTDIR/${basename}_${samp}_${scale}_djpeg.${EXT}
+				rm $OUTDIR/${basename}_${samp}_Q${TJQUAL}_${SCALE}.${EXT}
+			fi
+		done
+	done
+
+	# Transforms
+	if [ "$LOSSLSARG" != "-lossless" ]; then
+		for samp in $ALLSUBSAMP; do
+			runme $EXEDIR/jpegtran -flip horizontal -trim -outfile $OUTDIR/${basename}_${samp}_hflip_jpegtran.jpg $OUTDIR/${basename}_${samp}_Q95.jpg
+			runme $EXEDIR/jpegtran -flip vertical -trim -outfile $OUTDIR/${basename}_${samp}_vflip_jpegtran.jpg $OUTDIR/${basename}_${samp}_Q95.jpg
+			runme $EXEDIR/jpegtran -transpose -trim -outfile $OUTDIR/${basename}_${samp}_transpose_jpegtran.jpg $OUTDIR/${basename}_${samp}_Q95.jpg
+			runme $EXEDIR/jpegtran -transverse -trim -outfile $OUTDIR/${basename}_${samp}_transverse_jpegtran.jpg $OUTDIR/${basename}_${samp}_Q95.jpg
+			runme $EXEDIR/jpegtran -rotate 90 -trim -outfile $OUTDIR/${basename}_${samp}_rot90_jpegtran.jpg $OUTDIR/${basename}_${samp}_Q95.jpg
+			runme $EXEDIR/jpegtran -rotate 180 -trim -outfile $OUTDIR/${basename}_${samp}_rot180_jpegtran.jpg $OUTDIR/${basename}_${samp}_Q95.jpg
+			runme $EXEDIR/jpegtran -rotate 270 -trim -outfile $OUTDIR/${basename}_${samp}_rot270_jpegtran.jpg $OUTDIR/${basename}_${samp}_Q95.jpg
+		done
+		for xform in hflip vflip transpose transverse rot90 rot180 rot270; do
+			for samp in $x1SUBSAMP; do
+				runme $EXEDIR/djpeg -rgb $BMPARG -outfile $OUTDIR/${basename}_${samp}_${xform}_jpegtran.${EXT} $OUTDIR/${basename}_${samp}_${xform}_jpegtran.jpg
+				runme $TJBENCH $OUTDIR/${basename}_${samp}_Q95.jpg $BMPARG -$xform -tile -quiet -benchtime 0.01 -warmup 0 $YUVARG $ALLOCARG $ENTROPYARG
+				if [ $ALLOC = 1 ]; then
+					runme cmp $OUTDIR/${basename}_${samp}_Q95_full.${EXT} $OUTDIR/${basename}_${samp}_${xform}_jpegtran.${EXT}
+					rm $OUTDIR/${basename}_${samp}_Q95_full.${EXT}
+				else
+					for i in $OUTDIR/${basename}_${samp}_Q95_[0-9]*x[0-9]*.${EXT} \
+						$OUTDIR/${basename}_${samp}_Q95_full.${EXT}; do
+						runme cmp $i $OUTDIR/${basename}_${samp}_${xform}_jpegtran.${EXT}
+						rm $i
+					done
+				fi
+			done
+			for samp in $x24SUBSAMP; do
+				runme $EXEDIR/djpeg -nosmooth -rgb $BMPARG -outfile $OUTDIR/${basename}_${samp}_${xform}_jpegtran.${EXT} $OUTDIR/${basename}_${samp}_${xform}_jpegtran.jpg
+				runme $TJBENCH $OUTDIR/${basename}_${samp}_Q95.jpg $BMPARG -$xform -tile -quiet -benchtime 0.01 -warmup 0 -fastupsample $YUVARG $ALLOCARG $ENTROPYARG
+				if [ $ALLOC = 1 ]; then
+					runme cmp $OUTDIR/${basename}_${samp}_Q95_full.${EXT} $OUTDIR/${basename}_${samp}_${xform}_jpegtran.${EXT}
+					rm $OUTDIR/${basename}_${samp}_Q95_full.${EXT}
+				else
+					for i in $OUTDIR/${basename}_${samp}_Q95_[0-9]*x[0-9]*.${EXT} \
+						$OUTDIR/${basename}_${samp}_Q95_full.${EXT}; do
+						TILESIZE=$(basename $(echo $i | sed 's/.*_//g') .${EXT})
+						if [ "$TILESIZE" = "8x8" ]; then
+							continue
+						fi
+						if [ "$TILESIZE" = "16x16" -a \
+							\( "${samp}" = "411" -o "${samp}" = "441" \) ]; then
+							continue
+						fi
+						runme cmp $i $OUTDIR/${basename}_${samp}_${xform}_jpegtran.${EXT}
+						rm $i
+					done
+				fi
+			done
+		done
+
+		# Grayscale transform
+		for xform in hflip vflip transpose transverse rot90 rot180 rot270; do
+			for samp in $ALLSUBSAMP; do
+				runme $TJBENCH $OUTDIR/${basename}_${samp}_Q95.jpg $BMPARG -$xform -tile -quiet -benchtime 0.01 -warmup 0 -grayscale $YUVARG $ALLOCARG $ENTROPYARG
+				if [ $ALLOC = 1 ]; then
+					runme cmp $OUTDIR/${basename}_${samp}_Q95_full.${EXT} $OUTDIR/${basename}_GRAY_${xform}_jpegtran.${EXT}
+					rm $OUTDIR/${basename}_${samp}_Q95_full.${EXT}
+				else
+					for i in $OUTDIR/${basename}_${samp}_Q95_[0-9]*x[0-9]*.${EXT} \
+						$OUTDIR/${basename}_${samp}_Q95_full.${EXT}; do
+						TILESIZE=$(basename $(echo $i | sed 's/.*_//g') .${EXT})
+						if [ "$TILESIZE" = "8x8" -a \
+							"${samp}" != "444" -a "${samp}" != "GRAY" ]; then
+							continue
+						fi
+						if [ "$TILESIZE" = "16x16" -a \
+							\( "${samp}" = "411" -o "${samp}" = "441" \) ]; then
+							continue
+						fi
+						runme cmp $i $OUTDIR/${basename}_GRAY_${xform}_jpegtran.${EXT}
+						rm $i
+					done
+				fi
+			done
+		done
+
+		# Transforms with scaling
+		for xform in hflip vflip transpose transverse rot90 rot180 rot270; do
+			for samp in $ALLSUBSAMP; do
+				for scale in 2_1 15_8 7_4 13_8 3_2 11_8 5_4 9_8 7_8 3_4 5_8 1_2 3_8 1_4 1_8; do
+					scalearg=`echo $scale | sed 's/\_/\//g'`
+					runme $EXEDIR/djpeg -rgb -scale ${scalearg} $NSARG $BMPARG -outfile $OUTDIR/${basename}_${samp}_${xform}_${scale}_jpegtran.${EXT} $OUTDIR/${basename}_${samp}_${xform}_jpegtran.jpg
+					runme $TJBENCH $OUTDIR/${basename}_${samp}_Q95.jpg $BMPARG -$xform -scale ${scalearg} -quiet -benchtime 0.01 -warmup 0 $YUVARG $ALLOCARG $ENTROPYARG
+					runme cmp $OUTDIR/${basename}_${samp}_Q95_${scale}.${EXT} $OUTDIR/${basename}_${samp}_${xform}_${scale}_jpegtran.${EXT}
+					rm $OUTDIR/${basename}_${samp}_Q95_${scale}.${EXT}
+				done
+			done
+		done
+	fi
+
+done
+
+echo SUCCESS!

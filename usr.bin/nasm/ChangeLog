@@ -1,0 +1,2905 @@
+Sat Nov 24 16:31:48 2007 -0800 H. Peter Anvin 
+  * Typo fixes in documentation
+Tue Nov 20 23:37:46 2007 -0800 H. Peter Anvin 
+  * NASM 2.00rc3
+Tue Nov 20 21:45:16 2007 -0800 H. Peter Anvin 
+  * Unbreak CMPSW/CMPSD/CMPSQ
+Tue Nov 20 13:23:34 2007 -0800 H. Peter Anvin 
+  * Merge branch 'master' of git+ssh://repo.or.cz/srv/git/nasm
+Tue Nov 20 13:22:58 2007 -0800 H. Peter Anvin 
+  * ndisasm: handle the case of "no more sync points"
+Mon Nov 19 23:09:31 2007 -0800 H. Peter Anvin 
+  * NASM 2.00rc2
+Mon Nov 19 23:09:24 2007 -0800 H. Peter Anvin 
+  * tag-release: a simple script to tag the repository for release
+Mon Nov 19 13:14:59 2007 -0800 H. Peter Anvin 
+  * Slightly faster implementation of the deadman counter
+Mon Nov 19 12:26:50 2007 -0800 H. Peter Anvin 
+  * BR 812417: Deadman counter for macro expansion
+Mon Nov 19 12:02:38 2007 -0800 H. Peter Anvin 
+  * BR 877583: Fix RAA memory leak
+Mon Nov 19 11:53:18 2007 -0800 H. Peter Anvin 
+  * BR 863173: Fix offsets of TIMES/INCBIN in list file
+Mon Nov 19 11:45:40 2007 -0800 H. Peter Anvin 
+  * BR 1834731: Remove redundant error messages for no input file
+Mon Nov 19 11:44:05 2007 -0800 H. Peter Anvin 
+  * insns.pl: remove debugging output
+Sun Nov 18 22:18:09 2007 -0800 H. Peter Anvin 
+  * Clean up remaining build warnings
+Sun Nov 18 21:55:26 2007 -0800 H. Peter Anvin 
+  * BR 1834292: Fix multiple disassembler bugs
+Sun Nov 18 12:01:05 2007 -0800 H. Peter Anvin 
+  * BR 1834056: Remove warnings in rdoff/rdoff.c
+Sun Nov 18 11:55:10 2007 -0800 H. Peter Anvin 
+  * BR 1091926: Bounds checking for command line parsing
+Sat Nov 17 21:21:18 2007 -0800 H. Peter Anvin 
+  * Remove FIXME from documentation
+Sat Nov 17 21:08:33 2007 -0800 Charles Crayne 
+  * Check in Keith's Fixes
+Sat Nov 17 14:35:19 2007 -0800 H. Peter Anvin 
+  * Make the definition for float_const() match the prototype
+Fri Nov 16 00:03:02 2007 -0800 H. Peter Anvin 
+  * NASM 2.00rc1
+Thu Nov 15 17:12:29 2007 -0800 H. Peter Anvin 
+  * Clean up the command-line parsing; make -w/-W match others
+Thu Nov 15 14:38:19 2007 -0800 H. Peter Anvin 
+  * BR 993895: Support zero-operand floating-point insn
+Thu Nov 15 10:25:52 2007 -0800 H. Peter Anvin 
+  * Remove some vestiges of "native" RESW/RESD support
+Thu Nov 15 10:24:55 2007 -0800 H. Peter Anvin 
+  * outbin.c: fix one missed change from type -> size
+Tue Nov 13 19:52:54 2007 -0800 root 
+  * Support setting OSABI value in ELF header.
+Tue Nov 13 11:34:34 2007 -0800 H. Peter Anvin 
+  * Enable a few warnings by default; clean up warning descriptions
+Tue Nov 13 11:31:15 2007 -0800 H. Peter Anvin 
+  * Add gcc-style -W/-Wno- warning selections; -Wall; -Werror
+Tue Nov 13 10:37:23 2007 -0800 H. Peter Anvin 
+  * Clean up the fwrite*() function definitions somewhat
+Tue Nov 13 09:49:51 2007 -0800 H. Peter Anvin 
+  * Cast 64-bit switch expressions to (int) to keep OpenWatcom happy
+Tue Nov 13 09:46:38 2007 -0800 H. Peter Anvin 
+  * x86-host-specific performance improvement
+Tue Nov 13 09:37:59 2007 -0800 H. Peter Anvin 
+  * Address data is int64_t; simplify writing an address object
+Mon Nov 12 23:00:31 2007 -0800 H. Peter Anvin 
+  * ndisasm: factor out the common operand-extraction code
+Mon Nov 12 22:56:07 2007 -0800 H. Peter Anvin 
+  * Un-special-case "xchg rax,rax"; disassemble o64
+Mon Nov 12 22:11:46 2007 -0800 H. Peter Anvin 
+  * BR 1709392: Fix alignment handling in Mach-O format
+Mon Nov 12 22:05:31 2007 -0800 H. Peter Anvin 
+  * BR 1828866: fix handling of LAR/LSL
+Mon Nov 12 21:57:00 2007 -0800 H. Peter Anvin 
+  * Better (but not *good!*) handling of 64-bit addressing in ndisasm
+Mon Nov 12 21:02:33 2007 -0800 H. Peter Anvin 
+  * Fix disassembly of XCHG
+Mon Nov 12 20:18:33 2007 -0800 H. Peter Anvin 
+  * Test of XCHG
+Mon Nov 12 20:18:05 2007 -0800 H. Peter Anvin 
+  * Fix handling of XCHG in 64-bit mode
+Mon Nov 12 19:36:13 2007 -0800 H. Peter Anvin 
+  * More \321 -> \324 bug fixes
+Mon Nov 12 18:26:31 2007 -0800 H. Peter Anvin 
+  * float.c: all warnings and errors are pass 1 only
+Sat Nov 10 21:55:19 2007 -0800 Charles Crayne 
+  * Update documentation for stack relative directives.
+Sat Nov 10 17:52:23 2007 -0800 Charles Crayne 
+  * Clean up a few more 32-bit bottlenecks
+Fri Nov 9 16:37:41 2007 -0800 Charles Crayne 
+  * Update documentation for stack relative directives
+Fri Nov 9 16:33:54 2007 -0800 Charles Crayne 
+  * Merge branch 'master' of /home/chuck/development/gitnasm/
+Fri Nov 9 16:25:43 2007 -0800 Charles Crayne 
+  * Update documentation for stack relative directives
+Fri Nov 9 14:44:02 2007 -0800 H. Peter Anvin 
+  * Don't combine type and size into a single argument
+Thu Nov 8 22:11:14 2007 -0800 Charles Crayne 
+  * Add flat64 to %stacksize choices
+Thu Nov 8 20:43:22 2007 -0800 H. Peter Anvin 
+  * Fix building under OpenWatcom
+Thu Nov 8 20:29:37 2007 -0800 H. Peter Anvin 
+  * ps2pdf: remove -dOptimize=true
+Thu Nov 8 20:21:41 2007 -0800 H. Peter Anvin 
+  * No binary files left in the source distro; unbreak release script
+Thu Nov 8 20:01:11 2007 -0800 H. Peter Anvin 
+  * BR 1828103: Fix %arg and %local
+Thu Nov 8 19:34:01 2007 -0800 H. Peter Anvin 
+  * nasmlib.c: prefix_name(): use the elements() macro
+Thu Nov 8 19:30:22 2007 -0800 H. Peter Anvin 
+  * Move elements() to nasmlib.h
+Thu Nov 8 19:15:33 2007 -0800 H. Peter Anvin 
+  * constipate the "str" argument to bsi() and bsii()
+Wed Nov 7 19:03:46 2007 -0800 Charles Crayne 
+  * Upgrade RAA functions to hold 64-bit data.
+Tue Nov 6 21:48:12 2007 -0800 Charles Crayne 
+  * Pass 64-bit instruction lengths to back-ends.
+Tue Nov 6 18:27:23 2007 -0800 Charles Crayne 
+  * Prepare for 64-bit instruction lengths
+Mon Nov 5 21:49:49 2007 -0800 Charles Crayne 
+  * Disambiguate error messages
+Mon Nov 5 17:19:32 2007 -0800 Charles Crayne 
+  * Upgrade label functions to 64-bit
+Sun Nov 4 21:10:42 2007 -0800 H. Peter Anvin 
+  * Permit opcode names as labels as long as they are followed by a colon
+Sun Nov 4 15:28:30 2007 -0800 Charles Crayne 
+  * Make warning limit valid for both i386 and x86_64
+Sat Nov 3 22:06:13 2007 -0700 Charles Crayne 
+  * Warn on out of bounds EA displacements
+Thu Nov 1 15:08:27 2007 -0700 H. Peter Anvin 
+  * Treat info files as binary when creating xdoc distro file
+Thu Nov 1 15:07:42 2007 -0700 H. Peter Anvin 
+  * Remove obsolete binary files from the distribution
+Thu Nov 1 14:53:32 2007 -0700 H. Peter Anvin 
+  * Move declarations before statements
+Wed Oct 31 23:37:35 2007 -0700 H. Peter Anvin 
+  * NASM 0.99.06
+Wed Oct 31 23:37:19 2007 -0700 H. Peter Anvin 
+  * Script to tag the tree for release
+Wed Oct 31 10:59:26 2007 -0700 H. Peter Anvin 
+  * Even more "riprel" tests
+Tue Oct 30 01:17:57 2007 -0700 H. Peter Anvin 
+  * floatx.asm: add tests for "rounds up to smallest denorm"
+Tue Oct 30 01:13:27 2007 -0700 H. Peter Anvin 
+  * Run "make alldeps"
+Tue Oct 30 01:13:09 2007 -0700 H. Peter Anvin 
+  * float.c: handle round-up-to-denorm correctly.
+Tue Oct 30 00:59:27 2007 -0700 H. Peter Anvin 
+  * Exhaustive test for 8-bit floating point values
+Mon Oct 29 23:12:47 2007 -0700 H. Peter Anvin 
+  * Clean up the handing of operands in assemble.c
+Mon Oct 29 22:56:08 2007 -0700 H. Peter Anvin 
+  * Don't warn for segmented references
+Mon Oct 29 20:20:12 2007 -0700 H. Peter Anvin 
+  * Use a 32-bit floating-point limb size; support 8-bit float
+Mon Oct 29 18:24:59 2007 -0700 Charles Crayne 
+  * Reduce severity of redundant prefixes from error to warning.
+Sun Oct 28 23:23:24 2007 -0700 H. Peter Anvin 
+  * Test of some addressing modes in 64-bit mode.
+Sun Oct 28 23:21:46 2007 -0700 H. Peter Anvin 
+  * Fix bogus flagging of effective addresses as invalid
+Sun Oct 28 23:10:34 2007 -0700 H. Peter Anvin 
+  * Actually shut up the warning in rdfload.c
+Sun Oct 28 22:04:42 2007 -0700 H. Peter Anvin 
+  * Clean up stealth whitespace
+Sun Oct 28 22:04:00 2007 -0700 H. Peter Anvin 
+  * Fix warning about cast to pointer in rdfload.c
+Sun Oct 28 22:04:00 2007 -0700 H. Peter Anvin 
+  * 64-bit addressing and prefix handling changes
+Sun Oct 28 15:29:54 2007 -0700 Charles Crayne 
+  * Adjust stabs symbol index to match symbol table.
+Fri Oct 26 21:38:02 2007 -0700 H. Peter Anvin 
+  * readnum(): handle prefix-suffix collision like "0h"
+Fri Oct 26 18:49:29 2007 -0700 H. Peter Anvin 
+  * Better handling of platforms which hide "extended" functionality
+Wed Oct 24 15:51:40 2007 -0700 Charles Crayne 
+  * Merge branch 'master' of /home/chuck/development/gitnasm/
+Wed Oct 24 15:30:17 2007 -0700 Charles Crayne 
+  * Update sections about debug info formats
+Wed Oct 24 15:29:51 2007 -0700 H. Peter Anvin 
+  * Fix the handling of floating-point tokens in the preprocessor
+Tue Oct 23 19:28:39 2007 -0700 Charles Crayne 
+  * Fix bugs item #1817677
+Tue Oct 23 00:08:58 2007 -0700 H. Peter Anvin 
+  * Slightly simplify the radix-detection code
+Mon Oct 22 19:48:06 2007 -0700 H. Peter Anvin 
+  * Unbreak particularly tricky hex constants
+Mon Oct 22 19:37:36 2007 -0700 H. Peter Anvin 
+  * Decimal floating point can also start with 0. 0e 0E
+Mon Oct 22 17:34:10 2007 -0700 H. Peter Anvin 
+  * Support binary and octal floating-point
+Mon Oct 22 16:53:48 2007 -0700 H. Peter Anvin 
+  * More consistent handling of radix letters
+Sun Oct 21 15:33:01 2007 -0700 H. Peter Anvin 
+  * float.c: correct exponent capping
+Sun Oct 21 14:21:43 2007 -0700 Charles Crayne 
+  * Clean up elf symbol table section
+Fri Oct 19 18:33:57 2007 -0700 H. Peter Anvin 
+  * Allow $-prefixed hexadecimal FP as an alternative to 0x
+Fri Oct 19 14:43:22 2007 -0700 H. Peter Anvin 
+  * Scripts to remove stealth whitespace
+Fri Oct 19 14:42:29 2007 -0700 H. Peter Anvin 
+  * Formatting: kill off "stealth whitespace"
+Fri Oct 19 14:26:52 2007 -0700 H. Peter Anvin 
+  * test/floatx.asm: fix test case
+Fri Oct 19 14:19:52 2007 -0700 H. Peter Anvin 
+  * uscore.asm: Fix test case
+Fri Oct 19 14:17:51 2007 -0700 H. Peter Anvin 
+  * float.c: mark read_exponent() static
+Fri Oct 19 14:10:35 2007 -0700 H. Peter Anvin 
+  * Don't confuse suffixed hexadecimal with floating-point
+Fri Oct 19 13:17:24 2007 -0700 H. Peter Anvin 
+  * Anchor filename locations in .gitignore
+Fri Oct 19 13:16:51 2007 -0700 H. Peter Anvin 
+  * test/Makefile: Use -Ox instead of -O999
+Fri Oct 19 13:14:06 2007 -0700 H. Peter Anvin 
+  * Test of underscored constants
+Fri Oct 19 13:10:46 2007 -0700 H. Peter Anvin 
+  * Allow underscores in numbers; better detection of FP
+Fri Oct 19 10:52:31 2007 -0700 H. Peter Anvin 
+  * Modernize nasm.spec.in and make it closer to the Fedora version
+Thu Oct 18 23:33:06 2007 -0700 Charles Crayne 
+  * Suppress datarootdir warnings from configure
+Thu Oct 18 21:17:20 2007 -0700 Charles Crayne 
+  * Suppress signedness warnings in disassembler
+Thu Oct 18 19:14:08 2007 -0700 H. Peter Anvin 
+  * Cleaner solution for MinGW handling of __STRICT_ANSI__
+Thu Oct 18 19:14:08 2007 -0700 H. Peter Anvin 
+  * configure: Undefine __STRICT_ANSI__ for mingw's benefit
+Thu Oct 18 19:14:07 2007 -0700 H. Peter Anvin 
+  * Fix invocation of readnum()
+Thu Oct 18 19:02:42 2007 -0700 Charles Crayne 
+  * Suppress a few signedness warnings
+Thu Oct 18 17:04:10 2007 -0700 root 
+  * Avoid unnecessary warning on redefinition of section (bug 801180)
+Wed Oct 17 17:55:45 2007 -0700 Charles Crayne 
+  * Generate stabs entries for any executable section
+Tue Oct 16 22:59:09 2007 -0700 H. Peter Anvin 
+  * NASM 0.99.05
+Tue Oct 16 15:46:04 2007 -0700 H. Peter Anvin 
+  * Tests of obscenely large exponents
+Tue Oct 16 14:42:32 2007 -0700 H. Peter Anvin 
+  * Comma-separate contents of __FLOAT__
+Tue Oct 16 14:40:27 2007 -0700 H. Peter Anvin 
+  * Implement floating-point option control directive
+Tue Oct 16 11:48:07 2007 -0700 H. Peter Anvin 
+  * Floating-point warning fixes; fix round-to-overflow
+Tue Oct 16 11:32:58 2007 -0700 H. Peter Anvin 
+  * Handle rounding of denorms correctly; make fp overflow a warning
+Tue Oct 16 10:35:02 2007 -0700 H. Peter Anvin 
+  * Additional entries for .gitignore
+Tue Oct 16 10:32:57 2007 -0700 H. Peter Anvin 
+  * Refactor floating-point formatting code; fix 80-bit denorms
+Tue Oct 16 10:31:16 2007 -0700 H. Peter Anvin 
+  * Add 1.5 as a test case: representative of an exact fraction
+Mon Oct 15 20:06:06 2007 -0700 H. Peter Anvin 
+  * Recognize 'd', 't' and 'y' as radix suffixes
+Mon Oct 15 19:53:10 2007 -0700 H. Peter Anvin 
+  * Fix FISTTP opcodes (BR 689695)
+Mon Oct 15 19:46:32 2007 -0700 H. Peter Anvin 
+  * New floating-point conversion routines
+Mon Oct 15 17:48:43 2007 -0700 H. Peter Anvin 
+  * Add testnos3 from the gdtoa package (floating-point test)
+Sat Oct 13 23:19:21 2007 -0700 H. Peter Anvin 
+  * .gitignore file doesn't need to be in the release file
+Sat Oct 13 23:17:41 2007 -0700 H. Peter Anvin 
+  * Add .gitignore file so "git status" produces something sane
+Sat Oct 13 23:12:46 2007 -0700 H. Peter Anvin 
+  * autoconf: drop AC_USE_SYSTEM_EXTENSIONS to support autoconf 2.59
+Sat Oct 13 07:09:22 2007 -0700 Keith Kanios 
+  * Fix 32-bit types in preproc.c and eval.c
+Thu Oct 11 20:32:33 2007 -0700 Charles Crayne 
+  * Must define types before using them
+Thu Oct 11 13:42:09 2007 -0700 H. Peter Anvin 
+  * preproc.c: move smacro define/undef to separate functions
+Thu Oct 11 13:38:38 2007 -0700 H. Peter Anvin 
+  * preproc.c: PP_DEFINE and PP_XDEFINE are case-sensitive
+Thu Oct 11 12:52:03 2007 -0700 H. Peter Anvin 
+  * preproc.c: normalize the handling of case sensitivity
+Thu Oct 11 12:51:06 2007 -0700 H. Peter Anvin 
+  * Define macros necessary for <inttypes.h> on C++
+Thu Oct 11 10:12:58 2007 -0700 H. Peter Anvin 
+  * More "bool" fixes
+Thu Oct 11 10:11:57 2007 -0700 H. Peter Anvin 
+  * preproc.c: allow 64-bit repeat counts
+Thu Oct 11 10:06:19 2007 -0700 H. Peter Anvin 
+  * preproc.c: For an SMacro, in_progress really is a boolean (no %rep)
+Thu Oct 11 00:05:57 2007 -0700 H. Peter Anvin 
+  * Additional uses of bool and enum
+Thu Oct 11 00:05:57 2007 -0700 H. Peter Anvin 
+  * preproc.c: MMacro.in_progress is not a boolean
+Wed Oct 10 18:07:51 2007 -0700 H. Peter Anvin 
+  * saa_fread/fwrite: when seeking, must set [rw]ptr as well
+Wed Oct 10 14:58:45 2007 -0700 H. Peter Anvin 
+  * Use the compiler-provided booleans if available, otherwise emulate
+Wed Oct 10 14:55:14 2007 -0700 H. Peter Anvin 
+  * owlinux.mak: don't clean things we won't be able to
+Wed Oct 10 14:29:53 2007 -0700 H. Peter Anvin 
+  * configure.in: looks like we need autoconf 2.61 :(
+Wed Oct 10 14:06:59 2007 -0700 H. Peter Anvin 
+  * Create option -Ox to tell NASM to do unlimited passes
+Mon Oct 8 19:26:57 2007 -0700 H. Peter Anvin 
+  * Revert "floatb.asm: fix broken testcase"
+Mon Oct 8 18:39:24 2007 -0700 H. Peter Anvin 
+  * floatb.asm: fix broken testcase
+Mon Oct 8 12:41:00 2007 -0700 H. Peter Anvin 
+  * saa_rstruct: fix overrun check
+Mon Oct 8 12:12:23 2007 -0700 H. Peter Anvin 
+  * Add Frank's floattest.asm test file
+Sun Oct 7 21:13:14 2007 -0700 H. Peter Anvin 
+  * saa_fpwrite: initializing "len" should be part of the loop
+Sun Oct 7 18:46:57 2007 -0700 Charles Crayne 
+  * Fix infinite loop in function saa_fpwrite
+Fri Oct 5 17:44:16 2007 -0700 H. Peter Anvin 
+  * zerobyte.asm: use a real instruction to avoid confusing ndisasm
+Fri Oct 5 17:42:31 2007 -0700 H. Peter Anvin 
+  * zerobyte.asm: add test cases for non-initial \170 uses
+Fri Oct 5 17:29:01 2007 -0700 H. Peter Anvin 
+  * Check in the proper zerobyte test
+Fri Oct 5 17:04:32 2007 -0700 H. Peter Anvin 
+  * Emit REX prefix before literal zero (\170)
+Fri Oct 5 17:01:15 2007 -0700 H. Peter Anvin 
+  * LICENSE: Break long line
+Fri Oct 5 14:36:03 2007 -0700 H. Peter Anvin 
+  * Add test for problematic floats
+Thu Oct 4 23:51:08 2007 -0700 H. Peter Anvin 
+  * floatx.asm: add Inf and NaN to the boundary condition tests
+Thu Oct 4 23:09:19 2007 -0700 H. Peter Anvin 
+  * floatx.asm: add specific tests for exponent boundary conditions
+Thu Oct 4 22:51:08 2007 -0700 H. Peter Anvin 
+  * float.c: correct the exponent
+Thu Oct 4 15:18:23 2007 -0700 H. Peter Anvin 
+  * Additional rules in test/Makefile
+Thu Oct 4 13:42:56 2007 -0700 H. Peter Anvin 
+  * Rewrite the handling of SAA's to allow random access
+Wed Oct 3 21:30:57 2007 -0700 H. Peter Anvin 
+  * Change cloc_t to struct location, and reorder the members
+Wed Oct 3 21:24:51 2007 -0700 H. Peter Anvin 
+  * BR 1352920: change loc_t -> cloc_t
+Wed Oct 3 21:22:16 2007 -0700 H. Peter Anvin 
+  * BR 1352920: Handle upper case %line
+Wed Oct 3 17:40:12 2007 -0700 H. Peter Anvin 
+  * Use autoconf to request feature macros
+Tue Oct 2 22:04:15 2007 -0700 H. Peter Anvin 
+  * preproc.c: constipation
+Tue Oct 2 21:57:27 2007 -0700 H. Peter Anvin 
+  * make alldeps
+Tue Oct 2 21:53:51 2007 -0700 H. Peter Anvin 
+  * Portability fixes
+Tue Oct 2 21:13:18 2007 -0700 H. Peter Anvin 
+  * Run "make alldeps".
+Tue Oct 2 17:40:00 2007 -0700 H. Peter Anvin 
+  * Use the crc64 we already use as the perfect hash function prehash
+Tue Oct 2 15:09:33 2007 -0700 H. Peter Anvin 
+  * insns.dat: add systematic names for the hinting NOPs (0F18-0F1F)
+Mon Oct 1 11:28:32 2007 -0700 H. Peter Anvin 
+  * Unspecified files are null strings, not null pointers
+Mon Oct 1 11:26:31 2007 -0700 H. Peter Anvin 
+  * Check for the most basic filename overlaps
+Sun Sep 30 22:15:36 2007 -0700 Charles Crayne 
+  * modified:   nasm.1 to add newer command line options
+Fri Sep 28 21:27:41 2007 -0700 Charles Crayne 
+  * Merge branch 'master' of git+ssh://ccrayne@repo.or.cz/srv/git/nasm
+Fri Sep 28 20:17:12 2007 -0700 H. Peter Anvin 
+  * configure.in: AC_SUBST_FILE should have been AC_SUBST
+Fri Sep 28 17:17:20 2007 -0700 H. Peter Anvin 
+  * Unbreak relative references to immediate addresses
+Fri Sep 28 15:16:47 2007 -0700 Charles Crayne 
+  * Merge branch 'master' of git+ssh://ccrayne@repo.or.cz/srv/git/nasm
+Fri Sep 28 12:01:55 2007 -0700 H. Peter Anvin 
+  * lib/vsnprintf.c: correct boundary conditions
+Fri Sep 28 10:50:20 2007 -0700 H. Peter Anvin 
+  * Add substitutes for snprintf() and vsnprintf()
+Fri Sep 28 02:03:41 2007 -0400 Frank Kotler 
+  * Merge branch 'master' of git+ssh://fbkotler@repo.or.cz/srv/git/nasm
+Thu Sep 27 21:35:04 2007 -0700 H. Peter Anvin 
+  * Exclude config.h from the dependency list for the canned makefiles
+Thu Sep 27 21:12:17 2007 -0700 H. Peter Anvin 
+  * version.pl: Add support for daily snapshot releases
+Thu Sep 27 19:46:55 2007 -0700 H. Peter Anvin 
+  * Add Makefile for Linux -> DOS, Win32, OS/2 using OpenWatcom
+Wed Sep 26 19:57:07 2007 -0700 H. Peter Anvin 
+  * Add Makefile for OpenWatcom (DOS, OS/2 or Win32 output)
+Wed Sep 26 17:00:18 2007 -0700 H. Peter Anvin 
+  * Test for various addressing modes in 64-bit mode
+Wed Sep 26 15:19:28 2007 -0700 H. Peter Anvin 
+  * nasm option reshuffling, -E -> -Z
+Tue Sep 25 23:57:21 2007 -0400 Frank Kotler 
+  * Version 0.99.04
+Tue Sep 25 20:36:45 2007 -0700 H. Peter Anvin 
+  * nasmdoc: corrections on 64-bit immediates/displacements
+Tue Sep 25 16:02:21 2007 -0700 H. Peter Anvin 
+  * nasmdoc: shorten lines which are too long
+Tue Sep 25 16:01:07 2007 -0700 H. Peter Anvin 
+  * Document NASM behaviour for 64-bit immediates and displacements
+Tue Sep 25 15:44:40 2007 -0700 H. Peter Anvin 
+  * test/movimm.asm: add optimizable forms
+Tue Sep 25 15:41:19 2007 -0700 H. Peter Anvin 
+  * assemble.c: clean up whitespace
+Tue Sep 25 15:40:36 2007 -0700 H. Peter Anvin 
+  * Correct the handling of "MOV" with immediate in 64-bit mode
+Tue Sep 25 15:39:42 2007 -0700 H. Peter Anvin 
+  * Test of immediate handling on 64-bit mode
+Tue Sep 25 14:27:34 2007 -0700 H. Peter Anvin 
+  * Add nasm_zalloc() to nasmlib.c
+Tue Sep 25 14:26:03 2007 -0700 H. Peter Anvin 
+  * Fix BR 1490407: size of the second operand of LAR/LSL
+Tue Sep 25 14:11:29 2007 -0700 H. Peter Anvin 
+  * Fix BR 1490407: size of the second operand of LAR/LSL
+Tue Sep 25 13:34:55 2007 -0700 H. Peter Anvin 
+  * Makefile.in: make "make install" create directories
+Tue Sep 25 08:48:37 2007 -0700 H. Peter Anvin 
+  * Fix BR 1445441: uninitialized use of "error_file"
+Mon Sep 24 21:33:17 2007 -0700 H. Peter Anvin 
+  * preproc.c: fix the loop in %undef
+Mon Sep 24 20:53:48 2007 -0700 H. Peter Anvin 
+  * float.c: clear off uninitialized warning
+Mon Sep 24 17:02:41 2007 -0700 H. Peter Anvin 
+  * outcoff: set the "virtual size field" to zero (BR 1351586)
+Mon Sep 24 15:56:02 2007 -0700 H. Peter Anvin 
+  * insns.dat: SMINT - mark ND, DMINT - fix opcode
+Mon Sep 24 15:55:20 2007 -0700 H. Peter Anvin 
+  * 0F0F is a 3Dnow! prefix; remove from prefix list
+Mon Sep 24 15:48:09 2007 -0700 H. Peter Anvin 
+  * Additional compaction missed by script
+Mon Sep 24 15:42:53 2007 -0700 H. Peter Anvin 
+  * insns.dat: machine-generated compaction mmx/xmmreg,mem -> mmx/xmmrm
+Mon Sep 24 13:54:00 2007 -0700 H. Peter Anvin 
+  * nasmdoc: grammar fix
+Mon Sep 24 13:44:02 2007 -0700 H. Peter Anvin 
+  * nasmdoc: remove stray periods
+Mon Sep 24 13:42:09 2007 -0700 H. Peter Anvin 
+  * test/Makefile: make a bit more useful
+Mon Sep 24 13:41:58 2007 -0700 H. Peter Anvin 
+  * Implement the -MG option (SF RFE 1564264)
+Mon Sep 24 12:52:09 2007 -0700 H. Peter Anvin 
+  * nasmdoc: clarify __float*__ example
+Mon Sep 24 12:44:38 2007 -0700 H. Peter Anvin 
+  * nasmdoc: document the __float*__ operators
+Mon Sep 24 12:30:54 2007 -0700 H. Peter Anvin 
+  * Support __float*__ for floating-point numbers in expressions
+Mon Sep 24 10:51:07 2007 -0700 H. Peter Anvin 
+  * eval.c: replace sequence of ifs with switch
+Mon Sep 24 10:50:23 2007 -0700 H. Peter Anvin 
+  * tokhash: allow a bit smarter pattern matching
+Sat Sep 22 22:35:28 2007 -0700 H. Peter Anvin 
+  * Implement INVLPGA according to the documentation
+Sat Sep 22 22:02:34 2007 -0700 H. Peter Anvin 
+  * Reformat insns.dat to uniform column width
+Sat Sep 22 21:50:03 2007 -0700 H. Peter Anvin 
+  * Simple test for 0x67 prefixes
+Sat Sep 22 21:49:51 2007 -0700 H. Peter Anvin 
+  * Auto-generate 0x67 prefixes without the need for \30x codes
+Sat Sep 22 21:47:13 2007 -0700 H. Peter Anvin 
+  * Make test/Makefile a bit more useful
+Sat Sep 22 21:29:41 2007 -0700 H. Peter Anvin 
+  * Add TY_OWORD for "DO" output
+Sat Sep 22 19:52:11 2007 -0700 H. Peter Anvin 
+  * LDDQU needs \301 (BR 1103549)
+Sat Sep 22 19:51:13 2007 -0700 H. Peter Anvin 
+  * RDTSCP and INVLPGA aren't 64-bit specific
+Sat Sep 22 19:40:37 2007 -0700 H. Peter Anvin 
+  * Cyrix GX1 instructions: BBx_RESET, CPU_READ, CPU_WRITE
+Sat Sep 22 19:28:14 2007 -0700 H. Peter Anvin 
+  * Centaur XSHA1, XSHA256, MONTMUL
+Sat Sep 22 19:20:56 2007 -0700 H. Peter Anvin 
+  * Implement Centaur's XCRYPT instructions
+Sat Sep 22 19:13:05 2007 -0700 H. Peter Anvin 
+  * Add Geode LX (AMD's Cyrix-derived core) instructions
+Sat Sep 22 19:05:11 2007 -0700 H. Peter Anvin 
+  * Add the GETSEC instruction for Intel SMX
+Sat Sep 22 18:59:18 2007 -0700 H. Peter Anvin 
+  * Add the AMD SSE4a and LZCNT instructions
+Sat Sep 22 18:23:20 2007 -0700 H. Peter Anvin 
+  * Tag UMOV as ND (no disassembly) to avoid collision
+Sat Sep 22 18:20:49 2007 -0700 H. Peter Anvin 
+  * Disallow optimizing by less than 5 passes.
+Sat Sep 22 17:45:45 2007 -0700 H. Peter Anvin 
+  * BR 1783117: Document that %+ needs a space after it, and fix crash
+Sat Sep 22 16:44:56 2007 -0700 H. Peter Anvin 
+  * nasm.spec.in: minor fixes
+Sat Sep 22 16:38:25 2007 -0700 H. Peter Anvin 
+  * release script: handle stricter CLI parsing for "git tag"
+Sat Sep 22 16:35:11 2007 -0700 H. Peter Anvin 
+  * Update nasm.spec.in and make it handle rc releases
+Sat Sep 22 16:19:19 2007 -0700 H. Peter Anvin 
+  * version.pl: support version numbers of the form X.Y[.Z]rcW
+Thu Sep 20 21:33:43 2007 -0700 Charles Crayne 
+  * Merge branch 'master' of git+ssh://ccrayne@repo.or.cz/srv/git/nasm
+Thu Sep 20 21:12:33 2007 -0700 Charles Crayne 
+  * 	modified:   misc/release to fix bug in removing .git
+Wed Sep 19 21:41:43 2007 -0700 H. Peter Anvin 
+  * Merge branch 'master' of git+ssh://repo.or.cz/srv/git/nasm
+Wed Sep 19 21:41:27 2007 -0700 H. Peter Anvin 
+  * Update manual pages
+Wed Sep 19 21:41:02 2007 -0700 H. Peter Anvin 
+  * Remove limit on number of sync points
+Wed Sep 19 21:40:37 2007 -0700 H. Peter Anvin 
+  * Make nasm_malloc() et al available from inside ndisasm
+Wed Sep 19 21:07:32 2007 -0400 Frank Kotler 
+  * Version 0.99.03
+Wed Sep 19 21:06:59 2007 -0400 Frank Kotler 
+  * Merge branch 'master' of git+ssh://fbkotler@repo.or.cz/srv/git/nasm
+Wed Sep 19 16:22:03 2007 -0700 H. Peter Anvin 
+  * Merge commit 'origin/sse5'
+Wed Sep 19 16:15:22 2007 -0700 H. Peter Anvin 
+  * test/Makefile: make a bit more useful
+Tue Sep 18 22:54:40 2007 -0700 H. Peter Anvin 
+  * Slightly optimize the interface to nasm_token_hash()
+Wed Sep 19 01:34:55 2007 -0400 Frank Kotler 
+  * Merge branch 'master' of git+ssh://fbkotler@repo.or.cz/srv/git/nasm
+Tue Sep 18 22:23:42 2007 -0700 H. Peter Anvin 
+  * Merge commit 'origin/master' into sse5
+Tue Sep 18 22:22:49 2007 -0700 H. Peter Anvin 
+  * elf64: fix 32-bit truncations
+Tue Sep 18 22:08:04 2007 -0700 H. Peter Anvin 
+  * Document Infinity and NaN
+Tue Sep 18 21:55:56 2007 -0700 H. Peter Anvin 
+  * Support generating NaNs and infinities
+Tue Sep 18 19:12:26 2007 -0700 H. Peter Anvin 
+  * Update documentation
+Tue Sep 18 18:37:36 2007 -0700 H. Peter Anvin 
+  * Simple test for hexadecimal floating-point numbers
+Tue Sep 18 18:33:17 2007 -0700 H. Peter Anvin 
+  * Fix error-reporting in hexadecimal floating-point numbers
+Tue Sep 18 18:31:26 2007 -0700 H. Peter Anvin 
+  * Support C99-style hexadecimal floating point.
+Tue Sep 18 17:50:34 2007 -0700 H. Peter Anvin 
+  * Unify all standard IEEE floating-point formats; add 128-bit
+Tue Sep 18 17:49:09 2007 -0700 H. Peter Anvin 
+  * Fix handling of DO; support unary + for floating-point numbers
+Tue Sep 18 16:39:03 2007 -0700 H. Peter Anvin 
+  * Support 16-bit IEEE floating point; used in SSE5
+Tue Sep 18 15:43:40 2007 -0700 H. Peter Anvin 
+  * Merge commit 'origin/master' into sse5
+Tue Sep 18 15:43:08 2007 -0700 H. Peter Anvin 
+  * Add NOP with argument to the instruction list
+Tue Sep 18 15:24:38 2007 -0700 H. Peter Anvin 
+  * Remove 0FC2 from list of instruction prefixes
+Tue Sep 18 15:08:20 2007 -0700 H. Peter Anvin 
+  * Speed up the disassembler by allowing prefixed instruction tables
+Tue Sep 18 13:45:12 2007 -0700 H. Peter Anvin 
+  * Document oword, do and reso
+Tue Sep 18 13:01:32 2007 -0700 H. Peter Anvin 
+  * Implement "oword" (128 bits) as a first-class size
+Tue Sep 18 12:38:07 2007 -0700 H. Peter Anvin 
+  * Change the token prehash function for better convergence
+Tue Sep 18 12:23:21 2007 -0700 H. Peter Anvin 
+  * SSE5 instruction table
+Tue Sep 18 02:06:09 2007 -0400 Frank Kotler 
+  * add "const" to output/outdbg.c
+Mon Sep 17 18:45:44 2007 -0700 H. Peter Anvin 
+  * Disassembler support for SSE5 instructions
+Mon Sep 17 17:27:46 2007 -0700 H. Peter Anvin 
+  * insns.dat: All SSE5 instructions are AMD
+Mon Sep 17 17:25:27 2007 -0700 H. Peter Anvin 
+  * Actually generate SSE5 instructions
+Mon Sep 17 16:55:04 2007 -0700 H. Peter Anvin 
+  * Initial support for generating DREX suffixes
+Mon Sep 17 16:31:33 2007 -0700 H. Peter Anvin 
+  * Fix a few instances of missing renumbers
+Mon Sep 17 16:20:45 2007 -0700 H. Peter Anvin 
+  * Enable IF_AR3
+Mon Sep 17 15:49:53 2007 -0700 H. Peter Anvin 
+  * Merge commit 'origin/master' into sse5
+Mon Sep 17 15:49:30 2007 -0700 H. Peter Anvin 
+  * Initial support for four arguments per instruction
+Mon Sep 17 15:48:32 2007 -0700 H. Peter Anvin 
+  * CLFLUSH: Neither an x64 instruction nor AMD
+Mon Sep 17 13:56:26 2007 -0700 H. Peter Anvin 
+  * Sort dependency lists
+Mon Sep 17 13:53:14 2007 -0700 H. Peter Anvin 
+  * Cleaner way to handle MSVC's _snprintf() underscore damage
+Mon Sep 17 13:19:25 2007 -0700 H. Peter Anvin 
+  * test/r13.asm: test special-casing of rbp and r13 in 64-bit mode
+Mon Sep 17 13:03:33 2007 -0700 H. Peter Anvin 
+  * Additional documentation for 64-bit programming
+Sun Sep 16 22:27:07 2007 -0700 H. Peter Anvin 
+  * INSTALL: MSVC++ compilation instructions
+Sun Sep 16 22:17:29 2007 -0700 H. Peter Anvin 
+  * make alldeps: change Mkfiles/Makefile.* to Mkfiles/*.mak
+Sun Sep 16 22:16:24 2007 -0700 H. Peter Anvin 
+  * Fix Makefile for MSVC++ 2005, delete obsolete Makefiles
+Sun Sep 16 22:15:34 2007 -0700 H. Peter Anvin 
+  * Minor fixes needed to compile with MSVC++ 2005
+Sun Sep 16 18:35:02 2007 -0700 H. Peter Anvin 
+  * Run "make alldeps"
+Sun Sep 16 18:04:57 2007 -0700 H. Peter Anvin 
+  * Switch the preprocessor over to using the hash table library
+Sun Sep 16 17:53:17 2007 -0700 H. Peter Anvin 
+  * Fix the handling of local labels
+Fri Sep 14 18:36:01 2007 -0700 H. Peter Anvin 
+  * preproc.c: remove unnecessary int64_t
+Fri Sep 14 18:03:29 2007 -0700 H. Peter Anvin 
+  * Use the new hash table function library to store labels
+Fri Sep 14 09:24:38 2007 -0700 H. Peter Anvin 
+  * Define a proper hash table library
+Thu Sep 13 18:13:20 2007 -0700 H. Peter Anvin 
+  * Simple performance benchmarks: label, macro and token lookups
+Thu Sep 13 12:25:32 2007 -0700 H. Peter Anvin 
+  * release script: fix final cleanup
+Thu Sep 13 12:22:00 2007 -0700 H. Peter Anvin 
+  * Modify release script for a git-centric world
+Thu Sep 13 11:06:42 2007 -0700 H. Peter Anvin 
+  * pptok.c: don't insist on C99 compiler behaviour
+Wed Sep 12 22:02:06 2007 -0700 H. Peter Anvin 
+  * Fix literal F2 and F3 prefixes
+Wed Sep 12 21:58:51 2007 -0700 H. Peter Anvin 
+  * Add (untested!) SSSE3, SSE4.1, SSE4.2 instructions
+Wed Sep 12 21:06:36 2007 -0700 H. Peter Anvin 
+  * Add support for Tejas New Instructions (SSSE3)
+Wed Sep 12 21:05:06 2007 -0700 H. Peter Anvin 
+  * Remove $Id$ tags (useless with git)
+Wed Sep 12 21:04:58 2007 -0700 H. Peter Anvin 
+  * Use rm32 operands for VMREAD/VMWRITE
+Wed Sep 12 21:04:51 2007 -0700 H. Peter Anvin 
+  * Macros for SSSE3/SSE4 instruction sets
+Wed Sep 12 21:04:39 2007 -0700 H. Peter Anvin 
+  * Support r/m operands for non-integer types
+Wed Sep 12 20:27:41 2007 -0700 H. Peter Anvin 
+  * Use enumerations where practical to ease debugging
+Wed Sep 12 17:02:55 2007 +0000 H. Peter Anvin 
+  * pptok.c: quick-and-dirty downcasing during prehashing
+Wed Sep 12 16:55:57 2007 +0000 H. Peter Anvin 
+  * phash: Tell the user when the graph is OK
+Wed Sep 12 05:18:20 2007 +0000 H. Peter Anvin 
+  * pptok.c: handle holes in the pp_directives array
+Wed Sep 12 04:20:08 2007 +0000 H. Peter Anvin 
+  * preproc.c: adjust whitespace
+Wed Sep 12 04:18:37 2007 +0000 H. Peter Anvin 
+  * More automation in the preprocessor conditionals handling
+Wed Sep 12 02:13:39 2007 +0000 H. Peter Anvin 
+  * pptok.c: fix spacing
+Wed Sep 12 02:12:07 2007 +0000 H. Peter Anvin 
+  * Generate automatically correct tests for %if and %elif
+Wed Sep 12 01:34:19 2007 +0000 H. Peter Anvin 
+  * Run "make alldeps"; add dependencies missing from the previous checkin
+Wed Sep 12 01:29:43 2007 +0000 H. Peter Anvin 
+  * Use a perfect hash to look up preprocessor directives
+Wed Sep 12 01:27:53 2007 +0000 H. Peter Anvin 
+  * phash: Be a bit more aggressive about trying to make a small hash
+Wed Sep 12 00:22:29 2007 +0000 H. Peter Anvin 
+  * Add RCXZ as a known preprocessor condition
+Tue Sep 11 23:57:23 2007 +0000 H. Peter Anvin 
+  * doc: add some cross-references
+Tue Sep 11 23:52:01 2007 +0000 H. Peter Anvin 
+  * Feeble attempt at updating the documentation; remove Appendix B
+Tue Sep 11 22:44:03 2007 +0000 H. Peter Anvin 
+  * Handle instructions which can have both REX.W and OSP
+Tue Sep 11 22:14:18 2007 +0000 H. Peter Anvin 
+  * Use enums to make debugging easier
+Tue Sep 11 22:13:17 2007 +0000 H. Peter Anvin 
+  * ndisasm: handle \366 codes, prefer unprefixed instructions
+Tue Sep 11 22:00:34 2007 +0000 H. Peter Anvin 
+  * Simplify tokens.dat slightly
+Tue Sep 11 04:26:44 2007 +0000 H. Peter Anvin 
+  * Quiet gcc warning about uninitialized variables
+Tue Sep 11 04:16:57 2007 +0000 H. Peter Anvin 
+  * Make the big instruction arrays "const"
+Mon Sep 10 23:32:05 2007 +0000 H. Peter Anvin 
+  * Use an actual enum for the opcode
+Mon Sep 10 23:30:21 2007 +0000 H. Peter Anvin 
+  * Fix order of token arguments
+Mon Sep 10 18:59:26 2007 +0000 H. Peter Anvin 
+  * assemble.c: correct special handing of ESP/RSP
+Mon Sep 10 18:59:01 2007 +0000 H. Peter Anvin 
+  * tokhash: correct duplicate-token test
+Mon Sep 10 18:58:40 2007 +0000 H. Peter Anvin 
+  * tokhash: adjust table types to reduce size
+Mon Sep 10 18:55:52 2007 +0000 H. Peter Anvin 
+  * Fix the MMXREG and XMMREG flags definitions.
+Wed Sep 5 06:48:38 2007 +0000 H. Peter Anvin 
+  * nasm.spec.in: Copyright -> License
+Wed Sep 5 06:40:51 2007 +0000 H. Peter Anvin 
+  * Fix "make tar"; useful for RPM testing
+Wed Sep 5 06:24:43 2007 +0000 H. Peter Anvin 
+  * Remove obsolete Serial: construct; we shouldn't need it anyway.
+Tue Sep 4 01:29:43 2007 +0000 Chuck Crayne 
+  * Provide 64-bit support for ORG directive
+Sun Sep 2 16:37:03 2007 +0000 H. Peter Anvin 
+  * Fix some MMX/SSE irregularities which interact with the 64-bit support
+Sun Sep 2 14:46:00 2007 +0000 H. Peter Anvin 
+  * phash.ph: yet another attempt at getting Perl to behave, arithmetically
+Sun Sep 2 06:23:29 2007 +0000 H. Peter Anvin 
+  * Simple 64-bit org test
+Sun Sep 2 06:20:15 2007 +0000 H. Peter Anvin 
+  * phash.ph: remove some stale code
+Sun Sep 2 01:00:34 2007 +0000 Chuck Crayne 
+  * Force use of integer values for generating hash keys.
+Fri Aug 31 18:10:23 2007 +0000 H. Peter Anvin 
+  * phash: don't rely on the build platform Perl version of rand()
+Fri Aug 31 07:31:51 2007 +0000 H. Peter Anvin 
+  * tokhash.pl: formatting changes for readability
+Fri Aug 31 07:23:31 2007 +0000 H. Peter Anvin 
+  * tokhash: Speed up the rejection of unhashed values
+Fri Aug 31 06:06:17 2007 +0000 H. Peter Anvin 
+  * tokhash.pl: "ix" should have the same width as the "hash" arrays
+Fri Aug 31 00:28:35 2007 +0000 H. Peter Anvin 
+  * Add "do not edit" comment to tokhash.c
+Fri Aug 31 00:23:40 2007 +0000 H. Peter Anvin 
+  * Make the token hash a bit smaller by using 16-bit hash tables
+Fri Aug 31 00:16:10 2007 +0000 H. Peter Anvin 
+  * Minor cleanup; remove duplication of names.c
+Thu Aug 30 23:42:39 2007 +0000 H. Peter Anvin 
+  * phash.ph: use a bipartite graph to reduce the storage requirements
+Thu Aug 30 22:35:34 2007 +0000 H. Peter Anvin 
+  * Finishing touches on perfect hash tokenizer; actually turn the thing on
+Thu Aug 30 21:50:20 2007 +0000 H. Peter Anvin 
+  * Makefile rule for tokhash.c
+Thu Aug 30 21:47:46 2007 +0000 H. Peter Anvin 
+  * tokens.dat: Data file containing alphanumeric tokens not in other .dats
+Thu Aug 30 21:45:56 2007 +0000 H. Peter Anvin 
+  * Generate a perfect hash for the token parser
+Thu Aug 30 21:40:08 2007 +0000 H. Peter Anvin 
+  * Fix bugs in repeated suffix handling, which led to missing r8d/r8w/r8d
+Thu Aug 30 21:39:37 2007 +0000 H. Peter Anvin 
+  * phash.ph: more powerful prehashing
+Thu Aug 30 20:15:25 2007 +0000 H. Peter Anvin 
+  * Make the perfect hash generator an includable module
+Wed Aug 29 20:30:31 2007 +0000 H. Peter Anvin 
+  * Correct the logic for recording fs: and gs: overrides.
+Wed Aug 29 18:20:19 2007 +0000 H. Peter Anvin 
+  * Generate R_X86_64_64 relocations in elf64 output
+Wed Aug 29 17:24:03 2007 +0000 H. Peter Anvin 
+  * Add README file
+Wed Aug 29 17:20:09 2007 +0000 H. Peter Anvin 
+  * Create a Perl library directory, and add the Graph module to it
+Wed Aug 29 17:05:17 2007 +0000 H. Peter Anvin 
+  * Perfect hash generator, as a perl script
+Wed Aug 29 16:41:43 2007 +0000 H. Peter Anvin 
+  * Use standard macro for the default directive
+Wed Aug 29 16:40:26 2007 +0000 H. Peter Anvin 
+  * Add standard macro for [default] directive
+Wed Aug 29 16:38:47 2007 +0000 H. Peter Anvin 
+  * More test cases for rel and abs addressing
+Wed Aug 29 16:38:05 2007 +0000 H. Peter Anvin 
+  * Add [default] directive
+Wed Aug 29 16:25:46 2007 +0000 H. Peter Anvin 
+  * nasmlib: add bsii() case-insensitive version of bsi()
+Wed Aug 29 15:49:53 2007 +0000 H. Peter Anvin 
+  * Add test cases for IP-relative addressing
+Wed Aug 29 15:19:19 2007 +0000 H. Peter Anvin 
+  * Suppress IP-relative only for fs: and gs: overrides
+Tue Aug 28 23:06:00 2007 +0000 H. Peter Anvin 
+  * Implement REL/ABS modifiers
+Sun Aug 26 05:51:39 2007 +0000 Frank Kotler 
+  * attempt to make static makefiles aware of outelf32/outelf64
+Sun Aug 26 05:48:54 2007 +0000 Frank Kotler 
+  * add nasm_strsep to nasmlib, for output/outmacho.c - strtok doesn't work
+Sun Aug 26 05:41:33 2007 +0000 Frank Kotler 
+  * remove "#include <unistd.h> from rdoff directory - two places - it annoyed Windows users and seems unneeded
+Sun Aug 26 05:10:24 2007 +0000 Frank Kotler 
+  * finally commit Mike Frysinger's "elf-visibility" patch
+Mon Aug 20 21:03:14 2007 +0000 H. Peter Anvin 
+  * regs.pl: handle dashed sequences with suffixes
+Mon Aug 20 20:10:04 2007 +0000 H. Peter Anvin 
+  * sync.c: change ULONG_MAX to UINT32_MAX
+Mon Aug 20 20:09:11 2007 +0000 H. Peter Anvin 
+  * Add _MIN and _MAX macros for the fixed-size types.
+Mon Aug 20 20:02:17 2007 +0000 H. Peter Anvin 
+  * ldrdf: cast output of sizeof() before passing to printf(), to avoid warning.
+Sun Aug 19 18:49:26 2007 +0000 Keith Kanios 
+  * Fixed RIP address processing ambiguity found by Charles Crayne.
+Fri Aug 17 07:37:52 2007 +0000 Keith Kanios 
+  * Fixed issues with REX prefix effective address generation. Fixed XMM instruction output.
+Fri Aug 17 02:03:10 2007 +0000 Keith Kanios 
+  * Changed MMXREG and XMMREG flags to help resolve invalid REX prefix generation for MMX instructions.
+Sat Jul 7 02:01:08 2007 +0000 H. Peter Anvin 
+  * More int/int32_t confusion
+Sat Jul 7 01:59:52 2007 +0000 H. Peter Anvin 
+  * regflag() should return int32_t.
+Thu Jun 21 19:00:12 2007 +0000 H. Peter Anvin 
+  * Detect missing <inttypes.h> and include ersatz version if missing
+Thu Jun 21 06:24:23 2007 +0000 H. Peter Anvin 
+  * inttypes.h: for older preprocessors, specify L and LL as appropriate
+Thu Jun 21 06:20:43 2007 +0000 H. Peter Anvin 
+  * inttypes.h: Fix spelling of SHRT_MAX
+Thu Jun 21 06:15:42 2007 +0000 H. Peter Anvin 
+  * inttypes.h: do a single ersatz <inttypes.h> based on <limits.h>
+Sun Jun 3 02:42:41 2007 +0000 Chuck Crayne 
+  * Support 32-bit direct addressing in 64-bit mode without base or index regs
+Sat Jun 2 02:26:21 2007 +0000 H. Peter Anvin 
+  * Fix the [U]INT*_C() creation macros
+Sat Jun 2 00:05:35 2007 +0000 H. Peter Anvin 
+  * For platforms that don't have them, provide <inttypes.h> for common models.
+Wed May 30 22:21:11 2007 +0000 H. Peter Anvin 
+  * Fix the handling of the \313 code.
+Wed May 30 22:20:01 2007 +0000 H. Peter Anvin 
+  * Machine-generated \321->\324 corrections
+Wed May 30 21:22:33 2007 +0000 Frank Kotler 
+  * update "version" to 0.99.02
+Wed May 30 20:30:15 2007 +0000 H. Peter Anvin 
+  * Correct the generation of 67 prefixes.
+Wed May 30 18:30:18 2007 +0000 H. Peter Anvin 
+  * Update dependencies.
+Wed May 30 16:34:29 2007 +0000 Frank Kotler 
+  * update cvs server name in misc/release script
+Wed May 30 04:28:50 2007 +0000 H. Peter Anvin 
+  * Avoid magic values; we have more than 124 registers now
+Wed May 30 04:27:58 2007 +0000 H. Peter Anvin 
+  * Remove bogus redundant tests
+Wed May 30 03:44:50 2007 +0000 H. Peter Anvin 
+  * More \321 -> \324
+Wed May 30 03:44:02 2007 +0000 H. Peter Anvin 
+  * Remove bogus check for 64-bitness
+Wed May 30 03:25:21 2007 +0000 H. Peter Anvin 
+  * Get rid of magic open-coded "register numbers"
+Wed May 30 02:48:51 2007 +0000 H. Peter Anvin 
+  * MOV reg64,reg64 takes \324 (64 bit with REX) not \321 (32 bit)
+Wed May 30 00:18:26 2007 +0000 H. Peter Anvin 
+  * Rename REGNORM to REG_EA
+Wed May 30 00:15:25 2007 +0000 H. Peter Anvin 
+  * More instruction flag surgery
+Wed May 30 00:05:00 2007 +0000 H. Peter Anvin 
+  * More cleanup of operand flags/register classes
+Tue May 29 23:57:12 2007 +0000 H. Peter Anvin 
+  * Clean up the existing operand flag definitions, and document
+Tue May 29 21:44:55 2007 +0000 H. Peter Anvin 
+  * Run "make alldeps"
+Thu May 24 22:33:07 2007 +0000 Frank Kotler 
+  * update version number to 0.99.01
+Tue May 15 04:33:43 2007 +0000 H. Peter Anvin 
+  * regs.dat: fix comment
+Fri May 4 18:47:16 2007 +0000 H. Peter Anvin 
+  * 16-bit relocations are standard in ELF64 (at my request, incidentally)
+Fri May 4 02:16:08 2007 +0000 Chuck Crayne 
+  * Addition of elf32 and elf64 output formats.
+Wed May 2 04:21:26 2007 +0000 Chuck Crayne 
+  * Allow '!' to be used in expressions with same meaning as in C.
+Wed May 2 01:59:16 2007 +0000 Chuck Crayne 
+  * Add %IFN and %ELIFN as per RFE #786286
+Mon Apr 30 22:26:58 2007 +0000 Chuck Crayne 
+  * Accept responsibility for support of outelf64.c
+Sun Apr 29 20:57:53 2007 +0000 Chuck Crayne 
+  * Clarify comments about relocation entries.
+Sun Apr 29 00:28:24 2007 +0000 Chuck Crayne 
+  * Allow ELF32 to be invoked either as -f elf or -f elf32
+Sat Apr 28 22:18:04 2007 +0000 Chuck Crayne 
+  * Eliminate shift count warnings when building on 32-bit systems
+Sat Apr 28 06:18:48 2007 +0000 Chuck Crayne 
+  * Initial support for ELF64
+Wed Apr 18 02:27:18 2007 +0000 H. Peter Anvin 
+  * Fix the handling of \324 for computing the length
+Wed Apr 18 02:24:34 2007 +0000 Keith Kanios 
+  * Fixed RDF/2 to comply with "maxbits" use.
+Tue Apr 17 20:23:11 2007 +0000 H. Peter Anvin 
+  * Handle "LOCK as REX.R" for MOV CRx; fix warning for invalid 64-bit regs
+Mon Apr 16 18:16:46 2007 +0000 Keith Kanios 
+  * MEM_OFFSET Instructions Fixed.
+Mon Apr 16 15:46:46 2007 +0000 Keith Kanios 
+  * Fixed 64-bit Mode Segment Selection.
+Mon Apr 16 14:31:54 2007 +0000 Keith Kanios 
+  * Fixed distinction between [LOCAL]SYMBOL/IMMEDIATE for RIP-relative addressing.
+Mon Apr 16 14:05:01 2007 +0000 Keith Kanios 
+  * Fixed long mode MEM_OFFS issue.
+Mon Apr 16 13:54:49 2007 +0000 Keith Kanios 
+  * Filled in all RIP Register Flags.
+Mon Apr 16 05:26:29 2007 +0000 H. Peter Anvin 
+  * More \321 -> \324 for 64-bit instructions
+Mon Apr 16 04:56:06 2007 +0000 Keith Kanios 
+  * Fixed 64-bit offset generation.
+Mon Apr 16 02:39:56 2007 +0000 H. Peter Anvin 
+  * More 64-bit ndisasm fixes.
+Mon Apr 16 02:02:06 2007 +0000 H. Peter Anvin 
+  * Fixes for 64-bit ndisasm.
+Mon Apr 16 01:21:29 2007 +0000 H. Peter Anvin 
+  * Use + instead of * for extension; it feels cleaner with the new meaning.
+Mon Apr 16 01:18:30 2007 +0000 H. Peter Anvin 
+  * Initial 64-bit support for ndisasm.  Still a work in progress.
+Sun Apr 15 23:12:17 2007 +0000 H. Peter Anvin 
+  * Clean up the 64-bitification of regs.dat for 64-bit ndisasm support
+Sun Apr 15 23:10:26 2007 +0000 H. Peter Anvin 
+  * Remove @GCCFLAGS@
+Sun Apr 15 23:09:23 2007 +0000 H. Peter Anvin 
+  * CR8 is not special in any way as far as the assembler is concerned.
+Sun Apr 15 23:03:28 2007 +0000 H. Peter Anvin Sat Nov 24 16:31:48 2007 -0800 H. Peter Anvin 
+  * Typo fixes in documentation
+Tue Nov 20 23:37:46 2007 -0800 H. Peter Anvin 
+  * NASM 2.00rc3
+Tue Nov 20 21:45:16 2007 -0800 H. Peter Anvin 
+  * Unbreak CMPSW/CMPSD/CMPSQ
+Tue Nov 20 13:23:34 2007 -0800 H. Peter Anvin 
+  * Merge branch 'master' of git+ssh://repo.or.cz/srv/git/nasm
+Tue Nov 20 13:22:58 2007 -0800 H. Peter Anvin 
+  * ndisasm: handle the case of "no more sync points"
+Mon Nov 19 23:09:31 2007 -0800 H. Peter Anvin 
+  * NASM 2.00rc2
+Mon Nov 19 23:09:24 2007 -0800 H. Peter Anvin 
+  * tag-release: a simple script to tag the repository for release
+Mon Nov 19 13:14:59 2007 -0800 H. Peter Anvin 
+  * Slightly faster implementation of the deadman counter
+Mon Nov 19 12:26:50 2007 -0800 H. Peter Anvin 
+  * BR 812417: Deadman counter for macro expansion
+Mon Nov 19 12:02:38 2007 -0800 H. Peter Anvin 
+  * BR 877583: Fix RAA memory leak
+Mon Nov 19 11:53:18 2007 -0800 H. Peter Anvin 
+  * BR 863173: Fix offsets of TIMES/INCBIN in list file
+Mon Nov 19 11:45:40 2007 -0800 H. Peter Anvin 
+  * BR 1834731: Remove redundant error messages for no input file
+Mon Nov 19 11:44:05 2007 -0800 H. Peter Anvin 
+  * insns.pl: remove debugging output
+Sun Nov 18 22:18:09 2007 -0800 H. Peter Anvin 
+  * Clean up remaining build warnings
+Sun Nov 18 21:55:26 2007 -0800 H. Peter Anvin 
+  * BR 1834292: Fix multiple disassembler bugs
+Sun Nov 18 12:01:05 2007 -0800 H. Peter Anvin 
+  * BR 1834056: Remove warnings in rdoff/rdoff.c
+Sun Nov 18 11:55:10 2007 -0800 H. Peter Anvin 
+  * BR 1091926: Bounds checking for command line parsing
+Sat Nov 17 21:21:18 2007 -0800 H. Peter Anvin 
+  * Remove FIXME from documentation
+Sat Nov 17 21:08:33 2007 -0800 Charles Crayne 
+  * Check in Keith's Fixes
+Sat Nov 17 14:35:19 2007 -0800 H. Peter Anvin 
+  * Make the definition for float_const() match the prototype
+Fri Nov 16 00:03:02 2007 -0800 H. Peter Anvin 
+  * NASM 2.00rc1
+Thu Nov 15 17:12:29 2007 -0800 H. Peter Anvin 
+  * Clean up the command-line parsing; make -w/-W match others
+Thu Nov 15 14:38:19 2007 -0800 H. Peter Anvin 
+  * BR 993895: Support zero-operand floating-point insn
+Thu Nov 15 10:25:52 2007 -0800 H. Peter Anvin 
+  * Remove some vestiges of "native" RESW/RESD support
+Thu Nov 15 10:24:55 2007 -0800 H. Peter Anvin 
+  * outbin.c: fix one missed change from type -> size
+Tue Nov 13 19:52:54 2007 -0800 root 
+  * Support setting OSABI value in ELF header.
+Tue Nov 13 11:34:34 2007 -0800 H. Peter Anvin 
+  * Enable a few warnings by default; clean up warning descriptions
+Tue Nov 13 11:31:15 2007 -0800 H. Peter Anvin 
+  * Add gcc-style -W/-Wno- warning selections; -Wall; -Werror
+Tue Nov 13 10:37:23 2007 -0800 H. Peter Anvin 
+  * Clean up the fwrite*() function definitions somewhat
+Tue Nov 13 09:49:51 2007 -0800 H. Peter Anvin 
+  * Cast 64-bit switch expressions to (int) to keep OpenWatcom happy
+Tue Nov 13 09:46:38 2007 -0800 H. Peter Anvin 
+  * x86-host-specific performance improvement
+Tue Nov 13 09:37:59 2007 -0800 H. Peter Anvin 
+  * Address data is int64_t; simplify writing an address object
+Mon Nov 12 23:00:31 2007 -0800 H. Peter Anvin 
+  * ndisasm: factor out the common operand-extraction code
+Mon Nov 12 22:56:07 2007 -0800 H. Peter Anvin 
+  * Un-special-case "xchg rax,rax"; disassemble o64
+Mon Nov 12 22:11:46 2007 -0800 H. Peter Anvin 
+  * BR 1709392: Fix alignment handling in Mach-O formatSat Nov 24 16:31:48 2007 -0800 H. Peter Anvin 
+  * Typo fixes in documentation
+Tue Nov 20 23:37:46 2007 -0800 H. Peter Anvin 
+  * NASM 2.00rc3
+Tue Nov 20 21:45:16 2007 -0800 H. Peter Anvin 
+  * Unbreak CMPSW/CMPSD/CMPSQ
+Tue Nov 20 13:23:34 2007 -0800 H. Peter Anvin 
+  * Merge branch 'master' of git+ssh://repo.or.cz/srv/git/nasm
+Tue Nov 20 13:22:58 2007 -0800 H. Peter Anvin 
+  * ndisasm: handle the case of "no more sync points"
+Mon Nov 19 23:09:31 2007 -0800 H. Peter Anvin 
+  * NASM 2.00rc2
+Mon Nov 19 23:09:24 2007 -0800 H. Peter Anvin 
+  * tag-release: a simple script to tag the repository for release
+Mon Nov 19 13:14:59 2007 -0800 H. Peter Anvin 
+  * Slightly faster implementation of the deadman counter
+Mon Nov 19 12:26:50 2007 -0800 H. Peter Anvin 
+  * BR 812417: Deadman counter for macro expansion
+Mon Nov 19 12:02:38 2007 -0800 H. Peter Anvin 
+  * BR 877583: Fix RAA memory leak
+Mon Nov 19 11:53:18 2007 -0800 H. Peter Anvin 
+  * BR 863173: Fix offsets of TIMES/INCBIN in list file
+Mon Nov 19 11:45:40 2007 -0800 H. Peter Anvin 
+  * BR 1834731: Remove redundant error messages for no input file
+Mon Nov 19 11:44:05 2007 -0800 H. Peter Anvin 
+  * insns.pl: remove debugging output
+Sun Nov 18 22:18:09 2007 -0800 H. Peter Anvin 
+  * Clean up remaining build warnings
+Sun Nov 18 21:55:26 2007 -0800 H. Peter Anvin 
+  * BR 1834292: Fix multiple disassembler bugs
+Sun Nov 18 12:01:05 2007 -0800 H. Peter Anvin 
+  * BR 1834056: Remove warnings in rdoff/rdoff.c
+Sun Nov 18 11:55:10 2007 -0800 H. Peter Anvin 
+  * BR 1091926: Bounds checking for command line parsing
+Sat Nov 17 21:21:18 2007 -0800 H. Peter Anvin 
+  * Remove FIXME from documentation
+Sat Nov 17 21:08:33 2007 -0800 Charles Crayne 
+  * Check in Keith's Fixes
+Sat Nov 17 14:35:19 2007 -0800 H. Peter Anvin 
+  * Make the definition for float_const() match the prototype
+Fri Nov 16 00:03:02 2007 -0800 H. Peter Anvin 
+  * NASM 2.00rc1
+Thu Nov 15 17:12:29 2007 -0800 H. Peter Anvin 
+  * Clean up the command-line parsing; make -w/-W match others
+Thu Nov 15 14:38:19 2007 -0800 H. Peter Anvin 
+  * BR 993895: Support zero-operand floating-point insn
+Thu Nov 15 10:25:52 2007 -0800 H. Peter Anvin 
+  * Remove some vestiges of "native" RESW/RESD support
+Thu Nov 15 10:24:55 2007 -0800 H. Peter Anvin 
+  * outbin.c: fix one missed change from type -> size
+Tue Nov 13 19:52:54 2007 -0800 root 
+  * Support setting OSABI value in ELF header.
+Tue Nov 13 11:34:34 2007 -0800 H. Peter Anvin 
+  * Enable a few warnings by default; clean up warning descriptions
+Tue Nov 13 11:31:15 2007 -0800 H. Peter Anvin 
+  * Add gcc-style -W/-Wno- warning selections; -Wall; -Werror
+Tue Nov 13 10:37:23 2007 -0800 H. Peter Anvin 
+  * Clean up the fwrite*() function definitions somewhat
+Tue Nov 13 09:49:51 2007 -0800 H. Peter Anvin 
+  * Cast 64-bit switch expressions to (int) to keep OpenWatcom happy
+Tue Nov 13 09:46:38 2007 -0800 H. Peter Anvin 
+  * x86-host-specific performance improvement
+Tue Nov 13 09:37:59 2007 -0800 H. Peter Anvin 
+  * Address data is int64_t; simplify writing an address object
+Mon Nov 12 23:00:31 2007 -0800 H. Peter Anvin 
+  * ndisasm: factor out the common operand-extraction code
+Mon Nov 12 22:56:07 2007 -0800 H. Peter Anvin 
+  * Un-special-case "xchg rax,rax"; disassemble o64
+Mon Nov 12 22:11:46 2007 -0800 H. Peter Anvin 
+  * BR 1709392: Fix alignment handling in Mach-O format
+Mon Nov 12 22:05:31 2007 -0800 H. Peter Anvin 
+  * BR 1828866: fix handling of LAR/LSL
+Mon Nov 12 21:57:00 2007 -0800 H. Peter Anvin 
+  * Better (but not *good!*) handling of 64-bit addressing in ndisasm
+Mon Nov 12 21:02:33 2007 -0800 H. Peter Anvin 
+  * Fix disassembly of XCHG
+Mon Nov 12 20:18:33 2007 -0800 H. Peter Anvin 
+  * Test of XCHG
+Mon Nov 12 20:18:05 2007 -0800 H. Peter Anvin 
+  * Fix handling of XCHG in 64-bit mode
+Mon Nov 12 19:36:13 2007 -0800 H. Peter Anvin 
+  * More \321 -> \324 bug fixes
+Mon Nov 12 18:26:31 2007 -0800 H. Peter Anvin 
+  * float.c: all warnings and errors are pass 1 only
+Sat Nov 10 21:55:19 2007 -0800 Charles Crayne 
+  * Update documentation for stack relative directives.
+Sat Nov 10 17:52:23 2007 -0800 Charles Crayne 
+  * Clean up a few more 32-bit bottlenecks
+Fri Nov 9 16:37:41 2007 -0800 Charles Crayne 
+  * Update documentation for stack relative directives
+Fri Nov 9 16:33:54 2007 -0800 Charles Crayne 
+  * Merge branch 'master' of /home/chuck/development/gitnasm/
+Fri Nov 9 16:25:43 2007 -0800 Charles Crayne 
+  * Update documentation for stack relative directives
+Fri Nov 9 14:44:02 2007 -0800 H. Peter Anvin 
+  * Don't combine type and size into a single argument
+Thu Nov 8 22:11:14 2007 -0800 Charles Crayne 
+  * Add flat64 to %stacksize choices
+Thu Nov 8 20:43:22 2007 -0800 H. Peter Anvin 
+  * Fix building under OpenWatcom
+Thu Nov 8 20:29:37 2007 -0800 H. Peter Anvin 
+  * ps2pdf: remove -dOptimize=true
+Thu Nov 8 20:21:41 2007 -0800 H. Peter Anvin 
+  * No binary files left in the source distro; unbreak release script
+Thu Nov 8 20:01:11 2007 -0800 H. Peter Anvin 
+  * BR 1828103: Fix %arg and %local
+Thu Nov 8 19:34:01 2007 -0800 H. Peter Anvin 
+  * nasmlib.c: prefix_name(): use the elements() macro
+Thu Nov 8 19:30:22 2007 -0800 H. Peter Anvin 
+  * Move elements() to nasmlib.h
+Thu Nov 8 19:15:33 2007 -0800 H. Peter Anvin 
+  * constipate the "str" argument to bsi() and bsii()
+Wed Nov 7 19:03:46 2007 -0800 Charles Crayne 
+  * Upgrade RAA functions to hold 64-bit data.
+Tue Nov 6 21:48:12 2007 -0800 Charles Crayne 
+  * Pass 64-bit instruction lengths to back-ends.
+Tue Nov 6 18:27:23 2007 -0800 Charles Crayne 
+  * Prepare for 64-bit instruction lengths
+Mon Nov 5 21:49:49 2007 -0800 Charles Crayne 
+  * Disambiguate error messages
+Mon Nov 5 17:19:32 2007 -0800 Charles Crayne 
+  * Upgrade label functions to 64-bit
+Sun Nov 4 21:10:42 2007 -0800 H. Peter Anvin 
+  * Permit opcode names as labels as long as they are followed by a colon
+Sun Nov 4 15:28:30 2007 -0800 Charles Crayne 
+  * Make warning limit valid for both i386 and x86_64
+Sat Nov 3 22:06:13 2007 -0700 Charles Crayne 
+  * Warn on out of bounds EA displacements
+Thu Nov 1 15:08:27 2007 -0700 H. Peter Anvin 
+  * Treat info files as binary when creating xdoc distro file
+Thu Nov 1 15:07:42 2007 -0700 H. Peter Anvin 
+  * Remove obsolete binary files from the distribution
+Thu Nov 1 14:53:32 2007 -0700 H. Peter Anvin 
+  * Move declarations before statements
+Wed Oct 31 23:37:35 2007 -0700 H. Peter Anvin 
+  * NASM 0.99.06
+Wed Oct 31 23:37:19 2007 -0700 H. Peter Anvin 
+  * Script to tag the tree for release
+Wed Oct 31 10:59:26 2007 -0700 H. Peter Anvin 
+  * Even more "riprel" tests
+Tue Oct 30 01:17:57 2007 -0700 H. Peter Anvin 
+  * floatx.asm: add tests for "rounds up to smallest denorm"
+Tue Oct 30 01:13:27 2007 -0700 H. Peter Anvin 
+  * Run "make alldeps"
+Tue Oct 30 01:13:09 2007 -0700 H. Peter Anvin 
+  * float.c: handle round-up-to-denorm correctly.
+Tue Oct 30 00:59:27 2007 -0700 H. Peter Anvin 
+  * Exhaustive test for 8-bit floating point values
+Mon Oct 29 23:12:47 2007 -0700 H. Peter Anvin 
+  * Clean up the handing of operands in assemble.c
+Mon Oct 29 22:56:08 2007 -0700 H. Peter Anvin 
+  * Don't warn for segmented references
+Mon Oct 29 20:20:12 2007 -0700 H. Peter Anvin 
+  * Use a 32-bit floating-point limb size; support 8-bit float
+Mon Oct 29 18:24:59 2007 -0700 Charles Crayne 
+  * Reduce severity of redundant prefixes from error to warning.
+Sun Oct 28 23:23:24 2007 -0700 H. Peter Anvin 
+  * Test of some addressing modes in 64-bit mode.
+Sun Oct 28 23:21:46 2007 -0700 H. Peter Anvin 
+  * Fix bogus flagging of effective addresses as invalid
+Sun Oct 28 23:10:34 2007 -0700 H. Peter Anvin 
+  * Actually shut up the warning in rdfload.c
+Sun Oct 28 22:04:42 2007 -0700 H. Peter Anvin 
+  * Clean up stealth whitespace
+Sun Oct 28 22:04:00 2007 -0700 H. Peter Anvin 
+  * Fix warning about cast to pointer in rdfload.c
+Sun Oct 28 22:04:00 2007 -0700 H. Peter Anvin 
+  * 64-bit addressing and prefix handling changes
+Sun Oct 28 15:29:54 2007 -0700 Charles Crayne 
+  * Adjust stabs symbol index to match symbol table.
+Fri Oct 26 21:38:02 2007 -0700 H. Peter Anvin 
+  * readnum(): handle prefix-suffix collision like "0h"
+Fri Oct 26 18:49:29 2007 -0700 H. Peter Anvin 
+  * Better handling of platforms which hide "extended" functionality
+Wed Oct 24 15:51:40 2007 -0700 Charles Crayne 
+  * Merge branch 'master' of /home/chuck/development/gitnasm/
+Wed Oct 24 15:30:17 2007 -0700 Charles Crayne 
+  * Update sections about debug info formats
+Wed Oct 24 15:29:51 2007 -0700 H. Peter Anvin 
+  * Fix the handling of floating-point tokens in the preprocessor
+Tue Oct 23 19:28:39 2007 -0700 Charles Crayne 
+  * Fix bugs item #1817677
+Tue Oct 23 00:08:58 2007 -0700 H. Peter Anvin 
+  * Slightly simplify the radix-detection code
+Mon Oct 22 19:48:06 2007 -0700 H. Peter Anvin 
+  * Unbreak particularly tricky hex constants
+Mon Oct 22 19:37:36 2007 -0700 H. Peter Anvin 
+  * Decimal floating point can also start with 0. 0e 0E
+Mon Oct 22 17:34:10 2007 -0700 H. Peter Anvin 
+  * Support binary and octal floating-point
+Mon Oct 22 16:53:48 2007 -0700 H. Peter Anvin 
+  * More consistent handling of radix letters
+Sun Oct 21 15:33:01 2007 -0700 H. Peter Anvin 
+  * float.c: correct exponent capping
+Sun Oct 21 14:21:43 2007 -0700 Charles Crayne 
+  * Clean up elf symbol table section
+Fri Oct 19 18:33:57 2007 -0700 H. Peter Anvin 
+  * Allow $-prefixed hexadecimal FP as an alternative to 0x
+Fri Oct 19 14:43:22 2007 -0700 H. Peter Anvin 
+  * Scripts to remove stealth whitespace
+Fri Oct 19 14:42:29 2007 -0700 H. Peter Anvin 
+  * Formatting: kill off "stealth whitespace"
+Fri Oct 19 14:26:52 2007 -0700 H. Peter Anvin 
+  * test/floatx.asm: fix test case
+Fri Oct 19 14:19:52 2007 -0700 H. Peter Anvin 
+  * uscore.asm: Fix test case
+Fri Oct 19 14:17:51 2007 -0700 H. Peter Anvin 
+  * float.c: mark read_exponent() static
+Fri Oct 19 14:10:35 2007 -0700 H. Peter Anvin 
+  * Don't confuse suffixed hexadecimal with floating-point
+Fri Oct 19 13:17:24 2007 -0700 H. Peter Anvin 
+  * Anchor filename locations in .gitignore
+Fri Oct 19 13:16:51 2007 -0700 H. Peter Anvin 
+  * test/Makefile: Use -Ox instead of -O999
+Fri Oct 19 13:14:06 2007 -0700 H. Peter Anvin 
+  * Test of underscored constants
+Fri Oct 19 13:10:46 2007 -0700 H. Peter Anvin 
+  * Allow underscores in numbers; better detection of FP
+Fri Oct 19 10:52:31 2007 -0700 H. Peter Anvin 
+  * Modernize nasm.spec.in and make it closer to the Fedora version
+Thu Oct 18 23:33:06 2007 -0700 Charles Crayne 
+  * Suppress datarootdir warnings from configure
+Thu Oct 18 21:17:20 2007 -0700 Charles Crayne 
+  * Suppress signedness warnings in disassembler
+Thu Oct 18 19:14:08 2007 -0700 H. Peter Anvin 
+  * Cleaner solution for MinGW handling of __STRICT_ANSI__
+Thu Oct 18 19:14:08 2007 -0700 H. Peter Anvin 
+  * configure: Undefine __STRICT_ANSI__ for mingw's benefit
+Thu Oct 18 19:14:07 2007 -0700 H. Peter Anvin 
+  * Fix invocation of readnum()
+Thu Oct 18 19:02:42 2007 -0700 Charles Crayne 
+  * Suppress a few signedness warnings
+Thu Oct 18 17:04:10 2007 -0700 root 
+  * Avoid unnecessary warning on redefinition of section (bug 801180)
+Wed Oct 17 17:55:45 2007 -0700 Charles Crayne 
+  * Generate stabs entries for any executable section
+Tue Oct 16 22:59:09 2007 -0700 H. Peter Anvin 
+  * NASM 0.99.05
+Tue Oct 16 15:46:04 2007 -0700 H. Peter Anvin 
+  * Tests of obscenely large exponents
+Tue Oct 16 14:42:32 2007 -0700 H. Peter Anvin 
+  * Comma-separate contents of __FLOAT__
+Tue Oct 16 14:40:27 2007 -0700 H. Peter Anvin 
+  * Implement floating-point option control directive
+Tue Oct 16 11:48:07 2007 -0700 H. Peter Anvin 
+  * Floating-point warning fixes; fix round-to-overflow
+Tue Oct 16 11:32:58 2007 -0700 H. Peter Anvin 
+  * Handle rounding of denorms correctly; make fp overflow a warning
+Tue Oct 16 10:35:02 2007 -0700 H. Peter Anvin 
+  * Additional entries for .gitignore
+Tue Oct 16 10:32:57 2007 -0700 H. Peter Anvin 
+  * Refactor floating-point formatting code; fix 80-bit denorms
+Tue Oct 16 10:31:16 2007 -0700 H. Peter Anvin 
+  * Add 1.5 as a test case: representative of an exact fraction
+Mon Oct 15 20:06:06 2007 -0700 H. Peter Anvin 
+  * Recognize 'd', 't' and 'y' as radix suffixes
+Mon Oct 15 19:53:10 2007 -0700 H. Peter Anvin 
+  * Fix FISTTP opcodes (BR 689695)
+Mon Oct 15 19:46:32 2007 -0700 H. Peter Anvin 
+  * New floating-point conversion routines
+Mon Oct 15 17:48:43 2007 -0700 H. Peter Anvin 
+  * Add testnos3 from the gdtoa package (floating-point test)
+Sat Oct 13 23:19:21 2007 -0700 H. Peter Anvin 
+  * .gitignore file doesn't need to be in the release file
+Sat Oct 13 23:17:41 2007 -0700 H. Peter Anvin 
+  * Add .gitignore file so "git status" produces something sane
+Sat Oct 13 23:12:46 2007 -0700 H. Peter Anvin 
+  * autoconf: drop AC_USE_SYSTEM_EXTENSIONS to support autoconf 2.59
+Sat Oct 13 07:09:22 2007 -0700 Keith Kanios 
+  * Fix 32-bit types in preproc.c and eval.c
+Thu Oct 11 20:32:33 2007 -0700 Charles Crayne 
+  * Must define types before using them
+Thu Oct 11 13:42:09 2007 -0700 H. Peter Anvin 
+  * preproc.c: move smacro define/undef to separate functions
+Thu Oct 11 13:38:38 2007 -0700 H. Peter Anvin 
+  * preproc.c: PP_DEFINE and PP_XDEFINE are case-sensitive
+Thu Oct 11 12:52:03 2007 -0700 H. Peter Anvin 
+  * preproc.c: normalize the handling of case sensitivity
+Thu Oct 11 12:51:06 2007 -0700 H. Peter Anvin 
+  * Define macros necessary for <inttypes.h> on C++
+Thu Oct 11 10:12:58 2007 -0700 H. Peter Anvin 
+  * More "bool" fixes
+Thu Oct 11 10:11:57 2007 -0700 H. Peter Anvin 
+  * preproc.c: allow 64-bit repeat counts
+Thu Oct 11 10:06:19 2007 -0700 H. Peter Anvin 
+  * preproc.c: For an SMacro, in_progress really is a boolean (no %rep)
+Thu Oct 11 00:05:57 2007 -0700 H. Peter Anvin 
+  * Additional uses of bool and enum
+Thu Oct 11 00:05:57 2007 -0700 H. Peter Anvin 
+  * preproc.c: MMacro.in_progress is not a boolean
+Wed Oct 10 18:07:51 2007 -0700 H. Peter Anvin 
+  * saa_fread/fwrite: when seeking, must set [rw]ptr as well
+Wed Oct 10 14:58:45 2007 -0700 H. Peter Anvin 
+  * Use the compiler-provided booleans if available, otherwise emulate
+Wed Oct 10 14:55:14 2007 -0700 H. Peter Anvin 
+  * owlinux.mak: don't clean things we won't be able to
+Wed Oct 10 14:29:53 2007 -0700 H. Peter Anvin 
+  * configure.in: looks like we need autoconf 2.61 :(
+Wed Oct 10 14:06:59 2007 -0700 H. Peter Anvin 
+  * Create option -Ox to tell NASM to do unlimited passes
+Mon Oct 8 19:26:57 2007 -0700 H. Peter Anvin 
+  * Revert "floatb.asm: fix broken testcase"
+Mon Oct 8 18:39:24 2007 -0700 H. Peter Anvin 
+  * floatb.asm: fix broken testcase
+Mon Oct 8 12:41:00 2007 -0700 H. Peter Anvin 
+  * saa_rstruct: fix overrun check
+Mon Oct 8 12:12:23 2007 -0700 H. Peter Anvin 
+  * Add Frank's floattest.asm test file
+Sun Oct 7 21:13:14 2007 -0700 H. Peter Anvin 
+  * saa_fpwrite: initializing "len" should be part of the loop
+Sun Oct 7 18:46:57 2007 -0700 Charles Crayne 
+  * Fix infinite loop in function saa_fpwrite
+Fri Oct 5 17:44:16 2007 -0700 H. Peter Anvin 
+  * zerobyte.asm: use a real instruction to avoid confusing ndisasm
+Fri Oct 5 17:42:31 2007 -0700 H. Peter Anvin 
+  * zerobyte.asm: add test cases for non-initial \170 uses
+Fri Oct 5 17:29:01 2007 -0700 H. Peter Anvin 
+  * Check in the proper zerobyte test
+Fri Oct 5 17:04:32 2007 -0700 H. Peter Anvin 
+  * Emit REX prefix before literal zero (\170)
+Fri Oct 5 17:01:15 2007 -0700 H. Peter Anvin 
+  * LICENSE: Break long line
+Fri Oct 5 14:36:03 2007 -0700 H. Peter Anvin 
+  * Add test for problematic floats
+Thu Oct 4 23:51:08 2007 -0700 H. Peter Anvin 
+  * floatx.asm: add Inf and NaN to the boundary condition tests
+Thu Oct 4 23:09:19 2007 -0700 H. Peter Anvin 
+  * floatx.asm: add specific tests for exponent boundary conditions
+Thu Oct 4 22:51:08 2007 -0700 H. Peter Anvin 
+  * float.c: correct the exponent
+Thu Oct 4 15:18:23 2007 -0700 H. Peter Anvin 
+  * Additional rules in test/Makefile
+Thu Oct 4 13:42:56 2007 -0700 H. Peter Anvin 
+  * Rewrite the handling of SAA's to allow random access
+Wed Oct 3 21:30:57 2007 -0700 H. Peter Anvin 
+  * Change cloc_t to struct location, and reorder the members
+Wed Oct 3 21:24:51 2007 -0700 H. Peter Anvin 
+  * BR 1352920: change loc_t -> cloc_t
+Wed Oct 3 21:22:16 2007 -0700 H. Peter Anvin 
+  * BR 1352920: Handle upper case %line
+Wed Oct 3 17:40:12 2007 -0700 H. Peter Anvin 
+  * Use autoconf to request feature macros
+Tue Oct 2 22:04:15 2007 -0700 H. Peter Anvin 
+  * preproc.c: constipation
+Tue Oct 2 21:57:27 2007 -0700 H. Peter Anvin 
+  * make alldeps
+Tue Oct 2 21:53:51 2007 -0700 H. Peter Anvin 
+  * Portability fixes
+Tue Oct 2 21:13:18 2007 -0700 H. Peter Anvin 
+  * Run "make alldeps".
+Tue Oct 2 17:40:00 2007 -0700 H. Peter Anvin 
+  * Use the crc64 we already use as the perfect hash function prehash
+Tue Oct 2 15:09:33 2007 -0700 H. Peter Anvin 
+  * insns.dat: add systematic names for the hinting NOPs (0F18-0F1F)
+Mon Oct 1 11:28:32 2007 -0700 H. Peter Anvin 
+  * Unspecified files are null strings, not null pointers
+Mon Oct 1 11:26:31 2007 -0700 H. Peter Anvin 
+  * Check for the most basic filename overlaps
+Sun Sep 30 22:15:36 2007 -0700 Charles Crayne 
+  * modified:   nasm.1 to add newer command line options
+Fri Sep 28 21:27:41 2007 -0700 Charles Crayne 
+  * Merge branch 'master' of git+ssh://ccrayne@repo.or.cz/srv/git/nasm
+Fri Sep 28 20:17:12 2007 -0700 H. Peter Anvin 
+  * configure.in: AC_SUBST_FILE should have been AC_SUBST
+Fri Sep 28 17:17:20 2007 -0700 H. Peter Anvin 
+  * Unbreak relative references to immediate addresses
+Fri Sep 28 15:16:47 2007 -0700 Charles Crayne 
+  * Merge branch 'master' of git+ssh://ccrayne@repo.or.cz/srv/git/nasm
+Fri Sep 28 12:01:55 2007 -0700 H. Peter Anvin 
+  * lib/vsnprintf.c: correct boundary conditions
+Fri Sep 28 10:50:20 2007 -0700 H. Peter Anvin 
+  * Add substitutes for snprintf() and vsnprintf()
+Fri Sep 28 02:03:41 2007 -0400 Frank Kotler 
+  * Merge branch 'master' of git+ssh://fbkotler@repo.or.cz/srv/git/nasm
+Thu Sep 27 21:35:04 2007 -0700 H. Peter Anvin 
+  * Exclude config.h from the dependency list for the canned makefiles
+Thu Sep 27 21:12:17 2007 -0700 H. Peter Anvin 
+  * version.pl: Add support for daily snapshot releases
+Thu Sep 27 19:46:55 2007 -0700 H. Peter Anvin 
+  * Add Makefile for Linux -> DOS, Win32, OS/2 using OpenWatcom
+Wed Sep 26 19:57:07 2007 -0700 H. Peter Anvin 
+  * Add Makefile for OpenWatcom (DOS, OS/2 or Win32 output)
+Wed Sep 26 17:00:18 2007 -0700 H. Peter Anvin 
+  * Test for various addressing modes in 64-bit mode
+Wed Sep 26 15:19:28 2007 -0700 H. Peter Anvin 
+  * nasm option reshuffling, -E -> -Z
+Tue Sep 25 23:57:21 2007 -0400 Frank Kotler 
+  * Version 0.99.04
+Tue Sep 25 20:36:45 2007 -0700 H. Peter Anvin 
+  * nasmdoc: corrections on 64-bit immediates/displacements
+Tue Sep 25 16:02:21 2007 -0700 H. Peter Anvin 
+  * nasmdoc: shorten lines which are too long
+Tue Sep 25 16:01:07 2007 -0700 H. Peter Anvin 
+  * Document NASM behaviour for 64-bit immediates and displacements
+Tue Sep 25 15:44:40 2007 -0700 H. Peter Anvin 
+  * test/movimm.asm: add optimizable forms
+Tue Sep 25 15:41:19 2007 -0700 H. Peter Anvin 
+  * assemble.c: clean up whitespace
+Tue Sep 25 15:40:36 2007 -0700 H. Peter Anvin 
+  * Correct the handling of "MOV" with immediate in 64-bit mode
+Tue Sep 25 15:39:42 2007 -0700 H. Peter Anvin 
+  * Test of immediate handling on 64-bit mode
+Tue Sep 25 14:27:34 2007 -0700 H. Peter Anvin 
+  * Add nasm_zalloc() to nasmlib.c
+Tue Sep 25 14:26:03 2007 -0700 H. Peter Anvin 
+  * Fix BR 1490407: size of the second operand of LAR/LSL
+Tue Sep 25 14:11:29 2007 -0700 H. Peter Anvin 
+  * Fix BR 1490407: size of the second operand of LAR/LSL
+Tue Sep 25 13:34:55 2007 -0700 H. Peter Anvin 
+  * Makefile.in: make "make install" create directories
+Tue Sep 25 08:48:37 2007 -0700 H. Peter Anvin 
+  * Fix BR 1445441: uninitialized use of "error_file"
+Mon Sep 24 21:33:17 2007 -0700 H. Peter Anvin 
+  * preproc.c: fix the loop in %undef
+Mon Sep 24 20:53:48 2007 -0700 H. Peter Anvin 
+  * float.c: clear off uninitialized warning
+Mon Sep 24 17:02:41 2007 -0700 H. Peter Anvin 
+  * outcoff: set the "virtual size field" to zero (BR 1351586)
+Mon Sep 24 15:56:02 2007 -0700 H. Peter Anvin 
+  * insns.dat: SMINT - mark ND, DMINT - fix opcode
+Mon Sep 24 15:55:20 2007 -0700 H. Peter Anvin 
+  * 0F0F is a 3Dnow! prefix; remove from prefix list
+Mon Sep 24 15:48:09 2007 -0700 H. Peter Anvin 
+  * Additional compaction missed by script
+Mon Sep 24 15:42:53 2007 -0700 H. Peter Anvin 
+  * insns.dat: machine-generated compaction mmx/xmmreg,mem -> mmx/xmmrm
+Mon Sep 24 13:54:00 2007 -0700 H. Peter Anvin 
+  * nasmdoc: grammar fix
+Mon Sep 24 13:44:02 2007 -0700 H. Peter Anvin 
+  * nasmdoc: remove stray periods
+Mon Sep 24 13:42:09 2007 -0700 H. Peter Anvin 
+  * test/Makefile: make a bit more useful
+Mon Sep 24 13:41:58 2007 -0700 H. Peter Anvin 
+  * Implement the -MG option (SF RFE 1564264)
+Mon Sep 24 12:52:09 2007 -0700 H. Peter Anvin 
+  * nasmdoc: clarify __float*__ example
+Mon Sep 24 12:44:38 2007 -0700 H. Peter Anvin 
+  * nasmdoc: document the __float*__ operators
+Mon Sep 24 12:30:54 2007 -0700 H. Peter Anvin 
+  * Support __float*__ for floating-point numbers in expressions
+Mon Sep 24 10:51:07 2007 -0700 H. Peter Anvin 
+  * eval.c: replace sequence of ifs with switch
+Mon Sep 24 10:50:23 2007 -0700 H. Peter Anvin 
+  * tokhash: allow a bit smarter pattern matching
+Sat Sep 22 22:35:28 2007 -0700 H. Peter Anvin 
+  * Implement INVLPGA according to the documentation
+Sat Sep 22 22:02:34 2007 -0700 H. Peter Anvin 
+  * Reformat insns.dat to uniform column width
+Sat Sep 22 21:50:03 2007 -0700 H. Peter Anvin 
+  * Simple test for 0x67 prefixes
+Sat Sep 22 21:49:51 2007 -0700 H. Peter Anvin 
+  * Auto-generate 0x67 prefixes without the need for \30x codes
+Sat Sep 22 21:47:13 2007 -0700 H. Peter Anvin 
+  * Make test/Makefile a bit more useful
+Sat Sep 22 21:29:41 2007 -0700 H. Peter Anvin 
+  * Add TY_OWORD for "DO" output
+Sat Sep 22 19:52:11 2007 -0700 H. Peter Anvin 
+  * LDDQU needs \301 (BR 1103549)
+Sat Sep 22 19:51:13 2007 -0700 H. Peter Anvin 
+  * RDTSCP and INVLPGA aren't 64-bit specific
+Sat Sep 22 19:40:37 2007 -0700 H. Peter Anvin 
+  * Cyrix GX1 instructions: BBx_RESET, CPU_READ, CPU_WRITE
+Sat Sep 22 19:28:14 2007 -0700 H. Peter Anvin 
+  * Centaur XSHA1, XSHA256, MONTMUL
+Sat Sep 22 19:20:56 2007 -0700 H. Peter Anvin 
+  * Implement Centaur's XCRYPT instructions
+Sat Sep 22 19:13:05 2007 -0700 H. Peter Anvin 
+  * Add Geode LX (AMD's Cyrix-derived core) instructions
+Sat Sep 22 19:05:11 2007 -0700 H. Peter Anvin 
+  * Add the GETSEC instruction for Intel SMX
+Sat Sep 22 18:59:18 2007 -0700 H. Peter Anvin 
+  * Add the AMD SSE4a and LZCNT instructions
+Sat Sep 22 18:23:20 2007 -0700 H. Peter Anvin 
+  * Tag UMOV as ND (no disassembly) to avoid collision
+Sat Sep 22 18:20:49 2007 -0700 H. Peter Anvin 
+  * Disallow optimizing by less than 5 passes.
+Sat Sep 22 17:45:45 2007 -0700 H. Peter Anvin 
+  * BR 1783117: Document that %+ needs a space after it, and fix crash
+Sat Sep 22 16:44:56 2007 -0700 H. Peter Anvin 
+  * nasm.spec.in: minor fixes
+Sat Sep 22 16:38:25 2007 -0700 H. Peter Anvin 
+  * release script: handle stricter CLI parsing for "git tag"
+Sat Sep 22 16:35:11 2007 -0700 H. Peter Anvin 
+  * Update nasm.spec.in and make it handle rc releases
+Sat Sep 22 16:19:19 2007 -0700 H. Peter Anvin 
+  * version.pl: support version numbers of the form X.Y[.Z]rcW
+Thu Sep 20 21:33:43 2007 -0700 Charles Crayne 
+  * Merge branch 'master' of git+ssh://ccrayne@repo.or.cz/srv/git/nasm
+Thu Sep 20 21:12:33 2007 -0700 Charles Crayne 
+  * 	modified:   misc/release to fix bug in removing .git
+Wed Sep 19 21:41:43 2007 -0700 H. Peter Anvin 
+  * Merge branch 'master' of git+ssh://repo.or.cz/srv/git/nasm
+Wed Sep 19 21:41:27 2007 -0700 H. Peter Anvin 
+  * Update manual pages
+Wed Sep 19 21:41:02 2007 -0700 H. Peter Anvin 
+  * Remove limit on number of sync points
+Wed Sep 19 21:40:37 2007 -0700 H. Peter Anvin 
+  * Make nasm_malloc() et al available from inside ndisasm
+Wed Sep 19 21:07:32 2007 -0400 Frank Kotler 
+  * Version 0.99.03
+Wed Sep 19 21:06:59 2007 -0400 Frank Kotler 
+  * Merge branch 'master' of git+ssh://fbkotler@repo.or.cz/srv/git/nasm
+Wed Sep 19 16:22:03 2007 -0700 H. Peter Anvin 
+  * Merge commit 'origin/sse5'
+Wed Sep 19 16:15:22 2007 -0700 H. Peter Anvin 
+  * test/Makefile: make a bit more useful
+Tue Sep 18 22:54:40 2007 -0700 H. Peter Anvin 
+  * Slightly optimize the interface to nasm_token_hash()
+Wed Sep 19 01:34:55 2007 -0400 Frank Kotler 
+  * Merge branch 'master' of git+ssh://fbkotler@repo.or.cz/srv/git/nasm
+Tue Sep 18 22:23:42 2007 -0700 H. Peter Anvin 
+  * Merge commit 'origin/master' into sse5
+Tue Sep 18 22:22:49 2007 -0700 H. Peter Anvin 
+  * elf64: fix 32-bit truncations
+Tue Sep 18 22:08:04 2007 -0700 H. Peter Anvin 
+  * Document Infinity and NaN
+Tue Sep 18 21:55:56 2007 -0700 H. Peter Anvin 
+  * Support generating NaNs and infinities
+Tue Sep 18 19:12:26 2007 -0700 H. Peter Anvin 
+  * Update documentation
+Tue Sep 18 18:37:36 2007 -0700 H. Peter Anvin 
+  * Simple test for hexadecimal floating-point numbers
+Tue Sep 18 18:33:17 2007 -0700 H. Peter Anvin 
+  * Fix error-reporting in hexadecimal floating-point numbers
+Tue Sep 18 18:31:26 2007 -0700 H. Peter Anvin 
+  * Support C99-style hexadecimal floating point.
+Tue Sep 18 17:50:34 2007 -0700 H. Peter Anvin 
+  * Unify all standard IEEE floating-point formats; add 128-bit
+Tue Sep 18 17:49:09 2007 -0700 H. Peter Anvin 
+  * Fix handling of DO; support unary + for floating-point numbers
+Tue Sep 18 16:39:03 2007 -0700 H. Peter Anvin 
+  * Support 16-bit IEEE floating point; used in SSE5
+Tue Sep 18 15:43:40 2007 -0700 H. Peter Anvin 
+  * Merge commit 'origin/master' into sse5
+Tue Sep 18 15:43:08 2007 -0700 H. Peter Anvin 
+  * Add NOP with argument to the instruction list
+Tue Sep 18 15:24:38 2007 -0700 H. Peter Anvin 
+  * Remove 0FC2 from list of instruction prefixes
+Tue Sep 18 15:08:20 2007 -0700 H. Peter Anvin 
+  * Speed up the disassembler by allowing prefixed instruction tables
+Tue Sep 18 13:45:12 2007 -0700 H. Peter Anvin 
+  * Document oword, do and reso
+Tue Sep 18 13:01:32 2007 -0700 H. Peter Anvin 
+  * Implement "oword" (128 bits) as a first-class size
+Tue Sep 18 12:38:07 2007 -0700 H. Peter Anvin 
+  * Change the token prehash function for better convergence
+Tue Sep 18 12:23:21 2007 -0700 H. Peter Anvin 
+  * SSE5 instruction table
+Tue Sep 18 02:06:09 2007 -0400 Frank Kotler 
+  * add "const" to output/outdbg.c
+Mon Sep 17 18:45:44 2007 -0700 H. Peter Anvin 
+  * Disassembler support for SSE5 instructions
+Mon Sep 17 17:27:46 2007 -0700 H. Peter Anvin 
+  * insns.dat: All SSE5 instructions are AMD
+Mon Sep 17 17:25:27 2007 -0700 H. Peter Anvin 
+  * Actually generate SSE5 instructions
+Mon Sep 17 16:55:04 2007 -0700 H. Peter Anvin 
+  * Initial support for generating DREX suffixes
+Mon Sep 17 16:31:33 2007 -0700 H. Peter Anvin 
+  * Fix a few instances of missing renumbers
+Mon Sep 17 16:20:45 2007 -0700 H. Peter Anvin 
+  * Enable IF_AR3
+Mon Sep 17 15:49:53 2007 -0700 H. Peter Anvin 
+  * Merge commit 'origin/master' into sse5
+Mon Sep 17 15:49:30 2007 -0700 H. Peter Anvin 
+  * Initial support for four arguments per instruction
+Mon Sep 17 15:48:32 2007 -0700 H. Peter Anvin 
+  * CLFLUSH: Neither an x64 instruction nor AMD
+Mon Sep 17 13:56:26 2007 -0700 H. Peter Anvin 
+  * Sort dependency lists
+Mon Sep 17 13:53:14 2007 -0700 H. Peter Anvin 
+  * Cleaner way to handle MSVC's _snprintf() underscore damage
+Mon Sep 17 13:19:25 2007 -0700 H. Peter Anvin 
+  * test/r13.asm: test special-casing of rbp and r13 in 64-bit mode
+Mon Sep 17 13:03:33 2007 -0700 H. Peter Anvin 
+  * Additional documentation for 64-bit programming
+Sun Sep 16 22:27:07 2007 -0700 H. Peter Anvin 
+  * INSTALL: MSVC++ compilation instructions
+Sun Sep 16 22:17:29 2007 -0700 H. Peter Anvin 
+  * make alldeps: change Mkfiles/Makefile.* to Mkfiles/*.mak
+Sun Sep 16 22:16:24 2007 -0700 H. Peter Anvin 
+  * Fix Makefile for MSVC++ 2005, delete obsolete Makefiles
+Sun Sep 16 22:15:34 2007 -0700 H. Peter Anvin 
+  * Minor fixes needed to compile with MSVC++ 2005
+Sun Sep 16 18:35:02 2007 -0700 H. Peter Anvin 
+  * Run "make alldeps"
+Sun Sep 16 18:04:57 2007 -0700 H. Peter Anvin 
+  * Switch the preprocessor over to using the hash table library
+Sun Sep 16 17:53:17 2007 -0700 H. Peter Anvin 
+  * Fix the handling of local labels
+Fri Sep 14 18:36:01 2007 -0700 H. Peter Anvin 
+  * preproc.c: remove unnecessary int64_t
+Fri Sep 14 18:03:29 2007 -0700 H. Peter Anvin 
+  * Use the new hash table function library to store labels
+Fri Sep 14 09:24:38 2007 -0700 H. Peter Anvin 
+  * Define a proper hash table library
+Thu Sep 13 18:13:20 2007 -0700 H. Peter Anvin 
+  * Simple performance benchmarks: label, macro and token lookups
+Thu Sep 13 12:25:32 2007 -0700 H. Peter Anvin 
+  * release script: fix final cleanup
+Thu Sep 13 12:22:00 2007 -0700 H. Peter Anvin 
+  * Modify release script for a git-centric world
+Thu Sep 13 11:06:42 2007 -0700 H. Peter Anvin 
+  * pptok.c: don't insist on C99 compiler behaviour
+Wed Sep 12 22:02:06 2007 -0700 H. Peter Anvin 
+  * Fix literal F2 and F3 prefixes
+Wed Sep 12 21:58:51 2007 -0700 H. Peter Anvin 
+  * Add (untested!) SSSE3, SSE4.1, SSE4.2 instructions
+Wed Sep 12 21:06:36 2007 -0700 H. Peter Anvin 
+  * Add support for Tejas New Instructions (SSSE3)
+Wed Sep 12 21:05:06 2007 -0700 H. Peter Anvin 
+  * Remove $Id$ tags (useless with git)
+Wed Sep 12 21:04:58 2007 -0700 H. Peter Anvin 
+  * Use rm32 operands for VMREAD/VMWRITE
+Wed Sep 12 21:04:51 2007 -0700 H. Peter Anvin 
+  * Macros for SSSE3/SSE4 instruction sets
+Wed Sep 12 21:04:39 2007 -0700 H. Peter Anvin 
+  * Support r/m operands for non-integer types
+Wed Sep 12 20:27:41 2007 -0700 H. Peter Anvin 
+  * Use enumerations where practical to ease debugging
+Wed Sep 12 17:02:55 2007 +0000 H. Peter Anvin 
+  * pptok.c: quick-and-dirty downcasing during prehashing
+Wed Sep 12 16:55:57 2007 +0000 H. Peter Anvin 
+  * phash: Tell the user when the graph is OK
+Wed Sep 12 05:18:20 2007 +0000 H. Peter Anvin 
+  * pptok.c: handle holes in the pp_directives array
+Wed Sep 12 04:20:08 2007 +0000 H. Peter Anvin 
+  * preproc.c: adjust whitespace
+Wed Sep 12 04:18:37 2007 +0000 H. Peter Anvin 
+  * More automation in the preprocessor conditionals handling
+Wed Sep 12 02:13:39 2007 +0000 H. Peter Anvin 
+  * pptok.c: fix spacing
+Wed Sep 12 02:12:07 2007 +0000 H. Peter Anvin 
+  * Generate automatically correct tests for %if and %elif
+Wed Sep 12 01:34:19 2007 +0000 H. Peter Anvin 
+  * Run "make alldeps"; add dependencies missing from the previous checkin
+Wed Sep 12 01:29:43 2007 +0000 H. Peter Anvin 
+  * Use a perfect hash to look up preprocessor directives
+Wed Sep 12 01:27:53 2007 +0000 H. Peter Anvin 
+  * phash: Be a bit more aggressive about trying to make a small hash
+Wed Sep 12 00:22:29 2007 +0000 H. Peter Anvin 
+  * Add RCXZ as a known preprocessor condition
+Tue Sep 11 23:57:23 2007 +0000 H. Peter Anvin 
+  * doc: add some cross-references
+Tue Sep 11 23:52:01 2007 +0000 H. Peter Anvin 
+  * Feeble attempt at updating the documentation; remove Appendix B
+Tue Sep 11 22:44:03 2007 +0000 H. Peter Anvin 
+  * Handle instructions which can have both REX.W and OSP
+Tue Sep 11 22:14:18 2007 +0000 H. Peter Anvin 
+  * Use enums to make debugging easier
+Tue Sep 11 22:13:17 2007 +0000 H. Peter Anvin 
+  * ndisasm: handle \366 codes, prefer unprefixed instructions
+Tue Sep 11 22:00:34 2007 +0000 H. Peter Anvin 
+  * Simplify tokens.dat slightly
+Tue Sep 11 04:26:44 2007 +0000 H. Peter Anvin 
+  * Quiet gcc warning about uninitialized variables
+Tue Sep 11 04:16:57 2007 +0000 H. Peter Anvin 
+  * Make the big instruction arrays "const"
+Mon Sep 10 23:32:05 2007 +0000 H. Peter Anvin 
+  * Use an actual enum for the opcode
+Mon Sep 10 23:30:21 2007 +0000 H. Peter Anvin 
+  * Fix order of token arguments
+Mon Sep 10 18:59:26 2007 +0000 H. Peter Anvin 
+  * assemble.c: correct special handing of ESP/RSP
+Mon Sep 10 18:59:01 2007 +0000 H. Peter Anvin 
+  * tokhash: correct duplicate-token test
+Mon Sep 10 18:58:40 2007 +0000 H. Peter Anvin 
+  * tokhash: adjust table types to reduce size
+Mon Sep 10 18:55:52 2007 +0000 H. Peter Anvin 
+  * Fix the MMXREG and XMMREG flags definitions.
+Wed Sep 5 06:48:38 2007 +0000 H. Peter Anvin 
+  * nasm.spec.in: Copyright -> License
+Wed Sep 5 06:40:51 2007 +0000 H. Peter Anvin 
+  * Fix "make tar"; useful for RPM testing
+Wed Sep 5 06:24:43 2007 +0000 H. Peter Anvin 
+  * Remove obsolete Serial: construct; we shouldn't need it anyway.
+Tue Sep 4 01:29:43 2007 +0000 Chuck Crayne 
+  * Provide 64-bit support for ORG directive
+Sun Sep 2 16:37:03 2007 +0000 H. Peter Anvin 
+  * Fix some MMX/SSE irregularities which interact with the 64-bit support
+Sun Sep 2 14:46:00 2007 +0000 H. Peter Anvin 
+  * phash.ph: yet another attempt at getting Perl to behave, arithmetically
+Sun Sep 2 06:23:29 2007 +0000 H. Peter Anvin 
+  * Simple 64-bit org test
+Sun Sep 2 06:20:15 2007 +0000 H. Peter Anvin 
+  * phash.ph: remove some stale code
+Sun Sep 2 01:00:34 2007 +0000 Chuck Crayne 
+  * Force use of integer values for generating hash keys.
+Fri Aug 31 18:10:23 2007 +0000 H. Peter Anvin 
+  * phash: don't rely on the build platform Perl version of rand()
+Fri Aug 31 07:31:51 2007 +0000 H. Peter Anvin 
+  * tokhash.pl: formatting changes for readability
+Fri Aug 31 07:23:31 2007 +0000 H. Peter Anvin 
+  * tokhash: Speed up the rejection of unhashed values
+Fri Aug 31 06:06:17 2007 +0000 H. Peter Anvin 
+  * tokhash.pl: "ix" should have the same width as the "hash" arrays
+Fri Aug 31 00:28:35 2007 +0000 H. Peter Anvin 
+  * Add "do not edit" comment to tokhash.c
+Fri Aug 31 00:23:40 2007 +0000 H. Peter Anvin 
+  * Make the token hash a bit smaller by using 16-bit hash tables
+Fri Aug 31 00:16:10 2007 +0000 H. Peter Anvin 
+  * Minor cleanup; remove duplication of names.c
+Thu Aug 30 23:42:39 2007 +0000 H. Peter Anvin 
+  * phash.ph: use a bipartite graph to reduce the storage requirements
+Thu Aug 30 22:35:34 2007 +0000 H. Peter Anvin 
+  * Finishing touches on perfect hash tokenizer; actually turn the thing on
+Thu Aug 30 21:50:20 2007 +0000 H. Peter Anvin 
+  * Makefile rule for tokhash.c
+Thu Aug 30 21:47:46 2007 +0000 H. Peter Anvin 
+  * tokens.dat: Data file containing alphanumeric tokens not in other .dats
+Thu Aug 30 21:45:56 2007 +0000 H. Peter Anvin 
+  * Generate a perfect hash for the token parser
+Thu Aug 30 21:40:08 2007 +0000 H. Peter Anvin 
+  * Fix bugs in repeated suffix handling, which led to missing r8d/r8w/r8d
+Thu Aug 30 21:39:37 2007 +0000 H. Peter Anvin 
+  * phash.ph: more powerful prehashing
+Thu Aug 30 20:15:25 2007 +0000 H. Peter Anvin 
+  * Make the perfect hash generator an includable module
+Wed Aug 29 20:30:31 2007 +0000 H. Peter Anvin 
+  * Correct the logic for recording fs: and gs: overrides.
+Wed Aug 29 18:20:19 2007 +0000 H. Peter Anvin 
+  * Generate R_X86_64_64 relocations in elf64 output
+Wed Aug 29 17:24:03 2007 +0000 H. Peter Anvin 
+  * Add README file
+Wed Aug 29 17:20:09 2007 +0000 H. Peter Anvin 
+  * Create a Perl library directory, and add the Graph module to it
+Wed Aug 29 17:05:17 2007 +0000 H. Peter Anvin 
+  * Perfect hash generator, as a perl script
+Wed Aug 29 16:41:43 2007 +0000 H. Peter Anvin 
+  * Use standard macro for the default directive
+Wed Aug 29 16:40:26 2007 +0000 H. Peter Anvin 
+  * Add standard macro for [default] directive
+Wed Aug 29 16:38:47 2007 +0000 H. Peter Anvin 
+  * More test cases for rel and abs addressing
+Wed Aug 29 16:38:05 2007 +0000 H. Peter Anvin 
+  * Add [default] directive
+Wed Aug 29 16:25:46 2007 +0000 H. Peter Anvin 
+  * nasmlib: add bsii() case-insensitive version of bsi()
+Wed Aug 29 15:49:53 2007 +0000 H. Peter Anvin 
+  * Add test cases for IP-relative addressing
+Wed Aug 29 15:19:19 2007 +0000 H. Peter Anvin 
+  * Suppress IP-relative only for fs: and gs: overrides
+Tue Aug 28 23:06:00 2007 +0000 H. Peter Anvin 
+  * Implement REL/ABS modifiers
+Sun Aug 26 05:51:39 2007 +0000 Frank Kotler 
+  * attempt to make static makefiles aware of outelf32/outelf64
+Sun Aug 26 05:48:54 2007 +0000 Frank Kotler 
+  * add nasm_strsep to nasmlib, for output/outmacho.c - strtok doesn't work
+Sun Aug 26 05:41:33 2007 +0000 Frank Kotler 
+  * remove "#include <unistd.h> from rdoff directory - two places - it annoyed Windows users and seems unneeded
+Sun Aug 26 05:10:24 2007 +0000 Frank Kotler 
+  * finally commit Mike Frysinger's "elf-visibility" patch
+Mon Aug 20 21:03:14 2007 +0000 H. Peter Anvin 
+  * regs.pl: handle dashed sequences with suffixes
+Mon Aug 20 20:10:04 2007 +0000 H. Peter Anvin 
+  * sync.c: change ULONG_MAX to UINT32_MAX
+Mon Aug 20 20:09:11 2007 +0000 H. Peter Anvin 
+  * Add _MIN and _MAX macros for the fixed-size types.
+Mon Aug 20 20:02:17 2007 +0000 H. Peter Anvin 
+  * ldrdf: cast output of sizeof() before passing to printf(), to avoid warning.
+Sun Aug 19 18:49:26 2007 +0000 Keith Kanios 
+  * Fixed RIP address processing ambiguity found by Charles Crayne.
+Fri Aug 17 07:37:52 2007 +0000 Keith Kanios 
+  * Fixed issues with REX prefix effective address generation. Fixed XMM instruction output.
+Fri Aug 17 02:03:10 2007 +0000 Keith Kanios 
+  * Changed MMXREG and XMMREG flags to help resolve invalid REX prefix generation for MMX instructions.
+Sat Jul 7 02:01:08 2007 +0000 H. Peter Anvin 
+  * More int/int32_t confusion
+Sat Jul 7 01:59:52 2007 +0000 H. Peter Anvin 
+  * regflag() should return int32_t.
+Thu Jun 21 19:00:12 2007 +0000 H. Peter Anvin 
+  * Detect missing <inttypes.h> and include ersatz version if missing
+Thu Jun 21 06:24:23 2007 +0000 H. Peter Anvin 
+  * inttypes.h: for older preprocessors, specify L and LL as appropriate
+Thu Jun 21 06:20:43 2007 +0000 H. Peter Anvin 
+  * inttypes.h: Fix spelling of SHRT_MAX
+Thu Jun 21 06:15:42 2007 +0000 H. Peter Anvin 
+  * inttypes.h: do a single ersatz <inttypes.h> based on <limits.h>
+Sun Jun 3 02:42:41 2007 +0000 Chuck Crayne 
+  * Support 32-bit direct addressing in 64-bit mode without base or index regs
+Sat Jun 2 02:26:21 2007 +0000 H. Peter Anvin 
+  * Fix the [U]INT*_C() creation macros
+Sat Jun 2 00:05:35 2007 +0000 H. Peter Anvin 
+  * For platforms that don't have them, provide <inttypes.h> for common models.
+Wed May 30 22:21:11 2007 +0000 H. Peter Anvin 
+  * Fix the handling of the \313 code.
+Wed May 30 22:20:01 2007 +0000 H. Peter Anvin 
+  * Machine-generated \321->\324 corrections
+Wed May 30 21:22:33 2007 +0000 Frank Kotler 
+  * update "version" to 0.99.02
+Wed May 30 20:30:15 2007 +0000 H. Peter Anvin 
+  * Correct the generation of 67 prefixes.
+Wed May 30 18:30:18 2007 +0000 H. Peter Anvin 
+  * Update dependencies.
+Wed May 30 16:34:29 2007 +0000 Frank Kotler 
+  * update cvs server name in misc/release script
+Wed May 30 04:28:50 2007 +0000 H. Peter Anvin 
+  * Avoid magic values; we have more than 124 registers now
+Wed May 30 04:27:58 2007 +0000 H. Peter Anvin 
+  * Remove bogus redundant tests
+Wed May 30 03:44:50 2007 +0000 H. Peter Anvin 
+  * More \321 -> \324
+Wed May 30 03:44:02 2007 +0000 H. Peter Anvin 
+  * Remove bogus check for 64-bitness
+Wed May 30 03:25:21 2007 +0000 H. Peter Anvin 
+  * Get rid of magic open-coded "register numbers"
+Wed May 30 02:48:51 2007 +0000 H. Peter Anvin 
+  * MOV reg64,reg64 takes \324 (64 bit with REX) not \321 (32 bit)
+Wed May 30 00:18:26 2007 +0000 H. Peter Anvin 
+  * Rename REGNORM to REG_EA
+Wed May 30 00:15:25 2007 +0000 H. Peter Anvin 
+  * More instruction flag surgery
+Wed May 30 00:05:00 2007 +0000 H. Peter Anvin 
+  * More cleanup of operand flags/register classes
+Tue May 29 23:57:12 2007 +0000 H. Peter Anvin 
+  * Clean up the existing operand flag definitions, and document
+Tue May 29 21:44:55 2007 +0000 H. Peter Anvin 
+  * Run "make alldeps"
+Thu May 24 22:33:07 2007 +0000 Frank Kotler 
+  * update version number to 0.99.01
+Tue May 15 04:33:43 2007 +0000 H. Peter Anvin 
+  * regs.dat: fix comment
+Fri May 4 18:47:16 2007 +0000 H. Peter Anvin 
+  * 16-bit relocations are standard in ELF64 (at my request, incidentally)
+Fri May 4 02:16:08 2007 +0000 Chuck Crayne 
+  * Addition of elf32 and elf64 output formats.
+Wed May 2 04:21:26 2007 +0000 Chuck Crayne 
+  * Allow '!' to be used in expressions with same meaning as in C.
+Wed May 2 01:59:16 2007 +0000 Chuck Crayne 
+  * Add %IFN and %ELIFN as per RFE #786286
+Mon Apr 30 22:26:58 2007 +0000 Chuck Crayne 
+  * Accept responsibility for support of outelf64.c
+Sun Apr 29 20:57:53 2007 +0000 Chuck Crayne 
+  * Clarify comments about relocation entries.
+Sun Apr 29 00:28:24 2007 +0000 Chuck Crayne 
+  * Allow ELF32 to be invoked either as -f elf or -f elf32
+Sat Apr 28 22:18:04 2007 +0000 Chuck Crayne 
+  * Eliminate shift count warnings when building on 32-bit systems
+Sat Apr 28 06:18:48 2007 +0000 Chuck Crayne 
+  * Initial support for ELF64
+Wed Apr 18 02:27:18 2007 +0000 H. Peter Anvin 
+  * Fix the handling of \324 for computing the length
+Wed Apr 18 02:24:34 2007 +0000 Keith Kanios 
+  * Fixed RDF/2 to comply with "maxbits" use.
+Tue Apr 17 20:23:11 2007 +0000 H. Peter Anvin 
+  * Handle "LOCK as REX.R" for MOV CRx; fix warning for invalid 64-bit regs
+Mon Apr 16 18:16:46 2007 +0000 Keith Kanios 
+  * MEM_OFFSET Instructions Fixed.
+Mon Apr 16 15:46:46 2007 +0000 Keith Kanios 
+  * Fixed 64-bit Mode Segment Selection.
+Mon Apr 16 14:31:54 2007 +0000 Keith Kanios 
+  * Fixed distinction between [LOCAL]SYMBOL/IMMEDIATE for RIP-relative addressing.
+Mon Apr 16 14:05:01 2007 +0000 Keith Kanios 
+  * Fixed long mode MEM_OFFS issue.
+Mon Apr 16 13:54:49 2007 +0000 Keith Kanios 
+  * Filled in all RIP Register Flags.
+Mon Apr 16 05:26:29 2007 +0000 H. Peter Anvin 
+  * More \321 -> \324 for 64-bit instructions
+Mon Apr 16 04:56:06 2007 +0000 Keith Kanios 
+  * Fixed 64-bit offset generation.
+Mon Apr 16 02:39:56 2007 +0000 H. Peter Anvin 
+  * More 64-bit ndisasm fixes.
+Mon Apr 16 02:02:06 2007 +0000 H. Peter Anvin 
+  * Fixes for 64-bit ndisasm.
+Mon Apr 16 01:21:29 2007 +0000 H. Peter Anvin 
+  * Use + instead of * for extension; it feels cleaner with the new meaning.
+Mon Apr 16 01:18:30 2007 +0000 H. Peter Anvin 
+  * Initial 64-bit support for ndisasm.  Still a work in progress.
+Sun Apr 15 23:12:17 2007 +0000 H. Peter Anvin 
+  * Clean up the 64-bitification of regs.dat for 64-bit ndisasm support
+Sun Apr 15 23:10:26 2007 +0000 H. Peter Anvin 
+  * Remove @GCCFLAGS@
+Sun Apr 15 23:09:23 2007 +0000 H. Peter Anvin 
+  * CR8 is not special in any way as far as the assembler is concerned.
+Sun Apr 15 23:03:28 2007 +0000 H. Peter Anvin 
+  * Get rid of @GCCFLAGS@
+Sun Apr 15 22:45:25 2007 +0000 H. Peter Anvin 
+  * Cleaner way to add gcc options
+Sun Apr 15 22:08:30 2007 +0000 Keith Kanios 
+  * Fixed distinction between RIP relative symbols and immediate values.
+Sun Apr 15 05:40:43 2007 +0000 H. Peter Anvin 
+  * Fix the register number for CR7 (it was using the same number as CR15).
+Sun Apr 15 05:32:18 2007 +0000 H. Peter Anvin 
+  * More perl-like idioms for generating regdis.c
+Sun Apr 15 01:37:13 2007 +0000 Keith Kanios 
+  * Fixed regdis.c generation.
+Sat Apr 14 18:54:52 2007 +0000 Keith Kanios 
+  * Added DQ constants for all BITS modes.
+Sat Apr 14 08:03:02 2007 +0000 H. Peter Anvin 
+  * outmacho.c: stylistic cleanups
+Sat Apr 14 03:52:05 2007 +0000 Keith Kanios 
+  * Fixed support for DQ constants in long mode.
+Sat Apr 14 03:44:31 2007 +0000 Keith Kanios 
+  * Hopefully it is actually fixed this time :P
+Sat Apr 14 01:49:07 2007 +0000 Keith Kanios 
+  * Fixed structure initialization issue.
+Sat Apr 14 01:44:35 2007 +0000 Keith Kanios 
+  * Refixed uninitialized data.
+Sat Apr 14 01:40:24 2007 +0000 Keith Kanios 
+  * Fixed uninitialized structure data.
+Sat Apr 14 01:24:14 2007 +0000 Keith Kanios 
+  * c99 printf/fprintf compliance.
+Sat Apr 14 00:46:25 2007 +0000 Keith Kanios 
+  * Placated unreferenced types.
+Sat Apr 14 00:10:59 2007 +0000 Keith Kanios 
+  * c99 printf/fprintf compliance.
+Fri Apr 13 23:09:18 2007 +0000 Keith Kanios 
+  * Added outmacho.* to static makefile.
+Fri Apr 13 22:24:46 2007 +0000 Keith Kanios 
+  * Fixed REGRIP -> RIPREG to match regs.dat.
+Fri Apr 13 22:07:53 2007 +0000 Keith Kanios 
+  * Fixed obj_fwrite() declaration to match "static" definition.
+Fri Apr 13 22:03:24 2007 +0000 Keith Kanios 
+  * Added appropriate "void" prototypes.
+Fri Apr 13 22:00:42 2007 +0000 Keith Kanios 
+  * Replaced str(n)casecmp with more standard str(n)icmp.
+Fri Apr 13 20:06:41 2007 +0000 H. Peter Anvin 
+  * AIf we have config.h, we should actually include it!!
+Fri Apr 13 19:59:20 2007 +0000 H. Peter Anvin 
+  * When compiling with gcc, compile with -W -Wall for maximum warnings.
+Fri Apr 13 19:58:42 2007 +0000 H. Peter Anvin 
+  * Macroize any compiler-specific code; macros defined in "compiler.h"
+Fri Apr 13 16:47:53 2007 +0000 Keith Kanios 
+  * Fixed distinction between char and int8_t data types.
+Fri Apr 13 01:17:45 2007 +0000 Keith Kanios 
+  * Comment "REX.I" should have been "REX.X"
+Fri Apr 13 00:52:54 2007 +0000 Keith Kanios 
+  * Fixed c99 data-types after removal of typedefs.
+Fri Apr 13 00:43:50 2007 +0000 Keith Kanios 
+  * Added Dev-Cpp Makefile
+Fri Apr 13 00:38:29 2007 +0000 Keith Kanios 
+  * *** empty log message ***
+Thu Apr 12 17:58:02 2007 +0000 H. Peter Anvin 
+  * Remove redundant inclusion of <inttypes.h>
+Thu Apr 12 16:54:50 2007 +0000 H. Peter Anvin 
+  * Remove obsolete types; add <inttypes.h> where needed; header fixes
+Thu Apr 12 16:25:58 2007 +0000 H. Peter Anvin 
+  * autogen.sh script to create configure, et al.
+Thu Apr 12 16:23:11 2007 +0000 Keith Kanios 
+  * Fixed c99 support for RDOFF Tools
+Thu Apr 12 16:12:09 2007 +0000 H. Peter Anvin 
+  * outmacho.c: Don't assume __builtin_ctzl exists for gcc < 4
+
+Mon Nov 12 22:05:31 2007 -0800 H. Peter Anvin 
+  * BR 1828866: fix handling of LAR/LSL
+Mon Nov 12 21:57:00 2007 -0800 H. Peter Anvin 
+  * Better (but not *good!*) handling of 64-bit addressing in ndisasm
+Mon Nov 12 21:02:33 2007 -0800 H. Peter Anvin 
+  * Fix disassembly of XCHG
+Mon Nov 12 20:18:33 2007 -0800 H. Peter Anvin 
+  * Test of XCHG
+Mon Nov 12 20:18:05 2007 -0800 H. Peter Anvin 
+  * Fix handling of XCHG in 64-bit mode
+Mon Nov 12 19:36:13 2007 -0800 H. Peter Anvin 
+  * More \321 -> \324 bug fixes
+Mon Nov 12 18:26:31 2007 -0800 H. Peter Anvin 
+  * float.c: all warnings and errors are pass 1 only
+Sat Nov 10 21:55:19 2007 -0800 Charles Crayne 
+  * Update documentation for stack relative directives.
+Sat Nov 10 17:52:23 2007 -0800 Charles Crayne 
+  * Clean up a few more 32-bit bottlenecks
+Fri Nov 9 16:37:41 2007 -0800 Charles Crayne 
+  * Update documentation for stack relative directives
+Fri Nov 9 16:33:54 2007 -0800 Charles Crayne 
+  * Merge branch 'master' of /home/chuck/development/gitnasm/
+Fri Nov 9 16:25:43 2007 -0800 Charles Crayne 
+  * Update documentation for stack relative directives
+Fri Nov 9 14:44:02 2007 -0800 H. Peter Anvin 
+  * Don't combine type and size into a single argument
+Thu Nov 8 22:11:14 2007 -0800 Charles Crayne 
+  * Add flat64 to %stacksize choices
+Thu Nov 8 20:43:22 2007 -0800 H. Peter Anvin 
+  * Fix building under OpenWatcom
+Thu Nov 8 20:29:37 2007 -0800 H. Peter Anvin 
+  * ps2pdf: remove -dOptimize=true
+Thu Nov 8 20:21:41 2007 -0800 H. Peter Anvin 
+  * No binary files left in the source distro; unbreak release script
+Thu Nov 8 20:01:11 2007 -0800 H. Peter Anvin 
+  * BR 1828103: Fix %arg and %local
+Thu Nov 8 19:34:01 2007 -0800 H. Peter Anvin 
+  * nasmlib.c: prefix_name(): use the elements() macro
+Thu Nov 8 19:30:22 2007 -0800 H. Peter Anvin 
+  * Move elements() to nasmlib.h
+Thu Nov 8 19:15:33 2007 -0800 H. Peter Anvin 
+  * constipate the "str" argument to bsi() and bsii()
+Wed Nov 7 19:03:46 2007 -0800 Charles Crayne 
+  * Upgrade RAA functions to hold 64-bit data.
+Tue Nov 6 21:48:12 2007 -0800 Charles Crayne 
+  * Pass 64-bit instruction lengths to back-ends.
+Tue Nov 6 18:27:23 2007 -0800 Charles Crayne 
+  * Prepare for 64-bit instruction lengths
+Mon Nov 5 21:49:49 2007 -0800 Charles Crayne 
+  * Disambiguate error messages
+Mon Nov 5 17:19:32 2007 -0800 Charles Crayne 
+  * Upgrade label functions to 64-bit
+Sun Nov 4 21:10:42 2007 -0800 H. Peter Anvin 
+  * Permit opcode names as labels as long as they are followed by a colon
+Sun Nov 4 15:28:30 2007 -0800 Charles Crayne 
+  * Make warning limit valid for both i386 and x86_64
+Sat Nov 3 22:06:13 2007 -0700 Charles Crayne 
+  * Warn on out of bounds EA displacements
+Thu Nov 1 15:08:27 2007 -0700 H. Peter Anvin 
+  * Treat info files as binary when creating xdoc distro file
+Thu Nov 1 15:07:42 2007 -0700 H. Peter Anvin 
+  * Remove obsolete binary files from the distribution
+Thu Nov 1 14:53:32 2007 -0700 H. Peter Anvin 
+  * Move declarations before statements
+Wed Oct 31 23:37:35 2007 -0700 H. Peter Anvin 
+  * NASM 0.99.06
+Wed Oct 31 23:37:19 2007 -0700 H. Peter Anvin 
+  * Script to tag the tree for release
+Wed Oct 31 10:59:26 2007 -0700 H. Peter Anvin 
+  * Even more "riprel" tests
+Tue Oct 30 01:17:57 2007 -0700 H. Peter Anvin 
+  * floatx.asm: add tests for "rounds up to smallest denorm"
+Tue Oct 30 01:13:27 2007 -0700 H. Peter Anvin 
+  * Run "make alldeps"
+Tue Oct 30 01:13:09 2007 -0700 H. Peter Anvin 
+  * float.c: handle round-up-to-denorm correctly.
+Tue Oct 30 00:59:27 2007 -0700 H. Peter Anvin 
+  * Exhaustive test for 8-bit floating point values
+Mon Oct 29 23:12:47 2007 -0700 H. Peter Anvin 
+  * Clean up the handing of operands in assemble.c
+Mon Oct 29 22:56:08 2007 -0700 H. Peter Anvin 
+  * Don't warn for segmented references
+Mon Oct 29 20:20:12 2007 -0700 H. Peter Anvin 
+  * Use a 32-bit floating-point limb size; support 8-bit float
+Mon Oct 29 18:24:59 2007 -0700 Charles Crayne 
+  * Reduce severity of redundant prefixes from error to warning.
+Sun Oct 28 23:23:24 2007 -0700 H. Peter Anvin 
+  * Test of some addressing modes in 64-bit mode.
+Sun Oct 28 23:21:46 2007 -0700 H. Peter Anvin 
+  * Fix bogus flagging of effective addresses as invalid
+Sun Oct 28 23:10:34 2007 -0700 H. Peter Anvin 
+  * Actually shut up the warning in rdfload.c
+Sun Oct 28 22:04:42 2007 -0700 H. Peter Anvin 
+  * Clean up stealth whitespace
+Sun Oct 28 22:04:00 2007 -0700 H. Peter Anvin 
+  * Fix warning about cast to pointer in rdfload.c
+Sun Oct 28 22:04:00 2007 -0700 H. Peter Anvin 
+  * 64-bit addressing and prefix handling changes
+Sun Oct 28 15:29:54 2007 -0700 Charles Crayne 
+  * Adjust stabs symbol index to match symbol table.
+Fri Oct 26 21:38:02 2007 -0700 H. Peter Anvin 
+  * readnum(): handle prefix-suffix collision like "0h"
+Fri Oct 26 18:49:29 2007 -0700 H. Peter Anvin 
+  * Better handling of platforms which hide "extended" functionality
+Wed Oct 24 15:51:40 2007 -0700 Charles Crayne 
+  * Merge branch 'master' of /home/chuck/development/gitnasm/
+Wed Oct 24 15:30:17 2007 -0700 Charles Crayne 
+  * Update sections about debug info formats
+Wed Oct 24 15:29:51 2007 -0700 H. Peter Anvin 
+  * Fix the handling of floating-point tokens in the preprocessor
+Tue Oct 23 19:28:39 2007 -0700 Charles Crayne 
+  * Fix bugs item #1817677
+Tue Oct 23 00:08:58 2007 -0700 H. Peter Anvin 
+  * Slightly simplify the radix-detection code
+Mon Oct 22 19:48:06 2007 -0700 H. Peter Anvin 
+  * Unbreak particularly tricky hex constants
+Mon Oct 22 19:37:36 2007 -0700 H. Peter Anvin 
+  * Decimal floating point can also start with 0. 0e 0E
+Mon Oct 22 17:34:10 2007 -0700 H. Peter Anvin 
+  * Support binary and octal floating-point
+Mon Oct 22 16:53:48 2007 -0700 H. Peter Anvin 
+  * More consistent handling of radix letters
+Sun Oct 21 15:33:01 2007 -0700 H. Peter Anvin 
+  * float.c: correct exponent capping
+Sun Oct 21 14:21:43 2007 -0700 Charles Crayne 
+  * Clean up elf symbol table section
+Fri Oct 19 18:33:57 2007 -0700 H. Peter Anvin 
+  * Allow $-prefixed hexadecimal FP as an alternative to 0x
+Fri Oct 19 14:43:22 2007 -0700 H. Peter Anvin 
+  * Scripts to remove stealth whitespace
+Fri Oct 19 14:42:29 2007 -0700 H. Peter Anvin 
+  * Formatting: kill off "stealth whitespace"
+Fri Oct 19 14:26:52 2007 -0700 H. Peter Anvin 
+  * test/floatx.asm: fix test case
+Fri Oct 19 14:19:52 2007 -0700 H. Peter Anvin 
+  * uscore.asm: Fix test case
+Fri Oct 19 14:17:51 2007 -0700 H. Peter Anvin 
+  * float.c: mark read_exponent() static
+Fri Oct 19 14:10:35 2007 -0700 H. Peter Anvin 
+  * Don't confuse suffixed hexadecimal with floating-point
+Fri Oct 19 13:17:24 2007 -0700 H. Peter Anvin 
+  * Anchor filename locations in .gitignore
+Fri Oct 19 13:16:51 2007 -0700 H. Peter Anvin 
+  * test/Makefile: Use -Ox instead of -O999
+Fri Oct 19 13:14:06 2007 -0700 H. Peter Anvin 
+  * Test of underscored constants
+Fri Oct 19 13:10:46 2007 -0700 H. Peter Anvin 
+  * Allow underscores in numbers; better detection of FP
+Fri Oct 19 10:52:31 2007 -0700 H. Peter Anvin 
+  * Modernize nasm.spec.in and make it closer to the Fedora version
+Thu Oct 18 23:33:06 2007 -0700 Charles Crayne 
+  * Suppress datarootdir warnings from configure
+Thu Oct 18 21:17:20 2007 -0700 Charles Crayne 
+  * Suppress signedness warnings in disassembler
+Thu Oct 18 19:14:08 2007 -0700 H. Peter Anvin 
+  * Cleaner solution for MinGW handling of __STRICT_ANSI__
+Thu Oct 18 19:14:08 2007 -0700 H. Peter Anvin 
+  * configure: Undefine __STRICT_ANSI__ for mingw's benefit
+Thu Oct 18 19:14:07 2007 -0700 H. Peter Anvin 
+  * Fix invocation of readnum()
+Thu Oct 18 19:02:42 2007 -0700 Charles Crayne 
+  * Suppress a few signedness warnings
+Thu Oct 18 17:04:10 2007 -0700 root 
+  * Avoid unnecessary warning on redefinition of section (bug 801180)
+Wed Oct 17 17:55:45 2007 -0700 Charles Crayne 
+  * Generate stabs entries for any executable section
+Tue Oct 16 22:59:09 2007 -0700 H. Peter Anvin 
+  * NASM 0.99.05
+Tue Oct 16 15:46:04 2007 -0700 H. Peter Anvin 
+  * Tests of obscenely large exponents
+Tue Oct 16 14:42:32 2007 -0700 H. Peter Anvin 
+  * Comma-separate contents of __FLOAT__
+Tue Oct 16 14:40:27 2007 -0700 H. Peter Anvin 
+  * Implement floating-point option control directive
+Tue Oct 16 11:48:07 2007 -0700 H. Peter Anvin 
+  * Floating-point warning fixes; fix round-to-overflow
+Tue Oct 16 11:32:58 2007 -0700 H. Peter Anvin 
+  * Handle rounding of denorms correctly; make fp overflow a warning
+Tue Oct 16 10:35:02 2007 -0700 H. Peter Anvin 
+  * Additional entries for .gitignore
+Tue Oct 16 10:32:57 2007 -0700 H. Peter Anvin 
+  * Refactor floating-point formatting code; fix 80-bit denorms
+Tue Oct 16 10:31:16 2007 -0700 H. Peter Anvin 
+  * Add 1.5 as a test case: representative of an exact fraction
+Mon Oct 15 20:06:06 2007 -0700 H. Peter Anvin 
+  * Recognize 'd', 't' and 'y' as radix suffixes
+Mon Oct 15 19:53:10 2007 -0700 H. Peter Anvin 
+  * Fix FISTTP opcodes (BR 689695)
+Mon Oct 15 19:46:32 2007 -0700 H. Peter Anvin 
+  * New floating-point conversion routines
+Mon Oct 15 17:48:43 2007 -0700 H. Peter Anvin 
+  * Add testnos3 from the gdtoa package (floating-point test)
+Sat Oct 13 23:19:21 2007 -0700 H. Peter Anvin 
+  * .gitignore file doesn't need to be in the release file
+Sat Oct 13 23:17:41 2007 -0700 H. Peter Anvin 
+  * Add .gitignore file so "git status" produces something sane
+Sat Oct 13 23:12:46 2007 -0700 H. Peter Anvin 
+  * autoconf: drop AC_USE_SYSTEM_EXTENSIONS to support autoconf 2.59
+Sat Oct 13 07:09:22 2007 -0700 Keith Kanios 
+  * Fix 32-bit types in preproc.c and eval.c
+Thu Oct 11 20:32:33 2007 -0700 Charles Crayne 
+  * Must define types before using them
+Thu Oct 11 13:42:09 2007 -0700 H. Peter Anvin 
+  * preproc.c: move smacro define/undef to separate functions
+Thu Oct 11 13:38:38 2007 -0700 H. Peter Anvin 
+  * preproc.c: PP_DEFINE and PP_XDEFINE are case-sensitive
+Thu Oct 11 12:52:03 2007 -0700 H. Peter Anvin 
+  * preproc.c: normalize the handling of case sensitivity
+Thu Oct 11 12:51:06 2007 -0700 H. Peter Anvin 
+  * Define macros necessary for <inttypes.h> on C++
+Thu Oct 11 10:12:58 2007 -0700 H. Peter Anvin 
+  * More "bool" fixes
+Thu Oct 11 10:11:57 2007 -0700 H. Peter Anvin 
+  * preproc.c: allow 64-bit repeat counts
+Thu Oct 11 10:06:19 2007 -0700 H. Peter Anvin 
+  * preproc.c: For an SMacro, in_progress really is a boolean (no %rep)
+Thu Oct 11 00:05:57 2007 -0700 H. Peter Anvin 
+  * Additional uses of bool and enum
+Thu Oct 11 00:05:57 2007 -0700 H. Peter Anvin 
+  * preproc.c: MMacro.in_progress is not a boolean
+Wed Oct 10 18:07:51 2007 -0700 H. Peter Anvin 
+  * saa_fread/fwrite: when seeking, must set [rw]ptr as well
+Wed Oct 10 14:58:45 2007 -0700 H. Peter Anvin 
+  * Use the compiler-provided booleans if available, otherwise emulate
+Wed Oct 10 14:55:14 2007 -0700 H. Peter Anvin 
+  * owlinux.mak: don't clean things we won't be able to
+Wed Oct 10 14:29:53 2007 -0700 H. Peter Anvin 
+  * configure.in: looks like we need autoconf 2.61 :(
+Wed Oct 10 14:06:59 2007 -0700 H. Peter Anvin 
+  * Create option -Ox to tell NASM to do unlimited passes
+Mon Oct 8 19:26:57 2007 -0700 H. Peter Anvin 
+  * Revert "floatb.asm: fix broken testcase"
+Mon Oct 8 18:39:24 2007 -0700 H. Peter Anvin 
+  * floatb.asm: fix broken testcase
+Mon Oct 8 12:41:00 2007 -0700 H. Peter Anvin 
+  * saa_rstruct: fix overrun check
+Mon Oct 8 12:12:23 2007 -0700 H. Peter Anvin 
+  * Add Frank's floattest.asm test file
+Sun Oct 7 21:13:14 2007 -0700 H. Peter Anvin 
+  * saa_fpwrite: initializing "len" should be part of the loop
+Sun Oct 7 18:46:57 2007 -0700 Charles Crayne 
+  * Fix infinite loop in function saa_fpwrite
+Fri Oct 5 17:44:16 2007 -0700 H. Peter Anvin 
+  * zerobyte.asm: use a real instruction to avoid confusing ndisasm
+Fri Oct 5 17:42:31 2007 -0700 H. Peter Anvin 
+  * zerobyte.asm: add test cases for non-initial \170 uses
+Fri Oct 5 17:29:01 2007 -0700 H. Peter Anvin 
+  * Check in the proper zerobyte test
+Fri Oct 5 17:04:32 2007 -0700 H. Peter Anvin 
+  * Emit REX prefix before literal zero (\170)
+Fri Oct 5 17:01:15 2007 -0700 H. Peter Anvin 
+  * LICENSE: Break long line
+Fri Oct 5 14:36:03 2007 -0700 H. Peter Anvin 
+  * Add test for problematic floats
+Thu Oct 4 23:51:08 2007 -0700 H. Peter Anvin 
+  * floatx.asm: add Inf and NaN to the boundary condition tests
+Thu Oct 4 23:09:19 2007 -0700 H. Peter Anvin 
+  * floatx.asm: add specific tests for exponent boundary conditions
+Thu Oct 4 22:51:08 2007 -0700 H. Peter Anvin 
+  * float.c: correct the exponent
+Thu Oct 4 15:18:23 2007 -0700 H. Peter Anvin 
+  * Additional rules in test/Makefile
+Thu Oct 4 13:42:56 2007 -0700 H. Peter Anvin 
+  * Rewrite the handling of SAA's to allow random access
+Wed Oct 3 21:30:57 2007 -0700 H. Peter Anvin 
+  * Change cloc_t to struct location, and reorder the members
+Wed Oct 3 21:24:51 2007 -0700 H. Peter Anvin 
+  * BR 1352920: change loc_t -> cloc_t
+Wed Oct 3 21:22:16 2007 -0700 H. Peter Anvin 
+  * BR 1352920: Handle upper case %line
+Wed Oct 3 17:40:12 2007 -0700 H. Peter Anvin 
+  * Use autoconf to request feature macros
+Tue Oct 2 22:04:15 2007 -0700 H. Peter Anvin 
+  * preproc.c: constipation
+Tue Oct 2 21:57:27 2007 -0700 H. Peter Anvin 
+  * make alldeps
+Tue Oct 2 21:53:51 2007 -0700 H. Peter Anvin 
+  * Portability fixes
+Tue Oct 2 21:13:18 2007 -0700 H. Peter Anvin 
+  * Run "make alldeps".
+Tue Oct 2 17:40:00 2007 -0700 H. Peter Anvin 
+  * Use the crc64 we already use as the perfect hash function prehash
+Tue Oct 2 15:09:33 2007 -0700 H. Peter Anvin 
+  * insns.dat: add systematic names for the hinting NOPs (0F18-0F1F)
+Mon Oct 1 11:28:32 2007 -0700 H. Peter Anvin 
+  * Unspecified files are null strings, not null pointers
+Mon Oct 1 11:26:31 2007 -0700 H. Peter Anvin 
+  * Check for the most basic filename overlaps
+Sun Sep 30 22:15:36 2007 -0700 Charles Crayne 
+  * modified:   nasm.1 to add newer command line options
+Fri Sep 28 21:27:41 2007 -0700 Charles Crayne 
+  * Merge branch 'master' of git+ssh://ccrayne@repo.or.cz/srv/git/nasm
+Fri Sep 28 20:17:12 2007 -0700 H. Peter Anvin 
+  * configure.in: AC_SUBST_FILE should have been AC_SUBST
+Fri Sep 28 17:17:20 2007 -0700 H. Peter Anvin 
+  * Unbreak relative references to immediate addresses
+Fri Sep 28 15:16:47 2007 -0700 Charles Crayne 
+  * Merge branch 'master' of git+ssh://ccrayne@repo.or.cz/srv/git/nasm
+Fri Sep 28 12:01:55 2007 -0700 H. Peter Anvin 
+  * lib/vsnprintf.c: correct boundary conditions
+Fri Sep 28 10:50:20 2007 -0700 H. Peter Anvin 
+  * Add substitutes for snprintf() and vsnprintf()
+Fri Sep 28 02:03:41 2007 -0400 Frank Kotler 
+  * Merge branch 'master' of git+ssh://fbkotler@repo.or.cz/srv/git/nasm
+Thu Sep 27 21:35:04 2007 -0700 H. Peter Anvin 
+  * Exclude config.h from the dependency list for the canned makefiles
+Thu Sep 27 21:12:17 2007 -0700 H. Peter Anvin 
+  * version.pl: Add support for daily snapshot releases
+Thu Sep 27 19:46:55 2007 -0700 H. Peter Anvin 
+  * Add Makefile for Linux -> DOS, Win32, OS/2 using OpenWatcom
+Wed Sep 26 19:57:07 2007 -0700 H. Peter Anvin 
+  * Add Makefile for OpenWatcom (DOS, OS/2 or Win32 output)
+Wed Sep 26 17:00:18 2007 -0700 H. Peter Anvin 
+  * Test for various addressing modes in 64-bit mode
+Wed Sep 26 15:19:28 2007 -0700 H. Peter Anvin 
+  * nasm option reshuffling, -E -> -Z
+Tue Sep 25 23:57:21 2007 -0400 Frank Kotler 
+  * Version 0.99.04
+Tue Sep 25 20:36:45 2007 -0700 H. Peter Anvin 
+  * nasmdoc: corrections on 64-bit immediates/displacements
+Tue Sep 25 16:02:21 2007 -0700 H. Peter Anvin 
+  * nasmdoc: shorten lines which are too long
+Tue Sep 25 16:01:07 2007 -0700 H. Peter Anvin 
+  * Document NASM behaviour for 64-bit immediates and displacements
+Tue Sep 25 15:44:40 2007 -0700 H. Peter Anvin 
+  * test/movimm.asm: add optimizable forms
+Tue Sep 25 15:41:19 2007 -0700 H. Peter Anvin 
+  * assemble.c: clean up whitespace
+Tue Sep 25 15:40:36 2007 -0700 H. Peter Anvin 
+  * Correct the handling of "MOV" with immediate in 64-bit mode
+Tue Sep 25 15:39:42 2007 -0700 H. Peter Anvin 
+  * Test of immediate handling on 64-bit mode
+Tue Sep 25 14:27:34 2007 -0700 H. Peter Anvin 
+  * Add nasm_zalloc() to nasmlib.c
+Tue Sep 25 14:26:03 2007 -0700 H. Peter Anvin 
+  * Fix BR 1490407: size of the second operand of LAR/LSL
+Tue Sep 25 14:11:29 2007 -0700 H. Peter Anvin 
+  * Fix BR 1490407: size of the second operand of LAR/LSL
+Tue Sep 25 13:34:55 2007 -0700 H. Peter Anvin 
+  * Makefile.in: make "make install" create directories
+Tue Sep 25 08:48:37 2007 -0700 H. Peter Anvin 
+  * Fix BR 1445441: uninitialized use of "error_file"
+Mon Sep 24 21:33:17 2007 -0700 H. Peter Anvin 
+  * preproc.c: fix the loop in %undef
+Mon Sep 24 20:53:48 2007 -0700 H. Peter Anvin 
+  * float.c: clear off uninitialized warning
+Mon Sep 24 17:02:41 2007 -0700 H. Peter Anvin 
+  * outcoff: set the "virtual size field" to zero (BR 1351586)
+Mon Sep 24 15:56:02 2007 -0700 H. Peter Anvin 
+  * insns.dat: SMINT - mark ND, DMINT - fix opcode
+Mon Sep 24 15:55:20 2007 -0700 H. Peter Anvin 
+  * 0F0F is a 3Dnow! prefix; remove from prefix list
+Mon Sep 24 15:48:09 2007 -0700 H. Peter Anvin 
+  * Additional compaction missed by script
+Mon Sep 24 15:42:53 2007 -0700 H. Peter Anvin 
+  * insns.dat: machine-generated compaction mmx/xmmreg,mem -> mmx/xmmrm
+Mon Sep 24 13:54:00 2007 -0700 H. Peter Anvin 
+  * nasmdoc: grammar fix
+Mon Sep 24 13:44:02 2007 -0700 H. Peter Anvin 
+  * nasmdoc: remove stray periods
+Mon Sep 24 13:42:09 2007 -0700 H. Peter Anvin 
+  * test/Makefile: make a bit more useful
+Mon Sep 24 13:41:58 2007 -0700 H. Peter Anvin 
+  * Implement the -MG option (SF RFE 1564264)
+Mon Sep 24 12:52:09 2007 -0700 H. Peter Anvin 
+  * nasmdoc: clarify __float*__ example
+Mon Sep 24 12:44:38 2007 -0700 H. Peter Anvin 
+  * nasmdoc: document the __float*__ operators
+Mon Sep 24 12:30:54 2007 -0700 H. Peter Anvin 
+  * Support __float*__ for floating-point numbers in expressions
+Mon Sep 24 10:51:07 2007 -0700 H. Peter Anvin 
+  * eval.c: replace sequence of ifs with switch
+Mon Sep 24 10:50:23 2007 -0700 H. Peter Anvin 
+  * tokhash: allow a bit smarter pattern matching
+Sat Sep 22 22:35:28 2007 -0700 H. Peter Anvin 
+  * Implement INVLPGA according to the documentation
+Sat Sep 22 22:02:34 2007 -0700 H. Peter Anvin 
+  * Reformat insns.dat to uniform column width
+Sat Sep 22 21:50:03 2007 -0700 H. Peter Anvin 
+  * Simple test for 0x67 prefixes
+Sat Sep 22 21:49:51 2007 -0700 H. Peter Anvin 
+  * Auto-generate 0x67 prefixes without the need for \30x codes
+Sat Sep 22 21:47:13 2007 -0700 H. Peter Anvin 
+  * Make test/Makefile a bit more useful
+Sat Sep 22 21:29:41 2007 -0700 H. Peter Anvin 
+  * Add TY_OWORD for "DO" output
+Sat Sep 22 19:52:11 2007 -0700 H. Peter Anvin 
+  * LDDQU needs \301 (BR 1103549)
+Sat Sep 22 19:51:13 2007 -0700 H. Peter Anvin 
+  * RDTSCP and INVLPGA aren't 64-bit specific
+Sat Sep 22 19:40:37 2007 -0700 H. Peter Anvin 
+  * Cyrix GX1 instructions: BBx_RESET, CPU_READ, CPU_WRITE
+Sat Sep 22 19:28:14 2007 -0700 H. Peter Anvin 
+  * Centaur XSHA1, XSHA256, MONTMUL
+Sat Sep 22 19:20:56 2007 -0700 H. Peter Anvin 
+  * Implement Centaur's XCRYPT instructions
+Sat Sep 22 19:13:05 2007 -0700 H. Peter Anvin 
+  * Add Geode LX (AMD's Cyrix-derived core) instructions
+Sat Sep 22 19:05:11 2007 -0700 H. Peter Anvin 
+  * Add the GETSEC instruction for Intel SMX
+Sat Sep 22 18:59:18 2007 -0700 H. Peter Anvin 
+  * Add the AMD SSE4a and LZCNT instructions
+Sat Sep 22 18:23:20 2007 -0700 H. Peter Anvin 
+  * Tag UMOV as ND (no disassembly) to avoid collision
+Sat Sep 22 18:20:49 2007 -0700 H. Peter Anvin 
+  * Disallow optimizing by less than 5 passes.
+Sat Sep 22 17:45:45 2007 -0700 H. Peter Anvin 
+  * BR 1783117: Document that %+ needs a space after it, and fix crash
+Sat Sep 22 16:44:56 2007 -0700 H. Peter Anvin 
+  * nasm.spec.in: minor fixes
+Sat Sep 22 16:38:25 2007 -0700 H. Peter Anvin 
+  * release script: handle stricter CLI parsing for "git tag"
+Sat Sep 22 16:35:11 2007 -0700 H. Peter Anvin 
+  * Update nasm.spec.in and make it handle rc releases
+Sat Sep 22 16:19:19 2007 -0700 H. Peter Anvin 
+  * version.pl: support version numbers of the form X.Y[.Z]rcW
+Thu Sep 20 21:33:43 2007 -0700 Charles Crayne 
+  * Merge branch 'master' of git+ssh://ccrayne@repo.or.cz/srv/git/nasm
+Thu Sep 20 21:12:33 2007 -0700 Charles Crayne 
+  * 	modified:   misc/release to fix bug in removing .git
+Wed Sep 19 21:41:43 2007 -0700 H. Peter Anvin 
+  * Merge branch 'master' of git+ssh://repo.or.cz/srv/git/nasm
+Wed Sep 19 21:41:27 2007 -0700 H. Peter Anvin 
+  * Update manual pages
+Wed Sep 19 21:41:02 2007 -0700 H. Peter Anvin 
+  * Remove limit on number of sync points
+Wed Sep 19 21:40:37 2007 -0700 H. Peter Anvin 
+  * Make nasm_malloc() et al available from inside ndisasm
+Wed Sep 19 21:07:32 2007 -0400 Frank Kotler 
+  * Version 0.99.03
+Wed Sep 19 21:06:59 2007 -0400 Frank Kotler 
+  * Merge branch 'master' of git+ssh://fbkotler@repo.or.cz/srv/git/nasm
+Wed Sep 19 16:22:03 2007 -0700 H. Peter Anvin 
+  * Merge commit 'origin/sse5'
+Wed Sep 19 16:15:22 2007 -0700 H. Peter Anvin 
+  * test/Makefile: make a bit more useful
+Tue Sep 18 22:54:40 2007 -0700 H. Peter Anvin 
+  * Slightly optimize the interface to nasm_token_hash()
+Wed Sep 19 01:34:55 2007 -0400 Frank Kotler 
+  * Merge branch 'master' of git+ssh://fbkotler@repo.or.cz/srv/git/nasm
+Tue Sep 18 22:23:42 2007 -0700 H. Peter Anvin 
+  * Merge commit 'origin/master' into sse5
+Tue Sep 18 22:22:49 2007 -0700 H. Peter Anvin 
+  * elf64: fix 32-bit truncations
+Tue Sep 18 22:08:04 2007 -0700 H. Peter Anvin 
+  * Document Infinity and NaN
+Tue Sep 18 21:55:56 2007 -0700 H. Peter Anvin 
+  * Support generating NaNs and infinities
+Tue Sep 18 19:12:26 2007 -0700 H. Peter Anvin 
+  * Update documentation
+Tue Sep 18 18:37:36 2007 -0700 H. Peter Anvin 
+  * Simple test for hexadecimal floating-point numbers
+Tue Sep 18 18:33:17 2007 -0700 H. Peter Anvin 
+  * Fix error-reporting in hexadecimal floating-point numbers
+Tue Sep 18 18:31:26 2007 -0700 H. Peter Anvin 
+  * Support C99-style hexadecimal floating point.
+Tue Sep 18 17:50:34 2007 -0700 H. Peter Anvin 
+  * Unify all standard IEEE floating-point formats; add 128-bit
+Tue Sep 18 17:49:09 2007 -0700 H. Peter Anvin 
+  * Fix handling of DO; support unary + for floating-point numbers
+Tue Sep 18 16:39:03 2007 -0700 H. Peter Anvin 
+  * Support 16-bit IEEE floating point; used in SSE5
+Tue Sep 18 15:43:40 2007 -0700 H. Peter Anvin 
+  * Merge commit 'origin/master' into sse5
+Tue Sep 18 15:43:08 2007 -0700 H. Peter Anvin 
+  * Add NOP with argument to the instruction list
+Tue Sep 18 15:24:38 2007 -0700 H. Peter Anvin 
+  * Remove 0FC2 from list of instruction prefixes
+Tue Sep 18 15:08:20 2007 -0700 H. Peter Anvin 
+  * Speed up the disassembler by allowing prefixed instruction tables
+Tue Sep 18 13:45:12 2007 -0700 H. Peter Anvin 
+  * Document oword, do and reso
+Tue Sep 18 13:01:32 2007 -0700 H. Peter Anvin 
+  * Implement "oword" (128 bits) as a first-class size
+Tue Sep 18 12:38:07 2007 -0700 H. Peter Anvin 
+  * Change the token prehash function for better convergence
+Tue Sep 18 12:23:21 2007 -0700 H. Peter Anvin 
+  * SSE5 instruction table
+Tue Sep 18 02:06:09 2007 -0400 Frank Kotler 
+  * add "const" to output/outdbg.c
+Mon Sep 17 18:45:44 2007 -0700 H. Peter Anvin 
+  * Disassembler support for SSE5 instructions
+Mon Sep 17 17:27:46 2007 -0700 H. Peter Anvin 
+  * insns.dat: All SSE5 instructions are AMD
+Mon Sep 17 17:25:27 2007 -0700 H. Peter Anvin 
+  * Actually generate SSE5 instructions
+Mon Sep 17 16:55:04 2007 -0700 H. Peter Anvin 
+  * Initial support for generating DREX suffixes
+Mon Sep 17 16:31:33 2007 -0700 H. Peter Anvin 
+  * Fix a few instances of missing renumbers
+Mon Sep 17 16:20:45 2007 -0700 H. Peter Anvin 
+  * Enable IF_AR3
+Mon Sep 17 15:49:53 2007 -0700 H. Peter Anvin 
+  * Merge commit 'origin/master' into sse5
+Mon Sep 17 15:49:30 2007 -0700 H. Peter Anvin 
+  * Initial support for four arguments per instruction
+Mon Sep 17 15:48:32 2007 -0700 H. Peter Anvin 
+  * CLFLUSH: Neither an x64 instruction nor AMD
+Mon Sep 17 13:56:26 2007 -0700 H. Peter Anvin 
+  * Sort dependency lists
+Mon Sep 17 13:53:14 2007 -0700 H. Peter Anvin 
+  * Cleaner way to handle MSVC's _snprintf() underscore damage
+Mon Sep 17 13:19:25 2007 -0700 H. Peter Anvin 
+  * test/r13.asm: test special-casing of rbp and r13 in 64-bit mode
+Mon Sep 17 13:03:33 2007 -0700 H. Peter Anvin 
+  * Additional documentation for 64-bit programming
+Sun Sep 16 22:27:07 2007 -0700 H. Peter Anvin 
+  * INSTALL: MSVC++ compilation instructions
+Sun Sep 16 22:17:29 2007 -0700 H. Peter Anvin 
+  * make alldeps: change Mkfiles/Makefile.* to Mkfiles/*.mak
+Sun Sep 16 22:16:24 2007 -0700 H. Peter Anvin 
+  * Fix Makefile for MSVC++ 2005, delete obsolete Makefiles
+Sun Sep 16 22:15:34 2007 -0700 H. Peter Anvin 
+  * Minor fixes needed to compile with MSVC++ 2005
+Sun Sep 16 18:35:02 2007 -0700 H. Peter Anvin 
+  * Run "make alldeps"
+Sun Sep 16 18:04:57 2007 -0700 H. Peter Anvin 
+  * Switch the preprocessor over to using the hash table library
+Sun Sep 16 17:53:17 2007 -0700 H. Peter Anvin 
+  * Fix the handling of local labels
+Fri Sep 14 18:36:01 2007 -0700 H. Peter Anvin 
+  * preproc.c: remove unnecessary int64_t
+Fri Sep 14 18:03:29 2007 -0700 H. Peter Anvin 
+  * Use the new hash table function library to store labels
+Fri Sep 14 09:24:38 2007 -0700 H. Peter Anvin 
+  * Define a proper hash table library
+Thu Sep 13 18:13:20 2007 -0700 H. Peter Anvin 
+  * Simple performance benchmarks: label, macro and token lookups
+Thu Sep 13 12:25:32 2007 -0700 H. Peter Anvin 
+  * release script: fix final cleanup
+Thu Sep 13 12:22:00 2007 -0700 H. Peter Anvin 
+  * Modify release script for a git-centric world
+Thu Sep 13 11:06:42 2007 -0700 H. Peter Anvin 
+  * pptok.c: don't insist on C99 compiler behaviour
+Wed Sep 12 22:02:06 2007 -0700 H. Peter Anvin 
+  * Fix literal F2 and F3 prefixes
+Wed Sep 12 21:58:51 2007 -0700 H. Peter Anvin 
+  * Add (untested!) SSSE3, SSE4.1, SSE4.2 instructions
+Wed Sep 12 21:06:36 2007 -0700 H. Peter Anvin 
+  * Add support for Tejas New Instructions (SSSE3)
+Wed Sep 12 21:05:06 2007 -0700 H. Peter Anvin 
+  * Remove $Id$ tags (useless with git)
+Wed Sep 12 21:04:58 2007 -0700 H. Peter Anvin 
+  * Use rm32 operands for VMREAD/VMWRITE
+Wed Sep 12 21:04:51 2007 -0700 H. Peter Anvin 
+  * Macros for SSSE3/SSE4 instruction sets
+Wed Sep 12 21:04:39 2007 -0700 H. Peter Anvin 
+  * Support r/m operands for non-integer types
+Wed Sep 12 20:27:41 2007 -0700 H. Peter Anvin 
+  * Use enumerations where practical to ease debugging
+Wed Sep 12 17:02:55 2007 +0000 H. Peter Anvin 
+  * pptok.c: quick-and-dirty downcasing during prehashing
+Wed Sep 12 16:55:57 2007 +0000 H. Peter Anvin 
+  * phash: Tell the user when the graph is OK
+Wed Sep 12 05:18:20 2007 +0000 H. Peter Anvin 
+  * pptok.c: handle holes in the pp_directives array
+Wed Sep 12 04:20:08 2007 +0000 H. Peter Anvin 
+  * preproc.c: adjust whitespace
+Wed Sep 12 04:18:37 2007 +0000 H. Peter Anvin 
+  * More automation in the preprocessor conditionals handling
+Wed Sep 12 02:13:39 2007 +0000 H. Peter Anvin 
+  * pptok.c: fix spacing
+Wed Sep 12 02:12:07 2007 +0000 H. Peter Anvin 
+  * Generate automatically correct tests for %if and %elif
+Wed Sep 12 01:34:19 2007 +0000 H. Peter Anvin 
+  * Run "make alldeps"; add dependencies missing from the previous checkin
+Wed Sep 12 01:29:43 2007 +0000 H. Peter Anvin 
+  * Use a perfect hash to look up preprocessor directives
+Wed Sep 12 01:27:53 2007 +0000 H. Peter Anvin 
+  * phash: Be a bit more aggressive about trying to make a small hash
+Wed Sep 12 00:22:29 2007 +0000 H. Peter Anvin 
+  * Add RCXZ as a known preprocessor condition
+Tue Sep 11 23:57:23 2007 +0000 H. Peter Anvin 
+  * doc: add some cross-references
+Tue Sep 11 23:52:01 2007 +0000 H. Peter Anvin 
+  * Feeble attempt at updating the documentation; remove Appendix B
+Tue Sep 11 22:44:03 2007 +0000 H. Peter Anvin 
+  * Handle instructions which can have both REX.W and OSP
+Tue Sep 11 22:14:18 2007 +0000 H. Peter Anvin 
+  * Use enums to make debugging easier
+Tue Sep 11 22:13:17 2007 +0000 H. Peter Anvin 
+  * ndisasm: handle \366 codes, prefer unprefixed instructions
+Tue Sep 11 22:00:34 2007 +0000 H. Peter Anvin 
+  * Simplify tokens.dat slightly
+Tue Sep 11 04:26:44 2007 +0000 H. Peter Anvin 
+  * Quiet gcc warning about uninitialized variables
+Tue Sep 11 04:16:57 2007 +0000 H. Peter Anvin 
+  * Make the big instruction arrays "const"
+Mon Sep 10 23:32:05 2007 +0000 H. Peter Anvin 
+  * Use an actual enum for the opcode
+Mon Sep 10 23:30:21 2007 +0000 H. Peter Anvin 
+  * Fix order of token arguments
+Mon Sep 10 18:59:26 2007 +0000 H. Peter Anvin 
+  * assemble.c: correct special handing of ESP/RSP
+Mon Sep 10 18:59:01 2007 +0000 H. Peter Anvin 
+  * tokhash: correct duplicate-token test
+Mon Sep 10 18:58:40 2007 +0000 H. Peter Anvin 
+  * tokhash: adjust table types to reduce size
+Mon Sep 10 18:55:52 2007 +0000 H. Peter Anvin 
+  * Fix the MMXREG and XMMREG flags definitions.
+Wed Sep 5 06:48:38 2007 +0000 H. Peter Anvin 
+  * nasm.spec.in: Copyright -> License
+Wed Sep 5 06:40:51 2007 +0000 H. Peter Anvin 
+  * Fix "make tar"; useful for RPM testing
+Wed Sep 5 06:24:43 2007 +0000 H. Peter Anvin 
+  * Remove obsolete Serial: construct; we shouldn't need it anyway.
+Tue Sep 4 01:29:43 2007 +0000 Chuck Crayne 
+  * Provide 64-bit support for ORG directive
+Sun Sep 2 16:37:03 2007 +0000 H. Peter Anvin 
+  * Fix some MMX/SSE irregularities which interact with the 64-bit support
+Sun Sep 2 14:46:00 2007 +0000 H. Peter Anvin 
+  * phash.ph: yet another attempt at getting Perl to behave, arithmetically
+Sun Sep 2 06:23:29 2007 +0000 H. Peter Anvin 
+  * Simple 64-bit org test
+Sun Sep 2 06:20:15 2007 +0000 H. Peter Anvin 
+  * phash.ph: remove some stale code
+Sun Sep 2 01:00:34 2007 +0000 Chuck Crayne 
+  * Force use of integer values for generating hash keys.
+Fri Aug 31 18:10:23 2007 +0000 H. Peter Anvin 
+  * phash: don't rely on the build platform Perl version of rand()
+Fri Aug 31 07:31:51 2007 +0000 H. Peter Anvin 
+  * tokhash.pl: formatting changes for readability
+Fri Aug 31 07:23:31 2007 +0000 H. Peter Anvin 
+  * tokhash: Speed up the rejection of unhashed values
+Fri Aug 31 06:06:17 2007 +0000 H. Peter Anvin 
+  * tokhash.pl: "ix" should have the same width as the "hash" arrays
+Fri Aug 31 00:28:35 2007 +0000 H. Peter Anvin 
+  * Add "do not edit" comment to tokhash.c
+Fri Aug 31 00:23:40 2007 +0000 H. Peter Anvin 
+  * Make the token hash a bit smaller by using 16-bit hash tables
+Fri Aug 31 00:16:10 2007 +0000 H. Peter Anvin 
+  * Minor cleanup; remove duplication of names.c
+Thu Aug 30 23:42:39 2007 +0000 H. Peter Anvin 
+  * phash.ph: use a bipartite graph to reduce the storage requirements
+Thu Aug 30 22:35:34 2007 +0000 H. Peter Anvin 
+  * Finishing touches on perfect hash tokenizer; actually turn the thing on
+Thu Aug 30 21:50:20 2007 +0000 H. Peter Anvin 
+  * Makefile rule for tokhash.c
+Thu Aug 30 21:47:46 2007 +0000 H. Peter Anvin 
+  * tokens.dat: Data file containing alphanumeric tokens not in other .dats
+Thu Aug 30 21:45:56 2007 +0000 H. Peter Anvin 
+  * Generate a perfect hash for the token parser
+Thu Aug 30 21:40:08 2007 +0000 H. Peter Anvin 
+  * Fix bugs in repeated suffix handling, which led to missing r8d/r8w/r8d
+Thu Aug 30 21:39:37 2007 +0000 H. Peter Anvin 
+  * phash.ph: more powerful prehashing
+Thu Aug 30 20:15:25 2007 +0000 H. Peter Anvin 
+  * Make the perfect hash generator an includable module
+Wed Aug 29 20:30:31 2007 +0000 H. Peter Anvin 
+  * Correct the logic for recording fs: and gs: overrides.
+Wed Aug 29 18:20:19 2007 +0000 H. Peter Anvin 
+  * Generate R_X86_64_64 relocations in elf64 output
+Wed Aug 29 17:24:03 2007 +0000 H. Peter Anvin 
+  * Add README file
+Wed Aug 29 17:20:09 2007 +0000 H. Peter Anvin 
+  * Create a Perl library directory, and add the Graph module to it
+Wed Aug 29 17:05:17 2007 +0000 H. Peter Anvin 
+  * Perfect hash generator, as a perl script
+Wed Aug 29 16:41:43 2007 +0000 H. Peter Anvin 
+  * Use standard macro for the default directive
+Wed Aug 29 16:40:26 2007 +0000 H. Peter Anvin 
+  * Add standard macro for [default] directive
+Wed Aug 29 16:38:47 2007 +0000 H. Peter Anvin 
+  * More test cases for rel and abs addressing
+Wed Aug 29 16:38:05 2007 +0000 H. Peter Anvin 
+  * Add [default] directive
+Wed Aug 29 16:25:46 2007 +0000 H. Peter Anvin 
+  * nasmlib: add bsii() case-insensitive version of bsi()
+Wed Aug 29 15:49:53 2007 +0000 H. Peter Anvin 
+  * Add test cases for IP-relative addressing
+Wed Aug 29 15:19:19 2007 +0000 H. Peter Anvin 
+  * Suppress IP-relative only for fs: and gs: overrides
+Tue Aug 28 23:06:00 2007 +0000 H. Peter Anvin 
+  * Implement REL/ABS modifiers
+Sun Aug 26 05:51:39 2007 +0000 Frank Kotler 
+  * attempt to make static makefiles aware of outelf32/outelf64
+Sun Aug 26 05:48:54 2007 +0000 Frank Kotler 
+  * add nasm_strsep to nasmlib, for output/outmacho.c - strtok doesn't work
+Sun Aug 26 05:41:33 2007 +0000 Frank Kotler 
+  * remove "#include <unistd.h> from rdoff directory - two places - it annoyed Windows users and seems unneeded
+Sun Aug 26 05:10:24 2007 +0000 Frank Kotler 
+  * finally commit Mike Frysinger's "elf-visibility" patch
+Mon Aug 20 21:03:14 2007 +0000 H. Peter Anvin 
+  * regs.pl: handle dashed sequences with suffixes
+Mon Aug 20 20:10:04 2007 +0000 H. Peter Anvin 
+  * sync.c: change ULONG_MAX to UINT32_MAX
+Mon Aug 20 20:09:11 2007 +0000 H. Peter Anvin 
+  * Add _MIN and _MAX macros for the fixed-size types.
+Mon Aug 20 20:02:17 2007 +0000 H. Peter Anvin 
+  * ldrdf: cast output of sizeof() before passing to printf(), to avoid warning.
+Sun Aug 19 18:49:26 2007 +0000 Keith Kanios 
+  * Fixed RIP address processing ambiguity found by Charles Crayne.
+Fri Aug 17 07:37:52 2007 +0000 Keith Kanios 
+  * Fixed issues with REX prefix effective address generation. Fixed XMM instruction output.
+Fri Aug 17 02:03:10 2007 +0000 Keith Kanios 
+  * Changed MMXREG and XMMREG flags to help resolve invalid REX prefix generation for MMX instructions.
+Sat Jul 7 02:01:08 2007 +0000 H. Peter Anvin 
+  * More int/int32_t confusion
+Sat Jul 7 01:59:52 2007 +0000 H. Peter Anvin 
+  * regflag() should return int32_t.
+Thu Jun 21 19:00:12 2007 +0000 H. Peter Anvin 
+  * Detect missing <inttypes.h> and include ersatz version if missing
+Thu Jun 21 06:24:23 2007 +0000 H. Peter Anvin 
+  * inttypes.h: for older preprocessors, specify L and LL as appropriate
+Thu Jun 21 06:20:43 2007 +0000 H. Peter Anvin 
+  * inttypes.h: Fix spelling of SHRT_MAX
+Thu Jun 21 06:15:42 2007 +0000 H. Peter Anvin 
+  * inttypes.h: do a single ersatz <inttypes.h> based on <limits.h>
+Sun Jun 3 02:42:41 2007 +0000 Chuck Crayne 
+  * Support 32-bit direct addressing in 64-bit mode without base or index regs
+Sat Jun 2 02:26:21 2007 +0000 H. Peter Anvin 
+  * Fix the [U]INT*_C() creation macros
+Sat Jun 2 00:05:35 2007 +0000 H. Peter Anvin 
+  * For platforms that don't have them, provide <inttypes.h> for common models.
+Wed May 30 22:21:11 2007 +0000 H. Peter Anvin 
+  * Fix the handling of the \313 code.
+Wed May 30 22:20:01 2007 +0000 H. Peter Anvin 
+  * Machine-generated \321->\324 corrections
+Wed May 30 21:22:33 2007 +0000 Frank Kotler 
+  * update "version" to 0.99.02
+Wed May 30 20:30:15 2007 +0000 H. Peter Anvin 
+  * Correct the generation of 67 prefixes.
+Wed May 30 18:30:18 2007 +0000 H. Peter Anvin 
+  * Update dependencies.
+Wed May 30 16:34:29 2007 +0000 Frank Kotler 
+  * update cvs server name in misc/release script
+Wed May 30 04:28:50 2007 +0000 H. Peter Anvin 
+  * Avoid magic values; we have more than 124 registers now
+Wed May 30 04:27:58 2007 +0000 H. Peter Anvin 
+  * Remove bogus redundant tests
+Wed May 30 03:44:50 2007 +0000 H. Peter Anvin 
+  * More \321 -> \324
+Wed May 30 03:44:02 2007 +0000 H. Peter Anvin 
+  * Remove bogus check for 64-bitness
+Wed May 30 03:25:21 2007 +0000 H. Peter Anvin 
+  * Get rid of magic open-coded "register numbers"
+Wed May 30 02:48:51 2007 +0000 H. Peter Anvin 
+  * MOV reg64,reg64 takes \324 (64 bit with REX) not \321 (32 bit)
+Wed May 30 00:18:26 2007 +0000 H. Peter Anvin 
+  * Rename REGNORM to REG_EA
+Wed May 30 00:15:25 2007 +0000 H. Peter Anvin 
+  * More instruction flag surgery
+Wed May 30 00:05:00 2007 +0000 H. Peter Anvin 
+  * More cleanup of operand flags/register classes
+Tue May 29 23:57:12 2007 +0000 H. Peter Anvin 
+  * Clean up the existing operand flag definitions, and document
+Tue May 29 21:44:55 2007 +0000 H. Peter Anvin 
+  * Run "make alldeps"
+Thu May 24 22:33:07 2007 +0000 Frank Kotler 
+  * update version number to 0.99.01
+Tue May 15 04:33:43 2007 +0000 H. Peter Anvin 
+  * regs.dat: fix comment
+Fri May 4 18:47:16 2007 +0000 H. Peter Anvin 
+  * 16-bit relocations are standard in ELF64 (at my request, incidentally)
+Fri May 4 02:16:08 2007 +0000 Chuck Crayne 
+  * Addition of elf32 and elf64 output formats.
+Wed May 2 04:21:26 2007 +0000 Chuck Crayne 
+  * Allow '!' to be used in expressions with same meaning as in C.
+Wed May 2 01:59:16 2007 +0000 Chuck Crayne 
+  * Add %IFN and %ELIFN as per RFE #786286
+Mon Apr 30 22:26:58 2007 +0000 Chuck Crayne 
+  * Accept responsibility for support of outelf64.c
+Sun Apr 29 20:57:53 2007 +0000 Chuck Crayne 
+  * Clarify comments about relocation entries.
+Sun Apr 29 00:28:24 2007 +0000 Chuck Crayne 
+  * Allow ELF32 to be invoked either as -f elf or -f elf32
+Sat Apr 28 22:18:04 2007 +0000 Chuck Crayne 
+  * Eliminate shift count warnings when building on 32-bit systems
+Sat Apr 28 06:18:48 2007 +0000 Chuck Crayne 
+  * Initial support for ELF64
+Wed Apr 18 02:27:18 2007 +0000 H. Peter Anvin 
+  * Fix the handling of \324 for computing the length
+Wed Apr 18 02:24:34 2007 +0000 Keith Kanios 
+  * Fixed RDF/2 to comply with "maxbits" use.
+Tue Apr 17 20:23:11 2007 +0000 H. Peter Anvin 
+  * Handle "LOCK as REX.R" for MOV CRx; fix warning for invalid 64-bit regs
+Mon Apr 16 18:16:46 2007 +0000 Keith Kanios 
+  * MEM_OFFSET Instructions Fixed.
+Mon Apr 16 15:46:46 2007 +0000 Keith Kanios 
+  * Fixed 64-bit Mode Segment Selection.
+Mon Apr 16 14:31:54 2007 +0000 Keith Kanios 
+  * Fixed distinction between [LOCAL]SYMBOL/IMMEDIATE for RIP-relative addressing.
+Mon Apr 16 14:05:01 2007 +0000 Keith Kanios 
+  * Fixed long mode MEM_OFFS issue.
+Mon Apr 16 13:54:49 2007 +0000 Keith Kanios 
+  * Filled in all RIP Register Flags.
+Mon Apr 16 05:26:29 2007 +0000 H. Peter Anvin 
+  * More \321 -> \324 for 64-bit instructions
+Mon Apr 16 04:56:06 2007 +0000 Keith Kanios 
+  * Fixed 64-bit offset generation.
+Mon Apr 16 02:39:56 2007 +0000 H. Peter Anvin 
+  * More 64-bit ndisasm fixes.
+Mon Apr 16 02:02:06 2007 +0000 H. Peter Anvin 
+  * Fixes for 64-bit ndisasm.
+Mon Apr 16 01:21:29 2007 +0000 H. Peter Anvin 
+  * Use + instead of * for extension; it feels cleaner with the new meaning.
+Mon Apr 16 01:18:30 2007 +0000 H. Peter Anvin 
+  * Initial 64-bit support for ndisasm.  Still a work in progress.
+Sun Apr 15 23:12:17 2007 +0000 H. Peter Anvin 
+  * Clean up the 64-bitification of regs.dat for 64-bit ndisasm support
+Sun Apr 15 23:10:26 2007 +0000 H. Peter Anvin 
+  * Remove @GCCFLAGS@
+Sun Apr 15 23:09:23 2007 +0000 H. Peter Anvin 
+  * CR8 is not special in any way as far as the assembler is concerned.
+Sun Apr 15 23:03:28 2007 +0000 H. Peter Anvin 
+  * Get rid of @GCCFLAGS@
+Sun Apr 15 22:45:25 2007 +0000 H. Peter Anvin 
+  * Cleaner way to add gcc options
+Sun Apr 15 22:08:30 2007 +0000 Keith Kanios 
+  * Fixed distinction between RIP relative symbols and immediate values.
+Sun Apr 15 05:40:43 2007 +0000 H. Peter Anvin 
+  * Fix the register number for CR7 (it was using the same number as CR15).
+Sun Apr 15 05:32:18 2007 +0000 H. Peter Anvin 
+  * More perl-like idioms for generating regdis.c
+Sun Apr 15 01:37:13 2007 +0000 Keith Kanios 
+  * Fixed regdis.c generation.
+Sat Apr 14 18:54:52 2007 +0000 Keith Kanios 
+  * Added DQ constants for all BITS modes.
+Sat Apr 14 08:03:02 2007 +0000 H. Peter Anvin 
+  * outmacho.c: stylistic cleanups
+Sat Apr 14 03:52:05 2007 +0000 Keith Kanios 
+  * Fixed support for DQ constants in long mode.
+Sat Apr 14 03:44:31 2007 +0000 Keith Kanios 
+  * Hopefully it is actually fixed this time :P
+Sat Apr 14 01:49:07 2007 +0000 Keith Kanios 
+  * Fixed structure initialization issue.
+Sat Apr 14 01:44:35 2007 +0000 Keith Kanios 
+  * Refixed uninitialized data.
+Sat Apr 14 01:40:24 2007 +0000 Keith Kanios 
+  * Fixed uninitialized structure data.
+Sat Apr 14 01:24:14 2007 +0000 Keith Kanios 
+  * c99 printf/fprintf compliance.
+Sat Apr 14 00:46:25 2007 +0000 Keith Kanios 
+  * Placated unreferenced types.
+Sat Apr 14 00:10:59 2007 +0000 Keith Kanios 
+  * c99 printf/fprintf compliance.
+Fri Apr 13 23:09:18 2007 +0000 Keith Kanios 
+  * Added outmacho.* to static makefile.
+Fri Apr 13 22:24:46 2007 +0000 Keith Kanios 
+  * Fixed REGRIP -> RIPREG to match regs.dat.
+Fri Apr 13 22:07:53 2007 +0000 Keith Kanios 
+  * Fixed obj_fwrite() declaration to match "static" definition.
+Fri Apr 13 22:03:24 2007 +0000 Keith Kanios 
+  * Added appropriate "void" prototypes.
+Fri Apr 13 22:00:42 2007 +0000 Keith Kanios 
+  * Replaced str(n)casecmp with more standard str(n)icmp.
+Fri Apr 13 20:06:41 2007 +0000 H. Peter Anvin 
+  * AIf we have config.h, we should actually include it!!
+Fri Apr 13 19:59:20 2007 +0000 H. Peter Anvin 
+  * When compiling with gcc, compile with -W -Wall for maximum warnings.
+Fri Apr 13 19:58:42 2007 +0000 H. Peter Anvin 
+  * Macroize any compiler-specific code; macros defined in "compiler.h"
+Fri Apr 13 16:47:53 2007 +0000 Keith Kanios 
+  * Fixed distinction between char and int8_t data types.
+Fri Apr 13 01:17:45 2007 +0000 Keith Kanios 
+  * Comment "REX.I" should have been "REX.X"
+Fri Apr 13 00:52:54 2007 +0000 Keith Kanios 
+  * Fixed c99 data-types after removal of typedefs.
+Fri Apr 13 00:43:50 2007 +0000 Keith Kanios 
+  * Added Dev-Cpp Makefile
+Fri Apr 13 00:38:29 2007 +0000 Keith Kanios 
+  * *** empty log message ***
+Thu Apr 12 17:58:02 2007 +0000 H. Peter Anvin 
+  * Remove redundant inclusion of <inttypes.h>
+Thu Apr 12 16:54:50 2007 +0000 H. Peter Anvin 
+  * Remove obsolete types; add <inttypes.h> where needed; header fixes
+Thu Apr 12 16:25:58 2007 +0000 H. Peter Anvin 
+  * autogen.sh script to create configure, et al.
+Thu Apr 12 16:23:11 2007 +0000 Keith Kanios 
+  * Fixed c99 support for RDOFF Tools
+Thu Apr 12 16:12:09 2007 +0000 H. Peter Anvin 
+  * outmacho.c: Don't assume __builtin_ctzl exists for gcc < 4
+
+  * Get rid of @GCCFLAGS@
+Sun Apr 15 22:45:25 2007 +0000 H. Peter Anvin 
+  * Cleaner way to add gcc options
+Sun Apr 15 22:08:30 2007 +0000 Keith Kanios 
+  * Fixed distinction between RIP relative symbols and immediate values.
+Sun Apr 15 05:40:43 2007 +0000 H. Peter Anvin 
+  * Fix the register number for CR7 (it was using the same number as CR15).
+Sun Apr 15 05:32:18 2007 +0000 H. Peter Anvin 
+  * More perl-like idioms for generating regdis.c
+Sun Apr 15 01:37:13 2007 +0000 Keith Kanios 
+  * Fixed regdis.c generation.
+Sat Apr 14 18:54:52 2007 +0000 Keith Kanios 
+  * Added DQ constants for all BITS modes.
+Sat Apr 14 08:03:02 2007 +0000 H. Peter Anvin 
+  * outmacho.c: stylistic cleanups
+Sat Apr 14 03:52:05 2007 +0000 Keith Kanios 
+  * Fixed support for DQ constants in long mode.
+Sat Apr 14 03:44:31 2007 +0000 Keith Kanios 
+  * Hopefully it is actually fixed this time :P
+Sat Apr 14 01:49:07 2007 +0000 Keith Kanios 
+  * Fixed structure initialization issue.
+Sat Apr 14 01:44:35 2007 +0000 Keith Kanios 
+  * Refixed uninitialized data.
+Sat Apr 14 01:40:24 2007 +0000 Keith Kanios 
+  * Fixed uninitialized structure data.
+Sat Apr 14 01:24:14 2007 +0000 Keith Kanios 
+  * c99 printf/fprintf compliance.
+Sat Apr 14 00:46:25 2007 +0000 Keith Kanios 
+  * Placated unreferenced types.
+Sat Apr 14 00:10:59 2007 +0000 Keith Kanios 
+  * c99 printf/fprintf compliance.
+Fri Apr 13 23:09:18 2007 +0000 Keith Kanios 
+  * Added outmacho.* to static makefile.
+Fri Apr 13 22:24:46 2007 +0000 Keith Kanios 
+  * Fixed REGRIP -> RIPREG to match regs.dat.
+Fri Apr 13 22:07:53 2007 +0000 Keith Kanios 
+  * Fixed obj_fwrite() declaration to match "static" definition.
+Fri Apr 13 22:03:24 2007 +0000 Keith Kanios 
+  * Added appropriate "void" prototypes.
+Fri Apr 13 22:00:42 2007 +0000 Keith Kanios 
+  * Replaced str(n)casecmp with more standard str(n)icmp.
+Fri Apr 13 20:06:41 2007 +0000 H. Peter Anvin 
+  * AIf we have config.h, we should actually include it!!
+Fri Apr 13 19:59:20 2007 +0000 H. Peter Anvin 
+  * When compiling with gcc, compile with -W -Wall for maximum warnings.
+Fri Apr 13 19:58:42 2007 +0000 H. Peter Anvin 
+  * Macroize any compiler-specific code; macros defined in "compiler.h"
+Fri Apr 13 16:47:53 2007 +0000 Keith Kanios 
+  * Fixed distinction between char and int8_t data types.
+Fri Apr 13 01:17:45 2007 +0000 Keith Kanios 
+  * Comment "REX.I" should have been "REX.X"
+Fri Apr 13 00:52:54 2007 +0000 Keith Kanios 
+  * Fixed c99 data-types after removal of typedefs.
+Fri Apr 13 00:43:50 2007 +0000 Keith Kanios 
+  * Added Dev-Cpp Makefile
+Fri Apr 13 00:38:29 2007 +0000 Keith Kanios 
+  * *** empty log message ***
+Thu Apr 12 17:58:02 2007 +0000 H. Peter Anvin 
+  * Remove redundant inclusion of <inttypes.h>
+Thu Apr 12 16:54:50 2007 +0000 H. Peter Anvin 
+  * Remove obsolete types; add <inttypes.h> where needed; header fixes
+Thu Apr 12 16:25:58 2007 +0000 H. Peter Anvin 
+  * autogen.sh script to create configure, et al.
+Thu Apr 12 16:23:11 2007 +0000 Keith Kanios 
+  * Fixed c99 support for RDOFF Tools
+Thu Apr 12 16:12:09 2007 +0000 H. Peter Anvin 
+  * outmacho.c: Don't assume __builtin_ctzl exists for gcc < 4
+2007-04-10  Keith Kanios <keith@kanios.net>
+   * (insns.dat): updated x86-64 general+system instruction set.
+
+2007-04-09  Keith Kanios <keith@kanios.net>
+   * (outrdf.c): added support for 64-bit addressing.
+   * (outrdf2.c): added support for 64-bit addressing.
+
+2007-04-08  Keith Kanios <keith@kanios.net>
+   * (standard.mac): added entry for __BITS__ standard macro.
+   * (preproc.c): added __BITS__ to the standard macro processing.
+
+2007-04-05  Keith Kanios <keith@kanios.net>
+   * (nasm.c): added [BITS 64] for the x86-64 architecture extension.
+   * (nasm.h): added general flags to support the x86-64 architecture.
+   * (nasmlib.h): updated to support the x86-64 architecture.
+   * (nasmlib.c): revamped readnum/readlinenum to support 64-bit.
+   * (assemble.c): modified for the x86-64 architecture extension.
+   * (regs.dat): added x86-64 register extensions; revamped flags.
+   * (insns.dat): added AMD64 instruction set support.
+   * (outbin.c): added support for 64-bit addressing.
+   * (outcoff.c): added win64 (x86-64 COFF) support.
+   * (outform.h): added entry for win64.
+
+2007-03-15  Keith Kanios <keith@kanios.net>
+   * (*.c): added c99 data-type compliance and <inttypes.h> inclusion.
+   * (*.pl): added c99 data-type compliance and <inttypes.h> inclusion.
+   * (*.h): added c99 data-type compliance.
+   * (assemble.h): fixed procedure definitions to sync with respective
+   procedure declarations.
+
+2002-05-16  Ed Beroset <beroset@mindspring.com>
+   * (preproc.c): fixed unterminated macro bug error reporting
+   * (nasmlib.h): changed strdup's arg to const char *
+   * (nasmlib.c): changed strdup's arg to const char *
+
+2002-05-12  Debbie Wiles <debs@dwiles.demon.co.uk>
+   * (insns.dat): fixed incorrect processor flags
+   * (Mkfiles/Makefile.vc): added optimisation, and changed to work with 0.98.31
+   * (doc/nasmdoc.src): added %ifmacro, and tidied up format of code items.
+
+2002-05-03  H. Peter Anvin <hpa@zytor.com>
+   * (nasm.c): Change the NASM environment variable to NASMOPT.
+
+2002-05-03  H. Peter Anvin <hpa@zytor.com>
+   * (Makefile.in Mkfiles/*): use new version -> version.{h,mac}.
+   * (macros.pl): support multiple input files (standard.mac, version.mac).
+   * (standard.mac): use an explicit delimiter to end the TASM macros.
+   * (nasm-version): remove, no longer needed.
+   * (version.pl): script to produce version.h and version.mac from version.
+   * (version): contains the official NASM version.
+   * (nasm.h): include version.h.
+
+2002-05-03  H. Peter Anvin <hpa@zytor.com>
+
+   * (configure.in): create output directory.
+   * (Makefile.in): change cd ; to cd &&.
+   * (rdoff/Makefile.in): handle building in a separate obj directory
+     correctly.
+	
+2002-04-29  Stanislav Karchebny  <madfire@users.sourceforge.net>
+
+   * (Makefile.in): added 'strip' target to strip debug info.
+   * (INSTALL): added INSTALL file.
+   * (nasm.1): added -v option description.
+
+
+2002-04-29  Frank Kotler  <fbkotler@users.sourceforge.net>
+
+   * (parser.c): fixed INCBIN bug reported by Rebel.
+
+
+2002-04-11  Stanislav Karchebny  <madfire@users.sourceforge.net>
+
+   * Started ChangeLog for recording per-file changes in the project.
+     We could get away without ChangeLog at all (use CVS logs), but we
+     lose CVS so often its better to have log glued to the sources =)
+     You should record changes in CHANGES also, not for every change
+     but rather when making a release.
+
