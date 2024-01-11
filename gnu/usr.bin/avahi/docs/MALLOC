@@ -1,0 +1,8 @@
+Avahi supports pluggable memory allocator implemenations. See
+<avahi-common/malloc.h> for more information.
+
+Currently, Avahi does not deal well with out-of-memory
+situations. Therefore we recommend the usage of memory allocators that
+abort() in case of OOM. The default allocator used by Avahi does this.
+
+Eventually we will improve Avahi to deal with these things better.

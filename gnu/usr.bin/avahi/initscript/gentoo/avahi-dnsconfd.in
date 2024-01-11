@@ -1,0 +1,28 @@
+#!/sbin/openrc-run
+# Copyright 1999-2016 Gentoo Foundation
+# Distributed under the terms of the GNU General Public License v2
+
+extra_started_commands="reload"
+
+depend() {
+	need avahi-daemon
+	use net
+}
+
+start() {
+	ebegin "Starting avahi-dnsconfd"
+	@sbindir@/avahi-dnsconfd -D
+	eend $?
+}
+
+stop() {
+	ebegin "Stopping avahi-dnsconfd"
+	@sbindir@/avahi-dnsconfd -k
+	eend $?
+}
+
+reload() {
+	ebegin "Reloading avahi-dnsconfd"
+	@sbindir@/avahi-dnsconfd -r
+	eend $?
+}

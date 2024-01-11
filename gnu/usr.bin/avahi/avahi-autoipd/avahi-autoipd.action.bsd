@@ -1,0 +1,48 @@
+#!/bin/sh
+
+# This file is part of avahi.
+# 
+# avahi is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# avahi is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with avahi; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+
+set -e
+
+# Command line arguments:
+#   $1 event that happened:
+#          BIND:     Successfully claimed address
+#          CONFLICT: An IP address conflict happened
+#          UNBIND:   The IP address is no longer needed
+#          STOP:     The daemon is terminating
+#   $2 interface name
+#   $3 IP adddress
+
+# We have the BSD ifconfig tool
+
+case "$1" in
+BIND)
+    ifconfig "$2" "$3"/16
+    ;;
+
+CONFLICT|STOP|UNBIND)
+    ifconfig "$2" "$3"/16 delete
+    ;;
+
+*)
+    echo "Unknown event $1" >&2
+    exit 1
+    ;;
+esac
+
+exit 0

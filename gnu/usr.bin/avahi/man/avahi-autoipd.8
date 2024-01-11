@@ -1,0 +1,83 @@
+.TH avahi-autoipd 8 User Manuals
+.SH NAME
+avahi-autoipd \- IPv4LL network address configuration daemon
+.SH SYNOPSIS
+\fBavahi-autoipd [\fIoptions\fB] \fIinterface\fB
+
+avahi-autoipd --kill\fB \fIinterface\fB
+
+avahi-autoipd --refresh\fB \fIinterface\fB
+
+avahi-autoipd --check\fB \fIinterface\fB
+\f1
+.SH DESCRIPTION
+avahi-autoipd implements IPv4LL, "Dynamic Configuration of IPv4 Link-Local Addresses" (IETF RFC3927), a protocol for automatic IP address configuration from the link-local 169.254.0.0/16 range without the need for a central server. It is primarily intended to be used in ad-hoc networks which lack a DHCP server.
+
+IPv4LL is part of the Zeroconf stack.
+
+avahi-autoipd can be used as stand-alone address allocator or as plugin for a DHCP client such as ISC's dhclient, where it can be used as fallback solution if no DHCP server is found.
+
+To allow communication between hosts that have only an IPv4LL address assigned and hosts that only have a routable IP address assigned you may add the following routes to both network configurations:
+
+\fBroute add -net 169.254.0.0 netmask 255.255.0.0 dev eth0 metric 99\f1
+
+\fBroute add default dev eth0 metric 99\f1
+
+See http://developer.apple.com/qa/qa2004/qa1357.html for more information.
+.SH OPTIONS
+.TP
+\fB-D | --daemonize\f1
+Daemonize after startup. Implies \fB--syslog\f1.
+.TP
+\fB-k | --kill\f1
+Kill an already running avahi-autoipd on the specified network interface. (Equivalent to sending a SIGTERM)
+.TP
+\fB-r | --refresh\f1
+Tell an already running avahi-autoipd to re-announce the acquired IP address on the specified network interface. (Equivalent to sending a SIGHUP)
+.TP
+\fB-c | --check\f1
+Return 0 as return code if avahi-autoipd is already running for the specified network interface.
+.TP
+\fB-s | --syslog\f1
+Log to syslog instead of STDERR. Implied by \fB--daemonize\f1.
+.TP
+\fB--debug\f1
+Enable verbose mode.
+.TP
+\fB--no-drop-root\f1
+Don't drop root privileges after startup. We recommend not to use this option.
+.TP
+\fB--no-chroot\f1
+Don't \fBchroot(2)\f1 the daemon. This option is only available when compiled with chroot() support.
+.TP
+\fB-S | --start=\f1
+Try to acquire the specified IP address, which must be from the IPv4LL range 169.254.0.0/16.
+.TP
+\fB-w | --wait\f1
+Wait until a IP address has been successfully acquired before detaching. Only valid in combination with \fB--daemonize\f1.
+.TP
+\fB--force-bind\f1
+Acquire an IPv4LL address, even if a routable address has been configured on the interface.
+.TP
+\fB--no-proc-title\f1
+Don't change the process name while running. Unless this option is specified avahi-autoipd will reflect its current state and the IP address in the process title.
+.TP
+\fB-h | --help\f1
+Show help.
+.TP
+\fB-v | --version\f1
+Show version information.
+.SH FILES
+\fI/etc/avahi/avahi-autoipd.action\f1: the script to run when an IP address as been acquired or is lost.
+.SH SIGNALS
+\fISIGINT, SIGTERM\f1: avahi-autoipd will shutdown. (Same as \fB--kill\f1)
+
+\fISIGHUP\f1: avahi-autoipd will re-announce the acquired IP address. (Same as \fB--refresh\f1)
+.SH AUTHORS
+The Avahi Developers <avahi (at) lists (dot) freedesktop (dot) org>; Avahi is available from \fBhttp://avahi.org/\f1
+.SH SEE ALSO
+\fBautoipd.action(8)\f1, \fBdhclient(8)\f1
+
+http://avahi.org/wiki/AvahiAutoipd documents how avahi-autoipd is best packaged and integrated into distributions.
+.SH COMMENTS
+This man page was written using \fBxml2man(1)\f1 by Oliver Kurth.

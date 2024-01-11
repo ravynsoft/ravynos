@@ -1,0 +1,53 @@
+*** Quick install instructions (tested on Debian/Ubuntu only!) ***
+
+While "configure" and "make" may be run as normal user all other commands
+need to be run as root.
+
+Configure the build system:
+	$ ./configure --sysconfdir=/etc --localstatedir=/var
+
+Some configure options available:
+
+    --disable-gtk            disable GTK+ tools                (default: enabled)
+    --disable-dbus           disable DBUS support              (default: enabled)
+    --disable-python         disable building python modules   (default: enabled)
+    --with-dbus-sys=<dir>    where D-BUS system.d directory is
+    --with-distro=<distro>   the target Linux distribution (one of redhat,
+                                    suse, gentoo, debian or slackware)
+    --with-avahi-user=<user> User for running the Avahi daemon (avahi)
+    --with-avahi-group=<grp> Group for Avahi (avahi)
+
+    Please note that by disabling DBUS you lose the ability to publish and browse
+    services from local applications.
+
+    Please note that Avahi currently ships with a init scripts for only a few
+    distributions. if yours is not supported right now, YMMV. Patches welcome.
+
+	$ make
+	# make install
+	# ldconfig
+
+Add a user an a group for avahi. (Debian specific)
+	# addgroup --system avahi
+	# adduser --system --no-create-home --ingroup avahi avahi
+
+Ask DBUS to re-read its policies:
+	# kill -HUP `cat /var/run/dbus/pid`
+
+Now start the Avahi daemon:
+	# /etc/init.d/avahi-daemon start
+
+Optionally start the unicast DNS configuration daemon:
+	# /etc/init.d/avahi-dnsconfd start
+
+To start the two daemons at boot time on Debian based distributions:
+	with DBUS support:
+	# ln -s /etc/init.d/avahi-daemon /etc/dbus-1/event.d/75avahi-daemon
+	# ln -s /etc/init.d/avahi-dnsconfd /etc/dbus-1/event.d/76avahi-dnsconfd
+
+	without DBUS support:
+	# update-rc.d avahi-daemon defaults 25 15
+	# update-rc.d avahi-dnsconfd defaults 26 14
+
+If you plan to use avahi-autoipd you have to create the user/group
+"avahi-autoipd" much the same way as "avahi".

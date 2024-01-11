@@ -1,0 +1,101 @@
+<?xml version="1.0" standalone='no'?><!--*-nxml-*-->
+<?xml-stylesheet type="text/xsl" href="introspect.xsl"?>
+<!DOCTYPE node SYSTEM "introspect.dtd">
+
+<!--
+  This file is part of avahi.
+
+  avahi is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2 of the
+  License, or (at your option) any later version.
+
+  avahi is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with avahi; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA.
+-->
+
+<node>
+
+  <interface name="org.freedesktop.DBus.Introspectable">
+    <method name="Introspect">
+      <arg name="data" type="s" direction="out"/>
+    </method>
+  </interface>
+
+  <interface name="org.freedesktop.Avahi.EntryGroup">
+    <method name="Free"/>
+    <method name="Commit"/>
+    <method name="Reset"/>
+
+    <method name="GetState">
+      <arg name="state" type="i" direction="out"/>
+    </method>
+
+    <signal name="StateChanged">
+      <arg name="state" type="i"/>
+      <arg name="error" type="s"/>
+    </signal>
+
+    <method name="IsEmpty">
+      <arg name="empty" type="b" direction="out"/>
+    </method>
+
+    <method name="AddService">
+      <arg name="interface" type="i" direction="in"/>
+      <arg name="protocol" type="i" direction="in"/>
+      <arg name="flags" type="u" direction="in"/>
+      <arg name="name" type="s" direction="in"/>
+      <arg name="type" type="s" direction="in"/>
+      <arg name="domain" type="s" direction="in"/>
+      <arg name="host" type="s" direction="in"/>
+      <arg name="port" type="q" direction="in"/>
+      <arg name="txt" type="aay" direction="in"/>
+    </method>
+
+    <method name="AddServiceSubtype">
+      <arg name="interface" type="i" direction="in"/>
+      <arg name="protocol" type="i" direction="in"/>
+      <arg name="flags" type="u" direction="in"/>
+      <arg name="name" type="s" direction="in"/>
+      <arg name="type" type="s" direction="in"/>
+      <arg name="domain" type="s" direction="in"/>
+      <arg name="subtype" type="s" direction="in"/>
+    </method>
+
+    <method name="UpdateServiceTxt">
+      <arg name="interface" type="i" direction="in"/>
+      <arg name="protocol" type="i" direction="in"/>
+      <arg name="flags" type="u" direction="in"/>
+      <arg name="name" type="s" direction="in"/>
+      <arg name="type" type="s" direction="in"/>
+      <arg name="domain" type="s" direction="in"/>
+      <arg name="txt" type="aay" direction="in"/>
+    </method>
+
+    <method name="AddAddress">
+      <arg name="interface" type="i" direction="in"/>
+      <arg name="protocol" type="i" direction="in"/>
+      <arg name="flags" type="u" direction="in"/>
+      <arg name="name" type="s" direction="in"/>
+      <arg name="address" type="s" direction="in"/>
+    </method>
+
+    <method name="AddRecord">
+      <arg name="interface" type="i" direction="in"/>
+      <arg name="protocol" type="i" direction="in"/>
+      <arg name="flags" type="u" direction="in"/>
+      <arg name="name" type="s" direction="in"/>
+      <arg name="clazz" type="q" direction="in"/>
+      <arg name="type" type="q" direction="in"/>
+      <arg name="ttl" type="u" direction="in"/>
+      <arg name="rdata" type="ay" direction="in"/>
+    </method>
+  </interface>
+</node>

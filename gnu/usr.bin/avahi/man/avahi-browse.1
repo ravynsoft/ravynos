@@ -1,0 +1,66 @@
+.TH avahi-browse 1 User Manuals
+.SH NAME
+avahi-browse \- Browse for mDNS/DNS-SD services using the Avahi daemon
+.SH SYNOPSIS
+\fBavahi-browse [\fIoptions\fB] \fIservice-type\fB
+
+avahi-browse [\fIoptions\fB] --all\fB
+
+avahi-browse [\fIoptions\fB] --browse-domains\fB
+
+avahi-browse [\fIoptions\fB] --dump-db\fB
+
+avahi-browse-domains [\fIoptions\fB]
+\f1
+.SH DESCRIPTION
+Browse for mDNS/DNS-SD network services and browsing domains using the Avahi daemon.
+.SH OPTIONS
+Specify a DNS-SD service type (e.g. _http._tcp) to browse for on the command line, or \fB-a\f1 to browse for all available service types. Items that appear on the network are prefixed with "+", items that disappear are prefixed with "-". If \fB--resolve\f1 is passed items that are resolved are prefixed with "=".
+.TP
+\fB-a | --all\f1
+Browse for all service types registered on the LAN, not just the one specified on the command line.
+.TP
+\fB-D | --browse-domains\f1
+Browse for browsing domains instead for services. avahi-browse-domains is equivalent to avahi-browse --browse-domains
+.TP
+\fB-d | --domain=\f1 \fIDOMAIN\f1
+Browse in the specified domain. If omitted avahi-browse will browse in the default browsing domain (usually: local)
+.TP
+\fB-v | --verbose\f1
+Enable verbose mode.
+.TP
+\fB-t | --terminate\f1
+Terminate after dumping a more or less complete list.
+.TP
+\fB-c | --cache\f1
+Terminate after dumping all entries available in the cache.
+.TP
+\fB-l | --ignore-local\f1
+Ignore local services, show only remote services.
+.TP
+\fB-r | --resolve\f1
+Automatically resolve services found.
+.TP
+\fB-f | --no-fail\f1
+Don't fail if the daemon is not found running. Instead, wait until it appears. If it disconnects, try to reconnect.
+.TP
+\fB-p | --parsable\f1
+Make output easily parsable for usage in scripts. If enabled fields are separated by semicolons (;), service names are escaped. It is recommended to combine this with \fB--no-db-lookup\f1.
+.TP
+\fB-k | --no-db-lookup\f1
+Don't lookup services types in service type database.
+.TP
+\fB-b | --dump-db\f1
+Dump the service type database (may be combined with -k)
+.TP
+\fB-h | --help\f1
+Show help.
+.TP
+\fB-V | --version\f1
+Show version information.
+.SH AUTHORS
+The Avahi Developers <avahi (at) lists (dot) freedesktop (dot) org>; Avahi is available from \fBhttp://avahi.org/\f1
+.SH SEE ALSO
+\fBavahi-publish(1)\f1, \fBavahi-resolve(1)\f1, \fBavahi-daemon(8)\f1
+.SH COMMENTS
+This man page was written using \fBxml2man(1)\f1 by Oliver Kurth.

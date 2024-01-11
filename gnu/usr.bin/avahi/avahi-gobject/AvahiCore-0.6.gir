@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+<repository version="1.2"
+            xmlns="http://www.gtk.org/introspection/core/1.0"
+            xmlns:c="http://www.gtk.org/introspection/c/1.0"
+            xmlns:glib="http://www.gtk.org/introspection/glib/1.0">
+  <namespace name="AvahiCore" version="0.6" shared-library="libavahi-core.so.7">
+    <alias name="IfIndex" c:type="AvahiIfIndex">
+      <type name="gint" c:type="int"/>
+    </alias>
+    <enumeration name="Protocol" c:type="AvahiProtocol">
+      <member name="inet"
+              value="0"
+              c:identifier="AVAHI_PROTO_INET"/>
+      <member name="inet6"
+              value="1"
+              c:identifier="AVAHI_PROTO_INET6"/>
+      <member name="unspec"
+              value="-1"
+              c:identifier="AVAHI_PROTO_UNSPEC"/>
+    </enumeration>
+    <bitfield name="PublishFlags" c:type="AvahiPublishFlags">
+      <member name="unique"
+              value="1"
+              c:identifier="AVAHI_PUBLISH_UNIQUE"/>
+      <member name="no_probe"
+              value="2"
+              c:identifier="AVAHI_PUBLISH_NO_PROBE"/>
+      <member name="no_announce"
+              value="4"
+              c:identifier="AVAHI_PUBLISH_NO_ANNOUNCE"/>
+      <member name="allow_multiple"
+              value="8"
+              c:identifier="AVAHI_PUBLISH_ALLOW_MULTIPLE"/>
+      <member name="no_reverse"
+              value="16"
+              c:identifier="AVAHI_PUBLISH_NO_reverse"/>
+      <member name="no_cookie"
+              value="32"
+              c:identifier="AVAHI_PUBLISH_NO_cookie"/>
+      <member name="update"
+              value="64"
+              c:identifier="AVAHI_PUBLISH_UPDATE"/>
+      <member name="use_wide_area"
+              value="128"
+              c:identifier="AVAHI_PUBLISH_USE_WIDE_AREA"/>
+      <member name="use_multicast"
+              value="256"
+              c:identifier="AVAHI_PUBLISH_USE_MULTICAST"/>
+    </bitfield>
+    <record name="StringList" c:type="AvahiStringList"/>
+    <record name="Address" c:type="AvahiAddress"/>
+    <record name="Client" c:type="AvahiClient"/>
+    <function name="server_get_host_name" c:identifier="avahi_server_get_host_name">
+      <return-value transfer-ownership="none">
+        <type name="utf8" c:type="char8"/>
+      </return-value>
+      <parameters>
+      </parameters>
+    </function>
+  </namespace>
+</repository>

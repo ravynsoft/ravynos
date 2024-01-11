@@ -1,0 +1,125 @@
+<Type Name="ServiceResolver" FullName="Avahi.ServiceResolver">
+  <TypeSignature Language="C#" Value="public class ServiceResolver : Avahi.ResolverBase, System.IDisposable" />
+  <AssemblyInfo>
+    <AssemblyName>avahi-sharp</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>Avahi.ResolverBase</BaseTypeName>
+  </Base>
+  <Interfaces>
+    <Interface>
+      <InterfaceName>System.IDisposable</InterfaceName>
+    </Interface>
+  </Interfaces>
+  <Members>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public ServiceResolver (Avahi.Client client, string name, string type, string domain);" />
+      <MemberType>Constructor</MemberType>
+      <Parameters>
+        <Parameter Name="client" Type="Avahi.Client" />
+        <Parameter Name="name" Type="System.String" />
+        <Parameter Name="type" Type="System.String" />
+        <Parameter Name="domain" Type="System.String" />
+      </Parameters>
+      <Docs>
+        <param name="client">To be added.</param>
+        <param name="name">To be added.</param>
+        <param name="type">To be added.</param>
+        <param name="domain">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public ServiceResolver (Avahi.Client client, Avahi.ServiceInfo service);" />
+      <MemberType>Constructor</MemberType>
+      <Parameters>
+        <Parameter Name="client" Type="Avahi.Client" />
+        <Parameter Name="service" Type="Avahi.ServiceInfo" />
+      </Parameters>
+      <Docs>
+        <param name="client">To be added.</param>
+        <param name="service">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Found">
+      <MemberSignature Language="C#" Value="public event Avahi.ServiceInfoHandler Found;" />
+      <MemberType>Event</MemberType>
+      <ReturnValue>
+        <ReturnType>Avahi.ServiceInfoHandler</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Timeout">
+      <MemberSignature Language="C#" Value="public event EventHandler Timeout;" />
+      <MemberType>Event</MemberType>
+      <ReturnValue>
+        <ReturnType>System.EventHandler</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Dispose">
+      <MemberSignature Language="C#" Value="public void Dispose ();" />
+      <MemberType>Method</MemberType>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Service">
+      <MemberSignature Language="C#" Value="public Avahi.ServiceInfo Service { get; };" />
+      <MemberType>Property</MemberType>
+      <ReturnValue>
+        <ReturnType>Avahi.ServiceInfo</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <value>To be added.</value>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public ServiceResolver (Avahi.Client client, int iface, Avahi.Protocol proto, string name, string type, string domain, Avahi.Protocol aproto, Avahi.LookupFlags flags);" />
+      <MemberType>Constructor</MemberType>
+      <Parameters>
+        <Parameter Name="client" Type="Avahi.Client" />
+        <Parameter Name="iface" Type="System.Int32" />
+        <Parameter Name="proto" Type="Avahi.Protocol" />
+        <Parameter Name="name" Type="System.String" />
+        <Parameter Name="type" Type="System.String" />
+        <Parameter Name="domain" Type="System.String" />
+        <Parameter Name="aproto" Type="Avahi.Protocol" />
+        <Parameter Name="flags" Type="Avahi.LookupFlags" />
+      </Parameters>
+      <Docs>
+        <param name="client">To be added.</param>
+        <param name="iface">To be added.</param>
+        <param name="proto">To be added.</param>
+        <param name="name">To be added.</param>
+        <param name="type">To be added.</param>
+        <param name="domain">To be added.</param>
+        <param name="aproto">To be added.</param>
+        <param name="flags">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+</Type>

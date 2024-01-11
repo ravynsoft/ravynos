@@ -1,0 +1,50 @@
+<?xml version="1.0" standalone='no'?><!--*-nxml-*-->
+<!DOCTYPE service-group SYSTEM "avahi-service.dtd">
+
+<!--
+  This file is part of avahi.
+ 
+  avahi is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2 of the
+  License, or (at your option) any later version.
+
+  avahi is distributed in the hope that it will be useful, but
+  WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+  General Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with avahi; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA
+  02111-1307 USA.
+-->
+
+<!-- See avahi.service(5) for more information about this configuration file -->
+
+<service-group>
+
+  <name replace-wildcards="yes">Printer on %h</name>
+
+  <service>
+    <type>_printer._tcp</type>
+    <port>515</port>
+  </service>
+
+  <service>
+    <type>_ipp._tcp</type>
+    <subtype>_colour._sub._ipp._tcp</subtype>
+    <port>631</port>
+  </service>
+
+  <service protocol="ipv6">
+    <type>_uberprinter._tcp</type>
+    <domain-name>local</domain-name>
+    <host-name>quux.local</host-name>
+    <port>4711</port>
+    <txt-record>this=is</txt-record>
+    <txt-record>a=really</txt-record>
+    <txt-record>bad=example</txt-record>
+  </service>
+
+</service-group>

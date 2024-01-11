@@ -1,0 +1,143 @@
+<?xml version="1.0"?><!--*-nxml-*-->
+<!DOCTYPE manpage SYSTEM "xmltoman.dtd">
+<?xml-stylesheet type="text/xsl" href="xmltoman.xsl" ?>
+
+<!--
+  This file is part of avahi.
+
+  avahi is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of the
+  License, or (at your option) any later version.
+
+  avahi is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General
+  Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with avahi; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+-->
+
+  <manpage name="avahi.service" section="5" desc="avahi-daemon static service file">
+
+	<synopsis>
+      <cmd>@servicedir@/*.service</cmd>
+	</synopsis>
+
+    <description> <p><file>@servicedir@/*.service</file> are XML
+      fragments containing static DNS-SD service data. Every service
+      file can contain multiple service definitions which share the
+      same name. This is useful for publishing service data for
+      services which implement multiple protocols. (i.e. a printer
+      implementing _ipp._tcp and _printer._tcp)</p> </description>
+
+	<section name="XML Tags">
+
+      <option>
+        <p><opt>&lt;service-group&gt;</opt> The document tag of avahi
+        service files. Should contain one <opt>&lt;name&gt;</opt> and one or more
+        <opt>&lt;service&gt;</opt> elements.</p>
+      </option>
+
+      <option>
+        <p><opt>&lt;name replace-wildcards="yes|no"&gt;</opt> The
+        service name. If <opt>replace-wildcards</opt> is "yes", any
+        occurence of the string "%h" will be replaced by the local
+        host name. This can be used for service names like "Remote
+        Terminal on %h". If <opt>replace-wildcards</opt> is not
+        specified, defaults to "no".</p>
+      </option>
+
+      <option>
+        <p><opt>&lt;service protocol="ipv4|ipv6|any"&gt;</opt>
+        Contains the service information for exactly one service
+        type. Should contain one <opt>&lt;type&gt;</opt> and one
+        <opt>&lt;port&gt;</opt> element. Optionally it may contain one
+        <opt>&lt;domain-name&gt;</opt>, one
+        <opt>&lt;host-name&gt;</opt>, any number of
+        <opt>&lt;subtype&gt;</opt> and any number of
+        <opt>&lt;txt-record&gt;</opt> elements. The attribute
+        <opt>protocol</opt> specifies the protocol to advertise the
+        service on. If <opt>any</opt> is used (which is the default),
+        the service will be advertised on both IPv4 and IPv6.</p>
+      </option>
+
+      <option>
+        <p><opt>&lt;type&gt;</opt> Contains the DNS-SD service type for this service. e.g. "_http._tcp".</p>
+      </option>
+
+      <option>
+        <p><opt>&lt;subtype&gt;</opt> Contains an additional DNS-SD service subtype for this service. e.g. "_anon._sub._ftp._tcp".</p>
+      </option>
+
+      <option>
+        <p><opt>&lt;domain-name&gt;</opt> The domain name this service
+        should be registered. If omited defaults to the default domain
+        of the avahi daemon. (probably .local)</p>
+      </option>
+
+      <option>
+        <p><opt>&lt;host-name&gt;</opt> The host name of the host that
+        provides this service. This should be a host that is
+        resolvable by multicast or unicast DNS. Please note that you
+        need to specify a fully-qualified domain name (FQDN) here,
+        i.e. .local is not appended implicitly! The host name doesn't
+        need to be part of the domain specified in
+        <opt>&lt;domain-name&gt;</opt>. See <manref name="avahi.hosts"
+        section="5"/> for more information how to publish additional
+        host name mappings.</p>
+      </option>
+
+      <option>
+        <p><opt>&lt;port&gt;</opt> The IP port number the service listens on.</p>
+      </option>
+
+      <option>
+        <p><opt>&lt;txt-record
+        value-format="text|binary-hex|binary-base64"&gt;</opt> DNS-SD
+        TXT record data. If <opt>value-format</opt> is "text", the
+        value of the TXT record is taken verbatim. If
+        <opt>value-format</opt> is "binary-hex" then the value of TXT
+        record is decoded by taking pairs of characters after the "="
+        char and interpreting them as the textual representation of
+        the two-digit hexadecimal number. Both uppercase and lowercase
+        hexadecimal digits are allowed. The 0x or 0X prefix is not
+        allowed. This requires the length of the value to be even. If
+        <opt>value-format</opt> is "binary-base64" then the value of
+        TXT record is decoded with a base64 decoder. The character set
+        used is A-Za-z0-9+/. This requires the length of the value to
+        be a multiple of 4, with "=" as padding at the end. If
+        <opt>value-format</opt> is not specified, defaults to
+        "text". Examples (all the values are decoded to the string
+        "value" without quotes):</p>
+
+        <p>&lt;txt-record&gt;key=value&lt;txt-record&gt;</p>
+        <p>&lt;txt-record value-format="text"&gt;key=value&lt;txt-record&gt;</p>
+        <p>&lt;txt-record value-format="binary-hex"&gt;key=76616c7565&lt;txt-record&gt;</p>
+        <p>&lt;txt-record value-format="binary-base64"&gt;key=dmFsdWU=&lt;txt-record&gt;</p>
+      </option>
+
+
+	</section>
+
+	<section name="Authors">
+	  <p>The Avahi Developers &lt;@PACKAGE_BUGREPORT@&gt;; Avahi is
+	  available from <url href="@PACKAGE_URL@"/></p>
+	</section>
+
+	<section name="See also">
+	  <p>
+        <manref name="avahi-daemon" section="8"/>, <manref name="avahi.hosts" section="5"/>
+	  </p>
+	</section>
+
+	<section name="Comments">
+	  <p>This man page was written using <manref name="xml2man"
+	  section="1" href="http://masqmail.cx/xml2man/"/> by Oliver
+	  Kurth.</p>
+	</section>
+
+  </manpage>

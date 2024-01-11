@@ -1,0 +1,11 @@
+prefix=@prefix@
+exec_prefix=${prefix}
+libdir=@libdir@
+includedir=${prefix}/include
+
+Name: avahi-libevent
+Description: Avahi Multicast DNS Responder (libevent Support)
+Version: @PACKAGE_VERSION@
+Requires: libevent-2.1.5
+Libs: -L${libdir} -lavahi-libevent
+Cflags: -D_REENTRANT -I${includedir}

@@ -1,0 +1,83 @@
+<?xml version="1.0"?><!--*-nxml-*-->
+<!DOCTYPE manpage SYSTEM "xmltoman.dtd">
+<?xml-stylesheet type="text/xsl" href="xmltoman.xsl" ?>
+
+<!--
+  This file is part of avahi.
+
+  avahi is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of the
+  License, or (at your option) any later version.
+
+  avahi is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General
+  Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with avahi; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+-->
+
+  <manpage name="avahi-autoipd.action" section="8" desc="avahi-autoipd action script">
+
+	<synopsis>
+      <cmd>@pkgsysconfdir@/avahi-autoipd.action</cmd>
+	</synopsis>
+
+    <description>
+      <p><file>avahi-autoipd.action</file> is the action script that
+      is called whenever an IP address has been acquired by
+      avahi-autoipd or when it detected an IP address conflict. The
+      script should add or remove the specified address from the
+      specified network interface.</p>
+	</description>
+
+	<section name="Parameters">
+
+      <option>
+        <p><opt>argv[1]</opt> An event string: one of BIND, CONFLICT,
+        UNBIND or STOP. If BIND is passed an IP address has been
+        successfully acquired and the script shall add it to the
+        network interface. If CONFLICT is passed avahi-autopid
+        detected a IP address on the local network, the action script
+        should remove the configured IP address. If UNBIND is passed
+        the IP address should be removed from the interface, too,
+        because a routable address has been configured to the
+        interface by some other program. If STOP is passed the
+        avahi-autoipd is being shutdown and the action script should
+        remove the IP address. In short: on BIND the address should be
+        added to the interface, on CONFLICT, UNBIND or STOP it should
+        be removed.
+        </p>
+      </option>
+
+      <option>
+        <p><opt>argv[2]</opt> The network interface name.</p>
+      </option>
+
+      <option>
+        <p><opt>argv[3]</opt> An IP address from the IPv4LL range.</p>
+      </option>
+
+	</section>
+
+	<section name="Authors">
+	  <p>The Avahi Developers &lt;@PACKAGE_BUGREPORT@&gt;; Avahi is
+	  available from <url href="@PACKAGE_URL@"/></p>
+	</section>
+
+	<section name="See also">
+	  <p>
+        <manref name="avahi-autoipd" section="8"/>, <manref name="dhclient-script" section="8"/>, <manref name="ip" section="8"/>, <manref name="ifconfig" section="8"/>
+	  </p>
+	</section>
+
+	<section name="Comments">
+	  <p>This man page was written using <manref name="xml2man" section="1"
+		  href="http://masqmail.cx/xml2man/"/> by Oliver Kurth.</p>
+	</section>
+
+  </manpage>

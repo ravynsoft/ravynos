@@ -1,0 +1,865 @@
+# Danish translation for Avahi.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the avahi package.
+# scootergrisen, 2017-2019
+msgid ""
+msgstr ""
+"Project-Id-Version: Avahi\n"
+"Report-Msgid-Bugs-To: https://github.com/lathiat/avahi/issues\n"
+"POT-Creation-Date: 2019-02-10 15:24+0000\n"
+"PO-Revision-Date: 2019-02-11 02:31+0000\n"
+"Last-Translator: scootergrisen\n"
+"Language-Team: Danish (http://www.transifex.com/lennart/avahi/language/da/)\n"
+"Language: da\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../avahi-common/error.c:30
+msgid "OK"
+msgstr "OK"
+
+#: ../avahi-common/error.c:31
+msgid "Operation failed"
+msgstr "Handling mislykkedes"
+
+#: ../avahi-common/error.c:32
+msgid "Bad state"
+msgstr "Ugyldig tilstand"
+
+#: ../avahi-common/error.c:33
+msgid "Invalid host name"
+msgstr "Ugyldigt værtsnavn"
+
+#: ../avahi-common/error.c:34
+msgid "Invalid domain name"
+msgstr "Ugyldigt domænenavn"
+
+#: ../avahi-common/error.c:35
+msgid "No suitable network protocol available"
+msgstr "Ingen egnet netværksprotokol tilgængelig"
+
+#: ../avahi-common/error.c:36
+msgid "Invalid DNS TTL"
+msgstr "Ugyldig DNS-TTL"
+
+#: ../avahi-common/error.c:37
+msgid "Resource record key is pattern"
+msgstr "Ressourcepostnøgle er mønster"
+
+#: ../avahi-common/error.c:38
+msgid "Local name collision"
+msgstr "Lokal navnekollision"
+
+#: ../avahi-common/error.c:39
+msgid "Invalid record"
+msgstr "Ugyldig post"
+
+#: ../avahi-common/error.c:41
+msgid "Invalid service name"
+msgstr "Ugyldigt tjenestenavn"
+
+#: ../avahi-common/error.c:42
+msgid "Invalid service type"
+msgstr "Ugyldig tjenestetype"
+
+#: ../avahi-common/error.c:43
+msgid "Invalid port number"
+msgstr "Ugyldigt portnummer"
+
+#: ../avahi-common/error.c:44
+msgid "Invalid record key"
+msgstr "Ugyldig postnøgle"
+
+#: ../avahi-common/error.c:45
+msgid "Invalid address"
+msgstr "Ugyldig adresse"
+
+#: ../avahi-common/error.c:46
+msgid "Timeout reached"
+msgstr "Tiden løb ud"
+
+#: ../avahi-common/error.c:47
+msgid "Too many clients"
+msgstr "For mange klienter"
+
+#: ../avahi-common/error.c:48
+msgid "Too many objects"
+msgstr "For mange objekter"
+
+#: ../avahi-common/error.c:49
+msgid "Too many entries"
+msgstr "For mange punkter"
+
+#: ../avahi-common/error.c:50
+msgid "OS Error"
+msgstr "Fejl ved OS"
+
+#: ../avahi-common/error.c:52
+msgid "Access denied"
+msgstr "Adgang nægtet"
+
+#: ../avahi-common/error.c:53
+msgid "Invalid operation"
+msgstr "Ugyldig handling"
+
+#: ../avahi-common/error.c:54
+msgid "An unexpected D-Bus error occurred"
+msgstr "Der opstod en uventet fejl ved D-Bus"
+
+#: ../avahi-common/error.c:55
+msgid "Daemon connection failed"
+msgstr "Forbindelse til dæmon mislykkedes"
+
+#: ../avahi-common/error.c:56
+msgid "Memory exhausted"
+msgstr "Hukommelse opbrugt"
+
+#: ../avahi-common/error.c:57
+msgid "The object passed in was not valid"
+msgstr "Objektet, der blev sat ind, var ikke gyldigt"
+
+#: ../avahi-common/error.c:58
+msgid "Daemon not running"
+msgstr "Dæmon kører ikke"
+
+#: ../avahi-common/error.c:59
+msgid "Invalid interface index"
+msgstr "Ugyldigt grænsefladeindeks"
+
+#: ../avahi-common/error.c:60
+msgid "Invalid protocol specification"
+msgstr "Ugyldig protokolspecifikation"
+
+#: ../avahi-common/error.c:61
+msgid "Invalid flags"
+msgstr "Ugyldige flag"
+
+#: ../avahi-common/error.c:63
+msgid "Not found"
+msgstr "Ikke fundet"
+
+#: ../avahi-common/error.c:64
+msgid "Invalid configuration"
+msgstr "Ugyldig konfiguration"
+
+#: ../avahi-common/error.c:65
+msgid "Version mismatch"
+msgstr "Forskellige versioner"
+
+#: ../avahi-common/error.c:66
+msgid "Invalid service subtype"
+msgstr "Ugyldig tjenesteundertype"
+
+#: ../avahi-common/error.c:67
+msgid "Invalid packet"
+msgstr "Ugyldig pakke"
+
+#: ../avahi-common/error.c:68
+msgid "Invalid DNS return code"
+msgstr "Ugyldig DNS-returkode"
+
+#: ../avahi-common/error.c:69
+msgid "DNS failure: FORMERR"
+msgstr "Fejl ved DNS: FORMERR"
+
+#: ../avahi-common/error.c:70
+msgid "DNS failure: SERVFAIL"
+msgstr "Fejl ved DNS: SERVFAIL"
+
+#: ../avahi-common/error.c:71
+msgid "DNS failure: NXDOMAIN"
+msgstr "Fejl ved DNS: NXDOMAIN"
+
+#: ../avahi-common/error.c:72
+msgid "DNS failure: NOTIMP"
+msgstr "Fejl ved DNS: NOTIMP"
+
+#: ../avahi-common/error.c:74
+msgid "DNS failure: REFUSED"
+msgstr "Fejl ved DNS: REFUSED"
+
+#: ../avahi-common/error.c:75
+msgid "DNS failure: YXDOMAIN"
+msgstr "Fejl ved DNS: YXDOMAIN"
+
+#: ../avahi-common/error.c:76
+msgid "DNS failure: YXRRSET"
+msgstr "Fejl ved DNS: YXRRSET"
+
+#: ../avahi-common/error.c:77
+msgid "DNS failure: NXRRSET"
+msgstr "Fejl ved DNS: NXRRSET"
+
+#: ../avahi-common/error.c:78
+msgid "DNS failure: NOTAUTH"
+msgstr "Fejl ved DNS: NOTAUTH"
+
+#: ../avahi-common/error.c:79
+msgid "DNS failure: NOTZONE"
+msgstr "Fejl ved DNS: NOTZONE"
+
+#: ../avahi-common/error.c:80
+msgid "Invalid RDATA"
+msgstr "Ugyldig RDATA"
+
+#: ../avahi-common/error.c:81
+msgid "Invalid DNS type"
+msgstr "Ugyldig DNS-type"
+
+#: ../avahi-common/error.c:82
+msgid "Invalid DNS class"
+msgstr "Ugyldig DNS-klasse"
+
+#: ../avahi-common/error.c:83
+msgid "Not supported"
+msgstr "Ikke understøttet"
+
+#: ../avahi-common/error.c:85
+msgid "Not permitted"
+msgstr "Ikke tilladt"
+
+#: ../avahi-common/error.c:86
+msgid "Invalid argument"
+msgstr "Ugyldigt argument"
+
+#: ../avahi-common/error.c:87
+msgid "Is empty"
+msgstr "Er tom"
+
+#: ../avahi-common/error.c:88
+msgid "The requested operation is invalid because redundant"
+msgstr "Den forespurgte handling er ugyldig på grund af redundans"
+
+#: ../avahi-common/error.c:94
+msgid "Invalid Error Code"
+msgstr "Ugyldig fejlkode"
+
+#: ../avahi-discover-standalone/avahi-discover.ui.h:1
+msgid "Avahi Discovery"
+msgstr "Avahi Opdagelse"
+
+#: ../avahi-discover-standalone/avahi-discover.ui.h:2
+#: ../avahi-python/avahi-discover/avahi-discover.py:82
+msgid "<i>No service currently selected.</i>"
+msgstr "<i>Ingen tjeneste valgt i øjeblikket.</i>"
+
+#: ../avahi-python/avahi-discover/avahi-discover.desktop.in.in.h:1
+msgid "Avahi Zeroconf Browser"
+msgstr "Avahi Zeroconf-browser"
+
+#: ../avahi-python/avahi-discover/avahi-discover.desktop.in.in.h:2
+msgid "Browse for Zeroconf services available on your network"
+msgstr "Find Zeroconf-tjenester på dit netværk"
+
+#: ../avahi-python/avahi-discover/avahi-discover.py:237
+msgid "TXT"
+msgstr "TXT"
+
+#: ../avahi-python/avahi-discover/avahi-discover.py:239
+msgid "TXT Data:"
+msgstr "TXT-data:"
+
+#: ../avahi-python/avahi-discover/avahi-discover.py:239
+msgid "empty"
+msgstr "tom"
+
+#: ../avahi-python/avahi-discover/avahi-discover.py:241
+msgid "Service Type:"
+msgstr "Tjenestetype:"
+
+#: ../avahi-python/avahi-discover/avahi-discover.py:242
+msgid "Service Name:"
+msgstr "Tjenestenavn:"
+
+#: ../avahi-python/avahi-discover/avahi-discover.py:243
+msgid "Domain Name:"
+msgstr "Domænenavn:"
+
+#: ../avahi-python/avahi-discover/avahi-discover.py:244
+msgid "Interface:"
+msgstr "Grænseflade:"
+
+#: ../avahi-python/avahi-discover/avahi-discover.py:245
+msgid "Address:"
+msgstr "Adresse:"
+
+#: ../avahi-ui/avahi-ui.c:185
+msgid "Browse Service Types"
+msgstr "Find tjenestetyper"
+
+#: ../avahi-ui/avahi-ui.c:185
+msgid "A NULL terminated list of service types to browse for"
+msgstr "En NULL-afsluttet liste over tjenestetyper som der skal søges efter"
+
+#: ../avahi-ui/avahi-ui.c:190
+msgid "Domain"
+msgstr "Domæne"
+
+#: ../avahi-ui/avahi-ui.c:190
+msgid "The domain to browse in, or NULL for the default domain"
+msgstr "Domænet som der skal søges i, eller NULL for standarddomænet"
+
+#: ../avahi-ui/avahi-ui.c:196
+msgid "Service Type"
+msgstr "Tjenestetype"
+
+#: ../avahi-ui/avahi-ui.c:196
+msgid "The service type of the selected service"
+msgstr "Tjenestetypen på den valgte tjeneste"
+
+#: ../avahi-ui/avahi-ui.c:202 ../avahi-ui/avahi-ui.c:1035
+msgid "Service Name"
+msgstr "Tjenestenavn"
+
+#: ../avahi-ui/avahi-ui.c:202
+msgid "The service name of the selected service"
+msgstr "Tjenestenavnet på den valgte tjeneste"
+
+#: ../avahi-ui/avahi-ui.c:208
+msgid "Address"
+msgstr "Adresse"
+
+#: ../avahi-ui/avahi-ui.c:208
+msgid "The address of the resolved service"
+msgstr "Adressen på den klarlagte tjeneste"
+
+#: ../avahi-ui/avahi-ui.c:213
+msgid "Port"
+msgstr "Port"
+
+#: ../avahi-ui/avahi-ui.c:213
+msgid "The IP port number of the resolved service"
+msgstr "IP-portnummeret på den klarlagte tjeneste"
+
+#: ../avahi-ui/avahi-ui.c:219
+msgid "Host Name"
+msgstr "Værtsnavn"
+
+#: ../avahi-ui/avahi-ui.c:219
+msgid "The host name of the resolved service"
+msgstr "Værtsnavnet på den klarlagte tjeneste"
+
+#: ../avahi-ui/avahi-ui.c:225
+msgid "TXT Data"
+msgstr "TXT-data"
+
+#: ../avahi-ui/avahi-ui.c:225
+msgid "The TXT data of the resolved service"
+msgstr "TXT-dataene på den klarlagte tjeneste"
+
+#: ../avahi-ui/avahi-ui.c:230
+msgid "Resolve Service"
+msgstr "Opløs tjeneste"
+
+#: ../avahi-ui/avahi-ui.c:230
+msgid "Resolve the selected service automatically before returning"
+msgstr "Opløs den valgte tjeneste automatisk før returnering"
+
+#: ../avahi-ui/avahi-ui.c:236
+msgid "Resolve Service Host Name"
+msgstr "Opløs tjenestens værtsnavn"
+
+#: ../avahi-ui/avahi-ui.c:236
+msgid ""
+"Resolve the host name of the selected service automatically before returning"
+msgstr "Opløs værtsnavnet på den valgte tjeneste automatisk før returnering"
+
+#: ../avahi-ui/avahi-ui.c:242
+msgid "Address family"
+msgstr "Adressefamilie"
+
+#: ../avahi-ui/avahi-ui.c:242
+msgid "The address family for host name resolution"
+msgstr "Adressefamilien for værtsnavnsopløsning"
+
+#: ../avahi-ui/avahi-ui.c:326
+#, c-format
+msgid "Avahi client failure: %s"
+msgstr "Fejl ved Avahi-klient: %s"
+
+#: ../avahi-ui/avahi-ui.c:388
+#, c-format
+msgid "Avahi resolver failure: %s"
+msgstr "Fejl ved Avahi-opløser: %s"
+
+#: ../avahi-ui/avahi-ui.c:518
+#, c-format
+msgid "Browsing for service type %s in domain %s failed: %s"
+msgstr "Forsøg på at finde tjenestetypen %s i domænet %s mislykkedes: %s"
+
+#: ../avahi-ui/avahi-ui.c:519 ../avahi-utils/avahi-browse.c:168
+#: ../avahi-utils/avahi-browse.c:169 ../avahi-utils/avahi-browse.c:178
+#: ../avahi-utils/avahi-browse.c:179
+msgid "n/a"
+msgstr "-"
+
+#: ../avahi-ui/avahi-ui.c:649
+#, c-format
+msgid "Avahi domain browser failure: %s"
+msgstr "Fejl ved Avahi-domænebrowser: %s"
+
+#: ../avahi-ui/avahi-ui.c:684
+#, c-format
+msgid "Failed to read Avahi domain: %s"
+msgstr "Kunne ikke læse Avahi-domæne: %s"
+
+#: ../avahi-ui/avahi-ui.c:706
+msgid "Browse service type list is empty!"
+msgstr "Listen over typer af tjenester der skal findes er tom!"
+
+#: ../avahi-ui/avahi-ui.c:717
+#, c-format
+msgid "Failed to connect to Avahi server: %s"
+msgstr "Kunne ikke oprette forbindelse til Avahi-server: %s"
+
+#: ../avahi-ui/avahi-ui.c:735
+msgid "Browsing for services on <b>local network</b>:"
+msgstr "Finder tjenester på <b>lokalt netværk</b>:"
+
+#: ../avahi-ui/avahi-ui.c:737
+#, c-format
+msgid "Browsing for services in domain <b>%s</b>:"
+msgstr "Finder tjenester i domænet <b>%s</b>:"
+
+#: ../avahi-ui/avahi-ui.c:773
+#, c-format
+msgid "Failed to create browser for %s: %s"
+msgstr "Kunne ikke oprette browser for %s: %s"
+
+#: ../avahi-ui/avahi-ui.c:907
+#, c-format
+msgid "Failed to create resolver for %s of type %s in domain %s: %s"
+msgstr "Kunne ikke oprette opløser for %s af typen %s i domænet %s: %s"
+
+#: ../avahi-ui/avahi-ui.c:982
+#, c-format
+msgid "Failed to create domain browser: %s"
+msgstr "Kunne ikke oprette domænebrowser: %s"
+
+#: ../avahi-ui/avahi-ui.c:993
+msgid "Change domain"
+msgstr "Skift domæne"
+
+#: ../avahi-ui/avahi-ui.c:1043 ../avahi-ui/avahi-ui.c:1180
+msgid "Browsing..."
+msgstr "Finder ..."
+
+#: ../avahi-ui/avahi-ui.c:1047 ../avahi-ui/bssh.c:149 ../avahi-ui/bssh.c:156
+#: ../avahi-ui/bssh.c:161
+msgid "_Cancel"
+msgstr "_Annuller"
+
+#: ../avahi-ui/avahi-ui.c:1048
+msgid "_OK"
+msgstr "_OK"
+
+#: ../avahi-ui/avahi-ui.c:1134
+msgid "Initializing..."
+msgstr "Initialiserer ..."
+
+#: ../avahi-ui/avahi-ui.c:1162
+msgid "Location"
+msgstr "Sted"
+
+#: ../avahi-ui/avahi-ui.c:1167 ../avahi-utils/avahi-browse.c:553
+msgid "Name"
+msgstr "Navn"
+
+#: ../avahi-ui/avahi-ui.c:1172 ../avahi-utils/avahi-browse.c:553
+msgid "Type"
+msgstr "Type"
+
+#: ../avahi-ui/avahi-ui.c:1184
+msgid "_Domain..."
+msgstr "_Domæne ..."
+
+#: ../avahi-ui/bssh.c:55
+#, c-format
+msgid ""
+"%s [options]\n"
+"\n"
+"    -h --help            Show this help\n"
+"    -s --ssh             Browse SSH servers\n"
+"    -v --vnc             Browse VNC servers\n"
+"    -S --shell           Browse both SSH and VNC\n"
+"    -d --domain=DOMAIN   The domain to browse in\n"
+msgstr ""
+"%s [tilvalg]\n"
+"\n"
+"    -h --help            Vis denne hjælp\n"
+"    -s --ssh             Find SSH-servere\n"
+"    -v --vnc             Find VNC-servere\n"
+"    -S --shell           Find både SSH og VNC\n"
+"    -d --domain=DOMÆNE   Domænet som der skal søges i\n"
+
+#: ../avahi-ui/bssh.c:101 ../avahi-utils/avahi-browse.c:775
+#, c-format
+msgid "Too many arguments\n"
+msgstr "For mange argumenter\n"
+
+#: ../avahi-ui/bssh.c:149
+msgid "Choose Shell Server"
+msgstr "Vælg skal-server"
+
+#: ../avahi-ui/bssh.c:149 ../avahi-ui/bssh.c:156 ../avahi-ui/bssh.c:161
+msgid "C_onnect"
+msgstr "Opret _forbindelse"
+
+#: ../avahi-ui/bssh.c:151
+msgid "Desktop"
+msgstr "Skrivebord"
+
+#: ../avahi-ui/bssh.c:152
+msgid "Terminal"
+msgstr "Terminal"
+
+#: ../avahi-ui/bssh.c:156
+msgid "Choose VNC server"
+msgstr "Vælg VNC-server"
+
+#: ../avahi-ui/bssh.c:161
+msgid "Choose SSH server"
+msgstr "Vælg SSH-server"
+
+#: ../avahi-ui/bssh.c:185
+#, c-format
+msgid "Connecting to '%s' ...\n"
+msgstr "Opretter forbindelse til '%s' ...\n"
+
+#: ../avahi-ui/bssh.c:240
+#, c-format
+msgid "execlp() failed: %s\n"
+msgstr "execlp() mislykkedes: %s\n"
+
+#: ../avahi-ui/bssh.c:250
+#, c-format
+msgid "Canceled.\n"
+msgstr "Annulleret.\n"
+
+#: ../avahi-ui/bssh.desktop.in.in.h:1
+msgid "Avahi SSH Server Browser"
+msgstr "Browser til Avahi SSH-server"
+
+#: ../avahi-ui/bssh.desktop.in.in.h:2
+msgid "Browse for Zeroconf-enabled SSH Servers"
+msgstr "Find Zeroconf-aktiverede SSH-servere"
+
+#: ../avahi-ui/bvnc.desktop.in.in.h:1
+msgid "Avahi VNC Server Browser"
+msgstr "Browser til Avahi VNC-server"
+
+#: ../avahi-ui/bvnc.desktop.in.in.h:2
+msgid "Browse for Zeroconf-enabled VNC Servers"
+msgstr "Find Zeroconf-aktiverede VNC-servere"
+
+#: ../avahi-utils/avahi-browse.c:107
+#, c-format
+msgid ": All for now\n"
+msgstr ": Alt for nu\n"
+
+#: ../avahi-utils/avahi-browse.c:118
+#, c-format
+msgid ": Cache exhausted\n"
+msgstr ": Mellemlager opbrugt\n"
+
+#: ../avahi-utils/avahi-browse.c:239 ../avahi-utils/avahi-browse.c:261
+#, c-format
+msgid "Failed to resolve service '%s' of type '%s' in domain '%s': %s\n"
+msgstr "Kunne ikke løse tjenesten '%s' af typen '%s' i domænet '%s': %s\n"
+
+#: ../avahi-utils/avahi-browse.c:340
+#, c-format
+msgid "service_browser failed: %s\n"
+msgstr "service_browser mislykkedes: %s\n"
+
+#: ../avahi-utils/avahi-browse.c:378
+#, c-format
+msgid "avahi_service_browser_new() failed: %s\n"
+msgstr "avahi_service_browser_new() mislykkedes: %s\n"
+
+#: ../avahi-utils/avahi-browse.c:414
+#, c-format
+msgid "service_type_browser failed: %s\n"
+msgstr "service_type_browser mislykkedes: %s\n"
+
+#: ../avahi-utils/avahi-browse.c:444
+#, c-format
+msgid "avahi_service_type_browser_new() failed: %s\n"
+msgstr "avahi_service_type_browser_new() mislykkedes: %s\n"
+
+#: ../avahi-utils/avahi-browse.c:519
+#, c-format
+msgid "avahi_domain_browser_new() failed: %s\n"
+msgstr "avahi_domain_browser_new() mislykkedes: %s\n"
+
+#: ../avahi-utils/avahi-browse.c:535 ../avahi-utils/avahi-publish.c:394
+#: ../avahi-utils/avahi-resolve.c:280 ../avahi-utils/avahi-set-host-name.c:168
+#, c-format
+msgid "Failed to query version string: %s\n"
+msgstr "Kunne ikke forespørge versionsstreng: %s\n"
+
+#: ../avahi-utils/avahi-browse.c:540 ../avahi-utils/avahi-publish.c:399
+#: ../avahi-utils/avahi-resolve.c:285 ../avahi-utils/avahi-set-host-name.c:173
+#: ../avahi-utils/avahi-set-host-name.c:189
+#, c-format
+msgid "Failed to query host name: %s\n"
+msgstr "Kunne ikke forespørge værtsnavn: %s\n"
+
+#: ../avahi-utils/avahi-browse.c:544 ../avahi-utils/avahi-publish.c:403
+#: ../avahi-utils/avahi-resolve.c:289 ../avahi-utils/avahi-set-host-name.c:177
+#, c-format
+msgid "Server version: %s; Host name: %s\n"
+msgstr "Serverversion: %s; værtsnavn: %s\n"
+
+#. Translators: This is a column heading with abbreviations for
+#. *   Event (+/-), Network Interface, Protocol (IPv4/v6), Domain
+#: ../avahi-utils/avahi-browse.c:549
+#, c-format
+msgid "E Ifce Prot Domain\n"
+msgstr "E Ifce Prot-domæne\n"
+
+#. Translators: This is a column heading with abbreviations for
+#. *   Event (+/-), Network Interface, Protocol (IPv4/v6), Domain
+#: ../avahi-utils/avahi-browse.c:553
+#, c-format
+msgid "E Ifce Prot %-*s %-20s Domain\n"
+msgstr "E Ifce Prot %-*s %-20s-domæne\n"
+
+#. We have been disconnected, so let reconnect
+#: ../avahi-utils/avahi-browse.c:585 ../avahi-utils/avahi-publish.c:163
+#, c-format
+msgid "Disconnected, reconnecting ...\n"
+msgstr "Afbrudt, opretter forbindelse igen ...\n"
+
+#: ../avahi-utils/avahi-browse.c:599 ../avahi-utils/avahi-browse.c:829
+#: ../avahi-utils/avahi-publish.c:170 ../avahi-utils/avahi-publish.c:386
+#: ../avahi-utils/avahi-resolve.c:272 ../avahi-utils/avahi-set-host-name.c:160
+#, c-format
+msgid "Failed to create client object: %s\n"
+msgstr "Kunne ikke oprette klientobjekt: %s\n"
+
+#: ../avahi-utils/avahi-browse.c:604 ../avahi-utils/avahi-publish.c:175
+#: ../avahi-utils/avahi-resolve.c:143 ../avahi-utils/avahi-set-host-name.c:59
+#, c-format
+msgid "Client failure, exiting: %s\n"
+msgstr "Fejl ved klient, afslutter: %s\n"
+
+#: ../avahi-utils/avahi-browse.c:623 ../avahi-utils/avahi-publish.c:206
+#, c-format
+msgid "Waiting for daemon ...\n"
+msgstr "Venter på dæmon ...\n"
+
+#: ../avahi-utils/avahi-browse.c:647
+msgid ""
+"    -h --help            Show this help\n"
+"    -V --version         Show version\n"
+"    -D --browse-domains  Browse for browsing domains instead of services\n"
+"    -a --all             Show all services, regardless of the type\n"
+"    -d --domain=DOMAIN   The domain to browse in\n"
+"    -v --verbose         Enable verbose mode\n"
+"    -t --terminate       Terminate after dumping a more or less complete "
+"list\n"
+"    -c --cache           Terminate after dumping all entries from the cache\n"
+"    -l --ignore-local    Ignore local services\n"
+"    -r --resolve         Resolve services found\n"
+"    -f --no-fail         Don't fail if the daemon is not available\n"
+"    -p --parsable        Output in parsable format\n"
+msgstr ""
+"    -h --help            Vis denne hjælp\n"
+"    -V --version         Vis version\n"
+"    -D --browse-domains  Find browsingdomæner i stedet for tjenester\n"
+"    -a --all             Vis alle tjenester, uanset typen\n"
+"    -d --domain=DOMÆNE   Domænet som der skal søges i\n"
+"    -v --verbose         Aktivér uddybende tilstand\n"
+"    -t --terminate       Afslut efter dumpning af en mere eller mindre "
+"fuldstændig liste\n"
+"    -c --cache           Afslut efter dumpning af alle punkter i "
+"mellemlageret\n"
+"    -l --ignore-local    Ignorer lokale tjenester\n"
+"    -r --resolve         Løs fundne tjenester\n"
+"    -f --no-fail         Giv ikke fejl hvis dæmonen ikke er tilgængelig\n"
+"    -p --parsable        Uddata i fortolkeligt format\n"
+
+#: ../avahi-utils/avahi-browse.c:660
+msgid ""
+"    -k --no-db-lookup    Don't lookup service types\n"
+"    -b --dump-db         Dump service type database\n"
+msgstr ""
+"    -k --no-db-lookup    Slå ikke tjenestetyper op\n"
+"    -b --dump-db         Dump database med tjenestetyper\n"
+
+#: ../avahi-utils/avahi-browse.c:766 ../avahi-utils/avahi-resolve.c:219
+#, c-format
+msgid "Too few arguments\n"
+msgstr "For få argumenter\n"
+
+#: ../avahi-utils/avahi-browse.c:821 ../avahi-utils/avahi-publish.c:378
+#: ../avahi-utils/avahi-resolve.c:264 ../avahi-utils/avahi-set-host-name.c:152
+#, c-format
+msgid "Failed to create simple poll object.\n"
+msgstr "Kunne ikke oprette simpelt poll-objekt.\n"
+
+#: ../avahi-utils/avahi-publish.c:76
+#, c-format
+msgid "Established under name '%s'\n"
+msgstr "Etableret under navnet '%s'\n"
+
+#: ../avahi-utils/avahi-publish.c:81
+#, c-format
+msgid "Failed to register: %s\n"
+msgstr "Kunne ikke registrere: %s\n"
+
+#: ../avahi-utils/avahi-publish.c:94
+#, c-format
+msgid "Name collision, picking new name '%s'.\n"
+msgstr "Navnesammenstød, vælger det nye navn '%s'.\n"
+
+#: ../avahi-utils/avahi-publish.c:114
+#, c-format
+msgid "Failed to create entry group: %s\n"
+msgstr "Kunne ikke oprette punktgruppe: %s\n"
+
+#: ../avahi-utils/avahi-publish.c:124
+#, c-format
+msgid "Failed to add address: %s\n"
+msgstr "Kunne ikke tilføje adresse: %s\n"
+
+#: ../avahi-utils/avahi-publish.c:134
+#, c-format
+msgid "Failed to add service: %s\n"
+msgstr "Kunne ikke tilføje tjeneste: %s\n"
+
+#: ../avahi-utils/avahi-publish.c:140
+#, c-format
+msgid "Failed to add subtype '%s': %s\n"
+msgstr "Kunne ikke tilføje undertypen '%s': %s\n"
+
+#: ../avahi-utils/avahi-publish.c:191
+#, c-format
+msgid "Host name conflict\n"
+msgstr "Konflikt ved værtsnavn\n"
+
+#: ../avahi-utils/avahi-publish.c:216
+#, c-format
+msgid ""
+"%s [options] %s <name> <type> <port> [<txt ...>]\n"
+"%s [options] %s <host-name> <address>\n"
+"\n"
+"    -h --help            Show this help\n"
+"    -V --version         Show version\n"
+"    -s --service         Publish service\n"
+"    -a --address         Publish address\n"
+"    -v --verbose         Enable verbose mode\n"
+"    -d --domain=DOMAIN   Domain to publish service in\n"
+"    -H --host=DOMAIN     Host where service resides\n"
+"       --subtype=SUBTYPE An additional subtype to register this service "
+"with\n"
+"    -R --no-reverse      Do not publish reverse entry with address\n"
+"    -f --no-fail         Don't fail if the daemon is not available\n"
+msgstr ""
+"%s [tilvalg] %s <navn> <type> <port> [<tekst ...>]\n"
+"%s [tilvalg] %s <værtsnavn> <adresse>\n"
+"\n"
+"    -h --help              Vis denne hjælp\n"
+"    -V --version           Vis version\n"
+"    -s --service           Udgiv tjeneste\n"
+"    -a --address           Udgiv adresse\n"
+"    -v --verbose           Aktivér uddybende tilstand\n"
+"    -d --domain=DOMÆNE     Domæne hvor tjeneste skal udgives i\n"
+"    -H --host=DOMÆNE       Vært hvor tjeneste hører til\n"
+"       --subtype=UNDERTYPE En ekstra undertype som tjenesten skal "
+"registreres med\n"
+"    -R --no-reverse        Udgiv ikke modsat punkt med adresse\n"
+"    -f --no-fail           Fejl ikke hvis dæmonen ikke er tilgængelig\n"
+
+#: ../avahi-utils/avahi-publish.c:303 ../avahi-utils/avahi-publish.c:318
+#, c-format
+msgid "Bad number of arguments\n"
+msgstr "Ugyldigt antal argumenter\n"
+
+#: ../avahi-utils/avahi-publish.c:329
+#, c-format
+msgid "Failed to parse port number: %s\n"
+msgstr "Kunne ikke fortolke portnummer: %s\n"
+
+#: ../avahi-utils/avahi-publish.c:361 ../avahi-utils/avahi-resolve.c:246
+#, c-format
+msgid "No command specified.\n"
+msgstr "Ingen kommando angivet.\n"
+
+#: ../avahi-utils/avahi-resolve.c:89
+#, c-format
+msgid "Failed to resolve host name '%s': %s\n"
+msgstr "Kunne ikke løse værtsnavnet '%s': %s\n"
+
+#: ../avahi-utils/avahi-resolve.c:126
+#, c-format
+msgid "Failed to resolve address '%s': %s\n"
+msgstr "Kunne ikke løse adressen '%s': %s\n"
+
+#: ../avahi-utils/avahi-resolve.c:157
+#, c-format
+msgid ""
+"%s [options] %s <host name ...>\n"
+"%s [options] %s <address ... >\n"
+"\n"
+"    -h --help            Show this help\n"
+"    -V --version         Show version\n"
+"    -n --name            Resolve host name\n"
+"    -a --address         Resolve address\n"
+"    -v --verbose         Enable verbose mode\n"
+"    -6                   Lookup IPv6 address\n"
+"    -4                   Lookup IPv4 address\n"
+msgstr ""
+"%s [tilvalg] %s <værtsnavn ...>\n"
+"%s [tilvalg] %s <adresse ... >\n"
+"\n"
+"    -h --help            Vis denne hjælp\n"
+"    -V --version         Vis version\n"
+"    -n --name            Løs værtsnavn\n"
+"    -a --address         Løs adresse\n"
+"    -v --verbose         Vis uddybende tilstand\n"
+"    -6                   Slå IPv6-adresse op\n"
+"    -4                   Slå IPv4-adresse op\n"
+
+#: ../avahi-utils/avahi-resolve.c:299 ../avahi-utils/avahi-set-host-name.c:181
+#, c-format
+msgid "Failed to create host name resolver: %s\n"
+msgstr "Kunne ikke oprette værtsnavnsopløser: %s\n"
+
+#: ../avahi-utils/avahi-resolve.c:309
+#, c-format
+msgid "Failed to parse address '%s'\n"
+msgstr "Kunne ikke fortolke adressen '%s'\n"
+
+#: ../avahi-utils/avahi-resolve.c:314
+#, c-format
+msgid "Failed to create address resolver: %s\n"
+msgstr "Kunne ikke oprette adresseopløser: %s\n"
+
+#: ../avahi-utils/avahi-set-host-name.c:73
+#, c-format
+msgid ""
+"%s [options] <new host name>\n"
+"\n"
+"    -h --help            Show this help\n"
+"    -V --version         Show version\n"
+"    -v --verbose         Enable verbose mode\n"
+msgstr ""
+"%s [tilvalg] <nyt værtsnavn>\n"
+"\n"
+"    -h --help            Vis denne hjælp\n"
+"    -V --version         Vis version\n"
+"    -v --verbose         Aktivér uddybende tilstand\n"
+
+#: ../avahi-utils/avahi-set-host-name.c:114
+#, c-format
+msgid "Invalid number of arguments, expecting exactly one.\n"
+msgstr "Ugyldigt antal argumenter, ventede præcist ét.\n"
+
+#: ../avahi-utils/avahi-set-host-name.c:193
+#, c-format
+msgid "Host name successfully changed to %s\n"
+msgstr "Værtsnavn ændret til %s\n"

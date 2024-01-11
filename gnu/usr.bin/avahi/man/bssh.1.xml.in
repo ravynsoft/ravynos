@@ -1,0 +1,88 @@
+<?xml version="1.0"?><!--*-nxml-*-->
+<!DOCTYPE manpage SYSTEM "xmltoman.dtd">
+<?xml-stylesheet type="text/xsl" href="xmltoman.xsl" ?>
+
+<!--
+  This file is part of avahi.
+
+  avahi is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of the
+  License, or (at your option) any later version.
+
+  avahi is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General
+  Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with avahi; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+-->
+
+  <manpage name="bssh/bvnc/bshell" section="1" desc="Browse for SSH/VNC servers on the local network">
+
+    <synopsis>
+      <cmd>bssh</cmd>
+      <cmd>bvnc</cmd>
+      <cmd>bshell</cmd>
+    </synopsis>
+
+    <description>
+      <p>bssh/bvnc/bshell browses for SSH/VNC servers on the local
+      network, shows them in a GUI for the user to select one and
+      finally calls ssh/vncviewer after a selection was made.</p>
+
+      <p>If the binary is called as bssh only ssh servers will be shown. If the binary is called as bvnc only VNC servers will be shown. If the binary is called as bshell both VNC and SSH servers are shown.</p>
+
+    </description>
+
+    <options>
+
+      <option>
+	<p><opt>-s | --ssh</opt></p>
+	<optdesc><p>Browse for SSH servers (and only SSH servers)  regardless under which name the binary is called.</p></optdesc>
+      </option>
+
+      <option>
+	<p><opt>-v | --vnc</opt></p>
+	<optdesc><p>Browse for VNC servers (and only VNC servers) regardless under which name the binary is called.</p></optdesc>
+      </option>
+
+      <option>
+	<p><opt>-S | --shell</opt></p>
+	<optdesc><p>Browse for both VNC and SSH servers regardless under which name the binary is called.</p></optdesc>
+      </option>
+
+      <option>
+	<p><opt>-d | --domain=</opt> <arg>DOMAIN</arg></p>
+        <optdesc><p>Browse in the specified domain. If omitted
+            bssh/bvnc/bshell will browse in the default browsing domain
+            (usually .local)</p></optdesc>
+      </option>
+
+      <option>
+	<p><opt>-h | --help</opt></p>
+	<optdesc><p>Show help.</p></optdesc>
+      </option>
+
+    </options>
+
+    <section name="Authors">
+      <p>The Avahi Developers &lt;@PACKAGE_BUGREPORT@&gt;; Avahi is
+      available from <url href="@PACKAGE_URL@"/></p>
+    </section>
+
+    <section name="See also">
+      <p>
+        <manref name="avahi-browse" section="1"/>, <manref name="ssh" section="1"/>, <manref name="vncviewer" section="1"/>
+      </p>
+    </section>
+
+    <section name="Comments">
+      <p>This man page was written using <manref name="xml2man" section="1"
+      href="http://masqmail.cx/xml2man/"/> by Oliver Kurth.</p>
+    </section>
+
+  </manpage>

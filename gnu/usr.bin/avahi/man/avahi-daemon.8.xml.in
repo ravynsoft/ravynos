@@ -1,0 +1,170 @@
+<?xml version="1.0"?><!--*-nxml-*-->
+<!DOCTYPE manpage SYSTEM "xmltoman.dtd">
+<?xml-stylesheet type="text/xsl" href="xmltoman.xsl" ?>
+
+<!--
+  This file is part of avahi.
+
+  avahi is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of the
+  License, or (at your option) any later version.
+
+  avahi is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General
+  Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with avahi; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+-->
+
+  <manpage name="avahi-daemon" section="8" desc="The Avahi mDNS/DNS-SD daemon">
+
+	<synopsis>
+      <cmd>avahi-daemon [<arg>options</arg>]</cmd>
+      <cmd>avahi-daemon <opt>--kill</opt></cmd>
+      <cmd>avahi-daemon <opt>--reload</opt></cmd>
+      <cmd>avahi-daemon <opt>--check</opt></cmd>
+	</synopsis>
+
+    <description>
+      <p>The Avahi mDNS/DNS-SD daemon implements Apple's Zeroconf
+      architecture (also known as "Rendezvous" or "Bonjour"). The daemon
+      registers local IP addresses and static services using
+      mDNS/DNS-SD and provides two IPC APIs for local programs to make
+      use of the mDNS record cache the avahi-daemon maintains. First
+      there is the so called "simple protocol" which is used
+      exclusively by avahi-dnsconfd (a daemon which configures unicast
+      DNS servers using server info published via mDNS) and nss-mdns
+      (a libc NSS plugin, providing name resolution via mDNS). Finally
+      there is the D-Bus interface which provides a rich object
+      oriented interface to D-Bus enabled applications.</p>
+
+      <p>Upon startup avahi-daemon interprets its configuration file
+      <file>@pkgsysconfdir@/avahi-daemon.conf</file> and reads XML
+      fragments from <file>@servicedir@/*.service</file> which may
+      define static DNS-SD services. If you enable
+      <opt>publish-resolv-conf-dns-servers</opt> in
+      <file>avahi-daemon.conf</file> the file
+      <file>/etc/resolv.conf</file> will be read, too.</p>
+	</description>
+
+	<options>
+
+	  <option>
+		<p><opt>-f | --file=</opt> <arg>FILE</arg></p>
+		<optdesc><p>Specify the configuration file to read. (default: @pkgsysconfdir@/avahi-daemon.conf)</p></optdesc>
+	  </option>
+
+	  <option>
+		<p><opt>-D | --daemonize</opt></p>
+		<optdesc><p>Daemonize after startup. Implies <opt>--syslog</opt>.</p></optdesc>
+	  </option>
+
+      <option>
+        <p><opt>-s | --syslog</opt></p>
+        <optdesc><p>Log to syslog instead of STDERR. Implied by <opt>--daemonize</opt>.</p></optdesc>
+      </option>
+
+      <option>
+        <p><opt>--debug</opt></p>
+        <optdesc><p>Increase verbosity to debug level.</p></optdesc>
+      </option>
+
+      <option>
+        <p><opt>--no-rlimits</opt></p>
+        <optdesc><p>Don't enforce resource limits as specified in the configuration file. (See <manref section="2" name="setrlimit"/> for more information)</p></optdesc>
+      </option>
+
+      <option>
+        <p><opt>--no-drop-root</opt></p>
+        <optdesc><p>Don't drop root privileges after startup and don't require daemon to be started as root. We recommend not to use this option.</p></optdesc>
+      </option>
+
+      <option>
+        <p><opt>--no-chroot</opt></p>
+        <optdesc><p>Don't <manref section="2" name="chroot"/> the daemon. This option is only available when compiled with chroot() support.</p></optdesc>
+      </option>
+
+      <option>
+        <p><opt>--no-proc-title</opt></p>
+        <optdesc><p>Don't change the process name while
+        running. Unless this option is specified avahi-daemon will reflect
+        its current state and the selected host name in the process
+        title.</p></optdesc>
+      </option>
+
+	  <option>
+		<p><opt>-k | --kill</opt></p>
+		<optdesc><p>Kill an already running avahi-daemon. (equivalent to sending a SIGTERM)</p></optdesc>
+	  </option>
+
+	  <option>
+		<p><opt>-r | --reload</opt></p>
+		<optdesc><p>Tell an already running avahi-daemon to reread
+		<file>/etc/resolv.conf</file> (in case you enabled
+        <opt>publish-resolv-conf-dns-servers</opt> in
+		<file>avahi-daemon.conf</file>) the files from
+		<file>@servicedir@/</file>. Please note that this will not
+		reload the
+		<file>@pkgsysconfdir@/avahi-daemon.conf</file>. (equivalent to
+		sending a SIGHUP)</p></optdesc>
+	  </option>
+
+	  <option>
+		<p><opt>-c | --check</opt></p>
+		<optdesc><p>Return 0 as return code when avahi-daemon is already running.</p></optdesc>
+	  </option>
+
+	  <option>
+		<p><opt>-h | --help</opt></p>
+		<optdesc><p>Show help</p></optdesc>
+	  </option>
+
+	  <option>
+		<p><opt>-v | --version</opt></p>
+		<optdesc><p>Show version information </p></optdesc>
+	  </option>
+
+	</options>
+
+    <section name="Files">
+
+      <p><file>@pkgsysconfdir@/avahi-daemon.conf</file>: the default configuration file for avahi-daemon, <manref name="avahi-daemon.conf" section="5"/> for more information.</p>
+
+      <p><file>@pkgsysconfdir@/hosts</file>: additional static hostname mappings to publish in mDNS, see <manref name="avahi.hosts" section="5"/> for more information.</p>
+
+      <p><file>@servicedir@/*.service</file>: static service definitions, see <manref name="avahi.service" section="5"/> for more information.</p>
+
+    </section>
+
+    <section name="Signals">
+      <p><arg>SIGINT, SIGTERM</arg>: avahi-daemon will shutdown. (Same as <opt>--kill</opt>).</p>
+      <p><arg>SIGHUP</arg>: avahi-daemon will reload unicast DNS
+      server data from <file>/etc/resolv.conf</file> and static
+      service definitions from <file>@servicedir@/</file>. (Same as <opt>--reload</opt>)</p>
+      <p><arg>SIGUSR1</arg>: avahi-daemon will dump local and remote cached resource record data to syslog.</p>
+    </section>
+
+	<section name="Authors">
+	  <p>The Avahi Developers &lt;@PACKAGE_BUGREPORT@&gt;; Avahi is
+	  available from <url href="@PACKAGE_URL@"/></p>
+	</section>
+
+	<section name="See also">
+	  <p>
+        <manref name="avahi-daemon.conf" section="5"/>, <manref name="avahi.hosts" section="5"/>, <manref name="avahi.service" section="5"/>, <manref name="avahi-dnsconfd" section="8"/>, <manref name="avahi-set-host-name" section="1"/>
+	  </p>
+
+      <p>http://avahi.org/wiki/AvahiAndUnicastDotLocal documents the problems when using Avahi in a unicast DNS zone .local.</p>
+	</section>
+
+	<section name="Comments">
+	  <p>This man page was written using <manref name="xml2man" section="1"
+		  href="http://masqmail.cx/xml2man/"/> by Oliver Kurth.</p>
+	</section>
+
+  </manpage>

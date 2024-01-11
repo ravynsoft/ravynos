@@ -1,0 +1,115 @@
+<Type Name="HostNameResolver" FullName="Avahi.HostNameResolver">
+  <TypeSignature Language="C#" Value="public class HostNameResolver : Avahi.ResolverBase, System.IDisposable" />
+  <AssemblyInfo>
+    <AssemblyName>avahi-sharp</AssemblyName>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+  </AssemblyInfo>
+  <Base>
+    <BaseTypeName>Avahi.ResolverBase</BaseTypeName>
+  </Base>
+  <Interfaces>
+    <Interface>
+      <InterfaceName>System.IDisposable</InterfaceName>
+    </Interface>
+  </Interfaces>
+  <Members>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public HostNameResolver (Avahi.Client client, string hostname);" />
+      <MemberType>Constructor</MemberType>
+      <Parameters>
+        <Parameter Name="client" Type="Avahi.Client" />
+        <Parameter Name="hostname" Type="System.String" />
+      </Parameters>
+      <Docs>
+        <param name="client">To be added.</param>
+        <param name="hostname">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Found">
+      <MemberSignature Language="C#" Value="public event Avahi.HostAddressHandler Found;" />
+      <MemberType>Event</MemberType>
+      <ReturnValue>
+        <ReturnType>Avahi.HostAddressHandler</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Timeout">
+      <MemberSignature Language="C#" Value="public event EventHandler Timeout;" />
+      <MemberType>Event</MemberType>
+      <ReturnValue>
+        <ReturnType>System.EventHandler</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Dispose">
+      <MemberSignature Language="C#" Value="public void Dispose ();" />
+      <MemberType>Method</MemberType>
+      <ReturnValue>
+        <ReturnType>System.Void</ReturnType>
+      </ReturnValue>
+      <Parameters />
+      <Docs>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="Address">
+      <MemberSignature Language="C#" Value="public System.Net.IPAddress Address { get; };" />
+      <MemberType>Property</MemberType>
+      <ReturnValue>
+        <ReturnType>System.Net.IPAddress</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <value>To be added.</value>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName="HostName">
+      <MemberSignature Language="C#" Value="public string HostName { get; };" />
+      <MemberType>Property</MemberType>
+      <ReturnValue>
+        <ReturnType>System.String</ReturnType>
+      </ReturnValue>
+      <Docs>
+        <summary>To be added.</summary>
+        <value>To be added.</value>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+    <Member MemberName=".ctor">
+      <MemberSignature Language="C#" Value="public HostNameResolver (Avahi.Client client, int iface, Avahi.Protocol proto, string hostname, Avahi.Protocol aproto, Avahi.LookupFlags flags);" />
+      <MemberType>Constructor</MemberType>
+      <Parameters>
+        <Parameter Name="client" Type="Avahi.Client" />
+        <Parameter Name="iface" Type="System.Int32" />
+        <Parameter Name="proto" Type="Avahi.Protocol" />
+        <Parameter Name="hostname" Type="System.String" />
+        <Parameter Name="aproto" Type="Avahi.Protocol" />
+        <Parameter Name="flags" Type="Avahi.LookupFlags" />
+      </Parameters>
+      <Docs>
+        <param name="client">To be added.</param>
+        <param name="iface">To be added.</param>
+        <param name="proto">To be added.</param>
+        <param name="hostname">To be added.</param>
+        <param name="aproto">To be added.</param>
+        <param name="flags">To be added.</param>
+        <summary>To be added.</summary>
+        <remarks>To be added.</remarks>
+      </Docs>
+    </Member>
+  </Members>
+  <Docs>
+    <summary>To be added.</summary>
+    <remarks>To be added.</remarks>
+  </Docs>
+</Type>

@@ -1,0 +1,229 @@
+#!@PYTHON@
+# -*-python-*-
+# This file is part of avahi.
+#
+# avahi is free software; you can redistribute it and/or modify it
+# under the terms of the GNU Lesser General Public License as
+# published by the Free Software Foundation; either version 2 of the
+# License, or (at your option) any later version.
+#
+# avahi is distributed in the hope that it will be useful, but WITHOUT
+# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public
+# License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public
+# License along with avahi; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+# USA.
+
+import sys, getopt, os
+
+try:
+    from gi.repository import GObject
+    import avahi, dbus
+except ImportError:
+    print("Sorry, to use this tool you need to install Avahi and python-dbus.")
+    sys.exit(1)
+
+try:
+    import dbus.glib
+except ImportError:
+    pass
+
+urlproto = { "_http._tcp" : "http",  "_https._tcp" : "https", "_ftp._tcp" : "ftp" }
+
+port = 8080
+address = "127.0.0.1"
+use_host_names = None
+use_CGI = None
+domain = "local"
+timeout = 3000
+
+class AvahiBookmarks:
+    services = {}
+
+    def __init__(self, use_host_names):
+
+        self.bus = dbus.SystemBus()
+        self.server = dbus.Interface(self.bus.get_object(avahi.DBUS_NAME, avahi.DBUS_PATH_SERVER), avahi.DBUS_INTERFACE_SERVER)
+
+        self.version_string = self.server.GetVersionString()
+
+        self.browse_service_type("_http._tcp")
+        self.browse_service_type("_https._tcp")
+        self.browse_service_type("_ftp._tcp")
+
+        if use_host_names is None:
+            try: 
+                self.use_host_names = self.server.IsNSSSupportAvailable()
+            except:
+                self.use_host_names = False
+        else:
+            self.use_host_names = use_host_names
+
+    def browse_service_type(self, stype):
+
+        global domain, use_CGI
+
+        browser = dbus.Interface(self.bus.get_object(avahi.DBUS_NAME, self.server.ServiceBrowserNew(avahi.IF_UNSPEC, avahi.PROTO_UNSPEC, stype, domain, dbus.UInt32(0))), avahi.DBUS_INTERFACE_SERVICE_BROWSER)
+        browser.connect_to_signal('ItemNew', self.new_service)
+        browser.connect_to_signal('ItemRemove', self.remove_service)
+        if use_CGI:
+            browser.connect_to_signal('AllForNow', self.all_for_now)
+
+    def find_path(self, txt):
+
+        l = avahi.txt_array_to_string_array(txt)
+
+        for k in l:
+            if k[:5] == "path=":
+                if k[5:].startswith("/"):
+                    return k[5:]
+                else:
+                    return "/" + k[5:]
+
+        return "/"
+
+    def render_html(self):
+
+        global domain
+
+        t = '<html><head><title>%s Zeroconf Bookmarks</title></head><body><h1>%s Zeroconf Bookmarks</h1>' % (domain, domain)
+
+        if len(self.services) == 0:
+            t += '<p>Sorry, no Zeroconf web services have been registered on the %s domain.</p>' % domain
+        else:
+            t += '<ul style="padding: 0px; margin: 20px; list-style-type: none">'
+
+            for k, v in self.services.items():
+            
+                if v[3] == 80:
+                    port = ''
+                else:
+                    port = ':%i' % v[3]
+
+                path = self.find_path(v[4])
+                t += '<li><a href="%s://%s%s%s">%s</a></li>' % (urlproto[k[3]], v[2], port, path, k[2])
+                
+            t += '</ul>'
+        
+        t += '<hr noshade/><p style="font-size: 8; font-family: sans-serif">Served by %s</p></body></html>' % self.version_string
+
+        return str(t).encode('utf-8')
+
+
+    def new_service(self, interface, protocol, name, type, domain, flags):
+
+        interface, protocol, name, type, domain, host, aprotocol, address, port, txt, flags = self.server.ResolveService(interface, protocol, name, type, domain, avahi.PROTO_UNSPEC, dbus.UInt32(0))
+
+        if self.use_host_names:
+            h = host
+        else:
+            if aprotocol == avahi.PROTO_INET6:
+                h = "[" + address + "]"
+            else:
+                h = address
+
+        self.services[(interface, protocol, name, type, domain)] = (host, aprotocol, h, port, txt)
+
+    def remove_service(self, interface, protocol, name, type, domain):
+
+        del self.services[(interface, protocol, name, type, domain)]
+
+
+    # Only reachable with use_CGI
+    def all_for_now(self):
+
+        mainloop.quit()
+
+def usage(retval = 0):
+
+    print("%s [options]\n" % sys.argv[0])
+    print("   -h --help             Show this help")
+    print("   -c --cgi              Run as a CGI instead of as a server (default to server")
+    print("                         unless environment variable GATEWAY_INTERFACE is set)")
+    print("   -t --timeout MS       Specify the max time for CGI browsing (default %u)" % timeout)
+    print("   -p --port PORT        Specify the port to use (default %u)" % port)
+    print("   -a --address ADDRESS  Specify the address to bind to (default %s)" % address)
+    print("   -H --host-names       Show links with real hostnames")
+    print("   -A --addresses        Show links with numeric IP addresses")
+    print("   -d --domain DOMAIN    Specify the domain to browse" )
+    sys.exit(retval)
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "hct:p:a:HAd:", ["help", "cgi", "port=", "timeout=", "address=", "host-names", "addresses", "domain="])
+except getopt.GetoptError:
+    usage(2)
+
+for o, a in opts:
+    if o in ("-h", "--help"):
+        usage()
+
+    if o in ("-c", "--cgi"):
+        use_CGI = True
+
+    if o in ("-t", "--timeout"):
+        timeout = int(a)
+
+    if o in ("-p", "--port"):
+        port = int(a)
+
+    if o in ("-a", "--address"):
+        address = a
+
+    if o in ("-H", "--host-names"):
+        use_host_names = True
+
+    if o in ("-A", "--addresses"):
+        use_host_names = False
+
+    if o in ("-d", "--domain"):
+        domain = a
+
+if use_CGI is None:
+    use_CGI = "GATEWAY_INTERFACE" in os.environ
+
+if use_CGI:
+    cgi = AvahiBookmarks(use_host_names)
+
+    mainloop = GObject.MainLoop()
+    GObject.timeout_add(timeout, mainloop.quit)
+
+    try:
+        mainloop.run()
+    except KeyboardInterrupt:
+        pass
+        
+    print('Content-type: text/html\n\n' + cgi.render_html())
+
+else:
+    try:
+        from twisted.internet import gireactor
+        gireactor.install()
+        from twisted.internet import reactor
+        from twisted.web import server, resource
+    except ImportError:
+        raise
+        print("Sorry, to use this tool as a server you need to install twisted and twisted.web.\n")
+        sys.exit(1)
+
+    class AvahiBookmarksServer(AvahiBookmarks, resource.Resource):
+        isLeaf = True
+
+        def __init__(self, use_host_names):
+            resource.Resource.__init__(self)
+            AvahiBookmarks.__init__(self, use_host_names)
+
+        def render_GET(self, request):
+            return self.render_html()
+
+    site = server.Site(AvahiBookmarksServer(use_host_names))
+    reactor.listenTCP(port, site, interface=address)
+
+    print("Now point your web browser to http://%s:%u/!" % (address, port))
+
+    try:
+        reactor.run()
+    except KeyboardInterrupt:
+        pass

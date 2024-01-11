@@ -1,0 +1,135 @@
+<?xml version="1.0"?><!--*-nxml-*-->
+<!DOCTYPE manpage SYSTEM "xmltoman.dtd">
+<?xml-stylesheet type="text/xsl" href="xmltoman.xsl" ?>
+
+<!--
+  This file is part of avahi.
+
+  avahi is free software; you can redistribute it and/or modify it
+  under the terms of the GNU Lesser General Public License as
+  published by the Free Software Foundation; either version 2.1 of the
+  License, or (at your option) any later version.
+
+  avahi is distributed in the hope that it will be useful, but WITHOUT
+  ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Lesser General
+  Public License for more details.
+
+  You should have received a copy of the GNU Lesser General Public
+  License along with avahi; if not, write to the Free Software
+  Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307
+  USA.
+-->
+
+  <manpage name="avahi-browse" section="1" desc="Browse for mDNS/DNS-SD services using the Avahi daemon">
+
+	<synopsis>
+      <cmd>avahi-browse [<arg>options</arg>] <arg>service-type</arg></cmd>
+      <cmd>avahi-browse [<arg>options</arg>] <opt>--all</opt></cmd>
+      <cmd>avahi-browse [<arg>options</arg>] <opt>--browse-domains</opt></cmd>
+      <cmd>avahi-browse [<arg>options</arg>] <opt>--dump-db</opt></cmd>
+      <cmd>avahi-browse-domains [<arg>options</arg>]</cmd>
+	</synopsis>
+
+    <description>
+      <p>Browse for mDNS/DNS-SD network services and browsing domains using the Avahi daemon.</p>
+
+	</description>
+
+	<options>
+
+      <p>Specify a DNS-SD service type (e.g. _http._tcp) to browse for
+      on the command line, or <opt>-a</opt> to browse for all
+      available service types. Items that appear on the network are prefixed with "+", items that disappear are prefixed with "-". If <opt>--resolve</opt> is passed items that are resolved are prefixed with "=".</p>
+
+      <option>
+		<p><opt>-a | --all</opt></p>
+		<optdesc><p>Browse for all service types registered on the LAN, not just the one specified on the command line.</p></optdesc>
+	  </option>
+
+      <option>
+        <p><opt>-D | --browse-domains</opt></p>
+        <optdesc><p>Browse for browsing domains instead for services. avahi-browse-domains is equivalent to avahi-browse --browse-domains</p></optdesc>
+      </option>
+
+ 	  <option>
+		<p><opt>-d | --domain=</opt> <arg>DOMAIN</arg></p>
+        <optdesc><p>Browse in the specified domain. If omitted
+        avahi-browse will browse in the default browsing domain
+        (usually: local)</p></optdesc>
+	  </option>
+
+      <option>
+        <p><opt>-v | --verbose</opt></p>
+        <optdesc><p>Enable verbose mode.</p></optdesc>
+      </option>
+
+      <option>
+        <p><opt>-t | --terminate</opt></p>
+        <optdesc><p>Terminate after dumping a more or less complete list.</p></optdesc>
+      </option>
+
+      <option>
+        <p><opt>-c | --cache</opt></p>
+        <optdesc><p>Terminate after dumping all entries available in the cache.</p></optdesc>
+      </option>
+
+      <option>
+        <p><opt>-l | --ignore-local</opt></p>
+        <optdesc><p>Ignore local services, show only remote services.</p></optdesc>
+      </option>
+
+	  <option>
+		<p><opt>-r | --resolve</opt></p>
+		<optdesc><p>Automatically resolve services found.</p></optdesc>
+	  </option>
+
+	  <option>
+		<p><opt>-f | --no-fail</opt></p>
+		<optdesc><p>Don't fail if the daemon is not found running. Instead, wait until it appears. If it disconnects, try to reconnect.</p></optdesc>
+	  </option>
+
+	  <option>
+                <p><opt>-p | --parsable</opt></p>
+		<optdesc><p>Make output easily parsable for usage in scripts. If enabled fields are separated by semicolons (;), service names are escaped. It is recommended to combine this with <opt>--no-db-lookup</opt>.</p></optdesc>
+	  </option>
+
+	  <option>
+		<p><opt>-k | --no-db-lookup</opt></p>
+		<optdesc><p>Don't lookup services types in service type database.</p></optdesc>
+	  </option>
+
+	  <option>
+		<p><opt>-b | --dump-db</opt></p>
+		<optdesc><p>Dump the service type database (may be combined with -k)</p></optdesc>
+	  </option>
+
+	  <option>
+		<p><opt>-h | --help</opt></p>
+		<optdesc><p>Show help.</p></optdesc>
+	  </option>
+
+	  <option>
+		<p><opt>-V | --version</opt></p>
+		<optdesc><p>Show version information.</p></optdesc>
+	  </option>
+
+	</options>
+
+	<section name="Authors">
+	  <p>The Avahi Developers &lt;@PACKAGE_BUGREPORT@&gt;; Avahi is
+	  available from <url href="@PACKAGE_URL@"/></p>
+	</section>
+
+	<section name="See also">
+	  <p>
+        <manref name="avahi-publish" section="1"/>, <manref name="avahi-resolve" section="1"/>, <manref name="avahi-daemon" section="8"/>
+	  </p>
+	</section>
+
+	<section name="Comments">
+	  <p>This man page was written using <manref name="xml2man" section="1"
+		  href="http://masqmail.cx/xml2man/"/> by Oliver Kurth.</p>
+	</section>
+
+  </manpage>
