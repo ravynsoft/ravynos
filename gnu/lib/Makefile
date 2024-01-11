@@ -3,7 +3,6 @@
 
 SUBDIR=	                libobjc2
 SUBDIR+=                gettext
-SUBDIR+=                dbus
 SUBDIR.${MK_DIALOG}+=	libdialog
 SUBDIR.${MK_TESTS}+=	tests
 

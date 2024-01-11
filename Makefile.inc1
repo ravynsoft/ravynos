@@ -2705,6 +2705,7 @@ bootstrap-tools: ${_bt}-links .PHONY
     ${_mkesdb} \
     ${_migcom} \
     ${_zic} \
+    gnu/usr.bin/gmake \
     usr.bin/nasm \
     ${LOCAL_BSTOOL_DIRS}
 ${_bt}-${_tool}: ${_bt}-links .PHONY .MAKE
@@ -2714,10 +2715,10 @@ ${_bt}-${_tool}: ${_bt}-links .PHONY .MAKE
 		if [ "${_tool}" = "usr.bin/lex" ]; then \
 			${MAKE} DIRPRFX=${_tool}/ bootstrap; \
 		fi; \
-		${MAKE} DIRPRFX=${_tool}/ all; \
+		${MAKE} DIRPRFX=${_tool}/ DESTDIR=${WORLDTMP}/legacy all; \
 		${MAKE} DIRPRFX=${_tool}/ DESTDIR=${WORLDTMP}/legacy install
 
-bootstrap-tools: ${_bt}-${_tool}
+bootstrap-tools: ${_bt}-${_tool} .WAIT
 .endfor
 .if target(${_bt}-lib/libmd)
 # If we are bootstrapping libmd (e.g. when building on macOS/Linux) add the
@@ -2726,7 +2727,6 @@ ${_bt}-usr.bin/sort: ${_bt}-lib/libmd
 ${_bt}-usr.bin/xinstall: ${_bt}-lib/libmd
 ${_bt}-sbin/md5: ${_bt}-lib/libmd
 .endif
-
 
 #
 # build-tools: Build special purpose build tools

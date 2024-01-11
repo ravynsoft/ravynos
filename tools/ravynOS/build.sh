@@ -22,7 +22,7 @@ install() {
 
 base_build() {
     cd ${CIRRUS_WORKING_DIR}
-    make -C gnu/usr.bin/gmake all worldtmp_install COMPILER_TYPE=clang DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
+    #make -C gnu/usr.bin/gmake all worldtmp_install COMPILER_TYPE=clang DESTDIR=/usr/obj/${CIRRUS_WORKING_DIR}/${PLATFORM}
     make -j$(sysctl -n hw.ncpu) MALLOC_PRODUCTION=1 WITHOUT_CLEAN=1 MK_LIB32=no COMPILER_TYPE=clang buildworld
     if [ $? -ne 0 ]; then exit $?; fi
 }
