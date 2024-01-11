@@ -2,7 +2,7 @@
 
 all: build
 build:
-	cmake -S ${.CURDIR} -B ${MAKEOBJDIR}
+	cmake -Djbig=OFF -S ${.CURDIR} -B ${MAKEOBJDIR}
 	${MAKE} -C ${MAKEOBJDIR}
 	${MAKE} -C ${MAKEOBJDIR} DESTDIR=${DESTDIR} install
 
