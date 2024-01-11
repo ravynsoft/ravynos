@@ -75,6 +75,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libiscsiutil \
 	libjail \
 	libjansson \
+        libjpeg \
 	libkiconv \
 	libkvm \
 	liblaunch \
