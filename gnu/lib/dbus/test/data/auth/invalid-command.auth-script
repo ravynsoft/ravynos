@@ -1,0 +1,7 @@
+## this tests that receiving a nonexistent command is handled properly
+## by a server
+
+SERVER
+SEND 'NONEXISTENT_COMMAND foo bar baz blah blah'
+EXPECT_COMMAND ERROR
+EXPECT_STATE WAITING_FOR_INPUT

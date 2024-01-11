@@ -1,0 +1,15 @@
+<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-BUS Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <listen>@TEST_LISTEN@</listen>
+
+  <policy context="default">
+    <allow send_interface="*"/>
+    <allow receive_interface="*"/>
+    <allow own="*"/>
+    <allow user="*"/>
+  </policy>
+
+  <!-- avoid allowing service activation since we are allowing everyone in -->
+  <servicehelper>/bin/false</servicehelper>
+</busconfig>

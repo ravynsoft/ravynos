@@ -1,0 +1,25 @@
+# Copyright 2022 Collabora Ltd.
+# SPDX-License-Identifier: MIT
+#
+# To output as binary:
+# sed -e 's/#.*//' test/data/valid-messages/minimal.message-raw.hex |
+# xxd -p -r - test/data/valid-messages/minimal.message-raw
+#
+# This is a minimal valid message.
+
+# Offset % 0x10:
+# 0001 0203 0405 0607 0809 0a0b 0c0d 0e0f
+
+  6c                                       # little-endian
+    02                                     # method call reply
+       00                                  # no flags
+         01                                # major protocol version 1
+            0000 0000                      # message body is 0 bytes
+                      0200 0000            # serial number 2
+                                0800 0000  # header is an array of 8 bytes of struct (yv)
+  05                                       # in reply to
+    01                                     # signature is 1 byte
+       7500                                # "u" \0
+            0100 0000                      # in reply to serial number 1
+
+#sha1 06942854add9c4346a8b1c76a2b02e2e73abe72a

@@ -1,0 +1,17 @@
+## this tests that a client can fallback to a secondary auth mech 
+
+CLIENT
+
+## Will try EXTERNAL by default first without first calling AUTH alone.
+
+EXPECT_COMMAND AUTH
+SEND 'REJECTED EXTERNAL DBUS_COOKIE_SHA1 DBUS_TEST_NONEXISTENT_MECH'
+
+## And this time we get DBUS_COOKIE_SHA1
+
+EXPECT_COMMAND AUTH
+## of course real DBUS_COOKIE_SHA1 would not send this here...
+SEND 'OK 1234deadbeef'
+
+EXPECT_COMMAND BEGIN
+EXPECT_STATE AUTHENTICATED

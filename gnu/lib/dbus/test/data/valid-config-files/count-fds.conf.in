@@ -1,0 +1,22 @@
+<!DOCTYPE busconfig PUBLIC "-//freedesktop//DTD D-Bus Bus Configuration 1.0//EN"
+ "http://www.freedesktop.org/standards/dbus/1.0/busconfig.dtd">
+<busconfig>
+  <!-- Our well-known bus type, don't change this -->
+  <type>session</type>
+  <listen>@TEST_LISTEN@</listen>
+
+  <policy context="default">
+    <!-- Allow everything to be sent -->
+    <allow send_destination="*" eavesdrop="true"/>
+    <!-- Allow everything to be received -->
+    <allow eavesdrop="true"/>
+    <!-- Allow anyone to own anything -->
+    <allow own="*"/>
+    <!-- Exercise rules that match on numbers of fds -->
+    <deny send_path="/test/DenySendMax2" max_fds="2"/>
+    <deny receive_path="/test/DenyReceiveMax3" max_fds="3"/>
+    <deny send_path="/test/DenySendMin4" min_fds="4"/>
+    <deny receive_path="/test/DenyReceiveMin5" min_fds="5"/>
+  </policy>
+
+</busconfig>

@@ -1,0 +1,16 @@
+## this tests that a client can login anonymously
+
+CLIENT
+
+## Reject whatever mechanism the client picks first
+EXPECT_COMMAND AUTH
+SEND 'REJECTED DBUS_TEST_NONEXISTENT_MECH1 ANONYMOUS DBUS_TEST_NONEXISTENT_MECH2'
+
+## And this time we get ANONYMOUS
+
+EXPECT_COMMAND AUTH
+## of course real DBUS_COOKIE_SHA1 would not send this here...
+SEND 'OK 1234deadbeef'
+
+EXPECT_COMMAND BEGIN
+EXPECT_STATE AUTHENTICATED

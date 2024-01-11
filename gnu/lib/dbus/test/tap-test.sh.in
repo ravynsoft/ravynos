@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# Wrapper to make an Automake-style test output TAP syntax:
+#
+# - arbitrary stdout/stderr is sent to stderr where it will not be
+#   interpreted as TAP
+# - it is treated as a single test-case
+# - exit 77 is a skip
+# - exit 0 is a pass
+# - anything else is a failure
+#
+# Usage: use sed to replace @RUN@ with the shell command-line to be run.
+
+set -e
+
+# we plan to do 1 test-case
+echo "1..1"
+
+e=0
+@RUN@ >&2 || e=$?
+
+case "$e" in
+    (0)
+        echo "ok 1 @RUN@"
+        ;;
+    (77)
+        echo "ok 1 # SKIP @RUN@"
+        ;;
+    (*)
+        echo "not ok 1 @RUN@ (exit status $e)"
+        ;;
+esac
