@@ -2718,7 +2718,7 @@ ${_bt}-${_tool}: ${_bt}-links .PHONY .MAKE
 		${MAKE} DIRPRFX=${_tool}/ DESTDIR=${WORLDTMP}/legacy all; \
 		${MAKE} DIRPRFX=${_tool}/ DESTDIR=${WORLDTMP}/legacy install
 
-bootstrap-tools: ${_bt}-${_tool} .WAIT
+bootstrap-tools: ${_bt}-${_tool}
 .endfor
 .if target(${_bt}-lib/libmd)
 # If we are bootstrapping libmd (e.g. when building on macOS/Linux) add the
@@ -2727,6 +2727,8 @@ ${_bt}-usr.bin/sort: ${_bt}-lib/libmd
 ${_bt}-usr.bin/xinstall: ${_bt}-lib/libmd
 ${_bt}-sbin/md5: ${_bt}-lib/libmd
 .endif
+# Ensure we build gmake before nasm
+.ORDER: _bootstrap-tools-gnu/usr.bin/gmake _bootstrap-tools-usr.bin/nasm
 
 #
 # build-tools: Build special purpose build tools
