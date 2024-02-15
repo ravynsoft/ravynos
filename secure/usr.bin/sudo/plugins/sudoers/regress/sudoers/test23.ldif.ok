@@ -1,0 +1,14 @@
+dn: cn=defaults,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: defaults
+description: Default sudoOption's go here
+sudoOption: env_check=COLORTERM LANG LANGUAGE LC_* LINGUAS
+sudoOption: env_check+=TERM TZ
+sudoOption: env_delete=IFS CDPATH LOCALDOMAIN RES_OPTIONS HOSTALIASES
+sudoOption: env_delete+=NLSPATH PATH_LOCALE LD_* _RLD*
+sudoOption: env_keep+=LANG LANGUAGE LINGUAS LC_* _XKB_CHARSET
+sudoOption: env_keep-=_XKB_CHARSET
+sudoOption: env_keep+=XAPPLRESDIR XFILESEARCHPATH XUSERFILESEARCHPATH
+sudoOption: env_keep+=XDG_SESSION_COOKIE
+

@@ -1,0 +1,8 @@
+Defaults:FULLTIMERS !lecture
+Defaults:millert !authenticate
+
+Host_Alias CDROM = orion, perseus, hercules
+User_Alias FULLTIMERS = millert, mikef, dowdy
+Runas_Alias OPERATOR = operator, backup
+User_Alias PARTTIMERS = bostley, jwfox, crawl
+Cmnd_Alias VIPW = /usr/sbin/vipw, /usr/bin/passwd, /usr/bin/chsh, /usr/bin/chfn

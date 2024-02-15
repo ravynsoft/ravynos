@@ -1,0 +1,102 @@
+{
+    "Defaults": [
+        {
+            "Options": [
+                {
+                    "operation": "list_assign",
+                    "env_check": [
+                        "COLORTERM",
+                        "LANG",
+                        "LANGUAGE",
+                        "LC_*",
+                        "LINGUAS"
+                    ]
+                }
+            ]
+        },
+        {
+            "Options": [
+                {
+                    "operation": "list_add",
+                    "env_check": [
+                        "TERM",
+                        "TZ"
+                    ]
+                }
+            ]
+        },
+        {
+            "Options": [
+                {
+                    "operation": "list_assign",
+                    "env_delete": [
+                        "IFS",
+                        "CDPATH",
+                        "LOCALDOMAIN",
+                        "RES_OPTIONS",
+                        "HOSTALIASES"
+                    ]
+                }
+            ]
+        },
+        {
+            "Options": [
+                {
+                    "operation": "list_add",
+                    "env_delete": [
+                        "NLSPATH",
+                        "PATH_LOCALE",
+                        "LD_*",
+                        "_RLD*"
+                    ]
+                }
+            ]
+        },
+        {
+            "Options": [
+                {
+                    "operation": "list_add",
+                    "env_keep": [
+                        "LANG",
+                        "LANGUAGE",
+                        "LINGUAS",
+                        "LC_*",
+                        "_XKB_CHARSET"
+                    ]
+                }
+            ]
+        },
+        {
+            "Options": [
+                {
+                    "operation": "list_remove",
+                    "env_keep": [
+                        "_XKB_CHARSET"
+                    ]
+                }
+            ]
+        },
+        {
+            "Options": [
+                {
+                    "operation": "list_add",
+                    "env_keep": [
+                        "XAPPLRESDIR",
+                        "XFILESEARCHPATH",
+                        "XUSERFILESEARCHPATH"
+                    ]
+                }
+            ]
+        },
+        {
+            "Options": [
+                {
+                    "operation": "list_add",
+                    "env_keep": [
+                        "XDG_SESSION_COOKIE"
+                    ]
+                }
+            ]
+        }
+    ]
+}

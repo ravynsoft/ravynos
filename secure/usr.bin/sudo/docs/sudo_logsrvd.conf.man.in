@@ -1,0 +1,1114 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2019-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.TH "SUDO_LOGSRVD.CONF" "@mansectform@" "January 16, 2023" "Sudo @PACKAGE_VERSION@" "File Formats Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBsudo_logsrvd.conf\fR
+\- configuration for sudo_logsrvd
+.SH "DESCRIPTION"
+The
+\fBsudo_logsrvd.conf\fR
+file is used to configure the
+\fBsudo_logsrvd\fR
+log server.
+It uses an INI-style format made up of sections in square brackets and
+\(lqkey = value\(rq
+pairs specific to each section below the section name.
+Depending on the key, values may be integers, booleans, or strings.
+Section and key names are not case sensitive, but values are.
+.PP
+The pound sign
+(\(oq#\(cq)
+is used to indicate a comment.
+Both the comment character and any text after it, up to the end of
+the line, are ignored.
+Lines beginning with a semi-colon
+(\(oq\&;\(cq)
+are also ignored.
+.PP
+Long lines can be continued with a backslash
+(\(oq\e\(cq)
+as the last character on the line.
+Leading white space is removed from the beginning of lines
+even when the continuation character is used.
+.PP
+The
+\fIEXAMPLES\fR
+section contains a copy of the default
+\fBsudo_logsrvd.conf\fR
+file.
+.PP
+The following configuration sections are recognized:
+.PP
+.RS 1n
+.PD 0
+.TP 3n
+\fB\(bu\fR
+server
+.TP 3n
+\fB\(bu\fR
+relay
+.TP 3n
+\fB\(bu\fR
+iolog
+.TP 3n
+\fB\(bu\fR
+eventlog
+.TP 3n
+\fB\(bu\fR
+syslog
+.TP 3n
+\fB\(bu\fR
+logfile
+.RE
+.PD
+.PP
+Each section is described in detail below.
+.SS "server"
+The
+\fIserver\fR
+section configures the address and port the server will listen on.
+The following keys are recognized:
+.TP 6n
+listen_address = host[:port][(tls)]
+The host name or IP address, optional port to listen on and
+an optional Transport Layer Security (TLS) flag in parentheses.
+.sp
+The host may be a host name, an IPv4 address, an IPv6 address
+in square brackets or the wild card entry
+\(oq*\(cq.
+A host setting of
+\(oq*\(cq
+will cause
+\fBsudo_logsrvd\fR
+to listen on all configured network interfaces.
+.sp
+If the optional tls flag is present,
+\fBsudo_logsrvd\fR
+will secure the connection with TLS version 1.2 or 1.3.
+Versions of TLS prior to 1.2 are not supported.
+See
+sudo_logsrvd(8)
+for details on generating TLS keys and certificates.
+.sp
+If a port is specified, it may either be a port number or a known
+service name as defined by the system service name database.
+If no port is specified, port 30343 will be used for plaintext
+connections and port 30344 will be used for TLS connections.
+.sp
+The default value is:
+.nf
+.RS 12n
+listen_address = *:30343
+listen_address = *:30344(tls)
+.RE
+.fi
+.RS 6n
+which will listen on all configured network interfaces for both
+plaintext and TLS connections.
+Multiple
+\fIlisten_address\fR
+lines may be specified to listen on more than one port or interface.
+.RE
+.TP 6n
+server_log = string
+Where to log server warning and error messages.
+Supported values are
+\fInone\fR,
+\fIstderr\fR,
+\fIsyslog\fR,
+or a path name beginning with the
+\(oq/\(cq
+character.
+A value of
+\fIstderr\fR
+is only effective when used in conjunction with the
+\fB\-n\fR
+option.
+The default value is
+\fIsyslog\fR.
+.TP 6n
+pid_file = path
+The path to the file containing the process ID of the running
+\fBsudo_logsrvd\fR.
+If set to an empty value, or if
+\fBsudo_logsrvd\fR
+is run with the
+\fB\-n\fR
+option, no
+\fIpid_file\fR
+will be created.
+If
+\fIpid_file\fR
+refers to a symbolic link, it will be ignored.
+The default value is
+\fI@rundir@/sudo_logsrvd.pid\fR.
+.TP 6n
+tcp_keepalive = boolean
+If true,
+\fBsudo_logsrvd\fR
+will enable the TCP keepalive socket option on the client connection.
+This enables the periodic transmission of keepalive messages to the client.
+If the client does not respond to a message in time, the connection will
+be closed.
+Defaults to
+\fItrue\fR.
+.TP 6n
+timeout = number
+The amount of time, in seconds,
+\fBsudo_logsrvd\fR
+will wait for the client to respond.
+A value of 0 will disable the timeout.
+The default value is
+\fI30\fR.
+.TP 6n
+tls_cacert = path
+The path to a certificate authority bundle file, in PEM format,
+to use instead of the system's default certificate authority database
+when authenticating clients.
+The default is to use
+\fI/etc/ssl/sudo/cacert.pem\fR
+if it exists, otherwise the system's default certificate authority
+database is used.
+.TP 6n
+tls_cert = path
+The path to the server's certificate file, in PEM format.
+The default value is
+\fI/etc/ssl/sudo/certs/logsrvd_cert.pem\fR.
+.TP 6n
+tls_checkpeer = bool
+If true, client certificates will be validated by
+\fBsudo_logsrvd\fR;
+clients without a valid certificate will be unable to connect.
+If false, no validation of client certificates will be performed.
+It true and client certificates are created using a private certificate
+authority, the
+\fItls_cacert\fR
+setting must be set to a CA bundle that contains the CA certificate
+used to generate the client certificate.
+The default value is
+\fIfalse\fR.
+.TP 6n
+tls_ciphers_v12 = string
+A list of ciphers to use for connections secured by TLS version 1.2 only,
+separated by a colon
+\(oq:\&\(cq.
+See the
+\fICIPHER LIST FORMAT\fR
+section in
+openssl-ciphers(1)
+for full details.
+The default value is
+\(lqHIGH:!aNULL\(rq
+which consists of encryption cipher suites with key lengths larger than
+128 bits, and some cipher suites with 128-bit keys.
+Cipher suites that offer no authentication are excluded.
+.TP 6n
+tls_ciphers_v13 = string
+A list of ciphers to use for connections secured by TLS version 1.3 only,
+separated by a colon
+\(oq:\&\(cq.
+Supported cipher suites depend on the version of OpenSSL used,
+but should include the following:
+.sp
+.RS 12n
+.PD 0
+.TP 6n
+TLS_AES_128_GCM_SHA256
+.TP 6n
+TLS_AES_256_GCM_SHA384
+.TP 6n
+TLS_CHACHA20_POLY1305_SHA256
+.TP 6n
+TLS_AES_128_CCM_SHA256
+.TP 6n
+TLS_AES_128_CCM_8_SHA256
+.RE
+.RS 6n
+.sp
+The default cipher suite is
+\(lqTLS_AES_256_GCM_SHA384\(rq.
+.RE
+.PD
+.TP 6n
+tls_dhparams = path
+The path to a file containing custom Diffie-Hellman parameters in PEM format.
+This file can be created with the following command:
+.nf
+.sp
+.RS 6n
+openssl dhparam -out /etc/sudo_logsrvd_dhparams.pem 2048
+.RE
+.fi
+.RS 6n
+.sp
+By default,
+\fBsudo_logsrvd\fR
+will use the OpenSSL defaults for Diffie-Hellman key generation.
+.RE
+.TP 6n
+tls_key = path
+The path to the server's private key file, in PEM format.
+The default value is
+\fI/etc/ssl/sudo/private/logsrvd_key.pem\fR.
+.TP 6n
+tls_verify = bool
+If true,
+\fBsudo_logsrvd\fR
+will validate its own certificate at startup time or when the
+configuration is changed.
+If false, no verification is performed of the server certificate.
+When using self-signed certificates without a certificate authority,
+this setting should be set to false.
+The default value is
+\fItrue\fR.
+.SS "relay"
+The
+\fIrelay\fR
+section configures the optional logsrv relay host and port the server will
+connect to.
+The TLS configuration keys are optional, by default the corresponding
+keys in the
+\fIserver\fR
+section will be used.
+They are only present in this section to make it possible for the relay
+connection to use a different set of TLS parameters from the client-facing
+server.
+The following keys are recognized:
+.TP 6n
+connect_timeout = number
+The amount of time, in seconds,
+\fBsudo_logsrvd\fR
+will wait for the connection to a
+\fIrelay_host\fR
+(see below) to complete.
+Once the connection is complete, the
+\fItimeout\fR
+setting controls the amount of time
+\fBsudo_logsrvd\fR
+will wait for the relay to respond.
+A value of 0 will disable the timeout.
+The default value is
+\fI30\fR.
+.TP 6n
+relay_dir = path
+The directory in which log messages are temporarily stored before they
+are sent to the relay host.
+Messages are stored in the wire format specified by
+sudo_logsrv.proto(@mansectform@)
+The default value is
+\fI@relay_dir@\fR.
+.TP 6n
+relay_host = host[:port][(tls)]
+The relay host name or IP address, optional port to connect to and
+an optional Transport Layer Security (TLS) flag in parentheses.
+The syntax is identical to
+\fIlisten_address\fR
+in the
+\fIserver\fR
+section with one exception: the wild card
+\(oq*\(cq
+syntax is not supported.
+.sp
+When this setting is enabled, messages from the client will be forwarded
+to one of the specified relay hosts instead of being stored locally.
+The
+\fIhost\fR
+could be running an instance of
+\fBsudo_logsrvd\fR
+or another server that supports the
+sudo_logsrv.proto(@mansectform@)
+protocol.
+.sp
+If multiple
+\fIrelay_host\fR
+lines are specified, the first available relay host will be used.
+.TP 6n
+retry_interval = number
+The number of seconds to wait after a connection error before making
+a new attempt to forward a message to a relay host.
+The default value is
+\fI30\fR.
+.TP 6n
+store_first = boolean
+If true,
+\fBsudo_logsrvd\fR
+will store logs locally before relaying them.
+Once the log is complete, a connection to the relay host is opened
+and the log is relayed.
+If the network connection is interrupted before the log can be fully
+transferred, it will be retransmitted later.
+The default is to relay logs in real-time.
+.TP 6n
+tcp_keepalive = boolean
+If true,
+\fBsudo_logsrvd\fR
+will enable the TCP keepalive socket option on the relay connection.
+This enables the periodic transmission of keepalive messages to the relay
+server.
+If the relay does not respond to a message in time, the connection will
+be closed.
+.TP 6n
+timeout = number
+The amount of time, in seconds,
+\fBsudo_logsrvd\fR
+will wait for the relay server to respond after a connection has succeeded.
+A value of 0 will disable the timeout.
+The default value is
+\fI30\fR.
+.TP 6n
+tls_cacert = path
+The path to a certificate authority bundle file, in PEM format,
+to use instead of the system's default certificate authority database
+when authenticating clients.
+The default is to use the value specified in the
+\fIserver\fR
+section, or the system's default certificate authority database if
+no value is set.
+.TP 6n
+tls_cert = path
+The path to the server's certificate file, in PEM format.
+The default is to use the value specified in the
+\fIserver\fR
+section.
+.TP 6n
+tls_checkpeer = bool
+If true, the relay host's certificate will be validated by
+\fBsudo_logsrvd\fR;
+connections to a relay without a valid certificate will fail.
+If false, no validation of relay certificates will be performed.
+It true and relay certificates are created using a private certificate
+authority, the
+\fItls_cacert\fR
+setting must be set to a CA bundle that contains the CA certificate
+used to generate the relay certificate.
+The default is to use the value specified in the
+\fIserver\fR
+section.
+.TP 6n
+tls_ciphers_v12 = string
+A list of ciphers to use for connections secured by TLS version 1.2 only,
+separated by a colon
+\(oq:\&\(cq.
+See the
+\fICIPHER LIST FORMAT\fR
+section in
+openssl-ciphers(1)
+for full details.
+The default is to use the value specified in the
+\fIserver\fR
+section.
+.TP 6n
+tls_ciphers_v13 = string
+A list of ciphers to use for connections secured by TLS version 1.3 only,
+separated by a colon
+\(oq:\&\(cq.
+Supported cipher suites depend on the version of OpenSSL used,
+see the
+\fIserver\fR
+section for more information.
+The default is to use the value specified in the
+\fIserver\fR
+section.
+.TP 6n
+tls_dhparams = path
+The path to a file containing custom Diffie-Hellman parameters in PEM format.
+The default is to use the value specified in the
+\fIserver\fR
+section.
+.TP 6n
+tls_key = path
+The path to the server's private key file, in PEM format.
+The default is to use the value specified in the
+\fIserver\fR
+section.
+.TP 6n
+tls_verify = bool
+If true, the server's certificate used for relaying will be verified at startup.
+If false, no verification is performed of the server certificate.
+When using self-signed certificates without a certificate authority,
+this setting should be set to false.
+The default is to use the value specified in the
+\fIserver\fR
+section.
+.SS "iolog"
+The
+\fIiolog\fR
+section configures I/O log parameters.
+These settings are identical to the I/O configuration in
+sudoers(@mansectform@).
+The following keys are recognized:
+.TP 6n
+iolog_compress = boolean
+If set, I/O logs will be compressed using
+\fBzlib\fR.
+Enabling compression can make it harder to view the logs in real-time as
+the program is executing due to buffering.
+The default value is
+\fIfalse\fR.
+.TP 6n
+iolog_dir = path
+The top-level directory to use when constructing the path
+name for the I/O log directory.
+The session sequence number, if any, is stored in the directory.
+The default value is
+\fI@iolog_dir@\fR.
+.sp
+The following percent
+(\(oq%\(cq)
+escape sequences are supported:
+.PP
+.RS 6n
+.PD 0
+.TP 6n
+%{seq}
+expanded to a monotonically increasing base-36 sequence number, such as 0100A5,
+where every two digits are used to form a new directory, e.g.,
+\fI01/00/A5\fR
+.PD
+.TP 6n
+%{user}
+expanded to the invoking user's login name
+.TP 6n
+%{group}
+expanded to the name of the invoking user's real group-ID
+.TP 6n
+%{runas_user}
+expanded to the login name of the user the command will
+be run as (e.g., root)
+.TP 6n
+%{runas_group}
+expanded to the group name of the user the command will
+be run as (e.g., wheel)
+.TP 6n
+%{hostname}
+expanded to the local host name without the domain name
+.TP 6n
+%{command}
+expanded to the base name of the command being run
+.PP
+In addition, any escape sequences supported by the system's
+strftime(3)
+function will be expanded.
+.sp
+To include a literal
+\(oq%\(cq
+character, the string
+\(oq%%\(cq
+should be used.
+.RE
+.TP 6n
+iolog_file = path
+The path name, relative to
+\fIiolog_dir\fR,
+in which to store I/O logs.
+It is possible for
+\fIiolog_file\fR
+to contain directory components.
+The default value is
+\(lq%{seq}\(rq.
+.sp
+See the
+\fIiolog_dir\fR
+setting above for a list of supported percent
+(\(oq%\(cq)
+escape sequences.
+.sp
+In addition to the escape sequences, path names that end in six or
+more
+\fIX\fRs
+will have the
+\fIX\fRs
+replaced with a unique combination of digits and letters, similar to the
+mktemp(3)
+function.
+.sp
+If the path created by concatenating
+\fIiolog_dir\fR
+and
+\fIiolog_file\fR
+already exists, the existing I/O log file will be truncated and
+overwritten unless
+\fIiolog_file\fR
+ends in six or
+more
+\fIX\fRs.
+.TP 6n
+iolog_flush = boolean
+If set, I/O log data is flushed to disk after each write instead of
+buffering it.
+This makes it possible to view the logs in real-time as the program is
+executing but may significantly reduce the effectiveness
+of I/O log compression.
+I/O logs are always flushed before sending a commit point to the client
+regardless of this setting.
+The default value is
+\fItrue\fR.
+.TP 6n
+iolog_group = name
+The group name to look up when setting the group-ID on new I/O log
+files and directories.
+If
+\fIiolog_group\fR
+is not set,
+the primary group-ID of the user specified by
+\fIiolog_user is used.\fR
+If neither
+\fIiolog_group\fR
+nor
+\fIiolog_user\fR
+are set, I/O log files and directories are created with group-ID 0.
+.TP 6n
+iolog_mode = mode
+The file mode to use when creating I/O log files.
+Mode bits for read and write permissions for owner, group, or other
+are honored, everything else is ignored.
+The file permissions will always include the owner read and
+write bits, even if they are not present in the specified mode.
+When creating I/O log directories, search (execute) bits are added
+to match the read and write bits specified by
+\fIiolog_mode\fR.
+The default value is
+\fI0600\fR.
+.TP 6n
+iolog_user = name
+The user name to look up when setting the owner of new
+I/O log files and directories.
+If
+\fIiolog_group\fR
+is set, it will be used instead of the user's primary group-ID.
+By default, I/O log files and directories are created with user and
+group-ID 0.
+.TP 6n
+log_passwords = bool
+Most programs that require a user's password will disable echo before
+reading the password to avoid displaying the plaintext password on
+the screen.
+However, if terminal input is being logged,
+the password will still be present in the I/O log.
+If
+\fIlog_passwords\fR
+is set to
+\fIfalse\fR,
+\fBsudo_logsrvd\fR
+will attempt to prevent passwords from being logged.
+It does this by using the regular expressions in
+\fIpassprompt_regex\fR
+to match a password prompt in the terminal output buffer.
+When a match is found, input characters in the I/O log will be replaced with
+\(oq*\(cq
+until either a line feed or carriage return is found in the terminal input
+or a new terminal output buffer is received.
+If, however, a program displays characters as the user types them
+(such as
+\fBsudo\fR
+when the
+\fIpwfeedback\fR
+option is set), only the
+first character of the password will be replaced in the I/O log.
+The default value is
+\fItrue\fR.
+.TP 6n
+maxseq = number
+The maximum sequence number that will be substituted for the
+\(lq%{seq}\(rq
+escape in the I/O log file (see the
+\fIiolog_dir\fR
+description above for more information).
+While the value substituted for
+\(lq%{seq}\(rq
+is in base 36,
+\fImaxseq\fR
+itself should be expressed in decimal.
+Values larger than 2176782336 (which corresponds to the
+base 36 sequence number
+\(lqZZZZZZ\(rq)
+will be silently truncated to 2176782336.
+The default value is
+\fI2176782336\fR.
+.TP 6n
+passprompt_regex = string
+One or more POSIX extended regular expressions used to
+match password prompts in the terminal output when
+\fIlog_passwords\fR
+is disabled.
+As an extension, if the regular expression begins with
+\(lq(?i)\(rq,
+it will be matched in a case-insensitive manner.
+Multiple
+\fIpassprompt_regex\fR
+settings may be specified.
+Each regular expression is limited to 1024 characters.
+The default value is
+\(lq[Pp]assword[: ]*\(rq.
+.SS "eventlog"
+The
+\fIeventlog\fR
+section configures how (and if) security policy events are logged.
+.TP 6n
+log_type = string
+Where to log accept, reject, and alert events reported by the policy.
+Supported values are
+\fIsyslog\fR,
+\fIlogfile\fR,
+and
+\fInone\fR.
+The default value is
+\fIsyslog\fR.
+.TP 6n
+log_exit = boolean
+If true,
+\fBsudo_logsrvd\fR
+will log an event when a command exits or is terminated by a signal.
+Defaults to
+\fIfalse\fR.
+.TP 6n
+log_format = string
+The event log format.
+Supported log formats are
+\(lqsudo\(rq
+for traditional sudo-style logs and
+\(lqjson\(rq
+for JSON-format logs.
+The JSON log entries contain the full contents of the accept, reject, exit
+and alert messages.
+The default value is
+\fIsudo\fR.
+.SS "syslog"
+The
+\fIsyslog\fR
+section configures how events are logged via
+syslog(3).
+.TP 6n
+facility = string
+Syslog facility if syslog is being used for logging.
+Defaults to
+\fI@logfac@\fR.
+.sp
+The following syslog facilities are supported:
+\fBauthpriv\fR
+(if your
+OS supports it),
+\fBauth\fR,
+\fBdaemon\fR,
+\fBuser\fR,
+\fBlocal0\fR,
+\fBlocal1\fR,
+\fBlocal2\fR,
+\fBlocal3\fR,
+\fBlocal4\fR,
+\fBlocal5\fR,
+\fBlocal6\fR,
+and
+\fBlocal7\fR.
+.TP 6n
+accept_priority = string
+Syslog priority to use when the user is allowed to run a command and
+authentication is successful.
+Defaults to
+\fI@goodpri@\fR.
+.sp
+The following syslog priorities are supported:
+\fBalert\fR,
+\fBcrit\fR,
+\fBdebug\fR,
+\fBemerg\fR,
+\fBerr\fR,
+\fBinfo\fR,
+\fBnotice\fR,
+\fBwarning\fR,
+and
+\fBnone\fR.
+Setting it to a value of
+\fBnone\fR
+will disable logging of successful commands.
+.TP 6n
+reject_priority = string
+Syslog priority to use when the user is not allowed to run a command or
+when authentication is unsuccessful.
+Defaults to
+\fI@badpri@\fR.
+.sp
+See
+\fIaccept_priority\fR
+for the list of supported syslog priorities.
+.TP 6n
+alert_priority = string
+Syslog priority to use for event log alert messages received from the client.
+Defaults to
+\fI@badpri@\fR.
+.sp
+See
+\fIaccept_priority\fR
+for the list of supported syslog priorities.
+.TP 6n
+maxlen = number
+On many systems,
+syslog(3)
+has a relatively small log buffer.
+IETF RFC 5424 states that syslog servers must support messages of
+at least 480 bytes and should support messages up to 2048 bytes.
+By default,
+\fBsudo_logsrvd\fR
+creates log messages up to 960 bytes which corresponds to the
+historic
+BSD
+syslog implementation which used a 1024 byte buffer
+to store the message, date, hostname, and program name.
+.sp
+To prevent syslog messages from being truncated,
+\fBsudo_logsrvd\fR
+will split up sudo-style log messages that are larger than
+\fImaxlen\fR
+bytes.
+When a message is split, additional parts will include the string
+\(lq(command continued)\(rq
+after the user name and before the continued command line arguments.
+JSON-format log entries are never split and are not affected by
+\fImaxlen\fR.
+.TP 6n
+server_facility = string
+Syslog facility if syslog is being used for server warning messages.
+See above for a list of supported facilities.
+Defaults to
+\fIdaemon\fR
+.SS "logfile"
+The
+\fIlogfile\fR
+section consists of settings related to logging to a plain file
+(not syslog).
+.TP 6n
+path = string
+The path to the file-based event log.
+This path must be fully-qualified and start with a
+\(oq/\(cq
+character.
+The default value is
+\fI@logpath@\fR.
+.TP 6n
+time_format = string
+The string used when formatting the date and time for file-based event logs.
+Formatting is performed via the system's
+strftime(3)
+function so any escape sequences supported by that function will be expanded.
+The default value is
+\(lq%h %e %T\(rq
+which produces dates like
+\(lqOct 3 07:15:24\(rq
+in the
+\(oqC\(cq
+locale.
+.SH "FILES"
+.TP 26n
+\fI@sysconfdir@/sudo_logsrvd.conf\fR
+Sudo log server configuration file
+.SH "EXAMPLES"
+.nf
+.RS 0n
+#
+# sudo logsrv daemon configuration
+#
+
+[server]
+# The host name or IP address and port to listen on with an optional TLS
+# flag.  If no port is specified, port 30343 will be used for plaintext
+# connections and port 30344 will be used to TLS connections.
+# The following forms are accepted:
+#   listen_address = hostname(tls)
+#   listen_address = hostname:port(tls)
+#   listen_address = IPv4_address(tls)
+#   listen_address = IPv4_address:port(tls)
+#   listen_address = [IPv6_address](tls)
+#   listen_address = [IPv6_address]:port(tls)
+#
+# The (tls) suffix should be omitted for plaintext connections.
+#
+# Multiple listen_address settings may be specified.
+# The default is to listen on all addresses.
+#listen_address = *:30343
+#listen_address = *:30344(tls)
+
+# The file containing the ID of the running sudo_logsrvd process.
+#pid_file = @rundir@/sudo_logsrvd.pid
+
+# Where to log server warnings: none, stderr, syslog, or a path name.
+#server_log = syslog
+
+# If true, enable the SO_KEEPALIVE socket option on client connections.
+# Defaults to true.
+#tcp_keepalive = true
+
+# The amount of time, in seconds, the server will wait for the client to
+# respond.  A value of 0 will disable the timeout.  The default value is 30.
+#timeout = 30
+
+# If true, the server will validate its own certificate at startup.
+# Defaults to true.
+#tls_verify = true
+
+# If true, client certificates will be validated by the server;
+# clients without a valid certificate will be unable to connect.
+# By default, client certs are not checked.
+#tls_checkpeer = false
+
+# Path to a certificate authority bundle file in PEM format to use
+# instead of the system's default certificate authority database.
+#tls_cacert = /etc/ssl/sudo/cacert.pem
+
+# Path to the server's certificate file in PEM format.
+# Required for TLS connections.
+#tls_cert = /etc/ssl/sudo/certs/logsrvd_cert.pem
+
+# Path to the server's private key file in PEM format.
+# Required for TLS connections.
+#tls_key = /etc/ssl/sudo/private/logsrvd_key.pem
+
+# TLS cipher list (see "CIPHER LIST FORMAT" in the openssl-ciphers manual).
+# This setting is only effective if the negotiated protocol is TLS version
+# 1.2.  The default cipher list is HIGH:!aNULL.
+#tls_ciphers_v12 = HIGH:!aNULL
+
+# TLS cipher list if the negotiated protocol is TLS version 1.3.
+# The default cipher list is TLS_AES_256_GCM_SHA384.
+#tls_ciphers_v13 = TLS_AES_256_GCM_SHA384
+
+# Path to the Diffie-Hellman parameter file in PEM format.
+# If not set, the server will use the OpenSSL defaults.
+#tls_dhparams = /etc/ssl/sudo/logsrvd_dhparams.pem
+
+[relay]
+# The host name or IP address and port to send logs to in relay mode.
+# The syntax is identical to listen_address with the exception of
+# the wild card ('*') syntax.  When this setting is enabled, logs will
+# be relayed to the specified host instead of being stored locally.
+# This setting is not enabled by default.
+#relay_host = relayhost.dom.ain
+#relay_host = relayhost.dom.ain(tls)
+
+# The amount of time, in seconds, the server will wait for a connection
+# to the relay server to complete.  A value of 0 will disable the timeout.
+# The default value is 30.
+#connect_timeout = 30
+
+# The directory to store messages in before they are sent to the relay.
+# Messages are stored in wire format.
+# The default value is @relay_dir@.
+#relay_dir = @relay_dir@
+
+# The number of seconds to wait after a connection error before
+# making a new attempt to forward a message to a relay host.
+# The default value is 30.
+#retry_interval = 30
+
+# Whether to store the log before relaying it.  If true, enable store
+# and forward mode.  If false, the client connection is immediately
+# relayed.  Defaults to false.
+#store_first = true
+
+# If true, enable the SO_KEEPALIVE socket option on relay connections.
+# Defaults to true.
+#tcp_keepalive = true
+
+# The amount of time, in seconds, the server will wait for the relay to
+# respond.  A value of 0 will disable the timeout.  The default value is 30.
+#timeout = 30
+
+# If true, the server's relay certificate will be verified at startup.
+# The default is to use the value in the [server] section.
+#tls_verify = true
+
+# Whether to verify the relay's certificate for TLS connections.
+# The default is to use the value in the [server] section.
+#tls_checkpeer = false
+
+# Path to a certificate authority bundle file in PEM format to use
+# instead of the system's default certificate authority database.
+# The default is to use the value in the [server] section.
+#tls_cacert = /etc/ssl/sudo/cacert.pem
+
+# Path to the server's certificate file in PEM format.
+# The default is to use the certificate in the [server] section.
+#tls_cert = /etc/ssl/sudo/certs/logsrvd_cert.pem
+
+# Path to the server's private key file in PEM format.
+# The default is to use the key in the [server] section.
+#tls_key = /etc/ssl/sudo/private/logsrvd_key.pem
+
+# TLS cipher list (see "CIPHER LIST FORMAT" in the openssl-ciphers manual).
+# this setting is only effective if the negotiated protocol is TLS version
+# 1.2.  The default is to use the value in the [server] section.
+#tls_ciphers_v12 = HIGH:!aNULL
+
+# TLS cipher list if the negotiated protocol is TLS version 1.3.
+# The default is to use the value in the [server] section.
+#tls_ciphers_v13 = TLS_AES_256_GCM_SHA384
+
+# Path to the Diffie-Hellman parameter file in PEM format.
+# The default is to use the value in the [server] section.
+#tls_dhparams = /etc/ssl/sudo/logsrvd_dhparams.pem
+
+[iolog]
+# The top-level directory to use when constructing the path name for the
+# I/O log directory.  The session sequence number, if any, is stored here.
+#iolog_dir = @iolog_dir@
+
+# The path name, relative to iolog_dir, in which to store I/O logs.
+# It is possible for iolog_file to contain directory components.
+#iolog_file = %{seq}
+
+# If set, I/O logs will be compressed using zlib.  Enabling compression can
+# make it harder to view the logs in real-time as the program is executing.
+#iolog_compress = false
+
+# If set, I/O log data is flushed to disk after each write instead of
+# buffering it.  This makes it possible to view the logs in real-time
+# as the program is executing but reduces the effectiveness of compression.
+#iolog_flush = true
+
+# The group to use when creating new I/O log files and directories.
+# If iolog_group is not set, the primary group-ID of the user specified
+# by iolog_user is used.  If neither iolog_group nor iolog_user
+# are set, I/O log files and directories are created with group-ID 0.
+#iolog_group = wheel
+
+# The user to use when setting the user-ID and group-ID of new I/O
+# log files and directories.  If iolog_group is set, it will be used
+# instead of the user's primary group-ID.  By default, I/O log files
+# and directories are created with user and group-ID 0.
+#iolog_user = root
+
+# The file mode to use when creating I/O log files.  The file permissions
+# will always include the owner read and write bits, even if they are
+# not present in the specified mode.  When creating I/O log directories,
+# search (execute) bits are added to match the read and write bits
+# specified by iolog_mode.
+#iolog_mode = 0600
+
+# If disabled, sudo_logsrvd will attempt to avoid logging plaintext
+# password in the terminal input using passprompt_regex.
+#log_passwords = true
+
+# The maximum sequence number that will be substituted for the "%{seq}"
+# escape in the I/O log file.  While the value substituted for "%{seq}"
+# is in base 36, maxseq itself should be expressed in decimal.  Values
+# larger than 2176782336 (which corresponds to the base 36 sequence
+# number "ZZZZZZ") will be silently truncated to 2176782336.
+#maxseq = 2176782336
+
+# One or more POSIX extended regular expressions used to match
+# password prompts in the terminal output when log_passwords is
+# disabled.  Multiple passprompt_regex settings may be specified.
+#passprompt_regex = [Pp]assword[: ]*
+#passprompt_regex = [Pp]assword for [a-z0-9]+: *
+
+[eventlog]
+# Where to log accept, reject, exit, and alert events.
+# Accepted values are syslog, logfile, or none.
+# Defaults to syslog
+#log_type = syslog
+
+# Whether to log an event when a command exits or is terminated by a signal.
+# Defaults to false
+#log_exit = true
+
+# Event log format.
+# Currently only sudo-style event logs are supported.
+#log_format = sudo
+
+[syslog]
+# The maximum length of a syslog payload.
+# On many systems, syslog(3) has a relatively small log buffer.
+# IETF RFC 5424 states that syslog servers must support messages
+# of at least 480 bytes and should support messages up to 2048 bytes.
+# Messages larger than this value will be split into multiple messages.
+#maxlen = 960
+
+# The syslog facility to use for event log messages.
+# The following syslog facilities are supported: authpriv (if your OS
+# supports it), auth, daemon, user, local0, local1, local2, local3,
+# local4, local5, local6, and local7.
+#facility = @logfac@
+
+# Syslog priority to use for event log accept messages, when the command
+# is allowed by the security policy.  The following syslog priorities are
+# supported: alert, crit, debug, emerg, err, info, notice, warning, none.
+#accept_priority = @goodpri@
+
+# Syslog priority to use for event log reject messages, when the command
+# is not allowed by the security policy.
+#reject_priority = @badpri@
+
+# Syslog priority to use for event log alert messages reported by the
+# client.
+#alert_priority = @badpri@
+
+# The syslog facility to use for server warning messages.
+# Defaults to daemon.
+#server_facility = daemon
+
+[logfile]
+# The path to the file-based event log.
+# This path must be fully-qualified and start with a '/' character.
+#path = @logpath@
+
+# The format string used when formatting the date and time for
+# file-based event logs.  Formatting is performed via strftime(3) so
+# any format string supported by that function is allowed.
+#time_format = %h %e %T
+.RE
+.fi
+.SH "SEE ALSO"
+strftime(3),
+sudo.conf(@mansectform@),
+sudoers(@mansectform@),
+sudo(8),
+sudo_logsrvd(8)
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "BUGS"
+If you believe you have found a bug in
+\fBsudo\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBsudo\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

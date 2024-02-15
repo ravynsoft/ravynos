@@ -1,0 +1,626 @@
+{
+    "Defaults": [
+        {
+            "Options": [
+                { "fqdn": true }
+            ]
+        },
+        {
+            "Options": [
+                { "runas_default": "root" }
+            ]
+        },
+        {
+            "Options": [
+                { "tty_tickets": true }
+            ]
+        },
+        {
+            "Options": [
+                { "umask": "022" }
+            ]
+        },
+        {
+            "Options": [
+                { "runchroot": "/" }
+            ]
+        },
+        {
+            "Options": [
+                { "logfile": "/var/log/sudo" }
+            ]
+        },
+        {
+            "Options": [
+                { "log_format": "json" }
+            ]
+        },
+        {
+            "Options": [
+                { "syslog": "auth" },
+                { "syslog_badpri": "alert" },
+                { "syslog_goodpri": "notice" }
+            ]
+        },
+        {
+            "Options": [
+                { "syslog_maxlen": "2048" }
+            ]
+        },
+        {
+            "Options": [
+                { "loglinelen": false },
+                { "log_year": true },
+                { "log_host": true }
+            ]
+        },
+        {
+            "Options": [
+                { "mailerpath": false },
+                { "mailerflags": "-t" },
+                { "mailfrom": "sudo@sudo.ws" },
+                { "mailto": "root@localhost" },
+                { "mailsub": "*** Sudo information for %h ***" }
+            ]
+        },
+        {
+            "Options": [
+                { "long_otp_prompt": true }
+            ]
+        },
+        {
+            "Options": [
+                { "ignore_dot": true }
+            ]
+        },
+        {
+            "Options": [
+                { "mail_always": false }
+            ]
+        },
+        {
+            "Options": [
+                { "mail_badpass": false }
+            ]
+        },
+        {
+            "Options": [
+                { "mail_no_user": false }
+            ]
+        },
+        {
+            "Options": [
+                { "mail_no_host": false }
+            ]
+        },
+        {
+            "Options": [
+                { "mail_no_perms": false }
+            ]
+        },
+        {
+            "Options": [
+                { "mail_all_cmnds": false }
+            ]
+        },
+        {
+            "Options": [
+                { "lecture": "always" }
+            ]
+        },
+        {
+            "Options": [
+                { "lecture_file": "/etc/sudo.lecture" }
+            ]
+        },
+        {
+            "Options": [
+                { "authenticate": true }
+            ]
+        },
+        {
+            "Options": [
+                { "root_sudo": true }
+            ]
+        },
+        {
+            "Options": [
+                { "shell_noargs": true }
+            ]
+        },
+        {
+            "Options": [
+                { "set_home": true }
+            ]
+        },
+        {
+            "Options": [
+                { "always_set_home": true }
+            ]
+        },
+        {
+            "Options": [
+                { "path_info": true }
+            ]
+        },
+        {
+            "Options": [
+                { "insults": true }
+            ]
+        },
+        {
+            "Options": [
+                { "requiretty": false }
+            ]
+        },
+        {
+            "Options": [
+                { "env_editor": true }
+            ]
+        },
+        {
+            "Options": [
+                { "rootpw": false }
+            ]
+        },
+        {
+            "Options": [
+                { "runaspw": false }
+            ]
+        },
+        {
+            "Options": [
+                { "targetpw": false }
+            ]
+        },
+        {
+            "Options": [
+                { "use_loginclass": true }
+            ]
+        },
+        {
+            "Options": [
+                { "set_logname": true }
+            ]
+        },
+        {
+            "Options": [
+                { "stay_setuid": false }
+            ]
+        },
+        {
+            "Options": [
+                { "preserve_groups": false }
+            ]
+        },
+        {
+            "Options": [
+                { "timestamp_timeout": ".5" }
+            ]
+        },
+        {
+            "Options": [
+                { "passwd_timeout": "5" }
+            ]
+        },
+        {
+            "Options": [
+                { "passwd_tries": "3" }
+            ]
+        },
+        {
+            "Options": [
+                { "badpass_message": "Take off, eh!" }
+            ]
+        },
+        {
+            "Options": [
+                { "lecture_status_dir": "/var/lib/sudo/lectured" }
+            ]
+        },
+        {
+            "Options": [
+                { "timestampdir": "/run/sudo/ts" }
+            ]
+        },
+        {
+            "Options": [
+                { "timestampowner": "root" }
+            ]
+        },
+        {
+            "Options": [
+                { "exempt_group": "sudo" }
+            ]
+        },
+        {
+            "Options": [
+                { "passprompt": "%p's sudo password: " }
+            ]
+        },
+        {
+            "Options": [
+                { "passprompt_override": true }
+            ]
+        },
+        {
+            "Options": [
+                { "secure_path": "/usr/bin:/usr/sbin:/bin:/sbin" }
+            ]
+        },
+        {
+            "Options": [
+                { "editor": "/usr/bin/vi" }
+            ]
+        },
+        {
+            "Options": [
+                { "listpw": "any" }
+            ]
+        },
+        {
+            "Options": [
+                { "verifypw": "all" }
+            ]
+        },
+        {
+            "Options": [
+                { "noexec": true }
+            ]
+        },
+        {
+            "Options": [
+                { "ignore_local_sudoers": true }
+            ]
+        },
+        {
+            "Options": [
+                { "closefrom": "3" }
+            ]
+        },
+        {
+            "Options": [
+                { "closefrom_override": true }
+            ]
+        },
+        {
+            "Options": [
+                { "setenv": false }
+            ]
+        },
+        {
+            "Options": [
+                { "env_reset": true }
+            ]
+        },
+        {
+            "Options": [
+                {
+                    "operation": "list_add",
+                    "env_check": [
+                        "TERMCAP"
+                    ]
+                }
+            ]
+        },
+        {
+            "Options": [
+                { "env_delete": false }
+            ]
+        },
+        {
+            "Options": [
+                {
+                    "operation": "list_add",
+                    "env_keep": [
+                        "LANG",
+                        "LANGUAGE",
+                        "LINGUAS",
+                        "LC_*",
+                        "_XKB_CHARSET"
+                    ]
+                }
+            ]
+        },
+        {
+            "Options": [
+                { "env_file": "/etc/environment" }
+            ]
+        },
+        {
+            "Options": [
+                { "restricted_env_file": "/etc/environment.sudo" }
+            ]
+        },
+        {
+            "Options": [
+                { "sudoers_locale": "C" }
+            ]
+        },
+        {
+            "Options": [
+                { "visiblepw": false }
+            ]
+        },
+        {
+            "Options": [
+                { "pwfeedback": true }
+            ]
+        },
+        {
+            "Options": [
+                { "fast_glob": true }
+            ]
+        },
+        {
+            "Options": [
+                { "umask_override": true }
+            ]
+        },
+        {
+            "Options": [
+                { "log_input": true }
+            ]
+        },
+        {
+            "Options": [
+                { "log_output": true }
+            ]
+        },
+        {
+            "Options": [
+                { "compress_io": true }
+            ]
+        },
+        {
+            "Options": [
+                { "use_pty": true }
+            ]
+        },
+        {
+            "Options": [
+                { "iolog_dir": "/var/log/sudo-io" }
+            ]
+        },
+        {
+            "Options": [
+                { "iolog_file": "%{seq}" }
+            ]
+        },
+        {
+            "Options": [
+                { "set_utmp": true }
+            ]
+        },
+        {
+            "Options": [
+                { "utmp_runas": true }
+            ]
+        },
+        {
+            "Options": [
+                { "exec_background": false }
+            ]
+        },
+        {
+            "Options": [
+                { "pam_service": "sudo" }
+            ]
+        },
+        {
+            "Options": [
+                { "pam_login_service": "sudo-login" }
+            ]
+        },
+        {
+            "Options": [
+                { "pam_setcred": true }
+            ]
+        },
+        {
+            "Options": [
+                { "pam_session": true }
+            ]
+        },
+        {
+            "Options": [
+                { "pam_acct_mgmt": true }
+            ]
+        },
+        {
+            "Options": [
+                { "maxseq": "2176782336" }
+            ]
+        },
+        {
+            "Options": [
+                { "use_netgroups": true }
+            ]
+        },
+        {
+            "Options": [
+                { "sudoedit_checkdir": true }
+            ]
+        },
+        {
+            "Options": [
+                { "sudoedit_follow": false }
+            ]
+        },
+        {
+            "Options": [
+                { "always_query_group_plugin": true }
+            ]
+        },
+        {
+            "Options": [
+                { "netgroup_tuple": true }
+            ]
+        },
+        {
+            "Options": [
+                { "ignore_audit_errors": true }
+            ]
+        },
+        {
+            "Options": [
+                { "ignore_iolog_errors": true }
+            ]
+        },
+        {
+            "Options": [
+                { "ignore_logfile_errors": true }
+            ]
+        },
+        {
+            "Options": [
+                { "match_group_by_gid": false }
+            ]
+        },
+        {
+            "Options": [
+                { "iolog_user": "root" }
+            ]
+        },
+        {
+            "Options": [
+                { "iolog_group": "root" }
+            ]
+        },
+        {
+            "Options": [
+                { "iolog_mode": "0600" }
+            ]
+        },
+        {
+            "Options": [
+                { "fdexec": "digest_only" }
+            ]
+        },
+        {
+            "Options": [
+                { "ignore_unknown_defaults": false }
+            ]
+        },
+        {
+            "Options": [
+                { "command_timeout": "7d8h30m10s" }
+            ]
+        },
+        {
+            "Options": [
+                { "user_command_timeouts": true }
+            ]
+        },
+        {
+            "Options": [
+                { "iolog_flush": true }
+            ]
+        },
+        {
+            "Options": [
+                { "syslog_pid": true }
+            ]
+        },
+        {
+            "Options": [
+                { "timestamp_type": "tty" }
+            ]
+        },
+        {
+            "Options": [
+                { "authfail_message": "Learn to type!" }
+            ]
+        },
+        {
+            "Options": [
+                { "case_insensitive_user": true }
+            ]
+        },
+        {
+            "Options": [
+                { "case_insensitive_group": true }
+            ]
+        },
+        {
+            "Options": [
+                { "log_allowed": true }
+            ]
+        },
+        {
+            "Options": [
+                { "log_denied": true }
+            ]
+        },
+        {
+            "Options": [
+                { "log_servers": false }
+            ]
+        },
+        {
+            "Options": [
+                { "log_server_timeout": "10" }
+            ]
+        },
+        {
+            "Options": [
+                { "log_server_keepalive": true }
+            ]
+        },
+        {
+            "Options": [
+                { "log_server_cabundle": false }
+            ]
+        },
+        {
+            "Options": [
+                { "log_server_peer_cert": false }
+            ]
+        },
+        {
+            "Options": [
+                { "log_server_peer_key": false }
+            ]
+        },
+        {
+            "Options": [
+                { "log_server_verify": false }
+            ]
+        },
+        {
+            "Options": [
+                { "runas_allow_unknown_id": true }
+            ]
+        },
+        {
+            "Options": [
+                { "runas_check_shell": true }
+            ]
+        },
+        {
+            "Options": [
+                { "pam_ruser": true }
+            ]
+        },
+        {
+            "Options": [
+                { "pam_rhost": true }
+            ]
+        },
+        {
+            "Options": [
+                { "runcwd": "~" }
+            ]
+        },
+        {
+            "Options": [
+                { "selinux": false }
+            ]
+        },
+        {
+            "Options": [
+                { "admin_flag": false }
+            ]
+        }
+    ]
+}

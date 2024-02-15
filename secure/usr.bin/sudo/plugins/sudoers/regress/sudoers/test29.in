@@ -1,0 +1,11 @@
+# Test lexer regex syntax errors
+# We don't test regcomp() errors since regerror() strings are not
+# standardized.
+
+user ALL = /bin/ls ^/etc/(hosts|motd|issue
+
+user ALL = ^/bin/ls
+
+user ALL = ^/bin/ls$ ^error
+
+user ALL = ^/bin/ls$ ^error # comment

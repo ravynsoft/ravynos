@@ -1,0 +1,63 @@
+# Check quoted user name in User_Alias
+User_Alias UA1 = "foo"
+User_Alias UA2 = "foo.bar"
+User_Alias UA3 = "foo\""
+User_Alias UA4 = "foo:bar"
+User_Alias UA5 = "foo:bar\""
+
+# Check quoted group name in User_Alias
+User_Alias UA6 = "%baz"
+User_Alias UA7 = "%baz.biz"
+
+# Check quoted non-Unix group name in User_Alias
+User_Alias UA8 = "%:C/non UNIX 0 c"
+User_Alias UA9 = "%:C/non\'UNIX\'1 c"
+User_Alias UA10 = "%:C/non\"UNIX\"0 c"
+User_Alias UA11 = "%:C/non_UNIX_0 c"
+User_Alias UA12 = "%:C/non\'UNIX_3 c"
+
+# Check quoted user name in Runas_Alias
+Runas_Alias RA1 = "foo"
+Runas_Alias RA2 = "foo\""
+Runas_Alias RA3 = "foo:bar"
+Runas_Alias RA4 = "foo:bar\""
+
+# Check quoted host name in Defaults
+Defaults@"somehost" set_home
+Defaults@"quoted\"" set_home
+
+# Check quoted user name in Defaults
+Defaults:"you" set_home
+Defaults:"us\"" set_home
+Defaults:"%them" set_home
+Defaults:"%: non UNIX 0 c" set_home
+Defaults:"+net" set_home
+
+# Check quoted runas name in Defaults
+Defaults>"someone" set_home
+Defaults>"some one" set_home
+
+# Check quoted command in Defaults
+# XXX - not currently supported
+#Defaults!"/bin/ls -l" set_home
+#Defaults!"/bin/ls -l \"foo\"" set_home
+
+# Check quoted user, runas and host name in Cmnd_Spec
+"foo"		"hosta" = ("root") ALL
+"foo.bar"	"hostb" = ("root") ALL
+"foo\""		"hostc" = ("root") ALL
+"foo:bar"	"hostd" = ("root") ALL
+"foo:bar\""	"hoste" = ("root") ALL
+
+# Check quoted group/netgroup name in Cmnd_Spec
+"%baz"			"hosta" = ("root") ALL
+"%baz.biz"		"hostb" = ("root") ALL
+"%:C/non UNIX 0 c"	"hostc" = ("root") ALL
+"%:C/non\'UNIX\'1 c"	"hostd" = ("root") ALL
+"%:C/non\"UNIX\"0 c"	"hoste" = ("root") ALL
+"%:C/non_UNIX_0 c"	"hostf" = ("root") ALL
+"%:C/non\'UNIX_3 c"	"hostg" = ("root") ALL
+"+netgr"		"hosth" = ("root") ALL
+
+# Check that quotes don't need escaping in command and args
+user ALL = /bin/ls "", /bin/echo " ", /bin/foo"bar ""

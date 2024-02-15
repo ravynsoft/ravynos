@@ -1,0 +1,828 @@
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2019-2022 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd September 13, 2022
+.Dt SUDO_LOGSRV.PROTO @mansectform@
+.Os Sudo @PACKAGE_VERSION@
+.Sh NAME
+.Nm sudo_logsrv.proto
+.Nd Sudo log server protocol
+.Sh DESCRIPTION
+Starting with version 1.9.0,
+.Nm sudo
+supports sending event and I/O logs to a log server.
+The protocol used is written in Google's Protocol Buffers domain
+specific language.
+The
+.Sx EXAMPLES
+section includes a complete description of the protocol in Protocol
+Buffers format.
+.Pp
+Because there is no way to determine message boundaries when using
+Protocol Buffers, the wire size of each message is sent immediately
+preceding the message itself as a 32-bit unsigned integer in network
+byte order.
+This is referred to as
+.Dq length-prefix framing
+and is how Google suggests handling the lack of message delimiters.
+.Pp
+The protocol is made up of two basic messages,
+.Em ClientMessage
+and
+.Em ServerMessage ,
+described below.
+The server must accept messages up to two megabytes in size.
+The server may return an error if the client tries to send a message
+larger than two megabytes.
+.Sh Client Messages
+A
+.Em ClientMessage
+is a container used to encapsulate all the possible message types
+a client may send to the server.
+.Bd -literal
+message ClientMessage {
+  oneof type {
+    AcceptMessage accept_msg = 1;
+    RejectMessage reject_msg = 2;
+    ExitMessage exit_msg = 3;
+    RestartMessage restart_msg = 4;
+    AlertMessage alert_msg = 5;
+    IoBuffer ttyin_buf = 6;
+    IoBuffer ttyout_buf = 7;
+    IoBuffer stdin_buf = 8;
+    IoBuffer stdout_buf = 9;
+    IoBuffer stderr_buf = 10;
+    ChangeWindowSize winsize_event = 11;
+    CommandSuspend suspend_event = 12;
+    ClientHello hello_msg = 13;
+  }
+}
+.Ed
+.Pp
+The different
+.Em ClientMessage
+sub-messages the client may sent to the server are described below.
+.Ss TimeSpec
+.Bd -literal
+message TimeSpec {
+    int64 tv_sec = 1;
+    int32 tv_nsec = 2;
+}
+.Ed
+.Pp
+A
+.Em TimeSpec
+is the equivalent of a POSIX
+.Vt struct timespec ,
+containing seconds and nanoseconds members.
+The
+.Em tv_sec
+member is a 64-bit integer to support dates after the year 2038.
+.Ss InfoMessage
+.Bd -literal
+message InfoMessage {
+  message StringList {
+    repeated string strings = 1;
+  }
+  message NumberList {
+    repeated int64 numbers = 1;
+  }
+  string key = 1;
+  oneof value {
+    int64 numval = 2;
+    string strval = 3;
+    StringList strlistval = 4;
+    NumberList numlistval = 5;
+  }
+}
+.Ed
+.Pp
+An
+.Em InfoMessage
+is used to represent information about the invoking user as well as the
+execution environment the command runs in the form of key-value pairs.
+The key is always a string but the value may be a 64-bit integer,
+a string, an array of strings, or an array of 64-bit integers.
+The event log data is composed of
+.Em InfoMessage
+entries.
+See the
+.Sx EVENT LOG VARIABLES
+section for more information.
+.Ss ClientHello hello_msg
+.Bd -literal
+message ClientHello {
+  string client_id = 1;
+}
+.Ed
+.Pp
+A
+.Em ClientHello
+message consists of client information that may be sent to the
+server when the client first connects.
+.Bl -tag -width Ds
+.It client_id
+A free-form client description.
+This usually includes the name and version of the client implementation.
+.El
+.Ss AcceptMessage accept_msg
+.Bd -literal
+message AcceptMessage {
+  TimeSpec submit_time = 1;
+  repeated InfoMessage info_msgs = 2;
+  bool expect_iobufs = 3;
+}
+.Ed
+.Pp
+An
+.Em AcceptMessage
+is sent by the client when a command is allowed by the security policy.
+It contains the following members:
+.Bl -tag -width Ds
+.It submit_time
+The wall clock time when the command was submitted to the security policy.
+.It info_msgs
+An array of
+.Em InfoMessage
+describing the user who submitted the command as well as the execution
+environment of the command.
+This information is used to generate an event log entry and may also be
+used by server to determine where and how the I/O log is stored.
+.It expect_iobufs
+Set to true if the server should expect
+.Em IoBuffer
+messages to follow (for I/O logging) or false if the server should only
+store the event log.
+.El
+.Pp
+If an
+.Em AcceptMessage
+is sent, the client must not send a
+.Em RejectMessage
+or
+.Em RestartMessage .
+.Ss RejectMessage reject_msg
+.Bd -literal
+message RejectMessage {
+  TimeSpec submit_time = 1;
+  string reason = 2;
+  repeated InfoMessage info_msgs = 3;
+}
+.Ed
+.Pp
+A
+.Em RejectMessage
+is sent by the client when a command is denied by the security policy.
+It contains the following members:
+.Bl -tag -width Ds
+.It submit_time
+The wall clock time when the command was submitted to the security policy.
+.It reason
+The reason the security policy gave for denying the command.
+.It info_msgs
+An array of
+.Em InfoMessage
+describing the user who submitted the command as well as the execution
+environment of the command.
+This information is used to generate an event log entry.
+.El
+.Pp
+If a
+.Em RejectMessage
+is sent, the client must not send an
+.Em AcceptMessage
+or
+.Em RestartMessage .
+.Ss ExitMessage exit_msg
+.Bd -literal
+message ExitMessage {
+  TimeSpec run_time = 1;
+  int32 exit_value = 2;
+  bool dumped_core = 3;
+  string signal = 4;
+  string error = 5;
+}
+.Pp
+.Ed
+An
+.Em ExitMessage
+is sent by the client after the command has exited or has been
+terminated by a signal.
+It contains the following members:
+.Bl -tag -width Ds
+.It run_time
+The total amount of elapsed time since the command started,
+calculated using a monotonic clock where possible.
+This is not the wall clock time.
+.It exit_value
+The command's exit value in the range 0-255.
+.It dumped_core
+True if the command was terminated by a signal and dumped core.
+.It signal
+If the command was terminated by a signal, this is set to the
+name of the signal without the leading
+.Dq SIG .
+For example,
+.Dv INT ,
+.Dv TERM ,
+.Dv KILL ,
+.Dv SEGV .
+.It error
+A message from the client indicating that the command was terminated
+unexpectedly due to an error.
+.El
+.Pp
+When performing I/O logging, the client should wait for a
+.Em commit_point
+corresponding to the final
+.Em IoBuffer
+before closing the connection unless the final
+.Em commit_point
+has already been received.
+.Ss RestartMessage restart_msg
+.Bd -literal
+message RestartMessage {
+  string log_id = 1;
+  TimeSpec resume_point = 2;
+}
+.Ed
+.Pp
+A
+.Em RestartMessage
+is sent by the client to resume sending an existing I/O log that
+was previously interrupted.
+It contains the following members:
+.Bl -tag -width Ds
+.It log_id
+The the server-side name for an I/O log that was previously
+sent to the client by the server.
+This may be a path name on the server or some other kind of server-side
+identifier.
+.It resume_point
+The point in time after which to resume the I/O log.
+This is in the form of a
+.Em TimeSpec
+representing the amount of time since the command started, not
+the wall clock time.
+The
+.Em resume_point
+should correspond to a
+.Em commit_point
+previously sent to the client by the server.
+If the server receives a
+.Em RestartMessage
+containing a
+.Em resume_point
+it has not previously seen, an error will be returned to the client
+and the connection will be dropped.
+.El
+.Pp
+If a
+.Em RestartMessage
+is sent, the client must not send an
+.Em AcceptMessage
+or
+.Em RejectMessage .
+.Ss AlertMessage alert_msg
+.Bd -literal
+message AlertMessage {
+  TimeSpec alert_time = 1;
+  string reason = 2;
+  repeated InfoMessage info_msgs = 3;
+}
+.Ed
+.Pp
+An
+.Em AlertMessage
+is sent by the client to indicate a problem detected by the security
+policy while the command is running that should be stored in the event log.
+It contains the following members:
+.Bl -tag -width Ds
+.It alert_time
+The wall clock time when the alert occurred.
+.It reason
+The reason for the alert.
+.It info_msgs
+An optional array of
+.Em InfoMessage
+describing the user who submitted the command as well as the execution
+environment of the command.
+This information is used to generate an event log entry.
+.El
+.Ss IoBuffer ttyin_buf | ttyout_buf | stdin_buf | stdout_buf | stderr_buf
+.Bd -literal
+message IoBuffer {
+  TimeSpec delay = 1;
+  bytes data = 2;
+}
+.Ed
+.Pp
+An
+.Em IoBuffer
+is used to represent data from terminal input, terminal
+output, standard input, standard output, or standard error.
+It contains the following members:
+.Bl -tag -width Ds
+.It delay
+The elapsed time since the last record in the form of a
+.Em TimeSpec .
+The
+.Em delay
+should be calculated using a monotonic clock where possible.
+.It data
+The binary I/O log data from terminal input, terminal output,
+standard input, standard output, or standard error.
+.El
+.Ss ChangeWindowSize winsize_event
+.Bd -literal
+message ChangeWindowSize {
+  TimeSpec delay = 1;
+  int32 rows = 2;
+  int32 cols = 3;
+}
+.Ed
+.Pp
+A
+.Em ChangeWindowSize
+message is sent by the client when the terminal running the command
+changes size.
+It contains the following members:
+.Bl -tag -width Ds
+.It delay
+The elapsed time since the last record in the form of a
+.Em TimeSpec .
+The
+.Em delay
+should be calculated using a monotonic clock where possible.
+.It rows
+The new number of terminal rows.
+.It cols
+The new number of terminal columns.
+.El
+.Ss CommandSuspend suspend_event
+.Bd -literal
+message CommandSuspend {
+  TimeSpec delay = 1;
+  string signal = 2;
+}
+.Ed
+.Pp
+A
+.Em CommandSuspend
+message is sent by the client when the command is either suspended
+or resumed.
+It contains the following members:
+.Bl -tag -width Ds
+.It delay
+The elapsed time since the last record in the form of a
+.Em TimeSpec .
+The
+.Em delay
+should be calculated using a monotonic clock where possible.
+.It signal
+The signal name without the leading
+.Dq SIG .
+For example,
+.Dv STOP ,
+.Dv TSTP ,
+.Dv CONT .
+.El
+.Sh Server Messages
+A
+.Em ServerMessage
+is a container used to encapsulate all the possible message types
+the server may send to a client.
+.Bd -literal
+message ServerMessage {
+  oneof type {
+    ServerHello hello = 1;
+    TimeSpec commit_point = 2;
+    string log_id = 3;
+    string error = 4;
+    string abort = 5;
+  }
+}
+.Ed
+.Pp
+The different
+.Em ServerMessage
+sub-messages the server may sent to the client are described below.
+.Ss ServerHello hello
+.Bd -literal
+message ServerHello {
+  string server_id = 1;
+  string redirect = 2;
+  repeated string servers = 3;
+  bool subcommands = 4;
+}
+.Ed
+.Pp
+The
+.Em ServerHello
+message consists of server information sent when the client first connects.
+It contains the following members:
+.Bl -tag -width Ds
+.It server_id
+A free-form server description.
+Usually this includes the name and version of the implementation
+running on the log server.
+This member is always present.
+.It redirect
+A host and port separated by a colon
+.Pq Ql :
+that the client should connect to instead.
+The host may be a host name, an IPv4 address, or an IPv6 address
+in square brackets.
+This may be used for server load balancing.
+The server will disconnect after sending the
+.Em ServerHello
+when it includes a
+.Sy redirect .
+.It servers
+A list of other known log servers.
+This can be used to implement log server redundancy and allows the
+client to discover all other log servers simply by connecting to
+one known server.
+This member may be omitted when there is only a single log server.
+.It subcommands
+If set, the server supports logging additional commands during a session.
+The client may send an
+.Em AcceptMessage
+or
+.Em RejectMessage
+when
+.Nm sudo
+is running in
+.Em intercept
+mode.
+In this mode, commands spawned from the initial command authorized by
+.Nm sudo
+are subject to policy restrictions and/or are logged.
+If
+.Em subcommands
+is false, the client must not attempt to log additional commands.
+.El
+.Ss TimeSpec commit_point
+A periodic time stamp sent by the server to indicate when I/O log
+buffers have been committed to storage.
+This message is not sent after every
+.Em IoBuffer
+but rather at a server-configurable interval.
+When the server receives an
+.Em ExitMessage ,
+it will respond with a
+.Em commit_point
+corresponding to the last received
+.Em IoBuffer
+before closing the connection.
+.Ss string log_id
+The server-side ID of the I/O log being stored, sent in response
+to an
+.Em AcceptMessage
+where
+.Em expect_iobufs
+is true.
+.Ss string error
+A fatal server-side error.
+The server will close the connection after sending the
+.Em error
+message.
+.Ss string abort
+An
+.Em abort
+message from the server indicates that the client should kill the
+command and terminate the session.
+It may be used to implement simple server-side policy.
+The server will close the connection after sending the
+.Em abort
+message.
+.Sh Protocol flow of control
+The expected protocol flow is as follows:
+.Bl -enum
+.It
+Client connects to the first available server.
+If the client is configured to use TLS, a TLS handshake will be
+attempted.
+.It
+Client sends
+.Em ClientHello .
+This is currently optional but allows the server to detect a
+non-TLS connection on the TLS port.
+.It
+Server sends
+.Em ServerHello .
+.It
+Client responds with either
+.Em AcceptMessage ,
+.Em RejectMessage ,
+or
+.Em RestartMessage .
+.It
+If client sent a
+.Em AcceptMessage
+with
+.Em expect_iobufs
+set, server creates a new I/O log and responds with a
+.Em log_id .
+.It
+Client sends zero or more
+.Em IoBuffer
+messages.
+.It
+Server periodically responds to
+.Em IoBuffer
+messages with a
+.Em commit_point .
+.It
+Client sends an
+.Em ExitMessage
+when the command exits or is killed.
+.It
+Server sends the final
+.Em commit_point
+if one is pending.
+.It
+Server closes the connection.
+After receiving the final
+.Em commit_point ,
+the client shuts down its side of the TLS connection if TLS
+is in use, and closes the connection.
+.It
+Server shuts down its side of the TLS connection if TLS is in use,
+and closes the connection.
+.El
+.Pp
+At any point, the server may send an
+.Em error
+or
+.Em abort
+message to the client at which point the server will close the
+connection.
+If an
+.Em abort
+message is received, the client should terminate the running command.
+.Sh EVENT LOG VARIABLES
+.Em AcceptMessage ,
+.Em AlertMessage
+and
+.Em RejectMessage
+classes contain an array of
+.Em InfoMessage
+that should contain information about the user who submitted the command
+as well as information about the execution environment of the command
+if it was accepted.
+.Pp
+Some variables have a
+.Em client ,
+.Em run ,
+or
+.Em submit
+prefix.
+These prefixes are used to eliminate ambiguity for variables that
+could apply to the client program, the user submitting the command,
+or the command being run.
+Variables with a
+.Em client
+prefix pertain to the program performing the connection to the log
+server, for example
+.Nm sudo .
+Variables with a
+.Em run
+prefix pertain to the command that the user requested be run.
+Variables with a
+.Em submit
+prefix pertain to the user submitting the request
+.Pq the user running Nm sudo .
+.Pp
+The following
+.Em InfoMessage
+entries are required:
+.Bl -column "submitgroup" "stringlist" "name of host the command was submitted on"
+.It Sy Key Ta Sy Type Ta Sy Description
+.It command Ta string Ta command that was submitted
+.It runuser Ta string Ta name of user the command was run as
+.It submithost Ta string Ta name of host the command was submitted on
+.It submituser Ta string Ta name of user submitting the command
+.El
+.Pp
+The following
+.Em InfoMessage
+entries are recognized, but not required:
+.Bl -column "submitgroup" "stringlist" "name of host the command was submitted on"
+.It Sy Key Ta Sy Type Ta Sy Description
+.It clientargv Ta StringList Ta client's original argument vector
+.It clientpid Ta int64 Ta client's process ID
+.It clientppid Ta int64 Ta client's parent process ID
+.It clientsid Ta int64 Ta client's terminal session ID
+.It columns Ta int64 Ta number of columns in the terminal
+.It lines Ta int64 Ta number of lines in the terminal
+.It runargv Ta StringList Ta argument vector of command to run
+.It runchroot Ta string Ta root directory of command to run
+.It runcwd Ta string Ta running command's working directory
+.It runenv Ta StringList Ta the running command's environment
+.It rungid Ta int64 Ta primary group-ID of the command
+.It rungids Ta NumberList Ta supplementary group-IDs for the command
+.It rungroup Ta string Ta primary group name of the command
+.It rungroups Ta StringList Ta supplementary group names for the command
+.It runuid Ta int64 Ta run user's user-ID
+.It submitcwd Ta string Ta submit user's current working directory
+.It submitenv Ta StringList Ta the submit user's environment
+.It submitgid Ta int64 Ta submit user's primary group-ID
+.It submitgids Ta NumberList Ta submit user's supplementary group-IDs
+.It submitgroup Ta string Ta submitting user's primary group name
+.It submitgroups Ta StringList Ta submit user's supplementary group names
+.It submituid Ta int64 Ta submit user's user-ID
+.It ttyname Ta string Ta the terminal the command was submitted from
+.El
+.Pp
+The server must accept other variables not listed above but may
+ignore them.
+.Sh EXAMPLES
+The Protocol Buffers description of the log server protocol, using
+.Dq proto3
+syntax, is included in full below.
+.Bd -literal
+syntax = "proto3";
+
+/*
+ * Client message to the server.  Messages on the wire are
+ * prefixed with a 32-bit size in network byte order.
+ */
+message ClientMessage {
+  oneof type {
+    AcceptMessage accept_msg = 1;
+    RejectMessage reject_msg = 2;
+    ExitMessage exit_msg = 3;
+    RestartMessage restart_msg = 4;
+    AlertMessage alert_msg = 5;
+    IoBuffer ttyin_buf = 6;
+    IoBuffer ttyout_buf = 7;
+    IoBuffer stdin_buf = 8;
+    IoBuffer stdout_buf = 9;
+    IoBuffer stderr_buf = 10;
+    ChangeWindowSize winsize_event = 11;
+    CommandSuspend suspend_event = 12;
+  }
+}
+
+/* Equivalent of POSIX struct timespec */
+message TimeSpec {
+    int64 tv_sec = 1;		/* seconds */
+    int32 tv_nsec = 2;		/* nanoseconds */
+}
+
+/* I/O buffer with keystroke data */
+message IoBuffer {
+  TimeSpec delay = 1;		/* elapsed time since last record */
+  bytes data = 2;		/* keystroke data */
+}
+
+/*
+ * Key/value pairs, like Privilege Manager struct info.
+ * The value may be a number, a string, or a list of strings.
+ */
+message InfoMessage {
+  message StringList {
+    repeated string strings = 1;
+  }
+  message NumberList {
+    repeated int64 numbers = 1;
+  }
+  string key = 1;
+  oneof value {
+    int64 numval = 2;
+    string strval = 3;
+    StringList strlistval = 4;
+    NumberList numlistval = 5;
+  }
+}
+
+/*
+ * Event log data for command accepted by the policy.
+ */
+message AcceptMessage {
+  TimeSpec submit_time = 1;		/* when command was submitted */
+  repeated InfoMessage info_msgs = 2;	/* key,value event log data */
+  bool expect_iobufs = 3;		/* true if I/O logging enabled */
+}
+
+/*
+ * Event log data for command rejected by the policy.
+ */
+message RejectMessage {
+  TimeSpec submit_time = 1;		/* when command was submitted */
+  string reason = 2;			/* reason command was rejected */
+  repeated InfoMessage info_msgs = 3;	/* key,value event log data */
+}
+
+/* Message sent by client when command exits. */
+/* Might revisit runtime and use end_time instead */
+message ExitMessage {
+  TimeSpec run_time = 1;	/* total elapsed run time */
+  int32 exit_value = 2;		/* 0-255 */
+  bool dumped_core = 3;		/* true if command dumped core */
+  string signal = 4;		/* signal name if killed by signal */
+  string error = 5;		/* if killed due to other error */
+}
+
+/* Alert message, policy module-specific. */
+message AlertMessage {
+  TimeSpec alert_time = 1;		/* time alert message occurred */
+  string reason = 2;			/* policy alert error string */
+  repeated InfoMessage info_msgs = 3;	/* key,value event log data */
+}
+
+/* Used to restart an existing I/O log on the server. */
+message RestartMessage {
+  string log_id = 1;		/* ID of log being restarted */
+  TimeSpec resume_point = 2;	/* resume point (elapsed time) */
+}
+
+/* Window size change event. */
+message ChangeWindowSize {
+  TimeSpec delay = 1;		/* elapsed time since last record */
+  int32 rows = 2;		/* new number of rows */
+  int32 cols = 3;		/* new number of columns */
+}
+
+/* Command suspend/resume event. */
+message CommandSuspend {
+  TimeSpec delay = 1;		/* elapsed time since last record */
+  string signal = 2;		/* signal that caused suspend/resume */
+}
+
+/*
+ * Server messages to the client.  Messages on the wire are
+ * prefixed with a 32-bit size in network byte order.
+ */
+message ServerMessage {
+  oneof type {
+    ServerHello hello = 1;	/* server hello message */
+    TimeSpec commit_point = 2;	/* cumulative time of records stored */
+    string log_id = 3;		/* ID of server-side I/O log */
+    string error = 4;		/* error message from server */
+    string abort = 5;		/* abort message, kill command */
+  }
+}
+
+/* Hello message from server when client connects. */
+message ServerHello {
+  string server_id = 1;		/* free-form server description */
+  string redirect = 2;		/* optional redirect if busy */
+  repeated string servers = 3;	/* optional list of known servers */
+}
+.Ed
+.Sh SEE ALSO
+.Xr sudo_logsrvd.conf @mansectform@ ,
+.Xr sudoers @mansectform@ ,
+.Xr sudo @mansectsu@ ,
+.Xr sudo_logsrvd @mansectsu@
+.Rs
+.%T Protocol Buffers
+.%U https://developers.google.com/protocol-buffers/
+.Re
+.Sh AUTHORS
+Many people have worked on
+.Nm sudo
+over the years; this version consists of code written primarily by:
+.Bd -ragged -offset indent
+.An Todd C. Miller
+.Ed
+.Pp
+See the CONTRIBUTORS.md file in the
+.Nm sudo
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+.Nm sudo .
+.Sh BUGS
+If you believe you have found a bug in
+.Nm sudo ,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.Sh SUPPORT
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.Sh DISCLAIMER
+.Nm sudo
+is provided
+.Dq AS IS
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+.Nm sudo
+or https://www.sudo.ws/about/license/ for complete details.

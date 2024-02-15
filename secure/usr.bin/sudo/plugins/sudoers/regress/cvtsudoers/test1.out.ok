@@ -1,0 +1,14 @@
+Defaults syslog=auth
+Defaults>root !set_logname
+Defaults:FULLTIMERS !lecture
+Defaults:millert !authenticate
+Defaults!PAGERS noexec
+
+Host_Alias CDROM = orion, perseus, hercules
+User_Alias FULLTIMERS = millert, mikef, dowdy
+Cmnd_Alias PAGERS = /usr/bin/more, /usr/bin/pg, /usr/bin/less
+
+FULLTIMERS ALL = NOPASSWD: ALL
+
+ALL CDROM = NOPASSWD: /sbin/umount /CDROM, /sbin/mount -o nosuid\,nodev\
+    /dev/cd0a /CDROM

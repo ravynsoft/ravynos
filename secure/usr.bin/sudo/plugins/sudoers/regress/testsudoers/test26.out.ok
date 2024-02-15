@@ -1,0 +1,57 @@
+A simple sudoers rule should not allow the user to chroot:
+Parses OK
+
+Entries for user root:
+
+ALL = /bin/ls
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+User root is not allowed to change root directory to /
+
+Password required
+
+Command denied
+
+User cannot override the sudoers chroot:
+Parses OK
+
+Entries for user root:
+
+ALL = CHROOT=/some/where/else /bin/ls
+	host  allowed
+	runas allowed
+	cmnd  unmatched
+
+Password required
+
+Command unmatched
+
+User can chroot if sudoers rule sets chroot to '*':
+Parses OK
+
+Entries for user root:
+
+ALL = CHROOT=* /bin/ls
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+
+User can chroot if runchroot Defaults is '*':
+Parses OK
+
+Entries for user root:
+
+ALL = /bin/ls
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed

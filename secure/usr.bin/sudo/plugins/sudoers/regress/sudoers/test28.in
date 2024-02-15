@@ -1,0 +1,36 @@
+# Test passprompt_regex
+Defaults passprompt_regex="(?i)password: *"
+
+# Test simple command with regex args
+user ALL = /bin/ls ^/etc/(hosts|motd|issue)$
+
+# Test wildcard command with regex args
+user ALL = /usr/bin/c* ^/etc/(hosts|motd|issue)$
+
+# Test regex command with no args
+user ALL = ^/usr/bin/(who|w|id|whoami)$
+
+# Test regex command with empty args
+user ALL = ^/usr/bin/(who|w|id|whoami)$ ""
+
+# Test regex command with simple args
+user ALL = ^/usr/bin/(who|w|id|whoami)$ root
+
+# Test regex command with wildcard args
+user ALL = ^/usr/bin/(who|w|id|whoami)$ -*
+
+# Test regex command with regex args
+user ALL = ^/usr/bin/(who|w|id|whoami)$ ^(-[ahi] ?)+$
+
+# Test sudoedit with regex args
+user ALL = sudoedit ^/etc/(hosts|motd|issue)$
+
+# Test regex command with escapted '$', no args
+user ALL = ^/usr/bin/\$tree$
+
+# Combined entry
+user host1 = /bin/ls ^/etc/(hosts|motd|issue)$, \
+	     /usr/bin/c* ^/etc/(hosts|motd|issue)$ : \
+     host2 = ^/usr/bin/(who|w|id|whoami)$ "", \
+	     ^/usr/bin/(who|w|id|whoami)$ root : \
+     host3 = /bin/echo ^\$foo$

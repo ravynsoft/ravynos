@@ -1,0 +1,11 @@
+__init__ @ SRC_DIR/example_debugging.py:58 calls C function:
+sudo.debug was called with arguments: (DEBUG.ERROR, 'My demo purpose plugin shows this ERROR level debug message')
+__init__ @ SRC_DIR/example_debugging.py:63 calls C function:
+sudo.debug was called with arguments: (DEBUG.INFO, 'My demo purpose plugin shows this INFO level debug message')
+handle @ logging/__init__.py calls C function:
+LogHandler.emit was called
+handle @ logging/__init__.py calls C function:
+LogHandler.emit was called
+__init__ @ SRC_DIR/example_debugging.py:85 calls C function:
+sudo.options_as_dict was called with arguments: (('ModulePath=SRC_DIR/example_debugging.py', 'ClassName=DebugDemoPlugin'),)
+sudo.options_as_dict returned result: [('ClassName', 'DebugDemoPlugin'), ('ModulePath', 'SRC_DIR/example_debugging.py')]

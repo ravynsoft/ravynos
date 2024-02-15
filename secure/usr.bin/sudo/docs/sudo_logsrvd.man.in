@@ -1,0 +1,479 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2019-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.TH "SUDO_LOGSRVD" "@mansectsu@" "January 16, 2023" "Sudo @PACKAGE_VERSION@" "System Manager's Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBsudo_logsrvd\fR
+\- sudo event and I/O log server
+.SH "SYNOPSIS"
+.HP 13n
+\fBsudo_logsrvd\fR
+[\fB\-hnV\fR]
+[\fB\-f\fR\ \fIfile\fR]
+[\fB\-R\fR\ \fIpercentage\fR]
+.SH "DESCRIPTION"
+\fBsudo_logsrvd\fR
+is a high-performance log server that accepts event and I/O logs from
+\fBsudo\fR.
+It can be used to implement centralized logging of
+\fBsudo\fR
+logs.
+The server has two modes of operation: local and relay.
+By default,
+\fBsudo_logsrvd\fR
+stores the logs locally but it can also be configured to
+relay them to another server that supports the
+sudo_logsrv.proto(@mansectform@)
+protocol.
+.PP
+When not relaying, event log entries may be logged either via
+syslog(3)
+or to a local file.
+I/O Logs stored locally by
+\fBsudo_logsrvd\fR
+can be replayed via the
+sudoreplay(@mansectsu@)
+utility in the same way as logs generated directly by the
+\fBsudoers\fR
+plugin.
+.PP
+The server also supports restarting interrupted log transfers.
+To distinguish completed I/O logs from incomplete ones, the
+I/O log timing file is set to be read-only when the log is complete.
+.PP
+Configuration parameters for
+\fBsudo_logsrvd\fR
+may be specified in the
+sudo_logsrvd.conf(@mansectform@)
+file or the file specified via the
+\fB\-f\fR
+option.
+.PP
+\fBsudo_logsrvd\fR
+rereads its configuration file when it receives SIGHUP and writes server
+state to the debug file (if one is configured) when it receives SIGUSR1.
+.PP
+The options are as follows:
+.TP 8n
+\fB\-f\fR \fIfile\fR, \fB\--file\fR=\fIfile\fR
+Read configuration from
+\fIfile\fR
+instead of the default,
+\fI@sysconfdir@/sudo_logsrvd.conf\fR.
+.TP 8n
+\fB\-h\fR, \fB\--help\fR
+Display a short help message to the standard output and exit.
+.TP 8n
+\fB\-n\fR, \fB\--no-fork\fR
+Run
+\fBsudo_logsrvd\fR
+in the foreground instead of detaching from the terminal and becoming
+a daemon.
+.TP 8n
+\fB\-R\fR \fIpercentage\fR, \fB\--random-drop\fR=\fIpercentage\fR
+For each message, there is a
+\fIpercentage\fR
+chance that the server will drop the connection.
+This is only intended for debugging the ability of a
+client to restart a connection.
+.TP 8n
+\fB\-V\fR, \fB\--version\fR
+Print the
+\fBsudo_logsrvd\fR
+version and exit.
+.SS "Securing server connections"
+The I/O log data sent to
+\fBsudo_logsrvd\fR
+may contain sensitive information such as passwords and should be
+secured using Transport Layer Security (TLS).
+Doing so requires having a signed certificate on the server and, if
+\fItls_checkpeer\fR
+is enabled in
+sudo_logsrvd.conf(@mansectform@),
+a signed certificate on the client as well.
+.PP
+The certificates can either be signed by a well-known Certificate
+Authority (CA), or a private CA can be used.
+Instructions for creating a private CA are included below in the
+\fIEXAMPLES\fR
+section.
+.SS "Debugging sudo_logsrvd"
+\fBsudo_logsrvd\fR
+supports a flexible debugging framework that is configured via
+\fIDebug\fR
+lines in the
+sudo.conf(@mansectform@)
+file.
+.PP
+For more information on configuring
+sudo.conf(@mansectform@),
+refer to its manual.
+.SH "FILES"
+.TP 26n
+\fI@sysconfdir@/sudo.conf\fR
+Sudo front-end configuration
+.TP 26n
+\fI@sysconfdir@/sudo_logsrvd.conf\fR
+Sudo log server configuration file
+.TP 26n
+\fI@relay_dir@/incoming\fR
+Directory where new journals are stored when the
+\fIstore_first relay\fR
+setting is enabled.
+.TP 26n
+\fI@relay_dir@/outgoing\fR
+Directory where completed journals are stored when the
+\fIstore_first relay\fR
+setting is enabled.
+.TP 26n
+\fI@iolog_dir@\fR
+Default I/O log file location
+.TP 26n
+\fI@rundir@/sudo_logsrvd.pid\fR
+.br
+Process ID file for
+\fBsudo_logsrvd\fR
+.SH "EXAMPLES"
+.SS "Creating self-signed certificates"
+Unless you are using certificates signed by a well-known Certificate
+Authority (or a local enterprise CA), you will need to create your
+own CA that can sign the certificates used by
+\fBsudo_logsrvd\fR,
+\fBsudo_sendlog\fR,
+and the
+\fBsudoers\fR
+plugin.
+The following steps use the
+openssl(1)
+command to create keys and certificates.
+.SS "Initial setup"
+First, we need to create a directory structure to store the
+files for the CA.
+We'll create a new directory hierarchy in
+\fI/etc/ssl/sudo\fR
+for this purpose.
+.nf
+.sp
+.RS 4n
+# mkdir /etc/ssl/sudo
+# cd /etc/ssl/sudo
+# mkdir certs csr newcerts private
+# chmod 700 private
+# touch index.txt
+# echo 1000 > serial
+.RE
+.fi
+.PP
+The serial and index.txt files are used to keep track of signed certificates.
+.PP
+Next, we need to make a copy of the openssl.conf file and customize
+it for our new CA.
+The path to openssl.cnf is system-dependent but
+\fI/etc/ssl/openssl.cnf\fR
+is the most common location.
+You will need to adjust the example below if it has a different location on
+your system.
+.nf
+.sp
+.RS 4n
+# cp /etc/ssl/openssl.cnf .
+.RE
+.fi
+.PP
+Now edit the
+\fIopenssl.cnf\fR
+file in the current directory and make sure it contains
+\(lqca\(rq,
+\(lqCA_default\(rq,
+\(lqv3_ca\(rq,
+and
+\(lqusr_cert\(rq
+sections.
+Those sections should include at least the following settings:
+.nf
+.sp
+.RS 4n
+[ ca ]
+default_ca              = CA_default
+
+[ CA_default ]
+dir                     = /etc/ssl/sudo
+certs                   = $dir/certs
+database                = $dir/index.txt
+certificate             = $dir/cacert.pem
+serial                  = $dir/serial
+
+[ v3_ca ]
+subjectKeyIdentifier    = hash
+authorityKeyIdentifier  = keyid:always,issuer
+basicConstraints        = critical,CA:true
+keyUsage                = cRLSign, keyCertSign
+
+[ usr_cert ]
+basicConstraints        = CA:FALSE
+keyUsage                = nonRepudiation, digitalSignature, \e
+                          keyEncipherment
+subjectKeyIdentifier    = hash
+authorityKeyIdentifier  = keyid,issuer
+.RE
+.fi
+.PP
+If your
+\fIopenssl.conf\fR
+file already has a
+\(lqCA_default\(rq
+section, you may only need to modify the
+\(lqdir\(rq
+setting and enable the
+\(lqkeyUsage\(rq
+settings if they are commented out.
+.SS "Creating the CA key and certificate"
+In order to create and sign our own certificates, we need to create
+a private key and a certificate for the root of the CA.
+First, create the private key and protect it with a pass phrase:
+.nf
+.sp
+.RS 4n
+# openssl genrsa -aes256 -out private/cakey.pem 4096
+# chmod 400 private/cakey.pem
+.RE
+.fi
+.PP
+Next, generate the root certificate, using appropriate values for
+the site-specific fields:
+.nf
+.sp
+.RS 4n
+# openssl req -config openssl.cnf -key private/cakey.pem \e
+    -new -x509 -days 7300 -sha256 -extensions v3_ca \e
+    -out cacert.pem
+
+Enter pass phrase for private/cakey.pem:
+You are about to be asked to enter information that will be
+incorporated into your certificate request.
+What you are about to enter is what is called a Distinguished Name
+or a DN.
+There are quite a few fields but you can leave some blank.
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:US
+State or Province Name (full name) [Some-State]:Colorado
+Locality Name (eg, city) []:
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:sudo
+Organizational Unit Name (eg, section) []:sudo Certificate Authority
+Common Name (e.g., server FQDN or YOUR name) []:sudo Root CA
+Email Address []:
+
+# chmod 444 cacert.pem
+.RE
+.fi
+.PP
+Finally, verify the root certificate:
+.nf
+.sp
+.RS 4n
+# openssl x509 -noout -text -in cacert.pem
+.RE
+.fi
+.SS "Creating and signing certificates"
+The server and client certificates will be signed by the previously
+created root CA.
+Usually, the root CA is not used to sign server/client certificates
+directly.
+Instead, intermediate certificates are created and signed with the
+root CA and the intermediate certs are used to sign CSRs (Certificate
+Signing Request).
+In this example we'll skip this part for simplicity's sake and sign the
+CSRs with the root CA.
+.PP
+First, generate the private key without a pass phrase.
+.nf
+.sp
+.RS 4n
+# openssl genrsa -out private/logsrvd_key.pem 2048
+# chmod 400 private/logsrvd_key.pem
+.RE
+.fi
+.PP
+Next, create a certificate signing request (CSR) for the server's certificate.
+The organization name must match the name given in the root certificate.
+The common name should be either the server's IP address or a fully
+qualified domain name.
+.nf
+.sp
+.RS 4n
+# openssl req -config openssl.cnf -key private/logsrvd_key.pem -new \e
+    -sha256 -out csr/logsrvd_csr.pem
+
+Enter pass phrase for private/logsrvd_key.pem:
+You are about to be asked to enter information that will be
+incorporated into your certificate request.
+What you are about to enter is what is called a Distinguished Name
+or a DN.
+There are quite a few fields but you can leave some blank.
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [AU]:US
+State or Province Name (full name) [Some-State]:Colorado
+Locality Name (eg, city) []:
+Organization Name (eg, company) [Internet Widgits Pty Ltd]:sudo
+Organizational Unit Name (eg, section) []:sudo log server
+Common Name (e.g., server FQDN or YOUR name) []:logserver.example.com
+Email Address []:
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+.RE
+.fi
+.PP
+Now sign the CSR that was just created:
+.nf
+.sp
+.RS 4n
+# openssl ca -config openssl.cnf -days 375 -notext -md sha256 \e
+    -in csr/logsrvd_csr.pem -out certs/logsrvd_cert.pem
+
+Using configuration from openssl.cnf
+Enter pass phrase for ./private/cakey.pem:
+Check that the request matches the signature
+Signature ok
+Certificate Details:
+        Serial Number: 4096 (0x1000)
+        Validity
+            Not Before: Nov 11 14:05:05 2019 GMT
+            Not After : Nov 20 14:05:05 2020 GMT
+        Subject:
+            countryName               = US
+            stateOrProvinceName       = Colorado
+            organizationName          = sudo
+            organizationalUnitName    = sudo log server
+            commonName                = logserve.example.com
+        X509v3 extensions:
+            X509v3 Basic Constraints:
+                CA:FALSE
+            X509v3 Key Usage:
+                Digital Signature, Non Repudiation, Key Encipherment
+            X509v3 Subject Key Identifier:
+                4C:50:F9:D0:BE:1A:4C:B2:AC:90:76:56:C7:9E:16:AE:E6:9E:E5:B5
+            X509v3 Authority Key Identifier:
+                keyid:D7:91:24:16:B1:03:06:65:1A:7A:6E:CF:51:E9:5C:CB:7A:95:3E:0C
+
+Certificate is to be certified until Nov 20 14:05:05 2020 GMT (375 days)
+Sign the certificate? [y/n]:y
+
+1 out of 1 certificate requests certified, commit? [y/n]y
+Write out database with 1 new entries
+Data Base Updated
+.RE
+.fi
+.PP
+Finally, verify the new certificate:
+.nf
+.sp
+.RS 4n
+# openssl verify -CAfile cacert.pem certs/logsrvd_cert.pem
+certs/logsrvd_cert.pem: OK
+.RE
+.fi
+.PP
+The
+\fI/etc/ssl/sudo/certs\fR
+directory now contains a signed and verified certificate for use with
+\fBsudo_logsrvd\fR.
+.PP
+To generate a client certificate, repeat the process above using
+a different file name.
+.SS "Configuring sudo_logsrvd to use TLS"
+To use TLS for client/server communication, both
+\fBsudo_logsrvd\fR
+and the
+\fBsudoers\fR
+plugin need to be configured to use TLS.
+Configuring
+\fBsudo_logsrvd\fR
+for TLS requires the following settings, assuming the same path
+names used earlier:
+.nf
+.sp
+.RS 4n
+# Listen on port 30344 for TLS connections to any address.
+listen_address = *:30344(tls)
+
+# Path to the certificate authority bundle file in PEM format.
+tls_cacert = /etc/ssl/sudo/cacert.pem
+
+# Path to the server's certificate file in PEM format.
+tls_cert = /etc/ssl/sudo/certs/logsrvd_cert.pem
+
+# Path to the server's private key file in PEM format.
+tls_key = /etc/ssl/sudo/private/logsrvd_key.pem
+.RE
+.fi
+.PP
+The root CA cert
+(\fIcacert.pem\fR)
+must be installed on the system running
+\fBsudo_logsrvd\fR.
+If peer authentication is enabled on the client, a copy of
+\fIcacert.pem\fR
+must be present on the client system too.
+.SH "SEE ALSO"
+sudo.conf(@mansectform@),
+sudo_logsrvd.conf(@mansectform@),
+sudoers(@mansectform@),
+sudo(@mansectsu@),
+sudo_sendlog(@mansectsu@),
+sudoreplay(@mansectsu@)
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "BUGS"
+If you believe you have found a bug in
+\fBsudo_logsrvd\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBsudo_logsrvd\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

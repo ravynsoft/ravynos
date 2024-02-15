@@ -1,0 +1,9 @@
+dn: cn=user,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user
+sudoUser: user
+sudoHost: ALL
+sudoCommand: sudoedit /etc/motd
+sudoOrder: 1
+

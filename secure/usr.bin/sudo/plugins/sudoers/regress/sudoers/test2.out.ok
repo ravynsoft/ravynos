@@ -1,0 +1,43 @@
+Parses OK
+
+Defaults@somehost set_home
+Defaults@quoted\" set_home
+Defaults:you set_home
+Defaults:us\" set_home
+Defaults:%them set_home
+Defaults:"%: non UNIX 0 c" set_home
+Defaults:+net set_home
+Defaults>someone set_home
+Defaults>"some one" set_home
+
+Runas_Alias RA1 = foo
+Runas_Alias RA2 = foo\"
+Runas_Alias RA3 = foo\:bar
+Runas_Alias RA4 = foo\:bar\"
+User_Alias UA1 = foo
+User_Alias UA10 = "%:C/non\"UNIX\"0 c"
+User_Alias UA11 = "%:C/non_UNIX_0 c"
+User_Alias UA12 = "%:C/non\'UNIX_3 c"
+User_Alias UA2 = foo.bar
+User_Alias UA3 = foo\"
+User_Alias UA4 = foo\:bar
+User_Alias UA5 = foo\:bar\"
+User_Alias UA6 = %baz
+User_Alias UA7 = %baz.biz
+User_Alias UA8 = "%:C/non UNIX 0 c"
+User_Alias UA9 = "%:C/non\'UNIX\'1 c"
+
+foo hosta = (root) ALL
+foo.bar hostb = (root) ALL
+foo\" hostc = (root) ALL
+foo\:bar hostd = (root) ALL
+foo\:bar\" hoste = (root) ALL
+%baz hosta = (root) ALL
+%baz.biz hostb = (root) ALL
+"%:C/non UNIX 0 c" hostc = (root) ALL
+"%:C/non\'UNIX\'1 c" hostd = (root) ALL
+"%:C/non\"UNIX\"0 c" hoste = (root) ALL
+"%:C/non_UNIX_0 c" hostf = (root) ALL
+"%:C/non\'UNIX_3 c" hostg = (root) ALL
++netgr hosth = (root) ALL
+user ALL = /bin/ls "", /bin/echo " ", /bin/foo"bar ""

@@ -1,0 +1,154 @@
+{
+    "User_Specs": [
+        {
+            "User_List": [
+                { "username": "user1" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Options": [
+                        { "log_input": true },
+                        { "log_output": true }
+                    ],
+                    "Commands": [
+                        { "command": "/usr/bin/su -" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user1" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Options": [
+                        { "log_input": false },
+                        { "log_output": false }
+                    ],
+                    "Commands": [
+                        { "command": "/usr/bin/id" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user2" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Options": [
+                        { "authenticate": false },
+                        { "noexec": true },
+                        { "setenv": true }
+                    ],
+                    "Commands": [
+                        { "command": "/usr/bin/vi" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user2" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Options": [
+                        { "authenticate": true },
+                        { "noexec": false },
+                        { "setenv": false }
+                    ],
+                    "Commands": [
+                        { "command": "/usr/bin/echo" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user3" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Options": [
+                        { "send_mail": true }
+                    ],
+                    "Commands": [
+                        { "command": "/bin/sh" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user3" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Options": [
+                        { "send_mail": false }
+                    ],
+                    "Commands": [
+                        { "command": "/usr/bin/id" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user4" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Options": [
+                        { "sudoedit_follow": true }
+                    ],
+                    "Commands": [
+                        { "command": "sudoedit /etc/motd" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user4" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Options": [
+                        { "sudoedit_follow": false }
+                    ],
+                    "Commands": [
+                        { "command": "sudoedit /home/*/*" }
+                    ]
+                }
+            ]
+        }
+    ]
+}

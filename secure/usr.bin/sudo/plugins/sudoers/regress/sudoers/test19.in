@@ -1,0 +1,12 @@
+# Test parsing of NOTBEFORE and NOTAFTER syntax
+# Local time zone parsing is checked in visudo/test10.sh
+user0	ALL = NOTBEFORE=20170214083000Z NOTAFTER=20170301083000Z /usr/bin/id, /bin/ls
+user1	ALL = NOTBEFORE=201702140830Z /usr/bin/id, NOTAFTER=20170301083000Z /bin/ls
+user2	ALL = NOTBEFORE=201702140830.3Z /usr/bin/id
+user3	ALL = NOTBEFORE=2017021408Z /usr/bin/id
+user4	ALL = NOTBEFORE=2017021408.4Z /usr/bin/id
+user5	ALL = NOTBEFORE=20170214083000.5Z /usr/bin/id
+user6	ALL = NOTBEFORE=20170214083000\,5Z /usr/bin/id
+user7	ALL = NOTBEFORE=20170214033000-0500 /usr/bin/id
+user8	ALL = NOTBEFORE=20170214033000.0-0500 /usr/bin/id
+user9	ALL = NOTBEFORE=20170214033000\,0-0500 /usr/bin/id

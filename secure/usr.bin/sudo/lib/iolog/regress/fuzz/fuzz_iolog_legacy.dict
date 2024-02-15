@@ -1,0 +1,42 @@
+# Legacy I/O log info file:
+# timestamp:submit_user:run_user:run_group:tty:lines:columns
+# working directory
+# command [args]
+
+# users and groups
+"millert"
+"root"
+"bin"
+"wheel"
+"operator"
+"testuser"
+"alice"
+"bob"
+"users"
+
+# terminals
+"/dev/console"
+"/dev/tty00"
+"/dev/tty01"
+"/dev/pts/0"
+"/dev/pts/1"
+"/dev/ttyp2"
+"/dev/ttyp3"
+
+# directories
+"/root"
+"/home/millert"
+"/home/alice"
+"/home/bob"
+"/tmp"
+"/usr/local"
+"/usr/src"
+
+# commands
+"/bin/ls"
+"/usr/bin/id -u"
+"/usr/bin/su -"
+"/usr/bin/mailq"
+"/usr/bin/make -C /usr/src/usr.bin/sort install"
+"/usr/bin/apt update"
+"/usr/bin/rpm -e sudo"

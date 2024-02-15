@@ -1,0 +1,16 @@
+ -- Plugin STARTED --
+EXEC whoami
+EXEC info [
+    "command=/bin/whoami",
+    "runas_uid=1"
+]
+STD IN stdin for plugin 2
+STD OUT stdout for plugin 2
+STD ERR stderr for plugin 2
+SUSPEND SIGSTOP
+SUSPEND SIGCONT
+WINSIZE 30x40
+TTY IN tty input for plugin 2
+TTY OUT tty output for plugin 2
+CLOSE Command returned 2
+ -- Plugin DESTROYED --

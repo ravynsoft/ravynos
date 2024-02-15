@@ -1,0 +1,12 @@
+Defaults passprompt_regex="(?i)password: *"
+
+# sudoRole user, user_1, user_2, user_3, user_4, user_5, user_6, user_7,
+# user_8, user_9, user_10, user_11
+user ALL = /bin/ls ^/etc/(hosts|motd|issue)$, /usr/bin/c*\
+    ^/etc/(hosts|motd|issue)$, ^/usr/bin/(who|w|id|whoami)$,\
+    ^/usr/bin/(who|w|id|whoami)$ "", ^/usr/bin/(who|w|id|whoami)$ root,\
+    ^/usr/bin/(who|w|id|whoami)$ -*, ^/usr/bin/(who|w|id|whoami)$ ^(-[ahi]\
+    ?)+$, sudoedit ^/etc/(hosts|motd|issue)$, ^/usr/bin/\$tree$ : host1 =\
+    /bin/ls ^/etc/(hosts|motd|issue)$, /usr/bin/c* ^/etc/(hosts|motd|issue)$ :\
+    host2 = ^/usr/bin/(who|w|id|whoami)$ "", ^/usr/bin/(who|w|id|whoami)$ root\
+    : host3 = /bin/echo ^\$foo$

@@ -1,0 +1,40 @@
+dn: cn=user1,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user1
+sudoUser: user1
+sudoHost: ALL
+sudoRunAsUser:
+sudoCommand: ALL
+sudoOrder: 1
+
+dn: cn=user2,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user2
+sudoUser: user2
+sudoHost: ALL
+sudoRunAsUser:
+sudoCommand: ALL
+sudoOrder: 2
+
+dn: cn=user3,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user3
+sudoUser: user3
+sudoHost: ALL
+sudoRunAsUser:
+sudoCommand: ALL
+sudoOrder: 3
+
+dn: cn=user4,ou=SUDOers,dc=sudo,dc=ws
+objectClass: top
+objectClass: sudoRole
+cn: user4
+sudoUser: user4
+sudoHost: ALL
+sudoRunAsUser:
+sudoCommand: ALL
+sudoOrder: 4
+

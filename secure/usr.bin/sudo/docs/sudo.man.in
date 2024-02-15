@@ -1,0 +1,1739 @@
+.\" Automatically generated from an mdoc input file.  Do not edit.
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 1994-1996, 1998-2005, 2007-2023
+.\"	Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" Sponsored in part by the Defense Advanced Research Projects
+.\" Agency (DARPA) and Air Force Research Laboratory, Air Force
+.\" Materiel Command, USAF, under agreement number F39502-99-1-0512.
+.\"
+.nr SL @SEMAN@
+.nr BA @BAMAN@
+.nr LC @LCMAN@
+.nr PS @PSMAN@
+.TH "SUDO" "@mansectsu@" "August 9, 2023" "Sudo @PACKAGE_VERSION@" "System Manager's Manual"
+.nh
+.if n .ad l
+.SH "NAME"
+\fBsudo\fR,
+\fBsudoedit\fR
+\- execute a command as another user
+.SH "SYNOPSIS"
+.HP 5n
+\fBsudo\fR
+\fB\-h\fR\ |\ \fB\-K\fR\ |\ \fB\-k\fR\ |\ \fB\-V\fR
+.br
+.PD 0
+.HP 5n
+\fBsudo\fR
+\fB\-v\fR
+[\fB\-ABkNnS\fR]
+.if \n(BA [\fB\-a\fR\ \fItype\fR]
+[\fB\-g\fR\ \fIgroup\fR]
+[\fB\-h\fR\ \fIhost\fR]
+[\fB\-p\fR\ \fIprompt\fR]
+[\fB\-u\fR\ \fIuser\fR]
+.br
+.HP 5n
+\fBsudo\fR
+\fB\-l\fR
+[\fB\-ABkNnS\fR]
+.if \n(BA [\fB\-a\fR\ \fItype\fR]
+[\fB\-g\fR\ \fIgroup\fR]
+[\fB\-h\fR\ \fIhost\fR]
+[\fB\-p\fR\ \fIprompt\fR]
+[\fB\-U\fR\ \fIuser\fR]
+[\fB\-u\fR\ \fIuser\fR]
+[\fIcommand\fR\ [\fIarg\ ...\fR]]
+.br
+.HP 5n
+\fBsudo\fR
+[\fB\-ABbEHnPS\fR]
+.if \n(BA [\fB\-a\fR\ \fItype\fR]
+[\fB\-C\fR\ \fInum\fR]
+.if \n(LC [\fB\-c\fR\ \fIclass\fR]
+[\fB\-D\fR\ \fIdirectory\fR]
+[\fB\-g\fR\ \fIgroup\fR]
+[\fB\-h\fR\ \fIhost\fR]
+[\fB\-p\fR\ \fIprompt\fR]
+[\fB\-R\fR\ \fIdirectory\fR]
+.if \n(SL [\fB\-r\fR\ \fIrole\fR]
+.if \n(SL [\fB\-t\fR\ \fItype\fR]
+[\fB\-T\fR\ \fItimeout\fR]
+[\fB\-u\fR\ \fIuser\fR]
+[\fIVAR\fR=\fIvalue\fR]
+[\fB\-i\fR\ |\ \fB\-s\fR]
+[\fIcommand\fR\ [\fIarg\ ...\fR]]
+.br
+.HP 9n
+\fBsudoedit\fR
+[\fB\-ABkNnS\fR]
+.if \n(BA [\fB\-a\fR\ \fItype\fR]
+[\fB\-C\fR\ \fInum\fR]
+.if \n(LC [\fB\-c\fR\ \fIclass\fR]
+[\fB\-D\fR\ \fIdirectory\fR]
+[\fB\-g\fR\ \fIgroup\fR]
+[\fB\-h\fR\ \fIhost\fR]
+[\fB\-p\fR\ \fIprompt\fR]
+[\fB\-R\fR\ \fIdirectory\fR]
+.if \n(SL [\fB\-r\fR\ \fIrole\fR]
+.if \n(SL [\fB\-t\fR\ \fItype\fR]
+[\fB\-T\fR\ \fItimeout\fR]
+[\fB\-u\fR\ \fIuser\fR]
+\fIfile\ ...\fR
+.PD
+.SH "DESCRIPTION"
+\fBsudo\fR
+allows a permitted user to execute a
+\fIcommand\fR
+as the superuser or another user, as specified by the security
+policy.
+The invoking user's real
+(\fInot\fR effective)
+user-ID is used to determine the user name with which
+to query the security policy.
+.PP
+\fBsudo\fR
+supports a plugin architecture for security policies, auditing,
+and input/output logging.
+Third parties can develop and distribute their own plugins to work
+seamlessly with the
+\fBsudo\fR
+front-end.
+The default security policy is
+\fIsudoers\fR,
+which is configured via the file
+\fI@sysconfdir@/sudoers\fR,
+or via LDAP.
+See the
+\fIPlugins\fR
+section for more information.
+.PP
+The security policy determines what privileges, if any, a user has
+to run
+\fBsudo\fR.
+The policy may require that users authenticate themselves with a
+password or another authentication mechanism.
+If authentication is required,
+\fBsudo\fR
+will exit if the user's password is not entered within a configurable
+time limit.
+This limit is policy-specific; the default password prompt timeout
+for the
+\fIsudoers\fR
+security policy is @password_timeout@ minutes.
+.PP
+Security policies may support credential caching to allow the user
+to run
+\fBsudo\fR
+again for a period of time without requiring authentication.
+By default, the
+\fIsudoers\fR
+policy caches credentials on a per-terminal basis for @timeout@ minutes.
+See the
+\fItimestamp_type\fR
+and
+\fItimestamp_timeout\fR
+options in
+sudoers(@mansectform@)
+for more information.
+By running
+\fBsudo\fR
+with the
+\fB\-v\fR
+option, a user can update the cached credentials without running a
+\fIcommand\fR.
+.PP
+On systems where
+\fBsudo\fR
+is the primary method of gaining superuser privileges, it is imperative
+to avoid syntax errors in the security policy configuration files.
+For the default security policy,
+sudoers(@mansectform@),
+changes to the configuration files should be made using the
+visudo(@mansectsu@)
+utility which will ensure that no syntax errors are introduced.
+.PP
+When invoked as
+\fBsudoedit\fR,
+the
+\fB\-e\fR
+option (described below), is implied.
+.PP
+Security policies and audit plugins may log successful and failed attempts
+to run
+\fBsudo\fR.
+If an I/O plugin is configured, the running
+\fIcommand\fR's
+input and output may be logged as well.
+.PP
+The options are as follows:
+.TP 8n
+\fB\-A\fR, \fB\--askpass\fR
+Normally, if
+\fBsudo\fR
+requires a password, it will read it from the user's terminal.
+If the
+\fB\-A\fR (\fIaskpass\fR)
+option is specified, a (possibly graphical) helper program is
+executed to read the user's password and output the password to the
+standard output.
+If the
+\fRSUDO_ASKPASS\fR
+environment variable is set, it specifies the path to the helper
+program.
+Otherwise, if
+sudo.conf(@mansectform@)
+contains a line specifying the askpass program, that value will be
+used.
+For example:
+.nf
+.sp
+.RS 12n
+# Path to askpass helper program
+Path askpass /usr/X11R6/bin/ssh-askpass
+.RE
+.fi
+.RS 8n
+.sp
+If no askpass program is available,
+\fBsudo\fR
+will exit with an error.
+.RE
+.TP 8n
+\fB\-a\fR \fItype\fR, \fB\--auth-type\fR=\fItype\fR
+Use the specified
+BSD
+authentication
+\fItype\fR
+when validating the user, if allowed by
+\fI/etc/login.conf\fR.
+The system administrator may specify a list of sudo-specific
+authentication methods by adding an
+\(lqauth-sudo\(rq
+entry in
+\fI/etc/login.conf\fR.
+This option is only available on systems that support
+BSD
+authentication.
+.TP 8n
+\fB\-B\fR, \fB\--bell\fR
+Ring the bell as part of the password prompt when a terminal is present.
+This option has no effect if an askpass program is used.
+.TP 8n
+\fB\-b\fR, \fB\--background\fR
+Run the given
+\fIcommand\fR
+in the background.
+It is not possible to use shell job control to manipulate background
+processes started by
+\fBsudo\fR.
+Most interactive
+\fIcommand\fRs
+will fail to work properly in background mode.
+.TP 8n
+\fB\-C\fR \fInum\fR, \fB\--close-from\fR=\fInum\fR
+Close all file descriptors greater than or equal to
+\fInum\fR
+before executing a
+\fIcommand\fR.
+Values less than three are not permitted.
+By default,
+\fBsudo\fR
+will close all open file descriptors other than standard input,
+standard output, and standard error when executing a
+\fIcommand\fR.
+The security policy may restrict the user's ability to use this option.
+The
+\fIsudoers\fR
+policy only permits use of the
+\fB\-C\fR
+option when the administrator has enabled the
+\fIclosefrom_override\fR
+option.
+.TP 8n
+\fB\-c\fR \fIclass\fR, \fB\--login-class\fR=\fIclass\fR
+Run the
+\fIcommand\fR
+with resource limits and scheduling priority of the specified login
+\fIclass\fR.
+The
+\fIclass\fR
+argument can be either a class name as defined in
+\fI/etc/login.conf\fR,
+or a single
+\(oq\-\(cq
+character.
+If
+\fIclass\fR
+is
+\fB-\fR,
+the default login class of the target user will be used.
+Otherwise, the
+\fIcommand\fR
+must be run as the superuser (user-ID 0), or
+\fBsudo\fR
+must be run from a shell that is already running as the superuser.
+If the
+\fIcommand\fR
+is being run as a login shell, additional
+\fI/etc/login.conf\fR
+settings, such as the umask and environment variables, will
+be applied, if present.
+This option is only available on systems with
+BSD
+login classes.
+.TP 8n
+\fB\-D\fR \fIdirectory\fR, \fB\--chdir\fR=\fIdirectory\fR
+Run the
+\fIcommand\fR
+in the specified
+\fIdirectory\fR
+instead of the current working directory.
+The security policy may return an error if the user does not have
+permission to specify the working directory.
+.TP 8n
+\fB\-E\fR, \fB\--preserve-env\fR
+Indicates to the security policy that the user wishes to
+preserve their existing environment variables.
+The security policy may return an error if the user does not have
+permission to preserve the environment.
+.TP 8n
+\fB\--preserve-env=list\fR
+Indicates to the security policy that the user wishes to add the
+comma-separated list of environment variables to those preserved
+from the user's environment.
+The security policy may return an error if the user does not have
+permission to preserve the environment.
+This option may be specified multiple times.
+.TP 8n
+\fB\-e\fR, \fB\--edit\fR
+Edit one or more
+\fIfile\fRs
+instead of running a
+\fIcommand\fR.
+In lieu of a path name, the string "sudoedit" is used when consulting
+the security policy.
+If the user is authorized by the policy, the following steps are
+taken:
+.RS 12n
+.TP 5n
+1.\&
+Temporary copies are made of the files to be edited with the owner
+set to the invoking user.
+.TP 5n
+2.\&
+The editor specified by the policy is run to edit the temporary
+files.
+The
+\fIsudoers\fR
+policy uses the
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR
+and
+\fREDITOR\fR
+environment variables (in that order).
+If none of
+\fRSUDO_EDITOR\fR,
+\fRVISUAL\fR
+or
+\fREDITOR\fR
+are set, the first program listed in the
+\fIeditor\fR
+sudoers(@mansectform@)
+option is used.
+.TP 5n
+3.\&
+If they have been modified, the temporary files are copied back to
+their original location and the temporary versions are removed.
+.RE
+.RS 8n
+.sp
+To help prevent the editing of unauthorized files, the following
+restrictions are enforced unless explicitly allowed by the security policy:
+.RS 9n
+.TP 3n
+\fB\(bu\fR
+Symbolic links may not be edited (version 1.8.15 and higher).
+.TP 3n
+\fB\(bu\fR
+Symbolic links along the path to be edited are not followed when the
+parent directory is writable by the invoking user unless that user
+is root (version 1.8.16 and higher).
+.TP 3n
+\fB\(bu\fR
+Files located in a directory that is writable by the invoking user may
+not be edited unless that user is root (version 1.8.16 and higher).
+.RE
+.sp
+Users are never allowed to edit device special files.
+.sp
+If the specified file does not exist, it will be created.
+Unlike most
+\fIcommand\fRs
+run by
+\fIsudo\fR,
+the editor is run with the invoking user's environment unmodified.
+If the temporary file becomes empty after editing, the user will
+be prompted before it is installed.
+If, for some reason,
+\fBsudo\fR
+is unable to update a file with its edited version, the user will
+receive a warning and the edited copy will remain in a temporary
+file.
+.RE
+.TP 8n
+\fB\-g\fR \fIgroup\fR, \fB\--group\fR=\fIgroup\fR
+Run the
+\fIcommand\fR
+with the primary group set to
+\fIgroup\fR
+instead of the primary group specified by the target
+user's password database entry.
+The
+\fIgroup\fR
+may be either a group name or a numeric group-ID
+(GID)
+prefixed with the
+\(oq#\(cq
+character (e.g.,
+\(oq#0\(cq
+for GID 0).
+When running a
+\fIcommand\fR
+as a GID, many shells require that the
+\(oq#\(cq
+be escaped with a backslash
+(\(oq\e\(cq).
+If no
+\fB\-u\fR
+option is specified, the
+\fIcommand\fR
+will be run as the invoking user.
+In either case, the primary group will be set to
+\fIgroup\fR.
+The
+\fIsudoers\fR
+policy permits any of the target user's groups to be specified via
+the
+\fB\-g\fR
+option as long as the
+\fB\-P\fR
+option is not in use.
+.TP 8n
+\fB\-H\fR, \fB\--set-home\fR
+Request that the security policy set the
+\fRHOME\fR
+environment variable to the home directory specified by the target
+user's password database entry.
+Depending on the policy, this may be the default behavior.
+.TP 8n
+\fB\-h\fR, \fB\--help\fR
+Display a short help message to the standard output and exit.
+.TP 8n
+\fB\-h\fR \fIhost\fR, \fB\--host\fR=\fIhost\fR
+Run the
+\fIcommand\fR
+on the specified
+\fIhost\fR
+if the security policy plugin supports remote
+\fIcommand\fRs.
+The
+\fIsudoers\fR
+plugin does not currently support running remote
+\fIcommand\fRs.
+This may also be used in conjunction with the
+\fB\-l\fR
+option to list a user's privileges for the remote host.
+.TP 8n
+\fB\-i\fR, \fB\--login\fR
+Run the shell specified by the target user's password database entry
+as a login shell.
+This means that login-specific resource files such as
+\fI.profile\fR,
+\fI.bash_profile\fR,
+or
+\fI.login\fR
+will be read by the shell.
+If a
+\fIcommand\fR
+is specified, it is passed to the shell as a simple
+\fIcommand\fR
+using the
+\fB\-c\fR
+option.
+The
+\fIcommand\fR
+and any
+\fIarg\fRs
+are concatenated, separated by spaces, after escaping each character
+(including white space)
+with a backslash
+(\(oq\e\(cq)
+except for alphanumerics, underscores,
+hyphens, and dollar signs.
+If no
+\fIcommand\fR
+is specified, an interactive shell is executed.
+\fBsudo\fR
+attempts to change to that user's home directory before running the
+shell.
+The
+\fIcommand\fR
+is run with an environment similar to the one a user would receive at log in.
+Most shells behave differently when a
+\fIcommand\fR
+is specified as compared to an interactive session; consult the shell's manual
+for details.
+The
+\fICommand environment\fR
+section in the
+sudoers(@mansectform@)
+manual documents how the
+\fB\-i\fR
+option affects the environment in which a
+\fIcommand\fR
+is run when the
+\fIsudoers\fR
+policy is in use.
+.TP 8n
+\fB\-K\fR, \fB\--remove-timestamp\fR
+Similar to the
+\fB\-k\fR
+option, except that it removes every cached credential for the user,
+regardless of the terminal or parent process ID.
+The next time
+\fBsudo\fR
+is run, a password must be entered if the
+security policy requires authentication.
+It is not possible to use the
+\fB\-K\fR
+option in conjunction with a
+\fIcommand\fR
+or other option.
+This option does not require a password.
+Not all security policies support credential caching.
+.TP 8n
+\fB\-k\fR, \fB\--reset-timestamp\fR
+When used without a
+\fIcommand\fR,
+invalidates the user's cached credentials for the current session.
+The next time
+\fBsudo\fR
+is run in the session, a password must be entered if the
+security policy requires authentication.
+By default, the
+\fBsudoers\fR
+policy uses a separate record in the credential cache for each
+terminal (or parent process ID if no terminal is present).
+This prevents the
+\fB\-k\fR
+option from interfering with
+\fBsudo\fR
+commands run in a different terminal session.
+See the
+\fItimestamp_type\fR
+option in
+sudoers(@mansectform@)
+for more information.
+This option does not require a password, and was added to allow a
+user to revoke
+\fBsudo\fR
+permissions from a
+\fI.logout\fR
+file.
+.sp
+When used in conjunction with a
+\fIcommand\fR
+or an option that may require a password, this option will cause
+\fBsudo\fR
+to ignore the user's cached credentials.
+As a result,
+\fBsudo\fR
+will prompt for a password (if one is required by the security
+policy) and will not update the user's cached credentials.
+.sp
+Not all security policies support credential caching.
+.TP 8n
+\fB\-l\fR, \fB\--list\fR
+If no
+\fIcommand\fR
+is specified, list the privileges for the invoking user (or the
+\fIuser\fR
+specified by the
+\fB\-U\fR
+option) on the current host.
+A longer list format is used if this option is specified multiple times
+and the security policy supports a verbose output format.
+.sp
+If a
+\fIcommand\fR
+is specified and is permitted by the security policy for the invoking
+user (or the,
+\fIuser\fR
+specified by the
+\fB\-U\fR
+option) on the current host,
+the fully-qualified path to the
+\fIcommand\fR
+is displayed along with any
+\fIarg\fRs.
+If
+\fB\-l\fR
+is specified more than once (and the security policy supports it),
+the matching rule is displayed in a verbose format along with the
+\fIcommand\fR.
+If a
+\fIcommand\fR
+is specified but not allowed by the policy,
+\fBsudo\fR
+will exit with a status value of 1.
+.TP 8n
+\fB\-N\fR, \fB\--no-update\fR
+Do not update the user's cached credentials, even if the user successfully
+authenticates.
+Unlike the
+\fB\-k\fR
+flag, existing cached credentials are used if they are valid.
+To detect when the user's cached credentials are valid (or when no
+authentication is required), the following can be used:
+.nf
+.sp
+.RS 12n
+sudo -Nnv
+.RE
+.fi
+.RS 8n
+.sp
+Not all security policies support credential caching.
+.RE
+.TP 8n
+\fB\-n\fR, \fB\--non-interactive\fR
+Avoid prompting the user for input of any kind.
+If a password is required for the
+\fIcommand\fR
+to run,
+\fBsudo\fR
+will display an error message and exit.
+.TP 8n
+\fB\-P\fR, \fB\--preserve-groups\fR
+Preserve the invoking user's group vector unaltered.
+By default, the
+\fIsudoers\fR
+policy will initialize the group vector to the list of groups the
+target user is a member of.
+The real and effective group-IDs, however, are still set to match
+the target user.
+.TP 8n
+\fB\-p\fR \fIprompt\fR, \fB\--prompt\fR=\fIprompt\fR
+Use a custom password prompt with optional escape sequences.
+The following percent
+(\(oq%\(cq)
+escape sequences are supported by the
+\fIsudoers\fR
+policy:
+.PP
+.RS 8n
+.PD 0
+.TP 4n
+%H
+expanded to the host name including the domain name (only if the
+machine's host name is fully qualified or the
+\fIfqdn\fR
+option is set in
+sudoers(@mansectform@))
+.PD
+.TP 4n
+%h
+expanded to the local host name without the domain name
+.TP 4n
+%p
+expanded to the name of the user whose password is being requested
+(respects the
+\fIrootpw\fR,
+\fItargetpw\fR,
+and
+\fIrunaspw\fR
+flags in
+sudoers(@mansectform@))
+.TP 4n
+\&%U
+expanded to the login name of the user the
+\fIcommand\fR
+will be run as (defaults to root unless the
+\fB\-u\fR
+option is also specified)
+.TP 4n
+%u
+expanded to the invoking user's login name
+.TP 4n
+%%
+two consecutive
+\(oq%\(cq
+characters are collapsed into a single
+\(oq%\(cq
+character
+.PP
+The custom prompt will override the default prompt specified by either
+the security policy or the
+\fRSUDO_PROMPT\fR
+environment variable.
+On systems that use PAM, the custom prompt will also override the prompt
+specified by a PAM module unless the
+\fIpassprompt_override\fR
+flag is disabled in
+\fIsudoers\fR.
+.RE
+.TP 8n
+\fB\-R\fR \fIdirectory\fR, \fB\--chroot\fR=\fIdirectory\fR
+Change to the specified root
+\fIdirectory\fR
+(see
+chroot(@mansectsu@))
+before running the
+\fIcommand\fR.
+The security policy may return an error if the user does not have
+permission to specify the root directory.
+.TP 8n
+\fB\-r\fR \fIrole\fR, \fB\--role\fR=\fIrole\fR
+Run the
+\fIcommand\fR
+with an SELinux security context that includes the specified
+\fIrole\fR.
+.TP 8n
+\fB\-S\fR, \fB\--stdin\fR
+Write the prompt to the standard error and read the password from the
+standard input instead of using the terminal device.
+.TP 8n
+\fB\-s\fR, \fB\--shell\fR
+Run the shell specified by the
+\fRSHELL\fR
+environment variable if it is set or the shell specified by the
+invoking user's password database entry.
+If a
+\fIcommand\fR
+is specified, it is passed to the shell as a simple command using the
+\fB\-c\fR
+option.
+The
+\fIcommand\fR
+and any
+\fIarg\fRs
+are concatenated, separated by spaces, after escaping each character
+(including white space)
+with a backslash
+(\(oq\e\(cq)
+except for alphanumerics, underscores,
+hyphens, and dollar signs.
+If no
+\fIcommand\fR
+is specified, an interactive shell is executed.
+Most shells behave differently when a
+\fIcommand\fR
+is specified as compared to an interactive session; consult the shell's manual
+for details.
+.TP 8n
+\fB\-t\fR \fItype\fR, \fB\--type\fR=\fItype\fR
+Run the
+\fIcommand\fR
+with an SELinux security context that includes the specified
+\fItype\fR.
+If no
+\fItype\fR
+is specified, the default type is derived from the role.
+.TP 8n
+\fB\-U\fR \fIuser\fR, \fB\--other-user\fR=\fIuser\fR
+Used in conjunction with the
+\fB\-l\fR
+option to list the privileges for
+\fIuser\fR
+instead of for the invoking user.
+The security policy may restrict listing other users' privileges.
+When using the
+\fIsudoers\fR
+policy, the
+\fB\-U\fR
+option is restricted to the root user and users with either the
+\(lqlist\(rq
+priviege for the specified
+\fIuser\fR
+or the ability to run any
+\fIcommand\fR
+as root or
+\fIuser\fR
+on the current host.
+.TP 8n
+\fB\-T\fR \fItimeout\fR, \fB\--command-timeout\fR=\fItimeout\fR
+Used to set a timeout for the
+\fIcommand\fR.
+If the timeout expires before the
+\fIcommand\fR
+has exited, the
+\fIcommand\fR
+will be terminated.
+The security policy may restrict the user's ability to set timeouts.
+The
+\fIsudoers\fR
+policy requires that user-specified timeouts be explicitly enabled.
+.TP 8n
+\fB\-u\fR \fIuser\fR, \fB\--user\fR=\fIuser\fR
+Run the
+\fIcommand\fR
+as a user other than the default target user (usually
+\fBroot\fR).
+The
+\fIuser\fR
+may be either a user name or a numeric user-ID
+(UID)
+prefixed with the
+\(oq#\(cq
+character (e.g.,
+\(oq#0\(cq
+for UID 0).
+When running
+\fIcommand\fRs as
+a UID, many shells require that the
+\(oq#\(cq
+be escaped with a backslash
+(\(oq\e\(cq).
+Some security policies may restrict UIDs
+to those listed in the password database.
+The
+\fIsudoers\fR
+policy allows UIDs that are not in the password database as long as the
+\fItargetpw\fR
+option is not set.
+Other security policies may not support this.
+.TP 8n
+\fB\-V\fR, \fB\--version\fR
+Print the
+\fBsudo\fR
+version string as well as the version string of any configured plugins.
+If the invoking user is already root, the
+\fB\-V\fR
+option will display the options passed to configure when
+\fBsudo\fR
+was built; plugins may display additional information such as
+default options.
+.TP 8n
+\fB\-v\fR, \fB\--validate\fR
+Update the user's cached credentials, authenticating the user
+if necessary.
+For the
+\fIsudoers\fR
+plugin, this extends the
+\fBsudo\fR
+timeout for another @timeout@ minutes by default, but does not run a
+\fIcommand\fR.
+Not all security policies support cached credentials.
+.TP 8n
+\fB\--\fR
+The
+\fB\--\fR
+is used to delimit the end of the
+\fBsudo\fR
+options.
+Subsequent options are passed to the
+\fIcommand\fR.
+.PP
+Options that take a value may only be specified once unless
+otherwise indicated in the description.
+This is to help guard against problems caused by poorly written
+scripts that invoke
+\fBsudo\fR
+with user-controlled input.
+.PP
+Environment variables to be set for the
+\fIcommand\fR
+may also be passed as options to
+\fBsudo\fR
+in the form
+\fIVAR\fR=\fIvalue\fR,
+for example
+\fRLD_LIBRARY_PATH\fR=\fI/usr/local/pkg/lib\fR.
+Environment variables may be subject to restrictions
+imposed by the security policy plugin.
+The
+\fIsudoers\fR
+policy subjects environment variables passed as options to the same
+restrictions as existing environment variables with one important
+difference.
+If the
+\fIsetenv\fR
+option is set in
+\fIsudoers\fR,
+the
+\fIcommand\fR
+to be run has the
+\fRSETENV\fR
+tag set or the
+\fIcommand\fR
+matched is
+\fBALL\fR,
+the user may set variables that would otherwise be forbidden.
+See
+sudoers(@mansectform@)
+for more information.
+.SH "COMMAND EXECUTION"
+When
+\fBsudo\fR
+executes a
+\fIcommand\fR,
+the security policy specifies the execution environment for the
+\fIcommand\fR.
+Typically, the real and effective user and group and IDs are set to
+match those of the target user, as specified in the password database,
+and the group vector is initialized based on the group database
+(unless the
+\fB\-P\fR
+option was specified).
+.PP
+The following parameters may be specified by security policy:
+.TP 3n
+\fB\(bu\fR
+real and effective user-ID
+.TP 3n
+\fB\(bu\fR
+real and effective group-ID
+.TP 3n
+\fB\(bu\fR
+supplementary group-IDs
+.TP 3n
+\fB\(bu\fR
+the environment list
+.TP 3n
+\fB\(bu\fR
+current working directory
+.TP 3n
+\fB\(bu\fR
+file creation mode mask (umask)
+.if \n(SL \{\
+.TP 3n
+\fB\(bu\fR
+SELinux role and type
+.\}
+.if \n(PS \{\
+.TP 3n
+\fB\(bu\fR
+Solaris project
+.\}
+.if \n(PS \{\
+.TP 3n
+\fB\(bu\fR
+Solaris privileges
+.\}
+.if \n(LC \{\
+.TP 3n
+\fB\(bu\fR
+BSD
+login class
+.\}
+.TP 3n
+\fB\(bu\fR
+scheduling priority (aka nice value)
+.SS "Process model"
+There are two distinct ways
+\fBsudo\fR
+can run a
+\fIcommand\fR.
+.PP
+If an I/O logging plugin is configured to log terminal I/O, or if
+the security policy explicitly requests it, a new pseudo-terminal
+(\(lqpty\(rq)
+is allocated and
+fork(2)
+is used to create a second
+\fBsudo\fR
+process, referred to as the
+\fImonitor\fR.
+The
+\fImonitor\fR
+creates a new terminal session with itself as the leader and the pty as its
+controlling terminal, calls
+fork(2)
+again, sets up the execution environment as described above, and then uses the
+execve(2)
+system call to run the
+\fIcommand\fR
+in the child process.
+The
+\fImonitor\fR
+exists to relay job control signals between the user's
+terminal and the pty the
+\fIcommand\fR
+is being run in.
+This makes it possible to suspend and resume the
+\fIcommand\fR
+normally.
+Without the
+\fImonitor\fR,
+the
+\fIcommand\fR
+would be in what POSIX terms an
+\(lqorphaned process group\(rq
+and it would not receive any job control signals from the kernel.
+When the
+\fIcommand\fR
+exits or is terminated by a signal, the
+\fImonitor\fR
+passes the
+\fIcommand\fR's
+exit status to the main
+\fBsudo\fR
+process and exits.
+After receiving the
+\fIcommand\fR's
+exit status, the main
+\fBsudo\fR
+process passes the
+\fIcommand\fR's
+exit status to the security policy's close function, as well as the
+close function of any configured audit plugin, and exits.
+This mode is the default for sudo versions 1.9.14 and above when using
+the sudoers policy.
+.PP
+If no pty is used,
+\fBsudo\fR
+calls
+fork(2),
+sets up the execution environment as described above, and uses the
+execve(2)
+system call to run the
+\fIcommand\fR
+in the child process.
+The main
+\fBsudo\fR
+process waits until the
+\fIcommand\fR
+has completed, then passes the
+\fIcommand\fR's
+exit status to the security policy's close function, as well as the
+close function of any configured audit plugins, and exits.
+As a special case, if the policy plugin does not define a close
+function,
+\fBsudo\fR
+will execute the
+\fIcommand\fR
+directly instead of calling
+fork(2)
+first.
+The
+\fIsudoers\fR
+policy plugin will only define a close function when I/O logging
+is enabled, a pty is required, an SELinux role is specified, the
+\fIcommand\fR
+has an associated timeout, or the
+\fIpam_session\fR
+or
+\fIpam_setcred\fR
+options are enabled.
+Both
+\fIpam_session\fR
+and
+\fIpam_setcred\fR
+are enabled by default on systems using PAM.
+This mode is the default for sudo versions prior to 1.9.14 when using
+the sudoers policy.
+.PP
+On systems that use PAM, the security policy's close function
+is responsible for closing the PAM session.
+It may also log the
+\fIcommand\fR's
+exit status.
+.SS "Signal handling"
+When the
+\fIcommand\fR
+is run as a child of the
+\fBsudo\fR
+process,
+\fBsudo\fR
+will relay signals it receives to the
+\fIcommand\fR.
+The
+\fRSIGINT\fR
+and
+\fRSIGQUIT\fR
+signals are only relayed when the
+\fIcommand\fR
+is being run in a new pty or when the signal was sent by a user
+process, not the kernel.
+This prevents the
+\fIcommand\fR
+from receiving
+\fRSIGINT\fR
+twice each time the user enters control-C.
+Some signals, such as
+\fRSIGSTOP\fR
+and
+\fRSIGKILL\fR,
+cannot be caught and thus will not be relayed to the
+\fIcommand\fR.
+As a general rule,
+\fRSIGTSTP\fR
+should be used instead of
+\fRSIGSTOP\fR
+when you wish to suspend a
+\fIcommand\fR
+being run by
+\fBsudo\fR.
+.PP
+As a special case,
+\fBsudo\fR
+will not relay signals that were sent by the
+\fIcommand\fR
+it is running.
+This prevents the
+\fIcommand\fR
+from accidentally killing itself.
+On some systems, the
+reboot(@mansectsu@)
+utility sends
+\fRSIGTERM\fR
+to all non-system processes other than itself before rebooting
+the system.
+This prevents
+\fBsudo\fR
+from relaying the
+\fRSIGTERM\fR
+signal it received back to
+reboot(@mansectsu@),
+which might then exit before the system was actually rebooted,
+leaving it in a half-dead state similar to single user mode.
+Note, however, that this check only applies to the
+\fIcommand\fR
+run by
+\fBsudo\fR
+and not any other processes that the
+\fIcommand\fR
+may create.
+As a result, running a script that calls
+reboot(@mansectsu@)
+or
+shutdown(@mansectsu@)
+via
+\fBsudo\fR
+may cause the system to end up in this undefined state unless the
+reboot(@mansectsu@)
+or
+shutdown(@mansectsu@)
+are run using the
+\fBexec\fR()
+family of functions instead of
+\fBsystem\fR()
+(which interposes a shell between the
+\fIcommand\fR
+and the calling process).
+.SS "Plugins"
+Plugins may be specified via
+\fIPlugin\fR
+directives in the
+sudo.conf(@mansectform@)
+file.
+They may be loaded as dynamic shared objects (on systems that support them),
+or compiled directly into the
+\fBsudo\fR
+binary.
+If no
+sudo.conf(@mansectform@)
+file is present, or if it doesn't contain any
+\fIPlugin\fR
+lines,
+\fBsudo\fR
+will use
+sudoers(@mansectform@)
+for the policy, auditing, and I/O logging plugins.
+See the
+sudo.conf(@mansectform@)
+manual for details of the
+\fI@sysconfdir@/sudo.conf\fR
+file and the
+sudo_plugin(@mansectform@)
+manual for more information about the
+\fBsudo\fR
+plugin architecture.
+.SH "EXIT VALUE"
+Upon successful execution of a
+\fIcommand\fR,
+the exit status from
+\fBsudo\fR
+will be the exit status of the program that was executed.
+If the
+\fIcommand\fR
+terminated due to receipt of a signal,
+\fBsudo\fR
+will send itself the same signal that terminated the
+\fIcommand\fR.
+.PP
+If the
+\fB\-l\fR
+option was specified without a
+\fIcommand\fR,
+\fBsudo\fR
+will exit with a value of 0 if the user is allowed to run
+\fBsudo\fR
+and they authenticated successfully (as required by the security policy).
+If a
+\fIcommand\fR
+is specified with the
+\fB\-l\fR
+option, the exit value will only be 0 if the
+\fIcommand\fR
+is permitted by the security policy, otherwise it will be 1.
+.PP
+If there is an authentication failure, a configuration/permission
+problem, or if the given
+\fIcommand\fR
+cannot be executed,
+\fBsudo\fR
+exits with a value of 1.
+In the latter case, the error string is printed to the standard error.
+If
+\fBsudo\fR
+cannot
+stat(2)
+one or more entries in the user's
+\fRPATH\fR,
+an error is printed to the standard error.
+(If the directory does not exist or if it is not really a directory,
+the entry is ignored and no error is printed.)
+This should not happen under normal circumstances.
+The most common reason for
+stat(2)
+to return
+\(lqpermission denied\(rq
+is if you are running an automounter and one of the directories in
+your
+\fRPATH\fR
+is on a machine that is currently unreachable.
+.SH "SECURITY NOTES"
+\fBsudo\fR
+tries to be safe when executing external
+\fIcommand\fRs.
+.PP
+To prevent command spoofing,
+\fBsudo\fR
+checks "." and "" (both denoting current directory) last when
+searching for a
+\fIcommand\fR
+in the user's
+\fRPATH\fR
+(if one or both are in the
+\fRPATH\fR).
+Depending on the security policy, the user's
+\fRPATH\fR
+environment variable may be modified, replaced,
+or passed unchanged to the program that
+\fBsudo\fR
+executes.
+.PP
+Users should
+\fInever\fR
+be granted
+\fBsudo\fR
+privileges to execute files that are writable by the user or
+that reside in a directory that is writable by the user.
+If the user can modify or replace the
+\fIcommand\fR
+there is no way to limit what additional
+\fIcommand\fRs
+they can run.
+.PP
+By default,
+\fBsudo\fR
+will only log the
+\fIcommand\fR
+it explicitly runs.
+If a user runs a
+\fIcommand\fR
+such as
+\(oqsudo su\(cq
+or
+\(oqsudo sh\(cq,
+subsequent
+\fIcommand\fRs
+run from that shell are not subject to
+\fBsudo\fR's
+security policy.
+The same is true for
+\fIcommand\fRs
+that offer shell escapes (including most editors).
+If I/O logging is enabled, subsequent
+\fIcommand\fRs
+will have their input and/or output logged, but there will not be
+traditional logs for those
+\fIcommand\fRs.
+Because of this, care must be taken when giving users access to
+\fIcommand\fRs
+via
+\fBsudo\fR
+to verify that the
+\fIcommand\fR
+does not inadvertently give the user an effective root shell.
+For information on ways to address this, see the
+\fIPreventing shell escapes\fR
+section in
+sudoers(@mansectform@).
+.PP
+To prevent the disclosure of potentially sensitive information,
+\fBsudo\fR
+disables core dumps by default while it is executing (they are
+re-enabled for the
+\fIcommand\fR
+that is run).
+This historical practice dates from a time when most operating
+systems allowed set-user-ID processes to dump core by default.
+To aid in debugging
+\fBsudo\fR
+crashes, you may wish to re-enable core dumps by setting
+\(lqdisable_coredump\(rq
+to false in the
+sudo.conf(@mansectform@)
+file as follows:
+.nf
+.sp
+.RS 4n
+Set disable_coredump false
+.RE
+.fi
+.PP
+See the
+sudo.conf(@mansectform@)
+manual for more information.
+.SH "ENVIRONMENT"
+\fBsudo\fR
+utilizes the following environment variables.
+The security policy has control over the actual content of the
+\fIcommand\fR's
+environment.
+.TP 17n
+\fREDITOR\fR
+Default editor to use in
+\fB\-e\fR
+(sudoedit) mode if neither
+\fRSUDO_EDITOR\fR
+nor
+\fRVISUAL\fR
+is set.
+.TP 17n
+\fRMAIL\fR
+Set to the mail spool of the target user when the
+\fB\-i\fR
+option is specified, or when
+\fIenv_reset\fR
+is enabled in
+\fIsudoers\fR
+(unless
+\fRMAIL\fR
+is present in the
+\fIenv_keep\fR
+list).
+.TP 17n
+\fRHOME\fR
+Set to the home directory of the target user when the
+\fB\-i\fR
+or
+\fB\-H\fR
+options are specified, when the
+\fB\-s\fR
+option is specified and
+\fIset_home\fR
+is set in
+\fIsudoers\fR,
+when
+\fIalways_set_home\fR
+is enabled in
+\fIsudoers\fR,
+or when
+\fIenv_reset\fR
+is enabled in
+\fIsudoers\fR
+and
+\fRHOME\fR
+is not present in the
+\fIenv_keep\fR
+list.
+.TP 17n
+\fRLOGNAME\fR
+Set to the login name of the target user when the
+\fB\-i\fR
+option is specified, when the
+\fIset_logname\fR
+option is enabled in
+\fIsudoers\fR,
+or when the
+\fIenv_reset\fR
+option is enabled in
+\fIsudoers\fR
+(unless
+\fRLOGNAME\fR
+is present in the
+\fIenv_keep\fR
+list).
+.TP 17n
+\fRPATH\fR
+May be overridden by the security policy.
+.TP 17n
+\fRSHELL\fR
+Used to determine shell to run with
+\fB\-s\fR
+option.
+.TP 17n
+\fRSUDO_ASKPASS\fR
+Specifies the path to a helper program used to read the password
+if no terminal is available or if the
+\fB\-A\fR
+option is specified.
+.TP 17n
+\fRSUDO_COMMAND\fR
+Set to the
+\fIcommand\fR
+run by sudo, including any
+\fIarg\fRs.
+The
+\fIarg\fRs
+are truncated at 4096 characters to prevent a potential execution error.
+.TP 17n
+\fRSUDO_EDITOR\fR
+Default editor to use in
+\fB\-e\fR
+(sudoedit) mode.
+.TP 17n
+\fRSUDO_GID\fR
+Set to the group-ID of the user who invoked sudo.
+.TP 17n
+\fRSUDO_PROMPT\fR
+Used as the default password prompt unless the
+\fB\-p\fR
+option was specified.
+.TP 17n
+\fRSUDO_PS1\fR
+If set,
+\fRPS1\fR
+will be set to its value for the program being run.
+.TP 17n
+\fRSUDO_UID\fR
+Set to the user-ID of the user who invoked sudo.
+.TP 17n
+\fRSUDO_USER\fR
+Set to the login name of the user who invoked sudo.
+.TP 17n
+\fRUSER\fR
+Set to the same value as
+\fRLOGNAME\fR,
+described above.
+.TP 17n
+\fRVISUAL\fR
+Default editor to use in
+\fB\-e\fR
+(sudoedit) mode if
+\fRSUDO_EDITOR\fR
+is not set.
+.SH "FILES"
+.TP 26n
+\fI@sysconfdir@/sudo.conf\fR
+\fBsudo\fR
+front-end configuration
+.SH "EXAMPLES"
+The following examples assume a properly configured security policy.
+.PP
+To get a file listing of an unreadable directory:
+.nf
+.sp
+.RS 4n
+$ sudo ls /usr/local/protected
+.RE
+.fi
+.PP
+To list the home directory of user yaz on a machine where the file
+system holding ~yaz is not exported as root:
+.nf
+.sp
+.RS 4n
+$ sudo -u yaz ls ~yaz
+.RE
+.fi
+.PP
+To edit the
+\fIindex.html\fR
+file as user www:
+.nf
+.sp
+.RS 4n
+$ sudoedit -u www ~www/htdocs/index.html
+.RE
+.fi
+.PP
+To view system logs only accessible to root and users in the adm
+group:
+.nf
+.sp
+.RS 4n
+$ sudo -g adm more @log_dir@/syslog
+.RE
+.fi
+.PP
+To run an editor as jim with a different primary group:
+.nf
+.sp
+.RS 4n
+$ sudoedit -u jim -g audio ~jim/sound.txt
+.RE
+.fi
+.PP
+To shut down a machine:
+.nf
+.sp
+.RS 4n
+$ sudo shutdown -r +15 "quick reboot"
+.RE
+.fi
+.PP
+To make a usage listing of the directories in the /home partition.
+The
+\fIcommands\fR
+are run in a sub-shell to allow the
+\(oqcd\(cq
+command and file redirection to work.
+.nf
+.sp
+.RS 4n
+$ sudo sh -c "cd /home ; du -s * | sort -rn > USAGE"
+.RE
+.fi
+.SH "DIAGNOSTICS"
+Error messages produced by
+\fBsudo\fR
+include:
+.TP 6n
+\fRediting files in a writable directory is not permitted\fR
+By default,
+\fBsudoedit\fR
+does not permit editing a file when any of the parent directories are writable
+by the invoking user.
+This avoids a race condition that could allow the user to overwrite
+an arbitrary file.
+See the
+\fIsudoedit_checkdir\fR
+option in
+sudoers(@mansectform@)
+for more information.
+.TP 6n
+\fRediting symbolic links is not permitted\fR
+By default,
+\fBsudoedit\fR
+does not follow symbolic links when opening files.
+See the
+\fIsudoedit_follow\fR
+option in
+sudoers(@mansectform@)
+for more information.
+.TP 6n
+\fReffective uid is not 0, is sudo installed setuid root?\fR
+\fBsudo\fR
+was not run with root privileges.
+The
+\fBsudo\fR
+binary must be owned by the root user and have the set-user-ID bit set.
+Also, it must not be located on a file system mounted with the
+\(oqnosuid\(cq
+option or on an NFS file system that maps uid 0 to an unprivileged uid.
+.TP 6n
+\fReffective uid is not 0, is sudo on a file system with the 'nosuid' option set or an NFS file system without root privileges?\fR
+\fBsudo\fR
+was not run with root privileges.
+The
+\fBsudo\fR
+binary has the proper owner and permissions but it still did not run
+with root privileges.
+The most common reason for this is that the file system the
+\fBsudo\fR
+binary is located on is mounted with the
+\(oqnosuid\(cq
+option or it is an NFS file system that maps uid 0 to an unprivileged uid.
+.TP 6n
+\fRfatal error, unable to load plugins\fR
+An error occurred while loading or initializing the plugins specified in
+sudo.conf(@mansectform@).
+.TP 6n
+\fRinvalid environment variable name\fR
+One or more environment variable names specified via the
+\fB\-E\fR
+option contained an equal sign
+(\(oq=\(cq).
+The arguments to the
+\fB\-E\fR
+option should be environment variable names without an associated value.
+.TP 6n
+\fRno password was provided\fR
+When
+\fBsudo\fR
+tried to read the password, it did not receive any characters.
+This may happen if no terminal is available (or the
+\fB\-S\fR
+option is specified) and the standard input has been redirected from
+\fI/dev/null\fR.
+.TP 6n
+\fRa terminal is required to read the password\fR
+\fBsudo\fR
+needs to read the password but there is no mechanism available for it
+to do so.
+A terminal is not present to read the password from,
+\fBsudo\fR
+has not been configured to read from the standard input,
+the
+\fB\-S\fR
+option was not used, and no askpass helper has been specified either via the
+sudo.conf(@mansectform@)
+file or the
+\fRSUDO_ASKPASS\fR
+environment variable.
+.TP 6n
+\fRno writable temporary directory found\fR
+\fBsudoedit\fR
+was unable to find a usable temporary directory in which to store its
+intermediate files.
+.TP 6n
+\fRThe\fR \(lqno new privileges\(rq flag is set, which prevents sudo from running as root.
+\fBsudo\fR
+was run by a process that has the Linux
+\(lqno new privileges\(rq
+flag is set.
+This causes the set-user-ID bit to be ignored when running an executable,
+which will prevent
+\fBsudo\fR
+from functioning.
+The most likely cause for this is running
+\fBsudo\fR
+within a container that sets this flag.
+Check the documentation to see if it is possible to configure the
+container such that the flag is not set.
+.TP 6n
+\fRsudo must be owned by uid 0 and have the setuid bit set\fR
+\fBsudo\fR
+was not run with root privileges.
+The
+\fBsudo\fR
+binary does not have the correct owner or permissions.
+It must be owned by the root user and have the set-user-ID bit set.
+.TP 6n
+\fRsudoedit is not supported on this platform\fR
+It is only possible to run
+\fBsudoedit\fR
+on systems that support setting the effective user-ID.
+.TP 6n
+\fRtimed out reading password\fR
+The user did not enter a password before the password timeout
+(5 minutes by default) expired.
+.TP 6n
+\fRyou do not exist in the passwd database\fR
+Your user-ID does not appear in the system passwd database.
+.TP 6n
+\fRyou may not specify environment variables in edit mode\fR
+It is only possible to specify environment variables when running a
+\fIcommand\fR.
+When editing a file, the editor is run with the user's environment unmodified.
+.SH "SEE ALSO"
+su(1),
+stat(2),
+login_cap(3),
+passwd(@mansectform@),
+sudo.conf(@mansectform@),
+sudo_plugin(@mansectform@),
+sudoers(@mansectform@),
+sudoers_timestamp(@mansectform@),
+sudoreplay(@mansectsu@),
+visudo(@mansectsu@)
+.SH "HISTORY"
+See the HISTORY.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/history/) for a brief
+history of sudo.
+.SH "AUTHORS"
+Many people have worked on
+\fBsudo\fR
+over the years; this version consists of code written primarily by:
+.sp
+.RS 6n
+Todd C. Miller
+.RE
+.PP
+See the CONTRIBUTORS.md file in the
+\fBsudo\fR
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+\fBsudo\fR.
+.SH "CAVEATS"
+There is no easy way to prevent a user from gaining a root shell
+if that user is allowed to run arbitrary
+\fIcommands\fR
+via
+\fBsudo\fR.
+Also, many programs (such as editors) allow the user to run
+\fIcommand\fRs
+via shell escapes, thus avoiding
+\fBsudo\fR's
+checks.
+However, on most systems it is possible to prevent shell escapes with the
+sudoers(@mansectform@)
+plugin's
+\fInoexec\fR
+functionality.
+.PP
+It is not meaningful to run the
+\(oqcd\(cq
+\fIcommand\fR
+directly via sudo, e.g.,
+.nf
+.sp
+.RS 4n
+$ sudo cd /usr/local/protected
+.RE
+.fi
+.PP
+since when the
+\fIcommand\fR
+exits the parent process (your shell) will still be the same.
+The
+\fB\-D\fR
+option can be used to run a
+\fIcommand\fR
+in a specific
+\fIdirectory\fR.
+.PP
+Running shell scripts via
+\fBsudo\fR
+can expose the same kernel bugs that make set-user-ID shell scripts
+unsafe on some operating systems (if your OS has a /dev/fd/ directory,
+set-user-ID shell scripts are generally safe).
+.SH "BUGS"
+If you believe you have found a bug in
+\fBsudo\fR,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.SH "SUPPORT"
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.SH "DISCLAIMER"
+\fBsudo\fR
+is provided
+\(lqAS IS\(rq
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+\fBsudo\fR
+or https://www.sudo.ws/about/license/ for complete details.

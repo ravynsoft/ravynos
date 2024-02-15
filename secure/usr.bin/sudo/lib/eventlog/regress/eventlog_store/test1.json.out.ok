@@ -1,0 +1,31 @@
+{
+    "submituser": "millert",
+    "command": "/usr/bin/ci",
+    "runuser": "root",
+    "source": "/etc/sudoers:89:24",
+    "ttyname": "/dev/ttypb",
+    "submithost": "xerxes.sudo.ws",
+    "submitcwd": "/etc/mail",
+    "runuid": 0,
+    "columns": 80,
+    "lines": 24,
+    "runargv": [
+        "ci",
+        "-u",
+        "aliases\n"
+    ],
+    "runenv": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "TERM=tmux",
+        "LANG=en_US.UTF-8",
+        "MAIL=/var/mail/root",
+        "LOGNAME=root",
+        "USER=root",
+        "HOME=/root",
+        "SHELL=/bin/bash",
+        "SUDO_COMMAND=/usr/bin/ci -u aliases",
+        "SUDO_USER=millert",
+        "SUDO_UID=8036",
+        "SUDO_GID=20"
+    ]
+}

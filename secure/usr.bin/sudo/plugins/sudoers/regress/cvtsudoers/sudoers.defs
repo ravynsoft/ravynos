@@ -1,0 +1,19 @@
+Defaults		syslog=auth
+Defaults>ROOT		!set_logname
+Defaults:FULLTIMERS	!lecture
+Defaults:millert	!authenticate
+Defaults@SERVERS	log_year, logfile=/var/log/sudo.log
+Defaults!PAGERS		noexec
+
+User_Alias	FULLTIMERS = millert, mikef, dowdy
+User_Alias	PARTTIMERS = bostley, jwfox, crawl
+
+Host_Alias	SERVERS = primary, mail, www, ns
+Host_Alias	CDROM = orion, perseus, hercules
+
+Cmnd_Alias	VIPW = /usr/sbin/vipw, /usr/bin/passwd, /usr/bin/chsh, \
+		       /usr/bin/chfn
+Cmnd_Alias	PAGERS = /usr/bin/more, /usr/bin/pg, /usr/bin/less
+
+Runas_Alias	ROOT = root, toor
+Runas_Alias	OPERATOR = operator, backup

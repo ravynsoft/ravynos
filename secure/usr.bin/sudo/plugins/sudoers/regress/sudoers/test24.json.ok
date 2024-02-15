@@ -1,0 +1,61 @@
+{
+    "Defaults": [
+        {
+            "Options": [
+                { "runcwd": "~" }
+            ]
+        },
+        {
+            "Options": [
+                { "runchroot": "/" }
+            ]
+        }
+    ],
+    "User_Specs": [
+        {
+            "User_List": [
+                { "username": "user0" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Options": [
+                        "runchroot": "/var/www",
+                        "runcwd": "/htdocs"
+                    ],
+                    "Commands": [
+                        { "command": "/bin/ksh" }
+                    ]
+                }
+            ]
+        },
+        {
+            "User_List": [
+                { "username": "user1" }
+            ],
+            "Host_List": [
+                { "hostname": "ALL" }
+            ],
+            "Cmnd_Specs": [
+                {
+                    "Options": [
+                        "runcwd": "~root"
+                    ],
+                    "Commands": [
+                        { "command": "/usr/bin/id" }
+                    ]
+                },
+                {
+                    "Options": [
+                        "runcwd": "/tmp"
+                    ],
+                    "Commands": [
+                        { "command": "/bin/ls" }
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,72 @@
+Parses OK
+
+Entries for user root:
+
+ALL = ^/bin/ls$ ^-[lAt]$
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+Parses OK
+
+Entries for user root:
+
+ALL = ^/bin/cat$ /var/log/*
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+Parses OK
+
+Entries for user root:
+
+ALL = /bin/cat ^/var/log/[^/]+$
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+Parses OK
+
+Entries for user root:
+
+ALL = /bin/*at ^/var/log/[^/]+$
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+Parses OK
+
+Entries for user root:
+
+ALL = /usr/bin/grep \^foo$
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed
+Parses OK
+
+Entries for user root:
+
+ALL = sudoedit ^/etc/(motd|issue|hosts)$
+	host  allowed
+	runas allowed
+	cmnd  allowed
+
+Password required
+
+Command allowed

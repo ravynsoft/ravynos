@@ -1,0 +1,217 @@
+#!/bin/sh
+#
+# Copyright (c) 2022 Todd C. Miller <Todd.Miller@sudo.ws>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# Simple test harness for sudoers tests.
+# usage: harness [-v] test_group [test_name ...]
+#
+srcdir="@abs_srcdir@"
+builddir="@abs_builddir@"
+SHELL=@SHELL@
+verbose=0
+rval=0
+ntests=0
+errors=0
+
+umask 022
+
+if [ "$1" = "-v" ]; then
+    verbose=1
+    shift
+fi
+
+if [ $# -eq 0 ]; then
+    echo "usage: harness test_group [test_name ...]" >&2
+    exit 1
+fi
+group="$1"
+shift
+srcdir=${srcdir%"/regress"}
+builddir=${builddir%"/regress"}
+
+if [ ! -d "$srcdir/regress/$group" ]; then
+    echo "missing test group: regress/$group" >&2
+    exit 1
+fi
+
+case "$group" in
+sudoers)
+    mkdir -p "$builddir/regress/$group"
+    if [ $# -eq 0 ]; then
+	tests=
+	for t in $srcdir/regress/$group/*.in; do
+	    tests="$tests `basename $t .in`"
+	done
+	set -- $tests
+    fi
+    while [ $# -ne 0 ]; do
+	test="$1"
+	shift
+	in="$srcdir/regress/sudoers/${test}.in"
+	out="$builddir/regress/sudoers/${test}.out"
+	out_ok="$srcdir/regress/sudoers/${test}.out.ok"
+	toke="$builddir/regress/sudoers/${test}.toke"
+	toke_ok="$srcdir/regress/sudoers/${test}.toke.ok"
+	json="$builddir/regress/sudoers/${test}.json"
+	json_ok="$srcdir/regress/sudoers/${test}.json.ok"
+	ldif="$builddir/regress/sudoers/${test}.ldif"
+	ldif_ok="$srcdir/regress/sudoers/${test}.ldif.ok"
+	ldif2sudo="$builddir/regress/sudoers/${test}.ldif2sudo"
+	ldif2sudo_ok="$srcdir/regress/sudoers/${test}.ldif2sudo.ok"
+	sudo="$builddir/regress/sudoers/${test}.sudo"
+
+	$builddir/testsudoers -dt <$in >$out 2>$toke || true
+	ntests=`expr $ntests + 1`
+	if cmp $out $out_ok >/dev/null; then
+	    if [ $verbose -eq 1 ]; then
+		echo "$group/$test (parse): OK"
+	    fi
+	else
+	    errors=`expr $errors + 1`
+	    echo "$group/$test (parse): FAIL"
+	    diff $out $out_ok || true
+	fi
+	ntests=`expr $ntests + 1`
+	if cmp $toke $toke_ok >/dev/null; then
+	    if [ $verbose -eq 1 ]; then
+		echo "$group/$test (toke): OK"
+	    fi
+	else
+	    errors=`expr $errors + 1`
+	    echo "$group/$test (toke): FAIL"
+	    diff $toke $toke_ok || true
+	fi
+
+	$builddir/cvtsudoers -c "" -f json $in >$json 2>/dev/null || true
+	ntests=`expr $ntests + 1`
+	if cmp $json $json_ok >/dev/null; then
+	    if [ $verbose -eq 1 ]; then
+		echo "$group/$test (json): OK"
+	    fi
+	else
+	    errors=`expr $errors + 1`
+	    echo "$group/$test (json): FAIL"
+	    diff $json $json_ok || true
+	fi
+
+	SUDOERS_BASE="ou=SUDOers,dc=sudo,dc=ws" \
+	    $builddir/cvtsudoers -c "" -f ldif < $in >$ldif 2>/dev/null || true
+	ntests=`expr $ntests + 1`
+	if cmp $ldif $ldif_ok >/dev/null; then
+	    if [ $verbose -eq 1 ]; then
+		echo "$group/$test (ldif): OK"
+	    fi
+	else
+	    errors=`expr $errors + 1`
+	    echo "$group/$test: (ldif) FAIL"
+	    diff $ldif $ldif_ok || true
+	fi
+
+	$builddir/cvtsudoers -c "" -f sudoers $in >$sudo 2>/dev/null || true
+	ntests=`expr $ntests + 1`
+	if $builddir/visudo -qcf $sudo; then
+	    if [ $verbose -eq 1 ]; then
+		echo "$group/$test (reparse): OK"
+	    fi
+	else
+	    errors=`expr $errors + 1`
+	    echo "$group/$test: (reparse) FAIL"
+	    $builddir/visudo -cf $sudo || true
+	fi
+
+	if test -s $ldif_ok; then
+	    $builddir/cvtsudoers -c "" -i ldif -f sudoers $ldif_ok >$ldif2sudo || true
+	    ntests=`expr $ntests + 1`
+	    if cmp $ldif2sudo $ldif2sudo_ok >/dev/null; then
+		if [ $verbose -eq 1 ]; then
+		    echo "$group/$test (ldif2sudo): OK"
+		fi
+	    else
+		errors=`expr $errors + 1`
+		echo "$group/$test: (ldif2sudo) FAIL"
+		diff $ldif $ldif_ok || true
+	    fi
+	fi
+    done
+    ${AWK-awk} -v group=$group -v ntests=$ntests -v errors=$errors \
+	'END {printf("%s: %d tests run, %d errors, %d%% success rate\n", group, ntests, errors, (ntests - errors) * 100 / ntests)}' < /dev/null
+    if test $errors -ne 0; then
+	rval=`expr $rval + $errors`
+    fi
+    ;;
+*)
+    TESTSUDOERS=$builddir/testsudoers; export TESTSUDOERS
+    VISUDO=$builddir/visudo; export VISUDO
+    CVTSUDOERS=$builddir/cvtsudoers; export CVTSUDOERS
+    mkdir -p "regress/$group"
+    if [ $# -eq 0 ]; then
+	tests=
+	for t in $srcdir/regress/$group/*.sh; do
+	    tests="$tests `basename $t .sh`"
+	done
+	set -- $tests
+    fi
+    while [ $# -ne 0 ]; do
+	test="$1"
+	shift
+
+	cmd="$srcdir/regress/$group/${test}.sh"
+	out="$builddir/regress/$group/${test}.out"
+	out_ok="$srcdir/regress/$group/${test}.out.ok"
+	err="$builddir/regress/$group/${test}.err"
+	err_ok="$srcdir/regress/$group/${test}.err.ok"
+	status=0
+	TESTDIR=$srcdir/regress/$group $SHELL $cmd >$out 2>$err || status=$?
+	ntests=`expr $ntests + 1`
+	if cmp $out $out_ok >/dev/null; then
+	    if test $status -eq 0; then
+		if [ $verbose -eq 1 ]; then
+		    echo "$group/$test: OK"
+		fi
+	    else
+		errors=`expr $errors + 1`
+		echo "$group/$test (exit $status): FAIL"
+	    fi
+	else
+	    errors=`expr $errors + 1`
+	    echo "$group/$test: FAIL"
+	    diff $out $out_ok || true
+	fi
+	ntests=`expr $ntests + 1`
+	if test -s $err_ok; then
+	    if cmp $err $err_ok >/dev/null; then
+		if [ $verbose -eq 1 ]; then
+		    echo "$group/$test (stderr): OK"
+		fi
+	    else
+		errors=`expr $errors + 1`
+		echo "$group/$test (stderr): FAIL"
+		diff $err $err_ok || true
+	    fi
+	elif test -s $err; then
+	    errors=`expr $errors + 1`
+	    echo "$group/$test (stderr): FAIL"
+	    cat $err 1>&2
+	fi
+    done
+    ${AWK-awk} -v group=$group -v ntests=$ntests -v errors=$errors \
+	'END {printf("%s: %d tests run, %d errors, %d%% success rate\n", group, ntests, errors, (ntests - errors) * 100 / ntests)}' < /dev/null
+    if test $errors -ne 0; then
+	rval=`expr $rval + $errors`
+    fi
+    ;;
+esac
+
+exit $rval

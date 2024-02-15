@@ -1,0 +1,1556 @@
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 2019-2021 Robert Manner <robert.manner@oneidentity.com>
+.\" Copyright (c) 2019-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.Dd January 16, 2023
+.Dt SUDO_PLUGIN_PYTHON @mansectform@
+.Os Sudo @PACKAGE_VERSION@
+.Sh NAME
+.Nm sudo_plugin_python
+.Nd Sudo Plugin API (Python)
+.Sh DESCRIPTION
+Starting with version 1.9,
+.Nm sudo
+plugins can be written in python.
+The API closely follows the C
+.Nm sudo
+plugin API described by
+.Xr sudo_plugin @mansectform@ .
+.Pp
+The supported plugins types are:
+.Pp
+.Bl -bullet -compact -offset 1n -width 1n
+.It
+Policy plugin
+.It
+I/O plugin
+.It
+Audit plugin
+.It
+Approval plugin
+.It
+Group provider plugin
+.El
+.Pp
+Python plugin support needs to be explicitly enabled at build time
+with the configure option
+.Dq --enable-python .
+Python version 3.0 or higher is required.
+.Ss Sudo Python Plugin Base
+A plugin written in Python should be a class in a python file that
+inherits from
+.Em sudo.Plugin .
+The
+.Em sudo.Plugin
+base class has no real purpose other than to identify this class as a plugin.
+.Pp
+The only implemented method is a constructor, which stores the
+keyword arguments it receives as fields (member variables) in the object.
+This is intended as a convenience to allow you to avoid writing the
+constructor yourself.
+.Pp
+For example:
+.Bd -literal -offset 4n
+import sudo
+
+class MySudoPlugin(sudo.Plugin):
+    # example constructor (optional)
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    # example destructor (optional)
+    def __del__(self):
+        pass
+.Ed
+.Pp
+Both the constructor and destructor are optional and can be omitted.
+.Pp
+The customized Plugin class should define a few plugin-specific methods.
+When the plugin loads,
+.Nm sudo
+will create an instance of this class and call the methods.
+The actual methods required depend on the type of the plugin,
+but most return an
+.Vt int
+result code, as documented in
+.Xr sudo_plugin @mansectform@ ,
+that indicates whether or not the method was successful.
+The Python sudo module defines the following constants to improve readability:
+.Bl -column "sudo.RC.USAGE_ERROR" "XXX" -offset 4n
+.It Sy Define Ta Sy Value
+.It Dv sudo.RC.OK Ta 1
+.It Dv sudo.RC.ACCEPT Ta 1
+.It Dv sudo.RC.REJECT Ta 0
+.It Dv sudo.RC.ERROR Ta \-1
+.It Dv sudo.RC.USAGE_ERROR Ta \-2
+.El
+.Pp
+If a function returns
+.Dv None
+(for example, if it does not call return),
+it will be considered to have returned
+.Dv sudo.RC.OK .
+If an exception is raised (other than sudo.PluginException), the
+backtrace will be shown to the user and the plugin function will return
+.Dv sudo.RC.ERROR .
+If that is not acceptable, you must catch the exception and handle it yourself.
+.Pp
+Instead of just returning
+.Dv sudo.RC.ERROR
+or
+.Dv sudo.RC.REJECT
+result code the plugin can also provide a message describing the problem.
+This can be done by raising one of the special exceptions:
+.Bd -literal -offset 4n
+raise sudo.PluginError("Message")
+raise sudo.PluginReject("Message")
+.Ed
+.Pp
+This added message will be used by the audit plugins.
+Both exceptions inherit from
+.Dv sudo.PluginException
+.Ss Python Plugin Loader
+Running the Python interpreter and bridging between C and Python is
+handled by the
+.Nm sudo
+plugin
+.Pa @python_plugin@ .
+This shared object can be loaded like any other dynamic
+.Nm sudo
+plugin and should receive the path and the class name of the Python
+plugin it is loading as arguments.
+.Pp
+Example usage in
+.Xr sudo.conf @mansectform@ :
+.Bd -literal -offset 4n
+Plugin python_policy @python_plugin@ ModulePath=<path> ClassName=<class>
+Plugin python_io @python_plugin@ ModulePath=<path> ClassName=<class>
+Plugin python_audit @python_plugin@ ModulePath=<path> ClassName=<class>
+Plugin python_approval @python_plugin@ ModulePath=<path> ClassName=<class>
+.Ed
+.Pp
+Example group provider plugin usage in the
+.Em sudoers
+file:
+.Bd -literal -offset 4n
+Defaults group_plugin="@python_plugin@ ModulePath=<path> ClassName=<class>"
+.Ed
+.Pp
+The plugin arguments are as follows:
+.Bl -tag -width 4n
+.It ModulePath
+The path of a python file which contains the class of the sudo Python plugin.
+It must be either an absolute path or a path relative to the sudo Python plugin
+directory,
+.Pa @plugindir@/python .
+The parent directory of
+.Em ModulePath
+will be appended to Python's module search path (there is currently no
+way to force Python to load a module from a fully-qualified path).
+It is good practice to use a prefix for the module file that is unlikely
+to conflict with other installed Python modules, for example,
+.Pa sudo_policy.py .
+Otherwise, if the there is an installed Python module with the same
+file name as the sudo Python plugin file (without the directory),
+the wrong file will be loaded.
+.It ClassName
+(Optional.) The name of the class implementing the sudo Python plugin.
+If not supplied, the one and only sudo.Plugin that is present in the module
+will be used.
+If there are multiple such plugins in the module (or none), it
+will result in an error.
+.El
+.Ss Policy plugin API
+Policy plugins must be registered in
+.Xr sudo.conf @mansectform@ .
+For example:
+.Bd -literal -offset 4n
+Plugin python_policy @python_plugin@ ModulePath=<path> ClassName=<class>
+.Ed
+.Pp
+Currently, only a single policy plugin may be specified in
+.Xr sudo.conf @mansectform@ .
+.Pp
+A policy plugin may have the following member functions:
+.Bl -tag -width 4n
+.It Fa constructor
+.Bd -literal -compact
+__init__(self, user_env: Tuple[str, ...], settings: Tuple[str, ...],
+    version: str, user_info: Tuple[str, ...],
+    plugin_options: Tuple[str, ...])
+.Ed
+.Pp
+Implementing this function is optional.
+The default constructor will set the keyword arguments it receives
+as member variables in the object.
+.Pp
+The constructor matches the
+.Fn open
+function in the C
+.Nm sudo
+plugin API.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa user_env
+The user's environment as a tuple of strings in
+.Dq key=value
+format.
+.It Fa settings
+A tuple of user-supplied
+.Em sudo
+settings in the form of
+.Dq key=value
+strings.
+.It Fa version
+The version of the Python Policy Plugin API.
+.It Fa user_info
+A tuple of information about the user running the command in the form of
+.Dq key=value
+strings.
+.It Fa plugin_options
+The plugin options passed as arguments in the
+.Xr sudo.conf @mansectform@
+plugin registration.
+This is a tuple of strings, usually (but not necessarily) in
+.Dq key=value
+format.
+.El
+.Pp
+The
+.Fn sudo.options_as_dict
+convenience function can be used to convert
+.Dq key=value
+pairs to a dictionary.
+For a list of recognized keys and their supported values,
+see the policy plugin
+.Fn open
+documentation in
+.Xr sudo_plugin @mansectform@ .
+.It Fa check_policy
+.Bd -literal -compact
+check_policy(self, argv: Tuple[str, ...], env_add: Tuple[str, ...])
+.Ed
+.Pp
+The
+.Fn check_policy
+function is called by
+.Nm sudo
+to determine whether the user is allowed to run the specified command.
+Implementing this function is mandatory for a policy plugin.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa argv
+A tuple describing the command the user wishes to run.
+.It Fa env_add
+Additional environment variables specified by the user on the command line in
+the form of a tuple of
+.Dq key=value
+pairs.
+The
+.Fn sudo.options_as_dict
+convenience function can be used to convert them to a dictionary.
+.El
+.Pp
+This function should return a result code or a tuple in the following format:
+.Bd -literal -offset 4n
+return (rc, command_info_out, argv_out, user_env_out)
+.Ed
+.Pp
+The tuple values are as follows:
+.Bl -tag -width 4n
+.It Fa rc
+The result of the policy check, one of the
+.Dv sudo.RC.*
+constants.
+.Dv sudo.RC.ACCEPT
+if the command is allowed,
+.Dv sudo.RC.REJECT
+if not allowed,
+.Dv sudo.RC.ERROR
+for a general error, or
+.Dv sudo.RC.USAGE_ERROR
+for a usage error.
+.It Fa command_info_out
+Optional (only required when the command is accepted).
+Information about the command being run in the form of
+.Dq key=value
+strings.
+.Pp
+To accept a command, at the very minimum the plugin must set in the
+.Em command ,
+.Em runas_uid ,
+and
+.Em runas_gid
+keys.
+.Pp
+For a list of recognized keys and supported values,
+see the
+.Fn check_policy
+documentation in
+.Xr sudo_plugin @mansectform@ .
+.It Fa argv_out
+Optional (only required when the command is accepted).
+The arguments to pass to the
+.Xr execve 2
+system call when executing the command.
+.It Fa user_env_out
+Optional (only required when the command is accepted).
+The environment to use when executing the command in the form of a
+tuple of strings in
+.Dq key=value
+format.
+.El
+.It Fa init_session
+.Bd -literal -compact
+init_session(self, user_pwd: Tuple, user_env: Tuple[str, ...])
+.Ed
+.Pp
+Perform session setup (optional).
+The
+.Fn init_session
+function is called before
+.Nm sudo
+sets up the
+execution environment for the command before any user-ID or group-ID changes.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa user_pwd
+A tuple describing the user's passwd entry.
+Convertible to
+.Vt pwd.struct_passwd or
+.Dv None
+if the user is not present in the password database.
+.Pp
+Example conversion:
+.Bd -literal -compact -offset indent
+user_pwd = pwd.struct_passwd(user_pwd) if user_pwd else None
+.Ed
+.It Fa user_env
+The environment the command will run in.
+This is a tuple of strings in
+.Dq key=value
+format.
+.El
+.Pp
+This function should return a result code or a tuple in the following format:
+.Bd -literal -offset 4n
+return (rc, user_env_out)
+.Ed
+.Pp
+The tuple values are as follows:
+.Bl -tag -width 4n
+.It Fa rc
+The result of the session init, one of the
+.Dv sudo.RC.*
+constants.
+.Dv sudo.RC.OK
+on success, 0 on failure, or
+.Dv sudo.RC.ERROR
+if an error occurred.
+.It Fa user_env_out
+Optional.
+If the
+.Fn init_session
+function needs to modify the user environment, it can return the new
+environment in
+.Fa user_env_out .
+If this is omitted, no changes will be made to
+.Fa user_env .
+.El
+.It Fa list
+.Bd -literal -compact
+list(self, argv: Tuple[str, ...], is_verbose: int, user: str)
+.Ed
+.Pp
+List available privileges for the invoking user.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa argv
+If not set to
+.Dv None ,
+an argument vector describing a command the user wishes to check
+against the policy.
+.It Fa is_verbose
+Flag indicating whether to list in verbose mode or not.
+.It Fa user
+The name of a different user to list privileges for if the policy allows it.
+If
+.Dv None ,
+the plugin should list the privileges of the invoking user.
+.El
+.It Fa validate
+.Bd -literal -compact
+validate(self)
+.Ed
+.Pp
+For policy plugins that cache authentication credentials, this function is used to validate and cache the credentials (optional).
+.It Fa invalidate
+.Bd -literal -compact
+invalidate(self, remove: int)
+.Ed
+.Pp
+For policy plugins that cache authentication credentials, this function is used to invalidate the credentials (optional).
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa remove
+If this flag is set, the plugin may remove the credentials instead of simply
+invalidating them.
+.El
+.It Fa show_version
+.Bd -literal -compact
+show_version(self, is_verbose: int)
+.Ed
+.Pp
+Display the plugin version information to the user.
+The
+.Fn sudo.log_info
+function should be used.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa is_verbose
+A flag to indicate displaying more verbose information.
+Currently this is 1 if
+.Ql sudo -V
+is run as the root user.
+.El
+.It Fa close
+.Bd -literal -compact
+close(self, exit_status: int, error: int)
+.Ed
+.Pp
+Called when a command finishes executing.
+.Pp
+Works the same as the
+.Fn close
+function in the C
+.Nm sudo
+plugin API, except that it only gets called if
+.Nm sudo
+attempts to execute the command.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa exit_status
+The exit status of the command if was executed, otherwise \-1.
+.It Fa error
+If the command could not be executed, this is set to the value of
+errno set by the
+.Xr execve 2
+system call, otherwise 0.
+.El
+.El
+.Ss Policy plugin example
+Sudo ships with an example Python policy plugin.
+To try it, register it by adding the following lines to
+.Pa @sysconfdir@/sudo.conf :
+.Bd -literal
+Plugin python_policy @python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_policy_plugin.py \e
+    ClassName=SudoPolicyPlugin
+.Ed
+.Pp
+Only one policy plugin can be enabled at a time so you must disable
+any other policy plugin listed in
+.Pa @sysconfdir@/sudo.conf ,
+such as
+.Xr sudoers @mansectform@ .
+.Ss I/O plugin API
+I/O plugins must be registered in
+.Xr sudo.conf @mansectform@ .
+For example:
+.Bd -literal -offset 4n
+Plugin python_io @python_plugin@ ModulePath=<path> ClassName=<class>
+.Ed
+.Pp
+Sudo supports loading multiple I/O plugins.
+Currently only 8 python I/O plugins can be loaded at once.
+.Pp
+An I/O plugin may have the following member functions:
+.Bl -tag -width 4n
+.It Fa constructor
+.Bd -literal -compact
+__init__(self, user_env: Tuple[str, ...], settings: Tuple[str, ...],
+    version: str, user_info: Tuple[str, ...],
+    plugin_options: Tuple[str, ...])
+.Ed
+.Pp
+Implementing this function is optional.
+The default constructor will set the keyword arguments it receives
+as member variables in the object.
+.Pp
+The constructor matches the
+.Fn open
+function in the C
+.Nm sudo
+plugin API.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa user_env
+The user's environment as a tuple of strings in
+.Dq key=value
+format.
+.It Fa settings
+A tuple of user-supplied
+.Em sudo
+settings in the form of
+.Dq key=value
+strings.
+.It Fa version
+The version of the Python I/O Plugin API.
+.It Fa user_info
+A tuple of information about the user running the command in the form of
+.Dq key=value
+strings.
+.It Fa plugin_options
+The plugin options passed as arguments in the
+.Xr sudo.conf @mansectform@
+plugin registration.
+This is a tuple of strings, usually (but not necessarily) in
+.Dq key=value
+format.
+.El
+.Pp
+The
+.Fn sudo.options_as_dict
+convenience function can be used to convert
+.Dq key=value
+pairs to a dictionary.
+For a list of recognized keys and their supported values,
+see the I/O plugin
+.Fn open
+documentation in
+.Xr sudo_plugin @mansectform@ .
+.It Fa open
+.Bd -literal -compact
+open(self, argv: Tuple[str, ...],
+    command_info: Tuple[str, ...]) -> int
+.Ed
+.Pp
+Receives the command the user wishes to run.
+.Pp
+Works the same as the
+.Fn open
+function in the C
+.Nm sudo
+plugin API except that:
+.Pp
+.Bl -bullet -compact -offset 1n -width 1n
+.It
+It only gets called when there is a command to be executed
+(and not for a version query for example).
+.It
+Other arguments of the C API
+.Fn open
+function are received through the constructor.
+.El
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa argv
+A tuple of the arguments describing the command the user wishes to run.
+.It Fa command_info
+Information about the command being run in the form of
+.Dq key=value
+strings.
+.El
+.Pp
+The
+.Fn sudo.options_as_dict
+convenience function can be used to convert
+.Dq key=value
+pairs to a dictionary.
+For a list of recognized keys and their supported values,
+see the I/O plugin
+.Fn open
+documentation in
+.Xr sudo_plugin @mansectform@ .
+.Pp
+The
+.Fn open
+function should return a result code, one of the
+.Dv sudo.RC.*
+constants.
+If the function returns
+.Dv sudo.RC.REJECT ,
+no I/O will be sent to the plugin.
+.It Fa log_ttyin , log_ttyout , log_stdin , log_stdout , log_stderr
+.Bd -literal -compact
+log_ttyin(self, buf: str) -> int
+log_ttyout(self, buf: str) -> int
+log_stdin(self, buf: str) -> int
+log_stdout(self, buf: str) -> int
+log_stderr(self, buf: str) -> int
+.Ed
+.Pp
+Receive the user input or output of the terminal device and
+application standard input, standard output, or standard error.
+See the matching calls in
+.Xr sudo_plugin @mansectform@ .
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa buf
+The input (or output) buffer in the form of a string.
+.El
+.Pp
+The function should return a result code, one of the
+.Dv sudo.RC.*
+constants.
+.Pp
+If
+.Dv sudo.RC.ERROR
+is returned, the running command will be terminated and all of the
+plugin's logging functions will be disabled.
+Other I/O logging plugins will still receive any remaining
+input or output that has not yet been processed.
+.Pp
+If an input logging function rejects the data by returning
+.Dv sudo.RC.REJECT ,
+the command will be terminated and the data will not be passed to the
+command, though it will still be sent to any other I/O logging plugins.
+If an output logging function rejects the data by returning
+.Dv sudo.RC.REJECT ,
+the command will be terminated and the data will not be written to the
+terminal, though it will still be sent to any other I/O logging plugins.
+.It Fa change_winsize
+.Bd -literal -compact
+change_winsize(self, line: int, cols: int) -> int
+.Ed
+.Pp
+Called whenever the window size of the terminal changes.
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa line
+The number of lines of the terminal.
+.It Fa cols
+The number of columns of the terminal.
+.El
+.It Fa log_suspend
+.Bd -literal -compact
+log_suspend(self, signo: int) -> int
+.Ed
+Called whenever a command is suspended or resumed.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa signo
+The number of the signal that caused the command to be suspended or
+.Dv SIGCONT
+if the command was resumed.
+.El
+.It Fa show_version
+.Bd -literal -compact
+show_version(self, is_verbose: int)
+.Ed
+Display the plugin version information to the user.
+The
+.Fn sudo.log_info
+function should be used.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa is_verbose
+A flag to indicate displaying more verbose information.
+Currently this is 1 if
+.Ql sudo -V
+is run as the root user.
+.El
+.It Fa close
+.Bd -literal -compact
+close(self, exit_status: int, error: int) -> None
+.Ed
+Called when a command finishes execution.
+.Pp
+Works the same as the
+.Fn close
+function in the C
+.Nm sudo
+plugin API, except that it only gets called if
+.Nm sudo
+attempts to execute the command.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa exit_status
+The exit status of the command if was executed, otherwise \-1.
+.It Fa error
+If the command could not be executed, this is set to the value of
+errno set by the
+.Xr execve 2
+system call, otherwise 0.
+.El
+.El
+.Ss I/O plugin example
+Sudo ships with a Python I/O plugin example.
+To try it, register it by adding the following lines to
+.Pa @sysconfdir@/sudo.conf :
+.Bd -literal -offset 4n
+Plugin python_io @python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_io_plugin.py \e
+    ClassName=SudoIOPlugin
+.Ed
+.Ss Audit plugin API
+Audit plugins must be registered in
+.Xr sudo.conf @mansectform@ .
+For example:
+.Bd -literal -offset 4n
+Plugin python_audit @python_plugin@ ModulePath=<path> ClassName=<class>
+.Ed
+.Pp
+Sudo supports loading multiple audit plugins.
+Currently only 8 python audit plugins can be loaded at once.
+.Pp
+An audit plugin may have the following member functions (all of which are optional):
+.Bl -tag -width 4n
+.It Fa constructor
+.Bd -literal -compact
+__init__(self, user_env: Tuple[str, ...], settings: Tuple[str, ...],
+    version: str, user_info: Tuple[str, ...], plugin_options: Tuple[str, ...])
+.Ed
+.Pp
+The default constructor will set the keyword arguments it receives
+as member variables in the object.
+.Pp
+The constructor matches the
+.Fn open
+function in the C
+.Nm sudo
+plugin API.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa user_env
+The user's environment as a tuple of strings in
+.Dq key=value
+format.
+.It Fa settings
+A tuple of user-supplied
+.Em sudo
+settings in the form of
+.Dq key=value
+strings.
+.It Fa version
+The version of the Python Audit Plugin API.
+.It Fa user_info
+A tuple of information about the user running the command in the form of
+.Dq key=value
+strings.
+.It Fa plugin_options
+The plugin options passed as arguments in the
+.Xr sudo.conf @mansectform@
+plugin registration.
+This is a tuple of strings, usually (but not necessarily) in
+.Dq key=value
+format.
+.El
+.It Fa open
+.Bd -literal -compact
+open(self, submit_optind: int,
+    submit_argv: Tuple[str, ...]) -> int
+.Ed
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa submit_optind
+The index into
+.Fa submit_argv
+that corresponds to the first entry that is not a command line option.
+.It Fa submit_argv
+The argument vector sudo was invoked with, including all command line options.
+.El
+.It Fa close
+.Bd -literal -compact
+close(self, status_type: int, status: int) -> None
+.Ed
+.Pp
+Called when sudo is finished, shortly before it exits.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa status_type
+The type of status being passed.
+One of the
+.Dv sudo.EXIT_REASON.*
+constants.
+.It Fa status
+Depending on the value of
+.Fa status_type ,
+this value is either
+ignored, the command's exit status as returned by the
+.Xr wait 2
+system call, the value of
+.Va errno
+set by the
+.Xr execve 2
+system call, or the value of
+.Va errno
+resulting from an error in the
+.Nm sudo
+front-end.
+.El
+.It Fa show_version
+.Bd -literal -compact
+show_version(self, is_verbose: int) -> int
+.Ed
+.Pp
+Display the plugin version information to the user.
+The
+.Fn sudo.log_info
+function should be used.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa is_verbose
+A flag to indicate displaying more verbose information.
+Currently this is 1 if
+.Ql sudo -V
+is run as the root user.
+.El
+.It Fa accept
+.Bd -literal -compact
+accept(self, plugin_name: str, plugin_type: int, command_info: Tuple[str, ...],
+       run_argv: Tuple[str, ...], run_envp: Tuple[str, ...]) -> int
+.Ed
+.Pp
+This function is called when a command or action is accepted by a policy
+or approval plugin.
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It plugin_name
+The name of the plugin that accepted the command or
+.Dq sudo
+for the
+.Nm sudo
+front-end.
+.It plugin_type
+The type of plugin that accepted the command, currently either
+.Dv sudo.PLUGIN_TYPE.POLICY ,
+.Dv sudo.PLUGIN_TYPE.APPROVAL ,
+or
+.Dv sudo.PLUGIN_TYPE.SUDO .
+The
+.Fn accept
+function is called multiple times--once for each policy or approval
+plugin that succeeds and once for the sudo front-end.
+When called on behalf of the sudo front-end,
+.Fa command_info
+may include information from an I/O logging plugin as well.
+.Pp
+Typically, an audit plugin is interested in either the accept status from
+the
+.Nm sudo
+front-end or from the various policy and approval plugins, but not both.
+It is possible for the policy plugin to accept a command that is
+later rejected by an approval plugin, in which case the audit
+plugin's
+.Fn accept
+and
+.Fn reject
+functions will
+.Em both
+be called.
+.It command_info
+A vector of information describing the command being run.
+See the
+.Xr sudo_plugin @mansectform@
+manual for possible values.
+.It run_argv
+Argument vector describing a command that will be run.
+.It run_envp
+The environment the command will be run with.
+.El
+.It Fa reject
+.Bd -literal -compact
+reject(self, plugin_name: str, plugin_type: int, audit_msg: str,
+       command_info: Tuple[str, ...]) -> int
+.Ed
+.Pp
+This function is called when a command or action is rejected by the policy
+plugin.
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It plugin_name
+The name of the plugin that rejected the command.
+.It plugin_type
+The type of plugin that rejected the command, currently either
+.Dv sudo.PLUGIN_TYPE.POLICY ,
+.Dv sudo.PLUGIN_TYPE.APPROVAL ,
+or
+.Dv sudo.PLUGIN_TYPE.IO .
+.Pp
+Unlike the
+.Fn accept
+function, the
+.Fn reject
+function is not called on behalf of the
+.Nm sudo
+front-end.
+.It audit_msg
+An optional string describing the reason the command was rejected by the plugin.
+If the plugin did not provide a reason, audit_msg will be
+.Dv None .
+.It command_info
+A vector of information describing the rejected command.
+See the
+.Xr sudo_plugin @mansectform@
+manual for possible values.
+.El
+.It Fa error
+.Bd -literal -compact
+error(self, plugin_name: str, plugin_type: int, audit_msg: str,
+      command_info: Tuple[str, ...]) -> int
+.Ed
+.Pp
+This function is called when a plugin or the
+.Nm sudo
+front-end returns an error.
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It plugin_name
+The name of the plugin that generated the error or
+.Dq sudo
+for the
+.Nm sudo
+front-end.
+.It plugin_type
+The type of plugin that generated the error, or
+.Dv SUDO_FRONT_END
+for the
+.Nm sudo
+front-end.
+.It audit_msg
+An optional string describing the plugin error.
+If the plugin did not provide a description, it will be
+.Dv None .
+.It command_info
+A vector of information describing the command.
+See the
+.Xr sudo_plugin @mansectform@
+manual for possible values.
+.El
+.El
+.Ss Audit plugin example
+Sudo ships with a Python Audit plugin example.
+To try it, register it by adding the following lines to
+.Pa @sysconfdir@/sudo.conf :
+.Bd -literal -offset 4n
+Plugin python_audit @python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_audit_plugin.py \e
+    ClassName=SudoAuditPlugin
+.Ed
+.Pp
+It will log the plugin accept / reject / error results to the output.
+.Ss Approval plugin API
+Approval plugins must be registered in
+.Xr sudo.conf @mansectform@ .
+For example:
+.Bd -literal -offset 4n
+Plugin python_approval @python_plugin@ ModulePath=<path> ClassName=<class>
+.Ed
+.Pp
+Sudo supports loading multiple approval plugins.
+Currently only 8 python approval plugins can be loaded at once.
+.Pp
+An approval plugin may have the following member functions:
+.Bl -tag -width 4n
+.It Fa constructor
+.Bd -literal -compact
+__init__(self, user_env: Tuple[str, ...], settings: Tuple[str, ...],
+    version: str, user_info: Tuple[str, ...], plugin_options: Tuple[str, ...],
+    submit_optind: int, submit_argv: Tuple[str, ...])
+.Ed
+.Pp
+Optional.
+The default constructor will set the keyword arguments it receives
+as member variables in the object.
+.Pp
+The constructor matches the
+.Fn open
+function in the C
+.Nm sudo
+plugin API.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa user_env
+The user's environment as a tuple of strings in
+.Dq key=value
+format.
+.It Fa settings
+A tuple of user-supplied
+.Em sudo
+settings in the form of
+.Dq key=value
+strings.
+.It Fa version
+The version of the Python Approval Plugin API.
+.It Fa user_info
+A tuple of information about the user running the command in the form of
+.Dq key=value
+strings.
+.It Fa plugin_options
+The plugin options passed as arguments in the
+.Xr sudo.conf @mansectform@
+plugin registration.
+This is a tuple of strings, usually (but not necessarily) in
+.Dq key=value
+format.
+.It Fa submit_optind
+The index into
+.Fa submit_argv
+that corresponds to the first entry that is not a command line option.
+.It Fa submit_argv
+The argument vector sudo was invoked with, including all command line options.
+.El
+.It Fa show_version
+.Bd -literal -compact
+show_version(self, is_verbose: int) -> int
+.Ed
+.Pp
+Display the version.
+(Same as for all the other plugins.)
+.It Fa check
+.Bd -literal -compact
+check(self, command_info: Tuple[str, ...], run_argv: Tuple[str, ...],
+      run_env: Tuple[str, ...]) -> int
+.Ed
+.Pp
+This function is called after policy plugin's check_policy has succeeded.
+It can reject execution of the command by returning sudo.RC.REJECT or
+raising the special exception:
+.Bd -literal -offset 4n
+raise sudo.PluginReject("some message")
+.Ed
+.Pp
+with the message describing the problem.
+In the latter case, the audit plugins will get the description.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It command_info
+A vector of information describing the command that will run.
+See the
+.Xr sudo_plugin @mansectform@
+manual for possible values.
+.It run_argv
+Argument vector describing a command that will be run.
+.It run_env
+The environment the command will be run with.
+.El
+.El
+.Ss Approval plugin example
+Sudo ships with a Python Approval plugin example.
+To try it, register it by adding the following lines to
+.Pa @sysconfdir@/sudo.conf :
+.Bd -literal -offset 4n
+Plugin python_approval @python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_approval_plugin.py \e
+    ClassName=BusinessHoursApprovalPlugin
+.Ed
+.Pp
+It will only allow execution of commands in the "business hours" (from Monday
+to Friday between 8:00 and 17:59:59).
+.Ss Sudoers group provider plugin API
+A group provider plugin is registered in the
+.Xr sudoers @mansectform@
+file.
+For example:
+.Bd -literal -offset 4n
+Defaults group_plugin="@python_plugin@ ModulePath=<path> ClassName=<class>"
+.Ed
+.Pp
+Currently, only a single group plugin can be registered in
+.Em sudoers .
+.Pp
+A group provider plugin may have the following member functions:
+.Bl -tag -width 4n
+.It Fa constructor
+.Bd -literal -compact
+__init__(self, args: Tuple[str, ...], version: str)
+.Ed
+.Pp
+Implementing this function is optional.
+The default constructor will set the keyword arguments it receives
+as member variables in the object.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa args
+The plugin options passed as arguments in the
+.Em sudoers
+file plugin registration.
+All the arguments are free form strings (not necessarily in
+.Dq key=value
+format).
+.It Fa version
+The version of the Python Group Plugin API.
+.El
+.It Fa query
+.Bd -literal -compact
+query(self, user: str, group: str, user_pwd: Tuple)
+.Ed
+.Pp
+The
+.Fn query
+function is used to ask the group plugin whether
+.Fa user
+is a member of
+.Fa group .
+This method is required.
+.El
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa user
+The name of the user being looked up in the external group database.
+.It Fa group
+The name of the group being queried.
+.It Fa user_pwd
+The password database entry for the user, if any.
+If
+.Fa user
+is not present in the password database,
+.Fa user_pwd
+will be
+.Dv NULL .
+.El
+.Ss Group plugin example
+Sudo ships with a Python group plugin example.
+To try it, register it in the
+.Em sudoers
+file by adding the following lines:
+.Bd -literal -offset 4n
+Defaults group_plugin="@python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_group_plugin.py \e
+    ClassName=SudoGroupPlugin"
+.Ed
+.Pp
+The example plugin will tell
+.Nm sudo
+that the user
+.Em test
+is part of the non-Unix group
+.Em mygroup .
+If you add a rule that uses this group, it will affect the
+.Em test
+user.
+For example:
+.Bd -literal -offset 4n
+%:mygroup ALL=(ALL) NOPASSWD: ALL
+.Ed
+.Pp
+Will allow user
+.Em test
+to run
+.Nm sudo
+without a password.
+.Ss Hook function API
+The hook function API is currently not supported for plugins
+written in Python.
+.Ss Conversation API
+A Python plugin can interact with the user using the
+.Fn sudo.conv
+function which displays one or more messages described by the
+.Dv sudo.ConvMessage
+class.
+This is the Python equivalent of the
+.Fn conversation
+function in the C
+.Nm sudo
+plugin API.
+A plugin should not attempt to read directly from the standard input or
+the user's tty (neither of which are guaranteed to exist).
+.Pp
+The
+.Dv sudo.ConvMessage
+class specifies how the user interaction should occur:
+.Bd -literal -offset 4n
+sudo.ConvMessage(msg_type: int, msg: str, timeout: int)
+.Ed
+.Pp
+.Dv sudo.ConvMessage
+member variables:
+.Bl -tag -width 4n
+.It Fa msg_type
+Specifies the type of the conversation.
+See the
+.Dv sudo.CONV.*
+constants below.
+.It Fa msg
+The message to display to the user.
+The caller must include a trailing newline in
+.Fa msg
+if one is to be displayed.
+.It Fa timeout
+Optional.
+The maximum amount of time for the conversation in seconds.
+If the timeout is exceeded, the
+.Fn sudo.conv
+function will raise a
+.Dv sudo.ConversationInterrupted
+exception.
+The default is to wait forever (no timeout).
+.El
+.Pp
+To specify the message type, the following constants are available:
+.Pp
+.Bl -bullet -compact -offset 1n -width 1n
+.It
+.Dv sudo.CONV.PROMPT_ECHO_OFF
+.It
+.Dv sudo.CONV.PROMPT_ECHO_ON
+.It
+.Dv sudo.CONV.ERROR_MSG
+.It
+.Dv sudo.CONV.INFO_MSG
+.It
+.Dv sudo.CONV.PROMPT_MASK
+.It
+.Dv sudo.CONV.PROMPT_ECHO_OK
+.It
+.Dv sudo.CONV.PREFER_TTY
+.El
+.Pp
+See the
+.Xr sudo_plugin @mansectform@
+manual for a description of the message types.
+.Pp
+The
+.Fn sudo.conv
+function performs the actual user interaction:
+.Bd -literal -offset 4n
+sudo.conv(message(s), on_suspend=suspend_function,
+    on_resume=resume_function)
+.Ed
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa message(s)
+One of more messages (of type
+.Dv sudo.ConvMessage ) ,
+each describing a conversation.
+At least one message is required.
+.It Fa on_suspend
+An optional callback function which gets called if the conversation
+is suspended, for example by the user pressing control-Z.
+The specified function must take a single argument which will be filled
+with the number of the signal that caused the process to be suspended.
+.It Fa on_resume
+An optional callback function which gets called when the previously
+suspended conversation is resumed.
+The specified function must take a single argument which will be filled
+with the number of the signal that caused the process to be suspended.
+.El
+.Pp
+The
+.Fn sudo.conv
+function can raise the following exceptions:
+.Bl -tag -width 4n
+.It Dv sudo.SudoException
+If the conversation fails, for example when the conversation function is not
+available.
+.It Dv sudo.ConversationInterrupted
+If the conversation function returns an error, e.g., the timeout passed
+or the user interrupted the conversation by pressing control-C.
+.El
+.Ss Conversation example
+Sudo ships with an example plugin demonstrating the Python conversation API.
+To try it, register it by adding the following lines to
+.Pa @sysconfdir@/sudo.conf :
+.Bd -literal -offset 4n
+Plugin python_io @python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_conversation.py \e
+    ClassName=ReasonLoggerIOPlugin
+.Ed
+.Ss Information / error display API
+.Bd -literal
+sudo.log_info(string(s), sep=" ", end="\en")
+sudo.log_error(string(s), sep=" ", end="\en")
+.Ed
+.Pp
+To display information to the user, the
+.Fn sudo.log_info
+function can be used.
+To display error messages, use
+.Fn sudo.log_error .
+The syntax is similar to the Python
+.Fn print
+function.
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa string(s)
+One or more strings to display.
+.It Fa sep
+An optional string which will be used as the separator between the
+specified strings.
+The default is a space character,
+.Pq Sq \  .
+.It Fa end
+An optional string which will be displayed at the end of the message.
+The default is a new line character
+.Pq Sq \en  .
+.El
+.Ss Debug API
+Debug messages are not visible to the user and are only logged debugging
+is explicitly enabled in
+.Xr sudo.conf @mansectform@ .
+Python plugins can use the
+.Fn sudo.debug
+function to make use of
+.Nm sudo Ns No 's
+debug system.
+.Pp
+.Em Enabling debugging in sudo.conf
+.Pp
+To enable debug messages, add a
+.Em Debug
+line to
+.Xr sudo.conf @mansectform@
+with the program set to
+.Pa @python_plugin@ .
+For example, to store debug output in
+.Pa @log_dir@/sudo_python_debug ,
+use a line like the following:
+.Bd -literal -offset 4n
+Debug @python_plugin@ @log_dir@/sudo_python_debug \e
+    plugin@trace,c_calls@trace
+.Ed
+.Pp
+The debug options are in the form of multiple
+.Dq subsystem@level
+strings, separated by commas
+.Pq Sq \&, .
+For example to just see the debug output of
+.Fn sudo.debug
+calls, use:
+.Bd -literal -offset 4n
+Debug @python_plugin@ @log_dir@/sudo_python_debug plugin@trace
+.Ed
+.Pp
+See
+.Xr sudo_conf @mansectform@
+for more details.
+.Pp
+The most interesting subsystems for Python plugin development are:
+.Bl -tag -width 4n
+.It Em plugin
+Logs each
+.Fn sudo.debug
+API call.
+.It Em py_calls
+Logs whenever a C function calls into the python module.
+For example, calling the
+.Fn __init__
+function.
+.It Em c_calls
+Logs whenever python calls into a C
+.Nm sudo
+API function.
+.It Em internal
+Logs internal functions of the python language wrapper plugin.
+.It Em sudo_cb
+Logs when
+.Nm sudo
+calls into the python plugin API.
+.It Em load
+Logs python plugin loading / unloading events.
+.El
+.Pp
+You can also specify
+.Dq all
+as the subsystem name to log debug messages for all subsystems.
+.Pp
+The
+.Fn sudo.debug
+function is defined as:
+.Bd -literal -offset 4n
+sudo.debug(level, message(s))
+.Ed
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa level
+an integer, use one of the log level constants below
+.It Fa message(s)
+one or more messages to log
+.El
+.Pp
+.Em Available log levels:
+.Bl -column "name in sudo.conf" "Python constant" "only critical messages"
+.It Sy sudo.conf name Ta Sy Python constant Ta Sy description
+.It crit Ta Dv sudo.DEBUG.CRIT Ta only critical messages
+.It err Ta Dv sudo.DEBUG.ERROR Ta
+.It warn Ta Dv sudo.DEBUG.WARN Ta
+.It notice Ta Dv sudo.DEBUG.NOTICE Ta
+.It diag Ta Dv sudo.DEBUG.DIAG Ta
+.It info Ta Dv sudo.DEBUG.INFO Ta
+.It trace Ta Dv sudo.DEBUG.TRACE Ta
+.It debug Ta Dv sudo.DEBUG.DEBUG Ta very extreme verbose debugging
+.El
+.Pp
+.Em Using the logging module
+.Pp
+Alternatively, a plugin can use the built in logging module of Python as well.
+Sudo adds its log handler to the root logger, so by default all output of a
+logger will get forwarded to sudo log system, as it would call sudo.debug.
+.Pp
+The log handler of sudo will map each Python log level of a message to
+the appropriate sudo debug level.
+The sudo debug system will only receive messages that are not filtered
+out by the Python loggers.
+For example, the log level of the python logger will be an additional
+filter for the log messages, and is usually very different from
+what level is set in sudo.conf for the sudo debug system.
+.Ss Debug example
+Sudo ships with an example debug plugin.
+To try it, register it by adding the following lines to
+.Pa @sysconfdir@/sudo.conf :
+.Bd -literal -offset 4n
+Plugin python_io @python_plugin@ \e
+    ModulePath=@EXAMPLES@/example_debugging.py \e
+    ClassName=DebugDemoPlugin
+
+Debug @python_plugin@ \e
+    @log_dir@/sudo_python_debug plugin@trace,c_calls@trace
+.Ed
+.Ss Option conversion API
+The Python plugin API includes two convenience functions to
+convert options in
+.Dq key=value
+format to a dictionary and vice versa.
+.Bl -tag -width 4n
+.It options_as_dict
+.Bd -literal -compact
+options_as_dict(options)
+.Ed
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa options
+An iterable (tuple, list, etc.) of strings, each in
+.Dq key=value
+format.
+This is how the plugin API passes options and settings to a Python plugin.
+.El
+.Pp
+The function returns the resulting dictionary.
+Each string of the passed in
+.Fa options
+will be split at the first equal sign
+.Pq Sq \&=
+into a
+.Em key
+and
+.Em value .
+Dictionary keys will never contain this symbol (but values may).
+.It options_from_dict
+.Bd -literal -compact
+options_from_dict(options_dict)
+.Ed
+.Pp
+The function arguments are as follows:
+.Bl -tag -width 4n
+.It Fa options_dict
+A dictionary where both the key and the value are strings.
+The key should not contain an equal sign
+.Pq Sq \&= ,
+otherwise the resulting string will have a different meaning.
+However, this is not currently enforced.
+.El
+.Pp
+The function returns a tuple containing the strings in
+.Dq key=value
+form for each key and value in the
+.Fa options_dict
+dictionary passed in.
+This is how the plugin API accepts options and settings.
+.El
+.Sh PLUGIN API CHANGELOG (Python)
+None yet
+.Sh LIMITATIONS
+A maximum of 8 python I/O plugins can be loaded at once.
+If
+.Pa @sysconfdir@/sudo.conf
+contains more, those will be rejected with a warning message.
+.Pp
+The Event API and the hook function API is currently not accessible
+for Python plugins.
+.Sh SEE ALSO
+.Xr sudo.conf @mansectform@ ,
+.Xr sudo_plugin @mansectform@ ,
+.Xr sudoers @mansectform@ ,
+.Xr sudo @mansectsu@
+.Sh AUTHORS
+Many people have worked on
+.Nm sudo
+over the years; this version consists of code written primarily by:
+.Bd -ragged -offset indent
+.An Todd C. Miller
+.Ed
+.Pp
+See the CONTRIBUTORS.md file in the
+.Nm sudo
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+.Nm sudo .
+.Sh BUGS
+Python plugin support is currently considered experimental.
+.Pp
+If you believe you have found a bug in
+.Nm sudo ,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.Sh SECURITY CONSIDERATIONS
+All Python plugin handling is implemented inside the
+.Pa @python_plugin@
+dynamic plugin.
+Therefore, if no Python plugin is registered in
+.Xr sudo.conf @mansectform@
+or the
+.Em sudoers
+file,
+.Nm sudo
+will not load the Python interpreter or the Python libraries.
+.Pp
+As
+.Nm sudo
+runs plugins as
+.Sy root ,
+care must be taken when writing Python plugins to avoid creating
+security vulnerabilities, just as one would when writing plugins
+in C.
+.Sh SUPPORT
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.Sh DISCLAIMER
+.Nm sudo
+is provided
+.Dq AS IS
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+.Nm sudo
+or https://www.sudo.ws/about/license/ for complete details.

@@ -1,0 +1,8 @@
+Set disable_coredump false
+Set group_source static
+Set max_groups -1
+Set probe_interfaces true
+Path askpass /usr/X11R6/bin/ssh-askpass
+Path noexec /usr/libexec/sudo_noexec.so
+Plugin sudoers_policy sudoers.so
+Plugin sudoers_io sudoers.so

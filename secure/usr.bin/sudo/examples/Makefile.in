@@ -1,0 +1,138 @@
+#
+# SPDX-License-Identifier: ISC
+#
+# Copyright (c) 2014, 2017-2023 Todd C. Miller <Todd.Miller@sudo.ws>
+#
+# Permission to use, copy, modify, and distribute this software for any
+# purpose with or without fee is hereby granted, provided that the above
+# copyright notice and this permission notice appear in all copies.
+#
+# THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+# WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+# ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+# WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+# ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+# OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+#
+# @configure_input@
+#
+
+#### Start of system configuration section. ####
+
+srcdir = @srcdir@
+abs_srcdir = @abs_srcdir@
+top_srcdir = @top_srcdir@
+abs_top_srcdir = @abs_top_srcdir@
+top_builddir = @top_builddir@
+abs_top_builddir = @abs_top_builddir@
+exampledir = @exampledir@
+docdir = @docdir@
+scriptdir = $(top_srcdir)/scripts
+
+# Our install program supports extra flags...
+INSTALL = $(SHELL) $(scriptdir)/install-sh -c
+INSTALL_OWNER = -o $(install_uid) -g $(install_gid)
+
+# Where to install things...
+prefix = @prefix@
+exec_prefix = @exec_prefix@
+bindir = @bindir@
+sbindir = @sbindir@
+sysconfdir = @sysconfdir@
+adminconfdir = @adminconfdir@
+libexecdir = @libexecdir@
+datarootdir = @datarootdir@
+localstatedir = @localstatedir@
+
+# User and group ids the installed files should be "owned" by
+install_uid = 0
+install_gid = 0
+
+#### End of system configuration section. ####
+
+SHELL = @SHELL@
+
+LOGSRVD_CONF = @LOGSRVD_CONF@
+
+EXAMPLES = $(srcdir)/cvtsudoers.conf $(srcdir)/pam.conf sudo.conf \
+	   $(LOGSRVD_CONF) sudoers syslog.conf
+
+VERSION = @PACKAGE_VERSION@
+PACKAGE_TARNAME = @PACKAGE_TARNAME@
+
+all: $(EXAMPLES)
+
+depend:
+
+Makefile: $(srcdir)/Makefile.in
+	cd $(top_builddir) && ./config.status --file examples/Makefile
+
+sudoers: $(srcdir)/sudoers.in
+	cd $(top_builddir) && ./config.status --file examples/sudoers
+
+sudo.conf: $(srcdir)/sudo.conf.in
+	cd $(top_builddir) && ./config.status --file examples/sudo.conf
+
+sudo_logsrvd.conf: $(srcdir)/sudo_logsrvd.conf.in
+	cd $(top_builddir) && ./config.status --file examples/sudo_logsrvd.conf
+
+syslog.conf: $(srcdir)/syslog.conf.in
+	cd $(top_builddir) && ./config.status --file examples/syslog.conf
+
+pre-install:
+
+install: install-doc
+
+install-dirs:
+	$(SHELL) $(scriptdir)/mkinstalldirs $(DESTDIR)$(exampledir)
+
+install-binaries:
+
+install-includes:
+
+install-doc: install-dirs
+	for f in $(EXAMPLES); do $(INSTALL) $(INSTALL_OWNER) -m 0644 $$f $(DESTDIR)$(exampledir); done
+	test -r $(DESTDIR)$(sysconfdir)/sudo.conf || \
+	    $(INSTALL) $(INSTALL_OWNER) -m 0644 sudo.conf $(DESTDIR)$(sysconfdir)
+	if test -n "$(LOGSRVD_CONF)" -a ! -r $(DESTDIR)$(sysconfdir)/sudo_logsrvd.conf; then \
+	    $(INSTALL) $(INSTALL_OWNER) -m 0644 $(LOGSRVD_CONF) $(DESTDIR)$(sysconfdir); \
+	fi
+
+install-plugin:
+
+install-fuzzer:
+
+uninstall:
+	-rm -rf	$(DESTDIR)$(exampledir)
+
+splint:
+
+cppcheck:
+
+pvs-log-files:
+
+pvs-studio:
+
+fuzz:
+
+check-fuzzer:
+
+check: check-fuzzer
+
+check-verbose: check
+
+clean:
+
+mostlyclean: clean
+
+distclean: clean
+	-rm -rf Makefile sudo.conf sudo_logsrvd.conf sudoers syslog.conf
+
+clobber: distclean
+
+realclean: distclean
+
+cleandir: distclean
+
+.PHONY: clean mostlyclean distclean cleandir clobber realclean

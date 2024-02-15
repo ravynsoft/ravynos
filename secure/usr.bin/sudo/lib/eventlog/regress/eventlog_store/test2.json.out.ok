@@ -1,0 +1,29 @@
+{
+    "submituser": "millert",
+    "command": "/usr/bin/id",
+    "runuser": "root",
+    "source": "sudoRole %wheel",
+    "ttyname": "/dev/ttyp0",
+    "submithost": "xerxes.sudo.ws",
+    "submitcwd": "/usr/src/local/millert/sudo/trunk",
+    "runuid": 0,
+    "columns": 80,
+    "lines": 24,
+    "runargv": [
+        "id"
+    ],
+    "runenv": [
+        "PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+        "TERM=tmux",
+        "LANG=en_US.UTF-8",
+        "MAIL=/var/mail/root",
+        "LOGNAME=root",
+        "USER=root",
+        "HOME=/root",
+        "SHELL=/bin/bash",
+        "SUDO_COMMAND=/usr/bin/id",
+        "SUDO_USER=millert",
+        "SUDO_UID=8036",
+        "SUDO_GID=20"
+    ]
+}

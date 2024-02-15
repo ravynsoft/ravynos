@@ -1,0 +1,13 @@
+# Query the group plugin too (if there is one)
+Defaults always_query_group_plugin
+
+# Test RunasGroup with and without RunasUser
+root ALL = ( root : wheel ) ALL
+millert ALL = ( : wheel ) ALL
+%sudo ALL = ( : ALL ) ALL
+
+# Test RunasUser with %group syntax
+operator ALL = ( %wheel ) ALL
+
+# Test netgroup for user and host
++netusers +nethosts = ( +netrunas ) ALL

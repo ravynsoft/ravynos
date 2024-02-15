@@ -1,0 +1,856 @@
+# Dutch translation for sudo.
+# Copyright (C) 2013 P. Hamming
+# This file is distributed under the same license as the sudo package.
+# P. Hamming <peterhamming@gmail.com>, 2013
+msgid ""
+msgstr ""
+"Project-Id-Version: sudo 1.8.12b1\n"
+"Report-Msgid-Bugs-To: http://www.sudo.ws/bugs\n"
+"POT-Creation-Date: 2014-10-27 12:35-0600\n"
+"PO-Revision-Date: 2015-01-14 02:50+0100\n"
+"Last-Translator: P. Hamming <peterhamming@gmail.com>\n"
+"Language-Team: Dutch <vertaling@vrijschrift.org>\n"
+"Language: nl\n"
+"X-Bugs: Report translation errors to the Language-Team address.\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: lib/util/aix.c:92 lib/util/aix.c:151
+msgid "unable to open userdb"
+msgstr "kan userdb niet openen"
+
+#: lib/util/aix.c:156
+#, c-format
+msgid "unable to switch to registry \"%s\" for %s"
+msgstr "kan niet wijzigen naar register \"%s\" voor %s"
+
+#: lib/util/aix.c:175
+msgid "unable to restore registry"
+msgstr "kan register niet herstellen"
+
+#: lib/util/alloc.c:68 lib/util/alloc.c:85 lib/util/alloc.c:106
+#: lib/util/alloc.c:128 lib/util/alloc.c:147 lib/util/alloc.c:170
+msgid "internal error, tried allocate zero bytes"
+msgstr "interne fout, heb geprobeerd om zero bytes te alloceren"
+
+#: lib/util/alloc.c:87 lib/util/alloc.c:109 lib/util/alloc.c:149
+#: lib/util/alloc.c:172 src/net_ifs.c:174 src/net_ifs.c:191 src/net_ifs.c:325
+#, c-format
+msgid "internal error, %s overflow"
+msgstr "interne fout, %s overloop"
+
+#: lib/util/gidlist.c:78 src/load_plugins.c:61 src/load_plugins.c:74
+#: src/sudo.c:572 src/sudo.c:591 src/sudo.c:618 src/sudo.c:627 src/sudo.c:636
+#: src/sudo.c:653 src/sudo.c:700 src/sudo.c:710
+#, c-format
+msgid "%s: %s"
+msgstr "%s: %s"
+
+#: lib/util/strsignal.c:50
+msgid "Unknown signal"
+msgstr "Onbekend signaal"
+
+#: lib/util/strtoid.c:83 lib/util/strtoid.c:111 lib/util/strtomode.c:55
+#: lib/util/strtonum.c:65 lib/util/strtonum.c:183
+msgid "invalid value"
+msgstr "ongeldige waarde"
+
+#: lib/util/strtoid.c:90 lib/util/strtoid.c:118 lib/util/strtomode.c:61
+#: lib/util/strtonum.c:68 lib/util/strtonum.c:195
+msgid "value too large"
+msgstr "waarde te groot"
+
+#: lib/util/strtoid.c:96 lib/util/strtomode.c:61 lib/util/strtonum.c:68
+#: lib/util/strtonum.c:189
+msgid "value too small"
+msgstr "waarde te klein"
+
+#: lib/util/sudo_conf.c:181
+#, c-format
+msgid "invalid Path value `%s' in %s, line %u"
+msgstr "ongeldige lokatie '%s' in %s, regel %u"
+
+#: lib/util/sudo_conf.c:335 lib/util/sudo_conf.c:388
+#, c-format
+msgid "invalid value for %s `%s' in %s, line %u"
+msgstr "ongeldige waarde voor %s '%s' in %s, regel %u"
+
+#: lib/util/sudo_conf.c:356
+#, c-format
+msgid "unsupported group source `%s' in %s, line %u"
+msgstr "niet-ondersteunde brongroup '%s' in %s, regel %u"
+
+#: lib/util/sudo_conf.c:372
+#, c-format
+msgid "invalid max groups `%s' in %s, line %u"
+msgstr "ongeldig maximaal aantal groepen '%s' in %s, regel %u"
+
+#: lib/util/sudo_conf.c:522
+#, c-format
+msgid "unable to stat %s"
+msgstr "kan status niet opvragen van %s"
+
+#: lib/util/sudo_conf.c:525
+#, c-format
+msgid "%s is not a regular file"
+msgstr "%s geen regulier bestand"
+
+#: lib/util/sudo_conf.c:528
+#, c-format
+msgid "%s is owned by uid %u, should be %u"
+msgstr "%s is eigendom van %u, moet gebruikersnummer %u zijn"
+
+#: lib/util/sudo_conf.c:532
+#, c-format
+msgid "%s is world writable"
+msgstr "%s kan door iedereen worden geschreven"
+
+#: lib/util/sudo_conf.c:535
+#, c-format
+msgid "%s is group writable"
+msgstr "%s kan door groep worden geschreven"
+
+#: lib/util/sudo_conf.c:545 src/selinux.c:196 src/selinux.c:209 src/sudo.c:341
+#, c-format
+msgid "unable to open %s"
+msgstr "kan %s niet openen"
+
+#: src/exec.c:123 src/exec.c:128 src/exec.c:423 src/exec.c:425 src/exec.c:427
+#: src/exec.c:429 src/exec.c:431 src/exec.c:433 src/exec.c:436 src/exec.c:453
+#: src/exec.c:455 src/exec.c:457 src/exec.c:605 src/exec.c:800
+#: src/exec_pty.c:480 src/exec_pty.c:736 src/exec_pty.c:806 src/exec_pty.c:808
+#: src/exec_pty.c:820 src/exec_pty.c:1308 src/exec_pty.c:1310
+#: src/exec_pty.c:1315 src/exec_pty.c:1317 src/exec_pty.c:1331
+#: src/exec_pty.c:1342 src/exec_pty.c:1344 src/exec_pty.c:1346
+#: src/exec_pty.c:1348 src/exec_pty.c:1350 src/exec_pty.c:1352
+#: src/exec_pty.c:1354 src/signal.c:156
+#, c-format
+msgid "unable to set handler for signal %d"
+msgstr "instellen van handler voor signal %d is niet mogelijk"
+
+#: src/exec.c:135 src/exec_pty.c:845
+msgid "policy plugin failed session initialization"
+msgstr "beleidsplugin kon sessie niet initialiseren"
+
+#: src/exec.c:140 src/exec_pty.c:861 src/exec_pty.c:1392 src/tgetpass.c:221
+msgid "unable to fork"
+msgstr "kan geen nieuw proces starten"
+
+#: src/exec.c:318 src/exec.c:326 src/exec.c:877 src/exec_pty.c:604
+#: src/exec_pty.c:609 src/exec_pty.c:667 src/exec_pty.c:674 src/exec_pty.c:965
+#: src/exec_pty.c:975 src/exec_pty.c:1020 src/exec_pty.c:1027
+#: src/exec_pty.c:1457 src/exec_pty.c:1464 src/exec_pty.c:1471
+msgid "unable to add event to queue"
+msgstr "kan event niet toevoegen aan de wachtrij"
+
+#: src/exec.c:406
+msgid "unable to create sockets"
+msgstr "kan geen sockets maken"
+
+#: src/exec.c:502
+msgid "error in event loop"
+msgstr "fout in eventloop"
+
+#: src/exec.c:520
+msgid "unable to restore tty label"
+msgstr "kan terminallabel niet herstellen"
+
+#: src/exec.c:613 src/exec_pty.c:514 src/signal.c:95
+#, c-format
+msgid "unable to restore handler for signal %d"
+msgstr "kan handler voor signal %d niet herstellen"
+
+#: src/exec.c:731 src/exec_pty.c:1199
+msgid "error reading from signal pipe"
+msgstr "fout met het lezen van signaalpijp"
+
+#: src/exec_common.c:73
+msgid "unable to remove PRIV_PROC_EXEC from PRIV_LIMIT"
+msgstr "kan PRIV_PROC_EXEC niet verwijderen van PRIV_LIMIT"
+
+#: src/exec_pty.c:200
+msgid "unable to allocate pty"
+msgstr "kan geen virtuele terminal reserveren"
+
+#: src/exec_pty.c:780 src/exec_pty.c:789 src/exec_pty.c:797
+#: src/exec_pty.c:1300 src/exec_pty.c:1389 src/signal.c:137 src/tgetpass.c:218
+msgid "unable to create pipe"
+msgstr "kan geen pijp maken"
+
+#: src/exec_pty.c:836
+msgid "unable to set terminal to raw mode"
+msgstr "kan de terminal niet op de raw-modus instellen"
+
+#: src/exec_pty.c:1232
+msgid "error reading from pipe"
+msgstr "fout met lezen van pijp"
+
+#: src/exec_pty.c:1257
+msgid "error reading from socketpair"
+msgstr "fout met lezen van socketpaar"
+
+#: src/exec_pty.c:1266
+#, c-format
+msgid "unexpected reply type on backchannel: %d"
+msgstr "onverwachte soort beantwoording van het achterkanaal: %d"
+
+#: src/exec_pty.c:1368
+msgid "unable to set controlling tty"
+msgstr "kan geen controlerende terminal instellen"
+
+#: src/load_plugins.c:59 src/load_plugins.c:72 src/load_plugins.c:89
+#: src/load_plugins.c:142 src/load_plugins.c:148 src/load_plugins.c:154
+#: src/load_plugins.c:195 src/load_plugins.c:202 src/load_plugins.c:209
+#: src/load_plugins.c:215
+#, c-format
+msgid "error in %s, line %d while loading plugin `%s'"
+msgstr "fout in %s, regel %d bij het initialiseren-I/O plug-in %s"
+
+#: src/load_plugins.c:91
+#, c-format
+msgid "%s%s: %s"
+msgstr "%s%s: %s"
+
+#: src/load_plugins.c:150
+#, c-format
+msgid "%s must be owned by uid %d"
+msgstr "eigenaar van %s moet uid %d zijn"
+
+#: src/load_plugins.c:156
+#, c-format
+msgid "%s must be only be writable by owner"
+msgstr "%s mag alleen schrijfbaar zijn voor de eigenaar"
+
+#: src/load_plugins.c:197
+#, c-format
+msgid "unable to load %s: %s"
+msgstr "kan %s niet laden: %s"
+
+#: src/load_plugins.c:204
+#, c-format
+msgid "unable to find symbol `%s' in %s"
+msgstr "kan symbool %s niet vinden in %s"
+
+#: src/load_plugins.c:211
+#, c-format
+msgid "unknown policy type %d found in %s"
+msgstr "onbekende beleidssoort %d gevonden in %s"
+
+#: src/load_plugins.c:217
+#, c-format
+msgid "incompatible plugin major version %d (expected %d) found in %s"
+msgstr "niet-compatibel hoofdbeleidsversie %d, (verwachtte %d) gevonden in %s voor plugins"
+
+#: src/load_plugins.c:226
+#, c-format
+msgid "ignoring policy plugin `%s' in %s, line %d"
+msgstr "beleidsplugin '%s' in %s, regel %d wordt genegeerd"
+
+#: src/load_plugins.c:228
+msgid "only a single policy plugin may be specified"
+msgstr "slechts een beleidsplug-in mag geladen worden"
+
+#: src/load_plugins.c:231
+#, c-format
+msgid "ignoring duplicate policy plugin `%s' in %s, line %d"
+msgstr "dubbele beleidsplugin '%s' in %s, regel %d wordt genegeerd"
+
+#: src/load_plugins.c:249
+#, c-format
+msgid "ignoring duplicate I/O plugin `%s' in %s, line %d"
+msgstr "dubbele I/O-plugin '%s' in %s, regel %d wordt genegeerd"
+
+#: src/load_plugins.c:338
+#, c-format
+msgid "policy plugin %s does not include a check_policy method"
+msgstr "beleidsplug-in %s heeft geen check_policy methode"
+
+#: src/net_ifs.c:236
+msgid "unable to open socket"
+msgstr "kan geen socket openen"
+
+#: src/parse_args.c:241
+msgid "the argument to -C must be a number greater than or equal to 3"
+msgstr "het argument van -C moet een getal zijn dat groter dan of gelijk aan 3 is"
+
+#: src/parse_args.c:403
+msgid "you may not specify both the `-i' and `-s' options"
+msgstr "u mag de opties '-i' en '-s' niet tegelijk opgeven"
+
+#: src/parse_args.c:407
+msgid "you may not specify both the `-i' and `-E' options"
+msgstr "u mag de opties '-i' en '-E' niet tegelijk opgeven"
+
+#: src/parse_args.c:417
+msgid "the `-E' option is not valid in edit mode"
+msgstr "optie '-E' is niet geldig in bewerkingsmodus"
+
+#: src/parse_args.c:419
+msgid "you may not specify environment variables in edit mode"
+msgstr "u mag geen omgevingsvariabelen opgeven in de bewerkingsmodus"
+
+#: src/parse_args.c:427
+msgid "the `-U' option may only be used with the `-l' option"
+msgstr "optie '-U' mag alleen worden gebruikt samen met optie '-l'"
+
+#: src/parse_args.c:431
+msgid "the `-A' and `-S' options may not be used together"
+msgstr "de opties '-A' en '-S' mogen niet tegelijk worden gebruikt"
+
+#: src/parse_args.c:497
+msgid "sudoedit is not supported on this platform"
+msgstr "sudoedit wordt niet ondersteund op dit platform"
+
+#: src/parse_args.c:570
+msgid "Only one of the -e, -h, -i, -K, -l, -s, -v or -V options may be specified"
+msgstr "Slechts een van de volgende opties mag worden gebruikt: -e, -h, -i, -K, -l, -s, -v of -V"
+
+#: src/parse_args.c:584
+#, c-format
+msgid ""
+"%s - edit files as another user\n"
+"\n"
+msgstr ""
+"%s - bewerk bestanden als een andere gebruiker\n"
+"\n"
+
+#: src/parse_args.c:586
+#, c-format
+msgid ""
+"%s - execute a command as another user\n"
+"\n"
+msgstr ""
+"%s - voer een opdracht uit als een andere gebruiker\n"
+"\n"
+
+#: src/parse_args.c:591
+#, c-format
+msgid ""
+"\n"
+"Options:\n"
+msgstr ""
+"\n"
+"Opties:\n"
+
+#: src/parse_args.c:593
+msgid "use a helper program for password prompting"
+msgstr "gebruik een hulpprogramma voor het vragen van wachtwoord"
+
+#: src/parse_args.c:596
+msgid "use specified BSD authentication type"
+msgstr "gebruik opgegeven BSD-verificatietype"
+
+#: src/parse_args.c:599
+msgid "run command in the background"
+msgstr "voer opdracht op de achtergrond uit"
+
+#: src/parse_args.c:601
+msgid "close all file descriptors >= num"
+msgstr "sluit alle file descriptors >= num"
+
+#: src/parse_args.c:604
+msgid "run command with the specified BSD login class"
+msgstr "voer opdracht uit met gespecificeerde BSD-inlogklasse"
+
+#: src/parse_args.c:607
+msgid "preserve user environment when running command"
+msgstr "behoud gebruikersomgeving bij uitvoeren van opdracht"
+
+#: src/parse_args.c:609
+msgid "edit files instead of running a command"
+msgstr "bewerk bestanden in plaats van uitvoeren van een opdracht"
+
+#: src/parse_args.c:611
+msgid "run command as the specified group name or ID"
+msgstr "voer opdracht uit als de opgegeven groep"
+
+#: src/parse_args.c:613
+msgid "set HOME variable to target user's home dir"
+msgstr "stel HOME variabele in om naar persoonlijke map van gebruiker te verwijzen"
+
+#: src/parse_args.c:615
+msgid "display help message and exit"
+msgstr "hulptekst tonen en stoppen"
+
+#: src/parse_args.c:617
+msgid "run command on host (if supported by plugin)"
+msgstr "voer opdracht uit op computer (enkel als plugin dit ondersteund)"
+
+#: src/parse_args.c:619
+msgid "run login shell as the target user; a command may also be specified"
+msgstr "voer een inlogshell uit als beoogd gebruiker; een opdracht mag ook worden opgegeven"
+
+#: src/parse_args.c:621
+msgid "remove timestamp file completely"
+msgstr "verwijder tijdbestand volledig"
+
+#: src/parse_args.c:623
+msgid "invalidate timestamp file"
+msgstr "maak tijdbestand ongeldig"
+
+#: src/parse_args.c:625
+msgid "list user's privileges or check a specific command; use twice for longer format"
+msgstr "geef privileges van gebruiker weer of controleer specifieke opdracht; gebuik twee keer voor uitgebreidere opmaak"
+
+#: src/parse_args.c:627
+msgid "non-interactive mode, no prompts are used"
+msgstr "niet-interactieve modus, geen interactie met gebruiker"
+
+#: src/parse_args.c:629
+msgid "preserve group vector instead of setting to target's"
+msgstr "behoud groepsvector in plaats van die van het doel in te stellen"
+
+#: src/parse_args.c:631
+msgid "use the specified password prompt"
+msgstr "gebruik gespecifeerde wachtwoordvraag"
+
+#: src/parse_args.c:634
+msgid "create SELinux security context with specified role"
+msgstr "maak SELinux beveiligingscontext met gespecificeerde rol aan"
+
+#: src/parse_args.c:637
+msgid "read password from standard input"
+msgstr "lees wachtwoord van standaardinvoer"
+
+#: src/parse_args.c:639
+msgid "run shell as the target user; a command may also be specified"
+msgstr "voer shell uit als doelgebruiker; een opdracht mag ook worden opgegeven"
+
+#: src/parse_args.c:642
+msgid "create SELinux security context with specified type"
+msgstr "maak SELinux beveiligingscontext met gespecificeerde type aan"
+
+#: src/parse_args.c:645
+msgid "in list mode, display privileges for user"
+msgstr "in lijstmodus, geef privileges voor gebruiker weer"
+
+#: src/parse_args.c:647
+msgid "run command (or edit file) as specified user name or ID"
+msgstr "voer opdracht uit (of bewerk bestand) als gespecificeerde gebruiker"
+
+#: src/parse_args.c:649
+msgid "display version information and exit"
+msgstr "versie-informatie tonen en stoppen"
+
+#: src/parse_args.c:651
+msgid "update user's timestamp without running a command"
+msgstr "werk tijd van gebruiker bij zonder opdracht uit te voeren"
+
+#: src/parse_args.c:653
+msgid "stop processing command line arguments"
+msgstr "stop verwerken opdrachtregelargumenten"
+
+#: src/selinux.c:77
+msgid "unable to open audit system"
+msgstr "kan audit-systeem niet openen"
+
+#: src/selinux.c:85
+msgid "unable to send audit message"
+msgstr "kan audit-melding niet verzenden"
+
+#: src/selinux.c:113
+#, c-format
+msgid "unable to fgetfilecon %s"
+msgstr "fgetfilecon %s mislukt"
+
+#: src/selinux.c:118
+#, c-format
+msgid "%s changed labels"
+msgstr "%s gewijzigde labels"
+
+#: src/selinux.c:123
+#, c-format
+msgid "unable to restore context for %s"
+msgstr "kan context voor %s niet herstellen"
+
+#: src/selinux.c:163
+#, c-format
+msgid "unable to open %s, not relabeling tty"
+msgstr "kan %s niet openen, terminaltitel wordt niet opnieuw ingesteld"
+
+#: src/selinux.c:172
+msgid "unable to get current tty context, not relabeling tty"
+msgstr "kan huidige terminalcontext niet verkrijgen, terminaltitel wordt niet opniew ingesteld"
+
+#: src/selinux.c:179
+msgid "unable to get new tty context, not relabeling tty"
+msgstr "kan geen nieuwe terminalcontext verkrijgen, terminaltitel wordt niet opnieuw ingesteld"
+
+#: src/selinux.c:186
+msgid "unable to set new tty context"
+msgstr "kan nieuwe terminalcontext niet instellen"
+
+#: src/selinux.c:252
+#, c-format
+msgid "you must specify a role for type %s"
+msgstr "u moet een rol kiezen voor type %s"
+
+#: src/selinux.c:258
+#, c-format
+msgid "unable to get default type for role %s"
+msgstr "kan standaard-type niet verkrijgen voor rol %s"
+
+#: src/selinux.c:276
+#, c-format
+msgid "failed to set new role %s"
+msgstr "instellen van nieuwe rol %s mislukt"
+
+#: src/selinux.c:280
+#, c-format
+msgid "failed to set new type %s"
+msgstr "instellen van nieuw type %s mislukt"
+
+#: src/selinux.c:289
+#, c-format
+msgid "%s is not a valid context"
+msgstr "%s is geen geldige context"
+
+#: src/selinux.c:324
+msgid "failed to get old_context"
+msgstr "verkrijgen old_context mislukt"
+
+#: src/selinux.c:330
+msgid "unable to determine enforcing mode."
+msgstr "kan afdwingende modus niet vinden."
+
+#: src/selinux.c:347
+#, c-format
+msgid "unable to set tty context to %s"
+msgstr "kan terminalcontext niet instellen voor %s"
+
+#: src/selinux.c:386
+#, c-format
+msgid "unable to set exec context to %s"
+msgstr "kan uitvoeringscontext niet instellen op %s"
+
+#: src/selinux.c:393
+#, c-format
+msgid "unable to set key creation context to %s"
+msgstr "kan context voor aanmaak van sleutels niet instellen op %s"
+
+#: src/sesh.c:80
+msgid "requires at least one argument"
+msgstr "tenminste één argument vereist"
+
+#: src/sesh.c:109
+#, c-format
+msgid "unable to run %s as a login shell"
+msgstr "kan %s niet uitvoeren als een loginshell"
+
+#: src/sesh.c:114 src/sudo.c:1186
+#, c-format
+msgid "unable to execute %s"
+msgstr "kan %s niet uitvoeren"
+
+#: src/signal.c:77
+#, c-format
+msgid "unable to save handler for signal %d"
+msgstr "kan handler niet opslaan naar signaal %d"
+
+#: src/solaris.c:88
+msgid "resource control limit has been reached"
+msgstr "hulpbroncontrolelimiet is bereikt"
+
+#: src/solaris.c:91
+#, c-format
+msgid "user \"%s\" is not a member of project \"%s\""
+msgstr "gebruiker \"%s\" is geen lid van project \"%s\""
+
+#: src/solaris.c:95
+msgid "the invoking task is final"
+msgstr "de aanroepende taak is klaar"
+
+#: src/solaris.c:98
+#, c-format
+msgid "could not join project \"%s\""
+msgstr "kan project \"%s\" niet samenvoegen"
+
+#: src/solaris.c:103
+#, c-format
+msgid "no resource pool accepting default bindings exists for project \"%s\""
+msgstr "er bestaat geen hulpbronnengroep voor project \"%s\" die de standaardbindingen accepteert"
+
+#: src/solaris.c:107
+#, c-format
+msgid "specified resource pool does not exist for project \"%s\""
+msgstr "er bestaat geen hulpbronnengroep voor project \"%s\" die de standaardbindingen accepteert"
+
+#: src/solaris.c:111
+#, c-format
+msgid "could not bind to default resource pool for project \"%s\""
+msgstr "kan niet verbinden met standaard hulpbronnen voor project \"%s\""
+
+#: src/solaris.c:117
+#, c-format
+msgid "setproject failed for project \"%s\""
+msgstr "setproject mislukt voor project \"%s\""
+
+#: src/solaris.c:119
+#, c-format
+msgid "warning, resource control assignment failed for project \"%s\""
+msgstr "waarschuwing, hulpbrontoewijzingscontrole mislukt voor project \"%s\""
+
+#: src/sudo.c:209
+#, c-format
+msgid "Sudo version %s\n"
+msgstr "Sudo versie %s\n"
+
+#: src/sudo.c:211
+#, c-format
+msgid "Configure options: %s\n"
+msgstr "Configuratieopties: %s\n"
+
+#: src/sudo.c:216
+msgid "fatal error, unable to load plugins"
+msgstr "fatale fout, kan geen plug-ins laden"
+
+#: src/sudo.c:224
+msgid "unable to initialize policy plugin"
+msgstr "kan beleidsplug-in niet instellen"
+
+#: src/sudo.c:280
+#, c-format
+msgid "error initializing I/O plugin %s"
+msgstr "fout bij initialiseren-I/O plug-in %s"
+
+#: src/sudo.c:306
+#, c-format
+msgid "unexpected sudo mode 0x%x"
+msgstr "onverwachte sudo modus 0x%x"
+
+#: src/sudo.c:426
+msgid "unable to get group vector"
+msgstr "kan groepsvector niet verkrijgen"
+
+#: src/sudo.c:478
+#, c-format
+msgid "unknown uid %u: who are you?"
+msgstr "onbekende uid %u: wie bent u?"
+
+#: src/sudo.c:785
+#, c-format
+msgid "%s must be owned by uid %d and have the setuid bit set"
+msgstr "eigenaar van %s moet gebruikersnummer %d zijn en de setuid bit ingesteld"
+
+#: src/sudo.c:788
+#, c-format
+msgid "effective uid is not %d, is %s on a file system with the 'nosuid' option set or an NFS file system without root privileges?"
+msgstr "gebruikt gebruikersnummer is niet %d, is %s op een bestandssysteem met de 'nosuid' optie ingesteld of een NFS bestandssysteem zonder rootrechten?"
+
+#: src/sudo.c:794
+#, c-format
+msgid "effective uid is not %d, is sudo installed setuid root?"
+msgstr "gebruikt gebruikersnummer is niet %d, is sudo geinstalleerd met setuid root?"
+
+#: src/sudo.c:923
+#, c-format
+msgid "unknown login class %s"
+msgstr "onbekende inlog-klasse %s"
+
+#: src/sudo.c:936
+msgid "unable to set user context"
+msgstr "kan gebruikerscontext niet instellen"
+
+#: src/sudo.c:950
+msgid "unable to set supplementary group IDs"
+msgstr "kan aanvullende groeps-ID's niet instellen"
+
+#: src/sudo.c:957
+#, c-format
+msgid "unable to set effective gid to runas gid %u"
+msgstr "kan effectieve gid niet instellen op runas-gid %u"
+
+#: src/sudo.c:963
+#, c-format
+msgid "unable to set gid to runas gid %u"
+msgstr "kan gid niet instellen op runas-gid %u"
+
+#: src/sudo.c:970
+msgid "unable to set process priority"
+msgstr "kan taakprioriteit niet instellen"
+
+#: src/sudo.c:978
+#, c-format
+msgid "unable to change root to %s"
+msgstr "kan root niet wijzigen naar %s"
+
+#: src/sudo.c:991 src/sudo.c:997 src/sudo.c:1003
+#, c-format
+msgid "unable to change to runas uid (%u, %u)"
+msgstr "kan niet wijzigen naar runas uid (%u, %u)"
+
+#: src/sudo.c:1021
+#, c-format
+msgid "unable to change directory to %s"
+msgstr "kan map niet wijzigen naar %s"
+
+#: src/sudo.c:1082
+#, c-format
+msgid "unexpected child termination condition: %d"
+msgstr "onverwachte dochter-afsluitvoorwaarde: %d"
+
+#: src/sudo.c:1214
+#, c-format
+msgid "policy plugin %s is missing the `check_policy' method"
+msgstr "beleidsplug-in %s heeft geen check_policy methode"
+
+#: src/sudo.c:1232
+#, c-format
+msgid "policy plugin %s does not support listing privileges"
+msgstr "beleidsplug-in %s ondersteunt niet het tonen van privileges"
+
+#: src/sudo.c:1249
+#, c-format
+msgid "policy plugin %s does not support the -v option"
+msgstr "beleidsplug-in %s ondersteunt niet de -v optie"
+
+#: src/sudo.c:1264
+#, c-format
+msgid "policy plugin %s does not support the -k/-K options"
+msgstr "beleidsplug-in %s ondersteunt niet de -k/-K opties"
+
+#: src/sudo_edit.c:203 src/sudo_edit.c:294
+#, c-format
+msgid "%s: not a regular file"
+msgstr "%s: geen regulier bestand"
+
+#: src/sudo_edit.c:230 src/sudo_edit.c:332
+#, c-format
+msgid "%s: short write"
+msgstr "%s: te weinig geschreven"
+
+#: src/sudo_edit.c:295
+#, c-format
+msgid "%s left unmodified"
+msgstr "%s ongewijzigd gelaten"
+
+#: src/sudo_edit.c:308 src/sudo_edit.c:483
+#, c-format
+msgid "%s unchanged"
+msgstr "%s ongewijzigd"
+
+#: src/sudo_edit.c:321 src/sudo_edit.c:343
+#, c-format
+msgid "unable to write to %s"
+msgstr "kan niet schrijven naar %s"
+
+#: src/sudo_edit.c:322 src/sudo_edit.c:341 src/sudo_edit.c:344
+#: src/sudo_edit.c:508 src/sudo_edit.c:512
+#, c-format
+msgid "contents of edit session left in %s"
+msgstr "inhoud van bewerkingssessie achtergelaten in %s"
+
+#: src/sudo_edit.c:340
+msgid "unable to read temporary file"
+msgstr "kan tijdelijk bestand niet lezen"
+
+#: src/sudo_edit.c:417
+msgid "sesh: internal error: odd number of paths"
+msgstr "sesh: interne fout: oneven aantal paden"
+
+#: src/sudo_edit.c:419
+msgid "sesh: unable to create temporary files"
+msgstr "sesh: kan geen tijdelijke bestanden aanmaken "
+
+#: src/sudo_edit.c:421 src/sudo_edit.c:515
+#, c-format
+msgid "sesh: unknown error %d"
+msgstr "sesh: onbekende fout %d"
+
+#: src/sudo_edit.c:507
+msgid "unable to copy temporary files back to their original location"
+msgstr "kan tijdelijke bestanden niet terugzetten naar de oorsprongelijke lokatie"
+
+#: src/sudo_edit.c:511
+msgid "unable to copy some of the temporary files back to their original location"
+msgstr "kan sommige tijdelijke bestanden niet terugzetten naar de oorsprongelijke lokatie"
+
+#: src/sudo_edit.c:554
+#, c-format
+msgid "unable to change uid to root (%u)"
+msgstr "kan uid niet wijzigen naar root (%u)"
+
+#: src/sudo_edit.c:571
+msgid "plugin error: missing file list for sudoedit"
+msgstr "plug-infout: missende bestandslijst voor sudoedit"
+
+#: src/tgetpass.c:90
+msgid "no tty present and no askpass program specified"
+msgstr "geen terminal aanwezig en geen wachtwoordvraag(askpass)-programma opgegeven"
+
+#: src/tgetpass.c:99
+msgid "no askpass program specified, try setting SUDO_ASKPASS"
+msgstr "geen wachtwoordvraag(askpass)-programma opgegeven, probeer SUDO_ASKPASS in te stellen"
+
+#: src/tgetpass.c:232
+#, c-format
+msgid "unable to set gid to %u"
+msgstr "kan gid niet instellen op %u"
+
+#: src/tgetpass.c:236
+#, c-format
+msgid "unable to set uid to %u"
+msgstr "kan uid niet instellen op %u"
+
+#: src/tgetpass.c:241
+#, c-format
+msgid "unable to run %s"
+msgstr "kan %s niet uitvoeren"
+
+#: src/utmp.c:278
+msgid "unable to save stdin"
+msgstr "kan niet opslaan naar stdin"
+
+#: src/utmp.c:280
+msgid "unable to dup2 stdin"
+msgstr "kan dup2 niet uitvoeren op standaardinvoer"
+
+#: src/utmp.c:283
+msgid "unable to restore stdin"
+msgstr "kan stdin niet herstellen"
+
+#~ msgid "internal error, tried to emalloc2(0)"
+#~ msgstr "interne fout, probeerde emalloc2(0)"
+
+#~ msgid "internal error, tried to ecalloc(0)"
+#~ msgstr "interne fout, probeerde ecalloc(0)"
+
+#~ msgid "internal error, tried to erealloc(0)"
+#~ msgstr "interne fout, probeerde erealloc(0)"
+
+#~ msgid "internal error, tried to erealloc3(0)"
+#~ msgstr "interne fout, probeerde erealloc3(0)"
+
+#~ msgid "internal error, tried to erecalloc(0)"
+#~ msgstr "interne fout, probeerde erecalloc(0)"
+
+#~ msgid "value out of range"
+#~ msgstr "waarde buiten bereik"
+
+#~ msgid "%s: %s: %s\n"
+#~ msgstr "%s: %s: %s\n"
+
+#~ msgid "%s: %s\n"
+#~ msgstr "%s: %s\n"
+
+#~ msgid "select failed"
+#~ msgstr "selecteren mislukt"
+
+#~ msgid "load_interfaces: overflow detected"
+#~ msgstr "load_interfaces: overloop gevonden"
+
+#~ msgid "unable to allocate memory"
+#~ msgstr "kan geen geheugen reserveren"
+
+#~ msgid ": "
+#~ msgstr ": "
+
+#~ msgid "list user's available commands\n"
+#~ msgstr "geef voor gebruiker beschikbare opdrachten weer\n"
+
+#~ msgid "run a shell as target user\n"
+#~ msgstr "voer een shell uit als doel-gebruiker\n"
+
+#~ msgid "when listing, list specified user's privileges\n"
+#~ msgstr "bij listing, toon privileges van gespecificeerde gebruiker\n"

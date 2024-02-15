@@ -1,0 +1,1628 @@
+.\"
+.\" SPDX-License-Identifier: ISC
+.\"
+.\" Copyright (c) 1994-1996, 1998-2005, 2007-2023
+.\"	Todd C. Miller <Todd.Miller@sudo.ws>
+.\"
+.\" Permission to use, copy, modify, and distribute this software for any
+.\" purpose with or without fee is hereby granted, provided that the above
+.\" copyright notice and this permission notice appear in all copies.
+.\"
+.\" THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
+.\" WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
+.\" MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
+.\" ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+.\" WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
+.\" ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
+.\" OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+.\"
+.\" Sponsored in part by the Defense Advanced Research Projects
+.\" Agency (DARPA) and Air Force Research Laboratory, Air Force
+.\" Materiel Command, USAF, under agreement number F39502-99-1-0512.
+.\"
+.nr SL @SEMAN@
+.nr BA @BAMAN@
+.nr LC @LCMAN@
+.nr PS @PSMAN@
+.Dd August 9, 2023
+.Dt SUDO @mansectsu@
+.Os Sudo @PACKAGE_VERSION@
+.Sh NAME
+.Nm sudo ,
+.Nm sudoedit
+.Nd execute a command as another user
+.Sh SYNOPSIS
+.Nm sudo
+.Fl h | K | k | V
+.Nm sudo
+.Fl v
+.Op Fl ABkNnS
+.if \n(BA \{\
+.Op Fl a Ar type
+.\}
+.Op Fl g Ar group
+.Op Fl h Ar host
+.Op Fl p Ar prompt
+.Op Fl u Ar user
+.Nm sudo
+.Fl l
+.Op Fl ABkNnS
+.if \n(BA \{\
+.Op Fl a Ar type
+.\}
+.Op Fl g Ar group
+.Op Fl h Ar host
+.Op Fl p Ar prompt
+.Op Fl U Ar user
+.Op Fl u Ar user
+.Op Ar command Op Ar arg ...
+.Nm sudo
+.Op Fl ABbEHnPS
+.if \n(BA \{\
+.Op Fl a Ar type
+.\}
+.Op Fl C Ar num
+.if \n(LC \{\
+.Op Fl c Ar class
+.\}
+.Op Fl D Ar directory
+.Op Fl g Ar group
+.Op Fl h Ar host
+.Op Fl p Ar prompt
+.Op Fl R Ar directory
+.if \n(SL \{\
+.Op Fl r Ar role
+.Op Fl t Ar type
+.\}
+.Op Fl T Ar timeout
+.Op Fl u Ar user
+.Op Ar VAR Ns = Ns Ar value
+.Op Fl i | s
+.Op Ar command Op Ar arg ...
+.Nm sudoedit
+.Op Fl ABkNnS
+.if \n(BA \{\
+.Op Fl a Ar type
+.\}
+.Op Fl C Ar num
+.if \n(LC \{\
+.Op Fl c Ar class
+.\}
+.Op Fl D Ar directory
+.Op Fl g Ar group
+.Op Fl h Ar host
+.Op Fl p Ar prompt
+.Op Fl R Ar directory
+.if \n(SL \{\
+.Op Fl r Ar role
+.Op Fl t Ar type
+.\}
+.Op Fl T Ar timeout
+.Op Fl u Ar user
+.Ar
+.Sh DESCRIPTION
+.Nm
+allows a permitted user to execute a
+.Ar command
+as the superuser or another user, as specified by the security
+policy.
+The invoking user's real
+.Pq Em not No effective
+user-ID is used to determine the user name with which
+to query the security policy.
+.Pp
+.Nm
+supports a plugin architecture for security policies, auditing,
+and input/output logging.
+Third parties can develop and distribute their own plugins to work
+seamlessly with the
+.Nm
+front-end.
+The default security policy is
+.Em sudoers ,
+which is configured via the file
+.Pa @sysconfdir@/sudoers ,
+or via LDAP.
+See the
+.Sx Plugins
+section for more information.
+.Pp
+The security policy determines what privileges, if any, a user has
+to run
+.Nm .
+The policy may require that users authenticate themselves with a
+password or another authentication mechanism.
+If authentication is required,
+.Nm
+will exit if the user's password is not entered within a configurable
+time limit.
+This limit is policy-specific; the default password prompt timeout
+for the
+.Em sudoers
+security policy is @password_timeout@ minutes.
+.Pp
+Security policies may support credential caching to allow the user
+to run
+.Nm
+again for a period of time without requiring authentication.
+By default, the
+.Em sudoers
+policy caches credentials on a per-terminal basis for @timeout@ minutes.
+See the
+.Em timestamp_type
+and
+.Em timestamp_timeout
+options in
+.Xr sudoers @mansectform@
+for more information.
+By running
+.Nm
+with the
+.Fl v
+option, a user can update the cached credentials without running a
+.Ar command .
+.Pp
+On systems where
+.Nm
+is the primary method of gaining superuser privileges, it is imperative
+to avoid syntax errors in the security policy configuration files.
+For the default security policy,
+.Xr sudoers @mansectform@ ,
+changes to the configuration files should be made using the
+.Xr visudo @mansectsu@
+utility which will ensure that no syntax errors are introduced.
+.Pp
+When invoked as
+.Nm sudoedit ,
+the
+.Fl e
+option (described below), is implied.
+.Pp
+Security policies and audit plugins may log successful and failed attempts
+to run
+.Nm .
+If an I/O plugin is configured, the running
+.Ar command Ns 's
+input and output may be logged as well.
+.Pp
+The options are as follows:
+.Bl -tag -width Ds
+.It Fl A , -askpass
+Normally, if
+.Nm
+requires a password, it will read it from the user's terminal.
+If the
+.Fl A Pq Em askpass
+option is specified, a (possibly graphical) helper program is
+executed to read the user's password and output the password to the
+standard output.
+If the
+.Ev SUDO_ASKPASS
+environment variable is set, it specifies the path to the helper
+program.
+Otherwise, if
+.Xr sudo.conf @mansectform@
+contains a line specifying the askpass program, that value will be
+used.
+For example:
+.Bd -literal -offset 4n
+# Path to askpass helper program
+Path askpass /usr/X11R6/bin/ssh-askpass
+.Ed
+.Pp
+If no askpass program is available,
+.Nm
+will exit with an error.
+.if \n(BA \{\
+.It Fl a Ar type , Fl -auth-type Ns = Ns Ar type
+Use the specified
+.Bx
+authentication
+.Ar type
+when validating the user, if allowed by
+.Pa /etc/login.conf .
+The system administrator may specify a list of sudo-specific
+authentication methods by adding an
+.Dq auth-sudo
+entry in
+.Pa /etc/login.conf .
+This option is only available on systems that support
+.Bx
+authentication.
+.\}
+.It Fl B , -bell
+Ring the bell as part of the password prompt when a terminal is present.
+This option has no effect if an askpass program is used.
+.It Fl b , -background
+Run the given
+.Ar command
+in the background.
+It is not possible to use shell job control to manipulate background
+processes started by
+.Nm .
+Most interactive
+.Ar command Ns s
+will fail to work properly in background mode.
+.It Fl C Ar num , Fl -close-from Ns = Ns Ar num
+Close all file descriptors greater than or equal to
+.Ar num
+before executing a
+.Ar command .
+Values less than three are not permitted.
+By default,
+.Nm
+will close all open file descriptors other than standard input,
+standard output, and standard error when executing a
+.Ar command .
+The security policy may restrict the user's ability to use this option.
+The
+.Em sudoers
+policy only permits use of the
+.Fl C
+option when the administrator has enabled the
+.Em closefrom_override
+option.
+.if \n(LC \{\
+.It Fl c Ar class , Fl -login-class Ns = Ns Ar class
+Run the
+.Ar command
+with resource limits and scheduling priority of the specified login
+.Ar class .
+The
+.Ar class
+argument can be either a class name as defined in
+.Pa /etc/login.conf ,
+or a single
+.Ql \-
+character.
+If
+.Ar class
+is
+.Cm - ,
+the default login class of the target user will be used.
+Otherwise, the
+.Ar command
+must be run as the superuser (user-ID 0), or
+.Nm
+must be run from a shell that is already running as the superuser.
+If the
+.Ar command
+is being run as a login shell, additional
+.Pa /etc/login.conf
+settings, such as the umask and environment variables, will
+be applied, if present.
+This option is only available on systems with
+.Bx
+login classes.
+.\}
+.It Fl D Ar directory , Fl -chdir Ns = Ns Ar directory
+Run the
+.Ar command
+in the specified
+.Ar directory
+instead of the current working directory.
+The security policy may return an error if the user does not have
+permission to specify the working directory.
+.It Fl E , -preserve-env
+Indicates to the security policy that the user wishes to
+preserve their existing environment variables.
+The security policy may return an error if the user does not have
+permission to preserve the environment.
+.It Fl -preserve-env=list
+Indicates to the security policy that the user wishes to add the
+comma-separated list of environment variables to those preserved
+from the user's environment.
+The security policy may return an error if the user does not have
+permission to preserve the environment.
+This option may be specified multiple times.
+.It Fl e , -edit
+Edit one or more
+.Ar file Ns s
+instead of running a
+.Ar command .
+In lieu of a path name, the string "sudoedit" is used when consulting
+the security policy.
+If the user is authorized by the policy, the following steps are
+taken:
+.Bl -enum -offset 4
+.It
+Temporary copies are made of the files to be edited with the owner
+set to the invoking user.
+.It
+The editor specified by the policy is run to edit the temporary
+files.
+The
+.Em sudoers
+policy uses the
+.Ev SUDO_EDITOR ,
+.Ev VISUAL
+and
+.Ev EDITOR
+environment variables (in that order).
+If none of
+.Ev SUDO_EDITOR ,
+.Ev VISUAL
+or
+.Ev EDITOR
+are set, the first program listed in the
+.Em editor
+.Xr sudoers @mansectform@
+option is used.
+.It
+If they have been modified, the temporary files are copied back to
+their original location and the temporary versions are removed.
+.El
+.Pp
+To help prevent the editing of unauthorized files, the following
+restrictions are enforced unless explicitly allowed by the security policy:
+.Bl -bullet -offset 1n -width 1n
+.It
+Symbolic links may not be edited (version 1.8.15 and higher).
+.It
+Symbolic links along the path to be edited are not followed when the
+parent directory is writable by the invoking user unless that user
+is root (version 1.8.16 and higher).
+.It
+Files located in a directory that is writable by the invoking user may
+not be edited unless that user is root (version 1.8.16 and higher).
+.El
+.Pp
+Users are never allowed to edit device special files.
+.Pp
+If the specified file does not exist, it will be created.
+Unlike most
+.Ar command Ns s
+run by
+.Em sudo ,
+the editor is run with the invoking user's environment unmodified.
+If the temporary file becomes empty after editing, the user will
+be prompted before it is installed.
+If, for some reason,
+.Nm
+is unable to update a file with its edited version, the user will
+receive a warning and the edited copy will remain in a temporary
+file.
+.It Fl g Ar group , Fl -group Ns = Ns Ar group
+Run the
+.Ar command
+with the primary group set to
+.Ar group
+instead of the primary group specified by the target
+user's password database entry.
+The
+.Ar group
+may be either a group name or a numeric group-ID
+.Pq GID
+prefixed with the
+.Ql #
+character (e.g.,
+.Ql #0
+for GID 0).
+When running a
+.Ar command
+as a GID, many shells require that the
+.Ql #
+be escaped with a backslash
+.Pq Ql \e .
+If no
+.Fl u
+option is specified, the
+.Ar command
+will be run as the invoking user.
+In either case, the primary group will be set to
+.Ar group .
+The
+.Em sudoers
+policy permits any of the target user's groups to be specified via
+the
+.Fl g
+option as long as the
+.Fl P
+option is not in use.
+.It Fl H , -set-home
+Request that the security policy set the
+.Ev HOME
+environment variable to the home directory specified by the target
+user's password database entry.
+Depending on the policy, this may be the default behavior.
+.It Fl h , -help
+Display a short help message to the standard output and exit.
+.It Fl h Ar host , Fl -host Ns = Ns Ar host
+Run the
+.Ar command
+on the specified
+.Ar host
+if the security policy plugin supports remote
+.Ar command Ns s.
+The
+.Em sudoers
+plugin does not currently support running remote
+.Ar command Ns s.
+This may also be used in conjunction with the
+.Fl l
+option to list a user's privileges for the remote host.
+.It Fl i , -login
+Run the shell specified by the target user's password database entry
+as a login shell.
+This means that login-specific resource files such as
+.Pa .profile ,
+.Pa .bash_profile ,
+or
+.Pa .login
+will be read by the shell.
+If a
+.Ar command
+is specified, it is passed to the shell as a simple
+.Ar command
+using the
+.Fl c
+option.
+The
+.Ar command
+and any
+.Ar arg Ns s
+are concatenated, separated by spaces, after escaping each character
+.Pq including white space
+with a backslash
+.Pq Ql \e
+except for alphanumerics, underscores,
+hyphens, and dollar signs.
+If no
+.Ar command
+is specified, an interactive shell is executed.
+.Nm
+attempts to change to that user's home directory before running the
+shell.
+The
+.Ar command
+is run with an environment similar to the one a user would receive at log in.
+Most shells behave differently when a
+.Ar command
+is specified as compared to an interactive session; consult the shell's manual
+for details.
+The
+.Em Command environment
+section in the
+.Xr sudoers @mansectform@
+manual documents how the
+.Fl i
+option affects the environment in which a
+.Ar command
+is run when the
+.Em sudoers
+policy is in use.
+.It Fl K , -remove-timestamp
+Similar to the
+.Fl k
+option, except that it removes every cached credential for the user,
+regardless of the terminal or parent process ID.
+The next time
+.Nm
+is run, a password must be entered if the
+security policy requires authentication.
+It is not possible to use the
+.Fl K
+option in conjunction with a
+.Ar command
+or other option.
+This option does not require a password.
+Not all security policies support credential caching.
+.It Fl k , -reset-timestamp
+When used without a
+.Ar command ,
+invalidates the user's cached credentials for the current session.
+The next time
+.Nm
+is run in the session, a password must be entered if the
+security policy requires authentication.
+By default, the
+.Nm sudoers
+policy uses a separate record in the credential cache for each
+terminal (or parent process ID if no terminal is present).
+This prevents the
+.Fl k
+option from interfering with
+.Nm
+commands run in a different terminal session.
+See the
+.Em timestamp_type
+option in
+.Xr sudoers @mansectform@
+for more information.
+This option does not require a password, and was added to allow a
+user to revoke
+.Nm
+permissions from a
+.Pa .logout
+file.
+.Pp
+When used in conjunction with a
+.Ar command
+or an option that may require a password, this option will cause
+.Nm
+to ignore the user's cached credentials.
+As a result,
+.Nm
+will prompt for a password (if one is required by the security
+policy) and will not update the user's cached credentials.
+.Pp
+Not all security policies support credential caching.
+.It Fl l , Fl -list
+If no
+.Ar command
+is specified, list the privileges for the invoking user (or the
+.Ar user
+specified by the
+.Fl U
+option) on the current host.
+A longer list format is used if this option is specified multiple times
+and the security policy supports a verbose output format.
+.Pp
+If a
+.Ar command
+is specified and is permitted by the security policy for the invoking
+user (or the,
+.Ar user
+specified by the
+.Fl U
+option) on the current host,
+the fully-qualified path to the
+.Ar command
+is displayed along with any
+.Ar arg Ns s.
+If
+.Fl l
+is specified more than once (and the security policy supports it),
+the matching rule is displayed in a verbose format along with the
+.Ar command .
+If a
+.Ar command
+is specified but not allowed by the policy,
+.Nm
+will exit with a status value of 1.
+.It Fl N , -no-update
+Do not update the user's cached credentials, even if the user successfully
+authenticates.
+Unlike the
+.Fl k
+flag, existing cached credentials are used if they are valid.
+To detect when the user's cached credentials are valid (or when no
+authentication is required), the following can be used:
+.Bd -literal -offset 4n
+sudo -Nnv
+.Ed
+.Pp
+Not all security policies support credential caching.
+.It Fl n , -non-interactive
+Avoid prompting the user for input of any kind.
+If a password is required for the
+.Ar command
+to run,
+.Nm
+will display an error message and exit.
+.It Fl P , -preserve-groups
+Preserve the invoking user's group vector unaltered.
+By default, the
+.Em sudoers
+policy will initialize the group vector to the list of groups the
+target user is a member of.
+The real and effective group-IDs, however, are still set to match
+the target user.
+.It Fl p Ar prompt , Fl -prompt Ns = Ns Ar prompt
+Use a custom password prompt with optional escape sequences.
+The following percent
+.Pq Ql %
+escape sequences are supported by the
+.Em sudoers
+policy:
+.Bl -tag -width 2n
+.It %H
+expanded to the host name including the domain name (only if the
+machine's host name is fully qualified or the
+.Em fqdn
+option is set in
+.Xr sudoers @mansectform@ )
+.It %h
+expanded to the local host name without the domain name
+.It %p
+expanded to the name of the user whose password is being requested
+(respects the
+.Em rootpw ,
+.Em targetpw ,
+and
+.Em runaspw
+flags in
+.Xr sudoers @mansectform@ )
+.It \&%U
+expanded to the login name of the user the
+.Ar command
+will be run as (defaults to root unless the
+.Fl u
+option is also specified)
+.It %u
+expanded to the invoking user's login name
+.It %%
+two consecutive
+.Ql %
+characters are collapsed into a single
+.Ql %
+character
+.El
+.Pp
+The custom prompt will override the default prompt specified by either
+the security policy or the
+.Ev SUDO_PROMPT
+environment variable.
+On systems that use PAM, the custom prompt will also override the prompt
+specified by a PAM module unless the
+.Em passprompt_override
+flag is disabled in
+.Em sudoers .
+.It Fl R Ar directory , Fl -chroot Ns = Ns Ar directory
+Change to the specified root
+.Ar directory
+(see
+.Xr chroot @mansectsu@ )
+before running the
+.Ar command .
+The security policy may return an error if the user does not have
+permission to specify the root directory.
+.if \n(SL \{\
+.It Fl r Ar role , Fl -role Ns = Ns Ar role
+Run the
+.Ar command
+with an SELinux security context that includes the specified
+.Ar role .
+.\}
+.It Fl S , -stdin
+Write the prompt to the standard error and read the password from the
+standard input instead of using the terminal device.
+.It Fl s , -shell
+Run the shell specified by the
+.Ev SHELL
+environment variable if it is set or the shell specified by the
+invoking user's password database entry.
+If a
+.Ar command
+is specified, it is passed to the shell as a simple command using the
+.Fl c
+option.
+The
+.Ar command
+and any
+.Ar arg Ns s
+are concatenated, separated by spaces, after escaping each character
+.Pq including white space
+with a backslash
+.Pq Ql \e
+except for alphanumerics, underscores,
+hyphens, and dollar signs.
+If no
+.Ar command
+is specified, an interactive shell is executed.
+Most shells behave differently when a
+.Ar command
+is specified as compared to an interactive session; consult the shell's manual
+for details.
+.if \n(SL \{\
+.It Fl t Ar type , Fl -type Ns = Ns Ar type
+Run the
+.Ar command
+with an SELinux security context that includes the specified
+.Ar type .
+If no
+.Ar type
+is specified, the default type is derived from the role.
+.\}
+.It Fl U Ar user , Fl -other-user Ns = Ns Ar user
+Used in conjunction with the
+.Fl l
+option to list the privileges for
+.Ar user
+instead of for the invoking user.
+The security policy may restrict listing other users' privileges.
+When using the
+.Em sudoers
+policy, the
+.Fl U
+option is restricted to the root user and users with either the
+.Dq list
+priviege for the specified
+.Ar user
+or the ability to run any
+.Ar command
+as root or
+.Ar user
+on the current host.
+.It Fl T Ar timeout , Fl -command-timeout Ns = Ns Ar timeout
+Used to set a timeout for the
+.Ar command .
+If the timeout expires before the
+.Ar command
+has exited, the
+.Ar command
+will be terminated.
+The security policy may restrict the user's ability to set timeouts.
+The
+.Em sudoers
+policy requires that user-specified timeouts be explicitly enabled.
+.It Fl u Ar user , Fl -user Ns = Ns Ar user
+Run the
+.Ar command
+as a user other than the default target user (usually
+.Sy root ) .
+The
+.Ar user
+may be either a user name or a numeric user-ID
+.Pq UID
+prefixed with the
+.Ql #
+character (e.g.,
+.Ql #0
+for UID 0).
+When running
+.Ar command Ns s as
+a UID, many shells require that the
+.Ql #
+be escaped with a backslash
+.Pq Ql \e .
+Some security policies may restrict UIDs
+to those listed in the password database.
+The
+.Em sudoers
+policy allows UIDs that are not in the password database as long as the
+.Em targetpw
+option is not set.
+Other security policies may not support this.
+.It Fl V , -version
+Print the
+.Nm
+version string as well as the version string of any configured plugins.
+If the invoking user is already root, the
+.Fl V
+option will display the options passed to configure when
+.Nm
+was built; plugins may display additional information such as
+default options.
+.It Fl v , -validate
+Update the user's cached credentials, authenticating the user
+if necessary.
+For the
+.Em sudoers
+plugin, this extends the
+.Nm
+timeout for another @timeout@ minutes by default, but does not run a
+.Ar command .
+Not all security policies support cached credentials.
+.It Fl -
+The
+.Fl -
+is used to delimit the end of the
+.Nm
+options.
+Subsequent options are passed to the
+.Ar command .
+.El
+.Pp
+Options that take a value may only be specified once unless
+otherwise indicated in the description.
+This is to help guard against problems caused by poorly written
+scripts that invoke
+.Nm sudo
+with user-controlled input.
+.Pp
+Environment variables to be set for the
+.Ar command
+may also be passed as options to
+.Nm
+in the form
+.Ar VAR Ns = Ns Ar value ,
+for example
+.Ev LD_LIBRARY_PATH Ns = Ns Pa /usr/local/pkg/lib .
+Environment variables may be subject to restrictions
+imposed by the security policy plugin.
+The
+.Em sudoers
+policy subjects environment variables passed as options to the same
+restrictions as existing environment variables with one important
+difference.
+If the
+.Em setenv
+option is set in
+.Em sudoers ,
+the
+.Ar command
+to be run has the
+.Dv SETENV
+tag set or the
+.Ar command
+matched is
+.Sy ALL ,
+the user may set variables that would otherwise be forbidden.
+See
+.Xr sudoers @mansectform@
+for more information.
+.Sh COMMAND EXECUTION
+When
+.Nm
+executes a
+.Ar command ,
+the security policy specifies the execution environment for the
+.Ar command .
+Typically, the real and effective user and group and IDs are set to
+match those of the target user, as specified in the password database,
+and the group vector is initialized based on the group database
+(unless the
+.Fl P
+option was specified).
+.Pp
+The following parameters may be specified by security policy:
+.Bl -bullet -width 1n
+.It
+real and effective user-ID
+.It
+real and effective group-ID
+.It
+supplementary group-IDs
+.It
+the environment list
+.It
+current working directory
+.It
+file creation mode mask (umask)
+.if \n(SL \{\
+.It
+SELinux role and type
+.\}
+.if \n(PS \{\
+.It
+Solaris project
+.It
+Solaris privileges
+.\}
+.if \n(LC \{\
+.It
+.Bx
+login class
+.\}
+.It
+scheduling priority (aka nice value)
+.El
+.Ss Process model
+There are two distinct ways
+.Nm
+can run a
+.Ar command .
+.Pp
+If an I/O logging plugin is configured to log terminal I/O, or if
+the security policy explicitly requests it, a new pseudo-terminal
+.Pq Dq pty
+is allocated and
+.Xr fork 2
+is used to create a second
+.Nm
+process, referred to as the
+.Em monitor .
+The
+.Em monitor
+creates a new terminal session with itself as the leader and the pty as its
+controlling terminal, calls
+.Xr fork 2
+again, sets up the execution environment as described above, and then uses the
+.Xr execve 2
+system call to run the
+.Ar command
+in the child process.
+The
+.Em monitor
+exists to relay job control signals between the user's
+terminal and the pty the
+.Ar command
+is being run in.
+This makes it possible to suspend and resume the
+.Ar command
+normally.
+Without the
+.Em monitor ,
+the
+.Ar command
+would be in what POSIX terms an
+.Dq orphaned process group
+and it would not receive any job control signals from the kernel.
+When the
+.Ar command
+exits or is terminated by a signal, the
+.Em monitor
+passes the
+.Ar command Ns 's
+exit status to the main
+.Nm
+process and exits.
+After receiving the
+.Ar command Ns 's
+exit status, the main
+.Nm
+process passes the
+.Ar command Ns 's
+exit status to the security policy's close function, as well as the
+close function of any configured audit plugin, and exits.
+This mode is the default for sudo versions 1.9.14 and above when using
+the sudoers policy.
+.Pp
+If no pty is used,
+.Nm
+calls
+.Xr fork 2 ,
+sets up the execution environment as described above, and uses the
+.Xr execve 2
+system call to run the
+.Ar command
+in the child process.
+The main
+.Nm
+process waits until the
+.Ar command
+has completed, then passes the
+.Ar command Ns 's
+exit status to the security policy's close function, as well as the
+close function of any configured audit plugins, and exits.
+As a special case, if the policy plugin does not define a close
+function,
+.Nm
+will execute the
+.Ar command
+directly instead of calling
+.Xr fork 2
+first.
+The
+.Em sudoers
+policy plugin will only define a close function when I/O logging
+is enabled, a pty is required, an SELinux role is specified, the
+.Ar command
+has an associated timeout, or the
+.Em pam_session
+or
+.Em pam_setcred
+options are enabled.
+Both
+.Em pam_session
+and
+.Em pam_setcred
+are enabled by default on systems using PAM.
+This mode is the default for sudo versions prior to 1.9.14 when using
+the sudoers policy.
+.Pp
+On systems that use PAM, the security policy's close function
+is responsible for closing the PAM session.
+It may also log the
+.Ar command Ns 's
+exit status.
+.Ss Signal handling
+When the
+.Ar command
+is run as a child of the
+.Nm
+process,
+.Nm
+will relay signals it receives to the
+.Ar command .
+The
+.Dv SIGINT
+and
+.Dv SIGQUIT
+signals are only relayed when the
+.Ar command
+is being run in a new pty or when the signal was sent by a user
+process, not the kernel.
+This prevents the
+.Ar command
+from receiving
+.Dv SIGINT
+twice each time the user enters control-C.
+Some signals, such as
+.Dv SIGSTOP
+and
+.Dv SIGKILL ,
+cannot be caught and thus will not be relayed to the
+.Ar command .
+As a general rule,
+.Dv SIGTSTP
+should be used instead of
+.Dv SIGSTOP
+when you wish to suspend a
+.Ar command
+being run by
+.Nm .
+.Pp
+As a special case,
+.Nm
+will not relay signals that were sent by the
+.Ar command
+it is running.
+This prevents the
+.Ar command
+from accidentally killing itself.
+On some systems, the
+.Xr reboot @mansectsu@
+utility sends
+.Dv SIGTERM
+to all non-system processes other than itself before rebooting
+the system.
+This prevents
+.Nm
+from relaying the
+.Dv SIGTERM
+signal it received back to
+.Xr reboot @mansectsu@ ,
+which might then exit before the system was actually rebooted,
+leaving it in a half-dead state similar to single user mode.
+Note, however, that this check only applies to the
+.Ar command
+run by
+.Nm
+and not any other processes that the
+.Ar command
+may create.
+As a result, running a script that calls
+.Xr reboot @mansectsu@
+or
+.Xr shutdown @mansectsu@
+via
+.Nm
+may cause the system to end up in this undefined state unless the
+.Xr reboot @mansectsu@
+or
+.Xr shutdown @mansectsu@
+are run using the
+.Fn exec
+family of functions instead of
+.Fn system
+(which interposes a shell between the
+.Ar command
+and the calling process).
+.Ss Plugins
+Plugins may be specified via
+.Em Plugin
+directives in the
+.Xr sudo.conf @mansectform@
+file.
+They may be loaded as dynamic shared objects (on systems that support them),
+or compiled directly into the
+.Nm
+binary.
+If no
+.Xr sudo.conf @mansectform@
+file is present, or if it doesn't contain any
+.Em Plugin
+lines,
+.Nm
+will use
+.Xr sudoers @mansectform@
+for the policy, auditing, and I/O logging plugins.
+See the
+.Xr sudo.conf @mansectform@
+manual for details of the
+.Pa @sysconfdir@/sudo.conf
+file and the
+.Xr sudo_plugin @mansectform@
+manual for more information about the
+.Nm
+plugin architecture.
+.Sh EXIT VALUE
+Upon successful execution of a
+.Ar command ,
+the exit status from
+.Nm
+will be the exit status of the program that was executed.
+If the
+.Ar command
+terminated due to receipt of a signal,
+.Nm
+will send itself the same signal that terminated the
+.Ar command .
+.Pp
+If the
+.Fl l
+option was specified without a
+.Ar command ,
+.Nm
+will exit with a value of 0 if the user is allowed to run
+.Nm
+and they authenticated successfully (as required by the security policy).
+If a
+.Ar command
+is specified with the
+.Fl l
+option, the exit value will only be 0 if the
+.Ar command
+is permitted by the security policy, otherwise it will be 1.
+.Pp
+If there is an authentication failure, a configuration/permission
+problem, or if the given
+.Ar command
+cannot be executed,
+.Nm
+exits with a value of 1.
+In the latter case, the error string is printed to the standard error.
+If
+.Nm
+cannot
+.Xr stat 2
+one or more entries in the user's
+.Ev PATH ,
+an error is printed to the standard error.
+(If the directory does not exist or if it is not really a directory,
+the entry is ignored and no error is printed.)
+This should not happen under normal circumstances.
+The most common reason for
+.Xr stat 2
+to return
+.Dq permission denied
+is if you are running an automounter and one of the directories in
+your
+.Ev PATH
+is on a machine that is currently unreachable.
+.Sh SECURITY NOTES
+.Nm
+tries to be safe when executing external
+.Ar command Ns s.
+.Pp
+To prevent command spoofing,
+.Nm
+checks "." and "" (both denoting current directory) last when
+searching for a
+.Ar command
+in the user's
+.Ev PATH
+(if one or both are in the
+.Ev PATH ) .
+Depending on the security policy, the user's
+.Ev PATH
+environment variable may be modified, replaced,
+or passed unchanged to the program that
+.Nm
+executes.
+.Pp
+Users should
+.Em never
+be granted
+.Nm
+privileges to execute files that are writable by the user or
+that reside in a directory that is writable by the user.
+If the user can modify or replace the
+.Ar command
+there is no way to limit what additional
+.Ar command Ns s
+they can run.
+.Pp
+By default,
+.Nm
+will only log the
+.Ar command
+it explicitly runs.
+If a user runs a
+.Ar command
+such as
+.Ql sudo su
+or
+.Ql sudo sh ,
+subsequent
+.Ar command Ns s
+run from that shell are not subject to
+.Nm sudo Ns 's
+security policy.
+The same is true for
+.Ar command Ns s
+that offer shell escapes (including most editors).
+If I/O logging is enabled, subsequent
+.Ar command Ns s
+will have their input and/or output logged, but there will not be
+traditional logs for those
+.Ar command Ns s.
+Because of this, care must be taken when giving users access to
+.Ar command Ns s
+via
+.Nm
+to verify that the
+.Ar command
+does not inadvertently give the user an effective root shell.
+For information on ways to address this, see the
+.Em Preventing shell escapes
+section in
+.Xr sudoers @mansectform@ .
+.Pp
+To prevent the disclosure of potentially sensitive information,
+.Nm
+disables core dumps by default while it is executing (they are
+re-enabled for the
+.Ar command
+that is run).
+This historical practice dates from a time when most operating
+systems allowed set-user-ID processes to dump core by default.
+To aid in debugging
+.Nm
+crashes, you may wish to re-enable core dumps by setting
+.Dq disable_coredump
+to false in the
+.Xr sudo.conf @mansectform@
+file as follows:
+.Bd -literal -offset 4n
+Set disable_coredump false
+.Ed
+.Pp
+See the
+.Xr sudo.conf @mansectform@
+manual for more information.
+.Sh ENVIRONMENT
+.Nm
+utilizes the following environment variables.
+The security policy has control over the actual content of the
+.Ar command Ns 's
+environment.
+.Bl -tag -width 15n
+.It Ev EDITOR
+Default editor to use in
+.Fl e
+(sudoedit) mode if neither
+.Ev SUDO_EDITOR
+nor
+.Ev VISUAL
+is set.
+.It Ev MAIL
+Set to the mail spool of the target user when the
+.Fl i
+option is specified, or when
+.Em env_reset
+is enabled in
+.Em sudoers
+(unless
+.Ev MAIL
+is present in the
+.Em env_keep
+list).
+.It Ev HOME
+Set to the home directory of the target user when the
+.Fl i
+or
+.Fl H
+options are specified, when the
+.Fl s
+option is specified and
+.Em set_home
+is set in
+.Em sudoers ,
+when
+.Em always_set_home
+is enabled in
+.Em sudoers ,
+or when
+.Em env_reset
+is enabled in
+.Em sudoers
+and
+.Ev HOME
+is not present in the
+.Em env_keep
+list.
+.It Ev LOGNAME
+Set to the login name of the target user when the
+.Fl i
+option is specified, when the
+.Em set_logname
+option is enabled in
+.Em sudoers ,
+or when the
+.Em env_reset
+option is enabled in
+.Em sudoers
+(unless
+.Ev LOGNAME
+is present in the
+.Em env_keep
+list).
+.It Ev PATH
+May be overridden by the security policy.
+.It Ev SHELL
+Used to determine shell to run with
+.Fl s
+option.
+.It Ev SUDO_ASKPASS
+Specifies the path to a helper program used to read the password
+if no terminal is available or if the
+.Fl A
+option is specified.
+.It Ev SUDO_COMMAND
+Set to the
+.Ar command
+run by sudo, including any
+.Ar arg Ns s.
+The
+.Ar arg Ns s
+are truncated at 4096 characters to prevent a potential execution error.
+.It Ev SUDO_EDITOR
+Default editor to use in
+.Fl e
+(sudoedit) mode.
+.It Ev SUDO_GID
+Set to the group-ID of the user who invoked sudo.
+.It Ev SUDO_PROMPT
+Used as the default password prompt unless the
+.Fl p
+option was specified.
+.It Ev SUDO_PS1
+If set,
+.Ev PS1
+will be set to its value for the program being run.
+.It Ev SUDO_UID
+Set to the user-ID of the user who invoked sudo.
+.It Ev SUDO_USER
+Set to the login name of the user who invoked sudo.
+.It Ev USER
+Set to the same value as
+.Ev LOGNAME ,
+described above.
+.It Ev VISUAL
+Default editor to use in
+.Fl e
+(sudoedit) mode if
+.Ev SUDO_EDITOR
+is not set.
+.El
+.Sh FILES
+.Bl -tag -width 24n
+.It Pa @sysconfdir@/sudo.conf
+.Nm
+front-end configuration
+.El
+.Sh EXAMPLES
+The following examples assume a properly configured security policy.
+.Pp
+To get a file listing of an unreadable directory:
+.Bd -literal -offset 4n
+$ sudo ls /usr/local/protected
+.Ed
+.Pp
+To list the home directory of user yaz on a machine where the file
+system holding ~yaz is not exported as root:
+.Bd -literal -offset 4n
+$ sudo -u yaz ls ~yaz
+.Ed
+.Pp
+To edit the
+.Pa index.html
+file as user www:
+.Bd -literal -offset 4n
+$ sudoedit -u www ~www/htdocs/index.html
+.Ed
+.Pp
+To view system logs only accessible to root and users in the adm
+group:
+.Bd -literal -offset 4n
+$ sudo -g adm more @log_dir@/syslog
+.Ed
+.Pp
+To run an editor as jim with a different primary group:
+.Bd -literal -offset 4n
+$ sudoedit -u jim -g audio ~jim/sound.txt
+.Ed
+.Pp
+To shut down a machine:
+.Bd -literal -offset 4n
+$ sudo shutdown -r +15 "quick reboot"
+.Ed
+.Pp
+To make a usage listing of the directories in the /home partition.
+The
+.Ar commands
+are run in a sub-shell to allow the
+.Ql cd
+command and file redirection to work.
+.Bd -literal -offset 4n
+$ sudo sh -c "cd /home ; du -s * | sort -rn > USAGE"
+.Ed
+.Sh DIAGNOSTICS
+Error messages produced by
+.Nm
+include:
+.Bl -tag -width 4n
+.It Li editing files in a writable directory is not permitted
+By default,
+.Nm sudoedit
+does not permit editing a file when any of the parent directories are writable
+by the invoking user.
+This avoids a race condition that could allow the user to overwrite
+an arbitrary file.
+See the
+.Em sudoedit_checkdir
+option in
+.Xr sudoers @mansectform@
+for more information.
+.It Li editing symbolic links is not permitted
+By default,
+.Nm sudoedit
+does not follow symbolic links when opening files.
+See the
+.Em sudoedit_follow
+option in
+.Xr sudoers @mansectform@
+for more information.
+.It Li effective uid is not 0, is sudo installed setuid root?
+.Nm
+was not run with root privileges.
+The
+.Nm
+binary must be owned by the root user and have the set-user-ID bit set.
+Also, it must not be located on a file system mounted with the
+.Sq nosuid
+option or on an NFS file system that maps uid 0 to an unprivileged uid.
+.It Li effective uid is not 0, is sudo on a file system with the 'nosuid' option set or an NFS file system without root privileges?
+.Nm
+was not run with root privileges.
+The
+.Nm
+binary has the proper owner and permissions but it still did not run
+with root privileges.
+The most common reason for this is that the file system the
+.Nm
+binary is located on is mounted with the
+.Sq nosuid
+option or it is an NFS file system that maps uid 0 to an unprivileged uid.
+.It Li fatal error, unable to load plugins
+An error occurred while loading or initializing the plugins specified in
+.Xr sudo.conf @mansectform@ .
+.It Li invalid environment variable name
+One or more environment variable names specified via the
+.Fl E
+option contained an equal sign
+.Pq Ql = .
+The arguments to the
+.Fl E
+option should be environment variable names without an associated value.
+.It Li no password was provided
+When
+.Nm
+tried to read the password, it did not receive any characters.
+This may happen if no terminal is available (or the
+.Fl S
+option is specified) and the standard input has been redirected from
+.Pa /dev/null .
+.It Li a terminal is required to read the password
+.Nm
+needs to read the password but there is no mechanism available for it
+to do so.
+A terminal is not present to read the password from,
+.Nm
+has not been configured to read from the standard input,
+the
+.Fl S
+option was not used, and no askpass helper has been specified either via the
+.Xr sudo.conf @mansectform@
+file or the
+.Ev SUDO_ASKPASS
+environment variable.
+.It Li no writable temporary directory found
+.Nm sudoedit
+was unable to find a usable temporary directory in which to store its
+intermediate files.
+.It Li The Do "no new privileges" Dc "flag is set, which prevents sudo from running as root."
+.Nm
+was run by a process that has the Linux
+.Dq no new privileges
+flag is set.
+This causes the set-user-ID bit to be ignored when running an executable,
+which will prevent
+.Nm
+from functioning.
+The most likely cause for this is running
+.Nm
+within a container that sets this flag.
+Check the documentation to see if it is possible to configure the
+container such that the flag is not set.
+.It Li sudo must be owned by uid 0 and have the setuid bit set
+.Nm
+was not run with root privileges.
+The
+.Nm
+binary does not have the correct owner or permissions.
+It must be owned by the root user and have the set-user-ID bit set.
+.It Li sudoedit is not supported on this platform
+It is only possible to run
+.Nm sudoedit
+on systems that support setting the effective user-ID.
+.It Li timed out reading password
+The user did not enter a password before the password timeout
+(5 minutes by default) expired.
+.It Li you do not exist in the passwd database
+Your user-ID does not appear in the system passwd database.
+.It Li you may not specify environment variables in edit mode
+It is only possible to specify environment variables when running a
+.Ar command .
+When editing a file, the editor is run with the user's environment unmodified.
+.El
+.Sh SEE ALSO
+.Xr su 1 ,
+.Xr stat 2 ,
+.Xr login_cap 3 ,
+.Xr passwd @mansectform@ ,
+.Xr sudo.conf @mansectform@ ,
+.Xr sudo_plugin @mansectform@ ,
+.Xr sudoers @mansectform@ ,
+.Xr sudoers_timestamp @mansectform@ ,
+.Xr sudoreplay @mansectsu@ ,
+.Xr visudo @mansectsu@
+.Sh HISTORY
+See the HISTORY.md file in the
+.Nm
+distribution (https://www.sudo.ws/about/history/) for a brief
+history of sudo.
+.Sh AUTHORS
+Many people have worked on
+.Nm
+over the years; this version consists of code written primarily by:
+.Bd -ragged -offset indent
+.An Todd C. Miller
+.Ed
+.Pp
+See the CONTRIBUTORS.md file in the
+.Nm
+distribution (https://www.sudo.ws/about/contributors/) for an
+exhaustive list of people who have contributed to
+.Nm .
+.Sh CAVEATS
+There is no easy way to prevent a user from gaining a root shell
+if that user is allowed to run arbitrary
+.Ar commands
+via
+.Nm .
+Also, many programs (such as editors) allow the user to run
+.Ar command Ns s
+via shell escapes, thus avoiding
+.Nm sudo Ns 's
+checks.
+However, on most systems it is possible to prevent shell escapes with the
+.Xr sudoers @mansectform@
+plugin's
+.Em noexec
+functionality.
+.Pp
+It is not meaningful to run the
+.Ql cd
+.Ar command
+directly via sudo, e.g.,
+.Bd -literal -offset 4n
+$ sudo cd /usr/local/protected
+.Ed
+.Pp
+since when the
+.Ar command
+exits the parent process (your shell) will still be the same.
+The
+.Fl D
+option can be used to run a
+.Ar command
+in a specific
+.Ar directory .
+.Pp
+Running shell scripts via
+.Nm
+can expose the same kernel bugs that make set-user-ID shell scripts
+unsafe on some operating systems (if your OS has a /dev/fd/ directory,
+set-user-ID shell scripts are generally safe).
+.Sh BUGS
+If you believe you have found a bug in
+.Nm ,
+you can submit a bug report at https://bugzilla.sudo.ws/
+.Sh SUPPORT
+Limited free support is available via the sudo-users mailing list,
+see https://www.sudo.ws/mailman/listinfo/sudo-users to subscribe or
+search the archives.
+.Sh DISCLAIMER
+.Nm
+is provided
+.Dq AS IS
+and any express or implied warranties, including, but not limited
+to, the implied warranties of merchantability and fitness for a
+particular purpose are disclaimed.
+See the LICENSE.md file distributed with
+.Nm
+or https://www.sudo.ws/about/license/ for complete details.
