@@ -1,10 +1,8 @@
 
 PACKAGE=lib${LIB}
-PRIVATELIB=	yes
 LIB=	sqlite3
 SHLIB_MAJOR?=	0
 LIBADD+=	pthread
-SUBDIR= public
 
 SRCS=	sqlite3.c
 INCS=	sqlite3.h sqlite3ext.h

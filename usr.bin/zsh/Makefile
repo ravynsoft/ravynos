@@ -1,6 +1,7 @@
 .include <bsd.prog.mk>
 
 PROG=                   zsh
+CONFIGURE_ARGS+=        --bindir=/bin
 CONFIGURE_ARGS+=        --enable-stack-allocation
 CONFIGURE_ARGS+=        --enable-etcdir=${SYSCONFDIR}
 CONFIGURE_ARGS+=        --enable-function-subdirs
