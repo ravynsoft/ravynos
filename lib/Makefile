@@ -116,6 +116,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libufs \
 	libugidfw \
 	libulog \
+        libutf8 \
 	libutil \
 	${_libvgl} \
 	libwrap \
