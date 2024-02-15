@@ -1,0 +1,20 @@
+test [ arg ... ]
+[ [ arg ... ] ]
+       Like  the  system version of test.  Added for compatibility; use
+       conditional expressions instead (see  the  section  `Conditional
+       Expressions').  The main differences between the conditional ex-
+       pression syntax and the test and [ builtins are:  these commands
+       are  not handled syntactically, so for example an empty variable
+       expansion may cause an argument to  be  omitted;  syntax  errors
+       cause  status  2  to  be  returned instead of a shell error; and
+       arithmetic operators expect integer arguments rather than arith-
+       metic expressions.
+
+       The command attempts to implement POSIX and its extensions where
+       these are specified.  Unfortunately there are intrinsic ambigui-
+       ties  in  the  syntax; in particular there is no distinction be-
+       tween test operators and strings that resemble them.  The  stan-
+       dard  attempts  to  resolve these for small numbers of arguments
+       (up to four); for five or more arguments compatibility cannot be
+       relied  on.   Users  are urged wherever possible to use the `[['
+       test syntax which does not have these ambiguities.

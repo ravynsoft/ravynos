@@ -1,0 +1,6 @@
+eval [ arg ... ]
+       Read the arguments as input to the shell and execute the result-
+       ing  command(s) in the current shell process.  The return status
+       is the same as if the commands had been executed directly by the
+       shell;  if  there  are no args or they contain no commands (i.e.
+       are an empty string or whitespace) the return status is zero.

@@ -1,0 +1,50 @@
+hash [ -Ldfmrv ] [ name[=value] ] ...
+       hash can be used to directly modify the contents of the  command
+       hash  table,  and  the named directory hash table.  Normally one
+       would modify these tables by modifying one's PATH (for the  com-
+       mand  hash  table)  or  by creating appropriate shell parameters
+       (for the named directory hash table).  The choice of hash  table
+       to  work  on  is determined by the -d option; without the option
+       the command hash table is used, and with the  option  the  named
+       directory hash table is used.
+
+       A command name starting with a / is never hashed, whether by ex-
+       plicit use of the hash command or otherwise.  Such a command  is
+       always found by direct look up in the file system.
+
+       Given  no  arguments,  and neither the -r or -f options, the se-
+       lected hash table will be listed in full.
+
+       The -r option causes the selected hash table to be emptied.   It
+       will  be subsequently rebuilt in the normal fashion.  The -f op-
+       tion causes the selected hash table to be fully rebuilt  immedi-
+       ately.   For the command hash table this hashes all the absolute
+       directories in the PATH, and for the named directory hash  table
+       this adds all users' home directories.  These two options cannot
+       be used with any arguments.
+
+       The -m option causes the  arguments  to  be  taken  as  patterns
+       (which  should  be  quoted)  and  the elements of the hash table
+       matching those patterns are printed.  This is the  only  way  to
+       display a limited selection of hash table elements.
+
+       For  each name with a corresponding value, put `name' in the se-
+       lected hash table, associating it with the pathname `value'.  In
+       the  command hash table, this means that whenever `name' is used
+       as a command argument, the shell will try to  execute  the  file
+       given by `value'.  In the named directory hash table, this means
+       that `value' may be referred to as `~name'.
+
+       For each name with no corresponding value, attempt to  add  name
+       to the hash table, checking what the appropriate value is in the
+       normal manner for that hash  table.   If  an  appropriate  value
+       can't be found, then the hash table will be unchanged.
+
+       The -v option causes hash table entries to be listed as they are
+       added by explicit specification.  If has no effect if used  with
+       -f.
+
+       If the -L flag is present, then each hash table entry is printed
+       in the form of a call to hash.
+
+rehash Same as hash -r.

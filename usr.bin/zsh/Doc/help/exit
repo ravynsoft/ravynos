@@ -1,0 +1,13 @@
+exit [ n ]
+       Exit the shell with the exit status specified by  an  arithmetic
+       expression n; if none is specified, use the exit status from the
+       last command executed.  An EOF condition  will  also  cause  the
+       shell to exit, unless the IGNORE_EOF option is set.
+
+       See  notes at the end of the section JOBS in zshmisc(1) for some
+       possibly unexpected interactions of the exit command with jobs.
+
+bye    Same as exit.
+
+logout [ n ]
+       Same as exit, except that it only works in a login shell.

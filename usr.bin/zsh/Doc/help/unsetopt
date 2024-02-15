@@ -1,0 +1,8 @@
+unsetopt [ {+|-}options | {+|-}o option_name ] [ name ... ]
+       Unset  the  options for the shell.  All options specified either
+       with flags or by name are unset.  If no arguments are  supplied,
+       the names of all options currently unset are printed.  If the -m
+       flag is given the arguments are taken as patterns (which  should
+       be  quoted  to preserve them from being interpreted as glob pat-
+       terns), and all options with names matching these  patterns  are
+       unset.

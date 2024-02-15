@@ -1,0 +1,529 @@
+.TH "ZSH" "1" "May 14, 2022" "zsh 5\&.9"
+.SH "NAME"
+zsh \- the Z shell
+.\" Yodl file: Zsh/intro.yo
+.SH "OVERVIEW"
+Because zsh contains many features, the zsh manual has been split into
+a number of sections:
+.PP
+.PD 0
+.TP
+\fIzsh\fP          Zsh overview (this section)
+.TP
+\fIzshroadmap\fP   Informal introduction to the manual
+.TP
+\fIzshmisc\fP      Anything not fitting into the other sections
+.TP
+\fIzshexpn\fP      Zsh command and parameter expansion
+.TP
+\fIzshparam\fP     Zsh parameters
+.TP
+\fIzshoptions\fP   Zsh options
+.TP
+\fIzshbuiltins\fP  Zsh built\-in functions
+.TP
+\fIzshzle\fP       Zsh command line editing
+.TP
+\fIzshcompwid\fP   Zsh completion widgets
+.TP
+\fIzshcompsys\fP   Zsh completion system
+.TP
+\fIzshcompctl\fP   Zsh completion control
+.TP
+\fIzshmodules\fP   Zsh loadable modules
+.TP
+\fIzshcalsys\fP    Zsh built\-in calendar functions
+.TP
+\fIzshtcpsys\fP    Zsh built\-in TCP functions
+.TP
+\fIzshzftpsys\fP   Zsh built\-in FTP client
+.TP
+\fIzshcontrib\fP   Additional zsh functions and utilities
+.TP
+\fIzshall\fP       Meta\-man page containing all of the above
+.PD
+.SH "DESCRIPTION"
+Zsh is a UNIX command interpreter (shell) usable as an interactive
+login shell and as a shell script command processor\&.  Of the standard shells,
+zsh most closely resembles \fBksh\fP but includes many enhancements\&.  It
+does not provide compatibility with POSIX or other shells in its
+default operating mode:  see
+the section `Compatibility\&' below\&.
+.PP
+Zsh has command line editing, builtin spelling correction, programmable
+command completion, shell functions (with autoloading), a history
+mechanism, and a host of other features\&.
+.\" Yodl file: Zsh/metafaq.yo
+.SH "AUTHOR"
+Zsh was originally written by Paul Falstad\&.  Zsh is now maintained by
+the members of the zsh\-workers mailing list \fB<zsh\-workers@zsh\&.org>\fP\&.
+The development is currently coordinated by Peter Stephenson
+\fB<pws@zsh\&.org>\fP\&.  The coordinator can be contacted at
+\fB<coordinator@zsh\&.org>\fP, but matters relating to the code should
+generally go to the mailing list\&.
+.SH "AVAILABILITY"
+Zsh is available from the following HTTP and anonymous FTP site\&.
+.PP
+.nf
+\fBftp://ftp\&.zsh\&.org/pub/\fP
+\fBhttps://www\&.zsh\&.org/pub/\fP
+.fi
+.PP
+The up\-to\-date source code is available via Git from Sourceforge\&.  See
+\fBhttps://sourceforge\&.net/projects/zsh/\fP for details\&.  A summary of
+instructions for the archive can be found at
+\fBhttps://zsh\&.sourceforge\&.io/\fP\&.
+.PP
+.SH "MAILING LISTS"
+Zsh has several mailing lists:
+.PP
+.PD 0
+.TP
+.PD
+\fB<zsh\-announce@zsh\&.org>\fP
+Announcements about releases, major changes in the shell and the
+monthly posting of the Zsh FAQ\&.  (moderated)
+.TP
+\fB<zsh\-users@zsh\&.org>\fP
+User discussions\&.
+.TP
+\fB<zsh\-workers@zsh\&.org>\fP
+Hacking, development, bug reports and patches\&.
+.TP
+\fB<zsh\-security@zsh\&.org>\fP
+Private mailing list (the general public cannot subscribe to it) for discussing
+bug reports with security implications, i\&.e\&., potential vulnerabilities\&.
+.RS
+.PP
+If you find a security problem in zsh itself, please mail this address\&.
+.RE
+.PP
+To subscribe or unsubscribe, send mail
+to the associated administrative address for the mailing list\&.
+.PP
+.PD 0
+.TP
+\fB<zsh\-announce\-subscribe@zsh\&.org>\fP
+.TP
+\fB<zsh\-users\-subscribe@zsh\&.org>\fP
+.TP
+\fB<zsh\-workers\-subscribe@zsh\&.org>\fP
+.PP
+.TP
+\fB<zsh\-announce\-unsubscribe@zsh\&.org>\fP
+.TP
+\fB<zsh\-users\-unsubscribe@zsh\&.org>\fP
+.TP
+\fB<zsh\-workers\-unsubscribe@zsh\&.org>\fP
+.PD
+.PP
+YOU ONLY NEED TO JOIN ONE OF THE MAILING LISTS AS THEY ARE NESTED\&.
+All submissions to \fBzsh\-announce\fP are automatically forwarded to
+\fBzsh\-users\fP\&.  All submissions to \fBzsh\-users\fP are automatically
+forwarded to \fBzsh\-workers\fP\&.
+.PP
+If you have problems subscribing/unsubscribing to any of the mailing
+lists, send mail to \fB<listmaster@zsh\&.org>\fP\&.
+.PP
+The mailing lists are archived; the archives can be accessed via the
+administrative addresses listed above\&.  There is also a hypertext
+archive available at
+\fBhttps://www\&.zsh\&.org/mla/\fP\&.
+.SH "THE ZSH FAQ"
+Zsh has a list of Frequently Asked Questions (FAQ), maintained by
+Peter Stephenson \fB<pws@zsh\&.org>\fP\&.  It is regularly posted to the
+newsgroup \fBcomp\&.unix\&.shell\fP and the \fBzsh\-announce\fP mailing list\&.
+The latest version can be found at any of the Zsh FTP sites, or at
+\fBhttps://www\&.zsh\&.org/FAQ/\fP\&.  The contact address for FAQ\-related matters
+is \fB<faqmaster@zsh\&.org>\fP\&.
+.SH "THE ZSH WEB PAGE"
+Zsh has a web page which is located at \fBhttps://www\&.zsh\&.org/\fP\&.
+The contact address for web\-related matters is \fB<webmaster@zsh\&.org>\fP\&.
+.SH "THE ZSH USERGUIDE"
+A userguide is currently in preparation\&.  It is intended to complement the
+manual, with explanations and hints on issues where the manual can be
+cabbalistic, hierographic, or downright mystifying (for example, the word
+`hierographic\&' does not exist)\&.  It can be viewed in its current state at
+\fBhttps://zsh\&.sourceforge\&.io/Guide/\fP\&.  At the time of writing, chapters
+dealing with startup files and their contents and the new completion system
+were essentially complete\&.
+.\" Yodl file: Zsh/invoke.yo
+.SH "INVOCATION"
+The following flags are interpreted by the shell when invoked to determine
+where the shell will read commands from:
+.PP
+.PD 0
+.TP
+.PD
+\fB\-c\fP
+Take the first argument as a command to execute, rather than reading commands
+from a script or standard input\&.  If any further arguments are given, the
+first one is assigned to \fB$0\fP, rather than being used as a positional
+parameter\&.
+.TP
+\fB\-i\fP
+Force shell to be interactive\&.  It is still possible to specify a
+script to execute\&.
+.TP
+\fB\-s\fP
+Force shell to read commands from the standard input\&.
+If the \fB\-s\fP flag is not present and an argument is given,
+the first argument is taken to be the pathname of a script to
+execute\&.
+.PP
+If there are any remaining arguments after option processing, and neither
+of the options \fB\-c\fP or \fB\-s\fP was supplied, the first argument is taken
+as the file name of a script containing shell commands to be executed\&.  If
+the option \fBPATH_SCRIPT\fP is set, and the file name does not contain a
+directory path (i\&.e\&. there is no `\fB/\fP\&' in the name), first the current
+directory and then the command path given by the variable \fBPATH\fP are
+searched for the script\&.  If the option is not set or the file name
+contains a `\fB/\fP\&' it is used directly\&.
+.PP
+After the first one or two arguments have been appropriated as described above,
+the remaining arguments are assigned to the positional parameters\&.
+.PP
+For further options, which are common to invocation and the \fBset\fP
+builtin, see
+\fIzshoptions\fP(1)\&.
+.PP
+The long option `\fB\-\fP\fB\-emulate\fP\&' followed (in a separate word) by an
+emulation mode may be passed to the shell\&.
+The emulation modes are those described for the \fBemulate\fP builtin,
+see
+\fIzshbuiltins\fP(1)\&.
+The `\fB\-\fP\fB\-emulate\fP\&' option must precede any other options (which might
+otherwise be overridden), but following options are honoured, so
+may be used to modify the requested emulation mode\&.  Note that certain
+extra steps are taken to ensure a smooth emulation when this option
+is used compared with the \fBemulate\fP command within the shell: for
+example, variables that conflict with POSIX usage such as \fBpath\fP are
+not defined within the shell\&.
+.PP
+Options may be specified by name using the \fB\-o\fP option\&.  \fB\-o\fP acts like
+a single\-letter option, but takes a following string as the option name\&.
+For example,
+.PP
+.RS
+.nf
+\fBzsh \-x \-o shwordsplit scr\fP
+.fi
+.RE
+.PP
+runs the script \fBscr\fP, setting the \fBXTRACE\fP option by the corresponding
+letter `\fB\-x\fP\&' and the \fBSH_WORD_SPLIT\fP option by name\&.
+Options may be turned \fIoff\fP by name by using \fB+o\fP instead of \fB\-o\fP\&.
+\fB\-o\fP can be stacked up with preceding single\-letter options, so for example
+`\fB\-xo shwordsplit\fP\&' or `\fB\-xoshwordsplit\fP' is equivalent to
+`\fB\-x \-o shwordsplit\fP\&'\&.
+.PP
+Options may also be specified by name in GNU long option style,
+`\fB\-\fP\fB\-\fP\fIoption\-name\fP\&'\&.  When this is done, `\fB\-\fP' characters in the
+option name are permitted: they are translated into `\fB_\fP\&', and thus ignored\&.
+So, for example, `\fBzsh \-\fP\fB\-sh\-word\-split\fP\&' invokes zsh with the
+\fBSH_WORD_SPLIT\fP option turned on\&.  Like other option syntaxes, options can
+be turned off by replacing the initial `\fB\-\fP\&' with a `\fB+\fP'; thus
+`\fB+\-sh\-word\-split\fP\&' is equivalent to `\fB\-\fP\fB\-no\-sh\-word\-split\fP'\&.
+Unlike other option syntaxes, GNU\-style long options cannot be stacked with
+any other options, so for example `\fB\-x\-shwordsplit\fP\&' is an error,
+rather than being treated like `\fB\-x \-\fP\fB\-shwordsplit\fP\&'\&.
+.PP
+The special GNU\-style option `\fB\-\fP\fB\-version\fP\&' is handled; it sends to
+standard output the shell\&'s version information, then exits successfully\&.
+`\fB\-\fP\fB\-help\fP\&' is also handled; it sends to standard output a list of
+options that can be used when invoking the shell, then exits successfully\&.
+.PP
+Option processing may be finished, allowing following arguments that start with
+`\fB\-\fP\&' or `\fB+\fP' to be treated as normal arguments, in two ways\&.
+Firstly, a lone `\fB\-\fP\&' (or `\fB+\fP') as an argument by itself ends
+option processing\&.  Secondly, a special option `\fB\-\fP\fB\-\fP\&' (or
+`\fB+\-\fP\&'), which may be specified on its own (which is the standard
+POSIX usage) or may be stacked with preceding options (so `\fB\-x\-\fP\&' is
+equivalent to `\fB\-x \-\fP\fB\-\fP\&')\&.  Options are not permitted to be stacked
+after `\fB\-\fP\fB\-\fP\&' (so `\fB\-x\-f\fP' is an error), but note the GNU\-style
+option form discussed above, where `\fB\-\fP\fB\-shwordsplit\fP\&' is permitted
+and does not end option processing\&.
+.PP
+Except when the \fBsh\fP/\fBksh\fP emulation single\-letter options are in effect,
+the option `\fB\-b\fP\&' (or `\fB+b\fP') ends option processing\&.
+`\fB\-b\fP\&' is like `\fB\-\fP\fB\-\fP', except that further single\-letter options
+can be stacked after the `\fB\-b\fP\&' and will take effect as normal\&.
+.PP
+.PP
+.\" Yodl file: Zsh/compat.yo
+.SH "COMPATIBILITY"
+Zsh tries to emulate \fBsh\fP or \fBksh\fP when it is invoked as
+\fBsh\fP or \fBksh\fP respectively; more precisely, it looks at the first
+letter of the name by which it was invoked, excluding any initial `\fBr\fP\&'
+(assumed to stand for `restricted\&'), and if that is `\fBb\fP', `\fBs\fP' or `\fBk\fP' it
+will emulate \fBsh\fP or \fBksh\fP\&.  Furthermore, if invoked as \fBsu\fP (which
+happens on certain systems when the shell is executed by the \fBsu\fP
+command), the shell will try to find an alternative name from the \fBSHELL\fP
+environment variable and perform emulation based on that\&.
+.PP
+In \fBsh\fP and \fBksh\fP compatibility modes the following
+parameters are not special and not initialized by the shell:
+\fBARGC\fP,
+\fBargv\fP,
+\fBcdpath\fP,
+\fBfignore\fP,
+\fBfpath\fP,
+\fBHISTCHARS\fP,
+\fBmailpath\fP,
+\fBMANPATH\fP,
+\fBmanpath\fP,
+\fBpath\fP,
+\fBprompt\fP,
+\fBPROMPT\fP,
+\fBPROMPT2\fP,
+\fBPROMPT3\fP,
+\fBPROMPT4\fP,
+\fBpsvar\fP,
+\fBstatus\fP\&.
+.PP
+The usual zsh startup/shutdown scripts are not executed\&.  Login shells
+source \fB/etc/profile\fP followed by \fB$HOME/\&.profile\fP\&.  If the
+\fBENV\fP environment variable is set on invocation, \fB$ENV\fP is sourced
+after the profile scripts\&.  The value of \fBENV\fP is subjected to
+parameter expansion, command substitution, and arithmetic expansion
+before being interpreted as a pathname\&.  Note that the \fBPRIVILEGED\fP
+option also affects the execution of startup files\&.
+.PP
+The following options are set if the shell is invoked as \fBsh\fP or
+\fBksh\fP:
+\fBNO_BAD_PATTERN\fP,
+\fBNO_BANG_HIST\fP,
+\fBNO_BG_NICE\fP,
+\fBNO_EQUALS\fP,
+\fBNO_FUNCTION_ARGZERO\fP,
+\fBGLOB_SUBST\fP,
+\fBNO_GLOBAL_EXPORT\fP,
+\fBNO_HUP\fP,
+\fBINTERACTIVE_COMMENTS\fP,
+\fBKSH_ARRAYS\fP,
+\fBNO_MULTIOS\fP,
+\fBNO_NOMATCH\fP,
+\fBNO_NOTIFY\fP,
+\fBPOSIX_BUILTINS\fP,
+\fBNO_PROMPT_PERCENT\fP,
+\fBRM_STAR_SILENT\fP,
+\fBSH_FILE_EXPANSION\fP,
+\fBSH_GLOB\fP,
+\fBSH_OPTION_LETTERS\fP,
+\fBSH_WORD_SPLIT\fP\&.
+Additionally the \fBBSD_ECHO\fP and \fBIGNORE_BRACES\fP
+options are set if zsh is invoked as \fBsh\fP\&.
+Also, the
+\fBKSH_OPTION_PRINT\fP,
+\fBLOCAL_OPTIONS\fP,
+\fBPROMPT_BANG\fP,
+\fBPROMPT_SUBST\fP
+and
+\fBSINGLE_LINE_ZLE\fP
+options are set if zsh is invoked as \fBksh\fP\&.
+.PP
+Please note that, whilst reasonable efforts are taken to address
+incompatibilities when they arise, zsh does not guarantee complete
+emulation of other shells, nor POSIX compliance\&. For more information on
+the differences between zsh and other shells, please refer to chapter 2
+of the shell FAQ, \fBhttps://www\&.zsh\&.org/FAQ/\fP\&.
+.\" Yodl file: Zsh/restricted.yo
+.SH "RESTRICTED SHELL"
+When the basename of the command used to invoke zsh starts with the letter
+`\fBr\fP\&' or the `\fB\-r\fP' command line option is supplied at invocation, the
+shell becomes restricted\&.  Emulation mode is determined after stripping the
+letter `\fBr\fP\&' from the invocation name\&.  The following are disabled in
+restricted mode:
+.PP
+.PD 0
+.TP
+.PD
+\(bu
+changing directories with the \fBcd\fP builtin
+.TP
+\(bu
+changing or unsetting the \fBEGID\fP, \fBEUID\fP, \fBGID\fP,
+\fBHISTFILE\fP, \fBHISTSIZE\fP, \fBIFS\fP, \fBLD_AOUT_LIBRARY_PATH\fP,
+\fBLD_AOUT_PRELOAD\fP, \fBLD_LIBRARY_PATH\fP, \fBLD_PRELOAD\fP,
+\fBMODULE_PATH\fP, \fBmodule_path\fP, \fBPATH\fP, \fBpath\fP, \fBSHELL\fP,
+\fBUID\fP and \fBUSERNAME\fP parameters
+.TP
+\(bu
+specifying command names containing \fB/\fP
+.TP
+\(bu
+specifying command pathnames using \fBhash\fP
+.TP
+\(bu
+redirecting output to files
+.TP
+\(bu
+using the \fBexec\fP builtin command to replace the shell with another
+command
+.TP
+\(bu
+using \fBjobs \-Z\fP to overwrite the shell process\&' argument and
+environment space
+.TP
+\(bu
+using the \fBARGV0\fP parameter to override \fBargv[0]\fP for external
+commands
+.TP
+\(bu
+turning off restricted mode with \fBset +r\fP or \fBunsetopt
+RESTRICTED\fP
+.PP
+These restrictions are enforced after processing the startup files\&.  The
+startup files should set up \fBPATH\fP to point to a directory of commands
+which can be safely invoked in the restricted environment\&.  They may also
+add further restrictions by disabling selected builtins\&.
+.PP
+Restricted mode can also be activated any time by setting the
+\fBRESTRICTED\fP option\&.  This immediately enables all the restrictions
+described above even if the shell still has not processed all startup
+files\&.
+.PP
+A shell \fIRestricted Mode\fP is an outdated way to restrict what users may
+do:  modern systems have better, safer and more reliable ways to
+confine user actions, such as \fIchroot jails\fP, \fIcontainers\fP and
+\fIzones\fP\&.
+.PP
+A restricted shell is very difficult to implement safely\&.  The feature
+may be removed in a future version of zsh\&.
+.PP
+It is important to realise that the restrictions only apply to the shell,
+not to the commands it runs (except for some shell builtins)\&.  While a
+restricted shell can only run the restricted list of commands accessible
+via the predefined `\fBPATH\fP\&' variable, it does not prevent those
+commands from running any other command\&.
+.PP
+As an example, if `\fBenv\fP\&' is among the list of \fIallowed\fP commands,
+then it allows the user to run any command as `\fBenv\fP\&' is not a shell
+builtin command and can run arbitrary executables\&.
+.PP
+So when implementing a restricted shell framework it is important to be
+fully aware of what actions each of the \fIallowed\fP commands or features
+(which may be regarded as \fImodules\fP) can perform\&.
+.PP
+Many commands can have their behaviour affected by environment
+variables\&.  Except for the few listed above, zsh does not restrict
+the setting of environment variables\&.
+.PP
+If a `\fBperl\fP\&', `\fBpython\fP', `\fBbash\fP', or other general purpose
+interpreted script it treated as a restricted
+command, the user can work around the restriction by
+setting specially crafted `\fBPERL5LIB\fP\&', `\fBPYTHONPATH\fP',
+`\fBBASHENV\fP\&' (etc\&.) environment variables\&. On GNU systems, any
+command can be made to run arbitrary code when performing character set
+conversion (including zsh itself) by setting a `\fBGCONV_PATH\fP\&'
+environment variable\&.  Those are only a few examples\&.
+.PP
+Bear in mind that, contrary to some other shells, `\fBreadonly\fP\&' is not a
+security feature in zsh as it can be undone and so cannot be used to
+mitigate the above\&.
+.PP
+A restricted shell only works if the allowed commands are few
+and carefully written so as not to grant more access to users than
+intended\&.  It is also important to restrict what zsh module the user may
+load as some of them, such as `\fBzsh/system\fP\&', `\fBzsh/mapfile\fP' and
+`\fBzsh/files\fP\&', allow bypassing most of the restrictions\&.
+.\" Yodl file: Zsh/files.yo
+.SH "STARTUP/SHUTDOWN FILES"
+Commands are first read from \fB/etc/zshenv\fP; this cannot be overridden\&.
+Subsequent behaviour is modified by the \fBRCS\fP and
+\fBGLOBAL_RCS\fP options; the former affects all startup files, while the
+second only affects global startup files (those shown here with an
+path starting with a \fB/\fP)\&.  If one of the options
+is unset at any point, any subsequent startup file(s)
+of the corresponding
+type will not be read\&.  It is also possible for a file in \fB$ZDOTDIR\fP to
+re\-enable \fBGLOBAL_RCS\fP\&. Both \fBRCS\fP and \fBGLOBAL_RCS\fP are set by
+default\&.
+.PP
+Commands are then read from \fB$ZDOTDIR/\&.zshenv\fP\&.
+If the shell is a login shell, commands
+are read from \fB/etc/zprofile\fP and then \fB$ZDOTDIR/\&.zprofile\fP\&.
+Then, if the shell is interactive,
+commands are read from \fB/etc/zshrc\fP and then \fB$ZDOTDIR/\&.zshrc\fP\&.
+Finally, if the shell is a login shell, \fB/etc/zlogin\fP and
+\fB$ZDOTDIR/\&.zlogin\fP are read\&.
+.PP
+When a login shell exits, the files \fB$ZDOTDIR/\&.zlogout\fP and then
+\fB/etc/zlogout\fP are read\&.  This happens with either an explicit exit
+via the \fBexit\fP or \fBlogout\fP commands, or an implicit exit by reading
+end\-of\-file from the terminal\&.  However, if the shell terminates due
+to \fBexec\fP\&'ing another process, the logout files are not read\&.
+These are also affected by the \fBRCS\fP and \fBGLOBAL_RCS\fP options\&.
+Note also that the \fBRCS\fP option affects the saving of history files,
+i\&.e\&. if \fBRCS\fP is unset when the shell exits, no history file will be
+saved\&.
+.PP
+If \fBZDOTDIR\fP is unset, \fBHOME\fP is used instead\&.
+Files listed above as being in \fB/etc\fP may be in another
+directory, depending on the installation\&.
+.PP
+As \fB/etc/zshenv\fP is run for all instances of zsh, it is important that
+it be kept as small as possible\&.  In particular, it is a good idea to
+put code that does not need to be run for every single shell behind
+a test of the form `\fBif [[ \-o rcs ]]; then \&.\&.\&.\fP\&' so that it will not
+be executed when zsh is invoked with the `\fB\-f\fP\&' option\&.
+.PP
+Any of these files may be pre\-compiled with the \fBzcompile\fP builtin
+command (see \fIzshbuiltins\fP(1))\&.  If a compiled file exists (named for the original file plus the
+\fB\&.zwc\fP extension) and it is newer than the original file, the compiled
+file will be used instead\&.
+.\" Yodl file: Zsh/filelist.yo
+.SH "FILES"
+.PD 0
+.TP
+\fB$ZDOTDIR/\&.zshenv\fP
+.TP
+\fB$ZDOTDIR/\&.zprofile\fP
+.TP
+\fB$ZDOTDIR/\&.zshrc\fP
+.TP
+\fB$ZDOTDIR/\&.zlogin\fP
+.TP
+\fB$ZDOTDIR/\&.zlogout\fP
+.TP
+\fB${TMPPREFIX}*\fP   (default is /tmp/zsh*)
+.TP
+\fB/etc/zshenv\fP
+.TP
+\fB/etc/zprofile\fP
+.TP
+\fB/etc/zshrc\fP
+.TP
+\fB/etc/zlogin\fP
+.TP
+\fB/etc/zlogout\fP    (installation\-specific \- \fB/etc\fP is the default)
+.PD
+.\" Yodl file: Zsh/seealso.yo
+.SH "SEE ALSO"
+\fIsh\fP(1),
+\fIcsh\fP(1),
+\fItcsh\fP(1),
+\fIrc\fP(1),
+\fIbash\fP(1),
+\fIksh\fP(1),
+\fIzshall\fP(1),
+\fIzshbuiltins\fP(1),
+\fIzshcalsys\fP(1),
+\fIzshcompwid\fP(1),
+\fIzshcompsys\fP(1),
+\fIzshcompctl\fP(1),
+\fIzshcontrib\fP(1),
+\fIzshexpn\fP(1),
+\fIzshmisc\fP(1),
+\fIzshmodules\fP(1),
+\fIzshoptions\fP(1),
+\fIzshparam\fP(1),
+\fIzshroadmap\fP(1),
+\fIzshtcpsys\fP(1),
+\fIzshzftpsys\fP(1),
+\fIzshzle\fP(1)
+.PP
+\fBIEEE Standard for information Technology \-
+Portable Operating System Interface (POSIX) \-
+Part 2: Shell and Utilities\fP,
+IEEE Inc, 1993, ISBN 1\-55937\-255\-9\&.

@@ -1,0 +1,5 @@
+export [ name[=value] ... ]
+       The specified names are marked for automatic export to the envi-
+       ronment  of subsequently executed commands.  Equivalent to type-
+       set -gx.  If a parameter specified does not already exist, it is
+       created in the global scope.

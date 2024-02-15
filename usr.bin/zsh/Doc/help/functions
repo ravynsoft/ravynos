@@ -1,0 +1,116 @@
+functions [ {+|-}UkmtTuWz ] [ -x num ] [ name ... ]
+functions -c oldfn newfn
+functions -M [-s] mathfn [ min [ max [ shellfn ] ] ]
+functions -M [ -m pattern ... ]
+functions +M [ -m ] mathfn ...
+       Equivalent  to  typeset -f, with the exception of the -c, -x, -M
+       and -W options.  For functions -u  and  functions  -U,  see  au-
+       toload, which provides additional options.  For functions -t and
+       functions -T, see typeset -f.
+
+       The -x option indicates that any functions output will have each
+       leading  tab for indentation, added by the shell to show syntac-
+       tic structure, expanded to the given number num of spaces.   num
+       can also be 0 to suppress all indentation.
+
+       The  -W option turns on the option WARN_NESTED_VAR for the named
+       function or functions only.  The option is  turned  off  at  the
+       start  of nested functions (apart from anonoymous functions) un-
+       less the called function also has the -W attribute.
+
+       The -c option causes oldfn to be copied to newfn.  The  copy  is
+       efficiently  handled internally by reference counting.  If oldfn
+       was marked for autoload it is first loaded and if this fails the
+       copy fails.  Either function may subsequently be redefined with-
+       out affecting the other.  A typical idiom is that oldfn  is  the
+       name of a library shell function which is then redefined to call
+       newfn, thereby installing a modified version of the function.
+
+       The -M and +M flags
+
+       Use of the -M option may not be combined with any of the options
+       handled by typeset -f.
+
+       functions -M mathfn defines mathfn as the name of a mathematical
+       function recognised in all forms  of  arithmetical  expressions;
+       see  the  section `Arithmetic Evaluation' in zshmisc(1).  By de-
+       fault mathfn may take any number of  comma-separated  arguments.
+       If  min  is given, it must have exactly min args; if min and max
+       are both given, it must have at least min and at most max  args.
+       max may be -1 to indicate that there is no upper limit.
+
+       By  default  the  function is implemented by a shell function of
+       the same name; if shellfn is specified it gives the name of  the
+       corresponding  shell function while mathfn remains the name used
+       in arithmetical expressions.  The name of the function in $0  is
+       mathfn  (not shellfn as would usually be the case), provided the
+       option FUNCTION_ARGZERO is in effect.  The positional parameters
+       in  the shell function correspond to the arguments of the mathe-
+       matical function call.
+
+       The result of the last arithmetical expression evaluated  inside
+       the  shell  function  gives the result of the mathematical func-
+       tion.  This is not limited to arithmetic  substitutions  of  the
+       form $((...)), but also includes arithmetical expressions evalu-
+       ated in any other way, including by the let builtin, by  ((...))
+       statements,  and  even  by  the return builtin and by array sub-
+       scripts.  Therefore, care must be taken not to  use  syntactical
+       constructs  that  perform arithmetic evaluation after evaluating
+       what is to be the result of the function.  For example:
+
+              # WRONG
+              zmath_cube() {
+                (( $1 * $1 * $1 ))
+                return 0
+              }
+              functions -M cube 1 1 zmath_cube
+              print $(( cube(3) ))
+
+       This will print `0' because of the return.
+
+       Commenting the return out would lead to a different problem: the
+       ((...))  statement  would become the last statement in the func-
+       tion, so the  return  status  ($?)  of  the  function  would  be
+       non-zero  (indicating failure) whenever the arithmetic result of
+       the function would happen to be zero (numerically):
+
+              # WRONG
+              zmath_cube() {
+                (( $1 * $1 * $1 ))
+              }
+              functions -M cube 1 1 zmath_cube
+              print $(( cube(0) ))
+
+       Instead, the true builtin can be used:
+
+              # RIGHT
+              zmath_cube() {
+                (( $1 * $1 * $1 ))
+                true
+              }
+              functions -M cube 1 1 zmath_cube
+              print $(( cube(3) ))
+
+       If the additional option -s is given to functions -M, the  argu-
+       ment  to  the  function is a single string: anything between the
+       opening and matching closing parenthesis is passed to the  func-
+       tion  as  a single argument, even if it includes commas or white
+       space.  The minimum and maximum argument specifiers must  there-
+       fore  be  1  if  given.   An  empty argument list is passed as a
+       zero-length string.  Thus, the following string function takes a
+       single argument, including the commas, and prints 11:
+
+              stringfn() { (( $#1 )); true }
+              functions -Ms stringfn
+              print $(( stringfn(foo,bar,rod) ))
+
+       functions -M with no arguments lists all such user-defined func-
+       tions in the same form as a definition.  With the additional op-
+       tion  -m  and  a  list  of arguments, all functions whose mathfn
+       matches one of the pattern arguments are listed.
+
+       function +M removes the list of mathematical functions; with the
+       additional  option  -m the arguments are treated as patterns and
+       all functions whose mathfn  matches  the  pattern  are  removed.
+       Note  that  the shell function implementing the behaviour is not
+       removed (regardless of whether its name coincides with mathfn).

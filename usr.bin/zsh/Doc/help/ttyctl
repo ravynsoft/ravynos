@@ -1,0 +1,22 @@
+ttyctl [ -fu ]
+       The  -f option freezes the tty (i.e. terminal or terminal emula-
+       tor), and -u unfreezes it.  When the tty is frozen,  no  changes
+       made to the tty settings by external programs will be honored by
+       the shell, except for changes in the size  of  the  screen;  the
+       shell will simply reset the settings to their previous values as
+       soon as each command exits or is suspended.  Thus, stty and sim-
+       ilar  programs  have no effect when the tty is frozen.  Freezing
+       the tty does not cause the current state to be  remembered:  in-
+       stead, it causes future changes to the state to be blocked.
+
+       Without  options  it  reports  whether the terminal is frozen or
+       not.
+
+       Note that, regardless of whether the tty is frozen or  not,  the
+       shell  needs to change the settings when the line editor starts,
+       so unfreezing the tty does not guarantee settings  made  on  the
+       command  line  are  preserved.   Strings of commands run between
+       editing the command line will see a consistent tty  state.   See
+       also the shell variable STTY for a means of initialising the tty
+       before running external commands and/or freezing the tty  around
+       a single command.

@@ -1,0 +1,46 @@
+set [ {+|-}options | {+|-}o [ option_name ] ] ... [ {+|-}A [ name ] ]
+    [ arg ... ]
+       Set  the options for the shell and/or set the positional parame-
+       ters, or declare and set an array.  If the -s option  is  given,
+       it  causes the specified arguments to be sorted before assigning
+       them to the positional parameters (or to the array name if -A is
+       used).   With  +s  sort  arguments in descending order.  For the
+       meaning of the other flags, see  zshoptions(1).   Flags  may  be
+       specified by name using the -o option. If no option name is sup-
+       plied with -o, the current option states are printed:   see  the
+       description  of setopt below for more information on the format.
+       With +o they are printed in a form that can be used as input  to
+       the shell.
+
+       If  the -A flag is specified, name is set to an array containing
+       the given args; if no name is specified, all arrays are  printed
+       together with their values.
+
+       If +A is used and name is an array, the given arguments will re-
+       place the initial elements of that array; if no name  is  speci-
+       fied, all arrays are printed without their values.
+
+       The  behaviour  of arguments after -A name or +A name depends on
+       whether the option KSH_ARRAYS is set.  If it is not set, all ar-
+       guments  following name are treated as values for the array, re-
+       gardless of their form.  If the option  is  set,  normal  option
+       processing  continues  at that point; only regular arguments are
+       treated as values for the array.  This means that
+
+              set -A array -x -- foo
+
+       sets array to `-x -- foo' if KSH_ARRAYS is not set, but sets the
+       array to foo and turns on the option `-x' if it is set.
+
+       If  the  -A  flag is not present, but there are arguments beyond
+       the options, the positional parameters are set.  If  the  option
+       list  (if  any)  is terminated by `--', and there are no further
+       arguments, the positional parameters will be unset.
+
+       If no arguments and no `--' are given, then the names and values
+       of  all  parameters  are printed on the standard output.  If the
+       only argument is `+', the names of all parameters are printed.
+
+       For historical reasons, `set -' is treated as `set +xv' and `set
+       -  args'  as  `set +xv -- args' when in any other emulation mode
+       than zsh's native mode.
