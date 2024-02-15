@@ -47,7 +47,7 @@ init.o params.o parse.o: version.h
 
 params.o: patchlevel.h
 
-version.h: $(sdir_top)/Config/version.mk zshcurses.h zshterm.h
+version.h: $(sdir_top)/Config/version.mk zshcurses.h zshterm.h zshpaths.h
 	echo '#define ZSH_VERSION "'$(VERSION)'"' > $@
 
 patchlevel.h: FORCE
