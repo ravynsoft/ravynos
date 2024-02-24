@@ -63,6 +63,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libdwarf \
 	libedit \
 	libelftc \
+        libepoll-shim \
 	libevent1 \
 	libexecinfo \
 	libexpat \

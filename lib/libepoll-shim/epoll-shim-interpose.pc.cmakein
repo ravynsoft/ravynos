@@ -1,0 +1,12 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=@CMAKE_INSTALL_FULL_LIBDIR@
+includedir=@CMAKE_INSTALL_FULL_INCLUDEDIR@
+
+Name: epoll-shim-interpose
+URL: https://github.com/jiixyj/epoll-shim
+Description: Small epoll implementation using kqueue (interposing wrapper)
+Version: 
+Requires: epoll-shim
+Libs: -L${libdir} -lepoll-shim-interpose
+Cflags: -DEPOLL_SHIM_DISABLE_WRAPPER_MACROS
