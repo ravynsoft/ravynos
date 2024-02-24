@@ -2,6 +2,7 @@
 
 all:
 	mkdir -p ${BUILDROOT}/System/Library/Frameworks
+	test "${DESTDIR}" = "" && true || mkdir -p ${DESTDIR}
 	${MAKE} -C ${.CURDIR}/../Foundation marshalheaders
 	mkdir -p ${.CURDIR}/../AppKit/Headers/AppKit
 	ln -f ${.CURDIR}/../Foundation/NSException/NSRaise.h \
