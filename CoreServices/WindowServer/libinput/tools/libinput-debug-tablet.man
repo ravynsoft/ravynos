@@ -1,0 +1,33 @@
+.TH libinput-debug-tablet "1"
+.SH NAME
+libinput\-debug\-tablet\ \- debug and visualize tablet axes
+.SH SYNOPSIS
+.B libinput debug-tablet [\-\-help] [options] [\fI/dev/input/event0\fI]
+.SH DESCRIPTION
+.PP
+The
+.B "libinput debug-tablet"
+tool debugs the values of the various axes on a tablet. This is
+an interactive tool. When executed, the tool will prompt the user to
+interact with the tablet and display the current value on each available
+axis.
+.PP
+This is a debugging tool only, its output may change at any time. Do not
+rely on the output.
+.PP
+This tool usually needs to be run as root to have access to the
+/dev/input/eventX nodes.
+.SH OPTIONS
+If a device node is given, this tool opens that device node. Otherwise, this
+tool searches for the first node that looks like a tablet and uses that
+node.
+.TP 8
+.B \-\-help
+Print help
+.PP
+Events shown by this tool may not correspond to the events seen by a
+different user of libinput. This tool initializes a separate context.
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

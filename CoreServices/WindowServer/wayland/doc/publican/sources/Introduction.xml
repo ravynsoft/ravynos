@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "Wayland.ent">
+%BOOK_ENTITIES;
+]>
+<chapter id="chap-Introduction">
+  <title>Introduction</title>
+  <section id="sect-Motivation">
+    <title>Motivation</title>
+    <para>
+      Most Linux and Unix-based systems rely on the X Window System (or
+      simply <emphasis>X</emphasis>) as the low-level protocol for building
+      bitmap graphics interfaces. On these systems, the X stack has grown to
+      encompass functionality arguably belonging in client libraries,
+      helper libraries, or the host operating system kernel.  Support for
+      things like PCI resource management, display configuration management,
+      direct rendering, and memory management has been integrated into the X
+      stack, imposing limitations like limited support for standalone
+      applications, duplication in other projects (e.g. the Linux fb layer
+      or the DirectFB project), and high levels of complexity for systems
+      combining multiple elements (for example radeon memory map handling
+      between the fb driver and X driver, or VT switching).
+    </para>
+    <para>
+      Moreover, X has grown to incorporate modern features like offscreen
+      rendering and scene composition, but subject to the limitations of the
+      X architecture.  For example, the X implementation of composition adds
+      additional context switches and makes things like input redirection
+      difficult.
+    </para>
+    <mediaobject>
+      <imageobject>
+	<imagedata fileref="images/x-architecture.png" format="PNG" />
+      </imageobject>
+      <textobject>
+	<phrase>
+	  X architecture diagram
+	</phrase>
+      </textobject>
+    </mediaobject>
+    <para>
+      The diagram above illustrates the central role of the X server and
+      compositor in operations, and the steps required to get contents on to
+      the screen.
+    </para>
+    <para>
+      Over time, X developers came to understand the shortcomings of this
+      approach and worked to split things up.  Over the past several years,
+      a lot of functionality has moved out of the X server and into
+      client-side libraries or kernel drivers. One of the first components
+      to move out was font rendering, with freetype and fontconfig providing
+      an alternative to the core X fonts.  Direct rendering OpenGL as a
+      graphics driver in a client side library went through some iterations,
+      ending up as DRI2, which abstracted most of the direct rendering
+      buffer management from client code. Then cairo came along and provided
+      a modern 2D rendering library independent of X, and compositing
+      managers took over control of the rendering of the desktop as toolkits
+      like GTK+ and Qt moved away from using X APIs for rendering. Recently,
+      memory and display management have moved to the Linux kernel, further
+      reducing the scope of X and its driver stack.  The end result is a
+      highly modular graphics stack.
+    </para>
+
+  </section>
+
+  <section id="sect-Compositing-manager-display-server">
+    <title>The compositing manager as the display server</title>
+    <para>
+      Wayland is a new display server and compositing protocol, and Weston
+      is the implementation of this protocol which builds on top of all the
+      components above. We are trying to distill out the functionality in
+      the X server that is still used by the modern Linux desktop. This
+      turns out to be not a whole lot. Applications can allocate their own
+      off-screen buffers and render their window contents directly, using
+      hardware accelerated libraries like libGL, or high quality software
+      implementations like those found in Cairo. In the end, what’s needed
+      is a way to present the resulting window surface for display, and a
+      way to receive and arbitrate input among multiple clients. This is
+      what Wayland provides, by piecing together the components already in
+      the eco-system in a slightly different way.
+    </para>
+    <para>
+      X will always be relevant, in the same way Fortran compilers and VRML
+      browsers are, but it’s time that we think about moving it out of the
+      critical path and provide it as an optional component for legacy
+      applications.
+    </para>
+    <para>
+      Overall, the philosophy of Wayland is to provide clients with a way to
+      manage windows and how their contents is displayed.  Rendering is left
+      to clients, and system wide memory management interfaces are used to
+      pass buffer handles between clients and the compositing manager.
+    </para>
+    <mediaobject>
+      <imageobject>
+	<imagedata fileref="images/wayland-architecture.png" format="PNG" />
+      </imageobject>
+      <textobject>
+	<phrase>
+	  Wayland architecture diagram
+	</phrase>
+      </textobject>
+    </mediaobject>
+    <para>
+      The figure above illustrates how Wayland clients interact with a
+      Wayland server.  Note that window management and composition are
+      handled entirely in the server, significantly reducing complexity
+      while marginally improving performance through reduced context
+      switching.  The resulting system is easier to build and extend than a
+      similar X system, because often changes need only be made in one
+      place.  Or in the case of protocol extensions, two (rather than 3 or 4
+      in the X case where window management and/or composition handling may
+      also need to be updated).
+    </para>
+  </section>
+</chapter>

@@ -1,0 +1,212 @@
+# This file contains the configuration for the gitlab ci.
+# See the .gitlab-ci/generate-gitlab-ci.py file for more info
+#
+
+# We're happy to rebuild all containers when one changes.
+.default_tag: &default_tag '2023-02-13.0'
+
+distributions:
+  - name: fedora
+    tag: *default_tag
+    versions:
+      - '37'
+      - '38'
+    use_for_custom_build_tests: true
+    use_for_qemu_tests: true
+    packages:
+      - git-core
+      - gcc
+      - gcc-c++
+      - pkgconf-pkg-config
+      - meson
+      - check-devel
+      - libudev-devel
+      - libevdev-devel
+      - doxygen
+      - graphviz
+      - python3-sphinx
+      - python3-recommonmark
+      - python3-sphinx_rtd_theme
+      - python3-pytest-xdist
+      - libwacom-devel
+      - cairo-devel
+      - gtk4-devel
+      - glib2-devel
+      - mtdev-devel
+      - diffutils
+      - wayland-protocols-devel
+      - black           # for the Python black job, optional
+      - clang-analyzer  # for the scan-build job, optional
+      - jq              # for the test suite check job, optional
+      - rpmdevtools     # for the rpm build job, optional
+      - valgrind        # for the valgrind run, optional
+      # below packages are for the qemu runs, so optional
+      - systemd-udev    # for the qemu run
+      - qemu-img
+      - qemu-system-x86-core
+      - qemu-system-aarch64-core
+      - jq
+      - python3-click
+      - python3-rich
+  - name: debian
+    tag: *default_tag
+    versions:
+      - 'stable'
+    packages:
+      - git
+      - gcc
+      - g++
+      - pkg-config
+      - meson
+      - check
+      - libudev-dev
+      - libevdev-dev
+      - doxygen
+      - graphviz
+      - python3-sphinx
+      - python3-recommonmark
+      - python3-sphinx-rtd-theme
+      - python3-pytest-xdist
+      - libwacom-dev
+      - libcairo2-dev
+      - libgtk-3-dev
+      - libglib2.0-dev
+      - libmtdev-dev
+      - curl            # for the coverity job
+  - name: ubuntu
+    tag: *default_tag
+    versions:
+      - '22.04'
+    packages:
+      - git
+      - gcc
+      - g++
+      - pkg-config
+      - meson
+      - check
+      - libudev-dev
+      - libevdev-dev
+      - doxygen
+      - graphviz
+      - python3-sphinx
+      - python3-recommonmark
+      - python3-sphinx-rtd-theme
+      - python3-pytest-xdist
+      - libwacom-dev
+      - libcairo2-dev
+      - libgtk-3-dev
+      - libglib2.0-dev
+      - libmtdev-dev
+  - name: arch
+    tag: *default_tag
+    versions:
+      - 'rolling'
+    packages:
+      - git
+      - gcc
+      - pkgconfig
+      - meson
+      - check
+      - libsystemd
+      - libevdev
+      - doxygen
+      - graphviz
+      - python-sphinx
+      - python-recommonmark
+      - python-sphinx_rtd_theme
+      - python-pytest-xdist
+      - libwacom
+      - gtk4
+      - mtdev
+      - diffutils
+      - wayland-protocols
+  - name: alpine
+    tag: *default_tag
+    versions:
+      - 'latest'
+    packages:
+      - git
+      - gcc build-base
+      - pkgconfig
+      - meson
+      - check-dev
+      - eudev-dev
+      - libevdev-dev
+      - libwacom-dev
+      - cairo-dev
+      - gtk4.0-dev
+      - mtdev-dev
+      - bash
+    build:
+      extra_variables:
+        - "MESON_ARGS: '-Ddocumentation=false' # alpine does not have python-recommonmark"
+        # We don't run the tests on alpine. The litest-selftest fails
+        # for any tcase_add_exit_test/tcase_add_test_raise_signal
+        # but someone more invested in musl will have to figure that out.
+        - "MESON_TEST_ARGS: '' # litest-selftest fails on musl"
+  - name: freebsd
+    tag: *default_tag
+    qemu_based: true
+    versions:
+      - '13.1'
+    packages:
+      - git
+      - pkgconf
+      - meson
+      - libepoll-shim
+      - libudev-devd
+      - libevdev
+      - libwacom
+      - gtk3
+      - libmtdev
+      - bash
+      - wayland
+    build:
+      extra_variables:
+        - "MESON_ARGS: '-Dtests=false -Ddocumentation=false' # doxygen drags down too many deps"
+        # We don't run the tests on FreeBSD, someone would have to fix the
+        # test suite to work on BSD first.
+        - "MESON_TEST_ARGS: '' # test suite doesn't work on BSD yet"
+
+test_suites:
+  - name: touchpad
+    suites:
+      - touchpad
+  - name: tap
+    suites:
+      - touchpad-tap
+  - name: touchpad-buttons
+    suites:
+      - touchpad-buttons
+  - name: tablet
+    suites:
+      - tablet
+  - name: gestures-device
+    suites:
+      - gestures
+      - device
+  - name: backends
+    suites:
+      - path
+      - udev
+  - name: misc
+    suites:
+      - log
+      - misc
+      - quirks
+  - name: other devices
+    suites:
+      - keyboard
+      - pad
+      - switch
+      - trackball
+      - trackpoint
+      - totem
+      - touch
+  - name: pointer
+    suites:
+      - pointer
+
+b2c:
+  version: 2ff65156ba67fa8a0c309a4fc16c5df1a88a3844
+  kernel: https://gitlab.freedesktop.org/api/v4/projects/libevdev%2Fhid-tools/packages/generic/kernel-x86_64/v6.5/bzImage

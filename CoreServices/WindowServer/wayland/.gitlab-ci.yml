@@ -1,0 +1,352 @@
+# This file uses the freedesktop ci-templates to build Wayland and run our
+# tests in CI.
+#
+# ci-templates uses a multi-stage build process. First, the base container
+# image is built which contains the core distribution, the toolchain, and
+# all our build dependencies. This container is aggressively cached; if a
+# container image matching $FDO_DISTRIBUTION_TAG is found in either the
+# upstream repo (wayland/weston) or the user's downstream repo, it is
+# reused for the build. This gives us predictability of build and far
+# quicker runtimes, however it means that any changes to the base container
+# must also change $FDO_DISTRIBUTION_TAG. When changing this, please use
+# the current date as well as a unique build identifier.
+#
+# After the container is either rebuilt (tag mismatch) or reused (tag
+# previously used), the build stage executes within this container.
+#
+# The final stage is used to expose documentation and coverage information,
+# including publishing documentation to the public site when built on the
+# main branch.
+#
+# Apart from the 'variables', 'include', and 'stages' top-level anchors,
+# everything not beginning with a dot ('.') is the name of a job which will
+# be executed as part of CI, unless the rules specify that it should not be
+# run.
+#
+# Variables prefixed with CI_ are generally provided by GitLab itself;
+# variables prefixed with FDO_ and templates prefixed by .fdo are provided
+# by the ci-templates.
+#
+# For more information on GitLab CI, including the YAML syntax, see:
+#   https://docs.gitlab.com/ee/ci/yaml/README.html
+#
+# Note that freedesktop.org uses the 'Community Edition' of GitLab, so features
+# marked as 'premium' or 'ultimate' are not available to us.
+#
+# For more information on ci-templates, see:
+#   - documentation at https://freedesktop.pages.freedesktop.org/ci-templates/
+#   - repo at https://gitlab.freedesktop.org/freedesktop/ci-templates/
+
+# Here we use a fixed ref in order to isolate ourselves from ci-templates
+# API changes. If you need new features from ci-templates you must bump
+# this to the current SHA you require from the ci-templates repo, however
+# be aware that you may need to account for API changes when doing so.
+.templates_sha: &template_sha d5aa3941aa03c2f716595116354fb81eb8012acb # see https://docs.gitlab.com/ee/ci/yaml/#includefile
+
+include:
+  - project: 'freedesktop/ci-templates'
+    ref: *template_sha
+    file:
+      - '/templates/debian.yml'
+      - '/templates/freebsd.yml'
+      - '/templates/ci-fairy.yml'
+
+variables:
+  FDO_UPSTREAM_REPO: wayland/wayland
+  FDO_REPO_SUFFIX: "$BUILD_OS/$BUILD_ARCH"
+
+
+# Define the build stages. These are used for UI grouping as well as
+# dependencies.
+stages:
+  - "Merge request checks"
+  - "Base container"
+  - "Build and test"
+  - "Other build configurations"
+
+.ci-rules:
+  rules:
+    - when: on_success
+
+# Base variables used for anything using a Debian environment
+.os-debian:
+  variables:
+    BUILD_OS: debian
+    FDO_DISTRIBUTION_VERSION: bullseye
+    FDO_DISTRIBUTION_PACKAGES: 'build-essential pkg-config libexpat1-dev libffi-dev libxml2-dev doxygen graphviz xmlto xsltproc docbook-xsl python3-pip python3-setuptools ninja-build'
+    FDO_DISTRIBUTION_EXEC: 'pip3 install meson==0.56.0'
+    # bump this tag every time you change something which requires rebuilding the
+    # base image
+    FDO_DISTRIBUTION_TAG: "2022-08-08.0"
+
+.debian-x86_64:
+  extends:
+    - .os-debian
+  variables:
+    BUILD_ARCH: "x86-64"
+
+.debian-aarch64:
+  extends:
+    - .os-debian
+  variables:
+    BUILD_ARCH: "aarch64"
+
+.debian-armv7:
+  extends:
+    - .os-debian
+  variables:
+    BUILD_ARCH: "armv7"
+
+
+# Does not inherit .ci-rules as we only want it to run in MR context.
+check-commit:
+  extends:
+    - .fdo.ci-fairy
+  stage: "Merge request checks"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+      when: always
+    - when: never
+  script:
+    - ci-fairy check-commits --signed-off-by --junit-xml=results.xml
+  variables:
+    GIT_DEPTH: 100
+  artifacts:
+    reports:
+      junit: results.xml
+
+
+# Build our base container image, which contains the core distribution, the
+# toolchain, and all our build dependencies. This will be reused in the build
+# stage.
+x86_64-debian-container_prep:
+  extends:
+    - .ci-rules
+    - .debian-x86_64
+    - .fdo.container-build@debian
+  stage: "Base container"
+  variables:
+    GIT_STRATEGY: none
+
+aarch64-debian-container_prep:
+  extends:
+    - .ci-rules
+    - .debian-aarch64
+    - .fdo.container-build@debian
+  tags:
+    - aarch64
+  stage: "Base container"
+  variables:
+    GIT_STRATEGY: none
+
+armv7-debian-container_prep:
+  extends:
+    - .ci-rules
+    - .debian-armv7
+    - .fdo.container-build@debian
+  tags:
+    - aarch64
+  stage: "Base container"
+  variables:
+    GIT_STRATEGY: none
+    FDO_BASE_IMAGE: "arm32v7/debian:$FDO_DISTRIBUTION_VERSION"
+
+
+# Core build environment.
+.build-env:
+  variables:
+    MESON_BUILD_TYPE: "-Dbuildtype=debug -Doptimization=0 -Db_sanitize=address,undefined"
+    # See https://gitlab.freedesktop.org/wayland/wayland/-/merge_requests/154
+    ASAN_OPTIONS: "detect_odr_violation=0"
+  before_script:
+    - export BUILD_ID="wayland-$CI_JOB_NAME"
+    - export PREFIX="${CI_PROJECT_DIR}/prefix-${BUILD_ID}"
+    - export BUILDDIR="${CI_PROJECT_DIR}/build-${BUILD_ID}"
+    - mkdir "$BUILDDIR" "$PREFIX"
+
+
+# Build variants to be stacked on as required.
+.build-release:
+  stage: "Other build configurations"
+  variables:
+    MESON_BUILD_TYPE: "-Dbuildtype=release"
+
+
+# OS/architecture-specific variants
+.build-env-debian-x86_64:
+  extends:
+    - .fdo.suffixed-image@debian
+    - .debian-x86_64
+    - .build-env
+  needs:
+    - job: x86_64-debian-container_prep
+      artifacts: false
+
+.build-env-debian-aarch64:
+  extends:
+    - .fdo.suffixed-image@debian
+    - .debian-aarch64
+    - .build-env
+  variables:
+    # At least with the versions we have, the LSan runtime makes fork unusably
+    # slow on AArch64, which is bad news since the test suite decides to fork
+    # for every single subtest. For now, in order to get AArch64 builds and
+    # tests into CI, just assume that we're not going to leak any more on
+    # AArch64 than we would on ARMv7 or x86-64.
+    ASAN_OPTIONS: "detect_leaks=0,detect_odr_violation=0"
+  tags:
+    - aarch64
+  needs:
+    - job: aarch64-debian-container_prep
+      artifacts: false
+
+.build-env-debian-armv7:
+  extends:
+    - .fdo.suffixed-image@debian
+    - .debian-armv7
+    - .build-env
+  tags:
+    - aarch64
+  needs:
+    - job: armv7-debian-container_prep
+      artifacts: false
+
+
+# Full build and test.
+.do-build:
+  extends:
+    - .ci-rules
+  stage: "Build and test"
+  script:
+    - cd "$BUILDDIR"
+    - meson --prefix="$PREFIX" -Dicon_directory=/usr/share/X11/icons -Dwerror=true ${MESON_BUILD_TYPE} ..
+    - ninja -k0 -j${FDO_CI_CONCURRENT:-4}
+    - meson test --num-processes ${FDO_CI_CONCURRENT:-4}
+    - ninja clean
+  artifacts:
+    name: wayland-$CI_JOB_NAME
+    when: always
+    paths:
+      - build-*/meson-logs
+      - prefix-*
+    reports:
+      junit: build-*/meson-logs/testlog.junit.xml
+
+# Full build and test.
+.do-build-qemu:
+  extends:
+    - .ci-rules
+  stage: "Build and test"
+  script:
+    # Start the VM and copy our workspace to the VM
+    - /app/vmctl start
+    - scp -r $PWD "vm:"
+    # The `set +e is needed to ensure that we always copy the meson logs back to
+    # the workspace to see details about the failed tests.
+    - |
+      set +e
+      /app/vmctl exec "pkg info; cd $CI_PROJECT_NAME ; meson $BUILDDIR --prefix=$PREFIX $MESON_BUILD_TYPE $MESON_ARGS && ninja -C $BUILDDIR -j${FDO_CI_CONCURRENT:-4}"
+      /app/vmctl exec "meson test --print-errorlogs -C $BUILDDIR --num-processes ${FDO_CI_CONCURRENT:-4}" && touch .tests-successful
+      set -ex
+      scp -r vm:$BUILDDIR/meson-logs .
+      /app/vmctl exec "ninja -C $BUILDDIR install"
+      mkdir -p $PREFIX && scp -r vm:$PREFIX/ $PREFIX/
+    # Finally, shut down the VM.
+    - /app/vmctl stop
+    - test -f .tests-successful || exit 1
+  artifacts:
+    name: wayland-$CI_JOB_NAME
+    when: always
+    paths:
+      - meson-logs
+      - prefix-*
+    reports:
+      junit: meson-logs/testlog.junit.xml
+
+# Full build and test.
+x86_64-debian-build:
+  extends:
+    - .build-env-debian-x86_64
+    - .do-build
+
+x86_64-release-debian-build:
+  extends:
+    - .build-env-debian-x86_64
+    - .do-build
+    - .build-release
+
+aarch64-debian-build:
+  extends:
+    - .build-env-debian-aarch64
+    - .do-build
+
+aarch64-release-debian-build:
+  extends:
+    - .build-env-debian-aarch64
+    - .do-build
+    - .build-release
+
+armv7-debian-build:
+  extends:
+    - .build-env-debian-armv7
+    - .do-build
+
+armv7-release-debian-build:
+  extends:
+    - .build-env-debian-armv7
+    - .do-build
+    - .build-release
+
+# Base variables used for anything using a FreeBSD environment
+.os-freebsd:
+  variables:
+    BUILD_OS: freebsd
+    FDO_DISTRIBUTION_VERSION: "13.1"
+    FDO_DISTRIBUTION_PACKAGES: 'libxslt meson ninja pkgconf expat libffi libepoll-shim libxml2'
+    # bump this tag every time you change something which requires rebuilding the
+    # base image
+    FDO_DISTRIBUTION_TAG: "2022-09-08.0"
+    # Don't build documentation since installing the required tools massively
+    # increases the VM image (and therefore container) size.
+    MESON_ARGS: "-Ddocumentation=false"
+
+.freebsd-x86_64:
+  extends:
+    - .os-freebsd
+  variables:
+    BUILD_ARCH: "x86_64"
+
+x86_64-freebsd-container_prep:
+  extends:
+    - .ci-rules
+    - .freebsd-x86_64
+    - .fdo.qemu-build@freebsd@x86_64
+  stage: "Base container"
+  variables:
+    GIT_STRATEGY: none
+
+.build-env-freebsd-x86_64:
+  variables:
+    # Compiling with ASan+UBSan appears to trigger an infinite loop in the
+    # compiler shipped with FreeBSD 13.0, so we only use UBSan here.
+    # Additionally, sanitizers can't be used with b_lundef on FreeBSD.
+    MESON_BUILD_TYPE: "-Dbuildtype=debug -Db_sanitize=undefined -Db_lundef=false"
+  extends:
+    - .fdo.suffixed-image@freebsd
+    - .freebsd-x86_64
+    - .build-env
+  needs:
+    - job: x86_64-freebsd-container_prep
+      artifacts: false
+
+# Full build and test.
+x86_64-freebsd-build:
+  extends:
+    - .build-env-freebsd-x86_64
+    - .do-build-qemu
+
+x86_64-release-freebsd-build:
+  extends:
+    - .build-env-freebsd-x86_64
+    - .do-build-qemu
+    - .build-release

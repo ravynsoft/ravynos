@@ -1,0 +1,10 @@
+libdir=@abs_builddir@/.libs
+includedir=@abs_srcdir@
+
+Name: Libinput
+Description: Input device library (not installed)
+Version: @LIBINPUT_VERSION@
+Cflags: -I${includedir}
+Libs: -L${libdir} -linput
+Libs.private: -lm -lrt
+Requires.private: libudev

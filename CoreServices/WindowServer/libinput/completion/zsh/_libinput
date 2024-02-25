@@ -1,0 +1,264 @@
+#compdef libinput
+
+(( $+functions[_libinput_commands] )) || _libinput_commands()
+{
+	local -a commands
+	commands=(
+		"list-devices:List all devices recognized by libinput"
+		"debug-events:Print all events as seen by libinput"
+		"debug-gui:Show a GUI to visualize libinput's events"
+		"debug-tablet:Show tablet axis and button values"
+		"measure:Measure various properties of devices"
+		"analyze:Analyze device data"
+		"record:Record the events from a device"
+		"replay:Replay the events from a device"
+	)
+
+	_describe -t commands 'command' commands
+}
+
+__all_seats()
+{
+	# Obviously only works with logind
+	local -a seats
+	seats=${(f)"$(loginctl --no-legend --no-pager list-seats 2>/dev/null)"}
+	if [[ -z $seats ]]; then
+		# Can always offer seat0, even if we can't enumerate the seats
+		compadd "$@" - seat0
+	else
+		compadd "$@" - $seats
+	fi
+}
+
+(( $+functions[_libinput_list-devices] )) || _libinput_list-devices()
+{
+	_arguments \
+		'--help[Show help and exit]' \
+		'--version[show version information and exit]'
+}
+
+(( $+functions[_libinput_debug-events] )) || _libinput_debug-events()
+{
+	_arguments \
+		'--help[Show debug-events help and exit]' \
+		'--quiet[Only print libinput messages and nothing from this tool]' \
+		'--verbose[Use verbose output]' \
+		'--show-keycodes[Make all keycodes visible]' \
+		'--grab[Exclusively grab all opened devices]' \
+		'--device=[Use the given device with the path backend]:device:_files -W /dev/input/ -P /dev/input/' \
+		'--udev=[Listen for notifications on the given seat]:seat:__all_seats' \
+		'--apply-to=[Apply configuration options where the device name matches the pattern]:pattern' \
+		'--disable-sendevents=[Disable send-events option for the devices matching the pattern]:pattern' \
+		'--set-click-method=[Set the desired click method]:click-method:(none clickfinger buttonareas)' \
+		'--set-scroll-method=[Set the desired scroll method]:scroll-method:(none twofinger edge button)' \
+		'--set-scroll-button=[Set the button to the given button code]' \
+		'--set-profile=[Set pointer acceleration profile]:accel-profile:(adaptive flat)' \
+		'--set-speed=[Set pointer acceleration speed (within range \[-1, 1\])]' \
+		'--set-tap-map=[Set button mapping for tapping]:tap-map:((  \
+			lrm\:2-fingers\ right-click\ /\ 3-fingers\ middle-click \
+			lmr\:2-fingers\ middle-click\ /\ 3-fingers\ right-click \
+		))' \
+		+ '(tap-to-click)' \
+		'--enable-tap[Enable tap-to-click]' \
+		'--disable-tap[Disable tap-to-click]' \
+		+ '(drag)' \
+		'--enable-drag[Enable tap-and-drag]' \
+		'--disable-drag[Disable tap-and-drag]' \
+		+ '(drag-lock)' \
+		'--enable-drag-lock[Enable drag-lock]' \
+		'--disable-drag-lock[Disable drag-lock]' \
+		+ '(natural-scrolling)' \
+		'--enable-natural-scrolling[Enable natural scrolling]' \
+		'--disable-natural-scrolling[Disable natural scrolling]' \
+		+ '(left-handed)' \
+		'--enable-left-handed[Enable left handed button configuration]' \
+		'--disable-left-handed[Disable left handed button configuration]' \
+		+ '(middlebutton)' \
+		'--enable-middlebutton[Enable middle button emulation]' \
+		'--disable-middlebutton[Disable middle button emulation]' \
+		+ '(dwt)' \
+		'--enable-dwt[Enable disable-while-typing]' \
+		'--disable-dwt[Disable disable-while-typing]' \
+		+ '(dwtp)' \
+		'--enable-dwtp[Enable disable-while-trackpointing]' \
+		'--disable-dwtp[Disable disable-while-trackpointing]'
+}
+
+(( $+functions[_libinput_debug-gui] )) || _libinput_debug-gui()
+{
+	_arguments \
+		'--help[Show debug-gui help and exit]' \
+		'--verbose[Use verbose output]' \
+		'--grab[Exclusively grab all opened devices]' \
+		'--device=[Use the given device with the path backend]:device:_files -W /dev/input/ -P /dev/input/' \
+		'--udev=[Listen for notifications on the given seat]:seat:_libinput_all_seats'
+}
+
+(( $+functions[_libinput_debug-tablet] )) || _libinput_debug-tablet()
+{
+	_arguments \
+		'--help[Show debug-tablet help and exit]' \
+		'--device=[Use the given device with the path backend]:device:_files -W /dev/input/ -P /dev/input/' \
+		'--udev=[Use the first tablet device on the given seat]:seat:_libinput_all_seats'
+}
+
+
+(( $+functions[_libinput_measure] )) || _libinput_measure()
+{
+	local curcontext=$curcontext state line ret=1
+	local features
+	features=(
+		"fuzz:Measure touch fuzz to avoid pointer jitter"
+		"touch-size:Measure touch size and orientation"
+		"touchpad-tap:Measure tap-to-click time"
+		"touchpad-pressure:Measure touch pressure"
+	)
+
+	_arguments -C \
+		'--help[Print help and exit]' \
+		':feature:->feature' \
+		'*:: :->option-or-argument'
+
+	case $state in
+		(feature)
+			_describe -t features 'feature' features
+			;;
+		(option-or-argument)
+			curcontext=${curcontext%:*:*}:libinput-measure-$words[1]:
+			if ! _call_function ret _libinput_measure_$words[1]; then
+				_message "unknown feature: $words[1]"
+			fi
+			;;
+	esac
+	return ret
+}
+
+(( $+functions[_libinput_measure_fuzz] )) || _libinput_measure_fuzz()
+{
+	_arguments \
+		'--help[Show help message and exit]' \
+		':device:_files -W /dev/input/ -P /dev/input/'
+}
+
+(( $+functions[_libinput_measure_touch-size] )) || _libinput_measure_touch-size()
+{
+	_arguments \
+		'--help[Show help message and exit]' \
+		'--touch-threshold=[Assume a touch pressure threshold of "down:up"]' \
+		'--palm-threshold=[Assume a palm threshold of N]' \
+		':device:_files -W /dev/input/ -P /dev/input/'
+}
+
+(( $+functions[_libinput_measure_touchpad-pressure] )) || _libinput_measure_touchpad-pressure()
+{
+	_arguments \
+		'--help[Show help message and exit]' \
+		'--touch-threshold=[Assume a touch pressure threshold of "down:up"]' \
+		'--palm-threshold=[Assume a palm threshold of N]' \
+		':device:_files -W /dev/input/ -P /dev/input/'
+}
+
+(( $+functions[_libinput_measure_touchpad-tap] )) || _libinput_measure_touchpad-tap()
+{
+	_arguments \
+		'--help[Show help message and exit]' \
+		'--format=dat[Specify the data format to be printed. The default is "summary"]'
+		':device:_files -W /dev/input/ -P /dev/input/'
+}
+
+(( $+functions[_libinput_analyze_per-slot-delta] )) || _libinput_analyze_per-slot-delta()
+{
+	_arguments \
+		'--help[Show help message and exit]' \
+		':recording:_files'
+}
+
+(( $+functions[_libinput_analyze_touch-down-state] )) || _libinput_analyze_touch-down-state()
+{
+	_arguments \
+		'--help[Show help message and exit]' \
+		':recording:_files'
+}
+
+(( $+functions[_libinput_analyze_recording] )) || _libinput_analyze_recording()
+{
+	_arguments \
+		'--help[Show help message and exit]' \
+		':recording:_files'
+}
+
+(( $+functions[_libinput_analyze] )) || _libinput_analyze()
+{
+	local curcontext=$curcontext state line ret=1
+	local features
+	features=(
+		"per-slot-delta:analyze relative movement per touch per slot"
+		"recording:analyze a recording by printing a pretty table"
+		"touch-down-state:analyze a recording for logical touch down states"
+	)
+
+	_arguments -C \
+		'--help[Print help and exit]' \
+		':feature:->feature' \
+		'*:: :->option-or-argument'
+
+	case $state in
+		(feature)
+			_describe -t features 'feature' features
+			;;
+		(option-or-argument)
+			curcontext=${curcontext%:*:*}:libinput-analyze-$words[1]:
+			if ! _call_function ret _libinput_analyze_$words[1]; then
+				_message "unknown feature: $words[1]"
+			fi
+			;;
+	esac
+	return ret
+}
+
+(( $+functions[_libinput_record] )) || _libinput_record()
+{
+	_arguments \
+		'--help[Show help message and exit]' \
+		'--all[Record all /dev/input/event* devices available on the system]' \
+		'--autorestart=[Terminate the current recording after s seconds of device inactivity]' \
+		{-o+,--output=}'[Specify the output file to use]:file:_files -g "*.yml"' \
+		'--multiple[Record multiple devices at once]' \
+		'--show-keycodes[Show keycodes as-is in the recording]' \
+		'--with-libinput[Record libinput events alongside device events]' \
+		'--with-hidraw[Record hidraw events alongside device events]' \
+		'*::device:_files -W /dev/input/ -P /dev/input/'
+}
+
+(( $+functions[_libinput_replay] )) || _libinput_replay()
+{
+	_arguments \
+		'--help[Show help message and exit]' \
+		':recording:_files'
+}
+
+_libinput()
+{
+	local curcontext=$curcontext state line ret=1
+
+	_arguments -C \
+		{-h,--help}'[Show help message and exit]' \
+		'--version[Show version information and exit]' \
+		':command:->command' \
+		'*:: :->option-or-argument' && return
+
+	case $state in
+		(command)
+			_libinput_commands && ret=0
+			;;
+		(option-or-argument)
+			curcontext=${curcontext%:*:*}:libinput-$words[1]:
+			if ! _call_function ret _libinput_$words[1]; then
+				_message "unknown libinput command: $words[1]"
+			fi
+			;;
+	esac
+	return ret
+}
+
+_libinput

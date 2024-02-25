@@ -1,0 +1,29 @@
+digraph seats_libinput
+{
+  rankdir="BT";
+  node [
+    shape="box";
+  ]
+
+  ctx1 [label="libinput context 1"; URL="\ref libinput"];
+  ctx2 [label="libinput context 2"; URL="\ref libinput"];
+
+  seat0 [ label="seat phys 0 logical A"];
+  seat1 [ label="seat phys 0 logical B"];
+  seat2 [ label="seat phys 1 logical C"];
+
+  dev1 [label="device 'Foo'"];
+  dev2 [label="device 'Bar'"];
+  dev3 [label="device 'Spam'"];
+  dev4 [label="device 'Egg'"];
+
+  ctx1 -> dev1
+  ctx1 -> dev2
+  ctx1 -> dev3
+  ctx2 -> dev4
+
+  dev1 -> seat0
+  dev2 -> seat0
+  dev3 -> seat1
+  dev4 -> seat2
+}

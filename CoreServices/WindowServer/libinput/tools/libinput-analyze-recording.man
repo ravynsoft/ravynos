@@ -1,0 +1,39 @@
+.TH libinput-analyze-recording "1"
+.SH NAME
+libinput\-analyze\-recording \- analyze a device recording
+.SH SYNOPSIS
+.B libinput analyze recording [\-\-help] [options] \fIrecording.yml\fI
+.SH DESCRIPTION
+.PP
+The
+.B "libinput analyze recording"
+tool analyzes a recording made with
+.B "libinput record"
+and prints a tabular summary of the events in that recording.
+.PP
+This is a debugging tool only, its output may change at any time. Do not
+rely on the output.
+.SH OPTIONS
+.TP 8
+.B \-\-help
+Print help
+.SH OUTPUT
+An example output for a tablet sequence is below.
+.PP
+.nf
+.sf
+Time    |      X |      Y | PRESSURE | DISTANCE |   MISC | SERIAL
+-----------------------------------------------------------------
+  0.000 |   9717 |   6266 |          |       63 |  0x862 | 0x9a805597 | BTN_TOOL_PEN
+  0.005 |   9709 |        |          |          |        | 0x9a805597 | BTN_TOOL_PEN
+  0.012 |   9701 |        |          |          |        | 0x9a805597 | BTN_TOOL_PEN
+  0.020 |   9692 |   6269 |          |          |        | 0x9a805597 | BTN_TOOL_PEN
+  0.028 |   9680 |   6277 |          |          |        | 0x9a805597 | BTN_TOOL_PEN
+  0.034 |   9668 |   6279 |          |          |        | 0x9a805597 | BTN_TOOL_PEN
+  0.042 |   9654 |   6282 |          |          |        | 0x9a805597 | BTN_TOOL_PEN
+.fi
+.in
+.SH LIBINPUT
+Part of the
+.B libinput(1)
+suite

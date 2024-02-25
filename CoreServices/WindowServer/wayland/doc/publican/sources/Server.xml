@@ -1,0 +1,49 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+  <!ENTITY % BOOK_ENTITIES SYSTEM "Wayland.ent">
+  <!ENTITY doxygen SYSTEM "ServerAPI.xml">
+%BOOK_ENTITIES;
+]>
+<appendix id="sect-Library-Server">
+  <title>Server API</title>
+  <section><title>Introduction</title>
+  <para>
+    The open-source reference implementation of Wayland protocol is
+    split in two C libraries, <link
+    linkend="sect-Library-Client">libwayland-client</link> and
+    libwayland-server. Their main responsibility is to handle the
+    Inter-process communication (<emphasis>IPC</emphasis>) with each
+    other, therefore guaranteeing the protocol objects marshaling and
+    messages synchronization.
+  </para>
+  <para>
+    The server library is designed to work much like libwayland-client,
+    although it is considerably complicated due to the server needing
+    to support multiple versions of the protocol. It is best to learn
+    libwayland-client first.
+  </para>
+  <para>
+    Each open socket to a client is represented by a <link
+    linkend="Server-structwl__client">wl_client</link>.  The equivalent
+    of the <link linkend="Client-classwl__proxy">wl_proxy</link> that
+    libwayland-client uses to represent an object is <link
+    linkend="Server-structwl__resource">wl_resource</link> for
+    client-created objects, and <link
+    linkend="Server-structwl__global">wl_global</link> for objects
+    created by the server.
+  </para>
+  <para>
+    Often a server is also a client for another Wayland server, and
+    thus must link with both libwayland-client and libwayland-server.
+    This produces some type name conflicts (such as the <link
+    linkend="Client-classwl__display">client wl_display</link> and
+    <link linkend="Server-structwl__display">server wl_display</link>,
+    but the duplicate-but-not-the-same types are opaque, and accessed
+    only inside the correct library where it came from. Naturally that
+    means that the program writer needs to always know if a pointer to
+    a wl_display is for the server or client side and use the
+    corresponding functions.
+  </para>
+  </section>
+  &doxygen;
+</appendix>

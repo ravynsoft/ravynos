@@ -1,0 +1,128 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % BOOK_ENTITIES SYSTEM "Wayland.ent">
+%BOOK_ENTITIES;
+]>
+<chapter id="chap-Compositors">
+  <title>Types of Compositors</title>
+
+  <para>
+    Compositors come in different types, depending on which
+    role they play in the overall architecture of the OS.
+    For instance, a
+    <link linkend="sect-Compositors-System-Compositor">system compositor</link>
+    can be used for booting the system, handling multiple user switching, a
+    possible console terminal emulator and so forth. A different compositor, a
+    <link linkend="sect-Compositors-Session-Compositor">session compositor</link>
+    would provide the actual desktop environment. There are many ways for
+    different types of compositors to co-exist.
+  </para>
+  <para>
+    In this section, we introduce three types of Wayland compositors relying
+    on <link linkend="sect-Library-Server">libwayland-server</link>.
+  </para>
+
+  <section id="sect-Compositors-System-Compositor">
+    <title>System Compositor</title>
+    <para>
+      A system compositor can run from early boot until shutdown.
+      It effectively replaces the kernel vt system, and can tie in
+      with the systems graphical boot setup and multiseat support.
+    </para>
+    <para>
+      A system compositor can host different types of session
+      compositors, and let us switch between multiple sessions
+      (fast user switching, or secure/personal desktop switching).
+    </para>
+    <para>
+      A linux implementation of a system compositor will typically
+      use libudev, egl, kms, evdev and cairo.
+    </para>
+    <para>
+      For fullscreen clients, the system compositor can reprogram the
+      video scanout address to read directly from the client provided
+      buffer.
+    </para>
+  </section>
+  <section id="sect-Compositors-Session-Compositor">
+    <title>Session Compositor</title>
+    <para>
+      A session compositor is responsible for a single user session.
+      If a system compositor is present, the session compositor will
+      run nested under the system compositor. Nesting is feasible because
+      the protocol is asynchronous; roundtrips would be too expensive
+      when nesting is involved. If no system compositor is present, a
+      session compositor can run directly on the hardware.
+     </para>
+     <para>
+      X applications can continue working under a session compositor
+      by means of a root-less X server that is activated on demand.
+     </para>
+    <para>
+       Possible examples for session compositors include
+      <itemizedlist>
+	<listitem>
+	  <para>
+	    gnome-shell
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    moblin
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    kwin
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    kmscon
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    rdp session
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    Weston with X11 or Wayland backend is a session compositor nested
+	    in another session compositor.
+	  </para>
+	</listitem>
+	<listitem>
+	  <para>
+	    fullscreen X session under Wayland
+	  </para>
+	</listitem>
+      </itemizedlist>
+    </para>
+  </section>
+  <section id="sect-Compositors-Embedding-Compositor">
+    <title>Embedding Compositor</title>
+    <para>
+      X11 lets clients embed windows from other clients, or lets clients
+      copy pixmap contents rendered by another client into their window.
+      This is often used for applets in a panel, browser plugins and similar.
+      Wayland doesn't directly allow this, but clients can communicate GEM
+      buffer names out-of-band, for example, using D-Bus, or command line
+      arguments when the panel launches the applet.  Another option is to
+      use a nested Wayland instance.  For this, the Wayland server will have
+      to be a library that the host application links to.  The host
+      application will then pass the Wayland server socket name to the
+      embedded application, and will need to implement the Wayland
+      compositor interface.  The host application composites the client
+      surfaces as part of it's window, that is, in the web page or in the
+      panel.  The benefit of nesting the Wayland server is that it provides
+      the requests the embedded client needs to inform the host about buffer
+      updates and a mechanism for forwarding input events from the host
+      application.
+    </para>
+    <para>
+      An example for this kind of setup is firefox embedding the flash
+      player as a kind of special-purpose compositor.
+    </para>
+  </section>
+</chapter>

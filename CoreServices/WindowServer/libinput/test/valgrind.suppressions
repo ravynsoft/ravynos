@@ -1,0 +1,98 @@
+{
+   srunner_run::timer_create-uninitialized-bytes
+   Memcheck:Param
+   timer_create(evp)
+   fun:timer_create@@GLIBC_2.3.3
+   fun:srunner_run
+   fun:litest_run
+   fun:main
+}
+{
+   mtdev:conditional_jumps_uninitialized_value
+   Memcheck:Cond
+   ...
+   fun:mtdev_put_event
+}
+{
+   <g_type_register_static>
+   Memcheck:Leak
+   ...
+   fun:g_type_register_static
+}
+{
+   <g_type_register_static>
+   Memcheck:Leak
+   ...
+   fun:g_type_register_fundamental
+}
+{
+   <g_type_register_static>
+   Memcheck:Leak
+   ...
+   fun:g_malloc0
+}
+{
+   <g_get_language_names_malloc>
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:g_get_language_names_with_category
+}
+{
+   libunwind:msync_uninitialized_bytes
+   Memcheck:Param
+   msync(start)
+   fun:__msync_nocancel
+   ...
+   fun:litest_backtrace
+}
+{
+   python:PyUnicode_New
+   Memcheck:Leak
+   ...
+   obj:/usr/lib*/libpython3*.so*
+}
+{
+   libevdev:grab
+   Memcheck:Param
+   ioctl(generic)
+   fun:ioctl
+   fun:libevdev_grab
+}
+{
+   ioctl:grab
+   Memcheck:Param
+   ioctl(generic)
+   fun:ioctl
+   fun:grab_device
+}
+{
+   bash:execute_command
+   Memcheck:Cond
+   ...
+   fun:execute_command
+}
+{
+   bash:execute_command
+   Memcheck:Leak
+   ...
+   fun:execute_command
+}
+{
+   bash:execute_command
+   Memcheck:Addr16
+   ...
+   fun:execute_command
+}
+{
+   python:Py_GetProgramFullPath
+   Memcheck:Cond
+   ...
+   fun:Py_GetProgramFullPath
+}
+{
+   python:_PyEval_EvalFrameDefault
+   Memcheck:Cond
+   ...
+   fun:_PyEval_EvalFrameDefault
+}
