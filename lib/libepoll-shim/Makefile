@@ -42,9 +42,14 @@ INCS=	        include/sys/epoll.h \
 CFLAGS+= -Iinclude -I${.CURDIR}/src
 WARNS?=	2
 
+include/epoll-shim::
+	cp -Rv ${.CURDIR}/include/epoll-shim ${DESTDIR}${INCLUDEDIR}/${PACKAGE}/
+ 
 include/sys/epoll.h::
 	cp -R ${.CURDIR}/include .
 	mkdir -p ${OBJTOP}/tmp/${INCSDIR}
 	sed -e 's/@POLLRDHUP_VALUE@/0x4000/' ${.CURDIR}/include/sys/epoll.h >${.TARGET}
 
 .include <bsd.lib.mk>
+
+includes: include/epoll-shim

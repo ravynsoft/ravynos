@@ -64,11 +64,11 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libedit \
 	libelftc \
         libepoll-shim \
-        libevdev \
 	libevent1 \
 	libexecinfo \
 	libexpat \
 	libfetch \
+        libffi \
 	libgcc_eh \
 	libgcc_s \
 	libgeom \
