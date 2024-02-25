@@ -1,23 +1,21 @@
-PACKAGE=lib${LIB}
-.PATH: ${PACKAGE}
-
 .include <src.opts.mk>
 
 LIB=		evdev
+PACKAGE=        lib${LIB}
 SHLIB_MAJOR=    2
 
-SRCS=           prep .WAIT \
-	        libevdev/libevdev-names.c \
-                libevdev/libevdev-uinput.c \
-                libevdev/libevdev.c \
+.PATH:          ${.CURDIR}/libevdev
+SRCS=           libevdev-names.c \
+                libevdev-uinput.c \
+                libevdev.c \
 
 INCSDIR=        ${INCLUDEDIR}/${PACKAGE}
 INCS=	        libevdev/libevdev-uinput.h \
                 libevdev/libevdev.h
 
-CFLAGS+=        -I${.CURDIR}/libevdev \
+CFLAGS+=        -I${SRCTOP}/sys/compat/linuxkpi/common/include \
                 -I${.CURDIR}/include/linux \
-                -I${SRCTOP}/sys/compat/linuxkpi/common/include \
+	        -I${.CURDIR} \
                 -I${MAKEOBJDIR} \
                 -DHAVE_DLFCN_H \
                 -DHAVE_INTTYPES_H \
@@ -31,14 +29,28 @@ CFLAGS+=        -I${.CURDIR}/libevdev \
                 -DHAVE_SYS_TYPES_H \
                 -DHAVE_UNISTD_H \
                 -DSTDC_HEADERS \
-                -D_GNU_SOURCE
+                -D_GNU_SOURCE \
+                -Wno-error=macro-redefined
 WARNS?=	2
 
-prep: .PHONY
-	echo > ${MAKEOBJDIR}/config.h
-prep2: .PHONY
+config.h: .PHONY
+	echo '#define _IOC_NONE 1U' >${.TARGET}
+	echo '#define _IOC_READ 2U' >>${.TARGET}
+	echo '#define _IOC_WRITE 4U' >>${.TARGET}
+	echo '#define _STANDALONE' >>${.TARGET}
+	echo '#include <linux/types.h>' >>${.TARGET}
+	echo '#undef _STANDALONE' >>${.TARGET}
+
+
+${INCSDIR}: .PHONY
 	mkdir -vp ${OBJTOP}/tmp/${INCSDIR}
+
+event-names.h: .PHONY
+	${.CURDIR}/libevdev/make-event-names.py \
+        	${.CURDIR}/include/linux/linux/input.h \
+        	${.CURDIR}/include/linux/linux/input-event-codes.h >${.TARGET}
+
 
 .include <bsd.lib.mk>
 
-includes: prep2
+${OBJS}: ${INCSDIR} config.h event-names.h

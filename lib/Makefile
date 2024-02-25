@@ -64,6 +64,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libedit \
 	libelftc \
         libepoll-shim \
+        libevdev \
 	libevent1 \
 	libexecinfo \
 	libexpat \
