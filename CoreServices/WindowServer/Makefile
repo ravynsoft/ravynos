@@ -62,18 +62,35 @@ CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${.CURDIR}/gplv2/include -I${MAKEOBJDIR} \
                 -I/usr/include/pixman-1 -I${MAKEOBJDIR}/wlroots/protocol/ \
                 -framework Foundation 
 LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' ${LDFLAGS_PKGS} \
+		-L${MAKEOBJDIR}/libevdev -L${MAKEOBJDIR}/libinput \
 		-L${MAKEOBJDIR}/wlroots -lwlroots -lm -linput -lpixman-1 \
                 -lobjc -lwayland-server -lSystem -lxkbcommon -lseat -lutil
 WLPROTOS=       ${.CURDIR}/wayland-protocols
 WLR_VER!=       grep version: ${.CURDIR}/wlroots/meson.build|sed -e '1s/[^0-9.]*//g;q'
+SYSROOT=        --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
+.export SYSROOT
+
+build-libevdev:
+	${MAKE} -C ${.CURDIR}/libevdev
+
+build-libinput: build-wayland
+	${MAKE} -C ${.CURDIR}/libinput
+
+build-wayland:
+	${MAKE} -C ${.CURDIR}/wayland
+	cp -afv ${MAKEOBJDIR}/wayland/src/libwayland-client.so ${.CURDIR}/${APP_DIR}/Contents/Resources/
+	cp -afv ${MAKEOBJDIR}/wayland/src/libwayland-server.so ${.CURDIR}/${APP_DIR}/Contents/Resources/
+	cp -afv ${MAKEOBJDIR}/wayland/src/wayland-scanner ${OBJTOP}/tmp/legacy/bin
 
 build-wayland-protos:
-	cd ${WLPROTOS} && meson ${MAKEOBJDIR}/wayland-protocols
+	cd ${WLPROTOS} && CFLAGS="${SYSROOT}" \
+        meson -Dtests=false ${MAKEOBJDIR}/wayland-protocols
 	ninja -C ${MAKEOBJDIR}/wayland-protocols
 
-build-wlroots: build-wayland-protos
-	cd ${.CURDIR}/wlroots && PKG_CONFIG_PATH=${MAKEOBJDIR}/wayland-protocols meson -Dexamples=false \
-                ${MAKEOBJDIR}/wlroots/
+build-wlroots: build-wayland-protos 
+	cd ${.CURDIR}/wlroots && PKG_CONFIG_PATH=${MAKEOBJDIR}/wayland-protocols \
+	CFLAGS="${SYSROOT}" PATH="${OBJTOP}/tmp/usr/bin" meson -Dexamples=false \
+        ${MAKEOBJDIR}/wlroots/
 	ninja -C ${MAKEOBJDIR}/wlroots
 	sed -e 's,@CURDIR@,${.CURDIR},g' -e 's,@MAKEOBJDIR@,${MAKEOBJDIR},g' -e 's,@VERSION@,${WLR_VER},g' \
                 < ${.CURDIR}/wlroots.pc.in > ${MAKEOBJDIR}/wlroots/wlroots.pc
@@ -88,6 +105,6 @@ clean-deps:
 
 .include <rvn.app.mk>
 
-${OBJS}: build-wlroots
+${OBJS}: build-libevdev build-libinput build-wlroots
 clean: clean-wlroots clean-deps
 

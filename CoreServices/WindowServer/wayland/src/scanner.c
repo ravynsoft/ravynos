@@ -48,7 +48,11 @@
 
 /* Expat must be included after libxml as both want to declare XMLCALL; see
  * the Git commit that 'git blame' for this comment points to for more. */
+#ifndef __FreeBSD__
 #include <expat.h>
+#else
+#include <bsdxml.h>
+#endif
 
 #include "wayland-util.h"
 
