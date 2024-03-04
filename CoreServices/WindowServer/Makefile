@@ -51,41 +51,38 @@ SRCS=           WindowServer.m \
                 wlr-input-inhibitor-unstable-v1-protocol.c \
                 xdg-shell-protocol.c
 RESOURCES=	${.CURDIR}/Icon.png ${.CURDIR}/ws.conf
+RESOURCES+=     ${MAKEOBJDIR}/wayland/src/libwayland.so
 
 MK_WERROR=	no
 WARNS=	        1
-CFLAGS_PKGS!=   pkg-config --cflags libxml-2.0 pangocairo
-LDFLAGS_PKGS!=  pkg-config --libs libxml-2.0 pangocairo
 CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${.CURDIR}/gplv2/include -I${MAKEOBJDIR} \
-		-I${.CURDIR}/wlroots/include ${CFLAGS_PKGS} -I/usr/include/libdrm \
+		-I${.CURDIR}/wlroots/include -I/usr/include/libdrm \
                 -I${MAKEOBJDIR}/wlroots/include -DWLR_USE_UNSTABLE \
-                -I/usr/include/pixman-1 -I${MAKEOBJDIR}/wlroots/protocol/ \
+                -I${MAKEOBJDIR}/wlroots/protocol/ \
                 -framework Foundation 
-LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' ${LDFLAGS_PKGS} \
+LDFLAGS+=	-Wl,-R'$$ORIGIN/../Resources' \
 		-L${MAKEOBJDIR}/libevdev -L${MAKEOBJDIR}/libinput \
 		-L${MAKEOBJDIR}/wlroots -lwlroots -lm -linput -lpixman-1 \
-                -lobjc -lwayland-server -lSystem -lxkbcommon -lseat -lutil
+                -lobjc -lwayland -lSystem -lxkbcommon -lseat -lutil
 WLPROTOS=       ${.CURDIR}/wayland-protocols
 WLR_VER!=       grep version: ${.CURDIR}/wlroots/meson.build|sed -e '1s/[^0-9.]*//g;q'
 SYSROOT=        --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
 .export SYSROOT
 
-build-libevdev:
-	${MAKE} -C ${.CURDIR}/libevdev
-
-build-libinput: build-wayland
-	${MAKE} -C ${.CURDIR}/libinput
+SUBDIR+=        libevdev .WAIT
+SUBDIR+=        libinput .WAIT
+SUBDIR+=        wayland
+SUBDIR+=        wayland-protocols
 
 build-wayland:
-	${MAKE} -C ${.CURDIR}/wayland
-	cp -afv ${MAKEOBJDIR}/wayland/src/libwayland-client.so ${.CURDIR}/${APP_DIR}/Contents/Resources/
-	cp -afv ${MAKEOBJDIR}/wayland/src/libwayland-server.so ${.CURDIR}/${APP_DIR}/Contents/Resources/
-	cp -afv ${MAKEOBJDIR}/wayland/src/wayland-scanner ${OBJTOP}/tmp/legacy/bin
+#	${MAKE} -C ${.CURDIR}/wayland
+#	cp -afv ${MAKEOBJDIR}/wayland/src/libwayland.so ${.CURDIR}/${APP_DIR}/Contents/Resources/
+#	cp -afv ${MAKEOBJDIR}/wayland/scanner/wayland-scanner ${OBJTOP}/tmp/legacy/bin
 
-build-wayland-protos:
-	cd ${WLPROTOS} && CFLAGS="${SYSROOT}" \
+#build-wayland-protos:
+#	cd ${WLPROTOS} && CFLAGS="${SYSROOT}" \
         meson -Dtests=false ${MAKEOBJDIR}/wayland-protocols
-	ninja -C ${MAKEOBJDIR}/wayland-protocols
+#	ninja -C ${MAKEOBJDIR}/wayland-protocols
 
 build-wlroots: build-wayland-protos 
 	cd ${.CURDIR}/wlroots && PKG_CONFIG_PATH=${MAKEOBJDIR}/wayland-protocols \
@@ -103,8 +100,9 @@ clean-wlroots:
 clean-deps:
 	rm -f .depend.*
 
+.include <bsd.subdir.mk>
 .include <rvn.app.mk>
 
-${OBJS}: build-libevdev build-libinput build-wlroots
+${OBJS}: build-wlroots
 clean: clean-wlroots clean-deps
 

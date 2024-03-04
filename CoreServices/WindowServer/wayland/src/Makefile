@@ -4,7 +4,6 @@ LIB=		wayland
 SHLIB_MAJOR=    0
 SRCS=		connection.c \
 		event-loop.c \
-                scanner.c \
                 wayland-client.c \
                 wayland-os.c \
                 wayland-server.c \
