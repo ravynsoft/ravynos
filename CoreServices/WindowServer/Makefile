@@ -56,7 +56,7 @@ RESOURCES+=     ${MAKEOBJDIR}/wayland/src/libwayland.so
 MK_WERROR=	no
 WARNS=	        1
 CFLAGS+=	-g -fobjc-arc -I${.CURDIR} -I${.CURDIR}/gplv2/include -I${MAKEOBJDIR} \
-		-I${.CURDIR}/wlroots/include -I/usr/include/libdrm \
+		-I${.CURDIR}/wlroots/include -I${.CURDIR}/libdrm/include/drm \
                 -I${MAKEOBJDIR}/wlroots/include -DWLR_USE_UNSTABLE \
                 -I${MAKEOBJDIR}/wlroots/protocol/ \
                 -framework Foundation 
@@ -71,8 +71,10 @@ SYSROOT=        --sysroot=${OBJTOP}/tmp -B${OBJTOP}/tmp/usr/bin
 
 SUBDIR+=        libevdev .WAIT
 SUBDIR+=        libinput .WAIT
+SUBDIR+=        libdrm .WAIT
 SUBDIR+=        wayland
 SUBDIR+=        wayland-protocols
+SUBDIR+=        wlroots
 
 build-wayland:
 #	${MAKE} -C ${.CURDIR}/wayland
@@ -84,15 +86,15 @@ build-wayland:
         meson -Dtests=false ${MAKEOBJDIR}/wayland-protocols
 #	ninja -C ${MAKEOBJDIR}/wayland-protocols
 
-build-wlroots: build-wayland-protos 
-	cd ${.CURDIR}/wlroots && PKG_CONFIG_PATH=${MAKEOBJDIR}/wayland-protocols \
+#build-wlroots: build-wayland-protos 
+#	cd ${.CURDIR}/wlroots && PKG_CONFIG_PATH=${MAKEOBJDIR}/wayland-protocols \
 	CFLAGS="${SYSROOT}" PATH="${OBJTOP}/tmp/usr/bin" meson -Dexamples=false \
         ${MAKEOBJDIR}/wlroots/
-	ninja -C ${MAKEOBJDIR}/wlroots
-	sed -e 's,@CURDIR@,${.CURDIR},g' -e 's,@MAKEOBJDIR@,${MAKEOBJDIR},g' -e 's,@VERSION@,${WLR_VER},g' \
+#	ninja -C ${MAKEOBJDIR}/wlroots
+#	sed -e 's,@CURDIR@,${.CURDIR},g' -e 's,@MAKEOBJDIR@,${MAKEOBJDIR},g' -e 's,@VERSION@,${WLR_VER},g' \
                 < ${.CURDIR}/wlroots.pc.in > ${MAKEOBJDIR}/wlroots/wlroots.pc
-	cp -afv ${MAKEOBJDIR}/wlroots/libwlroots.so ${.CURDIR}/${APP_DIR}/Contents/Resources/
-	cp -afv ${MAKEOBJDIR}/wlroots/libwlroots.so.10 ${.CURDIR}/${APP_DIR}/Contents/Resources/
+#	cp -afv ${MAKEOBJDIR}/wlroots/libwlroots.so ${.CURDIR}/${APP_DIR}/Contents/Resources/
+#	cp -afv ${MAKEOBJDIR}/wlroots/libwlroots.so.10 ${.CURDIR}/${APP_DIR}/Contents/Resources/
 
 clean-wlroots:
 	rm -rf ${MAKEOBJDIR}/wlroots

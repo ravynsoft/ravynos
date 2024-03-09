@@ -8,7 +8,8 @@ SRCS=		connection.c \
                 wayland-os.c \
                 wayland-server.c \
                 wayland-shm.c \
-                wayland-util.c
+                wayland-util.c \
+                wayland-protocol.c
 INCS=		wayland-client-core.h \
 		wayland-client.h \
                 wayland-os.h \
@@ -32,6 +33,8 @@ CFLAGS+= -DHAVE_ACCEPT4 \
 	 -DPACKAGE_VERSION="${MAJOR}.${MINOR}.${MICRO}"
 
 WARNS?=	2
+SCANNER=        ${OBJTOP}/tmp/legacy/bin/wayland-scanner
+PROTOCOLDIR=    ${.CURDIR}/../protocol
 
 wayland-version.h: wayland-version.h.in
 	sed -e "s/@WAYLAND_VERSION_MAJOR@/${MAJOR}/" \
@@ -39,4 +42,15 @@ wayland-version.h: wayland-version.h.in
             -e "s/@WAYLAND_VERSION_MICRO@/${MICRO}/" \
             ${.CURDIR}/wayland-version.h.in > wayland-version.h
 
+wayland-protocol.c: ${PROTOCOLDIR}/wayland.xml
+	${SCANNER} private-code ${.ALLSRC} ${.TARGET}
+
+wayland-server-protocol.h: ${PROTOCOLDIR}/wayland.xml
+	${SCANNER} server-header ${.ALLSRC} ${.TARGET}
+
+wayland-client-protocol.h: ${PROTOCOLDIR}/wayland.xml
+	${SCANNER} client-header ${.ALLSRC} ${.TARGET}
+
 .include <bsd.lib.mk>
+
+all: wayland-version.h wayland-server-protocol.h wayland-client-protocol.h
