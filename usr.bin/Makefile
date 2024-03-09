@@ -162,6 +162,7 @@ SUBDIR=	alias \
 	truncate \
 	tsort \
 	tty \
+        turbo-editor \
 	uname \
 	unexpand \
 	uniq \

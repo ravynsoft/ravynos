@@ -21,6 +21,7 @@ WARNS?=	5
 LIBADD=	archive elftc elf pe
 
 CFLAGS+=-I${ELFTCDIR}/libelftc -I${ELFTCDIR}/libpe -I${ELFTCDIR}/common
+CFLAGS+=-I${SRCTOP}/contrib/libarchive/libarchive
 CFLAGS+=-DWITH_PE=1
 
 MAN=	${PROG}.1 strip.1
