@@ -117,6 +117,7 @@ SUBDIR=	${SUBDIR_BOOTSTRAP} \
 	libthread_db \
         libtiff \
 	libucl \
+        libudev-devd \
 	libufs \
 	libugidfw \
 	libulog \
