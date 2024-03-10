@@ -1,0 +1,7 @@
+xkb_keymap {
+xkb_compatibility "complete" {
+    interpret ISO_Level2_Latch+Exactly(Shift) {
+        action == LatchMods(modifiers=Shift,clearLocks,latchToLock);
+    };
+};
+};

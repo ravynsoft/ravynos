@@ -1,0 +1,26 @@
+default alphanumeric_keys modifier_keys function_keys alternate_group
+xkb_symbols "awesome" {
+    include "us"
+
+    name[Group1]= "My Awesome Layout";
+
+    key <AE02> { [ 2, at,          Page_Up,    Page_Up     ] };
+    key <AE03> { [ 3, numbersign,  Page_Down,  Page_Down   ] };
+
+    key <AD01> { [ q,  Q,          Escape,     Escape      ] };
+    key <AD02> { [ w,  W,          Home,       Home        ] };
+    key <AD03> {
+        type="THREE_LEVEL",
+        symbols=[ e,  E,           Up]
+    };
+    key <AD04> { [ r,  R,          End,        End         ] };
+    key <AD05> { [ t,  T,          Tab,        Tab         ] };
+
+    key <AC01> { [ a,  A,          Return,     Return      ] };
+    key <AC02> { [ s,  S,          Left] };
+    key <AC03> { [ d,  D,          Down] };
+    key <AC04> { [ f,  F,          Righ] };
+    key <AC05> { [ g,  G,          BackSpace,  BackSpace   ] };
+
+    key <AB05> { [ b,  B,          Delete,     Delete      ] };
+};

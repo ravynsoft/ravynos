@@ -1,0 +1,59 @@
+xkb_keymap{
+xkb_keycodes"0"{
+minimum=0;
+maximum=500;
+<a>=0;
+indicator 1="X";
+alias<X>=<Y>;
+};
+xkb_types"X"{
+virtual_modifiers NumLock;
+type"X"{
+modifiers=Shift;
+map[Shift]=Level2;
+level_name[Level1]="X";
+preserve[Shift]=Shift;
+};
+};
+partial xkb_compat{
+virtual_modifiers Alt;
+interpret.useModMapMods=AnyLevel;
+interpret.repeat=False;
+interpret.locking=False;
+interpret ISO_Level2_Latch+Exactly(Shift){
+repeat=True;
+virtualModifier=NumLock;
+useModMapMods=level1;
+action=LatchMods(modifiers=Shift,clearLocks,latchToLock);
+action=MovePtr(x=+0,y=-0);
+action=SwitchScreen(screen=00,!same);
+action=Private(type=0x80,data[0]=0x00);
+};
+indicator"X"{whichModState=locked;modifiers=Lock;};
+};
+xkb_symbols{
+name[group1]="X";
+key<Y>{type[group2]="X",symbols[Group1]=[0,exclam],symbols[Group2]=[0xff,U00],symbols[Group3]=[z]};
+modifier_map Control{<a>};
+};
+default xkb_geometry"X"{
+description="X";
+width=470;
+shape.cornerRadius=1;
+shape"NORM"{cornerRadius=0,{[0.0,0]},{[0,0],[0,0.0]}};
+solid"X"{shape="X";top=00;left=00;color="X";};
+indicator.onColor="X";
+indicator.top=00.0;
+indicator.shape="X";
+indicator"X"{left=0;};
+text.top=00;
+text.color="X";
+text"X"{left=0;text="X";};
+section.left=00;
+row.left=0;
+key.shape="X";
+key.gap=1;
+section"X"{top=22;row{top=1;keys{{<X>,color="X"},{<X>,00.0},<X>,<X>,<X>};};};
+alias<AC00>=<CAPS>;
+};
+};

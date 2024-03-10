@@ -1,0 +1,77 @@
+%{
+#include "config.h"
+
+#include "xkbcomp-priv.h"
+#include "parser-priv.h"
+
+static const struct keyword_tok *
+keyword_gperf_lookup (register const char *str, register size_t len);
+%}
+
+struct keyword_tok { int name; int tok; };
+%language=ANSI-C
+%define hash-function-name keyword_gperf_hash
+%define lookup-function-name keyword_gperf_lookup
+%readonly-tables
+%enum
+%includes
+%struct-type
+%pic
+%ignore-case
+
+%%
+action,                 ACTION_TOK
+alias,                  ALIAS
+alphanumeric_keys,      ALPHANUMERIC_KEYS
+alternate_group,        ALTERNATE_GROUP
+alternate,              ALTERNATE
+augment,                AUGMENT
+default,                DEFAULT
+function_keys,          FUNCTION_KEYS
+group,                  GROUP
+hidden,                 HIDDEN
+include,                INCLUDE
+indicator,              INDICATOR
+interpret,              INTERPRET
+keypad_keys,            KEYPAD_KEYS
+key,                    KEY
+keys,                   KEYS
+logo,                   LOGO
+modifier_keys,          MODIFIER_KEYS
+modifier_map,           MODIFIER_MAP
+mod_map,                MODIFIER_MAP
+modmap,                 MODIFIER_MAP
+outline,                OUTLINE
+overlay,                OVERLAY
+override,               OVERRIDE
+partial,                PARTIAL
+replace,                REPLACE
+row,                    ROW
+section,                SECTION
+shape,                  SHAPE
+solid,                  SOLID
+text,                   TEXT
+type,                   TYPE
+virtual_modifiers,      VIRTUAL_MODS
+virtual,                VIRTUAL
+xkb_compatibility_map,  XKB_COMPATMAP
+xkb_compatibility,      XKB_COMPATMAP
+xkb_compat_map,         XKB_COMPATMAP
+xkb_compat,             XKB_COMPATMAP
+xkb_geometry,           XKB_GEOMETRY
+xkb_keycodes,           XKB_KEYCODES
+xkb_keymap,             XKB_KEYMAP
+xkb_layout,             XKB_LAYOUT
+xkb_semantics,          XKB_SEMANTICS
+xkb_symbols,            XKB_SYMBOLS
+xkb_types,              XKB_TYPES
+%%
+
+int
+keyword_to_token(const char *string, size_t len)
+{
+    const struct keyword_tok *kt = keyword_gperf_lookup(string, len);
+    if (!kt)
+        return -1;
+    return kt->tok;
+}

@@ -1,0 +1,18 @@
+! model         = keycodes
+  my_model      = my_keycodes
+  *             = default_keycodes
+
+! layout        variant    = symbols
+  my_layout     my_variant = my_symbols+extra_variant
+
+! layout        = symbols
+  *             = default_symbols
+
+! model         = types
+  *             = default_types
+
+! model         = compat
+  *             = default_compat
+
+! option        = compat
+  my_option     = |some:compat

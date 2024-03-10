@@ -1,0 +1,27 @@
+! model         = keycodes
+  my_model      = my_keycodes
+  *             = default_keycodes
+
+! layout        variant    = symbols
+  my_layout     my_variant = my_symbols+extra_variant
+
+! layout        = symbols
+  my_layout     = my_symbols
+  *             = default_symbols
+
+! model         = types
+  my_model      = my_types
+  *             = default_types
+
+! model         = compat
+  my_model      = my_compat
+  *             = default_compat
+
+! option        = compat
+  option111     = +substring
+  option1       = +some:compat
+  option11      = +group(bla)
+
+! option        = symbols
+  option3       = +compose(foo)+keypad(bar)
+  colon:opt     = +altwin(menu)

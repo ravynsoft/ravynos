@@ -1,0 +1,148 @@
+xkb_keymap {
+xkb_keycodes "test" {
+    minimum = 8;
+    maximum = 255;
+	<LVL3>  = 92;
+    <LFSH>  = 50;
+	<RTSH>  = 62;
+	<LALT>  = 64;
+	<RALT>  = 108;
+	<LWIN>  = 133;
+	<RWIN>  = 134;
+	<LCTL>  = 37;
+	<RCTL>  = 105;
+	<CAPS>  = 66;
+
+	<AD01> = 24;
+	<AD02> = 25;
+	<AD03> = 26;
+	<AD04> = 27;
+	<AD05> = 28;
+	<AD06> = 29;
+	<AD07> = 30;
+	<AD08> = 31;
+	<AD09> = 32;
+};
+
+xkb_types "complete" {
+    type "ONE_LEVEL" {
+        modifiers= none;
+        level_name[Level1]= "Any";
+    };
+	type "TWO_LEVEL" {
+		modifiers= Shift;
+		map[Shift]= 2;
+		level_name[1]= "Base";
+		level_name[2]= "Shift";
+	};
+};
+xkb_compatibility "complete" {
+    interpret.useModMapMods= AnyLevel;
+    interpret.repeat= False;
+    interpret.locking= False;
+
+    interpret Any+AnyOf(all) {
+        action= SetMods(modifiers=modMapMods,clearLocks);
+    };
+};
+xkb_symbols {
+    name[group1]="Test";
+
+    // Reset modmap with a key with empty modmap
+    key <LVL3> { [VoidSymbol] };
+    modmap None { <LVL3> };
+
+    // Reset modmap with one key
+    key <LFSH> { [Shift_L] };
+    modmap Shift { <LFSH> };
+    modmap none  { <LFSH> };
+
+    // Reset modmap with one symbol
+    key <RTSH> { [Shift_R] };
+    modmap Shift { Shift_R };
+    modmap NONE  { Shift_R };
+
+    // Cycle
+    key <LWIN> { [Super_L] };
+    modmap Mod4 { <LWIN> };
+    modmap None { <LWIN> };
+    modmap Mod4 { <LWIN> };
+
+    // Cycle
+    key <RWIN> { [Super_R] };
+    modmap Mod4 { <RWIN> };
+    modmap None { <RWIN> };
+    modmap Mod4 { Super_R };
+
+    // Mix keycode and keysym
+    key <LCTL> { [Control_L] };
+    modmap Control { Control_L };
+    modmap None    { <LCTL> };
+
+    // Mix keycode and keysym
+    key <RCTL> { [Control_R] };
+    modmap Control { <RCTL> };
+    modmap None    { Control_R };
+
+    // Re-set with different modifier
+    key <LALT> { [Alt_L] };
+    modmap Mod2 { <LALT> };
+    modmap None { <LALT> };
+    modmap Mod1 { <LALT> };
+
+    // Re-set with different modifier with both key and keysym
+    key <RALT> { [ISO_Level3_Shift] };
+    modmap Mod1 { <RALT> };           // Mod1
+    modmap None { <RALT> };           // None
+    modmap Mod2 { <RALT> };           // Mod2
+    modmap Mod3 { ISO_Level3_Shift }; // Mod2 | Mod3
+    modmap None { ISO_Level3_Shift }; // Mod2
+    modmap Mod5 { ISO_Level3_Shift }; // Mod2 | Mod5
+
+    // Re-set with different modifier with both key and keysym
+    key <CAPS> { [Caps_Lock] };
+    modmap Mod1 { Caps_Lock };  // Mod1
+    modmap None { <CAPS> };     // Mod1
+    modmap None { Caps_Lock };  // None
+    modmap Lock { <CAPS> };     // Lock
+
+    // Merge modes
+    key <AD01> { [q] };
+    modMap Mod1 { <AD01> };
+    augment modMap None { <AD01> };
+
+    key <AD02> { [w] };
+    modMap Mod2 { <AD02> };
+    override modMap None { <AD02> };
+
+    key <AD03> { [e] };
+    modMap Mod3 { <AD03> };
+    replace modMap None { <AD03> };
+
+    key <AD04> { [r] };
+    modMap Mod1 { <AD04> };
+    augment modMap None { r };
+
+    key <AD05> { [t] };
+    modMap Mod2 { <AD05> };
+    replace modMap None { t };
+
+    key <AD06> { [y] };
+    modMap Mod3 { <AD06> };
+    override modMap None { y };
+
+    key <AD07> { [u] };
+    modMap Mod1 { <AD07> };
+    replace key <AD07> { [U] }; // Won’t affect the modMap
+
+    key <AD08> { [i] };
+    modMap Mod2 { i, I };
+    replace key <AD08> { [I] };
+    modMap None { i }; // Does not resolve
+
+    key <AD09> { [1] };
+    modMap Mod3 { 1, 2 };
+    override key <AD09> { [NoSymbol, 2] };
+    modMap None { 1 };
+};
+};
