@@ -91,6 +91,7 @@ SUBDIR=	alias \
 	m4 \
 	mandoc \
 	mesg \
+        meson \
 	migcom \
 	ministat \
 	mkdep \
