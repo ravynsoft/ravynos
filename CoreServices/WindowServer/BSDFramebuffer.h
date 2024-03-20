@@ -54,5 +54,12 @@
     CGContextRef ctx;
 }
 
+- (id)init;
+- (BOOL)openFramebuffer: (const char *)device;
+- (NSRect)geometry;
+- (void)dealloc;
+- (int)format;
+- (void)draw;
+
 @end
 
