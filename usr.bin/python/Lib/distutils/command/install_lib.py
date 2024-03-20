@@ -164,12 +164,21 @@ class install_lib(Command):
             ext = os.path.splitext(os.path.normcase(py_file))[1]
             if ext != PYTHON_SOURCE_EXTENSION:
                 continue
+
             if self.compile:
-                bytecode_files.append(importlib.util.cache_from_source(
-                    py_file, optimization=''))
+                candidate = importlib.util.cache_from_source(
+                    py_file, optimization='')
+
+                if os.path.isfile(candidate):
+                    bytecode_files.append(candidate)
+
             if self.optimize > 0:
-                bytecode_files.append(importlib.util.cache_from_source(
-                    py_file, optimization=self.optimize))
+                candidate = importlib.util.cache_from_source(
+                    py_file, optimization=self.optimize)
+
+                if os.path.isfile(candidate):
+                    bytecode_files.append(candidate)
+
 
         return bytecode_files
 

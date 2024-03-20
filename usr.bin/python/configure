@@ -6625,7 +6625,7 @@ fi
 
 if test "$Py_LTO" = 'true' ; then
   case $CC in
-    *clang*)
+    *clang*|cc)
 
       if test -n "$ac_tool_prefix"; then
   # Extract the first word of "${ac_tool_prefix}llvm-ar", so it can be a program name with args.
@@ -10123,7 +10123,7 @@ fi
 	# Dynamic linking for HP-UX
 
 # checks for uuid.h location
-for ac_header in uuid/uuid.h uuid.h
+for ac_header in uuid.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -10141,7 +10141,7 @@ done
 $as_echo_n "checking for uuid_generate_time_safe... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <uuid/uuid.h>
+#include <uuid.h>
 int
 main ()
 {

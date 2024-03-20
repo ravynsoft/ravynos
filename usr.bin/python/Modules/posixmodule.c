@@ -377,7 +377,11 @@ extern char        *ctermid_r(char *);
 #endif /* __VXWORKS__ */
 
 #ifdef HAVE_POSIX_SPAWN
+#ifdef __RAVYNOS__
+#  include <sys/spawn.h> /* want the Apple version */
+#else
 #  include <spawn.h>
+#endif
 #endif
 
 #ifdef HAVE_UTIME_H

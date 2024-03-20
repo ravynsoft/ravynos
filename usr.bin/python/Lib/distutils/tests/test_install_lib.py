@@ -64,11 +64,15 @@ class InstallLibTestCase(support.TempdirManager,
         cmd.distribution.ext_modules = [Extension('foo', ['xxx'])]
         cmd.distribution.packages = ['spam']
         cmd.distribution.script_name = 'setup.py'
+        
+        # Create rubbish, uncompilable file
+        f = os.path.join(project_dir, 'spam', 'rubbish.py')
+        self.write_file(f, 'rubbish()')
 
         # get_outputs should return 4 elements: spam/__init__.py and .pyc,
-        # foo.import-tag-abiflags.so / foo.pyd
+        # foo.import-tag-abiflags.so / foo.pyd and rubbish.py (no .pyc)
         outputs = cmd.get_outputs()
-        self.assertEqual(len(outputs), 4, outputs)
+        self.assertEqual(len(outputs), 5, outputs)
 
     def test_get_inputs(self):
         project_dir, dist = self.create_dist()
