@@ -17,10 +17,8 @@ Visita [ravynos.com](https://ravynos.com/) per più informazioni (in inglese): [
 ### Vieni a far parte del progetto!
 
 * Il nostro server [Discord](https://discord.com/invite/8caJbAGNwY)
-* `#airyx:matrix.org` - entra tramite [Element.io](https://app.element.io/#/room/#airyx:matrix.org)
-* `#airyx` su [Libera IRC](https://web.libera.chat/?channel=#airyx)
 
-_(note: `#airyx` su matrix.org e IRC sono collegate col canale `#general` su Discord, solo in lingua inglese)_
+_(note: solo in lingua inglese)_
 
 Logo e design sono stati creati da [nayaabkhan](https://nayaabkhan.me). Si ringrazia [llui85](https://github.com/llui85) per l'albero di palme.
 
