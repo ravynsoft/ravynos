@@ -14,5 +14,6 @@ ${PROG}:
 
 install:
 	${MAKE} install DESTDIR=${DESTDIR} INSTALL="${DESTDIR}/legacy/bin/install"
+	${MAKE} -C Mako ${.TARGET}
 
 includes:
