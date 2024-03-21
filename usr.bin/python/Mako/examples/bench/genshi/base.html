@@ -1,0 +1,17 @@
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:py="http://genshi.edgewall.org/"
+      py:strip="">
+
+  <p py:def="greeting(name)">
+    Hello, ${name}!
+  </p>
+
+  <body py:match="body">
+    <div id="header">
+      <h1>${title}</h1>
+    </div>
+    ${select('*')}
+    <div id="footer" />
+  </body>
+
+</html>
