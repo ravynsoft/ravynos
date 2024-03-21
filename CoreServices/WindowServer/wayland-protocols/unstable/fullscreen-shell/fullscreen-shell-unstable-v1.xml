@@ -217,7 +217,7 @@
   </interface>
 
   <interface name="zwp_fullscreen_shell_mode_feedback_v1" version="1">
-    <event name="mode_successful">
+    <event name="mode_successful" type="destructor">
       <description summary="mode switch succeeded">
 	This event indicates that the attempted mode switch operation was
 	successful.  A surface of the size requested in the mode switch
@@ -228,7 +228,7 @@
       </description>
     </event>
 
-    <event name="mode_failed">
+    <event name="mode_failed" type="destructor">
       <description summary="mode switch failed">
 	This event indicates that the attempted mode switch operation
 	failed.  This may be because the requested output mode is not
@@ -239,7 +239,7 @@
       </description>
     </event>
 
-    <event name="present_cancelled">
+    <event name="present_cancelled" type="destructor">
       <description summary="mode switch cancelled">
 	This event indicates that the attempted mode switch operation was
 	cancelled.  Most likely this is because the client requested a

@@ -58,7 +58,7 @@ standardization.
 2. Protocols in a namespace may optionally use the namespace followed by a dash
    in the name (e.g. "xdg-shell").
 3. The "xdg" namespace is established for protocols letting clients
-   configure its surfaces as "windows", allowing clients to affect how they
+   configure their surfaces as "windows", allowing clients to affect how they
    are managed.
 4. The "wp" namespace is established for protocols generally useful to Wayland
    implementations (i.e. "plumbing" protocols).
@@ -72,12 +72,12 @@ standardization.
 2. Protocols in the "xdg" and "wp" namespace are eligible for inclusion only if
    ACKed by at least 3 members.
 3. Protocols in the "xdg" and "wp" namespace are ineligible for inclusion if
-   if NACKed by any member.
+   NACKed by any member.
 4. Protocols in the "xdg" and "wp" namespaces must have at least 3 open-source
    implementations (either 1 client + 2 servers, or 2 clients + 1 server) to be
    eligible for inclusion.
 5. Protocols in the "ext" namespace are eligible for inclusion only if ACKed by
-   at least one other member.
+   at least 2 members.
 6. Protocols in the "ext" namespace must have at least one open-source client &
    one open-source server implementation to be eligible for inclusion.
 7. "Open-source" is defined as distributed with an Open Source Initiative
@@ -95,7 +95,7 @@ standardization.
    use this time to acquire them.
 4. When the proposed protocol meets all requirements for inclusion per section
    2.2, and the minimum discussion period has elapsed, the sponsoring member may
-   merge their changes in the wayland-protocol repository.
+   merge their changes into the wayland-protocol repository.
 5. Amendments to existing protocols may be proposed by the same process, with
    no minimum discussion period.
 6. Declaring a protocol stable may be proposed by the same process, with the

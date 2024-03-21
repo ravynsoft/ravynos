@@ -404,14 +404,17 @@
     <request name="destroy" type="destructor">
       <description summary="destroy the xdg_surface">
 	Destroy the xdg_surface object. An xdg_surface must only be destroyed
-	after its role object has been destroyed.
+	after its role object has been destroyed. If the role object still
+        exists when this request is issued, the zxdg_shell_v6.defunct_surfaces
+        is raised.
       </description>
     </request>
 
     <request name="get_toplevel">
       <description summary="assign the xdg_toplevel surface role">
 	This creates an xdg_toplevel object for the given xdg_surface and gives
-	the associated wl_surface the xdg_toplevel role.
+	the associated wl_surface the xdg_toplevel role. If the surface already
+        had a role, the zxdg_shell_v6.role error is raised.
 
 	See the documentation of xdg_toplevel for more details about what an
 	xdg_toplevel is and how it is used.
@@ -422,7 +425,8 @@
     <request name="get_popup">
       <description summary="assign the xdg_popup surface role">
 	This creates an xdg_popup object for the given xdg_surface and gives the
-	associated wl_surface the xdg_popup role.
+	associated wl_surface the xdg_popup role. If the surface already
+        had a role, the zxdg_shell_v6.role error is raised.
 
 	See the documentation of xdg_popup for more details about what an
 	xdg_popup is and how it is used.
@@ -486,6 +490,9 @@
 	A client may send multiple ack_configure requests before committing, but
 	only the last request sent before a commit indicates which configure
 	event the client really is responding to.
+
+        If an invalid serial is used, the zxdg_shell_v6.invalid_surface_state
+        error is raised.
       </description>
       <arg name="serial" type="uint" summary="the serial from the configure event"/>
     </request>
@@ -692,19 +699,21 @@
       <entry name="maximized" value="1" summary="the surface is maximized">
 	<description summary="the surface is maximized">
 	  The surface is maximized. The window geometry specified in the configure
-	  event must be obeyed by the client.
+	  event must be obeyed by the client. If the window geometry is not obyed,
+          the zxdg_shell_v6.invalid_surface_state error is raised.
 	</description>
       </entry>
       <entry name="fullscreen" value="2" summary="the surface is fullscreen">
 	<description summary="the surface is fullscreen">
-	  The surface is fullscreen. The window geometry specified in the configure
-	  event must be obeyed by the client.
+	  The surface is fullscreen. See set_fullscreen for more information.
 	</description>
       </entry>
       <entry name="resizing" value="3" summary="the surface is being resized">
 	<description summary="the surface is being resized">
 	  The surface is being resized. The window geometry specified in the
-	  configure event is a maximum; the client cannot resize beyond it.
+	  configure event is a maximum; the client cannot resize beyond it. If the
+          client attempts to resize above it, the zxdg_shell_v6.invalid_surface_state
+          error is raised.
 	  Clients that have aspect ratio or cell sizing configuration can use
 	  a smaller size, however.
 	</description>
@@ -752,8 +761,8 @@
 	a surface is illegal and will result in a protocol error.
 
 	The width and height must be greater than or equal to zero. Using
-	strictly negative values for width and height will result in a
-	protocol error.
+	strictly negative values for width and height will result in the
+        zxdg_shell_v6.invalid_surface_state error being raised.
       </description>
       <arg name="width" type="int"/>
       <arg name="height" type="int"/>
@@ -793,8 +802,8 @@
 	a surface is illegal and will result in a protocol error.
 
 	The width and height must be greater than or equal to zero. Using
-	strictly negative values for width and height will result in a
-	protocol error.
+	strictly negative values for width and height will result in the
+        zxdg_shell_v6.invalid_surface_state error being raised.
       </description>
       <arg name="width" type="int"/>
       <arg name="height" type="int"/>
@@ -818,6 +827,11 @@
 
 	If the surface was already maximized, the compositor will still emit
 	a configure event with the "maximized" state.
+
+        Note that unrelated compositor side state changes may cause
+        configure events to be emitted at any time, meaning trying to
+        match this request to a specific future configure event is
+        futile.
       </description>
     </request>
 
@@ -840,6 +854,11 @@
 
 	If the surface was already not maximized, the compositor will still
 	emit a configure event without the "maximized" state.
+
+        Note that unrelated changes in the state of compositor may cause
+        configure events to be emitted by the compositor between processing
+        this request and emitting corresponding configure event, so trying
+        to match the request with the event is futile.
       </description>
     </request>
 

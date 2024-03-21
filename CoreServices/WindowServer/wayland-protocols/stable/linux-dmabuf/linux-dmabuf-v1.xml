@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<protocol name="linux_dmabuf_unstable_v1">
+<protocol name="linux_dmabuf_v1">
 
   <copyright>
     Copyright © 2014, 2015 Collabora, Ltd.
@@ -90,10 +90,6 @@
       synchronization is used. In other words, compositors and clients must
       wait and signal fences implicitly passed via the DMA-BUF's reservation
       mechanism.
-
-      Disclaimer: This protocol extension has been marked stable. This copy is
-      no longer used and only retained for backwards compatibility. The
-      canonical version can be found in the stable/ directory.
     </description>
 
     <request name="destroy" type="destructor">

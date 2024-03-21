@@ -28,7 +28,7 @@
   <interface name="wp_drm_lease_device_v1" version="1">
     <description summary="lease device">
       This protocol is used by Wayland compositors which act as Direct
-      Renderering Manager (DRM) masters to lease DRM resources to Wayland
+      Rendering Manager (DRM) masters to lease DRM resources to Wayland
       clients.
 
       The compositor will advertise one wp_drm_lease_device_v1 global for each
@@ -120,7 +120,7 @@
       </description>
     </event>
 
-    <event name="released">
+    <event name="released" type="destructor">
       <description summary="the compositor has finished using the device">
         This event is sent in response to the release request and indicates
         that the compositor is done sending connector events.
@@ -148,6 +148,10 @@
         indicate the name of this connector. This will not change for the
         duration of the Wayland session, but is not guaranteed to be consistent
         between sessions.
+
+        If the compositor supports wl_output version 4 and this connector
+        corresponds to a wl_output, the compositor should use the same name as
+        for the wl_output.
       </description>
       <arg name="name" type="string" summary="connector name" />
     </event>

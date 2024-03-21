@@ -422,9 +422,14 @@
         The serial number reflects the last state of the zwp_text_input_v3
         object known to the compositor. The value of the serial argument must
         be equal to the number of commit requests already issued on that object.
+
         When the client receives a done event with a serial different than the
-        number of past commit requests, it must proceed as normal, except it
-        should not change the current state of the zwp_text_input_v3 object.
+        number of past commit requests, it must proceed with evaluating and
+        applying the changes as normal, except it should not change the current
+        state of the zwp_text_input_v3 object. All pending state requests
+        (set_surrounding_text, set_content_type and set_cursor_rectangle) on
+        the zwp_text_input_v3 object should be sent and committed after
+        receiving a zwp_text_input_v3.done event with a matching serial.
       </description>
       <arg name="serial" type="uint"/>
     </event>

@@ -219,7 +219,7 @@
       'immediate_release' event it is automatically destroyed.
     </description>
 
-    <event name="fenced_release">
+    <event name="fenced_release" type="destructor">
       <description summary="release buffer with fence">
         Sent when the compositor has finalised its usage of the associated
         buffer for the relevant commit, providing a dma_fence which will be
@@ -236,7 +236,7 @@
       <arg name="fence" type="fd" summary="fence for last operation on buffer"/>
     </event>
 
-    <event name="immediate_release">
+    <event name="immediate_release" type="destructor">
       <description summary="release buffer immediately">
         Sent when the compositor has finalised its usage of the associated
         buffer for the relevant commit, and either performed no operations

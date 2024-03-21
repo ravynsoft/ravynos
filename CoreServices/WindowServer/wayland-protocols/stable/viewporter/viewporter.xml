@@ -111,12 +111,6 @@
       when the surface state is applied. A NULL wl_buffer does not raise the
       out_of_buffer error.
 
-      The x, y arguments of wl_surface.attach are applied as normal to
-      the surface. They indicate how many pixels to remove from the
-      surface size from the left and the top. In other words, they are
-      still in the surface-local coordinate system, just like dst_width
-      and dst_height are.
-
       If the wl_surface associated with the wp_viewport is destroyed,
       all wp_viewport requests except 'destroy' raise the protocol error
       no_surface.

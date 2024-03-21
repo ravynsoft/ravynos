@@ -1,6 +1,6 @@
 project('wayland-protocols',
-	version: '1.25',
-	meson_version: '>= 0.54.0',
+	version: '1.33',
+	meson_version: '>= 0.55.0',
 	license: 'MIT/Expat',
 )
 
@@ -8,11 +8,12 @@ wayland_protocols_version = meson.project_version()
 
 fs = import('fs')
 
-stable_protocols = [
-	'presentation-time',
-	'viewporter',
-	'xdg-shell',
-]
+stable_protocols = {
+	'presentation-time': [''],
+	'viewporter': [''],
+	'xdg-shell': [''],
+	'linux-dmabuf': ['v1'],
+}
 
 unstable_protocols = {
 	'fullscreen-shell': ['v1'],
@@ -36,27 +37,43 @@ unstable_protocols = {
 }
 
 staging_protocols = {
-	'xdg-activation': ['v1'],
+	'content-type': ['v1'],
+	'cursor-shape': ['v1'],
 	'drm-lease': ['v1'],
+	'ext-foreign-toplevel-list': ['v1'],
+	'ext-idle-notify': ['v1'],
 	'ext-session-lock': ['v1'],
+	'fractional-scale': ['v1'],
+	'security-context': ['v1'],
+	'single-pixel-buffer': ['v1'],
+	'tearing-control': ['v1'],
+	'ext-transient-seat': ['v1'],
+	'xdg-activation': ['v1'],
+	'xwayland-shell': ['v1'],
 }
 
 protocol_files = []
 
-foreach name : stable_protocols
-	protocol_files += ['stable/@0@/@0@.xml'.format(name)]
+foreach name, versions : stable_protocols
+	foreach version : versions
+		if version == ''
+			protocol_files += ['stable/@0@/@0@.xml'.format(name)]
+		else
+			protocol_files += ['stable/@0@/@0@-@1@.xml'.format(name, version)]
+		endif
+	endforeach
 endforeach
 
-foreach name : staging_protocols.keys()
-	foreach version : staging_protocols.get(name)
+foreach name, versions : staging_protocols
+	foreach version : versions
 		protocol_files += [
 			'staging/@0@/@0@-@1@.xml'.format(name, version)
 		]
 	endforeach
 endforeach
 
-foreach name : unstable_protocols.keys()
-	foreach version : unstable_protocols.get(name)
+foreach name, versions : unstable_protocols
+	foreach version : versions
 		protocol_files += [
 			'unstable/@0@/@0@-unstable-@1@.xml'.format(name, version)
 		]

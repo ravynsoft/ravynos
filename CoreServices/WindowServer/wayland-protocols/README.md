@@ -10,9 +10,14 @@ A protocol in wayland-protocols consists of a directory containing a set
 of XML files containing the protocol specification, and a README file
 containing detailed state and a list of maintainers.
 
+wayland-protocols is a standardization body formed of various Wayland
+compositor and client developers. The governance rules are described in
+[GOVERNANCE.md](GOVERNANCE.md) and the current members are listed in
+[MEMBERS.md](MEMBERS.md).
+
 ## Protocol phases
 
-Protocols in general has three phases: the development phase, the testing
+Protocols in general have three phases: the development phase, the testing
 phase, and the stable phase.
 
 In the development phase, a protocol is not officially part of
@@ -31,14 +36,14 @@ When a protocol has reached a stage where it is ready for wider adoption,
 and after the [GOVERNANCE section
 2.3](GOVERNANCE.md#2.3-introducing-new-protocols) requirements have been
 met, it enters the "testing" phase. At this point, the protocol is added
-to `staging/` directory of wayland-protocols and made part of a release.
+to the `staging/` directory of wayland-protocols and made part of a release.
 What this means is that implementation is encouraged in clients and
 compositors where the functionality it specifies is wanted.
 
 Extensions in staging cannot have backward incompatible changes, in that
 sense they are equal to stable extensions. However, they may be completely
-replaced with a new major version, or a different protocol extension all
-together, if design flaws are found in the testing phase.
+replaced with a new major version, or a different protocol extension altogether,
+if design flaws are found in the testing phase.
 
 After a staging protocol has been sufficiently tested in the wild and
 proven adequate, its maintainers and the community at large may declare it
@@ -58,8 +63,8 @@ previously used by wayland-protocols, where protocols initially
 placed in the `unstable/` directory had certain naming conventions were
 applied, requiring a backward incompatible change to be declared "stable".
 
-During this phase, protocol extension interface names were in addition to
-the major version postfix also prefixed with `z` to distinguish from
+During this phase, protocol extension interface names were, in addition to
+the major version postfix, also prefixed with `z` to distinguish them from
 stable protocols.
 
 ## Protocol directory tree structure
@@ -141,6 +146,26 @@ corresponding interface version bump. Backward incompatible changes can
 only be done by creating a new major version of the extension.
 ```
 
+## Use of RFC 2119 keywords
+
+Descriptions of all new protocols must use (in lowercase) and adhere to the
+proper meaning of the keywords described in
+[RFC 2119](https://www.rfc-editor.org/info/rfc2119).
+
+All protocol descriptions that follow the guidelines in RFC 2119 must
+incorporate the following text in their toplevel protocol description section:
+
+```
+The key words "must", "must not", "required", "shall", "shall not", "should",
+"should not", "recommended",  "may", and "optional" in this document are to
+be interpreted as described in IETF RFC 2119.
+```
+
+Note that not all existing protocol descriptions conform to RFC 2119. Protocol
+maintainers are encouraged to audit their descriptions, update them as needed
+to follow RFC 2119 guidelines, and mark them as conformant in the way described
+in the previous paragraph.
+
 ## Backward compatible protocol changes
 
 A protocol may receive backward compatible additions and changes. This
@@ -176,8 +201,8 @@ The procedure of doing this is the following:
   same name as the protocol directory in the `staging/` directory.
 - Copy the final version of the XML that is the version that was
   decided to be declared stable into the new directory. The target name
-  should be the same name as the protocol directory but with the `.xml`
-  suffix.
+  should be the same name as the protocol directory plus the version and
+  the `.xml` suffix.
 - Remove the disclaimer about the protocol being in the testing phase.
 - Update the `README` file in the staging directory and create a new
   `README` file in the new directory.
@@ -223,7 +248,7 @@ protocol.
 period.
 
 For the meaning and requirement of acknowledgments and available
-implementations, see the GOVERNANCE.md document.
+implementations, see the [GOVERNANCE.md](GOVERNANCE.md) document.
 
 ### Managing merge requests
 

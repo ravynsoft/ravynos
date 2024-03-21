@@ -1,16 +1,27 @@
 STABLE=	        xdg-shell/xdg-shell.xml \
 		viewporter/viewporter.xml \
+		linux-dmabuf/linux-dmabuf-v1.xml \
 		presentation-time/presentation-time.xml
 
 STAGING=        ext-session-lock/ext-session-lock-v1.xml \
 		drm-lease/drm-lease-v1.xml \
-		xdg-activation/xdg-activation-v1.xml
+		xdg-activation/xdg-activation-v1.xml \
+                content-type/content-type-v1.xml \
+                cursor-shape/cursor-shape-v1.xml \
+                ext-foreign-toplevel-list/ext-foreign-toplevel-list-v1.xml \
+                ext-idle-notify/ext-idle-notify-v1.xml \
+                ext-transient-seat/ext-transient-seat-v1.xml \
+                fractional-scale/fractional-scale-v1.xml \
+                security-context/security-context-v1.xml \
+                single-pixel-buffer/single-pixel-buffer-v1.xml \
+                tearing-control/tearing-control-v1.xml \
+                xwayland-shell/xwayland-shell-v1.xml
+
 
 UNSTABLE=       idle-inhibit/idle-inhibit-unstable-v1.xml \
 		xwayland-keyboard-grab/xwayland-keyboard-grab-unstable-v1.xml \
 		tablet/tablet-unstable-v2.xml \
 		tablet/tablet-unstable-v1.xml \
-		linux-dmabuf/linux-dmabuf-unstable-v1.xml \
 		pointer-gestures/pointer-gestures-unstable-v1.xml \
 		xdg-shell/xdg-shell-unstable-v6.xml \
 		xdg-shell/xdg-shell-unstable-v5.xml \

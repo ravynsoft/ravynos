@@ -35,12 +35,12 @@
     Typically, the global compositor space on a desktop system is made of
     a contiguous or overlapping set of rectangular regions.
 
-    Some of the information provided in this protocol might be identical
-    to their counterparts already available from wl_output, in which case
-    the information provided by this protocol should be preferred to their
-    equivalent in wl_output. The goal is to move the desktop specific
-    concepts (such as output location within the global compositor space,
-    the connector name and types, etc.) out of the core wl_output protocol.
+    The logical_position and logical_size events defined in this protocol
+    might provide information identical to their counterparts already
+    available from wl_output, in which case the information provided by this
+    protocol should be preferred to their equivalent in wl_output. The goal is
+    to move the desktop specific concepts (such as output location within the
+    global compositor space, etc.) out of the core wl_output protocol.
 
     Warning! The protocol described in this file is experimental and
     backward incompatible changes may be made. Backward compatible
@@ -117,10 +117,6 @@
 	The logical_size event describes the size of the output in the
 	global compositor space.
 
-	For example, a surface without any buffer scale, transformation
-	nor rotation set, with the size matching the logical_size will
-	have the same size as the corresponding output when displayed.
-
 	Most regular Wayland clients should not pay attention to the
 	logical size and would rather rely on xdg_shell interfaces.
 
@@ -131,14 +127,14 @@
 
 	For example, for a wl_output mode 3840×2160 and a scale factor 2:
 
-	- A compositor not scaling the surface buffers will advertise a
-	  logical size of 3840×2160,
+	- A compositor not scaling the monitor viewport in its compositing space
+	  will advertise a logical size of 3840×2160,
 
-	- A compositor automatically scaling the surface buffers will
+	- A compositor scaling the monitor viewport with scale factor 2 will
 	  advertise a logical size of 1920×1080,
 
-	- A compositor using a fractional scale of 1.5 will advertise a
-	  logical size of 2560×1440.
+	- A compositor scaling the monitor viewport using a fractional scale of
+	  1.5 will advertise a logical size of 2560×1440.
 
 	For example, for a wl_output mode 1920×1080 and a 90 degree rotation,
 	the compositor will advertise a logical size of 1080x1920.
@@ -191,6 +187,9 @@
 	xdg_output_manager.get_xdg_output). This event is only sent once per
 	xdg_output, and the name does not change over the lifetime of the
 	wl_output global.
+
+        This event is deprecated, instead clients should use wl_output.name.
+        Compositors must still support this event.
       </description>
       <arg name="name" type="string" summary="output name"/>
     </event>
@@ -212,6 +211,9 @@
 	For objects of version 2 and lower, this event is only sent once per
 	xdg_output, and the description does not change over the lifetime of
 	the wl_output global.
+
+	This event is deprecated, instead clients should use
+	wl_output.description. Compositors must still support this event.
       </description>
       <arg name="description" type="string" summary="output description"/>
     </event>

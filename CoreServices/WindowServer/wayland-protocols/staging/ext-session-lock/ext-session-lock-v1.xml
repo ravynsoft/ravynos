@@ -3,17 +3,23 @@
   <copyright>
     Copyright 2021 Isaac Freund
 
-    Permission to use, copy, modify, and/or distribute this software for any
-    purpose with or without fee is hereby granted, provided that the above
-    copyright notice and this permission notice appear in all copies.
+    Permission is hereby granted, free of charge, to any person obtaining a
+    copy of this software and associated documentation files (the "Software"),
+    to deal in the Software without restriction, including without limitation
+    the rights to use, copy, modify, merge, publish, distribute, sublicense,
+    and/or sell copies of the Software, and to permit persons to whom the
+    Software is furnished to do so, subject to the following conditions:
 
-    THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES
-    WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF
-    MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR
-    ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
-    WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN AN
-    ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
-    OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
+    The above copyright notice and this permission notice shall be included in
+    all copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
+    THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+    THE SOFTWARE.
   </copyright>
 
   <description summary="secure session locking with arbitrary graphics">
@@ -28,6 +34,10 @@
     compositor when the session should be unlocked. If the client dies while
     the session is locked the session remains locked, possibly permanently
     depending on compositor policy.
+
+    The key words "must", "must not", "required", "shall", "shall not",
+    "should", "should not", "recommended",  "may", and "optional" in this
+    document are to be interpreted as described in IETF RFC 2119.
 
     Warning! The protocol described in this file is currently in the
     testing phase. Backward compatible changes may be added together with
@@ -61,12 +71,12 @@
 
   <interface name="ext_session_lock_v1" version="1">
     <description summary="manage lock state and create lock surfaces">
-      On creation of this object either the locked or finished event will
-      immediately be sent.
+      In response to the creation of this object the compositor must send
+      either the locked or finished event.
 
-      The locked event indicates that the session is locked. This means that
-      the compositor should stop rendering and providing input to normal
-      clients. Instead the compositor should blank all outputs with an opaque
+      The locked event indicates that the session is locked. This means
+      that the compositor must stop rendering and providing input to normal
+      clients. Instead the compositor must blank all outputs with an opaque
       color such that their normal content is fully hidden.
 
       The only surfaces that should be rendered while the session is locked
@@ -74,7 +84,31 @@
       at the compositor's discretion, special privileged surfaces such as
       input methods or portions of desktop shell UIs.
 
-      If the client dies while the session is locked, the compositor should not
+      The locked event must not be sent until a new "locked" frame (either
+      from a session lock surface or the compositor blanking the output) has
+      been presented on all outputs and no security sensitive normal/unlocked
+      content is possibly visible.
+
+      The finished event should be sent immediately on creation of this
+      object if the compositor decides that the locked event will not be sent.
+
+      The compositor may wait for the client to create and render session lock
+      surfaces before sending the locked event to avoid displaying intermediate
+      blank frames. However, it must impose a reasonable time limit if
+      waiting and send the locked event as soon as the hard requirements
+      described above can be met if the time limit expires. Clients should
+      immediately create lock surfaces for all outputs on creation of this
+      object to make this possible.
+
+      This behavior of the locked event is required in order to prevent
+      possible race conditions with clients that wish to suspend the system
+      or similar after locking the session. Without these semantics, clients
+      triggering a suspend after receiving the locked event would race with
+      the first "locked" frame being presented and normal/unlocked frames
+      might be briefly visible as the system is resumed if the suspend
+      operation wins the race.
+
+      If the client dies while the session is locked, the compositor must not
       unlock the session in response. It is acceptable for the session to be
       permanently locked if this happens. The compositor may choose to continue
       to display the lock surfaces the client had mapped before it died or
@@ -119,20 +153,21 @@
         This client is now responsible for displaying graphics while the
         session is locked and deciding when to unlock the session.
 
-        Either this event or the finished event will be sent immediately on
-        creation of this object.
+        The locked event must not be sent until a new "locked" frame has been
+        presented on all outputs and no security sensitive normal/unlocked
+        content is possibly visible.
 
         If this event is sent, making the destroy request is a protocol error,
-        the lock object may only be destroyed using the unlock_and_destroy
-        request.
+        the lock object must be destroyed using the unlock_and_destroy request.
       </description>
     </event>
 
     <event name="finished">
       <description summary="the session lock object should be destroyed">
-        The compositor has decided that the session lock should be
-        destroyed. Exactly when this event is sent is compositor policy, but
-        it will never be sent more than once for a given session lock object.
+        The compositor has decided that the session lock should be destroyed
+        as it will no longer be used by the compositor. Exactly when this
+        event is sent is compositor policy, but it must never be sent more
+        than once for a given session lock object.
 
         This might be sent because there is already another ext_session_lock_v1
         object held by a client, or the compositor has decided to deny the
@@ -140,10 +175,13 @@
         be sent because the compositor implements some alternative, secure
         way to authenticate and unlock the session.
 
-        Either this event or the locked event will be sent exactly once on
-        creation of this object. If the locked event is sent on creation of
-        this object, the finished event may still be sent at some later time
-        in this object's lifetime, this is compositor policy.
+        The finished event should be sent immediately on creation of this
+        object if the compositor decides that the locked event will not
+        be sent.
+
+        If the locked event is sent on creation of this object the finished
+        event may still be sent at some later time in this object's
+        lifetime. This is compositor policy.
 
         Upon receiving this event, the client should make either the destroy
         request or the unlock_and_destroy request, depending on whether or
@@ -177,16 +215,24 @@
         verified by the client.
 
         This request also informs the compositor that the lock object will
-        no longer be used and may be safely destroyed. Existing objects
-        created through this interface remain valid.
+        no longer be used and should be destroyed. Existing objects created
+        through this interface remain valid.
 
         After this request is made, lock surfaces created through this object
         should be destroyed by the client as they will no longer be used by
         the compositor.
 
         It is a protocol error to make this request if the locked event has
-        not been sent. In that case, the lock object may only be destroyed
-        using the destroy request.
+        not been sent. In that case, the lock object must be destroyed using
+        the destroy request.
+
+        Note that a correct client that wishes to exit directly after unlocking
+        the session must use the wl_display.sync request to ensure the server
+        receives and processes the unlock_and_destroy request. Otherwise
+        there is no guarantee that the server has unlocked the session due
+        to the asynchronous nature of the Wayland protocol. For example,
+        the server might terminate the client with a protocol error before
+        it processes the unlock_and_destroy request.
       </description>
     </request>
   </interface>
@@ -199,7 +245,7 @@
 
       On binding this interface the compositor will immediately send the
       first configure event. After making the ack_configure request in
-      response to this event the client may attach and commit the first
+      response to this event the client should attach and commit the first
       buffer. Committing the surface before acking the first configure is a
       protocol error. Committing the surface with a null buffer at any time
       is a protocol error.

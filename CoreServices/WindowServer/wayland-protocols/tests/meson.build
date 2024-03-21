@@ -1,6 +1,6 @@
 prog_scan_sh = find_program('scan.sh')
-dep_scanner = dependency('wayland-scanner', native: true)
-prog_scanner = find_program(dep_scanner.get_pkgconfig_variable('wayland_scanner'))
+dep_scanner = dependency('wayland-scanner', version: '>=1.20.0', native: true, fallback: 'wayland')
+prog_scanner = find_program(dep_scanner.get_variable(pkgconfig: 'wayland_scanner', internal: 'wayland_scanner'))
 
 libwayland = [
 	dependency('wayland-client'),
@@ -14,7 +14,7 @@ foreach protocol_file : protocol_files
 	test(test_name, prog_scan_sh,
 		args: protocol_path,
 		env: [
-			'SCANNER=@0@'.format(prog_scanner.path()),
+			'SCANNER=@0@'.format(prog_scanner.full_path()),
 		]
 	)
 endforeach
