@@ -20,7 +20,6 @@ Please visit [ravynos.com](https://ravynos.com/) for more info: [Release Notes](
 * Can you help build the dream? See the current projects/needs in [CONTRIBUTING.md](CONTRIBUTING.md)!
 * Our [Discord](https://discord.com/invite/8caJbAGNwY) server.
 * `#ravynOS-general:matrix.org` - join via [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org)
-* `#airyx` on [Libera IRC](https://web.libera.chat/?channel=#airyx)
 
 [![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
