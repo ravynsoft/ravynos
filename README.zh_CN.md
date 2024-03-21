@@ -20,7 +20,6 @@ ravynOS 是一个新型的操作系统项目，致力于在 x86-64（终极目�
 * 想帮我们圆梦吗？看一下 [CONTRIBUTING.md](CONTRIBUTING.md) ！
 * 我们的 [Discord](https://discord.com/invite/8caJbAGNwY) 服务器。
 * `#ravynOS-general:matrix.org` - 通过 [Element.io](https://app.element.io/#/room/%23ravynOS-general:matrix.org) 加入。
-* `#airyx` on [Libera IRC](https://web.libera.chat/?channel=#airyx)
 
 [![Packages hosted by: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
