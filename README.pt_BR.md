@@ -18,10 +18,7 @@ Visite [ravynos.com](https://ravynos.com/) para mais informações (em inglês):
 
 * Consegue ajudar a construir o sonho? Veja os projetos/necessidades em [CONTRIBUTING.md](CONTRIBUTING.md)!
 * Nosso servidor [Discord](https://discord.com/invite/8caJbAGNwY)
-* `#airyx:matrix.org` - entre pelo [Element.io](https://app.element.io/#/room/#airyx:matrix.org)
-* `#airyx` em [Libera IRC](https://web.libera.chat/?channel=#airyx)
 
-_(nota: `#airyx` em matrix.org e IRC são conectados `#general` no Discord, apenas em inglês)_
 
 [![Sediamento de pacotes OSS: Cloudsmith](https://img.shields.io/badge/OSS%20hosting%20by-cloudsmith-blue?logo=cloudsmith&style=flat-square)](https://cloudsmith.com)
 
