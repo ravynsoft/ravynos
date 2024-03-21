@@ -124,6 +124,7 @@ SUBDIR=	alias \
 	proccontrol \
 	procstat \
 	protect \
+        python \
 	rctl \
 	renice \
 	resizewin \

@@ -90,9 +90,6 @@ Local naming conventions:
 /* for getaddrinfo thread safety test on old versions of OS X */
 #ifndef MAC_OS_X_VERSION_10_5
 #define MAC_OS_X_VERSION_10_5 1050
-#ifdef __RAVYNOS__
-#include <sys/kern_control.h> /* for sockaddr_ctl */
-#endif
 #endif
   /*
    * inet_aton is not available on OSX 10.3, yet we want to use a binary

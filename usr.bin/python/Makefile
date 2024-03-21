@@ -4,12 +4,13 @@ PROG=                   python
 CONFIGURE_ARGS+=        --enable-optimizations
 CONFIGURE_ARGS+=        --with-suffix=""
 
-CFLAGS+=        -I${DESTDIR}/usr/include/apple/
+NEWCFLAGS=      -isystem=${DESTDIR}/usr/include/apple ${CFLAGS:N-Werror} -fPIC
+NEWCFLAGS+=     -I${DESTDIR}/usr/include/apple/System -DHAVE_SYS_KERN_CONTROL_H
 
 all: ${PROG}
 ${PROG}:
 	${.CURDIR}/configure --prefix=${PREFIX} --sysconfdir=/etc ${CONFIGURE_ARGS}
-	${MAKE}
+	${MAKE} CFLAGS="${NEWCFLAGS}"
 
 install:
 	${MAKE} install DESTDIR=${DESTDIR} INSTALL="${DESTDIR}/legacy/bin/install"
